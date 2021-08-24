@@ -1,0 +1,13 @@
+[Unit]
+Description=Nitrogen Live Refresher
+StartLimitIntervalSec=0
+After=default.target
+
+[Service]
+Type=simple
+ExecStart=/opt/scripts/nitrogen-check.sh 1
+Restart=always
+RestartSec=1
+
+[Install]
+WantedBy=default.target
