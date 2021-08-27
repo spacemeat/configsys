@@ -22,6 +22,9 @@ fi
 cd ~
 paru -Sq openbox-themes obtheme obmenu obkey obapps
 
+# copy OGL software-rednering flagpole sitta
+cp $repo_dir/launchOglSw.sh ~/launchOglSw.sh
+
 # put configuration files where they go for great justice
-. $(dirname "$0")/dotfiles.sh out
+. $repo_dir/dotfiles.sh out
 
