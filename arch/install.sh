@@ -3,7 +3,7 @@ read isVboxGuest
 
 timedatectl set-ntp true
 
-pacman -Sq --needed --noconfirm vim tree build-devel git python pip xf86-video-fbdev xorg xorg-xinit nitrogen picom firefox alacritty openbox obconf menumaker tint2 rofi
+pacman -Sq --needed --noconfirm vim tree build-devel git python pip xf86-video-fbdev xorg xorg-xinit nitrogen picom firefox alacritty openbox obconf menumaker rofi openssh
 
 if [[ $isVboxGuest == [yY] || $isVboxGuest == [yY][eE][sS] ]]; then
 	pacman -Sq --needed --noconfirm virtualbox-guest-utils

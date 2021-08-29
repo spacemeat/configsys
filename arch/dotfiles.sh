@@ -71,9 +71,6 @@ breathe $action ~/.config/openbox $repo_config_dir/openbox "*"
 # get thunar config
 breathe $action ~/.config/Thunar $repo_config_dir/Thunar "*"
 
-# get tint2 config
-breathe $action ~/.config/tint2 $repo_config_dir/tint2 "*"
-
 # get xarchiver config
 breathe $action ~/.config/xarchiver $repo_config_dir/xarchiver "*"
 
