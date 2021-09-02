@@ -1,9 +1,8 @@
-tint2 &
+xfce4-panel &
 picom &
 #trayer --edge top --align right --SetDockType true --SetPartialStrut true --expand true --transparent true &
 nitrogen --restore &
-rofi -show run &
-alacritty &
+~/launchOglSw.sh alacritty &
 
 # These things are run when an Openbox X Session is started.
 # You may place a similar script in $HOME/.config/openbox/autostart

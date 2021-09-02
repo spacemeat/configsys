@@ -21,6 +21,7 @@ fi
 # get AUR packages, mostly for openbox
 cd ~
 paru -Sq openbox-themes obtheme obmenu obkey obapps
+# TODO: switch to Aura?
 
 # copy OGL software-rednering flagpole sitta
 cp $repo_dir/launchOglSw.sh ~/launchOglSw.sh

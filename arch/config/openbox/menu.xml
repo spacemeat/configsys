@@ -6,12 +6,12 @@
                 <execute>idle</execute>
             </action> </item>
             <item label="Python"> <action name="Execute">
-                <execute>alacritty -e python</execute>
+                <execute>xterm -e python</execute>
             </action> </item>
         </menu>
         <menu id="2" label="Editors">
             <item label="Vim"> <action name="Execute">
-                <execute>alacritty -e vim</execute>
+                <execute>xterm -e vim</execute>
             </action> </item>
         </menu>
         <menu id="18" label="Games">
@@ -44,16 +44,25 @@
             <item label="FireFox"> <action name="Execute">
                 <execute>firefox</execute>
             </action> </item>
+            <item label="TkVNC"> <action name="Execute">
+                <execute>xterm -e tkvnc</execute>
+            </action> </item>
         </menu>
         <menu id="19" label="Shells">
             <item label="Alacritty"> <action name="Execute">
-                <execute>alacritty</execute>
+		    <execute>~/launchOglSw.sh alacritty</execute>
             </action> </item>
             <item label="GIT"> <action name="Execute">
-                <execute>alacritty -e git</execute>
+                <execute>xterm -e git</execute>
             </action> </item>
             <item label="Thunar File Manager"> <action name="Execute">
                 <execute>thunar</execute>
+            </action> </item>
+            <item label="UXTerm"> <action name="Execute">
+                <execute>uxterm</execute>
+            </action> </item>
+            <item label="Xterm"> <action name="Execute">
+                <execute>xterm</execute>
             </action> </item>
         </menu>
         <menu id="37" label="System">
@@ -78,16 +87,19 @@
                 <execute>avahi-discover</execute>
             </action> </item>
             <item label="Pstree"> <action name="Execute">
-                <execute>alacritty -e pstree.x11</execute>
+                <execute>xterm -e pstree.x11</execute>
             </action> </item>
             <item label="pstree"> <action name="Execute">
-                <execute>alacritty -e pstree</execute>
+                <execute>xterm -e pstree</execute>
+            </action> </item>
+            <item label="pstree"> <action name="Execute">
+                <execute>xterm -e /usr/bin/pstree.x11</execute>
             </action> </item>
             <item label="Tint2"> <action name="Execute">
                 <execute>tint2</execute>
             </action> </item>
             <item label="Top"> <action name="Execute">
-                <execute>alacritty -e top</execute>
+                <execute>xterm -e top</execute>
             </action> </item>
             <item label="Xkill"> <action name="Execute">
                 <execute>xkill</execute>
@@ -104,7 +116,7 @@
                 <execute>compton</execute>
             </action> </item>
             <item label="Info"> <action name="Execute">
-                <execute>alacritty -e info</execute>
+                <execute>xterm -e info</execute>
             </action> </item>
             <item label="picom"> <action name="Execute">
                 <execute>picom</execute>
@@ -113,7 +125,7 @@
                 <execute>xarchiver</execute>
             </action> </item>
             <item label="Xev"> <action name="Execute">
-                <execute>alacritty -e xev</execute>
+                <execute>xterm -e xev</execute>
             </action> </item>
             <item label="Xsetroot"> <action name="Execute">
                 <execute>xsetroot</execute>

@@ -77,3 +77,10 @@ breathe $action ~/.config/xarchiver $repo_config_dir/xarchiver "*"
 # get X11 rc
 breathe $action ~ $repo_home_dir .xinitrc
 
+# get citybanner
+breathe $action ~/citybanner $repo_config_dir/citybanner "*"
+
+# get .bashrc
+breathe $action ~ $repo_home_dir .bashrc
+breathe $action ~ $repo_home_dir .bash_beautify.sh
+

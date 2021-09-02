@@ -50,4 +50,5 @@ fi
 
 nitrogen --restore &
 picom &
+xfce4-panel &
 exec openbox-session
