@@ -34,10 +34,10 @@ export BG_NULL=00
 ##
 # ANSI Escape Commands
 ##
-export ESC="\001\033"
-export NORMAL="$ESC[$M"
-export M="m\002"
-export RESET="$ESC[${DULL};${FG_WHITE};${BG_NULL}$M"
+ESC="\001\033"
+M="m\002"
+NORMAL="$ESC[$M"
+RESET="$ESC[${DULL};${FG_WHITE};${BG_NULL}$M"
 
 ##
 # Shortcuts for Colored Text ( Bright and FG Only )
