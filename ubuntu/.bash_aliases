@@ -6,7 +6,7 @@ function before_command()
 			return
 		fi
 	done
-	python3 ~/citybanner/citybanner.py $COLUMNS $LINES
+	python3 ~/citybanner/citybanner.py
 }
 
 trap before_command DEBUG

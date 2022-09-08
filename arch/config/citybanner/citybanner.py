@@ -6,10 +6,6 @@ import shutil
 import sys
 
 
-cols = int(sys.argv[1]) if len(sys.argv) >= 1 else 80
-rows = int(sys.argv[2]) if len(sys.argv) >= 2 else 8
-
-
 halfBlockGlyph = str(chr(0x2584)) #"\xe2\x96\x84"
 windowGlyphs   = [ '.',
                    '-',
@@ -198,7 +194,7 @@ class City:
     def __init__(self, width, height):
         self.raster = Raster(width, height)
         random.seed()
-        numBuildings = random.randrange(100) + 40
+        numBuildings = random.randrange(width) + width << 1
         skyColor0 = Color.makeRandom()
         skyColor1 = Color.makeRandom()
 
@@ -219,8 +215,18 @@ class City:
     def render(self):
         return self.raster.render()
 
-(cols, rows) = shutil.get_terminal_size((cols, rows))
-city = City(cols, 8)
+
+cols = int(sys.argv[1]) if len(sys.argv) > 1 else -1
+rows = int(sys.argv[2]) if len(sys.argv) > 2 else -1
+
+if cols == -1 or rows == -1:
+    (tcols, trows) = shutil.get_terminal_size()
+    if cols == -1:
+        cols = tcols
+    if rows == -1:
+        rows = min(trows, 8)
+
+city = City(cols, rows)
 print (city.render())
 
 
