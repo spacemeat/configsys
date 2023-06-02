@@ -26,6 +26,18 @@ paru -Sq openbox-themes obtheme obmenu obkey obapps
 # copy OGL software-rednering flagpole sitta
 cp $repo_dir/launchOglSw.sh ~/launchOglSw.sh
 
+# citybanner
+mkdir -p ~/citybanner
+cp -ru ../linux/citybanner/* ~/citybanner
+
+# geg, the gcc error helper
+makedir -p ~/src
+pushd ~/src
+if ! -d geg ; then
+        git clone git@github.com:spacemeat/geg.git
+fi
+popd
+
 # put configuration files where they go for great justice
 . $repo_dir/dotfiles.sh out
 

@@ -1,3 +1,8 @@
+#alias g="python3 -m boilermaker ./og-boma.hu"
+#alias b="python3 -m boilermaker ./build.hu; python3 -m geg"
+#alias d="python3 -m geg"
+alias gdb="gdb -x ~/.gdbinit_x"
+
 function before_command()
 {
 	readarray -t checklist < ~/citybanner/excludes
