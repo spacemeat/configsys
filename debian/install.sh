@@ -1,36 +1,34 @@
-hasFiles(){
-	test -e "$1"
-}
+source ../linux/basics.sh
 
 
-sudo apt update
-sudo apt upgrade
-sudo apt install python3-pip python3-venv npm git tree vim build-essential cmake wget curl
+run "sudo apt update" || exit $?
+run "sudo apt upgrade" || exit $?
+run "sudo apt install python3-pip python3-venv npm git tree vim build-essential cmake wget curl xclip" || exit $?
 
 # node
-curl https://raw.githubusercontent.com/creationix/nvm/master/install.sh | bash
-mvn install node
+run "curl https://raw.githubusercontent.com/creationix/nvm/master/install.sh | bash" || exit $?
+run "mvn install node" || exit $?
 
 # get Vulkan SDK
-wget -qO- https://packages.lunarg.com/lunarg-signing-key-pub.asc | sudo tee /etc/apt/trusted.gpg.d/lunarg.asc
-sudo wget -qO /etc/apt/sources.list.d/lunarg-vulkan-jammy.list http://packages.lunarg.com/vulkan/lunarg-vulkan-jammy.list
-sudo apt update
-sudo apt install vulkan-sdk
+run "wget -qO- https://packages.lunarg.com/lunarg-signing-key-pub.asc | sudo tee /etc/apt/trusted.gpg.d/lunarg.asc" || exit $?
+run "sudo wget -qO /etc/apt/sources.list.d/lunarg-vulkan-jammy.list http://packages.lunarg.com/vulkan/lunarg-vulkan-jammy.list" || exit $?
+run "sudo apt update" || exit $?
+run "sudo apt install vulkan-sdk" || exit $?
 
 # citybanner
-mkdir -p ~/citybanner
-cp -ru ../linux/citybanner/* ~/citybanner
+run "mkdir -p ~/citybanner" || exit $?
+run "cp -ru ../linux/citybanner/* ~/citybanner" || exit $?
 
 # geg, the gcc error helper
-makedir -p ~/src
-pushd ~/src
+run "makedir -p ~/src" || exit $?
+run "pushd ~/src" || exit $?
 if ! -d geg ; then
-	git clone git@github.com:spacemeat/geg.git
+	run "git clone git@github.com:spacemeat/geg.git" || exit $?
 fi
 
 # dotfiles
-cp ./home/.bash_aliases ~
-cp ./home/.gdbinit ~
-cp ./home/.gdbinit_x ~
+run "cp ./home/.bash_aliases ~" || exit $?
+run "cp ./home/.gdbinit ~" || exit $?
+run "cp ./home/.gdbinit_x ~" || exit $?
 
 

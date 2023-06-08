@@ -3,6 +3,9 @@
 #alias d="python3 -m geg"
 alias gdb="gdb -x ~/.gdbinit_x"
 
+alias setclip="xclip -selection c"
+alias getclip="xclip -selection c -o"
+
 function before_command()
 {
 	readarray -t checklist < ~/citybanner/excludes
