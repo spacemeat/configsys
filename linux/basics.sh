@@ -1,14 +1,10 @@
 #!/bin/bash
 
 
-hasFiles(){
-        test -e "$1"
-}
-
 run(){
         echo -e "$fg_gray$1$fg_default"
         eval $1
-	ret_val=$?
+	local ret_val=$?
         if [ ! $ret_val -eq 0 ] ; then
                 echo -e "Command returned $fg_red$ret_val$fg_default"
 		return $ret_val
