@@ -2,5 +2,6 @@
 
 repo_dir="./debian"
 
-. debian/install.sh
+cd debian
+. install.sh
 
