@@ -3,5 +3,5 @@
 repo_dir="./debian"
 
 cd debian
-. install.sh
+PYTHONPATH="../linux" python3 -m config ./config.json
 
