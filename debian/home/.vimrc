@@ -1,0 +1,2 @@
+:set ai
+:set number

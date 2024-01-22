@@ -1,0 +1,139 @@
+{
+	"basics": {
+		"depends": [],
+		"install": [ {
+				"did": "vim --version",
+				"do": [
+					"sudo apt -y update && sudo apt -y upgrade",
+					"sudo apt -y install git tree vim wget curl cxlip slack discord neovim"
+				],
+				"undo": "sudo apt -y remove neovim discord slack cxlip curl wget vim tree git"
+			}, {
+				"did": "[ -f ~/.bash_aliases ]",
+				"do": "cp ./home/.bash_aliases ~",
+				"undo": "rm ~/.bash_aliases"
+			}, {
+				"did": "[ -f ~/.vimrc ]",
+				"do": "cp ./home/.vimrc ~",
+				"undo": "rm ~/.vimrc"
+			}
+		]
+	},
+
+	"citybanner": {
+		"depends": [],
+		"install": [ {
+				"did": "",
+				"do": "mkdir -p ~/citybanner",
+				"undo": "rm -rf ~/citybanner"
+			}, {
+				"did": "[ -f ~/citybanner/citybanner.py ]",
+				"do": "cp -ru ../linux/citybanner/* ~/citybanner",
+				"undo": "rm ~/citybanner/*"
+			}
+		]
+	},
+
+	"c-dev": {
+		"depends": [],
+		"install": [ {
+				"did": "gcc --version",
+				"do": [
+					"sudo apt -y update && sudo apt -y upgrade",
+					"sudo apt -y install build-essential cmake"
+				],
+				"undo": "sudo apt -y remove cmake build-essential"
+			}, {
+				"did": "[ -f ~/.gdbinit ]",
+				"do": "cp ./home/.gdbinit ~",
+				"undo": "rm ~/.gdbinit"
+			}, {
+				"did": "[ -f ~/.gdbinit_x ]",
+				"do": "cp ./home/.gdbinit_x",
+				"undo": "rm ~/.gdbinit_x"
+			}
+		]
+
+	},
+
+	"geg": {
+		"depends": ["basics", "c-dev"],
+		"install": [ {
+				"did": "[ -d ~/src/geg ]",
+				"do": [
+					"rm -f ~/src/geg",
+					"mkdir -p ~/src/geg"
+				],
+				"undo": "rm -rf ~/src/geg"
+			}, {
+				"did": "[ -f ~/src/geg/LICENSE ]",
+				"do": "git clone git@github.com:spacemeat/geg ~/src/geg",
+				"undo": "rm ~/src/geg/*"
+			}
+		]
+	},
+
+	"python3": {
+		"depends": [],
+		"detect": "python3 --version",
+		"install": [ {
+				"did": "[ $(apt list python3-pip python3-venv | grep \"python3\" | wc -l) != \"0\" ]",
+				"do": [
+					"sudo apt -y updage && sudo apt -y upgrade",
+					"sudo apt -y install python3-pip python3-venv"
+				],
+				"undo": "sudo apt -y remove python3-venv python3-pip"
+			}
+		]
+	},
+
+	"nvm": {
+		"depends": ["basics"],
+		"install": [ {
+				"did": "[ -f ~/.nvm/LICENSE.md ]",
+				"do": "curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/master/install.sh | bash",
+				"undo": "rm -rf ~/.nvm"
+			}, {
+				"did": "",
+				"do": "source ~/.bashrc",
+				"undo": ""
+			}
+		]
+	},
+
+	"node": {
+		"depends": ["nvm"],
+		"install": [ {
+				"did": "node --version",
+				"do": "nvm install latest",
+				"undo": "nvm uninstall latest"
+			}
+		]
+	},
+
+	"all-lang-dev": {
+		"depends": ["basics", "c-dev", "python3", "node"]
+	},
+
+	"vulkan-dev": {
+		"depends": ["c-dev"],
+		"install": [ {
+				"did": "",
+				"do": "wget -qO- https://packages.lunarg.com/lunarg-signing-key-pub.asc | sudo tee /etc/apt/trusted.gpg.d/lunarg.asc",
+				"undo": "sudo rm /etc/apt/trusted.gpg.d/lunarg.asc"
+			}, {
+				"did": "",
+				"do": "sudo wget -qO /etc/apt/sources.list.d/lunarg-vulkan-jammy.list http://packages.lunarg.com/vulkan/lunarg-vulkan-jammy.list",
+				"undo": "sudo rm /etc/apt/sources.list.d/lunarg-vulkan-jammy.list"
+			}, {
+				"did": "[ $(apt list vulkan-sdk | grep \"vulkan-sdk\" | wc -l) != \"0\" ]",
+				"do": [
+					"sudo apt -y update && sudo apt -y upgrade",
+					"sudo apt -y install vulkan-sdk"
+				],
+				"undo": "sudo apt -y remove vulkan-sdk"
+			}
+		]
+	}
+}
+
