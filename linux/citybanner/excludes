@@ -12,3 +12,10 @@ rm
 rmdir
 mv
 git 
+ps1_build_prompt
+test
+[
+if
+vim
+alias
+export
