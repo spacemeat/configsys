@@ -20,6 +20,42 @@
 		]
 	},
 
+	"discord": {
+		"depends": [],
+		"install": [ {
+				"did": "[ -d ~/discord ]",
+				"do": "mkdir -p ~/discord",
+				"undo": "rm -rf ~/discord"
+			}, {
+				"did": "[ -f ~/discord/discord.deb ]",
+				"do": "wget -qO ~/discord/discord.deb \"https://discordapp.com/api/download?platform=linux&format=deb\"",
+				"undo": "rm ~/discord/*"
+			}, {
+				"did": "[ $(apt list --installed discord | grep \"discord\" | wc -l) -ne 0 ]",
+				"do": "sudo apt -y install ~/discord/discord.deb",
+				"undo": "sudo apt -y remove discord"
+			}
+		]
+	},
+
+	"slack": {
+		"depends": [],
+		"install": [ {
+				"did": "[ -d ~/slack ]",
+				"do": "mkdir -p ~/slack",
+				"undo": "rm -rf ~/slack"
+			}, {
+				"did": "[ -f ~/slack/slack.deb ]",
+				"do": "SLACKVER=`wget -qO - \"https://slack.com/release-notes/linux\" | grep -Po 'Slack \\d+\\.\\d+\\.\\d+' | head -1 | grep -Po '\\d+\\.\\d+\\.\\d+'` && wget -qO ~/slack/slack.deb \"https://downloads.slack-edge.com/releases/linux/$SLACKVER/prod/x64/slack-desktop-$SLACKVER-amd64.deb\"",
+				"undo": "rm ~/slack/*"
+			}, {
+				"did": "[ $(apt list --installed slack-desktop | grep \"slack-desktop\" | wc -l) -ne 0 ]",
+				"do": "sudo apt -y install ~/slack/slack.deb",
+				"undo": "sudo apt -y remove slack"
+			}
+		]
+	},
+
 	"citybanner": {
 		"depends": [],
 		"install": [ {
@@ -77,7 +113,7 @@
 		"depends": [],
 		"detect": "python3 --version",
 		"install": [ {
-				"did": "[ $(apt list python3-pip python3-venv | grep \"python3\" | wc -l) != \"0\" ]",
+				"did": "[ $(apt list --installed python3-pip python3-venv | grep \"python3\" | wc -l) -ne 0 ]",
 				"do": [
 					"sudo apt -y updage && sudo apt -y upgrade",
 					"sudo apt -y install python3-pip python3-venv"
@@ -126,7 +162,7 @@
 				"do": "sudo wget -qO /etc/apt/sources.list.d/lunarg-vulkan-jammy.list http://packages.lunarg.com/vulkan/lunarg-vulkan-jammy.list",
 				"undo": "sudo rm /etc/apt/sources.list.d/lunarg-vulkan-jammy.list"
 			}, {
-				"did": "[ $(apt list vulkan-sdk | grep \"vulkan-sdk\" | wc -l) != \"0\" ]",
+				"did": "[ $(apt list --installed vulkan-sdk | grep \"vulkan-sdk\" | wc -l) -ne 0 ]",
 				"do": [
 					"sudo apt -y update && sudo apt -y upgrade",
 					"sudo apt -y install vulkan-sdk"

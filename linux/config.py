@@ -157,9 +157,6 @@ class Config:
 
         installs = deps
 
-        print (f'installs: {installs}')
-        print (f'uninstalls: {uninstalls}')
-        
         for inst in installs:
             self.install(inst)
 
