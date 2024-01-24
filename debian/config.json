@@ -20,6 +20,31 @@
 		]
 	},
 
+	"generate SSH key for github, etc.": {
+		"depends": [],
+		"install": [ {
+				"did": "[ -e ~/.ssh/id_ed25519.pub ]",
+				"do": "echo \"Comment (email): \" && read SSHCOMMENT && ssh-keygen -t ed25519 -C \"$SSHCOMMENT\"",
+				"undo": "mv ~/.ssh/id_ed25519 ~/.ssh/defunct_id_ed25519 && mv ~/.ssh/id_ed25519.pub ~/.ssh/defunct_id_ed25519.pub"
+			}, {
+				"did": "[ $(env | grep 'SSH_AUTH_SOCK' | wc -l) -gt 0 ]",
+				"do": "eval \"$(ssh-agent -s)\"",
+				"undo": ""
+			} ,{
+				"did": "[ $(ssh-add -L | grep 'ssh-ed25519' | wc -l) -gt 0 ]",
+				"do": "ssh-add ~/.ssh/id_ed25519",
+				"undo": "ssh-add -d ~/.ssh/id_ed25519.pub"
+			}, {
+				"did": "[ -f ~/.ssh/id_ed25519.pub ]",
+				"do": [
+					"cat ~/.ssh/id_ed25519.pub | setclip",
+					"xdg-open https://github.com/settings/keys"
+				],
+				"undo": "xdg-open https://github.com/settings/keys"
+			}
+		]
+	},
+
 	"discord": {
 		"depends": [],
 		"install": [ {
