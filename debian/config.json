@@ -5,9 +5,9 @@
 				"did": "vim --version",
 				"do": [
 					"sudo apt -y update && sudo apt -y upgrade",
-					"sudo apt -y install git tree vim wget curl cxlip slack discord neovim"
+					"sudo apt -y install git tree vim wget curl xclip"
 				],
-				"undo": "sudo apt -y remove neovim discord slack cxlip curl wget vim tree git"
+				"undo": "sudo apt -y remove xclip curl wget vim tree git"
 			}, {
 				"did": "[ -f ~/.bash_aliases ]",
 				"do": "cp ./home/.bash_aliases ~",
@@ -20,44 +20,118 @@
 		]
 	},
 
+	"nerdy fonts": {
+		"depends": [],
+		"vars": {
+			"CS_FONTDIR": "~/.local/share/fonts/mononoki-nerd",
+			"CS_TMPFILE": "/tmp/mononoki.zip",
+			"CS_DLURL": "\"https://github.com/ryanoasis/nerd-fonts/releases/download/v3.1.1/Mononoki.zip\""
+		},
+		"install": [{
+				"did": "[ -d $CS_FONTDIR ]",
+				"do": "mkdir -p $CS_FONTDIR",
+				"undo": "rm -rf $CS_FONTDIR"
+			}, {
+				"did": "[ $(fc-list | grep 'mononoki' | wc -l) -gt 0 ]",
+				"do": [
+					"wget -qO $CS_TMPFILE $CS_DLURL",
+					"unzip $CS_TMPFILE -d S_FONTDIR",
+					"rm $CS_TMPFILE",
+					"sudo fc-cache -f $CS_FONTDIR"
+				],
+				"undo": [
+					"rm $CS_FONTDIR/*",
+					"fc-cache -f"
+				]
+			}
+		]
+	},
+
+	"neovim": {
+		"depens": ["nerdy fonts"],
+		"vars": {
+			"CS_INSTDIR": "~/neovim",
+			"CS_APPIMAGE": "$CS_INSTDIR/nvim.appimage",
+			"CS_DLURL": "\"https://github.com/neovim/neovim/releases/latest/download/nvim.appimage\""
+		},
+		"install": [{
+				"did": "[ -d $CS_INSTDIR ]",
+				"do": "mkdir -p $CS_INSTDIR",
+				"undo": "rm -rf $CS_INSTDIR"
+			}, {
+				"did": "[ $(apt list --installed ripgrep | grep \"ripgrep\" | wc -l) -ne 0 ]",
+				"do": [
+					"sudo apt -y update && sudo apt -y upgrade",
+					"sudo apt -y install ripgrep"
+				],
+				"undo": "sudo apt -y remove ripgrep"
+			}, {
+				"did": "[ -f $CS_APPIMAGE ]",
+				"do": "wget -qO $CS_APPIMAGE $CS_DLURL",
+				"undo": "rm $CS_APPIMAGE"
+			}, {
+				"did": "[ -x $CS_APPIMAGE ]",
+				"do": "chmod u+x $CS_APPIMAGE",
+				"undo": "chmod u-x $CS_APPIMAGE"
+			}, {
+				"notes": "TODO: Get .config/nvim into configsys, and copy it over here"
+			}
+		]
+	},
+
 	"generate SSH key for github, etc.": {
 		"depends": [],
+		"vars": {
+			"CS_SSHDIR": "~/.ssh",
+			"CS_ALG": "ed25519",
+			"CS_FN": "id_$CS_ALG",
+			"CS_PRVPATH": "$CS_SSHDIR/$CS_FN",
+			"CS_PUBPATH": "$CS_SSHDIR/$CS_FN.pub",
+			"CS_DEFPRVPATH": "$CS_SSHDIR/defunct_$CS_FN",
+			"CS_DEFPUBPATH": "$CS_SSHDIR/defunct_$CS_FN.pub",
+			"CS_GITHUBURL": "\"https://github.com/settings/keys\""
+		},
 		"install": [ {
-				"did": "[ -e ~/.ssh/id_ed25519.pub ]",
-				"do": "echo \"Comment (email): \" && read SSHCOMMENT && ssh-keygen -t ed25519 -C \"$SSHCOMMENT\"",
-				"undo": "mv ~/.ssh/id_ed25519 ~/.ssh/defunct_id_ed25519 && mv ~/.ssh/id_ed25519.pub ~/.ssh/defunct_id_ed25519.pub"
+				"did": "[ -e $CS_PUBPATH ]",
+				"do": "echo \"Comment (email): \" && read SSHCOMMENT && ssh-keygen -t $CS_ALG -C \"$SSHCOMMENT\"",
+				"undo": "mv $CS_PRVPATH $CS_DEFPRVPATH && mv $CS_PUBPATH $CS_DEFPUBPATH"
 			}, {
 				"did": "[ $(env | grep 'SSH_AUTH_SOCK' | wc -l) -gt 0 ]",
 				"do": "eval \"$(ssh-agent -s)\"",
 				"undo": ""
 			} ,{
-				"did": "[ $(ssh-add -L | grep 'ssh-ed25519' | wc -l) -gt 0 ]",
-				"do": "ssh-add ~/.ssh/id_ed25519",
-				"undo": "ssh-add -d ~/.ssh/id_ed25519.pub"
+				"did": "[ $(ssh-add -L | grep \"ssh-$CS_ALG\" | wc -l) -gt 0 ]",
+				"do": "ssh-add $CS_PRVPATH",
+				"undo": "ssh-add -d $CS_PUBPATH"
 			}, {
-				"did": "[ -f ~/.ssh/id_ed25519.pub ]",
+				"did": "[ -f $CS_PUBPATH ]",
 				"do": [
-					"cat ~/.ssh/id_ed25519.pub | setclip",
-					"xdg-open https://github.com/settings/keys"
+					"cat $CS_PUBPATH | setclip",
+					"xdg-open $CS_GITHUBURL"
 				],
-				"undo": "xdg-open https://github.com/settings/keys"
+				"undo": "xdg-open $CS_GITHUBURL"
 			}
 		]
 	},
 
 	"discord": {
 		"depends": [],
+		"vars": {
+			"CS_INSTDIR": "~/discord",
+			"CS_TMPFILE": "$CS_INSTDIR/discord.deb",
+			"CS_DLURL": "\"https://discordapp.com/api/download?platform=linux&format=deb\""
+		},
 		"install": [ {
-				"did": "[ -d ~/discord ]",
-				"do": "mkdir -p ~/discord",
-				"undo": "rm -rf ~/discord"
+				"did": "[ -d $CS_INSTDIR ]",
+				"do": "mkdir -p $CS_INSTDIR",
+				"undo": "rm -rf $CS_INSTDIR"
 			}, {
-				"did": "[ -f ~/discord/discord.deb ]",
-				"do": "wget -qO ~/discord/discord.deb \"https://discordapp.com/api/download?platform=linux&format=deb\"",
-				"undo": "rm ~/discord/*"
+				"did": "[ -f $CS_TMPFILE ]",
+				"do": "wget -qO $CS_TMPFILE $CS_DLURL",
+				"undo": "rm $CS_TMPFILE"
 			}, {
 				"did": "[ $(apt list --installed discord | grep \"discord\" | wc -l) -ne 0 ]",
-				"do": "sudo apt -y install ~/discord/discord.deb",
+				"do": "sudo apt -y install $CS_TMPFILE",
 				"undo": "sudo apt -y remove discord"
 			}
 		]
@@ -65,17 +139,23 @@
 
 	"slack": {
 		"depends": [],
+		"vars": {
+			"CS_INSTDIR": "~/slack",
+			"CS_TMPFILE": "$CS_INSTDIR/slack.deb",
+			"CS_VERURL": "\"https://slack.com/release-notes/linux\"",
+			"CS_DLURL": "\"https://downloads.slack-edge.com/releases/linux/$SLACKVER/prod/x64/slack-desktop-$SLACKVER-amd64.deb\""
+		},
 		"install": [ {
-				"did": "[ -d ~/slack ]",
-				"do": "mkdir -p ~/slack",
-				"undo": "rm -rf ~/slack"
+				"did": "[ -d $CS_INSTDIR ]",
+				"do": "mkdir -p $CS_INSTDIR",
+				"undo": "rm -rf $CS_INSTDIR"
 			}, {
-				"did": "[ -f ~/slack/slack.deb ]",
-				"do": "SLACKVER=`wget -qO - \"https://slack.com/release-notes/linux\" | grep -Po 'Slack \\d+\\.\\d+\\.\\d+' | head -1 | grep -Po '\\d+\\.\\d+\\.\\d+'` && wget -qO ~/slack/slack.deb \"https://downloads.slack-edge.com/releases/linux/$SLACKVER/prod/x64/slack-desktop-$SLACKVER-amd64.deb\"",
-				"undo": "rm ~/slack/*"
+				"did": "[ -f $CS_TMPFILE ]",
+				"do": "SLACKVER=`wget -qO - $CS_VERURL | grep -Po 'Slack \\d+\\.\\d+\\.\\d+' | head -1 | grep -Po '\\d+\\.\\d+\\.\\d+'` && wget -qO $CS_TMPFILE $CS_DLURL",
+				"undo": "rm $CS_TMPFILE"
 			}, {
 				"did": "[ $(apt list --installed slack-desktop | grep \"slack-desktop\" | wc -l) -ne 0 ]",
-				"do": "sudo apt -y install ~/slack/slack.deb",
+				"do": "sudo apt -y install $CS_TMPFILE",
 				"undo": "sudo apt -y remove slack"
 			}
 		]
@@ -136,7 +216,6 @@
 
 	"python3": {
 		"depends": [],
-		"detect": "python3 --version",
 		"install": [ {
 				"did": "[ $(apt list --installed python3-pip python3-venv | grep \"python3\" | wc -l) -ne 0 ]",
 				"do": [
@@ -145,14 +224,18 @@
 				],
 				"undo": "sudo apt -y remove python3-venv python3-pip"
 			}
-		]
+		],
+		"notes": "TODO: Source from more up-to-date palce."
 	},
 
 	"nvm": {
 		"depends": ["basics"],
+		"vars": {
+			"CS_DLURL": "\"https://raw.githubusercontent.com/nvm-sh/nvm/master/install.sh\""
+		},
 		"install": [ {
 				"did": "[ -f ~/.nvm/LICENSE.md ]",
-				"do": "curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/master/install.sh | bash",
+				"do": "curl -o- $CS_DLURL | bash",
 				"undo": "rm -rf ~/.nvm"
 			}, {
 				"did": "",
@@ -172,20 +255,54 @@
 		]
 	},
 
+	"go": {
+		"depends": [],
+		"vars": {
+			"CS_INSTDIR": "/usr/local",
+			"CS_TMPPATH": "/tmp/golang.tar.gz",
+			"CS_VERURL": "",
+			"CS_DLURL": "\"https://go.dev/dl/go1.21.6.linux-amd64.tar.gz\"",
+			"CS_DLVURL": "\"github.com/go-delve/delve/cmd/dlv@latest\""
+		},
+		"install": [ {
+				"notes": "Need to get current version via scraping I guess",
+				"did": "go version",
+				"do": [
+					"wget -qO $CS_TMPPATH $CS_DLURL",
+					"tar -C $CS_INSTDIR -xzf $CS_TMPPATH",
+					"rm $CS_TMPPATH"
+				],
+				"undo": [
+					"rm -rf $CS_INSTDIR/go"
+				]
+			}, {
+				"did": "dlv version",
+				"do": "go install $CS_DLVURL",
+				"undo": ""
+			}
+		]
+	},
+
 	"all-lang-dev": {
 		"depends": ["basics", "c-dev", "python3", "node"]
 	},
 
 	"vulkan-dev": {
 		"depends": ["c-dev"],
+		"vars": {
+			"CS_PUBKEYURL": "https://packages.lunarg.com/lunarg-signing-key-pub.asc",
+			"CS_PUBKEYPATH": "/etc/apt/trusted.gpg.d/lunarg.asc",
+			"CS_SOURCESURL": "http://packages.lunarg.com/vulkan/lunarg-vulkan-jammy.list",
+			"CS_SOURCESPATH": "/etc/apt/sources.list.d/lunarg-vulkan-jammy.list"
+		},
 		"install": [ {
 				"did": "",
-				"do": "wget -qO- https://packages.lunarg.com/lunarg-signing-key-pub.asc | sudo tee /etc/apt/trusted.gpg.d/lunarg.asc",
-				"undo": "sudo rm /etc/apt/trusted.gpg.d/lunarg.asc"
+				"do": "wget -qO- $CS_PUBKEYURL | sudo tee $CS_PUBKEYPATH",
+				"undo": "sudo rm $CS_PUBKEYPATH"
 			}, {
 				"did": "",
-				"do": "sudo wget -qO /etc/apt/sources.list.d/lunarg-vulkan-jammy.list http://packages.lunarg.com/vulkan/lunarg-vulkan-jammy.list",
-				"undo": "sudo rm /etc/apt/sources.list.d/lunarg-vulkan-jammy.list"
+				"do": "sudo wget -qO $SOURCESPATHt $CS_SOURCESURL",
+				"undo": "sudo rm $CS_SOURCESPATH"
 			}, {
 				"did": "[ $(apt list --installed vulkan-sdk | grep \"vulkan-sdk\" | wc -l) -ne 0 ]",
 				"do": [
