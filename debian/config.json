@@ -1,6 +1,5 @@
 {
 	"basics": {
-		"depends": [],
 		"install": [ {
 				"did": "vim --version",
 				"do": [
@@ -21,7 +20,6 @@
 	},
 
 	"nerdy fonts": {
-		"depends": [],
 		"vars": {
 			"CS_FONTDIR": "~/.local/share/fonts/mononoki-nerd",
 			"CS_TMPFILE": "/tmp/mononoki.zip",
@@ -51,6 +49,7 @@
 		"depens": ["nerdy fonts"],
 		"vars": {
 			"CS_INSTDIR": "~/neovim",
+			"CS_CONFIGDIR": "~/.config/nvim",
 			"CS_APPIMAGE": "$CS_INSTDIR/nvim.appimage",
 			"CS_DLURL": "\"https://github.com/neovim/neovim/releases/latest/download/nvim.appimage\""
 		},
@@ -74,7 +73,13 @@
 				"do": "chmod u+x $CS_APPIMAGE",
 				"undo": "chmod u-x $CS_APPIMAGE"
 			}, {
-				"notes": "TODO: Get .config/nvim into configsys, and copy it over here"
+				"did": "[ -d $CS_CONFIGDIR ]",
+				"do": "mkdir -p $CS_CONFIGDIR",
+				"undo": "rm -rf $CS_CONFIGDIR"
+			}, {
+				"did": "[ -f $CS_CONFIGDIR/init.lua ]",
+				"do": "cp -r ../neovim/* $CS_CONFIGDIR",
+				"undo": "rm -r $CS_CONFIGDIR"
 			}
 		]
 	},
