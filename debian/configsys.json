@@ -1,0 +1,133 @@
+{
+	"setvars": {
+		"CS_OUTOFDATE": "apt-get --just-print upgrade | sed -n 's/Inst \([^ ][^ ]*\) \[\([^ ][^ ]*\)\] (\([^ ][^ ]*\) .*/\1 \2 \3/p'"
+	},
+	"run": [
+		"sudo apt -y update"
+	] ,
+	"templates": {
+		"package": {
+			"args": [ "CS_PKGNAME" ],
+			"setvars": {
+				"CS_PKGVER": "apt-cache policy $CS_PKGNAME | sed -n 's/[^ ][^ ]*Installed:[^ ][^ ]*\(.*\)/\1/p",
+				"CS_PKGDEPS": "echo $CS_PKGNAME; apt-cache depends $CS_PKGNAME | sed -n 's/\s\s*Depends:\s\s*\([^ ][^ ]*\)/\1/p'",
+				"CS_PKGDEPSVERS": "echo $CS_PKGDEPS | while IFS= read -r line; do grep -P \"$line\s\"; done"
+			},
+			"old-version": "echo $CS_PKGVER",
+			"new-version": "echo CS_PKGDEPSVERS | sed -n 's/'\"$CS_PKGNAME\" [^ ][^ ]* \([^ ][^ ]*\)'/\1/p'",
+			"install": "sudo apt-get -y install $CS_PKGNAME",
+			"upgrade": "sudo apt-get -y install $CS_PKGNAME",
+			"uninstall": "sudo apt-get -y remove $CS_PKGNAME"
+		},
+		"dir-unversioned": {
+			"args": [ "CS_DIR" ],
+			"vars": { },
+			"old-version": "[ -d $CS_DIR ]",
+			"new-version": "[ -d $CS_DIR ]",
+			"install": "mkdir -p $CS_DIR",
+			"uninstall": "rmdir $CS_DIR"
+		},
+		"dir-vername": {
+			"args": [ "CS_DIR_NEW", "CS_DIR_OLD" ],
+			"vars": { },
+			"old-version": "[ -d $CS_DIR_OLD ]",
+			"new-version": "[ -d $CS_DIR_NEW ]",
+			"install": "mkdir -p $CS_DIR_NEW",
+			"upgrade-pre": "mkdir -p $CS_DIR_NEW",
+			"upgrade-post": "rmdir $CS_DIR_OLD",
+			"uninstall": "rmdir $CS_DIR_OLD"
+		},
+		"file-mtime": {
+			"args": [ "CS_SRCPATH", "CS_DSTPATH" ],
+			"vars": { },
+			"old-version": "stat -c %Y $CS_DSTPATH",
+			"new-version": "stat -c %Y $CS_SRCPATH",
+			"install": "cp $CS_SRCPATH $CS_DSTPATH",
+			"upgrade-pre": "cp $CS_SRCPATH $CS_DSTPATH",
+			"uninstall": "rm $CS_DESTPATH"
+		},
+		"file-vername": {
+			"args": [ "CS_SRCPATH", "CS_DSTPATH_NEW", "CS_DSTPATH_OLD" ],
+			"vars": { },
+			"old-version": "[ -f $CS_DSTPATH_OLD ]",
+			"new-version": "[ -f $CS_DSTPATH_NEW ]",
+			"install": "cp $CS_SRCPATH $CS_DSTPATH",
+			"upgrade-pre": "cp $CS_SRCPATH $CS_DSTPATH_NEW",
+			"upgrade-pre": "rm $CS_DSTPATH_OLD",
+			"uninstall": "rm $CS_DESTPATH_OLD"
+		},
+		"path-mtime": {
+			"args": [ "CS_PATH_SRC", "CS_PATH_DST" ],
+			"steps": [
+				{ "template": "dir-unversioned", "args": "dirname $CS_PATH_DST" },
+				{ "template": "file-mtime", "args": ["basename $CS_PATH_DST", "basename $CS_PATH_SRC"] }
+			]
+		},
+		"path-versioned_dir": {
+			"args": [ "CS_SRCPATH", "CS_DSTPATH_NEW", "CS_DSTPATH_OLD" ],
+			"steps": [
+				{ "template": "dir-vername", "args": ["dirname $CS_DSTPATH_NEW", "dirname $CS_DSTPATH_OLD"] },
+				{ "template": "file-vername", "args": ["basename $CS_SRCPATH", "basename $CS_DSTPATH_NEW", "basename $CS_DSTPATH_OLD"] }
+			]
+		},
+		"path-versioned_file": {
+			"args": [ "CS_SRCPATH", "CS_DSTPATH_NEW", "CS_DSTPATH_OLD" ],
+			"steps": [
+				{ "template": "dir-unvername", "args": "dirname $CS_DSTPATH_NEW" },
+				{ "template": "file-vername", "args": ["basename $CS_SRCPATH", "basename $CS_DSTPATH_NEW", "basename $CS_DSTPATH_OLD"] }
+			]
+		}
+	},
+	"basics": {
+		"steps": [
+			{ "template": "package", "args": "git" },
+			{ "template": "package", "args": "tree" },
+			{ "template": "package", "args": "vim" },
+			{ "template": "package", "args": "wget" },
+			{ "template": "package", "args": "curl" },
+			{ "template": "package", "args": "xclip" },
+			{ "template": "path-mtime", "args": [ "./home/.bash_d/aliases", "~/.bash_d/aliases" ] },
+			{ "template": "path-mtime", "args": [ "./home/.vimrc", "~/.vimrc" ] }
+		]
+	},
+	"nerdy fonts": {
+		"depends": [],
+		"setvars": {
+			"CS_AGGURL": "echo 'https://www.nerdfonts.com/font-downloads'",
+			"CS_DLURL": "echo \"https://github.com/ryanoasis/nerd-fonts/releases/download/v$CS_FONTVER/Mononoki.zip\"",
+			"CS_FONTBASEDIR": "echo \"~/.local/share/fonts/mononoki-nerd\"",
+			"CS_FONTVER_OLD": "ls $CS_FONTBASEDIR | sort -V -r | head -1",
+			"CS_FONTVER_NEW": "wget -qO- \"$CS_AGGURL\" | sed -n -r 's/.*v([0-9]+\.[0-9]+\.[0-9]+)\/Mononoki.zip.*/\1/p' | head -1",
+			"CS_FONTDIR_OLD": "echo \"$CS_FONTBASEDIR/v$CS_FONTVER_OLD\"",
+			"CS_FONTDIR_NEW": "echo \"$CS_FONTBASEDIR/v$CS_FONTVER_NEW\"",
+			"CS_TMPFILE": "echo '/tmp/mononoki.zip'"
+		},
+		"steps": [
+			{ "template": "dir-vername", "args": [ "$CS_FONTDIR_OLD", "$CS_FONTDIR_NEW" ] },
+			{
+				"old-version": "echo $CS_FONTVER_OLD",
+				"new-version": "echo $CS_FONTVER_NEW",
+				"install": [
+					"wget -qO $CS_TMPFILE $CS_DLURL",
+					"unzip $CS_TMPFILE -d S_FONTDIR_NEW",
+					"rm $CS_TMPFILE",
+					"sudo fc-cache -f $CS_FONTDIR_NEW"
+				],
+				"upgrade-pre": [
+					"wget -qO $CS_TMPFILE $CS_DLURL",
+					"unzip $CS_TMPFILE -d S_FONTDIR_NEW",
+					"rm $CS_TMPFILE"
+				],
+				"upgrade-post": [
+					"rm $CS_FONTDIR_OLD/*",
+					"sudo fc-cache -f $CS_FONTDIR_OLD $CS_FONTDIR_NEW"
+				],
+				"uninstall": [
+					"rm $CS_FONTDIR_OLD/*",
+					"sudo fc-cache -f $CS_FONTDIR_OLD"
+				]
+			}
+		]
+	}
+}
+

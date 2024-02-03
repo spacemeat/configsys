@@ -62,7 +62,9 @@ class InstallStep:
         to prepend to the command, like:
         CS_FONTDIR=~/.local/share/fonts/mononoki-nerd CS_TMPFILE=/tmp/mononoki.zip [cmd]...
         '''
-        res = subprocess.run(vars_prefix + self.detect_cmd, shell=True,
+        full_cmd = vars_prefix + self.detect_cmd
+        #print (f"Running: {full_cmd}")
+        res = subprocess.run(full_cmd, shell=True,
                              capture_output=True, check=False)
         self.detected = res.returncode == 0
 
@@ -101,8 +103,11 @@ class Option:
         self.vars_prefix = ''
         if "vars" in json_obj:
             self.vars = sort_vars(json_obj["vars"])
-            self.vars_prefix = ' '.join(
-                f'{name}={value}' for name, value in self.vars.items()) + ' '
+            if len(self.vars) > 0:
+                self.vars_prefix = ' && '.join(
+                    f'{name}={value}' for name, value in self.vars.items()) + ' && '
+            else:
+                self.vars_prefix = ''
 
         self.depends = []
         if "depends" in json_obj:
@@ -244,7 +249,7 @@ class Config:
             for subdep in self.options[dep].depends:
                 if subdep in deps:
                     di = deps.index(subdep)
-                    if di < i:
+                    if di > i:
                         del deps[di]
                         deps.append(subdep)
                         i -= 1
@@ -279,6 +284,8 @@ class Config:
         for i, step in enumerate(opt.install_steps):
             if not step.detected:
                 for ci, cmd in enumerate(step.install_cmd):
+                    print (f"Doing: {ansi.dk_cyan_fg}{opt.vars_prefix}"
+                           f"{ansi.lt_cyan_fg}{cmd}{ansi.off}")
                     ret = subprocess.run(
                         opt.vars_prefix + cmd, shell=True, capture_output=True,
                         text=True, check=False)
@@ -309,6 +316,8 @@ class Config:
         for i, step in enumerate(reversed(opt.install_steps)):
             if step.detected:
                 for ci, cmd in enumerate(step.uninstall_cmd):
+                    print (f"Doing: {ansi.dk_cyan_fg}{opt.vars_prefix}"
+                           f"{ansi.lt_cyan_fg}{cmd}{ansi.off}")
                     ret = subprocess.run(opt.vars_prefix + cmd, shell=True,
                                          capture_output=False, check=False)
                     if ret.returncode != 0:

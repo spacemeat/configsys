@@ -4,9 +4,9 @@
 				"did": "vim --version",
 				"do": [
 					"sudo apt -y update && sudo apt -y upgrade",
-					"sudo apt -y install git tree vim wget curl xclip"
+					"sudo apt -y install htop git tree vim wget curl xclip libcanberra-gtk-module libcanberra-gtk3-module"
 				],
-				"undo": "sudo apt -y remove xclip curl wget vim tree git"
+				"undo": "sudo apt -y remove libcanberra-gtk-module libcanberra-gtk3-module xclip curl wget vim tree git htop"
 			}, {
 				"did": "[ -f ~/.bash_aliases ]",
 				"do": "cp ./home/.bash_aliases ~",
@@ -15,6 +15,22 @@
 				"did": "[ -f ~/.vimrc ]",
 				"do": "cp ./home/.vimrc ~",
 				"undo": "rm ~/.vimrc"
+			}, {
+				"did": "[ -f ~/.bash.d/ps1.sh ]",
+				"do": "cp ./home/.bash.d/ps1.sh ~/.bash.d",
+				"undo": "rm ~/.bash.d/ps1.sh"
+			},{
+				"did": "[ -x ~/.bash.d/ps1.sh ]",
+				"do": "chmod u+x ~/.bash.d/ps1.sh",
+				"undo": "chmod u-x ~/.bash.d/ps1.sh"
+			}, {
+				"did": "[ -f ~/.bash.d/xclip.sh ]",
+				"do": "cp ./home/.bash.d/xclip.sh ~/.bash.d",
+				"undo": "rm ~/.bash.d/xclip.sh"
+			}, {
+				"did": "[ -x ~/.bash.d/xclip.sh ]",
+				"do": "chmod u+x ~/.bash.d/xclip.sh",
+				"undo": "chmod u-x ~/.bash.d/xclip.sh"
 			}
 		]
 	},
@@ -80,11 +96,19 @@
 				"did": "[ -f $CS_CONFIGDIR/init.lua ]",
 				"do": "cp -r ../neovim/* $CS_CONFIGDIR",
 				"undo": "rm -r $CS_CONFIGDIR"
+			}, {
+				"did": "[ -f ~/.bash.d/neovim.sh ]",
+				"do": "cp ./home/.bash.d/neovim.sh ~/.bash.d",
+				"undo": "rm ~/.bash.d/neovim.sh"
+			}, {
+				"did": "[ -x ~/.bash.d/neovim.sh ]",
+				"do": "chmod u+x ~/.bash.d/newvim.sh",
+				"undo": "chmod u-x ~/.bash.d/newvim.sh"
 			}
 		]
 	},
 
-	"generate SSH key for github, etc.": {
+	"ssh for github": {
 		"depends": [],
 		"vars": {
 			"CS_SSHDIR": "~/.ssh",
@@ -119,49 +143,52 @@
 		]
 	},
 
-	"discord": {
+	"flatpak": {
 		"depends": [],
-		"vars": {
-			"CS_INSTDIR": "~/discord",
-			"CS_TMPFILE": "$CS_INSTDIR/discord.deb",
-			"CS_DLURL": "\"https://discordapp.com/api/download?platform=linux&format=deb\""
-		},
+		"vars": {},
 		"install": [ {
-				"did": "[ -d $CS_INSTDIR ]",
-				"do": "mkdir -p $CS_INSTDIR",
-				"undo": "rm -rf $CS_INSTDIR"
+				"did": "[ $(apt list --installed flatpak | grep \"flatpak\" | wc -l) -ne 0 ]",
+				"do": "sudo apt -y install flatpak",
+				"undo": "sudo apt -y remove flatpak"
 			}, {
-				"did": "[ -f $CS_TMPFILE ]",
-				"do": "wget -qO $CS_TMPFILE $CS_DLURL",
-				"undo": "rm $CS_TMPFILE"
-			}, {
+				"did": "[ $(flatpak remotes | grep \"flathub\" | wc -l) -ne 0 ]",
+				"do": "flatpak remote-add --user --if-not-exists flathub https://dl.flathub.org/repo/flathub.flatpakrepo",
+				"udno": "flatpak remobe-remove flathub"
+			}
+		]
+	},
+
+	
+	"firefox": {
+		"depends": ["flatpak"],
+			"install": [ {
+				"did": "[ $(flatpak list --app | grep 'firefox' | wc -l) -ne 0 ]",
+				"do": "flatpak install flathub org.mozilla.firefox",
+				"undo": "flatpak uninstall org.mozilla.firefox"
+			}
+		]
+	},
+
+	"discord": {
+		"notes": "Could be from flatpak",
+		"depends": [],
+		"vars": {},
+		"install": [ {
 				"did": "[ $(apt list --installed discord | grep \"discord\" | wc -l) -ne 0 ]",
-				"do": "sudo apt -y install $CS_TMPFILE",
+				"do": "sudo apt -y install discord",
 				"undo": "sudo apt -y remove discord"
 			}
 		]
 	},
 
 	"slack": {
+		"notes": "Could be from flatpak",
 		"depends": [],
-		"vars": {
-			"CS_INSTDIR": "~/slack",
-			"CS_TMPFILE": "$CS_INSTDIR/slack.deb",
-			"CS_VERURL": "\"https://slack.com/release-notes/linux\"",
-			"CS_DLURL": "\"https://downloads.slack-edge.com/releases/linux/$SLACKVER/prod/x64/slack-desktop-$SLACKVER-amd64.deb\""
-		},
+		"vars": {},
 		"install": [ {
-				"did": "[ -d $CS_INSTDIR ]",
-				"do": "mkdir -p $CS_INSTDIR",
-				"undo": "rm -rf $CS_INSTDIR"
-			}, {
-				"did": "[ -f $CS_TMPFILE ]",
-				"do": "SLACKVER=`wget -qO - $CS_VERURL | grep -Po 'Slack \\d+\\.\\d+\\.\\d+' | head -1 | grep -Po '\\d+\\.\\d+\\.\\d+'` && wget -qO $CS_TMPFILE $CS_DLURL",
-				"undo": "rm $CS_TMPFILE"
-			}, {
 				"did": "[ $(apt list --installed slack-desktop | grep \"slack-desktop\" | wc -l) -ne 0 ]",
-				"do": "sudo apt -y install $CS_TMPFILE",
-				"undo": "sudo apt -y remove slack"
+				"do": "sudo apt -y install slack-desktop",
+				"undo": "sudo apt -y remove slack-desktop"
 			}
 		]
 	},
@@ -169,13 +196,21 @@
 	"citybanner": {
 		"depends": [],
 		"install": [ {
-				"did": "",
+				"did": "[ -d ~/citybanner ]",
 				"do": "mkdir -p ~/citybanner",
-				"undo": "rm -rf ~/citybanner"
+				"undo": "rm -r ~/citybanner"
 			}, {
 				"did": "[ -f ~/citybanner/citybanner.py ]",
 				"do": "cp -ru ../linux/citybanner/* ~/citybanner",
 				"undo": "rm ~/citybanner/*"
+			}, {
+				"did": "[ -f ~/.bash.d/citybanner.sh ]",
+				"do": "cp ./home/.bash.d/citybanner.sh ~/.bash.d",
+				"undo": "rm ~/.bash.d/citybanner.sh"
+			}, {
+				"did": "[ -x ~/.bash.d/citybanner.sh ]",
+				"do": "chmod u+x ~/.bash.d/citybanner.sh",
+				"undo": "chmod u-x ~/.bash.d/citybanner.sh"
 			}
 		]
 	},
@@ -197,24 +232,36 @@
 				"did": "[ -f ~/.gdbinit_x ]",
 				"do": "cp ./home/.gdbinit_x",
 				"undo": "rm ~/.gdbinit_x"
+			}, {
+				"did": "[ -f ~/.bash.d/gdb.sh ]",
+				"do": "cp ./home/.bash.d/gdb.sh ~/.bash.d",
+				"undo": "rm ~/.bash.d/gdb.sh"
+			}, {
+				"did": "[ -x ~/.bash.d/gdb.sh ]",
+				"do": "chmod u+x ~/.bash.d/gdb.sh",
+				"undo": "chmod u-x ~/.bash.d/gdb.sh"
 			}
 		]
-
 	},
 
 	"geg": {
 		"depends": ["basics", "c-dev"],
 		"install": [ {
 				"did": "[ -d ~/src/geg ]",
-				"do": [
-					"rm -f ~/src/geg",
-					"mkdir -p ~/src/geg"
-				],
-				"undo": "rm -rf ~/src/geg"
+				"do": "mkdir -p ~/src/geg",
+				"undo": "rm -r ~/src/geg"
 			}, {
 				"did": "[ -f ~/src/geg/LICENSE ]",
 				"do": "git clone git@github.com:spacemeat/geg ~/src/geg",
-				"undo": "rm ~/src/geg/*"
+				"undo": "rm -r ~/src/geg/*"
+			}, {
+				"did": "[ -f ~/.bash.d/geg.sh ]",
+				"do": "cp ./home/.bash.d/geg.sh ~/.bash.d",
+				"undo": "rm ~/.bash.d/geg.sh"
+			}, {
+				"did": "[ -x ~/.bash.d/geg.sh ]",
+				"do": "chmod u+x ~/.bash.d/geg.sh",
+				"undo": "chmod u-x ~/.bash.d/geg.sh"
 			}
 		]
 	},
@@ -222,7 +269,7 @@
 	"python3": {
 		"depends": [],
 		"install": [ {
-				"did": "[ $(apt list --installed python3-pip python3-venv | grep \"python3\" | wc -l) -ne 0 ]",
+				"did": "[ $(apt list --installed python3-pip python3-venv | grep \"python3\" | wc -l) -ge 2 ]",
 				"do": [
 					"sudo apt -y updage && sudo apt -y upgrade",
 					"sudo apt -y install python3-pip python3-venv"
@@ -230,7 +277,7 @@
 				"undo": "sudo apt -y remove python3-venv python3-pip"
 			}
 		],
-		"notes": "TODO: Source from more up-to-date palce."
+		"notes": "TODO: Source from more up-to-date place."
 	},
 
 	"nvm": {
@@ -243,7 +290,7 @@
 				"do": "curl -o- $CS_DLURL | bash",
 				"undo": "rm -rf ~/.nvm"
 			}, {
-				"did": "",
+				"did": "[ $NVM_DIR ]",
 				"do": "source ~/.bashrc",
 				"undo": ""
 			}
@@ -284,6 +331,14 @@
 				"did": "dlv version",
 				"do": "go install $CS_DLVURL",
 				"undo": ""
+			}, {
+				"did": "[ -f ~/.bash.d/go.sh ]",
+				"do": "cp ./home/.bash.d/go.sh ~/.bash.d",
+				"undo": "rm ~/.bash.d/go.sh"
+			}, {
+				"did": "[ -x ~/.bash.d/go.sh ]",
+				"do": "chmod u+x ~/.bash.d/go.sh",
+				"undo": "chmod u-x ~/.bash.d/go.sh"
 			}
 		]
 	},
@@ -301,11 +356,11 @@
 			"CS_SOURCESPATH": "/etc/apt/sources.list.d/lunarg-vulkan-jammy.list"
 		},
 		"install": [ {
-				"did": "",
+				"did": "[ -f $CS_PUBKEYPATH ]",
 				"do": "wget -qO- $CS_PUBKEYURL | sudo tee $CS_PUBKEYPATH",
 				"undo": "sudo rm $CS_PUBKEYPATH"
 			}, {
-				"did": "",
+				"did": "[ -f $CS_SOURCESPATH ]",
 				"do": "sudo wget -qO $SOURCESPATHt $CS_SOURCESURL",
 				"undo": "sudo rm $CS_SOURCESPATH"
 			}, {
