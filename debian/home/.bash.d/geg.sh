@@ -1,2 +1,3 @@
-alias geg="PYTHONPATH=$PYTHONPATH:~/src/geg/geg python3 -m geg"
+export PYTHONPATH=$PYTHONPATH:~/src/geg/geg
+alias geg="python3 -m geg"
 

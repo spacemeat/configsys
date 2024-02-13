@@ -8,6 +8,18 @@ return {
 			auto_install = true,
 			highlight = { enable = true },
 			indent = { enable = true },
+			filesystem = {
+				filtered_items = {
+					visible = true,
+					hide_dotfiles = false,
+					hide_gitignored = true,
+				},
+			},
 		})
+	end,
+	opts = function(_, opts)
+		if type(opts.ensure_installed) == "table" then
+			vim.list_extend(opts.ensure_installed, { "c", "cpp" })
+		end
 	end,
 }

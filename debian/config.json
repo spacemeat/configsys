@@ -229,9 +229,9 @@
 				"did": "gcc --version",
 				"do": [
 					"sudo apt -y update && sudo apt -y upgrade",
-					"sudo apt -y install build-essential cmake"
+					"sudo apt -y install build-essential clang cmake doxygen"
 				],
-				"undo": "sudo apt -y remove cmake build-essential"
+				"undo": "sudo apt -y remove doxygen cmake clang build-essential"
 			}, {
 				"did": "[ -f ~/.gdbinit ]",
 				"do": "cp ./home/.gdbinit ~",
@@ -358,9 +358,9 @@
 	"vulkan-dev": {
 		"depends": ["c-dev"],
 		"vars": {
-			"CS_PUBKEYURL": "https://packages.lunarg.com/lunarg-signing-key-pub.asc",
+			"CS_PUBKEYURL": "\"https://packages.lunarg.com/lunarg-signing-key-pub.asc\"",
 			"CS_PUBKEYPATH": "/etc/apt/trusted.gpg.d/lunarg.asc",
-			"CS_SOURCESURL": "http://packages.lunarg.com/vulkan/lunarg-vulkan-jammy.list",
+			"CS_SOURCESURL": "\"http://packages.lunarg.com/vulkan/lunarg-vulkan-jammy.list\"",
 			"CS_SOURCESPATH": "/etc/apt/sources.list.d/lunarg-vulkan-jammy.list"
 		},
 		"install": [ {
@@ -380,6 +380,147 @@
 				"undo": "sudo apt -y remove vulkan-sdk"
 			}
 		]
+	},
+
+	"C++ fmt": {
+		"depends": ["c-dev"],
+		"vars": {
+			"CS_VER": "10.2.0",
+			"CS_DLURL": "\"https://github.com/fmtlib/fmt/releases/download/$CS_VER/fmt-$CS_VER.zip\"",
+			"CS_TMP_PATH": "/tmp/fmt.zip",
+			"CS_EXT_DIR": "~/src/fmt",
+			"CS_DST_DIR": "$CS_EXT_DIR/fmt-$CS_VER"
+		},
+		"install": [ {
+				"did": "[ -d $CS_EXT_DIR ]",
+				"do": "mkdir -p $CS_EXT_DIR",
+				"unod": "rmdir $CS_EXT_DIR"
+			}, {
+				"did": "[ -d $CS_DST_DIR ]",
+				"do": [
+					"sudo wget -qO $CS_TMP_PATH $CS_DLURL",
+					"unzip $CS_TMP_PATH -d $CS_EXT_DIR",
+					"rm $CS_TMP_PATH"
+				],
+				"undo": "rm -r $CS_DST_DIR/*"
+			}, {
+				"did": "[ -d $CS_DST_DIR/build ]",
+				"do": "cd $CS_DST_DIR && mkdir build",
+				"undo": "rm -r $CS_DST_DIR/build/*"
+			}, {
+				"did": "[ -f $CS_DST_DIR/build/Makefile ]",
+				"do": "cd $CS_DST_DIR/build && cmake ..",
+				"undo": "rm -r $CS_DST_DIR/build/*"
+			}, {
+				"did": "[ -f $CS_DST_DIR/build/libfmt.a ]",
+				"do": "cd $CS_DST_DIR/build && make",
+				"undo": "rm -r $CS_DST_DIR/build/*"
+			}, {
+				"did": "[ -f /usr/local/lib/libfmt.a ]",
+				"do": "cd $CS_DST_DIR/build && sudo make install",
+				"undo": "rm -r $CS_DST_DIR/build/*"
+			}
+		]
+	},
+
+	"humon": {
+		"depends": ["C++ fmt"],
+		"vars": {
+			"CS_GITHUB": "git@github.com:spacemeat/humon.git",
+			"CS_DST_DIR": "~/src/humon"
+		},
+		"install": [ {
+				"did": "[ -d $CS_DST_DIR ]",
+				"do": "mkdir -p $CS_DST_DIR",
+				"undo": "rmdir $CS_DST_DIR"
+			}, {
+				"did": "[ -f $CS_DST_DIR/LICENSE ]",
+				"do": "git clone $CS_GITHUB $CS_DST_DIR",
+				"undo": "rm -r $CS_DST_DIR/*"
+			}
+		]
+	},
+
+	"humon-py": {
+		"depends": ["humon"],
+		"vars": {
+			"CS_GITHUB": "git@github.com:spacemeat/humon-py.git",
+			"CS_DST_DIR": "~/src/humon-py",
+			"CS_VENV": "humon-py"
+		},
+		"install": [ {
+				"did": "[ -d $CS_DST_DIR ]",
+				"do": "mkdir -p $CS_DST_DIR",
+				"undo": "rmdir $CS_DST_DIR"
+			}, {
+				"did": "[ -f $CS_DST_DIR/LICENSE ]",
+				"do": "git clone $CS_GITHUB",
+				"undo": "rm -r $CS_DST_DIR/*"
+			}, {
+				"did": "[ $VIRTUAL_ENV ]",
+				"do": [
+					"cd $CS_DST_DIR && python3 -m venv $CS_DST_DIR/.venv --prompt $CS_VENV && pip install -r requirements.txt"
+				],
+				"undo": [
+					"rm -r $CS_DST_DIR/.venv"
+				]
+			}
+		]
+	},
+
+	"boilermaker": {
+		"depends": ["humon-py"],
+		"vars": {
+			"CS_GITHUB": "git@github.com:spacemeat/boilermaker.git",
+			"CS_DST_DIR": "~/src/boilermaker",
+			"CS_VENV": "boma"
+		},
+		"install": [ {
+				"did": "[ -d $CS_DST_DIR ]",
+				"do": "mkdir -p $CS_DST_DIR",
+				"undo": "rmdir $CS_DST_DIR"
+			}, {
+				"did": "[ -f $CS_DST_DIR/LICENSE ]",
+				"do": "git clone $CS_GITHUB",
+				"undo": "rm -r $CS_DST_DIR/*"
+			}, {
+				"did": "[ $VIRTUAL_ENV ]",
+				"do": [
+					"cd $CS_DST_DIR && python3 -m venv .venv --prompt $CS_VIEW && pip install -e ../humon-py && pip install -r requirements.txt"
+				],
+				"undo": [
+					"rm -r $CS_DST_DIR/.venv"
+				]
+			}
+		]
+	},
+
+	"overground": {
+		"depends": ["boilermaker"],
+		"vars": {
+			"CS_GITHUB": "git@github.com:spacemeat/og.git",
+			"CS_DST_DIR": "~/src/og",
+			"CS_VENV": "og"
+		},
+		"install": [ {
+				"did": "[ -d $CS_DST_DIR ]",
+				"do": "mkdir -p $CS_DST_DIR",
+				"undo": "rmdir $CS_DST_DIR"
+			}, {
+				"did": "[ -f $CS_DST_DIR/LICENSE ]",
+				"do": "git clone $CS_GITHUB",
+				"undo": "rm -r $CS_DST_DIR/*"
+			}, {
+				"did": "[ $VIRTUAL_ENV ]",
+				"do": [
+					"cd $CS_DST_DIR && python3 -m venv .venv --prompt $CS_VIEW && pip install -e ../humon-py && pip install -e ../boilermaker && pip install -r requirements.txt"
+				],
+				"undo": [
+					"rm -r $CS_DST_DIR/.venv"
+				]
+			}
+		]
 	}
 }
+
 

@@ -11,7 +11,8 @@ import json
 import subprocess
 import sys
 from enum import Enum
-
+#import os
+#import pty
 import ansi
 
 gl_install = f"{ansi.lt_green_fg}\u2192{ansi.off}"
@@ -26,6 +27,33 @@ def ensure_list(e):
     Returns a list containing e, if e is not already a list.
     '''
     return e if isinstance(e, list) else [e]
+
+def do_shell_commands(var_defs, commands, report):
+    '''
+    Reports on, and runs, a series of commands in a single shell instance.
+    Returns the command result, which contains captured output and the return code.
+    '''
+    report_list = []
+    cmd_list = []
+    for name, value in var_defs.items():
+        report_list.append(f'{ansi.dk_blue_fg}{name}'
+                           f'{ansi.lt_black_fg}={ansi.lt_blue_fg}{value}{ansi.off}')
+        cmd_list.append(f'{name}={value}')
+    for cmd in commands:
+        report_list.append(f'{ansi.dk_white_fg}{cmd}')
+        cmd_list.append(f'{cmd}') #; if [ $? -ne 0 ]; then exit $?; fi')
+
+    if report:
+        print (f'{ansi.lt_black_fg}$ ' +
+               f'{ansi.lt_black_fg} &&\n  '.join(report_list), end='')
+    res = subprocess.run(' && '.join(cmd_list), shell=True, capture_output=True,
+                         check=False, text=True, encoding='utf-8')
+    if res.returncode == 0:
+        print (f': {ansi.lt_green_fg}0{ansi.off}')
+    else:
+        print (f': {ansi.lt_red_fg}{res.returncode}{ansi.off}\n'
+               f'{ansi.dk_red_fg}{res.stderr}{ansi.off}')
+    return res
 
 
 class Action(Enum):
@@ -43,7 +71,7 @@ class InstallStep:
     def __init__(self, json_object):
         self.detect_cmd = ""
         if "did" in json_object:
-            self.detect_cmd = json_object["did"]
+            self.detect_cmd = ensure_list(json_object["did"])
         self.install_cmd = ""
         if "do" in json_object:
             self.install_cmd = ensure_list(json_object["do"])
@@ -52,20 +80,17 @@ class InstallStep:
             self.uninstall_cmd = ensure_list(json_object["undo"])
         self.detected = False
 
-    def detect(self, vars_prefix):
+    def detect(self, var_defs):
         '''
         Runs the string value of self.detect_cmd as a shell command. Sets 
         self.detected if the command is successful (returns zero).
 
         Parameters:
-        - vars_prefix (dict of Str->Str): key-value pairs of shell variables
-        to prepend to the command, like:
+        - vars_defs (dict of Str->Str): key-value pairs of shell variables
+        to set before running the detection commands.
         CS_FONTDIR=~/.local/share/fonts/mononoki-nerd CS_TMPFILE=/tmp/mononoki.zip [cmd]...
         '''
-        full_cmd = vars_prefix + self.detect_cmd
-        #print (f"Running: {full_cmd}")
-        res = subprocess.run(full_cmd, shell=True,
-                             capture_output=True, check=False)
+        res = do_shell_commands(var_defs, self.detect_cmd, True)
         self.detected = res.returncode == 0
 
 def sort_vars(vardefs):
@@ -99,15 +124,15 @@ class Option:
     # pylint: disable=too-many-instance-attributes
     def __init__(self, name, json_obj):
         self.name = name
-        self.vars = []
-        self.vars_prefix = ''
+        self.vars = {}
+        #self.vars_prefix = ''
         if "vars" in json_obj:
             self.vars = sort_vars(json_obj["vars"])
-            if len(self.vars) > 0:
-                self.vars_prefix = ' && '.join(
-                    f'{name}={value}' for name, value in self.vars.items()) + ' && '
-            else:
-                self.vars_prefix = ''
+        #    if len(self.vars) > 0:
+        #        self.vars_prefix = ' && '.join(
+        #            f'{name}={value}' for name, value in self.vars.items()) + ' && '
+        #    else:
+        #        self.vars_prefix = ''
 
         self.depends = []
         if "depends" in json_obj:
@@ -129,7 +154,7 @@ class Option:
         Runs detection steps to determine the install status of each install step for this option.
         '''
         for inst in self.install_steps:
-            inst.detect(self.vars_prefix)
+            inst.detect(self.vars)
         self.any_detected = (
             any((inst.detected for inst in self.install_steps))
             if len(self.install_steps) > 0
@@ -284,11 +309,12 @@ class Config:
         for i, step in enumerate(opt.install_steps):
             if not step.detected:
                 for ci, cmd in enumerate(step.install_cmd):
-                    print (f"Doing: {ansi.dk_cyan_fg}{opt.vars_prefix}"
-                           f"{ansi.lt_cyan_fg}{cmd}{ansi.off}")
-                    ret = subprocess.run(
-                        opt.vars_prefix + cmd, shell=True, capture_output=True,
-                        text=True, check=False)
+        #            print (f"Doing: {ansi.dk_cyan_fg}{opt.vars_prefix}"
+        #                   f"{ansi.lt_cyan_fg}{cmd}{ansi.off}")
+                    ret = do_shell_commands(opt.vars, step.install_cmd, True)
+        #            ret = subprocess.run(
+        #                opt.vars_prefix + cmd, shell=True, capture_output=True,
+        #                text=True, check=False)
                     if ret.returncode != 0:
                         print(
                             f"{ansi.lt_red_fg}Error performing install step "
@@ -300,6 +326,8 @@ class Config:
                         break
             if break_outer:
                 break
+
+
         opt.action = Action.NONE
         opt.is_dep_install = False
 
