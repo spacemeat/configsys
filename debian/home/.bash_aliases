@@ -1,9 +1,10 @@
-export PYTHONPATH=.:$PYTHONPATH
-
-if [ -d ~/.bash_d ]; then
-	for shfile in ~/.bash.d/*.sh; do
+BASH_D=~/.bash.d
+if [ -d $BASH_D ]; then
+	for shfile in $BASH_D/*.sh; do
 		if [ -x $shfile ]; then
+			echo "Sourceing $shfile..."
 			source $shfile
+			echo "... done."
 		fi
 	done
 fi
