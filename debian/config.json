@@ -16,6 +16,10 @@
 				"do": "cp ./home/.vimrc ~",
 				"undo": "rm ~/.vimrc"
 			}, {
+				"did": "[ -d ~/.bash.d ]",
+				"do": "mkdir -p ~/.bash.d",
+				"undo": "rmdir ~/.bash.d"
+			}, {
 				"did": "[ -f ~/.bash.d/ps1.sh ]",
 				"do": "cp ./home/.bash.d/ps1.sh ~/.bash.d",
 				"undo": "rm ~/.bash.d/ps1.sh"
@@ -37,27 +41,31 @@
 
 	"nerdy fonts": {
 		"vars": {
-			"CS_FONTDIR": "~/.local/share/fonts/mononoki-nerd",
-			"CS_TMPFILE": "/tmp/mononoki.zip",
+			"CS_FONT": "mononoki-nerd",
+			"CS_FONTDIR": "~/.local/share/fonts/$CS_FONT",
+			"CS_TMPFILE": "$CS_FONTDIR/$CS_FONT.zip",
 			"CS_DLURL": "\"https://github.com/ryanoasis/nerd-fonts/releases/download/v3.1.1/Mononoki.zip\""
 		},
 		"install": [{
 				"did": "[ -d $CS_FONTDIR ]",
 				"do": "mkdir -p $CS_FONTDIR",
-				"undo": "rm -rf $CS_FONTDIR"
+				"undo": "rm -r $CS_FONTDIR"
 			}, {
-				"did": "[ $(fc-list | grep 'mononoki' | wc -l) -gt 0 ]",
+				"did": "[ -f $CS_TMPFILE ]",
+				"do": "wget -qO $CS_TMPFILE $CS_DLURL",
+				"undo": "rm $CS_TMPFILE"
+			}, {
+				"did": "[ $(fc-list | grep \"$CS_FONT\" | wc -l) -gt 0 ]",
 				"do": [
-					"wget -qO $CS_TMPFILE $CS_DLURL",
-					"unzip $CS_TMPFILE -d S_FONTDIR",
-					"rm $CS_TMPFILE",
+					"unzip $CS_TMPFILE -d $CS_FONTDIR",
 					"sudo fc-cache -f $CS_FONTDIR"
 				],
 				"undo": [
-					"rm $CS_FONTDIR/*",
+					"find $CS_FONTDIR -type f ! -name \"$CS_FONT.zip\" -exec rm {} +",
 					"fc-cache -f"
 				]
 			}
+
 		]
 	},
 
