@@ -1,12 +1,16 @@
 {
 	"basics": {
+		"vars": {
+			"CS_PACKAGES": "'htop git tree vim wget curl xclip'",
+			"CS_DOTDIR": "~/.bash.d"
+		},
 		"install": [ {
-				"did": "vim --version",
+				"did": "htop --version && git --version && tree --version && vim --version && wget --version && curl --version && xclip -version",
 				"do": [
 					"sudo apt -y update && sudo apt -y upgrade",
-					"sudo apt -y install htop git tree vim wget curl xclip libcanberra-gtk-module libcanberra-gtk3-module"
+					"sudo apt -y install ${CS_PACKAGES//\\'}"
 				],
-				"undo": "sudo apt -y remove libcanberra-gtk-module libcanberra-gtk3-module xclip curl wget vim tree git htop"
+				"undo": "sudo apt -y remove ${CS_PACKAGES//\\'}"
 			}, {
 				"did": "[ -f ~/.bash_aliases ]",
 				"do": "cp ./home/.bash_aliases ~",
@@ -16,25 +20,17 @@
 				"do": "cp ./home/.vimrc ~",
 				"undo": "rm ~/.vimrc"
 			}, {
-				"did": "[ -d ~/.bash.d ]",
-				"do": "mkdir -p ~/.bash.d",
-				"undo": "rmdir ~/.bash.d"
+				"did": "[ -d $CS_DOTDIR ]",
+				"do": "mkdir -p $CS_DOTDIR",
+				"undo": "rmdir $CS_DOTDIR"
 			}, {
-				"did": "[ -f ~/.bash.d/ps1.sh ]",
-				"do": "cp ./home/.bash.d/ps1.sh ~/.bash.d",
-				"undo": "rm ~/.bash.d/ps1.sh"
-			},{
-				"did": "[ -x ~/.bash.d/ps1.sh ]",
-				"do": "chmod u+x ~/.bash.d/ps1.sh",
-				"undo": "chmod u-x ~/.bash.d/ps1.sh"
+				"did": "[ -f $CS_DOTDIR/ps1.sh ]",
+				"do": "cp ./home/.bash.d/ps1.sh $CS_DOTDIR",
+				"undo": "rm $CS_DOTDIR/ps1.sh"
 			}, {
-				"did": "[ -f ~/.bash.d/xclip.sh ]",
-				"do": "cp ./home/.bash.d/xclip.sh ~/.bash.d",
-				"undo": "rm ~/.bash.d/xclip.sh"
-			}, {
-				"did": "[ -x ~/.bash.d/xclip.sh ]",
-				"do": "chmod u+x ~/.bash.d/xclip.sh",
-				"undo": "chmod u-x ~/.bash.d/xclip.sh"
+				"did": "[ -f $CS_DOTDIR/xclip.sh ]",
+				"do": "cp ./home/.bash.d/xclip.sh $CS_DOTDIR",
+				"undo": "rm $CS_DOTDIR/xclip.sh"
 			}
 		]
 	},
@@ -65,13 +61,13 @@
 					"fc-cache -f"
 				]
 			}
-
 		]
 	},
 
 	"neovim": {
 		"depens": ["nerdy fonts"],
 		"vars": {
+			"CS_DOTDIR": "~/.bash.d",
 			"CS_INSTDIR": "~/neovim",
 			"CS_CONFIGDIR": "~/.config/nvim",
 			"CS_APPIMAGE": "$CS_INSTDIR/nvim.appimage",
@@ -105,13 +101,9 @@
 				"do": "cp -r ../neovim/* $CS_CONFIGDIR",
 				"undo": "rm -r $CS_CONFIGDIR"
 			}, {
-				"did": "[ -f ~/.bash.d/neovim.sh ]",
-				"do": "cp ./home/.bash.d/neovim.sh ~/.bash.d",
-				"undo": "rm ~/.bash.d/neovim.sh"
-			}, {
-				"did": "[ -x ~/.bash.d/neovim.sh ]",
-				"do": "chmod u+x ~/.bash.d/newvim.sh",
-				"undo": "chmod u-x ~/.bash.d/newvim.sh"
+				"did": "[ -f $CS_DOTDIR/neovim.sh ]",
+				"do": "cp ./home/.bash.d/neovim.sh $CS_DOTDIR",
+				"undo": "rm $CS_DOTDIR/neovim.sh"
 			}
 		]
 	},
@@ -203,6 +195,9 @@
 
 	"citybanner": {
 		"depends": [],
+		"vars": {
+			"CS_DOTDIR": "~/.bash.d"
+		},
 		"install": [ {
 				"did": "[ -d ~/citybanner ]",
 				"do": "mkdir -p ~/citybanner",
@@ -212,19 +207,18 @@
 				"do": "cp -ru ../linux/citybanner/* ~/citybanner",
 				"undo": "rm ~/citybanner/*"
 			}, {
-				"did": "[ -f ~/.bash.d/citybanner.sh ]",
-				"do": "cp ./home/.bash.d/citybanner.sh ~/.bash.d",
-				"undo": "rm ~/.bash.d/citybanner.sh"
-			}, {
-				"did": "[ -x ~/.bash.d/citybanner.sh ]",
-				"do": "chmod u+x ~/.bash.d/citybanner.sh",
-				"undo": "chmod u-x ~/.bash.d/citybanner.sh"
+				"did": "[ -f $CS_DOTDIR/citybanner.sh ]",
+				"do": "cp ./home/.bash.d/citybanner.sh $CS_DOTDIR",
+				"undo": "rm $CS_DOTDIR/citybanner.sh"
 			}
 		]
 	},
 
 	"c-dev": {
 		"depends": [],
+		"vars": {
+			"CS_DOTDIR": "~/.bash.d"
+		},
 		"install": [ {
 				"did": "gcc --version",
 				"do": [
@@ -241,19 +235,18 @@
 				"do": "cp ./home/.gdbinit_x",
 				"undo": "rm ~/.gdbinit_x"
 			}, {
-				"did": "[ -f ~/.bash.d/gdb.sh ]",
-				"do": "cp ./home/.bash.d/gdb.sh ~/.bash.d",
-				"undo": "rm ~/.bash.d/gdb.sh"
-			}, {
-				"did": "[ -x ~/.bash.d/gdb.sh ]",
-				"do": "chmod u+x ~/.bash.d/gdb.sh",
-				"undo": "chmod u-x ~/.bash.d/gdb.sh"
+				"did": "[ -f $CS_DOTDIR/gdb.sh ]",
+				"do": "cp ./home/.bash.d/gdb.sh $CS_DOTDIR",
+				"undo": "rm $CS_DOTDIR/gdb.sh"
 			}
 		]
 	},
 
 	"geg": {
 		"depends": ["basics", "c-dev"],
+		"vars": {
+			"CS_DOTDIR": "~/.bash.d"
+		},
 		"install": [ {
 				"did": "[ -d ~/src/geg ]",
 				"do": "mkdir -p ~/src/geg",
@@ -263,13 +256,9 @@
 				"do": "git clone git@github.com:spacemeat/geg ~/src/geg",
 				"undo": "rm -r ~/src/geg/*"
 			}, {
-				"did": "[ -f ~/.bash.d/geg.sh ]",
-				"do": "cp ./home/.bash.d/geg.sh ~/.bash.d",
-				"undo": "rm ~/.bash.d/geg.sh"
-			}, {
-				"did": "[ -x ~/.bash.d/geg.sh ]",
-				"do": "chmod u+x ~/.bash.d/geg.sh",
-				"undo": "chmod u-x ~/.bash.d/geg.sh"
+				"did": "[ -f $CS_DOTDIR/geg.sh ]",
+				"do": "cp ./home/.bash.d/geg.sh $CS_DOTDIR",
+				"undo": "rm $CS_DOTDIR/geg.sh"
 			}
 		]
 	},
@@ -318,6 +307,7 @@
 	"go": {
 		"depends": [],
 		"vars": {
+			"CS_DOTDIR": "~/.bash.d",
 			"CS_INSTDIR": "/usr/local",
 			"CS_TMPPATH": "/tmp/golang.tar.gz",
 			"CS_VERURL": "",
@@ -340,13 +330,9 @@
 				"do": "go install $CS_DLVURL",
 				"undo": ""
 			}, {
-				"did": "[ -f ~/.bash.d/go.sh ]",
-				"do": "cp ./home/.bash.d/go.sh ~/.bash.d",
-				"undo": "rm ~/.bash.d/go.sh"
-			}, {
-				"did": "[ -x ~/.bash.d/go.sh ]",
-				"do": "chmod u+x ~/.bash.d/go.sh",
-				"undo": "chmod u-x ~/.bash.d/go.sh"
+				"did": "[ -f $CS_DOTDIR/go.sh ]",
+				"do": "cp ./home/.bash.d/go.sh $CS_DOTDIR",
+				"undo": "rm $CS_DOTDIR/go.sh"
 			}
 		]
 	},
