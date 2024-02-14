@@ -268,13 +268,29 @@
 		"install": [ {
 				"did": "[ $(apt list --installed python3-pip python3-venv | grep \"python3\" | wc -l) -ge 2 ]",
 				"do": [
-					"sudo apt -y updage && sudo apt -y upgrade",
+					"sudo apt -y update && sudo apt -y upgrade",
 					"sudo apt -y install python3-pip python3-venv"
 				],
 				"undo": "sudo apt -y remove python3-venv python3-pip"
 			}
 		],
 		"notes": "TODO: Source from more up-to-date place."
+	},
+
+	"lua": {
+		"depends": [],
+		"vars": {
+			"CS_PKGNAME": "lua5.4"
+		},
+		"install": [ {
+				"did": "[ $(apt list --installed $CS_PKGNAME | grep \"$CS_PKGNAME\" | wc -l) -ge 1 ]",
+				"do": [
+					"sudo apt -y update && sudo apt -y upgrade",
+					"sudo apt -y install $CS_PKGNAME"
+				],
+				"undo": "sudo apt -y remove $CS_PKGNAME"
+			}
+		]
 	},
 
 	"nvm": {
