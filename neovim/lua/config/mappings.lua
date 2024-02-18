@@ -67,6 +67,11 @@ noremap("i", "<A-O>", "<Esc>O", {})
 --use <Esc> to exit terminal-mode
 noremap("t", "<Esc>", "<C-\\><C-n>", {})
 
+local bufopts = { noremap = true, silent = true }
+
+map("n", "<space>e", "<Cmd>lua vim.diagnostic.open_float(0, {scope=\"line\"})<CR>", bufopts)
+
+
 -- ===
 -- ===fm-nvim keymap
 -- ===
@@ -77,7 +82,6 @@ noremap("t", "<Esc>", "<C-\\><C-n>", {})
 -- ===
 -- ===barbar keymap
 -- ===
-local bufopts = { noremap = true, silent = true }
 map("n", "<A-,>", "<Cmd>BufferPrevious<CR>", bufopts)
 map("n", "<A-.>", "<Cmd>BufferNext<CR>", bufopts)
 -- Re-order to previous/next
