@@ -16,4 +16,9 @@ vim.opt.cursorlineopt = "number"
 
 vim.o.encoding = "utf-8"
 
-
+-- This runs a .nvimrc file in a project root if it exists.
+-- I did this to get pylint to know about packages not findable
+-- from the project root.
+if vim.fn.filereadable('.nvimrc') == 1 then
+	vim.api.nvim_command('source .nvimrc')
+end

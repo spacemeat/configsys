@@ -12,7 +12,13 @@ return {
 				-- python
 				null_ls.builtins.formatting.black,
 				null_ls.builtins.formatting.isort,
-				null_ls.builtins.diagnostics.pylint,
+				null_ls.builtins.diagnostics.pylint.with( {
+						-- This has been displaced by running a per-project .nvimrc
+						--env = function(params)
+						--	return { PYTHONPATH = params.root .. "/src" }
+						--end
+					}
+				),
 				-- C / C++
 				null_ls.builtins.formatting.clang_format,
 			},
