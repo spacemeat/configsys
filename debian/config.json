@@ -269,9 +269,9 @@
 				"did": "[ $(apt list --installed python3-pip python3-venv | grep \"python3\" | wc -l) -ge 2 ]",
 				"do": [
 					"sudo apt -y update && sudo apt -y upgrade",
-					"sudo apt -y install python3-pip python3-venv"
+					"sudo apt -y install python3-pip python3-venv pylint"
 				],
-				"undo": "sudo apt -y remove python3-venv python3-pip"
+				"undo": "sudo apt -y remove pylint python3-venv python3-pip"
 			}
 		],
 		"notes": "TODO: Source from more up-to-date place."
