@@ -158,8 +158,16 @@
 		]
 	},
 
-	
 	"firefox": {
+		"install": [ {
+				"did": "[ $(apt list --installed firefox | grep \"firefox\" | wc -l) -ne 0 ]",
+				"do": "sudo apt -y install firefox",
+				"undo": "sudo apt -y remove firefox"
+			}
+		]
+	},
+	
+	"firefox-flatpak": {
 		"depends": ["flatpak"],
 			"install": [ {
 				"did": "[ $(flatpak list --app | grep 'firefox' | wc -l) -ne 0 ]",
