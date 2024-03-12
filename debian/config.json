@@ -1,16 +1,16 @@
 {
 	"basics": {
 		"vars": {
-			"CS_PACKAGES": "'htop git tree vim wget curl xclip'",
+			"CS_PACKAGES": "'btop git tree vim wget curl xclip fzf'",
 			"CS_DOTDIR": "~/.bash.d"
 		},
 		"install": [ {
-				"did": "htop --version && git --version && tree --version && vim --version && wget --version && curl --version && xclip -version",
+				"did": "btop --version && git --version && tree --version && vim --version && wget --version && curl --version && xclip -version && fzf --version",
 				"do": [
-					"sudo apt -y update && sudo apt -y upgrade",
-					"sudo apt -y install ${CS_PACKAGES//\\'}"
+					"sudo apt-get -y update && sudo apt-get -y upgrade",
+					"sudo apt-get -y install ${CS_PACKAGES//\\'}"
 				],
-				"undo": "sudo apt -y remove ${CS_PACKAGES//\\'}"
+				"undo": "sudo apt-get -y remove ${CS_PACKAGES//\\'}"
 			}, {
 				"did": "[ -f ~/.bash_aliases ]",
 				"do": "cp ./home/.bash_aliases ~",
@@ -31,6 +31,36 @@
 				"did": "[ -f $CS_DOTDIR/xclip.sh ]",
 				"do": "cp ./home/.bash.d/xclip.sh $CS_DOTDIR",
 				"undo": "rm $CS_DOTDIR/xclip.sh"
+			}, {
+				"did": "[ -f $CS_DOTDIR/git.sh ]",
+				"do": "cp ./home/.bash.d/git.sh $CS_DOTDIR",
+				"undo": "rm $CS_DOTDIR/git.sh"
+			}
+		]
+	},
+
+	"cargo": {
+		"depends": [],
+		"vars": {
+			"CS_DOTDIR": "~/.bash.d"
+		},
+		"install": [ {
+				"did": "[ $(apt list --installed cargo | grep \"cargo\" | wc -l) -ne 0 ]",
+				"do": "sudo apt-get -y install cargo",
+				"undo": "sudo apt-get -y remove cargo"
+			}, {
+				"did": "[ -f $CS_DOTDIR/cargo.sh ]",
+				"do": "cp ./home/.bash.d/cargo.sh $CS_DOTDIR",
+				"undo": "rm $CS_DOTDIR/cargo.sh"
+			}
+		]
+	},
+
+	"dust": {
+		"install": [ {
+				"did": "",
+				"do": "cargo install du-dust",
+				"undo": "cargo uninstall du-dust"
 			}
 		]
 	},
@@ -80,10 +110,10 @@
 			}, {
 				"did": "[ $(apt list --installed ripgrep | grep \"ripgrep\" | wc -l) -ne 0 ]",
 				"do": [
-					"sudo apt -y update && sudo apt -y upgrade",
-					"sudo apt -y install ripgrep"
+					"sudo apt-get -y update && sudo apt-get -y upgrade",
+					"sudo apt-get -y install ripgrep"
 				],
-				"undo": "sudo apt -y remove ripgrep"
+				"undo": "sudo apt-get -y remove ripgrep"
 			}, {
 				"did": "[ -f $CS_APPIMAGE ]",
 				"do": "wget -qO $CS_APPIMAGE $CS_DLURL",
@@ -148,8 +178,8 @@
 		"vars": {},
 		"install": [ {
 				"did": "[ $(apt list --installed flatpak | grep \"flatpak\" | wc -l) -ne 0 ]",
-				"do": "sudo apt -y install flatpak",
-				"undo": "sudo apt -y remove flatpak"
+				"do": "sudo apt-get -y install flatpak",
+				"undo": "sudo apt-get -y remove flatpak"
 			}, {
 				"did": "[ $(flatpak remotes | grep \"flathub\" | wc -l) -ne 0 ]",
 				"do": "flatpak remote-add --user --if-not-exists flathub https://dl.flathub.org/repo/flathub.flatpakrepo",
@@ -161,8 +191,8 @@
 	"firefox": {
 		"install": [ {
 				"did": "[ $(apt list --installed firefox | grep \"firefox\" | wc -l) -ne 0 ]",
-				"do": "sudo apt -y install firefox",
-				"undo": "sudo apt -y remove firefox"
+				"do": "sudo apt-get -y install firefox",
+				"undo": "sudo apt-get -y remove firefox"
 			}
 		]
 	},
@@ -183,8 +213,8 @@
 		"vars": {},
 		"install": [ {
 				"did": "[ $(apt list --installed discord | grep \"discord\" | wc -l) -ne 0 ]",
-				"do": "sudo apt -y install discord",
-				"undo": "sudo apt -y remove discord"
+				"do": "sudo apt-get -y install discord",
+				"undo": "sudo apt-get -y remove discord"
 			}
 		]
 	},
@@ -195,8 +225,8 @@
 		"vars": {},
 		"install": [ {
 				"did": "[ $(apt list --installed slack-desktop | grep \"slack-desktop\" | wc -l) -ne 0 ]",
-				"do": "sudo apt -y install slack-desktop",
-				"undo": "sudo apt -y remove slack-desktop"
+				"do": "sudo apt-get -y install slack-desktop",
+				"undo": "sudo apt-get -y remove slack-desktop"
 			}
 		]
 	},
@@ -230,10 +260,10 @@
 		"install": [ {
 				"did": "gcc --version",
 				"do": [
-					"sudo apt -y update && sudo apt -y upgrade",
-					"sudo apt -y install build-essential clang cmake doxygen"
+					"sudo apt-get -y update && sudo apt-get -y upgrade",
+					"sudo apt-get -y install build-essential clang cmake doxygen"
 				],
-				"undo": "sudo apt -y remove doxygen cmake clang build-essential"
+				"undo": "sudo apt-get -y remove doxygen cmake clang build-essential"
 			}, {
 				"did": "[ -f ~/.gdbinit ]",
 				"do": "cp ./home/.gdbinit ~",
@@ -276,10 +306,10 @@
 		"install": [ {
 				"did": "[ $(apt list --installed python3-pip python3-venv | grep \"python3\" | wc -l) -ge 2 ]",
 				"do": [
-					"sudo apt -y update && sudo apt -y upgrade",
-					"sudo apt -y install python3-pip python3-venv pylint"
+					"sudo apt-get -y update && sudo apt-get -y upgrade",
+					"sudo apt-get -y install python3-pip python3-venv pylint"
 				],
-				"undo": "sudo apt -y remove pylint python3-venv python3-pip"
+				"undo": "sudo apt-get -y remove pylint python3-venv python3-pip"
 			}
 		],
 		"notes": "TODO: Source from more up-to-date place."
@@ -293,10 +323,10 @@
 		"install": [ {
 				"did": "[ $(apt list --installed $CS_PKGNAME | grep \"$CS_PKGNAME\" | wc -l) -ge 1 ]",
 				"do": [
-					"sudo apt -y update && sudo apt -y upgrade",
-					"sudo apt -y install $CS_PKGNAME"
+					"sudo apt-get -y update && sudo apt-get -y upgrade",
+					"sudo apt-get -y install $CS_PKGNAME"
 				],
-				"undo": "sudo apt -y remove $CS_PKGNAME"
+				"undo": "sudo apt-get -y remove $CS_PKGNAME"
 			}
 		]
 	},
@@ -384,10 +414,10 @@
 			}, {
 				"did": "[ $(apt list --installed vulkan-sdk | grep \"vulkan-sdk\" | wc -l) -ne 0 ]",
 				"do": [
-					"sudo apt -y update && sudo apt -y upgrade",
-					"sudo apt -y install vulkan-sdk"
+					"sudo apt-get -y update && sudo apt-get -y upgrade",
+					"sudo apt-get -y install vulkan-sdk"
 				],
-				"undo": "sudo apt -y remove vulkan-sdk"
+				"undo": "sudo apt-get -y remove vulkan-sdk"
 			}
 		]
 	},
