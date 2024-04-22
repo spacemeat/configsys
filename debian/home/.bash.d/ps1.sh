@@ -37,7 +37,8 @@ ps1_git() {
 ps1_venv() {
 	local venv
 	if [ -n "$VIRTUAL_ENV" ]; then
-		venv="${VIRTUAL_ENV##*/}"
+		venv="${VIRTUAL_ENV%/*}"
+		venv="${venv##*/}"
 	else
 		venv=''
 	fi
