@@ -2,6 +2,7 @@ return {
 {
 	"mfussenegger/nvim-dap",
 	dependencies = {
+		"nvim-neotest/nvim-nio",
 		"rcarriga/nvim-dap-ui",
 		"leoluz/nvim-dap-go",
 			-- add more installed language DAPs here
