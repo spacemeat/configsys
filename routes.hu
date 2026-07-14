@@ -35,8 +35,10 @@
         !depends: libfuse2
 
         neovim: {
-            version: { github: neovim/neovim }   // latest release tag (e.g. v0.10.2)
-            url: "https://github.com/neovim/neovim/releases/download/$VERSION/nvim.appimage"
+            version: { github: neovim/neovim }   // latest release tag (e.g. v0.12.4)
+            // asset was renamed after v0.10 (nvim.appimage -> nvim-linux-<arch>.appimage);
+            // hand-tuned to x86_64, since such upstream renames can't be discovered.
+            url: "https://github.com/neovim/neovim/releases/download/$VERSION/nvim-linux-x86_64.appimage"
             path: ~/apps/nvim.appimage
             name: Neovim
         }
