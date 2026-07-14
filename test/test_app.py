@@ -30,13 +30,6 @@ def test_pretend_lock_emits_apt_mark(tmp_path, capsys):
     assert '[pretend] sudo apt-mark hold btop' in out
 
 
-def test_unsupported_family_is_skipped_not_fatal(tmp_path, capsys):
-    rc = main(base_args(tmp_path) + ['install', 'mononoki-nerd'])  # debian-font: unsupported
-    assert rc == 0
-    out = capsys.readouterr().out
-    assert 'not yet supported' in out
-
-
 def test_default_command_is_tui_falls_back_to_inspect(tmp_path, capsys):
     # Non-interactive stdout (pytest capture) -> graceful fallback to inspect.
     rc = main(base_args(tmp_path))

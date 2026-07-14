@@ -35,8 +35,8 @@ class FakeRunner:
 
 def test_registry_resolves_apt_and_rejects_others():
     assert isinstance(get_family('apt', Runner(pretend=True)), Apt)
-    assert get_family('debian-font', Runner(pretend=True)) is None
-    assert is_supported('apt') and not is_supported('debian-font')
+    assert get_family('snap', Runner(pretend=True)) is None   # not implemented
+    assert is_supported('apt') and not is_supported('snap')
 
 
 def test_install_command():

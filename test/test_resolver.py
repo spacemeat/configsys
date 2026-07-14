@@ -69,13 +69,13 @@ def test_dedup_across_standalone_and_dependency():
     assert units['apt\\ripgrep'].requested_as == {'ripgrep', 'neovim'}
 
 
-def test_font_var_substitution():
+def test_font_resolves_with_version_spec_and_deps():
     units = resolver().resolve_names(['mononoki-nerd'])
     u = units['debian-font\\mononoki-nerd']
     assert u.family == 'debian-font'
-    # $FONTDIR = ~/.local/share/fonts/$FONTNAME-$FONTVERSION resolves via comp vars
-    assert u.vars['$FONTDIR'] == '~/.local/share/fonts/mononoki-nerd-v3.1.1'
-    assert u.vars['$FONTURLL'].endswith('/v3.1.1/Mononoki.zip')
+    assert u.fields['version'] == {'github': 'ryanoasis/nerd-fonts'}
+    assert '$VERSION' in u.fields['url'] and u.fields['url'].endswith('Mononoki.zip')
+    assert u.deps == {'apt\\fontconfig', 'apt\\unzip'}   # !depends resolved
 
 
 def test_unroutable_name_raises_resolveerror():
@@ -102,5 +102,6 @@ def test_full_dev_profile_resolves():
         'apt\\fzf', 'apt\\xclip', 'apt\\cargo', 'debian-font\\mononoki-nerd',
         # family !depends auto-added
         'apt\\flatpak', 'apt\\curl', 'apt\\libfuse2',
+        'apt\\fontconfig', 'apt\\unzip',
     }
     assert set(units) == expected

@@ -12,6 +12,8 @@
         flatpak: { name: flatpak }
         curl: { name: curl }
         libfuse2: { name: libfuse2 repo-component: universe }
+        fontconfig: { name: fontconfig }
+        unzip: { name: unzip }
     }
 
     \flatpak: {
@@ -73,12 +75,13 @@
     }
 
     \debian-font: {
-        $FONTDIR: ~/.local/share/fonts/$FONTNAME-$FONTVERSION
+        // needs fc-cache (fontconfig) and unzip; installed first via the cascade
+        !depends: [ fontconfig, unzip ]
 
         mononoki-nerd: {
-            $FONTNAME: mononoki-nerd
-            $FONTVERSION: v3.1.1
-            $FONTURLL: "https://github.com/ryanoasis/nerd-fonts/releases/download/$FONTVERSION/Mononoki.zip"
+            name: Mononoki
+            version: { github: ryanoasis/nerd-fonts }
+            url: "https://github.com/ryanoasis/nerd-fonts/releases/download/$VERSION/Mononoki.zip"
         }
     }
 

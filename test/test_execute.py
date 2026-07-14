@@ -64,8 +64,7 @@ def test_failed_lock_not_persisted_to_ledger(tmp_path):
 
 def test_unsupported_family_is_a_failed_outcome(tmp_path, capsys):
     ctx = ctx_for(tmp_path, FakeRunner())
-    plan = [('install', 'debian-font\\mononoki-nerd',
-             unit('mononoki-nerd', family='debian-font'))]
+    plan = [('install', 'snap\\foo', unit('foo', family='snap'))]
     outcomes = execute_plan(ctx, plan, Ledger())
     assert outcomes[0].ok is False
     assert 'unsupported family' in outcomes[0].detail
