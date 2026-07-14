@@ -1,18 +1,14 @@
 {
     \apt: {
-        vulkan-sdk: {
-            pubkey-url: "https://packages.lunarg.com/lunarg-signing-key-pub.asc"
-            pubkey-path: /etc/apt/trusted.gpg.d/lunarg.asc
-            source-url: "http://packages.lunarg.com/vulkan/lunarg-vulkan-jammy.list"
-            source-path: /etc/apt/sources.list.d/lunarg-vulkan-jammy.list
-            name: vulkan-sdk
-        }
         cargo: { name: cargo  repo-component: universe }
         btop: { name: btop  repo-component: universe }
         xclip: { name: xclip  repo-component: universe }
         build-essential: { name: build-essential }
         fzf: { name: fzf  repo-component: universe }
         ripgrep: { name: ripgrep  repo-component: universe }
+        libxcb-xinput0: { name: libxcb-xinput0 repo-component: universe }
+        libxcb-xinerama0: { name: libxcb-xinerama0 repo-component: universe }
+        libxcb-cursor-dev: { name: libxcb-cursor-dev repo-component: universe }
     }
 
     \flatpak: {
@@ -43,6 +39,14 @@
         }
     }
 
+    \tarball: {
+        vulkan-sdk: {
+            $SDKVERSION: 1.4.350.1
+            url: "https://sdk.lunarg.com/sdk/download/$SDKVERSION/linux/vulkansdk-linux-x86_64-$SDKVERSION.tar.xz"
+            installDir: ~/vulkan
+        }
+    }
+
     \debian-font: {
         $FONTDIR: ~/.local/share/fonts/$FONTNAME-$FONTVERSION
 
@@ -62,9 +66,14 @@
         !using: linux
 
         *: apt\*
-        vulkan-dev: {
-            package: apt\vulkan-sdk
-        }
+        vulkan-dev: [
+            libxcb-xinput0
+            libxcb-xinerama0
+            libxcb-cursor-dev
+            build-essential
+            vulkan-sdk
+        ]
+        vulkan-sdk: [tarball\vulkan-sdk]
         neovim: [ appImage\neovim, neovim-config ]
         // TODO: The rest of needed things from packages like treesitter, fzf?
         neovim-config: [ ripgrep, dotfiles\neovim ]

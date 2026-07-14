@@ -119,6 +119,15 @@ def test_plan_is_ordered_with_components():
     assert all(hasattr(rc, 'name') for _op, _k, rc in plan)
 
 
+def test_errors_default_empty_and_stage_clears_current_row_error():
+    ms = make()
+    assert ms.errors == {}
+    ms.errors = {'apt\\a_missing': 'install failed: exit 1'}
+    ms.cursor = 0  # the missing row
+    ms.stage('install')  # re-attempting clears its error mark
+    assert 'apt\\a_missing' not in ms.errors
+
+
 def test_targets_prefers_selection_over_cursor():
     ms = make()
     ms.cursor = 0

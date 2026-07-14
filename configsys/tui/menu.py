@@ -40,6 +40,7 @@ class MenuState:
         self.cursor = 0
         self.selected = set()      # selected row indices
         self.staged = {}           # row index -> op name
+        self.errors = {}           # unit key -> message from the last execute
 
     # -- navigation -------------------------------------------------------
 
@@ -83,6 +84,7 @@ class MenuState:
         for i in self._targets():
             if pred(self.rows[i].state):
                 self.staged[i] = op
+                self.errors.pop(self.rows[i].key, None)  # re-attempting clears the mark
                 staged_any = True
         return staged_any
 
@@ -117,7 +119,7 @@ def execute_plan(ctx, plan, ledger):
     '''Run each staged op, returning an OpOutcome per op (ok + failure detail).'''
     outcomes = []
     for op, key, rc in plan:
-        fam = get_family(rc.family, ctx.runner)
+        fam = get_family(rc.family, ctx.runner, ctx.paths)
         if fam is None:
             print(f'skip {key}: family "{rc.family}" not supported')
             outcomes.append(OpOutcome(op, key, rc.name, False, 'unsupported family'))
@@ -195,8 +197,13 @@ def _draw(stdscr, pal, ms, ctx, cfg, note):
 
         sel = '»' if i in ms.selected else ' '
         op = ms.staged.get(i)
-        badge = OPS[op][0] if op else ' '
-        badge_attr = pal.get(OPS[op][1]) | curses.A_BOLD if op else curses.A_NORMAL
+        err = ms.errors.get(row.key)
+        if op:
+            badge, badge_attr = OPS[op][0], pal.get(OPS[op][1]) | curses.A_BOLD
+        elif err:
+            badge, badge_attr = '✗', pal.get('error') | curses.A_BOLD
+        else:
+            badge, badge_attr = ' ', curses.A_NORMAL
 
         _put(stdscr, y, 0, sel, pal.get('accent') | base | curses.A_BOLD)
         _put(stdscr, y, 1, badge, badge_attr | base)
@@ -205,17 +212,21 @@ def _draw(stdscr, pal, ms, ctx, cfg, note):
         status_attr = pal.get(STATUS_COLOR.get(s.status, 'dim')) | base
         _put(stdscr, y, 34, _fit(s.status, 12).ljust(12), status_attr)
 
-        if s.status == 'unsupported':
-            ver = '(family not yet supported)'
-        elif not s.present:
-            ver = f'-> {s.latest_version or "?"}'
-        elif s.outdated:
-            ver = f'{s.installed_version} -> {s.latest_version}'
+        if err:
+            info, info_attr = err, base | pal.get('error')
         else:
-            ver = s.installed_version or '-'
-        if s.locked:
-            ver += '  [locked]'
-        _put(stdscr, y, 47, _fit(ver, max(1, w - 48)), base | pal.get('dim'))
+            if s.status == 'unsupported':
+                info = '(family not yet supported)'
+            elif not s.present:
+                info = f'-> {s.latest_version or "?"}'
+            elif s.outdated:
+                info = f'{s.installed_version} -> {s.latest_version}'
+            else:
+                info = s.installed_version or '-'
+            if s.locked:
+                info += '  [locked]'
+            info_attr = base | pal.get('dim')
+        _put(stdscr, y, 47, _fit(info, max(1, w - 48)), info_attr)
 
     n_staged = len(ms.staged)
     n_sel = len(ms.selected)
@@ -238,10 +249,10 @@ def _summary_note(outcomes):
 
 
 def _confirm_and_execute(stdscr, pal, ms, ctx, ledger):
-    '''Returns (executed: bool, note: str).'''
+    '''Returns (executed: bool, note: str, outcomes: list).'''
     plan = ms.plan()
     if not plan:
-        return False, 'nothing staged'
+        return False, 'nothing staged', []
     with suspended(stdscr):
         print('\nAbout to execute:')
         for op, key, rc in plan:
@@ -253,7 +264,7 @@ def _confirm_and_execute(stdscr, pal, ms, ctx, ledger):
         if ans != 'y':
             print('cancelled.')
             input('Press Enter to return...')
-            return False, 'cancelled'
+            return False, 'cancelled', []
 
         outcomes = execute_plan(ctx, plan, ledger)
         n_ok = sum(1 for o in outcomes if o.ok)
@@ -262,7 +273,7 @@ def _confirm_and_execute(stdscr, pal, ms, ctx, ledger):
         for o in failed:
             print(f'  FAILED  {o.op:8} {o.key}  (pkg: {o.name})  {o.detail}')
         input('\nPress Enter to return...')
-        return True, _summary_note(outcomes)
+        return True, _summary_note(outcomes), outcomes
 
 
 def run(ctx):
@@ -295,12 +306,15 @@ def run(ctx):
             elif ch == ord('c'):
                 ms.unstage()
                 ms.clear_selection()
+                ms.errors.clear()
             elif ch in KEY_TO_OP:
                 if not ms.stage(KEY_TO_OP[ch]):
                     note = f'{KEY_TO_OP[ch]} not applicable here'
             elif ch in (ord('X'), ord('\n'), curses.KEY_ENTER):
-                executed, note = _confirm_and_execute(stdscr, pal, ms, ctx, ledger)
+                executed, note, outcomes = _confirm_and_execute(stdscr, pal, ms, ctx, ledger)
                 if executed:
+                    failed = {o.key: f'{o.op} failed: {o.detail}'
+                              for o in outcomes if not o.ok}
                     # re-inspect: state changed. Never let a reload error kill the
                     # session — keep the current view and report instead.
                     try:
@@ -309,4 +323,5 @@ def run(ctx):
                         ms = MenuState(states)
                     except Exception as e:  # noqa: BLE001 - surface, don't crash
                         note = f'reload failed: {e}'
+                    ms.errors = failed  # mark rows that failed this run
     return 0

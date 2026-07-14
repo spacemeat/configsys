@@ -154,20 +154,24 @@ def test_universe_route_carries_repo_component():
     ]
 
 
-def test_vulkan_key_and_source_added_before_install():
-    unit = resolve_unit('vulkan-dev')  # -> apt\vulkan-sdk with lunarg key/source
-    assert unit.key == 'apt\\vulkan-sdk'
+def test_apt_key_and_source_prereq_still_supported():
+    # The apt third-party key/source mechanism is retained for other components,
+    # even though vulkan-sdk itself moved to the tarball family.
+    comp = ResolvedComponent(key='apt\\thing', family='apt', comp='thing', fields={
+        'name': 'thing',
+        'pubkey-url': 'https://ex.com/key.asc',
+        'pubkey-path': '/etc/apt/trusted.gpg.d/ex.asc',
+        'source-url': 'https://ex.com/ex.list',
+        'source-path': '/etc/apt/sources.list.d/ex.list',
+    })
     r = Runner(pretend=True)
-    Apt(r).install(unit)
-
-    key_cmd = ('[ -f /etc/apt/trusted.gpg.d/lunarg.asc ] || '
-               'sudo curl -fsSL https://packages.lunarg.com/lunarg-signing-key-pub.asc '
-               '-o /etc/apt/trusted.gpg.d/lunarg.asc')
-    src_cmd = ('if [ ! -f /etc/apt/sources.list.d/lunarg-vulkan-jammy.list ]; then '
-               'sudo curl -fsSL http://packages.lunarg.com/vulkan/lunarg-vulkan-jammy.list '
-               '-o /etc/apt/sources.list.d/lunarg-vulkan-jammy.list '
+    Apt(r).install(comp)
+    key_cmd = ('[ -f /etc/apt/trusted.gpg.d/ex.asc ] || '
+               'sudo curl -fsSL https://ex.com/key.asc -o /etc/apt/trusted.gpg.d/ex.asc')
+    src_cmd = ('if [ ! -f /etc/apt/sources.list.d/ex.list ]; then '
+               'sudo curl -fsSL https://ex.com/ex.list -o /etc/apt/sources.list.d/ex.list '
                '&& sudo apt-get update; fi')
-    assert r.calls == [key_cmd, src_cmd, 'sudo apt-get install -y vulkan-sdk']
+    assert r.calls == [key_cmd, src_cmd, 'sudo apt-get install -y thing']
 
 
 def test_no_prereqs_when_none_declared():

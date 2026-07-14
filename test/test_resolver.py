@@ -12,12 +12,36 @@ def resolver(os_block='pop_os!'):
     return RouteResolver(load(routes), os_block)
 
 
-def test_indirect_dict_package_binding():
+def test_indirect_dict_package_binding_inline():
+    # The `{ package: fam\comp }` indirection is still supported by the resolver
+    # (validated with an inline trove, independent of routes.hu content).
+    import humon as h
+    from configsys.routes import RouteResolver
+    routes = h.from_string(
+        '{ \\apt: { thing: { name: the-thing } }'
+        '  linux: {}'
+        '  debian: { !using: linux  *: apt\\*  widget: { package: apt\\thing } } }')
+    units = RouteResolver(routes, 'debian').resolve_names(['widget'])
+    assert set(units) == {'apt\\thing'}
+    assert units['apt\\thing'].fields['name'] == 'the-thing'
+
+
+def test_vulkan_dev_composite_pulls_xcb_build_and_tarball():
     units = resolver().resolve_names(['vulkan-dev'])
-    assert set(units) == {'apt\\vulkan-sdk'}
-    u = units['apt\\vulkan-sdk']
-    assert u.fields['name'] == 'vulkan-sdk'
-    assert u.fields['source-path'] == '/etc/apt/sources.list.d/lunarg-vulkan-jammy.list'
+    assert set(units) == {
+        'apt\\libxcb-xinput0', 'apt\\libxcb-xinerama0', 'apt\\libxcb-cursor-dev',
+        'apt\\build-essential', 'tarball\\vulkan-sdk',
+    }
+
+
+def test_vulkan_sdk_resolves_to_tarball_with_version_substituted():
+    units = resolver().resolve_names(['vulkan-sdk'])
+    u = units['tarball\\vulkan-sdk']
+    assert u.family == 'tarball'
+    assert u.vars['$SDKVERSION'] == '1.4.350.1'
+    assert u.fields['installDir'] == '~/vulkan'
+    assert u.fields['url'].endswith('vulkansdk-linux-x86_64-1.4.350.1.tar.xz')
+    assert '$SDKVERSION' not in u.fields['url']
 
 
 def test_list_route_expands_to_all_parts():
@@ -57,9 +81,13 @@ def test_full_dev_profile_resolves():
              'fzf', 'ripgrep', 'xclip', 'cargo', 'build-essential', 'mononoki-nerd']
     units = resolver().resolve_names(names)
     expected = {
-        'apt\\vulkan-sdk', 'appImage\\neovim', 'apt\\ripgrep', 'dotfiles\\neovim',
+        # vulkan-dev composite
+        'apt\\libxcb-xinput0', 'apt\\libxcb-xinerama0', 'apt\\libxcb-cursor-dev',
+        'apt\\build-essential', 'tarball\\vulkan-sdk',
+        # neovim composite
+        'appImage\\neovim', 'apt\\ripgrep', 'dotfiles\\neovim',
+        # singletons
         'flatpak\\firefox', 'flatpak\\chrome', 'appImage\\arduino', 'apt\\btop',
-        'apt\\fzf', 'apt\\xclip', 'apt\\cargo', 'apt\\build-essential',
-        'debian-font\\mononoki-nerd',
+        'apt\\fzf', 'apt\\xclip', 'apt\\cargo', 'debian-font\\mononoki-nerd',
     }
     assert set(units) == expected

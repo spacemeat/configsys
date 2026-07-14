@@ -12,8 +12,9 @@ class Family:
     name = None          # subclasses set, e.g. 'apt'
     privileged = False   # True if mutating ops need sudo
 
-    def __init__(self, runner):
+    def __init__(self, runner, paths=None):
         self.runner = runner
+        self.paths = paths   # for families that touch the filesystem (tarball, ...)
 
     # -- read (inspection) ------------------------------------------------
 

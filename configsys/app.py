@@ -73,7 +73,7 @@ class Context:
         requested = cfg.requested()
         units = self.routes.resolve_names(list(requested))
         ledger = Ledger.load(self.paths)
-        states = InstallState(self.runner, ledger).inspect(units)
+        states = InstallState(self.runner, ledger, self.paths).inspect(units)
         return cfg, requested, units, ledger, states
 
     def resolve(self, names):
@@ -104,7 +104,7 @@ def _dispatch_op(ctx, names, op, *, ledger=None, version=None):
     rc_code = 0
     for key in sorted(units):
         rc = units[key]
-        fam = get_family(rc.family, ctx.runner)
+        fam = get_family(rc.family, ctx.runner, ctx.paths)
         if fam is None:
             print(f'skip {key}: family "{rc.family}" not yet supported')
             continue

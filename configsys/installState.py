@@ -52,9 +52,10 @@ class ComponentState:
 
 
 class InstallState:
-    def __init__(self, runner, ledger=None):
+    def __init__(self, runner, ledger=None, paths=None):
         self.runner = runner
         self.ledger = ledger if ledger is not None else Ledger()
+        self.paths = paths
 
     def inspect(self, units):
         '''units: {key: ResolvedComponent} -> {key: ComponentState}.'''
@@ -63,7 +64,7 @@ class InstallState:
     def inspect_one(self, rc):
         led_lock = self.ledger.is_locked(rc.key)
         managed = self.ledger.is_managed(rc.key)
-        fam = get_family(rc.family, self.runner)
+        fam = get_family(rc.family, self.runner, self.paths)
 
         if fam is None:
             return ComponentState(
