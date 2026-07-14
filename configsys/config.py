@@ -63,6 +63,12 @@ class Config:
         node = self._get('configs')
         return _values(node) if node is not None else []
 
+    def default_scope(self):
+        '''Machine-wide install scope default (top-level `scope` in either file),
+        or None to let each family use its own default.'''
+        node = self._get('scope')
+        return node.value if node is not None and node.kind == VALUE else None
+
     def profile_components(self, profile):
         node = self._get(profile)
         if node is None:

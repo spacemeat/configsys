@@ -54,12 +54,28 @@ class Context:
         self.os_info = osdetect.detect(env)
         self.runner = Runner(pretend=args.pretend, echo=lambda m: print(m))
         self._routes_trove = None
+        self._config = None
 
     @property
     def routes(self):
         if self._routes_trove is None:
             self._routes_trove = load(self.paths.routes_file)
         return RouteResolver(self._routes_trove, self.os_info.block)
+
+    @property
+    def config(self):
+        if self._config is None:
+            self._config = Config.load(self.paths)
+        return self._config
+
+    def apply_scope_default(self, units):
+        '''Stamp the machine-wide scope default onto units that don't set `scope`
+        in their route (component field wins; family default fills the rest).'''
+        default = self.config.default_scope()
+        if default:
+            for rc in units.values():
+                rc.fields.setdefault('scope', default)
+        return units
 
     def ensure_user_config(self):
         p = self.paths.user_config_file
@@ -70,15 +86,12 @@ class Context:
 
     def load_pipeline(self):
         self.ensure_user_config()
-        cfg = Config.load(self.paths)
+        cfg = self.config
         requested = cfg.requested()
-        units = self.routes.resolve_names(list(requested))
+        units = self.apply_scope_default(self.routes.resolve_names(list(requested)))
         ledger = Ledger.load(self.paths)
         states = InstallState(self.runner, ledger, self.paths).inspect(units)
         return cfg, requested, units, ledger, states
-
-    def resolve(self, names):
-        return self.routes.resolve_names(names)
 
 
 # -- commands -------------------------------------------------------------
@@ -102,6 +115,7 @@ def _dispatch_op(ctx, names, op, *, ledger=None, version=None):
     if not roots:
         print(f'configsys: nothing resolved for {names}')
         return 1
+    ctx.apply_scope_default(units)
     # Apply the requested op to the *named* units; expand_plan folds in dependency
     # installs (e.g. apt\flatpak before flatpak\firefox) and orders the whole thing.
     base_plan = [(op, key, units[key]) for key in sorted(roots)]

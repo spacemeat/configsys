@@ -30,9 +30,21 @@ class Flatpak(Family):
 
     # -- helpers ----------------------------------------------------------
 
+    default_scope = 'user'
+
     @staticmethod
     def _appid(rc):
         return rc.name  # route `name` field is the flatpak app id
+
+    def _scope(self, rc):
+        return rc.fields.get('scope') or self.default_scope
+
+    def _flag(self, rc):
+        return '--user' if self._scope(rc) == 'user' else '--system'
+
+    def _sudo(self, rc):
+        # system-scope mutations need root; --user never does
+        return self._scope(rc) == 'system'
 
     @staticmethod
     def _parse_field(text, field):
@@ -52,14 +64,14 @@ class Flatpak(Family):
             # Unknown hub with no url; assume the remote is already configured.
             return
         self.runner.run(
-            f'flatpak remote-add --user --if-not-exists {shlex.quote(hub)} '
-            f'{shlex.quote(url)}', capture=False)
+            f'flatpak remote-add {self._flag(rc)} --if-not-exists {shlex.quote(hub)} '
+            f'{shlex.quote(url)}', sudo=self._sudo(rc), capture=False)
 
-    # -- read -------------------------------------------------------------
+    # -- read (no sudo even for --system) ---------------------------------
 
     def get_version(self, rc):
         app = shlex.quote(self._appid(rc))
-        r = self.runner.run(f'flatpak info --user {app}')
+        r = self.runner.run(f'flatpak info {self._flag(rc)} {app}')
         if not r.ok:
             return None
         return (self._parse_field(r.stdout, 'Version')
@@ -72,7 +84,7 @@ class Flatpak(Family):
         return None
 
     def is_locked(self, rc):
-        r = self.runner.run('flatpak mask --user')
+        r = self.runner.run(f'flatpak mask {self._flag(rc)}')
         if not r.ok:
             return False
         appid = self._appid(rc)
@@ -84,28 +96,34 @@ class Flatpak(Family):
         self.ensure_remote(rc)
         hub = shlex.quote(rc.fields.get('hub', ''))
         app = shlex.quote(self._appid(rc))
-        return self.runner.run(f'flatpak install --user -y {hub} {app}', capture=False)
+        return self.runner.run(f'flatpak install {self._flag(rc)} -y {hub} {app}',
+                               sudo=self._sudo(rc), capture=False)
 
     def uninstall(self, rc):
         app = shlex.quote(self._appid(rc))
-        return self.runner.run(f'flatpak uninstall --user -y {app}', capture=False)
+        return self.runner.run(f'flatpak uninstall {self._flag(rc)} -y {app}',
+                               sudo=self._sudo(rc), capture=False)
 
     def upgrade(self, rc):
         self.ensure_remote(rc)
         app = shlex.quote(self._appid(rc))
-        return self.runner.run(f'flatpak update --user -y {app}', capture=False)
+        return self.runner.run(f'flatpak update {self._flag(rc)} -y {app}',
+                               sudo=self._sudo(rc), capture=False)
 
     def set_version(self, rc, version):
         # flatpak pins by commit; treat `version` as a commit id.
         app = shlex.quote(self._appid(rc))
         commit = shlex.quote(version)
         return self.runner.run(
-            f'flatpak update --user -y --commit={commit} {app}', capture=False)
+            f'flatpak update {self._flag(rc)} -y --commit={commit} {app}',
+            sudo=self._sudo(rc), capture=False)
 
     def lock(self, rc):
         app = shlex.quote(self._appid(rc))
-        return self.runner.run(f'flatpak mask --user {app}')
+        return self.runner.run(f'flatpak mask {self._flag(rc)} {app}',
+                               sudo=self._sudo(rc))
 
     def unlock(self, rc):
         app = shlex.quote(self._appid(rc))
-        return self.runner.run(f'flatpak mask --user --remove {app}')
+        return self.runner.run(f'flatpak mask {self._flag(rc)} --remove {app}',
+                               sudo=self._sudo(rc))

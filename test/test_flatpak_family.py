@@ -106,3 +106,37 @@ def test_is_locked_reads_mask_list():
     fr = FakeRunner([('flatpak mask --user', 0, 'org.mozilla.firefox\n')])
     assert Flatpak(fr).is_locked(fp('org.mozilla.firefox')) is True
     assert Flatpak(fr).is_locked(fp('com.google.Chrome')) is False
+
+
+# -- scope (user vs system) ----------------------------------------------
+
+def test_system_scope_install_uses_sudo_and_system_flag():
+    r = Runner(pretend=True)
+    Flatpak(r).install(fp(scope='system'))
+    assert r.calls == [
+        'sudo flatpak remote-add --system --if-not-exists flathub '
+        'https://dl.flathub.org/repo/flathub.flatpakrepo',
+        'sudo flatpak install --system -y flathub org.mozilla.firefox',
+    ]
+
+
+def test_system_scope_uninstall_and_lock_sudo():
+    r = Runner(pretend=True)
+    Flatpak(r).uninstall(fp(scope='system'))
+    Flatpak(r).lock(fp(scope='system'))
+    assert r.calls == [
+        'sudo flatpak uninstall --system -y org.mozilla.firefox',
+        'sudo flatpak mask --system org.mozilla.firefox',
+    ]
+
+
+def test_read_ops_never_sudo_even_in_system_scope():
+    fr = FakeRunner([('flatpak info --system', 0, 'Version: 1.0\n')])
+    Flatpak(fr).get_version(fp(scope='system'))
+    assert fr.calls == ['flatpak info --system org.mozilla.firefox']  # no sudo
+
+
+def test_user_scope_is_the_default():
+    r = Runner(pretend=True)
+    Flatpak(r).install(fp())  # no scope field
+    assert '--user' in r.calls[-1] and 'sudo' not in r.calls[-1]

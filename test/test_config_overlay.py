@@ -53,6 +53,15 @@ def test_selected_but_undefined_profile_errors():
         c.profile_components('ghost')
 
 
+def test_default_scope_absent_is_none():
+    assert cfg(REPO).default_scope() is None
+
+
+def test_default_scope_from_user_config():
+    c = cfg(REPO, '{ configs: [ dev ]  scope: system }')
+    assert c.default_scope() == 'system'
+
+
 def test_overlap_across_profiles_tracks_all_requesters():
     c = cfg('{ configs: [ a, b ]  a: [ ripgrep ]  b: [ ripgrep, btop ] }')
     req = c.requested()
