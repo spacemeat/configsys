@@ -64,7 +64,7 @@ class Context:
         p = self.paths.user_config_file
         if not p.exists():
             p.parent.mkdir(parents=True, exist_ok=True)
-            p.write_text(USER_CONFIG_TEMPLATE)
+            p.write_text(USER_CONFIG_TEMPLATE, encoding='utf-8')
             print(f'configsys: generated {p}')
 
     def load_pipeline(self):

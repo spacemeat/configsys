@@ -263,8 +263,12 @@ def run(ctx):
             elif ch in (ord('X'), ord('\n'), curses.KEY_ENTER):
                 note = _confirm_and_execute(stdscr, pal, ms, ctx, ledger)
                 if note == 'executed':
-                    # re-inspect: state changed
-                    ledger = Ledger.load(ctx.paths)
-                    states = ctx.load_pipeline()[4]
-                    ms = MenuState(states)
+                    # re-inspect: state changed. Never let a reload error kill the
+                    # session — keep the current view and report instead.
+                    try:
+                        ledger = Ledger.load(ctx.paths)
+                        states = ctx.load_pipeline()[4]
+                        ms = MenuState(states)
+                    except Exception as e:  # noqa: BLE001 - surface, don't crash
+                        note = f'reload failed: {e}'
     return 0

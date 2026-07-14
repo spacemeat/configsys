@@ -29,8 +29,8 @@ class Ledger:
     @classmethod
     def load(cls, paths):
         p = paths.ledger_file
-        if not p.exists():
-            return cls({})
+        if not p.exists() or not p.read_text(encoding='utf-8-sig').strip():
+            return cls({})  # missing or blank ledger == no records
         trove = load(p)
         root = trove.root
         recs = {}
@@ -57,7 +57,7 @@ class Ledger:
             }
             for key, rec in sorted(self.records.items())
         }
-        paths.ledger_file.write_text(emit_hu(obj))
+        paths.ledger_file.write_text(emit_hu(obj), encoding='utf-8')
 
     # -- accessors --------------------------------------------------------
 

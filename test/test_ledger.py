@@ -30,6 +30,32 @@ def test_roundtrip_persists_lock_managed_pinned(tmp_path):
     assert reloaded.is_locked('apt\\ripgrep') is False
 
 
+def test_empty_ledger_roundtrips(tmp_path):
+    # Regression: an empty ledger saves as `{}`, which humon.from_file rejected as
+    # BADENCODING (too short to sniff). Save + reload must succeed.
+    p = paths_in(tmp_path)
+    Ledger().save(p)
+    assert p.ledger_file.exists()
+    reloaded = Ledger.load(p)
+    assert reloaded.records == {}
+
+
+def test_blank_ledger_file_treated_as_empty(tmp_path):
+    p = paths_in(tmp_path)
+    p.state_dir.mkdir(parents=True, exist_ok=True)
+    p.ledger_file.write_text('   \n', encoding='utf-8')
+    assert Ledger.load(p).records == {}
+
+
+def test_single_record_roundtrips(tmp_path):
+    # a small (but non-empty) ledger also round-trips
+    p = paths_in(tmp_path)
+    led = Ledger()
+    led.set_lock('apt\\btop', True)
+    led.save(p)
+    assert Ledger.load(p).is_locked('apt\\btop') is True
+
+
 def test_backslash_keys_survive_roundtrip(tmp_path):
     p = paths_in(tmp_path)
     led = Ledger()

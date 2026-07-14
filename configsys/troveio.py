@@ -8,6 +8,8 @@ Two jobs:
     are read-only, so ledger writes are produced this way (then written to disk).
 '''
 
+from pathlib import Path
+
 import humon as h
 
 from .errors import ConfigError
@@ -19,20 +21,32 @@ _UNSAFE = set(' \t\n\r{}[]:,"\'`\\@')
 
 
 def load(path):
-    '''Parse a .hu file -> Trove. Raises ConfigError on syntax errors / missing file.'''
+    '''Parse a .hu file -> Trove. Raises ConfigError on syntax errors / missing file.
+
+    Reads the file as UTF-8 text and parses via from_string rather than
+    humon.from_file: from_file sniffs the byte encoding and rejects very short
+    files (e.g. a `{}` ledger) with BADENCODING. We always write UTF-8, and humon
+    prefers UTF-8, so decoding here is both correct and more robust.
+    '''
     try:
-        return h.from_file(str(path))
+        text = Path(path).read_text(encoding='utf-8-sig')  # tolerate a BOM
     except FileNotFoundError:
         raise ConfigError(f'file not found: {path}')
-    except h.DeserializeError as e:
+    except UnicodeDecodeError as e:
+        raise ConfigError(f'{path}: not valid UTF-8 ({e})')
+    try:
+        return load_string(text)
+    except ConfigError as e:
         raise ConfigError(f'{path}: {e}')
 
 
 def load_string(text):
+    if not text.strip():
+        raise ConfigError('empty humon document')
     try:
         return h.from_string(text)
     except h.DeserializeError as e:
-        raise ConfigError(f'<string>: {e}')
+        raise ConfigError(f'{e}')
 
 
 def _scalar(v):
