@@ -23,6 +23,26 @@ def test_registry_has_dotfiles():
     assert isinstance(get_family('dotfiles', Runner(pretend=True)), DotFiles)
 
 
+def test_single_inline_spec():
+    rc = ResolvedComponent(key='dotfiles\\arduino', family='dotfiles', comp='arduino',
+                           fields={'src': 'bash.d/arduino.sh', 'dst': '~/.bash.d/arduino.sh'})
+    assert DotFiles._specs(rc) == [('arduino', 'bash.d/arduino.sh', '~/.bash.d/arduino.sh')]
+
+
+def test_reserved_depends_not_a_spec_and_becomes_a_dep():
+    import humon as h
+    from configsys.routes import RouteResolver
+    routes = h.from_string(
+        '{ \\dotfiles: { base: { src: b  dst: ~/.b }'
+        '               leaf: { depends: base  src: l  dst: ~/.l } }'
+        '  linux: { base: [ dotfiles\\base ] }'
+        '  debian: { !using: linux  *: apt\\*  leaf: dotfiles\\leaf } }')
+    leaf = RouteResolver(routes, 'debian').resolve_names(['leaf'])['dotfiles\\leaf']
+    assert 'depends' not in leaf.fields          # reserved, not a link spec
+    assert leaf.fields['src'] == 'l'             # inline spec preserved
+    assert leaf.deps == {'dotfiles\\base'}       # depends resolved through the cascade
+
+
 def test_dst_env_expansion_defaults_xdg(tmp_path):
     p = paths_for(tmp_path)
     df = DotFiles(Runner(pretend=True), paths=p)

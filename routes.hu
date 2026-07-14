@@ -32,33 +32,65 @@
         }
     }
 
+    // App definitions: identity + method-independent deps + install methods
+    // (keyed by family, mutually exclusive). The OS block selects one method with a
+    // bare family name, e.g. `neovim: appImage`.
+    \app: {
+        neovim: {
+            depends: [ ripgrep ]                    // method-independent
+            appImage: {
+                version: { github: neovim/neovim  asset: "nvim-linux-$ARCH.appimage" }
+                url: "https://github.com/neovim/neovim/releases/download/$VERSION/nvim-linux-$ARCH.appimage"
+                path: ~/apps/nvim.appimage
+                name: Neovim
+                depends: [ dotfiles\neovim ]         // method-specific
+            }
+        }
+    }
+
     \appImage: {
         // appImages need FUSE to run; ensure libfuse2 first (via the cascade).
         !depends: libfuse2
 
-        neovim: {
-            // discover the tag AND the exact asset url by glob (arch-aware, and
-            // robust to release-file renames since the url comes from the API).
-            version: { github: neovim/neovim  asset: "nvim-linux-$ARCH.appimage" }
-            url: "https://github.com/neovim/neovim/releases/download/$VERSION/nvim-linux-$ARCH.appimage"
-            path: ~/apps/nvim.appimage
-            name: Neovim
-        }
         arduino: {
             // asset name embeds the version, so a glob resolves the url robustly
             version: { github: arduino/arduino-ide  asset: "arduino-ide_*_Linux_64bit.AppImage" }
             url: "https://github.com/arduino/arduino-ide/releases/download/$VERSION/arduino-ide_$VERSION_Linux_64bit.AppImage"
             path: ~/apps/arduino-ide.appimage
             name: "Arduino IDE"
+            depends: [ dotfiles\arduino ]
         }
     }
 
     \dotfiles: {
+        bashDotD: {
+            aliases: {
+                src: bash_aliases
+                dst: ~/.bash_aliases
+            }
+        }
         neovim: {
             // link specs: <name>: { src (under repo dotfiles/), dst (env/~ ok) }
+            depends: bashDotD
             config: {
                 src: neovim
                 dst: $XDG_CONFIG_HOME/nvim
+            }
+            aliases: {
+                src: bash.d/neovim.sh
+                dst: ~/.bash.d/neovim.sh
+            }
+        }
+        arduino: {
+            depends: bashDotD
+            src: bash.d/arduino.sh
+            dst: ~/.bash.d/arduino.sh
+        }
+        vulkan-sdk: {
+            depends: bashDotD
+            aliases: {
+                src: bash.d/vulkan-sdk.sh
+                dst: ~/.bash.d/vulkan-sdk.sh
             }
         }
     }
@@ -89,6 +121,7 @@
     // OS cascade root. Holds OS-agnostic routes later; empty for now so
     // debian's `!using: linux` always resolves to a real node.
     linux: {
+        bashDotD: [ dotfiles\bashDotD ]
     }
 
     debian: {
@@ -102,10 +135,8 @@
             build-essential
             vulkan-sdk
         ]
-        vulkan-sdk: [tarball\vulkan-sdk]
-        neovim: [ appImage\neovim, neovim-config ]
-        // TODO: The rest of needed things from packages like treesitter, fzf?
-        neovim-config: [ ripgrep, dotfiles\neovim ]
+        vulkan-sdk: [ tarball\vulkan-sdk, dotfiles\vulkan-sdk ]
+        neovim: appImage          // select the appImage method of app\neovim
         firefox: flatpak\firefox
         chrome: flatpak\chrome
         arduino: appImage\arduino

@@ -35,9 +35,13 @@ class DotFiles(Family):
 
     @staticmethod
     def _specs(rc):
-        '''[(name, src, dst)] from the component's nested link-spec fields.'''
+        '''[(name, src, dst)] link specs. A component may be a single inline spec
+        (top-level src/dst) or a set of named specs (config: {src,dst}, ...).'''
+        f = rc.fields
         out = []
-        for key, val in rc.fields.items():
+        if 'src' in f and 'dst' in f:
+            out.append((rc.comp, f['src'], f['dst']))
+        for key, val in f.items():
             if isinstance(val, dict) and 'src' in val and 'dst' in val:
                 out.append((key, val['src'], val['dst']))
         return out

@@ -31,9 +31,25 @@ def test_vulkan_dev_composite_pulls_xcb_build_and_tarball():
     assert set(units) == {
         'apt\\libxcb-xinput0', 'apt\\libxcb-xinerama0', 'apt\\libxcb-cursor-dev',
         'apt\\build-essential', 'tarball\\vulkan-sdk',
-        'apt\\curl',  # tarball family !depends
+        'apt\\curl',                                # tarball family !depends
+        'dotfiles\\vulkan-sdk', 'dotfiles\\bashDotD',  # vulkan-sdk's dotfiles chain
     }
     assert units['tarball\\vulkan-sdk'].deps == {'apt\\curl'}
+
+
+def test_app_block_bare_selector_layers_deps():
+    # `neovim: appImage` selects app\neovim's appImage method; deps layer:
+    # family !depends (libfuse2) + method-independent (ripgrep) + method-specific
+    # (dotfiles\neovim, which itself depends on dotfiles\bashDotD)
+    units = resolver().resolve_names(['neovim'])
+    nv = units['appImage\\neovim']
+    assert nv.family == 'appImage' and nv.fields['name'] == 'Neovim'
+    assert nv.deps == {'apt\\libfuse2', 'apt\\ripgrep', 'dotfiles\\neovim'}
+    assert units['dotfiles\\neovim'].deps == {'dotfiles\\bashDotD'}
+    assert set(units) == {
+        'appImage\\neovim', 'apt\\libfuse2', 'apt\\ripgrep',
+        'dotfiles\\neovim', 'dotfiles\\bashDotD',
+    }
 
 
 def test_vulkan_sdk_resolves_to_tarball_with_version_spec():
@@ -54,16 +70,15 @@ def test_appimage_version_is_a_github_spec_with_asset():
 
 
 def test_list_route_expands_to_all_parts():
-    units = resolver().resolve_names(['neovim'])
-    # neovim -> [appImage\neovim, neovim-config -> [ripgrep, dotfiles\neovim]]
-    # plus appImage's family !depends (apt\libfuse2)
-    assert set(units) == {'appImage\\neovim', 'apt\\ripgrep', 'dotfiles\\neovim',
-                          'apt\\libfuse2'}
-    assert units['appImage\\neovim'].deps == {'apt\\libfuse2'}
+    # vulkan-sdk (debian) = [ tarball\vulkan-sdk, dotfiles\vulkan-sdk ]
+    units = resolver().resolve_names(['vulkan-sdk'])
+    assert {'tarball\\vulkan-sdk', 'dotfiles\\vulkan-sdk'} <= set(units)
+    assert units['tarball\\vulkan-sdk'].deps == {'apt\\curl'}          # family !depends
+    assert units['dotfiles\\vulkan-sdk'].deps == {'dotfiles\\bashDotD'}  # component depends
 
 
 def test_dedup_across_standalone_and_dependency():
-    # ripgrep is both a standalone dev component and pulled in via neovim-config
+    # ripgrep is both a standalone dev component and a dep of neovim (app-common)
     units = resolver().resolve_names(['ripgrep', 'neovim'])
     assert 'apt\\ripgrep' in units
     # one unit, but recorded as requested by both entry points
@@ -94,16 +109,19 @@ def test_full_dev_profile_resolves():
              'fzf', 'ripgrep', 'xclip', 'cargo', 'build-essential', 'mononoki-nerd']
     units = resolver().resolve_names(names)
     expected = {
-        # vulkan-dev composite
+        # vulkan-dev composite (+ its tarball/dotfiles deps)
         'apt\\libxcb-xinput0', 'apt\\libxcb-xinerama0', 'apt\\libxcb-cursor-dev',
-        'apt\\build-essential', 'tarball\\vulkan-sdk',
-        # neovim composite
+        'apt\\build-essential', 'tarball\\vulkan-sdk', 'dotfiles\\vulkan-sdk',
+        # neovim (app, appImage method) + its layered deps
         'appImage\\neovim', 'apt\\ripgrep', 'dotfiles\\neovim',
         # singletons
         'flatpak\\firefox', 'flatpak\\chrome', 'appImage\\arduino', 'apt\\btop',
         'apt\\fzf', 'apt\\xclip', 'apt\\cargo', 'debian-font\\mononoki-nerd',
+        'dotfiles\\arduino',
         # family !depends auto-added
         'apt\\flatpak', 'apt\\curl', 'apt\\libfuse2',
         'apt\\fontconfig', 'apt\\unzip',
+        # shared dotfiles dep pulled by neovim/arduino/vulkan-sdk
+        'dotfiles\\bashDotD',
     }
     assert set(units) == expected
