@@ -83,6 +83,24 @@ Last grill: 2026-07-13.
     needed to run GUI apps). Deferred: `get_latest` returns None (no cheap local "latest"),
     so flatpaks don't show as "outdated" in inspect yet; `upgrade` still works.
 
+12. **Family `!depends` = auto-added, dependency-ordered prerequisites.** A family block
+    may declare `!depends: <name>` (or a list); the tool(s) it needs to operate resolve
+    through the normal cascade (`\flatpak !depends: flatpak` → `apt\flatpak`;
+    `\tarball !depends: curl`). Binding any unit of that family auto-adds the dep units to
+    the working set (deduped, shown as their own rows), records `rc.deps`, and execution is
+    **topologically ordered**: installs/upgrades run dependency-first (a staged install also
+    folds in its missing transitive deps, shown in the confirm summary), removes run in
+    reverse. On a real system, `apt install flatpak` also pulls dbus etc., so `!depends`
+    covers runtime setup portably (the container harness starts dbus by hand only because
+    minimal containers run no services).
+
+13. **Install scope: a general `scope: user | system` attribute.** Cross-cutting, not
+    flatpak-only. Effective scope = component `scope` field → machine-wide config default
+    (top-level `scope` in `~/configsys.hu`) → family default. flatpak: `user` → `--user`
+    (no sudo, sandbox-friendly, the default); `system` → `--system` + sudo. Scope is an
+    attribute, **not** part of unit identity — a component installs in one scope per machine
+    (key stays `flatpak\<app>`); dual-scope is deliberately not modeled yet.
+
 ### Testing per family (how each is exercised)
 - Pure logic + every family's command construction/parsing: host `pytest` (pretend runner).
 - apt lifecycle + repo-component prereq: `test/run-in-podman.sh` (fast, default).
