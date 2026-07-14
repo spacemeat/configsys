@@ -104,26 +104,49 @@ class MenuState:
 
 # -- execution ------------------------------------------------------------
 
+class OpOutcome:
+    def __init__(self, op, key, name, ok, detail=''):
+        self.op = op
+        self.key = key
+        self.name = name
+        self.ok = ok
+        self.detail = detail
+
+
 def execute_plan(ctx, plan, ledger):
+    '''Run each staged op, returning an OpOutcome per op (ok + failure detail).'''
+    outcomes = []
     for op, key, rc in plan:
         fam = get_family(rc.family, ctx.runner)
         if fam is None:
             print(f'skip {key}: family "{rc.family}" not supported')
+            outcomes.append(OpOutcome(op, key, rc.name, False, 'unsupported family'))
             continue
+
         print(f'\n>>> {op} {key} (pkg: {rc.name})')
         if op == 'install':
-            fam.install(rc)
+            res = fam.install(rc)
         elif op == 'upgrade':
-            fam.upgrade(rc)
+            res = fam.upgrade(rc)
         elif op == 'remove':
-            fam.uninstall(rc)
+            res = fam.uninstall(rc)
         elif op == 'lock':
-            if fam.lock(rc).ok:
+            res = fam.lock(rc)
+            if res.ok:
                 ledger.set_lock(key, True)
         elif op == 'unlock':
-            if fam.unlock(rc).ok:
+            res = fam.unlock(rc)
+            if res.ok:
                 ledger.set_lock(key, False)
+        else:
+            res = None
+
+        ok = bool(res and res.ok)
+        detail = '' if ok else (f'exit {res.returncode}' if res else 'no result')
+        outcomes.append(OpOutcome(op, key, rc.name, ok, detail))
+
     ledger.save(ctx.paths)
+    return outcomes
 
 
 # -- rendering ------------------------------------------------------------
@@ -206,10 +229,19 @@ def _draw(stdscr, pal, ms, ctx, cfg, note):
     stdscr.refresh()
 
 
+def _summary_note(outcomes):
+    n_ok = sum(1 for o in outcomes if o.ok)
+    n_bad = len(outcomes) - n_ok
+    if n_bad == 0:
+        return f'{n_ok} ok'
+    return f'{n_ok} ok, {n_bad} failed'
+
+
 def _confirm_and_execute(stdscr, pal, ms, ctx, ledger):
+    '''Returns (executed: bool, note: str).'''
     plan = ms.plan()
     if not plan:
-        return 'nothing staged'
+        return False, 'nothing staged'
     with suspended(stdscr):
         print('\nAbout to execute:')
         for op, key, rc in plan:
@@ -218,13 +250,19 @@ def _confirm_and_execute(stdscr, pal, ms, ctx, ledger):
             ans = input('\nProceed? [y/N] ').strip().lower()
         except EOFError:
             ans = 'n'
-        if ans == 'y':
-            execute_plan(ctx, plan, ledger)
-            input('\nDone. Press Enter to return...')
-        else:
+        if ans != 'y':
             print('cancelled.')
             input('Press Enter to return...')
-    return 'executed' if ans == 'y' else 'cancelled'
+            return False, 'cancelled'
+
+        outcomes = execute_plan(ctx, plan, ledger)
+        n_ok = sum(1 for o in outcomes if o.ok)
+        failed = [o for o in outcomes if not o.ok]
+        print(f'\nSummary: {n_ok} ok, {len(failed)} failed')
+        for o in failed:
+            print(f'  FAILED  {o.op:8} {o.key}  (pkg: {o.name})  {o.detail}')
+        input('\nPress Enter to return...')
+        return True, _summary_note(outcomes)
 
 
 def run(ctx):
@@ -261,8 +299,8 @@ def run(ctx):
                 if not ms.stage(KEY_TO_OP[ch]):
                     note = f'{KEY_TO_OP[ch]} not applicable here'
             elif ch in (ord('X'), ord('\n'), curses.KEY_ENTER):
-                note = _confirm_and_execute(stdscr, pal, ms, ctx, ledger)
-                if note == 'executed':
+                executed, note = _confirm_and_execute(stdscr, pal, ms, ctx, ledger)
+                if executed:
                     # re-inspect: state changed. Never let a reload error kill the
                     # session — keep the current view and report instead.
                     try:
