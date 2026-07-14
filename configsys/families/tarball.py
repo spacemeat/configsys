@@ -19,14 +19,13 @@ MARKER_PREFIX = '.configsys-'
 class Tarball(Family):
     name = 'tarball'
     privileged = False
+    default_scope = 'user'
 
     # -- locations --------------------------------------------------------
 
     def _install_dir(self, rc):
-        raw = rc.fields.get('installDir', '')
-        if self.paths is not None:
-            return self.paths.expand(raw)
-        return Path(raw).expanduser()
+        # bare-relative installDir (e.g. `vulkan`) -> HOME (user) or /opt (system)
+        return self._scoped_dir(rc.fields.get('installDir', ''), rc)
 
     def _marker(self, rc):
         return self._install_dir(rc) / f'{MARKER_PREFIX}{rc.comp}.version'
@@ -69,7 +68,7 @@ class Tarball(Family):
                f'tar -xf {tmp} -C {dq} && '
                f'rm -f {tmp} && '
                f'printf %s {verq} > {marker}')
-        return self.runner.run(cmd, capture=False)
+        return self.runner.run(cmd, sudo=self._sudo(rc), capture=False)
 
     def upgrade(self, rc):
         # tarball upgrade = clean reinstall of the declared version
@@ -87,7 +86,7 @@ class Tarball(Family):
         # only remove the dir when we actually manage it (our marker is present)
         cmd = (f'if [ -f {shlex.quote(str(marker))} ]; then '
                f'rm -rf {shlex.quote(str(d))}; fi')
-        return self.runner.run(cmd, capture=False)
+        return self.runner.run(cmd, sudo=self._sudo(rc), capture=False)
 
     def lock(self, rc):
         return Result('(tarball lock recorded in ledger)', 0)

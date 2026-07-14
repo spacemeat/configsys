@@ -43,6 +43,17 @@ def test_system_scope_uses_sudo(tmp_path):
     assert r.calls[0].startswith('sudo ')
 
 
+def test_icon_extraction_and_desktop_icon(tmp_path):
+    r = Runner(pretend=True)
+    paths = Paths(env={'CONFIGSYS_HOME': str(tmp_path)})
+    AppImage(r, paths=paths).install(ai_unit(tmp_path / 'apps' / 'a.appimage'))
+    icon = tmp_path / '.local/share/icons' / 'configsys-neovim.png'
+    # an --appimage-extract call for the icon, and a desktop entry pointing at it
+    assert any('--appimage-extract .DirIcon' in c for c in r.calls)
+    assert any(str(icon) in c for c in r.calls if '--appimage-extract' in c)
+    assert any(str(icon) in c and 'Desktop Entry' in c for c in r.calls)
+
+
 def test_get_version_present_and_missing(tmp_path):
     target = tmp_path / 'app.appimage'
     ai = AppImage(Runner(pretend=True), paths=None)

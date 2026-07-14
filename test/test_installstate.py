@@ -24,9 +24,9 @@ def apt_unit(name='btop'):
 
 
 def unsupported_unit():
-    # dotfiles is not implemented yet -> exercises graceful degradation
-    return ResolvedComponent(key='dotfiles\\neovim', family='dotfiles', comp='neovim',
-                             fields={'name': 'neovim'})
+    # debian-font is not implemented yet -> exercises graceful degradation
+    return ResolvedComponent(key='debian-font\\mononoki-nerd', family='debian-font',
+                             comp='mononoki-nerd', fields={'name': 'mononoki-nerd'})
 
 
 def test_installed_up_to_date():
@@ -100,12 +100,12 @@ def test_both_lock_sources():
 def test_unsupported_family_degrades():
     fr = FakeRunner()
     led = Ledger()
-    led.set_managed('dotfiles\\neovim', True)
+    led.set_managed('debian-font\\mononoki-nerd', True)
     st = InstallState(fr, led).inspect_one(unsupported_unit())
     assert not st.supported
     assert st.status == 'unsupported'
     assert st.managed is True
-    assert 'dotfiles' in st.error
+    assert 'debian-font' in st.error
     # a degraded inspection must not have shelled out
     assert fr.calls == []
 
@@ -116,7 +116,7 @@ def test_inspect_many():
         ('apt-cache policy', 0, '  Candidate: 1.0.0\n'),
         ('apt-mark showhold', 0, ''),
     ])
-    units = {'apt\\btop': apt_unit('btop'), 'dotfiles\\neovim': unsupported_unit()}
+    units = {'apt\\btop': apt_unit('btop'), 'debian-font\\mononoki-nerd': unsupported_unit()}
     states = InstallState(fr).inspect(units)
     assert states['apt\\btop'].status == 'installed'
-    assert states['dotfiles\\neovim'].status == 'unsupported'
+    assert states['debian-font\\mononoki-nerd'].status == 'unsupported'

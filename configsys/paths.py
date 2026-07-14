@@ -30,6 +30,7 @@ class Paths:
 
         self.routes_file = self.repo / 'routes.hu'
         self.config_file = self.repo / 'config.hu'
+        self.dotfiles_dir = self.repo / 'dotfiles'   # source tree for the dotfiles family
 
         uc = self.env.get('CONFIGSYS_CONFIG')
         self.user_config_file = Path(uc) if uc else self.home / 'configsys.hu'
@@ -44,15 +45,19 @@ class Paths:
         self.ledger_file = self.state_dir / 'state.hu'
 
     def expand(self, p) -> Path:
-        '''Expand a route-supplied path: leading ~ resolves against configsys HOME
-        (not the OS home), so sandboxed runs stay contained. Env vars are NOT
-        expanded here — route $VARs are substituted by the resolver first.'''
+        '''Expand a route-supplied path against configsys HOME (not the OS home),
+        so sandboxed runs stay contained: `~`/`~/x` and *bare relative* paths
+        (e.g. `vulkan`) both resolve under HOME; absolute paths pass through. Env
+        vars are NOT expanded here — route $VARs are substituted by the resolver.'''
         s = str(p)
         if s == '~':
             return self.home
         if s.startswith('~/'):
             return self.home / s[2:]
-        return Path(s)
+        path = Path(s)
+        if path.is_absolute():
+            return path
+        return self.home / path            # bare relative -> home-relative
 
     def __repr__(self):
         return (f'Paths(home={self.home}, repo={self.repo}, '

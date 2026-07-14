@@ -32,8 +32,8 @@ class AppImage(Family):
         return self.paths.home if self.paths is not None else Path.home()
 
     def _target(self, rc):
-        raw = rc.fields.get('path', '')
-        return self.paths.expand(raw) if self.paths is not None else Path(raw).expanduser()
+        # bare-relative path -> HOME (user) or /opt (system); ~/absolute pass through
+        return self._scoped_dir(rc.fields.get('path', ''), rc)
 
     def _marker(self, rc):
         t = self._target(rc)
@@ -42,11 +42,11 @@ class AppImage(Family):
     def _desktop_file(self, rc):
         return self._home() / '.local/share/applications' / f'configsys-{rc.comp}.desktop'
 
+    def _icon_file(self, rc):
+        return self._home() / '.local/share/icons' / f'configsys-{rc.comp}.png'
+
     def _declared_version(self, rc):
         return rc.fields.get('version') or rc.vars.get('$VERSION')
-
-    def _sudo(self, rc):
-        return rc.fields.get('scope', self.default_scope) == 'system'
 
     # -- read -------------------------------------------------------------
 
@@ -79,15 +79,31 @@ class AppImage(Family):
                f'printf %s {vq} > {mq}')
         res = self.runner.run(cmd, sudo=self._sudo(rc), capture=False)
         if res.ok:
+            self._extract_icon(rc)
             self._write_desktop(rc)
         return res
+
+    def _extract_icon(self, rc):
+        '''Best-effort: pull the AppImage's embedded icon (.DirIcon) into the icon
+        dir so the .desktop entry has a real icon. `--appimage-extract` self-extracts
+        without needing FUSE; any failure is non-fatal.'''
+        t = self._target(rc)
+        icon = self._icon_file(rc)
+        tq, iq, idq = shlex.quote(str(t)), shlex.quote(str(icon)), shlex.quote(str(icon.parent))
+        self.runner.run(
+            f'tmp=$(mktemp -d) && cd "$tmp" && '
+            f'{tq} --appimage-extract .DirIcon >/dev/null 2>&1; '
+            f'if [ -e squashfs-root/.DirIcon ]; then '
+            f'mkdir -p {idq} && cp -Lf squashfs-root/.DirIcon {iq}; fi; '
+            f'cd / && rm -rf "$tmp"',
+            sudo=self._sudo(rc), capture=False)
 
     def _write_desktop(self, rc):
         '''Best-effort application-menu entry (user-space, own runner call so
         --pretend skips it and it isn't written on a failed install).'''
         t = self._target(rc)
         label = rc.fields.get('name') or rc.comp
-        icon = rc.fields.get('icon', '')
+        icon = str(self._icon_file(rc))   # extracted above (or a harmless missing path)
         df = self._desktop_file(rc)
         fmt = ('[Desktop Entry]\\nType=Application\\nName=%s\\nExec=%s\\n'
                'Icon=%s\\nTerminal=false\\nCategories=Utility;\\n')
@@ -105,11 +121,11 @@ class AppImage(Family):
 
     def uninstall(self, rc):
         t = self._target(rc)
-        marker, df = self._marker(rc), self._desktop_file(rc)
+        marker, df, icon = self._marker(rc), self._desktop_file(rc), self._icon_file(rc)
         # only remove when we manage it (our marker is present)
         cmd = (f'if [ -f {shlex.quote(str(marker))} ]; then '
                f'rm -f {shlex.quote(str(t))} {shlex.quote(str(marker))} '
-               f'{shlex.quote(str(df))}; fi')
+               f'{shlex.quote(str(df))} {shlex.quote(str(icon))}; fi')
         return self.runner.run(cmd, sudo=self._sudo(rc), capture=False)
 
     def lock(self, rc):

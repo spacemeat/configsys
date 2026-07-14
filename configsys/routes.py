@@ -177,8 +177,8 @@ class RouteResolver:
                 out[ch.key] = ch.value
         return out
 
-    @staticmethod
-    def _split_vars_fields(node):
+    @classmethod
+    def _split_vars_fields(cls, node):
         variables, fields = {}, {}
         for i in range(node.num_children):
             ch = node[i]
@@ -187,12 +187,24 @@ class RouteResolver:
                 continue
             if k.startswith('$'):
                 variables[k] = ch.value
-            elif ch.kind == VALUE:
-                fields[k] = ch.value
-            elif ch.kind == LIST:
-                fields[k] = [ch[i].value for i in range(ch.num_children)]
-            # nested dict fields aren't used by current routes; skip.
+            else:
+                fields[k] = cls._node_to_py(ch)   # scalar, list, or nested dict
         return variables, fields
+
+    @classmethod
+    def _node_to_py(cls, node):
+        '''Convert a humon node to plain python (str / list / nested dict). Lets
+        families carry structured fields, e.g. dotfiles link specs.'''
+        if node.kind == DICT:
+            out = {}
+            for i in range(node.num_children):
+                ch = node[i]
+                if ch.key:
+                    out[ch.key] = cls._node_to_py(ch)
+            return out
+        if node.kind == LIST:
+            return [cls._node_to_py(node[i]) for i in range(node.num_children)]
+        return node.value
 
     def _resolve_vars(self, varmap):
         out = dict(varmap)

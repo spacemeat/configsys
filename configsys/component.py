@@ -8,13 +8,41 @@ runner.Result.
 '''
 
 
+from pathlib import Path
+
+# Base directory for bare-relative install paths under system scope.
+SYSTEM_PREFIX = Path('/opt')
+
+
 class Family:
-    name = None          # subclasses set, e.g. 'apt'
-    privileged = False   # True if mutating ops need sudo
+    name = None            # subclasses set, e.g. 'apt'
+    privileged = False     # True if mutating ops need sudo
+    default_scope = 'user'  # families that honor scope may override
 
     def __init__(self, runner, paths=None):
         self.runner = runner
         self.paths = paths   # for families that touch the filesystem (tarball, ...)
+
+    # -- scope helpers (shared by scope-aware families) -------------------
+
+    def _scope(self, rc):
+        '''Effective install scope for a component (field wins; else family default).'''
+        return rc.fields.get('scope') or self.default_scope
+
+    def _sudo(self, rc):
+        '''System scope needs root for its mutations; user scope never does.'''
+        return self._scope(rc) == 'system'
+
+    def _scoped_dir(self, raw, rc):
+        '''Resolve an install path. Absolute and ~ paths pass through; a bare
+        relative path (e.g. `vulkan`) resolves under HOME for user scope and under
+        /opt for system scope.'''
+        s = str(raw)
+        if s.startswith(('/', '~')):
+            return self.paths.expand(s) if self.paths is not None else Path(s).expanduser()
+        base = SYSTEM_PREFIX if self._scope(rc) == 'system' else (
+            self.paths.home if self.paths is not None else Path.home())
+        return base / s
 
     # -- read (inspection) ------------------------------------------------
 

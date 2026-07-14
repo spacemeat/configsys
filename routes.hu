@@ -52,7 +52,11 @@
 
     \dotfiles: {
         neovim: {
-            
+            // link specs: <name>: { src (under repo dotfiles/), dst (env/~ ok) }
+            config: {
+                src: neovim
+                dst: $XDG_CONFIG_HOME/nvim
+            }
         }
     }
 
@@ -63,7 +67,7 @@
         vulkan-sdk: {
             $SDKVERSION: 1.4.350.1
             url: "https://sdk.lunarg.com/sdk/download/$SDKVERSION/linux/vulkansdk-linux-x86_64-$SDKVERSION.tar.xz"
-            installDir: ~/vulkan
+            installDir: vulkan
         }
     }
 

@@ -36,15 +36,8 @@ class Flatpak(Family):
     def _appid(rc):
         return rc.name  # route `name` field is the flatpak app id
 
-    def _scope(self, rc):
-        return rc.fields.get('scope') or self.default_scope
-
     def _flag(self, rc):
         return '--user' if self._scope(rc) == 'user' else '--system'
-
-    def _sudo(self, rc):
-        # system-scope mutations need root; --user never does
-        return self._scope(rc) == 'system'
 
     @staticmethod
     def _parse_field(text, field):

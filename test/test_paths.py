@@ -41,3 +41,9 @@ def test_expand_tilde_against_configsys_home():
     assert p.expand('~/apps/neovim') == Path('/tmp/sandbox/apps/neovim')
     assert p.expand('~') == Path('/tmp/sandbox')
     assert p.expand('/etc/apt/x') == Path('/etc/apt/x')
+
+
+def test_expand_bare_relative_is_home_relative():
+    p = Paths(env={'CONFIGSYS_HOME': '/tmp/sandbox'})
+    assert p.expand('vulkan') == Path('/tmp/sandbox/vulkan')
+    assert p.expand('apps/nvim.appimage') == Path('/tmp/sandbox/apps/nvim.appimage')

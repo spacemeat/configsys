@@ -41,7 +41,7 @@ def test_vulkan_sdk_resolves_to_tarball_with_version_substituted():
     u = units['tarball\\vulkan-sdk']
     assert u.family == 'tarball'
     assert u.vars['$SDKVERSION'] == '1.4.350.1'
-    assert u.fields['installDir'] == '~/vulkan'
+    assert u.fields['installDir'] == 'vulkan'  # home-relative, expanded by Paths
     assert u.fields['url'].endswith('vulkansdk-linux-x86_64-1.4.350.1.tar.xz')
     assert '$SDKVERSION' not in u.fields['url']
 

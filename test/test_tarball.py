@@ -66,6 +66,29 @@ def test_installdir_expands_via_paths():
     assert str(tb._marker(rc)) == '/sandbox/vulkan/.configsys-vulkan-sdk.version'
 
 
+def test_user_scope_relative_installdir_is_home():
+    p = Paths(env={'CONFIGSYS_HOME': '/home/u'})
+    rc = ResolvedComponent(key='tarball\\vulkan-sdk', family='tarball', comp='vulkan-sdk',
+                           fields={'url': 'https://x/v.tar', 'installDir': 'vulkan'},
+                           vars={'$SDKVERSION': '1'})
+    r = Runner(pretend=True)
+    Tarball(r, paths=p).install(rc)
+    assert 'sudo' not in r.calls[0]
+    assert '/home/u/vulkan' in r.calls[0]
+
+
+def test_system_scope_relative_installdir_is_opt_with_sudo():
+    p = Paths(env={'CONFIGSYS_HOME': '/home/u'})
+    rc = ResolvedComponent(key='tarball\\vulkan-sdk', family='tarball', comp='vulkan-sdk',
+                           fields={'url': 'https://x/v.tar', 'installDir': 'vulkan',
+                                   'scope': 'system'},
+                           vars={'$SDKVERSION': '1'})
+    r = Runner(pretend=True)
+    Tarball(r, paths=p).install(rc)
+    assert r.calls[0].startswith('sudo ')
+    assert '/opt/vulkan' in r.calls[0]
+
+
 def test_lock_unlock_are_ledger_backed_noops():
     tb = Tarball(Runner(pretend=True), paths=None)
     assert tb.lock(tb_unit('/x')).ok
