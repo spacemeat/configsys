@@ -181,6 +181,25 @@ def cmd_set_version(ctx, args):
     return _dispatch_op(ctx, [args.name], 'set-version', version=args.version)
 
 
+def cmd_refresh(ctx, args):
+    from .versions import discover, source_key
+    _cfg, _req, units, _ledger, _states = ctx.load_pipeline()
+    print('Refreshing discovered versions...')
+    seen = {}
+    for key in sorted(units):
+        spec = units[key].fields.get('version')
+        if not isinstance(spec, dict) or 'static' in spec:
+            continue
+        sk = source_key(spec)
+        if sk in seen:
+            continue
+        seen[sk] = discover(spec, ctx.paths, refresh=True)
+        print(f'  {sk:36} -> {seen[sk] or "(unknown)"}')
+    if not seen:
+        print('  (no discoverable versions in the active profiles)')
+    return 0
+
+
 def cmd_tui(ctx, args):
     if not sys.stdout.isatty() or not sys.stdin.isatty():
         print('configsys: not an interactive terminal; showing inspection instead.\n')
@@ -219,6 +238,7 @@ def build_parser():
     sv.add_argument('name')
     sv.add_argument('version')
 
+    sub.add_parser('refresh', help='re-query latest versions from their sources')
     sub.add_parser('tui', help='interactive TUI (default)')
     return p
 
@@ -231,6 +251,7 @@ _COMMANDS = {
     'lock': cmd_lock,
     'unlock': cmd_unlock,
     'set-version': cmd_set_version,
+    'refresh': cmd_refresh,
     'tui': cmd_tui,
 }
 

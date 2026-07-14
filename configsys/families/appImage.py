@@ -45,9 +45,6 @@ class AppImage(Family):
     def _icon_file(self, rc):
         return self._home() / '.local/share/icons' / f'configsys-{rc.comp}.png'
 
-    def _declared_version(self, rc):
-        return rc.fields.get('version') or rc.vars.get('$VERSION')
-
     # -- read -------------------------------------------------------------
 
     def get_version(self, rc):
@@ -59,7 +56,7 @@ class AppImage(Family):
             return 'installed'
 
     def get_latest(self, rc):
-        return self._declared_version(rc)
+        return self.resolve_version(rc)
 
     def is_locked(self, rc):
         return False  # no native lock; ledger carries intent
@@ -67,11 +64,11 @@ class AppImage(Family):
     # -- mutate -----------------------------------------------------------
 
     def install(self, rc):
-        url = rc.fields.get('url')
+        version = self.resolve_version(rc) or ''
+        url = self._apply_version(rc.fields.get('url'), version)
         if not url:
             return Result('(appImage: no url in route)', 1)
         t = self._target(rc)
-        version = self._declared_version(rc) or ''
         tq, dq = shlex.quote(str(t)), shlex.quote(str(t.parent))
         uq, mq, vq = shlex.quote(url), shlex.quote(str(self._marker(rc))), shlex.quote(version)
 

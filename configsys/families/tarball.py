@@ -30,9 +30,6 @@ class Tarball(Family):
     def _marker(self, rc):
         return self._install_dir(rc) / f'{MARKER_PREFIX}{rc.comp}.version'
 
-    def _declared_version(self, rc):
-        return rc.vars.get('$SDKVERSION') or rc.fields.get('version')
-
     # -- read -------------------------------------------------------------
 
     def get_version(self, rc):
@@ -43,7 +40,7 @@ class Tarball(Family):
         return v or None
 
     def get_latest(self, rc):
-        return self._declared_version(rc)
+        return self.resolve_version(rc)
 
     def is_locked(self, rc):
         return False  # no native lock; the ledger carries lock intent
@@ -51,11 +48,11 @@ class Tarball(Family):
     # -- mutate -----------------------------------------------------------
 
     def install(self, rc):
-        url = rc.fields.get('url')
+        version = self.resolve_version(rc) or ''
+        url = self._apply_version(rc.fields.get('url'), version)
         if not url:
             return Result('(tarball: no url in route)', 1)
         d = self._install_dir(rc)
-        version = self._declared_version(rc) or ''
 
         dq = shlex.quote(str(d))
         uq = shlex.quote(url)

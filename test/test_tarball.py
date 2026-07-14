@@ -95,6 +95,23 @@ def test_lock_unlock_are_ledger_backed_noops():
     assert tb.unlock(tb_unit('/x')).ok
 
 
+def test_version_spec_substituted_into_url():
+    rc = ResolvedComponent(key='tarball\\x', family='tarball', comp='x',
+                           fields={'url': 'https://h/$VERSION/pkg-$VERSION.tar',
+                                   'installDir': 'x', 'version': {'static': '9.9'}})
+    r = Runner(pretend=True)
+    Tarball(r, paths=Paths(env={'CONFIGSYS_HOME': '/home/u'})).install(rc)
+    assert 'https://h/9.9/pkg-9.9.tar' in r.calls[0]
+    assert '$VERSION' not in r.calls[0]
+
+
+def test_get_latest_from_static_version_spec():
+    rc = ResolvedComponent(key='tarball\\x', family='tarball', comp='x',
+                           fields={'url': 'u', 'installDir': 'x',
+                                   'version': {'static': '9.9'}})
+    assert Tarball(Runner(pretend=True), paths=None).get_latest(rc) == '9.9'
+
+
 @pytest.mark.skipif(shutil.which('curl') is None, reason='needs curl')
 def test_real_download_extract_and_uninstall(tmp_path):
     payload = tmp_path / 'hello.txt'

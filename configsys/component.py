@@ -33,6 +33,26 @@ class Family:
         '''System scope needs root for its mutations; user scope never does.'''
         return self._scope(rc) == 'system'
 
+    # -- version resolution (download-based families) ---------------------
+
+    def resolve_version(self, rc, *, refresh=False):
+        '''The version to install / treat as latest. A `version:` dict is a discovery
+        spec (github / url / static); a string is a literal; otherwise fall back to a
+        legacy $VERSION route var. Returns None if undiscoverable.'''
+        spec = rc.fields.get('version')
+        if isinstance(spec, dict):
+            from . import versions
+            return versions.discover(spec, self.paths, refresh=refresh)
+        if isinstance(spec, str) and spec:
+            return spec
+        return rc.vars.get('$VERSION') or rc.vars.get('$SDKVERSION')
+
+    @staticmethod
+    def _apply_version(text, version):
+        if text and version:
+            return text.replace('$VERSION', version)
+        return text
+
     def _scoped_dir(self, raw, rc):
         '''Resolve an install path. Absolute and ~ paths pass through; a bare
         relative path (e.g. `vulkan`) resolves under HOME for user scope and under

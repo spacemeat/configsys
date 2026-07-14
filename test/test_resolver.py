@@ -36,14 +36,20 @@ def test_vulkan_dev_composite_pulls_xcb_build_and_tarball():
     assert units['tarball\\vulkan-sdk'].deps == {'apt\\curl'}
 
 
-def test_vulkan_sdk_resolves_to_tarball_with_version_substituted():
+def test_vulkan_sdk_resolves_to_tarball_with_version_spec():
     units = resolver().resolve_names(['vulkan-sdk'])
     u = units['tarball\\vulkan-sdk']
     assert u.family == 'tarball'
-    assert u.vars['$SDKVERSION'] == '1.4.350.1'
-    assert u.fields['installDir'] == 'vulkan'  # home-relative, expanded by Paths
-    assert u.fields['url'].endswith('vulkansdk-linux-x86_64-1.4.350.1.tar.xz')
-    assert '$SDKVERSION' not in u.fields['url']
+    assert u.fields['version'] == {'static': '1.4.350.1'}  # discovery spec, not literal
+    assert u.fields['installDir'] == 'vulkan'
+    # $VERSION stays literal in the route; the family substitutes at install time
+    assert '$VERSION' in u.fields['url']
+
+
+def test_appimage_version_is_a_github_spec():
+    u = resolver().resolve_names(['neovim'])['appImage\\neovim']
+    assert u.fields['version'] == {'github': 'neovim/neovim'}
+    assert '$VERSION' in u.fields['url']
 
 
 def test_list_route_expands_to_all_parts():

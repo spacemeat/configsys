@@ -35,17 +35,15 @@
         !depends: libfuse2
 
         neovim: {
-            $VERSION: v0.10.2
+            version: { github: neovim/neovim }   // latest release tag (e.g. v0.10.2)
             url: "https://github.com/neovim/neovim/releases/download/$VERSION/nvim.appimage"
             path: ~/apps/nvim.appimage
-            version: $VERSION
             name: Neovim
         }
         arduino: {
-            $VERSION: 2.3.4
+            version: { github: arduino/arduino-ide }   // tags are unprefixed (2.3.4)
             url: "https://github.com/arduino/arduino-ide/releases/download/$VERSION/arduino-ide_$VERSION_Linux_64bit.AppImage"
             path: ~/apps/arduino-ide.appimage
-            version: $VERSION
             name: "Arduino IDE"
         }
     }
@@ -65,8 +63,9 @@
         !depends: curl
 
         vulkan-sdk: {
-            $SDKVERSION: 1.4.350.1
-            url: "https://sdk.lunarg.com/sdk/download/$SDKVERSION/linux/vulkansdk-linux-x86_64-$SDKVERSION.tar.xz"
+            // a deliberate pin; swap for { url: "...latest..." regex: "..." } to track
+            version: { static: 1.4.350.1 }
+            url: "https://sdk.lunarg.com/sdk/download/$VERSION/linux/vulkansdk-linux-x86_64-$VERSION.tar.xz"
             installDir: vulkan
         }
     }

@@ -43,6 +43,7 @@ class Paths:
             base = Path(xdg) if xdg else self.home / '.config'
             self.state_dir = base / 'configsys'
         self.ledger_file = self.state_dir / 'state.hu'
+        self.versions_file = self.state_dir / 'versions.hu'   # discovered-version cache
 
     def expand(self, p) -> Path:
         '''Expand a route-supplied path against configsys HOME (not the OS home),
