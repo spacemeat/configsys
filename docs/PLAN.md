@@ -119,6 +119,15 @@ Last grill: 2026-07-13.
     `/opt` (+sudo) for `system`. Absolute and `~` paths pass through. Shared in the base
     `Family` (`_scope`/`_sudo`/`_scoped_dir`); tarball, appImage, and flatpak all use it.
 
+17. **Version discovery (M3): `version:` describes how to find latest, not a literal.**
+    `version: { github: owner/repo [strip-v] } | { url:… [regex:…] } | { static:… }`. A
+    discovery subsystem (versions.py) resolves it at runtime into `$VERSION`, which the
+    download URL template consumes. Results are cached in `state_dir/versions.hu` with a TTL
+    (default 24h); `configsys refresh` re-queries; offline/fetch-failure falls back to the
+    last cached value. Static specs are deliberate pins (never networked). apt/flatpak keep
+    their own native "latest". Known caveat: version-templated *asset names* can change across
+    releases (e.g. neovim's appimage rename) — that's routes-content, handled per-URL.
+
 ### Testing per family (how each is exercised)
 - Pure logic + every family's command construction/parsing: host `pytest` (pretend runner).
 - apt lifecycle + repo-component prereq: `test/run-in-podman.sh` (fast, default).
