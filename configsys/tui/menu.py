@@ -379,7 +379,7 @@ def _draw(stdscr, pal, ms, ctx, note):
     _put(stdscr, 3, 0, _fit(header, w), pal.get('dim') | curses.A_BOLD)
 
     list_top = 4
-    list_h = max(1, h - list_top - 2)
+    list_h = max(1, h - list_top - 3)  # status + two footer lines
     first = max(0, ms.cursor - list_h + 1) if ms.cursor >= list_h else 0
 
     for vis, i in enumerate(range(first, min(len(ms.rows), first + list_h))):
@@ -425,10 +425,12 @@ def _draw(stdscr, pal, ms, ctx, note):
     status_line = f' selected:{len(ms.selected)}  staged:{len(ms.staged)}'
     if note:
         status_line += f'   {note}'
-    foot = (' j/k move · enter/→ expand · ← collapse · tab all · space select · '
-            'i/u/x inst/upg/rm · L/l lock · c clear · X exec · q quit ')
-    _put(stdscr, h - 2, 0, _fit(status_line, w), pal.get('accent'))
-    _put(stdscr, h - 1, 0, _fit(foot, w), pal.get('dim') | curses.A_REVERSE)
+    nav = ' j/k move · g/G top/bottom · enter/→ expand · ← collapse · tab expand-all '
+    act = ' space sel · a all · i/u/x inst/upg/rm · L/l lock · c clear · X exec · q quit '
+    foot_attr = pal.get('dim') | curses.A_REVERSE
+    _put(stdscr, h - 3, 0, _fit(status_line, w), pal.get('accent'))
+    _put(stdscr, h - 2, 0, _fit(nav.ljust(w), w), foot_attr)
+    _put(stdscr, h - 1, 0, _fit(act.ljust(w), w), foot_attr)
     stdscr.refresh()
 
 
