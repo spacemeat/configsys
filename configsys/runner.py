@@ -71,13 +71,14 @@ class Runner:
     def __init__(self, pretend=False, echo=None):
         self.pretend = pretend
         self._echo = echo
+        self.tui_active = False  # set by the app while the curses TUI owns the screen
         self.calls = []  # every full command string, in order (for tests/logs)
 
     def echo(self, msg):
         if self._echo:
             self._echo(msg)
 
-    def run(self, cmd, *, sudo=False, capture=True, tui_active=False,
+    def run(self, cmd, *, sudo=False, capture=True, tui_active=None,
             cwd=None, env=None) -> Result:
         full = f'sudo {cmd}' if sudo else cmd
         self.calls.append(full)
@@ -86,7 +87,8 @@ class Runner:
             self.echo(f'[pretend] {full}')
             return Result(full, 0, pretended=True)
 
-        with terminal_released(tui_active):
+        ta = self.tui_active if tui_active is None else tui_active
+        with terminal_released(ta):
             cp = subprocess.run(
                 ['bash', '-c', full],
                 capture_output=capture, text=True, cwd=cwd, env=env,
