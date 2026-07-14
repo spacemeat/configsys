@@ -43,11 +43,11 @@ def test_wildcard_inherited_from_debian():
 def test_flatpak_binding():
     t = real_routes()
     r = RouteResolver(t, 'ubuntu')
-    units = r.resolve_names(['firefox'])
-    # firefox + its family !depends (apt\flatpak) auto-added
-    assert set(units) == {'flatpak\\firefox', 'apt\\flatpak'}
-    fx = units['flatpak\\firefox']
-    assert fx.fields['name'] == 'org.mozilla.firefox'
-    assert fx.fields['hub'] == 'flathub'
-    assert fx.deps == {'apt\\flatpak'}
+    units = r.resolve_names(['chrome'])
+    # chrome + its family !depends (apt\flatpak) auto-added
+    assert set(units) == {'flatpak\\chrome', 'apt\\flatpak'}
+    ch = units['flatpak\\chrome']
+    assert ch.fields['name'] == 'com.google.Chrome'
+    assert ch.fields['hub'] == 'flathub'
+    assert ch.deps == {'apt\\flatpak'}
     assert units['apt\\flatpak'].deps == set()  # base tool has no further deps

@@ -40,7 +40,9 @@ class Cargo(Family):
         return None
 
     def get_latest(self, rc):
-        return None  # deferred; `cargo install` resolves latest at install time
+        # a `version: { crates: <name> }` route discovers the latest from crates.io
+        # (cached); crates without a spec report no "latest".
+        return self.resolve_version(rc)
 
     def is_locked(self, rc):
         return False

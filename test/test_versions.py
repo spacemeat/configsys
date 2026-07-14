@@ -71,6 +71,23 @@ def test_asset_source_key_distinguishes_patterns():
     assert a != b and a != c
 
 
+def test_crates_strategy_prefers_max_stable():
+    body = json.dumps({'crate': {'name': 'ts', 'max_stable_version': '0.26.11',
+                                 'newest_version': '0.27.0-pre'}})
+    f = fetcher({'https://crates.io/api/v1/crates/ts': body})
+    assert versions.discover({'crates': 'ts'}, fetch=f) == '0.26.11'
+
+
+def test_crates_strategy_falls_back_to_newest():
+    body = json.dumps({'crate': {'name': 'ts', 'newest_version': '0.27.0'}})
+    f = fetcher({'https://crates.io/api/v1/crates/ts': body})
+    assert versions.discover({'crates': 'ts'}, fetch=f) == '0.27.0'
+
+
+def test_crates_source_key():
+    assert versions.source_key({'crates': 'ripgrep'}) == 'crates:ripgrep'
+
+
 def test_fetch_error_returns_none_without_cache():
     def boom(url, timeout=10):
         raise OSError('offline')

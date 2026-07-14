@@ -118,8 +118,8 @@ def test_full_dev_profile_resolves():
         # neovim (app, appImage method) + its layered deps
         'appImage\\neovim', 'apt\\ripgrep', 'dotfiles\\neovim',
         'cargo\\tree-sitter-cli', 'apt\\cargo',   # tree-sitter via cargo
-        # singletons
-        'flatpak\\firefox', 'flatpak\\chrome', 'appImage\\arduino', 'apt\\btop',
+        # singletons (firefox is apt-routed now; chrome stays flatpak)
+        'apt\\firefox', 'flatpak\\chrome', 'appImage\\arduino', 'apt\\btop',
         'apt\\fzf', 'apt\\xclip', 'apt\\cargo', 'debian-font\\mononoki-nerd',
         'dotfiles\\arduino',
         # family !depends auto-added

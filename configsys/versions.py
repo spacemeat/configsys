@@ -37,12 +37,15 @@ def http_fetch(url, timeout=10):
         return resp.read().decode('utf-8', 'replace')
 
 
+CRATES_LATEST = 'https://crates.io/api/v1/crates/{crate}'
+
+
 def source_key(spec):
     # asset pattern is part of the identity (different assets -> different urls)
     if 'github' in spec:
         base = f'github:{spec["github"]}'
         return f'{base}:asset={spec["asset"]}' if spec.get('asset') else base
-    for kind in ('url', 'static'):
+    for kind in ('crates', 'url', 'static'):
         if kind in spec:
             return f'{kind}:{spec[kind]}'
     return 'spec:' + json.dumps(spec, sort_keys=True)
@@ -66,6 +69,11 @@ def _discover_live(spec, fetch):
                     url = asset.get('browser_download_url')
                     break
         return tag, url
+    if 'crates' in spec:
+        data = json.loads(fetch(CRATES_LATEST.format(crate=spec['crates'])))
+        c = data.get('crate', {})
+        v = c.get('max_stable_version') or c.get('newest_version') or c.get('max_version')
+        return v, None
     if 'url' in spec:
         text = fetch(spec['url'])
         pattern = spec.get('regex') or r'[0-9]+(?:\.[0-9]+)+'

@@ -66,10 +66,24 @@ def test_list_command_fails_gracefully():
     assert Cargo(fr).get_version(crate()) is None
 
 
-def test_get_latest_deferred_and_no_native_lock():
+def test_get_latest_none_without_spec_and_no_native_lock():
     fam = Cargo(Runner(pretend=True))
-    assert fam.get_latest(crate()) is None
+    assert fam.get_latest(crate()) is None      # crate has no version spec
     assert fam.is_locked(crate()) is False
+
+
+def test_get_latest_from_crates_spec(tmp_path):
+    from configsys.paths import Paths
+    from configsys.versions import VersionCache
+    paths = Paths(env={'CONFIGSYS_HOME': str(tmp_path),
+                       'CONFIGSYS_STATE_DIR': str(tmp_path / 's')})
+    VersionCache({'crates:tree-sitter-cli': {'version': '0.26.11', 'url': None,
+                                             'fetched': 1e12}}).save(paths)
+    rc = ResolvedComponent(key='cargo\\tree-sitter-cli', family='cargo',
+                           comp='tree-sitter-cli',
+                           fields={'name': 'tree-sitter-cli',
+                                   'version': {'crates': 'tree-sitter-cli'}})
+    assert Cargo(Runner(pretend=True), paths=paths).get_latest(rc) == '0.26.11'
 
 
 def test_location_is_cargo_bin():

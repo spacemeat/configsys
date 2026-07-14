@@ -12,14 +12,17 @@
         flatpak: { name: flatpak }
         curl: { name: curl }
         libfuse2: { name: libfuse2 repo-component: universe }
+        firefox: { name: firefox repo-component: universe }
         fontconfig: { name: fontconfig }
         unzip: { name: unzip }
-        cargo: { name: cargo }
     }
     
     \cargo: {
         !depends: cargo
-        tree-sitter-cli: { name: tree-sitter-cli }
+        tree-sitter-cli: {
+            name: tree-sitter-cli
+            version: { crates: tree-sitter-cli }   // latest stable from crates.io
+        }
     }
 
     \flatpak: {
@@ -141,7 +144,7 @@
         // vulkan-sdk (OS-agnostic) resolves up in the linux root.
         vulkan-dev: [ libxcb-xinput0, libxcb-xinerama0, libxcb-cursor-dev, build-essential, vulkan-sdk ]
         neovim: appImage          // select the appImage method of app\neovim
-        firefox: flatpak\firefox
+        firefox: apt\firefox
         chrome: flatpak\chrome
         arduino: appImage\arduino
         mononoki-nerd: debian-font\mononoki-nerd
