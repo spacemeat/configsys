@@ -1,0 +1,17 @@
+# Python
+.venv/
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+
+# Local machine state (never committed; lives in ~ or ~/.config at runtime)
+/configsys.hu
+state.hu
+
+# Editor / OS cruft
+*.swp
+.DS_Store
+
+# Claude local settings
+.claude/settings.local.json

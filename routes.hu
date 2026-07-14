@@ -1,0 +1,78 @@
+{
+    \apt: {
+        vulkan-sdk: {
+            pubkey-url: https://packages.lunarg.com/lunarg-signing-key-pub.asc
+            pubkey-path: /etc/apt/trusted.gpg.d/lunarg.asc
+            source-url: http://packages.lunarg.com/vulkan/lunarg-vulkan-jammy.list
+            source-path: /etc/apt/sources.list.d/lunarg-vulkan-jammy.list
+            name: vulkan-sdk
+        }
+        cargo: { name: cargo }
+        btop: { name: btop }
+        xclip: { name: xclip }
+        build-essential: { name: build-essential }
+        fzf: { name: fzf }
+        ripgrep: { name: ripgrep }
+    }
+
+    \flatpak: {
+        firefox: {
+            hub: flathub
+            name: org.mozilla.firefox
+        }
+        chrome: {
+            hub: flathub
+            name: com.google.Chrome
+        }
+    }
+
+    \appImage: {
+        neovim: {
+            url: ""
+            path: ~/apps/neovim
+        }
+        arduino: {
+            url: ""
+            path: ~/apps/arduino
+        }
+    }
+
+    \dotfiles: {
+        neovim: {
+            
+        }
+    }
+
+    \debian-font: {
+        $FONTDIR: ~/.local/share/fonts/$FONTNAME-$FONTVERSION
+
+        mononoki-nerd: {
+            $FONTNAME: mononoki-nerd
+            $FONTVERSION: v3.1.1
+            $FONTURLL: https://github.com/ryanoasis/nerd-fonts/releases/download/$FONTVERSION/Mononoki.zip
+        }
+    }
+
+    debian: {
+        !using: linux
+
+        *: apt\*
+        vulkan-dev: {
+            package: apt\vulkan-sdk
+        }
+        neovim: [ appImage\neovim, neovim-config ]
+        // TODO: The rest of needed things from packages like treesitter, fzf?
+        neovim-config: [ ripgrep, dotfiles\neovim ]
+        firefox: flathub\firefox
+        chrome: flathub\chrome
+        arduino: appImage\arduino
+    }
+
+    ubuntu: {
+        !using: debian
+    }
+
+    pop_os!: {
+        !using: ubuntu
+    }
+}

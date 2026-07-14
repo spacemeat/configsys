@@ -1,0 +1,19 @@
+{
+    configs: [dev]
+    dev: {
+        vulkan: {
+            sdks: [
+                vulkan
+            ]
+            tools: [
+                gcc
+                clang
+                pyke
+                python12
+            ]
+            packages: [
+                mesa
+            ]
+        }
+    }
+}
