@@ -1,6 +1,6 @@
 from configsys.componentObj import ResolvedComponent
 from configsys.installState import ComponentState
-from configsys.tui.menu import MenuState
+from configsys.tui.menu import COMPONENT, PROFILE, UNIT, MenuState
 
 
 def cs(key, status, requested_as):
@@ -17,96 +17,126 @@ def cs(key, status, requested_as):
     if status == 'outdated':
         return ComponentState(supported=True, present=True, installed_version='1',
                               latest_version='2', locked=False, **common)
-    if status == 'unsupported':
-        return ComponentState(supported=False, present=False, installed_version=None,
-                              latest_version=None, locked=False, **common)
     raise ValueError(status)
 
 
 def make():
-    # firefox -> flatpak\firefox (+ apt\flatpak dep); vulkan-dev composite; btop singleton
     states = {
         'apt\\btop': cs('apt\\btop', 'installed', ['btop']),
-        'apt\\flatpak': cs('apt\\flatpak', 'installed', ['firefox']),
         'flatpak\\firefox': cs('flatpak\\firefox', 'missing', ['firefox']),
-        'apt\\build-essential': cs('apt\\build-essential', 'installed', ['vulkan-dev']),
+        'apt\\flatpak': cs('apt\\flatpak', 'installed', ['firefox']),
+        'appImage\\neovim': cs('appImage\\neovim', 'missing', ['neovim']),
+        'apt\\ripgrep': cs('apt\\ripgrep', 'installed', ['neovim']),
+        'dotfiles\\neovim': cs('dotfiles\\neovim', 'missing', ['neovim']),
+        'apt\\build-essential': cs('apt\\build-essential', 'installed',
+                                   ['build-essential', 'vulkan-dev']),
         'apt\\libxcb': cs('apt\\libxcb', 'missing', ['vulkan-dev']),
         'tarball\\vulkan-sdk': cs('tarball\\vulkan-sdk', 'missing', ['vulkan-dev']),
+        'apt\\curl': cs('apt\\curl', 'installed', ['vulkan-dev']),
     }
-    requested = {'btop': ['u'], 'firefox': ['u'], 'vulkan-dev': ['v']}
-    return MenuState(states, requested)
-
-
-def test_top_view_has_one_row_per_profile_name():
-    ms = make()
-    assert ms.mode == 'top'
-    assert [r.id for r in ms.rows] == ['btop', 'firefox', 'vulkan-dev']  # not the units
-    assert all(r.is_group for r in ms.rows)
-
-
-def test_full_view_has_one_row_per_unit():
-    ms = make()
-    ms.toggle_mode()
-    assert ms.mode == 'full'
-    assert [r.id for r in ms.rows] == [
-        'apt\\btop', 'apt\\build-essential', 'apt\\flatpak',
-        'apt\\libxcb', 'flatpak\\firefox', 'tarball\\vulkan-sdk',
+    profile_comps = [
+        ('user', ['btop', 'firefox', 'neovim']),
+        ('vulkan', ['build-essential', 'vulkan-dev']),
     ]
+    return MenuState(states, profile_comps)
 
 
-def test_group_status_aggregation():
+def ids():
+    return [n.id for n in make().rows]
+
+
+def test_default_view_profiles_expanded_components_collapsed():
     ms = make()
-    by = {r.id: r.status for r in ms.rows}
-    assert by['btop'] == 'installed'          # its one unit installed
-    assert by['firefox'] == 'partial'         # flatpak dep installed, firefox missing
-    assert by['vulkan-dev'] == 'partial'      # build-essential installed, rest missing
+    assert [n.id for n in ms.rows] == [
+        'p:user', 'c:user:btop', 'c:user:firefox', 'c:user:neovim',
+        'p:vulkan', 'c:vulkan:build-essential', 'c:vulkan:vulkan-dev',
+    ]
+    kinds = {n.id: n.kind for n in ms.rows}
+    assert kinds['p:user'] == PROFILE
+    assert kinds['c:user:btop'] == UNIT          # single-unit component -> leaf
+    assert kinds['c:user:firefox'] == COMPONENT  # multi-unit -> expandable
 
 
-def test_staging_a_group_marks_only_applicable_member_units():
+def test_leaf_component_carries_family():
+    btop = next(n for n in make().rows if n.id == 'c:user:btop')
+    assert btop.family == 'apt' and not btop.expandable
+
+
+def test_expand_component_reveals_units_with_family():
     ms = make()
-    ms.cursor = 2  # vulkan-dev
-    assert ms.stage('install') is True
-    # install applies to the missing members only (build-essential is installed)
+    ms.cursor = ms.rows.index(next(n for n in ms.rows if n.id == 'c:user:firefox'))
+    ms.toggle_expand()
+    ids_now = [n.id for n in ms.rows]
+    i = ids_now.index('c:user:firefox')
+    # units appear right after their component, indented
+    assert ids_now[i + 1:i + 3] == [
+        'u:user:firefox:apt\\flatpak', 'u:user:firefox:flatpak\\firefox']
+    units = {n.id: n for n in ms.rows if n.kind == UNIT and n.depth == 2}
+    assert units['u:user:firefox:apt\\flatpak'].family == 'apt'
+    assert units['u:user:firefox:flatpak\\firefox'].family == 'flatpak'
+    assert units['u:user:firefox:flatpak\\firefox'].label == 'firefox'
+
+
+def test_stage_on_profile_marks_all_its_missing_units():
+    ms = make()
+    ms.cursor = 0  # p:user
+    ms.stage('install')
+    assert ms.staged == {  # only the missing ones across user's components
+        'flatpak\\firefox': 'install',
+        'appImage\\neovim': 'install',
+        'dotfiles\\neovim': 'install',
+    }
+
+
+def test_stage_on_component_marks_its_missing_units():
+    ms = make()
+    ms.cursor = ms.rows.index(next(n for n in ms.rows if n.id == 'c:vulkan:vulkan-dev'))
+    ms.stage('install')
     assert ms.staged == {'apt\\libxcb': 'install', 'tarball\\vulkan-sdk': 'install'}
 
 
-def test_staged_ops_persist_across_mode_toggle():
+def test_select_individual_unit_after_expand():
     ms = make()
-    ms.cursor = 2
-    ms.stage('install')          # stages vulkan-dev's missing parts
-    ms.toggle_mode()             # to full
-    # the parts show as staged units
-    libxcb = next(r for r in ms.rows if r.id == 'apt\\libxcb')
-    be = next(r for r in ms.rows if r.id == 'apt\\build-essential')
-    assert ms.row_op(libxcb) == 'install'
-    assert ms.row_op(be) is None  # not staged (was already installed)
+    ms.cursor = ms.rows.index(next(n for n in ms.rows if n.id == 'c:user:neovim'))
+    ms.toggle_expand()
+    # move to a single unit and stage just it
+    ms.cursor = ms.rows.index(next(n for n in ms.rows
+                                   if n.id == 'u:user:neovim:appImage\\neovim'))
+    ms.stage('install')
+    assert ms.staged == {'appImage\\neovim': 'install'}
 
 
-def test_group_remove_targets_present_members():
+def test_parent_shows_staged_when_child_unit_staged():
     ms = make()
-    ms.cursor = 2  # vulkan-dev
-    ms.stage('remove')
-    assert ms.staged == {'apt\\build-essential': 'remove'}  # only the installed one
+    ms.staged = {'flatpak\\firefox': 'install'}
+    firefox = next(n for n in ms.rows if n.id == 'c:user:firefox')
+    user = next(n for n in ms.rows if n.id == 'p:user')
+    assert ms.node_op(firefox) == 'install'
+    assert ms.node_op(user) == 'install'
 
 
-def test_plan_is_unit_level():
+def test_toggle_expand_all():
     ms = make()
-    ms.cursor = 1  # firefox
-    ms.stage('install')  # firefox missing -> flatpak\firefox
-    plan = ms.plan()
-    assert [(op, k) for op, k, _rc in plan] == [('install', 'flatpak\\firefox')]
+    ms.toggle_expand_all()   # expand every component
+    assert any(n.kind == UNIT and n.depth == 2 for n in ms.rows)
+    ms.toggle_expand_all()   # collapse them
+    assert not any(n.kind == UNIT and n.depth == 2 for n in ms.rows)
 
 
-def test_select_all_and_toggle():
+def test_profile_status_aggregates():
     ms = make()
-    ms.select_all()
-    assert ms.selected == {'btop', 'firefox', 'vulkan-dev'}
-    ms.toggle_mode()             # selection resets on mode change
-    assert ms.selected == set()
+    user = next(n for n in ms.rows if n.id == 'p:user')
+    assert user.status == 'partial'   # some installed, some missing
+    vulkan = next(n for n in ms.rows if n.id == 'c:vulkan:vulkan-dev')
+    assert vulkan.status == 'partial'
 
 
-def test_errors_shown_on_group_row():
+def test_collapse_via_expand_false():
     ms = make()
-    ms.errors = {'flatpak\\firefox': 'install failed: exit 1'}
-    firefox = next(r for r in ms.rows if r.id == 'firefox')
-    assert ms.row_error(firefox) == 'install failed: exit 1'
+    fi = next(n for n in ms.rows if n.id == 'c:user:firefox')
+    ms.cursor = ms.rows.index(fi)
+    ms.expand(True)
+    assert any(n.depth == 2 for n in ms.rows)
+    ms.cursor = ms.rows.index(next(n for n in ms.rows if n.id == 'c:user:firefox'))
+    ms.expand(False)
+    assert not any(n.id.startswith('u:user:firefox') for n in ms.rows)

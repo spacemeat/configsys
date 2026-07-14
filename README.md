@@ -46,12 +46,17 @@ configsys refresh             # re-query latest versions from their sources
 Global flags: `--pretend` (dry-run; prints commands), `--os <block>`, `--home <dir>`,
 `--config <file>` (all make runs sandboxable).
 
-The TUI has two views, toggled with **Tab**: *top-level* (one row per profile-entry
-name; dependencies/parts like `libxcb-*` are hidden and a composite like `vulkan-dev`
-shows as one aggregated row) and *full* (one row per resolved unit). Staging an op on a
-group marks its applicable units, which persist across the toggle. Keys: `j/k` move,
-`space` select, `a` all, `i/u/x` install/upgrade/remove, `L/l` lock/unlock, `c` clear,
-`X` execute, `q` quit.
+The TUI is a **profile → component → unit** tree. Profiles are expanded by default and
+list their components; a component that resolves to one unit is a leaf (shown with its
+family), while a composite like `vulkan-dev` or one with dependencies collapses to an
+aggregated row you can expand (`enter`/`→`) to reveal and individually select its units.
+Family is its own column. Ops can be staged on any node — a profile stages all its units,
+a component its units, a unit just itself — and staging is unit-keyed, so a mark shows
+everywhere that unit appears.
+
+Keys: `j/k` move, `enter`/`→` expand, `←` collapse, `tab` expand/collapse all, `space`
+select, `a` all, `i/u/x` install/upgrade/remove, `L/l` lock/unlock, `c` clear, `X` execute,
+`q` quit.
 
 ## routes.hu — how components resolve
 

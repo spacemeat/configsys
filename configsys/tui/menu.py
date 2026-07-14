@@ -1,14 +1,15 @@
 '''menu.py — MenuState (pure interaction logic) + curses view + run loop.
 
-Two presentations of the same resolved set, toggled with Tab:
-  * top-level — one row per profile-entry name (e.g. `vulkan-dev`, `firefox`),
-    aggregating the state of every unit it resolves to. Dependencies/parts (libxcb-*,
-    apt\\flatpak, …) don't get their own row here.
-  * full — one row per concrete unit (apt\\btop, flatpak\\firefox, apt\\libfuse2, …).
+The menu is a three-level tree:
+  profile  (expanded by default)
+    └─ component   (a profile entry, e.g. `vulkan-dev`; collapsed by default)
+         └─ unit   (the concrete install units, e.g. apt\\libxcb-xinput0)
 
-Staged operations are keyed by unit, so they survive a mode toggle: staging install
-on the `vulkan-dev` group marks its parts, which show as staged in the full view too.
-The curses layer only renders MenuState and turns keystrokes into calls to it.
+A component that resolves to a single unit is shown as a leaf (no expansion). One
+with dependencies/parts expands to reveal them, individually selectable. Ops can be
+staged on any node — a profile stages all its units, a component its units, a unit
+just itself — and staging is keyed by unit, so a mark is consistent everywhere the
+unit appears. Enter/→ expand, ← collapse, Tab expands/collapses all components.
 '''
 
 import curses
@@ -32,21 +33,23 @@ KEY_TO_OP = {
     ord('L'): 'lock', ord('l'): 'unlock',
 }
 
-GROUP, UNIT = 'group', 'unit'
+PROFILE, COMPONENT, UNIT = 'profile', 'component', 'unit'
 
 
-class Row:
-    '''A menu row over one or more unit states (a group aggregates several).'''
-
-    def __init__(self, id, label, members, kind):
-        self.id = id            # name (group) or unit key (unit)
-        self.label = label
-        self.members = members  # list[ComponentState]
+class Node:
+    def __init__(self, kind, id, label, depth, members, *, family='',
+                 expandable=False, expanded=False):
         self.kind = kind
+        self.id = id
+        self.label = label
+        self.depth = depth
+        self.members = members       # list[ComponentState] this node covers
+        self.family = family
+        self.expandable = expandable
+        self.expanded = expanded
+        self.children = []
 
-    @property
-    def is_group(self):
-        return self.kind == GROUP
+    # -- aggregate state over members -------------------------------------
 
     @property
     def status(self):
@@ -73,50 +76,124 @@ class Row:
         return bool(present) and all(m.locked for m in present)
 
     def info(self):
-        if self.is_group:
-            present = sum(1 for m in self.members if m.present)
-            return f'{present}/{len(self.members)} units installed'
-        m = self.members[0]
-        if not m.supported:
-            return '(family not yet supported)'
-        if not m.present:
-            return f'-> {m.latest_version or "?"}'
-        if m.outdated:
-            return f'{m.installed_version} -> {m.latest_version}'
-        return m.installed_version or '-'
+        if self.kind == UNIT:
+            m = self.members[0]
+            if not m.supported:
+                return '(family not yet supported)'
+            if not m.present:
+                return f'-> {m.latest_version or "?"}'
+            if m.outdated:
+                return f'{m.installed_version} -> {m.latest_version}'
+            return m.installed_version or '-'
+        present = sum(1 for m in self.members if m.present)
+        return f'{present}/{len(self.members)} installed'
 
 
 class MenuState:
-    def __init__(self, states, requested):
-        self.states = states          # {unit_key: ComponentState}
-        self.requested = requested     # {name: [profiles]}
-        self._full = [Row(k, k, [states[k]], UNIT) for k in sorted(states)]
-        self._top = self._build_groups()
-        self.mode = 'top'
-        self.rows = self._top
+    def __init__(self, states, profile_comps):
+        self.states = states               # {unit_key: ComponentState}
+        self.profile_comps = profile_comps  # [(profile, [component_name, ...])]
+        self._name_units = self._invert()
+        self.roots = self._build_tree()
+        self.rows = []
         self.cursor = 0
-        self.selected = set()          # row ids in the current mode
-        self.staged = {}               # unit_key -> op (mode-independent)
-        self.errors = {}               # unit_key -> message
+        self.selected = set()              # node ids
+        self.staged = {}                   # unit_key -> op
+        self.errors = {}                   # unit_key -> message
+        self._refresh()
 
-    def _build_groups(self):
+    def _invert(self):
         name_units = {}
         for key, st in self.states.items():
             for name in st.component.requested_as:
                 name_units.setdefault(name, []).append(key)
-        rows = []
-        for name in sorted(name_units):
-            members = [self.states[k] for k in sorted(name_units[name])]
-            rows.append(Row(name, name, members, GROUP))
-        return rows
+        return name_units
 
-    # -- mode -------------------------------------------------------------
+    def _build_tree(self):
+        roots = []
+        for profile, names in self.profile_comps:
+            pnode = Node(PROFILE, f'p:{profile}', profile, 0, [],
+                         expandable=True, expanded=True)
+            pmembers = {}  # dedupe shared units in the profile aggregate (by key)
+            for name in names:
+                keys = sorted(self._name_units.get(name, []))
+                members = [self.states[k] for k in keys]
+                if not members:
+                    continue
+                if len(members) == 1:
+                    m = members[0]
+                    cnode = Node(UNIT, f'c:{profile}:{name}', name, 1, [m],
+                                 family=m.component.family)
+                else:
+                    cnode = Node(COMPONENT, f'c:{profile}:{name}', name, 1, members,
+                                 expandable=True, expanded=False)
+                    for m in members:
+                        cnode.children.append(
+                            Node(UNIT, f'u:{profile}:{name}:{m.key}', m.component.comp,
+                                 2, [m], family=m.component.family))
+                for m in members:
+                    pmembers[m.key] = m
+                pnode.children.append(cnode)
+            pnode.members = list(pmembers.values())
+            roots.append(pnode)
+        return roots
 
-    def toggle_mode(self):
-        self.mode = 'full' if self.mode == 'top' else 'top'
-        self.rows = self._full if self.mode == 'full' else self._top
-        self.cursor = min(self.cursor, len(self.rows) - 1) if self.rows else 0
-        self.selected.clear()
+    # -- visible rows / expansion -----------------------------------------
+
+    def _visible(self):
+        out = []
+
+        def walk(n):
+            out.append(n)
+            if n.expandable and n.expanded:
+                for c in n.children:
+                    walk(c)
+        for r in self.roots:
+            walk(r)
+        return out
+
+    def _refresh(self, keep_id=None):
+        self.rows = self._visible()
+        if keep_id is not None:
+            for i, n in enumerate(self.rows):
+                if n.id == keep_id:
+                    self.cursor = i
+                    break
+        self.cursor = max(0, min(self.cursor, len(self.rows) - 1)) if self.rows else 0
+
+    def _all_components(self):
+        out = []
+
+        def walk(n):
+            if n.kind == COMPONENT:
+                out.append(n)
+            for c in n.children:
+                walk(c)
+        for r in self.roots:
+            walk(r)
+        return out
+
+    def cur(self):
+        return self.rows[self.cursor] if self.rows else None
+
+    def expand(self, want):
+        n = self.cur()
+        if n and n.expandable and n.expanded != want:
+            n.expanded = want
+            self._refresh(keep_id=n.id)
+
+    def toggle_expand(self):
+        n = self.cur()
+        if n and n.expandable:
+            self.expand(not n.expanded)
+
+    def toggle_expand_all(self):
+        comps = self._all_components()
+        want = any(not c.expanded for c in comps)  # expand all if any collapsed
+        for c in comps:
+            c.expanded = want
+        keep = self.cur().id if self.cur() else None
+        self._refresh(keep_id=keep)
 
     # -- navigation -------------------------------------------------------
 
@@ -138,23 +215,23 @@ class MenuState:
             self.selected ^= {self.rows[self.cursor].id}
 
     def select_all(self):
-        self.selected = {r.id for r in self.rows}
+        self.selected = {n.id for n in self.rows}
 
     def clear_selection(self):
         self.selected.clear()
 
-    def _target_rows(self):
+    def _target_nodes(self):
         if self.selected:
-            return [r for r in self.rows if r.id in self.selected]
-        return [self.rows[self.cursor]] if self.rows else []
+            return [n for n in self.rows if n.id in self.selected]
+        return [self.cur()] if self.cur() else []
 
     # -- staging (unit-keyed) ---------------------------------------------
 
     def stage(self, op):
         pred = OPS[op][2]
         staged_any = False
-        for row in self._target_rows():
-            for m in row.members:
+        for node in self._target_nodes():
+            for m in node.members:
                 if pred(m):
                     self.staged[m.key] = op
                     self.errors.pop(m.key, None)
@@ -162,8 +239,8 @@ class MenuState:
         return staged_any
 
     def unstage(self):
-        for row in self._target_rows():
-            for m in row.members:
+        for node in self._target_nodes():
+            for m in node.members:
                 self.staged.pop(m.key, None)
 
     def clear_all_staged(self):
@@ -172,16 +249,14 @@ class MenuState:
     def plan(self):
         return [(op, k, self.states[k].component) for k, op in sorted(self.staged.items())]
 
-    # -- per-row badge/error (over the row's members) ---------------------
-
-    def row_op(self, row):
-        ops = {self.staged[m.key] for m in row.members if m.key in self.staged}
+    def node_op(self, node):
+        ops = {self.staged[m.key] for m in node.members if m.key in self.staged}
         if not ops:
             return None
         return next(iter(ops)) if len(ops) == 1 else '*'
 
-    def row_error(self, row):
-        for m in row.members:
+    def node_error(self, node):
+        for m in node.members:
             if m.key in self.errors:
                 return self.errors[m.key]
         return None
@@ -199,7 +274,6 @@ class OpOutcome:
 
 
 def execute_plan(ctx, plan, ledger):
-    '''Run each staged op, returning an OpOutcome per op (ok + failure detail).'''
     outcomes = []
     for op, key, rc in plan:
         fam = get_family(rc.family, ctx.runner, ctx.paths)
@@ -241,7 +315,6 @@ def _summary_note(outcomes):
 
 
 def _confirm_and_execute(stdscr, pal, ms, ctx, ledger):
-    '''Returns (executed: bool, note: str, outcomes: list).'''
     raw = ms.plan()
     if not raw:
         return False, 'nothing staged', []
@@ -273,6 +346,9 @@ def _confirm_and_execute(stdscr, pal, ms, ctx, ledger):
 
 # -- rendering ------------------------------------------------------------
 
+FAM_X, STATUS_X, INFO_X = 33, 45, 57
+
+
 def _fit(s, width):
     return s if len(s) <= width else s[:max(0, width - 1)] + '…'
 
@@ -288,87 +364,88 @@ def _put(stdscr, y, x, s, attr=0):
         pass
 
 
-def _draw(stdscr, pal, ms, ctx, cfg, note):
+def _draw(stdscr, pal, ms, ctx, note):
     stdscr.erase()
     h, w = stdscr.getmaxyx()
 
-    profiles = ', '.join(cfg.active_profiles)
     _put(stdscr, 0, 0, _fit(' configsys ', w),
          pal.get('title') | curses.A_BOLD | curses.A_REVERSE)
-    sub = f'  {ctx.os_info.block}   profiles: {profiles}'
+    sub = f'  {ctx.os_info.block}'
     if ctx.runner.pretend:
         sub += '   [PRETEND]'
     _put(stdscr, 1, 0, _fit(sub, w), pal.get('header'))
 
-    view = 'top-level' if ms.mode == 'top' else 'full'
-    other = 'full' if ms.mode == 'top' else 'top-level'
-    _put(stdscr, 2, 0, _fit(f'  view: {view} ({len(ms.rows)})   ·   [tab] {other}', w),
-         pal.get('accent'))
+    header = f'   {"COMPONENT":28} {"FAMILY":11} {"STATUS":11} VERSION'
+    _put(stdscr, 3, 0, _fit(header, w), pal.get('dim') | curses.A_BOLD)
 
-    header = f'   {"COMPONENT":30} {"STATUS":12} VERSION'
-    _put(stdscr, 4, 0, _fit(header, w), pal.get('dim') | curses.A_BOLD)
-
-    list_top = 5
+    list_top = 4
     list_h = max(1, h - list_top - 2)
     first = max(0, ms.cursor - list_h + 1) if ms.cursor >= list_h else 0
 
     for vis, i in enumerate(range(first, min(len(ms.rows), first + list_h))):
-        row = ms.rows[i]
+        n = ms.rows[i]
         y = list_top + vis
         base = curses.A_REVERSE if i == ms.cursor else curses.A_NORMAL
 
-        sel = '»' if row.id in ms.selected else ' '
-        op = ms.row_op(row)
-        err = ms.row_error(row)
+        sel = '»' if n.id in ms.selected else ' '
+        op = ms.node_op(n)
+        err = ms.node_error(n)
         if op:
-            badge, battr = (OPS[op][0] if op != '*' else '*'), (
-                (pal.get(OPS[op][1]) if op != '*' else pal.get('accent')) | curses.A_BOLD)
+            badge = op if op == '*' else OPS[op][0]
+            battr = (pal.get('accent') if op == '*' else pal.get(OPS[op][1])) | curses.A_BOLD
         elif err:
             badge, battr = '✗', pal.get('error') | curses.A_BOLD
         else:
             badge, battr = ' ', curses.A_NORMAL
 
-        label = ('▸ ' + row.label) if row.is_group else row.label
+        marker = ('▾ ' if n.expanded else '▸ ') if n.expandable else '  '
+        name = '  ' * n.depth + marker + n.label
+        name_attr = base | (curses.A_BOLD if n.kind != UNIT else 0)
+        if n.kind == PROFILE:
+            name_attr |= pal.get('accent')
+
         _put(stdscr, y, 0, sel, pal.get('accent') | base | curses.A_BOLD)
         _put(stdscr, y, 1, badge, battr | base)
-        _put(stdscr, y, 2, ' ' + _fit(label, 30).ljust(31),
-             base | (curses.A_BOLD if row.is_group else 0))
+        _put(stdscr, y, 3, _fit(name, FAM_X - 4).ljust(FAM_X - 3), name_attr)
+        _put(stdscr, y, FAM_X, _fit(n.family, 11).ljust(11), base | pal.get('dim'))
 
-        st = row.status
-        _put(stdscr, y, 34, _fit(st, 12).ljust(12),
+        st = n.status
+        _put(stdscr, y, STATUS_X, _fit(st, 11).ljust(11),
              pal.get(STATUS_COLOR.get(st, 'dim')) | base)
 
         if err:
             info, iattr = err, base | pal.get('error')
         else:
-            info = row.info()
-            if row.locked:
+            info = n.info()
+            if n.locked:
                 info += '  [locked]'
             iattr = base | pal.get('dim')
-        _put(stdscr, y, 47, _fit(info, max(1, w - 48)), iattr)
+        _put(stdscr, y, INFO_X, _fit(info, max(1, w - INFO_X - 1)), iattr)
 
-    n_staged = len(ms.staged)
-    n_sel = len(ms.selected)
-    status_line = f' selected:{n_sel}  staged:{n_staged}'
+    status_line = f' selected:{len(ms.selected)}  staged:{len(ms.staged)}'
     if note:
         status_line += f'   {note}'
-    foot = (' j/k move · tab top/full · space select · i/u/x inst/upg/rm · '
-            'L/l lock · c clear · a all · X execute · q quit ')
+    foot = (' j/k move · enter/→ expand · ← collapse · tab all · space select · '
+            'i/u/x inst/upg/rm · L/l lock · c clear · X exec · q quit ')
     _put(stdscr, h - 2, 0, _fit(status_line, w), pal.get('accent'))
     _put(stdscr, h - 1, 0, _fit(foot, w), pal.get('dim') | curses.A_REVERSE)
     stdscr.refresh()
 
 
+def _profile_comps(cfg):
+    return [(p, cfg.profile_components(p)) for p in cfg.active_profiles]
+
+
 def run(ctx):
     '''Entry point used by app.cmd_tui. Returns an exit code.'''
-    cfg, requested, _units, ledger, states = ctx.load_pipeline()
-    ms = MenuState(states, requested)
+    cfg, _requested, _units, ledger, states = ctx.load_pipeline()
+    ms = MenuState(states, _profile_comps(cfg))
 
     with curses_screen() as stdscr:
         pal = Palette()
         note = ''
         while True:
-            _draw(stdscr, pal, ms, ctx, cfg, note)
+            _draw(stdscr, pal, ms, ctx, note)
             note = ''
             ch = stdscr.getch()
 
@@ -382,8 +459,12 @@ def run(ctx):
                 ms.top()
             elif ch == ord('G'):
                 ms.bottom()
-            elif ch in (ord('\t'), ord('f')):
-                ms.toggle_mode()
+            elif ch in (ord('\n'), curses.KEY_ENTER, curses.KEY_RIGHT):
+                ms.toggle_expand() if ch != curses.KEY_RIGHT else ms.expand(True)
+            elif ch == curses.KEY_LEFT:
+                ms.expand(False)
+            elif ch == ord('\t'):
+                ms.toggle_expand_all()
             elif ch == ord(' '):
                 ms.toggle_select()
             elif ch == ord('a'):
@@ -395,17 +476,14 @@ def run(ctx):
             elif ch in KEY_TO_OP:
                 if not ms.stage(KEY_TO_OP[ch]):
                     note = f'{KEY_TO_OP[ch]} not applicable here'
-            elif ch in (ord('X'), ord('\n'), curses.KEY_ENTER):
+            elif ch == ord('X'):
                 executed, note, outcomes = _confirm_and_execute(stdscr, pal, ms, ctx, ledger)
                 if executed:
                     failed = {o.key: f'{o.op} failed: {o.detail}'
                               for o in outcomes if not o.ok}
-                    mode = ms.mode
                     try:
-                        cfg, requested, _units, ledger, states = ctx.load_pipeline()
-                        ms = MenuState(states, requested)
-                        if mode == 'full':
-                            ms.toggle_mode()
+                        cfg, _requested, _units, ledger, states = ctx.load_pipeline()
+                        ms = MenuState(states, _profile_comps(cfg))
                     except Exception as e:  # noqa: BLE001 - surface, don't crash
                         note = f'reload failed: {e}'
                     ms.errors = failed
