@@ -84,6 +84,9 @@ class Tarball(Family):
                f'rm -rf {shlex.quote(str(d))}; fi')
         return self.runner.run(cmd, sudo=self._sudo(rc), capture=False)
 
+    def location(self, rc):
+        return self._display_path(self._install_dir(rc))
+
     def lock(self, rc):
         return Result('(tarball lock recorded in ledger)', 0)
 

@@ -126,3 +126,16 @@ class Family:
 
     def unlock(self, rc):
         raise NotImplementedError('unlock')
+
+    # -- presentation -----------------------------------------------------
+
+    def location(self, rc):
+        '''Human-readable install location (where files go / would go), or None for
+        package-managed families with no single path (apt). Shown in the TUI infoblock.'''
+        return None
+
+    def _display_path(self, p):
+        '''Collapse HOME to ~ for readable display.'''
+        s = str(p)
+        home = str(self.paths.home) if self.paths is not None else str(Path.home())
+        return '~' + s[len(home):] if home and s.startswith(home) else s

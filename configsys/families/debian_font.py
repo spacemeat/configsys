@@ -99,6 +99,9 @@ class DebianFont(Family):
         ])
         return self.runner.run(script, sudo=self._sudo(rc), capture=False)
 
+    def location(self, rc):
+        return self._display_path(self._font_dir(rc))
+
     def lock(self, rc):
         return Result('(debian-font lock recorded in ledger)', 0)
 

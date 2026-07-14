@@ -50,9 +50,12 @@ The TUI is a **profile → component → unit** tree. Profiles are expanded by d
 list their components; a component that resolves to one unit is a leaf (shown with its
 family), while a composite like `vulkan-dev` or one with dependencies collapses to an
 aggregated row you can expand (`enter`/`→`) to reveal and individually select its units.
-Family is its own column. Ops can be staged on any node — a profile stages all its units,
-a component its units, a unit just itself — and staging is unit-keyed, so a mark shows
-everywhere that unit appears.
+Family is its own column, and versions are split into `INSTALLED` and `LATEST` (what you
+could install — discovered for download families). An infoblock above the footer shows the
+current unit's full versions and its install location (`at: ~/vulkan`, the appimage path,
+the font dir, dotfile targets, …). Ops can be staged on any node — a profile stages all its
+units, a component its units, a unit just itself — and staging is unit-keyed, so a mark
+shows everywhere that unit appears.
 
 Keys: `j/k` move, `enter`/`→` expand, `←` collapse, `tab` expand/collapse all, `space`
 select, `a` all, `i/u/x` install/upgrade/remove, `L/l` lock/unlock, `c` clear, `X` execute,

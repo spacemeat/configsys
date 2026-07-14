@@ -75,18 +75,25 @@ class Node:
         present = [m for m in self.members if m.supported and m.present]
         return bool(present) and all(m.locked for m in present)
 
-    def info(self):
+    def installed_str(self):
         if self.kind == UNIT:
             m = self.members[0]
             if not m.supported:
-                return '(family not yet supported)'
-            if not m.present:
-                return f'-> {m.latest_version or "?"}'
-            if m.outdated:
-                return f'{m.installed_version} -> {m.latest_version}'
-            return m.installed_version or '-'
+                return '—'
+            v = m.installed_version or '—'
+            return f'{v} [L]' if m.locked else v
         present = sum(1 for m in self.members if m.present)
-        return f'{present}/{len(self.members)} installed'
+        return f'{present}/{len(self.members)}'
+
+    def latest_str(self):
+        if self.kind == UNIT:
+            m = self.members[0]
+            return (m.latest_version or '—') if m.supported else ''
+        return ''
+
+    def summary(self):
+        present = sum(1 for m in self.members if m.present)
+        return f'{self.label}: {present}/{len(self.members)} of its units installed'
 
 
 class MenuState:
@@ -346,7 +353,8 @@ def _confirm_and_execute(stdscr, pal, ms, ctx, ledger):
 
 # -- rendering ------------------------------------------------------------
 
-FAM_X, STATUS_X, INFO_X = 33, 45, 57
+# column start positions
+NAME_X, FAM_X, STATUS_X, INST_X, LATEST_X = 3, 30, 42, 54, 71
 
 
 def _fit(s, width):
@@ -364,6 +372,32 @@ def _put(stdscr, y, x, s, attr=0):
         pass
 
 
+def _infoblock(ms, ctx):
+    '''Detail line for the current row: location + full versions for a unit; a short
+    summary for a group (paths/versions get truncated in the columns, so this is the
+    place that shows them in full).'''
+    n = ms.cur()
+    if n is None:
+        return ''
+    if n.kind != UNIT:
+        return ' ' + n.summary()
+    m = n.members[0]
+    rc = m.component
+    parts = [f'{rc.family}\\{rc.comp}']
+    if m.supported:
+        parts.append(f'installed: {m.installed_version or "—"}')
+        parts.append(f'latest: {m.latest_version or "—"}')
+        if m.locked:
+            parts.append('version-locked')
+        fam = get_family(rc.family, ctx.runner, ctx.paths)
+        loc = fam.location(rc) if fam is not None else None
+        if loc:
+            parts.append(f'at: {loc}')
+    else:
+        parts.append('family not yet supported')
+    return ' ' + '   ·   '.join(parts)
+
+
 def _draw(stdscr, pal, ms, ctx, note):
     stdscr.erase()
     h, w = stdscr.getmaxyx()
@@ -375,11 +409,15 @@ def _draw(stdscr, pal, ms, ctx, note):
         sub += '   [PRETEND]'
     _put(stdscr, 1, 0, _fit(sub, w), pal.get('header'))
 
-    header = f'   {"COMPONENT":28} {"FAMILY":11} {"STATUS":11} VERSION'
-    _put(stdscr, 3, 0, _fit(header, w), pal.get('dim') | curses.A_BOLD)
+    hattr = pal.get('dim') | curses.A_BOLD
+    _put(stdscr, 3, NAME_X, 'COMPONENT', hattr)
+    _put(stdscr, 3, FAM_X, 'FAMILY', hattr)
+    _put(stdscr, 3, STATUS_X, 'STATUS', hattr)
+    _put(stdscr, 3, INST_X, 'INSTALLED', hattr)
+    _put(stdscr, 3, LATEST_X, 'LATEST', hattr)
 
     list_top = 4
-    list_h = max(1, h - list_top - 3)  # status + two footer lines
+    list_h = max(1, h - list_top - 4)  # infoblock + status + two footer lines
     first = max(0, ms.cursor - list_h + 1) if ms.cursor >= list_h else 0
 
     for vis, i in enumerate(range(first, min(len(ms.rows), first + list_h))):
@@ -406,21 +444,26 @@ def _draw(stdscr, pal, ms, ctx, note):
 
         _put(stdscr, y, 0, sel, pal.get('accent') | base | curses.A_BOLD)
         _put(stdscr, y, 1, badge, battr | base)
-        _put(stdscr, y, 3, _fit(name, FAM_X - 4).ljust(FAM_X - 3), name_attr)
-        _put(stdscr, y, FAM_X, _fit(n.family, 11).ljust(11), base | pal.get('dim'))
+        _put(stdscr, y, NAME_X, _fit(name, FAM_X - NAME_X - 1).ljust(FAM_X - NAME_X - 1),
+             name_attr)
+        _put(stdscr, y, FAM_X, _fit(n.family, FAM_X - 1).ljust(STATUS_X - FAM_X - 1),
+             base | pal.get('dim'))
 
         st = n.status
-        _put(stdscr, y, STATUS_X, _fit(st, 11).ljust(11),
+        _put(stdscr, y, STATUS_X, _fit(st, INST_X - STATUS_X - 1).ljust(INST_X - STATUS_X - 1),
              pal.get(STATUS_COLOR.get(st, 'dim')) | base)
 
         if err:
-            info, iattr = err, base | pal.get('error')
+            _put(stdscr, y, INST_X, _fit(err, max(1, w - INST_X - 1)),
+                 base | pal.get('error'))
         else:
-            info = n.info()
-            if n.locked:
-                info += '  [locked]'
-            iattr = base | pal.get('dim')
-        _put(stdscr, y, INFO_X, _fit(info, max(1, w - INFO_X - 1)), iattr)
+            _put(stdscr, y, INST_X,
+                 _fit(n.installed_str(), LATEST_X - INST_X - 1).ljust(LATEST_X - INST_X - 1),
+                 base | pal.get('dim'))
+            _put(stdscr, y, LATEST_X, _fit(n.latest_str(), max(1, w - LATEST_X - 1)),
+                 base | pal.get('dim'))
+
+    _put(stdscr, h - 4, 0, _fit(_infoblock(ms, ctx), w), pal.get('accent'))
 
     status_line = f' selected:{len(ms.selected)}  staged:{len(ms.staged)}'
     if note:

@@ -130,6 +130,10 @@ class DotFiles(Family):
             lines.append(f'if [ -e {t}{BACKUP_SUFFIX} ]; then mv {t}{BACKUP_SUFFIX} {t}; fi')
         return self.runner.run('\n'.join(lines), capture=False)
 
+    def location(self, rc):
+        targets = [self._display_path(tgt) for _src, tgt in self._pairs(rc)]
+        return '; '.join(targets) if targets else None
+
     def lock(self, rc):
         return Result('(dotfiles lock recorded in ledger)', 0)
 

@@ -1,8 +1,15 @@
--- Sample neovim config, git-synced via configsys's dotfiles/ directory.
--- The \dotfiles family symlinks $XDG_CONFIG_HOME/nvim -> this directory, so edits
--- here flow back to the repo. Replace with your real neovim configuration.
+--require("config.options")
+--require("config.mappings")
+--require("config.lazy")
 
-vim.opt.number = true
-vim.opt.relativenumber = true
-vim.opt.expandtab = true
-vim.opt.shiftwidth = 2
+require("config.mappings")
+require("config.options")
+
+require("plugins.autumnal")
+require("plugins.lualine")
+require("plugins.autopairs")
+require("plugins.telescope")
+require("plugins.treesitter")
+require("plugins.which-key")
+require("plugins.markdown")
+require("config.lsp")

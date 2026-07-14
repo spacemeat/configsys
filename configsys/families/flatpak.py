@@ -111,6 +111,10 @@ class Flatpak(Family):
             f'flatpak update {self._flag(rc)} -y --commit={commit} {app}',
             sudo=self._sudo(rc), capture=False)
 
+    def location(self, rc):
+        root = '~/.local/share/flatpak' if self._scope(rc) == 'user' else '/var/lib/flatpak'
+        return f'{root}  ({self._appid(rc)})'
+
     def lock(self, rc):
         app = shlex.quote(self._appid(rc))
         return self.runner.run(f'flatpak mask {self._flag(rc)} {app}',

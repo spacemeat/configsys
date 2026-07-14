@@ -112,6 +112,12 @@ def test_lock_unlock_noops_ok():
     assert ai.unlock(ai_unit('/x')).ok
 
 
+def test_location_is_the_target_path_home_collapsed():
+    p = Paths(env={'CONFIGSYS_HOME': '/home/u'})
+    ai = AppImage(Runner(pretend=True), paths=p)
+    assert ai.location(ai_unit('~/apps/nvim.appimage')) == '~/apps/nvim.appimage'
+
+
 @pytest.mark.skipif(__import__('shutil').which('curl') is None, reason='needs curl')
 def test_real_install_chmod_marker_desktop_and_uninstall(tmp_path):
     src = tmp_path / 'src.AppImage'

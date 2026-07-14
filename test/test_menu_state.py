@@ -131,6 +131,21 @@ def test_profile_status_aggregates():
     assert vulkan.status == 'partial'
 
 
+def test_installed_and_latest_columns():
+    ms = make()
+    ms.toggle_expand_all()
+    by = {n.id: n for n in ms.rows if n.kind == UNIT}
+    firefox = by['u:user:firefox:flatpak\\firefox']   # missing
+    assert firefox.installed_str() == '—'
+    assert firefox.latest_str() == '2'                # what you'd install
+    ripgrep = by['u:user:neovim:apt\\ripgrep']        # installed, up to date
+    assert ripgrep.installed_str() == '1'
+    assert ripgrep.latest_str() == '1'
+    # a group shows a count in INSTALLED and blank LATEST
+    fxgroup = next(n for n in ms.rows if n.id == 'c:user:firefox')
+    assert '/' in fxgroup.installed_str() and fxgroup.latest_str() == ''
+
+
 def test_collapse_via_expand_false():
     ms = make()
     fi = next(n for n in ms.rows if n.id == 'c:user:firefox')
