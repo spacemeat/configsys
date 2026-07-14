@@ -7,12 +7,12 @@
             source-path: /etc/apt/sources.list.d/lunarg-vulkan-jammy.list
             name: vulkan-sdk
         }
-        cargo: { name: cargo }
-        btop: { name: btop }
-        xclip: { name: xclip }
+        cargo: { name: cargo  repo-component: universe }
+        btop: { name: btop  repo-component: universe }
+        xclip: { name: xclip  repo-component: universe }
         build-essential: { name: build-essential }
-        fzf: { name: fzf }
-        ripgrep: { name: ripgrep }
+        fzf: { name: fzf  repo-component: universe }
+        ripgrep: { name: ripgrep  repo-component: universe }
     }
 
     \flatpak: {

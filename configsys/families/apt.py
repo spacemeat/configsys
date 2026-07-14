@@ -14,6 +14,39 @@ class Apt(Family):
     name = 'apt'
     privileged = True
 
+    # -- prerequisites ----------------------------------------------------
+
+    @staticmethod
+    def _as_list(v):
+        if v is None:
+            return []
+        return v if isinstance(v, list) else [v]
+
+    def ensure_prereqs(self, rc):
+        '''System setup a component needs before it can install, declared on its
+        route: archive components to enable (`repo-component`) and third-party
+        signing key + source list (`pubkey-*`/`source-*`). Idempotent — a source
+        is only fetched (and apt updated) when its file is missing.'''
+        f = rc.fields
+
+        for comp in self._as_list(f.get('repo-component')):
+            c = shlex.quote(comp)
+            # add-apt-repository is idempotent and refreshes apt lists itself.
+            self.runner.run(f'add-apt-repository -y {c}', sudo=True, capture=False)
+
+        key_url, key_path = f.get('pubkey-url'), f.get('pubkey-path')
+        if key_url and key_path:
+            kp, ku = shlex.quote(key_path), shlex.quote(key_url)
+            self.runner.run(f'[ -f {kp} ] || sudo curl -fsSL {ku} -o {kp}',
+                            capture=False)
+
+        src_url, src_path = f.get('source-url'), f.get('source-path')
+        if src_url and src_path:
+            sp, su = shlex.quote(src_path), shlex.quote(src_url)
+            self.runner.run(
+                f'if [ ! -f {sp} ]; then sudo curl -fsSL {su} -o {sp} '
+                f'&& sudo apt-get update; fi', capture=False)
+
     # -- read -------------------------------------------------------------
 
     def get_version(self, rc):
@@ -42,6 +75,7 @@ class Apt(Family):
     # -- mutate -----------------------------------------------------------
 
     def install(self, rc):
+        self.ensure_prereqs(rc)
         pkg = shlex.quote(rc.name)
         return self.runner.run(f'apt-get install -y {pkg}', sudo=True, capture=False)
 
@@ -50,11 +84,13 @@ class Apt(Family):
         return self.runner.run(f'apt-get remove -y {pkg}', sudo=True, capture=False)
 
     def upgrade(self, rc):
+        self.ensure_prereqs(rc)
         pkg = shlex.quote(rc.name)
         return self.runner.run(f'apt-get install --only-upgrade -y {pkg}',
                                sudo=True, capture=False)
 
     def set_version(self, rc, version):
+        self.ensure_prereqs(rc)
         pkg = shlex.quote(rc.name)
         ver = shlex.quote(version)
         return self.runner.run(

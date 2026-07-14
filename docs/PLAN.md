@@ -55,6 +55,17 @@ Last grill: 2026-07-13.
    map to the routes.hu block name (`ID=pop` → `pop_os!`), then walk `!using` upward. The
    detected OS is overridable via env for testing.
 
+9. **System prerequisites are encoded in routes.hu and executed by the family.**
+   If a component needs system-level setup to install — an apt archive component enabled
+   (`universe`), a third-party signing key + source list added (lunarg vulkan) — that setup
+   is declared as fields on the component's route and performed (idempotently) by the family
+   *before* install. The tool never assumes a prerequisite is already satisfied. apt schema:
+   - `repo-component: universe` (value or list) → `add-apt-repository -y <c>` then update
+   - `pubkey-url` + `pubkey-path` → download signing key to the path
+   - `source-url` + `source-path` → download the .list to sources.list.d, then update
+   Prereqs run only when not already present (file existence / cheap checks) to avoid
+   needless `apt-get update`s. This is why `vulkan-sdk` carries lunarg key/source fields.
+
 ## Parked (deferred on purpose + why)
 
 - **Toolchain routes** — `gcc`, `clang`, `pyke`, `python12`, `mesa` in the current

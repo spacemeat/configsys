@@ -1,9 +1,13 @@
+from pathlib import Path
+
 import pytest
 
 from configsys.componentObj import ResolvedComponent
 from configsys.families import get_family, is_supported
 from configsys.families.apt import Apt
+from configsys.routes import RouteResolver
 from configsys.runner import Result, Runner
+from configsys.troveio import load
 
 
 def rc(name='btop'):
@@ -104,3 +108,69 @@ def test_is_locked_true_and_false():
     held = FakeRunner([('apt-mark showhold', 0, 'btop\nripgrep\n')])
     assert Apt(held).is_locked(rc('btop')) is True
     assert Apt(held).is_locked(rc('fzf')) is False
+
+
+# -- prerequisites -------------------------------------------------------
+
+def resolve_unit(name, os_block='pop_os!'):
+    routes = Path(__file__).resolve().parent.parent / 'routes.hu'
+    units = RouteResolver(load(routes), os_block).resolve_names([name])
+    assert len(units) == 1
+    return next(iter(units.values()))
+
+
+def test_repo_component_enabled_before_install():
+    comp = ResolvedComponent(key='apt\\btop', family='apt', comp='btop',
+                             fields={'name': 'btop', 'repo-component': 'universe'})
+    r = Runner(pretend=True)
+    Apt(r).install(comp)
+    assert r.calls == [
+        'sudo add-apt-repository -y universe',
+        'sudo apt-get install -y btop',
+    ]
+
+
+def test_repo_component_list():
+    comp = ResolvedComponent(key='apt\\x', family='apt', comp='x',
+                             fields={'name': 'x', 'repo-component': ['universe', 'multiverse']})
+    r = Runner(pretend=True)
+    Apt(r).install(comp)
+    assert r.calls[:2] == [
+        'sudo add-apt-repository -y universe',
+        'sudo add-apt-repository -y multiverse',
+    ]
+    assert r.calls[-1] == 'sudo apt-get install -y x'
+
+
+def test_universe_route_carries_repo_component():
+    # routes.hu declares btop needs universe (per "encode prereqs in routes.hu")
+    unit = resolve_unit('btop')
+    assert unit.fields.get('repo-component') == 'universe'
+    r = Runner(pretend=True)
+    Apt(r).install(unit)
+    assert r.calls == [
+        'sudo add-apt-repository -y universe',
+        'sudo apt-get install -y btop',
+    ]
+
+
+def test_vulkan_key_and_source_added_before_install():
+    unit = resolve_unit('vulkan-dev')  # -> apt\vulkan-sdk with lunarg key/source
+    assert unit.key == 'apt\\vulkan-sdk'
+    r = Runner(pretend=True)
+    Apt(r).install(unit)
+
+    key_cmd = ('[ -f /etc/apt/trusted.gpg.d/lunarg.asc ] || '
+               'sudo curl -fsSL https://packages.lunarg.com/lunarg-signing-key-pub.asc '
+               '-o /etc/apt/trusted.gpg.d/lunarg.asc')
+    src_cmd = ('if [ ! -f /etc/apt/sources.list.d/lunarg-vulkan-jammy.list ]; then '
+               'sudo curl -fsSL http://packages.lunarg.com/vulkan/lunarg-vulkan-jammy.list '
+               '-o /etc/apt/sources.list.d/lunarg-vulkan-jammy.list '
+               '&& sudo apt-get update; fi')
+    assert r.calls == [key_cmd, src_cmd, 'sudo apt-get install -y vulkan-sdk']
+
+
+def test_no_prereqs_when_none_declared():
+    r = Runner(pretend=True)
+    Apt(r).install(rc('build-essential'))  # main package, no repo-component
+    assert r.calls == ['sudo apt-get install -y build-essential']

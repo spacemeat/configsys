@@ -168,7 +168,9 @@ class RouteResolver:
                 variables[k] = ch.value
             elif ch.kind == VALUE:
                 fields[k] = ch.value
-            # nested non-var dict/list fields aren't used by current routes; skip.
+            elif ch.kind == LIST:
+                fields[k] = [ch[i].value for i in range(ch.num_children)]
+            # nested dict fields aren't used by current routes; skip.
         return variables, fields
 
     def _resolve_vars(self, varmap):
