@@ -373,29 +373,26 @@ def _put(stdscr, y, x, s, attr=0):
 
 
 def _infoblock(ms, ctx):
-    '''Detail line for the current row: location + full versions for a unit; a short
-    summary for a group (paths/versions get truncated in the columns, so this is the
-    place that shows them in full).'''
+    '''Two detail lines for the current row: (1) full versions / lock state, (2) the
+    install location on its own line (paths get long). Groups get a one-line summary.
+    (The columns truncate these; here is where they show in full.)'''
     n = ms.cur()
     if n is None:
-        return ''
+        return '', ''
     if n.kind != UNIT:
-        return ' ' + n.summary()
+        return ' ' + n.summary(), ''
     m = n.members[0]
     rc = m.component
-    parts = [f'{rc.family}\\{rc.comp}']
-    if m.supported:
-        parts.append(f'installed: {m.installed_version or "—"}')
-        parts.append(f'latest: {m.latest_version or "—"}')
-        if m.locked:
-            parts.append('version-locked')
-        fam = get_family(rc.family, ctx.runner, ctx.paths)
-        loc = fam.location(rc) if fam is not None else None
-        if loc:
-            parts.append(f'at: {loc}')
-    else:
-        parts.append('family not yet supported')
-    return ' ' + '   ·   '.join(parts)
+    if not m.supported:
+        return f' {rc.family}\\{rc.comp}   ·   family not yet supported', ''
+    parts = [f'{rc.family}\\{rc.comp}',
+             f'installed: {m.installed_version or "—"}',
+             f'latest: {m.latest_version or "—"}']
+    if m.locked:
+        parts.append('version-locked')
+    fam = get_family(rc.family, ctx.runner, ctx.paths)
+    loc = fam.location(rc) if fam is not None else None
+    return ' ' + '   ·   '.join(parts), (f' at: {loc}' if loc else '')
 
 
 def _draw(stdscr, pal, ms, ctx, note):
@@ -417,7 +414,7 @@ def _draw(stdscr, pal, ms, ctx, note):
     _put(stdscr, 3, LATEST_X, 'LATEST', hattr)
 
     list_top = 4
-    list_h = max(1, h - list_top - 4)  # infoblock + status + two footer lines
+    list_h = max(1, h - list_top - 5)  # 2 infoblock + status + 2 footer lines
     first = max(0, ms.cursor - list_h + 1) if ms.cursor >= list_h else 0
 
     for vis, i in enumerate(range(first, min(len(ms.rows), first + list_h))):
@@ -463,7 +460,9 @@ def _draw(stdscr, pal, ms, ctx, note):
             _put(stdscr, y, LATEST_X, _fit(n.latest_str(), max(1, w - LATEST_X - 1)),
                  base | pal.get('dim'))
 
-    _put(stdscr, h - 4, 0, _fit(_infoblock(ms, ctx), w), pal.get('accent'))
+    info1, info2 = _infoblock(ms, ctx)
+    _put(stdscr, h - 5, 0, _fit(info1, w), pal.get('accent'))
+    _put(stdscr, h - 4, 0, _fit(info2, w), pal.get('dim'))
 
     status_line = f' selected:{len(ms.selected)}  staged:{len(ms.staged)}'
     if note:
