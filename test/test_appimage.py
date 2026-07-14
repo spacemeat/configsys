@@ -54,6 +54,36 @@ def test_icon_extraction_and_desktop_icon(tmp_path):
     assert any(str(icon) in c and 'Desktop Entry' in c for c in r.calls)
 
 
+def test_arch_substituted_into_url():
+    rc = ResolvedComponent(key='appImage\\x', family='appImage', comp='x',
+                           fields={'url': 'https://h/app-$ARCH', 'path': '~/apps/x',
+                                   'version': {'static': '1'}})
+    r = Runner(pretend=True)
+    AppImage(r, paths=Paths(env={'CONFIGSYS_HOME': '/home/u', 'CONFIGSYS_ARCH': 'aarch64'})).install(rc)
+    assert 'https://h/app-aarch64' in r.calls[0]
+    assert '$ARCH' not in r.calls[0]
+
+
+def test_download_url_prefers_resolved_github_asset(tmp_path):
+    from configsys.versions import VersionCache
+    paths = Paths(env={'CONFIGSYS_HOME': str(tmp_path), 'CONFIGSYS_ARCH': 'x86_64',
+                       'CONFIGSYS_STATE_DIR': str(tmp_path / 's')})
+    # seed the cache as if discovery already matched the asset (no network in test)
+    vc = VersionCache()
+    vc.set('github:neovim/neovim:asset=nvim-linux-x86_64.appimage',
+           'v0.12.4', 'https://gh/nvim-x86_64.appimage', now=1e12)
+    vc.save(paths)
+
+    rc = ResolvedComponent(
+        key='appImage\\neovim', family='appImage', comp='neovim',
+        fields={'version': {'github': 'neovim/neovim', 'asset': 'nvim-linux-$ARCH.appimage'},
+                'url': 'https://fallback/$VERSION/x', 'path': '~/apps/nvim'})
+    r = Runner(pretend=True)
+    AppImage(r, paths=paths).install(rc)
+    assert 'https://gh/nvim-x86_64.appimage' in r.calls[0]  # asset url wins
+    assert 'fallback' not in r.calls[0]
+
+
 def test_get_version_present_and_missing(tmp_path):
     target = tmp_path / 'app.appimage'
     ai = AppImage(Runner(pretend=True), paths=None)

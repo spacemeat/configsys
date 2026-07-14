@@ -8,6 +8,7 @@ runner.Result.
 '''
 
 
+import platform
 from pathlib import Path
 
 # Base directory for bare-relative install paths under system scope.
@@ -35,11 +36,33 @@ class Family:
 
     # -- version resolution (download-based families) ---------------------
 
+    def _arch(self):
+        '''System CPU arch for $ARCH substitution (e.g. x86_64, aarch64). Naming
+        conventions differ per project, so some URLs still need hand-tuning.'''
+        env = self.paths.env if self.paths is not None else {}
+        return env.get('CONFIGSYS_ARCH') or platform.machine()
+
+    def _apply_placeholders(self, text, version):
+        if not text:
+            return text
+        if version:
+            text = text.replace('$VERSION', version)
+        return text.replace('$ARCH', self._arch())
+
+    def _disco_spec(self, rc):
+        '''The version spec with $ARCH substituted into an `asset` glob (so the
+        cache key and asset match are arch-correct).'''
+        spec = rc.fields.get('version')
+        if isinstance(spec, dict) and 'asset' in spec:
+            spec = dict(spec)
+            spec['asset'] = spec['asset'].replace('$ARCH', self._arch())
+        return spec
+
     def resolve_version(self, rc, *, refresh=False):
         '''The version to install / treat as latest. A `version:` dict is a discovery
         spec (github / url / static); a string is a literal; otherwise fall back to a
         legacy $VERSION route var. Returns None if undiscoverable.'''
-        spec = rc.fields.get('version')
+        spec = self._disco_spec(rc)
         if isinstance(spec, dict):
             from . import versions
             return versions.discover(spec, self.paths, refresh=refresh)
@@ -47,11 +70,17 @@ class Family:
             return spec
         return rc.vars.get('$VERSION') or rc.vars.get('$SDKVERSION')
 
-    @staticmethod
-    def _apply_version(text, version):
-        if text and version:
-            return text.replace('$VERSION', version)
-        return text
+    def download_url(self, rc, version):
+        '''Preferred download URL: a matched github release asset (authoritative,
+        rename-robust) if the version spec has an `asset` glob, else the route `url`
+        template with $VERSION/$ARCH filled in.'''
+        spec = self._disco_spec(rc)
+        if isinstance(spec, dict):
+            from . import versions
+            asset = versions.discover_asset_url(spec, self.paths)
+            if asset:
+                return asset
+        return self._apply_placeholders(rc.fields.get('url'), version)
 
     def _scoped_dir(self, raw, rc):
         '''Resolve an install path. Absolute and ~ paths pass through; a bare

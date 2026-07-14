@@ -49,7 +49,7 @@ class Tarball(Family):
 
     def install(self, rc):
         version = self.resolve_version(rc) or ''
-        url = self._apply_version(rc.fields.get('url'), version)
+        url = self.download_url(rc, version)
         if not url:
             return Result('(tarball: no url in route)', 1)
         d = self._install_dir(rc)

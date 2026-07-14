@@ -37,10 +37,10 @@
         !depends: libfuse2
 
         neovim: {
-            version: { github: neovim/neovim }   // latest release tag (e.g. v0.12.4)
-            // asset was renamed after v0.10 (nvim.appimage -> nvim-linux-<arch>.appimage);
-            // hand-tuned to x86_64, since such upstream renames can't be discovered.
-            url: "https://github.com/neovim/neovim/releases/download/$VERSION/nvim-linux-x86_64.appimage"
+            // discover the tag AND the exact asset url by glob (arch-aware, and
+            // robust to release-file renames since the url comes from the API).
+            version: { github: neovim/neovim  asset: "nvim-linux-$ARCH.appimage" }
+            url: "https://github.com/neovim/neovim/releases/download/$VERSION/nvim-linux-$ARCH.appimage"
             path: ~/apps/nvim.appimage
             name: Neovim
         }
@@ -69,7 +69,7 @@
         vulkan-sdk: {
             // a deliberate pin; swap for { url: "...latest..." regex: "..." } to track
             version: { static: 1.4.350.1 }
-            url: "https://sdk.lunarg.com/sdk/download/$VERSION/linux/vulkansdk-linux-x86_64-$VERSION.tar.xz"
+            url: "https://sdk.lunarg.com/sdk/download/$VERSION/linux/vulkansdk-linux-$ARCH-$VERSION.tar.xz"
             installDir: vulkan
         }
     }

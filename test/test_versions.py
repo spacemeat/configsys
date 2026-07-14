@@ -39,6 +39,38 @@ def test_url_regex_extract():
     assert versions.discover({'url': 'https://x/latest.txt'}, fetch=f) == '1.4.350.1'
 
 
+RELEASE_JSON = json.dumps({
+    'tag_name': 'v0.12.4',
+    'assets': [
+        {'name': 'nvim-linux-arm64.appimage',
+         'browser_download_url': 'https://gh/arm64.appimage'},
+        {'name': 'nvim-linux-x86_64.appimage',
+         'browser_download_url': 'https://gh/x86_64.appimage'},
+        {'name': 'nvim-linux-x86_64.appimage.zsync',
+         'browser_download_url': 'https://gh/x86_64.zsync'},
+    ],
+})
+
+
+def test_asset_glob_resolves_download_url():
+    f = fetcher({GH: RELEASE_JSON})
+    spec = {'github': 'neovim/neovim', 'asset': 'nvim-linux-x86_64.appimage'}
+    assert versions.discover(spec, fetch=f) == 'v0.12.4'
+    assert versions.discover_asset_url(spec, fetch=f) == 'https://gh/x86_64.appimage'
+
+
+def test_asset_absent_url_is_none():
+    f = fetcher({GH: RELEASE_JSON})
+    assert versions.discover_asset_url({'github': 'neovim/neovim'}, fetch=f) is None
+
+
+def test_asset_source_key_distinguishes_patterns():
+    a = versions.source_key({'github': 'r/r', 'asset': 'x-x86_64.zip'})
+    b = versions.source_key({'github': 'r/r', 'asset': 'x-arm64.zip'})
+    c = versions.source_key({'github': 'r/r'})
+    assert a != b and a != c
+
+
 def test_fetch_error_returns_none_without_cache():
     def boom(url, timeout=10):
         raise OSError('offline')

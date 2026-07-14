@@ -187,14 +187,20 @@ def cmd_refresh(ctx, args):
     print('Refreshing discovered versions...')
     seen = {}
     for key in sorted(units):
-        spec = units[key].fields.get('version')
+        rc = units[key]
+        fam = get_family(rc.family, ctx.runner, ctx.paths)
+        if fam is None:
+            continue
+        # use the family's arch-substituted spec so the cache key matches what the
+        # family looks up at install time (and warms both version + asset url)
+        spec = fam._disco_spec(rc)
         if not isinstance(spec, dict) or 'static' in spec:
             continue
         sk = source_key(spec)
         if sk in seen:
             continue
         seen[sk] = discover(spec, ctx.paths, refresh=True)
-        print(f'  {sk:36} -> {seen[sk] or "(unknown)"}')
+        print(f'  {sk:44} -> {seen[sk] or "(unknown)"}')
     if not seen:
         print('  (no discoverable versions in the active profiles)')
     return 0

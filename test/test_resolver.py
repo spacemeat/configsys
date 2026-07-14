@@ -46,10 +46,11 @@ def test_vulkan_sdk_resolves_to_tarball_with_version_spec():
     assert '$VERSION' in u.fields['url']
 
 
-def test_appimage_version_is_a_github_spec():
+def test_appimage_version_is_a_github_spec_with_asset():
     u = resolver().resolve_names(['neovim'])['appImage\\neovim']
-    assert u.fields['version'] == {'github': 'neovim/neovim'}
-    assert '$VERSION' in u.fields['url']
+    assert u.fields['version']['github'] == 'neovim/neovim'
+    assert u.fields['version']['asset'] == 'nvim-linux-$ARCH.appimage'  # arch-aware glob
+    assert '$VERSION' in u.fields['url'] and '$ARCH' in u.fields['url']
 
 
 def test_list_route_expands_to_all_parts():
