@@ -150,6 +150,12 @@ test/
 - Verify: manual run in podman (interactive) + a scripted non-interactive `--pretend` path
   that prints the planned ops for assertion.
 
+## Milestone 1 status: COMPLETE (2026-07-13)
+
+All steps landed and committed (Step 0–7 + Step 5b prerequisites). 83 host-side
+pytest cases pass; the podman apt lifecycle and the repo-component prerequisite
+cycle both PASS in-container with the host untouched.
+
 ## Acceptance criteria for Milestone 1
 - `bash test/run-in-podman.sh` performs a real apt install→lock→unlock→remove cycle of a
   routes.hu component inside ubuntu:22.04 and exits 0, host untouched.
