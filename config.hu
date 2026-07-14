@@ -1,7 +1,7 @@
 {
     // Shared, git-synced profile definitions. Per-machine selection lives in
     // ~/configsys.hu (`configs: [...]`), which overlays this file.
-    configs: [ user, dev, uc-dev, vulkan-dev ]
+    configs: [ user, dev, uc-dev, graphics ]
 
     // A profile is a flat list of component names. Each name is resolved through
     // routes.hu (family binding, recursive deps, dedup). A name with no route on
@@ -26,8 +26,10 @@
         build-essential
         arduino
     ]
-    vulkan-dev: [
-        build-essential
+    // vulkan-dev the bundle already carries build-essential + the X-dev libs, so the
+    // profile just names the bundle (renamed from `vulkan-dev` to avoid colliding
+    // with the component of the same name).
+    graphics: [
         vulkan-dev
     ]
 }
