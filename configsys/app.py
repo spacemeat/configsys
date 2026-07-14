@@ -203,6 +203,10 @@ def cmd_refresh(ctx, args):
         print(f'  {sk:44} -> {seen[sk] or "(unknown)"}')
     if not seen:
         print('  (no discoverable versions in the active profiles)')
+    elif any(v is None for v in seen.values()) and 'CONFIGSYS_GITHUB_TOKEN' not in ctx.env \
+            and 'GITHUB_TOKEN' not in ctx.env:
+        print('\nSome lookups failed (network or GitHub rate limit). Set '
+              'CONFIGSYS_GITHUB_TOKEN or GITHUB_TOKEN to lift the API limit.')
     return 0
 
 

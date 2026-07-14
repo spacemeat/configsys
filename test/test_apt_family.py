@@ -1,7 +1,5 @@
 from pathlib import Path
 
-import pytest
-
 from configsys.componentObj import ResolvedComponent
 from configsys.families import get_family, is_supported
 from configsys.families.apt import Apt

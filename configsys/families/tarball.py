@@ -8,7 +8,6 @@ version. There is no native version lock — lock intent lives in the ledger.
 '''
 
 import shlex
-from pathlib import Path
 
 from ..component import Family
 from ..runner import Result
