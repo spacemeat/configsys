@@ -46,6 +46,13 @@ configsys refresh             # re-query latest versions from their sources
 Global flags: `--pretend` (dry-run; prints commands), `--os <block>`, `--home <dir>`,
 `--config <file>` (all make runs sandboxable).
 
+The TUI has two views, toggled with **Tab**: *top-level* (one row per profile-entry
+name; dependencies/parts like `libxcb-*` are hidden and a composite like `vulkan-dev`
+shows as one aggregated row) and *full* (one row per resolved unit). Staging an op on a
+group marks its applicable units, which persist across the toggle. Keys: `j/k` move,
+`space` select, `a` all, `i/u/x` install/upgrade/remove, `L/l` lock/unlock, `c` clear,
+`X` execute, `q` quit.
+
 ## routes.hu — how components resolve
 
 ```humon

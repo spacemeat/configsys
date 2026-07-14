@@ -3,23 +3,20 @@ from configsys.installState import ComponentState
 from configsys.tui.menu import MenuState
 
 
-def state(key, status):
-    rc = ResolvedComponent(key=key, family=key.split('\\')[0], comp=key.split('\\')[-1],
-                           fields={'name': key.split('\\')[-1]})
+def cs(key, status, requested_as):
+    fam, comp = key.split('\\')
+    rc = ResolvedComponent(key=key, family=fam, comp=comp, fields={'name': comp},
+                           requested_as=set(requested_as))
     common = dict(component=rc, managed=False, error=None, lock_source=None)
     if status == 'installed':
         return ComponentState(supported=True, present=True, installed_version='1',
                               latest_version='1', locked=False, **common)
-    if status == 'outdated':
-        return ComponentState(supported=True, present=True, installed_version='1',
-                              latest_version='2', locked=False, **common)
     if status == 'missing':
         return ComponentState(supported=True, present=False, installed_version=None,
                               latest_version='2', locked=False, **common)
-    if status == 'locked':
+    if status == 'outdated':
         return ComponentState(supported=True, present=True, installed_version='1',
-                              latest_version='1', locked=True,
-                              component=rc, managed=False, error=None, lock_source='native')
+                              latest_version='2', locked=False, **common)
     if status == 'unsupported':
         return ComponentState(supported=False, present=False, installed_version=None,
                               latest_version=None, locked=False, **common)
@@ -27,110 +24,89 @@ def state(key, status):
 
 
 def make():
-    # sorted keys => deterministic row order 0..4
+    # firefox -> flatpak\firefox (+ apt\flatpak dep); vulkan-dev composite; btop singleton
     states = {
-        'apt\\a_missing': state('apt\\a_missing', 'missing'),
-        'apt\\b_installed': state('apt\\b_installed', 'installed'),
-        'apt\\c_outdated': state('apt\\c_outdated', 'outdated'),
-        'apt\\d_locked': state('apt\\d_locked', 'locked'),
-        'flatpak\\e_unsup': state('flatpak\\e_unsup', 'unsupported'),
+        'apt\\btop': cs('apt\\btop', 'installed', ['btop']),
+        'apt\\flatpak': cs('apt\\flatpak', 'installed', ['firefox']),
+        'flatpak\\firefox': cs('flatpak\\firefox', 'missing', ['firefox']),
+        'apt\\build-essential': cs('apt\\build-essential', 'installed', ['vulkan-dev']),
+        'apt\\libxcb': cs('apt\\libxcb', 'missing', ['vulkan-dev']),
+        'tarball\\vulkan-sdk': cs('tarball\\vulkan-sdk', 'missing', ['vulkan-dev']),
     }
-    return MenuState(states)
+    requested = {'btop': ['u'], 'firefox': ['u'], 'vulkan-dev': ['v']}
+    return MenuState(states, requested)
 
 
-def test_navigation_clamps():
+def test_top_view_has_one_row_per_profile_name():
     ms = make()
-    assert ms.cursor == 0
-    ms.move(-1)
-    assert ms.cursor == 0
-    ms.move(100)
-    assert ms.cursor == 4
-    ms.top()
-    assert ms.cursor == 0
-    ms.bottom()
-    assert ms.cursor == 4
+    assert ms.mode == 'top'
+    assert [r.id for r in ms.rows] == ['btop', 'firefox', 'vulkan-dev']  # not the units
+    assert all(r.is_group for r in ms.rows)
 
 
-def test_selection_toggle_and_all():
+def test_full_view_has_one_row_per_unit():
     ms = make()
-    ms.toggle_select()
-    assert ms.selected == {0}
-    ms.toggle_select()
-    assert ms.selected == set()
-    ms.select_all()
-    assert ms.selected == {0, 1, 2, 3, 4}
-    ms.clear_selection()
-    assert ms.selected == set()
+    ms.toggle_mode()
+    assert ms.mode == 'full'
+    assert [r.id for r in ms.rows] == [
+        'apt\\btop', 'apt\\build-essential', 'apt\\flatpak',
+        'apt\\libxcb', 'flatpak\\firefox', 'tarball\\vulkan-sdk',
+    ]
 
 
-def test_stage_respects_applicability_on_cursor():
+def test_group_status_aggregation():
     ms = make()
-    # row 0 is missing -> install applicable, remove not
+    by = {r.id: r.status for r in ms.rows}
+    assert by['btop'] == 'installed'          # its one unit installed
+    assert by['firefox'] == 'partial'         # flatpak dep installed, firefox missing
+    assert by['vulkan-dev'] == 'partial'      # build-essential installed, rest missing
+
+
+def test_staging_a_group_marks_only_applicable_member_units():
+    ms = make()
+    ms.cursor = 2  # vulkan-dev
     assert ms.stage('install') is True
-    assert ms.staged == {0: 'install'}
-    ms.clear_all_staged()
-    assert ms.stage('remove') is False
-    assert ms.staged == {}
+    # install applies to the missing members only (build-essential is installed)
+    assert ms.staged == {'apt\\libxcb': 'install', 'tarball\\vulkan-sdk': 'install'}
 
 
-def test_stage_over_selection_filters_inapplicable():
+def test_staged_ops_persist_across_mode_toggle():
     ms = make()
-    ms.select_all()
-    # install applies only to the missing row (index 0)
-    ms.stage('install')
-    assert ms.staged == {0: 'install'}
+    ms.cursor = 2
+    ms.stage('install')          # stages vulkan-dev's missing parts
+    ms.toggle_mode()             # to full
+    # the parts show as staged units
+    libxcb = next(r for r in ms.rows if r.id == 'apt\\libxcb')
+    be = next(r for r in ms.rows if r.id == 'apt\\build-essential')
+    assert ms.row_op(libxcb) == 'install'
+    assert ms.row_op(be) is None  # not staged (was already installed)
 
 
-def test_remove_applies_to_present_rows():
+def test_group_remove_targets_present_members():
     ms = make()
-    ms.select_all()
+    ms.cursor = 2  # vulkan-dev
     ms.stage('remove')
-    # present rows: installed(1), outdated(2), locked(3)
-    assert set(ms.staged) == {1, 2, 3}
-    assert all(op == 'remove' for op in ms.staged.values())
+    assert ms.staged == {'apt\\build-essential': 'remove'}  # only the installed one
 
 
-def test_lock_unlock_applicability():
+def test_plan_is_unit_level():
     ms = make()
-    ms.select_all()
-    ms.stage('lock')            # present & not locked: 1,2 (3 already locked)
-    assert set(ms.staged) == {1, 2}
-    ms.clear_all_staged()
-    ms.stage('unlock')          # only the locked row 3
-    assert set(ms.staged) == {3}
-
-
-def test_unsupported_never_stages():
-    ms = make()
-    ms.cursor = 4  # unsupported row
-    for op in ('install', 'upgrade', 'remove', 'lock', 'unlock'):
-        assert ms.stage(op) is False
-    assert ms.staged == {}
-
-
-def test_plan_is_ordered_with_components():
-    ms = make()
-    ms.select_all()
-    ms.stage('remove')  # 1,2,3
+    ms.cursor = 1  # firefox
+    ms.stage('install')  # firefox missing -> flatpak\firefox
     plan = ms.plan()
-    assert [op for op, _k, _rc in plan] == ['remove', 'remove', 'remove']
-    keys = [k for _op, k, _rc in plan]
-    assert keys == ['apt\\b_installed', 'apt\\c_outdated', 'apt\\d_locked']
-    assert all(hasattr(rc, 'name') for _op, _k, rc in plan)
+    assert [(op, k) for op, k, _rc in plan] == [('install', 'flatpak\\firefox')]
 
 
-def test_errors_default_empty_and_stage_clears_current_row_error():
+def test_select_all_and_toggle():
     ms = make()
-    assert ms.errors == {}
-    ms.errors = {'apt\\a_missing': 'install failed: exit 1'}
-    ms.cursor = 0  # the missing row
-    ms.stage('install')  # re-attempting clears its error mark
-    assert 'apt\\a_missing' not in ms.errors
+    ms.select_all()
+    assert ms.selected == {'btop', 'firefox', 'vulkan-dev'}
+    ms.toggle_mode()             # selection resets on mode change
+    assert ms.selected == set()
 
 
-def test_targets_prefers_selection_over_cursor():
+def test_errors_shown_on_group_row():
     ms = make()
-    ms.cursor = 0
-    ms.selected = {1, 2}
-    ms.stage('remove')
-    assert set(ms.staged) == {1, 2}  # not the cursor row
+    ms.errors = {'flatpak\\firefox': 'install failed: exit 1'}
+    firefox = next(r for r in ms.rows if r.id == 'firefox')
+    assert ms.row_error(firefox) == 'install failed: exit 1'

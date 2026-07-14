@@ -14,6 +14,7 @@ SEMANTIC = {
     'title': (235, 235, 235),
     'installed': (90, 200, 120),
     'outdated': (230, 190, 70),
+    'partial': (90, 190, 205),
     'missing': (150, 150, 150),
     'locked': (110, 165, 255),
     'unsupported': (110, 110, 110),
@@ -86,6 +87,7 @@ class Palette:
 STATUS_COLOR = {
     'installed': 'installed',
     'outdated': 'outdated',
+    'partial': 'partial',
     'missing': 'missing',
     'locked': 'locked',
     'unsupported': 'unsupported',
