@@ -101,6 +101,24 @@ Last grill: 2026-07-13.
     attribute, **not** part of unit identity — a component installs in one scope per machine
     (key stays `flatpak\<app>`); dual-scope is deliberately not modeled yet.
 
+14. **`\appImage` family.** Download the AppImage to `path`, `chmod +x`, record version
+    in a marker (stateless inspection), extract `.DirIcon` via `--appimage-extract` (no
+    FUSE) and write a `.desktop` entry pointing at it. `!depends: libfuse2` (needed to run
+    the app). We install, never launch.
+
+15. **`\dotfiles` family = repo-synced symlinks.** A component has one or more link specs
+    `{ src (under repo `dotfiles/`), dst }`; `dst` is env-var/`~` expanded at runtime
+    (`$XDG_CONFIG_HOME/nvim` → `~/.config/nvim`) so target paths are OS-portable and a
+    component can carry many files. Install symlinks `dst → src` (edits flow back to git),
+    backing up an existing non-symlink `dst` to `<dst>.pre-configsys`; uninstall removes the
+    symlink and restores the backup. No version (linked / not); user-space; ledger lock.
+    (Resolver now captures nested-dict route fields to carry the specs.)
+
+16. **Install scope decides the base directory for relative paths.** A bare-relative
+    `installDir`/`path` (e.g. `vulkan`) resolves under HOME for `user` scope and under
+    `/opt` (+sudo) for `system`. Absolute and `~` paths pass through. Shared in the base
+    `Family` (`_scope`/`_sudo`/`_scoped_dir`); tarball, appImage, and flatpak all use it.
+
 ### Testing per family (how each is exercised)
 - Pure logic + every family's command construction/parsing: host `pytest` (pretend runner).
 - apt lifecycle + repo-component prereq: `test/run-in-podman.sh` (fast, default).
