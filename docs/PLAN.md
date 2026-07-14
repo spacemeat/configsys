@@ -75,6 +75,21 @@ Last grill: 2026-07-13.
     inspection, treats the declared version as "latest", and carries lock intent in the
     ledger (no native lock). Families now receive `paths` for `~`/filesystem resolution.
 
+11. **`\flatpak` family = `--user` scope; lock = `flatpak mask`.** flatpaks install into the
+    unprivileged per-user installation (no sudo, sandbox-friendly via `XDG_DATA_HOME`).
+    Adding the hub remote (`flathub`) is a prerequisite before install/upgrade. Version lock
+    uses `flatpak mask`. We only install/list/update/remove/mask — never *launch* — so the
+    bwrap/FUSE/dbus app-runtime machinery isn't needed; the qemu/kvm VM stays parked (only
+    needed to run GUI apps). Deferred: `get_latest` returns None (no cheap local "latest"),
+    so flatpaks don't show as "outdated" in inspect yet; `upgrade` still works.
+
+### Testing per family (how each is exercised)
+- Pure logic + every family's command construction/parsing: host `pytest` (pretend runner).
+- apt lifecycle + repo-component prereq: `test/run-in-podman.sh` (fast, default).
+- flatpak `--user` lifecycle: `test/run-flatpak-in-podman.sh` — GATED/slow (pulls a runtime),
+  needs `--device /dev/fuse` + a system D-Bus daemon; separate from the fast apt harness.
+- tarball: real `curl file://` extract in a host pytest (no network).
+
 ## Parked (deferred on purpose + why)
 
 - **Toolchain routes** — `gcc`, `clang`, `pyke`, `python12`, `mesa` in the current
