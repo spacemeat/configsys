@@ -480,6 +480,7 @@ def run(ctx):
                     note = f'{KEY_TO_OP[ch]} not applicable here'
             elif ch == ord('X'):
                 executed, note, outcomes = _confirm_and_execute(stdscr, pal, ms, ctx, ledger)
+                curses.flushinp()  # drop keys typed during ops / the prompt
                 if executed:
                     failed = {o.key: f'{o.op} failed: {o.detail}'
                               for o in outcomes if not o.ok}
@@ -489,4 +490,5 @@ def run(ctx):
                     except Exception as e:  # noqa: BLE001 - surface, don't crash
                         note = f'reload failed: {e}'
                     ms.errors = failed
+                    curses.flushinp()  # ...and any typed during the re-inspect
     return 0
