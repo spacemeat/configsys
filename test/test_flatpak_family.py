@@ -140,3 +140,29 @@ def test_user_scope_is_the_default():
     r = Runner(pretend=True)
     Flatpak(r).install(fp())  # no scope field
     assert '--user' in r.calls[-1] and 'sudo' not in r.calls[-1]
+
+
+def test_per_component_scope_from_route_is_honored():
+    # a `scope` field on the component's route node drives the family (no config
+    # default / synthetic rc needed) — component field wins.
+    import humon as h
+    from configsys.routes import RouteResolver
+    routes = h.from_string(
+        '{ \\apt: { flatpak: { name: flatpak } }'
+        '  \\flatpak: { !depends: flatpak'
+        '     a: { hub: flathub  name: com.a  scope: system }'
+        '     b: { hub: flathub  name: com.b } }'
+        '  linux: {}'
+        '  debian: { !using: linux  *: apt\\*  a: flatpak\\a  b: flatpak\\b } }')
+    units = RouteResolver(routes, 'debian').resolve_names(['a', 'b'])
+    assert units['flatpak\\a'].fields.get('scope') == 'system'
+    assert 'scope' not in units['flatpak\\b'].fields
+
+    r = Runner(pretend=True)
+    Flatpak(r).install(units['flatpak\\a'])
+    Flatpak(r).install(units['flatpak\\b'])
+    app_calls = [c for c in r.calls if 'flatpak install' in c]
+    assert app_calls == [
+        'sudo flatpak install --system -y flathub com.a',
+        'flatpak install --user -y flathub com.b',
+    ]
