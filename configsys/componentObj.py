@@ -1,14 +1,30 @@
-'componentObj.py defines the component object as flattened from the config hierarchy.'
+'''componentObj.py — ResolvedComponent: one concrete installable unit.
 
-from humon import Trove
+A profile names OS-level components (e.g. "neovim", "btop"); routes.hu resolves
+each to one or more concrete *units*, each bound to a family (apt, flatpak, ...).
+The unit key `family\\comp` is the dedup identity: two profile entries that resolve
+to the same unit collapse to one, so nothing is installed twice.
+'''
 
-class ComponentObj:
-    def __init__(self, trove:Trove, componentName):
-        self.name = componentName
+from dataclasses import dataclass, field
 
-    def findBestFit():
-        ''' Traverses the trove until the best (most precise fitting) named item is found.
-        Dependencies are similarly searched, building up an object until everything is
-        resolved.'''
-        pass
 
+@dataclass
+class ResolvedComponent:
+    key: str                                    # "family\\comp" — dedup identity
+    family: str                                 # e.g. "apt", "flatpak", "appImage"
+    comp: str                                   # component name within the family
+    fields: dict = field(default_factory=dict)  # family-node fields ($vars substituted)
+    vars: dict = field(default_factory=dict)    # variables in scope (fonts, etc.)
+    requested_as: set = field(default_factory=set)  # OS-level names that pulled it in
+    source: str = ''                            # routes.hu node address (diagnostics)
+
+    @property
+    def name(self):
+        '''The package/app identifier the family operates on.'''
+        return self.fields.get('name', self.comp)
+
+    @property
+    def display(self):
+        reqs = ', '.join(sorted(self.requested_as))
+        return f'{self.key} (for {reqs})' if reqs else self.key

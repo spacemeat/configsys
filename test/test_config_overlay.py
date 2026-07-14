@@ -1,0 +1,60 @@
+import humon as h
+import pytest
+
+from configsys.config import Config
+from configsys.errors import ConfigError
+
+
+def cfg(config_text, user_text=None):
+    ct = h.from_string(config_text)
+    ut = h.from_string(user_text) if user_text is not None else None
+    return Config(ct, ut)
+
+
+REPO = '''{
+    configs: [ dev ]
+    dev: [ btop, fzf, ripgrep ]
+    games: [ steam ]
+}'''
+
+
+def test_active_profiles_from_repo_when_no_user():
+    c = cfg(REPO)
+    assert c.active_profiles == ['dev']
+    assert c.profile_components('dev') == ['btop', 'fzf', 'ripgrep']
+
+
+def test_user_overrides_configs_selection():
+    c = cfg(REPO, '{ configs: [ dev, games ] }')
+    assert c.active_profiles == ['dev', 'games']
+    assert c.requested() == {
+        'btop': ['dev'], 'fzf': ['dev'], 'ripgrep': ['dev'], 'steam': ['games'],
+    }
+
+
+def test_user_redefines_a_profile():
+    c = cfg(REPO, '{ configs: [ dev ]  dev: [ btop, xclip ] }')
+    assert c.profile_components('dev') == ['btop', 'xclip']
+
+
+def test_single_value_configs():
+    c = cfg('{ configs: dev  dev: [ btop ] }')
+    assert c.active_profiles == ['dev']
+
+
+def test_nested_profile_flattened_to_leaves():
+    c = cfg('{ configs: [ dev ]  dev: { group: [ btop, fzf ]  more: [ ripgrep ] } }')
+    assert c.profile_components('dev') == ['btop', 'fzf', 'ripgrep']
+
+
+def test_selected_but_undefined_profile_errors():
+    c = cfg('{ configs: [ ghost ] }')
+    with pytest.raises(ConfigError):
+        c.profile_components('ghost')
+
+
+def test_overlap_across_profiles_tracks_all_requesters():
+    c = cfg('{ configs: [ a, b ]  a: [ ripgrep ]  b: [ ripgrep, btop ] }')
+    req = c.requested()
+    assert req['ripgrep'] == ['a', 'b']
+    assert req['btop'] == ['b']
