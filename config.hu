@@ -1,19 +1,24 @@
 {
-    configs: [dev]
-    dev: {
-        vulkan: {
-            sdks: [
-                vulkan
-            ]
-            tools: [
-                gcc
-                clang
-                pyke
-                python12
-            ]
-            packages: [
-                mesa
-            ]
-        }
-    }
+    // Shared, git-synced profile definitions. Per-machine selection lives in
+    // ~/configsys.hu (`configs: [...]`), which overlays this file.
+    configs: [ dev ]
+
+    // A profile is a flat list of component names. Each name is resolved through
+    // routes.hu (family binding, recursive deps, dedup). A name with no route on
+    // the active OS is surfaced as a config error.
+    dev: [
+        vulkan-dev
+        neovim
+        firefox
+        chrome
+        arduino
+        btop
+        fzf
+        ripgrep
+        xclip
+        cargo
+        build-essential
+        mononoki-nerd
+        // TODO(parked): toolchain routes not yet defined: gcc clang pyke python12 mesa
+    ]
 }

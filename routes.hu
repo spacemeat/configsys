@@ -1,9 +1,9 @@
 {
     \apt: {
         vulkan-sdk: {
-            pubkey-url: https://packages.lunarg.com/lunarg-signing-key-pub.asc
+            pubkey-url: "https://packages.lunarg.com/lunarg-signing-key-pub.asc"
             pubkey-path: /etc/apt/trusted.gpg.d/lunarg.asc
-            source-url: http://packages.lunarg.com/vulkan/lunarg-vulkan-jammy.list
+            source-url: "http://packages.lunarg.com/vulkan/lunarg-vulkan-jammy.list"
             source-path: /etc/apt/sources.list.d/lunarg-vulkan-jammy.list
             name: vulkan-sdk
         }
@@ -49,8 +49,13 @@
         mononoki-nerd: {
             $FONTNAME: mononoki-nerd
             $FONTVERSION: v3.1.1
-            $FONTURLL: https://github.com/ryanoasis/nerd-fonts/releases/download/$FONTVERSION/Mononoki.zip
+            $FONTURLL: "https://github.com/ryanoasis/nerd-fonts/releases/download/$FONTVERSION/Mononoki.zip"
         }
+    }
+
+    // OS cascade root. Holds OS-agnostic routes later; empty for now so
+    // debian's `!using: linux` always resolves to a real node.
+    linux: {
     }
 
     debian: {
@@ -63,9 +68,10 @@
         neovim: [ appImage\neovim, neovim-config ]
         // TODO: The rest of needed things from packages like treesitter, fzf?
         neovim-config: [ ripgrep, dotfiles\neovim ]
-        firefox: flathub\firefox
-        chrome: flathub\chrome
+        firefox: flatpak\firefox
+        chrome: flatpak\chrome
         arduino: appImage\arduino
+        mononoki-nerd: debian-font\mononoki-nerd
     }
 
     ubuntu: {
