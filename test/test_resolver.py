@@ -49,7 +49,10 @@ def test_vulkan_sdk_resolves_to_tarball_with_version_substituted():
 def test_list_route_expands_to_all_parts():
     units = resolver().resolve_names(['neovim'])
     # neovim -> [appImage\neovim, neovim-config -> [ripgrep, dotfiles\neovim]]
-    assert set(units) == {'appImage\\neovim', 'apt\\ripgrep', 'dotfiles\\neovim'}
+    # plus appImage's family !depends (apt\libfuse2)
+    assert set(units) == {'appImage\\neovim', 'apt\\ripgrep', 'dotfiles\\neovim',
+                          'apt\\libfuse2'}
+    assert units['appImage\\neovim'].deps == {'apt\\libfuse2'}
 
 
 def test_dedup_across_standalone_and_dependency():
@@ -92,6 +95,6 @@ def test_full_dev_profile_resolves():
         'flatpak\\firefox', 'flatpak\\chrome', 'appImage\\arduino', 'apt\\btop',
         'apt\\fzf', 'apt\\xclip', 'apt\\cargo', 'debian-font\\mononoki-nerd',
         # family !depends auto-added
-        'apt\\flatpak', 'apt\\curl',
+        'apt\\flatpak', 'apt\\curl', 'apt\\libfuse2',
     }
     assert set(units) == expected

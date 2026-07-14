@@ -1,0 +1,119 @@
+'''appImage.py — the \\appImage family: a single self-contained executable.
+
+Software shipped as one .AppImage file. We download it to `path`, mark it
+executable, record the installed version in a marker (stateless inspection), and
+write a best-effort .desktop entry so it shows up in application menus. User-space
+by default (no sudo); `scope: system` switches file ops to sudo for system paths.
+
+Route fields: `url` (download, may be $VERSION-templated), `path` (target file),
+optional `version`, `name` (menu label), `icon`.
+
+Note: AppImages need FUSE to *run*, so the family !depends on libfuse2 — installed
+first via the normal cascade. We never launch the app ourselves.
+'''
+
+import shlex
+from pathlib import Path
+
+from ..component import Family
+from ..runner import Result
+
+MARKER_PREFIX = '.configsys-'
+
+
+class AppImage(Family):
+    name = 'appImage'
+    privileged = False
+    default_scope = 'user'
+
+    # -- locations --------------------------------------------------------
+
+    def _home(self):
+        return self.paths.home if self.paths is not None else Path.home()
+
+    def _target(self, rc):
+        raw = rc.fields.get('path', '')
+        return self.paths.expand(raw) if self.paths is not None else Path(raw).expanduser()
+
+    def _marker(self, rc):
+        t = self._target(rc)
+        return t.parent / f'{MARKER_PREFIX}{rc.comp}.version'
+
+    def _desktop_file(self, rc):
+        return self._home() / '.local/share/applications' / f'configsys-{rc.comp}.desktop'
+
+    def _declared_version(self, rc):
+        return rc.fields.get('version') or rc.vars.get('$VERSION')
+
+    def _sudo(self, rc):
+        return rc.fields.get('scope', self.default_scope) == 'system'
+
+    # -- read -------------------------------------------------------------
+
+    def get_version(self, rc):
+        if not self._target(rc).exists():
+            return None
+        try:
+            return self._marker(rc).read_text(encoding='utf-8').strip() or 'installed'
+        except (FileNotFoundError, NotADirectoryError, OSError):
+            return 'installed'
+
+    def get_latest(self, rc):
+        return self._declared_version(rc)
+
+    def is_locked(self, rc):
+        return False  # no native lock; ledger carries intent
+
+    # -- mutate -----------------------------------------------------------
+
+    def install(self, rc):
+        url = rc.fields.get('url')
+        if not url:
+            return Result('(appImage: no url in route)', 1)
+        t = self._target(rc)
+        version = self._declared_version(rc) or ''
+        tq, dq = shlex.quote(str(t)), shlex.quote(str(t.parent))
+        uq, mq, vq = shlex.quote(url), shlex.quote(str(self._marker(rc))), shlex.quote(version)
+
+        cmd = (f'mkdir -p {dq} && curl -fSL {uq} -o {tq} && chmod +x {tq} && '
+               f'printf %s {vq} > {mq}')
+        res = self.runner.run(cmd, sudo=self._sudo(rc), capture=False)
+        if res.ok:
+            self._write_desktop(rc)
+        return res
+
+    def _write_desktop(self, rc):
+        '''Best-effort application-menu entry (user-space, own runner call so
+        --pretend skips it and it isn't written on a failed install).'''
+        t = self._target(rc)
+        label = rc.fields.get('name') or rc.comp
+        icon = rc.fields.get('icon', '')
+        df = self._desktop_file(rc)
+        fmt = ('[Desktop Entry]\\nType=Application\\nName=%s\\nExec=%s\\n'
+               'Icon=%s\\nTerminal=false\\nCategories=Utility;\\n')
+        self.runner.run(
+            f'mkdir -p {shlex.quote(str(df.parent))} && '
+            f"printf '{fmt}' {shlex.quote(label)} {shlex.quote(str(t))} "
+            f'{shlex.quote(icon)} > {shlex.quote(str(df))}',
+            capture=False)
+
+    def upgrade(self, rc):
+        return self.install(rc)  # curl overwrites the file + refreshes marker/desktop
+
+    def set_version(self, rc, version):
+        return self.install(rc)  # url is version-templated; (re)install the routed one
+
+    def uninstall(self, rc):
+        t = self._target(rc)
+        marker, df = self._marker(rc), self._desktop_file(rc)
+        # only remove when we manage it (our marker is present)
+        cmd = (f'if [ -f {shlex.quote(str(marker))} ]; then '
+               f'rm -f {shlex.quote(str(t))} {shlex.quote(str(marker))} '
+               f'{shlex.quote(str(df))}; fi')
+        return self.runner.run(cmd, sudo=self._sudo(rc), capture=False)
+
+    def lock(self, rc):
+        return Result('(appImage lock recorded in ledger)', 0)
+
+    def unlock(self, rc):
+        return Result('(appImage unlock recorded in ledger)', 0)

@@ -64,7 +64,7 @@ def test_failed_lock_not_persisted_to_ledger(tmp_path):
 
 def test_unsupported_family_is_a_failed_outcome(tmp_path, capsys):
     ctx = ctx_for(tmp_path, FakeRunner())
-    plan = [('install', 'appImage\\neovim', unit('neovim', family='appImage'))]
+    plan = [('install', 'dotfiles\\neovim', unit('neovim', family='dotfiles'))]
     outcomes = execute_plan(ctx, plan, Ledger())
     assert outcomes[0].ok is False
     assert 'unsupported family' in outcomes[0].detail

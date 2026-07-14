@@ -31,7 +31,7 @@ def test_pretend_lock_emits_apt_mark(tmp_path, capsys):
 
 
 def test_unsupported_family_is_skipped_not_fatal(tmp_path, capsys):
-    rc = main(base_args(tmp_path) + ['install', 'arduino'])  # appImage: still unsupported
+    rc = main(base_args(tmp_path) + ['install', 'mononoki-nerd'])  # debian-font: unsupported
     assert rc == 0
     out = capsys.readouterr().out
     assert 'not yet supported' in out

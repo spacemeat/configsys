@@ -11,6 +11,7 @@
         libxcb-cursor-dev: { name: libxcb-cursor-dev repo-component: universe }
         flatpak: { name: flatpak }
         curl: { name: curl }
+        libfuse2: { name: libfuse2 repo-component: universe }
     }
 
     \flatpak: {
@@ -30,13 +31,22 @@
     }
 
     \appImage: {
+        // appImages need FUSE to run; ensure libfuse2 first (via the cascade).
+        !depends: libfuse2
+
         neovim: {
-            url: ""
-            path: ~/apps/neovim
+            $VERSION: v0.10.2
+            url: "https://github.com/neovim/neovim/releases/download/$VERSION/nvim.appimage"
+            path: ~/apps/nvim.appimage
+            version: $VERSION
+            name: Neovim
         }
         arduino: {
-            url: ""
-            path: ~/apps/arduino
+            $VERSION: 2.3.4
+            url: "https://github.com/arduino/arduino-ide/releases/download/$VERSION/arduino-ide_$VERSION_Linux_64bit.AppImage"
+            path: ~/apps/arduino-ide.appimage
+            version: $VERSION
+            name: "Arduino IDE"
         }
     }
 

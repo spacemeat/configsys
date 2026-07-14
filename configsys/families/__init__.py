@@ -1,10 +1,11 @@
 '''families — registry of install-medium implementations.
 
-Ships apt, tarball, and flatpak. Unregistered families (appImage/dotfiles/
+Ships apt, tarball, flatpak, and appImage. Unregistered families (dotfiles/
 debian-font) return None here so InstallState can degrade gracefully ("unsupported
 family, not yet implemented") instead of crashing.
 '''
 
+from .appImage import AppImage
 from .apt import Apt
 from .flatpak import Flatpak
 from .tarball import Tarball
@@ -13,6 +14,7 @@ _REGISTRY = {
     Apt.name: Apt,
     Tarball.name: Tarball,
     Flatpak.name: Flatpak,
+    AppImage.name: AppImage,
 }
 
 

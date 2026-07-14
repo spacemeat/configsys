@@ -24,8 +24,8 @@ def apt_unit(name='btop'):
 
 
 def unsupported_unit():
-    # appImage is not implemented yet -> exercises graceful degradation
-    return ResolvedComponent(key='appImage\\neovim', family='appImage', comp='neovim',
+    # dotfiles is not implemented yet -> exercises graceful degradation
+    return ResolvedComponent(key='dotfiles\\neovim', family='dotfiles', comp='neovim',
                              fields={'name': 'neovim'})
 
 
@@ -100,12 +100,12 @@ def test_both_lock_sources():
 def test_unsupported_family_degrades():
     fr = FakeRunner()
     led = Ledger()
-    led.set_managed('appImage\\neovim', True)
+    led.set_managed('dotfiles\\neovim', True)
     st = InstallState(fr, led).inspect_one(unsupported_unit())
     assert not st.supported
     assert st.status == 'unsupported'
     assert st.managed is True
-    assert 'appImage' in st.error
+    assert 'dotfiles' in st.error
     # a degraded inspection must not have shelled out
     assert fr.calls == []
 
@@ -116,7 +116,7 @@ def test_inspect_many():
         ('apt-cache policy', 0, '  Candidate: 1.0.0\n'),
         ('apt-mark showhold', 0, ''),
     ])
-    units = {'apt\\btop': apt_unit('btop'), 'appImage\\neovim': unsupported_unit()}
+    units = {'apt\\btop': apt_unit('btop'), 'dotfiles\\neovim': unsupported_unit()}
     states = InstallState(fr).inspect(units)
     assert states['apt\\btop'].status == 'installed'
-    assert states['appImage\\neovim'].status == 'unsupported'
+    assert states['dotfiles\\neovim'].status == 'unsupported'
