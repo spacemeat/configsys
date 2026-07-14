@@ -38,8 +38,9 @@ def test_unsupported_family_is_skipped_not_fatal(tmp_path, capsys):
 
 
 def test_default_command_is_tui_falls_back_to_inspect(tmp_path, capsys):
-    # No tui module yet -> graceful fallback to inspect.
+    # Non-interactive stdout (pytest capture) -> graceful fallback to inspect.
     rc = main(base_args(tmp_path))
     assert rc == 0
     out = capsys.readouterr().out
-    assert 'TUI not available yet' in out or 'OS: pop_os!' in out
+    assert 'not an interactive terminal' in out
+    assert 'OS: pop_os!' in out

@@ -163,10 +163,13 @@ def cmd_set_version(ctx, args):
 
 
 def cmd_tui(ctx, args):
+    if not sys.stdout.isatty() or not sys.stdin.isatty():
+        print('configsys: not an interactive terminal; showing inspection instead.\n')
+        return cmd_inspect(ctx, args)
     try:
         from .tui import run as run_tui
     except ImportError:
-        print('configsys: TUI not available yet; showing inspection instead.\n')
+        print('configsys: TUI not available; showing inspection instead.\n')
         return cmd_inspect(ctx, args)
     return run_tui(ctx)
 
