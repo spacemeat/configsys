@@ -35,8 +35,8 @@ class FakeRunner:
 
 def test_registry_resolves_apt_and_rejects_others():
     assert isinstance(get_family('apt', Runner(pretend=True)), Apt)
-    assert get_family('flatpak', Runner(pretend=True)) is None
-    assert is_supported('apt') and not is_supported('flatpak')
+    assert get_family('appImage', Runner(pretend=True)) is None
+    assert is_supported('apt') and not is_supported('appImage')
 
 
 def test_install_command():
