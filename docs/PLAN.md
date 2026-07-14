@@ -135,6 +135,14 @@ Last grill: 2026-07-13.
     With this, **all six install mediums are implemented** (apt, tarball, flatpak, appImage,
     dotfiles, debian-font); an unregistered family name still degrades gracefully.
 
+19. **Arch awareness + GitHub asset resolution.** `$ARCH` (from `platform.machine()`, override
+    `CONFIGSYS_ARCH`) is substituted into download URLs alongside `$VERSION`. A github
+    `version:` spec may add `asset: <glob>` — discovery then matches the release's assets and
+    returns the authoritative `browser_download_url` (robust to file renames), preferred over
+    the url template; `$ARCH` is substituted into the glob so cache keys/matches are
+    arch-correct. `CONFIGSYS_GITHUB_TOKEN`/`GITHUB_TOKEN` lifts the API rate limit. Arch
+    *naming* still varies per project (x86_64 vs amd64 vs 64bit), so some URLs are hand-tuned.
+
 ### Testing per family (how each is exercised)
 - Pure logic + every family's command construction/parsing: host `pytest` (pretend runner).
 - apt lifecycle + repo-component prereq: `test/run-in-podman.sh` (fast, default).

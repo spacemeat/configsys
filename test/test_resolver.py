@@ -74,7 +74,8 @@ def test_font_resolves_with_version_spec_and_deps():
     units = resolver().resolve_names(['mononoki-nerd'])
     u = units['debian-font\\mononoki-nerd']
     assert u.family == 'debian-font'
-    assert u.fields['version'] == {'github': 'ryanoasis/nerd-fonts'}
+    assert u.fields['version']['github'] == 'ryanoasis/nerd-fonts'
+    assert u.fields['version']['asset'] == 'Mononoki.zip'
     assert '$VERSION' in u.fields['url'] and u.fields['url'].endswith('Mononoki.zip')
     assert u.deps == {'apt\\fontconfig', 'apt\\unzip'}   # !depends resolved
 

@@ -45,7 +45,8 @@
             name: Neovim
         }
         arduino: {
-            version: { github: arduino/arduino-ide }   // tags are unprefixed (2.3.4)
+            // asset name embeds the version, so a glob resolves the url robustly
+            version: { github: arduino/arduino-ide  asset: "arduino-ide_*_Linux_64bit.AppImage" }
             url: "https://github.com/arduino/arduino-ide/releases/download/$VERSION/arduino-ide_$VERSION_Linux_64bit.AppImage"
             path: ~/apps/arduino-ide.appimage
             name: "Arduino IDE"
@@ -80,7 +81,7 @@
 
         mononoki-nerd: {
             name: Mononoki
-            version: { github: ryanoasis/nerd-fonts }
+            version: { github: ryanoasis/nerd-fonts  asset: "Mononoki.zip" }
             url: "https://github.com/ryanoasis/nerd-fonts/releases/download/$VERSION/Mononoki.zip"
         }
     }
