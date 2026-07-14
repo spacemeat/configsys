@@ -1,0 +1,24 @@
+# Disposable ubuntu:22.04 (jammy) sandbox for configsys apt integration tests.
+# Matches the host codename and reports ID=ubuntu, so it also exercises the
+# ubuntu -> debian route cascade. python3-dev/gcc are present so `pip install
+# humon` can build if no wheel is available.
+FROM ubuntu:22.04
+
+ENV DEBIAN_FRONTEND=noninteractive
+
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends \
+        python3 python3-venv python3-pip python3-dev gcc sudo ca-certificates \
+    && rm -rf /var/lib/apt/lists/*
+
+# Non-root user with passwordless sudo — configsys shells out to `sudo apt-get`.
+RUN useradd -m -s /bin/bash tester \
+    && echo 'tester ALL=(ALL) NOPASSWD:ALL' > /etc/sudoers.d/tester \
+    && chmod 0440 /etc/sudoers.d/tester
+
+COPY --chown=tester:tester . /home/tester/configsys
+
+USER tester
+WORKDIR /home/tester/configsys
+
+CMD ["bash", "test/integration_apt.sh"]
