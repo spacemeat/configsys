@@ -64,7 +64,16 @@ Last grill: 2026-07-13.
    - `pubkey-url` + `pubkey-path` → download signing key to the path
    - `source-url` + `source-path` → download the .list to sources.list.d, then update
    Prereqs run only when not already present (file existence / cheap checks) to avoid
-   needless `apt-get update`s. This is why `vulkan-sdk` carries lunarg key/source fields.
+   needless `apt-get update`s. The apt key/source mechanism is retained for any
+   component that needs a third-party repo, even though no current route uses it.
+
+10. **`\tarball` family for archive-distributed software.** Some components ship as a
+    downloadable tarball rather than an OS package (e.g. the Vulkan SDK — the apt/lunarg
+    route was deprecated). A `\tarball` route declares `url` (templated on a version var
+    like `$SDKVERSION`) and `installDir`. The family downloads + extracts into `installDir`
+    (user-space, no sudo), records the installed version in a marker file for stateless
+    inspection, treats the declared version as "latest", and carries lock intent in the
+    ledger (no native lock). Families now receive `paths` for `~`/filesystem resolution.
 
 ## Parked (deferred on purpose + why)
 
