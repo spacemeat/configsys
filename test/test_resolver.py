@@ -44,11 +44,14 @@ def test_app_block_bare_selector_layers_deps():
     units = resolver().resolve_names(['neovim'])
     nv = units['appImage\\neovim']
     assert nv.family == 'appImage' and nv.fields['name'] == 'Neovim'
-    assert nv.deps == {'apt\\libfuse2', 'apt\\ripgrep', 'dotfiles\\neovim'}
+    assert nv.deps == {'apt\\libfuse2', 'apt\\ripgrep', 'dotfiles\\neovim',
+                       'cargo\\tree-sitter-cli'}
     assert units['dotfiles\\neovim'].deps == {'dotfiles\\bashDotD'}
+    assert units['cargo\\tree-sitter-cli'].deps == {'apt\\cargo'}  # cargo tool first
     assert set(units) == {
         'appImage\\neovim', 'apt\\libfuse2', 'apt\\ripgrep',
         'dotfiles\\neovim', 'dotfiles\\bashDotD',
+        'cargo\\tree-sitter-cli', 'apt\\cargo',
     }
 
 
@@ -114,6 +117,7 @@ def test_full_dev_profile_resolves():
         'apt\\build-essential', 'tarball\\vulkan-sdk', 'dotfiles\\vulkan-sdk',
         # neovim (app, appImage method) + its layered deps
         'appImage\\neovim', 'apt\\ripgrep', 'dotfiles\\neovim',
+        'cargo\\tree-sitter-cli', 'apt\\cargo',   # tree-sitter via cargo
         # singletons
         'flatpak\\firefox', 'flatpak\\chrome', 'appImage\\arduino', 'apt\\btop',
         'apt\\fzf', 'apt\\xclip', 'apt\\cargo', 'debian-font\\mononoki-nerd',

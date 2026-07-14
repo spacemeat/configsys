@@ -7,6 +7,7 @@ gracefully instead of crashing.
 
 from .appImage import AppImage
 from .apt import Apt
+from .cargo import Cargo
 from .debian_font import DebianFont
 from .dotfiles import DotFiles
 from .flatpak import Flatpak
@@ -19,6 +20,7 @@ _REGISTRY = {
     AppImage.name: AppImage,
     DotFiles.name: DotFiles,
     DebianFont.name: DebianFont,
+    Cargo.name: Cargo,
 }
 
 
