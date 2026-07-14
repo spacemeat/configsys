@@ -56,10 +56,15 @@ class RouteResolver:
 
     def resolve_names(self, names):
         '''Resolve an iterable of OS-level names -> {unit_key: ResolvedComponent}.'''
-        units = {}
+        return self.resolve_with_roots(names)[0]
+
+    def resolve_with_roots(self, names):
+        '''Like resolve_names, but also return the set of unit keys bound *directly*
+        by the named components (excluding auto-added family deps).'''
+        units, roots = {}, set()
         for n in names:
-            self._resolve_one(n, n, units, frozenset())
-        return units
+            roots |= self._resolve_one(n, n, units, frozenset())
+        return units, roots
 
     # -- lookup -----------------------------------------------------------
 
@@ -75,42 +80,44 @@ class RouteResolver:
         return None, None, False
 
     def _resolve_one(self, name, root, units, visiting):
+        '''Resolve one OS-level name; returns the set of unit keys it bound.'''
         if name in visiting:
-            return  # cycle guard
+            return set()  # cycle guard
         visiting = visiting | {name}
         node, _bname, _is_star = self._lookup(name)
         if node is None:
             raise ResolveError(name, self.os_block,
                                'not found in OS cascade and no * wildcard')
-        self._interpret(node, name, root, units, visiting)
+        return self._interpret(node, name, root, units, visiting)
 
     def _interpret(self, node, name, root, units, visiting):
         kind = node.kind
+        keys = set()
         if kind == LIST:
             for i in range(node.num_children):
-                self._interpret_value(node[i], name, root, units, visiting)
+                keys |= self._interpret_value(node[i], name, root, units, visiting)
         elif kind == DICT:
             pkg = node['package']
             if pkg is None:
                 raise ResolveError(name, self.os_block,
                                    'dict route without a `package` reference')
-            self._bind_ref(pkg.value, name, root, units, extra=node)
+            keys |= self._bind_ref(pkg.value, name, root, units, visiting, extra=node)
         else:  # VALUE
-            self._interpret_value(node, name, root, units, visiting)
+            keys |= self._interpret_value(node, name, root, units, visiting)
+        return keys
 
     def _interpret_value(self, node, name, root, units, visiting):
         val = node.value
         if val is None:
             # nested container as a list entry (not used by current data, but safe)
-            self._interpret(node, name, root, units, visiting)
-        elif '\\' in val:
-            self._bind_ref(val, name, root, units)
-        else:
-            self._resolve_one(val, root, units, visiting)  # bare name reference
+            return self._interpret(node, name, root, units, visiting)
+        if '\\' in val:
+            return self._bind_ref(val, name, root, units, visiting)
+        return self._resolve_one(val, root, units, visiting)  # bare name reference
 
     # -- binding ----------------------------------------------------------
 
-    def _bind_ref(self, ref, requested_name, root, units, extra=None):
+    def _bind_ref(self, ref, requested_name, root, units, visiting, extra=None):
         family, _, comp = ref.partition('\\')
         if comp == '*':
             comp = requested_name
@@ -143,7 +150,21 @@ class RouteResolver:
                                    fields=fields, vars=varmap,
                                    source=comp_node.address)
             units[key] = rc
+            # family-level !depends: auto-add the tool(s) this family needs, first.
+            for dep_name in self._family_depends(fam_block):
+                if dep_name != requested_name:   # a family never depends on its own bind name
+                    rc.deps |= self._resolve_one(dep_name, root, units, visiting)
         rc.requested_as.add(root)
+        return {key}
+
+    @staticmethod
+    def _family_depends(fam_block):
+        node = fam_block['!depends']
+        if node is None:
+            return []
+        if node.kind == LIST:
+            return [node[i].value for i in range(node.num_children)]
+        return [node.value]
 
     # -- variables & fields ----------------------------------------------
 

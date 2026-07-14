@@ -17,6 +17,7 @@ from .families import get_family
 from .installState import InstallState
 from .ledger import Ledger
 from .paths import Paths
+from .planning import expand_plan
 from .routes import RouteResolver
 from .runner import Runner
 from .troveio import load
@@ -97,36 +98,40 @@ def cmd_inspect(ctx, args):
 
 
 def _dispatch_op(ctx, names, op, *, ledger=None, version=None):
-    units = ctx.resolve(names)
-    if not units:
+    units, roots = ctx.routes.resolve_with_roots(names)
+    if not roots:
         print(f'configsys: nothing resolved for {names}')
         return 1
+    # Apply the requested op to the *named* units; expand_plan folds in dependency
+    # installs (e.g. apt\flatpak before flatpak\firefox) and orders the whole thing.
+    base_plan = [(op, key, units[key]) for key in sorted(roots)]
+    plan = expand_plan(base_plan, units)
+
     rc_code = 0
-    for key in sorted(units):
-        rc = units[key]
+    for cur_op, key, rc in plan:
         fam = get_family(rc.family, ctx.runner, ctx.paths)
         if fam is None:
             print(f'skip {key}: family "{rc.family}" not yet supported')
             continue
-        print(f'{op} {key} (pkg: {rc.name}) ...')
-        if op == 'install':
+        print(f'{cur_op} {key} (pkg: {rc.name}) ...')
+        if cur_op == 'install':
             res = fam.install(rc)
-        elif op == 'remove':
+        elif cur_op == 'remove':
             res = fam.uninstall(rc)
-        elif op == 'upgrade':
+        elif cur_op == 'upgrade':
             res = fam.upgrade(rc)
-        elif op == 'set-version':
+        elif cur_op == 'set-version':
             res = fam.set_version(rc, version)
-        elif op == 'lock':
+        elif cur_op == 'lock':
             res = fam.lock(rc)
             if res.ok and ledger is not None:
                 ledger.set_lock(key, True)
-        elif op == 'unlock':
+        elif cur_op == 'unlock':
             res = fam.unlock(rc)
             if res.ok and ledger is not None:
                 ledger.set_lock(key, False)
         else:
-            print(f'unknown op {op}')
+            print(f'unknown op {cur_op}')
             return 2
         if not res.ok:
             rc_code = res.returncode or 1

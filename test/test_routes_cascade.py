@@ -44,7 +44,10 @@ def test_flatpak_binding():
     t = real_routes()
     r = RouteResolver(t, 'ubuntu')
     units = r.resolve_names(['firefox'])
-    assert set(units) == {'flatpak\\firefox'}
+    # firefox + its family !depends (apt\flatpak) auto-added
+    assert set(units) == {'flatpak\\firefox', 'apt\\flatpak'}
     fx = units['flatpak\\firefox']
     assert fx.fields['name'] == 'org.mozilla.firefox'
     assert fx.fields['hub'] == 'flathub'
+    assert fx.deps == {'apt\\flatpak'}
+    assert units['apt\\flatpak'].deps == set()  # base tool has no further deps

@@ -17,6 +17,7 @@ class ResolvedComponent:
     fields: dict = field(default_factory=dict)  # family-node fields ($vars substituted)
     vars: dict = field(default_factory=dict)    # variables in scope (fonts, etc.)
     requested_as: set = field(default_factory=set)  # OS-level names that pulled it in
+    deps: set = field(default_factory=set)      # unit keys this unit requires first
     source: str = ''                            # routes.hu node address (diagnostics)
 
     @property

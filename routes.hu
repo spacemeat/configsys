@@ -9,9 +9,16 @@
         libxcb-xinput0: { name: libxcb-xinput0 repo-component: universe }
         libxcb-xinerama0: { name: libxcb-xinerama0 repo-component: universe }
         libxcb-cursor-dev: { name: libxcb-cursor-dev repo-component: universe }
+        flatpak: { name: flatpak }
+        curl: { name: curl }
     }
 
     \flatpak: {
+        // flatpak itself must be installed before any flatpak component; resolved
+        // through the normal cascade (-> apt\flatpak on debian). Applies to all
+        // components in this family and is installed first (dependency-ordered).
+        !depends: flatpak
+
         firefox: {
             hub: flathub
             name: org.mozilla.firefox
@@ -40,6 +47,9 @@
     }
 
     \tarball: {
+        // the tarball family shells out to curl (tar is part of the base system)
+        !depends: curl
+
         vulkan-sdk: {
             $SDKVERSION: 1.4.350.1
             url: "https://sdk.lunarg.com/sdk/download/$SDKVERSION/linux/vulkansdk-linux-x86_64-$SDKVERSION.tar.xz"

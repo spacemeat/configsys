@@ -31,7 +31,9 @@ def test_vulkan_dev_composite_pulls_xcb_build_and_tarball():
     assert set(units) == {
         'apt\\libxcb-xinput0', 'apt\\libxcb-xinerama0', 'apt\\libxcb-cursor-dev',
         'apt\\build-essential', 'tarball\\vulkan-sdk',
+        'apt\\curl',  # tarball family !depends
     }
+    assert units['tarball\\vulkan-sdk'].deps == {'apt\\curl'}
 
 
 def test_vulkan_sdk_resolves_to_tarball_with_version_substituted():
@@ -89,5 +91,7 @@ def test_full_dev_profile_resolves():
         # singletons
         'flatpak\\firefox', 'flatpak\\chrome', 'appImage\\arduino', 'apt\\btop',
         'apt\\fzf', 'apt\\xclip', 'apt\\cargo', 'debian-font\\mononoki-nerd',
+        # family !depends auto-added
+        'apt\\flatpak', 'apt\\curl',
     }
     assert set(units) == expected

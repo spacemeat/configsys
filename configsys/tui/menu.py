@@ -10,6 +10,7 @@ import curses
 
 from ..families import get_family
 from ..ledger import Ledger
+from ..planning import expand_plan
 from .screen import curses_screen, suspended
 from .theme import STATUS_COLOR, Palette
 
@@ -250,9 +251,12 @@ def _summary_note(outcomes):
 
 def _confirm_and_execute(stdscr, pal, ms, ctx, ledger):
     '''Returns (executed: bool, note: str, outcomes: list).'''
-    plan = ms.plan()
-    if not plan:
+    raw = ms.plan()
+    if not raw:
         return False, 'nothing staged', []
+    units = {r.key: r.state.component for r in ms.rows}
+    states = {r.key: r.state for r in ms.rows}
+    plan = expand_plan(raw, units, states)
     with suspended(stdscr):
         print('\nAbout to execute:')
         for op, key, rc in plan:
