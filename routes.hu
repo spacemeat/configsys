@@ -48,6 +48,7 @@
         neovim: {
             depends: [ ripgrep, tree-sitter-cli ]                    // method-independent
             appImage: {
+                scope: user                                          // keep it in ~/apps (overrides machine default)
                 version: { github: neovim/neovim  asset: "nvim-linux-$ARCH.appimage" }
                 url: "https://github.com/neovim/neovim/releases/download/$VERSION/nvim-linux-$ARCH.appimage"
                 path: ~/apps/nvim.appimage
