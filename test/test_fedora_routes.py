@@ -57,3 +57,26 @@ def test_apod_uses_native_pipx_on_fedora():
     r = _resolver('41')
     units, _ = r.resolve_with_roots(['apod'])
     assert 'dnf\\pipx' in units and 'pip\\pipx' not in units
+
+
+def test_build_essential_bundles_compilers_and_make():
+    r = _resolver('41')
+    units, _ = r.resolve_with_roots(['build-essential'])
+    assert {'dnf\\gcc', 'dnf\\gcc-cpp', 'dnf\\make'} <= set(units)
+    assert units['dnf\\gcc-cpp'].name == 'gcc-c++'   # +-free key, real package name
+
+
+def test_vulkan_dev_routes_fedora_xcb_libs():
+    r = _resolver('41')
+    units, _ = r.resolve_with_roots(['vulkan-dev'])
+    assert 'dnf\\libxcb-devel' in units            # bundles xinput + xinerama on Fedora
+    assert 'dnf\\xcb-util-cursor-devel' in units
+    assert 'tarball\\vulkan-sdk' in units           # OS-agnostic tarball, unchanged
+    assert {'dnf\\gcc', 'dnf\\make'} <= set(units)  # build-essential pulled in
+
+
+def test_graphics_and_dev_profiles_route_on_fedora():
+    # graphics fully resolves; dev resolves its F41-available components
+    r = _resolver('41')
+    for name in ['vulkan-dev', 'cargo', 'build-essential', 'gcc-13', 'clang-18']:
+        r.resolve_with_roots([name])   # raises ResolveError if unroutable

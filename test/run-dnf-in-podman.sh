@@ -16,5 +16,8 @@ command -v podman >/dev/null 2>&1 || { echo "podman not found" >&2; exit 127; }
 echo ">> building $IMAGE (context: $repo)"
 podman build -q -t "$IMAGE" -f "$here/Containerfile.fedora" "$repo"
 
-echo ">> dnf lifecycle cycle (PKG=$PKG)"
+echo ">> [1/2] dnf lifecycle cycle (PKG=$PKG)"
 podman run --rm -e "PKG=$PKG" "$IMAGE" bash test/integration_dnf.sh
+
+echo ">> [2/2] dev/graphics gaps (build-essential bundle + vulkan X libs)"
+podman run --rm "$IMAGE" bash test/integration_fedora_devgaps.sh

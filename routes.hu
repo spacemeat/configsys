@@ -38,6 +38,14 @@
         cargo: { name: cargo }
         firefox: { name: firefox }         // Fedora ships firefox natively
         libfuse2: { name: fuse-libs }      // FUSE2 runtime that appImages need
+        // build-essential's parts (bundled below): the C++ package name has a `+`,
+        // so it gets a `+`-free component key with the real name in `name`.
+        gcc: { name: gcc }
+        gcc-cpp: { name: "gcc-c++" }
+        make: { name: make }
+        // vulkan-dev X libs: libxcb-devel bundles xinput + xinerama on Fedora
+        libxcb-devel: { name: libxcb-devel }
+        xcb-util-cursor-devel: { name: xcb-util-cursor-devel }
     }
 
     \pip: {
@@ -273,10 +281,18 @@
         chrome: flatpak\chrome
         arduino: appImage\arduino
         mononoki-nerd: debian-font\mononoki-nerd
+
+        // build-essential has no single Fedora package; its faithful equivalent is
+        // the compilers + make (gcc pulls glibc-devel). A bundle fits configsys's
+        // versioned/lockable model better than the broader @development-tools group.
+        build-essential: [ dnf\gcc, dnf\gcc-cpp, dnf\make ]
+        // vulkan-dev: the Debian xcb trio collapses to libxcb-devel (xinput +
+        // xinerama) + xcb-util-cursor-devel; vulkan-sdk is the OS-agnostic tarball.
+        vulkan-dev: [ libxcb-devel, xcb-util-cursor-devel, build-essential, vulkan-sdk ]
+
         // Versioned toolchains are release-specific on Fedora (the gccNN/clangNN
         // compat window moves each release, non-monotonically), so they live in the
         // "fedora@N" variants below, not here.
-        // DEFERRED: build-essential (-> @development-tools), vulkan-dev X *-devel libs.
     }
 
     rhel: {
