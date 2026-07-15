@@ -262,20 +262,28 @@
         chrome: flatpak\chrome
         arduino: appImage\arduino
         mononoki-nerd: debian-font\mononoki-nerd
+        // Versioned toolchains are release-specific on Fedora (the gccNN/clangNN
+        // compat window moves each release, non-monotonically), so they live in the
+        // "fedora@N" variants below, not here.
+        // DEFERRED: build-essential (-> @development-tools), vulkan-dev X *-devel libs.
+    }
 
-        // Versioned toolchains via Fedora compat packages (same \gcc / \clang
-        // families as Debian — same /usr/bin/gcc-13 binaries, no update-alternatives,
-        // no third-party repo). `packages` overrides the Debian defaults per version.
+    // Fedora versioned toolchains, per release: the gccNN/clangNN compat window
+    // moves each release (F41 has gcc13; F42 has gcc14, and gcc13 is gone), so each
+    // release names what it can provide. Same \gcc / \clang families as Debian —
+    // same /usr/bin/gcc-13 binaries, no update-alternatives, no third-party repo.
+    // gcc's system compiler has no versioned binary (only compat gccNN routes);
+    // clang's system compiler does (/usr/bin/clang-19), so it can route too.
+    "fedora@41": {                       // system gcc 14 / clang 19
         gcc-13:   { package: gcc\gcc-13     packages: [ gcc13, gcc13-c++ ] }
         clang-18: { package: clang\clang-18  packages: [ clang18 ] }
-        // Availability is release-specific: on Fedora 41 gcc-14 is the *system* gcc
-        // (only /usr/bin/gcc, no -14) and gcc-15 / clang-20 have no package, so they
-        // are not routed. clang-19 exists as the system clang's /usr/bin/clang-19;
-        // add per release as compat packages appear (e.g. a fedora@42 variant).
-
-        // DEFERRED on Fedora (different acquisition model, untested — see notes):
-        //   build-essential   -> @development-tools group
-        //   vulkan-dev X libs -> *-devel package names
+        clang-19: { package: clang\clang-19  packages: [ clang ] }   // system clang -> /usr/bin/clang-19
+    }
+    "fedora@42": {                       // system gcc 15 / clang 20
+        gcc-14:   { package: gcc\gcc-14     packages: [ gcc14, gcc14-c++ ] }
+        clang-18: { package: clang\clang-18  packages: [ clang18 ] }
+        clang-19: { package: clang\clang-19  packages: [ clang19 ] }
+        clang-20: { package: clang\clang-20  packages: [ clang ] }   // system clang -> /usr/bin/clang-20
     }
 
     // Version variants: layered ahead of their base block for a matching VERSION_ID.

@@ -1,7 +1,9 @@
-# Disposable fedora:41 (dnf5) sandbox for configsys dnf integration tests. Nothing
+# Disposable Fedora (dnf5) sandbox for configsys dnf integration tests. Nothing
 # touches the host: all installs/removes happen in the container, discarded on exit.
 # python3-devel + gcc are present so `pip install humon` can build the extension.
-FROM fedora:41
+# Release is selectable: podman build --build-arg FEDORA=42 ...
+ARG FEDORA=41
+FROM fedora:${FEDORA}
 
 RUN dnf install -y --setopt=install_weak_deps=False \
         python3 python3-pip python3-devel gcc sudo ca-certificates \

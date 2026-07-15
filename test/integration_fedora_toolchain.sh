@@ -1,8 +1,9 @@
 #!/usr/bin/env bash
-# Runs INSIDE the fedora:41 container as user `tester`. Installs versioned compilers
+# Runs INSIDE a Fedora container as user `tester`. Installs versioned compilers
 # through configsys and asserts the Fedora model: versioned compat packages provide
-# /usr/bin/gcc-13 etc., used directly, WITHOUT touching the system /usr/bin/gcc or
-# creating an update-alternatives slot. Needs network. Exits non-zero on mismatch.
+# /usr/bin/gcc-N etc., used directly, WITHOUT touching the system /usr/bin/gcc or
+# creating an update-alternatives slot. Release-aware — the gccNN compat window
+# moves each release. Needs network. Exits non-zero on mismatch.
 set -euo pipefail
 
 say() { printf '\n=== %s ===\n' "$*"; }
@@ -11,17 +12,25 @@ fail() { printf '\nFAIL: %s\n' "$*" >&2; exit 1; }
 . /etc/os-release
 say "target: $PRETTY_NAME (VERSION_ID=$VERSION_ID)"
 
+# The routable gcc version depends on the release (see the fedora@N route variants).
+case "$VERSION_ID" in
+    41) GCC_COMP=gcc-13; GCC_N=13 ;;
+    42) GCC_COMP=gcc-14; GCC_N=14 ;;
+    *)  GCC_COMP=gcc-13; GCC_N=13 ;;
+esac
+CLANG_COMP=clang-18; CLANG_N=18      # clang18 compat exists on 41 and 42
+
 printf '{ configs: user }\n' > "$HOME/configsys.hu"   # a Fedora-routable profile
 
 say "system gcc baseline (must stay untouched by versioned installs)"
 sys_gcc=$(gcc --version | head -1); echo "  $sys_gcc"
 
-say "install gcc-13 via configsys (dnf compat packages, no update-alternatives)"
-bash bootstrap.sh install gcc-13
-[ -x /usr/bin/gcc-13 ] || fail "/usr/bin/gcc-13 missing"
-[ -x /usr/bin/g++-13 ] || fail "/usr/bin/g++-13 missing (from gcc13-c++)"
-/usr/bin/gcc-13 --version | grep -q ' 13\.' || fail "gcc-13 is not version 13"
-echo "  $(/usr/bin/gcc-13 --version | head -1)"
+say "install $GCC_COMP via configsys (dnf compat packages, no update-alternatives)"
+bash bootstrap.sh install "$GCC_COMP"
+[ -x "/usr/bin/gcc-$GCC_N" ] || fail "/usr/bin/gcc-$GCC_N missing"
+[ -x "/usr/bin/g++-$GCC_N" ] || fail "/usr/bin/g++-$GCC_N missing (from gccNN-c++)"
+"/usr/bin/gcc-$GCC_N" --version | grep -q " $GCC_N\." || fail "gcc-$GCC_N is not version $GCC_N"
+echo "  $(/usr/bin/gcc-$GCC_N --version | head -1)"
 
 say "system /usr/bin/gcc is UNCHANGED (no alternatives hijack)"
 now_gcc=$(gcc --version | head -1)
@@ -31,18 +40,19 @@ if update-alternatives --query gcc >/dev/null 2>&1; then
 fi
 echo "  still: $now_gcc"
 
-say "install clang-18 via configsys"
-bash bootstrap.sh install clang-18
-[ -x /usr/bin/clang-18 ] || fail "/usr/bin/clang-18 missing"
-[ -x /usr/bin/clang++-18 ] || fail "/usr/bin/clang++-18 missing"
-/usr/bin/clang-18 --version | grep -q 'version 18\.' || fail "clang-18 is not version 18"
-echo "  $(/usr/bin/clang-18 --version | head -1)"
+say "install $CLANG_COMP via configsys"
+bash bootstrap.sh install "$CLANG_COMP"
+[ -x "/usr/bin/clang-$CLANG_N" ] || fail "/usr/bin/clang-$CLANG_N missing"
+[ -x "/usr/bin/clang++-$CLANG_N" ] || fail "/usr/bin/clang++-$CLANG_N missing"
+"/usr/bin/clang-$CLANG_N" --version | grep -q "version $CLANG_N\." || fail "clang not v$CLANG_N"
+echo "  $(/usr/bin/clang-$CLANG_N --version | head -1)"
 
-say "remove gcc-13 and clang-18 via configsys"
-bash bootstrap.sh remove gcc-13
-bash bootstrap.sh remove clang-18
-if [ -x /usr/bin/gcc-13 ]; then fail "gcc-13 still present after remove"; fi
-if [ -x /usr/bin/clang-18 ]; then fail "clang-18 still present after remove"; fi
+say "remove $GCC_COMP and $CLANG_COMP via configsys"
+bash bootstrap.sh remove "$GCC_COMP"
+bash bootstrap.sh remove "$CLANG_COMP"
+if [ -x "/usr/bin/gcc-$GCC_N" ]; then fail "gcc-$GCC_N still present after remove"; fi
+if [ -x "/usr/bin/clang-$CLANG_N" ]; then fail "clang-$CLANG_N still present after remove"; fi
 [ "$(gcc --version | head -1)" = "$sys_gcc" ] || fail "system gcc changed after remove"
 
-printf '\nPASS: Fedora versioned toolchains gcc-13 + clang-18 via dnf compat packages\n'
+printf '\nPASS: Fedora %s versioned toolchains (%s, %s) via dnf compat packages\n' \
+    "$VERSION_ID" "$GCC_COMP" "$CLANG_COMP"

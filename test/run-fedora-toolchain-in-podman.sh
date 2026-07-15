@@ -8,12 +8,15 @@ set -euo pipefail
 
 here="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 repo="$(cd "$here/.." && pwd)"
-IMAGE="configsys-test:fedora"
 
 command -v podman >/dev/null 2>&1 || { echo "podman not found" >&2; exit 127; }
 
-echo ">> building $IMAGE (context: $repo)"
-podman build -q -t "$IMAGE" -f "$here/Containerfile.fedora" "$repo"
-
-echo ">> Fedora versioned toolchain (gcc-13, clang-18)"
-podman run --rm "$IMAGE" bash test/integration_fedora_toolchain.sh
+# Exercise both current Fedora releases: the routable versions differ per release
+# (F41 -> gcc-13, F42 -> gcc-14), driven by the fedora@N route variants.
+for rel in "${@:-41 42}"; do
+    img="configsys-test:fedora$rel"
+    echo ">> building $img (fedora:$rel)"
+    podman build -q -t "$img" --build-arg "FEDORA=$rel" -f "$here/Containerfile.fedora" "$repo"
+    echo ">> Fedora $rel versioned toolchain"
+    podman run --rm "$img" bash test/integration_fedora_toolchain.sh
+done
