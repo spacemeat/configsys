@@ -1,7 +1,15 @@
+import pytest
+
 from configsys.componentObj import ResolvedComponent
 from configsys.families import get_family, is_supported
 from configsys.families.gcc import Gcc
 from configsys.runner import Result, Runner
+
+
+@pytest.fixture(autouse=True)
+def _force_apt(monkeypatch):
+    # these tests assert the apt path; pin the PM so they're host-independent
+    monkeypatch.setenv('CONFIGSYS_PM', 'apt')
 
 
 def gcc_unit(comp='gcc-13', link='gcc', version=13, slaves=('g++',),

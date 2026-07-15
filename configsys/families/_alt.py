@@ -1,21 +1,33 @@
-'''_alt.py — shared base for versioned toolchains managed via update-alternatives.
+'''_alt.py — shared base for versioned toolchains (gcc, clang) across apt and dnf.
 
-gcc and clang both: install versioned packages (from a PPA or an apt source), then
-register an update-alternatives group — a master tool + slaves, priority = version —
-so switching the master carries the slaves. configsys installs + registers only;
-switching the active version is `update-alternatives --config <link>` (your alias).
+Both distros ship the same versioned binaries at the same paths (/usr/bin/gcc-13,
+/usr/bin/clang-18, ...), so version detection and location are identical. Only the
+acquisition differs, which this base keys off the detected package manager:
 
-System-scoped (apt + alternatives need root). Component fields:
+  apt (Debian family): install from a PPA / apt.llvm.org source, then register an
+    update-alternatives group (master + slaves, priority = version) — /usr/bin/gcc
+    is an alternatives slot there. Switch with `update-alternatives --config gcc`.
+
+  dnf (Fedora family): install the versioned compat packages (gcc13, clang18) from
+    the main repo — no third-party repo, and NO update-alternatives (/usr/bin/gcc
+    is a real file owned by the system gcc rpm; a slot there would clobber it). The
+    versioned binary /usr/bin/gcc-13 is used directly (CC=gcc-13 or your alias).
+
+configsys installs + registers only; picking the active version stays your job.
+System-scoped (needs root). Component fields (packages differ per OS block):
   link      master tool / alternative name (default: comp minus the trailing -N)
   version   version number (default: the comp's trailing -N); also priority + suffix
-  slaves    [g++, clang++, ...]  registered as slaves (default: family's default_slaves)
-  packages  apt packages to install ($VERSION expanded; default: link-N [+ slave-N])
-  ppa       owner/name toolchain PPA to add first
-  apt-source { key, deb }  key url + deb line ($VERSION / $CODENAME expanded) to add
+  slaves    [g++, clang++, ...]  update-alternatives slaves (apt); default_slaves
+  packages  packages to install ($VERSION expanded; default: link-N [+ slave-N]).
+            Override per OS block: Debian [gcc-13, g++-13]; Fedora [gcc13, gcc13-c++]
+  ppa       owner/name toolchain PPA to add first (apt only)
+  apt-source { key, deb }  key url + deb line ($VERSION / $CODENAME expanded; apt only)
 '''
 
+import os
 import re
 import shlex
+import shutil
 
 from ..component import Family
 from ..runner import Result
@@ -57,6 +69,26 @@ class AltFamily(Family):
 
     def _master_bin(self, rc):
         return f'/usr/bin/{self._link(rc)}-{self._ver(rc)}'
+
+    @staticmethod
+    def _pm():
+        '''Package manager: 'dnf' where present (Fedora/RHEL), else 'apt'. The runner
+        is local, so the host's PM is the target's. CONFIGSYS_PM forces it (tests, or
+        an unusual host).'''
+        forced = os.environ.get('CONFIGSYS_PM')
+        if forced in ('apt', 'dnf'):
+            return forced
+        return 'dnf' if shutil.which('dnf') else 'apt'
+
+    def _pm_install(self, pm, pkgs):
+        return f'dnf install -y {pkgs}' if pm == 'dnf' else f'apt-get install -y {pkgs}'
+
+    def _pm_remove(self, pm, pkgs):
+        return f'dnf remove -y {pkgs}' if pm == 'dnf' else f'apt-get remove -y {pkgs}'
+
+    def _pm_upgrade(self, pm, pkgs):
+        return (f'dnf upgrade -y {pkgs}' if pm == 'dnf'
+                else f'apt-get install --only-upgrade -y {pkgs}')
 
     # -- read -------------------------------------------------------------
 
@@ -104,26 +136,35 @@ class AltFamily(Family):
     # -- mutate -----------------------------------------------------------
 
     def install(self, rc):
+        pm = self._pm()
         pkgs = ' '.join(shlex.quote(p) for p in self._packages(rc))
-        lines = ['set -e'] + self._repo_lines(rc)
-        lines.append(f'apt-get install -y {pkgs}')
-        lines.append(self._alt_install(rc))
+        lines = ['set -e']
+        if pm == 'apt':
+            lines += self._repo_lines(rc)          # PPA / apt.llvm.org — apt only
+        lines.append(self._pm_install(pm, pkgs))
+        if pm == 'apt':
+            lines.append(self._alt_install(rc))    # /usr/bin/gcc is an alternatives slot
+        # on dnf the versioned binary is used directly; registering an alternative
+        # would clobber /usr/bin/gcc (owned by the system gcc rpm).
         return self.runner.run('\n'.join(lines), sudo=True, capture=False)
 
     def upgrade(self, rc):
         pkgs = ' '.join(shlex.quote(p) for p in self._packages(rc))
-        return self.runner.run(f'apt-get install --only-upgrade -y {pkgs}',
+        return self.runner.run(self._pm_upgrade(self._pm(), pkgs),
                                sudo=True, capture=False)
 
     def set_version(self, rc, version):
         return self.install(rc)
 
     def uninstall(self, rc):
-        link = shlex.quote(self._link(rc))
-        master = shlex.quote(self._master_bin(rc))
+        pm = self._pm()
         pkgs = ' '.join(shlex.quote(p) for p in self._packages(rc))
-        lines = ['set -e', f'update-alternatives --remove {link} {master} || true',
-                 f'apt-get remove -y {pkgs}']
+        lines = ['set -e']
+        if pm == 'apt':
+            link = shlex.quote(self._link(rc))
+            master = shlex.quote(self._master_bin(rc))
+            lines.append(f'update-alternatives --remove {link} {master} || true')
+        lines.append(self._pm_remove(pm, pkgs))
         return self.runner.run('\n'.join(lines), sudo=True, capture=False)
 
     def lock(self, rc):
