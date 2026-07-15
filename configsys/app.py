@@ -60,7 +60,8 @@ class Context:
     def routes(self):
         if self._routes_trove is None:
             self._routes_trove = load(self.paths.routes_file)
-        return RouteResolver(self._routes_trove, self.os_info.block)
+        return RouteResolver(self._routes_trove, self.os_info.block,
+                             self.os_info.version)
 
     @property
     def config(self):

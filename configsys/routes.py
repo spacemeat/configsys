@@ -13,6 +13,7 @@ import re
 
 import humon as h
 
+from . import osversion
 from .componentObj import ResolvedComponent
 from .errors import ConfigError, ResolveError
 
@@ -24,15 +25,20 @@ VALUE = h.NodeKind.VALUE
 
 
 class RouteResolver:
-    def __init__(self, trove, os_block):
+    def __init__(self, trove, os_block, os_version=None):
         self.trove = trove          # keep alive: Nodes point into it
         self.root = trove.root
         self.os_block = os_block
+        self.version = osversion.parse_version(os_version)
         self.cascade = self._build_cascade(os_block)
 
     # -- cascade ----------------------------------------------------------
 
     def _build_cascade(self, start):
+        '''Chain the OS blocks via `!using`, layering each block's most-specific
+        version variant (e.g. "ubuntu@<23.04") ahead of the base block so its
+        routes win. Variants flow through inheritance: Pop!_OS -> ubuntu picks up
+        the ubuntu variant for this machine's VERSION_ID automatically.'''
         chain = []
         seen = set()
         name = start
@@ -43,10 +49,39 @@ class RouteResolver:
                     raise ConfigError(f'unknown OS block: "{name}"')
                 break  # dangling !using target — end of chain
             seen.add(name)
+            variant = self._select_variant(name)
+            if variant is not None:
+                chain.append((variant, self.root[variant]))   # override layer, checked first
             chain.append((name, blk))
             using = blk['!using']
             name = using.value if using is not None else None
         return chain
+
+    def _select_variant(self, base):
+        '''Key of the most-specific "base@<constraint>" block satisfied by the
+        detected VERSION_ID, or None. Ambiguous ties (same specificity) are a
+        config error rather than a silent pick.'''
+        if self.version is None:
+            return None
+        prefix = base + '@'
+        best, best_score, ties = None, -1, []
+        for i in range(self.root.num_children):
+            key = self.root[i].key
+            if not key or not key.startswith(prefix):
+                continue
+            constraint = osversion.parse_constraint(key[len(prefix):])
+            if not osversion.satisfies(constraint, self.version):
+                continue
+            score = osversion.specificity(constraint)
+            if score > best_score:
+                best, best_score, ties = key, score, [key]
+            elif score == best_score:
+                ties.append(key)
+        if len(ties) > 1:
+            v = '.'.join(map(str, self.version))
+            raise ConfigError(f'ambiguous OS-version variants for "{base}" @ {v}: '
+                              f'{", ".join(sorted(ties))}')
+        return best
 
     @property
     def cascade_names(self):

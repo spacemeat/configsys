@@ -14,6 +14,7 @@ from .dotfiles import DotFiles
 from .flatpak import Flatpak
 from .gcc import Gcc
 from .pip import Pip
+from .pipx import Pipx
 from .tarball import Tarball
 
 _REGISTRY = {
@@ -27,6 +28,7 @@ _REGISTRY = {
     Gcc.name: Gcc,
     Clang.name: Clang,
     Pip.name: Pip,
+    Pipx.name: Pipx,
 }
 
 

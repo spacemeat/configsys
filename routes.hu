@@ -17,12 +17,26 @@
         unzip: { name: unzip }
         software-properties-common: { name: software-properties-common }
         python3-pip: { name: python3-pip }
+        pipx: { name: pipx }               // apt pipx (Ubuntu >=23.04 / Debian >=12)
     }
 
     \pip: {
-        // PyPI console-script CLIs installed user-space (pip install --user ->
-        // ~/.local/bin), the Python analog of \cargo. python3-pip provides pip.
+        // PyPI CLIs via `pip install --user` (-> ~/.local/bin). Now used mainly to
+        // bootstrap pipx on OSs that have no apt pipx package (see "ubuntu@<23.04").
+        // python3-pip provides pip.
         !depends: python3-pip
+
+        pipx: {
+            name: pipx                     // `pip install --user pipx`
+            version: { pypi: pipx }
+        }
+    }
+
+    \pipx: {
+        // PyPI CLIs in isolated venvs via pipx (binaries -> ~/.local/bin), the
+        // preferred Python-CLI medium. pipx itself is version-sensitive: apt on
+        // modern OSs, a pip --user bootstrap on older ones (routed via `pipx`).
+        !depends: pipx
 
         apod: {
             name: termapod                 // PyPI distribution == the console command
@@ -188,7 +202,7 @@
         vulkan-sdk: [ tarball\vulkan-sdk, dotfiles\vulkan-sdk ]
         tree-sitter-cli: [ cargo\tree-sitter-cli ]
         // termapod (PyPI CLI) + its shell-startup hook; OS-agnostic
-        apod: [ pip\apod, dotfiles\apod ]
+        apod: [ pipx\apod, dotfiles\apod ]
     }
 
     debian: {
@@ -217,5 +231,18 @@
 
     pop_os!: {
         !using: ubuntu
+    }
+
+    // Version variants: layered ahead of their base block for a matching VERSION_ID.
+    // Pattern: base blocks hold the modern default (pipx via apt\*); these cover
+    // *older* releases where the default doesn't hold. They flow through the cascade,
+    // so Pop!_OS 22.04 (-> ubuntu) picks up the ubuntu@<23.04 variant automatically.
+    "ubuntu@<23.04": {
+        // no apt `pipx` before 23.04 -> bootstrap it with pip --user (the \pip family)
+        pipx: pip\pipx
+    }
+    "debian@<12": {
+        // no apt `pipx` before Debian 12 (bookworm) -> same pip --user bootstrap
+        pipx: pip\pipx
     }
 }
