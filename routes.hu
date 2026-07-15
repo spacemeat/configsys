@@ -9,6 +9,8 @@
         libxcb-xinput0: { name: libxcb-xinput0 repo-component: universe }
         libxcb-xinerama0: { name: libxcb-xinerama0 repo-component: universe }
         libxcb-cursor-dev: { name: libxcb-cursor-dev repo-component: universe }
+        libvulkan1: { name: libvulkan1 }                          // Vulkan loader
+        mesa-vulkan-drivers: { name: mesa-vulkan-drivers }        // ICDs (RADV/ANV + lavapipe)
         flatpak: { name: flatpak }
         curl: { name: curl }
         libfuse2: { name: libfuse2 repo-component: universe }
@@ -49,6 +51,9 @@
         // EL only: enables EPEL (a real package that drops the repo config). EL
         // routes depend on it so it installs first. Harmless/unused on Fedora.
         epel-release: { name: epel-release }
+        // Vulkan runtime (Fedora + EL AppStream, no EPEL): loader + mesa ICDs
+        vulkan-loader: { name: vulkan-loader }
+        mesa-vulkan-drivers: { name: mesa-vulkan-drivers }
     }
 
     \pacman: {
@@ -71,6 +76,11 @@
         pipx: { name: python-pipx }         // dnf/apt call it pipx; Arch: python-pipx
         cargo: { name: rust }               // cargo ships in the rust package
         libfuse2: { name: fuse2 }           // FUSE2 runtime for appImages
+        // Vulkan runtime — Arch splits the ICD per GPU (+ software fallback)
+        vulkan-icd-loader: { name: vulkan-icd-loader }
+        vulkan-radeon: { name: vulkan-radeon }
+        vulkan-intel: { name: vulkan-intel }
+        vulkan-swrast: { name: vulkan-swrast }   // lavapipe (software, no-GPU fallback)
     }
 
     \aur: {
@@ -285,7 +295,11 @@
         *: apt\*
         // a bundle (meta-package): its X-dev libs are apt-specific, so it lives here.
         // vulkan-sdk (OS-agnostic) resolves up in the linux root.
-        vulkan-dev: [ libxcb-xinput0, libxcb-xinerama0, libxcb-cursor-dev, build-essential, vulkan-sdk ]
+        vulkan-dev: [ libxcb-xinput0, libxcb-xinerama0, libxcb-cursor-dev, build-essential, vulkan-sdk, vulkan-runtime ]
+        // Vulkan runtime (loader + mesa ICDs). Ensure-present, unlocked — a no-op on
+        // any desktop (the DE already pulled mesa), the thing that makes vk run on a
+        // minimal/DE-less box. mesa-vulkan-drivers pulls libvulkan1, but list both.
+        vulkan-runtime: [ libvulkan1, mesa-vulkan-drivers ]
         neovim: appImage          // select the appImage method of app\neovim
         firefox: apt\firefox
         chrome: flatpak\chrome
@@ -325,7 +339,9 @@
         build-essential: [ dnf\gcc, dnf\gcc-cpp, dnf\make ]
         // vulkan-dev: the Debian xcb trio collapses to libxcb-devel (xinput +
         // xinerama) + xcb-util-cursor-devel; vulkan-sdk is the OS-agnostic tarball.
-        vulkan-dev: [ libxcb-devel, xcb-util-cursor-devel, build-essential, vulkan-sdk ]
+        vulkan-dev: [ libxcb-devel, xcb-util-cursor-devel, build-essential, vulkan-sdk, vulkan-runtime ]
+        // Vulkan runtime (loader + mesa ICDs incl. lavapipe); Fedora + EL AppStream.
+        vulkan-runtime: [ vulkan-loader, mesa-vulkan-drivers ]
 
         // Versioned toolchains are release-specific on Fedora (the gccNN/clangNN
         // compat window moves each release, non-monotonically), so they live in the
@@ -370,6 +386,9 @@
         arduino: appImage\arduino
         mononoki-nerd: debian-font\mononoki-nerd
         yay: aur\yay              // the AUR helper, built from the AUR itself
+        // Vulkan runtime: Arch splits the ICD per GPU, so install the loader + both
+        // common HW ICDs + the software fallback (lavapipe). Ensure-present, unlocked.
+        vulkan-runtime: [ vulkan-icd-loader, vulkan-radeon, vulkan-intel, vulkan-swrast ]
         // Versioned gcc/clang aren't in the Arch repos (rolling = one version); they
         // come from the AUR (gcc13, clang, ...) via the \aur family — heavy source
         // builds, so not wired into a profile here (add e.g. `gcc-13: aur\gcc13`).

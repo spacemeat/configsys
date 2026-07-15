@@ -33,6 +33,7 @@ def test_vulkan_dev_composite_pulls_xcb_build_and_tarball():
         'apt\\build-essential', 'tarball\\vulkan-sdk',
         'apt\\curl',                                # tarball family !depends
         'dotfiles\\vulkan-sdk', 'dotfiles\\bashDotD',  # vulkan-sdk's dotfiles chain
+        'apt\\libvulkan1', 'apt\\mesa-vulkan-drivers',  # vulkan-runtime (loader + ICDs)
     }
     assert units['tarball\\vulkan-sdk'].deps == {'apt\\curl'}
 
@@ -121,9 +122,10 @@ def test_full_dev_profile_resolves():
              'fzf', 'ripgrep', 'xclip', 'cargo', 'build-essential', 'mononoki-nerd']
     units = resolver().resolve_names(names)
     expected = {
-        # vulkan-dev composite (+ its tarball/dotfiles deps)
+        # vulkan-dev composite (+ its tarball/dotfiles deps + vulkan runtime)
         'apt\\libxcb-xinput0', 'apt\\libxcb-xinerama0', 'apt\\libxcb-cursor-dev',
         'apt\\build-essential', 'tarball\\vulkan-sdk', 'dotfiles\\vulkan-sdk',
+        'apt\\libvulkan1', 'apt\\mesa-vulkan-drivers',
         # neovim (app, appImage method) + its layered deps
         'appImage\\neovim', 'apt\\ripgrep', 'dotfiles\\neovim',
         'cargo\\tree-sitter-cli', 'apt\\cargo',   # tree-sitter via cargo
