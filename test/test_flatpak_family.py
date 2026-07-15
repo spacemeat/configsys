@@ -83,19 +83,30 @@ def test_unknown_hub_no_url_skips_remote_add():
 def test_get_version_parses_info():
     info = ('Firefox\n          ID: org.mozilla.firefox\n'
             '     Version: 130.0\n      Commit: abcdef123\n')
-    fr = FakeRunner([('flatpak info --user', 0, info)])
+    fr = FakeRunner([('flatpak info', 0, info)])
     assert Flatpak(fr).get_version(fp()) == '130.0'
 
 
 def test_get_version_falls_back_to_commit():
     info = 'Some App\n      Commit: cafebabe0000\n'
-    fr = FakeRunner([('flatpak info --user', 0, info)])
+    fr = FakeRunner([('flatpak info', 0, info)])
     assert Flatpak(fr).get_version(fp()) == 'cafebabe0000'
 
 
 def test_get_version_not_installed():
-    fr = FakeRunner([('flatpak info --user', 1, 'error: not installed')])
+    fr = FakeRunner([('flatpak info', 1, 'error: not installed')])
     assert Flatpak(fr).get_version(fp()) is None
+
+
+def test_get_version_detects_system_install_under_default_user_scope():
+    # regression: chrome installed system-wide must not read as "missing" just
+    # because the route defaults to --user. `flatpak info` (no flag) finds either.
+    info = ('Google Chrome\n          ID: com.google.Chrome\n'
+            '     Version: 148.0.7778.215-1\n Installation: system\n')
+    fr = FakeRunner([('flatpak info', 0, info)])
+    rc = fp('com.google.Chrome')            # no scope field -> defaults to user
+    assert Flatpak(fr).get_version(rc) == '148.0.7778.215-1'
+    assert fr.calls == ['flatpak info com.google.Chrome']  # no --user flag
 
 
 def test_get_latest_deferred_none():
@@ -131,9 +142,9 @@ def test_system_scope_uninstall_and_lock_sudo():
 
 
 def test_read_ops_never_sudo_even_in_system_scope():
-    fr = FakeRunner([('flatpak info --system', 0, 'Version: 1.0\n')])
+    fr = FakeRunner([('flatpak info', 0, 'Version: 1.0\n')])
     Flatpak(fr).get_version(fp(scope='system'))
-    assert fr.calls == ['flatpak info --system org.mozilla.firefox']  # no sudo
+    assert fr.calls == ['flatpak info org.mozilla.firefox']  # scope-agnostic, no sudo
 
 
 def test_user_scope_is_the_default():

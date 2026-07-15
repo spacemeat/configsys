@@ -60,11 +60,13 @@ class Flatpak(Family):
             f'flatpak remote-add {self._flag(rc)} --if-not-exists {shlex.quote(hub)} '
             f'{shlex.quote(url)}', sudo=self._sudo(rc), capture=False)
 
-    # -- read (no sudo even for --system) ---------------------------------
+    # -- read (scope-agnostic: detect it wherever it's installed; no sudo) -
 
     def get_version(self, rc):
+        # no --user/--system flag: find the app in EITHER installation. (Otherwise a
+        # system-installed app looks "missing" under the default user scope.)
         app = shlex.quote(self._appid(rc))
-        r = self.runner.run(f'flatpak info {self._flag(rc)} {app}')
+        r = self.runner.run(f'flatpak info {app}')
         if not r.ok:
             return None
         return (self._parse_field(r.stdout, 'Version')
@@ -77,11 +79,12 @@ class Flatpak(Family):
         return None
 
     def is_locked(self, rc):
-        r = self.runner.run(f'flatpak mask {self._flag(rc)}')
-        if not r.ok:
-            return False
         appid = self._appid(rc)
-        return any(appid in line for line in r.stdout.splitlines())
+        for flag in ('--user', '--system'):
+            r = self.runner.run(f'flatpak mask {flag}')
+            if r.ok and any(appid in line for line in r.stdout.splitlines()):
+                return True
+        return False
 
     # -- mutate -----------------------------------------------------------
 
