@@ -64,7 +64,24 @@ class RouteResolver:
         units, roots = {}, set()
         for n in names:
             roots |= self._resolve_one(n, n, units, frozenset())
+        self._propagate_requested(units)
         return units, roots
+
+    @staticmethod
+    def _propagate_requested(units):
+        '''`requested_as` must be closed under the deps relation: if a root pulls in
+        a unit, it also (transitively) pulls in that unit's deps. Dedup means a
+        transitive dep can miss roots discovered after it was first created, so
+        propagate roots down the deps graph to a fixpoint.'''
+        changed = True
+        while changed:
+            changed = False
+            for rc in units.values():
+                for dep_key in rc.deps:
+                    dep = units.get(dep_key)
+                    if dep is not None and not rc.requested_as <= dep.requested_as:
+                        dep.requested_as |= rc.requested_as
+                        changed = True
 
     # -- lookup -----------------------------------------------------------
 

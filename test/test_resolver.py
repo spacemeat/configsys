@@ -80,6 +80,15 @@ def test_list_route_expands_to_all_parts():
     assert units['dotfiles\\vulkan-sdk'].deps == {'dotfiles\\bashDotD'}  # component depends
 
 
+def test_requested_as_closes_over_transitive_deps():
+    # gcc-13 and gcc-14 both pull dotfiles\gcc (a shared dep), which itself depends on
+    # dotfiles\bashDotD. bashDotD must be attributed to BOTH roots, not just whichever
+    # created dotfiles\gcc first (else it shows under only one in the menu).
+    units = resolver().resolve_names(['gcc-13', 'gcc-14'])
+    assert {'gcc-13', 'gcc-14'} <= units['dotfiles\\gcc'].requested_as
+    assert {'gcc-13', 'gcc-14'} <= units['dotfiles\\bashDotD'].requested_as
+
+
 def test_dedup_across_standalone_and_dependency():
     # ripgrep is both a standalone dev component and a dep of neovim (app-common)
     units = resolver().resolve_names(['ripgrep', 'neovim'])
