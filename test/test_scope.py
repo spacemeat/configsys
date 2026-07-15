@@ -36,8 +36,12 @@ def test_machine_default_only_stamps_scope_honoring_families(tmp_path):
     (tmp_path / 'configsys.hu').write_text('{ configs: [ dev ]  scope: system }')
     args = argparse.Namespace(pretend=True, os='pop', home=str(tmp_path), config=None)
     ctx = Context(args)
-    units = ctx.apply_scope_default(ctx.routes.resolve_names(['neovim', 'btop']))
-    assert units['appImage\\neovim'].fields.get('scope') == 'system'   # honors -> stamped
-    assert 'scope' not in units['cargo\\tree-sitter-cli'].fields        # fixed -> untouched
+    units = ctx.apply_scope_default(ctx.routes.resolve_names(['arduino', 'neovim', 'btop']))
+    # honoring family with no route scope -> stamped with the machine default
+    assert units['appImage\\arduino'].fields.get('scope') == 'system'
+    # a route that pins scope wins over the machine default
+    assert units['appImage\\neovim'].fields.get('scope') == 'user'
+    # fixed-scope families are never stamped
+    assert 'scope' not in units['cargo\\tree-sitter-cli'].fields
     assert 'scope' not in units['dotfiles\\neovim'].fields
     assert 'scope' not in units['apt\\btop'].fields
