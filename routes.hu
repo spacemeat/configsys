@@ -42,7 +42,7 @@
         // versioned Clang/LLVM from apt.llvm.org (the family carries the repo key +
         // codename-specific deb line). clang++ ships inside the clang package and is
         // registered as an update-alternatives slave. curl fetches the repo key.
-        !depends: [ build-essential, curl ]
+        !depends: [ build-essential, curl dotfiles\clang ]
 
         clang-18: {}
         clang-19: {}
@@ -124,6 +124,11 @@
             depends: bashDotD
             src: bash.d/gcc.sh
             dst: ~/.bash.d/gcc.sh
+        }
+        clang: {
+            depends: bashDotD
+            src: bash.d/clang.sh
+            dst: ~/.bash.d/clang.sh
         }
         vulkan-sdk: {
             depends: bashDotD

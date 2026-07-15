@@ -20,10 +20,13 @@
     dev: [
         cargo
         build-essential
-        // TODO(parked): toolchain routes not yet defined: gcc clang pyke python12 mesa
+        // TODO(parked): toolchain routes not yet defined: pyke python12 mesa
         gcc-13
         gcc-14
         gcc-15
+        clang-18
+        clang-19
+        clang-20
     ]
     uc-dev: [
         build-essential
