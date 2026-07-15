@@ -73,6 +73,18 @@
         libfuse2: { name: fuse2 }           // FUSE2 runtime for appImages
     }
 
+    \aur: {
+        // Arch User Repository packages built from PKGBUILD via makepkg -si (no
+        // helper). base-devel + git build them; transitive AUR deps are declared as
+        // per-component `depends`. `name` is the AUR pkgname.
+        !depends: [ base-devel, git ]
+
+        yay: {
+            name: yay-bin                 // the AUR helper itself, prebuilt (-bin)
+            version: { aur: yay-bin }     // latest from the AUR RPC
+        }
+    }
+
     \pip: {
         // PyPI CLIs via `pip install --user` (-> ~/.local/bin). Now used mainly to
         // bootstrap pipx on OSs that have no apt pipx package (see "ubuntu@<23.04").
@@ -357,8 +369,10 @@
         chrome: flatpak\chrome
         arduino: appImage\arduino
         mononoki-nerd: debian-font\mononoki-nerd
+        yay: aur\yay              // the AUR helper, built from the AUR itself
         // Versioned gcc/clang aren't in the Arch repos (rolling = one version); they
-        // come from the AUR (gcc13, clang, ...) via the \aur family.
+        // come from the AUR (gcc13, clang, ...) via the \aur family — heavy source
+        // builds, so not wired into a profile here (add e.g. `gcc-13: aur\gcc13`).
     }
 
     // Fedora versioned toolchains, per release: the gccNN/clangNN compat window

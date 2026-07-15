@@ -7,6 +7,7 @@ gracefully instead of crashing.
 
 from .appImage import AppImage
 from .apt import Apt
+from .aur import Aur
 from .cargo import Cargo
 from .clang import Clang
 from .debian_font import DebianFont
@@ -24,6 +25,7 @@ _REGISTRY = {
     Apt.name: Apt,
     Dnf.name: Dnf,
     Pacman.name: Pacman,
+    Aur.name: Aur,
     Tarball.name: Tarball,
     Flatpak.name: Flatpak,
     AppImage.name: AppImage,

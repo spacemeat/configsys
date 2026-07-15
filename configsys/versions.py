@@ -39,6 +39,7 @@ def http_fetch(url, timeout=10):
 
 CRATES_LATEST = 'https://crates.io/api/v1/crates/{crate}'
 PYPI_LATEST = 'https://pypi.org/pypi/{dist}/json'
+AUR_INFO = 'https://aur.archlinux.org/rpc/v5/info?arg[]={pkg}'
 
 
 def source_key(spec):
@@ -46,7 +47,7 @@ def source_key(spec):
     if 'github' in spec:
         base = f'github:{spec["github"]}'
         return f'{base}:asset={spec["asset"]}' if spec.get('asset') else base
-    for kind in ('crates', 'pypi', 'url', 'static'):
+    for kind in ('crates', 'pypi', 'aur', 'url', 'static'):
         if kind in spec:
             return f'{kind}:{spec[kind]}'
     return 'spec:' + json.dumps(spec, sort_keys=True)
@@ -78,6 +79,10 @@ def _discover_live(spec, fetch):
     if 'pypi' in spec:
         data = json.loads(fetch(PYPI_LATEST.format(dist=spec['pypi'])))
         return data.get('info', {}).get('version'), None
+    if 'aur' in spec:
+        data = json.loads(fetch(AUR_INFO.format(pkg=spec['aur'])))
+        results = data.get('results') or []
+        return (results[0].get('Version') if results else None), None
     if 'url' in spec:
         text = fetch(spec['url'])
         pattern = spec.get('regex') or r'[0-9]+(?:\.[0-9]+)+'
