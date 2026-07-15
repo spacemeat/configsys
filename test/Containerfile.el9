@@ -1,0 +1,23 @@
+# Disposable EL9 (RHEL-family, dnf4) sandbox for configsys gcc-toolset tests.
+# AlmaLinux is a free, RHEL-binary-compatible stand-in (ID=almalinux -> rhel block).
+# EL9's default python3 is 3.9; configsys needs >= 3.10, so install python3.12 (in
+# AppStream) and point the bootstrap at it via PYTHON. gcc + headers build humon.
+ARG EL_IMAGE=almalinux:9
+FROM ${EL_IMAGE}
+
+RUN dnf install -y --setopt=install_weak_deps=False \
+        python3.12 python3.12-pip python3.12-devel gcc sudo ca-certificates \
+    && dnf clean all
+
+ENV PYTHON=python3.12
+
+RUN useradd -m -s /bin/bash tester \
+    && echo 'tester ALL=(ALL) NOPASSWD:ALL' > /etc/sudoers.d/tester \
+    && chmod 0440 /etc/sudoers.d/tester
+
+COPY --chown=tester:tester . /home/tester/configsys
+
+USER tester
+WORKDIR /home/tester/configsys
+
+CMD ["bash", "test/integration_rhel_toolchain.sh"]

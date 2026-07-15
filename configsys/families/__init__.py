@@ -14,6 +14,7 @@ from .dnf import Dnf
 from .dotfiles import DotFiles
 from .flatpak import Flatpak
 from .gcc import Gcc
+from .gcc_toolset import GccToolset
 from .pip import Pip
 from .pipx import Pipx
 from .tarball import Tarball
@@ -28,6 +29,7 @@ _REGISTRY = {
     DebianFont.name: DebianFont,
     Cargo.name: Cargo,
     Gcc.name: Gcc,
+    GccToolset.name: GccToolset,
     Clang.name: Clang,
     Pip.name: Pip,
     Pipx.name: Pipx,

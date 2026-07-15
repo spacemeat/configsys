@@ -13,9 +13,13 @@ version (both used by tests and to force a cascade without being on that distro)
 import os
 
 
-# os-release ID -> routes.hu block name, where they differ.
+# os-release ID -> routes.hu block name, where they differ. The RHEL-family distros
+# all share one `rhel` block (EL9/EL10 behave the same for our purposes).
 _ALIASES = {
     'pop': 'pop_os!',
+    'almalinux': 'rhel',
+    'rocky': 'rhel',
+    'centos': 'rhel',
 }
 
 

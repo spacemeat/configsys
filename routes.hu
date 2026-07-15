@@ -93,6 +93,17 @@
         clang-20: {}
     }
 
+    \gcc-toolset: {
+        // versioned GCC as Red Hat Software Collections (RHEL/Rocky/Alma). Installs
+        // the meta package gcc-toolset-N under /opt/rh; the version is derived from
+        // the component (gcc-13 -> gcc-toolset-13). Activate with `scl enable
+        // gcc-toolset-13 bash` — configsys installs + reports the version only.
+        gcc-12: {}
+        gcc-13: {}
+        gcc-14: {}
+        gcc-15: {}
+    }
+
     \flatpak: {
         // flatpak itself must be installed before any flatpak component; resolved
         // through the normal cascade (-> apt\flatpak on debian). Applies to all
@@ -266,6 +277,21 @@
         // compat window moves each release, non-monotonically), so they live in the
         // "fedora@N" variants below, not here.
         // DEFERRED: build-essential (-> @development-tools), vulkan-dev X *-devel libs.
+    }
+
+    rhel: {
+        // RHEL family (RHEL, Rocky, AlmaLinux, CentOS Stream — all alias here).
+        // Inherits Fedora's dnf plumbing (*: dnf\*) and app routes; overrides the
+        // toolchains, which on EL come as gcc-toolset SCLs (gcc 12-15 on EL9).
+        // Note: many \dnf packages need EPEL on EL — deferred; gcc-toolset is in
+        // AppStream and needs no extra repo.
+        !using: fedora
+
+        gcc-13: gcc-toolset\gcc-13
+        gcc-14: gcc-toolset\gcc-14
+        gcc-15: gcc-toolset\gcc-15
+        // clang on EL is the system LLVM (EL9: clang 21) or llvm-toolset; there are
+        // no versioned clangNN packages, so clang-18.. aren't routed here.
     }
 
     // Fedora versioned toolchains, per release: the gccNN/clangNN compat window
