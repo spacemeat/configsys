@@ -31,10 +31,11 @@
         // add-apt-repository needs software-properties-common; the compilers need
         // build-essential. Installing a version registers gcc (master) + g++ (slave);
         // switch the active one with `update-alternatives --config gcc` yourself.
-        !depends: [ build-essential, software-properties-common ]
+        !depends: [ build-essential, software-properties-common dotfiles\gcc ]
 
         gcc-13: { link: gcc  version: 13  slaves: [ g++ ]  ppa: ubuntu-toolchain-r/test }
         gcc-14: { link: gcc  version: 14  slaves: [ g++ ]  ppa: ubuntu-toolchain-r/test }
+        gcc-15: { link: gcc  version: 15  slaves: [ g++ ]  ppa: ubuntu-toolchain-r/test }
     }
 
     \flatpak: {
@@ -108,6 +109,11 @@
             src: bash.d/arduino.sh
             dst: ~/.bash.d/arduino.sh
         }
+        gcc: {
+            depends: bashDotD
+            src: bash.d/gcc.sh
+            dst: ~/.bash.d/gcc.sh
+        }
         vulkan-sdk: {
             depends: bashDotD
             aliases: {
@@ -163,6 +169,7 @@
         mononoki-nerd: debian-font\mononoki-nerd
         gcc-13: gcc\gcc-13
         gcc-14: gcc\gcc-14
+        gcc-15: gcc\gcc-15
     }
 
     ubuntu: {
