@@ -16,6 +16,18 @@
         fontconfig: { name: fontconfig }
         unzip: { name: unzip }
         software-properties-common: { name: software-properties-common }
+        python3-pip: { name: python3-pip }
+    }
+
+    \pip: {
+        // PyPI console-script CLIs installed user-space (pip install --user ->
+        // ~/.local/bin), the Python analog of \cargo. python3-pip provides pip.
+        !depends: python3-pip
+
+        apod: {
+            name: termapod                 // PyPI distribution == the console command
+            version: { pypi: termapod }    // latest from pypi.org (cached)
+        }
     }
 
     \cargo: {
@@ -125,6 +137,12 @@
             src: bash.d/gcc.sh
             dst: ~/.bash.d/gcc.sh
         }
+        apod: {
+            // runs `termapod` on every interactive shell (via the bashDotD loader)
+            depends: bashDotD
+            src: bash.d/apod.sh
+            dst: ~/.bash.d/apod.sh
+        }
         clang: {
             depends: bashDotD
             src: bash.d/clang.sh
@@ -169,6 +187,8 @@
         // OS-agnostic bundle: the lunarg tarball + its dotfiles (works on any linux)
         vulkan-sdk: [ tarball\vulkan-sdk, dotfiles\vulkan-sdk ]
         tree-sitter-cli: [ cargo\tree-sitter-cli ]
+        // termapod (PyPI CLI) + its shell-startup hook; OS-agnostic
+        apod: [ pip\apod, dotfiles\apod ]
     }
 
     debian: {

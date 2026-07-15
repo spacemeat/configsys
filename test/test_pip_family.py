@@ -1,0 +1,82 @@
+from configsys.componentObj import ResolvedComponent
+from configsys.families import get_family, is_supported
+from configsys.families.pip import Pip
+from configsys.runner import Result, Runner
+
+
+def dist(comp='apod', name='termapod', version_spec=None):
+    fields = {'name': name}
+    if version_spec is not None:
+        fields['version'] = version_spec
+    return ResolvedComponent(key=f'pip\\{comp}', family='pip', comp=comp, fields=fields)
+
+
+class FakeRunner:
+    def __init__(self, responses=None):
+        self.responses = responses or []
+        self.calls = []
+
+    def run(self, cmd, *, sudo=False, capture=True, tui_active=None, cwd=None, env=None):
+        full = f'sudo {cmd}' if sudo else cmd
+        self.calls.append(full)
+        for needle, code, out in self.responses:
+            if needle in cmd:
+                return Result(full, code, stdout=out)
+        return Result(full, 0, stdout='')
+
+
+def test_registered_and_unprivileged():
+    fam = get_family('pip', Runner(pretend=True))
+    assert isinstance(fam, Pip) and is_supported('pip')
+    assert fam.privileged is False
+
+
+def test_install_uninstall_upgrade_commands_are_user_space():
+    r = Runner(pretend=True)
+    Pip(r).install(dist())
+    Pip(r).uninstall(dist())
+    Pip(r).upgrade(dist())
+    assert r.calls == [
+        'python3 -m pip install --user termapod',
+        'python3 -m pip uninstall -y termapod',
+        'python3 -m pip install --user --upgrade termapod',
+    ]
+    assert all('sudo' not in c for c in r.calls)   # user-space, no root
+
+
+def test_set_version_pins():
+    r = Runner(pretend=True)
+    Pip(r).set_version(dist(), '1.4.2')
+    assert r.calls == ['python3 -m pip install --user termapod==1.4.2']
+
+
+def test_get_version_parses_pip_show():
+    show = 'Name: termapod\nVersion: 1.4.2\nSummary: astronomy pic of the day\n'
+    fr = FakeRunner([('pip show termapod', 0, show)])
+    assert Pip(fr).get_version(dist()) == '1.4.2'
+
+
+def test_get_version_not_installed():
+    fr = FakeRunner([('pip show termapod', 1, '')])   # pip show -> nonzero
+    assert Pip(fr).get_version(dist()) is None
+
+
+def test_get_latest_none_without_spec_and_no_native_lock():
+    fam = Pip(Runner(pretend=True))
+    assert fam.get_latest(dist()) is None            # no version spec
+    assert fam.is_locked(dist()) is False
+
+
+def test_get_latest_from_pypi_spec(tmp_path):
+    from configsys.paths import Paths
+    from configsys.versions import VersionCache
+    paths = Paths(env={'CONFIGSYS_HOME': str(tmp_path),
+                       'CONFIGSYS_STATE_DIR': str(tmp_path / 's')})
+    VersionCache({'pypi:termapod': {'version': '2.0.0', 'url': None,
+                                    'fetched': 1e12}}).save(paths)
+    rc = dist(version_spec={'pypi': 'termapod'})
+    assert Pip(Runner(pretend=True), paths=paths).get_latest(rc) == '2.0.0'
+
+
+def test_location_is_local_bin():
+    assert Pip(Runner(pretend=True)).location(dist()) == '~/.local/bin'

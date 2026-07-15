@@ -13,6 +13,7 @@ from .debian_font import DebianFont
 from .dotfiles import DotFiles
 from .flatpak import Flatpak
 from .gcc import Gcc
+from .pip import Pip
 from .tarball import Tarball
 
 _REGISTRY = {
@@ -25,6 +26,7 @@ _REGISTRY = {
     Cargo.name: Cargo,
     Gcc.name: Gcc,
     Clang.name: Clang,
+    Pip.name: Pip,
 }
 
 
