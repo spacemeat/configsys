@@ -20,6 +20,9 @@ _ALIASES = {
     'almalinux': 'rhel',
     'rocky': 'rhel',
     'centos': 'rhel',
+    # Arch-family: Manjaro and SteamOS (Holo) are Arch-based and share pacman + names.
+    'manjaro': 'arch',
+    'steamos': 'arch',
 }
 
 

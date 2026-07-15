@@ -1,0 +1,21 @@
+# Disposable Arch Linux (rolling) sandbox for configsys pacman/AUR integration tests.
+# base-devel provides gcc/make (humon build + AUR makepkg); the db is synced at build
+# so the pacman family's `pacman -S` (no -y) resolves.
+FROM docker.io/library/archlinux:latest
+
+RUN pacman -Syu --noconfirm --needed \
+        base-devel python python-pip git sudo ca-certificates \
+    && yes | pacman -Scc >/dev/null 2>&1 || true
+
+# Non-root user with passwordless sudo — configsys shells out to `sudo pacman`, and
+# makepkg (AUR) refuses to run as root but calls sudo internally.
+RUN useradd -m -s /bin/bash tester \
+    && echo 'tester ALL=(ALL) NOPASSWD:ALL' > /etc/sudoers.d/tester \
+    && chmod 0440 /etc/sudoers.d/tester
+
+COPY --chown=tester:tester . /home/tester/configsys
+
+USER tester
+WORKDIR /home/tester/configsys
+
+CMD ["bash", "test/integration_pacman.sh"]

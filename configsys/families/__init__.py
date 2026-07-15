@@ -15,6 +15,7 @@ from .dotfiles import DotFiles
 from .flatpak import Flatpak
 from .gcc import Gcc
 from .gcc_toolset import GccToolset
+from .pacman import Pacman
 from .pip import Pip
 from .pipx import Pipx
 from .tarball import Tarball
@@ -22,6 +23,7 @@ from .tarball import Tarball
 _REGISTRY = {
     Apt.name: Apt,
     Dnf.name: Dnf,
+    Pacman.name: Pacman,
     Tarball.name: Tarball,
     Flatpak.name: Flatpak,
     AppImage.name: AppImage,

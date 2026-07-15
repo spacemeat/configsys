@@ -51,6 +51,28 @@
         epel-release: { name: epel-release }
     }
 
+    \pacman: {
+        // Arch package names (Arch/Manjaro/SteamOS). Most match the component name;
+        // the ones that differ are translated via `name`.
+        btop: { name: btop }
+        curl: { name: curl }
+        fzf: { name: fzf }
+        ripgrep: { name: ripgrep }
+        xclip: { name: xclip }
+        flatpak: { name: flatpak }
+        fontconfig: { name: fontconfig }
+        unzip: { name: unzip }
+        firefox: { name: firefox }
+        gcc: { name: gcc }
+        make: { name: make }
+        base-devel: { name: base-devel }   // AUR build deps
+        git: { name: git }
+        python3-pip: { name: python-pip }
+        pipx: { name: python-pipx }         // dnf/apt call it pipx; Arch: python-pipx
+        cargo: { name: rust }               // cargo ships in the rust package
+        libfuse2: { name: fuse2 }           // FUSE2 runtime for appImages
+    }
+
     \pip: {
         // PyPI CLIs via `pip install --user` (-> ~/.local/bin). Now used mainly to
         // bootstrap pipx on OSs that have no apt pipx package (see "ubuntu@<23.04").
@@ -321,6 +343,22 @@
         // clang-18 isn't packaged on EL9, so it isn't routed.
         clang-19: { package: clang\clang-19  packages: [ clang19 ]  depends: [ epel-release ] }
         clang-20: { package: clang\clang-20  packages: [ clang20 ]  depends: [ epel-release ] }
+    }
+
+    arch: {
+        // Arch family (Arch, Manjaro, SteamOS all alias here). Native packages via
+        // pacman; the OS-agnostic families (flatpak, appImage, cargo, pipx, dotfiles,
+        // fonts) work unchanged. SteamOS has a read-only rootfs — `steamos-readonly
+        // disable` before pacman, or prefer flatpak\chrome etc. (which need no pacman).
+        !using: linux
+
+        *: pacman\*
+        neovim: appImage
+        chrome: flatpak\chrome
+        arduino: appImage\arduino
+        mononoki-nerd: debian-font\mononoki-nerd
+        // Versioned gcc/clang aren't in the Arch repos (rolling = one version); they
+        // come from the AUR (gcc13, clang, ...) via the \aur family.
     }
 
     // Fedora versioned toolchains, per release: the gccNN/clangNN compat window
