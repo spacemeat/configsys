@@ -38,6 +38,17 @@
         gcc-15: { link: gcc  version: 15  slaves: [ g++ ]  ppa: ubuntu-toolchain-r/test }
     }
 
+    \clang: {
+        // versioned Clang/LLVM from apt.llvm.org (the family carries the repo key +
+        // codename-specific deb line). clang++ ships inside the clang package and is
+        // registered as an update-alternatives slave. curl fetches the repo key.
+        !depends: [ build-essential, curl ]
+
+        clang-18: {}
+        clang-19: {}
+        clang-20: {}
+    }
+
     \flatpak: {
         // flatpak itself must be installed before any flatpak component; resolved
         // through the normal cascade (-> apt\flatpak on debian). Applies to all
@@ -170,6 +181,9 @@
         gcc-13: gcc\gcc-13
         gcc-14: gcc\gcc-14
         gcc-15: gcc\gcc-15
+        clang-18: clang\clang-18
+        clang-19: clang\clang-19
+        clang-20: clang\clang-20
     }
 
     ubuntu: {

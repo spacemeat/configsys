@@ -8,6 +8,7 @@ gracefully instead of crashing.
 from .appImage import AppImage
 from .apt import Apt
 from .cargo import Cargo
+from .clang import Clang
 from .debian_font import DebianFont
 from .dotfiles import DotFiles
 from .flatpak import Flatpak
@@ -23,6 +24,7 @@ _REGISTRY = {
     DebianFont.name: DebianFont,
     Cargo.name: Cargo,
     Gcc.name: Gcc,
+    Clang.name: Clang,
 }
 
 
