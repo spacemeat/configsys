@@ -16,5 +16,8 @@ command -v podman >/dev/null 2>&1 || { echo "podman not found" >&2; exit 127; }
 echo ">> building $IMAGE (base: $EL_IMAGE)"
 podman build -q -t "$IMAGE" --build-arg "EL_IMAGE=$EL_IMAGE" -f "$here/Containerfile.el9" "$repo"
 
-echo ">> EL9 gcc-toolset integration"
+echo ">> [1/2] EL9 gcc-toolset integration"
 podman run --rm "$IMAGE" bash test/integration_rhel_toolchain.sh
+
+echo ">> [2/2] EL9 EPEL + versioned clang integration"
+podman run --rm "$IMAGE" bash test/integration_rhel_epel.sh

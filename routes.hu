@@ -46,6 +46,9 @@
         // vulkan-dev X libs: libxcb-devel bundles xinput + xinerama on Fedora
         libxcb-devel: { name: libxcb-devel }
         xcb-util-cursor-devel: { name: xcb-util-cursor-devel }
+        // EL only: enables EPEL (a real package that drops the repo config). EL
+        // routes depend on it so it installs first. Harmless/unused on Fedora.
+        epel-release: { name: epel-release }
     }
 
     \pip: {
@@ -297,17 +300,27 @@
 
     rhel: {
         // RHEL family (RHEL, Rocky, AlmaLinux, CentOS Stream — all alias here).
-        // Inherits Fedora's dnf plumbing (*: dnf\*) and app routes; overrides the
-        // toolchains, which on EL come as gcc-toolset SCLs (gcc 12-15 on EL9).
-        // Note: many \dnf packages need EPEL on EL — deferred; gcc-toolset is in
-        // AppStream and needs no extra repo.
+        // Inherits Fedora's dnf plumbing (*: dnf\*) and app routes; overrides what
+        // differs on EL: EPEL packages, and the toolchains.
         !using: fedora
 
+        // Not in the EL base repos — pull epel-release first (Alma/Rocky/CentOS ship
+        // it; on RHEL proper you'd install the epel-release rpm from the EPEL URL).
+        btop:    { package: dnf\btop     depends: [ epel-release ] }
+        fzf:     { package: dnf\fzf      depends: [ epel-release ] }
+        ripgrep: { package: dnf\ripgrep  depends: [ epel-release ] }
+        xclip:   { package: dnf\xclip    depends: [ epel-release ] }
+        pipx:    { package: dnf\pipx     depends: [ epel-release ] }
+
+        // versioned GCC via gcc-toolset SCLs (AppStream, gcc 12-15 on EL9).
         gcc-13: gcc-toolset\gcc-13
         gcc-14: gcc-toolset\gcc-14
         gcc-15: gcc-toolset\gcc-15
-        // clang on EL is the system LLVM (EL9: clang 21) or llvm-toolset; there are
-        // no versioned clangNN packages, so clang-18.. aren't routed here.
+        // versioned clang via clangNN compat packages (EPEL on EL9) — same \clang
+        // family + /usr/bin/clang-N binaries as Fedora. EL9 packages clang19/clang20;
+        // clang-18 isn't packaged on EL9, so it isn't routed.
+        clang-19: { package: clang\clang-19  packages: [ clang19 ]  depends: [ epel-release ] }
+        clang-20: { package: clang\clang-20  packages: [ clang20 ]  depends: [ epel-release ] }
     }
 
     // Fedora versioned toolchains, per release: the gccNN/clangNN compat window
