@@ -80,19 +80,21 @@ class Runner:
 
     def run(self, cmd, *, sudo=False, capture=True, tui_active=None,
             cwd=None, env=None) -> Result:
-        full = f'sudo {cmd}' if sudo else cmd
+        full = f'sudo {cmd}' if sudo else cmd    # readable form for logs/tests
         self.calls.append(full)
 
         if self.pretend:
             self.echo(f'[pretend] {full}')
             return Result(full, 0, pretended=True)
 
+        # Run the WHOLE command under one shell — and, when privileged, under one
+        # root shell (`sudo bash -c '<cmd>'`). Prepending `sudo ` to a compound
+        # command would only elevate its first word and eat a leading `set -e`.
+        argv = ['sudo', 'bash', '-c', cmd] if sudo else ['bash', '-c', cmd]
         ta = self.tui_active if tui_active is None else tui_active
         with terminal_released(ta):
-            cp = subprocess.run(
-                ['bash', '-c', full],
-                capture_output=capture, text=True, cwd=cwd, env=env,
-            )
+            cp = subprocess.run(argv, capture_output=capture, text=True,
+                                cwd=cwd, env=env)
         return Result(full, cp.returncode,
                       stdout=cp.stdout if capture else '',
                       stderr=cp.stderr if capture else '')
