@@ -20,6 +20,26 @@
         pipx: { name: pipx }               // apt pipx (Ubuntu >=23.04 / Debian >=12)
     }
 
+    \dnf: {
+        // Fedora/RHEL package names (rpm world). Many match Debian; the ones that
+        // differ are translated here via each entry's `name` (e.g. libfuse2 ->
+        // fuse-libs; the -dev -> -devel convention; build-essential has no single
+        // package -> a dev-tools group, deferred). Verified against Fedora 41.
+        btop: { name: btop }
+        curl: { name: curl }
+        fzf: { name: fzf }
+        ripgrep: { name: ripgrep }
+        xclip: { name: xclip }
+        flatpak: { name: flatpak }
+        fontconfig: { name: fontconfig }
+        unzip: { name: unzip }
+        python3-pip: { name: python3-pip }
+        pipx: { name: pipx }               // dnf pipx (Fedora >=32) — no bootstrap needed
+        cargo: { name: cargo }
+        firefox: { name: firefox }         // Fedora ships firefox natively
+        libfuse2: { name: fuse-libs }      // FUSE2 runtime that appImages need
+    }
+
     \pip: {
         // PyPI CLIs via `pip install --user` (-> ~/.local/bin). Now used mainly to
         // bootstrap pipx on OSs that have no apt pipx package (see "ubuntu@<23.04").
@@ -231,6 +251,20 @@
 
     pop_os!: {
         !using: ubuntu
+    }
+
+    fedora: {
+        !using: linux
+
+        *: dnf\*                       // native packages come from dnf
+        neovim: appImage               // appImage method (needs fuse-libs -> dnf\libfuse2)
+        chrome: flatpak\chrome
+        arduino: appImage\arduino
+        mononoki-nerd: debian-font\mononoki-nerd
+        // DEFERRED on Fedora (different acquisition model, untested — see notes):
+        //   build-essential   -> @development-tools group
+        //   vulkan-dev X libs -> *-devel package names
+        //   gcc-13.. / clang-18.. versioned toolchains -> gcc-toolset / Copr
     }
 
     // Version variants: layered ahead of their base block for a matching VERSION_ID.

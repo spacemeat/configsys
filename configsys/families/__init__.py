@@ -10,6 +10,7 @@ from .apt import Apt
 from .cargo import Cargo
 from .clang import Clang
 from .debian_font import DebianFont
+from .dnf import Dnf
 from .dotfiles import DotFiles
 from .flatpak import Flatpak
 from .gcc import Gcc
@@ -19,6 +20,7 @@ from .tarball import Tarball
 
 _REGISTRY = {
     Apt.name: Apt,
+    Dnf.name: Dnf,
     Tarball.name: Tarball,
     Flatpak.name: Flatpak,
     AppImage.name: AppImage,
