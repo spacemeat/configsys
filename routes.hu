@@ -68,10 +68,13 @@
         fontconfig: { name: fontconfig }
         unzip: { name: unzip }
         firefox: { name: firefox }
-        gcc: { name: gcc }
+        gcc: { name: gcc }                  // Arch gcc includes g++
         make: { name: make }
         base-devel: { name: base-devel }   // AUR build deps
         git: { name: git }
+        // vulkan-dev X libs: Arch's libxcb bundles xinput + xinerama (like Fedora)
+        libxcb: { name: libxcb }
+        xcb-util-cursor: { name: xcb-util-cursor }
         python3-pip: { name: python-pip }
         pipx: { name: python-pipx }         // dnf/apt call it pipx; Arch: python-pipx
         cargo: { name: rust }               // cargo ships in the rust package
@@ -389,6 +392,12 @@
         // Vulkan runtime: Arch splits the ICD per GPU, so install the loader + both
         // common HW ICDs + the software fallback (lavapipe). Ensure-present, unlocked.
         vulkan-runtime: [ vulkan-icd-loader, vulkan-radeon, vulkan-intel, vulkan-swrast ]
+
+        // build-essential: Arch's gcc bundles g++, so the equivalent is gcc + make.
+        build-essential: [ gcc, make ]
+        // vulkan-dev: libxcb bundles the xinput + xinerama libs; vulkan-sdk is the
+        // OS-agnostic tarball; vulkan-runtime the loader + ICDs.
+        vulkan-dev: [ libxcb, xcb-util-cursor, build-essential, vulkan-sdk, vulkan-runtime ]
         // Versioned gcc/clang aren't in the Arch repos (rolling = one version); they
         // come from the AUR (gcc13, clang, ...) via the \aur family — heavy source
         // builds, so not wired into a profile here (add e.g. `gcc-13: aur\gcc13`).

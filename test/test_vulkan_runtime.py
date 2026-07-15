@@ -38,3 +38,17 @@ def test_user_profile_includes_vulkan_runtime():
     user = cfg.root['user']
     names = [user[i].value for i in range(user.num_children)]
     assert 'vulkan-runtime' in names
+
+
+def test_vulkan_dev_resolves_on_arch():
+    # the graphics profile now resolves on Arch too: X libs collapse to libxcb +
+    # xcb-util-cursor, build-essential -> gcc + make, plus runtime + the sdk tarball
+    units = RouteResolver(humon.from_file(ROUTES), 'arch', '20260712').resolve_names(['vulkan-dev'])
+    for key in ('pacman\\libxcb', 'pacman\\xcb-util-cursor', 'pacman\\gcc',
+                'pacman\\make', 'pacman\\vulkan-icd-loader', 'tarball\\vulkan-sdk'):
+        assert key in units
+
+
+def test_build_essential_on_arch_is_gcc_and_make():
+    units = RouteResolver(humon.from_file(ROUTES), 'arch', '20260712').resolve_names(['build-essential'])
+    assert set(units) == {'pacman\\gcc', 'pacman\\make'}

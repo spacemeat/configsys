@@ -18,5 +18,8 @@ podman build -q -t "$IMAGE" -f "$here/Containerfile.arch" "$repo"
 echo ">> [1/2] pacman lifecycle cycle (PKG=$PKG)"
 podman run --rm -e "PKG=$PKG" "$IMAGE" bash test/integration_pacman.sh
 
-echo ">> [2/2] AUR build/install/remove (makepkg)"
+echo ">> [2/3] AUR build/install/remove (makepkg)"
 podman run --rm "$IMAGE" bash test/integration_aur.sh
+
+echo ">> [3/3] Arch vulkan-dev pieces (build-essential, xcb, Vulkan runtime)"
+podman run --rm "$IMAGE" bash test/integration_arch_graphics.sh
