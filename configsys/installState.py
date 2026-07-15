@@ -25,6 +25,7 @@ class ComponentState:
     lock_source: Optional[str]   # 'native' | 'ledger' | 'both' | None
     managed: bool
     error: Optional[str]
+    scope: Optional[str] = None  # 'user' | 'system' | None (unsupported family)
 
     @property
     def key(self):
@@ -98,4 +99,5 @@ class InstallState:
         return ComponentState(
             component=rc, supported=True, present=version is not None,
             installed_version=version, latest_version=latest,
-            locked=locked, lock_source=lock_source, managed=managed, error=None)
+            locked=locked, lock_source=lock_source, managed=managed, error=None,
+            scope=fam.scope(rc))

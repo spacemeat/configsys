@@ -31,6 +31,7 @@ class Flatpak(Family):
     # -- helpers ----------------------------------------------------------
 
     default_scope = 'user'
+    honors_scope = True
 
     @staticmethod
     def _appid(rc):

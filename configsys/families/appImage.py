@@ -25,6 +25,7 @@ class AppImage(Family):
     name = 'appImage'
     privileged = False
     default_scope = 'user'
+    honors_scope = True
 
     # -- locations --------------------------------------------------------
 

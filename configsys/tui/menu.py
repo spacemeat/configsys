@@ -91,6 +91,13 @@ class Node:
             return (m.latest_version or '—') if m.supported else ''
         return ''
 
+    def scope_str(self):
+        if self.kind == UNIT:
+            return self.members[0].scope or ''
+        # groups: show the scope only if every unit agrees
+        scopes = {m.scope for m in self.members if m.scope}
+        return next(iter(scopes)) if len(scopes) == 1 else ''
+
     def summary(self):
         present = sum(1 for m in self.members if m.present)
         return f'{self.label}: {present}/{len(self.members)} of its units installed'
@@ -354,7 +361,7 @@ def _confirm_and_execute(stdscr, pal, ms, ctx, ledger):
 # -- rendering ------------------------------------------------------------
 
 # column start positions
-NAME_X, FAM_X, STATUS_X, INST_X, LATEST_X = 3, 30, 42, 54, 71
+NAME_X, FAM_X, SCOPE_X, STATUS_X, INST_X, LATEST_X = 3, 27, 39, 47, 58, 75
 
 
 def _fit(s, width):
@@ -385,9 +392,11 @@ def _infoblock(ms, ctx):
     rc = m.component
     if not m.supported:
         return f' {rc.family}\\{rc.comp}   ·   family not yet supported', ''
-    parts = [f'{rc.family}\\{rc.comp}',
-             f'installed: {m.installed_version or "—"}',
-             f'latest: {m.latest_version or "—"}']
+    parts = [f'{rc.family}\\{rc.comp}']
+    if m.scope:
+        parts.append(f'scope: {m.scope}')
+    parts += [f'installed: {m.installed_version or "—"}',
+              f'latest: {m.latest_version or "—"}']
     if m.locked:
         parts.append('version-locked')
     fam = get_family(rc.family, ctx.runner, ctx.paths)
@@ -409,6 +418,7 @@ def _draw(stdscr, pal, ms, ctx, note):
     hattr = pal.get('dim') | curses.A_BOLD
     _put(stdscr, 3, NAME_X, 'COMPONENT', hattr)
     _put(stdscr, 3, FAM_X, 'FAMILY', hattr)
+    _put(stdscr, 3, SCOPE_X, 'SCOPE', hattr)
     _put(stdscr, 3, STATUS_X, 'STATUS', hattr)
     _put(stdscr, 3, INST_X, 'INSTALLED', hattr)
     _put(stdscr, 3, LATEST_X, 'LATEST', hattr)
@@ -443,8 +453,12 @@ def _draw(stdscr, pal, ms, ctx, note):
         _put(stdscr, y, 1, badge, battr | base)
         _put(stdscr, y, NAME_X, _fit(name, FAM_X - NAME_X - 1).ljust(FAM_X - NAME_X - 1),
              name_attr)
-        _put(stdscr, y, FAM_X, _fit(n.family, FAM_X - 1).ljust(STATUS_X - FAM_X - 1),
+        _put(stdscr, y, FAM_X, _fit(n.family, SCOPE_X - FAM_X - 1).ljust(SCOPE_X - FAM_X - 1),
              base | pal.get('dim'))
+        scope = n.scope_str()
+        scope_attr = pal.get('accent' if scope == 'system' else 'dim')
+        _put(stdscr, y, SCOPE_X, _fit(scope, STATUS_X - SCOPE_X - 1).ljust(STATUS_X - SCOPE_X - 1),
+             base | scope_attr)
 
         st = n.status
         _put(stdscr, y, STATUS_X, _fit(st, INST_X - STATUS_X - 1).ljust(INST_X - STATUS_X - 1),

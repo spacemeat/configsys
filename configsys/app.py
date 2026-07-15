@@ -69,12 +69,15 @@ class Context:
         return self._config
 
     def apply_scope_default(self, units):
-        '''Stamp the machine-wide scope default onto units that don't set `scope`
-        in their route (component field wins; family default fills the rest).'''
+        '''Stamp the machine-wide scope default onto units whose family *honors*
+        scope and that don't set `scope` in their route (component field wins). Apt
+        (always system) and cargo/dotfiles (per-user) are left alone.'''
         default = self.config.default_scope()
         if default:
             for rc in units.values():
-                rc.fields.setdefault('scope', default)
+                fam = get_family(rc.family, self.runner, self.paths)
+                if fam is not None and fam.honors_scope:
+                    rc.fields.setdefault('scope', default)
         return units
 
     def ensure_user_config(self):

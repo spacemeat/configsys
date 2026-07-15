@@ -19,6 +19,7 @@ class Tarball(Family):
     name = 'tarball'
     privileged = False
     default_scope = 'user'
+    honors_scope = True
 
     # -- locations --------------------------------------------------------
 

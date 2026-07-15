@@ -13,6 +13,7 @@ from ..component import Family
 class Apt(Family):
     name = 'apt'
     privileged = True
+    default_scope = 'system'   # apt packages are system-wide (fixed)
 
     # -- prerequisites ----------------------------------------------------
 

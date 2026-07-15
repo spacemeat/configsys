@@ -22,6 +22,7 @@ class DebianFont(Family):
     name = 'debian-font'
     privileged = False
     default_scope = 'user'
+    honors_scope = True
 
     # -- locations --------------------------------------------------------
 

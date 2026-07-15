@@ -16,15 +16,24 @@ SYSTEM_PREFIX = Path('/opt')
 
 
 class Family:
-    name = None            # subclasses set, e.g. 'apt'
-    privileged = False     # True if mutating ops need sudo
-    default_scope = 'user'  # families that honor scope may override
+    name = None             # subclasses set, e.g. 'apt'
+    privileged = False      # True if mutating ops need sudo
+    default_scope = 'user'  # this family's scope when not overridden
+    honors_scope = False    # True if user/system is selectable (flatpak, tarball, ...)
 
     def __init__(self, runner, paths=None):
         self.runner = runner
         self.paths = paths   # for families that touch the filesystem (tarball, ...)
 
     # -- scope helpers (shared by scope-aware families) -------------------
+
+    def scope(self, rc):
+        '''The scope this component installs to, for display. Scope-honoring
+        families take a route/config override; the rest have a fixed scope (apt is
+        always system; cargo/dotfiles are per-user).'''
+        if self.honors_scope:
+            return rc.fields.get('scope') or self.default_scope
+        return self.default_scope
 
     def _scope(self, rc):
         '''Effective install scope for a component (field wins; else family default).'''
