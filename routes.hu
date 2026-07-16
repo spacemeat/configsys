@@ -193,6 +193,19 @@
                 depends: [ dotfiles\neovim tree-sitter-cli ]         // method-specific
             }
         }
+        steam: {
+            // hybrid: native (apt) on Pop!_OS (NVIDIA rig — no flatpak GL-extension
+            // matching), flatpak everywhere else. The OS block picks the method:
+            // `steam: flatpak` in the linux root (default), `steam: apt` in pop_os!.
+            flatpak: {
+                hub: flathub
+                name: com.valvesoftware.Steam                        // uniform, self-contained runtime
+            }
+            apt: {
+                name: "steam:i386"                                   // Pop ships Steam as a 32-bit package (main repo)
+                foreign-arch: i386                                   // enable i386 multiarch first (idempotent)
+            }
+        }
     }
 
     \appImage: {
@@ -290,6 +303,9 @@
         tree-sitter-cli: [ cargo\tree-sitter-cli ]
         // termapod (PyPI CLI) + its shell-startup hook; OS-agnostic
         apod: [ pipx\apod, dotfiles\apod ]
+        // Steam: flatpak by default on every OS (uniform, self-contained). pop_os!
+        // overrides to the native apt method (see below).
+        steam: flatpak
     }
 
     debian: {
@@ -325,6 +341,10 @@
 
     pop_os!: {
         !using: ubuntu
+
+        // native Steam on the NVIDIA gaming rig: steam:i386 from Pop's main repo,
+        // with i386 multiarch ensured. Avoids the flatpak NVIDIA GL-extension dance.
+        steam: apt
     }
 
     fedora: {

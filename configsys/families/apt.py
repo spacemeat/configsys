@@ -25,10 +25,20 @@ class Apt(Family):
 
     def ensure_prereqs(self, rc):
         '''System setup a component needs before it can install, declared on its
-        route: archive components to enable (`repo-component`) and third-party
-        signing key + source list (`pubkey-*`/`source-*`). Idempotent — a source
-        is only fetched (and apt updated) when its file is missing.'''
+        route: extra CPU architectures to enable (`foreign-arch`, e.g. i386 for
+        Steam), archive components (`repo-component`), and third-party signing key +
+        source list (`pubkey-*`/`source-*`). Idempotent — each step is skipped when
+        already satisfied.'''
         f = rc.fields
+
+        for arch in self._as_list(f.get('foreign-arch')):
+            a = shlex.quote(arch)
+            # enable the multiarch once (idempotent), then refresh lists so its
+            # packages become visible. `steam:i386` needs i386 on an amd64 host.
+            self.runner.run(
+                f'if ! dpkg --print-foreign-architectures | grep -qx {a}; then '
+                f'dpkg --add-architecture {a} && apt-get update; fi',
+                sudo=True, capture=False)
 
         for comp in self._as_list(f.get('repo-component')):
             c = shlex.quote(comp)
