@@ -18,6 +18,7 @@
         mononoki-nerd
         apod
         vulkan-runtime      // loader + mesa Vulkan ICDs; no-op where a DE already has them
+        steam
     ]
     dev: [
         cargo
