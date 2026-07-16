@@ -12,6 +12,7 @@
         firefox
         chrome
         neovim
+        fastfetch
         fzf
         ripgrep
         xclip
