@@ -22,5 +22,8 @@ podman run --rm -e "PKG=$PKG" "$IMAGE" bash test/integration_apt.sh
 echo ">> [2/3] system-prerequisite (repo-component) test (PKG=$PKG)"
 podman run --rm -e "PKG=$PKG" "$IMAGE" bash test/integration_prereq.sh
 
-echo ">> [3/3] i386 multiarch prereq (behind native Steam)"
+echo ">> [3/4] i386 multiarch prereq (behind native Steam)"
 podman run --rm "$IMAGE" bash test/integration_i386_multiarch.sh
+
+echo ">> [4/4] fastfetch via github .deb (apt deb mode)"
+podman run --rm "$IMAGE" bash test/integration_fastfetch_deb.sh
