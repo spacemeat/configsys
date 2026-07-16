@@ -1,0 +1,38 @@
+// routing-model v2 data (see docs/routing-model.md). Built in parallel with routes.hu;
+// components are ported here and proven equivalent by test/test_v2_equivalence.py.
+{
+    // OS layer: lineage (`using`) + which package manager is `native` + version scales.
+    os: {
+        linux:   { }
+        debian:  { using: linux    native: apt      scale-root: true }
+        ubuntu:  { using: debian    scale-root: true }
+        pop_os!: { using: ubuntu }
+        fedora:  { using: linux     native: dnf      scale-root: true }
+        rhel:    { using: fedora }
+        arch:    { using: linux     native: pacman }
+    }
+
+    // Component layer: each is a capability + a list of context-selected bindings.
+    components: {
+        // trivial native, same name everywhere
+        btop: { install: [ { via: native } ] }
+
+        // native, package name differs by manager
+        libfuse2: {
+            install: [ { via: native  name: { dnf: fuse-libs  pacman: fuse2  default: libfuse2 } } ]
+        }
+
+        // single non-native mechanism (flatpak everywhere)
+        chrome: {
+            install: [ { via: flatpak  app: com.google.Chrome } ]
+        }
+
+        // when:-varying: native on Pop (the NVIDIA rig), flatpak elsewhere
+        steam: {
+            install: [
+                { via: native   when: "pop_os!"  name: "steam:i386"  foreign-arch: i386 }
+                { via: flatpak  app: com.valvesoftware.Steam }
+            ]
+        }
+    }
+}
