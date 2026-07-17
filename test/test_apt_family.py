@@ -180,6 +180,27 @@ def test_apt_key_and_source_prereq_still_supported():
     assert r.calls == [key_cmd, src_cmd, 'sudo apt-get install -y thing']
 
 
+def test_source_line_writes_inline_deb_repo():
+    # vendor repos with no downloadable .list (e.g. Microsoft's vscode) echo a deb line.
+    comp = ResolvedComponent(key='apt\\code', family='apt', comp='vscode', fields={
+        'name': 'code',
+        'pubkey-url': 'https://packages.microsoft.com/keys/microsoft.asc',
+        'pubkey-path': '/usr/share/keyrings/packages.microsoft.asc',
+        'source-line': 'deb [signed-by=/usr/share/keyrings/packages.microsoft.asc] '
+                       'https://packages.microsoft.com/repos/code stable main',
+        'source-path': '/etc/apt/sources.list.d/vscode.list',
+    })
+    r = Runner(pretend=True)
+    Apt(r).install(comp)
+    assert r.calls[-1] == 'sudo apt-get install -y code'
+    src_cmd = ("if [ ! -f /etc/apt/sources.list.d/vscode.list ]; then echo 'deb "
+               '[signed-by=/usr/share/keyrings/packages.microsoft.asc] '
+               "https://packages.microsoft.com/repos/code stable main' "
+               '| sudo tee /etc/apt/sources.list.d/vscode.list >/dev/null '
+               '&& sudo apt-get update; fi')
+    assert src_cmd in r.calls
+
+
 def test_no_prereqs_when_none_declared():
     r = Runner(pretend=True)
     Apt(r).install(rc('build-essential'))  # main package, no repo-component

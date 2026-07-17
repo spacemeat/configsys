@@ -41,6 +41,29 @@ def test_install_uninstall_upgrade_commands():
     ]
 
 
+def test_vendor_repo_prereqs_before_install():
+    # a third-party repo (e.g. Microsoft's vscode): import the key, drop a .repo file,
+    # then install. The .repo write is idempotent (guarded on the file existing).
+    comp = ResolvedComponent(key='dnf\\vscode', family='dnf', comp='vscode', fields={
+        'name': 'code',
+        'pubkey-url': 'https://packages.microsoft.com/keys/microsoft.asc',
+        'repo-id': 'code', 'repo-name': 'Visual Studio Code',
+        'repo-url': 'https://packages.microsoft.com/yumrepos/vscode'})
+    r = Runner(pretend=True)
+    Dnf(r).install(comp)
+    assert r.calls[0] == 'sudo rpm --import https://packages.microsoft.com/keys/microsoft.asc'
+    assert r.calls[-1] == 'sudo dnf install -y code'
+    repo_write = next(c for c in r.calls if '/etc/yum.repos.d/code.repo' in c)
+    assert 'baseurl=https://packages.microsoft.com/yumrepos/vscode' in repo_write
+    assert '[code]' in repo_write and 'gpgcheck=1' in repo_write
+
+
+def test_no_repo_prereqs_for_a_plain_package():
+    r = Runner(pretend=True)
+    Dnf(r).install(pkg())            # no repo-id/pubkey -> straight install
+    assert r.calls == ['sudo dnf install -y btop']
+
+
 def test_set_version_falls_back_to_downgrade():
     r = Runner(pretend=True)
     Dnf(r).set_version(pkg(), '1.4.3')

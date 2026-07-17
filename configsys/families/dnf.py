@@ -53,9 +53,30 @@ class Dnf(Family):
                 return True   # dnf4 format fallback
         return False
 
+    # -- prerequisites ----------------------------------------------------
+
+    def ensure_prereqs(self, rc):
+        '''Third-party dnf repo setup declared on the route: import the signing key
+        (`pubkey-url`) and drop a .repo file (`repo-id`/`repo-name`/`repo-url`, gpgkey =
+        pubkey-url). Idempotent — the .repo write is skipped when it already exists.'''
+        f = rc.fields
+        key = f.get('pubkey-url')
+        if key:
+            self.runner.run(f'rpm --import {shlex.quote(key)}', sudo=True, capture=False)
+        repo_id, repo_url = f.get('repo-id'), f.get('repo-url')
+        if repo_id and repo_url:
+            name = f.get('repo-name', repo_id)
+            content = (f'[{repo_id}]\nname={name}\nbaseurl={repo_url}\n'
+                       f'enabled=1\ngpgcheck=1\ngpgkey={key}\n')
+            path = shlex.quote(f'/etc/yum.repos.d/{repo_id}.repo')
+            self.runner.run(
+                f'[ -f {path} ] || printf %s {shlex.quote(content)} | sudo tee {path} >/dev/null',
+                capture=False)
+
     # -- mutate -----------------------------------------------------------
 
     def install(self, rc):
+        self.ensure_prereqs(rc)
         pkg = shlex.quote(rc.name)
         return self.runner.run(f'dnf install -y {pkg}', sudo=True, capture=False)
 
@@ -64,10 +85,12 @@ class Dnf(Family):
         return self.runner.run(f'dnf remove -y {pkg}', sudo=True, capture=False)
 
     def upgrade(self, rc):
+        self.ensure_prereqs(rc)
         pkg = shlex.quote(rc.name)
         return self.runner.run(f'dnf upgrade -y {pkg}', sudo=True, capture=False)
 
     def set_version(self, rc, version):
+        self.ensure_prereqs(rc)
         spec = shlex.quote(f'{rc.name}-{version}')
         # install covers same-or-upgrade; a lower target needs the downgrade verb
         return self.runner.run(f'dnf install -y {spec} || dnf downgrade -y {spec}',

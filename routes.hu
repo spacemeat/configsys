@@ -235,6 +235,25 @@
             install: [ { via: native } ]
         }
 
+        // vscode: native from Microsoft's vendor repos. Debian/Ubuntu/Pop use the MS apt
+        // repo (key + an inline `deb` source-line -> package `code`); Fedora/EL use the MS
+        // dnf repo (key + a .repo file); Arch builds `visual-studio-code-bin` from the AUR
+        // (the OSS `code` in the Arch repos is a different, unbranded build).
+        vscode: {
+            install: [
+                { via: native  when: "debian"  name: code
+                  pubkey-url: "https://packages.microsoft.com/keys/microsoft.asc"
+                  pubkey-path: /usr/share/keyrings/packages.microsoft.asc
+                  source-line: "deb [arch=amd64,arm64,armhf signed-by=/usr/share/keyrings/packages.microsoft.asc] https://packages.microsoft.com/repos/code stable main"
+                  source-path: /etc/apt/sources.list.d/vscode.list }
+                { via: native  when: "redhat"  name: code
+                  pubkey-url: "https://packages.microsoft.com/keys/microsoft.asc"
+                  repo-id: code  repo-name: "Visual Studio Code"
+                  repo-url: "https://packages.microsoft.com/yumrepos/vscode" }
+                { via: aur  when: "arch"  name: visual-studio-code-bin }
+            ]
+        }
+
         // --- AUR: packages built from PKGBUILD via makepkg -si (Arch only). The `aur`
         // mechanism pulls base-devel + git (the build toolchain); yay is the AUR helper
         // itself, prebuilt (-bin). Guarded to arch — the mechanism has no meaning elsewhere.

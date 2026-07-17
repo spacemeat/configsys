@@ -59,6 +59,15 @@ class Apt(Family):
                 f'if [ ! -f {sp} ]; then sudo curl -fsSL {su} -o {sp} '
                 f'&& sudo apt-get update; fi', capture=False)
 
+        # `source-line`: an inline `deb ...` line written to source-path (for vendor repos
+        # like Microsoft's that ship no downloadable .list — you echo the line yourself).
+        src_line = f.get('source-line')
+        if src_line and src_path:
+            sp, sl = shlex.quote(src_path), shlex.quote(src_line)
+            self.runner.run(
+                f'if [ ! -f {sp} ]; then echo {sl} | sudo tee {sp} >/dev/null '
+                f'&& sudo apt-get update; fi', capture=False)
+
     # -- read -------------------------------------------------------------
 
     def get_version(self, rc):

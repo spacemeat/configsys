@@ -552,6 +552,29 @@
     "name": "unzip"
    }
   },
+  "vscode": {
+   "aur\\vscode": {
+    "family": "aur",
+    "fields": {
+     "name": "visual-studio-code-bin"
+    },
+    "name": "visual-studio-code-bin"
+   },
+   "pacman\\base-devel": {
+    "family": "pacman",
+    "fields": {
+     "name": "base-devel"
+    },
+    "name": "base-devel"
+   },
+   "pacman\\git": {
+    "family": "pacman",
+    "fields": {
+     "name": "git"
+    },
+    "name": "git"
+   }
+  },
   "vulkan-dev": {
    "dotfiles\\bash-dotfiles": {
     "family": "dotfiles",
@@ -1681,6 +1704,19 @@
     "name": "unzip"
    }
   },
+  "vscode": {
+   "apt\\vscode": {
+    "family": "apt",
+    "fields": {
+     "name": "code",
+     "pubkey-path": "/usr/share/keyrings/packages.microsoft.asc",
+     "pubkey-url": "https://packages.microsoft.com/keys/microsoft.asc",
+     "source-line": "deb [arch=amd64,arm64,armhf signed-by=/usr/share/keyrings/packages.microsoft.asc] https://packages.microsoft.com/repos/code stable main",
+     "source-path": "/etc/apt/sources.list.d/vscode.list"
+    },
+    "name": "code"
+   }
+  },
   "vulkan-dev": {
    "apt\\build-essential": {
     "family": "apt",
@@ -2739,6 +2775,19 @@
     "name": "unzip"
    }
   },
+  "vscode": {
+   "apt\\vscode": {
+    "family": "apt",
+    "fields": {
+     "name": "code",
+     "pubkey-path": "/usr/share/keyrings/packages.microsoft.asc",
+     "pubkey-url": "https://packages.microsoft.com/keys/microsoft.asc",
+     "source-line": "deb [arch=amd64,arm64,armhf signed-by=/usr/share/keyrings/packages.microsoft.asc] https://packages.microsoft.com/repos/code stable main",
+     "source-path": "/etc/apt/sources.list.d/vscode.list"
+    },
+    "name": "code"
+   }
+  },
   "vulkan-dev": {
    "apt\\build-essential": {
     "family": "apt",
@@ -3551,6 +3600,19 @@
      "name": "unzip"
     },
     "name": "unzip"
+   }
+  },
+  "vscode": {
+   "dnf\\vscode": {
+    "family": "dnf",
+    "fields": {
+     "name": "code",
+     "pubkey-url": "https://packages.microsoft.com/keys/microsoft.asc",
+     "repo-id": "code",
+     "repo-name": "Visual Studio Code",
+     "repo-url": "https://packages.microsoft.com/yumrepos/vscode"
+    },
+    "name": "code"
    }
   },
   "vulkan-dev": {
@@ -4381,6 +4443,19 @@
      "name": "unzip"
     },
     "name": "unzip"
+   }
+  },
+  "vscode": {
+   "dnf\\vscode": {
+    "family": "dnf",
+    "fields": {
+     "name": "code",
+     "pubkey-url": "https://packages.microsoft.com/keys/microsoft.asc",
+     "repo-id": "code",
+     "repo-name": "Visual Studio Code",
+     "repo-url": "https://packages.microsoft.com/yumrepos/vscode"
+    },
+    "name": "code"
    }
   },
   "vulkan-dev": {
@@ -5458,6 +5533,19 @@
     "name": "unzip"
    }
   },
+  "vscode": {
+   "apt\\vscode": {
+    "family": "apt",
+    "fields": {
+     "name": "code",
+     "pubkey-path": "/usr/share/keyrings/packages.microsoft.asc",
+     "pubkey-url": "https://packages.microsoft.com/keys/microsoft.asc",
+     "source-line": "deb [arch=amd64,arm64,armhf signed-by=/usr/share/keyrings/packages.microsoft.asc] https://packages.microsoft.com/repos/code stable main",
+     "source-path": "/etc/apt/sources.list.d/vscode.list"
+    },
+    "name": "code"
+   }
+  },
   "vulkan-dev": {
    "apt\\build-essential": {
     "family": "apt",
@@ -6352,6 +6440,19 @@
      "name": "unzip"
     },
     "name": "unzip"
+   }
+  },
+  "vscode": {
+   "dnf\\vscode": {
+    "family": "dnf",
+    "fields": {
+     "name": "code",
+     "pubkey-url": "https://packages.microsoft.com/keys/microsoft.asc",
+     "repo-id": "code",
+     "repo-name": "Visual Studio Code",
+     "repo-url": "https://packages.microsoft.com/yumrepos/vscode"
+    },
+    "name": "code"
    }
   },
   "vulkan-dev": {
@@ -7442,6 +7543,19 @@
     "name": "unzip"
    }
   },
+  "vscode": {
+   "apt\\vscode": {
+    "family": "apt",
+    "fields": {
+     "name": "code",
+     "pubkey-path": "/usr/share/keyrings/packages.microsoft.asc",
+     "pubkey-url": "https://packages.microsoft.com/keys/microsoft.asc",
+     "source-line": "deb [arch=amd64,arm64,armhf signed-by=/usr/share/keyrings/packages.microsoft.asc] https://packages.microsoft.com/repos/code stable main",
+     "source-path": "/etc/apt/sources.list.d/vscode.list"
+    },
+    "name": "code"
+   }
+  },
   "vulkan-dev": {
    "apt\\build-essential": {
     "family": "apt",
@@ -8498,6 +8612,19 @@
      "name": "unzip"
     },
     "name": "unzip"
+   }
+  },
+  "vscode": {
+   "apt\\vscode": {
+    "family": "apt",
+    "fields": {
+     "name": "code",
+     "pubkey-path": "/usr/share/keyrings/packages.microsoft.asc",
+     "pubkey-url": "https://packages.microsoft.com/keys/microsoft.asc",
+     "source-line": "deb [arch=amd64,arm64,armhf signed-by=/usr/share/keyrings/packages.microsoft.asc] https://packages.microsoft.com/repos/code stable main",
+     "source-path": "/etc/apt/sources.list.d/vscode.list"
+    },
+    "name": "code"
    }
   },
   "vulkan-dev": {

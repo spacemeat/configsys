@@ -31,6 +31,8 @@
         clang-18
         clang-19
         clang-20
+        gdb
+        vscode
     ]
     uc-dev: [
         build-essential
