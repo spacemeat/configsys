@@ -328,6 +328,59 @@ def cmd_where(ctx, args):
     return 0
 
 
+# -- check: lint the merged config ----------------------------------------
+
+def _issue_loc(issue, paths):
+    if issue.component is None:
+        return ''
+    src = ''
+    if issue.source in (str(paths.user_config_file), paths.user_config_file):
+        src = ' [~/configsys.hu]'
+    elif issue.source in (str(paths.routes_file), paths.routes_file):
+        src = ' [routes.hu]'
+    return f"component '{issue.component}'{src}: "
+
+
+def cmd_check(ctx, args):
+    '''Lint the whole merged config (repo + your ~/configsys.hu) without installing.'''
+    from . import routes, routecheck
+    try:
+        cascade, components, mechanisms = routes.load(
+            ctx.paths.routes_file, ctx.paths.user_config_file, validate=False)
+    except ConfigsysError as e:
+        print(f'configsys: {e}')          # a parse/structural error before we can lint
+        return 1
+
+    issues = routecheck.validate(components, cascade, mechanisms)
+
+    # profile references: a selected profile naming a component that doesn't exist
+    prof_issues = []
+    try:
+        for prof in ctx.config.active_profiles:
+            for cname in ctx.config.profile_components(prof):
+                if cname not in components:
+                    prof_issues.append((prof, cname))
+    except ConfigsysError:
+        pass  # malformed profiles surface on their own path
+
+    errors = [i for i in issues if i.is_error]
+    warnings = [i for i in issues if not i.is_error]
+    if not errors and not warnings and not prof_issues:
+        print(f'configsys: OK — {len(components)} components, no issues')
+        return 0
+
+    for i in errors:
+        print(f'  ERROR   {_issue_loc(i, ctx.paths)}{i.message}')
+    for prof, cname in prof_issues:
+        print(f"  ERROR   profile '{prof}': unknown component '{cname}'")
+    for i in warnings:
+        print(f'  warn    {_issue_loc(i, ctx.paths)}{i.message}')
+    n_err = len(errors) + len(prof_issues)
+    print(f'\nconfigsys: {n_err} error(s), {len(warnings)} warning(s) '
+          f'across {len(components)} components')
+    return 1 if n_err else 0
+
+
 # -- argument parsing -----------------------------------------------------
 
 def build_parser():
@@ -358,6 +411,9 @@ def build_parser():
                                       'it resolves on this machine')
     wh.add_argument('name', help='component name')
 
+    sub.add_parser('check', help='lint the merged config (repo + ~/configsys.hu) without '
+                                 'installing')
+
     sub.add_parser('refresh', help='re-query latest versions from their sources')
     sub.add_parser('tui', help='interactive TUI (default)')
     return p
@@ -372,6 +428,7 @@ _COMMANDS = {
     'unlock': cmd_unlock,
     'set-version': cmd_set_version,
     'where': cmd_where,
+    'check': cmd_check,
     'refresh': cmd_refresh,
     'tui': cmd_tui,
 }

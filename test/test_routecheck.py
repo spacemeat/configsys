@@ -98,3 +98,65 @@ def test_package_pulls_its_dotfiles_component():
     keys = set(r.resolve_names(['vulkan-sdk']))
     assert 'dotfiles\\vulkan-sdk-dotfiles' in keys
     assert 'tarball\\vulkan-sdk' in keys
+
+
+# -- the full lint: validate() -------------------------------------------
+
+def _comp(name, spec):
+    from configsys.routes import Component
+    c = Component(name, spec)
+    c.source = 'routes.hu'
+    return c
+
+
+def _validate(cascade, extra):
+    '''Run validate() over the real components plus some hand-built extras.'''
+    from configsys import routes, routecheck
+    _c, components, mechanisms = routes.load(
+        os.path.join(os.path.dirname(__file__), '..', 'routes.hu'), validate=False)
+    for name, comp in extra.items():
+        components[name] = comp
+    return routecheck.validate(components, cascade, mechanisms)
+
+
+def test_validate_clean_routes_has_no_issues(cascade):
+    from configsys import routes, routecheck
+    _c, components, mechanisms = routes.load(
+        os.path.join(os.path.dirname(__file__), '..', 'routes.hu'), validate=False)
+    assert routecheck.validate(components, cascade, mechanisms) == []
+
+
+def _kinds(issues, name):
+    return {i.kind for i in issues if i.component == name}
+
+
+def test_validate_flags_unknown_via(cascade):
+    issues = _validate(cascade, {'x': _comp('x', {'install': [{'via': 'zypper'}]})})
+    assert 'unknown-via' in _kinds(issues, 'x')
+    assert any(i.is_error for i in issues if i.component == 'x')
+
+
+def test_validate_flags_unknown_os_in_when_as_warning(cascade):
+    issues = _validate(cascade, {'x': _comp('x', {'install': [{'via': 'native', 'when': 'opensuse'}]})})
+    xs = [i for i in issues if i.component == 'x']
+    assert xs and xs[0].kind == 'unknown-os' and not xs[0].is_error
+
+
+def test_validate_flags_dangling_requires_as_warning(cascade):
+    issues = _validate(cascade, {'x': _comp('x', {'requires': 'nope-cap', 'install': [{'via': 'native'}]})})
+    xs = [i for i in issues if i.component == 'x']
+    assert xs and xs[0].kind == 'dangling-requires' and not xs[0].is_error
+
+
+def test_validate_flags_unknown_part(cascade):
+    issues = _validate(cascade, {'x': _comp('x', {'install': [{'via': 'parts', 'parts': ['btop', 'ghost']}]})})
+    assert 'unknown-part' in _kinds(issues, 'x')
+
+
+def test_validate_removed_component_provides_nothing(cascade):
+    # a `{}` removed component doesn't satisfy a requires (matches resolve-time behavior)
+    issues = _validate(cascade, {
+        'gone': _comp('gone', {}),
+        'x':    _comp('x', {'requires': 'gone', 'install': [{'via': 'native'}]}),
+    })
+    assert 'dangling-requires' in _kinds(issues, 'x')

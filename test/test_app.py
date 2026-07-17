@@ -70,3 +70,27 @@ def test_where_unknown_component_exits_one(tmp_path, capsys):
     rc = main(base_args(tmp_path) + ['where', 'no-such-thing'])
     assert rc == 1
     assert 'unknown component' in capsys.readouterr().out
+
+
+def test_check_clean_config_is_ok(tmp_path, capsys):
+    rc = main(base_args(tmp_path) + ['check'])
+    assert rc == 0
+    assert 'no issues' in capsys.readouterr().out
+
+
+def test_check_reports_errors_and_warnings_with_exit_code(tmp_path, capsys):
+    (tmp_path / 'configsys.hu').write_text('''{
+        configs: [ mine ]
+        profiles: { mine: [ btop, ghosttool ] }
+        components: {
+            bad-via: { install: [ { via: zypper } ] }
+            bad-req: { install: [ { via: native  requires: nope } ] }
+        }
+    }''')
+    rc = main(base_args(tmp_path) + ['check'])
+    out = capsys.readouterr().out
+    assert rc == 1                                   # has errors
+    assert "via:'zypper' is not a known mechanism" in out
+    assert "profile 'mine': unknown component 'ghosttool'" in out
+    assert 'warn' in out and "requires 'nope'" in out
+    assert '~/configsys.hu' in out                   # attributed to the user file

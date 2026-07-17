@@ -97,6 +97,24 @@ class Cpu:
         return ctx.cpu in self.cpus
 
 
+def os_names(pred):
+    '''Every OS block name a predicate's atoms reference (for validation — an unknown one
+    is almost always a typo, since a `when:` naming a nonexistent OS silently never matches).'''
+    out = set()
+
+    def walk(p):
+        if isinstance(p, Os):
+            out.add(p.name)
+        elif isinstance(p, Not):
+            walk(p.term)
+        elif isinstance(p, (And, Or)):
+            for t in p.terms:
+                walk(t)
+
+    walk(pred)
+    return out
+
+
 # -- context --------------------------------------------------------------
 
 class Context:
