@@ -19,11 +19,41 @@ On start, a file called configsys.hu should be present in ~. If it is not, one m
 - interactively mark installed components for an operation (upgrade, remove, etc)
 - quickly mark all components for an operation (select all in profile)
 
-In the repo, routes.hu maps the OS to the installation medium (apt, dnf, pacman, AUR, appImage, flatpak, etc). OSs cascade; where pop_os! uses ubuntu, and inherits all of ubuntu's routes; ubuntu inherits debian's routes, etc. Inheritance is marked as a node beginning with !using. Blocks whose name starts with '\' specify families; a node referencing a family (install medium) specifies "<family>\<component>" (ex: apt\xclip). This directs the app to use the family description for this component. If a node does not contain a family spec, then it is found by checking the cascaded OS block first. If a node called * is in the block, the value will specify a node by replacing * in the value. (debian's block specifies '*: apt\*'. Debian uses apt for native packages.) A node in an OS profile may also be a list, in which case each entry is looked up independently by name and considered part of the component. A node in a family profile may also be a dict, which allows variables to be set. A system for specifying the appropriate dotfiles for each component should also be configured; whatever is needed by, say, neovim, using the appropriate env variables to specify paths which are sync'd from the repo's dotfiles directory.
+In the repo, routes.hu is a **capability/component model** (see `docs/routing-model.md` for
+the full spec). Its three sections:
+- `os:` — the OS layer: `using` inheritance (pop_os! -> ubuntu -> debian -> linux; fedora/rhel
+  -> redhat -> linux), which package manager each block declares `native:` (apt/dnf/pacman),
+  version `scale-root:` markers, and `provides:` (capabilities baseline in that environment).
+- `mechanisms:` — per install-medium config, currently just each mechanism's inherent
+  `requires:` (appImage->libfuse2, flatpak->flatpak, cargo->cargo, pipx->pipx, aur->[base-devel,
+  git], tarball->curl, pip->python3-pip, debian-font->[fontconfig,unzip]).
+- `components:` — each component is a named **capability** plus a list of context-selected
+  **bindings**. A binding is `{ via: <mechanism>  when: "<expr>"  ...details }`. `via: native`
+  resolves to the OS's declared package manager (name defaults to the component name, override
+  with a `name:` map keyed by mechanism). `when:` is a boolean DSL over OS atoms (bare = subtree
+  membership; versioned e.g. `ubuntu < 23.04`, scale-bound) and `cpu:`, with and/or/guarded-not.
+  The most specific matching binding wins (set-inclusion order; overlapping-but-incomparable is a
+  load-time ambiguity error). A component may also declare `provides:`/`requires:` (capabilities),
+  `parts:` (a `via: parts` binding is a pure aggregator = the union of its parts, no unit of its
+  own), and an inline `dotfiles:` spec (emits a `dotfiles\<comp>` unit with its own requires).
 
-Family profiles are defined in code according to their major operations: getVersion, install, uninstall, upgrade, setVersion, lockVersion, unlockVersion. apt has various commands for doing these; as does flatpak, etc. More families can be added as needed.
+Resolution (resolve.py) is a worklist to a fixpoint over one fixed machine context: seed the
+explicitly-wanted components + what they provide, then close `requires` reusing existing/
+env-provided providers; no backtracking (unsatisfiable/ambiguous = error); dedup by unit key.
+Per-machine `pins` (binding-pin component->via, provider-pin capability->provider) sit at top
+precedence. The result is `{unit_key: ResolvedComponent}` (`family\comp`), which the families
+consume unchanged.
 
-More details will be fleshed out with /grill-me and examining the code already in place.
+Families are defined in code according to their major operations: getVersion, install,
+uninstall, upgrade, setVersion, lockVersion, unlockVersion. apt has various commands for doing
+these; as does flatpak, etc. Each `via:` mechanism name maps 1:1 to a Family (apt, dnf, pacman,
+aur, tarball, flatpak, appImage, dotfiles, debian-font, cargo, gcc, gcc-toolset, clang, pip,
+pipx). More families can be added as needed.
+
+(History: routes.hu was previously a `\family` blocks + OS-cascade + `*: apt\*` wildcard model
+resolved by a `RouteResolver`. That was replaced in-place by the capability model above, built
+in parallel and proven byte-equivalent before the flip; the old resolver/data are deleted.
+`test/routing_golden.json` freezes the proven resolution as a regression gate.)
 
 The bash bootstrap must be minimal; ensure an adequate python3 version is installed globally (3.10 is a fine choice), and a virtual environment exists (.venv) in the repo directory, and humon is installed. From there, the rest of the app should be in python.
 

@@ -1,9 +1,10 @@
 # v2 wire-in
 
-Status: **IMPLEMENTED behind a flag** (`CONFIGSYS_RESOLVER=v2`); field-parity gate green,
-end-to-end byte-identical to v1 on --pretend. Remaining: run the podman suites under the
-flag, flip the default per context, then delete the v1 layer (see §8). Original scoping
-below is kept for the rationale.
+Status: **DONE — v2 is the sole resolver; the v1 layer is deleted** (commit f26d740). The
+capability engine collapsed into the package (routes2.hu->routes.hu, configsys/v2/* into
+configsys/, RouteResolver gone, no flag). `test/routing_golden.json` is the standing
+regression gate. Remaining external validation: run the podman integration suites (they now
+exercise v2 unconditionally). Original scoping + §8 road map kept below for the record.
 
 The v2 routing engine (`configsys/v2/`, `routes2.hu`) is
 content-complete and proven graph-equivalent to the live `RouteResolver` across the current
