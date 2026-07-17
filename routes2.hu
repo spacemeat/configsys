@@ -8,8 +8,9 @@
         debian:  { using: linux    native: apt      scale-root: true }
         ubuntu:  { using: debian    scale-root: true }
         pop_os!: { using: ubuntu }
-        fedora:  { using: linux     native: dnf      scale-root: true }
-        rhel:    { using: fedora }
+        redhat:  { using: linux     native: dnf }                   // fedora + EL share dnf
+        fedora:  { using: redhat    scale-root: true }              // fedora proper (YY release)
+        rhel:    { using: redhat    scale-root: true }              // EL (Rocky/Alma/RHEL, N release)
         arch:    { using: linux     native: pacman }
     }
 
@@ -123,7 +124,7 @@
         vulkan-runtime: {
             install: [
                 { via: parts  when: "debian"  parts: [ libvulkan1, mesa-vulkan-drivers ] }
-                { via: parts  when: "fedora"  parts: [ vulkan-loader, mesa-vulkan-drivers ] }  // fedora + EL
+                { via: parts  when: "redhat"  parts: [ vulkan-loader, mesa-vulkan-drivers ] }  // fedora + EL
                 { via: parts  when: "arch"    parts: [ vulkan-icd-loader, vulkan-radeon, vulkan-intel, vulkan-swrast ] }
             ]
         }
@@ -134,6 +135,76 @@
                 { via: native  when: "debian"  deb-source: "github:fastfetch-cli/fastfetch"
                   asset: { x86_64: fastfetch-linux-amd64.deb  aarch64: fastfetch-linux-aarch64.deb } }
                 { via: native }
+            ]
+        }
+
+        // --- toolchain support (native + the apt-alternatives alias dotfile) ---
+        build-essential:            { install: [ { via: native } ] }
+        software-properties-common: { install: [ { via: native } ] }
+        gcc: {                      // the gccv `update-alternatives --config gcc` alias dotfile
+            requires: bashDotD
+            install: [ { via: dotfiles  src: bash.d/gcc.sh  dst: ~/.bash.d/gcc.sh } ]
+        }
+
+        // --- versioned gcc. Three mechanisms, selected by OS/version:
+        //   debian -> `gcc` (apt PPA + update-alternatives; needs build-essential, s-p-c, the alias)
+        //   fedora -> `gcc` (dnf compat packages gccNN; availability is per-release)
+        //   EL     -> `gcc-toolset` (SCL under /opt/rh)
+        gcc-13: {
+            install: [
+                { via: gcc  when: "debian"  packages: [ gcc-13, g++-13 ]  ppa: ubuntu-toolchain-r/test
+                  requires: [ build-essential, software-properties-common, gcc ] }
+                { via: gcc  when: "fedora = 41"  packages: [ gcc13, gcc13-c++ ] }
+                { via: gcc-toolset  when: "rhel" }
+            ]
+        }
+        gcc-14: {
+            install: [
+                { via: gcc  when: "debian"  packages: [ gcc-14, g++-14 ]  ppa: ubuntu-toolchain-r/test
+                  requires: [ build-essential, software-properties-common, gcc ] }
+                { via: gcc  when: "fedora = 42"  packages: [ gcc14, gcc14-c++ ] }
+                { via: gcc-toolset  when: "rhel" }
+            ]
+        }
+        gcc-15: {
+            install: [
+                { via: gcc  when: "debian"  packages: [ gcc-15, g++-15 ]  ppa: ubuntu-toolchain-r/test
+                  requires: [ build-essential, software-properties-common, gcc ] }
+                { via: gcc-toolset  when: "rhel" }
+            ]
+        }
+
+        // --- versioned clang. `clang` mechanism = native PM + update-alternatives:
+        //   debian -> apt.llvm.org + alternatives (needs build-essential, curl, the alias)
+        //   fedora -> dnf compat clangNN (per-release; the system clang covers the newest)
+        //   EL     -> dnf compat clangNN from EPEL (requires epel)
+        curl: { install: [ { via: native } ] }
+        clang: {                    // the clangv `update-alternatives --config clang` alias dotfile
+            requires: bashDotD
+            install: [ { via: dotfiles  src: bash.d/clang.sh  dst: ~/.bash.d/clang.sh } ]
+        }
+        clang-18: {
+            install: [
+                { via: clang  when: "debian"  packages: [ clang-18 ]
+                  requires: [ build-essential, curl, clang ] }
+                { via: clang  when: "fedora"  packages: [ clang18 ] }
+            ]
+        }
+        clang-19: {
+            install: [
+                { via: clang  when: "debian"  packages: [ clang-19 ]
+                  requires: [ build-essential, curl, clang ] }
+                { via: clang  when: "fedora = 41"  packages: [ clang ] }      // system clang -> /usr/bin/clang-19
+                { via: clang  when: "fedora = 42"  packages: [ clang19 ] }
+                { via: clang  when: "rhel"  packages: [ clang19 ]  requires: epel }
+            ]
+        }
+        clang-20: {
+            install: [
+                { via: clang  when: "debian"  packages: [ clang-20 ]
+                  requires: [ build-essential, curl, clang ] }
+                { via: clang  when: "fedora = 42"  packages: [ clang ] }      // system clang -> /usr/bin/clang-20
+                { via: clang  when: "rhel"  packages: [ clang20 ]  requires: epel }
             ]
         }
     }

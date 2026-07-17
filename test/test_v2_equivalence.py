@@ -77,6 +77,18 @@ CLOSURE = [
     ('vulkan-runtime', 'ubuntu', '24.04'),
     ('vulkan-runtime', 'fedora', '41'),
     ('vulkan-runtime', 'arch', '20260101'),
+    ('vulkan-runtime', 'rhel', '9.8'),       # redhat binding covers EL
+    # versioned gcc: apt PPA + alternatives (Debian), dnf compat (Fedora, per-release),
+    # gcc-toolset SCL (EL)
+    ('gcc-13', 'ubuntu', '24.04'), ('gcc-13', 'fedora', '41'), ('gcc-13', 'rhel', '9.8'),
+    ('gcc-14', 'ubuntu', '24.04'), ('gcc-14', 'fedora', '42'), ('gcc-14', 'rhel', '9.8'),
+    ('gcc-15', 'ubuntu', '24.04'), ('gcc-15', 'rhel', '9.8'),
+    # versioned clang: apt.llvm.org + alternatives (Debian), dnf compat per-release
+    # (Fedora), dnf compat + EPEL (EL)
+    ('clang-18', 'ubuntu', '24.04'), ('clang-18', 'fedora', '41'), ('clang-18', 'fedora', '42'),
+    ('clang-19', 'ubuntu', '24.04'), ('clang-19', 'fedora', '41'), ('clang-19', 'fedora', '42'),
+    ('clang-19', 'rhel', '9.8'),
+    ('clang-20', 'ubuntu', '24.04'), ('clang-20', 'fedora', '42'), ('clang-20', 'rhel', '9.8'),
 ]
 
 
