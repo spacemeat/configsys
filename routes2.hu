@@ -21,6 +21,7 @@
         cargo:       { requires: cargo }              // a crate needs the cargo tool
         debian-font: { requires: [ fontconfig, unzip ] }
         pip:         { requires: python3-pip }        // `pip install --user` needs pip
+        pipx:        { requires: pipx }               // a PyPI CLI needs the pipx tool
         tarball:     { requires: curl }               // fetch the archive with curl
     }
 
@@ -58,6 +59,16 @@
                 { via: native  when: "rhel"  requires: epel  name: { pacman: python-pipx } }
                 { via: native  name: { pacman: python-pipx } }
             ]
+        }
+
+        // apod: a PyPI CLI (termapod) installed via pipx, plus a shell-startup dotfile.
+        // `via: pipx` pulls the pipx TOOL (the mechanism's requires) — which is itself the
+        // version-variant component above (pip-bootstrap on old Ubuntu/Debian, +EPEL on EL),
+        // so this is a two-level tool chain. The inline dotfiles field runs termapod on every
+        // interactive shell. (Old: linux `apod: [ pipx\apod, dotfiles\apod ]`.)
+        apod: {
+            dotfiles: { requires: bashDotD  src: bash.d/apod.sh  dst: ~/.bash.d/apod.sh }
+            install: [ { via: pipx  name: termapod  version: { pypi: termapod } } ]
         }
 
         // native, name differs by manager

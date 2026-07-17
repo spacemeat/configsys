@@ -101,6 +101,12 @@ CLOSURE = [
     # vulkan-dev now composes on Fedora/EL/Arch (was Debian-only, blocked on gcc)
     ('vulkan-dev', 'fedora', '41'), ('vulkan-dev', 'rhel', '9.8'),
     ('vulkan-dev', 'arch', '20260101'),
+    # apod: pipx-app + dotfile. The `via: pipx` dep pulls the pipx TOOL, which is itself
+    # the version-variant component — so apod's closure changes shape per context:
+    # native pipx (new Ubuntu/Fedora/Arch), pip-bootstrap (old Ubuntu/Debian), +EPEL (EL).
+    ('apod', 'ubuntu', '24.04'), ('apod', 'ubuntu', '22.04'),
+    ('apod', 'debian', '11'), ('apod', 'fedora', '41'),
+    ('apod', 'rhel', '9.8'), ('apod', 'arch', '20260101'),
 ]
 
 
