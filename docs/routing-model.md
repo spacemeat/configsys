@@ -60,11 +60,12 @@ Legal humon (every dict entry is `key: value`; `when:` is a string expression):
 ```
 <name>: {
     provides:  <cap | [caps]>      // optional; a component always implicitly provides its own name
-    requires:  <cap | [caps]>      // method-independent needs
+    requires:  <cap | [caps]>      // method-independent needs (config is just another required
+                                   //   component: a package `requires: <name>-dotfiles`)
     parts:     <cap | [caps]>      // composition (installed together; parent "installed" iff all parts are)
-    dotfiles:  <name>              // method-independent config
 
     install: [                     // ordered list of bindings (providers)
+                                   //   a dotfile component's binding is `{ via: dotfiles ... }`
         { via: <mechanism>  when: "<predicate>"  ...mechanism details... }
         ...
     ]

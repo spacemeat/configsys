@@ -34,8 +34,10 @@ the full spec). Its three sections:
   membership; versioned e.g. `ubuntu < 23.04`, scale-bound) and `cpu:`, with and/or/guarded-not.
   The most specific matching binding wins (set-inclusion order; overlapping-but-incomparable is a
   load-time ambiguity error). A component may also declare `provides:`/`requires:` (capabilities),
-  `parts:` (a `via: parts` binding is a pure aggregator = the union of its parts, no unit of its
-  own), and an inline `dotfiles:` spec (emits a `dotfiles\<comp>` unit with its own requires).
+  and `parts:` (a `via: parts` binding is a pure aggregator = the union of its parts, no unit of
+  its own). Dotfiles are just ordinary components with a `via: dotfiles` binding (so they can
+  carry `when:` too); a package that ships config `requires:` its `<name>-dotfiles` component —
+  there is no special dotfiles field.
 
 Resolution (resolve.py) is a worklist to a fixpoint over one fixed machine context: seed the
 explicitly-wanted components + what they provide, then close `requires` reusing existing/

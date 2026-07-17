@@ -78,3 +78,22 @@ def test_overlapping_incomparable_bindings_raise(cascade):
 
 def test_disjoint_bindings_are_fine(cascade):
     check_component('ok', _component('ok', 'fedora', 'arch'), cascade)
+
+
+def test_component_rejects_unknown_top_level_key():
+    # a stray/removed construct (e.g. the old inline `dotfiles:` node) must fail loudly at
+    # load time, not vanish silently — config lives in a required `<name>-dotfiles` component.
+    with pytest.raises(ValueError, match=r'unknown key.*dotfiles'):
+        Component('foo', {'dotfiles': {'src': 'a', 'dst': 'b'}, 'install': []})
+    # the known keys are accepted
+    Component('ok', {'provides': 'cap', 'requires': 'x', 'parts': [], 'install': []})
+
+
+def test_package_pulls_its_dotfiles_component():
+    # regression: vulkan-sdk (tarball) must still bring its config, now as a required
+    # `-dotfiles` component (guards against the inline-node -> requires refactor dropping it).
+    r = routes.Resolver(os.path.join(os.path.dirname(__file__), '..', 'routes.hu'),
+                        'pop_os!', '22.04', 'x86_64')
+    keys = set(r.resolve_names(['vulkan-sdk']))
+    assert 'dotfiles\\vulkan-sdk-dotfiles' in keys
+    assert 'tarball\\vulkan-sdk' in keys

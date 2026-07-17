@@ -40,12 +40,20 @@ class Binding:
 
 
 class Component:
+    # top-level keys a component may carry; anything else is a typo or a removed construct
+    # (e.g. the old inline `dotfiles:` node) and must fail loudly, not vanish silently.
+    _KEYS = frozenset({'provides', 'requires', 'parts', 'install'})
+
     def __init__(self, name, spec):
+        unknown = set(spec) - self._KEYS
+        if unknown:
+            raise ValueError(
+                f'component {name!r}: unknown key(s) {sorted(unknown)} '
+                f'(config is a required `<name>-dotfiles` component now, not a `dotfiles:` field)')
         self.name = name
         self.provides = _as_list(spec.get('provides'))
         self.requires = _as_list(spec.get('requires'))
         self.parts = _as_list(spec.get('parts'))
-        self.dotfiles = spec.get('dotfiles')
         self.bindings = [Binding(b) for b in (spec.get('install') or [])]
 
 

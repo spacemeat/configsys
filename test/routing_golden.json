@@ -1,13 +1,13 @@
 {
  "arch@20260101": {
   "apod": {
-   "dotfiles\\apod": {
+   "dotfiles\\apod-dotfiles": {
     "family": "dotfiles",
     "fields": {
      "dst": "~/.bash.d/apod.sh",
      "src": "bash.d/apod.sh"
     },
-    "name": "apod"
+    "name": "apod-dotfiles"
    },
    "dotfiles\\bash-dotfiles": {
     "family": "dotfiles",
@@ -37,6 +37,26 @@
     "name": "termapod"
    }
   },
+  "apod-dotfiles": {
+   "dotfiles\\apod-dotfiles": {
+    "family": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/apod.sh",
+     "src": "bash.d/apod.sh"
+    },
+    "name": "apod-dotfiles"
+   },
+   "dotfiles\\bash-dotfiles": {
+    "family": "dotfiles",
+    "fields": {
+     "aliases": {
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   }
+  },
   "arduino": {
    "appImage\\arduino": {
     "family": "appImage",
@@ -51,13 +71,13 @@
     },
     "name": "Arduino IDE"
    },
-   "dotfiles\\arduino": {
+   "dotfiles\\arduino-dotfiles": {
     "family": "dotfiles",
     "fields": {
      "dst": "~/.bash.d/arduino.sh",
      "src": "bash.d/arduino.sh"
     },
-    "name": "arduino"
+    "name": "arduino-dotfiles"
    },
    "dotfiles\\bash-dotfiles": {
     "family": "dotfiles",
@@ -76,6 +96,26 @@
      "repo-component": "universe"
     },
     "name": "fuse2"
+   }
+  },
+  "arduino-dotfiles": {
+   "dotfiles\\arduino-dotfiles": {
+    "family": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/arduino.sh",
+     "src": "bash.d/arduino.sh"
+    },
+    "name": "arduino-dotfiles"
+   },
+   "dotfiles\\bash-dotfiles": {
+    "family": "dotfiles",
+    "fields": {
+     "aliases": {
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
    }
   },
   "base-devel": {
@@ -267,13 +307,13 @@
    }
   },
   "gdb": {
-   "dotfiles\\gdb": {
+   "dotfiles\\gdb-dotfiles": {
     "family": "dotfiles",
     "fields": {
      "dst": "~/.gdbinit",
      "src": "gdbinit"
     },
-    "name": "gdb"
+    "name": "gdb-dotfiles"
    },
    "pacman\\gdb": {
     "family": "pacman",
@@ -281,6 +321,16 @@
      "name": "gdb"
     },
     "name": "gdb"
+   }
+  },
+  "gdb-dotfiles": {
+   "dotfiles\\gdb-dotfiles": {
+    "family": "dotfiles",
+    "fields": {
+     "dst": "~/.gdbinit",
+     "src": "gdbinit"
+    },
+    "name": "gdb-dotfiles"
    }
   },
   "git": {
@@ -440,7 +490,7 @@
     },
     "name": "bash-dotfiles"
    },
-   "dotfiles\\neovim": {
+   "dotfiles\\neovim-dotfiles": {
     "family": "dotfiles",
     "fields": {
      "aliases": {
@@ -452,7 +502,7 @@
       "src": "neovim"
      }
     },
-    "name": "neovim"
+    "name": "neovim-dotfiles"
    },
    "pacman\\cargo": {
     "family": "pacman",
@@ -477,6 +527,32 @@
      "repo-component": "universe"
     },
     "name": "ripgrep"
+   }
+  },
+  "neovim-dotfiles": {
+   "dotfiles\\bash-dotfiles": {
+    "family": "dotfiles",
+    "fields": {
+     "aliases": {
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\neovim-dotfiles": {
+    "family": "dotfiles",
+    "fields": {
+     "aliases": {
+      "dst": "~/.bash.d/neovim.sh",
+      "src": "bash.d/neovim.sh"
+     },
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/nvim",
+      "src": "neovim"
+     }
+    },
+    "name": "neovim-dotfiles"
    }
   },
   "pipx": {
@@ -596,7 +672,7 @@
     },
     "name": "bash-dotfiles"
    },
-   "dotfiles\\vulkan-sdk": {
+   "dotfiles\\vulkan-sdk-dotfiles": {
     "family": "dotfiles",
     "fields": {
      "aliases": {
@@ -604,7 +680,7 @@
       "src": "bash.d/vulkan-sdk.sh"
      }
     },
-    "name": "vulkan-sdk"
+    "name": "vulkan-sdk-dotfiles"
    },
    "pacman\\curl": {
     "family": "pacman",
@@ -759,7 +835,7 @@
     },
     "name": "bash-dotfiles"
    },
-   "dotfiles\\vulkan-sdk": {
+   "dotfiles\\vulkan-sdk-dotfiles": {
     "family": "dotfiles",
     "fields": {
      "aliases": {
@@ -767,7 +843,7 @@
       "src": "bash.d/vulkan-sdk.sh"
      }
     },
-    "name": "vulkan-sdk"
+    "name": "vulkan-sdk-dotfiles"
    },
    "pacman\\curl": {
     "family": "pacman",
@@ -787,6 +863,28 @@
      }
     },
     "name": "vulkan-sdk"
+   }
+  },
+  "vulkan-sdk-dotfiles": {
+   "dotfiles\\bash-dotfiles": {
+    "family": "dotfiles",
+    "fields": {
+     "aliases": {
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\vulkan-sdk-dotfiles": {
+    "family": "dotfiles",
+    "fields": {
+     "aliases": {
+      "dst": "~/.bash.d/vulkan-sdk.sh",
+      "src": "bash.d/vulkan-sdk.sh"
+     }
+    },
+    "name": "vulkan-sdk-dotfiles"
    }
   },
   "vulkan-swrast": {
@@ -827,13 +925,13 @@
     },
     "name": "bash-dotfiles"
    },
-   "dotfiles\\xclip": {
+   "dotfiles\\xclip-dotfiles": {
     "family": "dotfiles",
     "fields": {
      "dst": "~/.bash.d/xclip.sh",
      "src": "bash.d/xclip.sh"
     },
-    "name": "xclip"
+    "name": "xclip-dotfiles"
    },
    "pacman\\xclip": {
     "family": "pacman",
@@ -842,6 +940,26 @@
      "repo-component": "universe"
     },
     "name": "xclip"
+   }
+  },
+  "xclip-dotfiles": {
+   "dotfiles\\bash-dotfiles": {
+    "family": "dotfiles",
+    "fields": {
+     "aliases": {
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\xclip-dotfiles": {
+    "family": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/xclip.sh",
+     "src": "bash.d/xclip.sh"
+    },
+    "name": "xclip-dotfiles"
    }
   },
   "yay": {
@@ -880,13 +998,13 @@
     },
     "name": "python3-pip"
    },
-   "dotfiles\\apod": {
+   "dotfiles\\apod-dotfiles": {
     "family": "dotfiles",
     "fields": {
      "dst": "~/.bash.d/apod.sh",
      "src": "bash.d/apod.sh"
     },
-    "name": "apod"
+    "name": "apod-dotfiles"
    },
    "dotfiles\\bash-dotfiles": {
     "family": "dotfiles",
@@ -919,6 +1037,26 @@
     "name": "termapod"
    }
   },
+  "apod-dotfiles": {
+   "dotfiles\\apod-dotfiles": {
+    "family": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/apod.sh",
+     "src": "bash.d/apod.sh"
+    },
+    "name": "apod-dotfiles"
+   },
+   "dotfiles\\bash-dotfiles": {
+    "family": "dotfiles",
+    "fields": {
+     "aliases": {
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   }
+  },
   "arduino": {
    "appImage\\arduino": {
     "family": "appImage",
@@ -941,13 +1079,33 @@
     },
     "name": "libfuse2"
    },
-   "dotfiles\\arduino": {
+   "dotfiles\\arduino-dotfiles": {
     "family": "dotfiles",
     "fields": {
      "dst": "~/.bash.d/arduino.sh",
      "src": "bash.d/arduino.sh"
     },
-    "name": "arduino"
+    "name": "arduino-dotfiles"
+   },
+   "dotfiles\\bash-dotfiles": {
+    "family": "dotfiles",
+    "fields": {
+     "aliases": {
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   }
+  },
+  "arduino-dotfiles": {
+   "dotfiles\\arduino-dotfiles": {
+    "family": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/arduino.sh",
+     "src": "bash.d/arduino.sh"
+    },
+    "name": "arduino-dotfiles"
    },
    "dotfiles\\bash-dotfiles": {
     "family": "dotfiles",
@@ -1444,13 +1602,23 @@
     },
     "name": "gdb"
    },
-   "dotfiles\\gdb": {
+   "dotfiles\\gdb-dotfiles": {
     "family": "dotfiles",
     "fields": {
      "dst": "~/.gdbinit",
      "src": "gdbinit"
     },
-    "name": "gdb"
+    "name": "gdb-dotfiles"
+   }
+  },
+  "gdb-dotfiles": {
+   "dotfiles\\gdb-dotfiles": {
+    "family": "dotfiles",
+    "fields": {
+     "dst": "~/.gdbinit",
+     "src": "gdbinit"
+    },
+    "name": "gdb-dotfiles"
    }
   },
   "git": {
@@ -1634,7 +1802,7 @@
     },
     "name": "bash-dotfiles"
    },
-   "dotfiles\\neovim": {
+   "dotfiles\\neovim-dotfiles": {
     "family": "dotfiles",
     "fields": {
      "aliases": {
@@ -1646,7 +1814,33 @@
       "src": "neovim"
      }
     },
-    "name": "neovim"
+    "name": "neovim-dotfiles"
+   }
+  },
+  "neovim-dotfiles": {
+   "dotfiles\\bash-dotfiles": {
+    "family": "dotfiles",
+    "fields": {
+     "aliases": {
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\neovim-dotfiles": {
+    "family": "dotfiles",
+    "fields": {
+     "aliases": {
+      "dst": "~/.bash.d/neovim.sh",
+      "src": "bash.d/neovim.sh"
+     },
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/nvim",
+      "src": "neovim"
+     }
+    },
+    "name": "neovim-dotfiles"
    }
   },
   "pipx": {
@@ -1818,7 +2012,7 @@
     },
     "name": "bash-dotfiles"
    },
-   "dotfiles\\vulkan-sdk": {
+   "dotfiles\\vulkan-sdk-dotfiles": {
     "family": "dotfiles",
     "fields": {
      "aliases": {
@@ -1826,7 +2020,7 @@
       "src": "bash.d/vulkan-sdk.sh"
      }
     },
-    "name": "vulkan-sdk"
+    "name": "vulkan-sdk-dotfiles"
    },
    "tarball\\vulkan-sdk": {
     "family": "tarball",
@@ -1911,7 +2105,7 @@
     },
     "name": "bash-dotfiles"
    },
-   "dotfiles\\vulkan-sdk": {
+   "dotfiles\\vulkan-sdk-dotfiles": {
     "family": "dotfiles",
     "fields": {
      "aliases": {
@@ -1919,7 +2113,7 @@
       "src": "bash.d/vulkan-sdk.sh"
      }
     },
-    "name": "vulkan-sdk"
+    "name": "vulkan-sdk-dotfiles"
    },
    "tarball\\vulkan-sdk": {
     "family": "tarball",
@@ -1932,6 +2126,28 @@
      }
     },
     "name": "vulkan-sdk"
+   }
+  },
+  "vulkan-sdk-dotfiles": {
+   "dotfiles\\bash-dotfiles": {
+    "family": "dotfiles",
+    "fields": {
+     "aliases": {
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\vulkan-sdk-dotfiles": {
+    "family": "dotfiles",
+    "fields": {
+     "aliases": {
+      "dst": "~/.bash.d/vulkan-sdk.sh",
+      "src": "bash.d/vulkan-sdk.sh"
+     }
+    },
+    "name": "vulkan-sdk-dotfiles"
    }
   },
   "vulkan-swrast": {
@@ -1980,13 +2196,33 @@
     },
     "name": "bash-dotfiles"
    },
-   "dotfiles\\xclip": {
+   "dotfiles\\xclip-dotfiles": {
     "family": "dotfiles",
     "fields": {
      "dst": "~/.bash.d/xclip.sh",
      "src": "bash.d/xclip.sh"
     },
-    "name": "xclip"
+    "name": "xclip-dotfiles"
+   }
+  },
+  "xclip-dotfiles": {
+   "dotfiles\\bash-dotfiles": {
+    "family": "dotfiles",
+    "fields": {
+     "aliases": {
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\xclip-dotfiles": {
+    "family": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/xclip.sh",
+     "src": "bash.d/xclip.sh"
+    },
+    "name": "xclip-dotfiles"
    }
   }
  },
@@ -1999,13 +2235,13 @@
     },
     "name": "pipx"
    },
-   "dotfiles\\apod": {
+   "dotfiles\\apod-dotfiles": {
     "family": "dotfiles",
     "fields": {
      "dst": "~/.bash.d/apod.sh",
      "src": "bash.d/apod.sh"
     },
-    "name": "apod"
+    "name": "apod-dotfiles"
    },
    "dotfiles\\bash-dotfiles": {
     "family": "dotfiles",
@@ -2026,6 +2262,26 @@
      }
     },
     "name": "termapod"
+   }
+  },
+  "apod-dotfiles": {
+   "dotfiles\\apod-dotfiles": {
+    "family": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/apod.sh",
+     "src": "bash.d/apod.sh"
+    },
+    "name": "apod-dotfiles"
+   },
+   "dotfiles\\bash-dotfiles": {
+    "family": "dotfiles",
+    "fields": {
+     "aliases": {
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
    }
   },
   "arduino": {
@@ -2050,13 +2306,33 @@
     },
     "name": "libfuse2"
    },
-   "dotfiles\\arduino": {
+   "dotfiles\\arduino-dotfiles": {
     "family": "dotfiles",
     "fields": {
      "dst": "~/.bash.d/arduino.sh",
      "src": "bash.d/arduino.sh"
     },
-    "name": "arduino"
+    "name": "arduino-dotfiles"
+   },
+   "dotfiles\\bash-dotfiles": {
+    "family": "dotfiles",
+    "fields": {
+     "aliases": {
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   }
+  },
+  "arduino-dotfiles": {
+   "dotfiles\\arduino-dotfiles": {
+    "family": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/arduino.sh",
+     "src": "bash.d/arduino.sh"
+    },
+    "name": "arduino-dotfiles"
    },
    "dotfiles\\bash-dotfiles": {
     "family": "dotfiles",
@@ -2553,13 +2829,23 @@
     },
     "name": "gdb"
    },
-   "dotfiles\\gdb": {
+   "dotfiles\\gdb-dotfiles": {
     "family": "dotfiles",
     "fields": {
      "dst": "~/.gdbinit",
      "src": "gdbinit"
     },
-    "name": "gdb"
+    "name": "gdb-dotfiles"
+   }
+  },
+  "gdb-dotfiles": {
+   "dotfiles\\gdb-dotfiles": {
+    "family": "dotfiles",
+    "fields": {
+     "dst": "~/.gdbinit",
+     "src": "gdbinit"
+    },
+    "name": "gdb-dotfiles"
    }
   },
   "git": {
@@ -2743,7 +3029,7 @@
     },
     "name": "bash-dotfiles"
    },
-   "dotfiles\\neovim": {
+   "dotfiles\\neovim-dotfiles": {
     "family": "dotfiles",
     "fields": {
      "aliases": {
@@ -2755,7 +3041,33 @@
       "src": "neovim"
      }
     },
-    "name": "neovim"
+    "name": "neovim-dotfiles"
+   }
+  },
+  "neovim-dotfiles": {
+   "dotfiles\\bash-dotfiles": {
+    "family": "dotfiles",
+    "fields": {
+     "aliases": {
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\neovim-dotfiles": {
+    "family": "dotfiles",
+    "fields": {
+     "aliases": {
+      "dst": "~/.bash.d/neovim.sh",
+      "src": "bash.d/neovim.sh"
+     },
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/nvim",
+      "src": "neovim"
+     }
+    },
+    "name": "neovim-dotfiles"
    }
   },
   "pipx": {
@@ -2917,7 +3229,7 @@
     },
     "name": "bash-dotfiles"
    },
-   "dotfiles\\vulkan-sdk": {
+   "dotfiles\\vulkan-sdk-dotfiles": {
     "family": "dotfiles",
     "fields": {
      "aliases": {
@@ -2925,7 +3237,7 @@
       "src": "bash.d/vulkan-sdk.sh"
      }
     },
-    "name": "vulkan-sdk"
+    "name": "vulkan-sdk-dotfiles"
    },
    "tarball\\vulkan-sdk": {
     "family": "tarball",
@@ -3010,7 +3322,7 @@
     },
     "name": "bash-dotfiles"
    },
-   "dotfiles\\vulkan-sdk": {
+   "dotfiles\\vulkan-sdk-dotfiles": {
     "family": "dotfiles",
     "fields": {
      "aliases": {
@@ -3018,7 +3330,7 @@
       "src": "bash.d/vulkan-sdk.sh"
      }
     },
-    "name": "vulkan-sdk"
+    "name": "vulkan-sdk-dotfiles"
    },
    "tarball\\vulkan-sdk": {
     "family": "tarball",
@@ -3031,6 +3343,28 @@
      }
     },
     "name": "vulkan-sdk"
+   }
+  },
+  "vulkan-sdk-dotfiles": {
+   "dotfiles\\bash-dotfiles": {
+    "family": "dotfiles",
+    "fields": {
+     "aliases": {
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\vulkan-sdk-dotfiles": {
+    "family": "dotfiles",
+    "fields": {
+     "aliases": {
+      "dst": "~/.bash.d/vulkan-sdk.sh",
+      "src": "bash.d/vulkan-sdk.sh"
+     }
+    },
+    "name": "vulkan-sdk-dotfiles"
    }
   },
   "vulkan-swrast": {
@@ -3079,13 +3413,33 @@
     },
     "name": "bash-dotfiles"
    },
-   "dotfiles\\xclip": {
+   "dotfiles\\xclip-dotfiles": {
     "family": "dotfiles",
     "fields": {
      "dst": "~/.bash.d/xclip.sh",
      "src": "bash.d/xclip.sh"
     },
-    "name": "xclip"
+    "name": "xclip-dotfiles"
+   }
+  },
+  "xclip-dotfiles": {
+   "dotfiles\\bash-dotfiles": {
+    "family": "dotfiles",
+    "fields": {
+     "aliases": {
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\xclip-dotfiles": {
+    "family": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/xclip.sh",
+     "src": "bash.d/xclip.sh"
+    },
+    "name": "xclip-dotfiles"
    }
   }
  },
@@ -3098,13 +3452,13 @@
     },
     "name": "pipx"
    },
-   "dotfiles\\apod": {
+   "dotfiles\\apod-dotfiles": {
     "family": "dotfiles",
     "fields": {
      "dst": "~/.bash.d/apod.sh",
      "src": "bash.d/apod.sh"
     },
-    "name": "apod"
+    "name": "apod-dotfiles"
    },
    "dotfiles\\bash-dotfiles": {
     "family": "dotfiles",
@@ -3125,6 +3479,26 @@
      }
     },
     "name": "termapod"
+   }
+  },
+  "apod-dotfiles": {
+   "dotfiles\\apod-dotfiles": {
+    "family": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/apod.sh",
+     "src": "bash.d/apod.sh"
+    },
+    "name": "apod-dotfiles"
+   },
+   "dotfiles\\bash-dotfiles": {
+    "family": "dotfiles",
+    "fields": {
+     "aliases": {
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
    }
   },
   "arduino": {
@@ -3149,13 +3523,33 @@
     },
     "name": "fuse-libs"
    },
-   "dotfiles\\arduino": {
+   "dotfiles\\arduino-dotfiles": {
     "family": "dotfiles",
     "fields": {
      "dst": "~/.bash.d/arduino.sh",
      "src": "bash.d/arduino.sh"
     },
-    "name": "arduino"
+    "name": "arduino-dotfiles"
+   },
+   "dotfiles\\bash-dotfiles": {
+    "family": "dotfiles",
+    "fields": {
+     "aliases": {
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   }
+  },
+  "arduino-dotfiles": {
+   "dotfiles\\arduino-dotfiles": {
+    "family": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/arduino.sh",
+     "src": "bash.d/arduino.sh"
+    },
+    "name": "arduino-dotfiles"
    },
    "dotfiles\\bash-dotfiles": {
     "family": "dotfiles",
@@ -3408,13 +3802,23 @@
     },
     "name": "gdb"
    },
-   "dotfiles\\gdb": {
+   "dotfiles\\gdb-dotfiles": {
     "family": "dotfiles",
     "fields": {
      "dst": "~/.gdbinit",
      "src": "gdbinit"
     },
-    "name": "gdb"
+    "name": "gdb-dotfiles"
+   }
+  },
+  "gdb-dotfiles": {
+   "dotfiles\\gdb-dotfiles": {
+    "family": "dotfiles",
+    "fields": {
+     "dst": "~/.gdbinit",
+     "src": "gdbinit"
+    },
+    "name": "gdb-dotfiles"
    }
   },
   "git": {
@@ -3598,7 +4002,7 @@
     },
     "name": "bash-dotfiles"
    },
-   "dotfiles\\neovim": {
+   "dotfiles\\neovim-dotfiles": {
     "family": "dotfiles",
     "fields": {
      "aliases": {
@@ -3610,7 +4014,33 @@
       "src": "neovim"
      }
     },
-    "name": "neovim"
+    "name": "neovim-dotfiles"
+   }
+  },
+  "neovim-dotfiles": {
+   "dotfiles\\bash-dotfiles": {
+    "family": "dotfiles",
+    "fields": {
+     "aliases": {
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\neovim-dotfiles": {
+    "family": "dotfiles",
+    "fields": {
+     "aliases": {
+      "dst": "~/.bash.d/neovim.sh",
+      "src": "bash.d/neovim.sh"
+     },
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/nvim",
+      "src": "neovim"
+     }
+    },
+    "name": "neovim-dotfiles"
    }
   },
   "pipx": {
@@ -3776,7 +4206,7 @@
     },
     "name": "bash-dotfiles"
    },
-   "dotfiles\\vulkan-sdk": {
+   "dotfiles\\vulkan-sdk-dotfiles": {
     "family": "dotfiles",
     "fields": {
      "aliases": {
@@ -3784,7 +4214,7 @@
       "src": "bash.d/vulkan-sdk.sh"
      }
     },
-    "name": "vulkan-sdk"
+    "name": "vulkan-sdk-dotfiles"
    },
    "tarball\\vulkan-sdk": {
     "family": "tarball",
@@ -3869,7 +4299,7 @@
     },
     "name": "bash-dotfiles"
    },
-   "dotfiles\\vulkan-sdk": {
+   "dotfiles\\vulkan-sdk-dotfiles": {
     "family": "dotfiles",
     "fields": {
      "aliases": {
@@ -3877,7 +4307,7 @@
       "src": "bash.d/vulkan-sdk.sh"
      }
     },
-    "name": "vulkan-sdk"
+    "name": "vulkan-sdk-dotfiles"
    },
    "tarball\\vulkan-sdk": {
     "family": "tarball",
@@ -3890,6 +4320,28 @@
      }
     },
     "name": "vulkan-sdk"
+   }
+  },
+  "vulkan-sdk-dotfiles": {
+   "dotfiles\\bash-dotfiles": {
+    "family": "dotfiles",
+    "fields": {
+     "aliases": {
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\vulkan-sdk-dotfiles": {
+    "family": "dotfiles",
+    "fields": {
+     "aliases": {
+      "dst": "~/.bash.d/vulkan-sdk.sh",
+      "src": "bash.d/vulkan-sdk.sh"
+     }
+    },
+    "name": "vulkan-sdk-dotfiles"
    }
   },
   "vulkan-swrast": {
@@ -3938,13 +4390,33 @@
     },
     "name": "bash-dotfiles"
    },
-   "dotfiles\\xclip": {
+   "dotfiles\\xclip-dotfiles": {
     "family": "dotfiles",
     "fields": {
      "dst": "~/.bash.d/xclip.sh",
      "src": "bash.d/xclip.sh"
     },
-    "name": "xclip"
+    "name": "xclip-dotfiles"
+   }
+  },
+  "xclip-dotfiles": {
+   "dotfiles\\bash-dotfiles": {
+    "family": "dotfiles",
+    "fields": {
+     "aliases": {
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\xclip-dotfiles": {
+    "family": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/xclip.sh",
+     "src": "bash.d/xclip.sh"
+    },
+    "name": "xclip-dotfiles"
    }
   }
  },
@@ -3957,13 +4429,13 @@
     },
     "name": "pipx"
    },
-   "dotfiles\\apod": {
+   "dotfiles\\apod-dotfiles": {
     "family": "dotfiles",
     "fields": {
      "dst": "~/.bash.d/apod.sh",
      "src": "bash.d/apod.sh"
     },
-    "name": "apod"
+    "name": "apod-dotfiles"
    },
    "dotfiles\\bash-dotfiles": {
     "family": "dotfiles",
@@ -3984,6 +4456,26 @@
      }
     },
     "name": "termapod"
+   }
+  },
+  "apod-dotfiles": {
+   "dotfiles\\apod-dotfiles": {
+    "family": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/apod.sh",
+     "src": "bash.d/apod.sh"
+    },
+    "name": "apod-dotfiles"
+   },
+   "dotfiles\\bash-dotfiles": {
+    "family": "dotfiles",
+    "fields": {
+     "aliases": {
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
    }
   },
   "arduino": {
@@ -4008,13 +4500,33 @@
     },
     "name": "fuse-libs"
    },
-   "dotfiles\\arduino": {
+   "dotfiles\\arduino-dotfiles": {
     "family": "dotfiles",
     "fields": {
      "dst": "~/.bash.d/arduino.sh",
      "src": "bash.d/arduino.sh"
     },
-    "name": "arduino"
+    "name": "arduino-dotfiles"
+   },
+   "dotfiles\\bash-dotfiles": {
+    "family": "dotfiles",
+    "fields": {
+     "aliases": {
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   }
+  },
+  "arduino-dotfiles": {
+   "dotfiles\\arduino-dotfiles": {
+    "family": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/arduino.sh",
+     "src": "bash.d/arduino.sh"
+    },
+    "name": "arduino-dotfiles"
    },
    "dotfiles\\bash-dotfiles": {
     "family": "dotfiles",
@@ -4279,13 +4791,23 @@
     },
     "name": "gdb"
    },
-   "dotfiles\\gdb": {
+   "dotfiles\\gdb-dotfiles": {
     "family": "dotfiles",
     "fields": {
      "dst": "~/.gdbinit",
      "src": "gdbinit"
     },
-    "name": "gdb"
+    "name": "gdb-dotfiles"
+   }
+  },
+  "gdb-dotfiles": {
+   "dotfiles\\gdb-dotfiles": {
+    "family": "dotfiles",
+    "fields": {
+     "dst": "~/.gdbinit",
+     "src": "gdbinit"
+    },
+    "name": "gdb-dotfiles"
    }
   },
   "git": {
@@ -4469,7 +4991,7 @@
     },
     "name": "bash-dotfiles"
    },
-   "dotfiles\\neovim": {
+   "dotfiles\\neovim-dotfiles": {
     "family": "dotfiles",
     "fields": {
      "aliases": {
@@ -4481,7 +5003,33 @@
       "src": "neovim"
      }
     },
-    "name": "neovim"
+    "name": "neovim-dotfiles"
+   }
+  },
+  "neovim-dotfiles": {
+   "dotfiles\\bash-dotfiles": {
+    "family": "dotfiles",
+    "fields": {
+     "aliases": {
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\neovim-dotfiles": {
+    "family": "dotfiles",
+    "fields": {
+     "aliases": {
+      "dst": "~/.bash.d/neovim.sh",
+      "src": "bash.d/neovim.sh"
+     },
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/nvim",
+      "src": "neovim"
+     }
+    },
+    "name": "neovim-dotfiles"
    }
   },
   "pipx": {
@@ -4647,7 +5195,7 @@
     },
     "name": "bash-dotfiles"
    },
-   "dotfiles\\vulkan-sdk": {
+   "dotfiles\\vulkan-sdk-dotfiles": {
     "family": "dotfiles",
     "fields": {
      "aliases": {
@@ -4655,7 +5203,7 @@
       "src": "bash.d/vulkan-sdk.sh"
      }
     },
-    "name": "vulkan-sdk"
+    "name": "vulkan-sdk-dotfiles"
    },
    "tarball\\vulkan-sdk": {
     "family": "tarball",
@@ -4740,7 +5288,7 @@
     },
     "name": "bash-dotfiles"
    },
-   "dotfiles\\vulkan-sdk": {
+   "dotfiles\\vulkan-sdk-dotfiles": {
     "family": "dotfiles",
     "fields": {
      "aliases": {
@@ -4748,7 +5296,7 @@
       "src": "bash.d/vulkan-sdk.sh"
      }
     },
-    "name": "vulkan-sdk"
+    "name": "vulkan-sdk-dotfiles"
    },
    "tarball\\vulkan-sdk": {
     "family": "tarball",
@@ -4761,6 +5309,28 @@
      }
     },
     "name": "vulkan-sdk"
+   }
+  },
+  "vulkan-sdk-dotfiles": {
+   "dotfiles\\bash-dotfiles": {
+    "family": "dotfiles",
+    "fields": {
+     "aliases": {
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\vulkan-sdk-dotfiles": {
+    "family": "dotfiles",
+    "fields": {
+     "aliases": {
+      "dst": "~/.bash.d/vulkan-sdk.sh",
+      "src": "bash.d/vulkan-sdk.sh"
+     }
+    },
+    "name": "vulkan-sdk-dotfiles"
    }
   },
   "vulkan-swrast": {
@@ -4809,13 +5379,33 @@
     },
     "name": "bash-dotfiles"
    },
-   "dotfiles\\xclip": {
+   "dotfiles\\xclip-dotfiles": {
     "family": "dotfiles",
     "fields": {
      "dst": "~/.bash.d/xclip.sh",
      "src": "bash.d/xclip.sh"
     },
-    "name": "xclip"
+    "name": "xclip-dotfiles"
+   }
+  },
+  "xclip-dotfiles": {
+   "dotfiles\\bash-dotfiles": {
+    "family": "dotfiles",
+    "fields": {
+     "aliases": {
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\xclip-dotfiles": {
+    "family": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/xclip.sh",
+     "src": "bash.d/xclip.sh"
+    },
+    "name": "xclip-dotfiles"
    }
   }
  },
@@ -4828,13 +5418,13 @@
     },
     "name": "python3-pip"
    },
-   "dotfiles\\apod": {
+   "dotfiles\\apod-dotfiles": {
     "family": "dotfiles",
     "fields": {
      "dst": "~/.bash.d/apod.sh",
      "src": "bash.d/apod.sh"
     },
-    "name": "apod"
+    "name": "apod-dotfiles"
    },
    "dotfiles\\bash-dotfiles": {
     "family": "dotfiles",
@@ -4867,6 +5457,26 @@
     "name": "termapod"
    }
   },
+  "apod-dotfiles": {
+   "dotfiles\\apod-dotfiles": {
+    "family": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/apod.sh",
+     "src": "bash.d/apod.sh"
+    },
+    "name": "apod-dotfiles"
+   },
+   "dotfiles\\bash-dotfiles": {
+    "family": "dotfiles",
+    "fields": {
+     "aliases": {
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   }
+  },
   "arduino": {
    "appImage\\arduino": {
     "family": "appImage",
@@ -4889,13 +5499,33 @@
     },
     "name": "libfuse2"
    },
-   "dotfiles\\arduino": {
+   "dotfiles\\arduino-dotfiles": {
     "family": "dotfiles",
     "fields": {
      "dst": "~/.bash.d/arduino.sh",
      "src": "bash.d/arduino.sh"
     },
-    "name": "arduino"
+    "name": "arduino-dotfiles"
+   },
+   "dotfiles\\bash-dotfiles": {
+    "family": "dotfiles",
+    "fields": {
+     "aliases": {
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   }
+  },
+  "arduino-dotfiles": {
+   "dotfiles\\arduino-dotfiles": {
+    "family": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/arduino.sh",
+     "src": "bash.d/arduino.sh"
+    },
+    "name": "arduino-dotfiles"
    },
    "dotfiles\\bash-dotfiles": {
     "family": "dotfiles",
@@ -5392,13 +6022,23 @@
     },
     "name": "gdb"
    },
-   "dotfiles\\gdb": {
+   "dotfiles\\gdb-dotfiles": {
     "family": "dotfiles",
     "fields": {
      "dst": "~/.gdbinit",
      "src": "gdbinit"
     },
-    "name": "gdb"
+    "name": "gdb-dotfiles"
+   }
+  },
+  "gdb-dotfiles": {
+   "dotfiles\\gdb-dotfiles": {
+    "family": "dotfiles",
+    "fields": {
+     "dst": "~/.gdbinit",
+     "src": "gdbinit"
+    },
+    "name": "gdb-dotfiles"
    }
   },
   "git": {
@@ -5582,7 +6222,7 @@
     },
     "name": "bash-dotfiles"
    },
-   "dotfiles\\neovim": {
+   "dotfiles\\neovim-dotfiles": {
     "family": "dotfiles",
     "fields": {
      "aliases": {
@@ -5594,7 +6234,33 @@
       "src": "neovim"
      }
     },
-    "name": "neovim"
+    "name": "neovim-dotfiles"
+   }
+  },
+  "neovim-dotfiles": {
+   "dotfiles\\bash-dotfiles": {
+    "family": "dotfiles",
+    "fields": {
+     "aliases": {
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\neovim-dotfiles": {
+    "family": "dotfiles",
+    "fields": {
+     "aliases": {
+      "dst": "~/.bash.d/neovim.sh",
+      "src": "bash.d/neovim.sh"
+     },
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/nvim",
+      "src": "neovim"
+     }
+    },
+    "name": "neovim-dotfiles"
    }
   },
   "pipx": {
@@ -5759,7 +6425,7 @@
     },
     "name": "bash-dotfiles"
    },
-   "dotfiles\\vulkan-sdk": {
+   "dotfiles\\vulkan-sdk-dotfiles": {
     "family": "dotfiles",
     "fields": {
      "aliases": {
@@ -5767,7 +6433,7 @@
       "src": "bash.d/vulkan-sdk.sh"
      }
     },
-    "name": "vulkan-sdk"
+    "name": "vulkan-sdk-dotfiles"
    },
    "tarball\\vulkan-sdk": {
     "family": "tarball",
@@ -5852,7 +6518,7 @@
     },
     "name": "bash-dotfiles"
    },
-   "dotfiles\\vulkan-sdk": {
+   "dotfiles\\vulkan-sdk-dotfiles": {
     "family": "dotfiles",
     "fields": {
      "aliases": {
@@ -5860,7 +6526,7 @@
       "src": "bash.d/vulkan-sdk.sh"
      }
     },
-    "name": "vulkan-sdk"
+    "name": "vulkan-sdk-dotfiles"
    },
    "tarball\\vulkan-sdk": {
     "family": "tarball",
@@ -5873,6 +6539,28 @@
      }
     },
     "name": "vulkan-sdk"
+   }
+  },
+  "vulkan-sdk-dotfiles": {
+   "dotfiles\\bash-dotfiles": {
+    "family": "dotfiles",
+    "fields": {
+     "aliases": {
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\vulkan-sdk-dotfiles": {
+    "family": "dotfiles",
+    "fields": {
+     "aliases": {
+      "dst": "~/.bash.d/vulkan-sdk.sh",
+      "src": "bash.d/vulkan-sdk.sh"
+     }
+    },
+    "name": "vulkan-sdk-dotfiles"
    }
   },
   "vulkan-swrast": {
@@ -5921,13 +6609,33 @@
     },
     "name": "bash-dotfiles"
    },
-   "dotfiles\\xclip": {
+   "dotfiles\\xclip-dotfiles": {
     "family": "dotfiles",
     "fields": {
      "dst": "~/.bash.d/xclip.sh",
      "src": "bash.d/xclip.sh"
     },
-    "name": "xclip"
+    "name": "xclip-dotfiles"
+   }
+  },
+  "xclip-dotfiles": {
+   "dotfiles\\bash-dotfiles": {
+    "family": "dotfiles",
+    "fields": {
+     "aliases": {
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\xclip-dotfiles": {
+    "family": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/xclip.sh",
+     "src": "bash.d/xclip.sh"
+    },
+    "name": "xclip-dotfiles"
    }
   }
  },
@@ -5947,13 +6655,13 @@
     },
     "name": "pipx"
    },
-   "dotfiles\\apod": {
+   "dotfiles\\apod-dotfiles": {
     "family": "dotfiles",
     "fields": {
      "dst": "~/.bash.d/apod.sh",
      "src": "bash.d/apod.sh"
     },
-    "name": "apod"
+    "name": "apod-dotfiles"
    },
    "dotfiles\\bash-dotfiles": {
     "family": "dotfiles",
@@ -5974,6 +6682,26 @@
      }
     },
     "name": "termapod"
+   }
+  },
+  "apod-dotfiles": {
+   "dotfiles\\apod-dotfiles": {
+    "family": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/apod.sh",
+     "src": "bash.d/apod.sh"
+    },
+    "name": "apod-dotfiles"
+   },
+   "dotfiles\\bash-dotfiles": {
+    "family": "dotfiles",
+    "fields": {
+     "aliases": {
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
    }
   },
   "arduino": {
@@ -5998,13 +6726,33 @@
     },
     "name": "fuse-libs"
    },
-   "dotfiles\\arduino": {
+   "dotfiles\\arduino-dotfiles": {
     "family": "dotfiles",
     "fields": {
      "dst": "~/.bash.d/arduino.sh",
      "src": "bash.d/arduino.sh"
     },
-    "name": "arduino"
+    "name": "arduino-dotfiles"
+   },
+   "dotfiles\\bash-dotfiles": {
+    "family": "dotfiles",
+    "fields": {
+     "aliases": {
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   }
+  },
+  "arduino-dotfiles": {
+   "dotfiles\\arduino-dotfiles": {
+    "family": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/arduino.sh",
+     "src": "bash.d/arduino.sh"
+    },
+    "name": "arduino-dotfiles"
    },
    "dotfiles\\bash-dotfiles": {
     "family": "dotfiles",
@@ -6313,13 +7061,23 @@
     },
     "name": "gdb"
    },
-   "dotfiles\\gdb": {
+   "dotfiles\\gdb-dotfiles": {
     "family": "dotfiles",
     "fields": {
      "dst": "~/.gdbinit",
      "src": "gdbinit"
     },
-    "name": "gdb"
+    "name": "gdb-dotfiles"
+   }
+  },
+  "gdb-dotfiles": {
+   "dotfiles\\gdb-dotfiles": {
+    "family": "dotfiles",
+    "fields": {
+     "dst": "~/.gdbinit",
+     "src": "gdbinit"
+    },
+    "name": "gdb-dotfiles"
    }
   },
   "git": {
@@ -6509,7 +7267,7 @@
     },
     "name": "bash-dotfiles"
    },
-   "dotfiles\\neovim": {
+   "dotfiles\\neovim-dotfiles": {
     "family": "dotfiles",
     "fields": {
      "aliases": {
@@ -6521,7 +7279,33 @@
       "src": "neovim"
      }
     },
-    "name": "neovim"
+    "name": "neovim-dotfiles"
+   }
+  },
+  "neovim-dotfiles": {
+   "dotfiles\\bash-dotfiles": {
+    "family": "dotfiles",
+    "fields": {
+     "aliases": {
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\neovim-dotfiles": {
+    "family": "dotfiles",
+    "fields": {
+     "aliases": {
+      "dst": "~/.bash.d/neovim.sh",
+      "src": "bash.d/neovim.sh"
+     },
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/nvim",
+      "src": "neovim"
+     }
+    },
+    "name": "neovim-dotfiles"
    }
   },
   "pipx": {
@@ -6700,7 +7484,7 @@
     },
     "name": "bash-dotfiles"
    },
-   "dotfiles\\vulkan-sdk": {
+   "dotfiles\\vulkan-sdk-dotfiles": {
     "family": "dotfiles",
     "fields": {
      "aliases": {
@@ -6708,7 +7492,7 @@
       "src": "bash.d/vulkan-sdk.sh"
      }
     },
-    "name": "vulkan-sdk"
+    "name": "vulkan-sdk-dotfiles"
    },
    "tarball\\vulkan-sdk": {
     "family": "tarball",
@@ -6793,7 +7577,7 @@
     },
     "name": "bash-dotfiles"
    },
-   "dotfiles\\vulkan-sdk": {
+   "dotfiles\\vulkan-sdk-dotfiles": {
     "family": "dotfiles",
     "fields": {
      "aliases": {
@@ -6801,7 +7585,7 @@
       "src": "bash.d/vulkan-sdk.sh"
      }
     },
-    "name": "vulkan-sdk"
+    "name": "vulkan-sdk-dotfiles"
    },
    "tarball\\vulkan-sdk": {
     "family": "tarball",
@@ -6814,6 +7598,28 @@
      }
     },
     "name": "vulkan-sdk"
+   }
+  },
+  "vulkan-sdk-dotfiles": {
+   "dotfiles\\bash-dotfiles": {
+    "family": "dotfiles",
+    "fields": {
+     "aliases": {
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\vulkan-sdk-dotfiles": {
+    "family": "dotfiles",
+    "fields": {
+     "aliases": {
+      "dst": "~/.bash.d/vulkan-sdk.sh",
+      "src": "bash.d/vulkan-sdk.sh"
+     }
+    },
+    "name": "vulkan-sdk-dotfiles"
    }
   },
   "vulkan-swrast": {
@@ -6868,13 +7674,33 @@
     },
     "name": "bash-dotfiles"
    },
-   "dotfiles\\xclip": {
+   "dotfiles\\xclip-dotfiles": {
     "family": "dotfiles",
     "fields": {
      "dst": "~/.bash.d/xclip.sh",
      "src": "bash.d/xclip.sh"
     },
-    "name": "xclip"
+    "name": "xclip-dotfiles"
+   }
+  },
+  "xclip-dotfiles": {
+   "dotfiles\\bash-dotfiles": {
+    "family": "dotfiles",
+    "fields": {
+     "aliases": {
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\xclip-dotfiles": {
+    "family": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/xclip.sh",
+     "src": "bash.d/xclip.sh"
+    },
+    "name": "xclip-dotfiles"
    }
   }
  },
@@ -6887,13 +7713,13 @@
     },
     "name": "python3-pip"
    },
-   "dotfiles\\apod": {
+   "dotfiles\\apod-dotfiles": {
     "family": "dotfiles",
     "fields": {
      "dst": "~/.bash.d/apod.sh",
      "src": "bash.d/apod.sh"
     },
-    "name": "apod"
+    "name": "apod-dotfiles"
    },
    "dotfiles\\bash-dotfiles": {
     "family": "dotfiles",
@@ -6926,6 +7752,26 @@
     "name": "termapod"
    }
   },
+  "apod-dotfiles": {
+   "dotfiles\\apod-dotfiles": {
+    "family": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/apod.sh",
+     "src": "bash.d/apod.sh"
+    },
+    "name": "apod-dotfiles"
+   },
+   "dotfiles\\bash-dotfiles": {
+    "family": "dotfiles",
+    "fields": {
+     "aliases": {
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   }
+  },
   "arduino": {
    "appImage\\arduino": {
     "family": "appImage",
@@ -6948,13 +7794,33 @@
     },
     "name": "libfuse2"
    },
-   "dotfiles\\arduino": {
+   "dotfiles\\arduino-dotfiles": {
     "family": "dotfiles",
     "fields": {
      "dst": "~/.bash.d/arduino.sh",
      "src": "bash.d/arduino.sh"
     },
-    "name": "arduino"
+    "name": "arduino-dotfiles"
+   },
+   "dotfiles\\bash-dotfiles": {
+    "family": "dotfiles",
+    "fields": {
+     "aliases": {
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   }
+  },
+  "arduino-dotfiles": {
+   "dotfiles\\arduino-dotfiles": {
+    "family": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/arduino.sh",
+     "src": "bash.d/arduino.sh"
+    },
+    "name": "arduino-dotfiles"
    },
    "dotfiles\\bash-dotfiles": {
     "family": "dotfiles",
@@ -7451,13 +8317,23 @@
     },
     "name": "gdb"
    },
-   "dotfiles\\gdb": {
+   "dotfiles\\gdb-dotfiles": {
     "family": "dotfiles",
     "fields": {
      "dst": "~/.gdbinit",
      "src": "gdbinit"
     },
-    "name": "gdb"
+    "name": "gdb-dotfiles"
+   }
+  },
+  "gdb-dotfiles": {
+   "dotfiles\\gdb-dotfiles": {
+    "family": "dotfiles",
+    "fields": {
+     "dst": "~/.gdbinit",
+     "src": "gdbinit"
+    },
+    "name": "gdb-dotfiles"
    }
   },
   "git": {
@@ -7641,7 +8517,7 @@
     },
     "name": "bash-dotfiles"
    },
-   "dotfiles\\neovim": {
+   "dotfiles\\neovim-dotfiles": {
     "family": "dotfiles",
     "fields": {
      "aliases": {
@@ -7653,7 +8529,33 @@
       "src": "neovim"
      }
     },
-    "name": "neovim"
+    "name": "neovim-dotfiles"
+   }
+  },
+  "neovim-dotfiles": {
+   "dotfiles\\bash-dotfiles": {
+    "family": "dotfiles",
+    "fields": {
+     "aliases": {
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\neovim-dotfiles": {
+    "family": "dotfiles",
+    "fields": {
+     "aliases": {
+      "dst": "~/.bash.d/neovim.sh",
+      "src": "bash.d/neovim.sh"
+     },
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/nvim",
+      "src": "neovim"
+     }
+    },
+    "name": "neovim-dotfiles"
    }
   },
   "pipx": {
@@ -7825,7 +8727,7 @@
     },
     "name": "bash-dotfiles"
    },
-   "dotfiles\\vulkan-sdk": {
+   "dotfiles\\vulkan-sdk-dotfiles": {
     "family": "dotfiles",
     "fields": {
      "aliases": {
@@ -7833,7 +8735,7 @@
       "src": "bash.d/vulkan-sdk.sh"
      }
     },
-    "name": "vulkan-sdk"
+    "name": "vulkan-sdk-dotfiles"
    },
    "tarball\\vulkan-sdk": {
     "family": "tarball",
@@ -7918,7 +8820,7 @@
     },
     "name": "bash-dotfiles"
    },
-   "dotfiles\\vulkan-sdk": {
+   "dotfiles\\vulkan-sdk-dotfiles": {
     "family": "dotfiles",
     "fields": {
      "aliases": {
@@ -7926,7 +8828,7 @@
       "src": "bash.d/vulkan-sdk.sh"
      }
     },
-    "name": "vulkan-sdk"
+    "name": "vulkan-sdk-dotfiles"
    },
    "tarball\\vulkan-sdk": {
     "family": "tarball",
@@ -7939,6 +8841,28 @@
      }
     },
     "name": "vulkan-sdk"
+   }
+  },
+  "vulkan-sdk-dotfiles": {
+   "dotfiles\\bash-dotfiles": {
+    "family": "dotfiles",
+    "fields": {
+     "aliases": {
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\vulkan-sdk-dotfiles": {
+    "family": "dotfiles",
+    "fields": {
+     "aliases": {
+      "dst": "~/.bash.d/vulkan-sdk.sh",
+      "src": "bash.d/vulkan-sdk.sh"
+     }
+    },
+    "name": "vulkan-sdk-dotfiles"
    }
   },
   "vulkan-swrast": {
@@ -7987,13 +8911,33 @@
     },
     "name": "bash-dotfiles"
    },
-   "dotfiles\\xclip": {
+   "dotfiles\\xclip-dotfiles": {
     "family": "dotfiles",
     "fields": {
      "dst": "~/.bash.d/xclip.sh",
      "src": "bash.d/xclip.sh"
     },
-    "name": "xclip"
+    "name": "xclip-dotfiles"
+   }
+  },
+  "xclip-dotfiles": {
+   "dotfiles\\bash-dotfiles": {
+    "family": "dotfiles",
+    "fields": {
+     "aliases": {
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\xclip-dotfiles": {
+    "family": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/xclip.sh",
+     "src": "bash.d/xclip.sh"
+    },
+    "name": "xclip-dotfiles"
    }
   }
  },
@@ -8006,13 +8950,13 @@
     },
     "name": "pipx"
    },
-   "dotfiles\\apod": {
+   "dotfiles\\apod-dotfiles": {
     "family": "dotfiles",
     "fields": {
      "dst": "~/.bash.d/apod.sh",
      "src": "bash.d/apod.sh"
     },
-    "name": "apod"
+    "name": "apod-dotfiles"
    },
    "dotfiles\\bash-dotfiles": {
     "family": "dotfiles",
@@ -8033,6 +8977,26 @@
      }
     },
     "name": "termapod"
+   }
+  },
+  "apod-dotfiles": {
+   "dotfiles\\apod-dotfiles": {
+    "family": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/apod.sh",
+     "src": "bash.d/apod.sh"
+    },
+    "name": "apod-dotfiles"
+   },
+   "dotfiles\\bash-dotfiles": {
+    "family": "dotfiles",
+    "fields": {
+     "aliases": {
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
    }
   },
   "arduino": {
@@ -8057,13 +9021,33 @@
     },
     "name": "libfuse2"
    },
-   "dotfiles\\arduino": {
+   "dotfiles\\arduino-dotfiles": {
     "family": "dotfiles",
     "fields": {
      "dst": "~/.bash.d/arduino.sh",
      "src": "bash.d/arduino.sh"
     },
-    "name": "arduino"
+    "name": "arduino-dotfiles"
+   },
+   "dotfiles\\bash-dotfiles": {
+    "family": "dotfiles",
+    "fields": {
+     "aliases": {
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   }
+  },
+  "arduino-dotfiles": {
+   "dotfiles\\arduino-dotfiles": {
+    "family": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/arduino.sh",
+     "src": "bash.d/arduino.sh"
+    },
+    "name": "arduino-dotfiles"
    },
    "dotfiles\\bash-dotfiles": {
     "family": "dotfiles",
@@ -8560,13 +9544,23 @@
     },
     "name": "gdb"
    },
-   "dotfiles\\gdb": {
+   "dotfiles\\gdb-dotfiles": {
     "family": "dotfiles",
     "fields": {
      "dst": "~/.gdbinit",
      "src": "gdbinit"
     },
-    "name": "gdb"
+    "name": "gdb-dotfiles"
+   }
+  },
+  "gdb-dotfiles": {
+   "dotfiles\\gdb-dotfiles": {
+    "family": "dotfiles",
+    "fields": {
+     "dst": "~/.gdbinit",
+     "src": "gdbinit"
+    },
+    "name": "gdb-dotfiles"
    }
   },
   "git": {
@@ -8750,7 +9744,7 @@
     },
     "name": "bash-dotfiles"
    },
-   "dotfiles\\neovim": {
+   "dotfiles\\neovim-dotfiles": {
     "family": "dotfiles",
     "fields": {
      "aliases": {
@@ -8762,7 +9756,33 @@
       "src": "neovim"
      }
     },
-    "name": "neovim"
+    "name": "neovim-dotfiles"
+   }
+  },
+  "neovim-dotfiles": {
+   "dotfiles\\bash-dotfiles": {
+    "family": "dotfiles",
+    "fields": {
+     "aliases": {
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\neovim-dotfiles": {
+    "family": "dotfiles",
+    "fields": {
+     "aliases": {
+      "dst": "~/.bash.d/neovim.sh",
+      "src": "bash.d/neovim.sh"
+     },
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/nvim",
+      "src": "neovim"
+     }
+    },
+    "name": "neovim-dotfiles"
    }
   },
   "pipx": {
@@ -8924,7 +9944,7 @@
     },
     "name": "bash-dotfiles"
    },
-   "dotfiles\\vulkan-sdk": {
+   "dotfiles\\vulkan-sdk-dotfiles": {
     "family": "dotfiles",
     "fields": {
      "aliases": {
@@ -8932,7 +9952,7 @@
       "src": "bash.d/vulkan-sdk.sh"
      }
     },
-    "name": "vulkan-sdk"
+    "name": "vulkan-sdk-dotfiles"
    },
    "tarball\\vulkan-sdk": {
     "family": "tarball",
@@ -9017,7 +10037,7 @@
     },
     "name": "bash-dotfiles"
    },
-   "dotfiles\\vulkan-sdk": {
+   "dotfiles\\vulkan-sdk-dotfiles": {
     "family": "dotfiles",
     "fields": {
      "aliases": {
@@ -9025,7 +10045,7 @@
       "src": "bash.d/vulkan-sdk.sh"
      }
     },
-    "name": "vulkan-sdk"
+    "name": "vulkan-sdk-dotfiles"
    },
    "tarball\\vulkan-sdk": {
     "family": "tarball",
@@ -9038,6 +10058,28 @@
      }
     },
     "name": "vulkan-sdk"
+   }
+  },
+  "vulkan-sdk-dotfiles": {
+   "dotfiles\\bash-dotfiles": {
+    "family": "dotfiles",
+    "fields": {
+     "aliases": {
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\vulkan-sdk-dotfiles": {
+    "family": "dotfiles",
+    "fields": {
+     "aliases": {
+      "dst": "~/.bash.d/vulkan-sdk.sh",
+      "src": "bash.d/vulkan-sdk.sh"
+     }
+    },
+    "name": "vulkan-sdk-dotfiles"
    }
   },
   "vulkan-swrast": {
@@ -9086,13 +10128,33 @@
     },
     "name": "bash-dotfiles"
    },
-   "dotfiles\\xclip": {
+   "dotfiles\\xclip-dotfiles": {
     "family": "dotfiles",
     "fields": {
      "dst": "~/.bash.d/xclip.sh",
      "src": "bash.d/xclip.sh"
     },
-    "name": "xclip"
+    "name": "xclip-dotfiles"
+   }
+  },
+  "xclip-dotfiles": {
+   "dotfiles\\bash-dotfiles": {
+    "family": "dotfiles",
+    "fields": {
+     "aliases": {
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\xclip-dotfiles": {
+    "family": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/xclip.sh",
+     "src": "bash.d/xclip.sh"
+    },
+    "name": "xclip-dotfiles"
    }
   }
  }

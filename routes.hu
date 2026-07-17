@@ -38,8 +38,9 @@
         // `repo-component: universe` is the apt archive area (read only by apt; ignored on dnf/pacman).
         ripgrep: { install: [ { via: native  when: "rhel"  requires: epel } { via: native  repo-component: universe } ] }
         fzf:     { install: [ { via: native  when: "rhel"  requires: epel } { via: native  repo-component: universe } ] }
-        xclip:   { dotfiles: { requires: bash-dotfiles  src: bash.d/xclip.sh  dst: ~/.bash.d/xclip.sh }
+        xclip:   { requires: xclip-dotfiles
                    install: [ { via: native  when: "rhel"  requires: epel } { via: native  repo-component: universe } ] }
+        xclip-dotfiles: { install: [ { via: dotfiles  requires: bash-dotfiles  src: bash.d/xclip.sh  dst: ~/.bash.d/xclip.sh } ] }
 
         // btop lives in EPEL on EL (needs epel enabled), base repos everywhere else.
         // Two native bindings: the EL one adds `requires: epel`; both are dnf\btop.
@@ -74,8 +75,11 @@
         // so this is a two-level tool chain. The inline dotfiles field runs termapod on every
         // interactive shell. (Old: linux `apod: [ pipx\apod, dotfiles\apod ]`.)
         apod: {
-            dotfiles: { requires: bash-dotfiles  src: bash.d/apod.sh  dst: ~/.bash.d/apod.sh }
+            requires: apod-dotfiles
             install: [ { via: pipx  name: termapod  version: { pypi: termapod } } ]
+        }
+        apod-dotfiles: {
+            install: [ { via: dotfiles  requires: bash-dotfiles  src: bash.d/apod.sh  dst: ~/.bash.d/apod.sh } ]
         }
 
         // native, name differs by manager
@@ -112,25 +116,29 @@
             install: [ { via: dotfiles  aliases: { src: bash_aliases  dst: ~/.bash_aliases } } ]
         }
 
-        // --- appImage apps (fetch-artifact) + method-independent dotfiles chain ---
+        // --- appImage apps (fetch-artifact); config rides along as a required -dotfiles
+        // component (a plain via:dotfiles component, so it can carry when: conditions too) ---
         neovim: {
-            requires: [ ripgrep, tree-sitter-cli ]                  // method-independent
-            dotfiles: {
-                requires: bash-dotfiles
-                config:  { src: neovim         dst: $XDG_CONFIG_HOME/nvim }
-                aliases: { src: bash.d/neovim.sh  dst: ~/.bash.d/neovim.sh }
-            }
+            requires: [ ripgrep, tree-sitter-cli, neovim-dotfiles ]
             install: [ { via: appImage  name: Neovim  scope: user   // -> requires libfuse2; keep it in ~/apps
                          version: { github: neovim/neovim  asset: "nvim-linux-$ARCH.appimage" }
                          url: "https://github.com/neovim/neovim/releases/download/$VERSION/nvim-linux-$ARCH.appimage"
                          path: ~/apps/nvim.appimage } ]
         }
+        neovim-dotfiles: {
+            install: [ { via: dotfiles  requires: bash-dotfiles
+                         config:  { src: neovim         dst: $XDG_CONFIG_HOME/nvim }
+                         aliases: { src: bash.d/neovim.sh  dst: ~/.bash.d/neovim.sh } } ]
+        }
         arduino: {
-            dotfiles: { requires: bash-dotfiles  src: bash.d/arduino.sh  dst: ~/.bash.d/arduino.sh }
+            requires: arduino-dotfiles
             install: [ { via: appImage  name: "Arduino IDE"
                          version: { github: arduino/arduino-ide  asset: "arduino-ide_*_Linux_64bit.AppImage" }
                          url: "https://github.com/arduino/arduino-ide/releases/download/$VERSION/arduino-ide_$VERSION_Linux_64bit.AppImage"
                          path: ~/apps/arduino-ide.appimage } ]
+        }
+        arduino-dotfiles: {
+            install: [ { via: dotfiles  requires: bash-dotfiles  src: bash.d/arduino.sh  dst: ~/.bash.d/arduino.sh } ]
         }
 
         // --- parts: composition (a component that IS several others, no unit of its own) ---
@@ -154,10 +162,13 @@
         // dotfile (dotfiles\vulkan-sdk), keyed by the component; the tarball mechanism
         // pulls curl. (Old: a [tarball\vulkan-sdk, dotfiles\vulkan-sdk] list bundle.)
         vulkan-sdk: {
-            dotfiles: { requires: bash-dotfiles
-                        aliases: { src: bash.d/vulkan-sdk.sh  dst: ~/.bash.d/vulkan-sdk.sh } }
+            requires: vulkan-sdk-dotfiles
             install: [ { via: tarball  version: { static: 1.4.350.1 }  installDir: vulkan
                          url: "https://sdk.lunarg.com/sdk/download/$VERSION/linux/vulkansdk-linux-$ARCH-$VERSION.tar.xz" } ]
+        }
+        vulkan-sdk-dotfiles: {
+            install: [ { via: dotfiles  requires: bash-dotfiles
+                         aliases: { src: bash.d/vulkan-sdk.sh  dst: ~/.bash.d/vulkan-sdk.sh } } ]
         }
         // vulkan-dev X libs, per OS: Debian ships three; Fedora's libxcb-devel bundles
         // xinput+xinerama (+ xcb-util-cursor-devel); Arch's libxcb does likewise (+ xcb-util-cursor).
@@ -232,8 +243,11 @@
         // gdb: base-repo native everywhere (apt main / dnf base / pacman extra; EL base, no
         // EPEL), plus its shell-startup dotfile.
         gdb: {
-            dotfiles: { src: gdbinit dst: ~/.gdbinit }
+            requires: gdb-dotfiles
             install: [ { via: native } ]
+        }
+        gdb-dotfiles: {   // gdb reads ~/.gdbinit natively (no bash-dotfiles loader needed)
+            install: [ { via: dotfiles  src: gdbinit  dst: ~/.gdbinit } ]
         }
 
         best-ps1: {

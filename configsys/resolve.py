@@ -211,29 +211,14 @@ class _State:
         self.units[key] = unit
         for cap in set(comp.provides) | {name}:
             self.inventory.setdefault(cap, frozenset({key}))
-        # requires: method-independent (component) + mechanism-level + binding-specific
+        # requires: method-independent (component) + mechanism-level + binding-specific.
+        # A component's config is just another required component (a `via: dotfiles` one),
+        # so it flows through here too — no special-cased dotfiles field.
         reqs = (list(comp.requires) + list(self.mechanisms.get(binding.via, []))
                 + _as_list(binding.details.get('requires')))
         for cap in reqs:
             self.queue.append((key, name, cap, root))
-        # method-independent config: a `dotfiles:` field emits a dotfiles\<comp> unit
-        # (keyed by the component) as a dependency, with its own requires (e.g. bash-dotfiles).
-        if comp.dotfiles is not None:
-            self._add_dotfile(name, comp.dotfiles, root)
-            unit.deps.add(f'dotfiles\\{name}')
         return frozenset({key})
-
-    def _add_dotfile(self, name, spec, root):
-        key = f'dotfiles\\{name}'
-        if key in self.units:
-            self.units[key].requested_as.add(root)
-            return
-        unit = Unit('dotfiles', name, None)
-        unit.requested_as = {root}
-        unit.details = _install_fields(spec, None)
-        self.units[key] = unit
-        for cap in _as_list(spec.get('requires')):
-            self.queue.append((key, name, cap, root))
 
     def drain(self):
         while self.queue:
