@@ -21,6 +21,7 @@
         cargo:       { requires: cargo }              // a crate needs the cargo tool
         debian-font: { requires: [ fontconfig, unzip ] }
         pip:         { requires: python3-pip }        // `pip install --user` needs pip
+        tarball:     { requires: curl }               // fetch the archive with curl
     }
 
     // Component layer: each is a capability + a list of context-selected bindings.
@@ -126,6 +127,30 @@
                 { via: parts  when: "debian"  parts: [ libvulkan1, mesa-vulkan-drivers ] }
                 { via: parts  when: "redhat"  parts: [ vulkan-loader, mesa-vulkan-drivers ] }  // fedora + EL
                 { via: parts  when: "arch"    parts: [ vulkan-icd-loader, vulkan-radeon, vulkan-intel, vulkan-swrast ] }
+            ]
+        }
+
+        // --- tarball + composition: the vulkan SDK and the vulkan-dev bundle ---
+        // vulkan-sdk is ONE component that is both a tarball unit AND an inline config
+        // dotfile (dotfiles\vulkan-sdk), keyed by the component; the tarball mechanism
+        // pulls curl. (Old: a [tarball\vulkan-sdk, dotfiles\vulkan-sdk] list bundle.)
+        vulkan-sdk: {
+            dotfiles: { requires: bashDotD
+                        aliases: { src: bash.d/vulkan-sdk.sh  dst: ~/.bash.d/vulkan-sdk.sh } }
+            install: [ { via: tarball  version: { static: 1.4.350.1 }  installDir: vulkan
+                         url: "https://sdk.lunarg.com/sdk/download/$VERSION/linux/vulkansdk-linux-$ARCH-$VERSION.tar.xz" } ]
+        }
+        libxcb-xinput0:    { install: [ { via: native } ] }
+        libxcb-xinerama0:  { install: [ { via: native } ] }
+        libxcb-cursor-dev: { install: [ { via: native } ] }
+        // vulkan-dev: a parts bundle composing the X libs, build tools, the SDK tarball,
+        // and the vulkan runtime (itself a parts aggregator). Debian for now; the Fedora/
+        // Arch xcb + build-essential variants wait on the gcc package/dotfile name split.
+        vulkan-dev: {
+            install: [
+                { via: parts  when: "debian"
+                  parts: [ libxcb-xinput0, libxcb-xinerama0, libxcb-cursor-dev,
+                           build-essential, vulkan-sdk, vulkan-runtime ] }
             ]
         }
 

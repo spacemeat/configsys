@@ -89,6 +89,9 @@ CLOSURE = [
     ('clang-19', 'ubuntu', '24.04'), ('clang-19', 'fedora', '41'), ('clang-19', 'fedora', '42'),
     ('clang-19', 'rhel', '9.8'),
     ('clang-20', 'ubuntu', '24.04'), ('clang-20', 'fedora', '42'), ('clang-20', 'rhel', '9.8'),
+    # tarball + composition: the SDK (tarball + inline dotfile) and the vulkan-dev bundle
+    ('vulkan-sdk', 'ubuntu', '24.04'),
+    ('vulkan-dev', 'ubuntu', '24.04'),
 ]
 
 
