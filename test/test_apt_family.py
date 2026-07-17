@@ -89,6 +89,14 @@ def test_get_version_not_installed():
     assert Apt(fr).get_version(rc()) is None
 
 
+def test_get_version_multiarch_takes_one_row():
+    # a multiarch package (amd64 + i386, once i386 is enabled for Steam) prints one row
+    # per instance; without this we'd concatenate them into a doubled, never-matching
+    # version and the component would show as perpetually "outdated".
+    fr = FakeRunner([('dpkg-query', 0, '1.3.280.0-1\n1.3.280.0-1\n')])
+    assert Apt(fr).get_version(rc()) == '1.3.280.0-1'
+
+
 def test_get_latest_candidate():
     policy = ('btop:\n  Installed: (none)\n  Candidate: 1.2.13-1\n'
               '  Version table:\n     1.2.13-1 500\n')

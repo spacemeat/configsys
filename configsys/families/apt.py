@@ -63,9 +63,13 @@ class Apt(Family):
 
     def get_version(self, rc):
         pkg = shlex.quote(rc.name)
-        r = self.runner.run(f"dpkg-query -W -f='${{Version}}' {pkg}")
+        # `\n`-terminate the format: a multiarch package (e.g. libvulkan1:amd64 + :i386,
+        # once i386 is enabled for Steam) prints one row per installed instance. Without a
+        # separator the two versions concatenate into a doubled string that never matches
+        # the apt candidate -> perpetually "outdated". Take the first row (arches match).
+        r = self.runner.run(f"dpkg-query -W -f='${{Version}}\\n' {pkg}")
         if r.ok and r.stdout.strip():
-            return r.stdout.strip()
+            return r.stdout.strip().splitlines()[0].strip()
         return None
 
     # -- deb mode (a tool shipping an official .deb, not in the apt repos) -
