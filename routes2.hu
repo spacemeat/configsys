@@ -112,6 +112,22 @@
                          path: ~/apps/arduino-ide.appimage } ]
         }
 
+        // --- parts: composition (a component that IS several others, no unit of its own) ---
+        libvulkan1:            { install: [ { via: native } ] }
+        vulkan-loader:         { install: [ { via: native } ] }
+        vulkan-icd-loader:     { install: [ { via: native } ] }
+        vulkan-radeon:         { install: [ { via: native } ] }
+        vulkan-intel:          { install: [ { via: native } ] }
+        vulkan-swrast:         { install: [ { via: native } ] }
+        mesa-vulkan-drivers:   { install: [ { via: native } ] }
+        vulkan-runtime: {
+            install: [
+                { via: parts  when: "debian"  parts: [ libvulkan1, mesa-vulkan-drivers ] }
+                { via: parts  when: "fedora"  parts: [ vulkan-loader, mesa-vulkan-drivers ] }  // fedora + EL
+                { via: parts  when: "arch"    parts: [ vulkan-icd-loader, vulkan-radeon, vulkan-intel, vulkan-swrast ] }
+            ]
+        }
+
         // --- github .deb where no repo has it, native package elsewhere (cpu-keyed asset) ---
         fastfetch: {
             install: [

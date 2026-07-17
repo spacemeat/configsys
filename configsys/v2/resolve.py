@@ -39,10 +39,17 @@ class Unit:
         return f'Unit({self.key} -> {self.package!r})'
 
 
-def select_binding(component, cascade, context):
-    matching = [b for b in component.bindings if b.pred.eval(context)]
+def select_binding(component, cascade, context, pins=None):
+    bindings = component.bindings
+    pin = (pins or {}).get(component.name)
+    if pin is not None:                     # binding-pin: force this method, still context-valid
+        bindings = [b for b in bindings if b.via == pin]
+        if not bindings:
+            raise ResolveError(f'{component.name}: pinned to via:{pin!r}, which is not a binding')
+    matching = [b for b in bindings if b.pred.eval(context)]
     if not matching:
-        raise ResolveError(f'no binding for {component.name} in this context')
+        extra = f' (pinned to via:{pin!r})' if pin is not None else ''
+        raise ResolveError(f'no binding for {component.name} in this context{extra}')
     if len(matching) == 1:
         return matching[0]
     by_pred = {b.pred: b for b in matching}
@@ -101,16 +108,19 @@ def resolve_one(name, cascade, components, block, version=None, cpu=None):
 
 # -- full resolution: the worklist to a fixpoint ---------------------------
 
-def resolve(names, cascade, components, mechanisms, block, version=None, cpu=None):
+def resolve(names, cascade, components, mechanisms, block, version=None, cpu=None, pins=None):
     '''Resolve a profile (component names) to the full unit closure for a context.
 
     Phase 1 seeds every explicit want and registers what it provides, BEFORE any
     requirement is resolved — so an explicitly-requested provider always wins over an
     implicitly-pulled one. Phase 2 drains requirements to a fixpoint, reusing whatever
     the environment or an already-chosen unit provides. No backtracking: unsatisfiable
-    or ambiguous is an error. Returns {unit_key: Unit}.
+    or ambiguous is an error. `pins` (per-machine) force a component's method
+    (binding-pin) or a capability's provider (provider-pin), top of precedence.
+    Returns {unit_key: Unit}. Resolving a name yields a SET of keys — one for a normal
+    component, several for a `via: parts` aggregator (which has no unit of its own).
     '''
-    st = _State(cascade, components, mechanisms, cascade.context(block, version, cpu))
+    st = _State(cascade, components, mechanisms, cascade.context(block, version, cpu), pins or {})
     for name in names:
         st.add_component(name, root=name)          # phase 1: wants + their provides
     st.drain()                                     # phase 2: close requirements
@@ -118,19 +128,26 @@ def resolve(names, cascade, components, mechanisms, block, version=None, cpu=Non
     return st.units
 
 
-def _bindable(component, cascade, ctx):
-    return any(b.pred.eval(ctx) for b in component.bindings)
+def _bindable(component, cascade, ctx, pins):
+    try:
+        select_binding(component, cascade, ctx, pins)
+        return True
+    except ResolveError:
+        return False
 
 
 class _State:
-    def __init__(self, cascade, components, mechanisms, ctx):
+    def __init__(self, cascade, components, mechanisms, ctx, pins):
         self.cascade = cascade
         self.components = components
         self.mechanisms = mechanisms
         self.ctx = ctx
+        self.pins = pins
         self.block = ctx.lineage[0]
         self.units = {}
-        self.inventory = {cap: None for cap in cascade.provides(self.block)}   # cap -> unit key (None = env)
+        # capability -> frozenset of unit keys satisfying it (empty = the environment
+        # provides it, no unit needed).
+        self.inventory = {cap: frozenset() for cap in cascade.provides(self.block)}
         self.providers = self._provider_index()
         self.queue = []                            # (requiring_key, requiring_name, cap, root)
 
@@ -142,20 +159,30 @@ class _State:
         return idx
 
     def add_component(self, name, root):
+        '''Resolve a component name -> the frozenset of unit keys it contributes.'''
         if name not in self.components:
             raise ResolveError(f'unknown component: {name}')
         comp = self.components[name]
-        binding = select_binding(comp, self.cascade, self.ctx)
+        binding = select_binding(comp, self.cascade, self.ctx, self.pins)
+
+        # a `via: parts` binding is a pure aggregator: no unit of its own, just the
+        # union of its (recursively resolved) parts, each attributed to this root.
+        if binding.via == 'parts':
+            keys = set()
+            for part in _as_list(binding.details.get('parts')):
+                keys |= self.add_component(part, root)
+            return frozenset(keys)
+
         mech = _mechanism(binding, self.cascade, self.block)
         key = f'{mech}\\{name}'
         if key in self.units:
             self.units[key].requested_as.add(root)
-            return key
+            return frozenset({key})
         unit = Unit(mech, name, _package(binding, mech, comp))
         unit.requested_as = {root}
         self.units[key] = unit
         for cap in set(comp.provides) | {name}:
-            self.inventory.setdefault(cap, key)
+            self.inventory.setdefault(cap, frozenset({key}))
         # requires: method-independent (component) + mechanism-level + binding-specific
         reqs = (list(comp.requires) + list(self.mechanisms.get(binding.via, []))
                 + _as_list(binding.details.get('requires')))
@@ -166,7 +193,7 @@ class _State:
         if comp.dotfiles is not None:
             self._add_dotfile(name, comp.dotfiles, root)
             unit.deps.add(f'dotfiles\\{name}')
-        return key
+        return frozenset({key})
 
     def _add_dotfile(self, name, spec, root):
         key = f'dotfiles\\{name}'
@@ -182,23 +209,28 @@ class _State:
     def drain(self):
         while self.queue:
             requiring_key, requiring_name, cap, root = self.queue.pop(0)
-            dep = self._satisfy(cap, root, requiring_name)
-            if dep is not None:
-                self.units[requiring_key].deps.add(dep)
+            self.units[requiring_key].deps |= self._satisfy(cap, root, requiring_name)
 
     def _satisfy(self, cap, root, requiring):
         if cap in self.inventory:
-            return self.inventory[cap]                  # reuse (a unit key, or None for env)
+            return self.inventory[cap]                  # reuse (keys, or empty for env)
         candidates = [p for p in self.providers.get(cap, []) if p != requiring]  # bootstrap guard
-        viable = [p for p in candidates if _bindable(self.components[p], self.cascade, self.ctx)]
+        viable = [p for p in candidates if _bindable(self.components[p], self.cascade, self.ctx, self.pins)]
         if not viable:
             raise ResolveError(f'nothing provides "{cap}" here (required by {requiring})')
-        if len(viable) > 1:
+        pin = self.pins.get(cap)
+        if pin is not None:                             # provider-pin
+            if pin not in viable:
+                raise ResolveError(f'"{cap}" pinned to {pin!r}, which cannot provide it here')
+            chosen = pin
+        elif len(viable) == 1:
+            chosen = viable[0]
+        else:
             raise ResolveError(f'ambiguous providers for "{cap}": {sorted(viable)} '
-                               f'(required by {requiring}) — needs a pin')
-        key = self.add_component(viable[0], root)
-        self.inventory[cap] = key
-        return key
+                               f'(required by {requiring}) — needs a provider-pin')
+        keys = self.add_component(chosen, root)
+        self.inventory[cap] = keys
+        return keys
 
     def propagate_requested(self):
         changed = True

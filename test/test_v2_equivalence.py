@@ -73,6 +73,10 @@ CLOSURE = [
     ('btop', 'debian', '12'), ('btop', 'fedora', '41'),
     ('btop', 'rhel', '9.8'), ('btop', 'arch', '20260101'),
     ('pipx', 'rhel', '9.8'),                 # native pipx + EPEL
+    # parts: composition — the aggregator has no unit, just its (per-OS) parts
+    ('vulkan-runtime', 'ubuntu', '24.04'),
+    ('vulkan-runtime', 'fedora', '41'),
+    ('vulkan-runtime', 'arch', '20260101'),
 ]
 
 
@@ -107,6 +111,38 @@ def test_shared_dotfile_attributed_to_both_apps():
     assert set(new) == set(old)
     assert new['dotfiles\\bashDotD'].requested_as == {'neovim', 'arduino'}
     assert new['dotfiles\\bashDotD'].requested_as == old['dotfiles\\bashDotD'].requested_as
+
+
+# -- pins (per-machine control, top of precedence) ------------------------
+
+def test_binding_pin_forces_method():
+    cascade, components, mechanisms = _v2()
+    # steam on Pop is native by default...
+    default = resolve(['steam'], cascade, components, mechanisms, 'pop_os!', '22.04', 'x86_64')
+    assert 'apt\\steam' in default and 'flatpak\\steam' not in default
+    # ...pinned to flatpak, it becomes flatpak (+ the flatpak tool), overriding the default
+    pinned = resolve(['steam'], cascade, components, mechanisms, 'pop_os!', '22.04', 'x86_64',
+                     pins={'steam': 'flatpak'})
+    assert 'flatpak\\steam' in pinned and 'apt\\steam' not in pinned
+    assert 'apt\\flatpak' in pinned
+
+
+def test_provider_pin_disambiguates():
+    from configsys.v2.resolve import ResolveError
+    from configsys.v2.routes2 import Component
+    cascade, _c, mechanisms = _v2()
+    comps = {
+        'toolchain': Component('toolchain', {'requires': 'cc', 'install': [{'via': 'native'}]}),
+        'gccish':    Component('gccish', {'provides': 'cc', 'install': [{'via': 'native'}]}),
+        'clangish':  Component('clangish', {'provides': 'cc', 'install': [{'via': 'native'}]}),
+    }
+    # two providers of `cc`, no pin -> ambiguous
+    with pytest.raises(ResolveError):
+        resolve(['toolchain'], cascade, comps, mechanisms, 'ubuntu', '24.04', 'x86_64')
+    # provider-pin picks one
+    units = resolve(['toolchain'], cascade, comps, mechanisms, 'ubuntu', '24.04', 'x86_64',
+                    pins={'cc': 'clangish'})
+    assert 'apt\\clangish' in units and 'apt\\gccish' not in units
 
 
 # -- cpu-keyed asset selection (a NEW v2 capability; old hardcoded amd64) --
