@@ -36,9 +36,10 @@
         python3-pip: { install: [ { via: native  name: { pacman: python-pip } } ] }
         // EL keeps these in EPEL, base repos everywhere else — same two-binding shape as btop.
         // `repo-component: universe` is the apt archive area (read only by apt; ignored on dnf/pacman).
-        ripgrep: { install: [ { via: native  when: "rhel"  requires: epel }  { via: native  repo-component: universe } ] }
-        fzf:     { install: [ { via: native  when: "rhel"  requires: epel }  { via: native  repo-component: universe } ] }
-        xclip:   { install: [ { via: native  when: "rhel"  requires: epel }  { via: native  repo-component: universe } ] }
+        ripgrep: { install: [ { via: native  when: "rhel"  requires: epel } { via: native  repo-component: universe } ] }
+        fzf:     { install: [ { via: native  when: "rhel"  requires: epel } { via: native  repo-component: universe } ] }
+        xclip:   { dotfiles: { requires: bash-dotfiles  src: bash.d/xclip.sh  dst: ~/.bash.d/xclip.sh }
+                   install: [ { via: native  when: "rhel"  requires: epel } { via: native  repo-component: universe } ] }
 
         // btop lives in EPEL on EL (needs epel enabled), base repos everywhere else.
         // Two native bindings: the EL one adds `requires: epel`; both are dnf\btop.
@@ -231,8 +232,12 @@
         // gdb: base-repo native everywhere (apt main / dnf base / pacman extra; EL base, no
         // EPEL), plus its shell-startup dotfile.
         gdb: {
-            dotfiles: { requires: bash-dotfiles  src: bash.d/gdb.sh  dst: ~/.bash.d/gdb.sh }
+            dotfiles: { src: gdbinit dst: ~/.gdbinit }
             install: [ { via: native } ]
+        }
+
+        best-ps1: {
+            install: [ { via: dotfiles  requires: bash-dotfiles  src: bash.d/ps1.sh  dst: ~/.bash.d/ps1.sh } ]
         }
 
         // vscode: native from Microsoft's vendor repos. Debian/Ubuntu/Pop use the MS apt

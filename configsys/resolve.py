@@ -217,7 +217,7 @@ class _State:
         for cap in reqs:
             self.queue.append((key, name, cap, root))
         # method-independent config: a `dotfiles:` field emits a dotfiles\<comp> unit
-        # (keyed by the component) as a dependency, with its own requires (e.g. bashDotD).
+        # (keyed by the component) as a dependency, with its own requires (e.g. bash-dotfiles).
         if comp.dotfiles is not None:
             self._add_dotfile(name, comp.dotfiles, root)
             unit.deps.add(f'dotfiles\\{name}')

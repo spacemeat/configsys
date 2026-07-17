@@ -7,7 +7,7 @@
     // routes.hu (family binding, recursive deps, dedup). A name with no route on
     // the active OS is surfaced as a config error.
     user: [
-        bashDotD
+        bash-dotfiles
         btop
         firefox
         chrome
@@ -20,6 +20,7 @@
         apod
         vulkan-runtime      // loader + mesa Vulkan ICDs; no-op where a DE already has them
         steam
+        best-ps1
     ]
     dev: [
         cargo
