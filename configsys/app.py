@@ -77,8 +77,10 @@ class Context:
 
     @property
     def routes(self):
+        # ~/configsys.hu may carry a `components:` section that overlays routes.hu.
         return Resolver(self.paths.routes_file, self.os_info.block,
-                        self.os_info.version, self._cpu())
+                        self.os_info.version, self._cpu(),
+                        overrides_path=self.paths.user_config_file)
 
     @property
     def config(self):

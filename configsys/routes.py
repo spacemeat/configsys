@@ -6,9 +6,12 @@ holds to turn a profile's component names into the `{key: ResolvedComponent}` cl
 this machine's context. Resolution itself lives in resolve.py; the RC marshalling in adapt.py.
 '''
 
+import os
+
 import humon
 
 from . import predicate
+from .errors import ConfigError
 
 
 def _py(node):
@@ -47,9 +50,12 @@ class Component:
     def __init__(self, name, spec):
         unknown = set(spec) - self._KEYS
         if unknown:
-            raise ValueError(
-                f'component {name!r}: unknown key(s) {sorted(unknown)} '
-                f'(config is a required `<name>-dotfiles` component now, not a `dotfiles:` field)')
+            hint = ''
+            if 'dotfiles' in unknown:  # the removed inline-node construct
+                hint = '; config is a required `<name>-dotfiles` component now, not a `dotfiles:` field'
+            raise ConfigError(
+                f'component {name!r}: unknown key(s) {sorted(unknown)}; '
+                f'valid keys are {sorted(self._KEYS)}{hint}')
         self.name = name
         self.provides = _as_list(spec.get('provides'))
         self.requires = _as_list(spec.get('requires'))
@@ -109,20 +115,46 @@ class OsCascade:
         return predicate.Context(self.lineage(block), version, cpu, self.scale_roots)
 
 
-def load(path, validate=True):
+def _user_components(overrides_path):
+    '''The `components:` section of the user's ~/configsys.hu (or {} if none / no file).
+    Only components overlay; the user file's os/mechanisms/profiles/etc. are ignored here.'''
+    if overrides_path is None or not os.path.exists(overrides_path):
+        return {}
+    try:
+        trove = humon.from_file(overrides_path)
+        return _py(trove.root['components']) or {}
+    except ConfigError:
+        raise
+    except Exception as e:
+        raise ConfigError(f'{overrides_path}: could not read overrides ({e})')
+
+
+def load(path, overrides_path=None, validate=True):
     '''-> (OsCascade, {component_name: Component}, {mechanism: [required caps]}).
 
-    The trove must stay alive while _py walks its nodes (they point into it); once _py
-    has materialized everything to plain python, the returned objects don't need it.
-    With validate=True, an ambiguous routes file is rejected up front (AmbiguityError).
+    `path` (routes.hu) is the base. `overrides_path` (the user's ~/configsys.hu, optional)
+    may carry a `components:` section that overlays the base PER COMPONENT NAME: the user's
+    definition wins wholesale (all-or-nothing), adds a new component, or removes one with `{}`
+    (a zero-binding component that resolves to nothing). os/mechanisms are not overridable here.
+
+    The trove must stay alive while _py walks its nodes; once materialized to plain python the
+    returned objects don't need it. With validate=True, an ambiguous merged set is rejected up
+    front (AmbiguityError).
     '''
     trove = humon.from_file(path)
     root = trove.root
     os_dict = _py(root['os']) or {}
     comps = _py(root['components']) or {}
     mechs = _py(root['mechanisms']) or {}
+
     cascade = OsCascade(os_dict)
     components = {name: Component(name, spec) for name, spec in comps.items()}
+    for name, spec in _user_components(overrides_path).items():
+        try:
+            components[name] = Component(name, spec)     # user wins; {} -> removed
+        except ConfigError as e:
+            raise ConfigError(f'{overrides_path}: {e}')
+
     mechanisms = {name: _as_list((spec or {}).get('requires')) for name, spec in mechs.items()}
     if validate:
         from . import routecheck
@@ -136,8 +168,9 @@ class Resolver:
     cpu). `resolve_with_roots` also returns the directly-bound unit keys the app applies
     an op to (dependency installs are folded in by planning.expand_plan).'''
 
-    def __init__(self, routes_path, block, version=None, cpu=None, pins=None):
-        self.cascade, self.components, self.mechanisms = load(routes_path)
+    def __init__(self, routes_path, block, version=None, cpu=None, pins=None,
+                 overrides_path=None):
+        self.cascade, self.components, self.mechanisms = load(routes_path, overrides_path)
         self.block = block
         self.version = version
         self.cpu = cpu

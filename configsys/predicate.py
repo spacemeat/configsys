@@ -24,6 +24,7 @@ or/not, which the full checker slice will handle.
 import operator
 import re
 
+from .errors import ConfigsysError
 from .osversion import parse_version
 
 _CMP = {'<': operator.lt, '<=': operator.le, '>': operator.gt,
@@ -42,8 +43,8 @@ _TOKEN = re.compile(r'''
 _KEYWORDS = {'and', 'or', 'not'}
 
 
-class PredicateError(ValueError):
-    pass
+class PredicateError(ConfigsysError, ValueError):
+    '''A malformed `when:` expression (also a ValueError for back-compat).'''
 
 
 # -- AST ------------------------------------------------------------------

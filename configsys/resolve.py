@@ -1,13 +1,14 @@
-'''resolve.py — minimal v2 resolution: pick a component's binding for a context and
-report the concrete unit. Single-component for now (no dependency graph yet — that's the
-worklist/fixpoint slice); enough to prove binding selection matches the old resolver.
+'''resolve.py — resolution: pick each component's binding for a context and report the
+concrete unit closure (worklist to a fixpoint over requires/provides/parts).
 '''
 
 from . import predicate
+from .errors import ConfigsysError
 
 
-class ResolveError(Exception):
-    pass
+class ResolveError(ConfigsysError):
+    '''A component could not be routed here (unknown name, no binding, unsatisfiable
+    requirement, ambiguity). A ConfigsysError so the app surfaces it as a clean message.'''
 
 
 def _as_list(v):
@@ -190,6 +191,11 @@ class _State:
         if name not in self.components:
             raise ResolveError(f'unknown component: {name}')
         comp = self.components[name]
+        # a component with NO bindings is "removed" (a user override `{}`): it contributes
+        # nothing and is a no-op when named directly. This differs from a component that HAS
+        # bindings but none match the context (select_binding below errors "no binding here").
+        if not comp.bindings:
+            return frozenset()
         binding = select_binding(comp, self.cascade, self.ctx, self.pins)
 
         # a `via: parts` binding is a pure aggregator: no unit of its own, just the

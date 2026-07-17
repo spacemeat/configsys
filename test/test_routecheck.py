@@ -83,7 +83,8 @@ def test_disjoint_bindings_are_fine(cascade):
 def test_component_rejects_unknown_top_level_key():
     # a stray/removed construct (e.g. the old inline `dotfiles:` node) must fail loudly at
     # load time, not vanish silently — config lives in a required `<name>-dotfiles` component.
-    with pytest.raises(ValueError, match=r'unknown key.*dotfiles'):
+    from configsys.errors import ConfigError
+    with pytest.raises(ConfigError, match=r'unknown key.*dotfiles'):
         Component('foo', {'dotfiles': {'src': 'a', 'dst': 'b'}, 'install': []})
     # the known keys are accepted
     Component('ok', {'provides': 'cap', 'requires': 'x', 'parts': [], 'install': []})

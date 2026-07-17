@@ -12,10 +12,11 @@ Run check_all() when loading routes.hu to reject an ambiguous routes file up fro
 from itertools import combinations
 
 from . import predicate
+from .errors import ConfigsysError
 
 
-class AmbiguityError(Exception):
-    pass
+class AmbiguityError(ConfigsysError):
+    '''Two overlapping-but-incomparable candidates — a load-time config error.'''
 
 
 def check_component(name, component, cascade):
