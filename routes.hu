@@ -1,5 +1,5 @@
-// routing-model v2 data (see docs/routing-model.md). Built in parallel with routes.hu;
-// components are ported here and proven equivalent by test/test_v2_equivalence.py.
+// routes.hu — the capability/component routing data (see docs/routing-model.md and the
+// routing section of CLAUDE.md). Loaded by configsys/routes.py; resolution in resolve.py.
 {
     // OS layer: lineage (`using`) + which package manager is `native` + version scales.
     // `provides:` lists capabilities baseline in that environment (satisfied for free).
@@ -73,7 +73,7 @@
         // so this is a two-level tool chain. The inline dotfiles field runs termapod on every
         // interactive shell. (Old: linux `apod: [ pipx\apod, dotfiles\apod ]`.)
         apod: {
-            dotfiles: { requires: bashDotD  src: bash.d/apod.sh  dst: ~/.bash.d/apod.sh }
+            dotfiles: { requires: bash-dotfiles  src: bash.d/apod.sh  dst: ~/.bash.d/apod.sh }
             install: [ { via: pipx  name: termapod  version: { pypi: termapod } } ]
         }
 
@@ -107,7 +107,7 @@
         }
 
         // --- dotfiles ---
-        bashDotD: {
+        bash-dotfiles: {
             install: [ { via: dotfiles  aliases: { src: bash_aliases  dst: ~/.bash_aliases } } ]
         }
 
@@ -115,7 +115,7 @@
         neovim: {
             requires: [ ripgrep, tree-sitter-cli ]                  // method-independent
             dotfiles: {
-                requires: bashDotD
+                requires: bash-dotfiles
                 config:  { src: neovim         dst: $XDG_CONFIG_HOME/nvim }
                 aliases: { src: bash.d/neovim.sh  dst: ~/.bash.d/neovim.sh }
             }
@@ -125,7 +125,7 @@
                          path: ~/apps/nvim.appimage } ]
         }
         arduino: {
-            dotfiles: { requires: bashDotD  src: bash.d/arduino.sh  dst: ~/.bash.d/arduino.sh }
+            dotfiles: { requires: bash-dotfiles  src: bash.d/arduino.sh  dst: ~/.bash.d/arduino.sh }
             install: [ { via: appImage  name: "Arduino IDE"
                          version: { github: arduino/arduino-ide  asset: "arduino-ide_*_Linux_64bit.AppImage" }
                          url: "https://github.com/arduino/arduino-ide/releases/download/$VERSION/arduino-ide_$VERSION_Linux_64bit.AppImage"
@@ -153,7 +153,7 @@
         // dotfile (dotfiles\vulkan-sdk), keyed by the component; the tarball mechanism
         // pulls curl. (Old: a [tarball\vulkan-sdk, dotfiles\vulkan-sdk] list bundle.)
         vulkan-sdk: {
-            dotfiles: { requires: bashDotD
+            dotfiles: { requires: bash-dotfiles
                         aliases: { src: bash.d/vulkan-sdk.sh  dst: ~/.bash.d/vulkan-sdk.sh } }
             install: [ { via: tarball  version: { static: 1.4.350.1 }  installDir: vulkan
                          url: "https://sdk.lunarg.com/sdk/download/$VERSION/linux/vulkansdk-linux-$ARCH-$VERSION.tar.xz" } ]
@@ -212,11 +212,17 @@
         //            `update-alternatives --config gcc` selector alias (a dotfile).
         //   Fedora/Arch — build-essential is a parts bundle needing the actual gcc
         //            *package*, which this same component provides natively.
+        // gcc-select: the `update-alternatives --config gcc` alias dotfile (Debian only) —
+        // required by the versioned gcc-NN toolchains so `gcc` points at the chosen one.
+        gcc-select: {
+            install: [ { via: dotfiles  when: "debian"  requires: bash-dotfiles
+                         src: bash.d/gcc.sh  dst: ~/.bash.d/gcc.sh } ]
+        }
+        // gcc: the actual C compiler *package* (a build-essential part on Fedora/Arch; on
+        // Debian the base compiler ships in build-essential, so there's no Debian binding).
         gcc: {
             install: [
-                { via: dotfiles  when: "debian"  requires: bashDotD
-                  src: bash.d/gcc.sh  dst: ~/.bash.d/gcc.sh }
-                { via: native  when: "redhat" }   // fedora + EL: the gcc package
+                { via: native  when: "redhat" }   // fedora + EL
                 { via: native  when: "arch" }     // arch gcc bundles g++
             ]
         }
@@ -239,7 +245,7 @@
         gcc-13: {
             install: [
                 { via: gcc  when: "debian"  packages: [ gcc-13, g++-13 ]  slaves: [ g++ ]  ppa: ubuntu-toolchain-r/test
-                  requires: [ build-essential, software-properties-common, gcc ] }
+                  requires: [ build-essential, software-properties-common, gcc-select ] }
                 { via: gcc  when: "fedora = 41"  packages: [ gcc13, gcc13-c++ ] }
                 { via: gcc-toolset  when: "rhel" }
             ]
@@ -247,7 +253,7 @@
         gcc-14: {
             install: [
                 { via: gcc  when: "debian"  packages: [ gcc-14, g++-14 ]  slaves: [ g++ ]  ppa: ubuntu-toolchain-r/test
-                  requires: [ build-essential, software-properties-common, gcc ] }
+                  requires: [ build-essential, software-properties-common, gcc-select ] }
                 { via: gcc  when: "fedora = 42"  packages: [ gcc14, gcc14-c++ ] }
                 { via: gcc-toolset  when: "rhel" }
             ]
@@ -255,7 +261,7 @@
         gcc-15: {
             install: [
                 { via: gcc  when: "debian"  packages: [ gcc-15, g++-15 ]  slaves: [ g++ ]  ppa: ubuntu-toolchain-r/test
-                  requires: [ build-essential, software-properties-common, gcc ] }
+                  requires: [ build-essential, software-properties-common, gcc-select ] }
                 { via: gcc-toolset  when: "rhel" }
             ]
         }
@@ -265,21 +271,21 @@
         //   fedora -> dnf compat clangNN (per-release; the system clang covers the newest)
         //   EL     -> dnf compat clangNN from EPEL (requires epel)
         curl: { install: [ { via: native } ] }
-        clang: {                    // the clangv `update-alternatives --config clang` alias dotfile
-            requires: bashDotD
+        clang-select: {             // the `update-alternatives --config clang` alias dotfile
+            requires: bash-dotfiles
             install: [ { via: dotfiles  src: bash.d/clang.sh  dst: ~/.bash.d/clang.sh } ]
         }
         clang-18: {
             install: [
                 { via: clang  when: "debian"  packages: [ clang-18 ]
-                  requires: [ build-essential, curl, clang ] }
+                  requires: [ build-essential, curl, clang-select ] }
                 { via: clang  when: "fedora"  packages: [ clang18 ] }
             ]
         }
         clang-19: {
             install: [
                 { via: clang  when: "debian"  packages: [ clang-19 ]
-                  requires: [ build-essential, curl, clang ] }
+                  requires: [ build-essential, curl, clang-select ] }
                 { via: clang  when: "fedora = 41"  packages: [ clang ] }      // system clang -> /usr/bin/clang-19
                 { via: clang  when: "fedora = 42"  packages: [ clang19 ] }
                 { via: clang  when: "rhel"  packages: [ clang19 ]  requires: epel }
@@ -288,7 +294,7 @@
         clang-20: {
             install: [
                 { via: clang  when: "debian"  packages: [ clang-20 ]
-                  requires: [ build-essential, curl, clang ] }
+                  requires: [ build-essential, curl, clang-select ] }
                 { via: clang  when: "fedora = 42"  packages: [ clang ] }      // system clang -> /usr/bin/clang-20
                 { via: clang  when: "rhel"  packages: [ clang20 ]  requires: epel }
             ]
