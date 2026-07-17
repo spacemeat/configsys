@@ -109,6 +109,12 @@ CLOSURE = [
     ('apod', 'rhel', '9.8'), ('apod', 'arch', '20260101'),
     # AUR (Arch only): yay built from PKGBUILD; the `aur` mechanism pulls base-devel + git.
     ('yay', 'arch', '20260101'),
+    # leftover natives — plain everywhere, but EL keeps most in EPEL (firefox is base-repo).
+    ('fzf', 'ubuntu', '24.04'), ('fzf', 'fedora', '41'), ('fzf', 'rhel', '9.8'), ('fzf', 'arch', '20260101'),
+    ('xclip', 'ubuntu', '24.04'), ('xclip', 'rhel', '9.8'), ('xclip', 'arch', '20260101'),
+    ('firefox', 'ubuntu', '24.04'), ('firefox', 'fedora', '41'), ('firefox', 'rhel', '9.8'), ('firefox', 'arch', '20260101'),
+    # EL-EPEL gaps closed for the already-ported ripgrep + fastfetch
+    ('ripgrep', 'rhel', '9.8'), ('fastfetch', 'rhel', '9.8'),
 ]
 
 

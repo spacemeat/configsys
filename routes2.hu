@@ -32,8 +32,12 @@
         flatpak:    { install: [ { via: native } ] }
         fontconfig: { install: [ { via: native } ] }
         unzip:      { install: [ { via: native } ] }
-        ripgrep:    { install: [ { via: native } ] }
+        firefox:    { install: [ { via: native } ] }        // in base repos everywhere (incl. EL)
         python3-pip: { install: [ { via: native  name: { pacman: python-pip } } ] }
+        // EL keeps these in EPEL, base repos everywhere else — same two-binding shape as btop.
+        ripgrep: { install: [ { via: native  when: "rhel"  requires: epel }  { via: native } ] }
+        fzf:     { install: [ { via: native  when: "rhel"  requires: epel }  { via: native } ] }
+        xclip:   { install: [ { via: native  when: "rhel"  requires: epel }  { via: native } ] }
 
         // btop lives in EPEL on EL (needs epel enabled), base repos everywhere else.
         // Two native bindings: the EL one adds `requires: epel`; both are dnf\btop.
@@ -183,6 +187,7 @@
             install: [
                 { via: native  when: "debian"  deb-source: "github:fastfetch-cli/fastfetch"
                   asset: { x86_64: fastfetch-linux-amd64.deb  aarch64: fastfetch-linux-aarch64.deb } }
+                { via: native  when: "rhel"  requires: epel }   // EL ships fastfetch in EPEL
                 { via: native }
             ]
         }
