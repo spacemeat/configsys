@@ -1,0 +1,8468 @@
+{
+ "arch@20260101": {
+  "apod": {
+   "dotfiles\\apod": {
+    "family": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/apod.sh",
+     "src": "bash.d/apod.sh"
+    },
+    "name": "apod"
+   },
+   "dotfiles\\bashDotD": {
+    "family": "dotfiles",
+    "fields": {
+     "aliases": {
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bashDotD"
+   },
+   "pacman\\pipx": {
+    "family": "pacman",
+    "fields": {
+     "name": "python-pipx"
+    },
+    "name": "python-pipx"
+   },
+   "pipx\\apod": {
+    "family": "pipx",
+    "fields": {
+     "name": "termapod",
+     "version": {
+      "pypi": "termapod"
+     }
+    },
+    "name": "termapod"
+   }
+  },
+  "arduino": {
+   "appImage\\arduino": {
+    "family": "appImage",
+    "fields": {
+     "name": "Arduino IDE",
+     "path": "~/apps/arduino-ide.appimage",
+     "url": "https://github.com/arduino/arduino-ide/releases/download/$VERSION/arduino-ide_$VERSION_Linux_64bit.AppImage",
+     "version": {
+      "asset": "arduino-ide_*_Linux_64bit.AppImage",
+      "github": "arduino/arduino-ide"
+     }
+    },
+    "name": "Arduino IDE"
+   },
+   "dotfiles\\arduino": {
+    "family": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/arduino.sh",
+     "src": "bash.d/arduino.sh"
+    },
+    "name": "arduino"
+   },
+   "dotfiles\\bashDotD": {
+    "family": "dotfiles",
+    "fields": {
+     "aliases": {
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bashDotD"
+   },
+   "pacman\\libfuse2": {
+    "family": "pacman",
+    "fields": {
+     "name": "fuse2",
+     "repo-component": "universe"
+    },
+    "name": "fuse2"
+   }
+  },
+  "base-devel": {
+   "pacman\\base-devel": {
+    "family": "pacman",
+    "fields": {
+     "name": "base-devel"
+    },
+    "name": "base-devel"
+   }
+  },
+  "bashDotD": {
+   "dotfiles\\bashDotD": {
+    "family": "dotfiles",
+    "fields": {
+     "aliases": {
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bashDotD"
+   }
+  },
+  "btop": {
+   "pacman\\btop": {
+    "family": "pacman",
+    "fields": {
+     "name": "btop",
+     "repo-component": "universe"
+    },
+    "name": "btop"
+   }
+  },
+  "build-essential": {
+   "pacman\\gcc": {
+    "family": "pacman",
+    "fields": {
+     "name": "gcc"
+    },
+    "name": "gcc"
+   },
+   "pacman\\make": {
+    "family": "pacman",
+    "fields": {
+     "name": "make"
+    },
+    "name": "make"
+   }
+  },
+  "cargo": {
+   "pacman\\cargo": {
+    "family": "pacman",
+    "fields": {
+     "name": "rust",
+     "repo-component": "universe"
+    },
+    "name": "rust"
+   }
+  },
+  "chrome": {
+   "flatpak\\chrome": {
+    "family": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "com.google.Chrome"
+    },
+    "name": "com.google.Chrome"
+   },
+   "pacman\\flatpak": {
+    "family": "pacman",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   }
+  },
+  "clang": {
+   "dotfiles\\bashDotD": {
+    "family": "dotfiles",
+    "fields": {
+     "aliases": {
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bashDotD"
+   },
+   "dotfiles\\clang": {
+    "family": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/clang.sh",
+     "src": "bash.d/clang.sh"
+    },
+    "name": "clang"
+   }
+  },
+  "curl": {
+   "pacman\\curl": {
+    "family": "pacman",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   }
+  },
+  "fastfetch": {
+   "pacman\\fastfetch": {
+    "family": "pacman",
+    "fields": {
+     "name": "fastfetch"
+    },
+    "name": "fastfetch"
+   }
+  },
+  "firefox": {
+   "pacman\\firefox": {
+    "family": "pacman",
+    "fields": {
+     "name": "firefox",
+     "repo-component": "universe"
+    },
+    "name": "firefox"
+   }
+  },
+  "flatpak": {
+   "pacman\\flatpak": {
+    "family": "pacman",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   }
+  },
+  "fontconfig": {
+   "pacman\\fontconfig": {
+    "family": "pacman",
+    "fields": {
+     "name": "fontconfig"
+    },
+    "name": "fontconfig"
+   }
+  },
+  "fzf": {
+   "pacman\\fzf": {
+    "family": "pacman",
+    "fields": {
+     "name": "fzf",
+     "repo-component": "universe"
+    },
+    "name": "fzf"
+   }
+  },
+  "gcc": {
+   "pacman\\gcc": {
+    "family": "pacman",
+    "fields": {
+     "name": "gcc"
+    },
+    "name": "gcc"
+   }
+  },
+  "gcc-cpp": {
+   "pacman\\gcc-cpp": {
+    "family": "pacman",
+    "fields": {
+     "name": "gcc-cpp"
+    },
+    "name": "gcc-cpp"
+   }
+  },
+  "git": {
+   "pacman\\git": {
+    "family": "pacman",
+    "fields": {
+     "name": "git"
+    },
+    "name": "git"
+   }
+  },
+  "libfuse2": {
+   "pacman\\libfuse2": {
+    "family": "pacman",
+    "fields": {
+     "name": "fuse2",
+     "repo-component": "universe"
+    },
+    "name": "fuse2"
+   }
+  },
+  "libvulkan1": {
+   "pacman\\libvulkan1": {
+    "family": "pacman",
+    "fields": {
+     "name": "libvulkan1"
+    },
+    "name": "libvulkan1"
+   }
+  },
+  "libxcb": {
+   "pacman\\libxcb": {
+    "family": "pacman",
+    "fields": {
+     "name": "libxcb"
+    },
+    "name": "libxcb"
+   }
+  },
+  "libxcb-cursor-dev": {
+   "pacman\\libxcb-cursor-dev": {
+    "family": "pacman",
+    "fields": {
+     "name": "libxcb-cursor-dev",
+     "repo-component": "universe"
+    },
+    "name": "libxcb-cursor-dev"
+   }
+  },
+  "libxcb-devel": {
+   "pacman\\libxcb-devel": {
+    "family": "pacman",
+    "fields": {
+     "name": "libxcb-devel"
+    },
+    "name": "libxcb-devel"
+   }
+  },
+  "libxcb-xinerama0": {
+   "pacman\\libxcb-xinerama0": {
+    "family": "pacman",
+    "fields": {
+     "name": "libxcb-xinerama0",
+     "repo-component": "universe"
+    },
+    "name": "libxcb-xinerama0"
+   }
+  },
+  "libxcb-xinput0": {
+   "pacman\\libxcb-xinput0": {
+    "family": "pacman",
+    "fields": {
+     "name": "libxcb-xinput0",
+     "repo-component": "universe"
+    },
+    "name": "libxcb-xinput0"
+   }
+  },
+  "make": {
+   "pacman\\make": {
+    "family": "pacman",
+    "fields": {
+     "name": "make"
+    },
+    "name": "make"
+   }
+  },
+  "mesa-vulkan-drivers": {
+   "pacman\\mesa-vulkan-drivers": {
+    "family": "pacman",
+    "fields": {
+     "name": "mesa-vulkan-drivers"
+    },
+    "name": "mesa-vulkan-drivers"
+   }
+  },
+  "mononoki-nerd": {
+   "debian-font\\mononoki-nerd": {
+    "family": "debian-font",
+    "fields": {
+     "name": "Mononoki",
+     "url": "https://github.com/ryanoasis/nerd-fonts/releases/download/$VERSION/Mononoki.zip",
+     "version": {
+      "asset": "Mononoki.zip",
+      "github": "ryanoasis/nerd-fonts"
+     }
+    },
+    "name": "Mononoki"
+   },
+   "pacman\\fontconfig": {
+    "family": "pacman",
+    "fields": {
+     "name": "fontconfig"
+    },
+    "name": "fontconfig"
+   },
+   "pacman\\unzip": {
+    "family": "pacman",
+    "fields": {
+     "name": "unzip"
+    },
+    "name": "unzip"
+   }
+  },
+  "neovim": {
+   "appImage\\neovim": {
+    "family": "appImage",
+    "fields": {
+     "name": "Neovim",
+     "path": "~/apps/nvim.appimage",
+     "url": "https://github.com/neovim/neovim/releases/download/$VERSION/nvim-linux-$ARCH.appimage",
+     "version": {
+      "asset": "nvim-linux-$ARCH.appimage",
+      "github": "neovim/neovim"
+     }
+    },
+    "name": "Neovim"
+   },
+   "cargo\\tree-sitter-cli": {
+    "family": "cargo",
+    "fields": {
+     "name": "tree-sitter-cli",
+     "version": {
+      "crates": "tree-sitter-cli"
+     }
+    },
+    "name": "tree-sitter-cli"
+   },
+   "dotfiles\\bashDotD": {
+    "family": "dotfiles",
+    "fields": {
+     "aliases": {
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bashDotD"
+   },
+   "dotfiles\\neovim": {
+    "family": "dotfiles",
+    "fields": {
+     "aliases": {
+      "dst": "~/.bash.d/neovim.sh",
+      "src": "bash.d/neovim.sh"
+     },
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/nvim",
+      "src": "neovim"
+     }
+    },
+    "name": "neovim"
+   },
+   "pacman\\cargo": {
+    "family": "pacman",
+    "fields": {
+     "name": "rust",
+     "repo-component": "universe"
+    },
+    "name": "rust"
+   },
+   "pacman\\libfuse2": {
+    "family": "pacman",
+    "fields": {
+     "name": "fuse2",
+     "repo-component": "universe"
+    },
+    "name": "fuse2"
+   },
+   "pacman\\ripgrep": {
+    "family": "pacman",
+    "fields": {
+     "name": "ripgrep",
+     "repo-component": "universe"
+    },
+    "name": "ripgrep"
+   }
+  },
+  "pipx": {
+   "pacman\\pipx": {
+    "family": "pacman",
+    "fields": {
+     "name": "python-pipx"
+    },
+    "name": "python-pipx"
+   }
+  },
+  "python3-pip": {
+   "pacman\\python3-pip": {
+    "family": "pacman",
+    "fields": {
+     "name": "python-pip"
+    },
+    "name": "python-pip"
+   }
+  },
+  "ripgrep": {
+   "pacman\\ripgrep": {
+    "family": "pacman",
+    "fields": {
+     "name": "ripgrep",
+     "repo-component": "universe"
+    },
+    "name": "ripgrep"
+   }
+  },
+  "software-properties-common": {
+   "pacman\\software-properties-common": {
+    "family": "pacman",
+    "fields": {
+     "name": "software-properties-common"
+    },
+    "name": "software-properties-common"
+   }
+  },
+  "steam": {
+   "flatpak\\steam": {
+    "family": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "com.valvesoftware.Steam"
+    },
+    "name": "com.valvesoftware.Steam"
+   },
+   "pacman\\flatpak": {
+    "family": "pacman",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   }
+  },
+  "tree-sitter-cli": {
+   "cargo\\tree-sitter-cli": {
+    "family": "cargo",
+    "fields": {
+     "name": "tree-sitter-cli",
+     "version": {
+      "crates": "tree-sitter-cli"
+     }
+    },
+    "name": "tree-sitter-cli"
+   },
+   "pacman\\cargo": {
+    "family": "pacman",
+    "fields": {
+     "name": "rust",
+     "repo-component": "universe"
+    },
+    "name": "rust"
+   }
+  },
+  "unzip": {
+   "pacman\\unzip": {
+    "family": "pacman",
+    "fields": {
+     "name": "unzip"
+    },
+    "name": "unzip"
+   }
+  },
+  "vulkan-dev": {
+   "dotfiles\\bashDotD": {
+    "family": "dotfiles",
+    "fields": {
+     "aliases": {
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bashDotD"
+   },
+   "dotfiles\\vulkan-sdk": {
+    "family": "dotfiles",
+    "fields": {
+     "aliases": {
+      "dst": "~/.bash.d/vulkan-sdk.sh",
+      "src": "bash.d/vulkan-sdk.sh"
+     }
+    },
+    "name": "vulkan-sdk"
+   },
+   "pacman\\curl": {
+    "family": "pacman",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "pacman\\gcc": {
+    "family": "pacman",
+    "fields": {
+     "name": "gcc"
+    },
+    "name": "gcc"
+   },
+   "pacman\\libxcb": {
+    "family": "pacman",
+    "fields": {
+     "name": "libxcb"
+    },
+    "name": "libxcb"
+   },
+   "pacman\\make": {
+    "family": "pacman",
+    "fields": {
+     "name": "make"
+    },
+    "name": "make"
+   },
+   "pacman\\vulkan-icd-loader": {
+    "family": "pacman",
+    "fields": {
+     "name": "vulkan-icd-loader"
+    },
+    "name": "vulkan-icd-loader"
+   },
+   "pacman\\vulkan-intel": {
+    "family": "pacman",
+    "fields": {
+     "name": "vulkan-intel"
+    },
+    "name": "vulkan-intel"
+   },
+   "pacman\\vulkan-radeon": {
+    "family": "pacman",
+    "fields": {
+     "name": "vulkan-radeon"
+    },
+    "name": "vulkan-radeon"
+   },
+   "pacman\\vulkan-swrast": {
+    "family": "pacman",
+    "fields": {
+     "name": "vulkan-swrast"
+    },
+    "name": "vulkan-swrast"
+   },
+   "pacman\\xcb-util-cursor": {
+    "family": "pacman",
+    "fields": {
+     "name": "xcb-util-cursor"
+    },
+    "name": "xcb-util-cursor"
+   },
+   "tarball\\vulkan-sdk": {
+    "family": "tarball",
+    "fields": {
+     "installDir": "vulkan",
+     "name": "vulkan-sdk",
+     "url": "https://sdk.lunarg.com/sdk/download/$VERSION/linux/vulkansdk-linux-$ARCH-$VERSION.tar.xz",
+     "version": {
+      "static": "1.4.350.1"
+     }
+    },
+    "name": "vulkan-sdk"
+   }
+  },
+  "vulkan-icd-loader": {
+   "pacman\\vulkan-icd-loader": {
+    "family": "pacman",
+    "fields": {
+     "name": "vulkan-icd-loader"
+    },
+    "name": "vulkan-icd-loader"
+   }
+  },
+  "vulkan-intel": {
+   "pacman\\vulkan-intel": {
+    "family": "pacman",
+    "fields": {
+     "name": "vulkan-intel"
+    },
+    "name": "vulkan-intel"
+   }
+  },
+  "vulkan-loader": {
+   "pacman\\vulkan-loader": {
+    "family": "pacman",
+    "fields": {
+     "name": "vulkan-loader"
+    },
+    "name": "vulkan-loader"
+   }
+  },
+  "vulkan-radeon": {
+   "pacman\\vulkan-radeon": {
+    "family": "pacman",
+    "fields": {
+     "name": "vulkan-radeon"
+    },
+    "name": "vulkan-radeon"
+   }
+  },
+  "vulkan-runtime": {
+   "pacman\\vulkan-icd-loader": {
+    "family": "pacman",
+    "fields": {
+     "name": "vulkan-icd-loader"
+    },
+    "name": "vulkan-icd-loader"
+   },
+   "pacman\\vulkan-intel": {
+    "family": "pacman",
+    "fields": {
+     "name": "vulkan-intel"
+    },
+    "name": "vulkan-intel"
+   },
+   "pacman\\vulkan-radeon": {
+    "family": "pacman",
+    "fields": {
+     "name": "vulkan-radeon"
+    },
+    "name": "vulkan-radeon"
+   },
+   "pacman\\vulkan-swrast": {
+    "family": "pacman",
+    "fields": {
+     "name": "vulkan-swrast"
+    },
+    "name": "vulkan-swrast"
+   }
+  },
+  "vulkan-sdk": {
+   "dotfiles\\bashDotD": {
+    "family": "dotfiles",
+    "fields": {
+     "aliases": {
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bashDotD"
+   },
+   "dotfiles\\vulkan-sdk": {
+    "family": "dotfiles",
+    "fields": {
+     "aliases": {
+      "dst": "~/.bash.d/vulkan-sdk.sh",
+      "src": "bash.d/vulkan-sdk.sh"
+     }
+    },
+    "name": "vulkan-sdk"
+   },
+   "pacman\\curl": {
+    "family": "pacman",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "tarball\\vulkan-sdk": {
+    "family": "tarball",
+    "fields": {
+     "installDir": "vulkan",
+     "name": "vulkan-sdk",
+     "url": "https://sdk.lunarg.com/sdk/download/$VERSION/linux/vulkansdk-linux-$ARCH-$VERSION.tar.xz",
+     "version": {
+      "static": "1.4.350.1"
+     }
+    },
+    "name": "vulkan-sdk"
+   }
+  },
+  "vulkan-swrast": {
+   "pacman\\vulkan-swrast": {
+    "family": "pacman",
+    "fields": {
+     "name": "vulkan-swrast"
+    },
+    "name": "vulkan-swrast"
+   }
+  },
+  "xcb-util-cursor": {
+   "pacman\\xcb-util-cursor": {
+    "family": "pacman",
+    "fields": {
+     "name": "xcb-util-cursor"
+    },
+    "name": "xcb-util-cursor"
+   }
+  },
+  "xcb-util-cursor-devel": {
+   "pacman\\xcb-util-cursor-devel": {
+    "family": "pacman",
+    "fields": {
+     "name": "xcb-util-cursor-devel"
+    },
+    "name": "xcb-util-cursor-devel"
+   }
+  },
+  "xclip": {
+   "pacman\\xclip": {
+    "family": "pacman",
+    "fields": {
+     "name": "xclip",
+     "repo-component": "universe"
+    },
+    "name": "xclip"
+   }
+  },
+  "yay": {
+   "aur\\yay": {
+    "family": "aur",
+    "fields": {
+     "name": "yay-bin",
+     "version": {
+      "aur": "yay-bin"
+     }
+    },
+    "name": "yay-bin"
+   },
+   "pacman\\base-devel": {
+    "family": "pacman",
+    "fields": {
+     "name": "base-devel"
+    },
+    "name": "base-devel"
+   },
+   "pacman\\git": {
+    "family": "pacman",
+    "fields": {
+     "name": "git"
+    },
+    "name": "git"
+   }
+  }
+ },
+ "debian@11": {
+  "apod": {
+   "apt\\python3-pip": {
+    "family": "apt",
+    "fields": {
+     "name": "python3-pip"
+    },
+    "name": "python3-pip"
+   },
+   "dotfiles\\apod": {
+    "family": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/apod.sh",
+     "src": "bash.d/apod.sh"
+    },
+    "name": "apod"
+   },
+   "dotfiles\\bashDotD": {
+    "family": "dotfiles",
+    "fields": {
+     "aliases": {
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bashDotD"
+   },
+   "pip\\pipx": {
+    "family": "pip",
+    "fields": {
+     "name": "pipx",
+     "version": {
+      "pypi": "pipx"
+     }
+    },
+    "name": "pipx"
+   },
+   "pipx\\apod": {
+    "family": "pipx",
+    "fields": {
+     "name": "termapod",
+     "version": {
+      "pypi": "termapod"
+     }
+    },
+    "name": "termapod"
+   }
+  },
+  "arduino": {
+   "appImage\\arduino": {
+    "family": "appImage",
+    "fields": {
+     "name": "Arduino IDE",
+     "path": "~/apps/arduino-ide.appimage",
+     "url": "https://github.com/arduino/arduino-ide/releases/download/$VERSION/arduino-ide_$VERSION_Linux_64bit.AppImage",
+     "version": {
+      "asset": "arduino-ide_*_Linux_64bit.AppImage",
+      "github": "arduino/arduino-ide"
+     }
+    },
+    "name": "Arduino IDE"
+   },
+   "apt\\libfuse2": {
+    "family": "apt",
+    "fields": {
+     "name": "libfuse2",
+     "repo-component": "universe"
+    },
+    "name": "libfuse2"
+   },
+   "dotfiles\\arduino": {
+    "family": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/arduino.sh",
+     "src": "bash.d/arduino.sh"
+    },
+    "name": "arduino"
+   },
+   "dotfiles\\bashDotD": {
+    "family": "dotfiles",
+    "fields": {
+     "aliases": {
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bashDotD"
+   }
+  },
+  "base-devel": {
+   "apt\\base-devel": {
+    "family": "apt",
+    "fields": {
+     "name": "base-devel"
+    },
+    "name": "base-devel"
+   }
+  },
+  "bashDotD": {
+   "dotfiles\\bashDotD": {
+    "family": "dotfiles",
+    "fields": {
+     "aliases": {
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bashDotD"
+   }
+  },
+  "btop": {
+   "apt\\btop": {
+    "family": "apt",
+    "fields": {
+     "name": "btop",
+     "repo-component": "universe"
+    },
+    "name": "btop"
+   }
+  },
+  "build-essential": {
+   "apt\\build-essential": {
+    "family": "apt",
+    "fields": {
+     "name": "build-essential"
+    },
+    "name": "build-essential"
+   }
+  },
+  "cargo": {
+   "apt\\cargo": {
+    "family": "apt",
+    "fields": {
+     "name": "cargo",
+     "repo-component": "universe"
+    },
+    "name": "cargo"
+   }
+  },
+  "chrome": {
+   "apt\\flatpak": {
+    "family": "apt",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\chrome": {
+    "family": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "com.google.Chrome"
+    },
+    "name": "com.google.Chrome"
+   }
+  },
+  "clang": {
+   "dotfiles\\bashDotD": {
+    "family": "dotfiles",
+    "fields": {
+     "aliases": {
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bashDotD"
+   },
+   "dotfiles\\clang": {
+    "family": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/clang.sh",
+     "src": "bash.d/clang.sh"
+    },
+    "name": "clang"
+   }
+  },
+  "clang-18": {
+   "apt\\build-essential": {
+    "family": "apt",
+    "fields": {
+     "name": "build-essential"
+    },
+    "name": "build-essential"
+   },
+   "apt\\curl": {
+    "family": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "clang\\clang-18": {
+    "family": "clang",
+    "fields": {
+     "name": "clang-18",
+     "packages": [
+      "clang-18"
+     ]
+    },
+    "name": "clang-18"
+   },
+   "dotfiles\\bashDotD": {
+    "family": "dotfiles",
+    "fields": {
+     "aliases": {
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bashDotD"
+   },
+   "dotfiles\\clang": {
+    "family": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/clang.sh",
+     "src": "bash.d/clang.sh"
+    },
+    "name": "clang"
+   }
+  },
+  "clang-19": {
+   "apt\\build-essential": {
+    "family": "apt",
+    "fields": {
+     "name": "build-essential"
+    },
+    "name": "build-essential"
+   },
+   "apt\\curl": {
+    "family": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "clang\\clang-19": {
+    "family": "clang",
+    "fields": {
+     "name": "clang-19",
+     "packages": [
+      "clang-19"
+     ]
+    },
+    "name": "clang-19"
+   },
+   "dotfiles\\bashDotD": {
+    "family": "dotfiles",
+    "fields": {
+     "aliases": {
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bashDotD"
+   },
+   "dotfiles\\clang": {
+    "family": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/clang.sh",
+     "src": "bash.d/clang.sh"
+    },
+    "name": "clang"
+   }
+  },
+  "clang-20": {
+   "apt\\build-essential": {
+    "family": "apt",
+    "fields": {
+     "name": "build-essential"
+    },
+    "name": "build-essential"
+   },
+   "apt\\curl": {
+    "family": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "clang\\clang-20": {
+    "family": "clang",
+    "fields": {
+     "name": "clang-20",
+     "packages": [
+      "clang-20"
+     ]
+    },
+    "name": "clang-20"
+   },
+   "dotfiles\\bashDotD": {
+    "family": "dotfiles",
+    "fields": {
+     "aliases": {
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bashDotD"
+   },
+   "dotfiles\\clang": {
+    "family": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/clang.sh",
+     "src": "bash.d/clang.sh"
+    },
+    "name": "clang"
+   }
+  },
+  "curl": {
+   "apt\\curl": {
+    "family": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   }
+  },
+  "fastfetch": {
+   "apt\\fastfetch": {
+    "family": "apt",
+    "fields": {
+     "asset": {
+      "aarch64": "fastfetch-linux-aarch64.deb",
+      "x86_64": "fastfetch-linux-amd64.deb"
+     },
+     "deb-source": "github:fastfetch-cli/fastfetch",
+     "name": "fastfetch"
+    },
+    "name": "fastfetch"
+   }
+  },
+  "firefox": {
+   "apt\\firefox": {
+    "family": "apt",
+    "fields": {
+     "name": "firefox",
+     "repo-component": "universe"
+    },
+    "name": "firefox"
+   }
+  },
+  "flatpak": {
+   "apt\\flatpak": {
+    "family": "apt",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   }
+  },
+  "fontconfig": {
+   "apt\\fontconfig": {
+    "family": "apt",
+    "fields": {
+     "name": "fontconfig"
+    },
+    "name": "fontconfig"
+   }
+  },
+  "fzf": {
+   "apt\\fzf": {
+    "family": "apt",
+    "fields": {
+     "name": "fzf",
+     "repo-component": "universe"
+    },
+    "name": "fzf"
+   }
+  },
+  "gcc": {
+   "dotfiles\\bashDotD": {
+    "family": "dotfiles",
+    "fields": {
+     "aliases": {
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bashDotD"
+   },
+   "dotfiles\\gcc": {
+    "family": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/gcc.sh",
+     "src": "bash.d/gcc.sh"
+    },
+    "name": "gcc"
+   }
+  },
+  "gcc-13": {
+   "apt\\build-essential": {
+    "family": "apt",
+    "fields": {
+     "name": "build-essential"
+    },
+    "name": "build-essential"
+   },
+   "apt\\software-properties-common": {
+    "family": "apt",
+    "fields": {
+     "name": "software-properties-common"
+    },
+    "name": "software-properties-common"
+   },
+   "dotfiles\\bashDotD": {
+    "family": "dotfiles",
+    "fields": {
+     "aliases": {
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bashDotD"
+   },
+   "dotfiles\\gcc": {
+    "family": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/gcc.sh",
+     "src": "bash.d/gcc.sh"
+    },
+    "name": "gcc"
+   },
+   "gcc\\gcc-13": {
+    "family": "gcc",
+    "fields": {
+     "name": "gcc-13",
+     "packages": [
+      "gcc-13",
+      "g++-13"
+     ],
+     "ppa": "ubuntu-toolchain-r/test",
+     "slaves": [
+      "g++"
+     ]
+    },
+    "name": "gcc-13"
+   }
+  },
+  "gcc-14": {
+   "apt\\build-essential": {
+    "family": "apt",
+    "fields": {
+     "name": "build-essential"
+    },
+    "name": "build-essential"
+   },
+   "apt\\software-properties-common": {
+    "family": "apt",
+    "fields": {
+     "name": "software-properties-common"
+    },
+    "name": "software-properties-common"
+   },
+   "dotfiles\\bashDotD": {
+    "family": "dotfiles",
+    "fields": {
+     "aliases": {
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bashDotD"
+   },
+   "dotfiles\\gcc": {
+    "family": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/gcc.sh",
+     "src": "bash.d/gcc.sh"
+    },
+    "name": "gcc"
+   },
+   "gcc\\gcc-14": {
+    "family": "gcc",
+    "fields": {
+     "name": "gcc-14",
+     "packages": [
+      "gcc-14",
+      "g++-14"
+     ],
+     "ppa": "ubuntu-toolchain-r/test",
+     "slaves": [
+      "g++"
+     ]
+    },
+    "name": "gcc-14"
+   }
+  },
+  "gcc-15": {
+   "apt\\build-essential": {
+    "family": "apt",
+    "fields": {
+     "name": "build-essential"
+    },
+    "name": "build-essential"
+   },
+   "apt\\software-properties-common": {
+    "family": "apt",
+    "fields": {
+     "name": "software-properties-common"
+    },
+    "name": "software-properties-common"
+   },
+   "dotfiles\\bashDotD": {
+    "family": "dotfiles",
+    "fields": {
+     "aliases": {
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bashDotD"
+   },
+   "dotfiles\\gcc": {
+    "family": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/gcc.sh",
+     "src": "bash.d/gcc.sh"
+    },
+    "name": "gcc"
+   },
+   "gcc\\gcc-15": {
+    "family": "gcc",
+    "fields": {
+     "name": "gcc-15",
+     "packages": [
+      "gcc-15",
+      "g++-15"
+     ],
+     "ppa": "ubuntu-toolchain-r/test",
+     "slaves": [
+      "g++"
+     ]
+    },
+    "name": "gcc-15"
+   }
+  },
+  "gcc-cpp": {
+   "apt\\gcc-cpp": {
+    "family": "apt",
+    "fields": {
+     "name": "gcc-cpp"
+    },
+    "name": "gcc-cpp"
+   }
+  },
+  "git": {
+   "apt\\git": {
+    "family": "apt",
+    "fields": {
+     "name": "git"
+    },
+    "name": "git"
+   }
+  },
+  "libfuse2": {
+   "apt\\libfuse2": {
+    "family": "apt",
+    "fields": {
+     "name": "libfuse2",
+     "repo-component": "universe"
+    },
+    "name": "libfuse2"
+   }
+  },
+  "libvulkan1": {
+   "apt\\libvulkan1": {
+    "family": "apt",
+    "fields": {
+     "name": "libvulkan1"
+    },
+    "name": "libvulkan1"
+   }
+  },
+  "libxcb": {
+   "apt\\libxcb": {
+    "family": "apt",
+    "fields": {
+     "name": "libxcb"
+    },
+    "name": "libxcb"
+   }
+  },
+  "libxcb-cursor-dev": {
+   "apt\\libxcb-cursor-dev": {
+    "family": "apt",
+    "fields": {
+     "name": "libxcb-cursor-dev",
+     "repo-component": "universe"
+    },
+    "name": "libxcb-cursor-dev"
+   }
+  },
+  "libxcb-devel": {
+   "apt\\libxcb-devel": {
+    "family": "apt",
+    "fields": {
+     "name": "libxcb-devel"
+    },
+    "name": "libxcb-devel"
+   }
+  },
+  "libxcb-xinerama0": {
+   "apt\\libxcb-xinerama0": {
+    "family": "apt",
+    "fields": {
+     "name": "libxcb-xinerama0",
+     "repo-component": "universe"
+    },
+    "name": "libxcb-xinerama0"
+   }
+  },
+  "libxcb-xinput0": {
+   "apt\\libxcb-xinput0": {
+    "family": "apt",
+    "fields": {
+     "name": "libxcb-xinput0",
+     "repo-component": "universe"
+    },
+    "name": "libxcb-xinput0"
+   }
+  },
+  "make": {
+   "apt\\make": {
+    "family": "apt",
+    "fields": {
+     "name": "make"
+    },
+    "name": "make"
+   }
+  },
+  "mesa-vulkan-drivers": {
+   "apt\\mesa-vulkan-drivers": {
+    "family": "apt",
+    "fields": {
+     "name": "mesa-vulkan-drivers"
+    },
+    "name": "mesa-vulkan-drivers"
+   }
+  },
+  "mononoki-nerd": {
+   "apt\\fontconfig": {
+    "family": "apt",
+    "fields": {
+     "name": "fontconfig"
+    },
+    "name": "fontconfig"
+   },
+   "apt\\unzip": {
+    "family": "apt",
+    "fields": {
+     "name": "unzip"
+    },
+    "name": "unzip"
+   },
+   "debian-font\\mononoki-nerd": {
+    "family": "debian-font",
+    "fields": {
+     "name": "Mononoki",
+     "url": "https://github.com/ryanoasis/nerd-fonts/releases/download/$VERSION/Mononoki.zip",
+     "version": {
+      "asset": "Mononoki.zip",
+      "github": "ryanoasis/nerd-fonts"
+     }
+    },
+    "name": "Mononoki"
+   }
+  },
+  "neovim": {
+   "appImage\\neovim": {
+    "family": "appImage",
+    "fields": {
+     "name": "Neovim",
+     "path": "~/apps/nvim.appimage",
+     "url": "https://github.com/neovim/neovim/releases/download/$VERSION/nvim-linux-$ARCH.appimage",
+     "version": {
+      "asset": "nvim-linux-$ARCH.appimage",
+      "github": "neovim/neovim"
+     }
+    },
+    "name": "Neovim"
+   },
+   "apt\\cargo": {
+    "family": "apt",
+    "fields": {
+     "name": "cargo",
+     "repo-component": "universe"
+    },
+    "name": "cargo"
+   },
+   "apt\\libfuse2": {
+    "family": "apt",
+    "fields": {
+     "name": "libfuse2",
+     "repo-component": "universe"
+    },
+    "name": "libfuse2"
+   },
+   "apt\\ripgrep": {
+    "family": "apt",
+    "fields": {
+     "name": "ripgrep",
+     "repo-component": "universe"
+    },
+    "name": "ripgrep"
+   },
+   "cargo\\tree-sitter-cli": {
+    "family": "cargo",
+    "fields": {
+     "name": "tree-sitter-cli",
+     "version": {
+      "crates": "tree-sitter-cli"
+     }
+    },
+    "name": "tree-sitter-cli"
+   },
+   "dotfiles\\bashDotD": {
+    "family": "dotfiles",
+    "fields": {
+     "aliases": {
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bashDotD"
+   },
+   "dotfiles\\neovim": {
+    "family": "dotfiles",
+    "fields": {
+     "aliases": {
+      "dst": "~/.bash.d/neovim.sh",
+      "src": "bash.d/neovim.sh"
+     },
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/nvim",
+      "src": "neovim"
+     }
+    },
+    "name": "neovim"
+   }
+  },
+  "pipx": {
+   "apt\\python3-pip": {
+    "family": "apt",
+    "fields": {
+     "name": "python3-pip"
+    },
+    "name": "python3-pip"
+   },
+   "pip\\pipx": {
+    "family": "pip",
+    "fields": {
+     "name": "pipx",
+     "version": {
+      "pypi": "pipx"
+     }
+    },
+    "name": "pipx"
+   }
+  },
+  "python3-pip": {
+   "apt\\python3-pip": {
+    "family": "apt",
+    "fields": {
+     "name": "python3-pip"
+    },
+    "name": "python3-pip"
+   }
+  },
+  "ripgrep": {
+   "apt\\ripgrep": {
+    "family": "apt",
+    "fields": {
+     "name": "ripgrep",
+     "repo-component": "universe"
+    },
+    "name": "ripgrep"
+   }
+  },
+  "software-properties-common": {
+   "apt\\software-properties-common": {
+    "family": "apt",
+    "fields": {
+     "name": "software-properties-common"
+    },
+    "name": "software-properties-common"
+   }
+  },
+  "steam": {
+   "apt\\flatpak": {
+    "family": "apt",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\steam": {
+    "family": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "com.valvesoftware.Steam"
+    },
+    "name": "com.valvesoftware.Steam"
+   }
+  },
+  "tree-sitter-cli": {
+   "apt\\cargo": {
+    "family": "apt",
+    "fields": {
+     "name": "cargo",
+     "repo-component": "universe"
+    },
+    "name": "cargo"
+   },
+   "cargo\\tree-sitter-cli": {
+    "family": "cargo",
+    "fields": {
+     "name": "tree-sitter-cli",
+     "version": {
+      "crates": "tree-sitter-cli"
+     }
+    },
+    "name": "tree-sitter-cli"
+   }
+  },
+  "unzip": {
+   "apt\\unzip": {
+    "family": "apt",
+    "fields": {
+     "name": "unzip"
+    },
+    "name": "unzip"
+   }
+  },
+  "vulkan-dev": {
+   "apt\\build-essential": {
+    "family": "apt",
+    "fields": {
+     "name": "build-essential"
+    },
+    "name": "build-essential"
+   },
+   "apt\\curl": {
+    "family": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "apt\\libvulkan1": {
+    "family": "apt",
+    "fields": {
+     "name": "libvulkan1"
+    },
+    "name": "libvulkan1"
+   },
+   "apt\\libxcb-cursor-dev": {
+    "family": "apt",
+    "fields": {
+     "name": "libxcb-cursor-dev",
+     "repo-component": "universe"
+    },
+    "name": "libxcb-cursor-dev"
+   },
+   "apt\\libxcb-xinerama0": {
+    "family": "apt",
+    "fields": {
+     "name": "libxcb-xinerama0",
+     "repo-component": "universe"
+    },
+    "name": "libxcb-xinerama0"
+   },
+   "apt\\libxcb-xinput0": {
+    "family": "apt",
+    "fields": {
+     "name": "libxcb-xinput0",
+     "repo-component": "universe"
+    },
+    "name": "libxcb-xinput0"
+   },
+   "apt\\mesa-vulkan-drivers": {
+    "family": "apt",
+    "fields": {
+     "name": "mesa-vulkan-drivers"
+    },
+    "name": "mesa-vulkan-drivers"
+   },
+   "dotfiles\\bashDotD": {
+    "family": "dotfiles",
+    "fields": {
+     "aliases": {
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bashDotD"
+   },
+   "dotfiles\\vulkan-sdk": {
+    "family": "dotfiles",
+    "fields": {
+     "aliases": {
+      "dst": "~/.bash.d/vulkan-sdk.sh",
+      "src": "bash.d/vulkan-sdk.sh"
+     }
+    },
+    "name": "vulkan-sdk"
+   },
+   "tarball\\vulkan-sdk": {
+    "family": "tarball",
+    "fields": {
+     "installDir": "vulkan",
+     "name": "vulkan-sdk",
+     "url": "https://sdk.lunarg.com/sdk/download/$VERSION/linux/vulkansdk-linux-$ARCH-$VERSION.tar.xz",
+     "version": {
+      "static": "1.4.350.1"
+     }
+    },
+    "name": "vulkan-sdk"
+   }
+  },
+  "vulkan-icd-loader": {
+   "apt\\vulkan-icd-loader": {
+    "family": "apt",
+    "fields": {
+     "name": "vulkan-icd-loader"
+    },
+    "name": "vulkan-icd-loader"
+   }
+  },
+  "vulkan-intel": {
+   "apt\\vulkan-intel": {
+    "family": "apt",
+    "fields": {
+     "name": "vulkan-intel"
+    },
+    "name": "vulkan-intel"
+   }
+  },
+  "vulkan-loader": {
+   "apt\\vulkan-loader": {
+    "family": "apt",
+    "fields": {
+     "name": "vulkan-loader"
+    },
+    "name": "vulkan-loader"
+   }
+  },
+  "vulkan-radeon": {
+   "apt\\vulkan-radeon": {
+    "family": "apt",
+    "fields": {
+     "name": "vulkan-radeon"
+    },
+    "name": "vulkan-radeon"
+   }
+  },
+  "vulkan-runtime": {
+   "apt\\libvulkan1": {
+    "family": "apt",
+    "fields": {
+     "name": "libvulkan1"
+    },
+    "name": "libvulkan1"
+   },
+   "apt\\mesa-vulkan-drivers": {
+    "family": "apt",
+    "fields": {
+     "name": "mesa-vulkan-drivers"
+    },
+    "name": "mesa-vulkan-drivers"
+   }
+  },
+  "vulkan-sdk": {
+   "apt\\curl": {
+    "family": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "dotfiles\\bashDotD": {
+    "family": "dotfiles",
+    "fields": {
+     "aliases": {
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bashDotD"
+   },
+   "dotfiles\\vulkan-sdk": {
+    "family": "dotfiles",
+    "fields": {
+     "aliases": {
+      "dst": "~/.bash.d/vulkan-sdk.sh",
+      "src": "bash.d/vulkan-sdk.sh"
+     }
+    },
+    "name": "vulkan-sdk"
+   },
+   "tarball\\vulkan-sdk": {
+    "family": "tarball",
+    "fields": {
+     "installDir": "vulkan",
+     "name": "vulkan-sdk",
+     "url": "https://sdk.lunarg.com/sdk/download/$VERSION/linux/vulkansdk-linux-$ARCH-$VERSION.tar.xz",
+     "version": {
+      "static": "1.4.350.1"
+     }
+    },
+    "name": "vulkan-sdk"
+   }
+  },
+  "vulkan-swrast": {
+   "apt\\vulkan-swrast": {
+    "family": "apt",
+    "fields": {
+     "name": "vulkan-swrast"
+    },
+    "name": "vulkan-swrast"
+   }
+  },
+  "xcb-util-cursor": {
+   "apt\\xcb-util-cursor": {
+    "family": "apt",
+    "fields": {
+     "name": "xcb-util-cursor"
+    },
+    "name": "xcb-util-cursor"
+   }
+  },
+  "xcb-util-cursor-devel": {
+   "apt\\xcb-util-cursor-devel": {
+    "family": "apt",
+    "fields": {
+     "name": "xcb-util-cursor-devel"
+    },
+    "name": "xcb-util-cursor-devel"
+   }
+  },
+  "xclip": {
+   "apt\\xclip": {
+    "family": "apt",
+    "fields": {
+     "name": "xclip",
+     "repo-component": "universe"
+    },
+    "name": "xclip"
+   }
+  }
+ },
+ "debian@12": {
+  "apod": {
+   "apt\\pipx": {
+    "family": "apt",
+    "fields": {
+     "name": "pipx"
+    },
+    "name": "pipx"
+   },
+   "dotfiles\\apod": {
+    "family": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/apod.sh",
+     "src": "bash.d/apod.sh"
+    },
+    "name": "apod"
+   },
+   "dotfiles\\bashDotD": {
+    "family": "dotfiles",
+    "fields": {
+     "aliases": {
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bashDotD"
+   },
+   "pipx\\apod": {
+    "family": "pipx",
+    "fields": {
+     "name": "termapod",
+     "version": {
+      "pypi": "termapod"
+     }
+    },
+    "name": "termapod"
+   }
+  },
+  "arduino": {
+   "appImage\\arduino": {
+    "family": "appImage",
+    "fields": {
+     "name": "Arduino IDE",
+     "path": "~/apps/arduino-ide.appimage",
+     "url": "https://github.com/arduino/arduino-ide/releases/download/$VERSION/arduino-ide_$VERSION_Linux_64bit.AppImage",
+     "version": {
+      "asset": "arduino-ide_*_Linux_64bit.AppImage",
+      "github": "arduino/arduino-ide"
+     }
+    },
+    "name": "Arduino IDE"
+   },
+   "apt\\libfuse2": {
+    "family": "apt",
+    "fields": {
+     "name": "libfuse2",
+     "repo-component": "universe"
+    },
+    "name": "libfuse2"
+   },
+   "dotfiles\\arduino": {
+    "family": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/arduino.sh",
+     "src": "bash.d/arduino.sh"
+    },
+    "name": "arduino"
+   },
+   "dotfiles\\bashDotD": {
+    "family": "dotfiles",
+    "fields": {
+     "aliases": {
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bashDotD"
+   }
+  },
+  "base-devel": {
+   "apt\\base-devel": {
+    "family": "apt",
+    "fields": {
+     "name": "base-devel"
+    },
+    "name": "base-devel"
+   }
+  },
+  "bashDotD": {
+   "dotfiles\\bashDotD": {
+    "family": "dotfiles",
+    "fields": {
+     "aliases": {
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bashDotD"
+   }
+  },
+  "btop": {
+   "apt\\btop": {
+    "family": "apt",
+    "fields": {
+     "name": "btop",
+     "repo-component": "universe"
+    },
+    "name": "btop"
+   }
+  },
+  "build-essential": {
+   "apt\\build-essential": {
+    "family": "apt",
+    "fields": {
+     "name": "build-essential"
+    },
+    "name": "build-essential"
+   }
+  },
+  "cargo": {
+   "apt\\cargo": {
+    "family": "apt",
+    "fields": {
+     "name": "cargo",
+     "repo-component": "universe"
+    },
+    "name": "cargo"
+   }
+  },
+  "chrome": {
+   "apt\\flatpak": {
+    "family": "apt",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\chrome": {
+    "family": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "com.google.Chrome"
+    },
+    "name": "com.google.Chrome"
+   }
+  },
+  "clang": {
+   "dotfiles\\bashDotD": {
+    "family": "dotfiles",
+    "fields": {
+     "aliases": {
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bashDotD"
+   },
+   "dotfiles\\clang": {
+    "family": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/clang.sh",
+     "src": "bash.d/clang.sh"
+    },
+    "name": "clang"
+   }
+  },
+  "clang-18": {
+   "apt\\build-essential": {
+    "family": "apt",
+    "fields": {
+     "name": "build-essential"
+    },
+    "name": "build-essential"
+   },
+   "apt\\curl": {
+    "family": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "clang\\clang-18": {
+    "family": "clang",
+    "fields": {
+     "name": "clang-18",
+     "packages": [
+      "clang-18"
+     ]
+    },
+    "name": "clang-18"
+   },
+   "dotfiles\\bashDotD": {
+    "family": "dotfiles",
+    "fields": {
+     "aliases": {
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bashDotD"
+   },
+   "dotfiles\\clang": {
+    "family": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/clang.sh",
+     "src": "bash.d/clang.sh"
+    },
+    "name": "clang"
+   }
+  },
+  "clang-19": {
+   "apt\\build-essential": {
+    "family": "apt",
+    "fields": {
+     "name": "build-essential"
+    },
+    "name": "build-essential"
+   },
+   "apt\\curl": {
+    "family": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "clang\\clang-19": {
+    "family": "clang",
+    "fields": {
+     "name": "clang-19",
+     "packages": [
+      "clang-19"
+     ]
+    },
+    "name": "clang-19"
+   },
+   "dotfiles\\bashDotD": {
+    "family": "dotfiles",
+    "fields": {
+     "aliases": {
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bashDotD"
+   },
+   "dotfiles\\clang": {
+    "family": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/clang.sh",
+     "src": "bash.d/clang.sh"
+    },
+    "name": "clang"
+   }
+  },
+  "clang-20": {
+   "apt\\build-essential": {
+    "family": "apt",
+    "fields": {
+     "name": "build-essential"
+    },
+    "name": "build-essential"
+   },
+   "apt\\curl": {
+    "family": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "clang\\clang-20": {
+    "family": "clang",
+    "fields": {
+     "name": "clang-20",
+     "packages": [
+      "clang-20"
+     ]
+    },
+    "name": "clang-20"
+   },
+   "dotfiles\\bashDotD": {
+    "family": "dotfiles",
+    "fields": {
+     "aliases": {
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bashDotD"
+   },
+   "dotfiles\\clang": {
+    "family": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/clang.sh",
+     "src": "bash.d/clang.sh"
+    },
+    "name": "clang"
+   }
+  },
+  "curl": {
+   "apt\\curl": {
+    "family": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   }
+  },
+  "fastfetch": {
+   "apt\\fastfetch": {
+    "family": "apt",
+    "fields": {
+     "asset": {
+      "aarch64": "fastfetch-linux-aarch64.deb",
+      "x86_64": "fastfetch-linux-amd64.deb"
+     },
+     "deb-source": "github:fastfetch-cli/fastfetch",
+     "name": "fastfetch"
+    },
+    "name": "fastfetch"
+   }
+  },
+  "firefox": {
+   "apt\\firefox": {
+    "family": "apt",
+    "fields": {
+     "name": "firefox",
+     "repo-component": "universe"
+    },
+    "name": "firefox"
+   }
+  },
+  "flatpak": {
+   "apt\\flatpak": {
+    "family": "apt",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   }
+  },
+  "fontconfig": {
+   "apt\\fontconfig": {
+    "family": "apt",
+    "fields": {
+     "name": "fontconfig"
+    },
+    "name": "fontconfig"
+   }
+  },
+  "fzf": {
+   "apt\\fzf": {
+    "family": "apt",
+    "fields": {
+     "name": "fzf",
+     "repo-component": "universe"
+    },
+    "name": "fzf"
+   }
+  },
+  "gcc": {
+   "dotfiles\\bashDotD": {
+    "family": "dotfiles",
+    "fields": {
+     "aliases": {
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bashDotD"
+   },
+   "dotfiles\\gcc": {
+    "family": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/gcc.sh",
+     "src": "bash.d/gcc.sh"
+    },
+    "name": "gcc"
+   }
+  },
+  "gcc-13": {
+   "apt\\build-essential": {
+    "family": "apt",
+    "fields": {
+     "name": "build-essential"
+    },
+    "name": "build-essential"
+   },
+   "apt\\software-properties-common": {
+    "family": "apt",
+    "fields": {
+     "name": "software-properties-common"
+    },
+    "name": "software-properties-common"
+   },
+   "dotfiles\\bashDotD": {
+    "family": "dotfiles",
+    "fields": {
+     "aliases": {
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bashDotD"
+   },
+   "dotfiles\\gcc": {
+    "family": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/gcc.sh",
+     "src": "bash.d/gcc.sh"
+    },
+    "name": "gcc"
+   },
+   "gcc\\gcc-13": {
+    "family": "gcc",
+    "fields": {
+     "name": "gcc-13",
+     "packages": [
+      "gcc-13",
+      "g++-13"
+     ],
+     "ppa": "ubuntu-toolchain-r/test",
+     "slaves": [
+      "g++"
+     ]
+    },
+    "name": "gcc-13"
+   }
+  },
+  "gcc-14": {
+   "apt\\build-essential": {
+    "family": "apt",
+    "fields": {
+     "name": "build-essential"
+    },
+    "name": "build-essential"
+   },
+   "apt\\software-properties-common": {
+    "family": "apt",
+    "fields": {
+     "name": "software-properties-common"
+    },
+    "name": "software-properties-common"
+   },
+   "dotfiles\\bashDotD": {
+    "family": "dotfiles",
+    "fields": {
+     "aliases": {
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bashDotD"
+   },
+   "dotfiles\\gcc": {
+    "family": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/gcc.sh",
+     "src": "bash.d/gcc.sh"
+    },
+    "name": "gcc"
+   },
+   "gcc\\gcc-14": {
+    "family": "gcc",
+    "fields": {
+     "name": "gcc-14",
+     "packages": [
+      "gcc-14",
+      "g++-14"
+     ],
+     "ppa": "ubuntu-toolchain-r/test",
+     "slaves": [
+      "g++"
+     ]
+    },
+    "name": "gcc-14"
+   }
+  },
+  "gcc-15": {
+   "apt\\build-essential": {
+    "family": "apt",
+    "fields": {
+     "name": "build-essential"
+    },
+    "name": "build-essential"
+   },
+   "apt\\software-properties-common": {
+    "family": "apt",
+    "fields": {
+     "name": "software-properties-common"
+    },
+    "name": "software-properties-common"
+   },
+   "dotfiles\\bashDotD": {
+    "family": "dotfiles",
+    "fields": {
+     "aliases": {
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bashDotD"
+   },
+   "dotfiles\\gcc": {
+    "family": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/gcc.sh",
+     "src": "bash.d/gcc.sh"
+    },
+    "name": "gcc"
+   },
+   "gcc\\gcc-15": {
+    "family": "gcc",
+    "fields": {
+     "name": "gcc-15",
+     "packages": [
+      "gcc-15",
+      "g++-15"
+     ],
+     "ppa": "ubuntu-toolchain-r/test",
+     "slaves": [
+      "g++"
+     ]
+    },
+    "name": "gcc-15"
+   }
+  },
+  "gcc-cpp": {
+   "apt\\gcc-cpp": {
+    "family": "apt",
+    "fields": {
+     "name": "gcc-cpp"
+    },
+    "name": "gcc-cpp"
+   }
+  },
+  "git": {
+   "apt\\git": {
+    "family": "apt",
+    "fields": {
+     "name": "git"
+    },
+    "name": "git"
+   }
+  },
+  "libfuse2": {
+   "apt\\libfuse2": {
+    "family": "apt",
+    "fields": {
+     "name": "libfuse2",
+     "repo-component": "universe"
+    },
+    "name": "libfuse2"
+   }
+  },
+  "libvulkan1": {
+   "apt\\libvulkan1": {
+    "family": "apt",
+    "fields": {
+     "name": "libvulkan1"
+    },
+    "name": "libvulkan1"
+   }
+  },
+  "libxcb": {
+   "apt\\libxcb": {
+    "family": "apt",
+    "fields": {
+     "name": "libxcb"
+    },
+    "name": "libxcb"
+   }
+  },
+  "libxcb-cursor-dev": {
+   "apt\\libxcb-cursor-dev": {
+    "family": "apt",
+    "fields": {
+     "name": "libxcb-cursor-dev",
+     "repo-component": "universe"
+    },
+    "name": "libxcb-cursor-dev"
+   }
+  },
+  "libxcb-devel": {
+   "apt\\libxcb-devel": {
+    "family": "apt",
+    "fields": {
+     "name": "libxcb-devel"
+    },
+    "name": "libxcb-devel"
+   }
+  },
+  "libxcb-xinerama0": {
+   "apt\\libxcb-xinerama0": {
+    "family": "apt",
+    "fields": {
+     "name": "libxcb-xinerama0",
+     "repo-component": "universe"
+    },
+    "name": "libxcb-xinerama0"
+   }
+  },
+  "libxcb-xinput0": {
+   "apt\\libxcb-xinput0": {
+    "family": "apt",
+    "fields": {
+     "name": "libxcb-xinput0",
+     "repo-component": "universe"
+    },
+    "name": "libxcb-xinput0"
+   }
+  },
+  "make": {
+   "apt\\make": {
+    "family": "apt",
+    "fields": {
+     "name": "make"
+    },
+    "name": "make"
+   }
+  },
+  "mesa-vulkan-drivers": {
+   "apt\\mesa-vulkan-drivers": {
+    "family": "apt",
+    "fields": {
+     "name": "mesa-vulkan-drivers"
+    },
+    "name": "mesa-vulkan-drivers"
+   }
+  },
+  "mononoki-nerd": {
+   "apt\\fontconfig": {
+    "family": "apt",
+    "fields": {
+     "name": "fontconfig"
+    },
+    "name": "fontconfig"
+   },
+   "apt\\unzip": {
+    "family": "apt",
+    "fields": {
+     "name": "unzip"
+    },
+    "name": "unzip"
+   },
+   "debian-font\\mononoki-nerd": {
+    "family": "debian-font",
+    "fields": {
+     "name": "Mononoki",
+     "url": "https://github.com/ryanoasis/nerd-fonts/releases/download/$VERSION/Mononoki.zip",
+     "version": {
+      "asset": "Mononoki.zip",
+      "github": "ryanoasis/nerd-fonts"
+     }
+    },
+    "name": "Mononoki"
+   }
+  },
+  "neovim": {
+   "appImage\\neovim": {
+    "family": "appImage",
+    "fields": {
+     "name": "Neovim",
+     "path": "~/apps/nvim.appimage",
+     "url": "https://github.com/neovim/neovim/releases/download/$VERSION/nvim-linux-$ARCH.appimage",
+     "version": {
+      "asset": "nvim-linux-$ARCH.appimage",
+      "github": "neovim/neovim"
+     }
+    },
+    "name": "Neovim"
+   },
+   "apt\\cargo": {
+    "family": "apt",
+    "fields": {
+     "name": "cargo",
+     "repo-component": "universe"
+    },
+    "name": "cargo"
+   },
+   "apt\\libfuse2": {
+    "family": "apt",
+    "fields": {
+     "name": "libfuse2",
+     "repo-component": "universe"
+    },
+    "name": "libfuse2"
+   },
+   "apt\\ripgrep": {
+    "family": "apt",
+    "fields": {
+     "name": "ripgrep",
+     "repo-component": "universe"
+    },
+    "name": "ripgrep"
+   },
+   "cargo\\tree-sitter-cli": {
+    "family": "cargo",
+    "fields": {
+     "name": "tree-sitter-cli",
+     "version": {
+      "crates": "tree-sitter-cli"
+     }
+    },
+    "name": "tree-sitter-cli"
+   },
+   "dotfiles\\bashDotD": {
+    "family": "dotfiles",
+    "fields": {
+     "aliases": {
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bashDotD"
+   },
+   "dotfiles\\neovim": {
+    "family": "dotfiles",
+    "fields": {
+     "aliases": {
+      "dst": "~/.bash.d/neovim.sh",
+      "src": "bash.d/neovim.sh"
+     },
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/nvim",
+      "src": "neovim"
+     }
+    },
+    "name": "neovim"
+   }
+  },
+  "pipx": {
+   "apt\\pipx": {
+    "family": "apt",
+    "fields": {
+     "name": "pipx"
+    },
+    "name": "pipx"
+   }
+  },
+  "python3-pip": {
+   "apt\\python3-pip": {
+    "family": "apt",
+    "fields": {
+     "name": "python3-pip"
+    },
+    "name": "python3-pip"
+   }
+  },
+  "ripgrep": {
+   "apt\\ripgrep": {
+    "family": "apt",
+    "fields": {
+     "name": "ripgrep",
+     "repo-component": "universe"
+    },
+    "name": "ripgrep"
+   }
+  },
+  "software-properties-common": {
+   "apt\\software-properties-common": {
+    "family": "apt",
+    "fields": {
+     "name": "software-properties-common"
+    },
+    "name": "software-properties-common"
+   }
+  },
+  "steam": {
+   "apt\\flatpak": {
+    "family": "apt",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\steam": {
+    "family": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "com.valvesoftware.Steam"
+    },
+    "name": "com.valvesoftware.Steam"
+   }
+  },
+  "tree-sitter-cli": {
+   "apt\\cargo": {
+    "family": "apt",
+    "fields": {
+     "name": "cargo",
+     "repo-component": "universe"
+    },
+    "name": "cargo"
+   },
+   "cargo\\tree-sitter-cli": {
+    "family": "cargo",
+    "fields": {
+     "name": "tree-sitter-cli",
+     "version": {
+      "crates": "tree-sitter-cli"
+     }
+    },
+    "name": "tree-sitter-cli"
+   }
+  },
+  "unzip": {
+   "apt\\unzip": {
+    "family": "apt",
+    "fields": {
+     "name": "unzip"
+    },
+    "name": "unzip"
+   }
+  },
+  "vulkan-dev": {
+   "apt\\build-essential": {
+    "family": "apt",
+    "fields": {
+     "name": "build-essential"
+    },
+    "name": "build-essential"
+   },
+   "apt\\curl": {
+    "family": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "apt\\libvulkan1": {
+    "family": "apt",
+    "fields": {
+     "name": "libvulkan1"
+    },
+    "name": "libvulkan1"
+   },
+   "apt\\libxcb-cursor-dev": {
+    "family": "apt",
+    "fields": {
+     "name": "libxcb-cursor-dev",
+     "repo-component": "universe"
+    },
+    "name": "libxcb-cursor-dev"
+   },
+   "apt\\libxcb-xinerama0": {
+    "family": "apt",
+    "fields": {
+     "name": "libxcb-xinerama0",
+     "repo-component": "universe"
+    },
+    "name": "libxcb-xinerama0"
+   },
+   "apt\\libxcb-xinput0": {
+    "family": "apt",
+    "fields": {
+     "name": "libxcb-xinput0",
+     "repo-component": "universe"
+    },
+    "name": "libxcb-xinput0"
+   },
+   "apt\\mesa-vulkan-drivers": {
+    "family": "apt",
+    "fields": {
+     "name": "mesa-vulkan-drivers"
+    },
+    "name": "mesa-vulkan-drivers"
+   },
+   "dotfiles\\bashDotD": {
+    "family": "dotfiles",
+    "fields": {
+     "aliases": {
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bashDotD"
+   },
+   "dotfiles\\vulkan-sdk": {
+    "family": "dotfiles",
+    "fields": {
+     "aliases": {
+      "dst": "~/.bash.d/vulkan-sdk.sh",
+      "src": "bash.d/vulkan-sdk.sh"
+     }
+    },
+    "name": "vulkan-sdk"
+   },
+   "tarball\\vulkan-sdk": {
+    "family": "tarball",
+    "fields": {
+     "installDir": "vulkan",
+     "name": "vulkan-sdk",
+     "url": "https://sdk.lunarg.com/sdk/download/$VERSION/linux/vulkansdk-linux-$ARCH-$VERSION.tar.xz",
+     "version": {
+      "static": "1.4.350.1"
+     }
+    },
+    "name": "vulkan-sdk"
+   }
+  },
+  "vulkan-icd-loader": {
+   "apt\\vulkan-icd-loader": {
+    "family": "apt",
+    "fields": {
+     "name": "vulkan-icd-loader"
+    },
+    "name": "vulkan-icd-loader"
+   }
+  },
+  "vulkan-intel": {
+   "apt\\vulkan-intel": {
+    "family": "apt",
+    "fields": {
+     "name": "vulkan-intel"
+    },
+    "name": "vulkan-intel"
+   }
+  },
+  "vulkan-loader": {
+   "apt\\vulkan-loader": {
+    "family": "apt",
+    "fields": {
+     "name": "vulkan-loader"
+    },
+    "name": "vulkan-loader"
+   }
+  },
+  "vulkan-radeon": {
+   "apt\\vulkan-radeon": {
+    "family": "apt",
+    "fields": {
+     "name": "vulkan-radeon"
+    },
+    "name": "vulkan-radeon"
+   }
+  },
+  "vulkan-runtime": {
+   "apt\\libvulkan1": {
+    "family": "apt",
+    "fields": {
+     "name": "libvulkan1"
+    },
+    "name": "libvulkan1"
+   },
+   "apt\\mesa-vulkan-drivers": {
+    "family": "apt",
+    "fields": {
+     "name": "mesa-vulkan-drivers"
+    },
+    "name": "mesa-vulkan-drivers"
+   }
+  },
+  "vulkan-sdk": {
+   "apt\\curl": {
+    "family": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "dotfiles\\bashDotD": {
+    "family": "dotfiles",
+    "fields": {
+     "aliases": {
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bashDotD"
+   },
+   "dotfiles\\vulkan-sdk": {
+    "family": "dotfiles",
+    "fields": {
+     "aliases": {
+      "dst": "~/.bash.d/vulkan-sdk.sh",
+      "src": "bash.d/vulkan-sdk.sh"
+     }
+    },
+    "name": "vulkan-sdk"
+   },
+   "tarball\\vulkan-sdk": {
+    "family": "tarball",
+    "fields": {
+     "installDir": "vulkan",
+     "name": "vulkan-sdk",
+     "url": "https://sdk.lunarg.com/sdk/download/$VERSION/linux/vulkansdk-linux-$ARCH-$VERSION.tar.xz",
+     "version": {
+      "static": "1.4.350.1"
+     }
+    },
+    "name": "vulkan-sdk"
+   }
+  },
+  "vulkan-swrast": {
+   "apt\\vulkan-swrast": {
+    "family": "apt",
+    "fields": {
+     "name": "vulkan-swrast"
+    },
+    "name": "vulkan-swrast"
+   }
+  },
+  "xcb-util-cursor": {
+   "apt\\xcb-util-cursor": {
+    "family": "apt",
+    "fields": {
+     "name": "xcb-util-cursor"
+    },
+    "name": "xcb-util-cursor"
+   }
+  },
+  "xcb-util-cursor-devel": {
+   "apt\\xcb-util-cursor-devel": {
+    "family": "apt",
+    "fields": {
+     "name": "xcb-util-cursor-devel"
+    },
+    "name": "xcb-util-cursor-devel"
+   }
+  },
+  "xclip": {
+   "apt\\xclip": {
+    "family": "apt",
+    "fields": {
+     "name": "xclip",
+     "repo-component": "universe"
+    },
+    "name": "xclip"
+   }
+  }
+ },
+ "fedora@41": {
+  "apod": {
+   "dnf\\pipx": {
+    "family": "dnf",
+    "fields": {
+     "name": "pipx"
+    },
+    "name": "pipx"
+   },
+   "dotfiles\\apod": {
+    "family": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/apod.sh",
+     "src": "bash.d/apod.sh"
+    },
+    "name": "apod"
+   },
+   "dotfiles\\bashDotD": {
+    "family": "dotfiles",
+    "fields": {
+     "aliases": {
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bashDotD"
+   },
+   "pipx\\apod": {
+    "family": "pipx",
+    "fields": {
+     "name": "termapod",
+     "version": {
+      "pypi": "termapod"
+     }
+    },
+    "name": "termapod"
+   }
+  },
+  "arduino": {
+   "appImage\\arduino": {
+    "family": "appImage",
+    "fields": {
+     "name": "Arduino IDE",
+     "path": "~/apps/arduino-ide.appimage",
+     "url": "https://github.com/arduino/arduino-ide/releases/download/$VERSION/arduino-ide_$VERSION_Linux_64bit.AppImage",
+     "version": {
+      "asset": "arduino-ide_*_Linux_64bit.AppImage",
+      "github": "arduino/arduino-ide"
+     }
+    },
+    "name": "Arduino IDE"
+   },
+   "dnf\\libfuse2": {
+    "family": "dnf",
+    "fields": {
+     "name": "fuse-libs",
+     "repo-component": "universe"
+    },
+    "name": "fuse-libs"
+   },
+   "dotfiles\\arduino": {
+    "family": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/arduino.sh",
+     "src": "bash.d/arduino.sh"
+    },
+    "name": "arduino"
+   },
+   "dotfiles\\bashDotD": {
+    "family": "dotfiles",
+    "fields": {
+     "aliases": {
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bashDotD"
+   }
+  },
+  "base-devel": {
+   "dnf\\base-devel": {
+    "family": "dnf",
+    "fields": {
+     "name": "base-devel"
+    },
+    "name": "base-devel"
+   }
+  },
+  "bashDotD": {
+   "dotfiles\\bashDotD": {
+    "family": "dotfiles",
+    "fields": {
+     "aliases": {
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bashDotD"
+   }
+  },
+  "btop": {
+   "dnf\\btop": {
+    "family": "dnf",
+    "fields": {
+     "name": "btop",
+     "repo-component": "universe"
+    },
+    "name": "btop"
+   }
+  },
+  "build-essential": {
+   "dnf\\gcc": {
+    "family": "dnf",
+    "fields": {
+     "name": "gcc"
+    },
+    "name": "gcc"
+   },
+   "dnf\\gcc-cpp": {
+    "family": "dnf",
+    "fields": {
+     "name": "gcc-c++"
+    },
+    "name": "gcc-c++"
+   },
+   "dnf\\make": {
+    "family": "dnf",
+    "fields": {
+     "name": "make"
+    },
+    "name": "make"
+   }
+  },
+  "cargo": {
+   "dnf\\cargo": {
+    "family": "dnf",
+    "fields": {
+     "name": "cargo",
+     "repo-component": "universe"
+    },
+    "name": "cargo"
+   }
+  },
+  "chrome": {
+   "dnf\\flatpak": {
+    "family": "dnf",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\chrome": {
+    "family": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "com.google.Chrome"
+    },
+    "name": "com.google.Chrome"
+   }
+  },
+  "clang": {
+   "dotfiles\\bashDotD": {
+    "family": "dotfiles",
+    "fields": {
+     "aliases": {
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bashDotD"
+   },
+   "dotfiles\\clang": {
+    "family": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/clang.sh",
+     "src": "bash.d/clang.sh"
+    },
+    "name": "clang"
+   }
+  },
+  "clang-18": {
+   "clang\\clang-18": {
+    "family": "clang",
+    "fields": {
+     "name": "clang-18",
+     "packages": [
+      "clang18"
+     ]
+    },
+    "name": "clang-18"
+   }
+  },
+  "clang-19": {
+   "clang\\clang-19": {
+    "family": "clang",
+    "fields": {
+     "name": "clang-19",
+     "packages": [
+      "clang"
+     ]
+    },
+    "name": "clang-19"
+   }
+  },
+  "curl": {
+   "dnf\\curl": {
+    "family": "dnf",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   }
+  },
+  "fastfetch": {
+   "dnf\\fastfetch": {
+    "family": "dnf",
+    "fields": {
+     "name": "fastfetch"
+    },
+    "name": "fastfetch"
+   }
+  },
+  "firefox": {
+   "dnf\\firefox": {
+    "family": "dnf",
+    "fields": {
+     "name": "firefox",
+     "repo-component": "universe"
+    },
+    "name": "firefox"
+   }
+  },
+  "flatpak": {
+   "dnf\\flatpak": {
+    "family": "dnf",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   }
+  },
+  "fontconfig": {
+   "dnf\\fontconfig": {
+    "family": "dnf",
+    "fields": {
+     "name": "fontconfig"
+    },
+    "name": "fontconfig"
+   }
+  },
+  "fzf": {
+   "dnf\\fzf": {
+    "family": "dnf",
+    "fields": {
+     "name": "fzf",
+     "repo-component": "universe"
+    },
+    "name": "fzf"
+   }
+  },
+  "gcc": {
+   "dnf\\gcc": {
+    "family": "dnf",
+    "fields": {
+     "name": "gcc"
+    },
+    "name": "gcc"
+   }
+  },
+  "gcc-13": {
+   "gcc\\gcc-13": {
+    "family": "gcc",
+    "fields": {
+     "name": "gcc-13",
+     "packages": [
+      "gcc13",
+      "gcc13-c++"
+     ]
+    },
+    "name": "gcc-13"
+   }
+  },
+  "gcc-cpp": {
+   "dnf\\gcc-cpp": {
+    "family": "dnf",
+    "fields": {
+     "name": "gcc-c++"
+    },
+    "name": "gcc-c++"
+   }
+  },
+  "git": {
+   "dnf\\git": {
+    "family": "dnf",
+    "fields": {
+     "name": "git"
+    },
+    "name": "git"
+   }
+  },
+  "libfuse2": {
+   "dnf\\libfuse2": {
+    "family": "dnf",
+    "fields": {
+     "name": "fuse-libs",
+     "repo-component": "universe"
+    },
+    "name": "fuse-libs"
+   }
+  },
+  "libvulkan1": {
+   "dnf\\libvulkan1": {
+    "family": "dnf",
+    "fields": {
+     "name": "libvulkan1"
+    },
+    "name": "libvulkan1"
+   }
+  },
+  "libxcb": {
+   "dnf\\libxcb": {
+    "family": "dnf",
+    "fields": {
+     "name": "libxcb"
+    },
+    "name": "libxcb"
+   }
+  },
+  "libxcb-cursor-dev": {
+   "dnf\\libxcb-cursor-dev": {
+    "family": "dnf",
+    "fields": {
+     "name": "libxcb-cursor-dev",
+     "repo-component": "universe"
+    },
+    "name": "libxcb-cursor-dev"
+   }
+  },
+  "libxcb-devel": {
+   "dnf\\libxcb-devel": {
+    "family": "dnf",
+    "fields": {
+     "name": "libxcb-devel"
+    },
+    "name": "libxcb-devel"
+   }
+  },
+  "libxcb-xinerama0": {
+   "dnf\\libxcb-xinerama0": {
+    "family": "dnf",
+    "fields": {
+     "name": "libxcb-xinerama0",
+     "repo-component": "universe"
+    },
+    "name": "libxcb-xinerama0"
+   }
+  },
+  "libxcb-xinput0": {
+   "dnf\\libxcb-xinput0": {
+    "family": "dnf",
+    "fields": {
+     "name": "libxcb-xinput0",
+     "repo-component": "universe"
+    },
+    "name": "libxcb-xinput0"
+   }
+  },
+  "make": {
+   "dnf\\make": {
+    "family": "dnf",
+    "fields": {
+     "name": "make"
+    },
+    "name": "make"
+   }
+  },
+  "mesa-vulkan-drivers": {
+   "dnf\\mesa-vulkan-drivers": {
+    "family": "dnf",
+    "fields": {
+     "name": "mesa-vulkan-drivers"
+    },
+    "name": "mesa-vulkan-drivers"
+   }
+  },
+  "mononoki-nerd": {
+   "debian-font\\mononoki-nerd": {
+    "family": "debian-font",
+    "fields": {
+     "name": "Mononoki",
+     "url": "https://github.com/ryanoasis/nerd-fonts/releases/download/$VERSION/Mononoki.zip",
+     "version": {
+      "asset": "Mononoki.zip",
+      "github": "ryanoasis/nerd-fonts"
+     }
+    },
+    "name": "Mononoki"
+   },
+   "dnf\\fontconfig": {
+    "family": "dnf",
+    "fields": {
+     "name": "fontconfig"
+    },
+    "name": "fontconfig"
+   },
+   "dnf\\unzip": {
+    "family": "dnf",
+    "fields": {
+     "name": "unzip"
+    },
+    "name": "unzip"
+   }
+  },
+  "neovim": {
+   "appImage\\neovim": {
+    "family": "appImage",
+    "fields": {
+     "name": "Neovim",
+     "path": "~/apps/nvim.appimage",
+     "url": "https://github.com/neovim/neovim/releases/download/$VERSION/nvim-linux-$ARCH.appimage",
+     "version": {
+      "asset": "nvim-linux-$ARCH.appimage",
+      "github": "neovim/neovim"
+     }
+    },
+    "name": "Neovim"
+   },
+   "cargo\\tree-sitter-cli": {
+    "family": "cargo",
+    "fields": {
+     "name": "tree-sitter-cli",
+     "version": {
+      "crates": "tree-sitter-cli"
+     }
+    },
+    "name": "tree-sitter-cli"
+   },
+   "dnf\\cargo": {
+    "family": "dnf",
+    "fields": {
+     "name": "cargo",
+     "repo-component": "universe"
+    },
+    "name": "cargo"
+   },
+   "dnf\\libfuse2": {
+    "family": "dnf",
+    "fields": {
+     "name": "fuse-libs",
+     "repo-component": "universe"
+    },
+    "name": "fuse-libs"
+   },
+   "dnf\\ripgrep": {
+    "family": "dnf",
+    "fields": {
+     "name": "ripgrep",
+     "repo-component": "universe"
+    },
+    "name": "ripgrep"
+   },
+   "dotfiles\\bashDotD": {
+    "family": "dotfiles",
+    "fields": {
+     "aliases": {
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bashDotD"
+   },
+   "dotfiles\\neovim": {
+    "family": "dotfiles",
+    "fields": {
+     "aliases": {
+      "dst": "~/.bash.d/neovim.sh",
+      "src": "bash.d/neovim.sh"
+     },
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/nvim",
+      "src": "neovim"
+     }
+    },
+    "name": "neovim"
+   }
+  },
+  "pipx": {
+   "dnf\\pipx": {
+    "family": "dnf",
+    "fields": {
+     "name": "pipx"
+    },
+    "name": "pipx"
+   }
+  },
+  "python3-pip": {
+   "dnf\\python3-pip": {
+    "family": "dnf",
+    "fields": {
+     "name": "python3-pip"
+    },
+    "name": "python3-pip"
+   }
+  },
+  "ripgrep": {
+   "dnf\\ripgrep": {
+    "family": "dnf",
+    "fields": {
+     "name": "ripgrep",
+     "repo-component": "universe"
+    },
+    "name": "ripgrep"
+   }
+  },
+  "software-properties-common": {
+   "dnf\\software-properties-common": {
+    "family": "dnf",
+    "fields": {
+     "name": "software-properties-common"
+    },
+    "name": "software-properties-common"
+   }
+  },
+  "steam": {
+   "dnf\\flatpak": {
+    "family": "dnf",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\steam": {
+    "family": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "com.valvesoftware.Steam"
+    },
+    "name": "com.valvesoftware.Steam"
+   }
+  },
+  "tree-sitter-cli": {
+   "cargo\\tree-sitter-cli": {
+    "family": "cargo",
+    "fields": {
+     "name": "tree-sitter-cli",
+     "version": {
+      "crates": "tree-sitter-cli"
+     }
+    },
+    "name": "tree-sitter-cli"
+   },
+   "dnf\\cargo": {
+    "family": "dnf",
+    "fields": {
+     "name": "cargo",
+     "repo-component": "universe"
+    },
+    "name": "cargo"
+   }
+  },
+  "unzip": {
+   "dnf\\unzip": {
+    "family": "dnf",
+    "fields": {
+     "name": "unzip"
+    },
+    "name": "unzip"
+   }
+  },
+  "vulkan-dev": {
+   "dnf\\curl": {
+    "family": "dnf",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "dnf\\gcc": {
+    "family": "dnf",
+    "fields": {
+     "name": "gcc"
+    },
+    "name": "gcc"
+   },
+   "dnf\\gcc-cpp": {
+    "family": "dnf",
+    "fields": {
+     "name": "gcc-c++"
+    },
+    "name": "gcc-c++"
+   },
+   "dnf\\libxcb-devel": {
+    "family": "dnf",
+    "fields": {
+     "name": "libxcb-devel"
+    },
+    "name": "libxcb-devel"
+   },
+   "dnf\\make": {
+    "family": "dnf",
+    "fields": {
+     "name": "make"
+    },
+    "name": "make"
+   },
+   "dnf\\mesa-vulkan-drivers": {
+    "family": "dnf",
+    "fields": {
+     "name": "mesa-vulkan-drivers"
+    },
+    "name": "mesa-vulkan-drivers"
+   },
+   "dnf\\vulkan-loader": {
+    "family": "dnf",
+    "fields": {
+     "name": "vulkan-loader"
+    },
+    "name": "vulkan-loader"
+   },
+   "dnf\\xcb-util-cursor-devel": {
+    "family": "dnf",
+    "fields": {
+     "name": "xcb-util-cursor-devel"
+    },
+    "name": "xcb-util-cursor-devel"
+   },
+   "dotfiles\\bashDotD": {
+    "family": "dotfiles",
+    "fields": {
+     "aliases": {
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bashDotD"
+   },
+   "dotfiles\\vulkan-sdk": {
+    "family": "dotfiles",
+    "fields": {
+     "aliases": {
+      "dst": "~/.bash.d/vulkan-sdk.sh",
+      "src": "bash.d/vulkan-sdk.sh"
+     }
+    },
+    "name": "vulkan-sdk"
+   },
+   "tarball\\vulkan-sdk": {
+    "family": "tarball",
+    "fields": {
+     "installDir": "vulkan",
+     "name": "vulkan-sdk",
+     "url": "https://sdk.lunarg.com/sdk/download/$VERSION/linux/vulkansdk-linux-$ARCH-$VERSION.tar.xz",
+     "version": {
+      "static": "1.4.350.1"
+     }
+    },
+    "name": "vulkan-sdk"
+   }
+  },
+  "vulkan-icd-loader": {
+   "dnf\\vulkan-icd-loader": {
+    "family": "dnf",
+    "fields": {
+     "name": "vulkan-icd-loader"
+    },
+    "name": "vulkan-icd-loader"
+   }
+  },
+  "vulkan-intel": {
+   "dnf\\vulkan-intel": {
+    "family": "dnf",
+    "fields": {
+     "name": "vulkan-intel"
+    },
+    "name": "vulkan-intel"
+   }
+  },
+  "vulkan-loader": {
+   "dnf\\vulkan-loader": {
+    "family": "dnf",
+    "fields": {
+     "name": "vulkan-loader"
+    },
+    "name": "vulkan-loader"
+   }
+  },
+  "vulkan-radeon": {
+   "dnf\\vulkan-radeon": {
+    "family": "dnf",
+    "fields": {
+     "name": "vulkan-radeon"
+    },
+    "name": "vulkan-radeon"
+   }
+  },
+  "vulkan-runtime": {
+   "dnf\\mesa-vulkan-drivers": {
+    "family": "dnf",
+    "fields": {
+     "name": "mesa-vulkan-drivers"
+    },
+    "name": "mesa-vulkan-drivers"
+   },
+   "dnf\\vulkan-loader": {
+    "family": "dnf",
+    "fields": {
+     "name": "vulkan-loader"
+    },
+    "name": "vulkan-loader"
+   }
+  },
+  "vulkan-sdk": {
+   "dnf\\curl": {
+    "family": "dnf",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "dotfiles\\bashDotD": {
+    "family": "dotfiles",
+    "fields": {
+     "aliases": {
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bashDotD"
+   },
+   "dotfiles\\vulkan-sdk": {
+    "family": "dotfiles",
+    "fields": {
+     "aliases": {
+      "dst": "~/.bash.d/vulkan-sdk.sh",
+      "src": "bash.d/vulkan-sdk.sh"
+     }
+    },
+    "name": "vulkan-sdk"
+   },
+   "tarball\\vulkan-sdk": {
+    "family": "tarball",
+    "fields": {
+     "installDir": "vulkan",
+     "name": "vulkan-sdk",
+     "url": "https://sdk.lunarg.com/sdk/download/$VERSION/linux/vulkansdk-linux-$ARCH-$VERSION.tar.xz",
+     "version": {
+      "static": "1.4.350.1"
+     }
+    },
+    "name": "vulkan-sdk"
+   }
+  },
+  "vulkan-swrast": {
+   "dnf\\vulkan-swrast": {
+    "family": "dnf",
+    "fields": {
+     "name": "vulkan-swrast"
+    },
+    "name": "vulkan-swrast"
+   }
+  },
+  "xcb-util-cursor": {
+   "dnf\\xcb-util-cursor": {
+    "family": "dnf",
+    "fields": {
+     "name": "xcb-util-cursor"
+    },
+    "name": "xcb-util-cursor"
+   }
+  },
+  "xcb-util-cursor-devel": {
+   "dnf\\xcb-util-cursor-devel": {
+    "family": "dnf",
+    "fields": {
+     "name": "xcb-util-cursor-devel"
+    },
+    "name": "xcb-util-cursor-devel"
+   }
+  },
+  "xclip": {
+   "dnf\\xclip": {
+    "family": "dnf",
+    "fields": {
+     "name": "xclip",
+     "repo-component": "universe"
+    },
+    "name": "xclip"
+   }
+  }
+ },
+ "fedora@42": {
+  "apod": {
+   "dnf\\pipx": {
+    "family": "dnf",
+    "fields": {
+     "name": "pipx"
+    },
+    "name": "pipx"
+   },
+   "dotfiles\\apod": {
+    "family": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/apod.sh",
+     "src": "bash.d/apod.sh"
+    },
+    "name": "apod"
+   },
+   "dotfiles\\bashDotD": {
+    "family": "dotfiles",
+    "fields": {
+     "aliases": {
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bashDotD"
+   },
+   "pipx\\apod": {
+    "family": "pipx",
+    "fields": {
+     "name": "termapod",
+     "version": {
+      "pypi": "termapod"
+     }
+    },
+    "name": "termapod"
+   }
+  },
+  "arduino": {
+   "appImage\\arduino": {
+    "family": "appImage",
+    "fields": {
+     "name": "Arduino IDE",
+     "path": "~/apps/arduino-ide.appimage",
+     "url": "https://github.com/arduino/arduino-ide/releases/download/$VERSION/arduino-ide_$VERSION_Linux_64bit.AppImage",
+     "version": {
+      "asset": "arduino-ide_*_Linux_64bit.AppImage",
+      "github": "arduino/arduino-ide"
+     }
+    },
+    "name": "Arduino IDE"
+   },
+   "dnf\\libfuse2": {
+    "family": "dnf",
+    "fields": {
+     "name": "fuse-libs",
+     "repo-component": "universe"
+    },
+    "name": "fuse-libs"
+   },
+   "dotfiles\\arduino": {
+    "family": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/arduino.sh",
+     "src": "bash.d/arduino.sh"
+    },
+    "name": "arduino"
+   },
+   "dotfiles\\bashDotD": {
+    "family": "dotfiles",
+    "fields": {
+     "aliases": {
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bashDotD"
+   }
+  },
+  "base-devel": {
+   "dnf\\base-devel": {
+    "family": "dnf",
+    "fields": {
+     "name": "base-devel"
+    },
+    "name": "base-devel"
+   }
+  },
+  "bashDotD": {
+   "dotfiles\\bashDotD": {
+    "family": "dotfiles",
+    "fields": {
+     "aliases": {
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bashDotD"
+   }
+  },
+  "btop": {
+   "dnf\\btop": {
+    "family": "dnf",
+    "fields": {
+     "name": "btop",
+     "repo-component": "universe"
+    },
+    "name": "btop"
+   }
+  },
+  "build-essential": {
+   "dnf\\gcc": {
+    "family": "dnf",
+    "fields": {
+     "name": "gcc"
+    },
+    "name": "gcc"
+   },
+   "dnf\\gcc-cpp": {
+    "family": "dnf",
+    "fields": {
+     "name": "gcc-c++"
+    },
+    "name": "gcc-c++"
+   },
+   "dnf\\make": {
+    "family": "dnf",
+    "fields": {
+     "name": "make"
+    },
+    "name": "make"
+   }
+  },
+  "cargo": {
+   "dnf\\cargo": {
+    "family": "dnf",
+    "fields": {
+     "name": "cargo",
+     "repo-component": "universe"
+    },
+    "name": "cargo"
+   }
+  },
+  "chrome": {
+   "dnf\\flatpak": {
+    "family": "dnf",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\chrome": {
+    "family": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "com.google.Chrome"
+    },
+    "name": "com.google.Chrome"
+   }
+  },
+  "clang": {
+   "dotfiles\\bashDotD": {
+    "family": "dotfiles",
+    "fields": {
+     "aliases": {
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bashDotD"
+   },
+   "dotfiles\\clang": {
+    "family": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/clang.sh",
+     "src": "bash.d/clang.sh"
+    },
+    "name": "clang"
+   }
+  },
+  "clang-18": {
+   "clang\\clang-18": {
+    "family": "clang",
+    "fields": {
+     "name": "clang-18",
+     "packages": [
+      "clang18"
+     ]
+    },
+    "name": "clang-18"
+   }
+  },
+  "clang-19": {
+   "clang\\clang-19": {
+    "family": "clang",
+    "fields": {
+     "name": "clang-19",
+     "packages": [
+      "clang19"
+     ]
+    },
+    "name": "clang-19"
+   }
+  },
+  "clang-20": {
+   "clang\\clang-20": {
+    "family": "clang",
+    "fields": {
+     "name": "clang-20",
+     "packages": [
+      "clang"
+     ]
+    },
+    "name": "clang-20"
+   }
+  },
+  "curl": {
+   "dnf\\curl": {
+    "family": "dnf",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   }
+  },
+  "fastfetch": {
+   "dnf\\fastfetch": {
+    "family": "dnf",
+    "fields": {
+     "name": "fastfetch"
+    },
+    "name": "fastfetch"
+   }
+  },
+  "firefox": {
+   "dnf\\firefox": {
+    "family": "dnf",
+    "fields": {
+     "name": "firefox",
+     "repo-component": "universe"
+    },
+    "name": "firefox"
+   }
+  },
+  "flatpak": {
+   "dnf\\flatpak": {
+    "family": "dnf",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   }
+  },
+  "fontconfig": {
+   "dnf\\fontconfig": {
+    "family": "dnf",
+    "fields": {
+     "name": "fontconfig"
+    },
+    "name": "fontconfig"
+   }
+  },
+  "fzf": {
+   "dnf\\fzf": {
+    "family": "dnf",
+    "fields": {
+     "name": "fzf",
+     "repo-component": "universe"
+    },
+    "name": "fzf"
+   }
+  },
+  "gcc": {
+   "dnf\\gcc": {
+    "family": "dnf",
+    "fields": {
+     "name": "gcc"
+    },
+    "name": "gcc"
+   }
+  },
+  "gcc-14": {
+   "gcc\\gcc-14": {
+    "family": "gcc",
+    "fields": {
+     "name": "gcc-14",
+     "packages": [
+      "gcc14",
+      "gcc14-c++"
+     ]
+    },
+    "name": "gcc-14"
+   }
+  },
+  "gcc-cpp": {
+   "dnf\\gcc-cpp": {
+    "family": "dnf",
+    "fields": {
+     "name": "gcc-c++"
+    },
+    "name": "gcc-c++"
+   }
+  },
+  "git": {
+   "dnf\\git": {
+    "family": "dnf",
+    "fields": {
+     "name": "git"
+    },
+    "name": "git"
+   }
+  },
+  "libfuse2": {
+   "dnf\\libfuse2": {
+    "family": "dnf",
+    "fields": {
+     "name": "fuse-libs",
+     "repo-component": "universe"
+    },
+    "name": "fuse-libs"
+   }
+  },
+  "libvulkan1": {
+   "dnf\\libvulkan1": {
+    "family": "dnf",
+    "fields": {
+     "name": "libvulkan1"
+    },
+    "name": "libvulkan1"
+   }
+  },
+  "libxcb": {
+   "dnf\\libxcb": {
+    "family": "dnf",
+    "fields": {
+     "name": "libxcb"
+    },
+    "name": "libxcb"
+   }
+  },
+  "libxcb-cursor-dev": {
+   "dnf\\libxcb-cursor-dev": {
+    "family": "dnf",
+    "fields": {
+     "name": "libxcb-cursor-dev",
+     "repo-component": "universe"
+    },
+    "name": "libxcb-cursor-dev"
+   }
+  },
+  "libxcb-devel": {
+   "dnf\\libxcb-devel": {
+    "family": "dnf",
+    "fields": {
+     "name": "libxcb-devel"
+    },
+    "name": "libxcb-devel"
+   }
+  },
+  "libxcb-xinerama0": {
+   "dnf\\libxcb-xinerama0": {
+    "family": "dnf",
+    "fields": {
+     "name": "libxcb-xinerama0",
+     "repo-component": "universe"
+    },
+    "name": "libxcb-xinerama0"
+   }
+  },
+  "libxcb-xinput0": {
+   "dnf\\libxcb-xinput0": {
+    "family": "dnf",
+    "fields": {
+     "name": "libxcb-xinput0",
+     "repo-component": "universe"
+    },
+    "name": "libxcb-xinput0"
+   }
+  },
+  "make": {
+   "dnf\\make": {
+    "family": "dnf",
+    "fields": {
+     "name": "make"
+    },
+    "name": "make"
+   }
+  },
+  "mesa-vulkan-drivers": {
+   "dnf\\mesa-vulkan-drivers": {
+    "family": "dnf",
+    "fields": {
+     "name": "mesa-vulkan-drivers"
+    },
+    "name": "mesa-vulkan-drivers"
+   }
+  },
+  "mononoki-nerd": {
+   "debian-font\\mononoki-nerd": {
+    "family": "debian-font",
+    "fields": {
+     "name": "Mononoki",
+     "url": "https://github.com/ryanoasis/nerd-fonts/releases/download/$VERSION/Mononoki.zip",
+     "version": {
+      "asset": "Mononoki.zip",
+      "github": "ryanoasis/nerd-fonts"
+     }
+    },
+    "name": "Mononoki"
+   },
+   "dnf\\fontconfig": {
+    "family": "dnf",
+    "fields": {
+     "name": "fontconfig"
+    },
+    "name": "fontconfig"
+   },
+   "dnf\\unzip": {
+    "family": "dnf",
+    "fields": {
+     "name": "unzip"
+    },
+    "name": "unzip"
+   }
+  },
+  "neovim": {
+   "appImage\\neovim": {
+    "family": "appImage",
+    "fields": {
+     "name": "Neovim",
+     "path": "~/apps/nvim.appimage",
+     "url": "https://github.com/neovim/neovim/releases/download/$VERSION/nvim-linux-$ARCH.appimage",
+     "version": {
+      "asset": "nvim-linux-$ARCH.appimage",
+      "github": "neovim/neovim"
+     }
+    },
+    "name": "Neovim"
+   },
+   "cargo\\tree-sitter-cli": {
+    "family": "cargo",
+    "fields": {
+     "name": "tree-sitter-cli",
+     "version": {
+      "crates": "tree-sitter-cli"
+     }
+    },
+    "name": "tree-sitter-cli"
+   },
+   "dnf\\cargo": {
+    "family": "dnf",
+    "fields": {
+     "name": "cargo",
+     "repo-component": "universe"
+    },
+    "name": "cargo"
+   },
+   "dnf\\libfuse2": {
+    "family": "dnf",
+    "fields": {
+     "name": "fuse-libs",
+     "repo-component": "universe"
+    },
+    "name": "fuse-libs"
+   },
+   "dnf\\ripgrep": {
+    "family": "dnf",
+    "fields": {
+     "name": "ripgrep",
+     "repo-component": "universe"
+    },
+    "name": "ripgrep"
+   },
+   "dotfiles\\bashDotD": {
+    "family": "dotfiles",
+    "fields": {
+     "aliases": {
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bashDotD"
+   },
+   "dotfiles\\neovim": {
+    "family": "dotfiles",
+    "fields": {
+     "aliases": {
+      "dst": "~/.bash.d/neovim.sh",
+      "src": "bash.d/neovim.sh"
+     },
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/nvim",
+      "src": "neovim"
+     }
+    },
+    "name": "neovim"
+   }
+  },
+  "pipx": {
+   "dnf\\pipx": {
+    "family": "dnf",
+    "fields": {
+     "name": "pipx"
+    },
+    "name": "pipx"
+   }
+  },
+  "python3-pip": {
+   "dnf\\python3-pip": {
+    "family": "dnf",
+    "fields": {
+     "name": "python3-pip"
+    },
+    "name": "python3-pip"
+   }
+  },
+  "ripgrep": {
+   "dnf\\ripgrep": {
+    "family": "dnf",
+    "fields": {
+     "name": "ripgrep",
+     "repo-component": "universe"
+    },
+    "name": "ripgrep"
+   }
+  },
+  "software-properties-common": {
+   "dnf\\software-properties-common": {
+    "family": "dnf",
+    "fields": {
+     "name": "software-properties-common"
+    },
+    "name": "software-properties-common"
+   }
+  },
+  "steam": {
+   "dnf\\flatpak": {
+    "family": "dnf",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\steam": {
+    "family": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "com.valvesoftware.Steam"
+    },
+    "name": "com.valvesoftware.Steam"
+   }
+  },
+  "tree-sitter-cli": {
+   "cargo\\tree-sitter-cli": {
+    "family": "cargo",
+    "fields": {
+     "name": "tree-sitter-cli",
+     "version": {
+      "crates": "tree-sitter-cli"
+     }
+    },
+    "name": "tree-sitter-cli"
+   },
+   "dnf\\cargo": {
+    "family": "dnf",
+    "fields": {
+     "name": "cargo",
+     "repo-component": "universe"
+    },
+    "name": "cargo"
+   }
+  },
+  "unzip": {
+   "dnf\\unzip": {
+    "family": "dnf",
+    "fields": {
+     "name": "unzip"
+    },
+    "name": "unzip"
+   }
+  },
+  "vulkan-dev": {
+   "dnf\\curl": {
+    "family": "dnf",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "dnf\\gcc": {
+    "family": "dnf",
+    "fields": {
+     "name": "gcc"
+    },
+    "name": "gcc"
+   },
+   "dnf\\gcc-cpp": {
+    "family": "dnf",
+    "fields": {
+     "name": "gcc-c++"
+    },
+    "name": "gcc-c++"
+   },
+   "dnf\\libxcb-devel": {
+    "family": "dnf",
+    "fields": {
+     "name": "libxcb-devel"
+    },
+    "name": "libxcb-devel"
+   },
+   "dnf\\make": {
+    "family": "dnf",
+    "fields": {
+     "name": "make"
+    },
+    "name": "make"
+   },
+   "dnf\\mesa-vulkan-drivers": {
+    "family": "dnf",
+    "fields": {
+     "name": "mesa-vulkan-drivers"
+    },
+    "name": "mesa-vulkan-drivers"
+   },
+   "dnf\\vulkan-loader": {
+    "family": "dnf",
+    "fields": {
+     "name": "vulkan-loader"
+    },
+    "name": "vulkan-loader"
+   },
+   "dnf\\xcb-util-cursor-devel": {
+    "family": "dnf",
+    "fields": {
+     "name": "xcb-util-cursor-devel"
+    },
+    "name": "xcb-util-cursor-devel"
+   },
+   "dotfiles\\bashDotD": {
+    "family": "dotfiles",
+    "fields": {
+     "aliases": {
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bashDotD"
+   },
+   "dotfiles\\vulkan-sdk": {
+    "family": "dotfiles",
+    "fields": {
+     "aliases": {
+      "dst": "~/.bash.d/vulkan-sdk.sh",
+      "src": "bash.d/vulkan-sdk.sh"
+     }
+    },
+    "name": "vulkan-sdk"
+   },
+   "tarball\\vulkan-sdk": {
+    "family": "tarball",
+    "fields": {
+     "installDir": "vulkan",
+     "name": "vulkan-sdk",
+     "url": "https://sdk.lunarg.com/sdk/download/$VERSION/linux/vulkansdk-linux-$ARCH-$VERSION.tar.xz",
+     "version": {
+      "static": "1.4.350.1"
+     }
+    },
+    "name": "vulkan-sdk"
+   }
+  },
+  "vulkan-icd-loader": {
+   "dnf\\vulkan-icd-loader": {
+    "family": "dnf",
+    "fields": {
+     "name": "vulkan-icd-loader"
+    },
+    "name": "vulkan-icd-loader"
+   }
+  },
+  "vulkan-intel": {
+   "dnf\\vulkan-intel": {
+    "family": "dnf",
+    "fields": {
+     "name": "vulkan-intel"
+    },
+    "name": "vulkan-intel"
+   }
+  },
+  "vulkan-loader": {
+   "dnf\\vulkan-loader": {
+    "family": "dnf",
+    "fields": {
+     "name": "vulkan-loader"
+    },
+    "name": "vulkan-loader"
+   }
+  },
+  "vulkan-radeon": {
+   "dnf\\vulkan-radeon": {
+    "family": "dnf",
+    "fields": {
+     "name": "vulkan-radeon"
+    },
+    "name": "vulkan-radeon"
+   }
+  },
+  "vulkan-runtime": {
+   "dnf\\mesa-vulkan-drivers": {
+    "family": "dnf",
+    "fields": {
+     "name": "mesa-vulkan-drivers"
+    },
+    "name": "mesa-vulkan-drivers"
+   },
+   "dnf\\vulkan-loader": {
+    "family": "dnf",
+    "fields": {
+     "name": "vulkan-loader"
+    },
+    "name": "vulkan-loader"
+   }
+  },
+  "vulkan-sdk": {
+   "dnf\\curl": {
+    "family": "dnf",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "dotfiles\\bashDotD": {
+    "family": "dotfiles",
+    "fields": {
+     "aliases": {
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bashDotD"
+   },
+   "dotfiles\\vulkan-sdk": {
+    "family": "dotfiles",
+    "fields": {
+     "aliases": {
+      "dst": "~/.bash.d/vulkan-sdk.sh",
+      "src": "bash.d/vulkan-sdk.sh"
+     }
+    },
+    "name": "vulkan-sdk"
+   },
+   "tarball\\vulkan-sdk": {
+    "family": "tarball",
+    "fields": {
+     "installDir": "vulkan",
+     "name": "vulkan-sdk",
+     "url": "https://sdk.lunarg.com/sdk/download/$VERSION/linux/vulkansdk-linux-$ARCH-$VERSION.tar.xz",
+     "version": {
+      "static": "1.4.350.1"
+     }
+    },
+    "name": "vulkan-sdk"
+   }
+  },
+  "vulkan-swrast": {
+   "dnf\\vulkan-swrast": {
+    "family": "dnf",
+    "fields": {
+     "name": "vulkan-swrast"
+    },
+    "name": "vulkan-swrast"
+   }
+  },
+  "xcb-util-cursor": {
+   "dnf\\xcb-util-cursor": {
+    "family": "dnf",
+    "fields": {
+     "name": "xcb-util-cursor"
+    },
+    "name": "xcb-util-cursor"
+   }
+  },
+  "xcb-util-cursor-devel": {
+   "dnf\\xcb-util-cursor-devel": {
+    "family": "dnf",
+    "fields": {
+     "name": "xcb-util-cursor-devel"
+    },
+    "name": "xcb-util-cursor-devel"
+   }
+  },
+  "xclip": {
+   "dnf\\xclip": {
+    "family": "dnf",
+    "fields": {
+     "name": "xclip",
+     "repo-component": "universe"
+    },
+    "name": "xclip"
+   }
+  }
+ },
+ "pop_os!@22.04": {
+  "apod": {
+   "apt\\python3-pip": {
+    "family": "apt",
+    "fields": {
+     "name": "python3-pip"
+    },
+    "name": "python3-pip"
+   },
+   "dotfiles\\apod": {
+    "family": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/apod.sh",
+     "src": "bash.d/apod.sh"
+    },
+    "name": "apod"
+   },
+   "dotfiles\\bashDotD": {
+    "family": "dotfiles",
+    "fields": {
+     "aliases": {
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bashDotD"
+   },
+   "pip\\pipx": {
+    "family": "pip",
+    "fields": {
+     "name": "pipx",
+     "version": {
+      "pypi": "pipx"
+     }
+    },
+    "name": "pipx"
+   },
+   "pipx\\apod": {
+    "family": "pipx",
+    "fields": {
+     "name": "termapod",
+     "version": {
+      "pypi": "termapod"
+     }
+    },
+    "name": "termapod"
+   }
+  },
+  "arduino": {
+   "appImage\\arduino": {
+    "family": "appImage",
+    "fields": {
+     "name": "Arduino IDE",
+     "path": "~/apps/arduino-ide.appimage",
+     "url": "https://github.com/arduino/arduino-ide/releases/download/$VERSION/arduino-ide_$VERSION_Linux_64bit.AppImage",
+     "version": {
+      "asset": "arduino-ide_*_Linux_64bit.AppImage",
+      "github": "arduino/arduino-ide"
+     }
+    },
+    "name": "Arduino IDE"
+   },
+   "apt\\libfuse2": {
+    "family": "apt",
+    "fields": {
+     "name": "libfuse2",
+     "repo-component": "universe"
+    },
+    "name": "libfuse2"
+   },
+   "dotfiles\\arduino": {
+    "family": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/arduino.sh",
+     "src": "bash.d/arduino.sh"
+    },
+    "name": "arduino"
+   },
+   "dotfiles\\bashDotD": {
+    "family": "dotfiles",
+    "fields": {
+     "aliases": {
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bashDotD"
+   }
+  },
+  "base-devel": {
+   "apt\\base-devel": {
+    "family": "apt",
+    "fields": {
+     "name": "base-devel"
+    },
+    "name": "base-devel"
+   }
+  },
+  "bashDotD": {
+   "dotfiles\\bashDotD": {
+    "family": "dotfiles",
+    "fields": {
+     "aliases": {
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bashDotD"
+   }
+  },
+  "btop": {
+   "apt\\btop": {
+    "family": "apt",
+    "fields": {
+     "name": "btop",
+     "repo-component": "universe"
+    },
+    "name": "btop"
+   }
+  },
+  "build-essential": {
+   "apt\\build-essential": {
+    "family": "apt",
+    "fields": {
+     "name": "build-essential"
+    },
+    "name": "build-essential"
+   }
+  },
+  "cargo": {
+   "apt\\cargo": {
+    "family": "apt",
+    "fields": {
+     "name": "cargo",
+     "repo-component": "universe"
+    },
+    "name": "cargo"
+   }
+  },
+  "chrome": {
+   "apt\\flatpak": {
+    "family": "apt",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\chrome": {
+    "family": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "com.google.Chrome"
+    },
+    "name": "com.google.Chrome"
+   }
+  },
+  "clang": {
+   "dotfiles\\bashDotD": {
+    "family": "dotfiles",
+    "fields": {
+     "aliases": {
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bashDotD"
+   },
+   "dotfiles\\clang": {
+    "family": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/clang.sh",
+     "src": "bash.d/clang.sh"
+    },
+    "name": "clang"
+   }
+  },
+  "clang-18": {
+   "apt\\build-essential": {
+    "family": "apt",
+    "fields": {
+     "name": "build-essential"
+    },
+    "name": "build-essential"
+   },
+   "apt\\curl": {
+    "family": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "clang\\clang-18": {
+    "family": "clang",
+    "fields": {
+     "name": "clang-18",
+     "packages": [
+      "clang-18"
+     ]
+    },
+    "name": "clang-18"
+   },
+   "dotfiles\\bashDotD": {
+    "family": "dotfiles",
+    "fields": {
+     "aliases": {
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bashDotD"
+   },
+   "dotfiles\\clang": {
+    "family": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/clang.sh",
+     "src": "bash.d/clang.sh"
+    },
+    "name": "clang"
+   }
+  },
+  "clang-19": {
+   "apt\\build-essential": {
+    "family": "apt",
+    "fields": {
+     "name": "build-essential"
+    },
+    "name": "build-essential"
+   },
+   "apt\\curl": {
+    "family": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "clang\\clang-19": {
+    "family": "clang",
+    "fields": {
+     "name": "clang-19",
+     "packages": [
+      "clang-19"
+     ]
+    },
+    "name": "clang-19"
+   },
+   "dotfiles\\bashDotD": {
+    "family": "dotfiles",
+    "fields": {
+     "aliases": {
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bashDotD"
+   },
+   "dotfiles\\clang": {
+    "family": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/clang.sh",
+     "src": "bash.d/clang.sh"
+    },
+    "name": "clang"
+   }
+  },
+  "clang-20": {
+   "apt\\build-essential": {
+    "family": "apt",
+    "fields": {
+     "name": "build-essential"
+    },
+    "name": "build-essential"
+   },
+   "apt\\curl": {
+    "family": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "clang\\clang-20": {
+    "family": "clang",
+    "fields": {
+     "name": "clang-20",
+     "packages": [
+      "clang-20"
+     ]
+    },
+    "name": "clang-20"
+   },
+   "dotfiles\\bashDotD": {
+    "family": "dotfiles",
+    "fields": {
+     "aliases": {
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bashDotD"
+   },
+   "dotfiles\\clang": {
+    "family": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/clang.sh",
+     "src": "bash.d/clang.sh"
+    },
+    "name": "clang"
+   }
+  },
+  "curl": {
+   "apt\\curl": {
+    "family": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   }
+  },
+  "fastfetch": {
+   "apt\\fastfetch": {
+    "family": "apt",
+    "fields": {
+     "asset": {
+      "aarch64": "fastfetch-linux-aarch64.deb",
+      "x86_64": "fastfetch-linux-amd64.deb"
+     },
+     "deb-source": "github:fastfetch-cli/fastfetch",
+     "name": "fastfetch"
+    },
+    "name": "fastfetch"
+   }
+  },
+  "firefox": {
+   "apt\\firefox": {
+    "family": "apt",
+    "fields": {
+     "name": "firefox",
+     "repo-component": "universe"
+    },
+    "name": "firefox"
+   }
+  },
+  "flatpak": {
+   "apt\\flatpak": {
+    "family": "apt",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   }
+  },
+  "fontconfig": {
+   "apt\\fontconfig": {
+    "family": "apt",
+    "fields": {
+     "name": "fontconfig"
+    },
+    "name": "fontconfig"
+   }
+  },
+  "fzf": {
+   "apt\\fzf": {
+    "family": "apt",
+    "fields": {
+     "name": "fzf",
+     "repo-component": "universe"
+    },
+    "name": "fzf"
+   }
+  },
+  "gcc": {
+   "dotfiles\\bashDotD": {
+    "family": "dotfiles",
+    "fields": {
+     "aliases": {
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bashDotD"
+   },
+   "dotfiles\\gcc": {
+    "family": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/gcc.sh",
+     "src": "bash.d/gcc.sh"
+    },
+    "name": "gcc"
+   }
+  },
+  "gcc-13": {
+   "apt\\build-essential": {
+    "family": "apt",
+    "fields": {
+     "name": "build-essential"
+    },
+    "name": "build-essential"
+   },
+   "apt\\software-properties-common": {
+    "family": "apt",
+    "fields": {
+     "name": "software-properties-common"
+    },
+    "name": "software-properties-common"
+   },
+   "dotfiles\\bashDotD": {
+    "family": "dotfiles",
+    "fields": {
+     "aliases": {
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bashDotD"
+   },
+   "dotfiles\\gcc": {
+    "family": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/gcc.sh",
+     "src": "bash.d/gcc.sh"
+    },
+    "name": "gcc"
+   },
+   "gcc\\gcc-13": {
+    "family": "gcc",
+    "fields": {
+     "name": "gcc-13",
+     "packages": [
+      "gcc-13",
+      "g++-13"
+     ],
+     "ppa": "ubuntu-toolchain-r/test",
+     "slaves": [
+      "g++"
+     ]
+    },
+    "name": "gcc-13"
+   }
+  },
+  "gcc-14": {
+   "apt\\build-essential": {
+    "family": "apt",
+    "fields": {
+     "name": "build-essential"
+    },
+    "name": "build-essential"
+   },
+   "apt\\software-properties-common": {
+    "family": "apt",
+    "fields": {
+     "name": "software-properties-common"
+    },
+    "name": "software-properties-common"
+   },
+   "dotfiles\\bashDotD": {
+    "family": "dotfiles",
+    "fields": {
+     "aliases": {
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bashDotD"
+   },
+   "dotfiles\\gcc": {
+    "family": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/gcc.sh",
+     "src": "bash.d/gcc.sh"
+    },
+    "name": "gcc"
+   },
+   "gcc\\gcc-14": {
+    "family": "gcc",
+    "fields": {
+     "name": "gcc-14",
+     "packages": [
+      "gcc-14",
+      "g++-14"
+     ],
+     "ppa": "ubuntu-toolchain-r/test",
+     "slaves": [
+      "g++"
+     ]
+    },
+    "name": "gcc-14"
+   }
+  },
+  "gcc-15": {
+   "apt\\build-essential": {
+    "family": "apt",
+    "fields": {
+     "name": "build-essential"
+    },
+    "name": "build-essential"
+   },
+   "apt\\software-properties-common": {
+    "family": "apt",
+    "fields": {
+     "name": "software-properties-common"
+    },
+    "name": "software-properties-common"
+   },
+   "dotfiles\\bashDotD": {
+    "family": "dotfiles",
+    "fields": {
+     "aliases": {
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bashDotD"
+   },
+   "dotfiles\\gcc": {
+    "family": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/gcc.sh",
+     "src": "bash.d/gcc.sh"
+    },
+    "name": "gcc"
+   },
+   "gcc\\gcc-15": {
+    "family": "gcc",
+    "fields": {
+     "name": "gcc-15",
+     "packages": [
+      "gcc-15",
+      "g++-15"
+     ],
+     "ppa": "ubuntu-toolchain-r/test",
+     "slaves": [
+      "g++"
+     ]
+    },
+    "name": "gcc-15"
+   }
+  },
+  "gcc-cpp": {
+   "apt\\gcc-cpp": {
+    "family": "apt",
+    "fields": {
+     "name": "gcc-cpp"
+    },
+    "name": "gcc-cpp"
+   }
+  },
+  "git": {
+   "apt\\git": {
+    "family": "apt",
+    "fields": {
+     "name": "git"
+    },
+    "name": "git"
+   }
+  },
+  "libfuse2": {
+   "apt\\libfuse2": {
+    "family": "apt",
+    "fields": {
+     "name": "libfuse2",
+     "repo-component": "universe"
+    },
+    "name": "libfuse2"
+   }
+  },
+  "libvulkan1": {
+   "apt\\libvulkan1": {
+    "family": "apt",
+    "fields": {
+     "name": "libvulkan1"
+    },
+    "name": "libvulkan1"
+   }
+  },
+  "libxcb": {
+   "apt\\libxcb": {
+    "family": "apt",
+    "fields": {
+     "name": "libxcb"
+    },
+    "name": "libxcb"
+   }
+  },
+  "libxcb-cursor-dev": {
+   "apt\\libxcb-cursor-dev": {
+    "family": "apt",
+    "fields": {
+     "name": "libxcb-cursor-dev",
+     "repo-component": "universe"
+    },
+    "name": "libxcb-cursor-dev"
+   }
+  },
+  "libxcb-devel": {
+   "apt\\libxcb-devel": {
+    "family": "apt",
+    "fields": {
+     "name": "libxcb-devel"
+    },
+    "name": "libxcb-devel"
+   }
+  },
+  "libxcb-xinerama0": {
+   "apt\\libxcb-xinerama0": {
+    "family": "apt",
+    "fields": {
+     "name": "libxcb-xinerama0",
+     "repo-component": "universe"
+    },
+    "name": "libxcb-xinerama0"
+   }
+  },
+  "libxcb-xinput0": {
+   "apt\\libxcb-xinput0": {
+    "family": "apt",
+    "fields": {
+     "name": "libxcb-xinput0",
+     "repo-component": "universe"
+    },
+    "name": "libxcb-xinput0"
+   }
+  },
+  "make": {
+   "apt\\make": {
+    "family": "apt",
+    "fields": {
+     "name": "make"
+    },
+    "name": "make"
+   }
+  },
+  "mesa-vulkan-drivers": {
+   "apt\\mesa-vulkan-drivers": {
+    "family": "apt",
+    "fields": {
+     "name": "mesa-vulkan-drivers"
+    },
+    "name": "mesa-vulkan-drivers"
+   }
+  },
+  "mononoki-nerd": {
+   "apt\\fontconfig": {
+    "family": "apt",
+    "fields": {
+     "name": "fontconfig"
+    },
+    "name": "fontconfig"
+   },
+   "apt\\unzip": {
+    "family": "apt",
+    "fields": {
+     "name": "unzip"
+    },
+    "name": "unzip"
+   },
+   "debian-font\\mononoki-nerd": {
+    "family": "debian-font",
+    "fields": {
+     "name": "Mononoki",
+     "url": "https://github.com/ryanoasis/nerd-fonts/releases/download/$VERSION/Mononoki.zip",
+     "version": {
+      "asset": "Mononoki.zip",
+      "github": "ryanoasis/nerd-fonts"
+     }
+    },
+    "name": "Mononoki"
+   }
+  },
+  "neovim": {
+   "appImage\\neovim": {
+    "family": "appImage",
+    "fields": {
+     "name": "Neovim",
+     "path": "~/apps/nvim.appimage",
+     "url": "https://github.com/neovim/neovim/releases/download/$VERSION/nvim-linux-$ARCH.appimage",
+     "version": {
+      "asset": "nvim-linux-$ARCH.appimage",
+      "github": "neovim/neovim"
+     }
+    },
+    "name": "Neovim"
+   },
+   "apt\\cargo": {
+    "family": "apt",
+    "fields": {
+     "name": "cargo",
+     "repo-component": "universe"
+    },
+    "name": "cargo"
+   },
+   "apt\\libfuse2": {
+    "family": "apt",
+    "fields": {
+     "name": "libfuse2",
+     "repo-component": "universe"
+    },
+    "name": "libfuse2"
+   },
+   "apt\\ripgrep": {
+    "family": "apt",
+    "fields": {
+     "name": "ripgrep",
+     "repo-component": "universe"
+    },
+    "name": "ripgrep"
+   },
+   "cargo\\tree-sitter-cli": {
+    "family": "cargo",
+    "fields": {
+     "name": "tree-sitter-cli",
+     "version": {
+      "crates": "tree-sitter-cli"
+     }
+    },
+    "name": "tree-sitter-cli"
+   },
+   "dotfiles\\bashDotD": {
+    "family": "dotfiles",
+    "fields": {
+     "aliases": {
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bashDotD"
+   },
+   "dotfiles\\neovim": {
+    "family": "dotfiles",
+    "fields": {
+     "aliases": {
+      "dst": "~/.bash.d/neovim.sh",
+      "src": "bash.d/neovim.sh"
+     },
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/nvim",
+      "src": "neovim"
+     }
+    },
+    "name": "neovim"
+   }
+  },
+  "pipx": {
+   "apt\\python3-pip": {
+    "family": "apt",
+    "fields": {
+     "name": "python3-pip"
+    },
+    "name": "python3-pip"
+   },
+   "pip\\pipx": {
+    "family": "pip",
+    "fields": {
+     "name": "pipx",
+     "version": {
+      "pypi": "pipx"
+     }
+    },
+    "name": "pipx"
+   }
+  },
+  "python3-pip": {
+   "apt\\python3-pip": {
+    "family": "apt",
+    "fields": {
+     "name": "python3-pip"
+    },
+    "name": "python3-pip"
+   }
+  },
+  "ripgrep": {
+   "apt\\ripgrep": {
+    "family": "apt",
+    "fields": {
+     "name": "ripgrep",
+     "repo-component": "universe"
+    },
+    "name": "ripgrep"
+   }
+  },
+  "software-properties-common": {
+   "apt\\software-properties-common": {
+    "family": "apt",
+    "fields": {
+     "name": "software-properties-common"
+    },
+    "name": "software-properties-common"
+   }
+  },
+  "steam": {
+   "apt\\steam": {
+    "family": "apt",
+    "fields": {
+     "foreign-arch": "i386",
+     "name": "steam:i386"
+    },
+    "name": "steam:i386"
+   }
+  },
+  "tree-sitter-cli": {
+   "apt\\cargo": {
+    "family": "apt",
+    "fields": {
+     "name": "cargo",
+     "repo-component": "universe"
+    },
+    "name": "cargo"
+   },
+   "cargo\\tree-sitter-cli": {
+    "family": "cargo",
+    "fields": {
+     "name": "tree-sitter-cli",
+     "version": {
+      "crates": "tree-sitter-cli"
+     }
+    },
+    "name": "tree-sitter-cli"
+   }
+  },
+  "unzip": {
+   "apt\\unzip": {
+    "family": "apt",
+    "fields": {
+     "name": "unzip"
+    },
+    "name": "unzip"
+   }
+  },
+  "vulkan-dev": {
+   "apt\\build-essential": {
+    "family": "apt",
+    "fields": {
+     "name": "build-essential"
+    },
+    "name": "build-essential"
+   },
+   "apt\\curl": {
+    "family": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "apt\\libvulkan1": {
+    "family": "apt",
+    "fields": {
+     "name": "libvulkan1"
+    },
+    "name": "libvulkan1"
+   },
+   "apt\\libxcb-cursor-dev": {
+    "family": "apt",
+    "fields": {
+     "name": "libxcb-cursor-dev",
+     "repo-component": "universe"
+    },
+    "name": "libxcb-cursor-dev"
+   },
+   "apt\\libxcb-xinerama0": {
+    "family": "apt",
+    "fields": {
+     "name": "libxcb-xinerama0",
+     "repo-component": "universe"
+    },
+    "name": "libxcb-xinerama0"
+   },
+   "apt\\libxcb-xinput0": {
+    "family": "apt",
+    "fields": {
+     "name": "libxcb-xinput0",
+     "repo-component": "universe"
+    },
+    "name": "libxcb-xinput0"
+   },
+   "apt\\mesa-vulkan-drivers": {
+    "family": "apt",
+    "fields": {
+     "name": "mesa-vulkan-drivers"
+    },
+    "name": "mesa-vulkan-drivers"
+   },
+   "dotfiles\\bashDotD": {
+    "family": "dotfiles",
+    "fields": {
+     "aliases": {
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bashDotD"
+   },
+   "dotfiles\\vulkan-sdk": {
+    "family": "dotfiles",
+    "fields": {
+     "aliases": {
+      "dst": "~/.bash.d/vulkan-sdk.sh",
+      "src": "bash.d/vulkan-sdk.sh"
+     }
+    },
+    "name": "vulkan-sdk"
+   },
+   "tarball\\vulkan-sdk": {
+    "family": "tarball",
+    "fields": {
+     "installDir": "vulkan",
+     "name": "vulkan-sdk",
+     "url": "https://sdk.lunarg.com/sdk/download/$VERSION/linux/vulkansdk-linux-$ARCH-$VERSION.tar.xz",
+     "version": {
+      "static": "1.4.350.1"
+     }
+    },
+    "name": "vulkan-sdk"
+   }
+  },
+  "vulkan-icd-loader": {
+   "apt\\vulkan-icd-loader": {
+    "family": "apt",
+    "fields": {
+     "name": "vulkan-icd-loader"
+    },
+    "name": "vulkan-icd-loader"
+   }
+  },
+  "vulkan-intel": {
+   "apt\\vulkan-intel": {
+    "family": "apt",
+    "fields": {
+     "name": "vulkan-intel"
+    },
+    "name": "vulkan-intel"
+   }
+  },
+  "vulkan-loader": {
+   "apt\\vulkan-loader": {
+    "family": "apt",
+    "fields": {
+     "name": "vulkan-loader"
+    },
+    "name": "vulkan-loader"
+   }
+  },
+  "vulkan-radeon": {
+   "apt\\vulkan-radeon": {
+    "family": "apt",
+    "fields": {
+     "name": "vulkan-radeon"
+    },
+    "name": "vulkan-radeon"
+   }
+  },
+  "vulkan-runtime": {
+   "apt\\libvulkan1": {
+    "family": "apt",
+    "fields": {
+     "name": "libvulkan1"
+    },
+    "name": "libvulkan1"
+   },
+   "apt\\mesa-vulkan-drivers": {
+    "family": "apt",
+    "fields": {
+     "name": "mesa-vulkan-drivers"
+    },
+    "name": "mesa-vulkan-drivers"
+   }
+  },
+  "vulkan-sdk": {
+   "apt\\curl": {
+    "family": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "dotfiles\\bashDotD": {
+    "family": "dotfiles",
+    "fields": {
+     "aliases": {
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bashDotD"
+   },
+   "dotfiles\\vulkan-sdk": {
+    "family": "dotfiles",
+    "fields": {
+     "aliases": {
+      "dst": "~/.bash.d/vulkan-sdk.sh",
+      "src": "bash.d/vulkan-sdk.sh"
+     }
+    },
+    "name": "vulkan-sdk"
+   },
+   "tarball\\vulkan-sdk": {
+    "family": "tarball",
+    "fields": {
+     "installDir": "vulkan",
+     "name": "vulkan-sdk",
+     "url": "https://sdk.lunarg.com/sdk/download/$VERSION/linux/vulkansdk-linux-$ARCH-$VERSION.tar.xz",
+     "version": {
+      "static": "1.4.350.1"
+     }
+    },
+    "name": "vulkan-sdk"
+   }
+  },
+  "vulkan-swrast": {
+   "apt\\vulkan-swrast": {
+    "family": "apt",
+    "fields": {
+     "name": "vulkan-swrast"
+    },
+    "name": "vulkan-swrast"
+   }
+  },
+  "xcb-util-cursor": {
+   "apt\\xcb-util-cursor": {
+    "family": "apt",
+    "fields": {
+     "name": "xcb-util-cursor"
+    },
+    "name": "xcb-util-cursor"
+   }
+  },
+  "xcb-util-cursor-devel": {
+   "apt\\xcb-util-cursor-devel": {
+    "family": "apt",
+    "fields": {
+     "name": "xcb-util-cursor-devel"
+    },
+    "name": "xcb-util-cursor-devel"
+   }
+  },
+  "xclip": {
+   "apt\\xclip": {
+    "family": "apt",
+    "fields": {
+     "name": "xclip",
+     "repo-component": "universe"
+    },
+    "name": "xclip"
+   }
+  }
+ },
+ "rhel@9.8": {
+  "apod": {
+   "dnf\\epel-release": {
+    "family": "dnf",
+    "fields": {
+     "name": "epel-release"
+    },
+    "name": "epel-release"
+   },
+   "dnf\\pipx": {
+    "family": "dnf",
+    "fields": {
+     "name": "pipx"
+    },
+    "name": "pipx"
+   },
+   "dotfiles\\apod": {
+    "family": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/apod.sh",
+     "src": "bash.d/apod.sh"
+    },
+    "name": "apod"
+   },
+   "dotfiles\\bashDotD": {
+    "family": "dotfiles",
+    "fields": {
+     "aliases": {
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bashDotD"
+   },
+   "pipx\\apod": {
+    "family": "pipx",
+    "fields": {
+     "name": "termapod",
+     "version": {
+      "pypi": "termapod"
+     }
+    },
+    "name": "termapod"
+   }
+  },
+  "arduino": {
+   "appImage\\arduino": {
+    "family": "appImage",
+    "fields": {
+     "name": "Arduino IDE",
+     "path": "~/apps/arduino-ide.appimage",
+     "url": "https://github.com/arduino/arduino-ide/releases/download/$VERSION/arduino-ide_$VERSION_Linux_64bit.AppImage",
+     "version": {
+      "asset": "arduino-ide_*_Linux_64bit.AppImage",
+      "github": "arduino/arduino-ide"
+     }
+    },
+    "name": "Arduino IDE"
+   },
+   "dnf\\libfuse2": {
+    "family": "dnf",
+    "fields": {
+     "name": "fuse-libs",
+     "repo-component": "universe"
+    },
+    "name": "fuse-libs"
+   },
+   "dotfiles\\arduino": {
+    "family": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/arduino.sh",
+     "src": "bash.d/arduino.sh"
+    },
+    "name": "arduino"
+   },
+   "dotfiles\\bashDotD": {
+    "family": "dotfiles",
+    "fields": {
+     "aliases": {
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bashDotD"
+   }
+  },
+  "base-devel": {
+   "dnf\\base-devel": {
+    "family": "dnf",
+    "fields": {
+     "name": "base-devel"
+    },
+    "name": "base-devel"
+   }
+  },
+  "bashDotD": {
+   "dotfiles\\bashDotD": {
+    "family": "dotfiles",
+    "fields": {
+     "aliases": {
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bashDotD"
+   }
+  },
+  "btop": {
+   "dnf\\btop": {
+    "family": "dnf",
+    "fields": {
+     "name": "btop"
+    },
+    "name": "btop"
+   },
+   "dnf\\epel-release": {
+    "family": "dnf",
+    "fields": {
+     "name": "epel-release"
+    },
+    "name": "epel-release"
+   }
+  },
+  "build-essential": {
+   "dnf\\gcc": {
+    "family": "dnf",
+    "fields": {
+     "name": "gcc"
+    },
+    "name": "gcc"
+   },
+   "dnf\\gcc-cpp": {
+    "family": "dnf",
+    "fields": {
+     "name": "gcc-c++"
+    },
+    "name": "gcc-c++"
+   },
+   "dnf\\make": {
+    "family": "dnf",
+    "fields": {
+     "name": "make"
+    },
+    "name": "make"
+   }
+  },
+  "cargo": {
+   "dnf\\cargo": {
+    "family": "dnf",
+    "fields": {
+     "name": "cargo",
+     "repo-component": "universe"
+    },
+    "name": "cargo"
+   }
+  },
+  "chrome": {
+   "dnf\\flatpak": {
+    "family": "dnf",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\chrome": {
+    "family": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "com.google.Chrome"
+    },
+    "name": "com.google.Chrome"
+   }
+  },
+  "clang": {
+   "dotfiles\\bashDotD": {
+    "family": "dotfiles",
+    "fields": {
+     "aliases": {
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bashDotD"
+   },
+   "dotfiles\\clang": {
+    "family": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/clang.sh",
+     "src": "bash.d/clang.sh"
+    },
+    "name": "clang"
+   }
+  },
+  "clang-19": {
+   "clang\\clang-19": {
+    "family": "clang",
+    "fields": {
+     "name": "clang-19",
+     "packages": [
+      "clang19"
+     ]
+    },
+    "name": "clang-19"
+   },
+   "dnf\\epel-release": {
+    "family": "dnf",
+    "fields": {
+     "name": "epel-release"
+    },
+    "name": "epel-release"
+   }
+  },
+  "clang-20": {
+   "clang\\clang-20": {
+    "family": "clang",
+    "fields": {
+     "name": "clang-20",
+     "packages": [
+      "clang20"
+     ]
+    },
+    "name": "clang-20"
+   },
+   "dnf\\epel-release": {
+    "family": "dnf",
+    "fields": {
+     "name": "epel-release"
+    },
+    "name": "epel-release"
+   }
+  },
+  "curl": {
+   "dnf\\curl": {
+    "family": "dnf",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   }
+  },
+  "epel-release": {
+   "dnf\\epel-release": {
+    "family": "dnf",
+    "fields": {
+     "name": "epel-release"
+    },
+    "name": "epel-release"
+   }
+  },
+  "fastfetch": {
+   "dnf\\epel-release": {
+    "family": "dnf",
+    "fields": {
+     "name": "epel-release"
+    },
+    "name": "epel-release"
+   },
+   "dnf\\fastfetch": {
+    "family": "dnf",
+    "fields": {
+     "name": "fastfetch"
+    },
+    "name": "fastfetch"
+   }
+  },
+  "firefox": {
+   "dnf\\firefox": {
+    "family": "dnf",
+    "fields": {
+     "name": "firefox",
+     "repo-component": "universe"
+    },
+    "name": "firefox"
+   }
+  },
+  "flatpak": {
+   "dnf\\flatpak": {
+    "family": "dnf",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   }
+  },
+  "fontconfig": {
+   "dnf\\fontconfig": {
+    "family": "dnf",
+    "fields": {
+     "name": "fontconfig"
+    },
+    "name": "fontconfig"
+   }
+  },
+  "fzf": {
+   "dnf\\epel-release": {
+    "family": "dnf",
+    "fields": {
+     "name": "epel-release"
+    },
+    "name": "epel-release"
+   },
+   "dnf\\fzf": {
+    "family": "dnf",
+    "fields": {
+     "name": "fzf"
+    },
+    "name": "fzf"
+   }
+  },
+  "gcc": {
+   "dnf\\gcc": {
+    "family": "dnf",
+    "fields": {
+     "name": "gcc"
+    },
+    "name": "gcc"
+   }
+  },
+  "gcc-13": {
+   "gcc-toolset\\gcc-13": {
+    "family": "gcc-toolset",
+    "fields": {
+     "name": "gcc-13"
+    },
+    "name": "gcc-13"
+   }
+  },
+  "gcc-14": {
+   "gcc-toolset\\gcc-14": {
+    "family": "gcc-toolset",
+    "fields": {
+     "name": "gcc-14"
+    },
+    "name": "gcc-14"
+   }
+  },
+  "gcc-15": {
+   "gcc-toolset\\gcc-15": {
+    "family": "gcc-toolset",
+    "fields": {
+     "name": "gcc-15"
+    },
+    "name": "gcc-15"
+   }
+  },
+  "gcc-cpp": {
+   "dnf\\gcc-cpp": {
+    "family": "dnf",
+    "fields": {
+     "name": "gcc-c++"
+    },
+    "name": "gcc-c++"
+   }
+  },
+  "git": {
+   "dnf\\git": {
+    "family": "dnf",
+    "fields": {
+     "name": "git"
+    },
+    "name": "git"
+   }
+  },
+  "libfuse2": {
+   "dnf\\libfuse2": {
+    "family": "dnf",
+    "fields": {
+     "name": "fuse-libs",
+     "repo-component": "universe"
+    },
+    "name": "fuse-libs"
+   }
+  },
+  "libvulkan1": {
+   "dnf\\libvulkan1": {
+    "family": "dnf",
+    "fields": {
+     "name": "libvulkan1"
+    },
+    "name": "libvulkan1"
+   }
+  },
+  "libxcb": {
+   "dnf\\libxcb": {
+    "family": "dnf",
+    "fields": {
+     "name": "libxcb"
+    },
+    "name": "libxcb"
+   }
+  },
+  "libxcb-cursor-dev": {
+   "dnf\\libxcb-cursor-dev": {
+    "family": "dnf",
+    "fields": {
+     "name": "libxcb-cursor-dev",
+     "repo-component": "universe"
+    },
+    "name": "libxcb-cursor-dev"
+   }
+  },
+  "libxcb-devel": {
+   "dnf\\libxcb-devel": {
+    "family": "dnf",
+    "fields": {
+     "name": "libxcb-devel"
+    },
+    "name": "libxcb-devel"
+   }
+  },
+  "libxcb-xinerama0": {
+   "dnf\\libxcb-xinerama0": {
+    "family": "dnf",
+    "fields": {
+     "name": "libxcb-xinerama0",
+     "repo-component": "universe"
+    },
+    "name": "libxcb-xinerama0"
+   }
+  },
+  "libxcb-xinput0": {
+   "dnf\\libxcb-xinput0": {
+    "family": "dnf",
+    "fields": {
+     "name": "libxcb-xinput0",
+     "repo-component": "universe"
+    },
+    "name": "libxcb-xinput0"
+   }
+  },
+  "make": {
+   "dnf\\make": {
+    "family": "dnf",
+    "fields": {
+     "name": "make"
+    },
+    "name": "make"
+   }
+  },
+  "mesa-vulkan-drivers": {
+   "dnf\\mesa-vulkan-drivers": {
+    "family": "dnf",
+    "fields": {
+     "name": "mesa-vulkan-drivers"
+    },
+    "name": "mesa-vulkan-drivers"
+   }
+  },
+  "mononoki-nerd": {
+   "debian-font\\mononoki-nerd": {
+    "family": "debian-font",
+    "fields": {
+     "name": "Mononoki",
+     "url": "https://github.com/ryanoasis/nerd-fonts/releases/download/$VERSION/Mononoki.zip",
+     "version": {
+      "asset": "Mononoki.zip",
+      "github": "ryanoasis/nerd-fonts"
+     }
+    },
+    "name": "Mononoki"
+   },
+   "dnf\\fontconfig": {
+    "family": "dnf",
+    "fields": {
+     "name": "fontconfig"
+    },
+    "name": "fontconfig"
+   },
+   "dnf\\unzip": {
+    "family": "dnf",
+    "fields": {
+     "name": "unzip"
+    },
+    "name": "unzip"
+   }
+  },
+  "neovim": {
+   "appImage\\neovim": {
+    "family": "appImage",
+    "fields": {
+     "name": "Neovim",
+     "path": "~/apps/nvim.appimage",
+     "url": "https://github.com/neovim/neovim/releases/download/$VERSION/nvim-linux-$ARCH.appimage",
+     "version": {
+      "asset": "nvim-linux-$ARCH.appimage",
+      "github": "neovim/neovim"
+     }
+    },
+    "name": "Neovim"
+   },
+   "cargo\\tree-sitter-cli": {
+    "family": "cargo",
+    "fields": {
+     "name": "tree-sitter-cli",
+     "version": {
+      "crates": "tree-sitter-cli"
+     }
+    },
+    "name": "tree-sitter-cli"
+   },
+   "dnf\\cargo": {
+    "family": "dnf",
+    "fields": {
+     "name": "cargo",
+     "repo-component": "universe"
+    },
+    "name": "cargo"
+   },
+   "dnf\\epel-release": {
+    "family": "dnf",
+    "fields": {
+     "name": "epel-release"
+    },
+    "name": "epel-release"
+   },
+   "dnf\\libfuse2": {
+    "family": "dnf",
+    "fields": {
+     "name": "fuse-libs",
+     "repo-component": "universe"
+    },
+    "name": "fuse-libs"
+   },
+   "dnf\\ripgrep": {
+    "family": "dnf",
+    "fields": {
+     "name": "ripgrep"
+    },
+    "name": "ripgrep"
+   },
+   "dotfiles\\bashDotD": {
+    "family": "dotfiles",
+    "fields": {
+     "aliases": {
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bashDotD"
+   },
+   "dotfiles\\neovim": {
+    "family": "dotfiles",
+    "fields": {
+     "aliases": {
+      "dst": "~/.bash.d/neovim.sh",
+      "src": "bash.d/neovim.sh"
+     },
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/nvim",
+      "src": "neovim"
+     }
+    },
+    "name": "neovim"
+   }
+  },
+  "pipx": {
+   "dnf\\epel-release": {
+    "family": "dnf",
+    "fields": {
+     "name": "epel-release"
+    },
+    "name": "epel-release"
+   },
+   "dnf\\pipx": {
+    "family": "dnf",
+    "fields": {
+     "name": "pipx"
+    },
+    "name": "pipx"
+   }
+  },
+  "python3-pip": {
+   "dnf\\python3-pip": {
+    "family": "dnf",
+    "fields": {
+     "name": "python3-pip"
+    },
+    "name": "python3-pip"
+   }
+  },
+  "ripgrep": {
+   "dnf\\epel-release": {
+    "family": "dnf",
+    "fields": {
+     "name": "epel-release"
+    },
+    "name": "epel-release"
+   },
+   "dnf\\ripgrep": {
+    "family": "dnf",
+    "fields": {
+     "name": "ripgrep"
+    },
+    "name": "ripgrep"
+   }
+  },
+  "software-properties-common": {
+   "dnf\\software-properties-common": {
+    "family": "dnf",
+    "fields": {
+     "name": "software-properties-common"
+    },
+    "name": "software-properties-common"
+   }
+  },
+  "steam": {
+   "dnf\\flatpak": {
+    "family": "dnf",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\steam": {
+    "family": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "com.valvesoftware.Steam"
+    },
+    "name": "com.valvesoftware.Steam"
+   }
+  },
+  "tree-sitter-cli": {
+   "cargo\\tree-sitter-cli": {
+    "family": "cargo",
+    "fields": {
+     "name": "tree-sitter-cli",
+     "version": {
+      "crates": "tree-sitter-cli"
+     }
+    },
+    "name": "tree-sitter-cli"
+   },
+   "dnf\\cargo": {
+    "family": "dnf",
+    "fields": {
+     "name": "cargo",
+     "repo-component": "universe"
+    },
+    "name": "cargo"
+   }
+  },
+  "unzip": {
+   "dnf\\unzip": {
+    "family": "dnf",
+    "fields": {
+     "name": "unzip"
+    },
+    "name": "unzip"
+   }
+  },
+  "vulkan-dev": {
+   "dnf\\curl": {
+    "family": "dnf",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "dnf\\gcc": {
+    "family": "dnf",
+    "fields": {
+     "name": "gcc"
+    },
+    "name": "gcc"
+   },
+   "dnf\\gcc-cpp": {
+    "family": "dnf",
+    "fields": {
+     "name": "gcc-c++"
+    },
+    "name": "gcc-c++"
+   },
+   "dnf\\libxcb-devel": {
+    "family": "dnf",
+    "fields": {
+     "name": "libxcb-devel"
+    },
+    "name": "libxcb-devel"
+   },
+   "dnf\\make": {
+    "family": "dnf",
+    "fields": {
+     "name": "make"
+    },
+    "name": "make"
+   },
+   "dnf\\mesa-vulkan-drivers": {
+    "family": "dnf",
+    "fields": {
+     "name": "mesa-vulkan-drivers"
+    },
+    "name": "mesa-vulkan-drivers"
+   },
+   "dnf\\vulkan-loader": {
+    "family": "dnf",
+    "fields": {
+     "name": "vulkan-loader"
+    },
+    "name": "vulkan-loader"
+   },
+   "dnf\\xcb-util-cursor-devel": {
+    "family": "dnf",
+    "fields": {
+     "name": "xcb-util-cursor-devel"
+    },
+    "name": "xcb-util-cursor-devel"
+   },
+   "dotfiles\\bashDotD": {
+    "family": "dotfiles",
+    "fields": {
+     "aliases": {
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bashDotD"
+   },
+   "dotfiles\\vulkan-sdk": {
+    "family": "dotfiles",
+    "fields": {
+     "aliases": {
+      "dst": "~/.bash.d/vulkan-sdk.sh",
+      "src": "bash.d/vulkan-sdk.sh"
+     }
+    },
+    "name": "vulkan-sdk"
+   },
+   "tarball\\vulkan-sdk": {
+    "family": "tarball",
+    "fields": {
+     "installDir": "vulkan",
+     "name": "vulkan-sdk",
+     "url": "https://sdk.lunarg.com/sdk/download/$VERSION/linux/vulkansdk-linux-$ARCH-$VERSION.tar.xz",
+     "version": {
+      "static": "1.4.350.1"
+     }
+    },
+    "name": "vulkan-sdk"
+   }
+  },
+  "vulkan-icd-loader": {
+   "dnf\\vulkan-icd-loader": {
+    "family": "dnf",
+    "fields": {
+     "name": "vulkan-icd-loader"
+    },
+    "name": "vulkan-icd-loader"
+   }
+  },
+  "vulkan-intel": {
+   "dnf\\vulkan-intel": {
+    "family": "dnf",
+    "fields": {
+     "name": "vulkan-intel"
+    },
+    "name": "vulkan-intel"
+   }
+  },
+  "vulkan-loader": {
+   "dnf\\vulkan-loader": {
+    "family": "dnf",
+    "fields": {
+     "name": "vulkan-loader"
+    },
+    "name": "vulkan-loader"
+   }
+  },
+  "vulkan-radeon": {
+   "dnf\\vulkan-radeon": {
+    "family": "dnf",
+    "fields": {
+     "name": "vulkan-radeon"
+    },
+    "name": "vulkan-radeon"
+   }
+  },
+  "vulkan-runtime": {
+   "dnf\\mesa-vulkan-drivers": {
+    "family": "dnf",
+    "fields": {
+     "name": "mesa-vulkan-drivers"
+    },
+    "name": "mesa-vulkan-drivers"
+   },
+   "dnf\\vulkan-loader": {
+    "family": "dnf",
+    "fields": {
+     "name": "vulkan-loader"
+    },
+    "name": "vulkan-loader"
+   }
+  },
+  "vulkan-sdk": {
+   "dnf\\curl": {
+    "family": "dnf",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "dotfiles\\bashDotD": {
+    "family": "dotfiles",
+    "fields": {
+     "aliases": {
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bashDotD"
+   },
+   "dotfiles\\vulkan-sdk": {
+    "family": "dotfiles",
+    "fields": {
+     "aliases": {
+      "dst": "~/.bash.d/vulkan-sdk.sh",
+      "src": "bash.d/vulkan-sdk.sh"
+     }
+    },
+    "name": "vulkan-sdk"
+   },
+   "tarball\\vulkan-sdk": {
+    "family": "tarball",
+    "fields": {
+     "installDir": "vulkan",
+     "name": "vulkan-sdk",
+     "url": "https://sdk.lunarg.com/sdk/download/$VERSION/linux/vulkansdk-linux-$ARCH-$VERSION.tar.xz",
+     "version": {
+      "static": "1.4.350.1"
+     }
+    },
+    "name": "vulkan-sdk"
+   }
+  },
+  "vulkan-swrast": {
+   "dnf\\vulkan-swrast": {
+    "family": "dnf",
+    "fields": {
+     "name": "vulkan-swrast"
+    },
+    "name": "vulkan-swrast"
+   }
+  },
+  "xcb-util-cursor": {
+   "dnf\\xcb-util-cursor": {
+    "family": "dnf",
+    "fields": {
+     "name": "xcb-util-cursor"
+    },
+    "name": "xcb-util-cursor"
+   }
+  },
+  "xcb-util-cursor-devel": {
+   "dnf\\xcb-util-cursor-devel": {
+    "family": "dnf",
+    "fields": {
+     "name": "xcb-util-cursor-devel"
+    },
+    "name": "xcb-util-cursor-devel"
+   }
+  },
+  "xclip": {
+   "dnf\\epel-release": {
+    "family": "dnf",
+    "fields": {
+     "name": "epel-release"
+    },
+    "name": "epel-release"
+   },
+   "dnf\\xclip": {
+    "family": "dnf",
+    "fields": {
+     "name": "xclip"
+    },
+    "name": "xclip"
+   }
+  }
+ },
+ "ubuntu@22.04": {
+  "apod": {
+   "apt\\python3-pip": {
+    "family": "apt",
+    "fields": {
+     "name": "python3-pip"
+    },
+    "name": "python3-pip"
+   },
+   "dotfiles\\apod": {
+    "family": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/apod.sh",
+     "src": "bash.d/apod.sh"
+    },
+    "name": "apod"
+   },
+   "dotfiles\\bashDotD": {
+    "family": "dotfiles",
+    "fields": {
+     "aliases": {
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bashDotD"
+   },
+   "pip\\pipx": {
+    "family": "pip",
+    "fields": {
+     "name": "pipx",
+     "version": {
+      "pypi": "pipx"
+     }
+    },
+    "name": "pipx"
+   },
+   "pipx\\apod": {
+    "family": "pipx",
+    "fields": {
+     "name": "termapod",
+     "version": {
+      "pypi": "termapod"
+     }
+    },
+    "name": "termapod"
+   }
+  },
+  "arduino": {
+   "appImage\\arduino": {
+    "family": "appImage",
+    "fields": {
+     "name": "Arduino IDE",
+     "path": "~/apps/arduino-ide.appimage",
+     "url": "https://github.com/arduino/arduino-ide/releases/download/$VERSION/arduino-ide_$VERSION_Linux_64bit.AppImage",
+     "version": {
+      "asset": "arduino-ide_*_Linux_64bit.AppImage",
+      "github": "arduino/arduino-ide"
+     }
+    },
+    "name": "Arduino IDE"
+   },
+   "apt\\libfuse2": {
+    "family": "apt",
+    "fields": {
+     "name": "libfuse2",
+     "repo-component": "universe"
+    },
+    "name": "libfuse2"
+   },
+   "dotfiles\\arduino": {
+    "family": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/arduino.sh",
+     "src": "bash.d/arduino.sh"
+    },
+    "name": "arduino"
+   },
+   "dotfiles\\bashDotD": {
+    "family": "dotfiles",
+    "fields": {
+     "aliases": {
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bashDotD"
+   }
+  },
+  "base-devel": {
+   "apt\\base-devel": {
+    "family": "apt",
+    "fields": {
+     "name": "base-devel"
+    },
+    "name": "base-devel"
+   }
+  },
+  "bashDotD": {
+   "dotfiles\\bashDotD": {
+    "family": "dotfiles",
+    "fields": {
+     "aliases": {
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bashDotD"
+   }
+  },
+  "btop": {
+   "apt\\btop": {
+    "family": "apt",
+    "fields": {
+     "name": "btop",
+     "repo-component": "universe"
+    },
+    "name": "btop"
+   }
+  },
+  "build-essential": {
+   "apt\\build-essential": {
+    "family": "apt",
+    "fields": {
+     "name": "build-essential"
+    },
+    "name": "build-essential"
+   }
+  },
+  "cargo": {
+   "apt\\cargo": {
+    "family": "apt",
+    "fields": {
+     "name": "cargo",
+     "repo-component": "universe"
+    },
+    "name": "cargo"
+   }
+  },
+  "chrome": {
+   "apt\\flatpak": {
+    "family": "apt",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\chrome": {
+    "family": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "com.google.Chrome"
+    },
+    "name": "com.google.Chrome"
+   }
+  },
+  "clang": {
+   "dotfiles\\bashDotD": {
+    "family": "dotfiles",
+    "fields": {
+     "aliases": {
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bashDotD"
+   },
+   "dotfiles\\clang": {
+    "family": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/clang.sh",
+     "src": "bash.d/clang.sh"
+    },
+    "name": "clang"
+   }
+  },
+  "clang-18": {
+   "apt\\build-essential": {
+    "family": "apt",
+    "fields": {
+     "name": "build-essential"
+    },
+    "name": "build-essential"
+   },
+   "apt\\curl": {
+    "family": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "clang\\clang-18": {
+    "family": "clang",
+    "fields": {
+     "name": "clang-18",
+     "packages": [
+      "clang-18"
+     ]
+    },
+    "name": "clang-18"
+   },
+   "dotfiles\\bashDotD": {
+    "family": "dotfiles",
+    "fields": {
+     "aliases": {
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bashDotD"
+   },
+   "dotfiles\\clang": {
+    "family": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/clang.sh",
+     "src": "bash.d/clang.sh"
+    },
+    "name": "clang"
+   }
+  },
+  "clang-19": {
+   "apt\\build-essential": {
+    "family": "apt",
+    "fields": {
+     "name": "build-essential"
+    },
+    "name": "build-essential"
+   },
+   "apt\\curl": {
+    "family": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "clang\\clang-19": {
+    "family": "clang",
+    "fields": {
+     "name": "clang-19",
+     "packages": [
+      "clang-19"
+     ]
+    },
+    "name": "clang-19"
+   },
+   "dotfiles\\bashDotD": {
+    "family": "dotfiles",
+    "fields": {
+     "aliases": {
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bashDotD"
+   },
+   "dotfiles\\clang": {
+    "family": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/clang.sh",
+     "src": "bash.d/clang.sh"
+    },
+    "name": "clang"
+   }
+  },
+  "clang-20": {
+   "apt\\build-essential": {
+    "family": "apt",
+    "fields": {
+     "name": "build-essential"
+    },
+    "name": "build-essential"
+   },
+   "apt\\curl": {
+    "family": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "clang\\clang-20": {
+    "family": "clang",
+    "fields": {
+     "name": "clang-20",
+     "packages": [
+      "clang-20"
+     ]
+    },
+    "name": "clang-20"
+   },
+   "dotfiles\\bashDotD": {
+    "family": "dotfiles",
+    "fields": {
+     "aliases": {
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bashDotD"
+   },
+   "dotfiles\\clang": {
+    "family": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/clang.sh",
+     "src": "bash.d/clang.sh"
+    },
+    "name": "clang"
+   }
+  },
+  "curl": {
+   "apt\\curl": {
+    "family": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   }
+  },
+  "fastfetch": {
+   "apt\\fastfetch": {
+    "family": "apt",
+    "fields": {
+     "asset": {
+      "aarch64": "fastfetch-linux-aarch64.deb",
+      "x86_64": "fastfetch-linux-amd64.deb"
+     },
+     "deb-source": "github:fastfetch-cli/fastfetch",
+     "name": "fastfetch"
+    },
+    "name": "fastfetch"
+   }
+  },
+  "firefox": {
+   "apt\\firefox": {
+    "family": "apt",
+    "fields": {
+     "name": "firefox",
+     "repo-component": "universe"
+    },
+    "name": "firefox"
+   }
+  },
+  "flatpak": {
+   "apt\\flatpak": {
+    "family": "apt",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   }
+  },
+  "fontconfig": {
+   "apt\\fontconfig": {
+    "family": "apt",
+    "fields": {
+     "name": "fontconfig"
+    },
+    "name": "fontconfig"
+   }
+  },
+  "fzf": {
+   "apt\\fzf": {
+    "family": "apt",
+    "fields": {
+     "name": "fzf",
+     "repo-component": "universe"
+    },
+    "name": "fzf"
+   }
+  },
+  "gcc": {
+   "dotfiles\\bashDotD": {
+    "family": "dotfiles",
+    "fields": {
+     "aliases": {
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bashDotD"
+   },
+   "dotfiles\\gcc": {
+    "family": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/gcc.sh",
+     "src": "bash.d/gcc.sh"
+    },
+    "name": "gcc"
+   }
+  },
+  "gcc-13": {
+   "apt\\build-essential": {
+    "family": "apt",
+    "fields": {
+     "name": "build-essential"
+    },
+    "name": "build-essential"
+   },
+   "apt\\software-properties-common": {
+    "family": "apt",
+    "fields": {
+     "name": "software-properties-common"
+    },
+    "name": "software-properties-common"
+   },
+   "dotfiles\\bashDotD": {
+    "family": "dotfiles",
+    "fields": {
+     "aliases": {
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bashDotD"
+   },
+   "dotfiles\\gcc": {
+    "family": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/gcc.sh",
+     "src": "bash.d/gcc.sh"
+    },
+    "name": "gcc"
+   },
+   "gcc\\gcc-13": {
+    "family": "gcc",
+    "fields": {
+     "name": "gcc-13",
+     "packages": [
+      "gcc-13",
+      "g++-13"
+     ],
+     "ppa": "ubuntu-toolchain-r/test",
+     "slaves": [
+      "g++"
+     ]
+    },
+    "name": "gcc-13"
+   }
+  },
+  "gcc-14": {
+   "apt\\build-essential": {
+    "family": "apt",
+    "fields": {
+     "name": "build-essential"
+    },
+    "name": "build-essential"
+   },
+   "apt\\software-properties-common": {
+    "family": "apt",
+    "fields": {
+     "name": "software-properties-common"
+    },
+    "name": "software-properties-common"
+   },
+   "dotfiles\\bashDotD": {
+    "family": "dotfiles",
+    "fields": {
+     "aliases": {
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bashDotD"
+   },
+   "dotfiles\\gcc": {
+    "family": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/gcc.sh",
+     "src": "bash.d/gcc.sh"
+    },
+    "name": "gcc"
+   },
+   "gcc\\gcc-14": {
+    "family": "gcc",
+    "fields": {
+     "name": "gcc-14",
+     "packages": [
+      "gcc-14",
+      "g++-14"
+     ],
+     "ppa": "ubuntu-toolchain-r/test",
+     "slaves": [
+      "g++"
+     ]
+    },
+    "name": "gcc-14"
+   }
+  },
+  "gcc-15": {
+   "apt\\build-essential": {
+    "family": "apt",
+    "fields": {
+     "name": "build-essential"
+    },
+    "name": "build-essential"
+   },
+   "apt\\software-properties-common": {
+    "family": "apt",
+    "fields": {
+     "name": "software-properties-common"
+    },
+    "name": "software-properties-common"
+   },
+   "dotfiles\\bashDotD": {
+    "family": "dotfiles",
+    "fields": {
+     "aliases": {
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bashDotD"
+   },
+   "dotfiles\\gcc": {
+    "family": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/gcc.sh",
+     "src": "bash.d/gcc.sh"
+    },
+    "name": "gcc"
+   },
+   "gcc\\gcc-15": {
+    "family": "gcc",
+    "fields": {
+     "name": "gcc-15",
+     "packages": [
+      "gcc-15",
+      "g++-15"
+     ],
+     "ppa": "ubuntu-toolchain-r/test",
+     "slaves": [
+      "g++"
+     ]
+    },
+    "name": "gcc-15"
+   }
+  },
+  "gcc-cpp": {
+   "apt\\gcc-cpp": {
+    "family": "apt",
+    "fields": {
+     "name": "gcc-cpp"
+    },
+    "name": "gcc-cpp"
+   }
+  },
+  "git": {
+   "apt\\git": {
+    "family": "apt",
+    "fields": {
+     "name": "git"
+    },
+    "name": "git"
+   }
+  },
+  "libfuse2": {
+   "apt\\libfuse2": {
+    "family": "apt",
+    "fields": {
+     "name": "libfuse2",
+     "repo-component": "universe"
+    },
+    "name": "libfuse2"
+   }
+  },
+  "libvulkan1": {
+   "apt\\libvulkan1": {
+    "family": "apt",
+    "fields": {
+     "name": "libvulkan1"
+    },
+    "name": "libvulkan1"
+   }
+  },
+  "libxcb": {
+   "apt\\libxcb": {
+    "family": "apt",
+    "fields": {
+     "name": "libxcb"
+    },
+    "name": "libxcb"
+   }
+  },
+  "libxcb-cursor-dev": {
+   "apt\\libxcb-cursor-dev": {
+    "family": "apt",
+    "fields": {
+     "name": "libxcb-cursor-dev",
+     "repo-component": "universe"
+    },
+    "name": "libxcb-cursor-dev"
+   }
+  },
+  "libxcb-devel": {
+   "apt\\libxcb-devel": {
+    "family": "apt",
+    "fields": {
+     "name": "libxcb-devel"
+    },
+    "name": "libxcb-devel"
+   }
+  },
+  "libxcb-xinerama0": {
+   "apt\\libxcb-xinerama0": {
+    "family": "apt",
+    "fields": {
+     "name": "libxcb-xinerama0",
+     "repo-component": "universe"
+    },
+    "name": "libxcb-xinerama0"
+   }
+  },
+  "libxcb-xinput0": {
+   "apt\\libxcb-xinput0": {
+    "family": "apt",
+    "fields": {
+     "name": "libxcb-xinput0",
+     "repo-component": "universe"
+    },
+    "name": "libxcb-xinput0"
+   }
+  },
+  "make": {
+   "apt\\make": {
+    "family": "apt",
+    "fields": {
+     "name": "make"
+    },
+    "name": "make"
+   }
+  },
+  "mesa-vulkan-drivers": {
+   "apt\\mesa-vulkan-drivers": {
+    "family": "apt",
+    "fields": {
+     "name": "mesa-vulkan-drivers"
+    },
+    "name": "mesa-vulkan-drivers"
+   }
+  },
+  "mononoki-nerd": {
+   "apt\\fontconfig": {
+    "family": "apt",
+    "fields": {
+     "name": "fontconfig"
+    },
+    "name": "fontconfig"
+   },
+   "apt\\unzip": {
+    "family": "apt",
+    "fields": {
+     "name": "unzip"
+    },
+    "name": "unzip"
+   },
+   "debian-font\\mononoki-nerd": {
+    "family": "debian-font",
+    "fields": {
+     "name": "Mononoki",
+     "url": "https://github.com/ryanoasis/nerd-fonts/releases/download/$VERSION/Mononoki.zip",
+     "version": {
+      "asset": "Mononoki.zip",
+      "github": "ryanoasis/nerd-fonts"
+     }
+    },
+    "name": "Mononoki"
+   }
+  },
+  "neovim": {
+   "appImage\\neovim": {
+    "family": "appImage",
+    "fields": {
+     "name": "Neovim",
+     "path": "~/apps/nvim.appimage",
+     "url": "https://github.com/neovim/neovim/releases/download/$VERSION/nvim-linux-$ARCH.appimage",
+     "version": {
+      "asset": "nvim-linux-$ARCH.appimage",
+      "github": "neovim/neovim"
+     }
+    },
+    "name": "Neovim"
+   },
+   "apt\\cargo": {
+    "family": "apt",
+    "fields": {
+     "name": "cargo",
+     "repo-component": "universe"
+    },
+    "name": "cargo"
+   },
+   "apt\\libfuse2": {
+    "family": "apt",
+    "fields": {
+     "name": "libfuse2",
+     "repo-component": "universe"
+    },
+    "name": "libfuse2"
+   },
+   "apt\\ripgrep": {
+    "family": "apt",
+    "fields": {
+     "name": "ripgrep",
+     "repo-component": "universe"
+    },
+    "name": "ripgrep"
+   },
+   "cargo\\tree-sitter-cli": {
+    "family": "cargo",
+    "fields": {
+     "name": "tree-sitter-cli",
+     "version": {
+      "crates": "tree-sitter-cli"
+     }
+    },
+    "name": "tree-sitter-cli"
+   },
+   "dotfiles\\bashDotD": {
+    "family": "dotfiles",
+    "fields": {
+     "aliases": {
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bashDotD"
+   },
+   "dotfiles\\neovim": {
+    "family": "dotfiles",
+    "fields": {
+     "aliases": {
+      "dst": "~/.bash.d/neovim.sh",
+      "src": "bash.d/neovim.sh"
+     },
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/nvim",
+      "src": "neovim"
+     }
+    },
+    "name": "neovim"
+   }
+  },
+  "pipx": {
+   "apt\\python3-pip": {
+    "family": "apt",
+    "fields": {
+     "name": "python3-pip"
+    },
+    "name": "python3-pip"
+   },
+   "pip\\pipx": {
+    "family": "pip",
+    "fields": {
+     "name": "pipx",
+     "version": {
+      "pypi": "pipx"
+     }
+    },
+    "name": "pipx"
+   }
+  },
+  "python3-pip": {
+   "apt\\python3-pip": {
+    "family": "apt",
+    "fields": {
+     "name": "python3-pip"
+    },
+    "name": "python3-pip"
+   }
+  },
+  "ripgrep": {
+   "apt\\ripgrep": {
+    "family": "apt",
+    "fields": {
+     "name": "ripgrep",
+     "repo-component": "universe"
+    },
+    "name": "ripgrep"
+   }
+  },
+  "software-properties-common": {
+   "apt\\software-properties-common": {
+    "family": "apt",
+    "fields": {
+     "name": "software-properties-common"
+    },
+    "name": "software-properties-common"
+   }
+  },
+  "steam": {
+   "apt\\flatpak": {
+    "family": "apt",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\steam": {
+    "family": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "com.valvesoftware.Steam"
+    },
+    "name": "com.valvesoftware.Steam"
+   }
+  },
+  "tree-sitter-cli": {
+   "apt\\cargo": {
+    "family": "apt",
+    "fields": {
+     "name": "cargo",
+     "repo-component": "universe"
+    },
+    "name": "cargo"
+   },
+   "cargo\\tree-sitter-cli": {
+    "family": "cargo",
+    "fields": {
+     "name": "tree-sitter-cli",
+     "version": {
+      "crates": "tree-sitter-cli"
+     }
+    },
+    "name": "tree-sitter-cli"
+   }
+  },
+  "unzip": {
+   "apt\\unzip": {
+    "family": "apt",
+    "fields": {
+     "name": "unzip"
+    },
+    "name": "unzip"
+   }
+  },
+  "vulkan-dev": {
+   "apt\\build-essential": {
+    "family": "apt",
+    "fields": {
+     "name": "build-essential"
+    },
+    "name": "build-essential"
+   },
+   "apt\\curl": {
+    "family": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "apt\\libvulkan1": {
+    "family": "apt",
+    "fields": {
+     "name": "libvulkan1"
+    },
+    "name": "libvulkan1"
+   },
+   "apt\\libxcb-cursor-dev": {
+    "family": "apt",
+    "fields": {
+     "name": "libxcb-cursor-dev",
+     "repo-component": "universe"
+    },
+    "name": "libxcb-cursor-dev"
+   },
+   "apt\\libxcb-xinerama0": {
+    "family": "apt",
+    "fields": {
+     "name": "libxcb-xinerama0",
+     "repo-component": "universe"
+    },
+    "name": "libxcb-xinerama0"
+   },
+   "apt\\libxcb-xinput0": {
+    "family": "apt",
+    "fields": {
+     "name": "libxcb-xinput0",
+     "repo-component": "universe"
+    },
+    "name": "libxcb-xinput0"
+   },
+   "apt\\mesa-vulkan-drivers": {
+    "family": "apt",
+    "fields": {
+     "name": "mesa-vulkan-drivers"
+    },
+    "name": "mesa-vulkan-drivers"
+   },
+   "dotfiles\\bashDotD": {
+    "family": "dotfiles",
+    "fields": {
+     "aliases": {
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bashDotD"
+   },
+   "dotfiles\\vulkan-sdk": {
+    "family": "dotfiles",
+    "fields": {
+     "aliases": {
+      "dst": "~/.bash.d/vulkan-sdk.sh",
+      "src": "bash.d/vulkan-sdk.sh"
+     }
+    },
+    "name": "vulkan-sdk"
+   },
+   "tarball\\vulkan-sdk": {
+    "family": "tarball",
+    "fields": {
+     "installDir": "vulkan",
+     "name": "vulkan-sdk",
+     "url": "https://sdk.lunarg.com/sdk/download/$VERSION/linux/vulkansdk-linux-$ARCH-$VERSION.tar.xz",
+     "version": {
+      "static": "1.4.350.1"
+     }
+    },
+    "name": "vulkan-sdk"
+   }
+  },
+  "vulkan-icd-loader": {
+   "apt\\vulkan-icd-loader": {
+    "family": "apt",
+    "fields": {
+     "name": "vulkan-icd-loader"
+    },
+    "name": "vulkan-icd-loader"
+   }
+  },
+  "vulkan-intel": {
+   "apt\\vulkan-intel": {
+    "family": "apt",
+    "fields": {
+     "name": "vulkan-intel"
+    },
+    "name": "vulkan-intel"
+   }
+  },
+  "vulkan-loader": {
+   "apt\\vulkan-loader": {
+    "family": "apt",
+    "fields": {
+     "name": "vulkan-loader"
+    },
+    "name": "vulkan-loader"
+   }
+  },
+  "vulkan-radeon": {
+   "apt\\vulkan-radeon": {
+    "family": "apt",
+    "fields": {
+     "name": "vulkan-radeon"
+    },
+    "name": "vulkan-radeon"
+   }
+  },
+  "vulkan-runtime": {
+   "apt\\libvulkan1": {
+    "family": "apt",
+    "fields": {
+     "name": "libvulkan1"
+    },
+    "name": "libvulkan1"
+   },
+   "apt\\mesa-vulkan-drivers": {
+    "family": "apt",
+    "fields": {
+     "name": "mesa-vulkan-drivers"
+    },
+    "name": "mesa-vulkan-drivers"
+   }
+  },
+  "vulkan-sdk": {
+   "apt\\curl": {
+    "family": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "dotfiles\\bashDotD": {
+    "family": "dotfiles",
+    "fields": {
+     "aliases": {
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bashDotD"
+   },
+   "dotfiles\\vulkan-sdk": {
+    "family": "dotfiles",
+    "fields": {
+     "aliases": {
+      "dst": "~/.bash.d/vulkan-sdk.sh",
+      "src": "bash.d/vulkan-sdk.sh"
+     }
+    },
+    "name": "vulkan-sdk"
+   },
+   "tarball\\vulkan-sdk": {
+    "family": "tarball",
+    "fields": {
+     "installDir": "vulkan",
+     "name": "vulkan-sdk",
+     "url": "https://sdk.lunarg.com/sdk/download/$VERSION/linux/vulkansdk-linux-$ARCH-$VERSION.tar.xz",
+     "version": {
+      "static": "1.4.350.1"
+     }
+    },
+    "name": "vulkan-sdk"
+   }
+  },
+  "vulkan-swrast": {
+   "apt\\vulkan-swrast": {
+    "family": "apt",
+    "fields": {
+     "name": "vulkan-swrast"
+    },
+    "name": "vulkan-swrast"
+   }
+  },
+  "xcb-util-cursor": {
+   "apt\\xcb-util-cursor": {
+    "family": "apt",
+    "fields": {
+     "name": "xcb-util-cursor"
+    },
+    "name": "xcb-util-cursor"
+   }
+  },
+  "xcb-util-cursor-devel": {
+   "apt\\xcb-util-cursor-devel": {
+    "family": "apt",
+    "fields": {
+     "name": "xcb-util-cursor-devel"
+    },
+    "name": "xcb-util-cursor-devel"
+   }
+  },
+  "xclip": {
+   "apt\\xclip": {
+    "family": "apt",
+    "fields": {
+     "name": "xclip",
+     "repo-component": "universe"
+    },
+    "name": "xclip"
+   }
+  }
+ },
+ "ubuntu@24.04": {
+  "apod": {
+   "apt\\pipx": {
+    "family": "apt",
+    "fields": {
+     "name": "pipx"
+    },
+    "name": "pipx"
+   },
+   "dotfiles\\apod": {
+    "family": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/apod.sh",
+     "src": "bash.d/apod.sh"
+    },
+    "name": "apod"
+   },
+   "dotfiles\\bashDotD": {
+    "family": "dotfiles",
+    "fields": {
+     "aliases": {
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bashDotD"
+   },
+   "pipx\\apod": {
+    "family": "pipx",
+    "fields": {
+     "name": "termapod",
+     "version": {
+      "pypi": "termapod"
+     }
+    },
+    "name": "termapod"
+   }
+  },
+  "arduino": {
+   "appImage\\arduino": {
+    "family": "appImage",
+    "fields": {
+     "name": "Arduino IDE",
+     "path": "~/apps/arduino-ide.appimage",
+     "url": "https://github.com/arduino/arduino-ide/releases/download/$VERSION/arduino-ide_$VERSION_Linux_64bit.AppImage",
+     "version": {
+      "asset": "arduino-ide_*_Linux_64bit.AppImage",
+      "github": "arduino/arduino-ide"
+     }
+    },
+    "name": "Arduino IDE"
+   },
+   "apt\\libfuse2": {
+    "family": "apt",
+    "fields": {
+     "name": "libfuse2",
+     "repo-component": "universe"
+    },
+    "name": "libfuse2"
+   },
+   "dotfiles\\arduino": {
+    "family": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/arduino.sh",
+     "src": "bash.d/arduino.sh"
+    },
+    "name": "arduino"
+   },
+   "dotfiles\\bashDotD": {
+    "family": "dotfiles",
+    "fields": {
+     "aliases": {
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bashDotD"
+   }
+  },
+  "base-devel": {
+   "apt\\base-devel": {
+    "family": "apt",
+    "fields": {
+     "name": "base-devel"
+    },
+    "name": "base-devel"
+   }
+  },
+  "bashDotD": {
+   "dotfiles\\bashDotD": {
+    "family": "dotfiles",
+    "fields": {
+     "aliases": {
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bashDotD"
+   }
+  },
+  "btop": {
+   "apt\\btop": {
+    "family": "apt",
+    "fields": {
+     "name": "btop",
+     "repo-component": "universe"
+    },
+    "name": "btop"
+   }
+  },
+  "build-essential": {
+   "apt\\build-essential": {
+    "family": "apt",
+    "fields": {
+     "name": "build-essential"
+    },
+    "name": "build-essential"
+   }
+  },
+  "cargo": {
+   "apt\\cargo": {
+    "family": "apt",
+    "fields": {
+     "name": "cargo",
+     "repo-component": "universe"
+    },
+    "name": "cargo"
+   }
+  },
+  "chrome": {
+   "apt\\flatpak": {
+    "family": "apt",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\chrome": {
+    "family": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "com.google.Chrome"
+    },
+    "name": "com.google.Chrome"
+   }
+  },
+  "clang": {
+   "dotfiles\\bashDotD": {
+    "family": "dotfiles",
+    "fields": {
+     "aliases": {
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bashDotD"
+   },
+   "dotfiles\\clang": {
+    "family": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/clang.sh",
+     "src": "bash.d/clang.sh"
+    },
+    "name": "clang"
+   }
+  },
+  "clang-18": {
+   "apt\\build-essential": {
+    "family": "apt",
+    "fields": {
+     "name": "build-essential"
+    },
+    "name": "build-essential"
+   },
+   "apt\\curl": {
+    "family": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "clang\\clang-18": {
+    "family": "clang",
+    "fields": {
+     "name": "clang-18",
+     "packages": [
+      "clang-18"
+     ]
+    },
+    "name": "clang-18"
+   },
+   "dotfiles\\bashDotD": {
+    "family": "dotfiles",
+    "fields": {
+     "aliases": {
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bashDotD"
+   },
+   "dotfiles\\clang": {
+    "family": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/clang.sh",
+     "src": "bash.d/clang.sh"
+    },
+    "name": "clang"
+   }
+  },
+  "clang-19": {
+   "apt\\build-essential": {
+    "family": "apt",
+    "fields": {
+     "name": "build-essential"
+    },
+    "name": "build-essential"
+   },
+   "apt\\curl": {
+    "family": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "clang\\clang-19": {
+    "family": "clang",
+    "fields": {
+     "name": "clang-19",
+     "packages": [
+      "clang-19"
+     ]
+    },
+    "name": "clang-19"
+   },
+   "dotfiles\\bashDotD": {
+    "family": "dotfiles",
+    "fields": {
+     "aliases": {
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bashDotD"
+   },
+   "dotfiles\\clang": {
+    "family": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/clang.sh",
+     "src": "bash.d/clang.sh"
+    },
+    "name": "clang"
+   }
+  },
+  "clang-20": {
+   "apt\\build-essential": {
+    "family": "apt",
+    "fields": {
+     "name": "build-essential"
+    },
+    "name": "build-essential"
+   },
+   "apt\\curl": {
+    "family": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "clang\\clang-20": {
+    "family": "clang",
+    "fields": {
+     "name": "clang-20",
+     "packages": [
+      "clang-20"
+     ]
+    },
+    "name": "clang-20"
+   },
+   "dotfiles\\bashDotD": {
+    "family": "dotfiles",
+    "fields": {
+     "aliases": {
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bashDotD"
+   },
+   "dotfiles\\clang": {
+    "family": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/clang.sh",
+     "src": "bash.d/clang.sh"
+    },
+    "name": "clang"
+   }
+  },
+  "curl": {
+   "apt\\curl": {
+    "family": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   }
+  },
+  "fastfetch": {
+   "apt\\fastfetch": {
+    "family": "apt",
+    "fields": {
+     "asset": {
+      "aarch64": "fastfetch-linux-aarch64.deb",
+      "x86_64": "fastfetch-linux-amd64.deb"
+     },
+     "deb-source": "github:fastfetch-cli/fastfetch",
+     "name": "fastfetch"
+    },
+    "name": "fastfetch"
+   }
+  },
+  "firefox": {
+   "apt\\firefox": {
+    "family": "apt",
+    "fields": {
+     "name": "firefox",
+     "repo-component": "universe"
+    },
+    "name": "firefox"
+   }
+  },
+  "flatpak": {
+   "apt\\flatpak": {
+    "family": "apt",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   }
+  },
+  "fontconfig": {
+   "apt\\fontconfig": {
+    "family": "apt",
+    "fields": {
+     "name": "fontconfig"
+    },
+    "name": "fontconfig"
+   }
+  },
+  "fzf": {
+   "apt\\fzf": {
+    "family": "apt",
+    "fields": {
+     "name": "fzf",
+     "repo-component": "universe"
+    },
+    "name": "fzf"
+   }
+  },
+  "gcc": {
+   "dotfiles\\bashDotD": {
+    "family": "dotfiles",
+    "fields": {
+     "aliases": {
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bashDotD"
+   },
+   "dotfiles\\gcc": {
+    "family": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/gcc.sh",
+     "src": "bash.d/gcc.sh"
+    },
+    "name": "gcc"
+   }
+  },
+  "gcc-13": {
+   "apt\\build-essential": {
+    "family": "apt",
+    "fields": {
+     "name": "build-essential"
+    },
+    "name": "build-essential"
+   },
+   "apt\\software-properties-common": {
+    "family": "apt",
+    "fields": {
+     "name": "software-properties-common"
+    },
+    "name": "software-properties-common"
+   },
+   "dotfiles\\bashDotD": {
+    "family": "dotfiles",
+    "fields": {
+     "aliases": {
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bashDotD"
+   },
+   "dotfiles\\gcc": {
+    "family": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/gcc.sh",
+     "src": "bash.d/gcc.sh"
+    },
+    "name": "gcc"
+   },
+   "gcc\\gcc-13": {
+    "family": "gcc",
+    "fields": {
+     "name": "gcc-13",
+     "packages": [
+      "gcc-13",
+      "g++-13"
+     ],
+     "ppa": "ubuntu-toolchain-r/test",
+     "slaves": [
+      "g++"
+     ]
+    },
+    "name": "gcc-13"
+   }
+  },
+  "gcc-14": {
+   "apt\\build-essential": {
+    "family": "apt",
+    "fields": {
+     "name": "build-essential"
+    },
+    "name": "build-essential"
+   },
+   "apt\\software-properties-common": {
+    "family": "apt",
+    "fields": {
+     "name": "software-properties-common"
+    },
+    "name": "software-properties-common"
+   },
+   "dotfiles\\bashDotD": {
+    "family": "dotfiles",
+    "fields": {
+     "aliases": {
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bashDotD"
+   },
+   "dotfiles\\gcc": {
+    "family": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/gcc.sh",
+     "src": "bash.d/gcc.sh"
+    },
+    "name": "gcc"
+   },
+   "gcc\\gcc-14": {
+    "family": "gcc",
+    "fields": {
+     "name": "gcc-14",
+     "packages": [
+      "gcc-14",
+      "g++-14"
+     ],
+     "ppa": "ubuntu-toolchain-r/test",
+     "slaves": [
+      "g++"
+     ]
+    },
+    "name": "gcc-14"
+   }
+  },
+  "gcc-15": {
+   "apt\\build-essential": {
+    "family": "apt",
+    "fields": {
+     "name": "build-essential"
+    },
+    "name": "build-essential"
+   },
+   "apt\\software-properties-common": {
+    "family": "apt",
+    "fields": {
+     "name": "software-properties-common"
+    },
+    "name": "software-properties-common"
+   },
+   "dotfiles\\bashDotD": {
+    "family": "dotfiles",
+    "fields": {
+     "aliases": {
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bashDotD"
+   },
+   "dotfiles\\gcc": {
+    "family": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/gcc.sh",
+     "src": "bash.d/gcc.sh"
+    },
+    "name": "gcc"
+   },
+   "gcc\\gcc-15": {
+    "family": "gcc",
+    "fields": {
+     "name": "gcc-15",
+     "packages": [
+      "gcc-15",
+      "g++-15"
+     ],
+     "ppa": "ubuntu-toolchain-r/test",
+     "slaves": [
+      "g++"
+     ]
+    },
+    "name": "gcc-15"
+   }
+  },
+  "gcc-cpp": {
+   "apt\\gcc-cpp": {
+    "family": "apt",
+    "fields": {
+     "name": "gcc-cpp"
+    },
+    "name": "gcc-cpp"
+   }
+  },
+  "git": {
+   "apt\\git": {
+    "family": "apt",
+    "fields": {
+     "name": "git"
+    },
+    "name": "git"
+   }
+  },
+  "libfuse2": {
+   "apt\\libfuse2": {
+    "family": "apt",
+    "fields": {
+     "name": "libfuse2",
+     "repo-component": "universe"
+    },
+    "name": "libfuse2"
+   }
+  },
+  "libvulkan1": {
+   "apt\\libvulkan1": {
+    "family": "apt",
+    "fields": {
+     "name": "libvulkan1"
+    },
+    "name": "libvulkan1"
+   }
+  },
+  "libxcb": {
+   "apt\\libxcb": {
+    "family": "apt",
+    "fields": {
+     "name": "libxcb"
+    },
+    "name": "libxcb"
+   }
+  },
+  "libxcb-cursor-dev": {
+   "apt\\libxcb-cursor-dev": {
+    "family": "apt",
+    "fields": {
+     "name": "libxcb-cursor-dev",
+     "repo-component": "universe"
+    },
+    "name": "libxcb-cursor-dev"
+   }
+  },
+  "libxcb-devel": {
+   "apt\\libxcb-devel": {
+    "family": "apt",
+    "fields": {
+     "name": "libxcb-devel"
+    },
+    "name": "libxcb-devel"
+   }
+  },
+  "libxcb-xinerama0": {
+   "apt\\libxcb-xinerama0": {
+    "family": "apt",
+    "fields": {
+     "name": "libxcb-xinerama0",
+     "repo-component": "universe"
+    },
+    "name": "libxcb-xinerama0"
+   }
+  },
+  "libxcb-xinput0": {
+   "apt\\libxcb-xinput0": {
+    "family": "apt",
+    "fields": {
+     "name": "libxcb-xinput0",
+     "repo-component": "universe"
+    },
+    "name": "libxcb-xinput0"
+   }
+  },
+  "make": {
+   "apt\\make": {
+    "family": "apt",
+    "fields": {
+     "name": "make"
+    },
+    "name": "make"
+   }
+  },
+  "mesa-vulkan-drivers": {
+   "apt\\mesa-vulkan-drivers": {
+    "family": "apt",
+    "fields": {
+     "name": "mesa-vulkan-drivers"
+    },
+    "name": "mesa-vulkan-drivers"
+   }
+  },
+  "mononoki-nerd": {
+   "apt\\fontconfig": {
+    "family": "apt",
+    "fields": {
+     "name": "fontconfig"
+    },
+    "name": "fontconfig"
+   },
+   "apt\\unzip": {
+    "family": "apt",
+    "fields": {
+     "name": "unzip"
+    },
+    "name": "unzip"
+   },
+   "debian-font\\mononoki-nerd": {
+    "family": "debian-font",
+    "fields": {
+     "name": "Mononoki",
+     "url": "https://github.com/ryanoasis/nerd-fonts/releases/download/$VERSION/Mononoki.zip",
+     "version": {
+      "asset": "Mononoki.zip",
+      "github": "ryanoasis/nerd-fonts"
+     }
+    },
+    "name": "Mononoki"
+   }
+  },
+  "neovim": {
+   "appImage\\neovim": {
+    "family": "appImage",
+    "fields": {
+     "name": "Neovim",
+     "path": "~/apps/nvim.appimage",
+     "url": "https://github.com/neovim/neovim/releases/download/$VERSION/nvim-linux-$ARCH.appimage",
+     "version": {
+      "asset": "nvim-linux-$ARCH.appimage",
+      "github": "neovim/neovim"
+     }
+    },
+    "name": "Neovim"
+   },
+   "apt\\cargo": {
+    "family": "apt",
+    "fields": {
+     "name": "cargo",
+     "repo-component": "universe"
+    },
+    "name": "cargo"
+   },
+   "apt\\libfuse2": {
+    "family": "apt",
+    "fields": {
+     "name": "libfuse2",
+     "repo-component": "universe"
+    },
+    "name": "libfuse2"
+   },
+   "apt\\ripgrep": {
+    "family": "apt",
+    "fields": {
+     "name": "ripgrep",
+     "repo-component": "universe"
+    },
+    "name": "ripgrep"
+   },
+   "cargo\\tree-sitter-cli": {
+    "family": "cargo",
+    "fields": {
+     "name": "tree-sitter-cli",
+     "version": {
+      "crates": "tree-sitter-cli"
+     }
+    },
+    "name": "tree-sitter-cli"
+   },
+   "dotfiles\\bashDotD": {
+    "family": "dotfiles",
+    "fields": {
+     "aliases": {
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bashDotD"
+   },
+   "dotfiles\\neovim": {
+    "family": "dotfiles",
+    "fields": {
+     "aliases": {
+      "dst": "~/.bash.d/neovim.sh",
+      "src": "bash.d/neovim.sh"
+     },
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/nvim",
+      "src": "neovim"
+     }
+    },
+    "name": "neovim"
+   }
+  },
+  "pipx": {
+   "apt\\pipx": {
+    "family": "apt",
+    "fields": {
+     "name": "pipx"
+    },
+    "name": "pipx"
+   }
+  },
+  "python3-pip": {
+   "apt\\python3-pip": {
+    "family": "apt",
+    "fields": {
+     "name": "python3-pip"
+    },
+    "name": "python3-pip"
+   }
+  },
+  "ripgrep": {
+   "apt\\ripgrep": {
+    "family": "apt",
+    "fields": {
+     "name": "ripgrep",
+     "repo-component": "universe"
+    },
+    "name": "ripgrep"
+   }
+  },
+  "software-properties-common": {
+   "apt\\software-properties-common": {
+    "family": "apt",
+    "fields": {
+     "name": "software-properties-common"
+    },
+    "name": "software-properties-common"
+   }
+  },
+  "steam": {
+   "apt\\flatpak": {
+    "family": "apt",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\steam": {
+    "family": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "com.valvesoftware.Steam"
+    },
+    "name": "com.valvesoftware.Steam"
+   }
+  },
+  "tree-sitter-cli": {
+   "apt\\cargo": {
+    "family": "apt",
+    "fields": {
+     "name": "cargo",
+     "repo-component": "universe"
+    },
+    "name": "cargo"
+   },
+   "cargo\\tree-sitter-cli": {
+    "family": "cargo",
+    "fields": {
+     "name": "tree-sitter-cli",
+     "version": {
+      "crates": "tree-sitter-cli"
+     }
+    },
+    "name": "tree-sitter-cli"
+   }
+  },
+  "unzip": {
+   "apt\\unzip": {
+    "family": "apt",
+    "fields": {
+     "name": "unzip"
+    },
+    "name": "unzip"
+   }
+  },
+  "vulkan-dev": {
+   "apt\\build-essential": {
+    "family": "apt",
+    "fields": {
+     "name": "build-essential"
+    },
+    "name": "build-essential"
+   },
+   "apt\\curl": {
+    "family": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "apt\\libvulkan1": {
+    "family": "apt",
+    "fields": {
+     "name": "libvulkan1"
+    },
+    "name": "libvulkan1"
+   },
+   "apt\\libxcb-cursor-dev": {
+    "family": "apt",
+    "fields": {
+     "name": "libxcb-cursor-dev",
+     "repo-component": "universe"
+    },
+    "name": "libxcb-cursor-dev"
+   },
+   "apt\\libxcb-xinerama0": {
+    "family": "apt",
+    "fields": {
+     "name": "libxcb-xinerama0",
+     "repo-component": "universe"
+    },
+    "name": "libxcb-xinerama0"
+   },
+   "apt\\libxcb-xinput0": {
+    "family": "apt",
+    "fields": {
+     "name": "libxcb-xinput0",
+     "repo-component": "universe"
+    },
+    "name": "libxcb-xinput0"
+   },
+   "apt\\mesa-vulkan-drivers": {
+    "family": "apt",
+    "fields": {
+     "name": "mesa-vulkan-drivers"
+    },
+    "name": "mesa-vulkan-drivers"
+   },
+   "dotfiles\\bashDotD": {
+    "family": "dotfiles",
+    "fields": {
+     "aliases": {
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bashDotD"
+   },
+   "dotfiles\\vulkan-sdk": {
+    "family": "dotfiles",
+    "fields": {
+     "aliases": {
+      "dst": "~/.bash.d/vulkan-sdk.sh",
+      "src": "bash.d/vulkan-sdk.sh"
+     }
+    },
+    "name": "vulkan-sdk"
+   },
+   "tarball\\vulkan-sdk": {
+    "family": "tarball",
+    "fields": {
+     "installDir": "vulkan",
+     "name": "vulkan-sdk",
+     "url": "https://sdk.lunarg.com/sdk/download/$VERSION/linux/vulkansdk-linux-$ARCH-$VERSION.tar.xz",
+     "version": {
+      "static": "1.4.350.1"
+     }
+    },
+    "name": "vulkan-sdk"
+   }
+  },
+  "vulkan-icd-loader": {
+   "apt\\vulkan-icd-loader": {
+    "family": "apt",
+    "fields": {
+     "name": "vulkan-icd-loader"
+    },
+    "name": "vulkan-icd-loader"
+   }
+  },
+  "vulkan-intel": {
+   "apt\\vulkan-intel": {
+    "family": "apt",
+    "fields": {
+     "name": "vulkan-intel"
+    },
+    "name": "vulkan-intel"
+   }
+  },
+  "vulkan-loader": {
+   "apt\\vulkan-loader": {
+    "family": "apt",
+    "fields": {
+     "name": "vulkan-loader"
+    },
+    "name": "vulkan-loader"
+   }
+  },
+  "vulkan-radeon": {
+   "apt\\vulkan-radeon": {
+    "family": "apt",
+    "fields": {
+     "name": "vulkan-radeon"
+    },
+    "name": "vulkan-radeon"
+   }
+  },
+  "vulkan-runtime": {
+   "apt\\libvulkan1": {
+    "family": "apt",
+    "fields": {
+     "name": "libvulkan1"
+    },
+    "name": "libvulkan1"
+   },
+   "apt\\mesa-vulkan-drivers": {
+    "family": "apt",
+    "fields": {
+     "name": "mesa-vulkan-drivers"
+    },
+    "name": "mesa-vulkan-drivers"
+   }
+  },
+  "vulkan-sdk": {
+   "apt\\curl": {
+    "family": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "dotfiles\\bashDotD": {
+    "family": "dotfiles",
+    "fields": {
+     "aliases": {
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bashDotD"
+   },
+   "dotfiles\\vulkan-sdk": {
+    "family": "dotfiles",
+    "fields": {
+     "aliases": {
+      "dst": "~/.bash.d/vulkan-sdk.sh",
+      "src": "bash.d/vulkan-sdk.sh"
+     }
+    },
+    "name": "vulkan-sdk"
+   },
+   "tarball\\vulkan-sdk": {
+    "family": "tarball",
+    "fields": {
+     "installDir": "vulkan",
+     "name": "vulkan-sdk",
+     "url": "https://sdk.lunarg.com/sdk/download/$VERSION/linux/vulkansdk-linux-$ARCH-$VERSION.tar.xz",
+     "version": {
+      "static": "1.4.350.1"
+     }
+    },
+    "name": "vulkan-sdk"
+   }
+  },
+  "vulkan-swrast": {
+   "apt\\vulkan-swrast": {
+    "family": "apt",
+    "fields": {
+     "name": "vulkan-swrast"
+    },
+    "name": "vulkan-swrast"
+   }
+  },
+  "xcb-util-cursor": {
+   "apt\\xcb-util-cursor": {
+    "family": "apt",
+    "fields": {
+     "name": "xcb-util-cursor"
+    },
+    "name": "xcb-util-cursor"
+   }
+  },
+  "xcb-util-cursor-devel": {
+   "apt\\xcb-util-cursor-devel": {
+    "family": "apt",
+    "fields": {
+     "name": "xcb-util-cursor-devel"
+    },
+    "name": "xcb-util-cursor-devel"
+   }
+  },
+  "xclip": {
+   "apt\\xclip": {
+    "family": "apt",
+    "fields": {
+     "name": "xclip",
+     "repo-component": "universe"
+    },
+    "name": "xclip"
+   }
+  }
+ }
+}
