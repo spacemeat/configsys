@@ -29,6 +29,7 @@ class Paths:
         self.repo = Path(repo) if repo else Path(__file__).resolve().parent.parent
 
         self.routes_file = self.repo / 'routes.hu'
+        self.routes2_file = self.repo / 'routes2.hu'   # v2 capability/component routing data
         self.config_file = self.repo / 'config.hu'
         self.dotfiles_dir = self.repo / 'dotfiles'   # source tree for the dotfiles family
 

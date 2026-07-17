@@ -139,12 +139,20 @@ def resolve(names, cascade, components, mechanisms, block, version=None, cpu=Non
     Returns {unit_key: Unit}. Resolving a name yields a SET of keys — one for a normal
     component, several for a `via: parts` aggregator (which has no unit of its own).
     '''
+    return resolve_roots(names, cascade, components, mechanisms, block, version, cpu, pins)[0]
+
+
+def resolve_roots(names, cascade, components, mechanisms, block, version=None, cpu=None, pins=None):
+    '''Like resolve(), but also return the set of unit keys bound *directly* by the named
+    components (a named parts-component contributes its parts' keys; family/mechanism deps
+    are not roots). The app applies the requested op to these, and expand_plan folds in deps.'''
     st = _State(cascade, components, mechanisms, cascade.context(block, version, cpu), pins or {})
+    roots = set()
     for name in names:
-        st.add_component(name, root=name)          # phase 1: wants + their provides
-    st.drain()                                     # phase 2: close requirements
+        roots |= st.add_component(name, root=name)  # phase 1: wants + their provides
+    st.drain()                                      # phase 2: close requirements
     st.propagate_requested()
-    return st.units
+    return st.units, roots
 
 
 def _bindable(component, cascade, ctx, pins):

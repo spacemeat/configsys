@@ -56,8 +56,19 @@ class Context:
         self._routes_trove = None
         self._config = None
 
+    def _cpu(self):
+        '''System CPU arch for v2 selection ($ARCH assets, cpu: when-atoms).'''
+        import platform
+        return self.env.get('CONFIGSYS_ARCH') or platform.machine()
+
     @property
     def routes(self):
+        # CONFIGSYS_RESOLVER=v2 selects the capability/component engine (routes2.hu);
+        # default stays the live RouteResolver (routes.hu) until flipped per context.
+        if self.env.get('CONFIGSYS_RESOLVER') == 'v2':
+            from .v2.engine import V2Resolver
+            return V2Resolver(self.paths.routes2_file, self.os_info.block,
+                              self.os_info.version, self._cpu())
         if self._routes_trove is None:
             self._routes_trove = load(self.paths.routes_file)
         return RouteResolver(self._routes_trove, self.os_info.block,

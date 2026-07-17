@@ -51,8 +51,21 @@ def _versionspec(rc):
     return v
 
 
-def _alt_sig(fam, rc):
-    return ('alt', fam._link(rc), fam._ver(rc), tuple(fam._slaves(rc)),
+def _pm_for(block):
+    if block in ('fedora', 'rhel'):
+        return 'dnf'
+    if block == 'arch':
+        return 'pacman'
+    return 'apt'
+
+
+def _alt_sig(fam, rc, block):
+    # dnf installs the compat packages directly — no update-alternatives, no PPA, so
+    # slaves/ppa/apt-source are dead there (old inherits them from the shared family; v2
+    # omits them). Only apt registers alternatives + a repo, so compare those on apt only.
+    if _pm_for(block) == 'dnf':
+        return ('alt-dnf', tuple(fam._packages(rc)))
+    return ('alt-apt', fam._link(rc), fam._ver(rc), tuple(fam._slaves(rc)),
             tuple(fam._packages(rc)), rc.fields.get('ppa'),
             _hashable(rc.fields.get('apt-source')))
 
@@ -118,11 +131,11 @@ _FAMILY_KEYS = {
 }
 
 
-def _signature(rc):
+def _signature(rc, block=None):
     fam = get_family(rc.family, runner=None, paths=None)
     assert fam is not None, f'no family for {rc.family}'
     if rc.family in ('gcc', 'clang'):
-        return _alt_sig(fam, rc)
+        return _alt_sig(fam, rc, block)
     if rc.family == 'dotfiles':
         return _dotfiles_sig(fam, rc)
     if rc.family == 'gcc-toolset':
@@ -179,6 +192,6 @@ def test_field_parity(name, block, ver):
     old = _old_rc(name, block, ver)
     new = _v2_rc(name, block, ver)
     assert new.family == old.family, f'{name}: family {new.family} != {old.family}'
-    assert _signature(new) == _signature(old), (
+    assert _signature(new, block) == _signature(old, block), (
         f'{name} @ {block}: install signature differs\n'
         f'  old fields: {old.fields}\n  v2  fields: {new.fields}')
