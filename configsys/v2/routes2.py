@@ -58,12 +58,20 @@ def _truthy(v):
 
 
 class OsCascade:
-    '''The OS layer: `using` inheritance, the `native` mechanism, and scale-roots.'''
+    '''The OS layer: `using` inheritance, the `native` mechanism, scale-roots, and the
+    capabilities each environment provides for free.'''
 
     def __init__(self, os_dict):
         self.blocks = os_dict
         self.scale_roots = {n for n, b in os_dict.items()
                             if isinstance(b, dict) and _truthy(b.get('scale-root'))}
+
+    def provides(self, block):
+        '''Capabilities baseline in this environment (union over the lineage's blocks).'''
+        caps = set()
+        for n in self.lineage(block):
+            caps.update(_as_list((self.blocks[n] or {}).get('provides')))
+        return caps
 
     def lineage(self, name):
         '''Leaf-first chain following `using` to the root.'''
@@ -92,11 +100,17 @@ class OsCascade:
 
 
 def load(path):
-    '''-> (OsCascade, {component_name: Component}).'''
-    trove = humon.from_file(path)          # keep the trove alive via the returned objects? no —
-    root = trove.root                      # _py fully materializes, so the trove can be dropped.
+    '''-> (OsCascade, {component_name: Component}, {mechanism: [required caps]}).
+
+    The trove must stay alive while _py walks its nodes (they point into it); once _py
+    has materialized everything to plain python, the returned objects don't need it.
+    '''
+    trove = humon.from_file(path)
+    root = trove.root
     os_dict = _py(root['os']) or {}
     comps = _py(root['components']) or {}
+    mechs = _py(root['mechanisms']) or {}
     cascade = OsCascade(os_dict)
     components = {name: Component(name, spec) for name, spec in comps.items()}
-    return cascade, components
+    mechanisms = {name: _as_list((spec or {}).get('requires')) for name, spec in mechs.items()}
+    return cascade, components, mechanisms

@@ -2,6 +2,7 @@
 // components are ported here and proven equivalent by test/test_v2_equivalence.py.
 {
     // OS layer: lineage (`using`) + which package manager is `native` + version scales.
+    // `provides:` lists capabilities baseline in that environment (satisfied for free).
     os: {
         linux:   { }
         debian:  { using: linux    native: apt      scale-root: true }
@@ -12,19 +13,41 @@
         arch:    { using: linux     native: pacman }
     }
 
+    // Mechanism config: dependencies inherent to a mechanism (the old family !depends).
+    mechanisms: {
+        flatpak:     { requires: flatpak }
+        appImage:    { requires: libfuse2 }
+        cargo:       { requires: cargo }              // a crate needs the cargo tool
+        debian-font: { requires: [ fontconfig, unzip ] }
+    }
+
     // Component layer: each is a capability + a list of context-selected bindings.
     components: {
-        // trivial native, same name everywhere
-        btop: { install: [ { via: native } ] }
+        // --- trivial natives ---
+        btop:       { install: [ { via: native } ] }
+        flatpak:    { install: [ { via: native } ] }
+        fontconfig: { install: [ { via: native } ] }
+        unzip:      { install: [ { via: native } ] }
+        ripgrep:    { install: [ { via: native } ] }
 
-        // native, package name differs by manager
+        // native, name differs by manager
         libfuse2: {
             install: [ { via: native  name: { dnf: fuse-libs  pacman: fuse2  default: libfuse2 } } ]
         }
+        cargo: {
+            install: [ { via: native  name: { pacman: rust } } ]   // the cargo tool ships in `rust` on Arch
+        }
 
-        // single non-native mechanism (flatpak everywhere)
+        // --- non-native mechanisms with mechanism-level deps ---
         chrome: {
-            install: [ { via: flatpak  app: com.google.Chrome } ]
+            install: [ { via: flatpak  app: com.google.Chrome } ]  // -> requires flatpak
+        }
+        tree-sitter-cli: {
+            install: [ { via: cargo  name: tree-sitter-cli } ]     // -> requires cargo (the tool)
+        }
+        mononoki-nerd: {
+            install: [ { via: debian-font  name: Mononoki          // -> requires fontconfig + unzip
+                         version: { github: ryanoasis/nerd-fonts  asset: "Mononoki.zip" } } ]
         }
 
         // when:-varying: native on Pop (the NVIDIA rig), flatpak elsewhere
