@@ -1,6 +1,11 @@
-# v2 wire-in — scoping
+# v2 wire-in
 
-Status: **scoping** (no code yet). The v2 routing engine (`configsys/v2/`, `routes2.hu`) is
+Status: **IMPLEMENTED behind a flag** (`CONFIGSYS_RESOLVER=v2`); field-parity gate green,
+end-to-end byte-identical to v1 on --pretend. Remaining: run the podman suites under the
+flag, flip the default per context, then delete the v1 layer (see §8). Original scoping
+below is kept for the rationale.
+
+The v2 routing engine (`configsys/v2/`, `routes2.hu`) is
 content-complete and proven graph-equivalent to the live `RouteResolver` across the current
 OS set (414 tests; whole-port audit = 0 missing components, byte-identical closures on every
 real path). This doc scopes plugging v2 into the running app **behind a flag**, validating it
@@ -129,3 +134,35 @@ is safe" a *proof*, not a hope — and it's the harness that would have caught f
   direct-on-Fedora → no binding) are on dead paths and don't affect the flip.
 - `install EXECUTION` is entirely unchanged — v2 decides *what* + *deps*; the existing families still
   *do* the installs. This wire-in is purely resolver-substitution + field marshalling.
+
+## 8. What shipped, and the road to standalone (no v1 layer)
+
+Shipped (commits eb2e88d, aa01510, 892d8b5):
+- `Unit.details` + `v2/adapt.py` (Unit→ResolvedComponent) + `v2/engine.py` (`V2Resolver`,
+  the app-facing facade); `Context.routes` branches on `CONFIGSYS_RESOLVER=v2`.
+- **Field-parity harness** (`test/test_v2_fields.py`) + **app-boundary parity**
+  (`test/test_v2_app.py`, every profile component × 8 OS contexts, unit keys + per-unit
+  install signatures). The `_alt` signature is package-manager-aware (slaves/ppa are apt-only).
+- Closed every field gap in `routes2.hu` (repo-component:universe ×10, dropped version
+  specs, font url, flatpak hub, gcc slaves).
+- Migrated the **apt** family to v2's `deb-source` + cpu-keyed `asset` (adds aarch64 debs);
+  still reads the legacy shape during the parallel period.
+- podman runners forward `CONFIGSYS_RESOLVER`, so the real-install battery validates v2.
+
+Remaining to reach the user's end-state (native v2, families migrated, ONE codebase):
+1. Run each podman suite under `CONFIGSYS_RESOLVER=v2`; fix any real-install field gaps the
+   pure signatures couldn't see (they compare intent, not the actual shell).
+2. Flip the default: make v2 the resolver (env var only to fall *back* to v1), per context,
+   Debian family first.
+3. **Delete the v1 layer** — this is the "no two layers" finish:
+   - remove `routes.py` (RouteResolver), `routes.hu`; rename `routes2.hu`→`routes.hu`.
+   - drop the legacy-shape branches in families (apt `deb:true`/version-glob; any other
+     dual-reads) so families speak ONLY v2 shapes.
+   - collapse `configsys/v2/` into the package (it stops being "v2" once it's the only one);
+     fold `adapt`/`engine` in or inline.
+   - retire the old resolver tests (test_resolver, test_routes_cascade, …) and the
+     equivalence/field-parity harnesses (they compare against a resolver that no longer
+     exists) — keep the v2 predicate/check/resolve unit tests + the integration suites.
+   - candidate simplification to raise with the user: drop `repo-component: universe` (dead
+     on modern Ubuntu/Pop; not a Debian concept) rather than carry it — a behavior change,
+     so their call.
