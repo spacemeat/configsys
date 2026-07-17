@@ -231,65 +231,126 @@ def parse(text):
     return _Parser(_tokenize(text), text).parse()
 
 
-# -- specificity (set-inclusion over per-dimension boxes) -----------------
+# -- specificity + static ambiguity (set inclusion, decided on a finite grid) ----
+#
+# A predicate's match-set is decided over the universe of possible machines, which is
+# finite once discretized: OS is a finite set of blocks (any block can be the detected
+# system); cpu is the finitely-many mentioned cpus plus one "other"; and the version
+# axis, though dense, is piecewise-constant — it only changes at the boundaries the
+# predicates mention, so three sample points per boundary (just below / at / just above)
+# capture every distinguishable region. Each predicate reduces to a boolean vector per
+# (os, cpu) cell, and set inclusion / overlap become vector compares. or/not/versioned
+# atoms all fall out for free.
 
-class Box:
-    '''The match-set of a conjunctive predicate as (os subtree, version constraint, cpu
-    set). None on any dimension means "the whole axis".'''
-
-    def __init__(self, os=None, version=None, cpu=None):
-        self.os = os                    # os block name (subtree root)
-        self.version = version          # (op, tuple) or None
-        self.cpu = cpu                  # frozenset or None
-
-
-def box(pred):
-    '''Reduce a conjunction-of-atoms predicate to a Box. Raises for or/not (handled by
-    the full ambiguity-checker slice).'''
-    b = Box()
-    for atom in _conjuncts(pred):
-        if isinstance(atom, Os):
-            if b.os is not None:
-                raise NotImplementedError('multiple OS atoms in one conjunction')
-            b.os = atom.name
-            if atom.op is not None:
-                b.version = (atom.op, atom.version)
-        elif isinstance(atom, Cpu):
-            b.cpu = atom.cpus if b.cpu is None else (b.cpu & atom.cpus)
-        else:
-            raise NotImplementedError('specificity for or/not is a later slice')
-    return b
+_SENTINEL_CPU = '\x00other'
 
 
-def _conjuncts(pred):
-    if isinstance(pred, And):
-        out = []
+def _collect(pred, bounds, cpus):
+    if isinstance(pred, (Or, And)):
         for t in pred.terms:
-            out.extend(_conjuncts(t))
-        return out
-    if isinstance(pred, (Or, Not)):
-        raise NotImplementedError('specificity for or/not is a later slice')
-    return [pred]
+            _collect(t, bounds, cpus)
+    elif isinstance(pred, Not):
+        _collect(pred.term, bounds, cpus)
+    elif isinstance(pred, Cpu):
+        cpus.update(pred.cpus)
+    elif isinstance(pred, Os) and pred.version is not None:
+        bounds.add(pred.version)
 
 
-def box_subset(a, b, is_descendant):
-    '''True if a's match-set ⊆ b's. `is_descendant(x, y)` = "y is ancestor-or-self of x"
-    in the OS cascade (i.e. x's subtree ⊆ y's subtree).'''
-    if b.os is not None and (a.os is None or not is_descendant(a.os, b.os)):
-        return False
-    if b.cpu is not None and (a.cpu is None or not a.cpu <= b.cpu):
-        return False
-    if b.version is not None and a.version != b.version:
-        return False                    # coarse for now; interval algebra is a later slice
+def _scale_root(name, lineage, scale_roots):
+    if name not in lineage:
+        return None
+    for n in lineage[lineage.index(name):]:
+        if n in scale_roots:
+            return n
+    return None
+
+
+def _cmp_sample(op, sample, v):
+    b, eps = sample                        # sample = (version tuple, eps in {-1,0,+1})
+    pos = -1 if b < v else (1 if b > v else eps)   # <0 below v, 0 at v, >0 above v
+    if op == '<':
+        return pos < 0
+    if op == '<=':
+        return pos <= 0
+    if op == '>':
+        return pos > 0
+    if op == '>=':
+        return pos >= 0
+    return pos == 0                        # '=' / '=='
+
+
+def _holds(pred, lineage, sroot_leaf, scale_roots, cpu, sample):
+    if isinstance(pred, Or):
+        return any(_holds(t, lineage, sroot_leaf, scale_roots, cpu, sample) for t in pred.terms)
+    if isinstance(pred, And):
+        return all(_holds(t, lineage, sroot_leaf, scale_roots, cpu, sample) for t in pred.terms)
+    if isinstance(pred, Not):
+        return not _holds(pred.term, lineage, sroot_leaf, scale_roots, cpu, sample)
+    if isinstance(pred, Cpu):
+        return cpu in pred.cpus
+    if isinstance(pred, Os):
+        if pred.name not in lineage:
+            return False
+        if pred.op is None:
+            return True
+        if _scale_root(pred.name, lineage, scale_roots) != sroot_leaf:
+            return False
+        return _cmp_sample(pred.op, sample, pred.version)
+    raise PredicateError(f'unknown predicate node {pred!r}')
+
+
+def _cells(preds, cascade):
+    '''Yield (leaf, lineage, scale_root, cpu, samples) for every (os, cpu) grid cell.'''
+    bounds, cpus = set(), set()
+    for p in preds:
+        _collect(p, bounds, cpus)
+    cpu_vals = sorted(cpus) + [_SENTINEL_CPU]
+    samples = {(b, e) for b in bounds for e in (-1, 0, 1)} or {((0,), 0)}
+    for leaf in cascade.blocks:
+        lineage = cascade.lineage(leaf)
+        sroot = _scale_root(leaf, lineage, cascade.scale_roots)
+        for cpu in cpu_vals:
+            yield leaf, lineage, sroot, cpu, samples
+
+
+def _vec(pred, lineage, sroot, scale_roots, cpu, samples):
+    return frozenset(s for s in samples
+                     if _holds(pred, lineage, sroot, scale_roots, cpu, s))
+
+
+def subset(a, b, cascade):
+    '''True if a's match-set ⊆ b's (a is at-least-as-specific as b), over all machines.'''
+    sr = cascade.scale_roots
+    for _leaf, lineage, sroot, cpu, samples in _cells([a, b], cascade):
+        if not _vec(a, lineage, sroot, sr, cpu, samples) <= _vec(b, lineage, sroot, sr, cpu, samples):
+            return False
     return True
 
 
-def most_specific(preds, is_descendant):
-    '''From predicates already known to match, return the unique most-specific one (its
-    box ⊆ every other's), or raise if none/ambiguous.'''
-    boxes = [box(p) for p in preds]
-    winners = [p for p, bp in zip(preds, boxes)
-               if all(box_subset(bp, bo, is_descendant) for bo in boxes)]
+def witness(a, b, cascade):
+    '''A human-readable context where both a and b match, or None if disjoint.'''
+    sr = cascade.scale_roots
+    for leaf, lineage, sroot, cpu, samples in _cells([a, b], cascade):
+        for s in samples:
+            if _holds(a, lineage, sroot, sr, cpu, s) and _holds(b, lineage, sroot, sr, cpu, s):
+                ver = '.'.join(map(str, s[0])) if s != ((0,), 0) else 'any-version'
+                return f'{leaf} {ver} {"any-cpu" if cpu == _SENTINEL_CPU else cpu}'
+    return None
+
+
+def overlap(a, b, cascade):
+    return witness(a, b, cascade) is not None
+
+
+def comparable(a, b, cascade):
+    return subset(a, b, cascade) or subset(b, a, cascade)
+
+
+def most_specific(preds, cascade):
+    '''From predicates already known to match a context, the unique most-specific one
+    (⊆ every other), or raise if none/ambiguous (the static checker rules out the latter).'''
+    winners = [p for p in preds if all(subset(p, o, cascade) for o in preds)]
     if len(winners) != 1:
         raise PredicateError(f'ambiguous selection among {len(preds)} matching bindings')
     return winners[0]

@@ -46,7 +46,7 @@ def select_binding(component, cascade, context):
     if len(matching) == 1:
         return matching[0]
     by_pred = {b.pred: b for b in matching}
-    winner = predicate.most_specific(list(by_pred), cascade.is_descendant)
+    winner = predicate.most_specific(list(by_pred), cascade)
     return by_pred[winner]
 
 

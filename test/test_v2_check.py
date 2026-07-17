@@ -1,0 +1,80 @@
+'''The static ambiguity checker: set-inclusion specificity over the finite grid, and
+"overlapping-but-incomparable = error".'''
+
+import os
+
+import pytest
+
+from configsys.v2 import routes2
+from configsys.v2.check import AmbiguityError, check_all, check_component
+from configsys.v2.predicate import comparable, overlap, parse, subset
+from configsys.v2.routes2 import Binding, Component
+
+
+@pytest.fixture(scope='module')
+def cascade():
+    c, _components, _m = routes2.load(os.path.join(os.path.dirname(__file__), '..', 'routes2.hu'))
+    return c
+
+
+def P(expr):
+    return parse(expr)
+
+
+# -- the relations themselves --------------------------------------------
+
+def test_subset_and_comparability(cascade):
+    # ubuntu<23.04 is strictly inside ubuntu (any version)
+    assert subset(P('ubuntu < 23.04'), P('ubuntu'), cascade)
+    assert not subset(P('ubuntu'), P('ubuntu < 23.04'), cascade)
+    # pop_os! is inside ubuntu
+    assert subset(P('pop_os!'), P('ubuntu'), cascade)
+    # scale safety: debian<12 and ubuntu are disjoint (debian's scale never hits Pop/Ubuntu)
+    assert not overlap(P('debian < 12'), P('ubuntu'), cascade)
+
+
+def test_disjoint_families_dont_overlap(cascade):
+    assert not overlap(P('fedora'), P('arch'), cascade)
+    assert not overlap(P('fedora'), P('debian'), cascade)
+
+
+def test_cross_axis_is_incomparable_and_overlapping(cascade):
+    # the classic: "any x86_64" vs "any debian" overlap at debian-x86_64, neither wins
+    a, b = P('cpu: x86_64'), P('debian')
+    assert overlap(a, b, cascade)
+    assert not comparable(a, b, cascade)
+
+
+def test_guarded_not_subset(cascade):
+    # (ubuntu and not pop_os!) is inside ubuntu, disjoint from pop_os!
+    carved = P('ubuntu and not pop_os!')
+    assert subset(carved, P('ubuntu'), cascade)
+    assert not overlap(carved, P('pop_os!'), cascade)
+
+
+# -- the component check --------------------------------------------------
+
+def _component(name, *whens):
+    return Component(name, {'install': [
+        ({'via': 'native'} if w is None else {'via': 'native', 'when': w}) for w in whens]})
+
+
+def test_real_routes_are_unambiguous(cascade):
+    _c, components, _m = routes2.load(os.path.join(os.path.dirname(__file__), '..', 'routes2.hu'))
+    check_all(components, cascade)          # must not raise
+
+
+def test_broad_default_plus_narrow_override_is_fine(cascade):
+    # steam's shape: a narrow binding + an unguarded default — comparable, no error
+    check_component('steamish', _component('steamish', 'pop_os!', None), cascade)
+
+
+def test_overlapping_incomparable_bindings_raise(cascade):
+    bad = _component('oops', 'cpu: x86_64', 'debian')     # overlap at debian-x86_64, incomparable
+    with pytest.raises(AmbiguityError) as ei:
+        check_component('oops', bad, cascade)
+    assert 'oops' in str(ei.value) and 'debian' in str(ei.value)
+
+
+def test_disjoint_bindings_are_fine(cascade):
+    check_component('ok', _component('ok', 'fedora', 'arch'), cascade)

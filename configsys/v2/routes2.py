@@ -99,11 +99,12 @@ class OsCascade:
         return predicate.Context(self.lineage(block), version, cpu, self.scale_roots)
 
 
-def load(path):
+def load(path, validate=True):
     '''-> (OsCascade, {component_name: Component}, {mechanism: [required caps]}).
 
     The trove must stay alive while _py walks its nodes (they point into it); once _py
     has materialized everything to plain python, the returned objects don't need it.
+    With validate=True, an ambiguous routes file is rejected up front (AmbiguityError).
     '''
     trove = humon.from_file(path)
     root = trove.root
@@ -113,4 +114,7 @@ def load(path):
     cascade = OsCascade(os_dict)
     components = {name: Component(name, spec) for name, spec in comps.items()}
     mechanisms = {name: _as_list((spec or {}).get('requires')) for name, spec in mechs.items()}
+    if validate:
+        from . import check
+        check.check_all(components, cascade)
     return cascade, components, mechanisms

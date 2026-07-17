@@ -54,9 +54,10 @@ def test_empty_when_is_always_true():
 
 
 def test_specificity_prefers_narrow():
-    lin = {'pop_os!': ['pop_os!', 'ubuntu', 'debian', 'linux']}
-    isdesc = lambda x, y: y in lin.get(x, [x])
-    assert most_specific([Os('pop_os!'), ALWAYS], isdesc) is not ALWAYS
+    import os
+    from configsys.v2 import routes2
+    cascade, _c, _m = routes2.load(os.path.join(os.path.dirname(__file__), '..', 'routes2.hu'))
+    assert most_specific([Os('pop_os!'), ALWAYS], cascade) is not ALWAYS
 
 
 def test_bad_syntax_raises():
