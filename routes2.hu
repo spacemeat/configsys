@@ -23,6 +23,7 @@
         pip:         { requires: python3-pip }        // `pip install --user` needs pip
         pipx:        { requires: pipx }               // a PyPI CLI needs the pipx tool
         tarball:     { requires: curl }               // fetch the archive with curl
+        aur:         { requires: [ base-devel, git ] } // makepkg -si builds from PKGBUILD
     }
 
     // Component layer: each is a capability + a list of context-selected bindings.
@@ -214,6 +215,15 @@
         }
         gcc-cpp: { install: [ { via: native  name: { dnf: "gcc-c++" } } ] }   // Fedora g++ (has a `+`)
         make:    { install: [ { via: native } ] }
+
+        // --- AUR: packages built from PKGBUILD via makepkg -si (Arch only). The `aur`
+        // mechanism pulls base-devel + git (the build toolchain); yay is the AUR helper
+        // itself, prebuilt (-bin). Guarded to arch — the mechanism has no meaning elsewhere.
+        base-devel: { install: [ { via: native } ] }
+        git:        { install: [ { via: native } ] }
+        yay: {
+            install: [ { via: aur  when: "arch"  name: yay-bin  version: { aur: yay-bin } } ]
+        }
 
         // --- versioned gcc. Three mechanisms, selected by OS/version:
         //   debian -> `gcc` (apt PPA + update-alternatives; needs build-essential, s-p-c, the alias)

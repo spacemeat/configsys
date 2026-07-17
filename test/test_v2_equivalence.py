@@ -107,6 +107,8 @@ CLOSURE = [
     ('apod', 'ubuntu', '24.04'), ('apod', 'ubuntu', '22.04'),
     ('apod', 'debian', '11'), ('apod', 'fedora', '41'),
     ('apod', 'rhel', '9.8'), ('apod', 'arch', '20260101'),
+    # AUR (Arch only): yay built from PKGBUILD; the `aur` mechanism pulls base-devel + git.
+    ('yay', 'arch', '20260101'),
 ]
 
 
