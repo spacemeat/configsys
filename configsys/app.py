@@ -245,6 +245,89 @@ def cmd_tui(ctx, args):
     return run_tui(ctx)
 
 
+# -- where: explain a component's routing ---------------------------------
+
+def _fmt_val(v):
+    '''Compact one-line rendering of a binding detail value.'''
+    if isinstance(v, dict):
+        return '{' + ' '.join(f'{k}={_fmt_val(x)}' for k, x in v.items()) + '}'
+    if isinstance(v, list):
+        return '[' + ', '.join(_fmt_val(x) for x in v) + ']'
+    s = str(v)
+    return s if len(s) <= 60 else s[:57] + '...'
+
+
+def _fmt_binding(b, selected):
+    when = b.when if b.when else 'always'
+    details = '  '.join(f'{k}={_fmt_val(v)}' for k, v in b.details.items())
+    mark = '  <- selected here' if selected else ''
+    return f'    - via {b.via}   when: {when}' + (f'   {details}' if details else '') + mark
+
+
+def _source_label(comp, paths):
+    '''Human provenance line for a component's definition.'''
+    if comp.source == str(paths.routes_file) or comp.source == paths.routes_file:
+        return 'routes.hu'
+    where = '~/configsys.hu' if (comp.source == str(paths.user_config_file)
+                                 or comp.source == paths.user_config_file) else str(comp.source)
+    if not comp.bindings:
+        return f'{where}   (removes routes.hu\'s definition)' if comp.shadows else \
+               f'{where}   (defined empty / removed)'
+    return f'{where}   (overrides routes.hu)' if comp.shadows else f'{where}   (new; not in routes.hu)'
+
+
+def cmd_where(ctx, args):
+    from .resolve import select_binding, ResolveError
+    name = args.name
+    r = ctx.routes
+    comp = r.components.get(name)
+    if comp is None:
+        print(f'configsys: unknown component "{name}" '
+              f'(not in routes.hu or your ~/configsys.hu)')
+        return 1
+
+    print(f'\n{name}')
+    print(f'  defined in  {_source_label(comp, ctx.paths)}')
+    if comp.provides:
+        print(f'  provides    {", ".join(comp.provides)}')
+    if comp.requires:
+        print(f'  requires    {", ".join(comp.requires)}')
+
+    # which binding wins in this machine's context (if any)
+    cx = r.cascade.context(r.block, r.version, r.cpu)
+    selected = None
+    if comp.bindings:
+        try:
+            selected = select_binding(comp, r.cascade, cx, r.pins)
+        except ResolveError:
+            selected = None  # bindings exist but none match here
+        print('  bindings')
+        for b in comp.bindings:
+            print(_fmt_binding(b, b is selected))
+
+    # how it actually resolves on this machine
+    ver = f' {r.version}' if r.version else ''
+    print(f'\n  on {r.block}{ver} ({r.cpu}):')
+    if not comp.bindings:
+        print('    nothing (removed)')
+        return 0
+    try:
+        units = r.resolve_names([name])
+    except ResolveError as e:
+        print(f'    ERROR: {e}')
+        return 0
+    if not units:
+        print('    nothing')
+        return 0
+    own = {k for k in units if k.split('\\', 1)[-1] == name}
+    for key in sorted(units):
+        rc = units[key]
+        tag = '' if key in own else '   (dep)'
+        pkg = f'  pkg {rc.name}' if rc.name else ''
+        print(f'    {key}{pkg}{tag}')
+    return 0
+
+
 # -- argument parsing -----------------------------------------------------
 
 def build_parser():
@@ -271,6 +354,10 @@ def build_parser():
     sv.add_argument('name')
     sv.add_argument('version')
 
+    wh = sub.add_parser('where', help='explain a component: source layer, bindings, and how '
+                                      'it resolves on this machine')
+    wh.add_argument('name', help='component name')
+
     sub.add_parser('refresh', help='re-query latest versions from their sources')
     sub.add_parser('tui', help='interactive TUI (default)')
     return p
@@ -284,6 +371,7 @@ _COMMANDS = {
     'lock': cmd_lock,
     'unlock': cmd_unlock,
     'set-version': cmd_set_version,
+    'where': cmd_where,
     'refresh': cmd_refresh,
     'tui': cmd_tui,
 }

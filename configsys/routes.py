@@ -48,6 +48,8 @@ class Component:
     _KEYS = frozenset({'provides', 'requires', 'parts', 'install'})
 
     def __init__(self, name, spec):
+        self.source = None       # file this definition came from (provenance for `where`)
+        self.shadows = False     # True if a user override replaced a same-named repo component
         unknown = set(spec) - self._KEYS
         if unknown:
             hint = ''
@@ -148,12 +150,19 @@ def load(path, overrides_path=None, validate=True):
     mechs = _py(root['mechanisms']) or {}
 
     cascade = OsCascade(os_dict)
-    components = {name: Component(name, spec) for name, spec in comps.items()}
+    components = {}
+    for name, spec in comps.items():
+        comp = Component(name, spec)
+        comp.source = path
+        components[name] = comp
     for name, spec in _user_components(overrides_path).items():
         try:
-            components[name] = Component(name, spec)     # user wins; {} -> removed
+            comp = Component(name, spec)                 # user wins; {} -> removed
         except ConfigError as e:
             raise ConfigError(f'{overrides_path}: {e}')
+        comp.source = overrides_path
+        comp.shadows = name in components
+        components[name] = comp
 
     mechanisms = {name: _as_list((spec or {}).get('requires')) for name, spec in mechs.items()}
     if validate:

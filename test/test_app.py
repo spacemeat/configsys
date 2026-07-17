@@ -37,3 +37,36 @@ def test_default_command_is_tui_falls_back_to_inspect(tmp_path, capsys):
     out = capsys.readouterr().out
     assert 'not an interactive terminal' in out
     assert 'OS: pop_os!' in out
+
+
+def test_where_repo_component(tmp_path, capsys):
+    rc = main(base_args(tmp_path) + ['where', 'btop'])
+    assert rc == 0
+    out = capsys.readouterr().out
+    assert 'defined in  routes.hu' in out
+    assert 'apt\\btop' in out                      # resolves to the native unit on Pop
+
+
+def test_where_overridden_component_shows_provenance(tmp_path, capsys):
+    (tmp_path / 'configsys.hu').write_text(
+        '{ components: { steam: { install: [ { via: flatpak  hub: flathub '
+        ' app: com.valvesoftware.Steam } ] } } }')
+    rc = main(base_args(tmp_path) + ['where', 'steam'])
+    assert rc == 0
+    out = capsys.readouterr().out
+    assert 'overrides routes.hu' in out
+    assert 'flatpak\\steam' in out and 'apt\\flatpak' in out
+
+
+def test_where_removed_component(tmp_path, capsys):
+    (tmp_path / 'configsys.hu').write_text('{ components: { apod: {} } }')
+    rc = main(base_args(tmp_path) + ['where', 'apod'])
+    assert rc == 0
+    out = capsys.readouterr().out
+    assert 'removes' in out and 'nothing (removed)' in out
+
+
+def test_where_unknown_component_exits_one(tmp_path, capsys):
+    rc = main(base_args(tmp_path) + ['where', 'no-such-thing'])
+    assert rc == 1
+    assert 'unknown component' in capsys.readouterr().out
