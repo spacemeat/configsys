@@ -3,6 +3,12 @@
     // ~/configsys.hu, which overlays this file section-by-section (see docs/routing-model.md).
     configs: [ user, dev, uc-dev, graphics ]
 
+    // Machine-wide default install scope for scope-honoring families (appImage/flatpak/
+    // tarball). `user` matches those families' own defaults — they're user-space by nature
+    // (~/apps, --user, ~/vulkan). A per-component route `scope:` or ~/configsys.hu overrides it.
+    // (Fixed-scope families — apt/dnf/pacman = system, dotfiles/cargo = user — ignore this.)
+    scope: user
+
     // A profile is a flat list of component names. Each name is resolved through
     // routes.hu (family binding, recursive deps, dedup). A name with no route on
     // the active OS is surfaced as a config error. The user file may add profiles or
