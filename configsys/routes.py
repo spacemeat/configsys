@@ -6,8 +6,10 @@ holds to turn a profile's component names into the `{key: ResolvedComponent}` cl
 this machine's context. Resolution itself lives in resolve.py; the RC marshalling in adapt.py.
 '''
 
+import os
+
 from . import layers, predicate
-from .errors import ConfigError
+from .errors import ConfigError, ConfigsysError
 
 
 class Binding:
@@ -96,25 +98,36 @@ class OsCascade:
         return predicate.Context(self.lineage(block), version, cpu, self.scale_roots)
 
 
-def load(path, overrides_path=None, validate=True):
+def load(path, overrides_path=None, discovered=(), validate=True):
     '''-> (OsCascade, {component_name: Component}, {mechanism: [required caps]}).
 
-    `path` (routes.hu) is the base repo layer. `overrides_path` (the user's ~/configsys.hu,
-    optional) and any files it (or routes.hu) `include:` overlay it: components merge PER NAME
-    (later layer wins — redefine wholesale, add, or remove with `{}`), while os/mechanisms stay
-    repo-only. With validate=True, an ambiguous merged set is rejected up front (AmbiguityError).
+    Layer stack lowest-first: routes.hu (repo) < discovered project files (.configsys*.hu) <
+    the user's ~/configsys.hu, each with its `include:` graph expanded. Components merge PER
+    NAME (later wins — redefine, add, or remove with `{}`); os/mechanisms stay repo-only. A
+    malformed discovered file is skipped (it never bricks the rest). validate=True rejects an
+    ambiguous merged set up front.
     '''
     roots = [(path, 'repo')]
+    roots += [(d, 'discover') for d in discovered]
     if overrides_path is not None:
         roots.append((overrides_path, 'user'))
-    layer_list = layers.expand(roots)          # include graphs expanded, cycle-checked
+    layer_list, _warnings = layers.expand_tolerant(roots, {'discover'})
 
     cascade = OsCascade(layers.repo_section(layer_list, 'os'))
+    discovered_norm = {os.path.normpath(d) for d in discovered}
+    from . import routecheck
     components = {}
     for name, (spec, src, shadows) in layers.merge_named(layer_list, 'components').items():
+        # A malformed / ambiguous component from a DISCOVERED project file is skipped (the
+        # profile that referenced it then surfaces as a resilient error row) — never fatal.
+        # From the repo or your own ~/configsys.hu it stays a loud, attributed error.
         try:
             comp = Component(name, spec or {})
-        except ConfigError as e:
+            if validate:
+                routecheck.check_component(name, comp, cascade)
+        except ConfigsysError as e:
+            if os.path.normpath(src) in discovered_norm:
+                continue
             raise ConfigError(f'{src}: {e}')
         comp.source = src
         comp.shadows = shadows
@@ -122,9 +135,6 @@ def load(path, overrides_path=None, validate=True):
 
     mechs = layers.repo_section(layer_list, 'mechanisms')
     mechanisms = {name: _as_list((spec or {}).get('requires')) for name, spec in mechs.items()}
-    if validate:
-        from . import routecheck
-        routecheck.check_all(components, cascade)
     return cascade, components, mechanisms
 
 
@@ -135,8 +145,9 @@ class Resolver:
     an op to (dependency installs are folded in by planning.expand_plan).'''
 
     def __init__(self, routes_path, block, version=None, cpu=None, pins=None,
-                 overrides_path=None):
-        self.cascade, self.components, self.mechanisms = load(routes_path, overrides_path)
+                 overrides_path=None, discovered=()):
+        self.cascade, self.components, self.mechanisms = load(routes_path, overrides_path,
+                                                              discovered)
         self.block = block
         self.version = version
         self.cpu = cpu

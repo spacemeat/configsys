@@ -20,7 +20,7 @@ import humon
 from .errors import ConfigError
 
 _DEFINITION_SECTIONS = ('components', 'profiles')
-_SETTING_SECTIONS = ('configs', 'scope', 'pins')
+_SETTING_SECTIONS = ('configs', 'scope', 'pins', 'ignore-profiles')
 _REPO_SECTIONS = ('os', 'mechanisms')
 
 
@@ -96,12 +96,64 @@ def _visit(path, role, stack, done, order):
 def expand(roots):
     '''roots: [(path, role)] lowest-precedence-first. Returns [Layer] with include graphs
     expanded post-order (an included file precedes — is lower precedence than — its
-    includer), deduped (diamonds appear once), and cycle-checked. Missing roots are skipped.'''
-    stack, done, order = [], set(), []
+    includer), deduped (diamonds appear once), and cycle-checked. Missing roots are skipped.
+    Strict: any bad file raises. See expand_tolerant to skip failures for some roles.'''
+    return expand_tolerant(roots, tolerant_roles=())[0]
+
+
+def expand_tolerant(roots, tolerant_roles=('discover',)):
+    '''Like expand(), but a bad file (parse error / cycle / bad include) whose role is in
+    `tolerant_roles` is SKIPPED with a warning instead of aborting — so a malformed project
+    file you happened to `cd` into never takes down the rest. Returns (layers, warnings).
+    A bad repo/user file still raises (your own config errors should be loud, not skipped).'''
+    stack, done, order, warnings = [], set(), [], []
     for path, role in roots:
-        if path is not None and os.path.exists(path):
+        if path is None or not os.path.exists(path):
+            continue
+        try:
             _visit(path, role, stack, done, order)
-    return order
+        except ConfigError as e:
+            if role in tolerant_roles:
+                warnings.append(f'skipped {path}: {e}')
+                del stack[:]                  # a partial visit may have left the stack dirty
+            else:
+                raise
+    return order, warnings
+
+
+def _project_files(d):
+    '''The project configsys files in dir `d`: `.configsys.hu` (base, first) then any
+    `.configsys-*.hu` sorted. Empty if none.'''
+    try:
+        names = os.listdir(d)
+    except OSError:
+        return []
+    out = []
+    base = os.path.join(d, '.configsys.hu')
+    if os.path.isfile(base):
+        out.append(base)
+    out.extend(sorted(os.path.join(d, n) for n in names
+                      if n.startswith('.configsys-') and n.endswith('.hu')
+                      and os.path.isfile(os.path.join(d, n))))
+    return out
+
+
+def discover(start, home=None):
+    '''Walk up from `start` to the nearest ancestor dir holding project configsys files
+    (.configsys.hu / .configsys-*.hu) and return them (base first). Stops at `home`
+    (exclusive — $HOME is user-config territory, not a project) and the filesystem root.'''
+    d = os.path.abspath(start)
+    home = os.path.abspath(home) if home else None
+    while True:
+        if home and os.path.normpath(d) == os.path.normpath(home):
+            return []
+        files = _project_files(d)
+        if files:
+            return files
+        parent = os.path.dirname(d)
+        if parent == d:
+            return []
+        d = parent
 
 
 def merge_named(layers, section, roles=None):

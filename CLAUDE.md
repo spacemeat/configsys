@@ -54,13 +54,24 @@ a component's source layer + resolution; `configsys check` lints the whole merge
 
 **Layer stack (configsys/layers.py).** Every config/routes file is a LAYER; a file may
 `include:` others (paths relative to the including file's directory). Layers overlay
-lowest-first — repo (routes.hu + config.hu) < an included file < the file including it < the
-top user file — merging by section and, for components/profiles, by name. Includes are
-DEFINITIONS-ONLY: their `components:`/`profiles:` merge in, but `configs:`/`scope:`/`pins:`
-(machine settings) and `os:`/`mechanisms:` (code-adjacent) are ignored (a `check` warning).
-Cycles/missing files error clearly; provenance (`Component.source`, `Config.profile_source`)
-flows through so `where`/`check` attribute to the right file. This is the shared substrate the
-plugin model will reuse — a plugin is just another source in the stack.
+lowest-first — repo (routes.hu + config.hu) < discovered project files < the top user file,
+with includes sitting below the file that includes them — merging by section and, for
+components/profiles, by name. Includes are DEFINITIONS-ONLY: their `components:`/`profiles:`
+merge in, but `configs:`/`scope:`/`pins:`/`ignore-profiles:` (machine settings) and
+`os:`/`mechanisms:` (code-adjacent) are ignored (a `check` warning). Cycles/missing files
+error clearly; provenance (`Component.source`, `Config.profile_source`) flows through so
+`where`/`check` attribute to the right file. This is the shared substrate the plugin model
+will reuse — a plugin is just another source in the stack.
+
+**Project discovery (developer-in-source-tree).** configsys walks up from the CWD to the
+nearest dir holding `.configsys.hu` (base — ships in a bundle) and/or `.configsys-*.hu`
+(named variants like `-dev`, source-tree only), and adds them as `discover`-role layers whose
+profiles **auto-activate** (union into `configs`, minus a user `ignore-profiles:`). Bounded by
+`$HOME` (not a project) and the FS root; disabled by `CONFIGSYS_NO_DISCOVER`; the CWD is
+`CONFIGSYS_CWD` or os.getcwd(). Resilience: a malformed discovered file (or component) is
+SKIPPED, never fatal (repo/user errors still raise); and `inspect` resolves the active set
+resiliently (Context.resolve_errors), so one bad auto-activated entry becomes an error row,
+not a brick. Activation never installs — install stays explicit.
 
 Families are defined in code according to their major operations: getVersion, install,
 uninstall, upgrade, setVersion, lockVersion, unlockVersion. apt has various commands for doing

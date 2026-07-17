@@ -80,6 +80,7 @@ class Context:
         self.os_info = osdetect.detect(env)
         self.runner = Runner(pretend=args.pretend, echo=lambda m: print(m))
         self._config = None
+        self._discovered = None
         self.resolve_errors = {}      # {requested_name: message} from the last resilient resolve
 
     def _cpu(self):
@@ -88,18 +89,40 @@ class Context:
         return self.env.get('CONFIGSYS_ARCH') or platform.machine()
 
     @property
+    def discovered(self):
+        '''Project configsys files (.configsys.hu + .configsys-*.hu) found by walking up from
+        the CWD to the nearest project root. Disabled by CONFIGSYS_NO_DISCOVER.'''
+        if self._discovered is None:
+            from . import layers
+            if self.env.get('CONFIGSYS_NO_DISCOVER'):
+                self._discovered = []
+            else:
+                start = self.env.get('CONFIGSYS_CWD') or os.getcwd()
+                self._discovered = layers.discover(start, str(self.paths.home))
+        return self._discovered
+
+    def discovery_warnings(self):
+        '''Warnings for discovered files that were skipped (malformed/cyclic).'''
+        from . import layers
+        if not self.discovered:
+            return []
+        return layers.expand_tolerant([(d, 'discover') for d in self.discovered],
+                                      {'discover'})[1]
+
+    @property
     def routes(self):
-        # ~/configsys.hu may carry a `components:` overlay and a `pins:` map (method /
-        # provider selection).
+        # layer stack: routes.hu < discovered project files < ~/configsys.hu (components
+        # overlay + pins). A malformed discovered file is skipped, not fatal.
         return Resolver(self.paths.routes_file, self.os_info.block,
                         self.os_info.version, self._cpu(),
                         pins=self.config.pins(),
-                        overrides_path=self.paths.user_config_file)
+                        overrides_path=self.paths.user_config_file,
+                        discovered=self.discovered)
 
     @property
     def config(self):
         if self._config is None:
-            self._config = Config.load(self.paths)
+            self._config = Config.load(self.paths, self.discovered)
         return self._config
 
     def apply_scope_default(self, units):
@@ -140,7 +163,13 @@ class Context:
 def cmd_inspect(ctx, args):
     _cfg, requested, units, _ledger, states = ctx.load_pipeline()
     print(f'OS: {ctx.os_info.block}   profiles: {", ".join(_cfg.active_profiles)}   '
-          f'units: {len(units)}\n')
+          f'units: {len(units)}')
+    if ctx.discovered:
+        files = ', '.join(os.path.basename(d) for d in ctx.discovered)
+        print(f'project: {os.path.dirname(ctx.discovered[0])}  ({files})')
+    for w in ctx.discovery_warnings():
+        print(f'  warn: {w}')
+    print()
     print(f'{"UNIT":30} {"STATUS":12} {"INSTALLED":20} {"LATEST"}')
     print('-' * 78)
     for key in sorted(states):

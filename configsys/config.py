@@ -26,13 +26,32 @@ class Config:
         self._profiles = layers.merge_named(layer_list, 'profiles')   # name -> (val, src, shadows)
 
     @classmethod
-    def load(cls, paths):
-        roots = [(paths.config_file, 'repo'), (paths.user_config_file, 'user')]
-        return cls(layers.expand(roots))
+    def load(cls, paths, discovered=()):
+        roots = [(paths.config_file, 'repo')]
+        roots += [(d, 'discover') for d in discovered]
+        roots.append((paths.user_config_file, 'user'))
+        return cls(layers.expand_tolerant(roots, {'discover'})[0])
 
     @property
     def active_profiles(self):
-        return _leaves(layers.merge_scalar(self._layers, 'configs', ('repo', 'user')))
+        '''Explicit `configs:` (repo/user) UNION every profile a discovered project file
+        defines (auto-activation), minus `ignore-profiles:`. Explicit first, then discovered.'''
+        explicit = _leaves(layers.merge_scalar(self._layers, 'configs', ('repo', 'user')))
+        ignore = set(_leaves(layers.merge_scalar(self._layers, 'ignore-profiles', ('repo', 'user'))))
+        seen, out = set(), []
+        for name in explicit + self._discovered_profiles():
+            if name not in seen and name not in ignore:
+                seen.add(name)
+                out.append(name)
+        return out
+
+    def _discovered_profiles(self):
+        '''Profile names from discovered (project) layers — auto-activated on discovery.'''
+        out = []
+        for layer in self._layers:
+            if layer.role == 'discover' and isinstance(layer.data.get('profiles'), dict):
+                out.extend(layer.data['profiles'])
+        return out
 
     def default_scope(self):
         v = layers.merge_scalar(self._layers, 'scope', ('repo', 'user'))
