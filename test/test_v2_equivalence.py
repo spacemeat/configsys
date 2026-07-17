@@ -92,6 +92,15 @@ CLOSURE = [
     # tarball + composition: the SDK (tarball + inline dotfile) and the vulkan-dev bundle
     ('vulkan-sdk', 'ubuntu', '24.04'),
     ('vulkan-dev', 'ubuntu', '24.04'),
+    # gcc name blocker: build-essential is one package on Debian, a compilers+make parts
+    # bundle on Fedora/Arch; the `gcc` component is the alias dotfile on Debian and the
+    # native package on Fedora/Arch (never both in one context).
+    ('build-essential', 'ubuntu', '24.04'),
+    ('build-essential', 'fedora', '41'), ('build-essential', 'arch', '20260101'),
+    ('gcc', 'fedora', '41'), ('gcc', 'arch', '20260101'),
+    # vulkan-dev now composes on Fedora/EL/Arch (was Debian-only, blocked on gcc)
+    ('vulkan-dev', 'fedora', '41'), ('vulkan-dev', 'rhel', '9.8'),
+    ('vulkan-dev', 'arch', '20260101'),
 ]
 
 

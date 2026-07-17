@@ -140,16 +140,28 @@
             install: [ { via: tarball  version: { static: 1.4.350.1 }  installDir: vulkan
                          url: "https://sdk.lunarg.com/sdk/download/$VERSION/linux/vulkansdk-linux-$ARCH-$VERSION.tar.xz" } ]
         }
-        libxcb-xinput0:    { install: [ { via: native } ] }
-        libxcb-xinerama0:  { install: [ { via: native } ] }
-        libxcb-cursor-dev: { install: [ { via: native } ] }
+        // vulkan-dev X libs, per OS: Debian ships three; Fedora's libxcb-devel bundles
+        // xinput+xinerama (+ xcb-util-cursor-devel); Arch's libxcb does likewise (+ xcb-util-cursor).
+        libxcb-xinput0:        { install: [ { via: native } ] }
+        libxcb-xinerama0:      { install: [ { via: native } ] }
+        libxcb-cursor-dev:     { install: [ { via: native } ] }
+        libxcb-devel:          { install: [ { via: native } ] }   // fedora + EL
+        xcb-util-cursor-devel: { install: [ { via: native } ] }   // fedora + EL
+        libxcb:                { install: [ { via: native } ] }   // arch
+        xcb-util-cursor:       { install: [ { via: native } ] }   // arch
         // vulkan-dev: a parts bundle composing the X libs, build tools, the SDK tarball,
-        // and the vulkan runtime (itself a parts aggregator). Debian for now; the Fedora/
-        // Arch xcb + build-essential variants wait on the gcc package/dotfile name split.
+        // and the vulkan runtime (itself a parts aggregator). One binding per OS family;
+        // build-essential now expands to real gcc packages on Fedora/Arch (gcc blocker resolved).
         vulkan-dev: {
             install: [
                 { via: parts  when: "debian"
                   parts: [ libxcb-xinput0, libxcb-xinerama0, libxcb-cursor-dev,
+                           build-essential, vulkan-sdk, vulkan-runtime ] }
+                { via: parts  when: "redhat"
+                  parts: [ libxcb-devel, xcb-util-cursor-devel,
+                           build-essential, vulkan-sdk, vulkan-runtime ] }
+                { via: parts  when: "arch"
+                  parts: [ libxcb, xcb-util-cursor,
                            build-essential, vulkan-sdk, vulkan-runtime ] }
             ]
         }
@@ -163,13 +175,34 @@
             ]
         }
 
-        // --- toolchain support (native + the apt-alternatives alias dotfile) ---
-        build-essential:            { install: [ { via: native } ] }
-        software-properties-common: { install: [ { via: native } ] }
-        gcc: {                      // the gccv `update-alternatives --config gcc` alias dotfile
-            requires: bashDotD
-            install: [ { via: dotfiles  src: bash.d/gcc.sh  dst: ~/.bash.d/gcc.sh } ]
+        // --- toolchain support ---
+        // one native meta-package on Debian; no single package on Fedora/Arch, so a
+        // faithful parts bundle there (the compilers + make), matching the old routes.
+        build-essential: {
+            install: [
+                { via: native  when: "debian" }
+                { via: parts  when: "redhat"  parts: [ gcc, gcc-cpp, make ] }
+                { via: parts  when: "arch"    parts: [ gcc, make ] }
+            ]
         }
+        software-properties-common: { install: [ { via: native } ] }
+        // gcc means "the C compiler works here" — but that's a different artifact per OS,
+        // and the two never coexist in one context, so ONE component with per-OS bindings
+        // reproduces the old dotfiles\gcc (Debian) and dnf\gcc / pacman\gcc (RH/Arch):
+        //   Debian — the base compiler already ships in build-essential; this is just the
+        //            `update-alternatives --config gcc` selector alias (a dotfile).
+        //   Fedora/Arch — build-essential is a parts bundle needing the actual gcc
+        //            *package*, which this same component provides natively.
+        gcc: {
+            install: [
+                { via: dotfiles  when: "debian"  requires: bashDotD
+                  src: bash.d/gcc.sh  dst: ~/.bash.d/gcc.sh }
+                { via: native  when: "redhat" }   // fedora + EL: the gcc package
+                { via: native  when: "arch" }     // arch gcc bundles g++
+            ]
+        }
+        gcc-cpp: { install: [ { via: native  name: { dnf: "gcc-c++" } } ] }   // Fedora g++ (has a `+`)
+        make:    { install: [ { via: native } ] }
 
         // --- versioned gcc. Three mechanisms, selected by OS/version:
         //   debian -> `gcc` (apt PPA + update-alternatives; needs build-essential, s-p-c, the alias)
