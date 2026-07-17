@@ -80,6 +80,7 @@ class Context:
         self.os_info = osdetect.detect(env)
         self.runner = Runner(pretend=args.pretend, echo=lambda m: print(m))
         self._config = None
+        self.resolve_errors = {}      # {requested_name: message} from the last resilient resolve
 
     def _cpu(self):
         '''System CPU arch for routing ($ARCH assets, cpu: when-atoms).'''
@@ -124,7 +125,11 @@ class Context:
         self.ensure_user_config()
         cfg = self.config
         requested = cfg.requested()
-        units = self.apply_scope_default(self.routes.resolve_names(list(requested)))
+        # resilient: a requested component that can't route here becomes a reported error
+        # (self.resolve_errors), not a hard stop — so one bad entry in the active set (e.g.
+        # from an auto-activated project profile) can't brick inspect/the TUI.
+        units, self.resolve_errors = self.routes.resolve_resilient(list(requested))
+        self.apply_scope_default(units)
         ledger = Ledger.load(self.paths)
         states = InstallState(self.runner, ledger, self.paths).inspect(units)
         return cfg, requested, units, ledger, states
@@ -143,6 +148,11 @@ def cmd_inspect(ctx, args):
         lock = ' [locked]' if s.locked else ''
         print(f'{key:30} {_STATUS_LABEL.get(s.status, s.status):12} '
               f'{str(s.installed_version or "-"):20} {s.latest_version or "-"}{lock}')
+    # resilient: requested components that couldn't route here — shown, not fatal
+    if ctx.resolve_errors:
+        print('\nunresolved (requested but not routable here):')
+        for name in sorted(ctx.resolve_errors):
+            print(f'  {name:28} error        {ctx.resolve_errors[name]}')
     return 0
 
 

@@ -156,6 +156,16 @@ class Resolver:
         from .adapt import to_resolved_components
         return to_resolved_components(self._resolve(names)[0])
 
+    def resolve_resilient(self, names):
+        '''-> ({key: ResolvedComponent}, {name: error_message}). Tolerant: a requested name
+        that can't route here is reported, not fatal (for inspect/TUI over the active set).'''
+        from .adapt import to_resolved_components
+        from .resolve import resolve_resilient
+        units, errors = resolve_resilient(list(names), self.cascade, self.components,
+                                          self.mechanisms, self.block, self.version,
+                                          self.cpu, self.pins)
+        return to_resolved_components(units), errors
+
     def resolve_with_roots(self, names):
         from .adapt import to_resolved_components
         units, roots = self._resolve(names)

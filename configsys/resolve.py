@@ -156,6 +156,25 @@ def resolve_roots(names, cascade, components, mechanisms, block, version=None, c
     return st.units, roots
 
 
+def resolve_resilient(names, cascade, components, mechanisms, block, version=None, cpu=None,
+                      pins=None):
+    '''Resilient resolution for the inspect/TUI pipeline: a requested name that can't resolve
+    (unknown, no binding here, or an unsatisfiable requirement) is collected into `errors`
+    instead of aborting the whole set — everything resolvable still resolves. Returns
+    (units, errors) with errors = {requested_name: message}. So one broken component in the
+    active set (e.g. from an auto-activated project profile) can't brick the tool.'''
+    st = _State(cascade, components, mechanisms, cascade.context(block, version, cpu), pins or {})
+    errors = {}
+    for name in names:
+        try:
+            st.add_component(name, root=name)
+        except ResolveError as e:
+            errors[name] = str(e)
+    st.drain(errors=errors)
+    st.propagate_requested()
+    return st.units, errors
+
+
 def _bindable(component, cascade, ctx, pins):
     try:
         select_binding(component, cascade, ctx, pins)
@@ -226,10 +245,18 @@ class _State:
             self.queue.append((key, name, cap, root))
         return frozenset({key})
 
-    def drain(self):
+    def drain(self, errors=None):
+        '''Close requirements to a fixpoint. Strict by default (a missing/ambiguous provider
+        raises). If `errors` is given, catch such failures into it (keyed by the requesting
+        root) and keep going — the requiring unit is still present, just missing that dep.'''
         while self.queue:
             requiring_key, requiring_name, cap, root = self.queue.pop(0)
-            self.units[requiring_key].deps |= self._satisfy(cap, root, requiring_name)
+            try:
+                self.units[requiring_key].deps |= self._satisfy(cap, root, requiring_name)
+            except ResolveError as e:
+                if errors is None:
+                    raise
+                errors.setdefault(root, str(e))
 
     def _satisfy(self, cap, root, requiring):
         if cap in self.inventory:

@@ -106,3 +106,22 @@ def test_provider_pin_disambiguates(tmp_path):
                       pins={'mycap': 'cap-a'}, overrides_path=str(p))
     units = pinned.resolve_names(['needer'])
     assert 'apt\\cap-a' in units and 'apt\\cap-b' not in units
+
+
+# -- resilient resolution (inspect/TUI can't be bricked by one bad entry) --
+
+def test_resolve_resilient_reports_unknown_component():
+    r = Resolver(ROUTES, 'pop_os!', '22.04', 'x86_64')
+    units, errors = r.resolve_resilient(['btop', 'ghost-tool', 'gdb'])
+    assert 'apt\\btop' in units and 'apt\\gdb' in units        # good ones still resolve
+    assert 'apt\\ghost-tool' not in units
+    assert 'ghost-tool' in errors and 'unknown component' in errors['ghost-tool']
+
+
+def test_resolve_resilient_reports_unsatisfiable_requirement(tmp_path):
+    p = tmp_path / 'configsys.hu'
+    p.write_text('{ components: { bash-dotfiles: {} } }')      # remove a required component
+    r = Resolver(ROUTES, 'pop_os!', '22.04', 'x86_64', overrides_path=str(p))
+    units, errors = r.resolve_resilient(['btop', 'best-ps1'])
+    assert 'apt\\btop' in units                               # unrelated component fine
+    assert 'best-ps1' in errors and 'bash-dotfiles' in errors['best-ps1']

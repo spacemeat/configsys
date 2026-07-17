@@ -118,3 +118,15 @@ def test_check_flags_bogus_pin(tmp_path, capsys):
     rc = main(base_args(tmp_path) + ['check'])
     assert rc == 1
     assert "pin 'steam: snapp'" in capsys.readouterr().out
+
+
+def test_inspect_is_resilient_to_a_bad_active_component(tmp_path, capsys):
+    # an active profile with an unroutable component -> that one shows as an error,
+    # the rest still inspect, exit 0 (you can always get past it)
+    (tmp_path / 'configsys.hu').write_text(
+        '{ configs: [ mine ]  profiles: { mine: [ btop, ghost-tool ] } }')
+    rc = main(base_args(tmp_path) + ['inspect'])
+    assert rc == 0
+    out = capsys.readouterr().out
+    assert 'apt\\btop' in out                     # good component still resolved + shown
+    assert 'unresolved' in out and 'ghost-tool' in out
