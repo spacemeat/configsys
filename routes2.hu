@@ -32,19 +32,20 @@
         flatpak:    { install: [ { via: native } ] }
         fontconfig: { install: [ { via: native } ] }
         unzip:      { install: [ { via: native } ] }
-        firefox:    { install: [ { via: native } ] }        // in base repos everywhere (incl. EL)
+        firefox:    { install: [ { via: native  repo-component: universe } ] }   // in base repos everywhere (incl. EL); apt: universe
         python3-pip: { install: [ { via: native  name: { pacman: python-pip } } ] }
         // EL keeps these in EPEL, base repos everywhere else — same two-binding shape as btop.
-        ripgrep: { install: [ { via: native  when: "rhel"  requires: epel }  { via: native } ] }
-        fzf:     { install: [ { via: native  when: "rhel"  requires: epel }  { via: native } ] }
-        xclip:   { install: [ { via: native  when: "rhel"  requires: epel }  { via: native } ] }
+        // `repo-component: universe` is the apt archive area (read only by apt; ignored on dnf/pacman).
+        ripgrep: { install: [ { via: native  when: "rhel"  requires: epel }  { via: native  repo-component: universe } ] }
+        fzf:     { install: [ { via: native  when: "rhel"  requires: epel }  { via: native  repo-component: universe } ] }
+        xclip:   { install: [ { via: native  when: "rhel"  requires: epel }  { via: native  repo-component: universe } ] }
 
         // btop lives in EPEL on EL (needs epel enabled), base repos everywhere else.
         // Two native bindings: the EL one adds `requires: epel`; both are dnf\btop.
         btop: {
             install: [
                 { via: native  when: "rhel"  requires: epel }
-                { via: native }
+                { via: native  repo-component: universe }
             ]
         }
 
@@ -60,7 +61,7 @@
         // apt/dnf/pacman entries + two @version blocks + a rhel override — now three bindings.
         pipx: {
             install: [
-                { via: pip     when: "(ubuntu < 23.04) or (debian < 12)"  name: pipx }
+                { via: pip     when: "(ubuntu < 23.04) or (debian < 12)"  name: pipx  version: { pypi: pipx } }
                 { via: native  when: "rhel"  requires: epel  name: { pacman: python-pipx } }
                 { via: native  name: { pacman: python-pipx } }
             ]
@@ -78,29 +79,30 @@
 
         // native, name differs by manager
         libfuse2: {
-            install: [ { via: native  name: { dnf: fuse-libs  pacman: fuse2  default: libfuse2 } } ]
+            install: [ { via: native  repo-component: universe  name: { dnf: fuse-libs  pacman: fuse2  default: libfuse2 } } ]
         }
         cargo: {
-            install: [ { via: native  name: { pacman: rust } } ]   // the cargo tool ships in `rust` on Arch
+            install: [ { via: native  repo-component: universe  name: { pacman: rust } } ]   // the cargo tool ships in `rust` on Arch
         }
 
         // --- non-native mechanisms with mechanism-level deps ---
         chrome: {
-            install: [ { via: flatpak  app: com.google.Chrome } ]  // -> requires flatpak
+            install: [ { via: flatpak  hub: flathub  app: com.google.Chrome } ]  // -> requires flatpak
         }
         tree-sitter-cli: {
-            install: [ { via: cargo  name: tree-sitter-cli } ]     // -> requires cargo (the tool)
+            install: [ { via: cargo  name: tree-sitter-cli  version: { crates: tree-sitter-cli } } ]
         }
         mononoki-nerd: {
             install: [ { via: debian-font  name: Mononoki          // -> requires fontconfig + unzip
-                         version: { github: ryanoasis/nerd-fonts  asset: "Mononoki.zip" } } ]
+                         version: { github: ryanoasis/nerd-fonts  asset: "Mononoki.zip" }
+                         url: "https://github.com/ryanoasis/nerd-fonts/releases/download/$VERSION/Mononoki.zip" } ]
         }
 
         // when:-varying: native on Pop (the NVIDIA rig), flatpak elsewhere
         steam: {
             install: [
                 { via: native   when: "pop_os!"  name: "steam:i386"  foreign-arch: i386 }
-                { via: flatpak  app: com.valvesoftware.Steam }
+                { via: flatpak  hub: flathub  app: com.valvesoftware.Steam }
             ]
         }
 
@@ -158,9 +160,9 @@
         }
         // vulkan-dev X libs, per OS: Debian ships three; Fedora's libxcb-devel bundles
         // xinput+xinerama (+ xcb-util-cursor-devel); Arch's libxcb does likewise (+ xcb-util-cursor).
-        libxcb-xinput0:        { install: [ { via: native } ] }
-        libxcb-xinerama0:      { install: [ { via: native } ] }
-        libxcb-cursor-dev:     { install: [ { via: native } ] }
+        libxcb-xinput0:        { install: [ { via: native  repo-component: universe } ] }
+        libxcb-xinerama0:      { install: [ { via: native  repo-component: universe } ] }
+        libxcb-cursor-dev:     { install: [ { via: native  repo-component: universe } ] }
         libxcb-devel:          { install: [ { via: native } ] }   // fedora + EL
         xcb-util-cursor-devel: { install: [ { via: native } ] }   // fedora + EL
         libxcb:                { install: [ { via: native } ] }   // arch
@@ -236,7 +238,7 @@
         //   EL     -> `gcc-toolset` (SCL under /opt/rh)
         gcc-13: {
             install: [
-                { via: gcc  when: "debian"  packages: [ gcc-13, g++-13 ]  ppa: ubuntu-toolchain-r/test
+                { via: gcc  when: "debian"  packages: [ gcc-13, g++-13 ]  slaves: [ g++ ]  ppa: ubuntu-toolchain-r/test
                   requires: [ build-essential, software-properties-common, gcc ] }
                 { via: gcc  when: "fedora = 41"  packages: [ gcc13, gcc13-c++ ] }
                 { via: gcc-toolset  when: "rhel" }
@@ -244,7 +246,7 @@
         }
         gcc-14: {
             install: [
-                { via: gcc  when: "debian"  packages: [ gcc-14, g++-14 ]  ppa: ubuntu-toolchain-r/test
+                { via: gcc  when: "debian"  packages: [ gcc-14, g++-14 ]  slaves: [ g++ ]  ppa: ubuntu-toolchain-r/test
                   requires: [ build-essential, software-properties-common, gcc ] }
                 { via: gcc  when: "fedora = 42"  packages: [ gcc14, gcc14-c++ ] }
                 { via: gcc-toolset  when: "rhel" }
@@ -252,7 +254,7 @@
         }
         gcc-15: {
             install: [
-                { via: gcc  when: "debian"  packages: [ gcc-15, g++-15 ]  ppa: ubuntu-toolchain-r/test
+                { via: gcc  when: "debian"  packages: [ gcc-15, g++-15 ]  slaves: [ g++ ]  ppa: ubuntu-toolchain-r/test
                   requires: [ build-essential, software-properties-common, gcc ] }
                 { via: gcc-toolset  when: "rhel" }
             ]

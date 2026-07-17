@@ -27,6 +27,10 @@ class Unit:
         self.package = package
         self.deps = set()
         self.requested_as = set()
+        # install-execution fields (the family reads these off the ResolvedComponent the
+        # builder makes). Populated from the selected binding's details / the dotfiles spec,
+        # minus resolver-only keys; `name` is normalized to the resolved package.
+        self.details = {}
 
     @property
     def key(self):
@@ -78,6 +82,21 @@ def _package(binding, mechanism, component):
         return None                     # a dotfile has no package
     # appImage / deb / tarball / crate / font: the display/dist name
     return binding.details.get('name') or component.name
+
+
+# keys that steer resolution, not installation — never handed to a family.
+_RESOLVER_KEYS = ('requires', 'parts', 'app')
+
+
+def _install_fields(details, package):
+    '''The install-execution fields a family reads, from a binding's details (or an inline
+    dotfiles spec). Resolver-only keys are dropped; `name` is normalized to the concrete
+    resolved package (so flatpak `app:` -> name, native name-maps -> the picked package).'''
+    fields = {k: v for k, v in details.items() if k not in _RESOLVER_KEYS}
+    fields.pop('name', None)
+    if package is not None:
+        fields['name'] = package
+    return fields
 
 
 def resolve_asset(binding, cpu):
@@ -180,6 +199,7 @@ class _State:
             return frozenset({key})
         unit = Unit(mech, name, _package(binding, mech, comp))
         unit.requested_as = {root}
+        unit.details = _install_fields(binding.details, unit.package)
         self.units[key] = unit
         for cap in set(comp.provides) | {name}:
             self.inventory.setdefault(cap, frozenset({key}))
@@ -202,6 +222,7 @@ class _State:
             return
         unit = Unit('dotfiles', name, None)
         unit.requested_as = {root}
+        unit.details = _install_fields(spec, None)
         self.units[key] = unit
         for cap in _as_list(spec.get('requires')):
             self.queue.append((key, name, cap, root))

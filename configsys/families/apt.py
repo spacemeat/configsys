@@ -68,10 +68,34 @@ class Apt(Family):
             return r.stdout.strip()
         return None
 
+    # -- deb mode (a tool shipping an official .deb, not in the apt repos) -
+
+    @staticmethod
+    def _is_deb(rc):
+        '''deb-mode: v2 declares a `deb-source` (github:owner/repo); the legacy shape
+        set `deb: true` alongside a `version:` github spec.'''
+        return bool(rc.fields.get('deb')) or 'deb-source' in rc.fields
+
+    def _deb_spec(self, rc):
+        '''The github version-discovery spec for the .deb, from either field shape:
+        v2 `deb-source` + cpu-keyed `asset` (pick this arch's file), or the legacy
+        `version:` dict. Returns None if not a github .deb.'''
+        src = rc.fields.get('deb-source')
+        if isinstance(src, str) and src.startswith('github:'):
+            asset = rc.fields.get('asset')
+            if isinstance(asset, dict):
+                asset = asset.get(self._arch())
+            return {'github': src.split(':', 1)[1], 'asset': asset}
+        return None
+
+    def _disco_spec(self, rc):
+        # base reads fields['version'] (legacy); v2 deb builds the spec from deb-source.
+        return super()._disco_spec(rc) or self._deb_spec(rc)
+
     def get_latest(self, rc):
-        # a `deb`-mode component isn't in the apt repos; its latest is the version
+        # a deb-mode component isn't in the apt repos; its latest is the version
         # discovery spec (e.g. the github release the .deb comes from)
-        if rc.fields.get('deb'):
+        if self._is_deb(rc):
             return self.resolve_version(rc)
         pkg = shlex.quote(rc.name)
         r = self.runner.run(f'apt-cache policy {pkg}')
@@ -105,7 +129,7 @@ class Apt(Family):
 
     def install(self, rc):
         self.ensure_prereqs(rc)
-        if rc.fields.get('deb'):
+        if self._is_deb(rc):
             return self._install_deb(rc)
         pkg = shlex.quote(rc.name)
         return self.runner.run(f'apt-get install -y {pkg}', sudo=True, capture=False)
@@ -116,7 +140,7 @@ class Apt(Family):
 
     def upgrade(self, rc):
         self.ensure_prereqs(rc)
-        if rc.fields.get('deb'):
+        if self._is_deb(rc):
             return self._install_deb(rc)   # re-fetch the latest release .deb
         pkg = shlex.quote(rc.name)
         return self.runner.run(f'apt-get install --only-upgrade -y {pkg}',
@@ -124,7 +148,7 @@ class Apt(Family):
 
     def set_version(self, rc, version):
         self.ensure_prereqs(rc)
-        if rc.fields.get('deb'):
+        if self._is_deb(rc):
             return self._install_deb(rc)   # the .deb tracks the discovered version
         pkg = shlex.quote(rc.name)
         ver = shlex.quote(version)
