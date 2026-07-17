@@ -6,20 +6,29 @@ from configsys.paths import Paths
 def test_defaults_from_home():
     p = Paths(env={'HOME': '/home/alice'})
     assert p.home == Path('/home/alice')
-    assert p.user_config_file == Path('/home/alice/configsys.hu')
     assert p.state_dir == Path('/home/alice/.config/configsys')
+    assert p.user_config_file == Path('/home/alice/.config/configsys/configsys.hu')
+    assert p.legacy_user_config_file == Path('/home/alice/configsys.hu')
     assert p.ledger_file == Path('/home/alice/.config/configsys/state.hu')
 
 
-def test_configsys_home_overrides_home():
+def test_configsys_home_overrides_home_and_sandboxes_state():
     p = Paths(env={'HOME': '/home/alice', 'CONFIGSYS_HOME': '/tmp/sandbox'})
     assert p.home == Path('/tmp/sandbox')
-    assert p.user_config_file == Path('/tmp/sandbox/configsys.hu')
+    assert p.state_dir == Path('/tmp/sandbox/.config/configsys')
+    assert p.user_config_file == Path('/tmp/sandbox/.config/configsys/configsys.hu')
+
+
+def test_configsys_home_wins_over_xdg():
+    # a sandbox home must contain everything, even when XDG_CONFIG_HOME is set in the env
+    p = Paths(env={'HOME': '/home/alice', 'XDG_CONFIG_HOME': '/xdg', 'CONFIGSYS_HOME': '/tmp/sb'})
+    assert p.state_dir == Path('/tmp/sb/.config/configsys')
 
 
 def test_xdg_config_home_respected():
     p = Paths(env={'HOME': '/home/alice', 'XDG_CONFIG_HOME': '/xdg'})
     assert p.state_dir == Path('/xdg/configsys')
+    assert p.user_config_file == Path('/xdg/configsys/configsys.hu')
 
 
 def test_explicit_overrides():

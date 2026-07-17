@@ -13,7 +13,7 @@ Every system we care about either comes with a version of python3, or that must 
 
 The application should be python3, and so python3 and humon must be the first to synchronize; this can be done via bash, since we need these components for the rest of the app. The app should be an interactive TUI, and slick looking on a 24-bit RGB terminal. It should be menu-driven, with single-key actions and menu navigation via VIM-like controls.
 
-On start, a file called configsys.hu should be present in ~. If it is not, one must be generated from a template config from the repo. If it contains a top-level node called 'configs' with a single value or list, those values are the profiles that concern this installation. For each profile that matches another top-level node (example: dev) the app will search the system to find all the installed components already on the system and evaluate their versions. From that known state, an interactive menu will let user:
+On start, the user config file (~/.config/configsys/configsys.hu; a legacy ~/configsys.hu is migrated there) should be present. If it is not, one must be generated from a template config from the repo. If it contains a top-level node called 'configs' with a single value or list, those values are the profiles that concern this installation. For each profile that matches another top-level node (example: dev) the app will search the system to find all the installed components already on the system and evaluate their versions. From that known state, an interactive menu will let user:
 
 - view the install state of each component
 - interactively mark installed components for an operation (upgrade, remove, etc)
@@ -43,11 +43,11 @@ Resolution (resolve.py) is a worklist to a fixpoint over one fixed machine conte
 explicitly-wanted components + what they provide, then close `requires` reusing existing/
 env-provided providers; no backtracking (unsatisfiable/ambiguous = error); dedup by unit key.
 Per-machine `pins` (binding-pin component->via, provider-pin capability->provider) sit at top
-precedence — set in `~/configsys.hu`'s `pins:` section (the light reroute that doesn't require
+precedence — set in `~/.config/configsys/configsys.hu`'s `pins:` section (the light reroute that doesn't require
 redefining a component). The result is `{unit_key: ResolvedComponent}` (`family\comp`), which
 the families consume unchanged.
 
-The user file `~/configsys.hu` overlays the repo section by section: `configs:`/`scope:`
+The user file `~/.config/configsys/configsys.hu` overlays the repo section by section: `configs:`/`scope:`
 (machine settings), `profiles:` (shadowed per name), `components:` (route overrides — redefine
 all-or-nothing, add, or remove with `{}`), and `pins:`. `configsys where <component>` explains
 a component's source layer + resolution; `configsys check` lints the whole merged config.

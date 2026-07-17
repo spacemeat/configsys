@@ -35,6 +35,11 @@ USER_CONFIG_TEMPLATE = '''{
     // Machine-wide default install scope for scope-honoring families (user | system).
     // scope: system
 
+    // Project discovery walks up from the CWD for .configsys.hu / .configsys-*.hu and
+    // auto-activates their profiles. Turn it off, or suppress specific profiles:
+    // discover: false
+    // ignore-profiles: [ some-profile ]
+
     // Pins — the light way to reroute without redefining a component:
     //   component -> mechanism  (binding-pin: force a method)
     //   capability -> component  (provider-pin: force who satisfies a requirement)
@@ -82,6 +87,17 @@ class Context:
         self._config = None
         self._discovered = None
         self.resolve_errors = {}      # {requested_name: message} from the last resilient resolve
+        self._migrate_user_config()
+
+    def _migrate_user_config(self):
+        '''One-time move of a legacy ~/configsys.hu into ~/.config/configsys/configsys.hu.'''
+        if self.env.get('CONFIGSYS_CONFIG'):
+            return                                       # explicit path -> nothing to migrate
+        new, legacy = self.paths.user_config_file, self.paths.legacy_user_config_file
+        if not new.exists() and legacy.exists() and legacy != new:
+            new.parent.mkdir(parents=True, exist_ok=True)
+            legacy.rename(new)
+            print(f'configsys: moved {legacy} -> {new}')
 
     def _cpu(self):
         '''System CPU arch for routing ($ARCH assets, cpu: when-atoms).'''
@@ -94,12 +110,18 @@ class Context:
         the CWD to the nearest project root. Disabled by CONFIGSYS_NO_DISCOVER.'''
         if self._discovered is None:
             from . import layers
-            if self.env.get('CONFIGSYS_NO_DISCOVER'):
+            if self.env.get('CONFIGSYS_NO_DISCOVER') or self._discovery_disabled():
                 self._discovered = []
             else:
                 start = self.env.get('CONFIGSYS_CWD') or os.getcwd()
                 self._discovered = layers.discover(start, str(self.paths.home))
         return self._discovered
+
+    def _discovery_disabled(self):
+        '''`discover: false` in the user config (read directly, before the layer stack).'''
+        from . import layers
+        val = layers.read_setting(self.paths.user_config_file, 'discover')
+        return val is not None and str(val).lower() in ('false', 'no', '0', 'off')
 
     def discovery_warnings(self):
         '''Warnings for discovered files that were skipped (malformed/cyclic).'''
@@ -316,12 +338,20 @@ def _fmt_binding(b, selected):
     return f'    - via {b.via}   when: {when}' + (f'   {details}' if details else '') + mark
 
 
+def _layer_label(source, paths):
+    '''A friendly label for a source file: 'routes.hu' for the repo routing base, else the
+    path with $HOME collapsed to ~ (so user/discovered/included files show where they live).'''
+    if source in (str(paths.routes_file), paths.routes_file):
+        return 'routes.hu'
+    s, home = str(source), str(paths.home)
+    return '~' + s[len(home):] if home and s.startswith(home) else s
+
+
 def _source_label(comp, paths):
     '''Human provenance line for a component's definition.'''
-    if comp.source == str(paths.routes_file) or comp.source == paths.routes_file:
+    where = _layer_label(comp.source, paths)
+    if where == 'routes.hu':
         return 'routes.hu'
-    where = '~/configsys.hu' if (comp.source == str(paths.user_config_file)
-                                 or comp.source == paths.user_config_file) else str(comp.source)
     if not comp.bindings:
         return f'{where}   (removes routes.hu\'s definition)' if comp.shadows else \
                f'{where}   (defined empty / removed)'
@@ -388,11 +418,7 @@ def cmd_where(ctx, args):
 def _issue_loc(issue, paths):
     if issue.component is None:
         return ''
-    src = ''
-    if issue.source in (str(paths.user_config_file), paths.user_config_file):
-        src = ' [~/configsys.hu]'
-    elif issue.source in (str(paths.routes_file), paths.routes_file):
-        src = ' [routes.hu]'
+    src = f' [{_layer_label(issue.source, paths)}]' if issue.source else ''
     return f"component '{issue.component}'{src}: "
 
 

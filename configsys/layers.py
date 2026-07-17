@@ -20,7 +20,7 @@ import humon
 from .errors import ConfigError
 
 _DEFINITION_SECTIONS = ('components', 'profiles')
-_SETTING_SECTIONS = ('configs', 'scope', 'pins', 'ignore-profiles')
+_SETTING_SECTIONS = ('configs', 'scope', 'pins', 'ignore-profiles', 'discover')
 _REPO_SECTIONS = ('os', 'mechanisms')
 
 
@@ -45,6 +45,18 @@ def materialize_string(text):
     '''Materialize a humon string to python (for tests / in-memory layers).'''
     trove = humon.from_string(text)           # keep alive during the walk
     return materialize(trove.root) or {}
+
+
+def read_setting(path, key):
+    '''Peek one top-level setting from a single file (no include expansion), or None. For
+    settings that must be known before the layer stack is built (e.g. `discover:`).'''
+    if path is None or not os.path.exists(str(path)):
+        return None
+    try:
+        trove = humon.from_file(str(path))    # keep alive during the walk
+        return (materialize(trove.root) or {}).get(key)
+    except Exception:                         # noqa: BLE001 — a broken file just means "unset"
+        return None
 
 
 def _as_list(v):

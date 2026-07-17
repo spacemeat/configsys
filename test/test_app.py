@@ -10,10 +10,35 @@ def base_args(tmp_path):
 def test_inspect_generates_user_config_and_exits_zero(tmp_path, capsys):
     rc = main(base_args(tmp_path) + ['inspect'])
     assert rc == 0
-    assert (tmp_path / 'configsys.hu').exists()
+    assert (tmp_path / '.config' / 'configsys' / 'configsys.hu').exists()   # XDG location
     out = capsys.readouterr().out
     assert 'OS: pop_os!' in out
     assert 'profiles: dev' in out
+
+
+def test_legacy_user_config_is_migrated(tmp_path, capsys):
+    # an old ~/configsys.hu is moved to ~/.config/configsys/configsys.hu on first run
+    legacy = tmp_path / 'configsys.hu'
+    legacy.write_text('{ configs: [ mine ]  profiles: { mine: [ btop ] } }')
+    rc = main(base_args(tmp_path) + ['inspect'])
+    assert rc == 0
+    new = tmp_path / '.config' / 'configsys' / 'configsys.hu'
+    assert new.exists() and not legacy.exists()          # moved
+    out = capsys.readouterr().out
+    assert 'moved' in out and 'profiles: mine' in out     # migrated + its config in effect
+
+
+def test_discover_false_in_user_config_disables_discovery(tmp_path, capsys, monkeypatch):
+    cfgdir = tmp_path / '.config' / 'configsys'
+    cfgdir.mkdir(parents=True)
+    (cfgdir / 'configsys.hu').write_text('{ configs: [ ]  discover: false }')
+    proj = tmp_path / 'proj'
+    proj.mkdir()
+    (proj / '.configsys.hu').write_text('{ profiles: { app-run: [ btop ] } }')
+    monkeypatch.setenv('CONFIGSYS_CWD', str(proj))
+    rc = main(base_args(tmp_path) + ['inspect'])
+    assert rc == 0
+    assert 'app-run' not in capsys.readouterr().out       # discovery disabled by config
 
 
 def test_pretend_install_emits_apt_command_without_executing(tmp_path, capsys):
@@ -93,7 +118,7 @@ def test_check_reports_errors_and_warnings_with_exit_code(tmp_path, capsys):
     assert "via:'zypper' is not a known mechanism" in out
     assert "profile 'mine': unknown component 'ghosttool'" in out
     assert 'warn' in out and "requires 'nope'" in out
-    assert '~/configsys.hu' in out                   # attributed to the user file
+    assert '.config/configsys/configsys.hu' in out   # attributed to the user file (XDG path)
 
 
 def test_where_shows_active_pin(tmp_path, capsys):

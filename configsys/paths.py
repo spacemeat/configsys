@@ -32,16 +32,23 @@ class Paths:
         self.config_file = self.repo / 'config.hu'
         self.dotfiles_dir = self.repo / 'dotfiles'   # source tree for the dotfiles family
 
-        uc = self.env.get('CONFIGSYS_CONFIG')
-        self.user_config_file = Path(uc) if uc else self.home / 'configsys.hu'
-
+        # state dir (holds the ledger, the version cache, AND the user config). XDG by
+        # default; CONFIGSYS_HOME wins over XDG so `--home` fully sandboxes everything.
         sd = self.env.get('CONFIGSYS_STATE_DIR')
         if sd:
             self.state_dir = Path(sd)
+        elif self.env.get('CONFIGSYS_HOME'):
+            self.state_dir = self.home / '.config' / 'configsys'
         else:
             xdg = self.env.get('XDG_CONFIG_HOME')
             base = Path(xdg) if xdg else self.home / '.config'
             self.state_dir = base / 'configsys'
+
+        # user config lives with state (XDG): ~/.config/configsys/configsys.hu. The old
+        # ~/configsys.hu is migrated there on first run (Context._migrate_user_config).
+        uc = self.env.get('CONFIGSYS_CONFIG')
+        self.user_config_file = Path(uc) if uc else self.state_dir / 'configsys.hu'
+        self.legacy_user_config_file = self.home / 'configsys.hu'
         self.ledger_file = self.state_dir / 'state.hu'
         self.versions_file = self.state_dir / 'versions.hu'   # discovered-version cache
 
