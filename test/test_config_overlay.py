@@ -1,14 +1,15 @@
-import humon as h
 import pytest
 
+from configsys import layers
 from configsys.config import Config
 from configsys.errors import ConfigError
 
 
 def cfg(config_text, user_text=None):
-    ct = h.from_string(config_text)
-    ut = h.from_string(user_text) if user_text is not None else None
-    return Config(ct, ut)
+    ls = [layers.Layer('config.hu', 'repo', layers.materialize_string(config_text))]
+    if user_text is not None:
+        ls.append(layers.Layer('user.hu', 'user', layers.materialize_string(user_text)))
+    return Config(ls)
 
 
 REPO = '''{

@@ -6,29 +6,8 @@ holds to turn a profile's component names into the `{key: ResolvedComponent}` cl
 this machine's context. Resolution itself lives in resolve.py; the RC marshalling in adapt.py.
 '''
 
-import os
-
-import humon
-
-from . import predicate
+from . import layers, predicate
 from .errors import ConfigError
-
-
-def _py(node):
-    '''humon node -> python (dict / list / str), or None for a missing node.'''
-    if node is None:
-        return None
-    kind = node.kind
-    if kind == humon.NodeKind.DICT:
-        out = {}
-        for i in range(node.num_children):
-            ch = node[i]
-            if ch.key:
-                out[ch.key] = _py(ch)
-        return out
-    if kind == humon.NodeKind.LIST:
-        return [_py(node[i]) for i in range(node.num_children)]
-    return node.value
 
 
 class Binding:
@@ -117,53 +96,31 @@ class OsCascade:
         return predicate.Context(self.lineage(block), version, cpu, self.scale_roots)
 
 
-def _user_components(overrides_path):
-    '''The `components:` section of the user's ~/configsys.hu (or {} if none / no file).
-    Only components overlay; the user file's os/mechanisms/profiles/etc. are ignored here.'''
-    if overrides_path is None or not os.path.exists(overrides_path):
-        return {}
-    try:
-        trove = humon.from_file(overrides_path)
-        return _py(trove.root['components']) or {}
-    except ConfigError:
-        raise
-    except Exception as e:
-        raise ConfigError(f'{overrides_path}: could not read overrides ({e})')
-
-
 def load(path, overrides_path=None, validate=True):
     '''-> (OsCascade, {component_name: Component}, {mechanism: [required caps]}).
 
-    `path` (routes.hu) is the base. `overrides_path` (the user's ~/configsys.hu, optional)
-    may carry a `components:` section that overlays the base PER COMPONENT NAME: the user's
-    definition wins wholesale (all-or-nothing), adds a new component, or removes one with `{}`
-    (a zero-binding component that resolves to nothing). os/mechanisms are not overridable here.
-
-    The trove must stay alive while _py walks its nodes; once materialized to plain python the
-    returned objects don't need it. With validate=True, an ambiguous merged set is rejected up
-    front (AmbiguityError).
+    `path` (routes.hu) is the base repo layer. `overrides_path` (the user's ~/configsys.hu,
+    optional) and any files it (or routes.hu) `include:` overlay it: components merge PER NAME
+    (later layer wins — redefine wholesale, add, or remove with `{}`), while os/mechanisms stay
+    repo-only. With validate=True, an ambiguous merged set is rejected up front (AmbiguityError).
     '''
-    trove = humon.from_file(path)
-    root = trove.root
-    os_dict = _py(root['os']) or {}
-    comps = _py(root['components']) or {}
-    mechs = _py(root['mechanisms']) or {}
+    roots = [(path, 'repo')]
+    if overrides_path is not None:
+        roots.append((overrides_path, 'user'))
+    layer_list = layers.expand(roots)          # include graphs expanded, cycle-checked
 
-    cascade = OsCascade(os_dict)
+    cascade = OsCascade(layers.repo_section(layer_list, 'os'))
     components = {}
-    for name, spec in comps.items():
-        comp = Component(name, spec)
-        comp.source = path
-        components[name] = comp
-    for name, spec in _user_components(overrides_path).items():
+    for name, (spec, src, shadows) in layers.merge_named(layer_list, 'components').items():
         try:
-            comp = Component(name, spec)                 # user wins; {} -> removed
+            comp = Component(name, spec or {})
         except ConfigError as e:
-            raise ConfigError(f'{overrides_path}: {e}')
-        comp.source = overrides_path
-        comp.shadows = name in components
+            raise ConfigError(f'{src}: {e}')
+        comp.source = src
+        comp.shadows = shadows
         components[name] = comp
 
+    mechs = layers.repo_section(layer_list, 'mechanisms')
     mechanisms = {name: _as_list((spec or {}).get('requires')) for name, spec in mechs.items()}
     if validate:
         from . import routecheck

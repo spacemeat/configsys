@@ -47,11 +47,20 @@ precedence — set in `~/configsys.hu`'s `pins:` section (the light reroute that
 redefining a component). The result is `{unit_key: ResolvedComponent}` (`family\comp`), which
 the families consume unchanged.
 
-The user file `~/configsys.hu` (see configsys/config.py + the overlay in configsys/routes.py)
-overlays the repo section by section: `configs:`/`scope:` (machine settings), `profiles:`
-(shadowed per name), `components:` (route overrides — redefine all-or-nothing, add, or remove
-with `{}`), and `pins:`. `configsys where <component>` explains a component's source layer +
-resolution; `configsys check` lints the whole merged config.
+The user file `~/configsys.hu` overlays the repo section by section: `configs:`/`scope:`
+(machine settings), `profiles:` (shadowed per name), `components:` (route overrides — redefine
+all-or-nothing, add, or remove with `{}`), and `pins:`. `configsys where <component>` explains
+a component's source layer + resolution; `configsys check` lints the whole merged config.
+
+**Layer stack (configsys/layers.py).** Every config/routes file is a LAYER; a file may
+`include:` others (paths relative to the including file's directory). Layers overlay
+lowest-first — repo (routes.hu + config.hu) < an included file < the file including it < the
+top user file — merging by section and, for components/profiles, by name. Includes are
+DEFINITIONS-ONLY: their `components:`/`profiles:` merge in, but `configs:`/`scope:`/`pins:`
+(machine settings) and `os:`/`mechanisms:` (code-adjacent) are ignored (a `check` warning).
+Cycles/missing files error clearly; provenance (`Component.source`, `Config.profile_source`)
+flows through so `where`/`check` attribute to the right file. This is the shared substrate the
+plugin model will reuse — a plugin is just another source in the stack.
 
 Families are defined in code according to their major operations: getVersion, install,
 uninstall, upgrade, setVersion, lockVersion, unlockVersion. apt has various commands for doing

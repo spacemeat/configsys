@@ -25,7 +25,11 @@ USER_CONFIG_TEMPLATE = '''{
     // configsys — this machine's settings and overrides. Overlays the repo's
     // config.hu + routes.hu section by section (your definitions win).
 
-    // Which profiles (from the repo's config.hu, or your `profiles:` below) apply here.
+    // Pull in other files (profiles + components; definitions-only). Relative paths
+    // resolve against THIS file's directory. Handy for per-project dependency sets.
+    // include: [ ~/src/myproject/configsys.hu ]
+
+    // Which profiles (from the repo's config.hu, your `profiles:`, or an include) apply here.
     configs: [ dev ]
 
     // Machine-wide default install scope for scope-honoring families (user | system).
@@ -354,16 +358,20 @@ def _issue_loc(issue, paths):
 
 
 def cmd_check(ctx, args):
-    '''Lint the whole merged config (repo + your ~/configsys.hu) without installing.'''
-    from . import routes, routecheck
+    '''Lint the whole merged config (repo + your ~/configsys.hu + includes) without installing.'''
+    from . import layers, routes, routecheck
     try:
         cascade, components, mechanisms = routes.load(
             ctx.paths.routes_file, ctx.paths.user_config_file, validate=False)
+        layer_list = layers.expand([(ctx.paths.routes_file, 'repo'),
+                                    (ctx.paths.config_file, 'repo'),
+                                    (ctx.paths.user_config_file, 'user')])
     except ConfigsysError as e:
         print(f'configsys: {e}')          # a parse/structural error before we can lint
         return 1
 
     issues = routecheck.validate(components, cascade, mechanisms)
+    include_warnings = layers.include_warnings(layer_list)
 
     # profile references: a selected profile naming a component that doesn't exist
     prof_issues = []
@@ -389,7 +397,7 @@ def cmd_check(ctx, args):
 
     errors = [i for i in issues if i.is_error]
     warnings = [i for i in issues if not i.is_error]
-    if not errors and not warnings and not prof_issues and not pin_issues:
+    if not errors and not warnings and not prof_issues and not pin_issues and not include_warnings:
         print(f'configsys: OK — {len(components)} components, no issues')
         return 0
 
@@ -401,8 +409,11 @@ def cmd_check(ctx, args):
         print(f'  ERROR   {msg}')
     for i in warnings:
         print(f'  warn    {_issue_loc(i, ctx.paths)}{i.message}')
+    for msg in include_warnings:
+        print(f'  warn    {msg}')
     n_err = len(errors) + len(prof_issues) + len(pin_issues)
-    print(f'\nconfigsys: {n_err} error(s), {len(warnings)} warning(s) '
+    n_warn = len(warnings) + len(include_warnings)
+    print(f'\nconfigsys: {n_err} error(s), {n_warn} warning(s) '
           f'across {len(components)} components')
     return 1 if n_err else 0
 

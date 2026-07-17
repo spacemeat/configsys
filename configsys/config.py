@@ -1,107 +1,60 @@
-'''config.py — load profile definitions and the per-machine selection.
+'''config.py — the per-machine selection + profile definitions, over the layer stack.
 
-Two troves overlay, section by section:
-  * repo config.hu  — shared, git-synced `profiles: { ... }` definitions (source of truth)
-  * ~/configsys.hu  — this machine's `configs: [...]` selection + `scope:` + optional
-                      `profiles:`/`components:`/`pins:` overrides
-
-`configs` and `scope` are top-level machine settings (user file wins). Profiles live in a
-`profiles:` section; a profile named in the user's section shadows the repo's same-named
-one (per-name overlay). A profile is a flat list of component names; nested values are
-tolerated and flattened to leaf names. (`components:`/`pins:` sections are consumed by the
-resolver, not here.)
+Reads from the shared layer engine (layers.py): the repo config.hu is the base, an included
+file sits below the file that includes it, and the user ~/configsys.hu wins. `configs` (which
+profiles apply) and `scope` are machine SETTINGS — from the repo/user files, not includes.
+`profiles:` are DEFINITIONS — merged per name across all layers (so an included project file
+can contribute a profile). `pins:` likewise (repo/user). Values flatten to leaf names.
 '''
 
-import humon as h
-
+from . import layers
 from .errors import ConfigError
-from .troveio import load
-
-VALUE = h.NodeKind.VALUE
-LIST = h.NodeKind.LIST
 
 
-def _values(node):
-    '''`configs` may be a single value or a list.'''
-    if node.kind == VALUE:
-        return [node.value]
-    return _leaf_values(node)
-
-
-def _leaf_values(node):
-    '''All leaf scalar values under a node, in order (flattens any nesting).'''
-    if node.kind == VALUE:
-        return [node.value]
-    out = []
-    for i in range(node.num_children):
-        out.extend(_leaf_values(node[i]))
-    return out
+def _leaves(v):
+    '''Flatten a profile / configs value to its leaf scalar names (lists + nested dicts).'''
+    if isinstance(v, list):
+        return [leaf for x in v for leaf in _leaves(x)]
+    if isinstance(v, dict):
+        return [leaf for x in v.values() for leaf in _leaves(x)]
+    return [] if v is None else [v]
 
 
 class Config:
-    def __init__(self, config_trove, user_trove=None):
-        self.config_trove = config_trove      # keep alive
-        self.user_trove = user_trove          # keep alive
-        self._c = config_trove.root
-        self._u = user_trove.root if user_trove is not None else None
+    def __init__(self, layer_list):
+        self._layers = layer_list
+        self._profiles = layers.merge_named(layer_list, 'profiles')   # name -> (val, src, shadows)
 
     @classmethod
     def load(cls, paths):
-        config_trove = load(paths.config_file)
-        user_trove = None
-        if paths.user_config_file.exists():
-            user_trove = load(paths.user_config_file)
-        return cls(config_trove, user_trove)
-
-    def _get(self, key):
-        '''Top-level node (configs / scope), user file overriding repo file.'''
-        if self._u is not None:
-            n = self._u[key]
-            if n is not None:
-                return n
-        return self._c[key]
-
-    def _profile_node(self, name):
-        '''A profile from the `profiles:` section, user file overriding repo per profile
-        name (so the user can shadow one profile without replacing the whole section).'''
-        for root in (self._u, self._c):
-            if root is None:
-                continue
-            section = root['profiles']
-            if section is not None and section[name] is not None:
-                return section[name]
-        return None
+        roots = [(paths.config_file, 'repo'), (paths.user_config_file, 'user')]
+        return cls(layers.expand(roots))
 
     @property
     def active_profiles(self):
-        node = self._get('configs')
-        return _values(node) if node is not None else []
+        return _leaves(layers.merge_scalar(self._layers, 'configs', ('repo', 'user')))
 
     def default_scope(self):
-        '''Machine-wide install scope default (top-level `scope` in either file),
-        or None to let each family use its own default.'''
-        node = self._get('scope')
-        return node.value if node is not None and node.kind == VALUE else None
+        v = layers.merge_scalar(self._layers, 'scope', ('repo', 'user'))
+        return v if isinstance(v, str) else None
 
     def pins(self):
-        '''The per-machine `pins:` map: component -> via (binding-pin, forces a method) and
-        capability -> provider (provider-pin, forces which component satisfies a requires).
-        One flat dict; the resolver reads it by component name and by capability. Empty if none.'''
-        node = self._get('pins')
-        out = {}
-        if node is not None:
-            for i in range(node.num_children):
-                ch = node[i]
-                if ch.key and ch.kind == VALUE:
-                    out[ch.key] = ch.value
-        return out
+        v = layers.merge_scalar(self._layers, 'pins', ('repo', 'user'))
+        return {k: val for k, val in v.items()
+                if not isinstance(val, (dict, list))} if isinstance(v, dict) else {}
 
     def profile_components(self, profile):
-        node = self._profile_node(profile)
-        if node is None:
-            raise ConfigError(f'profile "{profile}" is selected but not defined '
-                              f'(add it under `profiles:` in config.hu or ~/configsys.hu)')
-        return _leaf_values(node)
+        entry = self._profiles.get(profile)
+        if entry is None:
+            raise ConfigError(
+                f'profile "{profile}" is selected but not defined '
+                f'(add it under `profiles:` in config.hu, ~/configsys.hu, or an included file)')
+        return _leaves(entry[0])
+
+    def profile_source(self, profile):
+        '''The file a selected profile's definition came from (provenance), or None.'''
+        entry = self._profiles.get(profile)
+        return entry[1] if entry is not None else None
 
     def requested(self):
         '''Ordered {component_name: [profiles that requested it]} across active profiles.'''
