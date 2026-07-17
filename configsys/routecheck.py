@@ -6,7 +6,7 @@ of the other. If every overlapping pair is comparable, resolution is provably
 unambiguous for every possible machine. Any overlapping-but-incomparable pair is a
 load-time error, pointing at a witness context — never a silent tiebreak.
 
-Run check_all() when loading routes2 to reject an ambiguous routes file up front.
+Run check_all() when loading routes.hu to reject an ambiguous routes file up front.
 '''
 
 from itertools import combinations

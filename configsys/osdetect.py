@@ -3,8 +3,8 @@
 Reads /etc/os-release ID (and ID_LIKE as fallback context) and maps it to the
 routes block name. The names differ in one important case: os-release reports
 `ID=pop` for Pop!_OS, while the routes block is named `pop_os!`. VERSION_ID
-(e.g. "22.04", "12") is also read; it selects version variants of a block in the
-cascade (see osversion / RouteResolver).
+(e.g. "22.04", "12") is also read; it feeds the `when:` version atoms during
+resolution (see predicate / the routes Resolver).
 
 CONFIGSYS_OS overrides detection entirely; CONFIGSYS_OS_VERSION overrides the
 version (both used by tests and to force a cascade without being on that distro).

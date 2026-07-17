@@ -1,466 +1,297 @@
+// routing-model v2 data (see docs/routing-model.md). Built in parallel with routes.hu;
+// components are ported here and proven equivalent by test/test_v2_equivalence.py.
 {
-    \apt: {
-        cargo: { name: cargo  repo-component: universe }
-        btop: { name: btop  repo-component: universe }
-        xclip: { name: xclip  repo-component: universe }
-        build-essential: { name: build-essential }
-        fzf: { name: fzf  repo-component: universe }
-        ripgrep: { name: ripgrep  repo-component: universe }
-        libxcb-xinput0: { name: libxcb-xinput0 repo-component: universe }
-        libxcb-xinerama0: { name: libxcb-xinerama0 repo-component: universe }
-        libxcb-cursor-dev: { name: libxcb-cursor-dev repo-component: universe }
-        libvulkan1: { name: libvulkan1 }                          // Vulkan loader
-        mesa-vulkan-drivers: { name: mesa-vulkan-drivers }        // ICDs (RADV/ANV + lavapipe)
-        flatpak: { name: flatpak }
-        curl: { name: curl }
-        libfuse2: { name: libfuse2 repo-component: universe }
-        firefox: { name: firefox repo-component: universe }
-        fontconfig: { name: fontconfig }
-        unzip: { name: unzip }
-        software-properties-common: { name: software-properties-common }
-        // fastfetch isn't in any Ubuntu (or Debian <=12) repo, but ships an official
-        // .deb per release — install that (deb mode), tracked via the github version.
-        fastfetch: {
-            name: fastfetch
-            version: { github: fastfetch-cli/fastfetch  asset: "fastfetch-linux-amd64.deb" }
-            deb: true
+    // OS layer: lineage (`using`) + which package manager is `native` + version scales.
+    // `provides:` lists capabilities baseline in that environment (satisfied for free).
+    os: {
+        linux:   { }
+        debian:  { using: linux    native: apt      scale-root: true }
+        ubuntu:  { using: debian    scale-root: true }
+        pop_os!: { using: ubuntu }
+        redhat:  { using: linux     native: dnf }                   // fedora + EL share dnf
+        fedora:  { using: redhat    scale-root: true }              // fedora proper (YY release)
+        rhel:    { using: redhat    scale-root: true }              // EL (Rocky/Alma/RHEL, N release)
+        arch:    { using: linux     native: pacman }
+    }
+
+    // Mechanism config: dependencies inherent to a mechanism (the old family !depends).
+    mechanisms: {
+        flatpak:     { requires: flatpak }
+        appImage:    { requires: libfuse2 }
+        cargo:       { requires: cargo }              // a crate needs the cargo tool
+        debian-font: { requires: [ fontconfig, unzip ] }
+        pip:         { requires: python3-pip }        // `pip install --user` needs pip
+        pipx:        { requires: pipx }               // a PyPI CLI needs the pipx tool
+        tarball:     { requires: curl }               // fetch the archive with curl
+        aur:         { requires: [ base-devel, git ] } // makepkg -si builds from PKGBUILD
+    }
+
+    // Component layer: each is a capability + a list of context-selected bindings.
+    components: {
+        // --- trivial natives ---
+        flatpak:    { install: [ { via: native } ] }
+        fontconfig: { install: [ { via: native } ] }
+        unzip:      { install: [ { via: native } ] }
+        firefox:    { install: [ { via: native  repo-component: universe } ] }   // in base repos everywhere (incl. EL); apt: universe
+        python3-pip: { install: [ { via: native  name: { pacman: python-pip } } ] }
+        // EL keeps these in EPEL, base repos everywhere else — same two-binding shape as btop.
+        // `repo-component: universe` is the apt archive area (read only by apt; ignored on dnf/pacman).
+        ripgrep: { install: [ { via: native  when: "rhel"  requires: epel }  { via: native  repo-component: universe } ] }
+        fzf:     { install: [ { via: native  when: "rhel"  requires: epel }  { via: native  repo-component: universe } ] }
+        xclip:   { install: [ { via: native  when: "rhel"  requires: epel }  { via: native  repo-component: universe } ] }
+
+        // btop lives in EPEL on EL (needs epel enabled), base repos everywhere else.
+        // Two native bindings: the EL one adds `requires: epel`; both are dnf\btop.
+        btop: {
+            install: [
+                { via: native  when: "rhel"  requires: epel }
+                { via: native  repo-component: universe }
+            ]
         }
-        python3-pip: { name: python3-pip }
-        pipx: { name: pipx }               // apt pipx (Ubuntu >=23.04 / Debian >=12)
-    }
 
-    \dnf: {
-        // Fedora/RHEL package names (rpm world). Many match Debian; the ones that
-        // differ are translated here via each entry's `name` (e.g. libfuse2 ->
-        // fuse-libs; the -dev -> -devel convention; build-essential has no single
-        // package -> a dev-tools group, deferred). Verified against Fedora 41.
-        btop: { name: btop }
-        curl: { name: curl }
-        fzf: { name: fzf }
-        ripgrep: { name: ripgrep }
-        xclip: { name: xclip }
-        flatpak: { name: flatpak }
-        fontconfig: { name: fontconfig }
-        unzip: { name: unzip }
-        python3-pip: { name: python3-pip }
-        pipx: { name: pipx }               // dnf pipx (Fedora >=32) — no bootstrap needed
-        cargo: { name: cargo }
-        firefox: { name: firefox }         // Fedora ships firefox natively
-        fastfetch: { name: fastfetch }     // native (Fedora repos; EPEL on EL)
-        libfuse2: { name: fuse-libs }      // FUSE2 runtime that appImages need
-        // build-essential's parts (bundled below): the C++ package name has a `+`,
-        // so it gets a `+`-free component key with the real name in `name`.
-        gcc: { name: gcc }
-        gcc-cpp: { name: "gcc-c++" }
-        make: { name: make }
-        // vulkan-dev X libs: libxcb-devel bundles xinput + xinerama on Fedora
-        libxcb-devel: { name: libxcb-devel }
-        xcb-util-cursor-devel: { name: xcb-util-cursor-devel }
-        // EL only: enables EPEL (a real package that drops the repo config). EL
-        // routes depend on it so it installs first. Harmless/unused on Fedora.
-        epel-release: { name: epel-release }
-        // Vulkan runtime (Fedora + EL AppStream, no EPEL): loader + mesa ICDs
-        vulkan-loader: { name: vulkan-loader }
-        mesa-vulkan-drivers: { name: mesa-vulkan-drivers }
-    }
-
-    \pacman: {
-        // Arch package names (Arch/Manjaro/SteamOS). Most match the component name;
-        // the ones that differ are translated via `name`.
-        btop: { name: btop }
-        curl: { name: curl }
-        fzf: { name: fzf }
-        ripgrep: { name: ripgrep }
-        xclip: { name: xclip }
-        flatpak: { name: flatpak }
-        fontconfig: { name: fontconfig }
-        unzip: { name: unzip }
-        firefox: { name: firefox }
-        gcc: { name: gcc }                  // Arch gcc includes g++
-        make: { name: make }
-        base-devel: { name: base-devel }   // AUR build deps
-        git: { name: git }
-        // vulkan-dev X libs: Arch's libxcb bundles xinput + xinerama (like Fedora)
-        libxcb: { name: libxcb }
-        xcb-util-cursor: { name: xcb-util-cursor }
-        python3-pip: { name: python-pip }
-        pipx: { name: python-pipx }         // dnf/apt call it pipx; Arch: python-pipx
-        cargo: { name: rust }               // cargo ships in the rust package
-        fastfetch: { name: fastfetch }      // native (Arch extra)
-        libfuse2: { name: fuse2 }           // FUSE2 runtime for appImages
-        // Vulkan runtime — Arch splits the ICD per GPU (+ software fallback)
-        vulkan-icd-loader: { name: vulkan-icd-loader }
-        vulkan-radeon: { name: vulkan-radeon }
-        vulkan-intel: { name: vulkan-intel }
-        vulkan-swrast: { name: vulkan-swrast }   // lavapipe (software, no-GPU fallback)
-    }
-
-    \aur: {
-        // Arch User Repository packages built from PKGBUILD via makepkg -si (no
-        // helper). base-devel + git build them; transitive AUR deps are declared as
-        // per-component `depends`. `name` is the AUR pkgname.
-        !depends: [ base-devel, git ]
-
-        yay: {
-            name: yay-bin                 // the AUR helper itself, prebuilt (-bin)
-            version: { aur: yay-bin }     // latest from the AUR RPC
+        // EPEL: a capability enabled by installing epel-release (only on EL). Anything
+        // that `requires: epel` is a no-op off EL (nothing needs it) and pulls this in on EL.
+        epel-release: {
+            provides: epel
+            install: [ { via: native  when: "rhel" } ]
         }
-    }
 
-    \pip: {
-        // PyPI CLIs via `pip install --user` (-> ~/.local/bin). Now used mainly to
-        // bootstrap pipx on OSs that have no apt pipx package (see "ubuntu@<23.04").
-        // python3-pip provides pip.
-        !depends: python3-pip
-
+        // pipx: the version-variant collapse. Native package where the repos have it;
+        // a pip --user bootstrap on old Ubuntu/Debian; +EPEL on EL. Was a \pip family +
+        // apt/dnf/pacman entries + two @version blocks + a rhel override — now three bindings.
         pipx: {
-            name: pipx                     // `pip install --user pipx`
-            version: { pypi: pipx }
+            install: [
+                { via: pip     when: "(ubuntu < 23.04) or (debian < 12)"  name: pipx  version: { pypi: pipx } }
+                { via: native  when: "rhel"  requires: epel  name: { pacman: python-pipx } }
+                { via: native  name: { pacman: python-pipx } }
+            ]
         }
-    }
 
-    \pipx: {
-        // PyPI CLIs in isolated venvs via pipx (binaries -> ~/.local/bin), the
-        // preferred Python-CLI medium. pipx itself is version-sensitive: apt on
-        // modern OSs, a pip --user bootstrap on older ones (routed via `pipx`).
-        !depends: pipx
-
+        // apod: a PyPI CLI (termapod) installed via pipx, plus a shell-startup dotfile.
+        // `via: pipx` pulls the pipx TOOL (the mechanism's requires) — which is itself the
+        // version-variant component above (pip-bootstrap on old Ubuntu/Debian, +EPEL on EL),
+        // so this is a two-level tool chain. The inline dotfiles field runs termapod on every
+        // interactive shell. (Old: linux `apod: [ pipx\apod, dotfiles\apod ]`.)
         apod: {
-            name: termapod                 // PyPI distribution == the console command
-            version: { pypi: termapod }    // latest from pypi.org (cached)
+            dotfiles: { requires: bashDotD  src: bash.d/apod.sh  dst: ~/.bash.d/apod.sh }
+            install: [ { via: pipx  name: termapod  version: { pypi: termapod } } ]
         }
-    }
 
-    \cargo: {
-        !depends: cargo
-        tree-sitter-cli: {
-            name: tree-sitter-cli
-            version: { crates: tree-sitter-cli }   // latest stable from crates.io
+        // native, name differs by manager
+        libfuse2: {
+            install: [ { via: native  repo-component: universe  name: { dnf: fuse-libs  pacman: fuse2  default: libfuse2 } } ]
         }
-    }
-
-    \gcc: {
-        // versioned compilers, shared across apt (PPA + update-alternatives) and dnf
-        // (Fedora compat packages, used directly). Identity only here; OS-specific
-        // acquisition (packages, PPA, deps) lives in the OS blocks. Installing a
-        // version on apt registers gcc (master) + g++ (slave); switch the active one
-        // with `update-alternatives --config gcc` yourself (apt) or CC=gcc-13 (dnf).
-        gcc-13: { link: gcc  version: 13  slaves: [ g++ ]  ppa: ubuntu-toolchain-r/test }
-        gcc-14: { link: gcc  version: 14  slaves: [ g++ ]  ppa: ubuntu-toolchain-r/test }
-        gcc-15: { link: gcc  version: 15  slaves: [ g++ ]  ppa: ubuntu-toolchain-r/test }
-    }
-
-    \clang: {
-        // versioned Clang/LLVM, shared across apt (apt.llvm.org + update-alternatives)
-        // and dnf (Fedora clangNN compat packages). clang++ ships inside the clang
-        // package (an update-alternatives slave on apt). OS-specific acquisition
-        // (packages, repo, deps) lives in the OS blocks.
-        clang-18: {}
-        clang-19: {}
-        clang-20: {}
-    }
-
-    \gcc-toolset: {
-        // versioned GCC as Red Hat Software Collections (RHEL/Rocky/Alma). Installs
-        // the meta package gcc-toolset-N under /opt/rh; the version is derived from
-        // the component (gcc-13 -> gcc-toolset-13). Activate with `scl enable
-        // gcc-toolset-13 bash` — configsys installs + reports the version only.
-        gcc-12: {}
-        gcc-13: {}
-        gcc-14: {}
-        gcc-15: {}
-    }
-
-    \flatpak: {
-        // flatpak itself must be installed before any flatpak component; resolved
-        // through the normal cascade (-> apt\flatpak on debian). Applies to all
-        // components in this family and is installed first (dependency-ordered).
-        !depends: flatpak
-
-        firefox: {
-            hub: flathub
-            name: org.mozilla.firefox
+        cargo: {
+            install: [ { via: native  repo-component: universe  name: { pacman: rust } } ]   // the cargo tool ships in `rust` on Arch
         }
+
+        // --- non-native mechanisms with mechanism-level deps ---
         chrome: {
-            hub: flathub
-            name: com.google.Chrome
+            install: [ { via: flatpak  hub: flathub  app: com.google.Chrome } ]  // -> requires flatpak
         }
-    }
-
-    // App definitions: identity + method-independent deps + install methods
-    // (keyed by family, mutually exclusive). The OS block selects one method with a
-    // bare family name, e.g. `neovim: appImage`.
-    \app: {
-        neovim: {
-            depends: [ ripgrep, tree-sitter-cli ]                    // method-independent
-            appImage: {
-                scope: user                                          // keep it in ~/apps (overrides machine default)
-                version: { github: neovim/neovim  asset: "nvim-linux-$ARCH.appimage" }
-                url: "https://github.com/neovim/neovim/releases/download/$VERSION/nvim-linux-$ARCH.appimage"
-                path: ~/apps/nvim.appimage
-                name: Neovim
-                depends: [ dotfiles\neovim tree-sitter-cli ]         // method-specific
-            }
+        tree-sitter-cli: {
+            install: [ { via: cargo  name: tree-sitter-cli  version: { crates: tree-sitter-cli } } ]
         }
-        steam: {
-            // hybrid: native (apt) on Pop!_OS (NVIDIA rig — no flatpak GL-extension
-            // matching), flatpak everywhere else. The OS block picks the method:
-            // `steam: flatpak` in the linux root (default), `steam: apt` in pop_os!.
-            flatpak: {
-                hub: flathub
-                name: com.valvesoftware.Steam                        // uniform, self-contained runtime
-            }
-            apt: {
-                name: "steam:i386"                                   // Pop ships Steam as a 32-bit package (main repo)
-                foreign-arch: i386                                   // enable i386 multiarch first (idempotent)
-            }
-        }
-    }
-
-    \appImage: {
-        // appImages need FUSE to run; ensure libfuse2 first (via the cascade).
-        !depends: libfuse2
-
-        arduino: {
-            // asset name embeds the version, so a glob resolves the url robustly
-            version: { github: arduino/arduino-ide  asset: "arduino-ide_*_Linux_64bit.AppImage" }
-            url: "https://github.com/arduino/arduino-ide/releases/download/$VERSION/arduino-ide_$VERSION_Linux_64bit.AppImage"
-            path: ~/apps/arduino-ide.appimage
-            name: "Arduino IDE"
-            depends: [ dotfiles\arduino ]
-        }
-    }
-
-    \dotfiles: {
-        bashDotD: {
-            aliases: {
-                src: bash_aliases
-                dst: ~/.bash_aliases
-            }
-        }
-        neovim: {
-            // link specs: <name>: { src (under repo dotfiles/), dst (env/~ ok) }
-            depends: bashDotD
-            config: {
-                src: neovim
-                dst: $XDG_CONFIG_HOME/nvim
-            }
-            aliases: {
-                src: bash.d/neovim.sh
-                dst: ~/.bash.d/neovim.sh
-            }
-        }
-        arduino: {
-            depends: bashDotD
-            src: bash.d/arduino.sh
-            dst: ~/.bash.d/arduino.sh
-        }
-        gcc: {
-            depends: bashDotD
-            src: bash.d/gcc.sh
-            dst: ~/.bash.d/gcc.sh
-        }
-        apod: {
-            // runs `termapod` on every interactive shell (via the bashDotD loader)
-            depends: bashDotD
-            src: bash.d/apod.sh
-            dst: ~/.bash.d/apod.sh
-        }
-        clang: {
-            depends: bashDotD
-            src: bash.d/clang.sh
-            dst: ~/.bash.d/clang.sh
-        }
-        vulkan-sdk: {
-            depends: bashDotD
-            aliases: {
-                src: bash.d/vulkan-sdk.sh
-                dst: ~/.bash.d/vulkan-sdk.sh
-            }
-        }
-    }
-
-    \tarball: {
-        // the tarball family shells out to curl (tar is part of the base system)
-        !depends: curl
-
-        vulkan-sdk: {
-            // a deliberate pin; swap for { url: "...latest..." regex: "..." } to track
-            version: { static: 1.4.350.1 }
-            url: "https://sdk.lunarg.com/sdk/download/$VERSION/linux/vulkansdk-linux-$ARCH-$VERSION.tar.xz"
-            installDir: vulkan
-        }
-    }
-
-    \debian-font: {
-        // needs fc-cache (fontconfig) and unzip; installed first via the cascade
-        !depends: [ fontconfig, unzip ]
-
         mononoki-nerd: {
-            name: Mononoki
-            version: { github: ryanoasis/nerd-fonts  asset: "Mononoki.zip" }
-            url: "https://github.com/ryanoasis/nerd-fonts/releases/download/$VERSION/Mononoki.zip"
+            install: [ { via: debian-font  name: Mononoki          // -> requires fontconfig + unzip
+                         version: { github: ryanoasis/nerd-fonts  asset: "Mononoki.zip" }
+                         url: "https://github.com/ryanoasis/nerd-fonts/releases/download/$VERSION/Mononoki.zip" } ]
         }
-    }
 
-    // OS cascade root. Holds OS-agnostic routes later; empty for now so
-    // debian's `!using: linux` always resolves to a real node.
-    linux: {
-        bashDotD: [ dotfiles\bashDotD ]
-        // OS-agnostic bundle: the lunarg tarball + its dotfiles (works on any linux)
-        vulkan-sdk: [ tarball\vulkan-sdk, dotfiles\vulkan-sdk ]
-        tree-sitter-cli: [ cargo\tree-sitter-cli ]
-        // termapod (PyPI CLI) + its shell-startup hook; OS-agnostic
-        apod: [ pipx\apod, dotfiles\apod ]
-        // Steam: flatpak by default on every OS (uniform, self-contained). pop_os!
-        // overrides to the native apt method (see below).
-        steam: flatpak
-    }
+        // when:-varying: native on Pop (the NVIDIA rig), flatpak elsewhere
+        steam: {
+            install: [
+                { via: native   when: "pop_os!"  name: "steam:i386"  foreign-arch: i386 }
+                { via: flatpak  hub: flathub  app: com.valvesoftware.Steam }
+            ]
+        }
 
-    debian: {
-        !using: linux
+        // --- dotfiles ---
+        bashDotD: {
+            install: [ { via: dotfiles  aliases: { src: bash_aliases  dst: ~/.bash_aliases } } ]
+        }
 
-        *: apt\*
-        // a bundle (meta-package): its X-dev libs are apt-specific, so it lives here.
-        // vulkan-sdk (OS-agnostic) resolves up in the linux root.
-        vulkan-dev: [ libxcb-xinput0, libxcb-xinerama0, libxcb-cursor-dev, build-essential, vulkan-sdk, vulkan-runtime ]
-        // Vulkan runtime (loader + mesa ICDs). Ensure-present, unlocked — a no-op on
-        // any desktop (the DE already pulled mesa), the thing that makes vk run on a
-        // minimal/DE-less box. mesa-vulkan-drivers pulls libvulkan1, but list both.
-        vulkan-runtime: [ libvulkan1, mesa-vulkan-drivers ]
-        neovim: appImage          // select the appImage method of app\neovim
-        firefox: apt\firefox
-        chrome: flatpak\chrome
-        arduino: appImage\arduino
-        mononoki-nerd: debian-font\mononoki-nerd
-        // toolchain deps are apt-specific (add-apt-repository needs
-        // software-properties-common; the LLVM key needs curl), so they live on the
-        // OS route, not the shared \gcc / \clang family.
-        gcc-13: { package: gcc\gcc-13  depends: [ build-essential, software-properties-common dotfiles\gcc ] }
-        gcc-14: { package: gcc\gcc-14  depends: [ build-essential, software-properties-common dotfiles\gcc ] }
-        gcc-15: { package: gcc\gcc-15  depends: [ build-essential, software-properties-common dotfiles\gcc ] }
-        clang-18: { package: clang\clang-18  depends: [ build-essential, curl dotfiles\clang ] }
-        clang-19: { package: clang\clang-19  depends: [ build-essential, curl dotfiles\clang ] }
-        clang-20: { package: clang\clang-20  depends: [ build-essential, curl dotfiles\clang ] }
-    }
+        // --- appImage apps (fetch-artifact) + method-independent dotfiles chain ---
+        neovim: {
+            requires: [ ripgrep, tree-sitter-cli ]                  // method-independent
+            dotfiles: {
+                requires: bashDotD
+                config:  { src: neovim         dst: $XDG_CONFIG_HOME/nvim }
+                aliases: { src: bash.d/neovim.sh  dst: ~/.bash.d/neovim.sh }
+            }
+            install: [ { via: appImage  name: Neovim  scope: user   // -> requires libfuse2; keep it in ~/apps
+                         version: { github: neovim/neovim  asset: "nvim-linux-$ARCH.appimage" }
+                         url: "https://github.com/neovim/neovim/releases/download/$VERSION/nvim-linux-$ARCH.appimage"
+                         path: ~/apps/nvim.appimage } ]
+        }
+        arduino: {
+            dotfiles: { requires: bashDotD  src: bash.d/arduino.sh  dst: ~/.bash.d/arduino.sh }
+            install: [ { via: appImage  name: "Arduino IDE"
+                         version: { github: arduino/arduino-ide  asset: "arduino-ide_*_Linux_64bit.AppImage" }
+                         url: "https://github.com/arduino/arduino-ide/releases/download/$VERSION/arduino-ide_$VERSION_Linux_64bit.AppImage"
+                         path: ~/apps/arduino-ide.appimage } ]
+        }
 
-    ubuntu: {
-        !using: debian
-    }
+        // --- parts: composition (a component that IS several others, no unit of its own) ---
+        libvulkan1:            { install: [ { via: native } ] }
+        vulkan-loader:         { install: [ { via: native } ] }
+        vulkan-icd-loader:     { install: [ { via: native } ] }
+        vulkan-radeon:         { install: [ { via: native } ] }
+        vulkan-intel:          { install: [ { via: native } ] }
+        vulkan-swrast:         { install: [ { via: native } ] }
+        mesa-vulkan-drivers:   { install: [ { via: native } ] }
+        vulkan-runtime: {
+            install: [
+                { via: parts  when: "debian"  parts: [ libvulkan1, mesa-vulkan-drivers ] }
+                { via: parts  when: "redhat"  parts: [ vulkan-loader, mesa-vulkan-drivers ] }  // fedora + EL
+                { via: parts  when: "arch"    parts: [ vulkan-icd-loader, vulkan-radeon, vulkan-intel, vulkan-swrast ] }
+            ]
+        }
 
-    pop_os!: {
-        !using: ubuntu
+        // --- tarball + composition: the vulkan SDK and the vulkan-dev bundle ---
+        // vulkan-sdk is ONE component that is both a tarball unit AND an inline config
+        // dotfile (dotfiles\vulkan-sdk), keyed by the component; the tarball mechanism
+        // pulls curl. (Old: a [tarball\vulkan-sdk, dotfiles\vulkan-sdk] list bundle.)
+        vulkan-sdk: {
+            dotfiles: { requires: bashDotD
+                        aliases: { src: bash.d/vulkan-sdk.sh  dst: ~/.bash.d/vulkan-sdk.sh } }
+            install: [ { via: tarball  version: { static: 1.4.350.1 }  installDir: vulkan
+                         url: "https://sdk.lunarg.com/sdk/download/$VERSION/linux/vulkansdk-linux-$ARCH-$VERSION.tar.xz" } ]
+        }
+        // vulkan-dev X libs, per OS: Debian ships three; Fedora's libxcb-devel bundles
+        // xinput+xinerama (+ xcb-util-cursor-devel); Arch's libxcb does likewise (+ xcb-util-cursor).
+        libxcb-xinput0:        { install: [ { via: native  repo-component: universe } ] }
+        libxcb-xinerama0:      { install: [ { via: native  repo-component: universe } ] }
+        libxcb-cursor-dev:     { install: [ { via: native  repo-component: universe } ] }
+        libxcb-devel:          { install: [ { via: native } ] }   // fedora + EL
+        xcb-util-cursor-devel: { install: [ { via: native } ] }   // fedora + EL
+        libxcb:                { install: [ { via: native } ] }   // arch
+        xcb-util-cursor:       { install: [ { via: native } ] }   // arch
+        // vulkan-dev: a parts bundle composing the X libs, build tools, the SDK tarball,
+        // and the vulkan runtime (itself a parts aggregator). One binding per OS family;
+        // build-essential now expands to real gcc packages on Fedora/Arch (gcc blocker resolved).
+        vulkan-dev: {
+            install: [
+                { via: parts  when: "debian"
+                  parts: [ libxcb-xinput0, libxcb-xinerama0, libxcb-cursor-dev,
+                           build-essential, vulkan-sdk, vulkan-runtime ] }
+                { via: parts  when: "redhat"
+                  parts: [ libxcb-devel, xcb-util-cursor-devel,
+                           build-essential, vulkan-sdk, vulkan-runtime ] }
+                { via: parts  when: "arch"
+                  parts: [ libxcb, xcb-util-cursor,
+                           build-essential, vulkan-sdk, vulkan-runtime ] }
+            ]
+        }
 
-        // native Steam on the NVIDIA gaming rig: steam:i386 from Pop's main repo,
-        // with i386 multiarch ensured. Avoids the flatpak NVIDIA GL-extension dance.
-        steam: apt
-    }
+        // --- github .deb where no repo has it, native package elsewhere (cpu-keyed asset) ---
+        fastfetch: {
+            install: [
+                { via: native  when: "debian"  deb-source: "github:fastfetch-cli/fastfetch"
+                  asset: { x86_64: fastfetch-linux-amd64.deb  aarch64: fastfetch-linux-aarch64.deb } }
+                { via: native  when: "rhel"  requires: epel }   // EL ships fastfetch in EPEL
+                { via: native }
+            ]
+        }
 
-    fedora: {
-        !using: linux
+        // --- toolchain support ---
+        // one native meta-package on Debian; no single package on Fedora/Arch, so a
+        // faithful parts bundle there (the compilers + make), matching the old routes.
+        build-essential: {
+            install: [
+                { via: native  when: "debian" }
+                { via: parts  when: "redhat"  parts: [ gcc, gcc-cpp, make ] }
+                { via: parts  when: "arch"    parts: [ gcc, make ] }
+            ]
+        }
+        software-properties-common: { install: [ { via: native } ] }
+        // gcc means "the C compiler works here" — but that's a different artifact per OS,
+        // and the two never coexist in one context, so ONE component with per-OS bindings
+        // reproduces the old dotfiles\gcc (Debian) and dnf\gcc / pacman\gcc (RH/Arch):
+        //   Debian — the base compiler already ships in build-essential; this is just the
+        //            `update-alternatives --config gcc` selector alias (a dotfile).
+        //   Fedora/Arch — build-essential is a parts bundle needing the actual gcc
+        //            *package*, which this same component provides natively.
+        gcc: {
+            install: [
+                { via: dotfiles  when: "debian"  requires: bashDotD
+                  src: bash.d/gcc.sh  dst: ~/.bash.d/gcc.sh }
+                { via: native  when: "redhat" }   // fedora + EL: the gcc package
+                { via: native  when: "arch" }     // arch gcc bundles g++
+            ]
+        }
+        gcc-cpp: { install: [ { via: native  name: { dnf: "gcc-c++" } } ] }   // Fedora g++ (has a `+`)
+        make:    { install: [ { via: native } ] }
 
-        *: dnf\*                       // native packages come from dnf
-        neovim: appImage               // appImage method (needs fuse-libs -> dnf\libfuse2)
-        chrome: flatpak\chrome
-        arduino: appImage\arduino
-        mononoki-nerd: debian-font\mononoki-nerd
+        // --- AUR: packages built from PKGBUILD via makepkg -si (Arch only). The `aur`
+        // mechanism pulls base-devel + git (the build toolchain); yay is the AUR helper
+        // itself, prebuilt (-bin). Guarded to arch — the mechanism has no meaning elsewhere.
+        base-devel: { install: [ { via: native } ] }
+        git:        { install: [ { via: native } ] }
+        yay: {
+            install: [ { via: aur  when: "arch"  name: yay-bin  version: { aur: yay-bin } } ]
+        }
 
-        // build-essential has no single Fedora package; its faithful equivalent is
-        // the compilers + make (gcc pulls glibc-devel). A bundle fits configsys's
-        // versioned/lockable model better than the broader @development-tools group.
-        build-essential: [ dnf\gcc, dnf\gcc-cpp, dnf\make ]
-        // vulkan-dev: the Debian xcb trio collapses to libxcb-devel (xinput +
-        // xinerama) + xcb-util-cursor-devel; vulkan-sdk is the OS-agnostic tarball.
-        vulkan-dev: [ libxcb-devel, xcb-util-cursor-devel, build-essential, vulkan-sdk, vulkan-runtime ]
-        // Vulkan runtime (loader + mesa ICDs incl. lavapipe); Fedora + EL AppStream.
-        vulkan-runtime: [ vulkan-loader, mesa-vulkan-drivers ]
+        // --- versioned gcc. Three mechanisms, selected by OS/version:
+        //   debian -> `gcc` (apt PPA + update-alternatives; needs build-essential, s-p-c, the alias)
+        //   fedora -> `gcc` (dnf compat packages gccNN; availability is per-release)
+        //   EL     -> `gcc-toolset` (SCL under /opt/rh)
+        gcc-13: {
+            install: [
+                { via: gcc  when: "debian"  packages: [ gcc-13, g++-13 ]  slaves: [ g++ ]  ppa: ubuntu-toolchain-r/test
+                  requires: [ build-essential, software-properties-common, gcc ] }
+                { via: gcc  when: "fedora = 41"  packages: [ gcc13, gcc13-c++ ] }
+                { via: gcc-toolset  when: "rhel" }
+            ]
+        }
+        gcc-14: {
+            install: [
+                { via: gcc  when: "debian"  packages: [ gcc-14, g++-14 ]  slaves: [ g++ ]  ppa: ubuntu-toolchain-r/test
+                  requires: [ build-essential, software-properties-common, gcc ] }
+                { via: gcc  when: "fedora = 42"  packages: [ gcc14, gcc14-c++ ] }
+                { via: gcc-toolset  when: "rhel" }
+            ]
+        }
+        gcc-15: {
+            install: [
+                { via: gcc  when: "debian"  packages: [ gcc-15, g++-15 ]  slaves: [ g++ ]  ppa: ubuntu-toolchain-r/test
+                  requires: [ build-essential, software-properties-common, gcc ] }
+                { via: gcc-toolset  when: "rhel" }
+            ]
+        }
 
-        // Versioned toolchains are release-specific on Fedora (the gccNN/clangNN
-        // compat window moves each release, non-monotonically), so they live in the
-        // "fedora@N" variants below, not here.
-    }
-
-    rhel: {
-        // RHEL family (RHEL, Rocky, AlmaLinux, CentOS Stream — all alias here).
-        // Inherits Fedora's dnf plumbing (*: dnf\*) and app routes; overrides what
-        // differs on EL: EPEL packages, and the toolchains.
-        !using: fedora
-
-        // Not in the EL base repos — pull epel-release first (Alma/Rocky/CentOS ship
-        // it; on RHEL proper you'd install the epel-release rpm from the EPEL URL).
-        btop:      { package: dnf\btop       depends: [ epel-release ] }
-        fzf:       { package: dnf\fzf        depends: [ epel-release ] }
-        ripgrep:   { package: dnf\ripgrep    depends: [ epel-release ] }
-        xclip:     { package: dnf\xclip      depends: [ epel-release ] }
-        pipx:      { package: dnf\pipx       depends: [ epel-release ] }
-        fastfetch: { package: dnf\fastfetch  depends: [ epel-release ] }
-
-        // versioned GCC via gcc-toolset SCLs (AppStream, gcc 12-15 on EL9).
-        gcc-13: gcc-toolset\gcc-13
-        gcc-14: gcc-toolset\gcc-14
-        gcc-15: gcc-toolset\gcc-15
-        // versioned clang via clangNN compat packages (EPEL on EL9) — same \clang
-        // family + /usr/bin/clang-N binaries as Fedora. EL9 packages clang19/clang20;
-        // clang-18 isn't packaged on EL9, so it isn't routed.
-        clang-19: { package: clang\clang-19  packages: [ clang19 ]  depends: [ epel-release ] }
-        clang-20: { package: clang\clang-20  packages: [ clang20 ]  depends: [ epel-release ] }
-    }
-
-    arch: {
-        // Arch family (Arch, Manjaro, SteamOS all alias here). Native packages via
-        // pacman; the OS-agnostic families (flatpak, appImage, cargo, pipx, dotfiles,
-        // fonts) work unchanged. SteamOS has a read-only rootfs — `steamos-readonly
-        // disable` before pacman, or prefer flatpak\chrome etc. (which need no pacman).
-        !using: linux
-
-        *: pacman\*
-        neovim: appImage
-        chrome: flatpak\chrome
-        arduino: appImage\arduino
-        mononoki-nerd: debian-font\mononoki-nerd
-        yay: aur\yay              // the AUR helper, built from the AUR itself
-        // Vulkan runtime: Arch splits the ICD per GPU, so install the loader + both
-        // common HW ICDs + the software fallback (lavapipe). Ensure-present, unlocked.
-        vulkan-runtime: [ vulkan-icd-loader, vulkan-radeon, vulkan-intel, vulkan-swrast ]
-
-        // build-essential: Arch's gcc bundles g++, so the equivalent is gcc + make.
-        build-essential: [ gcc, make ]
-        // vulkan-dev: libxcb bundles the xinput + xinerama libs; vulkan-sdk is the
-        // OS-agnostic tarball; vulkan-runtime the loader + ICDs.
-        vulkan-dev: [ libxcb, xcb-util-cursor, build-essential, vulkan-sdk, vulkan-runtime ]
-        // Versioned gcc/clang aren't in the Arch repos (rolling = one version); they
-        // come from the AUR (gcc13, clang, ...) via the \aur family — heavy source
-        // builds, so not wired into a profile here (add e.g. `gcc-13: aur\gcc13`).
-    }
-
-    // Fedora versioned toolchains, per release: the gccNN/clangNN compat window
-    // moves each release (F41 has gcc13; F42 has gcc14, and gcc13 is gone), so each
-    // release names what it can provide. Same \gcc / \clang families as Debian —
-    // same /usr/bin/gcc-13 binaries, no update-alternatives, no third-party repo.
-    // gcc's system compiler has no versioned binary (only compat gccNN routes);
-    // clang's system compiler does (/usr/bin/clang-19), so it can route too.
-    "fedora@41": {                       // system gcc 14 / clang 19
-        gcc-13:   { package: gcc\gcc-13     packages: [ gcc13, gcc13-c++ ] }
-        clang-18: { package: clang\clang-18  packages: [ clang18 ] }
-        clang-19: { package: clang\clang-19  packages: [ clang ] }   // system clang -> /usr/bin/clang-19
-    }
-    "fedora@42": {                       // system gcc 15 / clang 20
-        gcc-14:   { package: gcc\gcc-14     packages: [ gcc14, gcc14-c++ ] }
-        clang-18: { package: clang\clang-18  packages: [ clang18 ] }
-        clang-19: { package: clang\clang-19  packages: [ clang19 ] }
-        clang-20: { package: clang\clang-20  packages: [ clang ] }   // system clang -> /usr/bin/clang-20
-    }
-
-    // Version variants: layered ahead of their base block for a matching VERSION_ID.
-    // Pattern: base blocks hold the modern default (pipx via apt\*); these cover
-    // *older* releases where the default doesn't hold. They flow through the cascade,
-    // so Pop!_OS 22.04 (-> ubuntu) picks up the ubuntu@<23.04 variant automatically.
-    "ubuntu@<23.04": {
-        // no apt `pipx` before 23.04 -> bootstrap it with pip --user (the \pip family)
-        pipx: pip\pipx
-    }
-    "debian@<12": {
-        // no apt `pipx` before Debian 12 (bookworm) -> same pip --user bootstrap
-        pipx: pip\pipx
+        // --- versioned clang. `clang` mechanism = native PM + update-alternatives:
+        //   debian -> apt.llvm.org + alternatives (needs build-essential, curl, the alias)
+        //   fedora -> dnf compat clangNN (per-release; the system clang covers the newest)
+        //   EL     -> dnf compat clangNN from EPEL (requires epel)
+        curl: { install: [ { via: native } ] }
+        clang: {                    // the clangv `update-alternatives --config clang` alias dotfile
+            requires: bashDotD
+            install: [ { via: dotfiles  src: bash.d/clang.sh  dst: ~/.bash.d/clang.sh } ]
+        }
+        clang-18: {
+            install: [
+                { via: clang  when: "debian"  packages: [ clang-18 ]
+                  requires: [ build-essential, curl, clang ] }
+                { via: clang  when: "fedora"  packages: [ clang18 ] }
+            ]
+        }
+        clang-19: {
+            install: [
+                { via: clang  when: "debian"  packages: [ clang-19 ]
+                  requires: [ build-essential, curl, clang ] }
+                { via: clang  when: "fedora = 41"  packages: [ clang ] }      // system clang -> /usr/bin/clang-19
+                { via: clang  when: "fedora = 42"  packages: [ clang19 ] }
+                { via: clang  when: "rhel"  packages: [ clang19 ]  requires: epel }
+            ]
+        }
+        clang-20: {
+            install: [
+                { via: clang  when: "debian"  packages: [ clang-20 ]
+                  requires: [ build-essential, curl, clang ] }
+                { via: clang  when: "fedora = 42"  packages: [ clang ] }      // system clang -> /usr/bin/clang-20
+                { via: clang  when: "rhel"  packages: [ clang20 ]  requires: epel }
+            ]
+        }
     }
 }

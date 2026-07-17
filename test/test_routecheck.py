@@ -5,15 +5,15 @@ import os
 
 import pytest
 
-from configsys.v2 import routes2
-from configsys.v2.check import AmbiguityError, check_all, check_component
-from configsys.v2.predicate import comparable, overlap, parse, subset
-from configsys.v2.routes2 import Binding, Component
+from configsys import routes
+from configsys.routecheck import AmbiguityError, check_all, check_component
+from configsys.predicate import comparable, overlap, parse, subset
+from configsys.routes import Binding, Component
 
 
 @pytest.fixture(scope='module')
 def cascade():
-    c, _components, _m = routes2.load(os.path.join(os.path.dirname(__file__), '..', 'routes2.hu'))
+    c, _components, _m = routes.load(os.path.join(os.path.dirname(__file__), '..', 'routes.hu'))
     return c
 
 
@@ -60,7 +60,7 @@ def _component(name, *whens):
 
 
 def test_real_routes_are_unambiguous(cascade):
-    _c, components, _m = routes2.load(os.path.join(os.path.dirname(__file__), '..', 'routes2.hu'))
+    _c, components, _m = routes.load(os.path.join(os.path.dirname(__file__), '..', 'routes.hu'))
     check_all(components, cascade)          # must not raise
 
 

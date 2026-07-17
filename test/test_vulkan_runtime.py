@@ -5,14 +5,14 @@ import os
 
 import humon
 
-from configsys.routes import RouteResolver
+from configsys.routes import Resolver
 
 ROUTES = os.path.join(os.path.dirname(__file__), '..', 'routes.hu')
 CONFIG = os.path.join(os.path.dirname(__file__), '..', 'config.hu')
 
 
 def _names(block, ver, comp):
-    return sorted(RouteResolver(humon.from_file(ROUTES), block, ver).resolve_names([comp]))
+    return sorted(Resolver(ROUTES, block, ver).resolve_names([comp]))
 
 
 def test_vulkan_runtime_per_distro():
@@ -29,7 +29,7 @@ def test_vulkan_runtime_per_distro():
 
 def test_vulkan_dev_pulls_the_runtime():
     for block, ver in [('ubuntu', '24.04'), ('fedora', '41')]:
-        units = RouteResolver(humon.from_file(ROUTES), block, ver).resolve_names(['vulkan-dev'])
+        units = Resolver(ROUTES, block, ver).resolve_names(['vulkan-dev'])
         assert any('mesa-vulkan-drivers' in k for k in units)
 
 
@@ -43,12 +43,12 @@ def test_user_profile_includes_vulkan_runtime():
 def test_vulkan_dev_resolves_on_arch():
     # the graphics profile now resolves on Arch too: X libs collapse to libxcb +
     # xcb-util-cursor, build-essential -> gcc + make, plus runtime + the sdk tarball
-    units = RouteResolver(humon.from_file(ROUTES), 'arch', '20260712').resolve_names(['vulkan-dev'])
+    units = Resolver(ROUTES, 'arch', '20260712').resolve_names(['vulkan-dev'])
     for key in ('pacman\\libxcb', 'pacman\\xcb-util-cursor', 'pacman\\gcc',
                 'pacman\\make', 'pacman\\vulkan-icd-loader', 'tarball\\vulkan-sdk'):
         assert key in units
 
 
 def test_build_essential_on_arch_is_gcc_and_make():
-    units = RouteResolver(humon.from_file(ROUTES), 'arch', '20260712').resolve_names(['build-essential'])
+    units = Resolver(ROUTES, 'arch', '20260712').resolve_names(['build-essential'])
     assert set(units) == {'pacman\\gcc', 'pacman\\make'}

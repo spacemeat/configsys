@@ -5,7 +5,7 @@ import humon
 from configsys.componentObj import ResolvedComponent
 from configsys.families import get_family, is_supported
 from configsys.families.aur import Aur
-from configsys.routes import RouteResolver
+from configsys.routes import Resolver
 from configsys.runner import Result, Runner
 
 ROUTES = os.path.join(os.path.dirname(__file__), '..', 'routes.hu')
@@ -70,7 +70,7 @@ def test_get_latest_from_aur_spec(tmp_path):
 
 
 def test_aur_routes_pull_build_deps():
-    r = RouteResolver(humon.from_file(ROUTES), 'arch', '20260712')
+    r = Resolver(ROUTES, 'arch', '20260712')
     units, _ = r.resolve_with_roots(['yay'])
     assert units['aur\\yay'].name == 'yay-bin'
     assert {'pacman\\base-devel', 'pacman\\git'} <= set(units)

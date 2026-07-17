@@ -3,7 +3,7 @@ from pathlib import Path
 from configsys.componentObj import ResolvedComponent
 from configsys.families import get_family, is_supported
 from configsys.families.apt import Apt
-from configsys.routes import RouteResolver
+from configsys.routes import Resolver
 from configsys.runner import Result, Runner
 from configsys.troveio import load
 
@@ -112,7 +112,7 @@ def test_is_locked_true_and_false():
 
 def resolve_unit(name, os_block='pop_os!'):
     routes = Path(__file__).resolve().parent.parent / 'routes.hu'
-    units = RouteResolver(load(routes), os_block).resolve_names([name])
+    units = Resolver(routes, os_block).resolve_names([name])
     assert len(units) == 1
     return next(iter(units.values()))
 

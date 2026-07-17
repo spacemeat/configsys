@@ -8,7 +8,7 @@ families read (normalized in resolve._install_fields). Not an adapter layer; jus
 v2 resolver's output object mapped onto the family contract.
 '''
 
-from ..componentObj import ResolvedComponent
+from .componentObj import ResolvedComponent
 
 
 def to_resolved_component(unit):

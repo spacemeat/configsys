@@ -1,338 +1,155 @@
-'''routes.py — RouteResolver: turn OS-level component names into concrete units.
+'''routes.py — load routes.hu into an OS cascade + components, and the app-facing Resolver.
 
-Owns every bit of routes.hu semantics:
-  * OS cascade via `!using` (pop_os! -> ubuntu -> debian -> linux)
-  * `family\\comp` binding, and the `*` wildcard (`*: apt\\*`)
-  * list routes = multi-part components (each entry resolved independently)
-  * dict routes with `package: family\\comp` = indirect binding
-  * `$VAR` substitution from family-level and component-level variables (fonts)
-  * recursive dependency resolution with cycle guarding and unit-level dedup
+Turns humon nodes into small dataclasses the resolver walks (OsCascade / Component /
+Binding), validates the file (ambiguity check), and exposes `Resolver`: the object the app
+holds to turn a profile's component names into the `{key: ResolvedComponent}` closure for
+this machine's context. Resolution itself lives in resolve.py; the RC marshalling in adapt.py.
 '''
 
-import re
+import humon
 
-import humon as h
-
-from . import osversion
-from .componentObj import ResolvedComponent
-from .errors import ConfigError, ResolveError
-
-_VAR_RE = re.compile(r'\$[A-Za-z_][A-Za-z0-9_]*')
-
-DICT = h.NodeKind.DICT
-LIST = h.NodeKind.LIST
-VALUE = h.NodeKind.VALUE
+from . import predicate
 
 
-class RouteResolver:
-    def __init__(self, trove, os_block, os_version=None):
-        self.trove = trove          # keep alive: Nodes point into it
-        self.root = trove.root
-        self.os_block = os_block
-        self.version = osversion.parse_version(os_version)
-        self.cascade = self._build_cascade(os_block)
+def _py(node):
+    '''humon node -> python (dict / list / str), or None for a missing node.'''
+    if node is None:
+        return None
+    kind = node.kind
+    if kind == humon.NodeKind.DICT:
+        out = {}
+        for i in range(node.num_children):
+            ch = node[i]
+            if ch.key:
+                out[ch.key] = _py(ch)
+        return out
+    if kind == humon.NodeKind.LIST:
+        return [_py(node[i]) for i in range(node.num_children)]
+    return node.value
 
-    # -- cascade ----------------------------------------------------------
 
-    def _build_cascade(self, start):
-        '''Chain the OS blocks via `!using`, layering each block's most-specific
-        version variant (e.g. "ubuntu@<23.04") ahead of the base block so its
-        routes win. Variants flow through inheritance: Pop!_OS -> ubuntu picks up
-        the ubuntu variant for this machine's VERSION_ID automatically.'''
-        chain = []
-        seen = set()
-        name = start
-        while name and name not in seen:
-            blk = self.root[name]
-            if blk is None:
-                if name == start:
-                    raise ConfigError(f'unknown OS block: "{name}"')
-                break  # dangling !using target — end of chain
+class Binding:
+    def __init__(self, spec):
+        spec = dict(spec)
+        self.when = spec.pop('when', None)
+        self.pred = predicate.parse(self.when)
+        self.via = spec.pop('via', None)
+        if self.via is None:
+            raise ValueError(f'binding without `via`: {spec}')
+        self.details = spec               # everything else (name, app, foreign-arch, ...)
+
+
+class Component:
+    def __init__(self, name, spec):
+        self.name = name
+        self.provides = _as_list(spec.get('provides'))
+        self.requires = _as_list(spec.get('requires'))
+        self.parts = _as_list(spec.get('parts'))
+        self.dotfiles = spec.get('dotfiles')
+        self.bindings = [Binding(b) for b in (spec.get('install') or [])]
+
+
+def _as_list(v):
+    if v is None:
+        return []
+    return v if isinstance(v, list) else [v]
+
+
+def _truthy(v):
+    return str(v).lower() in ('true', 'yes', '1')
+
+
+class OsCascade:
+    '''The OS layer: `using` inheritance, the `native` mechanism, scale-roots, and the
+    capabilities each environment provides for free.'''
+
+    def __init__(self, os_dict):
+        self.blocks = os_dict
+        self.scale_roots = {n for n, b in os_dict.items()
+                            if isinstance(b, dict) and _truthy(b.get('scale-root'))}
+
+    def provides(self, block):
+        '''Capabilities baseline in this environment (union over the lineage's blocks).'''
+        caps = set()
+        for n in self.lineage(block):
+            caps.update(_as_list((self.blocks[n] or {}).get('provides')))
+        return caps
+
+    def lineage(self, name):
+        '''Leaf-first chain following `using` to the root.'''
+        chain, seen = [], set()
+        while name and name not in seen and name in self.blocks:
+            chain.append(name)
             seen.add(name)
-            variant = self._select_variant(name)
-            if variant is not None:
-                chain.append((variant, self.root[variant]))   # override layer, checked first
-            chain.append((name, blk))
-            using = blk['!using']
-            name = using.value if using is not None else None
+            blk = self.blocks[name] or {}
+            name = blk.get('using')
         return chain
 
-    def _select_variant(self, base):
-        '''Key of the most-specific "base@<constraint>" block satisfied by the
-        detected VERSION_ID, or None. Ambiguous ties (same specificity) are a
-        config error rather than a silent pick.'''
-        if self.version is None:
-            return None
-        prefix = base + '@'
-        best, best_score, ties = None, -1, []
-        for i in range(self.root.num_children):
-            key = self.root[i].key
-            if not key or not key.startswith(prefix):
-                continue
-            constraint = osversion.parse_constraint(key[len(prefix):])
-            if not osversion.satisfies(constraint, self.version):
-                continue
-            score = osversion.specificity(constraint)
-            if score > best_score:
-                best, best_score, ties = key, score, [key]
-            elif score == best_score:
-                ties.append(key)
-        if len(ties) > 1:
-            v = '.'.join(map(str, self.version))
-            raise ConfigError(f'ambiguous OS-version variants for "{base}" @ {v}: '
-                              f'{", ".join(sorted(ties))}')
-        return best
+    def native(self, name):
+        '''The nearest `native:` mechanism walking the lineage (None if none set).'''
+        for n in self.lineage(name):
+            mech = (self.blocks[n] or {}).get('native')
+            if mech:
+                return mech
+        return None
+
+    def is_descendant(self, x, y):
+        '''True if y is ancestor-or-self of x (x's subtree ⊆ y's subtree).'''
+        return y in self.lineage(x)
+
+    def context(self, block, version=None, cpu=None):
+        return predicate.Context(self.lineage(block), version, cpu, self.scale_roots)
+
+
+def load(path, validate=True):
+    '''-> (OsCascade, {component_name: Component}, {mechanism: [required caps]}).
+
+    The trove must stay alive while _py walks its nodes (they point into it); once _py
+    has materialized everything to plain python, the returned objects don't need it.
+    With validate=True, an ambiguous routes file is rejected up front (AmbiguityError).
+    '''
+    trove = humon.from_file(path)
+    root = trove.root
+    os_dict = _py(root['os']) or {}
+    comps = _py(root['components']) or {}
+    mechs = _py(root['mechanisms']) or {}
+    cascade = OsCascade(os_dict)
+    components = {name: Component(name, spec) for name, spec in comps.items()}
+    mechanisms = {name: _as_list((spec or {}).get('requires')) for name, spec in mechs.items()}
+    if validate:
+        from . import routecheck
+        routecheck.check_all(components, cascade)
+    return cascade, components, mechanisms
+
+
+class Resolver:
+    '''The app-facing resolver: load routes.hu once, then resolve a profile's component
+    names to `{key: ResolvedComponent}` for this machine's context (OS block + version +
+    cpu). `resolve_with_roots` also returns the directly-bound unit keys the app applies
+    an op to (dependency installs are folded in by planning.expand_plan).'''
+
+    def __init__(self, routes_path, block, version=None, cpu=None, pins=None):
+        self.cascade, self.components, self.mechanisms = load(routes_path)
+        self.block = block
+        self.version = version
+        self.cpu = cpu
+        self.pins = pins or {}
 
     @property
     def cascade_names(self):
-        return [n for n, _ in self.cascade]
+        '''The OS lineage leaf-first (e.g. rhel -> redhat -> linux), for display/tests.'''
+        return self.cascade.lineage(self.block)
 
-    # -- public API -------------------------------------------------------
+    def _resolve(self, names):
+        from .resolve import resolve_roots
+        return resolve_roots(list(names), self.cascade, self.components, self.mechanisms,
+                             self.block, self.version, self.cpu, self.pins)
 
     def resolve_names(self, names):
-        '''Resolve an iterable of OS-level names -> {unit_key: ResolvedComponent}.'''
-        return self.resolve_with_roots(names)[0]
+        from .adapt import to_resolved_components
+        return to_resolved_components(self._resolve(names)[0])
 
     def resolve_with_roots(self, names):
-        '''Like resolve_names, but also return the set of unit keys bound *directly*
-        by the named components (excluding auto-added family deps).'''
-        units, roots = {}, set()
-        for n in names:
-            roots |= self._resolve_one(n, n, units, frozenset())
-        self._propagate_requested(units)
-        return units, roots
-
-    @staticmethod
-    def _propagate_requested(units):
-        '''`requested_as` must be closed under the deps relation: if a root pulls in
-        a unit, it also (transitively) pulls in that unit's deps. Dedup means a
-        transitive dep can miss roots discovered after it was first created, so
-        propagate roots down the deps graph to a fixpoint.'''
-        changed = True
-        while changed:
-            changed = False
-            for rc in units.values():
-                for dep_key in rc.deps:
-                    dep = units.get(dep_key)
-                    if dep is not None and not rc.requested_as <= dep.requested_as:
-                        dep.requested_as |= rc.requested_as
-                        changed = True
-
-    # -- lookup -----------------------------------------------------------
-
-    def _lookup(self, name):
-        for bname, blk in self.cascade:          # exact name wins, most-derived first
-            node = blk[name]
-            if node is not None:
-                return node, bname, False
-        for bname, blk in self.cascade:          # else nearest wildcard
-            star = blk['*']
-            if star is not None:
-                return star, bname, True
-        return None, None, False
-
-    def _resolve_one(self, name, root, units, visiting):
-        '''Resolve one OS-level name; returns the set of unit keys it bound.'''
-        if name in visiting:
-            return set()  # cycle guard
-        visiting = visiting | {name}
-        node, _bname, _is_star = self._lookup(name)
-        if node is None:
-            raise ResolveError(name, self.os_block,
-                               'not found in OS cascade and no * wildcard')
-        return self._interpret(node, name, root, units, visiting)
-
-    def _interpret(self, node, name, root, units, visiting):
-        kind = node.kind
-        keys = set()
-        if kind == LIST:
-            for i in range(node.num_children):
-                keys |= self._interpret_value(node[i], name, root, units, visiting)
-        elif kind == DICT:
-            pkg = node['package']
-            if pkg is None:
-                raise ResolveError(name, self.os_block,
-                                   'dict route without a `package` reference')
-            keys |= self._bind_ref(pkg.value, name, root, units, visiting, extra=node)
-        else:  # VALUE
-            keys |= self._interpret_value(node, name, root, units, visiting)
-        return keys
-
-    def _interpret_value(self, node, name, root, units, visiting):
-        val = node.value
-        if val is None:
-            # nested container as a list entry (not used by current data, but safe)
-            return self._interpret(node, name, root, units, visiting)
-        if '\\' in val:
-            return self._bind_ref(val, name, root, units, visiting)
-        # app method selection: `name: <method>` where `name` is an \app with that
-        # method (a family-keyed sub-node). Falls back to a bare name reference.
-        if self._is_app_method(name, val):
-            return self._bind_app_method(name, val, root, units, visiting)
-        return self._resolve_one(val, root, units, visiting)  # bare name reference
-
-    def _is_app_method(self, name, method):
-        app = self.root['\\app']
-        if app is None:
-            return False
-        app_node = app[name]
-        return app_node is not None and app_node[method] is not None \
-            and app_node[method].kind == DICT
-
-    # -- binding ----------------------------------------------------------
-
-    def _bind_ref(self, ref, requested_name, root, units, visiting, extra=None):
-        family, _, comp = ref.partition('\\')
-        if comp == '*':
-            comp = requested_name
-
-        fam_block = self.root['\\' + family]
-        if fam_block is None:
-            raise ResolveError(requested_name, self.os_block,
-                               f'unknown family "{family}"')
-        comp_node = fam_block[comp]
-        if comp_node is None:
-            raise ResolveError(requested_name, self.os_block,
-                               f'"{comp}" not defined in family "{family}"')
-
-        fields, varmap = self._fields_from(fam_block, comp_node)
-        if extra is not None:                    # merge OS-dict extras (minus `package`)
-            _, extra_fields = self._split_vars_fields(extra)
-            extra_fields.pop('package', None)
-            fields.update({k: (self._subst(v, varmap) if isinstance(v, str) else v)
-                           for k, v in extra_fields.items()})
-
-        # deps: family !depends + this component's `depends` + any on the OS-dict route
-        deps = (self._family_depends(fam_block) + self._node_depends(comp_node)
-                + self._node_depends(extra))
-        return self._emit(family, comp, fields, varmap, comp_node.address, deps,
-                          requested_name, root, units, visiting)
-
-    def _bind_app_method(self, app_name, method, root, units, visiting):
-        '''Bind an app via a selected install method: `neovim: appImage` picks the
-        `appImage` method of the `\\app neovim` definition. Fields come from the
-        method; deps = family !depends + app-common `depends` + method `depends`.'''
-        app_node = self.root['\\app'][app_name]
-        method_node = app_node[method]
-        fam_block = self.root['\\' + method]
-        if fam_block is None:
-            raise ResolveError(app_name, self.os_block,
-                               f'app "{app_name}" selects unknown install method "{method}"')
-        fields, varmap = self._fields_from(fam_block, method_node)
-        deps = (self._family_depends(fam_block)
-                + self._node_depends(app_node)       # method-independent
-                + self._node_depends(method_node))   # method-specific
-        return self._emit(method, app_name, fields, varmap, method_node.address, deps,
-                          app_name, root, units, visiting)
-
-    def _emit(self, family, comp, fields, varmap, source, dep_names,
-              requested_name, root, units, visiting):
-        '''Create-or-reuse a unit and (on first creation) resolve its dependencies.'''
-        key = f'{family}\\{comp}'
-        rc = units.get(key)
-        if rc is None:
-            rc = ResolvedComponent(key=key, family=family, comp=comp,
-                                   fields=fields, vars=varmap, source=source)
-            units[key] = rc
-            for dep_name in dep_names:
-                if dep_name != requested_name and dep_name != comp:
-                    rc.deps |= self._resolve_dep(dep_name, root, units, visiting)
-        rc.requested_as.add(root)
-        return {key}
-
-    def _resolve_dep(self, dep, root, units, visiting):
-        '''A dependency name may be a bare name (cascade lookup) or a family\\comp
-        ref (direct family binding).'''
-        if '\\' in dep:
-            return self._bind_ref(dep, dep, root, units, visiting)
-        return self._resolve_one(dep, root, units, visiting)
-
-    def _fields_from(self, fam_block, field_node):
-        fam_vars = self._block_vars(fam_block)
-        comp_vars, fields = self._split_vars_fields(field_node)
-        varmap = self._resolve_vars({**fam_vars, **comp_vars})
-        fields = {k: (self._subst(v, varmap) if isinstance(v, str) else v)
-                  for k, v in fields.items()}
-        return fields, varmap
-
-    @staticmethod
-    def _family_depends(fam_block):
-        node = fam_block['!depends']
-        if node is None:
-            return []
-        if node.kind == LIST:
-            return [node[i].value for i in range(node.num_children)]
-        return [node.value]
-
-    # -- variables & fields ----------------------------------------------
-
-    @staticmethod
-    def _block_vars(block):
-        out = {}
-        for i in range(block.num_children):
-            ch = block[i]
-            if ch.key and ch.key.startswith('$'):
-                out[ch.key] = ch.value
-        return out
-
-    # keys that are directives, not data fields / link specs
-    RESERVED = {'depends'}
-
-    @classmethod
-    def _split_vars_fields(cls, node):
-        variables, fields = {}, {}
-        for i in range(node.num_children):
-            ch = node[i]
-            k = ch.key
-            if not k or k in cls.RESERVED:
-                continue
-            if k.startswith('$'):
-                variables[k] = ch.value
-            else:
-                fields[k] = cls._node_to_py(ch)   # scalar, list, or nested dict
-        return variables, fields
-
-    @staticmethod
-    def _node_depends(node):
-        '''Per-node `depends` (a name or list of names), resolved through the cascade
-        like family `!depends`. Empty when the node has none.'''
-        if node is None:
-            return []
-        d = node['depends']
-        if d is None:
-            return []
-        if d.kind == LIST:
-            return [d[i].value for i in range(d.num_children)]
-        return [d.value]
-
-    @classmethod
-    def _node_to_py(cls, node):
-        '''Convert a humon node to plain python (str / list / nested dict). Lets
-        families carry structured fields, e.g. dotfiles link specs.'''
-        if node.kind == DICT:
-            out = {}
-            for i in range(node.num_children):
-                ch = node[i]
-                if ch.key:
-                    out[ch.key] = cls._node_to_py(ch)
-            return out
-        if node.kind == LIST:
-            return [cls._node_to_py(node[i]) for i in range(node.num_children)]
-        return node.value
-
-    def _resolve_vars(self, varmap):
-        out = dict(varmap)
-        for _ in range(10):
-            changed = False
-            for k, v in list(out.items()):
-                if isinstance(v, str):
-                    nv = self._subst(v, out)
-                    if nv != v:
-                        out[k], changed = nv, True
-            if not changed:
-                break
-        return out
-
-    @staticmethod
-    def _subst(s, varmap):
-        return _VAR_RE.sub(lambda m: varmap.get(m.group(0), m.group(0)), s)
+        from .adapt import to_resolved_components
+        units, roots = self._resolve(names)
+        return to_resolved_components(units), roots

@@ -374,6 +374,7 @@
     "fields": {
      "name": "Neovim",
      "path": "~/apps/nvim.appimage",
+     "scope": "user",
      "url": "https://github.com/neovim/neovim/releases/download/$VERSION/nvim-linux-$ARCH.appimage",
      "version": {
       "asset": "nvim-linux-$ARCH.appimage",
@@ -1465,6 +1466,7 @@
     "fields": {
      "name": "Neovim",
      "path": "~/apps/nvim.appimage",
+     "scope": "user",
      "url": "https://github.com/neovim/neovim/releases/download/$VERSION/nvim-linux-$ARCH.appimage",
      "version": {
       "asset": "nvim-linux-$ARCH.appimage",
@@ -2505,6 +2507,7 @@
     "fields": {
      "name": "Neovim",
      "path": "~/apps/nvim.appimage",
+     "scope": "user",
      "url": "https://github.com/neovim/neovim/releases/download/$VERSION/nvim-linux-$ARCH.appimage",
      "version": {
       "asset": "nvim-linux-$ARCH.appimage",
@@ -3291,6 +3294,7 @@
     "fields": {
      "name": "Neovim",
      "path": "~/apps/nvim.appimage",
+     "scope": "user",
      "url": "https://github.com/neovim/neovim/releases/download/$VERSION/nvim-linux-$ARCH.appimage",
      "version": {
       "asset": "nvim-linux-$ARCH.appimage",
@@ -4093,6 +4097,7 @@
     "fields": {
      "name": "Neovim",
      "path": "~/apps/nvim.appimage",
+     "scope": "user",
      "url": "https://github.com/neovim/neovim/releases/download/$VERSION/nvim-linux-$ARCH.appimage",
      "version": {
       "asset": "nvim-linux-$ARCH.appimage",
@@ -5137,6 +5142,7 @@
     "fields": {
      "name": "Neovim",
      "path": "~/apps/nvim.appimage",
+     "scope": "user",
      "url": "https://github.com/neovim/neovim/releases/download/$VERSION/nvim-linux-$ARCH.appimage",
      "version": {
       "asset": "nvim-linux-$ARCH.appimage",
@@ -5989,6 +5995,7 @@
     "fields": {
      "name": "Neovim",
      "path": "~/apps/nvim.appimage",
+     "scope": "user",
      "url": "https://github.com/neovim/neovim/releases/download/$VERSION/nvim-linux-$ARCH.appimage",
      "version": {
       "asset": "nvim-linux-$ARCH.appimage",
@@ -7058,6 +7065,7 @@
     "fields": {
      "name": "Neovim",
      "path": "~/apps/nvim.appimage",
+     "scope": "user",
      "url": "https://github.com/neovim/neovim/releases/download/$VERSION/nvim-linux-$ARCH.appimage",
      "version": {
       "asset": "nvim-linux-$ARCH.appimage",
@@ -8098,6 +8106,7 @@
     "fields": {
      "name": "Neovim",
      "path": "~/apps/nvim.appimage",
+     "scope": "user",
      "url": "https://github.com/neovim/neovim/releases/download/$VERSION/nvim-linux-$ARCH.appimage",
      "version": {
       "asset": "nvim-linux-$ARCH.appimage",

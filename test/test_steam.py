@@ -8,14 +8,14 @@ import humon
 
 from configsys.componentObj import ResolvedComponent
 from configsys.families.apt import Apt
-from configsys.routes import RouteResolver
+from configsys.routes import Resolver
 from configsys.runner import Runner
 
 ROUTES = os.path.join(os.path.dirname(__file__), '..', 'routes.hu')
 
 
 def _resolve(block, ver, name='steam'):
-    return RouteResolver(humon.from_file(ROUTES), block, ver).resolve_names([name])
+    return Resolver(ROUTES, block, ver).resolve_names([name])
 
 
 def test_steam_native_apt_on_pop():

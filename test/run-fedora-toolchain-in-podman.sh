@@ -18,5 +18,5 @@ for rel in "${@:-41 42}"; do
     echo ">> building $img (fedora:$rel)"
     podman build -q -t "$img" --build-arg "FEDORA=$rel" -f "$here/Containerfile.fedora" "$repo"
     echo ">> Fedora $rel versioned toolchain"
-    podman run --rm -e CONFIGSYS_RESOLVER "$img" bash test/integration_fedora_toolchain.sh
+    podman run --rm "$img" bash test/integration_fedora_toolchain.sh
 done

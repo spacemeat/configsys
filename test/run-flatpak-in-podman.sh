@@ -18,5 +18,5 @@ podman build -q -t "$IMAGE" -f "$here/Containerfile" "$repo"
 
 echo ">> flatpak --user lifecycle (APP=$APP, /dev/fuse)"
 # flatpak needs a D-Bus session bus; dbus-run-session provides a throwaway one.
-podman run --rm -e CONFIGSYS_RESOLVER --device /dev/fuse --security-opt seccomp=unconfined \
+podman run --rm --device /dev/fuse --security-opt seccomp=unconfined \
     -e "APP=$APP" "$IMAGE" dbus-run-session -- bash test/integration_flatpak.sh

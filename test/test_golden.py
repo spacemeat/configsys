@@ -8,7 +8,7 @@ against future regressions in the resolver/data with no dependency on the old en
 
 Regenerate after an intentional data/resolver change:
     CONFIGSYS_REGEN_GOLDEN=1 .venv/bin/python -m pytest test/test_v2_golden.py -q
-and review the git diff of test/v2_golden.json before committing.
+and review the git diff of test/routing_golden.json before committing.
 '''
 
 import json
@@ -16,13 +16,13 @@ import os
 
 import pytest
 
-from configsys.v2 import routes2
-from configsys.v2.engine import V2Resolver
-from configsys.v2.resolve import ResolveError
+from configsys import routes
+from configsys.routes import Resolver
+from configsys.resolve import ResolveError
 
 HERE = os.path.dirname(__file__)
-ROUTES2 = os.path.join(HERE, '..', 'routes2.hu')
-GOLDEN = os.path.join(HERE, 'v2_golden.json')
+ROUTES = os.path.join(HERE, '..', 'routes.hu')
+GOLDEN = os.path.join(HERE, 'routing_golden.json')
 
 CONTEXTS = [('ubuntu', '24.04'), ('ubuntu', '22.04'), ('pop_os!', '22.04'),
             ('debian', '12'), ('debian', '11'), ('fedora', '41'), ('fedora', '42'),
@@ -34,11 +34,11 @@ def _canon(rc):
 
 
 def _snapshot():
-    _cascade, components, _mechs = routes2.load(ROUTES2)
+    _cascade, components, _mechs = routes.load(ROUTES)
     names = sorted(components)
     snap = {}
     for block, version in CONTEXTS:
-        r = V2Resolver(ROUTES2, block, version, 'x86_64')
+        r = Resolver(ROUTES, block, version, 'x86_64')
         ctx = {}
         for name in names:
             try:

@@ -5,7 +5,7 @@ import humon
 from configsys.componentObj import ResolvedComponent
 from configsys.families import get_family, is_supported
 from configsys.families.pacman import Pacman
-from configsys.routes import RouteResolver
+from configsys.routes import Resolver
 from configsys.runner import Result, Runner
 
 ROUTES = os.path.join(os.path.dirname(__file__), '..', 'routes.hu')
@@ -71,7 +71,7 @@ def test_rolling_lock_is_ledger_only():
 
 
 def test_arch_routes_and_name_translations():
-    r = RouteResolver(humon.from_file(ROUTES), 'arch', '20260712')
+    r = Resolver(ROUTES, 'arch', '20260712')
     assert r.cascade_names == ['arch', 'linux']
     # renamed packages resolve to the Arch names
     assert r.resolve_names(['pipx'])['pacman\\pipx'].name == 'python-pipx'

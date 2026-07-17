@@ -1,6 +1,6 @@
 '''Unit tests for the v2 when: DSL — parse, evaluate, scale safety, specificity.'''
 
-from configsys.v2.predicate import Context, Os, ALWAYS, most_specific, parse
+from configsys.predicate import Context, Os, ALWAYS, most_specific, parse
 
 SR = {'ubuntu', 'debian', 'fedora'}
 POP = Context(['pop_os!', 'ubuntu', 'debian', 'linux'], '22.04', 'x86_64', SR)
@@ -55,14 +55,14 @@ def test_empty_when_is_always_true():
 
 def test_specificity_prefers_narrow():
     import os
-    from configsys.v2 import routes2
-    cascade, _c, _m = routes2.load(os.path.join(os.path.dirname(__file__), '..', 'routes2.hu'))
+    from configsys import routes
+    cascade, _c, _m = routes.load(os.path.join(os.path.dirname(__file__), '..', 'routes.hu'))
     assert most_specific([Os('pop_os!'), ALWAYS], cascade) is not ALWAYS
 
 
 def test_bad_syntax_raises():
     import pytest
-    from configsys.v2.predicate import PredicateError
+    from configsys.predicate import PredicateError
     with pytest.raises(PredicateError):
         parse('ubuntu and')
     with pytest.raises(PredicateError):

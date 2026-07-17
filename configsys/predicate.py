@@ -24,7 +24,7 @@ or/not, which the full checker slice will handle.
 import operator
 import re
 
-from ..osversion import parse_version
+from .osversion import parse_version
 
 _CMP = {'<': operator.lt, '<=': operator.le, '>': operator.gt,
         '>=': operator.ge, '=': operator.eq, '==': operator.eq}

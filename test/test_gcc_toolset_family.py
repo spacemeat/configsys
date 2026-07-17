@@ -3,7 +3,7 @@ import humon
 from configsys.componentObj import ResolvedComponent
 from configsys.families import get_family, is_supported
 from configsys.families.gcc_toolset import GccToolset
-from configsys.routes import RouteResolver
+from configsys.routes import Resolver
 from configsys.runner import Result, Runner
 
 
@@ -70,8 +70,8 @@ def test_activation_is_not_configsys_and_no_latest():
 def test_rhel_routes_gcc_to_toolset(tmp_path):
     import os
     routes = os.path.join(os.path.dirname(__file__), '..', 'routes.hu')
-    r = RouteResolver(humon.from_file(routes), 'rhel', '9.8')
-    assert r.cascade_names == ['rhel', 'fedora', 'linux']
+    r = Resolver(routes, 'rhel', '9.8')
+    assert r.cascade_names == ['rhel', 'redhat', 'linux']
     units, _ = r.resolve_with_roots(['gcc-15'])
     assert 'gcc-toolset\\gcc-15' in units
     # native packages still route through dnf (inherited from the fedora block)

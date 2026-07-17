@@ -19,4 +19,4 @@ echo ">> building $IMAGE (context: $repo)"
 podman build -q -t "$IMAGE" -f "$here/Containerfile" "$repo"
 
 echo ">> clang lifecycle (VER=$VER, LLVM apt repo + update-alternatives)"
-podman run --rm -e CONFIGSYS_RESOLVER -e "VER=$VER" "$IMAGE" bash test/integration_clang.sh
+podman run --rm -e "VER=$VER" "$IMAGE" bash test/integration_clang.sh

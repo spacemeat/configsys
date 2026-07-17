@@ -72,14 +72,13 @@ class Apt(Family):
 
     @staticmethod
     def _is_deb(rc):
-        '''deb-mode: v2 declares a `deb-source` (github:owner/repo); the legacy shape
-        set `deb: true` alongside a `version:` github spec.'''
-        return bool(rc.fields.get('deb')) or 'deb-source' in rc.fields
+        '''deb-mode: a `deb-source` (github:owner/repo) marks a tool that ships an
+        official .deb rather than living in the apt repos.'''
+        return 'deb-source' in rc.fields
 
     def _deb_spec(self, rc):
-        '''The github version-discovery spec for the .deb, from either field shape:
-        v2 `deb-source` + cpu-keyed `asset` (pick this arch's file), or the legacy
-        `version:` dict. Returns None if not a github .deb.'''
+        '''The github version-discovery spec for the .deb: `deb-source` + the cpu-keyed
+        `asset` (this arch's file). Returns None if not a github .deb.'''
         src = rc.fields.get('deb-source')
         if isinstance(src, str) and src.startswith('github:'):
             asset = rc.fields.get('asset')
@@ -89,8 +88,8 @@ class Apt(Family):
         return None
 
     def _disco_spec(self, rc):
-        # base reads fields['version'] (legacy); v2 deb builds the spec from deb-source.
-        return super()._disco_spec(rc) or self._deb_spec(rc)
+        # a deb builds its discovery spec from deb-source; otherwise the base version spec.
+        return self._deb_spec(rc) or super()._disco_spec(rc)
 
     def get_latest(self, rc):
         # a deb-mode component isn't in the apt repos; its latest is the version

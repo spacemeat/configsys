@@ -8,14 +8,14 @@ import humon
 from configsys.componentObj import ResolvedComponent
 from configsys.families import get_family
 from configsys.families.apt import Apt
-from configsys.routes import RouteResolver
+from configsys.routes import Resolver
 from configsys.runner import Runner
 
 ROUTES = os.path.join(os.path.dirname(__file__), '..', 'routes.hu')
 
 
 def _resolve(block, ver):
-    return RouteResolver(humon.from_file(ROUTES), block, ver).resolve_names(['fastfetch'])
+    return Resolver(ROUTES, block, ver).resolve_names(['fastfetch'])
 
 
 def test_routing_per_distro():
@@ -27,9 +27,9 @@ def test_routing_per_distro():
 
 def test_apt_uses_deb_mode_with_a_github_asset():
     rc = _resolve('pop_os!', '22.04')['apt\\fastfetch']
-    assert rc.fields.get('deb')
-    assert rc.fields['version']['github'] == 'fastfetch-cli/fastfetch'
-    assert rc.fields['version']['asset'] == 'fastfetch-linux-amd64.deb'
+    assert rc.fields.get('deb-source') == 'github:fastfetch-cli/fastfetch'
+    assert rc.fields['asset']['x86_64'] == 'fastfetch-linux-amd64.deb'
+    assert rc.fields['asset']['aarch64'] == 'fastfetch-linux-aarch64.deb'
 
 
 def test_el_fastfetch_pulls_epel():
@@ -40,9 +40,9 @@ def test_el_fastfetch_pulls_epel():
 def _deb_unit():
     return ResolvedComponent(
         key='apt\\fastfetch', family='apt', comp='fastfetch',
-        fields={'name': 'fastfetch', 'deb': 'true',
-                'version': {'github': 'fastfetch-cli/fastfetch',
-                            'asset': 'fastfetch-linux-amd64.deb'}})
+        fields={'name': 'fastfetch', 'deb-source': 'github:fastfetch-cli/fastfetch',
+                'asset': {'x86_64': 'fastfetch-linux-amd64.deb',
+                          'aarch64': 'fastfetch-linux-aarch64.deb'}})
 
 
 def test_deb_install_downloads_asset_and_apt_installs(monkeypatch):
