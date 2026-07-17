@@ -94,3 +94,27 @@ def test_check_reports_errors_and_warnings_with_exit_code(tmp_path, capsys):
     assert "profile 'mine': unknown component 'ghosttool'" in out
     assert 'warn' in out and "requires 'nope'" in out
     assert '~/configsys.hu' in out                   # attributed to the user file
+
+
+def test_where_shows_active_pin(tmp_path, capsys):
+    (tmp_path / 'configsys.hu').write_text('{ pins: { steam: flatpak } }')
+    rc = main(base_args(tmp_path) + ['where', 'steam'])
+    assert rc == 0
+    out = capsys.readouterr().out
+    assert 'pinned' in out and 'via:flatpak' in out
+    assert 'flatpak\\steam' in out                   # the pin actually reroutes it
+
+
+def test_pretend_install_honors_binding_pin(tmp_path, capsys):
+    (tmp_path / 'configsys.hu').write_text('{ pins: { steam: flatpak } }')
+    rc = main(base_args(tmp_path) + ['install', 'steam'])
+    assert rc == 0
+    out = capsys.readouterr().out
+    assert 'flatpak install --user -y flathub com.valvesoftware.Steam' in out
+
+
+def test_check_flags_bogus_pin(tmp_path, capsys):
+    (tmp_path / 'configsys.hu').write_text('{ pins: { steam: snapp } }')
+    rc = main(base_args(tmp_path) + ['check'])
+    assert rc == 1
+    assert "pin 'steam: snapp'" in capsys.readouterr().out

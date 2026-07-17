@@ -74,3 +74,35 @@ def test_malformed_override_raises_config_error_not_traceback(tmp_path):
     p.write_text(r_text)
     with pytest.raises(ConfigError, match='configsys.hu'):
         Resolver(ROUTES, 'pop_os!', '22.04', 'x86_64', overrides_path=str(p))
+
+
+# -- pins (#4): the light reroute tier -----------------------------------
+
+def test_binding_pin_forces_method():
+    # steam is native on Pop by default; a binding-pin forces the flatpak binding
+    r = Resolver(ROUTES, 'pop_os!', '22.04', 'x86_64', pins={'steam': 'flatpak'})
+    units = r.resolve_names(['steam'])
+    assert 'flatpak\\steam' in units and 'apt\\steam' not in units
+
+
+def test_binding_pin_to_absent_via_errors():
+    # pinning to a method the component has no binding for is a clear error
+    r = Resolver(ROUTES, 'pop_os!', '22.04', 'x86_64', pins={'btop': 'flatpak'})
+    with pytest.raises(ResolveError, match='pinned'):
+        r.resolve_names(['btop'])
+
+
+def test_provider_pin_disambiguates(tmp_path):
+    # two components provide the same capability -> ambiguous; a provider-pin picks one
+    p = tmp_path / 'configsys.hu'
+    p.write_text('{ components: {'
+                 '  cap-a:  { provides: mycap  install: [ { via: native } ] }'
+                 '  cap-b:  { provides: mycap  install: [ { via: native } ] }'
+                 '  needer: { requires: mycap  install: [ { via: native } ] } } }')
+    amb = Resolver(ROUTES, 'pop_os!', '22.04', 'x86_64', overrides_path=str(p))
+    with pytest.raises(ResolveError, match='ambiguous'):
+        amb.resolve_names(['needer'])
+    pinned = Resolver(ROUTES, 'pop_os!', '22.04', 'x86_64',
+                      pins={'mycap': 'cap-a'}, overrides_path=str(p))
+    units = pinned.resolve_names(['needer'])
+    assert 'apt\\cap-a' in units and 'apt\\cap-b' not in units

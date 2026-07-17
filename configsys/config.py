@@ -83,6 +83,19 @@ class Config:
         node = self._get('scope')
         return node.value if node is not None and node.kind == VALUE else None
 
+    def pins(self):
+        '''The per-machine `pins:` map: component -> via (binding-pin, forces a method) and
+        capability -> provider (provider-pin, forces which component satisfies a requires).
+        One flat dict; the resolver reads it by component name and by capability. Empty if none.'''
+        node = self._get('pins')
+        out = {}
+        if node is not None:
+            for i in range(node.num_children):
+                ch = node[i]
+                if ch.key and ch.kind == VALUE:
+                    out[ch.key] = ch.value
+        return out
+
     def profile_components(self, profile):
         node = self._profile_node(profile)
         if node is None:

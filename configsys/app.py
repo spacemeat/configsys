@@ -31,6 +31,13 @@ USER_CONFIG_TEMPLATE = '''{
     // Machine-wide default install scope for scope-honoring families (user | system).
     // scope: system
 
+    // Pins — the light way to reroute without redefining a component:
+    //   component -> mechanism  (binding-pin: force a method)
+    //   capability -> component  (provider-pin: force who satisfies a requirement)
+    // pins: {
+    //     steam: flatpak
+    // }
+
     // Define or shadow profiles (a profile is a flat list of component names).
     // profiles: {
     //     dev: [ btop, neovim, gcc-15, gdb ]
@@ -77,9 +84,11 @@ class Context:
 
     @property
     def routes(self):
-        # ~/configsys.hu may carry a `components:` section that overlays routes.hu.
+        # ~/configsys.hu may carry a `components:` overlay and a `pins:` map (method /
+        # provider selection).
         return Resolver(self.paths.routes_file, self.os_info.block,
                         self.os_info.version, self._cpu(),
+                        pins=self.config.pins(),
                         overrides_path=self.paths.user_config_file)
 
     @property
@@ -292,6 +301,9 @@ def cmd_where(ctx, args):
         print(f'  provides    {", ".join(comp.provides)}')
     if comp.requires:
         print(f'  requires    {", ".join(comp.requires)}')
+    pinned = r.pins.get(name)
+    if pinned is not None:
+        print(f'  pinned      via:{pinned}   (from ~/configsys.hu)')
 
     # which binding wins in this machine's context (if any)
     cx = r.cascade.context(r.block, r.version, r.cpu)
@@ -363,9 +375,21 @@ def cmd_check(ctx, args):
     except ConfigsysError:
         pass  # malformed profiles surface on their own path
 
+    # pins: value must be a known mechanism (binding-pin) or a known component (provider-pin)
+    from .families import supported_names
+    valid_via = {'native', 'parts'} | supported_names()
+    pin_issues = []
+    for key, val in ctx.config.pins().items():
+        if val in valid_via:
+            if key not in components:
+                pin_issues.append(f"pin '{key}: {val}': component '{key}' does not exist")
+        elif val not in components:
+            pin_issues.append(f"pin '{key}: {val}': '{val}' is neither a known mechanism "
+                              f'(binding-pin) nor a component (provider-pin)')
+
     errors = [i for i in issues if i.is_error]
     warnings = [i for i in issues if not i.is_error]
-    if not errors and not warnings and not prof_issues:
+    if not errors and not warnings and not prof_issues and not pin_issues:
         print(f'configsys: OK — {len(components)} components, no issues')
         return 0
 
@@ -373,9 +397,11 @@ def cmd_check(ctx, args):
         print(f'  ERROR   {_issue_loc(i, ctx.paths)}{i.message}')
     for prof, cname in prof_issues:
         print(f"  ERROR   profile '{prof}': unknown component '{cname}'")
+    for msg in pin_issues:
+        print(f'  ERROR   {msg}')
     for i in warnings:
         print(f'  warn    {_issue_loc(i, ctx.paths)}{i.message}')
-    n_err = len(errors) + len(prof_issues)
+    n_err = len(errors) + len(prof_issues) + len(pin_issues)
     print(f'\nconfigsys: {n_err} error(s), {len(warnings)} warning(s) '
           f'across {len(components)} components')
     return 1 if n_err else 0

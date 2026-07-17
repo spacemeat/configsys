@@ -43,8 +43,15 @@ Resolution (resolve.py) is a worklist to a fixpoint over one fixed machine conte
 explicitly-wanted components + what they provide, then close `requires` reusing existing/
 env-provided providers; no backtracking (unsatisfiable/ambiguous = error); dedup by unit key.
 Per-machine `pins` (binding-pin component->via, provider-pin capability->provider) sit at top
-precedence. The result is `{unit_key: ResolvedComponent}` (`family\comp`), which the families
-consume unchanged.
+precedence — set in `~/configsys.hu`'s `pins:` section (the light reroute that doesn't require
+redefining a component). The result is `{unit_key: ResolvedComponent}` (`family\comp`), which
+the families consume unchanged.
+
+The user file `~/configsys.hu` (see configsys/config.py + the overlay in configsys/routes.py)
+overlays the repo section by section: `configs:`/`scope:` (machine settings), `profiles:`
+(shadowed per name), `components:` (route overrides — redefine all-or-nothing, add, or remove
+with `{}`), and `pins:`. `configsys where <component>` explains a component's source layer +
+resolution; `configsys check` lints the whole merged config.
 
 Families are defined in code according to their major operations: getVersion, install,
 uninstall, upgrade, setVersion, lockVersion, unlockVersion. apt has various commands for doing

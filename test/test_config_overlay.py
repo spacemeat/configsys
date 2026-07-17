@@ -82,3 +82,12 @@ def test_overlap_across_profiles_tracks_all_requesters():
     req = c.requested()
     assert req['ripgrep'] == ['a', 'b']
     assert req['btop'] == ['b']
+
+
+def test_pins_absent_is_empty():
+    assert cfg(REPO).pins() == {}
+
+
+def test_pins_from_user_file():
+    c = cfg(REPO, '{ configs: [ dev ]  pins: { steam: flatpak  cc: clang-18 } }')
+    assert c.pins() == {'steam': 'flatpak', 'cc': 'clang-18'}
