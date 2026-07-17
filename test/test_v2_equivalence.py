@@ -60,6 +60,11 @@ CLOSURE = [
     ('steam', 'pop_os!', '22.04'),          # native, no deps
     ('steam', 'ubuntu', '24.04'),           # flatpak -> pulls the flatpak tool
     ('libfuse2', 'arch', '20260101'),
+    # fetch-artifact + dotfiles chain
+    ('neovim', 'ubuntu', '24.04'), ('neovim', 'fedora', '41'), ('neovim', 'arch', '20260101'),
+    ('arduino', 'ubuntu', '24.04'),
+    # github .deb / native per OS
+    ('fastfetch', 'ubuntu', '24.04'), ('fastfetch', 'fedora', '41'), ('fastfetch', 'arch', '20260101'),
 ]
 
 
@@ -83,3 +88,31 @@ def test_reuse_and_requested_as():
     assert set(new) == set(old)
     assert new['apt\\flatpak'].requested_as == {'chrome', 'steam'}
     assert new['apt\\flatpak'].requested_as == old['apt\\flatpak'].requested_as
+
+
+def test_shared_dotfile_attributed_to_both_apps():
+    # neovim and arduino both pull the bashDotD dotfile (via their own dotfiles); it
+    # resolves once, attributed to both, exactly like the old resolver.
+    old = _old('ubuntu', '24.04').resolve_names(['neovim', 'arduino'])
+    cascade, components, mechanisms = _v2()
+    new = resolve(['neovim', 'arduino'], cascade, components, mechanisms, 'ubuntu', '24.04', 'x86_64')
+    assert set(new) == set(old)
+    assert new['dotfiles\\bashDotD'].requested_as == {'neovim', 'arduino'}
+    assert new['dotfiles\\bashDotD'].requested_as == old['dotfiles\\bashDotD'].requested_as
+
+
+# -- cpu-keyed asset selection (a NEW v2 capability; old hardcoded amd64) --
+
+def test_cpu_keyed_asset_selection():
+    from configsys.v2.resolve import resolve_asset, select_binding
+    cascade, components, _ = _v2()
+    ff = components['fastfetch']
+
+    # on Debian, the deb binding picks the arch-correct asset
+    deb = select_binding(ff, cascade, cascade.context('debian', '12', 'x86_64'))
+    assert resolve_asset(deb, 'x86_64') == 'fastfetch-linux-amd64.deb'
+    assert resolve_asset(deb, 'aarch64') == 'fastfetch-linux-aarch64.deb'
+
+    # appImage $ARCH substitution
+    nv = select_binding(components['neovim'], cascade, cascade.context('ubuntu', '24.04', 'aarch64'))
+    assert resolve_asset(nv, 'aarch64') == 'nvim-linux-aarch64.appimage'

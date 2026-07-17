@@ -57,5 +57,40 @@
                 { via: flatpak  app: com.valvesoftware.Steam }
             ]
         }
+
+        // --- dotfiles ---
+        bashDotD: {
+            install: [ { via: dotfiles  aliases: { src: bash_aliases  dst: ~/.bash_aliases } } ]
+        }
+
+        // --- appImage apps (fetch-artifact) + method-independent dotfiles chain ---
+        neovim: {
+            requires: [ ripgrep, tree-sitter-cli ]                  // method-independent
+            dotfiles: {
+                requires: bashDotD
+                config:  { src: neovim         dst: $XDG_CONFIG_HOME/nvim }
+                aliases: { src: bash.d/neovim.sh  dst: ~/.bash.d/neovim.sh }
+            }
+            install: [ { via: appImage  name: Neovim               // -> requires libfuse2
+                         version: { github: neovim/neovim  asset: "nvim-linux-$ARCH.appimage" }
+                         url: "https://github.com/neovim/neovim/releases/download/$VERSION/nvim-linux-$ARCH.appimage"
+                         path: ~/apps/nvim.appimage } ]
+        }
+        arduino: {
+            dotfiles: { requires: bashDotD  src: bash.d/arduino.sh  dst: ~/.bash.d/arduino.sh }
+            install: [ { via: appImage  name: "Arduino IDE"
+                         version: { github: arduino/arduino-ide  asset: "arduino-ide_*_Linux_64bit.AppImage" }
+                         url: "https://github.com/arduino/arduino-ide/releases/download/$VERSION/arduino-ide_$VERSION_Linux_64bit.AppImage"
+                         path: ~/apps/arduino-ide.appimage } ]
+        }
+
+        // --- github .deb where no repo has it, native package elsewhere (cpu-keyed asset) ---
+        fastfetch: {
+            install: [
+                { via: native  when: "debian"  deb-source: "github:fastfetch-cli/fastfetch"
+                  asset: { x86_64: fastfetch-linux-amd64.deb  aarch64: fastfetch-linux-aarch64.deb } }
+                { via: native }
+            ]
+        }
     }
 }

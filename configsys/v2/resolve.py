@@ -10,6 +10,12 @@ class ResolveError(Exception):
     pass
 
 
+def _as_list(v):
+    if v is None:
+        return []
+    return v if isinstance(v, list) else [v]
+
+
 class Unit:
     '''A resolved leaf: which mechanism installs it, the component name, and the concrete
     package identifier. Shaped to line up with the old resolver's (family, comp, name).
@@ -61,8 +67,26 @@ def _package(binding, mechanism, component):
         return name or component.name
     if binding.via == 'flatpak':
         return binding.details.get('app')
-    # other mechanisms (appImage, deb, crate, ...) fill in as they're ported
+    if binding.via == 'dotfiles':
+        return None                     # a dotfile has no package
+    # appImage / deb / tarball / crate / font: the display/dist name
     return binding.details.get('name') or component.name
+
+
+def resolve_asset(binding, cpu):
+    '''The concrete artifact for this cpu. The arch-relevant `asset` may sit at the
+    binding top level (an explicit cpu-keyed map, e.g. the fastfetch .deb) or inside a
+    github `version:` discovery spec (an $ARCH glob, e.g. the neovim appImage). A dict
+    picks by cpu; a string has $ARCH substituted.'''
+    asset = binding.details.get('asset')
+    if asset is None:
+        ver = binding.details.get('version')
+        asset = ver.get('asset') if isinstance(ver, dict) else None
+    if isinstance(asset, dict):
+        return asset.get(cpu)
+    if isinstance(asset, str) and cpu:
+        return asset.replace('$ARCH', cpu)
+    return asset
 
 
 def resolve_one(name, cascade, components, block, version=None, cpu=None):
@@ -135,7 +159,23 @@ class _State:
         reqs = list(comp.requires) + list(self.mechanisms.get(binding.via, []))
         for cap in reqs:
             self.queue.append((key, name, cap, root))
+        # method-independent config: a `dotfiles:` field emits a dotfiles\<comp> unit
+        # (keyed by the component) as a dependency, with its own requires (e.g. bashDotD).
+        if comp.dotfiles is not None:
+            self._add_dotfile(name, comp.dotfiles, root)
+            unit.deps.add(f'dotfiles\\{name}')
         return key
+
+    def _add_dotfile(self, name, spec, root):
+        key = f'dotfiles\\{name}'
+        if key in self.units:
+            self.units[key].requested_as.add(root)
+            return
+        unit = Unit('dotfiles', name, None)
+        unit.requested_as = {root}
+        self.units[key] = unit
+        for cap in _as_list(spec.get('requires')):
+            self.queue.append((key, name, cap, root))
 
     def drain(self):
         while self.queue:
