@@ -35,7 +35,7 @@ def test_vulkan_dev_pulls_the_runtime():
 
 def test_user_profile_includes_vulkan_runtime():
     cfg = humon.from_file(CONFIG)
-    user = cfg.root['user']
+    user = cfg.root['profiles']['user']
     names = [user[i].value for i in range(user.num_children)]
     assert 'vulkan-runtime' in names
 

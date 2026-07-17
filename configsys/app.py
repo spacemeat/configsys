@@ -22,10 +22,26 @@ from .routes import Resolver
 from .runner import Runner
 
 USER_CONFIG_TEMPLATE = '''{
-    // configsys — per-machine selection. Pick which profiles (defined in the
-    // repo's config.hu) apply to THIS machine. You may also locally override a
-    // profile definition by redefining it here.
+    // configsys — this machine's settings and overrides. Overlays the repo's
+    // config.hu + routes.hu section by section (your definitions win).
+
+    // Which profiles (from the repo's config.hu, or your `profiles:` below) apply here.
     configs: [ dev ]
+
+    // Machine-wide default install scope for scope-honoring families (user | system).
+    // scope: system
+
+    // Define or shadow profiles (a profile is a flat list of component names).
+    // profiles: {
+    //     dev: [ btop, neovim, gcc-15, gdb ]
+    // }
+
+    // Override component routes: redefine one (all-or-nothing), add your own, or
+    // remove one with {}. See routes.hu for the component shape.
+    // components: {
+    //     steam: { install: [ { via: flatpak  hub: flathub  app: com.valvesoftware.Steam } ] }
+    //     apod:  {}
+    // }
 }
 '''
 

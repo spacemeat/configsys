@@ -13,8 +13,10 @@ def cfg(config_text, user_text=None):
 
 REPO = '''{
     configs: [ dev ]
-    dev: [ btop, fzf, ripgrep ]
-    games: [ steam ]
+    profiles: {
+        dev: [ btop, fzf, ripgrep ]
+        games: [ steam ]
+    }
 }'''
 
 
@@ -33,17 +35,30 @@ def test_user_overrides_configs_selection():
 
 
 def test_user_redefines_a_profile():
-    c = cfg(REPO, '{ configs: [ dev ]  dev: [ btop, xclip ] }')
+    c = cfg(REPO, '{ configs: [ dev ]  profiles: { dev: [ btop, xclip ] } }')
     assert c.profile_components('dev') == ['btop', 'xclip']
 
 
+def test_user_profiles_section_shadows_per_name_not_wholesale():
+    # user redefines `dev` but leaves `games` to the repo (per-name overlay, not a
+    # whole-section replace).
+    c = cfg(REPO, '{ configs: [ dev, games ]  profiles: { dev: [ btop ] } }')
+    assert c.profile_components('dev') == ['btop']          # user's
+    assert c.profile_components('games') == ['steam']       # still the repo's
+
+
+def test_user_can_add_a_new_profile():
+    c = cfg(REPO, '{ configs: [ mine ]  profiles: { mine: [ btop, neovim ] } }')
+    assert c.profile_components('mine') == ['btop', 'neovim']
+
+
 def test_single_value_configs():
-    c = cfg('{ configs: dev  dev: [ btop ] }')
+    c = cfg('{ configs: dev  profiles: { dev: [ btop ] } }')
     assert c.active_profiles == ['dev']
 
 
 def test_nested_profile_flattened_to_leaves():
-    c = cfg('{ configs: [ dev ]  dev: { group: [ btop, fzf ]  more: [ ripgrep ] } }')
+    c = cfg('{ configs: [ dev ]  profiles: { dev: { group: [ btop, fzf ]  more: [ ripgrep ] } } }')
     assert c.profile_components('dev') == ['btop', 'fzf', 'ripgrep']
 
 
@@ -63,7 +78,7 @@ def test_default_scope_from_user_config():
 
 
 def test_overlap_across_profiles_tracks_all_requesters():
-    c = cfg('{ configs: [ a, b ]  a: [ ripgrep ]  b: [ ripgrep, btop ] }')
+    c = cfg('{ configs: [ a, b ]  profiles: { a: [ ripgrep ]  b: [ ripgrep, btop ] } }')
     req = c.requested()
     assert req['ripgrep'] == ['a', 'b']
     assert req['btop'] == ['b']
