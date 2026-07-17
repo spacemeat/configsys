@@ -228,6 +228,12 @@
         }
         gcc-cpp: { install: [ { via: native  name: { dnf: "gcc-c++" } } ] }   // Fedora g++ (has a `+`)
         make:    { install: [ { via: native } ] }
+        // gdb: base-repo native everywhere (apt main / dnf base / pacman extra; EL base, no
+        // EPEL), plus its shell-startup dotfile.
+        gdb: {
+            dotfiles: { requires: bash-dotfiles  src: bash.d/gdb.sh  dst: ~/.bash.d/gdb.sh }
+            install: [ { via: native } ]
+        }
 
         // --- AUR: packages built from PKGBUILD via makepkg -si (Arch only). The `aur`
         // mechanism pulls base-devel + git (the build toolchain); yay is the AUR helper

@@ -246,6 +246,33 @@
     "name": "gcc-cpp"
    }
   },
+  "gdb": {
+   "dotfiles\\bash-dotfiles": {
+    "family": "dotfiles",
+    "fields": {
+     "aliases": {
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\gdb": {
+    "family": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/gdb.sh",
+     "src": "bash.d/gdb.sh"
+    },
+    "name": "gdb"
+   },
+   "pacman\\gdb": {
+    "family": "pacman",
+    "fields": {
+     "name": "gdb"
+    },
+    "name": "gdb"
+   }
+  },
   "git": {
    "pacman\\git": {
     "family": "pacman",
@@ -1338,6 +1365,33 @@
     "name": "gcc-select"
    }
   },
+  "gdb": {
+   "apt\\gdb": {
+    "family": "apt",
+    "fields": {
+     "name": "gdb"
+    },
+    "name": "gdb"
+   },
+   "dotfiles\\bash-dotfiles": {
+    "family": "dotfiles",
+    "fields": {
+     "aliases": {
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\gdb": {
+    "family": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/gdb.sh",
+     "src": "bash.d/gdb.sh"
+    },
+    "name": "gdb"
+   }
+  },
   "git": {
    "apt\\git": {
     "family": "apt",
@@ -2379,6 +2433,33 @@
     "name": "gcc-select"
    }
   },
+  "gdb": {
+   "apt\\gdb": {
+    "family": "apt",
+    "fields": {
+     "name": "gdb"
+    },
+    "name": "gdb"
+   },
+   "dotfiles\\bash-dotfiles": {
+    "family": "dotfiles",
+    "fields": {
+     "aliases": {
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\gdb": {
+    "family": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/gdb.sh",
+     "src": "bash.d/gdb.sh"
+    },
+    "name": "gdb"
+   }
+  },
   "git": {
    "apt\\git": {
     "family": "apt",
@@ -3164,6 +3245,33 @@
      "name": "gcc-c++"
     },
     "name": "gcc-c++"
+   }
+  },
+  "gdb": {
+   "dnf\\gdb": {
+    "family": "dnf",
+    "fields": {
+     "name": "gdb"
+    },
+    "name": "gdb"
+   },
+   "dotfiles\\bash-dotfiles": {
+    "family": "dotfiles",
+    "fields": {
+     "aliases": {
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\gdb": {
+    "family": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/gdb.sh",
+     "src": "bash.d/gdb.sh"
+    },
+    "name": "gdb"
    }
   },
   "git": {
@@ -3967,6 +4075,33 @@
      "name": "gcc-c++"
     },
     "name": "gcc-c++"
+   }
+  },
+  "gdb": {
+   "dnf\\gdb": {
+    "family": "dnf",
+    "fields": {
+     "name": "gdb"
+    },
+    "name": "gdb"
+   },
+   "dotfiles\\bash-dotfiles": {
+    "family": "dotfiles",
+    "fields": {
+     "aliases": {
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\gdb": {
+    "family": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/gdb.sh",
+     "src": "bash.d/gdb.sh"
+    },
+    "name": "gdb"
    }
   },
   "git": {
@@ -5014,6 +5149,33 @@
     "name": "gcc-select"
    }
   },
+  "gdb": {
+   "apt\\gdb": {
+    "family": "apt",
+    "fields": {
+     "name": "gdb"
+    },
+    "name": "gdb"
+   },
+   "dotfiles\\bash-dotfiles": {
+    "family": "dotfiles",
+    "fields": {
+     "aliases": {
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\gdb": {
+    "family": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/gdb.sh",
+     "src": "bash.d/gdb.sh"
+    },
+    "name": "gdb"
+   }
+  },
   "git": {
    "apt\\git": {
     "family": "apt",
@@ -5865,6 +6027,33 @@
      "name": "gcc-c++"
     },
     "name": "gcc-c++"
+   }
+  },
+  "gdb": {
+   "dnf\\gdb": {
+    "family": "dnf",
+    "fields": {
+     "name": "gdb"
+    },
+    "name": "gdb"
+   },
+   "dotfiles\\bash-dotfiles": {
+    "family": "dotfiles",
+    "fields": {
+     "aliases": {
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\gdb": {
+    "family": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/gdb.sh",
+     "src": "bash.d/gdb.sh"
+    },
+    "name": "gdb"
    }
   },
   "git": {
@@ -6937,6 +7126,33 @@
     "name": "gcc-select"
    }
   },
+  "gdb": {
+   "apt\\gdb": {
+    "family": "apt",
+    "fields": {
+     "name": "gdb"
+    },
+    "name": "gdb"
+   },
+   "dotfiles\\bash-dotfiles": {
+    "family": "dotfiles",
+    "fields": {
+     "aliases": {
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\gdb": {
+    "family": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/gdb.sh",
+     "src": "bash.d/gdb.sh"
+    },
+    "name": "gdb"
+   }
+  },
   "git": {
    "apt\\git": {
     "family": "apt",
@@ -7976,6 +8192,33 @@
      "src": "bash.d/gcc.sh"
     },
     "name": "gcc-select"
+   }
+  },
+  "gdb": {
+   "apt\\gdb": {
+    "family": "apt",
+    "fields": {
+     "name": "gdb"
+    },
+    "name": "gdb"
+   },
+   "dotfiles\\bash-dotfiles": {
+    "family": "dotfiles",
+    "fields": {
+     "aliases": {
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\gdb": {
+    "family": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/gdb.sh",
+     "src": "bash.d/gdb.sh"
+    },
+    "name": "gdb"
    }
   },
   "git": {
