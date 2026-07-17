@@ -19,16 +19,44 @@
         appImage:    { requires: libfuse2 }
         cargo:       { requires: cargo }              // a crate needs the cargo tool
         debian-font: { requires: [ fontconfig, unzip ] }
+        pip:         { requires: python3-pip }        // `pip install --user` needs pip
     }
 
     // Component layer: each is a capability + a list of context-selected bindings.
     components: {
         // --- trivial natives ---
-        btop:       { install: [ { via: native } ] }
         flatpak:    { install: [ { via: native } ] }
         fontconfig: { install: [ { via: native } ] }
         unzip:      { install: [ { via: native } ] }
         ripgrep:    { install: [ { via: native } ] }
+        python3-pip: { install: [ { via: native  name: { pacman: python-pip } } ] }
+
+        // btop lives in EPEL on EL (needs epel enabled), base repos everywhere else.
+        // Two native bindings: the EL one adds `requires: epel`; both are dnf\btop.
+        btop: {
+            install: [
+                { via: native  when: "rhel"  requires: epel }
+                { via: native }
+            ]
+        }
+
+        // EPEL: a capability enabled by installing epel-release (only on EL). Anything
+        // that `requires: epel` is a no-op off EL (nothing needs it) and pulls this in on EL.
+        epel-release: {
+            provides: epel
+            install: [ { via: native  when: "rhel" } ]
+        }
+
+        // pipx: the version-variant collapse. Native package where the repos have it;
+        // a pip --user bootstrap on old Ubuntu/Debian; +EPEL on EL. Was a \pip family +
+        // apt/dnf/pacman entries + two @version blocks + a rhel override — now three bindings.
+        pipx: {
+            install: [
+                { via: pip     when: "(ubuntu < 23.04) or (debian < 12)"  name: pipx }
+                { via: native  when: "rhel"  requires: epel  name: { pacman: python-pipx } }
+                { via: native  name: { pacman: python-pipx } }
+            ]
+        }
 
         // native, name differs by manager
         libfuse2: {

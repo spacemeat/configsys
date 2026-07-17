@@ -65,6 +65,14 @@ CLOSURE = [
     ('arduino', 'ubuntu', '24.04'),
     # github .deb / native per OS
     ('fastfetch', 'ubuntu', '24.04'), ('fastfetch', 'fedora', '41'), ('fastfetch', 'arch', '20260101'),
+    # version-variant collapse: pipx bootstraps via pip on old Ubuntu/Debian, native elsewhere
+    ('pipx', 'ubuntu', '24.04'), ('pipx', 'ubuntu', '22.04'),
+    ('pipx', 'debian', '12'), ('pipx', 'debian', '11'),
+    ('pipx', 'fedora', '41'), ('pipx', 'arch', '20260101'),
+    # EPEL capability: only pulls epel-release on EL, a no-op elsewhere
+    ('btop', 'debian', '12'), ('btop', 'fedora', '41'),
+    ('btop', 'rhel', '9.8'), ('btop', 'arch', '20260101'),
+    ('pipx', 'rhel', '9.8'),                 # native pipx + EPEL
 ]
 
 

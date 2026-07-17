@@ -156,7 +156,9 @@ class _State:
         self.units[key] = unit
         for cap in set(comp.provides) | {name}:
             self.inventory.setdefault(cap, key)
-        reqs = list(comp.requires) + list(self.mechanisms.get(binding.via, []))
+        # requires: method-independent (component) + mechanism-level + binding-specific
+        reqs = (list(comp.requires) + list(self.mechanisms.get(binding.via, []))
+                + _as_list(binding.details.get('requires')))
         for cap in reqs:
             self.queue.append((key, name, cap, root))
         # method-independent config: a `dotfiles:` field emits a dotfiles\<comp> unit
