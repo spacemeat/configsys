@@ -16,10 +16,10 @@ echo ">> building $IMAGE (context: $repo)"
 podman build -q -t "$IMAGE" -f "$here/Containerfile.arch" "$repo"
 
 echo ">> [1/2] pacman lifecycle cycle (PKG=$PKG)"
-podman run --rm -e "PKG=$PKG" "$IMAGE" bash test/integration_pacman.sh
+podman run --rm -e CONFIGSYS_RESOLVER -e "PKG=$PKG" "$IMAGE" bash test/integration_pacman.sh
 
 echo ">> [2/3] AUR build/install/remove (makepkg)"
-podman run --rm "$IMAGE" bash test/integration_aur.sh
+podman run --rm -e CONFIGSYS_RESOLVER "$IMAGE" bash test/integration_aur.sh
 
 echo ">> [3/3] Arch vulkan-dev pieces (build-essential, xcb, Vulkan runtime)"
-podman run --rm "$IMAGE" bash test/integration_arch_graphics.sh
+podman run --rm -e CONFIGSYS_RESOLVER "$IMAGE" bash test/integration_arch_graphics.sh

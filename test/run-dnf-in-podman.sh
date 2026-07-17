@@ -17,7 +17,7 @@ echo ">> building $IMAGE (context: $repo)"
 podman build -q -t "$IMAGE" -f "$here/Containerfile.fedora" "$repo"
 
 echo ">> [1/2] dnf lifecycle cycle (PKG=$PKG)"
-podman run --rm -e "PKG=$PKG" "$IMAGE" bash test/integration_dnf.sh
+podman run --rm -e CONFIGSYS_RESOLVER -e "PKG=$PKG" "$IMAGE" bash test/integration_dnf.sh
 
 echo ">> [2/2] dev/graphics gaps (build-essential bundle + vulkan X libs)"
-podman run --rm "$IMAGE" bash test/integration_fedora_devgaps.sh
+podman run --rm -e CONFIGSYS_RESOLVER "$IMAGE" bash test/integration_fedora_devgaps.sh

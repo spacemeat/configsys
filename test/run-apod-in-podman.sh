@@ -14,8 +14,8 @@ command -v podman >/dev/null 2>&1 || { echo "podman not found" >&2; exit 127; }
 
 echo ">> [1/2] jammy (22.04) — pip --user bootstrap path"
 podman build -q -t configsys-test:jammy -f "$here/Containerfile" "$repo"
-podman run --rm configsys-test:jammy bash test/integration_apod.sh
+podman run --rm -e CONFIGSYS_RESOLVER configsys-test:jammy bash test/integration_apod.sh
 
 echo ">> [2/2] noble (24.04) — apt pipx path"
 podman build -q -t configsys-test:noble -f "$here/Containerfile.noble" "$repo"
-podman run --rm configsys-test:noble bash test/integration_apod.sh
+podman run --rm -e CONFIGSYS_RESOLVER configsys-test:noble bash test/integration_apod.sh
