@@ -5,7 +5,7 @@ requested_as). The rest of the app (planning, InstallState, the families, the TU
 driven by `{key: ResolvedComponent}`. This is the thin, permanent glue between them: it
 carries no field translation — `unit.details` is already the install-field shape the
 families read (normalized in resolve._install_fields). Not an adapter layer; just the
-v2 resolver's output object mapped onto the family contract.
+v2 resolver's output object mapped onto the driver contract.
 '''
 
 from .componentObj import ResolvedComponent
@@ -14,7 +14,7 @@ from .componentObj import ResolvedComponent
 def to_resolved_component(unit):
     rc = ResolvedComponent(
         key=unit.key,
-        family=unit.mechanism,
+        driver=unit.mechanism,
         comp=unit.component,
         fields=dict(unit.details),
         vars={},                      # v2 carries version info in `version:` specs, not $VARS

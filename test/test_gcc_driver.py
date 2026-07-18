@@ -1,8 +1,8 @@
 import pytest
 
 from configsys.componentObj import ResolvedComponent
-from configsys.families import get_family, is_supported
-from configsys.families.gcc import Gcc
+from configsys.drivers import get_driver, is_supported
+from configsys.drivers.gcc import Gcc
 from configsys.runner import Result, Runner
 
 
@@ -17,7 +17,7 @@ def gcc_unit(comp='gcc-13', link='gcc', version=13, slaves=('g++',),
     fields = {'link': link, 'version': version, 'slaves': list(slaves)}
     if ppa:
         fields['ppa'] = ppa
-    return ResolvedComponent(key=f'gcc\\{comp}', family='gcc', comp=comp, fields=fields)
+    return ResolvedComponent(key=f'gcc\\{comp}', driver='gcc', comp=comp, fields=fields)
 
 
 class FakeRunner:
@@ -35,7 +35,7 @@ class FakeRunner:
 
 
 def test_registered_system_scoped():
-    fam = get_family('gcc', Runner(pretend=True))
+    fam = get_driver('gcc', Runner(pretend=True))
     assert isinstance(fam, Gcc) and is_supported('gcc')
     assert fam.privileged and fam.default_scope == 'system' and not fam.honors_scope
 

@@ -1,9 +1,9 @@
-'''pip.py — the \\pip family: PyPI console-script CLIs via `pip install --user`.
+'''pip.py — the pip driver: PyPI console-script CLIs via `pip install --user`.
 
 User-space (installs to ~/.local/bin, no sudo), the Python analog of the cargo
-family. Version state comes from `pip show`; there's no native version lock, so
+driver. Version state comes from `pip show`; there's no native version lock, so
 lock intent lives in the ledger. `python3 -m pip` is used (not bare `pip`/`pip3`)
-to avoid PATH ambiguity; python3-pip is the family `!depends`.
+to avoid PATH ambiguity; python3-pip is the driver `!depends`.
 
 get_latest resolves from pypi.org only when the route carries a
 `version: { pypi: <dist> }` spec (cached); otherwise no "latest" is reported.
@@ -12,7 +12,7 @@ get_latest resolves from pypi.org only when the route carries a
 import re
 import shlex
 
-from ..component import Family
+from ..driver import Driver
 from ..runner import Result
 
 _VERSION_RE = re.compile(r'^Version:\s*(.+)$', re.MULTILINE)
@@ -20,7 +20,7 @@ _VERSION_RE = re.compile(r'^Version:\s*(.+)$', re.MULTILINE)
 _PIP = 'python3 -m pip'
 
 
-class Pip(Family):
+class Pip(Driver):
     name = 'pip'
     privileged = False
 

@@ -1,11 +1,11 @@
 from configsys.componentObj import ResolvedComponent
-from configsys.families import get_family, is_supported
-from configsys.families.cargo import Cargo
+from configsys.drivers import get_driver, is_supported
+from configsys.drivers.cargo import Cargo
 from configsys.runner import Result, Runner
 
 
 def crate(name='tree-sitter-cli'):
-    return ResolvedComponent(key=f'cargo\\{name}', family='cargo', comp=name,
+    return ResolvedComponent(key=f'cargo\\{name}', driver='cargo', comp=name,
                              fields={'name': name})
 
 
@@ -24,7 +24,7 @@ class FakeRunner:
 
 
 def test_registered_and_unprivileged():
-    fam = get_family('cargo', Runner(pretend=True))
+    fam = get_driver('cargo', Runner(pretend=True))
     assert isinstance(fam, Cargo) and is_supported('cargo')
     assert fam.privileged is False
 
@@ -79,7 +79,7 @@ def test_get_latest_from_crates_spec(tmp_path):
                        'CONFIGSYS_STATE_DIR': str(tmp_path / 's')})
     VersionCache({'crates:tree-sitter-cli': {'version': '0.26.11', 'url': None,
                                              'fetched': 1e12}}).save(paths)
-    rc = ResolvedComponent(key='cargo\\tree-sitter-cli', family='cargo',
+    rc = ResolvedComponent(key='cargo\\tree-sitter-cli', driver='cargo',
                            comp='tree-sitter-cli',
                            fields={'name': 'tree-sitter-cli',
                                    'version': {'crates': 'tree-sitter-cli'}})

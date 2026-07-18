@@ -5,7 +5,7 @@ from configsys.tui.menu import COMPONENT, PROFILE, UNIT, MenuState
 
 def cs(key, status, requested_as):
     fam, comp = key.split('\\')
-    rc = ResolvedComponent(key=key, family=fam, comp=comp, fields={'name': comp},
+    rc = ResolvedComponent(key=key, driver=fam, comp=comp, fields={'name': comp},
                            requested_as=set(requested_as))
     common = dict(component=rc, managed=False, error=None, lock_source=None)
     if status == 'installed':
@@ -59,7 +59,7 @@ def test_default_view_profiles_expanded_components_collapsed():
 
 def test_leaf_component_carries_family():
     btop = next(n for n in make().rows if n.id == 'c:user:btop')
-    assert btop.family == 'apt' and not btop.expandable
+    assert btop.driver == 'apt' and not btop.expandable
 
 
 def test_expand_component_reveals_units_with_family():
@@ -72,8 +72,8 @@ def test_expand_component_reveals_units_with_family():
     assert ids_now[i + 1:i + 3] == [
         'u:user:firefox:apt\\flatpak', 'u:user:firefox:flatpak\\firefox']
     units = {n.id: n for n in ms.rows if n.kind == UNIT and n.depth == 2}
-    assert units['u:user:firefox:apt\\flatpak'].family == 'apt'
-    assert units['u:user:firefox:flatpak\\firefox'].family == 'flatpak'
+    assert units['u:user:firefox:apt\\flatpak'].driver == 'apt'
+    assert units['u:user:firefox:flatpak\\firefox'].driver == 'flatpak'
     assert units['u:user:firefox:flatpak\\firefox'].label == 'firefox'
 
 

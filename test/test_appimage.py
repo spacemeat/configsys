@@ -4,21 +4,21 @@ import stat
 import pytest
 
 from configsys.componentObj import ResolvedComponent
-from configsys.families import get_family
-from configsys.families.appImage import AppImage
+from configsys.drivers import get_driver
+from configsys.drivers.appImage import AppImage
 from configsys.paths import Paths
 from configsys.runner import Runner
 
 
 def ai_unit(path, url='https://x/app-1.0.AppImage', version='1.0', comp='neovim',
             name='Neovim'):
-    return ResolvedComponent(key=f'appImage\\{comp}', family='appImage', comp=comp,
+    return ResolvedComponent(key=f'appImage\\{comp}', driver='appImage', comp=comp,
                              fields={'url': url, 'path': str(path), 'version': version,
                                      'name': name})
 
 
 def test_registry_has_appimage():
-    assert isinstance(get_family('appImage', Runner(pretend=True)), AppImage)
+    assert isinstance(get_driver('appImage', Runner(pretend=True)), AppImage)
 
 
 def test_install_command_construction(tmp_path):
@@ -55,7 +55,7 @@ def test_icon_extraction_and_desktop_icon(tmp_path):
 
 
 def test_arch_substituted_into_url():
-    rc = ResolvedComponent(key='appImage\\x', family='appImage', comp='x',
+    rc = ResolvedComponent(key='appImage\\x', driver='appImage', comp='x',
                            fields={'url': 'https://h/app-$ARCH', 'path': '~/apps/x',
                                    'version': {'static': '1'}})
     r = Runner(pretend=True)
@@ -75,7 +75,7 @@ def test_download_url_prefers_resolved_github_asset(tmp_path):
     vc.save(paths)
 
     rc = ResolvedComponent(
-        key='appImage\\neovim', family='appImage', comp='neovim',
+        key='appImage\\neovim', driver='appImage', comp='neovim',
         fields={'version': {'github': 'neovim/neovim', 'asset': 'nvim-linux-$ARCH.appimage'},
                 'url': 'https://fallback/$VERSION/x', 'path': '~/apps/nvim'})
     r = Runner(pretend=True)

@@ -1,8 +1,8 @@
 import json
 
 from configsys.componentObj import ResolvedComponent
-from configsys.families import get_family, is_supported
-from configsys.families.pipx import Pipx
+from configsys.drivers import get_driver, is_supported
+from configsys.drivers.pipx import Pipx
 from configsys.runner import Result, Runner
 
 
@@ -10,7 +10,7 @@ def dist(comp='apod', name='termapod', version_spec=None):
     fields = {'name': name}
     if version_spec is not None:
         fields['version'] = version_spec
-    return ResolvedComponent(key=f'pipx\\{comp}', family='pipx', comp=comp, fields=fields)
+    return ResolvedComponent(key=f'pipx\\{comp}', driver='pipx', comp=comp, fields=fields)
 
 
 class FakeRunner:
@@ -33,7 +33,7 @@ def _pipx_list(name='termapod', version='0.1.3'):
 
 
 def test_registered_and_unprivileged():
-    fam = get_family('pipx', Runner(pretend=True))
+    fam = get_driver('pipx', Runner(pretend=True))
     assert isinstance(fam, Pipx) and is_supported('pipx')
     assert fam.privileged is False
 

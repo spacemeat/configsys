@@ -3,7 +3,7 @@
 The equivalence + field-parity harnesses proved v2 == the old RouteResolver. Once v1 is
 gone those harnesses can't run, so we freeze the (then-proven-correct) v2 output here: for
 every routes.hu component across every OS context, the full resolved closure as
-{unit_key: {family, name, fields}} — exactly what the app hands the families. This guards
+{unit_key: {driver, name, fields}} — exactly what the app hands the families. This guards
 against future regressions in the resolver/data with no dependency on the old engine.
 
 Regenerate after an intentional data/resolver change:
@@ -30,7 +30,7 @@ CONTEXTS = [('ubuntu', '24.04'), ('ubuntu', '22.04'), ('pop_os!', '22.04'),
 
 
 def _canon(rc):
-    return {'family': rc.family, 'name': rc.name, 'fields': rc.fields}
+    return {'driver': rc.driver, 'name': rc.name, 'fields': rc.fields}
 
 
 def _snapshot():

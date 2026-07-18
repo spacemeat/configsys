@@ -1,4 +1,4 @@
-'''debian_font.py — the \\debian-font family: install downloadable font archives.
+'''debian_font.py — the debian-font driver: install downloadable font archives.
 
 The freedesktop way of installing fonts: download a .zip of font files, extract the
 .ttf/.otf into a fonts directory, and refresh the font cache with fc-cache. Version
@@ -12,13 +12,13 @@ User-space by default (~/.local/share/fonts); `scope: system` installs into
 import shlex
 from pathlib import Path
 
-from ..component import Family
+from ..driver import Driver
 from ..runner import Result
 
 MARKER_PREFIX = '.configsys-'
 
 
-class DebianFont(Family):
+class DebianFont(Driver):
     name = 'debian-font'
     privileged = False
     default_scope = 'user'

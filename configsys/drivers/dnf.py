@@ -1,4 +1,4 @@
-'''dnf.py — the Fedora/RHEL dnf family (the rpm-world analog of apt).
+'''dnf.py — the Fedora/RHEL dnf driver (the rpm-world analog of apt).
 
 Version state via `rpm -q` + `dnf repoquery`; mutation via `dnf`; version lock via
 the versionlock plugin, which is installed on demand (unlike apt-mark, it isn't
@@ -8,14 +8,14 @@ stream their output (capture=False) so the user sees progress and sudo can promp
 
 import shlex
 
-from ..component import Family
+from ..driver import Driver
 
 # `dnf versionlock` lives in a plugin that isn't installed by default; lock/unlock
 # ensure it first. This dnf4-named package also wires up the dnf5 subcommand.
 _VERSIONLOCK_PLUGIN = 'python3-dnf-plugin-versionlock'
 
 
-class Dnf(Family):
+class Dnf(Driver):
     name = 'dnf'
     privileged = True
     default_scope = 'system'   # dnf packages are system-wide (fixed)

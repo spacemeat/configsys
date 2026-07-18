@@ -1,11 +1,11 @@
-'''The dnf (Fedora) path of the shared gcc/clang toolchain family: versioned compat
+'''The dnf (Fedora) path of the shared gcc/clang toolchain driver: versioned compat
 packages, no update-alternatives, no third-party repo — but the same binary paths.'''
 
 import pytest
 
 from configsys.componentObj import ResolvedComponent
-from configsys.families.clang import Clang
-from configsys.families.gcc import Gcc
+from configsys.drivers.clang import Clang
+from configsys.drivers.gcc import Gcc
 from configsys.runner import Result, Runner
 
 
@@ -16,14 +16,14 @@ def _force_dnf(monkeypatch):
 
 def gcc_fedora(comp='gcc-13'):
     # as resolved on Fedora: identity from \gcc + `packages` override from the OS block
-    return ResolvedComponent(key=f'gcc\\{comp}', family='gcc', comp=comp,
+    return ResolvedComponent(key=f'gcc\\{comp}', driver='gcc', comp=comp,
                              fields={'link': 'gcc', 'version': 13, 'slaves': ['g++'],
                                      'packages': ['gcc13', 'gcc13-c++'],
                                      'ppa': 'ubuntu-toolchain-r/test'})
 
 
 def clang_fedora(comp='clang-18'):
-    return ResolvedComponent(key=f'clang\\{comp}', family='clang', comp=comp,
+    return ResolvedComponent(key=f'clang\\{comp}', driver='clang', comp=comp,
                              fields={'packages': ['clang18']})
 
 
@@ -74,7 +74,7 @@ def test_upgrade_uses_dnf():
 
 
 def test_binary_paths_and_version_match_debian():
-    # the whole reason one family serves both: identical /usr/bin/gcc-13 binary
+    # the whole reason one driver serves both: identical /usr/bin/gcc-13 binary
     fam = Gcc(Runner(pretend=True))
     assert fam._master_bin(gcc_fedora()) == '/usr/bin/gcc-13'
     assert fam.location(gcc_fedora()) == '/usr/bin/gcc-13'

@@ -79,7 +79,7 @@ def validate(components, cascade, mechanisms):
     '''Lint the merged component set -> [Issue] (empty = clean). Covers ambiguity, unknown
     via: mechanism, unknown component in parts: (all errors), and when:-names-unknown-OS +
     requires-nothing-provides (warnings — localized). Attribution via each Component.source.'''
-    from .families import supported_names
+    from .drivers import supported_names
     valid_via = _SPECIAL_VIA | supported_names()
     providable = _providable_caps(components, cascade)
     issues = []

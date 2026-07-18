@@ -3,8 +3,8 @@ import os
 import humon
 
 from configsys.componentObj import ResolvedComponent
-from configsys.families import get_family, is_supported
-from configsys.families.pacman import Pacman
+from configsys.drivers import get_driver, is_supported
+from configsys.drivers.pacman import Pacman
 from configsys.routes import Resolver
 from configsys.runner import Result, Runner
 
@@ -12,7 +12,7 @@ ROUTES = os.path.join(os.path.dirname(__file__), '..', 'routes.hu')
 
 
 def pkg(name='btop'):
-    return ResolvedComponent(key=f'pacman\\{name}', family='pacman', comp=name,
+    return ResolvedComponent(key=f'pacman\\{name}', driver='pacman', comp=name,
                              fields={'name': name})
 
 
@@ -31,7 +31,7 @@ class FakeRunner:
 
 
 def test_registered_system_scoped():
-    fam = get_family('pacman', Runner(pretend=True))
+    fam = get_driver('pacman', Runner(pretend=True))
     assert isinstance(fam, Pacman) and is_supported('pacman')
     assert fam.privileged and fam.default_scope == 'system'
 

@@ -1,10 +1,10 @@
-'''pipx.py — the \\pipx family: PyPI CLIs in isolated venvs via pipx.
+'''pipx.py — the pipx driver: PyPI CLIs in isolated venvs via pipx.
 
 User-space (pipx puts app binaries on ~/.local/bin, each in its own venv). Version
 state comes from `pipx list --json`; no native version lock, so lock intent lives
-in the ledger. The `pipx` tool itself is the family `!depends` — and it is the
+in the ledger. The `pipx` tool itself is the driver `!depends` — and it is the
 version-sensitive part: modern OSs route it to apt, older ones bootstrap it with
-`pip install --user pipx` (the \\pip family). See routes.hu.
+`pip install --user pipx` (the pip driver). See routes.hu.
 
 get_latest resolves from pypi.org only when the route carries a
 `version: { pypi: <dist> }` spec (cached).
@@ -13,7 +13,7 @@ get_latest resolves from pypi.org only when the route carries a
 import json
 import shlex
 
-from ..component import Family
+from ..driver import Driver
 from ..runner import Result
 
 # Invoke via the module, not the bare `pipx` script: right after a pip --user
@@ -22,7 +22,7 @@ from ..runner import Result
 _PIPX = 'python3 -m pipx'
 
 
-class Pipx(Family):
+class Pipx(Driver):
     name = 'pipx'
     privileged = False
 

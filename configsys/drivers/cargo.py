@@ -1,8 +1,8 @@
-'''cargo.py — the \\cargo family: Rust binary crates via `cargo install`.
+'''cargo.py — the cargo driver: Rust binary crates via `cargo install`.
 
 User-space (installs to ~/.cargo/bin, no sudo). Version state comes from
 `cargo install --list`; there's no native version lock, so lock intent lives in
-the ledger. The `cargo` tool itself is the family `!depends` (-> apt\\cargo).
+the ledger. The `cargo` tool itself is the driver `!depends` (-> apt\\cargo).
 
 get_latest is deferred (crates.io lookup would be a network call per inspect);
 `cargo install` fetches the latest at install time.
@@ -11,14 +11,14 @@ get_latest is deferred (crates.io lookup would be a network call per inspect);
 import re
 import shlex
 
-from ..component import Family
+from ..driver import Driver
 from ..runner import Result
 
 # `cargo install --list` lines look like: "tree-sitter-cli v0.20.8:"
 _LIST_RE = re.compile(r'^(\S+)\s+v?([^\s:]+):')
 
 
-class Cargo(Family):
+class Cargo(Driver):
     name = 'cargo'
     privileged = False
 

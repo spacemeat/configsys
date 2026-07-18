@@ -1,11 +1,11 @@
 from configsys.componentObj import ResolvedComponent
-from configsys.families import get_family, is_supported
-from configsys.families.dnf import Dnf
+from configsys.drivers import get_driver, is_supported
+from configsys.drivers.dnf import Dnf
 from configsys.runner import Result, Runner
 
 
 def pkg(name='btop'):
-    return ResolvedComponent(key=f'dnf\\{name}', family='dnf', comp=name,
+    return ResolvedComponent(key=f'dnf\\{name}', driver='dnf', comp=name,
                              fields={'name': name})
 
 
@@ -24,7 +24,7 @@ class FakeRunner:
 
 
 def test_registered_system_scoped():
-    fam = get_family('dnf', Runner(pretend=True))
+    fam = get_driver('dnf', Runner(pretend=True))
     assert isinstance(fam, Dnf) and is_supported('dnf')
     assert fam.privileged and fam.default_scope == 'system' and not fam.honors_scope
 
@@ -44,7 +44,7 @@ def test_install_uninstall_upgrade_commands():
 def test_vendor_repo_prereqs_before_install():
     # a third-party repo (e.g. Microsoft's vscode): import the key, drop a .repo file,
     # then install. The .repo write is idempotent (guarded on the file existing).
-    comp = ResolvedComponent(key='dnf\\vscode', family='dnf', comp='vscode', fields={
+    comp = ResolvedComponent(key='dnf\\vscode', driver='dnf', comp='vscode', fields={
         'name': 'code',
         'pubkey-url': 'https://packages.microsoft.com/keys/microsoft.asc',
         'repo-id': 'code', 'repo-name': 'Visual Studio Code',

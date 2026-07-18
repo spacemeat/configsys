@@ -1,13 +1,13 @@
 from configsys.componentObj import ResolvedComponent
-from configsys.families import get_family, is_supported
-from configsys.families.flatpak import Flatpak
+from configsys.drivers import get_driver, is_supported
+from configsys.drivers.flatpak import Flatpak
 from configsys.runner import Result, Runner
 
 
 def fp(name='org.mozilla.firefox', hub='flathub', **extra):
     fields = {'hub': hub, 'name': name}
     fields.update(extra)
-    return ResolvedComponent(key=f'flatpak\\{name}', family='flatpak', comp=name,
+    return ResolvedComponent(key=f'flatpak\\{name}', driver='flatpak', comp=name,
                              fields=fields)
 
 
@@ -30,7 +30,7 @@ REMOTE_ADD = ('flatpak remote-add --user --if-not-exists flathub '
 
 
 def test_registered_and_unprivileged():
-    fam = get_family('flatpak', Runner(pretend=True))
+    fam = get_driver('flatpak', Runner(pretend=True))
     assert isinstance(fam, Flatpak)
     assert is_supported('flatpak')
     assert fam.privileged is False
@@ -154,7 +154,7 @@ def test_user_scope_is_the_default():
 
 
 def test_per_component_scope_from_route_is_honored():
-    # a `scope` field on the component's binding drives the family (component field wins);
+    # a `scope` field on the component's binding drives the driver (component field wins);
     # absent, it defaults to --user.
     a = fp(name='com.a', scope='system')
     b = fp(name='com.b')

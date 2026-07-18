@@ -23,8 +23,8 @@ class FakeRunner:
         return Result(full, code)
 
 
-def unit(name, family='apt'):
-    return ResolvedComponent(key=f'{family}\\{name}', family=family, comp=name,
+def unit(name, driver='apt'):
+    return ResolvedComponent(key=f'{driver}\\{name}', driver=driver, comp=name,
                              fields={'name': name})
 
 
@@ -64,10 +64,10 @@ def test_failed_lock_not_persisted_to_ledger(tmp_path):
 
 def test_unsupported_family_is_a_failed_outcome(tmp_path, capsys):
     ctx = ctx_for(tmp_path, FakeRunner())
-    plan = [('install', 'snap\\foo', unit('foo', family='snap'))]
+    plan = [('install', 'snap\\foo', unit('foo', driver='snap'))]
     outcomes = execute_plan(ctx, plan, Ledger())
     assert outcomes[0].ok is False
-    assert 'unsupported family' in outcomes[0].detail
+    assert 'unsupported driver' in outcomes[0].detail
 
 
 def test_summary_note_formatting():

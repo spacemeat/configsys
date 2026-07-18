@@ -1,15 +1,15 @@
 from configsys.componentObj import ResolvedComponent
-from configsys.families import get_family, is_supported
-from configsys.families.pip import Pip
+from configsys.drivers import get_driver, is_supported
+from configsys.drivers.pip import Pip
 from configsys.runner import Result, Runner
 
 
-# The pip family is now used mainly to bootstrap pipx on OSs without an apt pipx.
+# The pip driver is now used mainly to bootstrap pipx on OSs without an apt pipx.
 def dist(comp='pipx', name='pipx', version_spec=None):
     fields = {'name': name}
     if version_spec is not None:
         fields['version'] = version_spec
-    return ResolvedComponent(key=f'pip\\{comp}', family='pip', comp=comp, fields=fields)
+    return ResolvedComponent(key=f'pip\\{comp}', driver='pip', comp=comp, fields=fields)
 
 
 class FakeRunner:
@@ -27,7 +27,7 @@ class FakeRunner:
 
 
 def test_registered_and_unprivileged():
-    fam = get_family('pip', Runner(pretend=True))
+    fam = get_driver('pip', Runner(pretend=True))
     assert isinstance(fam, Pip) and is_supported('pip')
     assert fam.privileged is False
 

@@ -1,6 +1,6 @@
 '''gcc_toolset.py — versioned GCC via Red Hat Software Collections (EL / gcc-toolset).
 
-RHEL-family distros (RHEL, Rocky, AlmaLinux, CentOS Stream) ship versioned compilers
+RHEL-driver distros (RHEL, Rocky, AlmaLinux, CentOS Stream) ship versioned compilers
 as `gcc-toolset-N` meta packages that install under /opt/rh/gcc-toolset-N — NOT on the
 default PATH (the system gcc stays put). You activate a toolset for a shell with
 `scl enable gcc-toolset-13 bash` or `source /opt/rh/gcc-toolset-13/enable`.
@@ -14,13 +14,13 @@ System-scoped (dnf + /opt).
 import re
 import shlex
 
-from ..component import Family
+from ..driver import Driver
 from ..runner import Result
 
 _VER_RE = re.compile(r'\d+\.\d+(?:\.\d+)?')
 
 
-class GccToolset(Family):
+class GccToolset(Driver):
     name = 'gcc-toolset'
     privileged = True
     default_scope = 'system'

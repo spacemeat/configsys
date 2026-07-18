@@ -1,4 +1,4 @@
-'''vulkan-runtime routes to the loader + mesa ICDs on every distro family, is pulled
+'''vulkan-runtime routes to the loader + mesa ICDs on every distro driver, is pulled
 into vulkan-dev, and is in the user profile (ensure-present on every machine).'''
 
 import os

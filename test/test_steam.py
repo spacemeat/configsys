@@ -1,5 +1,5 @@
 '''Steam: hybrid install method — native apt on Pop!_OS (the NVIDIA rig), flatpak
-everywhere else — via the \\app method-selection mechanism, plus the apt family's
+everywhere else — via the \\app method-selection mechanism, plus the apt driver's
 i386 multiarch prereq.'''
 
 import os
@@ -7,7 +7,7 @@ import os
 import humon
 
 from configsys.componentObj import ResolvedComponent
-from configsys.families.apt import Apt
+from configsys.drivers.apt import Apt
 from configsys.routes import Resolver
 from configsys.runner import Runner
 
@@ -41,7 +41,7 @@ def test_steam_flatpak_pulls_the_flatpak_tool_per_distro():
 
 def test_apt_foreign_arch_prereq_enables_i386_idempotently():
     r = Runner(pretend=True)
-    rc = ResolvedComponent(key='apt\\steam', family='apt', comp='steam',
+    rc = ResolvedComponent(key='apt\\steam', driver='apt', comp='steam',
                            fields={'name': 'steam:i386', 'foreign-arch': 'i386'})
     Apt(r).install(rc)
     calls = ' ;; '.join(r.calls)
@@ -53,7 +53,7 @@ def test_apt_foreign_arch_prereq_enables_i386_idempotently():
 
 def test_apt_no_foreign_arch_when_unset():
     r = Runner(pretend=True)
-    rc = ResolvedComponent(key='apt\\btop', family='apt', comp='btop',
+    rc = ResolvedComponent(key='apt\\btop', driver='apt', comp='btop',
                            fields={'name': 'btop'})
     Apt(r).install(rc)
     assert not any('add-architecture' in c for c in r.calls)

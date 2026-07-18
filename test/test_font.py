@@ -4,8 +4,8 @@ import zipfile
 import pytest
 
 from configsys.componentObj import ResolvedComponent
-from configsys.families import get_family
-from configsys.families.debian_font import DebianFont
+from configsys.drivers import get_driver
+from configsys.drivers.debian_font import DebianFont
 from configsys.paths import Paths
 from configsys.runner import Runner
 
@@ -14,12 +14,12 @@ def font_unit(url='https://x/F.zip', version='v1.0', comp='mononoki-nerd', scope
     fields = {'name': 'Mononoki', 'url': url, 'version': {'static': version}}
     if scope:
         fields['scope'] = scope
-    return ResolvedComponent(key=f'debian-font\\{comp}', family='debian-font', comp=comp,
+    return ResolvedComponent(key=f'debian-font\\{comp}', driver='debian-font', comp=comp,
                              fields=fields)
 
 
 def test_registry_has_font():
-    assert isinstance(get_family('debian-font', Runner(pretend=True)), DebianFont)
+    assert isinstance(get_driver('debian-font', Runner(pretend=True)), DebianFont)
 
 
 def test_install_command_construction(tmp_path):

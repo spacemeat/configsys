@@ -19,7 +19,7 @@ bash configsys.sh inspect >/dev/null 2>&1 || true
 say "install $TEST_PKG via the apt family (foreign-arch enables i386 first)"
 .venv/bin/python - "$TEST_PKG" <<'PY'
 import sys
-from configsys.families.apt import Apt
+from configsys.drivers.apt import Apt
 from configsys.runner import Runner
 from configsys.componentObj import ResolvedComponent
 rc = ResolvedComponent(key='apt\\t', family='apt', comp='t',
@@ -36,7 +36,7 @@ say "idempotence: a second run is a no-op (no re-add)"
 before=$(dpkg --print-foreign-architectures)
 .venv/bin/python - "$TEST_PKG" <<'PY'
 import sys
-from configsys.families.apt import Apt
+from configsys.drivers.apt import Apt
 from configsys.runner import Runner
 from configsys.componentObj import ResolvedComponent
 rc = ResolvedComponent(key='apt\\t', family='apt', comp='t',

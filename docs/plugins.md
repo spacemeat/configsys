@@ -3,8 +3,8 @@
 Status: **P1 BUILT** (data plugins + sync — `configsys/plugins.py`, `configsys plugin
 list/sync`); **P2 (code + trust + ABI gate) scoped, not built.** This is the north‑star for
 extending configsys with shareable, remote, optionally‑code‑carrying layers. It builds
-directly on the layer stack (`configsys/layers.py`) and the `Family` registry
-(`configsys/families/`).
+directly on the layer stack (`configsys/layers.py`) and the `Driver` registry
+(`configsys/drivers/`).
 
 P1 in a nutshell: `plugins: [ { source: "github:x/y"  ref: v1 } ]` in the user config, then
 `configsys plugin sync` clones each to `~/.config/configsys/plugins/<name>/` at the pinned
@@ -18,12 +18,12 @@ malformed → skipped, never fatal (components degrade to resilient error rows).
 
 configsys is now usable enough to share. Other people won't care about *apod* or native
 Steam on Pop; they'll want to add their own favorite OSs and route things differently — and,
-crucially, some of that needs **code** (a new package manager = a new `Family`). Plugins let a
+crucially, some of that needs **code** (a new package manager = a new `Driver`). Plugins let a
 person publish, in a git repo, a self‑contained bundle that a configsys user can pull in:
-routing data (+ profiles) and, when needed, Python `Family` extensions as first‑class siblings.
+routing data (+ profiles) and, when needed, Python `Driver` extensions as first‑class siblings.
 
 The archetype: a single plugin *is* "openSUSE support" — an `opensuse` os block, a `zypper`
-`Family`, and `via: zypper` components — installed and working next to apt/dnf.
+`Driver`, and `via: zypper` components — installed and working next to apt/dnf.
 
 ## 2. What a plugin is
 
@@ -34,7 +34,7 @@ plugins/opensuse-support/
 ├── plugin.hu          # manifest (below)
 ├── routes.hu          # data: os / mechanisms / components (a layer)
 ├── profiles.hu        # data: profiles (optional; any .hu the manifest lists)
-└── families.py        # optional: Python Family subclasses (the code escalation)
+└── drivers.py        # optional: Python Driver subclasses (the code escalation)
 ```
 
 A plugin is **a layer (data) + optional code**. The data half is inherited wholesale from the
@@ -49,7 +49,7 @@ layer stack; the code half is the new, careful part.
     requires-abi: 1                     // the configsys plugin ABI it targets (see §7)
     provides:     { os: [ opensuse ]  mechanisms: [ zypper ] }   // informational / for `plugin list`
     data:         [ routes.hu, profiles.hu ]   // .hu layer files (default: all .hu but plugin.hu)
-    code:         [ families.py ]              // Python modules to load — PRESENCE = "ships code"
+    code:         [ drivers.py ]              // Python modules to load — PRESENCE = "ships code"
 }
 ```
 
@@ -69,7 +69,7 @@ Plugins sit **above the repo but below your project and your machine config** �
 override, provenance (`Component.source` → the plugin file), and `where`/`check` attribution all
 come from the existing engine. A plugin can add os blocks and components; **os/mechanism blocks
 that reuse an existing mechanism are pure data** (the derivative‑distro case, e.g. Linux Mint →
-Ubuntu, apt). A *new* mechanism needs a `Family` = code.
+Ubuntu, apt). A *new* mechanism needs a `Driver` = code.
 
 ## 4. Distribution — declarative + `plugin sync`
 
@@ -106,7 +106,7 @@ plugins: [
 
 A plugin that fails — unreachable, malformed, ABI‑incompatible, or an untrusted code plugin —
 is **skipped with a warning**, never fatal, exactly like a bad discovered file. Its data layer
-may still load (definitions), but if its `Family` isn't registered (untrusted/incompatible),
+may still load (definitions), but if its `Driver` isn't registered (untrusted/incompatible),
 `via: <its-mechanism>` is unknown → components that need it surface as **resilient error rows**
 (see the inspect/TUI resilience) telling you *why* ("plugin opensuse‑support is untrusted; run
 `configsys plugin trust opensuse-support`"). You are never bricked and never silently
@@ -120,12 +120,12 @@ The dividing line is **does it ship code** (`code:` in the manifest):
   caught by `configsys check`, and installs stay explicit — "just data can't do too much harm."
 - **Code plugins**: **explicit per‑commit opt‑in**. On sync / first use configsys prompts:
 
-  > Plugin `opensuse-support` ships code (families: zypper). It runs with **your privileges**
+  > Plugin `opensuse-support` ships code (drivers: zypper). It runs with **your privileges**
   > during installs. Trust commit `abc123`? [y/N]
 
   Approval is recorded per `(plugin, commit)` in the state dir. A code update = a new commit =
   **re‑prompt** (never auto‑trust changed code). Until trusted, the plugin's code is not
-  imported and its families are not registered (degrade per §5). This is direnv's `allow`, but
+  imported and its drivers are not registered (degrade per §5). This is direnv's `allow`, but
   per‑commit, because the blast radius is root.
 
 Trust records live alongside the ledger (e.g. `~/.config/configsys/plugin-trust.hu`:
@@ -133,7 +133,7 @@ Trust records live alongside the ledger (e.g. `~/.config/configsys/plugin-trust.
 
 ## 7. The ABI (one coarse number — KISS)
 
-The `Family` base + registration + the data schema + the `ResolvedComponent` shape together are
+The `Driver` base + registration + the data schema + the `ResolvedComponent` shape together are
 the contract a plugin codes against. Version the whole thing with **one coarse integer**:
 
 - `configsys.ABI_VERSION = 1` — the current plugin contract.
@@ -149,11 +149,11 @@ the contract a plugin codes against. Version the whole thing with **one coarse i
 Deliberately NOT split into data‑ABI vs code‑ABI for now (KISS); split later only if they
 diverge.
 
-### 7a. Freeze + document the `Family` surface (the prerequisite work)
+### 7a. Freeze + document the `Driver` surface (the prerequisite work)
 
 To version honestly, the public contract must be explicit and stable. Re‑export the frozen
 surface from `configsys/plugins.py` (one import for plugin authors:
-`from configsys.plugins import Family, register_family`).
+`from configsys.plugins import Driver, register_driver`).
 
 **Design goal for the freeze (per the P2 decision): keep the surface MINIMAL and cogent.**
 Don't just promote every underscore helper 1:1 — while freezing, consolidate: bundle related
@@ -164,13 +164,13 @@ fetch/version helpers (`resolve_version`, `download_url`, `_disco_spec`, `_apply
 Present each cluster as a tight, documented set so a plugin author reads a small, obvious API,
 not a pile of underscore methods. The contract inventory, from today's `configsys/component.py`:
 
-**Class attributes a Family sets:** `name`, `privileged`, `default_scope`, `honors_scope`.
+**Class attributes a Driver sets:** `name`, `privileged`, `default_scope`, `honors_scope`.
 
-**Methods a Family MUST implement:** `get_version(rc)`, `get_latest(rc)`, `is_locked(rc)`,
+**Methods a Driver MUST implement:** `get_version(rc)`, `get_latest(rc)`, `is_locked(rc)`,
 `install(rc)`, `uninstall(rc)`, `upgrade(rc)`, `set_version(rc, version)`, `lock(rc)`,
 `unlock(rc)`. Optional: `location(rc)`, `ensure_prereqs(rc)`.
 
-**Provided helpers a Family MAY use (must stay stable per ABI):** `resolve_version(rc)`,
+**Provided helpers a Driver MAY use (must stay stable per ABI):** `resolve_version(rc)`,
 `download_url(rc, version)`, `scope(rc)`, and — currently underscore‑private but genuinely
 needed by fetch/tarball‑like mechanisms — `_scoped_dir`, `_sudo`, `_arch`,
 `_apply_placeholders`, `_disco_spec`. **Task: promote these to public names** (e.g.
@@ -182,11 +182,11 @@ document them.
   `.stdout`). Honors `--pretend`.
 - `paths`: `.home`, `.env`, `.dotfiles_dir`, `.expand(path)` (+ the doc'd subset).
 
-**`ResolvedComponent` (what a family reads):** `.family`, `.comp`, `.name` (property =
+**`ResolvedComponent` (what a driver reads):** `.driver`, `.comp`, `.name` (property =
 `fields['name'] or comp`), `.fields` (dict), `.vars`, `.requested_as`, `.deps`, `.key`.
 
-**Registration:** a code module exports `FAMILIES = [SubclassOfFamily, ...]`; configsys imports
-it (only if trusted) and registers each into the family registry **before resolution**, so
+**Registration:** a code module exports `DRIVERS = [SubclassOfDriver, ...]`; configsys imports
+it (only if trusted) and registers each into the driver registry **before resolution**, so
 `via: <name>` resolves. Explicit export, not subclass‑scanning (no accidental registration).
 
 Add `ABI_VERSION` from day one even if it never changes for a year — the affordance is *having*
@@ -205,9 +205,9 @@ it; retrofitting versioning after plugins exist is the expensive path.
   block before the root's closing brace — every other line, comments and all, is untouched).
 - **P2 — code plugins.** The frozen, documented ABI surface (`configsys/plugins.py` re‑exports;
   see §7a — keep it minimal/clustered); trusted‑only import of `code:` modules with per‑commit
-  approval and the trust store; registration into the family registry; degradation for
+  approval and the trust store; registration into the driver registry; degradation for
   untrusted/incompatible. The big, careful one — built on P1's proven sync.
-  - **Publish an example plugin as part of P2**: the **Alpine/apk** case — an `apk` `Family` +
+  - **Publish an example plugin as part of P2**: the **Alpine/apk** case — an `apk` `Driver` +
     an `alpine` os block + `via: apk` components — is the canonical, useful demonstrator (and a
     real gap: no apk support today). Ship it as a reference plugin repo so authors have a
     template, and so we dogfood the whole code‑plugin path end‑to‑end.
@@ -218,7 +218,7 @@ Mirrors how overrides shipped: prove the mechanism on the safe subset, then add 
 
 1. **Declarative `plugins:` list + `plugin sync`** (not imperative‑as‑source‑of‑truth); rich CLI.
 2. **Piecemeal**: P1 (data + sync) then P2 (code + trust + ABI).
-3. **One coarse ABI integer** (KISS); freeze + document the `Family` surface (`configsys/plugins.py`).
+3. **One coarse ABI integer** (KISS); freeze + document the `Driver` surface (`configsys/plugins.py`).
 4. **Per‑commit trust for code**; data‑only plugins sync freely.
 
 ## 10. Open / deferred
@@ -228,14 +228,14 @@ Mirrors how overrides shipped: prove the mechanism on the safe subset, then add 
   verification of a pinned ref (belt‑and‑suspenders beyond commit pinning).
 - **Plugin‑vs‑plugin ordering / conflicts**: two plugins define the same component or mechanism
   — declaration order wins (like other layers); surface collisions in `plugin list`/`check`.
-- **Non‑Family extension points — wanted (P2+).** The same trusted‑code loading that registers
-  a `Family` should register other pluggable kinds. Two the maintainer flagged as desirable:
+- **Non‑Driver extension points — wanted (P2+).** The same trusted‑code loading that registers
+  a `Driver` should register other pluggable kinds. Two the maintainer flagged as desirable:
   (a) **version‑discovery sources** — today `versions.discover` handles github/pypi/crates/aur/
   static; a plugin should be able to add a new source (e.g. a distro's package index, a private
   registry) so `version: { <newsource>: ... }` works. (b) new `source:` **sync transports**
   beyond git (e.g. a tarball URL, an OCI artifact). Design implication: the registration API
-  (§code‑loading) should be a small *set* of `register_*` hooks (family, version‑source,
-  transport, …), all gated by the same trust + ABI, rather than family‑only. Fold these into the
+  (§code‑loading) should be a small *set* of `register_*` hooks (driver, version‑source,
+  transport, …), all gated by the same trust + ABI, rather than driver‑only. Fold these into the
   frozen surface so the ABI number covers them from the start.
 - **README.md**: a user‑facing plugins section (and an overall project section) once P1 lands.
 - **Windows/macOS**: still deferred; a plugin adding another OS root + `native` mechanism is

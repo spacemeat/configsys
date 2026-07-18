@@ -13,7 +13,7 @@ import sys
 from . import osdetect
 from .config import Config
 from .errors import ConfigsysError
-from .families import get_family
+from .drivers import get_driver
 from .installState import InstallState
 from .ledger import Ledger
 from .paths import Paths
@@ -163,13 +163,13 @@ class Context:
         return self._config
 
     def apply_scope_default(self, units):
-        '''Stamp the machine-wide scope default onto units whose family *honors*
+        '''Stamp the machine-wide scope default onto units whose driver *honors*
         scope and that don't set `scope` in their route (component field wins). Apt
         (always system) and cargo/dotfiles (per-user) are left alone.'''
         default = self.config.default_scope()
         if default:
             for rc in units.values():
-                fam = get_family(rc.family, self.runner, self.paths)
+                fam = get_driver(rc.driver, self.runner, self.paths)
                 if fam is not None and fam.honors_scope:
                     rc.fields.setdefault('scope', default)
         return units
@@ -235,9 +235,9 @@ def _dispatch_op(ctx, names, op, *, ledger=None, version=None):
 
     rc_code = 0
     for cur_op, key, rc in plan:
-        fam = get_family(rc.family, ctx.runner, ctx.paths)
+        fam = get_driver(rc.driver, ctx.runner, ctx.paths)
         if fam is None:
-            print(f'skip {key}: family "{rc.family}" not yet supported')
+            print(f'skip {key}: driver "{rc.driver}" not yet supported')
             continue
         print(f'{cur_op} {key} (pkg: {rc.name}) ...')
         if cur_op == 'install':
@@ -300,11 +300,11 @@ def cmd_refresh(ctx, args):
     seen = {}
     for key in sorted(units):
         rc = units[key]
-        fam = get_family(rc.family, ctx.runner, ctx.paths)
+        fam = get_driver(rc.driver, ctx.runner, ctx.paths)
         if fam is None:
             continue
-        # use the family's arch-substituted spec so the cache key matches what the
-        # family looks up at install time (and warms both version + asset url)
+        # use the driver's arch-substituted spec so the cache key matches what the
+        # driver looks up at install time (and warms both version + asset url)
         spec = fam._disco_spec(rc)
         if not isinstance(spec, dict) or 'static' in spec:
             continue
@@ -467,7 +467,7 @@ def cmd_check(ctx, args):
         pass  # malformed profiles surface on their own path
 
     # pins: value must be a known mechanism (binding-pin) or a known component (provider-pin)
-    from .families import supported_names
+    from .drivers import supported_names
     valid_via = {'native', 'parts'} | supported_names()
     pin_issues = []
     for key, val in ctx.config.pins().items():

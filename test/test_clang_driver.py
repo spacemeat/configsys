@@ -1,8 +1,8 @@
 import pytest
 
 from configsys.componentObj import ResolvedComponent
-from configsys.families import get_family, is_supported
-from configsys.families.clang import Clang
+from configsys.drivers import get_driver, is_supported
+from configsys.drivers.clang import Clang
 from configsys.runner import Result, Runner
 
 
@@ -13,7 +13,7 @@ def _force_apt(monkeypatch):
 
 
 def clang_unit(comp='clang-18', fields=None):
-    return ResolvedComponent(key=f'clang\\{comp}', family='clang', comp=comp,
+    return ResolvedComponent(key=f'clang\\{comp}', driver='clang', comp=comp,
                              fields=fields or {})
 
 
@@ -32,7 +32,7 @@ class FakeRunner:
 
 
 def test_registered_system_scoped():
-    fam = get_family('clang', Runner(pretend=True))
+    fam = get_driver('clang', Runner(pretend=True))
     assert isinstance(fam, Clang) and is_supported('clang')
     assert fam.privileged and fam.default_scope == 'system' and not fam.honors_scope
 
@@ -42,7 +42,7 @@ def test_defaults_from_bare_component():
     fam = Clang(Runner(pretend=True))
     rc = clang_unit()
     assert fam._link(rc) == 'clang' and fam._ver(rc) == '18'
-    assert fam._slaves(rc) == ['clang++']               # family default
+    assert fam._slaves(rc) == ['clang++']               # driver default
     assert fam._packages(rc) == ['clang-18']            # clang++ is NOT a package
 
 

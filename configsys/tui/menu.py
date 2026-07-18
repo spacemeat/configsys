@@ -14,7 +14,7 @@ unit appears. Enter/→ expand, ← collapse, Tab expands/collapses all componen
 
 import curses
 
-from ..families import get_family
+from ..drivers import get_driver
 from ..planning import expand_plan
 from .screen import curses_screen, suspended
 from .theme import STATUS_COLOR, Palette
@@ -37,14 +37,14 @@ PROFILE, COMPONENT, UNIT = 'profile', 'component', 'unit'
 
 
 class Node:
-    def __init__(self, kind, id, label, depth, members, *, family='',
+    def __init__(self, kind, id, label, depth, members, *, driver='',
                  expandable=False, expanded=False):
         self.kind = kind
         self.id = id
         self.label = label
         self.depth = depth
         self.members = members       # list[ComponentState] this node covers
-        self.family = family
+        self.driver = driver
         self.expandable = expandable
         self.expanded = expanded
         self.children = []
@@ -137,14 +137,14 @@ class MenuState:
                 if len(members) == 1:
                     m = members[0]
                     cnode = Node(UNIT, f'c:{profile}:{name}', name, 1, [m],
-                                 family=m.component.family)
+                                 driver=m.component.driver)
                 else:
                     cnode = Node(COMPONENT, f'c:{profile}:{name}', name, 1, members,
                                  expandable=True, expanded=False)
                     for m in members:
                         cnode.children.append(
                             Node(UNIT, f'u:{profile}:{name}:{m.key}', m.component.comp,
-                                 2, [m], family=m.component.family))
+                                 2, [m], driver=m.component.driver))
                 for m in members:
                     pmembers[m.key] = m
                 pnode.children.append(cnode)
@@ -290,10 +290,10 @@ class OpOutcome:
 def execute_plan(ctx, plan, ledger):
     outcomes = []
     for op, key, rc in plan:
-        fam = get_family(rc.family, ctx.runner, ctx.paths)
+        fam = get_driver(rc.driver, ctx.runner, ctx.paths)
         if fam is None:
-            print(f'skip {key}: family "{rc.family}" not yet supported')
-            outcomes.append(OpOutcome(op, key, rc.name, False, 'unsupported family'))
+            print(f'skip {key}: driver "{rc.driver}" not yet supported')
+            outcomes.append(OpOutcome(op, key, rc.name, False, 'unsupported driver'))
             continue
 
         print(f'\n>>> {op} {key} (pkg: {rc.name})')
@@ -391,15 +391,15 @@ def _infoblock(ms, ctx):
     m = n.members[0]
     rc = m.component
     if not m.supported:
-        return f' {rc.family}\\{rc.comp}   ·   family not yet supported', ''
-    parts = [f'{rc.family}\\{rc.comp}']
+        return f' {rc.driver}\\{rc.comp}   ·   driver not yet supported', ''
+    parts = [f'{rc.driver}\\{rc.comp}']
     if m.scope:
         parts.append(f'scope: {m.scope}')
     parts += [f'installed: {m.installed_version or "—"}',
               f'latest: {m.latest_version or "—"}']
     if m.locked:
         parts.append('version-locked')
-    fam = get_family(rc.family, ctx.runner, ctx.paths)
+    fam = get_driver(rc.driver, ctx.runner, ctx.paths)
     loc = fam.location(rc) if fam is not None else None
     return ' ' + '   ·   '.join(parts), (f' at: {loc}' if loc else '')
 
@@ -453,7 +453,7 @@ def _draw(stdscr, pal, ms, ctx, note):
         _put(stdscr, y, 1, badge, battr | base)
         _put(stdscr, y, NAME_X, _fit(name, FAM_X - NAME_X - 1).ljust(FAM_X - NAME_X - 1),
              name_attr)
-        _put(stdscr, y, FAM_X, _fit(n.family, SCOPE_X - FAM_X - 1).ljust(SCOPE_X - FAM_X - 1),
+        _put(stdscr, y, FAM_X, _fit(n.driver, SCOPE_X - FAM_X - 1).ljust(SCOPE_X - FAM_X - 1),
              base | pal.get('dim'))
         scope = n.scope_str()
         scope_attr = pal.get('accent' if scope == 'system' else 'dim')

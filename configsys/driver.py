@@ -1,6 +1,6 @@
-'''component.py — the base Family interface.
+'''component.py — the base Driver interface.
 
-A Family knows how to operate on the components routed to it (apt, flatpak, ...).
+A Driver knows how to operate on the components routed to it (apt, flatpak, ...).
 Every family implements the same op set so the app can drive any component
 uniformly. Ops take a ResolvedComponent and go through the injected Runner (so
 --pretend and tests work everywhere). Read ops return data; mutating ops return a
@@ -15,7 +15,7 @@ from pathlib import Path
 SYSTEM_PREFIX = Path('/opt')
 
 
-class Family:
+class Driver:
     name = None             # subclasses set, e.g. 'apt'
     privileged = False      # True if mutating ops need sudo
     default_scope = 'user'  # this family's scope when not overridden

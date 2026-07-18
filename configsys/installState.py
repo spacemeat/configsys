@@ -1,6 +1,6 @@
 '''installState.py — reconcile resolved components against the live system.
 
-For each resolved unit, dispatch to its family (if supported) to read installed
+For each resolved unit, dispatch to its driver (if supported) to read installed
 version, latest/candidate version, and native lock state; union the native lock
 with the ledger's lock intent. Unsupported families (not yet implemented in M1)
 degrade to an 'unsupported' state rather than crashing. Inspection is read-only.
@@ -10,7 +10,7 @@ from dataclasses import dataclass
 from typing import Optional
 
 from .componentObj import ResolvedComponent
-from .families import get_family
+from .drivers import get_driver
 from .ledger import Ledger
 
 
@@ -25,7 +25,7 @@ class ComponentState:
     lock_source: Optional[str]   # 'native' | 'ledger' | 'both' | None
     managed: bool
     error: Optional[str]
-    scope: Optional[str] = None  # 'user' | 'system' | None (unsupported family)
+    scope: Optional[str] = None  # 'user' | 'system' | None (unsupported driver)
 
     @property
     def key(self):
@@ -65,7 +65,7 @@ class InstallState:
     def inspect_one(self, rc):
         led_lock = self.ledger.is_locked(rc.key)
         managed = self.ledger.is_managed(rc.key)
-        fam = get_family(rc.family, self.runner, self.paths)
+        fam = get_driver(rc.driver, self.runner, self.paths)
 
         if fam is None:
             return ComponentState(
@@ -73,13 +73,13 @@ class InstallState:
                 installed_version=None, latest_version=None,
                 locked=led_lock, lock_source=('ledger' if led_lock else None),
                 managed=managed,
-                error=f'family "{rc.family}" not yet supported')
+                error=f'driver "{rc.driver}" not yet supported')
 
         try:
             version = fam.get_version(rc)
             latest = fam.get_latest(rc)
             native_lock = fam.is_locked(rc)
-        except Exception as e:  # a family op blew up; report, don't crash the sweep
+        except Exception as e:  # a driver op blew up; report, don't crash the sweep
             return ComponentState(
                 component=rc, supported=True, present=False,
                 installed_version=None, latest_version=None,

@@ -1,4 +1,4 @@
-'''pacman.py — the Arch family (Arch, Manjaro, SteamOS).
+'''pacman.py — the Arch driver (Arch, Manjaro, SteamOS).
 
 Native packages via pacman. Arch is a rolling release — there is one version (the
 current repo version), so there's no per-package hold or arbitrary version pin: lock
@@ -12,13 +12,13 @@ the classic breakage. Query ops (-Q/-Si) need no root; mutations run under sudo.
 import re
 import shlex
 
-from ..component import Family
+from ..driver import Driver
 from ..runner import Result
 
 _VER_RE = re.compile(r'^Version\s*:\s*(.+)$', re.MULTILINE)
 
 
-class Pacman(Family):
+class Pacman(Driver):
     name = 'pacman'
     privileged = True
     default_scope = 'system'   # pacman packages are system-wide (fixed)

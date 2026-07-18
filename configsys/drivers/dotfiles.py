@@ -1,4 +1,4 @@
-'''dotfiles.py — the \\dotfiles family: symlink repo-synced config into place.
+'''dotfiles.py — the dotfiles driver: symlink repo-synced config into place.
 
 A component maps to one or more *link specs*, each `{ src, dst }`:
   * src — a path under the repo's `dotfiles/` directory (the git-synced source)
@@ -19,14 +19,14 @@ import re
 import shlex
 from pathlib import Path
 
-from ..component import Family
+from ..driver import Driver
 from ..runner import Result
 
 _VAR = re.compile(r'\$[A-Za-z_][A-Za-z0-9_]*')
 BACKUP_SUFFIX = '.pre-configsys'
 
 
-class DotFiles(Family):
+class DotFiles(Driver):
     name = 'dotfiles'
     privileged = False
     default_scope = 'user'

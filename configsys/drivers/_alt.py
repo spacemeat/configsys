@@ -4,11 +4,11 @@ Both distros ship the same versioned binaries at the same paths (/usr/bin/gcc-13
 /usr/bin/clang-18, ...), so version detection and location are identical. Only the
 acquisition differs, which this base keys off the detected package manager:
 
-  apt (Debian family): install from a PPA / apt.llvm.org source, then register an
+  apt (Debian driver): install from a PPA / apt.llvm.org source, then register an
     update-alternatives group (master + slaves, priority = version) — /usr/bin/gcc
     is an alternatives slot there. Switch with `update-alternatives --config gcc`.
 
-  dnf (Fedora family): install the versioned compat packages (gcc13, clang18) from
+  dnf (Fedora driver): install the versioned compat packages (gcc13, clang18) from
     the main repo — no third-party repo, and NO update-alternatives (/usr/bin/gcc
     is a real file owned by the system gcc rpm; a slot there would clobber it). The
     versioned binary /usr/bin/gcc-13 is used directly (CC=gcc-13 or your alias).
@@ -29,13 +29,13 @@ import re
 import shlex
 import shutil
 
-from ..component import Family
+from ..driver import Driver
 from ..runner import Result
 
 _VER_RE = re.compile(r'\d+\.\d+(?:\.\d+)?')
 
 
-class AltFamily(Family):
+class AltDriver(Driver):
     privileged = True
     default_scope = 'system'
     default_slaves = ()          # subclasses (clang) may provide, routes may override

@@ -3,8 +3,8 @@ import os
 import humon
 
 from configsys.componentObj import ResolvedComponent
-from configsys.families import get_family, is_supported
-from configsys.families.aur import Aur
+from configsys.drivers import get_driver, is_supported
+from configsys.drivers.aur import Aur
 from configsys.routes import Resolver
 from configsys.runner import Result, Runner
 
@@ -15,7 +15,7 @@ def aur_unit(comp='yay', name='yay-bin', version_spec=None):
     fields = {'name': name}
     if version_spec is not None:
         fields['version'] = version_spec
-    return ResolvedComponent(key=f'aur\\{comp}', family='aur', comp=comp, fields=fields)
+    return ResolvedComponent(key=f'aur\\{comp}', driver='aur', comp=comp, fields=fields)
 
 
 class FakeRunner:
@@ -33,7 +33,7 @@ class FakeRunner:
 
 
 def test_registered_and_unprivileged():
-    fam = get_family('aur', Runner(pretend=True))
+    fam = get_driver('aur', Runner(pretend=True))
     assert isinstance(fam, Aur) and is_supported('aur')
     assert fam.privileged is False        # makepkg refuses root; it sudo's internally
 

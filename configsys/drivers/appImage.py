@@ -1,4 +1,4 @@
-'''appImage.py — the \\appImage family: a single self-contained executable.
+'''appImage.py — the \\appImage driver: a single self-contained executable.
 
 Software shipped as one .AppImage file. We download it to `path`, mark it
 executable, record the installed version in a marker (stateless inspection), and
@@ -8,20 +8,20 @@ by default (no sudo); `scope: system` switches file ops to sudo for system paths
 Route fields: `url` (download, may be $VERSION-templated), `path` (target file),
 optional `version`, `name` (menu label), `icon`.
 
-Note: AppImages need FUSE to *run*, so the family !depends on libfuse2 — installed
+Note: AppImages need FUSE to *run*, so the driver !depends on libfuse2 — installed
 first via the normal cascade. We never launch the app ourselves.
 '''
 
 import shlex
 from pathlib import Path
 
-from ..component import Family
+from ..driver import Driver
 from ..runner import Result
 
 MARKER_PREFIX = '.configsys-'
 
 
-class AppImage(Family):
+class AppImage(Driver):
     name = 'appImage'
     privileged = False
     default_scope = 'user'

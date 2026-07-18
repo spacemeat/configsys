@@ -4,20 +4,20 @@ import tarfile
 import pytest
 
 from configsys.componentObj import ResolvedComponent
-from configsys.families import get_family
-from configsys.families.tarball import Tarball
+from configsys.drivers import get_driver
+from configsys.drivers.tarball import Tarball
 from configsys.paths import Paths
 from configsys.runner import Runner
 
 
 def tb_unit(installdir, url='https://x/y-1.2.3.tar.xz', version='1.2.3', comp='vulkan-sdk'):
-    return ResolvedComponent(key=f'tarball\\{comp}', family='tarball', comp=comp,
+    return ResolvedComponent(key=f'tarball\\{comp}', driver='tarball', comp=comp,
                              fields={'url': url, 'installDir': str(installdir)},
                              vars={'$SDKVERSION': version})
 
 
 def test_registry_has_tarball():
-    assert isinstance(get_family('tarball', Runner(pretend=True)), Tarball)
+    assert isinstance(get_driver('tarball', Runner(pretend=True)), Tarball)
 
 
 def test_install_command_construction(tmp_path):
@@ -59,7 +59,7 @@ def test_uninstall_guarded_by_marker(tmp_path):
 
 def test_installdir_expands_via_paths():
     p = Paths(env={'CONFIGSYS_HOME': '/sandbox'})
-    rc = ResolvedComponent(key='tarball\\vulkan-sdk', family='tarball', comp='vulkan-sdk',
+    rc = ResolvedComponent(key='tarball\\vulkan-sdk', driver='tarball', comp='vulkan-sdk',
                            fields={'url': 'u', 'installDir': '~/vulkan'},
                            vars={'$SDKVERSION': '1'})
     tb = Tarball(Runner(pretend=True), paths=p)
@@ -68,7 +68,7 @@ def test_installdir_expands_via_paths():
 
 def test_user_scope_relative_installdir_is_home():
     p = Paths(env={'CONFIGSYS_HOME': '/home/u'})
-    rc = ResolvedComponent(key='tarball\\vulkan-sdk', family='tarball', comp='vulkan-sdk',
+    rc = ResolvedComponent(key='tarball\\vulkan-sdk', driver='tarball', comp='vulkan-sdk',
                            fields={'url': 'https://x/v.tar', 'installDir': 'vulkan'},
                            vars={'$SDKVERSION': '1'})
     r = Runner(pretend=True)
@@ -79,7 +79,7 @@ def test_user_scope_relative_installdir_is_home():
 
 def test_system_scope_relative_installdir_is_opt_with_sudo():
     p = Paths(env={'CONFIGSYS_HOME': '/home/u'})
-    rc = ResolvedComponent(key='tarball\\vulkan-sdk', family='tarball', comp='vulkan-sdk',
+    rc = ResolvedComponent(key='tarball\\vulkan-sdk', driver='tarball', comp='vulkan-sdk',
                            fields={'url': 'https://x/v.tar', 'installDir': 'vulkan',
                                    'scope': 'system'},
                            vars={'$SDKVERSION': '1'})
@@ -96,7 +96,7 @@ def test_lock_unlock_are_ledger_backed_noops():
 
 
 def test_version_spec_substituted_into_url():
-    rc = ResolvedComponent(key='tarball\\x', family='tarball', comp='x',
+    rc = ResolvedComponent(key='tarball\\x', driver='tarball', comp='x',
                            fields={'url': 'https://h/$VERSION/pkg-$VERSION.tar',
                                    'installDir': 'x', 'version': {'static': '9.9'}})
     r = Runner(pretend=True)
@@ -106,7 +106,7 @@ def test_version_spec_substituted_into_url():
 
 
 def test_get_latest_from_static_version_spec():
-    rc = ResolvedComponent(key='tarball\\x', family='tarball', comp='x',
+    rc = ResolvedComponent(key='tarball\\x', driver='tarball', comp='x',
                            fields={'url': 'u', 'installDir': 'x',
                                    'version': {'static': '9.9'}})
     assert Tarball(Runner(pretend=True), paths=None).get_latest(rc) == '9.9'
@@ -121,7 +121,7 @@ def test_real_download_extract_and_uninstall(tmp_path):
         t.add(payload, arcname='pkg/hello.txt')
 
     inst = tmp_path / 'inst'
-    rc = ResolvedComponent(key='tarball\\pkg', family='tarball', comp='pkg',
+    rc = ResolvedComponent(key='tarball\\pkg', driver='tarball', comp='pkg',
                            fields={'url': f'file://{tarpath}', 'installDir': str(inst)},
                            vars={'$SDKVERSION': '9.9'})
     tb = Tarball(Runner(pretend=False), paths=None)

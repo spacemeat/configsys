@@ -4,7 +4,7 @@ from configsys.planning import dependency_order, expand_plan
 
 def u(key, deps=()):
     fam, comp = key.split('\\')
-    return ResolvedComponent(key=key, family=fam, comp=comp,
+    return ResolvedComponent(key=key, driver=fam, comp=comp,
                              fields={'name': comp}, deps=set(deps))
 
 

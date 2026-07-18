@@ -1,14 +1,14 @@
 import humon
 
 from configsys.componentObj import ResolvedComponent
-from configsys.families import get_family, is_supported
-from configsys.families.gcc_toolset import GccToolset
+from configsys.drivers import get_driver, is_supported
+from configsys.drivers.gcc_toolset import GccToolset
 from configsys.routes import Resolver
 from configsys.runner import Result, Runner
 
 
 def unit(comp='gcc-13'):
-    return ResolvedComponent(key=f'gcc-toolset\\{comp}', family='gcc-toolset',
+    return ResolvedComponent(key=f'gcc-toolset\\{comp}', driver='gcc-toolset',
                              comp=comp, fields={})
 
 
@@ -27,7 +27,7 @@ class FakeRunner:
 
 
 def test_registered_system_scoped():
-    fam = get_family('gcc-toolset', Runner(pretend=True))
+    fam = get_driver('gcc-toolset', Runner(pretend=True))
     assert isinstance(fam, GccToolset) and is_supported('gcc-toolset')
     assert fam.privileged and fam.default_scope == 'system'
 

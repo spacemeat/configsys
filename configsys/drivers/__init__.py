@@ -1,7 +1,7 @@
 '''families — registry of install-medium implementations.
 
 Ships apt, tarball, flatpak, appImage, dotfiles, and debian-font — the full set.
-An unregistered family name still returns None here so InstallState degrades
+An unregistered driver name still returns None here so InstallState degrades
 gracefully instead of crashing.
 '''
 
@@ -40,8 +40,8 @@ _REGISTRY = {
 }
 
 
-def get_family(name, runner, paths=None):
-    '''Instantiate the family for `name` bound to `runner`/`paths`, or None.'''
+def get_driver(name, runner, paths=None):
+    '''Instantiate the driver for `name` bound to `runner`/`paths`, or None.'''
     cls = _REGISTRY.get(name)
     return cls(runner, paths) if cls is not None else None
 

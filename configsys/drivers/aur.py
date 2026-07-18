@@ -1,4 +1,4 @@
-'''aur.py — the Arch User Repository family.
+'''aur.py — the Arch User Repository driver.
 
 Builds AUR packages from their PKGBUILD with makepkg — no helper (yay/paru) needed:
 clone the package's AUR git repo and `makepkg -si`. makepkg refuses to run as root
@@ -13,14 +13,14 @@ the AUR RPC via a `version: { aur: <pkgname> }` route spec. Needs base-devel + g
 
 import shlex
 
-from ..component import Family
+from ..driver import Driver
 from ..runner import Result
 
 _AUR_GIT = 'https://aur.archlinux.org/{pkg}.git'
 _BUILD_ROOT = '/tmp/configsys-aur'
 
 
-class Aur(Family):
+class Aur(Driver):
     name = 'aur'
     privileged = False   # makepkg must NOT run as root; it sudo's internally
 

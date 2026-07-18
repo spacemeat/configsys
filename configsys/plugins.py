@@ -7,7 +7,7 @@ plugins dir to pinned refs. Loading uses whatever is already on disk (sync is se
 declared-but-unsynced or incompatible plugin is simply absent — its components then surface as
 resilient error rows, never a brick.
 
-P2 will add code plugins (Python Family subclasses) + the trust model; this module also owns
+P2 will add code plugins (Python Driver subclasses) + the trust model; this module also owns
 the ABI version the manifest gates on. See docs/plugins.md.
 '''
 
@@ -20,7 +20,7 @@ from . import layers
 from .errors import ConfigError
 from .troveio import _scalar
 
-# The plugin ABI version (Family contract + data schema + registration + RC shape). One coarse
+# The plugin ABI version (Driver contract + data schema + registration + RC shape). One coarse
 # integer (KISS). A manifest declares `requires-abi: N`; we load it iff N is in ABI_SUPPORTED.
 ABI_VERSION = 1
 ABI_SUPPORTED = frozenset({1})

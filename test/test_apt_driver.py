@@ -1,15 +1,15 @@
 from pathlib import Path
 
 from configsys.componentObj import ResolvedComponent
-from configsys.families import get_family, is_supported
-from configsys.families.apt import Apt
+from configsys.drivers import get_driver, is_supported
+from configsys.drivers.apt import Apt
 from configsys.routes import Resolver
 from configsys.runner import Result, Runner
 from configsys.troveio import load
 
 
 def rc(name='btop'):
-    return ResolvedComponent(key=f'apt\\{name}', family='apt', comp=name,
+    return ResolvedComponent(key=f'apt\\{name}', driver='apt', comp=name,
                              fields={'name': name})
 
 
@@ -32,8 +32,8 @@ class FakeRunner:
 # -- command construction (via pretend Runner) ---------------------------
 
 def test_registry_resolves_apt_and_rejects_others():
-    assert isinstance(get_family('apt', Runner(pretend=True)), Apt)
-    assert get_family('snap', Runner(pretend=True)) is None   # not implemented
+    assert isinstance(get_driver('apt', Runner(pretend=True)), Apt)
+    assert get_driver('snap', Runner(pretend=True)) is None   # not implemented
     assert is_supported('apt') and not is_supported('snap')
 
 
@@ -70,7 +70,7 @@ def test_lock_unlock_commands():
 
 def test_uses_family_name_field_not_comp():
     # e.g. vulkan-dev -> apt\vulkan-sdk: the apt package is the `name` field.
-    comp = ResolvedComponent(key='apt\\vulkan-sdk', family='apt', comp='vulkan-sdk',
+    comp = ResolvedComponent(key='apt\\vulkan-sdk', driver='apt', comp='vulkan-sdk',
                              fields={'name': 'vulkan-sdk'})
     r = Runner(pretend=True)
     Apt(r).install(comp)
@@ -126,7 +126,7 @@ def resolve_unit(name, os_block='pop_os!'):
 
 
 def test_repo_component_enabled_before_install():
-    comp = ResolvedComponent(key='apt\\btop', family='apt', comp='btop',
+    comp = ResolvedComponent(key='apt\\btop', driver='apt', comp='btop',
                              fields={'name': 'btop', 'repo-component': 'universe'})
     r = Runner(pretend=True)
     Apt(r).install(comp)
@@ -137,7 +137,7 @@ def test_repo_component_enabled_before_install():
 
 
 def test_repo_component_list():
-    comp = ResolvedComponent(key='apt\\x', family='apt', comp='x',
+    comp = ResolvedComponent(key='apt\\x', driver='apt', comp='x',
                              fields={'name': 'x', 'repo-component': ['universe', 'multiverse']})
     r = Runner(pretend=True)
     Apt(r).install(comp)
@@ -162,8 +162,8 @@ def test_universe_route_carries_repo_component():
 
 def test_apt_key_and_source_prereq_still_supported():
     # The apt third-party key/source mechanism is retained for other components,
-    # even though vulkan-sdk itself moved to the tarball family.
-    comp = ResolvedComponent(key='apt\\thing', family='apt', comp='thing', fields={
+    # even though vulkan-sdk itself moved to the tarball driver.
+    comp = ResolvedComponent(key='apt\\thing', driver='apt', comp='thing', fields={
         'name': 'thing',
         'pubkey-url': 'https://ex.com/key.asc',
         'pubkey-path': '/etc/apt/trusted.gpg.d/ex.asc',
@@ -182,7 +182,7 @@ def test_apt_key_and_source_prereq_still_supported():
 
 def test_source_line_writes_inline_deb_repo():
     # vendor repos with no downloadable .list (e.g. Microsoft's vscode) echo a deb line.
-    comp = ResolvedComponent(key='apt\\code', family='apt', comp='vscode', fields={
+    comp = ResolvedComponent(key='apt\\code', driver='apt', comp='vscode', fields={
         'name': 'code',
         'pubkey-url': 'https://packages.microsoft.com/keys/microsoft.asc',
         'pubkey-path': '/usr/share/keyrings/packages.microsoft.asc',

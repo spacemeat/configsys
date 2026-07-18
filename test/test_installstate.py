@@ -19,14 +19,14 @@ class FakeRunner:
 
 
 def apt_unit(name='btop'):
-    return ResolvedComponent(key=f'apt\\{name}', family='apt', comp=name,
+    return ResolvedComponent(key=f'apt\\{name}', driver='apt', comp=name,
                              fields={'name': name})
 
 
 def unsupported_unit():
     # `snap` is not implemented -> exercises graceful degradation (all real routed
     # families are now supported, so use a synthetic unregistered one)
-    return ResolvedComponent(key='snap\\foo', family='snap', comp='foo',
+    return ResolvedComponent(key='snap\\foo', driver='snap', comp='foo',
                              fields={'name': 'foo'})
 
 

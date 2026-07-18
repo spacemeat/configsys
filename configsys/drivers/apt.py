@@ -1,4 +1,4 @@
-'''apt.py — the Debian/apt family.
+'''apt.py — the Debian/apt driver.
 
 Version state via dpkg-query + apt-cache policy; mutation via apt-get; version
 lock via apt-mark hold/unhold. Mutating ops run under sudo and stream their output
@@ -7,11 +7,11 @@ lock via apt-mark hold/unhold. Mutating ops run under sudo and stream their outp
 
 import shlex
 
-from ..component import Family
+from ..driver import Driver
 from ..runner import Result
 
 
-class Apt(Family):
+class Apt(Driver):
     name = 'apt'
     privileged = True
     default_scope = 'system'   # apt packages are system-wide (fixed)

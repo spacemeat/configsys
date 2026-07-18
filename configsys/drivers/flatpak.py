@@ -1,4 +1,4 @@
-'''flatpak.py — the \\flatpak family (user scope).
+'''flatpak.py — the flatpak driver (user scope).
 
 Operates on flatpaks in the unprivileged `--user` installation (no sudo, and
 sandbox-friendly: XDG_DATA_HOME redirects it). We only install/list/update/remove
@@ -15,7 +15,7 @@ flatpak resolve the latest itself.
 
 import shlex
 
-from ..component import Family
+from ..driver import Driver
 
 # Well-known hub remotes -> their .flatpakrepo URL (routes may override via `hub-url`).
 HUB_REPOS = {
@@ -24,7 +24,7 @@ HUB_REPOS = {
 }
 
 
-class Flatpak(Family):
+class Flatpak(Driver):
     name = 'flatpak'
     privileged = False
 

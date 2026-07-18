@@ -1,4 +1,4 @@
-'''Drive the Flatpak family against a synthetic component, for integration tests.
+'''Drive the Flatpak driver against a synthetic component, for integration tests.
 
 Lets the shell harness exercise real flatpak ops without adding a throwaway app to
 the production routes. Usage:
@@ -15,14 +15,14 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from configsys.componentObj import ResolvedComponent  # noqa: E402
-from configsys.families.flatpak import Flatpak  # noqa: E402
+from configsys.drivers.flatpak import Flatpak  # noqa: E402
 from configsys.runner import Runner  # noqa: E402
 
 
 def main():
     op, appid = sys.argv[1], sys.argv[2]
     hub = sys.argv[3] if len(sys.argv) > 3 else 'flathub'
-    rc = ResolvedComponent(key=f'flatpak\\{appid}', family='flatpak', comp=appid,
+    rc = ResolvedComponent(key=f'flatpak\\{appid}', driver='flatpak', comp=appid,
                            fields={'hub': hub, 'name': appid})
     fam = Flatpak(Runner(pretend=False))
 

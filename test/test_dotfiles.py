@@ -1,8 +1,8 @@
 import os
 
 from configsys.componentObj import ResolvedComponent
-from configsys.families import get_family
-from configsys.families.dotfiles import DotFiles
+from configsys.drivers import get_driver
+from configsys.drivers.dotfiles import DotFiles
 from configsys.paths import Paths
 from configsys.runner import Runner
 
@@ -10,7 +10,7 @@ from configsys.runner import Runner
 def df_unit(specs=None, comp='neovim'):
     fields = specs if specs is not None else {
         'config': {'src': 'neovim', 'dst': '$XDG_CONFIG_HOME/nvim'}}
-    return ResolvedComponent(key=f'dotfiles\\{comp}', family='dotfiles', comp=comp,
+    return ResolvedComponent(key=f'dotfiles\\{comp}', driver='dotfiles', comp=comp,
                              fields=fields)
 
 
@@ -20,11 +20,11 @@ def paths_for(tmp_path):
 
 
 def test_registry_has_dotfiles():
-    assert isinstance(get_family('dotfiles', Runner(pretend=True)), DotFiles)
+    assert isinstance(get_driver('dotfiles', Runner(pretend=True)), DotFiles)
 
 
 def test_single_inline_spec():
-    rc = ResolvedComponent(key='dotfiles\\arduino', family='dotfiles', comp='arduino',
+    rc = ResolvedComponent(key='dotfiles\\arduino', driver='dotfiles', comp='arduino',
                            fields={'src': 'bash.d/arduino.sh', 'dst': '~/.bash.d/arduino.sh'})
     assert DotFiles._specs(rc) == [('arduino', 'bash.d/arduino.sh', '~/.bash.d/arduino.sh')]
 

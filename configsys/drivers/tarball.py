@@ -1,4 +1,4 @@
-'''tarball.py — the \\tarball family: fetch a tarball and unpack it into a dir.
+'''tarball.py — the tarball driver: fetch a tarball and unpack it into a dir.
 
 For software distributed as a downloadable archive (e.g. the Vulkan SDK). Entirely
 user-space (no sudo): download the `url` to a temp file, extract into `installDir`,
@@ -9,13 +9,13 @@ version. There is no native version lock — lock intent lives in the ledger.
 
 import shlex
 
-from ..component import Family
+from ..driver import Driver
 from ..runner import Result
 
 MARKER_PREFIX = '.configsys-'
 
 
-class Tarball(Family):
+class Tarball(Driver):
     name = 'tarball'
     privileged = False
     default_scope = 'user'

@@ -1,13 +1,13 @@
 '''fastfetch: native where packaged (Arch/Fedora/EL), and the official github .deb on
-the apt family (no Ubuntu / Debian<=12 has it), via the apt `deb` install mode.'''
+the apt driver (no Ubuntu / Debian<=12 has it), via the apt `deb` install mode.'''
 
 import os
 
 import humon
 
 from configsys.componentObj import ResolvedComponent
-from configsys.families import get_family
-from configsys.families.apt import Apt
+from configsys.drivers import get_driver
+from configsys.drivers.apt import Apt
 from configsys.routes import Resolver
 from configsys.runner import Runner
 
@@ -39,7 +39,7 @@ def test_el_fastfetch_pulls_epel():
 
 def _deb_unit():
     return ResolvedComponent(
-        key='apt\\fastfetch', family='apt', comp='fastfetch',
+        key='apt\\fastfetch', driver='apt', comp='fastfetch',
         fields={'name': 'fastfetch', 'deb-source': 'github:fastfetch-cli/fastfetch',
                 'asset': {'x86_64': 'fastfetch-linux-amd64.deb',
                           'aarch64': 'fastfetch-linux-aarch64.deb'}})
