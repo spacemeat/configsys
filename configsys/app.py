@@ -45,7 +45,7 @@ USER_CONFIG_TEMPLATE = '''{
     // ignore-profiles: [ some-profile ]
 
     // Pins — the light way to reroute without redefining a component:
-    //   component -> mechanism  (binding-pin: force a method)
+    //   component -> driver  (binding-pin: force a method)
     //   capability -> component  (provider-pin: force who satisfies a requirement)
     // pins: {
     //     steam: flatpak
@@ -441,7 +441,7 @@ def cmd_check(ctx, args):
     '''Lint the whole merged config (repo + your ~/configsys.hu + includes) without installing.'''
     from . import layers, routes, routecheck
     try:
-        cascade, components, mechanisms = routes.load(
+        cascade, components, drivers = routes.load(
             ctx.paths.routes_file, ctx.paths.user_config_file, ctx.discovered,
             ctx.plugin_files, validate=False)
         roots = ([(ctx.paths.routes_file, 'repo'), (ctx.paths.config_file, 'repo')]
@@ -453,7 +453,7 @@ def cmd_check(ctx, args):
         print(f'configsys: {e}')          # a parse/structural error before we can lint
         return 1
 
-    issues = routecheck.validate(components, cascade, mechanisms)
+    issues = routecheck.validate(components, cascade, drivers)
     include_warnings = layers.ignored_section_warnings(layer_list)
 
     # profile references: a selected profile naming a component that doesn't exist
@@ -466,7 +466,7 @@ def cmd_check(ctx, args):
     except ConfigsysError:
         pass  # malformed profiles surface on their own path
 
-    # pins: value must be a known mechanism (binding-pin) or a known component (provider-pin)
+    # pins: value must be a known driver (binding-pin) or a known component (provider-pin)
     from .drivers import supported_names
     valid_via = {'native', 'parts'} | supported_names()
     pin_issues = []
@@ -475,7 +475,7 @@ def cmd_check(ctx, args):
             if key not in components:
                 pin_issues.append(f"pin '{key}: {val}': component '{key}' does not exist")
         elif val not in components:
-            pin_issues.append(f"pin '{key}: {val}': '{val}' is neither a known mechanism "
+            pin_issues.append(f"pin '{key}: {val}': '{val}' is neither a known driver "
                               f'(binding-pin) nor a component (provider-pin)')
 
     errors = [i for i in issues if i.is_error]

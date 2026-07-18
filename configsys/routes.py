@@ -57,7 +57,7 @@ def _truthy(v):
 
 
 class OsCascade:
-    '''The OS layer: `using` inheritance, the `native` mechanism, scale-roots, and the
+    '''The OS layer: `using` inheritance, the `native` driver, scale-roots, and the
     capabilities each environment provides for free.'''
 
     def __init__(self, os_dict):
@@ -83,7 +83,7 @@ class OsCascade:
         return chain
 
     def native(self, name):
-        '''The nearest `native:` mechanism walking the lineage (None if none set).'''
+        '''The nearest `native:` driver walking the lineage (None if none set).'''
         for n in self.lineage(name):
             mech = (self.blocks[n] or {}).get('native')
             if mech:
@@ -99,11 +99,11 @@ class OsCascade:
 
 
 def load(path, overrides_path=None, discovered=(), plugin_files=(), validate=True):
-    '''-> (OsCascade, {component_name: Component}, {mechanism: [required caps]}).
+    '''-> (OsCascade, {component_name: Component}, {driver: [required caps]}).
 
     Layer stack lowest-first: routes.hu (repo) < plugin data files < discovered project files
     (.configsys*.hu) < the user's config, each with its `include:` graph expanded. Components
-    merge PER NAME (later wins — redefine, add, or remove with `{}`); os/mechanisms come from
+    merge PER NAME (later wins — redefine, add, or remove with `{}`); os/drivers come from
     repo + plugins (a plugin may add a derivative-distro os block). A malformed discovered or
     plugin file is skipped (never bricks the rest). validate=True rejects an ambiguous set.
     '''
@@ -134,9 +134,9 @@ def load(path, overrides_path=None, discovered=(), plugin_files=(), validate=Tru
         comp.shadows = shadows
         components[name] = comp
 
-    mechs = layers.merge_dict_section(layer_list, 'mechanisms', ('repo', 'plugin'))
-    mechanisms = {name: _as_list((spec or {}).get('requires')) for name, spec in mechs.items()}
-    return cascade, components, mechanisms
+    drvs = layers.merge_dict_section(layer_list, 'drivers', ('repo', 'plugin'))
+    drivers = {name: _as_list((spec or {}).get('requires')) for name, spec in drvs.items()}
+    return cascade, components, drivers
 
 
 class Resolver:
@@ -147,7 +147,7 @@ class Resolver:
 
     def __init__(self, routes_path, block, version=None, cpu=None, pins=None,
                  overrides_path=None, discovered=(), plugin_files=()):
-        self.cascade, self.components, self.mechanisms = load(routes_path, overrides_path,
+        self.cascade, self.components, self.drivers = load(routes_path, overrides_path,
                                                               discovered, plugin_files)
         self.block = block
         self.version = version
@@ -161,7 +161,7 @@ class Resolver:
 
     def _resolve(self, names):
         from .resolve import resolve_roots
-        return resolve_roots(list(names), self.cascade, self.components, self.mechanisms,
+        return resolve_roots(list(names), self.cascade, self.components, self.drivers,
                              self.block, self.version, self.cpu, self.pins)
 
     def resolve_names(self, names):
@@ -174,7 +174,7 @@ class Resolver:
         from .adapt import to_resolved_components
         from .resolve import resolve_resilient
         units, errors = resolve_resilient(list(names), self.cascade, self.components,
-                                          self.mechanisms, self.block, self.version,
+                                          self.drivers, self.block, self.version,
                                           self.cpu, self.pins)
         return to_resolved_components(units), errors
 

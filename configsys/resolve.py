@@ -18,27 +18,27 @@ def _as_list(v):
 
 
 class Unit:
-    '''A resolved leaf: which mechanism installs it, the component name, and the concrete
-    package identifier. Shaped to line up with the old resolver's (family, comp, name).
+    '''A resolved leaf: which driver installs it, the component name, and the concrete
+    package identifier. Shaped to line up with the old resolver's (driver, comp, name).
     `deps` are the unit keys it depends on; `requested_as` are the roots that pulled it.'''
 
-    def __init__(self, mechanism, component, package):
-        self.mechanism = mechanism
+    def __init__(self, driver, component, package):
+        self.driver = driver
         self.component = component
         self.package = package
         self.deps = set()
         self.requested_as = set()
-        # install-execution fields (the family reads these off the ResolvedComponent the
+        # install-execution fields (the driver reads these off the ResolvedComponent the
         # builder makes). Populated from the selected binding's details / the dotfiles spec,
         # minus resolver-only keys; `name` is normalized to the resolved package.
         self.details = {}
 
     @property
     def key(self):
-        return f'{self.mechanism}\\{self.component}'
+        return f'{self.driver}\\{self.component}'
 
     def as_tuple(self):
-        return (self.mechanism, self.component, self.package)
+        return (self.driver, self.component, self.package)
 
     def __repr__(self):
         return f'Unit({self.key} -> {self.package!r})'
@@ -62,20 +62,20 @@ def select_binding(component, cascade, context, pins=None):
     return by_pred[winner]
 
 
-def _mechanism(binding, cascade, block):
+def _driver(binding, cascade, block):
     if binding.via == 'native':
-        mech = cascade.native(block)
-        if mech is None:
+        drv = cascade.native(block)
+        if drv is None:
             raise ResolveError(f'no native package manager on {block}')
-        return mech
+        return drv
     return binding.via
 
 
-def _package(binding, mechanism, component):
+def _package(binding, driver, component):
     if binding.via == 'native':
         name = binding.details.get('name')
         if isinstance(name, dict):
-            return name.get(mechanism) or name.get('default') or component.name
+            return name.get(driver) or name.get('default') or component.name
         return name or component.name
     if binding.via == 'flatpak':
         return binding.details.get('app')
@@ -85,12 +85,12 @@ def _package(binding, mechanism, component):
     return binding.details.get('name') or component.name
 
 
-# keys that steer resolution, not installation — never handed to a family.
+# keys that steer resolution, not installation — never handed to a driver.
 _RESOLVER_KEYS = ('requires', 'parts', 'app')
 
 
 def _install_fields(details, package):
-    '''The install-execution fields a family reads, from a binding's details (or an inline
+    '''The install-execution fields a driver reads, from a binding's details (or an inline
     dotfiles spec). Resolver-only keys are dropped; `name` is normalized to the concrete
     resolved package (so flatpak `app:` -> name, native name-maps -> the picked package).'''
     fields = {k: v for k, v in details.items() if k not in _RESOLVER_KEYS}
@@ -122,13 +122,13 @@ def resolve_one(name, cascade, components, block, version=None, cpu=None):
     comp = components[name]
     ctx = cascade.context(block, version, cpu)
     binding = select_binding(comp, cascade, ctx)
-    mech = _mechanism(binding, cascade, block)
-    return Unit(mech, name, _package(binding, mech, comp))
+    drv = _driver(binding, cascade, block)
+    return Unit(drv, name, _package(binding, drv, comp))
 
 
 # -- full resolution: the worklist to a fixpoint ---------------------------
 
-def resolve(names, cascade, components, mechanisms, block, version=None, cpu=None, pins=None):
+def resolve(names, cascade, components, drivers, block, version=None, cpu=None, pins=None):
     '''Resolve a profile (component names) to the full unit closure for a context.
 
     Phase 1 seeds every explicit want and registers what it provides, BEFORE any
@@ -140,14 +140,14 @@ def resolve(names, cascade, components, mechanisms, block, version=None, cpu=Non
     Returns {unit_key: Unit}. Resolving a name yields a SET of keys — one for a normal
     component, several for a `via: parts` aggregator (which has no unit of its own).
     '''
-    return resolve_roots(names, cascade, components, mechanisms, block, version, cpu, pins)[0]
+    return resolve_roots(names, cascade, components, drivers, block, version, cpu, pins)[0]
 
 
-def resolve_roots(names, cascade, components, mechanisms, block, version=None, cpu=None, pins=None):
+def resolve_roots(names, cascade, components, drivers, block, version=None, cpu=None, pins=None):
     '''Like resolve(), but also return the set of unit keys bound *directly* by the named
-    components (a named parts-component contributes its parts' keys; family/mechanism deps
+    components (a named parts-component contributes its parts' keys; driver/driver deps
     are not roots). The app applies the requested op to these, and expand_plan folds in deps.'''
-    st = _State(cascade, components, mechanisms, cascade.context(block, version, cpu), pins or {})
+    st = _State(cascade, components, drivers, cascade.context(block, version, cpu), pins or {})
     roots = set()
     for name in names:
         roots |= st.add_component(name, root=name)  # phase 1: wants + their provides
@@ -156,14 +156,14 @@ def resolve_roots(names, cascade, components, mechanisms, block, version=None, c
     return st.units, roots
 
 
-def resolve_resilient(names, cascade, components, mechanisms, block, version=None, cpu=None,
+def resolve_resilient(names, cascade, components, drivers, block, version=None, cpu=None,
                       pins=None):
     '''Resilient resolution for the inspect/TUI pipeline: a requested name that can't resolve
     (unknown, no binding here, or an unsatisfiable requirement) is collected into `errors`
     instead of aborting the whole set — everything resolvable still resolves. Returns
     (units, errors) with errors = {requested_name: message}. So one broken component in the
     active set (e.g. from an auto-activated project profile) can't brick the tool.'''
-    st = _State(cascade, components, mechanisms, cascade.context(block, version, cpu), pins or {})
+    st = _State(cascade, components, drivers, cascade.context(block, version, cpu), pins or {})
     errors = {}
     for name in names:
         try:
@@ -184,10 +184,10 @@ def _bindable(component, cascade, ctx, pins):
 
 
 class _State:
-    def __init__(self, cascade, components, mechanisms, ctx, pins):
+    def __init__(self, cascade, components, drivers, ctx, pins):
         self.cascade = cascade
         self.components = components
-        self.mechanisms = mechanisms
+        self.drivers = drivers
         self.ctx = ctx
         self.pins = pins
         self.block = ctx.lineage[0]
@@ -225,21 +225,21 @@ class _State:
                 keys |= self.add_component(part, root)
             return frozenset(keys)
 
-        mech = _mechanism(binding, self.cascade, self.block)
-        key = f'{mech}\\{name}'
+        drv = _driver(binding, self.cascade, self.block)
+        key = f'{drv}\\{name}'
         if key in self.units:
             self.units[key].requested_as.add(root)
             return frozenset({key})
-        unit = Unit(mech, name, _package(binding, mech, comp))
+        unit = Unit(drv, name, _package(binding, drv, comp))
         unit.requested_as = {root}
         unit.details = _install_fields(binding.details, unit.package)
         self.units[key] = unit
         for cap in set(comp.provides) | {name}:
             self.inventory.setdefault(cap, frozenset({key}))
-        # requires: method-independent (component) + mechanism-level + binding-specific.
+        # requires: method-independent (component) + driver-level + binding-specific.
         # A component's config is just another required component (a `via: dotfiles` one),
         # so it flows through here too — no special-cased dotfiles field.
-        reqs = (list(comp.requires) + list(self.mechanisms.get(binding.via, []))
+        reqs = (list(comp.requires) + list(self.drivers.get(binding.via, []))
                 + _as_list(binding.details.get('requires')))
         for cap in reqs:
             self.queue.append((key, name, cap, root))

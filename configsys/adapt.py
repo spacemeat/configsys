@@ -1,6 +1,6 @@
 '''adapt.py — build the app's ResolvedComponent objects from v2 resolution.
 
-The v2 resolver produces Units (mechanism, component, package, details, deps,
+The v2 resolver produces Units (driver, component, package, details, deps,
 requested_as). The rest of the app (planning, InstallState, the families, the TUI) is
 driven by `{key: ResolvedComponent}`. This is the thin, permanent glue between them: it
 carries no field translation — `unit.details` is already the install-field shape the
@@ -14,7 +14,7 @@ from .componentObj import ResolvedComponent
 def to_resolved_component(unit):
     rc = ResolvedComponent(
         key=unit.key,
-        driver=unit.mechanism,
+        driver=unit.driver,
         comp=unit.component,
         fields=dict(unit.details),
         vars={},                      # v2 carries version info in `version:` specs, not $VARS

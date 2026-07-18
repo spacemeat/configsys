@@ -43,10 +43,10 @@ Symptoms of the tangle:
 
 - **Component** — the abstract thing you want (`btop`, `neovim`, `cargo`, `C++20`):
   an identity plus a set of context-selected **bindings**.
-- **Binding** — one way to acquire the component in some context: a mechanism + a
-  `when:` predicate + mechanism-specific details. Also a *provider* of the component's
+- **Binding** — one way to acquire the component in some context: a driver + a
+  `when:` predicate + driver-specific details. Also a *provider* of the component's
   capability.
-- **Mechanism (family)** — knows how to drive install/query/remove for a class of
+- **Driver** — knows how to drive install/query/remove for a class of
   bindings: `native` (the OS package manager), `flatpak`, `appImage`, `crate`, `deb`,
   `aur`, `gcc-toolset`, …
 
@@ -66,14 +66,14 @@ Legal humon (every dict entry is `key: value`; `when:` is a string expression):
 
     install: [                     // ordered list of bindings (providers)
                                    //   a dotfile component's binding is `{ via: dotfiles ... }`
-        { via: <mechanism>  when: "<predicate>"  ...mechanism details... }
+        { via: <driver>  when: "<predicate>"  ...driver details... }
         ...
     ]
 }
 ```
 
-- A **binding** names its mechanism with `via:`, guards itself with an optional `when:`
-  (absent = matches any context), and carries mechanism details. Any detail value may be
+- A **binding** names its driver with `via:`, guards itself with an optional `when:`
+  (absent = matches any context), and carries driver details. Any detail value may be
   a **cpu- or os-keyed map** (see [arch](#7-cpu-arch)).
 - The `install:` list is **disjunctive selection** — "here are the ways; pick the best
   match" — *not* an implicit and/or. All logic lives in `when:`.
@@ -320,7 +320,7 @@ numbers are unrelated, and labels are equality-matched.
 | --- | --- |
 | `\apt btop {name: btop}` (×3 families) | `btop: { via: native }` |
 | `*: apt\*` wildcard | `debian: { native: apt }` |
-| family `!depends` (e.g. `\appImage !depends libfuse2`) | per-mechanism config: `mechanism appImage { requires: libfuse2 }` |
+| family `!depends` (e.g. `\appImage !depends libfuse2`) | per-driver config: `drivers { appImage { requires: libfuse2 } }` |
 | OS-route `chrome: flatpak\chrome` | a binding in the `chrome` component |
 | version variant `"ubuntu@<23.04"` | a `when:` on a binding/provider |
 | `\app` method selection (neovim, steam) | the general case — every component works this way |
@@ -329,10 +329,10 @@ numbers are unrelated, and labels are equality-matched.
 
 ## 13. Open questions
 
-- **Where mechanism-specific binding fields live** (`foreign-arch: i386`,
+- **Where driver-specific binding fields live** (`foreign-arch: i386`,
   `repo-component: universe`, the apt `deb` mode) so apt-jargon doesn't leak onto every
-  component. Working hypothesis: they hang off the relevant binding as mechanism-scoped
-  fields, ignored by non-matching mechanisms.
+  component. Working hypothesis: they hang off the relevant binding as driver-scoped
+  fields, ignored by non-matching drivers.
 - **Sugar** for the trivial single-binding component (`btop: { via: native }` vs a
   bare-string form).
 - **Capability-name hygiene** — a registry to catch typos, or rely on "nothing provides
@@ -366,6 +366,6 @@ each flip.
 ## 15. Deferred
 
 **Windows / macOS.** The architecture would absorb them cleanly (a new OS root plus a
-`winget`/`scoop` or Homebrew `native:` mechanism). Deferred for two honest reasons: no
+`winget`/`scoop` or Homebrew `native:` driver). Deferred for two honest reasons: no
 test path (podman is Linux-only, so they can't get the throwaway-box rigor everything
 else has), and little overlap with the Linux model. Parked, not abandoned.

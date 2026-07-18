@@ -14,8 +14,8 @@
         arch:    { using: linux     native: pacman }
     }
 
-    // Mechanism config: dependencies inherent to a mechanism (the old family !depends).
-    mechanisms: {
+    // Driver config: dependencies inherent to a driver (its prerequisite tooling).
+    drivers: {
         flatpak:     { requires: flatpak }
         appImage:    { requires: libfuse2 }
         cargo:       { requires: cargo }              // a crate needs the cargo tool
@@ -70,7 +70,7 @@
         }
 
         // apod: a PyPI CLI (termapod) installed via pipx, plus a shell-startup dotfile.
-        // `via: pipx` pulls the pipx TOOL (the mechanism's requires) — which is itself the
+        // `via: pipx` pulls the pipx TOOL (the driver's requires) — which is itself the
         // version-variant component above (pip-bootstrap on old Ubuntu/Debian, +EPEL on EL),
         // so this is a two-level tool chain. The inline dotfiles field runs termapod on every
         // interactive shell. (Old: linux `apod: [ pipx\apod, dotfiles\apod ]`.)
@@ -90,7 +90,7 @@
             install: [ { via: native  repo-component: universe  name: { pacman: rust } } ]   // the cargo tool ships in `rust` on Arch
         }
 
-        // --- non-native mechanisms with mechanism-level deps ---
+        // --- non-native drivers with driver-level deps ---
         chrome: {
             install: [ { via: flatpak  hub: flathub  app: com.google.Chrome } ]  // -> requires flatpak
         }
@@ -159,7 +159,7 @@
 
         // --- tarball + composition: the vulkan SDK and the vulkan-dev bundle ---
         // vulkan-sdk is ONE component that is both a tarball unit AND an inline config
-        // dotfile (dotfiles\vulkan-sdk), keyed by the component; the tarball mechanism
+        // dotfile (dotfiles\vulkan-sdk), keyed by the component; the tarball driver
         // pulls curl. (Old: a [tarball\vulkan-sdk, dotfiles\vulkan-sdk] list bundle.)
         vulkan-sdk: {
             requires: vulkan-sdk-dotfiles
@@ -274,15 +274,15 @@
         }
 
         // --- AUR: packages built from PKGBUILD via makepkg -si (Arch only). The `aur`
-        // mechanism pulls base-devel + git (the build toolchain); yay is the AUR helper
-        // itself, prebuilt (-bin). Guarded to arch — the mechanism has no meaning elsewhere.
+        // driver pulls base-devel + git (the build toolchain); yay is the AUR helper
+        // itself, prebuilt (-bin). Guarded to arch — the driver has no meaning elsewhere.
         base-devel: { install: [ { via: native } ] }
         git:        { install: [ { via: native } ] }
         yay: {
             install: [ { via: aur  when: "arch"  name: yay-bin  version: { aur: yay-bin } } ]
         }
 
-        // --- versioned gcc. Three mechanisms, selected by OS/version:
+        // --- versioned gcc. Three drivers, selected by OS/version:
         //   debian -> `gcc` (apt PPA + update-alternatives; needs build-essential, s-p-c, the alias)
         //   fedora -> `gcc` (dnf compat packages gccNN; availability is per-release)
         //   EL     -> `gcc-toolset` (SCL under /opt/rh)
@@ -310,7 +310,7 @@
             ]
         }
 
-        // --- versioned clang. `clang` mechanism = native PM + update-alternatives:
+        // --- versioned clang. `clang` driver = native PM + update-alternatives:
         //   debian -> apt.llvm.org + alternatives (needs build-essential, curl, the alias)
         //   fedora -> dnf compat clangNN (per-release; the system clang covers the newest)
         //   EL     -> dnf compat clangNN from EPEL (requires epel)

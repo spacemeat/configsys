@@ -1,6 +1,6 @@
 '''layers.py — the config/routes layer stack: expand `include:` graphs and merge sources.
 
-Every config/routes file is a LAYER contributing sections: os / mechanisms / components /
+Every config/routes file is a LAYER contributing sections: os / drivers / components /
 profiles / configs / scope / pins. A file may `include:` others (paths relative to the
 including file resolve against ITS directory). Layers overlay lowest-precedence-first: the
 repo (routes.hu + config.hu) is the base, an included file sits below the file that
@@ -8,7 +8,7 @@ includes it, and the top user file (~/configsys.hu) wins. Merge is by section an
 components/profiles, by name (later wins).
 
 Includes are DEFINITIONS-ONLY: an included file's components + profiles merge in, but its
-machine settings (configs / scope / pins) and code-adjacent os / mechanisms are ignored
+machine settings (configs / scope / pins) and code-adjacent os / drivers are ignored
 (collected as warnings). This is the shared substrate the plugin model will reuse — a
 plugin is just another source in the stack.
 '''
@@ -21,7 +21,7 @@ from .errors import ConfigError
 
 _DEFINITION_SECTIONS = ('components', 'profiles')
 _SETTING_SECTIONS = ('configs', 'scope', 'pins', 'ignore-profiles', 'discover')
-_REPO_SECTIONS = ('os', 'mechanisms')
+_REPO_SECTIONS = ('os', 'drivers')
 
 
 def materialize(node):
@@ -193,7 +193,7 @@ def merge_scalar(layers, section, roles):
 
 
 def merge_dict_section(layers, section, roles):
-    '''Union a dict section (os / mechanisms — {name: spec}) across layers whose role is in
+    '''Union a dict section (os / drivers — {name: spec}) across layers whose role is in
     `roles`; a later layer's entry wins per name. Lets a plugin add os blocks (derivative
     distros) while the rest stay from the repo.'''
     out = {}
@@ -207,7 +207,7 @@ def merge_dict_section(layers, section, roles):
 _FORBIDDEN_BY_ROLE = {
     'include':  _SETTING_SECTIONS + _REPO_SECTIONS,   # definitions-only
     'discover': _SETTING_SECTIONS + _REPO_SECTIONS,   # definitions-only
-    'plugin':   _SETTING_SECTIONS,                    # may add os/mechanisms, not machine settings
+    'plugin':   _SETTING_SECTIONS,                    # may add os/drivers, not machine settings
 }
 
 

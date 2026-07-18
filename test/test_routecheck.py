@@ -112,18 +112,18 @@ def _comp(name, spec):
 def _validate(cascade, extra):
     '''Run validate() over the real components plus some hand-built extras.'''
     from configsys import routes, routecheck
-    _c, components, mechanisms = routes.load(
+    _c, components, drivers = routes.load(
         os.path.join(os.path.dirname(__file__), '..', 'routes.hu'), validate=False)
     for name, comp in extra.items():
         components[name] = comp
-    return routecheck.validate(components, cascade, mechanisms)
+    return routecheck.validate(components, cascade, drivers)
 
 
 def test_validate_clean_routes_has_no_issues(cascade):
     from configsys import routes, routecheck
-    _c, components, mechanisms = routes.load(
+    _c, components, drivers = routes.load(
         os.path.join(os.path.dirname(__file__), '..', 'routes.hu'), validate=False)
-    assert routecheck.validate(components, cascade, mechanisms) == []
+    assert routecheck.validate(components, cascade, drivers) == []
 
 
 def _kinds(issues, name):

@@ -46,7 +46,7 @@ class Issue:
     def __init__(self, kind, message, component=None, source=None, severity='error'):
         self.kind = kind
         self.message = message
-        self.component = component       # component name, or None (e.g. a mechanism issue)
+        self.component = component       # component name, or None (e.g. a driver issue)
         self.source = source             # the file it came from (provenance)
         self.severity = severity
 
@@ -55,7 +55,7 @@ class Issue:
         return self.severity == 'error'
 
 
-_SPECIAL_VIA = frozenset({'native', 'parts'})   # resolver mechanisms that aren't Families
+_SPECIAL_VIA = frozenset({'native', 'parts'})   # special vias that aren't Drivers
 
 
 def _as_list(v):
@@ -75,9 +75,9 @@ def _providable_caps(components, cascade):
     return caps
 
 
-def validate(components, cascade, mechanisms):
+def validate(components, cascade, drivers):
     '''Lint the merged component set -> [Issue] (empty = clean). Covers ambiguity, unknown
-    via: mechanism, unknown component in parts: (all errors), and when:-names-unknown-OS +
+    via: driver, unknown component in parts: (all errors), and when:-names-unknown-OS +
     requires-nothing-provides (warnings — localized). Attribution via each Component.source.'''
     from .drivers import supported_names
     valid_via = _SPECIAL_VIA | supported_names()
@@ -94,7 +94,7 @@ def validate(components, cascade, mechanisms):
             add('ambiguity', str(e), comp)
         for b in comp.bindings:
             if b.via not in valid_via:
-                add('unknown-via', f'via:{b.via!r} is not a known mechanism/family', comp)
+                add('unknown-via', f'via:{b.via!r} is not a known driver', comp)
             for os_name in predicate.os_names(b.pred):
                 if os_name not in cascade.blocks:
                     add('unknown-os', f'when: names unknown OS {os_name!r}', comp, 'warning')
@@ -109,10 +109,10 @@ def validate(components, cascade, mechanisms):
             if cap not in providable:
                 add('dangling-requires', f'requires {cap!r} which nothing provides', comp, 'warning')
 
-    for mech, reqs in mechanisms.items():
+    for drv, reqs in drivers.items():
         for cap in reqs:
             if cap not in providable:
                 issues.append(Issue('dangling-requires',
-                    f'mechanism {mech!r} requires {cap!r} which nothing provides',
+                    f'driver {drv!r} requires {cap!r} which nothing provides',
                     None, None, 'warning'))
     return issues
