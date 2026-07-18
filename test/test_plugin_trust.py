@@ -46,7 +46,7 @@ def test_code_state_classification():
     assert cs({'code': 'd.py'}, True, None, None) == 'unsynced'   # synced but no commit read
     assert cs({'code': 'd.py'}, True, None, 'abc') == 'untrusted'  # never approved
     assert cs({'code': 'd.py'}, True, 'abc', 'abc') == 'trusted'
-    assert cs({'code': 'd.py'}, True, 'old', 'abc') == 'changed'   # approved a different commit
+    assert cs({'code': 'd.py'}, True, 'old', 'abc') == 'changed'   # approved a different identity
 
 
 # -- the CLI lifecycle over a real git plugin that ships code -------------
@@ -73,18 +73,18 @@ def test_trust_untrust_cli_lifecycle(tmp_path, capsys):
     assert main(home + ['plugin', 'list']) == 0
     assert 'untrusted' in capsys.readouterr().out
 
-    # trust the current commit
+    # trust the current content
     assert main(home + ['plugin', 'trust', 'codeplug']) == 0
     assert 'trusted codeplug @' in capsys.readouterr().out
     trust_file = tmp_path / '.config' / 'configsys' / 'plugin-trust.hu'
-    assert plugins.read_trust(trust_file).get('src')          # keyed by dir name
+    assert plugins.read_trust(trust_file).get('src', '').startswith('sha256:')   # content id
 
     assert main(home + ['plugin', 'list']) == 0
     assert 'code trusted' in capsys.readouterr().out
 
-    # the code moves (a new commit in the synced checkout) -> trust no longer applies
+    # tampering with a file in the synced tree changes its identity -> trust no longer applies
     pdir = tmp_path / '.config' / 'configsys' / 'plugins' / 'src'
-    subprocess.run(['git', 'commit', '--allow-empty', '-qm', 'moved'], cwd=pdir, check=True)
+    (pdir / 'driver.py').write_text('# tampered\n')
     assert main(home + ['plugin', 'list']) == 0
     assert 'code changed since trust' in capsys.readouterr().out
 

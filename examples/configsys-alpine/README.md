@@ -21,7 +21,7 @@ It's three files — the shape of every code plugin:
   root; mutations run under sudo. Rolling-distro realities (no native per-package hold) are
   handled the way `pacman` does.
 - **The trust gate.** Because `plugin.hu` has a `code:` key, the plugin runs with your
-  privileges during installs — so it stays inert until you approve its exact commit.
+  privileges during installs — so it stays inert until you approve its exact contents.
 
 ## Try it
 
@@ -32,9 +32,9 @@ $ configsys plugin list
   alpine   github:you/configsys-alpine @v0.1.0
            ok  [ships code — untrusted; run: configsys plugin trust alpine]
 
-# its code — the apk driver — won't load until you approve this commit
+# its code — the apk driver — won't load until you approve this content
 $ configsys plugin trust alpine
-configsys: trusted alpine @ <commit> — its code will run during installs
+configsys: trusted alpine @ <sha256> — its code will run during installs
 
 # now `via: apk` resolves; on an Alpine box, `btop` (a repo component) installs via apk too
 $ configsys where doas

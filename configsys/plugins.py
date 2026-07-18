@@ -13,6 +13,7 @@ everything from one place. P2b/P2c will add trusted loading of those Driver subc
 trust model, and further `register_*` hooks. See docs/plugins.md.
 '''
 
+import hashlib
 import re
 import shlex
 from pathlib import Path
@@ -128,21 +129,40 @@ def layer_files(plugins_dir, decls):
 
 # -- code trust (P2b): a plugin that ships code runs with the user's privileges during
 # installs, so its `code:` module is imported only when the user has approved the EXACT
-# commit on disk. Approvals live in a machine-local trust store keyed by dir_name(source).
+# on-disk content. Approvals live in a machine-local trust store keyed by dir_name(source).
 
-def plugin_commit(runner, plugin_dir):
-    '''The synced plugin's current HEAD commit sha, or None (unsynced / not a git repo /
-    --pretend). This is the identity a trust approval is bound to.'''
-    if not Path(plugin_dir).exists():
+# Names/suffixes excluded from the content hash: VCS metadata and Python bytecode caches (the
+# latter is written *by* importing the plugin, so hashing it would invalidate the plugin's own
+# trust on the next run).
+_HASH_SKIP_DIRS = {'.git', '__pycache__'}
+
+
+def plugin_identity(plugin_dir):
+    '''A content hash over the plugin's files — a transport-independent identity that trust
+    binds to (P2c+): it replaces the old git-commit id, so a plugin fetched by any transport
+    (git, tarball, OCI, …) can be trusted, and an edited working tree is caught (unlike a
+    commit sha). sha256 over every file under plugin_dir — minus .git/ and __pycache__/ and
+    *.pyc — in sorted path order (path bytes + NUL + content + NUL). "sha256:<hex>", or None
+    if the dir is absent/has no files.'''
+    root = Path(plugin_dir)
+    if not root.is_dir():
         return None
-    r = runner.run(f'git -C {shlex.quote(str(plugin_dir))} rev-parse HEAD')
-    if r is None or not getattr(r, 'ok', False):
+    files = sorted(p for p in root.rglob('*')
+                   if p.is_file() and p.suffix != '.pyc'
+                   and not _HASH_SKIP_DIRS & set(p.relative_to(root).parts))
+    if not files:
         return None
-    return (r.stdout or '').strip() or None
+    h = hashlib.sha256()
+    for p in files:
+        h.update(p.relative_to(root).as_posix().encode('utf-8'))
+        h.update(b'\0')
+        h.update(p.read_bytes())
+        h.update(b'\0')
+    return 'sha256:' + h.hexdigest()
 
 
 def read_trust(trust_file):
-    '''The trust store { plugin_dir_name: approved_commit_sha }, or {} (missing/corrupt =
+    '''The trust store { plugin_dir_name: approved_identity }, or {} (missing/corrupt =
     nothing trusted — fail closed).'''
     p = Path(trust_file)
     if not p.exists():
@@ -165,9 +185,9 @@ def write_trust(trust_file, trust):
     p.write_text('\n'.join(lines) + '\n', encoding='utf-8')
 
 
-def set_trust(trust_file, name, commit):
+def set_trust(trust_file, name, identity):
     trust = read_trust(trust_file)
-    trust[name] = commit
+    trust[name] = identity
     write_trust(trust_file, trust)
 
 
@@ -180,29 +200,29 @@ def remove_trust(trust_file, name):
     return existed
 
 
-def is_trusted(trust_file, name, commit):
-    '''True iff the store records EXACTLY this commit for this plugin. A None commit
+def is_trusted(trust_file, name, identity):
+    '''True iff the store records EXACTLY this identity for this plugin. A None identity
     (unsynced / unknown) is never trusted.'''
-    return commit is not None and read_trust(trust_file).get(name) == commit
+    return identity is not None and read_trust(trust_file).get(name) == identity
 
 
-def code_state(manifest, synced, approved, commit):
+def code_state(manifest, synced, approved, identity):
     '''Classify a plugin's code-trust state for display/gating:
     none (no code) | unsynced | trusted | untrusted (never approved) | changed (approved a
-    different commit — code moved, must re-approve).'''
+    different identity — the content moved, must re-approve).'''
     if not manifest.get('code'):
         return 'none'
-    if not synced or commit is None:
+    if not synced or identity is None:
         return 'unsynced'
-    if approved == commit:
+    if approved == identity:
         return 'trusted'
     return 'untrusted' if approved is None else 'changed'
 
 
-def status(plugins_dir, decls, *, runner=None, trust_file=None):
+def status(plugins_dir, decls, *, trust_file=None):
     '''Per-declared-plugin status for `plugin list`: name, source, ref, synced, abi-ok,
-    provides, has_code. When `runner` and `trust_file` are given, also resolves the on-disk
-    commit and its code-trust state (git is only run in that case).'''
+    provides, has_code. When `trust_file` is given, also resolves the on-disk content identity
+    and its code-trust state.'''
     trust = read_trust(trust_file) if trust_file is not None else {}
     rows = []
     for d in decls:
@@ -210,7 +230,7 @@ def status(plugins_dir, decls, *, runner=None, trust_file=None):
         pdir = plugins_dir / key
         synced = pdir.exists()
         manifest = read_manifest(pdir) if synced else {}
-        commit = plugin_commit(runner, pdir) if (runner is not None and manifest.get('code')) else None
+        identity = plugin_identity(pdir) if (trust_file is not None and manifest.get('code')) else None
         rows.append({
             'name': manifest.get('name', key),
             'source': d['source'], 'ref': d.get('ref'),
@@ -218,8 +238,8 @@ def status(plugins_dir, decls, *, runner=None, trust_file=None):
             'requires_abi': manifest.get('requires-abi', ABI_VERSION),
             'provides': manifest.get('provides', {}),
             'has_code': bool(manifest.get('code')),
-            'commit': commit,
-            'code_state': code_state(manifest, synced, trust.get(key), commit),
+            'identity': identity,
+            'code_state': code_state(manifest, synced, trust.get(key), identity),
         })
     return rows
 
@@ -321,9 +341,9 @@ def _import_drivers(pdir, manifest):
     return list(exported)
 
 
-def load_code(runner, plugins_dir, trust_file, decls, register):
+def load_code(plugins_dir, trust_file, decls, register):
     '''Import + register the drivers of each declared plugin that is synced, ABI-compatible,
-    ships code, AND is trusted at its CURRENT on-disk commit. `register` is register_driver
+    ships code, AND is trusted at its CURRENT on-disk content. `register` is register_driver
     (injected to keep this testable and cycle-free). Returns (loaded, skipped): loaded =
     [(dir_name, [driver_name, ...])]; skipped = [(dir_name, reason)] for a code plugin that
     ships code but was gated out (untrusted / changed / incompatible / broken). Never raises —
@@ -340,8 +360,7 @@ def load_code(runner, plugins_dir, trust_file, decls, register):
         if not _abi_ok(manifest):
             skipped.append((key, f'incompatible (needs plugin ABI {manifest.get("requires-abi")})'))
             continue
-        commit = plugin_commit(runner, pdir)
-        if not is_trusted(trust_file, key, commit):
+        if not is_trusted(trust_file, key, plugin_identity(pdir)):
             skipped.append((key, 'untrusted code (run: configsys plugin trust <name>)'))
             continue
         try:
@@ -379,9 +398,8 @@ _TRANSPORTS = {}
 def register_transport(scheme, fn):
     '''Register a sync transport for a `source:` scheme. `fn(runner, dest, source, ref) ->
     action` must materialize the plugin tree into `dest`. Re-exported as register_transport.
-    NOTE: per-commit code TRUST is bound to a git commit id — a plugin fetched by a non-git
-    transport can supply DATA, but its `code:` stays untrusted (plugin_commit is None) until a
-    content-identity scheme exists. Transports are for data plugins today.'''
+    Code trust binds to a CONTENT hash (plugin_identity), not a git commit, so a plugin fetched
+    by any transport — git, tarball, OCI — can carry `code:` and be trusted the same way.'''
     if not scheme or not callable(fn):
         raise ValueError('register_transport(scheme, fn): scheme non-empty and fn callable')
     _TRANSPORTS[scheme] = fn

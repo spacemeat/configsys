@@ -2,9 +2,6 @@
 backends) and register_transport (new `source:` sync schemes). Both are registered only from
 trusted plugin code (via plugins.load_code), so they inherit the same trust + ABI gate.'''
 
-import shutil
-import subprocess
-
 import pytest
 
 from configsys import plugins, versions
@@ -87,7 +84,6 @@ def test_register_transport_validates():
 
 # -- the real path: a trusted plugin registers a source via its own code ---
 
-@pytest.mark.skipif(shutil.which('git') is None, reason='git not available')
 def test_trusted_plugin_registers_a_version_source(tmp_path):
     pdir = tmp_path / 'plugins' / 'srcplug'
     pdir.mkdir(parents=True)
@@ -96,19 +92,14 @@ def test_trusted_plugin_registers_a_version_source(tmp_path):
         'from configsys.plugins import register_version_source\n'
         'register_version_source("demo", lambda spec, fetch: (spec["demo"] + "!", None))\n'
         'DRIVERS = []\n')
-    for cmd in (['init', '-q'], ['config', 'user.email', 't@t'], ['config', 'user.name', 't'],
-                ['add', '-A'], ['commit', '-qm', 'i']):
-        subprocess.run(['git', *cmd], cwd=pdir, check=True)
-    head = subprocess.run(['git', '-C', str(pdir), 'rev-parse', 'HEAD'],
-                          capture_output=True, text=True, check=True).stdout.strip()
     tf = tmp_path / 'trust.hu'
     decls = [{'source': 'github:x/srcplug'}]
 
     # untrusted -> code not imported -> the source is never registered
-    plugins.load_code(Runner(pretend=False), tmp_path / 'plugins', tf, decls, lambda c: None)
+    plugins.load_code(tmp_path / 'plugins', tf, decls, lambda c: None)
     assert versions.discover({'demo': '5'}) is None
 
-    # trust the commit -> the module imports -> its register_version_source() ran
-    plugins.set_trust(tf, 'srcplug', head)
-    plugins.load_code(Runner(pretend=False), tmp_path / 'plugins', tf, decls, lambda c: None)
+    # trust the content -> the module imports -> its register_version_source() ran
+    plugins.set_trust(tf, 'srcplug', plugins.plugin_identity(pdir))
+    plugins.load_code(tmp_path / 'plugins', tf, decls, lambda c: None)
     assert versions.discover({'demo': '5'}) == '5!'

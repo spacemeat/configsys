@@ -228,10 +228,10 @@ incompatible plugin degrades instead of breaking the tool. `add` / `remove` / `u
 your `plugins:` list **in place, preserving your comments**.
 
 A plugin can also ship **code** — a new driver (package manager) written in Python. Code runs
-with your privileges during installs, so it stays inert until you approve its exact commit:
+with your privileges during installs, so it stays inert until you approve its exact contents:
 
 ```console
-$ ./configsys.sh plugin trust <name>     # per-commit; a code change re-arms the gate
+$ ./configsys.sh plugin trust <name>     # binds to a content hash; any code change re-arms it
 ```
 
 [`examples/configsys-alpine/`](examples/configsys-alpine/) is a complete, copy-able example —

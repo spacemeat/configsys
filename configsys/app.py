@@ -160,7 +160,7 @@ class Context:
         from . import plugins
         from .drivers import register_driver
         decls = plugins.declared(self.paths.user_config_file)
-        _loaded, skipped = plugins.load_code(self.runner, self.paths.plugins_dir,
+        _loaded, skipped = plugins.load_code(self.paths.plugins_dir,
                                              self.paths.plugin_trust_file, decls, register_driver)
         self.plugin_code_warnings = [f'plugin {key}: {reason}' for key, reason in skipped]
         # a gated-out code plugin's drivers are "known but unavailable": collect the via names
@@ -619,7 +619,7 @@ def cmd_plugin(ctx, args):
         if target is None:
             print(f'configsys: no declared plugin matches {args.name!r}')
             return 1
-        key = plugins.dir_name(target['source'])         # store key: stable across commits
+        key = plugins.dir_name(target['source'])         # store key: stable across content
         pdir = ctx.paths.plugins_dir / key
         if not pdir.exists():
             print(f'configsys: {key} is not synced — run: configsys plugin sync')
@@ -629,12 +629,13 @@ def cmd_plugin(ctx, args):
         if not manifest.get('code'):
             print(f'configsys: {disp} ships no code — nothing to trust')
             return 0
-        commit = plugins.plugin_commit(ctx.runner, pdir)
-        if commit is None:
-            print(f'configsys: could not read {disp}’s commit (not a git checkout?)')
+        identity = plugins.plugin_identity(pdir)
+        if identity is None:
+            print(f'configsys: could not read {disp}’s contents')
             return 1
-        plugins.set_trust(ctx.paths.plugin_trust_file, key, commit)
-        print(f'configsys: trusted {disp} @ {commit[:12]} — its code will run during installs')
+        plugins.set_trust(ctx.paths.plugin_trust_file, key, identity)
+        short = identity.split(':')[-1][:12]
+        print(f'configsys: trusted {disp} @ {short} — its code will run during installs')
         return 0
 
     if sub == 'untrust':
@@ -650,7 +651,7 @@ def cmd_plugin(ctx, args):
 
     if sub == 'list':
         rows = plugins.status(ctx.paths.plugins_dir, decls,
-                              runner=ctx.runner, trust_file=ctx.paths.plugin_trust_file)
+                              trust_file=ctx.paths.plugin_trust_file)
         if not rows:
             print('configsys: no plugins declared')
             return 0

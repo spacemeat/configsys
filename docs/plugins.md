@@ -118,24 +118,27 @@ The dividing line is **does it ship code** (`code:` in the manifest):
 
 - **Data‑only plugins**: sync freely, no prompt. Worst case is bad component definitions,
   caught by `configsys check`, and installs stay explicit — "just data can't do too much harm."
-- **Code plugins**: **explicit per‑commit opt‑in**, via an explicit command (not an inline
+- **Code plugins**: **explicit per‑content opt‑in**, via an explicit command (not an inline
   sync prompt — the CLI stays non‑interactive and scriptable):
 
   ```
   $ configsys plugin list          # a code plugin shows: ships code — untrusted
-  $ configsys plugin trust opensuse-support   # records the on-disk commit
+  $ configsys plugin trust opensuse-support   # records the on-disk content hash
   ```
 
-  Approval is recorded per `(plugin, commit)` in the trust store. A code update = a new commit
-  = the trust no longer matches → `plugin list` shows *changed since trust* and the driver stays
+  Approval is recorded per `(plugin, content-hash)` in the trust store. Any change to the
+  plugin's files — a new release, or *tampering with the synced tree* — changes the hash, so the
+  trust no longer matches → `plugin list` shows *changed since trust* and the driver stays
   unregistered until you `trust` again (never auto‑trust changed code). Until trusted, the
   plugin's code is not imported and its drivers are not registered (degrade per §5). This is
-  direnv's `allow`, but per‑commit, because the blast radius is root. (A convenience
+  direnv's `allow`, but per‑content, because the blast radius is root. (A convenience
   prompt‑on‑sync could layer on top later; the store + gate don't depend on it.)
 
 Trust records live in the state dir (`~/.config/configsys/plugin-trust.hu`, keyed by the
-plugin's dir name — stable across commits, unlike the manifest name:
-`{ opensuse-support: abc123def... }`).
+plugin's dir name — stable across the plugin's lifetime, unlike the manifest name. The identity
+is a `sha256:` content hash of the plugin tree (`plugins.plugin_identity`, excluding `.git/` /
+`__pycache__/` / `*.pyc`), so it works for a plugin fetched by ANY transport, not just git:
+`{ opensuse-support: "sha256:1a2b…" }`).
 
 ## 7. The ABI (one coarse number — KISS)
 
@@ -225,12 +228,14 @@ it; retrofitting versioning after plugins exist is the expensive path.
     `test/test_abi_surface.py` gates it.
   - **P2b — trusted loading + trust store.** The big, careful one, in two steps:
     - *trust store + commands: ✅ BUILT.* `~/.config/configsys/plugin-trust.hu` maps
-      `dir_name(source) → approved commit sha` (keyed by dir name — stable across commits,
-      unlike the manifest name). `configsys plugin trust <name>` records the on-disk HEAD;
-      `untrust` revokes; `plugin list` classifies each code plugin (trusted / untrusted /
-      changed-since-trust) and nudges. Per-commit: a moved HEAD reads as `changed` → re-approve.
+      `dir_name(source) → approved content hash` (keyed by dir name — stable across the plugin's
+      lifetime, unlike the manifest name). The identity is `plugin_identity` = a `sha256:` hash
+      of the plugin tree (see §6; transport‑independent, so non‑git plugins trust too).
+      `configsys plugin trust <name>` records the on-disk content; `untrust` revokes; `plugin
+      list` classifies each code plugin (trusted / untrusted / changed-since-trust) and nudges.
+      Per-content: any edit to the tree reads as `changed` → re-approve.
     - *the import gate: ✅ BUILT.* `plugins.load_code` imports a plugin's `code:` module and
-      registers its `DRIVERS` export **iff** synced + ABI‑ok + trusted at the on‑disk commit;
+      registers its `DRIVERS` export **iff** synced + ABI‑ok + trusted at the on‑disk content;
       `Context.ensure_plugin_code` runs it once before resolution (via the `routes` property
       and `check`). Untrusted/incompatible/broken code is skipped (collected into
       `plugin_code_warnings`, surfaced by `check`) so its `via:` stays unknown and the
@@ -240,9 +245,9 @@ it; retrofitting versioning after plugins exist is the expensive path.
     `register_version_source(name, fn)` adds a `version: { <name>: <arg> }` discovery backend
     (`fn(spec, fetch) -> (version, url)`; built-ins win over a same-named registration), and
     `register_transport(scheme, fn)` claims a `source: "<scheme>:..."` sync scheme (git stays the
-    default; `dir_name` now strips any `scheme:` prefix). Caveat: per-commit code trust needs a
-    git commit id, so a non-git transport can carry DATA but its `code:` stays untrusted until a
-    content-identity scheme exists — transports are for data plugins today. `test_plugin_hooks.py`.
+    default; `dir_name` now strips any `scheme:` prefix). Code trust binds to a CONTENT hash
+    (P2b), not a git commit, so a plugin fetched by ANY transport — including a non-git one — can
+    ship trusted `code:` too. `test_plugin_hooks.py`.
   - **Example plugin. ✅ BUILT** — `examples/configsys-alpine/` (`plugin.hu` + `routes.hu` +
     `driver.py`): an `apk` `Driver` + an `alpine` os block + a `via: apk` component (`doas`). A
     copy‑able reference/template that dogfoods the whole code‑plugin path — and shows the payoff
@@ -257,7 +262,8 @@ Mirrors how overrides shipped: prove the mechanism on the safe subset, then add 
 1. **Declarative `plugins:` list + `plugin sync`** (not imperative‑as‑source‑of‑truth); rich CLI.
 2. **Piecemeal**: P1 (data + sync) then P2 (code + trust + ABI).
 3. **One coarse ABI integer** (KISS); freeze + document the `Driver` surface (`configsys/plugins.py`).
-4. **Per‑commit trust for code**; data‑only plugins sync freely.
+4. **Per‑content trust for code** (a `sha256:` hash of the plugin tree, transport‑independent);
+   data‑only plugins sync freely.
 
 ## 10. Open / deferred
 
@@ -276,12 +282,13 @@ Mirrors how overrides shipped: prove the mechanism on the safe subset, then add 
   manifests + data files (no code run). `plugin list` prints them as a footer and `check` as
   warnings, both with attribution and "(last declared wins)". `test/test_plugin_conflicts.py`.
   Gap: version‑source / transport *registration* collisions are code‑only (self‑registered), so
-  they aren't detected declaratively — deferred with the non‑git‑identity work.
+  they aren't detected declaratively.
+- ~~Non‑git code trust identity~~ — done: trust binds to `plugin_identity`, a `sha256:` content
+  hash of the plugin tree (excluding `.git/` / `__pycache__/` / `*.pyc`) rather than a git
+  commit, so a plugin fetched by any transport can ship trusted `code:`, and a tampered synced
+  tree is caught. `test_plugin_code.py::test_non_git_plugin_can_be_trusted`.
 
 **Still open:**
-- **Non‑git code trust identity.** Per‑commit trust binds to a git commit sha, so a plugin
-  fetched by a non‑git transport can supply DATA but its `code:` can't be trusted. A
-  content‑hash identity (hash the plugin tree) would let tarball/OCI code plugins be trusted too.
 - **Sync transport edge cases**: private repos (ssh/tokens), offline, checksum/signature
   verification of a pinned ref (belt‑and‑suspenders beyond commit pinning).
 - **Windows/macOS**: still deferred; a plugin adding another OS root + `native` driver is exactly

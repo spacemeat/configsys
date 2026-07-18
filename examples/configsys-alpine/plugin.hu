@@ -18,6 +18,6 @@
 
     // The code module. Because this key is present, the plugin ships code: its `via: apk`
     // driver runs with your privileges during installs, so it stays inert until you approve
-    // the exact commit with `configsys plugin trust alpine`.
+    // its exact contents with `configsys plugin trust alpine`.
     code: driver.py
 }
