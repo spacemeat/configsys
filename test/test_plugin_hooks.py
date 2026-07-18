@@ -103,3 +103,79 @@ def test_trusted_plugin_registers_a_version_source(tmp_path):
     plugins.set_trust(tf, 'srcplug', plugins.plugin_identity(pdir))
     plugins.load_code(tmp_path / 'plugins', tf, decls, lambda c: None)
     assert versions.discover({'demo': '5'}) == '5!'
+
+
+# -- code-level registration collisions (version-source / transport) ------
+
+def _code_plugin(root, name, code):
+    d = root / name
+    d.mkdir(parents=True)
+    (d / 'plugin.hu').write_text(f'{{ name: {name}  requires-abi: 1  code: c.py }}')
+    (d / 'c.py').write_text(code)
+    return d
+
+
+def _load_trusted(root, tf, names):
+    '''Trust + load each named plugin; return the collected code conflicts.'''
+    for n in names:
+        plugins.set_trust(tf, n, plugins.plugin_identity(root / n))
+    conflicts = []
+    plugins.load_code(root, tf, [{'source': f'github:x/{n}'} for n in names],
+                      lambda c: None, conflicts=conflicts)
+    return conflicts
+
+
+_SRC = ('from configsys.plugins import register_version_source\n'
+        'register_version_source({name!r}, lambda s, f: ("1", None))\nDRIVERS = []\n')
+_TR = ('from configsys.plugins import register_transport\n'
+       'register_transport({name!r}, lambda *a: "ok")\nDRIVERS = []\n')
+
+
+def test_version_source_collision_between_plugins(tmp_path):
+    root = tmp_path / 'plugins'
+    _code_plugin(root, 'p1', _SRC.format(name='dup'))
+    _code_plugin(root, 'p2', _SRC.format(name='dup'))
+    conflicts = _load_trusted(root, tmp_path / 'trust.hu', ['p1', 'p2'])
+    assert any("version-source 'dup'" in c and 'p1' in c and 'p2' in c and 'last loaded wins' in c
+               for c in conflicts)
+
+
+def test_transport_collision_between_plugins(tmp_path):
+    root = tmp_path / 'plugins'
+    _code_plugin(root, 'p1', _TR.format(name='dup'))
+    _code_plugin(root, 'p2', _TR.format(name='dup'))
+    conflicts = _load_trusted(root, tmp_path / 'trust.hu', ['p1', 'p2'])
+    assert any("transport 'dup'" in c and 'last loaded wins' in c for c in conflicts)
+
+
+def test_registration_shadowing_a_builtin_is_flagged(tmp_path):
+    root = tmp_path / 'plugins'
+    _code_plugin(root, 'psrc', _SRC.format(name='github'))     # shadows built-in source
+    _code_plugin(root, 'ptr', _TR.format(name='github'))       # overrides git's scheme
+    conflicts = _load_trusted(root, tmp_path / 'trust.hu', ['psrc', 'ptr'])
+    assert any("version-source 'github'" in c and 'shadows a built-in' in c for c in conflicts)
+    assert any("transport 'github'" in c and 'overrides the built-in git' in c for c in conflicts)
+
+
+def test_distinct_registrations_are_not_conflicts(tmp_path):
+    root = tmp_path / 'plugins'
+    _code_plugin(root, 'p1', _SRC.format(name='aaa'))
+    _code_plugin(root, 'p2', _SRC.format(name='bbb'))
+    assert _load_trusted(root, tmp_path / 'trust.hu', ['p1', 'p2']) == []
+
+
+def test_code_conflict_surfaces_in_check(tmp_path, capsys):
+    from configsys.app import main
+    cfg = tmp_path / '.config' / 'configsys'
+    root = cfg / 'plugins'
+    _code_plugin(root, 'p1', _SRC.format(name='dup'))
+    _code_plugin(root, 'p2', _SRC.format(name='dup'))
+    (cfg / 'configsys.hu').write_text(
+        '{ configs: [ ]  plugins: [ { source: "github:x/p1" } { source: "github:x/p2" } ] }')
+    home = ['--home', str(tmp_path)]
+    main(home + ['plugin', 'trust', 'p1'])
+    main(home + ['plugin', 'trust', 'p2'])
+    capsys.readouterr()
+    main(home + ['check'])
+    out = capsys.readouterr().out
+    assert "conflict: version-source 'dup'" in out and 'p1' in out and 'p2' in out

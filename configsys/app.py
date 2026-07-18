@@ -93,6 +93,7 @@ class Context:
         self._plugin_files = None
         self._plugin_code_loaded = False
         self.plugin_code_warnings = []   # code plugins that ship code but were gated out
+        self.plugin_code_conflicts = []  # code-level registration collisions (version-source/transport)
         self.plugin_pending_vias = set()  # via names those gated-out plugins would provide
         self.resolve_errors = {}      # {requested_name: message} from the last resilient resolve
         self._migrate_user_config()
@@ -160,9 +161,11 @@ class Context:
         from . import plugins
         from .drivers import register_driver
         decls = plugins.declared(self.paths.user_config_file)
-        _loaded, skipped = plugins.load_code(self.paths.plugins_dir,
-                                             self.paths.plugin_trust_file, decls, register_driver)
+        code_conflicts = []
+        _loaded, skipped = plugins.load_code(self.paths.plugins_dir, self.paths.plugin_trust_file,
+                                             decls, register_driver, conflicts=code_conflicts)
         self.plugin_code_warnings = [f'plugin {key}: {reason}' for key, reason in skipped]
+        self.plugin_code_conflicts = code_conflicts
         # a gated-out code plugin's drivers are "known but unavailable": collect the via names
         # it declares (manifest provides.drivers) so `check` treats them as pending-trust, not
         # unknown typos — the trust nudge above is the single actionable message.
@@ -511,6 +514,7 @@ def cmd_check(ctx, args):
     conflict_warnings = [_fmt_conflict(*c) for c in
                          _plugins.declared_conflicts(ctx.paths.plugins_dir,
                                                      _plugins.declared(ctx.paths.user_config_file))]
+    conflict_warnings += ctx.plugin_code_conflicts    # code-only (version-source/transport)
 
     errors = [i for i in issues if i.is_error]
     warnings = [i for i in issues if not i.is_error]

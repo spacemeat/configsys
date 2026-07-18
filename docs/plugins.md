@@ -281,8 +281,10 @@ Mirrors how overrides shipped: prove the mechanism on the safe subset, then add 
   os block / driver via `provides.drivers`) claimed by 2+ synced+compatible plugins, from
   manifests + data files (no code run). `plugin list` prints them as a footer and `check` as
   warnings, both with attribution and "(last declared wins)". `test/test_plugin_conflicts.py`.
-  Gap: version‑source / transport *registration* collisions are code‑only (self‑registered), so
-  they aren't detected declaratively.
+  Code-only registration collisions — two plugins registering the same **version-source** or
+  **transport**, or one shadowing a built-in — are found by `load_code` via a snapshot-diff of
+  the registries around each plugin's import (an optional `conflicts` out-param); surfaced by
+  `check` only (not `list`, which doesn't run code). `test/test_plugin_hooks.py`.
 - ~~Non‑git code trust identity~~ — done: trust binds to `plugin_identity`, a `sha256:` content
   hash of the plugin tree (excluding `.git/` / `__pycache__/` / `*.pyc`) rather than a git
   commit, so a plugin fetched by any transport can ship trusted `code:`, and a tampered synced

@@ -20,13 +20,20 @@ from pathlib import Path
 
 import humon
 
-from . import layers
+from . import layers, versions
 from .driver import Driver
 from .drivers import register_driver
 from .errors import ConfigError
 from .runner import Result
 from .troveio import _scalar
-from .versions import register_source as register_version_source
+
+register_version_source = versions.register_source   # re-export on the frozen surface
+
+# Registration names owned by the core, for collision surfacing: a plugin registering one of
+# these shadows a built-in. Version sources: github + the hardcoded discover kinds; transports:
+# the schemes git / source_url already handle.
+_BUILTIN_SOURCE_NAMES = frozenset(versions._BUILTIN_KINDS) | {'github'}
+_RESERVED_SCHEMES = frozenset({'github', 'gitlab', 'git', 'https', 'http', 'file', 'ssh'})
 
 # The plugin ABI version (Driver contract + data schema + registration + RC shape). One coarse
 # integer (KISS). A manifest declares `requires-abi: N`; we load it iff N is in ABI_SUPPORTED.
@@ -341,14 +348,31 @@ def _import_drivers(pdir, manifest):
     return list(exported)
 
 
-def load_code(plugins_dir, trust_file, decls, register):
+def _collect_reg_conflicts(out, kind, owners, builtins, builtin_note):
+    '''Append conflict strings for a registration map {name: [plugin_keys]}: a name claimed by
+    2+ plugins (last loaded wins), or a single plugin shadowing a built-in name.'''
+    for name, keys in sorted(owners.items()):
+        if len(keys) > 1:
+            out.append(f"conflict: {kind} '{name}' registered by plugins "
+                       f"{', '.join(keys)} (last loaded wins)")
+        elif name in builtins:
+            out.append(f"conflict: {kind} '{name}' from plugin {keys[0]} {builtin_note}")
+
+
+def load_code(plugins_dir, trust_file, decls, register, conflicts=None):
     '''Import + register the drivers of each declared plugin that is synced, ABI-compatible,
     ships code, AND is trusted at its CURRENT on-disk content. `register` is register_driver
     (injected to keep this testable and cycle-free). Returns (loaded, skipped): loaded =
     [(dir_name, [driver_name, ...])]; skipped = [(dir_name, reason)] for a code plugin that
     ships code but was gated out (untrusted / changed / incompatible / broken). Never raises —
-    a plugin that can't load is skipped, and its `via:` simply stays unknown (degrades).'''
+    a plugin that can't load is skipped, and its `via:` simply stays unknown (degrades).
+
+    If `conflicts` (a list) is given, code-level REGISTRATION collisions are appended to it: two
+    plugins registering the same version-source / transport (last loaded wins), or one shadowing
+    a built-in. These are observable only by running the code, so they can't be found
+    declaratively — driver-name conflicts, which can, are left to declared_conflicts.'''
     loaded, skipped = [], []
+    src_owners, tr_owners = {}, {}       # registered name/scheme -> [plugin keys that added it]
     for d in decls:
         key = dir_name(d['source'])
         pdir = plugins_dir / key
@@ -364,12 +388,24 @@ def load_code(plugins_dir, trust_file, decls, register):
             skipped.append((key, 'untrusted code (run: configsys plugin trust <name>)'))
             continue
         try:
+            before_src, before_tr = dict(versions._SOURCES), dict(_TRANSPORTS)
             drivers = _import_drivers(pdir, manifest)
             for cls in drivers:
                 register(cls)
+            for n, fn in versions._SOURCES.items():      # names this plugin (re)registered
+                if before_src.get(n) is not fn:
+                    src_owners.setdefault(n, []).append(key)
+            for s, fn in _TRANSPORTS.items():
+                if before_tr.get(s) is not fn:
+                    tr_owners.setdefault(s, []).append(key)
             loaded.append((key, [getattr(c, 'name', '?') for c in drivers]))
         except Exception as e:                           # noqa: BLE001 — a broken module is skipped
             skipped.append((key, f'code failed to load — {e}'))
+    if conflicts is not None:
+        _collect_reg_conflicts(conflicts, 'version-source', src_owners, _BUILTIN_SOURCE_NAMES,
+                               'shadows a built-in source (ignored — built-ins win)')
+        _collect_reg_conflicts(conflicts, 'transport', tr_owners, _RESERVED_SCHEMES,
+                               'overrides the built-in git handling for that scheme')
     return loaded, skipped
 
 
