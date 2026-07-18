@@ -162,6 +162,22 @@
                          url: "https://redirector.gvt1.com/edgedl/android/studio/ide-zips/$VERSION/android-studio-$VERSION-linux.tar.gz" } ]
         }
 
+        // lazygit: native on fedora/arch; elsewhere (debian/EL) a static Go binary from the
+        // GitHub release, unpacked under ~/apps/lazygit (scope-honoring). Its bash.d snippet
+        // aliases `lazygit` to that binary when present (a no-op where it's native on PATH).
+        lazygit: {
+            suggests: lazygit-dotfiles
+            install: [
+                { via: native  when: "fedora" }
+                { via: native  when: "arch" }
+                { via: tarball  installDir: apps/lazygit
+                  version: { github: jesseduffield/lazygit  strip-v: true  asset: "lazygit_*_Linux_x86_64.tar.gz" } }
+            ]
+        }
+        lazygit-dotfiles: {
+            install: [ { via: dotfiles  requires: bash-dotfiles  src: bash.d/lazygit.sh  dst: ~/.bash.d/lazygit.sh } ]
+        }
+
         // --- dotfiles ---
         bash-dotfiles: {
             // absorb-into: a pre-existing ~/.bash_aliases is MOVED into the ~/.bash.d loader

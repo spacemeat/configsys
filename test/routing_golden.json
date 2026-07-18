@@ -337,6 +337,55 @@
     "name": "kicad"
    }
   },
+  "lazygit": {
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.bash.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\lazygit-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/lazygit.sh",
+     "src": "bash.d/lazygit.sh"
+    },
+    "name": "lazygit-dotfiles"
+   },
+   "pacman\\lazygit": {
+    "driver": "pacman",
+    "fields": {
+     "name": "lazygit"
+    },
+    "name": "lazygit"
+   }
+  },
+  "lazygit-dotfiles": {
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.bash.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\lazygit-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/lazygit.sh",
+     "src": "bash.d/lazygit.sh"
+    },
+    "name": "lazygit-dotfiles"
+   }
+  },
   "libfuse2": {
    "pacman\\libfuse2": {
     "driver": "pacman",
@@ -1700,6 +1749,68 @@
     "name": "kicad"
    }
   },
+  "lazygit": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.bash.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\lazygit-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/lazygit.sh",
+     "src": "bash.d/lazygit.sh"
+    },
+    "name": "lazygit-dotfiles"
+   },
+   "tarball\\lazygit": {
+    "driver": "tarball",
+    "fields": {
+     "installDir": "apps/lazygit",
+     "name": "lazygit",
+     "version": {
+      "asset": "lazygit_*_Linux_x86_64.tar.gz",
+      "github": "jesseduffield/lazygit",
+      "strip-v": "true"
+     }
+    },
+    "name": "lazygit"
+   }
+  },
+  "lazygit-dotfiles": {
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.bash.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\lazygit-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/lazygit.sh",
+     "src": "bash.d/lazygit.sh"
+    },
+    "name": "lazygit-dotfiles"
+   }
+  },
   "libfuse2": {
    "apt\\libfuse2": {
     "driver": "apt",
@@ -3021,6 +3132,68 @@
     "name": "kicad"
    }
   },
+  "lazygit": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.bash.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\lazygit-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/lazygit.sh",
+     "src": "bash.d/lazygit.sh"
+    },
+    "name": "lazygit-dotfiles"
+   },
+   "tarball\\lazygit": {
+    "driver": "tarball",
+    "fields": {
+     "installDir": "apps/lazygit",
+     "name": "lazygit",
+     "version": {
+      "asset": "lazygit_*_Linux_x86_64.tar.gz",
+      "github": "jesseduffield/lazygit",
+      "strip-v": "true"
+     }
+    },
+    "name": "lazygit"
+   }
+  },
+  "lazygit-dotfiles": {
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.bash.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\lazygit-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/lazygit.sh",
+     "src": "bash.d/lazygit.sh"
+    },
+    "name": "lazygit-dotfiles"
+   }
+  },
   "libfuse2": {
    "apt\\libfuse2": {
     "driver": "apt",
@@ -4058,6 +4231,55 @@
      "repo-component": "universe"
     },
     "name": "kicad"
+   }
+  },
+  "lazygit": {
+   "dnf\\lazygit": {
+    "driver": "dnf",
+    "fields": {
+     "name": "lazygit"
+    },
+    "name": "lazygit"
+   },
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.bash.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\lazygit-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/lazygit.sh",
+     "src": "bash.d/lazygit.sh"
+    },
+    "name": "lazygit-dotfiles"
+   }
+  },
+  "lazygit-dotfiles": {
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.bash.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\lazygit-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/lazygit.sh",
+     "src": "bash.d/lazygit.sh"
+    },
+    "name": "lazygit-dotfiles"
    }
   },
   "libfuse2": {
@@ -5104,6 +5326,55 @@
      "repo-component": "universe"
     },
     "name": "kicad"
+   }
+  },
+  "lazygit": {
+   "dnf\\lazygit": {
+    "driver": "dnf",
+    "fields": {
+     "name": "lazygit"
+    },
+    "name": "lazygit"
+   },
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.bash.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\lazygit-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/lazygit.sh",
+     "src": "bash.d/lazygit.sh"
+    },
+    "name": "lazygit-dotfiles"
+   }
+  },
+  "lazygit-dotfiles": {
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.bash.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\lazygit-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/lazygit.sh",
+     "src": "bash.d/lazygit.sh"
+    },
+    "name": "lazygit-dotfiles"
    }
   },
   "libfuse2": {
@@ -6412,6 +6683,68 @@
     "name": "kicad"
    }
   },
+  "lazygit": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.bash.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\lazygit-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/lazygit.sh",
+     "src": "bash.d/lazygit.sh"
+    },
+    "name": "lazygit-dotfiles"
+   },
+   "tarball\\lazygit": {
+    "driver": "tarball",
+    "fields": {
+     "installDir": "apps/lazygit",
+     "name": "lazygit",
+     "version": {
+      "asset": "lazygit_*_Linux_x86_64.tar.gz",
+      "github": "jesseduffield/lazygit",
+      "strip-v": "true"
+     }
+    },
+    "name": "lazygit"
+   }
+  },
+  "lazygit-dotfiles": {
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.bash.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\lazygit-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/lazygit.sh",
+     "src": "bash.d/lazygit.sh"
+    },
+    "name": "lazygit-dotfiles"
+   }
+  },
   "libfuse2": {
    "apt\\libfuse2": {
     "driver": "apt",
@@ -7514,6 +7847,68 @@
      "repo-component": "universe"
     },
     "name": "kicad"
+   }
+  },
+  "lazygit": {
+   "dnf\\curl": {
+    "driver": "dnf",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.bash.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\lazygit-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/lazygit.sh",
+     "src": "bash.d/lazygit.sh"
+    },
+    "name": "lazygit-dotfiles"
+   },
+   "tarball\\lazygit": {
+    "driver": "tarball",
+    "fields": {
+     "installDir": "apps/lazygit",
+     "name": "lazygit",
+     "version": {
+      "asset": "lazygit_*_Linux_x86_64.tar.gz",
+      "github": "jesseduffield/lazygit",
+      "strip-v": "true"
+     }
+    },
+    "name": "lazygit"
+   }
+  },
+  "lazygit-dotfiles": {
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.bash.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\lazygit-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/lazygit.sh",
+     "src": "bash.d/lazygit.sh"
+    },
+    "name": "lazygit-dotfiles"
    }
   },
   "libfuse2": {
@@ -8847,6 +9242,68 @@
     "name": "kicad"
    }
   },
+  "lazygit": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.bash.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\lazygit-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/lazygit.sh",
+     "src": "bash.d/lazygit.sh"
+    },
+    "name": "lazygit-dotfiles"
+   },
+   "tarball\\lazygit": {
+    "driver": "tarball",
+    "fields": {
+     "installDir": "apps/lazygit",
+     "name": "lazygit",
+     "version": {
+      "asset": "lazygit_*_Linux_x86_64.tar.gz",
+      "github": "jesseduffield/lazygit",
+      "strip-v": "true"
+     }
+    },
+    "name": "lazygit"
+   }
+  },
+  "lazygit-dotfiles": {
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.bash.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\lazygit-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/lazygit.sh",
+     "src": "bash.d/lazygit.sh"
+    },
+    "name": "lazygit-dotfiles"
+   }
+  },
   "libfuse2": {
    "apt\\libfuse2": {
     "driver": "apt",
@@ -10166,6 +10623,68 @@
      "repo-component": "universe"
     },
     "name": "kicad"
+   }
+  },
+  "lazygit": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.bash.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\lazygit-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/lazygit.sh",
+     "src": "bash.d/lazygit.sh"
+    },
+    "name": "lazygit-dotfiles"
+   },
+   "tarball\\lazygit": {
+    "driver": "tarball",
+    "fields": {
+     "installDir": "apps/lazygit",
+     "name": "lazygit",
+     "version": {
+      "asset": "lazygit_*_Linux_x86_64.tar.gz",
+      "github": "jesseduffield/lazygit",
+      "strip-v": "true"
+     }
+    },
+    "name": "lazygit"
+   }
+  },
+  "lazygit-dotfiles": {
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.bash.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\lazygit-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/lazygit.sh",
+     "src": "bash.d/lazygit.sh"
+    },
+    "name": "lazygit-dotfiles"
    }
   },
   "libfuse2": {
