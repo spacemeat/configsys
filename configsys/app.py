@@ -503,6 +503,22 @@ def cmd_check(ctx, args):
 
 # -- plugin: declare in `plugins:`, sync from git -------------------------
 
+def _find_decl(decls, plugins_dir, ident):
+    '''A declared plugin matching `ident` — its source, dir basename, or manifest name.'''
+    from . import plugins
+    for d in decls:
+        dn = plugins.dir_name(d['source'])
+        if ident in (d['source'], dn) or plugins.read_manifest(plugins_dir / dn).get('name') == ident:
+            return d
+    return None
+
+
+def _sync_and_report(ctx, decls):
+    from . import plugins
+    for name, action in plugins.sync(ctx.runner, ctx.paths.plugins_dir, decls):
+        print(f'  {action:8} {name}')
+
+
 def cmd_plugin(ctx, args):
     from . import plugins
     decls = plugins.declared(ctx.paths.user_config_file)
@@ -510,11 +526,47 @@ def cmd_plugin(ctx, args):
 
     if sub == 'sync':
         if not decls:
-            print('configsys: no plugins declared (add a `plugins: [ { source, ref } ]` list '
-                  'to your config)')
+            print('configsys: no plugins declared (add one: `configsys plugin add <source>`)')
             return 0
-        for name, action in plugins.sync(ctx.runner, ctx.paths.plugins_dir, decls):
-            print(f'  {action:8} {name}')
+        _sync_and_report(ctx, decls)
+        return 0
+
+    if sub == 'add':
+        ctx.ensure_user_config()                    # the file must exist to edit it
+        existing = next((d for d in decls if d['source'] == args.source), None)
+        if existing:
+            existing['ref'] = args.ref
+        else:
+            decls.append({'source': args.source, 'ref': args.ref})
+        plugins.set_declared(ctx.paths.user_config_file, decls)
+        print(f'configsys: {"re-pinned" if existing else "added"} {args.source}'
+              + (f' @{args.ref}' if args.ref else ''))
+        _sync_and_report(ctx, [d for d in decls if d['source'] == args.source])
+        return 0
+
+    if sub == 'remove':
+        target = _find_decl(decls, ctx.paths.plugins_dir, args.name)
+        if target is None:
+            print(f'configsys: no declared plugin matches {args.name!r}')
+            return 1
+        plugins.set_declared(ctx.paths.user_config_file, [d for d in decls if d is not target])
+        pdir = ctx.paths.plugins_dir / plugins.dir_name(target['source'])
+        if pdir.exists() and not ctx.runner.pretend:
+            import shutil
+            shutil.rmtree(pdir)
+        print(f'configsys: removed {target["source"]}')
+        return 0
+
+    if sub == 'update':
+        target = _find_decl(decls, ctx.paths.plugins_dir, args.name)
+        if target is None:
+            print(f'configsys: no declared plugin matches {args.name!r}')
+            return 1
+        if args.ref:
+            target['ref'] = args.ref
+            plugins.set_declared(ctx.paths.user_config_file, decls)
+            print(f'configsys: re-pinned {target["source"]} @{args.ref}')
+        _sync_and_report(ctx, [target])
         return 0
 
     if sub == 'list':
@@ -575,6 +627,14 @@ def build_parser():
     plsub = pl.add_subparsers(dest='plugin_command')
     plsub.add_parser('list', help='declared plugins + their sync/ABI status')
     plsub.add_parser('sync', help='clone/fetch declared plugins to their pinned refs')
+    pa = plsub.add_parser('add', help='declare a plugin and sync it')
+    pa.add_argument('source', help='github:owner/repo | gitlab:owner/repo | git URL | local path')
+    pa.add_argument('--ref', help='pin to a tag / commit / branch')
+    pr = plsub.add_parser('remove', help='undeclare a plugin and delete its synced copy')
+    pr.add_argument('name', help='plugin name, source, or dir')
+    pu = plsub.add_parser('update', help="re-sync a plugin (move its pin with --ref)")
+    pu.add_argument('name', help='plugin name, source, or dir')
+    pu.add_argument('--ref', help='new tag / commit / branch to pin to')
 
     sub.add_parser('refresh', help='re-query latest versions from their sources')
     sub.add_parser('tui', help='interactive TUI (default)')

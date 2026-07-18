@@ -197,9 +197,12 @@ it; retrofitting versioning after plugins exist is the expensive path.
 - **P1 — data plugins + sync. ✅ BUILT.** `configsys/plugins.py` (declared/source_url/dir_name/
   read_manifest/layer_files/status/sync), `plugins:` declaration, `configsys plugin list/sync`,
   git sync to pinned refs, `plugin`‑role layers in the stack, os‑block additions (derivative
-  distros), `ABI_VERSION`/`ABI_SUPPORTED` + the `requires-abi` gate already live. Deferred to
-  P1.5: `plugin add/remove/update` (edit the `plugins:` list in place — declarative edit + sync
-  is the MVP flow for now).
+  distros), `ABI_VERSION`/`ABI_SUPPORTED` + the `requires-abi` gate already live.
+- **P1.5 — the nice CLI. ✅ BUILT.** `configsys plugin add <source> [--ref R]` (declare + sync),
+  `remove <name>` (undeclare + delete the synced dir), `update <name> [--ref R]` (re-pin +
+  re-sync). Edits the `plugins:` list IN PLACE via a comment-preserving surgical rewrite
+  (`plugins.set_declared` replaces the `plugins:` node's exact `source_text` span, or inserts a
+  block before the root's closing brace — every other line, comments and all, is untouched).
 - **P2 — code plugins.** The frozen, documented ABI surface (`configsys/plugins.py` re‑exports;
   see §7a — keep it minimal/clustered); trusted‑only import of `code:` modules with per‑commit
   approval and the trust store; registration into the family registry; degradation for

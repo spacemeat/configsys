@@ -12,9 +12,13 @@ the ABI version the manifest gates on. See docs/plugins.md.
 '''
 
 import shlex
+from pathlib import Path
+
+import humon
 
 from . import layers
 from .errors import ConfigError
+from .troveio import _scalar
 
 # The plugin ABI version (Family contract + data schema + registration + RC shape). One coarse
 # integer (KISS). A manifest declares `requires-abi: N`; we load it iff N is in ABI_SUPPORTED.
@@ -108,6 +112,41 @@ def status(plugins_dir, decls):
             'has_code': bool(manifest.get('code')),      # P2: needs trust; inert in P1
         })
     return rows
+
+
+def _emit_block(decls, indent):
+    '''`plugins: [...]` humon text at the given base indent (source values quoted as needed).'''
+    pad, inner = ' ' * indent, ' ' * (indent + 4)
+    if not decls:
+        return 'plugins: []'
+    lines = ['plugins: [']
+    for d in decls:
+        entry = f'{{ source: {_scalar(d["source"])}'
+        if d.get('ref'):
+            entry += f'  ref: {_scalar(d["ref"])}'
+        lines.append(inner + entry + ' }')
+    lines.append(pad + ']')
+    return '\n'.join(lines)
+
+
+def set_declared(user_config_file, decls):
+    '''Rewrite the `plugins:` list in the user config in place, preserving every other line
+    (comments and all): replace the existing `plugins:` node's exact source span, or — if
+    there is none — insert a block before the root's closing brace.'''
+    path = Path(user_config_file)
+    text = path.read_text(encoding='utf-8')
+    trove = humon.from_string(text)                 # keep alive while reading source_text
+    node = trove.root['plugins']
+    if node is not None:
+        old = node.source_text                      # 'plugins: [ ... ]', starts at the key
+        pos = text.find(old)
+        line_start = text.rfind('\n', 0, pos) + 1
+        indent = pos - line_start                   # whitespace before `plugins:` on its line
+        text = text.replace(old, _emit_block(decls, indent), 1)
+    else:
+        idx = text.rstrip().rfind('}')              # before the root's closing brace
+        text = text[:idx] + '    ' + _emit_block(decls, 4) + '\n' + text[idx:]
+    path.write_text(text, encoding='utf-8')
 
 
 def sync(runner, plugins_dir, decls):

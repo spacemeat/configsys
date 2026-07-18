@@ -105,3 +105,59 @@ def test_sync_clones_a_local_git_repo(tmp_path):
     assert (pdir / 'src' / 'routes.hu').exists()          # cloned at the pinned tag
     files = plugins.layer_files(pdir, [{'source': str(src), 'ref': 'v1'}])
     assert any(f.endswith('src/routes.hu') for f in files)
+
+
+# -- editing the plugins: list (comment-preserving) -----------------------
+
+def test_set_declared_inserts_and_preserves_comments(tmp_path):
+    p = tmp_path / 'configsys.hu'
+    p.write_text('{\n    // keep me\n    configs: [ dev ]\n}\n')
+    plugins.set_declared(str(p), [{'source': 'github:a/b', 'ref': 'v1'}])
+    text = p.read_text()
+    assert '// keep me' in text                              # untouched
+    assert plugins.declared(str(p)) == [{'source': 'github:a/b', 'ref': 'v1'}]
+
+
+def test_set_declared_replaces_existing_and_keeps_the_rest(tmp_path):
+    p = tmp_path / 'configsys.hu'
+    p.write_text('{\n    // c\n    scope: user\n'
+                 '    plugins: [ { source: "github:a/b"  ref: v1 } ]\n}\n')
+    plugins.set_declared(str(p), [{'source': 'github:a/b', 'ref': 'v2'},
+                                  {'source': '/x/y', 'ref': None}])
+    text = p.read_text()
+    assert '// c' in text and 'scope: user' in text
+    assert plugins.declared(str(p)) == [{'source': 'github:a/b', 'ref': 'v2'},
+                                        {'source': '/x/y', 'ref': None}]
+
+
+def test_set_declared_empty(tmp_path):
+    p = tmp_path / 'configsys.hu'
+    p.write_text('{\n    plugins: [ { source: /x } ]\n}\n')
+    plugins.set_declared(str(p), [])
+    assert plugins.declared(str(p)) == []
+
+
+@pytest.mark.skipif(shutil.which('git') is None, reason='git not available')
+def test_cli_plugin_add_and_remove(tmp_path, capsys):
+    from configsys.app import main
+    src = tmp_path / 'src'
+    src.mkdir()
+    (src / 'plugin.hu').write_text('{ name: cli-plug  requires-abi: 1  data: [ routes.hu ] }')
+    (src / 'routes.hu').write_text('{ components: { clico: { install: [ { via: native } ] } } }')
+    for cmd in (['init', '-q'], ['config', 'user.email', 't@t'], ['config', 'user.name', 't'],
+                ['add', '-A'], ['commit', '-qm', 'i'], ['tag', 'v1']):
+        subprocess.run(['git', *cmd], cwd=src, check=True)
+    home = ['--home', str(tmp_path), '--os', 'pop']
+
+    assert main(home + ['plugin', 'add', str(src), '--ref', 'v1']) == 0
+    out = capsys.readouterr().out
+    assert 'added' in out and 'cloned' in out
+    # declared + synced + resolvable
+    assert main(home + ['plugin', 'list']) == 0
+    assert 'cli-plug' in capsys.readouterr().out
+    synced = tmp_path / '.config' / 'configsys' / 'plugins' / 'src'
+    assert synced.exists()
+
+    assert main(home + ['plugin', 'remove', 'cli-plug']) == 0
+    assert 'removed' in capsys.readouterr().out
+    assert not synced.exists()                               # dir deleted
