@@ -1,10 +1,10 @@
 '''adapt.py — build the app's ResolvedComponent objects from v2 resolution.
 
 The v2 resolver produces Units (driver, component, package, details, deps,
-requested_as). The rest of the app (planning, InstallState, the families, the TUI) is
+requested_as). The rest of the app (planning, InstallState, the drivers, the TUI) is
 driven by `{key: ResolvedComponent}`. This is the thin, permanent glue between them: it
 carries no field translation — `unit.details` is already the install-field shape the
-families read (normalized in resolve._install_fields). Not an adapter layer; just the
+drivers read (normalized in resolve._install_fields). Not an adapter layer; just the
 v2 resolver's output object mapped onto the driver contract.
 '''
 

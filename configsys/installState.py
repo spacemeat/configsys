@@ -2,7 +2,7 @@
 
 For each resolved unit, dispatch to its driver (if supported) to read installed
 version, latest/candidate version, and native lock state; union the native lock
-with the ledger's lock intent. Unsupported families (not yet implemented in M1)
+with the ledger's lock intent. Unsupported drivers (not yet implemented in M1)
 degrade to an 'unsupported' state rather than crashing. Inspection is read-only.
 '''
 

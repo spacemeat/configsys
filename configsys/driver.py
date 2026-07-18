@@ -1,7 +1,7 @@
 '''component.py — the base Driver interface.
 
 A Driver knows how to operate on the components routed to it (apt, flatpak, ...).
-Every family implements the same op set so the app can drive any component
+Every driver implements the same op set so the app can drive any component
 uniformly. Ops take a ResolvedComponent and go through the injected Runner (so
 --pretend and tests work everywhere). Read ops return data; mutating ops return a
 runner.Result.
@@ -18,32 +18,32 @@ SYSTEM_PREFIX = Path('/opt')
 class Driver:
     name = None             # subclasses set, e.g. 'apt'
     privileged = False      # True if mutating ops need sudo
-    default_scope = 'user'  # this family's scope when not overridden
+    default_scope = 'user'  # this driver's scope when not overridden
     honors_scope = False    # True if user/system is selectable (flatpak, tarball, ...)
 
     def __init__(self, runner, paths=None):
         self.runner = runner
-        self.paths = paths   # for families that touch the filesystem (tarball, ...)
+        self.paths = paths   # for drivers that touch the filesystem (tarball, ...)
 
-    # -- scope helpers (shared by scope-aware families) -------------------
+    # -- scope helpers (shared by scope-aware drivers) -------------------
 
     def scope(self, rc):
         '''The scope this component installs to, for display. Scope-honoring
-        families take a route/config override; the rest have a fixed scope (apt is
+        drivers take a route/config override; the rest have a fixed scope (apt is
         always system; cargo/dotfiles are per-user).'''
         if self.honors_scope:
             return rc.fields.get('scope') or self.default_scope
         return self.default_scope
 
     def _scope(self, rc):
-        '''Effective install scope for a component (field wins; else family default).'''
+        '''Effective install scope for a component (field wins; else driver default).'''
         return rc.fields.get('scope') or self.default_scope
 
     def _sudo(self, rc):
         '''System scope needs root for its mutations; user scope never does.'''
         return self._scope(rc) == 'system'
 
-    # -- version resolution (download-based families) ---------------------
+    # -- version resolution (download-based drivers) ---------------------
 
     def _arch(self):
         '''System CPU arch for $ARCH substitution (e.g. x86_64, aarch64). Naming
@@ -140,7 +140,7 @@ class Driver:
 
     def location(self, rc):
         '''Human-readable install location (where files go / would go), or None for
-        package-managed families with no single path (apt). Shown in the TUI infoblock.'''
+        package-managed drivers with no single path (apt). Shown in the TUI infoblock.'''
         return None
 
     def _display_path(self, p):

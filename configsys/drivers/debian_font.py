@@ -2,7 +2,7 @@
 
 The freedesktop way of installing fonts: download a .zip of font files, extract the
 .ttf/.otf into a fonts directory, and refresh the font cache with fc-cache. Version
-is discovered like other download families ($VERSION substituted into the url).
+is discovered like other download drivers ($VERSION substituted into the url).
 Each component gets its own dir (configsys-<comp>) so uninstall is clean.
 
 User-space by default (~/.local/share/fonts); `scope: system` installs into

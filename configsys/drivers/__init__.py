@@ -1,4 +1,4 @@
-'''families — registry of install-medium implementations.
+'''drivers — registry of install-medium implementations.
 
 Ships apt, tarball, flatpak, appImage, dotfiles, and debian-font — the full set.
 An unregistered driver name still returns None here so InstallState degrades

@@ -30,7 +30,7 @@ class Paths:
 
         self.routes_file = self.repo / 'routes.hu'
         self.config_file = self.repo / 'config.hu'
-        self.dotfiles_dir = self.repo / 'dotfiles'   # source tree for the dotfiles family
+        self.dotfiles_dir = self.repo / 'dotfiles'   # source tree for the dotfiles driver
 
         # state dir (holds the ledger, the version cache, AND the user config). XDG by
         # default; CONFIGSYS_HOME wins over XDG so `--home` fully sandboxes everything.

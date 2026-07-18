@@ -36,7 +36,7 @@ USER_CONFIG_TEMPLATE = '''{
     // Which profiles (from the repo's config.hu, your `profiles:`, or an include) apply here.
     configs: [ dev ]
 
-    // Machine-wide default install scope for scope-honoring families (user | system).
+    // Machine-wide default install scope for scope-honoring drivers (user | system).
     // scope: system
 
     // Project discovery walks up from the CWD for .configsys.hu / .configsys-*.hu and

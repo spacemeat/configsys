@@ -1,9 +1,9 @@
 '''ledger.py — the small local state file (~/.config/configsys/state.hu).
 
 The system is the source of truth for what's installed; the ledger only stores
-what the OS can't tell us: version-lock *intent* (portable across families that
+what the OS can't tell us: version-lock *intent* (portable across drivers that
 have no native hold) and whether configsys manages a component (appImages/fonts it
-dropped in). Keyed by unit key `family\\comp`. Troves are read-only, so writes go
+dropped in). Keyed by unit key `driver\\comp`. Troves are read-only, so writes go
 through troveio.emit_hu.
 '''
 
