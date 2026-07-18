@@ -132,6 +132,15 @@
             install: [ { via: native  repo-component: universe } ]
         }
 
+        // blender: the easy default is the native package (the editor). A from-source build
+        // (to get a `bpy` module matching your editor) is a personal override that lives in a
+        // user layer, the way a Pop-only native Steam does. Fat versioned config
+        // (~/.config/blender/<ver>) — dotfiles deferred. NOTE: EL availability unverified (EPEL?).
+        blender: {
+            suggests: blender-dotfiles
+            install: [ { via: native  repo-component: universe } ]
+        }
+
         // docker: "the engine, working" = the package + its daemon enabled. Post-install is just
         // composition — docker-service is an ordinary component ordered after docker-engine via
         // `requires:` (which also avoids the package<->service dependency cycle a single unit
