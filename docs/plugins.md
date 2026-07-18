@@ -235,8 +235,14 @@ it; retrofitting versioning after plugins exist is the expensive path.
       and `check`). Untrusted/incompatible/broken code is skipped (collected into
       `plugin_code_warnings`, surfaced by `check`) so its `via:` stays unknown and the
       component degrades to a resilient error row — never fatal.
-  - **P2c — registration hooks beyond drivers** (`register_version_source`,
-    `register_transport`; see §10) so the ABI covers them from the start.
+  - **P2c — registration hooks beyond drivers. ✅ BUILT.** Two more `register_*` hooks on the
+    frozen surface, gated identically (only trusted plugin code ever calls them):
+    `register_version_source(name, fn)` adds a `version: { <name>: <arg> }` discovery backend
+    (`fn(spec, fetch) -> (version, url)`; built-ins win over a same-named registration), and
+    `register_transport(scheme, fn)` claims a `source: "<scheme>:..."` sync scheme (git stays the
+    default; `dir_name` now strips any `scheme:` prefix). Caveat: per-commit code trust needs a
+    git commit id, so a non-git transport can carry DATA but its `code:` stays untrusted until a
+    content-identity scheme exists — transports are for data plugins today. `test_plugin_hooks.py`.
   - **Example plugin. ✅ BUILT** — `examples/configsys-alpine/` (`plugin.hu` + `routes.hu` +
     `driver.py`): an `apk` `Driver` + an `alpine` os block + a `via: apk` component (`doas`). A
     copy‑able reference/template that dogfoods the whole code‑plugin path — and shows the payoff
@@ -255,20 +261,25 @@ Mirrors how overrides shipped: prove the mechanism on the safe subset, then add 
 
 ## 10. Open / deferred
 
-- **Trust store format + `plugin trust`/`untrust` commands** (P2 detail).
+**Resolved:**
+- ~~Trust store + `plugin trust`/`untrust`~~ — P2b.
+- ~~Non‑Driver extension points~~ — P2c added `register_version_source` + `register_transport`
+  as the small `register_*` set on the frozen surface, all trust+ABI gated.
+- ~~README plugins section~~ — done (README.md + `examples/configsys-alpine/`).
+- ~~Untrusted‑driver `via:` reads as a scary unknown‑via *error*~~ — fixed: a declared‑but‑gated
+  code plugin's `provides.drivers` are treated by `check` as *pending trust* (suppressed as an
+  error), so the single signal is the "run `plugin trust`" nudge. Declaring `provides: { drivers:
+  [...] }` in the manifest is what enables this — without it, an unregistered `via:` still reads
+  as unknown.
+
+**Still open:**
+- **Non‑git code trust identity.** Per‑commit trust binds to a git commit sha, so a plugin
+  fetched by a non‑git transport can supply DATA but its `code:` can't be trusted. A
+  content‑hash identity (hash the plugin tree) would let tarball/OCI code plugins be trusted too.
 - **Sync transport edge cases**: private repos (ssh/tokens), offline, checksum/signature
   verification of a pinned ref (belt‑and‑suspenders beyond commit pinning).
-- **Plugin‑vs‑plugin ordering / conflicts**: two plugins define the same component or mechanism
-  — declaration order wins (like other layers); surface collisions in `plugin list`/`check`.
-- **Non‑Driver extension points — wanted (P2+).** The same trusted‑code loading that registers
-  a `Driver` should register other pluggable kinds. Two the maintainer flagged as desirable:
-  (a) **version‑discovery sources** — today `versions.discover` handles github/pypi/crates/aur/
-  static; a plugin should be able to add a new source (e.g. a distro's package index, a private
-  registry) so `version: { <newsource>: ... }` works. (b) new `source:` **sync transports**
-  beyond git (e.g. a tarball URL, an OCI artifact). Design implication: the registration API
-  (§code‑loading) should be a small *set* of `register_*` hooks (driver, version‑source,
-  transport, …), all gated by the same trust + ABI, rather than driver‑only. Fold these into the
-  frozen surface so the ABI number covers them from the start.
-- **README.md**: a user‑facing plugins section (and an overall project section) once P1 lands.
-- **Windows/macOS**: still deferred; a plugin adding another OS root + `native` mechanism is
-  exactly the shape that would absorb them, but no test path yet.
+- **Plugin‑vs‑plugin ordering / conflicts**: two plugins define the same component, driver, or
+  transport — declaration order wins (like other layers); surface collisions in `plugin
+  list`/`check`.
+- **Windows/macOS**: still deferred; a plugin adding another OS root + `native` driver is exactly
+  the shape that would absorb them, but no test path yet.

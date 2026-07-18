@@ -93,6 +93,7 @@ class Context:
         self._plugin_files = None
         self._plugin_code_loaded = False
         self.plugin_code_warnings = []   # code plugins that ship code but were gated out
+        self.plugin_pending_vias = set()  # via names those gated-out plugins would provide
         self.resolve_errors = {}      # {requested_name: message} from the last resilient resolve
         self._migrate_user_config()
 
@@ -162,6 +163,14 @@ class Context:
         _loaded, skipped = plugins.load_code(self.runner, self.paths.plugins_dir,
                                              self.paths.plugin_trust_file, decls, register_driver)
         self.plugin_code_warnings = [f'plugin {key}: {reason}' for key, reason in skipped]
+        # a gated-out code plugin's drivers are "known but unavailable": collect the via names
+        # it declares (manifest provides.drivers) so `check` treats them as pending-trust, not
+        # unknown typos — the trust nudge above is the single actionable message.
+        pending = set()
+        for key, _reason in skipped:
+            provides = plugins.read_manifest(self.paths.plugins_dir / key).get('provides') or {}
+            pending.update(provides.get('drivers') or [])
+        self.plugin_pending_vias = pending
 
     @property
     def routes(self):
@@ -472,7 +481,8 @@ def cmd_check(ctx, args):
         print(f'configsys: {e}')          # a parse/structural error before we can lint
         return 1
 
-    issues = routecheck.validate(components, cascade, drivers)
+    issues = routecheck.validate(components, cascade, drivers,
+                                 pending_vias=ctx.plugin_pending_vias)
     include_warnings = layers.ignored_section_warnings(layer_list)
 
     # profile references: a selected profile naming a component that doesn't exist
@@ -538,6 +548,7 @@ def _find_decl(decls, plugins_dir, ident):
 
 def _sync_and_report(ctx, decls):
     from . import plugins
+    ctx.ensure_plugin_code()     # register transports from already-trusted plugins before sync
     for name, action in plugins.sync(ctx.runner, ctx.paths.plugins_dir, decls):
         print(f'  {action:8} {name}')
 

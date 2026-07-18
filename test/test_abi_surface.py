@@ -9,11 +9,14 @@ from configsys.runner import Runner
 
 def test_one_line_import_surface():
     # the whole contract a plugin author needs, from one module
-    from configsys.plugins import Driver, register_driver, Result, ABI_VERSION, ABI_SUPPORTED
+    from configsys.plugins import (Driver, register_driver, register_version_source,
+                                   register_transport, Result, ABI_VERSION, ABI_SUPPORTED)
     assert ABI_VERSION in ABI_SUPPORTED
     assert isinstance(ABI_VERSION, int)
     assert Result('ok', 0).ok and not Result('no', 1).ok      # the mutating-op return type
-    for name in ('Driver', 'register_driver', 'Result', 'ABI_VERSION', 'ABI_SUPPORTED'):
+    assert callable(register_version_source) and callable(register_transport)
+    for name in ('Driver', 'register_driver', 'register_version_source', 'register_transport',
+                 'Result', 'ABI_VERSION', 'ABI_SUPPORTED'):
         assert name in api.__all__
 
 

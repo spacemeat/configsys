@@ -42,12 +42,30 @@ PYPI_LATEST = 'https://pypi.org/pypi/{dist}/json'
 AUR_INFO = 'https://aur.archlinux.org/rpc/v5/info?arg[]={pkg}'
 
 
+# Registered version-discovery sources (P2c): plugins add new `version: { <name>: ... }`
+# backends here. name -> fn(spec, fetch) -> (version, download_url_or_None). Registration
+# happens only from trusted plugin code (via plugins.load_code), so the trust gate is inherent.
+_SOURCES = {}
+_BUILTIN_KINDS = ('crates', 'pypi', 'aur', 'url', 'static')
+
+
+def register_source(name, fn):
+    '''Register a version-discovery source so `version: { <name>: <arg> }` resolves. `fn(spec,
+    fetch) -> (version, download_url_or_None)`; `fetch(url)` is the injectable HTTP getter, so
+    caching/offline fallback stay in the core. Built-in kinds (github/crates/pypi/aur/url/
+    static) win over a registered name of the same key. Re-exported as register_version_source.'''
+    if not name or not callable(fn):
+        raise ValueError('register_source(name, fn): name must be non-empty and fn callable')
+    _SOURCES[name] = fn
+    return fn
+
+
 def source_key(spec):
     # asset pattern is part of the identity (different assets -> different urls)
     if 'github' in spec:
         base = f'github:{spec["github"]}'
         return f'{base}:asset={spec["asset"]}' if spec.get('asset') else base
-    for kind in ('crates', 'pypi', 'aur', 'url', 'static'):
+    for kind in (*_BUILTIN_KINDS, *_SOURCES):
         if kind in spec:
             return f'{kind}:{spec[kind]}'
     return 'spec:' + json.dumps(spec, sort_keys=True)
@@ -88,6 +106,9 @@ def _discover_live(spec, fetch):
         pattern = spec.get('regex') or r'[0-9]+(?:\.[0-9]+)+'
         m = re.search(pattern, text)
         return (m.group(0) if m else None), None
+    for name, fn in _SOURCES.items():            # plugin-registered sources (P2c)
+        if name in spec:
+            return fn(spec, fetch)
     return None, None
 
 

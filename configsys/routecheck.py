@@ -75,12 +75,16 @@ def _providable_caps(components, cascade):
     return caps
 
 
-def validate(components, cascade, drivers):
+def validate(components, cascade, drivers, pending_vias=frozenset()):
     '''Lint the merged component set -> [Issue] (empty = clean). Covers ambiguity, unknown
     via: driver, unknown component in parts: (all errors), and when:-names-unknown-OS +
-    requires-nothing-provides (warnings — localized). Attribution via each Component.source.'''
+    requires-nothing-provides (warnings — localized). Attribution via each Component.source.
+
+    `pending_vias` are via names provided by a declared code plugin that is present but not
+    loaded (untrusted / incompatible): they're known-but-unavailable, so they don't count as
+    unknown-via errors here — the app surfaces a single "trust the plugin" nudge instead.'''
     from .drivers import supported_names
-    valid_via = _SPECIAL_VIA | supported_names()
+    valid_via = _SPECIAL_VIA | supported_names() | set(pending_vias)
     providable = _providable_caps(components, cascade)
     issues = []
 

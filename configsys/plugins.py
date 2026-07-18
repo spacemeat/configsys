@@ -13,6 +13,7 @@ everything from one place. P2b/P2c will add trusted loading of those Driver subc
 trust model, and further `register_*` hooks. See docs/plugins.md.
 '''
 
+import re
 import shlex
 from pathlib import Path
 
@@ -24,6 +25,7 @@ from .drivers import register_driver
 from .errors import ConfigError
 from .runner import Result
 from .troveio import _scalar
+from .versions import register_source as register_version_source
 
 # The plugin ABI version (Driver contract + data schema + registration + RC shape). One coarse
 # integer (KISS). A manifest declares `requires-abi: N`; we load it iff N is in ABI_SUPPORTED.
@@ -36,11 +38,14 @@ ABI_SUPPORTED = frozenset({1})
 # contract: class attrs, the op set to implement, and the public helpers a subclass may
 # call). `register_driver(SubclassOfDriver)` binds it so `via: <name>` resolves; `Result` is
 # the return type of the mutating ops (construct one for synthetic outcomes, e.g. a no-op
-# lock). Everything re-exported here is ABI-stable within a given ABI_VERSION; the underscore
-# members of Driver are internal and may change without a bump. New pluggable kinds
-# (version-source, transport) will join this surface as further `register_*` hooks (§10).
+# lock). The parallel hooks `register_version_source(name, fn)` (a new `version: { <name>: }`
+# backend) and `register_transport(scheme, fn)` (a new `source:` sync scheme) let a plugin
+# extend discovery and sync too — all three gated the same way (only trusted plugin code ever
+# calls them). Everything re-exported here is ABI-stable within a given ABI_VERSION; the
+# underscore members of Driver are internal and may change without a bump.
 __all__ = [
-    'Driver', 'register_driver', 'Result', 'ABI_VERSION', 'ABI_SUPPORTED',
+    'Driver', 'register_driver', 'register_version_source', 'register_transport', 'Result',
+    'ABI_VERSION', 'ABI_SUPPORTED',
     'declared', 'source_url', 'dir_name', 'read_manifest', 'layer_files', 'status', 'sync',
     'set_declared',
 ]
@@ -67,9 +72,14 @@ def source_url(source):
     return source
 
 
+_SCHEME_RE = re.compile(r'^[a-zA-Z][a-zA-Z0-9+.\-]*:(?!//)')   # `github:`, `tarball:` — NOT `https://`
+
+
 def dir_name(source):
-    '''Plugin directory basename: the repo's last path segment, minus any .git.'''
-    tail = source.split(':', 1)[-1] if source.startswith(('github:', 'gitlab:')) else source
+    '''Plugin directory basename: strip a leading `scheme:` prefix (github:, gitlab:, or a
+    plugin transport's scheme — but not a `scheme://` URL), then the last path segment minus
+    any .git. So `github:a/b` -> b, `tarball:pkg/x` -> x, `https://h/r.git` -> r, `/a/b` -> b.'''
+    tail = _SCHEME_RE.sub('', source, count=1)
     name = tail.rstrip('/').split('/')[-1]
     return name[:-4] if name.endswith('.git') else name
 
@@ -306,24 +316,57 @@ def load_code(runner, plugins_dir, trust_file, decls, register):
     return loaded, skipped
 
 
+def _git_transport(runner, dest, source, ref):
+    '''The built-in transport: clone/fetch a git repo to `dest` at `ref` (via the runner, so
+    --pretend works). Returns 'cloned' / 'updated' / 'failed'.'''
+    dq = shlex.quote(str(dest))
+    if dest.exists():
+        runner.run(f'git -C {dq} fetch --tags --quiet', capture=False)
+        if ref:
+            runner.run(f'git -C {dq} checkout --quiet {shlex.quote(ref)}', capture=False)
+        return 'updated'
+    dest.parent.mkdir(parents=True, exist_ok=True)
+    r = runner.run(f'git clone --quiet {shlex.quote(source_url(source))} {dq}', capture=False)
+    if ref and (r is None or r.ok):
+        runner.run(f'git -C {dq} checkout --quiet {shlex.quote(ref)}', capture=False)
+    return 'cloned' if (r is None or r.ok) else 'failed'
+
+
+# Registered sync transports (P2c): a plugin claims a `source:` scheme so `source:
+# "<scheme>:..."` syncs via its fn instead of git. scheme -> fn(runner, dest, source, ref) ->
+# action_str. Registration happens only from trusted plugin code (via load_code).
+_TRANSPORTS = {}
+
+
+def register_transport(scheme, fn):
+    '''Register a sync transport for a `source:` scheme. `fn(runner, dest, source, ref) ->
+    action` must materialize the plugin tree into `dest`. Re-exported as register_transport.
+    NOTE: per-commit code TRUST is bound to a git commit id — a plugin fetched by a non-git
+    transport can supply DATA, but its `code:` stays untrusted (plugin_commit is None) until a
+    content-identity scheme exists. Transports are for data plugins today.'''
+    if not scheme or not callable(fn):
+        raise ValueError('register_transport(scheme, fn): scheme non-empty and fn callable')
+    _TRANSPORTS[scheme] = fn
+    return fn
+
+
+def _transport_for(source):
+    '''The transport for a source: a registered `<scheme>:` wins, else git (the default).'''
+    scheme = source.split(':', 1)[0] if ':' in source else None
+    return _TRANSPORTS.get(scheme, _git_transport)
+
+
 def sync(runner, plugins_dir, decls):
-    '''Clone/fetch each declared plugin to plugins_dir/<name> at its pinned ref (via git through
-    the runner, so --pretend works). Returns [(name, action)]. Best-effort per plugin.'''
+    '''Sync each declared plugin to plugins_dir/<name> at its ref, via its transport (git by
+    default; a registered transport claims a `<scheme>:` source). Returns [(name, action)].
+    Best-effort: a transport failure becomes a per-plugin 'failed' action, never an exception.'''
     results = []
     for d in decls:
         name = dir_name(d['source'])
-        dest = plugins_dir / name
-        url, ref = source_url(d['source']), d.get('ref')
-        dq = shlex.quote(str(dest))
-        if dest.exists():
-            runner.run(f'git -C {dq} fetch --tags --quiet', capture=False)
-            if ref:
-                runner.run(f'git -C {dq} checkout --quiet {shlex.quote(ref)}', capture=False)
-            results.append((name, 'updated'))
-        else:
-            plugins_dir.mkdir(parents=True, exist_ok=True)
-            r = runner.run(f'git clone --quiet {shlex.quote(url)} {dq}', capture=False)
-            if ref and (r is None or r.ok):
-                runner.run(f'git -C {dq} checkout --quiet {shlex.quote(ref)}', capture=False)
-            results.append((name, 'cloned' if (r is None or r.ok) else 'failed'))
+        try:
+            action = _transport_for(d['source'])(runner, plugins_dir / name, d['source'],
+                                                 d.get('ref'))
+        except Exception as e:                       # noqa: BLE001 — isolate a bad transport
+            action = f'failed ({e})'
+        results.append((name, action))
     return results

@@ -84,10 +84,13 @@ def test_example_plugin_add_trust_resolve(tmp_path, capsys):
     main(home + ['plugin', 'add', str(plug)])
     capsys.readouterr()
 
-    # untrusted: the data loads (doas resolves) but via: apk is an unknown driver
+    # untrusted: a single "trust the plugin" nudge — no redundant unknown-driver error,
+    # because the manifest's provides.drivers marks `apk` as pending-trust, not a typo.
     main(home + ['check'])
     out = capsys.readouterr().out
-    assert 'untrusted code' in out and "via:'apk' is not a known driver" in out
+    assert 'untrusted code' in out
+    assert 'is not a known driver' not in out     # suppressed (pending trust, not unknown)
+    assert '0 error(s)' in out                     # a nudge, not a blocker
 
     # approve the commit -> apk registers, the unknown-driver error clears
     main(home + ['plugin', 'trust', 'alpine'])
