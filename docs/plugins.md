@@ -86,6 +86,11 @@ plugins: [
 
 - `ref` is a **pinned** tag/commit (never a floating branch for code; §6). Fetched to
   `plugins/<name>/` at exactly that ref.
+- an optional `sha256:` locks the plugin to an exact **content hash** — if the synced tree
+  doesn't match (moved tag, compromised mirror, tampering), the plugin is quarantined (data +
+  code excluded). `plugin add/update --pin` fills it in from the just-synced content.
+- private repos: use an ssh source (`git@host:owner/repo.git`), a credential-bearing URL, or a
+  configured git credential helper; `CONFIGSYS_GIT_TOKEN` is a CI convenience for github:/gitlab:.
 - `plugins:` is a machine SETTING (like `configs:`/`pins:`) — repo/user only, not settable by
   includes or discovered files.
 
@@ -290,8 +295,19 @@ Mirrors how overrides shipped: prove the mechanism on the safe subset, then add 
   commit, so a plugin fetched by any transport can ship trusted `code:`, and a tampered synced
   tree is caught. `test_plugin_code.py::test_non_git_plugin_can_be_trusted`.
 
+- ~~Sync transport edge cases~~ — mostly done:
+  - *private repos*: ssh sources (`git@host:owner/repo.git`) and full credential-bearing URLs
+    pass through to git (`source_url`), so a configured credential helper / ssh-agent works
+    transparently; `CONFIGSYS_GIT_TOKEN` embeds a token into a github:/gitlab: https clone
+    (`clone_url`) for CI (caveat: it then persists in the synced `.git/config`).
+  - *checksum*: a `plugins:` entry may carry `sha256:` (the expected `plugin_identity`); a synced
+    plugin that doesn't match is **quarantined** — `checksum_ok` gates both `layer_files` (data)
+    and `load_code` (code), surfaced by `plugin list` (CHECKSUM MISMATCH) and `check`. `plugin
+    add/update --pin` records the synced hash (trust-on-first-use). `test/test_plugin_transport.py`.
+  - *still open here*: **GPG signature verification** (needs key management — the content-hash
+    checksum is the practical form for now); offline behavior is already graceful (a failed sync
+    just leaves the plugin absent → degrades).
+
 **Still open:**
-- **Sync transport edge cases**: private repos (ssh/tokens), offline, checksum/signature
-  verification of a pinned ref (belt‑and‑suspenders beyond commit pinning).
 - **Windows/macOS**: still deferred; a plugin adding another OS root + `native` driver is exactly
   the shape that would absorb them, but no test path yet.
