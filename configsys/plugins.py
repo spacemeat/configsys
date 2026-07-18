@@ -14,6 +14,7 @@ trust model, and further `register_*` hooks. See docs/plugins.md.
 '''
 
 import hashlib
+import os
 import re
 import shlex
 from pathlib import Path
@@ -66,18 +67,36 @@ def declared(user_config_file):
     out = []
     for entry in (raw or []):
         if isinstance(entry, dict) and entry.get('source'):
-            out.append({'source': entry['source'], 'ref': entry.get('ref')})
+            d = {'source': entry['source'], 'ref': entry.get('ref')}
+            if entry.get('sha256'):
+                d['sha256'] = entry['sha256']       # only when pinned (keeps decls tidy)
+            out.append(d)
     return out
 
 
 def source_url(source):
     '''`github:owner/repo` / `gitlab:owner/repo` -> clone URL; anything else (full URL, ssh,
-    file://, local path) passes through.'''
+    file://, local path) passes through. So a private repo works by giving an ssh source
+    (`git@host:owner/repo.git`) or a credential‑bearing URL, or by having git's own credential
+    helper configured — configsys just shells out to git.'''
     if source.startswith('github:'):
         return f'https://github.com/{source[len("github:"):]}.git'
     if source.startswith('gitlab:'):
         return f'https://gitlab.com/{source[len("gitlab:"):]}.git'
     return source
+
+
+def clone_url(source):
+    '''The URL the git transport clones/fetches. Like source_url, but if CONFIGSYS_GIT_TOKEN is
+    set it is embedded into a github:/gitlab: https URL so a private repo clones non-
+    interactively (CI-friendly). NOTE: the token then persists in the synced repo's
+    .git/config — acceptable for a personal config dir, but prefer ssh or a git credential
+    helper if you'd rather not write it to disk. Other sources pass through untouched.'''
+    url = source_url(source)
+    token = os.environ.get('CONFIGSYS_GIT_TOKEN')
+    if token and source.startswith(('github:', 'gitlab:')) and url.startswith('https://'):
+        return 'https://' + token + '@' + url[len('https://'):]
+    return url
 
 
 _SCHEME_RE = re.compile(r'^[a-zA-Z][a-zA-Z0-9+.\-]*:(?!//)')   # `github:`, `tarball:` — NOT `https://`
@@ -120,18 +139,36 @@ def _data_files(plugin_dir, manifest):
 
 
 def layer_files(plugins_dir, decls):
-    '''Data-file paths (in declaration order) for each declared plugin that is synced AND
-    ABI-compatible — the `plugin`-role layers. Unsynced/incompatible plugins are skipped.'''
+    '''Data-file paths (in declaration order) for each declared plugin that is synced,
+    ABI-compatible, AND passes its declared checksum — the `plugin`-role layers. Unsynced /
+    incompatible / checksum-mismatched plugins are skipped (quarantined).'''
     out = []
     for d in decls:
         pdir = plugins_dir / dir_name(d['source'])
-        if not pdir.exists():
+        if not pdir.exists() or not checksum_ok(plugins_dir, d):
             continue
         manifest = read_manifest(pdir)
         if not _abi_ok(manifest):
             continue
         out.extend(_data_files(pdir, manifest))
     return out
+
+
+def _norm_sha(s):
+    '''Compare-normalize a content hash: drop an optional `sha256:` prefix, lowercase, strip.'''
+    return (s or '').split(':', 1)[-1].strip().lower()
+
+
+def checksum_ok(plugins_dir, decl):
+    '''True if the plugin declares no `sha256` (nothing to verify) OR its synced content matches
+    it. A declared checksum that does NOT match -> False: the plugin is quarantined (its data
+    AND code are excluded). A pinned `ref` plus a content hash is belt-and-suspenders — it
+    catches a moved tag, a compromised mirror, or a tampered synced tree.'''
+    want = decl.get('sha256')
+    if not want:
+        return True
+    got = plugin_identity(plugins_dir / dir_name(decl['source']))
+    return got is not None and _norm_sha(got) == _norm_sha(want)
 
 
 # -- code trust (P2b): a plugin that ships code runs with the user's privileges during
@@ -228,8 +265,8 @@ def code_state(manifest, synced, approved, identity):
 
 def status(plugins_dir, decls, *, trust_file=None):
     '''Per-declared-plugin status for `plugin list`: name, source, ref, synced, abi-ok,
-    provides, has_code. When `trust_file` is given, also resolves the on-disk content identity
-    and its code-trust state.'''
+    provides, has_code, and `checksum` ('ok'/'mismatch'/None). When `trust_file` is given, also
+    resolves the on-disk content identity and its code-trust state.'''
     trust = read_trust(trust_file) if trust_file is not None else {}
     rows = []
     for d in decls:
@@ -238,6 +275,9 @@ def status(plugins_dir, decls, *, trust_file=None):
         synced = pdir.exists()
         manifest = read_manifest(pdir) if synced else {}
         identity = plugin_identity(pdir) if (trust_file is not None and manifest.get('code')) else None
+        checksum = None
+        if synced and d.get('sha256'):
+            checksum = 'ok' if checksum_ok(plugins_dir, d) else 'mismatch'
         rows.append({
             'name': manifest.get('name', key),
             'source': d['source'], 'ref': d.get('ref'),
@@ -246,6 +286,7 @@ def status(plugins_dir, decls, *, trust_file=None):
             'provides': manifest.get('provides', {}),
             'has_code': bool(manifest.get('code')),
             'identity': identity,
+            'checksum': checksum,
             'code_state': code_state(manifest, synced, trust.get(key), identity),
         })
     return rows
@@ -299,6 +340,8 @@ def _emit_block(decls, indent):
         entry = f'{{ source: {_scalar(d["source"])}'
         if d.get('ref'):
             entry += f'  ref: {_scalar(d["ref"])}'
+        if d.get('sha256'):
+            entry += f'  sha256: {_scalar(d["sha256"])}'
         lines.append(inner + entry + ' }')
     lines.append(pad + ']')
     return '\n'.join(lines)
@@ -381,6 +424,9 @@ def load_code(plugins_dir, trust_file, decls, register, conflicts=None):
         manifest = read_manifest(pdir)
         if not manifest.get('code'):
             continue                                     # data-only: nothing to gate
+        if not checksum_ok(plugins_dir, d):
+            skipped.append((key, 'content does not match declared sha256 (quarantined)'))
+            continue
         if not _abi_ok(manifest):
             skipped.append((key, f'incompatible (needs plugin ABI {manifest.get("requires-abi")})'))
             continue
@@ -419,7 +465,7 @@ def _git_transport(runner, dest, source, ref):
             runner.run(f'git -C {dq} checkout --quiet {shlex.quote(ref)}', capture=False)
         return 'updated'
     dest.parent.mkdir(parents=True, exist_ok=True)
-    r = runner.run(f'git clone --quiet {shlex.quote(source_url(source))} {dq}', capture=False)
+    r = runner.run(f'git clone --quiet {shlex.quote(clone_url(source))} {dq}', capture=False)
     if ref and (r is None or r.ok):
         runner.run(f'git -C {dq} checkout --quiet {shlex.quote(ref)}', capture=False)
     return 'cloned' if (r is None or r.ok) else 'failed'

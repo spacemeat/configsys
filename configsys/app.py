@@ -511,10 +511,14 @@ def cmd_check(ctx, args):
                               f'(binding-pin) nor a component (provider-pin)')
 
     from . import plugins as _plugins
+    _decls = _plugins.declared(ctx.paths.user_config_file)
     conflict_warnings = [_fmt_conflict(*c) for c in
-                         _plugins.declared_conflicts(ctx.paths.plugins_dir,
-                                                     _plugins.declared(ctx.paths.user_config_file))]
+                         _plugins.declared_conflicts(ctx.paths.plugins_dir, _decls)]
     conflict_warnings += ctx.plugin_code_conflicts    # code-only (version-source/transport)
+    conflict_warnings += [f"plugin {_plugins.dir_name(d['source'])}: content does not match "
+                          f"declared sha256 — quarantined"
+                          for d in _decls
+                          if d.get('sha256') and not _plugins.checksum_ok(ctx.paths.plugins_dir, d)]
 
     errors = [i for i in issues if i.is_error]
     warnings = [i for i in issues if not i.is_error]
@@ -568,6 +572,21 @@ def _sync_and_report(ctx, decls):
         print(f'  {action:8} {name}')
 
 
+def _pin_checksum(ctx, decls, target):
+    '''Record the just-synced content hash of `target` as its `sha256` (a trust-on-first-use
+    pin), so later syncs are verified against exactly this content.'''
+    from . import plugins
+    pdir = ctx.paths.plugins_dir / plugins.dir_name(target['source'])
+    ident = plugins.plugin_identity(pdir)
+    if ident is None:
+        print('configsys: could not pin — plugin is not synced')
+        return
+    target['sha256'] = ident
+    plugins.set_declared(ctx.paths.user_config_file, decls)
+    disp = plugins.read_manifest(pdir).get('name', plugins.dir_name(target['source']))
+    print(f'configsys: pinned {disp} @ {ident.split(":")[-1][:12]} (sha256)')
+
+
 def cmd_plugin(ctx, args):
     from . import plugins
     decls = plugins.declared(ctx.paths.user_config_file)
@@ -582,15 +601,19 @@ def cmd_plugin(ctx, args):
 
     if sub == 'add':
         ctx.ensure_user_config()                    # the file must exist to edit it
-        existing = next((d for d in decls if d['source'] == args.source), None)
+        target = next((d for d in decls if d['source'] == args.source), None)
+        existing = target is not None
         if existing:
-            existing['ref'] = args.ref
+            target['ref'] = args.ref
         else:
-            decls.append({'source': args.source, 'ref': args.ref})
+            target = {'source': args.source, 'ref': args.ref}
+            decls.append(target)
         plugins.set_declared(ctx.paths.user_config_file, decls)
         print(f'configsys: {"re-pinned" if existing else "added"} {args.source}'
               + (f' @{args.ref}' if args.ref else ''))
-        _sync_and_report(ctx, [d for d in decls if d['source'] == args.source])
+        _sync_and_report(ctx, [target])
+        if getattr(args, 'pin', False):
+            _pin_checksum(ctx, decls, target)
         return 0
 
     if sub == 'remove':
@@ -616,6 +639,11 @@ def cmd_plugin(ctx, args):
             plugins.set_declared(ctx.paths.user_config_file, decls)
             print(f'configsys: re-pinned {target["source"]} @{args.ref}')
         _sync_and_report(ctx, [target])
+        if getattr(args, 'pin', False):
+            _pin_checksum(ctx, decls, target)
+        elif target.get('sha256') and not plugins.checksum_ok(ctx.paths.plugins_dir, target):
+            print(f'configsys: warning — {plugins.dir_name(target["source"])} no longer matches '
+                  f'its pinned sha256; it is quarantined until you re-pin (update --pin) or drop it')
         return 0
 
     if sub == 'trust':
@@ -662,6 +690,8 @@ def cmd_plugin(ctx, args):
         for r in rows:
             if not r['synced']:
                 state = 'not synced (run: configsys plugin sync)'
+            elif r['checksum'] == 'mismatch':
+                state = 'CHECKSUM MISMATCH — quarantined (content != declared sha256; re-pin or re-sync)'
             elif not r['abi_ok']:
                 state = f'incompatible (needs plugin ABI {r["requires_abi"]})'
             else:
@@ -725,12 +755,15 @@ def build_parser():
     pa = plsub.add_parser('add', help='declare a plugin and sync it')
     pa.add_argument('source', help='github:owner/repo | gitlab:owner/repo | git URL | local path')
     pa.add_argument('--ref', help='pin to a tag / commit / branch')
+    pa.add_argument('--pin', action='store_true',
+                    help='also lock the plugin to the synced content hash (sha256)')
     pr = plsub.add_parser('remove', help='undeclare a plugin and delete its synced copy')
     pr.add_argument('name', help='plugin name, source, or dir')
     pu = plsub.add_parser('update', help="re-sync a plugin (move its pin with --ref)")
     pu.add_argument('name', help='plugin name, source, or dir')
     pu.add_argument('--ref', help='new tag / commit / branch to pin to')
-    pt = plsub.add_parser('trust', help="approve a code plugin's current commit to run during installs")
+    pu.add_argument('--pin', action='store_true', help='re-lock to the new synced content hash')
+    pt = plsub.add_parser('trust', help="approve a code plugin's current content to run during installs")
     pt.add_argument('name', help='plugin name, source, or dir')
     pun = plsub.add_parser('untrust', help="revoke a code plugin's trust")
     pun.add_argument('name', help='plugin name, source, or dir')
