@@ -224,6 +224,44 @@ def status(plugins_dir, decls, *, runner=None, trust_file=None):
     return rows
 
 
+def _as_name_list(v):
+    return v if isinstance(v, list) else ([v] if v else [])
+
+
+def declared_conflicts(plugins_dir, decls):
+    '''Names claimed by MORE THAN ONE plugin — an order-dependent collision the layer stack /
+    registry resolves silently (last declared wins). Detected from manifests + data files only
+    (no code is run), so it's usable by both `plugin list` and `check`:
+      - `component` / `os` names in a plugin's data files,
+      - `driver` names from a plugin's `provides.drivers` (and any `drivers:` config block).
+    Only synced + ABI-compatible plugins count. Returns [(kind, name, [plugin_dir, ...])], sorted.'''
+    owners = {}   # (kind, name) -> set(plugin_dir)
+    for d in decls:
+        key = dir_name(d['source'])
+        pdir = plugins_dir / key
+        if not pdir.exists():
+            continue
+        manifest = read_manifest(pdir)
+        if not _abi_ok(manifest):
+            continue
+        for drv in _as_name_list((manifest.get('provides') or {}).get('drivers')):
+            owners.setdefault(('driver', drv), set()).add(key)
+        for f in _data_files(pdir, manifest):
+            try:
+                data = layers.materialize_string(Path(f).read_text(encoding='utf-8'))
+            except Exception:                          # noqa: BLE001 — a bad data file is skipped
+                continue
+            if not isinstance(data, dict):
+                continue
+            for section, kind in (('components', 'component'), ('os', 'os'), ('drivers', 'driver')):
+                sec = data.get(section)
+                if isinstance(sec, dict):
+                    for name in sec:
+                        owners.setdefault((kind, name), set()).add(key)
+    return sorted((kind, name, sorted(dirs))
+                  for (kind, name), dirs in owners.items() if len(dirs) > 1)
+
+
 def _emit_block(decls, indent):
     '''`plugins: [...]` humon text at the given base indent (source values quoted as needed).'''
     pad, inner = ' ' * indent, ' ' * (indent + 4)

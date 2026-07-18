@@ -507,11 +507,16 @@ def cmd_check(ctx, args):
             pin_issues.append(f"pin '{key}: {val}': '{val}' is neither a known driver "
                               f'(binding-pin) nor a component (provider-pin)')
 
+    from . import plugins as _plugins
+    conflict_warnings = [_fmt_conflict(*c) for c in
+                         _plugins.declared_conflicts(ctx.paths.plugins_dir,
+                                                     _plugins.declared(ctx.paths.user_config_file))]
+
     errors = [i for i in issues if i.is_error]
     warnings = [i for i in issues if not i.is_error]
     code_warnings = ctx.plugin_code_warnings
     if (not errors and not warnings and not prof_issues and not pin_issues
-            and not include_warnings and not code_warnings):
+            and not include_warnings and not code_warnings and not conflict_warnings):
         print(f'configsys: OK — {len(components)} components, no issues')
         return 0
 
@@ -527,14 +532,20 @@ def cmd_check(ctx, args):
         print(f'  warn    {msg}')
     for msg in code_warnings:
         print(f'  warn    {msg}')
+    for msg in conflict_warnings:
+        print(f'  warn    {msg}')
     n_err = len(errors) + len(prof_issues) + len(pin_issues)
-    n_warn = len(warnings) + len(include_warnings) + len(code_warnings)
+    n_warn = len(warnings) + len(include_warnings) + len(code_warnings) + len(conflict_warnings)
     print(f'\nconfigsys: {n_err} error(s), {n_warn} warning(s) '
           f'across {len(components)} components')
     return 1 if n_err else 0
 
 
 # -- plugin: declare in `plugins:`, sync from git -------------------------
+
+def _fmt_conflict(kind, name, dirs):
+    return f"conflict: {kind} '{name}' claimed by plugins {', '.join(dirs)} (last declared wins)"
+
 
 def _find_decl(decls, plugins_dir, ident):
     '''A declared plugin matching `ident` — its source, dir basename, or manifest name.'''
@@ -661,6 +672,8 @@ def cmd_plugin(ctx, args):
             ref = f' @{r["ref"]}' if r['ref'] else ''
             print(f'  {r["name"]:22} {r["source"]}{ref}')
             print(f'  {"":22} {state}')
+        for kind, name, dirs in plugins.declared_conflicts(ctx.paths.plugins_dir, decls):
+            print(f'  {_fmt_conflict(kind, name, dirs)}')
         return 0
 
     print(f'configsys: unknown plugin subcommand {sub!r}')

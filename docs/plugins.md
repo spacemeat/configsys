@@ -271,6 +271,12 @@ Mirrors how overrides shipped: prove the mechanism on the safe subset, then add 
   error), so the single signal is the "run `plugin trust`" nudge. Declaring `provides: { drivers:
   [...] }` in the manifest is what enables this — without it, an unregistered `via:` still reads
   as unknown.
+- ~~Plugin‑vs‑plugin conflict surfacing~~ — `plugins.declared_conflicts` finds names (component /
+  os block / driver via `provides.drivers`) claimed by 2+ synced+compatible plugins, from
+  manifests + data files (no code run). `plugin list` prints them as a footer and `check` as
+  warnings, both with attribution and "(last declared wins)". `test/test_plugin_conflicts.py`.
+  Gap: version‑source / transport *registration* collisions are code‑only (self‑registered), so
+  they aren't detected declaratively — deferred with the non‑git‑identity work.
 
 **Still open:**
 - **Non‑git code trust identity.** Per‑commit trust binds to a git commit sha, so a plugin
@@ -278,8 +284,5 @@ Mirrors how overrides shipped: prove the mechanism on the safe subset, then add 
   content‑hash identity (hash the plugin tree) would let tarball/OCI code plugins be trusted too.
 - **Sync transport edge cases**: private repos (ssh/tokens), offline, checksum/signature
   verification of a pinned ref (belt‑and‑suspenders beyond commit pinning).
-- **Plugin‑vs‑plugin ordering / conflicts**: two plugins define the same component, driver, or
-  transport — declaration order wins (like other layers); surface collisions in `plugin
-  list`/`check`.
 - **Windows/macOS**: still deferred; a plugin adding another OS root + `native` driver is exactly
   the shape that would absorb them, but no test path yet.
