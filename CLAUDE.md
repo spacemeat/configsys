@@ -63,6 +63,15 @@ error clearly; provenance (`Component.source`, `Config.profile_source`) flows th
 `where`/`check` attribute to the right file. This is the shared substrate the plugin model
 will reuse — a plugin is just another source in the stack.
 
+**Data plugins (configsys/plugins.py — P1).** `plugins: [ { source: "github:x/y"  ref: v1 } ]`
+in the user config, then `configsys plugin sync` clones each to `~/.config/configsys/plugins/
+<name>/` at the pinned ref (git via the runner). Its `.hu` data files become `plugin`-role
+layers (repo < plugins < discovered < user); a plugin may add components AND os blocks
+(derivative distros — `merge_dict_section` unions os/mechanisms from repo+plugin). Loading uses
+what's on disk; unsynced / ABI-incompatible (manifest `requires-abi` vs `ABI_VERSION`/
+`ABI_SUPPORTED`) / malformed plugins are skipped, never fatal. `configsys plugin list` shows
+status. Code plugins (Python `Family` subclasses) + trust are P2 — see docs/plugins.md.
+
 **Project discovery (developer-in-source-tree).** configsys walks up from the CWD to the
 nearest dir holding `.configsys.hu` (base — ships in a bundle) and/or `.configsys-*.hu`
 (named variants like `-dev`, source-tree only), and adds them as `discover`-role layers whose

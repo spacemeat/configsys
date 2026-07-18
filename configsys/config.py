@@ -26,11 +26,12 @@ class Config:
         self._profiles = layers.merge_named(layer_list, 'profiles')   # name -> (val, src, shadows)
 
     @classmethod
-    def load(cls, paths, discovered=()):
+    def load(cls, paths, discovered=(), plugin_files=()):
         roots = [(paths.config_file, 'repo')]
+        roots += [(p, 'plugin') for p in plugin_files]
         roots += [(d, 'discover') for d in discovered]
         roots.append((paths.user_config_file, 'user'))
-        return cls(layers.expand_tolerant(roots, {'discover'})[0])
+        return cls(layers.expand_tolerant(roots, {'discover', 'plugin'})[0])
 
     @property
     def active_profiles(self):

@@ -51,6 +51,7 @@ class Paths:
         self.legacy_user_config_file = self.home / 'configsys.hu'
         self.ledger_file = self.state_dir / 'state.hu'
         self.versions_file = self.state_dir / 'versions.hu'   # discovered-version cache
+        self.plugins_dir = self.state_dir / 'plugins'         # synced remote plugin repos
 
     def expand(self, p) -> Path:
         '''Expand a route-supplied path against configsys HOME (not the OS home),

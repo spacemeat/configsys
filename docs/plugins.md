@@ -1,9 +1,18 @@
 # Plugins — scoping
 
-Status: **scoping** (no code yet). Design settled; decisions locked in conversation
-2026‑07‑17. This is the north‑star for extending configsys with shareable, remote,
-optionally‑code‑carrying layers. It builds directly on the layer stack (`configsys/layers.py`)
-and the `Family` registry (`configsys/families/`).
+Status: **P1 BUILT** (data plugins + sync — `configsys/plugins.py`, `configsys plugin
+list/sync`); **P2 (code + trust + ABI gate) scoped, not built.** This is the north‑star for
+extending configsys with shareable, remote, optionally‑code‑carrying layers. It builds
+directly on the layer stack (`configsys/layers.py`) and the `Family` registry
+(`configsys/families/`).
+
+P1 in a nutshell: `plugins: [ { source: "github:x/y"  ref: v1 } ]` in the user config, then
+`configsys plugin sync` clones each to `~/.config/configsys/plugins/<name>/` at the pinned
+ref; its `.hu` data files become `plugin`‑role layers (repo < plugins < discovered < user).
+A plugin can add components AND os blocks (derivative distros). Unsynced / ABI‑incompatible /
+malformed → skipped, never fatal (components degrade to resilient error rows). `ABI_VERSION`/
+`ABI_SUPPORTED` live in `plugins.py`; the manifest `requires-abi` is already gated. NOTE: a
+`github:`/`gitlab:` source has a colon, so it must be **quoted** in the .hu file.
 
 ## 1. Why
 
@@ -142,10 +151,18 @@ diverge.
 
 ### 7a. Freeze + document the `Family` surface (the prerequisite work)
 
-To version honestly, the public contract must be explicit and stable. Ship a
-`configsys/plugins.py` that re‑exports the frozen surface (one import for plugin authors:
-`from configsys.plugins import Family, register_family`). The contract, from today's
-`configsys/component.py`:
+To version honestly, the public contract must be explicit and stable. Re‑export the frozen
+surface from `configsys/plugins.py` (one import for plugin authors:
+`from configsys.plugins import Family, register_family`).
+
+**Design goal for the freeze (per the P2 decision): keep the surface MINIMAL and cogent.**
+Don't just promote every underscore helper 1:1 — while freezing, consolidate: bundle related
+helpers by co‑usage into a smaller, coherent public API, without losing functionality. E.g. the
+fetch/version helpers (`resolve_version`, `download_url`, `_disco_spec`, `_apply_placeholders`,
+`_arch`) form one cluster ("resolve + fetch an artifact"); the path/scope helpers
+(`_scoped_dir`, `_sudo`, `scope`) another ("where + with what privilege does this install").
+Present each cluster as a tight, documented set so a plugin author reads a small, obvious API,
+not a pile of underscore methods. The contract inventory, from today's `configsys/component.py`:
 
 **Class attributes a Family sets:** `name`, `privileged`, `default_scope`, `honors_scope`.
 
@@ -177,15 +194,20 @@ it; retrofitting versioning after plugins exist is the expensive path.
 
 ## 8. Phasing (cross‑yourself order)
 
-- **P1 — data plugins + sync.** Manifest, `plugins:` declaration, `plugin add/list/sync/
-  update/remove`, git sync to pinned refs, plugin‑role layers in the stack, os‑block additions
-  that reuse existing mechanisms. **No code, light trust.** Proves the whole distribution
-  machinery on low‑risk data. Reuses ~everything.
-- **P2 — code plugins.** `configsys/plugins.py` (the frozen, documented ABI surface) +
-  `ABI_VERSION`/`ABI_SUPPORTED` + the manifest `requires-abi` gate; trusted‑only import of
-  `code:` modules with per‑commit approval and the trust store; registration into the family
-  registry; degradation for untrusted/incompatible. The big, careful one — built on P1's proven
-  sync.
+- **P1 — data plugins + sync. ✅ BUILT.** `configsys/plugins.py` (declared/source_url/dir_name/
+  read_manifest/layer_files/status/sync), `plugins:` declaration, `configsys plugin list/sync`,
+  git sync to pinned refs, `plugin`‑role layers in the stack, os‑block additions (derivative
+  distros), `ABI_VERSION`/`ABI_SUPPORTED` + the `requires-abi` gate already live. Deferred to
+  P1.5: `plugin add/remove/update` (edit the `plugins:` list in place — declarative edit + sync
+  is the MVP flow for now).
+- **P2 — code plugins.** The frozen, documented ABI surface (`configsys/plugins.py` re‑exports;
+  see §7a — keep it minimal/clustered); trusted‑only import of `code:` modules with per‑commit
+  approval and the trust store; registration into the family registry; degradation for
+  untrusted/incompatible. The big, careful one — built on P1's proven sync.
+  - **Publish an example plugin as part of P2**: the **Alpine/apk** case — an `apk` `Family` +
+    an `alpine` os block + `via: apk` components — is the canonical, useful demonstrator (and a
+    real gap: no apk support today). Ship it as a reference plugin repo so authors have a
+    template, and so we dogfood the whole code‑plugin path end‑to‑end.
 
 Mirrors how overrides shipped: prove the mechanism on the safe subset, then add the escalation.
 
@@ -203,8 +225,15 @@ Mirrors how overrides shipped: prove the mechanism on the safe subset, then add 
   verification of a pinned ref (belt‑and‑suspenders beyond commit pinning).
 - **Plugin‑vs‑plugin ordering / conflicts**: two plugins define the same component or mechanism
   — declaration order wins (like other layers); surface collisions in `plugin list`/`check`.
-- **Non‑Family extension points** (e.g. a plugin adding a version‑discovery source, or a new
-  `source:` transport). Out of scope until asked; the ABI number covers them when they arrive.
+- **Non‑Family extension points — wanted (P2+).** The same trusted‑code loading that registers
+  a `Family` should register other pluggable kinds. Two the maintainer flagged as desirable:
+  (a) **version‑discovery sources** — today `versions.discover` handles github/pypi/crates/aur/
+  static; a plugin should be able to add a new source (e.g. a distro's package index, a private
+  registry) so `version: { <newsource>: ... }` works. (b) new `source:` **sync transports**
+  beyond git (e.g. a tarball URL, an OCI artifact). Design implication: the registration API
+  (§code‑loading) should be a small *set* of `register_*` hooks (family, version‑source,
+  transport, …), all gated by the same trust + ABI, rather than family‑only. Fold these into the
+  frozen surface so the ABI number covers them from the start.
 - **README.md**: a user‑facing plugins section (and an overall project section) once P1 lands.
 - **Windows/macOS**: still deferred; a plugin adding another OS root + `native` mechanism is
   exactly the shape that would absorb them, but no test path yet.

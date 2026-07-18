@@ -192,23 +192,31 @@ def merge_scalar(layers, section, roles):
     return val
 
 
-def repo_section(layers, section):
-    '''A repo-only section (os / mechanisms) from the repo layers; last non-empty wins.'''
-    val = {}
+def merge_dict_section(layers, section, roles):
+    '''Union a dict section (os / mechanisms — {name: spec}) across layers whose role is in
+    `roles`; a later layer's entry wins per name. Lets a plugin add os blocks (derivative
+    distros) while the rest stay from the repo.'''
+    out = {}
     for layer in layers:
-        if layer.role == 'repo' and layer.data.get(section):
-            val = layer.data[section]
-    return val
+        if layer.role in roles and isinstance(layer.data.get(section), dict):
+            out.update(layer.data[section])
+    return out
 
 
-def include_warnings(layers):
-    '''Sections an included file set that are ignored (includes are definitions-only).'''
+# what each non-repo/non-user role may NOT contribute (ignored -> a `check` warning)
+_FORBIDDEN_BY_ROLE = {
+    'include':  _SETTING_SECTIONS + _REPO_SECTIONS,   # definitions-only
+    'discover': _SETTING_SECTIONS + _REPO_SECTIONS,   # definitions-only
+    'plugin':   _SETTING_SECTIONS,                    # may add os/mechanisms, not machine settings
+}
+
+
+def ignored_section_warnings(layers):
+    '''Sections a layer set that its role doesn't permit (silently ignored) — surfaced by check.'''
     warns = []
     for layer in layers:
-        if layer.role != 'include':
-            continue
-        for sec in _SETTING_SECTIONS + _REPO_SECTIONS:
+        for sec in _FORBIDDEN_BY_ROLE.get(layer.role, ()):
             if sec in layer.data:
-                warns.append(f'{layer.path}: `{sec}:` in an included file is ignored '
-                             f'(includes are definitions-only)')
+                warns.append(f'{layer.path}: `{sec}:` is ignored here (not permitted from a '
+                             f'{layer.role} layer)')
     return warns

@@ -98,42 +98,43 @@ class OsCascade:
         return predicate.Context(self.lineage(block), version, cpu, self.scale_roots)
 
 
-def load(path, overrides_path=None, discovered=(), validate=True):
+def load(path, overrides_path=None, discovered=(), plugin_files=(), validate=True):
     '''-> (OsCascade, {component_name: Component}, {mechanism: [required caps]}).
 
-    Layer stack lowest-first: routes.hu (repo) < discovered project files (.configsys*.hu) <
-    the user's ~/configsys.hu, each with its `include:` graph expanded. Components merge PER
-    NAME (later wins — redefine, add, or remove with `{}`); os/mechanisms stay repo-only. A
-    malformed discovered file is skipped (it never bricks the rest). validate=True rejects an
-    ambiguous merged set up front.
+    Layer stack lowest-first: routes.hu (repo) < plugin data files < discovered project files
+    (.configsys*.hu) < the user's config, each with its `include:` graph expanded. Components
+    merge PER NAME (later wins — redefine, add, or remove with `{}`); os/mechanisms come from
+    repo + plugins (a plugin may add a derivative-distro os block). A malformed discovered or
+    plugin file is skipped (never bricks the rest). validate=True rejects an ambiguous set.
     '''
     roots = [(path, 'repo')]
+    roots += [(p, 'plugin') for p in plugin_files]
     roots += [(d, 'discover') for d in discovered]
     if overrides_path is not None:
         roots.append((overrides_path, 'user'))
-    layer_list, _warnings = layers.expand_tolerant(roots, {'discover'})
+    layer_list, _warnings = layers.expand_tolerant(roots, {'discover', 'plugin'})
 
-    cascade = OsCascade(layers.repo_section(layer_list, 'os'))
-    discovered_norm = {os.path.normpath(d) for d in discovered}
+    cascade = OsCascade(layers.merge_dict_section(layer_list, 'os', ('repo', 'plugin')))
+    forgiving = {os.path.normpath(d) for d in discovered} | {os.path.normpath(p) for p in plugin_files}
     from . import routecheck
     components = {}
     for name, (spec, src, shadows) in layers.merge_named(layer_list, 'components').items():
-        # A malformed / ambiguous component from a DISCOVERED project file is skipped (the
+        # A malformed / ambiguous component from a DISCOVERED or PLUGIN file is skipped (the
         # profile that referenced it then surfaces as a resilient error row) — never fatal.
-        # From the repo or your own ~/configsys.hu it stays a loud, attributed error.
+        # From the repo or your own config it stays a loud, attributed error.
         try:
             comp = Component(name, spec or {})
             if validate:
                 routecheck.check_component(name, comp, cascade)
         except ConfigsysError as e:
-            if os.path.normpath(src) in discovered_norm:
+            if os.path.normpath(src) in forgiving:
                 continue
             raise ConfigError(f'{src}: {e}')
         comp.source = src
         comp.shadows = shadows
         components[name] = comp
 
-    mechs = layers.repo_section(layer_list, 'mechanisms')
+    mechs = layers.merge_dict_section(layer_list, 'mechanisms', ('repo', 'plugin'))
     mechanisms = {name: _as_list((spec or {}).get('requires')) for name, spec in mechs.items()}
     return cascade, components, mechanisms
 
@@ -145,9 +146,9 @@ class Resolver:
     an op to (dependency installs are folded in by planning.expand_plan).'''
 
     def __init__(self, routes_path, block, version=None, cpu=None, pins=None,
-                 overrides_path=None, discovered=()):
+                 overrides_path=None, discovered=(), plugin_files=()):
         self.cascade, self.components, self.mechanisms = load(routes_path, overrides_path,
-                                                              discovered)
+                                                              discovered, plugin_files)
         self.block = block
         self.version = version
         self.cpu = cpu

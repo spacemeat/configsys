@@ -99,5 +99,5 @@ def test_included_settings_are_ignored_with_a_warning(tmp_path):
     c = Config(ls)
     assert c.active_profiles == ['pj']                       # include's `configs:` ignored
     assert c.default_scope() is None                         # include's `scope:` ignored
-    warns = layers.include_warnings(ls)
+    warns = layers.ignored_section_warnings(ls)
     assert any('configs' in w for w in warns) and any('scope' in w for w in warns)

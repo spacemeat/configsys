@@ -29,6 +29,10 @@ USER_CONFIG_TEMPLATE = '''{
     // resolve against THIS file's directory. Handy for per-project dependency sets.
     // include: [ ~/src/myproject/configsys.hu ]
 
+    // Data plugins from git repos, pinned to a ref, then `configsys plugin sync`. A
+    // github:/gitlab: source has a colon so it must be quoted.
+    // plugins: [ { source: "github:someone/configsys-opensuse"  ref: v1.2.0 } ]
+
     // Which profiles (from the repo's config.hu, your `profiles:`, or an include) apply here.
     configs: [ dev ]
 
@@ -86,8 +90,19 @@ class Context:
         self.runner = Runner(pretend=args.pretend, echo=lambda m: print(m))
         self._config = None
         self._discovered = None
+        self._plugin_files = None
         self.resolve_errors = {}      # {requested_name: message} from the last resilient resolve
         self._migrate_user_config()
+
+    @property
+    def plugin_files(self):
+        '''Data-file layers contributed by declared+synced+compatible plugins (in declaration
+        order). Uses what's on disk; `configsys plugin sync` puts it there.'''
+        if self._plugin_files is None:
+            from . import plugins
+            decls = plugins.declared(self.paths.user_config_file)
+            self._plugin_files = plugins.layer_files(self.paths.plugins_dir, decls)
+        return self._plugin_files
 
     def _migrate_user_config(self):
         '''One-time move of a legacy ~/configsys.hu into ~/.config/configsys/configsys.hu.'''
@@ -139,12 +154,12 @@ class Context:
                         self.os_info.version, self._cpu(),
                         pins=self.config.pins(),
                         overrides_path=self.paths.user_config_file,
-                        discovered=self.discovered)
+                        discovered=self.discovered, plugin_files=self.plugin_files)
 
     @property
     def config(self):
         if self._config is None:
-            self._config = Config.load(self.paths, self.discovered)
+            self._config = Config.load(self.paths, self.discovered, self.plugin_files)
         return self._config
 
     def apply_scope_default(self, units):
@@ -427,16 +442,19 @@ def cmd_check(ctx, args):
     from . import layers, routes, routecheck
     try:
         cascade, components, mechanisms = routes.load(
-            ctx.paths.routes_file, ctx.paths.user_config_file, validate=False)
-        layer_list = layers.expand([(ctx.paths.routes_file, 'repo'),
-                                    (ctx.paths.config_file, 'repo'),
-                                    (ctx.paths.user_config_file, 'user')])
+            ctx.paths.routes_file, ctx.paths.user_config_file, ctx.discovered,
+            ctx.plugin_files, validate=False)
+        roots = ([(ctx.paths.routes_file, 'repo'), (ctx.paths.config_file, 'repo')]
+                 + [(p, 'plugin') for p in ctx.plugin_files]
+                 + [(d, 'discover') for d in ctx.discovered]
+                 + [(ctx.paths.user_config_file, 'user')])
+        layer_list, _w = layers.expand_tolerant(roots, {'discover', 'plugin'})
     except ConfigsysError as e:
         print(f'configsys: {e}')          # a parse/structural error before we can lint
         return 1
 
     issues = routecheck.validate(components, cascade, mechanisms)
-    include_warnings = layers.include_warnings(layer_list)
+    include_warnings = layers.ignored_section_warnings(layer_list)
 
     # profile references: a selected profile naming a component that doesn't exist
     prof_issues = []
@@ -483,6 +501,43 @@ def cmd_check(ctx, args):
     return 1 if n_err else 0
 
 
+# -- plugin: declare in `plugins:`, sync from git -------------------------
+
+def cmd_plugin(ctx, args):
+    from . import plugins
+    decls = plugins.declared(ctx.paths.user_config_file)
+    sub = getattr(args, 'plugin_command', None) or 'list'
+
+    if sub == 'sync':
+        if not decls:
+            print('configsys: no plugins declared (add a `plugins: [ { source, ref } ]` list '
+                  'to your config)')
+            return 0
+        for name, action in plugins.sync(ctx.runner, ctx.paths.plugins_dir, decls):
+            print(f'  {action:8} {name}')
+        return 0
+
+    if sub == 'list':
+        rows = plugins.status(ctx.paths.plugins_dir, decls)
+        if not rows:
+            print('configsys: no plugins declared')
+            return 0
+        for r in rows:
+            if not r['synced']:
+                state = 'not synced (run: configsys plugin sync)'
+            elif not r['abi_ok']:
+                state = f'incompatible (needs plugin ABI {r["requires_abi"]})'
+            else:
+                state = 'ok' + ('  [ships code — inert until P2]' if r['has_code'] else '')
+            ref = f' @{r["ref"]}' if r['ref'] else ''
+            print(f'  {r["name"]:22} {r["source"]}{ref}')
+            print(f'  {"":22} {state}')
+        return 0
+
+    print(f'configsys: unknown plugin subcommand {sub!r}')
+    return 2
+
+
 # -- argument parsing -----------------------------------------------------
 
 def build_parser():
@@ -516,6 +571,11 @@ def build_parser():
     sub.add_parser('check', help='lint the merged config (repo + ~/configsys.hu) without '
                                  'installing')
 
+    pl = sub.add_parser('plugin', help='data plugins: declare in `plugins:`, then sync from git')
+    plsub = pl.add_subparsers(dest='plugin_command')
+    plsub.add_parser('list', help='declared plugins + their sync/ABI status')
+    plsub.add_parser('sync', help='clone/fetch declared plugins to their pinned refs')
+
     sub.add_parser('refresh', help='re-query latest versions from their sources')
     sub.add_parser('tui', help='interactive TUI (default)')
     return p
@@ -531,6 +591,7 @@ _COMMANDS = {
     'set-version': cmd_set_version,
     'where': cmd_where,
     'check': cmd_check,
+    'plugin': cmd_plugin,
     'refresh': cmd_refresh,
     'tui': cmd_tui,
 }
