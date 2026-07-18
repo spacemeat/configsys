@@ -132,6 +132,36 @@
             install: [ { via: native  repo-component: universe } ]
         }
 
+        // docker: the engine via distro packages (RHEL steers you to podman — use that there).
+        // Joining the `docker` group + enabling the service is a manual post-install step, out
+        // of routing scope. User config lives in ~/.docker, so no dotfiles here.
+        docker: {
+            install: [ { via: native  repo-component: universe  name: { dnf: moby-engine  pacman: docker  default: docker.io } } ]
+        }
+
+        // discord / slack: flatpak everywhere (no uniform native path — Fedora has none), and
+        // their config is sandboxed under ~/.var/app and holds auth tokens, so no dotfiles.
+        discord: { install: [ { via: flatpak  hub: flathub  app: com.discordapp.Discord } ] }
+        slack:   { install: [ { via: flatpak  hub: flathub  app: com.slack.Slack } ] }
+
+        // unityhub: the Unity Hub AppImage. Unity Editor(s) are installed THROUGH the Hub at
+        // runtime — there's no `unity3d` package to route. Config in ~/.config/UnityHub (deferred).
+        unityhub: {
+            suggests: unityhub-dotfiles
+            install: [ { via: appImage  name: "Unity Hub"  version: { static: latest }
+                         url: "https://public-cdn.cloud.unity3d.com/hub/prod/UnityHub.AppImage"
+                         path: ~/apps/UnityHub.AppImage } ]
+        }
+
+        // android-studio: Google's official tarball, unpacked scope-honoring (~/android-studio
+        // for user, /opt/android-studio for system). No clean version API, so the version is a
+        // manual pin — bump it from developer.android.com/studio. Fat IDE config deferred.
+        android-studio: {
+            suggests: android-studio-dotfiles
+            install: [ { via: tarball  version: { static: 2024.2.1.11 }
+                         url: "https://redirector.gvt1.com/edgedl/android/studio/ide-zips/$VERSION/android-studio-$VERSION-linux.tar.gz" } ]
+        }
+
         // --- dotfiles ---
         bash-dotfiles: {
             // absorb-into: a pre-existing ~/.bash_aliases is MOVED into the ~/.bash.d loader

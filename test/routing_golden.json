@@ -1,5 +1,25 @@
 {
  "arch@20260101": {
+  "android-studio": {
+   "pacman\\curl": {
+    "driver": "pacman",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "tarball\\android-studio": {
+    "driver": "tarball",
+    "fields": {
+     "name": "android-studio",
+     "url": "https://redirector.gvt1.com/edgedl/android/studio/ide-zips/$VERSION/android-studio-$VERSION-linux.tar.gz",
+     "version": {
+      "static": "2024.2.1.11"
+     }
+    },
+    "name": "android-studio"
+   }
+  },
   "arduino": {
    "appImage\\arduino": {
     "driver": "appImage",
@@ -145,6 +165,33 @@
      "name": "curl"
     },
     "name": "curl"
+   }
+  },
+  "discord": {
+   "flatpak\\discord": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "com.discordapp.Discord"
+    },
+    "name": "com.discordapp.Discord"
+   },
+   "pacman\\flatpak": {
+    "driver": "pacman",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   }
+  },
+  "docker": {
+   "pacman\\docker": {
+    "driver": "pacman",
+    "fields": {
+     "name": "docker",
+     "repo-component": "universe"
+    },
+    "name": "docker"
    }
   },
   "fastfetch": {
@@ -567,6 +614,23 @@
     "name": "ripgrep"
    }
   },
+  "slack": {
+   "flatpak\\slack": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "com.slack.Slack"
+    },
+    "name": "com.slack.Slack"
+   },
+   "pacman\\flatpak": {
+    "driver": "pacman",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   }
+  },
   "steam": {
    "flatpak\\steam": {
     "driver": "flatpak",
@@ -602,6 +666,28 @@
      "repo-component": "universe"
     },
     "name": "rust"
+   }
+  },
+  "unityhub": {
+   "appImage\\unityhub": {
+    "driver": "appImage",
+    "fields": {
+     "name": "Unity Hub",
+     "path": "~/apps/UnityHub.AppImage",
+     "url": "https://public-cdn.cloud.unity3d.com/hub/prod/UnityHub.AppImage",
+     "version": {
+      "static": "latest"
+     }
+    },
+    "name": "Unity Hub"
+   },
+   "pacman\\libfuse2": {
+    "driver": "pacman",
+    "fields": {
+     "name": "fuse2",
+     "repo-component": "universe"
+    },
+    "name": "fuse2"
    }
   },
   "unzip": {
@@ -970,6 +1056,26 @@
   }
  },
  "debian@11": {
+  "android-studio": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "tarball\\android-studio": {
+    "driver": "tarball",
+    "fields": {
+     "name": "android-studio",
+     "url": "https://redirector.gvt1.com/edgedl/android/studio/ide-zips/$VERSION/android-studio-$VERSION-linux.tar.gz",
+     "version": {
+      "static": "2024.2.1.11"
+     }
+    },
+    "name": "android-studio"
+   }
+  },
   "arduino": {
    "appImage\\arduino": {
     "driver": "appImage",
@@ -1255,6 +1361,33 @@
      "name": "curl"
     },
     "name": "curl"
+   }
+  },
+  "discord": {
+   "apt\\flatpak": {
+    "driver": "apt",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\discord": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "com.discordapp.Discord"
+    },
+    "name": "com.discordapp.Discord"
+   }
+  },
+  "docker": {
+   "apt\\docker": {
+    "driver": "apt",
+    "fields": {
+     "name": "docker.io",
+     "repo-component": "universe"
+    },
+    "name": "docker.io"
    }
   },
   "fastfetch": {
@@ -1854,6 +1987,23 @@
     "name": "ripgrep"
    }
   },
+  "slack": {
+   "apt\\flatpak": {
+    "driver": "apt",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\slack": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "com.slack.Slack"
+    },
+    "name": "com.slack.Slack"
+   }
+  },
   "software-properties-common": {
    "apt\\software-properties-common": {
     "driver": "apt",
@@ -1898,6 +2048,28 @@
      }
     },
     "name": "tree-sitter-cli"
+   }
+  },
+  "unityhub": {
+   "appImage\\unityhub": {
+    "driver": "appImage",
+    "fields": {
+     "name": "Unity Hub",
+     "path": "~/apps/UnityHub.AppImage",
+     "url": "https://public-cdn.cloud.unity3d.com/hub/prod/UnityHub.AppImage",
+     "version": {
+      "static": "latest"
+     }
+    },
+    "name": "Unity Hub"
+   },
+   "apt\\libfuse2": {
+    "driver": "apt",
+    "fields": {
+     "name": "libfuse2",
+     "repo-component": "universe"
+    },
+    "name": "libfuse2"
    }
   },
   "unzip": {
@@ -2205,6 +2377,26 @@
   }
  },
  "debian@12": {
+  "android-studio": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "tarball\\android-studio": {
+    "driver": "tarball",
+    "fields": {
+     "name": "android-studio",
+     "url": "https://redirector.gvt1.com/edgedl/android/studio/ide-zips/$VERSION/android-studio-$VERSION-linux.tar.gz",
+     "version": {
+      "static": "2024.2.1.11"
+     }
+    },
+    "name": "android-studio"
+   }
+  },
   "arduino": {
    "appImage\\arduino": {
     "driver": "appImage",
@@ -2490,6 +2682,33 @@
      "name": "curl"
     },
     "name": "curl"
+   }
+  },
+  "discord": {
+   "apt\\flatpak": {
+    "driver": "apt",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\discord": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "com.discordapp.Discord"
+    },
+    "name": "com.discordapp.Discord"
+   }
+  },
+  "docker": {
+   "apt\\docker": {
+    "driver": "apt",
+    "fields": {
+     "name": "docker.io",
+     "repo-component": "universe"
+    },
+    "name": "docker.io"
    }
   },
   "fastfetch": {
@@ -3079,6 +3298,23 @@
     "name": "ripgrep"
    }
   },
+  "slack": {
+   "apt\\flatpak": {
+    "driver": "apt",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\slack": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "com.slack.Slack"
+    },
+    "name": "com.slack.Slack"
+   }
+  },
   "software-properties-common": {
    "apt\\software-properties-common": {
     "driver": "apt",
@@ -3123,6 +3359,28 @@
      }
     },
     "name": "tree-sitter-cli"
+   }
+  },
+  "unityhub": {
+   "appImage\\unityhub": {
+    "driver": "appImage",
+    "fields": {
+     "name": "Unity Hub",
+     "path": "~/apps/UnityHub.AppImage",
+     "url": "https://public-cdn.cloud.unity3d.com/hub/prod/UnityHub.AppImage",
+     "version": {
+      "static": "latest"
+     }
+    },
+    "name": "Unity Hub"
+   },
+   "apt\\libfuse2": {
+    "driver": "apt",
+    "fields": {
+     "name": "libfuse2",
+     "repo-component": "universe"
+    },
+    "name": "libfuse2"
    }
   },
   "unzip": {
@@ -3430,6 +3688,26 @@
   }
  },
  "fedora@41": {
+  "android-studio": {
+   "dnf\\curl": {
+    "driver": "dnf",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "tarball\\android-studio": {
+    "driver": "tarball",
+    "fields": {
+     "name": "android-studio",
+     "url": "https://redirector.gvt1.com/edgedl/android/studio/ide-zips/$VERSION/android-studio-$VERSION-linux.tar.gz",
+     "version": {
+      "static": "2024.2.1.11"
+     }
+    },
+    "name": "android-studio"
+   }
+  },
   "arduino": {
    "appImage\\arduino": {
     "driver": "appImage",
@@ -3597,6 +3875,33 @@
      "name": "curl"
     },
     "name": "curl"
+   }
+  },
+  "discord": {
+   "dnf\\flatpak": {
+    "driver": "dnf",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\discord": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "com.discordapp.Discord"
+    },
+    "name": "com.discordapp.Discord"
+   }
+  },
+  "docker": {
+   "dnf\\docker": {
+    "driver": "dnf",
+    "fields": {
+     "name": "moby-engine",
+     "repo-component": "universe"
+    },
+    "name": "moby-engine"
    }
   },
   "fastfetch": {
@@ -4032,6 +4337,23 @@
     "name": "ripgrep"
    }
   },
+  "slack": {
+   "dnf\\flatpak": {
+    "driver": "dnf",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\slack": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "com.slack.Slack"
+    },
+    "name": "com.slack.Slack"
+   }
+  },
   "steam": {
    "dnf\\flatpak": {
     "driver": "dnf",
@@ -4067,6 +4389,28 @@
      "repo-component": "universe"
     },
     "name": "cargo"
+   }
+  },
+  "unityhub": {
+   "appImage\\unityhub": {
+    "driver": "appImage",
+    "fields": {
+     "name": "Unity Hub",
+     "path": "~/apps/UnityHub.AppImage",
+     "url": "https://public-cdn.cloud.unity3d.com/hub/prod/UnityHub.AppImage",
+     "version": {
+      "static": "latest"
+     }
+    },
+    "name": "Unity Hub"
+   },
+   "dnf\\libfuse2": {
+    "driver": "dnf",
+    "fields": {
+     "name": "fuse-libs",
+     "repo-component": "universe"
+    },
+    "name": "fuse-libs"
    }
   },
   "unzip": {
@@ -4378,6 +4722,26 @@
   }
  },
  "fedora@42": {
+  "android-studio": {
+   "dnf\\curl": {
+    "driver": "dnf",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "tarball\\android-studio": {
+    "driver": "tarball",
+    "fields": {
+     "name": "android-studio",
+     "url": "https://redirector.gvt1.com/edgedl/android/studio/ide-zips/$VERSION/android-studio-$VERSION-linux.tar.gz",
+     "version": {
+      "static": "2024.2.1.11"
+     }
+    },
+    "name": "android-studio"
+   }
+  },
   "arduino": {
    "appImage\\arduino": {
     "driver": "appImage",
@@ -4557,6 +4921,33 @@
      "name": "curl"
     },
     "name": "curl"
+   }
+  },
+  "discord": {
+   "dnf\\flatpak": {
+    "driver": "dnf",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\discord": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "com.discordapp.Discord"
+    },
+    "name": "com.discordapp.Discord"
+   }
+  },
+  "docker": {
+   "dnf\\docker": {
+    "driver": "dnf",
+    "fields": {
+     "name": "moby-engine",
+     "repo-component": "universe"
+    },
+    "name": "moby-engine"
    }
   },
   "fastfetch": {
@@ -4992,6 +5383,23 @@
     "name": "ripgrep"
    }
   },
+  "slack": {
+   "dnf\\flatpak": {
+    "driver": "dnf",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\slack": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "com.slack.Slack"
+    },
+    "name": "com.slack.Slack"
+   }
+  },
   "steam": {
    "dnf\\flatpak": {
     "driver": "dnf",
@@ -5027,6 +5435,28 @@
      "repo-component": "universe"
     },
     "name": "cargo"
+   }
+  },
+  "unityhub": {
+   "appImage\\unityhub": {
+    "driver": "appImage",
+    "fields": {
+     "name": "Unity Hub",
+     "path": "~/apps/UnityHub.AppImage",
+     "url": "https://public-cdn.cloud.unity3d.com/hub/prod/UnityHub.AppImage",
+     "version": {
+      "static": "latest"
+     }
+    },
+    "name": "Unity Hub"
+   },
+   "dnf\\libfuse2": {
+    "driver": "dnf",
+    "fields": {
+     "name": "fuse-libs",
+     "repo-component": "universe"
+    },
+    "name": "fuse-libs"
    }
   },
   "unzip": {
@@ -5338,6 +5768,26 @@
   }
  },
  "pop_os!@22.04": {
+  "android-studio": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "tarball\\android-studio": {
+    "driver": "tarball",
+    "fields": {
+     "name": "android-studio",
+     "url": "https://redirector.gvt1.com/edgedl/android/studio/ide-zips/$VERSION/android-studio-$VERSION-linux.tar.gz",
+     "version": {
+      "static": "2024.2.1.11"
+     }
+    },
+    "name": "android-studio"
+   }
+  },
   "arduino": {
    "appImage\\arduino": {
     "driver": "appImage",
@@ -5623,6 +6073,33 @@
      "name": "curl"
     },
     "name": "curl"
+   }
+  },
+  "discord": {
+   "apt\\flatpak": {
+    "driver": "apt",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\discord": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "com.discordapp.Discord"
+    },
+    "name": "com.discordapp.Discord"
+   }
+  },
+  "docker": {
+   "apt\\docker": {
+    "driver": "apt",
+    "fields": {
+     "name": "docker.io",
+     "repo-component": "universe"
+    },
+    "name": "docker.io"
    }
   },
   "fastfetch": {
@@ -6222,6 +6699,23 @@
     "name": "ripgrep"
    }
   },
+  "slack": {
+   "apt\\flatpak": {
+    "driver": "apt",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\slack": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "com.slack.Slack"
+    },
+    "name": "com.slack.Slack"
+   }
+  },
   "software-properties-common": {
    "apt\\software-properties-common": {
     "driver": "apt",
@@ -6259,6 +6753,28 @@
      }
     },
     "name": "tree-sitter-cli"
+   }
+  },
+  "unityhub": {
+   "appImage\\unityhub": {
+    "driver": "appImage",
+    "fields": {
+     "name": "Unity Hub",
+     "path": "~/apps/UnityHub.AppImage",
+     "url": "https://public-cdn.cloud.unity3d.com/hub/prod/UnityHub.AppImage",
+     "version": {
+      "static": "latest"
+     }
+    },
+    "name": "Unity Hub"
+   },
+   "apt\\libfuse2": {
+    "driver": "apt",
+    "fields": {
+     "name": "libfuse2",
+     "repo-component": "universe"
+    },
+    "name": "libfuse2"
    }
   },
   "unzip": {
@@ -6566,6 +7082,26 @@
   }
  },
  "rhel@9.8": {
+  "android-studio": {
+   "dnf\\curl": {
+    "driver": "dnf",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "tarball\\android-studio": {
+    "driver": "tarball",
+    "fields": {
+     "name": "android-studio",
+     "url": "https://redirector.gvt1.com/edgedl/android/studio/ide-zips/$VERSION/android-studio-$VERSION-linux.tar.gz",
+     "version": {
+      "static": "2024.2.1.11"
+     }
+    },
+    "name": "android-studio"
+   }
+  },
   "arduino": {
    "appImage\\arduino": {
     "driver": "appImage",
@@ -6753,6 +7289,33 @@
      "name": "curl"
     },
     "name": "curl"
+   }
+  },
+  "discord": {
+   "dnf\\flatpak": {
+    "driver": "dnf",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\discord": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "com.discordapp.Discord"
+    },
+    "name": "com.discordapp.Discord"
+   }
+  },
+  "docker": {
+   "dnf\\docker": {
+    "driver": "dnf",
+    "fields": {
+     "name": "moby-engine",
+     "repo-component": "universe"
+    },
+    "name": "moby-engine"
    }
   },
   "epel-release": {
@@ -7249,6 +7812,23 @@
     "name": "ripgrep"
    }
   },
+  "slack": {
+   "dnf\\flatpak": {
+    "driver": "dnf",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\slack": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "com.slack.Slack"
+    },
+    "name": "com.slack.Slack"
+   }
+  },
   "steam": {
    "dnf\\flatpak": {
     "driver": "dnf",
@@ -7284,6 +7864,28 @@
      "repo-component": "universe"
     },
     "name": "cargo"
+   }
+  },
+  "unityhub": {
+   "appImage\\unityhub": {
+    "driver": "appImage",
+    "fields": {
+     "name": "Unity Hub",
+     "path": "~/apps/UnityHub.AppImage",
+     "url": "https://public-cdn.cloud.unity3d.com/hub/prod/UnityHub.AppImage",
+     "version": {
+      "static": "latest"
+     }
+    },
+    "name": "Unity Hub"
+   },
+   "dnf\\libfuse2": {
+    "driver": "dnf",
+    "fields": {
+     "name": "fuse-libs",
+     "repo-component": "universe"
+    },
+    "name": "fuse-libs"
    }
   },
   "unzip": {
@@ -7601,6 +8203,26 @@
   }
  },
  "ubuntu@22.04": {
+  "android-studio": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "tarball\\android-studio": {
+    "driver": "tarball",
+    "fields": {
+     "name": "android-studio",
+     "url": "https://redirector.gvt1.com/edgedl/android/studio/ide-zips/$VERSION/android-studio-$VERSION-linux.tar.gz",
+     "version": {
+      "static": "2024.2.1.11"
+     }
+    },
+    "name": "android-studio"
+   }
+  },
   "arduino": {
    "appImage\\arduino": {
     "driver": "appImage",
@@ -7886,6 +8508,33 @@
      "name": "curl"
     },
     "name": "curl"
+   }
+  },
+  "discord": {
+   "apt\\flatpak": {
+    "driver": "apt",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\discord": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "com.discordapp.Discord"
+    },
+    "name": "com.discordapp.Discord"
+   }
+  },
+  "docker": {
+   "apt\\docker": {
+    "driver": "apt",
+    "fields": {
+     "name": "docker.io",
+     "repo-component": "universe"
+    },
+    "name": "docker.io"
    }
   },
   "fastfetch": {
@@ -8485,6 +9134,23 @@
     "name": "ripgrep"
    }
   },
+  "slack": {
+   "apt\\flatpak": {
+    "driver": "apt",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\slack": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "com.slack.Slack"
+    },
+    "name": "com.slack.Slack"
+   }
+  },
   "software-properties-common": {
    "apt\\software-properties-common": {
     "driver": "apt",
@@ -8529,6 +9195,28 @@
      }
     },
     "name": "tree-sitter-cli"
+   }
+  },
+  "unityhub": {
+   "appImage\\unityhub": {
+    "driver": "appImage",
+    "fields": {
+     "name": "Unity Hub",
+     "path": "~/apps/UnityHub.AppImage",
+     "url": "https://public-cdn.cloud.unity3d.com/hub/prod/UnityHub.AppImage",
+     "version": {
+      "static": "latest"
+     }
+    },
+    "name": "Unity Hub"
+   },
+   "apt\\libfuse2": {
+    "driver": "apt",
+    "fields": {
+     "name": "libfuse2",
+     "repo-component": "universe"
+    },
+    "name": "libfuse2"
    }
   },
   "unzip": {
@@ -8836,6 +9524,26 @@
   }
  },
  "ubuntu@24.04": {
+  "android-studio": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "tarball\\android-studio": {
+    "driver": "tarball",
+    "fields": {
+     "name": "android-studio",
+     "url": "https://redirector.gvt1.com/edgedl/android/studio/ide-zips/$VERSION/android-studio-$VERSION-linux.tar.gz",
+     "version": {
+      "static": "2024.2.1.11"
+     }
+    },
+    "name": "android-studio"
+   }
+  },
   "arduino": {
    "appImage\\arduino": {
     "driver": "appImage",
@@ -9121,6 +9829,33 @@
      "name": "curl"
     },
     "name": "curl"
+   }
+  },
+  "discord": {
+   "apt\\flatpak": {
+    "driver": "apt",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\discord": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "com.discordapp.Discord"
+    },
+    "name": "com.discordapp.Discord"
+   }
+  },
+  "docker": {
+   "apt\\docker": {
+    "driver": "apt",
+    "fields": {
+     "name": "docker.io",
+     "repo-component": "universe"
+    },
+    "name": "docker.io"
    }
   },
   "fastfetch": {
@@ -9710,6 +10445,23 @@
     "name": "ripgrep"
    }
   },
+  "slack": {
+   "apt\\flatpak": {
+    "driver": "apt",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\slack": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "com.slack.Slack"
+    },
+    "name": "com.slack.Slack"
+   }
+  },
   "software-properties-common": {
    "apt\\software-properties-common": {
     "driver": "apt",
@@ -9754,6 +10506,28 @@
      }
     },
     "name": "tree-sitter-cli"
+   }
+  },
+  "unityhub": {
+   "appImage\\unityhub": {
+    "driver": "appImage",
+    "fields": {
+     "name": "Unity Hub",
+     "path": "~/apps/UnityHub.AppImage",
+     "url": "https://public-cdn.cloud.unity3d.com/hub/prod/UnityHub.AppImage",
+     "version": {
+      "static": "latest"
+     }
+    },
+    "name": "Unity Hub"
+   },
+   "apt\\libfuse2": {
+    "driver": "apt",
+    "fields": {
+     "name": "libfuse2",
+     "repo-component": "universe"
+    },
+    "name": "libfuse2"
    }
   },
   "unzip": {
