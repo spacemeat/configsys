@@ -1,8 +1,9 @@
 '''drivers — registry of install-medium implementations.
 
 Ships the native managers (apt, dnf, pacman, aur) plus tarball, flatpak,
-appImage, dotfiles, debian-font, cargo, pip, pipx, and the gcc/clang/gcc-toolset
-toolchains. An unregistered driver name still returns None here so InstallState
+appImage, dotfiles, debian-font, cargo, pip, pipx, the gcc/clang/gcc-toolset
+toolchains, and the post-install primitives service (systemd) and group
+(usermod). An unregistered driver name still returns None here so InstallState
 degrades gracefully instead of crashing.
 '''
 
@@ -17,9 +18,11 @@ from .dotfiles import DotFiles
 from .flatpak import Flatpak
 from .gcc import Gcc
 from .gcc_toolset import GccToolset
+from .group import Group
 from .pacman import Pacman
 from .pip import Pip
 from .pipx import Pipx
+from .service import Service
 from .tarball import Tarball
 
 _REGISTRY = {
@@ -38,6 +41,8 @@ _REGISTRY = {
     Clang.name: Clang,
     Pip.name: Pip,
     Pipx.name: Pipx,
+    Service.name: Service,
+    Group.name: Group,
 }
 
 

@@ -185,13 +185,66 @@
    }
   },
   "docker": {
-   "pacman\\docker": {
+   "pacman\\docker-engine": {
     "driver": "pacman",
     "fields": {
      "name": "docker",
      "repo-component": "universe"
     },
     "name": "docker"
+   },
+   "service\\docker-service": {
+    "driver": "service",
+    "fields": {
+     "name": "docker-service",
+     "unit": "docker"
+    },
+    "name": "docker-service"
+   }
+  },
+  "docker-engine": {
+   "pacman\\docker-engine": {
+    "driver": "pacman",
+    "fields": {
+     "name": "docker",
+     "repo-component": "universe"
+    },
+    "name": "docker"
+   }
+  },
+  "docker-group": {
+   "group\\docker-group": {
+    "driver": "group",
+    "fields": {
+     "name": "docker"
+    },
+    "name": "docker"
+   },
+   "pacman\\docker-engine": {
+    "driver": "pacman",
+    "fields": {
+     "name": "docker",
+     "repo-component": "universe"
+    },
+    "name": "docker"
+   }
+  },
+  "docker-service": {
+   "pacman\\docker-engine": {
+    "driver": "pacman",
+    "fields": {
+     "name": "docker",
+     "repo-component": "universe"
+    },
+    "name": "docker"
+   },
+   "service\\docker-service": {
+    "driver": "service",
+    "fields": {
+     "name": "docker-service",
+     "unit": "docker"
+    },
+    "name": "docker-service"
    }
   },
   "fastfetch": {
@@ -1430,13 +1483,66 @@
    }
   },
   "docker": {
-   "apt\\docker": {
+   "apt\\docker-engine": {
     "driver": "apt",
     "fields": {
      "name": "docker.io",
      "repo-component": "universe"
     },
     "name": "docker.io"
+   },
+   "service\\docker-service": {
+    "driver": "service",
+    "fields": {
+     "name": "docker-service",
+     "unit": "docker"
+    },
+    "name": "docker-service"
+   }
+  },
+  "docker-engine": {
+   "apt\\docker-engine": {
+    "driver": "apt",
+    "fields": {
+     "name": "docker.io",
+     "repo-component": "universe"
+    },
+    "name": "docker.io"
+   }
+  },
+  "docker-group": {
+   "apt\\docker-engine": {
+    "driver": "apt",
+    "fields": {
+     "name": "docker.io",
+     "repo-component": "universe"
+    },
+    "name": "docker.io"
+   },
+   "group\\docker-group": {
+    "driver": "group",
+    "fields": {
+     "name": "docker"
+    },
+    "name": "docker"
+   }
+  },
+  "docker-service": {
+   "apt\\docker-engine": {
+    "driver": "apt",
+    "fields": {
+     "name": "docker.io",
+     "repo-component": "universe"
+    },
+    "name": "docker.io"
+   },
+   "service\\docker-service": {
+    "driver": "service",
+    "fields": {
+     "name": "docker-service",
+     "unit": "docker"
+    },
+    "name": "docker-service"
    }
   },
   "fastfetch": {
@@ -2813,13 +2919,66 @@
    }
   },
   "docker": {
-   "apt\\docker": {
+   "apt\\docker-engine": {
     "driver": "apt",
     "fields": {
      "name": "docker.io",
      "repo-component": "universe"
     },
     "name": "docker.io"
+   },
+   "service\\docker-service": {
+    "driver": "service",
+    "fields": {
+     "name": "docker-service",
+     "unit": "docker"
+    },
+    "name": "docker-service"
+   }
+  },
+  "docker-engine": {
+   "apt\\docker-engine": {
+    "driver": "apt",
+    "fields": {
+     "name": "docker.io",
+     "repo-component": "universe"
+    },
+    "name": "docker.io"
+   }
+  },
+  "docker-group": {
+   "apt\\docker-engine": {
+    "driver": "apt",
+    "fields": {
+     "name": "docker.io",
+     "repo-component": "universe"
+    },
+    "name": "docker.io"
+   },
+   "group\\docker-group": {
+    "driver": "group",
+    "fields": {
+     "name": "docker"
+    },
+    "name": "docker"
+   }
+  },
+  "docker-service": {
+   "apt\\docker-engine": {
+    "driver": "apt",
+    "fields": {
+     "name": "docker.io",
+     "repo-component": "universe"
+    },
+    "name": "docker.io"
+   },
+   "service\\docker-service": {
+    "driver": "service",
+    "fields": {
+     "name": "docker-service",
+     "unit": "docker"
+    },
+    "name": "docker-service"
    }
   },
   "fastfetch": {
@@ -4068,13 +4227,66 @@
    }
   },
   "docker": {
-   "dnf\\docker": {
+   "dnf\\docker-engine": {
     "driver": "dnf",
     "fields": {
      "name": "moby-engine",
      "repo-component": "universe"
     },
     "name": "moby-engine"
+   },
+   "service\\docker-service": {
+    "driver": "service",
+    "fields": {
+     "name": "docker-service",
+     "unit": "docker"
+    },
+    "name": "docker-service"
+   }
+  },
+  "docker-engine": {
+   "dnf\\docker-engine": {
+    "driver": "dnf",
+    "fields": {
+     "name": "moby-engine",
+     "repo-component": "universe"
+    },
+    "name": "moby-engine"
+   }
+  },
+  "docker-group": {
+   "dnf\\docker-engine": {
+    "driver": "dnf",
+    "fields": {
+     "name": "moby-engine",
+     "repo-component": "universe"
+    },
+    "name": "moby-engine"
+   },
+   "group\\docker-group": {
+    "driver": "group",
+    "fields": {
+     "name": "docker"
+    },
+    "name": "docker"
+   }
+  },
+  "docker-service": {
+   "dnf\\docker-engine": {
+    "driver": "dnf",
+    "fields": {
+     "name": "moby-engine",
+     "repo-component": "universe"
+    },
+    "name": "moby-engine"
+   },
+   "service\\docker-service": {
+    "driver": "service",
+    "fields": {
+     "name": "docker-service",
+     "unit": "docker"
+    },
+    "name": "docker-service"
    }
   },
   "fastfetch": {
@@ -5163,13 +5375,66 @@
    }
   },
   "docker": {
-   "dnf\\docker": {
+   "dnf\\docker-engine": {
     "driver": "dnf",
     "fields": {
      "name": "moby-engine",
      "repo-component": "universe"
     },
     "name": "moby-engine"
+   },
+   "service\\docker-service": {
+    "driver": "service",
+    "fields": {
+     "name": "docker-service",
+     "unit": "docker"
+    },
+    "name": "docker-service"
+   }
+  },
+  "docker-engine": {
+   "dnf\\docker-engine": {
+    "driver": "dnf",
+    "fields": {
+     "name": "moby-engine",
+     "repo-component": "universe"
+    },
+    "name": "moby-engine"
+   }
+  },
+  "docker-group": {
+   "dnf\\docker-engine": {
+    "driver": "dnf",
+    "fields": {
+     "name": "moby-engine",
+     "repo-component": "universe"
+    },
+    "name": "moby-engine"
+   },
+   "group\\docker-group": {
+    "driver": "group",
+    "fields": {
+     "name": "docker"
+    },
+    "name": "docker"
+   }
+  },
+  "docker-service": {
+   "dnf\\docker-engine": {
+    "driver": "dnf",
+    "fields": {
+     "name": "moby-engine",
+     "repo-component": "universe"
+    },
+    "name": "moby-engine"
+   },
+   "service\\docker-service": {
+    "driver": "service",
+    "fields": {
+     "name": "docker-service",
+     "unit": "docker"
+    },
+    "name": "docker-service"
    }
   },
   "fastfetch": {
@@ -6364,13 +6629,66 @@
    }
   },
   "docker": {
-   "apt\\docker": {
+   "apt\\docker-engine": {
     "driver": "apt",
     "fields": {
      "name": "docker.io",
      "repo-component": "universe"
     },
     "name": "docker.io"
+   },
+   "service\\docker-service": {
+    "driver": "service",
+    "fields": {
+     "name": "docker-service",
+     "unit": "docker"
+    },
+    "name": "docker-service"
+   }
+  },
+  "docker-engine": {
+   "apt\\docker-engine": {
+    "driver": "apt",
+    "fields": {
+     "name": "docker.io",
+     "repo-component": "universe"
+    },
+    "name": "docker.io"
+   }
+  },
+  "docker-group": {
+   "apt\\docker-engine": {
+    "driver": "apt",
+    "fields": {
+     "name": "docker.io",
+     "repo-component": "universe"
+    },
+    "name": "docker.io"
+   },
+   "group\\docker-group": {
+    "driver": "group",
+    "fields": {
+     "name": "docker"
+    },
+    "name": "docker"
+   }
+  },
+  "docker-service": {
+   "apt\\docker-engine": {
+    "driver": "apt",
+    "fields": {
+     "name": "docker.io",
+     "repo-component": "universe"
+    },
+    "name": "docker.io"
+   },
+   "service\\docker-service": {
+    "driver": "service",
+    "fields": {
+     "name": "docker-service",
+     "unit": "docker"
+    },
+    "name": "docker-service"
    }
   },
   "fastfetch": {
@@ -7642,13 +7960,66 @@
    }
   },
   "docker": {
-   "dnf\\docker": {
+   "dnf\\docker-engine": {
     "driver": "dnf",
     "fields": {
      "name": "moby-engine",
      "repo-component": "universe"
     },
     "name": "moby-engine"
+   },
+   "service\\docker-service": {
+    "driver": "service",
+    "fields": {
+     "name": "docker-service",
+     "unit": "docker"
+    },
+    "name": "docker-service"
+   }
+  },
+  "docker-engine": {
+   "dnf\\docker-engine": {
+    "driver": "dnf",
+    "fields": {
+     "name": "moby-engine",
+     "repo-component": "universe"
+    },
+    "name": "moby-engine"
+   }
+  },
+  "docker-group": {
+   "dnf\\docker-engine": {
+    "driver": "dnf",
+    "fields": {
+     "name": "moby-engine",
+     "repo-component": "universe"
+    },
+    "name": "moby-engine"
+   },
+   "group\\docker-group": {
+    "driver": "group",
+    "fields": {
+     "name": "docker"
+    },
+    "name": "docker"
+   }
+  },
+  "docker-service": {
+   "dnf\\docker-engine": {
+    "driver": "dnf",
+    "fields": {
+     "name": "moby-engine",
+     "repo-component": "universe"
+    },
+    "name": "moby-engine"
+   },
+   "service\\docker-service": {
+    "driver": "service",
+    "fields": {
+     "name": "docker-service",
+     "unit": "docker"
+    },
+    "name": "docker-service"
    }
   },
   "epel-release": {
@@ -8923,13 +9294,66 @@
    }
   },
   "docker": {
-   "apt\\docker": {
+   "apt\\docker-engine": {
     "driver": "apt",
     "fields": {
      "name": "docker.io",
      "repo-component": "universe"
     },
     "name": "docker.io"
+   },
+   "service\\docker-service": {
+    "driver": "service",
+    "fields": {
+     "name": "docker-service",
+     "unit": "docker"
+    },
+    "name": "docker-service"
+   }
+  },
+  "docker-engine": {
+   "apt\\docker-engine": {
+    "driver": "apt",
+    "fields": {
+     "name": "docker.io",
+     "repo-component": "universe"
+    },
+    "name": "docker.io"
+   }
+  },
+  "docker-group": {
+   "apt\\docker-engine": {
+    "driver": "apt",
+    "fields": {
+     "name": "docker.io",
+     "repo-component": "universe"
+    },
+    "name": "docker.io"
+   },
+   "group\\docker-group": {
+    "driver": "group",
+    "fields": {
+     "name": "docker"
+    },
+    "name": "docker"
+   }
+  },
+  "docker-service": {
+   "apt\\docker-engine": {
+    "driver": "apt",
+    "fields": {
+     "name": "docker.io",
+     "repo-component": "universe"
+    },
+    "name": "docker.io"
+   },
+   "service\\docker-service": {
+    "driver": "service",
+    "fields": {
+     "name": "docker-service",
+     "unit": "docker"
+    },
+    "name": "docker-service"
    }
   },
   "fastfetch": {
@@ -10306,13 +10730,66 @@
    }
   },
   "docker": {
-   "apt\\docker": {
+   "apt\\docker-engine": {
     "driver": "apt",
     "fields": {
      "name": "docker.io",
      "repo-component": "universe"
     },
     "name": "docker.io"
+   },
+   "service\\docker-service": {
+    "driver": "service",
+    "fields": {
+     "name": "docker-service",
+     "unit": "docker"
+    },
+    "name": "docker-service"
+   }
+  },
+  "docker-engine": {
+   "apt\\docker-engine": {
+    "driver": "apt",
+    "fields": {
+     "name": "docker.io",
+     "repo-component": "universe"
+    },
+    "name": "docker.io"
+   }
+  },
+  "docker-group": {
+   "apt\\docker-engine": {
+    "driver": "apt",
+    "fields": {
+     "name": "docker.io",
+     "repo-component": "universe"
+    },
+    "name": "docker.io"
+   },
+   "group\\docker-group": {
+    "driver": "group",
+    "fields": {
+     "name": "docker"
+    },
+    "name": "docker"
+   }
+  },
+  "docker-service": {
+   "apt\\docker-engine": {
+    "driver": "apt",
+    "fields": {
+     "name": "docker.io",
+     "repo-component": "universe"
+    },
+    "name": "docker.io"
+   },
+   "service\\docker-service": {
+    "driver": "service",
+    "fields": {
+     "name": "docker-service",
+     "unit": "docker"
+    },
+    "name": "docker-service"
    }
   },
   "fastfetch": {

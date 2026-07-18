@@ -132,11 +132,25 @@
             install: [ { via: native  repo-component: universe } ]
         }
 
-        // docker: the engine via distro packages (RHEL steers you to podman — use that there).
-        // Joining the `docker` group + enabling the service is a manual post-install step, out
-        // of routing scope. User config lives in ~/.docker, so no dotfiles here.
+        // docker: "the engine, working" = the package + its daemon enabled. Post-install is just
+        // composition — docker-service is an ordinary component ordered after docker-engine via
+        // `requires:` (which also avoids the package<->service dependency cycle a single unit
+        // would create). Passwordless docker (group membership) is a security opt-in: add
+        // `docker-group` to your profile alongside `docker`. RHEL steers you to podman — use that
+        // there. Config lives in ~/.docker, so no dotfiles.
         docker: {
+            install: [ { via: parts  parts: [ docker-engine, docker-service ] } ]
+        }
+        docker-engine: {
             install: [ { via: native  repo-component: universe  name: { dnf: moby-engine  pacman: docker  default: docker.io } } ]
+        }
+        docker-service: {
+            requires: docker-engine
+            install: [ { via: service  unit: docker } ]
+        }
+        docker-group: {   // opt-in: passwordless docker (usermod -aG docker $YOU). Needs the group the engine creates.
+            requires: docker-engine
+            install: [ { via: group  name: docker } ]
         }
 
         // discord / slack: flatpak everywhere (no uniform native path — Fedora has none), and

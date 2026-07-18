@@ -91,9 +91,9 @@ Drivers are defined in code (configsys/drivers/) behind a uniform op set: get_ve
 get_latest, is_locked, install, uninstall, upgrade, set_version, lock, unlock, location. apt
 has various commands for these; as does flatpak, etc. Each `via:` value names a Driver 1:1
 (apt, dnf, pacman, aur, tarball, flatpak, appImage, dotfiles, debian-font, cargo, gcc,
-gcc-toolset, clang, pip, pipx) — except `via: native` (resolves to the OS's package-manager
-driver) and `via: parts` (a pure aggregator, no driver of its own). More drivers can be
-added as needed.
+gcc-toolset, clang, pip, pipx, and the post-install primitives service [systemd] and group
+[usermod]) — except `via: native` (resolves to the OS's package-manager driver) and `via:
+parts` (a pure aggregator, no driver of its own). More drivers can be added as needed.
 
 (History: routes.hu was previously a `\family` blocks + OS-cascade + `*: apt\*` wildcard model
 resolved by a `RouteResolver`. That was replaced in-place by the capability model above, built
