@@ -38,7 +38,7 @@
         // `repo-component: universe` is the apt archive area (read only by apt; ignored on dnf/pacman).
         ripgrep: { install: [ { via: native  when: "rhel"  requires: epel } { via: native  repo-component: universe } ] }
         fzf:     { install: [ { via: native  when: "rhel"  requires: epel } { via: native  repo-component: universe } ] }
-        xclip:   { requires: xclip-dotfiles
+        xclip:   { suggests: xclip-dotfiles
                    install: [ { via: native  when: "rhel"  requires: epel } { via: native  repo-component: universe } ] }
         xclip-dotfiles: { install: [ { via: dotfiles  requires: bash-dotfiles  src: bash.d/xclip.sh  dst: ~/.bash.d/xclip.sh } ] }
 
@@ -75,7 +75,7 @@
         // so this is a two-level tool chain. The inline dotfiles field runs termapod on every
         // interactive shell. (Old: linux `apod: [ pipx\apod, dotfiles\apod ]`.)
         apod: {
-            requires: apod-dotfiles
+            suggests: apod-dotfiles
             install: [ { via: pipx  name: termapod  version: { pypi: termapod } } ]
         }
         apod-dotfiles: {
@@ -119,7 +119,8 @@
         // --- appImage apps (fetch-artifact); config rides along as a required -dotfiles
         // component (a plain via:dotfiles component, so it can carry when: conditions too) ---
         neovim: {
-            requires: [ ripgrep, tree-sitter-cli, neovim-dotfiles ]
+            requires: [ ripgrep, tree-sitter-cli ]
+            suggests: neovim-dotfiles
             install: [ { via: appImage  name: Neovim  scope: user   // -> requires libfuse2; keep it in ~/apps
                          version: { github: neovim/neovim  asset: "nvim-linux-$ARCH.appimage" }
                          url: "https://github.com/neovim/neovim/releases/download/$VERSION/nvim-linux-$ARCH.appimage"
@@ -131,7 +132,7 @@
                          aliases: { src: bash.d/neovim.sh  dst: ~/.bash.d/neovim.sh } } ]
         }
         arduino: {
-            requires: arduino-dotfiles
+            suggests: arduino-dotfiles
             install: [ { via: appImage  name: "Arduino IDE"
                          version: { github: arduino/arduino-ide  asset: "arduino-ide_*_Linux_64bit.AppImage" }
                          url: "https://github.com/arduino/arduino-ide/releases/download/$VERSION/arduino-ide_$VERSION_Linux_64bit.AppImage"
@@ -162,7 +163,7 @@
         // dotfile (dotfiles\vulkan-sdk), keyed by the component; the tarball driver
         // pulls curl. (Old: a [tarball\vulkan-sdk, dotfiles\vulkan-sdk] list bundle.)
         vulkan-sdk: {
-            requires: vulkan-sdk-dotfiles
+            suggests: vulkan-sdk-dotfiles
             install: [ { via: tarball  version: { static: 1.4.350.1 }  installDir: vulkan
                          url: "https://sdk.lunarg.com/sdk/download/$VERSION/linux/vulkansdk-linux-$ARCH-$VERSION.tar.xz" } ]
         }
@@ -243,7 +244,7 @@
         // gdb: base-repo native everywhere (apt main / dnf base / pacman extra; EL base, no
         // EPEL), plus its shell-startup dotfile.
         gdb: {
-            requires: gdb-dotfiles
+            suggests: gdb-dotfiles
             install: [ { via: native } ]
         }
         gdb-dotfiles: {   // gdb reads ~/.gdbinit natively (no bash-dotfiles loader needed)
@@ -289,7 +290,7 @@
         gcc-13: {
             install: [
                 { via: gcc  when: "debian"  packages: [ gcc-13, g++-13 ]  slaves: [ g++ ]  ppa: ubuntu-toolchain-r/test
-                  requires: [ build-essential, software-properties-common, gcc-select ] }
+                  requires: [ build-essential, software-properties-common ]  suggests: gcc-select }
                 { via: gcc  when: "fedora = 41"  packages: [ gcc13, gcc13-c++ ] }
                 { via: gcc-toolset  when: "rhel" }
             ]
@@ -297,7 +298,7 @@
         gcc-14: {
             install: [
                 { via: gcc  when: "debian"  packages: [ gcc-14, g++-14 ]  slaves: [ g++ ]  ppa: ubuntu-toolchain-r/test
-                  requires: [ build-essential, software-properties-common, gcc-select ] }
+                  requires: [ build-essential, software-properties-common ]  suggests: gcc-select }
                 { via: gcc  when: "fedora = 42"  packages: [ gcc14, gcc14-c++ ] }
                 { via: gcc-toolset  when: "rhel" }
             ]
@@ -305,7 +306,7 @@
         gcc-15: {
             install: [
                 { via: gcc  when: "debian"  packages: [ gcc-15, g++-15 ]  slaves: [ g++ ]  ppa: ubuntu-toolchain-r/test
-                  requires: [ build-essential, software-properties-common, gcc-select ] }
+                  requires: [ build-essential, software-properties-common ]  suggests: gcc-select }
                 { via: gcc-toolset  when: "rhel" }
             ]
         }
@@ -322,14 +323,14 @@
         clang-18: {
             install: [
                 { via: clang  when: "debian"  packages: [ clang-18 ]
-                  requires: [ build-essential, curl, clang-select ] }
+                  requires: [ build-essential, curl ]  suggests: clang-select }
                 { via: clang  when: "fedora"  packages: [ clang18 ] }
             ]
         }
         clang-19: {
             install: [
                 { via: clang  when: "debian"  packages: [ clang-19 ]
-                  requires: [ build-essential, curl, clang-select ] }
+                  requires: [ build-essential, curl ]  suggests: clang-select }
                 { via: clang  when: "fedora = 41"  packages: [ clang ] }      // system clang -> /usr/bin/clang-19
                 { via: clang  when: "fedora = 42"  packages: [ clang19 ] }
                 { via: clang  when: "rhel"  packages: [ clang19 ]  requires: epel }
@@ -338,7 +339,7 @@
         clang-20: {
             install: [
                 { via: clang  when: "debian"  packages: [ clang-20 ]
-                  requires: [ build-essential, curl, clang-select ] }
+                  requires: [ build-essential, curl ]  suggests: clang-select }
                 { via: clang  when: "fedora = 42"  packages: [ clang ] }      // system clang -> /usr/bin/clang-20
                 { via: clang  when: "rhel"  packages: [ clang20 ]  requires: epel }
             ]
