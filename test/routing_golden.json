@@ -138,27 +138,6 @@
     "name": "flatpak"
    }
   },
-  "clang-select": {
-   "dotfiles\\bash-dotfiles": {
-    "driver": "dotfiles",
-    "fields": {
-     "aliases": {
-      "absorb-into": "~/.bash.d/pre-configsys-aliases.sh",
-      "dst": "~/.bash_aliases",
-      "src": "bash_aliases"
-     }
-    },
-    "name": "bash-dotfiles"
-   },
-   "dotfiles\\clang-select": {
-    "driver": "dotfiles",
-    "fields": {
-     "dst": "~/.bash.d/clang.sh",
-     "src": "bash.d/clang.sh"
-    },
-    "name": "clang-select"
-   }
-  },
   "curl": {
    "pacman\\curl": {
     "driver": "pacman",
@@ -269,6 +248,48 @@
     "name": "git"
    }
   },
+  "htop": {
+   "dotfiles\\htop-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/htop",
+      "src": "htop"
+     }
+    },
+    "name": "htop-dotfiles"
+   },
+   "pacman\\htop": {
+    "driver": "pacman",
+    "fields": {
+     "name": "htop",
+     "repo-component": "universe"
+    },
+    "name": "htop"
+   }
+  },
+  "htop-dotfiles": {
+   "dotfiles\\htop-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/htop",
+      "src": "htop"
+     }
+    },
+    "name": "htop-dotfiles"
+   }
+  },
+  "kicad": {
+   "pacman\\kicad": {
+    "driver": "pacman",
+    "fields": {
+     "name": "kicad",
+     "repo-component": "universe"
+    },
+    "name": "kicad"
+   }
+  },
   "libfuse2": {
    "pacman\\libfuse2": {
     "driver": "pacman",
@@ -277,6 +298,16 @@
      "repo-component": "universe"
     },
     "name": "fuse2"
+   }
+  },
+  "libreoffice": {
+   "pacman\\libreoffice": {
+    "driver": "pacman",
+    "fields": {
+     "name": "libreoffice-fresh",
+     "repo-component": "universe"
+    },
+    "name": "libreoffice-fresh"
    }
   },
   "libvulkan1": {
@@ -424,10 +455,6 @@
      "aliases": {
       "dst": "~/.bash.d/neovim.sh",
       "src": "bash.d/neovim.sh"
-     },
-     "config": {
-      "dst": "$XDG_CONFIG_HOME/nvim",
-      "src": "neovim"
      }
     },
     "name": "neovim-dotfiles"
@@ -475,10 +502,6 @@
      "aliases": {
       "dst": "~/.bash.d/neovim.sh",
       "src": "bash.d/neovim.sh"
-     },
-     "config": {
-      "dst": "$XDG_CONFIG_HOME/nvim",
-      "src": "neovim"
      }
     },
     "name": "neovim-dotfiles"
@@ -491,6 +514,38 @@
      "name": "python-pipx"
     },
     "name": "python-pipx"
+   }
+  },
+  "podman": {
+   "dotfiles\\podman-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/containers",
+      "src": "containers"
+     }
+    },
+    "name": "podman-dotfiles"
+   },
+   "pacman\\podman": {
+    "driver": "pacman",
+    "fields": {
+     "name": "podman",
+     "repo-component": "universe"
+    },
+    "name": "podman"
+   }
+  },
+  "podman-dotfiles": {
+   "dotfiles\\podman-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/containers",
+      "src": "containers"
+     }
+    },
+    "name": "podman-dotfiles"
    }
   },
   "python3-pip": {
@@ -1470,6 +1525,48 @@
     "name": "git"
    }
   },
+  "htop": {
+   "apt\\htop": {
+    "driver": "apt",
+    "fields": {
+     "name": "htop",
+     "repo-component": "universe"
+    },
+    "name": "htop"
+   },
+   "dotfiles\\htop-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/htop",
+      "src": "htop"
+     }
+    },
+    "name": "htop-dotfiles"
+   }
+  },
+  "htop-dotfiles": {
+   "dotfiles\\htop-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/htop",
+      "src": "htop"
+     }
+    },
+    "name": "htop-dotfiles"
+   }
+  },
+  "kicad": {
+   "apt\\kicad": {
+    "driver": "apt",
+    "fields": {
+     "name": "kicad",
+     "repo-component": "universe"
+    },
+    "name": "kicad"
+   }
+  },
   "libfuse2": {
    "apt\\libfuse2": {
     "driver": "apt",
@@ -1478,6 +1575,16 @@
      "repo-component": "universe"
     },
     "name": "libfuse2"
+   }
+  },
+  "libreoffice": {
+   "apt\\libreoffice": {
+    "driver": "apt",
+    "fields": {
+     "name": "libreoffice",
+     "repo-component": "universe"
+    },
+    "name": "libreoffice"
    }
   },
   "libvulkan1": {
@@ -1649,10 +1756,6 @@
      "aliases": {
       "dst": "~/.bash.d/neovim.sh",
       "src": "bash.d/neovim.sh"
-     },
-     "config": {
-      "dst": "$XDG_CONFIG_HOME/nvim",
-      "src": "neovim"
      }
     },
     "name": "neovim-dotfiles"
@@ -1676,10 +1779,6 @@
      "aliases": {
       "dst": "~/.bash.d/neovim.sh",
       "src": "bash.d/neovim.sh"
-     },
-     "config": {
-      "dst": "$XDG_CONFIG_HOME/nvim",
-      "src": "neovim"
      }
     },
     "name": "neovim-dotfiles"
@@ -1702,6 +1801,38 @@
      }
     },
     "name": "pipx"
+   }
+  },
+  "podman": {
+   "apt\\podman": {
+    "driver": "apt",
+    "fields": {
+     "name": "podman",
+     "repo-component": "universe"
+    },
+    "name": "podman"
+   },
+   "dotfiles\\podman-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/containers",
+      "src": "containers"
+     }
+    },
+    "name": "podman-dotfiles"
+   }
+  },
+  "podman-dotfiles": {
+   "dotfiles\\podman-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/containers",
+      "src": "containers"
+     }
+    },
+    "name": "podman-dotfiles"
    }
   },
   "python3-pip": {
@@ -2629,6 +2760,48 @@
     "name": "git"
    }
   },
+  "htop": {
+   "apt\\htop": {
+    "driver": "apt",
+    "fields": {
+     "name": "htop",
+     "repo-component": "universe"
+    },
+    "name": "htop"
+   },
+   "dotfiles\\htop-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/htop",
+      "src": "htop"
+     }
+    },
+    "name": "htop-dotfiles"
+   }
+  },
+  "htop-dotfiles": {
+   "dotfiles\\htop-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/htop",
+      "src": "htop"
+     }
+    },
+    "name": "htop-dotfiles"
+   }
+  },
+  "kicad": {
+   "apt\\kicad": {
+    "driver": "apt",
+    "fields": {
+     "name": "kicad",
+     "repo-component": "universe"
+    },
+    "name": "kicad"
+   }
+  },
   "libfuse2": {
    "apt\\libfuse2": {
     "driver": "apt",
@@ -2637,6 +2810,16 @@
      "repo-component": "universe"
     },
     "name": "libfuse2"
+   }
+  },
+  "libreoffice": {
+   "apt\\libreoffice": {
+    "driver": "apt",
+    "fields": {
+     "name": "libreoffice",
+     "repo-component": "universe"
+    },
+    "name": "libreoffice"
    }
   },
   "libvulkan1": {
@@ -2808,10 +2991,6 @@
      "aliases": {
       "dst": "~/.bash.d/neovim.sh",
       "src": "bash.d/neovim.sh"
-     },
-     "config": {
-      "dst": "$XDG_CONFIG_HOME/nvim",
-      "src": "neovim"
      }
     },
     "name": "neovim-dotfiles"
@@ -2835,10 +3014,6 @@
      "aliases": {
       "dst": "~/.bash.d/neovim.sh",
       "src": "bash.d/neovim.sh"
-     },
-     "config": {
-      "dst": "$XDG_CONFIG_HOME/nvim",
-      "src": "neovim"
      }
     },
     "name": "neovim-dotfiles"
@@ -2851,6 +3026,38 @@
      "name": "pipx"
     },
     "name": "pipx"
+   }
+  },
+  "podman": {
+   "apt\\podman": {
+    "driver": "apt",
+    "fields": {
+     "name": "podman",
+     "repo-component": "universe"
+    },
+    "name": "podman"
+   },
+   "dotfiles\\podman-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/containers",
+      "src": "containers"
+     }
+    },
+    "name": "podman-dotfiles"
+   }
+  },
+  "podman-dotfiles": {
+   "dotfiles\\podman-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/containers",
+      "src": "containers"
+     }
+    },
+    "name": "podman-dotfiles"
    }
   },
   "python3-pip": {
@@ -3383,27 +3590,6 @@
     "name": "clang-19"
    }
   },
-  "clang-select": {
-   "dotfiles\\bash-dotfiles": {
-    "driver": "dotfiles",
-    "fields": {
-     "aliases": {
-      "absorb-into": "~/.bash.d/pre-configsys-aliases.sh",
-      "dst": "~/.bash_aliases",
-      "src": "bash_aliases"
-     }
-    },
-    "name": "bash-dotfiles"
-   },
-   "dotfiles\\clang-select": {
-    "driver": "dotfiles",
-    "fields": {
-     "dst": "~/.bash.d/clang.sh",
-     "src": "bash.d/clang.sh"
-    },
-    "name": "clang-select"
-   }
-  },
   "curl": {
    "dnf\\curl": {
     "driver": "dnf",
@@ -3527,6 +3713,48 @@
     "name": "git"
    }
   },
+  "htop": {
+   "dnf\\htop": {
+    "driver": "dnf",
+    "fields": {
+     "name": "htop",
+     "repo-component": "universe"
+    },
+    "name": "htop"
+   },
+   "dotfiles\\htop-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/htop",
+      "src": "htop"
+     }
+    },
+    "name": "htop-dotfiles"
+   }
+  },
+  "htop-dotfiles": {
+   "dotfiles\\htop-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/htop",
+      "src": "htop"
+     }
+    },
+    "name": "htop-dotfiles"
+   }
+  },
+  "kicad": {
+   "dnf\\kicad": {
+    "driver": "dnf",
+    "fields": {
+     "name": "kicad",
+     "repo-component": "universe"
+    },
+    "name": "kicad"
+   }
+  },
   "libfuse2": {
    "dnf\\libfuse2": {
     "driver": "dnf",
@@ -3535,6 +3763,16 @@
      "repo-component": "universe"
     },
     "name": "fuse-libs"
+   }
+  },
+  "libreoffice": {
+   "dnf\\libreoffice": {
+    "driver": "dnf",
+    "fields": {
+     "name": "libreoffice",
+     "repo-component": "universe"
+    },
+    "name": "libreoffice"
    }
   },
   "libvulkan1": {
@@ -3706,10 +3944,6 @@
      "aliases": {
       "dst": "~/.bash.d/neovim.sh",
       "src": "bash.d/neovim.sh"
-     },
-     "config": {
-      "dst": "$XDG_CONFIG_HOME/nvim",
-      "src": "neovim"
      }
     },
     "name": "neovim-dotfiles"
@@ -3733,10 +3967,6 @@
      "aliases": {
       "dst": "~/.bash.d/neovim.sh",
       "src": "bash.d/neovim.sh"
-     },
-     "config": {
-      "dst": "$XDG_CONFIG_HOME/nvim",
-      "src": "neovim"
      }
     },
     "name": "neovim-dotfiles"
@@ -3749,6 +3979,38 @@
      "name": "pipx"
     },
     "name": "pipx"
+   }
+  },
+  "podman": {
+   "dnf\\podman": {
+    "driver": "dnf",
+    "fields": {
+     "name": "podman",
+     "repo-component": "universe"
+    },
+    "name": "podman"
+   },
+   "dotfiles\\podman-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/containers",
+      "src": "containers"
+     }
+    },
+    "name": "podman-dotfiles"
+   }
+  },
+  "podman-dotfiles": {
+   "dotfiles\\podman-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/containers",
+      "src": "containers"
+     }
+    },
+    "name": "podman-dotfiles"
    }
   },
   "python3-pip": {
@@ -4288,27 +4550,6 @@
     "name": "clang-20"
    }
   },
-  "clang-select": {
-   "dotfiles\\bash-dotfiles": {
-    "driver": "dotfiles",
-    "fields": {
-     "aliases": {
-      "absorb-into": "~/.bash.d/pre-configsys-aliases.sh",
-      "dst": "~/.bash_aliases",
-      "src": "bash_aliases"
-     }
-    },
-    "name": "bash-dotfiles"
-   },
-   "dotfiles\\clang-select": {
-    "driver": "dotfiles",
-    "fields": {
-     "dst": "~/.bash.d/clang.sh",
-     "src": "bash.d/clang.sh"
-    },
-    "name": "clang-select"
-   }
-  },
   "curl": {
    "dnf\\curl": {
     "driver": "dnf",
@@ -4432,6 +4673,48 @@
     "name": "git"
    }
   },
+  "htop": {
+   "dnf\\htop": {
+    "driver": "dnf",
+    "fields": {
+     "name": "htop",
+     "repo-component": "universe"
+    },
+    "name": "htop"
+   },
+   "dotfiles\\htop-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/htop",
+      "src": "htop"
+     }
+    },
+    "name": "htop-dotfiles"
+   }
+  },
+  "htop-dotfiles": {
+   "dotfiles\\htop-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/htop",
+      "src": "htop"
+     }
+    },
+    "name": "htop-dotfiles"
+   }
+  },
+  "kicad": {
+   "dnf\\kicad": {
+    "driver": "dnf",
+    "fields": {
+     "name": "kicad",
+     "repo-component": "universe"
+    },
+    "name": "kicad"
+   }
+  },
   "libfuse2": {
    "dnf\\libfuse2": {
     "driver": "dnf",
@@ -4440,6 +4723,16 @@
      "repo-component": "universe"
     },
     "name": "fuse-libs"
+   }
+  },
+  "libreoffice": {
+   "dnf\\libreoffice": {
+    "driver": "dnf",
+    "fields": {
+     "name": "libreoffice",
+     "repo-component": "universe"
+    },
+    "name": "libreoffice"
    }
   },
   "libvulkan1": {
@@ -4611,10 +4904,6 @@
      "aliases": {
       "dst": "~/.bash.d/neovim.sh",
       "src": "bash.d/neovim.sh"
-     },
-     "config": {
-      "dst": "$XDG_CONFIG_HOME/nvim",
-      "src": "neovim"
      }
     },
     "name": "neovim-dotfiles"
@@ -4638,10 +4927,6 @@
      "aliases": {
       "dst": "~/.bash.d/neovim.sh",
       "src": "bash.d/neovim.sh"
-     },
-     "config": {
-      "dst": "$XDG_CONFIG_HOME/nvim",
-      "src": "neovim"
      }
     },
     "name": "neovim-dotfiles"
@@ -4654,6 +4939,38 @@
      "name": "pipx"
     },
     "name": "pipx"
+   }
+  },
+  "podman": {
+   "dnf\\podman": {
+    "driver": "dnf",
+    "fields": {
+     "name": "podman",
+     "repo-component": "universe"
+    },
+    "name": "podman"
+   },
+   "dotfiles\\podman-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/containers",
+      "src": "containers"
+     }
+    },
+    "name": "podman-dotfiles"
+   }
+  },
+  "podman-dotfiles": {
+   "dotfiles\\podman-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/containers",
+      "src": "containers"
+     }
+    },
+    "name": "podman-dotfiles"
    }
   },
   "python3-pip": {
@@ -5576,6 +5893,48 @@
     "name": "git"
    }
   },
+  "htop": {
+   "apt\\htop": {
+    "driver": "apt",
+    "fields": {
+     "name": "htop",
+     "repo-component": "universe"
+    },
+    "name": "htop"
+   },
+   "dotfiles\\htop-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/htop",
+      "src": "htop"
+     }
+    },
+    "name": "htop-dotfiles"
+   }
+  },
+  "htop-dotfiles": {
+   "dotfiles\\htop-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/htop",
+      "src": "htop"
+     }
+    },
+    "name": "htop-dotfiles"
+   }
+  },
+  "kicad": {
+   "apt\\kicad": {
+    "driver": "apt",
+    "fields": {
+     "name": "kicad",
+     "repo-component": "universe"
+    },
+    "name": "kicad"
+   }
+  },
   "libfuse2": {
    "apt\\libfuse2": {
     "driver": "apt",
@@ -5584,6 +5943,16 @@
      "repo-component": "universe"
     },
     "name": "libfuse2"
+   }
+  },
+  "libreoffice": {
+   "apt\\libreoffice": {
+    "driver": "apt",
+    "fields": {
+     "name": "libreoffice",
+     "repo-component": "universe"
+    },
+    "name": "libreoffice"
    }
   },
   "libvulkan1": {
@@ -5755,10 +6124,6 @@
      "aliases": {
       "dst": "~/.bash.d/neovim.sh",
       "src": "bash.d/neovim.sh"
-     },
-     "config": {
-      "dst": "$XDG_CONFIG_HOME/nvim",
-      "src": "neovim"
      }
     },
     "name": "neovim-dotfiles"
@@ -5782,10 +6147,6 @@
      "aliases": {
       "dst": "~/.bash.d/neovim.sh",
       "src": "bash.d/neovim.sh"
-     },
-     "config": {
-      "dst": "$XDG_CONFIG_HOME/nvim",
-      "src": "neovim"
      }
     },
     "name": "neovim-dotfiles"
@@ -5808,6 +6169,38 @@
      }
     },
     "name": "pipx"
+   }
+  },
+  "podman": {
+   "apt\\podman": {
+    "driver": "apt",
+    "fields": {
+     "name": "podman",
+     "repo-component": "universe"
+    },
+    "name": "podman"
+   },
+   "dotfiles\\podman-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/containers",
+      "src": "containers"
+     }
+    },
+    "name": "podman-dotfiles"
+   }
+  },
+  "podman-dotfiles": {
+   "dotfiles\\podman-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/containers",
+      "src": "containers"
+     }
+    },
+    "name": "podman-dotfiles"
    }
   },
   "python3-pip": {
@@ -6353,27 +6746,6 @@
     "name": "epel-release"
    }
   },
-  "clang-select": {
-   "dotfiles\\bash-dotfiles": {
-    "driver": "dotfiles",
-    "fields": {
-     "aliases": {
-      "absorb-into": "~/.bash.d/pre-configsys-aliases.sh",
-      "dst": "~/.bash_aliases",
-      "src": "bash_aliases"
-     }
-    },
-    "name": "bash-dotfiles"
-   },
-   "dotfiles\\clang-select": {
-    "driver": "dotfiles",
-    "fields": {
-     "dst": "~/.bash.d/clang.sh",
-     "src": "bash.d/clang.sh"
-    },
-    "name": "clang-select"
-   }
-  },
   "curl": {
    "dnf\\curl": {
     "driver": "dnf",
@@ -6533,6 +6905,54 @@
     "name": "git"
    }
   },
+  "htop": {
+   "dnf\\epel-release": {
+    "driver": "dnf",
+    "fields": {
+     "name": "epel-release"
+    },
+    "name": "epel-release"
+   },
+   "dnf\\htop": {
+    "driver": "dnf",
+    "fields": {
+     "name": "htop"
+    },
+    "name": "htop"
+   },
+   "dotfiles\\htop-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/htop",
+      "src": "htop"
+     }
+    },
+    "name": "htop-dotfiles"
+   }
+  },
+  "htop-dotfiles": {
+   "dotfiles\\htop-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/htop",
+      "src": "htop"
+     }
+    },
+    "name": "htop-dotfiles"
+   }
+  },
+  "kicad": {
+   "dnf\\kicad": {
+    "driver": "dnf",
+    "fields": {
+     "name": "kicad",
+     "repo-component": "universe"
+    },
+    "name": "kicad"
+   }
+  },
   "libfuse2": {
    "dnf\\libfuse2": {
     "driver": "dnf",
@@ -6541,6 +6961,16 @@
      "repo-component": "universe"
     },
     "name": "fuse-libs"
+   }
+  },
+  "libreoffice": {
+   "dnf\\libreoffice": {
+    "driver": "dnf",
+    "fields": {
+     "name": "libreoffice",
+     "repo-component": "universe"
+    },
+    "name": "libreoffice"
    }
   },
   "libvulkan1": {
@@ -6718,10 +7148,6 @@
      "aliases": {
       "dst": "~/.bash.d/neovim.sh",
       "src": "bash.d/neovim.sh"
-     },
-     "config": {
-      "dst": "$XDG_CONFIG_HOME/nvim",
-      "src": "neovim"
      }
     },
     "name": "neovim-dotfiles"
@@ -6745,10 +7171,6 @@
      "aliases": {
       "dst": "~/.bash.d/neovim.sh",
       "src": "bash.d/neovim.sh"
-     },
-     "config": {
-      "dst": "$XDG_CONFIG_HOME/nvim",
-      "src": "neovim"
      }
     },
     "name": "neovim-dotfiles"
@@ -6768,6 +7190,38 @@
      "name": "pipx"
     },
     "name": "pipx"
+   }
+  },
+  "podman": {
+   "dnf\\podman": {
+    "driver": "dnf",
+    "fields": {
+     "name": "podman",
+     "repo-component": "universe"
+    },
+    "name": "podman"
+   },
+   "dotfiles\\podman-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/containers",
+      "src": "containers"
+     }
+    },
+    "name": "podman-dotfiles"
+   }
+  },
+  "podman-dotfiles": {
+   "dotfiles\\podman-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/containers",
+      "src": "containers"
+     }
+    },
+    "name": "podman-dotfiles"
    }
   },
   "python3-pip": {
@@ -7702,6 +8156,48 @@
     "name": "git"
    }
   },
+  "htop": {
+   "apt\\htop": {
+    "driver": "apt",
+    "fields": {
+     "name": "htop",
+     "repo-component": "universe"
+    },
+    "name": "htop"
+   },
+   "dotfiles\\htop-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/htop",
+      "src": "htop"
+     }
+    },
+    "name": "htop-dotfiles"
+   }
+  },
+  "htop-dotfiles": {
+   "dotfiles\\htop-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/htop",
+      "src": "htop"
+     }
+    },
+    "name": "htop-dotfiles"
+   }
+  },
+  "kicad": {
+   "apt\\kicad": {
+    "driver": "apt",
+    "fields": {
+     "name": "kicad",
+     "repo-component": "universe"
+    },
+    "name": "kicad"
+   }
+  },
   "libfuse2": {
    "apt\\libfuse2": {
     "driver": "apt",
@@ -7710,6 +8206,16 @@
      "repo-component": "universe"
     },
     "name": "libfuse2"
+   }
+  },
+  "libreoffice": {
+   "apt\\libreoffice": {
+    "driver": "apt",
+    "fields": {
+     "name": "libreoffice",
+     "repo-component": "universe"
+    },
+    "name": "libreoffice"
    }
   },
   "libvulkan1": {
@@ -7881,10 +8387,6 @@
      "aliases": {
       "dst": "~/.bash.d/neovim.sh",
       "src": "bash.d/neovim.sh"
-     },
-     "config": {
-      "dst": "$XDG_CONFIG_HOME/nvim",
-      "src": "neovim"
      }
     },
     "name": "neovim-dotfiles"
@@ -7908,10 +8410,6 @@
      "aliases": {
       "dst": "~/.bash.d/neovim.sh",
       "src": "bash.d/neovim.sh"
-     },
-     "config": {
-      "dst": "$XDG_CONFIG_HOME/nvim",
-      "src": "neovim"
      }
     },
     "name": "neovim-dotfiles"
@@ -7934,6 +8432,38 @@
      }
     },
     "name": "pipx"
+   }
+  },
+  "podman": {
+   "apt\\podman": {
+    "driver": "apt",
+    "fields": {
+     "name": "podman",
+     "repo-component": "universe"
+    },
+    "name": "podman"
+   },
+   "dotfiles\\podman-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/containers",
+      "src": "containers"
+     }
+    },
+    "name": "podman-dotfiles"
+   }
+  },
+  "podman-dotfiles": {
+   "dotfiles\\podman-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/containers",
+      "src": "containers"
+     }
+    },
+    "name": "podman-dotfiles"
    }
   },
   "python3-pip": {
@@ -8861,6 +9391,48 @@
     "name": "git"
    }
   },
+  "htop": {
+   "apt\\htop": {
+    "driver": "apt",
+    "fields": {
+     "name": "htop",
+     "repo-component": "universe"
+    },
+    "name": "htop"
+   },
+   "dotfiles\\htop-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/htop",
+      "src": "htop"
+     }
+    },
+    "name": "htop-dotfiles"
+   }
+  },
+  "htop-dotfiles": {
+   "dotfiles\\htop-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/htop",
+      "src": "htop"
+     }
+    },
+    "name": "htop-dotfiles"
+   }
+  },
+  "kicad": {
+   "apt\\kicad": {
+    "driver": "apt",
+    "fields": {
+     "name": "kicad",
+     "repo-component": "universe"
+    },
+    "name": "kicad"
+   }
+  },
   "libfuse2": {
    "apt\\libfuse2": {
     "driver": "apt",
@@ -8869,6 +9441,16 @@
      "repo-component": "universe"
     },
     "name": "libfuse2"
+   }
+  },
+  "libreoffice": {
+   "apt\\libreoffice": {
+    "driver": "apt",
+    "fields": {
+     "name": "libreoffice",
+     "repo-component": "universe"
+    },
+    "name": "libreoffice"
    }
   },
   "libvulkan1": {
@@ -9040,10 +9622,6 @@
      "aliases": {
       "dst": "~/.bash.d/neovim.sh",
       "src": "bash.d/neovim.sh"
-     },
-     "config": {
-      "dst": "$XDG_CONFIG_HOME/nvim",
-      "src": "neovim"
      }
     },
     "name": "neovim-dotfiles"
@@ -9067,10 +9645,6 @@
      "aliases": {
       "dst": "~/.bash.d/neovim.sh",
       "src": "bash.d/neovim.sh"
-     },
-     "config": {
-      "dst": "$XDG_CONFIG_HOME/nvim",
-      "src": "neovim"
      }
     },
     "name": "neovim-dotfiles"
@@ -9083,6 +9657,38 @@
      "name": "pipx"
     },
     "name": "pipx"
+   }
+  },
+  "podman": {
+   "apt\\podman": {
+    "driver": "apt",
+    "fields": {
+     "name": "podman",
+     "repo-component": "universe"
+    },
+    "name": "podman"
+   },
+   "dotfiles\\podman-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/containers",
+      "src": "containers"
+     }
+    },
+    "name": "podman-dotfiles"
+   }
+  },
+  "podman-dotfiles": {
+   "dotfiles\\podman-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/containers",
+      "src": "containers"
+     }
+    },
+    "name": "podman-dotfiles"
    }
   },
   "python3-pip": {

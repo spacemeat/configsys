@@ -79,7 +79,7 @@
 
         // --- non-native drivers with driver-level deps ---
         chrome: {
-            install: [ { via: flatpak  hub: flathub  app: com.google.Chrome } ]  // -> requires flatpak
+            install: [ { via: flatpak  hub: flathub  app: com.google.Chrome } ]
         }
         tree-sitter-cli: {
             install: [ { via: cargo  name: tree-sitter-cli  version: { crates: tree-sitter-cli } } ]
@@ -96,6 +96,40 @@
                 { via: native   when: "pop_os!"  name: "steam:i386"  foreign-arch: i386 }
                 { via: flatpak  hub: flathub  app: com.valvesoftware.Steam }
             ]
+        }
+
+        // --- apps: native everywhere. A clean-config tool manages its ~/.config as a
+        // dir-dotfile (content in dotfiles/<name>/ symlinked to $XDG_CONFIG_HOME/<name>, like
+        // neovim). The dotfiles are `suggests:` (soft) so the app installs before dotfiles/<name>/
+        // has your content. Apps with a FAT ~/.config (profile + cache/state) only `suggests:`
+        // their dotfiles for now — pending a dir-vs-specific-files call.
+        htop: {
+            suggests: htop-dotfiles
+            install: [
+                { via: native  when: "rhel"  requires: epel }   // EL ships htop in EPEL, like btop
+                { via: native  repo-component: universe }
+            ]
+        }
+        htop-dotfiles: {
+            install: [ { via: dotfiles  config: { src: htop  dst: $XDG_CONFIG_HOME/htop } } ]
+        }
+
+        podman: {
+            suggests: podman-dotfiles
+            install: [ { via: native  repo-component: universe } ]   // apt universe / dnf (EL AppStream) / pacman
+        }
+        podman-dotfiles: {   // ~/.config/containers — shared by podman / buildah / skopeo
+            install: [ { via: dotfiles  config: { src: containers  dst: $XDG_CONFIG_HOME/containers } } ]
+        }
+
+        libreoffice: {   // fat ~/.config/libreoffice (profile + cache) — dotfiles pending
+            suggests: libreoffice-dotfiles
+            install: [ { via: native  repo-component: universe  name: { pacman: libreoffice-fresh } } ]
+        }
+
+        kicad: {   // fat-ish config — dotfiles pending. NOTE: EL availability unverified (EPEL?)
+            suggests: kicad-dotfiles
+            install: [ { via: native  repo-component: universe } ]
         }
 
         // --- dotfiles ---
@@ -119,7 +153,11 @@
         }
         neovim-dotfiles: {
             install: [ { via: dotfiles  requires: bash-dotfiles
-                         config:  { src: neovim         dst: $XDG_CONFIG_HOME/nvim }
+                         // If uncommented, this would clobber  your neovim config. I would never
+                         // do that to you. The best move is to copy this *whole* neovim-dotfiles
+                         // block to your own configsys.hu, and place it in components block. Then
+                         // uncomment the line, and build your config in configsys/neovim.
+                         // config:  { src: neovim         dst: $XDG_CONFIG_HOME/nvim }
                          aliases: { src: bash.d/neovim.sh  dst: ~/.bash.d/neovim.sh } } ]
         }
         arduino: {
@@ -315,7 +353,7 @@
         //   EL     -> dnf compat clangNN from EPEL (requires epel)
         clang-select: {             // the `update-alternatives --config clang` alias dotfile
             requires: bash-dotfiles
-            install: [ { via: dotfiles  src: bash.d/clang.sh  dst: ~/.bash.d/clang.sh } ]
+            install: [ { via: dotfiles  when: "debian"  src: bash.d/clang.sh  dst: ~/.bash.d/clang.sh } ]
         }
         clang-18: {
             install: [
