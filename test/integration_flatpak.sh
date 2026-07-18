@@ -22,7 +22,7 @@ PY=".venv/bin/python"
 drive() { "$PY" test/flatpak_family_drive.py "$@"; }
 
 say "bootstrap (build .venv + humon)"
-bash bootstrap.sh inspect >/dev/null 2>&1 || bash bootstrap.sh inspect
+bash configsys.sh inspect >/dev/null 2>&1 || bash configsys.sh inspect
 
 say "add flathub (user) and confirm $APP exists"
 flatpak remote-add --user --if-not-exists flathub \

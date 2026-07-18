@@ -18,13 +18,13 @@ if apt-cache show fastfetch >/dev/null 2>&1; then fail "unexpectedly in apt repo
 echo "  not in repos, as expected"
 
 say "install fastfetch via configsys (downloads the official github .deb)"
-bash bootstrap.sh install fastfetch
+bash configsys.sh install fastfetch
 command -v fastfetch >/dev/null 2>&1 || fail "fastfetch not on PATH after install"
 dpkg -l fastfetch 2>/dev/null | grep -q '^ii' || fail "fastfetch .deb not registered in dpkg"
 echo "  $(fastfetch --version); dpkg: $(dpkg-query -W -f='${Version}' fastfetch)"
 
 say "remove fastfetch via configsys"
-bash bootstrap.sh remove fastfetch
+bash configsys.sh remove fastfetch
 if command -v fastfetch >/dev/null 2>&1; then fail "fastfetch still on PATH after remove"; fi
 
 printf '\nPASS: fastfetch via the github .deb (apt deb mode) on %s\n' "$VERSION_ID"

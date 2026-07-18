@@ -14,7 +14,7 @@ if dpkg --print-foreign-architectures | grep -qx i386; then fail "i386 already e
 sudo apt-get update -qq
 
 say "build .venv (bootstrap)"
-bash bootstrap.sh inspect >/dev/null 2>&1 || true
+bash configsys.sh inspect >/dev/null 2>&1 || true
 
 say "install $TEST_PKG via the apt family (foreign-arch enables i386 first)"
 .venv/bin/python - "$TEST_PKG" <<'PY'

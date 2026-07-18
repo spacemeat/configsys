@@ -5,7 +5,7 @@ Last grill: 2026-07-13.
 
 ## Locked (decided + rationale)
 
-1. **Minimal bash bootstrap → python handoff.** `bootstrap.sh` verifies python3 ≥ 3.10,
+1. **Minimal bash bootstrap → python handoff.** `configsys.sh` verifies python3 ≥ 3.10,
    ensures `.venv` exists, ensures `humon` is installed, then execs the python app. Only
    python3 + humon are guaranteed before python takes over. *(On this machine all three
    already exist — bootstrap is idempotent verification, not first-time install.)*
@@ -167,7 +167,7 @@ Last grill: 2026-07-13.
   bootstrap → load config+routes → resolve `dev` → live-inspect via `dpkg-query` → curses
   view of per-component state → single-key install/upgrade/remove/lock/unlock via the Apt
   family. Add flatpak/appImage/font/dotfiles families only after the slice works end-to-end.
-- **D2 — Entry point.** `python -m configsys` via `configsys/__main__.py`; `bootstrap.sh` at
+- **D2 — Entry point.** `python -m configsys` via `configsys/__main__.py`; `configsys.sh` at
   repo root is the human entry.
 - **D3 — Ledger.** `~/.config/configsys/state.hu`, humon format. Because troves are read-only,
   writes hand-emit humon text (small writer helper) rather than mutating nodes.

@@ -17,35 +17,35 @@ say "target: $PRETTY_NAME (VERSION_ID=$VERSION_ID)"
 printf '{ configs: user }\n' > "$HOME/configsys.hu"
 
 say "bootstrap + inspect (also builds .venv and installs humon)"
-bash bootstrap.sh inspect
+bash configsys.sh inspect
 
 say "precondition: $PKG is NOT installed"
 if rpm -q "$PKG" >/dev/null 2>&1; then fail "$PKG already installed"; fi
 
 say "install $PKG via configsys"
-bash bootstrap.sh install "$PKG"
+bash configsys.sh install "$PKG"
 rpm -q "$PKG" >/dev/null 2>&1 || fail "$PKG not installed after install"
 ver=$(rpm -q --qf '%{VERSION}' "$PKG")
 printf 'installed version: %s\n' "$ver"
 [ -n "$ver" ] || fail "empty version after install"
 
 say "lock $PKG via configsys (installs the versionlock plugin on demand)"
-bash bootstrap.sh lock "$PKG"
+bash configsys.sh lock "$PKG"
 dnf versionlock list 2>/dev/null | grep -q "Package name: $PKG" \
     || fail "$PKG not versionlocked after lock"
 
 say "unlock $PKG via configsys"
-bash bootstrap.sh unlock "$PKG"
+bash configsys.sh unlock "$PKG"
 if dnf versionlock list 2>/dev/null | grep -q "Package name: $PKG"; then
     fail "$PKG still versionlocked after unlock"
 fi
 
 say "remove $PKG via configsys"
-bash bootstrap.sh remove "$PKG"
+bash configsys.sh remove "$PKG"
 if rpm -q "$PKG" >/dev/null 2>&1; then fail "$PKG still installed after remove"; fi
 
 say "inspect after cycle"
-bash bootstrap.sh inspect
+bash configsys.sh inspect
 
 printf '\nPASS: full dnf install -> lock -> unlock -> remove cycle for %s on %s\n' \
     "$PKG" "$VERSION_ID"

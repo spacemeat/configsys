@@ -8,11 +8,11 @@ install, version-lock, upgrade, and removal — driven by a slick, VIM-keyed TUI
 ## Quick start
 
 ```sh
-./bootstrap.sh            # verify python3>=3.10, create .venv, install humon, launch TUI
-./bootstrap.sh inspect    # non-interactive: show install state of your active profiles
+./configsys.sh            # verify python3>=3.10, create .venv, install humon, launch TUI
+./configsys.sh inspect    # non-interactive: show install state of your active profiles
 ```
 
-`bootstrap.sh` is the only bash; everything else is python. On first run it generates
+`configsys.sh` is the only bash; everything else is python. On first run it generates
 `~/configsys.hu` (your per-machine selection) from a template.
 
 ## Concepts

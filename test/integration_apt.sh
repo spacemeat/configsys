@@ -20,33 +20,33 @@ policy=$(apt-cache policy "$PKG")
 grep -q 'Candidate: [0-9]' <<<"$policy" || fail "no install candidate for $PKG"
 
 say "bootstrap + inspect (also builds .venv and installs humon)"
-bash bootstrap.sh inspect
+bash configsys.sh inspect
 
 say "precondition: $PKG is NOT installed"
 if dpkg -s "$PKG" >/dev/null 2>&1; then fail "$PKG already installed"; fi
 
 say "install $PKG via configsys"
-bash bootstrap.sh install "$PKG"
+bash configsys.sh install "$PKG"
 dpkg -s "$PKG" >/dev/null 2>&1 || fail "$PKG not installed after install"
 ver=$(dpkg-query -W -f='${Version}' "$PKG")
 printf 'installed version: %s\n' "$ver"
 [ -n "$ver" ] || fail "empty version after install"
 
 say "lock $PKG via configsys"
-bash bootstrap.sh lock "$PKG"
+bash configsys.sh lock "$PKG"
 grep -qx "$PKG" <<<"$(apt-mark showhold)" || fail "$PKG not held after lock"
 grep -q "$PKG" "$HOME/.config/configsys/state.hu" || fail "lock intent not in ledger"
 
 say "unlock $PKG via configsys"
-bash bootstrap.sh unlock "$PKG"
+bash configsys.sh unlock "$PKG"
 if grep -qx "$PKG" <<<"$(apt-mark showhold)"; then fail "$PKG still held after unlock"; fi
 
 say "remove $PKG via configsys"
-bash bootstrap.sh remove "$PKG"
+bash configsys.sh remove "$PKG"
 status=$(dpkg -s "$PKG" 2>/dev/null || true)
 if grep -q '^Status: install ok installed' <<<"$status"; then fail "$PKG still installed after remove"; fi
 
 say "inspect after cycle"
-bash bootstrap.sh inspect
+bash configsys.sh inspect
 
 printf '\nPASS: full apt install -> lock -> unlock -> remove cycle for %s\n' "$PKG"

@@ -26,7 +26,7 @@ say "system gcc baseline (must stay untouched by versioned installs)"
 sys_gcc=$(gcc --version | head -1); echo "  $sys_gcc"
 
 say "install $GCC_COMP via configsys (dnf compat packages, no update-alternatives)"
-bash bootstrap.sh install "$GCC_COMP"
+bash configsys.sh install "$GCC_COMP"
 [ -x "/usr/bin/gcc-$GCC_N" ] || fail "/usr/bin/gcc-$GCC_N missing"
 [ -x "/usr/bin/g++-$GCC_N" ] || fail "/usr/bin/g++-$GCC_N missing (from gccNN-c++)"
 "/usr/bin/gcc-$GCC_N" --version | grep -q " $GCC_N\." || fail "gcc-$GCC_N is not version $GCC_N"
@@ -41,15 +41,15 @@ fi
 echo "  still: $now_gcc"
 
 say "install $CLANG_COMP via configsys"
-bash bootstrap.sh install "$CLANG_COMP"
+bash configsys.sh install "$CLANG_COMP"
 [ -x "/usr/bin/clang-$CLANG_N" ] || fail "/usr/bin/clang-$CLANG_N missing"
 [ -x "/usr/bin/clang++-$CLANG_N" ] || fail "/usr/bin/clang++-$CLANG_N missing"
 "/usr/bin/clang-$CLANG_N" --version | grep -q "version $CLANG_N\." || fail "clang not v$CLANG_N"
 echo "  $(/usr/bin/clang-$CLANG_N --version | head -1)"
 
 say "remove $GCC_COMP and $CLANG_COMP via configsys"
-bash bootstrap.sh remove "$GCC_COMP"
-bash bootstrap.sh remove "$CLANG_COMP"
+bash configsys.sh remove "$GCC_COMP"
+bash configsys.sh remove "$CLANG_COMP"
 if [ -x "/usr/bin/gcc-$GCC_N" ]; then fail "gcc-$GCC_N still present after remove"; fi
 if [ -x "/usr/bin/clang-$CLANG_N" ]; then fail "clang-$CLANG_N still present after remove"; fi
 [ "$(gcc --version | head -1)" = "$sys_gcc" ] || fail "system gcc changed after remove"

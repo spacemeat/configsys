@@ -20,7 +20,7 @@ if grep -q 'Candidate: [0-9]' <<<"$policy"; then
 fi
 
 say "install $PKG via configsys (must re-enable universe first)"
-bash bootstrap.sh install "$PKG"
+bash configsys.sh install "$PKG"
 
 say "assert universe is now enabled"
 grep -Rqs -E '^(deb|Components:).*universe' /etc/apt/sources.list /etc/apt/sources.list.d/ \

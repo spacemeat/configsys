@@ -15,13 +15,13 @@ say "refresh apt lists"
 sudo apt-get update -qq
 
 say "bootstrap + inspect"
-bash bootstrap.sh inspect
+bash configsys.sh inspect
 
 say "precondition: termapod NOT installed"
 if [ -x "$HOME/.local/bin/termapod" ]; then fail "termapod already present"; fi
 
 say "install apod via configsys (pipx; bootstraps pipx per OS version)"
-bash bootstrap.sh install apod
+bash configsys.sh install apod
 
 say "termapod binary landed in ~/.local/bin"
 [ -x "$HOME/.local/bin/termapod" ] || fail "~/.local/bin/termapod missing"
@@ -33,7 +33,7 @@ say "startup dotfile linked"
 [ -e "$HOME/.bash.d/apod.sh" ] || fail "~/.bash.d/apod.sh not linked"
 
 say "remove apod via configsys"
-bash bootstrap.sh remove apod
+bash configsys.sh remove apod
 if [ -x "$HOME/.local/bin/termapod" ]; then fail "termapod still present after remove"; fi
 
 printf '\nPASS: apod install -> pipx (bootstrapped as needed) -> remove on %s\n' "$VERSION_ID"

@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# configsys bootstrap — the minimal bash layer. Ensures python3 >= 3.10, a repo
+# configsys.sh — the minimal bash layer. Ensures python3 >= 3.10, a repo
 # .venv, and humon, then hands off to the python app. Idempotent: safe to re-run.
 set -euo pipefail
 

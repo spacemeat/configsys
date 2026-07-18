@@ -13,14 +13,14 @@ say "target: $PRETTY_NAME (ID=$ID)"
 printf '{ configs: user }\n' > "$HOME/configsys.hu"
 
 say "install build-essential via configsys (Arch: gcc + make; gcc bundles g++)"
-bash bootstrap.sh install build-essential
+bash configsys.sh install build-essential
 for p in gcc make; do pacman -Q "$p" >/dev/null 2>&1 || fail "$p not installed"; done
 command -v g++ >/dev/null 2>&1 || fail "g++ missing (should come with gcc on Arch)"
 echo "  gcc $(pacman -Q gcc | awk '{print $2}'), make $(pacman -Q make | awk '{print $2}'), g++ present"
 
 say "install the vulkan-dev X libs (libxcb bundles xinput + xinerama)"
-bash bootstrap.sh install libxcb
-bash bootstrap.sh install xcb-util-cursor
+bash configsys.sh install libxcb
+bash configsys.sh install xcb-util-cursor
 pacman -Q libxcb >/dev/null 2>&1 || fail "libxcb not installed"
 pacman -Q xcb-util-cursor >/dev/null 2>&1 || fail "xcb-util-cursor not installed"
 [ -e /usr/lib/libxcb-xinput.so.0 ] && [ -e /usr/lib/libxcb-xinerama.so.0 ] \
@@ -28,7 +28,7 @@ pacman -Q xcb-util-cursor >/dev/null 2>&1 || fail "xcb-util-cursor not installed
 echo "  libxcb provides xinput + xinerama"
 
 say "install vulkan-runtime (Arch: loader + radeon + intel + swrast)"
-bash bootstrap.sh install vulkan-runtime
+bash configsys.sh install vulkan-runtime
 for p in vulkan-icd-loader vulkan-radeon vulkan-intel vulkan-swrast; do
     pacman -Q "$p" >/dev/null 2>&1 || fail "$p not installed"
 done

@@ -6,7 +6,7 @@ Derived from `docs/PLAN.md`. Each step lists what it produces and how it's verif
 ## Target repo layout (M1)
 
 ```
-bootstrap.sh                  # minimal bash: verify python3>=3.10, .venv, humon; exec app
+configsys.sh                  # minimal bash: verify python3>=3.10, .venv, humon; exec app
 config.hu                     # rewritten: dev = flat list of routes-resolvable names
 routes.hu                     # brace bug fixed
 configsys/
@@ -129,13 +129,13 @@ test/
 - Verify: `bash test/run-in-podman.sh` green; host untouched (all in container).
 
 ### Step 6 — Bootstrap + entry
-14. `bootstrap.sh` — verify `python3 -c 'import sys; assert sys.version_info>=(3,10)'`
+14. `configsys.sh` — verify `python3 -c 'import sys; assert sys.version_info>=(3,10)'`
     (or install hint), ensure `.venv` (`python3 -m venv .venv`), ensure humon
     (`.venv/bin/pip show humon || pip install humon`), then
     `exec .venv/bin/python -m configsys "$@"`. Idempotent; `--pretend` passthrough.
 15. `__main__.py` / `app.py` — arg parse (`--pretend`, `--os`, `--home`, profile override),
     first-run generation of `~/configsys.hu` from repo template, then load→resolve→inspect→TUI.
-- Verify: `bash bootstrap.sh --pretend` on host runs read-only to the TUI without mutating
+- Verify: `bash configsys.sh --pretend` on host runs read-only to the TUI without mutating
   anything.
 
 ### Step 7 — Curses TUI
@@ -160,7 +160,7 @@ cycle both PASS in-container with the host untouched.
 - `bash test/run-in-podman.sh` performs a real apt install→lock→unlock→remove cycle of a
   routes.hu component inside ubuntu:22.04 and exits 0, host untouched.
 - Host-side `pytest` green for osdetect, config overlay, cascade, resolver, ledger, apt-family.
-- `bash bootstrap.sh --pretend` on the host reaches the TUI and mutates nothing.
+- `bash configsys.sh --pretend` on the host reaches the TUI and mutates nothing.
 - Resolving `dev` on pop_os! yields the expected deduped component set with apt bindings via
   the `*` wildcard inherited from debian, and reports a clear error for any unroutable name.
 

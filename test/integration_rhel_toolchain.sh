@@ -17,7 +17,7 @@ sys_gcc=$(gcc --version | head -1); echo "  $sys_gcc"
 for spec in "gcc-13:13" "gcc-14:14"; do
     comp=${spec%:*}; n=${spec#*:}
     say "install $comp via configsys (gcc-toolset-$n SCL)"
-    bash bootstrap.sh install "$comp"
+    bash configsys.sh install "$comp"
     bin="/opt/rh/gcc-toolset-$n/root/usr/bin/gcc"
     [ -x "$bin" ] || fail "$bin missing"
     "$bin" --version | grep -q " $n\." || fail "$comp toolset gcc is not version $n"
@@ -34,7 +34,7 @@ say "system /usr/bin/gcc is UNCHANGED"
 echo "  still: $(gcc --version | head -1)"
 
 say "remove gcc-13 via configsys"
-bash bootstrap.sh remove gcc-13
+bash configsys.sh remove gcc-13
 [ -x /opt/rh/gcc-toolset-13/root/usr/bin/gcc ] && fail "gcc-toolset-13 still present" || true
 
 printf '\nPASS: EL9 versioned GCC via gcc-toolset (13, 14) install/activate/remove\n'

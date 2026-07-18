@@ -15,13 +15,13 @@ say "refresh apt lists (image ships them cleaned; deps install before the LLVM r
 sudo apt-get update -qq
 
 say "bootstrap + inspect (builds .venv, installs humon)"
-bash bootstrap.sh inspect
+bash configsys.sh inspect
 
 say "precondition: $COMP is NOT installed"
 if [ -x "/usr/bin/$COMP" ]; then fail "$COMP already present"; fi
 
 say "install $COMP via configsys (LLVM repo + alternatives)"
-bash bootstrap.sh install "$COMP"
+bash configsys.sh install "$COMP"
 
 say "master + slave binaries exist"
 [ -x "/usr/bin/clang-$VER" ]   || fail "/usr/bin/clang-$VER missing"
@@ -40,7 +40,7 @@ grep -q "version $VER" <<<"$xv" || fail "clang++ reports wrong version: $xv"
 printf 'clang:   %s\nclang++: %s\n' "$cv" "$xv"
 
 say "remove $COMP via configsys"
-bash bootstrap.sh remove "$COMP"
+bash configsys.sh remove "$COMP"
 if dpkg -s "clang-$VER" 2>/dev/null | grep -q '^Status: install ok installed'; then
     fail "clang-$VER still installed after remove"
 fi
