@@ -118,17 +118,23 @@ The dividing line is **does it ship code** (`code:` in the manifest):
 
 - **Data‑only plugins**: sync freely, no prompt. Worst case is bad component definitions,
   caught by `configsys check`, and installs stay explicit — "just data can't do too much harm."
-- **Code plugins**: **explicit per‑commit opt‑in**. On sync / first use configsys prompts:
+- **Code plugins**: **explicit per‑commit opt‑in**, via an explicit command (not an inline
+  sync prompt — the CLI stays non‑interactive and scriptable):
 
-  > Plugin `opensuse-support` ships code (drivers: zypper). It runs with **your privileges**
-  > during installs. Trust commit `abc123`? [y/N]
+  ```
+  $ configsys plugin list          # a code plugin shows: ships code — untrusted
+  $ configsys plugin trust opensuse-support   # records the on-disk commit
+  ```
 
-  Approval is recorded per `(plugin, commit)` in the state dir. A code update = a new commit =
-  **re‑prompt** (never auto‑trust changed code). Until trusted, the plugin's code is not
-  imported and its drivers are not registered (degrade per §5). This is direnv's `allow`, but
-  per‑commit, because the blast radius is root.
+  Approval is recorded per `(plugin, commit)` in the trust store. A code update = a new commit
+  = the trust no longer matches → `plugin list` shows *changed since trust* and the driver stays
+  unregistered until you `trust` again (never auto‑trust changed code). Until trusted, the
+  plugin's code is not imported and its drivers are not registered (degrade per §5). This is
+  direnv's `allow`, but per‑commit, because the blast radius is root. (A convenience
+  prompt‑on‑sync could layer on top later; the store + gate don't depend on it.)
 
-Trust records live alongside the ledger (e.g. `~/.config/configsys/plugin-trust.hu`:
+Trust records live in the state dir (`~/.config/configsys/plugin-trust.hu`, keyed by the
+plugin's dir name — stable across commits, unlike the manifest name:
 `{ opensuse-support: abc123def... }`).
 
 ## 7. The ABI (one coarse number — KISS)
@@ -192,11 +198,11 @@ scope‑honoring drivers that used to call it, so subclasses now just call `scop
 **`ResolvedComponent` (what a driver reads):** `.driver`, `.comp`, `.name` (property =
 `fields['name'] or comp`), `.fields` (dict), `.vars`, `.requested_as`, `.deps`, `.key`.
 
-**Registration:** `register_driver(cls)` (re‑exported from `configsys.plugins`) adds a Driver
-subclass to the registry **before resolution**, so `via: <cls.name>` resolves. Built now. How
-the *trusted loader* discovers what to register from a plugin module — a `DRIVERS =
-[SubclassOfDriver, ...]` explicit export (preferred: no accidental registration) vs. letting the
-module self‑register on import — is decided in the trusted‑loading slice below, not here.
+**Registration:** a plugin's code module exports `DRIVERS = [SubclassOfDriver, ...]`; the
+trusted loader imports the module and calls `register_driver(cls)` (re‑exported from
+`configsys.plugins`) on each **before resolution**, so `via: <cls.name>` resolves. Explicit
+export, not subclass‑scanning — no accidental registration (a module may also call
+`register_driver` itself for dynamic cases). Built.
 
 Add `ABI_VERSION` from day one even if it never changes for a year — the affordance is *having*
 it; retrofitting versioning after plugins exist is the expensive path.
@@ -222,8 +228,12 @@ it; retrofitting versioning after plugins exist is the expensive path.
       unlike the manifest name). `configsys plugin trust <name>` records the on-disk HEAD;
       `untrust` revokes; `plugin list` classifies each code plugin (trusted / untrusted /
       changed-since-trust) and nudges. Per-commit: a moved HEAD reads as `changed` → re-approve.
-    - *the import gate: next.* Import + register a trusted plugin's `code:` module before
-      resolution; degrade untrusted/incompatible to resilient error rows.
+    - *the import gate: ✅ BUILT.* `plugins.load_code` imports a plugin's `code:` module and
+      registers its `DRIVERS` export **iff** synced + ABI‑ok + trusted at the on‑disk commit;
+      `Context.ensure_plugin_code` runs it once before resolution (via the `routes` property
+      and `check`). Untrusted/incompatible/broken code is skipped (collected into
+      `plugin_code_warnings`, surfaced by `check`) so its `via:` stays unknown and the
+      component degrades to a resilient error row — never fatal.
   - **P2c — registration hooks beyond drivers** (`register_version_source`,
     `register_transport`; see §10) so the ABI covers them from the start.
   - **Publish an example plugin as part of P2**: the **Alpine/apk** case — an `apk` `Driver` +

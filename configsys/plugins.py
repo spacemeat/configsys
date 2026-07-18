@@ -247,6 +247,63 @@ def set_declared(user_config_file, decls):
     path.write_text(text, encoding='utf-8')
 
 
+def _import_drivers(pdir, manifest):
+    '''Import the plugin's `code:` module from disk and return its `DRIVERS` list (the explicit
+    registration export). This RUNS the module's top-level code — reached only for a plugin the
+    user has trusted at this exact commit. Raises on a missing file / import error / bad export.'''
+    import importlib.util
+    import sys
+    code_file = pdir / manifest['code']
+    if not code_file.exists():
+        raise FileNotFoundError(f'code: {manifest["code"]} not found')
+    mod_name = f'configsys_plugin_{pdir.name}'
+    spec = importlib.util.spec_from_file_location(mod_name, code_file)
+    module = importlib.util.module_from_spec(spec)
+    sys.modules[mod_name] = module                       # so dataclasses / self-import resolve
+    try:
+        spec.loader.exec_module(module)
+    except BaseException:
+        sys.modules.pop(mod_name, None)
+        raise
+    exported = getattr(module, 'DRIVERS', None)
+    if exported is None:
+        raise AttributeError('module defines no DRIVERS = [ ... ] export')
+    return list(exported)
+
+
+def load_code(runner, plugins_dir, trust_file, decls, register):
+    '''Import + register the drivers of each declared plugin that is synced, ABI-compatible,
+    ships code, AND is trusted at its CURRENT on-disk commit. `register` is register_driver
+    (injected to keep this testable and cycle-free). Returns (loaded, skipped): loaded =
+    [(dir_name, [driver_name, ...])]; skipped = [(dir_name, reason)] for a code plugin that
+    ships code but was gated out (untrusted / changed / incompatible / broken). Never raises —
+    a plugin that can't load is skipped, and its `via:` simply stays unknown (degrades).'''
+    loaded, skipped = [], []
+    for d in decls:
+        key = dir_name(d['source'])
+        pdir = plugins_dir / key
+        if not pdir.exists():
+            continue
+        manifest = read_manifest(pdir)
+        if not manifest.get('code'):
+            continue                                     # data-only: nothing to gate
+        if not _abi_ok(manifest):
+            skipped.append((key, f'incompatible (needs plugin ABI {manifest.get("requires-abi")})'))
+            continue
+        commit = plugin_commit(runner, pdir)
+        if not is_trusted(trust_file, key, commit):
+            skipped.append((key, 'untrusted code (run: configsys plugin trust <name>)'))
+            continue
+        try:
+            drivers = _import_drivers(pdir, manifest)
+            for cls in drivers:
+                register(cls)
+            loaded.append((key, [getattr(c, 'name', '?') for c in drivers]))
+        except Exception as e:                           # noqa: BLE001 — a broken module is skipped
+            skipped.append((key, f'code failed to load — {e}'))
+    return loaded, skipped
+
+
 def sync(runner, plugins_dir, decls):
     '''Clone/fetch each declared plugin to plugins_dir/<name> at its pinned ref (via git through
     the runner, so --pretend works). Returns [(name, action)]. Best-effort per plugin.'''

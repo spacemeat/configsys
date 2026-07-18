@@ -6,9 +6,11 @@ uniformly. Ops take a ResolvedComponent and go through the injected Runner (so
 --pretend and tests work everywhere). Read ops return data; mutating ops return a
 runner.Result.
 
-This class IS the contract a code plugin subclasses. A plugin imports it as
-`from configsys.plugins import Driver, register_driver`. The frozen, ABI-stable
-surface (stable within a given plugins.ABI_VERSION) is:
+This class IS the contract a code plugin subclasses. A plugin's code module imports
+`from configsys.plugins import Driver` and lists its subclasses in a module-level
+`DRIVERS = [SubclassOfDriver, ...]` export; the trusted loader registers each (a
+plugin may also call `register_driver` directly for dynamic cases). The frozen,
+ABI-stable surface (stable within a given plugins.ABI_VERSION) is:
 
   Class attributes to set : name, privileged, default_scope, honors_scope
   Ops to implement        : get_version, get_latest, is_locked, install, uninstall,

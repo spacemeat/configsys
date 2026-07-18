@@ -91,6 +91,8 @@ class Context:
         self._config = None
         self._discovered = None
         self._plugin_files = None
+        self._plugin_code_loaded = False
+        self.plugin_code_warnings = []   # code plugins that ship code but were gated out
         self.resolve_errors = {}      # {requested_name: message} from the last resilient resolve
         self._migrate_user_config()
 
@@ -146,10 +148,26 @@ class Context:
         return layers.expand_tolerant([(d, 'discover') for d in self.discovered],
                                       {'discover'})[1]
 
+    def ensure_plugin_code(self):
+        '''Import + register the drivers of trusted code plugins, once, before any resolution
+        (so `via: <plugin-driver>` resolves). Untrusted/incompatible/broken code plugins are
+        collected into plugin_code_warnings and simply left unregistered (their `via:` stays
+        unknown -> the component degrades to a resilient error row). Idempotent.'''
+        if self._plugin_code_loaded:
+            return
+        self._plugin_code_loaded = True
+        from . import plugins
+        from .drivers import register_driver
+        decls = plugins.declared(self.paths.user_config_file)
+        _loaded, skipped = plugins.load_code(self.runner, self.paths.plugins_dir,
+                                             self.paths.plugin_trust_file, decls, register_driver)
+        self.plugin_code_warnings = [f'plugin {key}: {reason}' for key, reason in skipped]
+
     @property
     def routes(self):
         # layer stack: routes.hu < discovered project files < ~/configsys.hu (components
         # overlay + pins). A malformed discovered file is skipped, not fatal.
+        self.ensure_plugin_code()     # register trusted plugin drivers before `via:` resolves
         return Resolver(self.paths.routes_file, self.os_info.block,
                         self.os_info.version, self._cpu(),
                         pins=self.config.pins(),
@@ -440,6 +458,7 @@ def _issue_loc(issue, paths):
 def cmd_check(ctx, args):
     '''Lint the whole merged config (repo + your ~/configsys.hu + includes) without installing.'''
     from . import layers, routes, routecheck
+    ctx.ensure_plugin_code()          # register trusted plugin drivers so `via:` validates
     try:
         cascade, components, drivers = routes.load(
             ctx.paths.routes_file, ctx.paths.user_config_file, ctx.discovered,
@@ -480,7 +499,9 @@ def cmd_check(ctx, args):
 
     errors = [i for i in issues if i.is_error]
     warnings = [i for i in issues if not i.is_error]
-    if not errors and not warnings and not prof_issues and not pin_issues and not include_warnings:
+    code_warnings = ctx.plugin_code_warnings
+    if (not errors and not warnings and not prof_issues and not pin_issues
+            and not include_warnings and not code_warnings):
         print(f'configsys: OK — {len(components)} components, no issues')
         return 0
 
@@ -494,8 +515,10 @@ def cmd_check(ctx, args):
         print(f'  warn    {_issue_loc(i, ctx.paths)}{i.message}')
     for msg in include_warnings:
         print(f'  warn    {msg}')
+    for msg in code_warnings:
+        print(f'  warn    {msg}')
     n_err = len(errors) + len(prof_issues) + len(pin_issues)
-    n_warn = len(warnings) + len(include_warnings)
+    n_warn = len(warnings) + len(include_warnings) + len(code_warnings)
     print(f'\nconfigsys: {n_err} error(s), {n_warn} warning(s) '
           f'across {len(components)} components')
     return 1 if n_err else 0
