@@ -36,15 +36,18 @@ class DotFiles(Driver):
 
     @staticmethod
     def _specs(rc):
-        '''[(name, src, dst)] link specs. A component may be a single inline spec
-        (top-level src/dst) or a set of named specs (config: {src,dst}, ...).'''
+        '''[(name, src, dst, absorb)] link specs. A component may be a single inline spec
+        (top-level src/dst) or a set of named specs (config: {src,dst}, ...). `absorb-into` is
+        optional: where a PRE-EXISTING real dst is relocated at install (instead of the plain
+        `.pre-configsys` backup) so it stays live — e.g. a stray ~/.bash_aliases moved into the
+        ~/.bash.d loader dir, where the new one still sources it.'''
         f = rc.fields
         out = []
         if 'src' in f and 'dst' in f:
-            out.append((rc.comp, f['src'], f['dst']))
+            out.append((rc.comp, f['src'], f['dst'], f.get('absorb-into')))
         for key, val in f.items():
             if isinstance(val, dict) and 'src' in val and 'dst' in val:
-                out.append((key, val['src'], val['dst']))
+                out.append((key, val['src'], val['dst'], val.get('absorb-into')))
         return out
 
     def _home(self):
@@ -89,9 +92,11 @@ class DotFiles(Driver):
         return Path(s)
 
     def _pairs(self, rc):
-        '''[(source_path, target_path)] resolved for this machine.'''
+        '''[(source_path, target_path, absorb_path_or_None)] resolved for this machine.'''
         root = self._content_root(rc)
-        return [(self._source(src, root), self._expand(dst)) for _n, src, dst in self._specs(rc)]
+        return [(self._source(src, root), self._expand(dst),
+                 self._expand(absorb) if absorb else None)
+                for _n, src, dst, absorb in self._specs(rc)]
 
     # -- read -------------------------------------------------------------
 
@@ -99,7 +104,7 @@ class DotFiles(Driver):
         pairs = self._pairs(rc)
         if not pairs:
             return None
-        for src, tgt in pairs:
+        for src, tgt, _absorb in pairs:
             if not tgt.is_symlink():
                 return None
             if os.path.realpath(tgt) != os.path.realpath(src):
@@ -119,12 +124,22 @@ class DotFiles(Driver):
         if not pairs:
             return Result('(dotfiles: no link specs in route)', 1)
         lines = ['set -e']
-        for src, tgt in pairs:
+        for src, tgt, absorb in pairs:
             s, t = shlex.quote(str(src)), shlex.quote(str(tgt))
             lines.append(
                 f'test -e {s} || {{ echo "dotfiles source missing: {src}" >&2; exit 1; }}')
             lines.append(f'mkdir -p {shlex.quote(str(tgt.parent))}')
-            lines.append(f'if [ -e {t} ] && [ ! -L {t} ]; then mv {t} {t}{BACKUP_SUFFIX}; fi')
+            if absorb is not None:
+                # a pre-existing real dst is RELOCATED into the loader dir (made executable so
+                # the ~/.bash.d loader still sources it) — the user's own file isn't zapped.
+                # If the absorb target is already taken, fall back to a plain backup.
+                a, ap = shlex.quote(str(absorb)), shlex.quote(str(absorb.parent))
+                lines.append(
+                    f'if [ -e {t} ] && [ ! -L {t} ]; then mkdir -p {ap}; '
+                    f'if [ -e {a} ]; then mv {t} {t}{BACKUP_SUFFIX}; '
+                    f'else mv {t} {a} && chmod +x {a}; fi; fi')
+            else:
+                lines.append(f'if [ -e {t} ] && [ ! -L {t} ]; then mv {t} {t}{BACKUP_SUFFIX}; fi')
             lines.append(f'ln -sfn {s} {t}')
         return self.runner.run('\n'.join(lines), capture=False)
 
@@ -139,15 +154,21 @@ class DotFiles(Driver):
         if not pairs:
             return Result('(dotfiles: no link specs in route)', 1)
         lines = []
-        for _src, tgt in pairs:
+        for _src, tgt, absorb in pairs:
             t = shlex.quote(str(tgt))
-            # only remove our own symlink; then restore any backup we made
+            # only remove our own symlink; then put back what we displaced — the absorbed file
+            # (relocated original) if there is one, else any plain `.pre-configsys` backup.
             lines.append(f'if [ -L {t} ]; then rm -f {t}; fi')
-            lines.append(f'if [ -e {t}{BACKUP_SUFFIX} ]; then mv {t}{BACKUP_SUFFIX} {t}; fi')
+            if absorb is not None:
+                a = shlex.quote(str(absorb))
+                lines.append(f'if [ -e {a} ]; then mv {a} {t}; '
+                             f'elif [ -e {t}{BACKUP_SUFFIX} ]; then mv {t}{BACKUP_SUFFIX} {t}; fi')
+            else:
+                lines.append(f'if [ -e {t}{BACKUP_SUFFIX} ]; then mv {t}{BACKUP_SUFFIX} {t}; fi')
         return self.runner.run('\n'.join(lines), capture=False)
 
     def location(self, rc):
-        targets = [self.display_path(tgt) for _src, tgt in self._pairs(rc)]
+        targets = [self.display_path(tgt) for _src, tgt, _absorb in self._pairs(rc)]
         return '; '.join(targets) if targets else None
 
     def lock(self, rc):

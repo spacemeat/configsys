@@ -84,8 +84,8 @@ def test_where_overridden_component_shows_provenance(tmp_path, capsys):
 
 
 def test_where_removed_component(tmp_path, capsys):
-    (tmp_path / 'configsys.hu').write_text('{ components: { apod: {} } }')
-    rc = main(base_args(tmp_path) + ['where', 'apod'])
+    (tmp_path / 'configsys.hu').write_text('{ components: { firefox: {} } }')
+    rc = main(base_args(tmp_path) + ['where', 'firefox'])
     assert rc == 0
     out = capsys.readouterr().out
     assert 'removes' in out and 'nothing (removed)' in out

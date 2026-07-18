@@ -29,7 +29,7 @@ def test_src_anchors_at_the_defining_layers_dotfiles_dir(tmp_path):
     rc = ResolvedComponent(key='dotfiles\\x', driver='dotfiles', comp='x',
                            fields={'src': 'foo.sh', 'dst': '~/.foo.sh'},
                            source=str(tmp_path / 'myplugin' / 'routes.hu'))
-    src, _tgt = df._pairs(rc)[0]
+    src, _tgt, _ = df._pairs(rc)[0]
     assert src == tmp_path / 'myplugin' / 'dotfiles' / 'foo.sh'
 
 
@@ -38,7 +38,7 @@ def test_src_falls_back_to_repo_without_a_source(tmp_path):
     df = DotFiles(Runner(pretend=True), paths=p)
     rc = ResolvedComponent(key='dotfiles\\x', driver='dotfiles', comp='x',
                            fields={'src': 'foo.sh', 'dst': '~/.foo.sh'})   # no source
-    src, _tgt = df._pairs(rc)[0]
+    src, _tgt, _ = df._pairs(rc)[0]
     assert src == p.dotfiles_dir / 'foo.sh'
 
 
@@ -52,7 +52,7 @@ def test_resolution_threads_the_defining_file_end_to_end(tmp_path):
     rc = Resolver(str(routes), 'debian', '12').resolve_names(['mycfg'])['dotfiles\\mycfg']
     assert Path(rc.source) == routes                       # threaded from the defining file
     df = DotFiles(Runner(pretend=True), paths=paths_for(tmp_path))
-    src, _tgt = df._pairs(rc)[0]
+    src, _tgt, _ = df._pairs(rc)[0]
     assert src == routes.parent / 'dotfiles' / 'm'
 
 
@@ -63,13 +63,13 @@ def test_registry_has_dotfiles():
 def test_single_inline_spec():
     rc = ResolvedComponent(key='dotfiles\\arduino', driver='dotfiles', comp='arduino',
                            fields={'src': 'bash.d/arduino.sh', 'dst': '~/.bash.d/arduino.sh'})
-    assert DotFiles._specs(rc) == [('arduino', 'bash.d/arduino.sh', '~/.bash.d/arduino.sh')]
+    assert DotFiles._specs(rc) == [('arduino', 'bash.d/arduino.sh', '~/.bash.d/arduino.sh', None)]
 
 
 def test_dst_env_expansion_defaults_xdg(tmp_path):
     p = paths_for(tmp_path)
     df = DotFiles(Runner(pretend=True), paths=p)
-    src, tgt = df._pairs(df_unit())[0]
+    src, tgt, _ = df._pairs(df_unit())[0]
     assert src == p.dotfiles_dir / 'neovim'
     assert tgt == p.home / '.config' / 'nvim'   # $XDG_CONFIG_HOME default
 
@@ -140,3 +140,76 @@ def test_missing_source_fails(tmp_path):
     res = DotFiles(Runner(pretend=False), paths=p).install(df_unit())
     assert not res.ok
     assert not (p.home / '.config' / 'nvim').exists()
+
+
+# -- absorb-into: relocate a pre-existing file into the loader dir --------
+
+ABSORB = '~/.bash.d/pre-configsys-aliases.sh'
+
+
+def _bash_unit():
+    return ResolvedComponent(
+        key='dotfiles\\bash-dotfiles', driver='dotfiles', comp='bash-dotfiles',
+        fields={'aliases': {'src': 'bash_aliases', 'dst': '~/.bash_aliases', 'absorb-into': ABSORB}})
+
+
+def _seed_bash_src(p):
+    p.dotfiles_dir.mkdir(parents=True, exist_ok=True)
+    (p.dotfiles_dir / 'bash_aliases').write_text('# the new loader\n')
+    p.home.mkdir(parents=True, exist_ok=True)
+
+
+def test_absorb_moves_preexisting_aliases_into_bash_d(tmp_path):
+    p = paths_for(tmp_path)
+    _seed_bash_src(p)
+    (p.home / '.bash_aliases').write_text('alias mine="echo hi"\n')     # the user's own file
+
+    df = DotFiles(Runner(pretend=False), paths=p)
+    assert df.install(_bash_unit()).ok
+
+    link = p.home / '.bash_aliases'
+    assert link.is_symlink()
+    assert os.path.realpath(link) == os.path.realpath(p.dotfiles_dir / 'bash_aliases')
+    absorbed = p.home / '.bash.d' / 'pre-configsys-aliases.sh'
+    assert absorbed.is_file() and not absorbed.is_symlink()
+    assert absorbed.read_text() == 'alias mine="echo hi"\n'            # aliases preserved
+    assert os.access(absorbed, os.X_OK)                                # +x, so the loader sources it
+    assert not (p.home / '.bash_aliases.pre-configsys').exists()       # moved, not backed up
+
+
+def test_absorb_noop_when_no_preexisting_file(tmp_path):
+    p = paths_for(tmp_path)
+    _seed_bash_src(p)
+    df = DotFiles(Runner(pretend=False), paths=p)
+    assert df.install(_bash_unit()).ok
+    assert (p.home / '.bash_aliases').is_symlink()
+    assert not (p.home / '.bash.d' / 'pre-configsys-aliases.sh').exists()   # nothing to absorb
+
+
+def test_absorb_is_restored_on_uninstall(tmp_path):
+    p = paths_for(tmp_path)
+    _seed_bash_src(p)
+    (p.home / '.bash_aliases').write_text('alias mine="echo hi"\n')
+    df = DotFiles(Runner(pretend=False), paths=p)
+    df.install(_bash_unit())
+
+    df.uninstall(_bash_unit())
+    restored = p.home / '.bash_aliases'
+    assert restored.is_file() and not restored.is_symlink()
+    assert restored.read_text() == 'alias mine="echo hi"\n'            # original put back
+    assert not (p.home / '.bash.d' / 'pre-configsys-aliases.sh').exists()
+
+
+def test_absorb_falls_back_to_backup_if_target_taken(tmp_path):
+    p = paths_for(tmp_path)
+    _seed_bash_src(p)
+    (p.home / '.bash_aliases').write_text('mine\n')
+    taken = p.home / '.bash.d' / 'pre-configsys-aliases.sh'            # already occupied
+    taken.parent.mkdir(parents=True)
+    taken.write_text('someone-elses\n')
+
+    df = DotFiles(Runner(pretend=False), paths=p)
+    assert df.install(_bash_unit()).ok
+    assert (p.home / '.bash_aliases').is_symlink()
+    assert taken.read_text() == 'someone-elses\n'                     # not clobbered
+    assert (p.home / '.bash_aliases.pre-configsys').read_text() == 'mine\n'   # backed up instead

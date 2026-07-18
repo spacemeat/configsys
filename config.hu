@@ -25,10 +25,8 @@
             ripgrep
             xclip
             mononoki-nerd
-            apod
             vulkan-runtime      // loader + mesa Vulkan ICDs; no-op where a DE already has them
             steam
-            best-ps1
         ]
         dev: [
             cargo

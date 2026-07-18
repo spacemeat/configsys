@@ -48,21 +48,21 @@ def test_override_adds_a_new_component(tmp_path):
 
 
 def test_empty_override_removes_a_component(tmp_path):
-    # apod: {} -> resolving apod yields nothing, no error (a directly-named removed component
-    # is a no-op, so a profile can keep listing it harmlessly)
-    r = _resolver(tmp_path, '{ components: { apod: {} } }')
-    assert r.resolve_names(['apod']) == {}
+    # firefox: {} -> resolving firefox yields nothing, no error (a directly-named removed
+    # component is a no-op, so a profile can keep listing it harmlessly)
+    r = _resolver(tmp_path, '{ components: { firefox: {} } }')
+    assert r.resolve_names(['firefox']) == {}
 
 
 def test_removed_component_still_required_errors(tmp_path):
-    # remove bash-dotfiles, which best-ps1 requires -> a clear "nothing provides" error
+    # remove bash-dotfiles, which xclip-dotfiles requires -> a clear "nothing provides" error
     r = _resolver(tmp_path, '{ components: { bash-dotfiles: {} } }')
     with pytest.raises(ResolveError, match='bash-dotfiles'):
-        r.resolve_names(['best-ps1'])
+        r.resolve_names(['xclip-dotfiles'])
 
 
 def test_override_is_per_name_others_untouched(tmp_path):
-    r = _resolver(tmp_path, '{ components: { apod: {} } }')
+    r = _resolver(tmp_path, '{ components: { firefox: {} } }')
     assert 'apt\\btop' in r.resolve_names(['btop'])            # unrelated component unchanged
 
 
@@ -122,6 +122,6 @@ def test_resolve_resilient_reports_unsatisfiable_requirement(tmp_path):
     p = tmp_path / 'configsys.hu'
     p.write_text('{ components: { bash-dotfiles: {} } }')      # remove a required component
     r = Resolver(ROUTES, 'pop_os!', '22.04', 'x86_64', overrides_path=str(p))
-    units, errors = r.resolve_resilient(['btop', 'best-ps1'])
+    units, errors = r.resolve_resilient(['btop', 'xclip-dotfiles'])
     assert 'apt\\btop' in units                               # unrelated component fine
-    assert 'best-ps1' in errors and 'bash-dotfiles' in errors['best-ps1']
+    assert 'xclip-dotfiles' in errors and 'bash-dotfiles' in errors['xclip-dotfiles']

@@ -69,19 +69,6 @@
             ]
         }
 
-        // apod: a PyPI CLI (termapod) installed via pipx, plus a shell-startup dotfile.
-        // `via: pipx` pulls the pipx TOOL (the driver's requires) — which is itself the
-        // version-variant component above (pip-bootstrap on old Ubuntu/Debian, +EPEL on EL),
-        // so this is a two-level tool chain. The inline dotfiles field runs termapod on every
-        // interactive shell. (Old: linux `apod: [ pipx\apod, dotfiles\apod ]`.)
-        apod: {
-            suggests: apod-dotfiles
-            install: [ { via: pipx  name: termapod  version: { pypi: termapod } } ]
-        }
-        apod-dotfiles: {
-            install: [ { via: dotfiles  requires: bash-dotfiles  src: bash.d/apod.sh  dst: ~/.bash.d/apod.sh } ]
-        }
-
         // native, name differs by manager
         libfuse2: {
             install: [ { via: native  repo-component: universe  name: { dnf: fuse-libs  pacman: fuse2  default: libfuse2 } } ]
@@ -113,7 +100,11 @@
 
         // --- dotfiles ---
         bash-dotfiles: {
-            install: [ { via: dotfiles  aliases: { src: bash_aliases  dst: ~/.bash_aliases } } ]
+            // absorb-into: a pre-existing ~/.bash_aliases is MOVED into the ~/.bash.d loader
+            // dir (and made executable) instead of just backed up, so the user's own aliases
+            // keep running — the new ~/.bash_aliases sources every ~/.bash.d/*.sh.
+            install: [ { via: dotfiles  aliases: { src: bash_aliases  dst: ~/.bash_aliases
+                         absorb-into: ~/.bash.d/pre-configsys-aliases.sh } } ]
         }
 
         // --- appImage apps (fetch-artifact); config rides along as a required -dotfiles
@@ -207,9 +198,15 @@
             ]
         }
 
+        curl: { install: [ { via: native } ] }
+        git:        { install: [ { via: native } ] }
+
         // --- toolchain support ---
         // one native meta-package on Debian; no single package on Fedora/Arch, so a
         // faithful parts bundle there (the compilers + make), matching the old routes.
+
+        make:    { install: [ { via: native } ] }
+
         build-essential: {
             install: [
                 { via: native  when: "debian" }
@@ -217,30 +214,13 @@
                 { via: parts  when: "arch"    parts: [ gcc, make ] }
             ]
         }
-        software-properties-common: { install: [ { via: native } ] }
-        // gcc means "the C compiler works here" — but that's a different artifact per OS,
-        // and the two never coexist in one context, so ONE component with per-OS bindings
-        // reproduces the old dotfiles\gcc (Debian) and dnf\gcc / pacman\gcc (RH/Arch):
-        //   Debian — the base compiler already ships in build-essential; this is just the
-        //            `update-alternatives --config gcc` selector alias (a dotfile).
-        //   Fedora/Arch — build-essential is a parts bundle needing the actual gcc
-        //            *package*, which this same component provides natively.
-        // gcc-select: the `update-alternatives --config gcc` alias dotfile (Debian only) —
-        // required by the versioned gcc-NN toolchains so `gcc` points at the chosen one.
-        gcc-select: {
-            install: [ { via: dotfiles  when: "debian"  requires: bash-dotfiles
-                         src: bash.d/gcc.sh  dst: ~/.bash.d/gcc.sh } ]
-        }
-        // gcc: the actual C compiler *package* (a build-essential part on Fedora/Arch; on
-        // Debian the base compiler ships in build-essential, so there's no Debian binding).
-        gcc: {
-            install: [
-                { via: native  when: "redhat" }   // fedora + EL
-                { via: native  when: "arch" }     // arch gcc bundles g++
-            ]
-        }
-        gcc-cpp: { install: [ { via: native  name: { dnf: "gcc-c++" } } ] }   // Fedora g++ (has a `+`)
-        make:    { install: [ { via: native } ] }
+
+        // software-properties-common is a software package in Ubuntu and Debian that provides
+        // the add-apt-repository script. It allows users to easily manage independent software
+        // sources and PPAs (Personal Package Archives) without manually editing the
+        // /etc/apt/sources.list file.
+        software-properties-common: { install: [ { via: native when: debian } ] }
+
         // gdb: base-repo native everywhere (apt main / dnf base / pacman extra; EL base, no
         // EPEL), plus its shell-startup dotfile.
         gdb: {
@@ -249,10 +229,6 @@
         }
         gdb-dotfiles: {   // gdb reads ~/.gdbinit natively (no bash-dotfiles loader needed)
             install: [ { via: dotfiles  src: gdbinit  dst: ~/.gdbinit } ]
-        }
-
-        best-ps1: {
-            install: [ { via: dotfiles  requires: bash-dotfiles  src: bash.d/ps1.sh  dst: ~/.bash.d/ps1.sh } ]
         }
 
         // vscode: native from Microsoft's vendor repos. Debian/Ubuntu/Pop use the MS apt
@@ -277,11 +253,33 @@
         // --- AUR: packages built from PKGBUILD via makepkg -si (Arch only). The `aur`
         // driver pulls base-devel + git (the build toolchain); yay is the AUR helper
         // itself, prebuilt (-bin). Guarded to arch — the driver has no meaning elsewhere.
-        base-devel: { install: [ { via: native } ] }
-        git:        { install: [ { via: native } ] }
+        base-devel: { install: [ { via: native when: "arch" } ] }
         yay: {
             install: [ { via: aur  when: "arch"  name: yay-bin  version: { aur: yay-bin } } ]
         }
+
+        // gcc means "the C compiler works here" — but that's a different artifact per OS,
+        // and the two never coexist in one context, so ONE component with per-OS bindings
+        // reproduces the old dotfiles\gcc (Debian) and dnf\gcc / pacman\gcc (RH/Arch):
+        //   Debian — the base compiler already ships in build-essential; this is just the
+        //            `update-alternatives --config gcc` selector alias (a dotfile).
+        //   Fedora/Arch — build-essential is a parts bundle needing the actual gcc
+        //            *package*, which this same component provides natively.
+        // gcc-select: the `update-alternatives --config gcc` alias dotfile (Debian only) —
+        // required by the versioned gcc-NN toolchains so `gcc` points at the chosen one.
+        gcc-select: {
+            install: [ { via: dotfiles  when: "debian"  requires: bash-dotfiles
+                         src: bash.d/gcc.sh  dst: ~/.bash.d/gcc.sh } ]
+        }
+        // gcc: the actual C compiler *package* (a build-essential part on Fedora/Arch; on
+        // Debian the base compiler ships in build-essential, so there's no Debian binding).
+        gcc: {
+            install: [
+                { via: native  when: "redhat" }   // fedora + EL
+                { via: native  when: "arch" }     // arch gcc bundles g++
+            ]
+        }
+        gcc-cpp: { install: [ { via: native  name: { dnf: "gcc-c++" } } ] }   // Fedora g++ (has a `+`)
 
         // --- versioned gcc. Three drivers, selected by OS/version:
         //   debian -> `gcc` (apt PPA + update-alternatives; needs build-essential, s-p-c, the alias)
@@ -315,7 +313,6 @@
         //   debian -> apt.llvm.org + alternatives (needs build-essential, curl, the alias)
         //   fedora -> dnf compat clangNN (per-release; the system clang covers the newest)
         //   EL     -> dnf compat clangNN from EPEL (requires epel)
-        curl: { install: [ { via: native } ] }
         clang-select: {             // the `update-alternatives --config clang` alias dotfile
             requires: bash-dotfiles
             install: [ { via: dotfiles  src: bash.d/clang.sh  dst: ~/.bash.d/clang.sh } ]
