@@ -1,0 +1,17 @@
+{
+    // Make Alpine a first-class OS. It inherits the `linux` baseline and declares apk as its
+    // native package manager. This one block is enough that EVERY existing repo component
+    // routed `via: native` (btop, ripgrep, firefox, ...) now installs on Alpine through the
+    // apk driver — no per-component work.
+    os: {
+        alpine: { using: linux  native: apk }
+    }
+
+    // Alpine-specific components, installed with the apk driver this plugin ships. Each is
+    // guarded `when: "alpine"` so the binding exists ONLY where apk does — a component is
+    // never offered on an OS whose driver isn't loaded. `via: apk` is the direct form (use
+    // it for packages unique to this distro); repo components can keep using `via: native`.
+    components: {
+        doas: { install: [ { via: apk  when: "alpine" } ] }        // Alpine's sudo
+    }
+}

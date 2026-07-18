@@ -1,0 +1,23 @@
+{
+    // The plugin manifest. `configsys plugin list` reads this; the loader gates on it.
+    name: alpine
+    version: 0.1.0
+
+    // The plugin ABI this code targets. configsys loads the plugin only if this is in its
+    // ABI_SUPPORTED set (bump when you code against a newer Driver contract).
+    requires-abi: 1
+
+    // Informational: what this plugin brings.
+    provides: {
+        os: alpine
+        drivers: [ apk ]
+    }
+
+    // The data layers (os + component definitions) merged into the routing stack.
+    data: [ routes.hu ]
+
+    // The code module. Because this key is present, the plugin ships code: its `via: apk`
+    // driver runs with your privileges during installs, so it stays inert until you approve
+    // the exact commit with `configsys plugin trust alpine`.
+    code: driver.py
+}

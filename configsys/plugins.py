@@ -22,6 +22,7 @@ from . import layers
 from .driver import Driver
 from .drivers import register_driver
 from .errors import ConfigError
+from .runner import Result
 from .troveio import _scalar
 
 # The plugin ABI version (Driver contract + data schema + registration + RC shape). One coarse
@@ -33,12 +34,13 @@ ABI_SUPPORTED = frozenset({1})
 #   from configsys.plugins import Driver, register_driver
 # `Driver` is the base class to subclass (see configsys/driver.py for the documented
 # contract: class attrs, the op set to implement, and the public helpers a subclass may
-# call). `register_driver(SubclassOfDriver)` binds it so `via: <name>` resolves. Everything
-# re-exported here is ABI-stable within a given ABI_VERSION; the underscore members of
-# Driver are internal and may change without a bump. New pluggable kinds (version-source,
-# transport) will join this surface as further `register_*` hooks (docs/plugins.md §10).
+# call). `register_driver(SubclassOfDriver)` binds it so `via: <name>` resolves; `Result` is
+# the return type of the mutating ops (construct one for synthetic outcomes, e.g. a no-op
+# lock). Everything re-exported here is ABI-stable within a given ABI_VERSION; the underscore
+# members of Driver are internal and may change without a bump. New pluggable kinds
+# (version-source, transport) will join this surface as further `register_*` hooks (§10).
 __all__ = [
-    'Driver', 'register_driver', 'ABI_VERSION', 'ABI_SUPPORTED',
+    'Driver', 'register_driver', 'Result', 'ABI_VERSION', 'ABI_SUPPORTED',
     'declared', 'source_url', 'dir_name', 'read_manifest', 'layer_files', 'status', 'sync',
     'set_declared',
 ]

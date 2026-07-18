@@ -220,8 +220,9 @@ it; retrofitting versioning after plugins exist is the expensive path.
   block before the root's closing brace — every other line, comments and all, is untouched).
 - **P2 — code plugins.** Built on P1's proven sync, in slices:
   - **P2a — freeze the ABI surface. ✅ BUILT.** `configsys/plugins.py` re‑exports `Driver`,
-    `register_driver`, `ABI_VERSION`, `ABI_SUPPORTED`; the helper surface is promoted/clustered
-    (§7a); the `Driver` docstring is the contract; `test/test_abi_surface.py` gates it.
+    `register_driver`, `Result` (the mutating‑op return type), `ABI_VERSION`, `ABI_SUPPORTED`;
+    the helper surface is promoted/clustered (§7a); the `Driver` docstring is the contract;
+    `test/test_abi_surface.py` gates it.
   - **P2b — trusted loading + trust store.** The big, careful one, in two steps:
     - *trust store + commands: ✅ BUILT.* `~/.config/configsys/plugin-trust.hu` maps
       `dir_name(source) → approved commit sha` (keyed by dir name — stable across commits,
@@ -236,10 +237,12 @@ it; retrofitting versioning after plugins exist is the expensive path.
       component degrades to a resilient error row — never fatal.
   - **P2c — registration hooks beyond drivers** (`register_version_source`,
     `register_transport`; see §10) so the ABI covers them from the start.
-  - **Publish an example plugin as part of P2**: the **Alpine/apk** case — an `apk` `Driver` +
-    an `alpine` os block + `via: apk` components — is the canonical, useful demonstrator (and a
-    real gap: no apk support today). Ship it as a reference plugin repo so authors have a
-    template, and so we dogfood the whole code‑plugin path end‑to‑end.
+  - **Example plugin. ✅ BUILT** — `examples/configsys-alpine/` (`plugin.hu` + `routes.hu` +
+    `driver.py`): an `apk` `Driver` + an `alpine` os block + a `via: apk` component (`doas`). A
+    copy‑able reference/template that dogfoods the whole code‑plugin path — and shows the payoff
+    that one `os: { alpine: { native: apk } }` block makes every repo `via: native` component
+    (btop, ripgrep, …) install on Alpine. `test/test_example_alpine.py` exercises it
+    add→trust→resolve. (Publish it as a standalone git repo to `plugin add` it for real.)
 
 Mirrors how overrides shipped: prove the mechanism on the safe subset, then add the escalation.
 

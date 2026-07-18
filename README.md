@@ -225,8 +225,18 @@ $ ./configsys.sh plugin sync      # clone/fetch all declared plugins to their pi
 
 They clone to `~/.config/configsys/plugins/<name>/`, pin to a ref, and are ABI-gated so an
 incompatible plugin degrades instead of breaking the tool. `add` / `remove` / `update` edit
-your `plugins:` list **in place, preserving your comments**. See
-[docs/plugins.md](docs/plugins.md).
+your `plugins:` list **in place, preserving your comments**.
+
+A plugin can also ship **code** — a new driver (package manager) written in Python. Code runs
+with your privileges during installs, so it stays inert until you approve its exact commit:
+
+```console
+$ ./configsys.sh plugin trust <name>     # per-commit; a code change re-arms the gate
+```
+
+[`examples/configsys-alpine/`](examples/configsys-alpine/) is a complete, copy-able example —
+an `apk` driver + an `alpine` OS block. See [docs/plugins.md](docs/plugins.md) for the full
+model and the ABI a code plugin targets.
 
 ## Design notes
 

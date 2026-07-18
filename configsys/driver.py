@@ -22,7 +22,8 @@ ABI-stable surface (stable within a given plugins.ABI_VERSION) is:
     install location/privilege  : scoped_dir(raw, rc), sudo(rc), scope(rc),
                                   display_path(p)
   Injection : __init__(runner, paths) — runner.run(cmd, *, sudo=False, capture=True)
-              -> Result(.ok/.returncode/.stdout); paths.home/.env/.expand(p)/...
+              -> Result(.ok/.returncode/.stdout) (also importable from configsys.plugins);
+              paths.home/.env/.expand(p)/...
 
 Underscore members (_scope, _apply_placeholders, _disco_spec) are internal and may
 change without an ABI bump — subclasses must not rely on them.
