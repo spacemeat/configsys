@@ -18,7 +18,7 @@ def to_resolved_component(unit):
         comp=unit.component,
         fields=dict(unit.details),
         vars={},                      # v2 carries version info in `version:` specs, not $VARS
-        source=unit.component,
+        source=unit.source or '',     # the .hu file that defined the component (content roots)
     )
     rc.requested_as = set(unit.requested_as)
     rc.deps = set(unit.deps)

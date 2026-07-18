@@ -1,7 +1,8 @@
 '''dotfiles.py — the dotfiles driver: symlink repo-synced config into place.
 
 A component maps to one or more *link specs*, each `{ src, dst }`:
-  * src — a path under the repo's `dotfiles/` directory (the git-synced source)
+  * src — a path under a `dotfiles/` directory next to the .hu file that defined the
+    component (the base repo, or a plugin / user layer that ships its own content)
   * dst — where it belongs on this machine; may use env vars / ~ for OS-portable
     locations (e.g. `$XDG_CONFIG_HOME/nvim`, which defaults to ~/.config/nvim)
 
@@ -52,9 +53,19 @@ class DotFiles(Driver):
     def _env(self):
         return self.paths.env if self.paths is not None else dict(os.environ)
 
-    def _source(self, src):
-        base = self.paths.dotfiles_dir if self.paths is not None else Path('dotfiles')
-        return base / src
+    def _content_root(self, rc):
+        '''Where a component's `src:` files live: a `dotfiles/` dir NEXT TO the .hu file that
+        defined the component (`rc.source`), so a plugin / user layer ships its own content
+        alongside its definitions — the parallel to plugin data files. Falls back to the base
+        repo's dotfiles dir when the component carries no source (a hand-built rc in tests).
+        For the base repo this is identical to paths.dotfiles_dir (routes.hu sits at repo root).'''
+        src_file = getattr(rc, 'source', '') or ''
+        if src_file:
+            return Path(src_file).parent / 'dotfiles'
+        return self.paths.dotfiles_dir if self.paths is not None else Path('dotfiles')
+
+    def _source(self, src, root):
+        return root / src
 
     def _expand(self, dst):
         '''Expand env vars + ~ in a destination against configsys HOME.'''
@@ -79,7 +90,8 @@ class DotFiles(Driver):
 
     def _pairs(self, rc):
         '''[(source_path, target_path)] resolved for this machine.'''
-        return [(self._source(src), self._expand(dst)) for _n, src, dst in self._specs(rc)]
+        root = self._content_root(rc)
+        return [(self._source(src, root), self._expand(dst)) for _n, src, dst in self._specs(rc)]
 
     # -- read -------------------------------------------------------------
 

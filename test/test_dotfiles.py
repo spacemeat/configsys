@@ -1,9 +1,11 @@
 import os
+from pathlib import Path
 
 from configsys.componentObj import ResolvedComponent
 from configsys.drivers import get_driver
 from configsys.drivers.dotfiles import DotFiles
 from configsys.paths import Paths
+from configsys.routes import Resolver
 from configsys.runner import Runner
 
 
@@ -17,6 +19,41 @@ def df_unit(specs=None, comp='neovim'):
 def paths_for(tmp_path):
     return Paths(env={'CONFIGSYS_HOME': str(tmp_path / 'home'),
                       'CONFIGSYS_REPO': str(tmp_path / 'repo')})
+
+
+# -- content root follows the layer that defined the component -------------
+
+def test_src_anchors_at_the_defining_layers_dotfiles_dir(tmp_path):
+    # a component defined in /somewhere/routes.hu sources from /somewhere/dotfiles/
+    df = DotFiles(Runner(pretend=True), paths=paths_for(tmp_path))
+    rc = ResolvedComponent(key='dotfiles\\x', driver='dotfiles', comp='x',
+                           fields={'src': 'foo.sh', 'dst': '~/.foo.sh'},
+                           source=str(tmp_path / 'myplugin' / 'routes.hu'))
+    src, _tgt = df._pairs(rc)[0]
+    assert src == tmp_path / 'myplugin' / 'dotfiles' / 'foo.sh'
+
+
+def test_src_falls_back_to_repo_without_a_source(tmp_path):
+    p = paths_for(tmp_path)
+    df = DotFiles(Runner(pretend=True), paths=p)
+    rc = ResolvedComponent(key='dotfiles\\x', driver='dotfiles', comp='x',
+                           fields={'src': 'foo.sh', 'dst': '~/.foo.sh'})   # no source
+    src, _tgt = df._pairs(rc)[0]
+    assert src == p.dotfiles_dir / 'foo.sh'
+
+
+def test_resolution_threads_the_defining_file_end_to_end(tmp_path):
+    # a via:dotfiles component defined in its own routes file carries that file as rc.source,
+    # so the driver anchors its content next to it — the configsys-user-as-a-plugin path
+    routes = tmp_path / 'plug' / 'routes.hu'
+    routes.parent.mkdir(parents=True)
+    routes.write_text('{ os: { linux: {}  debian: { using: linux  native: apt } }'
+                      '  components: { mycfg: { install: [ { via: dotfiles  src: m  dst: ~/m } ] } } }')
+    rc = Resolver(str(routes), 'debian', '12').resolve_names(['mycfg'])['dotfiles\\mycfg']
+    assert Path(rc.source) == routes                       # threaded from the defining file
+    df = DotFiles(Runner(pretend=True), paths=paths_for(tmp_path))
+    src, _tgt = df._pairs(rc)[0]
+    assert src == routes.parent / 'dotfiles' / 'm'
 
 
 def test_registry_has_dotfiles():

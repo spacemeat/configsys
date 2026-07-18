@@ -18,7 +18,7 @@ class ResolvedComponent:
     vars: dict = field(default_factory=dict)    # variables in scope (fonts, etc.)
     requested_as: set = field(default_factory=set)  # OS-level names that pulled it in
     deps: set = field(default_factory=set)      # unit keys this unit requires first
-    source: str = ''                            # routes.hu node address (diagnostics)
+    source: str = ''                            # the .hu file that defined the component (content roots, diagnostics)
 
     @property
     def name(self):

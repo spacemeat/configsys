@@ -28,6 +28,7 @@ class Unit:
         self.package = package
         self.deps = set()
         self.requested_as = set()
+        self.source = None      # the .hu file that DEFINED the component (layer-relative content roots)
         # install-execution fields (the driver reads these off the ResolvedComponent the
         # builder makes). Populated from the selected binding's details / the dotfiles spec,
         # minus resolver-only keys; `name` is normalized to the resolved package.
@@ -233,6 +234,7 @@ class _State:
         unit = Unit(drv, name, _package(binding, drv, comp))
         unit.requested_as = {root}
         unit.details = _install_fields(binding.details, unit.package)
+        unit.source = comp.source        # the layer/file this component came from
         self.units[key] = unit
         for cap in set(comp.provides) | {name}:
             self.inventory.setdefault(cap, frozenset({key}))
