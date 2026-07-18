@@ -135,7 +135,7 @@ class DotFiles(Driver):
         return self.runner.run('\n'.join(lines), capture=False)
 
     def location(self, rc):
-        targets = [self._display_path(tgt) for _src, tgt in self._pairs(rc)]
+        targets = [self.display_path(tgt) for _src, tgt in self._pairs(rc)]
         return '; '.join(targets) if targets else None
 
     def lock(self, rc):

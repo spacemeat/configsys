@@ -149,11 +149,14 @@ the contract a plugin codes against. Version the whole thing with **one coarse i
 Deliberately NOT split into data‑ABI vs code‑ABI for now (KISS); split later only if they
 diverge.
 
-### 7a. Freeze + document the `Driver` surface (the prerequisite work)
+### 7a. Freeze + document the `Driver` surface (the prerequisite work) — ✅ BUILT
 
-To version honestly, the public contract must be explicit and stable. Re‑export the frozen
-surface from `configsys/plugins.py` (one import for plugin authors:
-`from configsys.plugins import Driver, register_driver`).
+To version honestly, the public contract must be explicit and stable. The frozen surface is
+re‑exported from `configsys/plugins.py` — one import for plugin authors:
+`from configsys.plugins import Driver, register_driver` (plus `ABI_VERSION`/`ABI_SUPPORTED`).
+The `Driver` base class docstring (`configsys/driver.py`) is the authoritative contract, and
+`test/test_abi_surface.py` is the regression gate. `register_driver(cls)` binds a subclass so
+`via: <cls.name>` resolves (usable as a decorator; rejects a nameless driver).
 
 **Design goal for the freeze (per the P2 decision): keep the surface MINIMAL and cogent.**
 Don't just promote every underscore helper 1:1 — while freezing, consolidate: bundle related
@@ -170,12 +173,16 @@ not a pile of underscore methods. The contract inventory, from today's `configsy
 `install(rc)`, `uninstall(rc)`, `upgrade(rc)`, `set_version(rc, version)`, `lock(rc)`,
 `unlock(rc)`. Optional: `location(rc)`, `ensure_prereqs(rc)`.
 
-**Provided helpers a Driver MAY use (must stay stable per ABI):** `resolve_version(rc)`,
-`download_url(rc, version)`, `scope(rc)`, and — currently underscore‑private but genuinely
-needed by fetch/tarball‑like mechanisms — `_scoped_dir`, `_sudo`, `_arch`,
-`_apply_placeholders`, `_disco_spec`. **Task: promote these to public names** (e.g.
-`scoped_dir`, `sudo`, `arch`) or explicitly bless the underscore names as ABI‑stable, and
-document them.
+**Provided helpers a Driver MAY use (ABI‑stable), promoted to clean public names and clustered
+by co‑usage:**
+- *resolve + fetch an artifact* — `resolve_version(rc, *, refresh=False)`,
+  `download_url(rc, version)`, `arch()`.
+- *install location / privilege / display* — `scoped_dir(raw, rc)`, `sudo(rc)`, `scope(rc)`,
+  `display_path(p)`.
+
+`_scope`, `_apply_placeholders`, and `_disco_spec` stay underscore‑internal — implementation
+details behind the public helpers, changeable without an ABI bump. (`_scope` == `scope` for the
+scope‑honoring drivers that used to call it, so subclasses now just call `scope(rc)`.)
 
 **Injection contract:** `__init__(self, runner, paths)`.
 - `runner.run(cmd, *, sudo=False, capture=True) -> Result` (Result has `.ok`, `.returncode`,
@@ -185,9 +192,11 @@ document them.
 **`ResolvedComponent` (what a driver reads):** `.driver`, `.comp`, `.name` (property =
 `fields['name'] or comp`), `.fields` (dict), `.vars`, `.requested_as`, `.deps`, `.key`.
 
-**Registration:** a code module exports `DRIVERS = [SubclassOfDriver, ...]`; configsys imports
-it (only if trusted) and registers each into the driver registry **before resolution**, so
-`via: <name>` resolves. Explicit export, not subclass‑scanning (no accidental registration).
+**Registration:** `register_driver(cls)` (re‑exported from `configsys.plugins`) adds a Driver
+subclass to the registry **before resolution**, so `via: <cls.name>` resolves. Built now. How
+the *trusted loader* discovers what to register from a plugin module — a `DRIVERS =
+[SubclassOfDriver, ...]` explicit export (preferred: no accidental registration) vs. letting the
+module self‑register on import — is decided in the trusted‑loading slice below, not here.
 
 Add `ABI_VERSION` from day one even if it never changes for a year — the affordance is *having*
 it; retrofitting versioning after plugins exist is the expensive path.
@@ -203,10 +212,15 @@ it; retrofitting versioning after plugins exist is the expensive path.
   re-sync). Edits the `plugins:` list IN PLACE via a comment-preserving surgical rewrite
   (`plugins.set_declared` replaces the `plugins:` node's exact `source_text` span, or inserts a
   block before the root's closing brace — every other line, comments and all, is untouched).
-- **P2 — code plugins.** The frozen, documented ABI surface (`configsys/plugins.py` re‑exports;
-  see §7a — keep it minimal/clustered); trusted‑only import of `code:` modules with per‑commit
-  approval and the trust store; registration into the driver registry; degradation for
-  untrusted/incompatible. The big, careful one — built on P1's proven sync.
+- **P2 — code plugins.** Built on P1's proven sync, in slices:
+  - **P2a — freeze the ABI surface. ✅ BUILT.** `configsys/plugins.py` re‑exports `Driver`,
+    `register_driver`, `ABI_VERSION`, `ABI_SUPPORTED`; the helper surface is promoted/clustered
+    (§7a); the `Driver` docstring is the contract; `test/test_abi_surface.py` gates it.
+  - **P2b — trusted loading + trust store.** Import a synced plugin's `code:` module only when
+    trusted (per‑commit approval, trust store, degradation for untrusted/incompatible), then
+    register its drivers before resolution. The big, careful one.
+  - **P2c — registration hooks beyond drivers** (`register_version_source`,
+    `register_transport`; see §10) so the ABI covers them from the start.
   - **Publish an example plugin as part of P2**: the **Alpine/apk** case — an `apk` `Driver` +
     an `alpine` os block + `via: apk` components — is the canonical, useful demonstrator (and a
     real gap: no apk support today). Ship it as a reference plugin repo so authors have a

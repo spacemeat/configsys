@@ -30,7 +30,7 @@ class DebianFont(Driver):
         return self.paths.home if self.paths is not None else Path.home()
 
     def _font_base(self, rc):
-        if self._scope(rc) == 'system':
+        if self.scope(rc) == 'system':
             return Path('/usr/local/share/fonts')
         env = self.paths.env if self.paths is not None else {}
         xdg = env.get('XDG_DATA_HOME')
@@ -81,7 +81,7 @@ class DebianFont(Driver):
             'rm -rf "$tmp"',
             f'fc-cache -f {dq} >/dev/null 2>&1 || true',
         ])
-        return self.runner.run(script, sudo=self._sudo(rc), capture=False)
+        return self.runner.run(script, sudo=self.sudo(rc), capture=False)
 
     def upgrade(self, rc):
         return self.install(rc)  # dir is recreated; marker refreshed
@@ -98,10 +98,10 @@ class DebianFont(Driver):
             '  fc-cache -f >/dev/null 2>&1 || true',
             'fi',
         ])
-        return self.runner.run(script, sudo=self._sudo(rc), capture=False)
+        return self.runner.run(script, sudo=self.sudo(rc), capture=False)
 
     def location(self, rc):
-        return self._display_path(self._font_dir(rc))
+        return self.display_path(self._font_dir(rc))
 
     def lock(self, rc):
         return Result('(debian-font lock recorded in ledger)', 0)

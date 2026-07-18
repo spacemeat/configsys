@@ -25,7 +25,7 @@ class Tarball(Driver):
 
     def _install_dir(self, rc):
         # bare-relative installDir (e.g. `vulkan`) -> HOME (user) or /opt (system)
-        return self._scoped_dir(rc.fields.get('installDir', ''), rc)
+        return self.scoped_dir(rc.fields.get('installDir', ''), rc)
 
     def _marker(self, rc):
         return self._install_dir(rc) / f'{MARKER_PREFIX}{rc.comp}.version'
@@ -65,7 +65,7 @@ class Tarball(Driver):
                f'tar -xf {tmp} -C {dq} && '
                f'rm -f {tmp} && '
                f'printf %s {verq} > {marker}')
-        return self.runner.run(cmd, sudo=self._sudo(rc), capture=False)
+        return self.runner.run(cmd, sudo=self.sudo(rc), capture=False)
 
     def upgrade(self, rc):
         # tarball upgrade = clean reinstall of the declared version
@@ -83,10 +83,10 @@ class Tarball(Driver):
         # only remove the dir when we actually manage it (our marker is present)
         cmd = (f'if [ -f {shlex.quote(str(marker))} ]; then '
                f'rm -rf {shlex.quote(str(d))}; fi')
-        return self.runner.run(cmd, sudo=self._sudo(rc), capture=False)
+        return self.runner.run(cmd, sudo=self.sudo(rc), capture=False)
 
     def location(self, rc):
-        return self._display_path(self._install_dir(rc))
+        return self.display_path(self._install_dir(rc))
 
     def lock(self, rc):
         return Result('(tarball lock recorded in ledger)', 0)

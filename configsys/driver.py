@@ -1,10 +1,29 @@
-'''component.py — the base Driver interface.
+'''driver.py — the base Driver interface (the core of the plugin ABI).
 
 A Driver knows how to operate on the components routed to it (apt, flatpak, ...).
 Every driver implements the same op set so the app can drive any component
 uniformly. Ops take a ResolvedComponent and go through the injected Runner (so
 --pretend and tests work everywhere). Read ops return data; mutating ops return a
 runner.Result.
+
+This class IS the contract a code plugin subclasses. A plugin imports it as
+`from configsys.plugins import Driver, register_driver`. The frozen, ABI-stable
+surface (stable within a given plugins.ABI_VERSION) is:
+
+  Class attributes to set : name, privileged, default_scope, honors_scope
+  Ops to implement        : get_version, get_latest, is_locked, install, uninstall,
+                            upgrade, set_version, lock, unlock
+  Overridable (optional)  : location(rc), scope(rc)
+  Helpers a subclass MAY call, in two clusters:
+    resolve + fetch an artifact : resolve_version(rc, *, refresh=False),
+                                  download_url(rc, version), arch()
+    install location/privilege  : scoped_dir(raw, rc), sudo(rc), scope(rc),
+                                  display_path(p)
+  Injection : __init__(runner, paths) — runner.run(cmd, *, sudo=False, capture=True)
+              -> Result(.ok/.returncode/.stdout); paths.home/.env/.expand(p)/...
+
+Underscore members (_scope, _apply_placeholders, _disco_spec) are internal and may
+change without an ABI bump — subclasses must not rely on them.
 '''
 
 
@@ -39,13 +58,13 @@ class Driver:
         '''Effective install scope for a component (field wins; else driver default).'''
         return rc.fields.get('scope') or self.default_scope
 
-    def _sudo(self, rc):
+    def sudo(self, rc):
         '''System scope needs root for its mutations; user scope never does.'''
         return self._scope(rc) == 'system'
 
     # -- version resolution (download-based drivers) ---------------------
 
-    def _arch(self):
+    def arch(self):
         '''System CPU arch for $ARCH substitution (e.g. x86_64, aarch64). Naming
         conventions differ per project, so some URLs still need hand-tuning.'''
         env = self.paths.env if self.paths is not None else {}
@@ -56,7 +75,7 @@ class Driver:
             return text
         if version:
             text = text.replace('$VERSION', version)
-        return text.replace('$ARCH', self._arch())
+        return text.replace('$ARCH', self.arch())
 
     def _disco_spec(self, rc):
         '''The version spec with $ARCH substituted into an `asset` glob (so the
@@ -64,7 +83,7 @@ class Driver:
         spec = rc.fields.get('version')
         if isinstance(spec, dict) and 'asset' in spec:
             spec = dict(spec)
-            spec['asset'] = spec['asset'].replace('$ARCH', self._arch())
+            spec['asset'] = spec['asset'].replace('$ARCH', self.arch())
         return spec
 
     def resolve_version(self, rc, *, refresh=False):
@@ -91,7 +110,7 @@ class Driver:
                 return asset
         return self._apply_placeholders(rc.fields.get('url'), version)
 
-    def _scoped_dir(self, raw, rc):
+    def scoped_dir(self, raw, rc):
         '''Resolve an install path. Absolute and ~ paths pass through; a bare
         relative path (e.g. `vulkan`) resolves under HOME for user scope and under
         /opt for system scope.'''
@@ -143,7 +162,7 @@ class Driver:
         package-managed drivers with no single path (apt). Shown in the TUI infoblock.'''
         return None
 
-    def _display_path(self, p):
+    def display_path(self, p):
         '''Collapse HOME to ~ for readable display.'''
         s = str(p)
         home = str(self.paths.home) if self.paths is not None else str(Path.home())

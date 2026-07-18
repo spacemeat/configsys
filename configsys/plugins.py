@@ -7,8 +7,10 @@ plugins dir to pinned refs. Loading uses whatever is already on disk (sync is se
 declared-but-unsynced or incompatible plugin is simply absent — its components then surface as
 resilient error rows, never a brick.
 
-P2 will add code plugins (Python Driver subclasses) + the trust model; this module also owns
-the ABI version the manifest gates on. See docs/plugins.md.
+This module is also the FROZEN PLUGIN SURFACE: it re-exports `Driver` + `register_driver` and
+owns `ABI_VERSION`/`ABI_SUPPORTED` (the manifest gates on it), so a code plugin imports
+everything from one place. P2b/P2c will add trusted loading of those Driver subclasses + the
+trust model, and further `register_*` hooks. See docs/plugins.md.
 '''
 
 import shlex
@@ -17,6 +19,8 @@ from pathlib import Path
 import humon
 
 from . import layers
+from .driver import Driver
+from .drivers import register_driver
 from .errors import ConfigError
 from .troveio import _scalar
 
@@ -24,6 +28,20 @@ from .troveio import _scalar
 # integer (KISS). A manifest declares `requires-abi: N`; we load it iff N is in ABI_SUPPORTED.
 ABI_VERSION = 1
 ABI_SUPPORTED = frozenset({1})
+
+# The FROZEN plugin surface. A code plugin imports exactly this — one line:
+#   from configsys.plugins import Driver, register_driver
+# `Driver` is the base class to subclass (see configsys/driver.py for the documented
+# contract: class attrs, the op set to implement, and the public helpers a subclass may
+# call). `register_driver(SubclassOfDriver)` binds it so `via: <name>` resolves. Everything
+# re-exported here is ABI-stable within a given ABI_VERSION; the underscore members of
+# Driver are internal and may change without a bump. New pluggable kinds (version-source,
+# transport) will join this surface as further `register_*` hooks (docs/plugins.md §10).
+__all__ = [
+    'Driver', 'register_driver', 'ABI_VERSION', 'ABI_SUPPORTED',
+    'declared', 'source_url', 'dir_name', 'read_manifest', 'layer_files', 'status', 'sync',
+    'set_declared',
+]
 
 
 def declared(user_config_file):

@@ -96,7 +96,7 @@ class Apt(Driver):
         if isinstance(src, str) and src.startswith('github:'):
             asset = rc.fields.get('asset')
             if isinstance(asset, dict):
-                asset = asset.get(self._arch())
+                asset = asset.get(self.arch())
             return {'github': src.split(':', 1)[1], 'asset': asset}
         return None
 

@@ -34,7 +34,7 @@ class AppImage(Driver):
 
     def _target(self, rc):
         # bare-relative path -> HOME (user) or /opt (system); ~/absolute pass through
-        return self._scoped_dir(rc.fields.get('path', ''), rc)
+        return self.scoped_dir(rc.fields.get('path', ''), rc)
 
     def _marker(self, rc):
         t = self._target(rc)
@@ -75,7 +75,7 @@ class AppImage(Driver):
 
         cmd = (f'mkdir -p {dq} && curl -fSL {uq} -o {tq} && chmod +x {tq} && '
                f'printf %s {vq} > {mq}')
-        res = self.runner.run(cmd, sudo=self._sudo(rc), capture=False)
+        res = self.runner.run(cmd, sudo=self.sudo(rc), capture=False)
         if res.ok:
             self._extract_icon(rc)
             self._write_desktop(rc)
@@ -94,7 +94,7 @@ class AppImage(Driver):
             f'if [ -e squashfs-root/.DirIcon ]; then '
             f'mkdir -p {idq} && cp -Lf squashfs-root/.DirIcon {iq}; fi; '
             f'cd / && rm -rf "$tmp"',
-            sudo=self._sudo(rc), capture=False)
+            sudo=self.sudo(rc), capture=False)
 
     def _write_desktop(self, rc):
         '''Best-effort application-menu entry (user-space, own runner call so
@@ -124,10 +124,10 @@ class AppImage(Driver):
         cmd = (f'if [ -f {shlex.quote(str(marker))} ]; then '
                f'rm -f {shlex.quote(str(t))} {shlex.quote(str(marker))} '
                f'{shlex.quote(str(df))} {shlex.quote(str(icon))}; fi')
-        return self.runner.run(cmd, sudo=self._sudo(rc), capture=False)
+        return self.runner.run(cmd, sudo=self.sudo(rc), capture=False)
 
     def location(self, rc):
-        return self._display_path(self._target(rc))
+        return self.display_path(self._target(rc))
 
     def lock(self, rc):
         return Result('(appImage lock recorded in ledger)', 0)

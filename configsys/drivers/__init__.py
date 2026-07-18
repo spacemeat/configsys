@@ -41,6 +41,16 @@ _REGISTRY = {
 }
 
 
+def register_driver(cls):
+    '''Register a Driver subclass under its `name`, so `via: <name>` resolves to it.
+    Built-in drivers are registered above; plugins call this (via the frozen surface in
+    configsys.plugins) to add their own. Returns the class (usable as a decorator).'''
+    if not getattr(cls, 'name', None):
+        raise ValueError(f'{cls!r} has no `name` — a Driver must set a class-level name')
+    _REGISTRY[cls.name] = cls
+    return cls
+
+
 def get_driver(name, runner, paths=None):
     '''Instantiate the driver for `name` bound to `runner`/`paths`, or None.'''
     cls = _REGISTRY.get(name)
