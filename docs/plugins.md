@@ -216,9 +216,14 @@ it; retrofitting versioning after plugins exist is the expensive path.
   - **P2a — freeze the ABI surface. ✅ BUILT.** `configsys/plugins.py` re‑exports `Driver`,
     `register_driver`, `ABI_VERSION`, `ABI_SUPPORTED`; the helper surface is promoted/clustered
     (§7a); the `Driver` docstring is the contract; `test/test_abi_surface.py` gates it.
-  - **P2b — trusted loading + trust store.** Import a synced plugin's `code:` module only when
-    trusted (per‑commit approval, trust store, degradation for untrusted/incompatible), then
-    register its drivers before resolution. The big, careful one.
+  - **P2b — trusted loading + trust store.** The big, careful one, in two steps:
+    - *trust store + commands: ✅ BUILT.* `~/.config/configsys/plugin-trust.hu` maps
+      `dir_name(source) → approved commit sha` (keyed by dir name — stable across commits,
+      unlike the manifest name). `configsys plugin trust <name>` records the on-disk HEAD;
+      `untrust` revokes; `plugin list` classifies each code plugin (trusted / untrusted /
+      changed-since-trust) and nudges. Per-commit: a moved HEAD reads as `changed` → re-approve.
+    - *the import gate: next.* Import + register a trusted plugin's `code:` module before
+      resolution; degrade untrusted/incompatible to resilient error rows.
   - **P2c — registration hooks beyond drivers** (`register_version_source`,
     `register_transport`; see §10) so the ABI covers them from the start.
   - **Publish an example plugin as part of P2**: the **Alpine/apk** case — an `apk` `Driver` +

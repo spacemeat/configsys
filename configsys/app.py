@@ -569,8 +569,43 @@ def cmd_plugin(ctx, args):
         _sync_and_report(ctx, [target])
         return 0
 
+    if sub == 'trust':
+        target = _find_decl(decls, ctx.paths.plugins_dir, args.name)
+        if target is None:
+            print(f'configsys: no declared plugin matches {args.name!r}')
+            return 1
+        key = plugins.dir_name(target['source'])         # store key: stable across commits
+        pdir = ctx.paths.plugins_dir / key
+        if not pdir.exists():
+            print(f'configsys: {key} is not synced — run: configsys plugin sync')
+            return 1
+        manifest = plugins.read_manifest(pdir)
+        disp = manifest.get('name', key)                  # friendly name for display
+        if not manifest.get('code'):
+            print(f'configsys: {disp} ships no code — nothing to trust')
+            return 0
+        commit = plugins.plugin_commit(ctx.runner, pdir)
+        if commit is None:
+            print(f'configsys: could not read {disp}’s commit (not a git checkout?)')
+            return 1
+        plugins.set_trust(ctx.paths.plugin_trust_file, key, commit)
+        print(f'configsys: trusted {disp} @ {commit[:12]} — its code will run during installs')
+        return 0
+
+    if sub == 'untrust':
+        target = _find_decl(decls, ctx.paths.plugins_dir, args.name)
+        key = plugins.dir_name(target['source']) if target else args.name
+        pdir = ctx.paths.plugins_dir / key
+        disp = plugins.read_manifest(pdir).get('name', key) if pdir.exists() else key
+        if plugins.remove_trust(ctx.paths.plugin_trust_file, key):
+            print(f'configsys: untrusted {disp}')
+            return 0
+        print(f'configsys: {disp} was not trusted')
+        return 0
+
     if sub == 'list':
-        rows = plugins.status(ctx.paths.plugins_dir, decls)
+        rows = plugins.status(ctx.paths.plugins_dir, decls,
+                              runner=ctx.runner, trust_file=ctx.paths.plugin_trust_file)
         if not rows:
             print('configsys: no plugins declared')
             return 0
@@ -580,7 +615,15 @@ def cmd_plugin(ctx, args):
             elif not r['abi_ok']:
                 state = f'incompatible (needs plugin ABI {r["requires_abi"]})'
             else:
-                state = 'ok' + ('  [ships code — inert until P2]' if r['has_code'] else '')
+                state = 'ok'
+                cs = r['code_state']
+                if cs == 'trusted':
+                    state += '  [code trusted]'
+                elif cs == 'untrusted':
+                    state += f'  [ships code — untrusted; run: configsys plugin trust {r["name"]}]'
+                elif cs == 'changed':
+                    state += (f'  [code changed since trust — re-approve: '
+                              f'configsys plugin trust {r["name"]}]')
             ref = f' @{r["ref"]}' if r['ref'] else ''
             print(f'  {r["name"]:22} {r["source"]}{ref}')
             print(f'  {"":22} {state}')
@@ -635,6 +678,10 @@ def build_parser():
     pu = plsub.add_parser('update', help="re-sync a plugin (move its pin with --ref)")
     pu.add_argument('name', help='plugin name, source, or dir')
     pu.add_argument('--ref', help='new tag / commit / branch to pin to')
+    pt = plsub.add_parser('trust', help="approve a code plugin's current commit to run during installs")
+    pt.add_argument('name', help='plugin name, source, or dir')
+    pun = plsub.add_parser('untrust', help="revoke a code plugin's trust")
+    pun.add_argument('name', help='plugin name, source, or dir')
 
     sub.add_parser('refresh', help='re-query latest versions from their sources')
     sub.add_parser('tui', help='interactive TUI (default)')

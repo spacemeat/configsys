@@ -114,20 +114,100 @@ def layer_files(plugins_dir, decls):
     return out
 
 
-def status(plugins_dir, decls):
-    '''Per-declared-plugin status for `plugin list`: name, source, ref, synced, abi-ok, provides.'''
+# -- code trust (P2b): a plugin that ships code runs with the user's privileges during
+# installs, so its `code:` module is imported only when the user has approved the EXACT
+# commit on disk. Approvals live in a machine-local trust store keyed by dir_name(source).
+
+def plugin_commit(runner, plugin_dir):
+    '''The synced plugin's current HEAD commit sha, or None (unsynced / not a git repo /
+    --pretend). This is the identity a trust approval is bound to.'''
+    if not Path(plugin_dir).exists():
+        return None
+    r = runner.run(f'git -C {shlex.quote(str(plugin_dir))} rev-parse HEAD')
+    if r is None or not getattr(r, 'ok', False):
+        return None
+    return (r.stdout or '').strip() or None
+
+
+def read_trust(trust_file):
+    '''The trust store { plugin_dir_name: approved_commit_sha }, or {} (missing/corrupt =
+    nothing trusted — fail closed).'''
+    p = Path(trust_file)
+    if not p.exists():
+        return {}
+    try:
+        data = layers.materialize_string(p.read_text(encoding='utf-8'))
+        return {str(k): str(v) for k, v in data.items()} if isinstance(data, dict) else {}
+    except Exception:                                  # noqa: BLE001 — corrupt store -> trust nothing
+        return {}
+
+
+def write_trust(trust_file, trust):
+    '''Rewrite the trust store (machine-local, not user-authored — a plain full rewrite).'''
+    p = Path(trust_file)
+    p.parent.mkdir(parents=True, exist_ok=True)
+    if not trust:
+        p.write_text('{ }\n', encoding='utf-8')
+        return
+    lines = ['{'] + [f'    {_scalar(k)}: {_scalar(trust[k])}' for k in sorted(trust)] + ['}']
+    p.write_text('\n'.join(lines) + '\n', encoding='utf-8')
+
+
+def set_trust(trust_file, name, commit):
+    trust = read_trust(trust_file)
+    trust[name] = commit
+    write_trust(trust_file, trust)
+
+
+def remove_trust(trust_file, name):
+    '''Drop `name` from the store. Returns True if it was present.'''
+    trust = read_trust(trust_file)
+    existed = name in trust
+    trust.pop(name, None)
+    write_trust(trust_file, trust)
+    return existed
+
+
+def is_trusted(trust_file, name, commit):
+    '''True iff the store records EXACTLY this commit for this plugin. A None commit
+    (unsynced / unknown) is never trusted.'''
+    return commit is not None and read_trust(trust_file).get(name) == commit
+
+
+def code_state(manifest, synced, approved, commit):
+    '''Classify a plugin's code-trust state for display/gating:
+    none (no code) | unsynced | trusted | untrusted (never approved) | changed (approved a
+    different commit — code moved, must re-approve).'''
+    if not manifest.get('code'):
+        return 'none'
+    if not synced or commit is None:
+        return 'unsynced'
+    if approved == commit:
+        return 'trusted'
+    return 'untrusted' if approved is None else 'changed'
+
+
+def status(plugins_dir, decls, *, runner=None, trust_file=None):
+    '''Per-declared-plugin status for `plugin list`: name, source, ref, synced, abi-ok,
+    provides, has_code. When `runner` and `trust_file` are given, also resolves the on-disk
+    commit and its code-trust state (git is only run in that case).'''
+    trust = read_trust(trust_file) if trust_file is not None else {}
     rows = []
     for d in decls:
-        pdir = plugins_dir / dir_name(d['source'])
+        key = dir_name(d['source'])
+        pdir = plugins_dir / key
         synced = pdir.exists()
         manifest = read_manifest(pdir) if synced else {}
+        commit = plugin_commit(runner, pdir) if (runner is not None and manifest.get('code')) else None
         rows.append({
-            'name': manifest.get('name', dir_name(d['source'])),
+            'name': manifest.get('name', key),
             'source': d['source'], 'ref': d.get('ref'),
             'synced': synced, 'abi_ok': (not synced) or _abi_ok(manifest),
             'requires_abi': manifest.get('requires-abi', ABI_VERSION),
             'provides': manifest.get('provides', {}),
-            'has_code': bool(manifest.get('code')),      # P2: needs trust; inert in P1
+            'has_code': bool(manifest.get('code')),
+            'commit': commit,
+            'code_state': code_state(manifest, synced, trust.get(key), commit),
         })
     return rows
 
