@@ -1,8 +1,9 @@
 '''drivers — registry of install-medium implementations.
 
-Ships apt, tarball, flatpak, appImage, dotfiles, and debian-font — the full set.
-An unregistered driver name still returns None here so InstallState degrades
-gracefully instead of crashing.
+Ships the native managers (apt, dnf, pacman, aur) plus tarball, flatpak,
+appImage, dotfiles, debian-font, cargo, pip, pipx, and the gcc/clang/gcc-toolset
+toolchains. An unregistered driver name still returns None here so InstallState
+degrades gracefully instead of crashing.
 '''
 
 from .appImage import AppImage
