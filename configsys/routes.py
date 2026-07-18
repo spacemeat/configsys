@@ -26,7 +26,7 @@ class Binding:
 class Component:
     # top-level keys a component may carry; anything else is a typo or a removed construct
     # (e.g. the old inline `dotfiles:` node) and must fail loudly, not vanish silently.
-    _KEYS = frozenset({'provides', 'requires', 'parts', 'install'})
+    _KEYS = frozenset({'provides', 'requires', 'suggests', 'parts', 'install'})
 
     def __init__(self, name, spec):
         self.source = None       # file this definition came from (provenance for `where`)
@@ -42,6 +42,7 @@ class Component:
         self.name = name
         self.provides = _as_list(spec.get('provides'))
         self.requires = _as_list(spec.get('requires'))
+        self.suggests = _as_list(spec.get('suggests'))   # soft deps: pulled if resolvable, else skipped
         self.parts = _as_list(spec.get('parts'))
         self.bindings = [Binding(b) for b in (spec.get('install') or [])]
 

@@ -33,15 +33,20 @@ the full spec). Its three sections:
   with a `name:` map keyed by driver). `when:` is a boolean DSL over OS atoms (bare = subtree
   membership; versioned e.g. `ubuntu < 23.04`, scale-bound) and `cpu:`, with and/or/guarded-not.
   The most specific matching binding wins (set-inclusion order; overlapping-but-incomparable is a
-  load-time ambiguity error). A component may also declare `provides:`/`requires:` (capabilities),
-  and `parts:` (a `via: parts` binding is a pure aggregator = the union of its parts, no unit of
-  its own). Dotfiles are just ordinary components with a `via: dotfiles` binding (so they can
-  carry `when:` too); a package that ships config `requires:` its `<name>-dotfiles` component —
-  there is no special dotfiles field.
+  load-time ambiguity error). A component may also declare `provides:`/`requires:`/`suggests:`
+  (capabilities), and `parts:` (a `via: parts` binding is a pure aggregator = the union of its
+  parts, no unit of its own). `requires:` is HARD (unmet = error); `suggests:` is SOFT — pulled
+  in if resolvable in the loaded layers, skipped silently if not (both work at component and
+  binding level). Dotfiles are just ordinary components with a `via: dotfiles` binding (so they
+  can carry `when:` too); a package that ships config `suggests:` its `<name>-dotfiles` component
+  (soft, so the config can live only in a user's plugin layer and simply doesn't attach where
+  it's absent) — there is no special dotfiles field.
 
 Resolution (resolve.py) is a worklist to a fixpoint over one fixed machine context: seed the
-explicitly-wanted components + what they provide, then close `requires` reusing existing/
-env-provided providers; no backtracking (unsatisfiable/ambiguous = error); dedup by unit key.
+explicitly-wanted components + what they provide, then close `requires` (and pull resolvable
+`suggests`) reusing existing/env-provided providers; no backtracking (unmet HARD require /
+ambiguous = error; an unmet suggest is skipped); dedup by unit key. A suggested component's own
+`requires` stay hard once it is pulled.
 Per-machine `pins` (binding-pin component->via, provider-pin capability->provider) sit at top
 precedence — set in `~/.config/configsys/configsys.hu`'s `pins:` section (the light reroute that doesn't require
 redefining a component). The result is `{unit_key: ResolvedComponent}` (`driver\comp`), which

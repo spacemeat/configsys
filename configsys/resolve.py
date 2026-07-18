@@ -86,7 +86,7 @@ def _package(binding, driver, component):
 
 
 # keys that steer resolution, not installation — never handed to a driver.
-_RESOLVER_KEYS = ('requires', 'parts', 'app')
+_RESOLVER_KEYS = ('requires', 'suggests', 'parts', 'app')
 
 
 def _install_fields(details, package):
@@ -236,24 +236,32 @@ class _State:
         self.units[key] = unit
         for cap in set(comp.provides) | {name}:
             self.inventory.setdefault(cap, frozenset({key}))
-        # requires: method-independent (component) + driver-level + binding-specific.
+        # requires (HARD): method-independent (component) + driver-level + binding-specific.
         # A component's config is just another required component (a `via: dotfiles` one),
         # so it flows through here too — no special-cased dotfiles field.
         reqs = (list(comp.requires) + list(self.drivers.get(binding.via, []))
                 + _as_list(binding.details.get('requires')))
         for cap in reqs:
-            self.queue.append((key, name, cap, root))
+            self.queue.append((key, name, cap, root, False))
+        # suggests (SOFT): pulled in if resolvable in the loaded layers, skipped silently if
+        # not — the edge is optional (a package's dotfiles that may live only in a user layer).
+        # A suggested component's OWN requires stay hard once it is pulled.
+        for cap in list(comp.suggests) + _as_list(binding.details.get('suggests')):
+            self.queue.append((key, name, cap, root, True))
         return frozenset({key})
 
     def drain(self, errors=None):
-        '''Close requirements to a fixpoint. Strict by default (a missing/ambiguous provider
-        raises). If `errors` is given, catch such failures into it (keyed by the requesting
-        root) and keep going — the requiring unit is still present, just missing that dep.'''
+        '''Close requirements to a fixpoint. Strict by default (a missing/ambiguous HARD
+        provider raises). If `errors` is given, catch such failures into it (keyed by the
+        requesting root) and keep going. A SOFT edge (`suggests:`) that can't be satisfied here
+        is skipped silently — never an error, in either mode.'''
         while self.queue:
-            requiring_key, requiring_name, cap, root = self.queue.pop(0)
+            requiring_key, requiring_name, cap, root, optional = self.queue.pop(0)
             try:
                 self.units[requiring_key].deps |= self._satisfy(cap, root, requiring_name)
             except ResolveError as e:
+                if optional:
+                    continue                     # a `suggests:` unmet here is simply not pulled
                 if errors is None:
                     raise
                 errors.setdefault(root, str(e))

@@ -60,8 +60,10 @@ Legal humon (every dict entry is `key: value`; `when:` is a string expression):
 ```
 <name>: {
     provides:  <cap | [caps]>      // optional; a component always implicitly provides its own name
-    requires:  <cap | [caps]>      // method-independent needs (config is just another required
-                                   //   component: a package `requires: <name>-dotfiles`)
+    requires:  <cap | [caps]>      // HARD method-independent needs (unmet here = error)
+    suggests:  <cap | [caps]>      // SOFT needs: pulled in if resolvable in the loaded layers,
+                                   //   skipped silently if not (a package `suggests:` its
+                                   //   `<name>-dotfiles`, which may live only in a user's plugin)
     parts:     <cap | [caps]>      // composition (installed together; parent "installed" iff all parts are)
 
     install: [                     // ordered list of bindings (providers)
