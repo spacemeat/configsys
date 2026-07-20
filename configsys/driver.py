@@ -174,6 +174,29 @@ class Driver:
     def uninstall(self, rc):
         raise NotImplementedError('uninstall')
 
+    def reconcile_scope(self, rc, detected, target):
+        '''Make the install match the DECLARED scope: it's at `detected`, config says `target`.
+        Default = correctness-first REINSTALL: bring it up at `target`, then remove the old copy
+        at `detected` — install-new BEFORE uninstall-old, so a failed step never leaves nothing
+        installed, and each driver's own install/uninstall keeps desktop entries / markers / sudo
+        / symlinks correct. This is safe wherever uninstall touches only the component's own files
+        (or refcounts, like flatpak). A driver with a cheap in-place MOVE (a large build tree, a
+        font dir) overrides this to avoid a needless reinstall. Returns a runner Result.'''
+        had, saved = 'scope' in rc.fields, rc.fields.get('scope')
+        try:
+            rc.fields['scope'] = target
+            r_new = self.install(rc)
+            if not r_new.ok:
+                return r_new                          # abort; the old copy is untouched
+            rc.fields['scope'] = detected
+            r_old = self.uninstall(rc)
+            return r_new if r_old.ok else r_old
+        finally:
+            if had:
+                rc.fields['scope'] = saved
+            else:
+                rc.fields.pop('scope', None)
+
     def upgrade(self, rc):
         raise NotImplementedError('upgrade')
 

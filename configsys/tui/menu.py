@@ -554,7 +554,7 @@ def run(ctx):
     '''Entry point used by app.cmd_tui. Returns an exit code.'''
     cfg, _requested, _units, ledger, states = ctx.load_pipeline()
     ms = MenuState(states, _profile_comps(cfg))
-    diags = ctx.diagnostics()
+    diags = ctx.diagnostics(states)
 
     with curses_screen() as stdscr:
         pal = Palette()
@@ -618,7 +618,7 @@ def run(ctx):
                     try:
                         cfg, _requested, _units, ledger, states = ctx.load_pipeline()
                         ms = MenuState(states, _profile_comps(cfg))
-                        diags = ctx.diagnostics()
+                        diags = ctx.diagnostics(states)
                     except Exception as e:  # noqa: BLE001 - surface, don't crash
                         note = f'reload failed: {e}'
                     ms.errors = failed

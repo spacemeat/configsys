@@ -204,3 +204,9 @@ def test_no_diagnostics_footer_when_clean(tmp_path, capsys):
     (tmp_path / 'configsys.hu').write_text('{ configs: [ mine ]  profiles: { mine: [ btop ] } }')
     assert main(base_args(tmp_path) + ['inspect']) == 0
     assert 'issue(s)' not in capsys.readouterr().out
+
+
+def test_fix_scope_noop_when_nothing_mismatched(tmp_path, capsys):
+    (tmp_path / 'configsys.hu').write_text('{ configs: [ mine ]  profiles: { mine: [ btop ] } }')
+    assert main(base_args(tmp_path) + ['fix-scope']) == 0
+    assert 'no scope mismatches' in capsys.readouterr().out

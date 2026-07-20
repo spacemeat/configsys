@@ -60,6 +60,49 @@ def test_fixed_driver_default_reports_its_scope_when_present():
     assert Absent(runner=None).get_installed(rc()) == (None, None)
 
 
+def test_reconcile_installs_at_target_then_uninstalls_old():
+    calls = []
+
+    class Rec(Driver):
+        name = 'rec'
+        honors_scope = True
+        default_scope = 'user'
+
+        def install(self, rc):
+            calls.append(('install', rc.fields.get('scope')))
+            return Result('i', 0)
+
+        def uninstall(self, rc):
+            calls.append(('uninstall', rc.fields.get('scope')))
+            return Result('u', 0)
+
+    r = rc(scope='user')                       # declared user, installed at system
+    res = Rec(runner=None).reconcile_scope(r, detected='system', target='user')
+    assert res.ok
+    assert calls == [('install', 'user'), ('uninstall', 'system')]   # new (target) BEFORE old
+    assert r.fields['scope'] == 'user'         # rc restored
+
+
+def test_reconcile_aborts_without_touching_old_if_install_fails():
+    calls = []
+
+    class Rec(Driver):
+        name = 'rec'
+        honors_scope = True
+
+        def install(self, rc):
+            calls.append('install')
+            return Result('i', 1)              # install at target fails
+
+        def uninstall(self, rc):
+            calls.append('uninstall')
+            return Result('u', 0)
+
+    res = Rec(runner=None).reconcile_scope(rc(scope='user'), 'system', 'user')
+    assert not res.ok
+    assert calls == ['install']                # never removed the still-good old copy
+
+
 def test_flatpak_reports_which_installation_has_it():
     class FakeRunner:
         pretend = False

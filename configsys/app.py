@@ -157,13 +157,14 @@ class Context:
         return layers.expand_tolerant([(d, 'discover') for d in self.discovered],
                                       {'discover'})[1]
 
-    def diagnostics(self):
+    def diagnostics(self, states=None):
         '''Every non-fatal skip/warning from loading + resolution, as {level, tag, text} (deduped
         by text). This is the "silent stuff" — a malformed layer that got dropped (the exact class
         that can make a whole primary plugin vanish), a plugin quarantined / untrusted / ABI-
         incompatible, a machine-setting section ignored from a non-primary plugin, a requested
-        component that can't route here. Surfaced by the TUI (! page) and inspect. Call after a
-        load so config/routes/resolve_errors are populated.'''
+        component that can't route here. With `states`, also flags scope mismatches (installed at
+        a different scope than the config declares — `fix-scope` reconciles them). Surfaced by the
+        TUI (! page) and inspect. Call after a load so config/routes/resolve_errors are populated.'''
         from . import plugins
         out, seen = [], set()
 
@@ -198,6 +199,15 @@ class Context:
                 add('warn', 'incompatible', f"{r['name']}: needs plugin ABI {r['requires_abi']}")
         for name in sorted(self.resolve_errors or {}):
             add('error', 'unroutable', f"{name}: {self.resolve_errors[name]}")
+        for key, st in sorted((states or {}).items()):
+            if not (st.present and st.scope):
+                continue
+            fam = get_driver(st.component.driver, self.runner, self.paths)
+            if fam is not None and fam.honors_scope:
+                target = fam.scope(st.component)
+                if st.scope != target:
+                    add('warn', 'scope', f"{key}: installed {st.scope}, config declares "
+                                         f"{target} — run: configsys fix-scope")
         return out
 
     def ensure_plugin_code(self):
@@ -315,7 +325,7 @@ def cmd_inspect(ctx, args):
               f'{str(s.installed_version or "-"):20} {s.latest_version or "-"}{lock}')
     # non-fatal skips/warnings that would otherwise go unseen (dropped layers, quarantined
     # plugins, unroutable components, ...) — the same set the TUI shows on its `!` page.
-    diags = ctx.diagnostics()
+    diags = ctx.diagnostics(states)
     if diags:
         print(f'\n{len(diags)} issue(s):')
         for d in diags:
@@ -369,6 +379,38 @@ def _dispatch_op(ctx, names, op, *, ledger=None, version=None):
     if ledger is not None:
         ledger.save(ctx.paths)
     return rc_code
+
+
+def cmd_fix_scope(ctx, args):
+    '''Reconcile installed units whose ACTUAL scope differs from their DECLARED scope — make the
+    install match the config (never edits the config). No args = every mismatched active unit.'''
+    _cfg, _req, _units, _ledger, states = ctx.load_pipeline()
+    names = set(getattr(args, 'names', None) or [])
+    fixed = failed = 0
+    for key in sorted(states):
+        st = states[key]
+        rc = st.component
+        if not st.present or not st.scope:
+            continue
+        if names and rc.comp not in names and key not in names:
+            continue
+        fam = get_driver(rc.driver, ctx.runner, ctx.paths)
+        if fam is None or not fam.honors_scope:
+            continue
+        target = fam.scope(rc)
+        if st.scope == target:
+            continue                                  # already where it's declared
+        print(f'fix-scope {key}: {st.scope} -> {target} ...')
+        res = fam.reconcile_scope(rc, st.scope, target)
+        if res.ok:
+            print('  -> ok')
+            fixed += 1
+        else:
+            print(f'  -> FAILED (exit {res.returncode})')
+            failed += 1
+    if not fixed and not failed:
+        print('configsys: no scope mismatches to fix')
+    return 1 if failed else 0
 
 
 def cmd_install(ctx, args):
@@ -873,6 +915,10 @@ def build_parser():
         sp = sub.add_parser(name, help=help_)
         sp.add_argument('names', nargs='+', help='component names (from a profile/routes)')
 
+    fs = sub.add_parser('fix-scope', help='reconcile installed units whose actual scope differs '
+                                          'from the declared scope (moves the install, not config)')
+    fs.add_argument('names', nargs='*', help='component names (default: all mismatched)')
+
     sv = sub.add_parser('set-version', help='pin a component to a specific version')
     sv.add_argument('name')
     sv.add_argument('version')
@@ -922,6 +968,7 @@ _COMMANDS = {
     'lock': cmd_lock,
     'unlock': cmd_unlock,
     'set-version': cmd_set_version,
+    'fix-scope': cmd_fix_scope,
     'where': cmd_where,
     'check': cmd_check,
     'plugin': cmd_plugin,
