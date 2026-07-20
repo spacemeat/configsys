@@ -130,6 +130,34 @@ class Driver:
         '''Installed version string, or None if not installed.'''
         raise NotImplementedError('get_version')
 
+    def get_installed(self, rc):
+        '''(version, scope) where this unit is ACTUALLY installed, or (None, None) if it isn't.
+        The reality-based counterpart to scope(rc) (which is the TARGET the config asks for). The
+        default assumes a single fixed scope (default_scope): installed there iff get_version
+        finds it. Scope-honoring drivers override — path-based ones via _installed_across_scopes
+        (so a scope mismatch never reads as "missing"), flatpak via its own per-installation
+        probe. inspect() shows the detected scope when installed, the target scope otherwise.'''
+        v = self.get_version(rc)
+        return (v, self.default_scope) if v is not None else (None, None)
+
+    def _installed_across_scopes(self, rc):
+        '''Probe user then system by re-deriving this driver's scoped paths; return (version,
+        scope) from wherever the unit is found, else (None, None). For path-based honors_scope
+        drivers (tarball / appImage / debian-font). Restores rc's `scope` field afterward.'''
+        had, saved = 'scope' in rc.fields, rc.fields.get('scope')
+        try:
+            for s in ('user', 'system'):
+                rc.fields['scope'] = s
+                v = self.get_version(rc)
+                if v is not None:
+                    return (v, s)
+            return (None, None)
+        finally:
+            if had:
+                rc.fields['scope'] = saved
+            else:
+                rc.fields.pop('scope', None)
+
     def get_latest(self, rc):
         '''Latest/candidate available version string, or None if unknown.'''
         raise NotImplementedError('get_latest')

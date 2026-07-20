@@ -51,6 +51,9 @@ class DebianFont(Driver):
         except (FileNotFoundError, NotADirectoryError, OSError):
             return None
 
+    def get_installed(self, rc):
+        return self._installed_across_scopes(rc)   # ~/.local/share/fonts (user) or /usr/local (system)
+
     def get_latest(self, rc):
         return self.resolve_version(rc)
 

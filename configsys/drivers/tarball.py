@@ -39,6 +39,9 @@ class Tarball(Driver):
             return None
         return v or None
 
+    def get_installed(self, rc):
+        return self._installed_across_scopes(rc)   # ~/apps (user) or /opt (system)
+
     def get_latest(self, rc):
         return self.resolve_version(rc)
 

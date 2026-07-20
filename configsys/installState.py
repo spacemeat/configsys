@@ -76,7 +76,7 @@ class InstallState:
                 error=f'driver "{rc.driver}" not yet supported')
 
         try:
-            version = fam.get_version(rc)
+            version, detected_scope = fam.get_installed(rc)   # reality: version + where installed
             latest = fam.get_latest(rc)
             native_lock = fam.is_locked(rc)
         except Exception as e:  # a driver op blew up; report, don't crash the sweep
@@ -100,4 +100,4 @@ class InstallState:
             component=rc, supported=True, present=version is not None,
             installed_version=version, latest_version=latest,
             locked=locked, lock_source=lock_source, managed=managed, error=None,
-            scope=fam.scope(rc))
+            scope=detected_scope or fam.scope(rc))   # detected reality if installed, else target

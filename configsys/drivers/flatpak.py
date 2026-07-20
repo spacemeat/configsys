@@ -74,6 +74,16 @@ class Flatpak(Driver):
                 or self._parse_field(r.stdout, 'Commit')
                 or 'installed')
 
+    def get_installed(self, rc):
+        # which installation actually has it — so the menu shows the real scope, not the target
+        app = shlex.quote(self._appid(rc))
+        for scope, flag in (('user', '--user'), ('system', '--system')):
+            r = self.runner.run(f'flatpak info {flag} {app}')
+            if r.ok:
+                return (self._parse_field(r.stdout, 'Version')
+                        or self._parse_field(r.stdout, 'Commit') or 'installed', scope)
+        return (None, None)
+
     def get_latest(self, rc):
         # Deferred: no cheap local "latest" for flatpak; avoid a network call per
         # inspect. `flatpak update` resolves latest at upgrade time.
