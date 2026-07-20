@@ -176,9 +176,12 @@ def _data_files(plugin_dir, manifest):
 
 def layer_files(plugins_dir, decls):
     '''(path, role) for each data file of each declared plugin that is synced, ABI-compatible,
-    AND passes its declared checksum (declaration order). role is `primary` for the top config's
-    designated plugin (it may contribute machine settings), else `plugin` (definitions-only,
-    plus os/drivers). Unsynced / incompatible / checksum-mismatched plugins are skipped.'''
+    AND passes its declared checksum. role is `primary` for the top config's designated plugin (it
+    may contribute machine settings), else `plugin` (definitions-only, plus os/drivers). Unsynced
+    / incompatible / checksum-mismatched plugins are skipped. The `primary` plugin's files are
+    ordered LAST — it is the authoritative personal layer, so its component/os overrides win over
+    the (often transitively-declared) plugins it pulls in; precedence repo < plugins < primary <
+    discovered < top-config.'''
     out = []
     for d in decls:
         pdir = plugins_dir / dir_name(d['source'])
@@ -189,6 +192,7 @@ def layer_files(plugins_dir, decls):
             continue
         role = 'primary' if d.get('primary') else 'plugin'
         out.extend((f, role) for f in _data_files(pdir, manifest))
+    out.sort(key=lambda pr: pr[1] == 'primary')   # stable: 'plugin' first, 'primary' last (wins)
     return out
 
 
