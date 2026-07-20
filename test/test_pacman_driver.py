@@ -72,7 +72,7 @@ def test_rolling_lock_is_ledger_only():
 
 def test_arch_routes_and_name_translations():
     r = Resolver(ROUTES, 'arch', '20260712')
-    assert r.cascade_names == ['arch', 'linux']
+    assert r.cascade_names == ['arch', 'glibc_linux', 'linux']
     # renamed packages resolve to the Arch names
     assert r.resolve_names(['pipx'])['pacman\\pipx'].name == 'python-pipx'
     assert r.resolve_names(['cargo'])['pacman\\cargo'].name == 'rust'

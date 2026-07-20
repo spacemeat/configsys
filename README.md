@@ -234,9 +234,10 @@ with your privileges during installs, so it stays inert until you approve its ex
 $ ./configsys.sh plugin trust <name>     # binds to a content hash; any code change re-arms it
 ```
 
-[`examples/configsys-alpine/`](examples/configsys-alpine/) is a complete, copy-able example —
-an `apk` driver + an `alpine` OS block. See [docs/plugins.md](docs/plugins.md) for the full
-model and the ABI a code plugin targets.
+[`examples/configsys-void/`](examples/configsys-void/) is a complete, copy-able example —
+an `xbps` driver + a `void` OS block. (Alpine and openSUSE started as plugins shaped exactly
+like this and have since graduated into base.) See [docs/plugins.md](docs/plugins.md) for the
+full model and the ABI a code plugin targets.
 
 ## Design notes
 

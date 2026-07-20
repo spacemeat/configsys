@@ -65,6 +65,10 @@ Legal humon (every dict entry is `key: value`; `when:` is a string expression):
                                    //   skipped silently if not (a package `suggests:` its
                                    //   `<name>-dotfiles`, which may live only in a user's plugin)
     parts:     <cap | [caps]>      // composition (installed together; parent "installed" iff all parts are)
+    opt-in:    <bool>              // if true, this component's `provides:` are NEVER auto-pulled to
+                                   //   satisfy someone else's `requires:` — only used when the
+                                   //   component is explicitly wanted (a profile) or provider-pinned.
+                                   //   For best-effort/caveated providers (e.g. gcompat, a glibc shim)
 
     install: [                     // ordered list of bindings (providers)
                                    //   a dotfile component's binding is `{ via: dotfiles ... }`

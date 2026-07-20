@@ -10,16 +10,18 @@ import pytest
 
 from configsys import plugins
 
+# A synthetic driver whose name is NOT one base ships (so `via: demopm` is genuinely unknown
+# until this plugin's code is trusted — the whole point of the end-to-end gate below).
 DRIVER_PY = '''from configsys.plugins import Driver
 
-class Apk(Driver):
-    name = 'apk'
+class Demo(Driver):
+    name = 'demopm'
     privileged = True
 
     def install(self, rc):
-        return self.runner.run(f'apk add {rc.name}', sudo=self.sudo(rc))
+        return self.runner.run(f'demopm add {rc.name}', sudo=self.sudo(rc))
 
-DRIVERS = [Apk]
+DRIVERS = [Demo]
 '''
 
 
@@ -62,8 +64,8 @@ def test_load_code_gates_on_content_trust(tmp_path):
     plugins.set_trust(tf, 'apk-plug', plugins.plugin_identity(pdir))
     loaded, skipped = plugins.load_code(tmp_path / 'plugins', tf, decls, reg.append)
     assert skipped == []
-    assert loaded == [('apk-plug', ['apk'])]
-    assert len(reg) == 1 and reg[0].name == 'apk'
+    assert loaded == [('apk-plug', ['demopm'])]
+    assert len(reg) == 1 and reg[0].name == 'demopm'
 
     # editing ANY file changes the content identity -> trust no longer applies (re-approve)
     (pdir / 'driver.py').write_text(DRIVER_PY + '\n# edited\n')
@@ -90,7 +92,7 @@ def test_non_git_plugin_can_be_trusted(tmp_path):
     assert reg == []                                   # untrusted
     plugins.set_trust(tf, 'tarplug', ident)
     plugins.load_code(tmp_path / 'plugins', tf, decls, reg.append)
-    assert [c.name for c in reg] == ['apk']            # trusted despite no git
+    assert [c.name for c in reg] == ['demopm']         # trusted despite no git
 
 
 def test_importing_code_does_not_invalidate_trust(tmp_path):
@@ -104,7 +106,7 @@ def test_importing_code_does_not_invalidate_trust(tmp_path):
 
     reg = []
     plugins.load_code(tmp_path / 'plugins', tf, [{'source': 'github:x/p'}], reg.append)
-    assert reg and reg[0].name == 'apk'                # imported (may emit bytecode)
+    assert reg and reg[0].name == 'demopm'             # imported (may emit bytecode)
     assert plugins.plugin_identity(pdir) == before     # identity unchanged
 
 
@@ -139,7 +141,7 @@ def test_data_only_plugin_is_not_a_code_candidate(tmp_path):
     assert loaded == [] and skipped == []              # data-only: nothing to gate, no warning
 
 
-# -- end-to-end: trust flips `via: apk` from unknown to resolvable (needs git: add clones) --
+# -- end-to-end: trust flips `via: demopm` from unknown to resolvable (needs git: add clones) --
 
 @pytest.mark.skipif(shutil.which('git') is None, reason='git not available')
 def test_trusted_driver_makes_via_resolve_end_to_end(tmp_path, capsys):
@@ -147,20 +149,20 @@ def test_trusted_driver_makes_via_resolve_end_to_end(tmp_path, capsys):
     src = _plugin(tmp_path / 'src',
                   '{ name: apkp  requires-abi: 1  code: driver.py  data: [ routes.hu ] }',
                   {'driver.py': DRIVER_PY,
-                   'routes.hu': '{ os: { alpine: { using: linux  native: apk } }'
-                                '  components: { apk-tool: { install: [ { via: apk } ] } } }'})
+                   'routes.hu': '{ os: { demoos: { using: linux  native: demopm } }'
+                                '  components: { demo-tool: { install: [ { via: demopm } ] } } }'})
     for cmd in (['init', '-q'], ['config', 'user.email', 't@t'], ['config', 'user.name', 't'],
                 ['add', '-A'], ['commit', '-qm', 'i']):
         subprocess.run(['git', *cmd], cwd=src, check=True)
-    home = ['--home', str(tmp_path), '--os', 'alpine']
+    home = ['--home', str(tmp_path), '--os', 'demoos']
     main(home + ['plugin', 'add', str(src)])
     capsys.readouterr()
 
-    # untrusted: the code warning appears (its via: apk is not registered)
+    # untrusted: the code warning appears (its via: demopm is not registered)
     main(home + ['check'])
     assert 'untrusted code' in capsys.readouterr().out
 
-    # trust it -> next run registers apk, the warning is gone
+    # trust it -> next run registers demopm, the warning is gone
     main(home + ['plugin', 'trust', 'apkp'])
     capsys.readouterr()
     main(home + ['check'])

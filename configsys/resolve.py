@@ -197,6 +197,10 @@ class _State:
         # provides it, no unit needed).
         self.inventory = {cap: frozenset() for cap in cascade.provides(self.block)}
         self.providers = self._provider_index()
+        # opt-in providers are never AUTO-pulled to close a requirement — only used when the
+        # component is explicitly wanted (then it's in inventory before we look for candidates)
+        # or named by a provider-pin. Keeps a best-effort shim (gcompat) from installing itself.
+        self.optin = {n for n, c in components.items() if getattr(c, 'opt_in', False)}
         self.queue = []                            # (requiring_key, requiring_name, cap, root)
 
     def _provider_index(self):
@@ -276,15 +280,20 @@ class _State:
         if not viable:
             raise ResolveError(f'nothing provides "{cap}" here (required by {requiring})')
         pin = self.pins.get(cap)
-        if pin is not None:                             # provider-pin
+        if pin is not None:                             # provider-pin (may name an opt-in one)
             if pin not in viable:
                 raise ResolveError(f'"{cap}" pinned to {pin!r}, which cannot provide it here')
             chosen = pin
-        elif len(viable) == 1:
-            chosen = viable[0]
         else:
-            raise ResolveError(f'ambiguous providers for "{cap}": {sorted(viable)} '
-                               f'(required by {requiring}) — needs a provider-pin')
+            auto = [p for p in viable if p not in self.optin]   # opt-in ones need a pin/explicit want
+            if not auto:
+                hint = f' — enable one with a provider-pin, e.g. pins: {{ {cap}: {viable[0]} }}'
+                raise ResolveError(f'nothing auto-provides "{cap}" here (required by {requiring}){hint}')
+            if len(auto) == 1:
+                chosen = auto[0]
+            else:
+                raise ResolveError(f'ambiguous providers for "{cap}": {sorted(auto)} '
+                                   f'(required by {requiring}) — needs a provider-pin')
         keys = self.add_component(chosen, root)
         self.inventory[cap] = keys
         return keys

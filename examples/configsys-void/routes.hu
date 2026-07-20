@@ -1,0 +1,17 @@
+{
+    // Make Void Linux a first-class OS. It inherits the `linux` baseline and declares xbps as
+    // its native package manager. This one block is enough that EVERY existing repo component
+    // routed `via: native` (btop, ripgrep, firefox, ...) now installs on Void through the
+    // xbps driver — no per-component work.
+    os: {
+        void: { using: linux  native: xbps }
+    }
+
+    // Void-specific components, installed with the xbps driver this plugin ships. Each is
+    // guarded `when: "void"` so the binding exists ONLY where xbps does — a component is
+    // never offered on an OS whose driver isn't loaded. `via: xbps` is the direct form (use
+    // it for packages unique to this distro); repo components can keep using `via: native`.
+    components: {
+        xtools: { install: [ { via: xbps  when: "void" } ] }        // Void's packaging helper scripts
+    }
+}

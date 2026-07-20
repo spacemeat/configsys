@@ -110,14 +110,14 @@ def test_check_reports_errors_and_warnings_with_exit_code(tmp_path, capsys):
         configs: [ mine ]
         profiles: { mine: [ btop, ghosttool ] }
         components: {
-            bad-via: { install: [ { via: zypper } ] }
+            bad-via: { install: [ { via: nosuchpm } ] }
             bad-req: { install: [ { via: native  requires: nope } ] }
         }
     }''')
     rc = main(base_args(tmp_path) + ['check'])
     out = capsys.readouterr().out
     assert rc == 1                                   # has errors
-    assert "via:'zypper' is not a known driver" in out
+    assert "via:'nosuchpm' is not a known driver" in out
     assert "profile 'mine': unknown component 'ghosttool'" in out
     assert 'warn' in out and "requires 'nope'" in out
     assert '.config/configsys/configsys.hu' in out   # attributed to the user file (XDG path)

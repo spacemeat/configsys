@@ -71,7 +71,7 @@ def test_rhel_routes_gcc_to_toolset(tmp_path):
     import os
     routes = os.path.join(os.path.dirname(__file__), '..', 'routes.hu')
     r = Resolver(routes, 'rhel', '9.8')
-    assert r.cascade_names == ['rhel', 'redhat', 'linux']
+    assert r.cascade_names == ['rhel', 'redhat', 'glibc_linux', 'linux']
     units, _ = r.resolve_with_roots(['gcc-15'])
     assert 'gcc-toolset\\gcc-15' in units
     # native packages still route through dnf (inherited from the fedora block)

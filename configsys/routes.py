@@ -26,7 +26,7 @@ class Binding:
 class Component:
     # top-level keys a component may carry; anything else is a typo or a removed construct
     # (e.g. the old inline `dotfiles:` node) and must fail loudly, not vanish silently.
-    _KEYS = frozenset({'provides', 'requires', 'suggests', 'parts', 'install'})
+    _KEYS = frozenset({'provides', 'requires', 'suggests', 'parts', 'install', 'opt-in'})
 
     def __init__(self, name, spec):
         self.source = None       # file this definition came from (provenance for `where`)
@@ -44,6 +44,11 @@ class Component:
         self.requires = _as_list(spec.get('requires'))
         self.suggests = _as_list(spec.get('suggests'))   # soft deps: pulled if resolvable, else skipped
         self.parts = _as_list(spec.get('parts'))
+        # opt-in provider: satisfies a `requires:` only when explicitly wanted (in a profile)
+        # or provider-pinned — NEVER auto-pulled to close someone else's requirement. For
+        # best-effort/caveated providers (e.g. gcompat, a glibc shim) that shouldn't be
+        # chosen silently. See resolve.py `_satisfy`.
+        self.opt_in = _truthy(spec.get('opt-in'))
         self.bindings = [Binding(b) for b in (spec.get('install') or [])]
 
 

@@ -13,16 +13,17 @@ version (both used by tests and to force a cascade without being on that distro)
 import os
 
 
-# os-release ID -> routes.hu block name, where they differ. The RHEL-family distros
-# all share one `rhel` block (EL9/EL10 behave the same for our purposes).
+# os-release ID -> routes.hu block name, only where they *differ*. Distros that now have
+# their own routes block (rocky/almalinux/centos -> rhel, manjaro -> arch, all via `using`)
+# need no entry — block_for_id returns the ID unchanged and the cascade does the inheriting.
+# Aliases remain only where the block name can't equal the ID: `!` in pop_os!, and openSUSE's
+# hyphens (the `when:` DSL has no `-`, so the blocks use `_`). SteamOS (Holo) has no block of
+# its own, so it still borrows arch.
 _ALIASES = {
     'pop': 'pop_os!',
-    'almalinux': 'rhel',
-    'rocky': 'rhel',
-    'centos': 'rhel',
-    # Arch-family: Manjaro and SteamOS (Holo) are Arch-based and share pacman + names.
-    'manjaro': 'arch',
     'steamos': 'arch',
+    'opensuse-leap': 'opensuse_leap',
+    'opensuse-tumbleweed': 'opensuse_tumbleweed',
 }
 
 

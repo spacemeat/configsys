@@ -5,19 +5,57 @@
     // `provides:` lists capabilities baseline in that environment (satisfied for free).
     os: {
         linux:   { }
-        debian:  { using: linux    native: apt      scale-root: true }
-        ubuntu:  { using: debian    scale-root: true }
-        pop_os!: { using: ubuntu }
-        redhat:  { using: linux     native: dnf }                   // fedora + EL share dnf
-        fedora:  { using: redhat    scale-root: true }              // fedora proper (YY release)
-        rhel:    { using: redhat    scale-root: true }              // EL (Rocky/Alma/RHEL, N release)
-        arch:    { using: linux     native: pacman }
+
+        // The C library is an axis orthogonal to distro family: mainstream distros are glibc,
+        // Alpine (and musl-Void) are musl. Prebuilt glibc binaries (most AppImages, many
+        // tarballs) can't run under musl's loader. `glibc_linux` carries a `glibc` capability
+        // that the glibc families inherit; drivers/bindings that fetch glibc artifacts
+        // `requires: glibc`, so they cleanly decline on Alpine instead of installing a corpse.
+        glibc_linux: { using: linux  provides: glibc }
+
+        // Debian family (apt). A scale-root owns a version numbering. Pop shares Ubuntu's exact
+        // numbers (Pop 22.04 IS Ubuntu 22.04), so it borrows Ubuntu's scale — no scale-root.
+        // Mint and LMDE use their OWN numbers (Mint 21 = Ubuntu 22.04, different digits), so
+        // each is its own scale-root — a versioned `ubuntu`/`debian` atom must NOT misfire on
+        // them. Bare `ubuntu`/`debian` still match all of them (route inheritance by identity).
+        debian:    { using: glibc_linux  native: apt   scale-root: true }
+        ubuntu:    { using: debian    scale-root: true }
+        pop_os!:   { using: ubuntu }
+        linuxmint: { using: ubuntu    scale-root: true }            // Mint main (own numbering)
+        lmde:      { using: debian    scale-root: true }            // Mint Debian Edition (own numbering)
+
+        // RHEL family (dnf). The EL rebuilds share rhel's routes + version line; distinct
+        // blocks (vs. one aliased `rhel`) buy them identity — `when: "rocky"`, correct display.
+        redhat:    { using: glibc_linux  native: dnf }              // fedora + EL share dnf
+        fedora:    { using: redhat    scale-root: true }            // fedora proper (YY release)
+        rhel:      { using: redhat    scale-root: true }            // EL scale-root (N release)
+        rocky:     { using: rhel }
+        almalinux: { using: rhel }
+        centos:    { using: rhel }                                  // CentOS Stream
+
+        // Arch family (pacman). Rolling — no version scale; membership is by identity only.
+        arch:        { using: glibc_linux  native: pacman }
+        manjaro:     { using: arch }
+        endeavouros: { using: arch }
+
+        // Alpine (apk). musl, NOT glibc — so it hangs off `linux`, not `glibc_linux`. glibc-only
+        // fetch-a-binary bindings decline here (unroutable = a clean diagnostic); the optional
+        // `gcompat` shim can re-enable them per-machine (see the gcompat component).
+        alpine: { using: linux  native: apk }
+
+        // openSUSE / SUSE (zypper). glibc. One synthetic parent declares the driver; Leap is a
+        // scale-root (versioned, 15.x) while Tumbleweed is rolling (bare membership, like arch)
+        // — a clean demo of identity-vs-scale being orthogonal. Block names use `_` (the `when:`
+        // DSL has no `-`); os-release's `opensuse-leap`/`-tumbleweed` alias in.
+        opensuse:             { using: glibc_linux  native: zypper }
+        opensuse_leap:        { using: opensuse  scale-root: true }
+        opensuse_tumbleweed:  { using: opensuse }
     }
 
     // Driver config: dependencies inherent to a driver (its prerequisite tooling).
     drivers: {
         flatpak:     { requires: flatpak }
-        appImage:    { requires: libfuse2 }
+        appImage:    { requires: [ libfuse2, glibc ] }   // AppImages are glibc-built: decline on musl
         cargo:       { requires: cargo }              // a crate needs the cargo tool
         debian-font: { requires: [ fontconfig, unzip ] }
         pip:         { requires: python3-pip }        // `pip install --user` needs pip
@@ -33,6 +71,21 @@
         fontconfig: { install: [ { via: native } ] }
         unzip:      { install: [ { via: native } ] }
         firefox:    { install: [ { via: native  repo-component: universe } ] }   // in base repos everywhere (incl. EL); apt: universe
+        doas:       { install: [ { via: apk  when: "alpine" } ] }                 // Alpine's sudo (apk-only; folded from the alpine plugin)
+
+        // gcompat: Alpine's glibc-compat shim. It `provides: glibc`, so it can re-enable the
+        // glibc-only bindings (AppImages, glibc tarballs) that otherwise decline on musl. It is
+        // marked `opt-in` — NEVER auto-pulled to satisfy a `requires: glibc`, because the shim
+        // is BEST-EFFORT: it maps many glibc binaries onto musl but not all (symbol-version
+        // gaps, NSS, TLS quirks). Silently installing it, then maybe still failing to run the
+        // binary, is exactly the surprise configsys avoids. So a musl box declines glibc
+        // binaries by default; to gamble on the shim, opt in per-machine — either add `gcompat`
+        // to a profile, or provider-pin it:  pins: { glibc: gcompat }.
+        gcompat: {
+            provides: glibc
+            opt-in: true
+            install: [ { via: apk  when: "alpine" } ]
+        }
         python3-pip: { install: [ { via: native  name: { pacman: python-pip } } ] }
         // EL keeps these in EPEL, base repos everywhere else — same two-binding shape as btop.
         // `repo-component: universe` is the apt archive area (read only by apt; ignored on dnf/pacman).
@@ -77,7 +130,7 @@
 
         // native, name differs by manager
         libfuse2: {
-            install: [ { via: native  repo-component: universe  name: { dnf: fuse-libs  pacman: fuse2  default: libfuse2 } } ]
+            install: [ { via: native  repo-component: universe  name: { dnf: fuse-libs  pacman: fuse2  apk: fuse  default: libfuse2 } } ]
         }
         cargo: {
             install: [ { via: native  repo-component: universe  name: { pacman: rust } } ]   // the cargo tool ships in `rust` on Arch
@@ -202,7 +255,7 @@
         // manual pin — bump it from developer.android.com/studio. Fat IDE config deferred.
         android-studio: {
             suggests: android-studio-dotfiles
-            install: [ { via: tarball  version: { static: 2024.2.1.11 }
+            install: [ { via: tarball  version: { static: 2024.2.1.11 }  requires: glibc   // glibc-linked JVM/launchers
                          url: "https://redirector.gvt1.com/edgedl/android/studio/ide-zips/$VERSION/android-studio-$VERSION-linux.tar.gz" } ]
         }
 
@@ -283,7 +336,7 @@
         // pulls curl. (Old: a [tarball\vulkan-sdk, dotfiles\vulkan-sdk] list bundle.)
         vulkan-sdk: {
             suggests: vulkan-sdk-dotfiles
-            install: [ { via: tarball  version: { static: 1.4.350.1 }  installDir: vulkan
+            install: [ { via: tarball  version: { static: 1.4.350.1 }  installDir: vulkan  requires: glibc   // glibc-linked SDK
                          url: "https://sdk.lunarg.com/sdk/download/$VERSION/linux/vulkansdk-linux-$ARCH-$VERSION.tar.xz" } ]
         }
         vulkan-sdk-dotfiles: {

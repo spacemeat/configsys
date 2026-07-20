@@ -45,3 +45,25 @@ def test_quotes_and_comments_ignored(tmp_path):
     path = _write(tmp_path, '# a comment\nID="ubuntu"\n\nPRETTY_NAME="Ubuntu 22.04"\n')
     info = osdetect.detect(env={}, os_release_path=path)
     assert info.block == 'ubuntu'
+
+
+def test_rebuilds_now_map_to_their_own_block(tmp_path):
+    # rocky/almalinux/centos/manjaro used to alias to rhel/arch; each now has its own routes
+    # block (using: rhel / arch), so detection returns the ID unchanged — identity + display.
+    for id in ('rocky', 'almalinux', 'centos', 'manjaro', 'endeavouros', 'linuxmint'):
+        info = osdetect.detect(env={}, os_release_path=_write(tmp_path, f'ID={id}\n'))
+        assert info.block == id
+
+
+def test_opensuse_hyphenated_ids_alias_to_underscore_blocks(tmp_path):
+    # the `when:` DSL has no hyphen, so the blocks use `_`; os-release's hyphenated IDs alias in.
+    leap = osdetect.detect(env={}, os_release_path=_write(tmp_path, 'ID=opensuse-leap\nVERSION_ID=15.6\n'))
+    assert leap.block == 'opensuse_leap' and leap.version == '15.6'
+    tw = osdetect.detect(env={}, os_release_path=_write(tmp_path, 'ID=opensuse-tumbleweed\n'))
+    assert tw.block == 'opensuse_tumbleweed'
+
+
+def test_steamos_still_borrows_arch(tmp_path):
+    # SteamOS (Holo) has no block of its own, so it keeps its arch alias.
+    info = osdetect.detect(env={}, os_release_path=_write(tmp_path, 'ID=steamos\n'))
+    assert info.block == 'arch'

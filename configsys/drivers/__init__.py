@@ -8,6 +8,7 @@ degrades gracefully instead of crashing.
 '''
 
 from .appImage import AppImage
+from .apk import Apk
 from .apt import Apt
 from .aur import Aur
 from .cargo import Cargo
@@ -24,11 +25,14 @@ from .pip import Pip
 from .pipx import Pipx
 from .service import Service
 from .tarball import Tarball
+from .zypper import Zypper
 
 _REGISTRY = {
     Apt.name: Apt,
     Dnf.name: Dnf,
     Pacman.name: Pacman,
+    Apk.name: Apk,
+    Zypper.name: Zypper,
     Aur.name: Aur,
     Tarball.name: Tarball,
     Flatpak.name: Flatpak,

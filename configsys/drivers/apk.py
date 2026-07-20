@@ -1,22 +1,19 @@
-'''apk.py — the Alpine Linux driver (an example configsys code plugin).
+'''apk.py — the Alpine Linux driver.
 
 Installs native Alpine packages via `apk`. Alpine is rolling: its repos carry one current
 version per branch, so — like pacman — there is no native per-package hold. Lock intent is
 tracked by configsys's ledger, and set-version leans on apk's `<pkg>=<version>` constraint
 (which only resolves while that version is still in a configured repo / the local cache).
 
-This file is the whole "code" half of a configsys plugin: subclass Driver, implement the op
-set with real apk commands, and export `DRIVERS` so the trusted loader registers it. Query
-ops (`apk list`) need no root; mutations run under sudo. Copy this as a starting point for
-another package manager (zypper, xbps, ...).
-
-Everything it needs comes from the frozen ABI surface:
-    from configsys.plugins import Driver, Result
+Query ops (`apk list`) need no root; mutations run under sudo. This driver started life as
+the examples/configsys-void reference plugin's template (see its docstring) and was folded
+into base once Alpine graduated to a first-class OS.
 '''
 
 import shlex
 
-from configsys.plugins import Driver, Result
+from ..driver import Driver
+from ..runner import Result
 
 
 def _version_from_apk_list(lines, name):
@@ -75,7 +72,3 @@ class Apk(Driver):
 
     def unlock(self, rc):
         return Result('apk unlock recorded by configsys', 0)
-
-
-# The registration export the trusted loader reads (docs/plugins.md §7a).
-DRIVERS = [Apk]

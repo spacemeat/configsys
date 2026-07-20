@@ -131,13 +131,13 @@ def _kinds(issues, name):
 
 
 def test_validate_flags_unknown_via(cascade):
-    issues = _validate(cascade, {'x': _comp('x', {'install': [{'via': 'zypper'}]})})
+    issues = _validate(cascade, {'x': _comp('x', {'install': [{'via': 'nosuchpm'}]})})
     assert 'unknown-via' in _kinds(issues, 'x')
     assert any(i.is_error for i in issues if i.component == 'x')
 
 
 def test_validate_flags_unknown_os_in_when_as_warning(cascade):
-    issues = _validate(cascade, {'x': _comp('x', {'install': [{'via': 'native', 'when': 'opensuse'}]})})
+    issues = _validate(cascade, {'x': _comp('x', {'install': [{'via': 'native', 'when': 'nosuchos'}]})})
     xs = [i for i in issues if i.component == 'x']
     assert xs and xs[0].kind == 'unknown-os' and not xs[0].is_error
 

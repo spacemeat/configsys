@@ -1,6 +1,6 @@
 {
     // The plugin manifest. `configsys plugin list` reads this; the loader gates on it.
-    name: alpine
+    name: void
     version: 0.1.0
 
     // The plugin ABI this code targets. configsys loads the plugin only if this is in its
@@ -9,15 +9,15 @@
 
     // Informational: what this plugin brings.
     provides: {
-        os: alpine
-        drivers: [ apk ]
+        os: void
+        drivers: [ xbps ]
     }
 
     // The data layers (os + component definitions) merged into the routing stack.
     data: [ routes.hu ]
 
-    // The code module. Because this key is present, the plugin ships code: its `via: apk`
+    // The code module. Because this key is present, the plugin ships code: its `via: xbps`
     // driver runs with your privileges during installs, so it stays inert until you approve
-    // its exact contents with `configsys plugin trust alpine`.
+    // its exact contents with `configsys plugin trust void`.
     code: driver.py
 }
