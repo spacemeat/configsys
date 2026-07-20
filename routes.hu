@@ -141,6 +141,21 @@
             install: [ { via: native  repo-component: universe } ]
         }
 
+        // GPU compute toolchains (promoted from the configsys-blender plugin). General-purpose —
+        // cuda-toolkit is used well beyond Blender — but named here so a source-build Blender's
+        // per-backend `requires:` (cuda-toolkit / rocm-hip / intel-oneapi-basekit) resolves in
+        // base. Package names are the baseline distro-repo ones: real GPU work usually wants the
+        // vendor repos (NVIDIA cuda, AMD ROCm, Intel oneAPI), which are their own setup.
+        cuda-toolkit: {
+            install: [ { via: native  name: { apt: nvidia-cuda-toolkit  dnf: cuda  pacman: cuda } } ]
+        }
+        rocm-hip: {
+            install: [ { via: native  name: { apt: rocm-hip-sdk  dnf: rocm-hip  pacman: rocm-hip-sdk } } ]
+        }
+        intel-oneapi-basekit: {
+            install: [ { via: native  name: { apt: intel-basekit  dnf: intel-basekit  pacman: intel-oneapi-basekit } } ]
+        }
+
         // docker: "the engine, working" = the package + its daemon enabled. Post-install is just
         // composition — docker-service is an ordinary component ordered after docker-engine via
         // `requires:` (which also avoids the package<->service dependency cycle a single unit

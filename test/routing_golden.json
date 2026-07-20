@@ -168,6 +168,15 @@
     "name": "flatpak"
    }
   },
+  "cuda-toolkit": {
+   "pacman\\cuda-toolkit": {
+    "driver": "pacman",
+    "fields": {
+     "name": "cuda"
+    },
+    "name": "cuda"
+   }
+  },
   "curl": {
    "pacman\\curl": {
     "driver": "pacman",
@@ -388,6 +397,15 @@
      }
     },
     "name": "htop-dotfiles"
+   }
+  },
+  "intel-oneapi-basekit": {
+   "pacman\\intel-oneapi-basekit": {
+    "driver": "pacman",
+    "fields": {
+     "name": "intel-oneapi-basekit"
+    },
+    "name": "intel-oneapi-basekit"
    }
   },
   "kicad": {
@@ -724,6 +742,15 @@
      "repo-component": "universe"
     },
     "name": "ripgrep"
+   }
+  },
+  "rocm-hip": {
+   "pacman\\rocm-hip": {
+    "driver": "pacman",
+    "fields": {
+     "name": "rocm-hip-sdk"
+    },
+    "name": "rocm-hip-sdk"
    }
   },
   "slack": {
@@ -1476,6 +1503,15 @@
     "name": "clang-select"
    }
   },
+  "cuda-toolkit": {
+   "apt\\cuda-toolkit": {
+    "driver": "apt",
+    "fields": {
+     "name": "nvidia-cuda-toolkit"
+    },
+    "name": "nvidia-cuda-toolkit"
+   }
+  },
   "curl": {
    "apt\\curl": {
     "driver": "apt",
@@ -1865,6 +1901,15 @@
     "name": "htop-dotfiles"
    }
   },
+  "intel-oneapi-basekit": {
+   "apt\\intel-oneapi-basekit": {
+    "driver": "apt",
+    "fields": {
+     "name": "intel-basekit"
+    },
+    "name": "intel-basekit"
+   }
+  },
   "kicad": {
    "apt\\kicad": {
     "driver": "apt",
@@ -2222,6 +2267,15 @@
      "repo-component": "universe"
     },
     "name": "ripgrep"
+   }
+  },
+  "rocm-hip": {
+   "apt\\rocm-hip": {
+    "driver": "apt",
+    "fields": {
+     "name": "rocm-hip-sdk"
+    },
+    "name": "rocm-hip-sdk"
    }
   },
   "slack": {
@@ -2922,6 +2976,15 @@
     "name": "clang-select"
    }
   },
+  "cuda-toolkit": {
+   "apt\\cuda-toolkit": {
+    "driver": "apt",
+    "fields": {
+     "name": "nvidia-cuda-toolkit"
+    },
+    "name": "nvidia-cuda-toolkit"
+   }
+  },
   "curl": {
    "apt\\curl": {
     "driver": "apt",
@@ -3311,6 +3374,15 @@
     "name": "htop-dotfiles"
    }
   },
+  "intel-oneapi-basekit": {
+   "apt\\intel-oneapi-basekit": {
+    "driver": "apt",
+    "fields": {
+     "name": "intel-basekit"
+    },
+    "name": "intel-basekit"
+   }
+  },
   "kicad": {
    "apt\\kicad": {
     "driver": "apt",
@@ -3658,6 +3730,15 @@
      "repo-component": "universe"
     },
     "name": "ripgrep"
+   }
+  },
+  "rocm-hip": {
+   "apt\\rocm-hip": {
+    "driver": "apt",
+    "fields": {
+     "name": "rocm-hip-sdk"
+    },
+    "name": "rocm-hip-sdk"
    }
   },
   "slack": {
@@ -4240,6 +4321,15 @@
     "name": "clang-19"
    }
   },
+  "cuda-toolkit": {
+   "dnf\\cuda-toolkit": {
+    "driver": "dnf",
+    "fields": {
+     "name": "cuda"
+    },
+    "name": "cuda"
+   }
+  },
   "curl": {
    "dnf\\curl": {
     "driver": "dnf",
@@ -4473,6 +4563,15 @@
      }
     },
     "name": "htop-dotfiles"
+   }
+  },
+  "intel-oneapi-basekit": {
+   "dnf\\intel-oneapi-basekit": {
+    "driver": "dnf",
+    "fields": {
+     "name": "intel-basekit"
+    },
+    "name": "intel-basekit"
    }
   },
   "kicad": {
@@ -4809,6 +4908,15 @@
      "repo-component": "universe"
     },
     "name": "ripgrep"
+   }
+  },
+  "rocm-hip": {
+   "dnf\\rocm-hip": {
+    "driver": "dnf",
+    "fields": {
+     "name": "rocm-hip"
+    },
+    "name": "rocm-hip"
    }
   },
   "slack": {
@@ -5398,6 +5506,15 @@
     "name": "clang-20"
    }
   },
+  "cuda-toolkit": {
+   "dnf\\cuda-toolkit": {
+    "driver": "dnf",
+    "fields": {
+     "name": "cuda"
+    },
+    "name": "cuda"
+   }
+  },
   "curl": {
    "dnf\\curl": {
     "driver": "dnf",
@@ -5631,6 +5748,15 @@
      }
     },
     "name": "htop-dotfiles"
+   }
+  },
+  "intel-oneapi-basekit": {
+   "dnf\\intel-oneapi-basekit": {
+    "driver": "dnf",
+    "fields": {
+     "name": "intel-basekit"
+    },
+    "name": "intel-basekit"
    }
   },
   "kicad": {
@@ -5967,6 +6093,15 @@
      "repo-component": "universe"
     },
     "name": "ripgrep"
+   }
+  },
+  "rocm-hip": {
+   "dnf\\rocm-hip": {
+    "driver": "dnf",
+    "fields": {
+     "name": "rocm-hip"
+    },
+    "name": "rocm-hip"
    }
   },
   "slack": {
@@ -6662,6 +6797,15 @@
     "name": "clang-select"
    }
   },
+  "cuda-toolkit": {
+   "apt\\cuda-toolkit": {
+    "driver": "apt",
+    "fields": {
+     "name": "nvidia-cuda-toolkit"
+    },
+    "name": "nvidia-cuda-toolkit"
+   }
+  },
   "curl": {
    "apt\\curl": {
     "driver": "apt",
@@ -7051,6 +7195,15 @@
     "name": "htop-dotfiles"
    }
   },
+  "intel-oneapi-basekit": {
+   "apt\\intel-oneapi-basekit": {
+    "driver": "apt",
+    "fields": {
+     "name": "intel-basekit"
+    },
+    "name": "intel-basekit"
+   }
+  },
   "kicad": {
    "apt\\kicad": {
     "driver": "apt",
@@ -7408,6 +7561,15 @@
      "repo-component": "universe"
     },
     "name": "ripgrep"
+   }
+  },
+  "rocm-hip": {
+   "apt\\rocm-hip": {
+    "driver": "apt",
+    "fields": {
+     "name": "rocm-hip-sdk"
+    },
+    "name": "rocm-hip-sdk"
    }
   },
   "slack": {
@@ -8003,6 +8165,15 @@
     "name": "epel-release"
    }
   },
+  "cuda-toolkit": {
+   "dnf\\cuda-toolkit": {
+    "driver": "dnf",
+    "fields": {
+     "name": "cuda"
+    },
+    "name": "cuda"
+   }
+  },
   "curl": {
    "dnf\\curl": {
     "driver": "dnf",
@@ -8278,6 +8449,15 @@
      }
     },
     "name": "htop-dotfiles"
+   }
+  },
+  "intel-oneapi-basekit": {
+   "dnf\\intel-oneapi-basekit": {
+    "driver": "dnf",
+    "fields": {
+     "name": "intel-basekit"
+    },
+    "name": "intel-basekit"
    }
   },
   "kicad": {
@@ -8646,6 +8826,15 @@
      "name": "ripgrep"
     },
     "name": "ripgrep"
+   }
+  },
+  "rocm-hip": {
+   "dnf\\rocm-hip": {
+    "driver": "dnf",
+    "fields": {
+     "name": "rocm-hip"
+    },
+    "name": "rocm-hip"
    }
   },
   "slack": {
@@ -9347,6 +9536,15 @@
     "name": "clang-select"
    }
   },
+  "cuda-toolkit": {
+   "apt\\cuda-toolkit": {
+    "driver": "apt",
+    "fields": {
+     "name": "nvidia-cuda-toolkit"
+    },
+    "name": "nvidia-cuda-toolkit"
+   }
+  },
   "curl": {
    "apt\\curl": {
     "driver": "apt",
@@ -9736,6 +9934,15 @@
     "name": "htop-dotfiles"
    }
   },
+  "intel-oneapi-basekit": {
+   "apt\\intel-oneapi-basekit": {
+    "driver": "apt",
+    "fields": {
+     "name": "intel-basekit"
+    },
+    "name": "intel-basekit"
+   }
+  },
   "kicad": {
    "apt\\kicad": {
     "driver": "apt",
@@ -10093,6 +10300,15 @@
      "repo-component": "universe"
     },
     "name": "ripgrep"
+   }
+  },
+  "rocm-hip": {
+   "apt\\rocm-hip": {
+    "driver": "apt",
+    "fields": {
+     "name": "rocm-hip-sdk"
+    },
+    "name": "rocm-hip-sdk"
    }
   },
   "slack": {
@@ -10793,6 +11009,15 @@
     "name": "clang-select"
    }
   },
+  "cuda-toolkit": {
+   "apt\\cuda-toolkit": {
+    "driver": "apt",
+    "fields": {
+     "name": "nvidia-cuda-toolkit"
+    },
+    "name": "nvidia-cuda-toolkit"
+   }
+  },
   "curl": {
    "apt\\curl": {
     "driver": "apt",
@@ -11182,6 +11407,15 @@
     "name": "htop-dotfiles"
    }
   },
+  "intel-oneapi-basekit": {
+   "apt\\intel-oneapi-basekit": {
+    "driver": "apt",
+    "fields": {
+     "name": "intel-basekit"
+    },
+    "name": "intel-basekit"
+   }
+  },
   "kicad": {
    "apt\\kicad": {
     "driver": "apt",
@@ -11529,6 +11763,15 @@
      "repo-component": "universe"
     },
     "name": "ripgrep"
+   }
+  },
+  "rocm-hip": {
+   "apt\\rocm-hip": {
+    "driver": "apt",
+    "fields": {
+     "name": "rocm-hip-sdk"
+    },
+    "name": "rocm-hip-sdk"
    }
   },
   "slack": {
