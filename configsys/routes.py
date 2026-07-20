@@ -107,7 +107,8 @@ def _pf(entry):
     return (entry, 'plugin')
 
 
-def load(path, overrides_path=None, discovered=(), plugin_files=(), validate=True):
+def load(path, overrides_path=None, discovered=(), plugin_files=(), validate=True,
+         warnings_out=None):
     '''-> (OsCascade, {component_name: Component}, {driver: [required caps]}).
 
     Layer stack lowest-first: routes.hu (repo) < plugin data files < discovered project files
@@ -115,6 +116,8 @@ def load(path, overrides_path=None, discovered=(), plugin_files=(), validate=Tru
     merge PER NAME (later wins — redefine, add, or remove with `{}`); os/drivers come from
     repo + plugins (a plugin may add a derivative-distro os block). A malformed discovered or
     plugin file is skipped (never bricks the rest). validate=True rejects an ambiguous set.
+    If a list is passed as `warnings_out`, skipped files/components are appended to it (for the
+    diagnostics view) — the return value is unchanged so existing callers are unaffected.
     '''
     roots = [(path, 'repo')]
     roots += [_pf(p) for p in plugin_files]          # (path, role): 'primary' or 'plugin'
@@ -122,6 +125,8 @@ def load(path, overrides_path=None, discovered=(), plugin_files=(), validate=Tru
     if overrides_path is not None:
         roots.append((overrides_path, 'user'))
     layer_list, _warnings = layers.expand_tolerant(roots, {'discover', 'plugin', 'primary'})
+    if warnings_out is not None:
+        warnings_out.extend(_warnings)
 
     cascade = OsCascade(layers.merge_dict_section(layer_list, 'os', ('repo', 'plugin', 'primary')))
     forgiving = ({os.path.normpath(d) for d in discovered}
@@ -138,6 +143,8 @@ def load(path, overrides_path=None, discovered=(), plugin_files=(), validate=Tru
                 routecheck.check_component(name, comp, cascade)
         except ConfigsysError as e:
             if os.path.normpath(src) in forgiving:
+                if warnings_out is not None:
+                    warnings_out.append(f'skipped component "{name}" ({src}): {e}')
                 continue
             raise ConfigError(f'{src}: {e}')
         comp.source = src
@@ -157,8 +164,10 @@ class Resolver:
 
     def __init__(self, routes_path, block, version=None, cpu=None, pins=None,
                  overrides_path=None, discovered=(), plugin_files=()):
-        self.cascade, self.components, self.drivers = load(routes_path, overrides_path,
-                                                              discovered, plugin_files)
+        self.load_warnings = []       # skipped files/components (for diagnostics)
+        self.cascade, self.components, self.drivers = load(
+            routes_path, overrides_path, discovered, plugin_files,
+            warnings_out=self.load_warnings)
         self.block = block
         self.version = version
         self.cpu = cpu

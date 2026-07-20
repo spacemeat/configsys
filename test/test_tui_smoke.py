@@ -45,10 +45,16 @@ def test_tui_launches_navigates_and_quits(tmp_path):
     cfg.parent.mkdir(parents=True, exist_ok=True)
     cfg.write_text('{ configs: [ ] }\n')
 
+    # a malformed discovered file -> a real diagnostic, so the `!` page has content to render
+    work = tmp_path / 'work'
+    work.mkdir()
+    (work / '.configsys.hu').write_text('{ components: { x: { install: [ { via:')
+
     env = dict(os.environ)
     env.update({
         'TERM': 'xterm-256color',
         'CONFIGSYS_HOME': str(tmp_path),
+        'CONFIGSYS_CWD': str(work),
         'CONFIGSYS_OS': 'pop',
         'PYTHONPATH': str(REPO),
     })
@@ -61,8 +67,8 @@ def test_tui_launches_navigates_and_quits(tmp_path):
 
     deadline = time.monotonic() + 8
     first = _drain(master, min(deadline, time.monotonic() + 3))
-    # drive: down, down, select, quit
-    for keys in (b'j', b'j', b' ', b'q'):
+    # drive: down, open diagnostics page, scroll, close it, select, quit
+    for keys in (b'j', b'!', b'j', b'!', b' ', b'q'):
         try:
             os.write(master, keys)
         except OSError:

@@ -404,7 +404,41 @@ def _infoblock(ms, ctx):
     return ' ' + '   ·   '.join(parts), (f' at: {loc}' if loc else '')
 
 
-def _draw(stdscr, pal, ms, ctx, note):
+def _wrap(s, width):
+    '''Hard char-wrap (paths rarely have useful word breaks), never empty.'''
+    s, width = s or '', max(1, width)
+    return [s[i:i + width] for i in range(0, len(s), width)] or ['']
+
+
+def _draw_diagnostics(stdscr, pal, diags, top):
+    '''The `!` page: every non-fatal skip/warning, scrollable. Returns the clamped scroll top.'''
+    stdscr.erase()
+    h, w = stdscr.getmaxyx()
+    _put(stdscr, 0, 0, _fit(f' configsys — diagnostics ({len(diags)}) ', w),
+         pal.get('title') | curses.A_BOLD | curses.A_REVERSE)
+    lines = []                                       # [(text, attr)]
+    for d in diags:
+        col = pal.get('error' if d['level'] == 'error' else 'outdated')
+        mark = '✗' if d['level'] == 'error' else '⚠'
+        lines.append((f'{mark} {d["tag"]}', col | curses.A_BOLD))
+        for seg in _wrap(d['text'], w - 4):
+            lines.append(('    ' + seg, pal.get('dim')))
+        lines.append(('', curses.A_NORMAL))
+    if not diags:
+        lines = [('  no issues — everything loaded cleanly.', pal.get('installed'))]
+    body_h = max(1, h - 3)
+    top = max(0, min(top, max(0, len(lines) - body_h)))
+    for i, (text, attr) in enumerate(lines[top:top + body_h]):
+        _put(stdscr, 2 + i, 0, _fit(text, w), attr)
+    foot = ' j/k scroll · g/G top/bottom · ! or q back '
+    _put(stdscr, h - 1, 0, _fit(foot.ljust(w), w), pal.get('dim') | curses.A_REVERSE)
+    stdscr.refresh()
+    return top
+
+
+def _draw(stdscr, pal, ms, ctx, note, diags=(), show_diag=False, diag_top=0):
+    if show_diag:
+        return _draw_diagnostics(stdscr, pal, diags, diag_top)
     stdscr.erase()
     h, w = stdscr.getmaxyx()
 
@@ -414,6 +448,12 @@ def _draw(stdscr, pal, ms, ctx, note):
     if ctx.runner.pretend:
         sub += '   [PRETEND]'
     _put(stdscr, 1, 0, _fit(sub, w), pal.get('header'))
+    if diags:                                        # attention badge, right-aligned on the sub line
+        n = len(diags)
+        lvl = 'error' if any(d['level'] == 'error' for d in diags) else 'outdated'
+        badge = f'⚠ {n} issue{"s" if n != 1 else ""} — press ! to view '
+        bx = max(len(sub) + 2, w - len(badge) - 1)
+        _put(stdscr, 1, bx, _fit(badge, w - bx), pal.get(lvl) | curses.A_BOLD)
 
     hattr = pal.get('dim') | curses.A_BOLD
     _put(stdscr, 3, NAME_X, 'COMPONENT', hattr)
@@ -482,12 +522,13 @@ def _draw(stdscr, pal, ms, ctx, note):
     if note:
         status_line += f'   {note}'
     nav = ' j/k move · g/G top/bottom · enter/→ expand · ← collapse · tab expand-all '
-    act = ' space sel · a all · i/u/x inst/upg/rm · L/l lock · c clear · X exec · q quit '
+    act = ' space sel · a all · i/u/x inst/upg/rm · L/l lock · c clear · X exec · ! issues · q quit '
     foot_attr = pal.get('dim') | curses.A_REVERSE
     _put(stdscr, h - 3, 0, _fit(status_line, w), pal.get('accent'))
     _put(stdscr, h - 2, 0, _fit(nav.ljust(w), w), foot_attr)
     _put(stdscr, h - 1, 0, _fit(act.ljust(w), w), foot_attr)
     stdscr.refresh()
+    return diag_top
 
 
 def _profile_comps(cfg):
@@ -513,17 +554,36 @@ def run(ctx):
     '''Entry point used by app.cmd_tui. Returns an exit code.'''
     cfg, _requested, _units, ledger, states = ctx.load_pipeline()
     ms = MenuState(states, _profile_comps(cfg))
+    diags = ctx.diagnostics()
 
     with curses_screen() as stdscr:
         pal = Palette()
         note = ''
+        show_diag = False
+        diag_top = 0
         while True:
-            _draw(stdscr, pal, ms, ctx, note)
+            diag_top = _draw(stdscr, pal, ms, ctx, note, diags, show_diag, diag_top)
             note = ''
             ch = stdscr.getch()
 
+            if show_diag:                               # diagnostics page: scroll or exit
+                if ch in (ord('!'), ord('q'), 27):
+                    show_diag = False
+                elif ch in (ord('j'), curses.KEY_DOWN):
+                    diag_top += 1
+                elif ch in (ord('k'), curses.KEY_UP):
+                    diag_top = max(0, diag_top - 1)
+                elif ch == ord('g'):
+                    diag_top = 0
+                elif ch == ord('G'):
+                    diag_top = 10 ** 6                  # clamped by _draw
+                continue
+
             if ch in (ord('q'), 27):
                 break
+            elif ch == ord('!'):
+                if diags:
+                    show_diag, diag_top = True, 0
             elif ch in (ord('j'), curses.KEY_DOWN):
                 ms.move(1)
             elif ch in (ord('k'), curses.KEY_UP):
@@ -558,6 +618,7 @@ def run(ctx):
                     try:
                         cfg, _requested, _units, ledger, states = ctx.load_pipeline()
                         ms = MenuState(states, _profile_comps(cfg))
+                        diags = ctx.diagnostics()
                     except Exception as e:  # noqa: BLE001 - surface, don't crash
                         note = f'reload failed: {e}'
                     ms.errors = failed

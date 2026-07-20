@@ -126,7 +126,10 @@ def expand_tolerant(roots, tolerant_roles=('discover',)):
             _visit(path, role, stack, done, order)
         except ConfigError as e:
             if role in tolerant_roles:
-                warnings.append(f'skipped {path}: {e}')
+                msg = str(e)
+                if msg.startswith(f'{path}: '):          # don't repeat the path the error carries
+                    msg = msg[len(path) + 2:]
+                warnings.append(f'skipped {path}: {msg}')
                 del stack[:]                  # a partial visit may have left the stack dirty
             else:
                 raise

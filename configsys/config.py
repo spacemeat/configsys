@@ -42,6 +42,7 @@ def _split_term(term):
 class Config:
     def __init__(self, layer_list):
         self._layers = layer_list
+        self.load_warnings = []       # files SKIPPED while loading (set by load()); see diagnostics
         self._profiles = layers.merge_named(layer_list, 'profiles')   # name -> (val, src, shadows)
         # Per-name chain of same-named definitions across layers, ascending precedence:
         #   name -> [(layer_index, value, source_path), ...]
@@ -61,7 +62,15 @@ class Config:
                   for p in plugin_files]
         roots += [(d, 'discover') for d in discovered]
         roots.append((paths.user_config_file, 'user'))
-        return cls(layers.expand_tolerant(roots, {'discover', 'plugin', 'primary'})[0])
+        layer_list, warns = layers.expand_tolerant(roots, {'discover', 'plugin', 'primary'})
+        cfg = cls(layer_list)
+        cfg.load_warnings = warns     # a malformed primary/plugin/project file skipped, not fatal
+        return cfg
+
+    def ignored_section_warnings(self):
+        '''Sections a layer set that its role forbids (silently dropped) — e.g. `configs:` from a
+        non-primary plugin. Surfaced via diagnostics.'''
+        return layers.ignored_section_warnings(self._layers)
 
     @property
     def active_profiles(self):

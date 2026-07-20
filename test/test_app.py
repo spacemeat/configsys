@@ -182,4 +182,25 @@ def test_inspect_is_resilient_to_a_bad_active_component(tmp_path, capsys):
     assert rc == 0
     out = capsys.readouterr().out
     assert 'apt\\btop' in out                     # good component still resolved + shown
-    assert 'unresolved' in out and 'ghost-tool' in out
+    assert 'unroutable' in out and 'ghost-tool' in out   # surfaced in the diagnostics footer
+
+
+def test_diagnostics_surface_a_skipped_malformed_file(tmp_path, capsys, monkeypatch):
+    # a malformed discovered project file is skipped silently — diagnostics must SHOW it,
+    # so a dropped layer never vanishes without a trace (the primary-plugin footgun).
+    home = tmp_path / 'home'
+    home.mkdir()
+    proj = tmp_path / 'proj'
+    (proj / 'sub').mkdir(parents=True)
+    (proj / '.configsys.hu').write_text('{ profiles: { p: [ btop ] }  components: { x: { install: [ { via:')
+    monkeypatch.setenv('CONFIGSYS_CWD', str(proj / 'sub'))
+    rc = main(['--home', str(home), '--os', 'pop', '--pretend', 'inspect'])
+    assert rc == 0
+    out = capsys.readouterr().out
+    assert 'issue(s)' in out and 'skipped' in out and '.configsys.hu' in out
+
+
+def test_no_diagnostics_footer_when_clean(tmp_path, capsys):
+    (tmp_path / 'configsys.hu').write_text('{ configs: [ mine ]  profiles: { mine: [ btop ] } }')
+    assert main(base_args(tmp_path) + ['inspect']) == 0
+    assert 'issue(s)' not in capsys.readouterr().out

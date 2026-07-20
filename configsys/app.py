@@ -157,6 +157,49 @@ class Context:
         return layers.expand_tolerant([(d, 'discover') for d in self.discovered],
                                       {'discover'})[1]
 
+    def diagnostics(self):
+        '''Every non-fatal skip/warning from loading + resolution, as {level, tag, text} (deduped
+        by text). This is the "silent stuff" — a malformed layer that got dropped (the exact class
+        that can make a whole primary plugin vanish), a plugin quarantined / untrusted / ABI-
+        incompatible, a machine-setting section ignored from a non-primary plugin, a requested
+        component that can't route here. Surfaced by the TUI (! page) and inspect. Call after a
+        load so config/routes/resolve_errors are populated.'''
+        from . import plugins
+        out, seen = [], set()
+
+        def add(level, tag, text):
+            if text and text not in seen:
+                seen.add(text)
+                out.append({'level': level, 'tag': tag, 'text': text})
+
+        def unskip(w):                                   # tag already says "skipped"
+            return w[len('skipped '):] if w.startswith('skipped ') else w
+
+        self.ensure_plugin_code()                        # populates plugin_code_warnings
+        for w in getattr(self.config, 'load_warnings', []):
+            add('error', 'skipped', unskip(w))           # a dropped config layer (primary/plugin/project)
+        for w in getattr(self.routes, 'load_warnings', []):
+            add('error', 'skipped', unskip(w))           # a dropped routes layer or component
+        for w in self.discovery_warnings():
+            add('error', 'skipped', unskip(w))
+        for w in self.config.ignored_section_warnings():
+            add('warn', 'ignored', w)
+        for w in self.plugin_code_warnings:
+            add('warn', 'code', w)
+        decls = plugins.effective_declared(self.paths.user_config_file, self.paths.plugins_dir)
+        for r in plugins.status(self.paths.plugins_dir, decls,
+                                trust_file=self.paths.plugin_trust_file):
+            if not r['synced']:
+                add('warn', 'unsynced', f"{r['name']}: not synced (run: configsys plugin sync)")
+            elif r['checksum'] == 'mismatch':
+                add('error', 'quarantined',
+                    f"{r['name']}: content ≠ declared sha256 — quarantined")
+            elif not r['abi_ok']:
+                add('warn', 'incompatible', f"{r['name']}: needs plugin ABI {r['requires_abi']}")
+        for name in sorted(self.resolve_errors or {}):
+            add('error', 'unroutable', f"{name}: {self.resolve_errors[name]}")
+        return out
+
     def ensure_plugin_code(self):
         '''Import + register the drivers of trusted code plugins, once, before any resolution
         (so `via: <plugin-driver>` resolves). Untrusted/incompatible/broken code plugins are
@@ -262,8 +305,6 @@ def cmd_inspect(ctx, args):
     if ctx.discovered:
         files = ', '.join(os.path.basename(d) for d in ctx.discovered)
         print(f'project: {os.path.dirname(ctx.discovered[0])}  ({files})')
-    for w in ctx.discovery_warnings():
-        print(f'  warn: {w}')
     print()
     print(f'{"UNIT":30} {"STATUS":12} {"INSTALLED":20} {"LATEST"}')
     print('-' * 78)
@@ -272,11 +313,14 @@ def cmd_inspect(ctx, args):
         lock = ' [locked]' if s.locked else ''
         print(f'{key:30} {_STATUS_LABEL.get(s.status, s.status):12} '
               f'{str(s.installed_version or "-"):20} {s.latest_version or "-"}{lock}')
-    # resilient: requested components that couldn't route here — shown, not fatal
-    if ctx.resolve_errors:
-        print('\nunresolved (requested but not routable here):')
-        for name in sorted(ctx.resolve_errors):
-            print(f'  {name:28} error        {ctx.resolve_errors[name]}')
+    # non-fatal skips/warnings that would otherwise go unseen (dropped layers, quarantined
+    # plugins, unroutable components, ...) — the same set the TUI shows on its `!` page.
+    diags = ctx.diagnostics()
+    if diags:
+        print(f'\n{len(diags)} issue(s):')
+        for d in diags:
+            mark = '✗' if d['level'] == 'error' else '⚠'
+            print(f'  {mark} {d["tag"]:12} {d["text"]}')
     return 0
 
 
