@@ -380,6 +380,8 @@ def _emit_block(decls, indent):
             entry += f'  ref: {_scalar(d["ref"])}'
         if d.get('sha256'):
             entry += f'  sha256: {_scalar(d["sha256"])}'
+        if d.get('primary'):
+            entry += '  primary: true'
         lines.append(inner + entry + ' }')
     lines.append(pad + ']')
     return '\n'.join(lines)

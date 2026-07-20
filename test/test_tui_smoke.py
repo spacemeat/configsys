@@ -39,6 +39,12 @@ def test_tui_launches_navigates_and_quits(tmp_path):
     except OSError:
         pytest.skip('no PTY available')
 
+    # pre-create the user config so first-run onboarding (the primary-plugin prompt) doesn't
+    # fire under the PTY and consume the TUI keystrokes — this test is about TUI nav, not setup.
+    cfg = tmp_path / '.config' / 'configsys' / 'configsys.hu'
+    cfg.parent.mkdir(parents=True, exist_ok=True)
+    cfg.write_text('{ configs: [ ] }\n')
+
     env = dict(os.environ)
     env.update({
         'TERM': 'xterm-256color',

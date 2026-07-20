@@ -33,8 +33,10 @@ USER_CONFIG_TEMPLATE = '''{
     // github:/gitlab: source has a colon so it must be quoted.
     // plugins: [ { source: "github:someone/configsys-opensuse"  ref: v1.2.0 } ]
 
-    // Which profiles (from the repo's config.hu, your `profiles:`, or an include) apply here.
-    configs: [ dev ]
+    // Which profiles (from the repo's config.hu, your `profiles:`, a `primary` plugin, or an
+    // include) apply here. Left commented so a `primary` plugin's `configs:` provides the
+    // default; uncomment to set or override it on THIS machine.
+    // configs: [ dev ]
 
     // Machine-wide default install scope for scope-honoring drivers (user | system).
     // scope: system
@@ -209,15 +211,36 @@ class Context:
                     rc.fields.setdefault('scope', default)
         return units
 
-    def ensure_user_config(self):
+    def ensure_user_config(self, *, offer_primary=False):
         p = self.paths.user_config_file
-        if not p.exists():
-            p.parent.mkdir(parents=True, exist_ok=True)
-            p.write_text(USER_CONFIG_TEMPLATE, encoding='utf-8')
-            print(f'configsys: generated {p}')
+        if p.exists():
+            return
+        p.parent.mkdir(parents=True, exist_ok=True)
+        p.write_text(USER_CONFIG_TEMPLATE, encoding='utf-8')
+        print(f'configsys: generated {p}')
+        if offer_primary:
+            self._offer_primary()          # first-run only: point configsys at a personal plugin
+
+    def _offer_primary(self):
+        '''First-run offer to designate a `primary` personal-config plugin. Interactive only
+        (a non-TTY / scripted run just skips it — no nag). On a value, bless it (register +
+        sync); Enter or "none" skips.'''
+        import sys
+        if not (sys.stdin.isatty() and sys.stdout.isatty()):
+            return
+        print('\nYour personal config (profiles, scope, pins) can live in a "primary" plugin so')
+        print("it travels with you. Point configsys at yours now, or press Enter to skip.")
+        try:
+            ans = input('  primary plugin  <provider>:<user>/<name>  [none]: ').strip()
+        except EOFError:
+            return
+        if not ans or ans.lower() == 'none':
+            return
+        ok, msg = _bless_primary(self, ans)
+        print(f'configsys: {msg}')
 
     def load_pipeline(self):
-        self.ensure_user_config()
+        self.ensure_user_config(offer_primary=True)
         cfg = self.config
         requested = cfg.requested()
         # resilient: a requested component that can't route here becomes a reported error
@@ -587,6 +610,35 @@ def _sync_and_report(ctx, decls):
         print(f'  {action:8} {name}')
 
 
+def _bless_primary(ctx, ident):
+    '''Make `ident` the sole `primary` plugin in the top config. Syncs it FIRST (the findability
+    gate — "if it can find it"), pulling its transitive plugins too; only on success does it
+    declare + mark primary (clearing any other primary). `ident` is a source
+    (<provider>:<user>/<name>) or an already-declared plugin's name. Returns (ok, message).'''
+    from . import plugins
+    ctx.ensure_user_config()
+    decls = plugins.declared(ctx.paths.user_config_file)
+    existing = _find_decl(decls, ctx.paths.plugins_dir, ident)
+    source = existing['source'] if existing else ident
+    ref = existing.get('ref') if existing else None
+    ctx.ensure_plugin_code()                         # register transports before sync
+    results = plugins.sync(ctx.runner, ctx.paths.plugins_dir, [{'source': source, 'ref': ref}])
+    for name, action in results:
+        print(f'  {action:8} {name}')
+    if not results or 'failed' in results[0][1].lower():
+        return False, f"could not find/sync '{ident}' — nothing changed"
+    if existing is None:
+        existing = {'source': source, 'ref': ref}
+        decls.append(existing)
+    for d in decls:
+        d.pop('primary', None)                       # exactly one primary
+    existing['primary'] = True
+    if ctx.runner.pretend:
+        return True, f"[pretend] would bless {plugins.dir_name(source)} as primary"
+    plugins.set_declared(ctx.paths.user_config_file, decls)
+    return True, f"blessed {plugins.dir_name(source)} as primary (its machine settings now apply)"
+
+
 def _pin_checksum(ctx, decls, target):
     '''Record the just-synced content hash of `target` as its `sha256` (a trust-on-first-use
     pin), so later syncs are verified against exactly this content.'''
@@ -614,6 +666,26 @@ def cmd_plugin(ctx, args):
             print('configsys: no plugins declared (add one: `configsys plugin add <source>`)')
             return 0
         _sync_and_report(ctx, decls)
+        return 0
+
+    if sub == 'bless':
+        if args.source.lower() == 'none':
+            return cmd_plugin(ctx, argparse.Namespace(plugin_command='unbless'))
+        ok, msg = _bless_primary(ctx, args.source)
+        print(f'configsys: {msg}')
+        return 0 if ok else 1
+
+    if sub == 'unbless':
+        if not any(d.get('primary') for d in decls):
+            print('configsys: no primary plugin set')
+            return 0
+        if ctx.runner.pretend:
+            print('configsys: [pretend] would clear the primary designation')
+            return 0
+        for d in decls:
+            d.pop('primary', None)
+        plugins.set_declared(ctx.paths.user_config_file, decls)
+        print('configsys: cleared the primary designation')
         return 0
 
     if sub == 'add':
@@ -772,6 +844,11 @@ def build_parser():
     plsub = pl.add_subparsers(dest='plugin_command')
     plsub.add_parser('list', help='declared plugins + their sync/ABI status')
     plsub.add_parser('sync', help='clone/fetch declared plugins to their pinned refs')
+    pb = plsub.add_parser('bless', help='designate your primary personal-config plugin '
+                                        '(register + sync it; its machine settings then apply)')
+    pb.add_argument('source', help='<provider>:<user>/<name> (or a declared plugin name), or '
+                                   '"none" to clear')
+    plsub.add_parser('unbless', help='clear the primary designation')
     pa = plsub.add_parser('add', help='declare a plugin and sync it')
     pa.add_argument('source', help='github:owner/repo | gitlab:owner/repo | git URL | local path')
     pa.add_argument('--ref', help='pin to a tag / commit / branch')

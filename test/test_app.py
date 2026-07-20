@@ -13,7 +13,9 @@ def test_inspect_generates_user_config_and_exits_zero(tmp_path, capsys):
     assert (tmp_path / '.config' / 'configsys' / 'configsys.hu').exists()   # XDG location
     out = capsys.readouterr().out
     assert 'OS: pop_os!' in out
-    assert 'profiles: dev' in out
+    # the generated template leaves `configs:` commented, so the active set defaults to the
+    # repo config.hu's configs (a `primary` plugin or this file can override it).
+    assert 'profiles:' in out and 'dev' in out
 
 
 def test_legacy_user_config_is_migrated(tmp_path, capsys):

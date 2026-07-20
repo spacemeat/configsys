@@ -194,3 +194,47 @@ def test_cli_plugin_add_and_remove(tmp_path, capsys):
     assert main(home + ['plugin', 'remove', 'cli-plug']) == 0
     assert 'removed' in capsys.readouterr().out
     assert not synced.exists()                               # dir deleted
+
+
+def test_set_declared_round_trips_primary(tmp_path):
+    p = tmp_path / 'configsys.hu'
+    p.write_text('{\n    plugins: [ { source: "github:a/b" } ]\n}\n')
+    plugins.set_declared(str(p), [{'source': 'github:a/b', 'ref': 'v1', 'primary': True}])
+    assert 'primary: true' in p.read_text()
+    assert plugins.declared(str(p))[0].get('primary') is True
+
+
+@pytest.mark.skipif(shutil.which('git') is None, reason='git not available')
+def test_cli_plugin_bless_and_unbless(tmp_path, capsys):
+    from configsys.app import main
+    src = tmp_path / 'src'
+    src.mkdir()
+    (src / 'plugin.hu').write_text('{ name: mine  requires-abi: 1  data: [ d.hu ] }')
+    (src / 'd.hu').write_text('{ configs: [ solo ]  profiles: { solo: [ btop ] } }')
+    for cmd in (['init', '-q'], ['config', 'user.email', 't@t'], ['config', 'user.name', 't'],
+                ['add', '-A'], ['commit', '-qm', 'i'], ['tag', 'v1']):
+        subprocess.run(['git', *cmd], cwd=src, check=True)
+    home = ['--home', str(tmp_path), '--os', 'pop']
+
+    # bless finds + syncs + marks primary; its machine settings (configs: [solo]) then apply
+    assert main(home + ['plugin', 'bless', str(src)]) == 0
+    assert 'blessed' in capsys.readouterr().out
+    cfg = (tmp_path / '.config' / 'configsys' / 'configsys.hu').read_text()
+    assert 'primary: true' in cfg
+    assert main(home + ['inspect']) == 0
+    assert 'solo' in capsys.readouterr().out                 # primary's configs activated
+
+    # unbless clears it -> the primary's configs no longer apply
+    assert main(home + ['plugin', 'unbless']) == 0
+    assert 'cleared' in capsys.readouterr().out
+    assert 'primary: true' not in (tmp_path / '.config' / 'configsys' / 'configsys.hu').read_text()
+
+
+def test_cli_plugin_bless_unknown_source_changes_nothing(tmp_path, capsys):
+    from configsys.app import main
+    home = ['--home', str(tmp_path), '--os', 'pop']
+    rc = main(home + ['plugin', 'bless', 'github:nobody/does-not-exist-xyz'])
+    assert rc == 1
+    assert 'could not find' in capsys.readouterr().out
+    cfg = tmp_path / '.config' / 'configsys' / 'configsys.hu'
+    assert not cfg.exists() or 'primary: true' not in cfg.read_text()   # no broken primary left
