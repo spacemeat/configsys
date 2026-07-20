@@ -1,2 +1,9 @@
-alias v="~/apps/nvim.appimage"
-alias vi="~/apps/nvim.appimage"
+UNIT_PATH="nvim.appimage"
+for _up in "$HOME/apps/$UNIT_PATH" "/opt/apps/$UNIT_PATH"; do
+    [ -x "$_up" ] && {
+        alias v="$_up"
+        alias vi="$_up"
+        break
+    }
+done
+unset _up

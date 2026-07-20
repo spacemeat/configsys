@@ -168,6 +168,27 @@
     "name": "flatpak"
    }
   },
+  "configsys-dotfiles": {
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.bash.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\configsys-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/configsys.sh",
+     "src": "bash.d/configsys.sh"
+    },
+    "name": "configsys-dotfiles"
+   }
+  },
   "cuda-toolkit": {
    "pacman\\cuda-toolkit": {
     "driver": "pacman",
@@ -1501,6 +1522,27 @@
      "src": "bash.d/clang.sh"
     },
     "name": "clang-select"
+   }
+  },
+  "configsys-dotfiles": {
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.bash.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\configsys-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/configsys.sh",
+     "src": "bash.d/configsys.sh"
+    },
+    "name": "configsys-dotfiles"
    }
   },
   "cuda-toolkit": {
@@ -2976,6 +3018,27 @@
     "name": "clang-select"
    }
   },
+  "configsys-dotfiles": {
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.bash.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\configsys-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/configsys.sh",
+     "src": "bash.d/configsys.sh"
+    },
+    "name": "configsys-dotfiles"
+   }
+  },
   "cuda-toolkit": {
    "apt\\cuda-toolkit": {
     "driver": "apt",
@@ -4321,6 +4384,27 @@
     "name": "clang-19"
    }
   },
+  "configsys-dotfiles": {
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.bash.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\configsys-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/configsys.sh",
+     "src": "bash.d/configsys.sh"
+    },
+    "name": "configsys-dotfiles"
+   }
+  },
   "cuda-toolkit": {
    "dnf\\cuda-toolkit": {
     "driver": "dnf",
@@ -5504,6 +5588,27 @@
      ]
     },
     "name": "clang-20"
+   }
+  },
+  "configsys-dotfiles": {
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.bash.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\configsys-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/configsys.sh",
+     "src": "bash.d/configsys.sh"
+    },
+    "name": "configsys-dotfiles"
    }
   },
   "cuda-toolkit": {
@@ -6795,6 +6900,27 @@
      "src": "bash.d/clang.sh"
     },
     "name": "clang-select"
+   }
+  },
+  "configsys-dotfiles": {
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.bash.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\configsys-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/configsys.sh",
+     "src": "bash.d/configsys.sh"
+    },
+    "name": "configsys-dotfiles"
    }
   },
   "cuda-toolkit": {
@@ -8163,6 +8289,27 @@
      "name": "epel-release"
     },
     "name": "epel-release"
+   }
+  },
+  "configsys-dotfiles": {
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.bash.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\configsys-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/configsys.sh",
+     "src": "bash.d/configsys.sh"
+    },
+    "name": "configsys-dotfiles"
    }
   },
   "cuda-toolkit": {
@@ -9534,6 +9681,27 @@
      "src": "bash.d/clang.sh"
     },
     "name": "clang-select"
+   }
+  },
+  "configsys-dotfiles": {
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.bash.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\configsys-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/configsys.sh",
+     "src": "bash.d/configsys.sh"
+    },
+    "name": "configsys-dotfiles"
    }
   },
   "cuda-toolkit": {
@@ -11007,6 +11175,27 @@
      "src": "bash.d/clang.sh"
     },
     "name": "clang-select"
+   }
+  },
+  "configsys-dotfiles": {
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.bash.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\configsys-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/configsys.sh",
+     "src": "bash.d/configsys.sh"
+    },
+    "name": "configsys-dotfiles"
    }
   },
   "cuda-toolkit": {

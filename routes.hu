@@ -51,6 +51,12 @@
             ]
         }
 
+        configsys-dotfiles: {
+            install: [
+                { via: dotfiles  requires: bash-dotfiles  src: bash.d/configsys.sh  dst: ~/.bash.d/configsys.sh }
+            ]
+        }
+
         // EPEL: a capability enabled by installing epel-release (only on EL). Anything
         // that `requires: epel` is a no-op off EL (nothing needs it) and pulls this in on EL.
         epel-release: {
