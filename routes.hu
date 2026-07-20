@@ -241,6 +241,53 @@
         discord: { install: [ { via: flatpak  hub: flathub  app: com.discordapp.Discord } ] }
         slack:   { install: [ { via: flatpak  hub: flathub  app: com.slack.Slack } ] }
 
+        // --- media & creative apps -------------------------------------------------
+        // Flatpak-preferred: the Flathub builds are current and not hobbled by the sandbox for
+        // these. gimp/krita also take a native binding on Alpine — musl, where a native apk
+        // package beats pulling a glibc flatpak runtime (and both are in Alpine's community
+        // repo). Elsewhere, and for the others, a native default is a per-machine `pin` away.
+        gimp: {
+            install: [ { via: native   when: "alpine" }
+                       { via: flatpak  hub: flathub  app: org.gimp.GIMP } ]
+        }
+        krita: {
+            install: [ { via: native   when: "alpine" }
+                       { via: flatpak  hub: flathub  app: org.kde.krita } ]
+        }
+        ardour: { install: [ { via: flatpak  hub: flathub  app: org.ardour.Ardour } ] }
+        lmms:   { install: [ { via: flatpak  hub: flathub  app: io.lmms.LMMS } ] }
+        // tenacity: the telemetry-free Audacity fork. No reliable native package anywhere, so
+        // flatpak-only (unroutable on Alpine -> surfaces as a diagnostic, never a crash).
+        tenacity: { install: [ { via: flatpak  hub: flathub  app: org.tenacityaudio.Tenacity } ] }
+
+        // gnuradio: an SDR *framework* (Python bindings, out-of-tree modules) — flatpak is
+        // impractical, so native everywhere (package name `gnuradio`).
+        gnuradio: { install: [ { via: native } ] }
+
+        // ffmpeg / vlc: native, but Fedora's base repos ship only a codec-crippled ffmpeg-free
+        // — the full builds live in RPM Fusion. The `when: "fedora"` binding requires the
+        // `rpmfusion` capability (below); every other distro carries them in base. NOTE: EL
+        // (Rocky/Alma) needs RPM Fusion (+EPEL) too — deferred, like the other EL notes.
+        ffmpeg: {
+            install: [ { via: native  when: "fedora"  requires: rpmfusion }
+                       { via: native } ]
+        }
+        vlc: {
+            install: [ { via: native  when: "fedora"  requires: rpmfusion }
+                       { via: native } ]
+        }
+        // RPM Fusion Free: enabling it = drop its .repo (dnf expands $releasever/$basearch and
+        // auto-imports the per-release key on the first -y install), then pull the release
+        // package that formalizes the config. Fedora-guarded; provides the `rpmfusion`
+        // capability ffmpeg/vlc pull in there.
+        rpmfusion-free: {
+            provides: rpmfusion
+            install: [ { via: native  when: "fedora"  name: rpmfusion-free-release
+                         repo-id: rpmfusion-free  repo-name: "RPM Fusion Free"
+                         repo-url: "https://download1.rpmfusion.org/free/fedora/releases/$releasever/Everything/$basearch/os/"
+                         pubkey-url: "https://rpmfusion.org/keys?action=AttachFile&do=get&target=RPM-GPG-KEY-rpmfusion-free-fedora-$releasever" } ]
+        }
+
         // unityhub: the Unity Hub AppImage. Unity Editor(s) are installed THROUGH the Hub at
         // runtime — there's no `unity3d` package to route. Config in ~/.config/UnityHub (deferred).
         unityhub: {

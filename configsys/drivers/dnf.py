@@ -58,10 +58,15 @@ class Dnf(Driver):
     def ensure_prereqs(self, rc):
         '''Third-party dnf repo setup declared on the route: import the signing key
         (`pubkey-url`) and drop a .repo file (`repo-id`/`repo-name`/`repo-url`, gpgkey =
-        pubkey-url). Idempotent — the .repo write is skipped when it already exists.'''
+        pubkey-url). Idempotent — the .repo write is skipped when it already exists.
+
+        A key URL templated with dnf repo vars (`$releasever`/`$basearch`, e.g. RPM Fusion's
+        per-release key) can't be imported eagerly — `rpm --import` doesn't expand them. Such
+        a key is left only in the .repo's `gpgkey=`, where dnf expands it and auto-imports on
+        the first `-y` install. Literal keys are still imported up front.'''
         f = rc.fields
         key = f.get('pubkey-url')
-        if key:
+        if key and '$' not in key:
             self.runner.run(f'rpm --import {shlex.quote(key)}', sudo=True, capture=False)
         repo_id, repo_url = f.get('repo-id'), f.get('repo-url')
         if repo_id and repo_url:

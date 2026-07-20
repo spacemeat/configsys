@@ -20,6 +20,23 @@
     "name": "android-studio"
    }
   },
+  "ardour": {
+   "flatpak\\ardour": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "org.ardour.Ardour"
+    },
+    "name": "org.ardour.Ardour"
+   },
+   "pacman\\flatpak": {
+    "driver": "pacman",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   }
+  },
   "arduino": {
    "appImage\\arduino": {
     "driver": "appImage",
@@ -296,6 +313,15 @@
     "name": "fastfetch"
    }
   },
+  "ffmpeg": {
+   "pacman\\ffmpeg": {
+    "driver": "pacman",
+    "fields": {
+     "name": "ffmpeg"
+    },
+    "name": "ffmpeg"
+   }
+  },
   "firefox": {
    "pacman\\firefox": {
     "driver": "pacman",
@@ -379,6 +405,23 @@
     "name": "gdb-dotfiles"
    }
   },
+  "gimp": {
+   "flatpak\\gimp": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "org.gimp.GIMP"
+    },
+    "name": "org.gimp.GIMP"
+   },
+   "pacman\\flatpak": {
+    "driver": "pacman",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   }
+  },
   "git": {
    "pacman\\git": {
     "driver": "pacman",
@@ -386,6 +429,15 @@
      "name": "git"
     },
     "name": "git"
+   }
+  },
+  "gnuradio": {
+   "pacman\\gnuradio": {
+    "driver": "pacman",
+    "fields": {
+     "name": "gnuradio"
+    },
+    "name": "gnuradio"
    }
   },
   "htop": {
@@ -437,6 +489,23 @@
      "repo-component": "universe"
     },
     "name": "kicad"
+   }
+  },
+  "krita": {
+   "flatpak\\krita": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "org.kde.krita"
+    },
+    "name": "org.kde.krita"
+   },
+   "pacman\\flatpak": {
+    "driver": "pacman",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
    }
   },
   "lazygit": {
@@ -563,6 +632,23 @@
      "repo-component": "universe"
     },
     "name": "libxcb-xinput0"
+   }
+  },
+  "lmms": {
+   "flatpak\\lmms": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "io.lmms.LMMS"
+    },
+    "name": "io.lmms.LMMS"
+   },
+   "pacman\\flatpak": {
+    "driver": "pacman",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
    }
   },
   "make": {
@@ -808,6 +894,23 @@
     "name": "flatpak"
    }
   },
+  "tenacity": {
+   "flatpak\\tenacity": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "org.tenacityaudio.Tenacity"
+    },
+    "name": "org.tenacityaudio.Tenacity"
+   },
+   "pacman\\flatpak": {
+    "driver": "pacman",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   }
+  },
   "tree-sitter-cli": {
    "cargo\\tree-sitter-cli": {
     "driver": "cargo",
@@ -857,6 +960,15 @@
      "name": "unzip"
     },
     "name": "unzip"
+   }
+  },
+  "vlc": {
+   "pacman\\vlc": {
+    "driver": "pacman",
+    "fields": {
+     "name": "vlc"
+    },
+    "name": "vlc"
    }
   },
   "vscode": {
@@ -1236,6 +1348,23 @@
     "name": "android-studio"
    }
   },
+  "ardour": {
+   "apt\\flatpak": {
+    "driver": "apt",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\ardour": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "org.ardour.Ardour"
+    },
+    "name": "org.ardour.Ardour"
+   }
+  },
   "arduino": {
    "appImage\\arduino": {
     "driver": "appImage",
@@ -1657,6 +1786,15 @@
     "name": "fastfetch"
    }
   },
+  "ffmpeg": {
+   "apt\\ffmpeg": {
+    "driver": "apt",
+    "fields": {
+     "name": "ffmpeg"
+    },
+    "name": "ffmpeg"
+   }
+  },
   "firefox": {
    "apt\\firefox": {
     "driver": "apt",
@@ -1902,6 +2040,23 @@
     "name": "gdb-dotfiles"
    }
   },
+  "gimp": {
+   "apt\\flatpak": {
+    "driver": "apt",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\gimp": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "org.gimp.GIMP"
+    },
+    "name": "org.gimp.GIMP"
+   }
+  },
   "git": {
    "apt\\git": {
     "driver": "apt",
@@ -1909,6 +2064,15 @@
      "name": "git"
     },
     "name": "git"
+   }
+  },
+  "gnuradio": {
+   "apt\\gnuradio": {
+    "driver": "apt",
+    "fields": {
+     "name": "gnuradio"
+    },
+    "name": "gnuradio"
    }
   },
   "htop": {
@@ -1960,6 +2124,23 @@
      "repo-component": "universe"
     },
     "name": "kicad"
+   }
+  },
+  "krita": {
+   "apt\\flatpak": {
+    "driver": "apt",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\krita": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "org.kde.krita"
+    },
+    "name": "org.kde.krita"
    }
   },
   "lazygit": {
@@ -2099,6 +2280,23 @@
      "repo-component": "universe"
     },
     "name": "libxcb-xinput0"
+   }
+  },
+  "lmms": {
+   "apt\\flatpak": {
+    "driver": "apt",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\lmms": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "io.lmms.LMMS"
+    },
+    "name": "io.lmms.LMMS"
    }
   },
   "make": {
@@ -2363,6 +2561,23 @@
     "name": "com.valvesoftware.Steam"
    }
   },
+  "tenacity": {
+   "apt\\flatpak": {
+    "driver": "apt",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\tenacity": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "org.tenacityaudio.Tenacity"
+    },
+    "name": "org.tenacityaudio.Tenacity"
+   }
+  },
   "tree-sitter-cli": {
    "apt\\cargo": {
     "driver": "apt",
@@ -2412,6 +2627,15 @@
      "name": "unzip"
     },
     "name": "unzip"
+   }
+  },
+  "vlc": {
+   "apt\\vlc": {
+    "driver": "apt",
+    "fields": {
+     "name": "vlc"
+    },
+    "name": "vlc"
    }
   },
   "vscode": {
@@ -2730,6 +2954,23 @@
     "name": "android-studio"
    }
   },
+  "ardour": {
+   "apt\\flatpak": {
+    "driver": "apt",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\ardour": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "org.ardour.Ardour"
+    },
+    "name": "org.ardour.Ardour"
+   }
+  },
   "arduino": {
    "appImage\\arduino": {
     "driver": "appImage",
@@ -3151,6 +3392,15 @@
     "name": "fastfetch"
    }
   },
+  "ffmpeg": {
+   "apt\\ffmpeg": {
+    "driver": "apt",
+    "fields": {
+     "name": "ffmpeg"
+    },
+    "name": "ffmpeg"
+   }
+  },
   "firefox": {
    "apt\\firefox": {
     "driver": "apt",
@@ -3396,6 +3646,23 @@
     "name": "gdb-dotfiles"
    }
   },
+  "gimp": {
+   "apt\\flatpak": {
+    "driver": "apt",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\gimp": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "org.gimp.GIMP"
+    },
+    "name": "org.gimp.GIMP"
+   }
+  },
   "git": {
    "apt\\git": {
     "driver": "apt",
@@ -3403,6 +3670,15 @@
      "name": "git"
     },
     "name": "git"
+   }
+  },
+  "gnuradio": {
+   "apt\\gnuradio": {
+    "driver": "apt",
+    "fields": {
+     "name": "gnuradio"
+    },
+    "name": "gnuradio"
    }
   },
   "htop": {
@@ -3454,6 +3730,23 @@
      "repo-component": "universe"
     },
     "name": "kicad"
+   }
+  },
+  "krita": {
+   "apt\\flatpak": {
+    "driver": "apt",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\krita": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "org.kde.krita"
+    },
+    "name": "org.kde.krita"
    }
   },
   "lazygit": {
@@ -3593,6 +3886,23 @@
      "repo-component": "universe"
     },
     "name": "libxcb-xinput0"
+   }
+  },
+  "lmms": {
+   "apt\\flatpak": {
+    "driver": "apt",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\lmms": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "io.lmms.LMMS"
+    },
+    "name": "io.lmms.LMMS"
    }
   },
   "make": {
@@ -3847,6 +4157,23 @@
     "name": "com.valvesoftware.Steam"
    }
   },
+  "tenacity": {
+   "apt\\flatpak": {
+    "driver": "apt",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\tenacity": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "org.tenacityaudio.Tenacity"
+    },
+    "name": "org.tenacityaudio.Tenacity"
+   }
+  },
   "tree-sitter-cli": {
    "apt\\cargo": {
     "driver": "apt",
@@ -3896,6 +4223,15 @@
      "name": "unzip"
     },
     "name": "unzip"
+   }
+  },
+  "vlc": {
+   "apt\\vlc": {
+    "driver": "apt",
+    "fields": {
+     "name": "vlc"
+    },
+    "name": "vlc"
    }
   },
   "vscode": {
@@ -4214,6 +4550,23 @@
     "name": "android-studio"
    }
   },
+  "ardour": {
+   "dnf\\flatpak": {
+    "driver": "dnf",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\ardour": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "org.ardour.Ardour"
+    },
+    "name": "org.ardour.Ardour"
+   }
+  },
   "arduino": {
    "appImage\\arduino": {
     "driver": "appImage",
@@ -4512,6 +4865,26 @@
     "name": "fastfetch"
    }
   },
+  "ffmpeg": {
+   "dnf\\ffmpeg": {
+    "driver": "dnf",
+    "fields": {
+     "name": "ffmpeg"
+    },
+    "name": "ffmpeg"
+   },
+   "dnf\\rpmfusion-free": {
+    "driver": "dnf",
+    "fields": {
+     "name": "rpmfusion-free-release",
+     "pubkey-url": "https://rpmfusion.org/keys?action=AttachFile&do=get&target=RPM-GPG-KEY-rpmfusion-free-fedora-$releasever",
+     "repo-id": "rpmfusion-free",
+     "repo-name": "RPM Fusion Free",
+     "repo-url": "https://download1.rpmfusion.org/free/fedora/releases/$releasever/Everything/$basearch/os/"
+    },
+    "name": "rpmfusion-free-release"
+   }
+  },
   "firefox": {
    "dnf\\firefox": {
     "driver": "dnf",
@@ -4608,6 +4981,23 @@
     "name": "gdb-dotfiles"
    }
   },
+  "gimp": {
+   "dnf\\flatpak": {
+    "driver": "dnf",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\gimp": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "org.gimp.GIMP"
+    },
+    "name": "org.gimp.GIMP"
+   }
+  },
   "git": {
    "dnf\\git": {
     "driver": "dnf",
@@ -4615,6 +5005,15 @@
      "name": "git"
     },
     "name": "git"
+   }
+  },
+  "gnuradio": {
+   "dnf\\gnuradio": {
+    "driver": "dnf",
+    "fields": {
+     "name": "gnuradio"
+    },
+    "name": "gnuradio"
    }
   },
   "htop": {
@@ -4666,6 +5065,23 @@
      "repo-component": "universe"
     },
     "name": "kicad"
+   }
+  },
+  "krita": {
+   "dnf\\flatpak": {
+    "driver": "dnf",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\krita": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "org.kde.krita"
+    },
+    "name": "org.kde.krita"
    }
   },
   "lazygit": {
@@ -4792,6 +5208,23 @@
      "repo-component": "universe"
     },
     "name": "libxcb-xinput0"
+   }
+  },
+  "lmms": {
+   "dnf\\flatpak": {
+    "driver": "dnf",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\lmms": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "io.lmms.LMMS"
+    },
+    "name": "io.lmms.LMMS"
    }
   },
   "make": {
@@ -5003,6 +5436,19 @@
     "name": "rocm-hip"
    }
   },
+  "rpmfusion-free": {
+   "dnf\\rpmfusion-free": {
+    "driver": "dnf",
+    "fields": {
+     "name": "rpmfusion-free-release",
+     "pubkey-url": "https://rpmfusion.org/keys?action=AttachFile&do=get&target=RPM-GPG-KEY-rpmfusion-free-fedora-$releasever",
+     "repo-id": "rpmfusion-free",
+     "repo-name": "RPM Fusion Free",
+     "repo-url": "https://download1.rpmfusion.org/free/fedora/releases/$releasever/Everything/$basearch/os/"
+    },
+    "name": "rpmfusion-free-release"
+   }
+  },
   "slack": {
    "dnf\\flatpak": {
     "driver": "dnf",
@@ -5035,6 +5481,23 @@
      "name": "com.valvesoftware.Steam"
     },
     "name": "com.valvesoftware.Steam"
+   }
+  },
+  "tenacity": {
+   "dnf\\flatpak": {
+    "driver": "dnf",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\tenacity": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "org.tenacityaudio.Tenacity"
+    },
+    "name": "org.tenacityaudio.Tenacity"
    }
   },
   "tree-sitter-cli": {
@@ -5086,6 +5549,26 @@
      "name": "unzip"
     },
     "name": "unzip"
+   }
+  },
+  "vlc": {
+   "dnf\\rpmfusion-free": {
+    "driver": "dnf",
+    "fields": {
+     "name": "rpmfusion-free-release",
+     "pubkey-url": "https://rpmfusion.org/keys?action=AttachFile&do=get&target=RPM-GPG-KEY-rpmfusion-free-fedora-$releasever",
+     "repo-id": "rpmfusion-free",
+     "repo-name": "RPM Fusion Free",
+     "repo-url": "https://download1.rpmfusion.org/free/fedora/releases/$releasever/Everything/$basearch/os/"
+    },
+    "name": "rpmfusion-free-release"
+   },
+   "dnf\\vlc": {
+    "driver": "dnf",
+    "fields": {
+     "name": "vlc"
+    },
+    "name": "vlc"
    }
   },
   "vscode": {
@@ -5408,6 +5891,23 @@
     "name": "android-studio"
    }
   },
+  "ardour": {
+   "dnf\\flatpak": {
+    "driver": "dnf",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\ardour": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "org.ardour.Ardour"
+    },
+    "name": "org.ardour.Ardour"
+   }
+  },
   "arduino": {
    "appImage\\arduino": {
     "driver": "appImage",
@@ -5718,6 +6218,26 @@
     "name": "fastfetch"
    }
   },
+  "ffmpeg": {
+   "dnf\\ffmpeg": {
+    "driver": "dnf",
+    "fields": {
+     "name": "ffmpeg"
+    },
+    "name": "ffmpeg"
+   },
+   "dnf\\rpmfusion-free": {
+    "driver": "dnf",
+    "fields": {
+     "name": "rpmfusion-free-release",
+     "pubkey-url": "https://rpmfusion.org/keys?action=AttachFile&do=get&target=RPM-GPG-KEY-rpmfusion-free-fedora-$releasever",
+     "repo-id": "rpmfusion-free",
+     "repo-name": "RPM Fusion Free",
+     "repo-url": "https://download1.rpmfusion.org/free/fedora/releases/$releasever/Everything/$basearch/os/"
+    },
+    "name": "rpmfusion-free-release"
+   }
+  },
   "firefox": {
    "dnf\\firefox": {
     "driver": "dnf",
@@ -5814,6 +6334,23 @@
     "name": "gdb-dotfiles"
    }
   },
+  "gimp": {
+   "dnf\\flatpak": {
+    "driver": "dnf",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\gimp": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "org.gimp.GIMP"
+    },
+    "name": "org.gimp.GIMP"
+   }
+  },
   "git": {
    "dnf\\git": {
     "driver": "dnf",
@@ -5821,6 +6358,15 @@
      "name": "git"
     },
     "name": "git"
+   }
+  },
+  "gnuradio": {
+   "dnf\\gnuradio": {
+    "driver": "dnf",
+    "fields": {
+     "name": "gnuradio"
+    },
+    "name": "gnuradio"
    }
   },
   "htop": {
@@ -5872,6 +6418,23 @@
      "repo-component": "universe"
     },
     "name": "kicad"
+   }
+  },
+  "krita": {
+   "dnf\\flatpak": {
+    "driver": "dnf",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\krita": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "org.kde.krita"
+    },
+    "name": "org.kde.krita"
    }
   },
   "lazygit": {
@@ -5998,6 +6561,23 @@
      "repo-component": "universe"
     },
     "name": "libxcb-xinput0"
+   }
+  },
+  "lmms": {
+   "dnf\\flatpak": {
+    "driver": "dnf",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\lmms": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "io.lmms.LMMS"
+    },
+    "name": "io.lmms.LMMS"
    }
   },
   "make": {
@@ -6209,6 +6789,19 @@
     "name": "rocm-hip"
    }
   },
+  "rpmfusion-free": {
+   "dnf\\rpmfusion-free": {
+    "driver": "dnf",
+    "fields": {
+     "name": "rpmfusion-free-release",
+     "pubkey-url": "https://rpmfusion.org/keys?action=AttachFile&do=get&target=RPM-GPG-KEY-rpmfusion-free-fedora-$releasever",
+     "repo-id": "rpmfusion-free",
+     "repo-name": "RPM Fusion Free",
+     "repo-url": "https://download1.rpmfusion.org/free/fedora/releases/$releasever/Everything/$basearch/os/"
+    },
+    "name": "rpmfusion-free-release"
+   }
+  },
   "slack": {
    "dnf\\flatpak": {
     "driver": "dnf",
@@ -6241,6 +6834,23 @@
      "name": "com.valvesoftware.Steam"
     },
     "name": "com.valvesoftware.Steam"
+   }
+  },
+  "tenacity": {
+   "dnf\\flatpak": {
+    "driver": "dnf",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\tenacity": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "org.tenacityaudio.Tenacity"
+    },
+    "name": "org.tenacityaudio.Tenacity"
    }
   },
   "tree-sitter-cli": {
@@ -6292,6 +6902,26 @@
      "name": "unzip"
     },
     "name": "unzip"
+   }
+  },
+  "vlc": {
+   "dnf\\rpmfusion-free": {
+    "driver": "dnf",
+    "fields": {
+     "name": "rpmfusion-free-release",
+     "pubkey-url": "https://rpmfusion.org/keys?action=AttachFile&do=get&target=RPM-GPG-KEY-rpmfusion-free-fedora-$releasever",
+     "repo-id": "rpmfusion-free",
+     "repo-name": "RPM Fusion Free",
+     "repo-url": "https://download1.rpmfusion.org/free/fedora/releases/$releasever/Everything/$basearch/os/"
+    },
+    "name": "rpmfusion-free-release"
+   },
+   "dnf\\vlc": {
+    "driver": "dnf",
+    "fields": {
+     "name": "vlc"
+    },
+    "name": "vlc"
    }
   },
   "vscode": {
@@ -6612,6 +7242,23 @@
      }
     },
     "name": "android-studio"
+   }
+  },
+  "ardour": {
+   "apt\\flatpak": {
+    "driver": "apt",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\ardour": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "org.ardour.Ardour"
+    },
+    "name": "org.ardour.Ardour"
    }
   },
   "arduino": {
@@ -7035,6 +7682,15 @@
     "name": "fastfetch"
    }
   },
+  "ffmpeg": {
+   "apt\\ffmpeg": {
+    "driver": "apt",
+    "fields": {
+     "name": "ffmpeg"
+    },
+    "name": "ffmpeg"
+   }
+  },
   "firefox": {
    "apt\\firefox": {
     "driver": "apt",
@@ -7280,6 +7936,23 @@
     "name": "gdb-dotfiles"
    }
   },
+  "gimp": {
+   "apt\\flatpak": {
+    "driver": "apt",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\gimp": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "org.gimp.GIMP"
+    },
+    "name": "org.gimp.GIMP"
+   }
+  },
   "git": {
    "apt\\git": {
     "driver": "apt",
@@ -7287,6 +7960,15 @@
      "name": "git"
     },
     "name": "git"
+   }
+  },
+  "gnuradio": {
+   "apt\\gnuradio": {
+    "driver": "apt",
+    "fields": {
+     "name": "gnuradio"
+    },
+    "name": "gnuradio"
    }
   },
   "htop": {
@@ -7338,6 +8020,23 @@
      "repo-component": "universe"
     },
     "name": "kicad"
+   }
+  },
+  "krita": {
+   "apt\\flatpak": {
+    "driver": "apt",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\krita": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "org.kde.krita"
+    },
+    "name": "org.kde.krita"
    }
   },
   "lazygit": {
@@ -7477,6 +8176,23 @@
      "repo-component": "universe"
     },
     "name": "libxcb-xinput0"
+   }
+  },
+  "lmms": {
+   "apt\\flatpak": {
+    "driver": "apt",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\lmms": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "io.lmms.LMMS"
+    },
+    "name": "io.lmms.LMMS"
    }
   },
   "make": {
@@ -7734,6 +8450,23 @@
     "name": "steam:i386"
    }
   },
+  "tenacity": {
+   "apt\\flatpak": {
+    "driver": "apt",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\tenacity": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "org.tenacityaudio.Tenacity"
+    },
+    "name": "org.tenacityaudio.Tenacity"
+   }
+  },
   "tree-sitter-cli": {
    "apt\\cargo": {
     "driver": "apt",
@@ -7783,6 +8516,15 @@
      "name": "unzip"
     },
     "name": "unzip"
+   }
+  },
+  "vlc": {
+   "apt\\vlc": {
+    "driver": "apt",
+    "fields": {
+     "name": "vlc"
+    },
+    "name": "vlc"
    }
   },
   "vscode": {
@@ -8099,6 +8841,23 @@
      }
     },
     "name": "android-studio"
+   }
+  },
+  "ardour": {
+   "dnf\\flatpak": {
+    "driver": "dnf",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\ardour": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "org.ardour.Ardour"
+    },
+    "name": "org.ardour.Ardour"
    }
   },
   "arduino": {
@@ -8435,6 +9194,15 @@
     "name": "fastfetch"
    }
   },
+  "ffmpeg": {
+   "dnf\\ffmpeg": {
+    "driver": "dnf",
+    "fields": {
+     "name": "ffmpeg"
+    },
+    "name": "ffmpeg"
+   }
+  },
   "firefox": {
    "dnf\\firefox": {
     "driver": "dnf",
@@ -8551,6 +9319,23 @@
     "name": "gdb-dotfiles"
    }
   },
+  "gimp": {
+   "dnf\\flatpak": {
+    "driver": "dnf",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\gimp": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "org.gimp.GIMP"
+    },
+    "name": "org.gimp.GIMP"
+   }
+  },
   "git": {
    "dnf\\git": {
     "driver": "dnf",
@@ -8558,6 +9343,15 @@
      "name": "git"
     },
     "name": "git"
+   }
+  },
+  "gnuradio": {
+   "dnf\\gnuradio": {
+    "driver": "dnf",
+    "fields": {
+     "name": "gnuradio"
+    },
+    "name": "gnuradio"
    }
   },
   "htop": {
@@ -8615,6 +9409,23 @@
      "repo-component": "universe"
     },
     "name": "kicad"
+   }
+  },
+  "krita": {
+   "dnf\\flatpak": {
+    "driver": "dnf",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\krita": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "org.kde.krita"
+    },
+    "name": "org.kde.krita"
    }
   },
   "lazygit": {
@@ -8754,6 +9565,23 @@
      "repo-component": "universe"
     },
     "name": "libxcb-xinput0"
+   }
+  },
+  "lmms": {
+   "dnf\\flatpak": {
+    "driver": "dnf",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\lmms": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "io.lmms.LMMS"
+    },
+    "name": "io.lmms.LMMS"
    }
   },
   "make": {
@@ -9018,6 +9846,23 @@
     "name": "com.valvesoftware.Steam"
    }
   },
+  "tenacity": {
+   "dnf\\flatpak": {
+    "driver": "dnf",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\tenacity": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "org.tenacityaudio.Tenacity"
+    },
+    "name": "org.tenacityaudio.Tenacity"
+   }
+  },
   "tree-sitter-cli": {
    "cargo\\tree-sitter-cli": {
     "driver": "cargo",
@@ -9067,6 +9912,15 @@
      "name": "unzip"
     },
     "name": "unzip"
+   }
+  },
+  "vlc": {
+   "dnf\\vlc": {
+    "driver": "dnf",
+    "fields": {
+     "name": "vlc"
+    },
+    "name": "vlc"
    }
   },
   "vscode": {
@@ -9395,6 +10249,23 @@
     "name": "android-studio"
    }
   },
+  "ardour": {
+   "apt\\flatpak": {
+    "driver": "apt",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\ardour": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "org.ardour.Ardour"
+    },
+    "name": "org.ardour.Ardour"
+   }
+  },
   "arduino": {
    "appImage\\arduino": {
     "driver": "appImage",
@@ -9816,6 +10687,15 @@
     "name": "fastfetch"
    }
   },
+  "ffmpeg": {
+   "apt\\ffmpeg": {
+    "driver": "apt",
+    "fields": {
+     "name": "ffmpeg"
+    },
+    "name": "ffmpeg"
+   }
+  },
   "firefox": {
    "apt\\firefox": {
     "driver": "apt",
@@ -10061,6 +10941,23 @@
     "name": "gdb-dotfiles"
    }
   },
+  "gimp": {
+   "apt\\flatpak": {
+    "driver": "apt",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\gimp": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "org.gimp.GIMP"
+    },
+    "name": "org.gimp.GIMP"
+   }
+  },
   "git": {
    "apt\\git": {
     "driver": "apt",
@@ -10068,6 +10965,15 @@
      "name": "git"
     },
     "name": "git"
+   }
+  },
+  "gnuradio": {
+   "apt\\gnuradio": {
+    "driver": "apt",
+    "fields": {
+     "name": "gnuradio"
+    },
+    "name": "gnuradio"
    }
   },
   "htop": {
@@ -10119,6 +11025,23 @@
      "repo-component": "universe"
     },
     "name": "kicad"
+   }
+  },
+  "krita": {
+   "apt\\flatpak": {
+    "driver": "apt",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\krita": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "org.kde.krita"
+    },
+    "name": "org.kde.krita"
    }
   },
   "lazygit": {
@@ -10258,6 +11181,23 @@
      "repo-component": "universe"
     },
     "name": "libxcb-xinput0"
+   }
+  },
+  "lmms": {
+   "apt\\flatpak": {
+    "driver": "apt",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\lmms": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "io.lmms.LMMS"
+    },
+    "name": "io.lmms.LMMS"
    }
   },
   "make": {
@@ -10522,6 +11462,23 @@
     "name": "com.valvesoftware.Steam"
    }
   },
+  "tenacity": {
+   "apt\\flatpak": {
+    "driver": "apt",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\tenacity": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "org.tenacityaudio.Tenacity"
+    },
+    "name": "org.tenacityaudio.Tenacity"
+   }
+  },
   "tree-sitter-cli": {
    "apt\\cargo": {
     "driver": "apt",
@@ -10571,6 +11528,15 @@
      "name": "unzip"
     },
     "name": "unzip"
+   }
+  },
+  "vlc": {
+   "apt\\vlc": {
+    "driver": "apt",
+    "fields": {
+     "name": "vlc"
+    },
+    "name": "vlc"
    }
   },
   "vscode": {
@@ -10889,6 +11855,23 @@
     "name": "android-studio"
    }
   },
+  "ardour": {
+   "apt\\flatpak": {
+    "driver": "apt",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\ardour": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "org.ardour.Ardour"
+    },
+    "name": "org.ardour.Ardour"
+   }
+  },
   "arduino": {
    "appImage\\arduino": {
     "driver": "appImage",
@@ -11310,6 +12293,15 @@
     "name": "fastfetch"
    }
   },
+  "ffmpeg": {
+   "apt\\ffmpeg": {
+    "driver": "apt",
+    "fields": {
+     "name": "ffmpeg"
+    },
+    "name": "ffmpeg"
+   }
+  },
   "firefox": {
    "apt\\firefox": {
     "driver": "apt",
@@ -11555,6 +12547,23 @@
     "name": "gdb-dotfiles"
    }
   },
+  "gimp": {
+   "apt\\flatpak": {
+    "driver": "apt",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\gimp": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "org.gimp.GIMP"
+    },
+    "name": "org.gimp.GIMP"
+   }
+  },
   "git": {
    "apt\\git": {
     "driver": "apt",
@@ -11562,6 +12571,15 @@
      "name": "git"
     },
     "name": "git"
+   }
+  },
+  "gnuradio": {
+   "apt\\gnuradio": {
+    "driver": "apt",
+    "fields": {
+     "name": "gnuradio"
+    },
+    "name": "gnuradio"
    }
   },
   "htop": {
@@ -11613,6 +12631,23 @@
      "repo-component": "universe"
     },
     "name": "kicad"
+   }
+  },
+  "krita": {
+   "apt\\flatpak": {
+    "driver": "apt",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\krita": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "org.kde.krita"
+    },
+    "name": "org.kde.krita"
    }
   },
   "lazygit": {
@@ -11752,6 +12787,23 @@
      "repo-component": "universe"
     },
     "name": "libxcb-xinput0"
+   }
+  },
+  "lmms": {
+   "apt\\flatpak": {
+    "driver": "apt",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\lmms": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "io.lmms.LMMS"
+    },
+    "name": "io.lmms.LMMS"
    }
   },
   "make": {
@@ -12006,6 +13058,23 @@
     "name": "com.valvesoftware.Steam"
    }
   },
+  "tenacity": {
+   "apt\\flatpak": {
+    "driver": "apt",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\tenacity": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "org.tenacityaudio.Tenacity"
+    },
+    "name": "org.tenacityaudio.Tenacity"
+   }
+  },
   "tree-sitter-cli": {
    "apt\\cargo": {
     "driver": "apt",
@@ -12055,6 +13124,15 @@
      "name": "unzip"
     },
     "name": "unzip"
+   }
+  },
+  "vlc": {
+   "apt\\vlc": {
+    "driver": "apt",
+    "fields": {
+     "name": "vlc"
+    },
+    "name": "vlc"
    }
   },
   "vscode": {

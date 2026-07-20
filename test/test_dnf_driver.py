@@ -58,6 +58,25 @@ def test_vendor_repo_prereqs_before_install():
     assert '[code]' in repo_write and 'gpgcheck=1' in repo_write
 
 
+def test_templated_gpgkey_is_left_for_dnf_not_imported_eagerly():
+    # RPM Fusion's per-release key URL carries dnf repo vars ($releasever); `rpm --import`
+    # can't expand them, so the key must NOT be imported up front — it's left in the .repo's
+    # gpgkey= for dnf to expand + auto-import on the -y install.
+    comp = ResolvedComponent(key='dnf\\rpmfusion-free', driver='dnf', comp='rpmfusion-free',
+        fields={
+            'name': 'rpmfusion-free-release',
+            'repo-id': 'rpmfusion-free', 'repo-name': 'RPM Fusion Free',
+            'repo-url': 'https://download1.rpmfusion.org/free/fedora/releases/$releasever/Everything/$basearch/os/',
+            'pubkey-url': 'https://rpmfusion.org/keys?target=RPM-GPG-KEY-rpmfusion-free-fedora-$releasever'})
+    r = Runner(pretend=True)
+    Dnf(r).install(comp)
+    assert not any('rpm --import' in c for c in r.calls)      # templated key: not eager
+    repo_write = next(c for c in r.calls if '/etc/yum.repos.d/rpmfusion-free.repo' in c)
+    assert 'gpgkey=https://rpmfusion.org/keys?target=' in repo_write   # left for dnf
+    assert '$releasever' in repo_write and '$basearch' in repo_write
+    assert r.calls[-1] == 'sudo dnf install -y rpmfusion-free-release'
+
+
 def test_no_repo_prereqs_for_a_plain_package():
     r = Runner(pretend=True)
     Dnf(r).install(pkg())            # no repo-id/pubkey -> straight install
