@@ -60,18 +60,54 @@ __all__ = [
 ]
 
 
+def _decl(entry, *, allow_primary=False):
+    '''Normalize one plugins: entry -> {source, ref?, sha256?, primary?} or None.'''
+    if not (isinstance(entry, dict) and entry.get('source')):
+        return None
+    d = {'source': entry['source'], 'ref': entry.get('ref')}
+    if entry.get('sha256'):
+        d['sha256'] = entry['sha256']               # only when pinned (keeps decls tidy)
+    if allow_primary and entry.get('primary') in (True, 'true', 'yes'):
+        d['primary'] = True                         # only the TOP config may grant primary
+    return d
+
+
 def declared(user_config_file):
-    '''The `plugins:` list from the user config -> [ {source, ref?} ], or []. Read directly
-    (before the layer stack), since plugins feed the stack.'''
+    '''The `plugins:` list from the TOP user config -> [ {source, ref?, sha256?, primary?} ], or
+    []. Read directly (before the layer stack), since plugins feed the stack. Only the top config
+    may mark a plugin `primary: true` (grant it machine-settings authority — see the layer stack).'''
     raw = layers.read_setting(user_config_file, 'plugins')
-    out = []
-    for entry in (raw or []):
-        if isinstance(entry, dict) and entry.get('source'):
-            d = {'source': entry['source'], 'ref': entry.get('ref')}
-            if entry.get('sha256'):
-                d['sha256'] = entry['sha256']       # only when pinned (keeps decls tidy)
-            out.append(d)
+    return [d for d in (_decl(e, allow_primary=True) for e in (raw or [])) if d]
+
+
+def effective_declared(user_config_file, plugins_dir):
+    '''The top-config plugin decls PLUS plugins transitively declared in each synced plugin's
+    manifest `plugins:` — a fixpoint over what's on disk (breadth-first, deduped by plugin dir).
+    A personal ("primary") plugin can thus bring its own plugins along, so a fresh machine
+    bootstraps from a one-line top config. Transitive decls never carry `primary` (that grant is
+    the top config's alone); an unsynced transitive plugin simply isn't discovered until the next
+    sync populates its parent's manifest.'''
+    out, seen = [], set()
+    stack = list(declared(user_config_file))
+    while stack:
+        d = stack.pop(0)
+        key = dir_name(d['source'])
+        if key in seen:
+            continue
+        seen.add(key)
+        out.append(d)
+        for sub in (read_manifest(plugins_dir / key).get('plugins') or []):
+            nd = _decl(sub)                          # transitive: primary stripped
+            if nd and dir_name(nd['source']) not in seen:
+                stack.append(nd)
     return out
+
+
+def primary_name(decls):
+    '''The plugin dir the top config marks `primary`, or None. With more than one primary the
+    first (declaration order) wins here — `check` reports the conflict as an error.'''
+    prim = [dir_name(d['source']) for d in decls if d.get('primary')]
+    return prim[0] if prim else None
 
 
 def source_url(source):
@@ -139,9 +175,10 @@ def _data_files(plugin_dir, manifest):
 
 
 def layer_files(plugins_dir, decls):
-    '''Data-file paths (in declaration order) for each declared plugin that is synced,
-    ABI-compatible, AND passes its declared checksum — the `plugin`-role layers. Unsynced /
-    incompatible / checksum-mismatched plugins are skipped (quarantined).'''
+    '''(path, role) for each data file of each declared plugin that is synced, ABI-compatible,
+    AND passes its declared checksum (declaration order). role is `primary` for the top config's
+    designated plugin (it may contribute machine settings), else `plugin` (definitions-only,
+    plus os/drivers). Unsynced / incompatible / checksum-mismatched plugins are skipped.'''
     out = []
     for d in decls:
         pdir = plugins_dir / dir_name(d['source'])
@@ -150,7 +187,8 @@ def layer_files(plugins_dir, decls):
         manifest = read_manifest(pdir)
         if not _abi_ok(manifest):
             continue
-        out.extend(_data_files(pdir, manifest))
+        role = 'primary' if d.get('primary') else 'plugin'
+        out.extend((f, role) for f in _data_files(pdir, manifest))
     return out
 
 
@@ -280,7 +318,7 @@ def status(plugins_dir, decls, *, trust_file=None):
             checksum = 'ok' if checksum_ok(plugins_dir, d) else 'mismatch'
         rows.append({
             'name': manifest.get('name', key),
-            'source': d['source'], 'ref': d.get('ref'),
+            'source': d['source'], 'ref': d.get('ref'), 'primary': bool(d.get('primary')),
             'synced': synced, 'abi_ok': (not synced) or _abi_ok(manifest),
             'requires_abi': manifest.get('requires-abi', ABI_VERSION),
             'provides': manifest.get('provides', {}),
@@ -497,14 +535,26 @@ def _transport_for(source):
 def sync(runner, plugins_dir, decls):
     '''Sync each declared plugin to plugins_dir/<name> at its ref, via its transport (git by
     default; a registered transport claims a `<scheme>:` source). Returns [(name, action)].
-    Best-effort: a transport failure becomes a per-plugin 'failed' action, never an exception.'''
-    results = []
-    for d in decls:
+    Transitive: after a plugin is synced, plugins named in ITS manifest `plugins:` are enqueued
+    and synced too (fixpoint, deduped by dir) — so a primary/personal plugin pulls its own
+    plugin set. Best-effort: a transport failure becomes a per-plugin 'failed' action, never an
+    exception.'''
+    results, seen = [], set()
+    stack = list(decls)
+    while stack:
+        d = stack.pop(0)
         name = dir_name(d['source'])
+        if name in seen:
+            continue
+        seen.add(name)
         try:
             action = _transport_for(d['source'])(runner, plugins_dir / name, d['source'],
                                                  d.get('ref'))
         except Exception as e:                       # noqa: BLE001 — isolate a bad transport
             action = f'failed ({e})'
         results.append((name, action))
+        for sub in (read_manifest(plugins_dir / name).get('plugins') or []):
+            nd = _decl(sub)
+            if nd and dir_name(nd['source']) not in seen:
+                stack.append(nd)
     return results

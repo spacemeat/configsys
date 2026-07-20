@@ -208,6 +208,9 @@ _FORBIDDEN_BY_ROLE = {
     'include':  _SETTING_SECTIONS + _REPO_SECTIONS,   # definitions-only
     'discover': _SETTING_SECTIONS + _REPO_SECTIONS,   # definitions-only
     'plugin':   _SETTING_SECTIONS,                    # may add os/drivers, not machine settings
+    # 'primary' (the top config's designated personal plugin) has NO entry: it may contribute
+    # everything a user config can — machine settings included — sitting just below the top
+    # config in precedence. The grant lives in the top config, so it stays a per-machine choice.
 }
 
 

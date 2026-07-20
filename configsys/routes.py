@@ -99,6 +99,14 @@ class OsCascade:
         return predicate.Context(self.lineage(block), version, cpu, self.scale_roots)
 
 
+def _pf(entry):
+    '''Normalize a plugin_files entry to (path, role). Accepts a bare path (defaults to the
+    `plugin` role — used by tests/older callers) or an already-roled (path, role) tuple.'''
+    if isinstance(entry, (tuple, list)):
+        return (entry[0], entry[1] if len(entry) > 1 else 'plugin')
+    return (entry, 'plugin')
+
+
 def load(path, overrides_path=None, discovered=(), plugin_files=(), validate=True):
     '''-> (OsCascade, {component_name: Component}, {driver: [required caps]}).
 
@@ -109,14 +117,15 @@ def load(path, overrides_path=None, discovered=(), plugin_files=(), validate=Tru
     plugin file is skipped (never bricks the rest). validate=True rejects an ambiguous set.
     '''
     roots = [(path, 'repo')]
-    roots += [(p, 'plugin') for p in plugin_files]
+    roots += [_pf(p) for p in plugin_files]          # (path, role): 'primary' or 'plugin'
     roots += [(d, 'discover') for d in discovered]
     if overrides_path is not None:
         roots.append((overrides_path, 'user'))
-    layer_list, _warnings = layers.expand_tolerant(roots, {'discover', 'plugin'})
+    layer_list, _warnings = layers.expand_tolerant(roots, {'discover', 'plugin', 'primary'})
 
-    cascade = OsCascade(layers.merge_dict_section(layer_list, 'os', ('repo', 'plugin')))
-    forgiving = {os.path.normpath(d) for d in discovered} | {os.path.normpath(p) for p in plugin_files}
+    cascade = OsCascade(layers.merge_dict_section(layer_list, 'os', ('repo', 'plugin', 'primary')))
+    forgiving = ({os.path.normpath(d) for d in discovered}
+                 | {os.path.normpath(_pf(p)[0]) for p in plugin_files})
     from . import routecheck
     components = {}
     for name, (spec, src, shadows) in layers.merge_named(layer_list, 'components').items():
@@ -135,7 +144,7 @@ def load(path, overrides_path=None, discovered=(), plugin_files=(), validate=Tru
         comp.shadows = shadows
         components[name] = comp
 
-    drvs = layers.merge_dict_section(layer_list, 'drivers', ('repo', 'plugin'))
+    drvs = layers.merge_dict_section(layer_list, 'drivers', ('repo', 'plugin', 'primary'))
     drivers = {name: _as_list((spec or {}).get('requires')) for name, spec in drvs.items()}
     return cascade, components, drivers
 

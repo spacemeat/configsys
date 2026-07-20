@@ -56,10 +56,10 @@ def test_layer_files_skips_unsynced_and_abi_incompatible(tmp_path):
     _plugin(pdir, 'future', '{ name: future  requires-abi: 99 }',
             {'routes.hu': '{ components: { f: { install: [ { via: native } ] } } }'})
     decls = [{'source': 'x/good'}, {'source': 'x/future'}, {'source': 'x/missing'}]
-    files = plugins.layer_files(pdir, decls)
-    assert any(f.endswith('good/routes.hu') for f in files)
-    assert not any('future' in f for f in files)          # ABI 99 unsupported -> skipped
-    assert not any('missing' in f for f in files)         # not synced -> skipped
+    files = plugins.layer_files(pdir, decls)              # -> [(path, role)]
+    assert any(f.endswith('good/routes.hu') and role == 'plugin' for f, role in files)
+    assert not any('future' in f for f, _ in files)       # ABI 99 unsupported -> skipped
+    assert not any('missing' in f for f, _ in files)      # not synced -> skipped
 
 
 def test_status_reports_synced_and_abi(tmp_path):
@@ -71,6 +71,39 @@ def test_status_reports_synced_and_abi(tmp_path):
     assert rows['good-plugin']['synced'] and rows['good-plugin']['abi_ok']
     assert rows['future-plugin']['synced'] and not rows['future-plugin']['abi_ok']
     assert not rows['nope']['synced']                     # dir_name('x/nope') == 'nope'
+
+
+# -- primary plugin + transitive declarations -----------------------------
+
+def test_layer_files_marks_primary_role(tmp_path):
+    pdir = tmp_path / 'plugins'
+    _plugin(pdir, 'me', '{ name: me  requires-abi: 1  data: [ c.hu ] }', {'c.hu': '{ configs: [ x ] }'})
+    plain = plugins.layer_files(pdir, [{'source': 'x/me'}])
+    primary = plugins.layer_files(pdir, [{'source': 'x/me', 'primary': True}])
+    assert plain and all(role == 'plugin' for _, role in plain)
+    assert primary and all(role == 'primary' for _, role in primary)
+
+
+def test_declared_reads_primary_flag(tmp_path):
+    p = tmp_path / 'configsys.hu'
+    p.write_text('{ plugins: [ { source: "github:me/cfg"  ref: v1  primary: true }'
+                 '             { source: "github:x/other" } ] }')
+    decls = plugins.declared(str(p))
+    assert decls[0].get('primary') is True and 'primary' not in decls[1]
+    assert plugins.primary_name(decls) == 'cfg'
+
+
+def test_effective_declared_pulls_transitive_from_manifest(tmp_path):
+    pdir = tmp_path / 'plugins'
+    # the primary plugin's manifest declares a further plugin
+    _plugin(pdir, 'cfg', '{ name: cfg  requires-abi: 1  plugins: [ { source: "github:x/blender"  ref: v1 } ] }', {})
+    _plugin(pdir, 'blender', '{ name: blender  requires-abi: 1 }', {})
+    top = tmp_path / 'configsys.hu'
+    top.write_text('{ plugins: [ { source: "github:me/cfg"  primary: true } ] }')
+    eff = plugins.effective_declared(str(top), pdir)
+    srcs = [d['source'] for d in eff]
+    assert srcs == ['github:me/cfg', 'github:x/blender']   # primary first, then its declared
+    assert eff[0].get('primary') and 'primary' not in eff[1]   # transitive never inherits primary
 
 
 # -- resolution: plugin adds a component AND an os block (derivative distro) --
@@ -104,7 +137,7 @@ def test_sync_clones_a_local_git_repo(tmp_path):
     plugins.sync(Runner(pretend=False), pdir, [{'source': str(src), 'ref': 'v1'}])
     assert (pdir / 'src' / 'routes.hu').exists()          # cloned at the pinned tag
     files = plugins.layer_files(pdir, [{'source': str(src), 'ref': 'v1'}])
-    assert any(f.endswith('src/routes.hu') for f in files)
+    assert any(f.endswith('src/routes.hu') for f, _ in files)
 
 
 # -- editing the plugins: list (comment-preserving) -----------------------

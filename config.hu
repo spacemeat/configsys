@@ -1,13 +1,13 @@
 {
     // Shared, git-synced profile definitions. Per-machine selection + overrides live in
     // ~/configsys.hu, which overlays this file section-by-section (see docs/routing-model.md).
-    configs: [ user, dev, uc-dev, graphics ]
+    configs: [ user, gaming, dev, uc-dev, graphics ]
 
     // Machine-wide default install scope for scope-honoring drivers (appImage/flatpak/
     // tarball). `user` matches those drivers' own defaults — they're user-space by nature
     // (~/apps, --user, ~/vulkan). A per-component route `scope:` or ~/configsys.hu overrides it.
     // (Fixed-scope drivers — apt/dnf/pacman = system, dotfiles/cargo = user — ignore this.)
-    scope: user
+    scope: system
 
     // A profile is a flat list of component names. Each name is resolved through
     // routes.hu (driver binding, recursive deps, dedup). A name with no route on
@@ -16,7 +16,7 @@
     profiles: {
         user: [
             bash-dotfiles
-            btop
+            htop
             firefox
             chrome
             neovim
@@ -25,13 +25,16 @@
             ripgrep
             xclip
             mononoki-nerd
+        ]
+        gaming: [
+            +user
             vulkan-runtime      // loader + mesa Vulkan ICDs; no-op where a DE already has them
             steam
         ]
         dev: [
+            +user
             cargo
             build-essential
-            // TODO(parked): toolchain routes not yet defined: pyke python12 mesa
             gcc-13
             gcc-14
             gcc-15
@@ -42,6 +45,7 @@
             vscode
         ]
         uc-dev: [
+            +dev
             build-essential
             arduino
         ]
@@ -49,6 +53,7 @@
         // profile just names the bundle (renamed from `vulkan-dev` to avoid colliding
         // with the component of the same name).
         graphics: [
+            +user
             vulkan-dev
         ]
     }

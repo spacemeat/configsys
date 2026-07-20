@@ -51,9 +51,14 @@ USER_CONFIG_TEMPLATE = '''{
     //     steam: flatpak
     // }
 
-    // Define or shadow profiles (a profile is a flat list of component names).
+    // Define, amend, or shadow profiles. A profile is an ordered list of terms: a bare `name`
+    // adds a component, `+name` includes another profile's members, `~name` removes one (order
+    // matters). `+<this profile's own name>` amends the same profile from the layer below
+    // (super), instead of replacing it; a bare redefine (no `+self`) still replaces wholesale.
     // profiles: {
-    //     dev: [ btop, neovim, gcc-15, gdb ]
+    //     dev:     [ btop, neovim, gcc-15, gdb ]
+    //     desktop: [ +dev, steam, ~gdb ]          // everything in dev, plus steam, minus gdb
+    //     user:    [ +user, apod ]                // the base `user` profile PLUS apod
     // }
 
     // Override component routes: redefine one (all-or-nothing), add your own, or
@@ -104,7 +109,7 @@ class Context:
         order). Uses what's on disk; `configsys plugin sync` puts it there.'''
         if self._plugin_files is None:
             from . import plugins
-            decls = plugins.declared(self.paths.user_config_file)
+            decls = plugins.effective_declared(self.paths.user_config_file, self.paths.plugins_dir)
             self._plugin_files = plugins.layer_files(self.paths.plugins_dir, decls)
         return self._plugin_files
 
@@ -160,7 +165,7 @@ class Context:
         self._plugin_code_loaded = True
         from . import plugins
         from .drivers import register_driver
-        decls = plugins.declared(self.paths.user_config_file)
+        decls = plugins.effective_declared(self.paths.user_config_file, self.paths.plugins_dir)
         code_conflicts = []
         _loaded, skipped = plugins.load_code(self.paths.plugins_dir, self.paths.plugin_trust_file,
                                              decls, register_driver, conflicts=code_conflicts)
@@ -476,10 +481,10 @@ def cmd_check(ctx, args):
             ctx.paths.routes_file, ctx.paths.user_config_file, ctx.discovered,
             ctx.plugin_files, validate=False)
         roots = ([(ctx.paths.routes_file, 'repo'), (ctx.paths.config_file, 'repo')]
-                 + [(p, 'plugin') for p in ctx.plugin_files]
+                 + list(ctx.plugin_files)                 # (path, role): 'primary' or 'plugin'
                  + [(d, 'discover') for d in ctx.discovered]
                  + [(ctx.paths.user_config_file, 'user')])
-        layer_list, _w = layers.expand_tolerant(roots, {'discover', 'plugin'})
+        layer_list, _w = layers.expand_tolerant(roots, {'discover', 'plugin', 'primary'})
     except ConfigsysError as e:
         print(f'configsys: {e}')          # a parse/structural error before we can lint
         return 1
@@ -488,15 +493,17 @@ def cmd_check(ctx, args):
                                  pending_vias=ctx.plugin_pending_vias)
     include_warnings = layers.ignored_section_warnings(layer_list)
 
-    # profile references: a selected profile naming a component that doesn't exist
+    # profile references: a selected profile naming a component that doesn't exist, plus
+    # structural errors from expansion (undefined `+include`, include cycle).
     prof_issues = []
-    try:
-        for prof in ctx.config.active_profiles:
+    prof_errors = []
+    for prof in ctx.config.active_profiles:
+        try:
             for cname in ctx.config.profile_components(prof):
                 if cname not in components:
                     prof_issues.append((prof, cname))
-    except ConfigsysError:
-        pass  # malformed profiles surface on their own path
+        except ConfigsysError as e:
+            prof_errors.append(str(e))
 
     # pins: value must be a known driver (binding-pin) or a known component (provider-pin)
     from .drivers import supported_names
@@ -511,7 +518,13 @@ def cmd_check(ctx, args):
                               f'(binding-pin) nor a component (provider-pin)')
 
     from . import plugins as _plugins
-    _decls = _plugins.declared(ctx.paths.user_config_file)
+    _top = _plugins.declared(ctx.paths.user_config_file)
+    _decls = _plugins.effective_declared(ctx.paths.user_config_file, ctx.paths.plugins_dir)
+    # exactly one plugin may be `primary` (only the top config grants it)
+    _primaries = [_plugins.dir_name(d['source']) for d in _top if d.get('primary')]
+    if len(_primaries) > 1:
+        prof_errors.append(f'multiple primary plugins declared: {", ".join(_primaries)} '
+                           f'(only one may be primary)')
     conflict_warnings = [_fmt_conflict(*c) for c in
                          _plugins.declared_conflicts(ctx.paths.plugins_dir, _decls)]
     conflict_warnings += ctx.plugin_code_conflicts    # code-only (version-source/transport)
@@ -523,13 +536,15 @@ def cmd_check(ctx, args):
     errors = [i for i in issues if i.is_error]
     warnings = [i for i in issues if not i.is_error]
     code_warnings = ctx.plugin_code_warnings
-    if (not errors and not warnings and not prof_issues and not pin_issues
+    if (not errors and not warnings and not prof_issues and not prof_errors and not pin_issues
             and not include_warnings and not code_warnings and not conflict_warnings):
         print(f'configsys: OK — {len(components)} components, no issues')
         return 0
 
     for i in errors:
         print(f'  ERROR   {_issue_loc(i, ctx.paths)}{i.message}')
+    for msg in prof_errors:
+        print(f'  ERROR   {msg}')
     for prof, cname in prof_issues:
         print(f"  ERROR   profile '{prof}': unknown component '{cname}'")
     for msg in pin_issues:
@@ -542,7 +557,7 @@ def cmd_check(ctx, args):
         print(f'  warn    {msg}')
     for msg in conflict_warnings:
         print(f'  warn    {msg}')
-    n_err = len(errors) + len(prof_issues) + len(pin_issues)
+    n_err = len(errors) + len(prof_errors) + len(prof_issues) + len(pin_issues)
     n_warn = len(warnings) + len(include_warnings) + len(code_warnings) + len(conflict_warnings)
     print(f'\nconfigsys: {n_err} error(s), {n_warn} warning(s) '
           f'across {len(components)} components')
@@ -589,7 +604,9 @@ def _pin_checksum(ctx, decls, target):
 
 def cmd_plugin(ctx, args):
     from . import plugins
-    decls = plugins.declared(ctx.paths.user_config_file)
+    decls = plugins.declared(ctx.paths.user_config_file)   # top-config decls (for edits)
+    # the full set incl. transitively-declared plugins (for read-only views + trust)
+    eff = plugins.effective_declared(ctx.paths.user_config_file, ctx.paths.plugins_dir)
     sub = getattr(args, 'plugin_command', None) or 'list'
 
     if sub == 'sync':
@@ -647,7 +664,7 @@ def cmd_plugin(ctx, args):
         return 0
 
     if sub == 'trust':
-        target = _find_decl(decls, ctx.paths.plugins_dir, args.name)
+        target = _find_decl(eff, ctx.paths.plugins_dir, args.name)   # incl. transitive plugins
         if target is None:
             print(f'configsys: no declared plugin matches {args.name!r}')
             return 1
@@ -671,7 +688,7 @@ def cmd_plugin(ctx, args):
         return 0
 
     if sub == 'untrust':
-        target = _find_decl(decls, ctx.paths.plugins_dir, args.name)
+        target = _find_decl(eff, ctx.paths.plugins_dir, args.name)
         key = plugins.dir_name(target['source']) if target else args.name
         pdir = ctx.paths.plugins_dir / key
         disp = plugins.read_manifest(pdir).get('name', key) if pdir.exists() else key
@@ -682,11 +699,12 @@ def cmd_plugin(ctx, args):
         return 0
 
     if sub == 'list':
-        rows = plugins.status(ctx.paths.plugins_dir, decls,
+        rows = plugins.status(ctx.paths.plugins_dir, eff,
                               trust_file=ctx.paths.plugin_trust_file)
         if not rows:
             print('configsys: no plugins declared')
             return 0
+        top = {plugins.dir_name(d['source']) for d in decls}
         for r in rows:
             if not r['synced']:
                 state = 'not synced (run: configsys plugin sync)'
@@ -705,9 +723,11 @@ def cmd_plugin(ctx, args):
                     state += (f'  [code changed since trust — re-approve: '
                               f'configsys plugin trust {r["name"]}]')
             ref = f' @{r["ref"]}' if r['ref'] else ''
-            print(f'  {r["name"]:22} {r["source"]}{ref}')
+            tags = ('  [primary]' if r['primary'] else
+                    ('  [via primary]' if plugins.dir_name(r['source']) not in top else ''))
+            print(f'  {r["name"]:22} {r["source"]}{ref}{tags}')
             print(f'  {"":22} {state}')
-        for kind, name, dirs in plugins.declared_conflicts(ctx.paths.plugins_dir, decls):
+        for kind, name, dirs in plugins.declared_conflicts(ctx.paths.plugins_dir, eff):
             print(f'  {_fmt_conflict(kind, name, dirs)}')
         return 0
 

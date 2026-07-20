@@ -491,7 +491,22 @@ def _draw(stdscr, pal, ms, ctx, note):
 
 
 def _profile_comps(cfg):
-    return [(p, cfg.profile_components(p)) for p in cfg.active_profiles]
+    '''Per-profile component lists for the menu, attributed by DIRECT ownership so a base
+    profile's components aren't repeated under every profile that `+includes` it. Each profile
+    lists its own components (own = declared directly / via `+self` amendment, not via `+other`);
+    a transitively-included component is dropped from an includer only when some active profile
+    actually owns it (so it still shows there). A component nobody active owns stays visible under
+    the includer — install stays transitive, so nothing is silently pulled without a menu row.'''
+    actives = cfg.active_profiles
+    own = {p: cfg.profile_own_components(p) for p in actives}
+    owned_anywhere = set().union(*own.values()) if own else set()
+    out = []
+    for p in actives:
+        ownset = set(own[p])
+        names = [c for c in cfg.profile_components(p)          # keep full order
+                 if c in ownset or c not in owned_anywhere]
+        out.append((p, names))
+    return out
 
 
 def run(ctx):

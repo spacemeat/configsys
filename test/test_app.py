@@ -135,7 +135,7 @@ def test_pretend_install_honors_binding_pin(tmp_path, capsys):
     rc = main(base_args(tmp_path) + ['install', 'steam'])
     assert rc == 0
     out = capsys.readouterr().out
-    assert 'flatpak install --user -y flathub com.valvesoftware.Steam' in out
+    assert 'sudo flatpak install --system -y flathub com.valvesoftware.Steam' in out
 
 
 def test_check_flags_bogus_pin(tmp_path, capsys):
