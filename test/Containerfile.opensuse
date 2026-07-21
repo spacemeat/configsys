@@ -1,0 +1,24 @@
+# Disposable openSUSE (zypper) sandbox for configsys zypper-driver integration tests.
+# Tumbleweed is rolling and ships a current python3 (>= 3.10). (Leap 15.6's default
+# python3 is 3.6 — too old for configsys — so Leap would need a python311 build; the
+# zypper driver's behavior on Leap is instead covered by raw-command parity, its
+# `zypper info`/`locks` output being byte-identical to Tumbleweed's.) gcc + python3-devel
+# build humon; the base image ships no python at all, so install it here.
+ARG SUSE_IMAGE=registry.opensuse.org/opensuse/tumbleweed:latest
+FROM ${SUSE_IMAGE}
+
+RUN zypper --non-interactive --gpg-auto-import-keys refresh \
+    && zypper --non-interactive install --no-recommends \
+        python3 python3-pip python3-devel gcc sudo ca-certificates curl tar gzip \
+    && zypper clean --all
+
+RUN useradd -m -s /bin/bash tester \
+    && echo 'tester ALL=(ALL) NOPASSWD:ALL' > /etc/sudoers.d/tester \
+    && chmod 0440 /etc/sudoers.d/tester
+
+COPY --chown=tester:tester . /home/tester/configsys
+
+USER tester
+WORKDIR /home/tester/configsys
+
+CMD ["bash", "test/integration_zypper.sh"]

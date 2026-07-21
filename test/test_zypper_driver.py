@@ -60,13 +60,15 @@ def test_get_version_not_installed():
 
 def test_get_latest_parses_info():
     info = 'Information for package vim:\nRepository     : Main\nName           : vim\nVersion        : 9.1.0-1.5\nArch           : x86_64\n'
-    fr = FakeRunner([('zypper --terse --no-refresh info', 0, info)])
-    assert Zypper(fr).get_latest(pkg()) == '9.1.0-1.5'
+    fr = FakeRunner([('zypper --no-refresh info', 0, info)])
+    got = Zypper(fr).get_latest(pkg())
+    assert got == '9.1.0-1.5'
+    assert fr.calls and fr.calls[0].startswith('LC_ALL=C ')   # locale-proofed
 
 
 def test_is_locked_reads_locks_table():
-    locks = '# | Name | Type    | Repository\n--+------+---------+-----------\n1 | vim  | package | (any)\n'
-    assert Zypper(FakeRunner([('zypper --terse locks', 0, locks)])).is_locked(pkg()) is True
+    locks = '# | Name | Type    | Repository | Comment\n--+------+---------+------------+--------\n1 | vim  | package | (any)      | \n'
+    assert Zypper(FakeRunner([('zypper locks', 0, locks)])).is_locked(pkg()) is True
     # a different package held is not a match
-    other = '1 | emacs | package | (any)\n'
-    assert Zypper(FakeRunner([('zypper --terse locks', 0, other)])).is_locked(pkg()) is False
+    other = '1 | emacs | package | (any)      | \n'
+    assert Zypper(FakeRunner([('zypper locks', 0, other)])).is_locked(pkg()) is False

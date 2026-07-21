@@ -42,14 +42,18 @@ class Zypper(Driver):
         return None
 
     def get_latest(self, rc):
+        # `zypper info` prints "Version : <candidate>". zypper LOCALIZES its field labels, so
+        # force LC_ALL=C — otherwise the "Version" label changes under a non-English locale and
+        # the parse silently returns None. (--terse doesn't affect `info`, so it's dropped.)
         pkg = shlex.quote(rc.name)
-        r = self.runner.run(f'zypper --terse --no-refresh info {pkg}')
+        r = self.runner.run(f'LC_ALL=C zypper --no-refresh info {pkg}')
         return _version_from_info(r.stdout) if r.ok else None
 
     def is_locked(self, rc):
-        # `zypper locks` prints a table "# | Name | Type | Repository"; a hold on this
-        # package is a row whose Name column equals rc.name.
-        r = self.runner.run('zypper --terse locks')
+        # `zypper locks` prints a table "# | Name | Type | Repository"; a hold on this package
+        # is a row whose Name column equals rc.name. LC_ALL=C keeps the columns stable and
+        # locale-independent (the header/labels are localized otherwise).
+        r = self.runner.run('LC_ALL=C zypper locks')
         if not r.ok:
             return False
         for line in r.stdout.splitlines():
