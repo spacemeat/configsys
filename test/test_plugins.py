@@ -237,6 +237,49 @@ def test_cli_plugin_add_lands_in_primary_when_set(tmp_path, capsys):
     assert 'addon' in top.read_text()
 
 
+@pytest.mark.skipif(shutil.which('git') is None, reason='git not available')
+def test_cli_plugin_remove_and_update_are_primary_aware(tmp_path, capsys):
+    from configsys.app import main
+
+    def _repo(name, plugin_hu, extra):
+        d = tmp_path / name
+        d.mkdir()
+        (d / 'plugin.hu').write_text(plugin_hu)
+        for fn, txt in extra.items():
+            (d / fn).write_text(txt)
+        for cmd in (['init', '-q'], ['config', 'user.email', 't@t'], ['config', 'user.name', 't'],
+                    ['add', '-A'], ['commit', '-qm', 'i'], ['tag', 'v1']):
+            subprocess.run(['git', *cmd], cwd=d, check=True)
+        return d
+
+    prim = _repo('prim', '{ name: prim  requires-abi: 1  data: [ d.hu ]  plugins: [] }',
+                 {'d.hu': '{ profiles: { p: [ btop ] } }'})
+    addon = _repo('addon', '{ name: addon  requires-abi: 1  data: [ r.hu ] }',
+                  {'r.hu': '{ components: { ac: { install: [ { via: native } ] } } }'})
+    home = ['--home', str(tmp_path), '--os', 'pop']
+    top = tmp_path / '.config' / 'configsys' / 'configsys.hu'
+    prim_manifest = tmp_path / '.config' / 'configsys' / 'plugins' / 'prim' / 'plugin.hu'
+    synced_addon = tmp_path / '.config' / 'configsys' / 'plugins' / 'addon'
+
+    main(home + ['plugin', 'bless', str(prim)]); capsys.readouterr()
+    main(home + ['plugin', 'add', str(addon)]); capsys.readouterr()      # lands in the primary
+    assert 'addon' in prim_manifest.read_text() and synced_addon.exists()
+
+    # update --ref: re-pins in the PRIMARY's manifest (where addon is declared), not the top config
+    assert main(home + ['plugin', 'update', 'addon', '--ref', 'v1']) == 0
+    out = capsys.readouterr().out
+    assert 're-pinned' in out and 'in prim' in out
+    assert 'ref: v1' in prim_manifest.read_text()
+    assert 'addon' not in top.read_text()
+
+    # remove: undeclares from the PRIMARY's manifest AND deletes the synced clone
+    assert main(home + ['plugin', 'remove', 'addon']) == 0
+    out = capsys.readouterr().out
+    assert 'removed' in out and 'from prim' in out
+    assert 'addon' not in prim_manifest.read_text()
+    assert not synced_addon.exists()
+
+
 def test_cli_plugin_add_uses_top_config_without_a_primary(tmp_path, capsys):
     from configsys.app import main
     src = tmp_path / 'np'

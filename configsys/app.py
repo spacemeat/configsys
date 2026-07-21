@@ -689,6 +689,27 @@ def _find_decl(decls, plugins_dir, ident):
     return None
 
 
+def _locate_decl(ctx, ident):
+    '''Find WHERE `ident` is declared — the top config, or a synced plugin's transitive
+    `plugins:` (e.g. your primary) — and return (config_file, decls, target). This lets remove /
+    update edit the file that actually declares the plugin, wherever it lives. The top config
+    wins if a name somehow appears in more than one place. (None, None, None) if not found.'''
+    from . import plugins
+    pdir = ctx.paths.plugins_dir
+    top = plugins.declared(ctx.paths.user_config_file)
+    t = _find_decl(top, pdir, ident)
+    if t is not None:
+        return ctx.paths.user_config_file, top, t
+    if pdir.exists():
+        for sub in sorted(p for p in pdir.iterdir() if p.is_dir()):
+            raw = plugins.read_manifest(sub).get('plugins') or []
+            decls = [d for d in (plugins._decl(e) for e in raw) if d]
+            t = _find_decl(decls, pdir, ident)
+            if t is not None:
+                return sub / 'plugin.hu', decls, t
+    return None, None, None
+
+
 def _sync_and_report(ctx, decls):
     from . import plugins
     ctx.ensure_plugin_code()     # register transports from already-trusted plugins before sync
@@ -820,30 +841,36 @@ def cmd_plugin(ctx, args):
         return 0
 
     if sub == 'remove':
-        target = _find_decl(decls, ctx.paths.plugins_dir, args.name)
+        cfg_file, cur, target = _locate_decl(ctx, args.name)     # top config OR the plugin that declares it
         if target is None:
             print(f'configsys: no declared plugin matches {args.name!r}')
             return 1
-        plugins.set_declared(ctx.paths.user_config_file, [d for d in decls if d is not target])
+        plugins.set_declared(cfg_file, [d for d in cur if d is not target])
         pdir = ctx.paths.plugins_dir / plugins.dir_name(target['source'])
         if pdir.exists() and not ctx.runner.pretend:
             import shutil
             shutil.rmtree(pdir)
-        print(f'configsys: removed {target["source"]}')
+        if cfg_file == ctx.paths.user_config_file:
+            print(f'configsys: removed {target["source"]}')
+        else:
+            plug = cfg_file.parent.name
+            print(f'configsys: removed {target["source"]} from {plug}')
+            print(f'configsys: commit + push + re-tag {plug} and bump its ref to propagate the removal')
         return 0
 
     if sub == 'update':
-        target = _find_decl(decls, ctx.paths.plugins_dir, args.name)
+        cfg_file, cur, target = _locate_decl(ctx, args.name)
         if target is None:
             print(f'configsys: no declared plugin matches {args.name!r}')
             return 1
         if args.ref:
             target['ref'] = args.ref
-            plugins.set_declared(ctx.paths.user_config_file, decls)
-            print(f'configsys: re-pinned {target["source"]} @{args.ref}')
+            plugins.set_declared(cfg_file, cur)
+            where = '' if cfg_file == ctx.paths.user_config_file else f' in {cfg_file.parent.name}'
+            print(f'configsys: re-pinned {target["source"]} @{args.ref}{where}')
         _sync_and_report(ctx, [target])
         if getattr(args, 'pin', False):
-            _pin_checksum(ctx, ctx.paths.user_config_file, decls, target)
+            _pin_checksum(ctx, cfg_file, cur, target)
         elif target.get('sha256') and not plugins.checksum_ok(ctx.paths.plugins_dir, target):
             print(f'configsys: warning — {plugins.dir_name(target["source"])} no longer matches '
                   f'its pinned sha256; it is quarantined until you re-pin (update --pin) or drop it')
