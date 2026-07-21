@@ -193,12 +193,15 @@
             install: [ { via: native  repo-component: universe  name: { pacman: libreoffice-fresh } } ]
         }
 
-        // kicad: not packaged for EL9 at all (base/EPEL/CRB/RPM Fusion all lack it, verified on
-        // rockylinux:9), so the binding is guarded `not rhel` — on EL it's cleanly unroutable (a
-        // diagnostic) rather than a dnf "No match for argument". In base repos everywhere else.
+        // kicad: native where it's packaged, Flathub (org.kicad.KiCad) where it isn't. It's in
+        // NO EL9 repo (base/EPEL/CRB/RPM Fusion, verified on rockylinux:9), so native is guarded
+        // `not rhel` and the flatpak binding catches EL (and is a per-machine `pin` away anywhere
+        // the distro package is too old). A from-source build is the configsys-kicad plugin's
+        // `kicad-build` override, the way blender-build overrides native blender.
         kicad: {   // fat-ish config — dotfiles pending
             suggests: kicad-dotfiles
-            install: [ { via: native  when: "not rhel"  repo-component: universe } ]
+            install: [ { via: native   when: "not rhel"  repo-component: universe }
+                       { via: flatpak  hub: flathub  app: org.kicad.KiCad } ]
         }
 
         // blender: the easy default is the native package (the editor). A from-source build

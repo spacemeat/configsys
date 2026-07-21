@@ -9426,6 +9426,23 @@
     "name": "intel-basekit"
    }
   },
+  "kicad": {
+   "dnf\\flatpak": {
+    "driver": "dnf",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\kicad": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "org.kicad.KiCad"
+    },
+    "name": "org.kicad.KiCad"
+   }
+  },
   "krita": {
    "dnf\\flatpak": {
     "driver": "dnf",
