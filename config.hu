@@ -1,13 +1,16 @@
 {
     // Shared, git-synced profile definitions. Per-machine selection + overrides live in
     // ~/configsys.hu, which overlays this file section-by-section (see docs/routing-model.md).
-    configs: [ user, gaming, dev, uc-dev, graphics ]
+    configs: [ user, gaming, dev, electronics, graphics ]
 
-    // Machine-wide default install scope for scope-honoring drivers (appImage/flatpak/
-    // tarball). `user` matches those drivers' own defaults — they're user-space by nature
-    // (~/apps, --user, ~/vulkan). A per-component route `scope:` or ~/configsys.hu overrides it.
+    // OPTIONAL machine-wide install scope for scope-honoring drivers (appImage/flatpak/tarball/
+    // debian-font). Left UNSET by default: each such driver uses its own default (user-space by
+    // nature — ~/apps, --user), and a source build (blender-build/kicad-build) stays under ~.
+    // Nothing overrides an explicit choice automatically — set it here or in ~/.config/configsys/
+    // configsys.hu ONLY to deliberately push those installs system-wide (e.g. an admin
+    // provisioning for all users on one box):
+    //     scope: system
     // (Fixed-scope drivers — apt/dnf/pacman = system, dotfiles/cargo = user — ignore this.)
-    scope: system
 
     // A profile is a flat list of component names. Each name is resolved through
     // routes.hu (driver binding, recursive deps, dedup). A name with no route on
@@ -44,10 +47,11 @@
             gdb
             vscode
         ]
-        uc-dev: [
+        electronics: [
             +dev
             build-essential
             arduino
+            kicad
         ]
         // vulkan-dev the bundle already carries build-essential + the X-dev libs, so the
         // profile just names the bundle (renamed from `vulkan-dev` to avoid colliding
@@ -55,6 +59,7 @@
         graphics: [
             +user
             vulkan-dev
+            blender
         ]
     }
 }
