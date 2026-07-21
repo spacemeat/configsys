@@ -725,9 +725,22 @@ def _bless_primary(ctx, ident):
     return True, f"blessed {plugins.dir_name(source)} as primary (its machine settings now apply)"
 
 
-def _pin_checksum(ctx, decls, target):
+def _upsert_decl(decls, source, ref):
+    '''Add `source` to a decls list, or re-pin its ref if it's already there. Returns
+    (target, existed) — the target dict is a live element of `decls`.'''
+    target = next((d for d in decls if d['source'] == source), None)
+    if target is not None:
+        target['ref'] = ref
+        return target, True
+    target = {'source': source, 'ref': ref}
+    decls.append(target)
+    return target, False
+
+
+def _pin_checksum(ctx, config_file, decls, target):
     '''Record the just-synced content hash of `target` as its `sha256` (a trust-on-first-use
-    pin), so later syncs are verified against exactly this content.'''
+    pin), so later syncs are verified against exactly this content. Writes back to `config_file`
+    (the top config, or a primary plugin's plugin.hu when the add landed there).'''
     from . import plugins
     pdir = ctx.paths.plugins_dir / plugins.dir_name(target['source'])
     ident = plugins.plugin_identity(pdir)
@@ -735,7 +748,7 @@ def _pin_checksum(ctx, decls, target):
         print('configsys: could not pin — plugin is not synced')
         return
     target['sha256'] = ident
-    plugins.set_declared(ctx.paths.user_config_file, decls)
+    plugins.set_declared(config_file, decls)
     disp = plugins.read_manifest(pdir).get('name', plugins.dir_name(target['source']))
     print(f'configsys: pinned {disp} @ {ident.split(":")[-1][:12]} (sha256)')
 
@@ -776,19 +789,34 @@ def cmd_plugin(ctx, args):
 
     if sub == 'add':
         ctx.ensure_user_config()                    # the file must exist to edit it
-        target = next((d for d in decls if d['source'] == args.source), None)
-        existing = target is not None
-        if existing:
-            target['ref'] = args.ref
+        # With a primary plugin set, a new plugin rides IT — appended to the primary's transitive
+        # `plugins:` — so it's portable to every machine that uses your primary. `--local` (or no
+        # primary at all) pins it to this machine's top config instead. The primary is your own
+        # synced repo, so this edits its on-disk clone; propagating to other machines still means
+        # commit + push + re-tag the primary and bump its ref, same as any primary change.
+        primary = plugins.primary_name(decls)
+        primary_dir = ctx.paths.plugins_dir / primary if primary else None
+        to_primary = (primary is not None and not getattr(args, 'local', False)
+                      and primary_dir is not None and (primary_dir / 'plugin.hu').exists())
+        if to_primary:
+            cfg_file = primary_dir / 'plugin.hu'
+            cur = [d for d in (plugins._decl(e) for e in
+                               (plugins.read_manifest(primary_dir).get('plugins') or [])) if d]
         else:
-            target = {'source': args.source, 'ref': args.ref}
-            decls.append(target)
-        plugins.set_declared(ctx.paths.user_config_file, decls)
-        print(f'configsys: {"re-pinned" if existing else "added"} {args.source}'
-              + (f' @{args.ref}' if args.ref else ''))
+            cfg_file, cur = ctx.paths.user_config_file, decls
+        target, existing = _upsert_decl(cur, args.source, args.ref)
+        plugins.set_declared(cfg_file, cur)
+        verb, pin = ('re-pinned' if existing else 'added'), (f' @{args.ref}' if args.ref else '')
+        if to_primary:
+            print(f'configsys: {verb} {args.source}{pin} in the primary plugin ({primary})')
+            print(f'configsys: it now rides {primary} to your other machines once you commit + '
+                  f'push + re-tag {primary} and bump its ref (locally it works right away)')
+        else:
+            print(f'configsys: {verb} {args.source}{pin}'
+                  + (' (this machine only)' if primary else ''))
         _sync_and_report(ctx, [target])
         if getattr(args, 'pin', False):
-            _pin_checksum(ctx, decls, target)
+            _pin_checksum(ctx, cfg_file, cur, target)
         return 0
 
     if sub == 'remove':
@@ -815,7 +843,7 @@ def cmd_plugin(ctx, args):
             print(f'configsys: re-pinned {target["source"]} @{args.ref}')
         _sync_and_report(ctx, [target])
         if getattr(args, 'pin', False):
-            _pin_checksum(ctx, decls, target)
+            _pin_checksum(ctx, ctx.paths.user_config_file, decls, target)
         elif target.get('sha256') and not plugins.checksum_ok(ctx.paths.plugins_dir, target):
             print(f'configsys: warning — {plugins.dir_name(target["source"])} no longer matches '
                   f'its pinned sha256; it is quarantined until you re-pin (update --pin) or drop it')
@@ -944,6 +972,9 @@ def build_parser():
     pa.add_argument('--ref', help='pin to a tag / commit / branch')
     pa.add_argument('--pin', action='store_true',
                     help='also lock the plugin to the synced content hash (sha256)')
+    pa.add_argument('--local', action='store_true',
+                    help='add to this machine\'s top config even if a primary plugin is set '
+                         '(default: a new plugin rides the primary, portable to all machines)')
     pr = plsub.add_parser('remove', help='undeclare a plugin and delete its synced copy')
     pr.add_argument('name', help='plugin name, source, or dir')
     pu = plsub.add_parser('update', help="re-sync a plugin (move its pin with --ref)")

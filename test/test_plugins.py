@@ -196,6 +196,63 @@ def test_cli_plugin_add_and_remove(tmp_path, capsys):
     assert not synced.exists()                               # dir deleted
 
 
+@pytest.mark.skipif(shutil.which('git') is None, reason='git not available')
+def test_cli_plugin_add_lands_in_primary_when_set(tmp_path, capsys):
+    from configsys.app import main
+
+    def _repo(name, plugin_hu, extra):
+        d = tmp_path / name
+        d.mkdir()
+        (d / 'plugin.hu').write_text(plugin_hu)
+        for fn, txt in extra.items():
+            (d / fn).write_text(txt)
+        for cmd in (['init', '-q'], ['config', 'user.email', 't@t'], ['config', 'user.name', 't'],
+                    ['add', '-A'], ['commit', '-qm', 'i'], ['tag', 'v1']):
+            subprocess.run(['git', *cmd], cwd=d, check=True)
+        return d
+
+    prim = _repo('prim', '{ name: prim  requires-abi: 1  data: [ d.hu ]  plugins: [] }',
+                 {'d.hu': '{ profiles: { p: [ btop ] } }'})
+    addon = _repo('addon', '{ name: addon  requires-abi: 1  data: [ r.hu ] }',
+                  {'r.hu': '{ components: { ac: { install: [ { via: native } ] } } }'})
+    home = ['--home', str(tmp_path), '--os', 'pop']
+    top = tmp_path / '.config' / 'configsys' / 'configsys.hu'
+    prim_manifest = tmp_path / '.config' / 'configsys' / 'plugins' / 'prim' / 'plugin.hu'
+
+    assert main(home + ['plugin', 'bless', str(prim)]) == 0     # prim becomes the primary
+    capsys.readouterr()
+
+    # with a primary set, `add` lands in the PRIMARY's transitive plugins:, not the top config
+    assert main(home + ['plugin', 'add', str(addon)]) == 0
+    assert 'in the primary plugin (prim)' in capsys.readouterr().out
+    assert 'addon' in prim_manifest.read_text()                 # rode the primary (portable)
+    assert 'addon' not in top.read_text()                       # NOT in the per-machine top config
+    # ...and it's transitively effective + synced locally right away
+    assert main(home + ['plugin', 'list']) == 0
+    assert 'addon' in capsys.readouterr().out
+
+    # --local forces the per-machine top config even with a primary set
+    assert main(home + ['plugin', 'add', str(addon), '--local']) == 0
+    assert 'this machine only' in capsys.readouterr().out
+    assert 'addon' in top.read_text()
+
+
+def test_cli_plugin_add_uses_top_config_without_a_primary(tmp_path, capsys):
+    from configsys.app import main
+    src = tmp_path / 'np'
+    src.mkdir()
+    (src / 'plugin.hu').write_text('{ name: np  requires-abi: 1  data: [ r.hu ] }')
+    (src / 'r.hu').write_text('{ components: { npc: { install: [ { via: native } ] } } }')
+    for cmd in (['init', '-q'], ['config', 'user.email', 't@t'], ['config', 'user.name', 't'],
+                ['add', '-A'], ['commit', '-qm', 'i']):
+        subprocess.run(['git', *cmd], cwd=src, check=True)
+    home = ['--home', str(tmp_path), '--os', 'pop']
+    assert main(home + ['plugin', 'add', str(src)]) == 0
+    out = capsys.readouterr().out
+    assert 'this machine only' not in out                       # no primary -> plain top-config add
+    assert 'np' in (tmp_path / '.config' / 'configsys' / 'configsys.hu').read_text()
+
+
 def test_set_declared_round_trips_primary(tmp_path):
     p = tmp_path / 'configsys.hu'
     p.write_text('{\n    plugins: [ { source: "github:a/b" } ]\n}\n')
