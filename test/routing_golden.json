@@ -8940,10 +8940,16 @@
    "dnf\\blender": {
     "driver": "dnf",
     "fields": {
-     "name": "blender",
-     "repo-component": "universe"
+     "name": "blender"
     },
     "name": "blender"
+   },
+   "dnf\\epel-release": {
+    "driver": "dnf",
+    "fields": {
+     "name": "epel-release"
+    },
+    "name": "epel-release"
    }
   },
   "btop": {
@@ -9195,12 +9201,31 @@
    }
   },
   "ffmpeg": {
+   "dnf\\epel-release": {
+    "driver": "dnf",
+    "fields": {
+     "name": "epel-release"
+    },
+    "name": "epel-release"
+   },
    "dnf\\ffmpeg": {
     "driver": "dnf",
     "fields": {
      "name": "ffmpeg"
     },
     "name": "ffmpeg"
+   },
+   "dnf\\rpmfusion-free": {
+    "driver": "dnf",
+    "fields": {
+     "enable-repo": "crb",
+     "name": "rpmfusion-free-release",
+     "pubkey-url": "https://rpmfusion.org/keys?action=AttachFile&do=get&target=RPM-GPG-KEY-rpmfusion-free-el-$releasever",
+     "repo-id": "rpmfusion-free",
+     "repo-name": "RPM Fusion for EL - Free",
+     "repo-url": "https://download1.rpmfusion.org/free/el/updates/$releasever/$basearch/"
+    },
+    "name": "rpmfusion-free-release"
    }
   },
   "firefox": {
@@ -9399,16 +9424,6 @@
      "name": "intel-basekit"
     },
     "name": "intel-basekit"
-   }
-  },
-  "kicad": {
-   "dnf\\kicad": {
-    "driver": "dnf",
-    "fields": {
-     "name": "kicad",
-     "repo-component": "universe"
-    },
-    "name": "kicad"
    }
   },
   "krita": {
@@ -9812,6 +9827,27 @@
     "name": "rocm-hip"
    }
   },
+  "rpmfusion-free": {
+   "dnf\\epel-release": {
+    "driver": "dnf",
+    "fields": {
+     "name": "epel-release"
+    },
+    "name": "epel-release"
+   },
+   "dnf\\rpmfusion-free": {
+    "driver": "dnf",
+    "fields": {
+     "enable-repo": "crb",
+     "name": "rpmfusion-free-release",
+     "pubkey-url": "https://rpmfusion.org/keys?action=AttachFile&do=get&target=RPM-GPG-KEY-rpmfusion-free-el-$releasever",
+     "repo-id": "rpmfusion-free",
+     "repo-name": "RPM Fusion for EL - Free",
+     "repo-url": "https://download1.rpmfusion.org/free/el/updates/$releasever/$basearch/"
+    },
+    "name": "rpmfusion-free-release"
+   }
+  },
   "slack": {
    "dnf\\flatpak": {
     "driver": "dnf",
@@ -9915,6 +9951,13 @@
    }
   },
   "vlc": {
+   "dnf\\epel-release": {
+    "driver": "dnf",
+    "fields": {
+     "name": "epel-release"
+    },
+    "name": "epel-release"
+   },
    "dnf\\vlc": {
     "driver": "dnf",
     "fields": {

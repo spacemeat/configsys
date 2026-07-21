@@ -77,6 +77,25 @@ def test_templated_gpgkey_is_left_for_dnf_not_imported_eagerly():
     assert r.calls[-1] == 'sudo dnf install -y rpmfusion-free-release'
 
 
+def test_enable_repo_turns_on_crb_before_install():
+    # EL RPM Fusion: enable-repo installs dnf-plugins-core, then `config-manager --set-enabled`
+    # each named repo (CRB), before the .repo drop + install. A templated key stays for dnf.
+    comp = ResolvedComponent(key='dnf\\rpmfusion-free', driver='dnf', comp='rpmfusion-free',
+        fields={
+            'name': 'rpmfusion-free-release', 'enable-repo': 'crb',
+            'repo-id': 'rpmfusion-free', 'repo-name': 'RPM Fusion for EL - Free',
+            'repo-url': 'https://download1.rpmfusion.org/free/el/updates/$releasever/$basearch/',
+            'pubkey-url': 'https://rpmfusion.org/keys?target=RPM-GPG-KEY-rpmfusion-free-el-$releasever'})
+    r = Runner(pretend=True)
+    Dnf(r).install(comp)
+    assert 'sudo dnf install -y dnf-plugins-core' in r.calls
+    i_plugins = r.calls.index('sudo dnf install -y dnf-plugins-core')
+    i_crb = r.calls.index('sudo dnf config-manager --set-enabled crb')
+    i_final = r.calls.index('sudo dnf install -y rpmfusion-free-release')
+    assert i_plugins < i_crb < i_final          # plugins -> enable crb -> install release
+    assert not any('rpm --import' in c for c in r.calls)   # templated key: left for dnf
+
+
 def test_no_repo_prereqs_for_a_plain_package():
     r = Runner(pretend=True)
     Dnf(r).install(pkg())            # no repo-id/pubkey -> straight install

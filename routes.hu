@@ -58,6 +58,13 @@
         appImage:    { requires: [ libfuse2, glibc ] }   // AppImages are glibc-built: decline on musl
         cargo:       { requires: cargo }              // a crate needs the cargo tool
         debian-font: { requires: [ fontconfig, unzip ] }
+        // pip / pipx on musl (Alpine): pip prefers a `musllinux` wheel and pure-Python wheels
+        // install fine, but a C-extension package that ships ONLY `manylinux` (glibc) wheels
+        // falls back to building from its sdist — which needs a toolchain (gcc, musl-dev,
+        // python3-dev) + the package's own C headers. configsys does NOT model those build deps
+        // (they're per-package and usually unneeded), so such a build surfaces pip's own
+        // compiler error; add the toolchain to a profile if you hit it. No base pip/pipx
+        // component is affected — this only concerns C-extension tools a user adds on Alpine.
         pip:         { requires: python3-pip }        // `pip install --user` needs pip
         pipx:        { requires: pipx }               // a PyPI CLI needs the pipx tool
         tarball:     { requires: curl }               // fetch the archive with curl
@@ -186,18 +193,22 @@
             install: [ { via: native  repo-component: universe  name: { pacman: libreoffice-fresh } } ]
         }
 
-        kicad: {   // fat-ish config — dotfiles pending. NOTE: EL availability unverified (EPEL?)
+        // kicad: not packaged for EL9 at all (base/EPEL/CRB/RPM Fusion all lack it, verified on
+        // rockylinux:9), so the binding is guarded `not rhel` — on EL it's cleanly unroutable (a
+        // diagnostic) rather than a dnf "No match for argument". In base repos everywhere else.
+        kicad: {   // fat-ish config — dotfiles pending
             suggests: kicad-dotfiles
-            install: [ { via: native  repo-component: universe } ]
+            install: [ { via: native  when: "not rhel"  repo-component: universe } ]
         }
 
         // blender: the easy default is the native package (the editor). A from-source build
         // (to get a `bpy` module matching your editor) is a personal override that lives in a
         // user layer, the way a Pop-only native Steam does. Fat versioned config
-        // (~/.config/blender/<ver>) — dotfiles deferred. NOTE: EL availability unverified (EPEL?).
+        // (~/.config/blender/<ver>) — dotfiles deferred. On EL it's in EPEL; base repos elsewhere.
         blender: {
             suggests: blender-dotfiles
-            install: [ { via: native  repo-component: universe } ]
+            install: [ { via: native  when: "rhel"  requires: epel }
+                       { via: native  repo-component: universe } ]
         }
 
         // GPU compute toolchains (promoted from the configsys-blender plugin). General-purpose —
@@ -264,28 +275,41 @@
         // impractical, so native everywhere (package name `gnuradio`).
         gnuradio: { install: [ { via: native } ] }
 
-        // ffmpeg / vlc: native, but Fedora's base repos ship only a codec-crippled ffmpeg-free
-        // — the full builds live in RPM Fusion. The `when: "fedora"` binding requires the
-        // `rpmfusion` capability (below); every other distro carries them in base. NOTE: EL
-        // (Rocky/Alma) needs RPM Fusion (+EPEL) too — deferred, like the other EL notes.
+        // ffmpeg: native, but neither Fedora nor EL ships it in base repos — the full build
+        // lives in RPM Fusion on both (Fedora and EL alike). `when: "redhat"` covers both;
+        // rpmfusion-free (below) does the per-distro repo setup. Everywhere else it's in base.
         ffmpeg: {
-            install: [ { via: native  when: "fedora"  requires: rpmfusion }
+            install: [ { via: native  when: "redhat"  requires: rpmfusion }
                        { via: native } ]
         }
+        // vlc: RPM Fusion on Fedora, but EL carries it in EPEL (not RPM Fusion) — so the two
+        // rpm families take different capability edges. Base repos everywhere else.
         vlc: {
             install: [ { via: native  when: "fedora"  requires: rpmfusion }
+                       { via: native  when: "rhel"    requires: epel }
                        { via: native } ]
         }
-        // RPM Fusion Free: enabling it = drop its .repo (dnf expands $releasever/$basearch and
-        // auto-imports the per-release key on the first -y install), then pull the release
-        // package that formalizes the config. Fedora-guarded; provides the `rpmfusion`
-        // capability ffmpeg/vlc pull in there.
+        // RPM Fusion Free: enabling it = (EL only) turn on EPEL + CRB, then drop the free
+        // .repo (dnf expands $releasever/$basearch and auto-imports the per-release key on the
+        // first -y install) and pull the release package that formalizes the config. Fedora and
+        // EL differ only in the repo path + key + those EL prereqs, so it's two bindings.
+        // Provides the `rpmfusion` capability ffmpeg (both families) and vlc (Fedora) pull in.
+        // Validated end to end on fedora:41 and rockylinux:9 (ffmpeg deps resolve). NOTE: EL
+        // support targets the free rebuilds (Rocky/Alma/CentOS, CRB via config-manager); RHEL
+        // proper enables CodeReady via subscription-manager, which the user does once by hand.
         rpmfusion-free: {
             provides: rpmfusion
-            install: [ { via: native  when: "fedora"  name: rpmfusion-free-release
-                         repo-id: rpmfusion-free  repo-name: "RPM Fusion Free"
-                         repo-url: "https://download1.rpmfusion.org/free/fedora/releases/$releasever/Everything/$basearch/os/"
-                         pubkey-url: "https://rpmfusion.org/keys?action=AttachFile&do=get&target=RPM-GPG-KEY-rpmfusion-free-fedora-$releasever" } ]
+            install: [
+                { via: native  when: "rhel"  requires: epel  name: rpmfusion-free-release
+                  enable-repo: crb
+                  repo-id: rpmfusion-free  repo-name: "RPM Fusion for EL - Free"
+                  repo-url: "https://download1.rpmfusion.org/free/el/updates/$releasever/$basearch/"
+                  pubkey-url: "https://rpmfusion.org/keys?action=AttachFile&do=get&target=RPM-GPG-KEY-rpmfusion-free-el-$releasever" }
+                { via: native  when: "fedora"  name: rpmfusion-free-release
+                  repo-id: rpmfusion-free  repo-name: "RPM Fusion Free"
+                  repo-url: "https://download1.rpmfusion.org/free/fedora/releases/$releasever/Everything/$basearch/os/"
+                  pubkey-url: "https://rpmfusion.org/keys?action=AttachFile&do=get&target=RPM-GPG-KEY-rpmfusion-free-fedora-$releasever" }
+            ]
         }
 
         // unityhub: the Unity Hub AppImage. Unity Editor(s) are installed THROUGH the Hub at

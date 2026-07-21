@@ -15,6 +15,12 @@ from ..driver import Driver
 _VERSIONLOCK_PLUGIN = 'python3-dnf-plugin-versionlock'
 
 
+def _as_list(v):
+    if v is None:
+        return []
+    return v if isinstance(v, list) else [v]
+
+
 class Dnf(Driver):
     name = 'dnf'
     privileged = True
@@ -68,6 +74,15 @@ class Dnf(Driver):
         key = f.get('pubkey-url')
         if key and '$' not in key:
             self.runner.run(f'rpm --import {shlex.quote(key)}', sudo=True, capture=False)
+        # enable-repo: turn on a distro repo that ships disabled — e.g. EL's CRB
+        # (CodeReady Builder), which RPM Fusion's ffmpeg needs (ladspa/rubberband live
+        # there). config-manager is in dnf-plugins-core; ensure it, then enable each.
+        enable = _as_list(f.get('enable-repo'))
+        if enable:
+            self.runner.run('dnf install -y dnf-plugins-core', sudo=True, capture=False)
+            for repo in enable:
+                self.runner.run(f'dnf config-manager --set-enabled {shlex.quote(repo)}',
+                                sudo=True, capture=False)
         repo_id, repo_url = f.get('repo-id'), f.get('repo-url')
         if repo_id and repo_url:
             name = f.get('repo-name', repo_id)
