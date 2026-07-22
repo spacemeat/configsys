@@ -68,6 +68,24 @@ class Apt(Driver):
                 f'if [ ! -f {sp} ]; then echo {sl} | sudo tee {sp} >/dev/null '
                 f'&& sudo apt-get update; fi', capture=False)
 
+        # `debconf`: preseed install-time debconf answers so a NON-interactive install makes
+        # the choice we want instead of the silent default (e.g. wireshark's non-root-capture
+        # setuid, which apt otherwise declines). Each entry is a raw debconf-set-selections
+        # line "<owner> <question> <type> <value>". Preseed always; and if the owning package
+        # is ALREADY installed, dpkg-reconfigure it so the answer takes effect on this run too
+        # — not only on a fresh install. (dnf/pacman don't read this field.)
+        for line in self._as_list(f.get('debconf')):
+            owner = (line.split(None, 1) or [''])[0]
+            if not owner:
+                continue
+            lq, oq = shlex.quote(line), shlex.quote(owner)
+            self.runner.run(
+                f'echo {lq} | debconf-set-selections && '
+                f'if dpkg-query -W -f=\'${{Status}}\' {oq} 2>/dev/null '
+                f'| grep -q "install ok installed"; then '
+                f'DEBIAN_FRONTEND=noninteractive dpkg-reconfigure -f noninteractive {oq}; fi',
+                sudo=True, capture=False)
+
     # -- read -------------------------------------------------------------
 
     def get_version(self, rc):

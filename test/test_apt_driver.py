@@ -205,3 +205,30 @@ def test_no_prereqs_when_none_declared():
     r = Runner(pretend=True)
     Apt(r).install(rc('build-essential'))  # main package, no repo-component
     assert r.calls == ['sudo apt-get install -y build-essential']
+
+
+def test_debconf_preseed_before_install():
+    # wireshark's non-root-capture setuid: preseed the answer, then (only if already
+    # installed) dpkg-reconfigure so it applies now too — before the apt-get install.
+    comp = ResolvedComponent(key='apt\\wireshark', driver='apt', comp='wireshark', fields={
+        'name': 'wireshark',
+        'debconf': 'wireshark-common wireshark-common/install-setuid boolean true',
+    })
+    r = Runner(pretend=True)
+    Apt(r).install(comp)
+    preseed = (
+        "sudo echo 'wireshark-common wireshark-common/install-setuid boolean true' "
+        "| debconf-set-selections && "
+        "if dpkg-query -W -f='${Status}' wireshark-common 2>/dev/null "
+        '| grep -q "install ok installed"; then '
+        'DEBIAN_FRONTEND=noninteractive dpkg-reconfigure -f noninteractive wireshark-common; fi'
+    )
+    assert r.calls == [preseed, 'sudo apt-get install -y wireshark']
+
+
+def test_wireshark_route_carries_debconf_preseed():
+    # the preseed rides on wireshark's single native binding; on apt it enables non-root
+    # capture, on dnf/pacman the field is simply ignored (they set dumpcap's caps in-package).
+    unit = resolve_unit('wireshark')   # pop_os! -> apt
+    assert unit.fields.get('debconf') == \
+        'wireshark-common wireshark-common/install-setuid boolean true'

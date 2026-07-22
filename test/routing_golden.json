@@ -1556,6 +1556,7 @@
    "pacman\\wireshark": {
     "driver": "pacman",
     "fields": {
+     "debconf": "wireshark-common wireshark-common/install-setuid boolean true",
      "name": "wireshark-qt"
     },
     "name": "wireshark-qt"
@@ -1572,6 +1573,7 @@
    "pacman\\wireshark": {
     "driver": "pacman",
     "fields": {
+     "debconf": "wireshark-common wireshark-common/install-setuid boolean true",
      "name": "wireshark-qt"
     },
     "name": "wireshark-qt"
@@ -3589,6 +3591,7 @@
    "apt\\wireshark": {
     "driver": "apt",
     "fields": {
+     "debconf": "wireshark-common wireshark-common/install-setuid boolean true",
      "name": "wireshark"
     },
     "name": "wireshark"
@@ -3598,6 +3601,7 @@
    "apt\\wireshark": {
     "driver": "apt",
     "fields": {
+     "debconf": "wireshark-common wireshark-common/install-setuid boolean true",
      "name": "wireshark"
     },
     "name": "wireshark"
@@ -5586,6 +5590,7 @@
    "apt\\wireshark": {
     "driver": "apt",
     "fields": {
+     "debconf": "wireshark-common wireshark-common/install-setuid boolean true",
      "name": "wireshark"
     },
     "name": "wireshark"
@@ -5595,6 +5600,7 @@
    "apt\\wireshark": {
     "driver": "apt",
     "fields": {
+     "debconf": "wireshark-common wireshark-common/install-setuid boolean true",
      "name": "wireshark"
     },
     "name": "wireshark"
@@ -7318,6 +7324,7 @@
    "dnf\\wireshark": {
     "driver": "dnf",
     "fields": {
+     "debconf": "wireshark-common wireshark-common/install-setuid boolean true",
      "name": "wireshark"
     },
     "name": "wireshark"
@@ -7327,6 +7334,7 @@
    "dnf\\wireshark": {
     "driver": "dnf",
     "fields": {
+     "debconf": "wireshark-common wireshark-common/install-setuid boolean true",
      "name": "wireshark"
     },
     "name": "wireshark"
@@ -9062,6 +9070,7 @@
    "dnf\\wireshark": {
     "driver": "dnf",
     "fields": {
+     "debconf": "wireshark-common wireshark-common/install-setuid boolean true",
      "name": "wireshark"
     },
     "name": "wireshark"
@@ -9071,6 +9080,7 @@
    "dnf\\wireshark": {
     "driver": "dnf",
     "fields": {
+     "debconf": "wireshark-common wireshark-common/install-setuid boolean true",
      "name": "wireshark"
     },
     "name": "wireshark"
@@ -11062,6 +11072,7 @@
    "apt\\wireshark": {
     "driver": "apt",
     "fields": {
+     "debconf": "wireshark-common wireshark-common/install-setuid boolean true",
      "name": "wireshark"
     },
     "name": "wireshark"
@@ -11071,6 +11082,7 @@
    "apt\\wireshark": {
     "driver": "apt",
     "fields": {
+     "debconf": "wireshark-common wireshark-common/install-setuid boolean true",
      "name": "wireshark"
     },
     "name": "wireshark"
@@ -12965,6 +12977,7 @@
    "dnf\\wireshark": {
     "driver": "dnf",
     "fields": {
+     "debconf": "wireshark-common wireshark-common/install-setuid boolean true",
      "name": "wireshark"
     },
     "name": "wireshark"
@@ -12974,6 +12987,7 @@
    "dnf\\wireshark": {
     "driver": "dnf",
     "fields": {
+     "debconf": "wireshark-common wireshark-common/install-setuid boolean true",
      "name": "wireshark"
     },
     "name": "wireshark"
@@ -14985,6 +14999,7 @@
    "apt\\wireshark": {
     "driver": "apt",
     "fields": {
+     "debconf": "wireshark-common wireshark-common/install-setuid boolean true",
      "name": "wireshark"
     },
     "name": "wireshark"
@@ -14994,6 +15009,7 @@
    "apt\\wireshark": {
     "driver": "apt",
     "fields": {
+     "debconf": "wireshark-common wireshark-common/install-setuid boolean true",
      "name": "wireshark"
     },
     "name": "wireshark"
@@ -16982,6 +16998,7 @@
    "apt\\wireshark": {
     "driver": "apt",
     "fields": {
+     "debconf": "wireshark-common wireshark-common/install-setuid boolean true",
      "name": "wireshark"
     },
     "name": "wireshark"
@@ -16991,6 +17008,7 @@
    "apt\\wireshark": {
     "driver": "apt",
     "fields": {
+     "debconf": "wireshark-common wireshark-common/install-setuid boolean true",
      "name": "wireshark"
     },
     "name": "wireshark"
