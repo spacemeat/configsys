@@ -59,6 +59,6 @@ def test_single_record_roundtrips(tmp_path):
 def test_backslash_keys_survive_roundtrip(tmp_path):
     p = paths_in(tmp_path)
     led = Ledger()
-    led.set_lock('debian-font\\mononoki-nerd', True)
+    led.set_lock('font\\mononoki-nerd', True)
     led.save(p)
-    assert Ledger.load(p).is_locked('debian-font\\mononoki-nerd') is True
+    assert Ledger.load(p).is_locked('font\\mononoki-nerd') is True

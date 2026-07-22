@@ -5,7 +5,7 @@ import pytest
 
 from configsys.componentObj import ResolvedComponent
 from configsys.drivers import get_driver
-from configsys.drivers.debian_font import DebianFont
+from configsys.drivers.font import Font
 from configsys.paths import Paths
 from configsys.runner import Runner
 
@@ -14,18 +14,18 @@ def font_unit(url='https://x/F.zip', version='v1.0', comp='mononoki-nerd', scope
     fields = {'name': 'Mononoki', 'url': url, 'version': {'static': version}}
     if scope:
         fields['scope'] = scope
-    return ResolvedComponent(key=f'debian-font\\{comp}', driver='debian-font', comp=comp,
+    return ResolvedComponent(key=f'font\\{comp}', driver='font', comp=comp,
                              fields=fields)
 
 
 def test_registry_has_font():
-    assert isinstance(get_driver('debian-font', Runner(pretend=True)), DebianFont)
+    assert isinstance(get_driver('font', Runner(pretend=True)), Font)
 
 
 def test_install_command_construction(tmp_path):
     r = Runner(pretend=True)
     p = Paths(env={'CONFIGSYS_HOME': str(tmp_path)})
-    DebianFont(r, paths=p).install(font_unit())
+    Font(r, paths=p).install(font_unit())
     cmd = r.calls[0]
     fdir = tmp_path / '.local/share/fonts/configsys-mononoki-nerd'
     assert 'curl -fSL https://x/F.zip' in cmd
@@ -39,7 +39,7 @@ def test_install_command_construction(tmp_path):
 def test_system_scope_uses_opt_dir_and_sudo(tmp_path):
     r = Runner(pretend=True)
     p = Paths(env={'CONFIGSYS_HOME': str(tmp_path)})
-    DebianFont(r, paths=p).install(font_unit(scope='system'))
+    Font(r, paths=p).install(font_unit(scope='system'))
     cmd = r.calls[0]
     assert cmd.startswith('sudo ')
     assert '/usr/local/share/fonts/configsys-mononoki-nerd' in cmd
@@ -48,7 +48,7 @@ def test_system_scope_uses_opt_dir_and_sudo(tmp_path):
 def test_uninstall_guarded_by_marker(tmp_path):
     r = Runner(pretend=True)
     p = Paths(env={'CONFIGSYS_HOME': str(tmp_path)})
-    DebianFont(r, paths=p).uninstall(font_unit())
+    Font(r, paths=p).uninstall(font_unit())
     cmd = r.calls[0]
     assert '.configsys-mononoki-nerd.version' in cmd
     assert 'rm -rf' in cmd and 'fc-cache' in cmd
@@ -56,7 +56,7 @@ def test_uninstall_guarded_by_marker(tmp_path):
 
 def test_get_latest_and_version(tmp_path):
     p = Paths(env={'CONFIGSYS_HOME': str(tmp_path)})
-    fam = DebianFont(Runner(pretend=True), paths=p)
+    fam = Font(Runner(pretend=True), paths=p)
     rc = font_unit(version='v2.5')
     assert fam.get_latest(rc) == 'v2.5'    # static discovery spec
     assert fam.get_version(rc) is None     # not installed
@@ -73,7 +73,7 @@ def test_real_install_extract_marker_uninstall(tmp_path):
     p = Paths(env={'CONFIGSYS_HOME': str(tmp_path)})
     rc = font_unit(url=f'file://{zpath}', version='v9.9')
 
-    fam = DebianFont(Runner(pretend=False), paths=p)
+    fam = Font(Runner(pretend=False), paths=p)
     assert fam.install(rc).ok
     fdir = tmp_path / '.local/share/fonts/configsys-mononoki-nerd'
     assert (fdir / 'Mononoki.ttf').exists()          # extracted flat (-j)

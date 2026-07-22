@@ -46,7 +46,7 @@ TUI. Edit that file to pick your **profiles**, then inspect and act.
 - **Driver** — the code that installs/queries/removes one *class* of software, behind a
   uniform op set (install / uninstall / upgrade / set-version / lock / unlock / inspect).
   Ships: the native managers **apt, dnf, pacman, aur**, plus **flatpak, appImage, tarball,
-  dotfiles, debian-font, cargo, pip, pipx**, and the **gcc / clang / gcc-toolset**
+  dotfiles, font, cargo, pip, pipx**, and the **gcc / clang / gcc-toolset**
   toolchains.
 - **State** — the live system is the source of truth (dpkg/rpm/flatpak/marker files); a
   small ledger (`~/.config/configsys/state.hu`) stores only lock *intent* and configsys

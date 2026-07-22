@@ -143,7 +143,7 @@ class Driver:
     def _installed_across_scopes(self, rc):
         '''Probe user then system by re-deriving this driver's scoped paths; return (version,
         scope) from wherever the unit is found, else (None, None). For path-based honors_scope
-        drivers (tarball / appImage / debian-font). Restores rc's `scope` field afterward.'''
+        drivers (tarball / appImage / font). Restores rc's `scope` field afterward.'''
         had, saved = 'scope' in rc.fields, rc.fields.get('scope')
         try:
             for s in ('user', 'system'):

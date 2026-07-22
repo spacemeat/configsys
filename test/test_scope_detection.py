@@ -25,7 +25,7 @@ class _Stub(Driver):
     def get_version(self, rc):
         return '1.0' if rc.fields.get('scope') == self.present_at else None
 
-    def get_installed(self, rc):                # like tarball/appImage/debian-font
+    def get_installed(self, rc):                # like tarball/appImage/font
         return self._installed_across_scopes(rc)
 
 

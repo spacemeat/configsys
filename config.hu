@@ -4,7 +4,7 @@
     configs: [ user, gaming, dev, electronics, graphics ]
 
     // OPTIONAL machine-wide install scope for scope-honoring drivers (appImage/flatpak/tarball/
-    // debian-font). Left UNSET by default: each such driver uses its own default (user-space by
+    // font). Left UNSET by default: each such driver uses its own default (user-space by
     // nature — ~/apps, --user), and a source build (blender-build/kicad-build) stays under ~.
     // Nothing overrides an explicit choice automatically — set it here or in ~/.config/configsys/
     // configsys.hu ONLY to deliberately push those installs system-wide (e.g. an admin

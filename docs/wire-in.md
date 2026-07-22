@@ -49,7 +49,7 @@ Every `Family.name` matches a v2 mechanism string exactly — by construction, s
 were *named after the families* (that's why the equivalence unit keys line up):
 
 ```
-apt dnf pacman aur tarball flatpak appImage dotfiles debian-font
+apt dnf pacman aur tarball flatpak appImage dotfiles font
 cargo gcc gcc-toolset clang pip pipx
 ```
 
@@ -72,7 +72,7 @@ the fields its family needs to actually *install*. And `routes2.hu` was authored
 | tree-sitter-cli, ripgrep, btop, steam… | name, version, foreign-arch | ✓ | ✓ | **none** |
 | **fastfetch** (apt deb-mode) | `deb`, `version:{github,asset-glob}`, name | `deb:true`, `version:{github,asset}` | `deb-source:"github:…"`, `asset:{x86_64,aarch64}` | restructured: no `deb`, no `version`, cpu-keyed `asset` |
 | **gcc-13/14/15**, clang-* | `slaves`, packages, ppa, (link/ver derived) | `slaves:[g++]`, packages, ppa | packages, ppa, `requires` | **missing `slaves`** (→ /usr/bin/g++ alt not registered); stray `requires` |
-| **mononoki-nerd** (debian-font) | version, url | version, `url:"…$VERSION…"` | version only | **missing `url`** (may still work via github asset discovery — verify) |
+| **mononoki-nerd** (font) | version, url | version, `url:"…$VERSION…"` | version only | **missing `url`** (may still work via github asset discovery — verify) |
 | **chrome** (flatpak) | `name`(app id), `hub` | `hub:flathub`, `name` | `app:` | `app`→`name` needed; `hub` absent (family default?) |
 
 Two orthogonal kinds of gap:

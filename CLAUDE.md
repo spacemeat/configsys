@@ -26,7 +26,7 @@ the full spec). Its three sections:
   version `scale-root:` markers, and `provides:` (capabilities baseline in that environment).
 - `drivers:` — per-driver config, currently just each driver's inherent
   `requires:` (appImage->libfuse2, flatpak->flatpak, cargo->cargo, pipx->pipx, aur->[base-devel,
-  git], tarball->curl, pip->python3-pip, debian-font->[fontconfig,unzip]).
+  git], tarball->curl, pip->python3-pip, font->[fontconfig,unzip]).
 - `components:` — each component is a named **capability** plus a list of context-selected
   **bindings**. A binding is `{ via: <driver>  when: "<expr>"  ...details }`. `via: native`
   resolves to the OS's declared package manager (name defaults to the component name, override
@@ -90,7 +90,7 @@ not a brick. Activation never installs — install stays explicit.
 Drivers are defined in code (configsys/drivers/) behind a uniform op set: get_version,
 get_latest, is_locked, install, uninstall, upgrade, set_version, lock, unlock, location. apt
 has various commands for these; as does flatpak, etc. Each `via:` value names a Driver 1:1
-(apt, dnf, pacman, aur, tarball, flatpak, appImage, dotfiles, debian-font, cargo, gcc,
+(apt, dnf, pacman, aur, tarball, flatpak, appImage, dotfiles, font, cargo, gcc,
 gcc-toolset, clang, pip, pipx, and the post-install primitives service [systemd] and group
 [usermod]) — except `via: native` (resolves to the OS's package-manager driver) and `via:
 parts` (a pure aggregator, no driver of its own). More drivers can be added as needed.

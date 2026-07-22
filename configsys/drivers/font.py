@@ -1,4 +1,4 @@
-'''debian_font.py — the debian-font driver: install downloadable font archives.
+'''font.py — the font driver: install downloadable font archives.
 
 The freedesktop way of installing fonts: download a .zip of font files, extract the
 .ttf/.otf into a fonts directory, and refresh the font cache with fc-cache. Version
@@ -18,8 +18,8 @@ from ..runner import Result
 MARKER_PREFIX = '.configsys-'
 
 
-class DebianFont(Driver):
-    name = 'debian-font'
+class Font(Driver):
+    name = 'font'
     privileged = False
     default_scope = 'user'
     honors_scope = True
@@ -66,7 +66,7 @@ class DebianFont(Driver):
         version = self.resolve_version(rc) or ''
         url = self.download_url(rc, version)
         if not url:
-            return Result('(debian-font: no url in route)', 1)
+            return Result('(font: no url in route)', 1)
 
         d = self._font_dir(rc)
         dq, uq = shlex.quote(str(d)), shlex.quote(url)
@@ -107,7 +107,7 @@ class DebianFont(Driver):
         return self.display_path(self._font_dir(rc))
 
     def lock(self, rc):
-        return Result('(debian-font lock recorded in ledger)', 0)
+        return Result('(font lock recorded in ledger)', 0)
 
     def unlock(self, rc):
-        return Result('(debian-font unlock recorded in ledger)', 0)
+        return Result('(font unlock recorded in ledger)', 0)

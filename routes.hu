@@ -57,7 +57,7 @@
         flatpak:     { requires: flatpak }
         appImage:    { requires: [ libfuse2, glibc ] }   // AppImages are glibc-built: decline on musl
         cargo:       { requires: cargo }              // a crate needs the cargo tool
-        debian-font: { requires: [ fontconfig, unzip ] }
+        font: { requires: [ fontconfig, unzip ] }
         // pip / pipx on musl (Alpine): pip prefers a `musllinux` wheel and pure-Python wheels
         // install fine, but a C-extension package that ships ONLY `manylinux` (glibc) wheels
         // falls back to building from its sdist — which needs a toolchain (gcc, musl-dev,
@@ -151,7 +151,7 @@
             install: [ { via: cargo  name: tree-sitter-cli  version: { crates: tree-sitter-cli } } ]
         }
         mononoki-nerd: {
-            install: [ { via: debian-font  name: Mononoki          // -> requires fontconfig + unzip
+            install: [ { via: font  name: Mononoki          // -> requires fontconfig + unzip
                          version: { github: ryanoasis/nerd-fonts  asset: "Mononoki.zip" }
                          url: "https://github.com/ryanoasis/nerd-fonts/releases/download/$VERSION/Mononoki.zip" } ]
         }

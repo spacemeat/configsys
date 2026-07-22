@@ -128,12 +128,12 @@ Last grill: 2026-07-13.
     their own native "latest". Known caveat: version-templated *asset names* can change across
     releases (e.g. neovim's appimage rename) — that's routes-content, handled per-URL.
 
-18. **`\debian-font` family (completes the set).** Download a font .zip, extract .ttf/.otf
+18. **`\font` family (completes the set).** Download a font .zip, extract .ttf/.otf
     into `~/.local/share/fonts/configsys-<comp>` (or `/usr/local/share/fonts` + sudo for
     system scope), refresh with `fc-cache`, record version in a marker. Uses version
     discovery (`{ github: ryanoasis/nerd-fonts }`). `!depends: [ fontconfig, unzip ]`.
     With this, **all six install mediums are implemented** (apt, tarball, flatpak, appImage,
-    dotfiles, debian-font); an unregistered family name still degrades gracefully.
+    dotfiles, font); an unregistered family name still degrades gracefully.
 
 19. **Arch awareness + GitHub asset resolution.** `$ARCH` (from `platform.machine()`, override
     `CONFIGSYS_ARCH`) is substituted into download URLs alongside `$VERSION`. A github

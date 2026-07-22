@@ -670,8 +670,8 @@
    }
   },
   "mononoki-nerd": {
-   "debian-font\\mononoki-nerd": {
-    "driver": "debian-font",
+   "font\\mononoki-nerd": {
+    "driver": "font",
     "fields": {
      "name": "Mononoki",
      "url": "https://github.com/ryanoasis/nerd-fonts/releases/download/$VERSION/Mononoki.zip",
@@ -2332,8 +2332,8 @@
     },
     "name": "unzip"
    },
-   "debian-font\\mononoki-nerd": {
-    "driver": "debian-font",
+   "font\\mononoki-nerd": {
+    "driver": "font",
     "fields": {
      "name": "Mononoki",
      "url": "https://github.com/ryanoasis/nerd-fonts/releases/download/$VERSION/Mononoki.zip",
@@ -3938,8 +3938,8 @@
     },
     "name": "unzip"
    },
-   "debian-font\\mononoki-nerd": {
-    "driver": "debian-font",
+   "font\\mononoki-nerd": {
+    "driver": "font",
     "fields": {
      "name": "Mononoki",
      "url": "https://github.com/ryanoasis/nerd-fonts/releases/download/$VERSION/Mononoki.zip",
@@ -5246,18 +5246,6 @@
    }
   },
   "mononoki-nerd": {
-   "debian-font\\mononoki-nerd": {
-    "driver": "debian-font",
-    "fields": {
-     "name": "Mononoki",
-     "url": "https://github.com/ryanoasis/nerd-fonts/releases/download/$VERSION/Mononoki.zip",
-     "version": {
-      "asset": "Mononoki.zip",
-      "github": "ryanoasis/nerd-fonts"
-     }
-    },
-    "name": "Mononoki"
-   },
    "dnf\\fontconfig": {
     "driver": "dnf",
     "fields": {
@@ -5271,6 +5259,18 @@
      "name": "unzip"
     },
     "name": "unzip"
+   },
+   "font\\mononoki-nerd": {
+    "driver": "font",
+    "fields": {
+     "name": "Mononoki",
+     "url": "https://github.com/ryanoasis/nerd-fonts/releases/download/$VERSION/Mononoki.zip",
+     "version": {
+      "asset": "Mononoki.zip",
+      "github": "ryanoasis/nerd-fonts"
+     }
+    },
+    "name": "Mononoki"
    }
   },
   "neovim": {
@@ -6599,18 +6599,6 @@
    }
   },
   "mononoki-nerd": {
-   "debian-font\\mononoki-nerd": {
-    "driver": "debian-font",
-    "fields": {
-     "name": "Mononoki",
-     "url": "https://github.com/ryanoasis/nerd-fonts/releases/download/$VERSION/Mononoki.zip",
-     "version": {
-      "asset": "Mononoki.zip",
-      "github": "ryanoasis/nerd-fonts"
-     }
-    },
-    "name": "Mononoki"
-   },
    "dnf\\fontconfig": {
     "driver": "dnf",
     "fields": {
@@ -6624,6 +6612,18 @@
      "name": "unzip"
     },
     "name": "unzip"
+   },
+   "font\\mononoki-nerd": {
+    "driver": "font",
+    "fields": {
+     "name": "Mononoki",
+     "url": "https://github.com/ryanoasis/nerd-fonts/releases/download/$VERSION/Mononoki.zip",
+     "version": {
+      "asset": "Mononoki.zip",
+      "github": "ryanoasis/nerd-fonts"
+     }
+    },
+    "name": "Mononoki"
    }
   },
   "neovim": {
@@ -8228,8 +8228,8 @@
     },
     "name": "unzip"
    },
-   "debian-font\\mononoki-nerd": {
-    "driver": "debian-font",
+   "font\\mononoki-nerd": {
+    "driver": "font",
     "fields": {
      "name": "Mononoki",
      "url": "https://github.com/ryanoasis/nerd-fonts/releases/download/$VERSION/Mononoki.zip",
@@ -9635,18 +9635,6 @@
    }
   },
   "mononoki-nerd": {
-   "debian-font\\mononoki-nerd": {
-    "driver": "debian-font",
-    "fields": {
-     "name": "Mononoki",
-     "url": "https://github.com/ryanoasis/nerd-fonts/releases/download/$VERSION/Mononoki.zip",
-     "version": {
-      "asset": "Mononoki.zip",
-      "github": "ryanoasis/nerd-fonts"
-     }
-    },
-    "name": "Mononoki"
-   },
    "dnf\\fontconfig": {
     "driver": "dnf",
     "fields": {
@@ -9660,6 +9648,18 @@
      "name": "unzip"
     },
     "name": "unzip"
+   },
+   "font\\mononoki-nerd": {
+    "driver": "font",
+    "fields": {
+     "name": "Mononoki",
+     "url": "https://github.com/ryanoasis/nerd-fonts/releases/download/$VERSION/Mononoki.zip",
+     "version": {
+      "asset": "Mononoki.zip",
+      "github": "ryanoasis/nerd-fonts"
+     }
+    },
+    "name": "Mononoki"
    }
   },
   "neovim": {
@@ -11293,8 +11293,8 @@
     },
     "name": "unzip"
    },
-   "debian-font\\mononoki-nerd": {
-    "driver": "debian-font",
+   "font\\mononoki-nerd": {
+    "driver": "font",
     "fields": {
      "name": "Mononoki",
      "url": "https://github.com/ryanoasis/nerd-fonts/releases/download/$VERSION/Mononoki.zip",
@@ -12899,8 +12899,8 @@
     },
     "name": "unzip"
    },
-   "debian-font\\mononoki-nerd": {
-    "driver": "debian-font",
+   "font\\mononoki-nerd": {
+    "driver": "font",
     "fields": {
      "name": "Mononoki",
      "url": "https://github.com/ryanoasis/nerd-fonts/releases/download/$VERSION/Mononoki.zip",
