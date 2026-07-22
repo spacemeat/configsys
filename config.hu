@@ -61,5 +61,50 @@
             vulkan-dev
             blender
         ]
+        // Pure additive tool bundles (no +user) — compose onto a base, e.g. a workstation runs
+        // [ user, networking ] and a headless box runs just [ networking ]. Neither is in the
+        // default `configs:` above; activate per-machine.
+        networking: [
+            iproute2
+            // capture & probe
+            wireshark
+            wireshark-group     // opt-in non-root capture (adds you to the wireshark group) — drop if you don't want the privileged usermod
+            tshark
+            tcpdump
+            nmap
+            mtr
+            traceroute
+            iperf3
+            socat
+            ethtool
+            whois
+            netcat
+            dig
+            // live traffic monitors
+            iftop
+            nethogs
+            nload
+            vnstat
+        ]
+        web-dev: [
+            // browsers (firefox/chrome also ride in `user`; grouped here for cross-browser work)
+            firefox
+            chrome
+            brave
+            opera
+            vivaldi
+            edge
+            // HTTP/API CLI
+            httpie
+            jq
+            yq
+            mitmproxy
+            xh
+            websocat
+            // GUI API clients
+            postman
+            insomnia
+            bruno
+        ]
     }
 }

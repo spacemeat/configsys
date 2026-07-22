@@ -159,7 +159,11 @@
         // ===================== network + web-dev tooling =====================
         // Capture & probe — native CLI staples. Name maps only where distros diverge; the
         // rest carry the same package name everywhere.
-        wireshark:  { install: [ { via: native  name: { pacman: wireshark-qt } } ] }   // GUI analyzer; Arch splits the GUI into wireshark-qt. Deliberately NOT flatpak — the sandbox can't do live capture. Non-root capture (wireshark group + setcap dumpcap) is a parked follow-up.
+        wireshark:  { install: [ { via: native  name: { pacman: wireshark-qt } } ] }   // GUI analyzer; Arch splits the GUI into wireshark-qt. Deliberately NOT flatpak — the sandbox can't do live capture.
+        wireshark-group: {   // opt-in: non-root capture. usermod -aG wireshark $YOU; needs the group the package creates (hence requires). On Fedora/Arch the package pre-sets dumpcap's file caps, so group membership alone enables capture. On Debian/Ubuntu dumpcap is NOT setcap'd by a non-interactive install — group membership is necessary but not sufficient there (see the wireshark story). Mirrors docker-group.
+            requires: wireshark
+            install: [ { via: group  name: wireshark } ]
+        }
         tshark:     { install: [ { via: native  name: { dnf: wireshark-cli  pacman: wireshark-cli } } ] }   // CLI capture; ships as wireshark-cli on dnf/pacman, tshark on apt
         tcpdump:    { install: [ { via: native } ] }
         nmap:       { install: [ { via: native } ] }

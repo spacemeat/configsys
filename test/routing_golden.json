@@ -1561,6 +1561,22 @@
     "name": "wireshark-qt"
    }
   },
+  "wireshark-group": {
+   "group\\wireshark-group": {
+    "driver": "group",
+    "fields": {
+     "name": "wireshark"
+    },
+    "name": "wireshark"
+   },
+   "pacman\\wireshark": {
+    "driver": "pacman",
+    "fields": {
+     "name": "wireshark-qt"
+    },
+    "name": "wireshark-qt"
+   }
+  },
   "xcb-util-cursor": {
    "pacman\\xcb-util-cursor": {
     "driver": "pacman",
@@ -3578,6 +3594,22 @@
     "name": "wireshark"
    }
   },
+  "wireshark-group": {
+   "apt\\wireshark": {
+    "driver": "apt",
+    "fields": {
+     "name": "wireshark"
+    },
+    "name": "wireshark"
+   },
+   "group\\wireshark-group": {
+    "driver": "group",
+    "fields": {
+     "name": "wireshark"
+    },
+    "name": "wireshark"
+   }
+  },
   "xcb-util-cursor": {
    "apt\\xcb-util-cursor": {
     "driver": "apt",
@@ -5559,6 +5591,22 @@
     "name": "wireshark"
    }
   },
+  "wireshark-group": {
+   "apt\\wireshark": {
+    "driver": "apt",
+    "fields": {
+     "name": "wireshark"
+    },
+    "name": "wireshark"
+   },
+   "group\\wireshark-group": {
+    "driver": "group",
+    "fields": {
+     "name": "wireshark"
+    },
+    "name": "wireshark"
+   }
+  },
   "xcb-util-cursor": {
    "apt\\xcb-util-cursor": {
     "driver": "apt",
@@ -7269,6 +7317,22 @@
   "wireshark": {
    "dnf\\wireshark": {
     "driver": "dnf",
+    "fields": {
+     "name": "wireshark"
+    },
+    "name": "wireshark"
+   }
+  },
+  "wireshark-group": {
+   "dnf\\wireshark": {
+    "driver": "dnf",
+    "fields": {
+     "name": "wireshark"
+    },
+    "name": "wireshark"
+   },
+   "group\\wireshark-group": {
+    "driver": "group",
     "fields": {
      "name": "wireshark"
     },
@@ -8997,6 +9061,22 @@
   "wireshark": {
    "dnf\\wireshark": {
     "driver": "dnf",
+    "fields": {
+     "name": "wireshark"
+    },
+    "name": "wireshark"
+   }
+  },
+  "wireshark-group": {
+   "dnf\\wireshark": {
+    "driver": "dnf",
+    "fields": {
+     "name": "wireshark"
+    },
+    "name": "wireshark"
+   },
+   "group\\wireshark-group": {
+    "driver": "group",
     "fields": {
      "name": "wireshark"
     },
@@ -10987,6 +11067,22 @@
     "name": "wireshark"
    }
   },
+  "wireshark-group": {
+   "apt\\wireshark": {
+    "driver": "apt",
+    "fields": {
+     "name": "wireshark"
+    },
+    "name": "wireshark"
+   },
+   "group\\wireshark-group": {
+    "driver": "group",
+    "fields": {
+     "name": "wireshark"
+    },
+    "name": "wireshark"
+   }
+  },
   "xcb-util-cursor": {
    "apt\\xcb-util-cursor": {
     "driver": "apt",
@@ -12868,6 +12964,22 @@
   "wireshark": {
    "dnf\\wireshark": {
     "driver": "dnf",
+    "fields": {
+     "name": "wireshark"
+    },
+    "name": "wireshark"
+   }
+  },
+  "wireshark-group": {
+   "dnf\\wireshark": {
+    "driver": "dnf",
+    "fields": {
+     "name": "wireshark"
+    },
+    "name": "wireshark"
+   },
+   "group\\wireshark-group": {
+    "driver": "group",
     "fields": {
      "name": "wireshark"
     },
@@ -14878,6 +14990,22 @@
     "name": "wireshark"
    }
   },
+  "wireshark-group": {
+   "apt\\wireshark": {
+    "driver": "apt",
+    "fields": {
+     "name": "wireshark"
+    },
+    "name": "wireshark"
+   },
+   "group\\wireshark-group": {
+    "driver": "group",
+    "fields": {
+     "name": "wireshark"
+    },
+    "name": "wireshark"
+   }
+  },
   "xcb-util-cursor": {
    "apt\\xcb-util-cursor": {
     "driver": "apt",
@@ -16853,6 +16981,22 @@
   "wireshark": {
    "apt\\wireshark": {
     "driver": "apt",
+    "fields": {
+     "name": "wireshark"
+    },
+    "name": "wireshark"
+   }
+  },
+  "wireshark-group": {
+   "apt\\wireshark": {
+    "driver": "apt",
+    "fields": {
+     "name": "wireshark"
+    },
+    "name": "wireshark"
+   },
+   "group\\wireshark-group": {
+    "driver": "group",
     "fields": {
      "name": "wireshark"
     },
