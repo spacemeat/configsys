@@ -23,11 +23,14 @@
         pop_os!:   { using: ubuntu }
         linuxmint: { using: ubuntu    scale-root: true }            // Mint main (own numbering)
         lmde:      { using: debian    scale-root: true }            // Mint Debian Edition (own numbering)
+        kali:      { using: debian }                                // kali-rolling (Debian testing) — rolling, bare membership like tumbleweed
+        pikaos:    { using: debian    scale-root: true }            // Debian-based gaming distro; own date numbering (26.MM.DD) so it's its own scale-root
 
         // RHEL family (dnf). The EL rebuilds share rhel's routes + version line; distinct
         // blocks (vs. one aliased `rhel`) buy them identity — `when: "rocky"`, correct display.
         redhat:    { using: glibc_linux  native: dnf }              // fedora + EL share dnf
         fedora:    { using: redhat    scale-root: true }            // fedora proper (YY release)
+        nobara:    { using: fedora }                                // Fedora-based (Nobara N = Fedora N) — borrows fedora's scale, no own scale-root
         rhel:      { using: redhat    scale-root: true }            // EL scale-root (N release)
         rocky:     { using: rhel }
         almalinux: { using: rhel }
@@ -37,6 +40,8 @@
         arch:        { using: glibc_linux  native: pacman }
         manjaro:     { using: arch }
         endeavouros: { using: arch }
+        cachyos:     { using: arch }              // performance-tuned Arch (x86-64-v3/v4 repos); rolling
+        garuda:      { using: arch }              // gaming-focused Arch; rolling
 
         // Alpine (apk). musl, NOT glibc — so it hangs off `linux`, not `glibc_linux`. glibc-only
         // fetch-a-binary bindings decline here (unroutable = a clean diagnostic); the optional
