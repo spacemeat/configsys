@@ -1,7 +1,7 @@
 '''drivers — registry of install-medium implementations.
 
 Ships the native managers (apt, dnf, pacman, aur) plus tarball, flatpak,
-appImage, dotfiles, font, cargo, pip, pipx, the gcc/clang/gcc-toolset
+appImage, dotfiles, font, cargo, brew, pip, pipx, the gcc/clang/gcc-toolset
 toolchains, and the post-install primitives service (systemd) and group
 (usermod). An unregistered driver name still returns None here so InstallState
 degrades gracefully instead of crashing.
@@ -11,6 +11,7 @@ from .appImage import AppImage
 from .apk import Apk
 from .apt import Apt
 from .aur import Aur
+from .brew import Brew
 from .cargo import Cargo
 from .clang import Clang
 from .font import Font
@@ -34,6 +35,7 @@ _REGISTRY = {
     Apk.name: Apk,
     Zypper.name: Zypper,
     Aur.name: Aur,
+    Brew.name: Brew,
     Tarball.name: Tarball,
     Flatpak.name: Flatpak,
     AppImage.name: AppImage,
