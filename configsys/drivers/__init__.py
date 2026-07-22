@@ -1,10 +1,10 @@
 '''drivers — registry of install-medium implementations.
 
 Ships the native managers (apt, dnf, pacman, aur) plus tarball, flatpak,
-appImage, dotfiles, font, cargo, brew, pip, pipx, the gcc/clang/gcc-toolset
-toolchains, and the post-install primitives service (systemd) and group
-(usermod). An unregistered driver name still returns None here so InstallState
-degrades gracefully instead of crashing.
+appImage, dotfiles, font, cargo, brew, pip, pipx, rpm-ostree, the
+gcc/clang/gcc-toolset toolchains, and the post-install primitives service
+(systemd) and group (usermod). An unregistered driver name still returns None
+here so InstallState degrades gracefully instead of crashing.
 '''
 
 from .appImage import AppImage
@@ -24,6 +24,7 @@ from .group import Group
 from .pacman import Pacman
 from .pip import Pip
 from .pipx import Pipx
+from .rpm_ostree import RpmOstree
 from .service import Service
 from .tarball import Tarball
 from .zypper import Zypper
@@ -47,6 +48,7 @@ _REGISTRY = {
     Clang.name: Clang,
     Pip.name: Pip,
     Pipx.name: Pipx,
+    RpmOstree.name: RpmOstree,
     Service.name: Service,
     Group.name: Group,
 }

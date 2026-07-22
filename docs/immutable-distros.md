@@ -87,7 +87,7 @@ the same tool there:
 | get_version | `rpm -q <pkg>` (merged view is queryable read-only) |
 | get_installed | layered set from `rpm-ostree status --json` (`deployments[0].packages`) |
 | get_latest | **image-managed** — no live repo metadata on ostree; report "managed by image" / unknown rather than fake a value |
-| install | `rpm-ostree install -y <pkg>` — **stages for next boot**; offer `--apply-live` to also apply to the running deployment |
+| install | `rpm-ostree install -y <pkg>` — **stages for next boot** (rpm-ostree's own always-correct default); a binding may set `apply-live: true` to also apply to the running deployment now |
 | uninstall | `rpm-ostree uninstall <pkg>` |
 | upgrade | per-package upgrade isn't a thing; layered pkgs move with `rpm-ostree upgrade` (whole system) — treat as no-op/whole-system |
 | lock/unlock | n/a (image-pinned) |
@@ -122,8 +122,12 @@ bindings.
   atomic binding (flatpak `com.visualstudio.code`, or `via: rpm-ostree`). Need a sweep to list them.
 - **D4 — `get_latest` on rpm-ostree.** Honest "image-managed/unknown" vs. trying to query dnf
   metadata offline. **Rec: honest unknown** (no surprises beats a fabricated version).
-- **D5 — `--apply-live` default.** Offer it so installs don't always demand a reboot, or keep the
-  pure stage-and-reboot model? **Rec: attempt `--apply-live`, fall back to reboot messaging.**
+- **D5 — `--apply-live` default.** *Resolved during step 2:* **stage-for-next-boot is the default**
+  (rpm-ostree's own always-correct behavior), with **`apply-live: true` as an opt-in binding field**.
+  This is more honest than "attempt live, fall back to reboot": the cases rpm-ostree layering is
+  *for* (kernel modules, hardware) are exactly where `--apply-live` is unsafe, and a fallback that
+  guesses whether it applied risks mis-messaging. Opt-in keeps live-apply to the userspace packages
+  where it's actually safe.
 
 ## Rollout sketch
 
