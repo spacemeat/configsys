@@ -79,6 +79,8 @@
         unzip:      { install: [ { via: native } ] }
         firefox:    { install: [ { via: native  repo-component: universe } ] }   // in base repos everywhere (incl. EL); apt: universe
         doas:       { install: [ { via: apk  when: "alpine" } ] }                 // Alpine's sudo (apk-only; folded from the alpine plugin)
+        // iproute2 — `ip`/`ss`/`tc`. Native everywhere; EL's dnf calls the package `iproute`.
+        iproute2:   { install: [ { via: native  name: { dnf: iproute  default: iproute2 } } ] }
 
         // gcompat: Alpine's glibc-compat shim. It `provides: glibc`, so it can re-enable the
         // glibc-only bindings (AppImages, glibc tarballs) that otherwise decline on musl. It is
@@ -144,9 +146,15 @@
         }
 
         // --- non-native drivers with driver-level deps ---
-        chrome: {
-            install: [ { via: flatpak  hub: flathub  app: com.google.Chrome } ]
-        }
+        // Proprietary browsers — not in any distro's base repos, and native installs would
+        // each need their vendor apt/dnf repo wired in (plumbing configsys doesn't have). The
+        // Flathub Flatpak is the one uniform, no-per-distro-repo route, same as chrome. (Opera/
+        // Vivaldi/Edge are community-maintained on Flathub, not vendor-official — but current.)
+        chrome:  { install: [ { via: flatpak  hub: flathub  app: com.google.Chrome } ] }
+        brave:   { install: [ { via: flatpak  hub: flathub  app: com.brave.Browser } ] }
+        opera:   { install: [ { via: flatpak  hub: flathub  app: com.opera.Opera } ] }
+        vivaldi: { install: [ { via: flatpak  hub: flathub  app: com.vivaldi.Vivaldi } ] }
+        edge:    { install: [ { via: flatpak  hub: flathub  app: com.microsoft.Edge } ] }
         tree-sitter-cli: {
             install: [ { via: cargo  name: tree-sitter-cli  version: { crates: tree-sitter-cli } } ]
         }

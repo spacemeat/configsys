@@ -132,6 +132,23 @@
     "name": "blender"
    }
   },
+  "brave": {
+   "flatpak\\brave": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "com.brave.Browser"
+    },
+    "name": "com.brave.Browser"
+   },
+   "pacman\\flatpak": {
+    "driver": "pacman",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   }
+  },
   "btop": {
    "pacman\\btop": {
     "driver": "pacman",
@@ -302,6 +319,23 @@
      "unit": "docker"
     },
     "name": "docker-service"
+   }
+  },
+  "edge": {
+   "flatpak\\edge": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "com.microsoft.Edge"
+    },
+    "name": "com.microsoft.Edge"
+   },
+   "pacman\\flatpak": {
+    "driver": "pacman",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
    }
   },
   "fastfetch": {
@@ -479,6 +513,15 @@
      "name": "intel-oneapi-basekit"
     },
     "name": "intel-oneapi-basekit"
+   }
+  },
+  "iproute2": {
+   "pacman\\iproute2": {
+    "driver": "pacman",
+    "fields": {
+     "name": "iproute2"
+    },
+    "name": "iproute2"
    }
   },
   "kicad": {
@@ -791,6 +834,23 @@
     "name": "neovim-dotfiles"
    }
   },
+  "opera": {
+   "flatpak\\opera": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "com.opera.Opera"
+    },
+    "name": "com.opera.Opera"
+   },
+   "pacman\\flatpak": {
+    "driver": "pacman",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   }
+  },
   "pipx": {
    "pacman\\pipx": {
     "driver": "pacman",
@@ -960,6 +1020,23 @@
      "name": "unzip"
     },
     "name": "unzip"
+   }
+  },
+  "vivaldi": {
+   "flatpak\\vivaldi": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "com.vivaldi.Vivaldi"
+    },
+    "name": "com.vivaldi.Vivaldi"
+   },
+   "pacman\\flatpak": {
+    "driver": "pacman",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
    }
   },
   "vlc": {
@@ -1451,6 +1528,23 @@
     "name": "blender"
    }
   },
+  "brave": {
+   "apt\\flatpak": {
+    "driver": "apt",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\brave": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "com.brave.Browser"
+    },
+    "name": "com.brave.Browser"
+   }
+  },
   "btop": {
    "apt\\btop": {
     "driver": "apt",
@@ -1770,6 +1864,23 @@
      "unit": "docker"
     },
     "name": "docker-service"
+   }
+  },
+  "edge": {
+   "apt\\flatpak": {
+    "driver": "apt",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\edge": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "com.microsoft.Edge"
+    },
+    "name": "com.microsoft.Edge"
    }
   },
   "fastfetch": {
@@ -2116,6 +2227,15 @@
     "name": "intel-basekit"
    }
   },
+  "iproute2": {
+   "apt\\iproute2": {
+    "driver": "apt",
+    "fields": {
+     "name": "iproute2"
+    },
+    "name": "iproute2"
+   }
+  },
   "kicad": {
    "apt\\kicad": {
     "driver": "apt",
@@ -2439,6 +2559,23 @@
     "name": "neovim-dotfiles"
    }
   },
+  "opera": {
+   "apt\\flatpak": {
+    "driver": "apt",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\opera": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "com.opera.Opera"
+    },
+    "name": "com.opera.Opera"
+   }
+  },
   "pipx": {
    "apt\\python3-pip": {
     "driver": "apt",
@@ -2627,6 +2764,23 @@
      "name": "unzip"
     },
     "name": "unzip"
+   }
+  },
+  "vivaldi": {
+   "apt\\flatpak": {
+    "driver": "apt",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\vivaldi": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "com.vivaldi.Vivaldi"
+    },
+    "name": "com.vivaldi.Vivaldi"
    }
   },
   "vlc": {
@@ -3057,6 +3211,23 @@
     "name": "blender"
    }
   },
+  "brave": {
+   "apt\\flatpak": {
+    "driver": "apt",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\brave": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "com.brave.Browser"
+    },
+    "name": "com.brave.Browser"
+   }
+  },
   "btop": {
    "apt\\btop": {
     "driver": "apt",
@@ -3376,6 +3547,23 @@
      "unit": "docker"
     },
     "name": "docker-service"
+   }
+  },
+  "edge": {
+   "apt\\flatpak": {
+    "driver": "apt",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\edge": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "com.microsoft.Edge"
+    },
+    "name": "com.microsoft.Edge"
    }
   },
   "fastfetch": {
@@ -3722,6 +3910,15 @@
     "name": "intel-basekit"
    }
   },
+  "iproute2": {
+   "apt\\iproute2": {
+    "driver": "apt",
+    "fields": {
+     "name": "iproute2"
+    },
+    "name": "iproute2"
+   }
+  },
   "kicad": {
    "apt\\kicad": {
     "driver": "apt",
@@ -4045,6 +4242,23 @@
     "name": "neovim-dotfiles"
    }
   },
+  "opera": {
+   "apt\\flatpak": {
+    "driver": "apt",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\opera": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "com.opera.Opera"
+    },
+    "name": "com.opera.Opera"
+   }
+  },
   "pipx": {
    "apt\\pipx": {
     "driver": "apt",
@@ -4223,6 +4437,23 @@
      "name": "unzip"
     },
     "name": "unzip"
+   }
+  },
+  "vivaldi": {
+   "apt\\flatpak": {
+    "driver": "apt",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\vivaldi": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "com.vivaldi.Vivaldi"
+    },
+    "name": "com.vivaldi.Vivaldi"
    }
   },
   "vlc": {
@@ -4653,6 +4884,23 @@
     "name": "blender"
    }
   },
+  "brave": {
+   "dnf\\flatpak": {
+    "driver": "dnf",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\brave": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "com.brave.Browser"
+    },
+    "name": "com.brave.Browser"
+   }
+  },
   "btop": {
    "dnf\\btop": {
     "driver": "dnf",
@@ -4856,6 +5104,23 @@
     "name": "docker-service"
    }
   },
+  "edge": {
+   "dnf\\flatpak": {
+    "driver": "dnf",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\edge": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "com.microsoft.Edge"
+    },
+    "name": "com.microsoft.Edge"
+   }
+  },
   "fastfetch": {
    "dnf\\fastfetch": {
     "driver": "dnf",
@@ -5055,6 +5320,15 @@
      "name": "intel-basekit"
     },
     "name": "intel-basekit"
+   }
+  },
+  "iproute2": {
+   "dnf\\iproute2": {
+    "driver": "dnf",
+    "fields": {
+     "name": "iproute"
+    },
+    "name": "iproute"
    }
   },
   "kicad": {
@@ -5367,6 +5641,23 @@
     "name": "neovim-dotfiles"
    }
   },
+  "opera": {
+   "dnf\\flatpak": {
+    "driver": "dnf",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\opera": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "com.opera.Opera"
+    },
+    "name": "com.opera.Opera"
+   }
+  },
   "pipx": {
    "dnf\\pipx": {
     "driver": "dnf",
@@ -5549,6 +5840,23 @@
      "name": "unzip"
     },
     "name": "unzip"
+   }
+  },
+  "vivaldi": {
+   "dnf\\flatpak": {
+    "driver": "dnf",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\vivaldi": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "com.vivaldi.Vivaldi"
+    },
+    "name": "com.vivaldi.Vivaldi"
    }
   },
   "vlc": {
@@ -5994,6 +6302,23 @@
     "name": "blender"
    }
   },
+  "brave": {
+   "dnf\\flatpak": {
+    "driver": "dnf",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\brave": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "com.brave.Browser"
+    },
+    "name": "com.brave.Browser"
+   }
+  },
   "btop": {
    "dnf\\btop": {
     "driver": "dnf",
@@ -6209,6 +6534,23 @@
     "name": "docker-service"
    }
   },
+  "edge": {
+   "dnf\\flatpak": {
+    "driver": "dnf",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\edge": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "com.microsoft.Edge"
+    },
+    "name": "com.microsoft.Edge"
+   }
+  },
   "fastfetch": {
    "dnf\\fastfetch": {
     "driver": "dnf",
@@ -6408,6 +6750,15 @@
      "name": "intel-basekit"
     },
     "name": "intel-basekit"
+   }
+  },
+  "iproute2": {
+   "dnf\\iproute2": {
+    "driver": "dnf",
+    "fields": {
+     "name": "iproute"
+    },
+    "name": "iproute"
    }
   },
   "kicad": {
@@ -6720,6 +7071,23 @@
     "name": "neovim-dotfiles"
    }
   },
+  "opera": {
+   "dnf\\flatpak": {
+    "driver": "dnf",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\opera": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "com.opera.Opera"
+    },
+    "name": "com.opera.Opera"
+   }
+  },
   "pipx": {
    "dnf\\pipx": {
     "driver": "dnf",
@@ -6902,6 +7270,23 @@
      "name": "unzip"
     },
     "name": "unzip"
+   }
+  },
+  "vivaldi": {
+   "dnf\\flatpak": {
+    "driver": "dnf",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\vivaldi": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "com.vivaldi.Vivaldi"
+    },
+    "name": "com.vivaldi.Vivaldi"
    }
   },
   "vlc": {
@@ -7347,6 +7732,23 @@
     "name": "blender"
    }
   },
+  "brave": {
+   "apt\\flatpak": {
+    "driver": "apt",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\brave": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "com.brave.Browser"
+    },
+    "name": "com.brave.Browser"
+   }
+  },
   "btop": {
    "apt\\btop": {
     "driver": "apt",
@@ -7666,6 +8068,23 @@
      "unit": "docker"
     },
     "name": "docker-service"
+   }
+  },
+  "edge": {
+   "apt\\flatpak": {
+    "driver": "apt",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\edge": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "com.microsoft.Edge"
+    },
+    "name": "com.microsoft.Edge"
    }
   },
   "fastfetch": {
@@ -8012,6 +8431,15 @@
     "name": "intel-basekit"
    }
   },
+  "iproute2": {
+   "apt\\iproute2": {
+    "driver": "apt",
+    "fields": {
+     "name": "iproute2"
+    },
+    "name": "iproute2"
+   }
+  },
   "kicad": {
    "apt\\kicad": {
     "driver": "apt",
@@ -8335,6 +8763,23 @@
     "name": "neovim-dotfiles"
    }
   },
+  "opera": {
+   "apt\\flatpak": {
+    "driver": "apt",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\opera": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "com.opera.Opera"
+    },
+    "name": "com.opera.Opera"
+   }
+  },
   "pipx": {
    "apt\\python3-pip": {
     "driver": "apt",
@@ -8516,6 +8961,23 @@
      "name": "unzip"
     },
     "name": "unzip"
+   }
+  },
+  "vivaldi": {
+   "apt\\flatpak": {
+    "driver": "apt",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\vivaldi": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "com.vivaldi.Vivaldi"
+    },
+    "name": "com.vivaldi.Vivaldi"
    }
   },
   "vlc": {
@@ -8952,6 +9414,23 @@
     "name": "epel-release"
    }
   },
+  "brave": {
+   "dnf\\flatpak": {
+    "driver": "dnf",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\brave": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "com.brave.Browser"
+    },
+    "name": "com.brave.Browser"
+   }
+  },
   "btop": {
    "dnf\\btop": {
     "driver": "dnf",
@@ -9173,6 +9652,23 @@
      "unit": "docker"
     },
     "name": "docker-service"
+   }
+  },
+  "edge": {
+   "dnf\\flatpak": {
+    "driver": "dnf",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\edge": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "com.microsoft.Edge"
+    },
+    "name": "com.microsoft.Edge"
    }
   },
   "epel-release": {
@@ -9424,6 +9920,15 @@
      "name": "intel-basekit"
     },
     "name": "intel-basekit"
+   }
+  },
+  "iproute2": {
+   "dnf\\iproute2": {
+    "driver": "dnf",
+    "fields": {
+     "name": "iproute"
+    },
+    "name": "iproute"
    }
   },
   "kicad": {
@@ -9762,6 +10267,23 @@
     "name": "neovim-dotfiles"
    }
   },
+  "opera": {
+   "dnf\\flatpak": {
+    "driver": "dnf",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\opera": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "com.opera.Opera"
+    },
+    "name": "com.opera.Opera"
+   }
+  },
   "pipx": {
    "dnf\\epel-release": {
     "driver": "dnf",
@@ -9965,6 +10487,23 @@
      "name": "unzip"
     },
     "name": "unzip"
+   }
+  },
+  "vivaldi": {
+   "dnf\\flatpak": {
+    "driver": "dnf",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\vivaldi": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "com.vivaldi.Vivaldi"
+    },
+    "name": "com.vivaldi.Vivaldi"
    }
   },
   "vlc": {
@@ -10412,6 +10951,23 @@
     "name": "blender"
    }
   },
+  "brave": {
+   "apt\\flatpak": {
+    "driver": "apt",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\brave": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "com.brave.Browser"
+    },
+    "name": "com.brave.Browser"
+   }
+  },
   "btop": {
    "apt\\btop": {
     "driver": "apt",
@@ -10731,6 +11287,23 @@
      "unit": "docker"
     },
     "name": "docker-service"
+   }
+  },
+  "edge": {
+   "apt\\flatpak": {
+    "driver": "apt",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\edge": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "com.microsoft.Edge"
+    },
+    "name": "com.microsoft.Edge"
    }
   },
   "fastfetch": {
@@ -11077,6 +11650,15 @@
     "name": "intel-basekit"
    }
   },
+  "iproute2": {
+   "apt\\iproute2": {
+    "driver": "apt",
+    "fields": {
+     "name": "iproute2"
+    },
+    "name": "iproute2"
+   }
+  },
   "kicad": {
    "apt\\kicad": {
     "driver": "apt",
@@ -11400,6 +11982,23 @@
     "name": "neovim-dotfiles"
    }
   },
+  "opera": {
+   "apt\\flatpak": {
+    "driver": "apt",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\opera": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "com.opera.Opera"
+    },
+    "name": "com.opera.Opera"
+   }
+  },
   "pipx": {
    "apt\\python3-pip": {
     "driver": "apt",
@@ -11588,6 +12187,23 @@
      "name": "unzip"
     },
     "name": "unzip"
+   }
+  },
+  "vivaldi": {
+   "apt\\flatpak": {
+    "driver": "apt",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\vivaldi": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "com.vivaldi.Vivaldi"
+    },
+    "name": "com.vivaldi.Vivaldi"
    }
   },
   "vlc": {
@@ -12018,6 +12634,23 @@
     "name": "blender"
    }
   },
+  "brave": {
+   "apt\\flatpak": {
+    "driver": "apt",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\brave": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "com.brave.Browser"
+    },
+    "name": "com.brave.Browser"
+   }
+  },
   "btop": {
    "apt\\btop": {
     "driver": "apt",
@@ -12337,6 +12970,23 @@
      "unit": "docker"
     },
     "name": "docker-service"
+   }
+  },
+  "edge": {
+   "apt\\flatpak": {
+    "driver": "apt",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\edge": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "com.microsoft.Edge"
+    },
+    "name": "com.microsoft.Edge"
    }
   },
   "fastfetch": {
@@ -12683,6 +13333,15 @@
     "name": "intel-basekit"
    }
   },
+  "iproute2": {
+   "apt\\iproute2": {
+    "driver": "apt",
+    "fields": {
+     "name": "iproute2"
+    },
+    "name": "iproute2"
+   }
+  },
   "kicad": {
    "apt\\kicad": {
     "driver": "apt",
@@ -13006,6 +13665,23 @@
     "name": "neovim-dotfiles"
    }
   },
+  "opera": {
+   "apt\\flatpak": {
+    "driver": "apt",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\opera": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "com.opera.Opera"
+    },
+    "name": "com.opera.Opera"
+   }
+  },
   "pipx": {
    "apt\\pipx": {
     "driver": "apt",
@@ -13184,6 +13860,23 @@
      "name": "unzip"
     },
     "name": "unzip"
+   }
+  },
+  "vivaldi": {
+   "apt\\flatpak": {
+    "driver": "apt",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\vivaldi": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "com.vivaldi.Vivaldi"
+    },
+    "name": "com.vivaldi.Vivaldi"
    }
   },
   "vlc": {
