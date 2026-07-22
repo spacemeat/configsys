@@ -149,6 +149,23 @@
     "name": "flatpak"
    }
   },
+  "bruno": {
+   "flatpak\\bruno": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "com.usebruno.Bruno"
+    },
+    "name": "com.usebruno.Bruno"
+   },
+   "pacman\\flatpak": {
+    "driver": "pacman",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   }
+  },
   "btop": {
    "pacman\\btop": {
     "driver": "pacman",
@@ -239,6 +256,15 @@
      "name": "curl"
     },
     "name": "curl"
+   }
+  },
+  "dig": {
+   "pacman\\dig": {
+    "driver": "pacman",
+    "fields": {
+     "name": "bind"
+    },
+    "name": "bind"
    }
   },
   "discord": {
@@ -336,6 +362,15 @@
      "name": "flatpak"
     },
     "name": "flatpak"
+   }
+  },
+  "ethtool": {
+   "pacman\\ethtool": {
+    "driver": "pacman",
+    "fields": {
+     "name": "ethtool"
+    },
+    "name": "ethtool"
    }
   },
   "fastfetch": {
@@ -506,6 +541,41 @@
     "name": "htop-dotfiles"
    }
   },
+  "httpie": {
+   "pacman\\httpie": {
+    "driver": "pacman",
+    "fields": {
+     "name": "httpie"
+    },
+    "name": "httpie"
+   }
+  },
+  "iftop": {
+   "pacman\\iftop": {
+    "driver": "pacman",
+    "fields": {
+     "name": "iftop"
+    },
+    "name": "iftop"
+   }
+  },
+  "insomnia": {
+   "flatpak\\insomnia": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "rest.insomnia.Insomnia"
+    },
+    "name": "rest.insomnia.Insomnia"
+   },
+   "pacman\\flatpak": {
+    "driver": "pacman",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   }
+  },
   "intel-oneapi-basekit": {
    "pacman\\intel-oneapi-basekit": {
     "driver": "pacman",
@@ -515,6 +585,15 @@
     "name": "intel-oneapi-basekit"
    }
   },
+  "iperf3": {
+   "pacman\\iperf3": {
+    "driver": "pacman",
+    "fields": {
+     "name": "iperf3"
+    },
+    "name": "iperf3"
+   }
+  },
   "iproute2": {
    "pacman\\iproute2": {
     "driver": "pacman",
@@ -522,6 +601,15 @@
      "name": "iproute2"
     },
     "name": "iproute2"
+   }
+  },
+  "jq": {
+   "pacman\\jq": {
+    "driver": "pacman",
+    "fields": {
+     "name": "jq"
+    },
+    "name": "jq"
    }
   },
   "kicad": {
@@ -712,6 +800,25 @@
     "name": "mesa-vulkan-drivers"
    }
   },
+  "mitmproxy": {
+   "pacman\\pipx": {
+    "driver": "pacman",
+    "fields": {
+     "name": "python-pipx"
+    },
+    "name": "python-pipx"
+   },
+   "pipx\\mitmproxy": {
+    "driver": "pipx",
+    "fields": {
+     "name": "mitmproxy",
+     "version": {
+      "pypi": "mitmproxy"
+     }
+    },
+    "name": "mitmproxy"
+   }
+  },
   "mononoki-nerd": {
    "font\\mononoki-nerd": {
     "driver": "font",
@@ -738,6 +845,15 @@
      "name": "unzip"
     },
     "name": "unzip"
+   }
+  },
+  "mtr": {
+   "pacman\\mtr": {
+    "driver": "pacman",
+    "fields": {
+     "name": "mtr"
+    },
+    "name": "mtr"
    }
   },
   "neovim": {
@@ -834,6 +950,42 @@
     "name": "neovim-dotfiles"
    }
   },
+  "netcat": {
+   "pacman\\netcat": {
+    "driver": "pacman",
+    "fields": {
+     "name": "openbsd-netcat"
+    },
+    "name": "openbsd-netcat"
+   }
+  },
+  "nethogs": {
+   "pacman\\nethogs": {
+    "driver": "pacman",
+    "fields": {
+     "name": "nethogs"
+    },
+    "name": "nethogs"
+   }
+  },
+  "nload": {
+   "pacman\\nload": {
+    "driver": "pacman",
+    "fields": {
+     "name": "nload"
+    },
+    "name": "nload"
+   }
+  },
+  "nmap": {
+   "pacman\\nmap": {
+    "driver": "pacman",
+    "fields": {
+     "name": "nmap"
+    },
+    "name": "nmap"
+   }
+  },
   "opera": {
    "flatpak\\opera": {
     "driver": "flatpak",
@@ -892,6 +1044,23 @@
     "name": "podman-dotfiles"
    }
   },
+  "postman": {
+   "flatpak\\postman": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "com.getpostman.Postman"
+    },
+    "name": "com.getpostman.Postman"
+   },
+   "pacman\\flatpak": {
+    "driver": "pacman",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   }
+  },
   "python3-pip": {
    "pacman\\python3-pip": {
     "driver": "pacman",
@@ -937,6 +1106,15 @@
     "name": "flatpak"
    }
   },
+  "socat": {
+   "pacman\\socat": {
+    "driver": "pacman",
+    "fields": {
+     "name": "socat"
+    },
+    "name": "socat"
+   }
+  },
   "steam": {
    "flatpak\\steam": {
     "driver": "flatpak",
@@ -954,6 +1132,15 @@
     "name": "flatpak"
    }
   },
+  "tcpdump": {
+   "pacman\\tcpdump": {
+    "driver": "pacman",
+    "fields": {
+     "name": "tcpdump"
+    },
+    "name": "tcpdump"
+   }
+  },
   "tenacity": {
    "flatpak\\tenacity": {
     "driver": "flatpak",
@@ -969,6 +1156,15 @@
      "name": "flatpak"
     },
     "name": "flatpak"
+   }
+  },
+  "traceroute": {
+   "pacman\\traceroute": {
+    "driver": "pacman",
+    "fields": {
+     "name": "traceroute"
+    },
+    "name": "traceroute"
    }
   },
   "tree-sitter-cli": {
@@ -989,6 +1185,15 @@
      "repo-component": "universe"
     },
     "name": "rust"
+   }
+  },
+  "tshark": {
+   "pacman\\tshark": {
+    "driver": "pacman",
+    "fields": {
+     "name": "wireshark-cli"
+    },
+    "name": "wireshark-cli"
    }
   },
   "unityhub": {
@@ -1046,6 +1251,15 @@
      "name": "vlc"
     },
     "name": "vlc"
+   }
+  },
+  "vnstat": {
+   "pacman\\vnstat": {
+    "driver": "pacman",
+    "fields": {
+     "name": "vnstat"
+    },
+    "name": "vnstat"
    }
   },
   "vscode": {
@@ -1309,6 +1523,44 @@
     "name": "vulkan-swrast"
    }
   },
+  "websocat": {
+   "cargo\\websocat": {
+    "driver": "cargo",
+    "fields": {
+     "name": "websocat",
+     "version": {
+      "crates": "websocat"
+     }
+    },
+    "name": "websocat"
+   },
+   "pacman\\cargo": {
+    "driver": "pacman",
+    "fields": {
+     "name": "rust",
+     "repo-component": "universe"
+    },
+    "name": "rust"
+   }
+  },
+  "whois": {
+   "pacman\\whois": {
+    "driver": "pacman",
+    "fields": {
+     "name": "whois"
+    },
+    "name": "whois"
+   }
+  },
+  "wireshark": {
+   "pacman\\wireshark": {
+    "driver": "pacman",
+    "fields": {
+     "name": "wireshark-qt"
+    },
+    "name": "wireshark-qt"
+   }
+  },
   "xcb-util-cursor": {
    "pacman\\xcb-util-cursor": {
     "driver": "pacman",
@@ -1377,6 +1629,26 @@
     "name": "xclip-dotfiles"
    }
   },
+  "xh": {
+   "cargo\\xh": {
+    "driver": "cargo",
+    "fields": {
+     "name": "xh",
+     "version": {
+      "crates": "xh"
+     }
+    },
+    "name": "xh"
+   },
+   "pacman\\cargo": {
+    "driver": "pacman",
+    "fields": {
+     "name": "rust",
+     "repo-component": "universe"
+    },
+    "name": "rust"
+   }
+  },
   "yay": {
    "aur\\yay": {
     "driver": "aur",
@@ -1401,6 +1673,32 @@
      "name": "git"
     },
     "name": "git"
+   }
+  },
+  "yq": {
+   "pacman\\jq": {
+    "driver": "pacman",
+    "fields": {
+     "name": "jq"
+    },
+    "name": "jq"
+   },
+   "pacman\\pipx": {
+    "driver": "pacman",
+    "fields": {
+     "name": "python-pipx"
+    },
+    "name": "python-pipx"
+   },
+   "pipx\\yq": {
+    "driver": "pipx",
+    "fields": {
+     "name": "yq",
+     "version": {
+      "pypi": "yq"
+     }
+    },
+    "name": "yq"
    }
   }
  },
@@ -1545,6 +1843,23 @@
     "name": "com.brave.Browser"
    }
   },
+  "bruno": {
+   "apt\\flatpak": {
+    "driver": "apt",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\bruno": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "com.usebruno.Bruno"
+    },
+    "name": "com.usebruno.Bruno"
+   }
+  },
   "btop": {
    "apt\\btop": {
     "driver": "apt",
@@ -1786,6 +2101,15 @@
     "name": "curl"
    }
   },
+  "dig": {
+   "apt\\dig": {
+    "driver": "apt",
+    "fields": {
+     "name": "dnsutils"
+    },
+    "name": "dnsutils"
+   }
+  },
   "discord": {
    "apt\\flatpak": {
     "driver": "apt",
@@ -1881,6 +2205,15 @@
      "name": "com.microsoft.Edge"
     },
     "name": "com.microsoft.Edge"
+   }
+  },
+  "ethtool": {
+   "apt\\ethtool": {
+    "driver": "apt",
+    "fields": {
+     "name": "ethtool"
+    },
+    "name": "ethtool"
    }
   },
   "fastfetch": {
@@ -2218,6 +2551,41 @@
     "name": "htop-dotfiles"
    }
   },
+  "httpie": {
+   "apt\\httpie": {
+    "driver": "apt",
+    "fields": {
+     "name": "httpie"
+    },
+    "name": "httpie"
+   }
+  },
+  "iftop": {
+   "apt\\iftop": {
+    "driver": "apt",
+    "fields": {
+     "name": "iftop"
+    },
+    "name": "iftop"
+   }
+  },
+  "insomnia": {
+   "apt\\flatpak": {
+    "driver": "apt",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\insomnia": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "rest.insomnia.Insomnia"
+    },
+    "name": "rest.insomnia.Insomnia"
+   }
+  },
   "intel-oneapi-basekit": {
    "apt\\intel-oneapi-basekit": {
     "driver": "apt",
@@ -2227,6 +2595,15 @@
     "name": "intel-basekit"
    }
   },
+  "iperf3": {
+   "apt\\iperf3": {
+    "driver": "apt",
+    "fields": {
+     "name": "iperf3"
+    },
+    "name": "iperf3"
+   }
+  },
   "iproute2": {
    "apt\\iproute2": {
     "driver": "apt",
@@ -2234,6 +2611,15 @@
      "name": "iproute2"
     },
     "name": "iproute2"
+   }
+  },
+  "jq": {
+   "apt\\jq": {
+    "driver": "apt",
+    "fields": {
+     "name": "jq"
+    },
+    "name": "jq"
    }
   },
   "kicad": {
@@ -2437,6 +2823,35 @@
     "name": "mesa-vulkan-drivers"
    }
   },
+  "mitmproxy": {
+   "apt\\python3-pip": {
+    "driver": "apt",
+    "fields": {
+     "name": "python3-pip"
+    },
+    "name": "python3-pip"
+   },
+   "pip\\pipx": {
+    "driver": "pip",
+    "fields": {
+     "name": "pipx",
+     "version": {
+      "pypi": "pipx"
+     }
+    },
+    "name": "pipx"
+   },
+   "pipx\\mitmproxy": {
+    "driver": "pipx",
+    "fields": {
+     "name": "mitmproxy",
+     "version": {
+      "pypi": "mitmproxy"
+     }
+    },
+    "name": "mitmproxy"
+   }
+  },
   "mononoki-nerd": {
    "apt\\fontconfig": {
     "driver": "apt",
@@ -2463,6 +2878,15 @@
      }
     },
     "name": "Mononoki"
+   }
+  },
+  "mtr": {
+   "apt\\mtr": {
+    "driver": "apt",
+    "fields": {
+     "name": "mtr"
+    },
+    "name": "mtr"
    }
   },
   "neovim": {
@@ -2559,6 +2983,42 @@
     "name": "neovim-dotfiles"
    }
   },
+  "netcat": {
+   "apt\\netcat": {
+    "driver": "apt",
+    "fields": {
+     "name": "netcat-openbsd"
+    },
+    "name": "netcat-openbsd"
+   }
+  },
+  "nethogs": {
+   "apt\\nethogs": {
+    "driver": "apt",
+    "fields": {
+     "name": "nethogs"
+    },
+    "name": "nethogs"
+   }
+  },
+  "nload": {
+   "apt\\nload": {
+    "driver": "apt",
+    "fields": {
+     "name": "nload"
+    },
+    "name": "nload"
+   }
+  },
+  "nmap": {
+   "apt\\nmap": {
+    "driver": "apt",
+    "fields": {
+     "name": "nmap"
+    },
+    "name": "nmap"
+   }
+  },
   "opera": {
    "apt\\flatpak": {
     "driver": "apt",
@@ -2627,6 +3087,23 @@
     "name": "podman-dotfiles"
    }
   },
+  "postman": {
+   "apt\\flatpak": {
+    "driver": "apt",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\postman": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "com.getpostman.Postman"
+    },
+    "name": "com.getpostman.Postman"
+   }
+  },
   "python3-pip": {
    "apt\\python3-pip": {
     "driver": "apt",
@@ -2672,6 +3149,15 @@
     "name": "com.slack.Slack"
    }
   },
+  "socat": {
+   "apt\\socat": {
+    "driver": "apt",
+    "fields": {
+     "name": "socat"
+    },
+    "name": "socat"
+   }
+  },
   "software-properties-common": {
    "apt\\software-properties-common": {
     "driver": "apt",
@@ -2698,6 +3184,15 @@
     "name": "com.valvesoftware.Steam"
    }
   },
+  "tcpdump": {
+   "apt\\tcpdump": {
+    "driver": "apt",
+    "fields": {
+     "name": "tcpdump"
+    },
+    "name": "tcpdump"
+   }
+  },
   "tenacity": {
    "apt\\flatpak": {
     "driver": "apt",
@@ -2713,6 +3208,15 @@
      "name": "org.tenacityaudio.Tenacity"
     },
     "name": "org.tenacityaudio.Tenacity"
+   }
+  },
+  "traceroute": {
+   "apt\\traceroute": {
+    "driver": "apt",
+    "fields": {
+     "name": "traceroute"
+    },
+    "name": "traceroute"
    }
   },
   "tree-sitter-cli": {
@@ -2733,6 +3237,15 @@
      }
     },
     "name": "tree-sitter-cli"
+   }
+  },
+  "tshark": {
+   "apt\\tshark": {
+    "driver": "apt",
+    "fields": {
+     "name": "tshark"
+    },
+    "name": "tshark"
    }
   },
   "unityhub": {
@@ -2790,6 +3303,15 @@
      "name": "vlc"
     },
     "name": "vlc"
+   }
+  },
+  "vnstat": {
+   "apt\\vnstat": {
+    "driver": "apt",
+    "fields": {
+     "name": "vnstat"
+    },
+    "name": "vnstat"
    }
   },
   "vscode": {
@@ -3018,6 +3540,44 @@
     "name": "vulkan-swrast"
    }
   },
+  "websocat": {
+   "apt\\cargo": {
+    "driver": "apt",
+    "fields": {
+     "name": "cargo",
+     "repo-component": "universe"
+    },
+    "name": "cargo"
+   },
+   "cargo\\websocat": {
+    "driver": "cargo",
+    "fields": {
+     "name": "websocat",
+     "version": {
+      "crates": "websocat"
+     }
+    },
+    "name": "websocat"
+   }
+  },
+  "whois": {
+   "apt\\whois": {
+    "driver": "apt",
+    "fields": {
+     "name": "whois"
+    },
+    "name": "whois"
+   }
+  },
+  "wireshark": {
+   "apt\\wireshark": {
+    "driver": "apt",
+    "fields": {
+     "name": "wireshark"
+    },
+    "name": "wireshark"
+   }
+  },
   "xcb-util-cursor": {
    "apt\\xcb-util-cursor": {
     "driver": "apt",
@@ -3084,6 +3644,62 @@
      "src": "bash.d/xclip.sh"
     },
     "name": "xclip-dotfiles"
+   }
+  },
+  "xh": {
+   "apt\\cargo": {
+    "driver": "apt",
+    "fields": {
+     "name": "cargo",
+     "repo-component": "universe"
+    },
+    "name": "cargo"
+   },
+   "cargo\\xh": {
+    "driver": "cargo",
+    "fields": {
+     "name": "xh",
+     "version": {
+      "crates": "xh"
+     }
+    },
+    "name": "xh"
+   }
+  },
+  "yq": {
+   "apt\\jq": {
+    "driver": "apt",
+    "fields": {
+     "name": "jq"
+    },
+    "name": "jq"
+   },
+   "apt\\python3-pip": {
+    "driver": "apt",
+    "fields": {
+     "name": "python3-pip"
+    },
+    "name": "python3-pip"
+   },
+   "pip\\pipx": {
+    "driver": "pip",
+    "fields": {
+     "name": "pipx",
+     "version": {
+      "pypi": "pipx"
+     }
+    },
+    "name": "pipx"
+   },
+   "pipx\\yq": {
+    "driver": "pipx",
+    "fields": {
+     "name": "yq",
+     "version": {
+      "pypi": "yq"
+     }
+    },
+    "name": "yq"
    }
   }
  },
@@ -3228,6 +3844,23 @@
     "name": "com.brave.Browser"
    }
   },
+  "bruno": {
+   "apt\\flatpak": {
+    "driver": "apt",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\bruno": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "com.usebruno.Bruno"
+    },
+    "name": "com.usebruno.Bruno"
+   }
+  },
   "btop": {
    "apt\\btop": {
     "driver": "apt",
@@ -3469,6 +4102,15 @@
     "name": "curl"
    }
   },
+  "dig": {
+   "apt\\dig": {
+    "driver": "apt",
+    "fields": {
+     "name": "dnsutils"
+    },
+    "name": "dnsutils"
+   }
+  },
   "discord": {
    "apt\\flatpak": {
     "driver": "apt",
@@ -3564,6 +4206,15 @@
      "name": "com.microsoft.Edge"
     },
     "name": "com.microsoft.Edge"
+   }
+  },
+  "ethtool": {
+   "apt\\ethtool": {
+    "driver": "apt",
+    "fields": {
+     "name": "ethtool"
+    },
+    "name": "ethtool"
    }
   },
   "fastfetch": {
@@ -3901,6 +4552,41 @@
     "name": "htop-dotfiles"
    }
   },
+  "httpie": {
+   "apt\\httpie": {
+    "driver": "apt",
+    "fields": {
+     "name": "httpie"
+    },
+    "name": "httpie"
+   }
+  },
+  "iftop": {
+   "apt\\iftop": {
+    "driver": "apt",
+    "fields": {
+     "name": "iftop"
+    },
+    "name": "iftop"
+   }
+  },
+  "insomnia": {
+   "apt\\flatpak": {
+    "driver": "apt",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\insomnia": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "rest.insomnia.Insomnia"
+    },
+    "name": "rest.insomnia.Insomnia"
+   }
+  },
   "intel-oneapi-basekit": {
    "apt\\intel-oneapi-basekit": {
     "driver": "apt",
@@ -3910,6 +4596,15 @@
     "name": "intel-basekit"
    }
   },
+  "iperf3": {
+   "apt\\iperf3": {
+    "driver": "apt",
+    "fields": {
+     "name": "iperf3"
+    },
+    "name": "iperf3"
+   }
+  },
   "iproute2": {
    "apt\\iproute2": {
     "driver": "apt",
@@ -3917,6 +4612,15 @@
      "name": "iproute2"
     },
     "name": "iproute2"
+   }
+  },
+  "jq": {
+   "apt\\jq": {
+    "driver": "apt",
+    "fields": {
+     "name": "jq"
+    },
+    "name": "jq"
    }
   },
   "kicad": {
@@ -4120,6 +4824,25 @@
     "name": "mesa-vulkan-drivers"
    }
   },
+  "mitmproxy": {
+   "apt\\pipx": {
+    "driver": "apt",
+    "fields": {
+     "name": "pipx"
+    },
+    "name": "pipx"
+   },
+   "pipx\\mitmproxy": {
+    "driver": "pipx",
+    "fields": {
+     "name": "mitmproxy",
+     "version": {
+      "pypi": "mitmproxy"
+     }
+    },
+    "name": "mitmproxy"
+   }
+  },
   "mononoki-nerd": {
    "apt\\fontconfig": {
     "driver": "apt",
@@ -4146,6 +4869,15 @@
      }
     },
     "name": "Mononoki"
+   }
+  },
+  "mtr": {
+   "apt\\mtr": {
+    "driver": "apt",
+    "fields": {
+     "name": "mtr"
+    },
+    "name": "mtr"
    }
   },
   "neovim": {
@@ -4242,6 +4974,42 @@
     "name": "neovim-dotfiles"
    }
   },
+  "netcat": {
+   "apt\\netcat": {
+    "driver": "apt",
+    "fields": {
+     "name": "netcat-openbsd"
+    },
+    "name": "netcat-openbsd"
+   }
+  },
+  "nethogs": {
+   "apt\\nethogs": {
+    "driver": "apt",
+    "fields": {
+     "name": "nethogs"
+    },
+    "name": "nethogs"
+   }
+  },
+  "nload": {
+   "apt\\nload": {
+    "driver": "apt",
+    "fields": {
+     "name": "nload"
+    },
+    "name": "nload"
+   }
+  },
+  "nmap": {
+   "apt\\nmap": {
+    "driver": "apt",
+    "fields": {
+     "name": "nmap"
+    },
+    "name": "nmap"
+   }
+  },
   "opera": {
    "apt\\flatpak": {
     "driver": "apt",
@@ -4300,6 +5068,23 @@
     "name": "podman-dotfiles"
    }
   },
+  "postman": {
+   "apt\\flatpak": {
+    "driver": "apt",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\postman": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "com.getpostman.Postman"
+    },
+    "name": "com.getpostman.Postman"
+   }
+  },
   "python3-pip": {
    "apt\\python3-pip": {
     "driver": "apt",
@@ -4345,6 +5130,15 @@
     "name": "com.slack.Slack"
    }
   },
+  "socat": {
+   "apt\\socat": {
+    "driver": "apt",
+    "fields": {
+     "name": "socat"
+    },
+    "name": "socat"
+   }
+  },
   "software-properties-common": {
    "apt\\software-properties-common": {
     "driver": "apt",
@@ -4371,6 +5165,15 @@
     "name": "com.valvesoftware.Steam"
    }
   },
+  "tcpdump": {
+   "apt\\tcpdump": {
+    "driver": "apt",
+    "fields": {
+     "name": "tcpdump"
+    },
+    "name": "tcpdump"
+   }
+  },
   "tenacity": {
    "apt\\flatpak": {
     "driver": "apt",
@@ -4386,6 +5189,15 @@
      "name": "org.tenacityaudio.Tenacity"
     },
     "name": "org.tenacityaudio.Tenacity"
+   }
+  },
+  "traceroute": {
+   "apt\\traceroute": {
+    "driver": "apt",
+    "fields": {
+     "name": "traceroute"
+    },
+    "name": "traceroute"
    }
   },
   "tree-sitter-cli": {
@@ -4406,6 +5218,15 @@
      }
     },
     "name": "tree-sitter-cli"
+   }
+  },
+  "tshark": {
+   "apt\\tshark": {
+    "driver": "apt",
+    "fields": {
+     "name": "tshark"
+    },
+    "name": "tshark"
    }
   },
   "unityhub": {
@@ -4463,6 +5284,15 @@
      "name": "vlc"
     },
     "name": "vlc"
+   }
+  },
+  "vnstat": {
+   "apt\\vnstat": {
+    "driver": "apt",
+    "fields": {
+     "name": "vnstat"
+    },
+    "name": "vnstat"
    }
   },
   "vscode": {
@@ -4691,6 +5521,44 @@
     "name": "vulkan-swrast"
    }
   },
+  "websocat": {
+   "apt\\cargo": {
+    "driver": "apt",
+    "fields": {
+     "name": "cargo",
+     "repo-component": "universe"
+    },
+    "name": "cargo"
+   },
+   "cargo\\websocat": {
+    "driver": "cargo",
+    "fields": {
+     "name": "websocat",
+     "version": {
+      "crates": "websocat"
+     }
+    },
+    "name": "websocat"
+   }
+  },
+  "whois": {
+   "apt\\whois": {
+    "driver": "apt",
+    "fields": {
+     "name": "whois"
+    },
+    "name": "whois"
+   }
+  },
+  "wireshark": {
+   "apt\\wireshark": {
+    "driver": "apt",
+    "fields": {
+     "name": "wireshark"
+    },
+    "name": "wireshark"
+   }
+  },
   "xcb-util-cursor": {
    "apt\\xcb-util-cursor": {
     "driver": "apt",
@@ -4757,6 +5625,52 @@
      "src": "bash.d/xclip.sh"
     },
     "name": "xclip-dotfiles"
+   }
+  },
+  "xh": {
+   "apt\\cargo": {
+    "driver": "apt",
+    "fields": {
+     "name": "cargo",
+     "repo-component": "universe"
+    },
+    "name": "cargo"
+   },
+   "cargo\\xh": {
+    "driver": "cargo",
+    "fields": {
+     "name": "xh",
+     "version": {
+      "crates": "xh"
+     }
+    },
+    "name": "xh"
+   }
+  },
+  "yq": {
+   "apt\\jq": {
+    "driver": "apt",
+    "fields": {
+     "name": "jq"
+    },
+    "name": "jq"
+   },
+   "apt\\pipx": {
+    "driver": "apt",
+    "fields": {
+     "name": "pipx"
+    },
+    "name": "pipx"
+   },
+   "pipx\\yq": {
+    "driver": "pipx",
+    "fields": {
+     "name": "yq",
+     "version": {
+      "pypi": "yq"
+     }
+    },
+    "name": "yq"
    }
   }
  },
@@ -4901,6 +5815,23 @@
     "name": "com.brave.Browser"
    }
   },
+  "bruno": {
+   "dnf\\flatpak": {
+    "driver": "dnf",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\bruno": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "com.usebruno.Bruno"
+    },
+    "name": "com.usebruno.Bruno"
+   }
+  },
   "btop": {
    "dnf\\btop": {
     "driver": "dnf",
@@ -5024,6 +5955,15 @@
     "name": "curl"
    }
   },
+  "dig": {
+   "dnf\\dig": {
+    "driver": "dnf",
+    "fields": {
+     "name": "bind-utils"
+    },
+    "name": "bind-utils"
+   }
+  },
   "discord": {
    "dnf\\flatpak": {
     "driver": "dnf",
@@ -5119,6 +6059,15 @@
      "name": "com.microsoft.Edge"
     },
     "name": "com.microsoft.Edge"
+   }
+  },
+  "ethtool": {
+   "dnf\\ethtool": {
+    "driver": "dnf",
+    "fields": {
+     "name": "ethtool"
+    },
+    "name": "ethtool"
    }
   },
   "fastfetch": {
@@ -5313,6 +6262,41 @@
     "name": "htop-dotfiles"
    }
   },
+  "httpie": {
+   "dnf\\httpie": {
+    "driver": "dnf",
+    "fields": {
+     "name": "httpie"
+    },
+    "name": "httpie"
+   }
+  },
+  "iftop": {
+   "dnf\\iftop": {
+    "driver": "dnf",
+    "fields": {
+     "name": "iftop"
+    },
+    "name": "iftop"
+   }
+  },
+  "insomnia": {
+   "dnf\\flatpak": {
+    "driver": "dnf",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\insomnia": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "rest.insomnia.Insomnia"
+    },
+    "name": "rest.insomnia.Insomnia"
+   }
+  },
   "intel-oneapi-basekit": {
    "dnf\\intel-oneapi-basekit": {
     "driver": "dnf",
@@ -5322,6 +6306,15 @@
     "name": "intel-basekit"
    }
   },
+  "iperf3": {
+   "dnf\\iperf3": {
+    "driver": "dnf",
+    "fields": {
+     "name": "iperf3"
+    },
+    "name": "iperf3"
+   }
+  },
   "iproute2": {
    "dnf\\iproute2": {
     "driver": "dnf",
@@ -5329,6 +6322,15 @@
      "name": "iproute"
     },
     "name": "iproute"
+   }
+  },
+  "jq": {
+   "dnf\\jq": {
+    "driver": "dnf",
+    "fields": {
+     "name": "jq"
+    },
+    "name": "jq"
    }
   },
   "kicad": {
@@ -5519,6 +6521,25 @@
     "name": "mesa-vulkan-drivers"
    }
   },
+  "mitmproxy": {
+   "dnf\\pipx": {
+    "driver": "dnf",
+    "fields": {
+     "name": "pipx"
+    },
+    "name": "pipx"
+   },
+   "pipx\\mitmproxy": {
+    "driver": "pipx",
+    "fields": {
+     "name": "mitmproxy",
+     "version": {
+      "pypi": "mitmproxy"
+     }
+    },
+    "name": "mitmproxy"
+   }
+  },
   "mononoki-nerd": {
    "dnf\\fontconfig": {
     "driver": "dnf",
@@ -5545,6 +6566,15 @@
      }
     },
     "name": "Mononoki"
+   }
+  },
+  "mtr": {
+   "dnf\\mtr": {
+    "driver": "dnf",
+    "fields": {
+     "name": "mtr"
+    },
+    "name": "mtr"
    }
   },
   "neovim": {
@@ -5641,6 +6671,42 @@
     "name": "neovim-dotfiles"
    }
   },
+  "netcat": {
+   "dnf\\netcat": {
+    "driver": "dnf",
+    "fields": {
+     "name": "nmap-ncat"
+    },
+    "name": "nmap-ncat"
+   }
+  },
+  "nethogs": {
+   "dnf\\nethogs": {
+    "driver": "dnf",
+    "fields": {
+     "name": "nethogs"
+    },
+    "name": "nethogs"
+   }
+  },
+  "nload": {
+   "dnf\\nload": {
+    "driver": "dnf",
+    "fields": {
+     "name": "nload"
+    },
+    "name": "nload"
+   }
+  },
+  "nmap": {
+   "dnf\\nmap": {
+    "driver": "dnf",
+    "fields": {
+     "name": "nmap"
+    },
+    "name": "nmap"
+   }
+  },
   "opera": {
    "dnf\\flatpak": {
     "driver": "dnf",
@@ -5697,6 +6763,23 @@
      }
     },
     "name": "podman-dotfiles"
+   }
+  },
+  "postman": {
+   "dnf\\flatpak": {
+    "driver": "dnf",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\postman": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "com.getpostman.Postman"
+    },
+    "name": "com.getpostman.Postman"
    }
   },
   "python3-pip": {
@@ -5757,6 +6840,15 @@
     "name": "com.slack.Slack"
    }
   },
+  "socat": {
+   "dnf\\socat": {
+    "driver": "dnf",
+    "fields": {
+     "name": "socat"
+    },
+    "name": "socat"
+   }
+  },
   "steam": {
    "dnf\\flatpak": {
     "driver": "dnf",
@@ -5774,6 +6866,15 @@
     "name": "com.valvesoftware.Steam"
    }
   },
+  "tcpdump": {
+   "dnf\\tcpdump": {
+    "driver": "dnf",
+    "fields": {
+     "name": "tcpdump"
+    },
+    "name": "tcpdump"
+   }
+  },
   "tenacity": {
    "dnf\\flatpak": {
     "driver": "dnf",
@@ -5789,6 +6890,15 @@
      "name": "org.tenacityaudio.Tenacity"
     },
     "name": "org.tenacityaudio.Tenacity"
+   }
+  },
+  "traceroute": {
+   "dnf\\traceroute": {
+    "driver": "dnf",
+    "fields": {
+     "name": "traceroute"
+    },
+    "name": "traceroute"
    }
   },
   "tree-sitter-cli": {
@@ -5809,6 +6919,15 @@
      "repo-component": "universe"
     },
     "name": "cargo"
+   }
+  },
+  "tshark": {
+   "dnf\\tshark": {
+    "driver": "dnf",
+    "fields": {
+     "name": "wireshark-cli"
+    },
+    "name": "wireshark-cli"
    }
   },
   "unityhub": {
@@ -5877,6 +6996,15 @@
      "name": "vlc"
     },
     "name": "vlc"
+   }
+  },
+  "vnstat": {
+   "dnf\\vnstat": {
+    "driver": "dnf",
+    "fields": {
+     "name": "vnstat"
+    },
+    "name": "vnstat"
    }
   },
   "vscode": {
@@ -6109,6 +7237,44 @@
     "name": "vulkan-swrast"
    }
   },
+  "websocat": {
+   "cargo\\websocat": {
+    "driver": "cargo",
+    "fields": {
+     "name": "websocat",
+     "version": {
+      "crates": "websocat"
+     }
+    },
+    "name": "websocat"
+   },
+   "dnf\\cargo": {
+    "driver": "dnf",
+    "fields": {
+     "name": "cargo",
+     "repo-component": "universe"
+    },
+    "name": "cargo"
+   }
+  },
+  "whois": {
+   "dnf\\whois": {
+    "driver": "dnf",
+    "fields": {
+     "name": "whois"
+    },
+    "name": "whois"
+   }
+  },
+  "wireshark": {
+   "dnf\\wireshark": {
+    "driver": "dnf",
+    "fields": {
+     "name": "wireshark"
+    },
+    "name": "wireshark"
+   }
+  },
   "xcb-util-cursor": {
    "dnf\\xcb-util-cursor": {
     "driver": "dnf",
@@ -6175,6 +7341,52 @@
      "src": "bash.d/xclip.sh"
     },
     "name": "xclip-dotfiles"
+   }
+  },
+  "xh": {
+   "cargo\\xh": {
+    "driver": "cargo",
+    "fields": {
+     "name": "xh",
+     "version": {
+      "crates": "xh"
+     }
+    },
+    "name": "xh"
+   },
+   "dnf\\cargo": {
+    "driver": "dnf",
+    "fields": {
+     "name": "cargo",
+     "repo-component": "universe"
+    },
+    "name": "cargo"
+   }
+  },
+  "yq": {
+   "dnf\\jq": {
+    "driver": "dnf",
+    "fields": {
+     "name": "jq"
+    },
+    "name": "jq"
+   },
+   "dnf\\pipx": {
+    "driver": "dnf",
+    "fields": {
+     "name": "pipx"
+    },
+    "name": "pipx"
+   },
+   "pipx\\yq": {
+    "driver": "pipx",
+    "fields": {
+     "name": "yq",
+     "version": {
+      "pypi": "yq"
+     }
+    },
+    "name": "yq"
    }
   }
  },
@@ -6319,6 +7531,23 @@
     "name": "com.brave.Browser"
    }
   },
+  "bruno": {
+   "dnf\\flatpak": {
+    "driver": "dnf",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\bruno": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "com.usebruno.Bruno"
+    },
+    "name": "com.usebruno.Bruno"
+   }
+  },
   "btop": {
    "dnf\\btop": {
     "driver": "dnf",
@@ -6454,6 +7683,15 @@
     "name": "curl"
    }
   },
+  "dig": {
+   "dnf\\dig": {
+    "driver": "dnf",
+    "fields": {
+     "name": "bind-utils"
+    },
+    "name": "bind-utils"
+   }
+  },
   "discord": {
    "dnf\\flatpak": {
     "driver": "dnf",
@@ -6549,6 +7787,15 @@
      "name": "com.microsoft.Edge"
     },
     "name": "com.microsoft.Edge"
+   }
+  },
+  "ethtool": {
+   "dnf\\ethtool": {
+    "driver": "dnf",
+    "fields": {
+     "name": "ethtool"
+    },
+    "name": "ethtool"
    }
   },
   "fastfetch": {
@@ -6743,6 +7990,41 @@
     "name": "htop-dotfiles"
    }
   },
+  "httpie": {
+   "dnf\\httpie": {
+    "driver": "dnf",
+    "fields": {
+     "name": "httpie"
+    },
+    "name": "httpie"
+   }
+  },
+  "iftop": {
+   "dnf\\iftop": {
+    "driver": "dnf",
+    "fields": {
+     "name": "iftop"
+    },
+    "name": "iftop"
+   }
+  },
+  "insomnia": {
+   "dnf\\flatpak": {
+    "driver": "dnf",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\insomnia": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "rest.insomnia.Insomnia"
+    },
+    "name": "rest.insomnia.Insomnia"
+   }
+  },
   "intel-oneapi-basekit": {
    "dnf\\intel-oneapi-basekit": {
     "driver": "dnf",
@@ -6752,6 +8034,15 @@
     "name": "intel-basekit"
    }
   },
+  "iperf3": {
+   "dnf\\iperf3": {
+    "driver": "dnf",
+    "fields": {
+     "name": "iperf3"
+    },
+    "name": "iperf3"
+   }
+  },
   "iproute2": {
    "dnf\\iproute2": {
     "driver": "dnf",
@@ -6759,6 +8050,15 @@
      "name": "iproute"
     },
     "name": "iproute"
+   }
+  },
+  "jq": {
+   "dnf\\jq": {
+    "driver": "dnf",
+    "fields": {
+     "name": "jq"
+    },
+    "name": "jq"
    }
   },
   "kicad": {
@@ -6949,6 +8249,25 @@
     "name": "mesa-vulkan-drivers"
    }
   },
+  "mitmproxy": {
+   "dnf\\pipx": {
+    "driver": "dnf",
+    "fields": {
+     "name": "pipx"
+    },
+    "name": "pipx"
+   },
+   "pipx\\mitmproxy": {
+    "driver": "pipx",
+    "fields": {
+     "name": "mitmproxy",
+     "version": {
+      "pypi": "mitmproxy"
+     }
+    },
+    "name": "mitmproxy"
+   }
+  },
   "mononoki-nerd": {
    "dnf\\fontconfig": {
     "driver": "dnf",
@@ -6975,6 +8294,15 @@
      }
     },
     "name": "Mononoki"
+   }
+  },
+  "mtr": {
+   "dnf\\mtr": {
+    "driver": "dnf",
+    "fields": {
+     "name": "mtr"
+    },
+    "name": "mtr"
    }
   },
   "neovim": {
@@ -7071,6 +8399,42 @@
     "name": "neovim-dotfiles"
    }
   },
+  "netcat": {
+   "dnf\\netcat": {
+    "driver": "dnf",
+    "fields": {
+     "name": "nmap-ncat"
+    },
+    "name": "nmap-ncat"
+   }
+  },
+  "nethogs": {
+   "dnf\\nethogs": {
+    "driver": "dnf",
+    "fields": {
+     "name": "nethogs"
+    },
+    "name": "nethogs"
+   }
+  },
+  "nload": {
+   "dnf\\nload": {
+    "driver": "dnf",
+    "fields": {
+     "name": "nload"
+    },
+    "name": "nload"
+   }
+  },
+  "nmap": {
+   "dnf\\nmap": {
+    "driver": "dnf",
+    "fields": {
+     "name": "nmap"
+    },
+    "name": "nmap"
+   }
+  },
   "opera": {
    "dnf\\flatpak": {
     "driver": "dnf",
@@ -7127,6 +8491,23 @@
      }
     },
     "name": "podman-dotfiles"
+   }
+  },
+  "postman": {
+   "dnf\\flatpak": {
+    "driver": "dnf",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\postman": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "com.getpostman.Postman"
+    },
+    "name": "com.getpostman.Postman"
    }
   },
   "python3-pip": {
@@ -7187,6 +8568,15 @@
     "name": "com.slack.Slack"
    }
   },
+  "socat": {
+   "dnf\\socat": {
+    "driver": "dnf",
+    "fields": {
+     "name": "socat"
+    },
+    "name": "socat"
+   }
+  },
   "steam": {
    "dnf\\flatpak": {
     "driver": "dnf",
@@ -7204,6 +8594,15 @@
     "name": "com.valvesoftware.Steam"
    }
   },
+  "tcpdump": {
+   "dnf\\tcpdump": {
+    "driver": "dnf",
+    "fields": {
+     "name": "tcpdump"
+    },
+    "name": "tcpdump"
+   }
+  },
   "tenacity": {
    "dnf\\flatpak": {
     "driver": "dnf",
@@ -7219,6 +8618,15 @@
      "name": "org.tenacityaudio.Tenacity"
     },
     "name": "org.tenacityaudio.Tenacity"
+   }
+  },
+  "traceroute": {
+   "dnf\\traceroute": {
+    "driver": "dnf",
+    "fields": {
+     "name": "traceroute"
+    },
+    "name": "traceroute"
    }
   },
   "tree-sitter-cli": {
@@ -7239,6 +8647,15 @@
      "repo-component": "universe"
     },
     "name": "cargo"
+   }
+  },
+  "tshark": {
+   "dnf\\tshark": {
+    "driver": "dnf",
+    "fields": {
+     "name": "wireshark-cli"
+    },
+    "name": "wireshark-cli"
    }
   },
   "unityhub": {
@@ -7307,6 +8724,15 @@
      "name": "vlc"
     },
     "name": "vlc"
+   }
+  },
+  "vnstat": {
+   "dnf\\vnstat": {
+    "driver": "dnf",
+    "fields": {
+     "name": "vnstat"
+    },
+    "name": "vnstat"
    }
   },
   "vscode": {
@@ -7539,6 +8965,44 @@
     "name": "vulkan-swrast"
    }
   },
+  "websocat": {
+   "cargo\\websocat": {
+    "driver": "cargo",
+    "fields": {
+     "name": "websocat",
+     "version": {
+      "crates": "websocat"
+     }
+    },
+    "name": "websocat"
+   },
+   "dnf\\cargo": {
+    "driver": "dnf",
+    "fields": {
+     "name": "cargo",
+     "repo-component": "universe"
+    },
+    "name": "cargo"
+   }
+  },
+  "whois": {
+   "dnf\\whois": {
+    "driver": "dnf",
+    "fields": {
+     "name": "whois"
+    },
+    "name": "whois"
+   }
+  },
+  "wireshark": {
+   "dnf\\wireshark": {
+    "driver": "dnf",
+    "fields": {
+     "name": "wireshark"
+    },
+    "name": "wireshark"
+   }
+  },
   "xcb-util-cursor": {
    "dnf\\xcb-util-cursor": {
     "driver": "dnf",
@@ -7605,6 +9069,52 @@
      "src": "bash.d/xclip.sh"
     },
     "name": "xclip-dotfiles"
+   }
+  },
+  "xh": {
+   "cargo\\xh": {
+    "driver": "cargo",
+    "fields": {
+     "name": "xh",
+     "version": {
+      "crates": "xh"
+     }
+    },
+    "name": "xh"
+   },
+   "dnf\\cargo": {
+    "driver": "dnf",
+    "fields": {
+     "name": "cargo",
+     "repo-component": "universe"
+    },
+    "name": "cargo"
+   }
+  },
+  "yq": {
+   "dnf\\jq": {
+    "driver": "dnf",
+    "fields": {
+     "name": "jq"
+    },
+    "name": "jq"
+   },
+   "dnf\\pipx": {
+    "driver": "dnf",
+    "fields": {
+     "name": "pipx"
+    },
+    "name": "pipx"
+   },
+   "pipx\\yq": {
+    "driver": "pipx",
+    "fields": {
+     "name": "yq",
+     "version": {
+      "pypi": "yq"
+     }
+    },
+    "name": "yq"
    }
   }
  },
@@ -7747,6 +9257,23 @@
      "name": "com.brave.Browser"
     },
     "name": "com.brave.Browser"
+   }
+  },
+  "bruno": {
+   "apt\\flatpak": {
+    "driver": "apt",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\bruno": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "com.usebruno.Bruno"
+    },
+    "name": "com.usebruno.Bruno"
    }
   },
   "btop": {
@@ -7990,6 +9517,15 @@
     "name": "curl"
    }
   },
+  "dig": {
+   "apt\\dig": {
+    "driver": "apt",
+    "fields": {
+     "name": "dnsutils"
+    },
+    "name": "dnsutils"
+   }
+  },
   "discord": {
    "apt\\flatpak": {
     "driver": "apt",
@@ -8085,6 +9621,15 @@
      "name": "com.microsoft.Edge"
     },
     "name": "com.microsoft.Edge"
+   }
+  },
+  "ethtool": {
+   "apt\\ethtool": {
+    "driver": "apt",
+    "fields": {
+     "name": "ethtool"
+    },
+    "name": "ethtool"
    }
   },
   "fastfetch": {
@@ -8422,6 +9967,41 @@
     "name": "htop-dotfiles"
    }
   },
+  "httpie": {
+   "apt\\httpie": {
+    "driver": "apt",
+    "fields": {
+     "name": "httpie"
+    },
+    "name": "httpie"
+   }
+  },
+  "iftop": {
+   "apt\\iftop": {
+    "driver": "apt",
+    "fields": {
+     "name": "iftop"
+    },
+    "name": "iftop"
+   }
+  },
+  "insomnia": {
+   "apt\\flatpak": {
+    "driver": "apt",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\insomnia": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "rest.insomnia.Insomnia"
+    },
+    "name": "rest.insomnia.Insomnia"
+   }
+  },
   "intel-oneapi-basekit": {
    "apt\\intel-oneapi-basekit": {
     "driver": "apt",
@@ -8431,6 +10011,15 @@
     "name": "intel-basekit"
    }
   },
+  "iperf3": {
+   "apt\\iperf3": {
+    "driver": "apt",
+    "fields": {
+     "name": "iperf3"
+    },
+    "name": "iperf3"
+   }
+  },
   "iproute2": {
    "apt\\iproute2": {
     "driver": "apt",
@@ -8438,6 +10027,15 @@
      "name": "iproute2"
     },
     "name": "iproute2"
+   }
+  },
+  "jq": {
+   "apt\\jq": {
+    "driver": "apt",
+    "fields": {
+     "name": "jq"
+    },
+    "name": "jq"
    }
   },
   "kicad": {
@@ -8641,6 +10239,35 @@
     "name": "mesa-vulkan-drivers"
    }
   },
+  "mitmproxy": {
+   "apt\\python3-pip": {
+    "driver": "apt",
+    "fields": {
+     "name": "python3-pip"
+    },
+    "name": "python3-pip"
+   },
+   "pip\\pipx": {
+    "driver": "pip",
+    "fields": {
+     "name": "pipx",
+     "version": {
+      "pypi": "pipx"
+     }
+    },
+    "name": "pipx"
+   },
+   "pipx\\mitmproxy": {
+    "driver": "pipx",
+    "fields": {
+     "name": "mitmproxy",
+     "version": {
+      "pypi": "mitmproxy"
+     }
+    },
+    "name": "mitmproxy"
+   }
+  },
   "mononoki-nerd": {
    "apt\\fontconfig": {
     "driver": "apt",
@@ -8667,6 +10294,15 @@
      }
     },
     "name": "Mononoki"
+   }
+  },
+  "mtr": {
+   "apt\\mtr": {
+    "driver": "apt",
+    "fields": {
+     "name": "mtr"
+    },
+    "name": "mtr"
    }
   },
   "neovim": {
@@ -8763,6 +10399,42 @@
     "name": "neovim-dotfiles"
    }
   },
+  "netcat": {
+   "apt\\netcat": {
+    "driver": "apt",
+    "fields": {
+     "name": "netcat-openbsd"
+    },
+    "name": "netcat-openbsd"
+   }
+  },
+  "nethogs": {
+   "apt\\nethogs": {
+    "driver": "apt",
+    "fields": {
+     "name": "nethogs"
+    },
+    "name": "nethogs"
+   }
+  },
+  "nload": {
+   "apt\\nload": {
+    "driver": "apt",
+    "fields": {
+     "name": "nload"
+    },
+    "name": "nload"
+   }
+  },
+  "nmap": {
+   "apt\\nmap": {
+    "driver": "apt",
+    "fields": {
+     "name": "nmap"
+    },
+    "name": "nmap"
+   }
+  },
   "opera": {
    "apt\\flatpak": {
     "driver": "apt",
@@ -8831,6 +10503,23 @@
     "name": "podman-dotfiles"
    }
   },
+  "postman": {
+   "apt\\flatpak": {
+    "driver": "apt",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\postman": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "com.getpostman.Postman"
+    },
+    "name": "com.getpostman.Postman"
+   }
+  },
   "python3-pip": {
    "apt\\python3-pip": {
     "driver": "apt",
@@ -8876,6 +10565,15 @@
     "name": "com.slack.Slack"
    }
   },
+  "socat": {
+   "apt\\socat": {
+    "driver": "apt",
+    "fields": {
+     "name": "socat"
+    },
+    "name": "socat"
+   }
+  },
   "software-properties-common": {
    "apt\\software-properties-common": {
     "driver": "apt",
@@ -8895,6 +10593,15 @@
     "name": "steam:i386"
    }
   },
+  "tcpdump": {
+   "apt\\tcpdump": {
+    "driver": "apt",
+    "fields": {
+     "name": "tcpdump"
+    },
+    "name": "tcpdump"
+   }
+  },
   "tenacity": {
    "apt\\flatpak": {
     "driver": "apt",
@@ -8910,6 +10617,15 @@
      "name": "org.tenacityaudio.Tenacity"
     },
     "name": "org.tenacityaudio.Tenacity"
+   }
+  },
+  "traceroute": {
+   "apt\\traceroute": {
+    "driver": "apt",
+    "fields": {
+     "name": "traceroute"
+    },
+    "name": "traceroute"
    }
   },
   "tree-sitter-cli": {
@@ -8930,6 +10646,15 @@
      }
     },
     "name": "tree-sitter-cli"
+   }
+  },
+  "tshark": {
+   "apt\\tshark": {
+    "driver": "apt",
+    "fields": {
+     "name": "tshark"
+    },
+    "name": "tshark"
    }
   },
   "unityhub": {
@@ -8987,6 +10712,15 @@
      "name": "vlc"
     },
     "name": "vlc"
+   }
+  },
+  "vnstat": {
+   "apt\\vnstat": {
+    "driver": "apt",
+    "fields": {
+     "name": "vnstat"
+    },
+    "name": "vnstat"
    }
   },
   "vscode": {
@@ -9215,6 +10949,44 @@
     "name": "vulkan-swrast"
    }
   },
+  "websocat": {
+   "apt\\cargo": {
+    "driver": "apt",
+    "fields": {
+     "name": "cargo",
+     "repo-component": "universe"
+    },
+    "name": "cargo"
+   },
+   "cargo\\websocat": {
+    "driver": "cargo",
+    "fields": {
+     "name": "websocat",
+     "version": {
+      "crates": "websocat"
+     }
+    },
+    "name": "websocat"
+   }
+  },
+  "whois": {
+   "apt\\whois": {
+    "driver": "apt",
+    "fields": {
+     "name": "whois"
+    },
+    "name": "whois"
+   }
+  },
+  "wireshark": {
+   "apt\\wireshark": {
+    "driver": "apt",
+    "fields": {
+     "name": "wireshark"
+    },
+    "name": "wireshark"
+   }
+  },
   "xcb-util-cursor": {
    "apt\\xcb-util-cursor": {
     "driver": "apt",
@@ -9281,6 +11053,62 @@
      "src": "bash.d/xclip.sh"
     },
     "name": "xclip-dotfiles"
+   }
+  },
+  "xh": {
+   "apt\\cargo": {
+    "driver": "apt",
+    "fields": {
+     "name": "cargo",
+     "repo-component": "universe"
+    },
+    "name": "cargo"
+   },
+   "cargo\\xh": {
+    "driver": "cargo",
+    "fields": {
+     "name": "xh",
+     "version": {
+      "crates": "xh"
+     }
+    },
+    "name": "xh"
+   }
+  },
+  "yq": {
+   "apt\\jq": {
+    "driver": "apt",
+    "fields": {
+     "name": "jq"
+    },
+    "name": "jq"
+   },
+   "apt\\python3-pip": {
+    "driver": "apt",
+    "fields": {
+     "name": "python3-pip"
+    },
+    "name": "python3-pip"
+   },
+   "pip\\pipx": {
+    "driver": "pip",
+    "fields": {
+     "name": "pipx",
+     "version": {
+      "pypi": "pipx"
+     }
+    },
+    "name": "pipx"
+   },
+   "pipx\\yq": {
+    "driver": "pipx",
+    "fields": {
+     "name": "yq",
+     "version": {
+      "pypi": "yq"
+     }
+    },
+    "name": "yq"
    }
   }
  },
@@ -9431,6 +11259,23 @@
     "name": "com.brave.Browser"
    }
   },
+  "bruno": {
+   "dnf\\flatpak": {
+    "driver": "dnf",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\bruno": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "com.usebruno.Bruno"
+    },
+    "name": "com.usebruno.Bruno"
+   }
+  },
   "btop": {
    "dnf\\btop": {
     "driver": "dnf",
@@ -9574,6 +11419,15 @@
     "name": "curl"
    }
   },
+  "dig": {
+   "dnf\\dig": {
+    "driver": "dnf",
+    "fields": {
+     "name": "bind-utils"
+    },
+    "name": "bind-utils"
+   }
+  },
   "discord": {
    "dnf\\flatpak": {
     "driver": "dnf",
@@ -9678,6 +11532,15 @@
      "name": "epel-release"
     },
     "name": "epel-release"
+   }
+  },
+  "ethtool": {
+   "dnf\\ethtool": {
+    "driver": "dnf",
+    "fields": {
+     "name": "ethtool"
+    },
+    "name": "ethtool"
    }
   },
   "fastfetch": {
@@ -9913,6 +11776,55 @@
     "name": "htop-dotfiles"
    }
   },
+  "httpie": {
+   "dnf\\epel-release": {
+    "driver": "dnf",
+    "fields": {
+     "name": "epel-release"
+    },
+    "name": "epel-release"
+   },
+   "dnf\\httpie": {
+    "driver": "dnf",
+    "fields": {
+     "name": "httpie"
+    },
+    "name": "httpie"
+   }
+  },
+  "iftop": {
+   "dnf\\epel-release": {
+    "driver": "dnf",
+    "fields": {
+     "name": "epel-release"
+    },
+    "name": "epel-release"
+   },
+   "dnf\\iftop": {
+    "driver": "dnf",
+    "fields": {
+     "name": "iftop"
+    },
+    "name": "iftop"
+   }
+  },
+  "insomnia": {
+   "dnf\\flatpak": {
+    "driver": "dnf",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\insomnia": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "rest.insomnia.Insomnia"
+    },
+    "name": "rest.insomnia.Insomnia"
+   }
+  },
   "intel-oneapi-basekit": {
    "dnf\\intel-oneapi-basekit": {
     "driver": "dnf",
@@ -9922,6 +11834,15 @@
     "name": "intel-basekit"
    }
   },
+  "iperf3": {
+   "dnf\\iperf3": {
+    "driver": "dnf",
+    "fields": {
+     "name": "iperf3"
+    },
+    "name": "iperf3"
+   }
+  },
   "iproute2": {
    "dnf\\iproute2": {
     "driver": "dnf",
@@ -9929,6 +11850,15 @@
      "name": "iproute"
     },
     "name": "iproute"
+   }
+  },
+  "jq": {
+   "dnf\\jq": {
+    "driver": "dnf",
+    "fields": {
+     "name": "jq"
+    },
+    "name": "jq"
    }
   },
   "kicad": {
@@ -10139,6 +12069,32 @@
     "name": "mesa-vulkan-drivers"
    }
   },
+  "mitmproxy": {
+   "dnf\\epel-release": {
+    "driver": "dnf",
+    "fields": {
+     "name": "epel-release"
+    },
+    "name": "epel-release"
+   },
+   "dnf\\pipx": {
+    "driver": "dnf",
+    "fields": {
+     "name": "pipx"
+    },
+    "name": "pipx"
+   },
+   "pipx\\mitmproxy": {
+    "driver": "pipx",
+    "fields": {
+     "name": "mitmproxy",
+     "version": {
+      "pypi": "mitmproxy"
+     }
+    },
+    "name": "mitmproxy"
+   }
+  },
   "mononoki-nerd": {
    "dnf\\fontconfig": {
     "driver": "dnf",
@@ -10165,6 +12121,15 @@
      }
     },
     "name": "Mononoki"
+   }
+  },
+  "mtr": {
+   "dnf\\mtr": {
+    "driver": "dnf",
+    "fields": {
+     "name": "mtr"
+    },
+    "name": "mtr"
    }
   },
   "neovim": {
@@ -10267,6 +12232,56 @@
     "name": "neovim-dotfiles"
    }
   },
+  "netcat": {
+   "dnf\\netcat": {
+    "driver": "dnf",
+    "fields": {
+     "name": "nmap-ncat"
+    },
+    "name": "nmap-ncat"
+   }
+  },
+  "nethogs": {
+   "dnf\\epel-release": {
+    "driver": "dnf",
+    "fields": {
+     "name": "epel-release"
+    },
+    "name": "epel-release"
+   },
+   "dnf\\nethogs": {
+    "driver": "dnf",
+    "fields": {
+     "name": "nethogs"
+    },
+    "name": "nethogs"
+   }
+  },
+  "nload": {
+   "dnf\\epel-release": {
+    "driver": "dnf",
+    "fields": {
+     "name": "epel-release"
+    },
+    "name": "epel-release"
+   },
+   "dnf\\nload": {
+    "driver": "dnf",
+    "fields": {
+     "name": "nload"
+    },
+    "name": "nload"
+   }
+  },
+  "nmap": {
+   "dnf\\nmap": {
+    "driver": "dnf",
+    "fields": {
+     "name": "nmap"
+    },
+    "name": "nmap"
+   }
+  },
   "opera": {
    "dnf\\flatpak": {
     "driver": "dnf",
@@ -10330,6 +12345,23 @@
      }
     },
     "name": "podman-dotfiles"
+   }
+  },
+  "postman": {
+   "dnf\\flatpak": {
+    "driver": "dnf",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\postman": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "com.getpostman.Postman"
+    },
+    "name": "com.getpostman.Postman"
    }
   },
   "python3-pip": {
@@ -10404,6 +12436,15 @@
     "name": "com.slack.Slack"
    }
   },
+  "socat": {
+   "dnf\\socat": {
+    "driver": "dnf",
+    "fields": {
+     "name": "socat"
+    },
+    "name": "socat"
+   }
+  },
   "steam": {
    "dnf\\flatpak": {
     "driver": "dnf",
@@ -10421,6 +12462,15 @@
     "name": "com.valvesoftware.Steam"
    }
   },
+  "tcpdump": {
+   "dnf\\tcpdump": {
+    "driver": "dnf",
+    "fields": {
+     "name": "tcpdump"
+    },
+    "name": "tcpdump"
+   }
+  },
   "tenacity": {
    "dnf\\flatpak": {
     "driver": "dnf",
@@ -10436,6 +12486,15 @@
      "name": "org.tenacityaudio.Tenacity"
     },
     "name": "org.tenacityaudio.Tenacity"
+   }
+  },
+  "traceroute": {
+   "dnf\\traceroute": {
+    "driver": "dnf",
+    "fields": {
+     "name": "traceroute"
+    },
+    "name": "traceroute"
    }
   },
   "tree-sitter-cli": {
@@ -10456,6 +12515,15 @@
      "repo-component": "universe"
     },
     "name": "cargo"
+   }
+  },
+  "tshark": {
+   "dnf\\tshark": {
+    "driver": "dnf",
+    "fields": {
+     "name": "wireshark-cli"
+    },
+    "name": "wireshark-cli"
    }
   },
   "unityhub": {
@@ -10520,6 +12588,22 @@
      "name": "vlc"
     },
     "name": "vlc"
+   }
+  },
+  "vnstat": {
+   "dnf\\epel-release": {
+    "driver": "dnf",
+    "fields": {
+     "name": "epel-release"
+    },
+    "name": "epel-release"
+   },
+   "dnf\\vnstat": {
+    "driver": "dnf",
+    "fields": {
+     "name": "vnstat"
+    },
+    "name": "vnstat"
    }
   },
   "vscode": {
@@ -10752,6 +12836,44 @@
     "name": "vulkan-swrast"
    }
   },
+  "websocat": {
+   "cargo\\websocat": {
+    "driver": "cargo",
+    "fields": {
+     "name": "websocat",
+     "version": {
+      "crates": "websocat"
+     }
+    },
+    "name": "websocat"
+   },
+   "dnf\\cargo": {
+    "driver": "dnf",
+    "fields": {
+     "name": "cargo",
+     "repo-component": "universe"
+    },
+    "name": "cargo"
+   }
+  },
+  "whois": {
+   "dnf\\whois": {
+    "driver": "dnf",
+    "fields": {
+     "name": "whois"
+    },
+    "name": "whois"
+   }
+  },
+  "wireshark": {
+   "dnf\\wireshark": {
+    "driver": "dnf",
+    "fields": {
+     "name": "wireshark"
+    },
+    "name": "wireshark"
+   }
+  },
   "xcb-util-cursor": {
    "dnf\\xcb-util-cursor": {
     "driver": "dnf",
@@ -10824,6 +12946,59 @@
      "src": "bash.d/xclip.sh"
     },
     "name": "xclip-dotfiles"
+   }
+  },
+  "xh": {
+   "cargo\\xh": {
+    "driver": "cargo",
+    "fields": {
+     "name": "xh",
+     "version": {
+      "crates": "xh"
+     }
+    },
+    "name": "xh"
+   },
+   "dnf\\cargo": {
+    "driver": "dnf",
+    "fields": {
+     "name": "cargo",
+     "repo-component": "universe"
+    },
+    "name": "cargo"
+   }
+  },
+  "yq": {
+   "dnf\\epel-release": {
+    "driver": "dnf",
+    "fields": {
+     "name": "epel-release"
+    },
+    "name": "epel-release"
+   },
+   "dnf\\jq": {
+    "driver": "dnf",
+    "fields": {
+     "name": "jq"
+    },
+    "name": "jq"
+   },
+   "dnf\\pipx": {
+    "driver": "dnf",
+    "fields": {
+     "name": "pipx"
+    },
+    "name": "pipx"
+   },
+   "pipx\\yq": {
+    "driver": "pipx",
+    "fields": {
+     "name": "yq",
+     "version": {
+      "pypi": "yq"
+     }
+    },
+    "name": "yq"
    }
   }
  },
@@ -10968,6 +13143,23 @@
     "name": "com.brave.Browser"
    }
   },
+  "bruno": {
+   "apt\\flatpak": {
+    "driver": "apt",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\bruno": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "com.usebruno.Bruno"
+    },
+    "name": "com.usebruno.Bruno"
+   }
+  },
   "btop": {
    "apt\\btop": {
     "driver": "apt",
@@ -11209,6 +13401,15 @@
     "name": "curl"
    }
   },
+  "dig": {
+   "apt\\dig": {
+    "driver": "apt",
+    "fields": {
+     "name": "dnsutils"
+    },
+    "name": "dnsutils"
+   }
+  },
   "discord": {
    "apt\\flatpak": {
     "driver": "apt",
@@ -11304,6 +13505,15 @@
      "name": "com.microsoft.Edge"
     },
     "name": "com.microsoft.Edge"
+   }
+  },
+  "ethtool": {
+   "apt\\ethtool": {
+    "driver": "apt",
+    "fields": {
+     "name": "ethtool"
+    },
+    "name": "ethtool"
    }
   },
   "fastfetch": {
@@ -11641,6 +13851,41 @@
     "name": "htop-dotfiles"
    }
   },
+  "httpie": {
+   "apt\\httpie": {
+    "driver": "apt",
+    "fields": {
+     "name": "httpie"
+    },
+    "name": "httpie"
+   }
+  },
+  "iftop": {
+   "apt\\iftop": {
+    "driver": "apt",
+    "fields": {
+     "name": "iftop"
+    },
+    "name": "iftop"
+   }
+  },
+  "insomnia": {
+   "apt\\flatpak": {
+    "driver": "apt",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\insomnia": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "rest.insomnia.Insomnia"
+    },
+    "name": "rest.insomnia.Insomnia"
+   }
+  },
   "intel-oneapi-basekit": {
    "apt\\intel-oneapi-basekit": {
     "driver": "apt",
@@ -11650,6 +13895,15 @@
     "name": "intel-basekit"
    }
   },
+  "iperf3": {
+   "apt\\iperf3": {
+    "driver": "apt",
+    "fields": {
+     "name": "iperf3"
+    },
+    "name": "iperf3"
+   }
+  },
   "iproute2": {
    "apt\\iproute2": {
     "driver": "apt",
@@ -11657,6 +13911,15 @@
      "name": "iproute2"
     },
     "name": "iproute2"
+   }
+  },
+  "jq": {
+   "apt\\jq": {
+    "driver": "apt",
+    "fields": {
+     "name": "jq"
+    },
+    "name": "jq"
    }
   },
   "kicad": {
@@ -11860,6 +14123,35 @@
     "name": "mesa-vulkan-drivers"
    }
   },
+  "mitmproxy": {
+   "apt\\python3-pip": {
+    "driver": "apt",
+    "fields": {
+     "name": "python3-pip"
+    },
+    "name": "python3-pip"
+   },
+   "pip\\pipx": {
+    "driver": "pip",
+    "fields": {
+     "name": "pipx",
+     "version": {
+      "pypi": "pipx"
+     }
+    },
+    "name": "pipx"
+   },
+   "pipx\\mitmproxy": {
+    "driver": "pipx",
+    "fields": {
+     "name": "mitmproxy",
+     "version": {
+      "pypi": "mitmproxy"
+     }
+    },
+    "name": "mitmproxy"
+   }
+  },
   "mononoki-nerd": {
    "apt\\fontconfig": {
     "driver": "apt",
@@ -11886,6 +14178,15 @@
      }
     },
     "name": "Mononoki"
+   }
+  },
+  "mtr": {
+   "apt\\mtr": {
+    "driver": "apt",
+    "fields": {
+     "name": "mtr"
+    },
+    "name": "mtr"
    }
   },
   "neovim": {
@@ -11982,6 +14283,42 @@
     "name": "neovim-dotfiles"
    }
   },
+  "netcat": {
+   "apt\\netcat": {
+    "driver": "apt",
+    "fields": {
+     "name": "netcat-openbsd"
+    },
+    "name": "netcat-openbsd"
+   }
+  },
+  "nethogs": {
+   "apt\\nethogs": {
+    "driver": "apt",
+    "fields": {
+     "name": "nethogs"
+    },
+    "name": "nethogs"
+   }
+  },
+  "nload": {
+   "apt\\nload": {
+    "driver": "apt",
+    "fields": {
+     "name": "nload"
+    },
+    "name": "nload"
+   }
+  },
+  "nmap": {
+   "apt\\nmap": {
+    "driver": "apt",
+    "fields": {
+     "name": "nmap"
+    },
+    "name": "nmap"
+   }
+  },
   "opera": {
    "apt\\flatpak": {
     "driver": "apt",
@@ -12050,6 +14387,23 @@
     "name": "podman-dotfiles"
    }
   },
+  "postman": {
+   "apt\\flatpak": {
+    "driver": "apt",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\postman": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "com.getpostman.Postman"
+    },
+    "name": "com.getpostman.Postman"
+   }
+  },
   "python3-pip": {
    "apt\\python3-pip": {
     "driver": "apt",
@@ -12095,6 +14449,15 @@
     "name": "com.slack.Slack"
    }
   },
+  "socat": {
+   "apt\\socat": {
+    "driver": "apt",
+    "fields": {
+     "name": "socat"
+    },
+    "name": "socat"
+   }
+  },
   "software-properties-common": {
    "apt\\software-properties-common": {
     "driver": "apt",
@@ -12121,6 +14484,15 @@
     "name": "com.valvesoftware.Steam"
    }
   },
+  "tcpdump": {
+   "apt\\tcpdump": {
+    "driver": "apt",
+    "fields": {
+     "name": "tcpdump"
+    },
+    "name": "tcpdump"
+   }
+  },
   "tenacity": {
    "apt\\flatpak": {
     "driver": "apt",
@@ -12136,6 +14508,15 @@
      "name": "org.tenacityaudio.Tenacity"
     },
     "name": "org.tenacityaudio.Tenacity"
+   }
+  },
+  "traceroute": {
+   "apt\\traceroute": {
+    "driver": "apt",
+    "fields": {
+     "name": "traceroute"
+    },
+    "name": "traceroute"
    }
   },
   "tree-sitter-cli": {
@@ -12156,6 +14537,15 @@
      }
     },
     "name": "tree-sitter-cli"
+   }
+  },
+  "tshark": {
+   "apt\\tshark": {
+    "driver": "apt",
+    "fields": {
+     "name": "tshark"
+    },
+    "name": "tshark"
    }
   },
   "unityhub": {
@@ -12213,6 +14603,15 @@
      "name": "vlc"
     },
     "name": "vlc"
+   }
+  },
+  "vnstat": {
+   "apt\\vnstat": {
+    "driver": "apt",
+    "fields": {
+     "name": "vnstat"
+    },
+    "name": "vnstat"
    }
   },
   "vscode": {
@@ -12441,6 +14840,44 @@
     "name": "vulkan-swrast"
    }
   },
+  "websocat": {
+   "apt\\cargo": {
+    "driver": "apt",
+    "fields": {
+     "name": "cargo",
+     "repo-component": "universe"
+    },
+    "name": "cargo"
+   },
+   "cargo\\websocat": {
+    "driver": "cargo",
+    "fields": {
+     "name": "websocat",
+     "version": {
+      "crates": "websocat"
+     }
+    },
+    "name": "websocat"
+   }
+  },
+  "whois": {
+   "apt\\whois": {
+    "driver": "apt",
+    "fields": {
+     "name": "whois"
+    },
+    "name": "whois"
+   }
+  },
+  "wireshark": {
+   "apt\\wireshark": {
+    "driver": "apt",
+    "fields": {
+     "name": "wireshark"
+    },
+    "name": "wireshark"
+   }
+  },
   "xcb-util-cursor": {
    "apt\\xcb-util-cursor": {
     "driver": "apt",
@@ -12507,6 +14944,62 @@
      "src": "bash.d/xclip.sh"
     },
     "name": "xclip-dotfiles"
+   }
+  },
+  "xh": {
+   "apt\\cargo": {
+    "driver": "apt",
+    "fields": {
+     "name": "cargo",
+     "repo-component": "universe"
+    },
+    "name": "cargo"
+   },
+   "cargo\\xh": {
+    "driver": "cargo",
+    "fields": {
+     "name": "xh",
+     "version": {
+      "crates": "xh"
+     }
+    },
+    "name": "xh"
+   }
+  },
+  "yq": {
+   "apt\\jq": {
+    "driver": "apt",
+    "fields": {
+     "name": "jq"
+    },
+    "name": "jq"
+   },
+   "apt\\python3-pip": {
+    "driver": "apt",
+    "fields": {
+     "name": "python3-pip"
+    },
+    "name": "python3-pip"
+   },
+   "pip\\pipx": {
+    "driver": "pip",
+    "fields": {
+     "name": "pipx",
+     "version": {
+      "pypi": "pipx"
+     }
+    },
+    "name": "pipx"
+   },
+   "pipx\\yq": {
+    "driver": "pipx",
+    "fields": {
+     "name": "yq",
+     "version": {
+      "pypi": "yq"
+     }
+    },
+    "name": "yq"
    }
   }
  },
@@ -12651,6 +15144,23 @@
     "name": "com.brave.Browser"
    }
   },
+  "bruno": {
+   "apt\\flatpak": {
+    "driver": "apt",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\bruno": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "com.usebruno.Bruno"
+    },
+    "name": "com.usebruno.Bruno"
+   }
+  },
   "btop": {
    "apt\\btop": {
     "driver": "apt",
@@ -12892,6 +15402,15 @@
     "name": "curl"
    }
   },
+  "dig": {
+   "apt\\dig": {
+    "driver": "apt",
+    "fields": {
+     "name": "dnsutils"
+    },
+    "name": "dnsutils"
+   }
+  },
   "discord": {
    "apt\\flatpak": {
     "driver": "apt",
@@ -12987,6 +15506,15 @@
      "name": "com.microsoft.Edge"
     },
     "name": "com.microsoft.Edge"
+   }
+  },
+  "ethtool": {
+   "apt\\ethtool": {
+    "driver": "apt",
+    "fields": {
+     "name": "ethtool"
+    },
+    "name": "ethtool"
    }
   },
   "fastfetch": {
@@ -13324,6 +15852,41 @@
     "name": "htop-dotfiles"
    }
   },
+  "httpie": {
+   "apt\\httpie": {
+    "driver": "apt",
+    "fields": {
+     "name": "httpie"
+    },
+    "name": "httpie"
+   }
+  },
+  "iftop": {
+   "apt\\iftop": {
+    "driver": "apt",
+    "fields": {
+     "name": "iftop"
+    },
+    "name": "iftop"
+   }
+  },
+  "insomnia": {
+   "apt\\flatpak": {
+    "driver": "apt",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\insomnia": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "rest.insomnia.Insomnia"
+    },
+    "name": "rest.insomnia.Insomnia"
+   }
+  },
   "intel-oneapi-basekit": {
    "apt\\intel-oneapi-basekit": {
     "driver": "apt",
@@ -13333,6 +15896,15 @@
     "name": "intel-basekit"
    }
   },
+  "iperf3": {
+   "apt\\iperf3": {
+    "driver": "apt",
+    "fields": {
+     "name": "iperf3"
+    },
+    "name": "iperf3"
+   }
+  },
   "iproute2": {
    "apt\\iproute2": {
     "driver": "apt",
@@ -13340,6 +15912,15 @@
      "name": "iproute2"
     },
     "name": "iproute2"
+   }
+  },
+  "jq": {
+   "apt\\jq": {
+    "driver": "apt",
+    "fields": {
+     "name": "jq"
+    },
+    "name": "jq"
    }
   },
   "kicad": {
@@ -13543,6 +16124,25 @@
     "name": "mesa-vulkan-drivers"
    }
   },
+  "mitmproxy": {
+   "apt\\pipx": {
+    "driver": "apt",
+    "fields": {
+     "name": "pipx"
+    },
+    "name": "pipx"
+   },
+   "pipx\\mitmproxy": {
+    "driver": "pipx",
+    "fields": {
+     "name": "mitmproxy",
+     "version": {
+      "pypi": "mitmproxy"
+     }
+    },
+    "name": "mitmproxy"
+   }
+  },
   "mononoki-nerd": {
    "apt\\fontconfig": {
     "driver": "apt",
@@ -13569,6 +16169,15 @@
      }
     },
     "name": "Mononoki"
+   }
+  },
+  "mtr": {
+   "apt\\mtr": {
+    "driver": "apt",
+    "fields": {
+     "name": "mtr"
+    },
+    "name": "mtr"
    }
   },
   "neovim": {
@@ -13665,6 +16274,42 @@
     "name": "neovim-dotfiles"
    }
   },
+  "netcat": {
+   "apt\\netcat": {
+    "driver": "apt",
+    "fields": {
+     "name": "netcat-openbsd"
+    },
+    "name": "netcat-openbsd"
+   }
+  },
+  "nethogs": {
+   "apt\\nethogs": {
+    "driver": "apt",
+    "fields": {
+     "name": "nethogs"
+    },
+    "name": "nethogs"
+   }
+  },
+  "nload": {
+   "apt\\nload": {
+    "driver": "apt",
+    "fields": {
+     "name": "nload"
+    },
+    "name": "nload"
+   }
+  },
+  "nmap": {
+   "apt\\nmap": {
+    "driver": "apt",
+    "fields": {
+     "name": "nmap"
+    },
+    "name": "nmap"
+   }
+  },
   "opera": {
    "apt\\flatpak": {
     "driver": "apt",
@@ -13723,6 +16368,23 @@
     "name": "podman-dotfiles"
    }
   },
+  "postman": {
+   "apt\\flatpak": {
+    "driver": "apt",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\postman": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "com.getpostman.Postman"
+    },
+    "name": "com.getpostman.Postman"
+   }
+  },
   "python3-pip": {
    "apt\\python3-pip": {
     "driver": "apt",
@@ -13768,6 +16430,15 @@
     "name": "com.slack.Slack"
    }
   },
+  "socat": {
+   "apt\\socat": {
+    "driver": "apt",
+    "fields": {
+     "name": "socat"
+    },
+    "name": "socat"
+   }
+  },
   "software-properties-common": {
    "apt\\software-properties-common": {
     "driver": "apt",
@@ -13794,6 +16465,15 @@
     "name": "com.valvesoftware.Steam"
    }
   },
+  "tcpdump": {
+   "apt\\tcpdump": {
+    "driver": "apt",
+    "fields": {
+     "name": "tcpdump"
+    },
+    "name": "tcpdump"
+   }
+  },
   "tenacity": {
    "apt\\flatpak": {
     "driver": "apt",
@@ -13809,6 +16489,15 @@
      "name": "org.tenacityaudio.Tenacity"
     },
     "name": "org.tenacityaudio.Tenacity"
+   }
+  },
+  "traceroute": {
+   "apt\\traceroute": {
+    "driver": "apt",
+    "fields": {
+     "name": "traceroute"
+    },
+    "name": "traceroute"
    }
   },
   "tree-sitter-cli": {
@@ -13829,6 +16518,15 @@
      }
     },
     "name": "tree-sitter-cli"
+   }
+  },
+  "tshark": {
+   "apt\\tshark": {
+    "driver": "apt",
+    "fields": {
+     "name": "tshark"
+    },
+    "name": "tshark"
    }
   },
   "unityhub": {
@@ -13886,6 +16584,15 @@
      "name": "vlc"
     },
     "name": "vlc"
+   }
+  },
+  "vnstat": {
+   "apt\\vnstat": {
+    "driver": "apt",
+    "fields": {
+     "name": "vnstat"
+    },
+    "name": "vnstat"
    }
   },
   "vscode": {
@@ -14114,6 +16821,44 @@
     "name": "vulkan-swrast"
    }
   },
+  "websocat": {
+   "apt\\cargo": {
+    "driver": "apt",
+    "fields": {
+     "name": "cargo",
+     "repo-component": "universe"
+    },
+    "name": "cargo"
+   },
+   "cargo\\websocat": {
+    "driver": "cargo",
+    "fields": {
+     "name": "websocat",
+     "version": {
+      "crates": "websocat"
+     }
+    },
+    "name": "websocat"
+   }
+  },
+  "whois": {
+   "apt\\whois": {
+    "driver": "apt",
+    "fields": {
+     "name": "whois"
+    },
+    "name": "whois"
+   }
+  },
+  "wireshark": {
+   "apt\\wireshark": {
+    "driver": "apt",
+    "fields": {
+     "name": "wireshark"
+    },
+    "name": "wireshark"
+   }
+  },
   "xcb-util-cursor": {
    "apt\\xcb-util-cursor": {
     "driver": "apt",
@@ -14180,6 +16925,52 @@
      "src": "bash.d/xclip.sh"
     },
     "name": "xclip-dotfiles"
+   }
+  },
+  "xh": {
+   "apt\\cargo": {
+    "driver": "apt",
+    "fields": {
+     "name": "cargo",
+     "repo-component": "universe"
+    },
+    "name": "cargo"
+   },
+   "cargo\\xh": {
+    "driver": "cargo",
+    "fields": {
+     "name": "xh",
+     "version": {
+      "crates": "xh"
+     }
+    },
+    "name": "xh"
+   }
+  },
+  "yq": {
+   "apt\\jq": {
+    "driver": "apt",
+    "fields": {
+     "name": "jq"
+    },
+    "name": "jq"
+   },
+   "apt\\pipx": {
+    "driver": "apt",
+    "fields": {
+     "name": "pipx"
+    },
+    "name": "pipx"
+   },
+   "pipx\\yq": {
+    "driver": "pipx",
+    "fields": {
+     "name": "yq",
+     "version": {
+      "pypi": "yq"
+     }
+    },
+    "name": "yq"
    }
   }
  }

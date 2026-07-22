@@ -155,6 +155,44 @@
         opera:   { install: [ { via: flatpak  hub: flathub  app: com.opera.Opera } ] }
         vivaldi: { install: [ { via: flatpak  hub: flathub  app: com.vivaldi.Vivaldi } ] }
         edge:    { install: [ { via: flatpak  hub: flathub  app: com.microsoft.Edge } ] }
+
+        // ===================== network + web-dev tooling =====================
+        // Capture & probe — native CLI staples. Name maps only where distros diverge; the
+        // rest carry the same package name everywhere.
+        wireshark:  { install: [ { via: native  name: { pacman: wireshark-qt } } ] }   // GUI analyzer; Arch splits the GUI into wireshark-qt. Deliberately NOT flatpak — the sandbox can't do live capture. Non-root capture (wireshark group + setcap dumpcap) is a parked follow-up.
+        tshark:     { install: [ { via: native  name: { dnf: wireshark-cli  pacman: wireshark-cli } } ] }   // CLI capture; ships as wireshark-cli on dnf/pacman, tshark on apt
+        tcpdump:    { install: [ { via: native } ] }
+        nmap:       { install: [ { via: native } ] }
+        mtr:        { install: [ { via: native } ] }
+        traceroute: { install: [ { via: native } ] }
+        iperf3:     { install: [ { via: native } ] }
+        socat:      { install: [ { via: native } ] }
+        ethtool:    { install: [ { via: native } ] }
+        whois:      { install: [ { via: native } ] }
+        netcat:     { install: [ { via: native  name: { dnf: nmap-ncat  pacman: openbsd-netcat  default: netcat-openbsd } } ] }   // the BSD nc; Fedora ships it as nmap-ncat, Arch as openbsd-netcat
+        dig:        { install: [ { via: native  name: { apt: dnsutils  dnf: bind-utils  pacman: bind  apk: bind-tools  zypper: bind-utils  default: bind-utils } } ] }   // dig/nslookup; apt `dnsutils` is the transitional metapkg (resolves on old + new), Arch merged the tools into `bind`
+
+        // Traffic monitors — live per-interface/-process bandwidth. In EPEL on EL, base repos
+        // elsewhere (the same two-binding shape as btop).
+        iftop:   { install: [ { via: native  when: "rhel"  requires: epel } { via: native } ] }
+        nethogs: { install: [ { via: native  when: "rhel"  requires: epel } { via: native } ] }
+        nload:   { install: [ { via: native  when: "rhel"  requires: epel } { via: native } ] }
+        vnstat:  { install: [ { via: native  when: "rhel"  requires: epel } { via: native } ] }
+
+        // Web/HTTP dev — httpie + jq native (httpie via EPEL on EL); yq/mitmproxy isolated via
+        // pipx; xh/websocat are Rust crates.
+        httpie:    { install: [ { via: native  when: "rhel"  requires: epel } { via: native } ] }   // the `http`/`https` CLI
+        jq:        { install: [ { via: native } ] }
+        yq:        { requires: jq                                                                    // the jq-family yq (yq/xq/tomlq) — shells out to jq at runtime; NOT mikefarah's Go yq
+                     install: [ { via: pipx  name: yq  version: { pypi: yq } } ] }
+        mitmproxy: { install: [ { via: pipx  name: mitmproxy  version: { pypi: mitmproxy } } ] }
+        xh:        { install: [ { via: cargo  name: xh  version: { crates: xh } } ] }                // httpie-style client, in Rust
+        websocat:  { install: [ { via: cargo  name: websocat  version: { crates: websocat } } ] }
+
+        // GUI API clients — Flatpak from Flathub, like chrome (all community-maintained, current).
+        postman:  { install: [ { via: flatpak  hub: flathub  app: com.getpostman.Postman } ] }
+        insomnia: { install: [ { via: flatpak  hub: flathub  app: rest.insomnia.Insomnia } ] }
+        bruno:    { install: [ { via: flatpak  hub: flathub  app: com.usebruno.Bruno } ] }
         tree-sitter-cli: {
             install: [ { via: cargo  name: tree-sitter-cli  version: { crates: tree-sitter-cli } } ]
         }
