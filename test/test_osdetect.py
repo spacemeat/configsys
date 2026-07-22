@@ -67,3 +67,56 @@ def test_steamos_still_borrows_arch(tmp_path):
     # SteamOS (Holo) has no block of its own, so it keeps its arch alias.
     info = osdetect.detect(env={}, os_release_path=_write(tmp_path, 'ID=steamos\n'))
     assert info.block == 'arch'
+
+
+# --- Fedora Atomic / uBlue detection ---------------------------------------
+
+def _marker(tmp_path):
+    m = tmp_path / 'ostree-booted'
+    m.write_text('')
+    return str(m)
+
+
+def test_silverblue_variant_folds_to_atomic(tmp_path):
+    path = _write(tmp_path, 'ID=fedora\nVARIANT_ID=silverblue\nVERSION_ID=40\n')
+    info = osdetect.detect(env={}, os_release_path=path, ostree_marker='/nonexistent')
+    assert info.id == 'fedora'            # real id kept for display / when: atoms
+    assert info.block == 'fedora_atomic'  # but routed as the atomic environment
+    assert info.version == '40'
+
+
+def test_kinoite_variant_folds_to_atomic(tmp_path):
+    path = _write(tmp_path, 'ID=fedora\nVARIANT_ID=kinoite\nVERSION_ID=41\n')
+    info = osdetect.detect(env={}, os_release_path=path, ostree_marker='/nonexistent')
+    assert info.block == 'fedora_atomic'
+
+
+def test_ublue_with_fedora_variant_caught_by_ostree_marker(tmp_path):
+    # Bazzite/Bluefin can report VARIANT_ID=fedora (ublue-os/bazzite#1249); the ostree
+    # marker is the robust catch-all.
+    path = _write(tmp_path, 'ID=fedora\nVARIANT_ID=fedora\nVERSION_ID=40\n')
+    info = osdetect.detect(env={}, os_release_path=path, ostree_marker=_marker(tmp_path))
+    assert info.block == 'fedora_atomic'
+
+
+def test_plain_fedora_is_not_atomic(tmp_path):
+    path = _write(tmp_path, 'ID=fedora\nVARIANT_ID=workstation\nVERSION_ID=41\n')
+    info = osdetect.detect(env={}, os_release_path=path, ostree_marker='/nonexistent')
+    assert info.block == 'fedora'
+
+
+def test_forced_os_bypasses_atomic_remap(tmp_path):
+    # --os fedora means the user explicitly wants mutable fedora, even on an ostree box
+    path = _write(tmp_path, 'ID=fedora\nVARIANT_ID=silverblue\n')
+    info = osdetect.detect(env={'CONFIGSYS_OS': 'fedora'}, os_release_path=path,
+                           ostree_marker=_marker(tmp_path))
+    assert info.block == 'fedora'
+    # and forcing the atomic block directly works
+    assert osdetect.detect(env={'CONFIGSYS_OS': 'fedora_atomic'}).block == 'fedora_atomic'
+
+
+def test_non_fedora_ostree_distro_not_folded(tmp_path):
+    # the atomic fold is fedora-family-gated: another ostree distro keeps its own identity
+    path = _write(tmp_path, 'ID=endless\n')
+    info = osdetect.detect(env={}, os_release_path=path, ostree_marker=_marker(tmp_path))
+    assert info.block == 'endless'

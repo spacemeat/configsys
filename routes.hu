@@ -36,6 +36,18 @@
         almalinux: { using: rhel }
         centos:    { using: rhel }                                  // CentOS Stream
 
+        // Fedora Atomic / uBlue (Silverblue, Kinoite, Sericea, Bazzite, Bluefin, Aurora …) —
+        // immutable ostree desktops. Modeled as a distinct ENVIRONMENT, deliberately NOT under
+        // `fedora`: brew is the CLI `native:` (uBlue ships it pre-configured), flatpak covers
+        // apps (their existing bindings just work), and rpm-ostree is an explicit last-resort
+        // layering driver (via: rpm-ostree). Hanging off glibc_linux — not redhat — keeps the
+        // dnf-only bindings (EPEL / RPM Fusion / repo-component) from misfiring here; brew needs
+        // none of them. `provides: flatpak` because flatpak is pre-installed, so an app's flatpak
+        // dep is env-satisfied instead of trying to `brew install flatpak`. scale-root: it owns
+        // its VERSION_ID (tracks Fedora) without inheriting fedora's dnf version line. osdetect
+        // folds every variant (ID=fedora + atomic VARIANT_ID or the ostree marker) into this block.
+        fedora_atomic: { using: glibc_linux  native: brew  provides: flatpak  scale-root: true }
+
         // Arch family (pacman). Rolling — no version scale; membership is by identity only.
         arch:        { using: glibc_linux  native: pacman }
         manjaro:     { using: arch }

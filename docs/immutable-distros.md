@@ -95,20 +95,22 @@ the same tool there:
 `privileged = True`. **Reboot messaging is first-class**: install must tell the user it's staged
 and how to activate (`systemctl reboot`, or the `--apply-live` we ran).
 
-### 3. OS blocks
+### 3. OS blocks — DONE (one block, not per-image)
+Research (ublue-os/bazzite#1249) killed the per-image plan: Silverblue/Kinoite report
+`ID=fedora` + `VARIANT_ID=silverblue|kinoite`, and the uBlue images (Bazzite/Bluefin/Aurora)
+report `ID=fedora` with `VARIANT_ID` = *fedora or kinoite* — they do **not** cleanly
+self-identify, and their routing is identical anyway. So there is **one** block:
 ```hu
-glibc_atomic: { using: glibc_linux  native: brew }     // shared atomic environment (brew CLI)
-// Fedora Atomic / uBlue — identity + VERSION tracks Fedora, but NOT in the redhat dnf subtree
-silverblue: { using: glibc_atomic }
-kinoite:    { using: glibc_atomic }
-bazzite:    { using: glibc_atomic }
-bluefin:    { using: glibc_atomic }
-aurora:     { using: glibc_atomic }
+fedora_atomic: { using: glibc_linux  native: brew  provides: flatpak  scale-root: true }
 ```
-osdetect: uBlue images report `ID=bazzite` / `bluefin` / etc. (or sometimes the base
-`silverblue`/`kinoite` with a `VARIANT_ID`) — needs verification per image; aliases as required.
-A `when: "atomic"`-style atom (membership in `glibc_atomic`) lets components add atomic-specific
-bindings.
+`provides: flatpak` (pre-installed → an app's flatpak dep is env-satisfied, not `brew install
+flatpak`). `scale-root` so it owns its Fedora-tracking VERSION_ID without inheriting fedora's dnf
+version line. osdetect folds every variant in: `ID=fedora` (or fedora in ID_LIKE) **and** either
+an atomic `VARIANT_ID` **or** the `/run/ostree-booted` marker (the robust catch-all for uBlue
+images whose VARIANT_ID is just `fedora`). `--os` forcing bypasses the remap. Verified:
+`btop→brew\btop`, `chrome→flatpak\chrome` (no brew\flatpak), `ffmpeg→brew\ffmpeg` (no RPM Fusion),
+plain `fedora` unchanged. Finer per-image identity (bazzite vs bluefin, via PRETTY_NAME/package
+probe) is deferred — nothing routes on it yet.
 
 ## Open decisions (need a call before building)
 

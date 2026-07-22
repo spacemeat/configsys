@@ -104,3 +104,44 @@ def test_gcompat_opt_in_enables_glibc_binaries_on_alpine():
     # ...but gcompat is NEVER auto-pulled without opting in
     with pytest.raises(ResolveError):
         Resolver(ROUTES, 'alpine').resolve_names(['android-studio'])
+
+
+# -- the 2026 descendant blocks (cachyos/garuda/nobara/kali/pikaos) ---------
+
+def test_new_descendant_natives(cascade):
+    assert cascade.native('cachyos') == 'pacman'   # arch
+    assert cascade.native('garuda') == 'pacman'
+    assert cascade.native('nobara') == 'dnf'       # fedora
+    assert cascade.native('kali') == 'apt'         # debian
+    assert cascade.native('pikaos') == 'apt'
+
+
+def test_nobara_borrows_fedora_scale_kali_pikaos_own(cascade):
+    # Nobara N == Fedora N -> a versioned fedora atom applies to it (no scale-root)
+    assert holds(cascade, 'fedora >= 40', 'nobara', '40')
+    # kali is rolling / pikaos owns date numbering -> a versioned debian atom must NOT bind them
+    assert not holds(cascade, 'debian < 12', 'pikaos', '26')
+    assert not holds(cascade, 'debian < 12', 'kali', '2026')
+
+
+# -- Fedora Atomic / uBlue = a distinct environment (brew CLI, flatpak apps) --
+
+def test_fedora_atomic_is_glibc_not_redhat(cascade):
+    lin = cascade.lineage('fedora_atomic')
+    assert 'glibc_linux' in lin and 'linux' in lin
+    assert 'redhat' not in lin and 'fedora' not in lin   # dnf-only bindings must not apply
+    assert cascade.native('fedora_atomic') == 'brew'
+    assert 'flatpak' in cascade.provides('fedora_atomic')  # pre-installed -> env-satisfied
+
+
+def test_fedora_atomic_routes_cli_to_brew_apps_to_flatpak():
+    r = Resolver(ROUTES, 'fedora_atomic', '40')
+    assert 'brew\\btop' in r.resolve_names(['btop'])          # native -> brew
+    # chrome resolves to flatpak, and its flatpak dep is env-provided (no brew\flatpak unit)
+    chrome = r.resolve_names(['chrome'])
+    assert 'flatpak\\chrome' in chrome
+    assert not any(k.startswith('brew\\flatpak') for k in chrome)
+    # ffmpeg takes the generic binding -> brew, never RPM Fusion (outside the redhat subtree)
+    ff = r.resolve_names(['ffmpeg'])
+    assert 'brew\\ffmpeg' in ff
+    assert not any('rpmfusion' in k for k in ff)
