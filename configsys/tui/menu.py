@@ -557,6 +557,7 @@ def run(ctx):
     diags = ctx.diagnostics(states)
 
     with curses_screen() as stdscr:
+        ctx.reporter.pause()          # curses owns the screen now; don't stream to stderr
         pal = Palette()
         note = ''
         show_diag = False
@@ -623,4 +624,5 @@ def run(ctx):
                         note = f'reload failed: {e}'
                     ms.errors = failed
                     curses.flushinp()  # ...and any typed during the re-inspect
+    ctx.reporter.resume()             # back on the console (endwin has restored the terminal)
     return 0

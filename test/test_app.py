@@ -223,3 +223,19 @@ def test_no_atomic_advisory_on_normal_os(tmp_path, capsys):
     rc = main(['--home', str(tmp_path), '--os', 'fedora', '--pretend', 'inspect'])
     assert rc == 0
     assert 'atomic/immutable OS detected' not in capsys.readouterr().out
+
+def test_verbose_streams_to_stderr_not_stdout(tmp_path, capsys):
+    rc = main(['--home', str(tmp_path), '--os', 'pop', '--pretend', '-v', 'inspect'])
+    assert rc == 0
+    cap = capsys.readouterr()
+    assert 'resolved' in cap.err          # verbose load detail lands on stderr
+    assert 'resolved' not in cap.out      # ...not polluting stdout
+    assert 'OS: pop_os!' in cap.out       # the normal inspect table is still on stdout
+
+
+def test_silent_flag_quiets_the_load_stream(tmp_path, capsys):
+    rc = main(['--home', str(tmp_path), '--os', 'pop', '--pretend', '-q', 'inspect'])
+    assert rc == 0
+    cap = capsys.readouterr()
+    assert cap.err == ''                  # -q: nothing on stderr
+    assert 'OS: pop_os!' in cap.out       # stdout unaffected

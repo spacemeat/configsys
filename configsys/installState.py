@@ -6,6 +6,7 @@ with the ledger's lock intent. Unsupported drivers (not yet implemented in M1)
 degrade to an 'unsupported' state rather than crashing. Inspection is read-only.
 '''
 
+import time
 from dataclasses import dataclass
 from typing import Optional
 
@@ -58,9 +59,18 @@ class InstallState:
         self.ledger = ledger if ledger is not None else Ledger()
         self.paths = paths
 
-    def inspect(self, units):
-        '''units: {key: ResolvedComponent} -> {key: ComponentState}.'''
-        return {key: self.inspect_one(rc) for key, rc in units.items()}
+    def inspect(self, units, progress=None):
+        '''units: {key: ResolvedComponent} -> {key: ComponentState}. `progress`, if given, is
+        called (i, total, key, state, ms) after each unit — the per-unit state check is the slow
+        part, so this lets the caller show motion during a long load.'''
+        out, total = {}, len(units)
+        for i, (key, rc) in enumerate(units.items(), 1):
+            t0 = time.perf_counter()
+            st = self.inspect_one(rc)
+            out[key] = st
+            if progress is not None:
+                progress(i, total, key, st, (time.perf_counter() - t0) * 1000)
+        return out
 
     def inspect_one(self, rc):
         led_lock = self.ledger.is_locked(rc.key)

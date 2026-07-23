@@ -11,6 +11,12 @@ import os
 import sys
 
 from . import osdetect
+from . import report
+
+
+def _unskip(w):
+    '''Drop a leading "skipped " tag from a load-warning for clean display.'''
+    return w[len('skipped '):] if w.startswith('skipped ') else w
 from .config import Config
 from .errors import ConfigsysError
 from .drivers import get_driver
@@ -94,6 +100,9 @@ class Context:
         self.env = env
         self.paths = Paths(env)
         self.os_info = osdetect.detect(env)
+        level = report.SILENT if getattr(args, 'silent', False) \
+            else min(getattr(args, 'verbose', 0), report.DEBUG)
+        self.reporter = report.Reporter(level)
         self.runner = Runner(pretend=args.pretend, echo=lambda m: print(m))
         self._config = None
         self._discovered = None
@@ -302,17 +311,38 @@ class Context:
         print(f'configsys: {msg}')
 
     def load_pipeline(self):
+        r = self.reporter
         self.ensure_user_config(offer_primary=True)
         cfg = self.config
+        r.event(report.VERBOSE, f'  config: {len(cfg.active_profiles)} profile(s) active '
+                                f'({", ".join(cfg.active_profiles)})')
+        for w in getattr(cfg, 'load_warnings', []):     # dropped config layers, streamed as found
+            r.error(_unskip(w))
         requested = cfg.requested()
         # resilient: a requested component that can't route here becomes a reported error
         # (self.resolve_errors), not a hard stop — so one bad entry in the active set (e.g.
         # from an auto-activated project profile) can't brick inspect/the TUI.
         units, self.resolve_errors = self.routes.resolve_resilient(list(requested))
+        for w in getattr(self.routes, 'load_warnings', []):
+            r.error(_unskip(w))
+        for name in sorted(self.resolve_errors or {}):
+            r.error(f'{name}: {self.resolve_errors[name]}')
+        r.event(report.VERBOSE, f'  resolved {len(requested)} requested -> {len(units)} unit(s)')
         self.apply_scope_default(units)
         ledger = Ledger.load(self.paths)
-        states = InstallState(self.runner, ledger, self.paths).inspect(units)
+        states = InstallState(self.runner, ledger, self.paths).inspect(
+            units, progress=self._inspect_progress)
+        r.flush_transient()
         return cfg, requested, units, ledger, states
+
+    def _inspect_progress(self, i, total, key, st, ms):
+        '''Per-unit callback from InstallState.inspect: a transient counter at DEFAULT
+        (so long state-checks show motion), a scrollable per-unit line at VERBOSE+.'''
+        if self.reporter.level >= report.VERBOSE:
+            self.reporter.event(report.VERBOSE,
+                                f'  [{i}/{total}] {key}  {st.installed_version or "-"}  ({ms:.0f} ms)')
+        else:
+            self.reporter.status(f'checking install state… {i}/{total}')
 
 
 # -- commands -------------------------------------------------------------
@@ -967,6 +997,11 @@ def build_parser():
     p.add_argument('--os', help='override detected OS routes block (e.g. pop_os!)')
     p.add_argument('--home', help='override HOME base for all paths (sandboxing)')
     p.add_argument('--config', help='override the per-machine selector file path')
+    p.add_argument('-v', '--verbose', action='count', default=0,
+                   help='stream load detail to stderr: -v layers/overrides/per-unit state, '
+                        '-vv full route/binding/why (errors + progress already show by default)')
+    p.add_argument('-q', '--silent', action='store_true',
+                   help='no console output during load at all — only the TUI ! page')
 
     sub = p.add_subparsers(dest='command')
     sub.add_parser('inspect', help='show install state of the active profiles')
