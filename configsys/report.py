@@ -62,6 +62,11 @@ class Reporter:
         '''An error found during load/resolve — shown at DEFAULT and up (never when SILENT).'''
         self._line(f'  ✗ {text}')
 
+    def warn(self, text):
+        '''A warning found during load (scope drift, ignored section, unsynced plugin, the atomic
+        advisory, ...) — shown at DEFAULT and up like an error; silenced only when SILENT/paused.'''
+        self._line(f'  ⚠ {text}')
+
     def event(self, min_level, text):
         '''A detail line shown only at `min_level` or above (VERBOSE / DEBUG).'''
         if not self.muted and self.level >= min_level:

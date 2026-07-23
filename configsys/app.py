@@ -335,6 +335,11 @@ class Context:
         ledger = Ledger.load(self.paths)
         states = InstallState(self.runner, ledger, self.paths).inspect(
             units, progress=self._inspect_progress)
+        # warnings stream to the console too (errors already did, inline). These need `states`
+        # (scope drift) so they land here at the end; the ! page / footer still collect them.
+        for d in self.diagnostics(states):
+            if d['level'] == 'warn':
+                r.warn(d['text'])
         r.flush_transient()
         return cfg, requested, units, ledger, states
 

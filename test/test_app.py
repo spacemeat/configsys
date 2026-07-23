@@ -295,3 +295,18 @@ def test_session_summary_silent_without_verbose(tmp_path, capsys):
     capsys.readouterr()
     ctx.report_session_summary(cfg, states, ctx.diagnostics(states))
     assert capsys.readouterr().err == ''                # summary is a -v+ feature
+
+
+def test_warnings_stream_to_console_like_errors(tmp_path, capsys):
+    # a warn-level diagnostic (here the atomic advisory) streams to stderr during load,
+    # not only to the ! page / inspect footer — and even at DEFAULT (no -v), like errors
+    rc = main(['--home', str(tmp_path), '--os', 'fedora_atomic', '--pretend', 'inspect'])
+    assert rc == 0
+    err = capsys.readouterr().err
+    assert '⚠' in err and 'atomic' in err.lower()
+
+
+def test_silent_flag_quiets_warnings_too(tmp_path, capsys):
+    rc = main(['--home', str(tmp_path), '--os', 'fedora_atomic', '--pretend', '-q', 'inspect'])
+    assert rc == 0
+    assert capsys.readouterr().err == ''                # -q silences streamed warnings as well
