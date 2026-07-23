@@ -313,6 +313,27 @@ def test_report_print_shows_scrubbed_body(tmp_path, capsys):
     assert 'ghp_ABCDEF' not in out                       # token scrubbed before display
 
 
+def test_send_report_short_body_prefills_url(tmp_path, capsys):
+    from configsys.app import _send_report
+    ctx = _ctx(tmp_path)
+    rc = _send_report(ctx, '[report] git on pop', 'a short body line')
+    assert rc == 0
+    out = capsys.readouterr().out
+    assert 'issues/new?' in out and 'body=' in out          # body is prefilled into the URL
+    assert 'a+short+body+line' in out                        # url-encoded body rides along
+
+
+def test_send_report_long_body_falls_back_to_paste(tmp_path, capsys):
+    from configsys.app import _send_report, _URL_PREFILL_LIMIT
+    ctx = _ctx(tmp_path)
+    rc = _send_report(ctx, '[report] git on pop', 'x' * (_URL_PREFILL_LIMIT + 500))
+    assert rc == 0
+    out = capsys.readouterr().out
+    assert 'issues/new?' in out and 'body=' not in out       # too big for a URL: link only
+    assert 'paste the body' in out
+    assert (ctx.paths.state_dir / 'last-report.md').exists() # saved so the body isn't lost
+
+
 def test_report_without_name_or_failure_errors(tmp_path, capsys):
     rc = main(['--home', str(tmp_path), '--os', 'pop', '--pretend', 'report', '--print'])
     assert rc == 1

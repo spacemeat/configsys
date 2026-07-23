@@ -1086,6 +1086,11 @@ def cmd_plugin(ctx, args):
 
 # -- report: file an install-failure report (no hidden telemetry) ---------
 
+# Practical ceiling for a prefilled issues/new URL. GitHub's own docs cap the server at ~8k, and
+# some browsers are tighter; 6k leaves headroom for encoding overhead and stays safely under both.
+_URL_PREFILL_LIMIT = 6000
+
+
 def _send_report(ctx, title, body):
     '''File the (already-approved) report. Prefer `gh issue create`; else save the body and
     print a prefilled new-issue link. Returns 0 on success/handed-off, 1 on failure.'''
@@ -1109,19 +1114,31 @@ def _send_report(ctx, title, body):
         print(f'configsys: gh could not file it ({proc.stderr.strip() or "error"}).')
         # fall through to the link path so the work isn't lost
 
-    # no gh (or gh failed): save the body, print a prefilled link (body is too big for a URL)
+    # no gh (or gh failed): save the body and print a prefilled new-issue link. When the body is
+    # short enough to survive a URL, prefill it too so the browser opens fully populated; longer
+    # ones fall back to open-the-link-and-paste (browsers/servers choke past ~8k of URL).
     out = ctx.paths.state_dir / 'last-report.md'
     try:
         ctx.paths.state_dir.mkdir(parents=True, exist_ok=True)
         out.write_text(body, encoding='utf-8')
-        saved = f' The full report is saved at {out}.'
+        saved = f'The full report is saved at {out}.'
     except OSError:
         saved = ''
-    q = urllib.parse.urlencode({'title': title, 'labels': 'install-report'})
-    print('configsys: install `gh` to file automatically, or open this and paste the body:\n'
-          f'  https://github.com/{REPORTS_REPO}/issues/new?{q}')
-    if saved:
-        print(saved.strip())
+
+    base = f'https://github.com/{REPORTS_REPO}/issues/new'
+    fields = {'title': title, 'labels': 'install-report'}
+    with_body = f'{base}?' + urllib.parse.urlencode({**fields, 'body': body})
+    if len(with_body) <= _URL_PREFILL_LIMIT:
+        print('configsys: no `gh` — open this and the issue is prefilled, ready to submit:\n'
+              f'  {with_body}')
+        if saved:
+            print(f'({saved})')
+    else:
+        link = f'{base}?' + urllib.parse.urlencode(fields)
+        print('configsys: install `gh` to file automatically, or open this and paste the body:\n'
+              f'  {link}')
+        if saved:
+            print(saved)
     return 0
 
 
