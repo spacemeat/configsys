@@ -318,16 +318,19 @@ class Context:
                                 f'({", ".join(cfg.active_profiles)})')
         for w in getattr(cfg, 'load_warnings', []):     # dropped config layers, streamed as found
             r.error(_unskip(w))
+        routes = self.routes                            # one Resolver — reused for reporting below
+        self._report_layers(routes)                     # -v: the component layer stack, low→high
+        for w in getattr(routes, 'load_warnings', []):
+            r.error(_unskip(w))
         requested = cfg.requested()
         # resilient: a requested component that can't route here becomes a reported error
         # (self.resolve_errors), not a hard stop — so one bad entry in the active set (e.g.
         # from an auto-activated project profile) can't brick inspect/the TUI.
-        units, self.resolve_errors = self.routes.resolve_resilient(list(requested))
-        for w in getattr(self.routes, 'load_warnings', []):
-            r.error(_unskip(w))
+        units, self.resolve_errors = routes.resolve_resilient(list(requested))
         for name in sorted(self.resolve_errors or {}):
             r.error(f'{name}: {self.resolve_errors[name]}')
         r.event(report.VERBOSE, f'  resolved {len(requested)} requested -> {len(units)} unit(s)')
+        self._report_routing(routes, requested)         # -v overrides, -vv winning binding + why
         self.apply_scope_default(units)
         ledger = Ledger.load(self.paths)
         states = InstallState(self.runner, ledger, self.paths).inspect(
@@ -343,6 +346,50 @@ class Context:
                                 f'  [{i}/{total}] {key}  {st.installed_version or "-"}  ({ms:.0f} ms)')
         else:
             self.reporter.status(f'checking install state… {i}/{total}')
+
+    def _report_layers(self, routes):
+        '''-v: the component layer stack that produced these routes, low→high precedence.'''
+        r = self.reporter
+        if r.level < report.VERBOSE:
+            return
+        r.event(report.VERBOSE, '  component layers (low → high precedence):')
+        for lyr in routes.layers:
+            r.event(report.VERBOSE, f'    · {lyr.role:9} {_layer_label(lyr.path, self.paths)}')
+
+    def _report_routing(self, routes, requested):
+        '''-v: components defined/redefined outside routes.hu (with provenance).
+        -vv: the winning binding per requested component and the `when:` that selected it.'''
+        r = self.reporter
+        if r.level < report.VERBOSE:
+            return
+        overrides = sorted((c for c in routes.components.values()
+                            if _layer_label(c.source, self.paths) != 'routes.hu'),
+                           key=lambda c: c.name)
+        if overrides:
+            r.event(report.VERBOSE, f'  route overrides ({len(overrides)}):')
+            for c in overrides:
+                r.event(report.VERBOSE, f'    · {c.name:22} {_source_label(c, self.paths)}')
+        if r.level < report.DEBUG:
+            return
+        from .resolve import select_binding, ResolveError
+        cx = routes.cascade.context(routes.block, routes.version, routes.cpu)
+        r.event(report.DEBUG, '  winning binding per requested component:')
+        for name in sorted(requested):
+            comp = routes.components.get(name)
+            if comp is None:
+                continue                                # a resolve error already reported this
+            if not comp.bindings:
+                r.event(report.DEBUG, f'    · {name:22} (removed / no binding)')
+                continue
+            try:
+                b = select_binding(comp, routes.cascade, cx, routes.pins)
+            except ResolveError:
+                b = None
+            if b is None:
+                r.event(report.DEBUG, f'    · {name:22} (no binding matches here)')
+            else:
+                r.event(report.DEBUG,
+                        f'    · {name:22} via {b.via:13} when: {b.when or "always"}')
 
 
 # -- commands -------------------------------------------------------------

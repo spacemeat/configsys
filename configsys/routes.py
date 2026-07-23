@@ -113,7 +113,7 @@ def _pf(entry):
 
 
 def load(path, overrides_path=None, discovered=(), plugin_files=(), validate=True,
-         warnings_out=None):
+         warnings_out=None, layers_out=None):
     '''-> (OsCascade, {component_name: Component}, {driver: [required caps]}).
 
     Layer stack lowest-first: routes.hu (repo) < plugin data files < discovered project files
@@ -132,6 +132,8 @@ def load(path, overrides_path=None, discovered=(), plugin_files=(), validate=Tru
     layer_list, _warnings = layers.expand_tolerant(roots, {'discover', 'plugin', 'primary'})
     if warnings_out is not None:
         warnings_out.extend(_warnings)
+    if layers_out is not None:                       # (path, role) low→high, for `-v` reporting
+        layers_out.extend(layer_list)
 
     cascade = OsCascade(layers.merge_dict_section(layer_list, 'os', ('repo', 'plugin', 'primary')))
     forgiving = ({os.path.normpath(d) for d in discovered}
@@ -170,9 +172,10 @@ class Resolver:
     def __init__(self, routes_path, block, version=None, cpu=None, pins=None,
                  overrides_path=None, discovered=(), plugin_files=()):
         self.load_warnings = []       # skipped files/components (for diagnostics)
+        self.layers = []              # expanded layer stack low→high (for `-v` reporting)
         self.cascade, self.components, self.drivers = load(
             routes_path, overrides_path, discovered, plugin_files,
-            warnings_out=self.load_warnings)
+            warnings_out=self.load_warnings, layers_out=self.layers)
         self.block = block
         self.version = version
         self.cpu = cpu

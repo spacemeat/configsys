@@ -239,3 +239,34 @@ def test_silent_flag_quiets_the_load_stream(tmp_path, capsys):
     cap = capsys.readouterr()
     assert cap.err == ''                  # -q: nothing on stderr
     assert 'OS: pop_os!' in cap.out       # stdout unaffected
+
+
+def test_verbose_shows_layer_stack(tmp_path, capsys):
+    rc = main(base_args(tmp_path) + ['-v', 'inspect'])
+    assert rc == 0
+    err = capsys.readouterr().err
+    assert 'component layers' in err and 'routes.hu' in err   # -v prints the layer stack
+
+
+def test_debug_shows_winning_binding_verbose_does_not(tmp_path, capsys):
+    rc = main(base_args(tmp_path) + ['-vv', 'inspect'])
+    assert rc == 0
+    err = capsys.readouterr().err
+    assert 'winning binding' in err                          # -vv adds the per-component why
+    assert 'via' in err and 'when:' in err
+
+    rc = main(base_args(tmp_path) + ['-v', 'inspect'])       # ...but plain -v does not
+    assert rc == 0
+    assert 'winning binding' not in capsys.readouterr().err
+
+
+def test_verbose_reports_override_provenance(tmp_path, capsys):
+    # a user config that redefines a repo component must show up as an attributed override
+    (tmp_path / 'configsys.hu').write_text(
+        '{ configs: [ mine ]  profiles: { mine: [ steam ] }'
+        '  components: { steam: { install: [ { via: flatpak  name: com.valvesoftware.Steam } ] } } }')
+    rc = main(base_args(tmp_path) + ['-v', 'inspect'])
+    assert rc == 0
+    err = capsys.readouterr().err
+    assert 'route overrides' in err
+    assert 'steam' in err and 'overrides routes.hu' in err
