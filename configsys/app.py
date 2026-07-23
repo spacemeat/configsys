@@ -12,6 +12,7 @@ import sys
 
 from . import osdetect
 from . import report
+from . import reportgen
 
 
 def _unskip(w):
@@ -459,6 +460,7 @@ def _dispatch_op(ctx, names, op, *, ledger=None, version=None):
     plan = expand_plan(base_plan, units)
 
     rc_code = 0
+    last_failure = None
     for cur_op, key, rc in plan:
         fam = get_driver(rc.driver, ctx.runner, ctx.paths)
         if fam is None:
@@ -487,11 +489,32 @@ def _dispatch_op(ctx, names, op, *, ledger=None, version=None):
         if not res.ok:
             rc_code = res.returncode or 1
             print(f'  -> FAILED (exit {res.returncode})')
+            last_failure = reportgen.failure_from_result(key, rc.driver, cur_op, res)
         else:
             print('  -> ok')
     if ledger is not None:
         ledger.save(ctx.paths)
+    if last_failure is not None:
+        _offer_report(ctx, last_failure)
     return rc_code
+
+
+def _offer_report(ctx, failure):
+    '''Persist the failure so `configsys report` can reuse it later, and — on a terminal —
+    offer to file it now. Never fatal; a --pretend run doesn't reach here.'''
+    reportgen.save_failure(ctx.paths, failure)
+    if not (sys.stdin.isatty() and sys.stdout.isatty()):
+        print(f'\nconfigsys: {failure["unit"]} failed — run `configsys report '
+              f'{failure["component"]}` to file a report.')
+        return
+    try:
+        ans = input(f'\nfile a report of this {failure["component"]} failure? [y/N] ').strip().lower()
+    except EOFError:
+        ans = ''
+    if ans in ('y', 'yes'):
+        cmd_report(ctx, argparse.Namespace(name=failure['component'], yes=False, print_only=False))
+    else:
+        print(f'configsys: saved — `configsys report {failure["component"]}` files it later.')
 
 
 def cmd_fix_scope(ctx, args):
@@ -1061,6 +1084,86 @@ def cmd_plugin(ctx, args):
     return 2
 
 
+# -- report: file an install-failure report (no hidden telemetry) ---------
+
+def _send_report(ctx, title, body):
+    '''File the (already-approved) report. Prefer `gh issue create`; else save the body and
+    print a prefilled new-issue link. Returns 0 on success/handed-off, 1 on failure.'''
+    import shutil
+    import subprocess
+    import urllib.parse
+    from .reportgen import REPORTS_REPO
+
+    if shutil.which('gh'):
+        import tempfile
+        with tempfile.NamedTemporaryFile('w', suffix='.md', delete=False, encoding='utf-8') as f:
+            f.write(body)
+            bodyfile = f.name
+        proc = subprocess.run(['gh', 'issue', 'create', '--repo', REPORTS_REPO,
+                               '--title', title, '--body-file', bodyfile,
+                               '--label', 'install-report'],
+                              capture_output=True, text=True)
+        if proc.returncode == 0:
+            print(f'configsys: filed — {proc.stdout.strip()}')
+            return 0
+        print(f'configsys: gh could not file it ({proc.stderr.strip() or "error"}).')
+        # fall through to the link path so the work isn't lost
+
+    # no gh (or gh failed): save the body, print a prefilled link (body is too big for a URL)
+    out = ctx.paths.state_dir / 'last-report.md'
+    try:
+        ctx.paths.state_dir.mkdir(parents=True, exist_ok=True)
+        out.write_text(body, encoding='utf-8')
+        saved = f' The full report is saved at {out}.'
+    except OSError:
+        saved = ''
+    q = urllib.parse.urlencode({'title': title, 'labels': 'install-report'})
+    print('configsys: install `gh` to file automatically, or open this and paste the body:\n'
+          f'  https://github.com/{REPORTS_REPO}/issues/new?{q}')
+    if saved:
+        print(saved.strip())
+    return 0
+
+
+def cmd_report(ctx, args):
+    from . import reportgen
+    saved = reportgen.load_failure(ctx.paths)
+    name = getattr(args, 'name', None) or (saved or {}).get('component')
+    if name is None:
+        print('configsys: nothing to report — name a component (`configsys report <name>`) '
+              'or run it after a failed install so the failure is captured.')
+        return 1
+    # only attach the saved failure if it's about the component we're reporting
+    failure = saved if saved and saved.get('component') == name else None
+
+    payload = reportgen.collect(ctx, component=name, failure=failure)
+    secrets = reportgen.secret_values(ctx.env)
+    body = reportgen.render(payload, home=ctx.paths.home, secrets=secrets)
+    title = reportgen.title(payload)
+
+    print('\n' + '=' * 72)
+    print(f'{title}\n')
+    print(body)
+    print('=' * 72)
+    if not failure:
+        print('note: no captured driver output (report either after a failed op, or paste it in).')
+    if getattr(args, 'print_only', False):
+        return 0
+
+    if not getattr(args, 'yes', False):
+        if not (sys.stdin.isatty() and sys.stdout.isatty()):
+            print('\nconfigsys: not a terminal; re-run with --yes to file, or --print to just view.')
+            return 1
+        try:
+            ans = input(f'\nSend this report to {reportgen.REPORTS_REPO}? [y/N] ').strip().lower()
+        except EOFError:
+            ans = ''
+        if ans not in ('y', 'yes'):
+            print('configsys: not sent.')
+            return 0
+    return _send_report(ctx, title, body)
+
+
 # -- argument parsing -----------------------------------------------------
 
 def build_parser():
@@ -1131,6 +1234,13 @@ def build_parser():
     pun = plsub.add_parser('untrust', help="revoke a code plugin's trust")
     pun.add_argument('name', help='plugin name, source, or dir')
 
+    rp = sub.add_parser('report', help='assemble an install-failure report (OS + route + driver '
+                                       'output) and file it upstream — you approve the full text first')
+    rp.add_argument('name', nargs='?', help='component (defaults to the last failed op)')
+    rp.add_argument('--yes', action='store_true', help='skip the send confirmation (still shows it)')
+    rp.add_argument('--print', dest='print_only', action='store_true',
+                    help='print the report and exit; never send')
+
     sub.add_parser('refresh', help='re-query latest versions from their sources')
     sub.add_parser('tui', help='interactive TUI (default)')
     return p
@@ -1149,6 +1259,7 @@ _COMMANDS = {
     'check': cmd_check,
     'plugin': cmd_plugin,
     'refresh': cmd_refresh,
+    'report': cmd_report,
     'tui': cmd_tui,
 }
 

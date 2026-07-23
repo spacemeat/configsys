@@ -14,6 +14,7 @@ unit appears. Enter/→ expand, ← collapse, Tab expands/collapses all componen
 
 import curses
 
+from .. import reportgen
 from ..drivers import get_driver
 from ..planning import expand_plan
 from .screen import curses_screen, suspended
@@ -289,6 +290,7 @@ class OpOutcome:
 
 def execute_plan(ctx, plan, ledger):
     outcomes = []
+    last_failure = None
     for op, key, rc in plan:
         fam = get_driver(rc.driver, ctx.runner, ctx.paths)
         if fam is None:
@@ -316,9 +318,13 @@ def execute_plan(ctx, plan, ledger):
 
         ok = bool(res and res.ok)
         detail = '' if ok else (f'exit {res.returncode}' if res else 'no result')
+        if not ok and res is not None:
+            last_failure = reportgen.failure_from_result(key, rc.driver, op, res)
         outcomes.append(OpOutcome(op, key, rc.name, ok, detail))
 
     ledger.save(ctx.paths)
+    if last_failure is not None:           # persist for a post-quit `configsys report <c>`
+        reportgen.save_failure(ctx.paths, last_failure)
     return outcomes
 
 
@@ -562,6 +568,7 @@ def run(ctx):
         note = ''
         show_diag = False
         diag_top = 0
+        pending_report = None                     # a component whose op failed this session
         while True:
             diag_top = _draw(stdscr, pal, ms, ctx, note, diags, show_diag, diag_top)
             note = ''
@@ -616,6 +623,9 @@ def run(ctx):
                 if executed:
                     failed = {o.key: f'{o.op} failed: {o.detail}'
                               for o in outcomes if not o.ok}
+                    bad = [o for o in outcomes if not o.ok]
+                    if bad:                       # remember for a post-quit report nudge
+                        pending_report = bad[-1].key.split('\\', 1)[-1]
                     try:
                         cfg, _requested, _units, ledger, states = ctx.load_pipeline()
                         ms = MenuState(states, _profile_comps(cfg))
@@ -626,4 +636,7 @@ def run(ctx):
                     curses.flushinp()  # ...and any typed during the re-inspect
     ctx.reporter.resume()             # back on the console (endwin has restored the terminal)
     ctx.report_session_summary(cfg, states, diags)   # -v+: leave a recap in the scrollback
+    if pending_report:                # an op failed; its output is captured and persisted
+        print(f'configsys: an op failed — run `configsys report {pending_report}` to file it '
+              f'(OS + route + captured output; you approve the full text first).')
     return 0

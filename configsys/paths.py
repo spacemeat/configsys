@@ -50,6 +50,7 @@ class Paths:
         self.user_config_file = Path(uc) if uc else self.state_dir / 'configsys.hu'
         self.legacy_user_config_file = self.home / 'configsys.hu'
         self.ledger_file = self.state_dir / 'state.hu'
+        self.failure_file = self.state_dir / 'last-failure.hu'   # last op failure, for `report`
         self.versions_file = self.state_dir / 'versions.hu'   # discovered-version cache
         self.plugins_dir = self.state_dir / 'plugins'         # synced remote plugin repos
         self.plugin_trust_file = self.state_dir / 'plugin-trust.hu'   # {plugin: approved commit}

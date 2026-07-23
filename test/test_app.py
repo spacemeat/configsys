@@ -297,6 +297,35 @@ def test_session_summary_silent_without_verbose(tmp_path, capsys):
     assert capsys.readouterr().err == ''                # summary is a -v+ feature
 
 
+def test_report_print_shows_scrubbed_body(tmp_path, capsys):
+    from configsys import reportgen
+    ctx = _ctx(tmp_path)                                 # same --home -> same state dir
+    reportgen.save_failure(ctx.paths, {
+        'component': 'htop', 'unit': 'apt\\htop', 'driver': 'apt', 'op': 'install',
+        'command': 'apt-get install -y htop', 'exit': 100,
+        'output': 'E: fetch failed with ghp_ABCDEFGHIJKLMNOPQRSTUVWXYZ012345', 'at': 't'})
+    capsys.readouterr()
+    rc = main(['--home', str(tmp_path), '--os', 'pop', '--pretend', 'report', 'htop', '--print'])
+    assert rc == 0
+    out = capsys.readouterr().out
+    assert 'htop' in out and '<!-- configsys-report v1 -->' in out
+    assert 'apt\\htop' in out                            # the failing unit is in the body
+    assert 'ghp_ABCDEF' not in out                       # token scrubbed before display
+
+
+def test_report_without_name_or_failure_errors(tmp_path, capsys):
+    rc = main(['--home', str(tmp_path), '--os', 'pop', '--pretend', 'report', '--print'])
+    assert rc == 1
+    assert 'nothing to report' in capsys.readouterr().out
+
+
+def test_report_non_tty_needs_yes(tmp_path, capsys):
+    # capsys makes stdin a non-tty; without --yes the send must refuse rather than hang
+    rc = main(['--home', str(tmp_path), '--os', 'pop', '--pretend', 'report', 'htop'])
+    assert rc == 1
+    assert 'not a terminal' in capsys.readouterr().out
+
+
 def test_warnings_stream_to_console_like_errors(tmp_path, capsys):
     # a warn-level diagnostic (here the atomic advisory) streams to stderr during load,
     # not only to the ! page / inspect footer — and even at DEFAULT (no -v), like errors
