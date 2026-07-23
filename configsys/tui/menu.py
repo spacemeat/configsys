@@ -625,4 +625,5 @@ def run(ctx):
                     ms.errors = failed
                     curses.flushinp()  # ...and any typed during the re-inspect
     ctx.reporter.resume()             # back on the console (endwin has restored the terminal)
+    ctx.report_session_summary(cfg, states, diags)   # -v+: leave a recap in the scrollback
     return 0

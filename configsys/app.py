@@ -391,6 +391,28 @@ class Context:
                 r.event(report.DEBUG,
                         f'    · {name:22} via {b.via:13} when: {b.when or "always"}')
 
+    def report_session_summary(self, cfg, states, diags):
+        '''Post-TUI recap printed to the console at -v+ (after endwin restores the terminal),
+        so once a long session ends the OS, profiles, final state tally, and any issues persist
+        in the scrollback where configsys was launched.'''
+        r = self.reporter
+        if r.level < report.VERBOSE:
+            return
+        ver = f' {self.os_info.version}' if self.os_info.version else ''
+        r.event(report.VERBOSE, f'  session summary — {self.os_info.block}{ver}   '
+                                f'profiles: {", ".join(cfg.active_profiles)}')
+        tally = {}
+        for st in states.values():
+            tally[st.status] = tally.get(st.status, 0) + 1
+        order = ('installed', 'outdated', 'missing', 'locked', 'unsupported', 'error')
+        parts = [f'{tally[s]} {s}' for s in order if tally.get(s)]
+        r.event(report.VERBOSE, f'    {len(states)} unit(s): ' + ', '.join(parts))
+        if diags:
+            r.event(report.VERBOSE, f'    {len(diags)} issue(s):')
+            for d in diags:
+                mark = '✗' if d['level'] == 'error' else '⚠'
+                r.event(report.VERBOSE, f'      {mark} {d["tag"]:10} {d["text"]}')
+
 
 # -- commands -------------------------------------------------------------
 

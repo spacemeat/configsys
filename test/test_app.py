@@ -1,6 +1,12 @@
 '''End-to-end-ish tests for the CLI entry, all in --pretend (no real mutation).'''
 
-from configsys.app import main
+from configsys.app import main, build_parser, Context
+
+
+def _ctx(tmp_path, *extra):
+    args = build_parser().parse_args(
+        ['--home', str(tmp_path), '--os', 'pop', '--pretend', *extra, 'inspect'])
+    return Context(args)
 
 
 def base_args(tmp_path):
@@ -270,3 +276,22 @@ def test_verbose_reports_override_provenance(tmp_path, capsys):
     err = capsys.readouterr().err
     assert 'route overrides' in err
     assert 'steam' in err and 'overrides routes.hu' in err
+
+
+def test_session_summary_recap_at_verbose(tmp_path, capsys):
+    # the post-TUI recap (called after endwin) leaves OS/profiles/tally in the scrollback
+    ctx = _ctx(tmp_path, '-v')
+    cfg, _req, _units, _ledger, states = ctx.load_pipeline()
+    capsys.readouterr()                                  # drop the load-time stream
+    ctx.report_session_summary(cfg, states, ctx.diagnostics(states))
+    err = capsys.readouterr().err
+    assert 'session summary' in err and 'pop_os!' in err
+    assert 'unit(s):' in err
+
+
+def test_session_summary_silent_without_verbose(tmp_path, capsys):
+    ctx = _ctx(tmp_path)                                 # no -v
+    cfg, _req, _units, _ledger, states = ctx.load_pipeline()
+    capsys.readouterr()
+    ctx.report_session_summary(cfg, states, ctx.diagnostics(states))
+    assert capsys.readouterr().err == ''                # summary is a -v+ feature
