@@ -1,4 +1,4 @@
-from configsys.runner import Runner
+from configsys.runner import Runner, Result, _can_tee
 
 
 def test_pretend_records_and_does_not_execute():
@@ -68,3 +68,35 @@ def test_nonsudo_runs_in_plain_shell(monkeypatch):
     monkeypatch.setattr('configsys.runner.subprocess.run', fake_run)
     Runner(pretend=False).run('printf hi')
     assert captured['argv'] == ['bash', '-c', 'printf hi']
+
+
+def test_streamed_op_without_tty_falls_back_to_plain(monkeypatch):
+    # capture=False on a non-tty (tests, pipes) must NOT try to tee — plain streaming, no capture
+    calls = {}
+
+    class CP:
+        returncode, stdout, stderr = 3, '', ''
+
+    def fake_run(argv, **kw):
+        calls['teed'] = False
+        return CP()
+
+    def boom(*a, **k):
+        calls['teed'] = True
+        raise AssertionError('should not tee without a tty')
+
+    monkeypatch.setattr('configsys.runner.subprocess.run', fake_run)
+    monkeypatch.setattr('configsys.runner._run_teed', boom)
+    res = Runner(pretend=False).run('make; exit 3', capture=False)
+    assert res.returncode == 3 and res.captured == '' and calls['teed'] is False
+
+
+def test_result_output_prefers_captured_when_streamed():
+    assert Result('c', 0, stdout='real out').output == 'real out'
+    assert Result('c', 2, captured='build tail\n').output == 'build tail'
+    assert Result('c', 0).output == ''
+
+
+def test_can_tee_false_off_tty():
+    # under pytest stdin/stdout are not ttys -> tee is disabled (guards the fallback above)
+    assert _can_tee() is False
