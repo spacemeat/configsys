@@ -176,6 +176,15 @@ class Context:
         def unskip(w):                                   # tag already says "skipped"
             return w[len('skipped '):] if w.startswith('skipped ') else w
 
+        if osdetect.is_atomic(self.os_info.block):
+            add('warn', 'atomic',
+                'atomic/immutable OS detected — configsys atomic routing is NEW and not yet '
+                'validated on real hardware. Here CLI tools install via Homebrew, apps via '
+                'Flatpak, and `via: rpm-ostree` layering is reboot-gated. Dev toolchains, the '
+                'GPU/Vulkan stack, docker and AppImages are NOT managed here — use distrobox, '
+                'podman, or rpm-ostree for those. Review the plan before you run any op, and '
+                'please report anything that misroutes.')
+
         self.ensure_plugin_code()                        # populates plugin_code_warnings
         for w in getattr(self.config, 'load_warnings', []):
             add('error', 'skipped', unskip(w))           # a dropped config layer (primary/plugin/project)

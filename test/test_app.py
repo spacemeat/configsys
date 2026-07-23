@@ -211,3 +211,15 @@ def test_fix_scope_noop_when_nothing_mismatched(tmp_path, capsys):
     (tmp_path / 'configsys.hu').write_text('{ configs: [ mine ]  profiles: { mine: [ btop ] } }')
     assert main(base_args(tmp_path) + ['fix-scope']) == 0
     assert 'no scope mismatches' in capsys.readouterr().out
+
+def test_atomic_advisory_shown_on_atomic_os(tmp_path, capsys):
+    rc = main(['--home', str(tmp_path), '--os', 'fedora_atomic', '--pretend', 'inspect'])
+    assert rc == 0
+    out = capsys.readouterr().out
+    assert 'atomic/immutable OS detected' in out and 'not yet validated' in out
+
+
+def test_no_atomic_advisory_on_normal_os(tmp_path, capsys):
+    rc = main(['--home', str(tmp_path), '--os', 'fedora', '--pretend', 'inspect'])
+    assert rc == 0
+    assert 'atomic/immutable OS detected' not in capsys.readouterr().out

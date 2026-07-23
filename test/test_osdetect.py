@@ -120,3 +120,9 @@ def test_non_fedora_ostree_distro_not_folded(tmp_path):
     path = _write(tmp_path, 'ID=endless\n')
     info = osdetect.detect(env={}, os_release_path=path, ostree_marker=_marker(tmp_path))
     assert info.block == 'endless'
+
+
+def test_is_atomic_predicate():
+    assert osdetect.is_atomic('fedora_atomic') is True
+    assert osdetect.is_atomic('fedora') is False
+    assert osdetect.is_atomic('ubuntu') is False

@@ -146,6 +146,14 @@ probe) is deferred — nothing routes on it yet.
   guesses whether it applied risks mis-messaging. Opt-in keeps live-apply to the userspace packages
   where it's actually safe.
 
+## Runtime advisory (shipped)
+
+Because none of this is hardware-validated yet, `Context.diagnostics()` emits an `atomic`
+advisory whenever the detected block `is_atomic` (osdetect.is_atomic): it appears on inspect and
+the TUI `!` page, stating that atomic routing is new/untested, how it routes (brew CLI / flatpak
+apps / rpm-ostree layering), and what is deliberately *not* managed here (toolchains, GPU stack,
+docker, AppImages → distrobox/podman/rpm-ostree). `--os`-forcing a non-atomic block silences it.
+
 ## Rollout sketch
 
 1. `brew` driver + tests (mocked runner), registered. *Independently shippable* — usable on any

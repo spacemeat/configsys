@@ -42,6 +42,16 @@ _FEDORA_ATOMIC_VARIANTS = {
 }
 _ATOMIC_BLOCK = 'fedora_atomic'
 
+# Blocks that are immutable/atomic ENVIRONMENTS (brew CLI / flatpak apps / rpm-ostree layering).
+# Grows as more land (e.g. an openSUSE MicroOS block). Used to advise the user that atomic
+# routing is new + not hardware-validated (see app.Context.diagnostics).
+ATOMIC_BLOCKS = frozenset({_ATOMIC_BLOCK})
+
+
+def is_atomic(block):
+    '''True if `block` is one of the immutable/atomic OS environments.'''
+    return block in ATOMIC_BLOCKS
+
 
 def _is_fedora_atomic(id, id_like, variant, ostree_marker):
     '''True on Fedora Atomic / uBlue (immutable ostree). Fedora-family + either an atomic
