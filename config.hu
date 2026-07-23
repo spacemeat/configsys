@@ -65,6 +65,7 @@
         // [ user, networking ] and a headless box runs just [ networking ]. Neither is in the
         // default `configs:` above; activate per-machine.
         networking: [
+            +user
             iproute2
             // capture & probe
             wireshark
@@ -87,6 +88,7 @@
             vnstat
         ]
         web-dev: [
+            +user
             // browsers (firefox/chrome also ride in `user`; grouped here for cross-browser work)
             firefox
             chrome
