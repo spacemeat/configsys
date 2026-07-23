@@ -94,7 +94,8 @@
         flatpak:    { install: [ { via: native } ] }
         fontconfig: { install: [ { via: native } ] }
         unzip:      { install: [ { via: native } ] }
-        firefox:    { install: [ { via: native  repo-component: universe } ] }   // in base repos everywhere (incl. EL); apt: universe
+        firefox:    { install: [ { via: flatpak  when: fedora_atomic  hub: flathub  app: org.mozilla.firefox }   // atomic: brew has no firefox (mac-only cask) — flatpak
+                                 { via: native  repo-component: universe } ] }   // in base repos everywhere (incl. EL); apt: universe
         doas:       { install: [ { via: apk  when: "alpine" } ] }                 // Alpine's sudo (apk-only; folded from the alpine plugin)
         // iproute2 — `ip`/`ss`/`tc`. Native everywhere; EL's dnf calls the package `iproute`.
         iproute2:   { install: [ { via: native  name: { dnf: iproute  default: iproute2 } } ] }
@@ -159,7 +160,7 @@
             install: [ { via: native  repo-component: universe  name: { dnf: fuse-libs  pacman: fuse2  apk: fuse  default: libfuse2 } } ]
         }
         cargo: {
-            install: [ { via: native  repo-component: universe  name: { pacman: rust } } ]   // the cargo tool ships in `rust` on Arch
+            install: [ { via: native  repo-component: universe  name: { pacman: rust  brew: rust } } ]   // the cargo tool ships in `rust` on Arch — and in Homebrew's `rust` formula
         }
 
         // --- non-native drivers with driver-level deps ---
@@ -192,7 +193,7 @@
         ethtool:    { install: [ { via: native } ] }
         whois:      { install: [ { via: native } ] }
         netcat:     { install: [ { via: native  name: { dnf: nmap-ncat  pacman: openbsd-netcat  default: netcat-openbsd } } ] }   // the BSD nc; Fedora ships it as nmap-ncat, Arch as openbsd-netcat
-        dig:        { install: [ { via: native  name: { apt: dnsutils  dnf: bind-utils  pacman: bind  apk: bind-tools  zypper: bind-utils  default: bind-utils } } ] }   // dig/nslookup; apt `dnsutils` is the transitional metapkg (resolves on old + new), Arch merged the tools into `bind`
+        dig:        { install: [ { via: native  name: { apt: dnsutils  dnf: bind-utils  pacman: bind  apk: bind-tools  zypper: bind-utils  brew: bind  default: bind-utils } } ] }   // dig/nslookup; apt `dnsutils` is the transitional metapkg (resolves on old + new), Arch/Homebrew ship the tools in `bind`
 
         // Traffic monitors — live per-interface/-process bandwidth. In EPEL on EL, base repos
         // elsewhere (the same two-binding shape as btop).
@@ -258,7 +259,8 @@
 
         libreoffice: {   // fat ~/.config/libreoffice (profile + cache) — dotfiles pending
             suggests: libreoffice-dotfiles
-            install: [ { via: native  repo-component: universe  name: { pacman: libreoffice-fresh } } ]
+            install: [ { via: flatpak  when: fedora_atomic  hub: flathub  app: org.libreoffice.LibreOffice }   // atomic: brew's libreoffice is a mac-only cask
+                       { via: native  repo-component: universe  name: { pacman: libreoffice-fresh } } ]
         }
 
         // kicad: native where it's packaged, Flathub (org.kicad.KiCad) where it isn't. It's in
@@ -268,7 +270,8 @@
         // `kicad-build` override, the way blender-build overrides native blender.
         kicad: {   // fat-ish config — dotfiles pending
             suggests: kicad-dotfiles
-            install: [ { via: native   when: "not rhel"  repo-component: universe }
+            install: [ { via: flatpak  when: fedora_atomic  hub: flathub  app: org.kicad.KiCad }   // atomic: more specific than `not rhel` so flatpak wins over brew (mac-only cask)
+                       { via: native   when: "not rhel"  repo-component: universe }
                        { via: flatpak  hub: flathub  app: org.kicad.KiCad } ]
         }
 
@@ -278,7 +281,8 @@
         // (~/.config/blender/<ver>) — dotfiles deferred. On EL it's in EPEL; base repos elsewhere.
         blender: {
             suggests: blender-dotfiles
-            install: [ { via: native  when: "rhel"  requires: epel }
+            install: [ { via: flatpak  when: fedora_atomic  hub: flathub  app: org.blender.Blender }   // atomic: brew's blender is a mac-only cask
+                       { via: native  when: "rhel"  requires: epel }
                        { via: native  repo-component: universe } ]
         }
 
@@ -356,7 +360,8 @@
         // vlc: RPM Fusion on Fedora, but EL carries it in EPEL (not RPM Fusion) — so the two
         // rpm families take different capability edges. Base repos everywhere else.
         vlc: {
-            install: [ { via: native  when: "fedora"  requires: rpmfusion }
+            install: [ { via: flatpak  when: fedora_atomic  hub: flathub  app: org.videolan.VLC }   // atomic: brew's vlc is a mac-only cask
+                       { via: native  when: "fedora"  requires: rpmfusion }
                        { via: native  when: "rhel"    requires: epel }
                        { via: native } ]
         }
@@ -431,7 +436,8 @@
         neovim: {
             requires: [ ripgrep, tree-sitter-cli ]
             suggests: neovim-dotfiles
-            install: [ { via: appImage  name: Neovim  scope: user   // -> requires libfuse2; keep it in ~/apps
+            install: [ { via: native  when: fedora_atomic }   // atomic: brew has neovim directly — cleaner than an AppImage needing fuse2
+                       { via: appImage  name: Neovim  scope: user   // -> requires libfuse2; keep it in ~/apps
                          version: { github: neovim/neovim  asset: "nvim-linux-$ARCH.appimage" }
                          url: "https://github.com/neovim/neovim/releases/download/$VERSION/nvim-linux-$ARCH.appimage"
                          path: ~/apps/nvim.appimage } ]
@@ -560,6 +566,7 @@
         // (the OSS `code` in the Arch repos is a different, unbranded build).
         vscode: {
             install: [
+                { via: flatpak  when: fedora_atomic  hub: flathub  app: com.visualstudio.code }   // atomic: no MS vendor repo to wire in — the community Flathub build
                 { via: native  when: "debian"  name: code
                   pubkey-url: "https://packages.microsoft.com/keys/microsoft.asc"
                   pubkey-path: /usr/share/keyrings/packages.microsoft.asc

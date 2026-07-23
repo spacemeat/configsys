@@ -119,9 +119,24 @@ probe) is deferred — nothing routes on it yet.
   RPM Fusion/EPEL clashes. **Rec: glibc_linux + brew.**
 - **D2 — macOS scope.** The `brew` driver is 90% of macOS support. Build brew now with Linux+macOS
   in mind (even if we don't add a `macos` OS block yet)? **Rec: yes — design it cross-platform.**
-- **D3 — component audit.** A few components have *only* an apt/dnf-specific route with no generic
-  fallback (e.g. `vscode` = Microsoft apt repo; brew Linux has no casks). Those need an explicit
-  atomic binding (flatpak `com.visualstudio.code`, or `via: rpm-ostree`). Need a sweep to list them.
+- **D3 — component audit. DONE (step 4).** All 125 base components resolved against
+  `fedora_atomic`; ~95 already route cleanly (core CLI has real brew formulae — incl. Linux ones
+  like `iproute2`; the 16 flatpak apps; user-space drivers; correctly-unroutable family helpers).
+  Scope decision: **fix the sensible set, punt the rest to distrobox/rpm-ostree (documented).**
+  Fixed:
+  - **GUI apps → flatpak** (their brew names are macOS-only *casks* that 404/fail on Linux):
+    firefox, blender, vlc, kicad, libreoffice — each got a `when: fedora_atomic` flatpak binding.
+  - **vscode → flatpak** `com.visualstudio.code` (no MS vendor repo to wire in on atomic).
+  - **neovim → brew** on atomic (real formula; beats its fuse2-needing AppImage).
+  - **brew name-map keys**: cargo → `rust`, dig → `bind`.
+  Punted (documented, not routed — rare-to-nonsensical on an immutable desktop/gaming image):
+  - **Dev toolchains** (gcc/clang/build-essential): use a **distrobox/toolbox** container (the
+    uBlue-blessed path). Left unroutable on atomic.
+  - **GPU / Vulkan / graphics-dev stack** (vulkan-runtime, mesa/vulkan ICDs, libxcb\*, \*-dev):
+    image-managed on atomic (Bazzite ships the whole gaming GPU stack); don't manage via configsys.
+  - **AppImages** (arduino, unityhub) and **docker**: AppImages need fuse2 (uncertain on modern
+    Fedora Atomic → layer or distrobox); on atomic use **podman** (baked into the image) instead of
+    docker (brew's is client-only).
 - **D4 — `get_latest` on rpm-ostree.** Honest "image-managed/unknown" vs. trying to query dnf
   metadata offline. **Rec: honest unknown** (no surprises beats a fabricated version).
 - **D5 — `--apply-live` default.** *Resolved during step 2:* **stage-for-next-boot is the default**

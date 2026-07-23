@@ -145,3 +145,22 @@ def test_fedora_atomic_routes_cli_to_brew_apps_to_flatpak():
     ff = r.resolve_names(['ffmpeg'])
     assert 'brew\\ffmpeg' in ff
     assert not any('rpmfusion' in k for k in ff)
+
+
+def test_fedora_atomic_audit_fixes():
+    R = 'routes.hu'
+    def unit(name):
+        return list(Resolver(os.path.join(os.path.dirname(__file__), '..', 'routes.hu'),
+                             'fedora_atomic', '40').resolve_names([name]))
+    # GUI apps -> flatpak (their brew names are mac-only casks that would fail on Linux)
+    for app, key in [('firefox', 'flatpak\\firefox'), ('blender', 'flatpak\\blender'),
+                     ('vlc', 'flatpak\\vlc'), ('kicad', 'flatpak\\kicad'),
+                     ('libreoffice', 'flatpak\\libreoffice'), ('vscode', 'flatpak\\vscode')]:
+        assert key in unit(app), (app, unit(app))
+    # neovim -> brew (a real formula, cleaner than its fuse2-needing AppImage)
+    assert 'brew\\neovim' in unit('neovim')
+    # brew name-map keys: cargo is Homebrew's `rust`, dig is `bind`
+    cargo = Resolver('routes.hu', 'fedora_atomic', '40').resolve_names(['cargo'])
+    assert cargo['brew\\cargo'].name == 'rust'
+    dig = Resolver('routes.hu', 'fedora_atomic', '40').resolve_names(['dig'])
+    assert dig['brew\\dig'].name == 'bind'
