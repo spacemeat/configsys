@@ -294,6 +294,16 @@
                   url: "https://ziglang.org/download/$VERSION/zig-linux-$ARCH-$VERSION.tar.xz" }
             ]
         }
+        // Julia — official binaries live on the julialang S3 (not github releases), so a pinned
+        // version + the S3 tarball URL (glibc build; path carries both the X.Y dir and full
+        // version, so bump both on update). Native on Arch/Homebrew where packaged.
+        julia: {
+            install: [
+                { via: native  when: "arch" }                      // pacman: julia
+                { via: native  when: "fedora_atomic" }             // brew formula `julia`
+                { via: tarball  installDir: apps/julia  requires: glibc  version: { static: 1.12.6 }
+                  url: "https://julialang-s3.julialang.org/bin/linux/x64/1.12/julia-1.12.6-linux-x86_64.tar.gz" } ]
+        }
         // Odin — upstream github release tarball (glibc-linked, so it declines on musl).
         odin: {
             install: [

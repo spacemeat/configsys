@@ -871,6 +871,15 @@
     "name": "jq"
    }
   },
+  "julia": {
+   "pacman\\julia": {
+    "driver": "pacman",
+    "fields": {
+     "name": "julia"
+    },
+    "name": "julia"
+   }
+  },
   "kde": {
    "pacman\\kde": {
     "driver": "pacman",
@@ -3382,6 +3391,27 @@
      "name": "jq"
     },
     "name": "jq"
+   }
+  },
+  "julia": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "tarball\\julia": {
+    "driver": "tarball",
+    "fields": {
+     "installDir": "apps/julia",
+     "name": "julia",
+     "url": "https://julialang-s3.julialang.org/bin/linux/x64/1.12/julia-1.12.6-linux-x86_64.tar.gz",
+     "version": {
+      "static": "1.12.6"
+     }
+    },
+    "name": "julia"
    }
   },
   "kde": {
@@ -5942,6 +5972,27 @@
     "name": "jq"
    }
   },
+  "julia": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "tarball\\julia": {
+    "driver": "tarball",
+    "fields": {
+     "installDir": "apps/julia",
+     "name": "julia",
+     "url": "https://julialang-s3.julialang.org/bin/linux/x64/1.12/julia-1.12.6-linux-x86_64.tar.gz",
+     "version": {
+      "static": "1.12.6"
+     }
+    },
+    "name": "julia"
+   }
+  },
   "kde": {
    "apt\\kde": {
     "driver": "apt",
@@ -8225,6 +8276,27 @@
      "name": "jq"
     },
     "name": "jq"
+   }
+  },
+  "julia": {
+   "dnf\\curl": {
+    "driver": "dnf",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "tarball\\julia": {
+    "driver": "tarball",
+    "fields": {
+     "installDir": "apps/julia",
+     "name": "julia",
+     "url": "https://julialang-s3.julialang.org/bin/linux/x64/1.12/julia-1.12.6-linux-x86_64.tar.gz",
+     "version": {
+      "static": "1.12.6"
+     }
+    },
+    "name": "julia"
    }
   },
   "kde": {
@@ -10528,6 +10600,27 @@
      "name": "jq"
     },
     "name": "jq"
+   }
+  },
+  "julia": {
+   "dnf\\curl": {
+    "driver": "dnf",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "tarball\\julia": {
+    "driver": "tarball",
+    "fields": {
+     "installDir": "apps/julia",
+     "name": "julia",
+     "url": "https://julialang-s3.julialang.org/bin/linux/x64/1.12/julia-1.12.6-linux-x86_64.tar.gz",
+     "version": {
+      "static": "1.12.6"
+     }
+    },
+    "name": "julia"
    }
   },
   "kde": {
@@ -13064,6 +13157,27 @@
     "name": "jq"
    }
   },
+  "julia": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "tarball\\julia": {
+    "driver": "tarball",
+    "fields": {
+     "installDir": "apps/julia",
+     "name": "julia",
+     "url": "https://julialang-s3.julialang.org/bin/linux/x64/1.12/julia-1.12.6-linux-x86_64.tar.gz",
+     "version": {
+      "static": "1.12.6"
+     }
+    },
+    "name": "julia"
+   }
+  },
   "kde": {
    "apt\\kde": {
     "driver": "apt",
@@ -15460,6 +15574,27 @@
      "name": "jq"
     },
     "name": "jq"
+   }
+  },
+  "julia": {
+   "dnf\\curl": {
+    "driver": "dnf",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "tarball\\julia": {
+    "driver": "tarball",
+    "fields": {
+     "installDir": "apps/julia",
+     "name": "julia",
+     "url": "https://julialang-s3.julialang.org/bin/linux/x64/1.12/julia-1.12.6-linux-x86_64.tar.gz",
+     "version": {
+      "static": "1.12.6"
+     }
+    },
+    "name": "julia"
    }
   },
   "kde": {
@@ -18080,6 +18215,27 @@
     "name": "jq"
    }
   },
+  "julia": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "tarball\\julia": {
+    "driver": "tarball",
+    "fields": {
+     "installDir": "apps/julia",
+     "name": "julia",
+     "url": "https://julialang-s3.julialang.org/bin/linux/x64/1.12/julia-1.12.6-linux-x86_64.tar.gz",
+     "version": {
+      "static": "1.12.6"
+     }
+    },
+    "name": "julia"
+   }
+  },
   "kde": {
    "apt\\kde": {
     "driver": "apt",
@@ -20636,6 +20792,27 @@
      "name": "jq"
     },
     "name": "jq"
+   }
+  },
+  "julia": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "tarball\\julia": {
+    "driver": "tarball",
+    "fields": {
+     "installDir": "apps/julia",
+     "name": "julia",
+     "url": "https://julialang-s3.julialang.org/bin/linux/x64/1.12/julia-1.12.6-linux-x86_64.tar.gz",
+     "version": {
+      "static": "1.12.6"
+     }
+    },
+    "name": "julia"
    }
   },
   "kde": {
