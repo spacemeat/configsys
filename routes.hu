@@ -555,6 +555,23 @@
                          url: "https://download.jetbrains.com/product?code=TBA&latest&distribution=linux" } ]
         }
 
+        // --- desktop environments (metapackage names verified per-distro in a podman sweep) ---
+        // Native metapackages, gated to the families whose names were confirmed (apt/dnf/pacman).
+        // Installing a DE where the OS already ships it is a harmless no-op (inspect reads it as
+        // installed). openSUSE/Alpine, hyprland-on-Ubuntu, and Pop's own COSMIC packages await
+        // their own verified sweep — all good `configsys request` candidates. On Arch a few are
+        // package GROUPS (xfce4/lxqt/mate); group installs work, though get_version is coarse.
+        gnome:    { install: [ { via: native  when: "debian or redhat or arch"  name: { apt: gnome-shell                  dnf: gnome-shell    pacman: gnome-shell } } ] }
+        kde:      { install: [ { via: native  when: "debian or redhat or arch"  name: { apt: kde-plasma-desktop           dnf: plasma-desktop pacman: plasma-meta } } ] }
+        xfce:     { install: [ { via: native  when: "debian or redhat or arch"  name: { apt: xfce4                        dnf: xfce4-session  pacman: xfce4 } } ] }
+        lxqt:     { install: [ { via: native  when: "debian or redhat or arch"  name: { apt: lxqt                         dnf: lxqt-session   pacman: lxqt } } ] }
+        cinnamon: { install: [ { via: native  when: "debian or redhat or arch"  name: { apt: cinnamon-desktop-environment dnf: cinnamon       pacman: cinnamon } } ] }
+        mate:     { install: [ { via: native  when: "debian or redhat or arch"  name: { apt: mate-desktop-environment     dnf: mate-desktop   pacman: mate } } ] }
+        budgie:   { install: [ { via: native  when: "debian or redhat or arch"  name: { apt: budgie-desktop               dnf: budgie-desktop pacman: budgie-desktop } } ] }
+        sway:     { install: [ { via: native  when: "debian or redhat or arch" } ] }                       // same package name everywhere
+        hyprland: { install: [ { via: native  when: "redhat or arch" } ] }                                 // not in stock Ubuntu 24.04
+        cosmic:   { install: [ { via: native  when: "redhat or arch"  name: { default: cosmic-session } } ] }  // Pop ships its own COSMIC pkgs (binding TBD)
+
         // lazygit: native on fedora/arch; elsewhere (debian/EL) a static Go binary from the
         // GitHub release, unpacked under ~/apps/lazygit (scope-honoring). Its bash.d snippet
         // aliases `lazygit` to that binary when present (a no-op where it's native on PATH).

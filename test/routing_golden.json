@@ -176,6 +176,15 @@
     "name": "btop"
    }
   },
+  "budgie": {
+   "pacman\\budgie": {
+    "driver": "pacman",
+    "fields": {
+     "name": "budgie-desktop"
+    },
+    "name": "budgie-desktop"
+   }
+  },
   "build-essential": {
    "pacman\\gcc": {
     "driver": "pacman",
@@ -271,6 +280,15 @@
     "name": "flatpak"
    }
   },
+  "cinnamon": {
+   "pacman\\cinnamon": {
+    "driver": "pacman",
+    "fields": {
+     "name": "cinnamon"
+    },
+    "name": "cinnamon"
+   }
+  },
   "configsys-dotfiles": {
    "dotfiles\\bash-dotfiles": {
     "driver": "dotfiles",
@@ -290,6 +308,15 @@
      "src": "bash.d/configsys.sh"
     },
     "name": "configsys-dotfiles"
+   }
+  },
+  "cosmic": {
+   "pacman\\cosmic": {
+    "driver": "pacman",
+    "fields": {
+     "name": "cosmic-session"
+    },
+    "name": "cosmic-session"
    }
   },
   "cuda-toolkit": {
@@ -624,6 +651,15 @@
     "name": "git"
    }
   },
+  "gnome": {
+   "pacman\\gnome": {
+    "driver": "pacman",
+    "fields": {
+     "name": "gnome-shell"
+    },
+    "name": "gnome-shell"
+   }
+  },
   "gnuradio": {
    "pacman\\gnuradio": {
     "driver": "pacman",
@@ -734,6 +770,15 @@
     "name": "httpie"
    }
   },
+  "hyprland": {
+   "pacman\\hyprland": {
+    "driver": "pacman",
+    "fields": {
+     "name": "hyprland"
+    },
+    "name": "hyprland"
+   }
+  },
   "iftop": {
    "pacman\\iftop": {
     "driver": "pacman",
@@ -824,6 +869,15 @@
      "name": "jq"
     },
     "name": "jq"
+   }
+  },
+  "kde": {
+   "pacman\\kde": {
+    "driver": "pacman",
+    "fields": {
+     "name": "plasma-meta"
+    },
+    "name": "plasma-meta"
    }
   },
   "kicad": {
@@ -1025,6 +1079,15 @@
     "name": "luarocks"
    }
   },
+  "lxqt": {
+   "pacman\\lxqt": {
+    "driver": "pacman",
+    "fields": {
+     "name": "lxqt"
+    },
+    "name": "lxqt"
+   }
+  },
   "make": {
    "pacman\\make": {
     "driver": "pacman",
@@ -1032,6 +1095,15 @@
      "name": "make"
     },
     "name": "make"
+   }
+  },
+  "mate": {
+   "pacman\\mate": {
+    "driver": "pacman",
+    "fields": {
+     "name": "mate"
+    },
+    "name": "mate"
    }
   },
   "mesa-vulkan-drivers": {
@@ -1480,6 +1552,15 @@
      "name": "flatpak"
     },
     "name": "flatpak"
+   }
+  },
+  "sway": {
+   "pacman\\sway": {
+    "driver": "pacman",
+    "fields": {
+     "name": "sway"
+    },
+    "name": "sway"
    }
   },
   "tcpdump": {
@@ -2023,6 +2104,15 @@
     "name": "xclip-dotfiles"
    }
   },
+  "xfce": {
+   "pacman\\xfce": {
+    "driver": "pacman",
+    "fields": {
+     "name": "xfce4"
+    },
+    "name": "xfce4"
+   }
+  },
   "xh": {
    "cargo\\xh": {
     "driver": "cargo",
@@ -2282,6 +2372,15 @@
     "name": "btop"
    }
   },
+  "budgie": {
+   "apt\\budgie": {
+    "driver": "apt",
+    "fields": {
+     "name": "budgie-desktop"
+    },
+    "name": "budgie-desktop"
+   }
+  },
   "build-essential": {
    "apt\\build-essential": {
     "driver": "apt",
@@ -2368,6 +2467,15 @@
      "name": "com.google.Chrome"
     },
     "name": "com.google.Chrome"
+   }
+  },
+  "cinnamon": {
+   "apt\\cinnamon": {
+    "driver": "apt",
+    "fields": {
+     "name": "cinnamon-desktop-environment"
+    },
+    "name": "cinnamon-desktop-environment"
    }
   },
   "clang-18": {
@@ -3065,6 +3173,15 @@
     "name": "git"
    }
   },
+  "gnome": {
+   "apt\\gnome": {
+    "driver": "apt",
+    "fields": {
+     "name": "gnome-shell"
+    },
+    "name": "gnome-shell"
+   }
+  },
   "gnuradio": {
    "apt\\gnuradio": {
     "driver": "apt",
@@ -3265,6 +3382,15 @@
      "name": "jq"
     },
     "name": "jq"
+   }
+  },
+  "kde": {
+   "apt\\kde": {
+    "driver": "apt",
+    "fields": {
+     "name": "kde-plasma-desktop"
+    },
+    "name": "kde-plasma-desktop"
    }
   },
   "kicad": {
@@ -3507,6 +3633,15 @@
     "name": "luarocks"
    }
   },
+  "lxqt": {
+   "apt\\lxqt": {
+    "driver": "apt",
+    "fields": {
+     "name": "lxqt"
+    },
+    "name": "lxqt"
+   }
+  },
   "make": {
    "apt\\make": {
     "driver": "apt",
@@ -3514,6 +3649,15 @@
      "name": "make"
     },
     "name": "make"
+   }
+  },
+  "mate": {
+   "apt\\mate": {
+    "driver": "apt",
+    "fields": {
+     "name": "mate-desktop-environment"
+    },
+    "name": "mate-desktop-environment"
    }
   },
   "mesa-vulkan-drivers": {
@@ -4004,6 +4148,15 @@
      "name": "com.valvesoftware.Steam"
     },
     "name": "com.valvesoftware.Steam"
+   }
+  },
+  "sway": {
+   "apt\\sway": {
+    "driver": "apt",
+    "fields": {
+     "name": "sway"
+    },
+    "name": "sway"
    }
   },
   "tcpdump": {
@@ -4510,6 +4663,15 @@
      "src": "bash.d/xclip.sh"
     },
     "name": "xclip-dotfiles"
+   }
+  },
+  "xfce": {
+   "apt\\xfce": {
+    "driver": "apt",
+    "fields": {
+     "name": "xfce4"
+    },
+    "name": "xfce4"
    }
   },
   "xh": {
@@ -4768,6 +4930,15 @@
     "name": "btop"
    }
   },
+  "budgie": {
+   "apt\\budgie": {
+    "driver": "apt",
+    "fields": {
+     "name": "budgie-desktop"
+    },
+    "name": "budgie-desktop"
+   }
+  },
   "build-essential": {
    "apt\\build-essential": {
     "driver": "apt",
@@ -4854,6 +5025,15 @@
      "name": "com.google.Chrome"
     },
     "name": "com.google.Chrome"
+   }
+  },
+  "cinnamon": {
+   "apt\\cinnamon": {
+    "driver": "apt",
+    "fields": {
+     "name": "cinnamon-desktop-environment"
+    },
+    "name": "cinnamon-desktop-environment"
    }
   },
   "clang-18": {
@@ -5551,6 +5731,15 @@
     "name": "git"
    }
   },
+  "gnome": {
+   "apt\\gnome": {
+    "driver": "apt",
+    "fields": {
+     "name": "gnome-shell"
+    },
+    "name": "gnome-shell"
+   }
+  },
   "gnuradio": {
    "apt\\gnuradio": {
     "driver": "apt",
@@ -5751,6 +5940,15 @@
      "name": "jq"
     },
     "name": "jq"
+   }
+  },
+  "kde": {
+   "apt\\kde": {
+    "driver": "apt",
+    "fields": {
+     "name": "kde-plasma-desktop"
+    },
+    "name": "kde-plasma-desktop"
    }
   },
   "kicad": {
@@ -5993,6 +6191,15 @@
     "name": "luarocks"
    }
   },
+  "lxqt": {
+   "apt\\lxqt": {
+    "driver": "apt",
+    "fields": {
+     "name": "lxqt"
+    },
+    "name": "lxqt"
+   }
+  },
   "make": {
    "apt\\make": {
     "driver": "apt",
@@ -6000,6 +6207,15 @@
      "name": "make"
     },
     "name": "make"
+   }
+  },
+  "mate": {
+   "apt\\mate": {
+    "driver": "apt",
+    "fields": {
+     "name": "mate-desktop-environment"
+    },
+    "name": "mate-desktop-environment"
    }
   },
   "mesa-vulkan-drivers": {
@@ -6470,6 +6686,15 @@
      "name": "com.valvesoftware.Steam"
     },
     "name": "com.valvesoftware.Steam"
+   }
+  },
+  "sway": {
+   "apt\\sway": {
+    "driver": "apt",
+    "fields": {
+     "name": "sway"
+    },
+    "name": "sway"
    }
   },
   "tcpdump": {
@@ -6978,6 +7203,15 @@
     "name": "xclip-dotfiles"
    }
   },
+  "xfce": {
+   "apt\\xfce": {
+    "driver": "apt",
+    "fields": {
+     "name": "xfce4"
+    },
+    "name": "xfce4"
+   }
+  },
   "xh": {
    "apt\\rust": {
     "driver": "apt",
@@ -7224,6 +7458,15 @@
     "name": "btop"
    }
   },
+  "budgie": {
+   "dnf\\budgie": {
+    "driver": "dnf",
+    "fields": {
+     "name": "budgie-desktop"
+    },
+    "name": "budgie-desktop"
+   }
+  },
   "build-essential": {
    "dnf\\gcc": {
     "driver": "dnf",
@@ -7326,6 +7569,15 @@
     "name": "com.google.Chrome"
    }
   },
+  "cinnamon": {
+   "dnf\\cinnamon": {
+    "driver": "dnf",
+    "fields": {
+     "name": "cinnamon"
+    },
+    "name": "cinnamon"
+   }
+  },
   "clang-18": {
    "clang\\clang-18": {
     "driver": "clang",
@@ -7369,6 +7621,15 @@
      "src": "bash.d/configsys.sh"
     },
     "name": "configsys-dotfiles"
+   }
+  },
+  "cosmic": {
+   "dnf\\cosmic": {
+    "driver": "dnf",
+    "fields": {
+     "name": "cosmic-session"
+    },
+    "name": "cosmic-session"
    }
   },
   "cuda-toolkit": {
@@ -7746,6 +8007,15 @@
     "name": "git"
    }
   },
+  "gnome": {
+   "dnf\\gnome": {
+    "driver": "dnf",
+    "fields": {
+     "name": "gnome-shell"
+    },
+    "name": "gnome-shell"
+   }
+  },
   "gnuradio": {
    "dnf\\gnuradio": {
     "driver": "dnf",
@@ -7856,6 +8126,15 @@
     "name": "httpie"
    }
   },
+  "hyprland": {
+   "dnf\\hyprland": {
+    "driver": "dnf",
+    "fields": {
+     "name": "hyprland"
+    },
+    "name": "hyprland"
+   }
+  },
   "iftop": {
    "dnf\\iftop": {
     "driver": "dnf",
@@ -7946,6 +8225,15 @@
      "name": "jq"
     },
     "name": "jq"
+   }
+  },
+  "kde": {
+   "dnf\\kde": {
+    "driver": "dnf",
+    "fields": {
+     "name": "plasma-desktop"
+    },
+    "name": "plasma-desktop"
    }
   },
   "kicad": {
@@ -8175,6 +8463,15 @@
     "name": "luarocks"
    }
   },
+  "lxqt": {
+   "dnf\\lxqt": {
+    "driver": "dnf",
+    "fields": {
+     "name": "lxqt-session"
+    },
+    "name": "lxqt-session"
+   }
+  },
   "make": {
    "dnf\\make": {
     "driver": "dnf",
@@ -8182,6 +8479,15 @@
      "name": "make"
     },
     "name": "make"
+   }
+  },
+  "mate": {
+   "dnf\\mate": {
+    "driver": "dnf",
+    "fields": {
+     "name": "mate-desktop"
+    },
+    "name": "mate-desktop"
    }
   },
   "mesa-vulkan-drivers": {
@@ -8656,6 +8962,15 @@
      "name": "com.valvesoftware.Steam"
     },
     "name": "com.valvesoftware.Steam"
+   }
+  },
+  "sway": {
+   "dnf\\sway": {
+    "driver": "dnf",
+    "fields": {
+     "name": "sway"
+    },
+    "name": "sway"
    }
   },
   "tcpdump": {
@@ -9179,6 +9494,15 @@
     "name": "xclip-dotfiles"
    }
   },
+  "xfce": {
+   "dnf\\xfce": {
+    "driver": "dnf",
+    "fields": {
+     "name": "xfce4-session"
+    },
+    "name": "xfce4-session"
+   }
+  },
   "xh": {
    "cargo\\xh": {
     "driver": "cargo",
@@ -9425,6 +9749,15 @@
     "name": "btop"
    }
   },
+  "budgie": {
+   "dnf\\budgie": {
+    "driver": "dnf",
+    "fields": {
+     "name": "budgie-desktop"
+    },
+    "name": "budgie-desktop"
+   }
+  },
   "build-essential": {
    "dnf\\gcc": {
     "driver": "dnf",
@@ -9527,6 +9860,15 @@
     "name": "com.google.Chrome"
    }
   },
+  "cinnamon": {
+   "dnf\\cinnamon": {
+    "driver": "dnf",
+    "fields": {
+     "name": "cinnamon"
+    },
+    "name": "cinnamon"
+   }
+  },
   "clang-18": {
    "clang\\clang-18": {
     "driver": "clang",
@@ -9582,6 +9924,15 @@
      "src": "bash.d/configsys.sh"
     },
     "name": "configsys-dotfiles"
+   }
+  },
+  "cosmic": {
+   "dnf\\cosmic": {
+    "driver": "dnf",
+    "fields": {
+     "name": "cosmic-session"
+    },
+    "name": "cosmic-session"
    }
   },
   "cuda-toolkit": {
@@ -9959,6 +10310,15 @@
     "name": "git"
    }
   },
+  "gnome": {
+   "dnf\\gnome": {
+    "driver": "dnf",
+    "fields": {
+     "name": "gnome-shell"
+    },
+    "name": "gnome-shell"
+   }
+  },
   "gnuradio": {
    "dnf\\gnuradio": {
     "driver": "dnf",
@@ -10069,6 +10429,15 @@
     "name": "httpie"
    }
   },
+  "hyprland": {
+   "dnf\\hyprland": {
+    "driver": "dnf",
+    "fields": {
+     "name": "hyprland"
+    },
+    "name": "hyprland"
+   }
+  },
   "iftop": {
    "dnf\\iftop": {
     "driver": "dnf",
@@ -10159,6 +10528,15 @@
      "name": "jq"
     },
     "name": "jq"
+   }
+  },
+  "kde": {
+   "dnf\\kde": {
+    "driver": "dnf",
+    "fields": {
+     "name": "plasma-desktop"
+    },
+    "name": "plasma-desktop"
    }
   },
   "kicad": {
@@ -10388,6 +10766,15 @@
     "name": "luarocks"
    }
   },
+  "lxqt": {
+   "dnf\\lxqt": {
+    "driver": "dnf",
+    "fields": {
+     "name": "lxqt-session"
+    },
+    "name": "lxqt-session"
+   }
+  },
   "make": {
    "dnf\\make": {
     "driver": "dnf",
@@ -10395,6 +10782,15 @@
      "name": "make"
     },
     "name": "make"
+   }
+  },
+  "mate": {
+   "dnf\\mate": {
+    "driver": "dnf",
+    "fields": {
+     "name": "mate-desktop"
+    },
+    "name": "mate-desktop"
    }
   },
   "mesa-vulkan-drivers": {
@@ -10869,6 +11265,15 @@
      "name": "com.valvesoftware.Steam"
     },
     "name": "com.valvesoftware.Steam"
+   }
+  },
+  "sway": {
+   "dnf\\sway": {
+    "driver": "dnf",
+    "fields": {
+     "name": "sway"
+    },
+    "name": "sway"
    }
   },
   "tcpdump": {
@@ -11392,6 +11797,15 @@
     "name": "xclip-dotfiles"
    }
   },
+  "xfce": {
+   "dnf\\xfce": {
+    "driver": "dnf",
+    "fields": {
+     "name": "xfce4-session"
+    },
+    "name": "xfce4-session"
+   }
+  },
   "xh": {
    "cargo\\xh": {
     "driver": "cargo",
@@ -11638,6 +12052,15 @@
     "name": "btop"
    }
   },
+  "budgie": {
+   "apt\\budgie": {
+    "driver": "apt",
+    "fields": {
+     "name": "budgie-desktop"
+    },
+    "name": "budgie-desktop"
+   }
+  },
   "build-essential": {
    "apt\\build-essential": {
     "driver": "apt",
@@ -11724,6 +12147,15 @@
      "name": "com.google.Chrome"
     },
     "name": "com.google.Chrome"
+   }
+  },
+  "cinnamon": {
+   "apt\\cinnamon": {
+    "driver": "apt",
+    "fields": {
+     "name": "cinnamon-desktop-environment"
+    },
+    "name": "cinnamon-desktop-environment"
    }
   },
   "clang-18": {
@@ -12421,6 +12853,15 @@
     "name": "git"
    }
   },
+  "gnome": {
+   "apt\\gnome": {
+    "driver": "apt",
+    "fields": {
+     "name": "gnome-shell"
+    },
+    "name": "gnome-shell"
+   }
+  },
   "gnuradio": {
    "apt\\gnuradio": {
     "driver": "apt",
@@ -12621,6 +13062,15 @@
      "name": "jq"
     },
     "name": "jq"
+   }
+  },
+  "kde": {
+   "apt\\kde": {
+    "driver": "apt",
+    "fields": {
+     "name": "kde-plasma-desktop"
+    },
+    "name": "kde-plasma-desktop"
    }
   },
   "kicad": {
@@ -12863,6 +13313,15 @@
     "name": "luarocks"
    }
   },
+  "lxqt": {
+   "apt\\lxqt": {
+    "driver": "apt",
+    "fields": {
+     "name": "lxqt"
+    },
+    "name": "lxqt"
+   }
+  },
   "make": {
    "apt\\make": {
     "driver": "apt",
@@ -12870,6 +13329,15 @@
      "name": "make"
     },
     "name": "make"
+   }
+  },
+  "mate": {
+   "apt\\mate": {
+    "driver": "apt",
+    "fields": {
+     "name": "mate-desktop-environment"
+    },
+    "name": "mate-desktop-environment"
    }
   },
   "mesa-vulkan-drivers": {
@@ -13355,6 +13823,15 @@
     "name": "steam:i386"
    }
   },
+  "sway": {
+   "apt\\sway": {
+    "driver": "apt",
+    "fields": {
+     "name": "sway"
+    },
+    "name": "sway"
+   }
+  },
   "tcpdump": {
    "apt\\tcpdump": {
     "driver": "apt",
@@ -13861,6 +14338,15 @@
     "name": "xclip-dotfiles"
    }
   },
+  "xfce": {
+   "apt\\xfce": {
+    "driver": "apt",
+    "fields": {
+     "name": "xfce4"
+    },
+    "name": "xfce4"
+   }
+  },
   "xh": {
    "apt\\rust": {
     "driver": "apt",
@@ -14129,6 +14615,15 @@
     "name": "epel-release"
    }
   },
+  "budgie": {
+   "dnf\\budgie": {
+    "driver": "dnf",
+    "fields": {
+     "name": "budgie-desktop"
+    },
+    "name": "budgie-desktop"
+   }
+  },
   "build-essential": {
    "dnf\\gcc": {
     "driver": "dnf",
@@ -14231,6 +14726,15 @@
     "name": "com.google.Chrome"
    }
   },
+  "cinnamon": {
+   "dnf\\cinnamon": {
+    "driver": "dnf",
+    "fields": {
+     "name": "cinnamon"
+    },
+    "name": "cinnamon"
+   }
+  },
   "clang-19": {
    "clang\\clang-19": {
     "driver": "clang",
@@ -14288,6 +14792,15 @@
      "src": "bash.d/configsys.sh"
     },
     "name": "configsys-dotfiles"
+   }
+  },
+  "cosmic": {
+   "dnf\\cosmic": {
+    "driver": "dnf",
+    "fields": {
+     "name": "cosmic-session"
+    },
+    "name": "cosmic-session"
    }
   },
   "cuda-toolkit": {
@@ -14709,6 +15222,15 @@
     "name": "git"
    }
   },
+  "gnome": {
+   "dnf\\gnome": {
+    "driver": "dnf",
+    "fields": {
+     "name": "gnome-shell"
+    },
+    "name": "gnome-shell"
+   }
+  },
   "gnuradio": {
    "dnf\\gnuradio": {
     "driver": "dnf",
@@ -14832,6 +15354,15 @@
     "name": "httpie"
    }
   },
+  "hyprland": {
+   "dnf\\hyprland": {
+    "driver": "dnf",
+    "fields": {
+     "name": "hyprland"
+    },
+    "name": "hyprland"
+   }
+  },
   "iftop": {
    "dnf\\epel-release": {
     "driver": "dnf",
@@ -14929,6 +15460,15 @@
      "name": "jq"
     },
     "name": "jq"
+   }
+  },
+  "kde": {
+   "dnf\\kde": {
+    "driver": "dnf",
+    "fields": {
+     "name": "plasma-desktop"
+    },
+    "name": "plasma-desktop"
    }
   },
   "kicad": {
@@ -15178,6 +15718,15 @@
     "name": "luarocks"
    }
   },
+  "lxqt": {
+   "dnf\\lxqt": {
+    "driver": "dnf",
+    "fields": {
+     "name": "lxqt-session"
+    },
+    "name": "lxqt-session"
+   }
+  },
   "make": {
    "dnf\\make": {
     "driver": "dnf",
@@ -15185,6 +15734,15 @@
      "name": "make"
     },
     "name": "make"
+   }
+  },
+  "mate": {
+   "dnf\\mate": {
+    "driver": "dnf",
+    "fields": {
+     "name": "mate-desktop"
+    },
+    "name": "mate-desktop"
    }
   },
   "mesa-vulkan-drivers": {
@@ -15707,6 +16265,15 @@
      "name": "com.valvesoftware.Steam"
     },
     "name": "com.valvesoftware.Steam"
+   }
+  },
+  "sway": {
+   "dnf\\sway": {
+    "driver": "dnf",
+    "fields": {
+     "name": "sway"
+    },
+    "name": "sway"
    }
   },
   "tcpdump": {
@@ -16239,6 +16806,15 @@
     "name": "xclip-dotfiles"
    }
   },
+  "xfce": {
+   "dnf\\xfce": {
+    "driver": "dnf",
+    "fields": {
+     "name": "xfce4-session"
+    },
+    "name": "xfce4-session"
+   }
+  },
   "xh": {
    "cargo\\xh": {
     "driver": "cargo",
@@ -16492,6 +17068,15 @@
     "name": "btop"
    }
   },
+  "budgie": {
+   "apt\\budgie": {
+    "driver": "apt",
+    "fields": {
+     "name": "budgie-desktop"
+    },
+    "name": "budgie-desktop"
+   }
+  },
   "build-essential": {
    "apt\\build-essential": {
     "driver": "apt",
@@ -16578,6 +17163,15 @@
      "name": "com.google.Chrome"
     },
     "name": "com.google.Chrome"
+   }
+  },
+  "cinnamon": {
+   "apt\\cinnamon": {
+    "driver": "apt",
+    "fields": {
+     "name": "cinnamon-desktop-environment"
+    },
+    "name": "cinnamon-desktop-environment"
    }
   },
   "clang-18": {
@@ -17275,6 +17869,15 @@
     "name": "git"
    }
   },
+  "gnome": {
+   "apt\\gnome": {
+    "driver": "apt",
+    "fields": {
+     "name": "gnome-shell"
+    },
+    "name": "gnome-shell"
+   }
+  },
   "gnuradio": {
    "apt\\gnuradio": {
     "driver": "apt",
@@ -17475,6 +18078,15 @@
      "name": "jq"
     },
     "name": "jq"
+   }
+  },
+  "kde": {
+   "apt\\kde": {
+    "driver": "apt",
+    "fields": {
+     "name": "kde-plasma-desktop"
+    },
+    "name": "kde-plasma-desktop"
    }
   },
   "kicad": {
@@ -17717,6 +18329,15 @@
     "name": "luarocks"
    }
   },
+  "lxqt": {
+   "apt\\lxqt": {
+    "driver": "apt",
+    "fields": {
+     "name": "lxqt"
+    },
+    "name": "lxqt"
+   }
+  },
   "make": {
    "apt\\make": {
     "driver": "apt",
@@ -17724,6 +18345,15 @@
      "name": "make"
     },
     "name": "make"
+   }
+  },
+  "mate": {
+   "apt\\mate": {
+    "driver": "apt",
+    "fields": {
+     "name": "mate-desktop-environment"
+    },
+    "name": "mate-desktop-environment"
    }
   },
   "mesa-vulkan-drivers": {
@@ -18214,6 +18844,15 @@
      "name": "com.valvesoftware.Steam"
     },
     "name": "com.valvesoftware.Steam"
+   }
+  },
+  "sway": {
+   "apt\\sway": {
+    "driver": "apt",
+    "fields": {
+     "name": "sway"
+    },
+    "name": "sway"
    }
   },
   "tcpdump": {
@@ -18720,6 +19359,15 @@
      "src": "bash.d/xclip.sh"
     },
     "name": "xclip-dotfiles"
+   }
+  },
+  "xfce": {
+   "apt\\xfce": {
+    "driver": "apt",
+    "fields": {
+     "name": "xfce4"
+    },
+    "name": "xfce4"
    }
   },
   "xh": {
@@ -18978,6 +19626,15 @@
     "name": "btop"
    }
   },
+  "budgie": {
+   "apt\\budgie": {
+    "driver": "apt",
+    "fields": {
+     "name": "budgie-desktop"
+    },
+    "name": "budgie-desktop"
+   }
+  },
   "build-essential": {
    "apt\\build-essential": {
     "driver": "apt",
@@ -19064,6 +19721,15 @@
      "name": "com.google.Chrome"
     },
     "name": "com.google.Chrome"
+   }
+  },
+  "cinnamon": {
+   "apt\\cinnamon": {
+    "driver": "apt",
+    "fields": {
+     "name": "cinnamon-desktop-environment"
+    },
+    "name": "cinnamon-desktop-environment"
    }
   },
   "clang-18": {
@@ -19761,6 +20427,15 @@
     "name": "git"
    }
   },
+  "gnome": {
+   "apt\\gnome": {
+    "driver": "apt",
+    "fields": {
+     "name": "gnome-shell"
+    },
+    "name": "gnome-shell"
+   }
+  },
   "gnuradio": {
    "apt\\gnuradio": {
     "driver": "apt",
@@ -19961,6 +20636,15 @@
      "name": "jq"
     },
     "name": "jq"
+   }
+  },
+  "kde": {
+   "apt\\kde": {
+    "driver": "apt",
+    "fields": {
+     "name": "kde-plasma-desktop"
+    },
+    "name": "kde-plasma-desktop"
    }
   },
   "kicad": {
@@ -20203,6 +20887,15 @@
     "name": "luarocks"
    }
   },
+  "lxqt": {
+   "apt\\lxqt": {
+    "driver": "apt",
+    "fields": {
+     "name": "lxqt"
+    },
+    "name": "lxqt"
+   }
+  },
   "make": {
    "apt\\make": {
     "driver": "apt",
@@ -20210,6 +20903,15 @@
      "name": "make"
     },
     "name": "make"
+   }
+  },
+  "mate": {
+   "apt\\mate": {
+    "driver": "apt",
+    "fields": {
+     "name": "mate-desktop-environment"
+    },
+    "name": "mate-desktop-environment"
    }
   },
   "mesa-vulkan-drivers": {
@@ -20680,6 +21382,15 @@
      "name": "com.valvesoftware.Steam"
     },
     "name": "com.valvesoftware.Steam"
+   }
+  },
+  "sway": {
+   "apt\\sway": {
+    "driver": "apt",
+    "fields": {
+     "name": "sway"
+    },
+    "name": "sway"
    }
   },
   "tcpdump": {
@@ -21186,6 +21897,15 @@
      "src": "bash.d/xclip.sh"
     },
     "name": "xclip-dotfiles"
+   }
+  },
+  "xfce": {
+   "apt\\xfce": {
+    "driver": "apt",
+    "fields": {
+     "name": "xfce4"
+    },
+    "name": "xfce4"
    }
   },
   "xh": {
