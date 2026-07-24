@@ -1,5 +1,21 @@
 {
  "arch@20260101": {
+  "aider": {
+   "pacman\\pipx": {
+    "driver": "pacman",
+    "fields": {
+     "name": "python-pipx"
+    },
+    "name": "python-pipx"
+   },
+   "pipx\\aider": {
+    "driver": "pipx",
+    "fields": {
+     "name": "aider-chat"
+    },
+    "name": "aider-chat"
+   }
+  },
   "android-studio": {
    "pacman\\curl": {
     "driver": "pacman",
@@ -289,6 +305,40 @@
     "name": "cinnamon"
    }
   },
+  "claude-code": {
+   "npm\\claude-code": {
+    "driver": "npm",
+    "fields": {
+     "name": "@anthropic-ai/claude-code"
+    },
+    "name": "@anthropic-ai/claude-code"
+   },
+   "pacman\\node": {
+    "driver": "pacman",
+    "fields": {
+     "name": "npm",
+     "repo-component": "universe"
+    },
+    "name": "npm"
+   }
+  },
+  "codex": {
+   "npm\\codex": {
+    "driver": "npm",
+    "fields": {
+     "name": "@openai/codex"
+    },
+    "name": "@openai/codex"
+   },
+   "pacman\\node": {
+    "driver": "pacman",
+    "fields": {
+     "name": "npm",
+     "repo-component": "universe"
+    },
+    "name": "npm"
+   }
+  },
   "configsys-dotfiles": {
    "dotfiles\\bash-dotfiles": {
     "driver": "dotfiles",
@@ -494,6 +544,16 @@
      "repo-component": "universe"
     },
     "name": "elixir"
+   }
+  },
+  "emacs": {
+   "pacman\\emacs": {
+    "driver": "pacman",
+    "fields": {
+     "name": "emacs",
+     "repo-component": "universe"
+    },
+    "name": "emacs"
    }
   },
   "erlang": {
@@ -1051,6 +1111,22 @@
     "name": "libxcb-xinput0"
    }
   },
+  "llm": {
+   "pacman\\pipx": {
+    "driver": "pacman",
+    "fields": {
+     "name": "python-pipx"
+    },
+    "name": "python-pipx"
+   },
+   "pipx\\llm": {
+    "driver": "pipx",
+    "fields": {
+     "name": "llm"
+    },
+    "name": "llm"
+   }
+  },
   "lmms": {
    "flatpak\\lmms": {
     "driver": "flatpak",
@@ -1369,6 +1445,15 @@
      }
     },
     "name": "odin"
+   }
+  },
+  "ollama": {
+   "pacman\\ollama": {
+    "driver": "pacman",
+    "fields": {
+     "name": "ollama"
+    },
+    "name": "ollama"
    }
   },
   "opam": {
@@ -2228,6 +2313,32 @@
   }
  },
  "debian@11": {
+  "aider": {
+   "apt\\python3-pip": {
+    "driver": "apt",
+    "fields": {
+     "name": "python3-pip"
+    },
+    "name": "python3-pip"
+   },
+   "pip\\pipx": {
+    "driver": "pip",
+    "fields": {
+     "name": "pipx",
+     "version": {
+      "pypi": "pipx"
+     }
+    },
+    "name": "pipx"
+   },
+   "pipx\\aider": {
+    "driver": "pipx",
+    "fields": {
+     "name": "aider-chat"
+    },
+    "name": "aider-chat"
+   }
+  },
   "android-studio": {
    "apt\\curl": {
     "driver": "apt",
@@ -2657,6 +2768,40 @@
     "name": "clang-select"
    }
   },
+  "claude-code": {
+   "apt\\node": {
+    "driver": "apt",
+    "fields": {
+     "name": "npm",
+     "repo-component": "universe"
+    },
+    "name": "npm"
+   },
+   "npm\\claude-code": {
+    "driver": "npm",
+    "fields": {
+     "name": "@anthropic-ai/claude-code"
+    },
+    "name": "@anthropic-ai/claude-code"
+   }
+  },
+  "codex": {
+   "apt\\node": {
+    "driver": "apt",
+    "fields": {
+     "name": "npm",
+     "repo-component": "universe"
+    },
+    "name": "npm"
+   },
+   "npm\\codex": {
+    "driver": "npm",
+    "fields": {
+     "name": "@openai/codex"
+    },
+    "name": "@openai/codex"
+   }
+  },
   "configsys-dotfiles": {
    "dotfiles\\bash-dotfiles": {
     "driver": "dotfiles",
@@ -2872,6 +3017,16 @@
      "repo-component": "universe"
     },
     "name": "elixir"
+   }
+  },
+  "emacs": {
+   "apt\\emacs": {
+    "driver": "apt",
+    "fields": {
+     "name": "emacs",
+     "repo-component": "universe"
+    },
+    "name": "emacs"
    }
   },
   "erlang": {
@@ -3640,6 +3795,32 @@
     "name": "libxcb-xinput0"
    }
   },
+  "llm": {
+   "apt\\python3-pip": {
+    "driver": "apt",
+    "fields": {
+     "name": "python3-pip"
+    },
+    "name": "python3-pip"
+   },
+   "pip\\pipx": {
+    "driver": "pip",
+    "fields": {
+     "name": "pipx",
+     "version": {
+      "pypi": "pipx"
+     }
+    },
+    "name": "pipx"
+   },
+   "pipx\\llm": {
+    "driver": "pipx",
+    "fields": {
+     "name": "llm"
+    },
+    "name": "llm"
+   }
+  },
   "lmms": {
    "apt\\flatpak": {
     "driver": "apt",
@@ -3981,6 +4162,20 @@
      }
     },
     "name": "odin"
+   }
+  },
+  "ollama": {
+   "script\\ollama": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "curl -fsSL https://ollama.com/install.sh | sh",
+     "location": "/usr/local/bin/ollama",
+     "name": "ollama",
+     "uninstall-cmd": "sudo systemctl stop ollama 2>/dev/null; sudo rm -f /usr/local/bin/ollama /etc/systemd/system/ollama.service; sudo rm -rf /usr/share/ollama",
+     "version-cmd": "ollama --version",
+     "version-re": "([0-9]+\\.[0-9]+\\.[0-9]+)"
+    },
+    "name": "ollama"
    }
   },
   "opam": {
@@ -4821,6 +5016,22 @@
   }
  },
  "debian@12": {
+  "aider": {
+   "apt\\pipx": {
+    "driver": "apt",
+    "fields": {
+     "name": "pipx"
+    },
+    "name": "pipx"
+   },
+   "pipx\\aider": {
+    "driver": "pipx",
+    "fields": {
+     "name": "aider-chat"
+    },
+    "name": "aider-chat"
+   }
+  },
   "android-studio": {
    "apt\\curl": {
     "driver": "apt",
@@ -5250,6 +5461,40 @@
     "name": "clang-select"
    }
   },
+  "claude-code": {
+   "apt\\node": {
+    "driver": "apt",
+    "fields": {
+     "name": "npm",
+     "repo-component": "universe"
+    },
+    "name": "npm"
+   },
+   "npm\\claude-code": {
+    "driver": "npm",
+    "fields": {
+     "name": "@anthropic-ai/claude-code"
+    },
+    "name": "@anthropic-ai/claude-code"
+   }
+  },
+  "codex": {
+   "apt\\node": {
+    "driver": "apt",
+    "fields": {
+     "name": "npm",
+     "repo-component": "universe"
+    },
+    "name": "npm"
+   },
+   "npm\\codex": {
+    "driver": "npm",
+    "fields": {
+     "name": "@openai/codex"
+    },
+    "name": "@openai/codex"
+   }
+  },
   "configsys-dotfiles": {
    "dotfiles\\bash-dotfiles": {
     "driver": "dotfiles",
@@ -5465,6 +5710,16 @@
      "repo-component": "universe"
     },
     "name": "elixir"
+   }
+  },
+  "emacs": {
+   "apt\\emacs": {
+    "driver": "apt",
+    "fields": {
+     "name": "emacs",
+     "repo-component": "universe"
+    },
+    "name": "emacs"
    }
   },
   "erlang": {
@@ -6233,6 +6488,22 @@
     "name": "libxcb-xinput0"
    }
   },
+  "llm": {
+   "apt\\pipx": {
+    "driver": "apt",
+    "fields": {
+     "name": "pipx"
+    },
+    "name": "pipx"
+   },
+   "pipx\\llm": {
+    "driver": "pipx",
+    "fields": {
+     "name": "llm"
+    },
+    "name": "llm"
+   }
+  },
   "lmms": {
    "apt\\flatpak": {
     "driver": "apt",
@@ -6564,6 +6835,20 @@
      }
     },
     "name": "odin"
+   }
+  },
+  "ollama": {
+   "script\\ollama": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "curl -fsSL https://ollama.com/install.sh | sh",
+     "location": "/usr/local/bin/ollama",
+     "name": "ollama",
+     "uninstall-cmd": "sudo systemctl stop ollama 2>/dev/null; sudo rm -f /usr/local/bin/ollama /etc/systemd/system/ollama.service; sudo rm -rf /usr/share/ollama",
+     "version-cmd": "ollama --version",
+     "version-re": "([0-9]+\\.[0-9]+\\.[0-9]+)"
+    },
+    "name": "ollama"
    }
   },
   "opam": {
@@ -7384,6 +7669,22 @@
   }
  },
  "fedora@41": {
+  "aider": {
+   "dnf\\pipx": {
+    "driver": "dnf",
+    "fields": {
+     "name": "pipx"
+    },
+    "name": "pipx"
+   },
+   "pipx\\aider": {
+    "driver": "pipx",
+    "fields": {
+     "name": "aider-chat"
+    },
+    "name": "aider-chat"
+   }
+  },
   "android-studio": {
    "dnf\\curl": {
     "driver": "dnf",
@@ -7695,6 +7996,40 @@
     "name": "clang-19"
    }
   },
+  "claude-code": {
+   "dnf\\node": {
+    "driver": "dnf",
+    "fields": {
+     "name": "nodejs",
+     "repo-component": "universe"
+    },
+    "name": "nodejs"
+   },
+   "npm\\claude-code": {
+    "driver": "npm",
+    "fields": {
+     "name": "@anthropic-ai/claude-code"
+    },
+    "name": "@anthropic-ai/claude-code"
+   }
+  },
+  "codex": {
+   "dnf\\node": {
+    "driver": "dnf",
+    "fields": {
+     "name": "nodejs",
+     "repo-component": "universe"
+    },
+    "name": "nodejs"
+   },
+   "npm\\codex": {
+    "driver": "npm",
+    "fields": {
+     "name": "@openai/codex"
+    },
+    "name": "@openai/codex"
+   }
+  },
   "configsys-dotfiles": {
    "dotfiles\\bash-dotfiles": {
     "driver": "dotfiles",
@@ -7919,6 +8254,16 @@
      "repo-component": "universe"
     },
     "name": "elixir"
+   }
+  },
+  "emacs": {
+   "dnf\\emacs": {
+    "driver": "dnf",
+    "fields": {
+     "name": "emacs",
+     "repo-component": "universe"
+    },
+    "name": "emacs"
    }
   },
   "erlang": {
@@ -8540,6 +8885,22 @@
     "name": "libxcb-xinput0"
    }
   },
+  "llm": {
+   "dnf\\pipx": {
+    "driver": "dnf",
+    "fields": {
+     "name": "pipx"
+    },
+    "name": "pipx"
+   },
+   "pipx\\llm": {
+    "driver": "pipx",
+    "fields": {
+     "name": "llm"
+    },
+    "name": "llm"
+   }
+  },
   "lmms": {
    "dnf\\flatpak": {
     "driver": "dnf",
@@ -8871,6 +9232,20 @@
      }
     },
     "name": "odin"
+   }
+  },
+  "ollama": {
+   "script\\ollama": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "curl -fsSL https://ollama.com/install.sh | sh",
+     "location": "/usr/local/bin/ollama",
+     "name": "ollama",
+     "uninstall-cmd": "sudo systemctl stop ollama 2>/dev/null; sudo rm -f /usr/local/bin/ollama /etc/systemd/system/ollama.service; sudo rm -rf /usr/share/ollama",
+     "version-cmd": "ollama --version",
+     "version-re": "([0-9]+\\.[0-9]+\\.[0-9]+)"
+    },
+    "name": "ollama"
    }
   },
   "opam": {
@@ -9710,6 +10085,22 @@
   }
  },
  "fedora@42": {
+  "aider": {
+   "dnf\\pipx": {
+    "driver": "dnf",
+    "fields": {
+     "name": "pipx"
+    },
+    "name": "pipx"
+   },
+   "pipx\\aider": {
+    "driver": "pipx",
+    "fields": {
+     "name": "aider-chat"
+    },
+    "name": "aider-chat"
+   }
+  },
   "android-studio": {
    "dnf\\curl": {
     "driver": "dnf",
@@ -10033,6 +10424,40 @@
     "name": "clang-20"
    }
   },
+  "claude-code": {
+   "dnf\\node": {
+    "driver": "dnf",
+    "fields": {
+     "name": "nodejs",
+     "repo-component": "universe"
+    },
+    "name": "nodejs"
+   },
+   "npm\\claude-code": {
+    "driver": "npm",
+    "fields": {
+     "name": "@anthropic-ai/claude-code"
+    },
+    "name": "@anthropic-ai/claude-code"
+   }
+  },
+  "codex": {
+   "dnf\\node": {
+    "driver": "dnf",
+    "fields": {
+     "name": "nodejs",
+     "repo-component": "universe"
+    },
+    "name": "nodejs"
+   },
+   "npm\\codex": {
+    "driver": "npm",
+    "fields": {
+     "name": "@openai/codex"
+    },
+    "name": "@openai/codex"
+   }
+  },
   "configsys-dotfiles": {
    "dotfiles\\bash-dotfiles": {
     "driver": "dotfiles",
@@ -10257,6 +10682,16 @@
      "repo-component": "universe"
     },
     "name": "elixir"
+   }
+  },
+  "emacs": {
+   "dnf\\emacs": {
+    "driver": "dnf",
+    "fields": {
+     "name": "emacs",
+     "repo-component": "universe"
+    },
+    "name": "emacs"
    }
   },
   "erlang": {
@@ -10878,6 +11313,22 @@
     "name": "libxcb-xinput0"
    }
   },
+  "llm": {
+   "dnf\\pipx": {
+    "driver": "dnf",
+    "fields": {
+     "name": "pipx"
+    },
+    "name": "pipx"
+   },
+   "pipx\\llm": {
+    "driver": "pipx",
+    "fields": {
+     "name": "llm"
+    },
+    "name": "llm"
+   }
+  },
   "lmms": {
    "dnf\\flatpak": {
     "driver": "dnf",
@@ -11209,6 +11660,20 @@
      }
     },
     "name": "odin"
+   }
+  },
+  "ollama": {
+   "script\\ollama": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "curl -fsSL https://ollama.com/install.sh | sh",
+     "location": "/usr/local/bin/ollama",
+     "name": "ollama",
+     "uninstall-cmd": "sudo systemctl stop ollama 2>/dev/null; sudo rm -f /usr/local/bin/ollama /etc/systemd/system/ollama.service; sudo rm -rf /usr/share/ollama",
+     "version-cmd": "ollama --version",
+     "version-re": "([0-9]+\\.[0-9]+\\.[0-9]+)"
+    },
+    "name": "ollama"
    }
   },
   "opam": {
@@ -12048,6 +12513,32 @@
   }
  },
  "pop_os!@22.04": {
+  "aider": {
+   "apt\\python3-pip": {
+    "driver": "apt",
+    "fields": {
+     "name": "python3-pip"
+    },
+    "name": "python3-pip"
+   },
+   "pip\\pipx": {
+    "driver": "pip",
+    "fields": {
+     "name": "pipx",
+     "version": {
+      "pypi": "pipx"
+     }
+    },
+    "name": "pipx"
+   },
+   "pipx\\aider": {
+    "driver": "pipx",
+    "fields": {
+     "name": "aider-chat"
+    },
+    "name": "aider-chat"
+   }
+  },
   "android-studio": {
    "apt\\curl": {
     "driver": "apt",
@@ -12477,6 +12968,40 @@
     "name": "clang-select"
    }
   },
+  "claude-code": {
+   "apt\\node": {
+    "driver": "apt",
+    "fields": {
+     "name": "npm",
+     "repo-component": "universe"
+    },
+    "name": "npm"
+   },
+   "npm\\claude-code": {
+    "driver": "npm",
+    "fields": {
+     "name": "@anthropic-ai/claude-code"
+    },
+    "name": "@anthropic-ai/claude-code"
+   }
+  },
+  "codex": {
+   "apt\\node": {
+    "driver": "apt",
+    "fields": {
+     "name": "npm",
+     "repo-component": "universe"
+    },
+    "name": "npm"
+   },
+   "npm\\codex": {
+    "driver": "npm",
+    "fields": {
+     "name": "@openai/codex"
+    },
+    "name": "@openai/codex"
+   }
+  },
   "configsys-dotfiles": {
    "dotfiles\\bash-dotfiles": {
     "driver": "dotfiles",
@@ -12701,6 +13226,16 @@
      "repo-component": "universe"
     },
     "name": "elixir"
+   }
+  },
+  "emacs": {
+   "apt\\emacs": {
+    "driver": "apt",
+    "fields": {
+     "name": "emacs",
+     "repo-component": "universe"
+    },
+    "name": "emacs"
    }
   },
   "erlang": {
@@ -13469,6 +14004,32 @@
     "name": "libxcb-xinput0"
    }
   },
+  "llm": {
+   "apt\\python3-pip": {
+    "driver": "apt",
+    "fields": {
+     "name": "python3-pip"
+    },
+    "name": "python3-pip"
+   },
+   "pip\\pipx": {
+    "driver": "pip",
+    "fields": {
+     "name": "pipx",
+     "version": {
+      "pypi": "pipx"
+     }
+    },
+    "name": "pipx"
+   },
+   "pipx\\llm": {
+    "driver": "pipx",
+    "fields": {
+     "name": "llm"
+    },
+    "name": "llm"
+   }
+  },
   "lmms": {
    "apt\\flatpak": {
     "driver": "apt",
@@ -13810,6 +14371,20 @@
      }
     },
     "name": "odin"
+   }
+  },
+  "ollama": {
+   "script\\ollama": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "curl -fsSL https://ollama.com/install.sh | sh",
+     "location": "/usr/local/bin/ollama",
+     "name": "ollama",
+     "uninstall-cmd": "sudo systemctl stop ollama 2>/dev/null; sudo rm -f /usr/local/bin/ollama /etc/systemd/system/ollama.service; sudo rm -rf /usr/share/ollama",
+     "version-cmd": "ollama --version",
+     "version-re": "([0-9]+\\.[0-9]+\\.[0-9]+)"
+    },
+    "name": "ollama"
    }
   },
   "opam": {
@@ -14643,6 +15218,29 @@
   }
  },
  "rhel@9.8": {
+  "aider": {
+   "dnf\\epel-release": {
+    "driver": "dnf",
+    "fields": {
+     "name": "epel-release"
+    },
+    "name": "epel-release"
+   },
+   "dnf\\pipx": {
+    "driver": "dnf",
+    "fields": {
+     "name": "pipx"
+    },
+    "name": "pipx"
+   },
+   "pipx\\aider": {
+    "driver": "pipx",
+    "fields": {
+     "name": "aider-chat"
+    },
+    "name": "aider-chat"
+   }
+  },
   "android-studio": {
    "dnf\\curl": {
     "driver": "dnf",
@@ -14980,6 +15578,40 @@
     "name": "epel-release"
    }
   },
+  "claude-code": {
+   "dnf\\node": {
+    "driver": "dnf",
+    "fields": {
+     "name": "nodejs",
+     "repo-component": "universe"
+    },
+    "name": "nodejs"
+   },
+   "npm\\claude-code": {
+    "driver": "npm",
+    "fields": {
+     "name": "@anthropic-ai/claude-code"
+    },
+    "name": "@anthropic-ai/claude-code"
+   }
+  },
+  "codex": {
+   "dnf\\node": {
+    "driver": "dnf",
+    "fields": {
+     "name": "nodejs",
+     "repo-component": "universe"
+    },
+    "name": "nodejs"
+   },
+   "npm\\codex": {
+    "driver": "npm",
+    "fields": {
+     "name": "@openai/codex"
+    },
+    "name": "@openai/codex"
+   }
+  },
   "configsys-dotfiles": {
    "dotfiles\\bash-dotfiles": {
     "driver": "dotfiles",
@@ -15204,6 +15836,16 @@
      "repo-component": "universe"
     },
     "name": "elixir"
+   }
+  },
+  "emacs": {
+   "dnf\\emacs": {
+    "driver": "dnf",
+    "fields": {
+     "name": "emacs",
+     "repo-component": "universe"
+    },
+    "name": "emacs"
    }
   },
   "epel-release": {
@@ -15909,6 +16551,29 @@
     "name": "libxcb-xinput0"
    }
   },
+  "llm": {
+   "dnf\\epel-release": {
+    "driver": "dnf",
+    "fields": {
+     "name": "epel-release"
+    },
+    "name": "epel-release"
+   },
+   "dnf\\pipx": {
+    "driver": "dnf",
+    "fields": {
+     "name": "pipx"
+    },
+    "name": "pipx"
+   },
+   "pipx\\llm": {
+    "driver": "pipx",
+    "fields": {
+     "name": "llm"
+    },
+    "name": "llm"
+   }
+  },
   "lmms": {
    "dnf\\flatpak": {
     "driver": "dnf",
@@ -16267,6 +16932,20 @@
      }
     },
     "name": "odin"
+   }
+  },
+  "ollama": {
+   "script\\ollama": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "curl -fsSL https://ollama.com/install.sh | sh",
+     "location": "/usr/local/bin/ollama",
+     "name": "ollama",
+     "uninstall-cmd": "sudo systemctl stop ollama 2>/dev/null; sudo rm -f /usr/local/bin/ollama /etc/systemd/system/ollama.service; sudo rm -rf /usr/share/ollama",
+     "version-cmd": "ollama --version",
+     "version-re": "([0-9]+\\.[0-9]+\\.[0-9]+)"
+    },
+    "name": "ollama"
    }
   },
   "opam": {
@@ -17143,6 +17822,32 @@
   }
  },
  "ubuntu@22.04": {
+  "aider": {
+   "apt\\python3-pip": {
+    "driver": "apt",
+    "fields": {
+     "name": "python3-pip"
+    },
+    "name": "python3-pip"
+   },
+   "pip\\pipx": {
+    "driver": "pip",
+    "fields": {
+     "name": "pipx",
+     "version": {
+      "pypi": "pipx"
+     }
+    },
+    "name": "pipx"
+   },
+   "pipx\\aider": {
+    "driver": "pipx",
+    "fields": {
+     "name": "aider-chat"
+    },
+    "name": "aider-chat"
+   }
+  },
   "android-studio": {
    "apt\\curl": {
     "driver": "apt",
@@ -17572,6 +18277,40 @@
     "name": "clang-select"
    }
   },
+  "claude-code": {
+   "apt\\node": {
+    "driver": "apt",
+    "fields": {
+     "name": "npm",
+     "repo-component": "universe"
+    },
+    "name": "npm"
+   },
+   "npm\\claude-code": {
+    "driver": "npm",
+    "fields": {
+     "name": "@anthropic-ai/claude-code"
+    },
+    "name": "@anthropic-ai/claude-code"
+   }
+  },
+  "codex": {
+   "apt\\node": {
+    "driver": "apt",
+    "fields": {
+     "name": "npm",
+     "repo-component": "universe"
+    },
+    "name": "npm"
+   },
+   "npm\\codex": {
+    "driver": "npm",
+    "fields": {
+     "name": "@openai/codex"
+    },
+    "name": "@openai/codex"
+   }
+  },
   "configsys-dotfiles": {
    "dotfiles\\bash-dotfiles": {
     "driver": "dotfiles",
@@ -17787,6 +18526,16 @@
      "repo-component": "universe"
     },
     "name": "elixir"
+   }
+  },
+  "emacs": {
+   "apt\\emacs": {
+    "driver": "apt",
+    "fields": {
+     "name": "emacs",
+     "repo-component": "universe"
+    },
+    "name": "emacs"
    }
   },
   "erlang": {
@@ -18555,6 +19304,32 @@
     "name": "libxcb-xinput0"
    }
   },
+  "llm": {
+   "apt\\python3-pip": {
+    "driver": "apt",
+    "fields": {
+     "name": "python3-pip"
+    },
+    "name": "python3-pip"
+   },
+   "pip\\pipx": {
+    "driver": "pip",
+    "fields": {
+     "name": "pipx",
+     "version": {
+      "pypi": "pipx"
+     }
+    },
+    "name": "pipx"
+   },
+   "pipx\\llm": {
+    "driver": "pipx",
+    "fields": {
+     "name": "llm"
+    },
+    "name": "llm"
+   }
+  },
   "lmms": {
    "apt\\flatpak": {
     "driver": "apt",
@@ -18896,6 +19671,20 @@
      }
     },
     "name": "odin"
+   }
+  },
+  "ollama": {
+   "script\\ollama": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "curl -fsSL https://ollama.com/install.sh | sh",
+     "location": "/usr/local/bin/ollama",
+     "name": "ollama",
+     "uninstall-cmd": "sudo systemctl stop ollama 2>/dev/null; sudo rm -f /usr/local/bin/ollama /etc/systemd/system/ollama.service; sudo rm -rf /usr/share/ollama",
+     "version-cmd": "ollama --version",
+     "version-re": "([0-9]+\\.[0-9]+\\.[0-9]+)"
+    },
+    "name": "ollama"
    }
   },
   "opam": {
@@ -19736,6 +20525,22 @@
   }
  },
  "ubuntu@24.04": {
+  "aider": {
+   "apt\\pipx": {
+    "driver": "apt",
+    "fields": {
+     "name": "pipx"
+    },
+    "name": "pipx"
+   },
+   "pipx\\aider": {
+    "driver": "pipx",
+    "fields": {
+     "name": "aider-chat"
+    },
+    "name": "aider-chat"
+   }
+  },
   "android-studio": {
    "apt\\curl": {
     "driver": "apt",
@@ -20165,6 +20970,40 @@
     "name": "clang-select"
    }
   },
+  "claude-code": {
+   "apt\\node": {
+    "driver": "apt",
+    "fields": {
+     "name": "npm",
+     "repo-component": "universe"
+    },
+    "name": "npm"
+   },
+   "npm\\claude-code": {
+    "driver": "npm",
+    "fields": {
+     "name": "@anthropic-ai/claude-code"
+    },
+    "name": "@anthropic-ai/claude-code"
+   }
+  },
+  "codex": {
+   "apt\\node": {
+    "driver": "apt",
+    "fields": {
+     "name": "npm",
+     "repo-component": "universe"
+    },
+    "name": "npm"
+   },
+   "npm\\codex": {
+    "driver": "npm",
+    "fields": {
+     "name": "@openai/codex"
+    },
+    "name": "@openai/codex"
+   }
+  },
   "configsys-dotfiles": {
    "dotfiles\\bash-dotfiles": {
     "driver": "dotfiles",
@@ -20380,6 +21219,16 @@
      "repo-component": "universe"
     },
     "name": "elixir"
+   }
+  },
+  "emacs": {
+   "apt\\emacs": {
+    "driver": "apt",
+    "fields": {
+     "name": "emacs",
+     "repo-component": "universe"
+    },
+    "name": "emacs"
    }
   },
   "erlang": {
@@ -21148,6 +21997,22 @@
     "name": "libxcb-xinput0"
    }
   },
+  "llm": {
+   "apt\\pipx": {
+    "driver": "apt",
+    "fields": {
+     "name": "pipx"
+    },
+    "name": "pipx"
+   },
+   "pipx\\llm": {
+    "driver": "pipx",
+    "fields": {
+     "name": "llm"
+    },
+    "name": "llm"
+   }
+  },
   "lmms": {
    "apt\\flatpak": {
     "driver": "apt",
@@ -21479,6 +22344,20 @@
      }
     },
     "name": "odin"
+   }
+  },
+  "ollama": {
+   "script\\ollama": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "curl -fsSL https://ollama.com/install.sh | sh",
+     "location": "/usr/local/bin/ollama",
+     "name": "ollama",
+     "uninstall-cmd": "sudo systemctl stop ollama 2>/dev/null; sudo rm -f /usr/local/bin/ollama /etc/systemd/system/ollama.service; sudo rm -rf /usr/share/ollama",
+     "version-cmd": "ollama --version",
+     "version-re": "([0-9]+\\.[0-9]+\\.[0-9]+)"
+    },
+    "name": "ollama"
    }
   },
   "opam": {

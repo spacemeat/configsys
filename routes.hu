@@ -621,6 +621,30 @@
 
         // --- appImage apps (fetch-artifact); config rides along as a required -dotfiles
         // component (a plain via:dotfiles component, so it can carry when: conditions too) ---
+        // Emacs — native under `emacs` in every family.
+        emacs: { install: [ { via: native  repo-component: universe } ] }
+
+        // --- AI / LLM command-line tools ---
+        // Claude Code and Codex are npm globals (userland via the npm driver). llm and aider are
+        // Python CLIs (pipx). Ollama is a LOCAL INFERENCE SERVER: native on Arch/Homebrew, else its
+        // own install script (which also sets up the systemd service); a best-effort uninstall is
+        // declared so the script driver can remove it cleanly.
+        claude-code: { install: [ { via: npm  name: "@anthropic-ai/claude-code" } ] }
+        codex:       { install: [ { via: npm  name: "@openai/codex" } ] }
+        llm:         { install: [ { via: pipx  name: llm } ] }
+        aider:       { install: [ { via: pipx  name: aider-chat } ] }        // PyPI dist is aider-chat
+        ollama: {
+            install: [
+                { via: native  when: "arch" }
+                { via: native  when: "fedora_atomic" }             // brew formula `ollama`
+                { via: script
+                  install-cmd:   'curl -fsSL https://ollama.com/install.sh | sh'
+                  version-cmd:   'ollama --version'
+                  version-re:    '([0-9]+\.[0-9]+\.[0-9]+)'
+                  uninstall-cmd: 'sudo systemctl stop ollama 2>/dev/null; sudo rm -f /usr/local/bin/ollama /etc/systemd/system/ollama.service; sudo rm -rf /usr/share/ollama'
+                  location:      '/usr/local/bin/ollama' } ]
+        }
+
         neovim: {
             requires: [ ripgrep, tree-sitter-cli ]
             suggests: neovim-dotfiles
