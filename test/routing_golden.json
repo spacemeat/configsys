@@ -192,6 +192,34 @@
     "name": "make"
    }
   },
+  "bun": {
+   "pacman\\curl": {
+    "driver": "pacman",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "pacman\\unzip": {
+    "driver": "pacman",
+    "fields": {
+     "name": "unzip"
+    },
+    "name": "unzip"
+   },
+   "tarball\\bun": {
+    "driver": "tarball",
+    "fields": {
+     "installDir": "apps/bun",
+     "name": "bun",
+     "url": "https://github.com/oven-sh/bun/releases/latest/download/bun-linux-x64.zip",
+     "version": {
+      "static": "latest"
+     }
+    },
+    "name": "bun"
+   }
+  },
   "bundler": {
    "gem\\bundler": {
     "driver": "gem",
@@ -280,6 +308,15 @@
      "name": "curl"
     },
     "name": "curl"
+   }
+  },
+  "deno": {
+   "pacman\\deno": {
+    "driver": "pacman",
+    "fields": {
+     "name": "deno"
+    },
+    "name": "deno"
    }
   },
   "dig": {
@@ -797,6 +834,15 @@
      "repo-component": "universe"
     },
     "name": "kicad"
+   }
+  },
+  "kotlin": {
+   "pacman\\kotlin": {
+    "driver": "pacman",
+    "fields": {
+     "name": "kotlin"
+    },
+    "name": "kotlin"
    }
   },
   "krita": {
@@ -2245,6 +2291,34 @@
     "name": "build-essential"
    }
   },
+  "bun": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "apt\\unzip": {
+    "driver": "apt",
+    "fields": {
+     "name": "unzip"
+    },
+    "name": "unzip"
+   },
+   "tarball\\bun": {
+    "driver": "tarball",
+    "fields": {
+     "installDir": "apps/bun",
+     "name": "bun",
+     "url": "https://github.com/oven-sh/bun/releases/latest/download/bun-linux-x64.zip",
+     "version": {
+      "static": "latest"
+     }
+    },
+    "name": "bun"
+   }
+  },
   "bundler": {
    "apt\\ruby": {
     "driver": "apt",
@@ -2489,6 +2563,34 @@
      "name": "curl"
     },
     "name": "curl"
+   }
+  },
+  "deno": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "apt\\unzip": {
+    "driver": "apt",
+    "fields": {
+     "name": "unzip"
+    },
+    "name": "unzip"
+   },
+   "tarball\\deno": {
+    "driver": "tarball",
+    "fields": {
+     "installDir": "apps/deno",
+     "name": "deno",
+     "url": "https://github.com/denoland/deno/releases/latest/download/deno-x86_64-unknown-linux-gnu.zip",
+     "version": {
+      "static": "latest"
+     }
+    },
+    "name": "deno"
    }
   },
   "dig": {
@@ -3173,6 +3275,43 @@
      "repo-component": "universe"
     },
     "name": "kicad"
+   }
+  },
+  "kotlin": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "apt\\jdk": {
+    "driver": "apt",
+    "fields": {
+     "name": "default-jdk"
+    },
+    "name": "default-jdk"
+   },
+   "apt\\unzip": {
+    "driver": "apt",
+    "fields": {
+     "name": "unzip"
+    },
+    "name": "unzip"
+   },
+   "tarball\\kotlin": {
+    "driver": "tarball",
+    "fields": {
+     "installDir": "apps/kotlin",
+     "name": "kotlin",
+     "url": "https://github.com/JetBrains/kotlin/releases/download/v$VERSION/kotlin-compiler-$VERSION.zip",
+     "version": {
+      "asset": "kotlin-compiler-*.zip",
+      "github": "JetBrains/kotlin",
+      "strip-v": "true"
+     }
+    },
+    "name": "kotlin"
    }
   },
   "krita": {
@@ -4638,6 +4777,34 @@
     "name": "build-essential"
    }
   },
+  "bun": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "apt\\unzip": {
+    "driver": "apt",
+    "fields": {
+     "name": "unzip"
+    },
+    "name": "unzip"
+   },
+   "tarball\\bun": {
+    "driver": "tarball",
+    "fields": {
+     "installDir": "apps/bun",
+     "name": "bun",
+     "url": "https://github.com/oven-sh/bun/releases/latest/download/bun-linux-x64.zip",
+     "version": {
+      "static": "latest"
+     }
+    },
+    "name": "bun"
+   }
+  },
   "bundler": {
    "apt\\ruby": {
     "driver": "apt",
@@ -4882,6 +5049,34 @@
      "name": "curl"
     },
     "name": "curl"
+   }
+  },
+  "deno": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "apt\\unzip": {
+    "driver": "apt",
+    "fields": {
+     "name": "unzip"
+    },
+    "name": "unzip"
+   },
+   "tarball\\deno": {
+    "driver": "tarball",
+    "fields": {
+     "installDir": "apps/deno",
+     "name": "deno",
+     "url": "https://github.com/denoland/deno/releases/latest/download/deno-x86_64-unknown-linux-gnu.zip",
+     "version": {
+      "static": "latest"
+     }
+    },
+    "name": "deno"
    }
   },
   "dig": {
@@ -5566,6 +5761,43 @@
      "repo-component": "universe"
     },
     "name": "kicad"
+   }
+  },
+  "kotlin": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "apt\\jdk": {
+    "driver": "apt",
+    "fields": {
+     "name": "default-jdk"
+    },
+    "name": "default-jdk"
+   },
+   "apt\\unzip": {
+    "driver": "apt",
+    "fields": {
+     "name": "unzip"
+    },
+    "name": "unzip"
+   },
+   "tarball\\kotlin": {
+    "driver": "tarball",
+    "fields": {
+     "installDir": "apps/kotlin",
+     "name": "kotlin",
+     "url": "https://github.com/JetBrains/kotlin/releases/download/v$VERSION/kotlin-compiler-$VERSION.zip",
+     "version": {
+      "asset": "kotlin-compiler-*.zip",
+      "github": "JetBrains/kotlin",
+      "strip-v": "true"
+     }
+    },
+    "name": "kotlin"
    }
   },
   "krita": {
@@ -7015,6 +7247,34 @@
     "name": "make"
    }
   },
+  "bun": {
+   "dnf\\curl": {
+    "driver": "dnf",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "dnf\\unzip": {
+    "driver": "dnf",
+    "fields": {
+     "name": "unzip"
+    },
+    "name": "unzip"
+   },
+   "tarball\\bun": {
+    "driver": "tarball",
+    "fields": {
+     "installDir": "apps/bun",
+     "name": "bun",
+     "url": "https://github.com/oven-sh/bun/releases/latest/download/bun-linux-x64.zip",
+     "version": {
+      "static": "latest"
+     }
+    },
+    "name": "bun"
+   }
+  },
   "bundler": {
    "dnf\\ruby": {
     "driver": "dnf",
@@ -7127,6 +7387,34 @@
      "name": "curl"
     },
     "name": "curl"
+   }
+  },
+  "deno": {
+   "dnf\\curl": {
+    "driver": "dnf",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "dnf\\unzip": {
+    "driver": "dnf",
+    "fields": {
+     "name": "unzip"
+    },
+    "name": "unzip"
+   },
+   "tarball\\deno": {
+    "driver": "tarball",
+    "fields": {
+     "installDir": "apps/deno",
+     "name": "deno",
+     "url": "https://github.com/denoland/deno/releases/latest/download/deno-x86_64-unknown-linux-gnu.zip",
+     "version": {
+      "static": "latest"
+     }
+    },
+    "name": "deno"
    }
   },
   "dig": {
@@ -7668,6 +7956,43 @@
      "repo-component": "universe"
     },
     "name": "kicad"
+   }
+  },
+  "kotlin": {
+   "dnf\\curl": {
+    "driver": "dnf",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "dnf\\jdk": {
+    "driver": "dnf",
+    "fields": {
+     "name": "java-17-openjdk-devel"
+    },
+    "name": "java-17-openjdk-devel"
+   },
+   "dnf\\unzip": {
+    "driver": "dnf",
+    "fields": {
+     "name": "unzip"
+    },
+    "name": "unzip"
+   },
+   "tarball\\kotlin": {
+    "driver": "tarball",
+    "fields": {
+     "installDir": "apps/kotlin",
+     "name": "kotlin",
+     "url": "https://github.com/JetBrains/kotlin/releases/download/v$VERSION/kotlin-compiler-$VERSION.zip",
+     "version": {
+      "asset": "kotlin-compiler-*.zip",
+      "github": "JetBrains/kotlin",
+      "strip-v": "true"
+     }
+    },
+    "name": "kotlin"
    }
   },
   "krita": {
@@ -9123,6 +9448,34 @@
     "name": "make"
    }
   },
+  "bun": {
+   "dnf\\curl": {
+    "driver": "dnf",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "dnf\\unzip": {
+    "driver": "dnf",
+    "fields": {
+     "name": "unzip"
+    },
+    "name": "unzip"
+   },
+   "tarball\\bun": {
+    "driver": "tarball",
+    "fields": {
+     "installDir": "apps/bun",
+     "name": "bun",
+     "url": "https://github.com/oven-sh/bun/releases/latest/download/bun-linux-x64.zip",
+     "version": {
+      "static": "latest"
+     }
+    },
+    "name": "bun"
+   }
+  },
   "bundler": {
    "dnf\\ruby": {
     "driver": "dnf",
@@ -9247,6 +9600,34 @@
      "name": "curl"
     },
     "name": "curl"
+   }
+  },
+  "deno": {
+   "dnf\\curl": {
+    "driver": "dnf",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "dnf\\unzip": {
+    "driver": "dnf",
+    "fields": {
+     "name": "unzip"
+    },
+    "name": "unzip"
+   },
+   "tarball\\deno": {
+    "driver": "tarball",
+    "fields": {
+     "installDir": "apps/deno",
+     "name": "deno",
+     "url": "https://github.com/denoland/deno/releases/latest/download/deno-x86_64-unknown-linux-gnu.zip",
+     "version": {
+      "static": "latest"
+     }
+    },
+    "name": "deno"
    }
   },
   "dig": {
@@ -9788,6 +10169,43 @@
      "repo-component": "universe"
     },
     "name": "kicad"
+   }
+  },
+  "kotlin": {
+   "dnf\\curl": {
+    "driver": "dnf",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "dnf\\jdk": {
+    "driver": "dnf",
+    "fields": {
+     "name": "java-17-openjdk-devel"
+    },
+    "name": "java-17-openjdk-devel"
+   },
+   "dnf\\unzip": {
+    "driver": "dnf",
+    "fields": {
+     "name": "unzip"
+    },
+    "name": "unzip"
+   },
+   "tarball\\kotlin": {
+    "driver": "tarball",
+    "fields": {
+     "installDir": "apps/kotlin",
+     "name": "kotlin",
+     "url": "https://github.com/JetBrains/kotlin/releases/download/v$VERSION/kotlin-compiler-$VERSION.zip",
+     "version": {
+      "asset": "kotlin-compiler-*.zip",
+      "github": "JetBrains/kotlin",
+      "strip-v": "true"
+     }
+    },
+    "name": "kotlin"
    }
   },
   "krita": {
@@ -11229,6 +11647,34 @@
     "name": "build-essential"
    }
   },
+  "bun": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "apt\\unzip": {
+    "driver": "apt",
+    "fields": {
+     "name": "unzip"
+    },
+    "name": "unzip"
+   },
+   "tarball\\bun": {
+    "driver": "tarball",
+    "fields": {
+     "installDir": "apps/bun",
+     "name": "bun",
+     "url": "https://github.com/oven-sh/bun/releases/latest/download/bun-linux-x64.zip",
+     "version": {
+      "static": "latest"
+     }
+    },
+    "name": "bun"
+   }
+  },
   "bundler": {
    "apt\\ruby": {
     "driver": "apt",
@@ -11473,6 +11919,34 @@
      "name": "curl"
     },
     "name": "curl"
+   }
+  },
+  "deno": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "apt\\unzip": {
+    "driver": "apt",
+    "fields": {
+     "name": "unzip"
+    },
+    "name": "unzip"
+   },
+   "tarball\\deno": {
+    "driver": "tarball",
+    "fields": {
+     "installDir": "apps/deno",
+     "name": "deno",
+     "url": "https://github.com/denoland/deno/releases/latest/download/deno-x86_64-unknown-linux-gnu.zip",
+     "version": {
+      "static": "latest"
+     }
+    },
+    "name": "deno"
    }
   },
   "dig": {
@@ -12157,6 +12631,43 @@
      "repo-component": "universe"
     },
     "name": "kicad"
+   }
+  },
+  "kotlin": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "apt\\jdk": {
+    "driver": "apt",
+    "fields": {
+     "name": "default-jdk"
+    },
+    "name": "default-jdk"
+   },
+   "apt\\unzip": {
+    "driver": "apt",
+    "fields": {
+     "name": "unzip"
+    },
+    "name": "unzip"
+   },
+   "tarball\\kotlin": {
+    "driver": "tarball",
+    "fields": {
+     "installDir": "apps/kotlin",
+     "name": "kotlin",
+     "url": "https://github.com/JetBrains/kotlin/releases/download/v$VERSION/kotlin-compiler-$VERSION.zip",
+     "version": {
+      "asset": "kotlin-compiler-*.zip",
+      "github": "JetBrains/kotlin",
+      "strip-v": "true"
+     }
+    },
+    "name": "kotlin"
    }
   },
   "krita": {
@@ -13641,6 +14152,34 @@
     "name": "make"
    }
   },
+  "bun": {
+   "dnf\\curl": {
+    "driver": "dnf",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "dnf\\unzip": {
+    "driver": "dnf",
+    "fields": {
+     "name": "unzip"
+    },
+    "name": "unzip"
+   },
+   "tarball\\bun": {
+    "driver": "tarball",
+    "fields": {
+     "installDir": "apps/bun",
+     "name": "bun",
+     "url": "https://github.com/oven-sh/bun/releases/latest/download/bun-linux-x64.zip",
+     "version": {
+      "static": "latest"
+     }
+    },
+    "name": "bun"
+   }
+  },
   "bundler": {
    "dnf\\ruby": {
     "driver": "dnf",
@@ -13767,6 +14306,34 @@
      "name": "curl"
     },
     "name": "curl"
+   }
+  },
+  "deno": {
+   "dnf\\curl": {
+    "driver": "dnf",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "dnf\\unzip": {
+    "driver": "dnf",
+    "fields": {
+     "name": "unzip"
+    },
+    "name": "unzip"
+   },
+   "tarball\\deno": {
+    "driver": "tarball",
+    "fields": {
+     "installDir": "apps/deno",
+     "name": "deno",
+     "url": "https://github.com/denoland/deno/releases/latest/download/deno-x86_64-unknown-linux-gnu.zip",
+     "version": {
+      "static": "latest"
+     }
+    },
+    "name": "deno"
    }
   },
   "dig": {
@@ -14379,6 +14946,43 @@
      "name": "org.kicad.KiCad"
     },
     "name": "org.kicad.KiCad"
+   }
+  },
+  "kotlin": {
+   "dnf\\curl": {
+    "driver": "dnf",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "dnf\\jdk": {
+    "driver": "dnf",
+    "fields": {
+     "name": "java-17-openjdk-devel"
+    },
+    "name": "java-17-openjdk-devel"
+   },
+   "dnf\\unzip": {
+    "driver": "dnf",
+    "fields": {
+     "name": "unzip"
+    },
+    "name": "unzip"
+   },
+   "tarball\\kotlin": {
+    "driver": "tarball",
+    "fields": {
+     "installDir": "apps/kotlin",
+     "name": "kotlin",
+     "url": "https://github.com/JetBrains/kotlin/releases/download/v$VERSION/kotlin-compiler-$VERSION.zip",
+     "version": {
+      "asset": "kotlin-compiler-*.zip",
+      "github": "JetBrains/kotlin",
+      "strip-v": "true"
+     }
+    },
+    "name": "kotlin"
    }
   },
   "krita": {
@@ -15897,6 +16501,34 @@
     "name": "build-essential"
    }
   },
+  "bun": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "apt\\unzip": {
+    "driver": "apt",
+    "fields": {
+     "name": "unzip"
+    },
+    "name": "unzip"
+   },
+   "tarball\\bun": {
+    "driver": "tarball",
+    "fields": {
+     "installDir": "apps/bun",
+     "name": "bun",
+     "url": "https://github.com/oven-sh/bun/releases/latest/download/bun-linux-x64.zip",
+     "version": {
+      "static": "latest"
+     }
+    },
+    "name": "bun"
+   }
+  },
   "bundler": {
    "apt\\ruby": {
     "driver": "apt",
@@ -16141,6 +16773,34 @@
      "name": "curl"
     },
     "name": "curl"
+   }
+  },
+  "deno": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "apt\\unzip": {
+    "driver": "apt",
+    "fields": {
+     "name": "unzip"
+    },
+    "name": "unzip"
+   },
+   "tarball\\deno": {
+    "driver": "tarball",
+    "fields": {
+     "installDir": "apps/deno",
+     "name": "deno",
+     "url": "https://github.com/denoland/deno/releases/latest/download/deno-x86_64-unknown-linux-gnu.zip",
+     "version": {
+      "static": "latest"
+     }
+    },
+    "name": "deno"
    }
   },
   "dig": {
@@ -16825,6 +17485,43 @@
      "repo-component": "universe"
     },
     "name": "kicad"
+   }
+  },
+  "kotlin": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "apt\\jdk": {
+    "driver": "apt",
+    "fields": {
+     "name": "default-jdk"
+    },
+    "name": "default-jdk"
+   },
+   "apt\\unzip": {
+    "driver": "apt",
+    "fields": {
+     "name": "unzip"
+    },
+    "name": "unzip"
+   },
+   "tarball\\kotlin": {
+    "driver": "tarball",
+    "fields": {
+     "installDir": "apps/kotlin",
+     "name": "kotlin",
+     "url": "https://github.com/JetBrains/kotlin/releases/download/v$VERSION/kotlin-compiler-$VERSION.zip",
+     "version": {
+      "asset": "kotlin-compiler-*.zip",
+      "github": "JetBrains/kotlin",
+      "strip-v": "true"
+     }
+    },
+    "name": "kotlin"
    }
   },
   "krita": {
@@ -18290,6 +18987,34 @@
     "name": "build-essential"
    }
   },
+  "bun": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "apt\\unzip": {
+    "driver": "apt",
+    "fields": {
+     "name": "unzip"
+    },
+    "name": "unzip"
+   },
+   "tarball\\bun": {
+    "driver": "tarball",
+    "fields": {
+     "installDir": "apps/bun",
+     "name": "bun",
+     "url": "https://github.com/oven-sh/bun/releases/latest/download/bun-linux-x64.zip",
+     "version": {
+      "static": "latest"
+     }
+    },
+    "name": "bun"
+   }
+  },
   "bundler": {
    "apt\\ruby": {
     "driver": "apt",
@@ -18534,6 +19259,34 @@
      "name": "curl"
     },
     "name": "curl"
+   }
+  },
+  "deno": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "apt\\unzip": {
+    "driver": "apt",
+    "fields": {
+     "name": "unzip"
+    },
+    "name": "unzip"
+   },
+   "tarball\\deno": {
+    "driver": "tarball",
+    "fields": {
+     "installDir": "apps/deno",
+     "name": "deno",
+     "url": "https://github.com/denoland/deno/releases/latest/download/deno-x86_64-unknown-linux-gnu.zip",
+     "version": {
+      "static": "latest"
+     }
+    },
+    "name": "deno"
    }
   },
   "dig": {
@@ -19218,6 +19971,43 @@
      "repo-component": "universe"
     },
     "name": "kicad"
+   }
+  },
+  "kotlin": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "apt\\jdk": {
+    "driver": "apt",
+    "fields": {
+     "name": "default-jdk"
+    },
+    "name": "default-jdk"
+   },
+   "apt\\unzip": {
+    "driver": "apt",
+    "fields": {
+     "name": "unzip"
+    },
+    "name": "unzip"
+   },
+   "tarball\\kotlin": {
+    "driver": "tarball",
+    "fields": {
+     "installDir": "apps/kotlin",
+     "name": "kotlin",
+     "url": "https://github.com/JetBrains/kotlin/releases/download/v$VERSION/kotlin-compiler-$VERSION.zip",
+     "version": {
+      "asset": "kotlin-compiler-*.zip",
+      "github": "JetBrains/kotlin",
+      "strip-v": "true"
+     }
+    },
+    "name": "kotlin"
    }
   },
   "krita": {

@@ -30,6 +30,16 @@ class Tarball(Driver):
     def _marker(self, rc):
         return self._install_dir(rc) / f'{MARKER_PREFIX}{rc.comp}.version'
 
+    @staticmethod
+    def _extract_cmd(rc, url, tmp, dq):
+        '''The unpack command. `.zip` archives (some github releases: deno, bun, kotlin)
+        extract with `unzip`; everything else with `tar -xf` (which auto-detects gz/xz/bz2).
+        A binding may force it with `archive: zip` when the url has no telltale extension.'''
+        fmt = str(rc.fields.get('archive') or '').lower()
+        if fmt == 'zip' or (not fmt and url.lower().split('?', 1)[0].endswith('.zip')):
+            return f'unzip -o -q {tmp} -d {dq}'   # needs unzip → the binding `requires: unzip`
+        return f'tar -xf {tmp} -C {dq}'
+
     # -- read -------------------------------------------------------------
 
     def get_version(self, rc):
@@ -59,13 +69,13 @@ class Tarball(Driver):
 
         dq = shlex.quote(str(d))
         uq = shlex.quote(url)
-        tmp = shlex.quote(str(d / f'{MARKER_PREFIX}download.tar'))
+        tmp = shlex.quote(str(d / f'{MARKER_PREFIX}download.archive'))
         marker = shlex.quote(str(self._marker(rc)))
         verq = shlex.quote(version)
 
         cmd = (f'mkdir -p {dq} && '
                f'curl -fSL {uq} -o {tmp} && '
-               f'tar -xf {tmp} -C {dq} && '
+               f'{self._extract_cmd(rc, url, tmp, dq)} && '
                f'rm -f {tmp} && '
                f'printf %s {verq} > {marker}')
         return self.runner.run(cmd, sudo=self.sudo(rc), capture=False)

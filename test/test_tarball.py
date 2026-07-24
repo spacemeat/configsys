@@ -33,6 +33,32 @@ def test_install_command_construction(tmp_path):
     assert 'sudo' not in cmd   # user-space, never privileged
 
 
+def test_install_uses_unzip_for_zip_url(tmp_path):
+    d = tmp_path / 'inst'
+    r = Runner(pretend=True)
+    Tarball(r, paths=None).install(tb_unit(d, url='https://x/deno-linux.zip'))
+    cmd = r.calls[0]
+    assert 'unzip -o -q' in cmd and f'-d {d}' in cmd     # zip path
+    assert 'tar -xf' not in cmd
+
+
+def test_install_zip_forced_by_archive_field(tmp_path):
+    # url has no .zip extension (e.g. a redirect) but the binding declares archive: zip
+    d = tmp_path / 'inst'
+    rc = tb_unit(d, url='https://x/download?id=9')
+    rc.fields['archive'] = 'zip'
+    r = Runner(pretend=True)
+    Tarball(r, paths=None).install(rc)
+    assert 'unzip -o -q' in r.calls[0] and 'tar -xf' not in r.calls[0]
+
+
+def test_install_defaults_to_tar(tmp_path):
+    d = tmp_path / 'inst'
+    r = Runner(pretend=True)
+    Tarball(r, paths=None).install(tb_unit(d, url='https://x/y-1.2.3.tar.gz'))
+    assert 'tar -xf' in r.calls[0] and 'unzip' not in r.calls[0]
+
+
 def test_get_version_reads_marker(tmp_path):
     d = tmp_path / 'inst'
     d.mkdir()

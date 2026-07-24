@@ -204,6 +204,24 @@
         typescript: { install: [ { via: npm  name: typescript } ] }
         prettier:   { install: [ { via: npm  name: prettier } ] }
 
+        // Deno & Bun — alternative JS/TS runtimes. Native on Arch/Homebrew where packaged; else
+        // the upstream github release ZIP (glibc-linked; the tarball driver unzips it). Both have
+        // STABLE asset names (no version in the filename), so they use github's API-free
+        // `releases/latest/download` URL — robust even when api.github.com is unreachable.
+        deno: {
+            install: [
+                { via: native  when: "arch" }
+                { via: native  when: "fedora_atomic" }             // brew formula `deno`
+                { via: tarball  installDir: apps/deno  requires: [ glibc, unzip ]  version: { static: latest }
+                  url: "https://github.com/denoland/deno/releases/latest/download/deno-x86_64-unknown-linux-gnu.zip" } ]
+        }
+        bun: {
+            install: [
+                { via: native  when: "fedora_atomic" }             // brew formula `bun`
+                { via: tarball  installDir: apps/bun  requires: [ glibc, unzip ]  version: { static: latest }
+                  url: "https://github.com/oven-sh/bun/releases/latest/download/bun-linux-x64.zip" } ]
+        }
+
         // Go toolchain, directly usable. Auto-provides the `go` capability the go-install
         // driver requires. Package names: apt `golang-go`, dnf `golang`, else `go`.
         go: {
@@ -225,6 +243,16 @@
         // that (deferred) driver, not here.
         jdk: {
             install: [ { via: native  name: { apt: default-jdk  dnf: java-17-openjdk-devel  pacman: jdk-openjdk  apk: openjdk17  zypper: java-17-openjdk-devel  brew: openjdk } } ]
+        }
+        // Kotlin compiler — native on Arch/Homebrew; else the github release ZIP. Needs a JVM to
+        // run (requires jdk) and unzip to unpack. (SDKMAN would be the other path; deferred.)
+        kotlin: {
+            install: [
+                { via: native  when: "arch" }                      // pacman: kotlin
+                { via: native  when: "fedora_atomic" }             // brew formula `kotlin`
+                { via: tarball  installDir: apps/kotlin  requires: [ jdk, unzip ]
+                  version: { github: JetBrains/kotlin  strip-v: true  asset: "kotlin-compiler-*.zip" }
+                  url: "https://github.com/JetBrains/kotlin/releases/download/v$VERSION/kotlin-compiler-$VERSION.zip" } ]
         }
         // OCaml compiler (opam driver deferred).
         ocaml: { install: [ { via: native  repo-component: universe } ] }
