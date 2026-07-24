@@ -54,8 +54,24 @@ pytest test/test_golden.py`, review the diff) and runs the full suite before lan
   - **opam init handled:** uninitialized opam exits 50 on *every* command (even `--safe`). Fixed:
     `Opam.install` runs an idempotent `opam init --no-setup --yes && opam install …`, and
     get_version degrades to None (not a crash) when uninitialized — validated in-container.
-- **STILL DEFERRED:** `sdkman` (curl-bootstrapped shell function — decide whether it fits the
-  model at all).
+- **`deno` / `bun` / `kotlin` — DONE.** Added a zip path to the tarball driver (unzip, detected
+  from a `.zip` url or `archive: zip`). deno/bun use github's API-free `releases/latest/download`
+  URL (robust when api.github.com is blocked) — validated end-to-end in a container
+  (`test/integration_zip.sh`). kotlin keeps github asset discovery (versioned asset name); needs
+  a JVM (`requires: jdk`) + unzip.
+- **`julia` — DONE.** julialang S3 tarball, pinned latest stable (1.12.6, url verified 200);
+  native on Arch/Homebrew.
+- **STILL DEFERRED:** `sdkman` — under discussion as one instance of a broader *script-installer*
+  pattern (docker's old `curl|sh`, Claude Code's installer). Open questions: uninstall + version
+  tracking for script-installed tools.
+
+### Track C — desktop environments  (DONE, verified subset)
+- Podman sweep of apt/dnf/pacman confirmed real metapackage names. Shipped verified-only: gnome,
+  kde, xfce, lxqt, cinnamon, mate, budgie, sway (all three families) + hyprland, cosmic
+  (fedora/arch only — absent from stock Ubuntu). `when:`-gated to confirmed families; openSUSE/
+  Alpine, hyprland-on-Ubuntu, and Pop's own COSMIC packages decline cleanly (own sweep TODO).
+- Arch installs some as package GROUPS (xfce4/lxqt/mate) — install works, get_version is coarse
+  for a group (a future pacman-driver refinement).
   - `kotlin` — its clean cross-distro path is SDKMAN; lands with that driver (native on
     Arch/brew only otherwise; its release artifact is a `.zip`, which the tar-only tarball
     driver can't take).
