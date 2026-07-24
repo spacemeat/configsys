@@ -448,7 +448,40 @@ def cmd_inspect(ctx, args):
     return 0
 
 
+def _expand_profile_args(ctx, names):
+    '''Expand any `profile:<name>` token to that profile's components (order-preserving, deduped);
+    bare tokens pass through as component names. The `profile:` prefix disambiguates from a
+    component of the same name. Returns the expanded list, or None on a bad profile (after
+    printing the error).'''
+    out, seen = [], set()
+
+    def add(c):
+        if c not in seen:
+            seen.add(c)
+            out.append(c)
+
+    for tok in names:
+        if tok.startswith('profile:'):
+            pname = tok[len('profile:'):]
+            if not pname:
+                print('configsys: empty profile name (use `profile:<name>`)')
+                return None
+            try:
+                members = ctx.config.profile_components(pname)
+            except ConfigsysError as e:
+                print(f'configsys: {e}')
+                return None
+            for c in members:
+                add(c)
+        else:
+            add(tok)
+    return out
+
+
 def _dispatch_op(ctx, names, op, *, ledger=None, version=None):
+    names = _expand_profile_args(ctx, names)
+    if names is None:
+        return 1
     units, roots = ctx.routes.resolve_with_roots(names)
     if not roots:
         print(f'configsys: nothing resolved for {names}')
@@ -1243,7 +1276,8 @@ def build_parser():
                         ('lock', 'version-lock components'),
                         ('unlock', 'remove version lock')):
         sp = sub.add_parser(name, help=help_)
-        sp.add_argument('names', nargs='+', help='component names (from a profile/routes)')
+        sp.add_argument('names', nargs='+',
+                        help='component names, and/or profile:<name> to expand a whole profile')
 
     fs = sub.add_parser('fix-scope', help='reconcile installed units whose actual scope differs '
                                           'from the declared scope (moves the install, not config)')

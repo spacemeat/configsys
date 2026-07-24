@@ -340,6 +340,27 @@ def test_report_without_name_or_failure_errors(tmp_path, capsys):
     assert 'nothing to report' in capsys.readouterr().out
 
 
+def test_install_expands_profile_arg(tmp_path, capsys):
+    # profile:dev expands to the dev profile's components, alongside a bare component arg
+    # (exit code isn't asserted: a profile member may report failure under --pretend)
+    main(['--home', str(tmp_path), '--os', 'pop', '--pretend', 'install', 'profile:dev', 'blender'])
+    out = capsys.readouterr().out
+    assert 'rust' in out and 'build-essential' in out     # pulled from the profile
+    assert 'blender' in out                                # the bare component too
+
+
+def test_install_unknown_profile_errors(tmp_path, capsys):
+    rc = main(['--home', str(tmp_path), '--os', 'pop', '--pretend', 'install', 'profile:nope'])
+    assert rc == 1
+    assert 'not defined' in capsys.readouterr().out
+
+
+def test_bare_name_is_still_a_component_not_a_profile(tmp_path, capsys):
+    # without the profile: prefix, a name is a component (disambiguation)
+    rc = main(['--home', str(tmp_path), '--os', 'pop', '--pretend', 'install', 'blender'])
+    assert rc == 0 and 'apt\\blender' in capsys.readouterr().out
+
+
 def test_request_print_shows_coverage_matrix(tmp_path, capsys):
     # a known component with a real gap (odin declines on musl Alpine) prints a matrix
     rc = main(['--home', str(tmp_path), '--os', 'pop', '--pretend', 'request', 'odin', '--print'])
