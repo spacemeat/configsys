@@ -1251,6 +1251,67 @@ def cmd_request(ctx, args):
                         save_as='last-request.md')
 
 
+_MANPAGES = (('configsys.1', 'man1'), ('configsys.hu.5', 'man5'))
+
+
+def _manpage_targets(ctx, prefix):
+    '''(shipped-source, install-destination) for each page under <prefix>/share/man.'''
+    from pathlib import Path
+    src_dir = ctx.paths.repo / 'man'
+    base = Path(prefix).expanduser() / 'share' / 'man'
+    return [(src_dir / f, base / sec / f) for f, sec in _MANPAGES]
+
+
+def cmd_manpages(ctx, args):
+    '''Install the man pages into a man directory, or check they're present + current. configsys
+    runs from source, so there's no package to hook — this ships the checked-in pages on demand.'''
+    import shutil
+    from pathlib import Path
+
+    action = getattr(args, 'manpages_command', None) or 'status'
+    prefix = getattr(args, 'prefix', None) or str(ctx.paths.home / '.local')
+    targets = _manpage_targets(ctx, prefix)
+
+    for src, _dst in targets:
+        if not src.exists():
+            print(f'configsys: shipped man page missing: {src}\n'
+                  '  regenerate with `python3 tools/gen_manpages.py`.')
+            return 1
+
+    if action == 'install':
+        for src, dst in targets:
+            if ctx.runner.pretend:
+                print(f'[pretend] install {dst}')
+                continue
+            dst.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copyfile(src, dst)
+            print(f'installed {dst}')
+        if not ctx.runner.pretend:
+            base = Path(prefix).expanduser() / 'share' / 'man'
+            print(f'configsys: man pages installed under {base}.\n'
+                  '  try `man configsys` and `man 5 configsys.hu` '
+                  '(ensure that man dir is on your MANPATH).')
+        return 0
+
+    # status — the presence + up-to-date check
+    missing = stale = 0
+    for src, dst in targets:
+        if not dst.exists():
+            missing += 1
+            print(f'  not installed  {dst}')
+        elif dst.read_bytes() != src.read_bytes():
+            stale += 1
+            print(f'  out of date    {dst}')
+        else:
+            print(f'  up to date     {dst}')
+    if missing or stale:
+        print(f'configsys: {missing} missing, {stale} out of date — '
+              'run `configsys manpages install`.')
+        return 1
+    print('configsys: man pages installed and current.')
+    return 0
+
+
 # -- argument parsing -----------------------------------------------------
 
 _EPILOG = '''\
@@ -1363,6 +1424,15 @@ def build_parser():
     rq.add_argument('--print', dest='print_only', action='store_true',
                     help='print the request and exit; never send')
 
+    mp = sub.add_parser('manpages', help='install or check the man pages '
+                                         '(configsys(1) + configsys.hu(5))')
+    mpsub = mp.add_subparsers(dest='manpages_command')
+    for mname, mhelp in (('install', 'copy the man pages into a man directory (default: ~/.local)'),
+                         ('status', 'report whether the installed pages are present and current')):
+        msp = mpsub.add_parser(mname, help=mhelp)
+        msp.add_argument('--prefix',
+                         help='man-dir prefix; pages go under <prefix>/share/man (default: ~/.local)')
+
     sub.add_parser('refresh', help='re-query latest versions from their sources')
     sub.add_parser('tui', help='interactive TUI (default)')
     return p
@@ -1383,6 +1453,7 @@ _COMMANDS = {
     'refresh': cmd_refresh,
     'report': cmd_report,
     'request': cmd_request,
+    'manpages': cmd_manpages,
     'tui': cmd_tui,
 }
 

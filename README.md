@@ -100,34 +100,14 @@ Key ideas:
 
 Run `configsys where <name>` to see a component's bindings and which one resolves here.
 
-### Versions — discovered, not hardcoded
+Bindings can also **discover** versions (GitHub / URL / static pins, with `$VERSION`/`$ARCH`
+filled in at install time and cached), ship **dotfiles** (symlinked from the repo so edits
+flow back to git), and target any of ~30 drivers.
 
-Download-based bindings declare *how* to find the latest version:
-
-```hu
-neovim: {
-    install: [ { via: appImage  name: Neovim  scope: user
-                 version: { github: neovim/neovim  asset: "nvim-linux-$ARCH.appimage" }
-                 url: "https://github.com/neovim/neovim/releases/download/$VERSION/nvim-linux-$ARCH.appimage"
-                 path: ~/apps/nvim.appimage } ]
-}
-```
-
-- **`{ github: owner/repo [strip-v] }`** — latest release tag; optional `asset: <glob>`
-  also resolves the exact download URL from the release assets (robust to file renames).
-- **`{ url: … [regex: …] }`** — fetch a page and extract the version.
-- **`{ static: … }`** — a deliberate pin.
-- `$VERSION` / `$ARCH` are filled into the URL at install time. Discovered versions are
-  cached (`~/.config/configsys/versions.hu`, 24h TTL); `configsys refresh` re-queries. Set
-  `CONFIGSYS_GITHUB_TOKEN` (or `GITHUB_TOKEN`) to lift GitHub's unauthenticated rate limit.
-
-### dotfiles
-
-A `via: dotfiles` component maps link specs `{ src (under the repo's `dotfiles/`), dst }`;
-`dst` is env-var / `~` expanded (`$XDG_CONFIG_HOME/nvim`). Install symlinks `dst → src`
-(so edits flow back to git), backing up any existing non-symlink; uninstall restores the
-backup. A component's config rides along as a required `-dotfiles` component, so it can
-carry its own `when:` conditions too.
+> **Full format reference:** [**docs/config-format.md**](docs/config-format.md) — also
+> installed as the **`configsys.hu(5)`** man page (`configsys manpages install`). It is the
+> single source for layers, profiles (the `+include` / `~remove` / `+self` term algebra), the
+> `when:` expression, version discovery, dotfiles, and the driver list.
 
 ## Your config: `~/.config/configsys/configsys.hu`
 

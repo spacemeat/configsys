@@ -340,6 +340,20 @@ def test_report_without_name_or_failure_errors(tmp_path, capsys):
     assert 'nothing to report' in capsys.readouterr().out
 
 
+def test_manpages_status_and_install(tmp_path, capsys):
+    import os
+    pre = str(tmp_path / 'pfx')
+    rc = main(['--home', str(tmp_path), '--os', 'pop', 'manpages', 'status', '--prefix', pre])
+    assert rc == 1 and 'not installed' in capsys.readouterr().out
+    rc = main(['--home', str(tmp_path), '--os', 'pop', 'manpages', 'install', '--prefix', pre])
+    assert rc == 0
+    assert os.path.exists(os.path.join(pre, 'share', 'man', 'man1', 'configsys.1'))
+    assert os.path.exists(os.path.join(pre, 'share', 'man', 'man5', 'configsys.hu.5'))
+    capsys.readouterr()
+    rc = main(['--home', str(tmp_path), '--os', 'pop', 'manpages', 'status', '--prefix', pre])
+    assert rc == 0 and 'current' in capsys.readouterr().out
+
+
 def test_install_expands_profile_arg(tmp_path, capsys):
     # profile:dev expands to the dev profile's components, alongside a bare component arg
     # (exit code isn't asserted: a profile member may report failure under --pretend)
