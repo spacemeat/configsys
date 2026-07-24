@@ -486,6 +486,23 @@
             install: [ { via: group  name: docker } ]
         }
 
+        // --- virtualization: QEMU/KVM + libvirt + virt-manager, and VirtualBox ---
+        qemu:    { install: [ { via: native  name: { apt: qemu-system-x86  dnf: qemu-kvm  pacman: qemu-base  default: qemu } } ] }
+        libvirt: { install: [ { via: native  name: { apt: libvirt-daemon-system  default: libvirt } } ] }
+        libvirt-service: { requires: libvirt  install: [ { via: service  unit: libvirtd } ] }
+        // virt-manager pulls the whole stack (hypervisor + daemon) so it's usable out of the box.
+        virt-manager: {
+            requires: [ qemu, libvirt, libvirt-service ]
+            install: [ { via: native } ]
+        }
+        // VirtualBox needs a kernel module (vboxdrv, built via DKMS; Secure Boot requires signing
+        // it — configsys can't do that part). apt: multiverse; Fedora: RPM Fusion; Arch/openSUSE: base.
+        virtualbox: {
+            install: [
+                { via: native  when: "redhat"  requires: rpmfusion  name: VirtualBox }
+                { via: native  when: "debian or arch or opensuse"  repo-component: multiverse } ]
+        }
+
         // discord / slack: flatpak everywhere (no uniform native path — Fedora has none), and
         // their config is sandboxed under ~/.var/app and holds auth tokens, so no dotfiles.
         discord: { install: [ { via: flatpak  hub: flathub  app: com.discordapp.Discord } ] }

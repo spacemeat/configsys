@@ -1154,6 +1154,32 @@
     "name": "libreoffice-fresh"
    }
   },
+  "libvirt": {
+   "pacman\\libvirt": {
+    "driver": "pacman",
+    "fields": {
+     "name": "libvirt"
+    },
+    "name": "libvirt"
+   }
+  },
+  "libvirt-service": {
+   "pacman\\libvirt": {
+    "driver": "pacman",
+    "fields": {
+     "name": "libvirt"
+    },
+    "name": "libvirt"
+   },
+   "service\\libvirt-service": {
+    "driver": "service",
+    "fields": {
+     "name": "libvirt-service",
+     "unit": "libvirtd"
+    },
+    "name": "libvirt-service"
+   }
+  },
   "libvulkan1": {
    "pacman\\libvulkan1": {
     "driver": "pacman",
@@ -1667,6 +1693,15 @@
     "name": "python-pip"
    }
   },
+  "qemu": {
+   "pacman\\qemu": {
+    "driver": "pacman",
+    "fields": {
+     "name": "qemu-base"
+    },
+    "name": "qemu-base"
+   }
+  },
   "ripgrep": {
    "pacman\\ripgrep": {
     "driver": "pacman",
@@ -1932,6 +1967,47 @@
      "version-re": "([0-9]{4}-[0-9]{2}-[0-9]{2})"
     },
     "name": "vcpkg"
+   }
+  },
+  "virt-manager": {
+   "pacman\\libvirt": {
+    "driver": "pacman",
+    "fields": {
+     "name": "libvirt"
+    },
+    "name": "libvirt"
+   },
+   "pacman\\qemu": {
+    "driver": "pacman",
+    "fields": {
+     "name": "qemu-base"
+    },
+    "name": "qemu-base"
+   },
+   "pacman\\virt-manager": {
+    "driver": "pacman",
+    "fields": {
+     "name": "virt-manager"
+    },
+    "name": "virt-manager"
+   },
+   "service\\libvirt-service": {
+    "driver": "service",
+    "fields": {
+     "name": "libvirt-service",
+     "unit": "libvirtd"
+    },
+    "name": "libvirt-service"
+   }
+  },
+  "virtualbox": {
+   "pacman\\virtualbox": {
+    "driver": "pacman",
+    "fields": {
+     "name": "virtualbox",
+     "repo-component": "multiverse"
+    },
+    "name": "virtualbox"
    }
   },
   "vivaldi": {
@@ -4007,6 +4083,32 @@
     "name": "libreoffice"
    }
   },
+  "libvirt": {
+   "apt\\libvirt": {
+    "driver": "apt",
+    "fields": {
+     "name": "libvirt-daemon-system"
+    },
+    "name": "libvirt-daemon-system"
+   }
+  },
+  "libvirt-service": {
+   "apt\\libvirt": {
+    "driver": "apt",
+    "fields": {
+     "name": "libvirt-daemon-system"
+    },
+    "name": "libvirt-daemon-system"
+   },
+   "service\\libvirt-service": {
+    "driver": "service",
+    "fields": {
+     "name": "libvirt-service",
+     "unit": "libvirtd"
+    },
+    "name": "libvirt-service"
+   }
+  },
   "libvulkan1": {
    "apt\\libvulkan1": {
     "driver": "apt",
@@ -4568,6 +4670,15 @@
     "name": "python3-pip"
    }
   },
+  "qemu": {
+   "apt\\qemu": {
+    "driver": "apt",
+    "fields": {
+     "name": "qemu-system-x86"
+    },
+    "name": "qemu-system-x86"
+   }
+  },
   "ripgrep": {
    "apt\\ripgrep": {
     "driver": "apt",
@@ -4842,6 +4953,47 @@
      "version-re": "([0-9]{4}-[0-9]{2}-[0-9]{2})"
     },
     "name": "vcpkg"
+   }
+  },
+  "virt-manager": {
+   "apt\\libvirt": {
+    "driver": "apt",
+    "fields": {
+     "name": "libvirt-daemon-system"
+    },
+    "name": "libvirt-daemon-system"
+   },
+   "apt\\qemu": {
+    "driver": "apt",
+    "fields": {
+     "name": "qemu-system-x86"
+    },
+    "name": "qemu-system-x86"
+   },
+   "apt\\virt-manager": {
+    "driver": "apt",
+    "fields": {
+     "name": "virt-manager"
+    },
+    "name": "virt-manager"
+   },
+   "service\\libvirt-service": {
+    "driver": "service",
+    "fields": {
+     "name": "libvirt-service",
+     "unit": "libvirtd"
+    },
+    "name": "libvirt-service"
+   }
+  },
+  "virtualbox": {
+   "apt\\virtualbox": {
+    "driver": "apt",
+    "fields": {
+     "name": "virtualbox",
+     "repo-component": "multiverse"
+    },
+    "name": "virtualbox"
    }
   },
   "vivaldi": {
@@ -6859,6 +7011,32 @@
     "name": "libreoffice"
    }
   },
+  "libvirt": {
+   "apt\\libvirt": {
+    "driver": "apt",
+    "fields": {
+     "name": "libvirt-daemon-system"
+    },
+    "name": "libvirt-daemon-system"
+   }
+  },
+  "libvirt-service": {
+   "apt\\libvirt": {
+    "driver": "apt",
+    "fields": {
+     "name": "libvirt-daemon-system"
+    },
+    "name": "libvirt-daemon-system"
+   },
+   "service\\libvirt-service": {
+    "driver": "service",
+    "fields": {
+     "name": "libvirt-service",
+     "unit": "libvirtd"
+    },
+    "name": "libvirt-service"
+   }
+  },
   "libvulkan1": {
    "apt\\libvulkan1": {
     "driver": "apt",
@@ -7390,6 +7568,15 @@
     "name": "python3-pip"
    }
   },
+  "qemu": {
+   "apt\\qemu": {
+    "driver": "apt",
+    "fields": {
+     "name": "qemu-system-x86"
+    },
+    "name": "qemu-system-x86"
+   }
+  },
   "ripgrep": {
    "apt\\ripgrep": {
     "driver": "apt",
@@ -7664,6 +7851,47 @@
      "version-re": "([0-9]{4}-[0-9]{2}-[0-9]{2})"
     },
     "name": "vcpkg"
+   }
+  },
+  "virt-manager": {
+   "apt\\libvirt": {
+    "driver": "apt",
+    "fields": {
+     "name": "libvirt-daemon-system"
+    },
+    "name": "libvirt-daemon-system"
+   },
+   "apt\\qemu": {
+    "driver": "apt",
+    "fields": {
+     "name": "qemu-system-x86"
+    },
+    "name": "qemu-system-x86"
+   },
+   "apt\\virt-manager": {
+    "driver": "apt",
+    "fields": {
+     "name": "virt-manager"
+    },
+    "name": "virt-manager"
+   },
+   "service\\libvirt-service": {
+    "driver": "service",
+    "fields": {
+     "name": "libvirt-service",
+     "unit": "libvirtd"
+    },
+    "name": "libvirt-service"
+   }
+  },
+  "virtualbox": {
+   "apt\\virtualbox": {
+    "driver": "apt",
+    "fields": {
+     "name": "virtualbox",
+     "repo-component": "multiverse"
+    },
+    "name": "virtualbox"
    }
   },
   "vivaldi": {
@@ -9415,6 +9643,32 @@
     "name": "libreoffice"
    }
   },
+  "libvirt": {
+   "dnf\\libvirt": {
+    "driver": "dnf",
+    "fields": {
+     "name": "libvirt"
+    },
+    "name": "libvirt"
+   }
+  },
+  "libvirt-service": {
+   "dnf\\libvirt": {
+    "driver": "dnf",
+    "fields": {
+     "name": "libvirt"
+    },
+    "name": "libvirt"
+   },
+   "service\\libvirt-service": {
+    "driver": "service",
+    "fields": {
+     "name": "libvirt-service",
+     "unit": "libvirtd"
+    },
+    "name": "libvirt-service"
+   }
+  },
   "libvulkan1": {
    "dnf\\libvulkan1": {
     "driver": "dnf",
@@ -9946,6 +10200,15 @@
     "name": "python3-pip"
    }
   },
+  "qemu": {
+   "dnf\\qemu": {
+    "driver": "dnf",
+    "fields": {
+     "name": "qemu-kvm"
+    },
+    "name": "qemu-kvm"
+   }
+  },
   "ripgrep": {
    "dnf\\ripgrep": {
     "driver": "dnf",
@@ -10224,6 +10487,57 @@
      "version-re": "([0-9]{4}-[0-9]{2}-[0-9]{2})"
     },
     "name": "vcpkg"
+   }
+  },
+  "virt-manager": {
+   "dnf\\libvirt": {
+    "driver": "dnf",
+    "fields": {
+     "name": "libvirt"
+    },
+    "name": "libvirt"
+   },
+   "dnf\\qemu": {
+    "driver": "dnf",
+    "fields": {
+     "name": "qemu-kvm"
+    },
+    "name": "qemu-kvm"
+   },
+   "dnf\\virt-manager": {
+    "driver": "dnf",
+    "fields": {
+     "name": "virt-manager"
+    },
+    "name": "virt-manager"
+   },
+   "service\\libvirt-service": {
+    "driver": "service",
+    "fields": {
+     "name": "libvirt-service",
+     "unit": "libvirtd"
+    },
+    "name": "libvirt-service"
+   }
+  },
+  "virtualbox": {
+   "dnf\\rpmfusion-free": {
+    "driver": "dnf",
+    "fields": {
+     "name": "rpmfusion-free-release",
+     "pubkey-url": "https://rpmfusion.org/keys?action=AttachFile&do=get&target=RPM-GPG-KEY-rpmfusion-free-fedora-$releasever",
+     "repo-id": "rpmfusion-free",
+     "repo-name": "RPM Fusion Free",
+     "repo-url": "https://download1.rpmfusion.org/free/fedora/releases/$releasever/Everything/$basearch/os/"
+    },
+    "name": "rpmfusion-free-release"
+   },
+   "dnf\\virtualbox": {
+    "driver": "dnf",
+    "fields": {
+     "name": "VirtualBox"
+    },
+    "name": "VirtualBox"
    }
   },
   "vivaldi": {
@@ -12002,6 +12316,32 @@
     "name": "libreoffice"
    }
   },
+  "libvirt": {
+   "dnf\\libvirt": {
+    "driver": "dnf",
+    "fields": {
+     "name": "libvirt"
+    },
+    "name": "libvirt"
+   }
+  },
+  "libvirt-service": {
+   "dnf\\libvirt": {
+    "driver": "dnf",
+    "fields": {
+     "name": "libvirt"
+    },
+    "name": "libvirt"
+   },
+   "service\\libvirt-service": {
+    "driver": "service",
+    "fields": {
+     "name": "libvirt-service",
+     "unit": "libvirtd"
+    },
+    "name": "libvirt-service"
+   }
+  },
   "libvulkan1": {
    "dnf\\libvulkan1": {
     "driver": "dnf",
@@ -12533,6 +12873,15 @@
     "name": "python3-pip"
    }
   },
+  "qemu": {
+   "dnf\\qemu": {
+    "driver": "dnf",
+    "fields": {
+     "name": "qemu-kvm"
+    },
+    "name": "qemu-kvm"
+   }
+  },
   "ripgrep": {
    "dnf\\ripgrep": {
     "driver": "dnf",
@@ -12811,6 +13160,57 @@
      "version-re": "([0-9]{4}-[0-9]{2}-[0-9]{2})"
     },
     "name": "vcpkg"
+   }
+  },
+  "virt-manager": {
+   "dnf\\libvirt": {
+    "driver": "dnf",
+    "fields": {
+     "name": "libvirt"
+    },
+    "name": "libvirt"
+   },
+   "dnf\\qemu": {
+    "driver": "dnf",
+    "fields": {
+     "name": "qemu-kvm"
+    },
+    "name": "qemu-kvm"
+   },
+   "dnf\\virt-manager": {
+    "driver": "dnf",
+    "fields": {
+     "name": "virt-manager"
+    },
+    "name": "virt-manager"
+   },
+   "service\\libvirt-service": {
+    "driver": "service",
+    "fields": {
+     "name": "libvirt-service",
+     "unit": "libvirtd"
+    },
+    "name": "libvirt-service"
+   }
+  },
+  "virtualbox": {
+   "dnf\\rpmfusion-free": {
+    "driver": "dnf",
+    "fields": {
+     "name": "rpmfusion-free-release",
+     "pubkey-url": "https://rpmfusion.org/keys?action=AttachFile&do=get&target=RPM-GPG-KEY-rpmfusion-free-fedora-$releasever",
+     "repo-id": "rpmfusion-free",
+     "repo-name": "RPM Fusion Free",
+     "repo-url": "https://download1.rpmfusion.org/free/fedora/releases/$releasever/Everything/$basearch/os/"
+    },
+    "name": "rpmfusion-free-release"
+   },
+   "dnf\\virtualbox": {
+    "driver": "dnf",
+    "fields": {
+     "name": "VirtualBox"
+    },
+    "name": "VirtualBox"
    }
   },
   "vivaldi": {
@@ -14862,6 +15262,32 @@
     "name": "libreoffice"
    }
   },
+  "libvirt": {
+   "apt\\libvirt": {
+    "driver": "apt",
+    "fields": {
+     "name": "libvirt-daemon-system"
+    },
+    "name": "libvirt-daemon-system"
+   }
+  },
+  "libvirt-service": {
+   "apt\\libvirt": {
+    "driver": "apt",
+    "fields": {
+     "name": "libvirt-daemon-system"
+    },
+    "name": "libvirt-daemon-system"
+   },
+   "service\\libvirt-service": {
+    "driver": "service",
+    "fields": {
+     "name": "libvirt-service",
+     "unit": "libvirtd"
+    },
+    "name": "libvirt-service"
+   }
+  },
   "libvulkan1": {
    "apt\\libvulkan1": {
     "driver": "apt",
@@ -15423,6 +15849,15 @@
     "name": "python3-pip"
    }
   },
+  "qemu": {
+   "apt\\qemu": {
+    "driver": "apt",
+    "fields": {
+     "name": "qemu-system-x86"
+    },
+    "name": "qemu-system-x86"
+   }
+  },
   "ripgrep": {
    "apt\\ripgrep": {
     "driver": "apt",
@@ -15690,6 +16125,47 @@
      "version-re": "([0-9]{4}-[0-9]{2}-[0-9]{2})"
     },
     "name": "vcpkg"
+   }
+  },
+  "virt-manager": {
+   "apt\\libvirt": {
+    "driver": "apt",
+    "fields": {
+     "name": "libvirt-daemon-system"
+    },
+    "name": "libvirt-daemon-system"
+   },
+   "apt\\qemu": {
+    "driver": "apt",
+    "fields": {
+     "name": "qemu-system-x86"
+    },
+    "name": "qemu-system-x86"
+   },
+   "apt\\virt-manager": {
+    "driver": "apt",
+    "fields": {
+     "name": "virt-manager"
+    },
+    "name": "virt-manager"
+   },
+   "service\\libvirt-service": {
+    "driver": "service",
+    "fields": {
+     "name": "libvirt-service",
+     "unit": "libvirtd"
+    },
+    "name": "libvirt-service"
+   }
+  },
+  "virtualbox": {
+   "apt\\virtualbox": {
+    "driver": "apt",
+    "fields": {
+     "name": "virtualbox",
+     "repo-component": "multiverse"
+    },
+    "name": "virtualbox"
    }
   },
   "vivaldi": {
@@ -17575,6 +18051,32 @@
     "name": "libreoffice"
    }
   },
+  "libvirt": {
+   "dnf\\libvirt": {
+    "driver": "dnf",
+    "fields": {
+     "name": "libvirt"
+    },
+    "name": "libvirt"
+   }
+  },
+  "libvirt-service": {
+   "dnf\\libvirt": {
+    "driver": "dnf",
+    "fields": {
+     "name": "libvirt"
+    },
+    "name": "libvirt"
+   },
+   "service\\libvirt-service": {
+    "driver": "service",
+    "fields": {
+     "name": "libvirt-service",
+     "unit": "libvirtd"
+    },
+    "name": "libvirt-service"
+   }
+  },
   "libvulkan1": {
    "dnf\\libvulkan1": {
     "driver": "dnf",
@@ -18147,6 +18649,15 @@
     "name": "python3-pip"
    }
   },
+  "qemu": {
+   "dnf\\qemu": {
+    "driver": "dnf",
+    "fields": {
+     "name": "qemu-kvm"
+    },
+    "name": "qemu-kvm"
+   }
+  },
   "ripgrep": {
    "dnf\\epel-release": {
     "driver": "dnf",
@@ -18439,6 +18950,65 @@
      "version-re": "([0-9]{4}-[0-9]{2}-[0-9]{2})"
     },
     "name": "vcpkg"
+   }
+  },
+  "virt-manager": {
+   "dnf\\libvirt": {
+    "driver": "dnf",
+    "fields": {
+     "name": "libvirt"
+    },
+    "name": "libvirt"
+   },
+   "dnf\\qemu": {
+    "driver": "dnf",
+    "fields": {
+     "name": "qemu-kvm"
+    },
+    "name": "qemu-kvm"
+   },
+   "dnf\\virt-manager": {
+    "driver": "dnf",
+    "fields": {
+     "name": "virt-manager"
+    },
+    "name": "virt-manager"
+   },
+   "service\\libvirt-service": {
+    "driver": "service",
+    "fields": {
+     "name": "libvirt-service",
+     "unit": "libvirtd"
+    },
+    "name": "libvirt-service"
+   }
+  },
+  "virtualbox": {
+   "dnf\\epel-release": {
+    "driver": "dnf",
+    "fields": {
+     "name": "epel-release"
+    },
+    "name": "epel-release"
+   },
+   "dnf\\rpmfusion-free": {
+    "driver": "dnf",
+    "fields": {
+     "enable-repo": "crb",
+     "name": "rpmfusion-free-release",
+     "pubkey-url": "https://rpmfusion.org/keys?action=AttachFile&do=get&target=RPM-GPG-KEY-rpmfusion-free-el-$releasever",
+     "repo-id": "rpmfusion-free",
+     "repo-name": "RPM Fusion for EL - Free",
+     "repo-url": "https://download1.rpmfusion.org/free/el/updates/$releasever/$basearch/"
+    },
+    "name": "rpmfusion-free-release"
+   },
+   "dnf\\virtualbox": {
+    "driver": "dnf",
+    "fields": {
+     "name": "VirtualBox"
+    },
+    "name": "VirtualBox"
    }
   },
   "vivaldi": {
@@ -20497,6 +21067,32 @@
     "name": "libreoffice"
    }
   },
+  "libvirt": {
+   "apt\\libvirt": {
+    "driver": "apt",
+    "fields": {
+     "name": "libvirt-daemon-system"
+    },
+    "name": "libvirt-daemon-system"
+   }
+  },
+  "libvirt-service": {
+   "apt\\libvirt": {
+    "driver": "apt",
+    "fields": {
+     "name": "libvirt-daemon-system"
+    },
+    "name": "libvirt-daemon-system"
+   },
+   "service\\libvirt-service": {
+    "driver": "service",
+    "fields": {
+     "name": "libvirt-service",
+     "unit": "libvirtd"
+    },
+    "name": "libvirt-service"
+   }
+  },
   "libvulkan1": {
    "apt\\libvulkan1": {
     "driver": "apt",
@@ -21058,6 +21654,15 @@
     "name": "python3-pip"
    }
   },
+  "qemu": {
+   "apt\\qemu": {
+    "driver": "apt",
+    "fields": {
+     "name": "qemu-system-x86"
+    },
+    "name": "qemu-system-x86"
+   }
+  },
   "ripgrep": {
    "apt\\ripgrep": {
     "driver": "apt",
@@ -21332,6 +21937,47 @@
      "version-re": "([0-9]{4}-[0-9]{2}-[0-9]{2})"
     },
     "name": "vcpkg"
+   }
+  },
+  "virt-manager": {
+   "apt\\libvirt": {
+    "driver": "apt",
+    "fields": {
+     "name": "libvirt-daemon-system"
+    },
+    "name": "libvirt-daemon-system"
+   },
+   "apt\\qemu": {
+    "driver": "apt",
+    "fields": {
+     "name": "qemu-system-x86"
+    },
+    "name": "qemu-system-x86"
+   },
+   "apt\\virt-manager": {
+    "driver": "apt",
+    "fields": {
+     "name": "virt-manager"
+    },
+    "name": "virt-manager"
+   },
+   "service\\libvirt-service": {
+    "driver": "service",
+    "fields": {
+     "name": "libvirt-service",
+     "unit": "libvirtd"
+    },
+    "name": "libvirt-service"
+   }
+  },
+  "virtualbox": {
+   "apt\\virtualbox": {
+    "driver": "apt",
+    "fields": {
+     "name": "virtualbox",
+     "repo-component": "multiverse"
+    },
+    "name": "virtualbox"
    }
   },
   "vivaldi": {
@@ -23349,6 +23995,32 @@
     "name": "libreoffice"
    }
   },
+  "libvirt": {
+   "apt\\libvirt": {
+    "driver": "apt",
+    "fields": {
+     "name": "libvirt-daemon-system"
+    },
+    "name": "libvirt-daemon-system"
+   }
+  },
+  "libvirt-service": {
+   "apt\\libvirt": {
+    "driver": "apt",
+    "fields": {
+     "name": "libvirt-daemon-system"
+    },
+    "name": "libvirt-daemon-system"
+   },
+   "service\\libvirt-service": {
+    "driver": "service",
+    "fields": {
+     "name": "libvirt-service",
+     "unit": "libvirtd"
+    },
+    "name": "libvirt-service"
+   }
+  },
   "libvulkan1": {
    "apt\\libvulkan1": {
     "driver": "apt",
@@ -23880,6 +24552,15 @@
     "name": "python3-pip"
    }
   },
+  "qemu": {
+   "apt\\qemu": {
+    "driver": "apt",
+    "fields": {
+     "name": "qemu-system-x86"
+    },
+    "name": "qemu-system-x86"
+   }
+  },
   "ripgrep": {
    "apt\\ripgrep": {
     "driver": "apt",
@@ -24154,6 +24835,47 @@
      "version-re": "([0-9]{4}-[0-9]{2}-[0-9]{2})"
     },
     "name": "vcpkg"
+   }
+  },
+  "virt-manager": {
+   "apt\\libvirt": {
+    "driver": "apt",
+    "fields": {
+     "name": "libvirt-daemon-system"
+    },
+    "name": "libvirt-daemon-system"
+   },
+   "apt\\qemu": {
+    "driver": "apt",
+    "fields": {
+     "name": "qemu-system-x86"
+    },
+    "name": "qemu-system-x86"
+   },
+   "apt\\virt-manager": {
+    "driver": "apt",
+    "fields": {
+     "name": "virt-manager"
+    },
+    "name": "virt-manager"
+   },
+   "service\\libvirt-service": {
+    "driver": "service",
+    "fields": {
+     "name": "libvirt-service",
+     "unit": "libvirtd"
+    },
+    "name": "libvirt-service"
+   }
+  },
+  "virtualbox": {
+   "apt\\virtualbox": {
+    "driver": "apt",
+    "fields": {
+     "name": "virtualbox",
+     "repo-component": "multiverse"
+    },
+    "name": "virtualbox"
    }
   },
   "vivaldi": {
