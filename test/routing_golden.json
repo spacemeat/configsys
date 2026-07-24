@@ -80,6 +80,16 @@
     "name": "android-studio"
    }
   },
+  "ansible": {
+   "pacman\\ansible": {
+    "driver": "pacman",
+    "fields": {
+     "name": "ansible",
+     "repo-component": "universe"
+    },
+    "name": "ansible"
+   }
+  },
   "ardour": {
    "flatpak\\ardour": {
     "driver": "flatpak",
@@ -2012,6 +2022,22 @@
     "name": "npm"
    }
   },
+  "puppet": {
+   "gem\\puppet": {
+    "driver": "gem",
+    "fields": {
+     "name": "puppet"
+    },
+    "name": "puppet"
+   },
+   "pacman\\ruby": {
+    "driver": "pacman",
+    "fields": {
+     "name": "ruby"
+    },
+    "name": "ruby"
+   }
+  },
   "python3-pip": {
    "pacman\\python3-pip": {
     "driver": "pacman",
@@ -2066,6 +2092,22 @@
      "repo-component": "universe"
     },
     "name": "rust"
+   }
+  },
+  "salt": {
+   "pacman\\pipx": {
+    "driver": "pacman",
+    "fields": {
+     "name": "python-pipx"
+    },
+    "name": "python-pipx"
+   },
+   "pipx\\salt": {
+    "driver": "pipx",
+    "fields": {
+     "name": "salt"
+    },
+    "name": "salt"
    }
   },
   "sdkman": {
@@ -3003,6 +3045,16 @@
     "name": "android-studio"
    }
   },
+  "ansible": {
+   "apt\\ansible": {
+    "driver": "apt",
+    "fields": {
+     "name": "ansible",
+     "repo-component": "universe"
+    },
+    "name": "ansible"
+   }
+  },
   "ardour": {
    "apt\\flatpak": {
     "driver": "apt",
@@ -5432,6 +5484,22 @@
     "name": "prettier"
    }
   },
+  "puppet": {
+   "apt\\ruby": {
+    "driver": "apt",
+    "fields": {
+     "name": "ruby-full"
+    },
+    "name": "ruby-full"
+   },
+   "gem\\puppet": {
+    "driver": "gem",
+    "fields": {
+     "name": "puppet"
+    },
+    "name": "puppet"
+   }
+  },
   "python3-pip": {
    "apt\\python3-pip": {
     "driver": "apt",
@@ -5486,6 +5554,32 @@
      "repo-component": "universe"
     },
     "name": "rust-all"
+   }
+  },
+  "salt": {
+   "apt\\python3-pip": {
+    "driver": "apt",
+    "fields": {
+     "name": "python3-pip"
+    },
+    "name": "python3-pip"
+   },
+   "pip\\pipx": {
+    "driver": "pip",
+    "fields": {
+     "name": "pipx",
+     "version": {
+      "pypi": "pipx"
+     }
+    },
+    "name": "pipx"
+   },
+   "pipx\\salt": {
+    "driver": "pipx",
+    "fields": {
+     "name": "salt"
+    },
+    "name": "salt"
    }
   },
   "sdkman": {
@@ -6390,6 +6484,16 @@
     "name": "android-studio"
    }
   },
+  "ansible": {
+   "apt\\ansible": {
+    "driver": "apt",
+    "fields": {
+     "name": "ansible",
+     "repo-component": "universe"
+    },
+    "name": "ansible"
+   }
+  },
   "ardour": {
    "apt\\flatpak": {
     "driver": "apt",
@@ -8779,6 +8883,22 @@
     "name": "prettier"
    }
   },
+  "puppet": {
+   "apt\\ruby": {
+    "driver": "apt",
+    "fields": {
+     "name": "ruby-full"
+    },
+    "name": "ruby-full"
+   },
+   "gem\\puppet": {
+    "driver": "gem",
+    "fields": {
+     "name": "puppet"
+    },
+    "name": "puppet"
+   }
+  },
   "python3-pip": {
    "apt\\python3-pip": {
     "driver": "apt",
@@ -8833,6 +8953,22 @@
      "repo-component": "universe"
     },
     "name": "rust-all"
+   }
+  },
+  "salt": {
+   "apt\\pipx": {
+    "driver": "apt",
+    "fields": {
+     "name": "pipx"
+    },
+    "name": "pipx"
+   },
+   "pipx\\salt": {
+    "driver": "pipx",
+    "fields": {
+     "name": "salt"
+    },
+    "name": "salt"
    }
   },
   "sdkman": {
@@ -9725,6 +9861,16 @@
      }
     },
     "name": "android-studio"
+   }
+  },
+  "ansible": {
+   "dnf\\ansible": {
+    "driver": "dnf",
+    "fields": {
+     "name": "ansible",
+     "repo-component": "universe"
+    },
+    "name": "ansible"
    }
   },
   "ardour": {
@@ -11840,6 +11986,22 @@
     "name": "prettier"
    }
   },
+  "puppet": {
+   "dnf\\ruby": {
+    "driver": "dnf",
+    "fields": {
+     "name": "ruby"
+    },
+    "name": "ruby"
+   },
+   "gem\\puppet": {
+    "driver": "gem",
+    "fields": {
+     "name": "puppet"
+    },
+    "name": "puppet"
+   }
+  },
   "python3-pip": {
    "dnf\\python3-pip": {
     "driver": "dnf",
@@ -11907,6 +12069,22 @@
      "repo-component": "universe"
     },
     "name": "cargo"
+   }
+  },
+  "salt": {
+   "dnf\\pipx": {
+    "driver": "dnf",
+    "fields": {
+     "name": "pipx"
+    },
+    "name": "pipx"
+   },
+   "pipx\\salt": {
+    "driver": "pipx",
+    "fields": {
+     "name": "salt"
+    },
+    "name": "salt"
    }
   },
   "sdkman": {
@@ -12825,6 +13003,16 @@
      }
     },
     "name": "android-studio"
+   }
+  },
+  "ansible": {
+   "dnf\\ansible": {
+    "driver": "dnf",
+    "fields": {
+     "name": "ansible",
+     "repo-component": "universe"
+    },
+    "name": "ansible"
    }
   },
   "ardour": {
@@ -14952,6 +15140,22 @@
     "name": "prettier"
    }
   },
+  "puppet": {
+   "dnf\\ruby": {
+    "driver": "dnf",
+    "fields": {
+     "name": "ruby"
+    },
+    "name": "ruby"
+   },
+   "gem\\puppet": {
+    "driver": "gem",
+    "fields": {
+     "name": "puppet"
+    },
+    "name": "puppet"
+   }
+  },
   "python3-pip": {
    "dnf\\python3-pip": {
     "driver": "dnf",
@@ -15019,6 +15223,22 @@
      "repo-component": "universe"
     },
     "name": "cargo"
+   }
+  },
+  "salt": {
+   "dnf\\pipx": {
+    "driver": "dnf",
+    "fields": {
+     "name": "pipx"
+    },
+    "name": "pipx"
+   },
+   "pipx\\salt": {
+    "driver": "pipx",
+    "fields": {
+     "name": "salt"
+    },
+    "name": "salt"
    }
   },
   "sdkman": {
@@ -15947,6 +16167,16 @@
      }
     },
     "name": "android-studio"
+   }
+  },
+  "ansible": {
+   "apt\\ansible": {
+    "driver": "apt",
+    "fields": {
+     "name": "ansible",
+     "repo-component": "universe"
+    },
+    "name": "ansible"
    }
   },
   "ardour": {
@@ -18387,6 +18617,22 @@
     "name": "prettier"
    }
   },
+  "puppet": {
+   "apt\\ruby": {
+    "driver": "apt",
+    "fields": {
+     "name": "ruby-full"
+    },
+    "name": "ruby-full"
+   },
+   "gem\\puppet": {
+    "driver": "gem",
+    "fields": {
+     "name": "puppet"
+    },
+    "name": "puppet"
+   }
+  },
   "python3-pip": {
    "apt\\python3-pip": {
     "driver": "apt",
@@ -18441,6 +18687,32 @@
      "repo-component": "universe"
     },
     "name": "rust-all"
+   }
+  },
+  "salt": {
+   "apt\\python3-pip": {
+    "driver": "apt",
+    "fields": {
+     "name": "python3-pip"
+    },
+    "name": "python3-pip"
+   },
+   "pip\\pipx": {
+    "driver": "pip",
+    "fields": {
+     "name": "pipx",
+     "version": {
+      "pypi": "pipx"
+     }
+    },
+    "name": "pipx"
+   },
+   "pipx\\salt": {
+    "driver": "pipx",
+    "fields": {
+     "name": "salt"
+    },
+    "name": "salt"
    }
   },
   "sdkman": {
@@ -19343,6 +19615,16 @@
      }
     },
     "name": "android-studio"
+   }
+  },
+  "ansible": {
+   "dnf\\ansible": {
+    "driver": "dnf",
+    "fields": {
+     "name": "ansible",
+     "repo-component": "universe"
+    },
+    "name": "ansible"
    }
   },
   "ardour": {
@@ -21648,6 +21930,22 @@
     "name": "prettier"
    }
   },
+  "puppet": {
+   "dnf\\ruby": {
+    "driver": "dnf",
+    "fields": {
+     "name": "ruby"
+    },
+    "name": "ruby"
+   },
+   "gem\\puppet": {
+    "driver": "gem",
+    "fields": {
+     "name": "puppet"
+    },
+    "name": "puppet"
+   }
+  },
   "python3-pip": {
    "dnf\\python3-pip": {
     "driver": "dnf",
@@ -21729,6 +22027,29 @@
      "repo-component": "universe"
     },
     "name": "cargo"
+   }
+  },
+  "salt": {
+   "dnf\\epel-release": {
+    "driver": "dnf",
+    "fields": {
+     "name": "epel-release"
+    },
+    "name": "epel-release"
+   },
+   "dnf\\pipx": {
+    "driver": "dnf",
+    "fields": {
+     "name": "pipx"
+    },
+    "name": "pipx"
+   },
+   "pipx\\salt": {
+    "driver": "pipx",
+    "fields": {
+     "name": "salt"
+    },
+    "name": "salt"
    }
   },
   "sdkman": {
@@ -22691,6 +23012,16 @@
     "name": "android-studio"
    }
   },
+  "ansible": {
+   "apt\\ansible": {
+    "driver": "apt",
+    "fields": {
+     "name": "ansible",
+     "repo-component": "universe"
+    },
+    "name": "ansible"
+   }
+  },
   "ardour": {
    "apt\\flatpak": {
     "driver": "apt",
@@ -25120,6 +25451,22 @@
     "name": "prettier"
    }
   },
+  "puppet": {
+   "apt\\ruby": {
+    "driver": "apt",
+    "fields": {
+     "name": "ruby-full"
+    },
+    "name": "ruby-full"
+   },
+   "gem\\puppet": {
+    "driver": "gem",
+    "fields": {
+     "name": "puppet"
+    },
+    "name": "puppet"
+   }
+  },
   "python3-pip": {
    "apt\\python3-pip": {
     "driver": "apt",
@@ -25174,6 +25521,32 @@
      "repo-component": "universe"
     },
     "name": "rust-all"
+   }
+  },
+  "salt": {
+   "apt\\python3-pip": {
+    "driver": "apt",
+    "fields": {
+     "name": "python3-pip"
+    },
+    "name": "python3-pip"
+   },
+   "pip\\pipx": {
+    "driver": "pip",
+    "fields": {
+     "name": "pipx",
+     "version": {
+      "pypi": "pipx"
+     }
+    },
+    "name": "pipx"
+   },
+   "pipx\\salt": {
+    "driver": "pipx",
+    "fields": {
+     "name": "salt"
+    },
+    "name": "salt"
    }
   },
   "sdkman": {
@@ -26078,6 +26451,16 @@
     "name": "android-studio"
    }
   },
+  "ansible": {
+   "apt\\ansible": {
+    "driver": "apt",
+    "fields": {
+     "name": "ansible",
+     "repo-component": "universe"
+    },
+    "name": "ansible"
+   }
+  },
   "ardour": {
    "apt\\flatpak": {
     "driver": "apt",
@@ -28467,6 +28850,22 @@
     "name": "prettier"
    }
   },
+  "puppet": {
+   "apt\\ruby": {
+    "driver": "apt",
+    "fields": {
+     "name": "ruby-full"
+    },
+    "name": "ruby-full"
+   },
+   "gem\\puppet": {
+    "driver": "gem",
+    "fields": {
+     "name": "puppet"
+    },
+    "name": "puppet"
+   }
+  },
   "python3-pip": {
    "apt\\python3-pip": {
     "driver": "apt",
@@ -28521,6 +28920,22 @@
      "repo-component": "universe"
     },
     "name": "rust-all"
+   }
+  },
+  "salt": {
+   "apt\\pipx": {
+    "driver": "apt",
+    "fields": {
+     "name": "pipx"
+    },
+    "name": "pipx"
+   },
+   "pipx\\salt": {
+    "driver": "pipx",
+    "fields": {
+     "name": "salt"
+    },
+    "name": "salt"
    }
   },
   "sdkman": {

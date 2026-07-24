@@ -818,6 +818,15 @@
         // convenience grouping, NOT a tool).
         analysis: { install: [ { via: parts  when: "debian or redhat or arch"  parts: [ valgrind, cppcheck, clang-tidy, lldb, strace, ltrace ] } ] }
 
+        // --- configuration management ---
+        // ansible is native everywhere (robust, CLI on PATH — pipx would hide it, since the
+        // `ansible` command actually ships in the ansible-core dependency, which pipx won't link).
+        // salt is Python with self-contained scripts (pipx). puppet is Ruby (gem). No chef (heavy
+        // enterprise tool that also overlaps configsys itself).
+        ansible: { install: [ { via: native  repo-component: universe } ] }
+        salt:    { install: [ { via: pipx  name: salt } ] }
+        puppet:  { install: [ { via: gem   name: puppet } ] }
+
         neovim: {
             requires: [ ripgrep, tree-sitter-cli ]
             suggests: neovim-dotfiles
