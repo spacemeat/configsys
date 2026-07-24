@@ -69,13 +69,14 @@ pytest test/test_golden.py`, review the diff) and runs the full suite before lan
   warning + at uninstall, never blocked. Ships sdkman as the demonstrator; validated end-to-end in
   a container (`test/integration_script.sh`). Nothing left deferred.
 
-### Track C — desktop environments  (DONE, verified subset)
-- Podman sweep of apt/dnf/pacman confirmed real metapackage names. Shipped verified-only: gnome,
-  kde, xfce, lxqt, cinnamon, mate, budgie, sway (all three families) + hyprland, cosmic
-  (fedora/arch only — absent from stock Ubuntu). `when:`-gated to confirmed families; openSUSE/
-  Alpine, hyprland-on-Ubuntu, and Pop's own COSMIC packages decline cleanly (own sweep TODO).
-- Arch installs some as package GROUPS (xfce4/lxqt/mate) — install works, get_version is coarse
-  for a group (a future pacman-driver refinement).
+### Track C — desktop environments  (DONE, all five families)
+- Podman sweep of apt/dnf/pacman/zypper/apk + this Pop host for cosmic confirmed every
+  metapackage name. Shipped: gnome/kde/xfce/lxqt/mate/sway (all five families); cinnamon/budgie
+  (all but Alpine); hyprland (all but stock Ubuntu); cosmic (Pop `cosmic-session` verified
+  on-host + fedora/arch/opensuse/alpine; stock Debian/Ubuntu decline). `when:`-gated away from
+  atomic (brew-native) desktops.
+- Arch package GROUPS (xfce4/lxqt/mate) are handled: the pacman driver's get_version/get_latest
+  fall back to `-Qg`/`-Sg` with a `(group)` marker, and uninstall expands a group to its members.
   - `kotlin` — its clean cross-distro path is SDKMAN; lands with that driver (native on
     Arch/brew only otherwise; its release artifact is a `.zip`, which the tar-only tarball
     driver can't take).
