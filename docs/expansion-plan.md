@@ -60,9 +60,15 @@ pytest test/test_golden.py`, review the diff) and runs the full suite before lan
 - **B1  tmux + zsh + fish + nushell.** native everywhere.
 - **B2  jetbrains-toolbox.** tarball app (unityhub/kicad pattern).
 
-### Track C — desktop environments
-- **C1  DE capability model + variant OS blocks.** kubuntu/lubuntu/xubuntu `provides:` their DE.
-- **C2  DE components.** cosmic, gnome, kde, xfce, lxqt, cinnamon, mate, budgie, sway, hyprland.
+### Track C — desktop environments  (DEFERRED to a validated real-machine pass)
+- **Finding: variant OS blocks can't work.** Kubuntu/Lubuntu/Xubuntu all ship `ID=ubuntu` in
+  os-release — no distinct ID to detect, so a `kubuntu`/etc. block would never auto-activate.
+  Drop the variant-block model; "already-present DE" is handled naturally (metapackage install
+  is a no-op when present; inspect reads it as installed).
+- **DE metapackage names are the highest unverifiable-in-sandbox risk** (gnome-shell vs gnome vs
+  @gnome-desktop; plasma-desktop vs plasma-meta vs @kde-desktop; COSMIC packaging still in flux).
+  Deferred with the module drivers to one validated pass. Candidates: cosmic, gnome, kde, xfce,
+  lxqt, cinnamon, mate, budgie, sway, hyprland.
 
 ### Track D — `configsys request`
 - **D1  reportgen coverage matrix.** resolve a component across all OS blocks → have/missing;

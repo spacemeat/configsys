@@ -1091,9 +1091,9 @@ def cmd_plugin(ctx, args):
 _URL_PREFILL_LIMIT = 6000
 
 
-def _send_report(ctx, title, body):
-    '''File the (already-approved) report. Prefer `gh issue create`; else save the body and
-    print a prefilled new-issue link. Returns 0 on success/handed-off, 1 on failure.'''
+def _send_report(ctx, title, body, label='install-report', save_as='last-report.md'):
+    '''File the (already-approved) report/request. Prefer `gh issue create`; else save the body
+    and print a prefilled new-issue link. Returns 0 on success/handed-off, 1 on failure.'''
     import shutil
     import subprocess
     import urllib.parse
@@ -1106,7 +1106,7 @@ def _send_report(ctx, title, body):
             bodyfile = f.name
         proc = subprocess.run(['gh', 'issue', 'create', '--repo', REPORTS_REPO,
                                '--title', title, '--body-file', bodyfile,
-                               '--label', 'install-report'],
+                               '--label', label],
                               capture_output=True, text=True)
         if proc.returncode == 0:
             print(f'configsys: filed — {proc.stdout.strip()}')
@@ -1117,7 +1117,7 @@ def _send_report(ctx, title, body):
     # no gh (or gh failed): save the body and print a prefilled new-issue link. When the body is
     # short enough to survive a URL, prefill it too so the browser opens fully populated; longer
     # ones fall back to open-the-link-and-paste (browsers/servers choke past ~8k of URL).
-    out = ctx.paths.state_dir / 'last-report.md'
+    out = ctx.paths.state_dir / save_as
     try:
         ctx.paths.state_dir.mkdir(parents=True, exist_ok=True)
         out.write_text(body, encoding='utf-8')
@@ -1126,7 +1126,7 @@ def _send_report(ctx, title, body):
         saved = ''
 
     base = f'https://github.com/{REPORTS_REPO}/issues/new'
-    fields = {'title': title, 'labels': 'install-report'}
+    fields = {'title': title, 'labels': label}
     with_body = f'{base}?' + urllib.parse.urlencode({**fields, 'body': body})
     if len(with_body) <= _URL_PREFILL_LIMIT:
         print('configsys: no `gh` — open this and the issue is prefilled, ready to submit:\n'
@@ -1179,6 +1179,43 @@ def cmd_report(ctx, args):
             print('configsys: not sent.')
             return 0
     return _send_report(ctx, title, body)
+
+
+def cmd_request(ctx, args):
+    '''Ask upstream for a full cross-platform story for a component. Builds a coverage matrix
+    (where it resolves today vs. where it's missing), shows the scrubbed body, and files it
+    only on approval — same no-hidden-telemetry contract as `report`.'''
+    from . import reportgen
+    name = getattr(args, 'name', None)
+    if not name:
+        print('configsys: name a component — `configsys request <name>`.')
+        return 1
+
+    payload = reportgen.request_payload(ctx, name)
+    secrets = reportgen.secret_values(ctx.env)
+    body = reportgen.render_request(payload, home=ctx.paths.home, secrets=secrets)
+    title = reportgen.request_title(payload)
+
+    print('\n' + '=' * 72)
+    print(f'{title}\n')
+    print(body)
+    print('=' * 72)
+    if getattr(args, 'print_only', False):
+        return 0
+
+    if not getattr(args, 'yes', False):
+        if not (sys.stdin.isatty() and sys.stdout.isatty()):
+            print('\nconfigsys: not a terminal; re-run with --yes to file, or --print to just view.')
+            return 1
+        try:
+            ans = input(f'\nSend this request to {reportgen.REPORTS_REPO}? [y/N] ').strip().lower()
+        except EOFError:
+            ans = ''
+        if ans not in ('y', 'yes'):
+            print('configsys: not sent.')
+            return 0
+    return _send_report(ctx, title, body, label=reportgen.REQUEST_LABEL,
+                        save_as='last-request.md')
 
 
 # -- argument parsing -----------------------------------------------------
@@ -1258,6 +1295,13 @@ def build_parser():
     rp.add_argument('--print', dest='print_only', action='store_true',
                     help='print the report and exit; never send')
 
+    rq = sub.add_parser('request', help='ask upstream for a full cross-platform story for a '
+                                        'component — shows a coverage matrix; you approve before filing')
+    rq.add_argument('name', help='component to request full support for')
+    rq.add_argument('--yes', action='store_true', help='skip the send confirmation (still shows it)')
+    rq.add_argument('--print', dest='print_only', action='store_true',
+                    help='print the request and exit; never send')
+
     sub.add_parser('refresh', help='re-query latest versions from their sources')
     sub.add_parser('tui', help='interactive TUI (default)')
     return p
@@ -1277,6 +1321,7 @@ _COMMANDS = {
     'plugin': cmd_plugin,
     'refresh': cmd_refresh,
     'report': cmd_report,
+    'request': cmd_request,
     'tui': cmd_tui,
 }
 

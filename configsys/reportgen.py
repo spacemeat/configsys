@@ -259,3 +259,117 @@ def title(payload):
     os_ = payload['os']
     ver = f" {os_['version']}" if os_['version'] else ''
     return f"[report] {payload['component'] or 'component'} on {os_['block']}{ver}"
+
+
+# -- component-request (a "full component story") -------------------------
+
+REQUEST_MARKER = '<!-- configsys-request v1 -->'
+REQUEST_LABEL = 'component-request'
+
+# Representative machine per package manager. The coverage matrix probes each so a request
+# shows where the component already resolves vs. where a binding is missing. Curated like the
+# golden contexts — extend when a new native manager lands. There is no macOS block yet, so the
+# matrix spans the modeled Linux families honestly.
+_PLATFORMS = [
+    ('Debian / Ubuntu', 'ubuntu', '24.04'),
+    ('Fedora', 'fedora', '42'),
+    ('RHEL / EL', 'rhel', '9.8'),
+    ('Arch', 'arch', '20260101'),
+    ('Alpine', 'alpine', '3.20'),
+    ('openSUSE', 'opensuse', ''),
+    ('Fedora Atomic', 'fedora_atomic', '40'),
+]
+
+
+def coverage(ctx, name):
+    '''Resolve `name` against each representative platform (reusing the already-loaded layered
+    components), so a request can show where it already has a binding — and via which driver —
+    versus where it's missing. The heart of the request payload.'''
+    from .resolve import resolve, ResolveError
+    r = ctx.routes
+    rows = []
+    for label, block, version in _PLATFORMS:
+        row = {'label': label, 'block': block}
+        try:
+            units = resolve([name], r.cascade, r.components, r.drivers,
+                            block, version or None, r.cpu, r.pins)
+            # unit keys are "driver\comp"; the component's own unit names the winning driver
+            primary = next((k.split('\\', 1)[0] for k in units
+                            if k.split('\\', 1)[-1] == name), None)
+            row['ok'] = bool(units)
+            row['via'] = primary or ('parts' if units else None)
+        except ResolveError:
+            row['ok'] = False
+            row['via'] = None
+        rows.append(row)
+    return rows
+
+
+def request_payload(ctx, name):
+    '''Assemble the (unscrubbed) component-request payload: this machine, the local route (if the
+    component is known here at all), and the cross-platform coverage matrix.'''
+    known = name in ctx.routes.components
+    return {
+        'component': name,
+        'known': known,
+        'os': {
+            'block': ctx.os_info.block,
+            'version': ctx.os_info.version or '',
+            'pretty': _os_pretty(),
+        },
+        'configsys': {'revision': _git_rev(ctx.paths.repo), 'abi': plugins.ABI_VERSION},
+        'route': _route(ctx, name) if known else None,
+        'coverage': coverage(ctx, name),
+    }
+
+
+def render_request(payload, *, home=None, secrets=()):
+    '''Render the component-request payload to the scrubbed Markdown issue body.'''
+    def sc(t):
+        return scrub(t, home, secrets)
+
+    cov = payload['coverage']
+    L = []
+    L.append(f"**Component requested:** `{payload['component']}`")
+    L.append('')
+    if payload['known']:
+        L.append('This component already exists — this request is to **broaden or fix its '
+                 'cross-platform coverage**.')
+    else:
+        L.append('This component is **not defined in configsys yet** — requesting a full '
+                 'cross-platform story for it.')
+    L.append('')
+    L.append('### Coverage today')
+    L.append('')
+    L.append('| Platform | Status | Via |')
+    L.append('| --- | --- | --- |')
+    for r in cov:
+        status = '✅ resolves' if r.get('ok') else '❌ missing'
+        via = f"`{r['via']}`" if r.get('via') else '—'
+        L.append(f"| {r['label']} | {status} | {via} |")
+    L.append('')
+
+    rt = payload.get('route')
+    if rt and not rt.get('error') and rt.get('units'):
+        ver = f" {payload['os']['version']}" if payload['os']['version'] else ''
+        L.append(f"On the requester's machine (`{payload['os']['block']}{ver}`): defined in "
+                 f"{sc(rt.get('source', '?'))}, resolves to "
+                 + ', '.join(f'`{u}`' for u in rt['units']) + '.')
+        L.append('')
+    L.append(f"- **configsys:** `{payload['configsys']['revision']}` "
+             f"(plugin ABI {payload['configsys']['abi']})")
+    L.append('')
+    L.append('### What I need')
+    L.append('_Which platform(s) you need this on, and any packaging you know — a native package '
+             'name, a tarball/AppImage URL, a flatpak app id, a crate/gem/npm name. The more '
+             'concrete, the faster it gets a binding._')
+    L.append('')
+    L.append('---')
+    L.append('_Filed with `configsys request`. Reviewed and approved by the requester._')
+    L.append('')
+    L.append(REQUEST_MARKER)
+    return '\n'.join(L)
+
+
+def request_title(payload):
+    return f"[request] full story for {payload['component']}"

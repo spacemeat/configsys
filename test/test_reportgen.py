@@ -43,6 +43,35 @@ def test_failure_from_result_shape():
     assert rec['driver'] == 'cargo' and rec['exit'] == 1 and rec['output'] == 'oops'
 
 
+def test_render_request_matrix_and_marker():
+    payload = {
+        'component': 'zig', 'known': True,
+        'os': {'block': 'pop_os!', 'version': '22.04', 'pretty': 'Pop!_OS'},
+        'configsys': {'revision': 'abc', 'abi': 1},
+        'route': {'source': 'routes.hu', 'units': ['tarball\\zig', 'apt\\curl']},
+        'coverage': [
+            {'label': 'Debian / Ubuntu', 'block': 'ubuntu', 'ok': True, 'via': 'tarball'},
+            {'label': 'Alpine', 'block': 'alpine', 'ok': False, 'via': None},
+        ],
+    }
+    body = reportgen.render_request(payload)
+    assert reportgen.REQUEST_MARKER in body
+    assert '| Debian / Ubuntu | ✅ resolves | `tarball` |' in body
+    assert '| Alpine | ❌ missing | — |' in body
+    assert 'broaden or fix' in body                       # known component wording
+
+
+def test_render_request_unknown_component_wording():
+    payload = {
+        'component': 'frobnicate', 'known': False,
+        'os': {'block': 'pop_os!', 'version': '22.04', 'pretty': 'Pop!_OS'},
+        'configsys': {'revision': 'abc', 'abi': 1}, 'route': None,
+        'coverage': [{'label': 'Arch', 'block': 'arch', 'ok': False, 'via': None}],
+    }
+    body = reportgen.render_request(payload)
+    assert 'not defined in configsys yet' in body and reportgen.REQUEST_MARKER in body
+
+
 def test_render_no_captured_output_shows_placeholder():
     payload = {'component': 'x', 'os': {'block': 'pop_os!', 'id': 'pop', 'version': '22.04',
                'pretty': 'Pop!_OS', 'atomic': False},

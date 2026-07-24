@@ -340,6 +340,37 @@ def test_report_without_name_or_failure_errors(tmp_path, capsys):
     assert 'nothing to report' in capsys.readouterr().out
 
 
+def test_request_print_shows_coverage_matrix(tmp_path, capsys):
+    # a known component with a real gap (odin declines on musl Alpine) prints a matrix
+    rc = main(['--home', str(tmp_path), '--os', 'pop', '--pretend', 'request', 'odin', '--print'])
+    assert rc == 0
+    out = capsys.readouterr().out
+    assert '<!-- configsys-request v1 -->' in out
+    assert 'Alpine' in out and '❌ missing' in out          # the musl gap shows
+    assert '✅ resolves' in out                              # and where it does resolve
+
+
+def test_request_unknown_component_all_missing(tmp_path, capsys):
+    rc = main(['--home', str(tmp_path), '--os', 'pop', '--pretend', 'request', 'nope-xyz', '--print'])
+    assert rc == 0
+    out = capsys.readouterr().out
+    assert 'not defined in configsys yet' in out
+    assert '✅ resolves' not in out                          # nothing resolves anywhere
+
+
+def test_request_without_name_errors(tmp_path, capsys):
+    # argparse requires the name positional, so a missing name exits non-zero at parse time
+    import pytest
+    with pytest.raises(SystemExit):
+        main(['--home', str(tmp_path), '--os', 'pop', '--pretend', 'request'])
+
+
+def test_request_non_tty_needs_yes(tmp_path, capsys):
+    rc = main(['--home', str(tmp_path), '--os', 'pop', '--pretend', 'request', 'odin'])
+    assert rc == 1
+    assert 'not a terminal' in capsys.readouterr().out
+
+
 def test_report_non_tty_needs_yes(tmp_path, capsys):
     # capsys makes stdin a non-tty; without --yes the send must refuse rather than hang
     rc = main(['--home', str(tmp_path), '--os', 'pop', '--pretend', 'report', 'htop'])
