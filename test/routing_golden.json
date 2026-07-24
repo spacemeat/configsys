@@ -391,6 +391,15 @@
     "name": "firefox"
    }
   },
+  "fish": {
+   "pacman\\fish": {
+    "driver": "pacman",
+    "fields": {
+     "name": "fish"
+    },
+    "name": "fish"
+   }
+  },
   "flatpak": {
    "pacman\\flatpak": {
     "driver": "pacman",
@@ -976,6 +985,15 @@
     "name": "nmap"
    }
   },
+  "nushell": {
+   "pacman\\nushell": {
+    "driver": "pacman",
+    "fields": {
+     "name": "nushell"
+    },
+    "name": "nushell"
+   }
+  },
   "opera": {
    "flatpak\\opera": {
     "driver": "flatpak",
@@ -1156,6 +1174,15 @@
      "name": "flatpak"
     },
     "name": "flatpak"
+   }
+  },
+  "tmux": {
+   "pacman\\tmux": {
+    "driver": "pacman",
+    "fields": {
+     "name": "tmux"
+    },
+    "name": "tmux"
    }
   },
   "traceroute": {
@@ -1718,6 +1745,15 @@
     },
     "name": "yq"
    }
+  },
+  "zsh": {
+   "pacman\\zsh": {
+    "driver": "pacman",
+    "fields": {
+     "name": "zsh"
+    },
+    "name": "zsh"
+   }
   }
  },
  "debian@11": {
@@ -2255,6 +2291,15 @@
      "repo-component": "universe"
     },
     "name": "firefox"
+   }
+  },
+  "fish": {
+   "apt\\fish": {
+    "driver": "apt",
+    "fields": {
+     "name": "fish"
+    },
+    "name": "fish"
    }
   },
   "flatpak": {
@@ -3027,6 +3072,28 @@
     "name": "nmap"
    }
   },
+  "nushell": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "tarball\\nushell": {
+    "driver": "tarball",
+    "fields": {
+     "installDir": "apps/nushell",
+     "name": "nushell",
+     "version": {
+      "asset": "nu-*-x86_64-unknown-linux-gnu.tar.gz",
+      "github": "nushell/nushell",
+      "strip-v": "true"
+     }
+    },
+    "name": "nushell"
+   }
+  },
   "opera": {
    "apt\\flatpak": {
     "driver": "apt",
@@ -3226,6 +3293,15 @@
      "name": "org.tenacityaudio.Tenacity"
     },
     "name": "org.tenacityaudio.Tenacity"
+   }
+  },
+  "tmux": {
+   "apt\\tmux": {
+    "driver": "apt",
+    "fields": {
+     "name": "tmux"
+    },
+    "name": "tmux"
    }
   },
   "traceroute": {
@@ -3736,6 +3812,15 @@
      }
     },
     "name": "yq"
+   }
+  },
+  "zsh": {
+   "apt\\zsh": {
+    "driver": "apt",
+    "fields": {
+     "name": "zsh"
+    },
+    "name": "zsh"
    }
   }
  },
@@ -4276,6 +4361,15 @@
     "name": "firefox"
    }
   },
+  "fish": {
+   "apt\\fish": {
+    "driver": "apt",
+    "fields": {
+     "name": "fish"
+    },
+    "name": "fish"
+   }
+  },
   "flatpak": {
    "apt\\flatpak": {
     "driver": "apt",
@@ -5036,6 +5130,28 @@
     "name": "nmap"
    }
   },
+  "nushell": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "tarball\\nushell": {
+    "driver": "tarball",
+    "fields": {
+     "installDir": "apps/nushell",
+     "name": "nushell",
+     "version": {
+      "asset": "nu-*-x86_64-unknown-linux-gnu.tar.gz",
+      "github": "nushell/nushell",
+      "strip-v": "true"
+     }
+    },
+    "name": "nushell"
+   }
+  },
   "opera": {
    "apt\\flatpak": {
     "driver": "apt",
@@ -5225,6 +5341,15 @@
      "name": "org.tenacityaudio.Tenacity"
     },
     "name": "org.tenacityaudio.Tenacity"
+   }
+  },
+  "tmux": {
+   "apt\\tmux": {
+    "driver": "apt",
+    "fields": {
+     "name": "tmux"
+    },
+    "name": "tmux"
    }
   },
   "traceroute": {
@@ -5726,6 +5851,15 @@
     },
     "name": "yq"
    }
+  },
+  "zsh": {
+   "apt\\zsh": {
+    "driver": "apt",
+    "fields": {
+     "name": "zsh"
+    },
+    "name": "zsh"
+   }
   }
  },
  "fedora@41": {
@@ -6151,6 +6285,15 @@
      "repo-component": "universe"
     },
     "name": "firefox"
+   }
+  },
+  "fish": {
+   "dnf\\fish": {
+    "driver": "dnf",
+    "fields": {
+     "name": "fish"
+    },
+    "name": "fish"
    }
   },
   "flatpak": {
@@ -6751,6 +6894,28 @@
     "name": "nmap"
    }
   },
+  "nushell": {
+   "dnf\\curl": {
+    "driver": "dnf",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "tarball\\nushell": {
+    "driver": "tarball",
+    "fields": {
+     "installDir": "apps/nushell",
+     "name": "nushell",
+     "version": {
+      "asset": "nu-*-x86_64-unknown-linux-gnu.tar.gz",
+      "github": "nushell/nushell",
+      "strip-v": "true"
+     }
+    },
+    "name": "nushell"
+   }
+  },
   "opera": {
    "dnf\\flatpak": {
     "driver": "dnf",
@@ -6944,6 +7109,15 @@
      "name": "org.tenacityaudio.Tenacity"
     },
     "name": "org.tenacityaudio.Tenacity"
+   }
+  },
+  "tmux": {
+   "dnf\\tmux": {
+    "driver": "dnf",
+    "fields": {
+     "name": "tmux"
+    },
+    "name": "tmux"
    }
   },
   "traceroute": {
@@ -7460,6 +7634,15 @@
     },
     "name": "yq"
    }
+  },
+  "zsh": {
+   "dnf\\zsh": {
+    "driver": "dnf",
+    "fields": {
+     "name": "zsh"
+    },
+    "name": "zsh"
+   }
   }
  },
  "fedora@42": {
@@ -7897,6 +8080,15 @@
      "repo-component": "universe"
     },
     "name": "firefox"
+   }
+  },
+  "fish": {
+   "dnf\\fish": {
+    "driver": "dnf",
+    "fields": {
+     "name": "fish"
+    },
+    "name": "fish"
    }
   },
   "flatpak": {
@@ -8497,6 +8689,28 @@
     "name": "nmap"
    }
   },
+  "nushell": {
+   "dnf\\curl": {
+    "driver": "dnf",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "tarball\\nushell": {
+    "driver": "tarball",
+    "fields": {
+     "installDir": "apps/nushell",
+     "name": "nushell",
+     "version": {
+      "asset": "nu-*-x86_64-unknown-linux-gnu.tar.gz",
+      "github": "nushell/nushell",
+      "strip-v": "true"
+     }
+    },
+    "name": "nushell"
+   }
+  },
   "opera": {
    "dnf\\flatpak": {
     "driver": "dnf",
@@ -8690,6 +8904,15 @@
      "name": "org.tenacityaudio.Tenacity"
     },
     "name": "org.tenacityaudio.Tenacity"
+   }
+  },
+  "tmux": {
+   "dnf\\tmux": {
+    "driver": "dnf",
+    "fields": {
+     "name": "tmux"
+    },
+    "name": "tmux"
    }
   },
   "traceroute": {
@@ -9205,6 +9428,15 @@
      }
     },
     "name": "yq"
+   }
+  },
+  "zsh": {
+   "dnf\\zsh": {
+    "driver": "dnf",
+    "fields": {
+     "name": "zsh"
+    },
+    "name": "zsh"
    }
   }
  },
@@ -9743,6 +9975,15 @@
      "repo-component": "universe"
     },
     "name": "firefox"
+   }
+  },
+  "fish": {
+   "apt\\fish": {
+    "driver": "apt",
+    "fields": {
+     "name": "fish"
+    },
+    "name": "fish"
    }
   },
   "flatpak": {
@@ -10515,6 +10756,28 @@
     "name": "nmap"
    }
   },
+  "nushell": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "tarball\\nushell": {
+    "driver": "tarball",
+    "fields": {
+     "installDir": "apps/nushell",
+     "name": "nushell",
+     "version": {
+      "asset": "nu-*-x86_64-unknown-linux-gnu.tar.gz",
+      "github": "nushell/nushell",
+      "strip-v": "true"
+     }
+    },
+    "name": "nushell"
+   }
+  },
   "opera": {
    "apt\\flatpak": {
     "driver": "apt",
@@ -10707,6 +10970,15 @@
      "name": "org.tenacityaudio.Tenacity"
     },
     "name": "org.tenacityaudio.Tenacity"
+   }
+  },
+  "tmux": {
+   "apt\\tmux": {
+    "driver": "apt",
+    "fields": {
+     "name": "tmux"
+    },
+    "name": "tmux"
    }
   },
   "traceroute": {
@@ -11218,6 +11490,15 @@
     },
     "name": "yq"
    }
+  },
+  "zsh": {
+   "apt\\zsh": {
+    "driver": "apt",
+    "fields": {
+     "name": "zsh"
+    },
+    "name": "zsh"
+   }
   }
  },
  "rhel@9.8": {
@@ -11693,6 +11974,15 @@
      "repo-component": "universe"
     },
     "name": "firefox"
+   }
+  },
+  "fish": {
+   "dnf\\fish": {
+    "driver": "dnf",
+    "fields": {
+     "name": "fish"
+    },
+    "name": "fish"
    }
   },
   "flatpak": {
@@ -12380,6 +12670,28 @@
     "name": "nmap"
    }
   },
+  "nushell": {
+   "dnf\\curl": {
+    "driver": "dnf",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "tarball\\nushell": {
+    "driver": "tarball",
+    "fields": {
+     "installDir": "apps/nushell",
+     "name": "nushell",
+     "version": {
+      "asset": "nu-*-x86_64-unknown-linux-gnu.tar.gz",
+      "github": "nushell/nushell",
+      "strip-v": "true"
+     }
+    },
+    "name": "nushell"
+   }
+  },
   "opera": {
    "dnf\\flatpak": {
     "driver": "dnf",
@@ -12594,6 +12906,15 @@
      "name": "org.tenacityaudio.Tenacity"
     },
     "name": "org.tenacityaudio.Tenacity"
+   }
+  },
+  "tmux": {
+   "dnf\\tmux": {
+    "driver": "dnf",
+    "fields": {
+     "name": "tmux"
+    },
+    "name": "tmux"
    }
   },
   "traceroute": {
@@ -13125,6 +13446,15 @@
      }
     },
     "name": "yq"
+   }
+  },
+  "zsh": {
+   "dnf\\zsh": {
+    "driver": "dnf",
+    "fields": {
+     "name": "zsh"
+    },
+    "name": "zsh"
    }
   }
  },
@@ -13665,6 +13995,15 @@
     "name": "firefox"
    }
   },
+  "fish": {
+   "apt\\fish": {
+    "driver": "apt",
+    "fields": {
+     "name": "fish"
+    },
+    "name": "fish"
+   }
+  },
   "flatpak": {
    "apt\\flatpak": {
     "driver": "apt",
@@ -14435,6 +14774,28 @@
     "name": "nmap"
    }
   },
+  "nushell": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "tarball\\nushell": {
+    "driver": "tarball",
+    "fields": {
+     "installDir": "apps/nushell",
+     "name": "nushell",
+     "version": {
+      "asset": "nu-*-x86_64-unknown-linux-gnu.tar.gz",
+      "github": "nushell/nushell",
+      "strip-v": "true"
+     }
+    },
+    "name": "nushell"
+   }
+  },
   "opera": {
    "apt\\flatpak": {
     "driver": "apt",
@@ -14634,6 +14995,15 @@
      "name": "org.tenacityaudio.Tenacity"
     },
     "name": "org.tenacityaudio.Tenacity"
+   }
+  },
+  "tmux": {
+   "apt\\tmux": {
+    "driver": "apt",
+    "fields": {
+     "name": "tmux"
+    },
+    "name": "tmux"
    }
   },
   "traceroute": {
@@ -15144,6 +15514,15 @@
      }
     },
     "name": "yq"
+   }
+  },
+  "zsh": {
+   "apt\\zsh": {
+    "driver": "apt",
+    "fields": {
+     "name": "zsh"
+    },
+    "name": "zsh"
    }
   }
  },
@@ -15684,6 +16063,15 @@
     "name": "firefox"
    }
   },
+  "fish": {
+   "apt\\fish": {
+    "driver": "apt",
+    "fields": {
+     "name": "fish"
+    },
+    "name": "fish"
+   }
+  },
   "flatpak": {
    "apt\\flatpak": {
     "driver": "apt",
@@ -16444,6 +16832,28 @@
     "name": "nmap"
    }
   },
+  "nushell": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "tarball\\nushell": {
+    "driver": "tarball",
+    "fields": {
+     "installDir": "apps/nushell",
+     "name": "nushell",
+     "version": {
+      "asset": "nu-*-x86_64-unknown-linux-gnu.tar.gz",
+      "github": "nushell/nushell",
+      "strip-v": "true"
+     }
+    },
+    "name": "nushell"
+   }
+  },
   "opera": {
    "apt\\flatpak": {
     "driver": "apt",
@@ -16633,6 +17043,15 @@
      "name": "org.tenacityaudio.Tenacity"
     },
     "name": "org.tenacityaudio.Tenacity"
+   }
+  },
+  "tmux": {
+   "apt\\tmux": {
+    "driver": "apt",
+    "fields": {
+     "name": "tmux"
+    },
+    "name": "tmux"
    }
   },
   "traceroute": {
@@ -17133,6 +17552,15 @@
      }
     },
     "name": "yq"
+   }
+  },
+  "zsh": {
+   "apt\\zsh": {
+    "driver": "apt",
+    "fields": {
+     "name": "zsh"
+    },
+    "name": "zsh"
    }
   }
  }

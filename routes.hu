@@ -137,6 +137,22 @@
             ]
         }
 
+        // --- shells & terminal multiplexers ---
+        // tmux/zsh/fish are packaged under the same name in every distro's base repos.
+        tmux: { install: [ { via: native } ] }
+        zsh:  { install: [ { via: native } ] }
+        fish: { install: [ { via: native } ] }
+        // nushell isn't in Debian/Ubuntu/Fedora base repos; native where it is (Arch, Homebrew),
+        // else the upstream glibc release tarball (ships `nu` + its plugins).
+        nushell: {
+            install: [
+                { via: native  when: "arch" }
+                { via: native  when: "fedora_atomic" }              // brew formula `nushell`
+                { via: tarball  installDir: apps/nushell  requires: glibc
+                  version: { github: nushell/nushell  strip-v: true  asset: "nu-*-x86_64-unknown-linux-gnu.tar.gz" } }
+            ]
+        }
+
         // EPEL: a capability enabled by installing epel-release (only on EL). Anything
         // that `requires: epel` is a no-op off EL (nothing needs it) and pulls this in on EL.
         epel-release: {
