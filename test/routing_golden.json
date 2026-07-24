@@ -682,6 +682,27 @@
     "name": "jdk-openjdk"
    }
   },
+  "jetbrains-toolbox": {
+   "pacman\\curl": {
+    "driver": "pacman",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "tarball\\jetbrains-toolbox": {
+    "driver": "tarball",
+    "fields": {
+     "installDir": "apps/jetbrains-toolbox",
+     "name": "jetbrains-toolbox",
+     "url": "https://download.jetbrains.com/product?code=TBA&latest&distribution=linux",
+     "version": {
+      "static": "latest"
+     }
+    },
+    "name": "jetbrains-toolbox"
+   }
+  },
   "jq": {
    "pacman\\jq": {
     "driver": "pacman",
@@ -2938,6 +2959,27 @@
      "name": "default-jdk"
     },
     "name": "default-jdk"
+   }
+  },
+  "jetbrains-toolbox": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "tarball\\jetbrains-toolbox": {
+    "driver": "tarball",
+    "fields": {
+     "installDir": "apps/jetbrains-toolbox",
+     "name": "jetbrains-toolbox",
+     "url": "https://download.jetbrains.com/product?code=TBA&latest&distribution=linux",
+     "version": {
+      "static": "latest"
+     }
+    },
+    "name": "jetbrains-toolbox"
    }
   },
   "jq": {
@@ -5215,6 +5257,27 @@
     "name": "default-jdk"
    }
   },
+  "jetbrains-toolbox": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "tarball\\jetbrains-toolbox": {
+    "driver": "tarball",
+    "fields": {
+     "installDir": "apps/jetbrains-toolbox",
+     "name": "jetbrains-toolbox",
+     "url": "https://download.jetbrains.com/product?code=TBA&latest&distribution=linux",
+     "version": {
+      "static": "latest"
+     }
+    },
+    "name": "jetbrains-toolbox"
+   }
+  },
   "jq": {
    "apt\\jq": {
     "driver": "apt",
@@ -7197,6 +7260,27 @@
      "name": "java-17-openjdk-devel"
     },
     "name": "java-17-openjdk-devel"
+   }
+  },
+  "jetbrains-toolbox": {
+   "dnf\\curl": {
+    "driver": "dnf",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "tarball\\jetbrains-toolbox": {
+    "driver": "tarball",
+    "fields": {
+     "installDir": "apps/jetbrains-toolbox",
+     "name": "jetbrains-toolbox",
+     "url": "https://download.jetbrains.com/product?code=TBA&latest&distribution=linux",
+     "version": {
+      "static": "latest"
+     }
+    },
+    "name": "jetbrains-toolbox"
    }
   },
   "jq": {
@@ -9199,6 +9283,27 @@
      "name": "java-17-openjdk-devel"
     },
     "name": "java-17-openjdk-devel"
+   }
+  },
+  "jetbrains-toolbox": {
+   "dnf\\curl": {
+    "driver": "dnf",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "tarball\\jetbrains-toolbox": {
+    "driver": "tarball",
+    "fields": {
+     "installDir": "apps/jetbrains-toolbox",
+     "name": "jetbrains-toolbox",
+     "url": "https://download.jetbrains.com/product?code=TBA&latest&distribution=linux",
+     "version": {
+      "static": "latest"
+     }
+    },
+    "name": "jetbrains-toolbox"
    }
   },
   "jq": {
@@ -11452,6 +11557,27 @@
     "name": "default-jdk"
    }
   },
+  "jetbrains-toolbox": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "tarball\\jetbrains-toolbox": {
+    "driver": "tarball",
+    "fields": {
+     "installDir": "apps/jetbrains-toolbox",
+     "name": "jetbrains-toolbox",
+     "url": "https://download.jetbrains.com/product?code=TBA&latest&distribution=linux",
+     "version": {
+      "static": "latest"
+     }
+    },
+    "name": "jetbrains-toolbox"
+   }
+  },
   "jq": {
    "apt\\jq": {
     "driver": "apt",
@@ -13547,6 +13673,27 @@
      "name": "java-17-openjdk-devel"
     },
     "name": "java-17-openjdk-devel"
+   }
+  },
+  "jetbrains-toolbox": {
+   "dnf\\curl": {
+    "driver": "dnf",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "tarball\\jetbrains-toolbox": {
+    "driver": "tarball",
+    "fields": {
+     "installDir": "apps/jetbrains-toolbox",
+     "name": "jetbrains-toolbox",
+     "url": "https://download.jetbrains.com/product?code=TBA&latest&distribution=linux",
+     "version": {
+      "static": "latest"
+     }
+    },
+    "name": "jetbrains-toolbox"
    }
   },
   "jq": {
@@ -15884,6 +16031,27 @@
     "name": "default-jdk"
    }
   },
+  "jetbrains-toolbox": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "tarball\\jetbrains-toolbox": {
+    "driver": "tarball",
+    "fields": {
+     "installDir": "apps/jetbrains-toolbox",
+     "name": "jetbrains-toolbox",
+     "url": "https://download.jetbrains.com/product?code=TBA&latest&distribution=linux",
+     "version": {
+      "static": "latest"
+     }
+    },
+    "name": "jetbrains-toolbox"
+   }
+  },
   "jq": {
    "apt\\jq": {
     "driver": "apt",
@@ -18157,6 +18325,27 @@
      "name": "default-jdk"
     },
     "name": "default-jdk"
+   }
+  },
+  "jetbrains-toolbox": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "tarball\\jetbrains-toolbox": {
+    "driver": "tarball",
+    "fields": {
+     "installDir": "apps/jetbrains-toolbox",
+     "name": "jetbrains-toolbox",
+     "url": "https://download.jetbrains.com/product?code=TBA&latest&distribution=linux",
+     "version": {
+      "static": "latest"
+     }
+    },
+    "name": "jetbrains-toolbox"
    }
   },
   "jq": {

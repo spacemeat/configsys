@@ -500,6 +500,14 @@
             install: [ { via: tarball  version: { static: 2024.2.1.11 }  requires: glibc   // glibc-linked JVM/launchers
                          url: "https://redirector.gvt1.com/edgedl/android/studio/ide-zips/$VERSION/android-studio-$VERSION-linux.tar.gz" } ]
         }
+        // JetBrains Toolbox — the launcher that installs/updates IDEA, CLion, PyCharm, etc.
+        // (cleaner than one-off IDE components). The version-less URL 302-redirects to the
+        // latest tarball, which `curl -fSL` follows — so `static: latest`, no version to chase.
+        jetbrains-toolbox: {
+            install: [ { via: tarball  installDir: apps/jetbrains-toolbox  requires: glibc   // glibc-linked launcher
+                         version: { static: latest }
+                         url: "https://download.jetbrains.com/product?code=TBA&latest&distribution=linux" } ]
+        }
 
         // lazygit: native on fedora/arch; elsewhere (debian/EL) a static Go binary from the
         // GitHub release, unpacked under ~/apps/lazygit (scope-honoring). Its bash.d snippet
