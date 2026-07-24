@@ -322,6 +322,45 @@
     "name": "npm"
    }
   },
+  "codecs": {
+   "pacman\\ffmpeg": {
+    "driver": "pacman",
+    "fields": {
+     "name": "ffmpeg"
+    },
+    "name": "ffmpeg"
+   },
+   "pacman\\gst-bad": {
+    "driver": "pacman",
+    "fields": {
+     "name": "gst-plugins-bad"
+    },
+    "name": "gst-plugins-bad"
+   },
+   "pacman\\gst-good": {
+    "driver": "pacman",
+    "fields": {
+     "name": "gst-plugins-good"
+    },
+    "name": "gst-plugins-good"
+   }
+  },
+  "codecs-restricted": {
+   "pacman\\gst-libav": {
+    "driver": "pacman",
+    "fields": {
+     "name": "gst-libav"
+    },
+    "name": "gst-libav"
+   },
+   "pacman\\gst-ugly": {
+    "driver": "pacman",
+    "fields": {
+     "name": "gst-plugins-ugly"
+    },
+    "name": "gst-plugins-ugly"
+   }
+  },
   "codex": {
    "npm\\codex": {
     "driver": "npm",
@@ -337,6 +376,43 @@
      "repo-component": "universe"
     },
     "name": "npm"
+   }
+  },
+  "compression": {
+   "pacman\\lz4": {
+    "driver": "pacman",
+    "fields": {
+     "name": "lz4"
+    },
+    "name": "lz4"
+   },
+   "pacman\\p7zip": {
+    "driver": "pacman",
+    "fields": {
+     "name": "7zip"
+    },
+    "name": "7zip"
+   },
+   "pacman\\unzip": {
+    "driver": "pacman",
+    "fields": {
+     "name": "unzip"
+    },
+    "name": "unzip"
+   },
+   "pacman\\zip": {
+    "driver": "pacman",
+    "fields": {
+     "name": "zip"
+    },
+    "name": "zip"
+   },
+   "pacman\\zstd": {
+    "driver": "pacman",
+    "fields": {
+     "name": "zstd"
+    },
+    "name": "zstd"
    }
   },
   "conan": {
@@ -768,6 +844,42 @@
      "name": "go"
     },
     "name": "go"
+   }
+  },
+  "gst-bad": {
+   "pacman\\gst-bad": {
+    "driver": "pacman",
+    "fields": {
+     "name": "gst-plugins-bad"
+    },
+    "name": "gst-plugins-bad"
+   }
+  },
+  "gst-good": {
+   "pacman\\gst-good": {
+    "driver": "pacman",
+    "fields": {
+     "name": "gst-plugins-good"
+    },
+    "name": "gst-plugins-good"
+   }
+  },
+  "gst-libav": {
+   "pacman\\gst-libav": {
+    "driver": "pacman",
+    "fields": {
+     "name": "gst-libav"
+    },
+    "name": "gst-libav"
+   }
+  },
+  "gst-ugly": {
+   "pacman\\gst-ugly": {
+    "driver": "pacman",
+    "fields": {
+     "name": "gst-plugins-ugly"
+    },
+    "name": "gst-plugins-ugly"
    }
   },
   "haskell": {
@@ -1299,6 +1411,15 @@
     "name": "lxqt"
    }
   },
+  "lz4": {
+   "pacman\\lz4": {
+    "driver": "pacman",
+    "fields": {
+     "name": "lz4"
+    },
+    "name": "lz4"
+   }
+  },
   "make": {
    "pacman\\make": {
     "driver": "pacman",
@@ -1609,6 +1730,15 @@
     "name": "flatpak"
    }
   },
+  "p7zip": {
+   "pacman\\p7zip": {
+    "driver": "pacman",
+    "fields": {
+     "name": "7zip"
+    },
+    "name": "7zip"
+   }
+  },
   "pipx": {
    "pacman\\pipx": {
     "driver": "pacman",
@@ -1916,6 +2046,15 @@
      "repo-component": "universe"
     },
     "name": "fuse2"
+   }
+  },
+  "unrar": {
+   "pacman\\unrar": {
+    "driver": "pacman",
+    "fields": {
+     "name": "unrar"
+    },
+    "name": "unrar"
    }
   },
   "unzip": {
@@ -2537,6 +2676,15 @@
     },
     "name": "zsh"
    }
+  },
+  "zstd": {
+   "pacman\\zstd": {
+    "driver": "pacman",
+    "fields": {
+     "name": "zstd"
+    },
+    "name": "zstd"
+   }
   }
  },
  "debian@11": {
@@ -3012,6 +3160,55 @@
     "name": "@anthropic-ai/claude-code"
    }
   },
+  "codecs": {
+   "apt\\ffmpeg": {
+    "driver": "apt",
+    "fields": {
+     "name": "ffmpeg"
+    },
+    "name": "ffmpeg"
+   },
+   "apt\\gst-bad": {
+    "driver": "apt",
+    "fields": {
+     "name": "gstreamer1.0-plugins-bad"
+    },
+    "name": "gstreamer1.0-plugins-bad"
+   },
+   "apt\\gst-good": {
+    "driver": "apt",
+    "fields": {
+     "name": "gstreamer1.0-plugins-good"
+    },
+    "name": "gstreamer1.0-plugins-good"
+   }
+  },
+  "codecs-restricted": {
+   "apt\\gst-libav": {
+    "driver": "apt",
+    "fields": {
+     "name": "gstreamer1.0-libav",
+     "repo-component": "universe"
+    },
+    "name": "gstreamer1.0-libav"
+   },
+   "apt\\gst-ugly": {
+    "driver": "apt",
+    "fields": {
+     "name": "gstreamer1.0-plugins-ugly",
+     "repo-component": "multiverse"
+    },
+    "name": "gstreamer1.0-plugins-ugly"
+   },
+   "apt\\libavcodec-extra": {
+    "driver": "apt",
+    "fields": {
+     "name": "libavcodec-extra",
+     "repo-component": "universe"
+    },
+    "name": "libavcodec-extra"
+   }
+  },
   "codex": {
    "apt\\node": {
     "driver": "apt",
@@ -3027,6 +3224,43 @@
      "name": "@openai/codex"
     },
     "name": "@openai/codex"
+   }
+  },
+  "compression": {
+   "apt\\lz4": {
+    "driver": "apt",
+    "fields": {
+     "name": "lz4"
+    },
+    "name": "lz4"
+   },
+   "apt\\p7zip": {
+    "driver": "apt",
+    "fields": {
+     "name": "p7zip-full"
+    },
+    "name": "p7zip-full"
+   },
+   "apt\\unzip": {
+    "driver": "apt",
+    "fields": {
+     "name": "unzip"
+    },
+    "name": "unzip"
+   },
+   "apt\\zip": {
+    "driver": "apt",
+    "fields": {
+     "name": "zip"
+    },
+    "name": "zip"
+   },
+   "apt\\zstd": {
+    "driver": "apt",
+    "fields": {
+     "name": "zstd"
+    },
+    "name": "zstd"
    }
   },
   "conan": {
@@ -3647,6 +3881,44 @@
     "name": "golang.org/x/tools/cmd/goimports"
    }
   },
+  "gst-bad": {
+   "apt\\gst-bad": {
+    "driver": "apt",
+    "fields": {
+     "name": "gstreamer1.0-plugins-bad"
+    },
+    "name": "gstreamer1.0-plugins-bad"
+   }
+  },
+  "gst-good": {
+   "apt\\gst-good": {
+    "driver": "apt",
+    "fields": {
+     "name": "gstreamer1.0-plugins-good"
+    },
+    "name": "gstreamer1.0-plugins-good"
+   }
+  },
+  "gst-libav": {
+   "apt\\gst-libav": {
+    "driver": "apt",
+    "fields": {
+     "name": "gstreamer1.0-libav",
+     "repo-component": "universe"
+    },
+    "name": "gstreamer1.0-libav"
+   }
+  },
+  "gst-ugly": {
+   "apt\\gst-ugly": {
+    "driver": "apt",
+    "fields": {
+     "name": "gstreamer1.0-plugins-ugly",
+     "repo-component": "multiverse"
+    },
+    "name": "gstreamer1.0-plugins-ugly"
+   }
+  },
   "haskell": {
    "apt\\haskell": {
     "driver": "apt",
@@ -4063,6 +4335,16 @@
     "name": "lazysql"
    }
   },
+  "libavcodec-extra": {
+   "apt\\libavcodec-extra": {
+    "driver": "apt",
+    "fields": {
+     "name": "libavcodec-extra",
+     "repo-component": "universe"
+    },
+    "name": "libavcodec-extra"
+   }
+  },
   "libfuse2": {
    "apt\\libfuse2": {
     "driver": "apt",
@@ -4236,6 +4518,15 @@
      "name": "lxqt"
     },
     "name": "lxqt"
+   }
+  },
+  "lz4": {
+   "apt\\lz4": {
+    "driver": "apt",
+    "fields": {
+     "name": "lz4"
+    },
+    "name": "lz4"
    }
   },
   "make": {
@@ -4576,6 +4867,15 @@
     "name": "com.opera.Opera"
    }
   },
+  "p7zip": {
+   "apt\\p7zip": {
+    "driver": "apt",
+    "fields": {
+     "name": "p7zip-full"
+    },
+    "name": "p7zip-full"
+   }
+  },
   "pipx": {
    "apt\\python3-pip": {
     "driver": "apt",
@@ -4902,6 +5202,16 @@
      "repo-component": "universe"
     },
     "name": "libfuse2"
+   }
+  },
+  "unrar": {
+   "apt\\unrar": {
+    "driver": "apt",
+    "fields": {
+     "name": "unrar",
+     "repo-component": "multiverse"
+    },
+    "name": "unrar"
    }
   },
   "unzip": {
@@ -5484,6 +5794,15 @@
      "name": "zsh"
     },
     "name": "zsh"
+   }
+  },
+  "zstd": {
+   "apt\\zstd": {
+    "driver": "apt",
+    "fields": {
+     "name": "zstd"
+    },
+    "name": "zstd"
    }
   }
  },
@@ -5950,6 +6269,55 @@
     "name": "@anthropic-ai/claude-code"
    }
   },
+  "codecs": {
+   "apt\\ffmpeg": {
+    "driver": "apt",
+    "fields": {
+     "name": "ffmpeg"
+    },
+    "name": "ffmpeg"
+   },
+   "apt\\gst-bad": {
+    "driver": "apt",
+    "fields": {
+     "name": "gstreamer1.0-plugins-bad"
+    },
+    "name": "gstreamer1.0-plugins-bad"
+   },
+   "apt\\gst-good": {
+    "driver": "apt",
+    "fields": {
+     "name": "gstreamer1.0-plugins-good"
+    },
+    "name": "gstreamer1.0-plugins-good"
+   }
+  },
+  "codecs-restricted": {
+   "apt\\gst-libav": {
+    "driver": "apt",
+    "fields": {
+     "name": "gstreamer1.0-libav",
+     "repo-component": "universe"
+    },
+    "name": "gstreamer1.0-libav"
+   },
+   "apt\\gst-ugly": {
+    "driver": "apt",
+    "fields": {
+     "name": "gstreamer1.0-plugins-ugly",
+     "repo-component": "multiverse"
+    },
+    "name": "gstreamer1.0-plugins-ugly"
+   },
+   "apt\\libavcodec-extra": {
+    "driver": "apt",
+    "fields": {
+     "name": "libavcodec-extra",
+     "repo-component": "universe"
+    },
+    "name": "libavcodec-extra"
+   }
+  },
   "codex": {
    "apt\\node": {
     "driver": "apt",
@@ -5965,6 +6333,43 @@
      "name": "@openai/codex"
     },
     "name": "@openai/codex"
+   }
+  },
+  "compression": {
+   "apt\\lz4": {
+    "driver": "apt",
+    "fields": {
+     "name": "lz4"
+    },
+    "name": "lz4"
+   },
+   "apt\\p7zip": {
+    "driver": "apt",
+    "fields": {
+     "name": "p7zip-full"
+    },
+    "name": "p7zip-full"
+   },
+   "apt\\unzip": {
+    "driver": "apt",
+    "fields": {
+     "name": "unzip"
+    },
+    "name": "unzip"
+   },
+   "apt\\zip": {
+    "driver": "apt",
+    "fields": {
+     "name": "zip"
+    },
+    "name": "zip"
+   },
+   "apt\\zstd": {
+    "driver": "apt",
+    "fields": {
+     "name": "zstd"
+    },
+    "name": "zstd"
    }
   },
   "conan": {
@@ -6575,6 +6980,44 @@
     "name": "golang.org/x/tools/cmd/goimports"
    }
   },
+  "gst-bad": {
+   "apt\\gst-bad": {
+    "driver": "apt",
+    "fields": {
+     "name": "gstreamer1.0-plugins-bad"
+    },
+    "name": "gstreamer1.0-plugins-bad"
+   }
+  },
+  "gst-good": {
+   "apt\\gst-good": {
+    "driver": "apt",
+    "fields": {
+     "name": "gstreamer1.0-plugins-good"
+    },
+    "name": "gstreamer1.0-plugins-good"
+   }
+  },
+  "gst-libav": {
+   "apt\\gst-libav": {
+    "driver": "apt",
+    "fields": {
+     "name": "gstreamer1.0-libav",
+     "repo-component": "universe"
+    },
+    "name": "gstreamer1.0-libav"
+   }
+  },
+  "gst-ugly": {
+   "apt\\gst-ugly": {
+    "driver": "apt",
+    "fields": {
+     "name": "gstreamer1.0-plugins-ugly",
+     "repo-component": "multiverse"
+    },
+    "name": "gstreamer1.0-plugins-ugly"
+   }
+  },
   "haskell": {
    "apt\\haskell": {
     "driver": "apt",
@@ -6991,6 +7434,16 @@
     "name": "lazysql"
    }
   },
+  "libavcodec-extra": {
+   "apt\\libavcodec-extra": {
+    "driver": "apt",
+    "fields": {
+     "name": "libavcodec-extra",
+     "repo-component": "universe"
+    },
+    "name": "libavcodec-extra"
+   }
+  },
   "libfuse2": {
    "apt\\libfuse2": {
     "driver": "apt",
@@ -7154,6 +7607,15 @@
      "name": "lxqt"
     },
     "name": "lxqt"
+   }
+  },
+  "lz4": {
+   "apt\\lz4": {
+    "driver": "apt",
+    "fields": {
+     "name": "lz4"
+    },
+    "name": "lz4"
    }
   },
   "make": {
@@ -7484,6 +7946,15 @@
     "name": "com.opera.Opera"
    }
   },
+  "p7zip": {
+   "apt\\p7zip": {
+    "driver": "apt",
+    "fields": {
+     "name": "p7zip-full"
+    },
+    "name": "p7zip-full"
+   }
+  },
   "pipx": {
    "apt\\pipx": {
     "driver": "apt",
@@ -7800,6 +8271,16 @@
      "repo-component": "universe"
     },
     "name": "libfuse2"
+   }
+  },
+  "unrar": {
+   "apt\\unrar": {
+    "driver": "apt",
+    "fields": {
+     "name": "unrar",
+     "repo-component": "multiverse"
+    },
+    "name": "unrar"
    }
   },
   "unzip": {
@@ -8373,6 +8854,15 @@
     },
     "name": "zsh"
    }
+  },
+  "zstd": {
+   "apt\\zstd": {
+    "driver": "apt",
+    "fields": {
+     "name": "zstd"
+    },
+    "name": "zstd"
+   }
   }
  },
  "fedora@41": {
@@ -8720,6 +9210,67 @@
     "name": "@anthropic-ai/claude-code"
    }
   },
+  "codecs": {
+   "dnf\\ffmpeg": {
+    "driver": "dnf",
+    "fields": {
+     "name": "ffmpeg"
+    },
+    "name": "ffmpeg"
+   },
+   "dnf\\gst-bad": {
+    "driver": "dnf",
+    "fields": {
+     "name": "gstreamer1-plugins-bad-free"
+    },
+    "name": "gstreamer1-plugins-bad-free"
+   },
+   "dnf\\gst-good": {
+    "driver": "dnf",
+    "fields": {
+     "name": "gstreamer1-plugins-good"
+    },
+    "name": "gstreamer1-plugins-good"
+   },
+   "dnf\\rpmfusion-free": {
+    "driver": "dnf",
+    "fields": {
+     "name": "rpmfusion-free-release",
+     "pubkey-url": "https://rpmfusion.org/keys?action=AttachFile&do=get&target=RPM-GPG-KEY-rpmfusion-free-fedora-$releasever",
+     "repo-id": "rpmfusion-free",
+     "repo-name": "RPM Fusion Free",
+     "repo-url": "https://download1.rpmfusion.org/free/fedora/releases/$releasever/Everything/$basearch/os/"
+    },
+    "name": "rpmfusion-free-release"
+   }
+  },
+  "codecs-restricted": {
+   "dnf\\gst-libav": {
+    "driver": "dnf",
+    "fields": {
+     "name": "gstreamer1-libav"
+    },
+    "name": "gstreamer1-libav"
+   },
+   "dnf\\gst-ugly": {
+    "driver": "dnf",
+    "fields": {
+     "name": "gstreamer1-plugins-ugly"
+    },
+    "name": "gstreamer1-plugins-ugly"
+   },
+   "dnf\\rpmfusion-free": {
+    "driver": "dnf",
+    "fields": {
+     "name": "rpmfusion-free-release",
+     "pubkey-url": "https://rpmfusion.org/keys?action=AttachFile&do=get&target=RPM-GPG-KEY-rpmfusion-free-fedora-$releasever",
+     "repo-id": "rpmfusion-free",
+     "repo-name": "RPM Fusion Free",
+     "repo-url": "https://download1.rpmfusion.org/free/fedora/releases/$releasever/Everything/$basearch/os/"
+    },
+    "name": "rpmfusion-free-release"
+   }
+  },
   "codex": {
    "dnf\\node": {
     "driver": "dnf",
@@ -8735,6 +9286,43 @@
      "name": "@openai/codex"
     },
     "name": "@openai/codex"
+   }
+  },
+  "compression": {
+   "dnf\\lz4": {
+    "driver": "dnf",
+    "fields": {
+     "name": "lz4"
+    },
+    "name": "lz4"
+   },
+   "dnf\\p7zip": {
+    "driver": "dnf",
+    "fields": {
+     "name": "p7zip"
+    },
+    "name": "p7zip"
+   },
+   "dnf\\unzip": {
+    "driver": "dnf",
+    "fields": {
+     "name": "unzip"
+    },
+    "name": "unzip"
+   },
+   "dnf\\zip": {
+    "driver": "dnf",
+    "fields": {
+     "name": "zip"
+    },
+    "name": "zip"
+   },
+   "dnf\\zstd": {
+    "driver": "dnf",
+    "fields": {
+     "name": "zstd"
+    },
+    "name": "zstd"
    }
   },
   "conan": {
@@ -9211,6 +9799,64 @@
     "name": "golang.org/x/tools/cmd/goimports"
    }
   },
+  "gst-bad": {
+   "dnf\\gst-bad": {
+    "driver": "dnf",
+    "fields": {
+     "name": "gstreamer1-plugins-bad-free"
+    },
+    "name": "gstreamer1-plugins-bad-free"
+   }
+  },
+  "gst-good": {
+   "dnf\\gst-good": {
+    "driver": "dnf",
+    "fields": {
+     "name": "gstreamer1-plugins-good"
+    },
+    "name": "gstreamer1-plugins-good"
+   }
+  },
+  "gst-libav": {
+   "dnf\\gst-libav": {
+    "driver": "dnf",
+    "fields": {
+     "name": "gstreamer1-libav"
+    },
+    "name": "gstreamer1-libav"
+   },
+   "dnf\\rpmfusion-free": {
+    "driver": "dnf",
+    "fields": {
+     "name": "rpmfusion-free-release",
+     "pubkey-url": "https://rpmfusion.org/keys?action=AttachFile&do=get&target=RPM-GPG-KEY-rpmfusion-free-fedora-$releasever",
+     "repo-id": "rpmfusion-free",
+     "repo-name": "RPM Fusion Free",
+     "repo-url": "https://download1.rpmfusion.org/free/fedora/releases/$releasever/Everything/$basearch/os/"
+    },
+    "name": "rpmfusion-free-release"
+   }
+  },
+  "gst-ugly": {
+   "dnf\\gst-ugly": {
+    "driver": "dnf",
+    "fields": {
+     "name": "gstreamer1-plugins-ugly"
+    },
+    "name": "gstreamer1-plugins-ugly"
+   },
+   "dnf\\rpmfusion-free": {
+    "driver": "dnf",
+    "fields": {
+     "name": "rpmfusion-free-release",
+     "pubkey-url": "https://rpmfusion.org/keys?action=AttachFile&do=get&target=RPM-GPG-KEY-rpmfusion-free-fedora-$releasever",
+     "repo-id": "rpmfusion-free",
+     "repo-name": "RPM Fusion Free",
+     "repo-url": "https://download1.rpmfusion.org/free/fedora/releases/$releasever/Everything/$basearch/os/"
+    },
+    "name": "rpmfusion-free-release"
+   }
+  },
   "haskell": {
    "dnf\\haskell": {
     "driver": "dnf",
@@ -9788,6 +10434,15 @@
     "name": "lxqt-session"
    }
   },
+  "lz4": {
+   "dnf\\lz4": {
+    "driver": "dnf",
+    "fields": {
+     "name": "lz4"
+    },
+    "name": "lz4"
+   }
+  },
   "make": {
    "dnf\\make": {
     "driver": "dnf",
@@ -10116,6 +10771,15 @@
     "name": "com.opera.Opera"
    }
   },
+  "p7zip": {
+   "dnf\\p7zip": {
+    "driver": "dnf",
+    "fields": {
+     "name": "p7zip"
+    },
+    "name": "p7zip"
+   }
+  },
   "pipx": {
    "dnf\\pipx": {
     "driver": "dnf",
@@ -10436,6 +11100,26 @@
      "repo-component": "universe"
     },
     "name": "fuse-libs"
+   }
+  },
+  "unrar": {
+   "dnf\\rpmfusion-free": {
+    "driver": "dnf",
+    "fields": {
+     "name": "rpmfusion-free-release",
+     "pubkey-url": "https://rpmfusion.org/keys?action=AttachFile&do=get&target=RPM-GPG-KEY-rpmfusion-free-fedora-$releasever",
+     "repo-id": "rpmfusion-free",
+     "repo-name": "RPM Fusion Free",
+     "repo-url": "https://download1.rpmfusion.org/free/fedora/releases/$releasever/Everything/$basearch/os/"
+    },
+    "name": "rpmfusion-free-release"
+   },
+   "dnf\\unrar": {
+    "driver": "dnf",
+    "fields": {
+     "name": "unrar"
+    },
+    "name": "unrar"
    }
   },
   "unzip": {
@@ -11034,6 +11718,15 @@
     },
     "name": "zsh"
    }
+  },
+  "zstd": {
+   "dnf\\zstd": {
+    "driver": "dnf",
+    "fields": {
+     "name": "zstd"
+    },
+    "name": "zstd"
+   }
   }
  },
  "fedora@42": {
@@ -11393,6 +12086,67 @@
     "name": "@anthropic-ai/claude-code"
    }
   },
+  "codecs": {
+   "dnf\\ffmpeg": {
+    "driver": "dnf",
+    "fields": {
+     "name": "ffmpeg"
+    },
+    "name": "ffmpeg"
+   },
+   "dnf\\gst-bad": {
+    "driver": "dnf",
+    "fields": {
+     "name": "gstreamer1-plugins-bad-free"
+    },
+    "name": "gstreamer1-plugins-bad-free"
+   },
+   "dnf\\gst-good": {
+    "driver": "dnf",
+    "fields": {
+     "name": "gstreamer1-plugins-good"
+    },
+    "name": "gstreamer1-plugins-good"
+   },
+   "dnf\\rpmfusion-free": {
+    "driver": "dnf",
+    "fields": {
+     "name": "rpmfusion-free-release",
+     "pubkey-url": "https://rpmfusion.org/keys?action=AttachFile&do=get&target=RPM-GPG-KEY-rpmfusion-free-fedora-$releasever",
+     "repo-id": "rpmfusion-free",
+     "repo-name": "RPM Fusion Free",
+     "repo-url": "https://download1.rpmfusion.org/free/fedora/releases/$releasever/Everything/$basearch/os/"
+    },
+    "name": "rpmfusion-free-release"
+   }
+  },
+  "codecs-restricted": {
+   "dnf\\gst-libav": {
+    "driver": "dnf",
+    "fields": {
+     "name": "gstreamer1-libav"
+    },
+    "name": "gstreamer1-libav"
+   },
+   "dnf\\gst-ugly": {
+    "driver": "dnf",
+    "fields": {
+     "name": "gstreamer1-plugins-ugly"
+    },
+    "name": "gstreamer1-plugins-ugly"
+   },
+   "dnf\\rpmfusion-free": {
+    "driver": "dnf",
+    "fields": {
+     "name": "rpmfusion-free-release",
+     "pubkey-url": "https://rpmfusion.org/keys?action=AttachFile&do=get&target=RPM-GPG-KEY-rpmfusion-free-fedora-$releasever",
+     "repo-id": "rpmfusion-free",
+     "repo-name": "RPM Fusion Free",
+     "repo-url": "https://download1.rpmfusion.org/free/fedora/releases/$releasever/Everything/$basearch/os/"
+    },
+    "name": "rpmfusion-free-release"
+   }
+  },
   "codex": {
    "dnf\\node": {
     "driver": "dnf",
@@ -11408,6 +12162,43 @@
      "name": "@openai/codex"
     },
     "name": "@openai/codex"
+   }
+  },
+  "compression": {
+   "dnf\\lz4": {
+    "driver": "dnf",
+    "fields": {
+     "name": "lz4"
+    },
+    "name": "lz4"
+   },
+   "dnf\\p7zip": {
+    "driver": "dnf",
+    "fields": {
+     "name": "p7zip"
+    },
+    "name": "p7zip"
+   },
+   "dnf\\unzip": {
+    "driver": "dnf",
+    "fields": {
+     "name": "unzip"
+    },
+    "name": "unzip"
+   },
+   "dnf\\zip": {
+    "driver": "dnf",
+    "fields": {
+     "name": "zip"
+    },
+    "name": "zip"
+   },
+   "dnf\\zstd": {
+    "driver": "dnf",
+    "fields": {
+     "name": "zstd"
+    },
+    "name": "zstd"
    }
   },
   "conan": {
@@ -11884,6 +12675,64 @@
     "name": "golang.org/x/tools/cmd/goimports"
    }
   },
+  "gst-bad": {
+   "dnf\\gst-bad": {
+    "driver": "dnf",
+    "fields": {
+     "name": "gstreamer1-plugins-bad-free"
+    },
+    "name": "gstreamer1-plugins-bad-free"
+   }
+  },
+  "gst-good": {
+   "dnf\\gst-good": {
+    "driver": "dnf",
+    "fields": {
+     "name": "gstreamer1-plugins-good"
+    },
+    "name": "gstreamer1-plugins-good"
+   }
+  },
+  "gst-libav": {
+   "dnf\\gst-libav": {
+    "driver": "dnf",
+    "fields": {
+     "name": "gstreamer1-libav"
+    },
+    "name": "gstreamer1-libav"
+   },
+   "dnf\\rpmfusion-free": {
+    "driver": "dnf",
+    "fields": {
+     "name": "rpmfusion-free-release",
+     "pubkey-url": "https://rpmfusion.org/keys?action=AttachFile&do=get&target=RPM-GPG-KEY-rpmfusion-free-fedora-$releasever",
+     "repo-id": "rpmfusion-free",
+     "repo-name": "RPM Fusion Free",
+     "repo-url": "https://download1.rpmfusion.org/free/fedora/releases/$releasever/Everything/$basearch/os/"
+    },
+    "name": "rpmfusion-free-release"
+   }
+  },
+  "gst-ugly": {
+   "dnf\\gst-ugly": {
+    "driver": "dnf",
+    "fields": {
+     "name": "gstreamer1-plugins-ugly"
+    },
+    "name": "gstreamer1-plugins-ugly"
+   },
+   "dnf\\rpmfusion-free": {
+    "driver": "dnf",
+    "fields": {
+     "name": "rpmfusion-free-release",
+     "pubkey-url": "https://rpmfusion.org/keys?action=AttachFile&do=get&target=RPM-GPG-KEY-rpmfusion-free-fedora-$releasever",
+     "repo-id": "rpmfusion-free",
+     "repo-name": "RPM Fusion Free",
+     "repo-url": "https://download1.rpmfusion.org/free/fedora/releases/$releasever/Everything/$basearch/os/"
+    },
+    "name": "rpmfusion-free-release"
+   }
+  },
   "haskell": {
    "dnf\\haskell": {
     "driver": "dnf",
@@ -12461,6 +13310,15 @@
     "name": "lxqt-session"
    }
   },
+  "lz4": {
+   "dnf\\lz4": {
+    "driver": "dnf",
+    "fields": {
+     "name": "lz4"
+    },
+    "name": "lz4"
+   }
+  },
   "make": {
    "dnf\\make": {
     "driver": "dnf",
@@ -12789,6 +13647,15 @@
     "name": "com.opera.Opera"
    }
   },
+  "p7zip": {
+   "dnf\\p7zip": {
+    "driver": "dnf",
+    "fields": {
+     "name": "p7zip"
+    },
+    "name": "p7zip"
+   }
+  },
   "pipx": {
    "dnf\\pipx": {
     "driver": "dnf",
@@ -13109,6 +13976,26 @@
      "repo-component": "universe"
     },
     "name": "fuse-libs"
+   }
+  },
+  "unrar": {
+   "dnf\\rpmfusion-free": {
+    "driver": "dnf",
+    "fields": {
+     "name": "rpmfusion-free-release",
+     "pubkey-url": "https://rpmfusion.org/keys?action=AttachFile&do=get&target=RPM-GPG-KEY-rpmfusion-free-fedora-$releasever",
+     "repo-id": "rpmfusion-free",
+     "repo-name": "RPM Fusion Free",
+     "repo-url": "https://download1.rpmfusion.org/free/fedora/releases/$releasever/Everything/$basearch/os/"
+    },
+    "name": "rpmfusion-free-release"
+   },
+   "dnf\\unrar": {
+    "driver": "dnf",
+    "fields": {
+     "name": "unrar"
+    },
+    "name": "unrar"
    }
   },
   "unzip": {
@@ -13707,6 +14594,15 @@
     },
     "name": "zsh"
    }
+  },
+  "zstd": {
+   "dnf\\zstd": {
+    "driver": "dnf",
+    "fields": {
+     "name": "zstd"
+    },
+    "name": "zstd"
+   }
   }
  },
  "pop_os!@22.04": {
@@ -14182,6 +15078,55 @@
     "name": "@anthropic-ai/claude-code"
    }
   },
+  "codecs": {
+   "apt\\ffmpeg": {
+    "driver": "apt",
+    "fields": {
+     "name": "ffmpeg"
+    },
+    "name": "ffmpeg"
+   },
+   "apt\\gst-bad": {
+    "driver": "apt",
+    "fields": {
+     "name": "gstreamer1.0-plugins-bad"
+    },
+    "name": "gstreamer1.0-plugins-bad"
+   },
+   "apt\\gst-good": {
+    "driver": "apt",
+    "fields": {
+     "name": "gstreamer1.0-plugins-good"
+    },
+    "name": "gstreamer1.0-plugins-good"
+   }
+  },
+  "codecs-restricted": {
+   "apt\\gst-libav": {
+    "driver": "apt",
+    "fields": {
+     "name": "gstreamer1.0-libav",
+     "repo-component": "universe"
+    },
+    "name": "gstreamer1.0-libav"
+   },
+   "apt\\gst-ugly": {
+    "driver": "apt",
+    "fields": {
+     "name": "gstreamer1.0-plugins-ugly",
+     "repo-component": "multiverse"
+    },
+    "name": "gstreamer1.0-plugins-ugly"
+   },
+   "apt\\libavcodec-extra": {
+    "driver": "apt",
+    "fields": {
+     "name": "libavcodec-extra",
+     "repo-component": "universe"
+    },
+    "name": "libavcodec-extra"
+   }
+  },
   "codex": {
    "apt\\node": {
     "driver": "apt",
@@ -14197,6 +15142,43 @@
      "name": "@openai/codex"
     },
     "name": "@openai/codex"
+   }
+  },
+  "compression": {
+   "apt\\lz4": {
+    "driver": "apt",
+    "fields": {
+     "name": "lz4"
+    },
+    "name": "lz4"
+   },
+   "apt\\p7zip": {
+    "driver": "apt",
+    "fields": {
+     "name": "p7zip-full"
+    },
+    "name": "p7zip-full"
+   },
+   "apt\\unzip": {
+    "driver": "apt",
+    "fields": {
+     "name": "unzip"
+    },
+    "name": "unzip"
+   },
+   "apt\\zip": {
+    "driver": "apt",
+    "fields": {
+     "name": "zip"
+    },
+    "name": "zip"
+   },
+   "apt\\zstd": {
+    "driver": "apt",
+    "fields": {
+     "name": "zstd"
+    },
+    "name": "zstd"
    }
   },
   "conan": {
@@ -14826,6 +15808,44 @@
     "name": "golang.org/x/tools/cmd/goimports"
    }
   },
+  "gst-bad": {
+   "apt\\gst-bad": {
+    "driver": "apt",
+    "fields": {
+     "name": "gstreamer1.0-plugins-bad"
+    },
+    "name": "gstreamer1.0-plugins-bad"
+   }
+  },
+  "gst-good": {
+   "apt\\gst-good": {
+    "driver": "apt",
+    "fields": {
+     "name": "gstreamer1.0-plugins-good"
+    },
+    "name": "gstreamer1.0-plugins-good"
+   }
+  },
+  "gst-libav": {
+   "apt\\gst-libav": {
+    "driver": "apt",
+    "fields": {
+     "name": "gstreamer1.0-libav",
+     "repo-component": "universe"
+    },
+    "name": "gstreamer1.0-libav"
+   }
+  },
+  "gst-ugly": {
+   "apt\\gst-ugly": {
+    "driver": "apt",
+    "fields": {
+     "name": "gstreamer1.0-plugins-ugly",
+     "repo-component": "multiverse"
+    },
+    "name": "gstreamer1.0-plugins-ugly"
+   }
+  },
   "haskell": {
    "apt\\haskell": {
     "driver": "apt",
@@ -15242,6 +16262,16 @@
     "name": "lazysql"
    }
   },
+  "libavcodec-extra": {
+   "apt\\libavcodec-extra": {
+    "driver": "apt",
+    "fields": {
+     "name": "libavcodec-extra",
+     "repo-component": "universe"
+    },
+    "name": "libavcodec-extra"
+   }
+  },
   "libfuse2": {
    "apt\\libfuse2": {
     "driver": "apt",
@@ -15415,6 +16445,15 @@
      "name": "lxqt"
     },
     "name": "lxqt"
+   }
+  },
+  "lz4": {
+   "apt\\lz4": {
+    "driver": "apt",
+    "fields": {
+     "name": "lz4"
+    },
+    "name": "lz4"
    }
   },
   "make": {
@@ -15755,6 +16794,15 @@
     "name": "com.opera.Opera"
    }
   },
+  "p7zip": {
+   "apt\\p7zip": {
+    "driver": "apt",
+    "fields": {
+     "name": "p7zip-full"
+    },
+    "name": "p7zip-full"
+   }
+  },
   "pipx": {
    "apt\\python3-pip": {
     "driver": "apt",
@@ -16074,6 +17122,16 @@
      "repo-component": "universe"
     },
     "name": "libfuse2"
+   }
+  },
+  "unrar": {
+   "apt\\unrar": {
+    "driver": "apt",
+    "fields": {
+     "name": "unrar",
+     "repo-component": "multiverse"
+    },
+    "name": "unrar"
    }
   },
   "unzip": {
@@ -16657,6 +17715,15 @@
     },
     "name": "zsh"
    }
+  },
+  "zstd": {
+   "apt\\zstd": {
+    "driver": "apt",
+    "fields": {
+     "name": "zstd"
+    },
+    "name": "zstd"
+   }
   }
  },
  "rhel@9.8": {
@@ -17037,6 +18104,83 @@
     "name": "@anthropic-ai/claude-code"
    }
   },
+  "codecs": {
+   "dnf\\epel-release": {
+    "driver": "dnf",
+    "fields": {
+     "name": "epel-release"
+    },
+    "name": "epel-release"
+   },
+   "dnf\\ffmpeg": {
+    "driver": "dnf",
+    "fields": {
+     "name": "ffmpeg"
+    },
+    "name": "ffmpeg"
+   },
+   "dnf\\gst-bad": {
+    "driver": "dnf",
+    "fields": {
+     "name": "gstreamer1-plugins-bad-free"
+    },
+    "name": "gstreamer1-plugins-bad-free"
+   },
+   "dnf\\gst-good": {
+    "driver": "dnf",
+    "fields": {
+     "name": "gstreamer1-plugins-good"
+    },
+    "name": "gstreamer1-plugins-good"
+   },
+   "dnf\\rpmfusion-free": {
+    "driver": "dnf",
+    "fields": {
+     "enable-repo": "crb",
+     "name": "rpmfusion-free-release",
+     "pubkey-url": "https://rpmfusion.org/keys?action=AttachFile&do=get&target=RPM-GPG-KEY-rpmfusion-free-el-$releasever",
+     "repo-id": "rpmfusion-free",
+     "repo-name": "RPM Fusion for EL - Free",
+     "repo-url": "https://download1.rpmfusion.org/free/el/updates/$releasever/$basearch/"
+    },
+    "name": "rpmfusion-free-release"
+   }
+  },
+  "codecs-restricted": {
+   "dnf\\epel-release": {
+    "driver": "dnf",
+    "fields": {
+     "name": "epel-release"
+    },
+    "name": "epel-release"
+   },
+   "dnf\\gst-libav": {
+    "driver": "dnf",
+    "fields": {
+     "name": "gstreamer1-libav"
+    },
+    "name": "gstreamer1-libav"
+   },
+   "dnf\\gst-ugly": {
+    "driver": "dnf",
+    "fields": {
+     "name": "gstreamer1-plugins-ugly"
+    },
+    "name": "gstreamer1-plugins-ugly"
+   },
+   "dnf\\rpmfusion-free": {
+    "driver": "dnf",
+    "fields": {
+     "enable-repo": "crb",
+     "name": "rpmfusion-free-release",
+     "pubkey-url": "https://rpmfusion.org/keys?action=AttachFile&do=get&target=RPM-GPG-KEY-rpmfusion-free-el-$releasever",
+     "repo-id": "rpmfusion-free",
+     "repo-name": "RPM Fusion for EL - Free",
+     "repo-url": "https://download1.rpmfusion.org/free/el/updates/$releasever/$basearch/"
+    },
+    "name": "rpmfusion-free-release"
+   }
+  },
   "codex": {
    "dnf\\node": {
     "driver": "dnf",
@@ -17052,6 +18196,43 @@
      "name": "@openai/codex"
     },
     "name": "@openai/codex"
+   }
+  },
+  "compression": {
+   "dnf\\lz4": {
+    "driver": "dnf",
+    "fields": {
+     "name": "lz4"
+    },
+    "name": "lz4"
+   },
+   "dnf\\p7zip": {
+    "driver": "dnf",
+    "fields": {
+     "name": "p7zip"
+    },
+    "name": "p7zip"
+   },
+   "dnf\\unzip": {
+    "driver": "dnf",
+    "fields": {
+     "name": "unzip"
+    },
+    "name": "unzip"
+   },
+   "dnf\\zip": {
+    "driver": "dnf",
+    "fields": {
+     "name": "zip"
+    },
+    "name": "zip"
+   },
+   "dnf\\zstd": {
+    "driver": "dnf",
+    "fields": {
+     "name": "zstd"
+    },
+    "name": "zstd"
    }
   },
   "conan": {
@@ -17577,6 +18758,80 @@
      "name": "golang.org/x/tools/cmd/goimports"
     },
     "name": "golang.org/x/tools/cmd/goimports"
+   }
+  },
+  "gst-bad": {
+   "dnf\\gst-bad": {
+    "driver": "dnf",
+    "fields": {
+     "name": "gstreamer1-plugins-bad-free"
+    },
+    "name": "gstreamer1-plugins-bad-free"
+   }
+  },
+  "gst-good": {
+   "dnf\\gst-good": {
+    "driver": "dnf",
+    "fields": {
+     "name": "gstreamer1-plugins-good"
+    },
+    "name": "gstreamer1-plugins-good"
+   }
+  },
+  "gst-libav": {
+   "dnf\\epel-release": {
+    "driver": "dnf",
+    "fields": {
+     "name": "epel-release"
+    },
+    "name": "epel-release"
+   },
+   "dnf\\gst-libav": {
+    "driver": "dnf",
+    "fields": {
+     "name": "gstreamer1-libav"
+    },
+    "name": "gstreamer1-libav"
+   },
+   "dnf\\rpmfusion-free": {
+    "driver": "dnf",
+    "fields": {
+     "enable-repo": "crb",
+     "name": "rpmfusion-free-release",
+     "pubkey-url": "https://rpmfusion.org/keys?action=AttachFile&do=get&target=RPM-GPG-KEY-rpmfusion-free-el-$releasever",
+     "repo-id": "rpmfusion-free",
+     "repo-name": "RPM Fusion for EL - Free",
+     "repo-url": "https://download1.rpmfusion.org/free/el/updates/$releasever/$basearch/"
+    },
+    "name": "rpmfusion-free-release"
+   }
+  },
+  "gst-ugly": {
+   "dnf\\epel-release": {
+    "driver": "dnf",
+    "fields": {
+     "name": "epel-release"
+    },
+    "name": "epel-release"
+   },
+   "dnf\\gst-ugly": {
+    "driver": "dnf",
+    "fields": {
+     "name": "gstreamer1-plugins-ugly"
+    },
+    "name": "gstreamer1-plugins-ugly"
+   },
+   "dnf\\rpmfusion-free": {
+    "driver": "dnf",
+    "fields": {
+     "enable-repo": "crb",
+     "name": "rpmfusion-free-release",
+     "pubkey-url": "https://rpmfusion.org/keys?action=AttachFile&do=get&target=RPM-GPG-KEY-rpmfusion-free-el-$releasever",
+     "repo-id": "rpmfusion-free",
+     "repo-name": "RPM Fusion for EL - Free",
+     "repo-url": "https://download1.rpmfusion.org/free/el/updates/$releasever/$basearch/"
+    },
+    "name": "rpmfusion-free-release"
    }
   },
   "haskell": {
@@ -18203,6 +19458,15 @@
     "name": "lxqt-session"
    }
   },
+  "lz4": {
+   "dnf\\lz4": {
+    "driver": "dnf",
+    "fields": {
+     "name": "lz4"
+    },
+    "name": "lz4"
+   }
+  },
   "make": {
    "dnf\\make": {
     "driver": "dnf",
@@ -18558,6 +19822,15 @@
     "name": "com.opera.Opera"
    }
   },
+  "p7zip": {
+   "dnf\\p7zip": {
+    "driver": "dnf",
+    "fields": {
+     "name": "p7zip"
+    },
+    "name": "p7zip"
+   }
+  },
   "pipx": {
    "dnf\\epel-release": {
     "driver": "dnf",
@@ -18899,6 +20172,34 @@
      "repo-component": "universe"
     },
     "name": "fuse-libs"
+   }
+  },
+  "unrar": {
+   "dnf\\epel-release": {
+    "driver": "dnf",
+    "fields": {
+     "name": "epel-release"
+    },
+    "name": "epel-release"
+   },
+   "dnf\\rpmfusion-free": {
+    "driver": "dnf",
+    "fields": {
+     "enable-repo": "crb",
+     "name": "rpmfusion-free-release",
+     "pubkey-url": "https://rpmfusion.org/keys?action=AttachFile&do=get&target=RPM-GPG-KEY-rpmfusion-free-el-$releasever",
+     "repo-id": "rpmfusion-free",
+     "repo-name": "RPM Fusion for EL - Free",
+     "repo-url": "https://download1.rpmfusion.org/free/el/updates/$releasever/$basearch/"
+    },
+    "name": "rpmfusion-free-release"
+   },
+   "dnf\\unrar": {
+    "driver": "dnf",
+    "fields": {
+     "name": "unrar"
+    },
+    "name": "unrar"
    }
   },
   "unzip": {
@@ -19521,6 +20822,15 @@
     },
     "name": "zsh"
    }
+  },
+  "zstd": {
+   "dnf\\zstd": {
+    "driver": "dnf",
+    "fields": {
+     "name": "zstd"
+    },
+    "name": "zstd"
+   }
   }
  },
  "ubuntu@22.04": {
@@ -19996,6 +21306,55 @@
     "name": "@anthropic-ai/claude-code"
    }
   },
+  "codecs": {
+   "apt\\ffmpeg": {
+    "driver": "apt",
+    "fields": {
+     "name": "ffmpeg"
+    },
+    "name": "ffmpeg"
+   },
+   "apt\\gst-bad": {
+    "driver": "apt",
+    "fields": {
+     "name": "gstreamer1.0-plugins-bad"
+    },
+    "name": "gstreamer1.0-plugins-bad"
+   },
+   "apt\\gst-good": {
+    "driver": "apt",
+    "fields": {
+     "name": "gstreamer1.0-plugins-good"
+    },
+    "name": "gstreamer1.0-plugins-good"
+   }
+  },
+  "codecs-restricted": {
+   "apt\\gst-libav": {
+    "driver": "apt",
+    "fields": {
+     "name": "gstreamer1.0-libav",
+     "repo-component": "universe"
+    },
+    "name": "gstreamer1.0-libav"
+   },
+   "apt\\gst-ugly": {
+    "driver": "apt",
+    "fields": {
+     "name": "gstreamer1.0-plugins-ugly",
+     "repo-component": "multiverse"
+    },
+    "name": "gstreamer1.0-plugins-ugly"
+   },
+   "apt\\libavcodec-extra": {
+    "driver": "apt",
+    "fields": {
+     "name": "libavcodec-extra",
+     "repo-component": "universe"
+    },
+    "name": "libavcodec-extra"
+   }
+  },
   "codex": {
    "apt\\node": {
     "driver": "apt",
@@ -20011,6 +21370,43 @@
      "name": "@openai/codex"
     },
     "name": "@openai/codex"
+   }
+  },
+  "compression": {
+   "apt\\lz4": {
+    "driver": "apt",
+    "fields": {
+     "name": "lz4"
+    },
+    "name": "lz4"
+   },
+   "apt\\p7zip": {
+    "driver": "apt",
+    "fields": {
+     "name": "p7zip-full"
+    },
+    "name": "p7zip-full"
+   },
+   "apt\\unzip": {
+    "driver": "apt",
+    "fields": {
+     "name": "unzip"
+    },
+    "name": "unzip"
+   },
+   "apt\\zip": {
+    "driver": "apt",
+    "fields": {
+     "name": "zip"
+    },
+    "name": "zip"
+   },
+   "apt\\zstd": {
+    "driver": "apt",
+    "fields": {
+     "name": "zstd"
+    },
+    "name": "zstd"
    }
   },
   "conan": {
@@ -20631,6 +22027,44 @@
     "name": "golang.org/x/tools/cmd/goimports"
    }
   },
+  "gst-bad": {
+   "apt\\gst-bad": {
+    "driver": "apt",
+    "fields": {
+     "name": "gstreamer1.0-plugins-bad"
+    },
+    "name": "gstreamer1.0-plugins-bad"
+   }
+  },
+  "gst-good": {
+   "apt\\gst-good": {
+    "driver": "apt",
+    "fields": {
+     "name": "gstreamer1.0-plugins-good"
+    },
+    "name": "gstreamer1.0-plugins-good"
+   }
+  },
+  "gst-libav": {
+   "apt\\gst-libav": {
+    "driver": "apt",
+    "fields": {
+     "name": "gstreamer1.0-libav",
+     "repo-component": "universe"
+    },
+    "name": "gstreamer1.0-libav"
+   }
+  },
+  "gst-ugly": {
+   "apt\\gst-ugly": {
+    "driver": "apt",
+    "fields": {
+     "name": "gstreamer1.0-plugins-ugly",
+     "repo-component": "multiverse"
+    },
+    "name": "gstreamer1.0-plugins-ugly"
+   }
+  },
   "haskell": {
    "apt\\haskell": {
     "driver": "apt",
@@ -21047,6 +22481,16 @@
     "name": "lazysql"
    }
   },
+  "libavcodec-extra": {
+   "apt\\libavcodec-extra": {
+    "driver": "apt",
+    "fields": {
+     "name": "libavcodec-extra",
+     "repo-component": "universe"
+    },
+    "name": "libavcodec-extra"
+   }
+  },
   "libfuse2": {
    "apt\\libfuse2": {
     "driver": "apt",
@@ -21220,6 +22664,15 @@
      "name": "lxqt"
     },
     "name": "lxqt"
+   }
+  },
+  "lz4": {
+   "apt\\lz4": {
+    "driver": "apt",
+    "fields": {
+     "name": "lz4"
+    },
+    "name": "lz4"
    }
   },
   "make": {
@@ -21560,6 +23013,15 @@
     "name": "com.opera.Opera"
    }
   },
+  "p7zip": {
+   "apt\\p7zip": {
+    "driver": "apt",
+    "fields": {
+     "name": "p7zip-full"
+    },
+    "name": "p7zip-full"
+   }
+  },
   "pipx": {
    "apt\\python3-pip": {
     "driver": "apt",
@@ -21886,6 +23348,16 @@
      "repo-component": "universe"
     },
     "name": "libfuse2"
+   }
+  },
+  "unrar": {
+   "apt\\unrar": {
+    "driver": "apt",
+    "fields": {
+     "name": "unrar",
+     "repo-component": "multiverse"
+    },
+    "name": "unrar"
    }
   },
   "unzip": {
@@ -22468,6 +23940,15 @@
      "name": "zsh"
     },
     "name": "zsh"
+   }
+  },
+  "zstd": {
+   "apt\\zstd": {
+    "driver": "apt",
+    "fields": {
+     "name": "zstd"
+    },
+    "name": "zstd"
    }
   }
  },
@@ -22934,6 +24415,55 @@
     "name": "@anthropic-ai/claude-code"
    }
   },
+  "codecs": {
+   "apt\\ffmpeg": {
+    "driver": "apt",
+    "fields": {
+     "name": "ffmpeg"
+    },
+    "name": "ffmpeg"
+   },
+   "apt\\gst-bad": {
+    "driver": "apt",
+    "fields": {
+     "name": "gstreamer1.0-plugins-bad"
+    },
+    "name": "gstreamer1.0-plugins-bad"
+   },
+   "apt\\gst-good": {
+    "driver": "apt",
+    "fields": {
+     "name": "gstreamer1.0-plugins-good"
+    },
+    "name": "gstreamer1.0-plugins-good"
+   }
+  },
+  "codecs-restricted": {
+   "apt\\gst-libav": {
+    "driver": "apt",
+    "fields": {
+     "name": "gstreamer1.0-libav",
+     "repo-component": "universe"
+    },
+    "name": "gstreamer1.0-libav"
+   },
+   "apt\\gst-ugly": {
+    "driver": "apt",
+    "fields": {
+     "name": "gstreamer1.0-plugins-ugly",
+     "repo-component": "multiverse"
+    },
+    "name": "gstreamer1.0-plugins-ugly"
+   },
+   "apt\\libavcodec-extra": {
+    "driver": "apt",
+    "fields": {
+     "name": "libavcodec-extra",
+     "repo-component": "universe"
+    },
+    "name": "libavcodec-extra"
+   }
+  },
   "codex": {
    "apt\\node": {
     "driver": "apt",
@@ -22949,6 +24479,43 @@
      "name": "@openai/codex"
     },
     "name": "@openai/codex"
+   }
+  },
+  "compression": {
+   "apt\\lz4": {
+    "driver": "apt",
+    "fields": {
+     "name": "lz4"
+    },
+    "name": "lz4"
+   },
+   "apt\\p7zip": {
+    "driver": "apt",
+    "fields": {
+     "name": "p7zip-full"
+    },
+    "name": "p7zip-full"
+   },
+   "apt\\unzip": {
+    "driver": "apt",
+    "fields": {
+     "name": "unzip"
+    },
+    "name": "unzip"
+   },
+   "apt\\zip": {
+    "driver": "apt",
+    "fields": {
+     "name": "zip"
+    },
+    "name": "zip"
+   },
+   "apt\\zstd": {
+    "driver": "apt",
+    "fields": {
+     "name": "zstd"
+    },
+    "name": "zstd"
    }
   },
   "conan": {
@@ -23559,6 +25126,44 @@
     "name": "golang.org/x/tools/cmd/goimports"
    }
   },
+  "gst-bad": {
+   "apt\\gst-bad": {
+    "driver": "apt",
+    "fields": {
+     "name": "gstreamer1.0-plugins-bad"
+    },
+    "name": "gstreamer1.0-plugins-bad"
+   }
+  },
+  "gst-good": {
+   "apt\\gst-good": {
+    "driver": "apt",
+    "fields": {
+     "name": "gstreamer1.0-plugins-good"
+    },
+    "name": "gstreamer1.0-plugins-good"
+   }
+  },
+  "gst-libav": {
+   "apt\\gst-libav": {
+    "driver": "apt",
+    "fields": {
+     "name": "gstreamer1.0-libav",
+     "repo-component": "universe"
+    },
+    "name": "gstreamer1.0-libav"
+   }
+  },
+  "gst-ugly": {
+   "apt\\gst-ugly": {
+    "driver": "apt",
+    "fields": {
+     "name": "gstreamer1.0-plugins-ugly",
+     "repo-component": "multiverse"
+    },
+    "name": "gstreamer1.0-plugins-ugly"
+   }
+  },
   "haskell": {
    "apt\\haskell": {
     "driver": "apt",
@@ -23975,6 +25580,16 @@
     "name": "lazysql"
    }
   },
+  "libavcodec-extra": {
+   "apt\\libavcodec-extra": {
+    "driver": "apt",
+    "fields": {
+     "name": "libavcodec-extra",
+     "repo-component": "universe"
+    },
+    "name": "libavcodec-extra"
+   }
+  },
   "libfuse2": {
    "apt\\libfuse2": {
     "driver": "apt",
@@ -24138,6 +25753,15 @@
      "name": "lxqt"
     },
     "name": "lxqt"
+   }
+  },
+  "lz4": {
+   "apt\\lz4": {
+    "driver": "apt",
+    "fields": {
+     "name": "lz4"
+    },
+    "name": "lz4"
    }
   },
   "make": {
@@ -24468,6 +26092,15 @@
     "name": "com.opera.Opera"
    }
   },
+  "p7zip": {
+   "apt\\p7zip": {
+    "driver": "apt",
+    "fields": {
+     "name": "p7zip-full"
+    },
+    "name": "p7zip-full"
+   }
+  },
   "pipx": {
    "apt\\pipx": {
     "driver": "apt",
@@ -24784,6 +26417,16 @@
      "repo-component": "universe"
     },
     "name": "libfuse2"
+   }
+  },
+  "unrar": {
+   "apt\\unrar": {
+    "driver": "apt",
+    "fields": {
+     "name": "unrar",
+     "repo-component": "multiverse"
+    },
+    "name": "unrar"
    }
   },
   "unzip": {
@@ -25356,6 +26999,15 @@
      "name": "zsh"
     },
     "name": "zsh"
+   }
+  },
+  "zstd": {
+   "apt\\zstd": {
+    "driver": "apt",
+    "fields": {
+     "name": "zstd"
+    },
+    "name": "zstd"
    }
   }
  }
