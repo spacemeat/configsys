@@ -192,6 +192,22 @@
     "name": "make"
    }
   },
+  "bundler": {
+   "gem\\bundler": {
+    "driver": "gem",
+    "fields": {
+     "name": "bundler"
+    },
+    "name": "bundler"
+   },
+   "pacman\\ruby": {
+    "driver": "pacman",
+    "fields": {
+     "name": "ruby"
+    },
+    "name": "ruby"
+   }
+  },
   "chrome": {
    "flatpak\\chrome": {
     "driver": "flatpak",
@@ -1149,6 +1165,15 @@
     "name": "rocm-hip-sdk"
    }
   },
+  "ruby": {
+   "pacman\\ruby": {
+    "driver": "pacman",
+    "fields": {
+     "name": "ruby"
+    },
+    "name": "ruby"
+   }
+  },
   "rust": {
    "pacman\\rust": {
     "driver": "pacman",
@@ -2002,6 +2027,22 @@
     "name": "build-essential"
    }
   },
+  "bundler": {
+   "apt\\ruby": {
+    "driver": "apt",
+    "fields": {
+     "name": "ruby-full"
+    },
+    "name": "ruby-full"
+   },
+   "gem\\bundler": {
+    "driver": "gem",
+    "fields": {
+     "name": "bundler"
+    },
+    "name": "bundler"
+   }
+  },
   "chrome": {
    "apt\\flatpak": {
     "driver": "apt",
@@ -3326,6 +3367,15 @@
      "name": "rocm-hip-sdk"
     },
     "name": "rocm-hip-sdk"
+   }
+  },
+  "ruby": {
+   "apt\\ruby": {
+    "driver": "apt",
+    "fields": {
+     "name": "ruby-full"
+    },
+    "name": "ruby-full"
    }
   },
   "rust": {
@@ -4139,6 +4189,22 @@
     "name": "build-essential"
    }
   },
+  "bundler": {
+   "apt\\ruby": {
+    "driver": "apt",
+    "fields": {
+     "name": "ruby-full"
+    },
+    "name": "ruby-full"
+   },
+   "gem\\bundler": {
+    "driver": "gem",
+    "fields": {
+     "name": "bundler"
+    },
+    "name": "bundler"
+   }
+  },
   "chrome": {
    "apt\\flatpak": {
     "driver": "apt",
@@ -5443,6 +5509,15 @@
      "name": "rocm-hip-sdk"
     },
     "name": "rocm-hip-sdk"
+   }
+  },
+  "ruby": {
+   "apt\\ruby": {
+    "driver": "apt",
+    "fields": {
+     "name": "ruby-full"
+    },
+    "name": "ruby-full"
    }
   },
   "rust": {
@@ -6258,6 +6333,22 @@
      "name": "make"
     },
     "name": "make"
+   }
+  },
+  "bundler": {
+   "dnf\\ruby": {
+    "driver": "dnf",
+    "fields": {
+     "name": "ruby"
+    },
+    "name": "ruby"
+   },
+   "gem\\bundler": {
+    "driver": "gem",
+    "fields": {
+     "name": "bundler"
+    },
+    "name": "bundler"
    }
   },
   "chrome": {
@@ -7291,6 +7382,15 @@
     "name": "rpmfusion-free-release"
    }
   },
+  "ruby": {
+   "dnf\\ruby": {
+    "driver": "dnf",
+    "fields": {
+     "name": "ruby"
+    },
+    "name": "ruby"
+   }
+  },
   "rust": {
    "dnf\\rust": {
     "driver": "dnf",
@@ -8110,6 +8210,22 @@
      "name": "make"
     },
     "name": "make"
+   }
+  },
+  "bundler": {
+   "dnf\\ruby": {
+    "driver": "dnf",
+    "fields": {
+     "name": "ruby"
+    },
+    "name": "ruby"
+   },
+   "gem\\bundler": {
+    "driver": "gem",
+    "fields": {
+     "name": "bundler"
+    },
+    "name": "bundler"
    }
   },
   "chrome": {
@@ -9155,6 +9271,15 @@
     "name": "rpmfusion-free-release"
    }
   },
+  "ruby": {
+   "dnf\\ruby": {
+    "driver": "dnf",
+    "fields": {
+     "name": "ruby"
+    },
+    "name": "ruby"
+   }
+  },
   "rust": {
    "dnf\\rust": {
     "driver": "dnf",
@@ -9960,6 +10085,22 @@
      "name": "build-essential"
     },
     "name": "build-essential"
+   }
+  },
+  "bundler": {
+   "apt\\ruby": {
+    "driver": "apt",
+    "fields": {
+     "name": "ruby-full"
+    },
+    "name": "ruby-full"
+   },
+   "gem\\bundler": {
+    "driver": "gem",
+    "fields": {
+     "name": "bundler"
+    },
+    "name": "bundler"
    }
   },
   "chrome": {
@@ -11288,6 +11429,15 @@
     "name": "rocm-hip-sdk"
    }
   },
+  "ruby": {
+   "apt\\ruby": {
+    "driver": "apt",
+    "fields": {
+     "name": "ruby-full"
+    },
+    "name": "ruby-full"
+   }
+  },
   "rust": {
    "apt\\rust": {
     "driver": "apt",
@@ -12116,6 +12266,22 @@
      "name": "make"
     },
     "name": "make"
+   }
+  },
+  "bundler": {
+   "dnf\\ruby": {
+    "driver": "dnf",
+    "fields": {
+     "name": "ruby"
+    },
+    "name": "ruby"
+   },
+   "gem\\bundler": {
+    "driver": "gem",
+    "fields": {
+     "name": "bundler"
+    },
+    "name": "bundler"
    }
   },
   "chrome": {
@@ -13295,6 +13461,15 @@
     "name": "rpmfusion-free-release"
    }
   },
+  "ruby": {
+   "dnf\\ruby": {
+    "driver": "dnf",
+    "fields": {
+     "name": "ruby"
+    },
+    "name": "ruby"
+   }
+  },
   "rust": {
    "dnf\\rust": {
     "driver": "dnf",
@@ -14118,6 +14293,22 @@
     "name": "build-essential"
    }
   },
+  "bundler": {
+   "apt\\ruby": {
+    "driver": "apt",
+    "fields": {
+     "name": "ruby-full"
+    },
+    "name": "ruby-full"
+   },
+   "gem\\bundler": {
+    "driver": "gem",
+    "fields": {
+     "name": "bundler"
+    },
+    "name": "bundler"
+   }
+  },
   "chrome": {
    "apt\\flatpak": {
     "driver": "apt",
@@ -15442,6 +15633,15 @@
      "name": "rocm-hip-sdk"
     },
     "name": "rocm-hip-sdk"
+   }
+  },
+  "ruby": {
+   "apt\\ruby": {
+    "driver": "apt",
+    "fields": {
+     "name": "ruby-full"
+    },
+    "name": "ruby-full"
    }
   },
   "rust": {
@@ -16255,6 +16455,22 @@
     "name": "build-essential"
    }
   },
+  "bundler": {
+   "apt\\ruby": {
+    "driver": "apt",
+    "fields": {
+     "name": "ruby-full"
+    },
+    "name": "ruby-full"
+   },
+   "gem\\bundler": {
+    "driver": "gem",
+    "fields": {
+     "name": "bundler"
+    },
+    "name": "bundler"
+   }
+  },
   "chrome": {
    "apt\\flatpak": {
     "driver": "apt",
@@ -17559,6 +17775,15 @@
      "name": "rocm-hip-sdk"
     },
     "name": "rocm-hip-sdk"
+   }
+  },
+  "ruby": {
+   "apt\\ruby": {
+    "driver": "apt",
+    "fields": {
+     "name": "ruby-full"
+    },
+    "name": "ruby-full"
    }
   },
   "rust": {

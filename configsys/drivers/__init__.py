@@ -19,6 +19,7 @@ from .dnf import Dnf
 from .dotfiles import DotFiles
 from .flatpak import Flatpak
 from .gcc import Gcc
+from .gem import Gem
 from .gcc_toolset import GccToolset
 from .go_install import GoInstall
 from .group import Group
@@ -47,6 +48,7 @@ _REGISTRY = {
     Cargo.name: Cargo,
     Npm.name: Npm,
     GoInstall.name: GoInstall,
+    Gem.name: Gem,
     Gcc.name: Gcc,
     GccToolset.name: GccToolset,
     Clang.name: Clang,

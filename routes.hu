@@ -76,6 +76,7 @@
         cargo:       { requires: cargo }              // a crate needs the cargo tool
         npm:         { requires: npm }                // a global CLI needs the npm tool (-> node)
         go-install:  { requires: go }                 // `go install` needs the go toolchain
+        gem:         { requires: ruby }                // a gem needs ruby (gem ships with it)
         font: { requires: [ fontconfig, unzip ] }
         // pip / pipx on musl (Alpine): pip prefers a `musllinux` wheel and pure-Python wheels
         // install fine, but a C-extension package that ships ONLY `manylinux` (glibc) wheels
@@ -207,6 +208,14 @@
         }
         // Sample `go install` tool (module path in `name:`; binary = its last segment).
         goimports: { install: [ { via: go-install  name: "golang.org/x/tools/cmd/goimports" } ] }
+
+        // Ruby toolchain (ships gem + irb). Auto-provides `ruby` for the gem driver. apt
+        // `ruby-full` bundles the dev headers gems' native extensions need; else `ruby`.
+        ruby: {
+            install: [ { via: native  name: { apt: ruby-full  default: ruby } } ]
+        }
+        // Sample gem (userland by default; see the gem driver).
+        bundler: { install: [ { via: gem  name: bundler } ] }
 
         // --- non-native drivers with driver-level deps ---
         // Proprietary browsers — not in any distro's base repos, and native installs would
