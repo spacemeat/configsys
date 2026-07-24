@@ -61,9 +61,13 @@ pytest test/test_golden.py`, review the diff) and runs the full suite before lan
   a JVM (`requires: jdk`) + unzip.
 - **`julia` — DONE.** julialang S3 tarball, pinned latest stable (1.12.6, url verified 200);
   native on Arch/Homebrew.
-- **STILL DEFERRED:** `sdkman` — under discussion as one instance of a broader *script-installer*
-  pattern (docker's old `curl|sh`, Claude Code's installer). Open questions: uninstall + version
-  tracking for script-installed tools.
+- **`script` driver — DONE (generalizes sdkman).** Rather than a bespoke sdkman driver, a general
+  `via: script` driver: a component declares `install-cmd` / `version-cmd` (+ `version-re`) /
+  `uninstall-cmd` / `upgrade-cmd` / `set-version-cmd` / `location` as data, so any script-installed
+  tool (sdkman, rustup, nvm, vendor `curl|bash`) is just a route. Policy: **warn, don't gatekeep** —
+  a missing `uninstall-cmd` is allowed (can't cleanly remove), flagged by a `configsys check`
+  warning + at uninstall, never blocked. Ships sdkman as the demonstrator; validated end-to-end in
+  a container (`test/integration_script.sh`). Nothing left deferred.
 
 ### Track C — desktop environments  (DONE, verified subset)
 - Podman sweep of apt/dnf/pacman confirmed real metapackage names. Shipped verified-only: gnome,
