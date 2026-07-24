@@ -1,0 +1,142 @@
+.TH CONFIGSYS.HU 5 "" "configsys" "File Formats"
+.SH NAME
+configsys.hu \- the configsys configuration and routing format
+.PP
+configsys reads Humon (\fB.hu\fR) files. This is the reference for their structure: how your per-machine config selects what to install, how \fBroutes.hu\fR describes where each component comes from on any OS, and how the two combine. It is the source for the \fBconfigsys.hu(5)\fR man page and is linked from the README.
+.SH LAYERS
+.PP
+Every \fB.hu\fR file is a \fBlayer\fR. Layers overlay section-by-section, lowest precedence first, and the highest-precedence definition of a thing wins:
+.PP
+.RS 4
+.nf
+repo (routes.hu + config.hu)  <  plugins  <  discovered project files  <  your config
+.fi
+.RE
+.PP
+Your machine's own config (\fB~/.config/configsys/configsys.hu\fR) always wins. A file may \fBinclude:\fR other files (paths relative to the including file's directory), which sit just below it. Includes are definitions-only: their \fBcomponents:\fR and \fBprofiles:\fR merge in, but machine settings (\fBconfigs:\fR, \fBscope:\fR, \fBpins:\fR, \fBignore-profiles:\fR) and code-adjacent sections (\fBos:\fR, \fBdrivers:\fR) are ignored.
+.SH YOUR CONFIG FILE
+.PP
+Lives under \fB$XDG_CONFIG_HOME\fR (defaults to \fB~/.config/configsys/configsys.hu\fR); a legacy \fB~/configsys.hu\fR is migrated automatically on first run. Every section is optional:
+.PP
+.RS 4
+.nf
+{
+    configs: [ dev ]                 // which profiles apply to THIS machine
+
+    scope: system                    // default install scope for scope-honoring drivers
+
+    include: [ ~/src/myproject/configsys.hu ]   // pull in more profiles/components
+
+    plugins: [ { source: "github:someone/configsys-opensuse"  ref: v1.2.0 } ]
+
+    pins: { steam: flatpak }         // force a driver (binding-pin) or a provider
+
+    profiles: { dev: [ btop, neovim, gcc-15, gdb ] }   // define or shadow a profile
+
+    components: { apod: {} }         // override a route, add one, or remove one with {}
+
+    ignore-profiles: [ gaming ]      // suppress an auto-activated project profile
+}
+.fi
+.RE
+.IP \(bu 2
+\fB\fBconfigs:\fR\fR is the set of profiles active on this machine.
+.IP \(bu 2
+\fB\fBscope:\fR\fR sets the default install scope (\fBuser\fR or \fBsystem\fR) for scope-honoring drivers.
+.IP \(bu 2
+\fB\fBpins:\fR\fR reroutes without redefining: a binding-pin forces a component's driver, a provider-pin forces which component satisfies a capability.
+.IP \(bu 2
+\fB\fBcomponents:\fR\fR overrides a route all-or-nothing, adds a new one, or removes one with \fB{}\fR.
+.SH PROFILES
+.PP
+A profile is a named list of components. Its value is a list of \fBterms\fR, applied left-to-right:
+.IP \(bu 2
+a bare \fBname\fR adds a component;
+.IP \(bu 2
+\fB+name\fR splices in another profile's members (recursively);
+.IP \(bu 2
+\fB~name\fR removes a component added so far;
+.IP \(bu 2
+\fB+self\fR means "the same profile from the next layer down", so a higher layer \fBamends\fR a profile in place instead of replacing it wholesale.
+.PP
+.RS 4
+.nf
+profiles: {
+    base: [ btop, git, curl ]
+    dev:  [ +base, neovim, gcc-15, ~curl ]   // base, plus tools, minus curl
+    dev:  [ +self, valgrind ]                // (higher layer) amend dev in place
+}
+.fi
+.RE
+.PP
+Order matters: a \fB~\fR after a \fB+\fR drops what the include brought in; a later add re-adds it.
+.SH COMPONENTS AND BINDINGS
+.PP
+\fBroutes.hu\fR's \fBcomponents:\fR section defines each component as a capability plus a list of context-selected \fBbindings\fR. A binding names its \fBdriver\fR with \fBvia:\fR, guards itself with an optional \fBwhen:\fR expression, and carries driver-specific details:
+.PP
+.RS 4
+.nf
+components: {
+    btop: {
+        install: [
+            { via: native  when: "rhel"  requires: epel }   // EL: needs EPEL enabled
+            { via: native  repo-component: universe }        // everywhere else
+        ]
+    }
+    chrome:     { install: [ { via: flatpak  hub: flathub  app: com.google.Chrome } ] }
+    vulkan-dev: { install: [ { via: parts  parts: [ build-essential, vulkan-sdk ] } ] }
+}
+.fi
+.RE
+.IP \(bu 2
+\fB\fBvia: native\fR\fR resolves to whatever the OS uses (apt / dnf / pacman / zypper / apk / brew) — one route covers every distro. \fBname:\fR maps the package name per driver.
+.IP \(bu 2
+\fB\fBvia: parts\fR\fR is a pure aggregator: a component that is just the union of its parts, with no unit of its own.
+.IP \(bu 2
+\fB\fBrequires:\fR\fR pulls in capabilities (another component, or a driver's prerequisites) first, dependency-ordered — a hard dependency (unmet is an error). \fB\fBsuggests:\fR\fR is soft (pulled in if resolvable here, skipped otherwise). \fB\fBprovides:\fR\fR declares extra capabilities a component satisfies.
+.IP \(bu 2
+\fB\fBscope: user|system\fR\fR sets the install scope. Scope-honoring drivers (appImage, flatpak, tarball, npm, gem, luarocks) default to \fBuser\fR; fixed-scope drivers (apt/dnf/pacman = system, cargo/pipx/dotfiles = user) ignore it.
+.PP
+The most specific matching binding wins. Run \fBconfigsys where <name>\fR to see a component's bindings and which one resolves here.
+.SH THE \FBWHEN:\FR EXPRESSION
+.PP
+\fBwhen:\fR is a boolean expression that selects a binding by machine context. Its atoms are:
+.IP \(bu 2
+an \fBOS name\fR — bare (\fBubuntu\fR, \fBredhat\fR) matches that block and everything that inherits from it; versioned (\fBubuntu < 23.04\fR) matches a version range on a scale;
+.IP \(bu 2
+a \fBCPU\fR atom (\fBcpu: aarch64\fR).
+.PP
+Combine atoms with \fBand\fR, \fBor\fR, and a guarded \fBnot\fR. OS blocks form a lineage via \fBusing:\fR (\fBpop_os! -> ubuntu -> debian -> linux\fR), detected from \fB/etc/os-release\fR (\fBID=pop\fR -> \fBpop_os!\fR), so a route written on \fBdebian\fR applies to the whole family. Two bindings whose match-sets overlap must be comparable (one more specific than the other) or configsys reports a load-time ambiguity.
+.SH VERSIONS — DISCOVERED, NOT HARDCODED
+.PP
+Download-based bindings declare \fIhow\fR to find the latest version rather than pinning one:
+.PP
+.RS 4
+.nf
+neovim: {
+    install: [ { via: appImage  name: Neovim  scope: user
+                 version: { github: neovim/neovim  asset: "nvim-linux-$ARCH.appimage" }
+                 url: "https://github.com/neovim/neovim/releases/download/$VERSION/nvim-linux-$ARCH.appimage" } ]
+}
+.fi
+.RE
+.IP \(bu 2
+\fB\fB{ github: owner/repo }\fR\fR — the latest release tag; optional \fBstrip-v\fR; optional \fBasset: <glob>\fR also resolves the exact download URL from the release assets.
+.IP \(bu 2
+\fB\fB{ url: "..."  regex: "..." }\fR\fR — fetch a page and extract the version.
+.IP \(bu 2
+\fB\fB{ static: "..." }\fR\fR — a deliberate pin.
+.PP
+\fB$VERSION\fR and \fB$ARCH\fR are filled into the URL at install time. When a \fBgithub\fR asset name is literal (no glob), configsys can fall back to the API-free \fBreleases/latest/download/<asset>\fR URL, so installs keep working when the GitHub API is unreachable. Discovered versions are cached (\fB~/.config/configsys/versions.hu\fR, 24h TTL); \fBconfigsys refresh\fR re-queries; and \fB--pretend\fR never touches the network (cache-only). Set \fBCONFIGSYS_GITHUB_TOKEN\fR (or \fBGITHUB_TOKEN\fR) to lift GitHub's unauthenticated rate limit.
+.SH DOTFILES
+.PP
+A \fBvia: dotfiles\fR component maps link specs \fB{ src, dst }\fR — \fBsrc\fR under the defining layer's \fBdotfiles/\fR directory, \fBdst\fR env-var and \fB~\fR expanded. Install symlinks \fBdst -> src\fR (so edits flow back to git), backing up any existing non-symlink; uninstall restores the backup. A package that ships config \fBsuggests:\fR its \fB<name>-dotfiles\fR component (soft, so it attaches only where that config exists).
+.SH DRIVERS
+.PP
+Each \fBvia:\fR value names a driver: the OS package managers (\fBapt\fR, \fBdnf\fR, \fBpacman\fR, \fBzypper\fR, \fBapk\fR, \fBaur\fR, \fBbrew\fR, \fBrpm-ostree\fR), \fBflatpak\fR, \fBappImage\fR, \fBtarball\fR (also bare-binary and \fB.zip\fR archives), \fBdotfiles\fR, \fBfont\fR, \fBscript\fR (declared install/version/uninstall commands), the language toolchains and their module installers (\fBcargo\fR, \fBpip\fR, \fBpipx\fR, \fBnpm\fR, \fBgem\fR, \fBgo-install\fR, \fBopam\fR, \fBluarocks\fR, \fBcabal\fR, \fBgcc\fR, \fBclang\fR, \fBgcc-toolset\fR), and the post-install primitives \fBservice\fR (systemd) and \fBgroup\fR (usermod). Two \fBvia:\fR values are special: \fBnative\fR (resolves to the OS's package manager) and \fBparts\fR (a pure aggregator).
+.SH PROJECT DISCOVERY
+.PP
+configsys walks up from your working directory for \fB.configsys.hu\fR (a base file) and \fB.configsys-*.hu\fR (named variants), and \fBauto-activates\fR their profiles — so a source tree can declare its own dependency set. Discovery is bounded by \fB$HOME\fR and the filesystem root, disabled by \fBCONFIGSYS_NO_DISCOVER=1\fR, and starts from \fBCONFIGSYS_CWD\fR (or the current directory). A malformed discovered file is skipped, never fatal.
+.SH SEE ALSO
+.PP
+\fBconfigsys(1)\fR for the command-line interface; the README for a narrative overview.

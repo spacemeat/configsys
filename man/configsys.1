@@ -1,0 +1,104 @@
+.TH CONFIGSYS 1 "" "configsys" "User Commands"
+.SH NAME
+configsys \- Provision OS-native software from a profile: one config, one tool, across apt/dnf/pacman/zypper/apk/brew, plus flatpak, tarballs, language toolchains, and more
+.SH SYNOPSIS
+.B configsys
+[\fIoptions\fR] [\fIcommand\fR] [\fIargs\fR ...]
+.SH DESCRIPTION
+Provision OS-native software from a profile: one config, one tool, across apt/dnf/pacman/zypper/apk/brew, plus flatpak, tarballs, language toolchains, and more. With no command, the interactive TUI opens.
+.SH OPTIONS
+.TP
+\fB-h\fR, \fB--help\fR
+show this help message and exit
+.TP
+\fB--pretend\fR
+print commands instead of executing them (dry run)
+.TP
+\fB--os\fR
+override detected OS routes block (e.g. pop_os!)
+.TP
+\fB--home\fR
+override HOME base for all paths (sandboxing)
+.TP
+\fB--config\fR
+override the per-machine selector file path
+.TP
+\fB-v\fR, \fB--verbose\fR
+stream load detail to stderr: -v layers/overrides/per-unit state, -vv full route/binding/why (errors + progress already show by default)
+.TP
+\fB-q\fR, \fB--silent\fR
+no console output during load at all — only the TUI ! page
+.SH COMMANDS
+.TP
+\fBinspect\fR
+show install state of the active profiles
+.TP
+\fBinstall\fR
+Install components. A name is a component; profile:<name> expands to that profile's components.
+.TP
+\fBremove\fR
+Uninstall components. A name is a component; profile:<name> expands to that profile's components.
+.TP
+\fBupgrade\fR
+Upgrade components to latest. A name is a component; profile:<name> expands to that profile's components.
+.TP
+\fBlock\fR
+Version-lock components. A name is a component; profile:<name> expands to that profile's components.
+.TP
+\fBunlock\fR
+Remove version lock. A name is a component; profile:<name> expands to that profile's components.
+.TP
+\fBfix-scope\fR
+reconcile installed units whose actual scope differs from the declared scope (moves the install, not config)
+.TP
+\fBset-version\fR
+pin a component to a specific version
+.TP
+\fBwhere\fR
+explain a component: source layer, bindings, and how it resolves on this machine
+.TP
+\fBcheck\fR
+lint the merged config (repo + ~/configsys.hu) without installing
+.TP
+\fBplugin\fR
+data plugins: declare in \fBplugins:\fR, then sync from git
+.TP
+\fBreport\fR
+assemble an install-failure report (OS + route + driver output) and file it upstream — you approve the full text first
+.TP
+\fBrequest\fR
+ask upstream for a full cross-platform story for a component — shows a coverage matrix; you approve before filing
+.TP
+\fBrefresh\fR
+re-query latest versions from their sources
+.TP
+\fBtui\fR
+interactive TUI (default)
+.SH EXAMPLES
+.nf
+  configsys                          open the interactive TUI (the default)
+  configsys inspect                  install-state table for the active profiles
+  configsys install rust ripgrep     install components (deps pulled + ordered)
+  configsys install profile:dev       install every component in the `dev` profile
+  configsys upgrade profile:dev btop  a profile plus an extra, to latest
+  configsys where neovim             explain how a component resolves on this machine
+  configsys --pretend install steam  dry run: print the commands, change nothing
+.fi
+.SH ENVIRONMENT
+.nf
+  CONFIGSYS_OS, CONFIGSYS_OS_VERSION   override the detected OS block / version
+  CONFIGSYS_HOME, CONFIGSYS_CONFIG     relocate the HOME base / the selector file
+  CONFIGSYS_NO_DISCOVER=1              disable project (.configsys.hu) discovery
+  CONFIGSYS_CWD                        directory to start project discovery from
+  CONFIGSYS_ARCH                       override CPU arch for $ARCH substitution
+  CONFIGSYS_GITHUB_TOKEN / _GIT_TOKEN  auth for private plugin repos
+.fi
+.SH FILES
+.TP
+\fB~/.config/configsys/configsys.hu\fR
+per-machine config (profiles, pins, plugins).
+.TP
+\fB~/.config/configsys/versions.hu\fR
+discovered-version cache (24h TTL).
+.SH SEE ALSO
+.BR configsys.hu (5)
