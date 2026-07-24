@@ -235,6 +235,29 @@
         // Nim compiler (nimble ships alongside).
         nim:   { install: [ { via: native  repo-component: universe } ] }
 
+        // Zig — native on Arch/Homebrew; elsewhere the upstream tarball. zig's Linux build is
+        // statically linked (runs on glibc AND musl), so no glibc requirement. Its prebuilt
+        // binaries live on ziglang.org (not github assets), so github supplies only the VERSION
+        // and a url template builds the download.
+        zig: {
+            install: [
+                { via: native  when: "arch" }
+                { via: native  when: "fedora_atomic" }             // brew formula `zig`
+                { via: tarball  installDir: apps/zig
+                  version: { github: ziglang/zig  strip-v: true }
+                  url: "https://ziglang.org/download/$VERSION/zig-linux-$ARCH-$VERSION.tar.xz" }
+            ]
+        }
+        // Odin — upstream github release tarball (glibc-linked, so it declines on musl).
+        odin: {
+            install: [
+                { via: native  when: "fedora_atomic" }             // brew formula `odin`
+                { via: tarball  installDir: apps/odin  requires: glibc
+                  version: { github: odin-lang/Odin  asset: "odin-linux-amd64-*.tar.gz" }
+                  url: "https://github.com/odin-lang/Odin/releases/download/$VERSION/odin-linux-amd64-$VERSION.tar.gz" }
+            ]
+        }
+
         // --- non-native drivers with driver-level deps ---
         // Proprietary browsers — not in any distro's base repos, and native installs would
         // each need their vendor apt/dnf repo wired in (plumbing configsys doesn't have). The

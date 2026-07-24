@@ -1114,6 +1114,28 @@
     "name": "ocaml"
    }
   },
+  "odin": {
+   "pacman\\curl": {
+    "driver": "pacman",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "tarball\\odin": {
+    "driver": "tarball",
+    "fields": {
+     "installDir": "apps/odin",
+     "name": "odin",
+     "url": "https://github.com/odin-lang/Odin/releases/download/$VERSION/odin-linux-amd64-$VERSION.tar.gz",
+     "version": {
+      "asset": "odin-linux-amd64-*.tar.gz",
+      "github": "odin-lang/Odin"
+     }
+    },
+    "name": "odin"
+   }
+  },
   "opera": {
    "flatpak\\opera": {
     "driver": "flatpak",
@@ -1907,6 +1929,15 @@
      }
     },
     "name": "yq"
+   }
+  },
+  "zig": {
+   "pacman\\zig": {
+    "driver": "pacman",
+    "fields": {
+     "name": "zig"
+    },
+    "name": "zig"
    }
   },
   "zsh": {
@@ -3377,6 +3408,28 @@
     "name": "ocaml"
    }
   },
+  "odin": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "tarball\\odin": {
+    "driver": "tarball",
+    "fields": {
+     "installDir": "apps/odin",
+     "name": "odin",
+     "url": "https://github.com/odin-lang/Odin/releases/download/$VERSION/odin-linux-amd64-$VERSION.tar.gz",
+     "version": {
+      "asset": "odin-linux-amd64-*.tar.gz",
+      "github": "odin-lang/Odin"
+     }
+    },
+    "name": "odin"
+   }
+  },
   "opera": {
    "apt\\flatpak": {
     "driver": "apt",
@@ -4138,6 +4191,28 @@
      }
     },
     "name": "yq"
+   }
+  },
+  "zig": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "tarball\\zig": {
+    "driver": "tarball",
+    "fields": {
+     "installDir": "apps/zig",
+     "name": "zig",
+     "url": "https://ziglang.org/download/$VERSION/zig-linux-$ARCH-$VERSION.tar.xz",
+     "version": {
+      "github": "ziglang/zig",
+      "strip-v": "true"
+     }
+    },
+    "name": "zig"
    }
   },
   "zsh": {
@@ -5598,6 +5673,28 @@
     "name": "ocaml"
    }
   },
+  "odin": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "tarball\\odin": {
+    "driver": "tarball",
+    "fields": {
+     "installDir": "apps/odin",
+     "name": "odin",
+     "url": "https://github.com/odin-lang/Odin/releases/download/$VERSION/odin-linux-amd64-$VERSION.tar.gz",
+     "version": {
+      "asset": "odin-linux-amd64-*.tar.gz",
+      "github": "odin-lang/Odin"
+     }
+    },
+    "name": "odin"
+   }
+  },
   "opera": {
    "apt\\flatpak": {
     "driver": "apt",
@@ -6339,6 +6436,28 @@
      }
     },
     "name": "yq"
+   }
+  },
+  "zig": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "tarball\\zig": {
+    "driver": "tarball",
+    "fields": {
+     "installDir": "apps/zig",
+     "name": "zig",
+     "url": "https://ziglang.org/download/$VERSION/zig-linux-$ARCH-$VERSION.tar.xz",
+     "version": {
+      "github": "ziglang/zig",
+      "strip-v": "true"
+     }
+    },
+    "name": "zig"
    }
   },
   "zsh": {
@@ -7525,6 +7644,28 @@
     "name": "ocaml"
    }
   },
+  "odin": {
+   "dnf\\curl": {
+    "driver": "dnf",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "tarball\\odin": {
+    "driver": "tarball",
+    "fields": {
+     "installDir": "apps/odin",
+     "name": "odin",
+     "url": "https://github.com/odin-lang/Odin/releases/download/$VERSION/odin-linux-amd64-$VERSION.tar.gz",
+     "version": {
+      "asset": "odin-linux-amd64-*.tar.gz",
+      "github": "odin-lang/Odin"
+     }
+    },
+    "name": "odin"
+   }
+  },
   "opera": {
    "dnf\\flatpak": {
     "driver": "dnf",
@@ -8285,6 +8426,28 @@
      }
     },
     "name": "yq"
+   }
+  },
+  "zig": {
+   "dnf\\curl": {
+    "driver": "dnf",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "tarball\\zig": {
+    "driver": "tarball",
+    "fields": {
+     "installDir": "apps/zig",
+     "name": "zig",
+     "url": "https://ziglang.org/download/$VERSION/zig-linux-$ARCH-$VERSION.tar.xz",
+     "version": {
+      "github": "ziglang/zig",
+      "strip-v": "true"
+     }
+    },
+    "name": "zig"
    }
   },
   "zsh": {
@@ -9483,6 +9646,28 @@
     "name": "ocaml"
    }
   },
+  "odin": {
+   "dnf\\curl": {
+    "driver": "dnf",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "tarball\\odin": {
+    "driver": "tarball",
+    "fields": {
+     "installDir": "apps/odin",
+     "name": "odin",
+     "url": "https://github.com/odin-lang/Odin/releases/download/$VERSION/odin-linux-amd64-$VERSION.tar.gz",
+     "version": {
+      "asset": "odin-linux-amd64-*.tar.gz",
+      "github": "odin-lang/Odin"
+     }
+    },
+    "name": "odin"
+   }
+  },
   "opera": {
    "dnf\\flatpak": {
     "driver": "dnf",
@@ -10243,6 +10428,28 @@
      }
     },
     "name": "yq"
+   }
+  },
+  "zig": {
+   "dnf\\curl": {
+    "driver": "dnf",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "tarball\\zig": {
+    "driver": "tarball",
+    "fields": {
+     "installDir": "apps/zig",
+     "name": "zig",
+     "url": "https://ziglang.org/download/$VERSION/zig-linux-$ARCH-$VERSION.tar.xz",
+     "version": {
+      "github": "ziglang/zig",
+      "strip-v": "true"
+     }
+    },
+    "name": "zig"
    }
   },
   "zsh": {
@@ -11713,6 +11920,28 @@
     "name": "ocaml"
    }
   },
+  "odin": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "tarball\\odin": {
+    "driver": "tarball",
+    "fields": {
+     "installDir": "apps/odin",
+     "name": "odin",
+     "url": "https://github.com/odin-lang/Odin/releases/download/$VERSION/odin-linux-amd64-$VERSION.tar.gz",
+     "version": {
+      "asset": "odin-linux-amd64-*.tar.gz",
+      "github": "odin-lang/Odin"
+     }
+    },
+    "name": "odin"
+   }
+  },
   "opera": {
    "apt\\flatpak": {
     "driver": "apt",
@@ -12467,6 +12696,28 @@
      }
     },
     "name": "yq"
+   }
+  },
+  "zig": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "tarball\\zig": {
+    "driver": "tarball",
+    "fields": {
+     "installDir": "apps/zig",
+     "name": "zig",
+     "url": "https://ziglang.org/download/$VERSION/zig-linux-$ARCH-$VERSION.tar.xz",
+     "version": {
+      "github": "ziglang/zig",
+      "strip-v": "true"
+     }
+    },
+    "name": "zig"
    }
   },
   "zsh": {
@@ -13790,6 +14041,28 @@
     "name": "ocaml"
    }
   },
+  "odin": {
+   "dnf\\curl": {
+    "driver": "dnf",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "tarball\\odin": {
+    "driver": "tarball",
+    "fields": {
+     "installDir": "apps/odin",
+     "name": "odin",
+     "url": "https://github.com/odin-lang/Odin/releases/download/$VERSION/odin-linux-amd64-$VERSION.tar.gz",
+     "version": {
+      "asset": "odin-linux-amd64-*.tar.gz",
+      "github": "odin-lang/Odin"
+     }
+    },
+    "name": "odin"
+   }
+  },
   "opera": {
    "dnf\\flatpak": {
     "driver": "dnf",
@@ -14587,6 +14860,28 @@
      }
     },
     "name": "yq"
+   }
+  },
+  "zig": {
+   "dnf\\curl": {
+    "driver": "dnf",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "tarball\\zig": {
+    "driver": "tarball",
+    "fields": {
+     "installDir": "apps/zig",
+     "name": "zig",
+     "url": "https://ziglang.org/download/$VERSION/zig-linux-$ARCH-$VERSION.tar.xz",
+     "version": {
+      "github": "ziglang/zig",
+      "strip-v": "true"
+     }
+    },
+    "name": "zig"
    }
   },
   "zsh": {
@@ -16057,6 +16352,28 @@
     "name": "ocaml"
    }
   },
+  "odin": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "tarball\\odin": {
+    "driver": "tarball",
+    "fields": {
+     "installDir": "apps/odin",
+     "name": "odin",
+     "url": "https://github.com/odin-lang/Odin/releases/download/$VERSION/odin-linux-amd64-$VERSION.tar.gz",
+     "version": {
+      "asset": "odin-linux-amd64-*.tar.gz",
+      "github": "odin-lang/Odin"
+     }
+    },
+    "name": "odin"
+   }
+  },
   "opera": {
    "apt\\flatpak": {
     "driver": "apt",
@@ -16818,6 +17135,28 @@
      }
     },
     "name": "yq"
+   }
+  },
+  "zig": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "tarball\\zig": {
+    "driver": "tarball",
+    "fields": {
+     "installDir": "apps/zig",
+     "name": "zig",
+     "url": "https://ziglang.org/download/$VERSION/zig-linux-$ARCH-$VERSION.tar.xz",
+     "version": {
+      "github": "ziglang/zig",
+      "strip-v": "true"
+     }
+    },
+    "name": "zig"
    }
   },
   "zsh": {
@@ -18278,6 +18617,28 @@
     "name": "ocaml"
    }
   },
+  "odin": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "tarball\\odin": {
+    "driver": "tarball",
+    "fields": {
+     "installDir": "apps/odin",
+     "name": "odin",
+     "url": "https://github.com/odin-lang/Odin/releases/download/$VERSION/odin-linux-amd64-$VERSION.tar.gz",
+     "version": {
+      "asset": "odin-linux-amd64-*.tar.gz",
+      "github": "odin-lang/Odin"
+     }
+    },
+    "name": "odin"
+   }
+  },
   "opera": {
    "apt\\flatpak": {
     "driver": "apt",
@@ -19019,6 +19380,28 @@
      }
     },
     "name": "yq"
+   }
+  },
+  "zig": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "tarball\\zig": {
+    "driver": "tarball",
+    "fields": {
+     "installDir": "apps/zig",
+     "name": "zig",
+     "url": "https://ziglang.org/download/$VERSION/zig-linux-$ARCH-$VERSION.tar.xz",
+     "version": {
+      "github": "ziglang/zig",
+      "strip-v": "true"
+     }
+    },
+    "name": "zig"
    }
   },
   "zsh": {
