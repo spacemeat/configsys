@@ -1,0 +1,72 @@
+# Expansion plan — languages, tools, DEs, and `configsys request`
+
+Discovery + grill outcome (2026-07-24). Source of truth for the smart-commit sequence below.
+Each **data** commit regenerates the golden gate (`CONFIGSYS_REGEN_GOLDEN=1 .venv/bin/python -m
+pytest test/test_golden.py`, review the diff) and runs the full suite before landing.
+
+## Locked decisions
+
+- **"Component stories" = a request-a-component report.** New `configsys request <name>`, parallel
+  to `configsys report`. Its payload is a **coverage matrix**: resolve the component against every
+  modeled OS block, show *have (this platform)* vs *missing (dnf / pacman / brew / …)*. Reuses the
+  reportgen scrub/approve/gh-or-browser plumbing; own marker `<!-- configsys-request v1 -->`, own
+  `component-request` label + issue form + a branch in the reports-repo auto-label Action.
+  - Honest scope: there is no macOS OS block today (brew is only `native` on `fedora_atomic` + a
+    `name:`-map key), so the matrix spans the modeled Linux families, not a fictional macOS.
+- **Language model = native-first toolchains + ecosystem module drivers.** The *toolchain*
+  (rustc/go/node/jdk/…) installs so the language is usable directly — native package where
+  available, tarball where not. On top, **module-installer drivers** let configsys install
+  language modules/CLIs the way `tree-sitter-cli` rides `cargo` today.
+- **Module drivers, full set now:** `npm` (Node globals), `gem` (Ruby), `opam` (OCaml),
+  `luarocks` (Lua), `cabal` (Haskell), `go-install` (Go), `sdkman` (JVM). (`cargo`, `pipx` exist.)
+  Each implements the standard op set; no native version-lock → lock intent in the ledger (like
+  cargo/pipx).
+- **Languages, full set:** named — rust (made explicit), ocaml, zig, go, node/typescript,
+  java/kotlin, odin, lua — plus curated extras — haskell, ruby, elixir/erlang, julia, nim, deno,
+  bun.
+- **DEs = broad catalog + variant OS blocks.** DEs are capabilities; *ubuntu variants declare
+  `provides:` so a DE component skips install where the OS already ships it. Add OS blocks
+  kubuntu→kde, lubuntu→lxqt, xubuntu→xfce (and kfedora/... as cheap). DE components: cosmic,
+  gnome, kde/plasma, xfce, lxqt, cinnamon, mate, budgie, sway, hyprland (native metapackages,
+  per-distro `name:` maps).
+- **Editors/shells:** JetBrains Toolbox (tarball, manages IDEA/CLion/etc.), tmux, zsh, plus fish +
+  nushell (native everywhere).
+
+## Smart-commit sequence
+
+### Track A — languages & module drivers  (one cohesive commit per ecosystem)
+- **A1  rust, explicit.** `rust` component (native `rustup`/`rust`; provides `rust` + `cargo`
+  capabilities); rewire the `cargo` driver-dep onto it. Foundational — proves the native-first
+  toolchain + `provides:`-a-capability pattern.
+- **A2  node + npm.** `node` toolchain (native / tarball); `npm` driver (`npm install -g`);
+  `typescript`, `prettier` sample globals; `deno`, `bun` toolchains.
+- **A3  go + go-install.** `go` toolchain; `go-install` driver (`go install pkg@latest`).
+- **A4  ruby + gem.** `ruby` toolchain; `gem` driver.
+- **A5  jvm + sdkman.** `jdk` + `kotlin`; `sdkman` driver.
+- **A6  ocaml + opam.** `ocaml` toolchain; `opam` driver.
+- **A7  lua + luarocks.** `lua` toolchain; `luarocks` driver.
+- **A8  haskell + cabal.** `ghcup`/`ghc` toolchain; `cabal` driver.
+- **A9  zig + odin.** tarball toolchains (github release discovery), no module manager.
+- **A10 elixir/erlang, julia, nim.** native/tarball toolchains.
+
+### Track B — editors & shells
+- **B1  tmux + zsh + fish + nushell.** native everywhere.
+- **B2  jetbrains-toolbox.** tarball app (unityhub/kicad pattern).
+
+### Track C — desktop environments
+- **C1  DE capability model + variant OS blocks.** kubuntu/lubuntu/xubuntu `provides:` their DE.
+- **C2  DE components.** cosmic, gnome, kde, xfce, lxqt, cinnamon, mate, budgie, sway, hyprland.
+
+### Track D — `configsys request`
+- **D1  reportgen coverage matrix.** resolve a component across all OS blocks → have/missing;
+  request payload + render; `<!-- configsys-request v1 -->` marker.
+- **D2  `request` command.** app.py wiring, scrub/approve/gh-or-browser reuse, tests.
+- **D3  reports-repo scaffolding.** request issue form, `component-request` label, auto-label
+  Action branch, README section.
+
+## Parked / notes
+- No macOS block yet; if one lands, DE + toolchain matrices extend for free.
+- luarocks/opam/sdkman/cabal all have real `list`/`upgrade` verbs → genuine version state (better
+  than cargo/pipx's ledger-only lock, but keep lock in the ledger for uniformity).
+- Profiles: consider a `languages` / `polyglot` profile once the toolchains land (not in scope
+  until the data exists).

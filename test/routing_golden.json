@@ -192,16 +192,6 @@
     "name": "make"
    }
   },
-  "cargo": {
-   "pacman\\cargo": {
-    "driver": "pacman",
-    "fields": {
-     "name": "rust",
-     "repo-component": "universe"
-    },
-    "name": "rust"
-   }
-  },
   "chrome": {
    "flatpak\\chrome": {
     "driver": "flatpak",
@@ -902,14 +892,6 @@
     },
     "name": "neovim-dotfiles"
    },
-   "pacman\\cargo": {
-    "driver": "pacman",
-    "fields": {
-     "name": "rust",
-     "repo-component": "universe"
-    },
-    "name": "rust"
-   },
    "pacman\\libfuse2": {
     "driver": "pacman",
     "fields": {
@@ -925,6 +907,14 @@
      "repo-component": "universe"
     },
     "name": "ripgrep"
+   },
+   "pacman\\rust": {
+    "driver": "pacman",
+    "fields": {
+     "name": "rust",
+     "repo-component": "universe"
+    },
+    "name": "rust"
    }
   },
   "neovim-dotfiles": {
@@ -1089,6 +1079,16 @@
     "name": "rocm-hip-sdk"
    }
   },
+  "rust": {
+   "pacman\\rust": {
+    "driver": "pacman",
+    "fields": {
+     "name": "rust",
+     "repo-component": "universe"
+    },
+    "name": "rust"
+   }
+  },
   "slack": {
    "flatpak\\slack": {
     "driver": "flatpak",
@@ -1178,7 +1178,7 @@
     },
     "name": "tree-sitter-cli"
    },
-   "pacman\\cargo": {
+   "pacman\\rust": {
     "driver": "pacman",
     "fields": {
      "name": "rust",
@@ -1534,7 +1534,7 @@
     },
     "name": "websocat"
    },
-   "pacman\\cargo": {
+   "pacman\\rust": {
     "driver": "pacman",
     "fields": {
      "name": "rust",
@@ -1658,7 +1658,7 @@
     },
     "name": "xh"
    },
-   "pacman\\cargo": {
+   "pacman\\rust": {
     "driver": "pacman",
     "fields": {
      "name": "rust",
@@ -1897,16 +1897,6 @@
     "name": "build-essential"
    }
   },
-  "cargo": {
-   "apt\\cargo": {
-    "driver": "apt",
-    "fields": {
-     "name": "cargo",
-     "repo-component": "universe"
-    },
-    "name": "cargo"
-   }
-  },
   "chrome": {
    "apt\\flatpak": {
     "driver": "apt",
@@ -2922,14 +2912,6 @@
     },
     "name": "Neovim"
    },
-   "apt\\cargo": {
-    "driver": "apt",
-    "fields": {
-     "name": "cargo",
-     "repo-component": "universe"
-    },
-    "name": "cargo"
-   },
    "apt\\libfuse2": {
     "driver": "apt",
     "fields": {
@@ -2945,6 +2927,14 @@
      "repo-component": "universe"
     },
     "name": "ripgrep"
+   },
+   "apt\\rust": {
+    "driver": "apt",
+    "fields": {
+     "name": "rust-all",
+     "repo-component": "universe"
+    },
+    "name": "rust-all"
    },
    "cargo\\tree-sitter-cli": {
     "driver": "cargo",
@@ -3150,6 +3140,16 @@
     "name": "rocm-hip-sdk"
    }
   },
+  "rust": {
+   "apt\\rust": {
+    "driver": "apt",
+    "fields": {
+     "name": "rust-all",
+     "repo-component": "universe"
+    },
+    "name": "rust-all"
+   }
+  },
   "slack": {
    "apt\\flatpak": {
     "driver": "apt",
@@ -3238,13 +3238,13 @@
    }
   },
   "tree-sitter-cli": {
-   "apt\\cargo": {
+   "apt\\rust": {
     "driver": "apt",
     "fields": {
-     "name": "cargo",
+     "name": "rust-all",
      "repo-component": "universe"
     },
-    "name": "cargo"
+    "name": "rust-all"
    },
    "cargo\\tree-sitter-cli": {
     "driver": "cargo",
@@ -3559,13 +3559,13 @@
    }
   },
   "websocat": {
-   "apt\\cargo": {
+   "apt\\rust": {
     "driver": "apt",
     "fields": {
-     "name": "cargo",
+     "name": "rust-all",
      "repo-component": "universe"
     },
-    "name": "cargo"
+    "name": "rust-all"
    },
    "cargo\\websocat": {
     "driver": "cargo",
@@ -3683,13 +3683,13 @@
    }
   },
   "xh": {
-   "apt\\cargo": {
+   "apt\\rust": {
     "driver": "apt",
     "fields": {
-     "name": "cargo",
+     "name": "rust-all",
      "repo-component": "universe"
     },
-    "name": "cargo"
+    "name": "rust-all"
    },
    "cargo\\xh": {
     "driver": "cargo",
@@ -3916,16 +3916,6 @@
     "name": "build-essential"
    }
   },
-  "cargo": {
-   "apt\\cargo": {
-    "driver": "apt",
-    "fields": {
-     "name": "cargo",
-     "repo-component": "universe"
-    },
-    "name": "cargo"
-   }
-  },
   "chrome": {
    "apt\\flatpak": {
     "driver": "apt",
@@ -4931,14 +4921,6 @@
     },
     "name": "Neovim"
    },
-   "apt\\cargo": {
-    "driver": "apt",
-    "fields": {
-     "name": "cargo",
-     "repo-component": "universe"
-    },
-    "name": "cargo"
-   },
    "apt\\libfuse2": {
     "driver": "apt",
     "fields": {
@@ -4954,6 +4936,14 @@
      "repo-component": "universe"
     },
     "name": "ripgrep"
+   },
+   "apt\\rust": {
+    "driver": "apt",
+    "fields": {
+     "name": "rust-all",
+     "repo-component": "universe"
+    },
+    "name": "rust-all"
    },
    "cargo\\tree-sitter-cli": {
     "driver": "cargo",
@@ -5149,6 +5139,16 @@
     "name": "rocm-hip-sdk"
    }
   },
+  "rust": {
+   "apt\\rust": {
+    "driver": "apt",
+    "fields": {
+     "name": "rust-all",
+     "repo-component": "universe"
+    },
+    "name": "rust-all"
+   }
+  },
   "slack": {
    "apt\\flatpak": {
     "driver": "apt",
@@ -5237,13 +5237,13 @@
    }
   },
   "tree-sitter-cli": {
-   "apt\\cargo": {
+   "apt\\rust": {
     "driver": "apt",
     "fields": {
-     "name": "cargo",
+     "name": "rust-all",
      "repo-component": "universe"
     },
-    "name": "cargo"
+    "name": "rust-all"
    },
    "cargo\\tree-sitter-cli": {
     "driver": "cargo",
@@ -5558,13 +5558,13 @@
    }
   },
   "websocat": {
-   "apt\\cargo": {
+   "apt\\rust": {
     "driver": "apt",
     "fields": {
-     "name": "cargo",
+     "name": "rust-all",
      "repo-component": "universe"
     },
-    "name": "cargo"
+    "name": "rust-all"
    },
    "cargo\\websocat": {
     "driver": "cargo",
@@ -5682,13 +5682,13 @@
    }
   },
   "xh": {
-   "apt\\cargo": {
+   "apt\\rust": {
     "driver": "apt",
     "fields": {
-     "name": "cargo",
+     "name": "rust-all",
      "repo-component": "universe"
     },
-    "name": "cargo"
+    "name": "rust-all"
    },
    "cargo\\xh": {
     "driver": "cargo",
@@ -5917,16 +5917,6 @@
      "name": "make"
     },
     "name": "make"
-   }
-  },
-  "cargo": {
-   "dnf\\cargo": {
-    "driver": "dnf",
-    "fields": {
-     "name": "cargo",
-     "repo-component": "universe"
-    },
-    "name": "cargo"
    }
   },
   "chrome": {
@@ -6656,14 +6646,6 @@
     },
     "name": "tree-sitter-cli"
    },
-   "dnf\\cargo": {
-    "driver": "dnf",
-    "fields": {
-     "name": "cargo",
-     "repo-component": "universe"
-    },
-    "name": "cargo"
-   },
    "dnf\\libfuse2": {
     "driver": "dnf",
     "fields": {
@@ -6679,6 +6661,14 @@
      "repo-component": "universe"
     },
     "name": "ripgrep"
+   },
+   "dnf\\rust": {
+    "driver": "dnf",
+    "fields": {
+     "name": "cargo",
+     "repo-component": "universe"
+    },
+    "name": "cargo"
    },
    "dotfiles\\bash-dotfiles": {
     "driver": "dotfiles",
@@ -6877,6 +6867,16 @@
     "name": "rpmfusion-free-release"
    }
   },
+  "rust": {
+   "dnf\\rust": {
+    "driver": "dnf",
+    "fields": {
+     "name": "cargo",
+     "repo-component": "universe"
+    },
+    "name": "cargo"
+   }
+  },
   "slack": {
    "dnf\\flatpak": {
     "driver": "dnf",
@@ -6966,7 +6966,7 @@
     },
     "name": "tree-sitter-cli"
    },
-   "dnf\\cargo": {
+   "dnf\\rust": {
     "driver": "dnf",
     "fields": {
      "name": "cargo",
@@ -7302,7 +7302,7 @@
     },
     "name": "websocat"
    },
-   "dnf\\cargo": {
+   "dnf\\rust": {
     "driver": "dnf",
     "fields": {
      "name": "cargo",
@@ -7426,7 +7426,7 @@
     },
     "name": "xh"
    },
-   "dnf\\cargo": {
+   "dnf\\rust": {
     "driver": "dnf",
     "fields": {
      "name": "cargo",
@@ -7651,16 +7651,6 @@
      "name": "make"
     },
     "name": "make"
-   }
-  },
-  "cargo": {
-   "dnf\\cargo": {
-    "driver": "dnf",
-    "fields": {
-     "name": "cargo",
-     "repo-component": "universe"
-    },
-    "name": "cargo"
    }
   },
   "chrome": {
@@ -8402,14 +8392,6 @@
     },
     "name": "tree-sitter-cli"
    },
-   "dnf\\cargo": {
-    "driver": "dnf",
-    "fields": {
-     "name": "cargo",
-     "repo-component": "universe"
-    },
-    "name": "cargo"
-   },
    "dnf\\libfuse2": {
     "driver": "dnf",
     "fields": {
@@ -8425,6 +8407,14 @@
      "repo-component": "universe"
     },
     "name": "ripgrep"
+   },
+   "dnf\\rust": {
+    "driver": "dnf",
+    "fields": {
+     "name": "cargo",
+     "repo-component": "universe"
+    },
+    "name": "cargo"
    },
    "dotfiles\\bash-dotfiles": {
     "driver": "dotfiles",
@@ -8623,6 +8613,16 @@
     "name": "rpmfusion-free-release"
    }
   },
+  "rust": {
+   "dnf\\rust": {
+    "driver": "dnf",
+    "fields": {
+     "name": "cargo",
+     "repo-component": "universe"
+    },
+    "name": "cargo"
+   }
+  },
   "slack": {
    "dnf\\flatpak": {
     "driver": "dnf",
@@ -8712,7 +8712,7 @@
     },
     "name": "tree-sitter-cli"
    },
-   "dnf\\cargo": {
+   "dnf\\rust": {
     "driver": "dnf",
     "fields": {
      "name": "cargo",
@@ -9048,7 +9048,7 @@
     },
     "name": "websocat"
    },
-   "dnf\\cargo": {
+   "dnf\\rust": {
     "driver": "dnf",
     "fields": {
      "name": "cargo",
@@ -9172,7 +9172,7 @@
     },
     "name": "xh"
    },
-   "dnf\\cargo": {
+   "dnf\\rust": {
     "driver": "dnf",
     "fields": {
      "name": "cargo",
@@ -9383,16 +9383,6 @@
      "name": "build-essential"
     },
     "name": "build-essential"
-   }
-  },
-  "cargo": {
-   "apt\\cargo": {
-    "driver": "apt",
-    "fields": {
-     "name": "cargo",
-     "repo-component": "universe"
-    },
-    "name": "cargo"
    }
   },
   "chrome": {
@@ -10410,14 +10400,6 @@
     },
     "name": "Neovim"
    },
-   "apt\\cargo": {
-    "driver": "apt",
-    "fields": {
-     "name": "cargo",
-     "repo-component": "universe"
-    },
-    "name": "cargo"
-   },
    "apt\\libfuse2": {
     "driver": "apt",
     "fields": {
@@ -10433,6 +10415,14 @@
      "repo-component": "universe"
     },
     "name": "ripgrep"
+   },
+   "apt\\rust": {
+    "driver": "apt",
+    "fields": {
+     "name": "rust-all",
+     "repo-component": "universe"
+    },
+    "name": "rust-all"
    },
    "cargo\\tree-sitter-cli": {
     "driver": "cargo",
@@ -10638,6 +10628,16 @@
     "name": "rocm-hip-sdk"
    }
   },
+  "rust": {
+   "apt\\rust": {
+    "driver": "apt",
+    "fields": {
+     "name": "rust-all",
+     "repo-component": "universe"
+    },
+    "name": "rust-all"
+   }
+  },
   "slack": {
    "apt\\flatpak": {
     "driver": "apt",
@@ -10719,13 +10719,13 @@
    }
   },
   "tree-sitter-cli": {
-   "apt\\cargo": {
+   "apt\\rust": {
     "driver": "apt",
     "fields": {
-     "name": "cargo",
+     "name": "rust-all",
      "repo-component": "universe"
     },
-    "name": "cargo"
+    "name": "rust-all"
    },
    "cargo\\tree-sitter-cli": {
     "driver": "cargo",
@@ -11040,13 +11040,13 @@
    }
   },
   "websocat": {
-   "apt\\cargo": {
+   "apt\\rust": {
     "driver": "apt",
     "fields": {
-     "name": "cargo",
+     "name": "rust-all",
      "repo-component": "universe"
     },
-    "name": "cargo"
+    "name": "rust-all"
    },
    "cargo\\websocat": {
     "driver": "cargo",
@@ -11164,13 +11164,13 @@
    }
   },
   "xh": {
-   "apt\\cargo": {
+   "apt\\rust": {
     "driver": "apt",
     "fields": {
-     "name": "cargo",
+     "name": "rust-all",
      "repo-component": "universe"
     },
-    "name": "cargo"
+    "name": "rust-all"
    },
    "cargo\\xh": {
     "driver": "cargo",
@@ -11421,16 +11421,6 @@
      "name": "make"
     },
     "name": "make"
-   }
-  },
-  "cargo": {
-   "dnf\\cargo": {
-    "driver": "dnf",
-    "fields": {
-     "name": "cargo",
-     "repo-component": "universe"
-    },
-    "name": "cargo"
    }
   },
   "chrome": {
@@ -12265,14 +12255,6 @@
     },
     "name": "tree-sitter-cli"
    },
-   "dnf\\cargo": {
-    "driver": "dnf",
-    "fields": {
-     "name": "cargo",
-     "repo-component": "universe"
-    },
-    "name": "cargo"
-   },
    "dnf\\epel-release": {
     "driver": "dnf",
     "fields": {
@@ -12294,6 +12276,14 @@
      "name": "ripgrep"
     },
     "name": "ripgrep"
+   },
+   "dnf\\rust": {
+    "driver": "dnf",
+    "fields": {
+     "name": "cargo",
+     "repo-component": "universe"
+    },
+    "name": "cargo"
    },
    "dotfiles\\bash-dotfiles": {
     "driver": "dotfiles",
@@ -12527,6 +12517,16 @@
     "name": "rpmfusion-free-release"
    }
   },
+  "rust": {
+   "dnf\\rust": {
+    "driver": "dnf",
+    "fields": {
+     "name": "cargo",
+     "repo-component": "universe"
+    },
+    "name": "cargo"
+   }
+  },
   "slack": {
    "dnf\\flatpak": {
     "driver": "dnf",
@@ -12616,7 +12616,7 @@
     },
     "name": "tree-sitter-cli"
    },
-   "dnf\\cargo": {
+   "dnf\\rust": {
     "driver": "dnf",
     "fields": {
      "name": "cargo",
@@ -12955,7 +12955,7 @@
     },
     "name": "websocat"
    },
-   "dnf\\cargo": {
+   "dnf\\rust": {
     "driver": "dnf",
     "fields": {
      "name": "cargo",
@@ -13085,7 +13085,7 @@
     },
     "name": "xh"
    },
-   "dnf\\cargo": {
+   "dnf\\rust": {
     "driver": "dnf",
     "fields": {
      "name": "cargo",
@@ -13303,16 +13303,6 @@
      "name": "build-essential"
     },
     "name": "build-essential"
-   }
-  },
-  "cargo": {
-   "apt\\cargo": {
-    "driver": "apt",
-    "fields": {
-     "name": "cargo",
-     "repo-component": "universe"
-    },
-    "name": "cargo"
    }
   },
   "chrome": {
@@ -14330,14 +14320,6 @@
     },
     "name": "Neovim"
    },
-   "apt\\cargo": {
-    "driver": "apt",
-    "fields": {
-     "name": "cargo",
-     "repo-component": "universe"
-    },
-    "name": "cargo"
-   },
    "apt\\libfuse2": {
     "driver": "apt",
     "fields": {
@@ -14353,6 +14335,14 @@
      "repo-component": "universe"
     },
     "name": "ripgrep"
+   },
+   "apt\\rust": {
+    "driver": "apt",
+    "fields": {
+     "name": "rust-all",
+     "repo-component": "universe"
+    },
+    "name": "rust-all"
    },
    "cargo\\tree-sitter-cli": {
     "driver": "cargo",
@@ -14558,6 +14548,16 @@
     "name": "rocm-hip-sdk"
    }
   },
+  "rust": {
+   "apt\\rust": {
+    "driver": "apt",
+    "fields": {
+     "name": "rust-all",
+     "repo-component": "universe"
+    },
+    "name": "rust-all"
+   }
+  },
   "slack": {
    "apt\\flatpak": {
     "driver": "apt",
@@ -14646,13 +14646,13 @@
    }
   },
   "tree-sitter-cli": {
-   "apt\\cargo": {
+   "apt\\rust": {
     "driver": "apt",
     "fields": {
-     "name": "cargo",
+     "name": "rust-all",
      "repo-component": "universe"
     },
-    "name": "cargo"
+    "name": "rust-all"
    },
    "cargo\\tree-sitter-cli": {
     "driver": "cargo",
@@ -14967,13 +14967,13 @@
    }
   },
   "websocat": {
-   "apt\\cargo": {
+   "apt\\rust": {
     "driver": "apt",
     "fields": {
-     "name": "cargo",
+     "name": "rust-all",
      "repo-component": "universe"
     },
-    "name": "cargo"
+    "name": "rust-all"
    },
    "cargo\\websocat": {
     "driver": "cargo",
@@ -15091,13 +15091,13 @@
    }
   },
   "xh": {
-   "apt\\cargo": {
+   "apt\\rust": {
     "driver": "apt",
     "fields": {
-     "name": "cargo",
+     "name": "rust-all",
      "repo-component": "universe"
     },
-    "name": "cargo"
+    "name": "rust-all"
    },
    "cargo\\xh": {
     "driver": "cargo",
@@ -15324,16 +15324,6 @@
     "name": "build-essential"
    }
   },
-  "cargo": {
-   "apt\\cargo": {
-    "driver": "apt",
-    "fields": {
-     "name": "cargo",
-     "repo-component": "universe"
-    },
-    "name": "cargo"
-   }
-  },
   "chrome": {
    "apt\\flatpak": {
     "driver": "apt",
@@ -16339,14 +16329,6 @@
     },
     "name": "Neovim"
    },
-   "apt\\cargo": {
-    "driver": "apt",
-    "fields": {
-     "name": "cargo",
-     "repo-component": "universe"
-    },
-    "name": "cargo"
-   },
    "apt\\libfuse2": {
     "driver": "apt",
     "fields": {
@@ -16362,6 +16344,14 @@
      "repo-component": "universe"
     },
     "name": "ripgrep"
+   },
+   "apt\\rust": {
+    "driver": "apt",
+    "fields": {
+     "name": "rust-all",
+     "repo-component": "universe"
+    },
+    "name": "rust-all"
    },
    "cargo\\tree-sitter-cli": {
     "driver": "cargo",
@@ -16557,6 +16547,16 @@
     "name": "rocm-hip-sdk"
    }
   },
+  "rust": {
+   "apt\\rust": {
+    "driver": "apt",
+    "fields": {
+     "name": "rust-all",
+     "repo-component": "universe"
+    },
+    "name": "rust-all"
+   }
+  },
   "slack": {
    "apt\\flatpak": {
     "driver": "apt",
@@ -16645,13 +16645,13 @@
    }
   },
   "tree-sitter-cli": {
-   "apt\\cargo": {
+   "apt\\rust": {
     "driver": "apt",
     "fields": {
-     "name": "cargo",
+     "name": "rust-all",
      "repo-component": "universe"
     },
-    "name": "cargo"
+    "name": "rust-all"
    },
    "cargo\\tree-sitter-cli": {
     "driver": "cargo",
@@ -16966,13 +16966,13 @@
    }
   },
   "websocat": {
-   "apt\\cargo": {
+   "apt\\rust": {
     "driver": "apt",
     "fields": {
-     "name": "cargo",
+     "name": "rust-all",
      "repo-component": "universe"
     },
-    "name": "cargo"
+    "name": "rust-all"
    },
    "cargo\\websocat": {
     "driver": "cargo",
@@ -17090,13 +17090,13 @@
    }
   },
   "xh": {
-   "apt\\cargo": {
+   "apt\\rust": {
     "driver": "apt",
     "fields": {
-     "name": "cargo",
+     "name": "rust-all",
      "repo-component": "universe"
     },
-    "name": "cargo"
+    "name": "rust-all"
    },
    "cargo\\xh": {
     "driver": "cargo",

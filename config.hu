@@ -36,7 +36,7 @@
         ]
         dev: [
             +user
-            cargo
+            rust
             build-essential
             gcc-13
             gcc-14

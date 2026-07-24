@@ -159,8 +159,8 @@ def test_fedora_atomic_audit_fixes():
         assert key in unit(app), (app, unit(app))
     # neovim -> brew (a real formula, cleaner than its fuse2-needing AppImage)
     assert 'brew\\neovim' in unit('neovim')
-    # brew name-map keys: cargo is Homebrew's `rust`, dig is `bind`
-    cargo = Resolver('routes.hu', 'fedora_atomic', '40').resolve_names(['cargo'])
-    assert cargo['brew\\cargo'].name == 'rust'
+    # brew name-map keys: the rust toolchain is Homebrew's `rust`, dig is `bind`
+    rust = Resolver('routes.hu', 'fedora_atomic', '40').resolve_names(['rust'])
+    assert rust['brew\\rust'].name == 'rust'
     dig = Resolver('routes.hu', 'fedora_atomic', '40').resolve_names(['dig'])
     assert dig['brew\\dig'].name == 'bind'

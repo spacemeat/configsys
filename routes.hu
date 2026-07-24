@@ -159,8 +159,14 @@
         libfuse2: {
             install: [ { via: native  repo-component: universe  name: { dnf: fuse-libs  pacman: fuse2  apk: fuse  default: libfuse2 } } ]
         }
-        cargo: {
-            install: [ { via: native  repo-component: universe  name: { pacman: rust  brew: rust } } ]   // the cargo tool ships in `rust` on Arch — and in Homebrew's `rust` formula
+        // The Rust toolchain, explicit and directly usable (rustc + cargo). It `provides: cargo`,
+        // so the cargo DRIVER's `requires: cargo` (a crate needs the cargo tool) is satisfied by
+        // installing rust — there is no separate `cargo` component. Package names bring the WHOLE
+        // toolchain: apt `rust-all` (metapkg: rustc+cargo+gdb+doc), Arch/Homebrew `rust` (bundles
+        // cargo), and elsewhere `cargo` transitively pulls rustc (dnf/apk/zypper).
+        rust: {
+            provides: cargo
+            install: [ { via: native  repo-component: universe  name: { apt: rust-all  pacman: rust  brew: rust  default: cargo } } ]
         }
 
         // --- non-native drivers with driver-level deps ---

@@ -2,7 +2,8 @@
 
 User-space (installs to ~/.cargo/bin, no sudo). Version state comes from
 `cargo install --list`; there's no native version lock, so lock intent lives in
-the ledger. The `cargo` tool itself is the driver `!depends` (-> apt\\cargo).
+the ledger. The cargo tool itself is the driver `requires: cargo`, satisfied by the
+explicit `rust` toolchain component (which `provides: cargo`).
 
 get_latest is deferred (crates.io lookup would be a network call per inspect);
 `cargo install` fetches the latest at install time.

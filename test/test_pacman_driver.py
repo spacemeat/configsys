@@ -75,5 +75,5 @@ def test_arch_routes_and_name_translations():
     assert r.cascade_names == ['arch', 'glibc_linux', 'linux']
     # renamed packages resolve to the Arch names
     assert r.resolve_names(['pipx'])['pacman\\pipx'].name == 'python-pipx'
-    assert r.resolve_names(['cargo'])['pacman\\cargo'].name == 'rust'
+    assert r.resolve_names(['rust'])['pacman\\rust'].name == 'rust'
     assert r.resolve_names(['libfuse2'])['pacman\\libfuse2'].name == 'fuse2'
