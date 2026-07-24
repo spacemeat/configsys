@@ -892,6 +892,15 @@
     "name": "ghc"
    }
   },
+  "helix": {
+   "pacman\\helix": {
+    "driver": "pacman",
+    "fields": {
+     "name": "helix"
+    },
+    "name": "helix"
+   }
+  },
   "helm": {
    "pacman\\helm": {
     "driver": "pacman",
@@ -2650,6 +2659,15 @@
     "name": "yq"
    }
   },
+  "zed": {
+   "pacman\\zed": {
+    "driver": "pacman",
+    "fields": {
+     "name": "zed"
+    },
+    "name": "zed"
+   }
+  },
   "zig": {
    "pacman\\zig": {
     "driver": "pacman",
@@ -3929,6 +3947,28 @@
     "name": "ghc"
    }
   },
+  "helix": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "tarball\\helix": {
+    "driver": "tarball",
+    "fields": {
+     "installDir": "apps/helix",
+     "name": "helix",
+     "version": {
+      "asset": "helix-*-x86_64-linux.tar.xz",
+      "github": "helix-editor/helix",
+      "strip-v": "true"
+     }
+    },
+    "name": "helix"
+   }
+  },
   "helm": {
    "script\\helm": {
     "driver": "script",
@@ -5754,6 +5794,20 @@
      }
     },
     "name": "yq"
+   }
+  },
+  "zed": {
+   "script\\zed": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "curl -f https://zed.dev/install.sh | sh",
+     "location": "~/.local/bin/zed",
+     "name": "zed",
+     "uninstall-cmd": "rm -rf \"$HOME/.local/zed.app\" \"$HOME/.local/bin/zed\"",
+     "version-cmd": "\"$HOME/.local/bin/zed\" --version",
+     "version-re": "([0-9]+\\.[0-9]+\\.[0-9]+)"
+    },
+    "name": "zed"
    }
   },
   "zig": {
@@ -7028,6 +7082,28 @@
     "name": "ghc"
    }
   },
+  "helix": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "tarball\\helix": {
+    "driver": "tarball",
+    "fields": {
+     "installDir": "apps/helix",
+     "name": "helix",
+     "version": {
+      "asset": "helix-*-x86_64-linux.tar.xz",
+      "github": "helix-editor/helix",
+      "strip-v": "true"
+     }
+    },
+    "name": "helix"
+   }
+  },
   "helm": {
    "script\\helm": {
     "driver": "script",
@@ -8815,6 +8891,20 @@
     "name": "yq"
    }
   },
+  "zed": {
+   "script\\zed": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "curl -f https://zed.dev/install.sh | sh",
+     "location": "~/.local/bin/zed",
+     "name": "zed",
+     "uninstall-cmd": "rm -rf \"$HOME/.local/zed.app\" \"$HOME/.local/bin/zed\"",
+     "version-cmd": "\"$HOME/.local/bin/zed\" --version",
+     "version-re": "([0-9]+\\.[0-9]+\\.[0-9]+)"
+    },
+    "name": "zed"
+   }
+  },
   "zig": {
    "apt\\curl": {
     "driver": "apt",
@@ -9865,6 +9955,15 @@
      "repo-component": "universe"
     },
     "name": "ghc"
+   }
+  },
+  "helix": {
+   "dnf\\helix": {
+    "driver": "dnf",
+    "fields": {
+     "name": "helix"
+    },
+    "name": "helix"
    }
   },
   "helm": {
@@ -11677,6 +11776,20 @@
      }
     },
     "name": "yq"
+   }
+  },
+  "zed": {
+   "script\\zed": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "curl -f https://zed.dev/install.sh | sh",
+     "location": "~/.local/bin/zed",
+     "name": "zed",
+     "uninstall-cmd": "rm -rf \"$HOME/.local/zed.app\" \"$HOME/.local/bin/zed\"",
+     "version-cmd": "\"$HOME/.local/bin/zed\" --version",
+     "version-re": "([0-9]+\\.[0-9]+\\.[0-9]+)"
+    },
+    "name": "zed"
    }
   },
   "zig": {
@@ -12743,6 +12856,15 @@
     "name": "ghc"
    }
   },
+  "helix": {
+   "dnf\\helix": {
+    "driver": "dnf",
+    "fields": {
+     "name": "helix"
+    },
+    "name": "helix"
+   }
+  },
   "helm": {
    "script\\helm": {
     "driver": "script",
@@ -14553,6 +14675,20 @@
      }
     },
     "name": "yq"
+   }
+  },
+  "zed": {
+   "script\\zed": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "curl -f https://zed.dev/install.sh | sh",
+     "location": "~/.local/bin/zed",
+     "name": "zed",
+     "uninstall-cmd": "rm -rf \"$HOME/.local/zed.app\" \"$HOME/.local/bin/zed\"",
+     "version-cmd": "\"$HOME/.local/bin/zed\" --version",
+     "version-re": "([0-9]+\\.[0-9]+\\.[0-9]+)"
+    },
+    "name": "zed"
    }
   },
   "zig": {
@@ -15854,6 +15990,28 @@
      "repo-component": "universe"
     },
     "name": "ghc"
+   }
+  },
+  "helix": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "tarball\\helix": {
+    "driver": "tarball",
+    "fields": {
+     "installDir": "apps/helix",
+     "name": "helix",
+     "version": {
+      "asset": "helix-*-x86_64-linux.tar.xz",
+      "github": "helix-editor/helix",
+      "strip-v": "true"
+     }
+    },
+    "name": "helix"
    }
   },
   "helm": {
@@ -17676,6 +17834,20 @@
     "name": "yq"
    }
   },
+  "zed": {
+   "script\\zed": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "curl -f https://zed.dev/install.sh | sh",
+     "location": "~/.local/bin/zed",
+     "name": "zed",
+     "uninstall-cmd": "rm -rf \"$HOME/.local/zed.app\" \"$HOME/.local/bin/zed\"",
+     "version-cmd": "\"$HOME/.local/bin/zed\" --version",
+     "version-re": "([0-9]+\\.[0-9]+\\.[0-9]+)"
+    },
+    "name": "zed"
+   }
+  },
   "zig": {
    "apt\\curl": {
     "driver": "apt",
@@ -18842,6 +19014,15 @@
      "repo-component": "universe"
     },
     "name": "ghc"
+   }
+  },
+  "helix": {
+   "dnf\\helix": {
+    "driver": "dnf",
+    "fields": {
+     "name": "helix"
+    },
+    "name": "helix"
    }
   },
   "helm": {
@@ -20783,6 +20964,20 @@
     "name": "yq"
    }
   },
+  "zed": {
+   "script\\zed": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "curl -f https://zed.dev/install.sh | sh",
+     "location": "~/.local/bin/zed",
+     "name": "zed",
+     "uninstall-cmd": "rm -rf \"$HOME/.local/zed.app\" \"$HOME/.local/bin/zed\"",
+     "version-cmd": "\"$HOME/.local/bin/zed\" --version",
+     "version-re": "([0-9]+\\.[0-9]+\\.[0-9]+)"
+    },
+    "name": "zed"
+   }
+  },
   "zig": {
    "dnf\\curl": {
     "driver": "dnf",
@@ -22075,6 +22270,28 @@
     "name": "ghc"
    }
   },
+  "helix": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "tarball\\helix": {
+    "driver": "tarball",
+    "fields": {
+     "installDir": "apps/helix",
+     "name": "helix",
+     "version": {
+      "asset": "helix-*-x86_64-linux.tar.xz",
+      "github": "helix-editor/helix",
+      "strip-v": "true"
+     }
+    },
+    "name": "helix"
+   }
+  },
   "helm": {
    "script\\helm": {
     "driver": "script",
@@ -23900,6 +24117,20 @@
      }
     },
     "name": "yq"
+   }
+  },
+  "zed": {
+   "script\\zed": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "curl -f https://zed.dev/install.sh | sh",
+     "location": "~/.local/bin/zed",
+     "name": "zed",
+     "uninstall-cmd": "rm -rf \"$HOME/.local/zed.app\" \"$HOME/.local/bin/zed\"",
+     "version-cmd": "\"$HOME/.local/bin/zed\" --version",
+     "version-re": "([0-9]+\\.[0-9]+\\.[0-9]+)"
+    },
+    "name": "zed"
    }
   },
   "zig": {
@@ -25174,6 +25405,28 @@
     "name": "ghc"
    }
   },
+  "helix": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "tarball\\helix": {
+    "driver": "tarball",
+    "fields": {
+     "installDir": "apps/helix",
+     "name": "helix",
+     "version": {
+      "asset": "helix-*-x86_64-linux.tar.xz",
+      "github": "helix-editor/helix",
+      "strip-v": "true"
+     }
+    },
+    "name": "helix"
+   }
+  },
   "helm": {
    "script\\helm": {
     "driver": "script",
@@ -26959,6 +27212,20 @@
      }
     },
     "name": "yq"
+   }
+  },
+  "zed": {
+   "script\\zed": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "curl -f https://zed.dev/install.sh | sh",
+     "location": "~/.local/bin/zed",
+     "name": "zed",
+     "uninstall-cmd": "rm -rf \"$HOME/.local/zed.app\" \"$HOME/.local/bin/zed\"",
+     "version-cmd": "\"$HOME/.local/bin/zed\" --version",
+     "version-re": "([0-9]+\\.[0-9]+\\.[0-9]+)"
+    },
+    "name": "zed"
    }
   },
   "zig": {

@@ -518,25 +518,26 @@
         // A ready bundle of the free ones (unrar stays opt-in, separate).
         compression: { install: [ { via: parts  parts: [ zstd, lz4, p7zip, zip, unzip ] } ] }
 
-        // --- audio/video codecs (verified on apt/dnf/pacman; zypper/apk = future sweep) ---
+        // --- audio/video codecs (gstreamer names verified across all five families) ---
         // Free bundle: ffmpeg (already a component) + gstreamer good/bad plugins. The patent-
         // encumbered "ugly"/libav set is a SEPARATE opt-in (codecs-restricted), off by default.
-        gst-good: { install: [ { via: native  when: "debian or redhat or arch"  name: { apt: gstreamer1.0-plugins-good  dnf: gstreamer1-plugins-good      pacman: gst-plugins-good } } ] }
-        gst-bad:  { install: [ { via: native  when: "debian or redhat or arch"  name: { apt: gstreamer1.0-plugins-bad   dnf: gstreamer1-plugins-bad-free  pacman: gst-plugins-bad } } ] }
-        codecs:   { install: [ { via: parts  when: "debian or redhat or arch"  parts: [ ffmpeg, gst-good, gst-bad ] } ] }
-        // Restricted/nonfree codecs — patent-encumbered, so opt-in. Fedora pulls RPM Fusion.
+        gst-good: { install: [ { via: native  when: "debian or redhat or arch or opensuse or alpine"  name: { apt: gstreamer1.0-plugins-good  dnf: gstreamer1-plugins-good      pacman: gst-plugins-good  zypper: gstreamer-plugins-good  apk: gst-plugins-good } } ] }
+        gst-bad:  { install: [ { via: native  when: "debian or redhat or arch or opensuse or alpine"  name: { apt: gstreamer1.0-plugins-bad   dnf: gstreamer1-plugins-bad-free  pacman: gst-plugins-bad   zypper: gstreamer-plugins-bad   apk: gst-plugins-bad } } ] }
+        codecs:   { install: [ { via: parts  when: "debian or redhat or arch or opensuse or alpine"  parts: [ ffmpeg, gst-good, gst-bad ] } ] }
+        // Restricted/nonfree codecs — patent-encumbered, opt-in. Fedora needs RPM Fusion; openSUSE's
+        // full ugly/libav codecs come from Packman (the name resolves in OSS; Packman isn't modeled).
         gst-ugly:  { install: [
                        { via: native  when: "redhat"  requires: rpmfusion  name: gstreamer1-plugins-ugly }
                        { via: native  when: "debian"  repo-component: multiverse  name: gstreamer1.0-plugins-ugly }
-                       { via: native  when: "arch"  name: gst-plugins-ugly } ] }
+                       { via: native  when: "arch or opensuse or alpine"  name: { pacman: gst-plugins-ugly  zypper: gstreamer-plugins-ugly  apk: gst-plugins-ugly } } ] }
         gst-libav: { install: [
                        { via: native  when: "redhat"  requires: rpmfusion  name: gstreamer1-libav }
                        { via: native  when: "debian"  repo-component: universe  name: gstreamer1.0-libav }
-                       { via: native  when: "arch"  name: gst-libav } ] }
+                       { via: native  when: "arch or opensuse or alpine"  name: { pacman: gst-libav  zypper: gstreamer-plugins-libav  apk: gst-libav } } ] }
         libavcodec-extra: { install: [ { via: native  when: "debian"  repo-component: universe } ] }
         codecs-restricted: { install: [
                                { via: parts  when: "debian"  parts: [ gst-ugly, gst-libav, libavcodec-extra ] }
-                               { via: parts  when: "redhat or arch"  parts: [ gst-ugly, gst-libav ] } ] }
+                               { via: parts  when: "redhat or arch or opensuse or alpine"  parts: [ gst-ugly, gst-libav ] } ] }
 
         // discord / slack: flatpak everywhere (no uniform native path — Fedora has none), and
         // their config is sandboxed under ~/.var/app and holds auth tokens, so no dotfiles.
@@ -676,6 +677,25 @@
         // component (a plain via:dotfiles component, so it can carry when: conditions too) ---
         // Emacs — native under `emacs` in every family.
         emacs: { install: [ { via: native  repo-component: universe } ] }
+        // Helix — native on dnf/pacman/zypper/apk/brew; NOT in the Ubuntu base repos, so the github
+        // release tarball on the Debian family (ships `hx` alongside its runtime/ dir).
+        helix: {
+            install: [
+                { via: native  when: "redhat or arch or opensuse or alpine or fedora_atomic" }
+                { via: tarball  when: "debian"  installDir: apps/helix  requires: glibc
+                  version: { github: helix-editor/helix  strip-v: true  asset: "helix-*-x86_64-linux.tar.xz" } } ]
+        }
+        // Zed — native on Arch; elsewhere its own install script (installs into ~/.local).
+        zed: {
+            install: [
+                { via: native  when: "arch" }
+                { via: script
+                  install-cmd:   'curl -f https://zed.dev/install.sh | sh'
+                  version-cmd:   '"$HOME/.local/bin/zed" --version'
+                  version-re:    '([0-9]+\.[0-9]+\.[0-9]+)'
+                  uninstall-cmd: 'rm -rf "$HOME/.local/zed.app" "$HOME/.local/bin/zed"'
+                  location:      '~/.local/bin/zed' } ]
+        }
 
         // --- AI / LLM command-line tools ---
         // Claude Code and Codex are npm globals (userland via the npm driver). llm and aider are
