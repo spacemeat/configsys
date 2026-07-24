@@ -370,6 +370,26 @@
     "name": "flatpak"
    }
   },
+  "elixir": {
+   "pacman\\elixir": {
+    "driver": "pacman",
+    "fields": {
+     "name": "elixir",
+     "repo-component": "universe"
+    },
+    "name": "elixir"
+   }
+  },
+  "erlang": {
+   "pacman\\erlang": {
+    "driver": "pacman",
+    "fields": {
+     "name": "erlang",
+     "repo-component": "universe"
+    },
+    "name": "erlang"
+   }
+  },
   "ethtool": {
    "pacman\\ethtool": {
     "driver": "pacman",
@@ -549,6 +569,16 @@
     "name": "go"
    }
   },
+  "haskell": {
+   "pacman\\haskell": {
+    "driver": "pacman",
+    "fields": {
+     "name": "ghc",
+     "repo-component": "universe"
+    },
+    "name": "ghc"
+   }
+  },
   "htop": {
    "dotfiles\\htop-dotfiles": {
     "driver": "dotfiles",
@@ -641,6 +671,15 @@
      "name": "iproute2"
     },
     "name": "iproute2"
+   }
+  },
+  "jdk": {
+   "pacman\\jdk": {
+    "driver": "pacman",
+    "fields": {
+     "name": "jdk-openjdk"
+    },
+    "name": "jdk-openjdk"
    }
   },
   "jq": {
@@ -820,6 +859,16 @@
      "name": "flatpak"
     },
     "name": "flatpak"
+   }
+  },
+  "lua": {
+   "pacman\\lua": {
+    "driver": "pacman",
+    "fields": {
+     "name": "lua",
+     "repo-component": "universe"
+    },
+    "name": "lua"
    }
   },
   "make": {
@@ -1008,6 +1057,16 @@
     "name": "nethogs"
    }
   },
+  "nim": {
+   "pacman\\nim": {
+    "driver": "pacman",
+    "fields": {
+     "name": "nim",
+     "repo-component": "universe"
+    },
+    "name": "nim"
+   }
+  },
   "nload": {
    "pacman\\nload": {
     "driver": "pacman",
@@ -1043,6 +1102,16 @@
      "name": "nushell"
     },
     "name": "nushell"
+   }
+  },
+  "ocaml": {
+   "pacman\\ocaml": {
+    "driver": "pacman",
+    "fields": {
+     "name": "ocaml",
+     "repo-component": "universe"
+    },
+    "name": "ocaml"
    }
   },
   "opera": {
@@ -2361,6 +2430,26 @@
     "name": "com.microsoft.Edge"
    }
   },
+  "elixir": {
+   "apt\\elixir": {
+    "driver": "apt",
+    "fields": {
+     "name": "elixir",
+     "repo-component": "universe"
+    },
+    "name": "elixir"
+   }
+  },
+  "erlang": {
+   "apt\\erlang": {
+    "driver": "apt",
+    "fields": {
+     "name": "erlang",
+     "repo-component": "universe"
+    },
+    "name": "erlang"
+   }
+  },
   "ethtool": {
    "apt\\ethtool": {
     "driver": "apt",
@@ -2707,6 +2796,16 @@
     "name": "golang.org/x/tools/cmd/goimports"
    }
   },
+  "haskell": {
+   "apt\\haskell": {
+    "driver": "apt",
+    "fields": {
+     "name": "ghc",
+     "repo-component": "universe"
+    },
+    "name": "ghc"
+   }
+  },
   "htop": {
    "apt\\htop": {
     "driver": "apt",
@@ -2799,6 +2898,15 @@
      "name": "iproute2"
     },
     "name": "iproute2"
+   }
+  },
+  "jdk": {
+   "apt\\jdk": {
+    "driver": "apt",
+    "fields": {
+     "name": "default-jdk"
+    },
+    "name": "default-jdk"
    }
   },
   "jq": {
@@ -2991,6 +3099,16 @@
      "name": "io.lmms.LMMS"
     },
     "name": "io.lmms.LMMS"
+   }
+  },
+  "lua": {
+   "apt\\lua": {
+    "driver": "apt",
+    "fields": {
+     "name": "lua5.4",
+     "repo-component": "universe"
+    },
+    "name": "lua5.4"
    }
   },
   "make": {
@@ -3189,6 +3307,16 @@
     "name": "nethogs"
    }
   },
+  "nim": {
+   "apt\\nim": {
+    "driver": "apt",
+    "fields": {
+     "name": "nim",
+     "repo-component": "universe"
+    },
+    "name": "nim"
+   }
+  },
   "nload": {
    "apt\\nload": {
     "driver": "apt",
@@ -3237,6 +3365,16 @@
      }
     },
     "name": "nushell"
+   }
+  },
+  "ocaml": {
+   "apt\\ocaml": {
+    "driver": "apt",
+    "fields": {
+     "name": "ocaml",
+     "repo-component": "universe"
+    },
+    "name": "ocaml"
    }
   },
   "opera": {
@@ -4523,6 +4661,26 @@
     "name": "com.microsoft.Edge"
    }
   },
+  "elixir": {
+   "apt\\elixir": {
+    "driver": "apt",
+    "fields": {
+     "name": "elixir",
+     "repo-component": "universe"
+    },
+    "name": "elixir"
+   }
+  },
+  "erlang": {
+   "apt\\erlang": {
+    "driver": "apt",
+    "fields": {
+     "name": "erlang",
+     "repo-component": "universe"
+    },
+    "name": "erlang"
+   }
+  },
   "ethtool": {
    "apt\\ethtool": {
     "driver": "apt",
@@ -4869,6 +5027,16 @@
     "name": "golang.org/x/tools/cmd/goimports"
    }
   },
+  "haskell": {
+   "apt\\haskell": {
+    "driver": "apt",
+    "fields": {
+     "name": "ghc",
+     "repo-component": "universe"
+    },
+    "name": "ghc"
+   }
+  },
   "htop": {
    "apt\\htop": {
     "driver": "apt",
@@ -4961,6 +5129,15 @@
      "name": "iproute2"
     },
     "name": "iproute2"
+   }
+  },
+  "jdk": {
+   "apt\\jdk": {
+    "driver": "apt",
+    "fields": {
+     "name": "default-jdk"
+    },
+    "name": "default-jdk"
    }
   },
   "jq": {
@@ -5155,6 +5332,16 @@
     "name": "io.lmms.LMMS"
    }
   },
+  "lua": {
+   "apt\\lua": {
+    "driver": "apt",
+    "fields": {
+     "name": "lua5.4",
+     "repo-component": "universe"
+    },
+    "name": "lua5.4"
+   }
+  },
   "make": {
    "apt\\make": {
     "driver": "apt",
@@ -5341,6 +5528,16 @@
     "name": "nethogs"
    }
   },
+  "nim": {
+   "apt\\nim": {
+    "driver": "apt",
+    "fields": {
+     "name": "nim",
+     "repo-component": "universe"
+    },
+    "name": "nim"
+   }
+  },
   "nload": {
    "apt\\nload": {
     "driver": "apt",
@@ -5389,6 +5586,16 @@
      }
     },
     "name": "nushell"
+   }
+  },
+  "ocaml": {
+   "apt\\ocaml": {
+    "driver": "apt",
+    "fields": {
+     "name": "ocaml",
+     "repo-component": "universe"
+    },
+    "name": "ocaml"
    }
   },
   "opera": {
@@ -6537,6 +6744,26 @@
     "name": "com.microsoft.Edge"
    }
   },
+  "elixir": {
+   "dnf\\elixir": {
+    "driver": "dnf",
+    "fields": {
+     "name": "elixir",
+     "repo-component": "universe"
+    },
+    "name": "elixir"
+   }
+  },
+  "erlang": {
+   "dnf\\erlang": {
+    "driver": "dnf",
+    "fields": {
+     "name": "erlang",
+     "repo-component": "universe"
+    },
+    "name": "erlang"
+   }
+  },
   "ethtool": {
    "dnf\\ethtool": {
     "driver": "dnf",
@@ -6740,6 +6967,16 @@
     "name": "golang.org/x/tools/cmd/goimports"
    }
   },
+  "haskell": {
+   "dnf\\haskell": {
+    "driver": "dnf",
+    "fields": {
+     "name": "ghc",
+     "repo-component": "universe"
+    },
+    "name": "ghc"
+   }
+  },
   "htop": {
    "dnf\\htop": {
     "driver": "dnf",
@@ -6832,6 +7069,15 @@
      "name": "iproute"
     },
     "name": "iproute"
+   }
+  },
+  "jdk": {
+   "dnf\\jdk": {
+    "driver": "dnf",
+    "fields": {
+     "name": "java-17-openjdk-devel"
+    },
+    "name": "java-17-openjdk-devel"
    }
   },
   "jq": {
@@ -7011,6 +7257,16 @@
      "name": "io.lmms.LMMS"
     },
     "name": "io.lmms.LMMS"
+   }
+  },
+  "lua": {
+   "dnf\\lua": {
+    "driver": "dnf",
+    "fields": {
+     "name": "lua",
+     "repo-component": "universe"
+    },
+    "name": "lua"
    }
   },
   "make": {
@@ -7199,6 +7455,16 @@
     "name": "nethogs"
    }
   },
+  "nim": {
+   "dnf\\nim": {
+    "driver": "dnf",
+    "fields": {
+     "name": "nim",
+     "repo-component": "universe"
+    },
+    "name": "nim"
+   }
+  },
   "nload": {
    "dnf\\nload": {
     "driver": "dnf",
@@ -7247,6 +7513,16 @@
      }
     },
     "name": "nushell"
+   }
+  },
+  "ocaml": {
+   "dnf\\ocaml": {
+    "driver": "dnf",
+    "fields": {
+     "name": "ocaml",
+     "repo-component": "universe"
+    },
+    "name": "ocaml"
    }
   },
   "opera": {
@@ -8426,6 +8702,26 @@
     "name": "com.microsoft.Edge"
    }
   },
+  "elixir": {
+   "dnf\\elixir": {
+    "driver": "dnf",
+    "fields": {
+     "name": "elixir",
+     "repo-component": "universe"
+    },
+    "name": "elixir"
+   }
+  },
+  "erlang": {
+   "dnf\\erlang": {
+    "driver": "dnf",
+    "fields": {
+     "name": "erlang",
+     "repo-component": "universe"
+    },
+    "name": "erlang"
+   }
+  },
   "ethtool": {
    "dnf\\ethtool": {
     "driver": "dnf",
@@ -8629,6 +8925,16 @@
     "name": "golang.org/x/tools/cmd/goimports"
    }
   },
+  "haskell": {
+   "dnf\\haskell": {
+    "driver": "dnf",
+    "fields": {
+     "name": "ghc",
+     "repo-component": "universe"
+    },
+    "name": "ghc"
+   }
+  },
   "htop": {
    "dnf\\htop": {
     "driver": "dnf",
@@ -8721,6 +9027,15 @@
      "name": "iproute"
     },
     "name": "iproute"
+   }
+  },
+  "jdk": {
+   "dnf\\jdk": {
+    "driver": "dnf",
+    "fields": {
+     "name": "java-17-openjdk-devel"
+    },
+    "name": "java-17-openjdk-devel"
    }
   },
   "jq": {
@@ -8900,6 +9215,16 @@
      "name": "io.lmms.LMMS"
     },
     "name": "io.lmms.LMMS"
+   }
+  },
+  "lua": {
+   "dnf\\lua": {
+    "driver": "dnf",
+    "fields": {
+     "name": "lua",
+     "repo-component": "universe"
+    },
+    "name": "lua"
    }
   },
   "make": {
@@ -9088,6 +9413,16 @@
     "name": "nethogs"
    }
   },
+  "nim": {
+   "dnf\\nim": {
+    "driver": "dnf",
+    "fields": {
+     "name": "nim",
+     "repo-component": "universe"
+    },
+    "name": "nim"
+   }
+  },
   "nload": {
    "dnf\\nload": {
     "driver": "dnf",
@@ -9136,6 +9471,16 @@
      }
     },
     "name": "nushell"
+   }
+  },
+  "ocaml": {
+   "dnf\\ocaml": {
+    "driver": "dnf",
+    "fields": {
+     "name": "ocaml",
+     "repo-component": "universe"
+    },
+    "name": "ocaml"
    }
   },
   "opera": {
@@ -10421,6 +10766,26 @@
     "name": "com.microsoft.Edge"
    }
   },
+  "elixir": {
+   "apt\\elixir": {
+    "driver": "apt",
+    "fields": {
+     "name": "elixir",
+     "repo-component": "universe"
+    },
+    "name": "elixir"
+   }
+  },
+  "erlang": {
+   "apt\\erlang": {
+    "driver": "apt",
+    "fields": {
+     "name": "erlang",
+     "repo-component": "universe"
+    },
+    "name": "erlang"
+   }
+  },
   "ethtool": {
    "apt\\ethtool": {
     "driver": "apt",
@@ -10767,6 +11132,16 @@
     "name": "golang.org/x/tools/cmd/goimports"
    }
   },
+  "haskell": {
+   "apt\\haskell": {
+    "driver": "apt",
+    "fields": {
+     "name": "ghc",
+     "repo-component": "universe"
+    },
+    "name": "ghc"
+   }
+  },
   "htop": {
    "apt\\htop": {
     "driver": "apt",
@@ -10859,6 +11234,15 @@
      "name": "iproute2"
     },
     "name": "iproute2"
+   }
+  },
+  "jdk": {
+   "apt\\jdk": {
+    "driver": "apt",
+    "fields": {
+     "name": "default-jdk"
+    },
+    "name": "default-jdk"
    }
   },
   "jq": {
@@ -11051,6 +11435,16 @@
      "name": "io.lmms.LMMS"
     },
     "name": "io.lmms.LMMS"
+   }
+  },
+  "lua": {
+   "apt\\lua": {
+    "driver": "apt",
+    "fields": {
+     "name": "lua5.4",
+     "repo-component": "universe"
+    },
+    "name": "lua5.4"
    }
   },
   "make": {
@@ -11249,6 +11643,16 @@
     "name": "nethogs"
    }
   },
+  "nim": {
+   "apt\\nim": {
+    "driver": "apt",
+    "fields": {
+     "name": "nim",
+     "repo-component": "universe"
+    },
+    "name": "nim"
+   }
+  },
   "nload": {
    "apt\\nload": {
     "driver": "apt",
@@ -11297,6 +11701,16 @@
      }
     },
     "name": "nushell"
+   }
+  },
+  "ocaml": {
+   "apt\\ocaml": {
+    "driver": "apt",
+    "fields": {
+     "name": "ocaml",
+     "repo-component": "universe"
+    },
+    "name": "ocaml"
    }
   },
   "opera": {
@@ -12484,6 +12898,16 @@
     "name": "com.microsoft.Edge"
    }
   },
+  "elixir": {
+   "dnf\\elixir": {
+    "driver": "dnf",
+    "fields": {
+     "name": "elixir",
+     "repo-component": "universe"
+    },
+    "name": "elixir"
+   }
+  },
   "epel-release": {
    "dnf\\epel-release": {
     "driver": "dnf",
@@ -12491,6 +12915,16 @@
      "name": "epel-release"
     },
     "name": "epel-release"
+   }
+  },
+  "erlang": {
+   "dnf\\erlang": {
+    "driver": "dnf",
+    "fields": {
+     "name": "erlang",
+     "repo-component": "universe"
+    },
+    "name": "erlang"
    }
   },
   "ethtool": {
@@ -12731,6 +13165,16 @@
     "name": "golang.org/x/tools/cmd/goimports"
    }
   },
+  "haskell": {
+   "dnf\\haskell": {
+    "driver": "dnf",
+    "fields": {
+     "name": "ghc",
+     "repo-component": "universe"
+    },
+    "name": "ghc"
+   }
+  },
   "htop": {
    "dnf\\epel-release": {
     "driver": "dnf",
@@ -12843,6 +13287,15 @@
      "name": "iproute"
     },
     "name": "iproute"
+   }
+  },
+  "jdk": {
+   "dnf\\jdk": {
+    "driver": "dnf",
+    "fields": {
+     "name": "java-17-openjdk-devel"
+    },
+    "name": "java-17-openjdk-devel"
    }
   },
   "jq": {
@@ -13042,6 +13495,16 @@
      "name": "io.lmms.LMMS"
     },
     "name": "io.lmms.LMMS"
+   }
+  },
+  "lua": {
+   "dnf\\lua": {
+    "driver": "dnf",
+    "fields": {
+     "name": "lua",
+     "repo-component": "universe"
+    },
+    "name": "lua"
    }
   },
   "make": {
@@ -13250,6 +13713,16 @@
     "name": "nethogs"
    }
   },
+  "nim": {
+   "dnf\\nim": {
+    "driver": "dnf",
+    "fields": {
+     "name": "nim",
+     "repo-component": "universe"
+    },
+    "name": "nim"
+   }
+  },
   "nload": {
    "dnf\\epel-release": {
     "driver": "dnf",
@@ -13305,6 +13778,16 @@
      }
     },
     "name": "nushell"
+   }
+  },
+  "ocaml": {
+   "dnf\\ocaml": {
+    "driver": "dnf",
+    "fields": {
+     "name": "ocaml",
+     "repo-component": "universe"
+    },
+    "name": "ocaml"
    }
   },
   "opera": {
@@ -14627,6 +15110,26 @@
     "name": "com.microsoft.Edge"
    }
   },
+  "elixir": {
+   "apt\\elixir": {
+    "driver": "apt",
+    "fields": {
+     "name": "elixir",
+     "repo-component": "universe"
+    },
+    "name": "elixir"
+   }
+  },
+  "erlang": {
+   "apt\\erlang": {
+    "driver": "apt",
+    "fields": {
+     "name": "erlang",
+     "repo-component": "universe"
+    },
+    "name": "erlang"
+   }
+  },
   "ethtool": {
    "apt\\ethtool": {
     "driver": "apt",
@@ -14973,6 +15476,16 @@
     "name": "golang.org/x/tools/cmd/goimports"
    }
   },
+  "haskell": {
+   "apt\\haskell": {
+    "driver": "apt",
+    "fields": {
+     "name": "ghc",
+     "repo-component": "universe"
+    },
+    "name": "ghc"
+   }
+  },
   "htop": {
    "apt\\htop": {
     "driver": "apt",
@@ -15065,6 +15578,15 @@
      "name": "iproute2"
     },
     "name": "iproute2"
+   }
+  },
+  "jdk": {
+   "apt\\jdk": {
+    "driver": "apt",
+    "fields": {
+     "name": "default-jdk"
+    },
+    "name": "default-jdk"
    }
   },
   "jq": {
@@ -15257,6 +15779,16 @@
      "name": "io.lmms.LMMS"
     },
     "name": "io.lmms.LMMS"
+   }
+  },
+  "lua": {
+   "apt\\lua": {
+    "driver": "apt",
+    "fields": {
+     "name": "lua5.4",
+     "repo-component": "universe"
+    },
+    "name": "lua5.4"
    }
   },
   "make": {
@@ -15455,6 +15987,16 @@
     "name": "nethogs"
    }
   },
+  "nim": {
+   "apt\\nim": {
+    "driver": "apt",
+    "fields": {
+     "name": "nim",
+     "repo-component": "universe"
+    },
+    "name": "nim"
+   }
+  },
   "nload": {
    "apt\\nload": {
     "driver": "apt",
@@ -15503,6 +16045,16 @@
      }
     },
     "name": "nushell"
+   }
+  },
+  "ocaml": {
+   "apt\\ocaml": {
+    "driver": "apt",
+    "fields": {
+     "name": "ocaml",
+     "repo-component": "universe"
+    },
+    "name": "ocaml"
    }
   },
   "opera": {
@@ -16789,6 +17341,26 @@
     "name": "com.microsoft.Edge"
    }
   },
+  "elixir": {
+   "apt\\elixir": {
+    "driver": "apt",
+    "fields": {
+     "name": "elixir",
+     "repo-component": "universe"
+    },
+    "name": "elixir"
+   }
+  },
+  "erlang": {
+   "apt\\erlang": {
+    "driver": "apt",
+    "fields": {
+     "name": "erlang",
+     "repo-component": "universe"
+    },
+    "name": "erlang"
+   }
+  },
   "ethtool": {
    "apt\\ethtool": {
     "driver": "apt",
@@ -17135,6 +17707,16 @@
     "name": "golang.org/x/tools/cmd/goimports"
    }
   },
+  "haskell": {
+   "apt\\haskell": {
+    "driver": "apt",
+    "fields": {
+     "name": "ghc",
+     "repo-component": "universe"
+    },
+    "name": "ghc"
+   }
+  },
   "htop": {
    "apt\\htop": {
     "driver": "apt",
@@ -17227,6 +17809,15 @@
      "name": "iproute2"
     },
     "name": "iproute2"
+   }
+  },
+  "jdk": {
+   "apt\\jdk": {
+    "driver": "apt",
+    "fields": {
+     "name": "default-jdk"
+    },
+    "name": "default-jdk"
    }
   },
   "jq": {
@@ -17421,6 +18012,16 @@
     "name": "io.lmms.LMMS"
    }
   },
+  "lua": {
+   "apt\\lua": {
+    "driver": "apt",
+    "fields": {
+     "name": "lua5.4",
+     "repo-component": "universe"
+    },
+    "name": "lua5.4"
+   }
+  },
   "make": {
    "apt\\make": {
     "driver": "apt",
@@ -17607,6 +18208,16 @@
     "name": "nethogs"
    }
   },
+  "nim": {
+   "apt\\nim": {
+    "driver": "apt",
+    "fields": {
+     "name": "nim",
+     "repo-component": "universe"
+    },
+    "name": "nim"
+   }
+  },
   "nload": {
    "apt\\nload": {
     "driver": "apt",
@@ -17655,6 +18266,16 @@
      }
     },
     "name": "nushell"
+   }
+  },
+  "ocaml": {
+   "apt\\ocaml": {
+    "driver": "apt",
+    "fields": {
+     "name": "ocaml",
+     "repo-component": "universe"
+    },
+    "name": "ocaml"
    }
   },
   "opera": {

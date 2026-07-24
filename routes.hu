@@ -217,6 +217,24 @@
         // Sample gem (userland by default; see the gem driver).
         bundler: { install: [ { via: gem  name: bundler } ] }
 
+        // --- native language toolchains (directly usable; ecosystem module drivers deferred) ---
+        // JVM: OpenJDK (javac/java). kotlin's clean cross-distro path is SDKMAN — it lands with
+        // that (deferred) driver, not here.
+        jdk: {
+            install: [ { via: native  name: { apt: default-jdk  dnf: java-17-openjdk-devel  pacman: jdk-openjdk  apk: openjdk17  zypper: java-17-openjdk-devel  brew: openjdk } } ]
+        }
+        // OCaml compiler (opam driver deferred).
+        ocaml: { install: [ { via: native  repo-component: universe } ] }
+        // Lua interpreter (luarocks deferred). Some distros suffix the package with the version.
+        lua:   { install: [ { via: native  repo-component: universe  name: { apt: lua5.4  apk: lua5.4  zypper: lua54  default: lua } } ] }
+        // Haskell — the GHC compiler (cabal driver deferred).
+        haskell: { install: [ { via: native  repo-component: universe  name: { default: ghc } } ] }
+        // Erlang/OTP + Elixir (elixir pulls erlang, but erlang is nameable on its own).
+        erlang: { install: [ { via: native  repo-component: universe } ] }
+        elixir: { install: [ { via: native  repo-component: universe } ] }
+        // Nim compiler (nimble ships alongside).
+        nim:   { install: [ { via: native  repo-component: universe } ] }
+
         // --- non-native drivers with driver-level deps ---
         // Proprietary browsers — not in any distro's base repos, and native installs would
         // each need their vendor apt/dnf repo wired in (plumbing configsys doesn't have). The

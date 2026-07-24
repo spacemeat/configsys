@@ -42,12 +42,19 @@ pytest test/test_golden.py`, review the diff) and runs the full suite before lan
   `typescript`, `prettier` sample globals; `deno`, `bun` toolchains.
 - **A3  go + go-install.** `go` toolchain; `go-install` driver (`go install pkg@latest`).
 - **A4  ruby + gem.** `ruby` toolchain; `gem` driver.
-- **A5  jvm + sdkman.** `jdk` + `kotlin`; `sdkman` driver.
-- **A6  ocaml + opam.** `ocaml` toolchain; `opam` driver.
-- **A7  lua + luarocks.** `lua` toolchain; `luarocks` driver.
-- **A8  haskell + cabal.** `ghcup`/`ghc` toolchain; `cabal` driver.
-- **A9  zig + odin.** tarball toolchains (github release discovery), no module manager.
-- **A10 elixir/erlang, julia, nim.** native/tarball toolchains.
+- **A5–A8  native toolchains (verified).** jdk (openjdk), ocaml, lua, haskell (ghc), elixir,
+  erlang, nim — all real, directly-usable native packages. **Landed together.**
+- **A9  zig + odin.** tarball toolchains (github release, tar.xz/tar.gz — tarball-driver OK).
+- **DEFERRED (need real-machine validation / unsupported medium):**
+  - module drivers `opam`, `luarocks`, `cabal`, `sdkman` — CLIs not runnable in-sandbox; do a
+    validated pass on a real box. (opam/luarocks/cabal are native-backed; sdkman is a
+    curl-bootstrapped shell function — decide whether it even fits the model.)
+  - `kotlin` — its clean cross-distro path is SDKMAN; lands with that driver (native on
+    Arch/brew only otherwise; its release artifact is a `.zip`, which the tar-only tarball
+    driver can't take).
+  - `deno`, `bun` — ship `.zip`; need a zip-capable fetch path first.
+  - `julia` — official binaries aren't github release assets (S3 URLs); needs a bespoke url/
+    version story.
 
 ### Track B — editors & shells
 - **B1  tmux + zsh + fish + nushell.** native everywhere.
