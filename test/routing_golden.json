@@ -985,6 +985,16 @@
     "name": "nmap"
    }
   },
+  "node": {
+   "pacman\\node": {
+    "driver": "pacman",
+    "fields": {
+     "name": "npm",
+     "repo-component": "universe"
+    },
+    "name": "npm"
+   }
+  },
   "nushell": {
    "pacman\\nushell": {
     "driver": "pacman",
@@ -1067,6 +1077,23 @@
      "name": "flatpak"
     },
     "name": "flatpak"
+   }
+  },
+  "prettier": {
+   "npm\\prettier": {
+    "driver": "npm",
+    "fields": {
+     "name": "prettier"
+    },
+    "name": "prettier"
+   },
+   "pacman\\node": {
+    "driver": "pacman",
+    "fields": {
+     "name": "npm",
+     "repo-component": "universe"
+    },
+    "name": "npm"
    }
   },
   "python3-pip": {
@@ -1221,6 +1248,23 @@
      "name": "wireshark-cli"
     },
     "name": "wireshark-cli"
+   }
+  },
+  "typescript": {
+   "npm\\typescript": {
+    "driver": "npm",
+    "fields": {
+     "name": "typescript"
+    },
+    "name": "typescript"
+   },
+   "pacman\\node": {
+    "driver": "pacman",
+    "fields": {
+     "name": "npm",
+     "repo-component": "universe"
+    },
+    "name": "npm"
    }
   },
   "unityhub": {
@@ -3072,6 +3116,16 @@
     "name": "nmap"
    }
   },
+  "node": {
+   "apt\\node": {
+    "driver": "apt",
+    "fields": {
+     "name": "npm",
+     "repo-component": "universe"
+    },
+    "name": "npm"
+   }
+  },
   "nushell": {
    "apt\\curl": {
     "driver": "apt",
@@ -3177,6 +3231,23 @@
      "name": "com.getpostman.Postman"
     },
     "name": "com.getpostman.Postman"
+   }
+  },
+  "prettier": {
+   "apt\\node": {
+    "driver": "apt",
+    "fields": {
+     "name": "npm",
+     "repo-component": "universe"
+    },
+    "name": "npm"
+   },
+   "npm\\prettier": {
+    "driver": "npm",
+    "fields": {
+     "name": "prettier"
+    },
+    "name": "prettier"
    }
   },
   "python3-pip": {
@@ -3340,6 +3411,23 @@
      "name": "tshark"
     },
     "name": "tshark"
+   }
+  },
+  "typescript": {
+   "apt\\node": {
+    "driver": "apt",
+    "fields": {
+     "name": "npm",
+     "repo-component": "universe"
+    },
+    "name": "npm"
+   },
+   "npm\\typescript": {
+    "driver": "npm",
+    "fields": {
+     "name": "typescript"
+    },
+    "name": "typescript"
    }
   },
   "unityhub": {
@@ -5130,6 +5218,16 @@
     "name": "nmap"
    }
   },
+  "node": {
+   "apt\\node": {
+    "driver": "apt",
+    "fields": {
+     "name": "npm",
+     "repo-component": "universe"
+    },
+    "name": "npm"
+   }
+  },
   "nushell": {
    "apt\\curl": {
     "driver": "apt",
@@ -5225,6 +5323,23 @@
      "name": "com.getpostman.Postman"
     },
     "name": "com.getpostman.Postman"
+   }
+  },
+  "prettier": {
+   "apt\\node": {
+    "driver": "apt",
+    "fields": {
+     "name": "npm",
+     "repo-component": "universe"
+    },
+    "name": "npm"
+   },
+   "npm\\prettier": {
+    "driver": "npm",
+    "fields": {
+     "name": "prettier"
+    },
+    "name": "prettier"
    }
   },
   "python3-pip": {
@@ -5388,6 +5503,23 @@
      "name": "tshark"
     },
     "name": "tshark"
+   }
+  },
+  "typescript": {
+   "apt\\node": {
+    "driver": "apt",
+    "fields": {
+     "name": "npm",
+     "repo-component": "universe"
+    },
+    "name": "npm"
+   },
+   "npm\\typescript": {
+    "driver": "npm",
+    "fields": {
+     "name": "typescript"
+    },
+    "name": "typescript"
    }
   },
   "unityhub": {
@@ -6894,6 +7026,16 @@
     "name": "nmap"
    }
   },
+  "node": {
+   "dnf\\node": {
+    "driver": "dnf",
+    "fields": {
+     "name": "nodejs",
+     "repo-component": "universe"
+    },
+    "name": "nodejs"
+   }
+  },
   "nushell": {
    "dnf\\curl": {
     "driver": "dnf",
@@ -6989,6 +7131,23 @@
      "name": "com.getpostman.Postman"
     },
     "name": "com.getpostman.Postman"
+   }
+  },
+  "prettier": {
+   "dnf\\node": {
+    "driver": "dnf",
+    "fields": {
+     "name": "nodejs",
+     "repo-component": "universe"
+    },
+    "name": "nodejs"
+   },
+   "npm\\prettier": {
+    "driver": "npm",
+    "fields": {
+     "name": "prettier"
+    },
+    "name": "prettier"
    }
   },
   "python3-pip": {
@@ -7156,6 +7315,23 @@
      "name": "wireshark-cli"
     },
     "name": "wireshark-cli"
+   }
+  },
+  "typescript": {
+   "dnf\\node": {
+    "driver": "dnf",
+    "fields": {
+     "name": "nodejs",
+     "repo-component": "universe"
+    },
+    "name": "nodejs"
+   },
+   "npm\\typescript": {
+    "driver": "npm",
+    "fields": {
+     "name": "typescript"
+    },
+    "name": "typescript"
    }
   },
   "unityhub": {
@@ -8689,6 +8865,16 @@
     "name": "nmap"
    }
   },
+  "node": {
+   "dnf\\node": {
+    "driver": "dnf",
+    "fields": {
+     "name": "nodejs",
+     "repo-component": "universe"
+    },
+    "name": "nodejs"
+   }
+  },
   "nushell": {
    "dnf\\curl": {
     "driver": "dnf",
@@ -8784,6 +8970,23 @@
      "name": "com.getpostman.Postman"
     },
     "name": "com.getpostman.Postman"
+   }
+  },
+  "prettier": {
+   "dnf\\node": {
+    "driver": "dnf",
+    "fields": {
+     "name": "nodejs",
+     "repo-component": "universe"
+    },
+    "name": "nodejs"
+   },
+   "npm\\prettier": {
+    "driver": "npm",
+    "fields": {
+     "name": "prettier"
+    },
+    "name": "prettier"
    }
   },
   "python3-pip": {
@@ -8951,6 +9154,23 @@
      "name": "wireshark-cli"
     },
     "name": "wireshark-cli"
+   }
+  },
+  "typescript": {
+   "dnf\\node": {
+    "driver": "dnf",
+    "fields": {
+     "name": "nodejs",
+     "repo-component": "universe"
+    },
+    "name": "nodejs"
+   },
+   "npm\\typescript": {
+    "driver": "npm",
+    "fields": {
+     "name": "typescript"
+    },
+    "name": "typescript"
    }
   },
   "unityhub": {
@@ -10756,6 +10976,16 @@
     "name": "nmap"
    }
   },
+  "node": {
+   "apt\\node": {
+    "driver": "apt",
+    "fields": {
+     "name": "npm",
+     "repo-component": "universe"
+    },
+    "name": "npm"
+   }
+  },
   "nushell": {
    "apt\\curl": {
     "driver": "apt",
@@ -10861,6 +11091,23 @@
      "name": "com.getpostman.Postman"
     },
     "name": "com.getpostman.Postman"
+   }
+  },
+  "prettier": {
+   "apt\\node": {
+    "driver": "apt",
+    "fields": {
+     "name": "npm",
+     "repo-component": "universe"
+    },
+    "name": "npm"
+   },
+   "npm\\prettier": {
+    "driver": "npm",
+    "fields": {
+     "name": "prettier"
+    },
+    "name": "prettier"
    }
   },
   "python3-pip": {
@@ -11017,6 +11264,23 @@
      "name": "tshark"
     },
     "name": "tshark"
+   }
+  },
+  "typescript": {
+   "apt\\node": {
+    "driver": "apt",
+    "fields": {
+     "name": "npm",
+     "repo-component": "universe"
+    },
+    "name": "npm"
+   },
+   "npm\\typescript": {
+    "driver": "npm",
+    "fields": {
+     "name": "typescript"
+    },
+    "name": "typescript"
    }
   },
   "unityhub": {
@@ -12670,6 +12934,16 @@
     "name": "nmap"
    }
   },
+  "node": {
+   "dnf\\node": {
+    "driver": "dnf",
+    "fields": {
+     "name": "nodejs",
+     "repo-component": "universe"
+    },
+    "name": "nodejs"
+   }
+  },
   "nushell": {
    "dnf\\curl": {
     "driver": "dnf",
@@ -12772,6 +13046,23 @@
      "name": "com.getpostman.Postman"
     },
     "name": "com.getpostman.Postman"
+   }
+  },
+  "prettier": {
+   "dnf\\node": {
+    "driver": "dnf",
+    "fields": {
+     "name": "nodejs",
+     "repo-component": "universe"
+    },
+    "name": "nodejs"
+   },
+   "npm\\prettier": {
+    "driver": "npm",
+    "fields": {
+     "name": "prettier"
+    },
+    "name": "prettier"
    }
   },
   "python3-pip": {
@@ -12953,6 +13244,23 @@
      "name": "wireshark-cli"
     },
     "name": "wireshark-cli"
+   }
+  },
+  "typescript": {
+   "dnf\\node": {
+    "driver": "dnf",
+    "fields": {
+     "name": "nodejs",
+     "repo-component": "universe"
+    },
+    "name": "nodejs"
+   },
+   "npm\\typescript": {
+    "driver": "npm",
+    "fields": {
+     "name": "typescript"
+    },
+    "name": "typescript"
    }
   },
   "unityhub": {
@@ -14774,6 +15082,16 @@
     "name": "nmap"
    }
   },
+  "node": {
+   "apt\\node": {
+    "driver": "apt",
+    "fields": {
+     "name": "npm",
+     "repo-component": "universe"
+    },
+    "name": "npm"
+   }
+  },
   "nushell": {
    "apt\\curl": {
     "driver": "apt",
@@ -14879,6 +15197,23 @@
      "name": "com.getpostman.Postman"
     },
     "name": "com.getpostman.Postman"
+   }
+  },
+  "prettier": {
+   "apt\\node": {
+    "driver": "apt",
+    "fields": {
+     "name": "npm",
+     "repo-component": "universe"
+    },
+    "name": "npm"
+   },
+   "npm\\prettier": {
+    "driver": "npm",
+    "fields": {
+     "name": "prettier"
+    },
+    "name": "prettier"
    }
   },
   "python3-pip": {
@@ -15042,6 +15377,23 @@
      "name": "tshark"
     },
     "name": "tshark"
+   }
+  },
+  "typescript": {
+   "apt\\node": {
+    "driver": "apt",
+    "fields": {
+     "name": "npm",
+     "repo-component": "universe"
+    },
+    "name": "npm"
+   },
+   "npm\\typescript": {
+    "driver": "npm",
+    "fields": {
+     "name": "typescript"
+    },
+    "name": "typescript"
    }
   },
   "unityhub": {
@@ -16832,6 +17184,16 @@
     "name": "nmap"
    }
   },
+  "node": {
+   "apt\\node": {
+    "driver": "apt",
+    "fields": {
+     "name": "npm",
+     "repo-component": "universe"
+    },
+    "name": "npm"
+   }
+  },
   "nushell": {
    "apt\\curl": {
     "driver": "apt",
@@ -16927,6 +17289,23 @@
      "name": "com.getpostman.Postman"
     },
     "name": "com.getpostman.Postman"
+   }
+  },
+  "prettier": {
+   "apt\\node": {
+    "driver": "apt",
+    "fields": {
+     "name": "npm",
+     "repo-component": "universe"
+    },
+    "name": "npm"
+   },
+   "npm\\prettier": {
+    "driver": "npm",
+    "fields": {
+     "name": "prettier"
+    },
+    "name": "prettier"
    }
   },
   "python3-pip": {
@@ -17090,6 +17469,23 @@
      "name": "tshark"
     },
     "name": "tshark"
+   }
+  },
+  "typescript": {
+   "apt\\node": {
+    "driver": "apt",
+    "fields": {
+     "name": "npm",
+     "repo-component": "universe"
+    },
+    "name": "npm"
+   },
+   "npm\\typescript": {
+    "driver": "npm",
+    "fields": {
+     "name": "typescript"
+    },
+    "name": "typescript"
    }
   },
   "unityhub": {

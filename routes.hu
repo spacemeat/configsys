@@ -74,6 +74,7 @@
         flatpak:     { requires: flatpak }
         appImage:    { requires: [ libfuse2, glibc ] }   // AppImages are glibc-built: decline on musl
         cargo:       { requires: cargo }              // a crate needs the cargo tool
+        npm:         { requires: npm }                // a global CLI needs the npm tool (-> node)
         font: { requires: [ fontconfig, unzip ] }
         // pip / pipx on musl (Alpine): pip prefers a `musllinux` wheel and pure-Python wheels
         // install fine, but a C-extension package that ships ONLY `manylinux` (glibc) wheels
@@ -184,6 +185,19 @@
             provides: cargo
             install: [ { via: native  repo-component: universe  name: { apt: rust-all  pacman: rust  brew: rust  default: cargo } } ]
         }
+
+        // Node.js toolchain (node + npm), directly usable. It `provides: npm`, so the npm
+        // DRIVER's `requires: npm` is met by installing node. One native binding brings both:
+        // apt/Arch/Alpine `npm` transitively pulls nodejs; Fedora/openSUSE `nodejs` and
+        // Homebrew `node` bundle npm.
+        node: {
+            provides: npm
+            install: [ { via: native  repo-component: universe  name: { apt: npm  pacman: npm  apk: npm  brew: node  default: nodejs } } ]
+        }
+        // Sample global npm CLIs (installed userland by default; see the npm driver). More can
+        // be added the same way, or pulled per-user via a plugin layer.
+        typescript: { install: [ { via: npm  name: typescript } ] }
+        prettier:   { install: [ { via: npm  name: prettier } ] }
 
         // --- non-native drivers with driver-level deps ---
         // Proprietary browsers — not in any distro's base repos, and native installs would

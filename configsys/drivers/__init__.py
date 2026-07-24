@@ -21,6 +21,7 @@ from .flatpak import Flatpak
 from .gcc import Gcc
 from .gcc_toolset import GccToolset
 from .group import Group
+from .npm import Npm
 from .pacman import Pacman
 from .pip import Pip
 from .pipx import Pipx
@@ -43,6 +44,7 @@ _REGISTRY = {
     DotFiles.name: DotFiles,
     Font.name: Font,
     Cargo.name: Cargo,
+    Npm.name: Npm,
     Gcc.name: Gcc,
     GccToolset.name: GccToolset,
     Clang.name: Clang,
