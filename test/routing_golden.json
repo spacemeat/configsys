@@ -339,6 +339,22 @@
     "name": "npm"
    }
   },
+  "conan": {
+   "pacman\\pipx": {
+    "driver": "pacman",
+    "fields": {
+     "name": "python-pipx"
+    },
+    "name": "python-pipx"
+   },
+   "pipx\\conan": {
+    "driver": "pipx",
+    "fields": {
+     "name": "conan"
+    },
+    "name": "conan"
+   }
+  },
   "configsys-dotfiles": {
    "dotfiles\\bash-dotfiles": {
     "driver": "dotfiles",
@@ -764,6 +780,15 @@
     "name": "ghc"
    }
   },
+  "helm": {
+   "pacman\\helm": {
+    "driver": "pacman",
+    "fields": {
+     "name": "helm"
+    },
+    "name": "helm"
+   }
+  },
   "hlint": {
    "cabal\\hlint": {
     "driver": "cabal",
@@ -940,6 +965,29 @@
     "name": "julia"
    }
   },
+  "k3s": {
+   "script\\k3s": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "curl -sfL https://get.k3s.io | sh",
+     "location": "/usr/local/bin/k3s",
+     "name": "k3s",
+     "uninstall-cmd": "/usr/local/bin/k3s-uninstall.sh",
+     "version-cmd": "k3s --version",
+     "version-re": "(v[0-9]+\\.[0-9]+\\.[0-9]+)"
+    },
+    "name": "k3s"
+   }
+  },
+  "k9s": {
+   "pacman\\k9s": {
+    "driver": "pacman",
+    "fields": {
+     "name": "k9s"
+    },
+    "name": "k9s"
+   }
+  },
   "kde": {
    "pacman\\kde": {
     "driver": "pacman",
@@ -983,6 +1031,37 @@
      "name": "flatpak"
     },
     "name": "flatpak"
+   }
+  },
+  "kubectl": {
+   "pacman\\kubectl": {
+    "driver": "pacman",
+    "fields": {
+     "name": "kubectl"
+    },
+    "name": "kubectl"
+   }
+  },
+  "lazydocker": {
+   "pacman\\curl": {
+    "driver": "pacman",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "tarball\\lazydocker": {
+    "driver": "tarball",
+    "fields": {
+     "installDir": "apps/lazydocker",
+     "name": "lazydocker",
+     "version": {
+      "asset": "lazydocker_*_Linux_x86_64.tar.gz",
+      "github": "jesseduffield/lazydocker",
+      "strip-v": "true"
+     }
+    },
+    "name": "lazydocker"
    }
   },
   "lazygit": {
@@ -1032,6 +1111,27 @@
      "src": "bash.d/lazygit.sh"
     },
     "name": "lazygit-dotfiles"
+   }
+  },
+  "lazysql": {
+   "pacman\\curl": {
+    "driver": "pacman",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "tarball\\lazysql": {
+    "driver": "tarball",
+    "fields": {
+     "installDir": "apps/lazysql",
+     "name": "lazysql",
+     "url": "https://github.com/jorgerojas26/lazysql/releases/latest/download/lazysql_Linux_x86_64.tar.gz",
+     "version": {
+      "static": "latest"
+     }
+    },
+    "name": "lazysql"
    }
   },
   "libfuse2": {
@@ -1792,6 +1892,48 @@
     "name": "unzip"
    }
   },
+  "vcpkg": {
+   "pacman\\curl": {
+    "driver": "pacman",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "pacman\\git": {
+    "driver": "pacman",
+    "fields": {
+     "name": "git"
+    },
+    "name": "git"
+   },
+   "pacman\\unzip": {
+    "driver": "pacman",
+    "fields": {
+     "name": "unzip"
+    },
+    "name": "unzip"
+   },
+   "pacman\\zip": {
+    "driver": "pacman",
+    "fields": {
+     "name": "zip"
+    },
+    "name": "zip"
+   },
+   "script\\vcpkg": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "git clone https://github.com/microsoft/vcpkg \"$HOME/.vcpkg\" && \"$HOME/.vcpkg/bootstrap-vcpkg.sh\" -disableMetrics",
+     "location": "~/.vcpkg",
+     "name": "vcpkg",
+     "uninstall-cmd": "rm -rf \"$HOME/.vcpkg\"",
+     "version-cmd": "\"$HOME/.vcpkg/vcpkg\" version",
+     "version-re": "([0-9]{4}-[0-9]{2}-[0-9]{2})"
+    },
+    "name": "vcpkg"
+   }
+  },
   "vivaldi": {
    "flatpak\\vivaldi": {
     "driver": "flatpak",
@@ -2302,6 +2444,15 @@
     "name": "zig"
    }
   },
+  "zip": {
+   "pacman\\zip": {
+    "driver": "pacman",
+    "fields": {
+     "name": "zip"
+    },
+    "name": "zip"
+   }
+  },
   "zsh": {
    "pacman\\zsh": {
     "driver": "pacman",
@@ -2802,6 +2953,32 @@
     "name": "@openai/codex"
    }
   },
+  "conan": {
+   "apt\\python3-pip": {
+    "driver": "apt",
+    "fields": {
+     "name": "python3-pip"
+    },
+    "name": "python3-pip"
+   },
+   "pip\\pipx": {
+    "driver": "pip",
+    "fields": {
+     "name": "pipx",
+     "version": {
+      "pypi": "pipx"
+     }
+    },
+    "name": "pipx"
+   },
+   "pipx\\conan": {
+    "driver": "pipx",
+    "fields": {
+     "name": "conan"
+    },
+    "name": "conan"
+   }
+  },
   "configsys-dotfiles": {
    "dotfiles\\bash-dotfiles": {
     "driver": "dotfiles",
@@ -3404,6 +3581,20 @@
     "name": "ghc"
    }
   },
+  "helm": {
+   "script\\helm": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "curl -fsSL https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash",
+     "location": "/usr/local/bin/helm",
+     "name": "helm",
+     "uninstall-cmd": "sudo rm -f /usr/local/bin/helm",
+     "version-cmd": "helm version --short",
+     "version-re": "(v?[0-9]+\\.[0-9]+\\.[0-9]+)"
+    },
+    "name": "helm"
+   }
+  },
   "hlint": {
    "apt\\cabal": {
     "driver": "apt",
@@ -3583,6 +3774,41 @@
     "name": "julia"
    }
   },
+  "k3s": {
+   "script\\k3s": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "curl -sfL https://get.k3s.io | sh",
+     "location": "/usr/local/bin/k3s",
+     "name": "k3s",
+     "uninstall-cmd": "/usr/local/bin/k3s-uninstall.sh",
+     "version-cmd": "k3s --version",
+     "version-re": "(v[0-9]+\\.[0-9]+\\.[0-9]+)"
+    },
+    "name": "k3s"
+   }
+  },
+  "k9s": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "tarball\\k9s": {
+    "driver": "tarball",
+    "fields": {
+     "installDir": "apps/k9s",
+     "name": "k9s",
+     "url": "https://github.com/derailed/k9s/releases/latest/download/k9s_Linux_amd64.tar.gz",
+     "version": {
+      "static": "latest"
+     }
+    },
+    "name": "k9s"
+   }
+  },
   "kde": {
    "apt\\kde": {
     "driver": "apt",
@@ -3656,6 +3882,28 @@
     "name": "org.kde.krita"
    }
   },
+  "lazydocker": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "tarball\\lazydocker": {
+    "driver": "tarball",
+    "fields": {
+     "installDir": "apps/lazydocker",
+     "name": "lazydocker",
+     "version": {
+      "asset": "lazydocker_*_Linux_x86_64.tar.gz",
+      "github": "jesseduffield/lazydocker",
+      "strip-v": "true"
+     }
+    },
+    "name": "lazydocker"
+   }
+  },
   "lazygit": {
    "apt\\curl": {
     "driver": "apt",
@@ -3716,6 +3964,27 @@
      "src": "bash.d/lazygit.sh"
     },
     "name": "lazygit-dotfiles"
+   }
+  },
+  "lazysql": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "tarball\\lazysql": {
+    "driver": "tarball",
+    "fields": {
+     "installDir": "apps/lazysql",
+     "name": "lazysql",
+     "url": "https://github.com/jorgerojas26/lazysql/releases/latest/download/lazysql_Linux_x86_64.tar.gz",
+     "version": {
+      "static": "latest"
+     }
+    },
+    "name": "lazysql"
    }
   },
   "libfuse2": {
@@ -4533,6 +4802,48 @@
     "name": "unzip"
    }
   },
+  "vcpkg": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "apt\\git": {
+    "driver": "apt",
+    "fields": {
+     "name": "git"
+    },
+    "name": "git"
+   },
+   "apt\\unzip": {
+    "driver": "apt",
+    "fields": {
+     "name": "unzip"
+    },
+    "name": "unzip"
+   },
+   "apt\\zip": {
+    "driver": "apt",
+    "fields": {
+     "name": "zip"
+    },
+    "name": "zip"
+   },
+   "script\\vcpkg": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "git clone https://github.com/microsoft/vcpkg \"$HOME/.vcpkg\" && \"$HOME/.vcpkg/bootstrap-vcpkg.sh\" -disableMetrics",
+     "location": "~/.vcpkg",
+     "name": "vcpkg",
+     "uninstall-cmd": "rm -rf \"$HOME/.vcpkg\"",
+     "version-cmd": "\"$HOME/.vcpkg/vcpkg\" version",
+     "version-re": "([0-9]{4}-[0-9]{2}-[0-9]{2})"
+    },
+    "name": "vcpkg"
+   }
+  },
   "vivaldi": {
    "apt\\flatpak": {
     "driver": "apt",
@@ -5003,6 +5314,15 @@
      }
     },
     "name": "zig"
+   }
+  },
+  "zip": {
+   "apt\\zip": {
+    "driver": "apt",
+    "fields": {
+     "name": "zip"
+    },
+    "name": "zip"
    }
   },
   "zsh": {
@@ -5495,6 +5815,22 @@
     "name": "@openai/codex"
    }
   },
+  "conan": {
+   "apt\\pipx": {
+    "driver": "apt",
+    "fields": {
+     "name": "pipx"
+    },
+    "name": "pipx"
+   },
+   "pipx\\conan": {
+    "driver": "pipx",
+    "fields": {
+     "name": "conan"
+    },
+    "name": "conan"
+   }
+  },
   "configsys-dotfiles": {
    "dotfiles\\bash-dotfiles": {
     "driver": "dotfiles",
@@ -6097,6 +6433,20 @@
     "name": "ghc"
    }
   },
+  "helm": {
+   "script\\helm": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "curl -fsSL https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash",
+     "location": "/usr/local/bin/helm",
+     "name": "helm",
+     "uninstall-cmd": "sudo rm -f /usr/local/bin/helm",
+     "version-cmd": "helm version --short",
+     "version-re": "(v?[0-9]+\\.[0-9]+\\.[0-9]+)"
+    },
+    "name": "helm"
+   }
+  },
   "hlint": {
    "apt\\cabal": {
     "driver": "apt",
@@ -6276,6 +6626,41 @@
     "name": "julia"
    }
   },
+  "k3s": {
+   "script\\k3s": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "curl -sfL https://get.k3s.io | sh",
+     "location": "/usr/local/bin/k3s",
+     "name": "k3s",
+     "uninstall-cmd": "/usr/local/bin/k3s-uninstall.sh",
+     "version-cmd": "k3s --version",
+     "version-re": "(v[0-9]+\\.[0-9]+\\.[0-9]+)"
+    },
+    "name": "k3s"
+   }
+  },
+  "k9s": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "tarball\\k9s": {
+    "driver": "tarball",
+    "fields": {
+     "installDir": "apps/k9s",
+     "name": "k9s",
+     "url": "https://github.com/derailed/k9s/releases/latest/download/k9s_Linux_amd64.tar.gz",
+     "version": {
+      "static": "latest"
+     }
+    },
+    "name": "k9s"
+   }
+  },
   "kde": {
    "apt\\kde": {
     "driver": "apt",
@@ -6349,6 +6734,28 @@
     "name": "org.kde.krita"
    }
   },
+  "lazydocker": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "tarball\\lazydocker": {
+    "driver": "tarball",
+    "fields": {
+     "installDir": "apps/lazydocker",
+     "name": "lazydocker",
+     "version": {
+      "asset": "lazydocker_*_Linux_x86_64.tar.gz",
+      "github": "jesseduffield/lazydocker",
+      "strip-v": "true"
+     }
+    },
+    "name": "lazydocker"
+   }
+  },
   "lazygit": {
    "apt\\curl": {
     "driver": "apt",
@@ -6409,6 +6816,27 @@
      "src": "bash.d/lazygit.sh"
     },
     "name": "lazygit-dotfiles"
+   }
+  },
+  "lazysql": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "tarball\\lazysql": {
+    "driver": "tarball",
+    "fields": {
+     "installDir": "apps/lazysql",
+     "name": "lazysql",
+     "url": "https://github.com/jorgerojas26/lazysql/releases/latest/download/lazysql_Linux_x86_64.tar.gz",
+     "version": {
+      "static": "latest"
+     }
+    },
+    "name": "lazysql"
    }
   },
   "libfuse2": {
@@ -7196,6 +7624,48 @@
     "name": "unzip"
    }
   },
+  "vcpkg": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "apt\\git": {
+    "driver": "apt",
+    "fields": {
+     "name": "git"
+    },
+    "name": "git"
+   },
+   "apt\\unzip": {
+    "driver": "apt",
+    "fields": {
+     "name": "unzip"
+    },
+    "name": "unzip"
+   },
+   "apt\\zip": {
+    "driver": "apt",
+    "fields": {
+     "name": "zip"
+    },
+    "name": "zip"
+   },
+   "script\\vcpkg": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "git clone https://github.com/microsoft/vcpkg \"$HOME/.vcpkg\" && \"$HOME/.vcpkg/bootstrap-vcpkg.sh\" -disableMetrics",
+     "location": "~/.vcpkg",
+     "name": "vcpkg",
+     "uninstall-cmd": "rm -rf \"$HOME/.vcpkg\"",
+     "version-cmd": "\"$HOME/.vcpkg/vcpkg\" version",
+     "version-re": "([0-9]{4}-[0-9]{2}-[0-9]{2})"
+    },
+    "name": "vcpkg"
+   }
+  },
   "vivaldi": {
    "apt\\flatpak": {
     "driver": "apt",
@@ -7658,6 +8128,15 @@
     "name": "zig"
    }
   },
+  "zip": {
+   "apt\\zip": {
+    "driver": "apt",
+    "fields": {
+     "name": "zip"
+    },
+    "name": "zip"
+   }
+  },
   "zsh": {
    "apt\\zsh": {
     "driver": "apt",
@@ -8028,6 +8507,22 @@
      "name": "@openai/codex"
     },
     "name": "@openai/codex"
+   }
+  },
+  "conan": {
+   "dnf\\pipx": {
+    "driver": "dnf",
+    "fields": {
+     "name": "pipx"
+    },
+    "name": "pipx"
+   },
+   "pipx\\conan": {
+    "driver": "pipx",
+    "fields": {
+     "name": "conan"
+    },
+    "name": "conan"
    }
   },
   "configsys-dotfiles": {
@@ -8498,6 +8993,20 @@
     "name": "ghc"
    }
   },
+  "helm": {
+   "script\\helm": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "curl -fsSL https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash",
+     "location": "/usr/local/bin/helm",
+     "name": "helm",
+     "uninstall-cmd": "sudo rm -f /usr/local/bin/helm",
+     "version-cmd": "helm version --short",
+     "version-re": "(v?[0-9]+\\.[0-9]+\\.[0-9]+)"
+    },
+    "name": "helm"
+   }
+  },
   "hlint": {
    "cabal\\hlint": {
     "driver": "cabal",
@@ -8686,6 +9195,41 @@
     "name": "julia"
    }
   },
+  "k3s": {
+   "script\\k3s": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "curl -sfL https://get.k3s.io | sh",
+     "location": "/usr/local/bin/k3s",
+     "name": "k3s",
+     "uninstall-cmd": "/usr/local/bin/k3s-uninstall.sh",
+     "version-cmd": "k3s --version",
+     "version-re": "(v[0-9]+\\.[0-9]+\\.[0-9]+)"
+    },
+    "name": "k3s"
+   }
+  },
+  "k9s": {
+   "dnf\\curl": {
+    "driver": "dnf",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "tarball\\k9s": {
+    "driver": "tarball",
+    "fields": {
+     "installDir": "apps/k9s",
+     "name": "k9s",
+     "url": "https://github.com/derailed/k9s/releases/latest/download/k9s_Linux_amd64.tar.gz",
+     "version": {
+      "static": "latest"
+     }
+    },
+    "name": "k9s"
+   }
+  },
   "kde": {
    "dnf\\kde": {
     "driver": "dnf",
@@ -8759,6 +9303,28 @@
     "name": "org.kde.krita"
    }
   },
+  "lazydocker": {
+   "dnf\\curl": {
+    "driver": "dnf",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "tarball\\lazydocker": {
+    "driver": "tarball",
+    "fields": {
+     "installDir": "apps/lazydocker",
+     "name": "lazydocker",
+     "version": {
+      "asset": "lazydocker_*_Linux_x86_64.tar.gz",
+      "github": "jesseduffield/lazydocker",
+      "strip-v": "true"
+     }
+    },
+    "name": "lazydocker"
+   }
+  },
   "lazygit": {
    "dnf\\lazygit": {
     "driver": "dnf",
@@ -8806,6 +9372,27 @@
      "src": "bash.d/lazygit.sh"
     },
     "name": "lazygit-dotfiles"
+   }
+  },
+  "lazysql": {
+   "dnf\\curl": {
+    "driver": "dnf",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "tarball\\lazysql": {
+    "driver": "tarball",
+    "fields": {
+     "installDir": "apps/lazysql",
+     "name": "lazysql",
+     "url": "https://github.com/jorgerojas26/lazysql/releases/latest/download/lazysql_Linux_x86_64.tar.gz",
+     "version": {
+      "static": "latest"
+     }
+    },
+    "name": "lazysql"
    }
   },
   "libfuse2": {
@@ -9597,6 +10184,48 @@
     "name": "unzip"
    }
   },
+  "vcpkg": {
+   "dnf\\curl": {
+    "driver": "dnf",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "dnf\\git": {
+    "driver": "dnf",
+    "fields": {
+     "name": "git"
+    },
+    "name": "git"
+   },
+   "dnf\\unzip": {
+    "driver": "dnf",
+    "fields": {
+     "name": "unzip"
+    },
+    "name": "unzip"
+   },
+   "dnf\\zip": {
+    "driver": "dnf",
+    "fields": {
+     "name": "zip"
+    },
+    "name": "zip"
+   },
+   "script\\vcpkg": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "git clone https://github.com/microsoft/vcpkg \"$HOME/.vcpkg\" && \"$HOME/.vcpkg/bootstrap-vcpkg.sh\" -disableMetrics",
+     "location": "~/.vcpkg",
+     "name": "vcpkg",
+     "uninstall-cmd": "rm -rf \"$HOME/.vcpkg\"",
+     "version-cmd": "\"$HOME/.vcpkg/vcpkg\" version",
+     "version-re": "([0-9]{4}-[0-9]{2}-[0-9]{2})"
+    },
+    "name": "vcpkg"
+   }
+  },
   "vivaldi": {
    "dnf\\flatpak": {
     "driver": "dnf",
@@ -10074,6 +10703,15 @@
     "name": "zig"
    }
   },
+  "zip": {
+   "dnf\\zip": {
+    "driver": "dnf",
+    "fields": {
+     "name": "zip"
+    },
+    "name": "zip"
+   }
+  },
   "zsh": {
    "dnf\\zsh": {
     "driver": "dnf",
@@ -10456,6 +11094,22 @@
      "name": "@openai/codex"
     },
     "name": "@openai/codex"
+   }
+  },
+  "conan": {
+   "dnf\\pipx": {
+    "driver": "dnf",
+    "fields": {
+     "name": "pipx"
+    },
+    "name": "pipx"
+   },
+   "pipx\\conan": {
+    "driver": "pipx",
+    "fields": {
+     "name": "conan"
+    },
+    "name": "conan"
    }
   },
   "configsys-dotfiles": {
@@ -10926,6 +11580,20 @@
     "name": "ghc"
    }
   },
+  "helm": {
+   "script\\helm": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "curl -fsSL https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash",
+     "location": "/usr/local/bin/helm",
+     "name": "helm",
+     "uninstall-cmd": "sudo rm -f /usr/local/bin/helm",
+     "version-cmd": "helm version --short",
+     "version-re": "(v?[0-9]+\\.[0-9]+\\.[0-9]+)"
+    },
+    "name": "helm"
+   }
+  },
   "hlint": {
    "cabal\\hlint": {
     "driver": "cabal",
@@ -11114,6 +11782,41 @@
     "name": "julia"
    }
   },
+  "k3s": {
+   "script\\k3s": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "curl -sfL https://get.k3s.io | sh",
+     "location": "/usr/local/bin/k3s",
+     "name": "k3s",
+     "uninstall-cmd": "/usr/local/bin/k3s-uninstall.sh",
+     "version-cmd": "k3s --version",
+     "version-re": "(v[0-9]+\\.[0-9]+\\.[0-9]+)"
+    },
+    "name": "k3s"
+   }
+  },
+  "k9s": {
+   "dnf\\curl": {
+    "driver": "dnf",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "tarball\\k9s": {
+    "driver": "tarball",
+    "fields": {
+     "installDir": "apps/k9s",
+     "name": "k9s",
+     "url": "https://github.com/derailed/k9s/releases/latest/download/k9s_Linux_amd64.tar.gz",
+     "version": {
+      "static": "latest"
+     }
+    },
+    "name": "k9s"
+   }
+  },
   "kde": {
    "dnf\\kde": {
     "driver": "dnf",
@@ -11187,6 +11890,28 @@
     "name": "org.kde.krita"
    }
   },
+  "lazydocker": {
+   "dnf\\curl": {
+    "driver": "dnf",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "tarball\\lazydocker": {
+    "driver": "tarball",
+    "fields": {
+     "installDir": "apps/lazydocker",
+     "name": "lazydocker",
+     "version": {
+      "asset": "lazydocker_*_Linux_x86_64.tar.gz",
+      "github": "jesseduffield/lazydocker",
+      "strip-v": "true"
+     }
+    },
+    "name": "lazydocker"
+   }
+  },
   "lazygit": {
    "dnf\\lazygit": {
     "driver": "dnf",
@@ -11234,6 +11959,27 @@
      "src": "bash.d/lazygit.sh"
     },
     "name": "lazygit-dotfiles"
+   }
+  },
+  "lazysql": {
+   "dnf\\curl": {
+    "driver": "dnf",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "tarball\\lazysql": {
+    "driver": "tarball",
+    "fields": {
+     "installDir": "apps/lazysql",
+     "name": "lazysql",
+     "url": "https://github.com/jorgerojas26/lazysql/releases/latest/download/lazysql_Linux_x86_64.tar.gz",
+     "version": {
+      "static": "latest"
+     }
+    },
+    "name": "lazysql"
    }
   },
   "libfuse2": {
@@ -12025,6 +12771,48 @@
     "name": "unzip"
    }
   },
+  "vcpkg": {
+   "dnf\\curl": {
+    "driver": "dnf",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "dnf\\git": {
+    "driver": "dnf",
+    "fields": {
+     "name": "git"
+    },
+    "name": "git"
+   },
+   "dnf\\unzip": {
+    "driver": "dnf",
+    "fields": {
+     "name": "unzip"
+    },
+    "name": "unzip"
+   },
+   "dnf\\zip": {
+    "driver": "dnf",
+    "fields": {
+     "name": "zip"
+    },
+    "name": "zip"
+   },
+   "script\\vcpkg": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "git clone https://github.com/microsoft/vcpkg \"$HOME/.vcpkg\" && \"$HOME/.vcpkg/bootstrap-vcpkg.sh\" -disableMetrics",
+     "location": "~/.vcpkg",
+     "name": "vcpkg",
+     "uninstall-cmd": "rm -rf \"$HOME/.vcpkg\"",
+     "version-cmd": "\"$HOME/.vcpkg/vcpkg\" version",
+     "version-re": "([0-9]{4}-[0-9]{2}-[0-9]{2})"
+    },
+    "name": "vcpkg"
+   }
+  },
   "vivaldi": {
    "dnf\\flatpak": {
     "driver": "dnf",
@@ -12500,6 +13288,15 @@
      }
     },
     "name": "zig"
+   }
+  },
+  "zip": {
+   "dnf\\zip": {
+    "driver": "dnf",
+    "fields": {
+     "name": "zip"
+    },
+    "name": "zip"
    }
   },
   "zsh": {
@@ -13000,6 +13797,32 @@
      "name": "@openai/codex"
     },
     "name": "@openai/codex"
+   }
+  },
+  "conan": {
+   "apt\\python3-pip": {
+    "driver": "apt",
+    "fields": {
+     "name": "python3-pip"
+    },
+    "name": "python3-pip"
+   },
+   "pip\\pipx": {
+    "driver": "pip",
+    "fields": {
+     "name": "pipx",
+     "version": {
+      "pypi": "pipx"
+     }
+    },
+    "name": "pipx"
+   },
+   "pipx\\conan": {
+    "driver": "pipx",
+    "fields": {
+     "name": "conan"
+    },
+    "name": "conan"
    }
   },
   "configsys-dotfiles": {
@@ -13613,6 +14436,20 @@
     "name": "ghc"
    }
   },
+  "helm": {
+   "script\\helm": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "curl -fsSL https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash",
+     "location": "/usr/local/bin/helm",
+     "name": "helm",
+     "uninstall-cmd": "sudo rm -f /usr/local/bin/helm",
+     "version-cmd": "helm version --short",
+     "version-re": "(v?[0-9]+\\.[0-9]+\\.[0-9]+)"
+    },
+    "name": "helm"
+   }
+  },
   "hlint": {
    "apt\\cabal": {
     "driver": "apt",
@@ -13792,6 +14629,41 @@
     "name": "julia"
    }
   },
+  "k3s": {
+   "script\\k3s": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "curl -sfL https://get.k3s.io | sh",
+     "location": "/usr/local/bin/k3s",
+     "name": "k3s",
+     "uninstall-cmd": "/usr/local/bin/k3s-uninstall.sh",
+     "version-cmd": "k3s --version",
+     "version-re": "(v[0-9]+\\.[0-9]+\\.[0-9]+)"
+    },
+    "name": "k3s"
+   }
+  },
+  "k9s": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "tarball\\k9s": {
+    "driver": "tarball",
+    "fields": {
+     "installDir": "apps/k9s",
+     "name": "k9s",
+     "url": "https://github.com/derailed/k9s/releases/latest/download/k9s_Linux_amd64.tar.gz",
+     "version": {
+      "static": "latest"
+     }
+    },
+    "name": "k9s"
+   }
+  },
   "kde": {
    "apt\\kde": {
     "driver": "apt",
@@ -13865,6 +14737,28 @@
     "name": "org.kde.krita"
    }
   },
+  "lazydocker": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "tarball\\lazydocker": {
+    "driver": "tarball",
+    "fields": {
+     "installDir": "apps/lazydocker",
+     "name": "lazydocker",
+     "version": {
+      "asset": "lazydocker_*_Linux_x86_64.tar.gz",
+      "github": "jesseduffield/lazydocker",
+      "strip-v": "true"
+     }
+    },
+    "name": "lazydocker"
+   }
+  },
   "lazygit": {
    "apt\\curl": {
     "driver": "apt",
@@ -13925,6 +14819,27 @@
      "src": "bash.d/lazygit.sh"
     },
     "name": "lazygit-dotfiles"
+   }
+  },
+  "lazysql": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "tarball\\lazysql": {
+    "driver": "tarball",
+    "fields": {
+     "installDir": "apps/lazysql",
+     "name": "lazysql",
+     "url": "https://github.com/jorgerojas26/lazysql/releases/latest/download/lazysql_Linux_x86_64.tar.gz",
+     "version": {
+      "static": "latest"
+     }
+    },
+    "name": "lazysql"
    }
   },
   "libfuse2": {
@@ -14735,6 +15650,48 @@
     "name": "unzip"
    }
   },
+  "vcpkg": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "apt\\git": {
+    "driver": "apt",
+    "fields": {
+     "name": "git"
+    },
+    "name": "git"
+   },
+   "apt\\unzip": {
+    "driver": "apt",
+    "fields": {
+     "name": "unzip"
+    },
+    "name": "unzip"
+   },
+   "apt\\zip": {
+    "driver": "apt",
+    "fields": {
+     "name": "zip"
+    },
+    "name": "zip"
+   },
+   "script\\vcpkg": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "git clone https://github.com/microsoft/vcpkg \"$HOME/.vcpkg\" && \"$HOME/.vcpkg/bootstrap-vcpkg.sh\" -disableMetrics",
+     "location": "~/.vcpkg",
+     "name": "vcpkg",
+     "uninstall-cmd": "rm -rf \"$HOME/.vcpkg\"",
+     "version-cmd": "\"$HOME/.vcpkg/vcpkg\" version",
+     "version-re": "([0-9]{4}-[0-9]{2}-[0-9]{2})"
+    },
+    "name": "vcpkg"
+   }
+  },
   "vivaldi": {
    "apt\\flatpak": {
     "driver": "apt",
@@ -15207,6 +16164,15 @@
     "name": "zig"
    }
   },
+  "zip": {
+   "apt\\zip": {
+    "driver": "apt",
+    "fields": {
+     "name": "zip"
+    },
+    "name": "zip"
+   }
+  },
   "zsh": {
    "apt\\zsh": {
     "driver": "apt",
@@ -15610,6 +16576,29 @@
      "name": "@openai/codex"
     },
     "name": "@openai/codex"
+   }
+  },
+  "conan": {
+   "dnf\\epel-release": {
+    "driver": "dnf",
+    "fields": {
+     "name": "epel-release"
+    },
+    "name": "epel-release"
+   },
+   "dnf\\pipx": {
+    "driver": "dnf",
+    "fields": {
+     "name": "pipx"
+    },
+    "name": "pipx"
+   },
+   "pipx\\conan": {
+    "driver": "pipx",
+    "fields": {
+     "name": "conan"
+    },
+    "name": "conan"
    }
   },
   "configsys-dotfiles": {
@@ -16124,6 +17113,20 @@
     "name": "ghc"
    }
   },
+  "helm": {
+   "script\\helm": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "curl -fsSL https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash",
+     "location": "/usr/local/bin/helm",
+     "name": "helm",
+     "uninstall-cmd": "sudo rm -f /usr/local/bin/helm",
+     "version-cmd": "helm version --short",
+     "version-re": "(v?[0-9]+\\.[0-9]+\\.[0-9]+)"
+    },
+    "name": "helm"
+   }
+  },
   "hlint": {
    "cabal\\hlint": {
     "driver": "cabal",
@@ -16332,6 +17335,41 @@
     "name": "julia"
    }
   },
+  "k3s": {
+   "script\\k3s": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "curl -sfL https://get.k3s.io | sh",
+     "location": "/usr/local/bin/k3s",
+     "name": "k3s",
+     "uninstall-cmd": "/usr/local/bin/k3s-uninstall.sh",
+     "version-cmd": "k3s --version",
+     "version-re": "(v[0-9]+\\.[0-9]+\\.[0-9]+)"
+    },
+    "name": "k3s"
+   }
+  },
+  "k9s": {
+   "dnf\\curl": {
+    "driver": "dnf",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "tarball\\k9s": {
+    "driver": "tarball",
+    "fields": {
+     "installDir": "apps/k9s",
+     "name": "k9s",
+     "url": "https://github.com/derailed/k9s/releases/latest/download/k9s_Linux_amd64.tar.gz",
+     "version": {
+      "static": "latest"
+     }
+    },
+    "name": "k9s"
+   }
+  },
   "kde": {
    "dnf\\kde": {
     "driver": "dnf",
@@ -16412,6 +17450,28 @@
     "name": "org.kde.krita"
    }
   },
+  "lazydocker": {
+   "dnf\\curl": {
+    "driver": "dnf",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "tarball\\lazydocker": {
+    "driver": "tarball",
+    "fields": {
+     "installDir": "apps/lazydocker",
+     "name": "lazydocker",
+     "version": {
+      "asset": "lazydocker_*_Linux_x86_64.tar.gz",
+      "github": "jesseduffield/lazydocker",
+      "strip-v": "true"
+     }
+    },
+    "name": "lazydocker"
+   }
+  },
   "lazygit": {
    "dnf\\curl": {
     "driver": "dnf",
@@ -16472,6 +17532,27 @@
      "src": "bash.d/lazygit.sh"
     },
     "name": "lazygit-dotfiles"
+   }
+  },
+  "lazysql": {
+   "dnf\\curl": {
+    "driver": "dnf",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "tarball\\lazysql": {
+    "driver": "tarball",
+    "fields": {
+     "installDir": "apps/lazysql",
+     "name": "lazysql",
+     "url": "https://github.com/jorgerojas26/lazysql/releases/latest/download/lazysql_Linux_x86_64.tar.gz",
+     "version": {
+      "static": "latest"
+     }
+    },
+    "name": "lazysql"
    }
   },
   "libfuse2": {
@@ -17318,6 +18399,48 @@
     "name": "unzip"
    }
   },
+  "vcpkg": {
+   "dnf\\curl": {
+    "driver": "dnf",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "dnf\\git": {
+    "driver": "dnf",
+    "fields": {
+     "name": "git"
+    },
+    "name": "git"
+   },
+   "dnf\\unzip": {
+    "driver": "dnf",
+    "fields": {
+     "name": "unzip"
+    },
+    "name": "unzip"
+   },
+   "dnf\\zip": {
+    "driver": "dnf",
+    "fields": {
+     "name": "zip"
+    },
+    "name": "zip"
+   },
+   "script\\vcpkg": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "git clone https://github.com/microsoft/vcpkg \"$HOME/.vcpkg\" && \"$HOME/.vcpkg/bootstrap-vcpkg.sh\" -disableMetrics",
+     "location": "~/.vcpkg",
+     "name": "vcpkg",
+     "uninstall-cmd": "rm -rf \"$HOME/.vcpkg\"",
+     "version-cmd": "\"$HOME/.vcpkg/vcpkg\" version",
+     "version-re": "([0-9]{4}-[0-9]{2}-[0-9]{2})"
+    },
+    "name": "vcpkg"
+   }
+  },
   "vivaldi": {
    "dnf\\flatpak": {
     "driver": "dnf",
@@ -17809,6 +18932,15 @@
      }
     },
     "name": "zig"
+   }
+  },
+  "zip": {
+   "dnf\\zip": {
+    "driver": "dnf",
+    "fields": {
+     "name": "zip"
+    },
+    "name": "zip"
    }
   },
   "zsh": {
@@ -18311,6 +19443,32 @@
     "name": "@openai/codex"
    }
   },
+  "conan": {
+   "apt\\python3-pip": {
+    "driver": "apt",
+    "fields": {
+     "name": "python3-pip"
+    },
+    "name": "python3-pip"
+   },
+   "pip\\pipx": {
+    "driver": "pip",
+    "fields": {
+     "name": "pipx",
+     "version": {
+      "pypi": "pipx"
+     }
+    },
+    "name": "pipx"
+   },
+   "pipx\\conan": {
+    "driver": "pipx",
+    "fields": {
+     "name": "conan"
+    },
+    "name": "conan"
+   }
+  },
   "configsys-dotfiles": {
    "dotfiles\\bash-dotfiles": {
     "driver": "dotfiles",
@@ -18913,6 +20071,20 @@
     "name": "ghc"
    }
   },
+  "helm": {
+   "script\\helm": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "curl -fsSL https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash",
+     "location": "/usr/local/bin/helm",
+     "name": "helm",
+     "uninstall-cmd": "sudo rm -f /usr/local/bin/helm",
+     "version-cmd": "helm version --short",
+     "version-re": "(v?[0-9]+\\.[0-9]+\\.[0-9]+)"
+    },
+    "name": "helm"
+   }
+  },
   "hlint": {
    "apt\\cabal": {
     "driver": "apt",
@@ -19092,6 +20264,41 @@
     "name": "julia"
    }
   },
+  "k3s": {
+   "script\\k3s": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "curl -sfL https://get.k3s.io | sh",
+     "location": "/usr/local/bin/k3s",
+     "name": "k3s",
+     "uninstall-cmd": "/usr/local/bin/k3s-uninstall.sh",
+     "version-cmd": "k3s --version",
+     "version-re": "(v[0-9]+\\.[0-9]+\\.[0-9]+)"
+    },
+    "name": "k3s"
+   }
+  },
+  "k9s": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "tarball\\k9s": {
+    "driver": "tarball",
+    "fields": {
+     "installDir": "apps/k9s",
+     "name": "k9s",
+     "url": "https://github.com/derailed/k9s/releases/latest/download/k9s_Linux_amd64.tar.gz",
+     "version": {
+      "static": "latest"
+     }
+    },
+    "name": "k9s"
+   }
+  },
   "kde": {
    "apt\\kde": {
     "driver": "apt",
@@ -19165,6 +20372,28 @@
     "name": "org.kde.krita"
    }
   },
+  "lazydocker": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "tarball\\lazydocker": {
+    "driver": "tarball",
+    "fields": {
+     "installDir": "apps/lazydocker",
+     "name": "lazydocker",
+     "version": {
+      "asset": "lazydocker_*_Linux_x86_64.tar.gz",
+      "github": "jesseduffield/lazydocker",
+      "strip-v": "true"
+     }
+    },
+    "name": "lazydocker"
+   }
+  },
   "lazygit": {
    "apt\\curl": {
     "driver": "apt",
@@ -19225,6 +20454,27 @@
      "src": "bash.d/lazygit.sh"
     },
     "name": "lazygit-dotfiles"
+   }
+  },
+  "lazysql": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "tarball\\lazysql": {
+    "driver": "tarball",
+    "fields": {
+     "installDir": "apps/lazysql",
+     "name": "lazysql",
+     "url": "https://github.com/jorgerojas26/lazysql/releases/latest/download/lazysql_Linux_x86_64.tar.gz",
+     "version": {
+      "static": "latest"
+     }
+    },
+    "name": "lazysql"
    }
   },
   "libfuse2": {
@@ -20042,6 +21292,48 @@
     "name": "unzip"
    }
   },
+  "vcpkg": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "apt\\git": {
+    "driver": "apt",
+    "fields": {
+     "name": "git"
+    },
+    "name": "git"
+   },
+   "apt\\unzip": {
+    "driver": "apt",
+    "fields": {
+     "name": "unzip"
+    },
+    "name": "unzip"
+   },
+   "apt\\zip": {
+    "driver": "apt",
+    "fields": {
+     "name": "zip"
+    },
+    "name": "zip"
+   },
+   "script\\vcpkg": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "git clone https://github.com/microsoft/vcpkg \"$HOME/.vcpkg\" && \"$HOME/.vcpkg/bootstrap-vcpkg.sh\" -disableMetrics",
+     "location": "~/.vcpkg",
+     "name": "vcpkg",
+     "uninstall-cmd": "rm -rf \"$HOME/.vcpkg\"",
+     "version-cmd": "\"$HOME/.vcpkg/vcpkg\" version",
+     "version-re": "([0-9]{4}-[0-9]{2}-[0-9]{2})"
+    },
+    "name": "vcpkg"
+   }
+  },
   "vivaldi": {
    "apt\\flatpak": {
     "driver": "apt",
@@ -20512,6 +21804,15 @@
      }
     },
     "name": "zig"
+   }
+  },
+  "zip": {
+   "apt\\zip": {
+    "driver": "apt",
+    "fields": {
+     "name": "zip"
+    },
+    "name": "zip"
    }
   },
   "zsh": {
@@ -21004,6 +22305,22 @@
     "name": "@openai/codex"
    }
   },
+  "conan": {
+   "apt\\pipx": {
+    "driver": "apt",
+    "fields": {
+     "name": "pipx"
+    },
+    "name": "pipx"
+   },
+   "pipx\\conan": {
+    "driver": "pipx",
+    "fields": {
+     "name": "conan"
+    },
+    "name": "conan"
+   }
+  },
   "configsys-dotfiles": {
    "dotfiles\\bash-dotfiles": {
     "driver": "dotfiles",
@@ -21606,6 +22923,20 @@
     "name": "ghc"
    }
   },
+  "helm": {
+   "script\\helm": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "curl -fsSL https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash",
+     "location": "/usr/local/bin/helm",
+     "name": "helm",
+     "uninstall-cmd": "sudo rm -f /usr/local/bin/helm",
+     "version-cmd": "helm version --short",
+     "version-re": "(v?[0-9]+\\.[0-9]+\\.[0-9]+)"
+    },
+    "name": "helm"
+   }
+  },
   "hlint": {
    "apt\\cabal": {
     "driver": "apt",
@@ -21785,6 +23116,41 @@
     "name": "julia"
    }
   },
+  "k3s": {
+   "script\\k3s": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "curl -sfL https://get.k3s.io | sh",
+     "location": "/usr/local/bin/k3s",
+     "name": "k3s",
+     "uninstall-cmd": "/usr/local/bin/k3s-uninstall.sh",
+     "version-cmd": "k3s --version",
+     "version-re": "(v[0-9]+\\.[0-9]+\\.[0-9]+)"
+    },
+    "name": "k3s"
+   }
+  },
+  "k9s": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "tarball\\k9s": {
+    "driver": "tarball",
+    "fields": {
+     "installDir": "apps/k9s",
+     "name": "k9s",
+     "url": "https://github.com/derailed/k9s/releases/latest/download/k9s_Linux_amd64.tar.gz",
+     "version": {
+      "static": "latest"
+     }
+    },
+    "name": "k9s"
+   }
+  },
   "kde": {
    "apt\\kde": {
     "driver": "apt",
@@ -21858,6 +23224,28 @@
     "name": "org.kde.krita"
    }
   },
+  "lazydocker": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "tarball\\lazydocker": {
+    "driver": "tarball",
+    "fields": {
+     "installDir": "apps/lazydocker",
+     "name": "lazydocker",
+     "version": {
+      "asset": "lazydocker_*_Linux_x86_64.tar.gz",
+      "github": "jesseduffield/lazydocker",
+      "strip-v": "true"
+     }
+    },
+    "name": "lazydocker"
+   }
+  },
   "lazygit": {
    "apt\\curl": {
     "driver": "apt",
@@ -21918,6 +23306,27 @@
      "src": "bash.d/lazygit.sh"
     },
     "name": "lazygit-dotfiles"
+   }
+  },
+  "lazysql": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "tarball\\lazysql": {
+    "driver": "tarball",
+    "fields": {
+     "installDir": "apps/lazysql",
+     "name": "lazysql",
+     "url": "https://github.com/jorgerojas26/lazysql/releases/latest/download/lazysql_Linux_x86_64.tar.gz",
+     "version": {
+      "static": "latest"
+     }
+    },
+    "name": "lazysql"
    }
   },
   "libfuse2": {
@@ -22705,6 +24114,48 @@
     "name": "unzip"
    }
   },
+  "vcpkg": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "apt\\git": {
+    "driver": "apt",
+    "fields": {
+     "name": "git"
+    },
+    "name": "git"
+   },
+   "apt\\unzip": {
+    "driver": "apt",
+    "fields": {
+     "name": "unzip"
+    },
+    "name": "unzip"
+   },
+   "apt\\zip": {
+    "driver": "apt",
+    "fields": {
+     "name": "zip"
+    },
+    "name": "zip"
+   },
+   "script\\vcpkg": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "git clone https://github.com/microsoft/vcpkg \"$HOME/.vcpkg\" && \"$HOME/.vcpkg/bootstrap-vcpkg.sh\" -disableMetrics",
+     "location": "~/.vcpkg",
+     "name": "vcpkg",
+     "uninstall-cmd": "rm -rf \"$HOME/.vcpkg\"",
+     "version-cmd": "\"$HOME/.vcpkg/vcpkg\" version",
+     "version-re": "([0-9]{4}-[0-9]{2}-[0-9]{2})"
+    },
+    "name": "vcpkg"
+   }
+  },
   "vivaldi": {
    "apt\\flatpak": {
     "driver": "apt",
@@ -23165,6 +24616,15 @@
      }
     },
     "name": "zig"
+   }
+  },
+  "zip": {
+   "apt\\zip": {
+    "driver": "apt",
+    "fields": {
+     "name": "zip"
+    },
+    "name": "zip"
    }
   },
   "zsh": {
