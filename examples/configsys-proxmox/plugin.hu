@@ -1,0 +1,20 @@
+{
+    // The plugin manifest. `configsys plugin list` reads this; the loader gates on it.
+    name: proxmox
+    version: 0.1.0
+
+    // The plugin ABI this data targets — configsys loads the plugin only if this is in its
+    // ABI_SUPPORTED set (bump when you rely on a newer contract).
+    requires-abi: 1
+
+    // Informational: what this plugin brings.
+    provides: {
+        os: proxmox
+    }
+
+    // The data layers merged into the routing stack. There is NO `code:` key — this is a pure
+    // DATA plugin: Proxmox VE is Debian, so every component installs through the `apt` driver
+    // configsys already ships. Nothing here runs with your privileges beyond apt itself, so —
+    // unlike the configsys-void example, which ships an `xbps` driver — there is no trust step.
+    data: [ routes.hu ]
+}

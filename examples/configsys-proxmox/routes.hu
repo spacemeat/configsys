@@ -1,0 +1,34 @@
+{
+    // Make Proxmox VE a first-class OS. PVE 8 IS Debian 12 (plus the PVE kernel, repositories,
+    // and web stack), so this one block inherits the entire `debian` family: every existing
+    // `via: native` component (btop, git, ripgrep, tmux, ...) installs on a PVE host through apt,
+    // with no per-component work.
+    //
+    // The catch is DETECTION: Proxmox does not rebrand /etc/os-release — it reports ID=debian, so
+    // it can't be told apart by ID alone. We key on a MARKER instead: `/etc/pve` exists on every
+    // Proxmox host. The `detect:` field is the data-driven form of the trick configsys already
+    // uses for Fedora Atomic (an ostree marker): when the detected block is `debian` (or a
+    // descendant) and every marker is present, configsys routes to `proxmox`. Force it anytime
+    // with `--os proxmox` / CONFIGSYS_OS=proxmox.
+    os: {
+        proxmox: {
+            using: debian
+            detect: { id: debian  marker: /etc/pve }
+            provides: qemu            // PVE already ships QEMU/KVM — installing `qemu` is a no-op here
+        }
+    }
+
+    // A deliberately LEAN "make my hypervisor host feel like home" profile: admin CLI tooling
+    // only. A PVE host is a managed appliance, not a workstation — do NOT point a desktop or dev
+    // profile at your hypervisor.
+    profiles: {
+        proxmox-admin: [ btop, htop, tmux, git, curl, ripgrep, fastfetch ]
+    }
+
+    // Proxmox-specific packages, guarded `when: "proxmox"` so they exist ONLY on a PVE host.
+    components: {
+        // Kernel headers matching the running PVE kernel — for building out-of-tree modules
+        // (ZFS, NIC drivers). `proxmox-default-headers` tracks the default kernel on PVE 8.
+        proxmox-headers: { install: [ { via: native  when: "proxmox"  name: proxmox-default-headers } ] }
+    }
+}

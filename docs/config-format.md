@@ -120,6 +120,13 @@ Combine atoms with `and`, `or`, and a guarded `not`. OS blocks form a lineage vi
 match-sets overlap must be comparable (one more specific than the other) or configsys reports
 a load-time ambiguity.
 
+A derivative distro that does not rebrand `/etc/os-release` (Proxmox VE reports `ID=debian`)
+can still be detected by a **marker**: an os block declares `detect: { id: <base>  marker:
+<path> }` (marker may be a list). When the detected block is that base — or a descendant — and
+every marker exists on disk, configsys routes to the more-specific block. This is the
+data-driven form of the built-in Fedora-Atomic ostree-marker detection, so a plugin can add a
+detectable OS with no code (see `examples/configsys-proxmox`).
+
 ## Versions — discovered, not hardcoded
 
 Download-based bindings declare *how* to find the latest version rather than pinning one:

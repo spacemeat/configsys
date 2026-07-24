@@ -107,6 +107,7 @@ class Context:
         self.runner = Runner(pretend=args.pretend, echo=lambda m: print(m))
         self._config = None
         self._discovered = None
+        self._os_refined = False       # detect:-marker refinement runs once, lazily
         self._plugin_files = None
         self._plugin_code_loaded = False
         self.plugin_code_warnings = []   # code plugins that ship code but were gated out
@@ -254,16 +255,29 @@ class Context:
             pending.update(provides.get('drivers') or [])
         self.plugin_pending_vias = pending
 
-    @property
-    def routes(self):
+    def _resolver(self, block):
         # layer stack: routes.hu < discovered project files < ~/configsys.hu (components
         # overlay + pins). A malformed discovered file is skipped, not fatal.
         self.ensure_plugin_code()     # register trusted plugin drivers before `via:` resolves
-        return Resolver(self.paths.routes_file, self.os_info.block,
+        return Resolver(self.paths.routes_file, block,
                         self.os_info.version, self._cpu(),
                         pins=self.config.pins(),
                         overrides_path=self.paths.user_config_file,
                         discovered=self.discovered, plugin_files=self.plugin_files)
+
+    @property
+    def routes(self):
+        r = self._resolver(self.os_info.block)
+        # Once the cascade is loaded (with plugin os blocks), refine the block via `detect:`
+        # markers — e.g. an ID=debian host with /etc/pve is really `proxmox`. Cached; only rebuilds
+        # when a marker actually reroutes (rare), and only the first time.
+        if not self._os_refined:
+            self._os_refined = True
+            refined = osdetect.refine(self.os_info.block, r.cascade, self.env)
+            if refined != self.os_info.block:
+                self.os_info.block = refined
+                r = self._resolver(refined)
+        return r
 
     @property
     def config(self):

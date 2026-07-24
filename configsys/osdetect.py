@@ -94,6 +94,31 @@ def block_for_id(id):
     return _ALIASES.get(id, id)
 
 
+def refine(block, cascade, env=None, exists=os.path.exists):
+    '''Refine a detected block using os blocks' `detect:` markers. A derivative distro that does
+    NOT rebrand /etc/os-release (Proxmox VE reports ID=debian) declares
+    `detect: { id: <base>  marker: <path> }` (marker may be a list). When the detected block is
+    that base (or a descendant of it) and every marker exists on disk, we route to the more-
+    specific block. This is the data-driven generalization of the built-in Fedora-Atomic
+    ostree-marker detection — so a plugin can add a detectable OS with no code. A forced
+    CONFIGSYS_OS is never second-guessed.'''
+    env = os.environ if env is None else env
+    if env.get('CONFIGSYS_OS'):
+        return block
+    for name, blk in cascade.blocks.items():
+        det = (blk or {}).get('detect')
+        if not isinstance(det, dict):
+            continue
+        base = det.get('id') or det.get('base')
+        markers = det.get('marker') or det.get('markers') or []
+        markers = [markers] if isinstance(markers, str) else list(markers)
+        if base and not cascade.is_descendant(block, base):
+            continue
+        if markers and all(exists(str(m)) for m in markers):
+            return name
+    return block
+
+
 def detect(env=None, os_release_path='/etc/os-release',
            ostree_marker='/run/ostree-booted') -> OsInfo:
     env = os.environ if env is None else env

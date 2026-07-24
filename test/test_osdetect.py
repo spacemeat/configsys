@@ -126,3 +126,22 @@ def test_is_atomic_predicate():
     assert osdetect.is_atomic('fedora_atomic') is True
     assert osdetect.is_atomic('fedora') is False
     assert osdetect.is_atomic('ubuntu') is False
+
+
+def test_refine_detect_marker_selects_derivative():
+    from configsys.routes import OsCascade
+    casc = OsCascade({
+        'linux': {}, 'glibc_linux': {'using': 'linux'},
+        'debian': {'using': 'glibc_linux', 'native': 'apt'},
+        'proxmox': {'using': 'debian', 'detect': {'id': 'debian', 'marker': '/etc/pve'}},
+    })
+    have = {'/etc/pve'}
+    # ID=debian host WITH the marker -> proxmox
+    assert osdetect.refine('debian', casc, env={}, exists=lambda p: p in have) == 'proxmox'
+    # without the marker -> plain debian
+    assert osdetect.refine('debian', casc, env={}, exists=lambda p: False) == 'debian'
+    # a forced OS is never second-guessed
+    assert osdetect.refine('debian', casc, env={'CONFIGSYS_OS': 'debian'},
+                           exists=lambda p: True) == 'debian'
+    # an unrelated block is untouched even if the marker exists
+    assert osdetect.refine('arch', casc, env={}, exists=lambda p: True) == 'arch'
