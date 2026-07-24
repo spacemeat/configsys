@@ -20,6 +20,7 @@ from .dotfiles import DotFiles
 from .flatpak import Flatpak
 from .gcc import Gcc
 from .gcc_toolset import GccToolset
+from .go_install import GoInstall
 from .group import Group
 from .npm import Npm
 from .pacman import Pacman
@@ -45,6 +46,7 @@ _REGISTRY = {
     Font.name: Font,
     Cargo.name: Cargo,
     Npm.name: Npm,
+    GoInstall.name: GoInstall,
     Gcc.name: Gcc,
     GccToolset.name: GccToolset,
     Clang.name: Clang,

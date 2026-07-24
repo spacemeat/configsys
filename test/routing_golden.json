@@ -508,6 +508,31 @@
     "name": "gnuradio"
    }
   },
+  "go": {
+   "pacman\\go": {
+    "driver": "pacman",
+    "fields": {
+     "name": "go"
+    },
+    "name": "go"
+   }
+  },
+  "goimports": {
+   "go-install\\goimports": {
+    "driver": "go-install",
+    "fields": {
+     "name": "golang.org/x/tools/cmd/goimports"
+    },
+    "name": "golang.org/x/tools/cmd/goimports"
+   },
+   "pacman\\go": {
+    "driver": "pacman",
+    "fields": {
+     "name": "go"
+    },
+    "name": "go"
+   }
+  },
   "htop": {
    "dotfiles\\htop-dotfiles": {
     "driver": "dotfiles",
@@ -2614,6 +2639,31 @@
      "name": "gnuradio"
     },
     "name": "gnuradio"
+   }
+  },
+  "go": {
+   "apt\\go": {
+    "driver": "apt",
+    "fields": {
+     "name": "golang-go"
+    },
+    "name": "golang-go"
+   }
+  },
+  "goimports": {
+   "apt\\go": {
+    "driver": "apt",
+    "fields": {
+     "name": "golang-go"
+    },
+    "name": "golang-go"
+   },
+   "go-install\\goimports": {
+    "driver": "go-install",
+    "fields": {
+     "name": "golang.org/x/tools/cmd/goimports"
+    },
+    "name": "golang.org/x/tools/cmd/goimports"
    }
   },
   "htop": {
@@ -4728,6 +4778,31 @@
     "name": "gnuradio"
    }
   },
+  "go": {
+   "apt\\go": {
+    "driver": "apt",
+    "fields": {
+     "name": "golang-go"
+    },
+    "name": "golang-go"
+   }
+  },
+  "goimports": {
+   "apt\\go": {
+    "driver": "apt",
+    "fields": {
+     "name": "golang-go"
+    },
+    "name": "golang-go"
+   },
+   "go-install\\goimports": {
+    "driver": "go-install",
+    "fields": {
+     "name": "golang.org/x/tools/cmd/goimports"
+    },
+    "name": "golang.org/x/tools/cmd/goimports"
+   }
+  },
   "htop": {
    "apt\\htop": {
     "driver": "apt",
@@ -6547,6 +6622,31 @@
      "name": "gnuradio"
     },
     "name": "gnuradio"
+   }
+  },
+  "go": {
+   "dnf\\go": {
+    "driver": "dnf",
+    "fields": {
+     "name": "golang"
+    },
+    "name": "golang"
+   }
+  },
+  "goimports": {
+   "dnf\\go": {
+    "driver": "dnf",
+    "fields": {
+     "name": "golang"
+    },
+    "name": "golang"
+   },
+   "go-install\\goimports": {
+    "driver": "go-install",
+    "fields": {
+     "name": "golang.org/x/tools/cmd/goimports"
+    },
+    "name": "golang.org/x/tools/cmd/goimports"
    }
   },
   "htop": {
@@ -8386,6 +8486,31 @@
      "name": "gnuradio"
     },
     "name": "gnuradio"
+   }
+  },
+  "go": {
+   "dnf\\go": {
+    "driver": "dnf",
+    "fields": {
+     "name": "golang"
+    },
+    "name": "golang"
+   }
+  },
+  "goimports": {
+   "dnf\\go": {
+    "driver": "dnf",
+    "fields": {
+     "name": "golang"
+    },
+    "name": "golang"
+   },
+   "go-install\\goimports": {
+    "driver": "go-install",
+    "fields": {
+     "name": "golang.org/x/tools/cmd/goimports"
+    },
+    "name": "golang.org/x/tools/cmd/goimports"
    }
   },
   "htop": {
@@ -10476,6 +10601,31 @@
     "name": "gnuradio"
    }
   },
+  "go": {
+   "apt\\go": {
+    "driver": "apt",
+    "fields": {
+     "name": "golang-go"
+    },
+    "name": "golang-go"
+   }
+  },
+  "goimports": {
+   "apt\\go": {
+    "driver": "apt",
+    "fields": {
+     "name": "golang-go"
+    },
+    "name": "golang-go"
+   },
+   "go-install\\goimports": {
+    "driver": "go-install",
+    "fields": {
+     "name": "golang.org/x/tools/cmd/goimports"
+    },
+    "name": "golang.org/x/tools/cmd/goimports"
+   }
+  },
   "htop": {
    "apt\\htop": {
     "driver": "apt",
@@ -12388,6 +12538,31 @@
      "name": "gnuradio"
     },
     "name": "gnuradio"
+   }
+  },
+  "go": {
+   "dnf\\go": {
+    "driver": "dnf",
+    "fields": {
+     "name": "golang"
+    },
+    "name": "golang"
+   }
+  },
+  "goimports": {
+   "dnf\\go": {
+    "driver": "dnf",
+    "fields": {
+     "name": "golang"
+    },
+    "name": "golang"
+   },
+   "go-install\\goimports": {
+    "driver": "go-install",
+    "fields": {
+     "name": "golang.org/x/tools/cmd/goimports"
+    },
+    "name": "golang.org/x/tools/cmd/goimports"
    }
   },
   "htop": {
@@ -14582,6 +14757,31 @@
     "name": "gnuradio"
    }
   },
+  "go": {
+   "apt\\go": {
+    "driver": "apt",
+    "fields": {
+     "name": "golang-go"
+    },
+    "name": "golang-go"
+   }
+  },
+  "goimports": {
+   "apt\\go": {
+    "driver": "apt",
+    "fields": {
+     "name": "golang-go"
+    },
+    "name": "golang-go"
+   },
+   "go-install\\goimports": {
+    "driver": "go-install",
+    "fields": {
+     "name": "golang.org/x/tools/cmd/goimports"
+    },
+    "name": "golang.org/x/tools/cmd/goimports"
+   }
+  },
   "htop": {
    "apt\\htop": {
     "driver": "apt",
@@ -16692,6 +16892,31 @@
      "name": "gnuradio"
     },
     "name": "gnuradio"
+   }
+  },
+  "go": {
+   "apt\\go": {
+    "driver": "apt",
+    "fields": {
+     "name": "golang-go"
+    },
+    "name": "golang-go"
+   }
+  },
+  "goimports": {
+   "apt\\go": {
+    "driver": "apt",
+    "fields": {
+     "name": "golang-go"
+    },
+    "name": "golang-go"
+   },
+   "go-install\\goimports": {
+    "driver": "go-install",
+    "fields": {
+     "name": "golang.org/x/tools/cmd/goimports"
+    },
+    "name": "golang.org/x/tools/cmd/goimports"
    }
   },
   "htop": {
