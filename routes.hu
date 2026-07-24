@@ -244,8 +244,20 @@
         jdk: {
             install: [ { via: native  name: { apt: default-jdk  dnf: java-17-openjdk-devel  pacman: jdk-openjdk  apk: openjdk17  zypper: java-17-openjdk-devel  brew: openjdk } } ]
         }
+        // SDKMAN — a JVM SDK manager installed by its own shell script (the demonstrator for the
+        // `script` driver: lifecycle commands declared as data, incl. a clean uninstall). `sdk`
+        // is a shell function, so version-cmd sources the init script in the same shell.
+        sdkman: {
+            install: [ { via: script
+                         install-cmd: 'curl -s https://get.sdkman.io | bash'
+                         version-cmd: 'source "$HOME/.sdkman/bin/sdkman-init.sh" && sdk version'
+                         version-re: '([0-9]+\.[0-9]+\.[0-9]+)'
+                         uninstall-cmd: 'rm -rf "$HOME/.sdkman"'
+                         location: '~/.sdkman' } ]
+        }
+
         // Kotlin compiler — native on Arch/Homebrew; else the github release ZIP. Needs a JVM to
-        // run (requires jdk) and unzip to unpack. (SDKMAN would be the other path; deferred.)
+        // run (requires jdk) and unzip to unpack. (SDKMAN is the other path — via the script driver.)
         kotlin: {
             install: [
                 { via: native  when: "arch" }                      // pacman: kotlin

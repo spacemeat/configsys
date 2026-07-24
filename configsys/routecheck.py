@@ -106,6 +106,12 @@ def validate(components, cascade, drivers, pending_vias=frozenset()):
                 for part in _as_list(b.details.get('parts')):
                     if part not in components:
                         add('unknown-part', f'parts references unknown component {part!r}', comp)
+            if b.via == 'script':
+                if not b.details.get('install-cmd'):
+                    add('script-no-install', 'via:script needs an install-cmd', comp)
+                if not b.details.get('uninstall-cmd'):
+                    add('script-no-uninstall', 'via:script has no uninstall-cmd — configsys '
+                        'cannot cleanly remove it (install still allowed)', comp, 'warning')
             for cap in _as_list(b.details.get('requires')):
                 if cap not in providable:
                     add('dangling-requires', f'requires {cap!r} which nothing provides', comp, 'warning')
