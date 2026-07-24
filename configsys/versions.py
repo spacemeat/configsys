@@ -161,7 +161,7 @@ class VersionCache:
         self.records[key] = {'version': version, 'url': url, 'fetched': now}
 
 
-def _resolve(spec, paths, refresh, fetch, now, ttl):
+def _resolve(spec, paths, refresh, fetch, now, ttl, offline=False):
     '''-> (version, download_url) via the cache.'''
     if 'static' in spec:
         return str(spec['static']), None     # pins never touch the network/cache
@@ -174,6 +174,11 @@ def _resolve(spec, paths, refresh, fetch, now, ttl):
         rec = cache.get(key, now, ttl)
         if rec is not None:
             return rec['version'], rec.get('url')
+
+    if offline:
+        # dry-run (--pretend): never touch the network. Use the last-known cache, else nothing.
+        rec = cache.any(key)
+        return (rec['version'], rec.get('url')) if rec else (None, None)
 
     try:
         version, url = _discover_live(spec, fetch)
@@ -191,17 +196,18 @@ def _resolve(spec, paths, refresh, fetch, now, ttl):
 
 
 def discover(spec, paths=None, *, refresh=False, fetch=http_fetch, now=None,
-             ttl=DEFAULT_TTL):
-    '''Latest version string for a `version:` spec (uses/updates the cache).'''
+             ttl=DEFAULT_TTL, offline=False):
+    '''Latest version string for a `version:` spec (uses/updates the cache). `offline` never
+    hits the network (for --pretend): cache-or-None.'''
     if not isinstance(spec, dict):
         return None
-    return _resolve(spec, paths, refresh, fetch, now, ttl)[0]
+    return _resolve(spec, paths, refresh, fetch, now, ttl, offline)[0]
 
 
 def discover_asset_url(spec, paths=None, *, refresh=False, fetch=http_fetch, now=None,
-                       ttl=DEFAULT_TTL):
+                       ttl=DEFAULT_TTL, offline=False):
     '''The github release asset download URL, if the spec has a matching `asset`
-    glob; else None. Shares the cache with discover().'''
+    glob; else None. Shares the cache with discover(). `offline` skips the network.'''
     if not isinstance(spec, dict):
         return None
-    return _resolve(spec, paths, refresh, fetch, now, ttl)[1]
+    return _resolve(spec, paths, refresh, fetch, now, ttl, offline)[1]

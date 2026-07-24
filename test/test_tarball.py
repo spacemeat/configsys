@@ -73,6 +73,20 @@ def test_install_bare_binary_custom_name(tmp_path):
     assert f'chmod +x {d / "kubectl"}' in r.calls[0]
 
 
+def test_pretend_version_discovery_is_offline(tmp_path):
+    # --pretend (Runner(pretend=True)) must not touch the network: a github spec with an empty
+    # cache resolves to None, and the url falls back to github's API-free latest/download.
+    from configsys.paths import Paths
+    paths = Paths(env={'CONFIGSYS_HOME': str(tmp_path)})
+    rc = ResolvedComponent(key='tarball\\x', driver='tarball', comp='x',
+                           fields={'installDir': str(tmp_path),
+                                   'version': {'github': 'o/r', 'asset': 'x-linux-amd64.deb'}})
+    d = Tarball(Runner(pretend=True), paths=paths)
+    assert d.resolve_version(rc) is None                     # offline + empty cache => no version
+    assert d.download_url(rc, '') == \
+        'https://github.com/o/r/releases/latest/download/x-linux-amd64.deb'
+
+
 def test_install_defaults_to_tar(tmp_path):
     d = tmp_path / 'inst'
     r = Runner(pretend=True)

@@ -89,6 +89,11 @@ class Driver:
             spec['asset'] = spec['asset'].replace('$ARCH', self.arch())
         return spec
 
+    def _offline(self):
+        '''--pretend must be side-effect-free, network reads included: version discovery goes
+        cache-only (never touches the network) when the runner is pretending.'''
+        return bool(getattr(self.runner, 'pretend', False))
+
     def resolve_version(self, rc, *, refresh=False):
         '''The version to install / treat as latest. A `version:` dict is a discovery
         spec (github / url / static); a string is a literal; otherwise fall back to a
@@ -96,7 +101,7 @@ class Driver:
         spec = self._disco_spec(rc)
         if isinstance(spec, dict):
             from . import versions
-            return versions.discover(spec, self.paths, refresh=refresh)
+            return versions.discover(spec, self.paths, refresh=refresh, offline=self._offline())
         if isinstance(spec, str) and spec:
             return spec
         return rc.vars.get('$VERSION') or rc.vars.get('$SDKVERSION')
@@ -108,9 +113,15 @@ class Driver:
         spec = self._disco_spec(rc)
         if isinstance(spec, dict):
             from . import versions
-            asset = versions.discover_asset_url(spec, self.paths)
+            asset = versions.discover_asset_url(spec, self.paths, offline=self._offline())
             if asset:
                 return asset
+            # API-free fallback for a LITERAL github asset name (no glob): the releases/latest/
+            # download URL. Robust when api.github.com is unreachable, and lets --pretend show a
+            # real URL without a network call.
+            gh, name = spec.get('github'), spec.get('asset')
+            if gh and isinstance(name, str) and '*' not in name:
+                return f'https://github.com/{gh}/releases/latest/download/{name}'
         return self._apply_placeholders(rc.fields.get('url'), version)
 
     def scoped_dir(self, raw, rc):
