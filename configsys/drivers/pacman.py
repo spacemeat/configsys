@@ -17,6 +17,11 @@ from ..runner import Result
 
 _VER_RE = re.compile(r'^Version\s*:\s*(.+)$', re.MULTILINE)
 
+# Some names (several desktop environments: xfce4, lxqt, mate) are package GROUPS, not single
+# packages — they have no single version on a rolling distro. This marker stands in for both the
+# installed and available "version" so a group reads as installed/up-to-date rather than missing.
+_GROUP = '(group)'
+
 
 class Pacman(Driver):
     name = 'pacman'
@@ -28,17 +33,22 @@ class Pacman(Driver):
     def get_version(self, rc):
         # `pacman -Q btop` -> "btop 1.4.7-1"; nonzero + not-found message if absent
         r = self.runner.run(f'pacman -Q {shlex.quote(rc.name)}')
-        if not r.ok or not r.stdout.strip():
-            return None
-        parts = r.stdout.split()
-        return parts[1] if len(parts) >= 2 else None
+        if r.ok and r.stdout.strip():
+            parts = r.stdout.split()
+            return parts[1] if len(parts) >= 2 else None
+        # not a single package — maybe an installed GROUP: `pacman -Qg xfce4` lists its members
+        g = self.runner.run(f'pacman -Qg {shlex.quote(rc.name)}')
+        return _GROUP if g.ok and g.stdout.strip() else None
 
     def get_latest(self, rc):
         r = self.runner.run(f'pacman -Si {shlex.quote(rc.name)}')
-        if not r.ok:
-            return None
-        m = _VER_RE.search(r.stdout)
-        return m.group(1).strip() if m else None
+        if r.ok:
+            m = _VER_RE.search(r.stdout)
+            if m:
+                return m.group(1).strip()
+        # a group has no version; report the same marker so an installed group isn't "outdated"
+        g = self.runner.run(f'pacman -Sg {shlex.quote(rc.name)}')
+        return _GROUP if g.ok and g.stdout.strip() else None
 
     def is_locked(self, rc):
         return False   # no native per-package hold on a rolling distro
@@ -50,8 +60,12 @@ class Pacman(Driver):
                                sudo=True, capture=False)
 
     def uninstall(self, rc):
-        return self.runner.run(f'pacman -R --noconfirm {shlex.quote(rc.name)}',
-                               sudo=True, capture=False)
+        # `pacman -R` doesn't accept a group name — if this is a group, expand to its installed
+        # members (`pacman -Qgq xfce4`); otherwise remove the package directly.
+        n = shlex.quote(rc.name)
+        cmd = (f'if pacman -Qq {n} >/dev/null 2>&1; then pacman -R --noconfirm {n}; '
+               f'else pacman -R --noconfirm $(pacman -Qgq {n}); fi')
+        return self.runner.run(cmd, sudo=True, capture=False)
 
     def upgrade(self, rc):
         # installs the current repo version; whole-system upgrades are `pacman -Syu`

@@ -36,16 +36,33 @@ def test_registered_system_scoped():
     assert fam.privileged and fam.default_scope == 'system'
 
 
-def test_install_uninstall_upgrade_commands():
+def test_install_upgrade_commands():
     r = Runner(pretend=True)
     Pacman(r).install(pkg())
-    Pacman(r).uninstall(pkg())
     Pacman(r).upgrade(pkg())
-    assert r.calls == [
-        'sudo pacman -S --noconfirm btop',
-        'sudo pacman -R --noconfirm btop',
-        'sudo pacman -S --noconfirm btop',
-    ]
+    assert r.calls == ['sudo pacman -S --noconfirm btop', 'sudo pacman -S --noconfirm btop']
+
+
+def test_uninstall_handles_package_or_group():
+    r = Runner(pretend=True)
+    Pacman(r).uninstall(pkg('xfce4'))
+    c = r.calls[0]
+    assert c.startswith('sudo ')
+    assert 'pacman -Qq xfce4' in c and 'pacman -R --noconfirm xfce4' in c   # direct remove if a pkg
+    assert 'pacman -Qgq xfce4' in c                                          # else expand the group
+
+
+def test_get_version_detects_installed_group():
+    # xfce4 is a group: `pacman -Q` fails, but `pacman -Qg` lists its installed members
+    fr = FakeRunner([('pacman -Q xfce4', 1, "error: package 'xfce4' was not found\n"),
+                     ('pacman -Qg xfce4', 0, 'xfce4 xfce4-panel\nxfce4 thunar\n')])
+    assert Pacman(fr).get_version(pkg('xfce4')) == '(group)'
+
+
+def test_get_latest_group_marker_matches_installed():
+    # a group has no version; get_latest reports the same marker so it isn't flagged "outdated"
+    fr = FakeRunner([('pacman -Si xfce4', 1, ''), ('pacman -Sg xfce4', 0, 'xfce4 xfce4-panel\n')])
+    assert Pacman(fr).get_latest(pkg('xfce4')) == '(group)'
 
 
 def test_get_version_parses_pacman_q():
