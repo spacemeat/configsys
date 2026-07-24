@@ -16,6 +16,50 @@
     "name": "aider-chat"
    }
   },
+  "analysis": {
+   "pacman\\clang-tidy": {
+    "driver": "pacman",
+    "fields": {
+     "name": "clang"
+    },
+    "name": "clang"
+   },
+   "pacman\\cppcheck": {
+    "driver": "pacman",
+    "fields": {
+     "name": "cppcheck"
+    },
+    "name": "cppcheck"
+   },
+   "pacman\\lldb": {
+    "driver": "pacman",
+    "fields": {
+     "name": "lldb"
+    },
+    "name": "lldb"
+   },
+   "pacman\\ltrace": {
+    "driver": "pacman",
+    "fields": {
+     "name": "ltrace"
+    },
+    "name": "ltrace"
+   },
+   "pacman\\strace": {
+    "driver": "pacman",
+    "fields": {
+     "name": "strace"
+    },
+    "name": "strace"
+   },
+   "pacman\\valgrind": {
+    "driver": "pacman",
+    "fields": {
+     "name": "valgrind"
+    },
+    "name": "valgrind"
+   }
+  },
   "android-studio": {
    "pacman\\curl": {
     "driver": "pacman",
@@ -328,6 +372,15 @@
     "name": "cinnamon"
    }
   },
+  "clang-tidy": {
+   "pacman\\clang-tidy": {
+    "driver": "pacman",
+    "fields": {
+     "name": "clang"
+    },
+    "name": "clang"
+   }
+  },
   "claude-code": {
    "npm\\claude-code": {
     "driver": "npm",
@@ -491,6 +544,15 @@
      "name": "cosmic-session"
     },
     "name": "cosmic-session"
+   }
+  },
+  "cppcheck": {
+   "pacman\\cppcheck": {
+    "driver": "pacman",
+    "fields": {
+     "name": "cppcheck"
+    },
+    "name": "cppcheck"
    }
   },
   "cuda-toolkit": {
@@ -938,6 +1000,15 @@
      "repo-component": "universe"
     },
     "name": "ghc"
+   }
+  },
+  "heaptrack": {
+   "pacman\\heaptrack": {
+    "driver": "pacman",
+    "fields": {
+     "name": "heaptrack"
+    },
+    "name": "heaptrack"
    }
   },
   "helix": {
@@ -1415,6 +1486,15 @@
     "name": "libxcb-xinput0"
    }
   },
+  "lldb": {
+   "pacman\\lldb": {
+    "driver": "pacman",
+    "fields": {
+     "name": "lldb"
+    },
+    "name": "lldb"
+   }
+  },
   "llm": {
    "pacman\\pipx": {
     "driver": "pacman",
@@ -1446,6 +1526,15 @@
      "name": "flatpak"
     },
     "name": "flatpak"
+   }
+  },
+  "ltrace": {
+   "pacman\\ltrace": {
+    "driver": "pacman",
+    "fields": {
+     "name": "ltrace"
+    },
+    "name": "ltrace"
    }
   },
   "lua": {
@@ -1839,6 +1928,15 @@
     "name": "7zip"
    }
   },
+  "perf": {
+   "pacman\\perf": {
+    "driver": "pacman",
+    "fields": {
+     "name": "perf"
+    },
+    "name": "perf"
+   }
+  },
   "pipx": {
    "pacman\\pipx": {
     "driver": "pacman",
@@ -2027,6 +2125,15 @@
     "name": "flatpak"
    }
   },
+  "strace": {
+   "pacman\\strace": {
+    "driver": "pacman",
+    "fields": {
+     "name": "strace"
+    },
+    "name": "strace"
+   }
+  },
   "sway": {
    "pacman\\sway": {
     "driver": "pacman",
@@ -2164,6 +2271,15 @@
      "name": "unzip"
     },
     "name": "unzip"
+   }
+  },
+  "valgrind": {
+   "pacman\\valgrind": {
+    "driver": "pacman",
+    "fields": {
+     "name": "valgrind"
+    },
+    "name": "valgrind"
    }
   },
   "vcpkg": {
@@ -2823,6 +2939,50 @@
     "name": "aider-chat"
    }
   },
+  "analysis": {
+   "apt\\clang-tidy": {
+    "driver": "apt",
+    "fields": {
+     "name": "clang-tidy"
+    },
+    "name": "clang-tidy"
+   },
+   "apt\\cppcheck": {
+    "driver": "apt",
+    "fields": {
+     "name": "cppcheck"
+    },
+    "name": "cppcheck"
+   },
+   "apt\\lldb": {
+    "driver": "apt",
+    "fields": {
+     "name": "lldb"
+    },
+    "name": "lldb"
+   },
+   "apt\\ltrace": {
+    "driver": "apt",
+    "fields": {
+     "name": "ltrace"
+    },
+    "name": "ltrace"
+   },
+   "apt\\strace": {
+    "driver": "apt",
+    "fields": {
+     "name": "strace"
+    },
+    "name": "strace"
+   },
+   "apt\\valgrind": {
+    "driver": "apt",
+    "fields": {
+     "name": "valgrind"
+    },
+    "name": "valgrind"
+   }
+  },
   "android-studio": {
    "apt\\curl": {
     "driver": "apt",
@@ -3275,6 +3435,15 @@
     "name": "clang-select"
    }
   },
+  "clang-tidy": {
+   "apt\\clang-tidy": {
+    "driver": "apt",
+    "fields": {
+     "name": "clang-tidy"
+    },
+    "name": "clang-tidy"
+   }
+  },
   "claude-code": {
    "apt\\node": {
     "driver": "apt",
@@ -3449,6 +3618,15 @@
      "src": "bash.d/configsys.sh"
     },
     "name": "configsys-dotfiles"
+   }
+  },
+  "cppcheck": {
+   "apt\\cppcheck": {
+    "driver": "apt",
+    "fields": {
+     "name": "cppcheck"
+    },
+    "name": "cppcheck"
    }
   },
   "cuda-toolkit": {
@@ -4086,6 +4264,15 @@
     "name": "ghc"
    }
   },
+  "heaptrack": {
+   "apt\\heaptrack": {
+    "driver": "apt",
+    "fields": {
+     "name": "heaptrack"
+    },
+    "name": "heaptrack"
+   }
+  },
   "helix": {
    "apt\\curl": {
     "driver": "apt",
@@ -4671,6 +4858,15 @@
     "name": "libxcb-xinput0"
    }
   },
+  "lldb": {
+   "apt\\lldb": {
+    "driver": "apt",
+    "fields": {
+     "name": "lldb"
+    },
+    "name": "lldb"
+   }
+  },
   "llm": {
    "apt\\python3-pip": {
     "driver": "apt",
@@ -4712,6 +4908,15 @@
      "name": "io.lmms.LMMS"
     },
     "name": "io.lmms.LMMS"
+   }
+  },
+  "ltrace": {
+   "apt\\ltrace": {
+    "driver": "apt",
+    "fields": {
+     "name": "ltrace"
+    },
+    "name": "ltrace"
    }
   },
   "lua": {
@@ -5133,6 +5338,15 @@
     "name": "p7zip-full"
    }
   },
+  "perf": {
+   "apt\\perf": {
+    "driver": "apt",
+    "fields": {
+     "name": "linux-tools-generic"
+    },
+    "name": "linux-tools-generic"
+   }
+  },
   "pipx": {
    "apt\\python3-pip": {
     "driver": "apt",
@@ -5340,6 +5554,15 @@
     "name": "com.valvesoftware.Steam"
    }
   },
+  "strace": {
+   "apt\\strace": {
+    "driver": "apt",
+    "fields": {
+     "name": "strace"
+    },
+    "name": "strace"
+   }
+  },
   "sway": {
    "apt\\sway": {
     "driver": "apt",
@@ -5478,6 +5701,15 @@
      "name": "unzip"
     },
     "name": "unzip"
+   }
+  },
+  "valgrind": {
+   "apt\\valgrind": {
+    "driver": "apt",
+    "fields": {
+     "name": "valgrind"
+    },
+    "name": "valgrind"
    }
   },
   "vcpkg": {
@@ -6094,6 +6326,50 @@
     "name": "aider-chat"
    }
   },
+  "analysis": {
+   "apt\\clang-tidy": {
+    "driver": "apt",
+    "fields": {
+     "name": "clang-tidy"
+    },
+    "name": "clang-tidy"
+   },
+   "apt\\cppcheck": {
+    "driver": "apt",
+    "fields": {
+     "name": "cppcheck"
+    },
+    "name": "cppcheck"
+   },
+   "apt\\lldb": {
+    "driver": "apt",
+    "fields": {
+     "name": "lldb"
+    },
+    "name": "lldb"
+   },
+   "apt\\ltrace": {
+    "driver": "apt",
+    "fields": {
+     "name": "ltrace"
+    },
+    "name": "ltrace"
+   },
+   "apt\\strace": {
+    "driver": "apt",
+    "fields": {
+     "name": "strace"
+    },
+    "name": "strace"
+   },
+   "apt\\valgrind": {
+    "driver": "apt",
+    "fields": {
+     "name": "valgrind"
+    },
+    "name": "valgrind"
+   }
+  },
   "android-studio": {
    "apt\\curl": {
     "driver": "apt",
@@ -6546,6 +6822,15 @@
     "name": "clang-select"
    }
   },
+  "clang-tidy": {
+   "apt\\clang-tidy": {
+    "driver": "apt",
+    "fields": {
+     "name": "clang-tidy"
+    },
+    "name": "clang-tidy"
+   }
+  },
   "claude-code": {
    "apt\\node": {
     "driver": "apt",
@@ -6710,6 +6995,15 @@
      "src": "bash.d/configsys.sh"
     },
     "name": "configsys-dotfiles"
+   }
+  },
+  "cppcheck": {
+   "apt\\cppcheck": {
+    "driver": "apt",
+    "fields": {
+     "name": "cppcheck"
+    },
+    "name": "cppcheck"
    }
   },
   "cuda-toolkit": {
@@ -7347,6 +7641,15 @@
     "name": "ghc"
    }
   },
+  "heaptrack": {
+   "apt\\heaptrack": {
+    "driver": "apt",
+    "fields": {
+     "name": "heaptrack"
+    },
+    "name": "heaptrack"
+   }
+  },
   "helix": {
    "apt\\curl": {
     "driver": "apt",
@@ -7932,6 +8235,15 @@
     "name": "libxcb-xinput0"
    }
   },
+  "lldb": {
+   "apt\\lldb": {
+    "driver": "apt",
+    "fields": {
+     "name": "lldb"
+    },
+    "name": "lldb"
+   }
+  },
   "llm": {
    "apt\\pipx": {
     "driver": "apt",
@@ -7963,6 +8275,15 @@
      "name": "io.lmms.LMMS"
     },
     "name": "io.lmms.LMMS"
+   }
+  },
+  "ltrace": {
+   "apt\\ltrace": {
+    "driver": "apt",
+    "fields": {
+     "name": "ltrace"
+    },
+    "name": "ltrace"
    }
   },
   "lua": {
@@ -8374,6 +8695,15 @@
     "name": "p7zip-full"
    }
   },
+  "perf": {
+   "apt\\perf": {
+    "driver": "apt",
+    "fields": {
+     "name": "linux-tools-generic"
+    },
+    "name": "linux-tools-generic"
+   }
+  },
   "pipx": {
    "apt\\pipx": {
     "driver": "apt",
@@ -8571,6 +8901,15 @@
     "name": "com.valvesoftware.Steam"
    }
   },
+  "strace": {
+   "apt\\strace": {
+    "driver": "apt",
+    "fields": {
+     "name": "strace"
+    },
+    "name": "strace"
+   }
+  },
   "sway": {
    "apt\\sway": {
     "driver": "apt",
@@ -8709,6 +9048,15 @@
      "name": "unzip"
     },
     "name": "unzip"
+   }
+  },
+  "valgrind": {
+   "apt\\valgrind": {
+    "driver": "apt",
+    "fields": {
+     "name": "valgrind"
+    },
+    "name": "valgrind"
    }
   },
   "vcpkg": {
@@ -9315,6 +9663,50 @@
     "name": "aider-chat"
    }
   },
+  "analysis": {
+   "dnf\\clang-tidy": {
+    "driver": "dnf",
+    "fields": {
+     "name": "clang-tools-extra"
+    },
+    "name": "clang-tools-extra"
+   },
+   "dnf\\cppcheck": {
+    "driver": "dnf",
+    "fields": {
+     "name": "cppcheck"
+    },
+    "name": "cppcheck"
+   },
+   "dnf\\lldb": {
+    "driver": "dnf",
+    "fields": {
+     "name": "lldb"
+    },
+    "name": "lldb"
+   },
+   "dnf\\ltrace": {
+    "driver": "dnf",
+    "fields": {
+     "name": "ltrace"
+    },
+    "name": "ltrace"
+   },
+   "dnf\\strace": {
+    "driver": "dnf",
+    "fields": {
+     "name": "strace"
+    },
+    "name": "strace"
+   },
+   "dnf\\valgrind": {
+    "driver": "dnf",
+    "fields": {
+     "name": "valgrind"
+    },
+    "name": "valgrind"
+   }
+  },
   "android-studio": {
    "dnf\\curl": {
     "driver": "dnf",
@@ -9649,6 +10041,15 @@
     "name": "clang-19"
    }
   },
+  "clang-tidy": {
+   "dnf\\clang-tidy": {
+    "driver": "dnf",
+    "fields": {
+     "name": "clang-tools-extra"
+    },
+    "name": "clang-tools-extra"
+   }
+  },
   "claude-code": {
    "dnf\\node": {
     "driver": "dnf",
@@ -9834,6 +10235,15 @@
      "name": "cosmic-session"
     },
     "name": "cosmic-session"
+   }
+  },
+  "cppcheck": {
+   "dnf\\cppcheck": {
+    "driver": "dnf",
+    "fields": {
+     "name": "cppcheck"
+    },
+    "name": "cppcheck"
    }
   },
   "cuda-toolkit": {
@@ -10330,6 +10740,15 @@
      "repo-component": "universe"
     },
     "name": "ghc"
+   }
+  },
+  "heaptrack": {
+   "dnf\\heaptrack": {
+    "driver": "dnf",
+    "fields": {
+     "name": "heaptrack"
+    },
+    "name": "heaptrack"
    }
   },
   "helix": {
@@ -10877,6 +11296,15 @@
     "name": "libxcb-xinput0"
    }
   },
+  "lldb": {
+   "dnf\\lldb": {
+    "driver": "dnf",
+    "fields": {
+     "name": "lldb"
+    },
+    "name": "lldb"
+   }
+  },
   "llm": {
    "dnf\\pipx": {
     "driver": "dnf",
@@ -10908,6 +11336,15 @@
      "name": "io.lmms.LMMS"
     },
     "name": "io.lmms.LMMS"
+   }
+  },
+  "ltrace": {
+   "dnf\\ltrace": {
+    "driver": "dnf",
+    "fields": {
+     "name": "ltrace"
+    },
+    "name": "ltrace"
    }
   },
   "lua": {
@@ -11319,6 +11756,15 @@
     "name": "p7zip"
    }
   },
+  "perf": {
+   "dnf\\perf": {
+    "driver": "dnf",
+    "fields": {
+     "name": "perf"
+    },
+    "name": "perf"
+   }
+  },
   "pipx": {
    "dnf\\pipx": {
     "driver": "dnf",
@@ -11520,6 +11966,15 @@
     "name": "com.valvesoftware.Steam"
    }
   },
+  "strace": {
+   "dnf\\strace": {
+    "driver": "dnf",
+    "fields": {
+     "name": "strace"
+    },
+    "name": "strace"
+   }
+  },
   "sway": {
    "dnf\\sway": {
     "driver": "dnf",
@@ -11668,6 +12123,15 @@
      "name": "unzip"
     },
     "name": "unzip"
+   }
+  },
+  "valgrind": {
+   "dnf\\valgrind": {
+    "driver": "dnf",
+    "fields": {
+     "name": "valgrind"
+    },
+    "name": "valgrind"
    }
   },
   "vcpkg": {
@@ -12299,6 +12763,50 @@
     "name": "aider-chat"
    }
   },
+  "analysis": {
+   "dnf\\clang-tidy": {
+    "driver": "dnf",
+    "fields": {
+     "name": "clang-tools-extra"
+    },
+    "name": "clang-tools-extra"
+   },
+   "dnf\\cppcheck": {
+    "driver": "dnf",
+    "fields": {
+     "name": "cppcheck"
+    },
+    "name": "cppcheck"
+   },
+   "dnf\\lldb": {
+    "driver": "dnf",
+    "fields": {
+     "name": "lldb"
+    },
+    "name": "lldb"
+   },
+   "dnf\\ltrace": {
+    "driver": "dnf",
+    "fields": {
+     "name": "ltrace"
+    },
+    "name": "ltrace"
+   },
+   "dnf\\strace": {
+    "driver": "dnf",
+    "fields": {
+     "name": "strace"
+    },
+    "name": "strace"
+   },
+   "dnf\\valgrind": {
+    "driver": "dnf",
+    "fields": {
+     "name": "valgrind"
+    },
+    "name": "valgrind"
+   }
+  },
   "android-studio": {
    "dnf\\curl": {
     "driver": "dnf",
@@ -12645,6 +13153,15 @@
     "name": "clang-20"
    }
   },
+  "clang-tidy": {
+   "dnf\\clang-tidy": {
+    "driver": "dnf",
+    "fields": {
+     "name": "clang-tools-extra"
+    },
+    "name": "clang-tools-extra"
+   }
+  },
   "claude-code": {
    "dnf\\node": {
     "driver": "dnf",
@@ -12830,6 +13347,15 @@
      "name": "cosmic-session"
     },
     "name": "cosmic-session"
+   }
+  },
+  "cppcheck": {
+   "dnf\\cppcheck": {
+    "driver": "dnf",
+    "fields": {
+     "name": "cppcheck"
+    },
+    "name": "cppcheck"
    }
   },
   "cuda-toolkit": {
@@ -13326,6 +13852,15 @@
      "repo-component": "universe"
     },
     "name": "ghc"
+   }
+  },
+  "heaptrack": {
+   "dnf\\heaptrack": {
+    "driver": "dnf",
+    "fields": {
+     "name": "heaptrack"
+    },
+    "name": "heaptrack"
    }
   },
   "helix": {
@@ -13873,6 +14408,15 @@
     "name": "libxcb-xinput0"
    }
   },
+  "lldb": {
+   "dnf\\lldb": {
+    "driver": "dnf",
+    "fields": {
+     "name": "lldb"
+    },
+    "name": "lldb"
+   }
+  },
   "llm": {
    "dnf\\pipx": {
     "driver": "dnf",
@@ -13904,6 +14448,15 @@
      "name": "io.lmms.LMMS"
     },
     "name": "io.lmms.LMMS"
+   }
+  },
+  "ltrace": {
+   "dnf\\ltrace": {
+    "driver": "dnf",
+    "fields": {
+     "name": "ltrace"
+    },
+    "name": "ltrace"
    }
   },
   "lua": {
@@ -14315,6 +14868,15 @@
     "name": "p7zip"
    }
   },
+  "perf": {
+   "dnf\\perf": {
+    "driver": "dnf",
+    "fields": {
+     "name": "perf"
+    },
+    "name": "perf"
+   }
+  },
   "pipx": {
    "dnf\\pipx": {
     "driver": "dnf",
@@ -14516,6 +15078,15 @@
     "name": "com.valvesoftware.Steam"
    }
   },
+  "strace": {
+   "dnf\\strace": {
+    "driver": "dnf",
+    "fields": {
+     "name": "strace"
+    },
+    "name": "strace"
+   }
+  },
   "sway": {
    "dnf\\sway": {
     "driver": "dnf",
@@ -14664,6 +15235,15 @@
      "name": "unzip"
     },
     "name": "unzip"
+   }
+  },
+  "valgrind": {
+   "dnf\\valgrind": {
+    "driver": "dnf",
+    "fields": {
+     "name": "valgrind"
+    },
+    "name": "valgrind"
    }
   },
   "vcpkg": {
@@ -15305,6 +15885,50 @@
     "name": "aider-chat"
    }
   },
+  "analysis": {
+   "apt\\clang-tidy": {
+    "driver": "apt",
+    "fields": {
+     "name": "clang-tidy"
+    },
+    "name": "clang-tidy"
+   },
+   "apt\\cppcheck": {
+    "driver": "apt",
+    "fields": {
+     "name": "cppcheck"
+    },
+    "name": "cppcheck"
+   },
+   "apt\\lldb": {
+    "driver": "apt",
+    "fields": {
+     "name": "lldb"
+    },
+    "name": "lldb"
+   },
+   "apt\\ltrace": {
+    "driver": "apt",
+    "fields": {
+     "name": "ltrace"
+    },
+    "name": "ltrace"
+   },
+   "apt\\strace": {
+    "driver": "apt",
+    "fields": {
+     "name": "strace"
+    },
+    "name": "strace"
+   },
+   "apt\\valgrind": {
+    "driver": "apt",
+    "fields": {
+     "name": "valgrind"
+    },
+    "name": "valgrind"
+   }
+  },
   "android-studio": {
    "apt\\curl": {
     "driver": "apt",
@@ -15757,6 +16381,15 @@
     "name": "clang-select"
    }
   },
+  "clang-tidy": {
+   "apt\\clang-tidy": {
+    "driver": "apt",
+    "fields": {
+     "name": "clang-tidy"
+    },
+    "name": "clang-tidy"
+   }
+  },
   "claude-code": {
    "apt\\node": {
     "driver": "apt",
@@ -15940,6 +16573,15 @@
      "name": "cosmic-session"
     },
     "name": "cosmic-session"
+   }
+  },
+  "cppcheck": {
+   "apt\\cppcheck": {
+    "driver": "apt",
+    "fields": {
+     "name": "cppcheck"
+    },
+    "name": "cppcheck"
    }
   },
   "cuda-toolkit": {
@@ -16577,6 +17219,15 @@
     "name": "ghc"
    }
   },
+  "heaptrack": {
+   "apt\\heaptrack": {
+    "driver": "apt",
+    "fields": {
+     "name": "heaptrack"
+    },
+    "name": "heaptrack"
+   }
+  },
   "helix": {
    "apt\\curl": {
     "driver": "apt",
@@ -17162,6 +17813,15 @@
     "name": "libxcb-xinput0"
    }
   },
+  "lldb": {
+   "apt\\lldb": {
+    "driver": "apt",
+    "fields": {
+     "name": "lldb"
+    },
+    "name": "lldb"
+   }
+  },
   "llm": {
    "apt\\python3-pip": {
     "driver": "apt",
@@ -17203,6 +17863,15 @@
      "name": "io.lmms.LMMS"
     },
     "name": "io.lmms.LMMS"
+   }
+  },
+  "ltrace": {
+   "apt\\ltrace": {
+    "driver": "apt",
+    "fields": {
+     "name": "ltrace"
+    },
+    "name": "ltrace"
    }
   },
   "lua": {
@@ -17624,6 +18293,15 @@
     "name": "p7zip-full"
    }
   },
+  "perf": {
+   "apt\\perf": {
+    "driver": "apt",
+    "fields": {
+     "name": "linux-tools-generic"
+    },
+    "name": "linux-tools-generic"
+   }
+  },
   "pipx": {
    "apt\\python3-pip": {
     "driver": "apt",
@@ -17824,6 +18502,15 @@
     "name": "steam:i386"
    }
   },
+  "strace": {
+   "apt\\strace": {
+    "driver": "apt",
+    "fields": {
+     "name": "strace"
+    },
+    "name": "strace"
+   }
+  },
   "sway": {
    "apt\\sway": {
     "driver": "apt",
@@ -17962,6 +18649,15 @@
      "name": "unzip"
     },
     "name": "unzip"
+   }
+  },
+  "valgrind": {
+   "apt\\valgrind": {
+    "driver": "apt",
+    "fields": {
+     "name": "valgrind"
+    },
+    "name": "valgrind"
    }
   },
   "vcpkg": {
@@ -18585,6 +19281,50 @@
     "name": "aider-chat"
    }
   },
+  "analysis": {
+   "dnf\\clang-tidy": {
+    "driver": "dnf",
+    "fields": {
+     "name": "clang-tools-extra"
+    },
+    "name": "clang-tools-extra"
+   },
+   "dnf\\cppcheck": {
+    "driver": "dnf",
+    "fields": {
+     "name": "cppcheck"
+    },
+    "name": "cppcheck"
+   },
+   "dnf\\lldb": {
+    "driver": "dnf",
+    "fields": {
+     "name": "lldb"
+    },
+    "name": "lldb"
+   },
+   "dnf\\ltrace": {
+    "driver": "dnf",
+    "fields": {
+     "name": "ltrace"
+    },
+    "name": "ltrace"
+   },
+   "dnf\\strace": {
+    "driver": "dnf",
+    "fields": {
+     "name": "strace"
+    },
+    "name": "strace"
+   },
+   "dnf\\valgrind": {
+    "driver": "dnf",
+    "fields": {
+     "name": "valgrind"
+    },
+    "name": "valgrind"
+   }
+  },
   "android-studio": {
    "dnf\\curl": {
     "driver": "dnf",
@@ -18945,6 +19685,15 @@
     "name": "epel-release"
    }
   },
+  "clang-tidy": {
+   "dnf\\clang-tidy": {
+    "driver": "dnf",
+    "fields": {
+     "name": "clang-tools-extra"
+    },
+    "name": "clang-tools-extra"
+   }
+  },
   "claude-code": {
    "dnf\\node": {
     "driver": "dnf",
@@ -19153,6 +19902,15 @@
      "name": "cosmic-session"
     },
     "name": "cosmic-session"
+   }
+  },
+  "cppcheck": {
+   "dnf\\cppcheck": {
+    "driver": "dnf",
+    "fields": {
+     "name": "cppcheck"
+    },
+    "name": "cppcheck"
    }
   },
   "cuda-toolkit": {
@@ -19709,6 +20467,15 @@
      "repo-component": "universe"
     },
     "name": "ghc"
+   }
+  },
+  "heaptrack": {
+   "dnf\\heaptrack": {
+    "driver": "dnf",
+    "fields": {
+     "name": "heaptrack"
+    },
+    "name": "heaptrack"
    }
   },
   "helix": {
@@ -20296,6 +21063,15 @@
     "name": "libxcb-xinput0"
    }
   },
+  "lldb": {
+   "dnf\\lldb": {
+    "driver": "dnf",
+    "fields": {
+     "name": "lldb"
+    },
+    "name": "lldb"
+   }
+  },
   "llm": {
    "dnf\\epel-release": {
     "driver": "dnf",
@@ -20334,6 +21110,15 @@
      "name": "io.lmms.LMMS"
     },
     "name": "io.lmms.LMMS"
+   }
+  },
+  "ltrace": {
+   "dnf\\ltrace": {
+    "driver": "dnf",
+    "fields": {
+     "name": "ltrace"
+    },
+    "name": "ltrace"
    }
   },
   "lua": {
@@ -20772,6 +21557,15 @@
     "name": "p7zip"
    }
   },
+  "perf": {
+   "dnf\\perf": {
+    "driver": "dnf",
+    "fields": {
+     "name": "perf"
+    },
+    "name": "perf"
+   }
+  },
   "pipx": {
    "dnf\\epel-release": {
     "driver": "dnf",
@@ -20994,6 +21788,15 @@
     "name": "com.valvesoftware.Steam"
    }
   },
+  "strace": {
+   "dnf\\strace": {
+    "driver": "dnf",
+    "fields": {
+     "name": "strace"
+    },
+    "name": "strace"
+   }
+  },
   "sway": {
    "dnf\\sway": {
     "driver": "dnf",
@@ -21150,6 +21953,15 @@
      "name": "unzip"
     },
     "name": "unzip"
+   }
+  },
+  "valgrind": {
+   "dnf\\valgrind": {
+    "driver": "dnf",
+    "fields": {
+     "name": "valgrind"
+    },
+    "name": "valgrind"
    }
   },
   "vcpkg": {
@@ -21815,6 +22627,50 @@
     "name": "aider-chat"
    }
   },
+  "analysis": {
+   "apt\\clang-tidy": {
+    "driver": "apt",
+    "fields": {
+     "name": "clang-tidy"
+    },
+    "name": "clang-tidy"
+   },
+   "apt\\cppcheck": {
+    "driver": "apt",
+    "fields": {
+     "name": "cppcheck"
+    },
+    "name": "cppcheck"
+   },
+   "apt\\lldb": {
+    "driver": "apt",
+    "fields": {
+     "name": "lldb"
+    },
+    "name": "lldb"
+   },
+   "apt\\ltrace": {
+    "driver": "apt",
+    "fields": {
+     "name": "ltrace"
+    },
+    "name": "ltrace"
+   },
+   "apt\\strace": {
+    "driver": "apt",
+    "fields": {
+     "name": "strace"
+    },
+    "name": "strace"
+   },
+   "apt\\valgrind": {
+    "driver": "apt",
+    "fields": {
+     "name": "valgrind"
+    },
+    "name": "valgrind"
+   }
+  },
   "android-studio": {
    "apt\\curl": {
     "driver": "apt",
@@ -22267,6 +23123,15 @@
     "name": "clang-select"
    }
   },
+  "clang-tidy": {
+   "apt\\clang-tidy": {
+    "driver": "apt",
+    "fields": {
+     "name": "clang-tidy"
+    },
+    "name": "clang-tidy"
+   }
+  },
   "claude-code": {
    "apt\\node": {
     "driver": "apt",
@@ -22441,6 +23306,15 @@
      "src": "bash.d/configsys.sh"
     },
     "name": "configsys-dotfiles"
+   }
+  },
+  "cppcheck": {
+   "apt\\cppcheck": {
+    "driver": "apt",
+    "fields": {
+     "name": "cppcheck"
+    },
+    "name": "cppcheck"
    }
   },
   "cuda-toolkit": {
@@ -23078,6 +23952,15 @@
     "name": "ghc"
    }
   },
+  "heaptrack": {
+   "apt\\heaptrack": {
+    "driver": "apt",
+    "fields": {
+     "name": "heaptrack"
+    },
+    "name": "heaptrack"
+   }
+  },
   "helix": {
    "apt\\curl": {
     "driver": "apt",
@@ -23663,6 +24546,15 @@
     "name": "libxcb-xinput0"
    }
   },
+  "lldb": {
+   "apt\\lldb": {
+    "driver": "apt",
+    "fields": {
+     "name": "lldb"
+    },
+    "name": "lldb"
+   }
+  },
   "llm": {
    "apt\\python3-pip": {
     "driver": "apt",
@@ -23704,6 +24596,15 @@
      "name": "io.lmms.LMMS"
     },
     "name": "io.lmms.LMMS"
+   }
+  },
+  "ltrace": {
+   "apt\\ltrace": {
+    "driver": "apt",
+    "fields": {
+     "name": "ltrace"
+    },
+    "name": "ltrace"
    }
   },
   "lua": {
@@ -24125,6 +25026,15 @@
     "name": "p7zip-full"
    }
   },
+  "perf": {
+   "apt\\perf": {
+    "driver": "apt",
+    "fields": {
+     "name": "linux-tools-generic"
+    },
+    "name": "linux-tools-generic"
+   }
+  },
   "pipx": {
    "apt\\python3-pip": {
     "driver": "apt",
@@ -24332,6 +25242,15 @@
     "name": "com.valvesoftware.Steam"
    }
   },
+  "strace": {
+   "apt\\strace": {
+    "driver": "apt",
+    "fields": {
+     "name": "strace"
+    },
+    "name": "strace"
+   }
+  },
   "sway": {
    "apt\\sway": {
     "driver": "apt",
@@ -24470,6 +25389,15 @@
      "name": "unzip"
     },
     "name": "unzip"
+   }
+  },
+  "valgrind": {
+   "apt\\valgrind": {
+    "driver": "apt",
+    "fields": {
+     "name": "valgrind"
+    },
+    "name": "valgrind"
    }
   },
   "vcpkg": {
@@ -25086,6 +26014,50 @@
     "name": "aider-chat"
    }
   },
+  "analysis": {
+   "apt\\clang-tidy": {
+    "driver": "apt",
+    "fields": {
+     "name": "clang-tidy"
+    },
+    "name": "clang-tidy"
+   },
+   "apt\\cppcheck": {
+    "driver": "apt",
+    "fields": {
+     "name": "cppcheck"
+    },
+    "name": "cppcheck"
+   },
+   "apt\\lldb": {
+    "driver": "apt",
+    "fields": {
+     "name": "lldb"
+    },
+    "name": "lldb"
+   },
+   "apt\\ltrace": {
+    "driver": "apt",
+    "fields": {
+     "name": "ltrace"
+    },
+    "name": "ltrace"
+   },
+   "apt\\strace": {
+    "driver": "apt",
+    "fields": {
+     "name": "strace"
+    },
+    "name": "strace"
+   },
+   "apt\\valgrind": {
+    "driver": "apt",
+    "fields": {
+     "name": "valgrind"
+    },
+    "name": "valgrind"
+   }
+  },
   "android-studio": {
    "apt\\curl": {
     "driver": "apt",
@@ -25538,6 +26510,15 @@
     "name": "clang-select"
    }
   },
+  "clang-tidy": {
+   "apt\\clang-tidy": {
+    "driver": "apt",
+    "fields": {
+     "name": "clang-tidy"
+    },
+    "name": "clang-tidy"
+   }
+  },
   "claude-code": {
    "apt\\node": {
     "driver": "apt",
@@ -25702,6 +26683,15 @@
      "src": "bash.d/configsys.sh"
     },
     "name": "configsys-dotfiles"
+   }
+  },
+  "cppcheck": {
+   "apt\\cppcheck": {
+    "driver": "apt",
+    "fields": {
+     "name": "cppcheck"
+    },
+    "name": "cppcheck"
    }
   },
   "cuda-toolkit": {
@@ -26339,6 +27329,15 @@
     "name": "ghc"
    }
   },
+  "heaptrack": {
+   "apt\\heaptrack": {
+    "driver": "apt",
+    "fields": {
+     "name": "heaptrack"
+    },
+    "name": "heaptrack"
+   }
+  },
   "helix": {
    "apt\\curl": {
     "driver": "apt",
@@ -26924,6 +27923,15 @@
     "name": "libxcb-xinput0"
    }
   },
+  "lldb": {
+   "apt\\lldb": {
+    "driver": "apt",
+    "fields": {
+     "name": "lldb"
+    },
+    "name": "lldb"
+   }
+  },
   "llm": {
    "apt\\pipx": {
     "driver": "apt",
@@ -26955,6 +27963,15 @@
      "name": "io.lmms.LMMS"
     },
     "name": "io.lmms.LMMS"
+   }
+  },
+  "ltrace": {
+   "apt\\ltrace": {
+    "driver": "apt",
+    "fields": {
+     "name": "ltrace"
+    },
+    "name": "ltrace"
    }
   },
   "lua": {
@@ -27366,6 +28383,15 @@
     "name": "p7zip-full"
    }
   },
+  "perf": {
+   "apt\\perf": {
+    "driver": "apt",
+    "fields": {
+     "name": "linux-tools-generic"
+    },
+    "name": "linux-tools-generic"
+   }
+  },
   "pipx": {
    "apt\\pipx": {
     "driver": "apt",
@@ -27563,6 +28589,15 @@
     "name": "com.valvesoftware.Steam"
    }
   },
+  "strace": {
+   "apt\\strace": {
+    "driver": "apt",
+    "fields": {
+     "name": "strace"
+    },
+    "name": "strace"
+   }
+  },
   "sway": {
    "apt\\sway": {
     "driver": "apt",
@@ -27701,6 +28736,15 @@
      "name": "unzip"
     },
     "name": "unzip"
+   }
+  },
+  "valgrind": {
+   "apt\\valgrind": {
+    "driver": "apt",
+    "fields": {
+     "name": "valgrind"
+    },
+    "name": "valgrind"
    }
   },
   "vcpkg": {

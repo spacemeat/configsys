@@ -803,6 +803,21 @@
         maven:  { requires: jdk  install: [ { via: native } ] }
         gradle: { requires: jdk  install: [ { via: native  when: "debian or arch or opensuse or fedora_atomic" } ] }
 
+        // --- debugging / static analysis / profiling (NB: ASan/UBSan/TSan are gcc/clang FLAGS,
+        // not packages — nothing to install for those). ---
+        valgrind:  { install: [ { via: native } ] }
+        cppcheck:  { install: [ { via: native } ] }
+        strace:    { install: [ { via: native } ] }
+        ltrace:    { install: [ { via: native } ] }
+        lldb:      { install: [ { via: native } ] }
+        heaptrack: { install: [ { via: native } ] }
+        clang-tidy: { install: [ { via: native  when: "debian or redhat or arch"  name: { apt: clang-tidy  dnf: clang-tools-extra  pacman: clang } } ] }
+        // perf is kernel-coupled on apt (linux-tools track); `perf` elsewhere.
+        perf: { install: [ { via: native  name: { apt: linux-tools-generic  default: perf } } ] }
+        // A one-shot bundle of the core analysis kit (a parts aggregator, like `compression` — a
+        // convenience grouping, NOT a tool).
+        analysis: { install: [ { via: parts  when: "debian or redhat or arch"  parts: [ valgrind, cppcheck, clang-tidy, lldb, strace, ltrace ] } ] }
+
         neovim: {
             requires: [ ripgrep, tree-sitter-cli ]
             suggests: neovim-dotfiles
