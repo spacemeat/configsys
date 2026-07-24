@@ -4270,6 +4270,28 @@
     "name": "org.kde.krita"
    }
   },
+  "kubectl": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "tarball\\kubectl": {
+    "driver": "tarball",
+    "fields": {
+     "archive": "none",
+     "installDir": "apps/kubectl",
+     "name": "kubectl",
+     "url": "https://dl.k8s.io/release/v$VERSION/bin/linux/amd64/kubectl",
+     "version": {
+      "url": "https://dl.k8s.io/release/stable.txt"
+     }
+    },
+    "name": "kubectl"
+   }
+  },
   "lazydocker": {
    "apt\\curl": {
     "driver": "apt",
@@ -7405,6 +7427,28 @@
     "name": "org.kde.krita"
    }
   },
+  "kubectl": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "tarball\\kubectl": {
+    "driver": "tarball",
+    "fields": {
+     "archive": "none",
+     "installDir": "apps/kubectl",
+     "name": "kubectl",
+     "url": "https://dl.k8s.io/release/v$VERSION/bin/linux/amd64/kubectl",
+     "version": {
+      "url": "https://dl.k8s.io/release/stable.txt"
+     }
+    },
+    "name": "kubectl"
+   }
+  },
   "lazydocker": {
    "apt\\curl": {
     "driver": "apt",
@@ -10274,6 +10318,28 @@
      "name": "org.kde.krita"
     },
     "name": "org.kde.krita"
+   }
+  },
+  "kubectl": {
+   "dnf\\curl": {
+    "driver": "dnf",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "tarball\\kubectl": {
+    "driver": "tarball",
+    "fields": {
+     "archive": "none",
+     "installDir": "apps/kubectl",
+     "name": "kubectl",
+     "url": "https://dl.k8s.io/release/v$VERSION/bin/linux/amd64/kubectl",
+     "version": {
+      "url": "https://dl.k8s.io/release/stable.txt"
+     }
+    },
+    "name": "kubectl"
    }
   },
   "lazydocker": {
@@ -13173,6 +13239,28 @@
      "name": "org.kde.krita"
     },
     "name": "org.kde.krita"
+   }
+  },
+  "kubectl": {
+   "dnf\\curl": {
+    "driver": "dnf",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "tarball\\kubectl": {
+    "driver": "tarball",
+    "fields": {
+     "archive": "none",
+     "installDir": "apps/kubectl",
+     "name": "kubectl",
+     "url": "https://dl.k8s.io/release/v$VERSION/bin/linux/amd64/kubectl",
+     "version": {
+      "url": "https://dl.k8s.io/release/stable.txt"
+     }
+    },
+    "name": "kubectl"
    }
   },
   "lazydocker": {
@@ -16315,6 +16403,28 @@
     "name": "org.kde.krita"
    }
   },
+  "kubectl": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "tarball\\kubectl": {
+    "driver": "tarball",
+    "fields": {
+     "archive": "none",
+     "installDir": "apps/kubectl",
+     "name": "kubectl",
+     "url": "https://dl.k8s.io/release/v$VERSION/bin/linux/amd64/kubectl",
+     "version": {
+      "url": "https://dl.k8s.io/release/stable.txt"
+     }
+    },
+    "name": "kubectl"
+   }
+  },
   "lazydocker": {
    "apt\\curl": {
     "driver": "apt",
@@ -19360,6 +19470,28 @@
      "name": "org.kde.krita"
     },
     "name": "org.kde.krita"
+   }
+  },
+  "kubectl": {
+   "dnf\\curl": {
+    "driver": "dnf",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "tarball\\kubectl": {
+    "driver": "tarball",
+    "fields": {
+     "archive": "none",
+     "installDir": "apps/kubectl",
+     "name": "kubectl",
+     "url": "https://dl.k8s.io/release/v$VERSION/bin/linux/amd64/kubectl",
+     "version": {
+      "url": "https://dl.k8s.io/release/stable.txt"
+     }
+    },
+    "name": "kubectl"
    }
   },
   "lazydocker": {
@@ -22593,6 +22725,28 @@
     "name": "org.kde.krita"
    }
   },
+  "kubectl": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "tarball\\kubectl": {
+    "driver": "tarball",
+    "fields": {
+     "archive": "none",
+     "installDir": "apps/kubectl",
+     "name": "kubectl",
+     "url": "https://dl.k8s.io/release/v$VERSION/bin/linux/amd64/kubectl",
+     "version": {
+      "url": "https://dl.k8s.io/release/stable.txt"
+     }
+    },
+    "name": "kubectl"
+   }
+  },
   "lazydocker": {
    "apt\\curl": {
     "driver": "apt",
@@ -25726,6 +25880,28 @@
      "name": "org.kde.krita"
     },
     "name": "org.kde.krita"
+   }
+  },
+  "kubectl": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "tarball\\kubectl": {
+    "driver": "tarball",
+    "fields": {
+     "archive": "none",
+     "installDir": "apps/kubectl",
+     "name": "kubectl",
+     "url": "https://dl.k8s.io/release/v$VERSION/bin/linux/amd64/kubectl",
+     "version": {
+      "url": "https://dl.k8s.io/release/stable.txt"
+     }
+    },
+    "name": "kubectl"
    }
   },
   "lazydocker": {

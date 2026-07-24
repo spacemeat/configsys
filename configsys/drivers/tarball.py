@@ -69,15 +69,23 @@ class Tarball(Driver):
 
         dq = shlex.quote(str(d))
         uq = shlex.quote(url)
-        tmp = shlex.quote(str(d / f'{MARKER_PREFIX}download.archive'))
         marker = shlex.quote(str(self._marker(rc)))
         verq = shlex.quote(version)
 
-        cmd = (f'mkdir -p {dq} && '
-               f'curl -fSL {uq} -o {tmp} && '
-               f'{self._extract_cmd(rc, url, tmp, dq)} && '
-               f'rm -f {tmp} && '
-               f'printf %s {verq} > {marker}')
+        if str(rc.fields.get('archive') or '').lower() == 'none':
+            # bare executable (bazelisk, kubectl, ...): no archive to unpack — download straight
+            # to installDir/<binary> and make it executable. `binary:` overrides the file name.
+            binpath = shlex.quote(str(d / (rc.fields.get('binary') or rc.comp)))
+            cmd = (f'mkdir -p {dq} && '
+                   f'curl -fSL {uq} -o {binpath} && chmod +x {binpath} && '
+                   f'printf %s {verq} > {marker}')
+        else:
+            tmp = shlex.quote(str(d / f'{MARKER_PREFIX}download.archive'))
+            cmd = (f'mkdir -p {dq} && '
+                   f'curl -fSL {uq} -o {tmp} && '
+                   f'{self._extract_cmd(rc, url, tmp, dq)} && '
+                   f'rm -f {tmp} && '
+                   f'printf %s {verq} > {marker}')
         return self.runner.run(cmd, sudo=self.sudo(rc), capture=False)
 
     def upgrade(self, rc):

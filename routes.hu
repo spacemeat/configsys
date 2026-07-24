@@ -736,9 +736,17 @@
                 { via: tarball  installDir: apps/k9s  requires: glibc  version: { static: latest }
                   url: "https://github.com/derailed/k9s/releases/latest/download/k9s_Linux_amd64.tar.gz" } ]
         }
-        // kubectl isn't in the Debian/Fedora base repos (needs the k8s community repo); native on
-        // Arch/Homebrew. A local k3s cluster also installs kubectl, so most users get it that way.
-        kubectl: { install: [ { via: native  when: "arch" } { via: native  when: "fedora_atomic" } ] }
+        // kubectl isn't in the Debian/Fedora base repos; native on Arch/Homebrew, else the upstream
+        // static binary from dl.k8s.io (bare-binary tarball mode; `stable.txt` gives the version).
+        // The Go binary runs anywhere, so no glibc gate.
+        kubectl: {
+            install: [
+                { via: native  when: "arch" }
+                { via: native  when: "fedora_atomic" }
+                { via: tarball  when: "debian or redhat or opensuse or alpine"  installDir: apps/kubectl  archive: none
+                  version: { url: "https://dl.k8s.io/release/stable.txt" }
+                  url: "https://dl.k8s.io/release/v$VERSION/bin/linux/amd64/kubectl" } ]
+        }
         // helm & k3s install via their upstream scripts (script driver) where not native.
         helm: {
             install: [

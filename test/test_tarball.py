@@ -52,6 +52,27 @@ def test_install_zip_forced_by_archive_field(tmp_path):
     assert 'unzip -o -q' in r.calls[0] and 'tar -xf' not in r.calls[0]
 
 
+def test_install_bare_binary_no_extract(tmp_path):
+    # archive:none -> download straight to installDir/<binary>, chmod +x, no tar/unzip
+    d = tmp_path / 'inst'
+    rc = tb_unit(d, url='https://x/bazelisk-linux-amd64', comp='bazelisk')
+    rc.fields['archive'] = 'none'
+    r = Runner(pretend=True)
+    Tarball(r, paths=None).install(rc)
+    cmd = r.calls[0]
+    assert f'-o {d / "bazelisk"}' in cmd and f'chmod +x {d / "bazelisk"}' in cmd
+    assert 'tar -xf' not in cmd and 'unzip' not in cmd
+
+
+def test_install_bare_binary_custom_name(tmp_path):
+    d = tmp_path / 'inst'
+    rc = tb_unit(d, url='https://x/kubectl', comp='kubectl')
+    rc.fields.update({'archive': 'none', 'binary': 'kubectl'})
+    r = Runner(pretend=True)
+    Tarball(r, paths=None).install(rc)
+    assert f'chmod +x {d / "kubectl"}' in r.calls[0]
+
+
 def test_install_defaults_to_tar(tmp_path):
     d = tmp_path / 'inst'
     r = Runner(pretend=True)
