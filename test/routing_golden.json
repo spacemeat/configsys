@@ -208,6 +208,24 @@
     "name": "ruby"
    }
   },
+  "cabal": {
+   "pacman\\cabal": {
+    "driver": "pacman",
+    "fields": {
+     "name": "cabal-install",
+     "repo-component": "universe"
+    },
+    "name": "cabal-install"
+   },
+   "pacman\\haskell": {
+    "driver": "pacman",
+    "fields": {
+     "name": "ghc",
+     "repo-component": "universe"
+    },
+    "name": "ghc"
+   }
+  },
   "chrome": {
    "flatpak\\chrome": {
     "driver": "flatpak",
@@ -290,6 +308,23 @@
     "name": "flatpak"
    }
   },
+  "dkjson": {
+   "luarocks\\dkjson": {
+    "driver": "luarocks",
+    "fields": {
+     "name": "dkjson"
+    },
+    "name": "dkjson"
+   },
+   "pacman\\luarocks": {
+    "driver": "pacman",
+    "fields": {
+     "name": "luarocks",
+     "repo-component": "universe"
+    },
+    "name": "luarocks"
+   }
+  },
   "docker": {
    "pacman\\docker-engine": {
     "driver": "pacman",
@@ -351,6 +386,23 @@
      "unit": "docker"
     },
     "name": "docker-service"
+   }
+  },
+  "dune": {
+   "opam\\dune": {
+    "driver": "opam",
+    "fields": {
+     "name": "dune"
+    },
+    "name": "dune"
+   },
+   "pacman\\opam": {
+    "driver": "pacman",
+    "fields": {
+     "name": "opam",
+     "repo-component": "universe"
+    },
+    "name": "opam"
    }
   },
   "edge": {
@@ -570,6 +622,31 @@
    }
   },
   "haskell": {
+   "pacman\\haskell": {
+    "driver": "pacman",
+    "fields": {
+     "name": "ghc",
+     "repo-component": "universe"
+    },
+    "name": "ghc"
+   }
+  },
+  "hlint": {
+   "cabal\\hlint": {
+    "driver": "cabal",
+    "fields": {
+     "name": "hlint"
+    },
+    "name": "hlint"
+   },
+   "pacman\\cabal": {
+    "driver": "pacman",
+    "fields": {
+     "name": "cabal-install",
+     "repo-component": "universe"
+    },
+    "name": "cabal-install"
+   },
    "pacman\\haskell": {
     "driver": "pacman",
     "fields": {
@@ -892,6 +969,16 @@
     "name": "lua"
    }
   },
+  "luarocks": {
+   "pacman\\luarocks": {
+    "driver": "pacman",
+    "fields": {
+     "name": "luarocks",
+     "repo-component": "universe"
+    },
+    "name": "luarocks"
+   }
+  },
   "make": {
    "pacman\\make": {
     "driver": "pacman",
@@ -1155,6 +1242,16 @@
      }
     },
     "name": "odin"
+   }
+  },
+  "opam": {
+   "pacman\\opam": {
+    "driver": "pacman",
+    "fields": {
+     "name": "opam",
+     "repo-component": "universe"
+    },
+    "name": "opam"
    }
   },
   "opera": {
@@ -2164,6 +2261,24 @@
     "name": "bundler"
    }
   },
+  "cabal": {
+   "apt\\cabal": {
+    "driver": "apt",
+    "fields": {
+     "name": "cabal-install",
+     "repo-component": "universe"
+    },
+    "name": "cabal-install"
+   },
+   "apt\\haskell": {
+    "driver": "apt",
+    "fields": {
+     "name": "ghc",
+     "repo-component": "universe"
+    },
+    "name": "ghc"
+   }
+  },
   "chrome": {
    "apt\\flatpak": {
     "driver": "apt",
@@ -2402,6 +2517,23 @@
     "name": "com.discordapp.Discord"
    }
   },
+  "dkjson": {
+   "apt\\luarocks": {
+    "driver": "apt",
+    "fields": {
+     "name": "luarocks",
+     "repo-component": "universe"
+    },
+    "name": "luarocks"
+   },
+   "luarocks\\dkjson": {
+    "driver": "luarocks",
+    "fields": {
+     "name": "dkjson"
+    },
+    "name": "dkjson"
+   }
+  },
   "docker": {
    "apt\\docker-engine": {
     "driver": "apt",
@@ -2463,6 +2595,23 @@
      "unit": "docker"
     },
     "name": "docker-service"
+   }
+  },
+  "dune": {
+   "apt\\opam": {
+    "driver": "apt",
+    "fields": {
+     "name": "opam",
+     "repo-component": "universe"
+    },
+    "name": "opam"
+   },
+   "opam\\dune": {
+    "driver": "opam",
+    "fields": {
+     "name": "dune"
+    },
+    "name": "dune"
    }
   },
   "edge": {
@@ -2858,6 +3007,31 @@
     "name": "ghc"
    }
   },
+  "hlint": {
+   "apt\\cabal": {
+    "driver": "apt",
+    "fields": {
+     "name": "cabal-install",
+     "repo-component": "universe"
+    },
+    "name": "cabal-install"
+   },
+   "apt\\haskell": {
+    "driver": "apt",
+    "fields": {
+     "name": "ghc",
+     "repo-component": "universe"
+    },
+    "name": "ghc"
+   },
+   "cabal\\hlint": {
+    "driver": "cabal",
+    "fields": {
+     "name": "hlint"
+    },
+    "name": "hlint"
+   }
+  },
   "htop": {
    "apt\\htop": {
     "driver": "apt",
@@ -3184,6 +3358,16 @@
     "name": "lua5.4"
    }
   },
+  "luarocks": {
+   "apt\\luarocks": {
+    "driver": "apt",
+    "fields": {
+     "name": "luarocks",
+     "repo-component": "universe"
+    },
+    "name": "luarocks"
+   }
+  },
   "make": {
    "apt\\make": {
     "driver": "apt",
@@ -3470,6 +3654,16 @@
      }
     },
     "name": "odin"
+   }
+  },
+  "opam": {
+   "apt\\opam": {
+    "driver": "apt",
+    "fields": {
+     "name": "opam",
+     "repo-component": "universe"
+    },
+    "name": "opam"
    }
   },
   "opera": {
@@ -4460,6 +4654,24 @@
     "name": "bundler"
    }
   },
+  "cabal": {
+   "apt\\cabal": {
+    "driver": "apt",
+    "fields": {
+     "name": "cabal-install",
+     "repo-component": "universe"
+    },
+    "name": "cabal-install"
+   },
+   "apt\\haskell": {
+    "driver": "apt",
+    "fields": {
+     "name": "ghc",
+     "repo-component": "universe"
+    },
+    "name": "ghc"
+   }
+  },
   "chrome": {
    "apt\\flatpak": {
     "driver": "apt",
@@ -4698,6 +4910,23 @@
     "name": "com.discordapp.Discord"
    }
   },
+  "dkjson": {
+   "apt\\luarocks": {
+    "driver": "apt",
+    "fields": {
+     "name": "luarocks",
+     "repo-component": "universe"
+    },
+    "name": "luarocks"
+   },
+   "luarocks\\dkjson": {
+    "driver": "luarocks",
+    "fields": {
+     "name": "dkjson"
+    },
+    "name": "dkjson"
+   }
+  },
   "docker": {
    "apt\\docker-engine": {
     "driver": "apt",
@@ -4759,6 +4988,23 @@
      "unit": "docker"
     },
     "name": "docker-service"
+   }
+  },
+  "dune": {
+   "apt\\opam": {
+    "driver": "apt",
+    "fields": {
+     "name": "opam",
+     "repo-component": "universe"
+    },
+    "name": "opam"
+   },
+   "opam\\dune": {
+    "driver": "opam",
+    "fields": {
+     "name": "dune"
+    },
+    "name": "dune"
    }
   },
   "edge": {
@@ -5154,6 +5400,31 @@
     "name": "ghc"
    }
   },
+  "hlint": {
+   "apt\\cabal": {
+    "driver": "apt",
+    "fields": {
+     "name": "cabal-install",
+     "repo-component": "universe"
+    },
+    "name": "cabal-install"
+   },
+   "apt\\haskell": {
+    "driver": "apt",
+    "fields": {
+     "name": "ghc",
+     "repo-component": "universe"
+    },
+    "name": "ghc"
+   },
+   "cabal\\hlint": {
+    "driver": "cabal",
+    "fields": {
+     "name": "hlint"
+    },
+    "name": "hlint"
+   }
+  },
   "htop": {
    "apt\\htop": {
     "driver": "apt",
@@ -5480,6 +5751,16 @@
     "name": "lua5.4"
    }
   },
+  "luarocks": {
+   "apt\\luarocks": {
+    "driver": "apt",
+    "fields": {
+     "name": "luarocks",
+     "repo-component": "universe"
+    },
+    "name": "luarocks"
+   }
+  },
   "make": {
    "apt\\make": {
     "driver": "apt",
@@ -5756,6 +6037,16 @@
      }
     },
     "name": "odin"
+   }
+  },
+  "opam": {
+   "apt\\opam": {
+    "driver": "apt",
+    "fields": {
+     "name": "opam",
+     "repo-component": "universe"
+    },
+    "name": "opam"
    }
   },
   "opera": {
@@ -6740,6 +7031,24 @@
     "name": "bundler"
    }
   },
+  "cabal": {
+   "dnf\\cabal": {
+    "driver": "dnf",
+    "fields": {
+     "name": "cabal-install",
+     "repo-component": "universe"
+    },
+    "name": "cabal-install"
+   },
+   "dnf\\haskell": {
+    "driver": "dnf",
+    "fields": {
+     "name": "ghc",
+     "repo-component": "universe"
+    },
+    "name": "ghc"
+   }
+  },
   "chrome": {
    "dnf\\flatpak": {
     "driver": "dnf",
@@ -6846,6 +7155,23 @@
     "name": "com.discordapp.Discord"
    }
   },
+  "dkjson": {
+   "dnf\\luarocks": {
+    "driver": "dnf",
+    "fields": {
+     "name": "luarocks",
+     "repo-component": "universe"
+    },
+    "name": "luarocks"
+   },
+   "luarocks\\dkjson": {
+    "driver": "luarocks",
+    "fields": {
+     "name": "dkjson"
+    },
+    "name": "dkjson"
+   }
+  },
   "docker": {
    "dnf\\docker-engine": {
     "driver": "dnf",
@@ -6907,6 +7233,23 @@
      "unit": "docker"
     },
     "name": "docker-service"
+   }
+  },
+  "dune": {
+   "dnf\\opam": {
+    "driver": "dnf",
+    "fields": {
+     "name": "opam",
+     "repo-component": "universe"
+    },
+    "name": "opam"
+   },
+   "opam\\dune": {
+    "driver": "opam",
+    "fields": {
+     "name": "dune"
+    },
+    "name": "dune"
    }
   },
   "edge": {
@@ -7150,6 +7493,31 @@
    }
   },
   "haskell": {
+   "dnf\\haskell": {
+    "driver": "dnf",
+    "fields": {
+     "name": "ghc",
+     "repo-component": "universe"
+    },
+    "name": "ghc"
+   }
+  },
+  "hlint": {
+   "cabal\\hlint": {
+    "driver": "cabal",
+    "fields": {
+     "name": "hlint"
+    },
+    "name": "hlint"
+   },
+   "dnf\\cabal": {
+    "driver": "dnf",
+    "fields": {
+     "name": "cabal-install",
+     "repo-component": "universe"
+    },
+    "name": "cabal-install"
+   },
    "dnf\\haskell": {
     "driver": "dnf",
     "fields": {
@@ -7472,6 +7840,16 @@
     "name": "lua"
    }
   },
+  "luarocks": {
+   "dnf\\luarocks": {
+    "driver": "dnf",
+    "fields": {
+     "name": "luarocks",
+     "repo-component": "universe"
+    },
+    "name": "luarocks"
+   }
+  },
   "make": {
    "dnf\\make": {
     "driver": "dnf",
@@ -7748,6 +8126,16 @@
      }
     },
     "name": "odin"
+   }
+  },
+  "opam": {
+   "dnf\\opam": {
+    "driver": "dnf",
+    "fields": {
+     "name": "opam",
+     "repo-component": "universe"
+    },
+    "name": "opam"
    }
   },
   "opera": {
@@ -8751,6 +9139,24 @@
     "name": "bundler"
    }
   },
+  "cabal": {
+   "dnf\\cabal": {
+    "driver": "dnf",
+    "fields": {
+     "name": "cabal-install",
+     "repo-component": "universe"
+    },
+    "name": "cabal-install"
+   },
+   "dnf\\haskell": {
+    "driver": "dnf",
+    "fields": {
+     "name": "ghc",
+     "repo-component": "universe"
+    },
+    "name": "ghc"
+   }
+  },
   "chrome": {
    "dnf\\flatpak": {
     "driver": "dnf",
@@ -8869,6 +9275,23 @@
     "name": "com.discordapp.Discord"
    }
   },
+  "dkjson": {
+   "dnf\\luarocks": {
+    "driver": "dnf",
+    "fields": {
+     "name": "luarocks",
+     "repo-component": "universe"
+    },
+    "name": "luarocks"
+   },
+   "luarocks\\dkjson": {
+    "driver": "luarocks",
+    "fields": {
+     "name": "dkjson"
+    },
+    "name": "dkjson"
+   }
+  },
   "docker": {
    "dnf\\docker-engine": {
     "driver": "dnf",
@@ -8930,6 +9353,23 @@
      "unit": "docker"
     },
     "name": "docker-service"
+   }
+  },
+  "dune": {
+   "dnf\\opam": {
+    "driver": "dnf",
+    "fields": {
+     "name": "opam",
+     "repo-component": "universe"
+    },
+    "name": "opam"
+   },
+   "opam\\dune": {
+    "driver": "opam",
+    "fields": {
+     "name": "dune"
+    },
+    "name": "dune"
    }
   },
   "edge": {
@@ -9173,6 +9613,31 @@
    }
   },
   "haskell": {
+   "dnf\\haskell": {
+    "driver": "dnf",
+    "fields": {
+     "name": "ghc",
+     "repo-component": "universe"
+    },
+    "name": "ghc"
+   }
+  },
+  "hlint": {
+   "cabal\\hlint": {
+    "driver": "cabal",
+    "fields": {
+     "name": "hlint"
+    },
+    "name": "hlint"
+   },
+   "dnf\\cabal": {
+    "driver": "dnf",
+    "fields": {
+     "name": "cabal-install",
+     "repo-component": "universe"
+    },
+    "name": "cabal-install"
+   },
    "dnf\\haskell": {
     "driver": "dnf",
     "fields": {
@@ -9495,6 +9960,16 @@
     "name": "lua"
    }
   },
+  "luarocks": {
+   "dnf\\luarocks": {
+    "driver": "dnf",
+    "fields": {
+     "name": "luarocks",
+     "repo-component": "universe"
+    },
+    "name": "luarocks"
+   }
+  },
   "make": {
    "dnf\\make": {
     "driver": "dnf",
@@ -9771,6 +10246,16 @@
      }
     },
     "name": "odin"
+   }
+  },
+  "opam": {
+   "dnf\\opam": {
+    "driver": "dnf",
+    "fields": {
+     "name": "opam",
+     "repo-component": "universe"
+    },
+    "name": "opam"
    }
   },
   "opera": {
@@ -10760,6 +11245,24 @@
     "name": "bundler"
    }
   },
+  "cabal": {
+   "apt\\cabal": {
+    "driver": "apt",
+    "fields": {
+     "name": "cabal-install",
+     "repo-component": "universe"
+    },
+    "name": "cabal-install"
+   },
+   "apt\\haskell": {
+    "driver": "apt",
+    "fields": {
+     "name": "ghc",
+     "repo-component": "universe"
+    },
+    "name": "ghc"
+   }
+  },
   "chrome": {
    "apt\\flatpak": {
     "driver": "apt",
@@ -10998,6 +11501,23 @@
     "name": "com.discordapp.Discord"
    }
   },
+  "dkjson": {
+   "apt\\luarocks": {
+    "driver": "apt",
+    "fields": {
+     "name": "luarocks",
+     "repo-component": "universe"
+    },
+    "name": "luarocks"
+   },
+   "luarocks\\dkjson": {
+    "driver": "luarocks",
+    "fields": {
+     "name": "dkjson"
+    },
+    "name": "dkjson"
+   }
+  },
   "docker": {
    "apt\\docker-engine": {
     "driver": "apt",
@@ -11059,6 +11579,23 @@
      "unit": "docker"
     },
     "name": "docker-service"
+   }
+  },
+  "dune": {
+   "apt\\opam": {
+    "driver": "apt",
+    "fields": {
+     "name": "opam",
+     "repo-component": "universe"
+    },
+    "name": "opam"
+   },
+   "opam\\dune": {
+    "driver": "opam",
+    "fields": {
+     "name": "dune"
+    },
+    "name": "dune"
    }
   },
   "edge": {
@@ -11454,6 +11991,31 @@
     "name": "ghc"
    }
   },
+  "hlint": {
+   "apt\\cabal": {
+    "driver": "apt",
+    "fields": {
+     "name": "cabal-install",
+     "repo-component": "universe"
+    },
+    "name": "cabal-install"
+   },
+   "apt\\haskell": {
+    "driver": "apt",
+    "fields": {
+     "name": "ghc",
+     "repo-component": "universe"
+    },
+    "name": "ghc"
+   },
+   "cabal\\hlint": {
+    "driver": "cabal",
+    "fields": {
+     "name": "hlint"
+    },
+    "name": "hlint"
+   }
+  },
   "htop": {
    "apt\\htop": {
     "driver": "apt",
@@ -11780,6 +12342,16 @@
     "name": "lua5.4"
    }
   },
+  "luarocks": {
+   "apt\\luarocks": {
+    "driver": "apt",
+    "fields": {
+     "name": "luarocks",
+     "repo-component": "universe"
+    },
+    "name": "luarocks"
+   }
+  },
   "make": {
    "apt\\make": {
     "driver": "apt",
@@ -12066,6 +12638,16 @@
      }
     },
     "name": "odin"
+   }
+  },
+  "opam": {
+   "apt\\opam": {
+    "driver": "apt",
+    "fields": {
+     "name": "opam",
+     "repo-component": "universe"
+    },
+    "name": "opam"
    }
   },
   "opera": {
@@ -13075,6 +13657,24 @@
     "name": "bundler"
    }
   },
+  "cabal": {
+   "dnf\\cabal": {
+    "driver": "dnf",
+    "fields": {
+     "name": "cabal-install",
+     "repo-component": "universe"
+    },
+    "name": "cabal-install"
+   },
+   "dnf\\haskell": {
+    "driver": "dnf",
+    "fields": {
+     "name": "ghc",
+     "repo-component": "universe"
+    },
+    "name": "ghc"
+   }
+  },
   "chrome": {
    "dnf\\flatpak": {
     "driver": "dnf",
@@ -13195,6 +13795,23 @@
     "name": "com.discordapp.Discord"
    }
   },
+  "dkjson": {
+   "dnf\\luarocks": {
+    "driver": "dnf",
+    "fields": {
+     "name": "luarocks",
+     "repo-component": "universe"
+    },
+    "name": "luarocks"
+   },
+   "luarocks\\dkjson": {
+    "driver": "luarocks",
+    "fields": {
+     "name": "dkjson"
+    },
+    "name": "dkjson"
+   }
+  },
   "docker": {
    "dnf\\docker-engine": {
     "driver": "dnf",
@@ -13256,6 +13873,23 @@
      "unit": "docker"
     },
     "name": "docker-service"
+   }
+  },
+  "dune": {
+   "dnf\\opam": {
+    "driver": "dnf",
+    "fields": {
+     "name": "opam",
+     "repo-component": "universe"
+    },
+    "name": "opam"
+   },
+   "opam\\dune": {
+    "driver": "opam",
+    "fields": {
+     "name": "dune"
+    },
+    "name": "dune"
    }
   },
   "edge": {
@@ -13543,6 +14177,31 @@
    }
   },
   "haskell": {
+   "dnf\\haskell": {
+    "driver": "dnf",
+    "fields": {
+     "name": "ghc",
+     "repo-component": "universe"
+    },
+    "name": "ghc"
+   }
+  },
+  "hlint": {
+   "cabal\\hlint": {
+    "driver": "cabal",
+    "fields": {
+     "name": "hlint"
+    },
+    "name": "hlint"
+   },
+   "dnf\\cabal": {
+    "driver": "dnf",
+    "fields": {
+     "name": "cabal-install",
+     "repo-component": "universe"
+    },
+    "name": "cabal-install"
+   },
    "dnf\\haskell": {
     "driver": "dnf",
     "fields": {
@@ -13905,6 +14564,16 @@
     "name": "lua"
    }
   },
+  "luarocks": {
+   "dnf\\luarocks": {
+    "driver": "dnf",
+    "fields": {
+     "name": "luarocks",
+     "repo-component": "universe"
+    },
+    "name": "luarocks"
+   }
+  },
   "make": {
    "dnf\\make": {
     "driver": "dnf",
@@ -14208,6 +14877,16 @@
      }
     },
     "name": "odin"
+   }
+  },
+  "opam": {
+   "dnf\\opam": {
+    "driver": "dnf",
+    "fields": {
+     "name": "opam",
+     "repo-component": "universe"
+    },
+    "name": "opam"
    }
   },
   "opera": {
@@ -15234,6 +15913,24 @@
     "name": "bundler"
    }
   },
+  "cabal": {
+   "apt\\cabal": {
+    "driver": "apt",
+    "fields": {
+     "name": "cabal-install",
+     "repo-component": "universe"
+    },
+    "name": "cabal-install"
+   },
+   "apt\\haskell": {
+    "driver": "apt",
+    "fields": {
+     "name": "ghc",
+     "repo-component": "universe"
+    },
+    "name": "ghc"
+   }
+  },
   "chrome": {
    "apt\\flatpak": {
     "driver": "apt",
@@ -15472,6 +16169,23 @@
     "name": "com.discordapp.Discord"
    }
   },
+  "dkjson": {
+   "apt\\luarocks": {
+    "driver": "apt",
+    "fields": {
+     "name": "luarocks",
+     "repo-component": "universe"
+    },
+    "name": "luarocks"
+   },
+   "luarocks\\dkjson": {
+    "driver": "luarocks",
+    "fields": {
+     "name": "dkjson"
+    },
+    "name": "dkjson"
+   }
+  },
   "docker": {
    "apt\\docker-engine": {
     "driver": "apt",
@@ -15533,6 +16247,23 @@
      "unit": "docker"
     },
     "name": "docker-service"
+   }
+  },
+  "dune": {
+   "apt\\opam": {
+    "driver": "apt",
+    "fields": {
+     "name": "opam",
+     "repo-component": "universe"
+    },
+    "name": "opam"
+   },
+   "opam\\dune": {
+    "driver": "opam",
+    "fields": {
+     "name": "dune"
+    },
+    "name": "dune"
    }
   },
   "edge": {
@@ -15928,6 +16659,31 @@
     "name": "ghc"
    }
   },
+  "hlint": {
+   "apt\\cabal": {
+    "driver": "apt",
+    "fields": {
+     "name": "cabal-install",
+     "repo-component": "universe"
+    },
+    "name": "cabal-install"
+   },
+   "apt\\haskell": {
+    "driver": "apt",
+    "fields": {
+     "name": "ghc",
+     "repo-component": "universe"
+    },
+    "name": "ghc"
+   },
+   "cabal\\hlint": {
+    "driver": "cabal",
+    "fields": {
+     "name": "hlint"
+    },
+    "name": "hlint"
+   }
+  },
   "htop": {
    "apt\\htop": {
     "driver": "apt",
@@ -16254,6 +17010,16 @@
     "name": "lua5.4"
    }
   },
+  "luarocks": {
+   "apt\\luarocks": {
+    "driver": "apt",
+    "fields": {
+     "name": "luarocks",
+     "repo-component": "universe"
+    },
+    "name": "luarocks"
+   }
+  },
   "make": {
    "apt\\make": {
     "driver": "apt",
@@ -16540,6 +17306,16 @@
      }
     },
     "name": "odin"
+   }
+  },
+  "opam": {
+   "apt\\opam": {
+    "driver": "apt",
+    "fields": {
+     "name": "opam",
+     "repo-component": "universe"
+    },
+    "name": "opam"
    }
   },
   "opera": {
@@ -17530,6 +18306,24 @@
     "name": "bundler"
    }
   },
+  "cabal": {
+   "apt\\cabal": {
+    "driver": "apt",
+    "fields": {
+     "name": "cabal-install",
+     "repo-component": "universe"
+    },
+    "name": "cabal-install"
+   },
+   "apt\\haskell": {
+    "driver": "apt",
+    "fields": {
+     "name": "ghc",
+     "repo-component": "universe"
+    },
+    "name": "ghc"
+   }
+  },
   "chrome": {
    "apt\\flatpak": {
     "driver": "apt",
@@ -17768,6 +18562,23 @@
     "name": "com.discordapp.Discord"
    }
   },
+  "dkjson": {
+   "apt\\luarocks": {
+    "driver": "apt",
+    "fields": {
+     "name": "luarocks",
+     "repo-component": "universe"
+    },
+    "name": "luarocks"
+   },
+   "luarocks\\dkjson": {
+    "driver": "luarocks",
+    "fields": {
+     "name": "dkjson"
+    },
+    "name": "dkjson"
+   }
+  },
   "docker": {
    "apt\\docker-engine": {
     "driver": "apt",
@@ -17829,6 +18640,23 @@
      "unit": "docker"
     },
     "name": "docker-service"
+   }
+  },
+  "dune": {
+   "apt\\opam": {
+    "driver": "apt",
+    "fields": {
+     "name": "opam",
+     "repo-component": "universe"
+    },
+    "name": "opam"
+   },
+   "opam\\dune": {
+    "driver": "opam",
+    "fields": {
+     "name": "dune"
+    },
+    "name": "dune"
    }
   },
   "edge": {
@@ -18224,6 +19052,31 @@
     "name": "ghc"
    }
   },
+  "hlint": {
+   "apt\\cabal": {
+    "driver": "apt",
+    "fields": {
+     "name": "cabal-install",
+     "repo-component": "universe"
+    },
+    "name": "cabal-install"
+   },
+   "apt\\haskell": {
+    "driver": "apt",
+    "fields": {
+     "name": "ghc",
+     "repo-component": "universe"
+    },
+    "name": "ghc"
+   },
+   "cabal\\hlint": {
+    "driver": "cabal",
+    "fields": {
+     "name": "hlint"
+    },
+    "name": "hlint"
+   }
+  },
   "htop": {
    "apt\\htop": {
     "driver": "apt",
@@ -18550,6 +19403,16 @@
     "name": "lua5.4"
    }
   },
+  "luarocks": {
+   "apt\\luarocks": {
+    "driver": "apt",
+    "fields": {
+     "name": "luarocks",
+     "repo-component": "universe"
+    },
+    "name": "luarocks"
+   }
+  },
   "make": {
    "apt\\make": {
     "driver": "apt",
@@ -18826,6 +19689,16 @@
      }
     },
     "name": "odin"
+   }
+  },
+  "opam": {
+   "apt\\opam": {
+    "driver": "apt",
+    "fields": {
+     "name": "opam",
+     "repo-component": "universe"
+    },
+    "name": "opam"
    }
   },
   "opera": {

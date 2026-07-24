@@ -12,6 +12,7 @@ from .apk import Apk
 from .apt import Apt
 from .aur import Aur
 from .brew import Brew
+from .cabal import Cabal
 from .cargo import Cargo
 from .clang import Clang
 from .font import Font
@@ -23,7 +24,9 @@ from .gem import Gem
 from .gcc_toolset import GccToolset
 from .go_install import GoInstall
 from .group import Group
+from .luarocks import LuaRocks
 from .npm import Npm
+from .opam import Opam
 from .pacman import Pacman
 from .pip import Pip
 from .pipx import Pipx
@@ -49,6 +52,9 @@ _REGISTRY = {
     Npm.name: Npm,
     GoInstall.name: GoInstall,
     Gem.name: Gem,
+    Opam.name: Opam,
+    LuaRocks.name: LuaRocks,
+    Cabal.name: Cabal,
     Gcc.name: Gcc,
     GccToolset.name: GccToolset,
     Clang.name: Clang,

@@ -77,6 +77,9 @@
         npm:         { requires: npm }                // a global CLI needs the npm tool (-> node)
         go-install:  { requires: go }                 // `go install` needs the go toolchain
         gem:         { requires: ruby }                // a gem needs ruby (gem ships with it)
+        opam:        { requires: opam }                // an OCaml package needs the opam tool
+        luarocks:    { requires: luarocks }            // a rock needs the luarocks tool (-> lua)
+        cabal:       { requires: cabal }               // a hackage exe needs cabal (-> ghc)
         font: { requires: [ fontconfig, unzip ] }
         // pip / pipx on musl (Alpine): pip prefers a `musllinux` wheel and pure-Python wheels
         // install fine, but a C-extension package that ships ONLY `manylinux` (glibc) wheels
@@ -234,6 +237,21 @@
         elixir: { install: [ { via: native  repo-component: universe } ] }
         // Nim compiler (nimble ships alongside).
         nim:   { install: [ { via: native  repo-component: universe } ] }
+
+        // --- ecosystem module tools + a sample module each (validated in a podman run) ---
+        // opam (OCaml package manager). NOTE: `opam install` needs a one-time `opam init` on a
+        // fresh system — the opam driver is validated against opam 2.1.5's CLI, but first use on
+        // an uninitialized machine may need `opam init` (tracked; see docs/expansion-plan.md).
+        opam:  { install: [ { via: native  repo-component: universe } ] }
+        dune:  { install: [ { via: opam  name: dune } ] }
+        // luarocks (Lua package manager; the native package pulls lua) + a sample rock
+        // (dkjson is pure-Lua with no C deps, so it installs without lua headers).
+        luarocks: { install: [ { via: native  repo-component: universe } ] }
+        dkjson:   { install: [ { via: luarocks  name: dkjson } ] }
+        // cabal (Haskell build tool; needs ghc to build) + a sample executable.
+        cabal: { requires: haskell
+                 install: [ { via: native  repo-component: universe  name: { default: cabal-install } } ] }
+        hlint: { install: [ { via: cabal  name: hlint } ] }
 
         // Zig — native on Arch/Homebrew; elsewhere the upstream tarball. zig's Linux build is
         // statically linked (runs on glibc AND musl), so no glibc requirement. Its prebuilt

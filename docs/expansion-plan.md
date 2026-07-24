@@ -45,10 +45,17 @@ pytest test/test_golden.py`, review the diff) and runs the full suite before lan
 - **A5–A8  native toolchains (verified).** jdk (openjdk), ocaml, lua, haskell (ghc), elixir,
   erlang, nim — all real, directly-usable native packages. **Landed together.**
 - **A9  zig + odin.** tarball toolchains (github release, tar.xz/tar.gz — tarball-driver OK).
-- **DEFERRED (need real-machine validation / unsupported medium):**
-  - module drivers `opam`, `luarocks`, `cabal`, `sdkman` — CLIs not runnable in-sandbox; do a
-    validated pass on a real box. (opam/luarocks/cabal are native-backed; sdkman is a
-    curl-bootstrapped shell function — decide whether it even fits the model.)
+- **Module drivers `opam` / `luarocks` / `cabal` — BUILT + container-validated.** The podman
+  harness exists (I'd missed it): `test/Containerfile.*` + `run-*-in-podman.sh` +
+  `integration_*.sh` run real installs per-distro, throwaway. CLIs confirmed against opam 2.1.5 /
+  luarocks 3.8.0 / cabal-install 3.8.1 in a container. luarocks gets a full configsys round-trip
+  (`integration_lang_modules.sh`); opam/cabal read-commands are validated there, mutating
+  commands recon-verified (their backends — `opam init`, ghc — are too heavy to build every run).
+  - **opam init handled:** uninitialized opam exits 50 on *every* command (even `--safe`). Fixed:
+    `Opam.install` runs an idempotent `opam init --no-setup --yes && opam install …`, and
+    get_version degrades to None (not a crash) when uninitialized — validated in-container.
+- **STILL DEFERRED:** `sdkman` (curl-bootstrapped shell function — decide whether it fits the
+  model at all).
   - `kotlin` — its clean cross-distro path is SDKMAN; lands with that driver (native on
     Arch/brew only otherwise; its release artifact is a `.zip`, which the tar-only tarball
     driver can't take).
