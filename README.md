@@ -171,22 +171,37 @@ Your machine's file always wins:
 Run as `./configsys.sh <command>` (or `python -m configsys <command>` inside the venv).
 With no command, the **TUI** opens.
 
+Run `configsys <command> -h` for per-command help.
+
 ```
-configsys                      # interactive TUI (default)
-configsys inspect              # install-state table for the active profiles
-configsys install  <name>...   # install (pulls dependencies first, ordered)
-configsys remove   <name>...
-configsys upgrade  <name>...
-configsys lock|unlock <name>...
-configsys set-version <name> <version>
-configsys where <name>         # explain a component: source layer + bindings + resolution
-configsys check                # lint the merged config (repo + your file + includes + plugins)
-configsys refresh              # re-query latest versions from their sources
-configsys plugin <list|sync|add|remove|update>   # data plugins (see below)
+configsys                          # interactive TUI (default)
+configsys inspect                  # install-state table for the active profiles
+configsys install  <name>...       # install (pulls dependencies first, ordered)
+configsys remove   <name>...       # uninstall
+configsys upgrade  <name>...       # upgrade to latest
+configsys lock|unlock <name>...    # version-lock / unlock
+configsys set-version <name> <ver> # pin to a specific version
+configsys fix-scope [<name>...]    # reconcile user/system scope mismatches (moves the install)
+configsys where <name>             # explain a component: source layer + bindings + resolution
+configsys check                    # lint the merged config (repo + your file + includes + plugins)
+configsys refresh                  # re-query latest versions from their sources
+configsys plugin <list|sync|add|remove|update|bless|trust|…>   # plugins (see below)
+configsys report  [<name>]         # file an install-failure report (you approve the text first)
+configsys request <name>           # ask upstream for full cross-platform support (coverage matrix)
 ```
 
-Global flags: `--pretend` (dry-run; prints commands), `--os <block>`, `--home <dir>`,
-`--config <file>` — the last three make runs sandboxable.
+Any `<name>` may be **`profile:<name>`**, which expands to that profile's components — e.g.
+`configsys install profile:dev blender`. The `profile:` prefix disambiguates from a component of
+the same name.
+
+Global flags: `--pretend` (dry-run — prints commands, makes no changes and no network calls),
+`--os <block>`, `--home <dir>`, `--config <file>` (the last three sandbox a run), `-v`/`-vv`
+(stream load detail to stderr), `-q` (quiet).
+
+Environment: `CONFIGSYS_OS` / `CONFIGSYS_OS_VERSION` (override the detected OS), `CONFIGSYS_HOME`
+/ `CONFIGSYS_CONFIG` (relocate paths), `CONFIGSYS_NO_DISCOVER=1` (disable project discovery),
+`CONFIGSYS_CWD`, `CONFIGSYS_ARCH`, `CONFIGSYS_GITHUB_TOKEN` (private-plugin auth). Full list in
+`configsys -h`.
 
 ```console
 $ ./configsys.sh where steam

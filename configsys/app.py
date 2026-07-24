@@ -1253,9 +1253,34 @@ def cmd_request(ctx, args):
 
 # -- argument parsing -----------------------------------------------------
 
+_EPILOG = '''\
+examples:
+  configsys                          open the interactive TUI (the default)
+  configsys inspect                  install-state table for the active profiles
+  configsys install rust ripgrep     install components (deps pulled + ordered)
+  configsys install profile:dev       install every component in the `dev` profile
+  configsys upgrade profile:dev btop  a profile plus an extra, to latest
+  configsys where neovim             explain how a component resolves on this machine
+  configsys --pretend install steam  dry run: print the commands, change nothing
+
+environment:
+  CONFIGSYS_OS, CONFIGSYS_OS_VERSION   override the detected OS block / version
+  CONFIGSYS_HOME, CONFIGSYS_CONFIG     relocate the HOME base / the selector file
+  CONFIGSYS_NO_DISCOVER=1              disable project (.configsys.hu) discovery
+  CONFIGSYS_CWD                        directory to start project discovery from
+  CONFIGSYS_ARCH                       override CPU arch for $ARCH substitution
+  CONFIGSYS_GITHUB_TOKEN / _GIT_TOKEN  auth for private plugin repos
+'''
+
+
 def build_parser():
-    p = argparse.ArgumentParser(prog='configsys',
-                                description='Sync OS-native software from a profile.')
+    p = argparse.ArgumentParser(
+        prog='configsys',
+        description='Provision OS-native software from a profile: one config, one tool, across '
+                    'apt/dnf/pacman/zypper/apk/brew, plus flatpak, tarballs, language toolchains, '
+                    'and more. With no command, the interactive TUI opens.',
+        epilog=_EPILOG,
+        formatter_class=argparse.RawDescriptionHelpFormatter)
     p.add_argument('--pretend', action='store_true',
                    help='print commands instead of executing them (dry run)')
     p.add_argument('--os', help='override detected OS routes block (e.g. pop_os!)')
@@ -1275,7 +1300,9 @@ def build_parser():
                         ('upgrade', 'upgrade components to latest'),
                         ('lock', 'version-lock components'),
                         ('unlock', 'remove version lock')):
-        sp = sub.add_parser(name, help=help_)
+        sp = sub.add_parser(name, help=help_,
+                            description=f'{help_.capitalize()}. A name is a component; '
+                                        'profile:<name> expands to that profile\'s components.')
         sp.add_argument('names', nargs='+',
                         help='component names, and/or profile:<name> to expand a whole profile')
 
