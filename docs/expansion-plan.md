@@ -70,12 +70,15 @@ pytest test/test_golden.py`, review the diff) and runs the full suite before lan
   Deferred with the module drivers to one validated pass. Candidates: cosmic, gnome, kde, xfce,
   lxqt, cinnamon, mate, budgie, sway, hyprland.
 
-### Track D — `configsys request`
-- **D1  reportgen coverage matrix.** resolve a component across all OS blocks → have/missing;
-  request payload + render; `<!-- configsys-request v1 -->` marker.
-- **D2  `request` command.** app.py wiring, scrub/approve/gh-or-browser reuse, tests.
-- **D3  reports-repo scaffolding.** request issue form, `component-request` label, auto-label
-  Action branch, README section.
+### Track D — `configsys request`  (DONE)
+- **D1  reportgen coverage matrix.** ✅ `coverage()` probes a representative machine per package
+  manager (reusing the loaded layered components); `request_payload`/`render_request`/
+  `request_title`; `<!-- configsys-request v1 -->` marker + `component-request` label.
+- **D2  `request` command.** ✅ app.py `cmd_request`, argparse `request`, `_send_report`
+  generalized (label/save-as), scrub/approve/gh-or-browser reuse. Tests in test_app +
+  test_reportgen.
+- **D3  reports-repo scaffolding.** ✅ `component-request.yml` issue form, auto-label Action
+  extended to both markers, README updated. (In ~/src/configsys-issues — push separately.)
 
 ## Parked / notes
 - No macOS block yet; if one lands, DE + toolchain matrices extend for free.
