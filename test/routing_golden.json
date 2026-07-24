@@ -138,6 +138,29 @@
     "name": "bash-dotfiles"
    }
   },
+  "bazelisk": {
+   "pacman\\curl": {
+    "driver": "pacman",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "tarball\\bazelisk": {
+    "driver": "tarball",
+    "fields": {
+     "archive": "none",
+     "binary": "bazelisk",
+     "installDir": "apps/bazelisk",
+     "name": "bazelisk",
+     "url": "https://github.com/bazelbuild/bazelisk/releases/latest/download/bazelisk-linux-amd64",
+     "version": {
+      "static": "latest"
+     }
+    },
+    "name": "bazelisk"
+   }
+  },
   "blender": {
    "pacman\\blender": {
     "driver": "pacman",
@@ -320,6 +343,15 @@
      "repo-component": "universe"
     },
     "name": "npm"
+   }
+  },
+  "cmake": {
+   "pacman\\cmake": {
+    "driver": "pacman",
+    "fields": {
+     "name": "cmake"
+    },
+    "name": "cmake"
    }
   },
   "codecs": {
@@ -846,6 +878,22 @@
     "name": "go"
    }
   },
+  "gradle": {
+   "pacman\\gradle": {
+    "driver": "pacman",
+    "fields": {
+     "name": "gradle"
+    },
+    "name": "gradle"
+   },
+   "pacman\\jdk": {
+    "driver": "pacman",
+    "fields": {
+     "name": "jdk-openjdk"
+    },
+    "name": "jdk-openjdk"
+   }
+  },
   "gst-bad": {
    "pacman\\gst-bad": {
     "driver": "pacman",
@@ -1084,6 +1132,15 @@
      "name": "julia"
     },
     "name": "julia"
+   }
+  },
+  "just": {
+   "pacman\\just": {
+    "driver": "pacman",
+    "fields": {
+     "name": "just"
+    },
+    "name": "just"
    }
   },
   "k3s": {
@@ -1447,6 +1504,22 @@
     "name": "mate"
    }
   },
+  "maven": {
+   "pacman\\jdk": {
+    "driver": "pacman",
+    "fields": {
+     "name": "jdk-openjdk"
+    },
+    "name": "jdk-openjdk"
+   },
+   "pacman\\maven": {
+    "driver": "pacman",
+    "fields": {
+     "name": "maven"
+    },
+    "name": "maven"
+   }
+  },
   "mesa-vulkan-drivers": {
    "pacman\\mesa-vulkan-drivers": {
     "driver": "pacman",
@@ -1454,6 +1527,15 @@
      "name": "mesa-vulkan-drivers"
     },
     "name": "mesa-vulkan-drivers"
+   }
+  },
+  "meson": {
+   "pacman\\meson": {
+    "driver": "pacman",
+    "fields": {
+     "name": "meson"
+    },
+    "name": "meson"
    }
   },
   "mitmproxy": {
@@ -1632,6 +1714,15 @@
      "repo-component": "universe"
     },
     "name": "nim"
+   }
+  },
+  "ninja": {
+   "pacman\\ninja": {
+    "driver": "pacman",
+    "fields": {
+     "name": "ninja"
+    },
+    "name": "ninja"
    }
   },
   "nload": {
@@ -2845,6 +2936,29 @@
     "name": "bash-dotfiles"
    }
   },
+  "bazelisk": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "tarball\\bazelisk": {
+    "driver": "tarball",
+    "fields": {
+     "archive": "none",
+     "binary": "bazelisk",
+     "installDir": "apps/bazelisk",
+     "name": "bazelisk",
+     "url": "https://github.com/bazelbuild/bazelisk/releases/latest/download/bazelisk-linux-amd64",
+     "version": {
+      "static": "latest"
+     }
+    },
+    "name": "bazelisk"
+   }
+  },
   "blender": {
    "apt\\blender": {
     "driver": "apt",
@@ -3176,6 +3290,15 @@
      "name": "@anthropic-ai/claude-code"
     },
     "name": "@anthropic-ai/claude-code"
+   }
+  },
+  "cmake": {
+   "apt\\cmake": {
+    "driver": "apt",
+    "fields": {
+     "name": "cmake"
+    },
+    "name": "cmake"
    }
   },
   "codecs": {
@@ -3899,6 +4022,22 @@
     "name": "golang.org/x/tools/cmd/goimports"
    }
   },
+  "gradle": {
+   "apt\\gradle": {
+    "driver": "apt",
+    "fields": {
+     "name": "gradle"
+    },
+    "name": "gradle"
+   },
+   "apt\\jdk": {
+    "driver": "apt",
+    "fields": {
+     "name": "default-jdk"
+    },
+    "name": "default-jdk"
+   }
+  },
   "gst-bad": {
    "apt\\gst-bad": {
     "driver": "apt",
@@ -4160,6 +4299,28 @@
      }
     },
     "name": "julia"
+   }
+  },
+  "just": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "tarball\\just": {
+    "driver": "tarball",
+    "fields": {
+     "installDir": "apps/just",
+     "name": "just",
+     "version": {
+      "asset": "just-*-x86_64-unknown-linux-musl.tar.gz",
+      "github": "casey/just",
+      "strip-v": "true"
+     }
+    },
+    "name": "just"
    }
   },
   "k3s": {
@@ -4609,6 +4770,22 @@
     "name": "mate-desktop-environment"
    }
   },
+  "maven": {
+   "apt\\jdk": {
+    "driver": "apt",
+    "fields": {
+     "name": "default-jdk"
+    },
+    "name": "default-jdk"
+   },
+   "apt\\maven": {
+    "driver": "apt",
+    "fields": {
+     "name": "maven"
+    },
+    "name": "maven"
+   }
+  },
   "mesa-vulkan-drivers": {
    "apt\\mesa-vulkan-drivers": {
     "driver": "apt",
@@ -4616,6 +4793,15 @@
      "name": "mesa-vulkan-drivers"
     },
     "name": "mesa-vulkan-drivers"
+   }
+  },
+  "meson": {
+   "apt\\meson": {
+    "driver": "apt",
+    "fields": {
+     "name": "meson"
+    },
+    "name": "meson"
    }
   },
   "mitmproxy": {
@@ -4804,6 +4990,15 @@
      "repo-component": "universe"
     },
     "name": "nim"
+   }
+  },
+  "ninja": {
+   "apt\\ninja": {
+    "driver": "apt",
+    "fields": {
+     "name": "ninja-build"
+    },
+    "name": "ninja-build"
    }
   },
   "nload": {
@@ -6012,6 +6207,29 @@
     "name": "bash-dotfiles"
    }
   },
+  "bazelisk": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "tarball\\bazelisk": {
+    "driver": "tarball",
+    "fields": {
+     "archive": "none",
+     "binary": "bazelisk",
+     "installDir": "apps/bazelisk",
+     "name": "bazelisk",
+     "url": "https://github.com/bazelbuild/bazelisk/releases/latest/download/bazelisk-linux-amd64",
+     "version": {
+      "static": "latest"
+     }
+    },
+    "name": "bazelisk"
+   }
+  },
   "blender": {
    "apt\\blender": {
     "driver": "apt",
@@ -6343,6 +6561,15 @@
      "name": "@anthropic-ai/claude-code"
     },
     "name": "@anthropic-ai/claude-code"
+   }
+  },
+  "cmake": {
+   "apt\\cmake": {
+    "driver": "apt",
+    "fields": {
+     "name": "cmake"
+    },
+    "name": "cmake"
    }
   },
   "codecs": {
@@ -7056,6 +7283,22 @@
     "name": "golang.org/x/tools/cmd/goimports"
    }
   },
+  "gradle": {
+   "apt\\gradle": {
+    "driver": "apt",
+    "fields": {
+     "name": "gradle"
+    },
+    "name": "gradle"
+   },
+   "apt\\jdk": {
+    "driver": "apt",
+    "fields": {
+     "name": "default-jdk"
+    },
+    "name": "default-jdk"
+   }
+  },
   "gst-bad": {
    "apt\\gst-bad": {
     "driver": "apt",
@@ -7317,6 +7560,28 @@
      }
     },
     "name": "julia"
+   }
+  },
+  "just": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "tarball\\just": {
+    "driver": "tarball",
+    "fields": {
+     "installDir": "apps/just",
+     "name": "just",
+     "version": {
+      "asset": "just-*-x86_64-unknown-linux-musl.tar.gz",
+      "github": "casey/just",
+      "strip-v": "true"
+     }
+    },
+    "name": "just"
    }
   },
   "k3s": {
@@ -7756,6 +8021,22 @@
     "name": "mate-desktop-environment"
    }
   },
+  "maven": {
+   "apt\\jdk": {
+    "driver": "apt",
+    "fields": {
+     "name": "default-jdk"
+    },
+    "name": "default-jdk"
+   },
+   "apt\\maven": {
+    "driver": "apt",
+    "fields": {
+     "name": "maven"
+    },
+    "name": "maven"
+   }
+  },
   "mesa-vulkan-drivers": {
    "apt\\mesa-vulkan-drivers": {
     "driver": "apt",
@@ -7763,6 +8044,15 @@
      "name": "mesa-vulkan-drivers"
     },
     "name": "mesa-vulkan-drivers"
+   }
+  },
+  "meson": {
+   "apt\\meson": {
+    "driver": "apt",
+    "fields": {
+     "name": "meson"
+    },
+    "name": "meson"
    }
   },
   "mitmproxy": {
@@ -7941,6 +8231,15 @@
      "repo-component": "universe"
     },
     "name": "nim"
+   }
+  },
+  "ninja": {
+   "apt\\ninja": {
+    "driver": "apt",
+    "fields": {
+     "name": "ninja-build"
+    },
+    "name": "ninja-build"
    }
   },
   "nload": {
@@ -9129,6 +9428,29 @@
     "name": "bash-dotfiles"
    }
   },
+  "bazelisk": {
+   "dnf\\curl": {
+    "driver": "dnf",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "tarball\\bazelisk": {
+    "driver": "tarball",
+    "fields": {
+     "archive": "none",
+     "binary": "bazelisk",
+     "installDir": "apps/bazelisk",
+     "name": "bazelisk",
+     "url": "https://github.com/bazelbuild/bazelisk/releases/latest/download/bazelisk-linux-amd64",
+     "version": {
+      "static": "latest"
+     }
+    },
+    "name": "bazelisk"
+   }
+  },
   "blender": {
    "dnf\\blender": {
     "driver": "dnf",
@@ -9342,6 +9664,15 @@
      "name": "@anthropic-ai/claude-code"
     },
     "name": "@anthropic-ai/claude-code"
+   }
+  },
+  "cmake": {
+   "dnf\\cmake": {
+    "driver": "dnf",
+    "fields": {
+     "name": "cmake"
+    },
+    "name": "cmake"
    }
   },
   "codecs": {
@@ -10212,6 +10543,15 @@
     "name": "julia"
    }
   },
+  "just": {
+   "dnf\\just": {
+    "driver": "dnf",
+    "fields": {
+     "name": "just"
+    },
+    "name": "just"
+   }
+  },
   "k3s": {
    "script\\k3s": {
     "driver": "script",
@@ -10626,6 +10966,22 @@
     "name": "mate-desktop"
    }
   },
+  "maven": {
+   "dnf\\jdk": {
+    "driver": "dnf",
+    "fields": {
+     "name": "java-17-openjdk-devel"
+    },
+    "name": "java-17-openjdk-devel"
+   },
+   "dnf\\maven": {
+    "driver": "dnf",
+    "fields": {
+     "name": "maven"
+    },
+    "name": "maven"
+   }
+  },
   "mesa-vulkan-drivers": {
    "dnf\\mesa-vulkan-drivers": {
     "driver": "dnf",
@@ -10633,6 +10989,15 @@
      "name": "mesa-vulkan-drivers"
     },
     "name": "mesa-vulkan-drivers"
+   }
+  },
+  "meson": {
+   "dnf\\meson": {
+    "driver": "dnf",
+    "fields": {
+     "name": "meson"
+    },
+    "name": "meson"
    }
   },
   "mitmproxy": {
@@ -10811,6 +11176,15 @@
      "repo-component": "universe"
     },
     "name": "nim"
+   }
+  },
+  "ninja": {
+   "dnf\\ninja": {
+    "driver": "dnf",
+    "fields": {
+     "name": "ninja-build"
+    },
+    "name": "ninja-build"
    }
   },
   "nload": {
@@ -12038,6 +12412,29 @@
     "name": "bash-dotfiles"
    }
   },
+  "bazelisk": {
+   "dnf\\curl": {
+    "driver": "dnf",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "tarball\\bazelisk": {
+    "driver": "tarball",
+    "fields": {
+     "archive": "none",
+     "binary": "bazelisk",
+     "installDir": "apps/bazelisk",
+     "name": "bazelisk",
+     "url": "https://github.com/bazelbuild/bazelisk/releases/latest/download/bazelisk-linux-amd64",
+     "version": {
+      "static": "latest"
+     }
+    },
+    "name": "bazelisk"
+   }
+  },
   "blender": {
    "dnf\\blender": {
     "driver": "dnf",
@@ -12263,6 +12660,15 @@
      "name": "@anthropic-ai/claude-code"
     },
     "name": "@anthropic-ai/claude-code"
+   }
+  },
+  "cmake": {
+   "dnf\\cmake": {
+    "driver": "dnf",
+    "fields": {
+     "name": "cmake"
+    },
+    "name": "cmake"
    }
   },
   "codecs": {
@@ -13133,6 +13539,15 @@
     "name": "julia"
    }
   },
+  "just": {
+   "dnf\\just": {
+    "driver": "dnf",
+    "fields": {
+     "name": "just"
+    },
+    "name": "just"
+   }
+  },
   "k3s": {
    "script\\k3s": {
     "driver": "script",
@@ -13547,6 +13962,22 @@
     "name": "mate-desktop"
    }
   },
+  "maven": {
+   "dnf\\jdk": {
+    "driver": "dnf",
+    "fields": {
+     "name": "java-17-openjdk-devel"
+    },
+    "name": "java-17-openjdk-devel"
+   },
+   "dnf\\maven": {
+    "driver": "dnf",
+    "fields": {
+     "name": "maven"
+    },
+    "name": "maven"
+   }
+  },
   "mesa-vulkan-drivers": {
    "dnf\\mesa-vulkan-drivers": {
     "driver": "dnf",
@@ -13554,6 +13985,15 @@
      "name": "mesa-vulkan-drivers"
     },
     "name": "mesa-vulkan-drivers"
+   }
+  },
+  "meson": {
+   "dnf\\meson": {
+    "driver": "dnf",
+    "fields": {
+     "name": "meson"
+    },
+    "name": "meson"
    }
   },
   "mitmproxy": {
@@ -13732,6 +14172,15 @@
      "repo-component": "universe"
     },
     "name": "nim"
+   }
+  },
+  "ninja": {
+   "dnf\\ninja": {
+    "driver": "dnf",
+    "fields": {
+     "name": "ninja-build"
+    },
+    "name": "ninja-build"
    }
   },
   "nload": {
@@ -14969,6 +15418,29 @@
     "name": "bash-dotfiles"
    }
   },
+  "bazelisk": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "tarball\\bazelisk": {
+    "driver": "tarball",
+    "fields": {
+     "archive": "none",
+     "binary": "bazelisk",
+     "installDir": "apps/bazelisk",
+     "name": "bazelisk",
+     "url": "https://github.com/bazelbuild/bazelisk/releases/latest/download/bazelisk-linux-amd64",
+     "version": {
+      "static": "latest"
+     }
+    },
+    "name": "bazelisk"
+   }
+  },
   "blender": {
    "apt\\blender": {
     "driver": "apt",
@@ -15300,6 +15772,15 @@
      "name": "@anthropic-ai/claude-code"
     },
     "name": "@anthropic-ai/claude-code"
+   }
+  },
+  "cmake": {
+   "apt\\cmake": {
+    "driver": "apt",
+    "fields": {
+     "name": "cmake"
+    },
+    "name": "cmake"
    }
   },
   "codecs": {
@@ -16032,6 +16513,22 @@
     "name": "golang.org/x/tools/cmd/goimports"
    }
   },
+  "gradle": {
+   "apt\\gradle": {
+    "driver": "apt",
+    "fields": {
+     "name": "gradle"
+    },
+    "name": "gradle"
+   },
+   "apt\\jdk": {
+    "driver": "apt",
+    "fields": {
+     "name": "default-jdk"
+    },
+    "name": "default-jdk"
+   }
+  },
   "gst-bad": {
    "apt\\gst-bad": {
     "driver": "apt",
@@ -16293,6 +16790,28 @@
      }
     },
     "name": "julia"
+   }
+  },
+  "just": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "tarball\\just": {
+    "driver": "tarball",
+    "fields": {
+     "installDir": "apps/just",
+     "name": "just",
+     "version": {
+      "asset": "just-*-x86_64-unknown-linux-musl.tar.gz",
+      "github": "casey/just",
+      "strip-v": "true"
+     }
+    },
+    "name": "just"
    }
   },
   "k3s": {
@@ -16742,6 +17261,22 @@
     "name": "mate-desktop-environment"
    }
   },
+  "maven": {
+   "apt\\jdk": {
+    "driver": "apt",
+    "fields": {
+     "name": "default-jdk"
+    },
+    "name": "default-jdk"
+   },
+   "apt\\maven": {
+    "driver": "apt",
+    "fields": {
+     "name": "maven"
+    },
+    "name": "maven"
+   }
+  },
   "mesa-vulkan-drivers": {
    "apt\\mesa-vulkan-drivers": {
     "driver": "apt",
@@ -16749,6 +17284,15 @@
      "name": "mesa-vulkan-drivers"
     },
     "name": "mesa-vulkan-drivers"
+   }
+  },
+  "meson": {
+   "apt\\meson": {
+    "driver": "apt",
+    "fields": {
+     "name": "meson"
+    },
+    "name": "meson"
    }
   },
   "mitmproxy": {
@@ -16937,6 +17481,15 @@
      "repo-component": "universe"
     },
     "name": "nim"
+   }
+  },
+  "ninja": {
+   "apt\\ninja": {
+    "driver": "apt",
+    "fields": {
+     "name": "ninja-build"
+    },
+    "name": "ninja-build"
    }
   },
   "nload": {
@@ -18145,6 +18698,29 @@
     "name": "bash-dotfiles"
    }
   },
+  "bazelisk": {
+   "dnf\\curl": {
+    "driver": "dnf",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "tarball\\bazelisk": {
+    "driver": "tarball",
+    "fields": {
+     "archive": "none",
+     "binary": "bazelisk",
+     "installDir": "apps/bazelisk",
+     "name": "bazelisk",
+     "url": "https://github.com/bazelbuild/bazelisk/releases/latest/download/bazelisk-linux-amd64",
+     "version": {
+      "static": "latest"
+     }
+    },
+    "name": "bazelisk"
+   }
+  },
   "blender": {
    "dnf\\blender": {
     "driver": "dnf",
@@ -18384,6 +18960,15 @@
      "name": "@anthropic-ai/claude-code"
     },
     "name": "@anthropic-ai/claude-code"
+   }
+  },
+  "cmake": {
+   "dnf\\cmake": {
+    "driver": "dnf",
+    "fields": {
+     "name": "cmake"
+    },
+    "name": "cmake"
    }
   },
   "codecs": {
@@ -19357,6 +19942,15 @@
     "name": "julia"
    }
   },
+  "just": {
+   "dnf\\just": {
+    "driver": "dnf",
+    "fields": {
+     "name": "just"
+    },
+    "name": "just"
+   }
+  },
   "k3s": {
    "script\\k3s": {
     "driver": "script",
@@ -19798,6 +20392,22 @@
     "name": "mate-desktop"
    }
   },
+  "maven": {
+   "dnf\\jdk": {
+    "driver": "dnf",
+    "fields": {
+     "name": "java-17-openjdk-devel"
+    },
+    "name": "java-17-openjdk-devel"
+   },
+   "dnf\\maven": {
+    "driver": "dnf",
+    "fields": {
+     "name": "maven"
+    },
+    "name": "maven"
+   }
+  },
   "mesa-vulkan-drivers": {
    "dnf\\mesa-vulkan-drivers": {
     "driver": "dnf",
@@ -19805,6 +20415,15 @@
      "name": "mesa-vulkan-drivers"
     },
     "name": "mesa-vulkan-drivers"
+   }
+  },
+  "meson": {
+   "dnf\\meson": {
+    "driver": "dnf",
+    "fields": {
+     "name": "meson"
+    },
+    "name": "meson"
    }
   },
   "mitmproxy": {
@@ -20003,6 +20622,15 @@
      "repo-component": "universe"
     },
     "name": "nim"
+   }
+  },
+  "ninja": {
+   "dnf\\ninja": {
+    "driver": "dnf",
+    "fields": {
+     "name": "ninja-build"
+    },
+    "name": "ninja-build"
    }
   },
   "nload": {
@@ -21300,6 +21928,29 @@
     "name": "bash-dotfiles"
    }
   },
+  "bazelisk": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "tarball\\bazelisk": {
+    "driver": "tarball",
+    "fields": {
+     "archive": "none",
+     "binary": "bazelisk",
+     "installDir": "apps/bazelisk",
+     "name": "bazelisk",
+     "url": "https://github.com/bazelbuild/bazelisk/releases/latest/download/bazelisk-linux-amd64",
+     "version": {
+      "static": "latest"
+     }
+    },
+    "name": "bazelisk"
+   }
+  },
   "blender": {
    "apt\\blender": {
     "driver": "apt",
@@ -21631,6 +22282,15 @@
      "name": "@anthropic-ai/claude-code"
     },
     "name": "@anthropic-ai/claude-code"
+   }
+  },
+  "cmake": {
+   "apt\\cmake": {
+    "driver": "apt",
+    "fields": {
+     "name": "cmake"
+    },
+    "name": "cmake"
    }
   },
   "codecs": {
@@ -22354,6 +23014,22 @@
     "name": "golang.org/x/tools/cmd/goimports"
    }
   },
+  "gradle": {
+   "apt\\gradle": {
+    "driver": "apt",
+    "fields": {
+     "name": "gradle"
+    },
+    "name": "gradle"
+   },
+   "apt\\jdk": {
+    "driver": "apt",
+    "fields": {
+     "name": "default-jdk"
+    },
+    "name": "default-jdk"
+   }
+  },
   "gst-bad": {
    "apt\\gst-bad": {
     "driver": "apt",
@@ -22615,6 +23291,28 @@
      }
     },
     "name": "julia"
+   }
+  },
+  "just": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "tarball\\just": {
+    "driver": "tarball",
+    "fields": {
+     "installDir": "apps/just",
+     "name": "just",
+     "version": {
+      "asset": "just-*-x86_64-unknown-linux-musl.tar.gz",
+      "github": "casey/just",
+      "strip-v": "true"
+     }
+    },
+    "name": "just"
    }
   },
   "k3s": {
@@ -23064,6 +23762,22 @@
     "name": "mate-desktop-environment"
    }
   },
+  "maven": {
+   "apt\\jdk": {
+    "driver": "apt",
+    "fields": {
+     "name": "default-jdk"
+    },
+    "name": "default-jdk"
+   },
+   "apt\\maven": {
+    "driver": "apt",
+    "fields": {
+     "name": "maven"
+    },
+    "name": "maven"
+   }
+  },
   "mesa-vulkan-drivers": {
    "apt\\mesa-vulkan-drivers": {
     "driver": "apt",
@@ -23071,6 +23785,15 @@
      "name": "mesa-vulkan-drivers"
     },
     "name": "mesa-vulkan-drivers"
+   }
+  },
+  "meson": {
+   "apt\\meson": {
+    "driver": "apt",
+    "fields": {
+     "name": "meson"
+    },
+    "name": "meson"
    }
   },
   "mitmproxy": {
@@ -23259,6 +23982,15 @@
      "repo-component": "universe"
     },
     "name": "nim"
+   }
+  },
+  "ninja": {
+   "apt\\ninja": {
+    "driver": "apt",
+    "fields": {
+     "name": "ninja-build"
+    },
+    "name": "ninja-build"
    }
   },
   "nload": {
@@ -24467,6 +25199,29 @@
     "name": "bash-dotfiles"
    }
   },
+  "bazelisk": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "tarball\\bazelisk": {
+    "driver": "tarball",
+    "fields": {
+     "archive": "none",
+     "binary": "bazelisk",
+     "installDir": "apps/bazelisk",
+     "name": "bazelisk",
+     "url": "https://github.com/bazelbuild/bazelisk/releases/latest/download/bazelisk-linux-amd64",
+     "version": {
+      "static": "latest"
+     }
+    },
+    "name": "bazelisk"
+   }
+  },
   "blender": {
    "apt\\blender": {
     "driver": "apt",
@@ -24798,6 +25553,15 @@
      "name": "@anthropic-ai/claude-code"
     },
     "name": "@anthropic-ai/claude-code"
+   }
+  },
+  "cmake": {
+   "apt\\cmake": {
+    "driver": "apt",
+    "fields": {
+     "name": "cmake"
+    },
+    "name": "cmake"
    }
   },
   "codecs": {
@@ -25511,6 +26275,22 @@
     "name": "golang.org/x/tools/cmd/goimports"
    }
   },
+  "gradle": {
+   "apt\\gradle": {
+    "driver": "apt",
+    "fields": {
+     "name": "gradle"
+    },
+    "name": "gradle"
+   },
+   "apt\\jdk": {
+    "driver": "apt",
+    "fields": {
+     "name": "default-jdk"
+    },
+    "name": "default-jdk"
+   }
+  },
   "gst-bad": {
    "apt\\gst-bad": {
     "driver": "apt",
@@ -25772,6 +26552,28 @@
      }
     },
     "name": "julia"
+   }
+  },
+  "just": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "tarball\\just": {
+    "driver": "tarball",
+    "fields": {
+     "installDir": "apps/just",
+     "name": "just",
+     "version": {
+      "asset": "just-*-x86_64-unknown-linux-musl.tar.gz",
+      "github": "casey/just",
+      "strip-v": "true"
+     }
+    },
+    "name": "just"
    }
   },
   "k3s": {
@@ -26211,6 +27013,22 @@
     "name": "mate-desktop-environment"
    }
   },
+  "maven": {
+   "apt\\jdk": {
+    "driver": "apt",
+    "fields": {
+     "name": "default-jdk"
+    },
+    "name": "default-jdk"
+   },
+   "apt\\maven": {
+    "driver": "apt",
+    "fields": {
+     "name": "maven"
+    },
+    "name": "maven"
+   }
+  },
   "mesa-vulkan-drivers": {
    "apt\\mesa-vulkan-drivers": {
     "driver": "apt",
@@ -26218,6 +27036,15 @@
      "name": "mesa-vulkan-drivers"
     },
     "name": "mesa-vulkan-drivers"
+   }
+  },
+  "meson": {
+   "apt\\meson": {
+    "driver": "apt",
+    "fields": {
+     "name": "meson"
+    },
+    "name": "meson"
    }
   },
   "mitmproxy": {
@@ -26396,6 +27223,15 @@
      "repo-component": "universe"
     },
     "name": "nim"
+   }
+  },
+  "ninja": {
+   "apt\\ninja": {
+    "driver": "apt",
+    "fields": {
+     "name": "ninja-build"
+    },
+    "name": "ninja-build"
    }
   },
   "nload": {

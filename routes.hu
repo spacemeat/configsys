@@ -779,6 +779,30 @@
                          location:      '~/.vcpkg' } ]
         }
 
+        // --- build systems ---
+        cmake: { install: [ { via: native } ] }
+        ninja: { install: [ { via: native  name: { apt: ninja-build  dnf: ninja-build  default: ninja } } ] }
+        meson: { install: [ { via: native } ] }
+        // just: native on rpm/Arch/openSUSE/brew; on the Debian family the upstream musl tarball
+        // (statically linked, runs anywhere) so it works on older apt too (e.g. Ubuntu/Pop 22.04).
+        just: {
+            install: [
+                { via: native  when: "redhat or arch or opensuse or fedora_atomic" }
+                { via: tarball  when: "debian or alpine"  installDir: apps/just
+                  version: { github: casey/just  strip-v: true  asset: "just-*-x86_64-unknown-linux-musl.tar.gz" } } ]
+        }
+        // Bazelisk (the official launcher that manages bazel versions) — a bare static binary.
+        bazelisk: {
+            install: [
+                { via: native  when: "fedora_atomic" }             // brew formula `bazelisk`
+                { via: tarball  installDir: apps/bazelisk  archive: none  binary: bazelisk  version: { static: latest }
+                  url: "https://github.com/bazelbuild/bazelisk/releases/latest/download/bazelisk-linux-amd64" } ]
+        }
+        // Maven (native everywhere) and Gradle (native except Fedora base — use SDKMAN there). Both
+        // need a JVM.
+        maven:  { requires: jdk  install: [ { via: native } ] }
+        gradle: { requires: jdk  install: [ { via: native  when: "debian or arch or opensuse or fedora_atomic" } ] }
+
         neovim: {
             requires: [ ripgrep, tree-sitter-cli ]
             suggests: neovim-dotfiles
