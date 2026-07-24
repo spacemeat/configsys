@@ -12498,6 +12498,15 @@
     "name": "configsys-dotfiles"
    }
   },
+  "cosmic": {
+   "apt\\cosmic": {
+    "driver": "apt",
+    "fields": {
+     "name": "cosmic-session"
+    },
+    "name": "cosmic-session"
+   }
+  },
   "cuda-toolkit": {
    "apt\\cuda-toolkit": {
     "driver": "apt",
