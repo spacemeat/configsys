@@ -135,3 +135,22 @@ def test_untrusted_driver_reads_as_untrusted_not_unsupported():
     # the same missing driver, but NOT a pending plugin via -> plain unsupported
     st2 = InstallState(FakeRunner()).inspect_one(rc)
     assert st2.status == 'unsupported' and not st2.untrusted
+
+
+def test_untrusted_version_cells_show_question_not_dash():
+    # display: an untrusted unit shows '?' (unknown), NOT '—' which would read as "not installed"
+    from configsys.installState import ComponentState
+    from configsys.tui.menu import Node, UNIT
+
+    def node(untrusted):
+        rc = ResolvedComponent(key='kicad-build\\kicad', driver='kicad-build', comp='kicad',
+                               fields={'name': 'kicad'})
+        st = ComponentState(component=rc, supported=False, present=False, installed_version=None,
+                            latest_version=None, locked=False, lock_source=None, managed=False,
+                            error='trust it', untrusted=untrusted)
+        return Node(UNIT, 'u', 'kicad', 1, [st])
+
+    n = node(True)
+    assert n.installed_str() == '?' and n.latest_str() == '?'
+    u = node(False)                       # unsupported (unknown driver, not a pending plugin)
+    assert u.installed_str() == '—' and u.latest_str() == ''

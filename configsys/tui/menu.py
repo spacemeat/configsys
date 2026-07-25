@@ -80,7 +80,9 @@ class Node:
         if self.kind == UNIT:
             m = self.members[0]
             if not m.supported:
-                return '—'
+                # untrusted: version is UNKNOWN (the tool may well be installed — we just can't
+                # read it without the driver), not '—' which reads as "not installed".
+                return '?' if m.untrusted else '—'
             v = m.installed_version or '—'
             return f'{v} [L]' if m.locked else v
         present = sum(1 for m in self.members if m.present)
@@ -89,7 +91,9 @@ class Node:
     def latest_str(self):
         if self.kind == UNIT:
             m = self.members[0]
-            return (m.latest_version or '—') if m.supported else ''
+            if not m.supported:
+                return '?' if m.untrusted else ''
+            return m.latest_version or '—'
         return ''
 
     def scope_str(self):
@@ -397,7 +401,8 @@ def _infoblock(ms, ctx):
     m = n.members[0]
     rc = m.component
     if not m.supported:
-        return f' {rc.driver}\\{rc.comp}   ·   driver not yet supported', ''
+        # `error` carries the right message: the trust hint for untrusted, else "not supported"
+        return f' {rc.driver}\\{rc.comp}   ·   {m.error or "driver not yet supported"}', ''
     parts = [f'{rc.driver}\\{rc.comp}']
     if m.scope:
         parts.append(f'scope: {m.scope}')

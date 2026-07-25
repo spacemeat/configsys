@@ -85,6 +85,7 @@ _STATUS_LABEL = {
     'missing': 'missing',
     'locked': 'locked',
     'unsupported': 'unsupported',
+    'untrusted': 'untrusted',
     'error': 'error',
 }
 
@@ -450,8 +451,9 @@ def cmd_inspect(ctx, args):
     for key in sorted(states):
         s = states[key]
         lock = ' [locked]' if s.locked else ''
+        na = '?' if s.untrusted else '-'      # untrusted: unknown (can't read without the driver)
         print(f'{key:30} {_STATUS_LABEL.get(s.status, s.status):12} '
-              f'{str(s.installed_version or "-"):20} {s.latest_version or "-"}{lock}')
+              f'{str(s.installed_version or na):20} {s.latest_version or na}{lock}')
     # non-fatal skips/warnings that would otherwise go unseen (dropped layers, quarantined
     # plugins, unroutable components, ...) — the same set the TUI shows on its `!` page.
     diags = ctx.diagnostics(states)
