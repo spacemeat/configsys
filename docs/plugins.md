@@ -253,14 +253,16 @@ it; retrofitting versioning after plugins exist is the expensive path.
     default; `dir_name` now strips any `scheme:` prefix). Code trust binds to a CONTENT hash
     (P2b), not a git commit, so a plugin fetched by ANY transport — including a non-git one — can
     ship trusted `code:` too. `test_plugin_hooks.py`.
-  - **Example plugin. ✅ BUILT** — `examples/configsys-void/` (`plugin.hu` + `routes.hu` +
-    `driver.py`): an `xbps` `Driver` + a `void` os block + a `via: xbps` component (`xtools`). A
-    copy‑able reference/template that dogfoods the whole code‑plugin path — and shows the payoff
-    that one `os: { void: { native: xbps } }` block makes every repo `via: native` component
-    (btop, ripgrep, …) install on Void. `test/test_example_void.py` exercises it
-    add→trust→resolve. (Publish it as a standalone git repo to `plugin add` it for real.)
-    Alpine (`apk`) and openSUSE (`zypper`) began as plugins of exactly this shape and have since
-    graduated into base configsys — the example stays as the live template.
+  - **Example plugin. ✅ BUILT** — `examples/examplos/` (`plugin.hu` + `routes.hu` +
+    `driver.py` + `WALKTHROUGH.md`): a fictional distro **ExamplOS** with a `toybox` `Driver`, an
+    `examplos` os block, a `via: toybox` component (`toychest`), and a `component-names:` name map.
+    A copy‑able reference/template that dogfoods the whole code‑plugin path — and shows the payoff
+    that one `os: { examplos: { native: toybox } }` block makes every repo `via: native` component
+    (btop, ripgrep, …) install on ExamplOS. `test/test_example_plugin.py` exercises it
+    add→trust→resolve. It's deliberately FICTIONAL so it can't rot against a real distro's package
+    renames; real OS plugins live in their own repos (**configsys-void**, **configsys-proxmox**,
+    …). Alpine (`apk`) and openSUSE (`zypper`) began as plugins of exactly this shape and have
+    since graduated into base configsys.
 
 Mirrors how overrides shipped: prove the mechanism on the safe subset, then add the escalation.
 
@@ -278,7 +280,7 @@ Mirrors how overrides shipped: prove the mechanism on the safe subset, then add 
 - ~~Trust store + `plugin trust`/`untrust`~~ — P2b.
 - ~~Non‑Driver extension points~~ — P2c added `register_version_source` + `register_transport`
   as the small `register_*` set on the frozen surface, all trust+ABI gated.
-- ~~README plugins section~~ — done (README.md + `examples/configsys-void/`).
+- ~~README plugins section~~ — done (README.md + `examples/examplos/`).
 - ~~Untrusted‑driver `via:` reads as a scary unknown‑via *error*~~ — fixed: a declared‑but‑gated
   code plugin's `provides.drivers` are treated by `check` as *pending trust* (suppressed as an
   error), so the single signal is the "run `plugin trust`" nudge. Declaring `provides: { drivers:

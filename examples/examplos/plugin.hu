@@ -1,0 +1,25 @@
+{
+    // The plugin manifest. `configsys plugin list` reads this; the loader gates on it.
+    name: examplos
+    version: 0.1.0
+
+    // The plugin ABI this code targets. configsys loads the plugin only if this is in its
+    // ABI_SUPPORTED set (bump when you code against a newer Driver contract).
+    requires-abi: 1
+
+    // Informational: what this plugin brings. `drivers` here is also what lets configsys tell a
+    // pending-trust driver (`toybox`, real but not yet approved) apart from a typo — so an
+    // untrusted plugin nudges you to trust it instead of erroring "unknown driver".
+    provides: {
+        os: examplos
+        drivers: [ toybox ]
+    }
+
+    // The data layers (os block + component definitions + name map) merged into the routing stack.
+    data: [ routes.hu ]
+
+    // The code module. Because this key is present, the plugin ships code: its `via: toybox`
+    // driver runs with your privileges during installs, so it stays inert until you approve its
+    // exact contents with `configsys plugin trust examplos`.
+    code: driver.py
+}

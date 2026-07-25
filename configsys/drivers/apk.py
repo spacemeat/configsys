@@ -5,8 +5,8 @@ version per branch, so — like pacman — there is no native per-package hold. 
 tracked by configsys's ledger, and set-version leans on apk's `<pkg>=<version>` constraint
 (which only resolves while that version is still in a configured repo / the local cache).
 
-Query ops (`apk list`) need no root; mutations run under sudo. This driver started life as
-the examples/configsys-void reference plugin's template (see its docstring) and was folded
+Query ops (`apk list`) need no root; mutations run under sudo. This driver started life as a
+code plugin of the same shape as examples/examplos (the reference template) and was folded
 into base once Alpine graduated to a first-class OS.
 '''
 

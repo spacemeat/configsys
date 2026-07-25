@@ -1,0 +1,28 @@
+{
+    // Make ExamplOS a first-class OS. It inherits the `linux` baseline and declares `toybox` as
+    // its native package manager. This one block is enough that EVERY existing repo component
+    // routed `via: native` (btop, ripgrep, git, ...) now installs on ExamplOS through the toybox
+    // driver — no per-component work.
+    os: {
+        examplos: { using: linux  native: toybox }
+    }
+
+    // ExamplOS-specific components, installed with the toybox driver this plugin ships. Guarded
+    // `when: "examplos"` so the binding exists ONLY where toybox does — a component is never
+    // offered on an OS whose driver isn't loaded. `via: toybox` is the direct form (for packages
+    // unique to this distro); repo components keep using `via: native`.
+    components: {
+        toychest: { install: [ { via: toybox  when: "examplos" } ] }   // ExamplOS's package helper
+    }
+
+    // Per-driver package-name patches for CORE components whose ExamplOS name differs from the
+    // generic default — supplied WITHOUT redefining the component (that's what `component-names`
+    // is for; see docs/routing-model.md §10a). A string renames; `{}` means toybox has no package
+    // for it, so it's simply not offered here.
+    component-names: {
+        toybox: {
+            ripgrep: rg        // ExamplOS ships ripgrep under its binary name
+            nmap:    {}        // not packaged for ExamplOS -> dropped, not an error
+        }
+    }
+}
