@@ -348,7 +348,8 @@ class Context:
         self._report_routing(routes, requested)         # -v overrides, -vv winning binding + why
         self.apply_scope_default(units)
         ledger = Ledger.load(self.paths)
-        states = InstallState(self.runner, ledger, self.paths).inspect(
+        states = InstallState(self.runner, ledger, self.paths,
+                              pending_vias=self.plugin_pending_vias).inspect(
             units, progress=self._inspect_progress)
         # warnings stream to the console too (errors already did, inline). These need `states`
         # (scope drift) so they land here at the end; the ! page / footer still collect them.
@@ -424,7 +425,7 @@ class Context:
         tally = {}
         for st in states.values():
             tally[st.status] = tally.get(st.status, 0) + 1
-        order = ('installed', 'outdated', 'missing', 'locked', 'unsupported', 'error')
+        order = ('installed', 'outdated', 'missing', 'locked', 'unsupported', 'untrusted', 'error')
         parts = [f'{tally[s]} {s}' for s in order if tally.get(s)]
         r.event(report.VERBOSE, f'    {len(states)} unit(s): ' + ', '.join(parts))
         if diags:

@@ -27,6 +27,7 @@ class ComponentState:
     managed: bool
     error: Optional[str]
     scope: Optional[str] = None  # 'user' | 'system' | None (unsupported driver)
+    untrusted: bool = False      # driver exists but its plugin isn't trusted yet (not just unknown)
 
     @property
     def key(self):
@@ -41,7 +42,7 @@ class ComponentState:
     @property
     def status(self):
         if not self.supported:
-            return 'unsupported'
+            return 'untrusted' if self.untrusted else 'unsupported'
         if self.error:
             return 'error'
         if not self.present:
@@ -54,10 +55,13 @@ class ComponentState:
 
 
 class InstallState:
-    def __init__(self, runner, ledger=None, paths=None):
+    def __init__(self, runner, ledger=None, paths=None, pending_vias=()):
         self.runner = runner
         self.ledger = ledger if ledger is not None else Ledger()
         self.paths = paths
+        # via names a declared code plugin WOULD provide but that isn't loaded (untrusted /
+        # ABI-incompatible) — lets a missing driver read as "untrusted" rather than "unsupported".
+        self.pending_vias = set(pending_vias)
 
     def inspect(self, units, progress=None):
         '''units: {key: ResolvedComponent} -> {key: ComponentState}. `progress`, if given, is
@@ -78,12 +82,15 @@ class InstallState:
         fam = get_driver(rc.driver, self.runner, self.paths)
 
         if fam is None:
+            untrusted = rc.driver in self.pending_vias
+            msg = (f'driver "{rc.driver}" comes from a plugin you haven\'t trusted yet — '
+                   'approve it with `configsys plugin trust <name>` (see `configsys plugin list`)'
+                   if untrusted else f'driver "{rc.driver}" not yet supported')
             return ComponentState(
                 component=rc, supported=False, present=False,
                 installed_version=None, latest_version=None,
                 locked=led_lock, lock_source=('ledger' if led_lock else None),
-                managed=managed,
-                error=f'driver "{rc.driver}" not yet supported')
+                managed=managed, untrusted=untrusted, error=msg)
 
         try:
             version, detected_scope = fam.get_installed(rc)   # reality: version + where installed

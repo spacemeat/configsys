@@ -456,10 +456,11 @@ def _draw(stdscr, pal, ms, ctx, note, diags=(), show_diag=False, diag_top=0):
     _put(stdscr, 1, 0, _fit(sub, w), pal.get('header'))
     if diags:                                        # attention badge, right-aligned on the sub line
         n = len(diags)
-        lvl = 'error' if any(d['level'] == 'error' for d in diags) else 'outdated'
-        badge = f'⚠ {n} issue{"s" if n != 1 else ""} — press ! to view '
+        badge = f' ⚠ {n} issue{"s" if n != 1 else ""} — press ! to view '
         bx = max(len(sub) + 2, w - len(badge) - 1)
-        _put(stdscr, 1, bx, _fit(badge, w - bx), pal.get(lvl) | curses.A_BOLD)
+        # a solid red reverse-video bar — impossible to miss (severity is shown on the ! page)
+        _put(stdscr, 1, bx, _fit(badge, w - bx),
+             pal.get('error') | curses.A_BOLD | curses.A_REVERSE)
 
     hattr = pal.get('dim') | curses.A_BOLD
     _put(stdscr, 3, NAME_X, 'COMPONENT', hattr)

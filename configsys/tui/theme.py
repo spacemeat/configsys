@@ -18,6 +18,7 @@ SEMANTIC = {
     'missing': (150, 150, 150),
     'locked': (110, 165, 255),
     'unsupported': (110, 110, 110),
+    'untrusted': (220, 140, 60),   # a plugin driver present but not yet trusted (action needed)
     'error': (235, 95, 95),
     'op_install': (90, 200, 120),
     'op_upgrade': (230, 190, 70),
@@ -91,5 +92,6 @@ STATUS_COLOR = {
     'missing': 'missing',
     'locked': 'locked',
     'unsupported': 'unsupported',
+    'untrusted': 'untrusted',
     'error': 'error',
 }

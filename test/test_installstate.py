@@ -121,3 +121,17 @@ def test_inspect_many():
     states = InstallState(fr).inspect(units)
     assert states['apt\\btop'].status == 'installed'
     assert states['snap\\foo'].status == 'unsupported'
+
+
+def test_untrusted_driver_reads_as_untrusted_not_unsupported():
+    # a component whose driver comes from a not-yet-trusted code plugin: the driver isn't
+    # registered, but pending_vias tells us WHY -> status 'untrusted' with a trust hint.
+    rc = ResolvedComponent(key='kicad-build\\kicad', driver='kicad-build', comp='kicad',
+                           fields={'name': 'kicad'})
+    st = InstallState(FakeRunner(), pending_vias={'kicad-build'}).inspect_one(rc)
+    assert st.status == 'untrusted' and st.untrusted
+    assert 'trust' in st.error
+
+    # the same missing driver, but NOT a pending plugin via -> plain unsupported
+    st2 = InstallState(FakeRunner()).inspect_one(rc)
+    assert st2.status == 'unsupported' and not st2.untrusted
