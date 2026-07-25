@@ -162,6 +162,13 @@
         ]
         web-dev: [
             +user
+            // node toolchain + front-end tooling (globals; per-project tools stay in devDependencies)
+            node
+            typescript
+            prettier
+            pnpm
+            yarn
+            sass
             // browsers (firefox/chrome also ride in `user`; grouped here for cross-browser work)
             firefox
             chrome

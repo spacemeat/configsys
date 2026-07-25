@@ -204,6 +204,12 @@
         // be added the same way, or pulled per-user via a plugin layer.
         typescript: { install: [ { via: npm  name: typescript } ] }
         prettier:   { install: [ { via: npm  name: prettier } ] }
+        // Front-end package managers + Dart Sass — npm globals (userland, like the above). NOTE:
+        // recent pnpm/sass want a modern Node (pnpm >=22); the distro's apt node can be too old —
+        // use a version-managed node (nvm/fnm) if you hit a "requires Node vXX" error.
+        pnpm:       { install: [ { via: npm  name: pnpm } ] }
+        yarn:       { install: [ { via: npm  name: yarn } ] }
+        sass:       { install: [ { via: npm  name: sass } ] }
 
         // Deno & Bun — alternative JS/TS runtimes. Native on Arch/Homebrew where packaged; else
         // the upstream github release ZIP (glibc-linked; the tarball driver unzips it). Both have

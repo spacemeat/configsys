@@ -2416,6 +2416,23 @@
     "name": "python-pipx"
    }
   },
+  "pnpm": {
+   "npm\\pnpm": {
+    "driver": "npm",
+    "fields": {
+     "name": "pnpm"
+    },
+    "name": "pnpm"
+   },
+   "pacman\\node": {
+    "driver": "pacman",
+    "fields": {
+     "name": "npm",
+     "repo-component": "universe"
+    },
+    "name": "npm"
+   }
+  },
   "podman": {
    "dotfiles\\podman-dotfiles": {
     "driver": "dotfiles",
@@ -2681,6 +2698,23 @@
      "name": "salt"
     },
     "name": "salt"
+   }
+  },
+  "sass": {
+   "npm\\sass": {
+    "driver": "npm",
+    "fields": {
+     "name": "sass"
+    },
+    "name": "sass"
+   },
+   "pacman\\node": {
+    "driver": "pacman",
+    "fields": {
+     "name": "npm",
+     "repo-component": "universe"
+    },
+    "name": "npm"
    }
   },
   "sbcl": {
@@ -3516,6 +3550,23 @@
      "repo-component": "universe"
     },
     "name": "rust"
+   }
+  },
+  "yarn": {
+   "npm\\yarn": {
+    "driver": "npm",
+    "fields": {
+     "name": "yarn"
+    },
+    "name": "yarn"
+   },
+   "pacman\\node": {
+    "driver": "pacman",
+    "fields": {
+     "name": "npm",
+     "repo-component": "universe"
+    },
+    "name": "npm"
    }
   },
   "yay": {
@@ -6580,6 +6631,23 @@
     "name": "pipx"
    }
   },
+  "pnpm": {
+   "apt\\node": {
+    "driver": "apt",
+    "fields": {
+     "name": "npm",
+     "repo-component": "universe"
+    },
+    "name": "npm"
+   },
+   "npm\\pnpm": {
+    "driver": "npm",
+    "fields": {
+     "name": "pnpm"
+    },
+    "name": "pnpm"
+   }
+  },
   "podman": {
    "apt\\podman": {
     "driver": "apt",
@@ -6855,6 +6923,23 @@
      "name": "salt"
     },
     "name": "salt"
+   }
+  },
+  "sass": {
+   "apt\\node": {
+    "driver": "apt",
+    "fields": {
+     "name": "npm",
+     "repo-component": "universe"
+    },
+    "name": "npm"
+   },
+   "npm\\sass": {
+    "driver": "npm",
+    "fields": {
+     "name": "sass"
+    },
+    "name": "sass"
    }
   },
   "sbcl": {
@@ -7675,6 +7760,23 @@
      }
     },
     "name": "xh"
+   }
+  },
+  "yarn": {
+   "apt\\node": {
+    "driver": "apt",
+    "fields": {
+     "name": "npm",
+     "repo-component": "universe"
+    },
+    "name": "npm"
+   },
+   "npm\\yarn": {
+    "driver": "npm",
+    "fields": {
+     "name": "yarn"
+    },
+    "name": "yarn"
    }
   },
   "yq": {
@@ -10651,6 +10753,23 @@
     "name": "pipx"
    }
   },
+  "pnpm": {
+   "apt\\node": {
+    "driver": "apt",
+    "fields": {
+     "name": "npm",
+     "repo-component": "universe"
+    },
+    "name": "npm"
+   },
+   "npm\\pnpm": {
+    "driver": "npm",
+    "fields": {
+     "name": "pnpm"
+    },
+    "name": "pnpm"
+   }
+  },
   "podman": {
    "apt\\podman": {
     "driver": "apt",
@@ -10916,6 +11035,23 @@
      "name": "salt"
     },
     "name": "salt"
+   }
+  },
+  "sass": {
+   "apt\\node": {
+    "driver": "apt",
+    "fields": {
+     "name": "npm",
+     "repo-component": "universe"
+    },
+    "name": "npm"
+   },
+   "npm\\sass": {
+    "driver": "npm",
+    "fields": {
+     "name": "sass"
+    },
+    "name": "sass"
    }
   },
   "sbcl": {
@@ -11736,6 +11872,23 @@
      }
     },
     "name": "xh"
+   }
+  },
+  "yarn": {
+   "apt\\node": {
+    "driver": "apt",
+    "fields": {
+     "name": "npm",
+     "repo-component": "universe"
+    },
+    "name": "npm"
+   },
+   "npm\\yarn": {
+    "driver": "npm",
+    "fields": {
+     "name": "yarn"
+    },
+    "name": "yarn"
    }
   },
   "yq": {
@@ -14426,6 +14579,23 @@
     "name": "pipx"
    }
   },
+  "pnpm": {
+   "dnf\\node": {
+    "driver": "dnf",
+    "fields": {
+     "name": "nodejs",
+     "repo-component": "universe"
+    },
+    "name": "nodejs"
+   },
+   "npm\\pnpm": {
+    "driver": "npm",
+    "fields": {
+     "name": "pnpm"
+    },
+    "name": "pnpm"
+   }
+  },
   "podman": {
    "dnf\\podman": {
     "driver": "dnf",
@@ -14694,6 +14864,23 @@
      "name": "salt"
     },
     "name": "salt"
+   }
+  },
+  "sass": {
+   "dnf\\node": {
+    "driver": "dnf",
+    "fields": {
+     "name": "nodejs",
+     "repo-component": "universe"
+    },
+    "name": "nodejs"
+   },
+   "npm\\sass": {
+    "driver": "npm",
+    "fields": {
+     "name": "sass"
+    },
+    "name": "sass"
    }
   },
   "sbcl": {
@@ -15540,6 +15727,23 @@
      "repo-component": "universe"
     },
     "name": "cargo"
+   }
+  },
+  "yarn": {
+   "dnf\\node": {
+    "driver": "dnf",
+    "fields": {
+     "name": "nodejs",
+     "repo-component": "universe"
+    },
+    "name": "nodejs"
+   },
+   "npm\\yarn": {
+    "driver": "npm",
+    "fields": {
+     "name": "yarn"
+    },
+    "name": "yarn"
    }
   },
   "yq": {
@@ -18242,6 +18446,23 @@
     "name": "pipx"
    }
   },
+  "pnpm": {
+   "dnf\\node": {
+    "driver": "dnf",
+    "fields": {
+     "name": "nodejs",
+     "repo-component": "universe"
+    },
+    "name": "nodejs"
+   },
+   "npm\\pnpm": {
+    "driver": "npm",
+    "fields": {
+     "name": "pnpm"
+    },
+    "name": "pnpm"
+   }
+  },
   "podman": {
    "dnf\\podman": {
     "driver": "dnf",
@@ -18510,6 +18731,23 @@
      "name": "salt"
     },
     "name": "salt"
+   }
+  },
+  "sass": {
+   "dnf\\node": {
+    "driver": "dnf",
+    "fields": {
+     "name": "nodejs",
+     "repo-component": "universe"
+    },
+    "name": "nodejs"
+   },
+   "npm\\sass": {
+    "driver": "npm",
+    "fields": {
+     "name": "sass"
+    },
+    "name": "sass"
    }
   },
   "sbcl": {
@@ -19356,6 +19594,23 @@
      "repo-component": "universe"
     },
     "name": "cargo"
+   }
+  },
+  "yarn": {
+   "dnf\\node": {
+    "driver": "dnf",
+    "fields": {
+     "name": "nodejs",
+     "repo-component": "universe"
+    },
+    "name": "nodejs"
+   },
+   "npm\\yarn": {
+    "driver": "npm",
+    "fields": {
+     "name": "yarn"
+    },
+    "name": "yarn"
    }
   },
   "yq": {
@@ -22421,6 +22676,23 @@
     "name": "pipx"
    }
   },
+  "pnpm": {
+   "apt\\node": {
+    "driver": "apt",
+    "fields": {
+     "name": "npm",
+     "repo-component": "universe"
+    },
+    "name": "npm"
+   },
+   "npm\\pnpm": {
+    "driver": "npm",
+    "fields": {
+     "name": "pnpm"
+    },
+    "name": "pnpm"
+   }
+  },
   "podman": {
    "apt\\podman": {
     "driver": "apt",
@@ -22696,6 +22968,23 @@
      "name": "salt"
     },
     "name": "salt"
+   }
+  },
+  "sass": {
+   "apt\\node": {
+    "driver": "apt",
+    "fields": {
+     "name": "npm",
+     "repo-component": "universe"
+    },
+    "name": "npm"
+   },
+   "npm\\sass": {
+    "driver": "npm",
+    "fields": {
+     "name": "sass"
+    },
+    "name": "sass"
    }
   },
   "sbcl": {
@@ -23509,6 +23798,23 @@
      }
     },
     "name": "xh"
+   }
+  },
+  "yarn": {
+   "apt\\node": {
+    "driver": "apt",
+    "fields": {
+     "name": "npm",
+     "repo-component": "universe"
+    },
+    "name": "npm"
+   },
+   "npm\\yarn": {
+    "driver": "npm",
+    "fields": {
+     "name": "yarn"
+    },
+    "name": "yarn"
    }
   },
   "yq": {
@@ -26434,6 +26740,23 @@
     "name": "pipx"
    }
   },
+  "pnpm": {
+   "dnf\\node": {
+    "driver": "dnf",
+    "fields": {
+     "name": "nodejs",
+     "repo-component": "universe"
+    },
+    "name": "nodejs"
+   },
+   "npm\\pnpm": {
+    "driver": "npm",
+    "fields": {
+     "name": "pnpm"
+    },
+    "name": "pnpm"
+   }
+  },
   "podman": {
    "dnf\\podman": {
     "driver": "dnf",
@@ -26723,6 +27046,23 @@
      "name": "salt"
     },
     "name": "salt"
+   }
+  },
+  "sass": {
+   "dnf\\node": {
+    "driver": "dnf",
+    "fields": {
+     "name": "nodejs",
+     "repo-component": "universe"
+    },
+    "name": "nodejs"
+   },
+   "npm\\sass": {
+    "driver": "npm",
+    "fields": {
+     "name": "sass"
+    },
+    "name": "sass"
    }
   },
   "sbcl": {
@@ -27594,6 +27934,23 @@
      "repo-component": "universe"
     },
     "name": "cargo"
+   }
+  },
+  "yarn": {
+   "dnf\\node": {
+    "driver": "dnf",
+    "fields": {
+     "name": "nodejs",
+     "repo-component": "universe"
+    },
+    "name": "nodejs"
+   },
+   "npm\\yarn": {
+    "driver": "npm",
+    "fields": {
+     "name": "yarn"
+    },
+    "name": "yarn"
    }
   },
   "yq": {
@@ -30657,6 +31014,23 @@
     "name": "pipx"
    }
   },
+  "pnpm": {
+   "apt\\node": {
+    "driver": "apt",
+    "fields": {
+     "name": "npm",
+     "repo-component": "universe"
+    },
+    "name": "npm"
+   },
+   "npm\\pnpm": {
+    "driver": "npm",
+    "fields": {
+     "name": "pnpm"
+    },
+    "name": "pnpm"
+   }
+  },
   "podman": {
    "apt\\podman": {
     "driver": "apt",
@@ -30932,6 +31306,23 @@
      "name": "salt"
     },
     "name": "salt"
+   }
+  },
+  "sass": {
+   "apt\\node": {
+    "driver": "apt",
+    "fields": {
+     "name": "npm",
+     "repo-component": "universe"
+    },
+    "name": "npm"
+   },
+   "npm\\sass": {
+    "driver": "npm",
+    "fields": {
+     "name": "sass"
+    },
+    "name": "sass"
    }
   },
   "sbcl": {
@@ -31752,6 +32143,23 @@
      }
     },
     "name": "xh"
+   }
+  },
+  "yarn": {
+   "apt\\node": {
+    "driver": "apt",
+    "fields": {
+     "name": "npm",
+     "repo-component": "universe"
+    },
+    "name": "npm"
+   },
+   "npm\\yarn": {
+    "driver": "npm",
+    "fields": {
+     "name": "yarn"
+    },
+    "name": "yarn"
    }
   },
   "yq": {
@@ -34728,6 +35136,23 @@
     "name": "pipx"
    }
   },
+  "pnpm": {
+   "apt\\node": {
+    "driver": "apt",
+    "fields": {
+     "name": "npm",
+     "repo-component": "universe"
+    },
+    "name": "npm"
+   },
+   "npm\\pnpm": {
+    "driver": "npm",
+    "fields": {
+     "name": "pnpm"
+    },
+    "name": "pnpm"
+   }
+  },
   "podman": {
    "apt\\podman": {
     "driver": "apt",
@@ -34993,6 +35418,23 @@
      "name": "salt"
     },
     "name": "salt"
+   }
+  },
+  "sass": {
+   "apt\\node": {
+    "driver": "apt",
+    "fields": {
+     "name": "npm",
+     "repo-component": "universe"
+    },
+    "name": "npm"
+   },
+   "npm\\sass": {
+    "driver": "npm",
+    "fields": {
+     "name": "sass"
+    },
+    "name": "sass"
    }
   },
   "sbcl": {
@@ -35813,6 +36255,23 @@
      }
     },
     "name": "xh"
+   }
+  },
+  "yarn": {
+   "apt\\node": {
+    "driver": "apt",
+    "fields": {
+     "name": "npm",
+     "repo-component": "universe"
+    },
+    "name": "npm"
+   },
+   "npm\\yarn": {
+    "driver": "npm",
+    "fields": {
+     "name": "yarn"
+    },
+    "name": "yarn"
    }
   },
   "yq": {
