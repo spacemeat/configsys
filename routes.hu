@@ -904,6 +904,31 @@
         redis-service:      { requires: redis  install: [ { via: service  when: "debian"  unit: redis-server }
                                                           { via: service  when: "redhat or arch"  unit: valkey } ] }
 
+        // --- science & math ---
+        gnuplot:    { install: [ { via: native  repo-component: universe } ] }
+        jupyterlab: { install: [ { via: pipx  name: jupyterlab } ] }        // `jupyter-lab` on PATH
+        paraview:   { install: [ { via: native  repo-component: universe } ] }
+        maxima:     { install: [ { via: native  repo-component: universe } ] }
+        wxmaxima:   { install: [ { via: native  when: "debian or redhat"  repo-component: universe } ] }   // Arch: AUR only
+        pari:       { install: [ { via: native  repo-component: universe  name: { apt: pari-gp  dnf: pari-gp  pacman: pari  default: pari } } ] }
+        gap:        { install: [ { via: native  repo-component: universe } ] }
+        sagemath:   { install: [ { via: native  when: "debian or arch"  repo-component: universe } ] }      // Fedora: COPR/conda only
+
+        // LaTeX (TeX Live) — the recommended subset vs the full multi-GB distribution.
+        texlive:      { install: [ { via: native  when: "debian or redhat or arch"  name: { apt: texlive-latex-recommended  dnf: texlive-scheme-medium  pacman: texlive-latexrecommended } } ] }
+        texlive-full: { install: [ { via: native  when: "debian or redhat or arch"  name: { apt: texlive-full  dnf: texlive-scheme-full  pacman: texlive-meta } } ] }
+
+        // Miniforge — a conda env manager (the right home for the numpy/scipy/pandas stack).
+        miniforge: {
+            requires: curl
+            install: [ { via: script
+                         install-cmd:   'curl -fsSL "https://github.com/conda-forge/miniforge/releases/latest/download/Miniforge3-Linux-x86_64.sh" -o /tmp/mf.sh && bash /tmp/mf.sh -b -p "$HOME/miniforge3" && rm -f /tmp/mf.sh'
+                         version-cmd:   '"$HOME/miniforge3/bin/conda" --version'
+                         version-re:    '([0-9]+\.[0-9]+\.[0-9]+)'
+                         uninstall-cmd: 'rm -rf "$HOME/miniforge3"'
+                         location:      '~/miniforge3/bin' } ]
+        }
+
         neovim: {
             requires: [ ripgrep, tree-sitter-cli ]
             suggests: neovim-dotfiles

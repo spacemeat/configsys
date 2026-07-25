@@ -108,6 +108,32 @@
             mariadb-service
             redis-service
         ]
+        // Scientific computing: languages + Jupyter + plotting/viz + a conda env manager.
+        science: [
+            +user
+            julia
+            r
+            octave
+            jupyterlab
+            gnuplot
+            paraview
+            miniforge
+        ]
+        // Mathematics: CAS + number theory + plotting + LaTeX (debian/redhat-oriented — sagemath/
+        // wxmaxima aren't in Arch/Fedora base repos).
+        math: [
+            +user
+            julia
+            r
+            octave
+            maxima
+            wxmaxima
+            pari
+            gap
+            gnuplot
+            sagemath
+            texlive
+        ]
         // Pure additive tool bundles (no +user) — compose onto a base, e.g. a workstation runs
         // [ user, networking ] and a headless box runs just [ networking ]. Neither is in the
         // default `configs:` above; activate per-machine.

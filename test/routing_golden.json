@@ -965,6 +965,16 @@
     "name": "fzf"
    }
   },
+  "gap": {
+   "pacman\\gap": {
+    "driver": "pacman",
+    "fields": {
+     "name": "gap",
+     "repo-component": "universe"
+    },
+    "name": "gap"
+   }
+  },
   "gcc": {
    "pacman\\gcc": {
     "driver": "pacman",
@@ -1064,6 +1074,16 @@
      "name": "gnome-shell"
     },
     "name": "gnome-shell"
+   }
+  },
+  "gnuplot": {
+   "pacman\\gnuplot": {
+    "driver": "pacman",
+    "fields": {
+     "name": "gnuplot",
+     "repo-component": "universe"
+    },
+    "name": "gnuplot"
    }
   },
   "gnuradio": {
@@ -1436,6 +1456,22 @@
      "name": "julia"
     },
     "name": "julia"
+   }
+  },
+  "jupyterlab": {
+   "pacman\\pipx": {
+    "driver": "pacman",
+    "fields": {
+     "name": "python-pipx"
+    },
+    "name": "python-pipx"
+   },
+   "pipx\\jupyterlab": {
+    "driver": "pipx",
+    "fields": {
+     "name": "jupyterlab"
+    },
+    "name": "jupyterlab"
    }
   },
   "just": {
@@ -1868,6 +1904,16 @@
     "name": "maven"
    }
   },
+  "maxima": {
+   "pacman\\maxima": {
+    "driver": "pacman",
+    "fields": {
+     "name": "maxima",
+     "repo-component": "universe"
+    },
+    "name": "maxima"
+   }
+  },
   "mesa-vulkan-drivers": {
    "pacman\\mesa-vulkan-drivers": {
     "driver": "pacman",
@@ -1884,6 +1930,27 @@
      "name": "meson"
     },
     "name": "meson"
+   }
+  },
+  "miniforge": {
+   "pacman\\curl": {
+    "driver": "pacman",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "script\\miniforge": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "curl -fsSL \"https://github.com/conda-forge/miniforge/releases/latest/download/Miniforge3-Linux-x86_64.sh\" -o /tmp/mf.sh && bash /tmp/mf.sh -b -p \"$HOME/miniforge3\" && rm -f /tmp/mf.sh",
+     "location": "~/miniforge3/bin",
+     "name": "miniforge",
+     "uninstall-cmd": "rm -rf \"$HOME/miniforge3\"",
+     "version-cmd": "\"$HOME/miniforge3/bin/conda\" --version",
+     "version-re": "([0-9]+\\.[0-9]+\\.[0-9]+)"
+    },
+    "name": "miniforge"
    }
   },
   "mitmproxy": {
@@ -2286,6 +2353,26 @@
     "name": "7zip"
    }
   },
+  "paraview": {
+   "pacman\\paraview": {
+    "driver": "pacman",
+    "fields": {
+     "name": "paraview",
+     "repo-component": "universe"
+    },
+    "name": "paraview"
+   }
+  },
+  "pari": {
+   "pacman\\pari": {
+    "driver": "pacman",
+    "fields": {
+     "name": "pari",
+     "repo-component": "universe"
+    },
+    "name": "pari"
+   }
+  },
   "perf": {
    "pacman\\perf": {
     "driver": "pacman",
@@ -2570,6 +2657,16 @@
     "name": "rust"
    }
   },
+  "sagemath": {
+   "pacman\\sagemath": {
+    "driver": "pacman",
+    "fields": {
+     "name": "sagemath",
+     "repo-component": "universe"
+    },
+    "name": "sagemath"
+   }
+  },
   "salt": {
    "pacman\\pipx": {
     "driver": "pacman",
@@ -2756,6 +2853,24 @@
      "name": "flatpak"
     },
     "name": "flatpak"
+   }
+  },
+  "texlive": {
+   "pacman\\texlive": {
+    "driver": "pacman",
+    "fields": {
+     "name": "texlive-latexrecommended"
+    },
+    "name": "texlive-latexrecommended"
+   }
+  },
+  "texlive-full": {
+   "pacman\\texlive-full": {
+    "driver": "pacman",
+    "fields": {
+     "name": "texlive-meta"
+    },
+    "name": "texlive-meta"
    }
   },
   "tmux": {
@@ -4662,6 +4777,16 @@
     "name": "fzf"
    }
   },
+  "gap": {
+   "apt\\gap": {
+    "driver": "apt",
+    "fields": {
+     "name": "gap",
+     "repo-component": "universe"
+    },
+    "name": "gap"
+   }
+  },
   "gcc-13": {
    "apt\\build-essential": {
     "driver": "apt",
@@ -4923,6 +5048,16 @@
      "name": "gnome-shell"
     },
     "name": "gnome-shell"
+   }
+  },
+  "gnuplot": {
+   "apt\\gnuplot": {
+    "driver": "apt",
+    "fields": {
+     "name": "gnuplot",
+     "repo-component": "universe"
+    },
+    "name": "gnuplot"
    }
   },
   "gnuradio": {
@@ -5318,6 +5453,32 @@
      }
     },
     "name": "julia"
+   }
+  },
+  "jupyterlab": {
+   "apt\\python3-pip": {
+    "driver": "apt",
+    "fields": {
+     "name": "python3-pip"
+    },
+    "name": "python3-pip"
+   },
+   "pip\\pipx": {
+    "driver": "pip",
+    "fields": {
+     "name": "pipx",
+     "version": {
+      "pypi": "pipx"
+     }
+    },
+    "name": "pipx"
+   },
+   "pipx\\jupyterlab": {
+    "driver": "pipx",
+    "fields": {
+     "name": "jupyterlab"
+    },
+    "name": "jupyterlab"
    }
   },
   "just": {
@@ -5849,6 +6010,16 @@
     "name": "maven"
    }
   },
+  "maxima": {
+   "apt\\maxima": {
+    "driver": "apt",
+    "fields": {
+     "name": "maxima",
+     "repo-component": "universe"
+    },
+    "name": "maxima"
+   }
+  },
   "mesa-vulkan-drivers": {
    "apt\\mesa-vulkan-drivers": {
     "driver": "apt",
@@ -5865,6 +6036,27 @@
      "name": "meson"
     },
     "name": "meson"
+   }
+  },
+  "miniforge": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "script\\miniforge": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "curl -fsSL \"https://github.com/conda-forge/miniforge/releases/latest/download/Miniforge3-Linux-x86_64.sh\" -o /tmp/mf.sh && bash /tmp/mf.sh -b -p \"$HOME/miniforge3\" && rm -f /tmp/mf.sh",
+     "location": "~/miniforge3/bin",
+     "name": "miniforge",
+     "uninstall-cmd": "rm -rf \"$HOME/miniforge3\"",
+     "version-cmd": "\"$HOME/miniforge3/bin/conda\" --version",
+     "version-re": "([0-9]+\\.[0-9]+\\.[0-9]+)"
+    },
+    "name": "miniforge"
    }
   },
   "mitmproxy": {
@@ -6305,6 +6497,26 @@
     "name": "p7zip-full"
    }
   },
+  "paraview": {
+   "apt\\paraview": {
+    "driver": "apt",
+    "fields": {
+     "name": "paraview",
+     "repo-component": "universe"
+    },
+    "name": "paraview"
+   }
+  },
+  "pari": {
+   "apt\\pari": {
+    "driver": "apt",
+    "fields": {
+     "name": "pari-gp",
+     "repo-component": "universe"
+    },
+    "name": "pari-gp"
+   }
+  },
   "perf": {
    "apt\\perf": {
     "driver": "apt",
@@ -6609,6 +6821,16 @@
     "name": "rust-all"
    }
   },
+  "sagemath": {
+   "apt\\sagemath": {
+    "driver": "apt",
+    "fields": {
+     "name": "sagemath",
+     "repo-component": "universe"
+    },
+    "name": "sagemath"
+   }
+  },
   "salt": {
    "apt\\python3-pip": {
     "driver": "apt",
@@ -6814,6 +7036,24 @@
      "name": "org.tenacityaudio.Tenacity"
     },
     "name": "org.tenacityaudio.Tenacity"
+   }
+  },
+  "texlive": {
+   "apt\\texlive": {
+    "driver": "apt",
+    "fields": {
+     "name": "texlive-latex-recommended"
+    },
+    "name": "texlive-latex-recommended"
+   }
+  },
+  "texlive-full": {
+   "apt\\texlive-full": {
+    "driver": "apt",
+    "fields": {
+     "name": "texlive-full"
+    },
+    "name": "texlive-full"
    }
   },
   "tmux": {
@@ -7328,6 +7568,16 @@
      "name": "wireshark"
     },
     "name": "wireshark"
+   }
+  },
+  "wxmaxima": {
+   "apt\\wxmaxima": {
+    "driver": "apt",
+    "fields": {
+     "name": "wxmaxima",
+     "repo-component": "universe"
+    },
+    "name": "wxmaxima"
    }
   },
   "xcb-util-cursor": {
@@ -8658,6 +8908,16 @@
     "name": "fzf"
    }
   },
+  "gap": {
+   "apt\\gap": {
+    "driver": "apt",
+    "fields": {
+     "name": "gap",
+     "repo-component": "universe"
+    },
+    "name": "gap"
+   }
+  },
   "gcc-13": {
    "apt\\build-essential": {
     "driver": "apt",
@@ -8919,6 +9179,16 @@
      "name": "gnome-shell"
     },
     "name": "gnome-shell"
+   }
+  },
+  "gnuplot": {
+   "apt\\gnuplot": {
+    "driver": "apt",
+    "fields": {
+     "name": "gnuplot",
+     "repo-component": "universe"
+    },
+    "name": "gnuplot"
    }
   },
   "gnuradio": {
@@ -9314,6 +9584,22 @@
      }
     },
     "name": "julia"
+   }
+  },
+  "jupyterlab": {
+   "apt\\pipx": {
+    "driver": "apt",
+    "fields": {
+     "name": "pipx"
+    },
+    "name": "pipx"
+   },
+   "pipx\\jupyterlab": {
+    "driver": "pipx",
+    "fields": {
+     "name": "jupyterlab"
+    },
+    "name": "jupyterlab"
    }
   },
   "just": {
@@ -9835,6 +10121,16 @@
     "name": "maven"
    }
   },
+  "maxima": {
+   "apt\\maxima": {
+    "driver": "apt",
+    "fields": {
+     "name": "maxima",
+     "repo-component": "universe"
+    },
+    "name": "maxima"
+   }
+  },
   "mesa-vulkan-drivers": {
    "apt\\mesa-vulkan-drivers": {
     "driver": "apt",
@@ -9851,6 +10147,27 @@
      "name": "meson"
     },
     "name": "meson"
+   }
+  },
+  "miniforge": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "script\\miniforge": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "curl -fsSL \"https://github.com/conda-forge/miniforge/releases/latest/download/Miniforge3-Linux-x86_64.sh\" -o /tmp/mf.sh && bash /tmp/mf.sh -b -p \"$HOME/miniforge3\" && rm -f /tmp/mf.sh",
+     "location": "~/miniforge3/bin",
+     "name": "miniforge",
+     "uninstall-cmd": "rm -rf \"$HOME/miniforge3\"",
+     "version-cmd": "\"$HOME/miniforge3/bin/conda\" --version",
+     "version-re": "([0-9]+\\.[0-9]+\\.[0-9]+)"
+    },
+    "name": "miniforge"
    }
   },
   "mitmproxy": {
@@ -10271,6 +10588,26 @@
     "name": "p7zip-full"
    }
   },
+  "paraview": {
+   "apt\\paraview": {
+    "driver": "apt",
+    "fields": {
+     "name": "paraview",
+     "repo-component": "universe"
+    },
+    "name": "paraview"
+   }
+  },
+  "pari": {
+   "apt\\pari": {
+    "driver": "apt",
+    "fields": {
+     "name": "pari-gp",
+     "repo-component": "universe"
+    },
+    "name": "pari-gp"
+   }
+  },
   "perf": {
    "apt\\perf": {
     "driver": "apt",
@@ -10555,6 +10892,16 @@
     "name": "rust-all"
    }
   },
+  "sagemath": {
+   "apt\\sagemath": {
+    "driver": "apt",
+    "fields": {
+     "name": "sagemath",
+     "repo-component": "universe"
+    },
+    "name": "sagemath"
+   }
+  },
   "salt": {
    "apt\\pipx": {
     "driver": "apt",
@@ -10750,6 +11097,24 @@
      "name": "org.tenacityaudio.Tenacity"
     },
     "name": "org.tenacityaudio.Tenacity"
+   }
+  },
+  "texlive": {
+   "apt\\texlive": {
+    "driver": "apt",
+    "fields": {
+     "name": "texlive-latex-recommended"
+    },
+    "name": "texlive-latex-recommended"
+   }
+  },
+  "texlive-full": {
+   "apt\\texlive-full": {
+    "driver": "apt",
+    "fields": {
+     "name": "texlive-full"
+    },
+    "name": "texlive-full"
    }
   },
   "tmux": {
@@ -11264,6 +11629,16 @@
      "name": "wireshark"
     },
     "name": "wireshark"
+   }
+  },
+  "wxmaxima": {
+   "apt\\wxmaxima": {
+    "driver": "apt",
+    "fields": {
+     "name": "wxmaxima",
+     "repo-component": "universe"
+    },
+    "name": "wxmaxima"
    }
   },
   "xcb-util-cursor": {
@@ -12493,6 +12868,16 @@
     "name": "fzf"
    }
   },
+  "gap": {
+   "dnf\\gap": {
+    "driver": "dnf",
+    "fields": {
+     "name": "gap",
+     "repo-component": "universe"
+    },
+    "name": "gap"
+   }
+  },
   "gcc": {
    "dnf\\gcc": {
     "driver": "dnf",
@@ -12605,6 +12990,16 @@
      "name": "gnome-shell"
     },
     "name": "gnome-shell"
+   }
+  },
+  "gnuplot": {
+   "dnf\\gnuplot": {
+    "driver": "dnf",
+    "fields": {
+     "name": "gnuplot",
+     "repo-component": "universe"
+    },
+    "name": "gnuplot"
    }
   },
   "gnuradio": {
@@ -13000,6 +13395,22 @@
      }
     },
     "name": "julia"
+   }
+  },
+  "jupyterlab": {
+   "dnf\\pipx": {
+    "driver": "dnf",
+    "fields": {
+     "name": "pipx"
+    },
+    "name": "pipx"
+   },
+   "pipx\\jupyterlab": {
+    "driver": "pipx",
+    "fields": {
+     "name": "jupyterlab"
+    },
+    "name": "jupyterlab"
    }
   },
   "just": {
@@ -13485,6 +13896,16 @@
     "name": "maven"
    }
   },
+  "maxima": {
+   "dnf\\maxima": {
+    "driver": "dnf",
+    "fields": {
+     "name": "maxima",
+     "repo-component": "universe"
+    },
+    "name": "maxima"
+   }
+  },
   "mesa-vulkan-drivers": {
    "dnf\\mesa-vulkan-drivers": {
     "driver": "dnf",
@@ -13501,6 +13922,27 @@
      "name": "meson"
     },
     "name": "meson"
+   }
+  },
+  "miniforge": {
+   "dnf\\curl": {
+    "driver": "dnf",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "script\\miniforge": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "curl -fsSL \"https://github.com/conda-forge/miniforge/releases/latest/download/Miniforge3-Linux-x86_64.sh\" -o /tmp/mf.sh && bash /tmp/mf.sh -b -p \"$HOME/miniforge3\" && rm -f /tmp/mf.sh",
+     "location": "~/miniforge3/bin",
+     "name": "miniforge",
+     "uninstall-cmd": "rm -rf \"$HOME/miniforge3\"",
+     "version-cmd": "\"$HOME/miniforge3/bin/conda\" --version",
+     "version-re": "([0-9]+\\.[0-9]+\\.[0-9]+)"
+    },
+    "name": "miniforge"
    }
   },
   "mitmproxy": {
@@ -13919,6 +14361,26 @@
      "name": "p7zip"
     },
     "name": "p7zip"
+   }
+  },
+  "paraview": {
+   "dnf\\paraview": {
+    "driver": "dnf",
+    "fields": {
+     "name": "paraview",
+     "repo-component": "universe"
+    },
+    "name": "paraview"
+   }
+  },
+  "pari": {
+   "dnf\\pari": {
+    "driver": "dnf",
+    "fields": {
+     "name": "pari-gp",
+     "repo-component": "universe"
+    },
+    "name": "pari-gp"
    }
   },
   "perf": {
@@ -14404,6 +14866,24 @@
      "name": "org.tenacityaudio.Tenacity"
     },
     "name": "org.tenacityaudio.Tenacity"
+   }
+  },
+  "texlive": {
+   "dnf\\texlive": {
+    "driver": "dnf",
+    "fields": {
+     "name": "texlive-scheme-medium"
+    },
+    "name": "texlive-scheme-medium"
+   }
+  },
+  "texlive-full": {
+   "dnf\\texlive-full": {
+    "driver": "dnf",
+    "fields": {
+     "name": "texlive-scheme-full"
+    },
+    "name": "texlive-scheme-full"
    }
   },
   "tmux": {
@@ -14953,6 +15433,16 @@
      "name": "wireshark"
     },
     "name": "wireshark"
+   }
+  },
+  "wxmaxima": {
+   "dnf\\wxmaxima": {
+    "driver": "dnf",
+    "fields": {
+     "name": "wxmaxima",
+     "repo-component": "universe"
+    },
+    "name": "wxmaxima"
    }
   },
   "xcb-util-cursor": {
@@ -16194,6 +16684,16 @@
     "name": "fzf"
    }
   },
+  "gap": {
+   "dnf\\gap": {
+    "driver": "dnf",
+    "fields": {
+     "name": "gap",
+     "repo-component": "universe"
+    },
+    "name": "gap"
+   }
+  },
   "gcc": {
    "dnf\\gcc": {
     "driver": "dnf",
@@ -16306,6 +16806,16 @@
      "name": "gnome-shell"
     },
     "name": "gnome-shell"
+   }
+  },
+  "gnuplot": {
+   "dnf\\gnuplot": {
+    "driver": "dnf",
+    "fields": {
+     "name": "gnuplot",
+     "repo-component": "universe"
+    },
+    "name": "gnuplot"
    }
   },
   "gnuradio": {
@@ -16701,6 +17211,22 @@
      }
     },
     "name": "julia"
+   }
+  },
+  "jupyterlab": {
+   "dnf\\pipx": {
+    "driver": "dnf",
+    "fields": {
+     "name": "pipx"
+    },
+    "name": "pipx"
+   },
+   "pipx\\jupyterlab": {
+    "driver": "pipx",
+    "fields": {
+     "name": "jupyterlab"
+    },
+    "name": "jupyterlab"
    }
   },
   "just": {
@@ -17186,6 +17712,16 @@
     "name": "maven"
    }
   },
+  "maxima": {
+   "dnf\\maxima": {
+    "driver": "dnf",
+    "fields": {
+     "name": "maxima",
+     "repo-component": "universe"
+    },
+    "name": "maxima"
+   }
+  },
   "mesa-vulkan-drivers": {
    "dnf\\mesa-vulkan-drivers": {
     "driver": "dnf",
@@ -17202,6 +17738,27 @@
      "name": "meson"
     },
     "name": "meson"
+   }
+  },
+  "miniforge": {
+   "dnf\\curl": {
+    "driver": "dnf",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "script\\miniforge": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "curl -fsSL \"https://github.com/conda-forge/miniforge/releases/latest/download/Miniforge3-Linux-x86_64.sh\" -o /tmp/mf.sh && bash /tmp/mf.sh -b -p \"$HOME/miniforge3\" && rm -f /tmp/mf.sh",
+     "location": "~/miniforge3/bin",
+     "name": "miniforge",
+     "uninstall-cmd": "rm -rf \"$HOME/miniforge3\"",
+     "version-cmd": "\"$HOME/miniforge3/bin/conda\" --version",
+     "version-re": "([0-9]+\\.[0-9]+\\.[0-9]+)"
+    },
+    "name": "miniforge"
    }
   },
   "mitmproxy": {
@@ -17620,6 +18177,26 @@
      "name": "p7zip"
     },
     "name": "p7zip"
+   }
+  },
+  "paraview": {
+   "dnf\\paraview": {
+    "driver": "dnf",
+    "fields": {
+     "name": "paraview",
+     "repo-component": "universe"
+    },
+    "name": "paraview"
+   }
+  },
+  "pari": {
+   "dnf\\pari": {
+    "driver": "dnf",
+    "fields": {
+     "name": "pari-gp",
+     "repo-component": "universe"
+    },
+    "name": "pari-gp"
    }
   },
   "perf": {
@@ -18105,6 +18682,24 @@
      "name": "org.tenacityaudio.Tenacity"
     },
     "name": "org.tenacityaudio.Tenacity"
+   }
+  },
+  "texlive": {
+   "dnf\\texlive": {
+    "driver": "dnf",
+    "fields": {
+     "name": "texlive-scheme-medium"
+    },
+    "name": "texlive-scheme-medium"
+   }
+  },
+  "texlive-full": {
+   "dnf\\texlive-full": {
+    "driver": "dnf",
+    "fields": {
+     "name": "texlive-scheme-full"
+    },
+    "name": "texlive-scheme-full"
    }
   },
   "tmux": {
@@ -18654,6 +19249,16 @@
      "name": "wireshark"
     },
     "name": "wireshark"
+   }
+  },
+  "wxmaxima": {
+   "dnf\\wxmaxima": {
+    "driver": "dnf",
+    "fields": {
+     "name": "wxmaxima",
+     "repo-component": "universe"
+    },
+    "name": "wxmaxima"
    }
   },
   "xcb-util-cursor": {
@@ -20013,6 +20618,16 @@
     "name": "fzf"
    }
   },
+  "gap": {
+   "apt\\gap": {
+    "driver": "apt",
+    "fields": {
+     "name": "gap",
+     "repo-component": "universe"
+    },
+    "name": "gap"
+   }
+  },
   "gcc-13": {
    "apt\\build-essential": {
     "driver": "apt",
@@ -20274,6 +20889,16 @@
      "name": "gnome-shell"
     },
     "name": "gnome-shell"
+   }
+  },
+  "gnuplot": {
+   "apt\\gnuplot": {
+    "driver": "apt",
+    "fields": {
+     "name": "gnuplot",
+     "repo-component": "universe"
+    },
+    "name": "gnuplot"
    }
   },
   "gnuradio": {
@@ -20669,6 +21294,32 @@
      }
     },
     "name": "julia"
+   }
+  },
+  "jupyterlab": {
+   "apt\\python3-pip": {
+    "driver": "apt",
+    "fields": {
+     "name": "python3-pip"
+    },
+    "name": "python3-pip"
+   },
+   "pip\\pipx": {
+    "driver": "pip",
+    "fields": {
+     "name": "pipx",
+     "version": {
+      "pypi": "pipx"
+     }
+    },
+    "name": "pipx"
+   },
+   "pipx\\jupyterlab": {
+    "driver": "pipx",
+    "fields": {
+     "name": "jupyterlab"
+    },
+    "name": "jupyterlab"
    }
   },
   "just": {
@@ -21200,6 +21851,16 @@
     "name": "maven"
    }
   },
+  "maxima": {
+   "apt\\maxima": {
+    "driver": "apt",
+    "fields": {
+     "name": "maxima",
+     "repo-component": "universe"
+    },
+    "name": "maxima"
+   }
+  },
   "mesa-vulkan-drivers": {
    "apt\\mesa-vulkan-drivers": {
     "driver": "apt",
@@ -21216,6 +21877,27 @@
      "name": "meson"
     },
     "name": "meson"
+   }
+  },
+  "miniforge": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "script\\miniforge": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "curl -fsSL \"https://github.com/conda-forge/miniforge/releases/latest/download/Miniforge3-Linux-x86_64.sh\" -o /tmp/mf.sh && bash /tmp/mf.sh -b -p \"$HOME/miniforge3\" && rm -f /tmp/mf.sh",
+     "location": "~/miniforge3/bin",
+     "name": "miniforge",
+     "uninstall-cmd": "rm -rf \"$HOME/miniforge3\"",
+     "version-cmd": "\"$HOME/miniforge3/bin/conda\" --version",
+     "version-re": "([0-9]+\\.[0-9]+\\.[0-9]+)"
+    },
+    "name": "miniforge"
    }
   },
   "mitmproxy": {
@@ -21656,6 +22338,26 @@
     "name": "p7zip-full"
    }
   },
+  "paraview": {
+   "apt\\paraview": {
+    "driver": "apt",
+    "fields": {
+     "name": "paraview",
+     "repo-component": "universe"
+    },
+    "name": "paraview"
+   }
+  },
+  "pari": {
+   "apt\\pari": {
+    "driver": "apt",
+    "fields": {
+     "name": "pari-gp",
+     "repo-component": "universe"
+    },
+    "name": "pari-gp"
+   }
+  },
   "perf": {
    "apt\\perf": {
     "driver": "apt",
@@ -21960,6 +22662,16 @@
     "name": "rust-all"
    }
   },
+  "sagemath": {
+   "apt\\sagemath": {
+    "driver": "apt",
+    "fields": {
+     "name": "sagemath",
+     "repo-component": "universe"
+    },
+    "name": "sagemath"
+   }
+  },
   "salt": {
    "apt\\python3-pip": {
     "driver": "apt",
@@ -22158,6 +22870,24 @@
      "name": "org.tenacityaudio.Tenacity"
     },
     "name": "org.tenacityaudio.Tenacity"
+   }
+  },
+  "texlive": {
+   "apt\\texlive": {
+    "driver": "apt",
+    "fields": {
+     "name": "texlive-latex-recommended"
+    },
+    "name": "texlive-latex-recommended"
+   }
+  },
+  "texlive-full": {
+   "apt\\texlive-full": {
+    "driver": "apt",
+    "fields": {
+     "name": "texlive-full"
+    },
+    "name": "texlive-full"
    }
   },
   "tmux": {
@@ -22672,6 +23402,16 @@
      "name": "wireshark"
     },
     "name": "wireshark"
+   }
+  },
+  "wxmaxima": {
+   "apt\\wxmaxima": {
+    "driver": "apt",
+    "fields": {
+     "name": "wxmaxima",
+     "repo-component": "universe"
+    },
+    "name": "wxmaxima"
    }
   },
   "xcb-util-cursor": {
@@ -24004,6 +24744,16 @@
     "name": "fzf"
    }
   },
+  "gap": {
+   "dnf\\gap": {
+    "driver": "dnf",
+    "fields": {
+     "name": "gap",
+     "repo-component": "universe"
+    },
+    "name": "gap"
+   }
+  },
   "gcc": {
    "dnf\\gcc": {
     "driver": "dnf",
@@ -24130,6 +24880,16 @@
      "name": "gnome-shell"
     },
     "name": "gnome-shell"
+   }
+  },
+  "gnuplot": {
+   "dnf\\gnuplot": {
+    "driver": "dnf",
+    "fields": {
+     "name": "gnuplot",
+     "repo-component": "universe"
+    },
+    "name": "gnuplot"
    }
   },
   "gnuradio": {
@@ -24561,6 +25321,29 @@
      }
     },
     "name": "julia"
+   }
+  },
+  "jupyterlab": {
+   "dnf\\epel-release": {
+    "driver": "dnf",
+    "fields": {
+     "name": "epel-release"
+    },
+    "name": "epel-release"
+   },
+   "dnf\\pipx": {
+    "driver": "dnf",
+    "fields": {
+     "name": "pipx"
+    },
+    "name": "pipx"
+   },
+   "pipx\\jupyterlab": {
+    "driver": "pipx",
+    "fields": {
+     "name": "jupyterlab"
+    },
+    "name": "jupyterlab"
    }
   },
   "just": {
@@ -25073,6 +25856,16 @@
     "name": "maven"
    }
   },
+  "maxima": {
+   "dnf\\maxima": {
+    "driver": "dnf",
+    "fields": {
+     "name": "maxima",
+     "repo-component": "universe"
+    },
+    "name": "maxima"
+   }
+  },
   "mesa-vulkan-drivers": {
    "dnf\\mesa-vulkan-drivers": {
     "driver": "dnf",
@@ -25089,6 +25882,27 @@
      "name": "meson"
     },
     "name": "meson"
+   }
+  },
+  "miniforge": {
+   "dnf\\curl": {
+    "driver": "dnf",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "script\\miniforge": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "curl -fsSL \"https://github.com/conda-forge/miniforge/releases/latest/download/Miniforge3-Linux-x86_64.sh\" -o /tmp/mf.sh && bash /tmp/mf.sh -b -p \"$HOME/miniforge3\" && rm -f /tmp/mf.sh",
+     "location": "~/miniforge3/bin",
+     "name": "miniforge",
+     "uninstall-cmd": "rm -rf \"$HOME/miniforge3\"",
+     "version-cmd": "\"$HOME/miniforge3/bin/conda\" --version",
+     "version-re": "([0-9]+\\.[0-9]+\\.[0-9]+)"
+    },
+    "name": "miniforge"
    }
   },
   "mitmproxy": {
@@ -25541,6 +26355,26 @@
      "name": "p7zip"
     },
     "name": "p7zip"
+   }
+  },
+  "paraview": {
+   "dnf\\paraview": {
+    "driver": "dnf",
+    "fields": {
+     "name": "paraview",
+     "repo-component": "universe"
+    },
+    "name": "paraview"
+   }
+  },
+  "pari": {
+   "dnf\\pari": {
+    "driver": "dnf",
+    "fields": {
+     "name": "pari-gp",
+     "repo-component": "universe"
+    },
+    "name": "pari-gp"
    }
   },
   "perf": {
@@ -26061,6 +26895,24 @@
      "name": "org.tenacityaudio.Tenacity"
     },
     "name": "org.tenacityaudio.Tenacity"
+   }
+  },
+  "texlive": {
+   "dnf\\texlive": {
+    "driver": "dnf",
+    "fields": {
+     "name": "texlive-scheme-medium"
+    },
+    "name": "texlive-scheme-medium"
+   }
+  },
+  "texlive-full": {
+   "dnf\\texlive-full": {
+    "driver": "dnf",
+    "fields": {
+     "name": "texlive-scheme-full"
+    },
+    "name": "texlive-scheme-full"
    }
   },
   "tmux": {
@@ -26629,6 +27481,16 @@
      "name": "wireshark"
     },
     "name": "wireshark"
+   }
+  },
+  "wxmaxima": {
+   "dnf\\wxmaxima": {
+    "driver": "dnf",
+    "fields": {
+     "name": "wxmaxima",
+     "repo-component": "universe"
+    },
+    "name": "wxmaxima"
    }
   },
   "xcb-util-cursor": {
@@ -27992,6 +28854,16 @@
     "name": "fzf"
    }
   },
+  "gap": {
+   "apt\\gap": {
+    "driver": "apt",
+    "fields": {
+     "name": "gap",
+     "repo-component": "universe"
+    },
+    "name": "gap"
+   }
+  },
   "gcc-13": {
    "apt\\build-essential": {
     "driver": "apt",
@@ -28253,6 +29125,16 @@
      "name": "gnome-shell"
     },
     "name": "gnome-shell"
+   }
+  },
+  "gnuplot": {
+   "apt\\gnuplot": {
+    "driver": "apt",
+    "fields": {
+     "name": "gnuplot",
+     "repo-component": "universe"
+    },
+    "name": "gnuplot"
    }
   },
   "gnuradio": {
@@ -28648,6 +29530,32 @@
      }
     },
     "name": "julia"
+   }
+  },
+  "jupyterlab": {
+   "apt\\python3-pip": {
+    "driver": "apt",
+    "fields": {
+     "name": "python3-pip"
+    },
+    "name": "python3-pip"
+   },
+   "pip\\pipx": {
+    "driver": "pip",
+    "fields": {
+     "name": "pipx",
+     "version": {
+      "pypi": "pipx"
+     }
+    },
+    "name": "pipx"
+   },
+   "pipx\\jupyterlab": {
+    "driver": "pipx",
+    "fields": {
+     "name": "jupyterlab"
+    },
+    "name": "jupyterlab"
    }
   },
   "just": {
@@ -29179,6 +30087,16 @@
     "name": "maven"
    }
   },
+  "maxima": {
+   "apt\\maxima": {
+    "driver": "apt",
+    "fields": {
+     "name": "maxima",
+     "repo-component": "universe"
+    },
+    "name": "maxima"
+   }
+  },
   "mesa-vulkan-drivers": {
    "apt\\mesa-vulkan-drivers": {
     "driver": "apt",
@@ -29195,6 +30113,27 @@
      "name": "meson"
     },
     "name": "meson"
+   }
+  },
+  "miniforge": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "script\\miniforge": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "curl -fsSL \"https://github.com/conda-forge/miniforge/releases/latest/download/Miniforge3-Linux-x86_64.sh\" -o /tmp/mf.sh && bash /tmp/mf.sh -b -p \"$HOME/miniforge3\" && rm -f /tmp/mf.sh",
+     "location": "~/miniforge3/bin",
+     "name": "miniforge",
+     "uninstall-cmd": "rm -rf \"$HOME/miniforge3\"",
+     "version-cmd": "\"$HOME/miniforge3/bin/conda\" --version",
+     "version-re": "([0-9]+\\.[0-9]+\\.[0-9]+)"
+    },
+    "name": "miniforge"
    }
   },
   "mitmproxy": {
@@ -29635,6 +30574,26 @@
     "name": "p7zip-full"
    }
   },
+  "paraview": {
+   "apt\\paraview": {
+    "driver": "apt",
+    "fields": {
+     "name": "paraview",
+     "repo-component": "universe"
+    },
+    "name": "paraview"
+   }
+  },
+  "pari": {
+   "apt\\pari": {
+    "driver": "apt",
+    "fields": {
+     "name": "pari-gp",
+     "repo-component": "universe"
+    },
+    "name": "pari-gp"
+   }
+  },
   "perf": {
    "apt\\perf": {
     "driver": "apt",
@@ -29939,6 +30898,16 @@
     "name": "rust-all"
    }
   },
+  "sagemath": {
+   "apt\\sagemath": {
+    "driver": "apt",
+    "fields": {
+     "name": "sagemath",
+     "repo-component": "universe"
+    },
+    "name": "sagemath"
+   }
+  },
   "salt": {
    "apt\\python3-pip": {
     "driver": "apt",
@@ -30144,6 +31113,24 @@
      "name": "org.tenacityaudio.Tenacity"
     },
     "name": "org.tenacityaudio.Tenacity"
+   }
+  },
+  "texlive": {
+   "apt\\texlive": {
+    "driver": "apt",
+    "fields": {
+     "name": "texlive-latex-recommended"
+    },
+    "name": "texlive-latex-recommended"
+   }
+  },
+  "texlive-full": {
+   "apt\\texlive-full": {
+    "driver": "apt",
+    "fields": {
+     "name": "texlive-full"
+    },
+    "name": "texlive-full"
    }
   },
   "tmux": {
@@ -30658,6 +31645,16 @@
      "name": "wireshark"
     },
     "name": "wireshark"
+   }
+  },
+  "wxmaxima": {
+   "apt\\wxmaxima": {
+    "driver": "apt",
+    "fields": {
+     "name": "wxmaxima",
+     "repo-component": "universe"
+    },
+    "name": "wxmaxima"
    }
   },
   "xcb-util-cursor": {
@@ -31988,6 +32985,16 @@
     "name": "fzf"
    }
   },
+  "gap": {
+   "apt\\gap": {
+    "driver": "apt",
+    "fields": {
+     "name": "gap",
+     "repo-component": "universe"
+    },
+    "name": "gap"
+   }
+  },
   "gcc-13": {
    "apt\\build-essential": {
     "driver": "apt",
@@ -32249,6 +33256,16 @@
      "name": "gnome-shell"
     },
     "name": "gnome-shell"
+   }
+  },
+  "gnuplot": {
+   "apt\\gnuplot": {
+    "driver": "apt",
+    "fields": {
+     "name": "gnuplot",
+     "repo-component": "universe"
+    },
+    "name": "gnuplot"
    }
   },
   "gnuradio": {
@@ -32644,6 +33661,22 @@
      }
     },
     "name": "julia"
+   }
+  },
+  "jupyterlab": {
+   "apt\\pipx": {
+    "driver": "apt",
+    "fields": {
+     "name": "pipx"
+    },
+    "name": "pipx"
+   },
+   "pipx\\jupyterlab": {
+    "driver": "pipx",
+    "fields": {
+     "name": "jupyterlab"
+    },
+    "name": "jupyterlab"
    }
   },
   "just": {
@@ -33165,6 +34198,16 @@
     "name": "maven"
    }
   },
+  "maxima": {
+   "apt\\maxima": {
+    "driver": "apt",
+    "fields": {
+     "name": "maxima",
+     "repo-component": "universe"
+    },
+    "name": "maxima"
+   }
+  },
   "mesa-vulkan-drivers": {
    "apt\\mesa-vulkan-drivers": {
     "driver": "apt",
@@ -33181,6 +34224,27 @@
      "name": "meson"
     },
     "name": "meson"
+   }
+  },
+  "miniforge": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "script\\miniforge": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "curl -fsSL \"https://github.com/conda-forge/miniforge/releases/latest/download/Miniforge3-Linux-x86_64.sh\" -o /tmp/mf.sh && bash /tmp/mf.sh -b -p \"$HOME/miniforge3\" && rm -f /tmp/mf.sh",
+     "location": "~/miniforge3/bin",
+     "name": "miniforge",
+     "uninstall-cmd": "rm -rf \"$HOME/miniforge3\"",
+     "version-cmd": "\"$HOME/miniforge3/bin/conda\" --version",
+     "version-re": "([0-9]+\\.[0-9]+\\.[0-9]+)"
+    },
+    "name": "miniforge"
    }
   },
   "mitmproxy": {
@@ -33601,6 +34665,26 @@
     "name": "p7zip-full"
    }
   },
+  "paraview": {
+   "apt\\paraview": {
+    "driver": "apt",
+    "fields": {
+     "name": "paraview",
+     "repo-component": "universe"
+    },
+    "name": "paraview"
+   }
+  },
+  "pari": {
+   "apt\\pari": {
+    "driver": "apt",
+    "fields": {
+     "name": "pari-gp",
+     "repo-component": "universe"
+    },
+    "name": "pari-gp"
+   }
+  },
   "perf": {
    "apt\\perf": {
     "driver": "apt",
@@ -33885,6 +34969,16 @@
     "name": "rust-all"
    }
   },
+  "sagemath": {
+   "apt\\sagemath": {
+    "driver": "apt",
+    "fields": {
+     "name": "sagemath",
+     "repo-component": "universe"
+    },
+    "name": "sagemath"
+   }
+  },
   "salt": {
    "apt\\pipx": {
     "driver": "apt",
@@ -34080,6 +35174,24 @@
      "name": "org.tenacityaudio.Tenacity"
     },
     "name": "org.tenacityaudio.Tenacity"
+   }
+  },
+  "texlive": {
+   "apt\\texlive": {
+    "driver": "apt",
+    "fields": {
+     "name": "texlive-latex-recommended"
+    },
+    "name": "texlive-latex-recommended"
+   }
+  },
+  "texlive-full": {
+   "apt\\texlive-full": {
+    "driver": "apt",
+    "fields": {
+     "name": "texlive-full"
+    },
+    "name": "texlive-full"
    }
   },
   "tmux": {
@@ -34594,6 +35706,16 @@
      "name": "wireshark"
     },
     "name": "wireshark"
+   }
+  },
+  "wxmaxima": {
+   "apt\\wxmaxima": {
+    "driver": "apt",
+    "fields": {
+     "name": "wxmaxima",
+     "repo-component": "universe"
+    },
+    "name": "wxmaxima"
    }
   },
   "xcb-util-cursor": {
