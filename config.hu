@@ -76,6 +76,20 @@
             digikam
             obs-studio
         ]
+        // Digital-music workstation: DAWs, notation, synths, live-coding + the audio server.
+        audio: [
+            +user
+            pipewire
+            ardour
+            lmms
+            tenacity
+            musescore
+            hydrogen
+            carla
+            sonic-pi
+            supercollider
+            qjackctl
+        ]
         // Pure additive tool bundles (no +user) — compose onto a base, e.g. a workstation runs
         // [ user, networking ] and a headless box runs just [ networking ]. Neither is in the
         // default `configs:` above; activate per-machine.

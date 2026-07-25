@@ -584,6 +584,17 @@
         scribus:    { install: [ { via: flatpak  hub: flathub  app: net.scribus.Scribus } ] }
         digikam:    { install: [ { via: flatpak  hub: flathub  app: org.kde.digikam } ] }
         obs-studio: { install: [ { via: flatpak  hub: flathub  app: com.obsproject.Studio } ] }
+
+        // --- digital-music tools --- (GUI apps via Flathub; audio-system bits native)
+        musescore:     { install: [ { via: flatpak  hub: flathub  app: org.musescore.MuseScore } ] }
+        hydrogen:      { install: [ { via: flatpak  hub: flathub  app: org.hydrogenmusic.Hydrogen } ] }
+        carla:         { install: [ { via: flatpak  hub: flathub  app: studio.kx.carla } ] }
+        sonic-pi:      { install: [ { via: flatpak  hub: flathub  app: net.sonic_pi.SonicPi } ] }
+        supercollider: { install: [ { via: native  repo-component: universe } ] }
+        qjackctl:      { install: [ { via: native  repo-component: universe } ] }
+        // PipeWire — the modern audio/video server. Native; already the default on most current
+        // distros (where installing it is a harmless no-op).
+        pipewire:      { install: [ { via: native } ] }
         // tenacity: the telemetry-free Audacity fork. No reliable native package anywhere, so
         // flatpak-only (unroutable on Alpine -> surfaces as a diagnostic, never a crash).
         tenacity: { install: [ { via: flatpak  hub: flathub  app: org.tenacityaudio.Tenacity } ] }

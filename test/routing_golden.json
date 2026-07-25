@@ -356,6 +356,23 @@
     "name": "ghc"
    }
   },
+  "carla": {
+   "flatpak\\carla": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "studio.kx.carla"
+    },
+    "name": "studio.kx.carla"
+   },
+   "pacman\\flatpak": {
+    "driver": "pacman",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   }
+  },
   "chrome": {
    "flatpak\\chrome": {
     "driver": "flatpak",
@@ -1173,6 +1190,23 @@
     "name": "httpie"
    }
   },
+  "hydrogen": {
+   "flatpak\\hydrogen": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "org.hydrogenmusic.Hydrogen"
+    },
+    "name": "org.hydrogenmusic.Hydrogen"
+   },
+   "pacman\\flatpak": {
+    "driver": "pacman",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   }
+  },
   "hyprland": {
    "pacman\\hyprland": {
     "driver": "pacman",
@@ -1778,6 +1812,23 @@
     "name": "mtr"
    }
   },
+  "musescore": {
+   "flatpak\\musescore": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "org.musescore.MuseScore"
+    },
+    "name": "org.musescore.MuseScore"
+   },
+   "pacman\\flatpak": {
+    "driver": "pacman",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   }
+  },
   "neovim": {
    "appImage\\neovim": {
     "driver": "appImage",
@@ -2076,6 +2127,15 @@
     "name": "perf"
    }
   },
+  "pipewire": {
+   "pacman\\pipewire": {
+    "driver": "pacman",
+    "fields": {
+     "name": "pipewire"
+    },
+    "name": "pipewire"
+   }
+  },
   "pipx": {
    "pacman\\pipx": {
     "driver": "pacman",
@@ -2183,6 +2243,16 @@
      "name": "qemu-base"
     },
     "name": "qemu-base"
+   }
+  },
+  "qjackctl": {
+   "pacman\\qjackctl": {
+    "driver": "pacman",
+    "fields": {
+     "name": "qjackctl",
+     "repo-component": "universe"
+    },
+    "name": "qjackctl"
    }
   },
   "quicklisp": {
@@ -2337,6 +2407,23 @@
     "name": "socat"
    }
   },
+  "sonic-pi": {
+   "flatpak\\sonic-pi": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "net.sonic_pi.SonicPi"
+    },
+    "name": "net.sonic_pi.SonicPi"
+   },
+   "pacman\\flatpak": {
+    "driver": "pacman",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   }
+  },
   "steam": {
    "flatpak\\steam": {
     "driver": "flatpak",
@@ -2361,6 +2448,16 @@
      "name": "strace"
     },
     "name": "strace"
+   }
+  },
+  "supercollider": {
+   "pacman\\supercollider": {
+    "driver": "pacman",
+    "fields": {
+     "name": "supercollider",
+     "repo-component": "universe"
+    },
+    "name": "supercollider"
    }
   },
   "sway": {
@@ -3492,6 +3589,23 @@
     "name": "ghc"
    }
   },
+  "carla": {
+   "apt\\flatpak": {
+    "driver": "apt",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\carla": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "studio.kx.carla"
+    },
+    "name": "studio.kx.carla"
+   }
+  },
   "chrome": {
    "apt\\flatpak": {
     "driver": "apt",
@@ -4682,6 +4796,23 @@
     "name": "httpie"
    }
   },
+  "hydrogen": {
+   "apt\\flatpak": {
+    "driver": "apt",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\hydrogen": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "org.hydrogenmusic.Hydrogen"
+    },
+    "name": "org.hydrogenmusic.Hydrogen"
+   }
+  },
   "iftop": {
    "apt\\iftop": {
     "driver": "apt",
@@ -5399,6 +5530,23 @@
     "name": "mtr"
    }
   },
+  "musescore": {
+   "apt\\flatpak": {
+    "driver": "apt",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\musescore": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "org.musescore.MuseScore"
+    },
+    "name": "org.musescore.MuseScore"
+   }
+  },
   "neovim": {
    "appImage\\neovim": {
     "driver": "appImage",
@@ -5715,6 +5863,15 @@
     "name": "linux-tools-generic"
    }
   },
+  "pipewire": {
+   "apt\\pipewire": {
+    "driver": "apt",
+    "fields": {
+     "name": "pipewire"
+    },
+    "name": "pipewire"
+   }
+  },
   "pipx": {
    "apt\\python3-pip": {
     "driver": "apt",
@@ -5832,6 +5989,16 @@
      "name": "qemu-system-x86"
     },
     "name": "qemu-system-x86"
+   }
+  },
+  "qjackctl": {
+   "apt\\qjackctl": {
+    "driver": "apt",
+    "fields": {
+     "name": "qjackctl",
+     "repo-component": "universe"
+    },
+    "name": "qjackctl"
    }
   },
   "quicklisp": {
@@ -6005,6 +6172,23 @@
     "name": "software-properties-common"
    }
   },
+  "sonic-pi": {
+   "apt\\flatpak": {
+    "driver": "apt",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\sonic-pi": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "net.sonic_pi.SonicPi"
+    },
+    "name": "net.sonic_pi.SonicPi"
+   }
+  },
   "steam": {
    "apt\\flatpak": {
     "driver": "apt",
@@ -6029,6 +6213,16 @@
      "name": "strace"
     },
     "name": "strace"
+   }
+  },
+  "supercollider": {
+   "apt\\supercollider": {
+    "driver": "apt",
+    "fields": {
+     "name": "supercollider",
+     "repo-component": "universe"
+    },
+    "name": "supercollider"
    }
   },
   "sway": {
@@ -7118,6 +7312,23 @@
     "name": "ghc"
    }
   },
+  "carla": {
+   "apt\\flatpak": {
+    "driver": "apt",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\carla": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "studio.kx.carla"
+    },
+    "name": "studio.kx.carla"
+   }
+  },
   "chrome": {
    "apt\\flatpak": {
     "driver": "apt",
@@ -8298,6 +8509,23 @@
     "name": "httpie"
    }
   },
+  "hydrogen": {
+   "apt\\flatpak": {
+    "driver": "apt",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\hydrogen": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "org.hydrogenmusic.Hydrogen"
+    },
+    "name": "org.hydrogenmusic.Hydrogen"
+   }
+  },
   "iftop": {
    "apt\\iftop": {
     "driver": "apt",
@@ -8995,6 +9223,23 @@
     "name": "mtr"
    }
   },
+  "musescore": {
+   "apt\\flatpak": {
+    "driver": "apt",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\musescore": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "org.musescore.MuseScore"
+    },
+    "name": "org.musescore.MuseScore"
+   }
+  },
   "neovim": {
    "appImage\\neovim": {
     "driver": "appImage",
@@ -9311,6 +9556,15 @@
     "name": "linux-tools-generic"
    }
   },
+  "pipewire": {
+   "apt\\pipewire": {
+    "driver": "apt",
+    "fields": {
+     "name": "pipewire"
+    },
+    "name": "pipewire"
+   }
+  },
   "pipx": {
    "apt\\pipx": {
     "driver": "apt",
@@ -9418,6 +9672,16 @@
      "name": "qemu-system-x86"
     },
     "name": "qemu-system-x86"
+   }
+  },
+  "qjackctl": {
+   "apt\\qjackctl": {
+    "driver": "apt",
+    "fields": {
+     "name": "qjackctl",
+     "repo-component": "universe"
+    },
+    "name": "qjackctl"
    }
   },
   "quicklisp": {
@@ -9581,6 +9845,23 @@
     "name": "software-properties-common"
    }
   },
+  "sonic-pi": {
+   "apt\\flatpak": {
+    "driver": "apt",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\sonic-pi": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "net.sonic_pi.SonicPi"
+    },
+    "name": "net.sonic_pi.SonicPi"
+   }
+  },
   "steam": {
    "apt\\flatpak": {
     "driver": "apt",
@@ -9605,6 +9886,16 @@
      "name": "strace"
     },
     "name": "strace"
+   }
+  },
+  "supercollider": {
+   "apt\\supercollider": {
+    "driver": "apt",
+    "fields": {
+     "name": "supercollider",
+     "repo-component": "universe"
+    },
+    "name": "supercollider"
    }
   },
   "sway": {
@@ -10698,6 +10989,23 @@
     "name": "ghc"
    }
   },
+  "carla": {
+   "dnf\\flatpak": {
+    "driver": "dnf",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\carla": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "studio.kx.carla"
+    },
+    "name": "studio.kx.carla"
+   }
+  },
   "chrome": {
    "dnf\\flatpak": {
     "driver": "dnf",
@@ -11615,6 +11923,23 @@
     "name": "httpie"
    }
   },
+  "hydrogen": {
+   "dnf\\flatpak": {
+    "driver": "dnf",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\hydrogen": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "org.hydrogenmusic.Hydrogen"
+    },
+    "name": "org.hydrogenmusic.Hydrogen"
+   }
+  },
   "hyprland": {
    "dnf\\hyprland": {
     "driver": "dnf",
@@ -12285,6 +12610,23 @@
     "name": "mtr"
    }
   },
+  "musescore": {
+   "dnf\\flatpak": {
+    "driver": "dnf",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\musescore": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "org.musescore.MuseScore"
+    },
+    "name": "org.musescore.MuseScore"
+   }
+  },
   "neovim": {
    "appImage\\neovim": {
     "driver": "appImage",
@@ -12601,6 +12943,15 @@
     "name": "perf"
    }
   },
+  "pipewire": {
+   "dnf\\pipewire": {
+    "driver": "dnf",
+    "fields": {
+     "name": "pipewire"
+    },
+    "name": "pipewire"
+   }
+  },
   "pipx": {
    "dnf\\pipx": {
     "driver": "dnf",
@@ -12708,6 +13059,16 @@
      "name": "qemu-kvm"
     },
     "name": "qemu-kvm"
+   }
+  },
+  "qjackctl": {
+   "dnf\\qjackctl": {
+    "driver": "dnf",
+    "fields": {
+     "name": "qjackctl",
+     "repo-component": "universe"
+    },
+    "name": "qjackctl"
    }
   },
   "quicklisp": {
@@ -12875,6 +13236,23 @@
     "name": "socat"
    }
   },
+  "sonic-pi": {
+   "dnf\\flatpak": {
+    "driver": "dnf",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\sonic-pi": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "net.sonic_pi.SonicPi"
+    },
+    "name": "net.sonic_pi.SonicPi"
+   }
+  },
   "steam": {
    "dnf\\flatpak": {
     "driver": "dnf",
@@ -12899,6 +13277,16 @@
      "name": "strace"
     },
     "name": "strace"
+   }
+  },
+  "supercollider": {
+   "dnf\\supercollider": {
+    "driver": "dnf",
+    "fields": {
+     "name": "supercollider",
+     "repo-component": "universe"
+    },
+    "name": "supercollider"
    }
   },
   "sway": {
@@ -14027,6 +14415,23 @@
     "name": "ghc"
    }
   },
+  "carla": {
+   "dnf\\flatpak": {
+    "driver": "dnf",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\carla": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "studio.kx.carla"
+    },
+    "name": "studio.kx.carla"
+   }
+  },
   "chrome": {
    "dnf\\flatpak": {
     "driver": "dnf",
@@ -14956,6 +15361,23 @@
     "name": "httpie"
    }
   },
+  "hydrogen": {
+   "dnf\\flatpak": {
+    "driver": "dnf",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\hydrogen": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "org.hydrogenmusic.Hydrogen"
+    },
+    "name": "org.hydrogenmusic.Hydrogen"
+   }
+  },
   "hyprland": {
    "dnf\\hyprland": {
     "driver": "dnf",
@@ -15626,6 +16048,23 @@
     "name": "mtr"
    }
   },
+  "musescore": {
+   "dnf\\flatpak": {
+    "driver": "dnf",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\musescore": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "org.musescore.MuseScore"
+    },
+    "name": "org.musescore.MuseScore"
+   }
+  },
   "neovim": {
    "appImage\\neovim": {
     "driver": "appImage",
@@ -15942,6 +16381,15 @@
     "name": "perf"
    }
   },
+  "pipewire": {
+   "dnf\\pipewire": {
+    "driver": "dnf",
+    "fields": {
+     "name": "pipewire"
+    },
+    "name": "pipewire"
+   }
+  },
   "pipx": {
    "dnf\\pipx": {
     "driver": "dnf",
@@ -16049,6 +16497,16 @@
      "name": "qemu-kvm"
     },
     "name": "qemu-kvm"
+   }
+  },
+  "qjackctl": {
+   "dnf\\qjackctl": {
+    "driver": "dnf",
+    "fields": {
+     "name": "qjackctl",
+     "repo-component": "universe"
+    },
+    "name": "qjackctl"
    }
   },
   "quicklisp": {
@@ -16216,6 +16674,23 @@
     "name": "socat"
    }
   },
+  "sonic-pi": {
+   "dnf\\flatpak": {
+    "driver": "dnf",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\sonic-pi": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "net.sonic_pi.SonicPi"
+    },
+    "name": "net.sonic_pi.SonicPi"
+   }
+  },
   "steam": {
    "dnf\\flatpak": {
     "driver": "dnf",
@@ -16240,6 +16715,16 @@
      "name": "strace"
     },
     "name": "strace"
+   }
+  },
+  "supercollider": {
+   "dnf\\supercollider": {
+    "driver": "dnf",
+    "fields": {
+     "name": "supercollider",
+     "repo-component": "universe"
+    },
+    "name": "supercollider"
    }
   },
   "sway": {
@@ -17362,6 +17847,23 @@
      "repo-component": "universe"
     },
     "name": "ghc"
+   }
+  },
+  "carla": {
+   "apt\\flatpak": {
+    "driver": "apt",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\carla": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "studio.kx.carla"
+    },
+    "name": "studio.kx.carla"
    }
   },
   "chrome": {
@@ -18563,6 +19065,23 @@
     "name": "httpie"
    }
   },
+  "hydrogen": {
+   "apt\\flatpak": {
+    "driver": "apt",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\hydrogen": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "org.hydrogenmusic.Hydrogen"
+    },
+    "name": "org.hydrogenmusic.Hydrogen"
+   }
+  },
   "iftop": {
    "apt\\iftop": {
     "driver": "apt",
@@ -19280,6 +19799,23 @@
     "name": "mtr"
    }
   },
+  "musescore": {
+   "apt\\flatpak": {
+    "driver": "apt",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\musescore": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "org.musescore.MuseScore"
+    },
+    "name": "org.musescore.MuseScore"
+   }
+  },
   "neovim": {
    "appImage\\neovim": {
     "driver": "appImage",
@@ -19596,6 +20132,15 @@
     "name": "linux-tools-generic"
    }
   },
+  "pipewire": {
+   "apt\\pipewire": {
+    "driver": "apt",
+    "fields": {
+     "name": "pipewire"
+    },
+    "name": "pipewire"
+   }
+  },
   "pipx": {
    "apt\\python3-pip": {
     "driver": "apt",
@@ -19713,6 +20258,16 @@
      "name": "qemu-system-x86"
     },
     "name": "qemu-system-x86"
+   }
+  },
+  "qjackctl": {
+   "apt\\qjackctl": {
+    "driver": "apt",
+    "fields": {
+     "name": "qjackctl",
+     "repo-component": "universe"
+    },
+    "name": "qjackctl"
    }
   },
   "quicklisp": {
@@ -19886,6 +20441,23 @@
     "name": "software-properties-common"
    }
   },
+  "sonic-pi": {
+   "apt\\flatpak": {
+    "driver": "apt",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\sonic-pi": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "net.sonic_pi.SonicPi"
+    },
+    "name": "net.sonic_pi.SonicPi"
+   }
+  },
   "steam": {
    "apt\\steam": {
     "driver": "apt",
@@ -19903,6 +20475,16 @@
      "name": "strace"
     },
     "name": "strace"
+   }
+  },
+  "supercollider": {
+   "apt\\supercollider": {
+    "driver": "apt",
+    "fields": {
+     "name": "supercollider",
+     "repo-component": "universe"
+    },
+    "name": "supercollider"
    }
   },
   "sway": {
@@ -21025,6 +21607,23 @@
     "name": "ghc"
    }
   },
+  "carla": {
+   "dnf\\flatpak": {
+    "driver": "dnf",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\carla": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "studio.kx.carla"
+    },
+    "name": "studio.kx.carla"
+   }
+  },
   "chrome": {
    "dnf\\flatpak": {
     "driver": "dnf",
@@ -22052,6 +22651,23 @@
     "name": "httpie"
    }
   },
+  "hydrogen": {
+   "dnf\\flatpak": {
+    "driver": "dnf",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\hydrogen": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "org.hydrogenmusic.Hydrogen"
+    },
+    "name": "org.hydrogenmusic.Hydrogen"
+   }
+  },
   "hyprland": {
    "dnf\\hyprland": {
     "driver": "dnf",
@@ -22763,6 +23379,23 @@
     "name": "mtr"
    }
   },
+  "musescore": {
+   "dnf\\flatpak": {
+    "driver": "dnf",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\musescore": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "org.musescore.MuseScore"
+    },
+    "name": "org.musescore.MuseScore"
+   }
+  },
   "neovim": {
    "appImage\\neovim": {
     "driver": "appImage",
@@ -23099,6 +23732,15 @@
     "name": "perf"
    }
   },
+  "pipewire": {
+   "dnf\\pipewire": {
+    "driver": "dnf",
+    "fields": {
+     "name": "pipewire"
+    },
+    "name": "pipewire"
+   }
+  },
   "pipx": {
    "dnf\\epel-release": {
     "driver": "dnf",
@@ -23213,6 +23855,16 @@
      "name": "qemu-kvm"
     },
     "name": "qemu-kvm"
+   }
+  },
+  "qjackctl": {
+   "dnf\\qjackctl": {
+    "driver": "dnf",
+    "fields": {
+     "name": "qjackctl",
+     "repo-component": "universe"
+    },
+    "name": "qjackctl"
    }
   },
   "quicklisp": {
@@ -23401,6 +24053,23 @@
     "name": "socat"
    }
   },
+  "sonic-pi": {
+   "dnf\\flatpak": {
+    "driver": "dnf",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\sonic-pi": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "net.sonic_pi.SonicPi"
+    },
+    "name": "net.sonic_pi.SonicPi"
+   }
+  },
   "steam": {
    "dnf\\flatpak": {
     "driver": "dnf",
@@ -23425,6 +24094,16 @@
      "name": "strace"
     },
     "name": "strace"
+   }
+  },
+  "supercollider": {
+   "dnf\\supercollider": {
+    "driver": "dnf",
+    "fields": {
+     "name": "supercollider",
+     "repo-component": "universe"
+    },
+    "name": "supercollider"
    }
   },
   "sway": {
@@ -24581,6 +25260,23 @@
     "name": "ghc"
    }
   },
+  "carla": {
+   "apt\\flatpak": {
+    "driver": "apt",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\carla": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "studio.kx.carla"
+    },
+    "name": "studio.kx.carla"
+   }
+  },
   "chrome": {
    "apt\\flatpak": {
     "driver": "apt",
@@ -25771,6 +26467,23 @@
     "name": "httpie"
    }
   },
+  "hydrogen": {
+   "apt\\flatpak": {
+    "driver": "apt",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\hydrogen": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "org.hydrogenmusic.Hydrogen"
+    },
+    "name": "org.hydrogenmusic.Hydrogen"
+   }
+  },
   "iftop": {
    "apt\\iftop": {
     "driver": "apt",
@@ -26488,6 +27201,23 @@
     "name": "mtr"
    }
   },
+  "musescore": {
+   "apt\\flatpak": {
+    "driver": "apt",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\musescore": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "org.musescore.MuseScore"
+    },
+    "name": "org.musescore.MuseScore"
+   }
+  },
   "neovim": {
    "appImage\\neovim": {
     "driver": "appImage",
@@ -26804,6 +27534,15 @@
     "name": "linux-tools-generic"
    }
   },
+  "pipewire": {
+   "apt\\pipewire": {
+    "driver": "apt",
+    "fields": {
+     "name": "pipewire"
+    },
+    "name": "pipewire"
+   }
+  },
   "pipx": {
    "apt\\python3-pip": {
     "driver": "apt",
@@ -26921,6 +27660,16 @@
      "name": "qemu-system-x86"
     },
     "name": "qemu-system-x86"
+   }
+  },
+  "qjackctl": {
+   "apt\\qjackctl": {
+    "driver": "apt",
+    "fields": {
+     "name": "qjackctl",
+     "repo-component": "universe"
+    },
+    "name": "qjackctl"
    }
   },
   "quicklisp": {
@@ -27094,6 +27843,23 @@
     "name": "software-properties-common"
    }
   },
+  "sonic-pi": {
+   "apt\\flatpak": {
+    "driver": "apt",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\sonic-pi": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "net.sonic_pi.SonicPi"
+    },
+    "name": "net.sonic_pi.SonicPi"
+   }
+  },
   "steam": {
    "apt\\flatpak": {
     "driver": "apt",
@@ -27118,6 +27884,16 @@
      "name": "strace"
     },
     "name": "strace"
+   }
+  },
+  "supercollider": {
+   "apt\\supercollider": {
+    "driver": "apt",
+    "fields": {
+     "name": "supercollider",
+     "repo-component": "universe"
+    },
+    "name": "supercollider"
    }
   },
   "sway": {
@@ -28207,6 +28983,23 @@
     "name": "ghc"
    }
   },
+  "carla": {
+   "apt\\flatpak": {
+    "driver": "apt",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\carla": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "studio.kx.carla"
+    },
+    "name": "studio.kx.carla"
+   }
+  },
   "chrome": {
    "apt\\flatpak": {
     "driver": "apt",
@@ -29387,6 +30180,23 @@
     "name": "httpie"
    }
   },
+  "hydrogen": {
+   "apt\\flatpak": {
+    "driver": "apt",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\hydrogen": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "org.hydrogenmusic.Hydrogen"
+    },
+    "name": "org.hydrogenmusic.Hydrogen"
+   }
+  },
   "iftop": {
    "apt\\iftop": {
     "driver": "apt",
@@ -30084,6 +30894,23 @@
     "name": "mtr"
    }
   },
+  "musescore": {
+   "apt\\flatpak": {
+    "driver": "apt",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\musescore": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "org.musescore.MuseScore"
+    },
+    "name": "org.musescore.MuseScore"
+   }
+  },
   "neovim": {
    "appImage\\neovim": {
     "driver": "appImage",
@@ -30400,6 +31227,15 @@
     "name": "linux-tools-generic"
    }
   },
+  "pipewire": {
+   "apt\\pipewire": {
+    "driver": "apt",
+    "fields": {
+     "name": "pipewire"
+    },
+    "name": "pipewire"
+   }
+  },
   "pipx": {
    "apt\\pipx": {
     "driver": "apt",
@@ -30507,6 +31343,16 @@
      "name": "qemu-system-x86"
     },
     "name": "qemu-system-x86"
+   }
+  },
+  "qjackctl": {
+   "apt\\qjackctl": {
+    "driver": "apt",
+    "fields": {
+     "name": "qjackctl",
+     "repo-component": "universe"
+    },
+    "name": "qjackctl"
    }
   },
   "quicklisp": {
@@ -30670,6 +31516,23 @@
     "name": "software-properties-common"
    }
   },
+  "sonic-pi": {
+   "apt\\flatpak": {
+    "driver": "apt",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\sonic-pi": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "net.sonic_pi.SonicPi"
+    },
+    "name": "net.sonic_pi.SonicPi"
+   }
+  },
   "steam": {
    "apt\\flatpak": {
     "driver": "apt",
@@ -30694,6 +31557,16 @@
      "name": "strace"
     },
     "name": "strace"
+   }
+  },
+  "supercollider": {
+   "apt\\supercollider": {
+    "driver": "apt",
+    "fields": {
+     "name": "supercollider",
+     "repo-component": "universe"
+    },
+    "name": "supercollider"
    }
   },
   "sway": {
