@@ -583,6 +583,23 @@
     "name": "curl"
    }
   },
+  "darktable": {
+   "flatpak\\darktable": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "org.darktable.Darktable"
+    },
+    "name": "org.darktable.Darktable"
+   },
+   "pacman\\flatpak": {
+    "driver": "pacman",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   }
+  },
   "deno": {
    "pacman\\deno": {
     "driver": "pacman",
@@ -599,6 +616,23 @@
      "name": "bind"
     },
     "name": "bind"
+   }
+  },
+  "digikam": {
+   "flatpak\\digikam": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "org.kde.digikam"
+    },
+    "name": "org.kde.digikam"
+   },
+   "pacman\\flatpak": {
+    "driver": "pacman",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
    }
   },
   "discord": {
@@ -826,6 +860,23 @@
     "name": "fontconfig"
    }
   },
+  "freecad": {
+   "flatpak\\freecad": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "org.freecad.FreeCAD"
+    },
+    "name": "org.freecad.FreeCAD"
+   },
+   "pacman\\flatpak": {
+    "driver": "pacman",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   }
+  },
   "fzf": {
    "pacman\\fzf": {
     "driver": "pacman",
@@ -932,6 +983,23 @@
      "name": "go"
     },
     "name": "go"
+   }
+  },
+  "godot": {
+   "flatpak\\godot": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "org.godotengine.Godot"
+    },
+    "name": "org.godotengine.Godot"
+   },
+   "pacman\\flatpak": {
+    "driver": "pacman",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
    }
   },
   "goimports": {
@@ -1121,6 +1189,23 @@
      "name": "iftop"
     },
     "name": "iftop"
+   }
+  },
+  "inkscape": {
+   "flatpak\\inkscape": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "org.inkscape.Inkscape"
+    },
+    "name": "org.inkscape.Inkscape"
+   },
+   "pacman\\flatpak": {
+    "driver": "pacman",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
    }
   },
   "insomnia": {
@@ -1861,6 +1946,23 @@
     "name": "nushell"
    }
   },
+  "obs-studio": {
+   "flatpak\\obs-studio": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "com.obsproject.Studio"
+    },
+    "name": "com.obsproject.Studio"
+   },
+   "pacman\\flatpak": {
+    "driver": "pacman",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   }
+  },
   "ocaml": {
    "pacman\\ocaml": {
     "driver": "pacman",
@@ -1920,6 +2022,23 @@
      "repo-component": "universe"
     },
     "name": "opam"
+   }
+  },
+  "openscad": {
+   "flatpak\\openscad": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "org.openscad.OpenSCAD"
+    },
+    "name": "org.openscad.OpenSCAD"
+   },
+   "pacman\\flatpak": {
+    "driver": "pacman",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
    }
   },
   "opera": {
@@ -2159,6 +2278,23 @@
      "repo-component": "universe"
     },
     "name": "sbcl"
+   }
+  },
+  "scribus": {
+   "flatpak\\scribus": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "net.scribus.Scribus"
+    },
+    "name": "net.scribus.Scribus"
+   },
+   "pacman\\flatpak": {
+    "driver": "pacman",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
    }
   },
   "sdkman": {
@@ -3750,6 +3886,23 @@
     "name": "curl"
    }
   },
+  "darktable": {
+   "apt\\flatpak": {
+    "driver": "apt",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\darktable": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "org.darktable.Darktable"
+    },
+    "name": "org.darktable.Darktable"
+   }
+  },
   "deno": {
    "apt\\curl": {
     "driver": "apt",
@@ -3785,6 +3938,23 @@
      "name": "dnsutils"
     },
     "name": "dnsutils"
+   }
+  },
+  "digikam": {
+   "apt\\flatpak": {
+    "driver": "apt",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\digikam": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "org.kde.digikam"
+    },
+    "name": "org.kde.digikam"
    }
   },
   "discord": {
@@ -4015,6 +4185,23 @@
      "name": "fontconfig"
     },
     "name": "fontconfig"
+   }
+  },
+  "freecad": {
+   "apt\\flatpak": {
+    "driver": "apt",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\freecad": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "org.freecad.FreeCAD"
+    },
+    "name": "org.freecad.FreeCAD"
    }
   },
   "fzf": {
@@ -4287,6 +4474,23 @@
     "name": "golang-go"
    }
   },
+  "godot": {
+   "apt\\flatpak": {
+    "driver": "apt",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\godot": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "org.godotengine.Godot"
+    },
+    "name": "org.godotengine.Godot"
+   }
+  },
   "goimports": {
    "apt\\go": {
     "driver": "apt",
@@ -4485,6 +4689,23 @@
      "name": "iftop"
     },
     "name": "iftop"
+   }
+  },
+  "inkscape": {
+   "apt\\flatpak": {
+    "driver": "apt",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\inkscape": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "org.inkscape.Inkscape"
+    },
+    "name": "org.inkscape.Inkscape"
    }
   },
   "insomnia": {
@@ -5359,6 +5580,23 @@
     "name": "nushell"
    }
   },
+  "obs-studio": {
+   "apt\\flatpak": {
+    "driver": "apt",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\obs-studio": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "com.obsproject.Studio"
+    },
+    "name": "com.obsproject.Studio"
+   }
+  },
   "ocaml": {
    "apt\\ocaml": {
     "driver": "apt",
@@ -5423,6 +5661,23 @@
      "repo-component": "universe"
     },
     "name": "opam"
+   }
+  },
+  "openscad": {
+   "apt\\flatpak": {
+    "driver": "apt",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\openscad": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "org.openscad.OpenSCAD"
+    },
+    "name": "org.openscad.OpenSCAD"
    }
   },
   "opera": {
@@ -5682,6 +5937,23 @@
      "repo-component": "universe"
     },
     "name": "sbcl"
+   }
+  },
+  "scribus": {
+   "apt\\flatpak": {
+    "driver": "apt",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\scribus": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "net.scribus.Scribus"
+    },
+    "name": "net.scribus.Scribus"
    }
   },
   "sdkman": {
@@ -7230,6 +7502,23 @@
     "name": "curl"
    }
   },
+  "darktable": {
+   "apt\\flatpak": {
+    "driver": "apt",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\darktable": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "org.darktable.Darktable"
+    },
+    "name": "org.darktable.Darktable"
+   }
+  },
   "deno": {
    "apt\\curl": {
     "driver": "apt",
@@ -7265,6 +7554,23 @@
      "name": "dnsutils"
     },
     "name": "dnsutils"
+   }
+  },
+  "digikam": {
+   "apt\\flatpak": {
+    "driver": "apt",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\digikam": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "org.kde.digikam"
+    },
+    "name": "org.kde.digikam"
    }
   },
   "discord": {
@@ -7495,6 +7801,23 @@
      "name": "fontconfig"
     },
     "name": "fontconfig"
+   }
+  },
+  "freecad": {
+   "apt\\flatpak": {
+    "driver": "apt",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\freecad": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "org.freecad.FreeCAD"
+    },
+    "name": "org.freecad.FreeCAD"
    }
   },
   "fzf": {
@@ -7767,6 +8090,23 @@
     "name": "golang-go"
    }
   },
+  "godot": {
+   "apt\\flatpak": {
+    "driver": "apt",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\godot": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "org.godotengine.Godot"
+    },
+    "name": "org.godotengine.Godot"
+   }
+  },
   "goimports": {
    "apt\\go": {
     "driver": "apt",
@@ -7965,6 +8305,23 @@
      "name": "iftop"
     },
     "name": "iftop"
+   }
+  },
+  "inkscape": {
+   "apt\\flatpak": {
+    "driver": "apt",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\inkscape": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "org.inkscape.Inkscape"
+    },
+    "name": "org.inkscape.Inkscape"
    }
   },
   "insomnia": {
@@ -8819,6 +9176,23 @@
     "name": "nushell"
    }
   },
+  "obs-studio": {
+   "apt\\flatpak": {
+    "driver": "apt",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\obs-studio": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "com.obsproject.Studio"
+    },
+    "name": "com.obsproject.Studio"
+   }
+  },
   "ocaml": {
    "apt\\ocaml": {
     "driver": "apt",
@@ -8883,6 +9257,23 @@
      "repo-component": "universe"
     },
     "name": "opam"
+   }
+  },
+  "openscad": {
+   "apt\\flatpak": {
+    "driver": "apt",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\openscad": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "org.openscad.OpenSCAD"
+    },
+    "name": "org.openscad.OpenSCAD"
    }
   },
   "opera": {
@@ -9122,6 +9513,23 @@
      "repo-component": "universe"
     },
     "name": "sbcl"
+   }
+  },
+  "scribus": {
+   "apt\\flatpak": {
+    "driver": "apt",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\scribus": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "net.scribus.Scribus"
+    },
+    "name": "net.scribus.Scribus"
    }
   },
   "sdkman": {
@@ -10563,6 +10971,23 @@
     "name": "curl"
    }
   },
+  "darktable": {
+   "dnf\\flatpak": {
+    "driver": "dnf",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\darktable": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "org.darktable.Darktable"
+    },
+    "name": "org.darktable.Darktable"
+   }
+  },
   "deno": {
    "dnf\\curl": {
     "driver": "dnf",
@@ -10598,6 +11023,23 @@
      "name": "bind-utils"
     },
     "name": "bind-utils"
+   }
+  },
+  "digikam": {
+   "dnf\\flatpak": {
+    "driver": "dnf",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\digikam": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "org.kde.digikam"
+    },
+    "name": "org.kde.digikam"
    }
   },
   "discord": {
@@ -10836,6 +11278,23 @@
     "name": "fontconfig"
    }
   },
+  "freecad": {
+   "dnf\\flatpak": {
+    "driver": "dnf",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\freecad": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "org.freecad.FreeCAD"
+    },
+    "name": "org.freecad.FreeCAD"
+   }
+  },
   "fzf": {
    "dnf\\fzf": {
     "driver": "dnf",
@@ -10955,6 +11414,23 @@
      "name": "golang"
     },
     "name": "golang"
+   }
+  },
+  "godot": {
+   "dnf\\flatpak": {
+    "driver": "dnf",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\godot": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "org.godotengine.Godot"
+    },
+    "name": "org.godotengine.Godot"
    }
   },
   "goimports": {
@@ -11155,6 +11631,23 @@
      "name": "iftop"
     },
     "name": "iftop"
+   }
+  },
+  "inkscape": {
+   "dnf\\flatpak": {
+    "driver": "dnf",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\inkscape": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "org.inkscape.Inkscape"
+    },
+    "name": "org.inkscape.Inkscape"
    }
   },
   "insomnia": {
@@ -11973,6 +12466,23 @@
     "name": "nushell"
    }
   },
+  "obs-studio": {
+   "dnf\\flatpak": {
+    "driver": "dnf",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\obs-studio": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "com.obsproject.Studio"
+    },
+    "name": "com.obsproject.Studio"
+   }
+  },
   "ocaml": {
    "dnf\\ocaml": {
     "driver": "dnf",
@@ -12037,6 +12547,23 @@
      "repo-component": "universe"
     },
     "name": "opam"
+   }
+  },
+  "openscad": {
+   "dnf\\flatpak": {
+    "driver": "dnf",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\openscad": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "org.openscad.OpenSCAD"
+    },
+    "name": "org.openscad.OpenSCAD"
    }
   },
   "opera": {
@@ -12289,6 +12816,23 @@
      "repo-component": "universe"
     },
     "name": "sbcl"
+   }
+  },
+  "scribus": {
+   "dnf\\flatpak": {
+    "driver": "dnf",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\scribus": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "net.scribus.Scribus"
+    },
+    "name": "net.scribus.Scribus"
    }
   },
   "sdkman": {
@@ -13768,6 +14312,23 @@
     "name": "curl"
    }
   },
+  "darktable": {
+   "dnf\\flatpak": {
+    "driver": "dnf",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\darktable": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "org.darktable.Darktable"
+    },
+    "name": "org.darktable.Darktable"
+   }
+  },
   "deno": {
    "dnf\\curl": {
     "driver": "dnf",
@@ -13803,6 +14364,23 @@
      "name": "bind-utils"
     },
     "name": "bind-utils"
+   }
+  },
+  "digikam": {
+   "dnf\\flatpak": {
+    "driver": "dnf",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\digikam": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "org.kde.digikam"
+    },
+    "name": "org.kde.digikam"
    }
   },
   "discord": {
@@ -14041,6 +14619,23 @@
     "name": "fontconfig"
    }
   },
+  "freecad": {
+   "dnf\\flatpak": {
+    "driver": "dnf",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\freecad": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "org.freecad.FreeCAD"
+    },
+    "name": "org.freecad.FreeCAD"
+   }
+  },
   "fzf": {
    "dnf\\fzf": {
     "driver": "dnf",
@@ -14160,6 +14755,23 @@
      "name": "golang"
     },
     "name": "golang"
+   }
+  },
+  "godot": {
+   "dnf\\flatpak": {
+    "driver": "dnf",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\godot": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "org.godotengine.Godot"
+    },
+    "name": "org.godotengine.Godot"
    }
   },
   "goimports": {
@@ -14360,6 +14972,23 @@
      "name": "iftop"
     },
     "name": "iftop"
+   }
+  },
+  "inkscape": {
+   "dnf\\flatpak": {
+    "driver": "dnf",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\inkscape": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "org.inkscape.Inkscape"
+    },
+    "name": "org.inkscape.Inkscape"
    }
   },
   "insomnia": {
@@ -15178,6 +15807,23 @@
     "name": "nushell"
    }
   },
+  "obs-studio": {
+   "dnf\\flatpak": {
+    "driver": "dnf",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\obs-studio": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "com.obsproject.Studio"
+    },
+    "name": "com.obsproject.Studio"
+   }
+  },
   "ocaml": {
    "dnf\\ocaml": {
     "driver": "dnf",
@@ -15242,6 +15888,23 @@
      "repo-component": "universe"
     },
     "name": "opam"
+   }
+  },
+  "openscad": {
+   "dnf\\flatpak": {
+    "driver": "dnf",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\openscad": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "org.openscad.OpenSCAD"
+    },
+    "name": "org.openscad.OpenSCAD"
    }
   },
   "opera": {
@@ -15494,6 +16157,23 @@
      "repo-component": "universe"
     },
     "name": "sbcl"
+   }
+  },
+  "scribus": {
+   "dnf\\flatpak": {
+    "driver": "dnf",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\scribus": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "net.scribus.Scribus"
+    },
+    "name": "net.scribus.Scribus"
    }
   },
   "sdkman": {
@@ -17087,6 +17767,23 @@
     "name": "curl"
    }
   },
+  "darktable": {
+   "apt\\flatpak": {
+    "driver": "apt",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\darktable": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "org.darktable.Darktable"
+    },
+    "name": "org.darktable.Darktable"
+   }
+  },
   "deno": {
    "apt\\curl": {
     "driver": "apt",
@@ -17122,6 +17819,23 @@
      "name": "dnsutils"
     },
     "name": "dnsutils"
+   }
+  },
+  "digikam": {
+   "apt\\flatpak": {
+    "driver": "apt",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\digikam": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "org.kde.digikam"
+    },
+    "name": "org.kde.digikam"
    }
   },
   "discord": {
@@ -17352,6 +18066,23 @@
      "name": "fontconfig"
     },
     "name": "fontconfig"
+   }
+  },
+  "freecad": {
+   "apt\\flatpak": {
+    "driver": "apt",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\freecad": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "org.freecad.FreeCAD"
+    },
+    "name": "org.freecad.FreeCAD"
    }
   },
   "fzf": {
@@ -17624,6 +18355,23 @@
     "name": "golang-go"
    }
   },
+  "godot": {
+   "apt\\flatpak": {
+    "driver": "apt",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\godot": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "org.godotengine.Godot"
+    },
+    "name": "org.godotengine.Godot"
+   }
+  },
   "goimports": {
    "apt\\go": {
     "driver": "apt",
@@ -17822,6 +18570,23 @@
      "name": "iftop"
     },
     "name": "iftop"
+   }
+  },
+  "inkscape": {
+   "apt\\flatpak": {
+    "driver": "apt",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\inkscape": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "org.inkscape.Inkscape"
+    },
+    "name": "org.inkscape.Inkscape"
    }
   },
   "insomnia": {
@@ -18696,6 +19461,23 @@
     "name": "nushell"
    }
   },
+  "obs-studio": {
+   "apt\\flatpak": {
+    "driver": "apt",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\obs-studio": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "com.obsproject.Studio"
+    },
+    "name": "com.obsproject.Studio"
+   }
+  },
   "ocaml": {
    "apt\\ocaml": {
     "driver": "apt",
@@ -18760,6 +19542,23 @@
      "repo-component": "universe"
     },
     "name": "opam"
+   }
+  },
+  "openscad": {
+   "apt\\flatpak": {
+    "driver": "apt",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\openscad": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "org.openscad.OpenSCAD"
+    },
+    "name": "org.openscad.OpenSCAD"
    }
   },
   "opera": {
@@ -19019,6 +19818,23 @@
      "repo-component": "universe"
     },
     "name": "sbcl"
+   }
+  },
+  "scribus": {
+   "apt\\flatpak": {
+    "driver": "apt",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\scribus": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "net.scribus.Scribus"
+    },
+    "name": "net.scribus.Scribus"
    }
   },
   "sdkman": {
@@ -20519,6 +21335,23 @@
     "name": "curl"
    }
   },
+  "darktable": {
+   "dnf\\flatpak": {
+    "driver": "dnf",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\darktable": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "org.darktable.Darktable"
+    },
+    "name": "org.darktable.Darktable"
+   }
+  },
   "deno": {
    "dnf\\curl": {
     "driver": "dnf",
@@ -20554,6 +21387,23 @@
      "name": "bind-utils"
     },
     "name": "bind-utils"
+   }
+  },
+  "digikam": {
+   "dnf\\flatpak": {
+    "driver": "dnf",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\digikam": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "org.kde.digikam"
+    },
+    "name": "org.kde.digikam"
    }
   },
   "discord": {
@@ -20816,6 +21666,23 @@
     "name": "fontconfig"
    }
   },
+  "freecad": {
+   "dnf\\flatpak": {
+    "driver": "dnf",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\freecad": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "org.freecad.FreeCAD"
+    },
+    "name": "org.freecad.FreeCAD"
+   }
+  },
   "fzf": {
    "dnf\\epel-release": {
     "driver": "dnf",
@@ -20955,6 +21822,23 @@
      "name": "golang"
     },
     "name": "golang"
+   }
+  },
+  "godot": {
+   "dnf\\flatpak": {
+    "driver": "dnf",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\godot": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "org.godotengine.Godot"
+    },
+    "name": "org.godotengine.Godot"
    }
   },
   "goimports": {
@@ -21191,6 +22075,23 @@
      "name": "iftop"
     },
     "name": "iftop"
+   }
+  },
+  "inkscape": {
+   "dnf\\flatpak": {
+    "driver": "dnf",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\inkscape": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "org.inkscape.Inkscape"
+    },
+    "name": "org.inkscape.Inkscape"
    }
   },
   "insomnia": {
@@ -22063,6 +22964,23 @@
     "name": "nushell"
    }
   },
+  "obs-studio": {
+   "dnf\\flatpak": {
+    "driver": "dnf",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\obs-studio": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "com.obsproject.Studio"
+    },
+    "name": "com.obsproject.Studio"
+   }
+  },
   "ocaml": {
    "dnf\\ocaml": {
     "driver": "dnf",
@@ -22127,6 +23045,23 @@
      "repo-component": "universe"
     },
     "name": "opam"
+   }
+  },
+  "openscad": {
+   "dnf\\flatpak": {
+    "driver": "dnf",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\openscad": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "org.openscad.OpenSCAD"
+    },
+    "name": "org.openscad.OpenSCAD"
    }
   },
   "opera": {
@@ -22407,6 +23342,23 @@
      "repo-component": "universe"
     },
     "name": "sbcl"
+   }
+  },
+  "scribus": {
+   "dnf\\flatpak": {
+    "driver": "dnf",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\scribus": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "net.scribus.Scribus"
+    },
+    "name": "net.scribus.Scribus"
    }
   },
   "sdkman": {
@@ -24023,6 +24975,23 @@
     "name": "curl"
    }
   },
+  "darktable": {
+   "apt\\flatpak": {
+    "driver": "apt",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\darktable": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "org.darktable.Darktable"
+    },
+    "name": "org.darktable.Darktable"
+   }
+  },
   "deno": {
    "apt\\curl": {
     "driver": "apt",
@@ -24058,6 +25027,23 @@
      "name": "dnsutils"
     },
     "name": "dnsutils"
+   }
+  },
+  "digikam": {
+   "apt\\flatpak": {
+    "driver": "apt",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\digikam": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "org.kde.digikam"
+    },
+    "name": "org.kde.digikam"
    }
   },
   "discord": {
@@ -24288,6 +25274,23 @@
      "name": "fontconfig"
     },
     "name": "fontconfig"
+   }
+  },
+  "freecad": {
+   "apt\\flatpak": {
+    "driver": "apt",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\freecad": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "org.freecad.FreeCAD"
+    },
+    "name": "org.freecad.FreeCAD"
    }
   },
   "fzf": {
@@ -24560,6 +25563,23 @@
     "name": "golang-go"
    }
   },
+  "godot": {
+   "apt\\flatpak": {
+    "driver": "apt",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\godot": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "org.godotengine.Godot"
+    },
+    "name": "org.godotengine.Godot"
+   }
+  },
   "goimports": {
    "apt\\go": {
     "driver": "apt",
@@ -24758,6 +25778,23 @@
      "name": "iftop"
     },
     "name": "iftop"
+   }
+  },
+  "inkscape": {
+   "apt\\flatpak": {
+    "driver": "apt",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\inkscape": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "org.inkscape.Inkscape"
+    },
+    "name": "org.inkscape.Inkscape"
    }
   },
   "insomnia": {
@@ -25632,6 +26669,23 @@
     "name": "nushell"
    }
   },
+  "obs-studio": {
+   "apt\\flatpak": {
+    "driver": "apt",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\obs-studio": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "com.obsproject.Studio"
+    },
+    "name": "com.obsproject.Studio"
+   }
+  },
   "ocaml": {
    "apt\\ocaml": {
     "driver": "apt",
@@ -25696,6 +26750,23 @@
      "repo-component": "universe"
     },
     "name": "opam"
+   }
+  },
+  "openscad": {
+   "apt\\flatpak": {
+    "driver": "apt",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\openscad": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "org.openscad.OpenSCAD"
+    },
+    "name": "org.openscad.OpenSCAD"
    }
   },
   "opera": {
@@ -25955,6 +27026,23 @@
      "repo-component": "universe"
     },
     "name": "sbcl"
+   }
+  },
+  "scribus": {
+   "apt\\flatpak": {
+    "driver": "apt",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\scribus": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "net.scribus.Scribus"
+    },
+    "name": "net.scribus.Scribus"
    }
   },
   "sdkman": {
@@ -27503,6 +28591,23 @@
     "name": "curl"
    }
   },
+  "darktable": {
+   "apt\\flatpak": {
+    "driver": "apt",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\darktable": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "org.darktable.Darktable"
+    },
+    "name": "org.darktable.Darktable"
+   }
+  },
   "deno": {
    "apt\\curl": {
     "driver": "apt",
@@ -27538,6 +28643,23 @@
      "name": "dnsutils"
     },
     "name": "dnsutils"
+   }
+  },
+  "digikam": {
+   "apt\\flatpak": {
+    "driver": "apt",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\digikam": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "org.kde.digikam"
+    },
+    "name": "org.kde.digikam"
    }
   },
   "discord": {
@@ -27768,6 +28890,23 @@
      "name": "fontconfig"
     },
     "name": "fontconfig"
+   }
+  },
+  "freecad": {
+   "apt\\flatpak": {
+    "driver": "apt",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\freecad": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "org.freecad.FreeCAD"
+    },
+    "name": "org.freecad.FreeCAD"
    }
   },
   "fzf": {
@@ -28040,6 +29179,23 @@
     "name": "golang-go"
    }
   },
+  "godot": {
+   "apt\\flatpak": {
+    "driver": "apt",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\godot": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "org.godotengine.Godot"
+    },
+    "name": "org.godotengine.Godot"
+   }
+  },
   "goimports": {
    "apt\\go": {
     "driver": "apt",
@@ -28238,6 +29394,23 @@
      "name": "iftop"
     },
     "name": "iftop"
+   }
+  },
+  "inkscape": {
+   "apt\\flatpak": {
+    "driver": "apt",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\inkscape": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "org.inkscape.Inkscape"
+    },
+    "name": "org.inkscape.Inkscape"
    }
   },
   "insomnia": {
@@ -29092,6 +30265,23 @@
     "name": "nushell"
    }
   },
+  "obs-studio": {
+   "apt\\flatpak": {
+    "driver": "apt",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\obs-studio": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "com.obsproject.Studio"
+    },
+    "name": "com.obsproject.Studio"
+   }
+  },
   "ocaml": {
    "apt\\ocaml": {
     "driver": "apt",
@@ -29156,6 +30346,23 @@
      "repo-component": "universe"
     },
     "name": "opam"
+   }
+  },
+  "openscad": {
+   "apt\\flatpak": {
+    "driver": "apt",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\openscad": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "org.openscad.OpenSCAD"
+    },
+    "name": "org.openscad.OpenSCAD"
    }
   },
   "opera": {
@@ -29395,6 +30602,23 @@
      "repo-component": "universe"
     },
     "name": "sbcl"
+   }
+  },
+  "scribus": {
+   "apt\\flatpak": {
+    "driver": "apt",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\scribus": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "net.scribus.Scribus"
+    },
+    "name": "net.scribus.Scribus"
    }
   },
   "sdkman": {

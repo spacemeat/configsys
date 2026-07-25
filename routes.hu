@@ -574,6 +574,16 @@
         }
         ardour: { install: [ { via: flatpak  hub: flathub  app: org.ardour.Ardour } ] }
         lmms:   { install: [ { via: flatpak  hub: flathub  app: io.lmms.LMMS } ] }
+
+        // --- digital-art tools (Flathub, matching gimp/krita/ardour above — uniform across distros) ---
+        inkscape:   { install: [ { via: flatpak  hub: flathub  app: org.inkscape.Inkscape } ] }
+        darktable:  { install: [ { via: flatpak  hub: flathub  app: org.darktable.Darktable } ] }
+        freecad:    { install: [ { via: flatpak  hub: flathub  app: org.freecad.FreeCAD } ] }
+        openscad:   { install: [ { via: flatpak  hub: flathub  app: org.openscad.OpenSCAD } ] }
+        godot:      { install: [ { via: flatpak  hub: flathub  app: org.godotengine.Godot } ] }
+        scribus:    { install: [ { via: flatpak  hub: flathub  app: net.scribus.Scribus } ] }
+        digikam:    { install: [ { via: flatpak  hub: flathub  app: org.kde.digikam } ] }
+        obs-studio: { install: [ { via: flatpak  hub: flathub  app: com.obsproject.Studio } ] }
         // tenacity: the telemetry-free Audacity fork. No reliable native package anywhere, so
         // flatpak-only (unroutable on Alpine -> surfaces as a diagnostic, never a crash).
         tenacity: { install: [ { via: flatpak  hub: flathub  app: org.tenacityaudio.Tenacity } ] }

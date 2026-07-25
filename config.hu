@@ -61,6 +61,21 @@
             vulkan-dev
             blender
         ]
+        // Digital-art workstation: 2D/photo/vector/3D/DTP + capture.
+        artist: [
+            +user
+            blender
+            krita
+            gimp
+            inkscape
+            darktable
+            freecad
+            openscad
+            godot
+            scribus
+            digikam
+            obs-studio
+        ]
         // Pure additive tool bundles (no +user) — compose onto a base, e.g. a workstation runs
         // [ user, networking ] and a headless box runs just [ networking ]. Neither is in the
         // default `configs:` above; activate per-machine.
