@@ -1871,6 +1871,16 @@
     "name": "ocaml"
    }
   },
+  "octave": {
+   "pacman\\octave": {
+    "driver": "pacman",
+    "fields": {
+     "name": "octave",
+     "repo-component": "universe"
+    },
+    "name": "octave"
+   }
+  },
   "odin": {
    "pacman\\curl": {
     "driver": "pacman",
@@ -2056,6 +2066,37 @@
     "name": "qemu-base"
    }
   },
+  "quicklisp": {
+   "pacman\\sbcl": {
+    "driver": "pacman",
+    "fields": {
+     "name": "sbcl",
+     "repo-component": "universe"
+    },
+    "name": "sbcl"
+   },
+   "script\\quicklisp": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "curl -fsSL https://beta.quicklisp.org/quicklisp.lisp -o /tmp/quicklisp.lisp && printf \"\\n\" | sbcl --non-interactive --load /tmp/quicklisp.lisp --eval \"(quicklisp-quickstart:install)\" --eval \"(ql:add-to-init-file)\" && rm -f /tmp/quicklisp.lisp",
+     "location": "~/quicklisp",
+     "name": "quicklisp",
+     "uninstall-cmd": "rm -rf \"$HOME/quicklisp\"",
+     "version-cmd": "test -d \"$HOME/quicklisp\" && echo present"
+    },
+    "name": "quicklisp"
+   }
+  },
+  "r": {
+   "pacman\\r": {
+    "driver": "pacman",
+    "fields": {
+     "name": "r",
+     "repo-component": "universe"
+    },
+    "name": "r"
+   }
+  },
   "ripgrep": {
    "pacman\\ripgrep": {
     "driver": "pacman",
@@ -2108,6 +2149,16 @@
      "name": "salt"
     },
     "name": "salt"
+   }
+  },
+  "sbcl": {
+   "pacman\\sbcl": {
+    "driver": "pacman",
+    "fields": {
+     "name": "sbcl",
+     "repo-component": "universe"
+    },
+    "name": "sbcl"
    }
   },
   "sdkman": {
@@ -5318,6 +5369,16 @@
     "name": "ocaml"
    }
   },
+  "octave": {
+   "apt\\octave": {
+    "driver": "apt",
+    "fields": {
+     "name": "octave",
+     "repo-component": "universe"
+    },
+    "name": "octave"
+   }
+  },
   "odin": {
    "apt\\curl": {
     "driver": "apt",
@@ -5518,6 +5579,37 @@
     "name": "qemu-system-x86"
    }
   },
+  "quicklisp": {
+   "apt\\sbcl": {
+    "driver": "apt",
+    "fields": {
+     "name": "sbcl",
+     "repo-component": "universe"
+    },
+    "name": "sbcl"
+   },
+   "script\\quicklisp": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "curl -fsSL https://beta.quicklisp.org/quicklisp.lisp -o /tmp/quicklisp.lisp && printf \"\\n\" | sbcl --non-interactive --load /tmp/quicklisp.lisp --eval \"(quicklisp-quickstart:install)\" --eval \"(ql:add-to-init-file)\" && rm -f /tmp/quicklisp.lisp",
+     "location": "~/quicklisp",
+     "name": "quicklisp",
+     "uninstall-cmd": "rm -rf \"$HOME/quicklisp\"",
+     "version-cmd": "test -d \"$HOME/quicklisp\" && echo present"
+    },
+    "name": "quicklisp"
+   }
+  },
+  "r": {
+   "apt\\r": {
+    "driver": "apt",
+    "fields": {
+     "name": "r-base",
+     "repo-component": "universe"
+    },
+    "name": "r-base"
+   }
+  },
   "ripgrep": {
    "apt\\ripgrep": {
     "driver": "apt",
@@ -5580,6 +5672,16 @@
      "name": "salt"
     },
     "name": "salt"
+   }
+  },
+  "sbcl": {
+   "apt\\sbcl": {
+    "driver": "apt",
+    "fields": {
+     "name": "sbcl",
+     "repo-component": "universe"
+    },
+    "name": "sbcl"
    }
   },
   "sdkman": {
@@ -8727,6 +8829,16 @@
     "name": "ocaml"
    }
   },
+  "octave": {
+   "apt\\octave": {
+    "driver": "apt",
+    "fields": {
+     "name": "octave",
+     "repo-component": "universe"
+    },
+    "name": "octave"
+   }
+  },
   "odin": {
    "apt\\curl": {
     "driver": "apt",
@@ -8917,6 +9029,37 @@
     "name": "qemu-system-x86"
    }
   },
+  "quicklisp": {
+   "apt\\sbcl": {
+    "driver": "apt",
+    "fields": {
+     "name": "sbcl",
+     "repo-component": "universe"
+    },
+    "name": "sbcl"
+   },
+   "script\\quicklisp": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "curl -fsSL https://beta.quicklisp.org/quicklisp.lisp -o /tmp/quicklisp.lisp && printf \"\\n\" | sbcl --non-interactive --load /tmp/quicklisp.lisp --eval \"(quicklisp-quickstart:install)\" --eval \"(ql:add-to-init-file)\" && rm -f /tmp/quicklisp.lisp",
+     "location": "~/quicklisp",
+     "name": "quicklisp",
+     "uninstall-cmd": "rm -rf \"$HOME/quicklisp\"",
+     "version-cmd": "test -d \"$HOME/quicklisp\" && echo present"
+    },
+    "name": "quicklisp"
+   }
+  },
+  "r": {
+   "apt\\r": {
+    "driver": "apt",
+    "fields": {
+     "name": "r-base",
+     "repo-component": "universe"
+    },
+    "name": "r-base"
+   }
+  },
   "ripgrep": {
    "apt\\ripgrep": {
     "driver": "apt",
@@ -8969,6 +9112,16 @@
      "name": "salt"
     },
     "name": "salt"
+   }
+  },
+  "sbcl": {
+   "apt\\sbcl": {
+    "driver": "apt",
+    "fields": {
+     "name": "sbcl",
+     "repo-component": "universe"
+    },
+    "name": "sbcl"
    }
   },
   "sdkman": {
@@ -11830,6 +11983,16 @@
     "name": "ocaml"
    }
   },
+  "octave": {
+   "dnf\\octave": {
+    "driver": "dnf",
+    "fields": {
+     "name": "octave",
+     "repo-component": "universe"
+    },
+    "name": "octave"
+   }
+  },
   "odin": {
    "dnf\\curl": {
     "driver": "dnf",
@@ -12020,6 +12183,37 @@
     "name": "qemu-kvm"
    }
   },
+  "quicklisp": {
+   "dnf\\sbcl": {
+    "driver": "dnf",
+    "fields": {
+     "name": "sbcl",
+     "repo-component": "universe"
+    },
+    "name": "sbcl"
+   },
+   "script\\quicklisp": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "curl -fsSL https://beta.quicklisp.org/quicklisp.lisp -o /tmp/quicklisp.lisp && printf \"\\n\" | sbcl --non-interactive --load /tmp/quicklisp.lisp --eval \"(quicklisp-quickstart:install)\" --eval \"(ql:add-to-init-file)\" && rm -f /tmp/quicklisp.lisp",
+     "location": "~/quicklisp",
+     "name": "quicklisp",
+     "uninstall-cmd": "rm -rf \"$HOME/quicklisp\"",
+     "version-cmd": "test -d \"$HOME/quicklisp\" && echo present"
+    },
+    "name": "quicklisp"
+   }
+  },
+  "r": {
+   "dnf\\r": {
+    "driver": "dnf",
+    "fields": {
+     "name": "R",
+     "repo-component": "universe"
+    },
+    "name": "R"
+   }
+  },
   "ripgrep": {
    "dnf\\ripgrep": {
     "driver": "dnf",
@@ -12085,6 +12279,16 @@
      "name": "salt"
     },
     "name": "salt"
+   }
+  },
+  "sbcl": {
+   "dnf\\sbcl": {
+    "driver": "dnf",
+    "fields": {
+     "name": "sbcl",
+     "repo-component": "universe"
+    },
+    "name": "sbcl"
    }
   },
   "sdkman": {
@@ -14984,6 +15188,16 @@
     "name": "ocaml"
    }
   },
+  "octave": {
+   "dnf\\octave": {
+    "driver": "dnf",
+    "fields": {
+     "name": "octave",
+     "repo-component": "universe"
+    },
+    "name": "octave"
+   }
+  },
   "odin": {
    "dnf\\curl": {
     "driver": "dnf",
@@ -15174,6 +15388,37 @@
     "name": "qemu-kvm"
    }
   },
+  "quicklisp": {
+   "dnf\\sbcl": {
+    "driver": "dnf",
+    "fields": {
+     "name": "sbcl",
+     "repo-component": "universe"
+    },
+    "name": "sbcl"
+   },
+   "script\\quicklisp": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "curl -fsSL https://beta.quicklisp.org/quicklisp.lisp -o /tmp/quicklisp.lisp && printf \"\\n\" | sbcl --non-interactive --load /tmp/quicklisp.lisp --eval \"(quicklisp-quickstart:install)\" --eval \"(ql:add-to-init-file)\" && rm -f /tmp/quicklisp.lisp",
+     "location": "~/quicklisp",
+     "name": "quicklisp",
+     "uninstall-cmd": "rm -rf \"$HOME/quicklisp\"",
+     "version-cmd": "test -d \"$HOME/quicklisp\" && echo present"
+    },
+    "name": "quicklisp"
+   }
+  },
+  "r": {
+   "dnf\\r": {
+    "driver": "dnf",
+    "fields": {
+     "name": "R",
+     "repo-component": "universe"
+    },
+    "name": "R"
+   }
+  },
   "ripgrep": {
    "dnf\\ripgrep": {
     "driver": "dnf",
@@ -15239,6 +15484,16 @@
      "name": "salt"
     },
     "name": "salt"
+   }
+  },
+  "sbcl": {
+   "dnf\\sbcl": {
+    "driver": "dnf",
+    "fields": {
+     "name": "sbcl",
+     "repo-component": "universe"
+    },
+    "name": "sbcl"
    }
   },
   "sdkman": {
@@ -18451,6 +18706,16 @@
     "name": "ocaml"
    }
   },
+  "octave": {
+   "apt\\octave": {
+    "driver": "apt",
+    "fields": {
+     "name": "octave",
+     "repo-component": "universe"
+    },
+    "name": "octave"
+   }
+  },
   "odin": {
    "apt\\curl": {
     "driver": "apt",
@@ -18651,6 +18916,37 @@
     "name": "qemu-system-x86"
    }
   },
+  "quicklisp": {
+   "apt\\sbcl": {
+    "driver": "apt",
+    "fields": {
+     "name": "sbcl",
+     "repo-component": "universe"
+    },
+    "name": "sbcl"
+   },
+   "script\\quicklisp": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "curl -fsSL https://beta.quicklisp.org/quicklisp.lisp -o /tmp/quicklisp.lisp && printf \"\\n\" | sbcl --non-interactive --load /tmp/quicklisp.lisp --eval \"(quicklisp-quickstart:install)\" --eval \"(ql:add-to-init-file)\" && rm -f /tmp/quicklisp.lisp",
+     "location": "~/quicklisp",
+     "name": "quicklisp",
+     "uninstall-cmd": "rm -rf \"$HOME/quicklisp\"",
+     "version-cmd": "test -d \"$HOME/quicklisp\" && echo present"
+    },
+    "name": "quicklisp"
+   }
+  },
+  "r": {
+   "apt\\r": {
+    "driver": "apt",
+    "fields": {
+     "name": "r-base",
+     "repo-component": "universe"
+    },
+    "name": "r-base"
+   }
+  },
   "ripgrep": {
    "apt\\ripgrep": {
     "driver": "apt",
@@ -18713,6 +19009,16 @@
      "name": "salt"
     },
     "name": "salt"
+   }
+  },
+  "sbcl": {
+   "apt\\sbcl": {
+    "driver": "apt",
+    "fields": {
+     "name": "sbcl",
+     "repo-component": "universe"
+    },
+    "name": "sbcl"
    }
   },
   "sdkman": {
@@ -21767,6 +22073,16 @@
     "name": "ocaml"
    }
   },
+  "octave": {
+   "dnf\\octave": {
+    "driver": "dnf",
+    "fields": {
+     "name": "octave",
+     "repo-component": "universe"
+    },
+    "name": "octave"
+   }
+  },
   "odin": {
    "dnf\\curl": {
     "driver": "dnf",
@@ -21964,6 +22280,37 @@
     "name": "qemu-kvm"
    }
   },
+  "quicklisp": {
+   "dnf\\sbcl": {
+    "driver": "dnf",
+    "fields": {
+     "name": "sbcl",
+     "repo-component": "universe"
+    },
+    "name": "sbcl"
+   },
+   "script\\quicklisp": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "curl -fsSL https://beta.quicklisp.org/quicklisp.lisp -o /tmp/quicklisp.lisp && printf \"\\n\" | sbcl --non-interactive --load /tmp/quicklisp.lisp --eval \"(quicklisp-quickstart:install)\" --eval \"(ql:add-to-init-file)\" && rm -f /tmp/quicklisp.lisp",
+     "location": "~/quicklisp",
+     "name": "quicklisp",
+     "uninstall-cmd": "rm -rf \"$HOME/quicklisp\"",
+     "version-cmd": "test -d \"$HOME/quicklisp\" && echo present"
+    },
+    "name": "quicklisp"
+   }
+  },
+  "r": {
+   "dnf\\r": {
+    "driver": "dnf",
+    "fields": {
+     "name": "R",
+     "repo-component": "universe"
+    },
+    "name": "R"
+   }
+  },
   "ripgrep": {
    "dnf\\epel-release": {
     "driver": "dnf",
@@ -22050,6 +22397,16 @@
      "name": "salt"
     },
     "name": "salt"
+   }
+  },
+  "sbcl": {
+   "dnf\\sbcl": {
+    "driver": "dnf",
+    "fields": {
+     "name": "sbcl",
+     "repo-component": "universe"
+    },
+    "name": "sbcl"
    }
   },
   "sdkman": {
@@ -25285,6 +25642,16 @@
     "name": "ocaml"
    }
   },
+  "octave": {
+   "apt\\octave": {
+    "driver": "apt",
+    "fields": {
+     "name": "octave",
+     "repo-component": "universe"
+    },
+    "name": "octave"
+   }
+  },
   "odin": {
    "apt\\curl": {
     "driver": "apt",
@@ -25485,6 +25852,37 @@
     "name": "qemu-system-x86"
    }
   },
+  "quicklisp": {
+   "apt\\sbcl": {
+    "driver": "apt",
+    "fields": {
+     "name": "sbcl",
+     "repo-component": "universe"
+    },
+    "name": "sbcl"
+   },
+   "script\\quicklisp": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "curl -fsSL https://beta.quicklisp.org/quicklisp.lisp -o /tmp/quicklisp.lisp && printf \"\\n\" | sbcl --non-interactive --load /tmp/quicklisp.lisp --eval \"(quicklisp-quickstart:install)\" --eval \"(ql:add-to-init-file)\" && rm -f /tmp/quicklisp.lisp",
+     "location": "~/quicklisp",
+     "name": "quicklisp",
+     "uninstall-cmd": "rm -rf \"$HOME/quicklisp\"",
+     "version-cmd": "test -d \"$HOME/quicklisp\" && echo present"
+    },
+    "name": "quicklisp"
+   }
+  },
+  "r": {
+   "apt\\r": {
+    "driver": "apt",
+    "fields": {
+     "name": "r-base",
+     "repo-component": "universe"
+    },
+    "name": "r-base"
+   }
+  },
   "ripgrep": {
    "apt\\ripgrep": {
     "driver": "apt",
@@ -25547,6 +25945,16 @@
      "name": "salt"
     },
     "name": "salt"
+   }
+  },
+  "sbcl": {
+   "apt\\sbcl": {
+    "driver": "apt",
+    "fields": {
+     "name": "sbcl",
+     "repo-component": "universe"
+    },
+    "name": "sbcl"
    }
   },
   "sdkman": {
@@ -28694,6 +29102,16 @@
     "name": "ocaml"
    }
   },
+  "octave": {
+   "apt\\octave": {
+    "driver": "apt",
+    "fields": {
+     "name": "octave",
+     "repo-component": "universe"
+    },
+    "name": "octave"
+   }
+  },
   "odin": {
    "apt\\curl": {
     "driver": "apt",
@@ -28884,6 +29302,37 @@
     "name": "qemu-system-x86"
    }
   },
+  "quicklisp": {
+   "apt\\sbcl": {
+    "driver": "apt",
+    "fields": {
+     "name": "sbcl",
+     "repo-component": "universe"
+    },
+    "name": "sbcl"
+   },
+   "script\\quicklisp": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "curl -fsSL https://beta.quicklisp.org/quicklisp.lisp -o /tmp/quicklisp.lisp && printf \"\\n\" | sbcl --non-interactive --load /tmp/quicklisp.lisp --eval \"(quicklisp-quickstart:install)\" --eval \"(ql:add-to-init-file)\" && rm -f /tmp/quicklisp.lisp",
+     "location": "~/quicklisp",
+     "name": "quicklisp",
+     "uninstall-cmd": "rm -rf \"$HOME/quicklisp\"",
+     "version-cmd": "test -d \"$HOME/quicklisp\" && echo present"
+    },
+    "name": "quicklisp"
+   }
+  },
+  "r": {
+   "apt\\r": {
+    "driver": "apt",
+    "fields": {
+     "name": "r-base",
+     "repo-component": "universe"
+    },
+    "name": "r-base"
+   }
+  },
   "ripgrep": {
    "apt\\ripgrep": {
     "driver": "apt",
@@ -28936,6 +29385,16 @@
      "name": "salt"
     },
     "name": "salt"
+   }
+  },
+  "sbcl": {
+   "apt\\sbcl": {
+    "driver": "apt",
+    "fields": {
+     "name": "sbcl",
+     "repo-component": "universe"
+    },
+    "name": "sbcl"
    }
   },
   "sdkman": {
