@@ -186,6 +186,26 @@ def merge_named(layers, section, roles=None):
     return out
 
 
+def merge_name_overrides(layers, roles=None):
+    '''Overlay the `component-names` section across layers -> {driver: {component: pkg-or-{}}}.
+    A higher layer patches a LOWER layer's package name for a component under a given driver,
+    WITHOUT redefining the component (the all-or-nothing `components:` override is too blunt for
+    "docker is `docker` under xbps"). `{}` (or null) means that driver has no package for the
+    component -> it's dropped there (mirrors the `{}` = remove convention). Driver-keyed, so it
+    expresses cross-driver name facts (Void's xbps names), NOT same-driver splits like Ubuntu-vs-
+    Debian perf (both apt) — those stay `when:` splits. Later layers win per (driver, component).'''
+    out = {}
+    for layer in layers:
+        if roles is not None and layer.role not in roles:
+            continue
+        sec = layer.data.get('component-names')
+        if isinstance(sec, dict):
+            for driver, comp_map in sec.items():
+                if isinstance(comp_map, dict):
+                    out.setdefault(driver, {}).update(comp_map)
+    return out
+
+
 def merge_scalar(layers, section, roles):
     '''Last (highest-precedence) value for a single-valued section, among `roles` layers.'''
     val = None

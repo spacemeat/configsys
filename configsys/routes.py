@@ -176,6 +176,9 @@ class Resolver:
         self.cascade, self.components, self.drivers = load(
             routes_path, overrides_path, discovered, plugin_files,
             warnings_out=self.load_warnings, layers_out=self.layers)
+        # per-driver package-name patches for existing components (a plugin OS supplying its
+        # own names / dropping absent ones) — overlaid across the whole layer stack.
+        self.overrides = layers.merge_name_overrides(self.layers)
         self.block = block
         self.version = version
         self.cpu = cpu
@@ -189,7 +192,7 @@ class Resolver:
     def _resolve(self, names):
         from .resolve import resolve_roots
         return resolve_roots(list(names), self.cascade, self.components, self.drivers,
-                             self.block, self.version, self.cpu, self.pins)
+                             self.block, self.version, self.cpu, self.pins, self.overrides)
 
     def resolve_names(self, names):
         from .adapt import to_resolved_components
@@ -202,7 +205,7 @@ class Resolver:
         from .resolve import resolve_resilient
         units, errors = resolve_resilient(list(names), self.cascade, self.components,
                                           self.drivers, self.block, self.version,
-                                          self.cpu, self.pins)
+                                          self.cpu, self.pins, self.overrides)
         return to_resolved_components(units), errors
 
     def resolve_with_roots(self, names):

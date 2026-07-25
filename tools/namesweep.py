@@ -179,10 +179,12 @@ def sweep(only=None):
     return 0
 
 
-def sweep_plugin(plugin, context, manager, image, setup=''):
+def sweep_plugin(plugin, context, manager, image, setup='', allowlist=None):
     '''Sweep a PLUGIN OS: resolve the catalog on `context` with the plugin loaded, collect its
     `manager` package names, and verify them exist in `image` (after `setup`). Reuses the core
-    allowlist for that manager (so e.g. Proxmox inherits apt's vendor-SDK exceptions).'''
+    allowlist for that manager (so e.g. Proxmox inherits apt's vendor-SDK exceptions), unioned
+    with an optional plugin-local `allowlist` file (Void ships its own for the GPU SDKs, keyed by
+    the plugin's own driver e.g. `xbps`).'''
     if not shutil.which('podman'):
         print('namesweep: podman not found', file=sys.stderr)
         return 2
@@ -194,6 +196,8 @@ def sweep_plugin(plugin, context, manager, image, setup=''):
     names_map = _native_names(context, None, manager, plugin_files=[(plugin, 'plugin')])
     names = sorted(names_map)
     allow = _load_allowlist().get(manager, set())
+    if allowlist:
+        allow = allow | _load_allowlist(allowlist).get(manager, set())
     print(f'>> {context} ({manager}): {len(names)} packages in {image}', file=sys.stderr)
     try:
         missing, _rc = _run_verifier(image, _build_snippet(setup, check), names)
@@ -222,10 +226,12 @@ def main():
     ap.add_argument('--context', help='OS block to resolve against (with --plugin)')
     ap.add_argument('--image', help='container image to verify in (with --plugin)')
     ap.add_argument('--setup', help='shell file: repo setup run before the check (with --plugin)')
+    ap.add_argument('--allowlist', help='plugin-local allowlist .hu, unioned with the core one')
     args = ap.parse_args()
     if args.sweep and args.plugin:
         setup = open(args.setup, encoding='utf-8').read() if args.setup else ''
-        return sweep_plugin(args.plugin, args.context, args.manager, args.image, setup)
+        return sweep_plugin(args.plugin, args.context, args.manager, args.image, setup,
+                            args.allowlist)
     if args.sweep:
         return sweep(only=set(args.only.split(',')) if args.only else None)
     data = extract()

@@ -102,11 +102,17 @@ $ python3 tools/namesweep.py --sweep --plugin <plugin>/routes.hu \
 
 `--plugin` loads the plugin's layers (its `os:` block + components), resolves the whole catalog on
 `--context`, collects the `--manager` package names, and verifies them in `--image` (after
-`--setup`), reusing the core allowlist for that manager. The test itself lives WITH the plugin
-(image + setup are the plugin's business); core just provides the mode. `configsys-proxmox` uses
-this — and because it checks against real Debian (not Ubuntu, like the core apt sweep), it's
-stricter: it's what caught `perf` naming Ubuntu's `linux-tools-generic` (Debian/Proxmox =
-`linux-perf`).
+`--setup`), reusing the core allowlist for that manager (union in a plugin-local one with
+`--allowlist`). The test itself lives WITH the plugin (image + setup are the plugin's business);
+core just provides the mode. Two plugins use it:
+
+- **configsys-proxmox** (`apt` on `debian:12` + the PVE repo). Because it checks against real
+  Debian, not Ubuntu, it's a *stricter* apt check — it's what caught `perf` naming Ubuntu's
+  `linux-tools-generic` (Debian/Proxmox = `linux-perf`).
+- **configsys-void** (`xbps` on `void-glibc`). Void diverges from the generic/Debian defaults, so
+  the plugin carries a `component-names:` map (§10a of the routing model) for ~10 core components
+  (`docker`, `R`, `openjdk21`, `fish-shell`, …) and drops `nmap` (absent on Void); the sweep is
+  what keeps that map honest as Void rolls, and unions the plugin's own vendor-SDK allowlist.
 
 ## Gating & cadence
 

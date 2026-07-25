@@ -11,6 +11,23 @@ class ResolveError(ConfigsysError):
     requirement, ambiguity). A ConfigsysError so the app surfaces it as a clean message.'''
 
 
+# sentinel: no `component-names` entry for this (driver, component) — distinct from an entry
+# whose value is `{}`/null (a DROP: the driver has no package for the component here).
+_NO_OVERRIDE = object()
+
+
+def _name_override(overrides, driver, component):
+    '''(override, drop) for a (driver, component) `component-names` entry. override is the
+    replacement package string (or _NO_OVERRIDE if none); drop is True when the entry is present
+    but not a non-empty string (`{}`/null/"") -> the driver packages nothing for it here.'''
+    val = (overrides or {}).get(driver, {}).get(component, _NO_OVERRIDE)
+    if val is _NO_OVERRIDE:
+        return _NO_OVERRIDE, False
+    if isinstance(val, str) and val.strip():
+        return val, False
+    return _NO_OVERRIDE, True
+
+
 def _as_list(v):
     if v is None:
         return []
@@ -117,19 +134,24 @@ def resolve_asset(binding, cpu):
     return asset
 
 
-def resolve_one(name, cascade, components, block, version=None, cpu=None):
+def resolve_one(name, cascade, components, block, version=None, cpu=None, overrides=None):
     if name not in components:
         raise ResolveError(f'unknown component: {name}')
     comp = components[name]
     ctx = cascade.context(block, version, cpu)
     binding = select_binding(comp, cascade, ctx)
     drv = _driver(binding, cascade, block)
-    return Unit(drv, name, _package(binding, drv, comp))
+    override, drop = _name_override(overrides, drv, name)
+    if drop:
+        raise ResolveError(f'{name}: no {drv} package here (dropped by component-names)')
+    package = override if override is not _NO_OVERRIDE else _package(binding, drv, comp)
+    return Unit(drv, name, package)
 
 
 # -- full resolution: the worklist to a fixpoint ---------------------------
 
-def resolve(names, cascade, components, drivers, block, version=None, cpu=None, pins=None):
+def resolve(names, cascade, components, drivers, block, version=None, cpu=None, pins=None,
+            overrides=None):
     '''Resolve a profile (component names) to the full unit closure for a context.
 
     Phase 1 seeds every explicit want and registers what it provides, BEFORE any
@@ -138,17 +160,23 @@ def resolve(names, cascade, components, drivers, block, version=None, cpu=None, 
     the environment or an already-chosen unit provides. No backtracking: unsatisfiable
     or ambiguous is an error. `pins` (per-machine) force a component's method
     (binding-pin) or a capability's provider (provider-pin), top of precedence.
+    `overrides` (the merged `component-names` section) patches a component's package name
+    per driver, or drops it where the driver has no package (a plugin OS supplying its own
+    names for existing components without redefining them).
     Returns {unit_key: Unit}. Resolving a name yields a SET of keys — one for a normal
     component, several for a `via: parts` aggregator (which has no unit of its own).
     '''
-    return resolve_roots(names, cascade, components, drivers, block, version, cpu, pins)[0]
+    return resolve_roots(names, cascade, components, drivers, block, version, cpu, pins,
+                         overrides)[0]
 
 
-def resolve_roots(names, cascade, components, drivers, block, version=None, cpu=None, pins=None):
+def resolve_roots(names, cascade, components, drivers, block, version=None, cpu=None, pins=None,
+                  overrides=None):
     '''Like resolve(), but also return the set of unit keys bound *directly* by the named
     components (a named parts-component contributes its parts' keys; driver/driver deps
     are not roots). The app applies the requested op to these, and expand_plan folds in deps.'''
-    st = _State(cascade, components, drivers, cascade.context(block, version, cpu), pins or {})
+    st = _State(cascade, components, drivers, cascade.context(block, version, cpu), pins or {},
+                overrides or {})
     roots = set()
     for name in names:
         roots |= st.add_component(name, root=name)  # phase 1: wants + their provides
@@ -158,13 +186,14 @@ def resolve_roots(names, cascade, components, drivers, block, version=None, cpu=
 
 
 def resolve_resilient(names, cascade, components, drivers, block, version=None, cpu=None,
-                      pins=None):
+                      pins=None, overrides=None):
     '''Resilient resolution for the inspect/TUI pipeline: a requested name that can't resolve
     (unknown, no binding here, or an unsatisfiable requirement) is collected into `errors`
     instead of aborting the whole set — everything resolvable still resolves. Returns
     (units, errors) with errors = {requested_name: message}. So one broken component in the
     active set (e.g. from an auto-activated project profile) can't brick the tool.'''
-    st = _State(cascade, components, drivers, cascade.context(block, version, cpu), pins or {})
+    st = _State(cascade, components, drivers, cascade.context(block, version, cpu), pins or {},
+                overrides or {})
     errors = {}
     for name in names:
         try:
@@ -185,12 +214,13 @@ def _bindable(component, cascade, ctx, pins):
 
 
 class _State:
-    def __init__(self, cascade, components, drivers, ctx, pins):
+    def __init__(self, cascade, components, drivers, ctx, pins, overrides=None):
         self.cascade = cascade
         self.components = components
         self.drivers = drivers
         self.ctx = ctx
         self.pins = pins
+        self.overrides = overrides or {}   # {driver: {component: pkg-or-drop}} (component-names)
         self.block = ctx.lineage[0]
         self.units = {}
         # capability -> frozenset of unit keys satisfying it (empty = the environment
@@ -231,11 +261,17 @@ class _State:
             return frozenset(keys)
 
         drv = _driver(binding, self.cascade, self.block)
+        override, drop = _name_override(self.overrides, drv, name)
+        if drop:
+            # this driver packages nothing for the component here -> drop it (a silent no-op,
+            # exactly like a `{}`-removed component): not offered, never an error row.
+            return frozenset()
         key = f'{drv}\\{name}'
         if key in self.units:
             self.units[key].requested_as.add(root)
             return frozenset({key})
-        unit = Unit(drv, name, _package(binding, drv, comp))
+        package = override if override is not _NO_OVERRIDE else _package(binding, drv, comp)
+        unit = Unit(drv, name, package)
         unit.requested_as = {root}
         unit.details = _install_fields(binding.details, unit.package)
         unit.source = comp.source        # the layer/file this component came from

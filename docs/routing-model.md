@@ -308,6 +308,33 @@ and never silently falls back.
 
 Precedence overall: **pin > reuse > auto**.
 
+## 10a. Per-driver name patches (`component-names`)
+
+A component's `name:` map (§3) is driver-keyed and lives *in the component definition*. But a
+**higher layer** — typically a plugin OS — often needs to correct a package name for an
+existing core component without owning that component. The all-or-nothing `components:` override
+is too blunt for "docker is `docker` under xbps"; redefining the whole component desyncs from the
+repo and shadows it everywhere. `component-names` is the light patch:
+
+```
+component-names: {
+    xbps: {                        // keyed by DRIVER
+        docker-engine: docker      // override the package name under this driver
+        r:             R
+        nmap:          {}          // `{}` (or null): this driver has no package for it -> drop
+    }
+}
+```
+
+It overlays across the layer stack (repo < plugin < discovered < user), later wins per
+`(driver, component)`, and applies during resolution *after* the binding + driver are chosen:
+a string replaces the resolved package name; `{}` drops the unit as a silent no-op (not offered,
+never an error row — exactly like a `{}`-removed component). It is **driver-keyed**, so it
+expresses cross-driver name facts (a plugin distro's package names) but deliberately does *not*
+address same-driver splits like Ubuntu-vs-Debian `perf` (both `apt`) — those remain `when:`
+splits. This is the substrate the Void plugin uses to supply its xbps names for the ~10 core
+components whose Void name differs, kept honest by the plugin's name-existence sweep.
+
 ## 11. Tool-version vs OS-version
 
 Two different words, both "version":
