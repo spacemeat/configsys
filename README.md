@@ -1,8 +1,9 @@
 # configsys
 
 One tool to bring a fresh OS install up to *your* setup — the same packages, the same
-versions, the same dotfiles — whether the machine runs Ubuntu, Pop!\_OS, Fedora,
-RHEL/Rocky/Alma, or Arch.
+versions, the same dotfiles — whether the machine runs Debian/Ubuntu/Pop!\_OS/Mint,
+Fedora/RHEL/Rocky/Alma, Arch/Manjaro/EndeavourOS/CachyOS, openSUSE, Alpine, or an immutable
+spin like Bazzite/Fedora Atomic — with still more (Void, Proxmox, …) available as plugins.
 
 You describe **what** you want in a git-synced config; configsys works out **how** to get
 it on *this* machine (apt vs dnf vs pacman, a Flatpak, an AppImage, a tarball, a Cargo
@@ -45,9 +46,11 @@ TUI. Edit that file to pick your **profiles**, then inspect and act.
   `config.hu` and git-synced. Your machine's config picks which profiles apply here.
 - **Driver** — the code that installs/queries/removes one *class* of software, behind a
   uniform op set (install / uninstall / upgrade / set-version / lock / unlock / inspect).
-  Ships: the native managers **apt, dnf, pacman, aur**, plus **flatpak, appImage, tarball,
-  dotfiles, font, cargo, pip, pipx**, and the **gcc / clang / gcc-toolset**
-  toolchains.
+  Ships ~30: system package managers **apt, dnf, pacman, aur, zypper, apk, brew, rpm-ostree**;
+  distribution drivers **flatpak, appImage, tarball, dotfiles, font, script**; language-ecosystem
+  installers **cargo, pip, pipx, npm, gem, opam, luarocks, cabal, go-install**; the **gcc /
+  gcc-toolset / clang** toolchains; and post-install primitives **service** (systemd) and **group**
+  (usermod). `via: native` picks the right system manager per OS; `via: parts` aggregates.
 - **State** — the live system is the source of truth (dpkg/rpm/flatpak/marker files); a
   small ledger (`~/.config/configsys/state.hu`) stores only lock *intent* and configsys
   bookkeeping. Version-lock uses native holds where they exist (`apt-mark`, `dnf
@@ -127,7 +130,7 @@ Your machine's file always wins:
 
     // include: [ ~/src/myproject/configsys.hu ]   // pull in more profiles/components
 
-    // plugins: [ { source: "github:someone/configsys-opensuse"  ref: v1.2.0 } ]
+    // plugins: [ { source: "github:spacemeat/configsys-void"  ref: v0.1.0 } ]
 
     // pins: { steam: flatpak }       // force a driver (binding-pin) or a provider
 
@@ -165,7 +168,7 @@ configsys fix-scope [<name>...]    # reconcile user/system scope mismatches (mov
 configsys where <name>             # explain a component: source layer + bindings + resolution
 configsys check                    # lint the merged config (repo + your file + includes + plugins)
 configsys refresh                  # re-query latest versions from their sources
-configsys plugin <list|sync|add|remove|update|bless|trust|…>   # plugins (see below)
+configsys plugin <list|sync|add|remove|update|bless|trust|untrust>   # plugins (see below)
 configsys report  [<name>]         # file an install-failure report (you approve the text first)
 configsys request <name>           # ask upstream for full cross-platform support (coverage matrix)
 ```
@@ -213,7 +216,7 @@ Plugins are git repos that add routing data (and, later, new drivers) to the lay
 Declare them in your config and sync:
 
 ```console
-$ ./configsys.sh plugin add "github:someone/configsys-opensuse" --ref v1.2.0
+$ ./configsys.sh plugin add "github:spacemeat/configsys-void" --ref v0.1.0
 $ ./configsys.sh plugin list      # declared plugins + their sync/ABI status
 $ ./configsys.sh plugin sync      # clone/fetch all declared plugins to their pinned refs
 ```
@@ -232,8 +235,21 @@ $ ./configsys.sh plugin trust <name>     # binds to a content hash; any code cha
 [`examples/examplos/`](examples/examplos/) is a complete, copy-able example — the fictional
 **ExamplOS** distro with a `toybox` driver + an `examplos` OS block, walked through step by step
 in [its WALKTHROUGH](examples/examplos/WALKTHROUGH.md). It's deliberately fictional so it never
-rots; real OS plugins live in their own repos (configsys-void, configsys-proxmox). See
-[docs/plugins.md](docs/plugins.md) for the full model and the ABI a code plugin targets.
+rots. See [docs/plugins.md](docs/plugins.md) for the full model and the ABI a code plugin targets.
+
+### Known plugins
+
+Real, published plugins — each its own repo, `plugin add github:spacemeat/<name>`:
+
+| Plugin | Adds | Kind |
+| --- | --- | --- |
+| [configsys-void](https://github.com/spacemeat/configsys-void) | Void Linux as a first-class OS — an `xbps` driver + a verified per-distro name map | code (trust-gated) |
+| [configsys-proxmox](https://github.com/spacemeat/configsys-proxmox) | Proxmox VE (a Debian derivative) with `/etc/pve` detection + a `proxmox-admin` profile | data-only |
+| [configsys-blender](https://github.com/spacemeat/configsys-blender) | Blender built from source (editor + `bpy`), GPU backends — a `blender-build` driver overriding base `blender` | code (trust-gated) |
+| [configsys-kicad](https://github.com/spacemeat/configsys-kicad) | KiCad built from source (scripting + SPICE + 3D) — a `kicad-build` driver | code (trust-gated) |
+
+The void and proxmox repos also carry name-existence sweeps (`test/run-name-sweep.sh`) that keep
+their package names honest against a real container image as upstream repos roll.
 
 ## Design notes
 
@@ -253,7 +269,9 @@ $ bash test/run-in-podman.sh         # real apt lifecycle in a disposable contai
 $ bash test/run-flatpak-in-podman.sh # gated: real flatpak --user lifecycle (slow, networked)
 ```
 
-`test/` also holds per-driver `integration_*.sh` checks and `run-*-in-podman.sh` harnesses
-for dnf/pacman/aur/toolchains. Deeper design docs live in
-[`docs/`](docs/): the routing model ([routing-model.md](docs/routing-model.md)) and the
-plugin system ([plugins.md](docs/plugins.md)).
+`test/` also holds per-driver `integration_*.sh` checks and `run-*-in-podman.sh` harnesses for
+dnf/pacman/aur/toolchains, plus `run-name-sweep-in-podman.sh` — a container sweep that verifies
+every native package name configsys maps to still exists in each distro's repos (catching upstream
+renames/removals). Deeper design docs live in [`docs/`](docs/): the routing model
+([routing-model.md](docs/routing-model.md)), the plugin system ([plugins.md](docs/plugins.md)), and
+the name sweep ([name-sweep-test.md](docs/name-sweep-test.md)).
