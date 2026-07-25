@@ -1,0 +1,18 @@
+// Native packages the name-existence sweep (docs/name-sweep-test.md) is EXPECTED not to find,
+// keyed by package manager. Each entry needs a `//` reason. Prefer FIXING the route over
+// allowlisting — only list genuine "lives in a repo the check doesn't enable" or "brand-new,
+// not yet mirrored" cases. The sweep WARNS about a stale entry (one that's now found), so this
+// stays honest.
+{
+    // GPU / accelerator SDKs live in VENDOR repos (or the AUR) the user wires up themselves —
+    // like the OptiX SDK, these need an extra step configsys can't (and the sweep doesn't) do.
+    apt:    [ rocm-hip-sdk        // AMD ROCm apt repo
+              intel-basekit ]     // Intel oneAPI apt repo
+    dnf:    [ cuda                // NVIDIA CUDA dnf repo
+              intel-basekit ]     // Intel oneAPI dnf repo
+    pacman: [ intel-oneapi-basekit ]   // AUR
+    // zypper/apk are opt-in (`--only zypper,apk`) and still carry a naming backlog the sweep
+    // surfaces (see docs/name-sweep-test.md) — only the vendor SDKs are allowlisted here.
+    zypper: [ cuda-toolkit  intel-oneapi-basekit ]           // NVIDIA / Intel vendor repos
+    apk:    [ cuda-toolkit  intel-oneapi-basekit  rocm-hip ] // vendor repos (no GPU SDKs in Alpine)
+}

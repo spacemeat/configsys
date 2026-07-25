@@ -984,15 +984,6 @@
     "name": "gcc"
    }
   },
-  "gcc-cpp": {
-   "pacman\\gcc-cpp": {
-    "driver": "pacman",
-    "fields": {
-     "name": "gcc-cpp"
-    },
-    "name": "gcc-cpp"
-   }
-  },
   "gcloud": {
    "pacman\\curl": {
     "driver": "pacman",
@@ -1698,15 +1689,6 @@
     "name": "libvirt-service"
    }
   },
-  "libvulkan1": {
-   "pacman\\libvulkan1": {
-    "driver": "pacman",
-    "fields": {
-     "name": "libvulkan1"
-    },
-    "name": "libvulkan1"
-   }
-  },
   "libxcb": {
    "pacman\\libxcb": {
     "driver": "pacman",
@@ -1714,45 +1696,6 @@
      "name": "libxcb"
     },
     "name": "libxcb"
-   }
-  },
-  "libxcb-cursor-dev": {
-   "pacman\\libxcb-cursor-dev": {
-    "driver": "pacman",
-    "fields": {
-     "name": "libxcb-cursor-dev",
-     "repo-component": "universe"
-    },
-    "name": "libxcb-cursor-dev"
-   }
-  },
-  "libxcb-devel": {
-   "pacman\\libxcb-devel": {
-    "driver": "pacman",
-    "fields": {
-     "name": "libxcb-devel"
-    },
-    "name": "libxcb-devel"
-   }
-  },
-  "libxcb-xinerama0": {
-   "pacman\\libxcb-xinerama0": {
-    "driver": "pacman",
-    "fields": {
-     "name": "libxcb-xinerama0",
-     "repo-component": "universe"
-    },
-    "name": "libxcb-xinerama0"
-   }
-  },
-  "libxcb-xinput0": {
-   "pacman\\libxcb-xinput0": {
-    "driver": "pacman",
-    "fields": {
-     "name": "libxcb-xinput0",
-     "repo-component": "universe"
-    },
-    "name": "libxcb-xinput0"
    }
   },
   "lldb": {
@@ -1912,15 +1855,6 @@
      "repo-component": "universe"
     },
     "name": "maxima"
-   }
-  },
-  "mesa-vulkan-drivers": {
-   "pacman\\mesa-vulkan-drivers": {
-    "driver": "pacman",
-    "fields": {
-     "name": "mesa-vulkan-drivers"
-    },
-    "name": "mesa-vulkan-drivers"
    }
   },
   "meson": {
@@ -3277,15 +3211,6 @@
     "name": "vulkan-intel"
    }
   },
-  "vulkan-loader": {
-   "pacman\\vulkan-loader": {
-    "driver": "pacman",
-    "fields": {
-     "name": "vulkan-loader"
-    },
-    "name": "vulkan-loader"
-   }
-  },
   "vulkan-radeon": {
    "pacman\\vulkan-radeon": {
     "driver": "pacman",
@@ -3462,15 +3387,6 @@
      "name": "xcb-util-cursor"
     },
     "name": "xcb-util-cursor"
-   }
-  },
-  "xcb-util-cursor-devel": {
-   "pacman\\xcb-util-cursor-devel": {
-    "driver": "pacman",
-    "fields": {
-     "name": "xcb-util-cursor-devel"
-    },
-    "name": "xcb-util-cursor-devel"
    }
   },
   "xclip": {
@@ -4988,15 +4904,6 @@
     "name": "gcc-15"
    }
   },
-  "gcc-cpp": {
-   "apt\\gcc-cpp": {
-    "driver": "apt",
-    "fields": {
-     "name": "gcc-cpp"
-    },
-    "name": "gcc-cpp"
-   }
-  },
   "gcc-select": {
    "dotfiles\\bash-dotfiles": {
     "driver": "dotfiles",
@@ -5854,15 +5761,6 @@
     "name": "libvulkan1"
    }
   },
-  "libxcb": {
-   "apt\\libxcb": {
-    "driver": "apt",
-    "fields": {
-     "name": "libxcb"
-    },
-    "name": "libxcb"
-   }
-  },
   "libxcb-cursor-dev": {
    "apt\\libxcb-cursor-dev": {
     "driver": "apt",
@@ -5871,15 +5769,6 @@
      "repo-component": "universe"
     },
     "name": "libxcb-cursor-dev"
-   }
-  },
-  "libxcb-devel": {
-   "apt\\libxcb-devel": {
-    "driver": "apt",
-    "fields": {
-     "name": "libxcb-devel"
-    },
-    "name": "libxcb-devel"
    }
   },
   "libxcb-xinerama0": {
@@ -7473,42 +7362,6 @@
     "name": "vulkan-sdk"
    }
   },
-  "vulkan-icd-loader": {
-   "apt\\vulkan-icd-loader": {
-    "driver": "apt",
-    "fields": {
-     "name": "vulkan-icd-loader"
-    },
-    "name": "vulkan-icd-loader"
-   }
-  },
-  "vulkan-intel": {
-   "apt\\vulkan-intel": {
-    "driver": "apt",
-    "fields": {
-     "name": "vulkan-intel"
-    },
-    "name": "vulkan-intel"
-   }
-  },
-  "vulkan-loader": {
-   "apt\\vulkan-loader": {
-    "driver": "apt",
-    "fields": {
-     "name": "vulkan-loader"
-    },
-    "name": "vulkan-loader"
-   }
-  },
-  "vulkan-radeon": {
-   "apt\\vulkan-radeon": {
-    "driver": "apt",
-    "fields": {
-     "name": "vulkan-radeon"
-    },
-    "name": "vulkan-radeon"
-   }
-  },
   "vulkan-runtime": {
    "apt\\libvulkan1": {
     "driver": "apt",
@@ -7590,15 +7443,6 @@
     "name": "vulkan-sdk-dotfiles"
    }
   },
-  "vulkan-swrast": {
-   "apt\\vulkan-swrast": {
-    "driver": "apt",
-    "fields": {
-     "name": "vulkan-swrast"
-    },
-    "name": "vulkan-swrast"
-   }
-  },
   "websocat": {
    "apt\\rust": {
     "driver": "apt",
@@ -7663,24 +7507,6 @@
      "repo-component": "universe"
     },
     "name": "wxmaxima"
-   }
-  },
-  "xcb-util-cursor": {
-   "apt\\xcb-util-cursor": {
-    "driver": "apt",
-    "fields": {
-     "name": "xcb-util-cursor"
-    },
-    "name": "xcb-util-cursor"
-   }
-  },
-  "xcb-util-cursor-devel": {
-   "apt\\xcb-util-cursor-devel": {
-    "driver": "apt",
-    "fields": {
-     "name": "xcb-util-cursor-devel"
-    },
-    "name": "xcb-util-cursor-devel"
    }
   },
   "xclip": {
@@ -9170,15 +8996,6 @@
     "name": "gcc-15"
    }
   },
-  "gcc-cpp": {
-   "apt\\gcc-cpp": {
-    "driver": "apt",
-    "fields": {
-     "name": "gcc-cpp"
-    },
-    "name": "gcc-cpp"
-   }
-  },
   "gcc-select": {
    "dotfiles\\bash-dotfiles": {
     "driver": "dotfiles",
@@ -10026,15 +9843,6 @@
     "name": "libvulkan1"
    }
   },
-  "libxcb": {
-   "apt\\libxcb": {
-    "driver": "apt",
-    "fields": {
-     "name": "libxcb"
-    },
-    "name": "libxcb"
-   }
-  },
   "libxcb-cursor-dev": {
    "apt\\libxcb-cursor-dev": {
     "driver": "apt",
@@ -10043,15 +9851,6 @@
      "repo-component": "universe"
     },
     "name": "libxcb-cursor-dev"
-   }
-  },
-  "libxcb-devel": {
-   "apt\\libxcb-devel": {
-    "driver": "apt",
-    "fields": {
-     "name": "libxcb-devel"
-    },
-    "name": "libxcb-devel"
    }
   },
   "libxcb-xinerama0": {
@@ -11585,42 +11384,6 @@
     "name": "vulkan-sdk"
    }
   },
-  "vulkan-icd-loader": {
-   "apt\\vulkan-icd-loader": {
-    "driver": "apt",
-    "fields": {
-     "name": "vulkan-icd-loader"
-    },
-    "name": "vulkan-icd-loader"
-   }
-  },
-  "vulkan-intel": {
-   "apt\\vulkan-intel": {
-    "driver": "apt",
-    "fields": {
-     "name": "vulkan-intel"
-    },
-    "name": "vulkan-intel"
-   }
-  },
-  "vulkan-loader": {
-   "apt\\vulkan-loader": {
-    "driver": "apt",
-    "fields": {
-     "name": "vulkan-loader"
-    },
-    "name": "vulkan-loader"
-   }
-  },
-  "vulkan-radeon": {
-   "apt\\vulkan-radeon": {
-    "driver": "apt",
-    "fields": {
-     "name": "vulkan-radeon"
-    },
-    "name": "vulkan-radeon"
-   }
-  },
   "vulkan-runtime": {
    "apt\\libvulkan1": {
     "driver": "apt",
@@ -11702,15 +11465,6 @@
     "name": "vulkan-sdk-dotfiles"
    }
   },
-  "vulkan-swrast": {
-   "apt\\vulkan-swrast": {
-    "driver": "apt",
-    "fields": {
-     "name": "vulkan-swrast"
-    },
-    "name": "vulkan-swrast"
-   }
-  },
   "websocat": {
    "apt\\rust": {
     "driver": "apt",
@@ -11775,24 +11529,6 @@
      "repo-component": "universe"
     },
     "name": "wxmaxima"
-   }
-  },
-  "xcb-util-cursor": {
-   "apt\\xcb-util-cursor": {
-    "driver": "apt",
-    "fields": {
-     "name": "xcb-util-cursor"
-    },
-    "name": "xcb-util-cursor"
-   }
-  },
-  "xcb-util-cursor-devel": {
-   "apt\\xcb-util-cursor-devel": {
-    "driver": "apt",
-    "fields": {
-     "name": "xcb-util-cursor-devel"
-    },
-    "name": "xcb-util-cursor-devel"
    }
   },
   "xclip": {
@@ -12520,9 +12256,9 @@
    "dnf\\gst-libav": {
     "driver": "dnf",
     "fields": {
-     "name": "gstreamer1-libav"
+     "name": "gstreamer1-plugin-libav"
     },
-    "name": "gstreamer1-libav"
+    "name": "gstreamer1-plugin-libav"
    },
    "dnf\\gst-ugly": {
     "driver": "dnf",
@@ -13250,9 +12986,9 @@
    "dnf\\gst-libav": {
     "driver": "dnf",
     "fields": {
-     "name": "gstreamer1-libav"
+     "name": "gstreamer1-plugin-libav"
     },
-    "name": "gstreamer1-libav"
+    "name": "gstreamer1-plugin-libav"
    },
    "dnf\\rpmfusion-free": {
     "driver": "dnf",
@@ -13728,12 +13464,12 @@
    }
   },
   "lazygit": {
-   "dnf\\lazygit": {
+   "dnf\\curl": {
     "driver": "dnf",
     "fields": {
-     "name": "lazygit"
+     "name": "curl"
     },
-    "name": "lazygit"
+    "name": "curl"
    },
    "dotfiles\\bash-dotfiles": {
     "driver": "dotfiles",
@@ -13753,6 +13489,19 @@
      "src": "bash.d/lazygit.sh"
     },
     "name": "lazygit-dotfiles"
+   },
+   "tarball\\lazygit": {
+    "driver": "tarball",
+    "fields": {
+     "installDir": "apps/lazygit",
+     "name": "lazygit",
+     "version": {
+      "asset": "lazygit_*_Linux_x86_64.tar.gz",
+      "github": "jesseduffield/lazygit",
+      "strip-v": "true"
+     }
+    },
+    "name": "lazygit"
    }
   },
   "lazygit-dotfiles": {
@@ -13843,34 +13592,6 @@
     "name": "libvirt-service"
    }
   },
-  "libvulkan1": {
-   "dnf\\libvulkan1": {
-    "driver": "dnf",
-    "fields": {
-     "name": "libvulkan1"
-    },
-    "name": "libvulkan1"
-   }
-  },
-  "libxcb": {
-   "dnf\\libxcb": {
-    "driver": "dnf",
-    "fields": {
-     "name": "libxcb"
-    },
-    "name": "libxcb"
-   }
-  },
-  "libxcb-cursor-dev": {
-   "dnf\\libxcb-cursor-dev": {
-    "driver": "dnf",
-    "fields": {
-     "name": "libxcb-cursor-dev",
-     "repo-component": "universe"
-    },
-    "name": "libxcb-cursor-dev"
-   }
-  },
   "libxcb-devel": {
    "dnf\\libxcb-devel": {
     "driver": "dnf",
@@ -13878,26 +13599,6 @@
      "name": "libxcb-devel"
     },
     "name": "libxcb-devel"
-   }
-  },
-  "libxcb-xinerama0": {
-   "dnf\\libxcb-xinerama0": {
-    "driver": "dnf",
-    "fields": {
-     "name": "libxcb-xinerama0",
-     "repo-component": "universe"
-    },
-    "name": "libxcb-xinerama0"
-   }
-  },
-  "libxcb-xinput0": {
-   "dnf\\libxcb-xinput0": {
-    "driver": "dnf",
-    "fields": {
-     "name": "libxcb-xinput0",
-     "repo-component": "universe"
-    },
-    "name": "libxcb-xinput0"
    }
   },
   "lldb": {
@@ -14297,16 +13998,6 @@
      "name": "nethogs"
     },
     "name": "nethogs"
-   }
-  },
-  "nim": {
-   "dnf\\nim": {
-    "driver": "dnf",
-    "fields": {
-     "name": "nim",
-     "repo-component": "universe"
-    },
-    "name": "nim"
    }
   },
   "ninja": {
@@ -15440,24 +15131,6 @@
     "name": "vulkan-sdk"
    }
   },
-  "vulkan-icd-loader": {
-   "dnf\\vulkan-icd-loader": {
-    "driver": "dnf",
-    "fields": {
-     "name": "vulkan-icd-loader"
-    },
-    "name": "vulkan-icd-loader"
-   }
-  },
-  "vulkan-intel": {
-   "dnf\\vulkan-intel": {
-    "driver": "dnf",
-    "fields": {
-     "name": "vulkan-intel"
-    },
-    "name": "vulkan-intel"
-   }
-  },
   "vulkan-loader": {
    "dnf\\vulkan-loader": {
     "driver": "dnf",
@@ -15465,15 +15138,6 @@
      "name": "vulkan-loader"
     },
     "name": "vulkan-loader"
-   }
-  },
-  "vulkan-radeon": {
-   "dnf\\vulkan-radeon": {
-    "driver": "dnf",
-    "fields": {
-     "name": "vulkan-radeon"
-    },
-    "name": "vulkan-radeon"
    }
   },
   "vulkan-runtime": {
@@ -15557,15 +15221,6 @@
     "name": "vulkan-sdk-dotfiles"
    }
   },
-  "vulkan-swrast": {
-   "dnf\\vulkan-swrast": {
-    "driver": "dnf",
-    "fields": {
-     "name": "vulkan-swrast"
-    },
-    "name": "vulkan-swrast"
-   }
-  },
   "websocat": {
    "cargo\\websocat": {
     "driver": "cargo",
@@ -15630,15 +15285,6 @@
      "repo-component": "universe"
     },
     "name": "wxmaxima"
-   }
-  },
-  "xcb-util-cursor": {
-   "dnf\\xcb-util-cursor": {
-    "driver": "dnf",
-    "fields": {
-     "name": "xcb-util-cursor"
-    },
-    "name": "xcb-util-cursor"
    }
   },
   "xcb-util-cursor-devel": {
@@ -16387,9 +16033,9 @@
    "dnf\\gst-libav": {
     "driver": "dnf",
     "fields": {
-     "name": "gstreamer1-libav"
+     "name": "gstreamer1-plugin-libav"
     },
-    "name": "gstreamer1-libav"
+    "name": "gstreamer1-plugin-libav"
    },
    "dnf\\gst-ugly": {
     "driver": "dnf",
@@ -17117,9 +16763,9 @@
    "dnf\\gst-libav": {
     "driver": "dnf",
     "fields": {
-     "name": "gstreamer1-libav"
+     "name": "gstreamer1-plugin-libav"
     },
-    "name": "gstreamer1-libav"
+    "name": "gstreamer1-plugin-libav"
    },
    "dnf\\rpmfusion-free": {
     "driver": "dnf",
@@ -17595,12 +17241,12 @@
    }
   },
   "lazygit": {
-   "dnf\\lazygit": {
+   "dnf\\curl": {
     "driver": "dnf",
     "fields": {
-     "name": "lazygit"
+     "name": "curl"
     },
-    "name": "lazygit"
+    "name": "curl"
    },
    "dotfiles\\bash-dotfiles": {
     "driver": "dotfiles",
@@ -17620,6 +17266,19 @@
      "src": "bash.d/lazygit.sh"
     },
     "name": "lazygit-dotfiles"
+   },
+   "tarball\\lazygit": {
+    "driver": "tarball",
+    "fields": {
+     "installDir": "apps/lazygit",
+     "name": "lazygit",
+     "version": {
+      "asset": "lazygit_*_Linux_x86_64.tar.gz",
+      "github": "jesseduffield/lazygit",
+      "strip-v": "true"
+     }
+    },
+    "name": "lazygit"
    }
   },
   "lazygit-dotfiles": {
@@ -17710,34 +17369,6 @@
     "name": "libvirt-service"
    }
   },
-  "libvulkan1": {
-   "dnf\\libvulkan1": {
-    "driver": "dnf",
-    "fields": {
-     "name": "libvulkan1"
-    },
-    "name": "libvulkan1"
-   }
-  },
-  "libxcb": {
-   "dnf\\libxcb": {
-    "driver": "dnf",
-    "fields": {
-     "name": "libxcb"
-    },
-    "name": "libxcb"
-   }
-  },
-  "libxcb-cursor-dev": {
-   "dnf\\libxcb-cursor-dev": {
-    "driver": "dnf",
-    "fields": {
-     "name": "libxcb-cursor-dev",
-     "repo-component": "universe"
-    },
-    "name": "libxcb-cursor-dev"
-   }
-  },
   "libxcb-devel": {
    "dnf\\libxcb-devel": {
     "driver": "dnf",
@@ -17745,26 +17376,6 @@
      "name": "libxcb-devel"
     },
     "name": "libxcb-devel"
-   }
-  },
-  "libxcb-xinerama0": {
-   "dnf\\libxcb-xinerama0": {
-    "driver": "dnf",
-    "fields": {
-     "name": "libxcb-xinerama0",
-     "repo-component": "universe"
-    },
-    "name": "libxcb-xinerama0"
-   }
-  },
-  "libxcb-xinput0": {
-   "dnf\\libxcb-xinput0": {
-    "driver": "dnf",
-    "fields": {
-     "name": "libxcb-xinput0",
-     "repo-component": "universe"
-    },
-    "name": "libxcb-xinput0"
    }
   },
   "lldb": {
@@ -18164,16 +17775,6 @@
      "name": "nethogs"
     },
     "name": "nethogs"
-   }
-  },
-  "nim": {
-   "dnf\\nim": {
-    "driver": "dnf",
-    "fields": {
-     "name": "nim",
-     "repo-component": "universe"
-    },
-    "name": "nim"
    }
   },
   "ninja": {
@@ -19307,24 +18908,6 @@
     "name": "vulkan-sdk"
    }
   },
-  "vulkan-icd-loader": {
-   "dnf\\vulkan-icd-loader": {
-    "driver": "dnf",
-    "fields": {
-     "name": "vulkan-icd-loader"
-    },
-    "name": "vulkan-icd-loader"
-   }
-  },
-  "vulkan-intel": {
-   "dnf\\vulkan-intel": {
-    "driver": "dnf",
-    "fields": {
-     "name": "vulkan-intel"
-    },
-    "name": "vulkan-intel"
-   }
-  },
   "vulkan-loader": {
    "dnf\\vulkan-loader": {
     "driver": "dnf",
@@ -19332,15 +18915,6 @@
      "name": "vulkan-loader"
     },
     "name": "vulkan-loader"
-   }
-  },
-  "vulkan-radeon": {
-   "dnf\\vulkan-radeon": {
-    "driver": "dnf",
-    "fields": {
-     "name": "vulkan-radeon"
-    },
-    "name": "vulkan-radeon"
    }
   },
   "vulkan-runtime": {
@@ -19424,15 +18998,6 @@
     "name": "vulkan-sdk-dotfiles"
    }
   },
-  "vulkan-swrast": {
-   "dnf\\vulkan-swrast": {
-    "driver": "dnf",
-    "fields": {
-     "name": "vulkan-swrast"
-    },
-    "name": "vulkan-swrast"
-   }
-  },
   "websocat": {
    "cargo\\websocat": {
     "driver": "cargo",
@@ -19497,15 +19062,6 @@
      "repo-component": "universe"
     },
     "name": "wxmaxima"
-   }
-  },
-  "xcb-util-cursor": {
-   "dnf\\xcb-util-cursor": {
-    "driver": "dnf",
-    "fields": {
-     "name": "xcb-util-cursor"
-    },
-    "name": "xcb-util-cursor"
    }
   },
   "xcb-util-cursor-devel": {
@@ -21033,15 +20589,6 @@
     "name": "gcc-15"
    }
   },
-  "gcc-cpp": {
-   "apt\\gcc-cpp": {
-    "driver": "apt",
-    "fields": {
-     "name": "gcc-cpp"
-    },
-    "name": "gcc-cpp"
-   }
-  },
   "gcc-select": {
    "dotfiles\\bash-dotfiles": {
     "driver": "dotfiles",
@@ -21899,15 +21446,6 @@
     "name": "libvulkan1"
    }
   },
-  "libxcb": {
-   "apt\\libxcb": {
-    "driver": "apt",
-    "fields": {
-     "name": "libxcb"
-    },
-    "name": "libxcb"
-   }
-  },
   "libxcb-cursor-dev": {
    "apt\\libxcb-cursor-dev": {
     "driver": "apt",
@@ -21916,15 +21454,6 @@
      "repo-component": "universe"
     },
     "name": "libxcb-cursor-dev"
-   }
-  },
-  "libxcb-devel": {
-   "apt\\libxcb-devel": {
-    "driver": "apt",
-    "fields": {
-     "name": "libxcb-devel"
-    },
-    "name": "libxcb-devel"
    }
   },
   "libxcb-xinerama0": {
@@ -23511,42 +23040,6 @@
     "name": "vulkan-sdk"
    }
   },
-  "vulkan-icd-loader": {
-   "apt\\vulkan-icd-loader": {
-    "driver": "apt",
-    "fields": {
-     "name": "vulkan-icd-loader"
-    },
-    "name": "vulkan-icd-loader"
-   }
-  },
-  "vulkan-intel": {
-   "apt\\vulkan-intel": {
-    "driver": "apt",
-    "fields": {
-     "name": "vulkan-intel"
-    },
-    "name": "vulkan-intel"
-   }
-  },
-  "vulkan-loader": {
-   "apt\\vulkan-loader": {
-    "driver": "apt",
-    "fields": {
-     "name": "vulkan-loader"
-    },
-    "name": "vulkan-loader"
-   }
-  },
-  "vulkan-radeon": {
-   "apt\\vulkan-radeon": {
-    "driver": "apt",
-    "fields": {
-     "name": "vulkan-radeon"
-    },
-    "name": "vulkan-radeon"
-   }
-  },
   "vulkan-runtime": {
    "apt\\libvulkan1": {
     "driver": "apt",
@@ -23628,15 +23121,6 @@
     "name": "vulkan-sdk-dotfiles"
    }
   },
-  "vulkan-swrast": {
-   "apt\\vulkan-swrast": {
-    "driver": "apt",
-    "fields": {
-     "name": "vulkan-swrast"
-    },
-    "name": "vulkan-swrast"
-   }
-  },
   "websocat": {
    "apt\\rust": {
     "driver": "apt",
@@ -23701,24 +23185,6 @@
      "repo-component": "universe"
     },
     "name": "wxmaxima"
-   }
-  },
-  "xcb-util-cursor": {
-   "apt\\xcb-util-cursor": {
-    "driver": "apt",
-    "fields": {
-     "name": "xcb-util-cursor"
-    },
-    "name": "xcb-util-cursor"
-   }
-  },
-  "xcb-util-cursor-devel": {
-   "apt\\xcb-util-cursor-devel": {
-    "driver": "apt",
-    "fields": {
-     "name": "xcb-util-cursor-devel"
-    },
-    "name": "xcb-util-cursor-devel"
    }
   },
   "xclip": {
@@ -24511,9 +23977,9 @@
    "dnf\\gst-libav": {
     "driver": "dnf",
     "fields": {
-     "name": "gstreamer1-libav"
+     "name": "gstreamer1-plugin-libav"
     },
-    "name": "gstreamer1-libav"
+    "name": "gstreamer1-plugin-libav"
    },
    "dnf\\gst-ugly": {
     "driver": "dnf",
@@ -25300,9 +24766,9 @@
    "dnf\\gst-libav": {
     "driver": "dnf",
     "fields": {
-     "name": "gstreamer1-libav"
+     "name": "gstreamer1-plugin-libav"
     },
-    "name": "gstreamer1-libav"
+    "name": "gstreamer1-plugin-libav"
    },
    "dnf\\rpmfusion-free": {
     "driver": "dnf",
@@ -25949,34 +25415,6 @@
     "name": "libvirt-service"
    }
   },
-  "libvulkan1": {
-   "dnf\\libvulkan1": {
-    "driver": "dnf",
-    "fields": {
-     "name": "libvulkan1"
-    },
-    "name": "libvulkan1"
-   }
-  },
-  "libxcb": {
-   "dnf\\libxcb": {
-    "driver": "dnf",
-    "fields": {
-     "name": "libxcb"
-    },
-    "name": "libxcb"
-   }
-  },
-  "libxcb-cursor-dev": {
-   "dnf\\libxcb-cursor-dev": {
-    "driver": "dnf",
-    "fields": {
-     "name": "libxcb-cursor-dev",
-     "repo-component": "universe"
-    },
-    "name": "libxcb-cursor-dev"
-   }
-  },
   "libxcb-devel": {
    "dnf\\libxcb-devel": {
     "driver": "dnf",
@@ -25984,26 +25422,6 @@
      "name": "libxcb-devel"
     },
     "name": "libxcb-devel"
-   }
-  },
-  "libxcb-xinerama0": {
-   "dnf\\libxcb-xinerama0": {
-    "driver": "dnf",
-    "fields": {
-     "name": "libxcb-xinerama0",
-     "repo-component": "universe"
-    },
-    "name": "libxcb-xinerama0"
-   }
-  },
-  "libxcb-xinput0": {
-   "dnf\\libxcb-xinput0": {
-    "driver": "dnf",
-    "fields": {
-     "name": "libxcb-xinput0",
-     "repo-component": "universe"
-    },
-    "name": "libxcb-xinput0"
    }
   },
   "lldb": {
@@ -26437,16 +25855,6 @@
      "name": "nethogs"
     },
     "name": "nethogs"
-   }
-  },
-  "nim": {
-   "dnf\\nim": {
-    "driver": "dnf",
-    "fields": {
-     "name": "nim",
-     "repo-component": "universe"
-    },
-    "name": "nim"
    }
   },
   "ninja": {
@@ -27641,24 +27049,6 @@
     "name": "vulkan-sdk"
    }
   },
-  "vulkan-icd-loader": {
-   "dnf\\vulkan-icd-loader": {
-    "driver": "dnf",
-    "fields": {
-     "name": "vulkan-icd-loader"
-    },
-    "name": "vulkan-icd-loader"
-   }
-  },
-  "vulkan-intel": {
-   "dnf\\vulkan-intel": {
-    "driver": "dnf",
-    "fields": {
-     "name": "vulkan-intel"
-    },
-    "name": "vulkan-intel"
-   }
-  },
   "vulkan-loader": {
    "dnf\\vulkan-loader": {
     "driver": "dnf",
@@ -27666,15 +27056,6 @@
      "name": "vulkan-loader"
     },
     "name": "vulkan-loader"
-   }
-  },
-  "vulkan-radeon": {
-   "dnf\\vulkan-radeon": {
-    "driver": "dnf",
-    "fields": {
-     "name": "vulkan-radeon"
-    },
-    "name": "vulkan-radeon"
    }
   },
   "vulkan-runtime": {
@@ -27758,15 +27139,6 @@
     "name": "vulkan-sdk-dotfiles"
    }
   },
-  "vulkan-swrast": {
-   "dnf\\vulkan-swrast": {
-    "driver": "dnf",
-    "fields": {
-     "name": "vulkan-swrast"
-    },
-    "name": "vulkan-swrast"
-   }
-  },
   "websocat": {
    "cargo\\websocat": {
     "driver": "cargo",
@@ -27831,15 +27203,6 @@
      "repo-component": "universe"
     },
     "name": "wxmaxima"
-   }
-  },
-  "xcb-util-cursor": {
-   "dnf\\xcb-util-cursor": {
-    "driver": "dnf",
-    "fields": {
-     "name": "xcb-util-cursor"
-    },
-    "name": "xcb-util-cursor"
    }
   },
   "xcb-util-cursor-devel": {
@@ -29371,15 +28734,6 @@
     "name": "gcc-15"
    }
   },
-  "gcc-cpp": {
-   "apt\\gcc-cpp": {
-    "driver": "apt",
-    "fields": {
-     "name": "gcc-cpp"
-    },
-    "name": "gcc-cpp"
-   }
-  },
   "gcc-select": {
    "dotfiles\\bash-dotfiles": {
     "driver": "dotfiles",
@@ -30237,15 +29591,6 @@
     "name": "libvulkan1"
    }
   },
-  "libxcb": {
-   "apt\\libxcb": {
-    "driver": "apt",
-    "fields": {
-     "name": "libxcb"
-    },
-    "name": "libxcb"
-   }
-  },
   "libxcb-cursor-dev": {
    "apt\\libxcb-cursor-dev": {
     "driver": "apt",
@@ -30254,15 +29599,6 @@
      "repo-component": "universe"
     },
     "name": "libxcb-cursor-dev"
-   }
-  },
-  "libxcb-devel": {
-   "apt\\libxcb-devel": {
-    "driver": "apt",
-    "fields": {
-     "name": "libxcb-devel"
-    },
-    "name": "libxcb-devel"
    }
   },
   "libxcb-xinerama0": {
@@ -31856,42 +31192,6 @@
     "name": "vulkan-sdk"
    }
   },
-  "vulkan-icd-loader": {
-   "apt\\vulkan-icd-loader": {
-    "driver": "apt",
-    "fields": {
-     "name": "vulkan-icd-loader"
-    },
-    "name": "vulkan-icd-loader"
-   }
-  },
-  "vulkan-intel": {
-   "apt\\vulkan-intel": {
-    "driver": "apt",
-    "fields": {
-     "name": "vulkan-intel"
-    },
-    "name": "vulkan-intel"
-   }
-  },
-  "vulkan-loader": {
-   "apt\\vulkan-loader": {
-    "driver": "apt",
-    "fields": {
-     "name": "vulkan-loader"
-    },
-    "name": "vulkan-loader"
-   }
-  },
-  "vulkan-radeon": {
-   "apt\\vulkan-radeon": {
-    "driver": "apt",
-    "fields": {
-     "name": "vulkan-radeon"
-    },
-    "name": "vulkan-radeon"
-   }
-  },
   "vulkan-runtime": {
    "apt\\libvulkan1": {
     "driver": "apt",
@@ -31973,15 +31273,6 @@
     "name": "vulkan-sdk-dotfiles"
    }
   },
-  "vulkan-swrast": {
-   "apt\\vulkan-swrast": {
-    "driver": "apt",
-    "fields": {
-     "name": "vulkan-swrast"
-    },
-    "name": "vulkan-swrast"
-   }
-  },
   "websocat": {
    "apt\\rust": {
     "driver": "apt",
@@ -32046,24 +31337,6 @@
      "repo-component": "universe"
     },
     "name": "wxmaxima"
-   }
-  },
-  "xcb-util-cursor": {
-   "apt\\xcb-util-cursor": {
-    "driver": "apt",
-    "fields": {
-     "name": "xcb-util-cursor"
-    },
-    "name": "xcb-util-cursor"
-   }
-  },
-  "xcb-util-cursor-devel": {
-   "apt\\xcb-util-cursor-devel": {
-    "driver": "apt",
-    "fields": {
-     "name": "xcb-util-cursor-devel"
-    },
-    "name": "xcb-util-cursor-devel"
    }
   },
   "xclip": {
@@ -33553,15 +32826,6 @@
     "name": "gcc-15"
    }
   },
-  "gcc-cpp": {
-   "apt\\gcc-cpp": {
-    "driver": "apt",
-    "fields": {
-     "name": "gcc-cpp"
-    },
-    "name": "gcc-cpp"
-   }
-  },
   "gcc-select": {
    "dotfiles\\bash-dotfiles": {
     "driver": "dotfiles",
@@ -34409,15 +33673,6 @@
     "name": "libvulkan1"
    }
   },
-  "libxcb": {
-   "apt\\libxcb": {
-    "driver": "apt",
-    "fields": {
-     "name": "libxcb"
-    },
-    "name": "libxcb"
-   }
-  },
   "libxcb-cursor-dev": {
    "apt\\libxcb-cursor-dev": {
     "driver": "apt",
@@ -34426,15 +33681,6 @@
      "repo-component": "universe"
     },
     "name": "libxcb-cursor-dev"
-   }
-  },
-  "libxcb-devel": {
-   "apt\\libxcb-devel": {
-    "driver": "apt",
-    "fields": {
-     "name": "libxcb-devel"
-    },
-    "name": "libxcb-devel"
    }
   },
   "libxcb-xinerama0": {
@@ -35968,42 +35214,6 @@
     "name": "vulkan-sdk"
    }
   },
-  "vulkan-icd-loader": {
-   "apt\\vulkan-icd-loader": {
-    "driver": "apt",
-    "fields": {
-     "name": "vulkan-icd-loader"
-    },
-    "name": "vulkan-icd-loader"
-   }
-  },
-  "vulkan-intel": {
-   "apt\\vulkan-intel": {
-    "driver": "apt",
-    "fields": {
-     "name": "vulkan-intel"
-    },
-    "name": "vulkan-intel"
-   }
-  },
-  "vulkan-loader": {
-   "apt\\vulkan-loader": {
-    "driver": "apt",
-    "fields": {
-     "name": "vulkan-loader"
-    },
-    "name": "vulkan-loader"
-   }
-  },
-  "vulkan-radeon": {
-   "apt\\vulkan-radeon": {
-    "driver": "apt",
-    "fields": {
-     "name": "vulkan-radeon"
-    },
-    "name": "vulkan-radeon"
-   }
-  },
   "vulkan-runtime": {
    "apt\\libvulkan1": {
     "driver": "apt",
@@ -36085,15 +35295,6 @@
     "name": "vulkan-sdk-dotfiles"
    }
   },
-  "vulkan-swrast": {
-   "apt\\vulkan-swrast": {
-    "driver": "apt",
-    "fields": {
-     "name": "vulkan-swrast"
-    },
-    "name": "vulkan-swrast"
-   }
-  },
   "websocat": {
    "apt\\rust": {
     "driver": "apt",
@@ -36158,24 +35359,6 @@
      "repo-component": "universe"
     },
     "name": "wxmaxima"
-   }
-  },
-  "xcb-util-cursor": {
-   "apt\\xcb-util-cursor": {
-    "driver": "apt",
-    "fields": {
-     "name": "xcb-util-cursor"
-    },
-    "name": "xcb-util-cursor"
-   }
-  },
-  "xcb-util-cursor-devel": {
-   "apt\\xcb-util-cursor-devel": {
-    "driver": "apt",
-    "fields": {
-     "name": "xcb-util-cursor-devel"
-    },
-    "name": "xcb-util-cursor-devel"
    }
   },
   "xclip": {

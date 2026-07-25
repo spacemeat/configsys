@@ -102,7 +102,7 @@
         unzip:      { install: [ { via: native } ] }
         zip:        { install: [ { via: native } ] }
         firefox:    { install: [ { via: flatpak  when: fedora_atomic  hub: flathub  app: org.mozilla.firefox }   // atomic: brew has no firefox (mac-only cask) — flatpak
-                                 { via: native  repo-component: universe } ] }   // in base repos everywhere (incl. EL); apt: universe
+                                 { via: native  repo-component: universe  name: { zypper: MozillaFirefox  default: firefox } } ] }   // openSUSE calls it MozillaFirefox
         doas:       { install: [ { via: apk  when: "alpine" } ] }                 // Alpine's sudo (apk-only; folded from the alpine plugin)
         // iproute2 — `ip`/`ss`/`tc`. Native everywhere; EL's dnf calls the package `iproute`.
         iproute2:   { install: [ { via: native  name: { dnf: iproute  default: iproute2 } } ] }
@@ -198,7 +198,7 @@
         // Homebrew `node` bundle npm.
         node: {
             provides: npm
-            install: [ { via: native  repo-component: universe  name: { apt: npm  pacman: npm  apk: npm  brew: node  default: nodejs } } ]
+            install: [ { via: native  repo-component: universe  name: { apt: npm  pacman: npm  apk: npm  brew: node  zypper: nodejs-default  default: nodejs } } ]
         }
         // Sample global npm CLIs (installed userland by default; see the npm driver). More can
         // be added the same way, or pulled per-user via a plugin layer.
@@ -283,7 +283,7 @@
         erlang: { install: [ { via: native  repo-component: universe } ] }
         elixir: { install: [ { via: native  repo-component: universe } ] }
         // Nim compiler (nimble ships alongside).
-        nim:   { install: [ { via: native  repo-component: universe } ] }
+        nim:   { install: [ { via: native  when: "debian or arch or opensuse or alpine"  repo-component: universe } ] }   // not in Fedora repos
 
         // R (statistics) and GNU Octave (numerical computing) — native everywhere.
         r:      { install: [ { via: native  repo-component: universe  name: { apt: r-base  dnf: R  pacman: r  zypper: R-base  apk: R  brew: r } } ] }
@@ -373,7 +373,7 @@
         nmap:       { install: [ { via: native } ] }
         mtr:        { install: [ { via: native } ] }
         traceroute: { install: [ { via: native } ] }
-        iperf3:     { install: [ { via: native } ] }
+        iperf3:     { install: [ { via: native  name: { zypper: iperf  default: iperf3 } } ] }
         socat:      { install: [ { via: native } ] }
         ethtool:    { install: [ { via: native } ] }
         whois:      { install: [ { via: native } ] }
@@ -528,7 +528,7 @@
         // gzip/bzip2/xz are on every base system already; these are the ones worth adding.
         zstd:  { install: [ { via: native } ] }
         lz4:   { install: [ { via: native } ] }
-        p7zip: { install: [ { via: native  name: { apt: p7zip-full  pacman: 7zip  default: p7zip } } ] }
+        p7zip: { install: [ { via: native  name: { apt: p7zip-full  pacman: 7zip  zypper: 7zip  apk: 7zip  default: p7zip } } ] }
         // unrar is nonfree (patent-encumbered): apt multiverse, Fedora RPM Fusion, Arch base.
         unrar: {
             install: [
@@ -552,7 +552,7 @@
                        { via: native  when: "debian"  repo-component: multiverse  name: gstreamer1.0-plugins-ugly }
                        { via: native  when: "arch or opensuse or alpine"  name: { pacman: gst-plugins-ugly  zypper: gstreamer-plugins-ugly  apk: gst-plugins-ugly } } ] }
         gst-libav: { install: [
-                       { via: native  when: "redhat"  requires: rpmfusion  name: gstreamer1-libav }
+                       { via: native  when: "redhat"  requires: rpmfusion  name: gstreamer1-plugin-libav }
                        { via: native  when: "debian"  repo-component: universe  name: gstreamer1.0-libav }
                        { via: native  when: "arch or opensuse or alpine"  name: { pacman: gst-libav  zypper: gstreamer-plugins-libav  apk: gst-libav } } ] }
         libavcodec-extra: { install: [ { via: native  when: "debian"  repo-component: universe } ] }
@@ -696,8 +696,7 @@
         lazygit: {
             suggests: lazygit-dotfiles
             install: [
-                { via: native  when: "fedora" }
-                { via: native  when: "arch" }
+                { via: native  when: "arch" }                        // not in Fedora repos -> tarball there
                 { via: tarball  installDir: apps/lazygit
                   version: { github: jesseduffield/lazygit  strip-v: true  asset: "lazygit_*_Linux_x86_64.tar.gz" } }
             ]
@@ -893,7 +892,7 @@
         // IaC + gRPC — Go static binaries from github release tarballs.
         opentofu: { install: [ { via: tarball  installDir: apps/opentofu  version: { github: opentofu/opentofu  strip-v: true  asset: "tofu_*_linux_amd64.tar.gz" } } ] }
         grpcurl:  { install: [ { via: tarball  installDir: apps/grpcurl   version: { github: fullstorydev/grpcurl  strip-v: true  asset: "grpcurl_*_linux_x86_64.tar.gz" } } ] }
-        protobuf: { install: [ { via: native  repo-component: universe  name: { apt: protobuf-compiler  dnf: protobuf-compiler  default: protobuf } } ] }
+        protobuf: { install: [ { via: native  repo-component: universe  name: { apt: protobuf-compiler  dnf: protobuf-compiler  zypper: protobuf-devel  default: protobuf } } ] }
         // DB clients: dbeaver (GUI, Flathub), pgcli/mycli (pipx), sqlitebrowser (Flathub).
         dbeaver:       { install: [ { via: flatpak  hub: flathub  app: io.dbeaver.DBeaverCommunity } ] }
         pgcli:         { install: [ { via: pipx  name: pgcli } ] }
@@ -916,7 +915,7 @@
         paraview:   { install: [ { via: native  repo-component: universe } ] }
         maxima:     { install: [ { via: native  repo-component: universe } ] }
         wxmaxima:   { install: [ { via: native  when: "debian or redhat"  repo-component: universe } ] }   // Arch: AUR only
-        pari:       { install: [ { via: native  repo-component: universe  name: { apt: pari-gp  dnf: pari-gp  pacman: pari  default: pari } } ] }
+        pari:       { install: [ { via: native  repo-component: universe  name: { apt: pari-gp  dnf: pari-gp  pacman: pari  zypper: pari-gp  default: pari } } ] }
         gap:        { install: [ { via: native  repo-component: universe } ] }
         sagemath:   { install: [ { via: native  when: "debian or arch"  repo-component: universe } ] }      // Fedora: COPR/conda only
 
@@ -965,13 +964,15 @@
         }
 
         // --- parts: composition (a component that IS several others, no unit of its own) ---
-        libvulkan1:            { install: [ { via: native } ] }
-        vulkan-loader:         { install: [ { via: native } ] }
-        vulkan-icd-loader:     { install: [ { via: native } ] }
-        vulkan-radeon:         { install: [ { via: native } ] }
-        vulkan-intel:          { install: [ { via: native } ] }
-        vulkan-swrast:         { install: [ { via: native } ] }
-        mesa-vulkan-drivers:   { install: [ { via: native } ] }
+        // Distro-specific vulkan building blocks — only pulled as `parts` of vulkan-runtime on
+        // their own family, so `when:`-gated (installing one directly on the wrong distro fails).
+        libvulkan1:            { install: [ { via: native  when: "debian" } ] }
+        vulkan-loader:         { install: [ { via: native  when: "redhat" } ] }
+        vulkan-icd-loader:     { install: [ { via: native  when: "arch" } ] }
+        vulkan-radeon:         { install: [ { via: native  when: "arch" } ] }
+        vulkan-intel:          { install: [ { via: native  when: "arch" } ] }
+        vulkan-swrast:         { install: [ { via: native  when: "arch" } ] }
+        mesa-vulkan-drivers:   { install: [ { via: native  when: "debian or redhat" } ] }
         vulkan-runtime: {
             install: [
                 { via: parts  when: "debian"  parts: [ libvulkan1, mesa-vulkan-drivers ] }
@@ -995,13 +996,13 @@
         }
         // vulkan-dev X libs, per OS: Debian ships three; Fedora's libxcb-devel bundles
         // xinput+xinerama (+ xcb-util-cursor-devel); Arch's libxcb does likewise (+ xcb-util-cursor).
-        libxcb-xinput0:        { install: [ { via: native  repo-component: universe } ] }
-        libxcb-xinerama0:      { install: [ { via: native  repo-component: universe } ] }
-        libxcb-cursor-dev:     { install: [ { via: native  repo-component: universe } ] }
-        libxcb-devel:          { install: [ { via: native } ] }   // fedora + EL
-        xcb-util-cursor-devel: { install: [ { via: native } ] }   // fedora + EL
-        libxcb:                { install: [ { via: native } ] }   // arch
-        xcb-util-cursor:       { install: [ { via: native } ] }   // arch
+        libxcb-xinput0:        { install: [ { via: native  when: "debian"  repo-component: universe } ] }
+        libxcb-xinerama0:      { install: [ { via: native  when: "debian"  repo-component: universe } ] }
+        libxcb-cursor-dev:     { install: [ { via: native  when: "debian"  repo-component: universe } ] }
+        libxcb-devel:          { install: [ { via: native  when: "redhat" } ] }   // fedora + EL
+        xcb-util-cursor-devel: { install: [ { via: native  when: "redhat" } ] }   // fedora + EL
+        libxcb:                { install: [ { via: native  when: "arch" } ] }   // arch
+        xcb-util-cursor:       { install: [ { via: native  when: "arch" } ] }   // arch
         // vulkan-dev: a parts bundle composing the X libs, build tools, the SDK tarball,
         // and the vulkan runtime (itself a parts aggregator). One binding per OS family;
         // build-essential now expands to real gcc packages on Fedora/Arch (gcc blocker resolved).
@@ -1111,7 +1112,7 @@
                 { via: native  when: "arch" }     // arch gcc bundles g++
             ]
         }
-        gcc-cpp: { install: [ { via: native  name: { dnf: "gcc-c++" } } ] }   // Fedora g++ (has a `+`)
+        gcc-cpp: { install: [ { via: native  when: "redhat"  name: { dnf: "gcc-c++" } } ] }   // Fedora g++ (has a `+`)
 
         // --- versioned gcc. Three drivers, selected by OS/version:
         //   debian -> `gcc` (apt PPA + update-alternatives; needs build-essential, s-p-c, the alias)
