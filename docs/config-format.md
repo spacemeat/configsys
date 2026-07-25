@@ -125,7 +125,7 @@ can still be detected by a **marker**: an os block declares `detect: { id: <base
 <path> }` (marker may be a list). When the detected block is that base — or a descendant — and
 every marker exists on disk, configsys routes to the more-specific block. This is the
 data-driven form of the built-in Fedora-Atomic ostree-marker detection, so a plugin can add a
-detectable OS with no code (see `examples/configsys-proxmox`).
+detectable OS with no code (the `configsys-proxmox` plugin does exactly this).
 
 ## Versions — discovered, not hardcoded
 

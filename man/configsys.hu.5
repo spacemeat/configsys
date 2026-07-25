@@ -108,7 +108,7 @@ a \fBCPU\fR atom (\fBcpu: aarch64\fR).
 .PP
 Combine atoms with \fBand\fR, \fBor\fR, and a guarded \fBnot\fR. OS blocks form a lineage via \fBusing:\fR (\fBpop_os! -> ubuntu -> debian -> linux\fR), detected from \fB/etc/os-release\fR (\fBID=pop\fR -> \fBpop_os!\fR), so a route written on \fBdebian\fR applies to the whole family. Two bindings whose match-sets overlap must be comparable (one more specific than the other) or configsys reports a load-time ambiguity.
 .PP
-A derivative distro that does not rebrand \fB/etc/os-release\fR (Proxmox VE reports \fBID=debian\fR) can still be detected by a \fBmarker\fR: an os block declares \fBdetect: { id: <base>  marker: <path> }\fR (marker may be a list). When the detected block is that base — or a descendant — and every marker exists on disk, configsys routes to the more-specific block. This is the data-driven form of the built-in Fedora-Atomic ostree-marker detection, so a plugin can add a detectable OS with no code (see \fBexamples/configsys-proxmox\fR).
+A derivative distro that does not rebrand \fB/etc/os-release\fR (Proxmox VE reports \fBID=debian\fR) can still be detected by a \fBmarker\fR: an os block declares \fBdetect: { id: <base>  marker: <path> }\fR (marker may be a list). When the detected block is that base — or a descendant — and every marker exists on disk, configsys routes to the more-specific block. This is the data-driven form of the built-in Fedora-Atomic ostree-marker detection, so a plugin can add a detectable OS with no code (the \fBconfigsys-proxmox\fR plugin does exactly this).
 .SH VERSIONS — DISCOVERED, NOT HARDCODED
 .PP
 Download-based bindings declare \fIhow\fR to find the latest version rather than pinning one:
