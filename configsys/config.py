@@ -54,6 +54,11 @@ class Config:
             if isinstance(sec, dict):
                 for name, val in sec.items():
                     self._chain.setdefault(name, []).append((i, val, layer.path))
+        # `all` is a built-in synthetic profile = every defined component. The universe lives in
+        # routes (not config), so it's supplied lazily by the app; None until then.
+        self._universe_provider = None
+
+    ALL_PROFILE = 'all'
 
     @classmethod
     def load(cls, paths, discovered=(), plugin_files=()):
@@ -116,6 +121,8 @@ class Config:
         replacing it. A bare redefine with no `+self` still replaces wholesale. A genuine
         include cycle, an undefined include, or a `+self` with no lower layer to inherit raises
         ConfigError.'''
+        if profile == self.ALL_PROFILE:                  # built-in: every defined component
+            return self._all_components()
         chain = self._chain.get(profile)
         if not chain:
             raise ConfigError(
@@ -131,11 +138,18 @@ class Config:
         inherited-from-below members are still its own). So `sculpture-artist: [ +user, blender ]`
         owns just `blender`, while `user: [ +user, apod ]` owns the base `user` set plus apod.
         This keeps the menu from repeating a base profile's components under every includer.'''
+        if profile == self.ALL_PROFILE:
+            return self._all_components()
         chain = self._chain.get(profile)
         if not chain:
             raise ConfigError(f'profile "{profile}" is not defined')
         idx, val, _src = chain[-1]
         return self._expand(profile, idx, val, (), own_only=True)
+
+    def _all_components(self):
+        '''Every defined component name (the built-in `all` profile), or [] before the app has
+        supplied the universe. Sorted for a stable menu order.'''
+        return sorted(self._universe_provider() if self._universe_provider else [])
 
     def _expand(self, name, idx, val, stack, own_only=False):
         '''Expand one profile definition (name@idx) to its component list. `stack` holds the

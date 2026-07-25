@@ -72,6 +72,11 @@ profiles: {
 
 Order matters: a `~` after a `+` drops what the include brought in; a later add re-adds it.
 
+**`all`** is a built-in synthetic profile — every defined component. You don't declare it; use it
+as `configsys install profile:all` or add it to `configs:` to browse the full menu in `inspect`/
+the TUI (it shows as a `+all` note rather than a listed profile, and `inspect` resolves it
+resiliently, so components that don't route on this OS just show as errors rather than blocking).
+
 ## Components and bindings
 
 `routes.hu`'s `components:` section defines each component as a capability plus a list of

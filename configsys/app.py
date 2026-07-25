@@ -284,6 +284,8 @@ class Context:
     def config(self):
         if self._config is None:
             self._config = Config.load(self.paths, self.discovered, self.plugin_files)
+            # back the built-in `all` profile with the loaded component set (lazy: routes carry it)
+            self._config._universe_provider = lambda: set(self.routes.components)
         return self._config
 
     def apply_scope_default(self, units):
@@ -331,7 +333,7 @@ class Context:
         self.ensure_user_config(offer_primary=True)
         cfg = self.config
         r.event(report.VERBOSE, f'  config: {len(cfg.active_profiles)} profile(s) active '
-                                f'({", ".join(cfg.active_profiles)})')
+                                f'({_profiles_label(cfg.active_profiles)})')
         for w in getattr(cfg, 'load_warnings', []):     # dropped config layers, streamed as found
             r.error(_unskip(w))
         routes = self.routes                            # one Resolver — reused for reporting below
@@ -422,7 +424,7 @@ class Context:
             return
         ver = f' {self.os_info.version}' if self.os_info.version else ''
         r.event(report.VERBOSE, f'  session summary — {self.os_info.block}{ver}   '
-                                f'profiles: {", ".join(cfg.active_profiles)}')
+                                f'profiles: {_profiles_label(cfg.active_profiles)}')
         tally = {}
         for st in states.values():
             tally[st.status] = tally.get(st.status, 0) + 1
@@ -440,7 +442,7 @@ class Context:
 
 def cmd_inspect(ctx, args):
     _cfg, requested, units, _ledger, states = ctx.load_pipeline()
-    print(f'OS: {ctx.os_info.block}   profiles: {", ".join(_cfg.active_profiles)}   '
+    print(f'OS: {ctx.os_info.block}   profiles: {_profiles_label(_cfg.active_profiles)}   '
           f'units: {len(units)}')
     if ctx.discovered:
         files = ', '.join(os.path.basename(d) for d in ctx.discovered)
@@ -463,6 +465,16 @@ def cmd_inspect(ctx, args):
             mark = '✗' if d['level'] == 'error' else '⚠'
             print(f'  {mark} {d["tag"]:12} {d["text"]}')
     return 0
+
+
+def _profiles_label(profiles):
+    '''Display string for the active profiles. The built-in `all` isn't listed as a named
+    profile — it's shown as a `+all` note so the full menu is visible without cluttering the list.'''
+    shown = [p for p in profiles if p != 'all']
+    label = ', '.join(shown)
+    if 'all' in profiles:
+        label = f'{label}  +all (full menu)' if label else '+all (full menu)'
+    return label or '(none)'
 
 
 def _expand_profile_args(ctx, names):

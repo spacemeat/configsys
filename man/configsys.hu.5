@@ -70,6 +70,8 @@ profiles: {
 .RE
 .PP
 Order matters: a \fB~\fR after a \fB+\fR drops what the include brought in; a later add re-adds it.
+.PP
+\fB\fBall\fR\fR is a built-in synthetic profile — every defined component. You don't declare it; use it as \fBconfigsys install profile:all\fR or add it to \fBconfigs:\fR to browse the full menu in \fBinspect\fR/ the TUI (it shows as a \fB+all\fR note rather than a listed profile, and \fBinspect\fR resolves it resiliently, so components that don't route on this OS just show as errors rather than blocking).
 .SH COMPONENTS AND BINDINGS
 .PP
 \fBroutes.hu\fR's \fBcomponents:\fR section defines each component as a capability plus a list of context-selected \fBbindings\fR. A binding names its \fBdriver\fR with \fBvia:\fR, guards itself with an optional \fBwhen:\fR expression, and carries driver-specific details:
