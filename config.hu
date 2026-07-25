@@ -90,6 +90,24 @@
             supercollider
             qjackctl
         ]
+        // Back-end / platform engineering: containers, cloud CLIs, IaC, DB clients + servers.
+        backend: [
+            +user
+            docker
+            awscli
+            gcloud
+            azure-cli
+            opentofu
+            grpcurl
+            protobuf
+            pgcli
+            mycli
+            dbeaver
+            sqlitebrowser
+            postgresql-service
+            mariadb-service
+            redis-service
+        ]
         // Pure additive tool bundles (no +user) — compose onto a base, e.g. a workstation runs
         // [ user, networking ] and a headless box runs just [ networking ]. Neither is in the
         // default `configs:` above; activate per-machine.

@@ -170,6 +170,50 @@
     "name": "bash-dotfiles"
    }
   },
+  "awscli": {
+   "pacman\\curl": {
+    "driver": "pacman",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "pacman\\unzip": {
+    "driver": "pacman",
+    "fields": {
+     "name": "unzip"
+    },
+    "name": "unzip"
+   },
+   "script\\awscli": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "curl -fsSL \"https://awscli.amazonaws.com/awscli-exe-linux-$(uname -m).zip\" -o /tmp/awscliv2.zip && unzip -q -o /tmp/awscliv2.zip -d /tmp/awscli-inst && /tmp/awscli-inst/aws/install --update -i \"$HOME/.local/aws-cli\" -b \"$HOME/.local/bin\" && rm -rf /tmp/awscliv2.zip /tmp/awscli-inst",
+     "location": "~/.local/bin/aws",
+     "name": "awscli",
+     "uninstall-cmd": "rm -rf \"$HOME/.local/aws-cli\" \"$HOME/.local/bin/aws\" \"$HOME/.local/bin/aws_completer\"",
+     "version-cmd": "\"$HOME/.local/bin/aws\" --version",
+     "version-re": "([0-9]+\\.[0-9]+\\.[0-9]+)"
+    },
+    "name": "awscli"
+   }
+  },
+  "azure-cli": {
+   "pacman\\pipx": {
+    "driver": "pacman",
+    "fields": {
+     "name": "python-pipx"
+    },
+    "name": "python-pipx"
+   },
+   "pipx\\azure-cli": {
+    "driver": "pipx",
+    "fields": {
+     "name": "azure-cli"
+    },
+    "name": "azure-cli"
+   }
+  },
   "base-devel": {
    "pacman\\base-devel": {
     "driver": "pacman",
@@ -617,6 +661,23 @@
     "name": "flatpak"
    }
   },
+  "dbeaver": {
+   "flatpak\\dbeaver": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "io.dbeaver.DBeaverCommunity"
+    },
+    "name": "io.dbeaver.DBeaverCommunity"
+   },
+   "pacman\\flatpak": {
+    "driver": "pacman",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   }
+  },
   "deno": {
    "pacman\\deno": {
     "driver": "pacman",
@@ -922,6 +983,27 @@
     "name": "gcc-cpp"
    }
   },
+  "gcloud": {
+   "pacman\\curl": {
+    "driver": "pacman",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "script\\gcloud": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "curl -fsSL https://sdk.cloud.google.com | bash -s -- --disable-prompts --install-dir=\"$HOME\"",
+     "location": "~/google-cloud-sdk/bin",
+     "name": "gcloud",
+     "uninstall-cmd": "rm -rf \"$HOME/google-cloud-sdk\"",
+     "version-cmd": "\"$HOME/google-cloud-sdk/bin/gcloud\" version",
+     "version-re": "([0-9]+\\.[0-9]+\\.[0-9]+)"
+    },
+    "name": "gcloud"
+   }
+  },
   "gdb": {
    "dotfiles\\gdb-dotfiles": {
     "driver": "dotfiles",
@@ -1049,6 +1131,28 @@
      "name": "jdk-openjdk"
     },
     "name": "jdk-openjdk"
+   }
+  },
+  "grpcurl": {
+   "pacman\\curl": {
+    "driver": "pacman",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "tarball\\grpcurl": {
+    "driver": "tarball",
+    "fields": {
+     "installDir": "apps/grpcurl",
+     "name": "grpcurl",
+     "version": {
+      "asset": "grpcurl_*_linux_x86_64.tar.gz",
+      "github": "fullstorydev/grpcurl",
+      "strip-v": "true"
+     }
+    },
+    "name": "grpcurl"
    }
   },
   "gst-bad": {
@@ -1713,6 +1817,32 @@
     "name": "make"
    }
   },
+  "mariadb": {
+   "pacman\\mariadb": {
+    "driver": "pacman",
+    "fields": {
+     "name": "mariadb"
+    },
+    "name": "mariadb"
+   }
+  },
+  "mariadb-service": {
+   "pacman\\mariadb": {
+    "driver": "pacman",
+    "fields": {
+     "name": "mariadb"
+    },
+    "name": "mariadb"
+   },
+   "service\\mariadb-service": {
+    "driver": "service",
+    "fields": {
+     "name": "mariadb-service",
+     "unit": "mariadb"
+    },
+    "name": "mariadb-service"
+   }
+  },
   "mate": {
    "pacman\\mate": {
     "driver": "pacman",
@@ -1827,6 +1957,22 @@
      "name": "flatpak"
     },
     "name": "flatpak"
+   }
+  },
+  "mycli": {
+   "pacman\\pipx": {
+    "driver": "pacman",
+    "fields": {
+     "name": "python-pipx"
+    },
+    "name": "python-pipx"
+   },
+   "pipx\\mycli": {
+    "driver": "pipx",
+    "fields": {
+     "name": "mycli"
+    },
+    "name": "mycli"
    }
   },
   "neovim": {
@@ -2092,6 +2238,28 @@
     "name": "flatpak"
    }
   },
+  "opentofu": {
+   "pacman\\curl": {
+    "driver": "pacman",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "tarball\\opentofu": {
+    "driver": "tarball",
+    "fields": {
+     "installDir": "apps/opentofu",
+     "name": "opentofu",
+     "version": {
+      "asset": "tofu_*_linux_amd64.tar.gz",
+      "github": "opentofu/opentofu",
+      "strip-v": "true"
+     }
+    },
+    "name": "opentofu"
+   }
+  },
   "opera": {
    "flatpak\\opera": {
     "driver": "flatpak",
@@ -2125,6 +2293,22 @@
      "name": "perf"
     },
     "name": "perf"
+   }
+  },
+  "pgcli": {
+   "pacman\\pipx": {
+    "driver": "pacman",
+    "fields": {
+     "name": "python-pipx"
+    },
+    "name": "python-pipx"
+   },
+   "pipx\\pgcli": {
+    "driver": "pipx",
+    "fields": {
+     "name": "pgcli"
+    },
+    "name": "pgcli"
    }
   },
   "pipewire": {
@@ -2177,6 +2361,32 @@
     "name": "podman-dotfiles"
    }
   },
+  "postgresql": {
+   "pacman\\postgresql": {
+    "driver": "pacman",
+    "fields": {
+     "name": "postgresql"
+    },
+    "name": "postgresql"
+   }
+  },
+  "postgresql-service": {
+   "pacman\\postgresql": {
+    "driver": "pacman",
+    "fields": {
+     "name": "postgresql"
+    },
+    "name": "postgresql"
+   },
+   "service\\postgresql-service": {
+    "driver": "service",
+    "fields": {
+     "name": "postgresql-service",
+     "unit": "postgresql"
+    },
+    "name": "postgresql-service"
+   }
+  },
   "postman": {
    "flatpak\\postman": {
     "driver": "flatpak",
@@ -2209,6 +2419,16 @@
      "repo-component": "universe"
     },
     "name": "npm"
+   }
+  },
+  "protobuf": {
+   "pacman\\protobuf": {
+    "driver": "pacman",
+    "fields": {
+     "name": "protobuf",
+     "repo-component": "universe"
+    },
+    "name": "protobuf"
    }
   },
   "puppet": {
@@ -2284,6 +2504,32 @@
      "repo-component": "universe"
     },
     "name": "r"
+   }
+  },
+  "redis": {
+   "pacman\\redis": {
+    "driver": "pacman",
+    "fields": {
+     "name": "valkey"
+    },
+    "name": "valkey"
+   }
+  },
+  "redis-service": {
+   "pacman\\redis": {
+    "driver": "pacman",
+    "fields": {
+     "name": "valkey"
+    },
+    "name": "valkey"
+   },
+   "service\\redis-service": {
+    "driver": "service",
+    "fields": {
+     "name": "redis-service",
+     "unit": "valkey"
+    },
+    "name": "redis-service"
    }
   },
   "ripgrep": {
@@ -2415,6 +2661,23 @@
      "name": "net.sonic_pi.SonicPi"
     },
     "name": "net.sonic_pi.SonicPi"
+   },
+   "pacman\\flatpak": {
+    "driver": "pacman",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   }
+  },
+  "sqlitebrowser": {
+   "flatpak\\sqlitebrowser": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "org.sqlitebrowser.sqlitebrowser"
+    },
+    "name": "org.sqlitebrowser.sqlitebrowser"
    },
    "pacman\\flatpak": {
     "driver": "pacman",
@@ -3419,6 +3682,60 @@
     "name": "bash-dotfiles"
    }
   },
+  "awscli": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "apt\\unzip": {
+    "driver": "apt",
+    "fields": {
+     "name": "unzip"
+    },
+    "name": "unzip"
+   },
+   "script\\awscli": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "curl -fsSL \"https://awscli.amazonaws.com/awscli-exe-linux-$(uname -m).zip\" -o /tmp/awscliv2.zip && unzip -q -o /tmp/awscliv2.zip -d /tmp/awscli-inst && /tmp/awscli-inst/aws/install --update -i \"$HOME/.local/aws-cli\" -b \"$HOME/.local/bin\" && rm -rf /tmp/awscliv2.zip /tmp/awscli-inst",
+     "location": "~/.local/bin/aws",
+     "name": "awscli",
+     "uninstall-cmd": "rm -rf \"$HOME/.local/aws-cli\" \"$HOME/.local/bin/aws\" \"$HOME/.local/bin/aws_completer\"",
+     "version-cmd": "\"$HOME/.local/bin/aws\" --version",
+     "version-re": "([0-9]+\\.[0-9]+\\.[0-9]+)"
+    },
+    "name": "awscli"
+   }
+  },
+  "azure-cli": {
+   "apt\\python3-pip": {
+    "driver": "apt",
+    "fields": {
+     "name": "python3-pip"
+    },
+    "name": "python3-pip"
+   },
+   "pip\\pipx": {
+    "driver": "pip",
+    "fields": {
+     "name": "pipx",
+     "version": {
+      "pypi": "pipx"
+     }
+    },
+    "name": "pipx"
+   },
+   "pipx\\azure-cli": {
+    "driver": "pipx",
+    "fields": {
+     "name": "azure-cli"
+    },
+    "name": "azure-cli"
+   }
+  },
   "bash-dotfiles": {
    "dotfiles\\bash-dotfiles": {
     "driver": "dotfiles",
@@ -4017,6 +4334,23 @@
     "name": "org.darktable.Darktable"
    }
   },
+  "dbeaver": {
+   "apt\\flatpak": {
+    "driver": "apt",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\dbeaver": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "io.dbeaver.DBeaverCommunity"
+    },
+    "name": "io.dbeaver.DBeaverCommunity"
+   }
+  },
   "deno": {
    "apt\\curl": {
     "driver": "apt",
@@ -4508,6 +4842,27 @@
     "name": "gcc-select"
    }
   },
+  "gcloud": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "script\\gcloud": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "curl -fsSL https://sdk.cloud.google.com | bash -s -- --disable-prompts --install-dir=\"$HOME\"",
+     "location": "~/google-cloud-sdk/bin",
+     "name": "gcloud",
+     "uninstall-cmd": "rm -rf \"$HOME/google-cloud-sdk\"",
+     "version-cmd": "\"$HOME/google-cloud-sdk/bin/gcloud\" version",
+     "version-re": "([0-9]+\\.[0-9]+\\.[0-9]+)"
+    },
+    "name": "gcloud"
+   }
+  },
   "gdb": {
    "apt\\gdb": {
     "driver": "apt",
@@ -4635,6 +4990,28 @@
      "name": "default-jdk"
     },
     "name": "default-jdk"
+   }
+  },
+  "grpcurl": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "tarball\\grpcurl": {
+    "driver": "tarball",
+    "fields": {
+     "installDir": "apps/grpcurl",
+     "name": "grpcurl",
+     "version": {
+      "asset": "grpcurl_*_linux_x86_64.tar.gz",
+      "github": "fullstorydev/grpcurl",
+      "strip-v": "true"
+     }
+    },
+    "name": "grpcurl"
    }
   },
   "gst-bad": {
@@ -5421,6 +5798,32 @@
     "name": "make"
    }
   },
+  "mariadb": {
+   "apt\\mariadb": {
+    "driver": "apt",
+    "fields": {
+     "name": "mariadb-server"
+    },
+    "name": "mariadb-server"
+   }
+  },
+  "mariadb-service": {
+   "apt\\mariadb": {
+    "driver": "apt",
+    "fields": {
+     "name": "mariadb-server"
+    },
+    "name": "mariadb-server"
+   },
+   "service\\mariadb-service": {
+    "driver": "service",
+    "fields": {
+     "name": "mariadb-service",
+     "unit": "mariadb"
+    },
+    "name": "mariadb-service"
+   }
+  },
   "mate": {
    "apt\\mate": {
     "driver": "apt",
@@ -5545,6 +5948,32 @@
      "name": "org.musescore.MuseScore"
     },
     "name": "org.musescore.MuseScore"
+   }
+  },
+  "mycli": {
+   "apt\\python3-pip": {
+    "driver": "apt",
+    "fields": {
+     "name": "python3-pip"
+    },
+    "name": "python3-pip"
+   },
+   "pip\\pipx": {
+    "driver": "pip",
+    "fields": {
+     "name": "pipx",
+     "version": {
+      "pypi": "pipx"
+     }
+    },
+    "name": "pipx"
+   },
+   "pipx\\mycli": {
+    "driver": "pipx",
+    "fields": {
+     "name": "mycli"
+    },
+    "name": "mycli"
    }
   },
   "neovim": {
@@ -5828,6 +6257,28 @@
     "name": "org.openscad.OpenSCAD"
    }
   },
+  "opentofu": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "tarball\\opentofu": {
+    "driver": "tarball",
+    "fields": {
+     "installDir": "apps/opentofu",
+     "name": "opentofu",
+     "version": {
+      "asset": "tofu_*_linux_amd64.tar.gz",
+      "github": "opentofu/opentofu",
+      "strip-v": "true"
+     }
+    },
+    "name": "opentofu"
+   }
+  },
   "opera": {
    "apt\\flatpak": {
     "driver": "apt",
@@ -5861,6 +6312,32 @@
      "name": "linux-tools-generic"
     },
     "name": "linux-tools-generic"
+   }
+  },
+  "pgcli": {
+   "apt\\python3-pip": {
+    "driver": "apt",
+    "fields": {
+     "name": "python3-pip"
+    },
+    "name": "python3-pip"
+   },
+   "pip\\pipx": {
+    "driver": "pip",
+    "fields": {
+     "name": "pipx",
+     "version": {
+      "pypi": "pipx"
+     }
+    },
+    "name": "pipx"
+   },
+   "pipx\\pgcli": {
+    "driver": "pipx",
+    "fields": {
+     "name": "pgcli"
+    },
+    "name": "pgcli"
    }
   },
   "pipewire": {
@@ -5923,6 +6400,32 @@
     "name": "podman-dotfiles"
    }
   },
+  "postgresql": {
+   "apt\\postgresql": {
+    "driver": "apt",
+    "fields": {
+     "name": "postgresql"
+    },
+    "name": "postgresql"
+   }
+  },
+  "postgresql-service": {
+   "apt\\postgresql": {
+    "driver": "apt",
+    "fields": {
+     "name": "postgresql"
+    },
+    "name": "postgresql"
+   },
+   "service\\postgresql-service": {
+    "driver": "service",
+    "fields": {
+     "name": "postgresql-service",
+     "unit": "postgresql"
+    },
+    "name": "postgresql-service"
+   }
+  },
   "postman": {
    "apt\\flatpak": {
     "driver": "apt",
@@ -5955,6 +6458,16 @@
      "name": "prettier"
     },
     "name": "prettier"
+   }
+  },
+  "protobuf": {
+   "apt\\protobuf": {
+    "driver": "apt",
+    "fields": {
+     "name": "protobuf-compiler",
+     "repo-component": "universe"
+    },
+    "name": "protobuf-compiler"
    }
   },
   "puppet": {
@@ -6030,6 +6543,32 @@
      "repo-component": "universe"
     },
     "name": "r-base"
+   }
+  },
+  "redis": {
+   "apt\\redis": {
+    "driver": "apt",
+    "fields": {
+     "name": "redis-server"
+    },
+    "name": "redis-server"
+   }
+  },
+  "redis-service": {
+   "apt\\redis": {
+    "driver": "apt",
+    "fields": {
+     "name": "redis-server"
+    },
+    "name": "redis-server"
+   },
+   "service\\redis-service": {
+    "driver": "service",
+    "fields": {
+     "name": "redis-service",
+     "unit": "redis-server"
+    },
+    "name": "redis-service"
    }
   },
   "ripgrep": {
@@ -6187,6 +6726,23 @@
      "name": "net.sonic_pi.SonicPi"
     },
     "name": "net.sonic_pi.SonicPi"
+   }
+  },
+  "sqlitebrowser": {
+   "apt\\flatpak": {
+    "driver": "apt",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\sqlitebrowser": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "org.sqlitebrowser.sqlitebrowser"
+    },
+    "name": "org.sqlitebrowser.sqlitebrowser"
    }
   },
   "steam": {
@@ -7142,6 +7698,50 @@
     "name": "bash-dotfiles"
    }
   },
+  "awscli": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "apt\\unzip": {
+    "driver": "apt",
+    "fields": {
+     "name": "unzip"
+    },
+    "name": "unzip"
+   },
+   "script\\awscli": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "curl -fsSL \"https://awscli.amazonaws.com/awscli-exe-linux-$(uname -m).zip\" -o /tmp/awscliv2.zip && unzip -q -o /tmp/awscliv2.zip -d /tmp/awscli-inst && /tmp/awscli-inst/aws/install --update -i \"$HOME/.local/aws-cli\" -b \"$HOME/.local/bin\" && rm -rf /tmp/awscliv2.zip /tmp/awscli-inst",
+     "location": "~/.local/bin/aws",
+     "name": "awscli",
+     "uninstall-cmd": "rm -rf \"$HOME/.local/aws-cli\" \"$HOME/.local/bin/aws\" \"$HOME/.local/bin/aws_completer\"",
+     "version-cmd": "\"$HOME/.local/bin/aws\" --version",
+     "version-re": "([0-9]+\\.[0-9]+\\.[0-9]+)"
+    },
+    "name": "awscli"
+   }
+  },
+  "azure-cli": {
+   "apt\\pipx": {
+    "driver": "apt",
+    "fields": {
+     "name": "pipx"
+    },
+    "name": "pipx"
+   },
+   "pipx\\azure-cli": {
+    "driver": "pipx",
+    "fields": {
+     "name": "azure-cli"
+    },
+    "name": "azure-cli"
+   }
+  },
   "bash-dotfiles": {
    "dotfiles\\bash-dotfiles": {
     "driver": "dotfiles",
@@ -7730,6 +8330,23 @@
     "name": "org.darktable.Darktable"
    }
   },
+  "dbeaver": {
+   "apt\\flatpak": {
+    "driver": "apt",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\dbeaver": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "io.dbeaver.DBeaverCommunity"
+    },
+    "name": "io.dbeaver.DBeaverCommunity"
+   }
+  },
   "deno": {
    "apt\\curl": {
     "driver": "apt",
@@ -8221,6 +8838,27 @@
     "name": "gcc-select"
    }
   },
+  "gcloud": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "script\\gcloud": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "curl -fsSL https://sdk.cloud.google.com | bash -s -- --disable-prompts --install-dir=\"$HOME\"",
+     "location": "~/google-cloud-sdk/bin",
+     "name": "gcloud",
+     "uninstall-cmd": "rm -rf \"$HOME/google-cloud-sdk\"",
+     "version-cmd": "\"$HOME/google-cloud-sdk/bin/gcloud\" version",
+     "version-re": "([0-9]+\\.[0-9]+\\.[0-9]+)"
+    },
+    "name": "gcloud"
+   }
+  },
   "gdb": {
    "apt\\gdb": {
     "driver": "apt",
@@ -8348,6 +8986,28 @@
      "name": "default-jdk"
     },
     "name": "default-jdk"
+   }
+  },
+  "grpcurl": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "tarball\\grpcurl": {
+    "driver": "tarball",
+    "fields": {
+     "installDir": "apps/grpcurl",
+     "name": "grpcurl",
+     "version": {
+      "asset": "grpcurl_*_linux_x86_64.tar.gz",
+      "github": "fullstorydev/grpcurl",
+      "strip-v": "true"
+     }
+    },
+    "name": "grpcurl"
    }
   },
   "gst-bad": {
@@ -9124,6 +9784,32 @@
     "name": "make"
    }
   },
+  "mariadb": {
+   "apt\\mariadb": {
+    "driver": "apt",
+    "fields": {
+     "name": "mariadb-server"
+    },
+    "name": "mariadb-server"
+   }
+  },
+  "mariadb-service": {
+   "apt\\mariadb": {
+    "driver": "apt",
+    "fields": {
+     "name": "mariadb-server"
+    },
+    "name": "mariadb-server"
+   },
+   "service\\mariadb-service": {
+    "driver": "service",
+    "fields": {
+     "name": "mariadb-service",
+     "unit": "mariadb"
+    },
+    "name": "mariadb-service"
+   }
+  },
   "mate": {
    "apt\\mate": {
     "driver": "apt",
@@ -9238,6 +9924,22 @@
      "name": "org.musescore.MuseScore"
     },
     "name": "org.musescore.MuseScore"
+   }
+  },
+  "mycli": {
+   "apt\\pipx": {
+    "driver": "apt",
+    "fields": {
+     "name": "pipx"
+    },
+    "name": "pipx"
+   },
+   "pipx\\mycli": {
+    "driver": "pipx",
+    "fields": {
+     "name": "mycli"
+    },
+    "name": "mycli"
    }
   },
   "neovim": {
@@ -9521,6 +10223,28 @@
     "name": "org.openscad.OpenSCAD"
    }
   },
+  "opentofu": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "tarball\\opentofu": {
+    "driver": "tarball",
+    "fields": {
+     "installDir": "apps/opentofu",
+     "name": "opentofu",
+     "version": {
+      "asset": "tofu_*_linux_amd64.tar.gz",
+      "github": "opentofu/opentofu",
+      "strip-v": "true"
+     }
+    },
+    "name": "opentofu"
+   }
+  },
   "opera": {
    "apt\\flatpak": {
     "driver": "apt",
@@ -9554,6 +10278,22 @@
      "name": "linux-tools-generic"
     },
     "name": "linux-tools-generic"
+   }
+  },
+  "pgcli": {
+   "apt\\pipx": {
+    "driver": "apt",
+    "fields": {
+     "name": "pipx"
+    },
+    "name": "pipx"
+   },
+   "pipx\\pgcli": {
+    "driver": "pipx",
+    "fields": {
+     "name": "pgcli"
+    },
+    "name": "pgcli"
    }
   },
   "pipewire": {
@@ -9606,6 +10346,32 @@
     "name": "podman-dotfiles"
    }
   },
+  "postgresql": {
+   "apt\\postgresql": {
+    "driver": "apt",
+    "fields": {
+     "name": "postgresql"
+    },
+    "name": "postgresql"
+   }
+  },
+  "postgresql-service": {
+   "apt\\postgresql": {
+    "driver": "apt",
+    "fields": {
+     "name": "postgresql"
+    },
+    "name": "postgresql"
+   },
+   "service\\postgresql-service": {
+    "driver": "service",
+    "fields": {
+     "name": "postgresql-service",
+     "unit": "postgresql"
+    },
+    "name": "postgresql-service"
+   }
+  },
   "postman": {
    "apt\\flatpak": {
     "driver": "apt",
@@ -9638,6 +10404,16 @@
      "name": "prettier"
     },
     "name": "prettier"
+   }
+  },
+  "protobuf": {
+   "apt\\protobuf": {
+    "driver": "apt",
+    "fields": {
+     "name": "protobuf-compiler",
+     "repo-component": "universe"
+    },
+    "name": "protobuf-compiler"
    }
   },
   "puppet": {
@@ -9713,6 +10489,32 @@
      "repo-component": "universe"
     },
     "name": "r-base"
+   }
+  },
+  "redis": {
+   "apt\\redis": {
+    "driver": "apt",
+    "fields": {
+     "name": "redis-server"
+    },
+    "name": "redis-server"
+   }
+  },
+  "redis-service": {
+   "apt\\redis": {
+    "driver": "apt",
+    "fields": {
+     "name": "redis-server"
+    },
+    "name": "redis-server"
+   },
+   "service\\redis-service": {
+    "driver": "service",
+    "fields": {
+     "name": "redis-service",
+     "unit": "redis-server"
+    },
+    "name": "redis-service"
    }
   },
   "ripgrep": {
@@ -9860,6 +10662,23 @@
      "name": "net.sonic_pi.SonicPi"
     },
     "name": "net.sonic_pi.SonicPi"
+   }
+  },
+  "sqlitebrowser": {
+   "apt\\flatpak": {
+    "driver": "apt",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\sqlitebrowser": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "org.sqlitebrowser.sqlitebrowser"
+    },
+    "name": "org.sqlitebrowser.sqlitebrowser"
    }
   },
   "steam": {
@@ -10805,6 +11624,50 @@
     "name": "bash-dotfiles"
    }
   },
+  "awscli": {
+   "dnf\\curl": {
+    "driver": "dnf",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "dnf\\unzip": {
+    "driver": "dnf",
+    "fields": {
+     "name": "unzip"
+    },
+    "name": "unzip"
+   },
+   "script\\awscli": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "curl -fsSL \"https://awscli.amazonaws.com/awscli-exe-linux-$(uname -m).zip\" -o /tmp/awscliv2.zip && unzip -q -o /tmp/awscliv2.zip -d /tmp/awscli-inst && /tmp/awscli-inst/aws/install --update -i \"$HOME/.local/aws-cli\" -b \"$HOME/.local/bin\" && rm -rf /tmp/awscliv2.zip /tmp/awscli-inst",
+     "location": "~/.local/bin/aws",
+     "name": "awscli",
+     "uninstall-cmd": "rm -rf \"$HOME/.local/aws-cli\" \"$HOME/.local/bin/aws\" \"$HOME/.local/bin/aws_completer\"",
+     "version-cmd": "\"$HOME/.local/bin/aws\" --version",
+     "version-re": "([0-9]+\\.[0-9]+\\.[0-9]+)"
+    },
+    "name": "awscli"
+   }
+  },
+  "azure-cli": {
+   "dnf\\pipx": {
+    "driver": "dnf",
+    "fields": {
+     "name": "pipx"
+    },
+    "name": "pipx"
+   },
+   "pipx\\azure-cli": {
+    "driver": "pipx",
+    "fields": {
+     "name": "azure-cli"
+    },
+    "name": "azure-cli"
+   }
+  },
   "bash-dotfiles": {
    "dotfiles\\bash-dotfiles": {
     "driver": "dotfiles",
@@ -11296,6 +12159,23 @@
     "name": "org.darktable.Darktable"
    }
   },
+  "dbeaver": {
+   "dnf\\flatpak": {
+    "driver": "dnf",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\dbeaver": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "io.dbeaver.DBeaverCommunity"
+    },
+    "name": "io.dbeaver.DBeaverCommunity"
+   }
+  },
   "deno": {
    "dnf\\curl": {
     "driver": "dnf",
@@ -11644,6 +12524,27 @@
     "name": "gcc-c++"
    }
   },
+  "gcloud": {
+   "dnf\\curl": {
+    "driver": "dnf",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "script\\gcloud": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "curl -fsSL https://sdk.cloud.google.com | bash -s -- --disable-prompts --install-dir=\"$HOME\"",
+     "location": "~/google-cloud-sdk/bin",
+     "name": "gcloud",
+     "uninstall-cmd": "rm -rf \"$HOME/google-cloud-sdk\"",
+     "version-cmd": "\"$HOME/google-cloud-sdk/bin/gcloud\" version",
+     "version-re": "([0-9]+\\.[0-9]+\\.[0-9]+)"
+    },
+    "name": "gcloud"
+   }
+  },
   "gdb": {
    "dnf\\gdb": {
     "driver": "dnf",
@@ -11755,6 +12656,28 @@
      "name": "golang.org/x/tools/cmd/goimports"
     },
     "name": "golang.org/x/tools/cmd/goimports"
+   }
+  },
+  "grpcurl": {
+   "dnf\\curl": {
+    "driver": "dnf",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "tarball\\grpcurl": {
+    "driver": "tarball",
+    "fields": {
+     "installDir": "apps/grpcurl",
+     "name": "grpcurl",
+     "version": {
+      "asset": "grpcurl_*_linux_x86_64.tar.gz",
+      "github": "fullstorydev/grpcurl",
+      "strip-v": "true"
+     }
+    },
+    "name": "grpcurl"
    }
   },
   "gst-bad": {
@@ -12511,6 +13434,32 @@
     "name": "make"
    }
   },
+  "mariadb": {
+   "dnf\\mariadb": {
+    "driver": "dnf",
+    "fields": {
+     "name": "mariadb-server"
+    },
+    "name": "mariadb-server"
+   }
+  },
+  "mariadb-service": {
+   "dnf\\mariadb": {
+    "driver": "dnf",
+    "fields": {
+     "name": "mariadb-server"
+    },
+    "name": "mariadb-server"
+   },
+   "service\\mariadb-service": {
+    "driver": "service",
+    "fields": {
+     "name": "mariadb-service",
+     "unit": "mariadb"
+    },
+    "name": "mariadb-service"
+   }
+  },
   "mate": {
    "dnf\\mate": {
     "driver": "dnf",
@@ -12625,6 +13574,22 @@
      "name": "org.musescore.MuseScore"
     },
     "name": "org.musescore.MuseScore"
+   }
+  },
+  "mycli": {
+   "dnf\\pipx": {
+    "driver": "dnf",
+    "fields": {
+     "name": "pipx"
+    },
+    "name": "pipx"
+   },
+   "pipx\\mycli": {
+    "driver": "pipx",
+    "fields": {
+     "name": "mycli"
+    },
+    "name": "mycli"
    }
   },
   "neovim": {
@@ -12908,6 +13873,28 @@
     "name": "org.openscad.OpenSCAD"
    }
   },
+  "opentofu": {
+   "dnf\\curl": {
+    "driver": "dnf",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "tarball\\opentofu": {
+    "driver": "tarball",
+    "fields": {
+     "installDir": "apps/opentofu",
+     "name": "opentofu",
+     "version": {
+      "asset": "tofu_*_linux_amd64.tar.gz",
+      "github": "opentofu/opentofu",
+      "strip-v": "true"
+     }
+    },
+    "name": "opentofu"
+   }
+  },
   "opera": {
    "dnf\\flatpak": {
     "driver": "dnf",
@@ -12941,6 +13928,22 @@
      "name": "perf"
     },
     "name": "perf"
+   }
+  },
+  "pgcli": {
+   "dnf\\pipx": {
+    "driver": "dnf",
+    "fields": {
+     "name": "pipx"
+    },
+    "name": "pipx"
+   },
+   "pipx\\pgcli": {
+    "driver": "pipx",
+    "fields": {
+     "name": "pgcli"
+    },
+    "name": "pgcli"
    }
   },
   "pipewire": {
@@ -12993,6 +13996,32 @@
     "name": "podman-dotfiles"
    }
   },
+  "postgresql": {
+   "dnf\\postgresql": {
+    "driver": "dnf",
+    "fields": {
+     "name": "postgresql-server"
+    },
+    "name": "postgresql-server"
+   }
+  },
+  "postgresql-service": {
+   "dnf\\postgresql": {
+    "driver": "dnf",
+    "fields": {
+     "name": "postgresql-server"
+    },
+    "name": "postgresql-server"
+   },
+   "service\\postgresql-service": {
+    "driver": "service",
+    "fields": {
+     "name": "postgresql-service",
+     "unit": "postgresql"
+    },
+    "name": "postgresql-service"
+   }
+  },
   "postman": {
    "dnf\\flatpak": {
     "driver": "dnf",
@@ -13025,6 +14054,16 @@
      "name": "prettier"
     },
     "name": "prettier"
+   }
+  },
+  "protobuf": {
+   "dnf\\protobuf": {
+    "driver": "dnf",
+    "fields": {
+     "name": "protobuf-compiler",
+     "repo-component": "universe"
+    },
+    "name": "protobuf-compiler"
    }
   },
   "puppet": {
@@ -13100,6 +14139,32 @@
      "repo-component": "universe"
     },
     "name": "R"
+   }
+  },
+  "redis": {
+   "dnf\\redis": {
+    "driver": "dnf",
+    "fields": {
+     "name": "valkey"
+    },
+    "name": "valkey"
+   }
+  },
+  "redis-service": {
+   "dnf\\redis": {
+    "driver": "dnf",
+    "fields": {
+     "name": "valkey"
+    },
+    "name": "valkey"
+   },
+   "service\\redis-service": {
+    "driver": "service",
+    "fields": {
+     "name": "redis-service",
+     "unit": "valkey"
+    },
+    "name": "redis-service"
    }
   },
   "ripgrep": {
@@ -13251,6 +14316,23 @@
      "name": "net.sonic_pi.SonicPi"
     },
     "name": "net.sonic_pi.SonicPi"
+   }
+  },
+  "sqlitebrowser": {
+   "dnf\\flatpak": {
+    "driver": "dnf",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\sqlitebrowser": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "org.sqlitebrowser.sqlitebrowser"
+    },
+    "name": "org.sqlitebrowser.sqlitebrowser"
    }
   },
   "steam": {
@@ -14231,6 +15313,50 @@
     "name": "bash-dotfiles"
    }
   },
+  "awscli": {
+   "dnf\\curl": {
+    "driver": "dnf",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "dnf\\unzip": {
+    "driver": "dnf",
+    "fields": {
+     "name": "unzip"
+    },
+    "name": "unzip"
+   },
+   "script\\awscli": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "curl -fsSL \"https://awscli.amazonaws.com/awscli-exe-linux-$(uname -m).zip\" -o /tmp/awscliv2.zip && unzip -q -o /tmp/awscliv2.zip -d /tmp/awscli-inst && /tmp/awscli-inst/aws/install --update -i \"$HOME/.local/aws-cli\" -b \"$HOME/.local/bin\" && rm -rf /tmp/awscliv2.zip /tmp/awscli-inst",
+     "location": "~/.local/bin/aws",
+     "name": "awscli",
+     "uninstall-cmd": "rm -rf \"$HOME/.local/aws-cli\" \"$HOME/.local/bin/aws\" \"$HOME/.local/bin/aws_completer\"",
+     "version-cmd": "\"$HOME/.local/bin/aws\" --version",
+     "version-re": "([0-9]+\\.[0-9]+\\.[0-9]+)"
+    },
+    "name": "awscli"
+   }
+  },
+  "azure-cli": {
+   "dnf\\pipx": {
+    "driver": "dnf",
+    "fields": {
+     "name": "pipx"
+    },
+    "name": "pipx"
+   },
+   "pipx\\azure-cli": {
+    "driver": "pipx",
+    "fields": {
+     "name": "azure-cli"
+    },
+    "name": "azure-cli"
+   }
+  },
   "bash-dotfiles": {
    "dotfiles\\bash-dotfiles": {
     "driver": "dotfiles",
@@ -14734,6 +15860,23 @@
     "name": "org.darktable.Darktable"
    }
   },
+  "dbeaver": {
+   "dnf\\flatpak": {
+    "driver": "dnf",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\dbeaver": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "io.dbeaver.DBeaverCommunity"
+    },
+    "name": "io.dbeaver.DBeaverCommunity"
+   }
+  },
   "deno": {
    "dnf\\curl": {
     "driver": "dnf",
@@ -15082,6 +16225,27 @@
     "name": "gcc-c++"
    }
   },
+  "gcloud": {
+   "dnf\\curl": {
+    "driver": "dnf",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "script\\gcloud": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "curl -fsSL https://sdk.cloud.google.com | bash -s -- --disable-prompts --install-dir=\"$HOME\"",
+     "location": "~/google-cloud-sdk/bin",
+     "name": "gcloud",
+     "uninstall-cmd": "rm -rf \"$HOME/google-cloud-sdk\"",
+     "version-cmd": "\"$HOME/google-cloud-sdk/bin/gcloud\" version",
+     "version-re": "([0-9]+\\.[0-9]+\\.[0-9]+)"
+    },
+    "name": "gcloud"
+   }
+  },
   "gdb": {
    "dnf\\gdb": {
     "driver": "dnf",
@@ -15193,6 +16357,28 @@
      "name": "golang.org/x/tools/cmd/goimports"
     },
     "name": "golang.org/x/tools/cmd/goimports"
+   }
+  },
+  "grpcurl": {
+   "dnf\\curl": {
+    "driver": "dnf",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "tarball\\grpcurl": {
+    "driver": "tarball",
+    "fields": {
+     "installDir": "apps/grpcurl",
+     "name": "grpcurl",
+     "version": {
+      "asset": "grpcurl_*_linux_x86_64.tar.gz",
+      "github": "fullstorydev/grpcurl",
+      "strip-v": "true"
+     }
+    },
+    "name": "grpcurl"
    }
   },
   "gst-bad": {
@@ -15949,6 +17135,32 @@
     "name": "make"
    }
   },
+  "mariadb": {
+   "dnf\\mariadb": {
+    "driver": "dnf",
+    "fields": {
+     "name": "mariadb-server"
+    },
+    "name": "mariadb-server"
+   }
+  },
+  "mariadb-service": {
+   "dnf\\mariadb": {
+    "driver": "dnf",
+    "fields": {
+     "name": "mariadb-server"
+    },
+    "name": "mariadb-server"
+   },
+   "service\\mariadb-service": {
+    "driver": "service",
+    "fields": {
+     "name": "mariadb-service",
+     "unit": "mariadb"
+    },
+    "name": "mariadb-service"
+   }
+  },
   "mate": {
    "dnf\\mate": {
     "driver": "dnf",
@@ -16063,6 +17275,22 @@
      "name": "org.musescore.MuseScore"
     },
     "name": "org.musescore.MuseScore"
+   }
+  },
+  "mycli": {
+   "dnf\\pipx": {
+    "driver": "dnf",
+    "fields": {
+     "name": "pipx"
+    },
+    "name": "pipx"
+   },
+   "pipx\\mycli": {
+    "driver": "pipx",
+    "fields": {
+     "name": "mycli"
+    },
+    "name": "mycli"
    }
   },
   "neovim": {
@@ -16346,6 +17574,28 @@
     "name": "org.openscad.OpenSCAD"
    }
   },
+  "opentofu": {
+   "dnf\\curl": {
+    "driver": "dnf",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "tarball\\opentofu": {
+    "driver": "tarball",
+    "fields": {
+     "installDir": "apps/opentofu",
+     "name": "opentofu",
+     "version": {
+      "asset": "tofu_*_linux_amd64.tar.gz",
+      "github": "opentofu/opentofu",
+      "strip-v": "true"
+     }
+    },
+    "name": "opentofu"
+   }
+  },
   "opera": {
    "dnf\\flatpak": {
     "driver": "dnf",
@@ -16379,6 +17629,22 @@
      "name": "perf"
     },
     "name": "perf"
+   }
+  },
+  "pgcli": {
+   "dnf\\pipx": {
+    "driver": "dnf",
+    "fields": {
+     "name": "pipx"
+    },
+    "name": "pipx"
+   },
+   "pipx\\pgcli": {
+    "driver": "pipx",
+    "fields": {
+     "name": "pgcli"
+    },
+    "name": "pgcli"
    }
   },
   "pipewire": {
@@ -16431,6 +17697,32 @@
     "name": "podman-dotfiles"
    }
   },
+  "postgresql": {
+   "dnf\\postgresql": {
+    "driver": "dnf",
+    "fields": {
+     "name": "postgresql-server"
+    },
+    "name": "postgresql-server"
+   }
+  },
+  "postgresql-service": {
+   "dnf\\postgresql": {
+    "driver": "dnf",
+    "fields": {
+     "name": "postgresql-server"
+    },
+    "name": "postgresql-server"
+   },
+   "service\\postgresql-service": {
+    "driver": "service",
+    "fields": {
+     "name": "postgresql-service",
+     "unit": "postgresql"
+    },
+    "name": "postgresql-service"
+   }
+  },
   "postman": {
    "dnf\\flatpak": {
     "driver": "dnf",
@@ -16463,6 +17755,16 @@
      "name": "prettier"
     },
     "name": "prettier"
+   }
+  },
+  "protobuf": {
+   "dnf\\protobuf": {
+    "driver": "dnf",
+    "fields": {
+     "name": "protobuf-compiler",
+     "repo-component": "universe"
+    },
+    "name": "protobuf-compiler"
    }
   },
   "puppet": {
@@ -16538,6 +17840,32 @@
      "repo-component": "universe"
     },
     "name": "R"
+   }
+  },
+  "redis": {
+   "dnf\\redis": {
+    "driver": "dnf",
+    "fields": {
+     "name": "valkey"
+    },
+    "name": "valkey"
+   }
+  },
+  "redis-service": {
+   "dnf\\redis": {
+    "driver": "dnf",
+    "fields": {
+     "name": "valkey"
+    },
+    "name": "valkey"
+   },
+   "service\\redis-service": {
+    "driver": "service",
+    "fields": {
+     "name": "redis-service",
+     "unit": "valkey"
+    },
+    "name": "redis-service"
    }
   },
   "ripgrep": {
@@ -16689,6 +18017,23 @@
      "name": "net.sonic_pi.SonicPi"
     },
     "name": "net.sonic_pi.SonicPi"
+   }
+  },
+  "sqlitebrowser": {
+   "dnf\\flatpak": {
+    "driver": "dnf",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\sqlitebrowser": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "org.sqlitebrowser.sqlitebrowser"
+    },
+    "name": "org.sqlitebrowser.sqlitebrowser"
    }
   },
   "steam": {
@@ -17679,6 +19024,60 @@
     "name": "bash-dotfiles"
    }
   },
+  "awscli": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "apt\\unzip": {
+    "driver": "apt",
+    "fields": {
+     "name": "unzip"
+    },
+    "name": "unzip"
+   },
+   "script\\awscli": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "curl -fsSL \"https://awscli.amazonaws.com/awscli-exe-linux-$(uname -m).zip\" -o /tmp/awscliv2.zip && unzip -q -o /tmp/awscliv2.zip -d /tmp/awscli-inst && /tmp/awscli-inst/aws/install --update -i \"$HOME/.local/aws-cli\" -b \"$HOME/.local/bin\" && rm -rf /tmp/awscliv2.zip /tmp/awscli-inst",
+     "location": "~/.local/bin/aws",
+     "name": "awscli",
+     "uninstall-cmd": "rm -rf \"$HOME/.local/aws-cli\" \"$HOME/.local/bin/aws\" \"$HOME/.local/bin/aws_completer\"",
+     "version-cmd": "\"$HOME/.local/bin/aws\" --version",
+     "version-re": "([0-9]+\\.[0-9]+\\.[0-9]+)"
+    },
+    "name": "awscli"
+   }
+  },
+  "azure-cli": {
+   "apt\\python3-pip": {
+    "driver": "apt",
+    "fields": {
+     "name": "python3-pip"
+    },
+    "name": "python3-pip"
+   },
+   "pip\\pipx": {
+    "driver": "pip",
+    "fields": {
+     "name": "pipx",
+     "version": {
+      "pypi": "pipx"
+     }
+    },
+    "name": "pipx"
+   },
+   "pipx\\azure-cli": {
+    "driver": "pipx",
+    "fields": {
+     "name": "azure-cli"
+    },
+    "name": "azure-cli"
+   }
+  },
   "bash-dotfiles": {
    "dotfiles\\bash-dotfiles": {
     "driver": "dotfiles",
@@ -18286,6 +19685,23 @@
     "name": "org.darktable.Darktable"
    }
   },
+  "dbeaver": {
+   "apt\\flatpak": {
+    "driver": "apt",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\dbeaver": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "io.dbeaver.DBeaverCommunity"
+    },
+    "name": "io.dbeaver.DBeaverCommunity"
+   }
+  },
   "deno": {
    "apt\\curl": {
     "driver": "apt",
@@ -18777,6 +20193,27 @@
     "name": "gcc-select"
    }
   },
+  "gcloud": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "script\\gcloud": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "curl -fsSL https://sdk.cloud.google.com | bash -s -- --disable-prompts --install-dir=\"$HOME\"",
+     "location": "~/google-cloud-sdk/bin",
+     "name": "gcloud",
+     "uninstall-cmd": "rm -rf \"$HOME/google-cloud-sdk\"",
+     "version-cmd": "\"$HOME/google-cloud-sdk/bin/gcloud\" version",
+     "version-re": "([0-9]+\\.[0-9]+\\.[0-9]+)"
+    },
+    "name": "gcloud"
+   }
+  },
   "gdb": {
    "apt\\gdb": {
     "driver": "apt",
@@ -18904,6 +20341,28 @@
      "name": "default-jdk"
     },
     "name": "default-jdk"
+   }
+  },
+  "grpcurl": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "tarball\\grpcurl": {
+    "driver": "tarball",
+    "fields": {
+     "installDir": "apps/grpcurl",
+     "name": "grpcurl",
+     "version": {
+      "asset": "grpcurl_*_linux_x86_64.tar.gz",
+      "github": "fullstorydev/grpcurl",
+      "strip-v": "true"
+     }
+    },
+    "name": "grpcurl"
    }
   },
   "gst-bad": {
@@ -19690,6 +21149,32 @@
     "name": "make"
    }
   },
+  "mariadb": {
+   "apt\\mariadb": {
+    "driver": "apt",
+    "fields": {
+     "name": "mariadb-server"
+    },
+    "name": "mariadb-server"
+   }
+  },
+  "mariadb-service": {
+   "apt\\mariadb": {
+    "driver": "apt",
+    "fields": {
+     "name": "mariadb-server"
+    },
+    "name": "mariadb-server"
+   },
+   "service\\mariadb-service": {
+    "driver": "service",
+    "fields": {
+     "name": "mariadb-service",
+     "unit": "mariadb"
+    },
+    "name": "mariadb-service"
+   }
+  },
   "mate": {
    "apt\\mate": {
     "driver": "apt",
@@ -19814,6 +21299,32 @@
      "name": "org.musescore.MuseScore"
     },
     "name": "org.musescore.MuseScore"
+   }
+  },
+  "mycli": {
+   "apt\\python3-pip": {
+    "driver": "apt",
+    "fields": {
+     "name": "python3-pip"
+    },
+    "name": "python3-pip"
+   },
+   "pip\\pipx": {
+    "driver": "pip",
+    "fields": {
+     "name": "pipx",
+     "version": {
+      "pypi": "pipx"
+     }
+    },
+    "name": "pipx"
+   },
+   "pipx\\mycli": {
+    "driver": "pipx",
+    "fields": {
+     "name": "mycli"
+    },
+    "name": "mycli"
    }
   },
   "neovim": {
@@ -20097,6 +21608,28 @@
     "name": "org.openscad.OpenSCAD"
    }
   },
+  "opentofu": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "tarball\\opentofu": {
+    "driver": "tarball",
+    "fields": {
+     "installDir": "apps/opentofu",
+     "name": "opentofu",
+     "version": {
+      "asset": "tofu_*_linux_amd64.tar.gz",
+      "github": "opentofu/opentofu",
+      "strip-v": "true"
+     }
+    },
+    "name": "opentofu"
+   }
+  },
   "opera": {
    "apt\\flatpak": {
     "driver": "apt",
@@ -20130,6 +21663,32 @@
      "name": "linux-tools-generic"
     },
     "name": "linux-tools-generic"
+   }
+  },
+  "pgcli": {
+   "apt\\python3-pip": {
+    "driver": "apt",
+    "fields": {
+     "name": "python3-pip"
+    },
+    "name": "python3-pip"
+   },
+   "pip\\pipx": {
+    "driver": "pip",
+    "fields": {
+     "name": "pipx",
+     "version": {
+      "pypi": "pipx"
+     }
+    },
+    "name": "pipx"
+   },
+   "pipx\\pgcli": {
+    "driver": "pipx",
+    "fields": {
+     "name": "pgcli"
+    },
+    "name": "pgcli"
    }
   },
   "pipewire": {
@@ -20192,6 +21751,32 @@
     "name": "podman-dotfiles"
    }
   },
+  "postgresql": {
+   "apt\\postgresql": {
+    "driver": "apt",
+    "fields": {
+     "name": "postgresql"
+    },
+    "name": "postgresql"
+   }
+  },
+  "postgresql-service": {
+   "apt\\postgresql": {
+    "driver": "apt",
+    "fields": {
+     "name": "postgresql"
+    },
+    "name": "postgresql"
+   },
+   "service\\postgresql-service": {
+    "driver": "service",
+    "fields": {
+     "name": "postgresql-service",
+     "unit": "postgresql"
+    },
+    "name": "postgresql-service"
+   }
+  },
   "postman": {
    "apt\\flatpak": {
     "driver": "apt",
@@ -20224,6 +21809,16 @@
      "name": "prettier"
     },
     "name": "prettier"
+   }
+  },
+  "protobuf": {
+   "apt\\protobuf": {
+    "driver": "apt",
+    "fields": {
+     "name": "protobuf-compiler",
+     "repo-component": "universe"
+    },
+    "name": "protobuf-compiler"
    }
   },
   "puppet": {
@@ -20299,6 +21894,32 @@
      "repo-component": "universe"
     },
     "name": "r-base"
+   }
+  },
+  "redis": {
+   "apt\\redis": {
+    "driver": "apt",
+    "fields": {
+     "name": "redis-server"
+    },
+    "name": "redis-server"
+   }
+  },
+  "redis-service": {
+   "apt\\redis": {
+    "driver": "apt",
+    "fields": {
+     "name": "redis-server"
+    },
+    "name": "redis-server"
+   },
+   "service\\redis-service": {
+    "driver": "service",
+    "fields": {
+     "name": "redis-service",
+     "unit": "redis-server"
+    },
+    "name": "redis-service"
    }
   },
   "ripgrep": {
@@ -20456,6 +22077,23 @@
      "name": "net.sonic_pi.SonicPi"
     },
     "name": "net.sonic_pi.SonicPi"
+   }
+  },
+  "sqlitebrowser": {
+   "apt\\flatpak": {
+    "driver": "apt",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\sqlitebrowser": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "org.sqlitebrowser.sqlitebrowser"
+    },
+    "name": "org.sqlitebrowser.sqlitebrowser"
    }
   },
   "steam": {
@@ -21411,6 +23049,57 @@
     "name": "bash-dotfiles"
    }
   },
+  "awscli": {
+   "dnf\\curl": {
+    "driver": "dnf",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "dnf\\unzip": {
+    "driver": "dnf",
+    "fields": {
+     "name": "unzip"
+    },
+    "name": "unzip"
+   },
+   "script\\awscli": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "curl -fsSL \"https://awscli.amazonaws.com/awscli-exe-linux-$(uname -m).zip\" -o /tmp/awscliv2.zip && unzip -q -o /tmp/awscliv2.zip -d /tmp/awscli-inst && /tmp/awscli-inst/aws/install --update -i \"$HOME/.local/aws-cli\" -b \"$HOME/.local/bin\" && rm -rf /tmp/awscliv2.zip /tmp/awscli-inst",
+     "location": "~/.local/bin/aws",
+     "name": "awscli",
+     "uninstall-cmd": "rm -rf \"$HOME/.local/aws-cli\" \"$HOME/.local/bin/aws\" \"$HOME/.local/bin/aws_completer\"",
+     "version-cmd": "\"$HOME/.local/bin/aws\" --version",
+     "version-re": "([0-9]+\\.[0-9]+\\.[0-9]+)"
+    },
+    "name": "awscli"
+   }
+  },
+  "azure-cli": {
+   "dnf\\epel-release": {
+    "driver": "dnf",
+    "fields": {
+     "name": "epel-release"
+    },
+    "name": "epel-release"
+   },
+   "dnf\\pipx": {
+    "driver": "dnf",
+    "fields": {
+     "name": "pipx"
+    },
+    "name": "pipx"
+   },
+   "pipx\\azure-cli": {
+    "driver": "pipx",
+    "fields": {
+     "name": "azure-cli"
+    },
+    "name": "azure-cli"
+   }
+  },
   "bash-dotfiles": {
    "dotfiles\\bash-dotfiles": {
     "driver": "dotfiles",
@@ -21951,6 +23640,23 @@
     "name": "org.darktable.Darktable"
    }
   },
+  "dbeaver": {
+   "dnf\\flatpak": {
+    "driver": "dnf",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\dbeaver": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "io.dbeaver.DBeaverCommunity"
+    },
+    "name": "io.dbeaver.DBeaverCommunity"
+   }
+  },
   "deno": {
    "dnf\\curl": {
     "driver": "dnf",
@@ -22343,6 +24049,27 @@
     "name": "gcc-c++"
    }
   },
+  "gcloud": {
+   "dnf\\curl": {
+    "driver": "dnf",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "script\\gcloud": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "curl -fsSL https://sdk.cloud.google.com | bash -s -- --disable-prompts --install-dir=\"$HOME\"",
+     "location": "~/google-cloud-sdk/bin",
+     "name": "gcloud",
+     "uninstall-cmd": "rm -rf \"$HOME/google-cloud-sdk\"",
+     "version-cmd": "\"$HOME/google-cloud-sdk/bin/gcloud\" version",
+     "version-re": "([0-9]+\\.[0-9]+\\.[0-9]+)"
+    },
+    "name": "gcloud"
+   }
+  },
   "gdb": {
    "dnf\\gdb": {
     "driver": "dnf",
@@ -22454,6 +24181,28 @@
      "name": "golang.org/x/tools/cmd/goimports"
     },
     "name": "golang.org/x/tools/cmd/goimports"
+   }
+  },
+  "grpcurl": {
+   "dnf\\curl": {
+    "driver": "dnf",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "tarball\\grpcurl": {
+    "driver": "tarball",
+    "fields": {
+     "installDir": "apps/grpcurl",
+     "name": "grpcurl",
+     "version": {
+      "asset": "grpcurl_*_linux_x86_64.tar.gz",
+      "github": "fullstorydev/grpcurl",
+      "strip-v": "true"
+     }
+    },
+    "name": "grpcurl"
    }
   },
   "gst-bad": {
@@ -23273,6 +25022,32 @@
     "name": "make"
    }
   },
+  "mariadb": {
+   "dnf\\mariadb": {
+    "driver": "dnf",
+    "fields": {
+     "name": "mariadb-server"
+    },
+    "name": "mariadb-server"
+   }
+  },
+  "mariadb-service": {
+   "dnf\\mariadb": {
+    "driver": "dnf",
+    "fields": {
+     "name": "mariadb-server"
+    },
+    "name": "mariadb-server"
+   },
+   "service\\mariadb-service": {
+    "driver": "service",
+    "fields": {
+     "name": "mariadb-service",
+     "unit": "mariadb"
+    },
+    "name": "mariadb-service"
+   }
+  },
   "mate": {
    "dnf\\mate": {
     "driver": "dnf",
@@ -23394,6 +25169,29 @@
      "name": "org.musescore.MuseScore"
     },
     "name": "org.musescore.MuseScore"
+   }
+  },
+  "mycli": {
+   "dnf\\epel-release": {
+    "driver": "dnf",
+    "fields": {
+     "name": "epel-release"
+    },
+    "name": "epel-release"
+   },
+   "dnf\\pipx": {
+    "driver": "dnf",
+    "fields": {
+     "name": "pipx"
+    },
+    "name": "pipx"
+   },
+   "pipx\\mycli": {
+    "driver": "pipx",
+    "fields": {
+     "name": "mycli"
+    },
+    "name": "mycli"
    }
   },
   "neovim": {
@@ -23697,6 +25495,28 @@
     "name": "org.openscad.OpenSCAD"
    }
   },
+  "opentofu": {
+   "dnf\\curl": {
+    "driver": "dnf",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "tarball\\opentofu": {
+    "driver": "tarball",
+    "fields": {
+     "installDir": "apps/opentofu",
+     "name": "opentofu",
+     "version": {
+      "asset": "tofu_*_linux_amd64.tar.gz",
+      "github": "opentofu/opentofu",
+      "strip-v": "true"
+     }
+    },
+    "name": "opentofu"
+   }
+  },
   "opera": {
    "dnf\\flatpak": {
     "driver": "dnf",
@@ -23730,6 +25550,29 @@
      "name": "perf"
     },
     "name": "perf"
+   }
+  },
+  "pgcli": {
+   "dnf\\epel-release": {
+    "driver": "dnf",
+    "fields": {
+     "name": "epel-release"
+    },
+    "name": "epel-release"
+   },
+   "dnf\\pipx": {
+    "driver": "dnf",
+    "fields": {
+     "name": "pipx"
+    },
+    "name": "pipx"
+   },
+   "pipx\\pgcli": {
+    "driver": "pipx",
+    "fields": {
+     "name": "pgcli"
+    },
+    "name": "pgcli"
    }
   },
   "pipewire": {
@@ -23789,6 +25632,32 @@
     "name": "podman-dotfiles"
    }
   },
+  "postgresql": {
+   "dnf\\postgresql": {
+    "driver": "dnf",
+    "fields": {
+     "name": "postgresql-server"
+    },
+    "name": "postgresql-server"
+   }
+  },
+  "postgresql-service": {
+   "dnf\\postgresql": {
+    "driver": "dnf",
+    "fields": {
+     "name": "postgresql-server"
+    },
+    "name": "postgresql-server"
+   },
+   "service\\postgresql-service": {
+    "driver": "service",
+    "fields": {
+     "name": "postgresql-service",
+     "unit": "postgresql"
+    },
+    "name": "postgresql-service"
+   }
+  },
   "postman": {
    "dnf\\flatpak": {
     "driver": "dnf",
@@ -23821,6 +25690,16 @@
      "name": "prettier"
     },
     "name": "prettier"
+   }
+  },
+  "protobuf": {
+   "dnf\\protobuf": {
+    "driver": "dnf",
+    "fields": {
+     "name": "protobuf-compiler",
+     "repo-component": "universe"
+    },
+    "name": "protobuf-compiler"
    }
   },
   "puppet": {
@@ -23896,6 +25775,32 @@
      "repo-component": "universe"
     },
     "name": "R"
+   }
+  },
+  "redis": {
+   "dnf\\redis": {
+    "driver": "dnf",
+    "fields": {
+     "name": "valkey"
+    },
+    "name": "valkey"
+   }
+  },
+  "redis-service": {
+   "dnf\\redis": {
+    "driver": "dnf",
+    "fields": {
+     "name": "valkey"
+    },
+    "name": "valkey"
+   },
+   "service\\redis-service": {
+    "driver": "service",
+    "fields": {
+     "name": "redis-service",
+     "unit": "valkey"
+    },
+    "name": "redis-service"
    }
   },
   "ripgrep": {
@@ -24068,6 +25973,23 @@
      "name": "net.sonic_pi.SonicPi"
     },
     "name": "net.sonic_pi.SonicPi"
+   }
+  },
+  "sqlitebrowser": {
+   "dnf\\flatpak": {
+    "driver": "dnf",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\sqlitebrowser": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "org.sqlitebrowser.sqlitebrowser"
+    },
+    "name": "org.sqlitebrowser.sqlitebrowser"
    }
   },
   "steam": {
@@ -25090,6 +27012,60 @@
     "name": "bash-dotfiles"
    }
   },
+  "awscli": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "apt\\unzip": {
+    "driver": "apt",
+    "fields": {
+     "name": "unzip"
+    },
+    "name": "unzip"
+   },
+   "script\\awscli": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "curl -fsSL \"https://awscli.amazonaws.com/awscli-exe-linux-$(uname -m).zip\" -o /tmp/awscliv2.zip && unzip -q -o /tmp/awscliv2.zip -d /tmp/awscli-inst && /tmp/awscli-inst/aws/install --update -i \"$HOME/.local/aws-cli\" -b \"$HOME/.local/bin\" && rm -rf /tmp/awscliv2.zip /tmp/awscli-inst",
+     "location": "~/.local/bin/aws",
+     "name": "awscli",
+     "uninstall-cmd": "rm -rf \"$HOME/.local/aws-cli\" \"$HOME/.local/bin/aws\" \"$HOME/.local/bin/aws_completer\"",
+     "version-cmd": "\"$HOME/.local/bin/aws\" --version",
+     "version-re": "([0-9]+\\.[0-9]+\\.[0-9]+)"
+    },
+    "name": "awscli"
+   }
+  },
+  "azure-cli": {
+   "apt\\python3-pip": {
+    "driver": "apt",
+    "fields": {
+     "name": "python3-pip"
+    },
+    "name": "python3-pip"
+   },
+   "pip\\pipx": {
+    "driver": "pip",
+    "fields": {
+     "name": "pipx",
+     "version": {
+      "pypi": "pipx"
+     }
+    },
+    "name": "pipx"
+   },
+   "pipx\\azure-cli": {
+    "driver": "pipx",
+    "fields": {
+     "name": "azure-cli"
+    },
+    "name": "azure-cli"
+   }
+  },
   "bash-dotfiles": {
    "dotfiles\\bash-dotfiles": {
     "driver": "dotfiles",
@@ -25688,6 +27664,23 @@
     "name": "org.darktable.Darktable"
    }
   },
+  "dbeaver": {
+   "apt\\flatpak": {
+    "driver": "apt",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\dbeaver": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "io.dbeaver.DBeaverCommunity"
+    },
+    "name": "io.dbeaver.DBeaverCommunity"
+   }
+  },
   "deno": {
    "apt\\curl": {
     "driver": "apt",
@@ -26179,6 +28172,27 @@
     "name": "gcc-select"
    }
   },
+  "gcloud": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "script\\gcloud": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "curl -fsSL https://sdk.cloud.google.com | bash -s -- --disable-prompts --install-dir=\"$HOME\"",
+     "location": "~/google-cloud-sdk/bin",
+     "name": "gcloud",
+     "uninstall-cmd": "rm -rf \"$HOME/google-cloud-sdk\"",
+     "version-cmd": "\"$HOME/google-cloud-sdk/bin/gcloud\" version",
+     "version-re": "([0-9]+\\.[0-9]+\\.[0-9]+)"
+    },
+    "name": "gcloud"
+   }
+  },
   "gdb": {
    "apt\\gdb": {
     "driver": "apt",
@@ -26306,6 +28320,28 @@
      "name": "default-jdk"
     },
     "name": "default-jdk"
+   }
+  },
+  "grpcurl": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "tarball\\grpcurl": {
+    "driver": "tarball",
+    "fields": {
+     "installDir": "apps/grpcurl",
+     "name": "grpcurl",
+     "version": {
+      "asset": "grpcurl_*_linux_x86_64.tar.gz",
+      "github": "fullstorydev/grpcurl",
+      "strip-v": "true"
+     }
+    },
+    "name": "grpcurl"
    }
   },
   "gst-bad": {
@@ -27092,6 +29128,32 @@
     "name": "make"
    }
   },
+  "mariadb": {
+   "apt\\mariadb": {
+    "driver": "apt",
+    "fields": {
+     "name": "mariadb-server"
+    },
+    "name": "mariadb-server"
+   }
+  },
+  "mariadb-service": {
+   "apt\\mariadb": {
+    "driver": "apt",
+    "fields": {
+     "name": "mariadb-server"
+    },
+    "name": "mariadb-server"
+   },
+   "service\\mariadb-service": {
+    "driver": "service",
+    "fields": {
+     "name": "mariadb-service",
+     "unit": "mariadb"
+    },
+    "name": "mariadb-service"
+   }
+  },
   "mate": {
    "apt\\mate": {
     "driver": "apt",
@@ -27216,6 +29278,32 @@
      "name": "org.musescore.MuseScore"
     },
     "name": "org.musescore.MuseScore"
+   }
+  },
+  "mycli": {
+   "apt\\python3-pip": {
+    "driver": "apt",
+    "fields": {
+     "name": "python3-pip"
+    },
+    "name": "python3-pip"
+   },
+   "pip\\pipx": {
+    "driver": "pip",
+    "fields": {
+     "name": "pipx",
+     "version": {
+      "pypi": "pipx"
+     }
+    },
+    "name": "pipx"
+   },
+   "pipx\\mycli": {
+    "driver": "pipx",
+    "fields": {
+     "name": "mycli"
+    },
+    "name": "mycli"
    }
   },
   "neovim": {
@@ -27499,6 +29587,28 @@
     "name": "org.openscad.OpenSCAD"
    }
   },
+  "opentofu": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "tarball\\opentofu": {
+    "driver": "tarball",
+    "fields": {
+     "installDir": "apps/opentofu",
+     "name": "opentofu",
+     "version": {
+      "asset": "tofu_*_linux_amd64.tar.gz",
+      "github": "opentofu/opentofu",
+      "strip-v": "true"
+     }
+    },
+    "name": "opentofu"
+   }
+  },
   "opera": {
    "apt\\flatpak": {
     "driver": "apt",
@@ -27532,6 +29642,32 @@
      "name": "linux-tools-generic"
     },
     "name": "linux-tools-generic"
+   }
+  },
+  "pgcli": {
+   "apt\\python3-pip": {
+    "driver": "apt",
+    "fields": {
+     "name": "python3-pip"
+    },
+    "name": "python3-pip"
+   },
+   "pip\\pipx": {
+    "driver": "pip",
+    "fields": {
+     "name": "pipx",
+     "version": {
+      "pypi": "pipx"
+     }
+    },
+    "name": "pipx"
+   },
+   "pipx\\pgcli": {
+    "driver": "pipx",
+    "fields": {
+     "name": "pgcli"
+    },
+    "name": "pgcli"
    }
   },
   "pipewire": {
@@ -27594,6 +29730,32 @@
     "name": "podman-dotfiles"
    }
   },
+  "postgresql": {
+   "apt\\postgresql": {
+    "driver": "apt",
+    "fields": {
+     "name": "postgresql"
+    },
+    "name": "postgresql"
+   }
+  },
+  "postgresql-service": {
+   "apt\\postgresql": {
+    "driver": "apt",
+    "fields": {
+     "name": "postgresql"
+    },
+    "name": "postgresql"
+   },
+   "service\\postgresql-service": {
+    "driver": "service",
+    "fields": {
+     "name": "postgresql-service",
+     "unit": "postgresql"
+    },
+    "name": "postgresql-service"
+   }
+  },
   "postman": {
    "apt\\flatpak": {
     "driver": "apt",
@@ -27626,6 +29788,16 @@
      "name": "prettier"
     },
     "name": "prettier"
+   }
+  },
+  "protobuf": {
+   "apt\\protobuf": {
+    "driver": "apt",
+    "fields": {
+     "name": "protobuf-compiler",
+     "repo-component": "universe"
+    },
+    "name": "protobuf-compiler"
    }
   },
   "puppet": {
@@ -27701,6 +29873,32 @@
      "repo-component": "universe"
     },
     "name": "r-base"
+   }
+  },
+  "redis": {
+   "apt\\redis": {
+    "driver": "apt",
+    "fields": {
+     "name": "redis-server"
+    },
+    "name": "redis-server"
+   }
+  },
+  "redis-service": {
+   "apt\\redis": {
+    "driver": "apt",
+    "fields": {
+     "name": "redis-server"
+    },
+    "name": "redis-server"
+   },
+   "service\\redis-service": {
+    "driver": "service",
+    "fields": {
+     "name": "redis-service",
+     "unit": "redis-server"
+    },
+    "name": "redis-service"
    }
   },
   "ripgrep": {
@@ -27858,6 +30056,23 @@
      "name": "net.sonic_pi.SonicPi"
     },
     "name": "net.sonic_pi.SonicPi"
+   }
+  },
+  "sqlitebrowser": {
+   "apt\\flatpak": {
+    "driver": "apt",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\sqlitebrowser": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "org.sqlitebrowser.sqlitebrowser"
+    },
+    "name": "org.sqlitebrowser.sqlitebrowser"
    }
   },
   "steam": {
@@ -28813,6 +31028,50 @@
     "name": "bash-dotfiles"
    }
   },
+  "awscli": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "apt\\unzip": {
+    "driver": "apt",
+    "fields": {
+     "name": "unzip"
+    },
+    "name": "unzip"
+   },
+   "script\\awscli": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "curl -fsSL \"https://awscli.amazonaws.com/awscli-exe-linux-$(uname -m).zip\" -o /tmp/awscliv2.zip && unzip -q -o /tmp/awscliv2.zip -d /tmp/awscli-inst && /tmp/awscli-inst/aws/install --update -i \"$HOME/.local/aws-cli\" -b \"$HOME/.local/bin\" && rm -rf /tmp/awscliv2.zip /tmp/awscli-inst",
+     "location": "~/.local/bin/aws",
+     "name": "awscli",
+     "uninstall-cmd": "rm -rf \"$HOME/.local/aws-cli\" \"$HOME/.local/bin/aws\" \"$HOME/.local/bin/aws_completer\"",
+     "version-cmd": "\"$HOME/.local/bin/aws\" --version",
+     "version-re": "([0-9]+\\.[0-9]+\\.[0-9]+)"
+    },
+    "name": "awscli"
+   }
+  },
+  "azure-cli": {
+   "apt\\pipx": {
+    "driver": "apt",
+    "fields": {
+     "name": "pipx"
+    },
+    "name": "pipx"
+   },
+   "pipx\\azure-cli": {
+    "driver": "pipx",
+    "fields": {
+     "name": "azure-cli"
+    },
+    "name": "azure-cli"
+   }
+  },
   "bash-dotfiles": {
    "dotfiles\\bash-dotfiles": {
     "driver": "dotfiles",
@@ -29401,6 +31660,23 @@
     "name": "org.darktable.Darktable"
    }
   },
+  "dbeaver": {
+   "apt\\flatpak": {
+    "driver": "apt",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\dbeaver": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "io.dbeaver.DBeaverCommunity"
+    },
+    "name": "io.dbeaver.DBeaverCommunity"
+   }
+  },
   "deno": {
    "apt\\curl": {
     "driver": "apt",
@@ -29892,6 +32168,27 @@
     "name": "gcc-select"
    }
   },
+  "gcloud": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "script\\gcloud": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "curl -fsSL https://sdk.cloud.google.com | bash -s -- --disable-prompts --install-dir=\"$HOME\"",
+     "location": "~/google-cloud-sdk/bin",
+     "name": "gcloud",
+     "uninstall-cmd": "rm -rf \"$HOME/google-cloud-sdk\"",
+     "version-cmd": "\"$HOME/google-cloud-sdk/bin/gcloud\" version",
+     "version-re": "([0-9]+\\.[0-9]+\\.[0-9]+)"
+    },
+    "name": "gcloud"
+   }
+  },
   "gdb": {
    "apt\\gdb": {
     "driver": "apt",
@@ -30019,6 +32316,28 @@
      "name": "default-jdk"
     },
     "name": "default-jdk"
+   }
+  },
+  "grpcurl": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "tarball\\grpcurl": {
+    "driver": "tarball",
+    "fields": {
+     "installDir": "apps/grpcurl",
+     "name": "grpcurl",
+     "version": {
+      "asset": "grpcurl_*_linux_x86_64.tar.gz",
+      "github": "fullstorydev/grpcurl",
+      "strip-v": "true"
+     }
+    },
+    "name": "grpcurl"
    }
   },
   "gst-bad": {
@@ -30795,6 +33114,32 @@
     "name": "make"
    }
   },
+  "mariadb": {
+   "apt\\mariadb": {
+    "driver": "apt",
+    "fields": {
+     "name": "mariadb-server"
+    },
+    "name": "mariadb-server"
+   }
+  },
+  "mariadb-service": {
+   "apt\\mariadb": {
+    "driver": "apt",
+    "fields": {
+     "name": "mariadb-server"
+    },
+    "name": "mariadb-server"
+   },
+   "service\\mariadb-service": {
+    "driver": "service",
+    "fields": {
+     "name": "mariadb-service",
+     "unit": "mariadb"
+    },
+    "name": "mariadb-service"
+   }
+  },
   "mate": {
    "apt\\mate": {
     "driver": "apt",
@@ -30909,6 +33254,22 @@
      "name": "org.musescore.MuseScore"
     },
     "name": "org.musescore.MuseScore"
+   }
+  },
+  "mycli": {
+   "apt\\pipx": {
+    "driver": "apt",
+    "fields": {
+     "name": "pipx"
+    },
+    "name": "pipx"
+   },
+   "pipx\\mycli": {
+    "driver": "pipx",
+    "fields": {
+     "name": "mycli"
+    },
+    "name": "mycli"
    }
   },
   "neovim": {
@@ -31192,6 +33553,28 @@
     "name": "org.openscad.OpenSCAD"
    }
   },
+  "opentofu": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "tarball\\opentofu": {
+    "driver": "tarball",
+    "fields": {
+     "installDir": "apps/opentofu",
+     "name": "opentofu",
+     "version": {
+      "asset": "tofu_*_linux_amd64.tar.gz",
+      "github": "opentofu/opentofu",
+      "strip-v": "true"
+     }
+    },
+    "name": "opentofu"
+   }
+  },
   "opera": {
    "apt\\flatpak": {
     "driver": "apt",
@@ -31225,6 +33608,22 @@
      "name": "linux-tools-generic"
     },
     "name": "linux-tools-generic"
+   }
+  },
+  "pgcli": {
+   "apt\\pipx": {
+    "driver": "apt",
+    "fields": {
+     "name": "pipx"
+    },
+    "name": "pipx"
+   },
+   "pipx\\pgcli": {
+    "driver": "pipx",
+    "fields": {
+     "name": "pgcli"
+    },
+    "name": "pgcli"
    }
   },
   "pipewire": {
@@ -31277,6 +33676,32 @@
     "name": "podman-dotfiles"
    }
   },
+  "postgresql": {
+   "apt\\postgresql": {
+    "driver": "apt",
+    "fields": {
+     "name": "postgresql"
+    },
+    "name": "postgresql"
+   }
+  },
+  "postgresql-service": {
+   "apt\\postgresql": {
+    "driver": "apt",
+    "fields": {
+     "name": "postgresql"
+    },
+    "name": "postgresql"
+   },
+   "service\\postgresql-service": {
+    "driver": "service",
+    "fields": {
+     "name": "postgresql-service",
+     "unit": "postgresql"
+    },
+    "name": "postgresql-service"
+   }
+  },
   "postman": {
    "apt\\flatpak": {
     "driver": "apt",
@@ -31309,6 +33734,16 @@
      "name": "prettier"
     },
     "name": "prettier"
+   }
+  },
+  "protobuf": {
+   "apt\\protobuf": {
+    "driver": "apt",
+    "fields": {
+     "name": "protobuf-compiler",
+     "repo-component": "universe"
+    },
+    "name": "protobuf-compiler"
    }
   },
   "puppet": {
@@ -31384,6 +33819,32 @@
      "repo-component": "universe"
     },
     "name": "r-base"
+   }
+  },
+  "redis": {
+   "apt\\redis": {
+    "driver": "apt",
+    "fields": {
+     "name": "redis-server"
+    },
+    "name": "redis-server"
+   }
+  },
+  "redis-service": {
+   "apt\\redis": {
+    "driver": "apt",
+    "fields": {
+     "name": "redis-server"
+    },
+    "name": "redis-server"
+   },
+   "service\\redis-service": {
+    "driver": "service",
+    "fields": {
+     "name": "redis-service",
+     "unit": "redis-server"
+    },
+    "name": "redis-service"
    }
   },
   "ripgrep": {
@@ -31531,6 +33992,23 @@
      "name": "net.sonic_pi.SonicPi"
     },
     "name": "net.sonic_pi.SonicPi"
+   }
+  },
+  "sqlitebrowser": {
+   "apt\\flatpak": {
+    "driver": "apt",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\sqlitebrowser": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "org.sqlitebrowser.sqlitebrowser"
+    },
+    "name": "org.sqlitebrowser.sqlitebrowser"
    }
   },
   "steam": {

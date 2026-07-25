@@ -863,6 +863,47 @@
         salt:    { install: [ { via: pipx  name: salt } ] }
         puppet:  { install: [ { via: gem   name: puppet } ] }
 
+        // --- back-end: cloud CLIs, IaC, protobuf, DB clients + servers ---
+        // Cloud CLIs via their official installers (script driver, userland).
+        awscli: {
+            requires: [ curl, unzip ]
+            install: [ { via: script
+                         install-cmd:   'curl -fsSL "https://awscli.amazonaws.com/awscli-exe-linux-$(uname -m).zip" -o /tmp/awscliv2.zip && unzip -q -o /tmp/awscliv2.zip -d /tmp/awscli-inst && /tmp/awscli-inst/aws/install --update -i "$HOME/.local/aws-cli" -b "$HOME/.local/bin" && rm -rf /tmp/awscliv2.zip /tmp/awscli-inst'
+                         version-cmd:   '"$HOME/.local/bin/aws" --version'
+                         version-re:    '([0-9]+\.[0-9]+\.[0-9]+)'
+                         uninstall-cmd: 'rm -rf "$HOME/.local/aws-cli" "$HOME/.local/bin/aws" "$HOME/.local/bin/aws_completer"'
+                         location:      '~/.local/bin/aws' } ]
+        }
+        gcloud: {
+            requires: curl
+            install: [ { via: script
+                         install-cmd:   'curl -fsSL https://sdk.cloud.google.com | bash -s -- --disable-prompts --install-dir="$HOME"'
+                         version-cmd:   '"$HOME/google-cloud-sdk/bin/gcloud" version'
+                         version-re:    '([0-9]+\.[0-9]+\.[0-9]+)'
+                         uninstall-cmd: 'rm -rf "$HOME/google-cloud-sdk"'
+                         location:      '~/google-cloud-sdk/bin' } ]
+        }
+        azure-cli: { install: [ { via: pipx  name: azure-cli } ] }
+        // IaC + gRPC — Go static binaries from github release tarballs.
+        opentofu: { install: [ { via: tarball  installDir: apps/opentofu  version: { github: opentofu/opentofu  strip-v: true  asset: "tofu_*_linux_amd64.tar.gz" } } ] }
+        grpcurl:  { install: [ { via: tarball  installDir: apps/grpcurl   version: { github: fullstorydev/grpcurl  strip-v: true  asset: "grpcurl_*_linux_x86_64.tar.gz" } } ] }
+        protobuf: { install: [ { via: native  repo-component: universe  name: { apt: protobuf-compiler  dnf: protobuf-compiler  default: protobuf } } ] }
+        // DB clients: dbeaver (GUI, Flathub), pgcli/mycli (pipx), sqlitebrowser (Flathub).
+        dbeaver:       { install: [ { via: flatpak  hub: flathub  app: io.dbeaver.DBeaverCommunity } ] }
+        pgcli:         { install: [ { via: pipx  name: pgcli } ] }
+        mycli:         { install: [ { via: pipx  name: mycli } ] }
+        sqlitebrowser: { install: [ { via: flatpak  hub: flathub  app: org.sqlitebrowser.sqlitebrowser } ] }
+        // DB servers: native package + a systemd service (verified on apt/dnf/pacman). NOTE:
+        // first-run init differs per distro (Fedora postgres needs `postgresql-setup --initdb`).
+        postgresql:         { install: [ { via: native  when: "debian or redhat or arch"  name: { dnf: postgresql-server  default: postgresql } } ] }
+        postgresql-service: { requires: postgresql  install: [ { via: service  unit: postgresql } ] }
+        mariadb:            { install: [ { via: native  when: "debian or redhat or arch"  name: { pacman: mariadb  default: mariadb-server } } ] }
+        mariadb-service:    { requires: mariadb  install: [ { via: service  unit: mariadb } ] }
+        // redis is being replaced by its FOSS fork valkey on Fedora/Arch (drop-in compatible).
+        redis:              { install: [ { via: native  when: "debian or redhat or arch"  name: { apt: redis-server  dnf: valkey  pacman: valkey } } ] }
+        redis-service:      { requires: redis  install: [ { via: service  when: "debian"  unit: redis-server }
+                                                          { via: service  when: "redhat or arch"  unit: valkey } ] }
+
         neovim: {
             requires: [ ripgrep, tree-sitter-cli ]
             suggests: neovim-dotfiles
