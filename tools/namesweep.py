@@ -125,9 +125,10 @@ def _run_verifier(image, snippet, names, timeout=1200):
     return missing, proc.returncode
 
 
-# The green gate: the families configsys is verified against. zypper/apk are opt-in (--only) —
-# their native-name coverage is a known hardening backlog the sweep surfaces (see the design doc).
-_DEFAULT_MANAGERS = ('apt', 'dnf', 'pacman')
+# The green gate: all five package families. NOTE openSUSE ships some versioned names
+# (python313-pip, ffmpeg-7, ...) that roll with Tumbleweed — the sweep will flag them when they
+# bump; just update the `name:` map (that's the sweep working, not a false alarm).
+_DEFAULT_MANAGERS = ('apt', 'dnf', 'pacman', 'zypper', 'apk')
 
 
 def sweep(only=None):

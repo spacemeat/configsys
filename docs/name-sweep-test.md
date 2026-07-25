@@ -69,20 +69,24 @@ Keep a small, commented `test/namesweep-allowlist.hu` — `{ dnf: [ ... ]  apk: 
 subtract it before failing. Every allowlist entry needs a one-line reason (so it's revisited, not
 forgotten). A found-but-allowlisted name should *warn* ("allowlist entry no longer needed").
 
-## Scope: the green gate vs. the audit
+## Scope & what the first runs caught
 
-The default sweep gates on **apt / dnf / pacman** — the families configsys is verified against. Its
-first real run already paid off: it caught **nim** and **lazygit** not being in Fedora repos,
-**gcc-cpp** lacking apt/pacman names, **gst-libav**'s Fedora rename (`gstreamer1-plugin-libav`), and
-~14 vulkan/xcb building blocks that were `via: native` ungated (they'd fail if installed on the
-wrong distro) — all now fixed.
+The default sweep gates on **all five families** (apt/dnf/pacman/zypper/apk) — all green. Getting
+there paid off immediately; the sweep caught, and we fixed:
 
-**zypper / apk are opt-in** (`bash test/run-name-sweep-in-podman.sh zypper,apk`). Their native-name
-coverage was always best-effort ("verified for DEs/codecs, not exhaustively"), and the sweep makes
-that concrete: openSUSE renames (`firefox`→`MozillaFirefox`, `node`→`nodejs-default`, `iperf3`→
-`iperf`, ...) and genuinely-absent packages (ffmpeg needs Packman; gap/maxima/paraview not in
-Alpine). Several confident renames are fixed; the rest is a tracked **hardening backlog** the sweep
-drives — fix a batch, re-run `--only zypper,apk`, watch it shrink.
+- **nim** and **lazygit** aren't in Fedora repos → gated / retargeted to the tarball.
+- **gcc-cpp** lacked apt/pacman names → gated redhat; **gst-libav** is `gstreamer1-plugin-libav` on
+  Fedora → renamed.
+- **~14 vulkan/xcb building blocks** were `via: native` ungated — they'd fail if installed on the
+  wrong distro → gated to their family.
+- a pile of **openSUSE/Alpine renames** (`firefox`→`MozillaFirefox`, `node`→`nodejs-default`,
+  `docker.io`→`docker`, `ninja`→`samurai` on Alpine, `python3-pip`→`py3-pip`/`python313-pip`, ...)
+  and genuinely-absent packages gated away (ffmpeg needs Packman on openSUSE; gap/maxima/paraview/
+  supercollider not in Alpine).
+
+Run a subset with `bash test/run-name-sweep-in-podman.sh zypper,apk`. openSUSE's versioned names
+(`python313-pip`, `ffmpeg-7`) will drift as Tumbleweed rolls — the sweep flags it, you bump the
+`name:` map. That's the maintenance loop working, not a false alarm.
 
 ## Gating & cadence
 

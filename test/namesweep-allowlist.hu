@@ -11,8 +11,6 @@
     dnf:    [ cuda                // NVIDIA CUDA dnf repo
               intel-basekit ]     // Intel oneAPI dnf repo
     pacman: [ intel-oneapi-basekit ]   // AUR
-    // zypper/apk are opt-in (`--only zypper,apk`) and still carry a naming backlog the sweep
-    // surfaces (see docs/name-sweep-test.md) — only the vendor SDKs are allowlisted here.
     zypper: [ cuda-toolkit  intel-oneapi-basekit ]           // NVIDIA / Intel vendor repos
     apk:    [ cuda-toolkit  intel-oneapi-basekit  rocm-hip ] // vendor repos (no GPU SDKs in Alpine)
 }
