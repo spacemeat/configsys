@@ -88,6 +88,26 @@ Run a subset with `bash test/run-name-sweep-in-podman.sh zypper,apk`. openSUSE's
 (`python313-pip`, `ffmpeg-7`) will drift as Tumbleweed rolls — the sweep flags it, you bump the
 `name:` map. That's the maintenance loop working, not a false alarm.
 
+## Sweeping a plugin OS
+
+A plugin that adds an OS block (Proxmox, Void, …) can reuse this sweep for its own catalog. The
+per-manager existence CHECK is split from the base-image SETUP, so a plugin supplies its own image
++ repo setup and reuses the check verb:
+
+```
+$ python3 tools/namesweep.py --sweep --plugin <plugin>/routes.hu \
+      --context proxmox --manager apt \
+      --image docker.io/library/debian:12 --setup <plugin>/test/pve-repo-setup.sh
+```
+
+`--plugin` loads the plugin's layers (its `os:` block + components), resolves the whole catalog on
+`--context`, collects the `--manager` package names, and verifies them in `--image` (after
+`--setup`), reusing the core allowlist for that manager. The test itself lives WITH the plugin
+(image + setup are the plugin's business); core just provides the mode. `configsys-proxmox` uses
+this — and because it checks against real Debian (not Ubuntu, like the core apt sweep), it's
+stricter: it's what caught `perf` naming Ubuntu's `linux-tools-generic` (Debian/Proxmox =
+`linux-perf`).
+
 ## Gating & cadence
 
 - **NOT part of `pytest`** — it's networked and container-bound. It's a separate `run-name-sweep-

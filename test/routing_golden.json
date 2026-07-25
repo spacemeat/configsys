@@ -6461,9 +6461,9 @@
    "apt\\perf": {
     "driver": "apt",
     "fields": {
-     "name": "linux-tools-generic"
+     "name": "linux-perf"
     },
-    "name": "linux-tools-generic"
+    "name": "linux-perf"
    }
   },
   "pgcli": {
@@ -10513,9 +10513,9 @@
    "apt\\perf": {
     "driver": "apt",
     "fields": {
-     "name": "linux-tools-generic"
+     "name": "linux-perf"
     },
-    "name": "linux-tools-generic"
+    "name": "linux-perf"
    }
   },
   "pgcli": {

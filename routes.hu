@@ -853,8 +853,11 @@
         lldb:      { install: [ { via: native } ] }
         heaptrack: { install: [ { via: native  when: "debian or redhat or arch or opensuse" } ] }
         clang-tidy: { install: [ { via: native  when: "debian or redhat or arch"  name: { apt: clang-tidy  dnf: clang-tools-extra  pacman: clang } } ] }
-        // perf is kernel-coupled on apt (linux-tools track); `perf` elsewhere.
-        perf: { install: [ { via: native  name: { apt: linux-tools-generic  default: perf } } ] }
+        // perf is kernel-coupled and named per-distro: Ubuntu's linux-tools track, Debian's
+        // linux-perf (also Proxmox); plain `perf` on redhat/arch/opensuse/alpine.
+        perf: { install: [ { via: native  name: { default: perf } }
+                           { via: native  when: debian  name: { apt: linux-perf } }
+                           { via: native  when: ubuntu  name: { apt: linux-tools-generic } } ] }
         // A one-shot bundle of the core analysis kit (a parts aggregator, like `compression` — a
         // convenience grouping, NOT a tool).
         analysis: { install: [ { via: parts  when: "debian or redhat or arch"  parts: [ valgrind, cppcheck, clang-tidy, lldb, strace, ltrace ] } ] }
