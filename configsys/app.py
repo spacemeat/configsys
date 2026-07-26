@@ -554,7 +554,14 @@ def _dispatch_op(ctx, names, op, *, ledger=None, version=None):
         else:
             print(f'unknown op {cur_op}')
             return 2
-        if not res.ok:
+        if not res.ok and getattr(res, 'advisory', False):
+            # an expected, user-actionable outcome (e.g. dotfiles won't clobber un-adopted config)
+            # — explain it, don't treat it as a bug to report.
+            print('  -> needs your input:')
+            for line in (res.output or 'action required').splitlines():
+                print(f'    {line}')
+            rc_code = rc_code or res.returncode or 1
+        elif not res.ok:
             rc_code = res.returncode or 1
             print(f'  -> FAILED (exit {res.returncode})')
             last_failure = reportgen.failure_from_result(key, rc.driver, cur_op, res)

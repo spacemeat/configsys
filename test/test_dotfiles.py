@@ -209,7 +209,8 @@ def test_install_refuses_template_over_real_dst(tmp_path):
     (target / 'mine.lua').write_text('mine')                 # the user's real, un-adopted config
 
     res = DotFiles(Runner(pretend=False), paths=p).install(df_unit())
-    assert not res.ok                                        # refused
+    assert not res.ok and res.advisory                       # refused, but advisory (not a bug)
+    assert 'capture' in res.output and '--force' in res.output   # actionable guidance
     assert not target.is_symlink()                           # untouched
     assert (target / 'mine.lua').read_text() == 'mine'
     assert not (p.home / '.config' / 'nvim.pre-configsys').exists()   # no backup made either

@@ -57,13 +57,17 @@ def terminal_released(tui_active: bool):
 class Result:
     '''Uniform command result (mirrors the bits of CompletedProcess we use).'''
 
-    def __init__(self, cmd, returncode, stdout='', stderr='', pretended=False, captured=''):
+    def __init__(self, cmd, returncode, stdout='', stderr='', pretended=False, captured='',
+                 advisory=False):
         self.cmd = cmd
         self.returncode = returncode
         self.stdout = stdout or ''
         self.stderr = stderr or ''
         self.pretended = pretended
         self.captured = captured or ''   # tee'd tail of streamed output (capture=False builds)
+        # advisory: a non-ok result that is EXPECTED and user-actionable (e.g. dotfiles refusing to
+        # overwrite un-adopted config), NOT a bug — the app explains it instead of offering `report`.
+        self.advisory = advisory
 
     @property
     def ok(self):

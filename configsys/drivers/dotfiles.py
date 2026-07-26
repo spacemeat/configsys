@@ -18,7 +18,6 @@ lock (ledger carries intent).
 import os
 import re
 import shlex
-import sys
 from pathlib import Path
 
 from ..driver import Driver
@@ -240,11 +239,14 @@ class DotFiles(Driver):
                 blocked.append(tgt)
         if blocked:
             names = ', '.join(self.display_path(b) for b in blocked)
-            msg = (f'refusing to overwrite un-adopted dotfile(s): {names}. Adopt them first with '
-                   f'`configsys dotfiles capture`, or re-run with --force (backs up to '
-                   f'{BACKUP_SUFFIX}).')
-            print(f'  {msg}', file=sys.stderr)          # actionable — surface it, not just exit 1
-            return Result(msg, 1)
+            msg = (f'{names} already exist(s) on-system and configsys did not create it. '
+                   f'This is expected — configsys never overwrites dotfiles it doesn\'t manage. '
+                   f'To proceed, either:\n'
+                   f'- adopt your current file(s) into your config, then install again (the link '
+                   f'will point at YOUR content):  configsys dotfiles capture\n'
+                   f'- or replace them now, backing up the original to *{BACKUP_SUFFIX}:  '
+                   f'install --force')
+            return Result('dotfiles: refused (un-adopted target)', 1, stderr=msg, advisory=True)
         lines = ['set -e']
         for src, tgt, absorb in pairs:
             s, t = shlex.quote(str(src)), shlex.quote(str(tgt))
