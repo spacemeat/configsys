@@ -122,5 +122,8 @@ $ configsys plugin set-source myconfig github:you/configsys-myconfig   # swap lo
 3. **DONE** — `plugin init` merge: move leftover local-store dotfiles into the existing primary
    (skip present, `--force`); report movable config.
 4. **DONE** — `plugin set-source <name> <source>` + the ship-it hint.
-5. *(stretch, not built)* comment-preserving config move/cleanup — auto-strip the now-redundant
-   `profiles:`/`components:` from `configsys.hu`, and auto-merge config in the merge path.
+5. **create-path DONE** — `plugin init` now auto-strips the copied `profiles:`/`components:` from
+   `configsys.hu` (comment-preserving span removal, `plugins.remove_sections`), so it collapses
+   toward the one-line bootstrap. *(Still deferred: auto-MERGING config into an existing primary's
+   `.hu` in the merge path — that needs a comment-preserving dict union or a data-file append; the
+   merge path still just moves dotfiles + reports movable config.)*

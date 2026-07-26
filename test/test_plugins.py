@@ -239,6 +239,8 @@ def test_plugin_init_create_then_merge(tmp_path, monkeypatch):
     assert not (cfgdir / 'dotfiles' / 'htop').exists()          # local store emptied
     decls = plugins.declared(str(cfgdir / 'configsys.hu'))
     assert decls == [{'source': str(plug), 'ref': None, 'primary': True}]
+    cfg = materialize_string((cfgdir / 'configsys.hu').read_text())
+    assert 'profiles' not in cfg and 'configs' in cfg          # profiles moved out; configs stays
 
     # a primary now exists -> a second init MERGES leftover local-store dotfiles into it
     gdb = cfgdir / 'dotfiles' / 'gdb'
@@ -246,6 +248,16 @@ def test_plugin_init_create_then_merge(tmp_path, monkeypatch):
     (gdb / 'gdbinit').write_text('x')
     assert main(base) == 0
     assert (plug / 'dotfiles' / 'gdb' / 'gdbinit').read_text() == 'x'
+
+
+def test_remove_sections_preserves_the_rest(tmp_path):
+    p = tmp_path / 'configsys.hu'
+    p.write_text('{\n    // keep\n    configs: [ dev ]\n    profiles: { mine: [ btop ] }\n'
+                 '    pins: { steam: flatpak }\n}\n')
+    assert plugins.remove_sections(str(p), ['profiles']) == ['profiles']
+    text = p.read_text()
+    assert '// keep' in text and 'configs:' in text and 'pins:' in text
+    assert 'profiles:' not in text
 
 
 def test_plugin_set_source_swaps_and_keeps_primary(tmp_path, monkeypatch):

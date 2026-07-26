@@ -427,6 +427,38 @@ def config_sections_text(user_config_file, keys):
     return out
 
 
+def remove_sections(user_config_file, keys):
+    '''Remove the given top-level section nodes from the user config, preserving everything else
+    (comments and all) — the counterpart to set_declared, for cleaning up config that has moved
+    into a plugin. Returns the keys actually removed. A comment sitting ABOVE a removed section is
+    left in place (we only delete the node's own span), so it may be orphaned — cheap to tidy by
+    hand, and safer than guessing which comments belonged to the section.'''
+    path = Path(user_config_file)
+    text = path.read_text(encoding='utf-8')
+    trove = humon.from_string(text)                  # keep alive while reading source_text
+    removed = []
+    for k in keys:
+        node = trove.root[k]
+        if node is None:
+            continue
+        span = node.source_text                      # 'profiles: { ... }', starts at the key
+        idx = text.find(span)
+        if idx < 0:
+            continue
+        start = idx                                   # eat SAME-LINE leading whitespace only (so a
+        while start > 0 and text[start - 1] in ' \t':  # single-line `{ a  profiles:… }` is safe)
+            start -= 1
+        end = idx + len(span)                         # then trailing spaces + one optional newline
+        while end < len(text) and text[end] in ' \t':
+            end += 1
+        if end < len(text) and text[end] == '\n':
+            end += 1
+        text = text[:start] + text[end:]
+        removed.append(k)
+    path.write_text(text, encoding='utf-8')
+    return removed
+
+
 def scaffold_primary(plug_dir, name, transitive_decls=(), sections=None):
     '''Write a locally-authored primary plugin's files: a data-only `plugin.hu` (manifest) and,
     when `sections` ({key: text}) are given, a `<name>.hu` carrying them verbatim. `transitive_decls`

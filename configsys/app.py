@@ -1042,10 +1042,12 @@ def _plugin_init_create(ctx, args, decls):
         encoding='utf-8')
     _git_init_commit(ctx, plug, 'initial personal config (configsys plugin init)')
     plugins.set_declared(ctx.paths.user_config_file, [{'source': str(plug), 'primary': True}])
+    # the copied sections now live in the plugin (primary layer) — strip the redundant originals
+    # from configsys.hu so it collapses toward the one-line bootstrap the primary model is for.
+    stripped = plugins.remove_sections(ctx.paths.user_config_file, list(sections)) if sections else []
     print(f'\nconfigsys: created + blessed "{name}" as your primary plugin.')
-    if sections:
-        print('  (your profiles/components now live in the plugin too; you may remove them from '
-              'configsys.hu — they apply either way.)')
+    if stripped:
+        print(f'  ({", ".join(stripped)} moved into the plugin and removed from configsys.hu.)')
     print('  capture now lands in it. When ready to share:')
     print(f'    cd {plug}')
     print(f'    git remote add origin git@github.com:you/{name}.git && git push -u origin main')
