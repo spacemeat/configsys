@@ -499,20 +499,40 @@ def load_code(plugins_dir, trust_file, decls, register, conflicts=None):
     return loaded, skipped
 
 
+def _git_checkout(runner, dq, ref):
+    '''Detach the checkout at the ref AS IT IS ON THE REMOTE NOW, so a re-sync actually advances.
+    A BRANCH ref resolves to `origin/<ref>` — checking out the local branch would be a no-op that
+    never fast-forwards; a TAG or commit is used directly (a moved tag was already refreshed by
+    `fetch --force`); NO ref -> the remote's default branch (`origin/HEAD`) if known. `--force`
+    overwrites any working-tree drift. Returns True unless the checkout itself failed (a pretended
+    or absent run counts as ok — --pretend just prints).'''
+    def _has(rev):
+        r = runner.run(f'git -C {dq} rev-parse --verify --quiet {shlex.quote(rev)}', capture=True)
+        return r is not None and r.ok and not r.pretended
+    if ref:
+        target = f'origin/{ref}' if _has(f'origin/{ref}') else ref
+    elif _has('origin/HEAD'):
+        target = 'origin/HEAD'
+    else:
+        return True                              # no ref and no known default branch: leave as-is
+    co = runner.run(f'git -C {dq} checkout --quiet --force --detach {shlex.quote(target)}',
+                    capture=False)
+    return co is None or co.ok
+
+
 def _git_transport(runner, dest, source, ref):
-    '''The built-in transport: clone/fetch a git repo to `dest` at `ref` (via the runner, so
-    --pretend works). Returns 'cloned' / 'updated' / 'failed'.'''
+    '''The built-in transport: clone/fetch a git repo to `dest`, then detach at `ref` as it is on
+    the remote now (see _git_checkout). `fetch --force` so a re-pointed tag updates; a failed
+    checkout is reported as 'failed', not silently 'updated'. Returns 'cloned'/'updated'/'failed'.'''
     dq = shlex.quote(str(dest))
     if dest.exists():
-        runner.run(f'git -C {dq} fetch --tags --quiet', capture=False)
-        if ref:
-            runner.run(f'git -C {dq} checkout --quiet {shlex.quote(ref)}', capture=False)
-        return 'updated'
+        runner.run(f'git -C {dq} fetch --force --tags --quiet', capture=False)   # --force: re-pointed tags
+        return 'updated' if _git_checkout(runner, dq, ref) else 'failed'
     dest.parent.mkdir(parents=True, exist_ok=True)
     r = runner.run(f'git clone --quiet {shlex.quote(clone_url(source))} {dq}', capture=False)
-    if ref and (r is None or r.ok):
-        runner.run(f'git -C {dq} checkout --quiet {shlex.quote(ref)}', capture=False)
-    return 'cloned' if (r is None or r.ok) else 'failed'
+    if r is not None and not r.ok:
+        return 'failed'
+    return 'cloned' if _git_checkout(runner, dq, ref) else 'failed'
 
 
 # Registered sync transports (P2c): a plugin claims a `source:` scheme so `source:

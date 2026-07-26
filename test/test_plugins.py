@@ -140,6 +140,62 @@ def test_sync_clones_a_local_git_repo(tmp_path):
     assert any(f.endswith('src/routes.hu') for f, _ in files)
 
 
+def _git(cwd, *args):
+    subprocess.run(['git', *args], cwd=cwd, check=True)
+
+
+def _init_repo(src, branch='trunk'):
+    src.mkdir()
+    (src / 'plugin.hu').write_text('{ name: sp  requires-abi: 1  data: [ routes.hu ] }')
+    (src / 'routes.hu').write_text('{ components: { sptool: { install: [ { via: native } ] } } }')
+    (src / 'v.txt').write_text('A')
+    _git(src, 'init', '-q'); _git(src, 'config', 'user.email', 't@t')
+    _git(src, 'config', 'user.name', 't'); _git(src, 'add', '-A'); _git(src, 'commit', '-qm', 'A')
+    _git(src, 'branch', '-M', branch)                      # deterministic branch name (any git)
+
+
+@pytest.mark.skipif(shutil.which('git') is None, reason='git not available')
+def test_sync_follows_a_re_pointed_tag(tmp_path):
+    # A pin to a MOVED tag must land on the tag's new commit — fetch --force refreshes it.
+    src = tmp_path / 'src'
+    _init_repo(src)
+    _git(src, 'tag', 'v1')
+    pdir = tmp_path / 'plugins'
+    decl = [{'source': str(src), 'ref': 'v1'}]
+    plugins.sync(Runner(pretend=False), pdir, decl)
+    assert (pdir / 'src' / 'v.txt').read_text() == 'A'
+    # move v1 onto a new commit
+    (src / 'v.txt').write_text('B'); _git(src, 'add', '-A'); _git(src, 'commit', '-qm', 'B')
+    _git(src, 'tag', '-f', 'v1')
+    assert plugins.sync(Runner(pretend=False), pdir, decl) == [('src', 'updated')]
+    assert (pdir / 'src' / 'v.txt').read_text() == 'B'    # was 'A' before the fetch --force fix
+
+
+@pytest.mark.skipif(shutil.which('git') is None, reason='git not available')
+def test_sync_advances_a_branch_ref(tmp_path):
+    # A branch ref must fast-forward on re-sync (checking out the local branch was a no-op).
+    src = tmp_path / 'src'
+    _init_repo(src, branch='trunk')
+    pdir = tmp_path / 'plugins'
+    decl = [{'source': str(src), 'ref': 'trunk'}]
+    plugins.sync(Runner(pretend=False), pdir, decl)
+    assert (pdir / 'src' / 'v.txt').read_text() == 'A'
+    (src / 'v.txt').write_text('B'); _git(src, 'add', '-A'); _git(src, 'commit', '-qm', 'B')
+    plugins.sync(Runner(pretend=False), pdir, decl)
+    assert (pdir / 'src' / 'v.txt').read_text() == 'B'    # advanced to origin/trunk
+
+
+@pytest.mark.skipif(shutil.which('git') is None, reason='git not available')
+def test_sync_reports_failed_on_a_bad_ref(tmp_path):
+    # A checkout that can't resolve the ref is 'failed', not a silent 'cloned'/'updated'.
+    src = tmp_path / 'src'
+    _init_repo(src)
+    _git(src, 'tag', 'v1')
+    pdir = tmp_path / 'plugins'
+    res = plugins.sync(Runner(pretend=False), pdir, [{'source': str(src), 'ref': 'nope'}])
+    assert res == [('src', 'failed')]
+
+
 # -- editing the plugins: list (comment-preserving) -----------------------
 
 def test_set_declared_inserts_and_preserves_comments(tmp_path):
