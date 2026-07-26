@@ -136,6 +136,9 @@ does the backup-and-replace.
    already-in-store (force to overwrite). **Read-only on the system side** — only reads `dst`,
    only writes the store. `status` now also shows the MANAGED SRC location (where your copy is, or
    `→` where capture will put it).
-3. `install` refuse-until-adopted + `--force`.
+3. **DONE** — `install` refuses to symlink over a real, un-adopted `dst` whose src is still a
+   template (adopted content links freely; an `absorb-into` spec keeps its own safe relocation;
+   an unpopulated spec is already a no-op). The refusal prints an actionable message ("adopt with
+   `dotfiles capture`, or --force"). `install`/`upgrade --force` restore backup-and-replace.
 4. Un-comment `neovim-dotfiles`'s `config:` (now safe) + drop the shipped `dotfiles/neovim`,
    `dotfiles/htop`, `dotfiles/containers` templates (configsys ships no personal config).

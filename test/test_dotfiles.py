@@ -112,7 +112,7 @@ def test_real_symlink_install_getversion_uninstall(tmp_path):
 
 def test_existing_dir_is_backed_up_and_restored(tmp_path):
     p = paths_for(tmp_path)
-    src_dir = p.dotfiles_dir / 'neovim'
+    src_dir = p.user_dotfiles_dir / 'neovim'      # ADOPTED content (a user store) -> link is safe
     src_dir.mkdir(parents=True)
     (src_dir / 'init.lua').write_text('new')
 
@@ -196,6 +196,52 @@ def test_spec_state_template(tmp_path):
     (p.dotfiles_dir / 'neovim').mkdir(parents=True)        # a shipped template, dst absent
     df = DotFiles(Runner(pretend=False), paths=p)
     assert df.spec_states(df_unit())[0][2] == 'template'
+
+
+# -- refuse-until-adopted: never clobber a real dotfile with a template ----
+
+def test_install_refuses_template_over_real_dst(tmp_path):
+    p = paths_for(tmp_path)
+    (p.dotfiles_dir / 'neovim').mkdir(parents=True)          # a shipped TEMPLATE (repo root)
+    (p.dotfiles_dir / 'neovim' / 'init.lua').write_text('template')
+    target = p.home / '.config' / 'nvim'
+    target.mkdir(parents=True)
+    (target / 'mine.lua').write_text('mine')                 # the user's real, un-adopted config
+
+    res = DotFiles(Runner(pretend=False), paths=p).install(df_unit())
+    assert not res.ok                                        # refused
+    assert not target.is_symlink()                           # untouched
+    assert (target / 'mine.lua').read_text() == 'mine'
+    assert not (p.home / '.config' / 'nvim.pre-configsys').exists()   # no backup made either
+
+
+def test_install_force_overwrites_template(tmp_path):
+    p = paths_for(tmp_path)
+    (p.dotfiles_dir / 'neovim').mkdir(parents=True)
+    (p.dotfiles_dir / 'neovim' / 'init.lua').write_text('template')
+    target = p.home / '.config' / 'nvim'
+    target.mkdir(parents=True)
+    (target / 'mine.lua').write_text('mine')
+    p.dotfiles_force = True                                  # what `install --force` sets
+
+    df = DotFiles(Runner(pretend=False), paths=p)
+    assert df.install(df_unit()).ok
+    assert target.is_symlink()                               # replaced
+    backup = p.home / '.config' / 'nvim.pre-configsys'
+    assert (backup / 'mine.lua').read_text() == 'mine'       # original preserved
+
+
+def test_install_over_real_dst_ok_once_adopted(tmp_path):
+    # the sanctioned path: capture (content in a user store) makes the link safe, no --force needed
+    p = paths_for(tmp_path)
+    (p.user_dotfiles_dir / 'neovim').mkdir(parents=True)     # adopted
+    (p.user_dotfiles_dir / 'neovim' / 'init.lua').write_text('mine')
+    target = p.home / '.config' / 'nvim'
+    target.mkdir(parents=True)
+    (target / 'mine.lua').write_text('mine')
+
+    assert DotFiles(Runner(pretend=False), paths=p).install(df_unit()).ok
+    assert target.is_symlink()
 
 
 # -- capture: adopt on-system dotfiles into the store (phase 2) ------------

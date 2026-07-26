@@ -618,6 +618,7 @@ def cmd_fix_scope(ctx, args):
 
 
 def cmd_install(ctx, args):
+    ctx.paths.dotfiles_force = getattr(args, 'force', False)   # read by the dotfiles driver
     return _dispatch_op(ctx, args.names, 'install')
 
 
@@ -626,6 +627,7 @@ def cmd_remove(ctx, args):
 
 
 def cmd_upgrade(ctx, args):
+    ctx.paths.dotfiles_force = getattr(args, 'force', False)
     return _dispatch_op(ctx, args.names, 'upgrade')
 
 
@@ -1401,6 +1403,10 @@ def build_parser():
                                         'profile:<name> expands to that profile\'s components.')
         sp.add_argument('names', nargs='+',
                         help='component names, and/or profile:<name> to expand a whole profile')
+        if name in ('install', 'upgrade'):
+            sp.add_argument('--force', action='store_true',
+                            help='dotfiles: overwrite an un-adopted on-system file (backed up to '
+                                 '.pre-configsys). Prefer `configsys dotfiles capture` first.')
 
     fs = sub.add_parser('fix-scope', help='reconcile installed units whose actual scope differs '
                                           'from the declared scope (moves the install, not config)')

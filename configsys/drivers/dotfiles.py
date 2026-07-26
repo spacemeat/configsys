@@ -18,6 +18,7 @@ lock (ledger carries intent).
 import os
 import re
 import shlex
+import sys
 from pathlib import Path
 
 from ..driver import Driver
@@ -215,10 +216,35 @@ class DotFiles(Driver):
 
     # -- mutate -----------------------------------------------------------
 
+    def _force(self):
+        return bool(getattr(self.paths, 'dotfiles_force', False)) if self.paths is not None else False
+
     def install(self, rc):
-        pairs = self._pairs(rc)
-        if not pairs:
+        specs = self._specs(rc)
+        if not specs:
             return Result('(dotfiles: no link specs in route)', 1)
+        force = self._force()
+        pairs, blocked = [], []
+        for _name, src, dst, absorb in specs:
+            srcpath, tier, _root = self._resolve(src, rc)
+            tgt = self._expand(dst)
+            ab = self._expand(absorb) if absorb else None
+            pairs.append((srcpath, tgt, ab))
+            # REFUSE to replace a real on-system file/dir with a TEMPLATE the user hasn't adopted.
+            # tier 'user' = you captured it -> linking to your own content is safe; tier None =
+            # unpopulated -> the shell skips it (nothing to clobber); an `absorb-into` spec has its
+            # own safe relocation. So only an un-adopted TEMPLATE over a real dst is blocked.
+            ours = tgt.is_symlink() and os.path.realpath(tgt) == os.path.realpath(srcpath)
+            if (not force and tier == 'template' and ab is None
+                    and (tgt.exists() or tgt.is_symlink()) and not ours):
+                blocked.append(tgt)
+        if blocked:
+            names = ', '.join(self.display_path(b) for b in blocked)
+            msg = (f'refusing to overwrite un-adopted dotfile(s): {names}. Adopt them first with '
+                   f'`configsys dotfiles capture`, or re-run with --force (backs up to '
+                   f'{BACKUP_SUFFIX}).')
+            print(f'  {msg}', file=sys.stderr)          # actionable — surface it, not just exit 1
+            return Result(msg, 1)
         lines = ['set -e']
         for src, tgt, absorb in pairs:
             s, t = shlex.quote(str(src)), shlex.quote(str(tgt))
