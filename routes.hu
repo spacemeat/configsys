@@ -1028,18 +1028,18 @@
         xcb-util-cursor:       { install: [ { via: native  when: "arch" } ] }   // arch
         // vulkan-dev: a parts bundle composing the X libs, build tools, the SDK tarball,
         // and the vulkan runtime (itself a parts aggregator). One binding per OS family;
-        // build-essential now expands to real gcc packages on Fedora/Arch (gcc blocker resolved).
+        // cpp-toolchain pulls the C/C++ compiler (portable across families).
         vulkan-dev: {
             install: [
                 { via: parts  when: "debian"
                   parts: [ libxcb-xinput0, libxcb-xinerama0, libxcb-cursor-dev,
-                           build-essential, vulkan-sdk, vulkan-runtime ] }
+                           cpp-toolchain, make, vulkan-sdk, vulkan-runtime ] }
                 { via: parts  when: "redhat"
                   parts: [ libxcb-devel, xcb-util-cursor-devel,
-                           build-essential, vulkan-sdk, vulkan-runtime ] }
+                           cpp-toolchain, make, vulkan-sdk, vulkan-runtime ] }
                 { via: parts  when: "arch"
                   parts: [ libxcb, xcb-util-cursor,
-                           build-essential, vulkan-sdk, vulkan-runtime ] }
+                           cpp-toolchain, make, vulkan-sdk, vulkan-runtime ] }
             ]
         }
 
@@ -1053,14 +1053,31 @@
             ]
         }
 
-        // --- toolchain support ---
-        // one native meta-package on Debian; no single package on Fedora/Arch, so a
-        // faithful parts bundle there (the compilers + make), matching the old routes.
-        build-essential: {
+        // --- toolchain (portable, descriptive capabilities) ---
+        // `cc` = a C compiler, `cxx` = a C++ compiler. Source-build components COMPOSE these
+        // (requires: cxx, cmake, ninja, ...); `cxx requires: cc`, so C++ reuses the C toolchain.
+        // One definition across every family — this replaces the old apt-named `build-essential`,
+        // which was Debian-*package*-building essentials (it pulls dpkg-dev), not an app toolchain.
+        // Alpine bundles the whole kit in `build-base` (pulls musl-dev headers); on Arch/Void the
+        // `gcc` package bundles g++. `make`/`cmake`/`ninja` stay separate, composable build tools.
+        // (Versioned/standard selection — requires: C++20, or gcc-15 by name — is a later layer;
+        // for now cc/cxx are the system default compiler, which handles modern C++ on any current
+        // distro.)
+        c-toolchain: {
+            provides: cc
             install: [
-                { via: native  when: "debian" }
-                { via: parts  when: "redhat"  parts: [ gcc, gcc-cpp, make ] }
-                { via: parts  when: "arch"    parts: [ gcc, make ] }
+                { via: native  when: "alpine"  name: build-base }   // gcc + g++ + make + musl-dev
+                { via: native  name: gcc }                          // else: gcc (pulls libc dev headers)
+            ]
+        }
+        cpp-toolchain: {
+            provides: cxx
+            requires: cc
+            install: [
+                { via: native  when: "alpine"  name: build-base }
+                { via: native  when: "redhat or opensuse"  name: "gcc-c++" }
+                { via: native  when: "debian"  name: "g++" }
+                { via: native  name: gcc }   // default: gcc bundles g++ (arch, brew, and plugin OSes like Void)
             ]
         }
 
@@ -1088,37 +1105,23 @@
             install: [ { via: aur  when: "arch"  name: yay-bin  version: { aur: yay-bin } } ]
         }
 
-        // gcc means "the C compiler works here" — but that's a different artifact per OS,
-        // and the two never coexist in one context, so ONE component with per-OS bindings
-        // reproduces the old dotfiles\gcc (Debian) and dnf\gcc / pacman\gcc (RH/Arch):
-        //   Debian — the base compiler already ships in build-essential; this is just the
-        //            `update-alternatives --config gcc` selector alias (a dotfile).
-        //   Fedora/Arch — build-essential is a parts bundle needing the actual gcc
-        //            *package*, which this same component provides natively.
         // gcc-select: the `update-alternatives --config gcc` alias dotfile (Debian only) —
-        // required by the versioned gcc-NN toolchains so `gcc` points at the chosen one.
+        // required by the versioned gcc-NN toolchains so `gcc` points at the chosen one. (The plain
+        // C/C++ compiler is now `c-toolchain`/`cpp-toolchain` above, which supersede the old `gcc`
+        // and `gcc-cpp` components that only existed to feed `build-essential`.)
         gcc-select: {
             install: [ { via: dotfiles  when: "debian"  requires: bash-dotfiles
                          src: bash.d/gcc.sh  dst: ~/.bash.d/gcc.sh } ]
         }
-        // gcc: the actual C compiler *package* (a build-essential part on Fedora/Arch; on
-        // Debian the base compiler ships in build-essential, so there's no Debian binding).
-        gcc: {
-            install: [
-                { via: native  when: "redhat" }   // fedora + EL
-                { via: native  when: "arch" }     // arch gcc bundles g++
-            ]
-        }
-        gcc-cpp: { install: [ { via: native  when: "redhat"  name: { dnf: "gcc-c++" } } ] }   // Fedora g++ (has a `+`)
 
         // --- versioned gcc. Three drivers, selected by OS/version:
-        //   debian -> `gcc` (apt PPA + update-alternatives; needs build-essential, s-p-c, the alias)
+        //   debian -> `gcc` (apt PPA + update-alternatives; needs cxx, s-p-c, the alias)
         //   fedora -> `gcc` (dnf compat packages gccNN; availability is per-release)
         //   EL     -> `gcc-toolset` (SCL under /opt/rh)
         gcc-13: {
             install: [
                 { via: gcc  when: "debian"  packages: [ gcc-13, g++-13 ]  slaves: [ g++ ]  ppa: ubuntu-toolchain-r/test
-                  requires: [ build-essential, software-properties-common ]  suggests: gcc-select }
+                  requires: [ cxx, software-properties-common ]  suggests: gcc-select }
                 { via: gcc  when: "fedora = 41"  packages: [ gcc13, gcc13-c++ ] }
                 { via: gcc-toolset  when: "rhel" }
             ]
@@ -1126,7 +1129,7 @@
         gcc-14: {
             install: [
                 { via: gcc  when: "debian"  packages: [ gcc-14, g++-14 ]  slaves: [ g++ ]  ppa: ubuntu-toolchain-r/test
-                  requires: [ build-essential, software-properties-common ]  suggests: gcc-select }
+                  requires: [ cxx, software-properties-common ]  suggests: gcc-select }
                 { via: gcc  when: "fedora = 42"  packages: [ gcc14, gcc14-c++ ] }
                 { via: gcc-toolset  when: "rhel" }
             ]
@@ -1134,13 +1137,13 @@
         gcc-15: {
             install: [
                 { via: gcc  when: "debian"  packages: [ gcc-15, g++-15 ]  slaves: [ g++ ]  ppa: ubuntu-toolchain-r/test
-                  requires: [ build-essential, software-properties-common ]  suggests: gcc-select }
+                  requires: [ cxx, software-properties-common ]  suggests: gcc-select }
                 { via: gcc-toolset  when: "rhel" }
             ]
         }
 
         // --- versioned clang. `clang` driver = native PM + update-alternatives:
-        //   debian -> apt.llvm.org + alternatives (needs build-essential, curl, the alias)
+        //   debian -> apt.llvm.org + alternatives (needs cxx, curl, the alias)
         //   fedora -> dnf compat clangNN (per-release; the system clang covers the newest)
         //   EL     -> dnf compat clangNN from EPEL (requires epel)
         clang-select: {             // the `update-alternatives --config clang` alias dotfile
@@ -1150,14 +1153,14 @@
         clang-18: {
             install: [
                 { via: clang  when: "debian"  packages: [ clang-18 ]
-                  requires: [ build-essential, curl ]  suggests: clang-select }
+                  requires: [ cxx, curl ]  suggests: clang-select }
                 { via: clang  when: "fedora"  packages: [ clang18 ] }
             ]
         }
         clang-19: {
             install: [
                 { via: clang  when: "debian"  packages: [ clang-19 ]
-                  requires: [ build-essential, curl ]  suggests: clang-select }
+                  requires: [ cxx, curl ]  suggests: clang-select }
                 { via: clang  when: "fedora = 41"  packages: [ clang ] }      // system clang -> /usr/bin/clang-19
                 { via: clang  when: "fedora = 42"  packages: [ clang19 ] }
                 { via: clang  when: "rhel"  packages: [ clang19 ]  requires: epel }
@@ -1166,7 +1169,7 @@
         clang-20: {
             install: [
                 { via: clang  when: "debian"  packages: [ clang-20 ]
-                  requires: [ build-essential, curl ]  suggests: clang-select }
+                  requires: [ cxx, curl ]  suggests: clang-select }
                 { via: clang  when: "fedora = 42"  packages: [ clang ] }      // system clang -> /usr/bin/clang-20
                 { via: clang  when: "rhel"  packages: [ clang20 ]  requires: epel }
             ]

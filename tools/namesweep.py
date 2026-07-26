@@ -78,7 +78,10 @@ _CHECK = {
     'apt':    'apt-cache show "$p" >/dev/null 2>&1',
     'dnf':    'dnf -q info "$p" >/dev/null 2>&1',
     'pacman': '(pacman -Si "$p" >/dev/null 2>&1 || pacman -Sg "$p" >/dev/null 2>&1)',
-    'zypper': 'zypper -n se -x "$p" 2>/dev/null | grep -qE "\\|[[:space:]]*$p[[:space:]]"',
+    # `se -x` is already an EXACT name match, so just confirm a binary-package row exists — the
+    # name never enters the regex (the old grep -qE "...$p..." broke on names with regex
+    # metacharacters like gcc-c++, false-flagging an existing package; awk isn't in the image).
+    'zypper': 'zypper -n se -x "$p" 2>/dev/null | grep -qF "| package"',
     'apk':    'apk search -x "$p" 2>/dev/null | grep -q "^$p-[0-9]"',
     'xbps':   'xbps-query -R "$p" >/dev/null 2>&1',          # Void (plugin OS)
 }

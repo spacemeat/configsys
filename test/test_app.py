@@ -359,7 +359,7 @@ def test_install_expands_profile_arg(tmp_path, capsys):
     # (exit code isn't asserted: a profile member may report failure under --pretend)
     main(['--home', str(tmp_path), '--os', 'pop', '--pretend', 'install', 'profile:dev', 'blender'])
     out = capsys.readouterr().out
-    assert 'rust' in out and 'build-essential' in out     # pulled from the profile
+    assert 'rust' in out and 'cpp-toolchain' in out       # pulled from the profile
     assert 'blender' in out                                # the bare component too
 
 

@@ -322,22 +322,6 @@
     "name": "budgie-desktop"
    }
   },
-  "build-essential": {
-   "pacman\\gcc": {
-    "driver": "pacman",
-    "fields": {
-     "name": "gcc"
-    },
-    "name": "gcc"
-   },
-   "pacman\\make": {
-    "driver": "pacman",
-    "fields": {
-     "name": "make"
-    },
-    "name": "make"
-   }
-  },
   "bun": {
    "pacman\\curl": {
     "driver": "pacman",
@@ -380,6 +364,15 @@
      "name": "ruby"
     },
     "name": "ruby"
+   }
+  },
+  "c-toolchain": {
+   "pacman\\c-toolchain": {
+    "driver": "pacman",
+    "fields": {
+     "name": "gcc"
+    },
+    "name": "gcc"
    }
   },
   "cabal": {
@@ -615,6 +608,22 @@
      "name": "cosmic-session"
     },
     "name": "cosmic-session"
+   }
+  },
+  "cpp-toolchain": {
+   "pacman\\c-toolchain": {
+    "driver": "pacman",
+    "fields": {
+     "name": "gcc"
+    },
+    "name": "gcc"
+   },
+   "pacman\\cpp-toolchain": {
+    "driver": "pacman",
+    "fields": {
+     "name": "gcc"
+    },
+    "name": "gcc"
    }
   },
   "cppcheck": {
@@ -973,15 +982,6 @@
      "repo-component": "universe"
     },
     "name": "gap"
-   }
-  },
-  "gcc": {
-   "pacman\\gcc": {
-    "driver": "pacman",
-    "fields": {
-     "name": "gcc"
-    },
-    "name": "gcc"
    }
   },
   "gcloud": {
@@ -3125,19 +3125,26 @@
     },
     "name": "vulkan-sdk-dotfiles"
    },
+   "pacman\\c-toolchain": {
+    "driver": "pacman",
+    "fields": {
+     "name": "gcc"
+    },
+    "name": "gcc"
+   },
+   "pacman\\cpp-toolchain": {
+    "driver": "pacman",
+    "fields": {
+     "name": "gcc"
+    },
+    "name": "gcc"
+   },
    "pacman\\curl": {
     "driver": "pacman",
     "fields": {
      "name": "curl"
     },
     "name": "curl"
-   },
-   "pacman\\gcc": {
-    "driver": "pacman",
-    "fields": {
-     "name": "gcc"
-    },
-    "name": "gcc"
    },
    "pacman\\libxcb": {
     "driver": "pacman",
@@ -3925,15 +3932,6 @@
     "name": "budgie-desktop"
    }
   },
-  "build-essential": {
-   "apt\\build-essential": {
-    "driver": "apt",
-    "fields": {
-     "name": "build-essential"
-    },
-    "name": "build-essential"
-   }
-  },
   "bun": {
    "apt\\curl": {
     "driver": "apt",
@@ -3976,6 +3974,15 @@
      "name": "bundler"
     },
     "name": "bundler"
+   }
+  },
+  "c-toolchain": {
+   "apt\\c-toolchain": {
+    "driver": "apt",
+    "fields": {
+     "name": "gcc"
+    },
+    "name": "gcc"
    }
   },
   "cabal": {
@@ -4040,12 +4047,19 @@
    }
   },
   "clang-18": {
-   "apt\\build-essential": {
+   "apt\\c-toolchain": {
     "driver": "apt",
     "fields": {
-     "name": "build-essential"
+     "name": "gcc"
     },
-    "name": "build-essential"
+    "name": "gcc"
+   },
+   "apt\\cpp-toolchain": {
+    "driver": "apt",
+    "fields": {
+     "name": "g++"
+    },
+    "name": "g++"
    },
    "apt\\curl": {
     "driver": "apt",
@@ -4085,12 +4099,19 @@
    }
   },
   "clang-19": {
-   "apt\\build-essential": {
+   "apt\\c-toolchain": {
     "driver": "apt",
     "fields": {
-     "name": "build-essential"
+     "name": "gcc"
     },
-    "name": "build-essential"
+    "name": "gcc"
+   },
+   "apt\\cpp-toolchain": {
+    "driver": "apt",
+    "fields": {
+     "name": "g++"
+    },
+    "name": "g++"
    },
    "apt\\curl": {
     "driver": "apt",
@@ -4130,12 +4151,19 @@
    }
   },
   "clang-20": {
-   "apt\\build-essential": {
+   "apt\\c-toolchain": {
     "driver": "apt",
     "fields": {
-     "name": "build-essential"
+     "name": "gcc"
     },
-    "name": "build-essential"
+    "name": "gcc"
+   },
+   "apt\\cpp-toolchain": {
+    "driver": "apt",
+    "fields": {
+     "name": "g++"
+    },
+    "name": "g++"
    },
    "apt\\curl": {
     "driver": "apt",
@@ -4378,6 +4406,22 @@
      "src": "bash.d/configsys.sh"
     },
     "name": "configsys-dotfiles"
+   }
+  },
+  "cpp-toolchain": {
+   "apt\\c-toolchain": {
+    "driver": "apt",
+    "fields": {
+     "name": "gcc"
+    },
+    "name": "gcc"
+   },
+   "apt\\cpp-toolchain": {
+    "driver": "apt",
+    "fields": {
+     "name": "g++"
+    },
+    "name": "g++"
    }
   },
   "cppcheck": {
@@ -4763,12 +4807,19 @@
    }
   },
   "gcc-13": {
-   "apt\\build-essential": {
+   "apt\\c-toolchain": {
     "driver": "apt",
     "fields": {
-     "name": "build-essential"
+     "name": "gcc"
     },
-    "name": "build-essential"
+    "name": "gcc"
+   },
+   "apt\\cpp-toolchain": {
+    "driver": "apt",
+    "fields": {
+     "name": "g++"
+    },
+    "name": "g++"
    },
    "apt\\software-properties-common": {
     "driver": "apt",
@@ -4813,12 +4864,19 @@
    }
   },
   "gcc-14": {
-   "apt\\build-essential": {
+   "apt\\c-toolchain": {
     "driver": "apt",
     "fields": {
-     "name": "build-essential"
+     "name": "gcc"
     },
-    "name": "build-essential"
+    "name": "gcc"
+   },
+   "apt\\cpp-toolchain": {
+    "driver": "apt",
+    "fields": {
+     "name": "g++"
+    },
+    "name": "g++"
    },
    "apt\\software-properties-common": {
     "driver": "apt",
@@ -4863,12 +4921,19 @@
    }
   },
   "gcc-15": {
-   "apt\\build-essential": {
+   "apt\\c-toolchain": {
     "driver": "apt",
     "fields": {
-     "name": "build-essential"
+     "name": "gcc"
     },
-    "name": "build-essential"
+    "name": "gcc"
+   },
+   "apt\\cpp-toolchain": {
+    "driver": "apt",
+    "fields": {
+     "name": "g++"
+    },
+    "name": "g++"
    },
    "apt\\software-properties-common": {
     "driver": "apt",
@@ -7292,12 +7357,19 @@
    }
   },
   "vulkan-dev": {
-   "apt\\build-essential": {
+   "apt\\c-toolchain": {
     "driver": "apt",
     "fields": {
-     "name": "build-essential"
+     "name": "gcc"
     },
-    "name": "build-essential"
+    "name": "gcc"
+   },
+   "apt\\cpp-toolchain": {
+    "driver": "apt",
+    "fields": {
+     "name": "g++"
+    },
+    "name": "g++"
    },
    "apt\\curl": {
     "driver": "apt",
@@ -7336,6 +7408,13 @@
      "repo-component": "universe"
     },
     "name": "libxcb-xinput0"
+   },
+   "apt\\make": {
+    "driver": "apt",
+    "fields": {
+     "name": "make"
+    },
+    "name": "make"
    },
    "apt\\mesa-vulkan-drivers": {
     "driver": "apt",
@@ -8035,15 +8114,6 @@
     "name": "budgie-desktop"
    }
   },
-  "build-essential": {
-   "apt\\build-essential": {
-    "driver": "apt",
-    "fields": {
-     "name": "build-essential"
-    },
-    "name": "build-essential"
-   }
-  },
   "bun": {
    "apt\\curl": {
     "driver": "apt",
@@ -8086,6 +8156,15 @@
      "name": "bundler"
     },
     "name": "bundler"
+   }
+  },
+  "c-toolchain": {
+   "apt\\c-toolchain": {
+    "driver": "apt",
+    "fields": {
+     "name": "gcc"
+    },
+    "name": "gcc"
    }
   },
   "cabal": {
@@ -8150,12 +8229,19 @@
    }
   },
   "clang-18": {
-   "apt\\build-essential": {
+   "apt\\c-toolchain": {
     "driver": "apt",
     "fields": {
-     "name": "build-essential"
+     "name": "gcc"
     },
-    "name": "build-essential"
+    "name": "gcc"
+   },
+   "apt\\cpp-toolchain": {
+    "driver": "apt",
+    "fields": {
+     "name": "g++"
+    },
+    "name": "g++"
    },
    "apt\\curl": {
     "driver": "apt",
@@ -8195,12 +8281,19 @@
    }
   },
   "clang-19": {
-   "apt\\build-essential": {
+   "apt\\c-toolchain": {
     "driver": "apt",
     "fields": {
-     "name": "build-essential"
+     "name": "gcc"
     },
-    "name": "build-essential"
+    "name": "gcc"
+   },
+   "apt\\cpp-toolchain": {
+    "driver": "apt",
+    "fields": {
+     "name": "g++"
+    },
+    "name": "g++"
    },
    "apt\\curl": {
     "driver": "apt",
@@ -8240,12 +8333,19 @@
    }
   },
   "clang-20": {
-   "apt\\build-essential": {
+   "apt\\c-toolchain": {
     "driver": "apt",
     "fields": {
-     "name": "build-essential"
+     "name": "gcc"
     },
-    "name": "build-essential"
+    "name": "gcc"
+   },
+   "apt\\cpp-toolchain": {
+    "driver": "apt",
+    "fields": {
+     "name": "g++"
+    },
+    "name": "g++"
    },
    "apt\\curl": {
     "driver": "apt",
@@ -8478,6 +8578,22 @@
      "src": "bash.d/configsys.sh"
     },
     "name": "configsys-dotfiles"
+   }
+  },
+  "cpp-toolchain": {
+   "apt\\c-toolchain": {
+    "driver": "apt",
+    "fields": {
+     "name": "gcc"
+    },
+    "name": "gcc"
+   },
+   "apt\\cpp-toolchain": {
+    "driver": "apt",
+    "fields": {
+     "name": "g++"
+    },
+    "name": "g++"
    }
   },
   "cppcheck": {
@@ -8863,12 +8979,19 @@
    }
   },
   "gcc-13": {
-   "apt\\build-essential": {
+   "apt\\c-toolchain": {
     "driver": "apt",
     "fields": {
-     "name": "build-essential"
+     "name": "gcc"
     },
-    "name": "build-essential"
+    "name": "gcc"
+   },
+   "apt\\cpp-toolchain": {
+    "driver": "apt",
+    "fields": {
+     "name": "g++"
+    },
+    "name": "g++"
    },
    "apt\\software-properties-common": {
     "driver": "apt",
@@ -8913,12 +9036,19 @@
    }
   },
   "gcc-14": {
-   "apt\\build-essential": {
+   "apt\\c-toolchain": {
     "driver": "apt",
     "fields": {
-     "name": "build-essential"
+     "name": "gcc"
     },
-    "name": "build-essential"
+    "name": "gcc"
+   },
+   "apt\\cpp-toolchain": {
+    "driver": "apt",
+    "fields": {
+     "name": "g++"
+    },
+    "name": "g++"
    },
    "apt\\software-properties-common": {
     "driver": "apt",
@@ -8963,12 +9093,19 @@
    }
   },
   "gcc-15": {
-   "apt\\build-essential": {
+   "apt\\c-toolchain": {
     "driver": "apt",
     "fields": {
-     "name": "build-essential"
+     "name": "gcc"
     },
-    "name": "build-essential"
+    "name": "gcc"
+   },
+   "apt\\cpp-toolchain": {
+    "driver": "apt",
+    "fields": {
+     "name": "g++"
+    },
+    "name": "g++"
    },
    "apt\\software-properties-common": {
     "driver": "apt",
@@ -11322,12 +11459,19 @@
    }
   },
   "vulkan-dev": {
-   "apt\\build-essential": {
+   "apt\\c-toolchain": {
     "driver": "apt",
     "fields": {
-     "name": "build-essential"
+     "name": "gcc"
     },
-    "name": "build-essential"
+    "name": "gcc"
+   },
+   "apt\\cpp-toolchain": {
+    "driver": "apt",
+    "fields": {
+     "name": "g++"
+    },
+    "name": "g++"
    },
    "apt\\curl": {
     "driver": "apt",
@@ -11366,6 +11510,13 @@
      "repo-component": "universe"
     },
     "name": "libxcb-xinput0"
+   },
+   "apt\\make": {
+    "driver": "apt",
+    "fields": {
+     "name": "make"
+    },
+    "name": "make"
    },
    "apt\\mesa-vulkan-drivers": {
     "driver": "apt",
@@ -12055,29 +12206,6 @@
     "name": "budgie-desktop"
    }
   },
-  "build-essential": {
-   "dnf\\gcc": {
-    "driver": "dnf",
-    "fields": {
-     "name": "gcc"
-    },
-    "name": "gcc"
-   },
-   "dnf\\gcc-cpp": {
-    "driver": "dnf",
-    "fields": {
-     "name": "gcc-c++"
-    },
-    "name": "gcc-c++"
-   },
-   "dnf\\make": {
-    "driver": "dnf",
-    "fields": {
-     "name": "make"
-    },
-    "name": "make"
-   }
-  },
   "bun": {
    "dnf\\curl": {
     "driver": "dnf",
@@ -12120,6 +12248,15 @@
      "name": "bundler"
     },
     "name": "bundler"
+   }
+  },
+  "c-toolchain": {
+   "dnf\\c-toolchain": {
+    "driver": "dnf",
+    "fields": {
+     "name": "gcc"
+    },
+    "name": "gcc"
    }
   },
   "cabal": {
@@ -12401,6 +12538,22 @@
      "name": "cosmic-session"
     },
     "name": "cosmic-session"
+   }
+  },
+  "cpp-toolchain": {
+   "dnf\\c-toolchain": {
+    "driver": "dnf",
+    "fields": {
+     "name": "gcc"
+    },
+    "name": "gcc"
+   },
+   "dnf\\cpp-toolchain": {
+    "driver": "dnf",
+    "fields": {
+     "name": "gcc-c++"
+    },
+    "name": "gcc-c++"
    }
   },
   "cppcheck": {
@@ -12791,15 +12944,6 @@
     "name": "gap"
    }
   },
-  "gcc": {
-   "dnf\\gcc": {
-    "driver": "dnf",
-    "fields": {
-     "name": "gcc"
-    },
-    "name": "gcc"
-   }
-  },
   "gcc-13": {
    "gcc\\gcc-13": {
     "driver": "gcc",
@@ -12811,15 +12955,6 @@
      ]
     },
     "name": "gcc-13"
-   }
-  },
-  "gcc-cpp": {
-   "dnf\\gcc-cpp": {
-    "driver": "dnf",
-    "fields": {
-     "name": "gcc-c++"
-    },
-    "name": "gcc-c++"
    }
   },
   "gcloud": {
@@ -15073,26 +15208,26 @@
    }
   },
   "vulkan-dev": {
-   "dnf\\curl": {
-    "driver": "dnf",
-    "fields": {
-     "name": "curl"
-    },
-    "name": "curl"
-   },
-   "dnf\\gcc": {
+   "dnf\\c-toolchain": {
     "driver": "dnf",
     "fields": {
      "name": "gcc"
     },
     "name": "gcc"
    },
-   "dnf\\gcc-cpp": {
+   "dnf\\cpp-toolchain": {
     "driver": "dnf",
     "fields": {
      "name": "gcc-c++"
     },
     "name": "gcc-c++"
+   },
+   "dnf\\curl": {
+    "driver": "dnf",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
    },
    "dnf\\libxcb-devel": {
     "driver": "dnf",
@@ -15828,29 +15963,6 @@
     "name": "budgie-desktop"
    }
   },
-  "build-essential": {
-   "dnf\\gcc": {
-    "driver": "dnf",
-    "fields": {
-     "name": "gcc"
-    },
-    "name": "gcc"
-   },
-   "dnf\\gcc-cpp": {
-    "driver": "dnf",
-    "fields": {
-     "name": "gcc-c++"
-    },
-    "name": "gcc-c++"
-   },
-   "dnf\\make": {
-    "driver": "dnf",
-    "fields": {
-     "name": "make"
-    },
-    "name": "make"
-   }
-  },
   "bun": {
    "dnf\\curl": {
     "driver": "dnf",
@@ -15893,6 +16005,15 @@
      "name": "bundler"
     },
     "name": "bundler"
+   }
+  },
+  "c-toolchain": {
+   "dnf\\c-toolchain": {
+    "driver": "dnf",
+    "fields": {
+     "name": "gcc"
+    },
+    "name": "gcc"
    }
   },
   "cabal": {
@@ -16186,6 +16307,22 @@
      "name": "cosmic-session"
     },
     "name": "cosmic-session"
+   }
+  },
+  "cpp-toolchain": {
+   "dnf\\c-toolchain": {
+    "driver": "dnf",
+    "fields": {
+     "name": "gcc"
+    },
+    "name": "gcc"
+   },
+   "dnf\\cpp-toolchain": {
+    "driver": "dnf",
+    "fields": {
+     "name": "gcc-c++"
+    },
+    "name": "gcc-c++"
    }
   },
   "cppcheck": {
@@ -16576,15 +16713,6 @@
     "name": "gap"
    }
   },
-  "gcc": {
-   "dnf\\gcc": {
-    "driver": "dnf",
-    "fields": {
-     "name": "gcc"
-    },
-    "name": "gcc"
-   }
-  },
   "gcc-14": {
    "gcc\\gcc-14": {
     "driver": "gcc",
@@ -16596,15 +16724,6 @@
      ]
     },
     "name": "gcc-14"
-   }
-  },
-  "gcc-cpp": {
-   "dnf\\gcc-cpp": {
-    "driver": "dnf",
-    "fields": {
-     "name": "gcc-c++"
-    },
-    "name": "gcc-c++"
    }
   },
   "gcloud": {
@@ -18858,26 +18977,26 @@
    }
   },
   "vulkan-dev": {
-   "dnf\\curl": {
-    "driver": "dnf",
-    "fields": {
-     "name": "curl"
-    },
-    "name": "curl"
-   },
-   "dnf\\gcc": {
+   "dnf\\c-toolchain": {
     "driver": "dnf",
     "fields": {
      "name": "gcc"
     },
     "name": "gcc"
    },
-   "dnf\\gcc-cpp": {
+   "dnf\\cpp-toolchain": {
     "driver": "dnf",
     "fields": {
      "name": "gcc-c++"
     },
     "name": "gcc-c++"
+   },
+   "dnf\\curl": {
+    "driver": "dnf",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
    },
    "dnf\\libxcb-devel": {
     "driver": "dnf",
@@ -19633,15 +19752,6 @@
     "name": "budgie-desktop"
    }
   },
-  "build-essential": {
-   "apt\\build-essential": {
-    "driver": "apt",
-    "fields": {
-     "name": "build-essential"
-    },
-    "name": "build-essential"
-   }
-  },
   "bun": {
    "apt\\curl": {
     "driver": "apt",
@@ -19684,6 +19794,15 @@
      "name": "bundler"
     },
     "name": "bundler"
+   }
+  },
+  "c-toolchain": {
+   "apt\\c-toolchain": {
+    "driver": "apt",
+    "fields": {
+     "name": "gcc"
+    },
+    "name": "gcc"
    }
   },
   "cabal": {
@@ -19748,12 +19867,19 @@
    }
   },
   "clang-18": {
-   "apt\\build-essential": {
+   "apt\\c-toolchain": {
     "driver": "apt",
     "fields": {
-     "name": "build-essential"
+     "name": "gcc"
     },
-    "name": "build-essential"
+    "name": "gcc"
+   },
+   "apt\\cpp-toolchain": {
+    "driver": "apt",
+    "fields": {
+     "name": "g++"
+    },
+    "name": "g++"
    },
    "apt\\curl": {
     "driver": "apt",
@@ -19793,12 +19919,19 @@
    }
   },
   "clang-19": {
-   "apt\\build-essential": {
+   "apt\\c-toolchain": {
     "driver": "apt",
     "fields": {
-     "name": "build-essential"
+     "name": "gcc"
     },
-    "name": "build-essential"
+    "name": "gcc"
+   },
+   "apt\\cpp-toolchain": {
+    "driver": "apt",
+    "fields": {
+     "name": "g++"
+    },
+    "name": "g++"
    },
    "apt\\curl": {
     "driver": "apt",
@@ -19838,12 +19971,19 @@
    }
   },
   "clang-20": {
-   "apt\\build-essential": {
+   "apt\\c-toolchain": {
     "driver": "apt",
     "fields": {
-     "name": "build-essential"
+     "name": "gcc"
     },
-    "name": "build-essential"
+    "name": "gcc"
+   },
+   "apt\\cpp-toolchain": {
+    "driver": "apt",
+    "fields": {
+     "name": "g++"
+    },
+    "name": "g++"
    },
    "apt\\curl": {
     "driver": "apt",
@@ -20095,6 +20235,22 @@
      "name": "cosmic-session"
     },
     "name": "cosmic-session"
+   }
+  },
+  "cpp-toolchain": {
+   "apt\\c-toolchain": {
+    "driver": "apt",
+    "fields": {
+     "name": "gcc"
+    },
+    "name": "gcc"
+   },
+   "apt\\cpp-toolchain": {
+    "driver": "apt",
+    "fields": {
+     "name": "g++"
+    },
+    "name": "g++"
    }
   },
   "cppcheck": {
@@ -20480,12 +20636,19 @@
    }
   },
   "gcc-13": {
-   "apt\\build-essential": {
+   "apt\\c-toolchain": {
     "driver": "apt",
     "fields": {
-     "name": "build-essential"
+     "name": "gcc"
     },
-    "name": "build-essential"
+    "name": "gcc"
+   },
+   "apt\\cpp-toolchain": {
+    "driver": "apt",
+    "fields": {
+     "name": "g++"
+    },
+    "name": "g++"
    },
    "apt\\software-properties-common": {
     "driver": "apt",
@@ -20530,12 +20693,19 @@
    }
   },
   "gcc-14": {
-   "apt\\build-essential": {
+   "apt\\c-toolchain": {
     "driver": "apt",
     "fields": {
-     "name": "build-essential"
+     "name": "gcc"
     },
-    "name": "build-essential"
+    "name": "gcc"
+   },
+   "apt\\cpp-toolchain": {
+    "driver": "apt",
+    "fields": {
+     "name": "g++"
+    },
+    "name": "g++"
    },
    "apt\\software-properties-common": {
     "driver": "apt",
@@ -20580,12 +20750,19 @@
    }
   },
   "gcc-15": {
-   "apt\\build-essential": {
+   "apt\\c-toolchain": {
     "driver": "apt",
     "fields": {
-     "name": "build-essential"
+     "name": "gcc"
     },
-    "name": "build-essential"
+    "name": "gcc"
+   },
+   "apt\\cpp-toolchain": {
+    "driver": "apt",
+    "fields": {
+     "name": "g++"
+    },
+    "name": "g++"
    },
    "apt\\software-properties-common": {
     "driver": "apt",
@@ -23002,12 +23179,19 @@
    }
   },
   "vulkan-dev": {
-   "apt\\build-essential": {
+   "apt\\c-toolchain": {
     "driver": "apt",
     "fields": {
-     "name": "build-essential"
+     "name": "gcc"
     },
-    "name": "build-essential"
+    "name": "gcc"
+   },
+   "apt\\cpp-toolchain": {
+    "driver": "apt",
+    "fields": {
+     "name": "g++"
+    },
+    "name": "g++"
    },
    "apt\\curl": {
     "driver": "apt",
@@ -23046,6 +23230,13 @@
      "repo-component": "universe"
     },
     "name": "libxcb-xinput0"
+   },
+   "apt\\make": {
+    "driver": "apt",
+    "fields": {
+     "name": "make"
+    },
+    "name": "make"
    },
    "apt\\mesa-vulkan-drivers": {
     "driver": "apt",
@@ -23771,29 +23962,6 @@
     "name": "budgie-desktop"
    }
   },
-  "build-essential": {
-   "dnf\\gcc": {
-    "driver": "dnf",
-    "fields": {
-     "name": "gcc"
-    },
-    "name": "gcc"
-   },
-   "dnf\\gcc-cpp": {
-    "driver": "dnf",
-    "fields": {
-     "name": "gcc-c++"
-    },
-    "name": "gcc-c++"
-   },
-   "dnf\\make": {
-    "driver": "dnf",
-    "fields": {
-     "name": "make"
-    },
-    "name": "make"
-   }
-  },
   "bun": {
    "dnf\\curl": {
     "driver": "dnf",
@@ -23836,6 +24004,15 @@
      "name": "bundler"
     },
     "name": "bundler"
+   }
+  },
+  "c-toolchain": {
+   "dnf\\c-toolchain": {
+    "driver": "dnf",
+    "fields": {
+     "name": "gcc"
+    },
+    "name": "gcc"
    }
   },
   "cabal": {
@@ -24154,6 +24331,22 @@
      "name": "cosmic-session"
     },
     "name": "cosmic-session"
+   }
+  },
+  "cpp-toolchain": {
+   "dnf\\c-toolchain": {
+    "driver": "dnf",
+    "fields": {
+     "name": "gcc"
+    },
+    "name": "gcc"
+   },
+   "dnf\\cpp-toolchain": {
+    "driver": "dnf",
+    "fields": {
+     "name": "gcc-c++"
+    },
+    "name": "gcc-c++"
    }
   },
   "cppcheck": {
@@ -24574,15 +24767,6 @@
     "name": "gap"
    }
   },
-  "gcc": {
-   "dnf\\gcc": {
-    "driver": "dnf",
-    "fields": {
-     "name": "gcc"
-    },
-    "name": "gcc"
-   }
-  },
   "gcc-13": {
    "gcc-toolset\\gcc-13": {
     "driver": "gcc-toolset",
@@ -24608,15 +24792,6 @@
      "name": "gcc-15"
     },
     "name": "gcc-15"
-   }
-  },
-  "gcc-cpp": {
-   "dnf\\gcc-cpp": {
-    "driver": "dnf",
-    "fields": {
-     "name": "gcc-c++"
-    },
-    "name": "gcc-c++"
    }
   },
   "gcloud": {
@@ -27015,26 +27190,26 @@
    }
   },
   "vulkan-dev": {
-   "dnf\\curl": {
-    "driver": "dnf",
-    "fields": {
-     "name": "curl"
-    },
-    "name": "curl"
-   },
-   "dnf\\gcc": {
+   "dnf\\c-toolchain": {
     "driver": "dnf",
     "fields": {
      "name": "gcc"
     },
     "name": "gcc"
    },
-   "dnf\\gcc-cpp": {
+   "dnf\\cpp-toolchain": {
     "driver": "dnf",
     "fields": {
      "name": "gcc-c++"
     },
     "name": "gcc-c++"
+   },
+   "dnf\\curl": {
+    "driver": "dnf",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
    },
    "dnf\\libxcb-devel": {
     "driver": "dnf",
@@ -27803,15 +27978,6 @@
     "name": "budgie-desktop"
    }
   },
-  "build-essential": {
-   "apt\\build-essential": {
-    "driver": "apt",
-    "fields": {
-     "name": "build-essential"
-    },
-    "name": "build-essential"
-   }
-  },
   "bun": {
    "apt\\curl": {
     "driver": "apt",
@@ -27854,6 +28020,15 @@
      "name": "bundler"
     },
     "name": "bundler"
+   }
+  },
+  "c-toolchain": {
+   "apt\\c-toolchain": {
+    "driver": "apt",
+    "fields": {
+     "name": "gcc"
+    },
+    "name": "gcc"
    }
   },
   "cabal": {
@@ -27918,12 +28093,19 @@
    }
   },
   "clang-18": {
-   "apt\\build-essential": {
+   "apt\\c-toolchain": {
     "driver": "apt",
     "fields": {
-     "name": "build-essential"
+     "name": "gcc"
     },
-    "name": "build-essential"
+    "name": "gcc"
+   },
+   "apt\\cpp-toolchain": {
+    "driver": "apt",
+    "fields": {
+     "name": "g++"
+    },
+    "name": "g++"
    },
    "apt\\curl": {
     "driver": "apt",
@@ -27963,12 +28145,19 @@
    }
   },
   "clang-19": {
-   "apt\\build-essential": {
+   "apt\\c-toolchain": {
     "driver": "apt",
     "fields": {
-     "name": "build-essential"
+     "name": "gcc"
     },
-    "name": "build-essential"
+    "name": "gcc"
+   },
+   "apt\\cpp-toolchain": {
+    "driver": "apt",
+    "fields": {
+     "name": "g++"
+    },
+    "name": "g++"
    },
    "apt\\curl": {
     "driver": "apt",
@@ -28008,12 +28197,19 @@
    }
   },
   "clang-20": {
-   "apt\\build-essential": {
+   "apt\\c-toolchain": {
     "driver": "apt",
     "fields": {
-     "name": "build-essential"
+     "name": "gcc"
     },
-    "name": "build-essential"
+    "name": "gcc"
+   },
+   "apt\\cpp-toolchain": {
+    "driver": "apt",
+    "fields": {
+     "name": "g++"
+    },
+    "name": "g++"
    },
    "apt\\curl": {
     "driver": "apt",
@@ -28256,6 +28452,22 @@
      "src": "bash.d/configsys.sh"
     },
     "name": "configsys-dotfiles"
+   }
+  },
+  "cpp-toolchain": {
+   "apt\\c-toolchain": {
+    "driver": "apt",
+    "fields": {
+     "name": "gcc"
+    },
+    "name": "gcc"
+   },
+   "apt\\cpp-toolchain": {
+    "driver": "apt",
+    "fields": {
+     "name": "g++"
+    },
+    "name": "g++"
    }
   },
   "cppcheck": {
@@ -28641,12 +28853,19 @@
    }
   },
   "gcc-13": {
-   "apt\\build-essential": {
+   "apt\\c-toolchain": {
     "driver": "apt",
     "fields": {
-     "name": "build-essential"
+     "name": "gcc"
     },
-    "name": "build-essential"
+    "name": "gcc"
+   },
+   "apt\\cpp-toolchain": {
+    "driver": "apt",
+    "fields": {
+     "name": "g++"
+    },
+    "name": "g++"
    },
    "apt\\software-properties-common": {
     "driver": "apt",
@@ -28691,12 +28910,19 @@
    }
   },
   "gcc-14": {
-   "apt\\build-essential": {
+   "apt\\c-toolchain": {
     "driver": "apt",
     "fields": {
-     "name": "build-essential"
+     "name": "gcc"
     },
-    "name": "build-essential"
+    "name": "gcc"
+   },
+   "apt\\cpp-toolchain": {
+    "driver": "apt",
+    "fields": {
+     "name": "g++"
+    },
+    "name": "g++"
    },
    "apt\\software-properties-common": {
     "driver": "apt",
@@ -28741,12 +28967,19 @@
    }
   },
   "gcc-15": {
-   "apt\\build-essential": {
+   "apt\\c-toolchain": {
     "driver": "apt",
     "fields": {
-     "name": "build-essential"
+     "name": "gcc"
     },
-    "name": "build-essential"
+    "name": "gcc"
+   },
+   "apt\\cpp-toolchain": {
+    "driver": "apt",
+    "fields": {
+     "name": "g++"
+    },
+    "name": "g++"
    },
    "apt\\software-properties-common": {
     "driver": "apt",
@@ -31170,12 +31403,19 @@
    }
   },
   "vulkan-dev": {
-   "apt\\build-essential": {
+   "apt\\c-toolchain": {
     "driver": "apt",
     "fields": {
-     "name": "build-essential"
+     "name": "gcc"
     },
-    "name": "build-essential"
+    "name": "gcc"
+   },
+   "apt\\cpp-toolchain": {
+    "driver": "apt",
+    "fields": {
+     "name": "g++"
+    },
+    "name": "g++"
    },
    "apt\\curl": {
     "driver": "apt",
@@ -31214,6 +31454,13 @@
      "repo-component": "universe"
     },
     "name": "libxcb-xinput0"
+   },
+   "apt\\make": {
+    "driver": "apt",
+    "fields": {
+     "name": "make"
+    },
+    "name": "make"
    },
    "apt\\mesa-vulkan-drivers": {
     "driver": "apt",
@@ -31913,15 +32160,6 @@
     "name": "budgie-desktop"
    }
   },
-  "build-essential": {
-   "apt\\build-essential": {
-    "driver": "apt",
-    "fields": {
-     "name": "build-essential"
-    },
-    "name": "build-essential"
-   }
-  },
   "bun": {
    "apt\\curl": {
     "driver": "apt",
@@ -31964,6 +32202,15 @@
      "name": "bundler"
     },
     "name": "bundler"
+   }
+  },
+  "c-toolchain": {
+   "apt\\c-toolchain": {
+    "driver": "apt",
+    "fields": {
+     "name": "gcc"
+    },
+    "name": "gcc"
    }
   },
   "cabal": {
@@ -32028,12 +32275,19 @@
    }
   },
   "clang-18": {
-   "apt\\build-essential": {
+   "apt\\c-toolchain": {
     "driver": "apt",
     "fields": {
-     "name": "build-essential"
+     "name": "gcc"
     },
-    "name": "build-essential"
+    "name": "gcc"
+   },
+   "apt\\cpp-toolchain": {
+    "driver": "apt",
+    "fields": {
+     "name": "g++"
+    },
+    "name": "g++"
    },
    "apt\\curl": {
     "driver": "apt",
@@ -32073,12 +32327,19 @@
    }
   },
   "clang-19": {
-   "apt\\build-essential": {
+   "apt\\c-toolchain": {
     "driver": "apt",
     "fields": {
-     "name": "build-essential"
+     "name": "gcc"
     },
-    "name": "build-essential"
+    "name": "gcc"
+   },
+   "apt\\cpp-toolchain": {
+    "driver": "apt",
+    "fields": {
+     "name": "g++"
+    },
+    "name": "g++"
    },
    "apt\\curl": {
     "driver": "apt",
@@ -32118,12 +32379,19 @@
    }
   },
   "clang-20": {
-   "apt\\build-essential": {
+   "apt\\c-toolchain": {
     "driver": "apt",
     "fields": {
-     "name": "build-essential"
+     "name": "gcc"
     },
-    "name": "build-essential"
+    "name": "gcc"
+   },
+   "apt\\cpp-toolchain": {
+    "driver": "apt",
+    "fields": {
+     "name": "g++"
+    },
+    "name": "g++"
    },
    "apt\\curl": {
     "driver": "apt",
@@ -32356,6 +32624,22 @@
      "src": "bash.d/configsys.sh"
     },
     "name": "configsys-dotfiles"
+   }
+  },
+  "cpp-toolchain": {
+   "apt\\c-toolchain": {
+    "driver": "apt",
+    "fields": {
+     "name": "gcc"
+    },
+    "name": "gcc"
+   },
+   "apt\\cpp-toolchain": {
+    "driver": "apt",
+    "fields": {
+     "name": "g++"
+    },
+    "name": "g++"
    }
   },
   "cppcheck": {
@@ -32741,12 +33025,19 @@
    }
   },
   "gcc-13": {
-   "apt\\build-essential": {
+   "apt\\c-toolchain": {
     "driver": "apt",
     "fields": {
-     "name": "build-essential"
+     "name": "gcc"
     },
-    "name": "build-essential"
+    "name": "gcc"
+   },
+   "apt\\cpp-toolchain": {
+    "driver": "apt",
+    "fields": {
+     "name": "g++"
+    },
+    "name": "g++"
    },
    "apt\\software-properties-common": {
     "driver": "apt",
@@ -32791,12 +33082,19 @@
    }
   },
   "gcc-14": {
-   "apt\\build-essential": {
+   "apt\\c-toolchain": {
     "driver": "apt",
     "fields": {
-     "name": "build-essential"
+     "name": "gcc"
     },
-    "name": "build-essential"
+    "name": "gcc"
+   },
+   "apt\\cpp-toolchain": {
+    "driver": "apt",
+    "fields": {
+     "name": "g++"
+    },
+    "name": "g++"
    },
    "apt\\software-properties-common": {
     "driver": "apt",
@@ -32841,12 +33139,19 @@
    }
   },
   "gcc-15": {
-   "apt\\build-essential": {
+   "apt\\c-toolchain": {
     "driver": "apt",
     "fields": {
-     "name": "build-essential"
+     "name": "gcc"
     },
-    "name": "build-essential"
+    "name": "gcc"
+   },
+   "apt\\cpp-toolchain": {
+    "driver": "apt",
+    "fields": {
+     "name": "g++"
+    },
+    "name": "g++"
    },
    "apt\\software-properties-common": {
     "driver": "apt",
@@ -35200,12 +35505,19 @@
    }
   },
   "vulkan-dev": {
-   "apt\\build-essential": {
+   "apt\\c-toolchain": {
     "driver": "apt",
     "fields": {
-     "name": "build-essential"
+     "name": "gcc"
     },
-    "name": "build-essential"
+    "name": "gcc"
+   },
+   "apt\\cpp-toolchain": {
+    "driver": "apt",
+    "fields": {
+     "name": "g++"
+    },
+    "name": "g++"
    },
    "apt\\curl": {
     "driver": "apt",
@@ -35244,6 +35556,13 @@
      "repo-component": "universe"
     },
     "name": "libxcb-xinput0"
+   },
+   "apt\\make": {
+    "driver": "apt",
+    "fields": {
+     "name": "make"
+    },
+    "name": "make"
    },
    "apt\\mesa-vulkan-drivers": {
     "driver": "apt",

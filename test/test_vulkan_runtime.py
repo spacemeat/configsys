@@ -41,14 +41,21 @@ def test_gaming_profile_includes_vulkan_runtime():
 
 
 def test_vulkan_dev_resolves_on_arch():
-    # the graphics profile now resolves on Arch too: X libs collapse to libxcb +
-    # xcb-util-cursor, build-essential -> gcc + make, plus runtime + the sdk tarball
+    # the graphics profile resolves on Arch: X libs collapse to libxcb + xcb-util-cursor,
+    # cpp-toolchain (-> gcc, which bundles g++) + make, plus runtime + the sdk tarball
     units = Resolver(ROUTES, 'arch', '20260712').resolve_names(['vulkan-dev'])
-    for key in ('pacman\\libxcb', 'pacman\\xcb-util-cursor', 'pacman\\gcc',
+    for key in ('pacman\\libxcb', 'pacman\\xcb-util-cursor', 'pacman\\cpp-toolchain',
                 'pacman\\make', 'pacman\\vulkan-icd-loader', 'tarball\\vulkan-sdk'):
         assert key in units
+    assert units['pacman\\cpp-toolchain'].name == 'gcc'      # arch gcc bundles g++
 
 
-def test_build_essential_on_arch_is_gcc_and_make():
-    units = Resolver(ROUTES, 'arch', '20260712').resolve_names(['build-essential'])
-    assert set(units) == {'pacman\\gcc', 'pacman\\make'}
+def test_cpp_toolchain_portable():
+    # `cxx` (a C++ compiler) resolves on every family — the portable replacement for the old
+    # apt-named build-essential; on Arch gcc bundles g++, Debian uses g++, Alpine build-base.
+    def cxx(blk, ver, drv):
+        return Resolver(ROUTES, blk, ver, 'x86_64').resolve_names(['cpp-toolchain'])[f'{drv}\\cpp-toolchain'].name
+    assert cxx('arch', '20260712', 'pacman') == 'gcc'
+    assert cxx('ubuntu', '24.04', 'apt') == 'g++'
+    assert cxx('fedora', '42', 'dnf') == 'gcc-c++'
+    assert cxx('alpine', '3.20', 'apk') == 'build-base'
