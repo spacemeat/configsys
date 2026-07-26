@@ -149,6 +149,25 @@ Your machine's file always wins:
   dependencies. Disable with `discover: false`, or suppress a profile with
   `ignore-profiles: [ … ]`.
 
+### Your config, as a plugin
+
+Probably the best way to manage your config and make it portable is to build it as a plugin.
+It's just a standard plugin--likely a data-only plugin, containing a plugin.hu, a routes
+file (named anything you want), and any other files you want to be included (such as
+dotfiles). The plugin.hu file contains details about your plugin, a pointer to the routes
+file, and any other plugins you want to be transitively included. Reference the plugin in
+your `~/.config/configsys/configsys.hu`:
+
+``` hu
+{
+    plugins: [
+        { source: "github:you/my-configsys" ref: v0.1.0 primary: true }
+    ]
+}
+```
+
+When you then run `./configsys.sh plugin sync` all the transitive plugins will be fetched.
+
 ## Commands
 
 Run as `./configsys.sh <command>` (or `python -m configsys <command>` inside the venv).
