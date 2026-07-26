@@ -710,11 +710,12 @@
         }
         neovim-dotfiles: {
             install: [ { via: dotfiles  requires: bash-dotfiles
-                         // If uncommented, this would clobber  your neovim config. I would never
-                         // do that to you. The best move is to copy this *whole* neovim-dotfiles
-                         // block to your own configsys.hu, and place it in components block. Then
-                         // uncomment the line, and build your config in configsys/neovim.
-                         // config:  { src: neovim         dst: $XDG_CONFIG_HOME/nvim }
+                         // configsys ships NO neovim config — it's a deeply personal thing. This
+                         // only declares WHERE it lives, so `configsys dotfiles capture` can adopt
+                         // your existing ~/.config/nvim into your config (your plugin, else the
+                         // local store) and manage/sync it from there. Until you capture, this
+                         // spec is unpopulated and install leaves ~/.config/nvim untouched.
+                         config:  { src: neovim  dst: $XDG_CONFIG_HOME/nvim }
                          aliases: { src: bash.d/neovim.sh  dst: ~/.bash.d/neovim.sh } } ]
         }
         // Emacs — native under `emacs` in every family.

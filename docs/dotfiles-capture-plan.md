@@ -140,5 +140,12 @@ does the backup-and-replace.
    template (adopted content links freely; an `absorb-into` spec keeps its own safe relocation;
    an unpopulated spec is already a no-op). The refusal prints an actionable message ("adopt with
    `dotfiles capture`, or --force"). `install`/`upgrade --force` restore backup-and-replace.
-4. Un-comment `neovim-dotfiles`'s `config:` (now safe) + drop the shipped `dotfiles/neovim`,
-   `dotfiles/htop`, `dotfiles/containers` templates (configsys ships no personal config).
+4. **DONE** — un-commented `neovim-dotfiles`'s `config:` (now safe) and deleted the shipped
+   `dotfiles/neovim` (a real personal nvim config), `dotfiles/htop`, `dotfiles/containers`
+   templates. configsys now ships zero personal config: neovim/htop/podman dotfiles declare
+   src+dst but no content, so they're `empty`/`unmanaged` until you `capture`. Golden regen
+   (neovim-dotfiles gained the config spec). Refusal is presented as advisory guidance, not a
+   `report`.
+
+Only functional plumbing still ships in `dotfiles/` (the `bash.d/*.sh` loaders + `bash_aliases`
++ `gdbinit`) — configsys's own machinery, not anyone's personal config.

@@ -2018,6 +2018,10 @@
      "aliases": {
       "dst": "~/.bash.d/neovim.sh",
       "src": "bash.d/neovim.sh"
+     },
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/nvim",
+      "src": "neovim"
      }
     },
     "name": "neovim-dotfiles"
@@ -2065,6 +2069,10 @@
      "aliases": {
       "dst": "~/.bash.d/neovim.sh",
       "src": "bash.d/neovim.sh"
+     },
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/nvim",
+      "src": "neovim"
      }
     },
     "name": "neovim-dotfiles"
@@ -6174,6 +6182,10 @@
      "aliases": {
       "dst": "~/.bash.d/neovim.sh",
       "src": "bash.d/neovim.sh"
+     },
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/nvim",
+      "src": "neovim"
      }
     },
     "name": "neovim-dotfiles"
@@ -6197,6 +6209,10 @@
      "aliases": {
       "dst": "~/.bash.d/neovim.sh",
       "src": "bash.d/neovim.sh"
+     },
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/nvim",
+      "src": "neovim"
      }
     },
     "name": "neovim-dotfiles"
@@ -10226,6 +10242,10 @@
      "aliases": {
       "dst": "~/.bash.d/neovim.sh",
       "src": "bash.d/neovim.sh"
+     },
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/nvim",
+      "src": "neovim"
      }
     },
     "name": "neovim-dotfiles"
@@ -10249,6 +10269,10 @@
      "aliases": {
       "dst": "~/.bash.d/neovim.sh",
       "src": "bash.d/neovim.sh"
+     },
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/nvim",
+      "src": "neovim"
      }
     },
     "name": "neovim-dotfiles"
@@ -13954,6 +13978,10 @@
      "aliases": {
       "dst": "~/.bash.d/neovim.sh",
       "src": "bash.d/neovim.sh"
+     },
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/nvim",
+      "src": "neovim"
      }
     },
     "name": "neovim-dotfiles"
@@ -13977,6 +14005,10 @@
      "aliases": {
       "dst": "~/.bash.d/neovim.sh",
       "src": "bash.d/neovim.sh"
+     },
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/nvim",
+      "src": "neovim"
      }
     },
     "name": "neovim-dotfiles"
@@ -17731,6 +17763,10 @@
      "aliases": {
       "dst": "~/.bash.d/neovim.sh",
       "src": "bash.d/neovim.sh"
+     },
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/nvim",
+      "src": "neovim"
      }
     },
     "name": "neovim-dotfiles"
@@ -17754,6 +17790,10 @@
      "aliases": {
       "dst": "~/.bash.d/neovim.sh",
       "src": "bash.d/neovim.sh"
+     },
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/nvim",
+      "src": "neovim"
      }
     },
     "name": "neovim-dotfiles"
@@ -21859,6 +21899,10 @@
      "aliases": {
       "dst": "~/.bash.d/neovim.sh",
       "src": "bash.d/neovim.sh"
+     },
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/nvim",
+      "src": "neovim"
      }
     },
     "name": "neovim-dotfiles"
@@ -21882,6 +21926,10 @@
      "aliases": {
       "dst": "~/.bash.d/neovim.sh",
       "src": "bash.d/neovim.sh"
+     },
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/nvim",
+      "src": "neovim"
      }
     },
     "name": "neovim-dotfiles"
@@ -25804,6 +25852,10 @@
      "aliases": {
       "dst": "~/.bash.d/neovim.sh",
       "src": "bash.d/neovim.sh"
+     },
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/nvim",
+      "src": "neovim"
      }
     },
     "name": "neovim-dotfiles"
@@ -25827,6 +25879,10 @@
      "aliases": {
       "dst": "~/.bash.d/neovim.sh",
       "src": "bash.d/neovim.sh"
+     },
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/nvim",
+      "src": "neovim"
      }
     },
     "name": "neovim-dotfiles"
@@ -30004,6 +30060,10 @@
      "aliases": {
       "dst": "~/.bash.d/neovim.sh",
       "src": "bash.d/neovim.sh"
+     },
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/nvim",
+      "src": "neovim"
      }
     },
     "name": "neovim-dotfiles"
@@ -30027,6 +30087,10 @@
      "aliases": {
       "dst": "~/.bash.d/neovim.sh",
       "src": "bash.d/neovim.sh"
+     },
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/nvim",
+      "src": "neovim"
      }
     },
     "name": "neovim-dotfiles"
@@ -34056,6 +34120,10 @@
      "aliases": {
       "dst": "~/.bash.d/neovim.sh",
       "src": "bash.d/neovim.sh"
+     },
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/nvim",
+      "src": "neovim"
      }
     },
     "name": "neovim-dotfiles"
@@ -34079,6 +34147,10 @@
      "aliases": {
       "dst": "~/.bash.d/neovim.sh",
       "src": "bash.d/neovim.sh"
+     },
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/nvim",
+      "src": "neovim"
      }
     },
     "name": "neovim-dotfiles"
