@@ -12,181 +12,102 @@
     //     scope: system
     // (Fixed-scope drivers — apt/dnf/pacman = system, dotfiles/cargo = user — ignore this.)
 
-    // A profile is a flat list of component names. Each name is resolved through
-    // routes.hu (driver binding, recursive deps, dedup). A name with no route on
-    // the active OS is surfaced as a config error. The user file may add profiles or
-    // shadow one of these (per profile name).
+    // A profile is a list of component names, each resolved through routes.hu (driver binding,
+    // recursive deps, dedup). A `+other` term folds in another profile (union); `~name` removes.
+    // A name with no route on the active OS surfaces as a resilient error row, not a hard stop.
+    // The design is two-tier: small composable LEAF bundles (terminal, net-tools, cloud, …) with
+    // no `+user`, and ROLE profiles that compose them. Pick-one catalogs (editors, shells, desktop
+    // environments, individual languages, GPU SDKs) are deliberately left OUT of profiles — install
+    // them by name or add them to your own profile. See docs/profiles-plan.md for the rationale.
+    // Your ~/.config/configsys/configsys.hu may add profiles or shadow any of these by name.
     profiles: {
-        user: [
-            bash-dotfiles
-            htop
-            firefox
-            chrome
-            neovim
-            fastfetch
-            fzf
-            ripgrep
-            xclip
+        // ---- leaf bundles (composable; no +user) --------------------------------
+        terminal: [
+            bash-dotfiles  configsys-dotfiles  git  curl
+            fastfetch  fzf  ripgrep  xclip
+            htop  btop  tmux  lazygit
             mononoki-nerd
         ]
-        gaming: [
-            +user
-            vulkan-runtime      // loader + mesa Vulkan ICDs; no-op where a DE already has them
-            steam
+        net-tools: [
+            iproute2
+            wireshark  wireshark-group  tshark  tcpdump  nmap        // capture & probe
+            mtr  traceroute  iperf3  socat  ethtool  whois  netcat  dig
+            iftop  nethogs  nload  vnstat                            // live monitors
         ]
+        cloud:       [ awscli  gcloud  azure-cli  opentofu  grpcurl ]
+        containers:  [ docker  docker-group  lazydocker ]           // podman = install by name
+        k8s:         [ kubectl  helm  k9s  k3s ]
+        db-clients:  [ pgcli  mycli  dbeaver  sqlitebrowser  lazysql ]
+        db-servers:  [ postgresql-service  mariadb-service  redis-service ]
+        jvm:         [ jdk  kotlin  maven  gradle ]                  // sdkman = install by name
+
+        // Per-language dev leaves — the language + its ecosystem tooling. Opt-in; add a `+lang-dev`
+        // to your profile (everyone's particular about which languages they want).
+        latex:       [ texlive ]                                     // texlive-full = heavier alt
+        go-dev:      [ go  goimports ]
+        ruby-dev:    [ ruby  bundler ]
+        haskell-dev: [ haskell  cabal  hlint ]
+        ocaml-dev:   [ ocaml  opam  dune ]
+        lua-dev:     [ lua  luarocks ]
+        lisp-dev:    [ sbcl  quicklisp ]
+
+        // ---- role profiles ------------------------------------------------------
+        user: [
+            +terminal
+            codecs                                                  // free media codecs (ffmpeg + gst good/bad)
+            firefox  chrome
+            neovim
+        ]
+        gaming: [ +user  vulkan-runtime  steam ]
         dev: [
             +user
-            rust
-            build-essential
-            gcc-13
-            gcc-14
-            gcc-15
-            clang-18
-            clang-19
-            clang-20
-            gdb
+            build-essential  rust
+            gcc-13  gcc-14  gcc-15  clang-18  clang-19  clang-20
+            gdb  analysis                                           // analysis = valgrind/cppcheck/lldb/strace/ltrace/clang-tidy
+            cmake  ninja  meson  just
             vscode
         ]
-        electronics: [
-            +dev
-            build-essential
-            arduino
-            kicad
-        ]
-        // vulkan-dev the bundle already carries build-essential + the X-dev libs, so the
-        // profile just names the bundle (renamed from `vulkan-dev` to avoid colliding
-        // with the component of the same name).
-        graphics: [
+        // Additive tool bundles (no +user of their own beyond the base) — compose per machine.
+        web-dev: [
             +user
-            vulkan-dev
-            blender
+            node  typescript  prettier  pnpm  yarn  sass            // node toolchain + front-end
+            brave  opera  vivaldi  edge                             // extra browsers (firefox/chrome via +user)
+            httpie  jq  yq  mitmproxy  xh  websocat                 // HTTP/API CLI
+            postman  insomnia  bruno                                // GUI API clients
         ]
+        // Back-end / platform engineering: app + data platform (containers, k8s, cloud, DBs).
+        backend: [
+            +user  +containers  +k8s  +cloud  +db-clients  +db-servers
+            protobuf  ansible
+        ]
+        electronics: [ +dev  arduino  kicad  gnuradio ]
+        graphics:    [ +user  vulkan-dev  blender ]
         // Digital-art workstation: 2D/photo/vector/3D/DTP + capture.
         artist: [
-            +user
-            blender
-            krita
-            gimp
-            inkscape
-            darktable
-            freecad
-            openscad
-            godot
-            scribus
-            digikam
-            obs-studio
+            +user  blender  krita  gimp  inkscape  darktable
+            freecad  openscad  godot  scribus  digikam  obs-studio
         ]
         // Digital-music workstation: DAWs, notation, synths, live-coding + the audio server.
         audio: [
-            +user
-            pipewire
-            ardour
-            lmms
-            tenacity
-            musescore
-            hydrogen
-            carla
-            sonic-pi
-            supercollider
-            qjackctl
+            +user  pipewire  ardour  lmms  tenacity  musescore
+            hydrogen  carla  sonic-pi  supercollider  qjackctl
         ]
-        // Back-end / platform engineering: containers, cloud CLIs, IaC, DB clients + servers.
-        backend: [
-            +user
-            docker
-            awscli
-            gcloud
-            azure-cli
-            opentofu
-            grpcurl
-            protobuf
-            pgcli
-            mycli
-            dbeaver
-            sqlitebrowser
-            postgresql-service
-            mariadb-service
-            redis-service
-        ]
-        // Scientific computing: languages + Jupyter + plotting/viz + a conda env manager.
-        science: [
-            +user
-            julia
-            r
-            octave
-            jupyterlab
-            gnuplot
-            paraview
-            miniforge
-        ]
+        // Scientific computing: languages + Jupyter + plotting/viz + conda + LaTeX.
+        science: [ +user  +latex  julia  r  octave  jupyterlab  gnuplot  paraview  miniforge ]
         // Mathematics: CAS + number theory + plotting + LaTeX (debian/redhat-oriented — sagemath/
-        // wxmaxima aren't in Arch/Fedora base repos).
-        math: [
-            +user
-            julia
-            r
-            octave
-            maxima
-            wxmaxima
-            pari
-            gap
-            gnuplot
-            sagemath
-            texlive
-        ]
-        // Pure additive tool bundles (no +user) — compose onto a base, e.g. a workstation runs
-        // [ user, networking ] and a headless box runs just [ networking ]. Neither is in the
-        // default `configs:` above; activate per-machine.
-        networking: [
-            +user
-            iproute2
-            // capture & probe
-            wireshark
-            wireshark-group     // opt-in non-root capture (adds you to the wireshark group) — drop if you don't want the privileged usermod
-            tshark
-            tcpdump
-            nmap
-            mtr
-            traceroute
-            iperf3
-            socat
-            ethtool
-            whois
-            netcat
-            dig
-            // live traffic monitors
-            iftop
-            nethogs
-            nload
-            vnstat
-        ]
-        web-dev: [
-            +user
-            // node toolchain + front-end tooling (globals; per-project tools stay in devDependencies)
-            node
-            typescript
-            prettier
-            pnpm
-            yarn
-            sass
-            // browsers (firefox/chrome also ride in `user`; grouped here for cross-browser work)
-            firefox
-            chrome
-            brave
-            opera
-            vivaldi
-            edge
-            // HTTP/API CLI
-            httpie
-            jq
-            yq
-            mitmproxy
-            xh
-            websocat
-            // GUI API clients
-            postman
-            insomnia
-            bruno
-        ]
+        // wxmaxima aren't in Arch/Fedora base repos, so they surface as error rows there).
+        math:    [ +user  +latex  julia  r  octave  maxima  wxmaxima  pari  gap  gnuplot  sagemath ]
+        // Networking toolkit; composes the net-tools leaf onto the desktop base.
+        networking: [ +user  +net-tools ]
+
+        // ---- more role profiles (opt-in; not in the default configs: above) ------
+        // AI-assisted dev CLIs (+terminal, not +user, so it's usable on a headless box).
+        ai:   [ +terminal  claude-code  codex  llm  aider  ollama ]
+        // A KVM/libvirt virtualization host (virtualbox = install by name).
+        virt: [ +user  qemu  libvirt  libvirt-service  virt-manager ]
+        // Infrastructure focus, lighter than backend (no DB servers/clients).
+        devops: [ +terminal  +containers  +k8s  +cloud  ansible  opentofu ]
+        // Daily-driver desktop extras.
+        desktop-apps: [ +user  libreoffice  vlc  discord  slack ]
     }
 }

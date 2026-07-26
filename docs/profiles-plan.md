@@ -1,10 +1,9 @@
-# Profiles pass — proposal (an initial stab)
+# Profiles pass — design + rationale (APPLIED)
 
-An initial design for filling out `config.hu`'s profiles so the ~90 currently-orphaned
-components (defined in `routes.hu`, in no profile, not pulled as a dep) get a home — and so a
-user can *compose* what they want instead of copy-pasting long lists. This is a **proposal to
-edit and veto**, not a landed change; nothing here touches `config.hu` yet. Ready-to-paste
-`profiles:` humon is in §6.
+**Status: applied to `config.hu`.** This is the reasoning behind the profiles now in `config.hu`;
+that file is the source of truth (§6's block is not maintained here — see `config.hu`). The design
+fills out the ~90 previously-orphaned components (defined in `routes.hu`, in no profile, not pulled
+as a dep) and makes profiles composable. All §8 judgment calls were resolved (see §8).
 
 ## 1. Principles
 
@@ -85,7 +84,11 @@ They remain fully usable via `configsys install <name>` or by adding to a person
 - **Niche/heavy one-offs** (unityhub, perf, heaptrack, unrar, yay, gcompat, doas — the last two
   Alpine-only opt-ins).
 
-## 6. Ready-to-paste `profiles:` block
+## 6. Profiles block (historical snapshot — live version is `config.hu`)
+
+> The block below is the original proposal. The applied version in `config.hu` additionally has
+> `curl` in `terminal`, `codecs` in `user`, and the six `*-dev` per-language leaves (§8). Treat
+> `config.hu` as authoritative.
 
 ```hu
     profiles: {
@@ -182,33 +185,31 @@ could trim it — the new leaves/roles are all opt-in and don't change the defau
 | texlive *(from math)*, science/math | → `latex` leaf |
 | zsh, fish, nushell | menu-only (pick your shell) |
 | emacs, helix, zed, android-studio, jetbrains-toolbox | menu-only (pick your editor) |
-| go, ruby, ocaml, lua, haskell, erlang, elixir, nim, zig, odin, sbcl | menu-only (pick your language) |
-| opam, dune, cabal, hlint, bundler, luarocks, dkjson, goimports, quicklisp, sdkman | menu-only (language ecosystem/demos) |
+| go+goimports, ruby+bundler, haskell+cabal+hlint, ocaml+opam+dune, lua+luarocks, sbcl+quicklisp | → per-language leaves `go-dev`/`ruby-dev`/`haskell-dev`/`ocaml-dev`/`lua-dev`/`lisp-dev` |
+| erlang, elixir, nim, zig, odin | menu-only (bare language, no ecosystem to bundle) |
+| dkjson, sdkman | menu-only (sample rock / jvm alt bootstrap) |
 | bazelisk, conan, vcpkg | menu-only (specialized C/C++/build) |
 | salt, puppet | menu-only (ansible alternatives) |
 | podman, virtualbox | menu-only (alternatives to containers/virt picks) |
 | cuda-toolkit, rocm-hip, intel-oneapi-basekit | menu-only (hardware/vendor) |
 | gnome, kde, xfce, lxqt, mate, sway, cinnamon, budgie, hyprland, cosmic | menu-only (pick-one DE) |
-| compression, codecs, codecs-restricted | menu-only bundles (consider `codecs` → artist/audio) |
+| codecs | → `user` (base); compression / codecs-restricted stay menu bundles |
 | unrar, unityhub, texlive-full, yay, doas, gcompat | menu-only (one-offs / platform / opt-in) |
 
-## 8. Judgment calls to confirm
+## 8. Judgment calls — resolved
 
-1. **`backend` vs `devops` overlap.** Both pull containers/k8s/cloud. Options: (a) keep both,
-   `backend` = app+data platform, `devops` = infra only (proposed); (b) drop `devops`, let
-   `backend` cover it; (c) make `backend = +devops + db-*`. My lean: (a), but easy to collapse.
-2. **`btop` *and* `htop` in `terminal`?** They overlap (both process monitors). Keep both for
-   discoverability, or pick one (`btop`) and leave `htop` menu-only?
-3. **Naming `git` in `terminal`.** It's already pulled as a driver dep; naming it just makes the
-   baseline explicit. Harmless dedup, or noise? (Same question for `curl` — I left `curl`
-   dep-only.)
-4. **`codecs` into `artist`/`audio`?** Media creators usually want the free codec set; worth
-   adding `codecs` to both, or leave it a menu bundle?
-5. **Per-language dev leaves?** Instead of pure menu-only, we *could* ship tiny leaves
-   (`haskell` = haskell + cabal + hlint, `ocaml` = ocaml + opam + dune, `ruby` = ruby + bundler).
-   Reasonable, but multiplies profiles; left out of this pass on purpose — flag if you want them.
-6. **Default `configs:`.** Left as-is. Want `networking`/`backend`/etc. rotated in, or a leaner
-   default?
+1. **`backend` vs `devops` overlap** → **(a)**: keep both. `backend` = app + data platform,
+   `devops` = infra only (no DB servers/clients).
+2. **`btop` *and* `htop` in `terminal`** → **keep both**. Some prefer one, some the other.
+3. **Naming `git` (and `curl`) in `terminal`** → **name both**. Useful to list for version
+   upgrading, even though they're also pulled as driver deps.
+4. **`codecs`** → **in `user`** (the base), so every profile inherits the free codec set. Verified
+   `codecs` resolves on all five base OSes (ubuntu/fedora/arch/opensuse/alpine).
+5. **Per-language dev leaves** → **yes, added**: `go-dev`, `ruby-dev`, `haskell-dev`, `ocaml-dev`,
+   `lua-dev`, `lisp-dev` (each = the language + its ecosystem tooling). Bare languages with no
+   extra tooling (erlang, elixir, nim, zig, odin) stay install-by-name. Named `<lang>-dev` to
+   avoid colliding with the same-named component (e.g. the `haskell` component).
+6. **Default `configs:`** → **left as-is** (the user will tune it). All new profiles are opt-in.
 
 ## 9. Input for the `routes.hu` spatial-grouping pass
 
