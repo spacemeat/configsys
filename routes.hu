@@ -96,16 +96,18 @@
 
     // Component layer: each is a capability + a list of context-selected bindings.
     components: {
-        // --- trivial natives ---
+        // --- core utilities (base tools; several are driver prerequisites) ---
         flatpak:    { install: [ { via: native } ] }
         fontconfig: { install: [ { via: native } ] }
         unzip:      { install: [ { via: native } ] }
         zip:        { install: [ { via: native } ] }
-        firefox:    { install: [ { via: flatpak  when: fedora_atomic  hub: flathub  app: org.mozilla.firefox }   // atomic: brew has no firefox (mac-only cask) — flatpak
-                                 { via: native  repo-component: universe  name: { zypper: MozillaFirefox  default: firefox } } ] }   // openSUSE calls it MozillaFirefox
+        curl:       { install: [ { via: native } ] }
+        git:        { install: [ { via: native } ] }
+        // FUSE2 runtime — the appImage driver requires it; native, name differs by manager.
+        libfuse2: {
+            install: [ { via: native  repo-component: universe  name: { dnf: fuse-libs  pacman: fuse2  apk: fuse  default: libfuse2 } } ]
+        }
         doas:       { install: [ { via: apk  when: "alpine" } ] }                 // Alpine's sudo (apk-only; folded from the alpine plugin)
-        // iproute2 — `ip`/`ss`/`tc`. Native everywhere; EL's dnf calls the package `iproute`.
-        iproute2:   { install: [ { via: native  name: { dnf: iproute  default: iproute2 } } ] }
 
         // gcompat: Alpine's glibc-compat shim. It `provides: glibc`, so it can re-enable the
         // glibc-only bindings (AppImages, glibc tarballs) that otherwise decline on musl. It is
@@ -136,6 +138,16 @@
                 { via: native  when: "rhel"  requires: epel }
                 { via: native  repo-component: universe }
             ]
+        }
+        htop: {
+            suggests: htop-dotfiles
+            install: [
+                { via: native  when: "rhel"  requires: epel }   // EL ships htop in EPEL, like btop
+                { via: native  repo-component: universe }
+            ]
+        }
+        htop-dotfiles: {
+            install: [ { via: dotfiles  config: { src: htop  dst: $XDG_CONFIG_HOME/htop } } ]
         }
 
         configsys-dotfiles: {
@@ -178,10 +190,6 @@
             ]
         }
 
-        // native, name differs by manager
-        libfuse2: {
-            install: [ { via: native  repo-component: universe  name: { dnf: fuse-libs  pacman: fuse2  apk: fuse  default: libfuse2 } } ]
-        }
         // The Rust toolchain, explicit and directly usable (rustc + cargo). It `provides: cargo`,
         // so the cargo DRIVER's `requires: cargo` (a crate needs the cargo tool) is satisfied by
         // installing rust — there is no separate `cargo` component. Package names bring the WHOLE
@@ -348,11 +356,13 @@
             ]
         }
 
-        // --- non-native drivers with driver-level deps ---
-        // Proprietary browsers — not in any distro's base repos, and native installs would
-        // each need their vendor apt/dnf repo wired in (plumbing configsys doesn't have). The
-        // Flathub Flatpak is the one uniform, no-per-distro-repo route, same as chrome. (Opera/
-        // Vivaldi/Edge are community-maintained on Flathub, not vendor-official — but current.)
+        // --- web browsers ---
+        // Firefox is native (in every base repo; openSUSE calls it MozillaFirefox), flatpak on
+        // atomic (brew has no firefox cask). Chrome/Brave/Opera/Vivaldi/Edge aren't in any base
+        // repo and a native install would need each vendor's apt/dnf repo wired in — the Flathub
+        // Flatpak is the one uniform route (Opera/Vivaldi/Edge are community-maintained there).
+        firefox: { install: [ { via: flatpak  when: fedora_atomic  hub: flathub  app: org.mozilla.firefox }
+                              { via: native  repo-component: universe  name: { zypper: MozillaFirefox  default: firefox } } ] }
         chrome:  { install: [ { via: flatpak  hub: flathub  app: com.google.Chrome } ] }
         brave:   { install: [ { via: flatpak  hub: flathub  app: com.brave.Browser } ] }
         opera:   { install: [ { via: flatpak  hub: flathub  app: com.opera.Opera } ] }
@@ -360,6 +370,8 @@
         edge:    { install: [ { via: flatpak  hub: flathub  app: com.microsoft.Edge } ] }
 
         // ===================== network + web-dev tooling =====================
+        // iproute2 — `ip`/`ss`/`tc`. Native everywhere; EL's dnf calls the package `iproute`.
+        iproute2:   { install: [ { via: native  name: { dnf: iproute  default: iproute2 } } ] }
         // Capture & probe — native CLI staples. Name maps only where distros diverge; the
         // rest carry the same package name everywhere.
         wireshark:  { install: [ { via: native  name: { pacman: wireshark-qt }
@@ -423,17 +435,6 @@
         // neovim). The dotfiles are `suggests:` (soft) so the app installs before dotfiles/<name>/
         // has your content. Apps with a FAT ~/.config (profile + cache/state) only `suggests:`
         // their dotfiles for now — pending a dir-vs-specific-files call.
-        htop: {
-            suggests: htop-dotfiles
-            install: [
-                { via: native  when: "rhel"  requires: epel }   // EL ships htop in EPEL, like btop
-                { via: native  repo-component: universe }
-            ]
-        }
-        htop-dotfiles: {
-            install: [ { via: dotfiles  config: { src: htop  dst: $XDG_CONFIG_HOME/htop } } ]
-        }
-
         podman: {
             suggests: podman-dotfiles
             install: [ { via: native  repo-component: universe } ]   // apt universe / dnf (EL AppStream) / pacman
@@ -656,23 +657,6 @@
                          path: ~/apps/UnityHub.AppImage } ]
         }
 
-        // android-studio: Google's official tarball, unpacked scope-honoring (~/android-studio
-        // for user, /opt/android-studio for system). No clean version API, so the version is a
-        // manual pin — bump it from developer.android.com/studio. Fat IDE config deferred.
-        android-studio: {
-            suggests: android-studio-dotfiles
-            install: [ { via: tarball  version: { static: 2024.2.1.11 }  requires: glibc   // glibc-linked JVM/launchers
-                         url: "https://redirector.gvt1.com/edgedl/android/studio/ide-zips/$VERSION/android-studio-$VERSION-linux.tar.gz" } ]
-        }
-        // JetBrains Toolbox — the launcher that installs/updates IDEA, CLion, PyCharm, etc.
-        // (cleaner than one-off IDE components). The version-less URL 302-redirects to the
-        // latest tarball, which `curl -fSL` follows — so `static: latest`, no version to chase.
-        jetbrains-toolbox: {
-            install: [ { via: tarball  installDir: apps/jetbrains-toolbox  requires: glibc   // glibc-linked launcher
-                         version: { static: latest }
-                         url: "https://download.jetbrains.com/product?code=TBA&latest&distribution=linux" } ]
-        }
-
         // --- desktop environments (metapackage names verified per-distro in a podman sweep of
         // apt/dnf/pacman/zypper/apk, plus this Pop host for cosmic) ---
         // Native metapackages. Installing a DE where the OS already ships it is a harmless no-op
@@ -714,8 +698,25 @@
                          absorb-into: ~/.bash.d/pre-configsys-aliases.sh } } ]
         }
 
-        // --- appImage apps (fetch-artifact); config rides along as a required -dotfiles
-        // component (a plain via:dotfiles component, so it can carry when: conditions too) ---
+        // --- editors / IDEs ---
+        neovim: {
+            requires: [ ripgrep, tree-sitter-cli ]
+            suggests: neovim-dotfiles
+            install: [ { via: native  when: fedora_atomic }   // atomic: brew has neovim directly — cleaner than an AppImage needing fuse2
+                       { via: appImage  name: Neovim  scope: user   // -> requires libfuse2; keep it in ~/apps
+                         version: { github: neovim/neovim  asset: "nvim-linux-$ARCH.appimage" }
+                         url: "https://github.com/neovim/neovim/releases/download/$VERSION/nvim-linux-$ARCH.appimage"
+                         path: ~/apps/nvim.appimage } ]
+        }
+        neovim-dotfiles: {
+            install: [ { via: dotfiles  requires: bash-dotfiles
+                         // If uncommented, this would clobber  your neovim config. I would never
+                         // do that to you. The best move is to copy this *whole* neovim-dotfiles
+                         // block to your own configsys.hu, and place it in components block. Then
+                         // uncomment the line, and build your config in configsys/neovim.
+                         // config:  { src: neovim         dst: $XDG_CONFIG_HOME/nvim }
+                         aliases: { src: bash.d/neovim.sh  dst: ~/.bash.d/neovim.sh } } ]
+        }
         // Emacs — native under `emacs` in every family.
         emacs: { install: [ { via: native  repo-component: universe } ] }
         // Helix — native on dnf/pacman/zypper/apk/brew; NOT in the Ubuntu base repos, so the github
@@ -736,6 +737,41 @@
                   version-re:    '([0-9]+\.[0-9]+\.[0-9]+)'
                   uninstall-cmd: 'rm -rf "$HOME/.local/zed.app" "$HOME/.local/bin/zed"'
                   location:      '~/.local/bin/zed' } ]
+        }
+        // vscode: native from Microsoft's vendor repos. Debian/Ubuntu/Pop use the MS apt
+        // repo (key + an inline `deb` source-line -> package `code`); Fedora/EL use the MS
+        // dnf repo (key + a .repo file); Arch builds `visual-studio-code-bin` from the AUR
+        // (the OSS `code` in the Arch repos is a different, unbranded build).
+        vscode: {
+            install: [
+                { via: flatpak  when: fedora_atomic  hub: flathub  app: com.visualstudio.code }   // atomic: no MS vendor repo to wire in — the community Flathub build
+                { via: native  when: "debian"  name: code
+                  pubkey-url: "https://packages.microsoft.com/keys/microsoft.asc"
+                  pubkey-path: /usr/share/keyrings/packages.microsoft.asc
+                  source-line: "deb [arch=amd64,arm64,armhf signed-by=/usr/share/keyrings/packages.microsoft.asc] https://packages.microsoft.com/repos/code stable main"
+                  source-path: /etc/apt/sources.list.d/vscode.list }
+                { via: native  when: "redhat"  name: code
+                  pubkey-url: "https://packages.microsoft.com/keys/microsoft.asc"
+                  repo-id: code  repo-name: "Visual Studio Code"
+                  repo-url: "https://packages.microsoft.com/yumrepos/vscode" }
+                { via: aur  when: "arch"  name: visual-studio-code-bin }
+            ]
+        }
+        // android-studio: Google's official tarball, unpacked scope-honoring (~/android-studio
+        // for user, /opt/android-studio for system). No clean version API, so the version is a
+        // manual pin — bump it from developer.android.com/studio. Fat IDE config deferred.
+        android-studio: {
+            suggests: android-studio-dotfiles
+            install: [ { via: tarball  version: { static: 2024.2.1.11 }  requires: glibc   // glibc-linked JVM/launchers
+                         url: "https://redirector.gvt1.com/edgedl/android/studio/ide-zips/$VERSION/android-studio-$VERSION-linux.tar.gz" } ]
+        }
+        // JetBrains Toolbox — the launcher that installs/updates IDEA, CLion, PyCharm, etc.
+        // (cleaner than one-off IDE components). The version-less URL 302-redirects to the
+        // latest tarball, which `curl -fSL` follows — so `static: latest`, no version to chase.
+        jetbrains-toolbox: {
+            install: [ { via: tarball  installDir: apps/jetbrains-toolbox  requires: glibc   // glibc-linked launcher
+                         version: { static: latest }
+                         url: "https://download.jetbrains.com/product?code=TBA&latest&distribution=linux" } ]
         }
 
         // --- AI / LLM command-line tools ---
@@ -821,6 +857,7 @@
         }
 
         // --- build systems ---
+        make:  { install: [ { via: native } ] }
         cmake: { install: [ { via: native } ] }
         ninja: { install: [ { via: native  name: { apt: ninja-build  dnf: ninja-build  apk: samurai  default: ninja } } ] }
         meson: { install: [ { via: native } ] }
@@ -937,24 +974,6 @@
                          location:      '~/miniforge3/bin' } ]
         }
 
-        neovim: {
-            requires: [ ripgrep, tree-sitter-cli ]
-            suggests: neovim-dotfiles
-            install: [ { via: native  when: fedora_atomic }   // atomic: brew has neovim directly — cleaner than an AppImage needing fuse2
-                       { via: appImage  name: Neovim  scope: user   // -> requires libfuse2; keep it in ~/apps
-                         version: { github: neovim/neovim  asset: "nvim-linux-$ARCH.appimage" }
-                         url: "https://github.com/neovim/neovim/releases/download/$VERSION/nvim-linux-$ARCH.appimage"
-                         path: ~/apps/nvim.appimage } ]
-        }
-        neovim-dotfiles: {
-            install: [ { via: dotfiles  requires: bash-dotfiles
-                         // If uncommented, this would clobber  your neovim config. I would never
-                         // do that to you. The best move is to copy this *whole* neovim-dotfiles
-                         // block to your own configsys.hu, and place it in components block. Then
-                         // uncomment the line, and build your config in configsys/neovim.
-                         // config:  { src: neovim         dst: $XDG_CONFIG_HOME/nvim }
-                         aliases: { src: bash.d/neovim.sh  dst: ~/.bash.d/neovim.sh } } ]
-        }
         arduino: {
             suggests: arduino-dotfiles
             install: [ { via: appImage  name: "Arduino IDE"
@@ -1033,15 +1052,9 @@
             ]
         }
 
-        curl: { install: [ { via: native } ] }
-        git:        { install: [ { via: native } ] }
-
         // --- toolchain support ---
         // one native meta-package on Debian; no single package on Fedora/Arch, so a
         // faithful parts bundle there (the compilers + make), matching the old routes.
-
-        make:    { install: [ { via: native } ] }
-
         build-essential: {
             install: [
                 { via: native  when: "debian" }
@@ -1064,26 +1077,6 @@
         }
         gdb-dotfiles: {   // gdb reads ~/.gdbinit natively (no bash-dotfiles loader needed)
             install: [ { via: dotfiles  src: gdbinit  dst: ~/.gdbinit } ]
-        }
-
-        // vscode: native from Microsoft's vendor repos. Debian/Ubuntu/Pop use the MS apt
-        // repo (key + an inline `deb` source-line -> package `code`); Fedora/EL use the MS
-        // dnf repo (key + a .repo file); Arch builds `visual-studio-code-bin` from the AUR
-        // (the OSS `code` in the Arch repos is a different, unbranded build).
-        vscode: {
-            install: [
-                { via: flatpak  when: fedora_atomic  hub: flathub  app: com.visualstudio.code }   // atomic: no MS vendor repo to wire in — the community Flathub build
-                { via: native  when: "debian"  name: code
-                  pubkey-url: "https://packages.microsoft.com/keys/microsoft.asc"
-                  pubkey-path: /usr/share/keyrings/packages.microsoft.asc
-                  source-line: "deb [arch=amd64,arm64,armhf signed-by=/usr/share/keyrings/packages.microsoft.asc] https://packages.microsoft.com/repos/code stable main"
-                  source-path: /etc/apt/sources.list.d/vscode.list }
-                { via: native  when: "redhat"  name: code
-                  pubkey-url: "https://packages.microsoft.com/keys/microsoft.asc"
-                  repo-id: code  repo-name: "Visual Studio Code"
-                  repo-url: "https://packages.microsoft.com/yumrepos/vscode" }
-                { via: aur  when: "arch"  name: visual-studio-code-bin }
-            ]
         }
 
         // --- AUR: packages built from PKGBUILD via makepkg -si (Arch only). The `aur`
