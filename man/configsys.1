@@ -61,7 +61,11 @@ explain a component: source layer, bindings, and how it resolves on this machine
 lint the merged config (repo + ~/configsys.hu) without installing
 .TP
 \fBplugin\fR
-data plugins: declare in \fBplugins:\fR, then sync from git
+manage plugins: declare/sync, bless or init a personal primary plugin, trust code plugins
+.RS
+.PP
+Subcommands: \fBlist\fR, \fBsync\fR, \fBbless\fR, \fBunbless\fR, \fBadd\fR, \fBremove\fR, \fBupdate\fR, \fBtrust\fR, \fBuntrust\fR, \fBinit\fR, \fBset-source\fR.
+.RE
 .TP
 \fBreport\fR
 assemble an install-failure report (OS + route + driver output) and file it upstream — you approve the full text first
@@ -71,9 +75,17 @@ ask upstream for a full cross-platform story for a component — shows a coverag
 .TP
 \fBdotfiles\fR
 inspect (status) and adopt (capture) your dotfiles
+.RS
+.PP
+Subcommands: \fBstatus\fR, \fBcapture\fR.
+.RE
 .TP
 \fBmanpages\fR
 install or check the man pages (configsys(1) + configsys.hu(5))
+.RS
+.PP
+Subcommands: \fBinstall\fR, \fBstatus\fR.
+.RE
 .TP
 \fBrefresh\fR
 re-query latest versions from their sources
@@ -103,6 +115,18 @@ interactive TUI (default)
 .TP
 \fB~/.config/configsys/configsys.hu\fR
 per-machine config (profiles, pins, plugins).
+.TP
+\fB~/.config/configsys/dotfiles/\fR
+machine-local dotfiles content store (see dotfiles capture).
+.TP
+\fB~/.config/configsys/plugins/\fR
+synced plugin repos (one dir per plugin).
+.TP
+\fB~/.config/configsys/plugin-trust.hu\fR
+approved content hashes for code plugins.
+.TP
+\fB~/.config/configsys/state.hu\fR
+ledger: version-lock intent + bookkeeping.
 .TP
 \fB~/.config/configsys/versions.hu\fR
 discovered-version cache (24h TTL).

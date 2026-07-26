@@ -104,8 +104,9 @@ Key ideas:
 Run `configsys where <name>` to see a component's bindings and which one resolves here.
 
 Bindings can also **discover** versions (GitHub / URL / static pins, with `$VERSION`/`$ARCH`
-filled in at install time and cached), ship **dotfiles** (symlinked from the repo so edits
-flow back to git), and target any of ~30 drivers.
+filled in at install time and cached), manage **dotfiles** (symlinked into place from your own
+content store so edits flow back to git — see [Dotfiles](#dotfiles)), and target any of ~30
+drivers.
 
 > **Full format reference:** [**docs/config-format.md**](docs/config-format.md) — also
 > installed as the **`configsys.hu(5)`** man page (`configsys manpages install`). It is the
@@ -168,6 +169,26 @@ your `~/.config/configsys/configsys.hu`:
 
 When you then run `./configsys.sh plugin sync` all the transitive plugins will be fetched.
 
+**The fast path — `configsys plugin init`.** Rather than hand-building the plugin, get set up
+locally first (capture your dotfiles, define your profiles/components), then let configsys assemble
+the plugin for you:
+
+```console
+$ ./configsys.sh plugin init            # or: plugin init <name>   (default: configsys-<user>)
+```
+
+With no primary plugin yet it **creates** one in `~/.config/configsys/plugins/<name>/` from your
+local bits — your captured dotfiles, your `profiles:`/`components:`, and your other declared
+plugins carried along as transitive — `git init`s it, and blesses it primary. (If you already have
+a primary, it **merges** those local bits in instead.) It's a real git repo you author in place;
+when you're ready to share it, push it and repoint the source:
+
+```console
+$ cd ~/.config/configsys/plugins/configsys-<user>
+$ git remote add origin git@github.com:you/configsys-<user>.git && git push -u origin main
+$ ./configsys.sh plugin set-source configsys-<user> github:you/configsys-<user>
+```
+
 ## Commands
 
 Run as `./configsys.sh <command>` (or `python -m configsys <command>` inside the venv).
@@ -178,19 +199,24 @@ Run `configsys <command> -h` for per-command help.
 ```
 configsys                          # interactive TUI (default)
 configsys inspect                  # install-state table for the active profiles
-configsys install  <name>...       # install (pulls dependencies first, ordered)
+configsys install  <name>...       # install (pulls dependencies first, ordered) [--force]
 configsys remove   <name>...       # uninstall
-configsys upgrade  <name>...       # upgrade to latest
+configsys upgrade  <name>...       # upgrade to latest [--force]
 configsys lock|unlock <name>...    # version-lock / unlock
 configsys set-version <name> <ver> # pin to a specific version
 configsys fix-scope [<name>...]    # reconcile user/system scope mismatches (moves the install)
 configsys where <name>             # explain a component: source layer + bindings + resolution
 configsys check                    # lint the merged config (repo + your file + includes + plugins)
 configsys refresh                  # re-query latest versions from their sources
-configsys plugin <list|sync|add|remove|update|bless|trust|untrust>   # plugins (see below)
+configsys dotfiles <status|capture>   # inspect / adopt your dotfiles (see Dotfiles below)
+configsys plugin  <list|sync|add|remove|update|bless|unbless|trust|untrust|init|set-source>   # (see Plugins)
 configsys report  [<name>]         # file an install-failure report (you approve the text first)
 configsys request <name>           # ask upstream for full cross-platform support (coverage matrix)
+configsys manpages <install|check> # install/check the man pages (configsys(1), configsys.hu(5))
 ```
+
+`install`/`upgrade` take **`--force`** — for dotfiles, overwrite an un-adopted on-system file
+(backing it up to `<name>.pre-configsys`) instead of refusing. Prefer `dotfiles capture` first.
 
 Any `<name>` may be **`profile:<name>`**, which expands to that profile's components — e.g.
 `configsys install profile:dev blender`. The `profile:` prefix disambiguates from a component of
@@ -229,9 +255,43 @@ Keys: `j/k` move, `g/G` top/bottom, `enter`/`→` expand, `←` collapse, `tab` 
 all, `space` select, `a` all, `i/u/x` install/upgrade/remove, `L/l` lock/unlock, `c` clear,
 `X` execute, `q` quit.
 
+## Dotfiles
+
+configsys treats your dotfiles as **yours** — it ships **no personal config templates** and will
+not overwrite anything it didn't create. A `via: dotfiles` component only declares *where* a config
+lives (its `src`→`dst` mapping); the **content** comes from your own store, resolved by a
+search-path (first hit wins):
+
+```
+~/.config/configsys/dotfiles/<src>      (machine-local — where capture lands with no plugin)
+<primary-plugin>/dotfiles/<src>         (portable — travels in your primary plugin)
+<defining layer>/dotfiles/<src>         (a template, only if some layer ships one)
+```
+
+Two commands:
+
+```console
+$ ./configsys.sh dotfiles status     # every dotfile in your active profiles + its state
+$ ./configsys.sh dotfiles capture    # adopt your existing on-system dotfiles into your store
+```
+
+- **`status`** shows each target as **linked** (managed), **adopted** (captured, not yet linked),
+  **unmanaged** (a real on-system file you haven't adopted — *at risk*), **template** (a shipped
+  template), or **empty** (declared, no content anywhere), plus where its managed source lives.
+- **`capture`** copies your real on-system files *into* your store (your primary plugin's
+  `dotfiles/` if you have one, else the local dir) so a later install links **your** content. It is
+  read-only on the system side — it never modifies or deletes an on-system file. `--dry-run` to
+  preview, `--force` to overwrite content already in the store.
+- **Install won't clobber.** If a real on-system file exists that you haven't adopted, `install`
+  **refuses** (with guidance to `capture`, or `--force` to back it up to `<name>.pre-configsys` and
+  replace) — never a silent overwrite.
+
+The natural flow: `dotfiles capture` your setup, then [`plugin init`](#your-config-as-a-plugin) to
+package it into a portable personal plugin.
+
 ## Plugins
 
-Plugins are git repos that add routing data (and, later, new drivers) to the layer stack.
+Plugins are git repos that add routing data (and new drivers) to the layer stack.
 Declare them in your config and sync:
 
 ```console
@@ -243,6 +303,12 @@ $ ./configsys.sh plugin sync      # clone/fetch all declared plugins to their pi
 They clone to `~/.config/configsys/plugins/<name>/`, pin to a ref, and are ABI-gated so an
 incompatible plugin degrades instead of breaking the tool. `add` / `remove` / `update` edit
 your `plugins:` list **in place, preserving your comments**.
+
+One plugin can be your **primary** — a personal config plugin that may set machine settings and
+carry its own (transitive) plugins, so a fresh machine bootstraps from a one-line config.
+`plugin bless <source>` designates an existing one; `plugin init` [creates one from your local
+bits](#your-config-as-a-plugin); `plugin set-source <name> <source>` repoints it (e.g. local path →
+`github:you/name` after you push); `plugin unbless` clears the designation.
 
 A plugin can also ship **code** — a new driver (package manager) written in Python. Code runs
 with your privileges during installs, so it stays inert until you approve its exact contents:

@@ -105,7 +105,7 @@ components: {
   (pulled in if resolvable here, skipped otherwise). **`provides:`** declares extra
   capabilities a component satisfies.
 - **`scope: user|system`** sets the install scope. Scope-honoring drivers (appImage, flatpak,
-  tarball, npm, gem, luarocks) default to `user`; fixed-scope drivers (apt/dnf/pacman =
+  tarball, font, npm, gem, luarocks) default to `user`; fixed-scope drivers (apt/dnf/pacman =
   system, cargo/pipx/dotfiles = user) ignore it.
 
 The most specific matching binding wins. Run `configsys where <name>` to see a component's
@@ -158,11 +158,45 @@ cached (`~/.config/configsys/versions.hu`, 24h TTL); `configsys refresh` re-quer
 
 ## dotfiles
 
-A `via: dotfiles` component maps link specs `{ src, dst }` — `src` under the defining layer's
-`dotfiles/` directory, `dst` env-var and `~` expanded. Install symlinks `dst -> src` (so edits
-flow back to git), backing up any existing non-symlink; uninstall restores the backup. A
-package that ships config `suggests:` its `<name>-dotfiles` component (soft, so it attaches
-only where that config exists).
+A `via: dotfiles` component maps link specs `{ src, dst }`: `dst` is where the config belongs
+(env-var and `~` expanded), and `src` is resolved through a content **search-path** — the first of
+these that has it wins:
+
+- `~/.config/configsys/dotfiles/<src>` — your machine-local store
+- `<primary plugin>/dotfiles/<src>` — your portable, git-tracked config
+- `<defining layer>/dotfiles/<src>` — a template, only if some layer ships one
+
+configsys ships **no personal config templates**: a component may declare `src`/`dst` with no
+content anywhere, in which case it is simply not linked (a no-op) until you supply content. Install
+symlinks `dst -> src` so edits flow back to git.
+
+Because your existing config is precious, install **refuses** to symlink over a real on-system file
+that resolves only to an un-adopted template, printing how to adopt it (`configsys dotfiles
+capture`) — or `install --force` to back it up to `<name>.pre-configsys` and replace. Adopted
+content (in your store) links freely; an `absorb-into` spec relocates a pre-existing file into a
+loader dir instead of backing it up (e.g. a stray `~/.bash_aliases`). `uninstall` removes the
+symlink and restores any backup.
+
+`configsys dotfiles status` reports each dotfile's state — **linked** / **adopted** / **unmanaged**
+/ **template** / **empty** — and where its managed content lives; `configsys dotfiles capture`
+copies your existing on-system dotfiles into your store (read-only on the system side). A package
+that ships config `suggests:` its `<name>-dotfiles` component (soft, so it attaches only where that
+config exists).
+
+## component-names
+
+A higher layer (typically a plugin) can patch the package name a component maps to under a given
+driver — or drop it where that driver has no package — without redefining the whole component:
+
+```
+component-names: {
+    xbps: { docker-engine: docker  r: R  nmap: {} }   // rename; {} = no package here (drop)
+}
+```
+
+Keyed by driver and overlaid across the layer stack (later wins): a string replaces the resolved
+package name; `{}` (or null) means "not available via this driver," so the component isn't offered
+there. See the routing model (docs/routing-model.md §10a) for the full rules.
 
 ## Drivers
 

@@ -1559,7 +1559,8 @@ def build_parser():
     sub.add_parser('check', help='lint the merged config (repo + ~/configsys.hu) without '
                                  'installing')
 
-    pl = sub.add_parser('plugin', help='data plugins: declare in `plugins:`, then sync from git')
+    pl = sub.add_parser('plugin', help='manage plugins: declare/sync, bless or init a personal '
+                                       'primary plugin, trust code plugins')
     plsub = pl.add_subparsers(dest='plugin_command')
     plsub.add_parser('list', help='declared plugins + their sync/ABI status')
     plsub.add_parser('sync', help='clone/fetch declared plugins to their pinned refs')

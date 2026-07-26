@@ -97,7 +97,7 @@ components: {
 .IP \(bu 2
 \fB\fBrequires:\fR\fR pulls in capabilities (another component, or a driver's prerequisites) first, dependency-ordered — a hard dependency (unmet is an error). \fB\fBsuggests:\fR\fR is soft (pulled in if resolvable here, skipped otherwise). \fB\fBprovides:\fR\fR declares extra capabilities a component satisfies.
 .IP \(bu 2
-\fB\fBscope: user|system\fR\fR sets the install scope. Scope-honoring drivers (appImage, flatpak, tarball, npm, gem, luarocks) default to \fBuser\fR; fixed-scope drivers (apt/dnf/pacman = system, cargo/pipx/dotfiles = user) ignore it.
+\fB\fBscope: user|system\fR\fR sets the install scope. Scope-honoring drivers (appImage, flatpak, tarball, font, npm, gem, luarocks) default to \fBuser\fR; fixed-scope drivers (apt/dnf/pacman = system, cargo/pipx/dotfiles = user) ignore it.
 .PP
 The most specific matching binding wins. Run \fBconfigsys where <name>\fR to see a component's bindings and which one resolves here.
 .SH THE \FBWHEN:\FR EXPRESSION
@@ -134,7 +134,32 @@ neovim: {
 \fB$VERSION\fR and \fB$ARCH\fR are filled into the URL at install time. When a \fBgithub\fR asset name is literal (no glob), configsys can fall back to the API-free \fBreleases/latest/download/<asset>\fR URL, so installs keep working when the GitHub API is unreachable. Discovered versions are cached (\fB~/.config/configsys/versions.hu\fR, 24h TTL); \fBconfigsys refresh\fR re-queries; and \fB--pretend\fR never touches the network (cache-only). Set \fBCONFIGSYS_GITHUB_TOKEN\fR (or \fBGITHUB_TOKEN\fR) to lift GitHub's unauthenticated rate limit.
 .SH DOTFILES
 .PP
-A \fBvia: dotfiles\fR component maps link specs \fB{ src, dst }\fR — \fBsrc\fR under the defining layer's \fBdotfiles/\fR directory, \fBdst\fR env-var and \fB~\fR expanded. Install symlinks \fBdst -> src\fR (so edits flow back to git), backing up any existing non-symlink; uninstall restores the backup. A package that ships config \fBsuggests:\fR its \fB<name>-dotfiles\fR component (soft, so it attaches only where that config exists).
+A \fBvia: dotfiles\fR component maps link specs \fB{ src, dst }\fR: \fBdst\fR is where the config belongs (env-var and \fB~\fR expanded), and \fBsrc\fR is resolved through a content \fBsearch-path\fR — the first of these that has it wins:
+.IP \(bu 2
+\fB~/.config/configsys/dotfiles/<src>\fR — your machine-local store
+.IP \(bu 2
+\fB<primary plugin>/dotfiles/<src>\fR — your portable, git-tracked config
+.IP \(bu 2
+\fB<defining layer>/dotfiles/<src>\fR — a template, only if some layer ships one
+.PP
+configsys ships \fBno personal config templates\fR: a component may declare \fBsrc\fR/\fBdst\fR with no content anywhere, in which case it is simply not linked (a no-op) until you supply content. Install symlinks \fBdst -> src\fR so edits flow back to git.
+.PP
+Because your existing config is precious, install \fBrefuses\fR to symlink over a real on-system file that resolves only to an un-adopted template, printing how to adopt it (\fBconfigsys dotfiles capture\fR) — or \fBinstall --force\fR to back it up to \fB<name>.pre-configsys\fR and replace. Adopted content (in your store) links freely; an \fBabsorb-into\fR spec relocates a pre-existing file into a loader dir instead of backing it up (e.g. a stray \fB~/.bash_aliases\fR). \fBuninstall\fR removes the symlink and restores any backup.
+.PP
+\fBconfigsys dotfiles status\fR reports each dotfile's state — \fBlinked\fR / \fBadopted\fR / \fBunmanaged\fR / \fBtemplate\fR / \fBempty\fR — and where its managed content lives; \fBconfigsys dotfiles capture\fR copies your existing on-system dotfiles into your store (read-only on the system side). A package that ships config \fBsuggests:\fR its \fB<name>-dotfiles\fR component (soft, so it attaches only where that config exists).
+.SH COMPONENT-NAMES
+.PP
+A higher layer (typically a plugin) can patch the package name a component maps to under a given driver — or drop it where that driver has no package — without redefining the whole component:
+.PP
+.RS 4
+.nf
+component-names: {
+    xbps: { docker-engine: docker  r: R  nmap: {} }   // rename; {} = no package here (drop)
+}
+.fi
+.RE
+.PP
+Keyed by driver and overlaid across the layer stack (later wins): a string replaces the resolved package name; \fB{}\fR (or null) means "not available via this driver," so the component isn't offered there. See the routing model (docs/routing-model.md §10a) for the full rules.
 .SH DRIVERS
 .PP
 Each \fBvia:\fR value names a driver: the OS package managers (\fBapt\fR, \fBdnf\fR, \fBpacman\fR, \fBzypper\fR, \fBapk\fR, \fBaur\fR, \fBbrew\fR, \fBrpm-ostree\fR), \fBflatpak\fR, \fBappImage\fR, \fBtarball\fR (also bare-binary and \fB.zip\fR archives), \fBdotfiles\fR, \fBfont\fR, \fBscript\fR (declared install/version/uninstall commands), the language toolchains and their module installers (\fBcargo\fR, \fBpip\fR, \fBpipx\fR, \fBnpm\fR, \fBgem\fR, \fBgo-install\fR, \fBopam\fR, \fBluarocks\fR, \fBcabal\fR, \fBgcc\fR, \fBclang\fR, \fBgcc-toolset\fR), and the post-install primitives \fBservice\fR (systemd) and \fBgroup\fR (usermod). Two \fBvia:\fR values are special: \fBnative\fR (resolves to the OS's package manager) and \fBparts\fR (a pure aggregator).

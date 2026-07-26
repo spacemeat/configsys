@@ -1,15 +1,16 @@
 # Routing model v2 — capabilities, components, bindings
 
-**Status:** proposed (designed 2026-07-16, not yet implemented). This document is the
-target design for a rewrite of `routes.hu` semantics and the resolver. It is meant to
-be built **in parallel** with the current system and migrated to incrementally — see
-[Migration](#migration).
+**Status:** SHIPPED — this is the routing model as built; it is the sole resolver. It replaced the
+old `\family`-block resolver **in place** (built in parallel, proven byte-equivalent, then flipped;
+the old resolver and its data are deleted, and `test/routing_golden.json` freezes the proven
+resolution as a regression gate). §1 and §14 below are kept as *motivating history* — the tangle
+this design removed and the migration that removed it. See CLAUDE.md for the current summary.
 
 ---
 
-## 1. Why
+## 1. Why (history — the pre-v2 system, now deleted)
 
-Today `routes.hu` tangles three different concerns, so "where does this go?" has no
+Before this redesign `routes.hu` tangled three different concerns, so "where does this go?" had no
 single answer:
 
 - **Family blocks** (`\apt`, `\dnf`, `\pacman`, …) hold per-component package data keyed
@@ -92,12 +93,12 @@ Legal humon (every dict entry is `key: value`; `when:` is a string expression):
 
 ```
 linux:   { }
-debian:  { !using: linux    native: apt }
-ubuntu:  { !using: debian }
-pop_os!: { !using: ubuntu }
-fedora:  { !using: linux    native: dnf }
-rhel:    { !using: fedora }                 // native inherits dnf
-arch:    { !using: linux    native: pacman }
+debian:  { using: linux    native: apt }
+ubuntu:  { using: debian }
+pop_os!: { using: ubuntu }
+fedora:  { using: linux    native: dnf }
+rhel:    { using: fedora }                 // native inherits dnf
+arch:    { using: linux    native: pacman }
 ```
 
 The package name defaults to the component's own name; override only where it differs:
@@ -136,7 +137,7 @@ toolchain:{ requires: C++20 }     // any provider; disambiguate with a provider-
 in that environment, so requiring them is free there and pulls a provider elsewhere:
 
 ```
-fedora: { !using: linux  native: dnf  provides: epel }   // EPEL is baseline on Fedora
+fedora: { using: linux  native: dnf  provides: epel }   // EPEL is baseline on Fedora
 epel-release: { provides: epel  install: [ { via: native  when: "rhel" } ] }
 // any component: `requires: epel`  -> no-op on Fedora, pulls epel-release on EL
 ```
@@ -155,7 +156,7 @@ parser. The context is ⟨os-lineage, version, cpu⟩.
 
 **Atoms:**
 - bare OS — `debian`, `ubuntu`, `pop_os!`, `fedora`, `arch` — **subtree membership**
-  (`debian` matches Debian *and* everything deriving from it, honoring `!using`).
+  (`debian` matches Debian *and* everything deriving from it, honoring `using`).
 - versioned OS — `ubuntu < 23.04`, `debian >= 12`, `fedora = 41` — subtree membership
   **and** the system is on that OS's version scale (see [scales](#6-os-lineage-version-scales-identity))
   **and** the comparison holds.
@@ -287,8 +288,8 @@ is pure context. Same specificity math; don't conflate them.
 
 ## 10. Pins
 
-Per-machine control lives in `~/configsys.hu` and sits at the **top of precedence** —
-above reuse, above auto:
+Per-machine control lives in `~/.config/configsys/configsys.hu` and sits at the **top of
+precedence** — above reuse, above auto:
 
 ```
 pins: {
@@ -371,10 +372,11 @@ numbers are unrelated, and labels are equality-matched.
 - **Capability-name hygiene** — a registry to catch typos, or rely on "nothing provides
   X → error" (probably the latter).
 
-## 14. Migration (parallel, iterated)
+## 14. Migration (parallel, iterated) — DONE (history)
 
-Do **not** rewrite `routes.hu` big-bang. Build the new resolver beside the old and prove
-equivalence before flipping:
+This is how the migration was carried out (now complete; the old resolver + data are deleted and
+`test/routing_golden.json` freezes the result). The plan was: do **not** rewrite `routes.hu`
+big-bang — build the new resolver beside the old and prove equivalence before flipping:
 
 1. **New resolver, no new data.** Implement the v2 model (parser for `when:`, the
    selection engine, the worklist) as a separate module. It reads a *new-format* routes

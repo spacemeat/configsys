@@ -1,10 +1,10 @@
-# Plugins — scoping
+# Plugins
 
-Status: **P1 BUILT** (data plugins + sync — `configsys/plugins.py`, `configsys plugin
-list/sync`); **P2 (code + trust + ABI gate) scoped, not built.** This is the north‑star for
-extending configsys with shareable, remote, optionally‑code‑carrying layers. It builds
-directly on the layer stack (`configsys/layers.py`) and the `Driver` registry
-(`configsys/drivers/`).
+Status: **BUILT** — the full model ships: data plugins + sync (P1), the frozen ABI (P2a), trusted
+code loading with content‑hash trust (P2b), version‑source/transport hooks (P2c), and the
+primary‑plugin lifecycle (`bless` / `init` / `set-source`). This is the model + rationale; the
+`Driver` ABI a code plugin targets is §7. It builds on the layer stack (`configsys/layers.py`) and
+the `Driver` registry (`configsys/drivers/`). (Historical P1/P2 phase notes are kept in §8.)
 
 P1 in a nutshell: `plugins: [ { source: "github:x/y"  ref: v1 } ]` in the user config, then
 `configsys plugin sync` clones each to `~/.config/configsys/plugins/<name>/` at the pinned
@@ -32,7 +32,7 @@ A directory synced from a remote repo to `~/.config/configsys/plugins/<name>/`:
 ```
 plugins/opensuse-support/
 ├── plugin.hu          # manifest (below)
-├── routes.hu          # data: os / mechanisms / components (a layer)
+├── routes.hu          # data: os / drivers / components (a layer)
 ├── profiles.hu        # data: profiles (optional; any .hu the manifest lists)
 └── drivers.py        # optional: Python Driver subclasses (the code escalation)
 ```
@@ -46,7 +46,7 @@ layer stack; the code half is the new, careful part.
 {
     name:         opensuse-support
     requires-abi: 1                     // the configsys plugin ABI it targets (see §7)
-    provides:     { os: [ opensuse ]  mechanisms: [ zypper ] }   // informational / for `plugin list`
+    provides:     { os: [ opensuse ]  drivers: [ zypper ] }   // informational / for `plugin list`
     data:         [ routes.hu, profiles.hu ]   // .hu layer files (default: all .hu but plugin.hu)
     code:         [ drivers.py ]              // Python modules to load — PRESENCE = "ships code"
 }
@@ -66,9 +66,9 @@ repo (routes.hu + config.hu)  <  plugins (declaration order)  <  discovered proj
 Plugins sit **above the repo but below your project and your machine config** — so your
 `.configsys.hu` and `~/.config/configsys/configsys.hu` always win over a plugin. Merge, per‑name
 override, provenance (`Component.source` → the plugin file), and `where`/`check` attribution all
-come from the existing engine. A plugin can add os blocks and components; **os/mechanism blocks
-that reuse an existing mechanism are pure data** (the derivative‑distro case, e.g. Linux Mint →
-Ubuntu, apt). A *new* mechanism needs a `Driver` = code.
+come from the existing engine. A plugin can add os blocks and components; **an os/driver block
+that reuses an existing driver is pure data** (the derivative‑distro case, e.g. Linux Mint →
+Ubuntu, apt). A *new* driver (package manager) needs a `Driver` subclass = code.
 
 ## 4. Distribution — declarative + `plugin sync`
 
@@ -102,6 +102,15 @@ plugins: [
   status, what they provide.
 - `configsys plugin update [name]` — move the pin forward (re‑prompts trust on code change).
 - `configsys plugin remove name` — drop from `plugins:` and delete the dir.
+- `configsys plugin trust|untrust name` — approve / revoke a code plugin's current content (§6).
+- `configsys plugin bless <source>` / `unbless` — designate (or clear) your **primary** personal
+  plugin: it may set machine settings and carry its own (transitive) plugins.
+- `configsys plugin init [name]` — assemble a primary plugin from your local bits (captured
+  dotfiles + your `profiles:`/`components:` + your other plugins as transitive), or merge them
+  into an existing primary. Authored in place, `git init`ed, and **sync‑exempt** (source == its
+  own dir → `local`) until you push it.
+- `configsys plugin set-source <name> <source>` — repoint a plugin (e.g. local path →
+  `github:you/name` after pushing); `sync` then fetches from the remote.
 
 `git` is the transport (already a dependency‑world assumption); `source:` shorthands
 (`github:`/`gitlab:`) expand to clone URLs, arbitrary git URLs allowed too.
@@ -111,7 +120,7 @@ plugins: [
 A plugin that fails — unreachable, malformed, ABI‑incompatible, or an untrusted code plugin —
 is **skipped with a warning**, never fatal, exactly like a bad discovered file. Its data layer
 may still load (definitions), but if its `Driver` isn't registered (untrusted/incompatible),
-`via: <its-mechanism>` is unknown → components that need it surface as **resilient error rows**
+`via: <its-driver>` is unknown → components that need it surface as **resilient error rows**
 (see the inspect/TUI resilience) telling you *why* ("plugin opensuse‑support is untrusted; run
 `configsys plugin trust opensuse-support`"). You are never bricked and never silently
 mis‑installed.

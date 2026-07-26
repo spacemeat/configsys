@@ -81,6 +81,10 @@ def gen_man1():
     out.append('.SH COMMANDS')
     for name, sp in sub.choices.items():
         out += ['.TP', '\\fB' + name + '\\fR', _inline(sp.description or help_of.get(name) or '')]
+        nsub = _subparsers(sp)                          # one level of subcommands (plugin, dotfiles)
+        if nsub is not None and nsub.choices:
+            names = ', '.join('\\fB' + n + '\\fR' for n in nsub.choices)
+            out += ['.RS', '.PP', 'Subcommands: ' + names + '.', '.RE']
 
     # epilog carries the examples + environment blocks — split on the two labels
     epi = p.epilog or ''
@@ -91,6 +95,10 @@ def gen_man1():
 
     out += ['.SH FILES',
             '.TP', '\\fB~/.config/configsys/configsys.hu\\fR', 'per-machine config (profiles, pins, plugins).',
+            '.TP', '\\fB~/.config/configsys/dotfiles/\\fR', 'machine-local dotfiles content store (see dotfiles capture).',
+            '.TP', '\\fB~/.config/configsys/plugins/\\fR', 'synced plugin repos (one dir per plugin).',
+            '.TP', '\\fB~/.config/configsys/plugin-trust.hu\\fR', 'approved content hashes for code plugins.',
+            '.TP', '\\fB~/.config/configsys/state.hu\\fR', 'ledger: version-lock intent + bookkeeping.',
             '.TP', '\\fB~/.config/configsys/versions.hu\\fR', 'discovered-version cache (24h TTL).']
     out += ['.SH SEE ALSO', '.BR configsys.hu (5)']
     return '\n'.join(out) + '\n'
