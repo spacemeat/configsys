@@ -987,6 +987,127 @@ def _pin_checksum(ctx, config_file, decls, target):
     print(f'configsys: pinned {disp} @ {ident.split(":")[-1][:12]} (sha256)')
 
 
+def _git_init_commit(ctx, d, msg):
+    '''git init + add + commit in `d` (via the runner, so --pretend prints). Non-fatal: a failed
+    commit (e.g. no git identity configured) leaves the repo + files in place — reported.'''
+    import shlex
+    dq = shlex.quote(str(d))
+    ctx.runner.run(f'git -C {dq} init -q -b main', capture=False)
+    ctx.runner.run(f'git -C {dq} add -A', capture=False)
+    r = ctx.runner.run(f'git -C {dq} commit -q -m {shlex.quote(msg)}', capture=False)
+    if r is not None and not r.ok:
+        print('  note: git commit skipped — set git user.name/email, then commit in the plugin dir')
+
+
+def cmd_plugin_init(ctx, args, decls):
+    '''Assemble a personal PRIMARY plugin from local bits (captured dotfiles + profiles/components
+    + your other plugins as transitive), or merge them into an existing primary.'''
+    from . import plugins
+    ctx.ensure_user_config()
+    prim = plugins.primary_name(decls)
+    return _plugin_init_merge(ctx, args, prim) if prim else _plugin_init_create(ctx, args, decls)
+
+
+def _plugin_init_create(ctx, args, decls):
+    import getpass
+    import shutil
+    from . import plugins
+    name = args.name or f'configsys-{getpass.getuser()}'
+    plug = ctx.paths.plugins_dir / name
+    if plug.exists():
+        print(f'configsys: {plug} already exists — pick another --name, or remove it first')
+        return 1
+    store = ctx.paths.user_dotfiles_dir
+    store_entries = sorted(store.iterdir()) if store.exists() else []
+    sections = plugins.config_sections_text(ctx.paths.user_config_file, ('profiles', 'components'))
+
+    print(f'plugin init: create personal primary plugin "{name}"')
+    print(f'  at          {plug}')
+    print(f'  dotfiles    {len(store_entries)} item(s) moved from {ctx.paths.user_dotfiles_dir}')
+    print(f'  config      {", ".join(sections) or "(none)"} copied from configsys.hu')
+    print(f'  transitive  {len(decls)} plugin(s) carried into the manifest')
+    if args.dry_run:
+        print('\n(dry run — nothing written)')
+        return 0
+
+    plugins.scaffold_primary(plug, name, decls, sections)     # decls = the (non-primary) others
+    dfdir = plug / 'dotfiles'
+    for entry in store_entries:
+        shutil.move(str(entry), str(dfdir / entry.name))
+    (plug / '.gitignore').write_text('__pycache__/\n', encoding='utf-8')
+    (plug / 'README.md').write_text(
+        f'# {name}\n\nA personal [configsys](https://github.com/spacemeat/configsys) plugin '
+        f'(dotfiles + profiles/components). Authored locally by `configsys plugin init`; push it '
+        f'to a remote and `configsys plugin set-source {name} github:you/{name}` to share.\n',
+        encoding='utf-8')
+    _git_init_commit(ctx, plug, 'initial personal config (configsys plugin init)')
+    plugins.set_declared(ctx.paths.user_config_file, [{'source': str(plug), 'primary': True}])
+    print(f'\nconfigsys: created + blessed "{name}" as your primary plugin.')
+    if sections:
+        print('  (your profiles/components now live in the plugin too; you may remove them from '
+              'configsys.hu — they apply either way.)')
+    print('  capture now lands in it. When ready to share:')
+    print(f'    cd {plug}')
+    print(f'    git remote add origin git@github.com:you/{name}.git && git push -u origin main')
+    print(f'    configsys plugin set-source {name} github:you/{name}')
+    return 0
+
+
+def _plugin_init_merge(ctx, args, prim):
+    import shutil
+    from . import plugins
+    plug = ctx.paths.plugins_dir / prim
+    if not plug.exists():
+        print(f'configsys: primary plugin "{prim}" is not synced — run `configsys plugin sync` first')
+        return 1
+    store = ctx.paths.user_dotfiles_dir
+    entries = sorted(store.iterdir()) if store.exists() else []
+    dfdir = plug / 'dotfiles'
+    move = [e for e in entries if not (dfdir / e.name).exists() or args.force]
+    skip = [e.name for e in entries if (dfdir / e.name).exists() and not args.force]
+    sections = plugins.config_sections_text(ctx.paths.user_config_file, ('profiles', 'components'))
+
+    print(f'plugin init: merge local bits into primary "{prim}" ({plug})')
+    print(f'  dotfiles    {len(move)} to move'
+          + (f'; {len(skip)} already present (--force to overwrite): {", ".join(skip)}' if skip else ''))
+    if sections:
+        print(f'  config      your {", ".join(sections)} could move into the plugin (not auto-merged)')
+    if args.dry_run:
+        print('\n(dry run — nothing written)')
+        return 0
+    if not move:
+        print('\nno dotfiles to merge.' + ('  (see the config note above.)' if sections else ''))
+        return 0
+    dfdir.mkdir(parents=True, exist_ok=True)
+    for e in move:
+        dest = dfdir / e.name
+        if dest.is_symlink() or dest.is_file():
+            dest.unlink()
+        elif dest.is_dir():
+            shutil.rmtree(dest)
+        shutil.move(str(e), str(dest))
+    print(f'\nconfigsys: moved {len(move)} dotfile item(s) into "{prim}". Commit + push it to share.')
+    return 0
+
+
+def cmd_plugin_set_source(ctx, args, decls):
+    '''Swap a declared plugin's `source:` (e.g. a local path -> github:you/name after you push),
+    keeping its ref/primary flag. Then `plugin sync` fetches from the new source.'''
+    from . import plugins
+    match = [d for d in decls if plugins.dir_name(d['source']) == args.name]
+    if not match:
+        print(f'configsys: no plugin named "{args.name}" in your config')
+        return 1
+    if ctx.runner.pretend:
+        print(f'configsys: [pretend] would set {args.name} source -> {args.source}')
+        return 0
+    for d in match:
+        d['source'] = args.source
+    plugins.set_declared(ctx.paths.user_config_file, decls)
+    print(f'configsys: {args.name} source -> {args.source}  (run `configsys plugin sync` to fetch)')
+    return 0
+
+
 def cmd_plugin(ctx, args):
     from . import plugins
     decls = plugins.declared(ctx.paths.user_config_file)   # top-config decls (for edits)
@@ -1000,6 +1121,12 @@ def cmd_plugin(ctx, args):
             return 0
         _sync_and_report(ctx, decls)
         return 0
+
+    if sub == 'init':
+        return cmd_plugin_init(ctx, args, decls)
+
+    if sub == 'set-source':
+        return cmd_plugin_set_source(ctx, args, decls)
 
     if sub == 'bless':
         if args.source.lower() == 'none':
@@ -1140,6 +1267,8 @@ def cmd_plugin(ctx, args):
                 state = f'incompatible (needs plugin ABI {r["requires_abi"]})'
             else:
                 state = 'ok'
+                if r.get('local'):
+                    state += '  [local — unpushed; push, then `configsys plugin set-source`]'
                 cs = r['code_state']
                 if cs == 'trusted':
                     state += '  [code trusted]'
@@ -1457,6 +1586,16 @@ def build_parser():
     pt.add_argument('name', help='plugin name, source, or dir')
     pun = plsub.add_parser('untrust', help="revoke a code plugin's trust")
     pun.add_argument('name', help='plugin name, source, or dir')
+    pin = plsub.add_parser('init', help='assemble a personal primary plugin from local bits '
+                                        '(captured dotfiles + profiles/components), or merge into '
+                                        'your existing primary')
+    pin.add_argument('name', nargs='?', help='plugin name (default: configsys-<user>)')
+    pin.add_argument('--force', action='store_true', help='overwrite dotfiles already in the store')
+    pin.add_argument('--dry-run', action='store_true', help='show the plan and exit; write nothing')
+    pss = plsub.add_parser('set-source', help='swap a plugin\'s source (e.g. local path -> '
+                                              'github:you/name after you push it)')
+    pss.add_argument('name', help='declared plugin name')
+    pss.add_argument('source', help='new source: github:owner/repo | git URL | local path')
 
     rp = sub.add_parser('report', help='assemble an install-failure report (OS + route + driver '
                                        'output) and file it upstream — you approve the full text first')

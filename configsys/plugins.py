@@ -323,6 +323,7 @@ def status(plugins_dir, decls, *, trust_file=None):
         rows.append({
             'name': manifest.get('name', key),
             'source': d['source'], 'ref': d.get('ref'), 'primary': bool(d.get('primary')),
+            'local': is_local_authored(d['source'], pdir),   # authored in place, not pushed
             'synced': synced, 'abi_ok': (not synced) or _abi_ok(manifest),
             'requires_abi': manifest.get('requires-abi', ABI_VERSION),
             'provides': manifest.get('provides', {}),
@@ -409,6 +410,42 @@ def set_declared(user_config_file, decls):
         idx = text.rstrip().rfind('}')              # before the root's closing brace
         text = text[:idx] + '    ' + _emit_block(decls, 4) + '\n' + text[idx:]
     path.write_text(text, encoding='utf-8')
+
+
+def config_sections_text(user_config_file, keys):
+    '''{key: raw source_text} for the given top-level config keys that are PRESENT — the verbatim
+    humon text (comments and all), for copying a user's `profiles:`/`components:` into a plugin.'''
+    p = Path(user_config_file)
+    if not p.exists():
+        return {}
+    trove = humon.from_string(p.read_text(encoding='utf-8'))   # keep alive while reading source_text
+    out = {}
+    for k in keys:
+        node = trove.root[k]
+        if node is not None:
+            out[k] = node.source_text
+    return out
+
+
+def scaffold_primary(plug_dir, name, transitive_decls=(), sections=None):
+    '''Write a locally-authored primary plugin's files: a data-only `plugin.hu` (manifest) and,
+    when `sections` ({key: text}) are given, a `<name>.hu` carrying them verbatim. `transitive_decls`
+    become the manifest's `plugins:` list (their `primary` flag stripped — a transitive plugin is
+    never itself primary). Creates an (empty) `dotfiles/` so it's the capture target.'''
+    plug_dir = Path(plug_dir)
+    plug_dir.mkdir(parents=True, exist_ok=True)
+    trans = [{k: v for k, v in d.items() if k != 'primary'} for d in (transitive_decls or [])]
+    lines = ['{', f'    name: {name}', f'    requires-abi: {ABI_VERSION}']
+    if sections:
+        lines.append(f'    data: [ {name}.hu ]')
+    if trans:
+        lines.append('    ' + _emit_block(trans, 4))
+    lines.append('}')
+    (plug_dir / 'plugin.hu').write_text('\n'.join(lines) + '\n', encoding='utf-8')
+    if sections:
+        body = '{\n' + ''.join(f'    {t}\n' for t in sections.values()) + '}\n'
+        (plug_dir / f'{name}.hu').write_text(body, encoding='utf-8')
+    (plug_dir / 'dotfiles').mkdir(exist_ok=True)
 
 
 def _import_drivers(pdir, manifest):
@@ -520,10 +557,35 @@ def _git_checkout(runner, dq, ref):
     return co is None or co.ok
 
 
+def _local_source_path(source):
+    '''The filesystem path a LOCAL `source:` refers to (a plugin authored in place, not fetched
+    from a remote), or None for a remote source (github:/gitlab:/a URL/ssh). Lets sync no-op a
+    plugin whose source IS its own on-disk dir — the `plugin init` local-authoring model.'''
+    if not source or '://' in source or source.startswith('git@'):
+        return None
+    head = source.split(':', 1)[0] if ':' in source else ''
+    if head in ('github', 'gitlab'):
+        return None
+    return Path(source).expanduser()
+
+
+def is_local_authored(source, dest):
+    '''True when `source` is a local path equal to its own plugin dir `dest` — authored in place,
+    nothing to clone/fetch (it IS the repo you later push).'''
+    lp = _local_source_path(source)
+    try:
+        return lp is not None and lp.resolve() == Path(dest).resolve()
+    except OSError:
+        return False
+
+
 def _git_transport(runner, dest, source, ref):
     '''The built-in transport: clone/fetch a git repo to `dest`, then detach at `ref` as it is on
     the remote now (see _git_checkout). `fetch --force` so a re-pointed tag updates; a failed
-    checkout is reported as 'failed', not silently 'updated'. Returns 'cloned'/'updated'/'failed'.'''
+    checkout is reported as 'failed', not silently 'updated'. A locally-authored plugin (source ==
+    its own dir) is 'local' — untouched. Returns 'local'/'cloned'/'updated'/'failed'.'''
+    if is_local_authored(source, dest):
+        return 'local'
     dq = shlex.quote(str(dest))
     if dest.exists():
         runner.run(f'git -C {dq} fetch --force --tags --quiet', capture=False)   # --force: re-pointed tags

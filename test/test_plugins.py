@@ -196,6 +196,71 @@ def test_sync_reports_failed_on_a_bad_ref(tmp_path):
     assert res == [('src', 'failed')]
 
 
+def test_is_local_authored(tmp_path):
+    p = tmp_path / 'plugins' / 'foo'
+    assert plugins.is_local_authored(str(p), p)
+    assert not plugins.is_local_authored('github:me/foo', p)
+    assert not plugins.is_local_authored(str(tmp_path / 'elsewhere'), p)
+
+
+def test_sync_is_local_noop_for_in_place_plugin(tmp_path):
+    pdir = tmp_path / 'plugins'
+    plug = pdir / 'myconfig'
+    plug.mkdir(parents=True)
+    (plug / 'plugin.hu').write_text('{ name: myconfig  requires-abi: 1 }')
+    (plug / 'sentinel').write_text('local')                   # would vanish if cloned over
+    res = plugins.sync(Runner(pretend=False), pdir, [{'source': str(plug), 'ref': None}])
+    assert res == [('myconfig', 'local')]
+    assert (plug / 'sentinel').read_text() == 'local'         # untouched
+
+
+@pytest.mark.skipif(shutil.which('git') is None, reason='git not available')
+def test_plugin_init_create_then_merge(tmp_path, monkeypatch):
+    from configsys.app import main
+    from configsys.layers import materialize_string
+    monkeypatch.setenv('CONFIGSYS_NO_DISCOVER', '1')
+    cfgdir = tmp_path / 'home' / '.config' / 'configsys'
+    cfgdir.mkdir(parents=True)
+    (cfgdir / 'configsys.hu').write_text(
+        '{ configs: [ dev ]  plugins: [ { source: "github:x/foo"  ref: v1 } ]'
+        '  profiles: { mine: [ btop ] } }')
+    st = cfgdir / 'dotfiles' / 'htop'
+    st.mkdir(parents=True)
+    (st / 'htoprc').write_text('cfg')
+    base = ['--home', str(tmp_path / 'home'), '--os', 'pop', 'plugin', 'init']
+
+    assert main(base + ['myc']) == 0
+    plug = cfgdir / 'plugins' / 'myc'
+    m = materialize_string((plug / 'plugin.hu').read_text())
+    assert m['name'] == 'myc' and m['data'] == ['myc.hu']
+    assert m['plugins'][0]['source'] == 'github:x/foo'          # carried as transitive
+    assert 'mine' in materialize_string((plug / 'myc.hu').read_text())['profiles']
+    assert (plug / 'dotfiles' / 'htop' / 'htoprc').read_text() == 'cfg'   # dotfiles moved in
+    assert not (cfgdir / 'dotfiles' / 'htop').exists()          # local store emptied
+    decls = plugins.declared(str(cfgdir / 'configsys.hu'))
+    assert decls == [{'source': str(plug), 'ref': None, 'primary': True}]
+
+    # a primary now exists -> a second init MERGES leftover local-store dotfiles into it
+    gdb = cfgdir / 'dotfiles' / 'gdb'
+    gdb.mkdir(parents=True)
+    (gdb / 'gdbinit').write_text('x')
+    assert main(base) == 0
+    assert (plug / 'dotfiles' / 'gdb' / 'gdbinit').read_text() == 'x'
+
+
+def test_plugin_set_source_swaps_and_keeps_primary(tmp_path, monkeypatch):
+    from configsys.app import main
+    monkeypatch.setenv('CONFIGSYS_NO_DISCOVER', '1')
+    cfgdir = tmp_path / 'home' / '.config' / 'configsys'
+    cfgdir.mkdir(parents=True)
+    (cfgdir / 'configsys.hu').write_text(
+        '{ plugins: [ { source: /local/myc  primary: true } ] }')
+    home = ['--home', str(tmp_path / 'home'), '--os', 'pop']
+    assert main(home + ['plugin', 'set-source', 'myc', 'github:me/myc']) == 0
+    decls = plugins.declared(str(cfgdir / 'configsys.hu'))
+    assert decls == [{'source': 'github:me/myc', 'ref': None, 'primary': True}]
+
+
 # -- editing the plugins: list (comment-preserving) -----------------------
 
 def test_set_declared_inserts_and_preserves_comments(tmp_path):

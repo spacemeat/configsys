@@ -70,7 +70,7 @@ action shows in `plugin list` as "local (unpushed)".
 Once it's good, the plugin is a normal git repo:
 
 ```
-$ cd ~/.config/configsys/plugins/myconfig
+$ cd ~/.config/configsys/plugins/configsys-myconfig
 $ git remote add origin git@github.com:you/configsys-myconfig.git && git push -u origin main
 $ configsys plugin set-source myconfig github:you/configsys-myconfig   # swap local -> remote
 ```
@@ -94,7 +94,7 @@ $ configsys plugin set-source myconfig github:you/configsys-myconfig   # swap lo
 - **Config auto-move vs report**: MVP *copies* `profiles:`/`components:` into the plugin (create)
   and *reports* them (merge); it does **not** auto-strip them from `configsys.hu` (risky
   section-editing). Stretch: comment-preserving move + cleanup.
-- **Name default**: `<os-user>-config` (e.g. `schrock-config`); `--name` overrides; prompt on a TTY.
+- **Name default**: `configsys-<os-user>` (e.g. `configsys-schrock`); `--name` overrides; prompt on a TTY.
 - **`git init` details**: default branch `main`, an initial commit, a generated `README.md` +
   `.gitignore` (`__pycache__/`). No remote.
 - **Idempotence / safety**: refuse to overwrite an existing `plugins/<name>` in create mode;
@@ -114,8 +114,13 @@ $ configsys plugin set-source myconfig github:you/configsys-myconfig   # swap lo
 
 ## Phasing
 
-1. `_git_transport` local sync-exempt + `plugin list` "local" status.
-2. `plugin init` create (scaffold + move dotfiles + declare primary + git init).
-3. `plugin init` merge (move local-store dotfiles into the primary; report config bits).
-4. `plugin set-source` + the ship-it hint.
-5. *(stretch)* comment-preserving config move/cleanup between `configsys.hu` and the plugin.
+1. **DONE** — `_git_transport` local sync-exempt (`is_local_authored`) + `plugin list` "local
+   (unpushed)" status.
+2. **DONE** — `plugin init` create: `scaffold_primary` (plugin.hu with transitive plugins +
+   `<name>.hu` from `config_sections_text` verbatim), move the local dotfiles store in, `git init`,
+   collapse `configsys.hu`'s `plugins:` to the sole local primary. Default name `configsys-<user>`.
+3. **DONE** — `plugin init` merge: move leftover local-store dotfiles into the existing primary
+   (skip present, `--force`); report movable config.
+4. **DONE** — `plugin set-source <name> <source>` + the ship-it hint.
+5. *(stretch, not built)* comment-preserving config move/cleanup — auto-strip the now-redundant
+   `profiles:`/`components:` from `configsys.hu`, and auto-merge config in the merge path.
