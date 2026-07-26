@@ -9,6 +9,7 @@ runs fully sandboxable for tests and containers.
 import argparse
 import os
 import sys
+from pathlib import Path
 
 from . import osdetect
 from . import report
@@ -1508,30 +1509,49 @@ def cmd_dotfiles(ctx, args):
     return cmd_dotfiles_status(ctx, args)
 
 
+def _dotfiles_root_label(ctx, root):
+    '''A short, stable label for a content root: <plugin> / <local> / <repo>, else <plugin-name>
+    for another layer's dotfiles dir.'''
+    p, rp = ctx.paths, Path(root)
+    if p.primary_dotfiles_dir is not None and rp == Path(p.primary_dotfiles_dir):
+        return '<plugin>'
+    if rp == p.user_dotfiles_dir:
+        return '<local>'
+    if rp == p.dotfiles_dir:
+        return '<repo>'
+    return f'<{rp.parent.name or rp.name}>'
+
+
 def cmd_dotfiles_status(ctx, args):
-    '''Show every via:dotfiles target in the active profiles: its state, and where its MANAGED
-    content lives (a user store) or will live once captured (→). So you can SEE what's at risk
-    before installing anything.'''
+    '''Show every via:dotfiles target in the active profiles: its state, its component, and where
+    its MANAGED content lives (or `→` where capture will put it). Content roots are labeled once up
+    top so the SRC column stays short.'''
     df, units = _active_dotfiles(ctx)
-    rows = []
+    rows = []   # (state, target, component, src_root, src_rel, here)
     for rc in units:
-        for _name, tgt, state, managed, here in df.spec_states(rc):
-            rows.append((state, tgt, managed, here))
+        for _name, tgt, state, src_root, src_rel, here in df.spec_states(rc):
+            rows.append((state, tgt, rc.comp, Path(src_root), src_rel, here))
     print(f'OS: {ctx.os_info.block}   profiles: {_profiles_label(ctx.config.active_profiles)}')
     if not rows:
         print('\n(no dotfiles components in the active profiles)')
         return 0
+    roots = {}                                   # distinct src roots -> label, listed once
+    for r in rows:
+        roots.setdefault(r[3], _dotfiles_root_label(ctx, r[3]))
+    print()
+    for root, label in sorted(roots.items(), key=lambda kv: kv[1]):
+        print(f'  {label:9} {df.display_path(root)}')
     rows.sort(key=lambda r: (_DOTFILES_STATE_ORDER.index(r[0])
                              if r[0] in _DOTFILES_STATE_ORDER else 99, r[1]))
     print()
-    print(f'  {"":1} {"STATE":10} {"TARGET":30} MANAGED SRC  (→ = created on capture)')
-    print('  ' + '-' * 74)
+    print(f'  {"":1} {"STATE":10} {"TARGET":26} {"COMPONENT":20} SRC  (→ = on capture)')
+    print('  ' + '-' * 78)
     counts = {}
-    for state, tgt, managed, here in rows:
+    for state, tgt, comp, src_root, src_rel, here in rows:
         counts[state] = counts.get(state, 0) + 1
         mark = '!' if state == 'unmanaged' else ' '
         arrow = '' if here else '→ '
-        print(f'  {mark} {state:10} {tgt:30} {arrow}{managed}')
+        print(f'  {mark} {state:10} {tgt:26} {comp:20} {arrow}{roots[src_root]}/{src_rel}')
     summary = ', '.join(f'{counts[s]} {s}' for s in _DOTFILES_STATE_ORDER if s in counts)
     print(f'\n{summary}')
     if counts.get('unmanaged'):

@@ -95,16 +95,17 @@ class DotFiles(Driver):
         return Path('dotfiles')          # degenerate fallback (no paths); tests always pass paths
 
     def _resolve(self, src, rc):
-        '''(resolved_src_path, tier) — the first content root that actually HAS `src` wins, with
-        tier 'user' or 'template'. If none does, the defining-layer path with tier None: the
+        '''(resolved_src_path, tier, root) — the first content root that actually HAS `src` wins,
+        with tier 'user' or 'template'. If none does, the defining-layer path with tier None: the
         component is UNPOPULATED — declared but no content anywhere (a personal dotfile you haven't
         captured). That is an expected state, not an error: configsys has no opinion on your
         neovim config, it just knows where it goes.'''
         for root, tier in self._content_roots(rc):
             cand = root / src
             if cand.exists():
-                return cand, tier
-        return self._defining_root(rc) / src, None
+                return cand, tier, root
+        dr = self._defining_root(rc)
+        return dr / src, None, dr
 
     def _expand(self, dst):
         '''Expand env vars + ~ in a destination against configsys HOME.'''
@@ -135,7 +136,7 @@ class DotFiles(Driver):
                 for _n, src, dst, absorb in self._specs(rc)]
 
     def spec_states(self, rc):
-        '''[(name, target_display, state, managed_src_display, here)] for `dotfiles status`.
+        '''[(name, target_display, state, src_root, src_rel, here)] for `dotfiles status`.
         state is one of:
           linked    — our symlink is in place (managed & active)
           adopted   — your content exists in a user root; not linked yet (capture done)
@@ -143,12 +144,14 @@ class DotFiles(Driver):
           template  — a shipped template exists, not adopted, nothing on-system yet
           empty     — declared, no content anywhere, nothing on-system (a personal dotfile
                       you haven't captured; harmless — install is a no-op until you do).
-        managed_src is where YOUR managed copy lives (a user root) or WILL live once captured;
-        `here` is True when that copy already exists there, False when it's prospective.'''
+        (src_root, src_rel) locate the managed content: for content that EXISTS (linked/adopted/
+        template) the root it lives in (a user store, or the base <repo> for a template); for
+        unmanaged/empty the capture destination (where it WILL land). `here` is True in the former
+        case, False when it's prospective. The caller labels the distinct roots.'''
         capture_root = self._capture_root()
         out = []
         for name, src, dst, _absorb in self._specs(rc):
-            srcpath, tier = self._resolve(src, rc)
+            srcpath, tier, root = self._resolve(src, rc)
             tgt = self._expand(dst)
             if tgt.is_symlink() and os.path.realpath(tgt) == os.path.realpath(srcpath):
                 state = 'linked'
@@ -160,11 +163,11 @@ class DotFiles(Driver):
                 state = 'template'
             else:
                 state = 'empty'
-            if tier == 'user':
-                managed, here = srcpath, True             # already in your store
+            if state in ('linked', 'adopted', 'template'):
+                src_root, here = root, True               # content exists here
             else:
-                managed, here = capture_root / src, False  # where capture would place it
-            out.append((name, self.display_path(tgt), state, self.display_path(managed), here))
+                src_root, here = capture_root, False      # unmanaged/empty -> where capture puts it
+            out.append((name, self.display_path(tgt), state, src_root, src, here))
         return out
 
     def capture_plan(self, rc, force=False):
@@ -179,7 +182,7 @@ class DotFiles(Driver):
         for name, src, dst, _absorb in self._specs(rc):
             tgt = self._expand(dst)
             dest = root / src
-            srcpath, _tier = self._resolve(src, rc)
+            srcpath, _tier, _root = self._resolve(src, rc)
             if tgt.is_symlink() and os.path.realpath(tgt) == os.path.realpath(srcpath):
                 action = 'skip-linked'
             elif not tgt.exists():                        # absent, or a broken symlink
