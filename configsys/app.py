@@ -1458,10 +1458,16 @@ def build_parser():
     rq.add_argument('--print', dest='print_only', action='store_true',
                     help='print the request and exit; never send')
 
-    dfp = sub.add_parser('dotfiles', help='inspect your dotfiles (status); adopt/capture is next')
+    dfp = sub.add_parser('dotfiles', help='inspect (status) and adopt (capture) your dotfiles')
     dfsub = dfp.add_subparsers(dest='dotfiles_command')
     dfsub.add_parser('status', help='per-target state of every dotfile in the active profiles: '
                                     'linked / adopted / unmanaged / template / empty')
+    cap = dfsub.add_parser('capture', help='adopt existing on-system dotfiles into your content '
+                                           'store (read-only on the system side)')
+    cap.add_argument('names', nargs='*', help='limit to these components (default: all active)')
+    cap.add_argument('--force', action='store_true', help='overwrite content already in the store')
+    cap.add_argument('--dry-run', action='store_true', help='show the plan and exit; write nothing')
+    cap.add_argument('--yes', action='store_true', help='skip the confirmation prompt')
 
     mp = sub.add_parser('manpages', help='install or check the man pages '
                                          '(configsys(1) + configsys.hu(5))')
@@ -1487,42 +1493,102 @@ _DOTFILES_STATE_NOTE = {
 }
 
 
+def _active_dotfiles(ctx):
+    '''(driver, [ResolvedComponent]) — the via:dotfiles units in the active profiles. Resolution
+    only (no install-state query), so it's cheap and side-effect-free.'''
+    from .drivers import get_driver
+    units, _errs = ctx.routes.resolve_resilient(list(ctx.config.requested()))
+    df = get_driver('dotfiles', ctx.runner, ctx.paths)
+    return df, [units[k] for k in sorted(units) if units[k].driver == 'dotfiles']
+
+
 def cmd_dotfiles(ctx, args):
-    return cmd_dotfiles_status(ctx, args)   # only subcommand for now (capture/adopt land next)
+    if (getattr(args, 'dotfiles_command', None) or 'status') == 'capture':
+        return cmd_dotfiles_capture(ctx, args)
+    return cmd_dotfiles_status(ctx, args)
 
 
 def cmd_dotfiles_status(ctx, args):
-    '''Show every `via: dotfiles` component in the active profiles and the state of each of its
-    targets — so you can SEE what's at risk before installing anything.'''
-    from .drivers import get_driver
-    cfg = ctx.config
-    units, _errs = ctx.routes.resolve_resilient(list(cfg.requested()))   # resolution only (no state query)
-    df = get_driver('dotfiles', ctx.runner, ctx.paths)
+    '''Show every via:dotfiles target in the active profiles: its state, and where its MANAGED
+    content lives (a user store) or will live once captured (→). So you can SEE what's at risk
+    before installing anything.'''
+    df, units = _active_dotfiles(ctx)
     rows = []
-    for key in sorted(units):
-        rc = units[key]
-        if rc.driver != 'dotfiles':
-            continue
-        for _name, tgt, state in df.spec_states(rc):
-            rows.append((state, tgt, rc.comp))
-    print(f'OS: {ctx.os_info.block}   profiles: {_profiles_label(cfg.active_profiles)}')
+    for rc in units:
+        for _name, tgt, state, managed, here in df.spec_states(rc):
+            rows.append((state, tgt, managed, here))
+    print(f'OS: {ctx.os_info.block}   profiles: {_profiles_label(ctx.config.active_profiles)}')
     if not rows:
         print('\n(no dotfiles components in the active profiles)')
         return 0
     rows.sort(key=lambda r: (_DOTFILES_STATE_ORDER.index(r[0])
                              if r[0] in _DOTFILES_STATE_ORDER else 99, r[1]))
     print()
-    print(f'  {"":1} {"TARGET":40} {"STATE":10} COMPONENT')
-    print('  ' + '-' * 72)
+    print(f'  {"":1} {"STATE":10} {"TARGET":30} MANAGED SRC  (→ = created on capture)')
+    print('  ' + '-' * 74)
     counts = {}
-    for state, tgt, comp in rows:
+    for state, tgt, managed, here in rows:
         counts[state] = counts.get(state, 0) + 1
         mark = '!' if state == 'unmanaged' else ' '
-        print(f'  {mark} {tgt:40} {state:10} {comp}')
+        arrow = '' if here else '→ '
+        print(f'  {mark} {state:10} {tgt:30} {arrow}{managed}')
     summary = ', '.join(f'{counts[s]} {s}' for s in _DOTFILES_STATE_ORDER if s in counts)
     print(f'\n{summary}')
     if counts.get('unmanaged'):
         print(f'  ! {counts["unmanaged"]} unmanaged: {_DOTFILES_STATE_NOTE["unmanaged"]}.')
+    return 0
+
+
+def cmd_dotfiles_capture(ctx, args):
+    '''Adopt existing on-system dotfiles into your content store (the primary plugin's dotfiles/,
+    else ~/.config/configsys/dotfiles) so a later install links YOUR content, not a template.
+    Read-only on the system side — it only copies FROM your dotfiles INTO the store; it never
+    modifies or deletes an on-system file.'''
+    import shutil
+    df, units = _active_dotfiles(ctx)
+    want = set(args.names or [])
+    store = df._capture_root()
+    is_plugin = (ctx.paths.primary_dotfiles_dir is not None
+                 and Path(store) == Path(ctx.paths.primary_dotfiles_dir))
+    plan, skips = [], []
+    for rc in units:
+        if want and rc.comp not in want:
+            continue
+        for _name, dst, dest, action in df.capture_plan(rc, force=args.force):
+            (plan if action == 'copy' else skips).append((rc.comp, dst, dest, action))
+
+    print(f'store: {df.display_path(store)}' + ('  (plugin)' if is_plugin else '  (local)'))
+    if plan:
+        print(f'\nwill capture {len(plan)} target(s):')
+        for comp, dst, dest, _a in plan:
+            print(f'  {df.display_path(dst):34} ->  {df.display_path(dest)}   [{comp}]')
+    _SKIP_WHY = {'skip-linked': 'already managed', 'skip-absent': 'nothing on-system',
+                 'skip-exists': 'already in store (--force to overwrite)'}
+    for comp, dst, _dest, action in skips:
+        print(f'  skip {df.display_path(dst):34} ({_SKIP_WHY.get(action, action)}) [{comp}]')
+    if not plan:
+        print('\nnothing to capture.')
+        return 0
+    if args.dry_run or ctx.runner.pretend:
+        print('\n(dry run — nothing written)')
+        return 0
+    if not args.yes:
+        caveat = ' — committed if you push the plugin' if is_plugin else ''
+        resp = input(f'\nCopy {len(plan)} target(s) into {df.display_path(store)}{caveat}? [y/N] ')
+        if resp.strip().lower() not in ('y', 'yes'):
+            print('aborted.')
+            return 1
+    for comp, dst, dest, _a in plan:
+        dest.parent.mkdir(parents=True, exist_ok=True)
+        if dest.is_symlink() or dest.is_file():
+            dest.unlink()
+        elif dest.is_dir():
+            shutil.rmtree(dest)
+        if dst.is_dir():
+            shutil.copytree(dst, dest)                 # follows into the tree; copies content
+        else:
+            shutil.copy2(dst, dest)
+    print(f'\ncaptured {len(plan)} target(s) into {df.display_path(store)}.')
     return 0
 
 

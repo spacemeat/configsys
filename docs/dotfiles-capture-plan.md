@@ -130,7 +130,12 @@ does the backup-and-replace.
    clarification — install now **skips an unpopulated spec** (declared src/dst, no content
    anywhere) gracefully instead of erroring. Plus `dotfiles status` (linked / adopted / unmanaged
    / template / empty). Behavior-preserving where content exists; existing tests green.
-2. `capture` command (+ preview/confirm).
+2. **DONE** — `dotfiles capture [names] [--force] [--dry-run] [--yes]`: copies each active
+   dotfile's real on-system `dst` into the store (plugin if synced, else local); preview + confirm
+   (with a "committed if you push" caveat for a plugin store); skips already-linked / absent /
+   already-in-store (force to overwrite). **Read-only on the system side** — only reads `dst`,
+   only writes the store. `status` now also shows the MANAGED SRC location (where your copy is, or
+   `→` where capture will put it).
 3. `install` refuse-until-adopted + `--force`.
 4. Un-comment `neovim-dotfiles`'s `config:` (now safe) + drop the shipped `dotfiles/neovim`,
    `dotfiles/htop`, `dotfiles/containers` templates (configsys ships no personal config).

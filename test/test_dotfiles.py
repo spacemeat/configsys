@@ -198,6 +198,63 @@ def test_spec_state_template(tmp_path):
     assert df.spec_states(df_unit())[0][2] == 'template'
 
 
+# -- capture: adopt on-system dotfiles into the store (phase 2) ------------
+
+def test_capture_root_prefers_plugin_then_local(tmp_path):
+    p = paths_for(tmp_path)
+    assert DotFiles(Runner(pretend=True), paths=p)._capture_root() == p.user_dotfiles_dir
+    p.primary_dotfiles_dir = tmp_path / 'plug' / 'dotfiles'
+    assert DotFiles(Runner(pretend=True), paths=p)._capture_root() == p.primary_dotfiles_dir
+
+
+def test_capture_plan_actions(tmp_path):
+    p = paths_for(tmp_path)
+    p.home.mkdir(parents=True)
+    df = DotFiles(Runner(pretend=True), paths=p)
+    rc = df_unit()
+
+    assert df.capture_plan(rc)[0][3] == 'skip-absent'          # nothing on-system
+
+    (p.home / '.config' / 'nvim').mkdir(parents=True)          # a real on-system dir
+    name, dst, dest, action = df.capture_plan(rc)[0]
+    assert action == 'copy'
+    assert dst == p.home / '.config' / 'nvim'
+    assert dest == p.user_dotfiles_dir / 'neovim'             # into the local store
+
+    (p.user_dotfiles_dir / 'neovim').mkdir(parents=True)      # store already has it
+    assert df.capture_plan(rc)[0][3] == 'skip-exists'
+    assert df.capture_plan(rc, force=True)[0][3] == 'copy'    # --force overwrites
+
+
+def test_capture_plan_skips_our_own_link(tmp_path):
+    p = paths_for(tmp_path)
+    p.home.mkdir(parents=True)
+    (p.user_dotfiles_dir / 'neovim').mkdir(parents=True)      # content in the store
+    df = DotFiles(Runner(pretend=False), paths=p)
+    df.install(df_unit())                                     # dst -> store symlink
+    assert df.capture_plan(df_unit())[0][3] == 'skip-linked'
+
+
+def test_cli_capture_copies_and_leaves_system_untouched(tmp_path, monkeypatch):
+    monkeypatch.setenv('CONFIGSYS_NO_DISCOVER', '1')
+    from configsys.app import main
+    home = tmp_path / 'home'
+    (home / '.config' / 'configsys').mkdir(parents=True)
+    (home / '.config' / 'configsys' / 'configsys.hu').write_text('{ configs: [ user ] }')
+    real = home / '.config' / 'htop'
+    real.mkdir(parents=True)
+    (real / 'htoprc').write_text('mine')                     # htop-dotfiles rides in via `user`
+    base = ['--home', str(home), '--os', 'pop', 'dotfiles', 'capture']
+
+    assert main(base + ['--dry-run']) == 0                    # dry run writes nothing
+    store = home / '.config' / 'configsys' / 'dotfiles' / 'htop'
+    assert not store.exists()
+
+    assert main(base + ['--yes']) == 0
+    assert (store / 'htoprc').read_text() == 'mine'          # copied into the store
+    assert (real / 'htoprc').read_text() == 'mine'           # system side UNTOUCHED (read-only)
+
+
 # -- absorb-into: relocate a pre-existing file into the loader dir --------
 
 ABSORB = '~/.bash.d/pre-configsys-aliases.sh'
