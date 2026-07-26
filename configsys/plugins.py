@@ -148,7 +148,7 @@ def dir_name(source):
 
 
 def read_manifest(plugin_dir):
-    '''The plugin's plugin.hu as python (name/version/requires-abi/provides/data), or {}.'''
+    '''The plugin's plugin.hu as python (name/requires-abi/provides/data/code), or {}.'''
     p = plugin_dir / 'plugin.hu'
     if not p.exists():
         return {}

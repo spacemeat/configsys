@@ -1,7 +1,6 @@
 {
     // The plugin manifest. `configsys plugin list` reads this; the loader gates on it.
     name: examplos
-    version: 0.1.0
 
     // The plugin ABI this code targets. configsys loads the plugin only if this is in its
     // ABI_SUPPORTED set (bump when you code against a newer Driver contract).

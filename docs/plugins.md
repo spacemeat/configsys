@@ -45,7 +45,6 @@ layer stack; the code half is the new, careful part.
 ```
 {
     name:         opensuse-support
-    version:      1.2.0                 // the plugin's own version (informational)
     requires-abi: 1                     // the configsys plugin ABI it targets (see §7)
     provides:     { os: [ opensuse ]  mechanisms: [ zypper ] }   // informational / for `plugin list`
     data:         [ routes.hu, profiles.hu ]   // .hu layer files (default: all .hu but plugin.hu)
