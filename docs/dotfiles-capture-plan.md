@@ -125,8 +125,12 @@ does the backup-and-replace.
 
 ## Phasing
 
-1. `_resolve_src` search-path + overlay-roots wiring (behavior-preserving: with no user roots,
-   identical to today — golden/dotfiles tests stay green).
-2. `capture` command (+ preview/confirm) and `dotfiles status`.
+1. **DONE** — content search-path (`_resolve` over local → primary-plugin → defining-layer),
+   `Paths.user_dotfiles_dir` + app-wired `primary_dotfiles_dir`, and — per the "no templates"
+   clarification — install now **skips an unpopulated spec** (declared src/dst, no content
+   anywhere) gracefully instead of erroring. Plus `dotfiles status` (linked / adopted / unmanaged
+   / template / empty). Behavior-preserving where content exists; existing tests green.
+2. `capture` command (+ preview/confirm).
 3. `install` refuse-until-adopted + `--force`.
-4. Un-comment `neovim-dotfiles`'s `config:` (now safe) as the proof-of-concept.
+4. Un-comment `neovim-dotfiles`'s `config:` (now safe) + drop the shipped `dotfiles/neovim`,
+   `dotfiles/htop`, `dotfiles/containers` templates (configsys ships no personal config).

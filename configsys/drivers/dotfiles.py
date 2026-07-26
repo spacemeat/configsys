@@ -56,19 +56,43 @@ class DotFiles(Driver):
     def _env(self):
         return self.paths.env if self.paths is not None else dict(os.environ)
 
-    def _content_root(self, rc):
-        '''Where a component's `src:` files live: a `dotfiles/` dir NEXT TO the .hu file that
-        defined the component (`rc.source`), so a plugin / user layer ships its own content
-        alongside its definitions — the parallel to plugin data files. Falls back to the base
-        repo's dotfiles dir when the component carries no source (a hand-built rc in tests).
-        For the base repo this is identical to paths.dotfiles_dir (routes.hu sits at repo root).'''
+    def _defining_root(self, rc):
+        '''The `dotfiles/` dir NEXT TO the .hu file that defined the component (`rc.source`) — a
+        plugin / user layer ships content alongside its definitions. Falls back to the base repo's
+        dotfiles dir when the component carries no source (a hand-built rc in tests). This is the
+        LOWEST-precedence content root: a shipped template, if the layer ships one at all.'''
         src_file = getattr(rc, 'source', '') or ''
         if src_file:
             return Path(src_file).parent / 'dotfiles'
         return self.paths.dotfiles_dir if self.paths is not None else Path('dotfiles')
 
-    def _source(self, src, root):
-        return root / src
+    def _content_roots(self, rc):
+        '''Ordered (root, tier) content roots for resolving `src`, highest precedence first:
+        the machine-local store, then the primary plugin's dotfiles/, then the defining layer.
+        The first two are the USER's own content (capture writes there); the last is a template
+        the defining layer may or may not ship. So your captured config always shadows a template,
+        and a base component can declare src/dst WITHOUT shipping any content at all.'''
+        roots = []
+        p = self.paths
+        if p is not None:
+            for attr in ('user_dotfiles_dir', 'primary_dotfiles_dir'):
+                d = getattr(p, attr, None)
+                if d is not None:
+                    roots.append((Path(d), 'user'))
+        roots.append((self._defining_root(rc), 'template'))
+        return roots
+
+    def _resolve(self, src, rc):
+        '''(resolved_src_path, tier) — the first content root that actually HAS `src` wins, with
+        tier 'user' or 'template'. If none does, the defining-layer path with tier None: the
+        component is UNPOPULATED — declared but no content anywhere (a personal dotfile you haven't
+        captured). That is an expected state, not an error: configsys has no opinion on your
+        neovim config, it just knows where it goes.'''
+        for root, tier in self._content_roots(rc):
+            cand = root / src
+            if cand.exists():
+                return cand, tier
+        return self._defining_root(rc) / src, None
 
     def _expand(self, dst):
         '''Expand env vars + ~ in a destination against configsys HOME.'''
@@ -92,11 +116,36 @@ class DotFiles(Driver):
         return Path(s)
 
     def _pairs(self, rc):
-        '''[(source_path, target_path, absorb_path_or_None)] resolved for this machine.'''
-        root = self._content_root(rc)
-        return [(self._source(src, root), self._expand(dst),
+        '''[(source_path, target_path, absorb_path_or_None)] resolved for this machine — `src`
+        resolved through the content search-path (_resolve).'''
+        return [(self._resolve(src, rc)[0], self._expand(dst),
                  self._expand(absorb) if absorb else None)
                 for _n, src, dst, absorb in self._specs(rc)]
+
+    def spec_states(self, rc):
+        '''[(name, target_display, state)] for `dotfiles status`. state is one of:
+          linked    — our symlink is in place (managed & active)
+          adopted   — your content exists in a user root; not linked yet (capture done)
+          unmanaged — a real on-system file with NO adopted content -> AT RISK on install
+          template  — a shipped template exists, not adopted, nothing on-system yet
+          empty     — declared, no content anywhere, nothing on-system (a personal dotfile
+                      you haven't captured; harmless — install is a no-op until you do).'''
+        out = []
+        for name, src, dst, _absorb in self._specs(rc):
+            srcpath, tier = self._resolve(src, rc)
+            tgt = self._expand(dst)
+            if tgt.is_symlink() and os.path.realpath(tgt) == os.path.realpath(srcpath):
+                state = 'linked'
+            elif tgt.is_symlink() or tgt.exists():        # a real file/dir, or a foreign symlink
+                state = 'adopted' if tier == 'user' else 'unmanaged'
+            elif tier == 'user':
+                state = 'adopted'                         # captured, dst absent -> links cleanly
+            elif tier == 'template':
+                state = 'template'
+            else:
+                state = 'empty'
+            out.append((name, self.display_path(tgt), state))
+        return out
 
     # -- read -------------------------------------------------------------
 
@@ -126,21 +175,25 @@ class DotFiles(Driver):
         lines = ['set -e']
         for src, tgt, absorb in pairs:
             s, t = shlex.quote(str(src)), shlex.quote(str(tgt))
-            lines.append(
-                f'test -e {s} || {{ echo "dotfiles source missing: {src}" >&2; exit 1; }}')
-            lines.append(f'mkdir -p {shlex.quote(str(tgt.parent))}')
+            # UNPOPULATED is not an error: a component may declare src/dst with no content shipped
+            # (a personal dotfile awaiting capture). If the source is absent, skip that spec with a
+            # note instead of failing — configsys never invents content for you.
+            lines.append(f'if [ -e {s} ]; then')
+            lines.append(f'  mkdir -p {shlex.quote(str(tgt.parent))}')
             if absorb is not None:
                 # a pre-existing real dst is RELOCATED into the loader dir (made executable so
                 # the ~/.bash.d loader still sources it) — the user's own file isn't zapped.
                 # If the absorb target is already taken, fall back to a plain backup.
                 a, ap = shlex.quote(str(absorb)), shlex.quote(str(absorb.parent))
                 lines.append(
-                    f'if [ -e {t} ] && [ ! -L {t} ]; then mkdir -p {ap}; '
+                    f'  if [ -e {t} ] && [ ! -L {t} ]; then mkdir -p {ap}; '
                     f'if [ -e {a} ]; then mv {t} {t}{BACKUP_SUFFIX}; '
                     f'else mv {t} {a} && chmod +x {a}; fi; fi')
             else:
-                lines.append(f'if [ -e {t} ] && [ ! -L {t} ]; then mv {t} {t}{BACKUP_SUFFIX}; fi')
-            lines.append(f'ln -sfn {s} {t}')
+                lines.append(f'  if [ -e {t} ] && [ ! -L {t} ]; then mv {t} {t}{BACKUP_SUFFIX}; fi')
+            lines.append(f'  ln -sfn {s} {t}')
+            lines.append(f'else echo "dotfiles: {rc.comp} not populated ({src} absent) — '
+                         f'capture to manage {tgt}" >&2; fi')
         return self.runner.run('\n'.join(lines), capture=False)
 
     def upgrade(self, rc):

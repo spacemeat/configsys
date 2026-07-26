@@ -55,6 +55,13 @@ class Paths:
         self.plugins_dir = self.state_dir / 'plugins'         # synced remote plugin repos
         self.plugin_trust_file = self.state_dir / 'plugin-trust.hu'   # {plugin: approved commit}
 
+        # dotfiles content overlay: the machine-local store (always) that capture writes to when
+        # there's no primary plugin, and that the driver reads FIRST — so your own content shadows
+        # any shipped template. `primary_dotfiles_dir` is filled in by the app once the primary
+        # plugin is known (Context.ensure_plugin_code); None otherwise.
+        self.user_dotfiles_dir = self.state_dir / 'dotfiles'
+        self.primary_dotfiles_dir = None
+
     def expand(self, p) -> Path:
         '''Expand a route-supplied path against configsys HOME (not the OS home),
         so sandboxed runs stay contained: `~`/`~/x` and *bare relative* paths

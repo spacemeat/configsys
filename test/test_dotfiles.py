@@ -133,13 +133,69 @@ def test_existing_dir_is_backed_up_and_restored(tmp_path):
     assert (target / 'old.txt').read_text() == 'old'   # original restored
 
 
-def test_missing_source_fails(tmp_path):
+def test_unpopulated_source_is_a_noop(tmp_path):
     p = paths_for(tmp_path)
     p.home.mkdir(parents=True)
-    # source dir not created -> install should fail, not silently link a dangling path
+    # no content anywhere (no template shipped, nothing captured) -> a component may still DECLARE
+    # src/dst; install skips it gracefully (never links a dangling path) and does NOT fail.
     res = DotFiles(Runner(pretend=False), paths=p).install(df_unit())
-    assert not res.ok
-    assert not (p.home / '.config' / 'nvim').exists()
+    assert res.ok                                          # graceful skip, not an error
+    assert not (p.home / '.config' / 'nvim').exists()      # nothing linked
+
+
+# -- content search-path: user store shadows the shipped template --------
+
+def test_user_store_shadows_the_template(tmp_path):
+    p = paths_for(tmp_path)
+    # a template ships in the defining/repo dir; the user's local store also has content
+    (p.dotfiles_dir / 'neovim').mkdir(parents=True)
+    (p.dotfiles_dir / 'neovim' / 'init.lua').write_text('-- template')
+    (p.user_dotfiles_dir / 'neovim').mkdir(parents=True)
+    (p.user_dotfiles_dir / 'neovim' / 'init.lua').write_text('-- mine')
+
+    df = DotFiles(Runner(pretend=True), paths=p)
+    src, _tgt, _ = df._pairs(df_unit())[0]
+    assert src == p.user_dotfiles_dir / 'neovim'           # local store wins over the template
+
+
+def test_primary_plugin_store_beats_template_but_not_local(tmp_path):
+    p = paths_for(tmp_path)
+    p.primary_dotfiles_dir = tmp_path / 'plug' / 'dotfiles'
+    (p.dotfiles_dir / 'neovim').mkdir(parents=True)         # template
+    (p.primary_dotfiles_dir / 'neovim').mkdir(parents=True)  # plugin store
+    df = DotFiles(Runner(pretend=True), paths=p)
+    assert df._pairs(df_unit())[0][0] == p.primary_dotfiles_dir / 'neovim'   # plugin > template
+    (p.user_dotfiles_dir / 'neovim').mkdir(parents=True)     # local store
+    assert df._pairs(df_unit())[0][0] == p.user_dotfiles_dir / 'neovim'      # local > plugin
+
+
+def test_spec_states(tmp_path):
+    p = paths_for(tmp_path)
+    p.home.mkdir(parents=True)
+    df = DotFiles(Runner(pretend=False), paths=p)
+
+    # empty: no content anywhere, dst absent
+    assert df.spec_states(df_unit())[0][2] == 'empty'
+
+    # unmanaged: a real on-system dst, nothing captured
+    (p.home / '.config' / 'nvim').mkdir(parents=True)
+    assert df.spec_states(df_unit())[0][2] == 'unmanaged'
+
+    # adopted: content now in the user store (dst still real, not linked)
+    (p.user_dotfiles_dir / 'neovim').mkdir(parents=True)
+    assert df.spec_states(df_unit())[0][2] == 'adopted'
+
+    # linked: install it -> our symlink
+    assert df.install(df_unit()).ok
+    assert df.spec_states(df_unit())[0][2] == 'linked'
+
+
+def test_spec_state_template(tmp_path):
+    p = paths_for(tmp_path)
+    p.home.mkdir(parents=True)
+    (p.dotfiles_dir / 'neovim').mkdir(parents=True)        # a shipped template, dst absent
+    df = DotFiles(Runner(pretend=False), paths=p)
+    assert df.spec_states(df_unit())[0][2] == 'template'
 
 
 # -- absorb-into: relocate a pre-existing file into the loader dir --------

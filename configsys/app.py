@@ -242,6 +242,11 @@ class Context:
         from . import plugins
         from .drivers import register_driver
         decls = plugins.effective_declared(self.paths.user_config_file, self.paths.plugins_dir)
+        # point the dotfiles driver at the primary plugin's content store (capture's default home,
+        # and a read root that shadows any shipped template) — only if it's actually synced.
+        prim = plugins.primary_name(decls)
+        pdir = self.paths.plugins_dir / prim / 'dotfiles' if prim else None
+        self.paths.primary_dotfiles_dir = pdir if (pdir is not None and pdir.exists()) else None
         code_conflicts = []
         _loaded, skipped = plugins.load_code(self.paths.plugins_dir, self.paths.plugin_trust_file,
                                              decls, register_driver, conflicts=code_conflicts)
@@ -1453,6 +1458,11 @@ def build_parser():
     rq.add_argument('--print', dest='print_only', action='store_true',
                     help='print the request and exit; never send')
 
+    dfp = sub.add_parser('dotfiles', help='inspect your dotfiles (status); adopt/capture is next')
+    dfsub = dfp.add_subparsers(dest='dotfiles_command')
+    dfsub.add_parser('status', help='per-target state of every dotfile in the active profiles: '
+                                    'linked / adopted / unmanaged / template / empty')
+
     mp = sub.add_parser('manpages', help='install or check the man pages '
                                          '(configsys(1) + configsys.hu(5))')
     mpsub = mp.add_subparsers(dest='manpages_command')
@@ -1467,8 +1477,58 @@ def build_parser():
     return p
 
 
+_DOTFILES_STATE_ORDER = ['unmanaged', 'template', 'adopted', 'linked', 'empty']
+_DOTFILES_STATE_NOTE = {
+    'unmanaged': 'real on-system file, not captured — configsys is NOT managing it',
+    'template':  'a shipped template exists; not adopted',
+    'adopted':   'your captured content is in place; install will link it',
+    'linked':    'managed by configsys (symlinked)',
+    'empty':     'declared, no content anywhere — install is a no-op until you capture',
+}
+
+
+def cmd_dotfiles(ctx, args):
+    return cmd_dotfiles_status(ctx, args)   # only subcommand for now (capture/adopt land next)
+
+
+def cmd_dotfiles_status(ctx, args):
+    '''Show every `via: dotfiles` component in the active profiles and the state of each of its
+    targets — so you can SEE what's at risk before installing anything.'''
+    from .drivers import get_driver
+    cfg = ctx.config
+    units, _errs = ctx.routes.resolve_resilient(list(cfg.requested()))   # resolution only (no state query)
+    df = get_driver('dotfiles', ctx.runner, ctx.paths)
+    rows = []
+    for key in sorted(units):
+        rc = units[key]
+        if rc.driver != 'dotfiles':
+            continue
+        for _name, tgt, state in df.spec_states(rc):
+            rows.append((state, tgt, rc.comp))
+    print(f'OS: {ctx.os_info.block}   profiles: {_profiles_label(cfg.active_profiles)}')
+    if not rows:
+        print('\n(no dotfiles components in the active profiles)')
+        return 0
+    rows.sort(key=lambda r: (_DOTFILES_STATE_ORDER.index(r[0])
+                             if r[0] in _DOTFILES_STATE_ORDER else 99, r[1]))
+    print()
+    print(f'  {"":1} {"TARGET":40} {"STATE":10} COMPONENT')
+    print('  ' + '-' * 72)
+    counts = {}
+    for state, tgt, comp in rows:
+        counts[state] = counts.get(state, 0) + 1
+        mark = '!' if state == 'unmanaged' else ' '
+        print(f'  {mark} {tgt:40} {state:10} {comp}')
+    summary = ', '.join(f'{counts[s]} {s}' for s in _DOTFILES_STATE_ORDER if s in counts)
+    print(f'\n{summary}')
+    if counts.get('unmanaged'):
+        print(f'  ! {counts["unmanaged"]} unmanaged: {_DOTFILES_STATE_NOTE["unmanaged"]}.')
+    return 0
+
+
 _COMMANDS = {
     'inspect': cmd_inspect,
+    'dotfiles': cmd_dotfiles,
     'install': cmd_install,
     'remove': cmd_remove,
     'upgrade': cmd_upgrade,
