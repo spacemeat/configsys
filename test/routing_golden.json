@@ -1643,6 +1643,31 @@
     "name": "lazysql"
    }
   },
+  "libc++": {
+   "pacman\\libc++": {
+    "driver": "pacman",
+    "fields": {
+     "name": "libc++"
+    },
+    "name": "libc++"
+   },
+   "pacman\\libc++abi": {
+    "driver": "pacman",
+    "fields": {
+     "name": "libc++abi"
+    },
+    "name": "libc++abi"
+   }
+  },
+  "libc++abi": {
+   "pacman\\libc++abi": {
+    "driver": "pacman",
+    "fields": {
+     "name": "libc++abi"
+    },
+    "name": "libc++abi"
+   }
+  },
   "libfuse2": {
    "pacman\\libfuse2": {
     "driver": "pacman",
@@ -1661,6 +1686,15 @@
      "repo-component": "universe"
     },
     "name": "libreoffice-fresh"
+   }
+  },
+  "libstdc++": {
+   "pacman\\libstdc++": {
+    "driver": "pacman",
+    "fields": {
+     "name": "gcc"
+    },
+    "name": "gcc"
    }
   },
   "libvirt": {
@@ -4047,12 +4081,26 @@
    }
   },
   "clang-18": {
+   "apt\\c-toolchain": {
+    "driver": "apt",
+    "fields": {
+     "name": "gcc"
+    },
+    "name": "gcc"
+   },
    "apt\\curl": {
     "driver": "apt",
     "fields": {
      "name": "curl"
     },
     "name": "curl"
+   },
+   "apt\\libstdc++": {
+    "driver": "apt",
+    "fields": {
+     "name": "libstdc++-dev"
+    },
+    "name": "libstdc++-dev"
    },
    "clang\\clang-18": {
     "driver": "clang",
@@ -4085,12 +4133,26 @@
    }
   },
   "clang-19": {
+   "apt\\c-toolchain": {
+    "driver": "apt",
+    "fields": {
+     "name": "gcc"
+    },
+    "name": "gcc"
+   },
    "apt\\curl": {
     "driver": "apt",
     "fields": {
      "name": "curl"
     },
     "name": "curl"
+   },
+   "apt\\libstdc++": {
+    "driver": "apt",
+    "fields": {
+     "name": "libstdc++-dev"
+    },
+    "name": "libstdc++-dev"
    },
    "clang\\clang-19": {
     "driver": "clang",
@@ -4123,12 +4185,26 @@
    }
   },
   "clang-20": {
+   "apt\\c-toolchain": {
+    "driver": "apt",
+    "fields": {
+     "name": "gcc"
+    },
+    "name": "gcc"
+   },
    "apt\\curl": {
     "driver": "apt",
     "fields": {
      "name": "curl"
     },
     "name": "curl"
+   },
+   "apt\\libstdc++": {
+    "driver": "apt",
+    "fields": {
+     "name": "libstdc++-dev"
+    },
+    "name": "libstdc++-dev"
    },
    "clang\\clang-20": {
     "driver": "clang",
@@ -5695,6 +5771,31 @@
     "name": "libavcodec-extra"
    }
   },
+  "libc++": {
+   "apt\\libc++": {
+    "driver": "apt",
+    "fields": {
+     "name": "libc++-dev"
+    },
+    "name": "libc++-dev"
+   },
+   "apt\\libc++abi": {
+    "driver": "apt",
+    "fields": {
+     "name": "libc++abi-dev"
+    },
+    "name": "libc++abi-dev"
+   }
+  },
+  "libc++abi": {
+   "apt\\libc++abi": {
+    "driver": "apt",
+    "fields": {
+     "name": "libc++abi-dev"
+    },
+    "name": "libc++abi-dev"
+   }
+  },
   "libfuse2": {
    "apt\\libfuse2": {
     "driver": "apt",
@@ -5713,6 +5814,15 @@
      "repo-component": "universe"
     },
     "name": "libreoffice"
+   }
+  },
+  "libstdc++": {
+   "apt\\libstdc++": {
+    "driver": "apt",
+    "fields": {
+     "name": "libstdc++-dev"
+    },
+    "name": "libstdc++-dev"
    }
   },
   "libvirt": {
@@ -8145,12 +8255,26 @@
    }
   },
   "clang-18": {
+   "apt\\c-toolchain": {
+    "driver": "apt",
+    "fields": {
+     "name": "gcc"
+    },
+    "name": "gcc"
+   },
    "apt\\curl": {
     "driver": "apt",
     "fields": {
      "name": "curl"
     },
     "name": "curl"
+   },
+   "apt\\libstdc++": {
+    "driver": "apt",
+    "fields": {
+     "name": "libstdc++-dev"
+    },
+    "name": "libstdc++-dev"
    },
    "clang\\clang-18": {
     "driver": "clang",
@@ -8183,12 +8307,26 @@
    }
   },
   "clang-19": {
+   "apt\\c-toolchain": {
+    "driver": "apt",
+    "fields": {
+     "name": "gcc"
+    },
+    "name": "gcc"
+   },
    "apt\\curl": {
     "driver": "apt",
     "fields": {
      "name": "curl"
     },
     "name": "curl"
+   },
+   "apt\\libstdc++": {
+    "driver": "apt",
+    "fields": {
+     "name": "libstdc++-dev"
+    },
+    "name": "libstdc++-dev"
    },
    "clang\\clang-19": {
     "driver": "clang",
@@ -8221,12 +8359,26 @@
    }
   },
   "clang-20": {
+   "apt\\c-toolchain": {
+    "driver": "apt",
+    "fields": {
+     "name": "gcc"
+    },
+    "name": "gcc"
+   },
    "apt\\curl": {
     "driver": "apt",
     "fields": {
      "name": "curl"
     },
     "name": "curl"
+   },
+   "apt\\libstdc++": {
+    "driver": "apt",
+    "fields": {
+     "name": "libstdc++-dev"
+    },
+    "name": "libstdc++-dev"
    },
    "clang\\clang-20": {
     "driver": "clang",
@@ -9773,6 +9925,31 @@
     "name": "libavcodec-extra"
    }
   },
+  "libc++": {
+   "apt\\libc++": {
+    "driver": "apt",
+    "fields": {
+     "name": "libc++-dev"
+    },
+    "name": "libc++-dev"
+   },
+   "apt\\libc++abi": {
+    "driver": "apt",
+    "fields": {
+     "name": "libc++abi-dev"
+    },
+    "name": "libc++abi-dev"
+   }
+  },
+  "libc++abi": {
+   "apt\\libc++abi": {
+    "driver": "apt",
+    "fields": {
+     "name": "libc++abi-dev"
+    },
+    "name": "libc++abi-dev"
+   }
+  },
   "libfuse2": {
    "apt\\libfuse2": {
     "driver": "apt",
@@ -9791,6 +9968,15 @@
      "repo-component": "universe"
     },
     "name": "libreoffice"
+   }
+  },
+  "libstdc++": {
+   "apt\\libstdc++": {
+    "driver": "apt",
+    "fields": {
+     "name": "libstdc++-dev"
+    },
+    "name": "libstdc++-dev"
    }
   },
   "libvirt": {
@@ -12162,6 +12348,20 @@
      ]
     },
     "name": "clang-18"
+   },
+   "dnf\\c-toolchain": {
+    "driver": "dnf",
+    "fields": {
+     "name": "gcc"
+    },
+    "name": "gcc"
+   },
+   "dnf\\libstdc++": {
+    "driver": "dnf",
+    "fields": {
+     "name": "libstdc++-devel"
+    },
+    "name": "libstdc++-devel"
    }
   },
   "clang-19": {
@@ -12174,6 +12374,20 @@
      ]
     },
     "name": "clang-19"
+   },
+   "dnf\\c-toolchain": {
+    "driver": "dnf",
+    "fields": {
+     "name": "gcc"
+    },
+    "name": "gcc"
+   },
+   "dnf\\libstdc++": {
+    "driver": "dnf",
+    "fields": {
+     "name": "libstdc++-devel"
+    },
+    "name": "libstdc++-devel"
    }
   },
   "clang-tidy": {
@@ -13537,6 +13751,31 @@
     "name": "lazysql"
    }
   },
+  "libc++": {
+   "dnf\\libc++": {
+    "driver": "dnf",
+    "fields": {
+     "name": "libcxx-devel"
+    },
+    "name": "libcxx-devel"
+   },
+   "dnf\\libc++abi": {
+    "driver": "dnf",
+    "fields": {
+     "name": "libcxxabi-devel"
+    },
+    "name": "libcxxabi-devel"
+   }
+  },
+  "libc++abi": {
+   "dnf\\libc++abi": {
+    "driver": "dnf",
+    "fields": {
+     "name": "libcxxabi-devel"
+    },
+    "name": "libcxxabi-devel"
+   }
+  },
   "libfuse2": {
    "dnf\\libfuse2": {
     "driver": "dnf",
@@ -13555,6 +13794,15 @@
      "repo-component": "universe"
     },
     "name": "libreoffice"
+   }
+  },
+  "libstdc++": {
+   "dnf\\libstdc++": {
+    "driver": "dnf",
+    "fields": {
+     "name": "libstdc++-devel"
+    },
+    "name": "libstdc++-devel"
    }
   },
   "libvirt": {
@@ -15919,6 +16167,20 @@
      ]
     },
     "name": "clang-18"
+   },
+   "dnf\\c-toolchain": {
+    "driver": "dnf",
+    "fields": {
+     "name": "gcc"
+    },
+    "name": "gcc"
+   },
+   "dnf\\libstdc++": {
+    "driver": "dnf",
+    "fields": {
+     "name": "libstdc++-devel"
+    },
+    "name": "libstdc++-devel"
    }
   },
   "clang-19": {
@@ -15931,6 +16193,20 @@
      ]
     },
     "name": "clang-19"
+   },
+   "dnf\\c-toolchain": {
+    "driver": "dnf",
+    "fields": {
+     "name": "gcc"
+    },
+    "name": "gcc"
+   },
+   "dnf\\libstdc++": {
+    "driver": "dnf",
+    "fields": {
+     "name": "libstdc++-devel"
+    },
+    "name": "libstdc++-devel"
    }
   },
   "clang-20": {
@@ -15943,6 +16219,20 @@
      ]
     },
     "name": "clang-20"
+   },
+   "dnf\\c-toolchain": {
+    "driver": "dnf",
+    "fields": {
+     "name": "gcc"
+    },
+    "name": "gcc"
+   },
+   "dnf\\libstdc++": {
+    "driver": "dnf",
+    "fields": {
+     "name": "libstdc++-devel"
+    },
+    "name": "libstdc++-devel"
    }
   },
   "clang-tidy": {
@@ -17306,6 +17596,31 @@
     "name": "lazysql"
    }
   },
+  "libc++": {
+   "dnf\\libc++": {
+    "driver": "dnf",
+    "fields": {
+     "name": "libcxx-devel"
+    },
+    "name": "libcxx-devel"
+   },
+   "dnf\\libc++abi": {
+    "driver": "dnf",
+    "fields": {
+     "name": "libcxxabi-devel"
+    },
+    "name": "libcxxabi-devel"
+   }
+  },
+  "libc++abi": {
+   "dnf\\libc++abi": {
+    "driver": "dnf",
+    "fields": {
+     "name": "libcxxabi-devel"
+    },
+    "name": "libcxxabi-devel"
+   }
+  },
   "libfuse2": {
    "dnf\\libfuse2": {
     "driver": "dnf",
@@ -17324,6 +17639,15 @@
      "repo-component": "universe"
     },
     "name": "libreoffice"
+   }
+  },
+  "libstdc++": {
+   "dnf\\libstdc++": {
+    "driver": "dnf",
+    "fields": {
+     "name": "libstdc++-devel"
+    },
+    "name": "libstdc++-devel"
    }
   },
   "libvirt": {
@@ -19699,12 +20023,26 @@
    }
   },
   "clang-18": {
+   "apt\\c-toolchain": {
+    "driver": "apt",
+    "fields": {
+     "name": "gcc"
+    },
+    "name": "gcc"
+   },
    "apt\\curl": {
     "driver": "apt",
     "fields": {
      "name": "curl"
     },
     "name": "curl"
+   },
+   "apt\\libstdc++": {
+    "driver": "apt",
+    "fields": {
+     "name": "libstdc++-dev"
+    },
+    "name": "libstdc++-dev"
    },
    "clang\\clang-18": {
     "driver": "clang",
@@ -19737,12 +20075,26 @@
    }
   },
   "clang-19": {
+   "apt\\c-toolchain": {
+    "driver": "apt",
+    "fields": {
+     "name": "gcc"
+    },
+    "name": "gcc"
+   },
    "apt\\curl": {
     "driver": "apt",
     "fields": {
      "name": "curl"
     },
     "name": "curl"
+   },
+   "apt\\libstdc++": {
+    "driver": "apt",
+    "fields": {
+     "name": "libstdc++-dev"
+    },
+    "name": "libstdc++-dev"
    },
    "clang\\clang-19": {
     "driver": "clang",
@@ -19775,12 +20127,26 @@
    }
   },
   "clang-20": {
+   "apt\\c-toolchain": {
+    "driver": "apt",
+    "fields": {
+     "name": "gcc"
+    },
+    "name": "gcc"
+   },
    "apt\\curl": {
     "driver": "apt",
     "fields": {
      "name": "curl"
     },
     "name": "curl"
+   },
+   "apt\\libstdc++": {
+    "driver": "apt",
+    "fields": {
+     "name": "libstdc++-dev"
+    },
+    "name": "libstdc++-dev"
    },
    "clang\\clang-20": {
     "driver": "clang",
@@ -21356,6 +21722,31 @@
     "name": "libavcodec-extra"
    }
   },
+  "libc++": {
+   "apt\\libc++": {
+    "driver": "apt",
+    "fields": {
+     "name": "libc++-dev"
+    },
+    "name": "libc++-dev"
+   },
+   "apt\\libc++abi": {
+    "driver": "apt",
+    "fields": {
+     "name": "libc++abi-dev"
+    },
+    "name": "libc++abi-dev"
+   }
+  },
+  "libc++abi": {
+   "apt\\libc++abi": {
+    "driver": "apt",
+    "fields": {
+     "name": "libc++abi-dev"
+    },
+    "name": "libc++abi-dev"
+   }
+  },
   "libfuse2": {
    "apt\\libfuse2": {
     "driver": "apt",
@@ -21374,6 +21765,15 @@
      "repo-component": "universe"
     },
     "name": "libreoffice"
+   }
+  },
+  "libstdc++": {
+   "apt\\libstdc++": {
+    "driver": "apt",
+    "fields": {
+     "name": "libstdc++-dev"
+    },
+    "name": "libstdc++-dev"
    }
   },
   "libvirt": {
@@ -23835,12 +24235,26 @@
     },
     "name": "clang-19"
    },
+   "dnf\\c-toolchain": {
+    "driver": "dnf",
+    "fields": {
+     "name": "gcc"
+    },
+    "name": "gcc"
+   },
    "dnf\\epel-release": {
     "driver": "dnf",
     "fields": {
      "name": "epel-release"
     },
     "name": "epel-release"
+   },
+   "dnf\\libstdc++": {
+    "driver": "dnf",
+    "fields": {
+     "name": "libstdc++-devel"
+    },
+    "name": "libstdc++-devel"
    }
   },
   "clang-20": {
@@ -23854,12 +24268,26 @@
     },
     "name": "clang-20"
    },
+   "dnf\\c-toolchain": {
+    "driver": "dnf",
+    "fields": {
+     "name": "gcc"
+    },
+    "name": "gcc"
+   },
    "dnf\\epel-release": {
     "driver": "dnf",
     "fields": {
      "name": "epel-release"
     },
     "name": "epel-release"
+   },
+   "dnf\\libstdc++": {
+    "driver": "dnf",
+    "fields": {
+     "name": "libstdc++-devel"
+    },
+    "name": "libstdc++-devel"
    }
   },
   "clang-tidy": {
@@ -25340,6 +25768,31 @@
     "name": "lazysql"
    }
   },
+  "libc++": {
+   "dnf\\libc++": {
+    "driver": "dnf",
+    "fields": {
+     "name": "libcxx-devel"
+    },
+    "name": "libcxx-devel"
+   },
+   "dnf\\libc++abi": {
+    "driver": "dnf",
+    "fields": {
+     "name": "libcxxabi-devel"
+    },
+    "name": "libcxxabi-devel"
+   }
+  },
+  "libc++abi": {
+   "dnf\\libc++abi": {
+    "driver": "dnf",
+    "fields": {
+     "name": "libcxxabi-devel"
+    },
+    "name": "libcxxabi-devel"
+   }
+  },
   "libfuse2": {
    "dnf\\libfuse2": {
     "driver": "dnf",
@@ -25358,6 +25811,15 @@
      "repo-component": "universe"
     },
     "name": "libreoffice"
+   }
+  },
+  "libstdc++": {
+   "dnf\\libstdc++": {
+    "driver": "dnf",
+    "fields": {
+     "name": "libstdc++-devel"
+    },
+    "name": "libstdc++-devel"
    }
   },
   "libvirt": {
@@ -27841,12 +28303,26 @@
    }
   },
   "clang-18": {
+   "apt\\c-toolchain": {
+    "driver": "apt",
+    "fields": {
+     "name": "gcc"
+    },
+    "name": "gcc"
+   },
    "apt\\curl": {
     "driver": "apt",
     "fields": {
      "name": "curl"
     },
     "name": "curl"
+   },
+   "apt\\libstdc++": {
+    "driver": "apt",
+    "fields": {
+     "name": "libstdc++-dev"
+    },
+    "name": "libstdc++-dev"
    },
    "clang\\clang-18": {
     "driver": "clang",
@@ -27879,12 +28355,26 @@
    }
   },
   "clang-19": {
+   "apt\\c-toolchain": {
+    "driver": "apt",
+    "fields": {
+     "name": "gcc"
+    },
+    "name": "gcc"
+   },
    "apt\\curl": {
     "driver": "apt",
     "fields": {
      "name": "curl"
     },
     "name": "curl"
+   },
+   "apt\\libstdc++": {
+    "driver": "apt",
+    "fields": {
+     "name": "libstdc++-dev"
+    },
+    "name": "libstdc++-dev"
    },
    "clang\\clang-19": {
     "driver": "clang",
@@ -27917,12 +28407,26 @@
    }
   },
   "clang-20": {
+   "apt\\c-toolchain": {
+    "driver": "apt",
+    "fields": {
+     "name": "gcc"
+    },
+    "name": "gcc"
+   },
    "apt\\curl": {
     "driver": "apt",
     "fields": {
      "name": "curl"
     },
     "name": "curl"
+   },
+   "apt\\libstdc++": {
+    "driver": "apt",
+    "fields": {
+     "name": "libstdc++-dev"
+    },
+    "name": "libstdc++-dev"
    },
    "clang\\clang-20": {
     "driver": "clang",
@@ -29489,6 +29993,31 @@
     "name": "libavcodec-extra"
    }
   },
+  "libc++": {
+   "apt\\libc++": {
+    "driver": "apt",
+    "fields": {
+     "name": "libc++-dev"
+    },
+    "name": "libc++-dev"
+   },
+   "apt\\libc++abi": {
+    "driver": "apt",
+    "fields": {
+     "name": "libc++abi-dev"
+    },
+    "name": "libc++abi-dev"
+   }
+  },
+  "libc++abi": {
+   "apt\\libc++abi": {
+    "driver": "apt",
+    "fields": {
+     "name": "libc++abi-dev"
+    },
+    "name": "libc++abi-dev"
+   }
+  },
   "libfuse2": {
    "apt\\libfuse2": {
     "driver": "apt",
@@ -29507,6 +30036,15 @@
      "repo-component": "universe"
     },
     "name": "libreoffice"
+   }
+  },
+  "libstdc++": {
+   "apt\\libstdc++": {
+    "driver": "apt",
+    "fields": {
+     "name": "libstdc++-dev"
+    },
+    "name": "libstdc++-dev"
    }
   },
   "libvirt": {
@@ -31939,12 +32477,26 @@
    }
   },
   "clang-18": {
+   "apt\\c-toolchain": {
+    "driver": "apt",
+    "fields": {
+     "name": "gcc"
+    },
+    "name": "gcc"
+   },
    "apt\\curl": {
     "driver": "apt",
     "fields": {
      "name": "curl"
     },
     "name": "curl"
+   },
+   "apt\\libstdc++": {
+    "driver": "apt",
+    "fields": {
+     "name": "libstdc++-dev"
+    },
+    "name": "libstdc++-dev"
    },
    "clang\\clang-18": {
     "driver": "clang",
@@ -31977,12 +32529,26 @@
    }
   },
   "clang-19": {
+   "apt\\c-toolchain": {
+    "driver": "apt",
+    "fields": {
+     "name": "gcc"
+    },
+    "name": "gcc"
+   },
    "apt\\curl": {
     "driver": "apt",
     "fields": {
      "name": "curl"
     },
     "name": "curl"
+   },
+   "apt\\libstdc++": {
+    "driver": "apt",
+    "fields": {
+     "name": "libstdc++-dev"
+    },
+    "name": "libstdc++-dev"
    },
    "clang\\clang-19": {
     "driver": "clang",
@@ -32015,12 +32581,26 @@
    }
   },
   "clang-20": {
+   "apt\\c-toolchain": {
+    "driver": "apt",
+    "fields": {
+     "name": "gcc"
+    },
+    "name": "gcc"
+   },
    "apt\\curl": {
     "driver": "apt",
     "fields": {
      "name": "curl"
     },
     "name": "curl"
+   },
+   "apt\\libstdc++": {
+    "driver": "apt",
+    "fields": {
+     "name": "libstdc++-dev"
+    },
+    "name": "libstdc++-dev"
    },
    "clang\\clang-20": {
     "driver": "clang",
@@ -33567,6 +34147,31 @@
     "name": "libavcodec-extra"
    }
   },
+  "libc++": {
+   "apt\\libc++": {
+    "driver": "apt",
+    "fields": {
+     "name": "libc++-dev"
+    },
+    "name": "libc++-dev"
+   },
+   "apt\\libc++abi": {
+    "driver": "apt",
+    "fields": {
+     "name": "libc++abi-dev"
+    },
+    "name": "libc++abi-dev"
+   }
+  },
+  "libc++abi": {
+   "apt\\libc++abi": {
+    "driver": "apt",
+    "fields": {
+     "name": "libc++abi-dev"
+    },
+    "name": "libc++abi-dev"
+   }
+  },
   "libfuse2": {
    "apt\\libfuse2": {
     "driver": "apt",
@@ -33585,6 +34190,15 @@
      "repo-component": "universe"
     },
     "name": "libreoffice"
+   }
+  },
+  "libstdc++": {
+   "apt\\libstdc++": {
+    "driver": "apt",
+    "fields": {
+     "name": "libstdc++-dev"
+    },
+    "name": "libstdc++-dev"
    }
   },
   "libvirt": {

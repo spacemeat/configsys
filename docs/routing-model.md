@@ -140,6 +140,15 @@ compiler; the versioned ones layer specific-standard labels on top, opt-in so th
 the default. `requires: "C++20"` is thus satisfied by any co-wanted / pinned versioned compiler;
 teaching the *default* toolchain which standard it supports per OS-version is the remaining piece.
 
+The **C++ standard library is its own capability**, `cxx-stdlib`, separate from the compiler —
+because g++ bundles its library (libstdc++) but clang doesn't (on Linux it uses gcc's libstdc++
+by default, or LLVM's libc++ via `-stdlib=libc++`). So `clang-NN requires: [ c-toolchain,
+cxx-stdlib ]` (the gcc runtime it needs + *a* stdlib), never the g++ compiler; `cxx-stdlib`
+defaults to the `libstdc++` component (non-opt-in) and `libc++` is an opt-in alternate provider you
+select with a provider-pin (`pins: { cxx-stdlib: libc++ }`). Note clang requires the *component*
+`c-toolchain`, not the `cc` capability: clang itself `provides: cc` (opt-in), and requiring the
+capability would let it self-satisfy and never pull gcc — requiring the component sidesteps that.
+
 **Environment capabilities.** An OS block can `provides:` capabilities that are baseline
 in that environment, so requiring them is free there and pulls a provider elsewhere:
 

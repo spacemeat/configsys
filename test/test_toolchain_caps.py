@@ -40,3 +40,39 @@ def test_versioned_gcc_self_satisfies_cxx():
     u = Resolver(ROUTES, 'ubuntu', '24.04').resolve_names(['gcc-15'])
     assert 'gcc\\gcc-15' in u
     assert not any('cpp-toolchain' in k or 'c-toolchain' in k for k in u)
+
+
+# --- C++ standard library, decoupled from the compiler ---
+
+def test_clang_pulls_gcc_toolchain_and_libstdcxx_not_gxx():
+    # clang ships no stdlib and no C runtime on Linux: it needs the gcc toolchain (crt/libgcc) + a
+    # C++ stdlib (libstdc++ by default), but NOT the g++ compiler (cpp-toolchain).
+    u = Resolver(ROUTES, 'ubuntu', '24.04').resolve_names(['clang-19'])
+    assert u['apt\\c-toolchain'].name == 'gcc'
+    assert u['apt\\libstdc++'].name == 'libstdc++-dev'
+    assert 'apt\\cpp-toolchain' not in u          # no g++ compiler
+
+
+def test_clang_requires_the_toolchain_component_not_the_cc_capability():
+    # clang provides cc (opt-in); if it required the `cc` capability it would self-satisfy and never
+    # pull gcc. It requires the c-toolchain COMPONENT instead, so gcc is always present.
+    r = Resolver(ROUTES, 'ubuntu', '24.04')
+    assert 'c-toolchain' in r.components['clang-19'].requires
+    assert 'cxx-stdlib' in r.components['clang-19'].requires
+
+
+def test_libcxx_is_optin_and_pinnable_for_clang():
+    # cxx-stdlib defaults to libstdc++ (unambiguous despite libc++ also providing it, since libc++ is
+    # opt-in); provider-pinning cxx-stdlib -> libc++ swaps the stdlib with no g++/libstdc++.
+    r = Resolver(ROUTES, 'ubuntu', '24.04')
+    assert r.components['libc++'].opt_in and not r.components['libstdc++'].opt_in
+    assert Resolver(ROUTES, 'ubuntu', '24.04').resolve_names(['libstdc++'])['apt\\libstdc++'].name == 'libstdc++-dev'
+    pinned = Resolver(ROUTES, 'ubuntu', '24.04', pins={'cxx-stdlib': 'libc++'}).resolve_names(['clang-19'])
+    assert pinned['apt\\libc++'].name == 'libc++-dev'
+    assert 'apt\\libstdc++' not in pinned
+
+
+def test_libcxx_abi_split_except_on_alpine():
+    # libc++ soft-suggests libc++abi (a separate dev package on apt/dnf; bundled into libc++ on Alpine)
+    assert 'apt\\libc++abi' in Resolver(ROUTES, 'ubuntu', '24.04').resolve_names(['libc++'])
+    assert 'apk\\libc++abi' not in Resolver(ROUTES, 'alpine', '3.20').resolve_names(['libc++'])

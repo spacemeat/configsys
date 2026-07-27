@@ -1081,6 +1081,35 @@
             ]
         }
 
+        // --- C++ standard library (a separate capability from the compiler) ---
+        // g++ BUNDLES its stdlib (libstdc++), so cpp-toolchain needs nothing extra. clang does NOT
+        // ship a stdlib: on Linux it defaults to GCC's libstdc++, and can opt into LLVM's libc++ with
+        // `-stdlib=libc++`. So clang `requires: [ cc, cxx-stdlib ]` — the gcc C toolchain (clang uses
+        // gcc's crt*.o + libgcc on Linux regardless of stdlib) plus *a* C++ standard library, but NOT
+        // the g++ compiler. `cxx-stdlib` defaults to libstdc++ (below, non-opt-in); to build with
+        // libc++ instead, install `libc++` and provider-pin `cxx-stdlib: libc++` (then pass
+        // -stdlib=libc++ — configsys installs the library, your build selects it). The two stdlibs are
+        // NOT ABI-compatible with each other; g++ can only use libstdc++, clang can use either.
+        libstdc++: {                                  // GNU C++ stdlib (clang's default on Linux)
+            provides: [ cxx-stdlib, libstdc++ ]
+            install: [
+                { via: native  when: "debian or alpine"    name: "libstdc++-dev" }    // split dev headers
+                { via: native  when: "redhat or opensuse"  name: "libstdc++-devel" }
+                { via: native  name: gcc }            // arch etc.: the C++ headers ship in the gcc package
+            ]
+        }
+        libc++: {                                     // LLVM C++ stdlib — opt-in; build with -stdlib=libc++
+            provides: [ cxx-stdlib, libc++ ]
+            opt-in: true
+            suggests: libc++abi                       // soft: the split ABI dev package (bundled on Alpine)
+            install: [ { via: native  name: { apt: libc++-dev  dnf: libcxx-devel  zypper: libc++-devel
+                                              pacman: libc++  apk: libc++-dev } } ]
+        }
+        libc++abi: {                                  // LLVM libc++abi dev — a separate package except on Alpine
+            install: [ { via: native  when: "not alpine"  name: { apt: libc++abi-dev  dnf: libcxxabi-devel
+                                                                  zypper: libc++abi-devel  pacman: libc++abi } } ]
+        }
+
         // software-properties-common is a software package in Ubuntu and Debian that provides
         // the add-apt-repository script. It allows users to easily manage independent software
         // sources and PPAs (Personal Package Archives) without manually editing the
@@ -1157,30 +1186,37 @@
         }
 
         // --- versioned clang. `clang` driver = native PM + update-alternatives:
-        //   debian -> apt.llvm.org + alternatives (needs cxx, curl, the alias)
+        //   debian -> apt.llvm.org + alternatives (curl for the key; + the alias)
         //   fedora -> dnf compat clangNN (per-release; the system clang covers the newest)
         //   EL     -> dnf compat clangNN from EPEL (requires epel)
         clang-select: {             // the `update-alternatives --config clang` alias dotfile
             requires: bash-dotfiles
             install: [ { via: dotfiles  when: "debian"  src: bash.d/clang.sh  dst: ~/.bash.d/clang.sh } ]
         }
-        // versioned clang provides the same standard labels (it requires `cxx` -> gcc's libstdc++
-        // for C++ headers, and itself provides a C/C++ compiler + standards). Same opt-in rule.
+        // clang ships no C++ stdlib and, on Linux, no C runtime of its own: it uses GCC's crt*.o +
+        // libgcc (hence `requires: c-toolchain` — the gcc toolchain COMPONENT, not the g++ compiler)
+        // and defaults to GCC's libstdc++ (hence `requires: cxx-stdlib`, which resolves to the
+        // libstdc++ component; provider-pin it to libc++ to build with -stdlib=libc++). It requires
+        // the c-toolchain *component* rather than the `cc` capability on purpose: clang itself
+        // `provides: cc` (opt-in), so requiring the capability would let it self-satisfy and never
+        // pull gcc. It provides a C/C++ compiler + the standard labels (opt-in, same rule as gcc-NN).
         clang-18: {
             provides: [ cc, cxx, C11, C17, C23, "C++17", "C++20", "C++23" ]
             opt-in: true
+            requires: [ c-toolchain, cxx-stdlib ]
             install: [
                 { via: clang  when: "debian"  packages: [ clang-18 ]
-                  requires: [ cxx, curl ]  suggests: clang-select }
+                  requires: curl  suggests: clang-select }
                 { via: clang  when: "fedora"  packages: [ clang18 ] }
             ]
         }
         clang-19: {
             provides: [ cc, cxx, C11, C17, C23, "C++17", "C++20", "C++23" ]
             opt-in: true
+            requires: [ c-toolchain, cxx-stdlib ]
             install: [
                 { via: clang  when: "debian"  packages: [ clang-19 ]
-                  requires: [ cxx, curl ]  suggests: clang-select }
+                  requires: curl  suggests: clang-select }
                 { via: clang  when: "fedora = 41"  packages: [ clang ] }      // system clang -> /usr/bin/clang-19
                 { via: clang  when: "fedora = 42"  packages: [ clang19 ] }
                 { via: clang  when: "rhel"  packages: [ clang19 ]  requires: epel }
@@ -1189,9 +1225,10 @@
         clang-20: {
             provides: [ cc, cxx, C11, C17, C23, "C++17", "C++20", "C++23", "C++26" ]
             opt-in: true
+            requires: [ c-toolchain, cxx-stdlib ]
             install: [
                 { via: clang  when: "debian"  packages: [ clang-20 ]
-                  requires: [ cxx, curl ]  suggests: clang-select }
+                  requires: curl  suggests: clang-select }
                 { via: clang  when: "fedora = 42"  packages: [ clang ] }      // system clang -> /usr/bin/clang-20
                 { via: clang  when: "rhel"  packages: [ clang20 ]  requires: epel }
             ]
