@@ -4047,20 +4047,6 @@
    }
   },
   "clang-18": {
-   "apt\\c-toolchain": {
-    "driver": "apt",
-    "fields": {
-     "name": "gcc"
-    },
-    "name": "gcc"
-   },
-   "apt\\cpp-toolchain": {
-    "driver": "apt",
-    "fields": {
-     "name": "g++"
-    },
-    "name": "g++"
-   },
    "apt\\curl": {
     "driver": "apt",
     "fields": {
@@ -4099,20 +4085,6 @@
    }
   },
   "clang-19": {
-   "apt\\c-toolchain": {
-    "driver": "apt",
-    "fields": {
-     "name": "gcc"
-    },
-    "name": "gcc"
-   },
-   "apt\\cpp-toolchain": {
-    "driver": "apt",
-    "fields": {
-     "name": "g++"
-    },
-    "name": "g++"
-   },
    "apt\\curl": {
     "driver": "apt",
     "fields": {
@@ -4151,20 +4123,6 @@
    }
   },
   "clang-20": {
-   "apt\\c-toolchain": {
-    "driver": "apt",
-    "fields": {
-     "name": "gcc"
-    },
-    "name": "gcc"
-   },
-   "apt\\cpp-toolchain": {
-    "driver": "apt",
-    "fields": {
-     "name": "g++"
-    },
-    "name": "g++"
-   },
    "apt\\curl": {
     "driver": "apt",
     "fields": {
@@ -4807,20 +4765,6 @@
    }
   },
   "gcc-13": {
-   "apt\\c-toolchain": {
-    "driver": "apt",
-    "fields": {
-     "name": "gcc"
-    },
-    "name": "gcc"
-   },
-   "apt\\cpp-toolchain": {
-    "driver": "apt",
-    "fields": {
-     "name": "g++"
-    },
-    "name": "g++"
-   },
    "apt\\software-properties-common": {
     "driver": "apt",
     "fields": {
@@ -4864,20 +4808,6 @@
    }
   },
   "gcc-14": {
-   "apt\\c-toolchain": {
-    "driver": "apt",
-    "fields": {
-     "name": "gcc"
-    },
-    "name": "gcc"
-   },
-   "apt\\cpp-toolchain": {
-    "driver": "apt",
-    "fields": {
-     "name": "g++"
-    },
-    "name": "g++"
-   },
    "apt\\software-properties-common": {
     "driver": "apt",
     "fields": {
@@ -4921,20 +4851,6 @@
    }
   },
   "gcc-15": {
-   "apt\\c-toolchain": {
-    "driver": "apt",
-    "fields": {
-     "name": "gcc"
-    },
-    "name": "gcc"
-   },
-   "apt\\cpp-toolchain": {
-    "driver": "apt",
-    "fields": {
-     "name": "g++"
-    },
-    "name": "g++"
-   },
    "apt\\software-properties-common": {
     "driver": "apt",
     "fields": {
@@ -8229,20 +8145,6 @@
    }
   },
   "clang-18": {
-   "apt\\c-toolchain": {
-    "driver": "apt",
-    "fields": {
-     "name": "gcc"
-    },
-    "name": "gcc"
-   },
-   "apt\\cpp-toolchain": {
-    "driver": "apt",
-    "fields": {
-     "name": "g++"
-    },
-    "name": "g++"
-   },
    "apt\\curl": {
     "driver": "apt",
     "fields": {
@@ -8281,20 +8183,6 @@
    }
   },
   "clang-19": {
-   "apt\\c-toolchain": {
-    "driver": "apt",
-    "fields": {
-     "name": "gcc"
-    },
-    "name": "gcc"
-   },
-   "apt\\cpp-toolchain": {
-    "driver": "apt",
-    "fields": {
-     "name": "g++"
-    },
-    "name": "g++"
-   },
    "apt\\curl": {
     "driver": "apt",
     "fields": {
@@ -8333,20 +8221,6 @@
    }
   },
   "clang-20": {
-   "apt\\c-toolchain": {
-    "driver": "apt",
-    "fields": {
-     "name": "gcc"
-    },
-    "name": "gcc"
-   },
-   "apt\\cpp-toolchain": {
-    "driver": "apt",
-    "fields": {
-     "name": "g++"
-    },
-    "name": "g++"
-   },
    "apt\\curl": {
     "driver": "apt",
     "fields": {
@@ -8979,20 +8853,6 @@
    }
   },
   "gcc-13": {
-   "apt\\c-toolchain": {
-    "driver": "apt",
-    "fields": {
-     "name": "gcc"
-    },
-    "name": "gcc"
-   },
-   "apt\\cpp-toolchain": {
-    "driver": "apt",
-    "fields": {
-     "name": "g++"
-    },
-    "name": "g++"
-   },
    "apt\\software-properties-common": {
     "driver": "apt",
     "fields": {
@@ -9036,20 +8896,6 @@
    }
   },
   "gcc-14": {
-   "apt\\c-toolchain": {
-    "driver": "apt",
-    "fields": {
-     "name": "gcc"
-    },
-    "name": "gcc"
-   },
-   "apt\\cpp-toolchain": {
-    "driver": "apt",
-    "fields": {
-     "name": "g++"
-    },
-    "name": "g++"
-   },
    "apt\\software-properties-common": {
     "driver": "apt",
     "fields": {
@@ -9093,20 +8939,6 @@
    }
   },
   "gcc-15": {
-   "apt\\c-toolchain": {
-    "driver": "apt",
-    "fields": {
-     "name": "gcc"
-    },
-    "name": "gcc"
-   },
-   "apt\\cpp-toolchain": {
-    "driver": "apt",
-    "fields": {
-     "name": "g++"
-    },
-    "name": "g++"
-   },
    "apt\\software-properties-common": {
     "driver": "apt",
     "fields": {
@@ -19867,20 +19699,6 @@
    }
   },
   "clang-18": {
-   "apt\\c-toolchain": {
-    "driver": "apt",
-    "fields": {
-     "name": "gcc"
-    },
-    "name": "gcc"
-   },
-   "apt\\cpp-toolchain": {
-    "driver": "apt",
-    "fields": {
-     "name": "g++"
-    },
-    "name": "g++"
-   },
    "apt\\curl": {
     "driver": "apt",
     "fields": {
@@ -19919,20 +19737,6 @@
    }
   },
   "clang-19": {
-   "apt\\c-toolchain": {
-    "driver": "apt",
-    "fields": {
-     "name": "gcc"
-    },
-    "name": "gcc"
-   },
-   "apt\\cpp-toolchain": {
-    "driver": "apt",
-    "fields": {
-     "name": "g++"
-    },
-    "name": "g++"
-   },
    "apt\\curl": {
     "driver": "apt",
     "fields": {
@@ -19971,20 +19775,6 @@
    }
   },
   "clang-20": {
-   "apt\\c-toolchain": {
-    "driver": "apt",
-    "fields": {
-     "name": "gcc"
-    },
-    "name": "gcc"
-   },
-   "apt\\cpp-toolchain": {
-    "driver": "apt",
-    "fields": {
-     "name": "g++"
-    },
-    "name": "g++"
-   },
    "apt\\curl": {
     "driver": "apt",
     "fields": {
@@ -20636,20 +20426,6 @@
    }
   },
   "gcc-13": {
-   "apt\\c-toolchain": {
-    "driver": "apt",
-    "fields": {
-     "name": "gcc"
-    },
-    "name": "gcc"
-   },
-   "apt\\cpp-toolchain": {
-    "driver": "apt",
-    "fields": {
-     "name": "g++"
-    },
-    "name": "g++"
-   },
    "apt\\software-properties-common": {
     "driver": "apt",
     "fields": {
@@ -20693,20 +20469,6 @@
    }
   },
   "gcc-14": {
-   "apt\\c-toolchain": {
-    "driver": "apt",
-    "fields": {
-     "name": "gcc"
-    },
-    "name": "gcc"
-   },
-   "apt\\cpp-toolchain": {
-    "driver": "apt",
-    "fields": {
-     "name": "g++"
-    },
-    "name": "g++"
-   },
    "apt\\software-properties-common": {
     "driver": "apt",
     "fields": {
@@ -20750,20 +20512,6 @@
    }
   },
   "gcc-15": {
-   "apt\\c-toolchain": {
-    "driver": "apt",
-    "fields": {
-     "name": "gcc"
-    },
-    "name": "gcc"
-   },
-   "apt\\cpp-toolchain": {
-    "driver": "apt",
-    "fields": {
-     "name": "g++"
-    },
-    "name": "g++"
-   },
    "apt\\software-properties-common": {
     "driver": "apt",
     "fields": {
@@ -28093,20 +27841,6 @@
    }
   },
   "clang-18": {
-   "apt\\c-toolchain": {
-    "driver": "apt",
-    "fields": {
-     "name": "gcc"
-    },
-    "name": "gcc"
-   },
-   "apt\\cpp-toolchain": {
-    "driver": "apt",
-    "fields": {
-     "name": "g++"
-    },
-    "name": "g++"
-   },
    "apt\\curl": {
     "driver": "apt",
     "fields": {
@@ -28145,20 +27879,6 @@
    }
   },
   "clang-19": {
-   "apt\\c-toolchain": {
-    "driver": "apt",
-    "fields": {
-     "name": "gcc"
-    },
-    "name": "gcc"
-   },
-   "apt\\cpp-toolchain": {
-    "driver": "apt",
-    "fields": {
-     "name": "g++"
-    },
-    "name": "g++"
-   },
    "apt\\curl": {
     "driver": "apt",
     "fields": {
@@ -28197,20 +27917,6 @@
    }
   },
   "clang-20": {
-   "apt\\c-toolchain": {
-    "driver": "apt",
-    "fields": {
-     "name": "gcc"
-    },
-    "name": "gcc"
-   },
-   "apt\\cpp-toolchain": {
-    "driver": "apt",
-    "fields": {
-     "name": "g++"
-    },
-    "name": "g++"
-   },
    "apt\\curl": {
     "driver": "apt",
     "fields": {
@@ -28853,20 +28559,6 @@
    }
   },
   "gcc-13": {
-   "apt\\c-toolchain": {
-    "driver": "apt",
-    "fields": {
-     "name": "gcc"
-    },
-    "name": "gcc"
-   },
-   "apt\\cpp-toolchain": {
-    "driver": "apt",
-    "fields": {
-     "name": "g++"
-    },
-    "name": "g++"
-   },
    "apt\\software-properties-common": {
     "driver": "apt",
     "fields": {
@@ -28910,20 +28602,6 @@
    }
   },
   "gcc-14": {
-   "apt\\c-toolchain": {
-    "driver": "apt",
-    "fields": {
-     "name": "gcc"
-    },
-    "name": "gcc"
-   },
-   "apt\\cpp-toolchain": {
-    "driver": "apt",
-    "fields": {
-     "name": "g++"
-    },
-    "name": "g++"
-   },
    "apt\\software-properties-common": {
     "driver": "apt",
     "fields": {
@@ -28967,20 +28645,6 @@
    }
   },
   "gcc-15": {
-   "apt\\c-toolchain": {
-    "driver": "apt",
-    "fields": {
-     "name": "gcc"
-    },
-    "name": "gcc"
-   },
-   "apt\\cpp-toolchain": {
-    "driver": "apt",
-    "fields": {
-     "name": "g++"
-    },
-    "name": "g++"
-   },
    "apt\\software-properties-common": {
     "driver": "apt",
     "fields": {
@@ -32275,20 +31939,6 @@
    }
   },
   "clang-18": {
-   "apt\\c-toolchain": {
-    "driver": "apt",
-    "fields": {
-     "name": "gcc"
-    },
-    "name": "gcc"
-   },
-   "apt\\cpp-toolchain": {
-    "driver": "apt",
-    "fields": {
-     "name": "g++"
-    },
-    "name": "g++"
-   },
    "apt\\curl": {
     "driver": "apt",
     "fields": {
@@ -32327,20 +31977,6 @@
    }
   },
   "clang-19": {
-   "apt\\c-toolchain": {
-    "driver": "apt",
-    "fields": {
-     "name": "gcc"
-    },
-    "name": "gcc"
-   },
-   "apt\\cpp-toolchain": {
-    "driver": "apt",
-    "fields": {
-     "name": "g++"
-    },
-    "name": "g++"
-   },
    "apt\\curl": {
     "driver": "apt",
     "fields": {
@@ -32379,20 +32015,6 @@
    }
   },
   "clang-20": {
-   "apt\\c-toolchain": {
-    "driver": "apt",
-    "fields": {
-     "name": "gcc"
-    },
-    "name": "gcc"
-   },
-   "apt\\cpp-toolchain": {
-    "driver": "apt",
-    "fields": {
-     "name": "g++"
-    },
-    "name": "g++"
-   },
    "apt\\curl": {
     "driver": "apt",
     "fields": {
@@ -33025,20 +32647,6 @@
    }
   },
   "gcc-13": {
-   "apt\\c-toolchain": {
-    "driver": "apt",
-    "fields": {
-     "name": "gcc"
-    },
-    "name": "gcc"
-   },
-   "apt\\cpp-toolchain": {
-    "driver": "apt",
-    "fields": {
-     "name": "g++"
-    },
-    "name": "g++"
-   },
    "apt\\software-properties-common": {
     "driver": "apt",
     "fields": {
@@ -33082,20 +32690,6 @@
    }
   },
   "gcc-14": {
-   "apt\\c-toolchain": {
-    "driver": "apt",
-    "fields": {
-     "name": "gcc"
-    },
-    "name": "gcc"
-   },
-   "apt\\cpp-toolchain": {
-    "driver": "apt",
-    "fields": {
-     "name": "g++"
-    },
-    "name": "g++"
-   },
    "apt\\software-properties-common": {
     "driver": "apt",
     "fields": {
@@ -33139,20 +32733,6 @@
    }
   },
   "gcc-15": {
-   "apt\\c-toolchain": {
-    "driver": "apt",
-    "fields": {
-     "name": "gcc"
-    },
-    "name": "gcc"
-   },
-   "apt\\cpp-toolchain": {
-    "driver": "apt",
-    "fields": {
-     "name": "g++"
-    },
-    "name": "g++"
-   },
    "apt\\software-properties-common": {
     "driver": "apt",
     "fields": {

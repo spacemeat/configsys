@@ -128,10 +128,17 @@ Two flavors, same kind of atom:
   `compiler >= 18` is not.
 
 ```
-gcc-15:   { provides: [ cc, C11, C17, C23, C++17, C++20, C++23 ]        install: [...] }
-clang-18: { provides: [ cc, C11, C17, C23, C++17, C++20, C++23, C++2c ] install: [...] }
-toolchain:{ requires: C++20 }     // any provider; disambiguate with a provider-pin
+// SHIPPED: routes.hu gives every versioned gcc/clang these standard capabilities, all opt-in
+// (so a plain `requires: cxx` still resolves to the unversioned cpp-toolchain, no ambiguity).
+gcc-15:   { provides: [ cc, cxx, C11, C17, C23, "C++17", "C++20", "C++23", "C++26" ]  opt-in: true  install: [...] }
+clang-18: { provides: [ cc, cxx, C11, C17, C23, "C++17", "C++20", "C++23" ]           opt-in: true  install: [...] }
+some-app: { requires: "C++20" }   // pick a versioned compiler by wanting it, or a provider-pin
 ```
+
+The unversioned `cc`/`cxx` (`c-toolchain`/`cpp-toolchain`) are the always-on *system default*
+compiler; the versioned ones layer specific-standard labels on top, opt-in so they never shadow
+the default. `requires: "C++20"` is thus satisfied by any co-wanted / pinned versioned compiler;
+teaching the *default* toolchain which standard it supports per OS-version is the remaining piece.
 
 **Environment capabilities.** An OS block can `provides:` capabilities that are baseline
 in that environment, so requiring them is free there and pulls a provider elsewhere:

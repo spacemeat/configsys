@@ -1118,7 +1118,17 @@
         //   debian -> `gcc` (apt PPA + update-alternatives; needs cxx, s-p-c, the alias)
         //   fedora -> `gcc` (dnf compat packages gccNN; availability is per-release)
         //   EL     -> `gcc-toolset` (SCL under /opt/rh)
+        // --- versioned gcc. Each also `provides:` the language-standard capabilities its compiler
+        // supports (`cc`/`cxx` = a C/C++ compiler; C11/C17/C23 and "C++17"/"C++20"/... = a compiler
+        // that accepts that `-std=`), so a build can `requires: "C++20"` (or `cc`, or pin `gcc-15`)
+        // and get a compiler that satisfies it. All are `opt-in: true`: they satisfy a plain
+        // `requires: cxx` ONLY when explicitly wanted / provider-pinned — otherwise the unversioned
+        // `cpp-toolchain` (the system default compiler) wins and there's no ambiguity. The provides
+        // are capability LABELS (the `-std` mode exists + is substantially usable), easy to hand-tune
+        // per real support; the newest standards (C++26) are the most likely to want adjusting.
         gcc-13: {
+            provides: [ cc, cxx, C11, C17, C23, "C++17", "C++20", "C++23" ]
+            opt-in: true
             install: [
                 { via: gcc  when: "debian"  packages: [ gcc-13, g++-13 ]  slaves: [ g++ ]  ppa: ubuntu-toolchain-r/test
                   requires: [ cxx, software-properties-common ]  suggests: gcc-select }
@@ -1127,6 +1137,8 @@
             ]
         }
         gcc-14: {
+            provides: [ cc, cxx, C11, C17, C23, "C++17", "C++20", "C++23" ]
+            opt-in: true
             install: [
                 { via: gcc  when: "debian"  packages: [ gcc-14, g++-14 ]  slaves: [ g++ ]  ppa: ubuntu-toolchain-r/test
                   requires: [ cxx, software-properties-common ]  suggests: gcc-select }
@@ -1135,6 +1147,8 @@
             ]
         }
         gcc-15: {
+            provides: [ cc, cxx, C11, C17, C23, "C++17", "C++20", "C++23", "C++26" ]
+            opt-in: true
             install: [
                 { via: gcc  when: "debian"  packages: [ gcc-15, g++-15 ]  slaves: [ g++ ]  ppa: ubuntu-toolchain-r/test
                   requires: [ cxx, software-properties-common ]  suggests: gcc-select }
@@ -1150,7 +1164,11 @@
             requires: bash-dotfiles
             install: [ { via: dotfiles  when: "debian"  src: bash.d/clang.sh  dst: ~/.bash.d/clang.sh } ]
         }
+        // versioned clang provides the same standard labels (it requires `cxx` -> gcc's libstdc++
+        // for C++ headers, and itself provides a C/C++ compiler + standards). Same opt-in rule.
         clang-18: {
+            provides: [ cc, cxx, C11, C17, C23, "C++17", "C++20", "C++23" ]
+            opt-in: true
             install: [
                 { via: clang  when: "debian"  packages: [ clang-18 ]
                   requires: [ cxx, curl ]  suggests: clang-select }
@@ -1158,6 +1176,8 @@
             ]
         }
         clang-19: {
+            provides: [ cc, cxx, C11, C17, C23, "C++17", "C++20", "C++23" ]
+            opt-in: true
             install: [
                 { via: clang  when: "debian"  packages: [ clang-19 ]
                   requires: [ cxx, curl ]  suggests: clang-select }
@@ -1167,6 +1187,8 @@
             ]
         }
         clang-20: {
+            provides: [ cc, cxx, C11, C17, C23, "C++17", "C++20", "C++23", "C++26" ]
+            opt-in: true
             install: [
                 { via: clang  when: "debian"  packages: [ clang-20 ]
                   requires: [ cxx, curl ]  suggests: clang-select }
@@ -1174,5 +1196,6 @@
                 { via: clang  when: "rhel"  packages: [ clang20 ]  requires: epel }
             ]
         }
+
     }
 }
