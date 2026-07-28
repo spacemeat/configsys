@@ -206,6 +206,7 @@ configsys lock|unlock <name>...    # version-lock / unlock
 configsys set-version <name> <ver> # pin to a specific version
 configsys fix-scope [<name>...]    # reconcile user/system scope mismatches (moves the install)
 configsys where <name>             # explain a component: source layer + bindings + resolution
+configsys show <routes|config>     # print the shipped base file (or --path for its location)
 configsys check                    # lint the merged config (repo + your file + includes + plugins)
 configsys refresh                  # re-query latest versions from their sources
 configsys dotfiles <status|capture>   # inspect / adopt your dotfiles (see Dotfiles below)

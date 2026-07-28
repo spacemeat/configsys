@@ -56,3 +56,43 @@ def test_expand_bare_relative_is_home_relative():
     p = Paths(env={'CONFIGSYS_HOME': '/tmp/sandbox'})
     assert p.expand('vulkan') == Path('/tmp/sandbox/vulkan')
     assert p.expand('apps/nvim.appimage') == Path('/tmp/sandbox/apps/nvim.appimage')
+
+
+def test_data_root_is_the_source_tree_when_cloned():
+    # a normal checkout: routes.hu sits at the repo root beside the package -> that wins, so the
+    # from-source workflow is unchanged (no CONFIGSYS_REPO needed).
+    p = Paths(env={'HOME': '/home/x'})
+    assert (p.repo / 'routes.hu').exists()
+    assert p.routes_file.exists() and p.config_file.exists()
+
+
+def test_data_root_falls_back_to_package_data_when_installed(tmp_path):
+    # A pip/pipx install has NO repo-root routes.hu; the build ships the data as package data under
+    # configsys/data/. Simulate that layout in a fully isolated interpreter (the in-process package
+    # would always find the real source tree first), and confirm _locate_data_root picks the
+    # package-data dir. This is the branch that makes `pip install configsys-cli` actually work.
+    import os
+    import shutil
+    import subprocess
+    import sys
+
+    src_pkg = Path(__file__).resolve().parent.parent / 'configsys'
+    site = tmp_path / 'site'
+    pkg = site / 'configsys'
+    shutil.copytree(src_pkg, pkg, ignore=shutil.ignore_patterns('__pycache__'))
+    (pkg / 'data').mkdir()
+    (pkg / 'data' / 'routes.hu').write_text('{ os: {} }')
+    (pkg / 'data' / 'config.hu').write_text('{ configs: [] }')
+    # deliberately NO routes.hu at the site root -> the source-tree probe must miss
+
+    probe = (
+        'from configsys.paths import Paths\n'
+        'p = Paths(env={"HOME": "/home/x"})\n'
+        'print(p.repo)\n'
+    )
+    env = {**os.environ, 'PYTHONPATH': str(site)}
+    env.pop('CONFIGSYS_REPO', None)
+    r = subprocess.run([sys.executable, '-c', probe], capture_output=True, text=True,
+                       env=env, cwd=str(tmp_path))
+    assert r.returncode == 0, r.stderr
+    assert r.stdout.strip() == str(pkg / 'data')

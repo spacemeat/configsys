@@ -1487,6 +1487,45 @@ def cmd_manpages(ctx, args):
     return 0
 
 
+_SHOW_TARGETS = ('routes', 'config')
+
+
+def _show_file(ctx, what):
+    '''(path, kind) for a base data file. kind describes it for messages.'''
+    return {'routes': (ctx.paths.routes_file, 'routes.hu'),
+            'config': (ctx.paths.config_file, 'config.hu template')}[what]
+
+
+def cmd_show(ctx, args):
+    '''Print a shipped base data file — routes.hu or the config.hu template — or, with --path,
+    just its on-disk location. Handy once configsys is installed (pip/pipx) rather than cloned:
+    the files then live in package data, so `configsys show routes --path` says where, and
+    `configsys show routes` prints the file you can no longer `cat` from a checkout.'''
+    what = getattr(args, 'what', None)
+    if not what:
+        print('configsys: name what to show — ' + ' | '.join(_SHOW_TARGETS))
+        for name in _SHOW_TARGETS:
+            path, _kind = _show_file(ctx, name)
+            print(f'  {"" if path.exists() else "?"} {name:8} {path}')
+        return 1
+    path, kind = _show_file(ctx, what)
+    if not path.exists():
+        print(f'configsys: base {kind} not found at {path}', file=sys.stderr)
+        return 1
+    if getattr(args, 'path', False):
+        print(path)
+        return 0
+    try:
+        sys.stdout.write(path.read_text())
+        sys.stdout.flush()
+    except BrokenPipeError:
+        # a downstream pager/`head` closed the pipe — normal; silence the interpreter's final
+        # flush (which would re-raise) by pointing stdout at the void, then exit clean.
+        import os
+        os.dup2(os.open(os.devnull, os.O_WRONLY), sys.stdout.fileno())
+    return 0
+
+
 # -- argument parsing -----------------------------------------------------
 
 _EPILOG = '''\
@@ -1497,6 +1536,7 @@ examples:
   configsys install profile:dev       install every component in the `dev` profile
   configsys upgrade profile:dev btop  a profile plus an extra, to latest
   configsys where neovim             explain how a component resolves on this machine
+  configsys show routes              print the shipped base routes.hu (or --path for its location)
   configsys --pretend install steam  dry run: print the commands, change nothing
 
 environment:
@@ -1635,6 +1675,12 @@ def build_parser():
                          help='man-dir prefix; pages go under <prefix>/share/man (default: ~/.local)')
 
     sub.add_parser('refresh', help='re-query latest versions from their sources')
+    sh = sub.add_parser('show', help='print a shipped base data file (routes/config) or its path')
+    sh.add_argument('what', nargs='?', choices=list(_SHOW_TARGETS),
+                    help='which base file to show (omit to list them)')
+    sh.add_argument('--path', action='store_true',
+                    help="print the file's resolved location instead of its contents")
+
     sub.add_parser('tui', help='interactive TUI (default)')
     return p
 
@@ -1784,6 +1830,7 @@ _COMMANDS = {
     'report': cmd_report,
     'request': cmd_request,
     'manpages': cmd_manpages,
+    'show': cmd_show,
     'tui': cmd_tui,
 }
 

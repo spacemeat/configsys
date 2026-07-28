@@ -443,3 +443,29 @@ def test_profiles_label_hides_all_as_a_note():
     assert _profiles_label(['user', 'all']) == 'user  +all (full menu)'
     assert _profiles_label(['all']) == '+all (full menu)'
     assert _profiles_label([]) == '(none)'
+
+
+# -- `show`: print/locate the shipped base data files (installed-not-cloned ergonomics) --
+
+def test_show_routes_prints_the_base_file(tmp_path, capsys):
+    rc = main(base_args(tmp_path) + ['show', 'routes'])
+    assert rc == 0
+    out = capsys.readouterr().out
+    assert 'components:' in out and 'os:' in out          # it really is routes.hu
+
+def test_show_config_prints_the_base_template(tmp_path, capsys):
+    rc = main(base_args(tmp_path) + ['show', 'config'])
+    assert rc == 0
+    assert 'profiles:' in capsys.readouterr().out
+
+def test_show_path_prints_location_not_contents(tmp_path, capsys):
+    rc = main(base_args(tmp_path) + ['show', 'routes', '--path'])
+    assert rc == 0
+    out = capsys.readouterr().out.strip()
+    assert out.endswith('routes.hu') and '\n' not in out   # a single path line, no file body
+
+def test_show_without_target_lists_and_is_nonzero(tmp_path, capsys):
+    rc = main(base_args(tmp_path) + ['show'])
+    assert rc == 1                                          # nothing shown -> usage-ish exit
+    out = capsys.readouterr().out
+    assert 'routes' in out and 'config' in out

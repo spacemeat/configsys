@@ -6,7 +6,7 @@ real account. Nothing here reads or writes; it only computes locations.
 
 Env overrides:
   CONFIGSYS_HOME       base for ~-relative paths            (default: $HOME)
-  CONFIGSYS_REPO       repo root holding config.hu/routes.hu (default: package parent)
+  CONFIGSYS_REPO       data root holding config.hu/routes.hu (default: auto — see _locate_data_root)
   CONFIGSYS_CONFIG     per-machine selector file            (default: <home>/configsys.hu)
   CONFIGSYS_STATE_DIR  ledger directory                     (default: <config>/configsys)
   XDG_CONFIG_HOME      base for the default state dir        (default: <home>/.config)
@@ -24,13 +24,15 @@ class Paths:
             self.env.get('CONFIGSYS_HOME') or self.env.get('HOME') or Path.home()
         )
 
-        repo = self.env.get('CONFIGSYS_REPO')
-        # package lives at <repo>/configsys/paths.py -> repo is two parents up.
-        self.repo = Path(repo) if repo else Path(__file__).resolve().parent.parent
+        # Data root holds the shipped routes.hu / config.hu / dotfiles/ (and man/). It is
+        # resolved from three sources in order (see _locate_data_root): an explicit
+        # CONFIGSYS_REPO, the source tree (clone/dev), then the installed package's own data
+        # (so a `pip install` with no clone still finds its files).
+        self.repo = self._locate_data_root()
 
         self.routes_file = self.repo / 'routes.hu'
         self.config_file = self.repo / 'config.hu'
-        self.dotfiles_dir = self.repo / 'dotfiles'   # source tree for the dotfiles driver
+        self.dotfiles_dir = self.repo / 'dotfiles'   # content root for the dotfiles driver
 
         # state dir (holds the ledger, the version cache, AND the user config). XDG by
         # default; CONFIGSYS_HOME wins over XDG so `--home` fully sandboxes everything.
@@ -61,6 +63,37 @@ class Paths:
         # plugin is known (Context.ensure_plugin_code); None otherwise.
         self.user_dotfiles_dir = self.state_dir / 'dotfiles'
         self.primary_dotfiles_dir = None
+
+    def _locate_data_root(self) -> Path:
+        '''Where routes.hu / config.hu / dotfiles/ live, resolved in precedence order:
+
+        1. CONFIGSYS_REPO — explicit override (tests, sandboxes, a checkout used by an install).
+        2. Source tree / clone — the repo root beside the package (``<repo>/configsys/paths.py``
+           -> ``<repo>``), used when it actually holds ``routes.hu``. This wins for every clone
+           and dev run, so nothing about the from-source workflow changes.
+        3. Installed wheel — ``importlib.resources.files('configsys') / 'data'``, where the build
+           ships the data files as package data. Only reached when the source-tree root has no
+           ``routes.hu`` (i.e. a real ``pip install``), so it never shadows a checkout.
+
+        Falls back to the source-tree guess if nothing matches, so a missing file surfaces as a
+        clear ENOENT against a sensible path rather than a None.'''
+        override = self.env.get('CONFIGSYS_REPO')
+        if override:
+            return Path(override)
+
+        src_root = Path(__file__).resolve().parent.parent      # <repo>/configsys/paths.py -> <repo>
+        if (src_root / 'routes.hu').exists():
+            return src_root
+
+        try:
+            import importlib.resources as ir
+            data = Path(str(ir.files('configsys'))) / 'data'
+            if (data / 'routes.hu').exists():
+                return data
+        except (ModuleNotFoundError, TypeError, NotADirectoryError, ValueError):
+            pass
+
+        return src_root
 
     def expand(self, p) -> Path:
         '''Expand a route-supplied path against configsys HOME (not the OS home),
