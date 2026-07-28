@@ -5,6 +5,10 @@ __pycache__/
 *.egg-info/
 .pytest_cache/
 
+# Build artifacts (wheel/sdist)
+/dist/
+/build/
+
 # Local machine state (never committed; lives in ~ or ~/.config at runtime)
 /configsys.hu
 state.hu

@@ -1,0 +1,62 @@
+# pyproject.toml — packaging for a future pip/pipx install. configsys currently runs
+# git-clone-first (via ./configsys.sh); this makes an installable wheel possible WITHOUT
+# changing that: no data files move, and paths.py still prefers the source tree in a checkout
+# (see Paths._locate_data_root). The wheel force-includes the repo-root data (routes.hu /
+# config.hu / dotfiles/ / man/) into configsys/data/, where the installed-mode lookup finds it.
+#
+# NOT published yet. Distribution name is `configsys-cli` because `configsys` is taken on PyPI
+# by an unrelated project; the command it installs is still `configsys`. Before publishing:
+# add a LICENSE + the `license`/`classifiers` fields, bump the version off `.dev0`, and make
+# sure dotfiles/ holds only shippable templates (the build bundles it verbatim).
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "configsys-cli"
+description = "Provision OS-native software from a profile: one config, one tool, across apt/dnf/pacman/zypper/apk/brew, flatpak, tarballs, language toolchains, and more."
+readme = "README.md"
+requires-python = ">=3.10"
+authors = [{ name = "Trevor Schrock" }]
+keywords = ["provisioning", "dotfiles", "package-manager", "bootstrap", "cli", "humon"]
+dependencies = ["humon>=0.1.0"]
+dynamic = ["version"]
+
+[project.scripts]
+# __main__.py only does `from .app import main`; app:main is the real entry point.
+configsys = "configsys.app:main"
+
+[project.urls]
+Homepage = "https://github.com/spacemeat/configsys"
+Repository = "https://github.com/spacemeat/configsys"
+
+[tool.hatch.version]
+path = "configsys/__init__.py"
+
+[tool.hatch.build.targets.wheel]
+packages = ["configsys"]
+
+# Pull the repo-root data into the wheel under configsys/data/ (source tree keeps them at the
+# root as the dev source of truth; nothing is relocated). Paths._locate_data_root reads them
+# from importlib.resources.files('configsys')/'data' once installed.
+[tool.hatch.build.targets.wheel.force-include]
+"routes.hu" = "configsys/data/routes.hu"
+"config.hu" = "configsys/data/config.hu"
+"dotfiles" = "configsys/data/dotfiles"
+"man" = "configsys/data/man"
+
+# The sdist keeps the data at the repo root (where it lives); a wheel built from it re-applies
+# the force-include above. Ship the tests too so the sdist is self-checking.
+[tool.hatch.build.targets.sdist]
+include = [
+    "configsys",
+    "routes.hu",
+    "config.hu",
+    "dotfiles",
+    "man",
+    "test",
+    "docs",
+    "README.md",
+    "CLAUDE.md",
+]
