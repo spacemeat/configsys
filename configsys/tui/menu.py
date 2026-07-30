@@ -472,8 +472,25 @@ def _confirm_and_execute(stdscr, pal, ms, ctx, ledger):
 
 # -- rendering ------------------------------------------------------------
 
-# column start positions
-NAME_X, FAM_X, SCOPE_X, STATUS_X, INST_X, LATEST_X = 3, 27, 39, 47, 58, 75
+def _columns(w):
+    '''Responsive column geometry -> {col: (x, width)} for the given terminal width. NAME and
+    FAMILY absorb the extra horizontal room; the two version columns (INSTALLED / LATEST) always
+    get equal width. SCOPE/STATUS stay compact.'''
+    start = 3                                     # after the select marker + op badge
+    scope_w, status_w = 8, 9
+    flex = max(24, (w - 1) - start - scope_w - status_w - 5)   # 5 inter-column gaps
+    ver_w = max(8, min(18, flex // 5))            # INSTALLED == LATEST
+    rest = max(22, flex - 2 * ver_w)              # NAME + FAMILY share the remainder
+    name_w = max(14, rest * 3 // 5)
+    fam_w = max(8, rest - name_w)
+    nx = start
+    fx = nx + name_w + 1
+    scx = fx + fam_w + 1
+    stx = scx + scope_w + 1
+    ix = stx + status_w + 1
+    lx = ix + ver_w + 1
+    return {'name': (nx, name_w), 'fam': (fx, fam_w), 'scope': (scx, scope_w),
+            'status': (stx, status_w), 'inst': (ix, ver_w), 'latest': (lx, ver_w)}
 
 
 def _scroll_top(cursor, top, list_h, nrows):
@@ -587,31 +604,30 @@ def _draw(stdscr, pal, ms, ctx, note, diags=(), show_diag=False, diag_top=0):
         return _draw_diagnostics(stdscr, pal, diags, diag_top)
     stdscr.erase()
     h, w = stdscr.getmaxyx()
+    cols = _columns(w)
 
-    _put(stdscr, 0, 0, _fit(' configsys ', w),
-         pal.get('title') | curses.A_BOLD | curses.A_REVERSE)
+    # top line: the `configsys` chip, then the OS block (+ PRETEND) to its right, then the badge.
+    title = ' configsys '
+    _put(stdscr, 0, 0, title, pal.get('title') | curses.A_BOLD | curses.A_REVERSE)
     sub = f'  {ctx.os_info.block}'
     if ctx.runner.pretend:
         sub += '   [PRETEND]'
-    _put(stdscr, 1, 0, _fit(sub, w), pal.get('header'))
-    if diags:                                        # attention badge, right-aligned on the sub line
+    _put(stdscr, 0, len(title), _fit(sub, max(1, w - len(title))), pal.get('header') | curses.A_BOLD)
+    if diags:                                        # attention badge, right-aligned on the top line
         n = len(diags)
         lvl = 'error' if any(d['level'] == 'error' for d in diags) else 'outdated'
         badge = f' ⚠ {n} issue{"s" if n != 1 else ""} — press ! to view '
-        bx = max(len(sub) + 2, w - len(badge) - 1)
-        # a solid reverse-video bar — red for errors, amber for warnings; both impossible to miss
-        _put(stdscr, 1, bx, _fit(badge, w - bx),
+        bx = max(len(title) + len(sub) + 2, w - len(badge) - 1)
+        _put(stdscr, 0, bx, _fit(badge, w - bx),
              pal.get(lvl) | curses.A_BOLD | curses.A_REVERSE)
 
     hattr = pal.get('dim') | curses.A_BOLD
-    _put(stdscr, 3, NAME_X, 'COMPONENT', hattr)
-    _put(stdscr, 3, FAM_X, 'FAMILY', hattr)
-    _put(stdscr, 3, SCOPE_X, 'SCOPE', hattr)
-    _put(stdscr, 3, STATUS_X, 'STATUS', hattr)
-    _put(stdscr, 3, INST_X, 'INSTALLED', hattr)
-    _put(stdscr, 3, LATEST_X, 'LATEST', hattr)
+    for col, text in (('name', 'COMPONENT'), ('fam', 'FAMILY'), ('scope', 'SCOPE'),
+                      ('status', 'STATUS'), ('inst', 'INSTALLED'), ('latest', 'LATEST')):
+        x, cw = cols[col]
+        _put(stdscr, 1, x, _fit(text, cw), hattr)
 
-    list_top = 4
+    list_top = 2
     list_h = max(1, h - list_top - 6)  # methods + 2 infoblock + status + 2 footer lines
     ms.top = first = _scroll_top(ms.cursor, ms.top, list_h, len(ms.rows))
 
@@ -634,33 +650,26 @@ def _draw(stdscr, pal, ms, ctx, note, diags=(), show_diag=False, diag_top=0):
         marker = ('▾ ' if n.expanded else '▸ ') if n.expandable else '  '
         name = '  ' * n.depth + marker + n.label
         name_attr = base | (curses.A_BOLD if n.kind != UNIT else 0)
-        if n.kind == PROFILE:
+        if n.kind in (PROFILE, LINK):
             name_attr |= pal.get('accent')
+
+        def col(c, s, attr, pad=True):
+            x, cw = cols[c]
+            _put(stdscr, y, x, (_fit(s, cw).ljust(cw) if pad else _fit(s, cw)), attr)
 
         _put(stdscr, y, 0, sel, pal.get('accent') | base | curses.A_BOLD)
         _put(stdscr, y, 1, badge, battr | base)
-        _put(stdscr, y, NAME_X, _fit(name, FAM_X - NAME_X - 1).ljust(FAM_X - NAME_X - 1),
-             name_attr)
-        _put(stdscr, y, FAM_X, _fit(n.driver, SCOPE_X - FAM_X - 1).ljust(SCOPE_X - FAM_X - 1),
-             base | pal.get('dim'))
-        scope = n.scope_str()
-        scope_attr = pal.get('accent' if _scope_is_choice(n) else 'dim')
-        _put(stdscr, y, SCOPE_X, _fit(scope, STATUS_X - SCOPE_X - 1).ljust(STATUS_X - SCOPE_X - 1),
-             base | scope_attr)
-
+        col('name', name, name_attr)
+        col('fam', n.driver, base | pal.get('dim'))
+        col('scope', n.scope_str(), base | pal.get('accent' if _scope_is_choice(n) else 'dim'))
         st = n.status
-        _put(stdscr, y, STATUS_X, _fit(st, INST_X - STATUS_X - 1).ljust(INST_X - STATUS_X - 1),
-             pal.get(STATUS_COLOR.get(st, 'dim')) | base)
-
+        col('status', st, pal.get(STATUS_COLOR.get(st, 'dim')) | base)
         if err:
-            _put(stdscr, y, INST_X, _fit(err, max(1, w - INST_X - 1)),
-                 base | pal.get('error'))
+            ix = cols['inst'][0]
+            _put(stdscr, y, ix, _fit(err, max(1, w - ix - 1)), base | pal.get('error'))
         else:
-            _put(stdscr, y, INST_X,
-                 _fit(n.installed_str(), LATEST_X - INST_X - 1).ljust(LATEST_X - INST_X - 1),
-                 base | pal.get('dim'))
-            _put(stdscr, y, LATEST_X, _fit(n.latest_str(), max(1, w - LATEST_X - 1)),
-                 base | pal.get('dim'))
+            col('inst', n.installed_str(), base | pal.get('dim'))
+            col('latest', n.latest_str(), base | pal.get('dim'), pad=False)
 
     _put(stdscr, h - 6, 0, _fit(_methods_line(ms, ctx), w), pal.get('header'))
     info1, info2 = _infoblock(ms, ctx)
