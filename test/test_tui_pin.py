@@ -46,7 +46,8 @@ def _menu_on(ctx, component):
 def _steam_home(tmp_path):
     d = tmp_path / '.config' / 'configsys'
     d.mkdir(parents=True)
-    (d / 'configsys.hu').write_text('{ configs: [ games ]  profiles: { games: [ steam, btop ] } }')
+    (d / 'configsys.hu').write_text(
+        '{ configs: [ games ]  profiles: { games: [ steam, btop, zsh ] } }')
     return d
 
 
@@ -123,7 +124,7 @@ def test_pick_method_popup_esc_cancels(tmp_path):
 def test_pick_method_single_method_is_a_noop(tmp_path):
     _steam_home(tmp_path)
     ctx = _ctx(tmp_path)
-    ms = _menu_on(ctx, 'btop')                        # native-only here: no popup, no getch
+    ms = _menu_on(ctx, 'zsh')                         # native-only here: no popup, no getch
     changed, note, _d = menu._pick_method(_Scr([]), _Pal(), ms, ctx)
     assert not changed and 'only one install method' in note
 

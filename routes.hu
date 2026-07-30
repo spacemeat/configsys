@@ -127,7 +127,11 @@
         // EL keeps these in EPEL, base repos everywhere else — same two-binding shape as btop.
         // `repo-component: universe` is the apt archive area (read only by apt; ignored on dnf/pacman).
         ripgrep: { install: [ { via: native  when: "rhel"  requires: epel } { via: native  repo-component: universe } ] }
-        fzf:     { install: [ { via: native  when: "rhel"  requires: epel } { via: native  repo-component: universe } ] }
+        fzf:     { install: [ { via: native  when: "rhel"  requires: epel } { via: native  repo-component: universe }
+                              // from-source alternative: a Go build straight into the prefix
+                              { via: source  repo: "https://github.com/junegunn/fzf"
+                                version: { github: junegunn/fzf }  requires: go
+                                build: "mkdir -p $PREFIX/bin && go build -o $PREFIX/bin/fzf" } ] }
         xclip:   { suggests: xclip-dotfiles
                    install: [ { via: native  when: "rhel"  requires: epel } { via: native  repo-component: universe } ] }
         xclip-dotfiles: { install: [ { via: dotfiles  requires: bash-dotfiles  src: bash.d/xclip.sh  dst: ~/.bash.d/xclip.sh } ] }
@@ -138,6 +142,11 @@
             install: [
                 { via: native  when: "rhel"  requires: epel }
                 { via: native  repo-component: universe }
+                // from-source alternative (pin it: `configsys pin set btop source`). C++ Makefile,
+                // installs under the prefix (~/.local by default). Latest release tag.
+                { via: source  repo: "https://github.com/aristocratos/btop"
+                  version: { github: aristocratos/btop }  requires: [ cxx, make ]
+                  build: "make && make install PREFIX=$PREFIX" }
             ]
         }
         htop: {
@@ -1051,6 +1060,10 @@
                   asset: { x86_64: fastfetch-linux-amd64.deb  aarch64: fastfetch-linux-aarch64.deb } }
                 { via: native  when: "rhel"  requires: epel }   // EL ships fastfetch in EPEL
                 { via: native }
+                // from-source alternative (CMake; optional feature libs auto-detected/skipped)
+                { via: source  repo: "https://github.com/fastfetch-cli/fastfetch"
+                  version: { github: fastfetch-cli/fastfetch }  requires: [ cc, cmake ]
+                  build: "cmake -B build -DCMAKE_INSTALL_PREFIX=$PREFIX && cmake --build build && cmake --install build" }
             ]
         }
 

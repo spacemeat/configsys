@@ -140,6 +140,20 @@ def test_real_build_clones_checks_out_and_installs(tmp_path):
     assert fam.get_version(rc) == '1.0.0'                          # marker recorded
 
 
+def test_curated_base_source_bindings_resolve():
+    # base routes.hu ships a few `via: source` alternatives; pinning one selects it and pulls the
+    # declared build deps (cxx->cpp-toolchain, make, and the driver's git)
+    import os
+    ROUTES = os.path.join(os.path.dirname(__file__), '..', 'routes.hu')
+    units = set(Resolver(ROUTES, 'pop_os!', '22.04', 'x86_64',
+                         pins={'btop': 'source'}).resolve_names(['btop']))
+    assert 'source\\btop' in units
+    assert {'apt\\make', 'apt\\cpp-toolchain', 'apt\\git'} <= units   # build toolchain pulled
+    # and without the pin, source is NOT the default (native wins by driver-preference)
+    plain = set(Resolver(ROUTES, 'pop_os!', '22.04', 'x86_64').resolve_names(['btop']))
+    assert 'apt\\btop' in plain and 'source\\btop' not in plain
+
+
 def test_source_component_resolves_and_pulls_git(tmp_path):
     p = tmp_path / 'routes.hu'
     p.write_text('{ ' + OS + '  drivers: { source: { requires: git } }  components: {'
