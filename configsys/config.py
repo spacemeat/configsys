@@ -118,6 +118,26 @@ class Config:
         v = layers.merge_scalar(self._layers, 'driver-preference', _MACHINE_ROLES)
         return _leaves(v) or None
 
+    def layer_pins(self, role):
+        '''The raw scalar pins from the single layer of this role (repo/primary/user) — for
+        editing that one layer's pins and for provenance, distinct from the merged pins().'''
+        out = {}
+        for layer in self._layers:
+            if layer.role == role and isinstance(layer.data.get('pins'), dict):
+                for k, v in layer.data['pins'].items():
+                    if not isinstance(v, (dict, list)):
+                        out[k] = v
+        return out
+
+    def pin_sources(self):
+        '''{pin_name: role} — which machine-role set each EFFECTIVE pin (highest wins, matching
+        pins()). For `configsys pin` provenance (local top config vs a portable primary plugin).'''
+        src = {}
+        for role in _MACHINE_ROLES:          # repo < primary < user; later overrides
+            for k in self.layer_pins(role):
+                src[k] = role
+        return src
+
     def profile_components(self, profile):
         '''The ordered, deduped component list a profile expands to. A profile value is a list
         of terms, applied left-to-right: a bare `name` adds a component, `+name` splices in

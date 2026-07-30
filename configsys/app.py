@@ -796,6 +796,123 @@ def cmd_where(ctx, args):
     return 0
 
 
+# -- pin: view / set / promote install-method (and provider) pins ----------
+
+def _validate_pin(ctx, name, value):
+    '''(ok, note). A binding-pin (value is a via) needs `name` to be a component that HAS a
+    binding with that via; a note warns if that via isn't available on THIS machine. A provider-
+    pin (value is a component) is accepted if the component exists. Otherwise not-ok with why.'''
+    from .drivers import supported_names
+    r = ctx.routes
+    if value in ({'native', 'parts'} | supported_names()):          # binding-pin
+        comp = r.components.get(name)
+        if comp is None:
+            return False, f'{name!r} is not a known component (a binding-pin needs one)'
+        vias = {b.via for b in comp.bindings}
+        if value not in vias:
+            return False, f'{name!r} has no via:{value} binding (its methods: {sorted(vias) or "none"})'
+        if value not in {c['via'] for c in r.candidates(name)}:
+            return True, f'via:{value} is a valid method for {name} but not available on this machine right now'
+        return True, ''
+    if value in r.components:                                        # provider-pin
+        return True, ''
+    return False, f'{value!r} is neither a known via/driver nor a known component'
+
+
+def _pin_list(ctx):
+    pins = ctx.config.pins()
+    if not pins:
+        print('configsys: no pins set')
+        return 0
+    src = ctx.config.pin_sources()
+    _ROLE = {'user': 'local', 'primary': 'primary plugin (portable)', 'repo': 'repo'}
+    print('pins (effective):')
+    for name in sorted(pins):
+        print(f'  {name:24} -> {pins[name]:18} [{_ROLE.get(src.get(name), src.get(name, "?"))}]')
+    return 0
+
+
+def _pin_set(ctx, name, value):
+    from . import plugins
+    ok, note = _validate_pin(ctx, name, value)
+    if not ok:
+        print(f'configsys: {note}', file=sys.stderr)
+        return 1
+    if ctx.runner.pretend:
+        print(f'configsys: [pretend] would pin {name} -> {value} in your top config')
+        return 0
+    ctx.ensure_user_config()
+    pins = plugins.read_pins(ctx.paths.user_config_file)
+    pins[name] = value
+    plugins.set_pins(ctx.paths.user_config_file, pins)
+    print(f'configsys: pinned {name} -> {value} '
+          f'(local, in {_layer_label(ctx.paths.user_config_file, ctx.paths)})')
+    if note:
+        print(f'  note: {note}')
+    return 0
+
+
+def _pin_unset(ctx, name):
+    from . import plugins
+    pins = plugins.read_pins(ctx.paths.user_config_file)
+    if name not in pins:
+        print(f'configsys: {name} is not pinned in your top config', file=sys.stderr)
+        return 1
+    if ctx.runner.pretend:
+        print(f'configsys: [pretend] would unpin {name} from your top config')
+        return 0
+    del pins[name]
+    plugins.set_pins(ctx.paths.user_config_file, pins)
+    print(f'configsys: unpinned {name}')
+    return 0
+
+
+def _pin_promote(ctx, name):
+    '''Move a top-config pin up into the primary plugin, so it travels to other machines.'''
+    from . import plugins
+    local = plugins.read_pins(ctx.paths.user_config_file)
+    if name not in local:
+        print(f'configsys: {name} is not pinned in your top config (nothing to promote)',
+              file=sys.stderr)
+        return 1
+    decls = plugins.declared(ctx.paths.user_config_file)
+    prim = plugins.primary_name(decls)
+    if prim is None:
+        print('configsys: no primary plugin set — bless one first '
+              '(`configsys plugin bless <source>`)', file=sys.stderr)
+        return 1
+    files = [f for f, role in plugins.layer_files(ctx.paths.plugins_dir, decls) if role == 'primary']
+    if not files:
+        print(f'configsys: primary plugin {prim!r} has no synced data file to hold the pin '
+              '(add one to it first)', file=sys.stderr)
+        return 1
+    target, value = files[0], local[name]
+    if ctx.runner.pretend:
+        print(f'configsys: [pretend] would move pin {name} -> {value} into primary plugin {prim}')
+        return 0
+    ppins = plugins.read_pins(target)
+    ppins[name] = value
+    plugins.set_pins(target, ppins)
+    del local[name]
+    plugins.set_pins(ctx.paths.user_config_file, local)
+    print(f'configsys: moved pin {name} -> {value} into primary plugin {prim}')
+    print(f'  commit & push {prim} so it travels to your other machines')
+    return 0
+
+
+def cmd_pin(ctx, args):
+    sub = getattr(args, 'pin_command', None) or 'list'
+    if sub == 'list':
+        return _pin_list(ctx)
+    if sub == 'set':
+        return _pin_set(ctx, args.component, args.via)
+    if sub == 'unset':
+        return _pin_unset(ctx, args.component)
+    if sub == 'promote':
+        return _pin_promote(ctx, args.component)
+    return _pin_list(ctx)
+
+
 # -- check: lint the merged config ----------------------------------------
 
 def _issue_loc(issue, paths):
@@ -1547,6 +1664,8 @@ examples:
   configsys install profile:dev       install every component in the `dev` profile
   configsys upgrade profile:dev btop  a profile plus an extra, to latest
   configsys where neovim             explain how a component resolves on this machine
+  configsys pin set steam flatpak    choose an install method (a local pin)
+  configsys pin promote steam        make that pin portable via your primary plugin
   configsys show routes              print the shipped base routes.hu (or --path for its location)
   configsys --pretend install steam  dry run: print the commands, change nothing
 
@@ -1611,6 +1730,20 @@ def build_parser():
 
     sub.add_parser('check', help='lint the merged config (repo + ~/configsys.hu) without '
                                  'installing')
+
+    pn = sub.add_parser('pin', help='view or change install-method / provider pins '
+                                    '(local, or portable via a primary plugin)')
+    pnsub = pn.add_subparsers(dest='pin_command')
+    pnsub.add_parser('list', help='effective pins and where each came from (default)')
+    ps = pnsub.add_parser('set', help='pin a component to an install method '
+                                      '(or a capability to a provider component)')
+    ps.add_argument('component')
+    ps.add_argument('via', help='a via/driver (binding-pin), or a provider component (provider-pin)')
+    pnu = pnsub.add_parser('unset', help='remove a pin from your top config')
+    pnu.add_argument('component')
+    pnp = pnsub.add_parser('promote', help='move a top-config pin into your primary plugin '
+                                           '(portable to your other machines)')
+    pnp.add_argument('component')
 
     pl = sub.add_parser('plugin', help='manage plugins: declare/sync, bless or init a personal '
                                        'primary plugin, trust code plugins')
@@ -1836,6 +1969,7 @@ _COMMANDS = {
     'fix-scope': cmd_fix_scope,
     'where': cmd_where,
     'check': cmd_check,
+    'pin': cmd_pin,
     'plugin': cmd_plugin,
     'refresh': cmd_refresh,
     'report': cmd_report,

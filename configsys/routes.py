@@ -265,3 +265,25 @@ class Resolver:
         from .adapt import to_resolved_components
         units, roots = self._resolve(names)
         return to_resolved_components(units), roots
+
+    def candidates(self, name):
+        '''The install methods available for `name` on THIS machine -> [{via, when, default,
+        pinned}] in binding order (ALL valid methods, whether or not a pin is set). `default` is
+        the one that resolves now (a pin, else the preference-picked binding); `pinned` flags the
+        via a binding-pin names. [] if the component is unknown / removed / unroutable here. Feeds
+        `where`, the pin CLI, and the TUI method picker.'''
+        from .resolve import candidate_bindings, _select, ResolveError
+        comp = self.components.get(name)
+        if comp is None or not comp.bindings:
+            return []
+        ctx = self.cascade.context(self.block, self.version, self.cpu)
+        cands = candidate_bindings(comp, self.cascade, ctx)      # all methods, ignore pin filter
+        if not cands:
+            return []
+        try:
+            winner = _select(comp, self.cascade, ctx, self.pins, self.preference)[0]
+        except ResolveError:
+            winner = None
+        pinned_via = self.pins.get(name)
+        return [{'via': b.via, 'when': b.when, 'default': b is winner,
+                 'pinned': pinned_via == b.via} for b in cands]

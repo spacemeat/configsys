@@ -56,7 +56,7 @@ __all__ = [
     'Driver', 'register_driver', 'register_version_source', 'register_transport', 'Result',
     'ABI_VERSION', 'ABI_SUPPORTED',
     'declared', 'source_url', 'dir_name', 'read_manifest', 'layer_files', 'status', 'sync',
-    'set_declared',
+    'set_declared', 'set_section', 'read_pins', 'set_pins',
 ]
 
 
@@ -419,6 +419,37 @@ def set_section(user_config_file, section, emit):
 def set_declared(user_config_file, decls):
     '''Rewrite the `plugins:` list in the user config in place, preserving every other line.'''
     set_section(user_config_file, 'plugins', lambda indent: _emit_block(decls, indent))
+
+
+def read_pins(config_file):
+    '''The scalar pins map (name -> via / provider) from ONE .hu file's top-level `pins:`, or {}.
+    For editing a single layer's own pins in place — config.pins() gives the MERGED view instead.'''
+    p = Path(config_file)
+    if not p.exists():
+        return {}
+    data = layers.materialize_string(p.read_text(encoding='utf-8'))
+    pins = data.get('pins') if isinstance(data, dict) else None
+    if not isinstance(pins, dict):
+        return {}
+    return {k: v for k, v in pins.items() if not isinstance(v, (dict, list))}
+
+
+def _emit_pins(pins, indent):
+    if not pins:
+        return 'pins: {}'
+    pad, inner = ' ' * indent, ' ' * (indent + 4)
+    body = [f'{inner}{k}: {_scalar(v)}' for k, v in pins.items()]
+    return '\n'.join(['pins: {'] + body + [pad + '}'])
+
+
+def set_pins(config_file, pins):
+    '''Rewrite the `pins:` node of a config/plugin .hu file in place (preserving comments and the
+    rest), or remove the node entirely when `pins` is empty. The surgical write-back the pin CLI
+    and the TUI method picker share (via set_section / remove_sections).'''
+    if not pins:
+        remove_sections(config_file, ['pins'])
+        return
+    set_section(config_file, 'pins', lambda indent: _emit_pins(pins, indent))
 
 
 def config_sections_text(user_config_file, keys):
