@@ -33,6 +33,7 @@ from .pipx import Pipx
 from .rpm_ostree import RpmOstree
 from .script import Script
 from .service import Service
+from .source import Source
 from .tarball import Tarball
 from .zypper import Zypper
 
@@ -63,6 +64,7 @@ _REGISTRY = {
     Pipx.name: Pipx,
     RpmOstree.name: RpmOstree,
     Script.name: Script,
+    Source.name: Source,
     Service.name: Service,
     Group.name: Group,
 }

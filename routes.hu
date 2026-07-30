@@ -91,6 +91,7 @@
         pip:         { requires: python3-pip }        // `pip install --user` needs pip
         pipx:        { requires: pipx }               // a PyPI CLI needs the pipx tool
         tarball:     { requires: curl }               // fetch the archive with curl
+        source:      { requires: git }                // clone + build from a git checkout
         aur:         { requires: [ base-devel, git ] } // makepkg -si builds from PKGBUILD
     }
 
