@@ -31,6 +31,7 @@ change without an ABI bump — subclasses must not rely on them.
 
 
 import platform
+import shlex
 from pathlib import Path
 
 # Base directory for bare-relative install paths under system scope.
@@ -123,6 +124,28 @@ class Driver:
             if gh and isinstance(name, str) and '*' not in name:
                 return f'https://github.com/{gh}/releases/latest/download/{name}'
         return self._apply_placeholders(rc.fields.get('url'), version)
+
+    # -- archive acquisition (shared by tarball [binary] and source [build]) ---
+
+    def _extract_cmd(self, url, tmp_q, dest_q, archive_fmt=None, strip=None):
+        '''Shell fragment to unpack a downloaded archive (already-quoted `tmp_q`) into `dest_q`:
+        `.zip` -> `unzip`, else `tar -xf` (auto-detects gz/xz/bz2). `archive_fmt` can force it
+        ('zip'); `strip` (tar only) drops N leading path components — a source tarball's
+        `foo-1.2.3/` wrapper dir.'''
+        fmt = str(archive_fmt or '').lower()
+        if fmt == 'zip' or (not fmt and url.lower().split('?', 1)[0].endswith('.zip')):
+            return f'unzip -o -q {tmp_q} -d {dest_q}'
+        s = f'--strip-components={int(strip)} ' if strip else ''
+        return f'tar -xf {tmp_q} {s}-C {dest_q}'
+
+    def _fetch_and_extract(self, url, dest, archive_fmt=None, strip=None):
+        '''Shell fragment shared by the tarball (binary) and source (build) drivers: create
+        `dest`, curl the archive into a temp file there, unpack it, remove the temp. Needs curl
+        (the binding/driver `requires: curl`).'''
+        dq = shlex.quote(str(dest))
+        tmp = shlex.quote(str(Path(dest) / '.configsys-download.archive'))
+        return (f'mkdir -p {dq} && curl -fSL {shlex.quote(url)} -o {tmp} && '
+                f'{self._extract_cmd(url, tmp, dq, archive_fmt, strip)} && rm -f {tmp}')
 
     def scoped_dir(self, raw, rc):
         '''Resolve an install path. Absolute and ~ paths pass through; a bare

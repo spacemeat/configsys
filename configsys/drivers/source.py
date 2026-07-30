@@ -7,16 +7,24 @@ per-app Python — so `via: source` is just another binding a base component, a 
 Genuinely gnarly builds (GPU-SDK resolution, EULAs, vendor bootstrap scripts) still warrant a
 bespoke plugin driver; this is for the ones that don't.
 
+Acquisition is either git or an archive; `build:` is what makes this the source (not tarball)
+driver — tarball = acquire an archive and run it as-is (binary); source = acquire (git OR
+archive) and build it. The download/extract step is the same code both drivers share.
+
 Route fields (on the binding):
-  repo:         (required) git URL to clone
   build:        (required) shell command(s) — a string or a list run in sequence — executed IN
-                the checked-out tree, with $PREFIX / $SRC / $VERSION / $ARCH substituted
+                the tree, with $PREFIX / $SRC / $VERSION / $ARCH substituted
                 (e.g. `./configure --prefix=$PREFIX && make -j && make install`)
+  repo:         git URL to clone  (git acquisition; `requires: git`), OR
+  url: / version:+asset:          a source archive to download  (`requires: curl`) — reuses the
+                same url template / github discovery as the tarball driver
+  strip:        (archive only, tar) leading path components to drop; default 1 (source tarballs
+                wrap their contents in a `foo-<version>/` dir). Set 0 to disable.
   version:      (optional) a discovery spec (github/…) or literal; "latest" = that version
   ref:          (optional) explicit git ref (tag/branch/commit); overrides version→tag
   tag-prefix:   (optional) prepended to the version to form the tag (e.g. `v`)
-  installDir:   (optional) where the source tree is cloned — scope-honoring, bare-relative
-                resolves under HOME (user) / /opt (system); default `src/<comp>`. This is $SRC.
+  installDir:   (optional) where the source tree lands (cloned or extracted) — scope-honoring,
+                bare-relative resolves under HOME (user) / /opt (system); default `src/<comp>` ($SRC).
   prefix:       (optional) install prefix ($PREFIX); default ~/.local (user) or /usr/local
                 (system). A bare-relative path resolves like installDir.
   uninstall-cmd:(optional) run in the tree before the source is removed (e.g. `make uninstall`);
@@ -95,25 +103,35 @@ class Source(Driver):
     # -- mutate -----------------------------------------------------------
 
     def install(self, rc, version=None):
-        repo = rc.fields.get('repo')
         steps = self._build_steps(rc)
-        if not repo:
-            return Result.fail(f'{rc.comp}: source binding has no `repo:` to clone')
         if not steps:
             return Result.fail(f'{rc.comp}: source binding has no `build:` command')
         version = version if version is not None else (self.resolve_version(rc) or '')
         src = self._src_dir(rc)
         prefix = self._prefix(rc)
-        ref = self._ref(rc, version)
-        build = ' && '.join(self._sub(s, version, src, prefix) for s in steps)
-
         srcq = shlex.quote(str(src))
+
+        repo = rc.fields.get('repo')
+        if repo:                                    # git acquisition: clone-or-fetch, checkout ref
+            ref = self._ref(rc, version)
+            acquire = (f'{{ [ -d {srcq}/.git ] || git clone {shlex.quote(repo)} {srcq}; }} && '
+                       f'git -C {srcq} fetch --tags --force && '
+                       f'git -C {srcq} checkout {shlex.quote(ref)}')
+            stamp = version or ref
+        else:                                       # archive acquisition: download + extract
+            url = self.download_url(rc, version)
+            if not url:
+                return Result.fail(f'{rc.comp}: source binding has neither a `repo:` to clone nor '
+                                   f'a `url:`/`version:` archive to download')
+            acquire = self._fetch_and_extract(url, src, rc.fields.get('archive'),
+                                              rc.fields.get('strip', 1))
+            stamp = version or 'source'
+
+        build = ' && '.join(self._sub(s, version, src, prefix) for s in steps)
         cmd = (f'mkdir -p {shlex.quote(str(src.parent))} {shlex.quote(str(prefix))} && '
-               f'{{ [ -d {srcq}/.git ] || git clone {shlex.quote(repo)} {srcq}; }} && '
-               f'git -C {srcq} fetch --tags --force && '
-               f'git -C {srcq} checkout {shlex.quote(ref)} && '
+               f'{acquire} && '
                f'( cd {srcq} && {build} ) && '
-               f'printf %s {shlex.quote(version or ref)} > {shlex.quote(str(self._marker(rc)))}')
+               f'printf %s {shlex.quote(stamp)} > {shlex.quote(str(self._marker(rc)))}')
         return self.runner.run(cmd, capture=False)
 
     def upgrade(self, rc):

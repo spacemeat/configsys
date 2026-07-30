@@ -60,12 +60,35 @@ def test_build_accepts_a_list_of_steps(tmp_path):
     assert 'cmake -B build' in cmd and 'cmake --build build && cmake --install build' in cmd
 
 
-def test_no_repo_or_build_is_a_clean_preflight_failure(tmp_path):
+def test_no_acquisition_or_build_is_a_clean_preflight_failure(tmp_path):
     r = Runner(pretend=True)
-    res = Source(r, paths=None).install(src_unit(tmp_path, ref='v1', repo=None))
-    assert not res.ok and 'no `repo:`' in res.stderr and not r.calls   # bailed before running
+    # no repo AND no url/version -> nothing to acquire
+    res = Source(r, paths=None).install(src_unit(tmp_path, repo=None))
+    assert not res.ok and 'neither a `repo:`' in res.stderr and not r.calls
+    # no build step
     res2 = Source(r, paths=None).install(src_unit(tmp_path, ref='v1', build=None))
     assert not res2.ok and 'no `build:`' in res2.stderr
+
+
+def test_install_from_source_archive(tmp_path):
+    # archive acquisition (no repo): download + extract + build — the missing 2x2 cell
+    r = Runner(pretend=True)
+    src, prefix = tmp_path / 'src', tmp_path / 'prefix'
+    rc = src_unit(tmp_path, repo=None, url='https://ftp.gnu.org/gnu/foo/foo-1.2.3.tar.gz',
+                  build='./configure --prefix=$PREFIX && make install')
+    Source(r, paths=None).install(rc)
+    cmd = r.calls[0]
+    assert 'curl -fSL' in cmd and 'foo-1.2.3.tar.gz' in cmd
+    assert 'tar -xf' in cmd and '--strip-components=1' in cmd   # strip the foo-1.2.3/ wrapper
+    assert f'( cd {src} && ./configure --prefix={prefix} && make install )' in cmd
+    assert 'git clone' not in cmd                               # archive path, not git
+
+
+def test_archive_strip_can_be_disabled(tmp_path):
+    r = Runner(pretend=True)
+    Source(r, paths=None).install(
+        src_unit(tmp_path, repo=None, url='https://x/foo.tar.gz', build='make', strip=0))
+    assert '--strip-components' not in r.calls[0]
 
 
 def test_get_version_reads_marker(tmp_path):
