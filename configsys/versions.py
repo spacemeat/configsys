@@ -84,8 +84,9 @@ def _discover_live(spec, fetch):
         url = None
         pattern = spec.get('asset')
         if pattern:
+            pat = pattern.lower()          # case-insensitive: upstream varies Linux/linux etc.
             for asset in data.get('assets', []):
-                if fnmatch.fnmatch(asset.get('name', ''), pattern):
+                if fnmatch.fnmatch(asset.get('name', '').lower(), pat):
                     url = asset.get('browser_download_url')
                     break
         return tag, url

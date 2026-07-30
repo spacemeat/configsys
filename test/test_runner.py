@@ -97,6 +97,14 @@ def test_result_output_prefers_captured_when_streamed():
     assert Result('c', 0).output == ''
 
 
+def test_result_fail_carries_reason_in_stderr():
+    r = Result.fail('no release asset matched `x`')
+    assert not r.ok and r.returncode == 1
+    assert r.cmd == ''                                   # no spurious command in the report
+    assert r.stderr == 'no release asset matched `x`' and r.output == 'no release asset matched `x`'
+    assert Result.fail('gone', returncode=3).returncode == 3
+
+
 def test_can_tee_false_off_tty():
     # under pytest stdin/stdout are not ttys -> tee is disabled (guards the fallback above)
     assert _can_tee() is False

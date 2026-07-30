@@ -78,6 +78,14 @@ class Result:
         '''The best available command output: captured stdout/stderr, else the tee'd tail.'''
         return (self.stdout + self.stderr).strip() or self.captured.strip()
 
+    @classmethod
+    def fail(cls, reason, returncode=1):
+        '''A pre-flight failure with NO command run: the reason rides in stderr so it flows to
+        the TUI summary (_fail_detail) and the report's Driver output — instead of being stuffed
+        into `cmd`, where neither looks. `cmd` stays empty so the report shows no spurious
+        Command block.'''
+        return cls('', returncode, stderr=reason)
+
 
 def _can_tee():
     '''True when we can run a streamed child through a pty and mirror its output: needs a

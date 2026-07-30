@@ -221,7 +221,7 @@ class DotFiles(Driver):
     def install(self, rc):
         specs = self._specs(rc)
         if not specs:
-            return Result('(dotfiles: no link specs in route)', 1)
+            return Result.fail(f'{rc.comp}: dotfiles binding has no link specs (needs src:/dst:)')
         force = self._force()
         pairs, blocked = [], []
         for _name, src, dst, absorb in specs:
@@ -280,7 +280,7 @@ class DotFiles(Driver):
     def uninstall(self, rc):
         pairs = self._pairs(rc)
         if not pairs:
-            return Result('(dotfiles: no link specs in route)', 1)
+            return Result.fail(f'{rc.comp}: dotfiles binding has no link specs (needs src:/dst:)')
         lines = []
         for _src, tgt, absorb in pairs:
             t = shlex.quote(str(tgt))

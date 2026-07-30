@@ -82,3 +82,20 @@ def test_render_no_captured_output_shows_placeholder():
                            'command': 'go', 'output': '', 'at': 't'}}
     body = reportgen.render(payload)
     assert 'not captured' in body and reportgen._MARKER in body
+
+
+def test_render_preflight_failure_shows_reason_not_placeholder():
+    # a driver that bailed BEFORE running a command (Result.fail): no command, the reason rides
+    # in `output` -> the report shows the reason as Driver output and no spurious Command block
+    payload = {'component': 'lazygit', 'os': {'block': 'pop_os!', 'id': 'pop', 'version': '22.04',
+               'pretty': 'Pop!_OS', 'atomic': False},
+               'platform': {'kernel': 'Linux', 'arch': 'x86_64', 'python': '3.10'},
+               'configsys': {'revision': 'abc', 'abi': 1}, 'profiles': [], 'pins': {}, 'route': None,
+               'failure': {'op': 'install', 'unit': 'tarball\\lazygit', 'driver': 'tarball',
+                           'exit': 1, 'command': '',
+                           'output': 'no release asset matched `lazygit_*_Linux_x86_64.tar.gz`',
+                           'at': 't'}}
+    body = reportgen.render(payload)
+    assert '**Command**' not in body                       # nothing ran -> no Command block
+    assert 'no release asset matched' in body              # the reason IS shown
+    assert 'not captured' not in body

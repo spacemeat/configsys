@@ -64,7 +64,18 @@ class Tarball(Driver):
         version = self.resolve_version(rc) or ''
         url = self.download_url(rc, version)
         if not url:
-            return Result('(tarball: no url in route)', 1)
+            spec = rc.fields.get('version')
+            asset = spec.get('asset') if isinstance(spec, dict) else None
+            if asset:
+                reason = (f'no release asset matched `{asset}` for {rc.comp} '
+                          f'{version or "(version unresolved)"} — check the asset name/arch/case '
+                          f'for this platform, or run `configsys refresh`')
+            elif not rc.fields.get('url'):
+                reason = (f'{rc.comp}: binding has neither a `url:` template nor a matching '
+                          f'`version:` asset to download')
+            else:
+                reason = f'{rc.comp}: could not build a download URL (version unresolved?)'
+            return Result.fail(reason)
         d = self._install_dir(rc)
 
         dq = shlex.quote(str(d))

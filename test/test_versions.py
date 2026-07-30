@@ -64,6 +64,18 @@ def test_asset_absent_url_is_none():
     assert versions.discover_asset_url({'github': 'neovim/neovim'}, fetch=f) is None
 
 
+def test_asset_glob_matches_case_insensitively():
+    # upstream varies Linux/linux (lazygit ships `..._linux_x86_64...`); a route glob written
+    # with `Linux` must still match, else the tarball driver bails with "no url".
+    rel = json.dumps({'tag_name': 'v0.63.1', 'assets': [
+        {'name': 'lazygit_0.63.1_linux_x86_64.tar.gz', 'browser_download_url': 'https://gh/lg.tgz'},
+        {'name': 'lazygit_0.63.1_windows_x86_64.zip', 'browser_download_url': 'https://gh/lg.zip'}]})
+    url = versions.GITHUB_LATEST.format(repo='jesseduffield/lazygit')
+    f = fetcher({url: rel})
+    spec = {'github': 'jesseduffield/lazygit', 'asset': 'lazygit_*_Linux_x86_64.tar.gz'}
+    assert versions.discover_asset_url(spec, fetch=f) == 'https://gh/lg.tgz'
+
+
 def test_asset_source_key_distinguishes_patterns():
     a = versions.source_key({'github': 'r/r', 'asset': 'x-x86_64.zip'})
     b = versions.source_key({'github': 'r/r', 'asset': 'x-arm64.zip'})
