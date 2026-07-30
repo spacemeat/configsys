@@ -48,8 +48,8 @@ Symptoms of the tangle:
   `when:` predicate + driver-specific details. Also a *provider* of the component's
   capability.
 - **Driver** — knows how to drive install/query/remove for a class of
-  bindings: `native` (the OS package manager), `flatpak`, `appImage`, `crate`, `deb`,
-  `aur`, `gcc-toolset`, …
+  bindings: `native` (the OS package manager), `flatpak`, `appImage`, `cargo`, `tarball`,
+  `aur`, `gcc-toolset`, … (see configsys.hu(5) for the full registered set).
 
 Because a component's own bindings and any *external* provider of the same capability
 go into one candidate pool, there is a **single selection engine** used everywhere.
@@ -231,9 +231,9 @@ fastfetch: {
     requires: epel                                       // no-op off EL
     install: [
         { via: native  when: "fedora or arch" }
-        { via: deb  when: "debian"
-          source: "github:fastfetch-cli/fastfetch"
-          asset:  { x86_64: fastfetch-linux-amd64.deb, aarch64: fastfetch-linux-aarch64.deb } }
+        { via: tarball  when: "debian"
+          version: { github: fastfetch-cli/fastfetch }
+          asset:  { x86_64: fastfetch-linux-amd64.tar.gz, aarch64: fastfetch-linux-aarch64.tar.gz } }
     ]
 }
 ```
@@ -247,13 +247,35 @@ capability) is by **specificity = set inclusion**: A beats B iff A's match-set �
 (strictly). Per dimension: OS = subtree containment; version = interval containment;
 cpu = set containment; a missing dimension = the whole axis.
 
-**The rule that makes it unambiguous:** for any two candidates whose match-sets
-*overlap*, one must be a subset of the other. If every overlapping pair is comparable,
-resolution is provably unambiguous for every possible machine. Any
-**overlapping-but-incomparable** pair is a **static (load-time) error** — never a
-silent tiebreak. In practice the idiom "one broad default binding + narrower overrides"
-keeps every pair comparable by construction; you only trip the error by writing two
-genuinely orthogonal predicates that overlap (a real ambiguity worth flagging).
+**The rule that makes it unambiguous** applies **per driver**: for any two bindings of the
+*same* `via:` whose match-sets *overlap*, one must be a subset of the other. If every such
+pair is comparable, resolution within a driver is provably unambiguous for every machine. An
+**overlapping-but-incomparable same-driver** pair is a **static (load-time) error** — never a
+silent tiebreak (`routecheck.py` skips pairs of different `via:`). In practice the idiom "one
+broad default binding + narrower overrides" keeps every pair comparable by construction.
+
+Bindings of **different drivers** may overlap freely — that is a component with several valid
+install methods in one context (native + flatpak on Ubuntu), not an error. `when:` states
+**validity only** (does this method work here); *which* valid method becomes the default is a
+separate preference channel (§8a). A genuine tie there is a resolve-time error and a `check`
+warning that names the preference channel — not a load-time error, and never a reason to
+narrow a validity `when:`.
+
+## 8a. Choosing among valid methods
+
+The bindings valid in a context (their `when:` matches) form its **candidate set**
+(`candidate_bindings`, resolve.py). One is chosen as the default, deterministically:
+
+1. **most specific** among *comparable* candidates (the §8 subset order);
+2. **`driver-preference`** — a global driver order (a machine setting), overridable per OS
+   block (so e.g. flatpak > native lives in the `os:` data on `fedora_atomic`, not smuggled
+   into a `when:`);
+3. a per-binding **`prefer:`** rank.
+
+If the preorder still ties, it is an error whose message names the preference channel (add
+`driver-preference` / `prefer:`) — never `when:`. A user **binding-pin** (§10) overrides the
+default outright. Because `when:` is validity-only, `configsys where <comp>` can show every
+candidate method, the default, and *which rule decided it*.
 
 **Checker shape:** decidable and cheap. Enumerate the finite (OS-block × cpu-value)
 grid; in each cell the predicate collapses to a set of version intervals *in that
@@ -273,7 +295,7 @@ worklist  = profile components                // explicit wants first
 
 // Phase 1: lay out the shopping list, note what each provides.
 for each explicit want:
-    select its binding (pure context specificity; pins first — see §10)
+    select its binding (most-specific when:, then preference — §8a; pins first — see §10)
     on success, add its provides to the inventory
 
 // Phase 2: fill gaps, reusing what's already there. Iterate to a fixpoint.
@@ -300,7 +322,9 @@ Key rules:
 
 **Two selection moments, one engine.** *Provider selection* ("who supplies `cargo`?") is
 inventory-aware (prefer existing). *Binding selection* ("given we install neovim, how?")
-is pure context. Same specificity math; don't conflate them.
+is context first — most-specific valid `when:`, then the preference channel (§8a) when
+candidates are equally specific or of different drivers. Same specificity math; don't
+conflate them.
 
 ## 10. Pins
 
@@ -330,9 +354,10 @@ Precedence overall: **pin > reuse > auto**.
 A component's `name:` map (§3) is driver-keyed and lives *in the component definition*. But a
 **higher layer** — typically a plugin OS — often needs to correct a package name for an
 existing core component without owning that component. `components:` now merges additively (a
-higher layer can override a single binding by its `(via, when)` identity), but `component-names`
-remains the lightest patch for the common "docker is `docker` under xbps" case — driver-keyed and
-not tied to a specific binding's `when:`:
+higher layer can override a single binding by its `(via, when)` identity, add a binding,
+retract one with a `drop:` binding `{ via: X  when: Y  drop }`, or clear the whole component
+with `{}`), but `component-names` remains the lightest patch for the common "docker is
+`docker` under xbps" case — driver-keyed and not tied to a specific binding's `when:`:
 
 ```
 component-names: {

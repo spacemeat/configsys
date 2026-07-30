@@ -11,14 +11,17 @@ Every `.hu` file is a **layer**. Layers overlay section-by-section, lowest prece
 and the highest-precedence definition of a thing wins:
 
 ```
-repo (routes.hu + config.hu)  <  plugins  <  discovered project files  <  your config
+repo (routes.hu + config.hu)  <  plugins  <  primary  <  discovered project files  <  your config
 ```
 
-Your machine's own config (`~/.config/configsys/configsys.hu`) always wins. A file may
+Your machine's own config (`~/.config/configsys/configsys.hu`) always wins. The **primary**
+layer is one plugin you designate as trusted to carry machine settings (see
+docs/plugins.md) — it sits above the ordinary plugins but below your config. A file may
 `include:` other files (paths relative to the including file's directory), which sit just
 below it. Includes are definitions-only: their `components:` and `profiles:` merge in, but
-machine settings (`configs:`, `scope:`, `pins:`, `ignore-profiles:`) and code-adjacent
-sections (`os:`, `drivers:`) are ignored.
+machine settings (`configs:`, `scope:`, `pins:`, `ignore-profiles:`, `discover:`) and
+code-adjacent sections (`os:`, `drivers:`) are ignored. The one exception is `theme:`, which
+is purely cosmetic and is merged from every layer (see docs/theming.md).
 
 ## Your config file
 
@@ -37,11 +40,15 @@ Lives under `$XDG_CONFIG_HOME` (defaults to `~/.config/configsys/configsys.hu`);
 
     pins: { steam: flatpak }         // force a driver (binding-pin) or a provider
 
+    driver-preference: [ native, flatpak, appImage ]   // tiebreak among valid methods
+
     profiles: { dev: [ btop, neovim, gcc-15, gdb ] }   // define or shadow a profile
 
-    components: { apod: {} }         // override a route, add one, or remove one with {}
+    components: { apod: {} }         // amend a route, add one, or remove one with {}
 
     ignore-profiles: [ gaming ]      // suppress an auto-activated project profile
+
+    discover: false                  // opt out of project discovery on this machine
 }
 ```
 
@@ -49,7 +56,14 @@ Lives under `$XDG_CONFIG_HOME` (defaults to `~/.config/configsys/configsys.hu`);
 - **`scope:`** sets the default install scope (`user` or `system`) for scope-honoring drivers.
 - **`pins:`** reroutes without redefining: a binding-pin forces a component's driver, a
   provider-pin forces which component satisfies a capability.
-- **`components:`** overrides a route all-or-nothing, adds a new one, or removes one with `{}`.
+- **`driver-preference:`** is a global tiebreak order over drivers, used to pick the default
+  when a component has several valid install methods (see "Choosing among methods" below). It
+  replaces the whole list across layers (repo < primary < user).
+- **`components:`** *amends* a route: bindings merge **additively** across layers by
+  `(via, when)` identity — a higher layer adds an install method, overrides a matching
+  binding, retracts one with a `drop:` binding, or removes the whole component with `{}`.
+- **`theme:`** restyles the TUI (colors, per-element styles, background gradient). It is the
+  one cosmetic section any layer may set; see docs/theming.md.
 
 ## Profiles
 
@@ -105,11 +119,18 @@ components: {
   (pulled in if resolvable here, skipped otherwise). **`provides:`** declares extra
   capabilities a component satisfies.
 - **`scope: user|system`** sets the install scope. Scope-honoring drivers (appImage, flatpak,
-  tarball, font, npm, gem, luarocks) default to `user`; fixed-scope drivers (apt/dnf/pacman =
-  system, cargo/pipx/dotfiles = user) ignore it.
+  tarball, source, font, npm, gem, luarocks) default to `user`; fixed-scope drivers
+  (apt/dnf/pacman = system, cargo/pipx/dotfiles = user) ignore it.
 
-The most specific matching binding wins. Run `configsys where <name>` to see a component's
-bindings and which one resolves here.
+Bindings **merge additively** across layers. A binding's identity is its `(via, when)` pair,
+so a higher layer (a plugin or your config) can *add* a new install method, *override* a
+matching binding, *retract* an inherited one with a `drop:` binding
+(`{ via: X  when: Y  drop }`), or clear the whole component with `{}` — none of which requires
+redefining the component.
+
+Among the bindings that are **valid** here (their `when:` matches), one is chosen — see
+"Choosing among methods" below. Run `configsys where <name>` to see a component's bindings,
+which are valid here, and which one resolves.
 
 ## The `when:` expression
 
@@ -121,9 +142,25 @@ bindings and which one resolves here.
 
 Combine atoms with `and`, `or`, and a guarded `not`. OS blocks form a lineage via `using:`
 (`pop_os! -> ubuntu -> debian -> linux`), detected from `/etc/os-release` (`ID=pop` ->
-`pop_os!`), so a route written on `debian` applies to the whole family. Two bindings whose
-match-sets overlap must be comparable (one more specific than the other) or configsys reports
-a load-time ambiguity.
+`pop_os!`), so a route written on `debian` applies to the whole family. `when:` expresses
+**validity only** — whether a method works here — never which method to prefer. Two bindings
+of the **same driver** whose match-sets overlap must be comparable (one more specific than
+the other) or configsys reports a load-time ambiguity; overlapping bindings of *different*
+drivers are legal alternatives, decided by preference (see below).
+
+## Choosing among methods
+
+A component can have several valid install methods in one context (e.g. `native` and
+`flatpak` both work on Ubuntu). configsys picks one default deterministically, in this order:
+
+1. **most specific** among comparable valid bindings (a narrower `when:` beats a broader one);
+2. **`driver-preference`** — the global tiebreak list (overridable per OS block);
+3. a per-binding **`prefer:`** rank.
+
+If that still ties, it is an error that names the preference channel — never a prompt to
+narrow a validity `when:`. To override the default on one machine, `configsys pin set <name>
+<driver>` writes a binding-pin (or edit `pins:` directly); `configsys where <name>` shows all
+candidates and which rule decided.
 
 A derivative distro that does not rebrand `/etc/os-release` (Proxmox VE reports `ID=debian`)
 can still be detected by a **marker**: an os block declares `detect: { id: <base>  marker:
@@ -202,10 +239,11 @@ there. See the routing model (docs/routing-model.md §10a) for the full rules.
 
 Each `via:` value names a driver: the OS package managers (`apt`, `dnf`, `pacman`, `zypper`,
 `apk`, `aur`, `brew`, `rpm-ostree`), `flatpak`, `appImage`, `tarball` (also bare-binary and
-`.zip` archives), `dotfiles`, `font`, `script` (declared install/version/uninstall commands),
-the language toolchains and their module installers (`cargo`, `pip`, `pipx`, `npm`, `gem`,
-`go-install`, `opam`, `luarocks`, `cabal`, `gcc`, `clang`, `gcc-toolset`), and the
-post-install primitives `service` (systemd) and `group` (usermod). Two `via:` values are
+`.zip` archives), `source` (build from a git checkout or source archive with declared
+`build:` commands), `dotfiles`, `font`, `script` (declared install/version/uninstall
+commands), the language toolchains and their module installers (`cargo`, `pip`, `pipx`,
+`npm`, `gem`, `go-install`, `opam`, `luarocks`, `cabal`, `gcc`, `clang`, `gcc-toolset`), and
+the post-install primitives `service` (systemd) and `group` (usermod). Two `via:` values are
 special: `native` (resolves to the OS's package manager) and `parts` (a pure aggregator).
 
 ## Project discovery
@@ -213,8 +251,9 @@ special: `native` (resolves to the OS's package manager) and `parts` (a pure agg
 configsys walks up from your working directory for `.configsys.hu` (a base file) and
 `.configsys-*.hu` (named variants), and **auto-activates** their profiles — so a source tree
 can declare its own dependency set. Discovery is bounded by `$HOME` and the filesystem root,
-disabled by `CONFIGSYS_NO_DISCOVER=1`, and starts from `CONFIGSYS_CWD` (or the current
-directory). A malformed discovered file is skipped, never fatal.
+disabled by `CONFIGSYS_NO_DISCOVER=1` (or `discover: false` in your config), and starts from
+`CONFIGSYS_CWD` (or the current directory). A malformed discovered file is skipped, never
+fatal.
 
 ## See also
 

@@ -47,10 +47,11 @@ TUI. Edit that file to pick your **profiles**, then inspect and act.
 - **Driver** — the code that installs/queries/removes one *class* of software, behind a
   uniform op set (install / uninstall / upgrade / set-version / lock / unlock / inspect).
   Ships ~30: system package managers **apt, dnf, pacman, aur, zypper, apk, brew, rpm-ostree**;
-  distribution drivers **flatpak, appImage, tarball, dotfiles, font, script**; language-ecosystem
-  installers **cargo, pip, pipx, npm, gem, opam, luarocks, cabal, go-install**; the **gcc /
-  gcc-toolset / clang** toolchains; and post-install primitives **service** (systemd) and **group**
-  (usermod). `via: native` picks the right system manager per OS; `via: parts` aggregates.
+  distribution drivers **flatpak, appImage, tarball, source, dotfiles, font, script**;
+  language-ecosystem installers **cargo, pip, pipx, npm, gem, opam, luarocks, cabal, go-install**;
+  the **gcc / gcc-toolset / clang** toolchains; and post-install primitives **service** (systemd)
+  and **group** (usermod). `via: native` picks the right system manager per OS; `via: parts`
+  aggregates.
 - **State** — the live system is the source of truth (dpkg/rpm/flatpak/marker files); a
   small ledger (`~/.config/configsys/state.hu`) stores only lock *intent* and configsys
   bookkeeping. Version-lock uses native holds where they exist (`apt-mark`, `dnf
@@ -98,7 +99,7 @@ Key ideas:
 - **`via: parts`** is a pure aggregator — a component that is just the union of its parts,
   with no unit of its own.
 - **`scope: user|system`** — install scope. Scope-honoring drivers (appImage/flatpak/
-  tarball) default to `user`; set it per-binding or machine-wide via `scope:` in your
+  tarball/source) default to `user`; set it per-binding or machine-wide via `scope:` in your
   config. Fixed-scope drivers (apt/dnf/pacman = system, dotfiles/cargo = user) ignore it.
 
 Run `configsys where <name>` to see a component's bindings and which one resolves here.
@@ -118,7 +119,7 @@ drivers.
 Every `.hu` file is a **layer**, overlaid section-by-section, lowest precedence first:
 
 ```
-repo (routes.hu + config.hu)  <  plugins  <  discovered project files  <  ~/.config/configsys/configsys.hu
+repo (routes.hu + config.hu)  <  plugins  <  primary  <  discovered project files  <  ~/.config/configsys/configsys.hu
 ```
 
 Your machine's file always wins:
@@ -137,7 +138,7 @@ Your machine's file always wins:
 
     // profiles: { dev: [ btop, neovim, gcc-15, gdb ] }   // define or shadow a profile
 
-    // components: { apod: {} }        // override a route, or remove one with {}
+    // components: { apod: {} }        // amend a route (bindings merge additively), or remove with {}
 }
 ```
 
@@ -206,6 +207,8 @@ configsys lock|unlock <name>...    # version-lock / unlock
 configsys set-version <name> <ver> # pin to a specific version
 configsys fix-scope [<name>...]    # reconcile user/system scope mismatches (moves the install)
 configsys where <name>             # explain a component: source layer + bindings + resolution
+configsys location <name>          # print a component's absolute install location
+configsys pin <list|set|unset|promote>   # view/change install-method & provider pins
 configsys show <routes|config>     # print the shipped base file (or --path for its location)
 configsys check                    # lint the merged config (repo + your file + includes + plugins)
 configsys refresh                  # re-query latest versions from their sources
@@ -257,7 +260,7 @@ to that whole profile, and `enter`/`l`/`→` jumps to it (its components live th
 
 Keys: `j/k` move, `g/G` top/bottom, `l`/`→` expand (or open a link), `h`/`←` collapse, `enter`
 open, `tab` expand/collapse all, `space` select, `a` all, `i/u/x` install/upgrade/remove, `L`
-lock (toggle), `m` pick install method, `c` clear, `X` execute, `q` quit.
+lock (toggle), `m` pick install method, `!` view load issues, `c` clear, `X` execute, `q` quit.
 
 Colors, per-element styles, and the background gradient are fully configurable — see
 [**docs/theming.md**](docs/theming.md).

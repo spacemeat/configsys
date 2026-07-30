@@ -32,8 +32,14 @@ the full spec). Its three sections:
   resolves to the OS's declared package manager (name defaults to the component name, override
   with a `name:` map keyed by driver). `when:` is a boolean DSL over OS atoms (bare = subtree
   membership; versioned e.g. `ubuntu < 23.04`, scale-bound) and `cpu:`, with and/or/guarded-not.
-  The most specific matching binding wins (set-inclusion order; overlapping-but-incomparable is a
-  load-time ambiguity error). A component may also declare `provides:`/`requires:`/`suggests:`
+  `when:` states VALIDITY ONLY (does this method work here), never preference. Among the valid
+  ("candidate") bindings, the default is: most-specific comparable `when:` -> global
+  `driver-preference` (a machine setting, overridable per OS block) -> per-binding `prefer:`; a
+  remaining tie is an error naming the preference channel (never `when:`), a user binding-pin
+  overrides. Two bindings of the SAME `via:` that overlap incomparably are a load-time ambiguity
+  error (routecheck); different-`via:` overlap is a legal multi-method choice decided by
+  preference (a genuine tie there is a resolve-time error + a `check` warning). A component may
+  also declare `provides:`/`requires:`/`suggests:`
   (capabilities), and `parts:` (a `via: parts` binding is a pure aggregator = the union of its
   parts, no unit of its own). `requires:` is HARD (unmet = error); `suggests:` is SOFT — pulled
   in if resolvable in the loaded layers, skipped silently if not (both work at component and
@@ -92,11 +98,13 @@ not a brick. Activation never installs — install stays explicit.
 Drivers are defined in code (configsys/drivers/) behind a uniform op set: get_version,
 get_latest, is_locked, install, uninstall, upgrade, set_version, lock, unlock, location. apt
 has various commands for these; as does flatpak, etc. Each `via:` value names a Driver 1:1
-(apt, dnf, pacman, aur, tarball, flatpak, appImage, dotfiles, font, cargo, gcc,
-gcc-toolset, clang, pip, pipx, `source` [declarative build-from-a-git-checkout], and the
-post-install primitives service [systemd] and group [usermod]) — except `via: native` (resolves
-to the OS's package-manager driver) and `via: parts` (a pure aggregator, no driver of its own).
-More drivers can be added as needed.
+(the OS package managers apt, dnf, pacman, aur, zypper, apk, brew, rpm-ostree; tarball,
+flatpak, appImage, dotfiles, font, script [declared install/version/uninstall commands],
+`source` [declarative build-from-a-git-checkout-or-archive]; the language toolchains and their
+module installers cargo, pip, pipx, npm, gem, opam, luarocks, cabal, go-install, gcc,
+gcc-toolset, clang; and the post-install primitives service [systemd] and group [usermod]) —
+except `via: native` (resolves to the OS's package-manager driver) and `via: parts` (a pure
+aggregator, no driver of its own). More drivers can be added as needed.
 
 (History: routes.hu was previously a `\family` blocks + OS-cascade + `*: apt\*` wildcard model
 resolved by a `RouteResolver`. That was replaced in-place by the capability model above, built

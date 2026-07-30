@@ -8,7 +8,7 @@ the `Driver` registry (`configsys/drivers/`). (Historical P1/P2 phase notes are 
 
 P1 in a nutshell: `plugins: [ { source: "github:x/y"  ref: v1 } ]` in the user config, then
 `configsys plugin sync` clones each to `~/.config/configsys/plugins/<name>/` at the pinned
-ref; its `.hu` data files become `plugin`‑role layers (repo < plugins < discovered < user).
+ref; its `.hu` data files become `plugin`‑role layers (repo < plugins < primary < discovered < user).
 A plugin can add components AND os blocks (derivative distros). Unsynced / ABI‑incompatible /
 malformed → skipped, never fatal (components degrade to resilient error rows). `ABI_VERSION`/
 `ABI_SUPPORTED` live in `plugins.py`; the manifest `requires-abi` is already gated. NOTE: a
@@ -91,7 +91,12 @@ plugins: [
 - private repos: use an ssh source (`git@host:owner/repo.git`), a credential-bearing URL, or a
   configured git credential helper; `CONFIGSYS_GIT_TOKEN` is a CI convenience for github:/gitlab:.
 - `plugins:` is a machine SETTING (like `configs:`/`pins:`) — repo/user only, not settable by
-  includes or discovered files.
+  includes or discovered files. The blessed **primary** plugin is the exception among plugins:
+  it may set machine settings (`configs:`/`scope:`/`pins:`/…) and carry transitive `plugins:`.
+- One section escapes the machine-setting gate entirely: `theme:` is purely cosmetic, so **any**
+  plugin — declared directly or linked transitively by a primary — may contribute it, merged per
+  key across the whole stack (see docs/theming.md). A theme-only plugin therefore works no matter
+  how it is wired in.
 
 ### CLI (the nice experience)
 
@@ -187,7 +192,9 @@ fetch/version helpers (`resolve_version`, `download_url`, `_disco_spec`, `_apply
 `_arch`) form one cluster ("resolve + fetch an artifact"); the path/scope helpers
 (`_scoped_dir`, `_sudo`, `scope`) another ("where + with what privilege does this install").
 Present each cluster as a tight, documented set so a plugin author reads a small, obvious API,
-not a pile of underscore methods. The contract inventory, from today's `configsys/component.py`:
+not a pile of underscore methods. The contract inventory, from today's `configsys/driver.py`
+(the `Driver` base class; the resolved-component record it operates on is
+`configsys/componentObj.py`):
 
 **Class attributes a Driver sets:** `name`, `privileged`, `default_scope`, `honors_scope`.
 

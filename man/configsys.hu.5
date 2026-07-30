@@ -9,11 +9,11 @@ Every \fB.hu\fR file is a \fBlayer\fR. Layers overlay section-by-section, lowest
 .PP
 .RS 4
 .nf
-repo (routes.hu + config.hu)  <  plugins  <  discovered project files  <  your config
+repo (routes.hu + config.hu)  <  plugins  <  primary  <  discovered project files  <  your config
 .fi
 .RE
 .PP
-Your machine's own config (\fB~/.config/configsys/configsys.hu\fR) always wins. A file may \fBinclude:\fR other files (paths relative to the including file's directory), which sit just below it. Includes are definitions-only: their \fBcomponents:\fR and \fBprofiles:\fR merge in, but machine settings (\fBconfigs:\fR, \fBscope:\fR, \fBpins:\fR, \fBignore-profiles:\fR) and code-adjacent sections (\fBos:\fR, \fBdrivers:\fR) are ignored.
+Your machine's own config (\fB~/.config/configsys/configsys.hu\fR) always wins. The \fBprimary\fR layer is one plugin you designate as trusted to carry machine settings (see docs/plugins.md) — it sits above the ordinary plugins but below your config. A file may \fBinclude:\fR other files (paths relative to the including file's directory), which sit just below it. Includes are definitions-only: their \fBcomponents:\fR and \fBprofiles:\fR merge in, but machine settings (\fBconfigs:\fR, \fBscope:\fR, \fBpins:\fR, \fBignore-profiles:\fR, \fBdiscover:\fR) and code-adjacent sections (\fBos:\fR, \fBdrivers:\fR) are ignored. The one exception is \fBtheme:\fR, which is purely cosmetic and is merged from every layer (see docs/theming.md).
 .SH YOUR CONFIG FILE
 .PP
 Lives under \fB$XDG_CONFIG_HOME\fR (defaults to \fB~/.config/configsys/configsys.hu\fR); a legacy \fB~/configsys.hu\fR is migrated automatically on first run. Every section is optional:
@@ -31,11 +31,15 @@ Lives under \fB$XDG_CONFIG_HOME\fR (defaults to \fB~/.config/configsys/configsys
 
     pins: { steam: flatpak }         // force a driver (binding-pin) or a provider
 
+    driver-preference: [ native, flatpak, appImage ]   // tiebreak among valid methods
+
     profiles: { dev: [ btop, neovim, gcc-15, gdb ] }   // define or shadow a profile
 
-    components: { apod: {} }         // override a route, add one, or remove one with {}
+    components: { apod: {} }         // amend a route, add one, or remove one with {}
 
     ignore-profiles: [ gaming ]      // suppress an auto-activated project profile
+
+    discover: false                  // opt out of project discovery on this machine
 }
 .fi
 .RE
@@ -46,7 +50,11 @@ Lives under \fB$XDG_CONFIG_HOME\fR (defaults to \fB~/.config/configsys/configsys
 .IP \(bu 2
 \fB\fBpins:\fR\fR reroutes without redefining: a binding-pin forces a component's driver, a provider-pin forces which component satisfies a capability.
 .IP \(bu 2
-\fB\fBcomponents:\fR\fR overrides a route all-or-nothing, adds a new one, or removes one with \fB{}\fR.
+\fB\fBdriver-preference:\fR\fR is a global tiebreak order over drivers, used to pick the default when a component has several valid install methods (see "Choosing among methods" below). It replaces the whole list across layers (repo < primary < user).
+.IP \(bu 2
+\fB\fBcomponents:\fR\fR \fIamends\fR a route: bindings merge \fBadditively\fR across layers by \fB(via, when)\fR identity — a higher layer adds an install method, overrides a matching binding, retracts one with a \fBdrop:\fR binding, or removes the whole component with \fB{}\fR.
+.IP \(bu 2
+\fB\fBtheme:\fR\fR restyles the TUI (colors, per-element styles, background gradient). It is the one cosmetic section any layer may set; see docs/theming.md.
 .SH PROFILES
 .PP
 A profile is a named list of components. Its value is a list of \fBterms\fR, applied left-to-right:
@@ -97,9 +105,11 @@ components: {
 .IP \(bu 2
 \fB\fBrequires:\fR\fR pulls in capabilities (another component, or a driver's prerequisites) first, dependency-ordered — a hard dependency (unmet is an error). \fB\fBsuggests:\fR\fR is soft (pulled in if resolvable here, skipped otherwise). \fB\fBprovides:\fR\fR declares extra capabilities a component satisfies.
 .IP \(bu 2
-\fB\fBscope: user|system\fR\fR sets the install scope. Scope-honoring drivers (appImage, flatpak, tarball, font, npm, gem, luarocks) default to \fBuser\fR; fixed-scope drivers (apt/dnf/pacman = system, cargo/pipx/dotfiles = user) ignore it.
+\fB\fBscope: user|system\fR\fR sets the install scope. Scope-honoring drivers (appImage, flatpak, tarball, source, font, npm, gem, luarocks) default to \fBuser\fR; fixed-scope drivers (apt/dnf/pacman = system, cargo/pipx/dotfiles = user) ignore it.
 .PP
-The most specific matching binding wins. Run \fBconfigsys where <name>\fR to see a component's bindings and which one resolves here.
+Bindings \fBmerge additively\fR across layers. A binding's identity is its \fB(via, when)\fR pair, so a higher layer (a plugin or your config) can \fIadd\fR a new install method, \fIoverride\fR a matching binding, \fIretract\fR an inherited one with a \fBdrop:\fR binding (\fB{ via: X  when: Y  drop }\fR), or clear the whole component with \fB{}\fR — none of which requires redefining the component.
+.PP
+Among the bindings that are \fBvalid\fR here (their \fBwhen:\fR matches), one is chosen — see "Choosing among methods" below. Run \fBconfigsys where <name>\fR to see a component's bindings, which are valid here, and which one resolves.
 .SH THE \FBWHEN:\FR EXPRESSION
 .PP
 \fBwhen:\fR is a boolean expression that selects a binding by machine context. Its atoms are:
@@ -108,7 +118,14 @@ an \fBOS name\fR — bare (\fBubuntu\fR, \fBredhat\fR) matches that block and ev
 .IP \(bu 2
 a \fBCPU\fR atom (\fBcpu: aarch64\fR).
 .PP
-Combine atoms with \fBand\fR, \fBor\fR, and a guarded \fBnot\fR. OS blocks form a lineage via \fBusing:\fR (\fBpop_os! -> ubuntu -> debian -> linux\fR), detected from \fB/etc/os-release\fR (\fBID=pop\fR -> \fBpop_os!\fR), so a route written on \fBdebian\fR applies to the whole family. Two bindings whose match-sets overlap must be comparable (one more specific than the other) or configsys reports a load-time ambiguity.
+Combine atoms with \fBand\fR, \fBor\fR, and a guarded \fBnot\fR. OS blocks form a lineage via \fBusing:\fR (\fBpop_os! -> ubuntu -> debian -> linux\fR), detected from \fB/etc/os-release\fR (\fBID=pop\fR -> \fBpop_os!\fR), so a route written on \fBdebian\fR applies to the whole family. \fBwhen:\fR expresses \fBvalidity only\fR — whether a method works here — never which method to prefer. Two bindings of the \fBsame driver\fR whose match-sets overlap must be comparable (one more specific than the other) or configsys reports a load-time ambiguity; overlapping bindings of \fIdifferent\fR drivers are legal alternatives, decided by preference (see below).
+.SH CHOOSING AMONG METHODS
+.PP
+A component can have several valid install methods in one context (e.g. \fBnative\fR and \fBflatpak\fR both work on Ubuntu). configsys picks one default deterministically, in this order:
+.PP
+1. \fBmost specific\fR among comparable valid bindings (a narrower \fBwhen:\fR beats a broader one); 2. \fB\fBdriver-preference\fR\fR — the global tiebreak list (overridable per OS block); 3. a per-binding \fB\fBprefer:\fR\fR rank.
+.PP
+If that still ties, it is an error that names the preference channel — never a prompt to narrow a validity \fBwhen:\fR. To override the default on one machine, \fBconfigsys pin set <name> <driver>\fR writes a binding-pin (or edit \fBpins:\fR directly); \fBconfigsys where <name>\fR shows all candidates and which rule decided.
 .PP
 A derivative distro that does not rebrand \fB/etc/os-release\fR (Proxmox VE reports \fBID=debian\fR) can still be detected by a \fBmarker\fR: an os block declares \fBdetect: { id: <base>  marker: <path> }\fR (marker may be a list). When the detected block is that base — or a descendant — and every marker exists on disk, configsys routes to the more-specific block. This is the data-driven form of the built-in Fedora-Atomic ostree-marker detection, so a plugin can add a detectable OS with no code (the \fBconfigsys-proxmox\fR plugin does exactly this).
 .SH VERSIONS — DISCOVERED, NOT HARDCODED
@@ -162,10 +179,10 @@ component-names: {
 Keyed by driver and overlaid across the layer stack (later wins): a string replaces the resolved package name; \fB{}\fR (or null) means "not available via this driver," so the component isn't offered there. See the routing model (docs/routing-model.md §10a) for the full rules.
 .SH DRIVERS
 .PP
-Each \fBvia:\fR value names a driver: the OS package managers (\fBapt\fR, \fBdnf\fR, \fBpacman\fR, \fBzypper\fR, \fBapk\fR, \fBaur\fR, \fBbrew\fR, \fBrpm-ostree\fR), \fBflatpak\fR, \fBappImage\fR, \fBtarball\fR (also bare-binary and \fB.zip\fR archives), \fBdotfiles\fR, \fBfont\fR, \fBscript\fR (declared install/version/uninstall commands), the language toolchains and their module installers (\fBcargo\fR, \fBpip\fR, \fBpipx\fR, \fBnpm\fR, \fBgem\fR, \fBgo-install\fR, \fBopam\fR, \fBluarocks\fR, \fBcabal\fR, \fBgcc\fR, \fBclang\fR, \fBgcc-toolset\fR), and the post-install primitives \fBservice\fR (systemd) and \fBgroup\fR (usermod). Two \fBvia:\fR values are special: \fBnative\fR (resolves to the OS's package manager) and \fBparts\fR (a pure aggregator).
+Each \fBvia:\fR value names a driver: the OS package managers (\fBapt\fR, \fBdnf\fR, \fBpacman\fR, \fBzypper\fR, \fBapk\fR, \fBaur\fR, \fBbrew\fR, \fBrpm-ostree\fR), \fBflatpak\fR, \fBappImage\fR, \fBtarball\fR (also bare-binary and \fB.zip\fR archives), \fBsource\fR (build from a git checkout or source archive with declared \fBbuild:\fR commands), \fBdotfiles\fR, \fBfont\fR, \fBscript\fR (declared install/version/uninstall commands), the language toolchains and their module installers (\fBcargo\fR, \fBpip\fR, \fBpipx\fR, \fBnpm\fR, \fBgem\fR, \fBgo-install\fR, \fBopam\fR, \fBluarocks\fR, \fBcabal\fR, \fBgcc\fR, \fBclang\fR, \fBgcc-toolset\fR), and the post-install primitives \fBservice\fR (systemd) and \fBgroup\fR (usermod). Two \fBvia:\fR values are special: \fBnative\fR (resolves to the OS's package manager) and \fBparts\fR (a pure aggregator).
 .SH PROJECT DISCOVERY
 .PP
-configsys walks up from your working directory for \fB.configsys.hu\fR (a base file) and \fB.configsys-*.hu\fR (named variants), and \fBauto-activates\fR their profiles — so a source tree can declare its own dependency set. Discovery is bounded by \fB$HOME\fR and the filesystem root, disabled by \fBCONFIGSYS_NO_DISCOVER=1\fR, and starts from \fBCONFIGSYS_CWD\fR (or the current directory). A malformed discovered file is skipped, never fatal.
+configsys walks up from your working directory for \fB.configsys.hu\fR (a base file) and \fB.configsys-*.hu\fR (named variants), and \fBauto-activates\fR their profiles — so a source tree can declare its own dependency set. Discovery is bounded by \fB$HOME\fR and the filesystem root, disabled by \fBCONFIGSYS_NO_DISCOVER=1\fR (or \fBdiscover: false\fR in your config), and starts from \fBCONFIGSYS_CWD\fR (or the current directory). A malformed discovered file is skipped, never fatal.
 .SH SEE ALSO
 .PP
 \fBconfigsys(1)\fR for the command-line interface; the README for a narrative overview.

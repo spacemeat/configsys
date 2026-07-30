@@ -1,5 +1,9 @@
 # Install options
 
+> **Status: SUPERSEDED (shipped).** This is the early musing that seeded the multi-install and
+> build-from-source work. Its ideas were scoped in `install-methods-plan.md` and are now shipped
+> (multi-method selection + the declarative `source` driver). Kept only as the original framing.
+
 Configsys is, by default, opinionated about what install method a component should use. Yes, there are options, but they're gated by drivers, and must be pinned for users to have an opinion. This is mostly fine, and mostly works well. It *feels* like the default options are too rigid; somethings can install natively, but may have flatpak versions as well, and we aren't referencing them. Some OSs don't work well with multiple install sources for an app. Sometimes (usually) partiuclar drivers have different latest-versions, and other tradeoffs.
 
 ## Install From Source as a First Class Driver

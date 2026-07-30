@@ -1,9 +1,11 @@
-# Immutable / atomic distro support — design (scoping doc, not yet built)
+# Immutable / atomic distro support — design
 
-Status: **proposed**. Triggered by the Bazzite request. Bazzite is not one distro but the
-visible tip of a *class* — atomic/image-based systems with a read-only root where packages are
-not installed the traditional way. This doc scopes support for that class. Nothing here is built
-yet; it exists to lock the load-bearing decisions before code.
+Status: **SHIPPED** (not hardware-validated). Triggered by the Bazzite request. Bazzite is not
+one distro but the visible tip of a *class* — atomic/image-based systems with a read-only root
+where packages are not installed the traditional way. The `rpm-ostree` and `brew` drivers, the
+`fedora_atomic` OS block, and the component routing described here are all in the tree (the
+`brew.py`/`rpm_ostree.py` drivers cite this doc for their rationale); what remains is validation
+on real atomic hardware. This doc records the load-bearing decisions that shaped the code.
 
 ## The landscape
 

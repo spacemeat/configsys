@@ -4,7 +4,11 @@ Fleshes out `docs/many-installs-including-src.md`: let a component expose *multi
 install methods per context, let the user **see and pick** one, store that choice as a pin
 (local or portable), and (later) make build-from-source a first-class declarative driver.
 
-Status: **plan / decisions locked** (see below). Not yet built.
+Status: **SHIPPED.** The multi-method engine (candidate bindings, the validity-only `when:`
+invariant, `driver-preference` + per-binding `prefer:`, the same-driver-only ambiguity gate),
+additive component merge, per-key pin merge with `pin set`/`unset`/`promote`, the TUI method
+picker (`m`), and the declarative `source` driver are all in the tree. This doc is kept for the
+design rationale and the locked decisions; the phase list below is history.
 
 ## The core shift
 

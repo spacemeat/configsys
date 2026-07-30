@@ -1,5 +1,8 @@
 # Expansion plan — languages, tools, DEs, and `configsys request`
 
+Status: **SHIPPED** — every track below landed (language toolchains + module drivers, editors/
+shells, the DE catalog, and `configsys request`). Kept as the record of what was built and why.
+
 Discovery + grill outcome (2026-07-24). Source of truth for the smart-commit sequence below.
 Each **data** commit regenerates the golden gate (`CONFIGSYS_REGEN_GOLDEN=1 .venv/bin/python -m
 pytest test/test_golden.py`, review the diff) and runs the full suite before landing.
@@ -88,15 +91,16 @@ pytest test/test_golden.py`, review the diff) and runs the full suite before lan
 - **B1  tmux + zsh + fish + nushell.** native everywhere.
 - **B2  jetbrains-toolbox.** tarball app (unityhub/kicad pattern).
 
-### Track C — desktop environments  (DEFERRED to a validated real-machine pass)
+### Track C — desktop environments  (original scoping — since RESOLVED, see the DONE entry above)
+This was the earlier "defer to a validated pass" scoping; the DE track was subsequently shipped
+(sweep-verified above). Two findings from it still hold:
 - **Finding: variant OS blocks can't work.** Kubuntu/Lubuntu/Xubuntu all ship `ID=ubuntu` in
   os-release — no distinct ID to detect, so a `kubuntu`/etc. block would never auto-activate.
-  Drop the variant-block model; "already-present DE" is handled naturally (metapackage install
+  Dropped the variant-block model; "already-present DE" is handled naturally (metapackage install
   is a no-op when present; inspect reads it as installed).
-- **DE metapackage names are the highest unverifiable-in-sandbox risk** (gnome-shell vs gnome vs
-  @gnome-desktop; plasma-desktop vs plasma-meta vs @kde-desktop; COSMIC packaging still in flux).
-  Deferred with the module drivers to one validated pass. Candidates: cosmic, gnome, kde, xfce,
-  lxqt, cinnamon, mate, budgie, sway, hyprland.
+- **DE metapackage names were the highest unverifiable-in-sandbox risk** (gnome-shell vs gnome vs
+  @gnome-desktop; plasma-desktop vs plasma-meta vs @kde-desktop; COSMIC packaging in flux) — which
+  is exactly why the shipped names were podman-sweep verified before landing.
 
 ### Track D — `configsys request`  (DONE)
 - **D1  reportgen coverage matrix.** ✅ `coverage()` probes a representative machine per package

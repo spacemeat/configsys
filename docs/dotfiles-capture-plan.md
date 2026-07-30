@@ -1,5 +1,9 @@
 # Dotfiles: capture / adopt + clobber-proof linking — plan
 
+Status: **SHIPPED** — the content search-path, `configsys dotfiles status`/`capture`, and the
+clobber-proof install refusal (with `--force` backup to `<name>.pre-configsys`) are all in the
+tree. Kept for the design rationale below.
+
 ## Problem
 
 Dotfiles content lives in a `dotfiles/` dir next to the `.hu` that *defines* the component, so a

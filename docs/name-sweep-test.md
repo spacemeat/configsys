@@ -1,4 +1,8 @@
-# Name-existence sweep — design sketch (future work)
+# Name-existence sweep — design & tool reference
+
+Status: **SHIPPED** — the sweep is a real, runnable tool: `test/run-name-sweep-in-podman.sh`
+(with `test/namesweep-allowlist.hu`), plus the plugin-side `test/run-name-sweep.sh` in the
+`configsys-void` / `configsys-proxmox` repos. This doc is the living reference for how it works.
 
 **Goal:** catch the single most likely cross-distro failure — a native package being **renamed or
 removed** (redis→valkey, Fedora dropping `sagemath`, a `-dev` suffix change) — automatically,
@@ -37,7 +41,7 @@ $ python3 tools/namesweep.py --json          # {manager: {pkg: [components]}}
 
 It already reflects known drift: `apt=redis-server`, `dnf=valkey`, `pacman=valkey`.
 
-### 2. Verifier — per-manager existence query (the container half)
+### 2. Verifier — per-manager existence query (the container half) — DONE
 
 One container per manager (reuse `test/Containerfile.*`), enable the repos configsys itself uses,
 refresh metadata once, then check each name. The query verbs (all read-only, no install):
@@ -51,7 +55,7 @@ refresh metadata once, then check each name. The query verbs (all read-only, no 
 Batch all names in one container run per manager (not one container per package). Emit the set of
 **missing** names.
 
-### 3. Differ + report
+### 3. Differ + report — DONE
 
 Missing names → look up the components that map to them (the extractor's reverse map) and print,
 e.g. `dnf: 'sagemath' (component: sagemath) NOT FOUND`. Exit non-zero if any survive the allowlist.
@@ -133,8 +137,9 @@ core just provides the mode. Two plugins use it:
 ## Roadmap
 
 1. **(done)** extractor `tools/namesweep.py`.
-2. per-manager verifier script + `run-name-sweep-in-podman.sh` (reuse the sweep pattern already in
-   the tree).
-3. allowlist file + differ.
-4. wire into a weekly CI job; surface drift as an issue.
+2. **(done)** per-manager verifier script + `test/run-name-sweep-in-podman.sh`.
+3. **(done)** allowlist file (`test/namesweep-allowlist.hu`) + differ.
+4. wire into a weekly CI job; surface drift as an issue. *(The plugin repos `configsys-void` /
+   `configsys-proxmox` carry their own `test/run-name-sweep.sh`; a scheduled CI job for the core
+   sweep is not yet wired.)*
 5. *(stretch)* sibling checks: URL HEADs for tarball/`script`, app-id checks for flatpak.
