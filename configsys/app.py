@@ -61,11 +61,15 @@ USER_CONFIG_TEMPLATE = '''{
     //     steam: flatpak
     // }
 
-    // TUI colors. Any semantic color (accent, installed, outdated, error, dim, header, ...) takes
-    // a hex or [r,g,b] value; the menu background is a dark diagonal gradient (24-bit terminals
-    // only). Set `gradient: false` to turn the background off.
+    // TUI theme (all optional; hex "#rrggbb" or [r,g,b]). `colors:` overrides a named palette
+    // color; `elements:` styles a UI element with fg/bg/bold/underline/reverse (fg/bg may name a
+    // palette color) — elements: label, os, menu_header, profile, link, component, unit, family,
+    // scope, scope_choice, version, installed/outdated/missing/locked/error/..., op_install/...,
+    // issue_error, issue_warning, methods, info, status_line, footer. `gradient:` is the dark
+    // diagonal menu background (24-bit terminals only; `gradient: false` turns it off).
     // theme: {
     //     colors:   { accent: "#c88cf0"  installed: [ 90, 200, 120 ] }
+    //     elements: { profile: { fg: accent  bold: true }  os: { fg: "#78c8ff"  underline: true } }
     //     gradient: { from: "#160a22"  to: "#050208"  selected: "#3a2258" }
     // }
 

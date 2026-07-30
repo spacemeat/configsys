@@ -35,14 +35,58 @@ SEMANTIC = {
 
 # Default menu background: a very dark purple diagonal (top-left -> bottom-right), quantized into
 # GRAD_BANDS steps; the selected row is a brighter solid bar. Overridable via theme.gradient.
-GRAD_BANDS = 12
 GRAD_A = (22, 10, 34)     # top-left    — dark purple
 GRAD_B = (5, 2, 10)       # bottom-right — near-black
 SEL_BG = (58, 34, 88)     # selected-row bar
+GRAD_MAX_BANDS = 96       # cap on the (range-adaptive) number of diagonal steps
+
+
+# UI elements, each a style: fg / bg are a semantic color NAME or a hex/[r,g,b] value (bg omitted
+# = the gradient background); bold / underline / reverse are flags. Every element is overridable
+# via `theme.elements.<name>.{fg,bg,bold,underline,reverse}`. These defaults reproduce the built-in
+# look. Component-status and op-badge elements share their name with the status/op.
+ELEMENTS = {
+    'label':         {'fg': 'title', 'bg': 'accent', 'bold': True},   # the `configsys` chip
+    'os':            {'fg': 'header', 'bold': True},
+    'issue_error':   {'fg': 'error', 'bold': True, 'reverse': True},   # the ! badge (errors)
+    'issue_warning': {'fg': 'outdated', 'bold': True, 'reverse': True},
+    'menu_header':   {'fg': 'dim', 'bold': True},
+    'select_marker': {'fg': 'accent', 'bold': True},
+    'profile':       {'fg': 'accent', 'bold': True},
+    'link':          {'fg': 'accent', 'bold': True},
+    'component':     {'fg': 'title', 'bold': True},
+    'unit':          {'fg': 'title'},
+    'family':        {'fg': 'dim'},
+    'scope':         {'fg': 'dim'},
+    'scope_choice':  {'fg': 'accent'},
+    'version':       {'fg': 'dim'},
+    'row_error':     {'fg': 'error'},
+    'methods':       {'fg': 'header'},
+    'info':          {'fg': 'accent'},
+    'info_dim':      {'fg': 'dim'},
+    'status_line':   {'fg': 'accent'},
+    'footer':        {'fg': 'dim', 'reverse': True},
+    # component-status colors (the STATUS column)
+    'installed':   {'fg': 'installed'}, 'outdated': {'fg': 'outdated'},
+    'partial':     {'fg': 'partial'},   'missing':  {'fg': 'missing'},
+    'locked':      {'fg': 'locked'},    'unsupported': {'fg': 'unsupported'},
+    'untrusted':   {'fg': 'untrusted'}, 'error':    {'fg': 'error'},
+    # op badges
+    'op_install': {'fg': 'op_install', 'bold': True}, 'op_upgrade': {'fg': 'op_upgrade', 'bold': True},
+    'op_remove':  {'fg': 'op_remove', 'bold': True},  'op_lock':    {'fg': 'op_lock', 'bold': True},
+    'op_unlock':  {'fg': 'op_unlock', 'bold': True},  'op_mixed':   {'fg': 'accent', 'bold': True},
+}
 
 
 def _lerp(a, b, t):
     return tuple(round(a[i] + (b[i] - a[i]) * t) for i in range(3))
+
+
+def _ref_rgb(val, colors):
+    '''Resolve a style fg/bg reference: a semantic color NAME -> its rgb, else a hex/[r,g,b].'''
+    if isinstance(val, str) and val in colors:
+        return colors[val]
+    return parse_color(val) or (0, 0, 0)
 
 
 def parse_color(v):
@@ -76,17 +120,22 @@ def parse_color(v):
 
 
 def resolve_theme(theme):
-    '''Merge a `theme:` override dict onto the defaults. Returns (colors {name:(r,g,b)}, grad_from,
-    grad_to, grad_sel, gradient_enabled). Pure — no curses. `theme.colors.<name>` overrides a
-    semantic color; `theme.gradient.{from,to,selected}` the gradient; `theme.gradient: false` (or
-    `.enabled: false`) turns the background gradient off.'''
+    '''Merge a `theme:` override dict onto the defaults. Returns (colors {name:(r,g,b)}, elements
+    {name: style-dict}, grad_from, grad_to, grad_sel, gradient_enabled). Pure — no curses.
+    `theme.colors.<name>` overrides a semantic color; `theme.elements.<name>.{fg,bg,bold,underline,
+    reverse}` overrides an element's style; `theme.gradient.{from,to,selected}` the background;
+    `theme.gradient: false` (or `.enabled: false`) turns the background gradient off.'''
     colors = dict(SEMANTIC)
+    elements = {name: dict(style) for name, style in ELEMENTS.items()}
     ga, gb, gs, enabled = GRAD_A, GRAD_B, SEL_BG, True
     if isinstance(theme, dict):
         for name, val in (theme.get('colors') or {}).items():
             rgb = parse_color(val)
             if rgb and name in colors:
                 colors[name] = rgb
+        for name, ov in (theme.get('elements') or {}).items():
+            if name in elements and isinstance(ov, dict):
+                elements[name].update(ov)
         g = theme.get('gradient')
         if g is False or (isinstance(g, dict) and g.get('enabled') in (False, 'false', 'no')):
             enabled = False
@@ -94,7 +143,7 @@ def resolve_theme(theme):
             ga = parse_color(g.get('from')) or ga
             gb = parse_color(g.get('to')) or gb
             gs = parse_color(g.get('selected')) or gs
-    return colors, ga, gb, gs, enabled
+    return colors, elements, ga, gb, gs, enabled
 
 
 def rgb_to_256(r, g, b):
@@ -140,7 +189,7 @@ class Palette:
         except curses.error:
             self.truecolor = self.direct
 
-        colors, ga, gb, gs, grad_enabled = resolve_theme(theme)
+        colors, elements, ga, gb, gs, grad_enabled = resolve_theme(theme)
         self._next_color = 16          # private palette-slot allocator (truecolor mode)
         self._next_pair = 1
         self._color_cache = {}         # rgb -> palette index
@@ -153,9 +202,25 @@ class Palette:
             self.attrs[name] = self._pair(idx, self.bg)
 
         self.gradient = self.truecolor and grad_enabled
+        self._grad_bg = []
         if self.gradient:
-            self._grad_bg = [self._color(_lerp(ga, gb, k / (GRAD_BANDS - 1))) for k in range(GRAD_BANDS)]
+            # one band per distinct 8-bit step across the range (adaptive) so the diagonal is as
+            # smooth as the endpoints allow — no visible stepping — capped at GRAD_MAX_BANDS.
+            span = max(abs(ga[i] - gb[i]) for i in range(3))
+            n = max(16, min(GRAD_MAX_BANDS, span + 1))
+            self._grad_bg = [self._color(_lerp(ga, gb, k / (n - 1))) for k in range(n)]
             self._sel_bg = self._color(gs)
+
+        # resolve each UI element to (fg_idx, bg_idx-or-None, attr-flags); fg/bg may name a color.
+        self._elements = {}
+        for name, st in elements.items():
+            fg = self._color(_ref_rgb(st.get('fg', 'title'), colors))
+            bg = st.get('bg')
+            bg_idx = self._color(_ref_rgb(bg, colors)) if bg is not None else None
+            flags = ((curses.A_BOLD if st.get('bold') else 0)
+                     | (curses.A_UNDERLINE if st.get('underline') else 0)
+                     | (curses.A_REVERSE if st.get('reverse') else 0))
+            self._elements[name] = (fg, bg_idx, flags)
 
     def _color(self, rgb):
         '''A palette index for an RGB: an exact custom slot via init_color when we have true
@@ -199,9 +264,22 @@ class Palette:
     # -- gradient background ---------------------------------------------
 
     def band(self, y, x, h, w):
-        '''The gradient band [0, GRAD_BANDS) for a cell, along the top-left -> bottom-right diagonal.'''
+        '''The gradient band for a cell, along the top-left -> bottom-right diagonal.'''
+        n = len(self._grad_bg)
         t = (y / max(1, h - 1) + x / max(1, w - 1)) / 2
-        return min(GRAD_BANDS - 1, int(t * GRAD_BANDS))
+        return min(n - 1, int(t * n))
+
+    def style(self, element, y, x, h, w, *, selected=False):
+        '''The attr for a named UI element at cell (y, x): its fg + flags, over its own bg if it
+        declares one, else the diagonal gradient (or the selected-row bar). Falls back to a plain
+        pair (reverse when selected) with no gradient.'''
+        fg, elem_bg, flags = self._elements.get(element, (self._fg.get('dim'), None, 0))
+        if not self.gradient:
+            base = self._pair(fg, elem_bg if elem_bg is not None else self.bg)
+            return base | flags | (curses.A_REVERSE if selected else 0)
+        bg = self._sel_bg if selected else (elem_bg if elem_bg is not None
+                                            else self._grad_bg[self.band(y, x, h, w)])
+        return self._pair(fg, bg) | flags
 
     def at(self, name, y, x, h, w, *, selected=False):
         '''`name`'s fg over the gradient background at cell (y, x) — or the selected-row bar. With

@@ -502,10 +502,10 @@ def _columns(w):
     start = 3                                     # after the select marker + op badge
     scope_w, status_w = 8, 9
     flex = max(24, (w - 1) - start - scope_w - status_w - 5)   # 5 inter-column gaps
-    ver_w = max(8, min(18, flex // 5))            # INSTALLED == LATEST
-    rest = max(22, flex - 2 * ver_w)              # NAME + FAMILY share the remainder
-    name_w = max(14, rest * 3 // 5)
-    fam_w = max(8, rest - name_w)
+    ver_w = max(8, min(24, flex // 4))            # INSTALLED == LATEST (roomier)
+    rest = max(20, flex - 2 * ver_w)              # NAME + FAMILY share the remainder
+    fam_w = max(7, min(rest // 4, 16))            # FAMILY: compact (driver names are short)
+    name_w = max(14, rest - fam_w)                # NAME takes the rest
     nx = start
     fx = nx + name_w + 1
     scx = fx + fam_w + 1
@@ -651,85 +651,80 @@ def _draw(stdscr, pal, ms, ctx, note, diags=(), show_diag=False, diag_top=0):
 
     # top line: the `configsys` chip, then the OS block (+ PRETEND) to its right, then the badge.
     title = ' configsys '
-    _put(stdscr, 0, 0, title, pal.get('title') | curses.A_BOLD | curses.A_REVERSE)
+    _put(stdscr, 0, 0, title, pal.style('label', 0, 0, h, w))
     sub = f'  {ctx.os_info.block}'
     if ctx.runner.pretend:
         sub += '   [PRETEND]'
-    _put(stdscr, 0, len(title), _fit(sub, max(1, w - len(title))),
-         pal.at('header', 0, len(title), h, w) | curses.A_BOLD)
+    _put(stdscr, 0, len(title), _fit(sub, max(1, w - len(title))), pal.style('os', 0, len(title), h, w))
     if diags:                                        # attention badge, right-aligned on the top line
         n = len(diags)
-        lvl = 'error' if any(d['level'] == 'error' for d in diags) else 'outdated'
+        elem = 'issue_error' if any(d['level'] == 'error' for d in diags) else 'issue_warning'
         badge = f' ⚠ {n} issue{"s" if n != 1 else ""} — press ! to view '
         bx = max(len(title) + len(sub) + 2, w - len(badge) - 1)
-        _put(stdscr, 0, bx, _fit(badge, w - bx),
-             pal.get(lvl) | curses.A_BOLD | curses.A_REVERSE)
+        _put(stdscr, 0, bx, _fit(badge, w - bx), pal.style(elem, 0, bx, h, w))
 
     for c, text in (('name', 'COMPONENT'), ('fam', 'FAMILY'), ('scope', 'SCOPE'),
                     ('status', 'STATUS'), ('inst', 'INSTALLED'), ('latest', 'LATEST')):
         x, cw = cols[c]
-        _put(stdscr, 1, x, _fit(text, cw), pal.at('dim', 1, x, h, w) | curses.A_BOLD)
+        _put(stdscr, 1, x, _fit(text, cw), pal.style('menu_header', 1, x, h, w))
 
     list_top = 2
     list_h = max(1, h - list_top - 6)  # methods + 2 infoblock + status + 2 footer lines
     ms.top = first = _scroll_top(ms.cursor, ms.top, list_h, len(ms.rows))
 
+    _KIND_ELEM = {PROFILE: 'profile', LINK: 'link', COMPONENT: 'component', UNIT: 'unit'}
     for vis, i in enumerate(range(first, min(len(ms.rows), first + list_h))):
         n = ms.rows[i]
         y = list_top + vis
         sel = i == ms.cursor
 
-        def at(name, x, bold=False):
-            return pal.at(name, y, x, h, w, selected=sel) | (curses.A_BOLD if bold else 0)
-
-        def col(c, s, color, bold=False, pad=True):
+        def col(c, s, element, pad=True):
             x, cw = cols[c]
-            _put(stdscr, y, x, (_fit(s, cw).ljust(cw) if pad else _fit(s, cw)), at(color, x, bold))
+            _put(stdscr, y, x, (_fit(s, cw).ljust(cw) if pad else _fit(s, cw)),
+                 pal.style(element, y, x, h, w, selected=sel))
 
         marker_sel = '»' if n.id in ms.selected else ' '
         op = ms.node_op(n)
         err = ms.row_error(n)
         if op:
-            bch, bcolor = (op if op == '*' else OPS[op][0]), ('accent' if op == '*' else OPS[op][1])
+            bch, belem = (op if op == '*' else OPS[op][0]), ('op_mixed' if op == '*' else 'op_' + op)
         elif err:
-            bch, bcolor = '✗', 'error'
+            bch, belem = '✗', 'row_error'
         else:
-            bch, bcolor = ' ', 'dim'
+            bch, belem = ' ', 'unit'
 
         marker = ('▾ ' if n.expanded else '▸ ') if n.expandable else '  '
         name = '  ' * n.depth + marker + n.label
-        name_color = 'accent' if n.kind in (PROFILE, LINK) else 'title'
 
         if sel:                                      # solid highlight bar across the whole row
             _put(stdscr, y, 0, ' ' * (w - 1), pal.fill(y, 0, h, w, selected=True))
-        _put(stdscr, y, 0, marker_sel, at('accent', 0, bold=True))
-        _put(stdscr, y, 1, bch, at(bcolor, 1, bold=True))
-        col('name', name, name_color, bold=(n.kind != UNIT))
-        col('fam', n.driver, 'dim')
-        col('scope', n.scope_str(), 'accent' if _scope_is_choice(n) else 'dim')
-        st = n.status
-        col('status', st, STATUS_COLOR.get(st, 'dim'))
+        _put(stdscr, y, 0, marker_sel, pal.style('select_marker', y, 0, h, w, selected=sel))
+        _put(stdscr, y, 1, bch, pal.style(belem, y, 1, h, w, selected=sel))
+        col('name', name, _KIND_ELEM.get(n.kind, 'unit'))
+        col('fam', n.driver, 'family')
+        col('scope', n.scope_str(), 'scope_choice' if _scope_is_choice(n) else 'scope')
+        col('status', n.status, n.status if n.status in STATUS_COLOR else 'unit')
         if err:
             ix = cols['inst'][0]
-            _put(stdscr, y, ix, _fit(err, max(1, w - ix - 1)), at('error', ix))
+            _put(stdscr, y, ix, _fit(err, max(1, w - ix - 1)),
+                 pal.style('row_error', y, ix, h, w, selected=sel))
         else:
-            col('inst', n.installed_str(), 'dim')
-            col('latest', n.latest_str(), 'dim', pad=False)
+            col('inst', n.installed_str(), 'version')
+            col('latest', n.latest_str(), 'version', pad=False)
 
-    _put(stdscr, h - 6, 0, _fit(_methods_line(ms, ctx), w), pal.at('header', h - 6, 0, h, w))
+    _put(stdscr, h - 6, 0, _fit(_methods_line(ms, ctx), w), pal.style('methods', h - 6, 0, h, w))
     info1, info2 = _infoblock(ms, ctx)
-    _put(stdscr, h - 5, 0, _fit(info1, w), pal.at('accent', h - 5, 0, h, w))
-    _put(stdscr, h - 4, 0, _fit(info2, w), pal.at('dim', h - 4, 0, h, w))
+    _put(stdscr, h - 5, 0, _fit(info1, w), pal.style('info', h - 5, 0, h, w))
+    _put(stdscr, h - 4, 0, _fit(info2, w), pal.style('info_dim', h - 4, 0, h, w))
 
     status_line = f' selected:{len(ms.selected)}  staged:{len(ms.staged)}'
     if note:
         status_line += f'   {note}'
     nav = ' j/k move · g/G top/bottom · l/→ expand · h/← collapse · enter open · tab expand-all '
     act = ' space sel · a all · i/u/x inst/upg/rm · L lock · m method · c clear · X exec · ! issues · q quit '
-    foot_attr = pal.get('dim') | curses.A_REVERSE
-    _put(stdscr, h - 3, 0, _fit(status_line, w), pal.at('accent', h - 3, 0, h, w))
-    _put(stdscr, h - 2, 0, _fit(nav.ljust(w), w), foot_attr)
-    _put(stdscr, h - 1, 0, _fit(act.ljust(w), w), foot_attr)
+    _put(stdscr, h - 3, 0, _fit(status_line, w), pal.style('status_line', h - 3, 0, h, w))
+    _put(stdscr, h - 2, 0, _fit(nav.ljust(w), w), pal.style('footer', h - 2, 0, h, w))
+    _put(stdscr, h - 1, 0, _fit(act.ljust(w), w), pal.style('footer', h - 1, 0, h, w))
     stdscr.refresh()
     return diag_top
 
