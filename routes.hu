@@ -1106,6 +1106,20 @@
         // libc++ instead, install `libc++` and provider-pin `cxx-stdlib: libc++` (then pass
         // -stdlib=libc++ — configsys installs the library, your build selects it). The two stdlibs are
         // NOT ABI-compatible with each other; g++ can only use libstdc++, clang can use either.
+        //
+        // Compiler VERSION and library VERSION are chosen INDEPENDENTLY, and this is capability-
+        // based (nothing here assumes apt or update-alternatives). Every versioned compiler
+        // resolves `cxx-stdlib` to the SAME provider — the system's default libstdc++ unless you
+        // pin otherwise — so e.g. clang-18 and clang-20 SHARE one standard library; installing a
+        // newer clang does NOT bring a newer library. A compiler's `C++NN` labels (on the
+        // gcc-NN/clang-NN components below) describe its FRONT-END language mode, not a guarantee
+        // of library features — those track whatever `cxx-stdlib` resolved to. Sharing is
+        // order-independent: the compiler and the stdlib pull the same library, whichever is
+        // installed first. To move the LIBRARY forward, change that provider, not the compiler:
+        // install/prefer a newer libstdc++ (whatever your package manager names it), or
+        // provider-pin `cxx-stdlib: libc++`, whose version DOES track clang. (clang also pulls the
+        // gcc C toolchain — `c-toolchain`, for crt/libgcc — but never the g++ compiler; that split
+        // is the whole point of requiring `cxx-stdlib` rather than `cxx`.)
         libstdc++: {                                  // GNU C++ stdlib (clang's default on Linux)
             provides: [ cxx-stdlib, libstdc++ ]
             install: [
