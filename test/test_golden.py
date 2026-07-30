@@ -3,7 +3,7 @@
 The equivalence + field-parity harnesses proved v2 == the old RouteResolver. Once v1 is
 gone those harnesses can't run, so we freeze the (then-proven-correct) v2 output here: for
 every routes.hu component across every OS context, the full resolved closure as
-{unit_key: {driver, name, fields}} — exactly what the app hands the families. This guards
+{unit_key: {driver, name, fields}} — exactly what the app hands the drivers. This guards
 against future regressions in the resolver/data with no dependency on the old engine.
 
 Regenerate after an intentional data/resolver change:

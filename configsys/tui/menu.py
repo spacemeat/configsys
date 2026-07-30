@@ -421,25 +421,25 @@ def execute_plan(ctx, plan, ledger):
     outcomes = []
     last_failure = None
     for op, key, rc in plan:
-        fam = get_driver(rc.driver, ctx.runner, ctx.paths)
-        if fam is None:
+        drv = get_driver(rc.driver, ctx.runner, ctx.paths)
+        if drv is None:
             print(f'skip {key}: driver "{rc.driver}" not yet supported')
             outcomes.append(OpOutcome(op, key, rc.name, False, 'unsupported driver'))
             continue
 
         print(f'\n>>> {op} {key} (pkg: {rc.name})')
         if op == 'install':
-            res = fam.install(rc)
+            res = drv.install(rc)
         elif op == 'upgrade':
-            res = fam.upgrade(rc)
+            res = drv.upgrade(rc)
         elif op == 'remove':
-            res = fam.uninstall(rc)
+            res = drv.uninstall(rc)
         elif op == 'lock':
-            res = fam.lock(rc)
+            res = drv.lock(rc)
             if res.ok:
                 ledger.set_lock(key, True)
         elif op == 'unlock':
-            res = fam.unlock(rc)
+            res = drv.unlock(rc)
             if res.ok:
                 ledger.set_lock(key, False)
         else:
@@ -497,22 +497,22 @@ def _confirm_and_execute(stdscr, pal, ms, ctx, ledger):
 
 def _columns(w):
     '''Responsive column geometry -> {col: (x, width)} for the given terminal width. NAME and
-    FAMILY absorb the extra horizontal room; the two version columns (INSTALLED / LATEST) always
+    DRIVER absorb the extra horizontal room; the two version columns (INSTALLED / LATEST) always
     get equal width. SCOPE/STATUS stay compact.'''
     start = 3                                     # after the select marker + op badge
     scope_w, status_w = 8, 9
     flex = max(24, (w - 1) - start - scope_w - status_w - 5)   # 5 inter-column gaps
     ver_w = max(8, min(24, flex // 4))            # INSTALLED == LATEST (roomier)
-    rest = max(20, flex - 2 * ver_w)              # NAME + FAMILY share the remainder
-    fam_w = max(7, min(rest // 4, 16))            # FAMILY: compact (driver names are short)
-    name_w = max(14, rest - fam_w)                # NAME takes the rest
+    rest = max(20, flex - 2 * ver_w)              # NAME + DRIVER share the remainder
+    driver_w = max(7, min(rest // 4, 16))         # DRIVER: compact (driver names are short)
+    name_w = max(14, rest - driver_w)                # NAME takes the rest
     nx = start
     fx = nx + name_w + 1
-    scx = fx + fam_w + 1
+    scx = fx + driver_w + 1
     stx = scx + scope_w + 1
     ix = stx + status_w + 1
     lx = ix + ver_w + 1
-    return {'name': (nx, name_w), 'fam': (fx, fam_w), 'scope': (scx, scope_w),
+    return {'name': (nx, name_w), 'driver': (fx, driver_w), 'scope': (scx, scope_w),
             'status': (stx, status_w), 'inst': (ix, ver_w), 'latest': (lx, ver_w)}
 
 
@@ -585,8 +585,8 @@ def _infoblock(ms, ctx):
               f'latest: {m.latest_version or "—"}']
     if m.locked:
         parts.append('version-locked')
-    fam = get_driver(rc.driver, ctx.runner, ctx.paths)
-    loc = fam.location(rc) if fam is not None else None
+    drv = get_driver(rc.driver, ctx.runner, ctx.paths)
+    loc = drv.location(rc) if drv is not None else None
     return ' ' + '   ·   '.join(parts), (f' at: {loc}' if loc else '')
 
 
@@ -663,7 +663,7 @@ def _draw(stdscr, pal, ms, ctx, note, diags=(), show_diag=False, diag_top=0):
         bx = max(len(title) + len(sub) + 2, w - len(badge) - 1)
         _put(stdscr, 0, bx, _fit(badge, w - bx), pal.style(elem, 0, bx, h, w))
 
-    for c, text in (('name', 'COMPONENT'), ('fam', 'DRIVER'), ('scope', 'SCOPE'),
+    for c, text in (('name', 'COMPONENT'), ('driver', 'DRIVER'), ('scope', 'SCOPE'),
                     ('status', 'STATUS'), ('inst', 'INSTALLED'), ('latest', 'LATEST')):
         x, cw = cols[c]
         _put(stdscr, 1, x, _fit(text, cw), pal.style('menu_header', 1, x, h, w))
@@ -701,7 +701,7 @@ def _draw(stdscr, pal, ms, ctx, note, diags=(), show_diag=False, diag_top=0):
         _put(stdscr, y, 0, marker_sel, pal.style('select_marker', y, 0, h, w, selected=sel))
         _put(stdscr, y, 1, bch, pal.style(belem, y, 1, h, w, selected=sel))
         col('name', name, _KIND_ELEM.get(n.kind, 'unit'))
-        col('fam', n.driver, 'family')
+        col('driver', n.driver, 'driver')
         col('scope', n.scope_str(), 'scope_choice' if _scope_is_choice(n) else 'scope')
         col('status', n.status, n.status if n.status in STATUS_COLOR else 'unit')
         if err:

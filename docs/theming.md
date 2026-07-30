@@ -76,7 +76,7 @@ background (give it a `bg` for a solid chip, like `label`). Booleans are `true`/
 | `link` | an `+include` link row |
 | `component` | a composite component row (expands to units) |
 | `unit` | a leaf/unit row (also the default text color) |
-| `family` | the driver/`DRIVER` column |
+| `driver` | the `DRIVER` column (the resolved driver: apt, tarball, flatpak, …) |
 | `scope` / `scope_choice` | the `SCOPE` column (`_choice` = a non-default scope) |
 | `version` | the `INSTALLED` / `LATEST` columns |
 | `row_error` | an op-failure message on a row |

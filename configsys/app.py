@@ -63,7 +63,7 @@ USER_CONFIG_TEMPLATE = '''{
 
     // TUI theme (all optional; hex "#rrggbb" or [r,g,b]). `colors:` overrides a named palette
     // color; `elements:` styles a UI element with fg/bg/bold/underline/reverse (fg/bg may name a
-    // palette color) — elements: label, os, menu_header, profile, link, component, unit, family,
+    // palette color) — elements: label, os, menu_header, profile, link, component, unit, driver,
     // scope, scope_choice, version, installed/outdated/missing/locked/error/..., op_install/...,
     // issue_error, issue_warning, methods, info, status_line, footer. `gradient:` is the dark
     // diagonal menu background (24-bit terminals only; `gradient: false` turns it off).
@@ -238,9 +238,9 @@ class Context:
         for key, st in sorted((states or {}).items()):
             if not (st.present and st.scope):
                 continue
-            fam = get_driver(st.component.driver, self.runner, self.paths)
-            if fam is not None and fam.honors_scope:
-                target = fam.scope(st.component)
+            drv = get_driver(st.component.driver, self.runner, self.paths)
+            if drv is not None and drv.honors_scope:
+                target = drv.scope(st.component)
                 if st.scope != target:
                     add('warn', 'scope', f"{key}: installed {st.scope}, config declares "
                                          f"{target} — run: configsys fix-scope")
@@ -321,8 +321,8 @@ class Context:
         default = self.config.default_scope()
         if default:
             for rc in units.values():
-                fam = get_driver(rc.driver, self.runner, self.paths)
-                if fam is not None and fam.honors_scope:
+                drv = get_driver(rc.driver, self.runner, self.paths)
+                if drv is not None and drv.honors_scope:
                     rc.fields.setdefault('scope', default)
         return units
 
@@ -550,25 +550,25 @@ def _dispatch_op(ctx, names, op, *, ledger=None, version=None):
     rc_code = 0
     last_failure = None
     for cur_op, key, rc in plan:
-        fam = get_driver(rc.driver, ctx.runner, ctx.paths)
-        if fam is None:
+        drv = get_driver(rc.driver, ctx.runner, ctx.paths)
+        if drv is None:
             print(f'skip {key}: driver "{rc.driver}" not yet supported')
             continue
         print(f'{cur_op} {key} (pkg: {rc.name}) ...')
         if cur_op == 'install':
-            res = fam.install(rc)
+            res = drv.install(rc)
         elif cur_op == 'remove':
-            res = fam.uninstall(rc)
+            res = drv.uninstall(rc)
         elif cur_op == 'upgrade':
-            res = fam.upgrade(rc)
+            res = drv.upgrade(rc)
         elif cur_op == 'set-version':
-            res = fam.set_version(rc, version)
+            res = drv.set_version(rc, version)
         elif cur_op == 'lock':
-            res = fam.lock(rc)
+            res = drv.lock(rc)
             if res.ok and ledger is not None:
                 ledger.set_lock(key, True)
         elif cur_op == 'unlock':
-            res = fam.unlock(rc)
+            res = drv.unlock(rc)
             if res.ok and ledger is not None:
                 ledger.set_lock(key, False)
         else:
@@ -625,14 +625,14 @@ def cmd_fix_scope(ctx, args):
             continue
         if names and rc.comp not in names and key not in names:
             continue
-        fam = get_driver(rc.driver, ctx.runner, ctx.paths)
-        if fam is None or not fam.honors_scope:
+        drv = get_driver(rc.driver, ctx.runner, ctx.paths)
+        if drv is None or not drv.honors_scope:
             continue
-        target = fam.scope(rc)
+        target = drv.scope(rc)
         if st.scope == target:
             continue                                  # already where it's declared
         print(f'fix-scope {key}: {st.scope} -> {target} ...')
-        res = fam.reconcile_scope(rc, st.scope, target)
+        res = drv.reconcile_scope(rc, st.scope, target)
         if res.ok:
             print('  -> ok')
             fixed += 1
@@ -677,12 +677,12 @@ def cmd_refresh(ctx, args):
     seen = {}
     for key in sorted(units):
         rc = units[key]
-        fam = get_driver(rc.driver, ctx.runner, ctx.paths)
-        if fam is None:
+        drv = get_driver(rc.driver, ctx.runner, ctx.paths)
+        if drv is None:
             continue
         # use the driver's arch-substituted spec so the cache key matches what the
         # driver looks up at install time (and warms both version + asset url)
-        spec = fam._disco_spec(rc)
+        spec = drv._disco_spec(rc)
         if not isinstance(spec, dict) or 'static' in spec:
             continue
         sk = source_key(spec)
@@ -831,19 +831,19 @@ def cmd_location(ctx, args):
         return 1
     found = False
     for rc in own:
-        fam = get_driver(rc.driver, ctx.runner, ctx.paths)
-        if fam is None:
+        drv = get_driver(rc.driver, ctx.runner, ctx.paths)
+        if drv is None:
             continue
         # reflect the ACTUAL install scope (user vs system) when installed — get_installed probes
         # both — so the path matches reality, not just the configured target. Not installed ->
         # (None) -> the configured/default-scope target dir (where it WOULD land).
         try:
-            _ver, detected = fam.get_installed(rc)
+            _ver, detected = drv.get_installed(rc)
         except Exception:  # noqa: BLE001 - a probe failure must not break a location query
             detected = None
         if detected:
             rc.fields['scope'] = detected
-        loc = fam.location(rc)
+        loc = drv.location(rc)
         if loc:
             s = str(loc)
             print(ctx.paths.expand(s) if s.startswith(('~', '/')) else s)   # absolute for scripts

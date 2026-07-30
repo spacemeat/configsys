@@ -56,7 +56,7 @@ ELEMENTS = {
     'link':          {'fg': 'accent', 'bold': True},
     'component':     {'fg': 'title', 'bold': True},
     'unit':          {'fg': 'title'},
-    'family':        {'fg': 'dim'},
+    'driver':        {'fg': 'dim'},
     'scope':         {'fg': 'dim'},
     'scope_choice':  {'fg': 'accent'},
     'version':       {'fg': 'dim'},

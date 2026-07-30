@@ -22,7 +22,7 @@ import sys
 from configsys.drivers.apt import Apt
 from configsys.runner import Runner
 from configsys.componentObj import ResolvedComponent
-rc = ResolvedComponent(key='apt\\t', family='apt', comp='t',
+rc = ResolvedComponent(key='apt\\t', driver='apt', comp='t',
                        fields={'name': sys.argv[1], 'foreign-arch': 'i386'})
 sys.exit(0 if Apt(Runner()).install(rc).ok else 1)
 PY
@@ -39,7 +39,7 @@ import sys
 from configsys.drivers.apt import Apt
 from configsys.runner import Runner
 from configsys.componentObj import ResolvedComponent
-rc = ResolvedComponent(key='apt\\t', family='apt', comp='t',
+rc = ResolvedComponent(key='apt\\t', driver='apt', comp='t',
                        fields={'name': sys.argv[1], 'foreign-arch': 'i386'})
 Apt(Runner()).install(rc)
 PY

@@ -93,7 +93,7 @@ def test_columns_responsive_and_equal_versions():
     for w in (80, 120, 160):
         c = _columns(w)
         assert c['inst'][1] == c['latest'][1]                  # version columns equal width
-        xs = [c[k][0] for k in ('name', 'fam', 'scope', 'status', 'inst', 'latest')]
+        xs = [c[k][0] for k in ('name', 'driver', 'scope', 'status', 'inst', 'latest')]
         assert xs == sorted(xs) and len(set(xs)) == 6          # ordered, non-overlapping
         assert c['latest'][0] + c['latest'][1] <= w            # fits within the terminal
     assert _columns(160)['name'][1] > _columns(80)['name'][1]  # NAME absorbs the extra width

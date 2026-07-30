@@ -25,7 +25,7 @@ def apt_unit(name='btop'):
 
 def unsupported_unit():
     # `snap` is not implemented -> exercises graceful degradation (all real routed
-    # families are now supported, so use a synthetic unregistered one)
+    # drivers are now supported, so use a synthetic unregistered one)
     return ResolvedComponent(key='snap\\foo', driver='snap', comp='foo',
                              fields={'name': 'foo'})
 

@@ -129,7 +129,7 @@ Each phase is independently shippable and golden-gated.
 ### Phase 3 — TUI picker + pins
 - Per component: show the current `via:` and a picker of `candidate_bindings` (with each method's
   resolved version where cheap). The TUI currently shows only the *resolved concrete driver* in
-  the FAMILY column (menu.py:509) — the picker is new UI.
+  the DRIVER column — the picker is new UI.
 - Selecting a non-default method **stages a pin-write** to the top config `pins:` via
   `set_section`, behind an explicit confirm (this is the first user-intent config write from the
   TUI beyond the lock ledger `state.hu` — treat it like `X` execute).

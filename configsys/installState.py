@@ -90,9 +90,9 @@ class InstallState:
     def inspect_one(self, rc):
         led_lock = self.ledger.is_locked(rc.key)
         managed = self.ledger.is_managed(rc.key)
-        fam = get_driver(rc.driver, self.runner, self.paths)
+        drv = get_driver(rc.driver, self.runner, self.paths)
 
-        if fam is None:
+        if drv is None:
             untrusted = rc.driver in self.pending_vias
             msg = (f'driver "{rc.driver}" comes from a plugin you haven\'t trusted yet — '
                    'approve it with `configsys plugin trust <name>` (see `configsys plugin list`)'
@@ -104,9 +104,9 @@ class InstallState:
                 managed=managed, untrusted=untrusted, error=msg)
 
         try:
-            version, detected_scope = fam.get_installed(rc)   # reality: version + where installed
-            latest = fam.get_latest(rc)
-            native_lock = fam.is_locked(rc)
+            version, detected_scope = drv.get_installed(rc)   # reality: version + where installed
+            latest = drv.get_latest(rc)
+            native_lock = drv.is_locked(rc)
         except Exception as e:  # a driver op blew up; report, don't crash the sweep
             return ComponentState(
                 component=rc, supported=True, present=False,
@@ -128,4 +128,4 @@ class InstallState:
             component=rc, supported=True, present=version is not None,
             installed_version=version, latest_version=latest,
             locked=locked, lock_source=lock_source, managed=managed, error=None,
-            scope=detected_scope or fam.scope(rc))   # detected reality if installed, else target
+            scope=detected_scope or drv.scope(rc))   # detected reality if installed, else target

@@ -41,7 +41,7 @@ def test_machine_default_only_stamps_scope_honoring_families(tmp_path):
     assert units['appImage\\arduino'].fields.get('scope') == 'system'
     # a route that pins scope wins over the machine default
     assert units['appImage\\neovim'].fields.get('scope') == 'user'
-    # fixed-scope families are never stamped
+    # fixed-scope drivers are never stamped
     assert 'scope' not in units['cargo\\tree-sitter-cli'].fields
     assert 'scope' not in units['dotfiles\\neovim-dotfiles'].fields
     assert 'scope' not in units['apt\\btop'].fields
