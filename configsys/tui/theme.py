@@ -89,6 +89,14 @@ def _ref_rgb(val, colors):
     return parse_color(val) or (0, 0, 0)
 
 
+def _flag(v):
+    '''A style boolean. humon materializes `true`/`false` as strings, so treat 'false'/'no'/'0'
+    as off (a bare `if v` would count the string 'false' as true).'''
+    if isinstance(v, str):
+        return v.strip().lower() in ('true', 'yes', 'on', '1')
+    return bool(v)
+
+
 def parse_color(v):
     '''An (r,g,b) 0-255 tuple from a hex string ("#rrggbb"/"#rgb"), an [r,g,b] list, or an
     "r,g,b" string; None if unparseable.'''
@@ -219,9 +227,9 @@ class Palette:
             fg = self._color(_ref_rgb(st.get('fg', 'title'), colors))
             bg = st.get('bg')
             bg_idx = self._color(_ref_rgb(bg, colors)) if bg is not None else None
-            flags = ((curses.A_BOLD if st.get('bold') else 0)
-                     | (curses.A_UNDERLINE if st.get('underline') else 0)
-                     | (curses.A_REVERSE if st.get('reverse') else 0))
+            flags = ((curses.A_BOLD if _flag(st.get('bold')) else 0)
+                     | (curses.A_UNDERLINE if _flag(st.get('underline')) else 0)
+                     | (curses.A_REVERSE if _flag(st.get('reverse')) else 0))
             self._elements[name] = (fg, bg_idx, flags)
 
     def _color(self, rgb):

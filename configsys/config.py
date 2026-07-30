@@ -112,19 +112,24 @@ class Config:
         return layers.merge_scalar_map(self._layers, 'pins', _MACHINE_ROLES)
 
     def theme(self):
-        '''The optional TUI `theme:` overrides (a machine setting: repo < primary < user). Returns
-        {colors: {name: hex-or-rgb}, gradient: {from,to,selected,enabled}} with sub-sections
-        accumulated across layers (later wins per key). Values are parsed by tui.theme; a bare
-        `gradient: false` disables the background gradient.'''
-        colors, gradient, off = {}, {}, None
-        for layer in self._layers:
-            if layer.role not in _MACHINE_ROLES:
-                continue
+        '''The merged TUI `theme:` overrides. Unlike the other machine settings, `theme` is purely
+        cosmetic, so it is contributed by EVERY layer (a theme-only plugin can ship a look; a
+        primary plugin can link one) and merged per key across the full stack repo < plugins <
+        primary < discovered < top-config — later wins, so your own config always has the last
+        word. Returns {colors: {name: hex-or-rgb}, elements: {name: style}, gradient:
+        {from,to,selected,enabled}}. Values are parsed by tui.theme; `gradient: false` disables the
+        background gradient.'''
+        colors, elements, gradient, off = {}, {}, {}, None
+        for layer in self._layers:                 # low -> high precedence; no role restriction
             t = layer.data.get('theme')
             if not isinstance(t, dict):
                 continue
             if isinstance(t.get('colors'), dict):
                 colors.update(t['colors'])
+            if isinstance(t.get('elements'), dict):
+                for el, style in t['elements'].items():
+                    if isinstance(style, dict):
+                        elements.setdefault(el, {}).update(style)
             g = t.get('gradient')
             if isinstance(g, dict):
                 gradient.update(g)
@@ -135,7 +140,7 @@ class Config:
         grad = dict(gradient)
         if off is not None:
             grad['enabled'] = not off
-        return {'colors': colors, 'gradient': grad}
+        return {'colors': colors, 'elements': elements, 'gradient': grad}
 
     def driver_preference(self):
         '''The global driver-preference order (a machine setting; whole-list replace across

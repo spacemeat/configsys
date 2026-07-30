@@ -266,14 +266,20 @@ def test_overlap_across_profiles_tracks_all_requesters():
     assert req['btop'] == ['b']
 
 
-def test_theme_merges_across_layers():
+def test_theme_merges_across_all_layers_including_plugins():
+    # theme is cosmetic, so EVERY layer contributes (a linked theme plugin works), merged per key
+    # with your top config winning. Includes an ordinary `plugin`-role layer and an elements merge.
     c = Config(_layers(
         ('repo',    '{ theme: { colors: { accent: "#111111" } } }'),
-        ('primary', '{ theme: { colors: { installed: "#222222" }  gradient: { from: "#000000" } } }'),
+        ('plugin',  '{ theme: { colors: { installed: "#222222" }'
+                    '           elements: { profile: { fg: installed } }'
+                    '           gradient: { from: "#000000" } } }'),
+        ('primary', '{ theme: { elements: { profile: { bold: true } } } }'),
         ('user',    '{ theme: { colors: { accent: "#333333" } } }')))
     t = c.theme()
-    assert t['colors'] == {'accent': '#333333', 'installed': '#222222'}   # user accent wins per key
-    assert t['gradient'] == {'from': '#000000'}
+    assert t['colors'] == {'accent': '#333333', 'installed': '#222222'}      # user accent wins
+    assert t['elements'] == {'profile': {'fg': 'installed', 'bold': 'true'}}  # plugin+primary merged (raw)
+    assert t['gradient'] == {'from': '#000000'}                             # from a plugin layer
 
 
 def test_theme_gradient_disable():
@@ -281,7 +287,7 @@ def test_theme_gradient_disable():
 
 
 def test_theme_absent_is_empty():
-    assert cfg(REPO).theme() == {'colors': {}, 'gradient': {}}
+    assert cfg(REPO).theme() == {'colors': {}, 'elements': {}, 'gradient': {}}
 
 
 def test_pins_absent_is_empty():

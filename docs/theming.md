@@ -23,11 +23,22 @@ theme: {
 
 ## Where it lives, and precedence
 
-`theme:` is a **machine setting**, read from the same layer stack as `scope`/`pins`:
-**repo < a `primary` plugin < your top config**, merged **per key** (your override of one color
-doesn't wipe the rest). So a personal "primary" plugin — or, in the future, a plugin whose whole
-job is to ship a theme — can set a base look, and this machine's config tweaks it. An ordinary
-(non-primary) plugin cannot set machine settings, so it can't silently reskin your TUI.
+Unlike the other config sections, `theme:` is purely **cosmetic**, so — deliberately — **any
+layer can contribute it**, merged **per key** across the full stack:
+
+> **repo < plugins < primary < discovered < your top config**
+
+Later wins, so *your* config always has the last word. Two consequences worth calling out:
+
+- **Theme plugins work — however they're wired.** A plugin whose whole job is a theme (just a
+  `theme:` block) applies whether you declare it directly or your **primary** plugin *links* it as
+  a transitive plugin. (This is unlike `scope`/`pins`/`configs`, which only a `primary` plugin may
+  set — those change *what/where* things install, so they're trust-gated; a theme only changes how
+  the TUI looks.)
+- **You always override.** Because your top config is highest-precedence and the merge is per key,
+  you can adopt a theme plugin wholesale and still retune a single color or element on top of it.
+
+A "theme pack" is therefore just a plugin containing a `theme:` section and nothing else.
 
 ## Color values
 

@@ -44,3 +44,9 @@ def test_element_references_custom_palette_color():
     assert _ref_rgb('my-teal', colors) == (0, 255, 204)          # a name -> its rgb
     assert _ref_rgb('#123456', colors) == (0x12, 0x34, 0x56)     # a literal
     assert _ref_rgb('no-such', colors) == (0, 0, 0)              # unknown name -> black
+
+
+def test_flag_treats_humon_string_bools_correctly():
+    from configsys.tui.theme import _flag
+    assert _flag('true') and _flag(True) and _flag('yes') and _flag('1')
+    assert not _flag('false') and not _flag(False) and not _flag(None) and not _flag('no')
