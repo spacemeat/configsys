@@ -535,13 +535,63 @@ def _draw(stdscr, pal, ms, ctx, note, diags=(), show_diag=False, diag_top=0):
     if note:
         status_line += f'   {note}'
     nav = ' j/k move · g/G top/bottom · enter/→ expand · ← collapse · tab expand-all '
-    act = ' space sel · a all · i/u/x inst/upg/rm · L/l lock · c clear · X exec · ! issues · q quit '
+    act = ' space sel · a all · i/u/x inst/upg/rm · L/l lock · m method · c clear · X exec · ! issues · q quit '
     foot_attr = pal.get('dim') | curses.A_REVERSE
     _put(stdscr, h - 3, 0, _fit(status_line, w), pal.get('accent'))
     _put(stdscr, h - 2, 0, _fit(nav.ljust(w), w), foot_attr)
     _put(stdscr, h - 1, 0, _fit(act.ljust(w), w), foot_attr)
     stdscr.refresh()
     return diag_top
+
+
+def _row_component(node):
+    '''The profile-entry component name at a row, or None for a profile row. Node ids are
+    `p:<profile>`, `c:<profile>:<name>` (a component / single-unit leaf) or
+    `u:<profile>:<name>:<unit-key>` — the component name is the 3rd `:`-field.'''
+    if node is None:
+        return None
+    parts = node.id.split(':')
+    return parts[2] if parts[0] in ('c', 'u') and len(parts) >= 3 else None
+
+
+def _pick_method(stdscr, ms, ctx):
+    '''Install-method picker for the current component: list its candidate methods, let the user
+    choose one, and write a binding-pin to the top config (behind an explicit choice). Returns
+    (changed, note). Drops out of curses for the prompt, like the execute confirmation does.'''
+    from .. import plugins
+    name = _row_component(ms.cur())
+    if not name:
+        return False, 'pick a component row to choose its install method'
+    cands = ctx.routes.candidates(name)
+    if len(cands) < 2:
+        return False, f'{name}: only one install method available here'
+    changed, note = False, 'method unchanged'
+    with suspended(stdscr):
+        print(f'\ninstall methods for {name}:')
+        for i, c in enumerate(cands, 1):
+            tags = [t for t, on in (('default', c['default']), ('pinned', c['pinned'])) if on]
+            when = f"   when: {c['when']}" if c['when'] else ''
+            print(f'  {i}. via {c["via"]}{when}' + (f'   [{", ".join(tags)}]' if tags else ''))
+        try:
+            raw = input('choose # (Enter to cancel): ').strip()
+        except EOFError:
+            raw = ''
+        if raw.isdigit() and 1 <= int(raw) <= len(cands):
+            via = cands[int(raw) - 1]['via']
+            if ctx.runner.pretend:
+                print(f'[pretend] would pin {name} -> {via}')
+                note = f'[pretend] {name} -> {via}'
+            else:
+                ctx.ensure_user_config()
+                pins = plugins.read_pins(ctx.paths.user_config_file)
+                pins[name] = via
+                plugins.set_pins(ctx.paths.user_config_file, pins)
+                print(f'pinned {name} -> {via} (local); `configsys pin promote {name}` makes it '
+                      f'portable via your primary plugin.')
+                changed, note = True, f'pinned {name} -> {via}'
+        elif raw:
+            note = 'invalid choice — method unchanged'
+    return changed, note
 
 
 def _profile_comps(cfg):
@@ -621,6 +671,17 @@ def run(ctx):
                 ms.unstage()
                 ms.clear_selection()
                 ms.errors.clear()
+            elif ch == ord('m'):
+                changed, note = _pick_method(stdscr, ms, ctx)
+                curses.flushinp()                          # drop keys typed at the prompt
+                if changed:
+                    ctx.invalidate()                       # re-read config so the new pin applies
+                    try:
+                        cfg, _requested, _units, ledger, states = ctx.load_pipeline()
+                        ms = MenuState(states, _profile_comps(cfg))
+                        diags = ctx.diagnostics(states)
+                    except Exception as e:  # noqa: BLE001 - surface, don't crash
+                        note = f'reload failed: {e}'
             elif ch in KEY_TO_OP:
                 if not ms.stage(KEY_TO_OP[ch]):
                     note = f'{KEY_TO_OP[ch]} not applicable here'

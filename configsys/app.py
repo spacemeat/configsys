@@ -297,6 +297,11 @@ class Context:
             self._config._universe_provider = lambda: set(self.routes.components)
         return self._config
 
+    def invalidate(self):
+        '''Drop the cached config so the next access re-reads it — after an in-process config
+        write (the TUI method picker writing a pin), so the reload sees the new pins.'''
+        self._config = None
+
     def apply_scope_default(self, units):
         '''Stamp the machine-wide scope default onto units whose driver *honors*
         scope and that don't set `scope` in their route (component field wins). Apt
