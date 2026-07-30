@@ -116,6 +116,7 @@ class MenuState:
         self.roots = self._build_tree()
         self.rows = []
         self.cursor = 0
+        self.top = 0                       # first visible row (persistent scroll offset)
         self.selected = set()              # node ids
         self.staged = {}                   # unit_key -> op
         self.errors = {}                   # unit_key -> message
@@ -167,6 +168,19 @@ class MenuState:
             if n.expandable and n.expanded:
                 for c in n.children:
                     walk(c)
+        for r in self.roots:
+            walk(r)
+        return out
+
+    def _all_nodes(self):
+        '''Every node in the tree (visible or not) — for carrying expansion/selection across a
+        rebuild.'''
+        out = []
+
+        def walk(n):
+            out.append(n)
+            for c in n.children:
+                walk(c)
         for r in self.roots:
             walk(r)
         return out
@@ -374,6 +388,18 @@ def _confirm_and_execute(stdscr, pal, ms, ctx, ledger):
 NAME_X, FAM_X, SCOPE_X, STATUS_X, INST_X, LATEST_X = 3, 27, 39, 47, 58, 75
 
 
+def _scroll_top(cursor, top, list_h, nrows):
+    '''The first visible row, given a persistent scroll offset `top`: keep the cursor in view but
+    only scroll when it leaves the window — so the cursor moves freely inside the viewport and
+    sits on the bottom row only once the list is scrolled to its end (not pinned there the moment
+    you page down). Clamped so the last page shows fully.'''
+    if cursor < top:
+        top = cursor
+    elif cursor >= top + list_h:
+        top = cursor - list_h + 1
+    return max(0, min(top, max(0, nrows - list_h)))
+
+
 def _fit(s, width):
     return s if len(s) <= width else s[:max(0, width - 1)] + '…'
 
@@ -478,7 +504,7 @@ def _draw(stdscr, pal, ms, ctx, note, diags=(), show_diag=False, diag_top=0):
 
     list_top = 4
     list_h = max(1, h - list_top - 5)  # 2 infoblock + status + 2 footer lines
-    first = max(0, ms.cursor - list_h + 1) if ms.cursor >= list_h else 0
+    ms.top = first = _scroll_top(ms.cursor, ms.top, list_h, len(ms.rows))
 
     for vis, i in enumerate(range(first, min(len(ms.rows), first + list_h))):
         n = ms.rows[i]
@@ -544,6 +570,24 @@ def _draw(stdscr, pal, ms, ctx, note, diags=(), show_diag=False, diag_top=0):
     return diag_top
 
 
+def _reload(ctx, old, dirty):
+    '''Rebuild the menu after a pin change or an execute, requerying only `dirty` (+ any
+    newly-appearing) units and REUSING the rest of the cached probe. Preserves cursor position,
+    expansion, selection, and still-valid staged ops across the rebuild so the view stays put.
+    Returns (ms, cfg, ledger, states, diags).'''
+    cfg, _requested, _units, ledger, states = ctx.load_pipeline(reuse=old.states, dirty=dirty)
+    ms = MenuState(states, _profile_comps(cfg))
+    ids = {n.id for n in ms._all_nodes()}
+    ms.selected = {i for i in old.selected if i in ids}
+    ms.staged = {k: op for k, op in old.staged.items() if k in states}   # stale keys drop
+    expanded = {n.id for n in old._all_nodes() if n.expandable and n.expanded}
+    for n in ms._all_nodes():
+        if n.expandable:
+            n.expanded = n.id in expanded
+    ms._refresh(keep_id=(old.cur().id if old.cur() else None))
+    return ms, cfg, ledger, states, ctx.diagnostics(states)
+
+
 def _row_component(node):
     '''The profile-entry component name at a row, or None for a profile row. Node ids are
     `p:<profile>`, `c:<profile>:<name>` (a component / single-unit leaf) or
@@ -554,44 +598,83 @@ def _row_component(node):
     return parts[2] if parts[0] in ('c', 'u') and len(parts) >= 3 else None
 
 
-def _pick_method(stdscr, ms, ctx):
-    '''Install-method picker for the current component: list its candidate methods, let the user
-    choose one, and write a binding-pin to the top config (behind an explicit choice). Returns
-    (changed, note). Drops out of curses for the prompt, like the execute confirmation does.'''
+def _popup_choose(stdscr, pal, title, options, start=0):
+    '''A modal chooser drawn OVER the current screen (no drop to the terminal). `options` is a
+    list of (label, tag-string). j/k or arrows move, enter selects, esc/q cancels. Returns the
+    chosen index or None. The background stays put; the main loop redraws on return.'''
+    h, w = stdscr.getmaxyx()
+    n = len(options)
+    inner = max([len(title)] + [len(lbl) + len(tag) + 2 for lbl, tag in options] + [24])
+    box_w = min(inner + 4, max(20, w - 2))
+    box_h = min(n + 4, max(5, h - 2))
+    y0 = max(0, (h - box_h) // 2)
+    x0 = max(0, (w - box_w) // 2)
+    border = pal.get('accent') | curses.A_BOLD
+    sel = start
+    while True:
+        _put(stdscr, y0, x0, '┌' + '─' * (box_w - 2) + '┐', border)
+        _put(stdscr, y0, x0 + 2, f' {_fit(title, box_w - 4)} ', border)
+        for r in range(1, box_h - 1):
+            _put(stdscr, y0 + r, x0, '│' + ' ' * (box_w - 2) + '│', border)
+        _put(stdscr, y0 + box_h - 1, x0, '└' + '─' * (box_w - 2) + '┘', border)
+        for i, (label, tag) in enumerate(options):
+            row = f'{label}'
+            attr = curses.A_REVERSE if i == sel else curses.A_NORMAL
+            _put(stdscr, y0 + 2 + i, x0 + 2, _fit(row.ljust(box_w - 4), box_w - 4), attr)
+            if tag:
+                _put(stdscr, y0 + 2 + i, x0 + box_w - 2 - len(tag), tag,
+                     attr | pal.get('dim'))
+        _put(stdscr, y0 + box_h - 1, x0 + 2, ' j/k · enter · esc ', border)
+        stdscr.refresh()
+        ch = stdscr.getch()
+        if ch in (27, ord('q')):
+            return None
+        if ch in (ord('j'), curses.KEY_DOWN):
+            sel = min(n - 1, sel + 1)
+        elif ch in (ord('k'), curses.KEY_UP):
+            sel = max(0, sel - 1)
+        elif ch in (ord('\n'), curses.KEY_ENTER, curses.KEY_RIGHT):
+            return sel
+
+
+def _apply_method_pin(ctx, name, via, already_pinned):
+    '''Write a binding-pin name->via to the top config. Returns (changed, note, deferred): the
+    footer note is immediate; the deferred message (promote hint) is printed on TUI exit.'''
     from .. import plugins
+    if already_pinned:
+        return False, f'{name} already uses {via}', None
+    if ctx.runner.pretend:
+        return False, f'[pretend] would pin {name} → {via}', None
+    ctx.ensure_user_config()
+    pins = plugins.read_pins(ctx.paths.user_config_file)
+    pins[name] = via
+    plugins.set_pins(ctx.paths.user_config_file, pins)
+    hint = (f'pinned {name} → {via} (local); '
+            f'run `configsys pin promote {name}` to make it portable via your primary plugin.')
+    return True, f'pinned {name} → {via}', hint
+
+
+def _pick_method(stdscr, pal, ms, ctx):
+    '''Install-method picker for the current component: an in-place popup of its candidate methods;
+    choosing one writes a binding-pin. Returns (changed, note, deferred). No drop to the terminal;
+    the promote hint is deferred to TUI exit.'''
     name = _row_component(ms.cur())
     if not name:
-        return False, 'pick a component row to choose its install method'
+        return False, 'pick a component row to choose its install method', None
     cands = ctx.routes.candidates(name)
     if len(cands) < 2:
-        return False, f'{name}: only one install method available here'
-    changed, note = False, 'method unchanged'
-    with suspended(stdscr):
-        print(f'\ninstall methods for {name}:')
-        for i, c in enumerate(cands, 1):
-            tags = [t for t, on in (('default', c['default']), ('pinned', c['pinned'])) if on]
-            when = f"   when: {c['when']}" if c['when'] else ''
-            print(f'  {i}. via {c["via"]}{when}' + (f'   [{", ".join(tags)}]' if tags else ''))
-        try:
-            raw = input('choose # (Enter to cancel): ').strip()
-        except EOFError:
-            raw = ''
-        if raw.isdigit() and 1 <= int(raw) <= len(cands):
-            via = cands[int(raw) - 1]['via']
-            if ctx.runner.pretend:
-                print(f'[pretend] would pin {name} -> {via}')
-                note = f'[pretend] {name} -> {via}'
-            else:
-                ctx.ensure_user_config()
-                pins = plugins.read_pins(ctx.paths.user_config_file)
-                pins[name] = via
-                plugins.set_pins(ctx.paths.user_config_file, pins)
-                print(f'pinned {name} -> {via} (local); `configsys pin promote {name}` makes it '
-                      f'portable via your primary plugin.')
-                changed, note = True, f'pinned {name} -> {via}'
-        elif raw:
-            note = 'invalid choice — method unchanged'
-    return changed, note
+        return False, f'{name}: only one install method available here', None
+    options = []
+    for c in cands:
+        tag = ' '.join(t for t, on in (('default', c['default']), ('pinned', c['pinned'])) if on)
+        when = f"  ({c['when']})" if c['when'] else ''
+        options.append((f"via {c['via']}{when}", tag))
+    start = next((i for i, c in enumerate(cands) if c['pinned'] or c['default']), 0)
+    idx = _popup_choose(stdscr, pal, f'install method — {name}', options, start)
+    if idx is None:
+        return False, 'method unchanged', None
+    chosen = cands[idx]
+    return _apply_method_pin(ctx, name, chosen['via'], chosen['pinned'])
 
 
 def _profile_comps(cfg):
@@ -626,6 +709,7 @@ def run(ctx):
         show_diag = False
         diag_top = 0
         pending_report = None                     # a component whose op failed this session
+        pending_notes = []                         # messages saved for after the TUI exits
         while True:
             diag_top = _draw(stdscr, pal, ms, ctx, note, diags, show_diag, diag_top)
             note = ''
@@ -672,14 +756,15 @@ def run(ctx):
                 ms.clear_selection()
                 ms.errors.clear()
             elif ch == ord('m'):
-                changed, note = _pick_method(stdscr, ms, ctx)
-                curses.flushinp()                          # drop keys typed at the prompt
+                changed, note, deferred = _pick_method(stdscr, pal, ms, ctx)
+                if deferred:
+                    pending_notes.append(deferred)
                 if changed:
                     ctx.invalidate()                       # re-read config so the new pin applies
                     try:
-                        cfg, _requested, _units, ledger, states = ctx.load_pipeline()
-                        ms = MenuState(states, _profile_comps(cfg))
-                        diags = ctx.diagnostics(states)
+                        # partial requery: a pin change only alters the picked component's units,
+                        # so reuse every cached state and re-probe just the new ones (dirty empty).
+                        ms, cfg, ledger, states, diags = _reload(ctx, ms, set())
                     except Exception as e:  # noqa: BLE001 - surface, don't crash
                         note = f'reload failed: {e}'
             elif ch in KEY_TO_OP:
@@ -695,15 +780,17 @@ def run(ctx):
                     if bad:                       # remember for a post-quit report nudge
                         pending_report = bad[-1].key.split('\\', 1)[-1]
                     try:
-                        cfg, _requested, _units, ledger, states = ctx.load_pipeline()
-                        ms = MenuState(states, _profile_comps(cfg))
-                        diags = ctx.diagnostics(states)
+                        # partial requery: re-probe only the units the ops touched, reuse the rest
+                        touched = {o.key for o in outcomes}
+                        ms, cfg, ledger, states, diags = _reload(ctx, ms, touched)
                     except Exception as e:  # noqa: BLE001 - surface, don't crash
                         note = f'reload failed: {e}'
                     ms.errors = failed
                     curses.flushinp()  # ...and any typed during the re-inspect
     ctx.reporter.resume()             # back on the console (endwin has restored the terminal)
     ctx.report_session_summary(cfg, states, diags)   # -v+: leave a recap in the scrollback
+    for msg in pending_notes:         # pin/promote hints held back so they don't interrupt the TUI
+        print(f'configsys: {msg}')
     if pending_report:                # an op failed; its output is captured and persisted
         print(f'configsys: an op failed — run `configsys report {pending_report}` to file it '
               f'(OS + route + captured output; you approve the full text first).')

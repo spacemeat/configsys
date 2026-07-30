@@ -63,12 +63,23 @@ class InstallState:
         # ABI-incompatible) — lets a missing driver read as "untrusted" rather than "unsupported".
         self.pending_vias = set(pending_vias)
 
-    def inspect(self, units, progress=None):
+    def inspect(self, units, progress=None, reuse=None, dirty=None):
         '''units: {key: ResolvedComponent} -> {key: ComponentState}. `progress`, if given, is
-        called (i, total, key, state, ms) after each unit — the per-unit state check is the slow
-        part, so this lets the caller show motion during a long load.'''
+        called (i, total, key, state, ms) after each freshly-probed unit — the per-unit state
+        check is the slow part, so this lets the caller show motion during a long load.
+
+        PARTIAL requery: `reuse` (a prior {key: state}) lets an unchanged unit skip the probe —
+        its cached state is kept (its resolution facts refreshed to the new rc). `dirty` forces a
+        re-probe of specific keys (the ones an op just changed). So a pin change re-probes only
+        the newly-appearing units, and an execute re-probes only what it touched.'''
+        reuse, dirty = reuse or {}, dirty or set()
         out, total = {}, len(units)
         for i, (key, rc) in enumerate(units.items(), 1):
+            if key in reuse and key not in dirty:
+                st = reuse[key]
+                st.component = rc                 # keep the cached probe, refresh resolution facts
+                out[key] = st
+                continue
             t0 = time.perf_counter()
             st = self.inspect_one(rc)
             out[key] = st
