@@ -294,6 +294,13 @@ class MenuState:
                 return self.errors[m.key]
         return None
 
+    def row_error(self, node):
+        '''The op-error to SHOW on a row. Suppressed on PROFILE rows: a failed shared dependency
+        (e.g. curl, required by every tarball) is a member of every profile that pulls a tarball
+        app, so surfacing it there smears one failure across all of them. It stays on the
+        component/unit rows where it is actually local and actionable.'''
+        return None if node.kind == PROFILE else self.node_error(node)
+
 
 # -- execution ------------------------------------------------------------
 
@@ -304,6 +311,17 @@ class OpOutcome:
         self.name = name
         self.ok = ok
         self.detail = detail
+
+
+def _fail_detail(res):
+    '''A concise failure reason for a driver Result: exit code plus the last non-empty line of
+    its output (stderr, else the tee'd tail of streamed output, else stdout) — so the TUI shows
+    WHY, not a bare "exit 1". The full output is still persisted for `configsys report`.'''
+    if res is None:
+        return 'no result'
+    text = (res.stderr or res.captured or res.stdout or '').strip()
+    last = text.splitlines()[-1].strip() if text else ''
+    return f'exit {res.returncode}: {last}' if last else f'exit {res.returncode}'
 
 
 def execute_plan(ctx, plan, ledger):
@@ -335,7 +353,7 @@ def execute_plan(ctx, plan, ledger):
             res = None
 
         ok = bool(res and res.ok)
-        detail = '' if ok else (f'exit {res.returncode}' if res else 'no result')
+        detail = '' if ok else _fail_detail(res)
         if not ok and res is not None:
             last_failure = reportgen.failure_from_result(key, rc.driver, op, res)
         outcomes.append(OpOutcome(op, key, rc.name, ok, detail))
@@ -513,7 +531,7 @@ def _draw(stdscr, pal, ms, ctx, note, diags=(), show_diag=False, diag_top=0):
 
         sel = '»' if n.id in ms.selected else ' '
         op = ms.node_op(n)
-        err = ms.node_error(n)
+        err = ms.row_error(n)
         if op:
             badge = op if op == '*' else OPS[op][0]
             battr = (pal.get('accent') if op == '*' else pal.get(OPS[op][1])) | curses.A_BOLD
@@ -785,6 +803,7 @@ def run(ctx):
                         ms, cfg, ledger, states, diags = _reload(ctx, ms, touched)
                     except Exception as e:  # noqa: BLE001 - surface, don't crash
                         note = f'reload failed: {e}'
+                    ms.staged.clear()          # the staged ops just ran; don't leave them badged
                     ms.errors = failed
                     curses.flushinp()  # ...and any typed during the re-inspect
     ctx.reporter.resume()             # back on the console (endwin has restored the terminal)

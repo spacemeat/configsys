@@ -130,6 +130,36 @@ def test_pick_method_single_method_is_a_noop(tmp_path):
 
 # -- partial requery ------------------------------------------------------
 
+def test_fail_detail_surfaces_the_reason():
+    from configsys.runner import Result
+    r = Result('cmd', 1, stderr='E: could not get lock\nsome trailing line')
+    assert menu._fail_detail(r) == 'exit 1: some trailing line'
+    # falls back to the tee'd tail of streamed output when there is no stderr
+    r2 = Result('cmd', 2, captured='downloading...\ncurl: (22) 404')
+    assert menu._fail_detail(r2) == 'exit 2: curl: (22) 404'
+    # bare exit code when there is no output at all
+    assert menu._fail_detail(Result('cmd', 1)) == 'exit 1'
+    assert menu._fail_detail(None) == 'no result'
+
+
+def test_row_error_not_smeared_onto_profiles(tmp_path):
+    # a failed shared dep (curl, required by every tarball) must not paint "install failed" on
+    # every profile row — only its component/unit rows carry it
+    cfgdir = tmp_path / '.config' / 'configsys'
+    cfgdir.mkdir(parents=True)
+    (cfgdir / 'configsys.hu').write_text(
+        '{ configs: [ a, b ]  profiles: { a: [ lazygit ]  b: [ nushell ] } }')
+    ctx = _ctx(tmp_path)
+    cfg, _r, _u, _l, states = ctx.load_pipeline()
+    ms = menu.MenuState(states, menu._profile_comps(cfg))
+    curl_key = next(k for k in states if k.endswith('\\curl'))
+    ms.errors = {curl_key: 'install failed: exit 1'}
+    prof = [n for n in ms.rows if n.kind == PROFILE]
+    assert prof and all(ms.row_error(n) is None for n in prof)     # no smear on profiles
+    # but the failure is still visible where it's local (a component/unit that pulls curl)
+    assert any(ms.row_error(n) for n in ms._all_nodes() if n.kind != PROFILE)
+
+
 def test_partial_inspect_reuses_and_reprobes(tmp_path):
     from configsys.installState import InstallState, ComponentState
     from configsys.componentObj import ResolvedComponent
