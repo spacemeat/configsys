@@ -57,6 +57,19 @@ def rgb_to_basic8(r, g, b):
     return curses.COLOR_BLUE if r < 150 else curses.COLOR_MAGENTA
 
 
+# Experimental menu background: a very dark diagonal gradient (top-left -> bottom-right), dark
+# enough not to fight the text. Quantized into GRAD_BANDS steps; the selected row gets a brighter
+# solid bar instead of the gradient. 256-color only (falls back to the default bg otherwise).
+GRAD_BANDS = 8
+GRAD_A = (26, 12, 38)     # top-left    — a smart dark purple
+GRAD_B = (7, 3, 13)       # bottom-right — near-black purple
+SEL_BG = (72, 44, 104)    # selected-row bar
+
+
+def _lerp(a, b, t):
+    return tuple(round(a[i] + (b[i] - a[i]) * t) for i in range(3))
+
+
 class Palette:
     def __init__(self):
         curses.start_color()
@@ -68,11 +81,19 @@ class Palette:
         self.have256 = curses.COLORS >= 256
         self._pair = 0
         self.attrs = {}
+        self._fg = {}                              # semantic name -> its fg color index
         for name, rgb in SEMANTIC.items():
-            self.attrs[name] = self._alloc(rgb)
+            self.attrs[name] = self._alloc(name, rgb)
+        # gradient state (256-color only): background band indices + a lazy (fg,bg)-pair cache
+        self.gradient = self.have256
+        self._grad_bg = ([rgb_to_256(*_lerp(GRAD_A, GRAD_B, k / (GRAD_BANDS - 1)))
+                          for k in range(GRAD_BANDS)] if self.gradient else [])
+        self._sel_bg = rgb_to_256(*SEL_BG) if self.gradient else self.bg
+        self._combo = {}                           # (fg_idx, bg_idx) -> attr
 
-    def _alloc(self, rgb):
+    def _alloc(self, name, rgb):
         idx = rgb_to_256(*rgb) if self.have256 else rgb_to_basic8(*rgb)
+        self._fg[name] = idx
         self._pair += 1
         try:
             curses.init_pair(self._pair, idx, self.bg)
@@ -82,6 +103,41 @@ class Palette:
 
     def get(self, name):
         return self.attrs.get(name, curses.A_NORMAL)
+
+    # -- gradient background ---------------------------------------------
+
+    def band(self, y, x, h, w):
+        '''The gradient band [0, GRAD_BANDS) for a cell, along the top-left -> bottom-right diagonal.'''
+        t = (y / max(1, h - 1) + x / max(1, w - 1)) / 2
+        return min(GRAD_BANDS - 1, int(t * GRAD_BANDS))
+
+    def _combo_pair(self, fg_idx, bg_idx):
+        attr = self._combo.get((fg_idx, bg_idx))
+        if attr is None:
+            self._pair += 1
+            try:
+                curses.init_pair(self._pair, fg_idx, bg_idx)
+                attr = curses.color_pair(self._pair)
+            except curses.error:
+                attr = curses.A_NORMAL
+            self._combo[(fg_idx, bg_idx)] = attr
+        return attr
+
+    def at(self, name, y, x, h, w, *, selected=False):
+        '''`name`'s fg over the gradient background at cell (y, x) — or the selected-row bar. Off
+        the gradient (no 256-color) falls back to the plain semantic pair (reverse if selected).'''
+        if not self.gradient:
+            return self.get(name) | (curses.A_REVERSE if selected else 0)
+        bg = self._sel_bg if selected else self._grad_bg[self.band(y, x, h, w)]
+        return self._combo_pair(self._fg.get(name, self._fg.get('dim')), bg)
+
+    def fill(self, y, x, h, w, *, selected=False):
+        '''A blank-cell background attr at (y, x): the gradient (or the selected bar) with an
+        invisible fg (fg == bg), for painting the empty canvas behind the text.'''
+        if not self.gradient:
+            return curses.A_REVERSE if selected else curses.A_NORMAL
+        bg = self._sel_bg if selected else self._grad_bg[self.band(y, x, h, w)]
+        return self._combo_pair(bg, bg)
 
 
 # Which palette color to paint each component status.

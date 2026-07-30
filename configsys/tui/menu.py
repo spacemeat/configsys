@@ -622,12 +622,32 @@ def _draw_diagnostics(stdscr, pal, diags, top):
     return top
 
 
+def _fill_bg(stdscr, pal, h, w):
+    '''Paint the diagonal gradient behind the whole screen, in constant-band segments per row.'''
+    for y in range(h):
+        x = 0
+        while x < w:
+            b = pal.band(y, x, h, w)
+            x2 = x + 1
+            while x2 < w and pal.band(y, x2, h, w) == b:
+                x2 += 1
+            width = x2 - x - (1 if (y == h - 1 and x2 == w) else 0)   # skip the corner cell
+            if width > 0:
+                try:
+                    stdscr.addstr(y, x, ' ' * width, pal.fill(y, x, h, w))
+                except curses.error:
+                    pass
+            x = x2
+
+
 def _draw(stdscr, pal, ms, ctx, note, diags=(), show_diag=False, diag_top=0):
     if show_diag:
         return _draw_diagnostics(stdscr, pal, diags, diag_top)
     stdscr.erase()
     h, w = stdscr.getmaxyx()
     cols = _columns(w)
+    if pal.gradient:
+        _fill_bg(stdscr, pal, h, w)
 
     # top line: the `configsys` chip, then the OS block (+ PRETEND) to its right, then the badge.
     title = ' configsys '
@@ -635,7 +655,8 @@ def _draw(stdscr, pal, ms, ctx, note, diags=(), show_diag=False, diag_top=0):
     sub = f'  {ctx.os_info.block}'
     if ctx.runner.pretend:
         sub += '   [PRETEND]'
-    _put(stdscr, 0, len(title), _fit(sub, max(1, w - len(title))), pal.get('header') | curses.A_BOLD)
+    _put(stdscr, 0, len(title), _fit(sub, max(1, w - len(title))),
+         pal.at('header', 0, len(title), h, w) | curses.A_BOLD)
     if diags:                                        # attention badge, right-aligned on the top line
         n = len(diags)
         lvl = 'error' if any(d['level'] == 'error' for d in diags) else 'outdated'
@@ -644,11 +665,10 @@ def _draw(stdscr, pal, ms, ctx, note, diags=(), show_diag=False, diag_top=0):
         _put(stdscr, 0, bx, _fit(badge, w - bx),
              pal.get(lvl) | curses.A_BOLD | curses.A_REVERSE)
 
-    hattr = pal.get('dim') | curses.A_BOLD
-    for col, text in (('name', 'COMPONENT'), ('fam', 'FAMILY'), ('scope', 'SCOPE'),
-                      ('status', 'STATUS'), ('inst', 'INSTALLED'), ('latest', 'LATEST')):
-        x, cw = cols[col]
-        _put(stdscr, 1, x, _fit(text, cw), hattr)
+    for c, text in (('name', 'COMPONENT'), ('fam', 'FAMILY'), ('scope', 'SCOPE'),
+                    ('status', 'STATUS'), ('inst', 'INSTALLED'), ('latest', 'LATEST')):
+        x, cw = cols[c]
+        _put(stdscr, 1, x, _fit(text, cw), pal.at('dim', 1, x, h, w) | curses.A_BOLD)
 
     list_top = 2
     list_h = max(1, h - list_top - 6)  # methods + 2 infoblock + status + 2 footer lines
@@ -657,47 +677,49 @@ def _draw(stdscr, pal, ms, ctx, note, diags=(), show_diag=False, diag_top=0):
     for vis, i in enumerate(range(first, min(len(ms.rows), first + list_h))):
         n = ms.rows[i]
         y = list_top + vis
-        base = curses.A_REVERSE if i == ms.cursor else curses.A_NORMAL
+        sel = i == ms.cursor
 
-        sel = '»' if n.id in ms.selected else ' '
+        def at(name, x, bold=False):
+            return pal.at(name, y, x, h, w, selected=sel) | (curses.A_BOLD if bold else 0)
+
+        def col(c, s, color, bold=False, pad=True):
+            x, cw = cols[c]
+            _put(stdscr, y, x, (_fit(s, cw).ljust(cw) if pad else _fit(s, cw)), at(color, x, bold))
+
+        marker_sel = '»' if n.id in ms.selected else ' '
         op = ms.node_op(n)
         err = ms.row_error(n)
         if op:
-            badge = op if op == '*' else OPS[op][0]
-            battr = (pal.get('accent') if op == '*' else pal.get(OPS[op][1])) | curses.A_BOLD
+            bch, bcolor = (op if op == '*' else OPS[op][0]), ('accent' if op == '*' else OPS[op][1])
         elif err:
-            badge, battr = '✗', pal.get('error') | curses.A_BOLD
+            bch, bcolor = '✗', 'error'
         else:
-            badge, battr = ' ', curses.A_NORMAL
+            bch, bcolor = ' ', 'dim'
 
         marker = ('▾ ' if n.expanded else '▸ ') if n.expandable else '  '
         name = '  ' * n.depth + marker + n.label
-        name_attr = base | (curses.A_BOLD if n.kind != UNIT else 0)
-        if n.kind in (PROFILE, LINK):
-            name_attr |= pal.get('accent')
+        name_color = 'accent' if n.kind in (PROFILE, LINK) else 'title'
 
-        def col(c, s, attr, pad=True):
-            x, cw = cols[c]
-            _put(stdscr, y, x, (_fit(s, cw).ljust(cw) if pad else _fit(s, cw)), attr)
-
-        _put(stdscr, y, 0, sel, pal.get('accent') | base | curses.A_BOLD)
-        _put(stdscr, y, 1, badge, battr | base)
-        col('name', name, name_attr)
-        col('fam', n.driver, base | pal.get('dim'))
-        col('scope', n.scope_str(), base | pal.get('accent' if _scope_is_choice(n) else 'dim'))
+        if sel:                                      # solid highlight bar across the whole row
+            _put(stdscr, y, 0, ' ' * (w - 1), pal.fill(y, 0, h, w, selected=True))
+        _put(stdscr, y, 0, marker_sel, at('accent', 0, bold=True))
+        _put(stdscr, y, 1, bch, at(bcolor, 1, bold=True))
+        col('name', name, name_color, bold=(n.kind != UNIT))
+        col('fam', n.driver, 'dim')
+        col('scope', n.scope_str(), 'accent' if _scope_is_choice(n) else 'dim')
         st = n.status
-        col('status', st, pal.get(STATUS_COLOR.get(st, 'dim')) | base)
+        col('status', st, STATUS_COLOR.get(st, 'dim'))
         if err:
             ix = cols['inst'][0]
-            _put(stdscr, y, ix, _fit(err, max(1, w - ix - 1)), base | pal.get('error'))
+            _put(stdscr, y, ix, _fit(err, max(1, w - ix - 1)), at('error', ix))
         else:
-            col('inst', n.installed_str(), base | pal.get('dim'))
-            col('latest', n.latest_str(), base | pal.get('dim'), pad=False)
+            col('inst', n.installed_str(), 'dim')
+            col('latest', n.latest_str(), 'dim', pad=False)
 
-    _put(stdscr, h - 6, 0, _fit(_methods_line(ms, ctx), w), pal.get('header'))
+    _put(stdscr, h - 6, 0, _fit(_methods_line(ms, ctx), w), pal.at('header', h - 6, 0, h, w))
     info1, info2 = _infoblock(ms, ctx)
-    _put(stdscr, h - 5, 0, _fit(info1, w), pal.get('accent'))
-    _put(stdscr, h - 4, 0, _fit(info2, w), pal.get('dim'))
+    _put(stdscr, h - 5, 0, _fit(info1, w), pal.at('accent', h - 5, 0, h, w))
+    _put(stdscr, h - 4, 0, _fit(info2, w), pal.at('dim', h - 4, 0, h, w))
 
     status_line = f' selected:{len(ms.selected)}  staged:{len(ms.staged)}'
     if note:
@@ -705,7 +727,7 @@ def _draw(stdscr, pal, ms, ctx, note, diags=(), show_diag=False, diag_top=0):
     nav = ' j/k move · g/G top/bottom · l/→ expand · h/← collapse · enter open · tab expand-all '
     act = ' space sel · a all · i/u/x inst/upg/rm · L lock · m method · c clear · X exec · ! issues · q quit '
     foot_attr = pal.get('dim') | curses.A_REVERSE
-    _put(stdscr, h - 3, 0, _fit(status_line, w), pal.get('accent'))
+    _put(stdscr, h - 3, 0, _fit(status_line, w), pal.at('accent', h - 3, 0, h, w))
     _put(stdscr, h - 2, 0, _fit(nav.ljust(w), w), foot_attr)
     _put(stdscr, h - 1, 0, _fit(act.ljust(w), w), foot_attr)
     stdscr.refresh()
