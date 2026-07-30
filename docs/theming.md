@@ -70,13 +70,13 @@ background (give it a `bg` for a solid chip, like `label`). Booleans are `true`/
 | `label` | the `configsys` chip (top-left) |
 | `os` | the OS block + `[PRETEND]` on the top line |
 | `issue_error` / `issue_warning` | the `⚠ N issues` badge (by severity) |
-| `menu_header` | the column header row (`COMPONENT`, `FAMILY`, …) |
+| `menu_header` | the column header row (`COMPONENT`, `DRIVER`, …) |
 | `select_marker` | the `»` selection marker |
 | `profile` | a profile row |
 | `link` | an `+include` link row |
 | `component` | a composite component row (expands to units) |
 | `unit` | a leaf/unit row (also the default text color) |
-| `family` | the driver/`FAMILY` column |
+| `family` | the driver/`DRIVER` column |
 | `scope` / `scope_choice` | the `SCOPE` column (`_choice` = a non-default scope) |
 | `version` | the `INSTALLED` / `LATEST` columns |
 | `row_error` | an op-failure message on a row |

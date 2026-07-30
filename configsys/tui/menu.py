@@ -663,7 +663,7 @@ def _draw(stdscr, pal, ms, ctx, note, diags=(), show_diag=False, diag_top=0):
         bx = max(len(title) + len(sub) + 2, w - len(badge) - 1)
         _put(stdscr, 0, bx, _fit(badge, w - bx), pal.style(elem, 0, bx, h, w))
 
-    for c, text in (('name', 'COMPONENT'), ('fam', 'FAMILY'), ('scope', 'SCOPE'),
+    for c, text in (('name', 'COMPONENT'), ('fam', 'DRIVER'), ('scope', 'SCOPE'),
                     ('status', 'STATUS'), ('inst', 'INSTALLED'), ('latest', 'LATEST')):
         x, cw = cols[c]
         _put(stdscr, 1, x, _fit(text, cw), pal.style('menu_header', 1, x, h, w))
