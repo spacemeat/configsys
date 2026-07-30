@@ -162,7 +162,9 @@
 
         configsys-dotfiles: {
             install: [
-                { via: dotfiles  requires: bash-dotfiles  src: bash.d/configsys.sh  dst: ~/.bash.d/configsys.sh }
+                // 00- prefix: the ~/.bash.d loader sources files in lexical order, so this runs
+                // FIRST and its CONFIGSYS_*_DIR exports are available to every other snippet.
+                { via: dotfiles  requires: bash-dotfiles  src: bash.d/00-configsys.sh  dst: ~/.bash.d/00-configsys.sh }
             ]
         }
 

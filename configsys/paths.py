@@ -12,7 +12,7 @@ Env overrides:
   XDG_CONFIG_HOME      base for the default state dir        (default: <home>/.config)
 
 Install-layout overrides (the "config for configsys" — also settable from the shipped
-dotfiles/bash.d/configsys.sh so your shell and configsys agree). A driver install location is
+dotfiles/bash.d/00-configsys.sh so your shell and configsys agree). A driver install location is
 <scope base>/<category>/<name>; each part is env-overridable with a sensible default:
   CONFIGSYS_USERSCOPE_DIR   base for user-scope installs         (default: ~ = configsys home)
   CONFIGSYS_SYSTEMSCOPE_DIR base for system-scope installs       (default: /opt)

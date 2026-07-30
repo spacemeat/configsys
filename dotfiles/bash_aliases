@@ -4,10 +4,13 @@ else
     export PYTHONPATH=.
 fi
 
+# Source ~/.bash.d/*.sh in lexical order (bash sorts glob expansion), so a snippet can order
+# itself with an NN- prefix — 00-configsys.sh runs first and exports the CONFIGSYS_*_DIR layout
+# vars, which later snippets (lazygit.sh, cargo.sh, ...) can then use to target their aliases.
 if [ -d ~/.bash.d ]; then
     for shfile in ~/.bash.d/*.sh; do
-        if [ -x $shfile ]; then
-            source $shfile
+        if [ -x "$shfile" ]; then
+            source "$shfile"
         fi
     done
 fi

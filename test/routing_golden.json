@@ -595,8 +595,8 @@
    "dotfiles\\configsys-dotfiles": {
     "driver": "dotfiles",
     "fields": {
-     "dst": "~/.bash.d/configsys.sh",
-     "src": "bash.d/configsys.sh"
+     "dst": "~/.bash.d/00-configsys.sh",
+     "src": "bash.d/00-configsys.sh"
     },
     "name": "configsys-dotfiles"
    }
@@ -4436,8 +4436,8 @@
    "dotfiles\\configsys-dotfiles": {
     "driver": "dotfiles",
     "fields": {
-     "dst": "~/.bash.d/configsys.sh",
-     "src": "bash.d/configsys.sh"
+     "dst": "~/.bash.d/00-configsys.sh",
+     "src": "bash.d/00-configsys.sh"
     },
     "name": "configsys-dotfiles"
    }
@@ -8600,8 +8600,8 @@
    "dotfiles\\configsys-dotfiles": {
     "driver": "dotfiles",
     "fields": {
-     "dst": "~/.bash.d/configsys.sh",
-     "src": "bash.d/configsys.sh"
+     "dst": "~/.bash.d/00-configsys.sh",
+     "src": "bash.d/00-configsys.sh"
     },
     "name": "configsys-dotfiles"
    }
@@ -12571,8 +12571,8 @@
    "dotfiles\\configsys-dotfiles": {
     "driver": "dotfiles",
     "fields": {
-     "dst": "~/.bash.d/configsys.sh",
-     "src": "bash.d/configsys.sh"
+     "dst": "~/.bash.d/00-configsys.sh",
+     "src": "bash.d/00-configsys.sh"
     },
     "name": "configsys-dotfiles"
    }
@@ -16416,8 +16416,8 @@
    "dotfiles\\configsys-dotfiles": {
     "driver": "dotfiles",
     "fields": {
-     "dst": "~/.bash.d/configsys.sh",
-     "src": "bash.d/configsys.sh"
+     "dst": "~/.bash.d/00-configsys.sh",
+     "src": "bash.d/00-configsys.sh"
     },
     "name": "configsys-dotfiles"
    }
@@ -20378,8 +20378,8 @@
    "dotfiles\\configsys-dotfiles": {
     "driver": "dotfiles",
     "fields": {
-     "dst": "~/.bash.d/configsys.sh",
-     "src": "bash.d/configsys.sh"
+     "dst": "~/.bash.d/00-configsys.sh",
+     "src": "bash.d/00-configsys.sh"
     },
     "name": "configsys-dotfiles"
    }
@@ -24494,8 +24494,8 @@
    "dotfiles\\configsys-dotfiles": {
     "driver": "dotfiles",
     "fields": {
-     "dst": "~/.bash.d/configsys.sh",
-     "src": "bash.d/configsys.sh"
+     "dst": "~/.bash.d/00-configsys.sh",
+     "src": "bash.d/00-configsys.sh"
     },
     "name": "configsys-dotfiles"
    }
@@ -28658,8 +28658,8 @@
    "dotfiles\\configsys-dotfiles": {
     "driver": "dotfiles",
     "fields": {
-     "dst": "~/.bash.d/configsys.sh",
-     "src": "bash.d/configsys.sh"
+     "dst": "~/.bash.d/00-configsys.sh",
+     "src": "bash.d/00-configsys.sh"
     },
     "name": "configsys-dotfiles"
    }
@@ -32822,8 +32822,8 @@
    "dotfiles\\configsys-dotfiles": {
     "driver": "dotfiles",
     "fields": {
-     "dst": "~/.bash.d/configsys.sh",
-     "src": "bash.d/configsys.sh"
+     "dst": "~/.bash.d/00-configsys.sh",
+     "src": "bash.d/00-configsys.sh"
     },
     "name": "configsys-dotfiles"
    }
