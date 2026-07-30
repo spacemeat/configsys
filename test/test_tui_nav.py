@@ -97,3 +97,31 @@ def test_columns_responsive_and_equal_versions():
         assert xs == sorted(xs) and len(set(xs)) == 6          # ordered, non-overlapping
         assert c['latest'][0] + c['latest'][1] <= w            # fits within the terminal
     assert _columns(160)['name'][1] > _columns(80)['name'][1]  # NAME absorbs the extra width
+
+
+# -- include-as-link (menu item 1) ----------------------------------------
+
+def test_include_renders_as_link_stages_target_and_jumps():
+    from configsys.tui.menu import LINK
+    states = {
+        'apt\\x': _cs('apt\\x', present=False, roots=['x']),
+        'apt\\y': _cs('apt\\y', present=False, roots=['y']),
+        'apt\\z': _cs('apt\\z', present=False, roots=['z']),
+    }
+    layouts = [('app',  [('include', 'base'), ('component', 'z')]),
+               ('base', [('component', 'x'), ('component', 'y')])]
+    transitive = {'app': ['x', 'y', 'z'], 'base': ['x', 'y']}
+    ms = MenuState(states, layouts, transitive)
+    rows = [(n.kind, n.label) for n in ms.rows]
+    assert rows == [(PROFILE, 'app'), (LINK, 'base'), (UNIT, 'z'),
+                    (PROFILE, 'base'), (UNIT, 'x'), (UNIT, 'y')]   # +base -> one LINK, base shown once
+    link = ms.rows[1]
+    assert link.kind == LINK and link.link_target == 'p:base'
+    # staging install on the link acts on the TARGET profile's units (x, y) -- not z
+    ms.cursor = 1
+    ms.stage('install')
+    assert set(ms.staged) == {'apt\\x', 'apt\\y'}
+    # enter (or l/->) on the link JUMPS to the base profile node
+    ms.cursor = 1
+    ms.enter()
+    assert ms.cur().kind == PROFILE and ms.cur().id == 'p:base'

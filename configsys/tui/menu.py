@@ -16,6 +16,7 @@ import curses
 
 from .. import reportgen
 from ..drivers import get_driver, scope_meta
+from ..errors import ConfigError
 from ..planning import expand_plan
 from .screen import curses_screen, suspended
 from .theme import STATUS_COLOR, Palette
@@ -110,10 +111,20 @@ class Node:
 
 
 class MenuState:
-    def __init__(self, states, profile_comps):
+    def __init__(self, states, layouts, transitive=None):
+        '''`layouts` = [(profile, [item, ...])] for every profile to show as a top-level node;
+        an item is a bare component name OR a ('component'|'include', name) tuple — an `include`
+        renders as a LINK to the `p:<name>` profile node. `transitive` = {profile: [all transitive
+        component names]} aggregates a profile's (and a link's) units; defaults to the layout's own
+        component items (the direct-construction/test path, which has no includes).'''
         self.states = states               # {unit_key: ComponentState}
-        self.profile_comps = profile_comps  # [(profile, [component_name, ...])]
+        self.layouts = [(p, [it if isinstance(it, tuple) else ('component', it) for it in items])
+                        for p, items in layouts]
         self._name_units = self._invert()
+        if transitive is None:
+            transitive = {p: [name for kind, name in items if kind == 'component']
+                          for p, items in self.layouts}
+        self._profile_units = {p: self._units_for(names) for p, names in transitive.items()}
         self.roots = self._build_tree()
         self.rows = []
         self.cursor = 0
@@ -130,13 +141,26 @@ class MenuState:
                 name_units.setdefault(name, []).append(key)
         return name_units
 
+    def _units_for(self, names):
+        keys = set()
+        for name in names:
+            keys.update(self._name_units.get(name, []))
+        return sorted(keys)
+
     def _build_tree(self):
         roots = []
-        for profile, names in self.profile_comps:
+        for profile, items in self.layouts:
             pnode = Node(PROFILE, f'p:{profile}', profile, 0, [],
                          expandable=True, expanded=True)
-            pmembers = {}  # dedupe shared units in the profile aggregate (by key)
-            for name in names:
+            for kind, name in items:
+                if kind == 'include':          # a link to the top-level p:<name> node
+                    members = [self.states[k] for k in self._profile_units.get(name, [])
+                               if k in self.states]
+                    lnode = Node(LINK, f'l:{profile}:{name}', name, 1, members,
+                                 link_target=f'p:{name}')
+                    lnode.parent = pnode
+                    pnode.children.append(lnode)
+                    continue
                 keys = sorted(self._name_units.get(name, []))
                 members = [self.states[k] for k in keys]
                 if not members:
@@ -153,11 +177,10 @@ class MenuState:
                                      2, [m], driver=m.component.driver)
                         unode.parent = cnode
                         cnode.children.append(unode)
-                for m in members:
-                    pmembers[m.key] = m
                 cnode.parent = pnode
                 pnode.children.append(cnode)
-            pnode.members = list(pmembers.values())
+            pnode.members = [self.states[k] for k in self._profile_units.get(profile, [])
+                             if k in self.states]
             roots.append(pnode)
         return roots
 
@@ -369,7 +392,7 @@ class MenuState:
         (e.g. curl, required by every tarball) is a member of every profile that pulls a tarball
         app, so surfacing it there smears one failure across all of them. It stays on the
         component/unit rows where it is actually local and actionable.'''
-        return None if node.kind == PROFILE else self.node_error(node)
+        return None if node.kind in (PROFILE, LINK) else self.node_error(node)
 
 
 # -- execution ------------------------------------------------------------
@@ -695,7 +718,8 @@ def _reload(ctx, old, dirty):
     expansion, selection, and still-valid staged ops across the rebuild so the view stays put.
     Returns (ms, cfg, ledger, states, diags).'''
     cfg, _requested, _units, ledger, states = ctx.load_pipeline(reuse=old.states, dirty=dirty)
-    ms = MenuState(states, _profile_comps(cfg))
+    layouts, transitive = _menu_model(cfg)
+    ms = MenuState(states, layouts, transitive)
     ids = {n.id for n in ms._all_nodes()}
     ms.selected = {i for i in old.selected if i in ids}
     ms.staged = {k: op for k, op in old.staged.items() if k in states}   # stale keys drop
@@ -808,29 +832,42 @@ def _pick_method(stdscr, pal, ms, ctx):
     return _apply_method_pin(ctx, name, chosen['via'], chosen['pinned'])
 
 
-def _profile_comps(cfg):
-    '''Per-profile component lists for the menu, attributed by DIRECT ownership so a base
-    profile's components aren't repeated under every profile that `+includes` it. Each profile
-    lists its own components (own = declared directly / via `+self` amendment, not via `+other`);
-    a transitively-included component is dropped from an includer only when some active profile
-    actually owns it (so it still shows there). A component nobody active owns stays visible under
-    the includer — install stays transitive, so nothing is silently pulled without a menu row.'''
-    actives = cfg.active_profiles
-    own = {p: cfg.profile_own_components(p) for p in actives}
-    owned_anywhere = set().union(*own.values()) if own else set()
-    out = []
-    for p in actives:
-        ownset = set(own[p])
-        names = [c for c in cfg.profile_components(p)          # keep full order
-                 if c in ownset or c not in owned_anywhere]
-        out.append((p, names))
-    return out
+def _menu_model(cfg):
+    '''(layouts, transitive) for the include-as-link menu. A `+other` include renders as a single
+    LINK node (its own components live under the `other` profile, shown ONCE); expanding the link
+    jumps to that profile. layouts covers every active profile AND every profile transitively
+    referenced via +include (so each link has a top-level target). transitive gives each shown
+    profile's full component set, for aggregating a profile/link's units.'''
+    order = list(cfg.active_profiles)
+    seen = set(order)
+    layouts = {}
+    i = 0
+    while i < len(order):
+        p = order[i]
+        i += 1
+        try:
+            lay = cfg.profile_layout(p)
+        except ConfigError:
+            lay = []
+        layouts[p] = lay
+        for kind, ref in lay:
+            if kind == 'include' and ref not in seen:
+                seen.add(ref)
+                order.append(ref)
+    transitive = {}
+    for p in order:
+        try:
+            transitive[p] = cfg.profile_components(p)
+        except ConfigError:
+            transitive[p] = []
+    return [(p, layouts[p]) for p in order], transitive
 
 
 def run(ctx):
     '''Entry point used by app.cmd_tui. Returns an exit code.'''
     cfg, _requested, _units, ledger, states = ctx.load_pipeline()
-    ms = MenuState(states, _profile_comps(cfg))
+    layouts, transitive = _menu_model(cfg)
+    ms = MenuState(states, layouts, transitive)
     diags = ctx.diagnostics(states)
 
     with curses_screen() as stdscr:

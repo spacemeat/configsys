@@ -38,7 +38,8 @@ def _ctx(tmp_path, *extra):
 
 def _menu_on(ctx, component):
     cfg, _r, _u, _l, states = ctx.load_pipeline()
-    ms = menu.MenuState(states, menu._profile_comps(cfg))
+    layouts, transitive = menu._menu_model(cfg)
+    ms = menu.MenuState(states, layouts, transitive)
     ms.cursor = next(i for i, n in enumerate(ms.rows) if _row_component(n) == component)
     return ms
 
@@ -152,7 +153,8 @@ def test_row_error_not_smeared_onto_profiles(tmp_path):
         '{ configs: [ a, b ]  profiles: { a: [ lazygit ]  b: [ nushell ] } }')
     ctx = _ctx(tmp_path)
     cfg, _r, _u, _l, states = ctx.load_pipeline()
-    ms = menu.MenuState(states, menu._profile_comps(cfg))
+    layouts, transitive = menu._menu_model(cfg)
+    ms = menu.MenuState(states, layouts, transitive)
     curl_key = next(k for k in states if k.endswith('\\curl'))
     ms.errors = {curl_key: 'install failed: exit 1'}
     prof = [n for n in ms.rows if n.kind == PROFILE]

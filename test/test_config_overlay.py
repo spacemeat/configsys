@@ -185,21 +185,25 @@ def test_own_components_includes_self_amendment():
     assert c.profile_own_components('user') == ['a', 'b', 'c']
 
 
-def test_menu_profile_comps_dedupes_included_components():
-    from configsys.tui.menu import _profile_comps
-    comps = dict(_profile_comps(cfg(OWN)))
-    assert comps['user'] == ['a', 'b']            # base profile keeps its components
-    assert comps['sculpture'] == ['blender']      # included a/b now show only under `user`
+def test_menu_model_renders_includes_as_links():
+    from configsys.tui.menu import _menu_model
+    layouts, _transitive = _menu_model(cfg(OWN))
+    lay = dict(layouts)
+    assert lay['user'] == [('component', 'a'), ('component', 'b')]  # base profile's own components
+    assert lay['sculpture'] == [('include', 'user'), ('component', 'blender')]  # +user -> a LINK
 
 
-def test_menu_keeps_orphan_when_owner_profile_inactive():
-    # sculpture is active but `user` is NOT — its included a/b have no active owner, so they
-    # stay visible under sculpture rather than vanishing (install is transitive).
+def test_menu_model_shows_included_profile_even_when_inactive():
+    # sculpture active, user NOT: user is still shown as a top-level node (the link's target), so
+    # a/b appear ONCE under `user` and sculpture just links to it — no repetition, no orphan.
     c = cfg('{ profiles: { user: [ a, b ]  sculpture: [ +user, blender ] } }',
             '{ configs: [ sculpture ] }')
-    from configsys.tui.menu import _profile_comps
-    comps = dict(_profile_comps(c))
-    assert comps['sculpture'] == ['a', 'b', 'blender']
+    from configsys.tui.menu import _menu_model
+    layouts, _transitive = _menu_model(c)
+    lay = dict(layouts)
+    assert lay['sculpture'] == [('include', 'user'), ('component', 'blender')]
+    assert lay['user'] == [('component', 'a'), ('component', 'b')]        # pulled in as link target
+    assert [p for p, _ in layouts] == ['sculpture', 'user']              # active first, then include
 
 
 def test_profile_and_component_names_may_collide():

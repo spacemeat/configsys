@@ -220,6 +220,48 @@ class Config:
                 out.append(ref)
         return out
 
+    def profile_layout(self, profile):
+        '''The DIRECT structure of a profile, for the menu's include-as-link view: an ordered,
+        deduped list of ('include', other) for each `+other` (KEPT as a reference, NOT expanded)
+        and ('component', name) for each own component. `+self` amendment is followed (its
+        inherited members merge in), and `~name` drops a component added so far. Contrast
+        profile_components (fully transitive) and profile_own_components (drops all includes).'''
+        if profile == self.ALL_PROFILE:
+            return [('component', c) for c in self._all_components()]
+        chain = self._chain.get(profile)
+        if not chain:
+            raise ConfigError(f'profile "{profile}" is not defined')
+        idx, val, _src = chain[-1]
+        return self._layout(profile, idx, val, ())
+
+    def _layout(self, name, idx, val, stack):
+        key = (name, idx)
+        if key in stack:
+            raise ConfigError('profile include cycle: '
+                              + ' -> '.join(f'{n}@{i}' for n, i in stack + (key,)))
+        stack = stack + (key,)
+        out = []
+        for term in _leaves(val):
+            op, ref = _split_term(term)
+            if op == '+':
+                if ref == name:                            # +self -> merge the lower layer's layout
+                    lower = [e for e in self._chain.get(name, ()) if e[0] < idx]
+                    if not lower:
+                        raise ConfigError(
+                            f'profile "{name}": `+{name}` has no lower-layer definition to inherit')
+                    lidx, lval, _ = lower[-1]
+                    for item in self._layout(name, lidx, lval, stack):
+                        if item not in out:
+                            out.append(item)
+                elif ('include', ref) not in out:          # +other -> a link reference
+                    out.append(('include', ref))
+            elif op == '~':                                # ~ drops an OWN component (can't reach
+                if ('component', ref) in out:              # into an unexpanded include)
+                    out.remove(('component', ref))
+            elif ('component', ref) not in out:
+                out.append(('component', ref))
+        return out
+
     def profile_source(self, profile):
         '''The file a selected profile's definition came from (provenance), or None. With
         in-place amendment this is the top (amending) layer's file.'''
