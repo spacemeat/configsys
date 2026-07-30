@@ -44,13 +44,15 @@ def test_versioned_gcc_self_satisfies_cxx():
 
 # --- C++ standard library, decoupled from the compiler ---
 
-def test_clang_pulls_gcc_toolchain_and_libstdcxx_not_gxx():
-    # clang ships no stdlib and no C runtime on Linux: it needs the gcc toolchain (crt/libgcc) + a
-    # C++ stdlib (libstdc++ by default), but NOT the g++ compiler (cpp-toolchain).
+def test_clang_pulls_gcc_toolchain_and_libstdcxx_via_gxx_on_debian():
+    # clang ships no stdlib and no C runtime on Linux: it pulls the gcc toolchain (crt/libgcc) + a
+    # C++ stdlib via cxx-stdlib, but never the cpp-toolchain (cxx) COMPONENT. On Debian the default
+    # libstdc++ dev headers are only installable via g++ (libstdc++-dev is a virtual package), so
+    # cxx-stdlib resolves to the g++ package there.
     u = Resolver(ROUTES, 'ubuntu', '24.04').resolve_names(['clang-19'])
     assert u['apt\\c-toolchain'].name == 'gcc'
-    assert u['apt\\libstdc++'].name == 'libstdc++-dev'
-    assert 'apt\\cpp-toolchain' not in u          # no g++ compiler
+    assert u['apt\\libstdc++'].name == 'g++'      # Debian: g++ pulls the default libstdc++-N-dev
+    assert 'apt\\cpp-toolchain' not in u          # clang requires cxx-stdlib, not the cxx compiler
 
 
 def test_clang_requires_the_toolchain_component_not_the_cc_capability():
@@ -66,7 +68,7 @@ def test_libcxx_is_optin_and_pinnable_for_clang():
     # opt-in); provider-pinning cxx-stdlib -> libc++ swaps the stdlib with no g++/libstdc++.
     r = Resolver(ROUTES, 'ubuntu', '24.04')
     assert r.components['libc++'].opt_in and not r.components['libstdc++'].opt_in
-    assert Resolver(ROUTES, 'ubuntu', '24.04').resolve_names(['libstdc++'])['apt\\libstdc++'].name == 'libstdc++-dev'
+    assert Resolver(ROUTES, 'ubuntu', '24.04').resolve_names(['libstdc++'])['apt\\libstdc++'].name == 'g++'
     pinned = Resolver(ROUTES, 'ubuntu', '24.04', pins={'cxx-stdlib': 'libc++'}).resolve_names(['clang-19'])
     assert pinned['apt\\libc++'].name == 'libc++-dev'
     assert 'apt\\libstdc++' not in pinned

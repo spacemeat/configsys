@@ -4098,9 +4098,9 @@
    "apt\\libstdc++": {
     "driver": "apt",
     "fields": {
-     "name": "libstdc++-dev"
+     "name": "g++"
     },
-    "name": "libstdc++-dev"
+    "name": "g++"
    },
    "clang\\clang-18": {
     "driver": "clang",
@@ -4150,9 +4150,9 @@
    "apt\\libstdc++": {
     "driver": "apt",
     "fields": {
-     "name": "libstdc++-dev"
+     "name": "g++"
     },
-    "name": "libstdc++-dev"
+    "name": "g++"
    },
    "clang\\clang-19": {
     "driver": "clang",
@@ -4202,9 +4202,9 @@
    "apt\\libstdc++": {
     "driver": "apt",
     "fields": {
-     "name": "libstdc++-dev"
+     "name": "g++"
     },
-    "name": "libstdc++-dev"
+    "name": "g++"
    },
    "clang\\clang-20": {
     "driver": "clang",
@@ -5820,9 +5820,9 @@
    "apt\\libstdc++": {
     "driver": "apt",
     "fields": {
-     "name": "libstdc++-dev"
+     "name": "g++"
     },
-    "name": "libstdc++-dev"
+    "name": "g++"
    }
   },
   "libvirt": {
@@ -8272,9 +8272,9 @@
    "apt\\libstdc++": {
     "driver": "apt",
     "fields": {
-     "name": "libstdc++-dev"
+     "name": "g++"
     },
-    "name": "libstdc++-dev"
+    "name": "g++"
    },
    "clang\\clang-18": {
     "driver": "clang",
@@ -8324,9 +8324,9 @@
    "apt\\libstdc++": {
     "driver": "apt",
     "fields": {
-     "name": "libstdc++-dev"
+     "name": "g++"
     },
-    "name": "libstdc++-dev"
+    "name": "g++"
    },
    "clang\\clang-19": {
     "driver": "clang",
@@ -8376,9 +8376,9 @@
    "apt\\libstdc++": {
     "driver": "apt",
     "fields": {
-     "name": "libstdc++-dev"
+     "name": "g++"
     },
-    "name": "libstdc++-dev"
+    "name": "g++"
    },
    "clang\\clang-20": {
     "driver": "clang",
@@ -9974,9 +9974,9 @@
    "apt\\libstdc++": {
     "driver": "apt",
     "fields": {
-     "name": "libstdc++-dev"
+     "name": "g++"
     },
-    "name": "libstdc++-dev"
+    "name": "g++"
    }
   },
   "libvirt": {
@@ -20040,9 +20040,9 @@
    "apt\\libstdc++": {
     "driver": "apt",
     "fields": {
-     "name": "libstdc++-dev"
+     "name": "g++"
     },
-    "name": "libstdc++-dev"
+    "name": "g++"
    },
    "clang\\clang-18": {
     "driver": "clang",
@@ -20092,9 +20092,9 @@
    "apt\\libstdc++": {
     "driver": "apt",
     "fields": {
-     "name": "libstdc++-dev"
+     "name": "g++"
     },
-    "name": "libstdc++-dev"
+    "name": "g++"
    },
    "clang\\clang-19": {
     "driver": "clang",
@@ -20144,9 +20144,9 @@
    "apt\\libstdc++": {
     "driver": "apt",
     "fields": {
-     "name": "libstdc++-dev"
+     "name": "g++"
     },
-    "name": "libstdc++-dev"
+    "name": "g++"
    },
    "clang\\clang-20": {
     "driver": "clang",
@@ -21771,9 +21771,9 @@
    "apt\\libstdc++": {
     "driver": "apt",
     "fields": {
-     "name": "libstdc++-dev"
+     "name": "g++"
     },
-    "name": "libstdc++-dev"
+    "name": "g++"
    }
   },
   "libvirt": {
@@ -28320,9 +28320,9 @@
    "apt\\libstdc++": {
     "driver": "apt",
     "fields": {
-     "name": "libstdc++-dev"
+     "name": "g++"
     },
-    "name": "libstdc++-dev"
+    "name": "g++"
    },
    "clang\\clang-18": {
     "driver": "clang",
@@ -28372,9 +28372,9 @@
    "apt\\libstdc++": {
     "driver": "apt",
     "fields": {
-     "name": "libstdc++-dev"
+     "name": "g++"
     },
-    "name": "libstdc++-dev"
+    "name": "g++"
    },
    "clang\\clang-19": {
     "driver": "clang",
@@ -28424,9 +28424,9 @@
    "apt\\libstdc++": {
     "driver": "apt",
     "fields": {
-     "name": "libstdc++-dev"
+     "name": "g++"
     },
-    "name": "libstdc++-dev"
+    "name": "g++"
    },
    "clang\\clang-20": {
     "driver": "clang",
@@ -30042,9 +30042,9 @@
    "apt\\libstdc++": {
     "driver": "apt",
     "fields": {
-     "name": "libstdc++-dev"
+     "name": "g++"
     },
-    "name": "libstdc++-dev"
+    "name": "g++"
    }
   },
   "libvirt": {
@@ -32494,9 +32494,9 @@
    "apt\\libstdc++": {
     "driver": "apt",
     "fields": {
-     "name": "libstdc++-dev"
+     "name": "g++"
     },
-    "name": "libstdc++-dev"
+    "name": "g++"
    },
    "clang\\clang-18": {
     "driver": "clang",
@@ -32546,9 +32546,9 @@
    "apt\\libstdc++": {
     "driver": "apt",
     "fields": {
-     "name": "libstdc++-dev"
+     "name": "g++"
     },
-    "name": "libstdc++-dev"
+    "name": "g++"
    },
    "clang\\clang-19": {
     "driver": "clang",
@@ -32598,9 +32598,9 @@
    "apt\\libstdc++": {
     "driver": "apt",
     "fields": {
-     "name": "libstdc++-dev"
+     "name": "g++"
     },
-    "name": "libstdc++-dev"
+    "name": "g++"
    },
    "clang\\clang-20": {
     "driver": "clang",
@@ -34196,9 +34196,9 @@
    "apt\\libstdc++": {
     "driver": "apt",
     "fields": {
-     "name": "libstdc++-dev"
+     "name": "g++"
     },
-    "name": "libstdc++-dev"
+    "name": "g++"
    }
   },
   "libvirt": {

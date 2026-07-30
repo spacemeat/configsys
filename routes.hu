@@ -1102,7 +1102,8 @@
         // ship a stdlib: on Linux it defaults to GCC's libstdc++, and can opt into LLVM's libc++ with
         // `-stdlib=libc++`. So clang `requires: [ cc, cxx-stdlib ]` — the gcc C toolchain (clang uses
         // gcc's crt*.o + libgcc on Linux regardless of stdlib) plus *a* C++ standard library, but NOT
-        // the g++ compiler. `cxx-stdlib` defaults to libstdc++ (below, non-opt-in); to build with
+        // the g++ compiler (EXCEPT on Debian — see the libstdc++ component: its default C++ dev
+        // headers are only installable via g++). `cxx-stdlib` defaults to libstdc++ (below, non-opt-in); to build with
         // libc++ instead, install `libc++` and provider-pin `cxx-stdlib: libc++` (then pass
         // -stdlib=libc++ — configsys installs the library, your build selects it). The two stdlibs are
         // NOT ABI-compatible with each other; g++ can only use libstdc++, clang can use either.
@@ -1118,13 +1119,22 @@
         // installed first. To move the LIBRARY forward, change that provider, not the compiler:
         // install/prefer a newer libstdc++ (whatever your package manager names it), or
         // provider-pin `cxx-stdlib: libc++`, whose version DOES track clang. (clang also pulls the
-        // gcc C toolchain — `c-toolchain`, for crt/libgcc — but never the g++ compiler; that split
-        // is the whole point of requiring `cxx-stdlib` rather than `cxx`.)
+        // gcc C toolchain — `c-toolchain`, for crt/libgcc — but not the g++ compiler; that split is
+        // the whole point of requiring `cxx-stdlib` rather than `cxx`. The one exception is Debian,
+        // whose default libstdc++ dev headers ship only with g++ — pin cxx-stdlib: libc++ to skip it.)
         libstdc++: {                                  // GNU C++ stdlib (clang's default on Linux)
             provides: [ cxx-stdlib, libstdc++ ]
             install: [
-                { via: native  when: "debian or alpine"    name: "libstdc++-dev" }    // split dev headers
-                { via: native  when: "redhat or opensuse"  name: "libstdc++-devel" }
+                // On Debian `libstdc++-dev` is a VIRTUAL package — many libstdc++-N-dev providers,
+                // no default candidate, so apt refuses to install it. The default C++ stdlib dev
+                // headers ship WITH g++ (g++ -> g++-N -> libstdc++-N-dev, tracking the system's
+                // default gcc), and there is no standalone "default libstdc++ dev" package. So here
+                // (only on distros without a concrete package) satisfying `cxx-stdlib` DOES pull
+                // g++. To keep clang off g++ on Debian, provider-pin `cxx-stdlib: libc++` (LLVM's
+                // stdlib — no libstdc++/g++ at all).
+                { via: native  when: "debian"  name: "g++" }
+                { via: native  when: "alpine"  name: "g++" }        // Alpine also ships C++ headers via g++
+                { via: native  when: "redhat or opensuse"  name: "libstdc++-devel" }   // concrete package
                 { via: native  name: gcc }            // arch etc.: the C++ headers ship in the gcc package
             ]
         }
