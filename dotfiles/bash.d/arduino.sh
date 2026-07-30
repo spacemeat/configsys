@@ -1,8 +1,4 @@
-UNIT_PATH="arduino-ide.appimage"
-for _up in "$HOME/apps/$UNIT_PATH" "/opt/apps/$UNIT_PATH"; do
-    [ -x "$_up" ] && {
-        alias arduino="$_up"
-        break
-    }
-done
-unset _up
+# Arduino IDE: alias to the appImage wherever configsys installed it (honors your layout/scope).
+_ar=$(configsys location arduino 2>/dev/null)
+[ -x "$_ar" ] && alias arduino="$_ar"
+unset _ar

@@ -1,10 +1,9 @@
-IMAGE_PATH="setup-env.sh"
-USER_PATH=$(ls -d $HOME/vulkan/*/ | sort -V | tail -n 1)
-SYSTEM_PATH=$(ls -d /opt/vulkan/*/ | sort -V | tail -n 1)
-for _up in "${USER_PATH}${IMAGE_PATH}" "${SYSTEM_PATH}${IMAGE_PATH}"; do
-    [ -x "$_up" ] && {
-        source "$_up"
-        break
-    }
-done
-unset _up
+# Vulkan SDK: source its setup-env.sh from wherever configsys installed the SDK (honors your
+# CONFIGSYS_SDK_DIR / scope). The tarball unpacks into a versioned subdir under the install
+# location, so glob for the newest.
+_vk=$(configsys location vulkan-sdk 2>/dev/null)
+if [ -n "$_vk" ]; then
+    _vkenv=$(ls -d "$_vk"/*/setup-env.sh 2>/dev/null | sort -V | tail -n 1)
+    [ -r "$_vkenv" ] && source "$_vkenv"
+fi
+unset _vk _vkenv
