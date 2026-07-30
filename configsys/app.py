@@ -61,6 +61,14 @@ USER_CONFIG_TEMPLATE = '''{
     //     steam: flatpak
     // }
 
+    // TUI colors. Any semantic color (accent, installed, outdated, error, dim, header, ...) takes
+    // a hex or [r,g,b] value; the menu background is a dark diagonal gradient (24-bit terminals
+    // only). Set `gradient: false` to turn the background off.
+    // theme: {
+    //     colors:   { accent: "#c88cf0"  installed: [ 90, 200, 120 ] }
+    //     gradient: { from: "#160a22"  to: "#050208"  selected: "#3a2258" }
+    // }
+
     // Define, amend, or shadow profiles. A profile is an ordered list of terms: a bare `name`
     // adds a component, `+name` includes another profile's members, `~name` removes one (order
     // matters). `+<this profile's own name>` amends the same profile from the layer below

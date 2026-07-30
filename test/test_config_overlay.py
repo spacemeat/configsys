@@ -266,6 +266,24 @@ def test_overlap_across_profiles_tracks_all_requesters():
     assert req['btop'] == ['b']
 
 
+def test_theme_merges_across_layers():
+    c = Config(_layers(
+        ('repo',    '{ theme: { colors: { accent: "#111111" } } }'),
+        ('primary', '{ theme: { colors: { installed: "#222222" }  gradient: { from: "#000000" } } }'),
+        ('user',    '{ theme: { colors: { accent: "#333333" } } }')))
+    t = c.theme()
+    assert t['colors'] == {'accent': '#333333', 'installed': '#222222'}   # user accent wins per key
+    assert t['gradient'] == {'from': '#000000'}
+
+
+def test_theme_gradient_disable():
+    assert cfg(REPO, '{ theme: { gradient: false } }').theme()['gradient'] == {'enabled': False}
+
+
+def test_theme_absent_is_empty():
+    assert cfg(REPO).theme() == {'colors': {}, 'gradient': {}}
+
+
 def test_pins_absent_is_empty():
     assert cfg(REPO).pins() == {}
 

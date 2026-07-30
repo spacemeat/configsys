@@ -1,14 +1,18 @@
-'''theme.py — 24-bit-intent color for the TUI, realized on the xterm-256 cube.
+'''theme.py — color for the TUI, 24-bit when the terminal allows it.
 
-We map semantic RGB colors to the terminal's 256-color palette (no init_color, so
-the user's palette is never mutated and teardown is clean). On <256-color
-terminals we fall back to the basic 8. Colors are allocated as curses pairs
-against the default background.
+Preference order per color: (1) true 24-bit via `curses.init_color` (an exact RGB defined into a
+private palette slot) when the terminal can change colors — smooth, faithful, darks stay dark;
+(2) the xterm-256 cube approximation otherwise; (3) the basic 8 on a <256-color terminal. The
+diagonal background GRADIENT is only painted when we have true 24-bit (otherwise the cube turns
+very-dark purples into a few bright blocks) — off it, the menu just uses the default background.
+
+Colors are user-overridable: a `theme:` section in the config (see Config.theme / resolve_theme)
+supplies hex or [r,g,b] values for any semantic color and for the gradient endpoints.
 '''
 
 import curses
 
-# Semantic RGB (0-255). Tuned to read well in both light and dark terminals.
+# Default semantic RGB (0-255). A `theme.colors.<name>` override replaces any of these.
 SEMANTIC = {
     'header': (120, 200, 255),
     'title': (235, 235, 235),
@@ -29,6 +33,69 @@ SEMANTIC = {
     'accent': (200, 140, 240),
 }
 
+# Default menu background: a very dark purple diagonal (top-left -> bottom-right), quantized into
+# GRAD_BANDS steps; the selected row is a brighter solid bar. Overridable via theme.gradient.
+GRAD_BANDS = 12
+GRAD_A = (22, 10, 34)     # top-left    — dark purple
+GRAD_B = (5, 2, 10)       # bottom-right — near-black
+SEL_BG = (58, 34, 88)     # selected-row bar
+
+
+def _lerp(a, b, t):
+    return tuple(round(a[i] + (b[i] - a[i]) * t) for i in range(3))
+
+
+def parse_color(v):
+    '''An (r,g,b) 0-255 tuple from a hex string ("#rrggbb"/"#rgb"), an [r,g,b] list, or an
+    "r,g,b" string; None if unparseable.'''
+    if isinstance(v, (list, tuple)) and len(v) == 3:
+        try:
+            return tuple(max(0, min(255, int(c))) for c in v)
+        except (TypeError, ValueError):
+            return None
+    if not isinstance(v, str):
+        return None
+    s = v.strip()
+    if s.startswith('#'):
+        h = s[1:]
+        if len(h) == 3:
+            h = ''.join(c * 2 for c in h)
+        if len(h) == 6:
+            try:
+                return tuple(int(h[i:i + 2], 16) for i in (0, 2, 4))
+            except ValueError:
+                return None
+        return None
+    if ',' in s:
+        try:
+            parts = [int(p) for p in s.split(',')]
+        except ValueError:
+            return None
+        return tuple(max(0, min(255, c)) for c in parts) if len(parts) == 3 else None
+    return None
+
+
+def resolve_theme(theme):
+    '''Merge a `theme:` override dict onto the defaults. Returns (colors {name:(r,g,b)}, grad_from,
+    grad_to, grad_sel, gradient_enabled). Pure — no curses. `theme.colors.<name>` overrides a
+    semantic color; `theme.gradient.{from,to,selected}` the gradient; `theme.gradient: false` (or
+    `.enabled: false`) turns the background gradient off.'''
+    colors = dict(SEMANTIC)
+    ga, gb, gs, enabled = GRAD_A, GRAD_B, SEL_BG, True
+    if isinstance(theme, dict):
+        for name, val in (theme.get('colors') or {}).items():
+            rgb = parse_color(val)
+            if rgb and name in colors:
+                colors[name] = rgb
+        g = theme.get('gradient')
+        if g is False or (isinstance(g, dict) and g.get('enabled') in (False, 'false', 'no')):
+            enabled = False
+        if isinstance(g, dict):
+            ga = parse_color(g.get('from')) or ga
+            gb = parse_color(g.get('to')) or gb
+            gs = parse_color(g.get('selected')) or gs
+    return colors, ga, gb, gs, enabled
+
 
 def rgb_to_256(r, g, b):
     if r == g == b:
@@ -37,14 +104,10 @@ def rgb_to_256(r, g, b):
         if r > 248:
             return 231
         return 232 + round((r - 8) / 247 * 24)
-    return (16
-            + 36 * round(r / 255 * 5)
-            + 6 * round(g / 255 * 5)
-            + round(b / 255 * 5))
+    return (16 + 36 * round(r / 255 * 5) + 6 * round(g / 255 * 5) + round(b / 255 * 5))
 
 
 def rgb_to_basic8(r, g, b):
-    # nearest of the 8 base colors by dominant channel / brightness
     bright = (r + g + b) / 3
     if bright < 40:
         return curses.COLOR_BLACK
@@ -57,21 +120,8 @@ def rgb_to_basic8(r, g, b):
     return curses.COLOR_BLUE if r < 150 else curses.COLOR_MAGENTA
 
 
-# Experimental menu background: a very dark diagonal gradient (top-left -> bottom-right), dark
-# enough not to fight the text. Quantized into GRAD_BANDS steps; the selected row gets a brighter
-# solid bar instead of the gradient. 256-color only (falls back to the default bg otherwise).
-GRAD_BANDS = 8
-GRAD_A = (26, 12, 38)     # top-left    — a smart dark purple
-GRAD_B = (7, 3, 13)       # bottom-right — near-black purple
-SEL_BG = (72, 44, 104)    # selected-row bar
-
-
-def _lerp(a, b, t):
-    return tuple(round(a[i] + (b[i] - a[i]) * t) for i in range(3))
-
-
 class Palette:
-    def __init__(self):
+    def __init__(self, theme=None):
         curses.start_color()
         self.bg = -1
         try:
@@ -79,27 +129,69 @@ class Palette:
         except curses.error:
             self.bg = curses.COLOR_BLACK
         self.have256 = curses.COLORS >= 256
-        self._pair = 0
-        self.attrs = {}
-        self._fg = {}                              # semantic name -> its fg color index
-        for name, rgb in SEMANTIC.items():
-            self.attrs[name] = self._alloc(name, rgb)
-        # gradient state (256-color only): background band indices + a lazy (fg,bg)-pair cache
-        self.gradient = self.have256
-        self._grad_bg = ([rgb_to_256(*_lerp(GRAD_A, GRAD_B, k / (GRAD_BANDS - 1)))
-                          for k in range(GRAD_BANDS)] if self.gradient else [])
-        self._sel_bg = rgb_to_256(*SEL_BG) if self.gradient else self.bg
-        self._combo = {}                           # (fg_idx, bg_idx) -> attr
-
-    def _alloc(self, name, rgb):
-        idx = rgb_to_256(*rgb) if self.have256 else rgb_to_basic8(*rgb)
-        self._fg[name] = idx
-        self._pair += 1
+        # True 24-bit reaches us two ways: a direct-color terminal (COLORS == 2**24, e.g.
+        # TERM=xterm-direct) where the color NUMBER is the packed RGB, or a palette-redefinable one
+        # (init_color / can_change_color, e.g. xterm-256color with `ccc`). Either lets us paint the
+        # background gradient with faithful darks; without it we fall back (cube fg, no gradient) —
+        # the 256 cube crushes dark purples into a few bright blocks.
+        self.direct = curses.COLORS >= (1 << 24)
         try:
-            curses.init_pair(self._pair, idx, self.bg)
+            self.truecolor = self.direct or (self.have256 and curses.can_change_color())
         except curses.error:
-            return curses.A_NORMAL
-        return curses.color_pair(self._pair)
+            self.truecolor = self.direct
+
+        colors, ga, gb, gs, grad_enabled = resolve_theme(theme)
+        self._next_color = 16          # private palette-slot allocator (truecolor mode)
+        self._next_pair = 1
+        self._color_cache = {}         # rgb -> palette index
+        self._pair_cache = {}          # (fg_idx, bg_idx) -> attr
+        self._fg = {}                  # semantic name -> fg palette index
+        self.attrs = {}
+        for name, rgb in colors.items():
+            idx = self._color(rgb)
+            self._fg[name] = idx
+            self.attrs[name] = self._pair(idx, self.bg)
+
+        self.gradient = self.truecolor and grad_enabled
+        if self.gradient:
+            self._grad_bg = [self._color(_lerp(ga, gb, k / (GRAD_BANDS - 1))) for k in range(GRAD_BANDS)]
+            self._sel_bg = self._color(gs)
+
+    def _color(self, rgb):
+        '''A palette index for an RGB: an exact custom slot via init_color when we have true
+        24-bit; else the nearest xterm-256 cube (or basic-8) index. Cached + deduped.'''
+        key = tuple(rgb)
+        if key in self._color_cache:
+            return self._color_cache[key]
+        r, g, b = rgb
+        idx = None
+        if self.direct:                                    # color number IS the packed 24-bit RGB
+            idx = (r << 16) | (g << 8) | b
+        elif self.truecolor and self._next_color < curses.COLORS:
+            idx = self._next_color
+            try:
+                curses.init_color(idx, round(r / 255 * 1000), round(g / 255 * 1000),
+                                  round(b / 255 * 1000))
+                self._next_color += 1
+            except curses.error:
+                idx = None
+        if idx is None:
+            idx = rgb_to_256(*rgb) if self.have256 else rgb_to_basic8(*rgb)
+        self._color_cache[key] = idx
+        return idx
+
+    def _pair(self, fg_idx, bg_idx):
+        attr = self._pair_cache.get((fg_idx, bg_idx))
+        if attr is None:
+            n = self._next_pair
+            try:
+                curses.init_pair(n, fg_idx, bg_idx)
+                attr = curses.color_pair(n)
+                self._next_pair += 1
+            except curses.error:
+                attr = curses.A_NORMAL
+            self._pair_cache[(fg_idx, bg_idx)] = attr
+        return attr
 
     def get(self, name):
         return self.attrs.get(name, curses.A_NORMAL)
@@ -111,33 +203,20 @@ class Palette:
         t = (y / max(1, h - 1) + x / max(1, w - 1)) / 2
         return min(GRAD_BANDS - 1, int(t * GRAD_BANDS))
 
-    def _combo_pair(self, fg_idx, bg_idx):
-        attr = self._combo.get((fg_idx, bg_idx))
-        if attr is None:
-            self._pair += 1
-            try:
-                curses.init_pair(self._pair, fg_idx, bg_idx)
-                attr = curses.color_pair(self._pair)
-            except curses.error:
-                attr = curses.A_NORMAL
-            self._combo[(fg_idx, bg_idx)] = attr
-        return attr
-
     def at(self, name, y, x, h, w, *, selected=False):
-        '''`name`'s fg over the gradient background at cell (y, x) — or the selected-row bar. Off
-        the gradient (no 256-color) falls back to the plain semantic pair (reverse if selected).'''
+        '''`name`'s fg over the gradient background at cell (y, x) — or the selected-row bar. With
+        no gradient, the plain semantic pair (reverse if selected).'''
         if not self.gradient:
             return self.get(name) | (curses.A_REVERSE if selected else 0)
         bg = self._sel_bg if selected else self._grad_bg[self.band(y, x, h, w)]
-        return self._combo_pair(self._fg.get(name, self._fg.get('dim')), bg)
+        return self._pair(self._fg.get(name, self._fg.get('dim')), bg)
 
     def fill(self, y, x, h, w, *, selected=False):
-        '''A blank-cell background attr at (y, x): the gradient (or the selected bar) with an
-        invisible fg (fg == bg), for painting the empty canvas behind the text.'''
+        '''A blank-cell background attr (fg == bg) for painting the empty canvas behind the text.'''
         if not self.gradient:
             return curses.A_REVERSE if selected else curses.A_NORMAL
         bg = self._sel_bg if selected else self._grad_bg[self.band(y, x, h, w)]
-        return self._combo_pair(bg, bg)
+        return self._pair(bg, bg)
 
 
 # Which palette color to paint each component status.

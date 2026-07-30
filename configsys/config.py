@@ -111,6 +111,32 @@ class Config:
         rather than replacing the whole block, so portable pins survive a single local override.'''
         return layers.merge_scalar_map(self._layers, 'pins', _MACHINE_ROLES)
 
+    def theme(self):
+        '''The optional TUI `theme:` overrides (a machine setting: repo < primary < user). Returns
+        {colors: {name: hex-or-rgb}, gradient: {from,to,selected,enabled}} with sub-sections
+        accumulated across layers (later wins per key). Values are parsed by tui.theme; a bare
+        `gradient: false` disables the background gradient.'''
+        colors, gradient, off = {}, {}, None
+        for layer in self._layers:
+            if layer.role not in _MACHINE_ROLES:
+                continue
+            t = layer.data.get('theme')
+            if not isinstance(t, dict):
+                continue
+            if isinstance(t.get('colors'), dict):
+                colors.update(t['colors'])
+            g = t.get('gradient')
+            if isinstance(g, dict):
+                gradient.update(g)
+            elif g in (False, 'false', 'no', 'off'):
+                off = True
+            elif g in (True, 'true', 'yes', 'on'):
+                off = False
+        grad = dict(gradient)
+        if off is not None:
+            grad['enabled'] = not off
+        return {'colors': colors, 'gradient': grad}
+
     def driver_preference(self):
         '''The global driver-preference order (a machine setting; whole-list replace across
         repo < primary < user), or None to use the built-in default. An OS block in routes may

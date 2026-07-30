@@ -894,7 +894,7 @@ def run(ctx):
 
     with curses_screen() as stdscr:
         ctx.reporter.pause()          # curses owns the screen now; don't stream to stderr
-        pal = Palette()
+        pal = Palette(ctx.config.theme())
         note = ''
         show_diag = False
         diag_top = 0
