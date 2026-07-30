@@ -170,7 +170,7 @@ class Resolver:
     an op to (dependency installs are folded in by planning.expand_plan).'''
 
     def __init__(self, routes_path, block, version=None, cpu=None, pins=None,
-                 overrides_path=None, discovered=(), plugin_files=()):
+                 overrides_path=None, discovered=(), plugin_files=(), preference=None):
         self.load_warnings = []       # skipped files/components (for diagnostics)
         self.layers = []              # expanded layer stack low→high (for `-v` reporting)
         self.cascade, self.components, self.drivers = load(
@@ -183,6 +183,7 @@ class Resolver:
         self.version = version
         self.cpu = cpu
         self.pins = pins or {}
+        self.preference = preference or None   # driver-preference order; None = built-in default
 
     @property
     def cascade_names(self):
@@ -192,7 +193,8 @@ class Resolver:
     def _resolve(self, names):
         from .resolve import resolve_roots
         return resolve_roots(list(names), self.cascade, self.components, self.drivers,
-                             self.block, self.version, self.cpu, self.pins, self.overrides)
+                             self.block, self.version, self.cpu, self.pins, self.overrides,
+                             self.preference)
 
     def resolve_names(self, names):
         from .adapt import to_resolved_components
@@ -205,7 +207,7 @@ class Resolver:
         from .resolve import resolve_resilient
         units, errors = resolve_resilient(list(names), self.cascade, self.components,
                                           self.drivers, self.block, self.version,
-                                          self.cpu, self.pins, self.overrides)
+                                          self.cpu, self.pins, self.overrides, self.preference)
         return to_resolved_components(units), errors
 
     def resolve_with_roots(self, names):

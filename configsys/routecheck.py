@@ -20,14 +20,47 @@ class AmbiguityError(ConfigsysError):
 
 
 def check_component(name, component, cascade):
-    '''Verify a component's bindings are pairwise-comparable-where-overlapping.'''
-    preds = [b.pred for b in component.bindings]
-    for (i, a), (j, b) in combinations(enumerate(preds), 2):
-        if predicate.overlap(a, b, cascade) and not predicate.comparable(a, b, cascade):
+    '''Verify a component's bindings resolve unambiguously. Two bindings of the SAME `via:` that
+    overlap must be comparable (one `when:` ⊆ the other) — else which variant of that one method
+    wins is genuinely undefined and only `when:` can fix it. Two bindings of DIFFERENT `via:` MAY
+    overlap incomparably: those are alternative install methods, and the driver-preference /
+    `prefer:` channel picks the default at resolve time (a true tie errors there, pointing at
+    preference — never at `when:`). So `when:` stays validity-only and is never forced narrower.'''
+    for (i, a), (j, b) in combinations(enumerate(component.bindings), 2):
+        if a.via != b.via:
+            continue                                   # cross-method overlap: preference decides
+        if predicate.overlap(a.pred, b.pred, cascade) and not predicate.comparable(a.pred, b.pred, cascade):
             raise AmbiguityError(
-                f'component {name!r}: bindings #{i} and #{j} overlap but neither is more '
-                f'specific (e.g. on {predicate.witness(a, b, cascade)}) — make them '
-                f'comparable (one a subset of the other) or disjoint')
+                f'component {name!r}: two via:{a.via} bindings (#{i} and #{j}) overlap but neither '
+                f'is more specific (e.g. on {predicate.witness(a.pred, b.pred, cascade)}) — make '
+                f'their when: comparable (one a subset of the other) or disjoint')
+
+
+def _method_tie_warnings(name, component, cascade):
+    '''Cross-method (different via) bindings that overlap AND would tie under the built-in
+    driver-preference (nothing separates them) — resolution errors on such a machine, so flag it
+    at check time. Best-effort: a machine's own `driver-preference`/OS override can still fix it.'''
+    from .resolve import _prefer_rank, DEFAULT_DRIVER_PREFERENCE as order
+
+    def rank(b):
+        return (-_prefer_rank(b), order.index(b.via) if b.via in order else len(order))
+
+    out = []
+    for (i, a), (j, b) in combinations(enumerate(component.bindings), 2):
+        if a.via == b.via or rank(a) != rank(b):
+            continue
+        if not predicate.overlap(a.pred, b.pred, cascade):
+            continue
+        # a STRICT subset one way means most-specific resolves the default (no tie). A tie needs
+        # equal or incomparable preds where they overlap — i.e. no strict subset either way.
+        sa = predicate.subset(a.pred, b.pred, cascade)
+        sb = predicate.subset(b.pred, a.pred, cascade)
+        if sa != sb:
+            continue
+        out.append(f'methods via:{a.via} and via:{b.via} overlap (e.g. on '
+                   f'{predicate.witness(a.pred, b.pred, cascade)}) and are equally preferred '
+                   f'by default — add a `driver-preference` order or a `prefer:` to pick one')
+    return out
 
 
 def check_all(components, cascade):
@@ -96,6 +129,8 @@ def validate(components, cascade, drivers, pending_vias=frozenset()):
             check_component(name, comp, cascade)
         except AmbiguityError as e:
             add('ambiguity', str(e), comp)
+        for msg in _method_tie_warnings(name, comp, cascade):
+            add('method-tie', msg, comp, 'warning')
         for b in comp.bindings:
             if b.via not in valid_via:
                 add('unknown-via', f'via:{b.via!r} is not a known driver', comp)

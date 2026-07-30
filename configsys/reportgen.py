@@ -135,7 +135,7 @@ def _route(ctx, name):
     if comp.bindings:
         cx = r.cascade.context(r.block, r.version, r.cpu)
         try:
-            b = select_binding(comp, r.cascade, cx, r.pins)
+            b = select_binding(comp, r.cascade, cx, r.pins, r.preference)
             out['binding'] = {'via': b.via, 'when': b.when or 'always'}
         except ResolveError:
             out['binding'] = None

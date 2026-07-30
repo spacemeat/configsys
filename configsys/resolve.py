@@ -62,22 +62,102 @@ class Unit:
         return f'Unit({self.key} -> {self.package!r})'
 
 
-def select_binding(component, cascade, context, pins=None):
+# Default order for choosing among genuinely-alternative install methods (same context, no
+# most-specific winner). A machine may replace this globally (config `driver-preference:`) or an
+# OS block may override it (`driver-preference:` in the os: layer). Native-first is conventional;
+# drivers absent from the list are least-preferred and tie among themselves (a tie is an error,
+# not a silent guess). snap/source are listed ahead of their drivers existing — harmless.
+DEFAULT_DRIVER_PREFERENCE = ['native', 'flatpak', 'snap', 'appImage', 'tarball', 'source', 'script']
+
+
+def _matching(component, context, pins):
+    '''(bindings valid in this context, the binding-pin or None). A binding-pin filters to that
+    via first (still subject to `when:`); `when:` alone decides validity.'''
     bindings = component.bindings
     pin = (pins or {}).get(component.name)
     if pin is not None:                     # binding-pin: force this method, still context-valid
         bindings = [b for b in bindings if b.via == pin]
         if not bindings:
             raise ResolveError(f'{component.name}: pinned to via:{pin!r}, which is not a binding')
-    matching = [b for b in bindings if b.pred.eval(context)]
+    return [b for b in bindings if b.pred.eval(context)], pin
+
+
+def candidate_bindings(component, cascade, context, pins=None):
+    '''Every `when:`-valid binding for this context — the honest candidate set (the install
+    methods available here), for the picker / `where` introspection. `when:` is validity only:
+    this never narrows the set to force one winner. Unordered.'''
+    return _matching(component, context, pins)[0]
+
+
+def _prefer_rank(binding):
+    '''The binding's explicit `prefer:` rank (higher wins), default 0.'''
+    try:
+        return int(binding.details.get('prefer'))
+    except (TypeError, ValueError):
+        return 0
+
+
+def _effective_preference(cascade, context, preference):
+    '''The driver-preference order for this context: the nearest OS block's `driver-preference:`
+    (walking the lineage) wins, else the passed-in global (config) list, else the built-in.'''
+    for name in context.lineage:
+        pref = (cascade.blocks.get(name) or {}).get('driver-preference')
+        if pref:
+            return _as_list(pref)
+    return list(preference) if preference else list(DEFAULT_DRIVER_PREFERENCE)
+
+
+def _most_specific_binding(matching, cascade):
+    '''The unique binding whose `when:` is ⊆ every other matching binding's, or None when the
+    candidates are incomparable OR several share the most-specific `when:` (genuine alternatives —
+    the preference channel decides those). Operates over bindings, not deduped predicates, so two
+    same-`when:` different-`via:` bindings are correctly seen as a tie, not silently collapsed.'''
+    mins = [b for b in matching
+            if all(predicate.subset(b.pred, o.pred, cascade) for o in matching)]
+    return mins[0] if len(mins) == 1 else None
+
+
+def _by_preference(matching, component, cascade, context, preference):
+    '''Pick among incomparable/equally-specific candidates via the preference channel — separate
+    from `when:`. Order: explicit `prefer:` (higher wins), then driver-preference index. A true
+    tie is a ResolveError that points at the preference channel, NEVER at narrowing `when:`.'''
+    order = _effective_preference(cascade, context, preference)
+
+    def key(b):
+        return (-_prefer_rank(b), order.index(b.via) if b.via in order else len(order))
+
+    ranked = sorted(matching, key=key)
+    best = ranked[0]
+    if key(ranked[1]) == key(best):
+        tied = sorted({b.via for b in ranked if key(b) == key(best)})
+        raise ResolveError(
+            f'{component.name}: install methods {tied} are equally valid AND equally preferred '
+            f'here — set a `driver-preference` order or a per-binding `prefer:` to choose one '
+            f'(do not narrow `when:`: every one of these methods genuinely works here)')
+    rule = 'prefer:' if _prefer_rank(best) != _prefer_rank(ranked[1]) else 'driver-preference'
+    return best, rule
+
+
+def _select(component, cascade, context, pins=None, preference=None):
+    '''-> (winning Binding, [all candidates], reason). Candidates = `when:`-valid bindings
+    (validity only). The default among them: the single most-specific `when:`, else the
+    preference channel. Raises ResolveError if nothing is valid or the choice is undecidable.'''
+    matching, pin = _matching(component, context, pins)
     if not matching:
         extra = f' (pinned to via:{pin!r})' if pin is not None else ''
         raise ResolveError(f'no binding for {component.name} in this context{extra}')
     if len(matching) == 1:
-        return matching[0]
-    by_pred = {b.pred: b for b in matching}
-    winner = predicate.most_specific(list(by_pred), cascade)
-    return by_pred[winner]
+        return matching[0], matching, 'only method here'
+    ms = _most_specific_binding(matching, cascade)
+    if ms is not None:
+        return ms, matching, 'most-specific when:'
+    winner, rule = _by_preference(matching, component, cascade, context, preference)
+    return winner, matching, rule
+
+
+def select_binding(component, cascade, context, pins=None, preference=None):
+    '''The one binding that resolves here (the default method). See _select.'''
+    return _select(component, cascade, context, pins, preference)[0]
 
 
 def _driver(binding, cascade, block):
@@ -104,7 +184,7 @@ def _package(binding, driver, component):
 
 
 # keys that steer resolution, not installation — never handed to a driver.
-_RESOLVER_KEYS = ('requires', 'suggests', 'parts', 'app')
+_RESOLVER_KEYS = ('requires', 'suggests', 'parts', 'app', 'prefer')
 
 
 def _install_fields(details, package):
@@ -134,12 +214,13 @@ def resolve_asset(binding, cpu):
     return asset
 
 
-def resolve_one(name, cascade, components, block, version=None, cpu=None, overrides=None):
+def resolve_one(name, cascade, components, block, version=None, cpu=None, overrides=None,
+                preference=None):
     if name not in components:
         raise ResolveError(f'unknown component: {name}')
     comp = components[name]
     ctx = cascade.context(block, version, cpu)
-    binding = select_binding(comp, cascade, ctx)
+    binding = select_binding(comp, cascade, ctx, None, preference)
     drv = _driver(binding, cascade, block)
     override, drop = _name_override(overrides, drv, name)
     if drop:
@@ -151,7 +232,7 @@ def resolve_one(name, cascade, components, block, version=None, cpu=None, overri
 # -- full resolution: the worklist to a fixpoint ---------------------------
 
 def resolve(names, cascade, components, drivers, block, version=None, cpu=None, pins=None,
-            overrides=None):
+            overrides=None, preference=None):
     '''Resolve a profile (component names) to the full unit closure for a context.
 
     Phase 1 seeds every explicit want and registers what it provides, BEFORE any
@@ -167,16 +248,16 @@ def resolve(names, cascade, components, drivers, block, version=None, cpu=None, 
     component, several for a `via: parts` aggregator (which has no unit of its own).
     '''
     return resolve_roots(names, cascade, components, drivers, block, version, cpu, pins,
-                         overrides)[0]
+                         overrides, preference)[0]
 
 
 def resolve_roots(names, cascade, components, drivers, block, version=None, cpu=None, pins=None,
-                  overrides=None):
+                  overrides=None, preference=None):
     '''Like resolve(), but also return the set of unit keys bound *directly* by the named
     components (a named parts-component contributes its parts' keys; driver/driver deps
     are not roots). The app applies the requested op to these, and expand_plan folds in deps.'''
     st = _State(cascade, components, drivers, cascade.context(block, version, cpu), pins or {},
-                overrides or {})
+                overrides or {}, preference)
     roots = set()
     for name in names:
         roots |= st.add_component(name, root=name)  # phase 1: wants + their provides
@@ -186,14 +267,14 @@ def resolve_roots(names, cascade, components, drivers, block, version=None, cpu=
 
 
 def resolve_resilient(names, cascade, components, drivers, block, version=None, cpu=None,
-                      pins=None, overrides=None):
+                      pins=None, overrides=None, preference=None):
     '''Resilient resolution for the inspect/TUI pipeline: a requested name that can't resolve
     (unknown, no binding here, or an unsatisfiable requirement) is collected into `errors`
     instead of aborting the whole set — everything resolvable still resolves. Returns
     (units, errors) with errors = {requested_name: message}. So one broken component in the
     active set (e.g. from an auto-activated project profile) can't brick the tool.'''
     st = _State(cascade, components, drivers, cascade.context(block, version, cpu), pins or {},
-                overrides or {})
+                overrides or {}, preference)
     errors = {}
     for name in names:
         try:
@@ -205,21 +286,22 @@ def resolve_resilient(names, cascade, components, drivers, block, version=None, 
     return st.units, errors
 
 
-def _bindable(component, cascade, ctx, pins):
+def _bindable(component, cascade, ctx, pins, preference=None):
     try:
-        select_binding(component, cascade, ctx, pins)
+        select_binding(component, cascade, ctx, pins, preference)
         return True
     except ResolveError:
         return False
 
 
 class _State:
-    def __init__(self, cascade, components, drivers, ctx, pins, overrides=None):
+    def __init__(self, cascade, components, drivers, ctx, pins, overrides=None, preference=None):
         self.cascade = cascade
         self.components = components
         self.drivers = drivers
         self.ctx = ctx
         self.pins = pins
+        self.preference = preference       # driver-preference order (config global); None = built-in
         self.overrides = overrides or {}   # {driver: {component: pkg-or-drop}} (component-names)
         self.block = ctx.lineage[0]
         self.units = {}
@@ -250,7 +332,7 @@ class _State:
         # bindings but none match the context (select_binding below errors "no binding here").
         if not comp.bindings:
             return frozenset()
-        binding = select_binding(comp, self.cascade, self.ctx, self.pins)
+        binding = select_binding(comp, self.cascade, self.ctx, self.pins, self.preference)
 
         # a `via: parts` binding is a pure aggregator: no unit of its own, just the
         # union of its (recursively resolved) parts, each attributed to this root.
@@ -312,7 +394,8 @@ class _State:
         if cap in self.inventory:
             return self.inventory[cap]                  # reuse (keys, or empty for env)
         candidates = [p for p in self.providers.get(cap, []) if p != requiring]  # bootstrap guard
-        viable = [p for p in candidates if _bindable(self.components[p], self.cascade, self.ctx, self.pins)]
+        viable = [p for p in candidates
+                  if _bindable(self.components[p], self.cascade, self.ctx, self.pins, self.preference)]
         if not viable:
             raise ResolveError(f'nothing provides "{cap}" here (required by {requiring})')
         pin = self.pins.get(cap)

@@ -80,6 +80,23 @@ def test_disjoint_bindings_are_fine(cascade):
     check_component('ok', _component('ok', 'fedora', 'arch'), cascade)
 
 
+def test_same_via_overlapping_incomparable_still_raises(cascade):
+    # two native bindings that overlap incomparably: which variant of native wins is undefined,
+    # and only when: can fix it -> still a hard load error, message names the shared via
+    bad = _component('oops', 'cpu: x86_64', 'debian')     # both via: native
+    with pytest.raises(AmbiguityError) as ei:
+        check_component('oops', bad, cascade)
+    assert 'via:native' in str(ei.value)
+
+
+def test_cross_via_overlapping_incomparable_is_now_allowed(cascade):
+    # native (any) + flatpak (any) overlap everywhere and are incomparable — under the multi-
+    # method model that's LEGAL (the preference channel picks the default), no longer an error
+    both = Component('browser', {'install': [
+        {'via': 'native'}, {'via': 'flatpak', 'app': 'org.x.B'}]})
+    check_component('browser', both, cascade)             # must not raise
+
+
 def test_component_rejects_unknown_top_level_key():
     # a stray/removed construct (e.g. the old inline `dotfiles:` node) must fail loudly at
     # load time, not vanish silently — config lives in a required `<name>-dotfiles` component.
@@ -160,3 +177,19 @@ def test_validate_removed_component_provides_nothing(cascade):
         'x':    _comp('x', {'requires': 'gone', 'install': [{'via': 'native'}]}),
     })
     assert 'dangling-requires' in _kinds(issues, 'x')
+
+
+def test_validate_warns_on_undecidable_method_tie(cascade):
+    # two cross-via methods that overlap AND tie under the default preference (neither ranked,
+    # no prefer:) would error at resolve time -> validate() surfaces it as a heads-up warning
+    issues = _validate(cascade, {'x': _comp('x', {'install': [{'via': 'cargo'}, {'via': 'gem'}]})})
+    xs = [i for i in issues if i.component == 'x' and i.kind == 'method-tie']
+    assert xs and not xs[0].is_error and 'prefer' in xs[0].message
+
+
+def test_validate_no_method_tie_when_preference_decides(cascade):
+    # native + flatpak overlap but the default order ranks native above flatpak -> decidable,
+    # so NO method-tie warning (only intentional, resolvable alternatives)
+    issues = _validate(cascade, {'x': _comp('x', {'install': [
+        {'via': 'native'}, {'via': 'flatpak', 'app': 'org.x.B'}]})})
+    assert 'method-tie' not in _kinds(issues, 'x')

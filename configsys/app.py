@@ -270,7 +270,8 @@ class Context:
                         self.os_info.version, self._cpu(),
                         pins=self.config.pins(),
                         overrides_path=self.paths.user_config_file,
-                        discovered=self.discovered, plugin_files=self.plugin_files)
+                        discovered=self.discovered, plugin_files=self.plugin_files,
+                        preference=self.config.driver_preference())
 
     @property
     def routes(self):
@@ -412,7 +413,7 @@ class Context:
                 r.event(report.DEBUG, f'    · {name:22} (removed / no binding)')
                 continue
             try:
-                b = select_binding(comp, routes.cascade, cx, routes.pins)
+                b = select_binding(comp, routes.cascade, cx, routes.pins, routes.preference)
             except ResolveError:
                 b = None
             if b is None:
@@ -703,10 +704,15 @@ def _fmt_val(v):
     return s if len(s) <= 60 else s[:57] + '...'
 
 
-def _fmt_binding(b, selected):
+def _fmt_binding(b, selected, candidate=False):
     when = b.when if b.when else 'always'
     details = '  '.join(f'{k}={_fmt_val(v)}' for k, v in b.details.items())
-    mark = '  <- selected here' if selected else ''
+    if selected:
+        mark = '  <- default here'
+    elif candidate:
+        mark = '  (alternative here — pin to use)'
+    else:
+        mark = ''
     return f'    - via {b.via}   when: {when}' + (f'   {details}' if details else '') + mark
 
 
@@ -750,17 +756,20 @@ def cmd_where(ctx, args):
     if pinned is not None:
         print(f'  pinned      via:{pinned}   (from ~/configsys.hu)')
 
-    # which binding wins in this machine's context (if any)
+    # which binding wins in this machine's context, plus the alternatives available here
     cx = r.cascade.context(r.block, r.version, r.cpu)
-    selected = None
+    selected, candidates, reason = None, [], None
     if comp.bindings:
+        from .resolve import _select, candidate_bindings
         try:
-            selected = select_binding(comp, r.cascade, cx, r.pins)
+            selected, candidates, reason = _select(comp, r.cascade, cx, r.pins, r.preference)
         except ResolveError:
-            selected = None  # bindings exist but none match here
+            candidates = candidate_bindings(comp, r.cascade, cx, r.pins)  # valid but none / undecidable
         print('  bindings')
         for b in comp.bindings:
-            print(_fmt_binding(b, b is selected))
+            print(_fmt_binding(b, b is selected, b in candidates))
+        if selected is not None and len(candidates) > 1:
+            print(f'    default: via {selected.via}  (by {reason})')
 
     # how it actually resolves on this machine
     ver = f' {r.version}' if r.version else ''

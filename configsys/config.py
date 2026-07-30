@@ -111,6 +111,13 @@ class Config:
         rather than replacing the whole block, so portable pins survive a single local override.'''
         return layers.merge_scalar_map(self._layers, 'pins', _MACHINE_ROLES)
 
+    def driver_preference(self):
+        '''The global driver-preference order (a machine setting; whole-list replace across
+        repo < primary < user), or None to use the built-in default. An OS block in routes may
+        still override it per-context (see resolve._effective_preference).'''
+        v = layers.merge_scalar(self._layers, 'driver-preference', _MACHINE_ROLES)
+        return _leaves(v) or None
+
     def profile_components(self, profile):
         '''The ordered, deduped component list a profile expands to. A profile value is a list
         of terms, applied left-to-right: a bare `name` adds a component, `+name` splices in
