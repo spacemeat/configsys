@@ -31,15 +31,14 @@ OPS = {
 
 KEY_TO_OP = {
     ord('i'): 'install', ord('u'): 'upgrade', ord('x'): 'remove',
-    ord('L'): 'lock', ord('l'): 'unlock',
 }
 
-PROFILE, COMPONENT, UNIT = 'profile', 'component', 'unit'
+PROFILE, COMPONENT, UNIT, LINK = 'profile', 'component', 'unit', 'link'
 
 
 class Node:
     def __init__(self, kind, id, label, depth, members, *, driver='',
-                 expandable=False, expanded=False):
+                 expandable=False, expanded=False, link_target=None):
         self.kind = kind
         self.id = id
         self.label = label
@@ -48,6 +47,8 @@ class Node:
         self.driver = driver
         self.expandable = expandable
         self.expanded = expanded
+        self.link_target = link_target   # id of a profile node this LINK jumps to (item 1)
+        self.parent = None               # set by _build_tree (for collapse-to-parent)
         self.children = []
 
     # -- aggregate state over members -------------------------------------
@@ -148,11 +149,13 @@ class MenuState:
                     cnode = Node(COMPONENT, f'c:{profile}:{name}', name, 1, members,
                                  expandable=True, expanded=False)
                     for m in members:
-                        cnode.children.append(
-                            Node(UNIT, f'u:{profile}:{name}:{m.key}', m.component.comp,
-                                 2, [m], driver=m.component.driver))
+                        unode = Node(UNIT, f'u:{profile}:{name}:{m.key}', m.component.comp,
+                                     2, [m], driver=m.component.driver)
+                        unode.parent = cnode
+                        cnode.children.append(unode)
                 for m in members:
                     pmembers[m.key] = m
+                cnode.parent = pnode
                 pnode.children.append(cnode)
             pnode.members = list(pmembers.values())
             roots.append(pnode)
@@ -209,6 +212,13 @@ class MenuState:
     def cur(self):
         return self.rows[self.cursor] if self.rows else None
 
+    def _goto(self, node_id):
+        for i, n in enumerate(self.rows):
+            if n.id == node_id:
+                self.cursor = i
+                return True
+        return False
+
     def expand(self, want):
         n = self.cur()
         if n and n.expandable and n.expanded != want:
@@ -219,6 +229,39 @@ class MenuState:
         n = self.cur()
         if n and n.expandable:
             self.expand(not n.expanded)
+
+    def enter(self):
+        '''Enter: a LINK jumps to its target profile; anything else toggles expansion.'''
+        n = self.cur()
+        if n and n.link_target:
+            self._goto(n.link_target)
+        else:
+            self.toggle_expand()
+
+    def expand_or_jump(self):
+        '''l / →: a LINK jumps to its target; a collapsed expandable expands; an already-expanded
+        one steps into its first child.'''
+        n = self.cur()
+        if n is None:
+            return
+        if n.link_target:
+            self._goto(n.link_target)
+        elif n.expandable and not n.expanded:
+            n.expanded = True
+            self._refresh(keep_id=n.id)
+        elif n.expandable and n.expanded and n.children:
+            self._goto(n.children[0].id)
+
+    def collapse(self):
+        '''h / ←: collapse an expanded node (profiles included); otherwise step to the parent.'''
+        n = self.cur()
+        if n is None:
+            return
+        if n.expandable and n.expanded:
+            n.expanded = False
+            self._refresh(keep_id=n.id)
+        elif n.parent is not None:
+            self._goto(n.parent.id)
 
     def toggle_expand_all(self):
         comps = self._all_components()
@@ -270,6 +313,33 @@ class MenuState:
                     self.errors.pop(m.key, None)
                     staged_any = True
         return staged_any
+
+    def toggle_lock(self):
+        '''Toggle version-lock intent on the target units (present + supported). Unlocking removes
+        a staged (requested) lock as well as staging an unlock for an actually-locked unit; locking
+        removes a staged unlock as well as staging a lock for an unlocked unit. So one key flips
+        both a pending request and a settled lock. `c` (clear) drops the staged op -> back to the
+        current on-disk lock state.'''
+        acted = False
+        for node in self._target_nodes():
+            for m in node.members:
+                if not (m.supported and m.present):
+                    continue
+                staged = self.staged.get(m.key)
+                effective_locked = staged == 'lock' or (m.locked and staged != 'unlock')
+                if effective_locked:                       # -> unlock
+                    if staged == 'lock':
+                        self.staged.pop(m.key, None)       # undo a requested-but-unfulfilled lock
+                    elif m.locked:
+                        self.staged[m.key] = 'unlock'      # stage removal of a settled lock
+                else:                                      # -> lock
+                    if staged == 'unlock':
+                        self.staged.pop(m.key, None)       # undo a requested unlock
+                    elif not m.locked:
+                        self.staged[m.key] = 'lock'
+                self.errors.pop(m.key, None)
+                acted = True
+        return acted
 
     def unstage(self):
         for node in self._target_nodes():
@@ -600,8 +670,8 @@ def _draw(stdscr, pal, ms, ctx, note, diags=(), show_diag=False, diag_top=0):
     status_line = f' selected:{len(ms.selected)}  staged:{len(ms.staged)}'
     if note:
         status_line += f'   {note}'
-    nav = ' j/k move · g/G top/bottom · enter/→ expand · ← collapse · tab expand-all '
-    act = ' space sel · a all · i/u/x inst/upg/rm · L/l lock · m method · c clear · X exec · ! issues · q quit '
+    nav = ' j/k move · g/G top/bottom · l/→ expand · h/← collapse · enter open · tab expand-all '
+    act = ' space sel · a all · i/u/x inst/upg/rm · L lock · m method · c clear · X exec · ! issues · q quit '
     foot_attr = pal.get('dim') | curses.A_REVERSE
     _put(stdscr, h - 3, 0, _fit(status_line, w), pal.get('accent'))
     _put(stdscr, h - 2, 0, _fit(nav.ljust(w), w), foot_attr)
@@ -793,10 +863,15 @@ def run(ctx):
                 ms.top()
             elif ch == ord('G'):
                 ms.bottom()
-            elif ch in (ord('\n'), curses.KEY_ENTER, curses.KEY_RIGHT):
-                ms.toggle_expand() if ch != curses.KEY_RIGHT else ms.expand(True)
-            elif ch == curses.KEY_LEFT:
-                ms.expand(False)
+            elif ch in (ord('\n'), curses.KEY_ENTER):
+                ms.enter()
+            elif ch in (ord('l'), curses.KEY_RIGHT):
+                ms.expand_or_jump()
+            elif ch in (ord('h'), curses.KEY_LEFT):
+                ms.collapse()
+            elif ch == ord('L'):
+                if not ms.toggle_lock():
+                    note = 'nothing to lock/unlock here'
             elif ch == ord('\t'):
                 ms.toggle_expand_all()
             elif ch == ord(' '):

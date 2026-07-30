@@ -1,0 +1,88 @@
+'''TUI navigation + lock toggle (menu items 2-4): h/l & arrows expand/collapse (profiles too),
+enter opens, and L toggles version-lock intent (undoing a requested lock or a settled one).
+Pure MenuState logic — no curses.'''
+
+from configsys.componentObj import ResolvedComponent
+from configsys.installState import ComponentState
+from configsys.tui.menu import MenuState, COMPONENT, PROFILE, UNIT
+
+
+def _cs(key, present=True, locked=False, roots=None):
+    driver, cname = key.split('\\')
+    rc = ResolvedComponent(key=key, driver=driver, comp=cname,
+                           requested_as=set(roots or [cname]))
+    return ComponentState(component=rc, supported=True, present=present,
+                          installed_version='1' if present else None, latest_version='1',
+                          locked=locked, lock_source='ledger' if locked else None,
+                          managed=True, error=None, scope='user')
+
+
+def _menu():
+    # profile p: a (single unit, unlocked), b (single unit, locked), docker (2 units)
+    states = {
+        'apt\\a': _cs('apt\\a'),
+        'apt\\b': _cs('apt\\b', locked=True),
+        'apt\\docker-ce': _cs('apt\\docker-ce', roots=['docker']),
+        'apt\\containerd': _cs('apt\\containerd', roots=['docker']),
+    }
+    return MenuState(states, [('p', ['a', 'b', 'docker'])])
+
+
+def _labels(ms):
+    return [n.label for n in ms.rows]
+
+
+# -- expand / collapse / jump ---------------------------------------------
+
+def test_collapse_collapses_a_profile():
+    ms = _menu()                                  # rows: p, a, b, docker (docker collapsed)
+    assert ms.cur().kind == PROFILE and 'a' in _labels(ms)
+    ms.collapse()                                 # h/← on the profile
+    assert ms.cur().kind == PROFILE and _labels(ms) == ['p']   # collapsed to just the profile
+
+
+def test_expand_or_jump_expands_then_steps_into_children():
+    ms = _menu()
+    ms.cursor = _labels(ms).index('docker')       # a collapsed COMPONENT
+    ms.expand_or_jump()                           # l/→ expands it
+    assert ms.cur().label == 'docker' and 'docker-ce' in _labels(ms)
+    ms.expand_or_jump()                           # already expanded -> step into first child
+    assert ms.cur().kind == UNIT and ms.cur().label == 'containerd'   # units sorted by key
+
+
+def test_collapse_from_child_steps_to_parent():
+    ms = _menu()
+    ms.cursor = _labels(ms).index('docker')
+    ms.expand_or_jump()
+    ms.cursor = _labels(ms).index('docker-ce')    # on a unit child
+    ms.collapse()                                 # h/← steps to the parent component
+    assert ms.cur().label == 'docker' and ms.cur().kind == COMPONENT
+
+
+# -- L: toggle version lock -----------------------------------------------
+
+def test_lock_toggle_on_unlocked_unit():
+    ms = _menu()
+    ms.cursor = _labels(ms).index('a')            # present + unlocked
+    ms.toggle_lock()
+    assert ms.staged['apt\\a'] == 'lock'
+    ms.toggle_lock()                              # toggling again undoes the requested lock
+    assert 'apt\\a' not in ms.staged
+
+
+def test_lock_toggle_on_locked_unit():
+    ms = _menu()
+    ms.cursor = _labels(ms).index('b')            # already locked
+    ms.toggle_lock()
+    assert ms.staged['apt\\b'] == 'unlock'        # stage removal of the settled lock
+    ms.toggle_lock()
+    assert 'apt\\b' not in ms.staged
+
+
+def test_clear_resets_lock_state():
+    ms = _menu()
+    ms.cursor = _labels(ms).index('a')
+    ms.toggle_lock()                              # stage a lock
+    assert 'apt\\a' in ms.staged
+    ms.unstage()                                  # `c` -> back to the current on-disk state
+    assert 'apt\\a' not in ms.staged
