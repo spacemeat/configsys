@@ -472,3 +472,18 @@ def test_show_without_target_lists_and_is_nonzero(tmp_path, capsys):
     assert rc == 1                                          # nothing shown -> usage-ish exit
     out = capsys.readouterr().out
     assert 'routes' in out and 'config' in out
+
+
+def test_location_prints_absolute_install_dir(tmp_path, capsys):
+    rc = main(base_args(tmp_path) + ['location', 'vulkan-sdk'])
+    out = capsys.readouterr().out.strip()
+    assert rc == 0 and out.startswith(str(tmp_path)) and out.endswith('/sdks/vulkan')
+
+
+def test_location_native_component_has_no_managed_dir(tmp_path, capsys):
+    rc = main(base_args(tmp_path) + ['location', 'btop'])   # native default -> on PATH
+    assert rc == 1 and 'no managed install location' in capsys.readouterr().err
+
+
+def test_location_unknown_component_errors(tmp_path, capsys):
+    assert main(base_args(tmp_path) + ['location', 'nope-xyz-tool']) == 1

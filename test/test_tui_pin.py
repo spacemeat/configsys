@@ -182,3 +182,18 @@ def test_partial_inspect_reuses_and_reprobes(tmp_path):
                        reuse={'apt\\a': st_a, 'apt\\b': st_b}, dirty={'apt\\a'})
     assert probed == ['apt\\a']                        # only the dirty one hit the driver
     assert out['apt\\b'] is st_b                        # b's cached state reused as-is
+
+
+def test_methods_line_lists_eligible_drivers(tmp_path):
+    _steam_home(tmp_path)                             # steam: native + flatpak on pop
+    ctx = _ctx(tmp_path)
+    ms = _menu_on(ctx, 'steam')
+    line = menu._methods_line(ms, ctx)
+    assert 'native' in line and 'flatpak' in line and '*' in line   # all methods, default marked
+    assert '(m to change)' in line
+
+
+def test_methods_line_blank_when_no_choice(tmp_path):
+    _steam_home(tmp_path)
+    ctx = _ctx(tmp_path)
+    assert menu._methods_line(_menu_on(ctx, 'zsh'), ctx) == ''   # native-only: no line

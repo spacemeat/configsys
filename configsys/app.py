@@ -801,6 +801,37 @@ def cmd_where(ctx, args):
     return 0
 
 
+def cmd_location(ctx, args):
+    '''Print the absolute install location of a component as it resolves HERE (honoring scope and
+    the effective pin) — one path per line. For shell snippets: `export X="$(configsys location
+    vulkan-sdk)/lib"` instead of hunting through candidate dirs. Exits non-zero (message on stderr)
+    if the component is unroutable or its driver manages no location (a native/PATH install).'''
+    from .resolve import ResolveError
+    r = ctx.routes
+    try:
+        units = r.resolve_names([args.name])
+    except ResolveError as e:
+        print(f'configsys: {e}', file=sys.stderr)
+        return 1
+    own = [rc for rc in units.values() if rc.comp == args.name]
+    if not own:
+        print(f'configsys: {args.name} resolves to nothing here', file=sys.stderr)
+        return 1
+    found = False
+    for rc in own:
+        fam = get_driver(rc.driver, ctx.runner, ctx.paths)
+        loc = fam.location(rc) if fam is not None else None
+        if loc:
+            s = str(loc)
+            print(ctx.paths.expand(s) if s.startswith(('~', '/')) else s)   # absolute for scripts
+            found = True
+    if not found:
+        print(f'configsys: {args.name} ({own[0].driver}) has no managed install location '
+              f'(installed on the system PATH)', file=sys.stderr)
+        return 1
+    return 0
+
+
 # -- pin: view / set / promote install-method (and provider) pins ----------
 
 def _validate_pin(ctx, name, value):
@@ -1669,6 +1700,7 @@ examples:
   configsys install profile:dev       install every component in the `dev` profile
   configsys upgrade profile:dev btop  a profile plus an extra, to latest
   configsys where neovim             explain how a component resolves on this machine
+  configsys location vulkan-sdk      print its absolute install dir (for shell snippets)
   configsys pin set steam flatpak    choose an install method (a local pin)
   configsys pin promote steam        make that pin portable via your primary plugin
   configsys show routes              print the shipped base routes.hu (or --path for its location)
@@ -1732,6 +1764,10 @@ def build_parser():
     wh = sub.add_parser('where', help='explain a component: source layer, bindings, and how '
                                       'it resolves on this machine')
     wh.add_argument('name', help='component name')
+
+    lo = sub.add_parser('location', help="print a component's absolute install location "
+                                         '(honoring scope + pin), for shell snippets')
+    lo.add_argument('name', help='component name')
 
     sub.add_parser('check', help='lint the merged config (repo + ~/configsys.hu) without '
                                  'installing')
@@ -1973,6 +2009,7 @@ _COMMANDS = {
     'set-version': cmd_set_version,
     'fix-scope': cmd_fix_scope,
     'where': cmd_where,
+    'location': cmd_location,
     'check': cmd_check,
     'pin': cmd_pin,
     'plugin': cmd_plugin,

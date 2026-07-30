@@ -57,6 +57,9 @@ pin a component to a specific version
 \fBwhere\fR
 explain a component: source layer, bindings, and how it resolves on this machine
 .TP
+\fBlocation\fR
+print a component's absolute install location (honoring scope + pin), for shell snippets
+.TP
 \fBcheck\fR
 lint the merged config (repo + ~/configsys.hu) without installing
 .TP
@@ -110,6 +113,7 @@ interactive TUI (default)
   configsys install profile:dev       install every component in the `dev` profile
   configsys upgrade profile:dev btop  a profile plus an extra, to latest
   configsys where neovim             explain how a component resolves on this machine
+  configsys location vulkan-sdk      print its absolute install dir (for shell snippets)
   configsys pin set steam flatpak    choose an install method (a local pin)
   configsys pin promote steam        make that pin portable via your primary plugin
   configsys show routes              print the shipped base routes.hu (or --path for its location)

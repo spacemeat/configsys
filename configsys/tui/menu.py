@@ -433,6 +433,27 @@ def _put(stdscr, y, x, s, attr=0):
         pass
 
 
+def _methods_line(ms, ctx):
+    '''A line listing every install method eligible for the current component here — not just the
+    default or the pin — with the default marked `*` and a pin marked. Blank unless there's a
+    real choice (>=2). `m` opens the picker.'''
+    name = _row_component(ms.cur())
+    if not name:
+        return ''
+    cands = ctx.routes.candidates(name)
+    if len(cands) < 2:
+        return ''
+    parts = []
+    for c in cands:
+        tag = c['via']
+        if c['pinned']:
+            tag += ' (pinned)'
+        elif c['default']:
+            tag += ' *'
+        parts.append(tag)
+    return f' methods: {"   ".join(parts)}      (m to change)'
+
+
 def _infoblock(ms, ctx):
     '''Two detail lines for the current row: (1) full versions / lock state, (2) the
     install location on its own line (paths get long). Groups get a one-line summary.
@@ -521,7 +542,7 @@ def _draw(stdscr, pal, ms, ctx, note, diags=(), show_diag=False, diag_top=0):
     _put(stdscr, 3, LATEST_X, 'LATEST', hattr)
 
     list_top = 4
-    list_h = max(1, h - list_top - 5)  # 2 infoblock + status + 2 footer lines
+    list_h = max(1, h - list_top - 6)  # methods + 2 infoblock + status + 2 footer lines
     ms.top = first = _scroll_top(ms.cursor, ms.top, list_h, len(ms.rows))
 
     for vis, i in enumerate(range(first, min(len(ms.rows), first + list_h))):
@@ -571,6 +592,7 @@ def _draw(stdscr, pal, ms, ctx, note, diags=(), show_diag=False, diag_top=0):
             _put(stdscr, y, LATEST_X, _fit(n.latest_str(), max(1, w - LATEST_X - 1)),
                  base | pal.get('dim'))
 
+    _put(stdscr, h - 6, 0, _fit(_methods_line(ms, ctx), w), pal.get('header'))
     info1, info2 = _infoblock(ms, ctx)
     _put(stdscr, h - 5, 0, _fit(info1, w), pal.get('accent'))
     _put(stdscr, h - 4, 0, _fit(info2, w), pal.get('dim'))
