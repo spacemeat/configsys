@@ -269,3 +269,19 @@ def test_pins_absent_is_empty():
 def test_pins_from_user_file():
     c = cfg(REPO, '{ configs: [ dev ]  pins: { steam: flatpak  cc: clang-18 } }')
     assert c.pins() == {'steam': 'flatpak', 'cc': 'clang-18'}
+
+
+def test_pins_merge_per_key_local_over_portable():
+    '''A machine's top config overrides a primary plugin's pins KEY-BY-KEY, not whole-block:
+    a single local override must not wipe the portable pins (the Phase-0 bug fix).'''
+    c = Config(_layers(
+        ('repo', '{ pins: { steam: native } }'),
+        ('primary', '{ pins: { steam: flatpak  blender: source } }'),
+        ('user', '{ pins: { steam: appImage } }')))
+    assert c.pins() == {'steam': 'appImage',   # user wins this key
+                        'blender': 'source'}   # primary's pin survives the local override
+
+
+def test_pins_non_scalar_values_dropped():
+    c = cfg(REPO, '{ pins: { steam: flatpak  bogus: { a: 1 }  also: [ x ] } }')
+    assert c.pins() == {'steam': 'flatpak'}

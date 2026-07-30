@@ -303,6 +303,22 @@ def test_set_declared_empty(tmp_path):
     assert plugins.declared(str(p)) == []
 
 
+def test_set_section_inserts_and_replaces_arbitrary_section(tmp_path):
+    '''The extracted primitive edits any top-level section (here `pins:`) in place, preserving
+    comments — inserting when absent, then replacing its exact span when present.'''
+    p = tmp_path / 'configsys.hu'
+    p.write_text('{\n    // keep me\n    scope: user\n}\n')
+    plugins.set_section(str(p), 'pins', lambda indent: 'pins: { steam: flatpak }')
+    text = p.read_text()
+    assert '// keep me' in text and 'scope: user' in text     # untouched
+    assert 'pins: { steam: flatpak }' in text
+    plugins.set_section(str(p), 'pins', lambda indent: 'pins: { steam: appImage }')
+    text = p.read_text()
+    assert 'pins: { steam: appImage }' in text
+    assert 'flatpak' not in text                              # old span replaced, not duplicated
+    assert '// keep me' in text and 'scope: user' in text
+
+
 @pytest.mark.skipif(shutil.which('git') is None, reason='git not available')
 def test_cli_plugin_add_and_remove(tmp_path, capsys):
     from configsys.app import main

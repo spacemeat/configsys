@@ -215,6 +215,20 @@ def merge_scalar(layers, section, roles):
     return val
 
 
+def merge_scalar_map(layers, section, roles):
+    '''Overlay a flat scalar map section (pins) across `roles` layers, MERGING per key (a later
+    layer wins per key) — unlike merge_scalar's whole-block replace. Non-scalar values (dict/list)
+    are dropped: pins are leaf name->name entries. This is what lets a machine's top config
+    override a primary plugin's pins key-by-key instead of wiping the whole block.'''
+    out = {}
+    for layer in layers:
+        if layer.role in roles and isinstance(layer.data.get(section), dict):
+            for k, val in layer.data[section].items():
+                if not isinstance(val, (dict, list)):
+                    out[k] = val
+    return out
+
+
 def merge_dict_section(layers, section, roles):
     '''Union a dict section (os / drivers — {name: spec}) across layers whose role is in
     `roles`; a later layer's entry wins per name. Lets a plugin add os blocks (derivative

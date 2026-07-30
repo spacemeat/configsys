@@ -106,9 +106,10 @@ class Config:
         return v if isinstance(v, str) else None
 
     def pins(self):
-        v = layers.merge_scalar(self._layers, 'pins', _MACHINE_ROLES)
-        return {k: val for k, val in v.items()
-                if not isinstance(val, (dict, list))} if isinstance(v, dict) else {}
+        '''The effective pin map, merged PER KEY across repo < primary < user (see
+        merge_scalar_map): a machine's top config overrides a primary plugin's pins key-by-key
+        rather than replacing the whole block, so portable pins survive a single local override.'''
+        return layers.merge_scalar_map(self._layers, 'pins', _MACHINE_ROLES)
 
     def profile_components(self, profile):
         '''The ordered, deduped component list a profile expands to. A profile value is a list

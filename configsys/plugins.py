@@ -392,24 +392,33 @@ def _emit_block(decls, indent):
     return '\n'.join(lines)
 
 
-def set_declared(user_config_file, decls):
-    '''Rewrite the `plugins:` list in the user config in place, preserving every other line
-    (comments and all): replace the existing `plugins:` node's exact source span, or — if
-    there is none — insert a block before the root's closing brace.'''
+def set_section(user_config_file, section, emit):
+    '''Rewrite one top-level `<section>:` node in a user config file in place, preserving every
+    other line (comments and all): replace the existing node's exact source span, or — if there
+    is none — insert before the root's closing brace. `emit(indent)` returns the full
+    `<section>: ...` humon text at the given base indent. The single surgical write-back
+    primitive shared by the plugin- and pins-config editors (span-locate via humon
+    `node.source_text`, content via template emit — never a whole-file re-serialization, so
+    comments and layout survive).'''
     path = Path(user_config_file)
     text = path.read_text(encoding='utf-8')
     trove = humon.from_string(text)                 # keep alive while reading source_text
-    node = trove.root['plugins']
+    node = trove.root[section]
     if node is not None:
-        old = node.source_text                      # 'plugins: [ ... ]', starts at the key
+        old = node.source_text                      # '<section>: ...', starts at the key
         pos = text.find(old)
         line_start = text.rfind('\n', 0, pos) + 1
-        indent = pos - line_start                   # whitespace before `plugins:` on its line
-        text = text.replace(old, _emit_block(decls, indent), 1)
+        indent = pos - line_start                   # whitespace before the key on its line
+        text = text.replace(old, emit(indent), 1)
     else:
         idx = text.rstrip().rfind('}')              # before the root's closing brace
-        text = text[:idx] + '    ' + _emit_block(decls, 4) + '\n' + text[idx:]
+        text = text[:idx] + '    ' + emit(4) + '\n' + text[idx:]
     path.write_text(text, encoding='utf-8')
+
+
+def set_declared(user_config_file, decls):
+    '''Rewrite the `plugins:` list in the user config in place, preserving every other line.'''
+    set_section(user_config_file, 'plugins', lambda indent: _emit_block(decls, indent))
 
 
 def config_sections_text(user_config_file, keys):
