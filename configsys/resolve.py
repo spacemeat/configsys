@@ -356,7 +356,9 @@ class _State:
         unit = Unit(drv, name, package)
         unit.requested_as = {root}
         unit.details = _install_fields(binding.details, unit.package)
-        unit.source = comp.source        # the layer/file this component came from
+        # the layer that DEFINED this binding (content roots for dotfiles follow it even across an
+        # additive amend); falls back to the component's top layer for directly-built components.
+        unit.source = binding.source or comp.source
         self.units[key] = unit
         for cap in set(comp.provides) | {name}:
             self.inventory.setdefault(cap, frozenset({key}))

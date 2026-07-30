@@ -53,8 +53,10 @@ redefining a component). The result is `{unit_key: ResolvedComponent}` (`driver\
 the drivers consume unchanged.
 
 The user file `~/.config/configsys/configsys.hu` overlays the repo section by section: `configs:`/`scope:`
-(machine settings), `profiles:` (shadowed per name), `components:` (route overrides — redefine
-all-or-nothing, add, or remove with `{}`), and `pins:`. `configsys where <component>` explains
+(machine settings), `profiles:` (shadowed per name), `components:` (route overrides — bindings
+merge ADDITIVELY across layers by `(via, when)` identity: a higher layer adds an install method,
+overrides a matching binding, `drop:`s one, or `{}` removes the whole component; to merely pick an
+existing method, use a `pins:` entry), and `pins:`. `configsys where <component>` explains
 a component's source layer + resolution; `configsys check` lints the whole merged config.
 
 **Layer stack (configsys/layers.py).** Every config/routes file is a LAYER; a file may

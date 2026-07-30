@@ -57,6 +57,26 @@ def test_includer_overrides_its_include(tmp_path):
     assert r.resolve_names(['foo'])['apt\\foo'].name == 'from-user'
 
 
+def test_component_bindings_union_across_layers(tmp_path):
+    # additive merge across the layer stack: the include defines foo (native), the includer ADDS
+    # a flatpak binding -> both survive (union), and each binding keeps its own defining layer
+    _w(tmp_path / 'proj.hu', '{ components: { foo: { install: [ { via: native } ] } } }')
+    up = _w(tmp_path / 'user.hu',
+            '{ include: [ ./proj.hu ]  components: { foo: { install: [ { via: flatpak  app: org.x.Foo } ] } } }')
+    r = _resolver(up)
+    binds = {b.via: b for b in r.components['foo'].bindings}
+    assert set(binds) == {'native', 'flatpak'}               # union, not wholesale replace
+    assert binds['native'].source.endswith('proj.hu')        # binding provenance follows its layer
+    assert binds['flatpak'].source.endswith('user.hu')
+
+
+def test_tombstone_removes_component_across_layers(tmp_path):
+    # a higher layer's `{}` clears an included component entirely (whole-component removal)
+    _w(tmp_path / 'proj.hu', '{ components: { foo: { install: [ { via: native } ] } } }')
+    up = _w(tmp_path / 'user.hu', '{ include: [ ./proj.hu ]  components: { foo: {} } }')
+    assert _resolver(up).resolve_names(['foo']) == {}
+
+
 def test_nested_relative_include_resolves_from_including_files_dir(tmp_path):
     sub = tmp_path / 'sub'
     sub.mkdir()

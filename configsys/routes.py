@@ -15,6 +15,8 @@ from .errors import ConfigError, ConfigsysError
 class Binding:
     def __init__(self, spec):
         spec = dict(spec)
+        self.source = spec.pop('__source__', None)   # layer that contributed this binding (merge)
+        spec.pop('drop', None)                        # a merge directive, never install data
         self.when = spec.pop('when', None)
         self.pred = predicate.parse(self.when)
         self.via = spec.pop('via', None)
@@ -23,22 +25,65 @@ class Binding:
         self.details = spec               # everything else (name, app, foreign-arch, ...)
 
 
+# top-level keys a component may carry; anything else is a typo or a removed construct
+# (e.g. the old inline `dotfiles:` node) and must fail loudly, not vanish silently.
+_COMPONENT_KEYS = frozenset({'provides', 'requires', 'suggests', 'parts', 'install', 'opt-in'})
+# the non-`install` fields, which merge with inheritance (a layer that omits one keeps the lower).
+_COMPONENT_FIELDS = ('provides', 'requires', 'suggests', 'parts', 'opt-in')
+
+
+def _check_component_keys(name, spec):
+    unknown = set(spec) - _COMPONENT_KEYS
+    if unknown:
+        hint = ''
+        if 'dotfiles' in unknown:  # the removed inline-node construct
+            hint = '; config is a required `<name>-dotfiles` component now, not a `dotfiles:` field'
+        raise ConfigError(
+            f'component {name!r}: unknown key(s) {sorted(unknown)}; '
+            f'valid keys are {sorted(_COMPONENT_KEYS)}{hint}')
+
+
+def _binding_identity(b):
+    '''A binding's merge identity: (via, when-as-written). A higher-layer binding with the same
+    identity OVERRIDES the lower; a `drop:` binding with this identity retracts it.'''
+    return (b.get('via'), None if b.get('when') is None else str(b.get('when')).strip())
+
+
+def _merge_component_chain(name, chain):
+    '''Merge a component's per-layer definitions (ascending precedence) into one spec, ADDITIVELY:
+    - an empty spec `{}` is a TOMBSTONE — it clears everything accumulated so far (whole-component
+      removal, the unchanged `{}` convention);
+    - `install:` bindings UNION keyed by (via, when): a higher binding with the same identity
+      overrides the lower, a `drop:` binding retracts the matching inherited one;
+    - the other fields (provides/requires/suggests/parts/opt-in) override with inheritance.
+    Each surviving binding is tagged `__source__` with the layer that contributed it (so a dotfiles
+    binding's content root, and provenance, follow the defining layer even across an amend).'''
+    fields, bindings = {}, {}          # bindings: (via, when) -> spec dict (insertion order kept)
+    for val, src in chain:
+        spec = val if isinstance(val, dict) else {}
+        _check_component_keys(name, spec)
+        if not spec:                   # {} tombstone: forget everything below, start fresh
+            fields, bindings = {}, {}
+            continue
+        for k in _COMPONENT_FIELDS:
+            if k in spec:
+                fields[k] = spec[k]
+        for b in (spec.get('install') or []):
+            ident = _binding_identity(b)
+            if _truthy(b.get('drop')):
+                bindings.pop(ident, None)
+                continue
+            bindings[ident] = {**b, '__source__': src}
+    return {**fields, 'install': list(bindings.values())}
+
+
 class Component:
-    # top-level keys a component may carry; anything else is a typo or a removed construct
-    # (e.g. the old inline `dotfiles:` node) and must fail loudly, not vanish silently.
-    _KEYS = frozenset({'provides', 'requires', 'suggests', 'parts', 'install', 'opt-in'})
+    _KEYS = _COMPONENT_KEYS
 
     def __init__(self, name, spec):
         self.source = None       # file this definition came from (provenance for `where`)
-        self.shadows = False     # True if a user override replaced a same-named repo component
-        unknown = set(spec) - self._KEYS
-        if unknown:
-            hint = ''
-            if 'dotfiles' in unknown:  # the removed inline-node construct
-                hint = '; config is a required `<name>-dotfiles` component now, not a `dotfiles:` field'
-            raise ConfigError(
-                f'component {name!r}: unknown key(s) {sorted(unknown)}; '
-                f'valid keys are {sorted(self._KEYS)}{hint}')
+        self.shadows = False     # True if more than one layer contributed to this component
+        _check_component_keys(name, spec)
         self.name = name
         self.provides = _as_list(spec.get('provides'))
         self.requires = _as_list(spec.get('requires'))
@@ -118,7 +163,9 @@ def load(path, overrides_path=None, discovered=(), plugin_files=(), validate=Tru
 
     Layer stack lowest-first: routes.hu (repo) < plugin data files < discovered project files
     (.configsys*.hu) < the user's config, each with its `include:` graph expanded. Components
-    merge PER NAME (later wins — redefine, add, or remove with `{}`); os/drivers come from
+    merge PER NAME ADDITIVELY (union of install bindings by (via, when) identity; higher layer
+    overrides a matching binding, `drop:` retracts one, `{}` removes the whole component — see
+    _merge_component_chain); os/drivers come from
     repo + plugins (a plugin may add a derivative-distro os block). A malformed discovered or
     plugin file is skipped (never bricks the rest). validate=True rejects an ambiguous set.
     If a list is passed as `warnings_out`, skipped files/components are appended to it (for the
@@ -140,12 +187,16 @@ def load(path, overrides_path=None, discovered=(), plugin_files=(), validate=Tru
                  | {os.path.normpath(_pf(p)[0]) for p in plugin_files})
     from . import routecheck
     components = {}
-    for name, (spec, src, shadows) in layers.merge_named(layer_list, 'components').items():
+    for name, chain in layers.collect_named(layer_list, 'components').items():
+        # Components merge ADDITIVELY across layers (union of bindings, see _merge_component_chain)
+        # rather than replace-per-name: a plugin/user layer can ADD an install method or override
+        # one binding without restating the rest. src = the top (amending) layer, for provenance.
         # A malformed / ambiguous component from a DISCOVERED or PLUGIN file is skipped (the
         # profile that referenced it then surfaces as a resilient error row) — never fatal.
         # From the repo or your own config it stays a loud, attributed error.
+        src = chain[-1][2]
         try:
-            comp = Component(name, spec or {})
+            comp = Component(name, _merge_component_chain(name, [(v, s) for _i, v, s in chain]))
             if validate:
                 routecheck.check_component(name, comp, cascade)
         except ConfigsysError as e:
@@ -155,7 +206,7 @@ def load(path, overrides_path=None, discovered=(), plugin_files=(), validate=Tru
                 continue
             raise ConfigError(f'{src}: {e}')
         comp.source = src
-        comp.shadows = shadows
+        comp.shadows = len(chain) > 1
         components[name] = comp
 
     drvs = layers.merge_dict_section(layer_list, 'drivers', ('repo', 'plugin', 'primary'))

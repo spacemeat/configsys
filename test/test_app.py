@@ -81,6 +81,8 @@ def test_where_repo_component(tmp_path, capsys):
 
 
 def test_where_overridden_component_shows_provenance(tmp_path, capsys):
+    # an additive override adds a flatpak binding; `where` shows the override provenance and
+    # lists flatpak as an alternative, while native stays the default on Pop
     (tmp_path / 'configsys.hu').write_text(
         '{ components: { steam: { install: [ { via: flatpak  hub: flathub '
         ' app: com.valvesoftware.Steam } ] } } }')
@@ -88,7 +90,8 @@ def test_where_overridden_component_shows_provenance(tmp_path, capsys):
     assert rc == 0
     out = capsys.readouterr().out
     assert 'overrides routes.hu' in out
-    assert 'flatpak\\steam' in out and 'apt\\flatpak' in out
+    assert 'via flatpak' in out and 'alternative here' in out
+    assert 'apt\\steam' in out                                 # native is still the default
 
 
 def test_where_removed_component(tmp_path, capsys):

@@ -30,11 +30,42 @@ def test_missing_user_file_is_fine():
     assert 'apt\\steam' in r.resolve_names(['steam'])
 
 
-def test_override_reroutes_a_component(tmp_path):
-    # steam is native on Pop by default; the user forces flatpak by redefining it
+def test_override_adds_a_binding_not_replaces(tmp_path):
+    # additive merge: redefining steam ADDS a flatpak binding rather than replacing — native
+    # stays the default on Pop (most-specific), and flatpak becomes an available alternative.
+    # Actually rerouting is now a pin's job (test_binding_pin_forces_method), not a redefine's.
     r = _resolver(tmp_path, '''{
         components: {
             steam: { install: [ { via: flatpak  hub: flathub  app: com.valvesoftware.Steam } ] }
+        }
+    }''')
+    from configsys.resolve import candidate_bindings
+    assert 'apt\\steam' in r.resolve_names(['steam'])          # native still the default here
+    cx = r.cascade.context(r.block, r.version, r.cpu)
+    assert 'flatpak' in {b.via for b in candidate_bindings(r.components['steam'], r.cascade, cx)}
+
+
+def test_same_identity_override_replaces_just_that_binding(tmp_path):
+    # a redefined binding with the SAME (via, when) identity overrides only that binding's
+    # details; the component's other inherited bindings survive
+    r = _resolver(tmp_path, '''{
+        components: {
+            steam: { install: [ { via: flatpak  hub: flathub  app: com.my.Steam } ] }
+        }
+    }''')
+    cx = r.cascade.context(r.block, r.version, r.cpu)
+    from configsys.resolve import candidate_bindings
+    fp = [b for b in candidate_bindings(r.components['steam'], r.cascade, cx) if b.via == 'flatpak']
+    assert fp and fp[0].details['app'] == 'com.my.Steam'       # base flatpak app id overridden
+    assert 'native' in {b.via for b in r.components['steam'].bindings}   # native NOT wiped
+
+
+def test_drop_marker_retracts_an_inherited_binding(tmp_path):
+    # to reroute by config (not a pin), DROP the inherited native binding by its (via, when)
+    # identity — then only flatpak is valid on Pop and it becomes the resolved default
+    r = _resolver(tmp_path, '''{
+        components: {
+            steam: { install: [ { via: native  when: "pop_os!"  drop: true } ] }
         }
     }''')
     units = r.resolve_names(['steam'])

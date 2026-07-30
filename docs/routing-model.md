@@ -329,9 +329,10 @@ Precedence overall: **pin > reuse > auto**.
 
 A component's `name:` map (§3) is driver-keyed and lives *in the component definition*. But a
 **higher layer** — typically a plugin OS — often needs to correct a package name for an
-existing core component without owning that component. The all-or-nothing `components:` override
-is too blunt for "docker is `docker` under xbps"; redefining the whole component desyncs from the
-repo and shadows it everywhere. `component-names` is the light patch:
+existing core component without owning that component. `components:` now merges additively (a
+higher layer can override a single binding by its `(via, when)` identity), but `component-names`
+remains the lightest patch for the common "docker is `docker` under xbps" case — driver-keyed and
+not tied to a specific binding's `when:`:
 
 ```
 component-names: {

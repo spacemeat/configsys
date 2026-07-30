@@ -186,6 +186,22 @@ def merge_named(layers, section, roles=None):
     return out
 
 
+def collect_named(layers, section, roles=None):
+    '''Per-name chain of definitions across layers, ASCENDING precedence ->
+    {name: [(layer_index, value, source_path), ...]}. Unlike merge_named (which keeps only the
+    top definition per name), this preserves EVERY layer's definition so components can be merged
+    additively (union of bindings) instead of replaced wholesale.'''
+    out = {}
+    for i, layer in enumerate(layers):
+        if roles is not None and layer.role not in roles:
+            continue
+        sec = layer.data.get(section)
+        if isinstance(sec, dict):
+            for name, val in sec.items():
+                out.setdefault(name, []).append((i, val, layer.path))
+    return out
+
+
 def merge_name_overrides(layers, roles=None):
     '''Overlay the `component-names` section across layers -> {driver: {component: pkg-or-{}}}.
     A higher layer patches a LOWER layer's package name for a component under a given driver,

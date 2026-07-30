@@ -71,11 +71,13 @@ USER_CONFIG_TEMPLATE = '''{
     //     user:    [ +user, apod ]                // the base `user` profile PLUS apod
     // }
 
-    // Override component routes: redefine one (all-or-nothing), add your own, or
-    // remove one with {}. See routes.hu for the component shape.
+    // Override component routes: bindings merge ADDITIVELY — add an install method (or your
+    // own component), override a binding by its (via, when), `drop:` one, or {} to remove the
+    // whole component. To just pick an existing method, prefer a pin (below). See routes.hu.
     // components: {
-    //     steam: { install: [ { via: flatpak  hub: flathub  app: com.valvesoftware.Steam } ] }
-    //     apod:  {}
+    //     my-cli: { install: [ { via: native } ] }              // add your own
+    //     steam:  { install: [ { via: native  when: "pop_os!"  drop: true } ] }  // drop a binding
+    //     apod:   {}                                            // remove entirely
     // }
 }
 '''
