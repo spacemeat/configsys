@@ -129,9 +129,11 @@ def resolve_theme(theme):
     elements = {name: dict(style) for name, style in ELEMENTS.items()}
     ga, gb, gs, enabled = GRAD_A, GRAD_B, SEL_BG, True
     if isinstance(theme, dict):
+        # the palette is an open map: `colors:` may override a built-in name OR define a brand-new
+        # one, which elements can then reference by name (theme.elements.<el>.fg: my-color).
         for name, val in (theme.get('colors') or {}).items():
             rgb = parse_color(val)
-            if rgb and name in colors:
+            if rgb:
                 colors[name] = rgb
         for name, ov in (theme.get('elements') or {}).items():
             if name in elements and isinstance(ov, dict):

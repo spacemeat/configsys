@@ -252,9 +252,15 @@ infoblock above the footer shows the current unit's full versions and its instal
 any node — a profile stages all its units, a component its units, a unit just itself — and
 staging is unit-keyed, so a mark shows everywhere that unit appears.
 
-Keys: `j/k` move, `g/G` top/bottom, `enter`/`→` expand, `←` collapse, `tab` expand/collapse
-all, `space` select, `a` all, `i/u/x` install/upgrade/remove, `L/l` lock/unlock, `c` clear,
-`X` execute, `q` quit.
+A `+include` of another profile shows as a single **link** row: acting on it (`i/u/x/L`) applies
+to that whole profile, and `enter`/`l`/`→` jumps to it (its components live there, shown once).
+
+Keys: `j/k` move, `g/G` top/bottom, `l`/`→` expand (or open a link), `h`/`←` collapse, `enter`
+open, `tab` expand/collapse all, `space` select, `a` all, `i/u/x` install/upgrade/remove, `L`
+lock (toggle), `m` pick install method, `c` clear, `X` execute, `q` quit.
+
+Colors, per-element styles, and the background gradient are fully configurable — see
+[**docs/theming.md**](docs/theming.md).
 
 ## Dotfiles
 
