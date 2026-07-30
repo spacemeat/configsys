@@ -90,5 +90,16 @@ def is_supported(name):
     return name in _REGISTRY
 
 
+def scope_meta(name):
+    '''(honors_scope, default_scope) for a driver — lets the UI tell a deliberate NON-DEFAULT
+    scope CHOICE (a scope-honoring driver installed at a non-default scope) from a FIXED scope
+    (apt is always system, cargo always user), so only the former is worth highlighting. Unknown
+    driver -> (False, 'user').'''
+    cls = _REGISTRY.get(name)
+    if cls is None:
+        return (False, 'user')
+    return (bool(cls.honors_scope), cls.default_scope)
+
+
 def supported_names():
     return set(_REGISTRY)

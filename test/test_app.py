@@ -487,3 +487,15 @@ def test_location_native_component_has_no_managed_dir(tmp_path, capsys):
 
 def test_location_unknown_component_errors(tmp_path, capsys):
     assert main(base_args(tmp_path) + ['location', 'nope-xyz-tool']) == 1
+
+
+def test_location_reflects_actual_install_scope(tmp_path, monkeypatch, capsys):
+    # a marker at the SYSTEM scope base -> location reports the system path, not the user default
+    sysbase = tmp_path / 'opt'
+    monkeypatch.setenv('CONFIGSYS_SYSTEMSCOPE_DIR', str(sysbase))
+    lg = sysbase / 'apps' / 'lazygit'
+    lg.mkdir(parents=True)
+    (lg / '.configsys-lazygit.version').write_text('0.42')
+    rc = main(base_args(tmp_path) + ['location', 'lazygit'])
+    out = capsys.readouterr().out.strip()
+    assert rc == 0 and out == str(lg)   # detected system install, not ~/apps/lazygit

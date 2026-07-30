@@ -197,3 +197,24 @@ def test_methods_line_blank_when_no_choice(tmp_path):
     _steam_home(tmp_path)
     ctx = _ctx(tmp_path)
     assert menu._methods_line(_menu_on(ctx, 'zsh'), ctx) == ''   # native-only: no line
+
+
+def _scope_node(driver, scope):
+    from configsys.installState import ComponentState
+    from configsys.componentObj import ResolvedComponent
+    rc = ResolvedComponent(key=f'{driver}\\x', driver=driver, comp='x')
+    st = ComponentState(component=rc, supported=True, present=True, installed_version='1',
+                        latest_version='1', locked=False, lock_source=None, managed=True,
+                        error=None, scope=scope)
+    return Node(UNIT, 'c:p:x', 'x', 1, [st])
+
+
+def test_scope_highlight_only_for_nondefault_choice():
+    from configsys.tui.menu import _scope_is_choice
+    # apt is a FIXED system scope (no choice) -> never highlighted, even at system
+    assert not _scope_is_choice(_scope_node('apt', 'system'))
+    # cargo is fixed user -> not a choice
+    assert not _scope_is_choice(_scope_node('cargo', 'user'))
+    # tarball honors scope: at its default (user) not highlighted, at system it IS a choice
+    assert not _scope_is_choice(_scope_node('tarball', 'user'))
+    assert _scope_is_choice(_scope_node('tarball', 'system'))

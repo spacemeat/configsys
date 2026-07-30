@@ -15,7 +15,7 @@ unit appears. Enter/→ expand, ← collapse, Tab expands/collapses all componen
 import curses
 
 from .. import reportgen
-from ..drivers import get_driver
+from ..drivers import get_driver, scope_meta
 from ..planning import expand_plan
 from .screen import curses_screen, suspended
 from .theme import STATUS_COLOR, Palette
@@ -574,7 +574,7 @@ def _draw(stdscr, pal, ms, ctx, note, diags=(), show_diag=False, diag_top=0):
         _put(stdscr, y, FAM_X, _fit(n.driver, SCOPE_X - FAM_X - 1).ljust(SCOPE_X - FAM_X - 1),
              base | pal.get('dim'))
         scope = n.scope_str()
-        scope_attr = pal.get('accent' if scope == 'system' else 'dim')
+        scope_attr = pal.get('accent' if _scope_is_choice(n) else 'dim')
         _put(stdscr, y, SCOPE_X, _fit(scope, STATUS_X - SCOPE_X - 1).ljust(STATUS_X - SCOPE_X - 1),
              base | scope_attr)
 
@@ -626,6 +626,18 @@ def _reload(ctx, old, dirty):
             n.expanded = n.id in expanded
     ms._refresh(keep_id=(old.cur().id if old.cur() else None))
     return ms, cfg, ledger, states, ctx.diagnostics(states)
+
+
+def _scope_is_choice(node):
+    '''True if the row's scope reflects a deliberate NON-DEFAULT choice — a scope-honoring driver
+    installed at a scope other than its default (so it gets highlighted). Fixed-scope drivers
+    (apt is always system, cargo always user) are NOT a choice and never highlight. For a group,
+    true if any member qualifies.'''
+    for m in node.members:
+        honors, default = scope_meta(m.component.driver)
+        if honors and m.scope and m.scope != default:
+            return True
+    return False
 
 
 def _row_component(node):

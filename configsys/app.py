@@ -820,7 +820,18 @@ def cmd_location(ctx, args):
     found = False
     for rc in own:
         fam = get_driver(rc.driver, ctx.runner, ctx.paths)
-        loc = fam.location(rc) if fam is not None else None
+        if fam is None:
+            continue
+        # reflect the ACTUAL install scope (user vs system) when installed — get_installed probes
+        # both — so the path matches reality, not just the configured target. Not installed ->
+        # (None) -> the configured/default-scope target dir (where it WOULD land).
+        try:
+            _ver, detected = fam.get_installed(rc)
+        except Exception:  # noqa: BLE001 - a probe failure must not break a location query
+            detected = None
+        if detected:
+            rc.fields['scope'] = detected
+        loc = fam.location(rc)
         if loc:
             s = str(loc)
             print(ctx.paths.expand(s) if s.startswith(('~', '/')) else s)   # absolute for scripts
