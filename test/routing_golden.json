@@ -249,7 +249,7 @@
     "fields": {
      "archive": "none",
      "binary": "bazelisk",
-     "installDir": "apps/bazelisk",
+     "installDir": "$CONFIGSYS_APP_DIR/bazelisk",
      "name": "bazelisk",
      "url": "https://github.com/bazelbuild/bazelisk/releases/latest/download/bazelisk-linux-amd64",
      "version": {
@@ -340,7 +340,7 @@
    "tarball\\bun": {
     "driver": "tarball",
     "fields": {
-     "installDir": "apps/bun",
+     "installDir": "$CONFIGSYS_APP_DIR/bun",
      "name": "bun",
      "url": "https://github.com/oven-sh/bun/releases/latest/download/bun-linux-x64.zip",
      "version": {
@@ -1155,7 +1155,7 @@
    "tarball\\grpcurl": {
     "driver": "tarball",
     "fields": {
-     "installDir": "apps/grpcurl",
+     "installDir": "$CONFIGSYS_APP_DIR/grpcurl",
      "name": "grpcurl",
      "version": {
       "asset": "grpcurl_*_linux_x86_64.tar.gz",
@@ -1421,7 +1421,7 @@
    "tarball\\jetbrains-toolbox": {
     "driver": "tarball",
     "fields": {
-     "installDir": "apps/jetbrains-toolbox",
+     "installDir": "$CONFIGSYS_APP_DIR/jetbrains-toolbox",
      "name": "jetbrains-toolbox",
      "url": "https://download.jetbrains.com/product?code=TBA&latest&distribution=linux",
      "version": {
@@ -1562,7 +1562,7 @@
    "tarball\\lazydocker": {
     "driver": "tarball",
     "fields": {
-     "installDir": "apps/lazydocker",
+     "installDir": "$CONFIGSYS_APP_DIR/lazydocker",
      "name": "lazydocker",
      "version": {
       "asset": "lazydocker_*_Linux_x86_64.tar.gz",
@@ -1633,7 +1633,7 @@
    "tarball\\lazysql": {
     "driver": "tarball",
     "fields": {
-     "installDir": "apps/lazysql",
+     "installDir": "$CONFIGSYS_APP_DIR/lazysql",
      "name": "lazysql",
      "url": "https://github.com/jorgerojas26/lazysql/releases/latest/download/lazysql_Linux_x86_64.tar.gz",
      "version": {
@@ -2234,7 +2234,7 @@
    "tarball\\odin": {
     "driver": "tarball",
     "fields": {
-     "installDir": "apps/odin",
+     "installDir": "$CONFIGSYS_APP_DIR/odin",
      "name": "odin",
      "url": "https://github.com/odin-lang/Odin/releases/download/$VERSION/odin-linux-amd64-$VERSION.tar.gz",
      "version": {
@@ -2292,7 +2292,7 @@
    "tarball\\opentofu": {
     "driver": "tarball",
     "fields": {
-     "installDir": "apps/opentofu",
+     "installDir": "$CONFIGSYS_APP_DIR/opentofu",
      "name": "opentofu",
      "version": {
       "asset": "tofu_*_linux_amd64.tar.gz",
@@ -3232,7 +3232,7 @@
    "tarball\\vulkan-sdk": {
     "driver": "tarball",
     "fields": {
-     "installDir": "vulkan",
+     "installDir": "$CONFIGSYS_SDK_DIR/vulkan",
      "name": "vulkan-sdk",
      "url": "https://sdk.lunarg.com/sdk/download/$VERSION/linux/vulkansdk-linux-$ARCH-$VERSION.tar.xz",
      "version": {
@@ -3331,7 +3331,7 @@
    "tarball\\vulkan-sdk": {
     "driver": "tarball",
     "fields": {
-     "installDir": "vulkan",
+     "installDir": "$CONFIGSYS_SDK_DIR/vulkan",
      "name": "vulkan-sdk",
      "url": "https://sdk.lunarg.com/sdk/download/$VERSION/linux/vulkansdk-linux-$ARCH-$VERSION.tar.xz",
      "version": {
@@ -3893,7 +3893,7 @@
     "fields": {
      "archive": "none",
      "binary": "bazelisk",
-     "installDir": "apps/bazelisk",
+     "installDir": "$CONFIGSYS_APP_DIR/bazelisk",
      "name": "bazelisk",
      "url": "https://github.com/bazelbuild/bazelisk/releases/latest/download/bazelisk-linux-amd64",
      "version": {
@@ -3984,7 +3984,7 @@
    "tarball\\bun": {
     "driver": "tarball",
     "fields": {
-     "installDir": "apps/bun",
+     "installDir": "$CONFIGSYS_APP_DIR/bun",
      "name": "bun",
      "url": "https://github.com/oven-sh/bun/releases/latest/download/bun-linux-x64.zip",
      "version": {
@@ -4537,7 +4537,7 @@
    "tarball\\deno": {
     "driver": "tarball",
     "fields": {
-     "installDir": "apps/deno",
+     "installDir": "$CONFIGSYS_APP_DIR/deno",
      "name": "deno",
      "url": "https://github.com/denoland/deno/releases/latest/download/deno-x86_64-unknown-linux-gnu.zip",
      "version": {
@@ -5161,7 +5161,7 @@
    "tarball\\grpcurl": {
     "driver": "tarball",
     "fields": {
-     "installDir": "apps/grpcurl",
+     "installDir": "$CONFIGSYS_APP_DIR/grpcurl",
      "name": "grpcurl",
      "version": {
       "asset": "grpcurl_*_linux_x86_64.tar.gz",
@@ -5240,7 +5240,7 @@
    "tarball\\helix": {
     "driver": "tarball",
     "fields": {
-     "installDir": "apps/helix",
+     "installDir": "$CONFIGSYS_APP_DIR/helix",
      "name": "helix",
      "version": {
       "asset": "helix-*-x86_64-linux.tar.xz",
@@ -5438,7 +5438,7 @@
    "tarball\\jetbrains-toolbox": {
     "driver": "tarball",
     "fields": {
-     "installDir": "apps/jetbrains-toolbox",
+     "installDir": "$CONFIGSYS_APP_DIR/jetbrains-toolbox",
      "name": "jetbrains-toolbox",
      "url": "https://download.jetbrains.com/product?code=TBA&latest&distribution=linux",
      "version": {
@@ -5468,7 +5468,7 @@
    "tarball\\julia": {
     "driver": "tarball",
     "fields": {
-     "installDir": "apps/julia",
+     "installDir": "$CONFIGSYS_APP_DIR/julia",
      "name": "julia",
      "url": "https://julialang-s3.julialang.org/bin/linux/x64/1.12/julia-1.12.6-linux-x86_64.tar.gz",
      "version": {
@@ -5515,7 +5515,7 @@
    "tarball\\just": {
     "driver": "tarball",
     "fields": {
-     "installDir": "apps/just",
+     "installDir": "$CONFIGSYS_APP_DIR/just",
      "name": "just",
      "version": {
       "asset": "just-*-x86_64-unknown-linux-musl.tar.gz",
@@ -5551,7 +5551,7 @@
    "tarball\\k9s": {
     "driver": "tarball",
     "fields": {
-     "installDir": "apps/k9s",
+     "installDir": "$CONFIGSYS_APP_DIR/k9s",
      "name": "k9s",
      "url": "https://github.com/derailed/k9s/releases/latest/download/k9s_Linux_amd64.tar.gz",
      "version": {
@@ -5605,7 +5605,7 @@
    "tarball\\kotlin": {
     "driver": "tarball",
     "fields": {
-     "installDir": "apps/kotlin",
+     "installDir": "$CONFIGSYS_APP_DIR/kotlin",
      "name": "kotlin",
      "url": "https://github.com/JetBrains/kotlin/releases/download/v$VERSION/kotlin-compiler-$VERSION.zip",
      "version": {
@@ -5646,7 +5646,7 @@
     "driver": "tarball",
     "fields": {
      "archive": "none",
-     "installDir": "apps/kubectl",
+     "installDir": "$CONFIGSYS_APP_DIR/kubectl",
      "name": "kubectl",
      "url": "https://dl.k8s.io/release/v$VERSION/bin/linux/amd64/kubectl",
      "version": {
@@ -5667,7 +5667,7 @@
    "tarball\\lazydocker": {
     "driver": "tarball",
     "fields": {
-     "installDir": "apps/lazydocker",
+     "installDir": "$CONFIGSYS_APP_DIR/lazydocker",
      "name": "lazydocker",
      "version": {
       "asset": "lazydocker_*_Linux_x86_64.tar.gz",
@@ -5708,7 +5708,7 @@
    "tarball\\lazygit": {
     "driver": "tarball",
     "fields": {
-     "installDir": "apps/lazygit",
+     "installDir": "$CONFIGSYS_APP_DIR/lazygit",
      "name": "lazygit",
      "version": {
       "asset": "lazygit_*_Linux_x86_64.tar.gz",
@@ -5751,7 +5751,7 @@
    "tarball\\lazysql": {
     "driver": "tarball",
     "fields": {
-     "installDir": "apps/lazysql",
+     "installDir": "$CONFIGSYS_APP_DIR/lazysql",
      "name": "lazysql",
      "url": "https://github.com/jorgerojas26/lazysql/releases/latest/download/lazysql_Linux_x86_64.tar.gz",
      "version": {
@@ -6385,7 +6385,7 @@
    "tarball\\nushell": {
     "driver": "tarball",
     "fields": {
-     "installDir": "apps/nushell",
+     "installDir": "$CONFIGSYS_APP_DIR/nushell",
      "name": "nushell",
      "version": {
       "asset": "nu-*-x86_64-unknown-linux-gnu.tar.gz",
@@ -6444,7 +6444,7 @@
    "tarball\\odin": {
     "driver": "tarball",
     "fields": {
-     "installDir": "apps/odin",
+     "installDir": "$CONFIGSYS_APP_DIR/odin",
      "name": "odin",
      "url": "https://github.com/odin-lang/Odin/releases/download/$VERSION/odin-linux-amd64-$VERSION.tar.gz",
      "version": {
@@ -6507,7 +6507,7 @@
    "tarball\\opentofu": {
     "driver": "tarball",
     "fields": {
-     "installDir": "apps/opentofu",
+     "installDir": "$CONFIGSYS_APP_DIR/opentofu",
      "name": "opentofu",
      "version": {
       "asset": "tofu_*_linux_amd64.tar.gz",
@@ -7473,7 +7473,7 @@
    "tarball\\vulkan-sdk": {
     "driver": "tarball",
     "fields": {
-     "installDir": "vulkan",
+     "installDir": "$CONFIGSYS_SDK_DIR/vulkan",
      "name": "vulkan-sdk",
      "url": "https://sdk.lunarg.com/sdk/download/$VERSION/linux/vulkansdk-linux-$ARCH-$VERSION.tar.xz",
      "version": {
@@ -7531,7 +7531,7 @@
    "tarball\\vulkan-sdk": {
     "driver": "tarball",
     "fields": {
-     "installDir": "vulkan",
+     "installDir": "$CONFIGSYS_SDK_DIR/vulkan",
      "name": "vulkan-sdk",
      "url": "https://sdk.lunarg.com/sdk/download/$VERSION/linux/vulkansdk-linux-$ARCH-$VERSION.tar.xz",
      "version": {
@@ -7787,7 +7787,7 @@
    "tarball\\zig": {
     "driver": "tarball",
     "fields": {
-     "installDir": "apps/zig",
+     "installDir": "$CONFIGSYS_APP_DIR/zig",
      "name": "zig",
      "url": "https://ziglang.org/download/$VERSION/zig-linux-$ARCH-$VERSION.tar.xz",
      "version": {
@@ -8067,7 +8067,7 @@
     "fields": {
      "archive": "none",
      "binary": "bazelisk",
-     "installDir": "apps/bazelisk",
+     "installDir": "$CONFIGSYS_APP_DIR/bazelisk",
      "name": "bazelisk",
      "url": "https://github.com/bazelbuild/bazelisk/releases/latest/download/bazelisk-linux-amd64",
      "version": {
@@ -8158,7 +8158,7 @@
    "tarball\\bun": {
     "driver": "tarball",
     "fields": {
-     "installDir": "apps/bun",
+     "installDir": "$CONFIGSYS_APP_DIR/bun",
      "name": "bun",
      "url": "https://github.com/oven-sh/bun/releases/latest/download/bun-linux-x64.zip",
      "version": {
@@ -8701,7 +8701,7 @@
    "tarball\\deno": {
     "driver": "tarball",
     "fields": {
-     "installDir": "apps/deno",
+     "installDir": "$CONFIGSYS_APP_DIR/deno",
      "name": "deno",
      "url": "https://github.com/denoland/deno/releases/latest/download/deno-x86_64-unknown-linux-gnu.zip",
      "version": {
@@ -9325,7 +9325,7 @@
    "tarball\\grpcurl": {
     "driver": "tarball",
     "fields": {
-     "installDir": "apps/grpcurl",
+     "installDir": "$CONFIGSYS_APP_DIR/grpcurl",
      "name": "grpcurl",
      "version": {
       "asset": "grpcurl_*_linux_x86_64.tar.gz",
@@ -9404,7 +9404,7 @@
    "tarball\\helix": {
     "driver": "tarball",
     "fields": {
-     "installDir": "apps/helix",
+     "installDir": "$CONFIGSYS_APP_DIR/helix",
      "name": "helix",
      "version": {
       "asset": "helix-*-x86_64-linux.tar.xz",
@@ -9602,7 +9602,7 @@
    "tarball\\jetbrains-toolbox": {
     "driver": "tarball",
     "fields": {
-     "installDir": "apps/jetbrains-toolbox",
+     "installDir": "$CONFIGSYS_APP_DIR/jetbrains-toolbox",
      "name": "jetbrains-toolbox",
      "url": "https://download.jetbrains.com/product?code=TBA&latest&distribution=linux",
      "version": {
@@ -9632,7 +9632,7 @@
    "tarball\\julia": {
     "driver": "tarball",
     "fields": {
-     "installDir": "apps/julia",
+     "installDir": "$CONFIGSYS_APP_DIR/julia",
      "name": "julia",
      "url": "https://julialang-s3.julialang.org/bin/linux/x64/1.12/julia-1.12.6-linux-x86_64.tar.gz",
      "version": {
@@ -9669,7 +9669,7 @@
    "tarball\\just": {
     "driver": "tarball",
     "fields": {
-     "installDir": "apps/just",
+     "installDir": "$CONFIGSYS_APP_DIR/just",
      "name": "just",
      "version": {
       "asset": "just-*-x86_64-unknown-linux-musl.tar.gz",
@@ -9705,7 +9705,7 @@
    "tarball\\k9s": {
     "driver": "tarball",
     "fields": {
-     "installDir": "apps/k9s",
+     "installDir": "$CONFIGSYS_APP_DIR/k9s",
      "name": "k9s",
      "url": "https://github.com/derailed/k9s/releases/latest/download/k9s_Linux_amd64.tar.gz",
      "version": {
@@ -9759,7 +9759,7 @@
    "tarball\\kotlin": {
     "driver": "tarball",
     "fields": {
-     "installDir": "apps/kotlin",
+     "installDir": "$CONFIGSYS_APP_DIR/kotlin",
      "name": "kotlin",
      "url": "https://github.com/JetBrains/kotlin/releases/download/v$VERSION/kotlin-compiler-$VERSION.zip",
      "version": {
@@ -9800,7 +9800,7 @@
     "driver": "tarball",
     "fields": {
      "archive": "none",
-     "installDir": "apps/kubectl",
+     "installDir": "$CONFIGSYS_APP_DIR/kubectl",
      "name": "kubectl",
      "url": "https://dl.k8s.io/release/v$VERSION/bin/linux/amd64/kubectl",
      "version": {
@@ -9821,7 +9821,7 @@
    "tarball\\lazydocker": {
     "driver": "tarball",
     "fields": {
-     "installDir": "apps/lazydocker",
+     "installDir": "$CONFIGSYS_APP_DIR/lazydocker",
      "name": "lazydocker",
      "version": {
       "asset": "lazydocker_*_Linux_x86_64.tar.gz",
@@ -9862,7 +9862,7 @@
    "tarball\\lazygit": {
     "driver": "tarball",
     "fields": {
-     "installDir": "apps/lazygit",
+     "installDir": "$CONFIGSYS_APP_DIR/lazygit",
      "name": "lazygit",
      "version": {
       "asset": "lazygit_*_Linux_x86_64.tar.gz",
@@ -9905,7 +9905,7 @@
    "tarball\\lazysql": {
     "driver": "tarball",
     "fields": {
-     "installDir": "apps/lazysql",
+     "installDir": "$CONFIGSYS_APP_DIR/lazysql",
      "name": "lazysql",
      "url": "https://github.com/jorgerojas26/lazysql/releases/latest/download/lazysql_Linux_x86_64.tar.gz",
      "version": {
@@ -10509,7 +10509,7 @@
    "tarball\\nushell": {
     "driver": "tarball",
     "fields": {
-     "installDir": "apps/nushell",
+     "installDir": "$CONFIGSYS_APP_DIR/nushell",
      "name": "nushell",
      "version": {
       "asset": "nu-*-x86_64-unknown-linux-gnu.tar.gz",
@@ -10568,7 +10568,7 @@
    "tarball\\odin": {
     "driver": "tarball",
     "fields": {
-     "installDir": "apps/odin",
+     "installDir": "$CONFIGSYS_APP_DIR/odin",
      "name": "odin",
      "url": "https://github.com/odin-lang/Odin/releases/download/$VERSION/odin-linux-amd64-$VERSION.tar.gz",
      "version": {
@@ -10631,7 +10631,7 @@
    "tarball\\opentofu": {
     "driver": "tarball",
     "fields": {
-     "installDir": "apps/opentofu",
+     "installDir": "$CONFIGSYS_APP_DIR/opentofu",
      "name": "opentofu",
      "version": {
       "asset": "tofu_*_linux_amd64.tar.gz",
@@ -11567,7 +11567,7 @@
    "tarball\\vulkan-sdk": {
     "driver": "tarball",
     "fields": {
-     "installDir": "vulkan",
+     "installDir": "$CONFIGSYS_SDK_DIR/vulkan",
      "name": "vulkan-sdk",
      "url": "https://sdk.lunarg.com/sdk/download/$VERSION/linux/vulkansdk-linux-$ARCH-$VERSION.tar.xz",
      "version": {
@@ -11625,7 +11625,7 @@
    "tarball\\vulkan-sdk": {
     "driver": "tarball",
     "fields": {
-     "installDir": "vulkan",
+     "installDir": "$CONFIGSYS_SDK_DIR/vulkan",
      "name": "vulkan-sdk",
      "url": "https://sdk.lunarg.com/sdk/download/$VERSION/linux/vulkansdk-linux-$ARCH-$VERSION.tar.xz",
      "version": {
@@ -11871,7 +11871,7 @@
    "tarball\\zig": {
     "driver": "tarball",
     "fields": {
-     "installDir": "apps/zig",
+     "installDir": "$CONFIGSYS_APP_DIR/zig",
      "name": "zig",
      "url": "https://ziglang.org/download/$VERSION/zig-linux-$ARCH-$VERSION.tar.xz",
      "version": {
@@ -12151,7 +12151,7 @@
     "fields": {
      "archive": "none",
      "binary": "bazelisk",
-     "installDir": "apps/bazelisk",
+     "installDir": "$CONFIGSYS_APP_DIR/bazelisk",
      "name": "bazelisk",
      "url": "https://github.com/bazelbuild/bazelisk/releases/latest/download/bazelisk-linux-amd64",
      "version": {
@@ -12242,7 +12242,7 @@
    "tarball\\bun": {
     "driver": "tarball",
     "fields": {
-     "installDir": "apps/bun",
+     "installDir": "$CONFIGSYS_APP_DIR/bun",
      "name": "bun",
      "url": "https://github.com/oven-sh/bun/releases/latest/download/bun-linux-x64.zip",
      "version": {
@@ -12681,7 +12681,7 @@
    "tarball\\deno": {
     "driver": "tarball",
     "fields": {
-     "installDir": "apps/deno",
+     "installDir": "$CONFIGSYS_APP_DIR/deno",
      "name": "deno",
      "url": "https://github.com/denoland/deno/releases/latest/download/deno-x86_64-unknown-linux-gnu.zip",
      "version": {
@@ -13158,7 +13158,7 @@
    "tarball\\grpcurl": {
     "driver": "tarball",
     "fields": {
-     "installDir": "apps/grpcurl",
+     "installDir": "$CONFIGSYS_APP_DIR/grpcurl",
      "name": "grpcurl",
      "version": {
       "asset": "grpcurl_*_linux_x86_64.tar.gz",
@@ -13451,7 +13451,7 @@
    "tarball\\jetbrains-toolbox": {
     "driver": "tarball",
     "fields": {
-     "installDir": "apps/jetbrains-toolbox",
+     "installDir": "$CONFIGSYS_APP_DIR/jetbrains-toolbox",
      "name": "jetbrains-toolbox",
      "url": "https://download.jetbrains.com/product?code=TBA&latest&distribution=linux",
      "version": {
@@ -13481,7 +13481,7 @@
    "tarball\\julia": {
     "driver": "tarball",
     "fields": {
-     "installDir": "apps/julia",
+     "installDir": "$CONFIGSYS_APP_DIR/julia",
      "name": "julia",
      "url": "https://julialang-s3.julialang.org/bin/linux/x64/1.12/julia-1.12.6-linux-x86_64.tar.gz",
      "version": {
@@ -13541,7 +13541,7 @@
    "tarball\\k9s": {
     "driver": "tarball",
     "fields": {
-     "installDir": "apps/k9s",
+     "installDir": "$CONFIGSYS_APP_DIR/k9s",
      "name": "k9s",
      "url": "https://github.com/derailed/k9s/releases/latest/download/k9s_Linux_amd64.tar.gz",
      "version": {
@@ -13595,7 +13595,7 @@
    "tarball\\kotlin": {
     "driver": "tarball",
     "fields": {
-     "installDir": "apps/kotlin",
+     "installDir": "$CONFIGSYS_APP_DIR/kotlin",
      "name": "kotlin",
      "url": "https://github.com/JetBrains/kotlin/releases/download/v$VERSION/kotlin-compiler-$VERSION.zip",
      "version": {
@@ -13636,7 +13636,7 @@
     "driver": "tarball",
     "fields": {
      "archive": "none",
-     "installDir": "apps/kubectl",
+     "installDir": "$CONFIGSYS_APP_DIR/kubectl",
      "name": "kubectl",
      "url": "https://dl.k8s.io/release/v$VERSION/bin/linux/amd64/kubectl",
      "version": {
@@ -13657,7 +13657,7 @@
    "tarball\\lazydocker": {
     "driver": "tarball",
     "fields": {
-     "installDir": "apps/lazydocker",
+     "installDir": "$CONFIGSYS_APP_DIR/lazydocker",
      "name": "lazydocker",
      "version": {
       "asset": "lazydocker_*_Linux_x86_64.tar.gz",
@@ -13698,7 +13698,7 @@
    "tarball\\lazygit": {
     "driver": "tarball",
     "fields": {
-     "installDir": "apps/lazygit",
+     "installDir": "$CONFIGSYS_APP_DIR/lazygit",
      "name": "lazygit",
      "version": {
       "asset": "lazygit_*_Linux_x86_64.tar.gz",
@@ -13741,7 +13741,7 @@
    "tarball\\lazysql": {
     "driver": "tarball",
     "fields": {
-     "installDir": "apps/lazysql",
+     "installDir": "$CONFIGSYS_APP_DIR/lazysql",
      "name": "lazysql",
      "url": "https://github.com/jorgerojas26/lazysql/releases/latest/download/lazysql_Linux_x86_64.tar.gz",
      "version": {
@@ -14295,7 +14295,7 @@
    "tarball\\nushell": {
     "driver": "tarball",
     "fields": {
-     "installDir": "apps/nushell",
+     "installDir": "$CONFIGSYS_APP_DIR/nushell",
      "name": "nushell",
      "version": {
       "asset": "nu-*-x86_64-unknown-linux-gnu.tar.gz",
@@ -14354,7 +14354,7 @@
    "tarball\\odin": {
     "driver": "tarball",
     "fields": {
-     "installDir": "apps/odin",
+     "installDir": "$CONFIGSYS_APP_DIR/odin",
      "name": "odin",
      "url": "https://github.com/odin-lang/Odin/releases/download/$VERSION/odin-linux-amd64-$VERSION.tar.gz",
      "version": {
@@ -14417,7 +14417,7 @@
    "tarball\\opentofu": {
     "driver": "tarball",
     "fields": {
-     "installDir": "apps/opentofu",
+     "installDir": "$CONFIGSYS_APP_DIR/opentofu",
      "name": "opentofu",
      "version": {
       "asset": "tofu_*_linux_amd64.tar.gz",
@@ -15368,7 +15368,7 @@
    "tarball\\vulkan-sdk": {
     "driver": "tarball",
     "fields": {
-     "installDir": "vulkan",
+     "installDir": "$CONFIGSYS_SDK_DIR/vulkan",
      "name": "vulkan-sdk",
      "url": "https://sdk.lunarg.com/sdk/download/$VERSION/linux/vulkansdk-linux-$ARCH-$VERSION.tar.xz",
      "version": {
@@ -15435,7 +15435,7 @@
    "tarball\\vulkan-sdk": {
     "driver": "tarball",
     "fields": {
-     "installDir": "vulkan",
+     "installDir": "$CONFIGSYS_SDK_DIR/vulkan",
      "name": "vulkan-sdk",
      "url": "https://sdk.lunarg.com/sdk/download/$VERSION/linux/vulkansdk-linux-$ARCH-$VERSION.tar.xz",
      "version": {
@@ -15690,7 +15690,7 @@
    "tarball\\zig": {
     "driver": "tarball",
     "fields": {
-     "installDir": "apps/zig",
+     "installDir": "$CONFIGSYS_APP_DIR/zig",
      "name": "zig",
      "url": "https://ziglang.org/download/$VERSION/zig-linux-$ARCH-$VERSION.tar.xz",
      "version": {
@@ -15970,7 +15970,7 @@
     "fields": {
      "archive": "none",
      "binary": "bazelisk",
-     "installDir": "apps/bazelisk",
+     "installDir": "$CONFIGSYS_APP_DIR/bazelisk",
      "name": "bazelisk",
      "url": "https://github.com/bazelbuild/bazelisk/releases/latest/download/bazelisk-linux-amd64",
      "version": {
@@ -16061,7 +16061,7 @@
    "tarball\\bun": {
     "driver": "tarball",
     "fields": {
-     "installDir": "apps/bun",
+     "installDir": "$CONFIGSYS_APP_DIR/bun",
      "name": "bun",
      "url": "https://github.com/oven-sh/bun/releases/latest/download/bun-linux-x64.zip",
      "version": {
@@ -16526,7 +16526,7 @@
    "tarball\\deno": {
     "driver": "tarball",
     "fields": {
-     "installDir": "apps/deno",
+     "installDir": "$CONFIGSYS_APP_DIR/deno",
      "name": "deno",
      "url": "https://github.com/denoland/deno/releases/latest/download/deno-x86_64-unknown-linux-gnu.zip",
      "version": {
@@ -17003,7 +17003,7 @@
    "tarball\\grpcurl": {
     "driver": "tarball",
     "fields": {
-     "installDir": "apps/grpcurl",
+     "installDir": "$CONFIGSYS_APP_DIR/grpcurl",
      "name": "grpcurl",
      "version": {
       "asset": "grpcurl_*_linux_x86_64.tar.gz",
@@ -17296,7 +17296,7 @@
    "tarball\\jetbrains-toolbox": {
     "driver": "tarball",
     "fields": {
-     "installDir": "apps/jetbrains-toolbox",
+     "installDir": "$CONFIGSYS_APP_DIR/jetbrains-toolbox",
      "name": "jetbrains-toolbox",
      "url": "https://download.jetbrains.com/product?code=TBA&latest&distribution=linux",
      "version": {
@@ -17326,7 +17326,7 @@
    "tarball\\julia": {
     "driver": "tarball",
     "fields": {
-     "installDir": "apps/julia",
+     "installDir": "$CONFIGSYS_APP_DIR/julia",
      "name": "julia",
      "url": "https://julialang-s3.julialang.org/bin/linux/x64/1.12/julia-1.12.6-linux-x86_64.tar.gz",
      "version": {
@@ -17386,7 +17386,7 @@
    "tarball\\k9s": {
     "driver": "tarball",
     "fields": {
-     "installDir": "apps/k9s",
+     "installDir": "$CONFIGSYS_APP_DIR/k9s",
      "name": "k9s",
      "url": "https://github.com/derailed/k9s/releases/latest/download/k9s_Linux_amd64.tar.gz",
      "version": {
@@ -17440,7 +17440,7 @@
    "tarball\\kotlin": {
     "driver": "tarball",
     "fields": {
-     "installDir": "apps/kotlin",
+     "installDir": "$CONFIGSYS_APP_DIR/kotlin",
      "name": "kotlin",
      "url": "https://github.com/JetBrains/kotlin/releases/download/v$VERSION/kotlin-compiler-$VERSION.zip",
      "version": {
@@ -17481,7 +17481,7 @@
     "driver": "tarball",
     "fields": {
      "archive": "none",
-     "installDir": "apps/kubectl",
+     "installDir": "$CONFIGSYS_APP_DIR/kubectl",
      "name": "kubectl",
      "url": "https://dl.k8s.io/release/v$VERSION/bin/linux/amd64/kubectl",
      "version": {
@@ -17502,7 +17502,7 @@
    "tarball\\lazydocker": {
     "driver": "tarball",
     "fields": {
-     "installDir": "apps/lazydocker",
+     "installDir": "$CONFIGSYS_APP_DIR/lazydocker",
      "name": "lazydocker",
      "version": {
       "asset": "lazydocker_*_Linux_x86_64.tar.gz",
@@ -17543,7 +17543,7 @@
    "tarball\\lazygit": {
     "driver": "tarball",
     "fields": {
-     "installDir": "apps/lazygit",
+     "installDir": "$CONFIGSYS_APP_DIR/lazygit",
      "name": "lazygit",
      "version": {
       "asset": "lazygit_*_Linux_x86_64.tar.gz",
@@ -17586,7 +17586,7 @@
    "tarball\\lazysql": {
     "driver": "tarball",
     "fields": {
-     "installDir": "apps/lazysql",
+     "installDir": "$CONFIGSYS_APP_DIR/lazysql",
      "name": "lazysql",
      "url": "https://github.com/jorgerojas26/lazysql/releases/latest/download/lazysql_Linux_x86_64.tar.gz",
      "version": {
@@ -18140,7 +18140,7 @@
    "tarball\\nushell": {
     "driver": "tarball",
     "fields": {
-     "installDir": "apps/nushell",
+     "installDir": "$CONFIGSYS_APP_DIR/nushell",
      "name": "nushell",
      "version": {
       "asset": "nu-*-x86_64-unknown-linux-gnu.tar.gz",
@@ -18199,7 +18199,7 @@
    "tarball\\odin": {
     "driver": "tarball",
     "fields": {
-     "installDir": "apps/odin",
+     "installDir": "$CONFIGSYS_APP_DIR/odin",
      "name": "odin",
      "url": "https://github.com/odin-lang/Odin/releases/download/$VERSION/odin-linux-amd64-$VERSION.tar.gz",
      "version": {
@@ -18262,7 +18262,7 @@
    "tarball\\opentofu": {
     "driver": "tarball",
     "fields": {
-     "installDir": "apps/opentofu",
+     "installDir": "$CONFIGSYS_APP_DIR/opentofu",
      "name": "opentofu",
      "version": {
       "asset": "tofu_*_linux_amd64.tar.gz",
@@ -19213,7 +19213,7 @@
    "tarball\\vulkan-sdk": {
     "driver": "tarball",
     "fields": {
-     "installDir": "vulkan",
+     "installDir": "$CONFIGSYS_SDK_DIR/vulkan",
      "name": "vulkan-sdk",
      "url": "https://sdk.lunarg.com/sdk/download/$VERSION/linux/vulkansdk-linux-$ARCH-$VERSION.tar.xz",
      "version": {
@@ -19280,7 +19280,7 @@
    "tarball\\vulkan-sdk": {
     "driver": "tarball",
     "fields": {
-     "installDir": "vulkan",
+     "installDir": "$CONFIGSYS_SDK_DIR/vulkan",
      "name": "vulkan-sdk",
      "url": "https://sdk.lunarg.com/sdk/download/$VERSION/linux/vulkansdk-linux-$ARCH-$VERSION.tar.xz",
      "version": {
@@ -19535,7 +19535,7 @@
    "tarball\\zig": {
     "driver": "tarball",
     "fields": {
-     "installDir": "apps/zig",
+     "installDir": "$CONFIGSYS_APP_DIR/zig",
      "name": "zig",
      "url": "https://ziglang.org/download/$VERSION/zig-linux-$ARCH-$VERSION.tar.xz",
      "version": {
@@ -19835,7 +19835,7 @@
     "fields": {
      "archive": "none",
      "binary": "bazelisk",
-     "installDir": "apps/bazelisk",
+     "installDir": "$CONFIGSYS_APP_DIR/bazelisk",
      "name": "bazelisk",
      "url": "https://github.com/bazelbuild/bazelisk/releases/latest/download/bazelisk-linux-amd64",
      "version": {
@@ -19926,7 +19926,7 @@
    "tarball\\bun": {
     "driver": "tarball",
     "fields": {
-     "installDir": "apps/bun",
+     "installDir": "$CONFIGSYS_APP_DIR/bun",
      "name": "bun",
      "url": "https://github.com/oven-sh/bun/releases/latest/download/bun-linux-x64.zip",
      "version": {
@@ -20488,7 +20488,7 @@
    "tarball\\deno": {
     "driver": "tarball",
     "fields": {
-     "installDir": "apps/deno",
+     "installDir": "$CONFIGSYS_APP_DIR/deno",
      "name": "deno",
      "url": "https://github.com/denoland/deno/releases/latest/download/deno-x86_64-unknown-linux-gnu.zip",
      "version": {
@@ -21112,7 +21112,7 @@
    "tarball\\grpcurl": {
     "driver": "tarball",
     "fields": {
-     "installDir": "apps/grpcurl",
+     "installDir": "$CONFIGSYS_APP_DIR/grpcurl",
      "name": "grpcurl",
      "version": {
       "asset": "grpcurl_*_linux_x86_64.tar.gz",
@@ -21191,7 +21191,7 @@
    "tarball\\helix": {
     "driver": "tarball",
     "fields": {
-     "installDir": "apps/helix",
+     "installDir": "$CONFIGSYS_APP_DIR/helix",
      "name": "helix",
      "version": {
       "asset": "helix-*-x86_64-linux.tar.xz",
@@ -21389,7 +21389,7 @@
    "tarball\\jetbrains-toolbox": {
     "driver": "tarball",
     "fields": {
-     "installDir": "apps/jetbrains-toolbox",
+     "installDir": "$CONFIGSYS_APP_DIR/jetbrains-toolbox",
      "name": "jetbrains-toolbox",
      "url": "https://download.jetbrains.com/product?code=TBA&latest&distribution=linux",
      "version": {
@@ -21419,7 +21419,7 @@
    "tarball\\julia": {
     "driver": "tarball",
     "fields": {
-     "installDir": "apps/julia",
+     "installDir": "$CONFIGSYS_APP_DIR/julia",
      "name": "julia",
      "url": "https://julialang-s3.julialang.org/bin/linux/x64/1.12/julia-1.12.6-linux-x86_64.tar.gz",
      "version": {
@@ -21466,7 +21466,7 @@
    "tarball\\just": {
     "driver": "tarball",
     "fields": {
-     "installDir": "apps/just",
+     "installDir": "$CONFIGSYS_APP_DIR/just",
      "name": "just",
      "version": {
       "asset": "just-*-x86_64-unknown-linux-musl.tar.gz",
@@ -21502,7 +21502,7 @@
    "tarball\\k9s": {
     "driver": "tarball",
     "fields": {
-     "installDir": "apps/k9s",
+     "installDir": "$CONFIGSYS_APP_DIR/k9s",
      "name": "k9s",
      "url": "https://github.com/derailed/k9s/releases/latest/download/k9s_Linux_amd64.tar.gz",
      "version": {
@@ -21556,7 +21556,7 @@
    "tarball\\kotlin": {
     "driver": "tarball",
     "fields": {
-     "installDir": "apps/kotlin",
+     "installDir": "$CONFIGSYS_APP_DIR/kotlin",
      "name": "kotlin",
      "url": "https://github.com/JetBrains/kotlin/releases/download/v$VERSION/kotlin-compiler-$VERSION.zip",
      "version": {
@@ -21597,7 +21597,7 @@
     "driver": "tarball",
     "fields": {
      "archive": "none",
-     "installDir": "apps/kubectl",
+     "installDir": "$CONFIGSYS_APP_DIR/kubectl",
      "name": "kubectl",
      "url": "https://dl.k8s.io/release/v$VERSION/bin/linux/amd64/kubectl",
      "version": {
@@ -21618,7 +21618,7 @@
    "tarball\\lazydocker": {
     "driver": "tarball",
     "fields": {
-     "installDir": "apps/lazydocker",
+     "installDir": "$CONFIGSYS_APP_DIR/lazydocker",
      "name": "lazydocker",
      "version": {
       "asset": "lazydocker_*_Linux_x86_64.tar.gz",
@@ -21659,7 +21659,7 @@
    "tarball\\lazygit": {
     "driver": "tarball",
     "fields": {
-     "installDir": "apps/lazygit",
+     "installDir": "$CONFIGSYS_APP_DIR/lazygit",
      "name": "lazygit",
      "version": {
       "asset": "lazygit_*_Linux_x86_64.tar.gz",
@@ -21702,7 +21702,7 @@
    "tarball\\lazysql": {
     "driver": "tarball",
     "fields": {
-     "installDir": "apps/lazysql",
+     "installDir": "$CONFIGSYS_APP_DIR/lazysql",
      "name": "lazysql",
      "url": "https://github.com/jorgerojas26/lazysql/releases/latest/download/lazysql_Linux_x86_64.tar.gz",
      "version": {
@@ -22336,7 +22336,7 @@
    "tarball\\nushell": {
     "driver": "tarball",
     "fields": {
-     "installDir": "apps/nushell",
+     "installDir": "$CONFIGSYS_APP_DIR/nushell",
      "name": "nushell",
      "version": {
       "asset": "nu-*-x86_64-unknown-linux-gnu.tar.gz",
@@ -22395,7 +22395,7 @@
    "tarball\\odin": {
     "driver": "tarball",
     "fields": {
-     "installDir": "apps/odin",
+     "installDir": "$CONFIGSYS_APP_DIR/odin",
      "name": "odin",
      "url": "https://github.com/odin-lang/Odin/releases/download/$VERSION/odin-linux-amd64-$VERSION.tar.gz",
      "version": {
@@ -22458,7 +22458,7 @@
    "tarball\\opentofu": {
     "driver": "tarball",
     "fields": {
-     "installDir": "apps/opentofu",
+     "installDir": "$CONFIGSYS_APP_DIR/opentofu",
      "name": "opentofu",
      "version": {
       "asset": "tofu_*_linux_amd64.tar.gz",
@@ -23417,7 +23417,7 @@
    "tarball\\vulkan-sdk": {
     "driver": "tarball",
     "fields": {
-     "installDir": "vulkan",
+     "installDir": "$CONFIGSYS_SDK_DIR/vulkan",
      "name": "vulkan-sdk",
      "url": "https://sdk.lunarg.com/sdk/download/$VERSION/linux/vulkansdk-linux-$ARCH-$VERSION.tar.xz",
      "version": {
@@ -23475,7 +23475,7 @@
    "tarball\\vulkan-sdk": {
     "driver": "tarball",
     "fields": {
-     "installDir": "vulkan",
+     "installDir": "$CONFIGSYS_SDK_DIR/vulkan",
      "name": "vulkan-sdk",
      "url": "https://sdk.lunarg.com/sdk/download/$VERSION/linux/vulkansdk-linux-$ARCH-$VERSION.tar.xz",
      "version": {
@@ -23731,7 +23731,7 @@
    "tarball\\zig": {
     "driver": "tarball",
     "fields": {
-     "installDir": "apps/zig",
+     "installDir": "$CONFIGSYS_APP_DIR/zig",
      "name": "zig",
      "url": "https://ziglang.org/download/$VERSION/zig-linux-$ARCH-$VERSION.tar.xz",
      "version": {
@@ -24025,7 +24025,7 @@
     "fields": {
      "archive": "none",
      "binary": "bazelisk",
-     "installDir": "apps/bazelisk",
+     "installDir": "$CONFIGSYS_APP_DIR/bazelisk",
      "name": "bazelisk",
      "url": "https://github.com/bazelbuild/bazelisk/releases/latest/download/bazelisk-linux-amd64",
      "version": {
@@ -24128,7 +24128,7 @@
    "tarball\\bun": {
     "driver": "tarball",
     "fields": {
-     "installDir": "apps/bun",
+     "installDir": "$CONFIGSYS_APP_DIR/bun",
      "name": "bun",
      "url": "https://github.com/oven-sh/bun/releases/latest/download/bun-linux-x64.zip",
      "version": {
@@ -24604,7 +24604,7 @@
    "tarball\\deno": {
     "driver": "tarball",
     "fields": {
-     "installDir": "apps/deno",
+     "installDir": "$CONFIGSYS_APP_DIR/deno",
      "name": "deno",
      "url": "https://github.com/denoland/deno/releases/latest/download/deno-x86_64-unknown-linux-gnu.zip",
      "version": {
@@ -25125,7 +25125,7 @@
    "tarball\\grpcurl": {
     "driver": "tarball",
     "fields": {
-     "installDir": "apps/grpcurl",
+     "installDir": "$CONFIGSYS_APP_DIR/grpcurl",
      "name": "grpcurl",
      "version": {
       "asset": "grpcurl_*_linux_x86_64.tar.gz",
@@ -25454,7 +25454,7 @@
    "tarball\\jetbrains-toolbox": {
     "driver": "tarball",
     "fields": {
-     "installDir": "apps/jetbrains-toolbox",
+     "installDir": "$CONFIGSYS_APP_DIR/jetbrains-toolbox",
      "name": "jetbrains-toolbox",
      "url": "https://download.jetbrains.com/product?code=TBA&latest&distribution=linux",
      "version": {
@@ -25484,7 +25484,7 @@
    "tarball\\julia": {
     "driver": "tarball",
     "fields": {
-     "installDir": "apps/julia",
+     "installDir": "$CONFIGSYS_APP_DIR/julia",
      "name": "julia",
      "url": "https://julialang-s3.julialang.org/bin/linux/x64/1.12/julia-1.12.6-linux-x86_64.tar.gz",
      "version": {
@@ -25551,7 +25551,7 @@
    "tarball\\k9s": {
     "driver": "tarball",
     "fields": {
-     "installDir": "apps/k9s",
+     "installDir": "$CONFIGSYS_APP_DIR/k9s",
      "name": "k9s",
      "url": "https://github.com/derailed/k9s/releases/latest/download/k9s_Linux_amd64.tar.gz",
      "version": {
@@ -25612,7 +25612,7 @@
    "tarball\\kotlin": {
     "driver": "tarball",
     "fields": {
-     "installDir": "apps/kotlin",
+     "installDir": "$CONFIGSYS_APP_DIR/kotlin",
      "name": "kotlin",
      "url": "https://github.com/JetBrains/kotlin/releases/download/v$VERSION/kotlin-compiler-$VERSION.zip",
      "version": {
@@ -25653,7 +25653,7 @@
     "driver": "tarball",
     "fields": {
      "archive": "none",
-     "installDir": "apps/kubectl",
+     "installDir": "$CONFIGSYS_APP_DIR/kubectl",
      "name": "kubectl",
      "url": "https://dl.k8s.io/release/v$VERSION/bin/linux/amd64/kubectl",
      "version": {
@@ -25674,7 +25674,7 @@
    "tarball\\lazydocker": {
     "driver": "tarball",
     "fields": {
-     "installDir": "apps/lazydocker",
+     "installDir": "$CONFIGSYS_APP_DIR/lazydocker",
      "name": "lazydocker",
      "version": {
       "asset": "lazydocker_*_Linux_x86_64.tar.gz",
@@ -25715,7 +25715,7 @@
    "tarball\\lazygit": {
     "driver": "tarball",
     "fields": {
-     "installDir": "apps/lazygit",
+     "installDir": "$CONFIGSYS_APP_DIR/lazygit",
      "name": "lazygit",
      "version": {
       "asset": "lazygit_*_Linux_x86_64.tar.gz",
@@ -25758,7 +25758,7 @@
    "tarball\\lazysql": {
     "driver": "tarball",
     "fields": {
-     "installDir": "apps/lazysql",
+     "installDir": "$CONFIGSYS_APP_DIR/lazysql",
      "name": "lazysql",
      "url": "https://github.com/jorgerojas26/lazysql/releases/latest/download/lazysql_Linux_x86_64.tar.gz",
      "version": {
@@ -26353,7 +26353,7 @@
    "tarball\\nushell": {
     "driver": "tarball",
     "fields": {
-     "installDir": "apps/nushell",
+     "installDir": "$CONFIGSYS_APP_DIR/nushell",
      "name": "nushell",
      "version": {
       "asset": "nu-*-x86_64-unknown-linux-gnu.tar.gz",
@@ -26412,7 +26412,7 @@
    "tarball\\odin": {
     "driver": "tarball",
     "fields": {
-     "installDir": "apps/odin",
+     "installDir": "$CONFIGSYS_APP_DIR/odin",
      "name": "odin",
      "url": "https://github.com/odin-lang/Odin/releases/download/$VERSION/odin-linux-amd64-$VERSION.tar.gz",
      "version": {
@@ -26475,7 +26475,7 @@
    "tarball\\opentofu": {
     "driver": "tarball",
     "fields": {
-     "installDir": "apps/opentofu",
+     "installDir": "$CONFIGSYS_APP_DIR/opentofu",
      "name": "opentofu",
      "version": {
       "asset": "tofu_*_linux_amd64.tar.gz",
@@ -27480,7 +27480,7 @@
    "tarball\\vulkan-sdk": {
     "driver": "tarball",
     "fields": {
-     "installDir": "vulkan",
+     "installDir": "$CONFIGSYS_SDK_DIR/vulkan",
      "name": "vulkan-sdk",
      "url": "https://sdk.lunarg.com/sdk/download/$VERSION/linux/vulkansdk-linux-$ARCH-$VERSION.tar.xz",
      "version": {
@@ -27547,7 +27547,7 @@
    "tarball\\vulkan-sdk": {
     "driver": "tarball",
     "fields": {
-     "installDir": "vulkan",
+     "installDir": "$CONFIGSYS_SDK_DIR/vulkan",
      "name": "vulkan-sdk",
      "url": "https://sdk.lunarg.com/sdk/download/$VERSION/linux/vulkansdk-linux-$ARCH-$VERSION.tar.xz",
      "version": {
@@ -27815,7 +27815,7 @@
    "tarball\\zig": {
     "driver": "tarball",
     "fields": {
-     "installDir": "apps/zig",
+     "installDir": "$CONFIGSYS_APP_DIR/zig",
      "name": "zig",
      "url": "https://ziglang.org/download/$VERSION/zig-linux-$ARCH-$VERSION.tar.xz",
      "version": {
@@ -28115,7 +28115,7 @@
     "fields": {
      "archive": "none",
      "binary": "bazelisk",
-     "installDir": "apps/bazelisk",
+     "installDir": "$CONFIGSYS_APP_DIR/bazelisk",
      "name": "bazelisk",
      "url": "https://github.com/bazelbuild/bazelisk/releases/latest/download/bazelisk-linux-amd64",
      "version": {
@@ -28206,7 +28206,7 @@
    "tarball\\bun": {
     "driver": "tarball",
     "fields": {
-     "installDir": "apps/bun",
+     "installDir": "$CONFIGSYS_APP_DIR/bun",
      "name": "bun",
      "url": "https://github.com/oven-sh/bun/releases/latest/download/bun-linux-x64.zip",
      "version": {
@@ -28759,7 +28759,7 @@
    "tarball\\deno": {
     "driver": "tarball",
     "fields": {
-     "installDir": "apps/deno",
+     "installDir": "$CONFIGSYS_APP_DIR/deno",
      "name": "deno",
      "url": "https://github.com/denoland/deno/releases/latest/download/deno-x86_64-unknown-linux-gnu.zip",
      "version": {
@@ -29383,7 +29383,7 @@
    "tarball\\grpcurl": {
     "driver": "tarball",
     "fields": {
-     "installDir": "apps/grpcurl",
+     "installDir": "$CONFIGSYS_APP_DIR/grpcurl",
      "name": "grpcurl",
      "version": {
       "asset": "grpcurl_*_linux_x86_64.tar.gz",
@@ -29462,7 +29462,7 @@
    "tarball\\helix": {
     "driver": "tarball",
     "fields": {
-     "installDir": "apps/helix",
+     "installDir": "$CONFIGSYS_APP_DIR/helix",
      "name": "helix",
      "version": {
       "asset": "helix-*-x86_64-linux.tar.xz",
@@ -29660,7 +29660,7 @@
    "tarball\\jetbrains-toolbox": {
     "driver": "tarball",
     "fields": {
-     "installDir": "apps/jetbrains-toolbox",
+     "installDir": "$CONFIGSYS_APP_DIR/jetbrains-toolbox",
      "name": "jetbrains-toolbox",
      "url": "https://download.jetbrains.com/product?code=TBA&latest&distribution=linux",
      "version": {
@@ -29690,7 +29690,7 @@
    "tarball\\julia": {
     "driver": "tarball",
     "fields": {
-     "installDir": "apps/julia",
+     "installDir": "$CONFIGSYS_APP_DIR/julia",
      "name": "julia",
      "url": "https://julialang-s3.julialang.org/bin/linux/x64/1.12/julia-1.12.6-linux-x86_64.tar.gz",
      "version": {
@@ -29737,7 +29737,7 @@
    "tarball\\just": {
     "driver": "tarball",
     "fields": {
-     "installDir": "apps/just",
+     "installDir": "$CONFIGSYS_APP_DIR/just",
      "name": "just",
      "version": {
       "asset": "just-*-x86_64-unknown-linux-musl.tar.gz",
@@ -29773,7 +29773,7 @@
    "tarball\\k9s": {
     "driver": "tarball",
     "fields": {
-     "installDir": "apps/k9s",
+     "installDir": "$CONFIGSYS_APP_DIR/k9s",
      "name": "k9s",
      "url": "https://github.com/derailed/k9s/releases/latest/download/k9s_Linux_amd64.tar.gz",
      "version": {
@@ -29827,7 +29827,7 @@
    "tarball\\kotlin": {
     "driver": "tarball",
     "fields": {
-     "installDir": "apps/kotlin",
+     "installDir": "$CONFIGSYS_APP_DIR/kotlin",
      "name": "kotlin",
      "url": "https://github.com/JetBrains/kotlin/releases/download/v$VERSION/kotlin-compiler-$VERSION.zip",
      "version": {
@@ -29868,7 +29868,7 @@
     "driver": "tarball",
     "fields": {
      "archive": "none",
-     "installDir": "apps/kubectl",
+     "installDir": "$CONFIGSYS_APP_DIR/kubectl",
      "name": "kubectl",
      "url": "https://dl.k8s.io/release/v$VERSION/bin/linux/amd64/kubectl",
      "version": {
@@ -29889,7 +29889,7 @@
    "tarball\\lazydocker": {
     "driver": "tarball",
     "fields": {
-     "installDir": "apps/lazydocker",
+     "installDir": "$CONFIGSYS_APP_DIR/lazydocker",
      "name": "lazydocker",
      "version": {
       "asset": "lazydocker_*_Linux_x86_64.tar.gz",
@@ -29930,7 +29930,7 @@
    "tarball\\lazygit": {
     "driver": "tarball",
     "fields": {
-     "installDir": "apps/lazygit",
+     "installDir": "$CONFIGSYS_APP_DIR/lazygit",
      "name": "lazygit",
      "version": {
       "asset": "lazygit_*_Linux_x86_64.tar.gz",
@@ -29973,7 +29973,7 @@
    "tarball\\lazysql": {
     "driver": "tarball",
     "fields": {
-     "installDir": "apps/lazysql",
+     "installDir": "$CONFIGSYS_APP_DIR/lazysql",
      "name": "lazysql",
      "url": "https://github.com/jorgerojas26/lazysql/releases/latest/download/lazysql_Linux_x86_64.tar.gz",
      "version": {
@@ -30607,7 +30607,7 @@
    "tarball\\nushell": {
     "driver": "tarball",
     "fields": {
-     "installDir": "apps/nushell",
+     "installDir": "$CONFIGSYS_APP_DIR/nushell",
      "name": "nushell",
      "version": {
       "asset": "nu-*-x86_64-unknown-linux-gnu.tar.gz",
@@ -30666,7 +30666,7 @@
    "tarball\\odin": {
     "driver": "tarball",
     "fields": {
-     "installDir": "apps/odin",
+     "installDir": "$CONFIGSYS_APP_DIR/odin",
      "name": "odin",
      "url": "https://github.com/odin-lang/Odin/releases/download/$VERSION/odin-linux-amd64-$VERSION.tar.gz",
      "version": {
@@ -30729,7 +30729,7 @@
    "tarball\\opentofu": {
     "driver": "tarball",
     "fields": {
-     "installDir": "apps/opentofu",
+     "installDir": "$CONFIGSYS_APP_DIR/opentofu",
      "name": "opentofu",
      "version": {
       "asset": "tofu_*_linux_amd64.tar.gz",
@@ -31695,7 +31695,7 @@
    "tarball\\vulkan-sdk": {
     "driver": "tarball",
     "fields": {
-     "installDir": "vulkan",
+     "installDir": "$CONFIGSYS_SDK_DIR/vulkan",
      "name": "vulkan-sdk",
      "url": "https://sdk.lunarg.com/sdk/download/$VERSION/linux/vulkansdk-linux-$ARCH-$VERSION.tar.xz",
      "version": {
@@ -31753,7 +31753,7 @@
    "tarball\\vulkan-sdk": {
     "driver": "tarball",
     "fields": {
-     "installDir": "vulkan",
+     "installDir": "$CONFIGSYS_SDK_DIR/vulkan",
      "name": "vulkan-sdk",
      "url": "https://sdk.lunarg.com/sdk/download/$VERSION/linux/vulkansdk-linux-$ARCH-$VERSION.tar.xz",
      "version": {
@@ -32009,7 +32009,7 @@
    "tarball\\zig": {
     "driver": "tarball",
     "fields": {
-     "installDir": "apps/zig",
+     "installDir": "$CONFIGSYS_APP_DIR/zig",
      "name": "zig",
      "url": "https://ziglang.org/download/$VERSION/zig-linux-$ARCH-$VERSION.tar.xz",
      "version": {
@@ -32289,7 +32289,7 @@
     "fields": {
      "archive": "none",
      "binary": "bazelisk",
-     "installDir": "apps/bazelisk",
+     "installDir": "$CONFIGSYS_APP_DIR/bazelisk",
      "name": "bazelisk",
      "url": "https://github.com/bazelbuild/bazelisk/releases/latest/download/bazelisk-linux-amd64",
      "version": {
@@ -32380,7 +32380,7 @@
    "tarball\\bun": {
     "driver": "tarball",
     "fields": {
-     "installDir": "apps/bun",
+     "installDir": "$CONFIGSYS_APP_DIR/bun",
      "name": "bun",
      "url": "https://github.com/oven-sh/bun/releases/latest/download/bun-linux-x64.zip",
      "version": {
@@ -32923,7 +32923,7 @@
    "tarball\\deno": {
     "driver": "tarball",
     "fields": {
-     "installDir": "apps/deno",
+     "installDir": "$CONFIGSYS_APP_DIR/deno",
      "name": "deno",
      "url": "https://github.com/denoland/deno/releases/latest/download/deno-x86_64-unknown-linux-gnu.zip",
      "version": {
@@ -33547,7 +33547,7 @@
    "tarball\\grpcurl": {
     "driver": "tarball",
     "fields": {
-     "installDir": "apps/grpcurl",
+     "installDir": "$CONFIGSYS_APP_DIR/grpcurl",
      "name": "grpcurl",
      "version": {
       "asset": "grpcurl_*_linux_x86_64.tar.gz",
@@ -33626,7 +33626,7 @@
    "tarball\\helix": {
     "driver": "tarball",
     "fields": {
-     "installDir": "apps/helix",
+     "installDir": "$CONFIGSYS_APP_DIR/helix",
      "name": "helix",
      "version": {
       "asset": "helix-*-x86_64-linux.tar.xz",
@@ -33824,7 +33824,7 @@
    "tarball\\jetbrains-toolbox": {
     "driver": "tarball",
     "fields": {
-     "installDir": "apps/jetbrains-toolbox",
+     "installDir": "$CONFIGSYS_APP_DIR/jetbrains-toolbox",
      "name": "jetbrains-toolbox",
      "url": "https://download.jetbrains.com/product?code=TBA&latest&distribution=linux",
      "version": {
@@ -33854,7 +33854,7 @@
    "tarball\\julia": {
     "driver": "tarball",
     "fields": {
-     "installDir": "apps/julia",
+     "installDir": "$CONFIGSYS_APP_DIR/julia",
      "name": "julia",
      "url": "https://julialang-s3.julialang.org/bin/linux/x64/1.12/julia-1.12.6-linux-x86_64.tar.gz",
      "version": {
@@ -33891,7 +33891,7 @@
    "tarball\\just": {
     "driver": "tarball",
     "fields": {
-     "installDir": "apps/just",
+     "installDir": "$CONFIGSYS_APP_DIR/just",
      "name": "just",
      "version": {
       "asset": "just-*-x86_64-unknown-linux-musl.tar.gz",
@@ -33927,7 +33927,7 @@
    "tarball\\k9s": {
     "driver": "tarball",
     "fields": {
-     "installDir": "apps/k9s",
+     "installDir": "$CONFIGSYS_APP_DIR/k9s",
      "name": "k9s",
      "url": "https://github.com/derailed/k9s/releases/latest/download/k9s_Linux_amd64.tar.gz",
      "version": {
@@ -33981,7 +33981,7 @@
    "tarball\\kotlin": {
     "driver": "tarball",
     "fields": {
-     "installDir": "apps/kotlin",
+     "installDir": "$CONFIGSYS_APP_DIR/kotlin",
      "name": "kotlin",
      "url": "https://github.com/JetBrains/kotlin/releases/download/v$VERSION/kotlin-compiler-$VERSION.zip",
      "version": {
@@ -34022,7 +34022,7 @@
     "driver": "tarball",
     "fields": {
      "archive": "none",
-     "installDir": "apps/kubectl",
+     "installDir": "$CONFIGSYS_APP_DIR/kubectl",
      "name": "kubectl",
      "url": "https://dl.k8s.io/release/v$VERSION/bin/linux/amd64/kubectl",
      "version": {
@@ -34043,7 +34043,7 @@
    "tarball\\lazydocker": {
     "driver": "tarball",
     "fields": {
-     "installDir": "apps/lazydocker",
+     "installDir": "$CONFIGSYS_APP_DIR/lazydocker",
      "name": "lazydocker",
      "version": {
       "asset": "lazydocker_*_Linux_x86_64.tar.gz",
@@ -34084,7 +34084,7 @@
    "tarball\\lazygit": {
     "driver": "tarball",
     "fields": {
-     "installDir": "apps/lazygit",
+     "installDir": "$CONFIGSYS_APP_DIR/lazygit",
      "name": "lazygit",
      "version": {
       "asset": "lazygit_*_Linux_x86_64.tar.gz",
@@ -34127,7 +34127,7 @@
    "tarball\\lazysql": {
     "driver": "tarball",
     "fields": {
-     "installDir": "apps/lazysql",
+     "installDir": "$CONFIGSYS_APP_DIR/lazysql",
      "name": "lazysql",
      "url": "https://github.com/jorgerojas26/lazysql/releases/latest/download/lazysql_Linux_x86_64.tar.gz",
      "version": {
@@ -34731,7 +34731,7 @@
    "tarball\\nushell": {
     "driver": "tarball",
     "fields": {
-     "installDir": "apps/nushell",
+     "installDir": "$CONFIGSYS_APP_DIR/nushell",
      "name": "nushell",
      "version": {
       "asset": "nu-*-x86_64-unknown-linux-gnu.tar.gz",
@@ -34790,7 +34790,7 @@
    "tarball\\odin": {
     "driver": "tarball",
     "fields": {
-     "installDir": "apps/odin",
+     "installDir": "$CONFIGSYS_APP_DIR/odin",
      "name": "odin",
      "url": "https://github.com/odin-lang/Odin/releases/download/$VERSION/odin-linux-amd64-$VERSION.tar.gz",
      "version": {
@@ -34853,7 +34853,7 @@
    "tarball\\opentofu": {
     "driver": "tarball",
     "fields": {
-     "installDir": "apps/opentofu",
+     "installDir": "$CONFIGSYS_APP_DIR/opentofu",
      "name": "opentofu",
      "version": {
       "asset": "tofu_*_linux_amd64.tar.gz",
@@ -35789,7 +35789,7 @@
    "tarball\\vulkan-sdk": {
     "driver": "tarball",
     "fields": {
-     "installDir": "vulkan",
+     "installDir": "$CONFIGSYS_SDK_DIR/vulkan",
      "name": "vulkan-sdk",
      "url": "https://sdk.lunarg.com/sdk/download/$VERSION/linux/vulkansdk-linux-$ARCH-$VERSION.tar.xz",
      "version": {
@@ -35847,7 +35847,7 @@
    "tarball\\vulkan-sdk": {
     "driver": "tarball",
     "fields": {
-     "installDir": "vulkan",
+     "installDir": "$CONFIGSYS_SDK_DIR/vulkan",
      "name": "vulkan-sdk",
      "url": "https://sdk.lunarg.com/sdk/download/$VERSION/linux/vulkansdk-linux-$ARCH-$VERSION.tar.xz",
      "version": {
@@ -36093,7 +36093,7 @@
    "tarball\\zig": {
     "driver": "tarball",
     "fields": {
-     "installDir": "apps/zig",
+     "installDir": "$CONFIGSYS_APP_DIR/zig",
      "name": "zig",
      "url": "https://ziglang.org/download/$VERSION/zig-linux-$ARCH-$VERSION.tar.xz",
      "version": {

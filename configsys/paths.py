@@ -10,10 +10,28 @@ Env overrides:
   CONFIGSYS_CONFIG     per-machine selector file            (default: <home>/configsys.hu)
   CONFIGSYS_STATE_DIR  ledger directory                     (default: <config>/configsys)
   XDG_CONFIG_HOME      base for the default state dir        (default: <home>/.config)
+
+Install-layout overrides (the "config for configsys" — also settable from the shipped
+dotfiles/bash.d/configsys.sh so your shell and configsys agree). A driver install location is
+<scope base>/<category>/<name>; each part is env-overridable with a sensible default:
+  CONFIGSYS_USERSCOPE_DIR   base for user-scope installs         (default: ~ = configsys home)
+  CONFIGSYS_SYSTEMSCOPE_DIR base for system-scope installs       (default: /opt)
+  CONFIGSYS_APP_DIR         self-contained apps  ($CONFIGSYS_APP_DIR)  (default: apps)
+  CONFIGSYS_SDK_DIR         SDKs and libraries   ($CONFIGSYS_SDK_DIR)  (default: sdks)
+  CONFIGSYS_SRC_DIR         source trees         ($CONFIGSYS_SRC_DIR)  (default: src)
 '''
 
 import os
 from pathlib import Path
+
+# The install-layout category variables and their defaults. A driver install location is
+# <scope base>/<category>/<name>; routes name the category via these $VARs (e.g.
+# `installDir: $CONFIGSYS_APP_DIR/lazygit`) so one env override relocates the whole class.
+_DIR_VARS = {
+    'CONFIGSYS_APP_DIR': 'apps',
+    'CONFIGSYS_SDK_DIR': 'sdks',
+    'CONFIGSYS_SRC_DIR': 'src',
+}
 
 
 class Paths:
@@ -109,6 +127,35 @@ class Paths:
         if path.is_absolute():
             return path
         return self.home / path            # bare relative -> home-relative
+
+    def dir_var(self, name):
+        '''The value of an install-layout category variable (CONFIGSYS_APP_DIR, ...), from the
+        env or its default.'''
+        return self.env.get(name, _DIR_VARS[name])
+
+    def _subst_dir_vars(self, s):
+        for name in _DIR_VARS:
+            token = '$' + name
+            if token in s:
+                s = s.replace(token, self.dir_var(name))
+        return s
+
+    def scope_base(self, scope):
+        '''The base dir a `scope` ('user'|'system') installs under — CONFIGSYS_USERSCOPE_DIR
+        (default `~`, i.e. configsys HOME) or CONFIGSYS_SYSTEMSCOPE_DIR (default `/opt`).'''
+        raw = (self.env.get('CONFIGSYS_SYSTEMSCOPE_DIR', '/opt') if scope == 'system'
+               else self.env.get('CONFIGSYS_USERSCOPE_DIR', '~'))
+        return self.expand(raw)
+
+    def install_dir(self, raw, scope):
+        '''Resolve a driver install location: substitute the $CONFIGSYS_*_DIR category vars (env
+        or default), then an absolute / `~` path passes through, and a bare-relative one resolves
+        under the scope base. Defaults reproduce the old behavior exactly (~/<raw> for user,
+        /opt/<raw> for system), so unmigrated `apps/x` routes are unchanged.'''
+        s = self._subst_dir_vars(str(raw))
+        if s.startswith('~') or Path(s).is_absolute():
+            return self.expand(s)
+        return self.scope_base(scope) / s
 
     def __repr__(self):
         return (f'Paths(home={self.home}, repo={self.repo}, '

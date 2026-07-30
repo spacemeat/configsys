@@ -53,7 +53,7 @@ class Source(Driver):
     # -- locations --------------------------------------------------------
 
     def _src_dir(self, rc):
-        return self.scoped_dir(rc.fields.get('installDir') or f'src/{rc.comp}', rc)
+        return self.scoped_dir(rc.fields.get('installDir') or f'$CONFIGSYS_SRC_DIR/{rc.comp}', rc)
 
     def _prefix(self, rc):
         p = rc.fields.get('prefix')

@@ -148,14 +148,17 @@ class Driver:
                 f'{self._extract_cmd(url, tmp, dq, archive_fmt, strip)} && rm -f {tmp}')
 
     def scoped_dir(self, raw, rc):
-        '''Resolve an install path. Absolute and ~ paths pass through; a bare
-        relative path (e.g. `vulkan`) resolves under HOME for user scope and under
-        /opt for system scope.'''
+        '''Resolve an install path via the Paths layout (single source of truth): the
+        $CONFIGSYS_*_DIR category vars are substituted, then absolute/`~` passes through and a
+        bare-relative path resolves under the scope base (CONFIGSYS_USERSCOPE_DIR / SYSTEMSCOPE_DIR,
+        defaults ~ and /opt). The paths=None branch is the old inline behavior for unit tests that
+        pass explicit absolute dirs (no env/vars).'''
+        if self.paths is not None:
+            return self.paths.install_dir(raw, self._scope(rc))
         s = str(raw)
         if s.startswith(('/', '~')):
-            return self.paths.expand(s) if self.paths is not None else Path(s).expanduser()
-        base = SYSTEM_PREFIX if self._scope(rc) == 'system' else (
-            self.paths.home if self.paths is not None else Path.home())
+            return Path(s).expanduser()
+        base = SYSTEM_PREFIX if self._scope(rc) == 'system' else Path.home()
         return base / s
 
     # -- read (inspection) ------------------------------------------------

@@ -177,7 +177,7 @@
             install: [
                 { via: native  when: "arch" }
                 { via: native  when: "fedora_atomic" }              // brew formula `nushell`
-                { via: tarball  installDir: apps/nushell  requires: glibc
+                { via: tarball  installDir: "$CONFIGSYS_APP_DIR/nushell"  requires: glibc
                   version: { github: nushell/nushell  strip-v: true  asset: "nu-*-x86_64-unknown-linux-gnu.tar.gz" } }
             ]
         }
@@ -237,13 +237,13 @@
             install: [
                 { via: native  when: "arch" }
                 { via: native  when: "fedora_atomic" }             // brew formula `deno`
-                { via: tarball  installDir: apps/deno  requires: [ glibc, unzip ]  version: { static: latest }
+                { via: tarball  installDir: "$CONFIGSYS_APP_DIR/deno"  requires: [ glibc, unzip ]  version: { static: latest }
                   url: "https://github.com/denoland/deno/releases/latest/download/deno-x86_64-unknown-linux-gnu.zip" } ]
         }
         bun: {
             install: [
                 { via: native  when: "fedora_atomic" }             // brew formula `bun`
-                { via: tarball  installDir: apps/bun  requires: [ glibc, unzip ]  version: { static: latest }
+                { via: tarball  installDir: "$CONFIGSYS_APP_DIR/bun"  requires: [ glibc, unzip ]  version: { static: latest }
                   url: "https://github.com/oven-sh/bun/releases/latest/download/bun-linux-x64.zip" } ]
         }
 
@@ -287,7 +287,7 @@
             install: [
                 { via: native  when: "arch" }                      // pacman: kotlin
                 { via: native  when: "fedora_atomic" }             // brew formula `kotlin`
-                { via: tarball  installDir: apps/kotlin  requires: [ jdk, unzip ]
+                { via: tarball  installDir: "$CONFIGSYS_APP_DIR/kotlin"  requires: [ jdk, unzip ]
                   version: { github: JetBrains/kotlin  strip-v: true  asset: "kotlin-compiler-*.zip" }
                   url: "https://github.com/JetBrains/kotlin/releases/download/v$VERSION/kotlin-compiler-$VERSION.zip" } ]
         }
@@ -341,7 +341,7 @@
             install: [
                 { via: native  when: "arch" }
                 { via: native  when: "fedora_atomic" }             // brew formula `zig`
-                { via: tarball  installDir: apps/zig
+                { via: tarball  installDir: "$CONFIGSYS_APP_DIR/zig"
                   version: { github: ziglang/zig  strip-v: true }
                   url: "https://ziglang.org/download/$VERSION/zig-linux-$ARCH-$VERSION.tar.xz" }
             ]
@@ -353,14 +353,14 @@
             install: [
                 { via: native  when: "arch" }                      // pacman: julia
                 { via: native  when: "fedora_atomic" }             // brew formula `julia`
-                { via: tarball  installDir: apps/julia  requires: glibc  version: { static: 1.12.6 }
+                { via: tarball  installDir: "$CONFIGSYS_APP_DIR/julia"  requires: glibc  version: { static: 1.12.6 }
                   url: "https://julialang-s3.julialang.org/bin/linux/x64/1.12/julia-1.12.6-linux-x86_64.tar.gz" } ]
         }
         // Odin — upstream github release tarball (glibc-linked, so it declines on musl).
         odin: {
             install: [
                 { via: native  when: "fedora_atomic" }             // brew formula `odin`
-                { via: tarball  installDir: apps/odin  requires: glibc
+                { via: tarball  installDir: "$CONFIGSYS_APP_DIR/odin"  requires: glibc
                   version: { github: odin-lang/Odin  asset: "odin-linux-amd64-*.tar.gz" }
                   url: "https://github.com/odin-lang/Odin/releases/download/$VERSION/odin-linux-amd64-$VERSION.tar.gz" }
             ]
@@ -691,7 +691,7 @@
             suggests: lazygit-dotfiles
             install: [
                 { via: native  when: "arch" }                        // not in Fedora repos -> tarball there
-                { via: tarball  installDir: apps/lazygit
+                { via: tarball  installDir: "$CONFIGSYS_APP_DIR/lazygit"
                   version: { github: jesseduffield/lazygit  strip-v: true  asset: "lazygit_*_Linux_x86_64.tar.gz" } }
             ]
         }
@@ -735,7 +735,7 @@
         helix: {
             install: [
                 { via: native  when: "redhat or arch or opensuse or alpine or fedora_atomic" }
-                { via: tarball  when: "debian"  installDir: apps/helix  requires: glibc
+                { via: tarball  when: "debian"  installDir: "$CONFIGSYS_APP_DIR/helix"  requires: glibc
                   version: { github: helix-editor/helix  strip-v: true  asset: "helix-*-x86_64-linux.tar.xz" } } ]
         }
         // Zed — native on Arch; elsewhere its own install script (installs into ~/.local).
@@ -780,7 +780,7 @@
         // (cleaner than one-off IDE components). The version-less URL 302-redirects to the
         // latest tarball, which `curl -fSL` follows — so `static: latest`, no version to chase.
         jetbrains-toolbox: {
-            install: [ { via: tarball  installDir: apps/jetbrains-toolbox  requires: glibc   // glibc-linked launcher
+            install: [ { via: tarball  installDir: "$CONFIGSYS_APP_DIR/jetbrains-toolbox"  requires: glibc   // glibc-linked launcher
                          version: { static: latest }
                          url: "https://download.jetbrains.com/product?code=TBA&latest&distribution=linux" } ]
         }
@@ -810,18 +810,18 @@
         // lazydocker's asset embeds the version (github asset discovery, like lazygit); lazysql
         // and k9s have stable asset names, so they use github's API-free latest/download URL.
         lazydocker: {
-            install: [ { via: tarball  installDir: apps/lazydocker  requires: glibc
+            install: [ { via: tarball  installDir: "$CONFIGSYS_APP_DIR/lazydocker"  requires: glibc
                          version: { github: jesseduffield/lazydocker  strip-v: true  asset: "lazydocker_*_Linux_x86_64.tar.gz" } } ]
         }
         lazysql: {
-            install: [ { via: tarball  installDir: apps/lazysql  requires: glibc  version: { static: latest }
+            install: [ { via: tarball  installDir: "$CONFIGSYS_APP_DIR/lazysql"  requires: glibc  version: { static: latest }
                          url: "https://github.com/jorgerojas26/lazysql/releases/latest/download/lazysql_Linux_x86_64.tar.gz" } ]
         }
         k9s: {
             install: [
                 { via: native  when: "arch" }
                 { via: native  when: "fedora_atomic" }             // brew formula `k9s`
-                { via: tarball  installDir: apps/k9s  requires: glibc  version: { static: latest }
+                { via: tarball  installDir: "$CONFIGSYS_APP_DIR/k9s"  requires: glibc  version: { static: latest }
                   url: "https://github.com/derailed/k9s/releases/latest/download/k9s_Linux_amd64.tar.gz" } ]
         }
         // kubectl isn't in the Debian/Fedora base repos; native on Arch/Homebrew, else the upstream
@@ -831,7 +831,7 @@
             install: [
                 { via: native  when: "arch" }
                 { via: native  when: "fedora_atomic" }
-                { via: tarball  when: "debian or redhat or opensuse or alpine"  installDir: apps/kubectl  archive: none
+                { via: tarball  when: "debian or redhat or opensuse or alpine"  installDir: "$CONFIGSYS_APP_DIR/kubectl"  archive: none
                   version: { url: "https://dl.k8s.io/release/stable.txt" }
                   url: "https://dl.k8s.io/release/v$VERSION/bin/linux/amd64/kubectl" } ]
         }
@@ -877,14 +877,14 @@
         just: {
             install: [
                 { via: native  when: "redhat or arch or opensuse or fedora_atomic" }
-                { via: tarball  when: "debian or alpine"  installDir: apps/just
+                { via: tarball  when: "debian or alpine"  installDir: "$CONFIGSYS_APP_DIR/just"
                   version: { github: casey/just  strip-v: true  asset: "just-*-x86_64-unknown-linux-musl.tar.gz" } } ]
         }
         // Bazelisk (the official launcher that manages bazel versions) — a bare static binary.
         bazelisk: {
             install: [
                 { via: native  when: "fedora_atomic" }             // brew formula `bazelisk`
-                { via: tarball  installDir: apps/bazelisk  archive: none  binary: bazelisk  version: { static: latest }
+                { via: tarball  installDir: "$CONFIGSYS_APP_DIR/bazelisk"  archive: none  binary: bazelisk  version: { static: latest }
                   url: "https://github.com/bazelbuild/bazelisk/releases/latest/download/bazelisk-linux-amd64" } ]
         }
         // Maven (native everywhere) and Gradle (native except Fedora base — use SDKMAN there). Both
@@ -941,8 +941,8 @@
         }
         azure-cli: { install: [ { via: pipx  name: azure-cli } ] }
         // IaC + gRPC — Go static binaries from github release tarballs.
-        opentofu: { install: [ { via: tarball  installDir: apps/opentofu  version: { github: opentofu/opentofu  strip-v: true  asset: "tofu_*_linux_amd64.tar.gz" } } ] }
-        grpcurl:  { install: [ { via: tarball  installDir: apps/grpcurl   version: { github: fullstorydev/grpcurl  strip-v: true  asset: "grpcurl_*_linux_x86_64.tar.gz" } } ] }
+        opentofu: { install: [ { via: tarball  installDir: "$CONFIGSYS_APP_DIR/opentofu"  version: { github: opentofu/opentofu  strip-v: true  asset: "tofu_*_linux_amd64.tar.gz" } } ] }
+        grpcurl:  { install: [ { via: tarball  installDir: "$CONFIGSYS_APP_DIR/grpcurl"   version: { github: fullstorydev/grpcurl  strip-v: true  asset: "grpcurl_*_linux_x86_64.tar.gz" } } ] }
         protobuf: { install: [ { via: native  repo-component: universe  name: { apt: protobuf-compiler  dnf: protobuf-compiler  zypper: protobuf-devel  default: protobuf } } ] }
         // DB clients: dbeaver (GUI, Flathub), pgcli/mycli (pipx), sqlitebrowser (Flathub).
         dbeaver:       { install: [ { via: flatpak  hub: flathub  app: io.dbeaver.DBeaverCommunity } ] }
@@ -1020,7 +1020,7 @@
         // pulls curl. (Old: a [tarball\vulkan-sdk, dotfiles\vulkan-sdk] list bundle.)
         vulkan-sdk: {
             suggests: vulkan-sdk-dotfiles
-            install: [ { via: tarball  version: { static: 1.4.350.1 }  installDir: vulkan  requires: glibc   // glibc-linked SDK
+            install: [ { via: tarball  version: { static: 1.4.350.1 }  installDir: "$CONFIGSYS_SDK_DIR/vulkan"  requires: glibc   // glibc-linked SDK
                          url: "https://sdk.lunarg.com/sdk/download/$VERSION/linux/vulkansdk-linux-$ARCH-$VERSION.tar.xz" } ]
         }
         vulkan-sdk-dotfiles: {

@@ -96,3 +96,42 @@ def test_data_root_falls_back_to_package_data_when_installed(tmp_path):
                        env=env, cwd=str(tmp_path))
     assert r.returncode == 0, r.stderr
     assert r.stdout.strip() == str(pkg / 'data')
+
+
+# -- install-layout variables (the "config for configsys") ----------------
+
+def test_install_dir_defaults_reproduce_old_behavior():
+    p = Paths(env={'HOME': '/home/alice'})
+    # bare-relative (unmigrated route) -> ~/apps/x (user) or /opt/apps/x (system), unchanged
+    assert p.install_dir('apps/lazygit', 'user') == Path('/home/alice/apps/lazygit')
+    assert p.install_dir('apps/lazygit', 'system') == Path('/opt/apps/lazygit')
+
+
+def test_install_dir_expands_category_vars():
+    p = Paths(env={'HOME': '/home/alice'})
+    assert p.install_dir('$CONFIGSYS_APP_DIR/lazygit', 'user') == Path('/home/alice/apps/lazygit')
+    assert p.install_dir('$CONFIGSYS_SDK_DIR/vulkan', 'user') == Path('/home/alice/sdks/vulkan')
+    assert p.install_dir('$CONFIGSYS_SRC_DIR/btop', 'system') == Path('/opt/src/btop')
+
+
+def test_category_var_override_relocates_a_class():
+    # rename the app dir -> every $CONFIGSYS_APP_DIR install moves, sdk/src untouched
+    p = Paths(env={'HOME': '/home/alice', 'CONFIGSYS_APP_DIR': 'Applications'})
+    assert p.install_dir('$CONFIGSYS_APP_DIR/lazygit', 'user') == Path('/home/alice/Applications/lazygit')
+    assert p.install_dir('$CONFIGSYS_SRC_DIR/btop', 'user') == Path('/home/alice/src/btop')
+
+
+def test_scope_base_override():
+    p = Paths(env={'HOME': '/home/alice', 'CONFIGSYS_USERSCOPE_DIR': '/data',
+                   'CONFIGSYS_SYSTEMSCOPE_DIR': '/srv'})
+    assert p.install_dir('$CONFIGSYS_APP_DIR/lazygit', 'user') == Path('/data/apps/lazygit')
+    assert p.install_dir('apps/lazygit', 'system') == Path('/srv/apps/lazygit')
+    # an absolute category value ignores the scope base
+    p2 = Paths(env={'HOME': '/home/alice', 'CONFIGSYS_APP_DIR': '/mnt/apps'})
+    assert p2.install_dir('$CONFIGSYS_APP_DIR/lazygit', 'user') == Path('/mnt/apps/lazygit')
+
+
+def test_userscope_default_follows_the_sandbox_home():
+    # CONFIGSYS_USERSCOPE_DIR default is ~, so a sandboxed home stays contained (no env leak)
+    p = Paths(env={'HOME': '/home/alice', 'CONFIGSYS_HOME': '/tmp/sb'})
+    assert p.install_dir('$CONFIGSYS_APP_DIR/x', 'user') == Path('/tmp/sb/apps/x')
