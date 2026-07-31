@@ -1431,6 +1431,29 @@
     "name": "jetbrains-toolbox"
    }
   },
+  "jmtpfs": {
+   "aur\\jmtpfs": {
+    "driver": "aur",
+    "fields": {
+     "name": "jmtpfs"
+    },
+    "name": "jmtpfs"
+   },
+   "pacman\\base-devel": {
+    "driver": "pacman",
+    "fields": {
+     "name": "base-devel"
+    },
+    "name": "base-devel"
+   },
+   "pacman\\git": {
+    "driver": "pacman",
+    "fields": {
+     "name": "git"
+    },
+    "name": "git"
+   }
+  },
   "jq": {
    "pacman\\jq": {
     "driver": "pacman",
@@ -5446,6 +5469,16 @@
      }
     },
     "name": "jetbrains-toolbox"
+   }
+  },
+  "jmtpfs": {
+   "apt\\jmtpfs": {
+    "driver": "apt",
+    "fields": {
+     "name": "jmtpfs",
+     "repo-component": "universe"
+    },
+    "name": "jmtpfs"
    }
   },
   "jq": {
@@ -9612,6 +9645,16 @@
     "name": "jetbrains-toolbox"
    }
   },
+  "jmtpfs": {
+   "apt\\jmtpfs": {
+    "driver": "apt",
+    "fields": {
+     "name": "jmtpfs",
+     "repo-component": "universe"
+    },
+    "name": "jmtpfs"
+   }
+  },
   "jq": {
    "apt\\jq": {
     "driver": "apt",
@@ -13461,6 +13504,16 @@
     "name": "jetbrains-toolbox"
    }
   },
+  "jmtpfs": {
+   "dnf\\jmtpfs": {
+    "driver": "dnf",
+    "fields": {
+     "name": "jmtpfs",
+     "repo-component": "universe"
+    },
+    "name": "jmtpfs"
+   }
+  },
   "jq": {
    "dnf\\jq": {
     "driver": "dnf",
@@ -17304,6 +17357,16 @@
      }
     },
     "name": "jetbrains-toolbox"
+   }
+  },
+  "jmtpfs": {
+   "dnf\\jmtpfs": {
+    "driver": "dnf",
+    "fields": {
+     "name": "jmtpfs",
+     "repo-component": "universe"
+    },
+    "name": "jmtpfs"
    }
   },
   "jq": {
@@ -21399,6 +21462,16 @@
     "name": "jetbrains-toolbox"
    }
   },
+  "jmtpfs": {
+   "apt\\jmtpfs": {
+    "driver": "apt",
+    "fields": {
+     "name": "jmtpfs",
+     "repo-component": "universe"
+    },
+    "name": "jmtpfs"
+   }
+  },
   "jq": {
    "apt\\jq": {
     "driver": "apt",
@@ -25462,6 +25535,16 @@
      }
     },
     "name": "jetbrains-toolbox"
+   }
+  },
+  "jmtpfs": {
+   "dnf\\jmtpfs": {
+    "driver": "dnf",
+    "fields": {
+     "name": "jmtpfs",
+     "repo-component": "universe"
+    },
+    "name": "jmtpfs"
    }
   },
   "jq": {
@@ -29670,6 +29753,16 @@
     "name": "jetbrains-toolbox"
    }
   },
+  "jmtpfs": {
+   "apt\\jmtpfs": {
+    "driver": "apt",
+    "fields": {
+     "name": "jmtpfs",
+     "repo-component": "universe"
+    },
+    "name": "jmtpfs"
+   }
+  },
   "jq": {
    "apt\\jq": {
     "driver": "apt",
@@ -33832,6 +33925,16 @@
      }
     },
     "name": "jetbrains-toolbox"
+   }
+  },
+  "jmtpfs": {
+   "apt\\jmtpfs": {
+    "driver": "apt",
+    "fields": {
+     "name": "jmtpfs",
+     "repo-component": "universe"
+    },
+    "name": "jmtpfs"
    }
   },
   "jq": {

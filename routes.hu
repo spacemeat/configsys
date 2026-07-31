@@ -778,6 +778,16 @@
             install: [ { via: tarball  version: { static: 2024.2.1.11 }  requires: glibc   // glibc-linked JVM/launchers
                          url: "https://redirector.gvt1.com/edgedl/android/studio/ide-zips/$VERSION/android-studio-$VERSION-linux.tar.gz" } ]
         }
+        // jmtpfs: FUSE filesystem to mount an MTP device (an Android phone over USB) as a
+        // directory. Native on the debian + redhat families (apt universe, Fedora); AUR on Arch.
+        // NOT in openSUSE/Alpine repos (name sweep confirmed), so the native binding is gated to
+        // where it exists. The package pulls its FUSE + libmtp deps transitively (no `requires:`).
+        jmtpfs: {
+            install: [
+                { via: aur     when: "arch" }
+                { via: native  when: "debian or redhat"  repo-component: universe }
+            ]
+        }
         // JetBrains Toolbox — the launcher that installs/updates IDEA, CLion, PyCharm, etc.
         // (cleaner than one-off IDE components). The version-less URL 302-redirects to the
         // latest tarball, which `curl -fSL` follows — so `static: latest`, no version to chase.
