@@ -110,6 +110,22 @@ def test_boats_need_a_sea_and_are_capped_and_leave():
     assert saw == 1                                  # a boat did appear over that long a sea
 
 
+def test_starfield_scatters_in_the_upper_sky():
+    sim = _sim(w=80, h=24, seed=7)
+    assert len(sim.stars) >= 4
+    sky_rows = int(sim.h * 0.72)
+    for row, col, glyph, phase, ci in sim.stars:
+        assert 0 <= row < sky_rows                 # upper sky only, not down at the seabed
+        assert 0 <= col < sim.w
+        assert glyph in splash.STAR_GLYPHS
+        assert 0 <= ci <= 2                         # a valid colour index
+    # stars are fixed for the run — advancing the sim doesn't move them
+    before = list(sim.stars)
+    for _ in range(50):
+        sim.step(0.03)
+    assert sim.stars == before
+
+
 def test_moon_is_at_most_one_and_stable():
     seen = set()
     for seed in range(40):

@@ -22,12 +22,14 @@ Design notes:
 
 import colorsys
 import curses
+import math
 import time
 
 BLOCKS = ' ▁▂▃▄▅▆▇█'   # 8 partial-height blocks + space
 FULL = '█'
 BUBBLES = '°∘•'
 BOAT = '⛵'            # a rare sailboat riding the surface
+STAR_GLYPHS = ('·', '·', '·', '·', '✦', '✧', '⋆', '∗')   # mostly faint dots, some sparkles
 COMET = '☄'            # a rare shooting comet that dives behind the water
 MOONS = ('☽', '☾')    # first-quarter, last-quarter — at most one per run (or none)
 SKELETONS = ('⤔', '⤕', '⤖', '⤗', '⤘')   # a fish skeleton may rarely rest on the sea floor
@@ -132,6 +134,12 @@ class LiquidSim:
         self.moon = rng.choice((None, None, MOONS[0], MOONS[1]))
         self.moon_pos = (rng.randint(0, max(0, self.h // 6)),
                          rng.randint(int(self.w * 0.12), max(1, int(self.w * 0.88))))
+        # a fixed starfield scattered across the upper sky; each star gets a twinkle phase + a
+        # colour index. Drawn behind the water, so the rising tide swallows them from the bottom.
+        sky_rows = max(1, int(self.h * 0.72))
+        self.stars = [(rng.randint(0, sky_rows - 1), rng.randint(0, self.w - 1),
+                       rng.choice(STAR_GLYPHS), rng.uniform(0, 6.283), rng.randint(0, 2))
+                      for _ in range(max(4, int(self.w * self.h * 0.01)))]
         # a gentle base swell + finer, faster ripples make a low but choppy, churning surface
         self._amp = min(0.7, self.h * 0.018 + 0.3)
 
@@ -151,7 +159,6 @@ class LiquidSim:
         Below ~0 rows there's no wave (a dry screen stays flat).'''
         if self.level <= 0.01:
             return self.level
-        import math
         a = self._amp
         wave = (math.sin(x * 0.55 + self.t * 2.7) * a          # base swell
                 + math.sin(x * 0.31 - self.t * 2.0) * a * 0.45  # slower counter-roll
@@ -283,6 +290,9 @@ class LiquidSplash:
         self._boat = palette.rgb_attr((240, 240, 248)) | curses.A_BOLD
         self._moon = palette.rgb_attr((245, 240, 205)) | curses.A_BOLD
         self._comet = palette.rgb_attr((215, 235, 255)) | curses.A_BOLD
+        _star_cols = ((222, 226, 242), (240, 238, 224), (250, 250, 255))   # cool / warm / white
+        self._star_dim = [palette.rgb_attr(_lerp((0, 0, 0), c, 0.5)) for c in _star_cols]
+        self._star_bright = [palette.rgb_attr(c) | curses.A_BOLD for c in _star_cols]
         self._skel = palette.rgb_pair((226, 222, 205), ramp_rgb[0]) | curses.A_BOLD  # over deep water
         self._label_attr = palette.get('title') | curses.A_BOLD
 
@@ -299,8 +309,13 @@ class LiquidSplash:
     def _render(self, counts):
         scr, h, w, sim = self.scr, self.h, self.w, self.sim
         scr.erase()
-        # Sky first (moon + comet), so the water drawn on top naturally hides whatever it has
-        # risen over — the comet "disappears behind the water".
+        # Sky first (stars, moon, comet), so the water drawn on top naturally hides whatever it
+        # has risen over — the comet "disappears behind the water".
+        for sy, sx, glyph, phase, ci in sim.stars:
+            if 0 <= sy < h and 0 <= sx < w:
+                bright = math.sin(sim.t * 2.5 + phase) > 0.25     # gentle twinkle
+                self._safe_add(sy, sx, glyph,
+                               self._star_bright[ci] if bright else self._star_dim[ci])
         if sim.moon:
             my, mx = sim.moon_pos
             if 0 <= my < h and 0 <= mx < w:

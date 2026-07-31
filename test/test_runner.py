@@ -129,3 +129,26 @@ def test_run_works_from_a_worker_thread():
     t.join()
     assert 'exc' not in box, f'run() raised off the main thread: {box.get("exc")!r}'
     assert box['res'].ok and box['res'].stdout.strip() == 'ok'
+
+
+def test_terminal_released_is_a_noop_off_the_main_thread(monkeypatch):
+    '''Regression: the background inspection worker must not touch the tty — its termios
+    save/restore raced the main thread's curses setup and dropped the TUI into cooked/echo mode
+    (keys echoed, needed Enter). Off the main thread the context touches neither termios nor
+    signals.'''
+    import threading
+    from configsys import runner as R
+
+    calls = []
+    monkeypatch.setattr(R.termios, 'tcgetattr', lambda fd: calls.append('tcgetattr'))
+    monkeypatch.setattr(R.termios, 'tcsetattr', lambda fd, when, a: calls.append('tcsetattr'))
+    monkeypatch.setattr(R.signal, 'signal', lambda *a: calls.append('signal'))
+
+    def work():
+        with R.terminal_released(True):   # tui_active=True: would write escapes/termios on main
+            pass
+
+    t = threading.Thread(target=work)
+    t.start()
+    t.join()
+    assert calls == []

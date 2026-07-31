@@ -23,7 +23,18 @@ from contextlib import contextmanager
 def terminal_released(tui_active: bool):
     '''Temporarily hand the terminal back to a child process. When the TUI is
     active, leave the alternate screen / restore sane modes first, then restore
-    them afterward. A no-op (beyond SIGINT forwarding) when no TUI is running.'''
+    them afterward. A no-op (beyond SIGINT forwarding) when no TUI is running.
+
+    Off the MAIN thread this is a complete no-op: the only caller there is the
+    background startup-inspection worker running captured, read-only probes, which
+    never own the tty. Touching it there — termios save/restore, SIGINT swap, the
+    alt-screen escapes — races the main thread's curses setup and can drop the TUI
+    back into cooked/echo mode (keys echo, need Enter). signal.signal() would also
+    raise off the main thread. So a background child gets the terminal untouched.'''
+    if threading.current_thread() is not threading.main_thread():
+        yield
+        return
+
     try:
         fd = sys.stdin.fileno()
         isatty = os.isatty(fd)
@@ -43,16 +54,11 @@ def terminal_released(tui_active: bool):
         )
         sys.stdout.flush()
 
-    # signal.signal() only works on the main thread — when a command is run from a worker (the
-    # startup-splash inspection thread), skip the SIGINT swap entirely. It only matters for an
-    # interactive child on the main thread; a background read-only probe has no such child.
-    on_main = threading.current_thread() is threading.main_thread()
-    old_int = signal.signal(signal.SIGINT, signal.SIG_IGN) if on_main else None
+    old_int = signal.signal(signal.SIGINT, signal.SIG_IGN)
     try:
         yield
     finally:
-        if on_main:
-            signal.signal(signal.SIGINT, old_int)
+        signal.signal(signal.SIGINT, old_int)
         if isatty and saved is not None:
             termios.tcsetattr(fd, termios.TCSADRAIN, saved)
         if tui_active:
