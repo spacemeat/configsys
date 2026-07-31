@@ -120,6 +120,7 @@ class Config:
         {from,to,selected,enabled}}. Values are parsed by tui.theme; `gradient: false` disables the
         background gradient.'''
         colors, elements, gradient, off = {}, {}, {}, None
+        splash = None                              # startup-fill effect: last layer to speak wins
         for layer in self._layers:                 # low -> high precedence; no role restriction
             t = layer.data.get('theme')
             if not isinstance(t, dict):
@@ -137,10 +138,12 @@ class Config:
                 off = True
             elif g in (True, 'true', 'yes', 'on'):
                 off = False
+            if 'splash' in t:
+                splash = t['splash']
         grad = dict(gradient)
         if off is not None:
             grad['enabled'] = not off
-        return {'colors': colors, 'elements': elements, 'gradient': grad}
+        return {'colors': colors, 'elements': elements, 'gradient': grad, 'splash': splash}
 
     def driver_preference(self):
         '''The global driver-preference order (a machine setting; whole-list replace across

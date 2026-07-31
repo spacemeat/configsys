@@ -14,6 +14,7 @@ import signal
 import subprocess
 import sys
 import termios
+import threading
 import tty
 from contextlib import contextmanager
 
@@ -42,11 +43,16 @@ def terminal_released(tui_active: bool):
         )
         sys.stdout.flush()
 
-    old_int = signal.signal(signal.SIGINT, signal.SIG_IGN)
+    # signal.signal() only works on the main thread — when a command is run from a worker (the
+    # startup-splash inspection thread), skip the SIGINT swap entirely. It only matters for an
+    # interactive child on the main thread; a background read-only probe has no such child.
+    on_main = threading.current_thread() is threading.main_thread()
+    old_int = signal.signal(signal.SIGINT, signal.SIG_IGN) if on_main else None
     try:
         yield
     finally:
-        signal.signal(signal.SIGINT, old_int)
+        if on_main:
+            signal.signal(signal.SIGINT, old_int)
         if isatty and saved is not None:
             termios.tcsetattr(fd, termios.TCSADRAIN, saved)
         if tui_active:

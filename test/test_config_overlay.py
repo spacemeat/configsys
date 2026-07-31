@@ -287,7 +287,11 @@ def test_theme_gradient_disable():
 
 
 def test_theme_absent_is_empty():
-    assert cfg(REPO).theme() == {'colors': {}, 'elements': {}, 'gradient': {}}
+    assert cfg(REPO).theme() == {'colors': {}, 'elements': {}, 'gradient': {}, 'splash': None}
+
+
+def test_theme_splash_opt_out():
+    assert cfg(REPO, '{ theme: { splash: false } }').theme()['splash'] == 'false'
 
 
 def test_pins_absent_is_empty():

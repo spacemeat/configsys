@@ -880,16 +880,113 @@ def _menu_model(cfg):
     return [(p, layouts[p]) for p in order], transitive
 
 
+SPLASH_THRESHOLD = 0.25    # only show the liquid fill if inspection is still going after this
+
+
+def _splash_enabled(ctx):
+    '''Whether the startup fill is ALLOWED (independent of the "is there work" timing gate). Off
+    when: disabled via env, the user asked for verbose logging (they want the text log, not an
+    animation), or a `theme: { splash: false }` opt-out. cmd_tui already guarantees a TTY.'''
+    import os
+    from .. import report
+    if os.environ.get('CONFIGSYS_NO_SPLASH'):
+        return False
+    if ctx.reporter.level >= report.VERBOSE:
+        return False
+    s = (ctx.config.theme() or {}).get('splash')
+    if s is False or s in ('false', 'no', 'off') or (isinstance(s, dict) and s.get('enabled') in (False, 'false', 'no')):
+        return False
+    return True
+
+
+def _splash_forced():
+    '''`CONFIGSYS_SPLASH=always` bypasses the "only when there's work" timing gate — the fill shows
+    even on a fast/warm run (to preview it, or just enjoy it). CONFIGSYS_NO_SPLASH still wins.'''
+    import os
+    return os.environ.get('CONFIGSYS_SPLASH', '').lower() in ('always', 'force', '1')
+
+
+class _InspectWorker:
+    '''Runs load_pipeline on a background thread so the main thread can animate the splash while
+    inspection proceeds. Exposes a live 0..1 progress fraction, a done flag, and re-raises any
+    exception from the worker on join (so load errors still surface normally).'''
+
+    def __init__(self, ctx):
+        import threading
+        self.ctx = ctx
+        self._frac = 0.0
+        self._i = 0
+        self._total = 0
+        self._done = threading.Event()
+        self._result = None
+        self._exc = None
+        self._thread = threading.Thread(target=self._work, daemon=True)
+
+    def _sink(self, i, total, *rest):
+        self._i, self._total = i, total
+        self._frac = (i / total) if total else 1.0
+
+    def _work(self):
+        try:
+            self._result = self.ctx.load_pipeline(progress=self._sink)
+        except BaseException as e:          # captured, re-raised on the main thread in join()
+            self._exc = e
+        finally:
+            self._done.set()
+
+    def start(self):
+        self._thread.start()
+        return self
+
+    def wait_settled(self, timeout):
+        '''Block up to `timeout`; return True if inspection is STILL running (→ show the splash).'''
+        return not self._done.wait(timeout)
+
+    def frac(self):
+        return self._frac
+
+    def counts(self):
+        return (self._i, self._total)
+
+    def done(self):
+        return self._done.is_set()
+
+    def join(self):
+        self._done.wait()
+        if self._exc is not None:
+            raise self._exc
+        return self._result
+
+
 def run(ctx):
     '''Entry point used by app.cmd_tui. Returns an exit code.'''
-    cfg, _requested, _units, ledger, states = ctx.load_pipeline()
-    layouts, transitive = _menu_model(cfg)
-    ms = MenuState(states, layouts, transitive)
-    diags = ctx.diagnostics(states)
+    # First-run config generation + the interactive primary-plugin offer must happen on the MAIN
+    # thread, in the normal terminal, BEFORE the worker/curses — it prompts on stdin, which would
+    # collide with the background load and curses init. load_pipeline's own call then no-ops.
+    ctx.ensure_user_config(offer_primary=True)
+    # Inspect on a worker thread; only paint the splash if it's still going after a short beat
+    # ("only when there's work" — a warm/fast run skips straight to the menu), unless forced.
+    worker = _InspectWorker(ctx).start()
+    if not _splash_enabled(ctx):
+        show_splash = False
+    elif _splash_forced():
+        show_splash = True                       # skip the timing gate entirely
+    else:
+        show_splash = worker.wait_settled(SPLASH_THRESHOLD)
 
     with curses_screen() as stdscr:
         ctx.reporter.pause()          # curses owns the screen now; don't stream to stderr
         pal = Palette(ctx.config.theme())
+        if show_splash:
+            import random
+            from .splash import LiquidSplash
+            LiquidSplash(stdscr, pal, random.Random(),
+                         label='checking install state').play(
+                             worker.done, worker.frac, worker.counts)
+        cfg, _requested, _units, ledger, states = worker.join()   # re-raises load errors, if any
+        layouts, transitive = _menu_model(cfg)
+        ms = MenuState(states, layouts, transitive)
+        diags = ctx.diagnostics(states)
         note = ''
         show_diag = False
         diag_top = 0

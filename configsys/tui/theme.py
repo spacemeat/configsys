@@ -271,6 +271,18 @@ class Palette:
     def get(self, name):
         return self.attrs.get(name, curses.A_NORMAL)
 
+    def rgb_attr(self, rgb):
+        '''An attr painting `rgb` as fg over the palette's default background — for ad-hoc
+        colors (the startup splash) that aren't part of the semantic map. Shares the slot/pair
+        allocator + caches, and degrades (init_color -> 256-cube -> basic-8) like everything else,
+        so a whole random gradient costs one pair per distinct color and never overflows fatally.'''
+        return self._pair(self._color(rgb), self.bg)
+
+    def rgb_pair(self, fg_rgb, bg_rgb):
+        '''Like rgb_attr but over an explicit bg colour — e.g. a splash fish/bubble glyph painted
+        over the liquid colour at its depth, instead of the default (black) background.'''
+        return self._pair(self._color(fg_rgb), self._color(bg_rgb))
+
     # -- gradient background ---------------------------------------------
 
     def band(self, y, x, h, w):

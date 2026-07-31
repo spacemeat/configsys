@@ -354,7 +354,7 @@ class Context:
         ok, msg = _bless_primary(self, ans)
         print(f'configsys: {msg}')
 
-    def load_pipeline(self, reuse=None, dirty=None):
+    def load_pipeline(self, reuse=None, dirty=None, progress=None):
         r = self.reporter
         self.ensure_user_config(offer_primary=True)
         cfg = self.config
@@ -379,7 +379,7 @@ class Context:
         ledger = Ledger.load(self.paths)
         states = InstallState(self.runner, ledger, self.paths,
                               pending_vias=self.plugin_pending_vias).inspect(
-            units, progress=self._inspect_progress, reuse=reuse, dirty=dirty)
+            units, progress=(progress or self._inspect_progress), reuse=reuse, dirty=dirty)
         # warnings stream to the console too (errors already did, inline). These need `states`
         # (scope drift) so they land here at the end; the ! page / footer still collect them.
         for d in self.diagnostics(states):

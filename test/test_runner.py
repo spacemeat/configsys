@@ -108,3 +108,24 @@ def test_result_fail_carries_reason_in_stderr():
 def test_can_tee_false_off_tty():
     # under pytest stdin/stdout are not ttys -> tee is disabled (guards the fallback above)
     assert _can_tee() is False
+
+
+def test_run_works_from_a_worker_thread():
+    '''Regression: the startup-splash runs inspection on a background thread, so every command
+    goes through terminal_released off the main thread. signal.signal() raises there, which used
+    to fail EVERY component probe — guard it so a worker-thread run still succeeds.'''
+    import threading
+
+    box = {}
+
+    def work():
+        try:
+            box['res'] = Runner(pretend=False).run('printf ok')
+        except BaseException as e:  # noqa: BLE001 — capture to assert on the main thread
+            box['exc'] = e
+
+    t = threading.Thread(target=work)
+    t.start()
+    t.join()
+    assert 'exc' not in box, f'run() raised off the main thread: {box.get("exc")!r}'
+    assert box['res'].ok and box['res'].stdout.strip() == 'ok'
