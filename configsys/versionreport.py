@@ -90,13 +90,17 @@ class _LatestCache:
 
 def _cached_latest(cache, rc, drv, refresh, now):
     '''get_latest for a method, via the machine-local cache. A cache miss/expiry queries the driver
-    (guarded — a probe failure is just "unknown", never fatal).'''
+    (guarded — a probe failure is just "unknown", never fatal). "Unknown" (None/empty) is NEVER
+    cached, and a cached EMPTY is treated as a miss — so a method whose driver only later learns to
+    report a version (e.g. flatpak gaining get_latest) self-heals on the next read instead of being
+    stuck on a stale blank until the TTL expires.'''
     if not refresh:
         hit = cache.get(rc.key, now, LATEST_TTL)
-        if hit is not None:
-            return hit['version'] or None
+        if hit and hit['version']:
+            return hit['version']
     ver = _safe(drv.get_latest, rc) if drv is not None else None
-    cache.set(rc.key, ver or '', now)
+    if ver:                          # only cache a real answer; retry "unknown" next time
+        cache.set(rc.key, ver, now)
     return ver
 
 

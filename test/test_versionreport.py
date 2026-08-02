@@ -120,6 +120,24 @@ def test_latest_is_cached_between_calls(tmp_path, monkeypatch):
     assert calls['n'] == first                            # apt get_latest not called again
 
 
+def test_unknown_result_is_not_cached_and_self_heals(tmp_path, monkeypatch):
+    # a method that returns None (unknown) must NOT poison the cache — once its driver learns to
+    # report a version, the next read picks it up (no stale blank until the TTL).
+    box = {'latest': None}
+
+    class Learns(_FakeDriver):
+        def get_latest(self, rc):
+            return box['latest']
+
+    _mock_drivers(monkeypatch, {'apt': Learns(), 'source': _FakeDriver(latest='v1.4.7')})
+    ctx = _ctx(tmp_path)
+    rep1 = versionreport.report(ctx, 'btop', now=1000)
+    assert {m.via: m.latest for m in rep1.methods}['native'] is None
+    box['latest'] = '1.5.0'                                # the driver now knows a version
+    rep2 = versionreport.report(ctx, 'btop', now=1000)    # same now: a cached blank would block this
+    assert {m.via: m.latest for m in rep2.methods}['native'] == '1.5.0'
+
+
 def test_unknown_component_raises(tmp_path, monkeypatch):
     from configsys.resolve import ResolveError
     _mock_drivers(monkeypatch, {})
