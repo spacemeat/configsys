@@ -98,6 +98,34 @@ def test_get_version_not_installed():
     assert Flatpak(fr).get_version(fp()) is None
 
 
+_REMOTE_INFO = 'ID: org.mozilla.firefox\nVersion: 4.0.0\nCommit: cafebabe0000\n'
+
+
+def test_get_latest_parses_remote_info_version():
+    fr = FakeRunner([('remote-info --user', 0, _REMOTE_INFO)])
+    assert Flatpak(fr).get_latest(fp()) == '4.0.0'
+
+
+def test_get_latest_falls_back_user_to_system():
+    # the remote can live in both installations; --user failing must not stop us trying --system.
+    fr = FakeRunner([('remote-info --user', 1, 'error'),
+                     ('remote-info --system', 0, _REMOTE_INFO)])
+    assert Flatpak(fr).get_latest(fp()) == '4.0.0'
+    assert any('remote-info --system' in c for c in fr.calls)
+
+
+def test_get_latest_none_without_version_field():
+    # a bare commit hash isn't version-comparable -> None (unlike get_version, which shows it)
+    fr = FakeRunner([('remote-info', 0, 'ID: x\nCommit: deadbeef\n')])
+    assert Flatpak(fr).get_latest(fp()) is None
+
+
+def test_get_latest_none_without_hub():
+    rc = fp()
+    rc.fields.pop('hub')
+    assert Flatpak(FakeRunner([])).get_latest(rc) is None
+
+
 def test_get_version_detects_system_install_under_default_user_scope():
     # regression: chrome installed system-wide must not read as "missing" just
     # because the route defaults to --user. `flatpak info` (no flag) finds either.

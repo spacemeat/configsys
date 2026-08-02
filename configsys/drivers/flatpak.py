@@ -85,8 +85,20 @@ class Flatpak(Driver):
         return (None, None)
 
     def get_latest(self, rc):
-        # Deferred: no cheap local "latest" for flatpak; avoid a network call per
-        # inspect. `flatpak update` resolves latest at upgrade time.
+        # The remote's available version, from `flatpak remote-info` — read from flatpak's LOCAL
+        # appstream metadata (refreshed on `flatpak update`/`flatpak remote-ls`), NOT a live network
+        # fetch, so it's cheap (~10ms) even during inspect. The remote can exist in BOTH the user
+        # and system installations, which makes a bare `remote-info` ambiguous (it prompts) — so
+        # disambiguate with a scope flag; either resolves the same remote metadata. Version only
+        # (a bare commit hash isn't version-comparable); None if unknown locally.
+        hub = rc.fields.get('hub')
+        if not hub:
+            return None
+        app, hubq = shlex.quote(self._appid(rc)), shlex.quote(hub)
+        for flag in ('--user', '--system'):
+            r = self.runner.run(f'flatpak remote-info {flag} {hubq} {app}')
+            if r.ok:
+                return self._parse_field(r.stdout, 'Version') or None
         return None
 
     def is_locked(self, rc):
