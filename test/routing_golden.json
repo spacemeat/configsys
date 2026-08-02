@@ -1032,6 +1032,15 @@
     "name": "gdb-dotfiles"
    }
   },
+  "ghostty": {
+   "pacman\\ghostty": {
+    "driver": "pacman",
+    "fields": {
+     "name": "ghostty"
+    },
+    "name": "ghostty"
+   }
+  },
   "gimp": {
    "flatpak\\gimp": {
     "driver": "flatpak",
@@ -1537,6 +1546,15 @@
      "repo-component": "universe"
     },
     "name": "kicad"
+   }
+  },
+  "kitty": {
+   "pacman\\kitty": {
+    "driver": "pacman",
+    "fields": {
+     "name": "kitty"
+    },
+    "name": "kitty"
    }
   },
   "kotlin": {
@@ -2853,6 +2871,55 @@
     "name": "supercollider"
    }
   },
+  "superfile": {
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.bash.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\superfile-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/superfile.sh",
+     "src": "bash.d/superfile.sh"
+    },
+    "name": "superfile-dotfiles"
+   },
+   "pacman\\superfile": {
+    "driver": "pacman",
+    "fields": {
+     "name": "superfile"
+    },
+    "name": "superfile"
+   }
+  },
+  "superfile-dotfiles": {
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.bash.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\superfile-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/superfile.sh",
+     "src": "bash.d/superfile.sh"
+    },
+    "name": "superfile-dotfiles"
+   }
+  },
   "sway": {
    "pacman\\sway": {
     "driver": "pacman",
@@ -3581,6 +3648,55 @@
      "name": "git"
     },
     "name": "git"
+   }
+  },
+  "yazi": {
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.bash.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\yazi-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/yazi.sh",
+     "src": "bash.d/yazi.sh"
+    },
+    "name": "yazi-dotfiles"
+   },
+   "pacman\\yazi": {
+    "driver": "pacman",
+    "fields": {
+     "name": "yazi"
+    },
+    "name": "yazi"
+   }
+  },
+  "yazi-dotfiles": {
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.bash.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\yazi-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/yazi.sh",
+     "src": "bash.d/yazi.sh"
+    },
+    "name": "yazi-dotfiles"
    }
   },
   "yq": {
@@ -5061,6 +5177,30 @@
     "name": "gdb-dotfiles"
    }
   },
+  "ghostty": {
+   "appImage\\ghostty": {
+    "driver": "appImage",
+    "fields": {
+     "name": "Ghostty",
+     "path": "~/apps/ghostty.appimage",
+     "scope": "user",
+     "version": {
+      "asset": "Ghostty-*-$ARCH.AppImage",
+      "github": "pkgforge-dev/ghostty-appimage",
+      "strip-v": "true"
+     }
+    },
+    "name": "Ghostty"
+   },
+   "apt\\libfuse2": {
+    "driver": "apt",
+    "fields": {
+     "name": "libfuse2",
+     "repo-component": "universe"
+    },
+    "name": "libfuse2"
+   }
+  },
   "gimp": {
    "apt\\flatpak": {
     "driver": "apt",
@@ -5611,6 +5751,15 @@
      "repo-component": "universe"
     },
     "name": "kicad"
+   }
+  },
+  "kitty": {
+   "apt\\kitty": {
+    "driver": "apt",
+    "fields": {
+     "name": "kitty"
+    },
+    "name": "kitty"
    }
   },
   "kotlin": {
@@ -7117,6 +7266,67 @@
     "name": "supercollider"
    }
   },
+  "superfile": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.bash.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\superfile-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/superfile.sh",
+     "src": "bash.d/superfile.sh"
+    },
+    "name": "superfile-dotfiles"
+   },
+   "tarball\\superfile": {
+    "driver": "tarball",
+    "fields": {
+     "installDir": "$CONFIGSYS_APP_DIR/superfile",
+     "name": "superfile",
+     "version": {
+      "asset": "superfile-linux-*-amd64.tar.gz",
+      "github": "yorukot/superfile"
+     }
+    },
+    "name": "superfile"
+   }
+  },
+  "superfile-dotfiles": {
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.bash.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\superfile-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/superfile.sh",
+     "src": "bash.d/superfile.sh"
+    },
+    "name": "superfile-dotfiles"
+   }
+  },
   "sway": {
    "apt\\sway": {
     "driver": "apt",
@@ -7757,6 +7967,60 @@
      "name": "yarn"
     },
     "name": "yarn"
+   }
+  },
+  "yazi": {
+   "apt\\yazi": {
+    "driver": "apt",
+    "fields": {
+     "asset": {
+      "aarch64": "yazi-aarch64-unknown-linux-gnu.deb",
+      "x86_64": "yazi-x86_64-unknown-linux-gnu.deb"
+     },
+     "deb-source": "github:sxyazi/yazi",
+     "name": "yazi"
+    },
+    "name": "yazi"
+   },
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.bash.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\yazi-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/yazi.sh",
+     "src": "bash.d/yazi.sh"
+    },
+    "name": "yazi-dotfiles"
+   }
+  },
+  "yazi-dotfiles": {
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.bash.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\yazi-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/yazi.sh",
+     "src": "bash.d/yazi.sh"
+    },
+    "name": "yazi-dotfiles"
    }
   },
   "yq": {
@@ -9235,6 +9499,30 @@
     "name": "gdb-dotfiles"
    }
   },
+  "ghostty": {
+   "appImage\\ghostty": {
+    "driver": "appImage",
+    "fields": {
+     "name": "Ghostty",
+     "path": "~/apps/ghostty.appimage",
+     "scope": "user",
+     "version": {
+      "asset": "Ghostty-*-$ARCH.AppImage",
+      "github": "pkgforge-dev/ghostty-appimage",
+      "strip-v": "true"
+     }
+    },
+    "name": "Ghostty"
+   },
+   "apt\\libfuse2": {
+    "driver": "apt",
+    "fields": {
+     "name": "libfuse2",
+     "repo-component": "universe"
+    },
+    "name": "libfuse2"
+   }
+  },
   "gimp": {
    "apt\\flatpak": {
     "driver": "apt",
@@ -9775,6 +10063,15 @@
      "repo-component": "universe"
     },
     "name": "kicad"
+   }
+  },
+  "kitty": {
+   "apt\\kitty": {
+    "driver": "apt",
+    "fields": {
+     "name": "kitty"
+    },
+    "name": "kitty"
    }
   },
   "kotlin": {
@@ -11221,6 +11518,67 @@
     "name": "supercollider"
    }
   },
+  "superfile": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.bash.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\superfile-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/superfile.sh",
+     "src": "bash.d/superfile.sh"
+    },
+    "name": "superfile-dotfiles"
+   },
+   "tarball\\superfile": {
+    "driver": "tarball",
+    "fields": {
+     "installDir": "$CONFIGSYS_APP_DIR/superfile",
+     "name": "superfile",
+     "version": {
+      "asset": "superfile-linux-*-amd64.tar.gz",
+      "github": "yorukot/superfile"
+     }
+    },
+    "name": "superfile"
+   }
+  },
+  "superfile-dotfiles": {
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.bash.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\superfile-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/superfile.sh",
+     "src": "bash.d/superfile.sh"
+    },
+    "name": "superfile-dotfiles"
+   }
+  },
   "sway": {
    "apt\\sway": {
     "driver": "apt",
@@ -11861,6 +12219,60 @@
      "name": "yarn"
     },
     "name": "yarn"
+   }
+  },
+  "yazi": {
+   "apt\\yazi": {
+    "driver": "apt",
+    "fields": {
+     "asset": {
+      "aarch64": "yazi-aarch64-unknown-linux-gnu.deb",
+      "x86_64": "yazi-x86_64-unknown-linux-gnu.deb"
+     },
+     "deb-source": "github:sxyazi/yazi",
+     "name": "yazi"
+    },
+    "name": "yazi"
+   },
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.bash.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\yazi-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/yazi.sh",
+     "src": "bash.d/yazi.sh"
+    },
+    "name": "yazi-dotfiles"
+   }
+  },
+  "yazi-dotfiles": {
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.bash.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\yazi-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/yazi.sh",
+     "src": "bash.d/yazi.sh"
+    },
+    "name": "yazi-dotfiles"
    }
   },
   "yq": {
@@ -13094,6 +13506,30 @@
     "name": "gdb-dotfiles"
    }
   },
+  "ghostty": {
+   "appImage\\ghostty": {
+    "driver": "appImage",
+    "fields": {
+     "name": "Ghostty",
+     "path": "~/apps/ghostty.appimage",
+     "scope": "user",
+     "version": {
+      "asset": "Ghostty-*-$ARCH.AppImage",
+      "github": "pkgforge-dev/ghostty-appimage",
+      "strip-v": "true"
+     }
+    },
+    "name": "Ghostty"
+   },
+   "dnf\\libfuse2": {
+    "driver": "dnf",
+    "fields": {
+     "name": "fuse-libs",
+     "repo-component": "universe"
+    },
+    "name": "fuse-libs"
+   }
+  },
   "gimp": {
    "dnf\\flatpak": {
     "driver": "dnf",
@@ -13621,6 +14057,15 @@
      "repo-component": "universe"
     },
     "name": "kicad"
+   }
+  },
+  "kitty": {
+   "dnf\\kitty": {
+    "driver": "dnf",
+    "fields": {
+     "name": "kitty"
+    },
+    "name": "kitty"
    }
   },
   "kotlin": {
@@ -15011,6 +15456,67 @@
     "name": "supercollider"
    }
   },
+  "superfile": {
+   "dnf\\curl": {
+    "driver": "dnf",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.bash.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\superfile-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/superfile.sh",
+     "src": "bash.d/superfile.sh"
+    },
+    "name": "superfile-dotfiles"
+   },
+   "tarball\\superfile": {
+    "driver": "tarball",
+    "fields": {
+     "installDir": "$CONFIGSYS_APP_DIR/superfile",
+     "name": "superfile",
+     "version": {
+      "asset": "superfile-linux-*-amd64.tar.gz",
+      "github": "yorukot/superfile"
+     }
+    },
+    "name": "superfile"
+   }
+  },
+  "superfile-dotfiles": {
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.bash.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\superfile-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/superfile.sh",
+     "src": "bash.d/superfile.sh"
+    },
+    "name": "superfile-dotfiles"
+   }
+  },
   "sway": {
    "dnf\\sway": {
     "driver": "dnf",
@@ -15690,6 +16196,74 @@
      "name": "yarn"
     },
     "name": "yarn"
+   }
+  },
+  "yazi": {
+   "dnf\\curl": {
+    "driver": "dnf",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "dnf\\unzip": {
+    "driver": "dnf",
+    "fields": {
+     "name": "unzip"
+    },
+    "name": "unzip"
+   },
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.bash.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\yazi-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/yazi.sh",
+     "src": "bash.d/yazi.sh"
+    },
+    "name": "yazi-dotfiles"
+   },
+   "tarball\\yazi": {
+    "driver": "tarball",
+    "fields": {
+     "installDir": "$CONFIGSYS_APP_DIR/yazi",
+     "name": "yazi",
+     "version": {
+      "asset": "yazi-$ARCH-unknown-linux-gnu.zip",
+      "github": "sxyazi/yazi"
+     }
+    },
+    "name": "yazi"
+   }
+  },
+  "yazi-dotfiles": {
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.bash.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\yazi-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/yazi.sh",
+     "src": "bash.d/yazi.sh"
+    },
+    "name": "yazi-dotfiles"
    }
   },
   "yq": {
@@ -16949,6 +17523,30 @@
     "name": "gdb-dotfiles"
    }
   },
+  "ghostty": {
+   "appImage\\ghostty": {
+    "driver": "appImage",
+    "fields": {
+     "name": "Ghostty",
+     "path": "~/apps/ghostty.appimage",
+     "scope": "user",
+     "version": {
+      "asset": "Ghostty-*-$ARCH.AppImage",
+      "github": "pkgforge-dev/ghostty-appimage",
+      "strip-v": "true"
+     }
+    },
+    "name": "Ghostty"
+   },
+   "dnf\\libfuse2": {
+    "driver": "dnf",
+    "fields": {
+     "name": "fuse-libs",
+     "repo-component": "universe"
+    },
+    "name": "fuse-libs"
+   }
+  },
   "gimp": {
    "dnf\\flatpak": {
     "driver": "dnf",
@@ -17476,6 +18074,15 @@
      "repo-component": "universe"
     },
     "name": "kicad"
+   }
+  },
+  "kitty": {
+   "dnf\\kitty": {
+    "driver": "dnf",
+    "fields": {
+     "name": "kitty"
+    },
+    "name": "kitty"
    }
   },
   "kotlin": {
@@ -18866,6 +19473,67 @@
     "name": "supercollider"
    }
   },
+  "superfile": {
+   "dnf\\curl": {
+    "driver": "dnf",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.bash.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\superfile-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/superfile.sh",
+     "src": "bash.d/superfile.sh"
+    },
+    "name": "superfile-dotfiles"
+   },
+   "tarball\\superfile": {
+    "driver": "tarball",
+    "fields": {
+     "installDir": "$CONFIGSYS_APP_DIR/superfile",
+     "name": "superfile",
+     "version": {
+      "asset": "superfile-linux-*-amd64.tar.gz",
+      "github": "yorukot/superfile"
+     }
+    },
+    "name": "superfile"
+   }
+  },
+  "superfile-dotfiles": {
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.bash.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\superfile-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/superfile.sh",
+     "src": "bash.d/superfile.sh"
+    },
+    "name": "superfile-dotfiles"
+   }
+  },
   "sway": {
    "dnf\\sway": {
     "driver": "dnf",
@@ -19545,6 +20213,74 @@
      "name": "yarn"
     },
     "name": "yarn"
+   }
+  },
+  "yazi": {
+   "dnf\\curl": {
+    "driver": "dnf",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "dnf\\unzip": {
+    "driver": "dnf",
+    "fields": {
+     "name": "unzip"
+    },
+    "name": "unzip"
+   },
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.bash.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\yazi-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/yazi.sh",
+     "src": "bash.d/yazi.sh"
+    },
+    "name": "yazi-dotfiles"
+   },
+   "tarball\\yazi": {
+    "driver": "tarball",
+    "fields": {
+     "installDir": "$CONFIGSYS_APP_DIR/yazi",
+     "name": "yazi",
+     "version": {
+      "asset": "yazi-$ARCH-unknown-linux-gnu.zip",
+      "github": "sxyazi/yazi"
+     }
+    },
+    "name": "yazi"
+   }
+  },
+  "yazi-dotfiles": {
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.bash.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\yazi-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/yazi.sh",
+     "src": "bash.d/yazi.sh"
+    },
+    "name": "yazi-dotfiles"
    }
   },
   "yq": {
@@ -21052,6 +21788,30 @@
     "name": "gdb-dotfiles"
    }
   },
+  "ghostty": {
+   "appImage\\ghostty": {
+    "driver": "appImage",
+    "fields": {
+     "name": "Ghostty",
+     "path": "~/apps/ghostty.appimage",
+     "scope": "user",
+     "version": {
+      "asset": "Ghostty-*-$ARCH.AppImage",
+      "github": "pkgforge-dev/ghostty-appimage",
+      "strip-v": "true"
+     }
+    },
+    "name": "Ghostty"
+   },
+   "apt\\libfuse2": {
+    "driver": "apt",
+    "fields": {
+     "name": "libfuse2",
+     "repo-component": "universe"
+    },
+    "name": "libfuse2"
+   }
+  },
   "gimp": {
    "apt\\flatpak": {
     "driver": "apt",
@@ -21602,6 +22362,15 @@
      "repo-component": "universe"
     },
     "name": "kicad"
+   }
+  },
+  "kitty": {
+   "apt\\kitty": {
+    "driver": "apt",
+    "fields": {
+     "name": "kitty"
+    },
+    "name": "kitty"
    }
   },
   "kotlin": {
@@ -23101,6 +23870,67 @@
     "name": "supercollider"
    }
   },
+  "superfile": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.bash.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\superfile-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/superfile.sh",
+     "src": "bash.d/superfile.sh"
+    },
+    "name": "superfile-dotfiles"
+   },
+   "tarball\\superfile": {
+    "driver": "tarball",
+    "fields": {
+     "installDir": "$CONFIGSYS_APP_DIR/superfile",
+     "name": "superfile",
+     "version": {
+      "asset": "superfile-linux-*-amd64.tar.gz",
+      "github": "yorukot/superfile"
+     }
+    },
+    "name": "superfile"
+   }
+  },
+  "superfile-dotfiles": {
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.bash.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\superfile-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/superfile.sh",
+     "src": "bash.d/superfile.sh"
+    },
+    "name": "superfile-dotfiles"
+   }
+  },
   "sway": {
    "apt\\sway": {
     "driver": "apt",
@@ -23741,6 +24571,60 @@
      "name": "yarn"
     },
     "name": "yarn"
+   }
+  },
+  "yazi": {
+   "apt\\yazi": {
+    "driver": "apt",
+    "fields": {
+     "asset": {
+      "aarch64": "yazi-aarch64-unknown-linux-gnu.deb",
+      "x86_64": "yazi-x86_64-unknown-linux-gnu.deb"
+     },
+     "deb-source": "github:sxyazi/yazi",
+     "name": "yazi"
+    },
+    "name": "yazi"
+   },
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.bash.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\yazi-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/yazi.sh",
+     "src": "bash.d/yazi.sh"
+    },
+    "name": "yazi-dotfiles"
+   }
+  },
+  "yazi-dotfiles": {
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.bash.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\yazi-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/yazi.sh",
+     "src": "bash.d/yazi.sh"
+    },
+    "name": "yazi-dotfiles"
    }
   },
   "yq": {
@@ -25091,6 +25975,30 @@
     "name": "gdb-dotfiles"
    }
   },
+  "ghostty": {
+   "appImage\\ghostty": {
+    "driver": "appImage",
+    "fields": {
+     "name": "Ghostty",
+     "path": "~/apps/ghostty.appimage",
+     "scope": "user",
+     "version": {
+      "asset": "Ghostty-*-$ARCH.AppImage",
+      "github": "pkgforge-dev/ghostty-appimage",
+      "strip-v": "true"
+     }
+    },
+    "name": "Ghostty"
+   },
+   "dnf\\libfuse2": {
+    "driver": "dnf",
+    "fields": {
+     "name": "fuse-libs",
+     "repo-component": "universe"
+    },
+    "name": "fuse-libs"
+   }
+  },
   "gimp": {
    "dnf\\flatpak": {
     "driver": "dnf",
@@ -25668,6 +26576,15 @@
      "name": "org.kicad.KiCad"
     },
     "name": "org.kicad.KiCad"
+   }
+  },
+  "kitty": {
+   "dnf\\kitty": {
+    "driver": "dnf",
+    "fields": {
+     "name": "kitty"
+    },
+    "name": "kitty"
    }
   },
   "kotlin": {
@@ -27134,6 +28051,67 @@
     "name": "supercollider"
    }
   },
+  "superfile": {
+   "dnf\\curl": {
+    "driver": "dnf",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.bash.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\superfile-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/superfile.sh",
+     "src": "bash.d/superfile.sh"
+    },
+    "name": "superfile-dotfiles"
+   },
+   "tarball\\superfile": {
+    "driver": "tarball",
+    "fields": {
+     "installDir": "$CONFIGSYS_APP_DIR/superfile",
+     "name": "superfile",
+     "version": {
+      "asset": "superfile-linux-*-amd64.tar.gz",
+      "github": "yorukot/superfile"
+     }
+    },
+    "name": "superfile"
+   }
+  },
+  "superfile-dotfiles": {
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.bash.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\superfile-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/superfile.sh",
+     "src": "bash.d/superfile.sh"
+    },
+    "name": "superfile-dotfiles"
+   }
+  },
   "sway": {
    "dnf\\sway": {
     "driver": "dnf",
@@ -27838,6 +28816,74 @@
      "name": "yarn"
     },
     "name": "yarn"
+   }
+  },
+  "yazi": {
+   "dnf\\curl": {
+    "driver": "dnf",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "dnf\\unzip": {
+    "driver": "dnf",
+    "fields": {
+     "name": "unzip"
+    },
+    "name": "unzip"
+   },
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.bash.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\yazi-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/yazi.sh",
+     "src": "bash.d/yazi.sh"
+    },
+    "name": "yazi-dotfiles"
+   },
+   "tarball\\yazi": {
+    "driver": "tarball",
+    "fields": {
+     "installDir": "$CONFIGSYS_APP_DIR/yazi",
+     "name": "yazi",
+     "version": {
+      "asset": "yazi-$ARCH-unknown-linux-gnu.zip",
+      "github": "sxyazi/yazi"
+     }
+    },
+    "name": "yazi"
+   }
+  },
+  "yazi-dotfiles": {
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.bash.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\yazi-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/yazi.sh",
+     "src": "bash.d/yazi.sh"
+    },
+    "name": "yazi-dotfiles"
    }
   },
   "yq": {
@@ -29343,6 +30389,30 @@
     "name": "gdb-dotfiles"
    }
   },
+  "ghostty": {
+   "appImage\\ghostty": {
+    "driver": "appImage",
+    "fields": {
+     "name": "Ghostty",
+     "path": "~/apps/ghostty.appimage",
+     "scope": "user",
+     "version": {
+      "asset": "Ghostty-*-$ARCH.AppImage",
+      "github": "pkgforge-dev/ghostty-appimage",
+      "strip-v": "true"
+     }
+    },
+    "name": "Ghostty"
+   },
+   "apt\\libfuse2": {
+    "driver": "apt",
+    "fields": {
+     "name": "libfuse2",
+     "repo-component": "universe"
+    },
+    "name": "libfuse2"
+   }
+  },
   "gimp": {
    "apt\\flatpak": {
     "driver": "apt",
@@ -29893,6 +30963,15 @@
      "repo-component": "universe"
     },
     "name": "kicad"
+   }
+  },
+  "kitty": {
+   "apt\\kitty": {
+    "driver": "apt",
+    "fields": {
+     "name": "kitty"
+    },
+    "name": "kitty"
    }
   },
   "kotlin": {
@@ -31399,6 +32478,67 @@
     "name": "supercollider"
    }
   },
+  "superfile": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.bash.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\superfile-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/superfile.sh",
+     "src": "bash.d/superfile.sh"
+    },
+    "name": "superfile-dotfiles"
+   },
+   "tarball\\superfile": {
+    "driver": "tarball",
+    "fields": {
+     "installDir": "$CONFIGSYS_APP_DIR/superfile",
+     "name": "superfile",
+     "version": {
+      "asset": "superfile-linux-*-amd64.tar.gz",
+      "github": "yorukot/superfile"
+     }
+    },
+    "name": "superfile"
+   }
+  },
+  "superfile-dotfiles": {
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.bash.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\superfile-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/superfile.sh",
+     "src": "bash.d/superfile.sh"
+    },
+    "name": "superfile-dotfiles"
+   }
+  },
   "sway": {
    "apt\\sway": {
     "driver": "apt",
@@ -32039,6 +33179,60 @@
      "name": "yarn"
     },
     "name": "yarn"
+   }
+  },
+  "yazi": {
+   "apt\\yazi": {
+    "driver": "apt",
+    "fields": {
+     "asset": {
+      "aarch64": "yazi-aarch64-unknown-linux-gnu.deb",
+      "x86_64": "yazi-x86_64-unknown-linux-gnu.deb"
+     },
+     "deb-source": "github:sxyazi/yazi",
+     "name": "yazi"
+    },
+    "name": "yazi"
+   },
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.bash.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\yazi-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/yazi.sh",
+     "src": "bash.d/yazi.sh"
+    },
+    "name": "yazi-dotfiles"
+   }
+  },
+  "yazi-dotfiles": {
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.bash.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\yazi-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/yazi.sh",
+     "src": "bash.d/yazi.sh"
+    },
+    "name": "yazi-dotfiles"
    }
   },
   "yq": {
@@ -33517,6 +34711,30 @@
     "name": "gdb-dotfiles"
    }
   },
+  "ghostty": {
+   "appImage\\ghostty": {
+    "driver": "appImage",
+    "fields": {
+     "name": "Ghostty",
+     "path": "~/apps/ghostty.appimage",
+     "scope": "user",
+     "version": {
+      "asset": "Ghostty-*-$ARCH.AppImage",
+      "github": "pkgforge-dev/ghostty-appimage",
+      "strip-v": "true"
+     }
+    },
+    "name": "Ghostty"
+   },
+   "apt\\libfuse2": {
+    "driver": "apt",
+    "fields": {
+     "name": "libfuse2",
+     "repo-component": "universe"
+    },
+    "name": "libfuse2"
+   }
+  },
   "gimp": {
    "apt\\flatpak": {
     "driver": "apt",
@@ -34057,6 +35275,15 @@
      "repo-component": "universe"
     },
     "name": "kicad"
+   }
+  },
+  "kitty": {
+   "apt\\kitty": {
+    "driver": "apt",
+    "fields": {
+     "name": "kitty"
+    },
+    "name": "kitty"
    }
   },
   "kotlin": {
@@ -35503,6 +36730,67 @@
     "name": "supercollider"
    }
   },
+  "superfile": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.bash.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\superfile-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/superfile.sh",
+     "src": "bash.d/superfile.sh"
+    },
+    "name": "superfile-dotfiles"
+   },
+   "tarball\\superfile": {
+    "driver": "tarball",
+    "fields": {
+     "installDir": "$CONFIGSYS_APP_DIR/superfile",
+     "name": "superfile",
+     "version": {
+      "asset": "superfile-linux-*-amd64.tar.gz",
+      "github": "yorukot/superfile"
+     }
+    },
+    "name": "superfile"
+   }
+  },
+  "superfile-dotfiles": {
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.bash.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\superfile-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/superfile.sh",
+     "src": "bash.d/superfile.sh"
+    },
+    "name": "superfile-dotfiles"
+   }
+  },
   "sway": {
    "apt\\sway": {
     "driver": "apt",
@@ -36143,6 +37431,60 @@
      "name": "yarn"
     },
     "name": "yarn"
+   }
+  },
+  "yazi": {
+   "apt\\yazi": {
+    "driver": "apt",
+    "fields": {
+     "asset": {
+      "aarch64": "yazi-aarch64-unknown-linux-gnu.deb",
+      "x86_64": "yazi-x86_64-unknown-linux-gnu.deb"
+     },
+     "deb-source": "github:sxyazi/yazi",
+     "name": "yazi"
+    },
+    "name": "yazi"
+   },
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.bash.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\yazi-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/yazi.sh",
+     "src": "bash.d/yazi.sh"
+    },
+    "name": "yazi-dotfiles"
+   }
+  },
+  "yazi-dotfiles": {
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.bash.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\yazi-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/yazi.sh",
+     "src": "bash.d/yazi.sh"
+    },
+    "name": "yazi-dotfiles"
    }
   },
   "yq": {

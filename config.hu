@@ -26,6 +26,7 @@
             bash-dotfiles  configsys-dotfiles  git  curl
             fastfetch  fzf  ripgrep  xclip
             htop  btop  tmux  lazygit
+            kitty  ghostty  yazi  superfile
             mononoki-nerd
         ]
         net-tools: [

@@ -184,6 +184,59 @@
             ]
         }
 
+        // --- terminal emulators & TUI file managers ---
+        // kitty: GPU-accelerated terminal emulator, packaged natively across every base repo
+        // (apt/dnf/pacman/zypper/apk all carry `kitty`).
+        kitty: { install: [ { via: native } ] }
+        // ghostty: Zig terminal emulator. The only official native package among our managers is
+        // Arch's (openSUSE dropped it over Zig-version churn, Fedora is COPR-only, Debian is
+        // community-only, and it's absent from Alpine's community repo — name sweep confirmed) — so
+        // native is gated to arch and everywhere else falls back to the community "universal"
+        // AppImage (pkgforge-dev; glibc/fuse2, unpacked under ~/apps). Musl-only boxes (Alpine)
+        // have no verified method, so ghostty simply declines there. The `asset` glob discovers the
+        // real download URL from the GitHub API (no hand-templated url).
+        ghostty: {
+            install: [
+                { via: native  when: "arch" }
+                { via: appImage  name: Ghostty  scope: user
+                  version: { github: pkgforge-dev/ghostty-appimage  strip-v: true  asset: "Ghostty-*-$ARCH.AppImage" }
+                  path: ~/apps/ghostty.appimage }
+            ]
+        }
+        // yazi: Rust TUI file manager. Native on Arch + Homebrew; the upstream ships a real .deb,
+        // so Debian/Ubuntu install it by name via apt (deb-source, like fastfetch) — clean and on
+        // PATH. Elsewhere (Fedora is COPR-only; openSUSE/Alpine/EL absent) the release zip lands
+        // under ~/apps and its companion snippet aliases `yazi`.
+        yazi: {
+            suggests: yazi-dotfiles
+            install: [
+                { via: native  when: "arch" }
+                { via: native  when: "fedora_atomic" }              // brew formula `yazi`
+                { via: native  when: "debian"  deb-source: "github:sxyazi/yazi"
+                  asset: { x86_64: yazi-x86_64-unknown-linux-gnu.deb  aarch64: yazi-aarch64-unknown-linux-gnu.deb } }
+                { via: tarball  installDir: "$CONFIGSYS_APP_DIR/yazi"  requires: [ glibc, unzip ]
+                  version: { github: sxyazi/yazi  asset: "yazi-$ARCH-unknown-linux-gnu.zip" } }
+            ]
+        }
+        yazi-dotfiles: {
+            install: [ { via: dotfiles  requires: bash-dotfiles  src: bash.d/yazi.sh  dst: ~/.bash.d/yazi.sh } ]
+        }
+        // superfile (`spf`): Go TUI file manager. Native on Arch + Homebrew; elsewhere the GitHub
+        // release tarball (its official install.sh sudo-installs and edits shell rc files — the
+        // surprises configsys avoids — so we unpack userland under ~/apps and alias `spf`).
+        superfile: {
+            suggests: superfile-dotfiles
+            install: [
+                { via: native  when: "arch" }
+                { via: native  when: "fedora_atomic" }              // brew formula `superfile`
+                { via: tarball  installDir: "$CONFIGSYS_APP_DIR/superfile"  requires: glibc
+                  version: { github: yorukot/superfile  asset: "superfile-linux-*-amd64.tar.gz" } }
+            ]
+        }
+        superfile-dotfiles: {
+            install: [ { via: dotfiles  requires: bash-dotfiles  src: bash.d/superfile.sh  dst: ~/.bash.d/superfile.sh } ]
+        }
+
         // EPEL: a capability enabled by installing epel-release (only on EL). Anything
         // that `requires: epel` is a no-op off EL (nothing needs it) and pulls this in on EL.
         epel-release: {
