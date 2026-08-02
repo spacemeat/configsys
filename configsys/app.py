@@ -765,12 +765,16 @@ def cmd_where(ctx, args):
               f'(not in routes.hu or your ~/configsys.hu)')
         return 1
 
+    def _fmt_caps(names, versions):
+        # annotate a capability with its version floor when one is declared: `cargo (>=1.96)`
+        return ', '.join(f'{n} ({versions[n]})' if n in versions else n for n in names)
+
     print(f'\n{name}')
     print(f'  defined in  {_source_label(comp, ctx.paths)}')
     if comp.provides:
-        print(f'  provides    {", ".join(comp.provides)}')
+        print(f'  provides    {_fmt_caps(comp.provides, comp.prov_versions)}')
     if comp.requires:
-        print(f'  requires    {", ".join(comp.requires)}')
+        print(f'  requires    {_fmt_caps(comp.requires, comp.req_versions)}')
     pinned = r.pins.get(name)
     if pinned is not None:
         print(f'  pinned      via:{pinned}   (from ~/configsys.hu)')

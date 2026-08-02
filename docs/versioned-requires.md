@@ -175,8 +175,18 @@ already trusted and is the lowest-risk place to introduce the floor syntax.
    machine-locally in `method-versions.hu` with a TTL; installed versions read live). **TUI:** the
    `m` install-method picker now shows each method's version + a "lags" flag and the tip in its
    title, so switching methods is version-informed. Read-only, low risk.
-2. **Authored floors + version-sweep** — provided-version/requirement-floor syntax in route data,
-   plus the sweep that keeps layer 3 honest.
+2. **Authored floors + version-sweep — SHIPPED (machinery).** Versioned `requires:`/`provides:`
+   syntax parses ADDITIVELY: a `{ cap: ">=1.96" }` entry contributes exactly its capability name to
+   the resolver (closure unchanged — golden byte-identical) while its constraint is stored on the
+   Component/Binding (`req_versions`/`prov_versions`) for the sweep + floor-aware resolution.
+   `resolve.cap_names`/`cap_constraints` do the split (component, binding, and driver-level
+   requires). `configsys where` annotates a capability with its floor (`cargo (>=1.96)`). The
+   **version-sweep** (`configsys/versionsweep.py` pure core + `tools/versionsweep.py` CLI, a
+   networked maintenance tool like the name-sweep) checks two things against real per-method
+   versions (via versionreport): **stranded** requirements (a floor no method here can meet) and
+   **dishonest** provides (a method delivering below its claimed floor). *Real floors aren't
+   authored in shipped data yet* — they land in stage 3 with the satisfying bindings, so a floor is
+   never shipped stranded.
 3. **Floor-aware resolution, surface-and-choose** — resolve-time advisory + pin; explicit
    method-replacement flow. Land alongside the first recent-toolchain bindings for an end-to-end demo.
 4. **(Later, opt-in)** monotonic auto-tightening for users who want "just meet the floor."

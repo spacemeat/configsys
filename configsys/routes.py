@@ -10,6 +10,7 @@ import os
 
 from . import layers, predicate
 from .errors import ConfigError, ConfigsysError
+from .resolve import cap_constraints, cap_names
 
 
 class Binding:
@@ -23,6 +24,12 @@ class Binding:
         if self.via is None:
             raise ValueError(f'binding without `via`: {spec}')
         self.details = spec               # everything else (name, app, foreign-arch, ...)
+        # versioned deps declared on THIS binding (stage 2): {cap: constraint} for a binding-level
+        # `requires: [ { cargo: ">=1.96" } ]`, and {cap: floor} for a `provides: { cargo: 1.97 }`
+        # (the version THIS method guarantees). Names still flow through the resolver unchanged
+        # (cap_names); these maps carry the versions for the sweep + floor-aware resolution.
+        self.req_versions = cap_constraints(self.details.get('requires'))
+        self.prov_versions = cap_constraints(self.details.get('provides'))
 
 
 # top-level keys a component may carry; anything else is a typo or a removed construct
@@ -85,9 +92,15 @@ class Component:
         self.shadows = False     # True if more than one layer contributed to this component
         _check_component_keys(name, spec)
         self.name = name
-        self.provides = _as_list(spec.get('provides'))
-        self.requires = _as_list(spec.get('requires'))
-        self.suggests = _as_list(spec.get('suggests'))   # soft deps: pulled if resolvable, else skipped
+        # provides/requires/suggests carry NAMES (resolver closes on these, unchanged) plus, for
+        # any versioned `{ cap: constraint }` entries, a parallel constraint map (stage 2): the
+        # component-level version floors, read by the sweep + floor-aware resolution.
+        self.provides = cap_names(spec.get('provides'))
+        self.prov_versions = cap_constraints(spec.get('provides'))
+        self.requires = cap_names(spec.get('requires'))
+        self.req_versions = cap_constraints(spec.get('requires'))
+        self.suggests = cap_names(spec.get('suggests'))   # soft deps: pulled if resolvable, else skipped
+        self.sug_versions = cap_constraints(spec.get('suggests'))
         self.parts = _as_list(spec.get('parts'))
         # opt-in provider: satisfies a `requires:` only when explicitly wanted (in a profile)
         # or provider-pinned — NEVER auto-pulled to close someone else's requirement. For
@@ -210,7 +223,7 @@ def load(path, overrides_path=None, discovered=(), plugin_files=(), validate=Tru
         components[name] = comp
 
     drvs = layers.merge_dict_section(layer_list, 'drivers', ('repo', 'plugin', 'primary'))
-    drivers = {name: _as_list((spec or {}).get('requires')) for name, spec in drvs.items()}
+    drivers = {name: cap_names((spec or {}).get('requires')) for name, spec in drvs.items()}
     return cascade, components, drivers
 
 

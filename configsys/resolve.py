@@ -34,6 +34,32 @@ def _as_list(v):
     return v if isinstance(v, list) else [v]
 
 
+def cap_names(raw):
+    '''Capability NAMES from a requires/provides/suggests value that may mix bare names with
+    versioned `{ cap: constraint }` maps. Names only — the resolver closes on these UNCHANGED
+    (a versioned entry contributes exactly its capability name); version constraints are read
+    separately via cap_constraints, so adding a floor never alters which units resolve.'''
+    names = []
+    for item in _as_list(raw):
+        if isinstance(item, dict):
+            names.extend(item.keys())
+        else:
+            names.append(item)
+    return names
+
+
+def cap_constraints(raw):
+    '''{ cap: constraint-string } for the versioned entries of a requires/provides/suggests value;
+    {} when none carry a version. The constraint reuses the when:-DSL comparison vocabulary
+    (`>=1.96`, `>1.0`, `=2.0`, and `,`-AND ranges).'''
+    cons = {}
+    for item in _as_list(raw):
+        if isinstance(item, dict):
+            for k, v in item.items():
+                cons[k] = str(v)
+    return cons
+
+
 class Unit:
     '''A resolved leaf: which driver installs it, the component name, and the concrete
     package identifier. Shaped to line up with the old resolver's (driver, comp, name).
@@ -383,14 +409,16 @@ class _State:
         # requires (HARD): method-independent (component) + driver-level + binding-specific.
         # A component's config is just another required component (a `via: dotfiles` one),
         # so it flows through here too — no special-cased dotfiles field.
+        # cap_names extracts the name from a versioned `{ cap: constraint }` entry too, so a floor
+        # never changes what gets required — only the sweep / floor-aware resolution read the version.
         reqs = (list(comp.requires) + list(self.drivers.get(binding.via, []))
-                + _as_list(binding.details.get('requires')))
+                + cap_names(binding.details.get('requires')))
         for cap in reqs:
             self.queue.append((key, name, cap, root, False))
         # suggests (SOFT): pulled in if resolvable in the loaded layers, skipped silently if
         # not — the edge is optional (a package's dotfiles that may live only in a user layer).
         # A suggested component's OWN requires stay hard once it is pulled.
-        for cap in list(comp.suggests) + _as_list(binding.details.get('suggests')):
+        for cap in list(comp.suggests) + cap_names(binding.details.get('suggests')):
             self.queue.append((key, name, cap, root, True))
         return frozenset({key})
 
