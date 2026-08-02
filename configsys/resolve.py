@@ -214,6 +214,24 @@ def resolve_asset(binding, cpu):
     return asset
 
 
+def unit_for_binding(component, binding, cascade, block, overrides=None):
+    '''Build the Unit a SPECIFIC binding would produce — for per-method introspection (the
+    `versions` view: what each install method offers), independent of which one wins. Mirrors the
+    worklist's single-binding construction (driver + name-map/override + install fields); does NOT
+    close requires. Returns None for an aggregator (`parts`) or a component-names drop.'''
+    if binding.via == 'parts':
+        return None
+    drv = _driver(binding, cascade, block)
+    override, drop = _name_override(overrides or {}, drv, component.name)
+    if drop:
+        return None
+    package = override if override is not _NO_OVERRIDE else _package(binding, drv, component)
+    unit = Unit(drv, component.name, package)
+    unit.details = _install_fields(binding.details, unit.package)
+    unit.source = binding.source or component.source
+    return unit
+
+
 def resolve_one(name, cascade, components, block, version=None, cpu=None, overrides=None,
                 preference=None):
     if name not in components:

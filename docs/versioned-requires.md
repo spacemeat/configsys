@@ -168,8 +168,13 @@ already trusted and is the lowest-risk place to introduce the floor syntax.
 
 ## Roadmap (each stage is useful alone and de-risks the next)
 
-1. **Visibility** — `configsys versions` (per-method version + native lag + `--min` filter). Builds
-   the layer-1/2 substrate + machine-local native cache; surfaces drift. Read-only, low risk.
+1. **Visibility — SHIPPED.** `configsys versions <component> [--min V] [--refresh]` lists each
+   candidate method with the version it would install, the newest ("tip"), lag flags, and (with
+   `--min`) which methods meet a floor + the pin to use one. Reusable core in
+   `configsys/versionreport.py` (per-binding `get_latest` via `resolve.unit_for_binding`, cached
+   machine-locally in `method-versions.hu` with a TTL; installed versions read live). **TUI:** the
+   `m` install-method picker now shows each method's version + a "lags" flag and the tip in its
+   title, so switching methods is version-informed. Read-only, low risk.
 2. **Authored floors + version-sweep** — provided-version/requirement-floor syntax in route data,
    plus the sweep that keeps layer 3 honest.
 3. **Floor-aware resolution, surface-and-choose** — resolve-time advisory + pin; explicit

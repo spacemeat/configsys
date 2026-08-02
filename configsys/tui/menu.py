@@ -836,13 +836,29 @@ def _pick_method(stdscr, pal, ms, ctx):
     cands = ctx.routes.candidates(name)
     if len(cands) < 2:
         return False, f'{name}: only one install method available here', None
+    # annotate each method with the version it would install (cached; the first open of a component
+    # may briefly query native/discovery) + a "lags" flag vs the newest available, so the choice is
+    # version-informed. Best-effort: a probe failure just omits versions.
+    vers, tip = {}, None
+    try:
+        from .. import versionreport
+        rep = versionreport.report(ctx, name)
+        vers = {m.via: m for m in rep.methods}
+        tip = rep.tip
+    except Exception:  # noqa: BLE001 — never let a version probe block the picker
+        pass
     options = []
     for c in cands:
-        tag = ' '.join(t for t, on in (('default', c['default']), ('pinned', c['pinned'])) if on)
+        tags = [t for t, on in (('default', c['default']), ('pinned', c['pinned'])) if on]
+        mv = vers.get(c['via'])
+        if mv and mv.lags_tip:
+            tags.append('lags')
+        ver = (mv.latest if mv else None) or '—'
         when = f"  ({c['when']})" if c['when'] else ''
-        options.append((f"via {c['via']}{when}", tag))
+        options.append((f"via {c['via']}{when}   {ver}", ' '.join(tags)))
+    title = f'install method — {name}' + (f'   (tip {tip})' if tip else '')
     start = next((i for i, c in enumerate(cands) if c['pinned'] or c['default']), 0)
-    idx = _popup_choose(stdscr, pal, f'install method — {name}', options, start)
+    idx = _popup_choose(stdscr, pal, title, options, start)
     if idx is None:
         return False, 'method unchanged', None
     chosen = cands[idx]

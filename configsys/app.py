@@ -855,6 +855,58 @@ def cmd_location(ctx, args):
     return 0
 
 
+def cmd_versions(ctx, args):
+    '''Show, per install method, the version it would install for a component — native vs
+    tarball/source/… — with the newest ("tip") lag called out, and (with --min) which methods meet
+    a floor. Read-only. The version each method offers comes from its driver's get_latest (cached
+    machine-locally; --refresh re-queries).'''
+    from .resolve import ResolveError
+    from . import versionreport
+    try:
+        rep = versionreport.report(ctx, args.name, min_version=getattr(args, 'min_version', None),
+                                   refresh=getattr(args, 'refresh', False))
+    except ResolveError as e:
+        print(f'configsys: {e}', file=sys.stderr)
+        return 1
+    if not rep.methods:
+        print(f'configsys: {args.name} has no install method here', file=sys.stderr)
+        return 1
+
+    print(f'\n{rep.name}' + (f'   (tip {rep.tip})' if rep.tip else ''))
+    width = max((len(f'{m.via} ({m.driver})' if m.via == "native" else m.via) for m in rep.methods),
+                default=8)
+    for m in rep.methods:
+        label = f'{m.via} ({m.driver})' if m.via == 'native' else m.via
+        ver = m.latest or '—'
+        tags = []
+        if m.is_pinned:
+            tags.append('pinned')
+        elif m.is_default:
+            tags.append('default')
+        if m.installed:
+            tags.append(f'installed {m.installed}' if m.installed != m.latest else 'installed')
+        if m.lags_tip:
+            tags.append('lags tip')
+        if m.meets_min is True:
+            tags.append(f'meets ≥{rep.min_version}')
+        elif m.meets_min is False:
+            tags.append(f'below ≥{rep.min_version}')
+        suffix = f'   [{", ".join(tags)}]' if tags else ''
+        print(f'  {label:<{width}}  {ver}{suffix}')
+
+    # --min guidance: if the default can't meet the floor but another method can, name the pin.
+    if rep.min_version is not None and rep.default_meets_min is False:
+        alt = [m.via for m in rep.methods if m.meets_min is True]
+        if alt:
+            verb = 'meets' if len(alt) == 1 else 'meet'
+            print(f'\n  the default method is below {rep.min_version}; '
+                  f'`configsys pin set {rep.name} {alt[0]}` to use {alt[0]} '
+                  f'({", ".join(alt)} {verb} it)')
+        else:
+            print(f'\n  no method here meets {rep.min_version}')
+    return 0
+
+
 # -- pin: view / set / promote install-method (and provider) pins ----------
 
 def _validate_pin(ctx, name, value):
@@ -1792,6 +1844,14 @@ def build_parser():
                                          '(honoring scope + pin), for shell snippets')
     lo.add_argument('name', help='component name')
 
+    ve = sub.add_parser('versions', help='show the version each install method would install for a '
+                                         'component (native vs tarball/source/…), with the tip lag')
+    ve.add_argument('name', help='component name')
+    ve.add_argument('--min', dest='min_version', metavar='VERSION',
+                    help='mark which methods meet this minimum version (and how to pin one)')
+    ve.add_argument('--refresh', action='store_true',
+                    help='bypass the cache and re-query each method now')
+
     sub.add_parser('check', help='lint the merged config (repo + ~/configsys.hu) without '
                                  'installing')
 
@@ -2033,6 +2093,7 @@ _COMMANDS = {
     'fix-scope': cmd_fix_scope,
     'where': cmd_where,
     'location': cmd_location,
+    'versions': cmd_versions,
     'check': cmd_check,
     'pin': cmd_pin,
     'plugin': cmd_plugin,
