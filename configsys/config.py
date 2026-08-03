@@ -305,11 +305,80 @@ class Config:
                 out.append(('component', ref))
         return out
 
+    def profile_names(self):
+        '''Every DEFINED profile name across the layer stack, sorted (excludes the synthetic
+        `all`). For listing/editing profiles in the CLI and the TUI Profiles screen.'''
+        return sorted(self._chain)
+
     def profile_source(self, profile):
         '''The file a selected profile's definition came from (provenance), or None. With
         in-place amendment this is the top (amending) layer's file.'''
         chain = self._chain.get(profile)
         return chain[-1][2] if chain else None
+
+    # -- profile EDITING (term-algebra writer support; see plan_membership_edit) --------------
+
+    def layer_index(self, path):
+        '''Index of the loaded layer whose file is `path`, or None. Lets a writer address one
+        layer of the merged stack (the edit target) by its file.'''
+        for i, layer in enumerate(self._layers):
+            if str(layer.path) == str(path):
+                return i
+        return None
+
+    def _own_terms(self, profile, idx):
+        '''The LITERAL term list `profile` declares in the layer at `idx` (raw, that file's own
+        definition — `+self`/`+other`/`~`/bare, unexpanded), or [] if that layer doesn't define it.'''
+        for i, val, _src in self._chain.get(profile, ()):
+            if i == idx:
+                return list(_leaves(val))
+        return []
+
+    def _members_safe(self, profile):
+        try:
+            return self.profile_components(profile)
+        except ConfigError:
+            return []
+
+    def plan_membership_edit(self, profile, comp, action, target_file):
+        '''Compute the new raw term list for `profile` in `target_file` so `comp` becomes a member
+        (`action='add'`) or a non-member (`'remove'`) of the profile's EFFECTIVE set, honoring the
+        term algebra. Pure: returns the new term list to write, or None for a no-op (already in the
+        wanted state, and the target layer need not define the profile). `target_file` is the edit
+        layer (usually the highest-precedence one — your primary or top config); reuses `_expand`
+        to decide whether a component still arrives via `+self`/`+other` after dropping a bare term.'''
+        tidx = self.layer_index(target_file)
+        if tidx is None:
+            raise ConfigError(f'{target_file} is not a loaded config layer')
+        chain = self._chain.get(profile, ())
+        own = self._own_terms(profile, tidx)
+        in_target = any(i == tidx for i, _v, _s in chain)
+        defined_below = any(i < tidx for i, _v, _s in chain)
+        neg = '~' + comp
+        selfinc = '+' + profile          # `+self` is spelled as the profile's OWN name (super/amend)
+
+        def expand(terms):
+            return self._expand(profile, tidx, list(terms), ())
+
+        if action == 'add':
+            if comp in self._members_safe(profile) and neg not in own:
+                return None                                  # already a member; nothing to write
+            base = [t for t in own if t != neg]              # drop a ~comp that was suppressing it
+            if not in_target and defined_below:
+                base = [selfinc] + base                       # inherit the lower def, then amend
+            if comp not in expand(base):
+                base = base + [comp]
+            return base
+
+        # remove
+        if comp not in self._members_safe(profile):
+            return None                                      # already absent
+        if not in_target:
+            return [selfinc, neg] if defined_below else [neg]  # member only from below -> negate here
+        without = [t for t in own if t != comp]              # drop a bare own term if present
+        if comp in expand(without):                          # still arrives via +self/+other include
+            return without if neg in without else without + [neg]
+        return without
 
     def requested(self):
         '''Ordered {component_name: [profiles that requested it]} across active profiles.'''

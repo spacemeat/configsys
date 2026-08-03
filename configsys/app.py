@@ -20,7 +20,7 @@ def _unskip(w):
     '''Drop a leading "skipped " tag from a load-warning for clean display.'''
     return w[len('skipped '):] if w.startswith('skipped ') else w
 from .config import Config
-from .errors import ConfigsysError
+from .errors import ConfigError, ConfigsysError
 from .drivers import get_driver
 from .installState import InstallState
 from .ledger import Ledger
@@ -1928,6 +1928,26 @@ def build_parser():
                                            '(portable to your other machines)')
     pnp.add_argument('component')
 
+    pr = sub.add_parser('profile', help='view or edit profiles: a component\'s membership and '
+                                        'which profiles are active (local, or portable via a primary)')
+    prsub = pr.add_subparsers(dest='profile_command')
+    prsub.add_parser('list', help='profiles, their components, and which are active (default)')
+    prs = prsub.add_parser('show', help="one profile's structure and where it is defined")
+    prs.add_argument('profile')
+    for name, helptext in (('add', 'add a component to a profile'),
+                           ('rm', 'remove a component from a profile')):
+        sp = prsub.add_parser(name, help=helptext)
+        sp.add_argument('profile')
+        sp.add_argument('component')
+        sp.add_argument('--local', action='store_true',
+                        help="write to this machine's top config, not the primary plugin")
+    for name, helptext in (('activate', 'mark a profile active (add it to configs)'),
+                           ('deactivate', 'mark a profile inactive (remove it from configs)')):
+        sp = prsub.add_parser(name, help=helptext)
+        sp.add_argument('profile')
+        sp.add_argument('--local', action='store_true',
+                        help="write to this machine's top config, not the primary plugin")
+
     pl = sub.add_parser('plugin', help='manage plugins: declare/sync, bless or init a personal '
                                        'primary plugin, trust code plugins')
     plsub = pl.add_subparsers(dest='plugin_command')
@@ -2140,9 +2160,84 @@ def cmd_dotfiles_capture(ctx, args):
     return 0
 
 
+def cmd_profile(ctx, args):
+    '''View or edit profiles (component membership + the active `configs:` set). A skin over
+    configsys.actions — the same functions the TUI Profiles screen will call.'''
+    from . import actions
+    sub = getattr(args, 'profile_command', None) or 'list'
+
+    if sub == 'list':
+        cfg = ctx.config
+        active = set(cfg.active_profiles)
+        names = cfg.profile_names()
+        if not names:
+            print('configsys: no profiles defined')
+            return 0
+        for name in names:
+            try:
+                members = cfg.profile_components(name)
+                body = ', '.join(members) if members else '(empty)'
+            except ConfigError as e:
+                body = f'(error: {e})'
+            print(f' {"*" if name in active else " "} {name}\n      {body}')
+        print('\n  * = active. Edit with: configsys profile add|rm|activate|deactivate')
+        return 0
+
+    if sub == 'show':
+        cfg = ctx.config
+        if args.profile not in cfg.profile_names():
+            print(f'configsys: profile {args.profile!r} is not defined', file=sys.stderr)
+            return 1
+        active = args.profile in set(cfg.active_profiles)
+        src = cfg.profile_source(args.profile)
+        print(f'profile {args.profile}   [{"active" if active else "inactive"}]')
+        print(f'  defined in  {_layer_label(src, ctx.paths) if src else "?"}')
+        try:
+            for kind, ref in cfg.profile_layout(args.profile):
+                print(f'    {"+include " if kind == "include" else "component"}  {ref}')
+            members = cfg.profile_components(args.profile)
+            print(f'  expands to ({len(members)}): {", ".join(members) if members else "(empty)"}')
+        except ConfigError as e:
+            print(f'  error: {e}', file=sys.stderr)
+            return 1
+        return 0
+
+    ctx.ensure_user_config()                     # the edit target must exist
+    target = str(ctx.paths.user_config_file) if getattr(args, 'local', False) else None
+
+    if sub in ('add', 'rm'):
+        action = 'add' if sub == 'add' else 'remove'
+        try:
+            changed, label = actions.set_profile_membership(
+                ctx, args.profile, args.component, action, target=target)
+        except ConfigError as e:
+            print(f'configsys: {e}', file=sys.stderr)
+            return 1
+        if changed:
+            verb = 'added to' if action == 'add' else 'removed from'
+            print(f'configsys: {args.component} {verb} profile {args.profile}  (in {label})')
+        else:
+            state = 'already in' if action == 'add' else 'not in'
+            print(f'configsys: no change — {args.component} is {state} {args.profile}')
+        return 0
+
+    if sub in ('activate', 'deactivate'):
+        on = sub == 'activate'
+        changed, label = actions.set_profile_active(ctx, args.profile, on, target=target)
+        if changed:
+            print(f'configsys: profile {args.profile} '
+                  f'{"activated" if on else "deactivated"}  (in {label})')
+        else:
+            print(f'configsys: no change — {args.profile} is already '
+                  f'{"active" if on else "inactive"}')
+        return 0
+    return 0
+
+
 _COMMANDS = {
     'inspect': cmd_inspect,
     'dotfiles': cmd_dotfiles,
+    'profile': cmd_profile,
     'install': cmd_install,
     'remove': cmd_remove,
     'upgrade': cmd_upgrade,

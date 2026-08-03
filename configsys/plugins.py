@@ -481,6 +481,71 @@ def set_pins(config_file, pins):
     set_section(config_file, 'pins', lambda indent: _emit_pins(pins, indent))
 
 
+def _flat(v):
+    '''Flatten a profile/configs value to a flat list of term strings.'''
+    if isinstance(v, list):
+        return [s for x in v for s in _flat(x)]
+    if isinstance(v, dict):
+        return [s for x in v.values() for s in _flat(x)]
+    return [] if v is None else [str(v)]
+
+
+def read_profiles(config_file):
+    '''`{profile: [term, ...]}` from ONE .hu file's own top-level `profiles:` (raw term lists,
+    unexpanded), or {}. For editing a single layer's profiles in place — Config.profile_components
+    gives the MERGED/expanded view instead.'''
+    p = Path(config_file)
+    if not p.exists():
+        return {}
+    data = layers.materialize_string(p.read_text(encoding='utf-8'))
+    profs = data.get('profiles') if isinstance(data, dict) else None
+    if not isinstance(profs, dict):
+        return {}
+    return {name: _flat(val) for name, val in profs.items()}
+
+
+def _emit_profiles(profiles, indent):
+    pad, inner = ' ' * indent, ' ' * (indent + 4)
+    if not profiles:
+        return 'profiles: {}'
+    lines = ['profiles: {']
+    for name, terms in profiles.items():
+        lines.append(f'{inner}{name}: [ {"  ".join(str(t) for t in terms)} ]' if terms
+                     else f'{inner}{name}: []')
+    return '\n'.join(lines + [pad + '}'])
+
+
+def set_profiles(config_file, profiles):
+    '''Rewrite the `profiles:` node of a config/plugin .hu in place (comments OUTSIDE it preserved;
+    inline comments WITHIN the section are re-serialized away, like the pins writer), or remove it
+    when empty. Values are raw term lists.'''
+    if not profiles:
+        remove_sections(config_file, ['profiles'])
+        return
+    set_section(config_file, 'profiles', lambda indent: _emit_profiles(profiles, indent))
+
+
+def read_configs(config_file):
+    '''The active-profile name list from ONE .hu file's top-level `configs:` (scalar or list), or [].'''
+    p = Path(config_file)
+    if not p.exists():
+        return []
+    data = layers.materialize_string(p.read_text(encoding='utf-8'))
+    return _flat(data.get('configs')) if isinstance(data, dict) else []
+
+
+def _emit_configs(names, indent):
+    return f'configs: [ {"  ".join(str(n) for n in names)} ]' if names else 'configs: []'
+
+
+def set_configs(config_file, names):
+    '''Rewrite the `configs:` node in place (or remove it when empty).'''
+    if not names:
+        remove_sections(config_file, ['configs'])
+        return
+    set_section(config_file, 'configs', lambda indent: _emit_configs(names, indent))
+
+
 def config_sections_text(user_config_file, keys):
     '''{key: raw source_text} for the given top-level config keys that are PRESENT — the verbatim
     humon text (comments and all), for copying a user's `profiles:`/`components:` into a plugin.'''
