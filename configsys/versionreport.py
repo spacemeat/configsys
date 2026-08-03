@@ -11,6 +11,7 @@ TTL (`state_dir/method-versions.hu`); `refresh=True` bypasses. Installed version
 are read live — they must be current right after an install/remove.
 '''
 
+import re
 import time
 from dataclasses import dataclass, field
 
@@ -117,10 +118,13 @@ def _safe(fn, rc):
 # stripped (git tags), the Debian revision suffix is already tolerated by parse_version. Where a
 # string won't parse, the method simply abstains from tip/min (shown as-is, not wrongly ranked).
 
+_EPOCH = re.compile(r'^\d+:')     # Debian epoch: `2:1.18~0ubuntu2` -> `1.18~0ubuntu2`
+
+
 def _pv(v):
     if v is None:
         return None
-    s = str(v).strip()
+    s = _EPOCH.sub('', str(v).strip())
     if s[:1] in ('v', 'V') and s[1:2].isdigit():
         s = s[1:]
     return parse_version(s)

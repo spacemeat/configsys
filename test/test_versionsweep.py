@@ -18,6 +18,13 @@ def test_meets_floor_and_range():
     assert vs.meets('3.1', '>=2.0,<3.0') is False
 
 
+def test_meets_strips_debian_epoch():
+    # apt reports go as `2:1.18~0ubuntu2` — the `2:` epoch must not read as go 2.18 and spuriously
+    # beat a 1.x floor; and the `~0ubuntu2` packaging suffix is dropped.
+    assert vs.meets('2:1.18~0ubuntu2', '>=1.25.0') is False
+    assert vs.meets('2:1.26~0ubuntu2', '>=1.25.0') is True
+
+
 def test_meets_abstains_false_on_unparseable():
     assert vs.meets(None, '>=1.0') is False
     assert vs.meets('nightly', '>=1.0') is False           # unverifiable -> treated as NOT met

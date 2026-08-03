@@ -23,6 +23,7 @@ def test_pv_strips_leading_v_and_tolerates_debian_suffix():
     assert versionreport._pv('V2.0') == (2, 0)
     assert versionreport._pv(None) is None
     assert versionreport._pv('nightly') is None           # unparseable -> None (abstain)
+    assert versionreport._pv('2:1.18~0ubuntu2') == (1, 18)  # Debian epoch stripped (not 2.18)
 
 
 def test_ge_lt_abstain_on_unparseable():
