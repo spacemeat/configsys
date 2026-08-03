@@ -258,4 +258,21 @@ stays the common form.
      - Verified live: a `version-floors` floor of cargo ≥1.96 on ripgrep-via-source → "pin rust to
        script (script meets it): `configsys pin set rust script` (rust is installed via native;
        switching won't remove it)".
-4. **(Later, opt-in)** monotonic auto-tightening for users who want "just meet the floor."
+4. **Opt-in auto-tightening — SHIPPED.** The `auto-tighten` machine setting (default OFF). When on,
+   `load_pipeline` runs `flooradvise.tighten_pins` after the first resolve — for each unmet floor
+   with a satisfying method, it auto-pins the provider to that method and RE-RESOLVES
+   (`Resolver.resolve_resilient(extra_pins=…)`, which layers pins on without mutating the resolver).
+   The monotonic step: it only ever moves a provider to a higher-versioned method. **Replacement
+   stays explicit even here** — a provider already INSTALLED via the too-old default method is
+   skipped (it remains an advisory, not an auto-swap). Verified live: on a box with rust installed,
+   auto-tighten yields `{}` and the advisory still fires; the tighten path is unit-tested for the
+   fresh case (`{rust: tarball}`).
+
+## Remaining follow-on (3c)
+
+The advisory/tighten machinery is complete, but a source build that PINS a non-native toolchain
+(rustup cargo, a recent Go) needs that toolchain on `$PATH` for the build command — the `source`
+driver should prepend a `requires:`-d toolchain's bin dir before running `build:` (and a persistent
+`<toolchain>-dotfiles` bash.d snippet for interactive use). This is what makes floor-driven
+selection not just advise/select but actually BUILD. Applies to the shipped rustup binding too
+(`--no-modify-path`). Tracked separately.

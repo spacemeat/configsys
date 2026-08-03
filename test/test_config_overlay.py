@@ -286,6 +286,15 @@ def test_theme_gradient_disable():
     assert cfg(REPO, '{ theme: { gradient: false } }').theme()['gradient'] == {'enabled': False}
 
 
+def test_auto_tighten_off_by_default():
+    assert cfg(REPO).auto_tighten() is False
+
+
+def test_auto_tighten_reads_setting():
+    assert cfg(REPO, '{ auto-tighten: true }').auto_tighten() is True
+    assert cfg(REPO, '{ auto-tighten: false }').auto_tighten() is False
+
+
 def test_theme_absent_is_empty():
     assert cfg(REPO).theme() == {'colors': {}, 'elements': {}, 'gradient': {}, 'splash': None}
 

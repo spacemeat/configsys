@@ -23,20 +23,19 @@ def active_floors(rc, comp):
     return floors
 
 
-def advise(ctx, units):
-    '''[{level, tag, text}] — one advisory per (requiring unit, unmet floor). Surfaced through
-    ctx.diagnostics (inspect / the TUI ! page). Only fires when the provider's default method is
-    DEFINITELY below the floor (an unknown/unparseable provider version abstains — no false alarm).'''
+def _unmet(ctx, units):
+    '''Yield (rc, cap, floor, provider, report, default_method) for each ACTIVE floor whose
+    provider's DEFAULT method is DEFINITELY below the floor. Shared by advise + tighten_pins. An
+    unknown/unparseable provider version abstains (no yield) — never a false positive.'''
     from . import versionreport
     r = ctx.routes
-    out, seen = [], set()
     reports = {}
 
     def rep(name):
         if name not in reports:
             try:
-                reports[name] = versionreport.report(ctx, name)   # per-method versions; no --min
-            except Exception:  # noqa: BLE001 — an unroutable provider just yields no advisory
+                reports[name] = versionreport.report(ctx, name)   # per-method versions
+            except Exception:  # noqa: BLE001 — an unroutable provider just yields nothing
                 reports[name] = None
         return reports[name]
 
@@ -54,18 +53,45 @@ def advise(ctx, units):
                     continue                              # can't verify the default -> no alarm
                 if meets(default.latest, floor):
                     continue                              # the default method meets the floor
-                who = [m.via for m in rp.methods if m.latest and meets(m.latest, floor)]
-                verb = 'meets' if len(who) == 1 else 'meet'
-                fix = (f'pin {provider} to {who[0]} ({", ".join(who)} {verb} it): '
-                       f'`configsys pin set {provider} {who[0]}`') if who else \
-                      f'no install method here meets {cap} {floor}'
-                # method-replacement is explicit, never automatic: if the too-old provider is
-                # already INSTALLED via the default method, switching won't remove that install.
-                replace = (f'  ({provider} is installed via {default.via}; switching won\'t remove '
-                           f'it — remove it after)') if default.installed else ''
-                text = (f'{rc.comp} (via {rc.via}) needs {cap} {floor}, but the default method for '
-                        f'{provider} provides {default.latest}; {fix}{replace}')
-                if text not in seen:
-                    seen.add(text)
-                    out.append({'level': 'warn', 'tag': 'floor', 'text': text})
+                yield rc, cap, floor, provider, rp, default
+
+
+def _who_meets(rp, floor):
+    return [m.via for m in rp.methods if m.latest and meets(m.latest, floor)]
+
+
+def advise(ctx, units):
+    '''[{level, tag, text}] — one advisory per (requiring unit, unmet floor). Surfaced through
+    ctx.diagnostics (inspect / the TUI ! page).'''
+    out, seen = [], set()
+    for rc, cap, floor, provider, rp, default in _unmet(ctx, units):
+        who = _who_meets(rp, floor)
+        verb = 'meets' if len(who) == 1 else 'meet'
+        fix = (f'pin {provider} to {who[0]} ({", ".join(who)} {verb} it): '
+               f'`configsys pin set {provider} {who[0]}`') if who else \
+              f'no install method here meets {cap} {floor}'
+        # method-replacement is explicit, never automatic: if the too-old provider is already
+        # INSTALLED via the default method, switching won't remove that install.
+        replace = (f'  ({provider} is installed via {default.via}; switching won\'t remove '
+                   f'it — remove it after)') if default.installed else ''
+        text = (f'{rc.comp} (via {rc.via}) needs {cap} {floor}, but the default method for '
+                f'{provider} provides {default.latest}; {fix}{replace}')
+        if text not in seen:
+            seen.add(text)
+            out.append({'level': 'warn', 'tag': 'floor', 'text': text})
     return out
+
+
+def tighten_pins(ctx, units):
+    '''{provider: via} to AUTO-select under opt-in `auto-tighten`: a floor-satisfying method for a
+    provider whose default can't meet the floor — but ONLY when the provider isn't already
+    INSTALLED via the default method (replacement stays explicit; those remain advisories). The
+    monotonic-tighten step: it only ever moves a provider to a HIGHER-versioned method.'''
+    pins = {}
+    for _rc, _cap, floor, provider, rp, default in _unmet(ctx, units):
+        if default.installed:                             # a replacement -> never auto
+            continue
+        who = _who_meets(rp, floor)
+        if who and provider not in pins:
+            pins[provider] = who[0]
+    return pins

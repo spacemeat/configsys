@@ -378,6 +378,18 @@ class Context:
         # (self.resolve_errors), not a hard stop — so one bad entry in the active set (e.g.
         # from an auto-activated project profile) can't brick inspect/the TUI.
         units, self.resolve_errors = routes.resolve_resilient(list(requested))
+        if cfg.auto_tighten():
+            # opt-in: auto-select a floor-satisfying method for a provider whose default is too old
+            # (fresh installs only — a replacement of an installed provider stays advisory), then
+            # re-resolve with those pins layered on.
+            from . import flooradvise
+            tighten = flooradvise.tighten_pins(self, list(units.values()))
+            if tighten:
+                units, self.resolve_errors = routes.resolve_resilient(list(requested),
+                                                                       extra_pins=tighten)
+                for prov, via in sorted(tighten.items()):
+                    r.event(report.DEFAULT, f'  auto-tightened {prov} -> via {via} '
+                                            f'(to meet a version floor)')
         for name in sorted(self.resolve_errors or {}):
             r.error(f'{name}: {self.resolve_errors[name]}')
         r.event(report.VERBOSE, f'  resolved {len(requested)} requested -> {len(units)} unit(s)')

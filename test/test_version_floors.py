@@ -44,6 +44,16 @@ def test_later_layer_wins(tmp_path):
     assert _src_binding(r).req_versions['cargo'] == '>=1.96'      # higher layer wins per (comp, cap)
 
 
+def test_resolve_resilient_extra_pins_without_mutating_resolver(tmp_path):
+    # auto-tighten re-resolves with extra pins layered on, leaving the Resolver's own pins intact
+    r = Resolver(ROUTES, 'ubuntu', '24.04', 'x86_64', plugin_files=[_plugin(tmp_path, _SRC + ' }')])
+    default = r.resolve_resilient(['ripgrep'])[0]
+    pinned = r.resolve_resilient(['ripgrep'], extra_pins={'ripgrep': 'source'})[0]
+    assert any(k.startswith('source\\') for k in pinned)          # extra pin took effect
+    assert not any(k.startswith('source\\') for k in default)     # default was native
+    assert r.pins == {}                                           # resolver not mutated
+
+
 def test_resolution_is_unchanged_by_a_floor(tmp_path):
     # the floor adds only version metadata — the resolved unit set must be identical
     plain = Resolver(ROUTES, 'ubuntu', '24.04', 'x86_64', pins={'ripgrep': 'source'},

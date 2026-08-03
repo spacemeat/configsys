@@ -102,6 +102,25 @@ def test_abstains_when_default_version_unknown(monkeypatch):
     assert flooradvise.advise(_Ctx(_comps()), [_src_unit()]) == []
 
 
+def test_tighten_pins_selects_satisfying_method_for_a_fresh_provider(monkeypatch):
+    # auto-tighten (opt-in): a provider whose default is too old + a method that meets it, and the
+    # provider is NOT installed -> auto-pin the satisfying method.
+    _mock(monkeypatch, _rust_report(default_ver='1.75', tarball_ver='1.97', default_installed=None))
+    assert flooradvise.tighten_pins(_Ctx(_comps()), [_src_unit()]) == {'rust': 'tarball'}
+
+
+def test_tighten_pins_skips_installed_provider_replacement(monkeypatch):
+    # the provider is already installed via the too-old default method -> replacement stays
+    # explicit (advisory), NEVER auto-tightened.
+    _mock(monkeypatch, _rust_report(default_ver='1.75', tarball_ver='1.97', default_installed='1.75'))
+    assert flooradvise.tighten_pins(_Ctx(_comps()), [_src_unit()]) == {}
+
+
+def test_tighten_pins_empty_when_default_already_meets(monkeypatch):
+    _mock(monkeypatch, _rust_report(default_ver='1.97', tarball_ver='1.97'))
+    assert flooradvise.tighten_pins(_Ctx(_comps()), [_src_unit()]) == {}
+
+
 def test_active_floors_reads_component_and_winning_binding():
     comps = _comps()
     # via source -> the source binding's cargo floor is active

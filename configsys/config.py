@@ -152,6 +152,15 @@ class Config:
         v = layers.merge_scalar(self._layers, 'driver-preference', _MACHINE_ROLES)
         return _leaves(v) or None
 
+    def auto_tighten(self):
+        '''Opt-in (default off): when true, resolution AUTO-SELECTS a floor-satisfying install
+        method for a provider whose default method can't meet a version floor — the gentoo-ish
+        "just meet the floor" convenience, instead of only advising. A machine setting
+        (repo < primary < user). Replacement of an ALREADY-INSTALLED provider stays explicit even
+        under this (flooradvise.tighten_pins skips those — they remain advisories).'''
+        v = layers.merge_scalar(self._layers, 'auto-tighten', _MACHINE_ROLES)
+        return str(v).strip().lower() in ('true', 'yes', 'on', '1') if v is not None else False
+
     def layer_pins(self, role):
         '''The raw scalar pins from the single layer of this role (repo/primary/user) — for
         editing that one layer's pins and for provenance, distinct from the merged pins().'''
