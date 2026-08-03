@@ -525,25 +525,50 @@ def set_profiles(config_file, profiles):
     set_section(config_file, 'profiles', lambda indent: _emit_profiles(profiles, indent))
 
 
-def read_configs(config_file):
-    '''The active-profile name list from ONE .hu file's top-level `configs:` (scalar or list), or [].'''
+def read_scalar_section(config_file, key):
+    '''The scalar value of a top-level `<key>:` from ONE .hu file (not a list/dict), or None.'''
+    p = Path(config_file)
+    if not p.exists():
+        return None
+    data = layers.materialize_string(p.read_text(encoding='utf-8'))
+    v = data.get(key) if isinstance(data, dict) else None
+    return None if isinstance(v, (dict, list)) else v
+
+
+def set_scalar_section(config_file, key, value):
+    '''Set a top-level scalar `<key>: <value>` in place, or remove the node when `value` is None.'''
+    if value is None:
+        remove_sections(config_file, [key])
+        return
+    set_section(config_file, key, lambda indent: f'{key}: {_scalar(value)}')
+
+
+def read_list_section(config_file, key):
+    '''The flat name list of a top-level `<key>:` (scalar or list) from ONE .hu file, or [].'''
     p = Path(config_file)
     if not p.exists():
         return []
     data = layers.materialize_string(p.read_text(encoding='utf-8'))
-    return _flat(data.get('configs')) if isinstance(data, dict) else []
+    return _flat(data.get(key)) if isinstance(data, dict) else []
 
 
-def _emit_configs(names, indent):
-    return f'configs: [ {"  ".join(str(n) for n in names)} ]' if names else 'configs: []'
+def set_list_section(config_file, key, items):
+    '''Rewrite a top-level list `<key>: [ ... ]` in place, or remove the node when empty.'''
+    if not items:
+        remove_sections(config_file, [key])
+        return
+    set_section(config_file, key,
+                lambda indent: f'{key}: [ {"  ".join(str(i) for i in items)} ]')
+
+
+def read_configs(config_file):
+    '''The active-profile name list from ONE .hu file's top-level `configs:` (scalar or list), or [].'''
+    return read_list_section(config_file, 'configs')
 
 
 def set_configs(config_file, names):
     '''Rewrite the `configs:` node in place (or remove it when empty).'''
-    if not names:
-        remove_sections(config_file, ['configs'])
-        return
-    set_section(config_file, 'configs', lambda indent: _emit_configs(names, indent))
+    set_list_section(config_file, 'configs', names)
 
 
 def config_sections_text(user_config_file, keys):

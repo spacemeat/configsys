@@ -105,6 +105,11 @@ class Config:
         v = layers.merge_scalar(self._layers, 'scope', _MACHINE_ROLES)
         return v if isinstance(v, str) else None
 
+    def ignore_profiles(self):
+        '''Discovered-project profiles NOT to auto-activate (a machine setting; repo < primary <
+        user). The counterpart accessor to configs/scope, for the config editor.'''
+        return _leaves(layers.merge_scalar(self._layers, 'ignore-profiles', _MACHINE_ROLES))
+
     def pins(self):
         '''The effective pin map, merged PER KEY across repo < primary < user (see
         merge_scalar_map): a machine's top config overrides a primary plugin's pins key-by-key

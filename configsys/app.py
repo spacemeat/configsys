@@ -1948,6 +1948,22 @@ def build_parser():
         sp.add_argument('--local', action='store_true',
                         help="write to this machine's top config, not the primary plugin")
 
+    cfp = sub.add_parser('config', help='view or edit machine settings (scope, driver-preference, '
+                                        'auto-tighten, ignore-profiles)')
+    cfsub = cfp.add_subparsers(dest='config_command')
+    cfsub.add_parser('show', help='every machine setting, its value, and what it does (default)')
+    cfg_get = cfsub.add_parser('get', help="print one setting's effective value")
+    cfg_get.add_argument('key')
+    cfg_set = cfsub.add_parser('set', help='set a machine setting')
+    cfg_set.add_argument('key')
+    cfg_set.add_argument('value', nargs='+', help='the value (list settings take several tokens)')
+    cfg_set.add_argument('--local', action='store_true',
+                         help="write to this machine's top config, not the primary plugin")
+    cfg_unset = cfsub.add_parser('unset', help='clear a machine setting')
+    cfg_unset.add_argument('key')
+    cfg_unset.add_argument('--local', action='store_true',
+                           help="write to this machine's top config, not the primary plugin")
+
     pl = sub.add_parser('plugin', help='manage plugins: declare/sync, bless or init a personal '
                                        'primary plugin, trust code plugins')
     plsub = pl.add_subparsers(dest='plugin_command')
@@ -2234,10 +2250,56 @@ def cmd_profile(ctx, args):
     return 0
 
 
+def _fmt_setting_value(kind, val):
+    if kind == 'list':
+        return ' '.join(val) if val else '(unset — built-in default)'
+    if kind == 'bool':
+        return 'true' if val else 'false'
+    return str(val) if val not in (None, '') else '(unset)'
+
+
+def cmd_config(ctx, args):
+    '''View or edit machine settings (scope / driver-preference / auto-tighten / ignore-profiles).
+    A skin over configsys.actions — the same functions the TUI Config screen will call.'''
+    from . import actions
+    sub = getattr(args, 'config_command', None) or 'show'
+    settings = actions.config_settings(ctx)
+
+    if sub == 'show':
+        for key, info in settings.items():
+            print(f'  {key:18} {_fmt_setting_value(info["kind"], info["value"])}')
+            print(f'  {"":18} {info["desc"]}  (see {info["man"]})')
+        print('\n  edit: configsys config set <key> <value>   (--local = this machine only)')
+        return 0
+
+    if sub == 'get':
+        if args.key not in settings:
+            print(f'configsys: unknown setting {args.key!r}', file=sys.stderr)
+            return 1
+        print(_fmt_setting_value(settings[args.key]['kind'], settings[args.key]['value']))
+        return 0
+
+    # set / unset
+    if args.key not in actions.CONFIG_SETTINGS:
+        print(f'configsys: unknown setting {args.key!r} '
+              f'(known: {", ".join(actions.CONFIG_SETTINGS)})', file=sys.stderr)
+        return 1
+    ctx.ensure_user_config()
+    target = str(ctx.paths.user_config_file) if getattr(args, 'local', False) else None
+    values = [] if sub == 'unset' else args.value
+    _changed, label = actions.set_config_setting(ctx, args.key, values, target=target)
+    if sub == 'unset':
+        print(f'configsys: cleared {args.key}  (in {label})')
+    else:
+        print(f'configsys: set {args.key} = {" ".join(args.value)}  (in {label})')
+    return 0
+
+
 _COMMANDS = {
     'inspect': cmd_inspect,
     'dotfiles': cmd_dotfiles,
     'profile': cmd_profile,
+    'config': cmd_config,
     'install': cmd_install,
     'remove': cmd_remove,
     'upgrade': cmd_upgrade,
