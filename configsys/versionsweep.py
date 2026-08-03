@@ -12,24 +12,9 @@ via versionreport (each method's get_latest), so a run reflects THIS machine's r
 Networked + slow -> a maintenance tool, not part of pytest — like the name sweep.
 '''
 
-import re
-
 from . import osversion
 
-_EPOCH = re.compile(r'^\d+:')   # a Debian epoch, e.g. `2:1.18~0ubuntu2` -> `1.18~0ubuntu2`
-
-
-def _pv(v):
-    '''parse_version, normalizing for cross-scheme best-effort compare: strip a Debian epoch
-    (`2:1.18…` would otherwise read as 2.18, spuriously beating a 1.x floor) and a leading `v`
-    (git tags). parse_version then takes the leading numeric run of each dotted token, so a
-    packaging suffix like `~0ubuntu2` is dropped.'''
-    if v is None:
-        return None
-    s = _EPOCH.sub('', str(v).strip())
-    if s[:1] in ('v', 'V') and s[1:2].isdigit():
-        s = s[1:]
-    return osversion.parse_version(s)
+_pv = osversion.parse_loose   # strips a Debian epoch + leading `v` for cross-scheme compare
 
 
 def meets(version, constraint):

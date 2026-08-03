@@ -35,9 +35,16 @@ class ComponentState:
 
     @property
     def outdated(self):
-        return bool(self.present and self.installed_version
-                    and self.latest_version
-                    and self.installed_version != self.latest_version)
+        if not (self.present and self.installed_version and self.latest_version):
+            return False
+        # compare across schemes: an apt version `26.5.6-1` and a github tag `v26.5.6` are the SAME
+        # upstream version — a raw string `!=` would falsely flag it outdated. Normalize both; only
+        # a strictly newer upstream version is "outdated". Unparseable -> conservative string diff.
+        from .osversion import parse_loose
+        li, ll = parse_loose(self.installed_version), parse_loose(self.latest_version)
+        if li is not None and ll is not None:
+            return li < ll
+        return self.installed_version != self.latest_version
 
     @property
     def status(self):

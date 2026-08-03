@@ -1,5 +1,5 @@
 from configsys.componentObj import ResolvedComponent
-from configsys.installState import InstallState
+from configsys.installState import ComponentState, InstallState
 from configsys.ledger import Ledger
 from configsys.runner import Result
 
@@ -52,6 +52,27 @@ def test_outdated():
     ])
     st = InstallState(fr).inspect_one(apt_unit())
     assert st.outdated and st.status == 'outdated'
+
+
+def _state(installed, latest):
+    from configsys.componentObj import ResolvedComponent
+    return ComponentState(
+        component=ResolvedComponent(key='apt\\x', driver='apt', comp='x'),
+        supported=True, present=True, installed_version=installed, latest_version=latest,
+        locked=False, lock_source=None, managed=True, error=None)
+
+
+def test_outdated_normalizes_across_schemes():
+    # regression (yazi): an apt version `26.5.6-1` and a github tag `v26.5.6` are the SAME upstream
+    # version — the Debian revision + `v` prefix must not read as outdated.
+    assert _state('26.5.6-1', 'v26.5.6').outdated is False
+    assert _state('26.5.6-1', 'v26.5.6').status == 'installed'
+    assert _state('2:1.18~0ubuntu2', '1.18').outdated is False       # epoch + suffix
+    # a genuinely newer upstream version still reads outdated
+    assert _state('26.5.6-1', 'v26.5.7').outdated is True
+    # unparseable -> conservative string diff (unchanged behavior)
+    assert _state('nightly', 'stable').outdated is True
+    assert _state('nightly', 'nightly').outdated is False
 
 
 def test_missing():

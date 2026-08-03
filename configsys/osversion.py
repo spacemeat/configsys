@@ -45,6 +45,23 @@ def parse_version(s):
     return tuple(parts) if parts else None
 
 
+_EPOCH = re.compile(r'^\d+:')   # a Debian epoch, e.g. `2:1.18~0ubuntu2`
+
+
+def parse_loose(s):
+    '''parse_version, normalized for comparing versions from DIFFERENT schemes — a distro package
+    version against an upstream git tag. Strips a leading Debian epoch (`2:1.18…` -> `1.18…`, else
+    it reads as 2.18) and a leading `v`/`V` (git tags); parse_version then takes each dotted token's
+    leading digit run, so a Debian revision / packaging suffix (`-1`, `~0ubuntu2`) is dropped. So
+    `v26.5.6` and `26.5.6-1` both parse to (26, 5, 6). None when unparseable.'''
+    if s is None:
+        return None
+    s = _EPOCH.sub('', str(s).strip())
+    if s[:1] in ('v', 'V') and s[1:2].isdigit():
+        s = s[1:]
+    return parse_version(s)
+
+
 def split_qualifier(block_key):
     '''"ubuntu@<23.04" -> ("ubuntu", "<23.04"); "ubuntu" -> ("ubuntu", None).'''
     base, sep, qual = block_key.partition('@')

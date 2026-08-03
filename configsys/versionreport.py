@@ -11,14 +11,13 @@ TTL (`state_dir/method-versions.hu`); `refresh=True` bypasses. Installed version
 are read live — they must be current right after an install/remove.
 '''
 
-import re
 import time
 from dataclasses import dataclass, field
 
 from .adapt import to_resolved_component
 from .drivers import get_driver
 from .errors import ConfigError
-from .osversion import parse_version
+from .osversion import parse_loose
 from .resolve import ResolveError, candidate_bindings, select_binding, unit_for_binding
 from .troveio import emit_hu, load
 
@@ -112,22 +111,12 @@ def _safe(fn, rc):
         return None
 
 
-# -- version comparison (reuse the when:-DSL parser; unparseable -> abstain) ----------------------
-# NOTE: comparison is best-effort across versioning schemes — a distro version ("1.2.3-2") and an
-# upstream tag ("v1.4.7") are compared on their leading numeric components. A leading `v`/`V` is
-# stripped (git tags), the Debian revision suffix is already tolerated by parse_version. Where a
-# string won't parse, the method simply abstains from tip/min (shown as-is, not wrongly ranked).
+# -- version comparison ---------------------------------------------------------------------------
+# Best-effort across versioning schemes (a distro version "1.2.3-2" vs an upstream tag "v1.4.7"):
+# osversion.parse_loose strips a Debian epoch + leading `v` and takes each token's leading digits.
+# Where a string won't parse, the method abstains from tip/min (shown as-is, not wrongly ranked).
 
-_EPOCH = re.compile(r'^\d+:')     # Debian epoch: `2:1.18~0ubuntu2` -> `1.18~0ubuntu2`
-
-
-def _pv(v):
-    if v is None:
-        return None
-    s = _EPOCH.sub('', str(v).strip())
-    if s[:1] in ('v', 'V') and s[1:2].isdigit():
-        s = s[1:]
-    return parse_version(s)
+_pv = parse_loose
 
 
 def _ge(a, b):
