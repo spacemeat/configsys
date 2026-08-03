@@ -1161,6 +1161,8 @@ def _input_box(stdscr, pal, title, initial=''):
             if ch in (curses.KEY_BACKSPACE, 127, 8):
                 if buf:
                     buf.pop()
+            elif ch == 21:                       # Ctrl-U: clear the line (replace a prefilled value)
+                buf = []
             elif 32 <= ch < 127:
                 buf.append(chr(ch))
     finally:
@@ -1269,6 +1271,74 @@ def _draw_config(stdscr, pal, cs, ctx, note, screen):
     stdscr.refresh()
 
 
+# -- Theme editor (sub-screen of Config) ----------------------------------
+class ThemeScreen:
+    '''Live per-role color editor over the `theme:` section. Each edit writes via
+    actions.set_theme_value; the caller re-instantiates the Palette so the whole TUI (this editor
+    included) redraws in the new colors — instant preview.'''
+    def __init__(self, ctx):
+        self.ctx = ctx
+        self.cur = 0
+        self.top = 0
+        from .theme import SEMANTIC, GRAD_A, GRAD_B, SEL_BG
+        self.roles = [('colors', name, name, rgb) for name, rgb in SEMANTIC.items()]
+        self.roles += [('gradient', k, f'gradient {k}', d) for k, d in
+                       (('from', GRAD_A), ('to', GRAD_B), ('selected', SEL_BG))]
+        self.reload()
+
+    def reload(self):
+        self.theme = self.ctx.config.theme()
+
+    def override(self, role):
+        cat, key, _label, _default = role
+        node = self.theme.get(cat)
+        return node.get(key) if isinstance(node, dict) else None
+
+    def rgb(self, role):
+        from .theme import parse_color
+        ov = self.override(role)
+        if ov:
+            try:
+                return parse_color(ov)
+            except Exception:                       # noqa: BLE001 — bad value -> show default
+                pass
+        return role[3]
+
+
+def _hex(rgb):
+    return '#%02x%02x%02x' % (rgb[0], rgb[1], rgb[2])
+
+
+def _draw_theme(stdscr, pal, ts, ctx, note, screen):
+    stdscr.erase()
+    h, w = stdscr.getmaxyx()
+    if pal.gradient:
+        _fill_bg(stdscr, pal, h, w)
+    _draw_nav(stdscr, pal, 'config', h, w)
+    it, il, ih, iw = _panel(stdscr, pal, 1, 0, h - 3, w, 'theme editor — live preview', True, h, w)
+    ts.reload()
+    ts.top = _scroll_top(ts.cur, ts.top, ih, len(ts.roles))
+    for vis, i in enumerate(range(ts.top, min(len(ts.roles), ts.top + ih))):
+        role, y = ts.roles[i], it + vis
+        sel = i == ts.cur
+        rgb = ts.rgb(role)
+        if sel:
+            _put(stdscr, y, il, ' ' * iw, pal.fill(y, il, h, w, selected=True))
+        _put(stdscr, y, il + 1, '█████', pal.rgb_attr(rgb))       # live swatch in the role's color
+        tag = '  (override)' if ts.override(role) is not None else ''
+        _put(stdscr, y, il + 8, _fit(f'{role[2]:20} {_hex(rgb)}{tag}', iw - 8),
+             pal.style('label' if sel else 'component', y, il + 8, h, w, selected=sel))
+    from .. import actions
+    status = f' edits → {actions.edit_target(ctx)[1]}'
+    if note:
+        status += f'    {note}'
+    navf = (' j/k move · enter set hex · r reset · s save theme · L load theme · t back'
+            ' · 1-5 screens · q quit ')
+    _put(stdscr, h - 2, 0, _fit(status, w), pal.style('status_line', h - 2, 0, h, w))
+    _put(stdscr, h - 1, 0, _fit(navf.ljust(w), w), pal.style('footer', h - 1, 0, h, w))
+    stdscr.refresh()
+
+
 def run(ctx):
     '''Entry point used by app.cmd_tui. Returns an exit code.'''
     # First-run config generation + the interactive primary-plugin offer must happen on the MAIN
@@ -1304,6 +1374,7 @@ def run(ctx):
         screen = 'components'
         ps = None                                 # ProfileScreen, built lazily on first visit
         cs = None                                 # ConfigScreen, built lazily on first visit
+        ts = None                                 # ThemeScreen (sub-screen of Config)
         menu_dirty = False                        # a profile/config edit -> rebuild the Components tree
         pending_report = None                     # a component whose op failed this session
         pending_notes = []                         # messages saved for after the TUI exits
@@ -1318,6 +1389,10 @@ def run(ctx):
                 if cs is None:
                     cs = ConfigScreen(ctx)
                 _draw_config(stdscr, pal, cs, ctx, note, screen)
+            elif screen == 'theme':
+                if ts is None:
+                    ts = ThemeScreen(ctx)
+                _draw_theme(stdscr, pal, ts, ctx, note, screen)
             else:
                 diag_top = _draw(stdscr, pal, ms, ctx, note, diags, False, diag_top, screen)
             note = ''
@@ -1416,6 +1491,8 @@ def run(ctx):
                     cs.cur = 0
                 elif ch == ord('G'):
                     cs.cur = max(0, len(cs.keys) - 1)
+                elif ch == ord('t'):
+                    screen = 'theme'
                 elif ch in (ord(' '), ord('\n'), curses.KEY_ENTER):
                     key = cs.keys[cs.cur]
                     info = cs.settings[key]
@@ -1457,6 +1534,58 @@ def run(ctx):
                                 menu_dirty = True
                     except Exception as e:  # noqa: BLE001 — surface, don't crash
                         note = f'edit failed: {e}'
+                continue
+
+            # -- Theme editor (sub-screen of Config); edits re-instantiate pal for live preview --
+            if screen == 'theme':
+                from .. import actions
+                if ch in (ord('j'), curses.KEY_DOWN):
+                    ts.cur = min(len(ts.roles) - 1, ts.cur + 1)
+                elif ch in (ord('k'), curses.KEY_UP):
+                    ts.cur = max(0, ts.cur - 1)
+                elif ch == ord('g'):
+                    ts.cur = 0
+                elif ch == ord('G'):
+                    ts.cur = max(0, len(ts.roles) - 1)
+                elif ch == ord('t'):
+                    screen = 'config'
+                elif ch in (ord(' '), ord('\n'), curses.KEY_ENTER):
+                    role = ts.roles[ts.cur]
+                    new = _input_box(stdscr, pal, f'{role[2]}  (#rrggbb)', _hex(ts.rgb(role)))
+                    if new and new.strip():
+                        actions.set_theme_value(ctx, f'{role[0]}.{role[1]}', new.strip())
+                        pal = Palette(ctx.config.theme())          # live preview
+                        note = f'{role[2]} = {new.strip()}'
+                elif ch == ord('r'):
+                    role = ts.roles[ts.cur]
+                    actions.set_theme_value(ctx, f'{role[0]}.{role[1]}', None)   # drop override
+                    pal = Palette(ctx.config.theme())
+                    note = f'{role[2]} reset to default'
+                elif ch == ord('s'):
+                    name = _input_box(stdscr, pal, 'save current theme as plugin — name', '')
+                    if name and name.strip():
+                        name = name.strip()
+                        _pdir, existed = actions.save_theme_plugin(ctx, name)
+                        if existed:
+                            idx = _popup_choose(stdscr, pal, f'{name} exists — overwrite?',
+                                                [('overwrite', ''), ('cancel', '')], 1)
+                            if idx == 0:
+                                actions.save_theme_plugin(ctx, name, force=True)
+                                note = f'saved {name} (overwritten)'
+                            else:
+                                note = 'save cancelled'
+                        else:
+                            note = f'saved theme plugin {name}'
+                elif ch == ord('L'):
+                    names = actions.theme_plugins(ctx)
+                    if names:
+                        idx = _popup_choose(stdscr, pal, 'load theme', [(n, '') for n in names], 0)
+                        if idx is not None:
+                            actions.load_theme(ctx, names[idx])
+                            pal = Palette(ctx.config.theme())
+                            note = f'loaded {names[idx]}'
+                    else:
+                        note = 'no theme plugins saved yet (s to save one)'
                 continue
 
             # -- Components screen --
