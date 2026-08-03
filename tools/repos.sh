@@ -9,9 +9,11 @@
 #                               and any staged/unstaged/untracked files                (read-only)
 #   tools/repos.sh push         push each repo's current branch to origin
 #   tools/repos.sh tag | tag-patch | tag-minor | tag-major
-#                               bump the latest vX.Y.Z tag (patch / minor+reset / major+reset) and
-#                               `git push --tags`. ONLY touches repos that ALREADY have a vX.Y.Z tag
-#                               — a still-tagless repo (e.g. configsys pre-1.0) is left alone.
+#                               bump the latest vX.Y.Z tag (patch / minor+reset / major+reset), then
+#                               push the BRANCH and the new tag together (so the tag lands on a commit
+#                               that's actually on origin's branch, not one reachable only via the
+#                               tag). Skips a repo with no commits since its latest tag, and any repo
+#                               with no tag yet (configsys stays tagless until 1.0).
 #
 # Every mode prints the status report first, so you see the state before anything is pushed/tagged.
 set -uo pipefail
@@ -121,7 +123,7 @@ do_push() {
 }
 
 do_tag() {
-  local repo=$1 tag new n
+  local repo=$1 tag new n br
   tag=$(latest_tag "$repo")
   [ -n "$tag" ] || { printf '    %sskip — no existing tags%s\n' "$DIM" "$RST"; return; }
   # nothing to tag if there are no commits since the latest tag
@@ -131,16 +133,19 @@ do_tag() {
   if g "$repo" rev-parse -q --verify "refs/tags/$new" >/dev/null 2>&1; then
     printf '    %sskip — %s already exists%s\n' "$YEL" "$new" "$RST"; return
   fi
-  # a release tag on unpushed commits is usually a mistake — warn, but proceed (the tag push carries them)
-  if up=$(g "$repo" rev-parse --abbrev-ref --symbolic-full-name '@{upstream}' 2>/dev/null); then
-    a=$(g "$repo" rev-list --count "${up}..HEAD" 2>/dev/null)
-    [ "${a:-0}" -gt 0 ] && printf '    %snote — %s commit(s) not on %s yet (consider: repos.sh push)%s\n' "$YEL" "$a" "$up" "$RST"
-  fi
+  br=$(g "$repo" symbolic-ref --short -q HEAD) || br=''
   printf '    tagging %s -> %s\n' "$tag" "$new"
-  if g "$repo" tag "$new" && g "$repo" push origin --tags; then
-    printf '    %sok%s\n' "$GRN" "$RST"
+  g "$repo" tag "$new" || { printf '    %sFAILED (tag)%s\n' "$RED" "$RST"; return; }
+  # Push the BRANCH together with the tag. A tags-only push transfers the tagged commit's OBJECTS
+  # (so the tag isn't dangling) but does NOT advance origin's branch — leaving main BEHIND the tag,
+  # with the commit reachable only via the tag. Pushing both keeps the tag on origin's mainline.
+  if [ -n "$br" ]; then
+    if g "$repo" push origin "$br" "refs/tags/$new"; then printf '    %sok — pushed %s + %s%s\n' "$GRN" "$br" "$new" "$RST"
+    else printf '    %sFAILED (push %s + %s)%s\n' "$RED" "$br" "$new" "$RST"; fi
   else
-    printf '    %sFAILED%s\n' "$RED" "$RST"
+    printf '    %snote — detached HEAD: %s would not be on any branch%s\n' "$YEL" "$new" "$RST"
+    if g "$repo" push origin "refs/tags/$new"; then printf '    %sok — pushed %s%s\n' "$GRN" "$new" "$RST"
+    else printf '    %sFAILED (push %s)%s\n' "$RED" "$new" "$RST"; fi
   fi
 }
 
