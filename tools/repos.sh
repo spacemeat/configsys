@@ -108,17 +108,25 @@ report() {
 
 # -- actions -------------------------------------------------------------------------------------
 do_push() {
-  local repo=$1 br
+  local repo=$1 br up a
   g "$repo" remote get-url origin >/dev/null 2>&1 || { printf '    %sskip — no origin%s\n' "$YEL" "$RST"; return; }
   br=$(g "$repo" symbolic-ref --short -q HEAD) || { printf '    %sskip — detached HEAD%s\n' "$YEL" "$RST"; return; }
+  # nothing to push if the branch isn't ahead of its upstream
+  if up=$(g "$repo" rev-parse --abbrev-ref --symbolic-full-name '@{upstream}' 2>/dev/null); then
+    a=$(g "$repo" rev-list --count "${up}..HEAD" 2>/dev/null); a=${a:-0}
+    [ "$a" -eq 0 ] && { printf '    %sskip — up to date with %s%s\n' "$DIM" "$up" "$RST"; return; }
+  fi
   printf '    pushing %s -> origin\n' "$br"
   if g "$repo" push origin "$br"; then printf '    %sok%s\n' "$GRN" "$RST"; else printf '    %sFAILED%s\n' "$RED" "$RST"; fi
 }
 
 do_tag() {
-  local repo=$1 tag new
+  local repo=$1 tag new n
   tag=$(latest_tag "$repo")
   [ -n "$tag" ] || { printf '    %sskip — no existing tags%s\n' "$DIM" "$RST"; return; }
+  # nothing to tag if there are no commits since the latest tag
+  n=$(g "$repo" rev-list --count "${tag}..HEAD" 2>/dev/null); n=${n:-0}
+  [ "$n" -eq 0 ] && { printf '    %sskip — no commits since %s%s\n' "$DIM" "$tag" "$RST"; return; }
   new=$(bump "$tag" "$kind") || { printf '    %sskip — unparseable tag %s%s\n' "$YEL" "$tag" "$RST"; return; }
   if g "$repo" rev-parse -q --verify "refs/tags/$new" >/dev/null 2>&1; then
     printf '    %sskip — %s already exists%s\n' "$YEL" "$new" "$RST"; return
