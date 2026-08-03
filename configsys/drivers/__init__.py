@@ -1,6 +1,7 @@
 '''drivers — registry of install-medium implementations.
 
-Ships the native managers (apt, dnf, pacman, aur) plus tarball, flatpak,
+Ships the native managers (apt, dnf, pacman, aur) plus tarball, native-pkg-file
+(install an upstream release's .deb/.rpm/pkg with the OS package tool), flatpak,
 appImage, dotfiles, font, cargo, brew, pip, pipx, rpm-ostree, the
 gcc/clang/gcc-toolset toolchains, and the post-install primitives service
 (systemd) and group (usermod). An unregistered driver name still returns None
@@ -25,6 +26,7 @@ from .gcc_toolset import GccToolset
 from .go_install import GoInstall
 from .group import Group
 from .luarocks import LuaRocks
+from .native_pkg_file import NativePkgFile
 from .npm import Npm
 from .opam import Opam
 from .pacman import Pacman
@@ -46,6 +48,7 @@ _REGISTRY = {
     Aur.name: Aur,
     Brew.name: Brew,
     Tarball.name: Tarball,
+    NativePkgFile.name: NativePkgFile,
     Flatpak.name: Flatpak,
     AppImage.name: AppImage,
     DotFiles.name: DotFiles,

@@ -99,6 +99,8 @@ Drivers are defined in code (configsys/drivers/) behind a uniform op set: get_ve
 get_latest, is_locked, install, uninstall, upgrade, set_version, lock, unlock, location. apt
 has various commands for these; as does flatpak, etc. Each `via:` value names a Driver 1:1
 (the OS package managers apt, dnf, pacman, aur, zypper, apk, brew, rpm-ostree; tarball,
+native-pkg-file [install an upstream release's .deb/.rpm/pkg file with the OS package tool — a
+distinct opt-in method from repo `native`, since it doesn't ride `apt upgrade`],
 flatpak, appImage, dotfiles, font, script [declared install/version/uninstall commands],
 `source` [declarative build-from-a-git-checkout-or-archive]; the language toolchains and their
 module installers cargo, pip, pipx, npm, gem, opam, luarocks, cabal, go-install, gcc,

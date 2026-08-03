@@ -8,7 +8,6 @@ lock via apt-mark hold/unhold. Mutating ops run under sudo and stream their outp
 import shlex
 
 from ..driver import Driver
-from ..runner import Result
 
 
 class Apt(Driver):
@@ -99,34 +98,11 @@ class Apt(Driver):
             return r.stdout.strip().splitlines()[0].strip()
         return None
 
-    # -- deb mode (a tool shipping an official .deb, not in the apt repos) -
-
-    @staticmethod
-    def _is_deb(rc):
-        '''deb-mode: a `deb-source` (github:owner/repo) marks a tool that ships an
-        official .deb rather than living in the apt repos.'''
-        return 'deb-source' in rc.fields
-
-    def _deb_spec(self, rc):
-        '''The github version-discovery spec for the .deb: `deb-source` + the cpu-keyed
-        `asset` (this arch's file). Returns None if not a github .deb.'''
-        src = rc.fields.get('deb-source')
-        if isinstance(src, str) and src.startswith('github:'):
-            asset = rc.fields.get('asset')
-            if isinstance(asset, dict):
-                asset = asset.get(self.arch())
-            return {'github': src.split(':', 1)[1], 'asset': asset}
-        return None
-
-    def _disco_spec(self, rc):
-        # a deb builds its discovery spec from deb-source; otherwise the base version spec.
-        return self._deb_spec(rc) or super()._disco_spec(rc)
+    # -- read: available version ------------------------------------------
+    # (A tool that ships an upstream .deb rather than living in the apt repos is its own via:
+    # native-pkg-file — see drivers/native_pkg_file.py. apt is just the distro repos.)
 
     def get_latest(self, rc):
-        # a deb-mode component isn't in the apt repos; its latest is the version
-        # discovery spec (e.g. the github release the .deb comes from)
-        if self._is_deb(rc):
-            return self.resolve_version(rc)
         pkg = shlex.quote(rc.name)
         r = self.runner.run(f'apt-cache policy {pkg}')
         if not r.ok:
@@ -144,23 +120,8 @@ class Apt(Driver):
 
     # -- mutate -----------------------------------------------------------
 
-    def _install_deb(self, rc):
-        '''Install a .deb downloaded from a release (the version-spec `asset`, via the
-        authoritative github URL), letting apt resolve its dependencies. For tools not
-        in the apt repos but shipping an official .deb (e.g. fastfetch on Ubuntu).'''
-        version = self.resolve_version(rc) or ''
-        url = self.download_url(rc, version)
-        if not url:
-            return Result(f'(apt: no .deb url resolved for {rc.comp})', 1)
-        tmp = f'/tmp/configsys-{rc.comp}.deb'
-        cmd = (f'curl -fSL {shlex.quote(url)} -o {shlex.quote(tmp)} && '
-               f'apt-get install -y {shlex.quote(tmp)} && rm -f {shlex.quote(tmp)}')
-        return self.runner.run(cmd, sudo=True, capture=False)
-
     def install(self, rc):
         self.ensure_prereqs(rc)
-        if self._is_deb(rc):
-            return self._install_deb(rc)
         pkg = shlex.quote(rc.name)
         return self.runner.run(f'apt-get install -y {pkg}', sudo=True, capture=False)
 
@@ -170,16 +131,12 @@ class Apt(Driver):
 
     def upgrade(self, rc):
         self.ensure_prereqs(rc)
-        if self._is_deb(rc):
-            return self._install_deb(rc)   # re-fetch the latest release .deb
         pkg = shlex.quote(rc.name)
         return self.runner.run(f'apt-get install --only-upgrade -y {pkg}',
                                sudo=True, capture=False)
 
     def set_version(self, rc, version):
         self.ensure_prereqs(rc)
-        if self._is_deb(rc):
-            return self._install_deb(rc)   # the .deb tracks the discovered version
         pkg = shlex.quote(rc.name)
         ver = shlex.quote(version)
         return self.runner.run(

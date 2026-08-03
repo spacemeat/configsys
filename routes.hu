@@ -194,16 +194,17 @@
                   path: ~/apps/ghostty.appimage }
             ]
         }
-        // yazi: Rust TUI file manager. Native on Arch + Homebrew; the upstream ships a real .deb,
-        // so Debian/Ubuntu install it by name via apt (deb-source, like fastfetch) — clean and on
-        // PATH. Elsewhere (Fedora is COPR-only; openSUSE/Alpine/EL absent) the release zip lands
-        // under ~/apps and its companion snippet aliases `yazi`.
+        // yazi: Rust TUI file manager. Native on Arch + Homebrew; upstream ships a real .deb, so on
+        // Debian/Ubuntu (not in-repo) install that via the OS package tool — clean and on PATH.
+        // Elsewhere (Fedora is COPR-only; openSUSE/Alpine/EL absent) the release zip lands under
+        // ~/apps and its companion snippet aliases `yazi`.
         yazi: {
             suggests: yazi-dotfiles
             install: [
                 { via: native  when: "arch" }
                 { via: native  when: "fedora_atomic" }              // brew formula `yazi`
-                { via: native  when: "debian"  deb-source: "github:sxyazi/yazi"
+                { via: native-pkg-file  when: "debian"
+                  version: { github: sxyazi/yazi }
                   asset: { x86_64: yazi-x86_64-unknown-linux-gnu.deb  aarch64: yazi-aarch64-unknown-linux-gnu.deb } }
                 { via: tarball  installDir: "$CONFIGSYS_APP_DIR/yazi"  requires: [ glibc, unzip ]
                   version: { github: sxyazi/yazi  asset: "yazi-$ARCH-unknown-linux-gnu.zip" } }
@@ -1145,10 +1146,16 @@
         // --- github .deb where no repo has it, native package elsewhere (cpu-keyed asset) ---
         fastfetch: {
             install: [
-                { via: native  when: "debian"  deb-source: "github:fastfetch-cli/fastfetch"
+                // Debian/Ubuntu don't carry fastfetch in-repo (absent through 22.04/24.04/bookworm),
+                // but upstream ships an official .deb — install THAT via the OS package tool. It's a
+                // distinct, opt-in method from `native` (it doesn't ride `apt upgrade`); here it's the
+                // debian-family default because there is no repo package to prefer. (Relax the bare
+                // `native` gate below to a version bound once debian-family broadly ships it in-repo.)
+                { via: native-pkg-file  when: "debian"
+                  version: { github: fastfetch-cli/fastfetch }
                   asset: { x86_64: fastfetch-linux-amd64.deb  aarch64: fastfetch-linux-aarch64.deb } }
                 { via: native  when: "rhel"  requires: epel }   // EL ships fastfetch in EPEL
-                { via: native }
+                { via: native  when: "not debian" }             // arch/fedora/suse/... carry it in-repo
             ]
         }
 

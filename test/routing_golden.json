@@ -4883,15 +4883,17 @@
    }
   },
   "fastfetch": {
-   "apt\\fastfetch": {
-    "driver": "apt",
+   "native-pkg-file\\fastfetch": {
+    "driver": "native-pkg-file",
     "fields": {
      "asset": {
       "aarch64": "fastfetch-linux-aarch64.deb",
       "x86_64": "fastfetch-linux-amd64.deb"
      },
-     "deb-source": "github:fastfetch-cli/fastfetch",
-     "name": "fastfetch"
+     "name": "fastfetch",
+     "version": {
+      "github": "fastfetch-cli/fastfetch"
+     }
     },
     "name": "fastfetch"
    }
@@ -7970,18 +7972,6 @@
    }
   },
   "yazi": {
-   "apt\\yazi": {
-    "driver": "apt",
-    "fields": {
-     "asset": {
-      "aarch64": "yazi-aarch64-unknown-linux-gnu.deb",
-      "x86_64": "yazi-x86_64-unknown-linux-gnu.deb"
-     },
-     "deb-source": "github:sxyazi/yazi",
-     "name": "yazi"
-    },
-    "name": "yazi"
-   },
    "dotfiles\\bash-dotfiles": {
     "driver": "dotfiles",
     "fields": {
@@ -8000,6 +7990,20 @@
      "src": "bash.d/yazi.sh"
     },
     "name": "yazi-dotfiles"
+   },
+   "native-pkg-file\\yazi": {
+    "driver": "native-pkg-file",
+    "fields": {
+     "asset": {
+      "aarch64": "yazi-aarch64-unknown-linux-gnu.deb",
+      "x86_64": "yazi-x86_64-unknown-linux-gnu.deb"
+     },
+     "name": "yazi",
+     "version": {
+      "github": "sxyazi/yazi"
+     }
+    },
+    "name": "yazi"
    }
   },
   "yazi-dotfiles": {
@@ -9205,15 +9209,17 @@
    }
   },
   "fastfetch": {
-   "apt\\fastfetch": {
-    "driver": "apt",
+   "native-pkg-file\\fastfetch": {
+    "driver": "native-pkg-file",
     "fields": {
      "asset": {
       "aarch64": "fastfetch-linux-aarch64.deb",
       "x86_64": "fastfetch-linux-amd64.deb"
      },
-     "deb-source": "github:fastfetch-cli/fastfetch",
-     "name": "fastfetch"
+     "name": "fastfetch",
+     "version": {
+      "github": "fastfetch-cli/fastfetch"
+     }
     },
     "name": "fastfetch"
    }
@@ -12222,18 +12228,6 @@
    }
   },
   "yazi": {
-   "apt\\yazi": {
-    "driver": "apt",
-    "fields": {
-     "asset": {
-      "aarch64": "yazi-aarch64-unknown-linux-gnu.deb",
-      "x86_64": "yazi-x86_64-unknown-linux-gnu.deb"
-     },
-     "deb-source": "github:sxyazi/yazi",
-     "name": "yazi"
-    },
-    "name": "yazi"
-   },
    "dotfiles\\bash-dotfiles": {
     "driver": "dotfiles",
     "fields": {
@@ -12252,6 +12246,20 @@
      "src": "bash.d/yazi.sh"
     },
     "name": "yazi-dotfiles"
+   },
+   "native-pkg-file\\yazi": {
+    "driver": "native-pkg-file",
+    "fields": {
+     "asset": {
+      "aarch64": "yazi-aarch64-unknown-linux-gnu.deb",
+      "x86_64": "yazi-x86_64-unknown-linux-gnu.deb"
+     },
+     "name": "yazi",
+     "version": {
+      "github": "sxyazi/yazi"
+     }
+    },
+    "name": "yazi"
    }
   },
   "yazi-dotfiles": {
@@ -21494,15 +21502,17 @@
    }
   },
   "fastfetch": {
-   "apt\\fastfetch": {
-    "driver": "apt",
+   "native-pkg-file\\fastfetch": {
+    "driver": "native-pkg-file",
     "fields": {
      "asset": {
       "aarch64": "fastfetch-linux-aarch64.deb",
       "x86_64": "fastfetch-linux-amd64.deb"
      },
-     "deb-source": "github:fastfetch-cli/fastfetch",
-     "name": "fastfetch"
+     "name": "fastfetch",
+     "version": {
+      "github": "fastfetch-cli/fastfetch"
+     }
     },
     "name": "fastfetch"
    }
@@ -24574,18 +24584,6 @@
    }
   },
   "yazi": {
-   "apt\\yazi": {
-    "driver": "apt",
-    "fields": {
-     "asset": {
-      "aarch64": "yazi-aarch64-unknown-linux-gnu.deb",
-      "x86_64": "yazi-x86_64-unknown-linux-gnu.deb"
-     },
-     "deb-source": "github:sxyazi/yazi",
-     "name": "yazi"
-    },
-    "name": "yazi"
-   },
    "dotfiles\\bash-dotfiles": {
     "driver": "dotfiles",
     "fields": {
@@ -24604,6 +24602,20 @@
      "src": "bash.d/yazi.sh"
     },
     "name": "yazi-dotfiles"
+   },
+   "native-pkg-file\\yazi": {
+    "driver": "native-pkg-file",
+    "fields": {
+     "asset": {
+      "aarch64": "yazi-aarch64-unknown-linux-gnu.deb",
+      "x86_64": "yazi-x86_64-unknown-linux-gnu.deb"
+     },
+     "name": "yazi",
+     "version": {
+      "github": "sxyazi/yazi"
+     }
+    },
+    "name": "yazi"
    }
   },
   "yazi-dotfiles": {
@@ -30095,15 +30107,17 @@
    }
   },
   "fastfetch": {
-   "apt\\fastfetch": {
-    "driver": "apt",
+   "native-pkg-file\\fastfetch": {
+    "driver": "native-pkg-file",
     "fields": {
      "asset": {
       "aarch64": "fastfetch-linux-aarch64.deb",
       "x86_64": "fastfetch-linux-amd64.deb"
      },
-     "deb-source": "github:fastfetch-cli/fastfetch",
-     "name": "fastfetch"
+     "name": "fastfetch",
+     "version": {
+      "github": "fastfetch-cli/fastfetch"
+     }
     },
     "name": "fastfetch"
    }
@@ -33182,18 +33196,6 @@
    }
   },
   "yazi": {
-   "apt\\yazi": {
-    "driver": "apt",
-    "fields": {
-     "asset": {
-      "aarch64": "yazi-aarch64-unknown-linux-gnu.deb",
-      "x86_64": "yazi-x86_64-unknown-linux-gnu.deb"
-     },
-     "deb-source": "github:sxyazi/yazi",
-     "name": "yazi"
-    },
-    "name": "yazi"
-   },
    "dotfiles\\bash-dotfiles": {
     "driver": "dotfiles",
     "fields": {
@@ -33212,6 +33214,20 @@
      "src": "bash.d/yazi.sh"
     },
     "name": "yazi-dotfiles"
+   },
+   "native-pkg-file\\yazi": {
+    "driver": "native-pkg-file",
+    "fields": {
+     "asset": {
+      "aarch64": "yazi-aarch64-unknown-linux-gnu.deb",
+      "x86_64": "yazi-x86_64-unknown-linux-gnu.deb"
+     },
+     "name": "yazi",
+     "version": {
+      "github": "sxyazi/yazi"
+     }
+    },
+    "name": "yazi"
    }
   },
   "yazi-dotfiles": {
@@ -34417,15 +34433,17 @@
    }
   },
   "fastfetch": {
-   "apt\\fastfetch": {
-    "driver": "apt",
+   "native-pkg-file\\fastfetch": {
+    "driver": "native-pkg-file",
     "fields": {
      "asset": {
       "aarch64": "fastfetch-linux-aarch64.deb",
       "x86_64": "fastfetch-linux-amd64.deb"
      },
-     "deb-source": "github:fastfetch-cli/fastfetch",
-     "name": "fastfetch"
+     "name": "fastfetch",
+     "version": {
+      "github": "fastfetch-cli/fastfetch"
+     }
     },
     "name": "fastfetch"
    }
@@ -37434,18 +37452,6 @@
    }
   },
   "yazi": {
-   "apt\\yazi": {
-    "driver": "apt",
-    "fields": {
-     "asset": {
-      "aarch64": "yazi-aarch64-unknown-linux-gnu.deb",
-      "x86_64": "yazi-x86_64-unknown-linux-gnu.deb"
-     },
-     "deb-source": "github:sxyazi/yazi",
-     "name": "yazi"
-    },
-    "name": "yazi"
-   },
    "dotfiles\\bash-dotfiles": {
     "driver": "dotfiles",
     "fields": {
@@ -37464,6 +37470,20 @@
      "src": "bash.d/yazi.sh"
     },
     "name": "yazi-dotfiles"
+   },
+   "native-pkg-file\\yazi": {
+    "driver": "native-pkg-file",
+    "fields": {
+     "asset": {
+      "aarch64": "yazi-aarch64-unknown-linux-gnu.deb",
+      "x86_64": "yazi-x86_64-unknown-linux-gnu.deb"
+     },
+     "name": "yazi",
+     "version": {
+      "github": "sxyazi/yazi"
+     }
+    },
+    "name": "yazi"
    }
   },
   "yazi-dotfiles": {

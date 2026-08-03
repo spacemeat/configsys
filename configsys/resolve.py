@@ -94,7 +94,7 @@ class Unit:
 # OS block may override it (`driver-preference:` in the os: layer). Native-first is conventional;
 # drivers absent from the list are least-preferred and tie among themselves (a tie is an error,
 # not a silent guess). snap/source are listed ahead of their drivers existing — harmless.
-DEFAULT_DRIVER_PREFERENCE = ['native', 'flatpak', 'snap', 'appImage', 'tarball', 'source', 'script']
+DEFAULT_DRIVER_PREFERENCE = ['native', 'flatpak', 'snap', 'native-pkg-file', 'appImage', 'tarball', 'source', 'script']
 
 
 def _matching(component, context, pins):
