@@ -126,8 +126,10 @@
         python3-pip: { install: [ { via: native  name: { pacman: python-pip  zypper: python313-pip  apk: py3-pip } } ] }
         // EL keeps these in EPEL, base repos everywhere else — same two-binding shape as btop.
         // `repo-component: universe` is the apt archive area (read only by apt; ignored on dnf/pacman).
-        ripgrep: { install: [ { via: native  when: "rhel"  requires: epel } { via: native  repo-component: universe } ] }
-        fzf:     { install: [ { via: native  when: "rhel"  requires: epel } { via: native  repo-component: universe } ] }
+        ripgrep: { description: "Fast recursive regex search (`rg`) — grep, but much quicker."
+                   install: [ { via: native  when: "rhel"  requires: epel } { via: native  repo-component: universe } ] }
+        fzf:     { description: "Fuzzy finder — interactive filtering for files, history, anything piped in."
+                   install: [ { via: native  when: "rhel"  requires: epel } { via: native  repo-component: universe } ] }
         xclip:   { suggests: xclip-dotfiles
                    install: [ { via: native  when: "rhel"  requires: epel } { via: native  repo-component: universe } ] }
         xclip-dotfiles: { install: [ { via: dotfiles  requires: bash-dotfiles  src: bash.d/xclip.sh  dst: ~/.bash.d/xclip.sh } ] }
@@ -135,6 +137,7 @@
         // btop lives in EPEL on EL (needs epel enabled), base repos everywhere else.
         // Two native bindings: the EL one adds `requires: epel`; both are dnf\btop.
         btop: {
+            description: "System-resource monitor — CPU/mem/net/disk in a colorful TUI."
             install: [
                 { via: native  when: "rhel"  requires: epel }
                 { via: native  repo-component: universe }
@@ -161,12 +164,14 @@
 
         // --- shells & terminal multiplexers ---
         // tmux/zsh/fish are packaged under the same name in every distro's base repos.
-        tmux: { install: [ { via: native } ] }
+        tmux: { description: "Terminal multiplexer — split panes and detachable sessions."
+                install: [ { via: native } ] }
         zsh:  { install: [ { via: native } ] }
         fish: { install: [ { via: native } ] }
         // nushell isn't in Debian/Ubuntu/Fedora base repos; native where it is (Arch, Homebrew),
         // else the upstream glibc release tarball (ships `nu` + its plugins).
         nushell: {
+            description: "A shell whose pipelines carry structured data, not just text (`nu`)."
             install: [
                 { via: native  when: "arch" }
                 { via: native  when: "fedora_atomic" }              // brew formula `nushell`
@@ -199,6 +204,7 @@
         // Elsewhere (Fedora is COPR-only; openSUSE/Alpine/EL absent) the release zip lands under
         // ~/apps and its companion snippet aliases `yazi`.
         yazi: {
+            description: "Blazing-fast terminal file manager with image previews."
             suggests: yazi-dotfiles
             install: [
                 { via: native  when: "arch" }
@@ -217,6 +223,7 @@
         // release tarball (its official install.sh sudo-installs and edits shell rc files — the
         // surprises configsys avoids — so we unpack userland under ~/apps and alias `spf`).
         superfile: {
+            description: "Modern terminal file manager (`spf`) with a pretty TUI."
             suggests: superfile-dotfiles
             install: [
                 { via: native  when: "arch" }
@@ -473,7 +480,8 @@
         tshark:     { install: [ { via: native  name: { dnf: wireshark-cli  pacman: wireshark-cli  zypper: wireshark } } ] }   // CLI capture; ships as wireshark-cli on dnf/pacman, tshark on apt
         tcpdump:    { install: [ { via: native } ] }
         nmap:       { install: [ { via: native } ] }
-        mtr:        { install: [ { via: native } ] }
+        mtr:        { description: "Live network diagnostic — ping + traceroute in one display."
+                      install: [ { via: native } ] }
         traceroute: { install: [ { via: native } ] }
         iperf3:     { install: [ { via: native  name: { zypper: iperf  default: iperf3 } } ] }
         socat:      { install: [ { via: native } ] }
@@ -492,7 +500,8 @@
         // Web/HTTP dev — httpie + jq native (httpie via EPEL on EL); yq/mitmproxy isolated via
         // pipx; xh/websocat are Rust crates.
         httpie:    { install: [ { via: native  when: "rhel"  requires: epel } { via: native } ] }   // the `http`/`https` CLI
-        jq:        { install: [ { via: native } ] }
+        jq:        { description: "Command-line JSON processor — query and transform JSON."
+                     install: [ { via: native } ] }
         yq:        { requires: jq                                                                    // the jq-family yq (yq/xq/tomlq) — shells out to jq at runtime; NOT mikefarah's Go yq
                      install: [ { via: pipx  name: yq  version: { pypi: yq } } ] }
         mitmproxy: { install: [ { via: pipx  name: mitmproxy  version: { pypi: mitmproxy } } ] }
@@ -768,6 +777,7 @@
         // GitHub release, unpacked under ~/apps/lazygit (scope-honoring). Its bash.d snippet
         // aliases `lazygit` to that binary when present (a no-op where it's native on PATH).
         lazygit: {
+            description: "Terminal UI for git — stage, commit, branch, rebase visually."
             suggests: lazygit-dotfiles
             install: [
                 { via: native  when: "arch" }                        // not in Fedora repos -> tarball there
@@ -900,6 +910,7 @@
         // lazydocker's asset embeds the version (github asset discovery, like lazygit); lazysql
         // and k9s have stable asset names, so they use github's API-free latest/download URL.
         lazydocker: {
+            description: "Terminal UI for Docker/Compose — containers, logs, stats."
             install: [ { via: tarball  installDir: "$CONFIGSYS_APP_DIR/lazydocker"  requires: glibc
                          version: { github: jesseduffield/lazydocker  strip-v: true  asset: "lazydocker_*_Linux_x86_64.tar.gz" } } ]
         }
@@ -908,6 +919,7 @@
                          url: "https://github.com/jorgerojas26/lazysql/releases/latest/download/lazysql_Linux_x86_64.tar.gz" } ]
         }
         k9s: {
+            description: "Terminal UI to navigate and manage Kubernetes clusters."
             install: [
                 { via: native  when: "arch" }
                 { via: native  when: "fedora_atomic" }             // brew formula `k9s`
@@ -1145,6 +1157,7 @@
 
         // --- github .deb where no repo has it, native package elsewhere (cpu-keyed asset) ---
         fastfetch: {
+            description: "System info fetcher — the logo + specs banner (neofetch-style)."
             install: [
                 // Debian/Ubuntu don't carry fastfetch in-repo (absent through 22.04/24.04/bookworm),
                 // but upstream ships an official .deb — install THAT via the OS package tool. It's a

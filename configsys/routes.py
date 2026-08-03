@@ -34,9 +34,10 @@ class Binding:
 
 # top-level keys a component may carry; anything else is a typo or a removed construct
 # (e.g. the old inline `dotfiles:` node) and must fail loudly, not vanish silently.
-_COMPONENT_KEYS = frozenset({'provides', 'requires', 'suggests', 'parts', 'install', 'opt-in'})
+_COMPONENT_KEYS = frozenset({'provides', 'requires', 'suggests', 'parts', 'install', 'opt-in',
+                             'description'})
 # the non-`install` fields, which merge with inheritance (a layer that omits one keeps the lower).
-_COMPONENT_FIELDS = ('provides', 'requires', 'suggests', 'parts', 'opt-in')
+_COMPONENT_FIELDS = ('provides', 'requires', 'suggests', 'parts', 'opt-in', 'description')
 
 
 def _check_component_keys(name, spec):
@@ -107,6 +108,9 @@ class Component:
         # best-effort/caveated providers (e.g. gcompat, a glibc shim) that shouldn't be
         # chosen silently. See resolve.py `_satisfy`.
         self.opt_in = _truthy(spec.get('opt-in'))
+        # optional one-line human description (names can be esoteric); shown in the TUI. Empty if
+        # unset — populated incrementally in routes.hu/plugins.
+        self.description = str(spec.get('description') or '')
         self.bindings = [Binding(b) for b in (spec.get('install') or [])]
 
 

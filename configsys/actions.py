@@ -61,8 +61,8 @@ def set_profile_active(ctx, profile, on, *, target=None):
 # key -> (kind, one-line descriptor, man page). The single source of truth the CLI and the TUI
 # Config screen both read, so both describe each setting identically (docs/tui-screens-plan.md C1).
 CONFIG_SETTINGS = {
-    'scope':             ('scalar', 'Default install scope: user (~) or system (/opt, needs sudo).',
-                          'configsys(1)'),
+    'scope':             ('scalar', 'Default install scope: user (~, the default when unset) or '
+                                    'system (/opt, needs sudo).', 'configsys(1)'),
     'driver-preference': ('list',   'Order ties between equally-valid install methods break in.',
                           'configsys(1)'),
     'auto-tighten':      ('bool',   'Auto-pick a floor-satisfying install method instead of only '

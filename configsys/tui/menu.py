@@ -1062,9 +1062,11 @@ def _draw_profiles(stdscr, pal, ps, ctx, note, screen):
 
     top, body_h = 1, h - 3
     lw = max(20, w // 3)
+    rleft, rw = lw + 1, w - lw - 1
     prof = ps.cur_profile()
     members = ps.members(prof)
 
+    # LEFT: profiles (full height)
     lit, lil, lih, liw = _panel(stdscr, pal, top, 0, body_h, lw, 'profiles',
                                 ps.focus == 'left', h, w)
     ps.ltop = _scroll_top(ps.lcur, ps.ltop, lih, len(ps.profiles))
@@ -1076,7 +1078,29 @@ def _draw_profiles(stdscr, pal, ps, ctx, note, screen):
         _put(stdscr, y, lil, _fit(f'{"●" if name in ps.active else "○"} {name}', liw),
              pal.style('profile', y, lil, h, w, selected=sel))
 
-    rit, ril, rih, riw = _panel(stdscr, pal, top, lw + 1, body_h, w - lw - 1,
+    # RIGHT TOP: detail for the highlighted component (names are esoteric) — description + methods
+    cur = ps.catalog[ps.rcur] if ps.catalog and 0 <= ps.rcur < len(ps.catalog) else None
+    desc_h = 7 if body_h >= 12 else 0
+    if desc_h:
+        dit, dil, dih, diw = _panel(stdscr, pal, top, rleft, desc_h, rw, 'component', False, h, w)
+        if cur:
+            comp = ctx.routes.components.get(cur)
+            _put(stdscr, dit, dil, _fit(cur, diw), pal.style('label', dit, dil, h, w))
+            desc = (comp.description if comp else '') or '(no description yet)'
+            for k, line in enumerate(_wrap(desc, diw)[:dih - 2]):
+                _put(stdscr, dit + 1 + k, dil, _fit(line, diw), pal.style('info', dit + 1 + k, dil, h, w))
+            try:
+                cands = ctx.routes.candidates(cur)
+            except Exception:                       # noqa: BLE001
+                cands = []
+            mtext = ('methods: ' + '  '.join(c['via'] + ('*' if c['default'] else '') for c in cands)
+                     if cands else 'methods: (not available on this OS)')
+            _put(stdscr, dit + dih - 1, dil, _fit(mtext, diw),
+                 pal.style('info_dim', dit + dih - 1, dil, h, w))
+
+    # RIGHT BOTTOM: the component catalog
+    ctop, cath = top + desc_h, body_h - desc_h
+    rit, ril, rih, riw = _panel(stdscr, pal, ctop, rleft, cath, rw,
                                 f'components — in "{prof}"' if prof else 'components',
                                 ps.focus == 'right', h, w)
     ps.rtop = _scroll_top(ps.rcur, ps.rtop, rih, len(ps.catalog))
@@ -1090,8 +1114,7 @@ def _draw_profiles(stdscr, pal, ps, ctx, note, screen):
              pal.style(elem, y, ril, h, w, selected=sel))
 
     from .. import actions
-    tgt = actions.edit_target(ctx)[1]
-    status = f' profile: {prof or "—"}    edits → {tgt}'
+    status = f' profile: {prof or "—"}    edits → {actions.edit_target(ctx)[1]}'
     if note:
         status += f'    {note}'
     navf = (' j/k move · h/l or tab focus · space toggle membership · a (de)activate profile'
@@ -1147,7 +1170,53 @@ def _input_box(stdscr, pal, title, initial=''):
             pass
 
 
-def _setting_str(kind, val):
+def _order_list(stdscr, pal, title, items):
+    '''Reorder modal: j/k move the cursor; `space` grabs/drops the current item; while grabbed, j/k
+    move THE ITEM up/down. Enter commits (returns the new order), Esc cancels (None).'''
+    items = list(items)
+    h, w = stdscr.getmaxyx()
+    box_w = min(max(len(title) + 4, 46), max(24, w - 2))
+    box_h = min(len(items) + 5, max(7, h - 2))
+    y0, x0 = max(0, (h - box_h) // 2), max(0, (w - box_w) // 2)
+    border = pal.get('accent') | curses.A_BOLD
+    sel, grabbed = 0, False
+    while True:
+        _put(stdscr, y0, x0, '┌' + '─' * (box_w - 2) + '┐', border)
+        _put(stdscr, y0, x0 + 2, f' {_fit(title, box_w - 4)} ', border)
+        for r in range(1, box_h - 1):
+            _put(stdscr, y0 + r, x0, '│' + ' ' * (box_w - 2) + '│', border)
+        _put(stdscr, y0 + box_h - 1, x0, '└' + '─' * (box_w - 2) + '┘', border)
+        _put(stdscr, y0 + box_h - 1, x0 + 2, ' space grab · j/k move · enter · esc ', border)
+        for i, it in enumerate(items[:box_h - 4]):
+            mark = '↕' if (grabbed and i == sel) else ('▸' if i == sel else ' ')
+            attr = curses.A_REVERSE if i == sel else curses.A_NORMAL
+            _put(stdscr, y0 + 2 + i, x0 + 2,
+                 _fit(f'{i + 1:>2}. {mark} {it}'.ljust(box_w - 4), box_w - 4), attr)
+        stdscr.refresh()
+        ch = stdscr.getch()
+        if ch == 27:
+            return None
+        if ch in (ord('\n'), curses.KEY_ENTER):
+            return items
+        if ch == ord(' '):
+            grabbed = not grabbed
+        elif ch in (ord('j'), curses.KEY_DOWN):
+            if grabbed and sel < len(items) - 1:
+                items[sel], items[sel + 1] = items[sel + 1], items[sel]
+                sel += 1
+            elif not grabbed:
+                sel = min(len(items) - 1, sel + 1)
+        elif ch in (ord('k'), curses.KEY_UP):
+            if grabbed and sel > 0:
+                items[sel], items[sel - 1] = items[sel - 1], items[sel]
+                sel -= 1
+            elif not grabbed:
+                sel = max(0, sel - 1)
+
+
+def _setting_str(kind, val, key=None):
+    if key == 'scope' and val in (None, ''):
+        return 'user (default)'
     if kind == 'list':
         return ' '.join(val) if val else '(unset — built-in default)'
     if kind == 'bool':
@@ -1185,7 +1254,7 @@ def _draw_config(stdscr, pal, cs, ctx, note, screen):
         sel = i == cs.cur
         if sel:
             _put(stdscr, y, il, ' ' * iw, pal.fill(y, il, h, w, selected=True))
-        _put(stdscr, y, il, _fit(f'{key:18} {_setting_str(info["kind"], info["value"])}', iw),
+        _put(stdscr, y, il, _fit(f'{key:18} {_setting_str(info["kind"], info["value"], key)}', iw),
              pal.style('label' if sel else 'component', y, il, h, w, selected=sel))
         _put(stdscr, y + 1, il, _fit(f'   {info["desc"]}  (man: {info["man"]})', iw),
              pal.style('info_dim', y + 1, il, h, w))
@@ -1357,16 +1426,27 @@ def run(ctx):
                             note = f'{key} = {"false" if info["value"] else "true"}'
                             cs.reload()
                             menu_dirty = True
-                        elif info['kind'] == 'scalar':      # scope: user/system/unset picker
+                        elif info['kind'] == 'scalar':      # scope: user (default) / system / unset
                             cur_idx = {'user': 0, 'system': 1}.get(info['value'], 2)
                             idx = _popup_choose(stdscr, pal, key,
-                                                [('user', ''), ('system', ''), ('(unset)', '')], cur_idx)
+                                                [('user', '(default)'), ('system', ''),
+                                                 ('unset', '(→ user)')], cur_idx)
                             if idx is not None:
                                 actions.set_config_setting(ctx, key, [['user'], ['system'], []][idx])
                                 note = f'{key} set'
                                 cs.reload()
                                 menu_dirty = True
-                        else:                               # list: edit via input box
+                        elif key == 'driver-preference':    # ordered list -> reorder editor
+                            from ..resolve import DEFAULT_DRIVER_PREFERENCE
+                            cur = info['value'] or list(DEFAULT_DRIVER_PREFERENCE)
+                            new = _order_list(stdscr, pal,
+                                              'driver-preference — space grab, j/k move', cur)
+                            if new is not None:
+                                actions.set_config_setting(ctx, key, new)
+                                note = f'{key} reordered'
+                                cs.reload()
+                                menu_dirty = True
+                        else:                               # other list settings: input box
                             new = _input_box(stdscr, pal,
                                              f'{key}  (space-separated; empty clears)',
                                              ' '.join(info['value'] or []))
