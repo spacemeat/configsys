@@ -1072,11 +1072,13 @@ def _draw_profiles(stdscr, pal, ps, ctx, note, screen):
     ps.ltop = _scroll_top(ps.lcur, ps.ltop, lih, len(ps.profiles))
     for vis, i in enumerate(range(ps.ltop, min(len(ps.profiles), ps.ltop + lih))):
         name, y = ps.profiles[i], lit + vis
-        sel = i == ps.lcur and ps.focus == 'left'
-        if sel:
+        cur = i == ps.lcur
+        foc = cur and ps.focus == 'left'
+        if foc:
             _put(stdscr, y, lil, ' ' * liw, pal.fill(y, lil, h, w, selected=True))
-        _put(stdscr, y, lil, _fit(f'{"●" if name in ps.active else "○"} {name}', liw),
-             pal.style('profile', y, lil, h, w, selected=sel))
+        cm = '▸' if cur else ' '                     # residual cursor persists when focus is right
+        _put(stdscr, y, lil, _fit(f'{cm}{"●" if name in ps.active else "○"} {name}', liw),
+             pal.style('profile', y, lil, h, w, selected=foc))
 
     # RIGHT TOP: detail for the highlighted component (names are esoteric) — description + methods
     cur = ps.catalog[ps.rcur] if ps.catalog and 0 <= ps.rcur < len(ps.catalog) else None
@@ -1106,12 +1108,14 @@ def _draw_profiles(stdscr, pal, ps, ctx, note, screen):
     ps.rtop = _scroll_top(ps.rcur, ps.rtop, rih, len(ps.catalog))
     for vis, i in enumerate(range(ps.rtop, min(len(ps.catalog), ps.rtop + rih))):
         name, y = ps.catalog[i], rit + vis
-        sel = i == ps.rcur and ps.focus == 'right'
+        cur = i == ps.rcur
+        foc = cur and ps.focus == 'right'
         elem = 'component' if ps.available(name) else 'info_dim'
-        if sel:
+        if foc:
             _put(stdscr, y, ril, ' ' * riw, pal.fill(y, ril, h, w, selected=True))
-        _put(stdscr, y, ril, _fit(f'{"●" if name in members else " "} {name}', riw),
-             pal.style(elem, y, ril, h, w, selected=sel))
+        cm = '▸' if cur else ' '
+        _put(stdscr, y, ril, _fit(f'{cm}{"●" if name in members else " "} {name}', riw),
+             pal.style(elem, y, ril, h, w, selected=foc))
 
     from .. import actions
     status = f' profile: {prof or "—"}    edits → {actions.edit_target(ctx)[1]}'
