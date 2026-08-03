@@ -66,10 +66,10 @@ bump() {
 
 # -- report --------------------------------------------------------------------------------------
 report() {
-  local repo=$1 name head tag up ahead behind loc st
+  local repo=$1 name head tag_raw tag up ahead behind loc st tagseg
   name=$(basename "$repo")
   head=$(g "$repo" symbolic-ref --short -q HEAD) || head="detached@$(g "$repo" rev-parse --short HEAD)"
-  tag=$(latest_tag "$repo"); [ -n "$tag" ] || tag='(no tags)'
+  tag_raw=$(latest_tag "$repo"); tag=${tag_raw:-'(no tags)'}
 
   if up=$(g "$repo" rev-parse --abbrev-ref --symbolic-full-name '@{upstream}' 2>/dev/null); then
     read -r behind ahead < <(g "$repo" rev-list --left-right --count "${up}...HEAD" 2>/dev/null)
@@ -78,8 +78,16 @@ report() {
     loc="${YEL}(no upstream)${RST}"
   fi
 
-  printf '%s%-20s%s  %sHEAD%s %-16s  %stag%s %-10s  %s\n' \
-    "$BOLD" "$name" "$RST" "$DIM" "$RST" "$head" "$DIM" "$RST" "$tag" "$loc"
+  # commits since the latest tag -> whether a `tag` push is worth it (+N in yellow when >0)
+  tagseg=''
+  if [ -n "$tag_raw" ]; then
+    local n; n=$(g "$repo" rev-list --count "${tag_raw}..HEAD" 2>/dev/null); n=${n:-0}
+    if [ "$n" -gt 0 ]; then tagseg="  ${YEL}+${n} since ${tag_raw}${RST}"
+    else                    tagseg="  ${DIM}+0 since ${tag_raw}${RST}"; fi
+  fi
+
+  printf '%s%-20s%s  %sHEAD%s %-16s  %stag%s %-10s  %s%s\n' \
+    "$BOLD" "$name" "$RST" "$DIM" "$RST" "$head" "$DIM" "$RST" "$tag" "$loc" "$tagseg"
 
   st=$(g "$repo" status --porcelain 2>/dev/null)
   if [ -n "$st" ]; then
