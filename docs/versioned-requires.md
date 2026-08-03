@@ -268,11 +268,17 @@ stays the common form.
    auto-tighten yields `{}` and the advisory still fires; the tighten path is unit-tested for the
    fresh case (`{rust: tarball}`).
 
-## Remaining follow-on (3c)
+## 3c — the source build finds a floor-pinned toolchain (SHIPPED)
 
-The advisory/tighten machinery is complete, but a source build that PINS a non-native toolchain
-(rustup cargo, a recent Go) needs that toolchain on `$PATH` for the build command — the `source`
-driver should prepend a `requires:`-d toolchain's bin dir before running `build:` (and a persistent
-`<toolchain>-dotfiles` bash.d snippet for interactive use). This is what makes floor-driven
-selection not just advise/select but actually BUILD. Applies to the shipped rustup binding too
-(`--no-modify-path`). Tracked separately.
+The advisory/tighten machinery selects the right toolchain, but a source build runs in a fresh
+non-interactive shell, so a NON-native toolchain (rustup's cargo in `~/.cargo/bin`) wouldn't be
+found. The `source` driver now prepends the well-known userland toolchain bin dirs
+(`~/.cargo/bin`, `~/go/bin`, plus any recipe `build-path:`) to `$PATH` for the `build:` command —
+a native toolchain on the system PATH still works; a missing dir is harmlessly ignored. This turns
+floor-driven *selection* into a working *build*: pin rust→rustup, and ripgrep-from-source's
+`cargo build` finds the recent cargo.
+
+Interactive use is deliberately NOT shipped as a bash.d snippet — that's personal shell config, and
+configsys ships none (the rustup binding uses `--no-modify-path`, so it never edits your rc). Put
+`~/.cargo/bin` on PATH yourself for interactive `cargo`. The recent-Go tarball binding (deferred)
+follows the same pattern; its `~/go/bin` is already covered by the build-PATH prepend.

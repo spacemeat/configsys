@@ -128,11 +128,26 @@ class Source(Driver):
             stamp = version or 'source'
 
         build = ' && '.join(self._sub(s, version, src, prefix) for s in steps)
+        path = self._build_path(rc, version, src, prefix)
         cmd = (f'mkdir -p {shlex.quote(str(src.parent))} {shlex.quote(str(prefix))} && '
                f'{acquire} && '
-               f'( cd {srcq} && {build} ) && '
+               f'( cd {srcq} && export PATH="{path}:$PATH" && {build} ) && '
                f'printf %s {shlex.quote(stamp)} > {shlex.quote(str(self._marker(rc)))}')
         return self.runner.run(cmd, capture=False)
+
+    # Well-known USERLAND toolchain bin dirs, prepended to PATH for the build so a NON-native
+    # toolchain a recipe `requires:` is found — rustup's cargo/rustc in ~/.cargo/bin, `go install`
+    # tools in ~/go/bin (GOPATH/bin). A native toolchain on the system PATH still works (these just
+    # take precedence when present; a missing dir is harmlessly ignored by PATH lookup). This is
+    # what lets a floor-pinned toolchain (e.g. rust->rustup) actually build, since the build runs in
+    # a fresh non-interactive shell that hasn't sourced bash.d. A recipe adds more via `build-path:`.
+    _TOOLCHAIN_BINDIRS = ('$HOME/.cargo/bin', '$HOME/go/bin')
+
+    def _build_path(self, rc, version, src, prefix):
+        extra = rc.fields.get('build-path')
+        extra = extra if isinstance(extra, list) else ([extra] if extra else [])
+        dirs = list(self._TOOLCHAIN_BINDIRS) + [self._sub(d, version, src, prefix) for d in extra]
+        return ':'.join(dirs)   # $HOME left literal so the build shell expands it; route data trusted
 
     def upgrade(self, rc):
         # idempotent: re-resolve latest, fetch, checkout the new ref, rebuild in place
