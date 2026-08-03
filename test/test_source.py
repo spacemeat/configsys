@@ -11,6 +11,7 @@ import pytest
 from configsys.componentObj import ResolvedComponent
 from configsys.drivers import get_driver, is_supported
 from configsys.drivers.source import Source
+from configsys.resolve import ResolveError
 from configsys.runner import Runner
 from configsys.routes import Resolver
 
@@ -158,18 +159,22 @@ def test_real_build_clones_checks_out_and_installs(tmp_path):
     assert fam.get_version(rc) == '1.0.0'                          # marker recorded
 
 
-def test_curated_base_source_bindings_resolve():
-    # base routes.hu ships a few `via: source` alternatives; pinning one selects it and pulls the
-    # declared build deps (cxx->cpp-toolchain, make, and the driver's git)
+def test_no_source_bindings_in_core():
+    # source-building lives in the configsys-source PLUGIN now, not base routes.hu (the fold). No
+    # core component carries a `via: source` binding — a regression guard against re-adding one.
     import os
+    from configsys.routes import load
     ROUTES = os.path.join(os.path.dirname(__file__), '..', 'routes.hu')
-    units = set(Resolver(ROUTES, 'pop_os!', '22.04', 'x86_64',
-                         pins={'btop': 'source'}).resolve_names(['btop']))
-    assert 'source\\btop' in units
-    assert {'apt\\make', 'apt\\cpp-toolchain', 'apt\\git'} <= units   # build toolchain pulled
-    # and without the pin, source is NOT the default (native wins by driver-preference)
-    plain = set(Resolver(ROUTES, 'pop_os!', '22.04', 'x86_64').resolve_names(['btop']))
-    assert 'apt\\btop' in plain and 'source\\btop' not in plain
+    _cascade, components, _drivers = load(ROUTES)
+    with_source = sorted(n for n, c in components.items()
+                         if any(b.via == 'source' for b in c.bindings))
+    assert with_source == [], f'core should ship no source bindings (moved to the plugin): {with_source}'
+    # btop resolves to native (its former source binding is gone); pinning source now declines
+    r = Resolver(ROUTES, 'pop_os!', '22.04', 'x86_64')
+    assert 'apt\\btop' in set(r.resolve_names(['btop']))
+    with pytest.raises(ResolveError):
+        Resolver(ROUTES, 'pop_os!', '22.04', 'x86_64',
+                 pins={'btop': 'source'}).resolve_names(['btop'])
 
 
 def test_source_component_resolves_and_pulls_git(tmp_path):

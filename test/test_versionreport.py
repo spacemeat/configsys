@@ -58,8 +58,17 @@ class _Ctx:
         self.routes, self.runner, self.paths = routes, None, paths
 
 
+# source-building lives in the configsys-source plugin now, not core — so add a btop source binding
+# via a temp plugin layer (rather than coupling to the external repo) to exercise the multi-method
+# report. btop then has native + source, as before the fold.
+_BTOP_SRC = '{ components: { btop: { install: [ { via: source  repo: "https://x/btop"  requires: cxx  build: "make" } ] } } }'
+
+
 def _ctx(tmp_path, **pins):
-    r = Resolver(ROUTES, 'ubuntu', '24.04', 'x86_64', pins=pins or None)
+    pf = tmp_path / 'btop-src.hu'
+    pf.write_text(_BTOP_SRC, encoding='utf-8')
+    r = Resolver(ROUTES, 'ubuntu', '24.04', 'x86_64', pins=pins or None,
+                 plugin_files=[(str(pf), 'plugin')])
     paths = Paths(env={'CONFIGSYS_HOME': str(tmp_path), 'HOME': str(tmp_path)})
     return _Ctx(r, paths)
 
