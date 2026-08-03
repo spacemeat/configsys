@@ -171,18 +171,72 @@ def test_sync_follows_a_re_pointed_tag(tmp_path):
     assert (pdir / 'src' / 'v.txt').read_text() == 'B'    # was 'A' before the fetch --force fix
 
 
+def _head_branch(repo):
+    return subprocess.run(['git', '-C', str(repo), 'symbolic-ref', '--short', '-q', 'HEAD'],
+                          capture_output=True, text=True).stdout.strip()
+
+
+def _rev(repo, ref='HEAD'):
+    return subprocess.run(['git', '-C', str(repo), 'rev-parse', ref],
+                          capture_output=True, text=True).stdout.strip()
+
+
 @pytest.mark.skipif(shutil.which('git') is None, reason='git not available')
-def test_sync_advances_a_branch_ref(tmp_path):
-    # A branch ref must fast-forward on re-sync (checking out the local branch was a no-op).
+def test_sync_advances_a_branch_ref_and_stays_attached(tmp_path):
+    # A branch ref fast-forwards on re-sync AND keeps HEAD on the branch (not detached), so a plugin
+    # authored in place keeps its commits on a real, pushable ref.
     src = tmp_path / 'src'
     _init_repo(src, branch='trunk')
     pdir = tmp_path / 'plugins'
     decl = [{'source': str(src), 'ref': 'trunk'}]
     plugins.sync(Runner(pretend=False), pdir, decl)
     assert (pdir / 'src' / 'v.txt').read_text() == 'A'
+    assert _head_branch(pdir / 'src') == 'trunk'          # attached on the branch, not detached
     (src / 'v.txt').write_text('B'); _git(src, 'add', '-A'); _git(src, 'commit', '-qm', 'B')
     plugins.sync(Runner(pretend=False), pdir, decl)
     assert (pdir / 'src' / 'v.txt').read_text() == 'B'    # advanced to origin/trunk
+    assert _head_branch(pdir / 'src') == 'trunk'          # still attached after re-sync
+
+
+@pytest.mark.skipif(shutil.which('git') is None, reason='git not available')
+def test_sync_branch_ref_preserves_local_authoring_commits(tmp_path):
+    # The primary case: a commit made IN the synced clone (as `plugin add` on the primary would land)
+    # survives a re-sync — ff-only never rewinds an ahead branch, and HEAD stays attached.
+    src = tmp_path / 'src'
+    _init_repo(src, branch='main')
+    pdir = tmp_path / 'plugins'
+    decl = [{'source': str(src), 'ref': 'main'}]
+    plugins.sync(Runner(pretend=False), pdir, decl)
+    clone = pdir / 'src'
+    (clone / 'v.txt').write_text('LOCAL')
+    _git(clone, 'add', '-A'); _git(clone, 'commit', '-qm', 'local authoring edit')
+    sha = _rev(clone)
+    plugins.sync(Runner(pretend=False), pdir, decl)       # re-sync must NOT discard it
+    assert _rev(clone) == sha and _head_branch(clone) == 'main'
+
+
+@pytest.mark.skipif(shutil.which('git') is None, reason='git not available')
+def test_sync_tag_ref_detaches(tmp_path):
+    # A tag is immutable — you can't be "on" it, so a tag-pinned sync detaches (unchanged behavior).
+    src = tmp_path / 'src'
+    _init_repo(src)
+    _git(src, 'tag', 'v1')
+    pdir = tmp_path / 'plugins'
+    plugins.sync(Runner(pretend=False), pdir, [{'source': str(src), 'ref': 'v1'}])
+    assert _head_branch(pdir / 'src') == ''               # detached at the tag
+
+
+@pytest.mark.skipif(shutil.which('git') is None, reason='git not available')
+def test_ensure_branch_reattaches_a_detached_head(tmp_path):
+    src = tmp_path / 'src'
+    _init_repo(src, branch='main')
+    pdir = tmp_path / 'plugins'
+    plugins.sync(Runner(pretend=False), pdir, [{'source': str(src), 'ref': 'main'}])
+    clone = pdir / 'src'
+    _git(clone, 'checkout', '--quiet', '--detach', 'HEAD')   # as a tag/commit sync would leave it
+    assert _head_branch(clone) == ''
+    assert plugins.ensure_branch(Runner(pretend=False), clone) == 'main'
+    assert _head_branch(clone) == 'main'                     # reattached, ready for authoring commits
 
 
 @pytest.mark.skipif(shutil.which('git') is None, reason='git not available')

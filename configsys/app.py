@@ -1346,6 +1346,7 @@ def _plugin_init_merge(ctx, args, prim):
     if not plug.exists():
         print(f'configsys: primary plugin "{prim}" is not synced — run `configsys plugin sync` first')
         return 1
+    plugins.ensure_branch(ctx.runner, plug)      # author on a branch, not a detached HEAD
     store = ctx.paths.user_dotfiles_dir
     entries = sorted(store.iterdir()) if store.exists() else []
     dfdir = plug / 'dotfiles'
@@ -1447,6 +1448,11 @@ def cmd_plugin(ctx, args):
                       and primary_dir is not None and (primary_dir / 'plugin.hu').exists())
         if to_primary:
             cfg_file = primary_dir / 'plugin.hu'
+            # Author on a real BRANCH, never a detached HEAD (a tag-pinned sync detaches it; a commit
+            # there would land on no branch and eventually gc). No-op when already on a branch.
+            if plugins.ensure_branch(ctx.runner, primary_dir) is None and not ctx.runner.pretend:
+                print(f'configsys: note — {primary} is in a detached HEAD with no branch to author on; '
+                      f'commit there by hand, or pin it to a branch (e.g. `ref: main`)')
             cur = [d for d in (plugins._decl(e) for e in
                                (plugins.read_manifest(primary_dir).get('plugins') or [])) if d]
         else:

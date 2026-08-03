@@ -609,24 +609,50 @@ def load_code(plugins_dir, trust_file, decls, register, conflicts=None):
 
 
 def _git_checkout(runner, dq, ref):
-    '''Detach the checkout at the ref AS IT IS ON THE REMOTE NOW, so a re-sync actually advances.
-    A BRANCH ref resolves to `origin/<ref>` — checking out the local branch would be a no-op that
-    never fast-forwards; a TAG or commit is used directly (a moved tag was already refreshed by
-    `fetch --force`); NO ref -> the remote's default branch (`origin/HEAD`) if known. `--force`
-    overwrites any working-tree drift. Returns True unless the checkout itself failed (a pretended
-    or absent run counts as ok — --pretend just prints).'''
+    '''Put the checkout at `ref` as it is on the remote now, so a re-sync advances.
+
+    A BRANCH ref stays ON its local branch (ATTACHED HEAD) and fast-forwards to `origin/<ref>`. This
+    keeps a plugin you author in place (your primary) on a real, pushable branch — so `plugin add` /
+    `plugin init` edits + commits land on the branch, never on a detached HEAD whose commits git will
+    eventually gc — and, being ff-only with no `--force`, a re-sync neither discards commits the
+    branch is ahead by nor clobbers an in-progress uncommitted edit (it simply no-ops when it can't
+    fast-forward). A TAG or commit ref DETACHES (it is immutable — you cannot be "on" it) with
+    `--force` to overwrite drift; NO ref -> the remote's default branch (`origin/HEAD`), detached.
+    Returns True unless the checkout itself failed (a pretended/absent run counts as ok).'''
     def _has(rev):
         r = runner.run(f'git -C {dq} rev-parse --verify --quiet {shlex.quote(rev)}', capture=True)
         return r is not None and r.ok and not r.pretended
-    if ref:
-        target = f'origin/{ref}' if _has(f'origin/{ref}') else ref
-    elif _has('origin/HEAD'):
-        target = 'origin/HEAD'
-    else:
+    if ref and _has(f'origin/{ref}'):            # a BRANCH: stay attached, fast-forward
+        rq = shlex.quote(ref)
+        co = runner.run(f'git -C {dq} checkout --quiet {rq}', capture=True)   # DWIM creates+tracks
+        if co is not None and not co.ok:         # older git / edge: create it tracking origin/<ref>
+            co = runner.run(f'git -C {dq} checkout --quiet -B {rq} --track origin/{rq}', capture=True)
+        runner.run(f'git -C {dq} merge --ff-only --quiet origin/{rq}', capture=True)   # no-op if ahead
+        return co is None or co.ok
+    target = ref if ref else ('origin/HEAD' if _has('origin/HEAD') else None)
+    if target is None:
         return True                              # no ref and no known default branch: leave as-is
     co = runner.run(f'git -C {dq} checkout --quiet --force --detach {shlex.quote(target)}',
                     capture=False)
     return co is None or co.ok
+
+
+def ensure_branch(runner, dest):
+    '''Make sure `dest`'s HEAD is on a BRANCH (not detached), so an in-place edit + commit there lands
+    on a real, pushable ref instead of a detached HEAD (whose commits git eventually gc's). No-op when
+    already on a branch. When detached (a tag/commit sync left it so), reattach to the tracking/default
+    branch — `origin/HEAD` (usually `main`). Returns the branch name, or None if it can't reattach
+    (e.g. no origin/HEAD; the caller should then warn). Best-effort; safe under --pretend.'''
+    dq = shlex.quote(str(dest))
+    cur = runner.run(f'git -C {dq} symbolic-ref --short -q HEAD', capture=True)
+    if cur is not None and cur.ok and cur.stdout.strip():
+        return cur.stdout.strip()                # already on a branch
+    head = runner.run(f'git -C {dq} rev-parse --abbrev-ref origin/HEAD', capture=True)
+    branch = head.stdout.strip().split('/', 1)[-1] if (head is not None and head.ok) else ''
+    if not branch or branch == 'HEAD':
+        return None
+    co = runner.run(f'git -C {dq} checkout --quiet {shlex.quote(branch)}', capture=True)
+    return branch if (co is None or co.ok) else None
 
 
 def _local_source_path(source):
