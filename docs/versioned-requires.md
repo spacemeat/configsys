@@ -233,5 +233,18 @@ stays the common form.
    authored in shipped data yet* — they land in stage 3 with the satisfying bindings, so a floor is
    never shipped stranded.
 3. **Floor-aware resolution, surface-and-choose** — resolve-time advisory + pin; explicit
-   method-replacement flow. Land alongside the first recent-toolchain bindings for an end-to-end demo.
+   method-replacement flow.
+   - **3a SHIPPED — the advisory.** `configsys/flooradvise.py`: over the resolved plan, for each
+     ACTIVE floored requirement (component-level, plus the WINNING binding's — a resolved unit now
+     carries its `via`), if the provider's DEFAULT method can't meet the floor, emit an advisory
+     naming the methods that can and the exact `configsys pin set` — never a silent swap (the
+     locked posture). Reuses versionreport (real per-machine versions) + `versionsweep.meets` (full
+     constraint eval); abstains when a version is unknown (no false alarm). Surfaced through
+     `ctx.diagnostics` (inspect + the TUI `!` page); a no-op until floors are active. Verified live:
+     ripgrep-via-source needs cargo ≥1.96, box's apt rust is 1.95 → "no install method here meets
+     cargo ≥1.96".
+   - **3b remaining** — the first recent-toolchain bindings (a rustup / recent-Go method with a
+     declared `provides:` floor) so the advisory becomes ACTIONABLE ("pin rust to …"), plus the
+     explicit method-REPLACEMENT flow for an already-installed provider. Also: build the
+     `version-floors:` section merge/apply so floors fold in from the main-keyed plugin.
 4. **(Later, opt-in)** monotonic auto-tightening for users who want "just meet the floor."

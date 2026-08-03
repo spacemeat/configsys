@@ -16,6 +16,7 @@ def to_resolved_component(unit):
         key=unit.key,
         driver=unit.driver,
         comp=unit.component,
+        via=unit.via or '',
         fields=dict(unit.details),
         vars={},                      # v2 carries version info in `version:` specs, not $VARS
         source=unit.source or '',     # the .hu file that defined the component (content roots)

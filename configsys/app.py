@@ -244,6 +244,13 @@ class Context:
                 if st.scope != target:
                     add('warn', 'scope', f"{key}: installed {st.scope}, config declares "
                                          f"{target} — run: configsys fix-scope")
+        if states:
+            # floor advisories (stage 3, surface-and-choose): a resolved unit whose provider's
+            # default method can't meet a version floor. A no-op unless floors are active, so it
+            # adds no cost until the version-floors data exists.
+            from . import flooradvise
+            for adv in flooradvise.advise(self, [st.component for st in states.values()]):
+                add(adv['level'], adv['tag'], adv['text'])
         return out
 
     def ensure_plugin_code(self):

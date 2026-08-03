@@ -14,6 +14,7 @@ class ResolvedComponent:
     key: str                                    # "driver\\comp" — dedup identity
     driver: str                                 # e.g. "apt", "flatpak", "appImage"
     comp: str                                   # component name within the driver
+    via: str = ''                               # the winning binding's `via:` (native/source/…) — maps binding-level floors back to the unit
     fields: dict = field(default_factory=dict)  # driver-node fields ($vars substituted)
     vars: dict = field(default_factory=dict)    # variables in scope (fonts, etc.)
     requested_as: set = field(default_factory=set)  # OS-level names that pulled it in

@@ -69,6 +69,7 @@ class Unit:
         self.driver = driver
         self.component = component
         self.package = package
+        self.via = None         # the winning binding's `via:` (maps binding-level floors to the unit)
         self.deps = set()
         self.requested_as = set()
         self.source = None      # the .hu file that DEFINED the component (layer-relative content roots)
@@ -253,6 +254,7 @@ def unit_for_binding(component, binding, cascade, block, overrides=None):
         return None
     package = override if override is not _NO_OVERRIDE else _package(binding, drv, component)
     unit = Unit(drv, component.name, package)
+    unit.via = binding.via
     unit.details = _install_fields(binding.details, unit.package)
     unit.source = binding.source or component.source
     return unit
@@ -398,6 +400,7 @@ class _State:
             return frozenset({key})
         package = override if override is not _NO_OVERRIDE else _package(binding, drv, comp)
         unit = Unit(drv, name, package)
+        unit.via = binding.via
         unit.requested_as = {root}
         unit.details = _install_fields(binding.details, unit.package)
         # the layer that DEFINED this binding (content roots for dotfiles follow it even across an
