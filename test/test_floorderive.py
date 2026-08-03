@@ -43,6 +43,28 @@ def test_derive_floors_maps_cap_to_manifest():
                                               'lazygit': {'go': '>=1.25'}}
 
 
+def test_built_ref_prefers_explicit_ref_then_tag_then_head():
+    from configsys.routes import Binding
+    assert fd.built_ref(Binding({'via': 'source', 'ref': '9.0.0'})) == '9.0.0'
+    # no ref, no version spec -> HEAD
+    assert fd.built_ref(Binding({'via': 'source'})) == 'HEAD'
+
+
+def test_derive_reads_the_built_tag_not_head():
+    # the floor must come from the version the binding BUILDS (its tag), not HEAD
+    comps = {'lazygit': Component('lazygit', {'install': [{
+        'via': 'source', 'repo': 'https://github.com/jesseduffield/lazygit',
+        'requires': 'go', 'version': {'github': 'jesseduffield/lazygit'}, 'tag-prefix': 'v'}]})}
+    seen = {}
+
+    def fetch(url):
+        seen['url'] = url
+        return 'go 1.25'
+
+    fd.derive_floors(comps, fetch, ref_of=lambda b: 'v0.63.1')   # the resolved built tag
+    assert '/v0.63.1/go.mod' in seen['url']                      # fetched the TAG, not HEAD
+
+
 def test_derive_skips_non_source_and_non_derivable():
     comps = {
         # a native binding (no repo) -> nothing to derive

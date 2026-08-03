@@ -195,6 +195,22 @@ Floors are *knowledge about a recipe*, so they should write themselves rather th
   version bump — the plugin ABI gate still guards code/data skew. This is the out-of-band data
   channel done with the mechanism that already exists (a data plugin), not a bespoke live file.
 
+**Floors are per-BINDING, and track the version that binding builds.** A toolchain floor is a
+BUILD requirement, so it exists only on the `via: source` binding (native/tarball install prebuilt
+binaries — no toolchain need); a component-keyed floor lands there automatically because the cap is
+required only there. And it's derived from the ref the binding actually BUILDS — its `ref:` or
+resolved release tag, NOT HEAD (`floorderive.built_ref`), since HEAD can carry an unreleased MSRV
+bump higher than the tag you'd compile (observed: superfile HEAD wanted go 1.26 but the built
+`v1.6.0` only needs 1.25.7).
+
+**(b) — per-`via` keying, DEFERRED.** The rare case that genuinely needs a floor to differ per
+method for the SAME cap is a RUNTIME floor on prebuilt methods (native Foo v2.9 needs `glibc
+≥2.31`, the tarball's v3.1 needs `≥2.35`) — each prebuilt artifact has its own runtime needs. It's
+hard to auto-derive and usually moot (the packager already ensured native compat). If it ever
+matters, extend `version-floors:` to nest by via — `version-floors: { foo: { tarball: { glibc:
+">=2.35" } } }` — applied to just that binding. Not built until a real case appears; component→cap
+stays the common form.
+
 ## Roadmap (each stage is useful alone and de-risks the next)
 
 1. **Visibility — SHIPPED.** `configsys versions <component> [--min V] [--refresh]` lists each

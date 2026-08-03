@@ -24,7 +24,9 @@ def main():
         # loaded (its recipes carry the `via: source` repos), so run it with that config.
         from configsys import floorderive
         from configsys.versions import http_fetch
-        floors = floorderive.derive_floors(ctx.routes.components, http_fetch)
+        floors = floorderive.derive_floors(
+            ctx.routes.components, http_fetch,
+            ref_of=lambda b: floorderive.built_ref(b, ctx.paths))  # derive from the built tag
         if not floors:
             print('# no source recipes with derivable (cargo/go) floors are loaded', file=sys.stderr)
         print(floorderive.emit_floors(floors), end='')

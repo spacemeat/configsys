@@ -47,10 +47,28 @@ def _raw_url(repo, path, ref='HEAD'):
     return f'https://raw.githubusercontent.com/{r}/{ref}/{path}'
 
 
-def derive_floors(components, fetch, ref='HEAD'):
-    '''{ component: { cap: ">=X" } } auto-derived from each `via: source` recipe's manifest.
-    `fetch(url) -> text` (a fetch failure just skips that manifest). Only caps the recipe actually
-    requires and that we know how to derive (cargo/go) are emitted, so the result maps 1:1 onto a
+def built_ref(binding, paths=None):
+    '''The git ref a `via: source` binding actually CHECKS OUT — its explicit `ref:`, else the
+    resolved release tag (`tag-prefix` + discovered `version:`), else HEAD. Mirrors source._ref, so
+    a floor is derived from the version the binding BUILDS — not HEAD, which can carry an unreleased
+    MSRV bump higher than the tag you'd compile.'''
+    d = binding.details
+    if d.get('ref'):
+        return str(d['ref'])
+    spec = d.get('version')
+    if isinstance(spec, dict):
+        from .versions import discover
+        v = discover(spec, paths)
+        if v:
+            return f"{d.get('tag-prefix', '')}{v}"
+    return 'HEAD'
+
+
+def derive_floors(components, fetch, ref_of=built_ref):
+    '''{ component: { cap: ">=X" } } auto-derived from each `via: source` recipe's manifest, read at
+    the ref that binding BUILDS (`ref_of(binding) -> git-ref`; default built_ref). `fetch(url) ->
+    text` (a fetch failure just skips that manifest). Only caps the recipe actually requires and
+    that we know how to derive (cargo/go) are emitted, so the result maps 1:1 onto a
     `version-floors:` section that tightens real requirements.'''
     floors = {}
     for name, comp in components.items():
@@ -58,6 +76,7 @@ def derive_floors(components, fetch, ref='HEAD'):
             if b.via != 'source' or not b.details.get('repo'):
                 continue
             repo = b.details['repo']
+            ref = ref_of(b) or 'HEAD'
             for cap in cap_names(b.details.get('requires')):
                 spec = DERIVERS.get(cap)
                 if not spec:
