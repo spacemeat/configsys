@@ -17,6 +17,7 @@ import curses
 from .. import reportgen
 from ..drivers import get_driver, scope_meta
 from ..errors import ConfigError
+from ..osversion import clean_version
 from ..planning import expand_plan
 from .screen import curses_screen, suspended
 from .theme import STATUS_COLOR, Palette
@@ -85,8 +86,8 @@ class Node:
                 # untrusted: version is UNKNOWN (the tool may well be installed — we just can't
                 # read it without the driver), not '—' which reads as "not installed".
                 return '?' if m.untrusted else '—'
-            v = m.installed_version or '—'
-            return f'{v} [L]' if m.locked else v
+            v = clean_version(m.installed_version) or '—'   # strip v/epoch/revision so the
+            return f'{v} [L]' if m.locked else v            # INSTALLED and LATEST columns line up
         present = sum(1 for m in self.members if m.present)
         return f'{present}/{len(self.members)}'
 
@@ -95,7 +96,7 @@ class Node:
             m = self.members[0]
             if not m.supported:
                 return '?' if m.untrusted else ''
-            return m.latest_version or '—'
+            return clean_version(m.latest_version) or '—'
         return ''
 
     def scope_str(self):
@@ -581,8 +582,8 @@ def _infoblock(ms, ctx):
     parts = [f'{rc.driver}\\{rc.comp}']
     if m.scope:
         parts.append(f'scope: {m.scope}')
-    parts += [f'installed: {m.installed_version or "—"}',
-              f'latest: {m.latest_version or "—"}']
+    parts += [f'installed: {clean_version(m.installed_version) or "—"}',
+              f'latest: {clean_version(m.latest_version) or "—"}']
     if m.locked:
         parts.append('version-locked')
     drv = get_driver(rc.driver, ctx.runner, ctx.paths)
@@ -847,16 +848,21 @@ def _pick_method(stdscr, pal, ms, ctx):
         tip = rep.tip
     except Exception:  # noqa: BLE001 — never let a version probe block the picker
         pass
-    options = []
+    # lay the labels out in columns — `via <name>` | version | (when) — so the versions line up
+    # (the popup box auto-widens to the longest label). Compute the column widths first.
+    rows = []
     for c in cands:
-        tags = [t for t, on in (('default', c['default']), ('pinned', c['pinned'])) if on]
         mv = vers.get(c['via'])
+        ver = clean_version(mv.latest if mv else None) or '—'   # normalized, like the columns
+        tags = [t for t, on in (('default', c['default']), ('pinned', c['pinned'])) if on]
         if mv and mv.lags_tip:
             tags.append('lags')
-        ver = (mv.latest if mv else None) or '—'
-        when = f"  ({c['when']})" if c['when'] else ''
-        options.append((f"via {c['via']}{when}   {ver}", ' '.join(tags)))
-    title = f'install method — {name}' + (f'   (tip {tip})' if tip else '')
+        rows.append((c['via'], ver, f"({c['when']})" if c['when'] else '', ' '.join(tags)))
+    via_w = max(len(via) for via, _v, _w, _t in rows)
+    ver_w = max(len(v) for _via, v, _w, _t in rows)
+    options = [(f"via {via:<{via_w}}   {ver:<{ver_w}}   {when}".rstrip(), tags)
+               for via, ver, when, tags in rows]
+    title = f'install method — {name}' + (f'   (tip {clean_version(tip)})' if tip else '')
     start = next((i for i, c in enumerate(cands) if c['pinned'] or c['default']), 0)
     idx = _popup_choose(stdscr, pal, title, options, start)
     if idx is None:

@@ -62,6 +62,23 @@ def parse_loose(s):
     return parse_version(s)
 
 
+def clean_version(s):
+    '''A DISPLAY-normalized version string: strip the packaging noise that makes the same upstream
+    version look different across schemes (a Debian epoch `2:`, a leading `v`, a numeric Debian
+    revision `-1`, a packaging suffix `~0ubuntu2`) so `v26.5.6` and `26.5.6-1` both show as `26.5.6`.
+    Unlike parse_loose it keeps the STRING (and any pre-release tag like `-rc1`, which isn't a
+    numeric revision). Returns the input unchanged if it doesn't start with a digit after stripping
+    (nothing sensible to clean).'''
+    if not s:
+        return s
+    t = _EPOCH.sub('', str(s).strip())
+    if t[:1] in ('v', 'V') and t[1:2].isdigit():
+        t = t[1:]
+    t = re.sub(r'~.*$', '', t)          # packaging suffix (~0ubuntu2)
+    t = re.sub(r'-\d+$', '', t)         # numeric Debian revision (-1), but not a `-rc1` pre-release
+    return t if t[:1].isdigit() else s
+
+
 def split_qualifier(block_key):
     '''"ubuntu@<23.04" -> ("ubuntu", "<23.04"); "ubuntu" -> ("ubuntu", None).'''
     base, sep, qual = block_key.partition('@')

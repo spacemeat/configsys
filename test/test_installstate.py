@@ -75,6 +75,16 @@ def test_outdated_normalizes_across_schemes():
     assert _state('nightly', 'nightly').outdated is False
 
 
+def test_clean_version_for_display():
+    from configsys.osversion import clean_version
+    assert clean_version('26.5.6-1') == '26.5.6'          # Debian revision dropped
+    assert clean_version('v26.5.6') == '26.5.6'           # leading v dropped
+    assert clean_version('2:1.18~0ubuntu2') == '1.18'     # epoch + packaging suffix dropped
+    assert clean_version('1.2.3-rc1') == '1.2.3-rc1'      # pre-release kept (not a numeric revision)
+    assert clean_version('nightly') == 'nightly'          # non-numeric -> unchanged
+    assert clean_version(None) is None
+
+
 def test_missing():
     fr = FakeRunner([
         ('dpkg-query', 1, ''),
