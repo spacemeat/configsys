@@ -1188,8 +1188,25 @@ def _locate_decl(ctx, ident):
 def _sync_and_report(ctx, decls):
     from . import plugins
     ctx.ensure_plugin_code()     # register transports from already-trusted plugins before sync
-    for name, action in plugins.sync(ctx.runner, ctx.paths.plugins_dir, decls):
+    return [(name, action) for name, action in
+            _print_sync(plugins.sync(ctx.runner, ctx.paths.plugins_dir, decls))]
+
+
+def _print_sync(results):
+    for name, action in results:
         print(f'  {action:8} {name}')
+        yield name, action
+
+
+def _source_hint(source):
+    '''A nudge when a source can't be synced: the common `github.com:x/y` mistyping of the
+    `github:x/y` shorthand, else how to reach a private repo.'''
+    for prov in ('github', 'gitlab'):
+        pfx = prov + '.com:'
+        if source.startswith(pfx):
+            return f'(did you mean {prov}:{source[len(pfx):]} ?)'
+    return ('(private repo? use ssh git@host:owner/repo.git, a token via '
+            'CONFIGSYS_GIT_TOKEN, or a configured git credential helper)')
 
 
 def _bless_primary(ctx, ident):
@@ -1429,6 +1446,15 @@ def cmd_plugin(ctx, args):
                                (plugins.read_manifest(primary_dir).get('plugins') or [])) if d]
         else:
             cfg_file, cur = ctx.paths.user_config_file, decls
+        # Sync FIRST (the findability gate): a source that can't be cloned declares NOTHING, so a
+        # typo / gone / private repo doesn't leave a broken decl behind. Fetches are
+        # non-interactive (plugins._noninteractive_git_env), so a bad source fails fast instead of
+        # hanging on a credential prompt. Only on a good sync do we persist the declaration.
+        results = _sync_and_report(ctx, [{'source': args.source, 'ref': args.ref}])
+        if not results or 'failed' in results[0][1].lower():
+            print(f'configsys: could not sync {args.source} — nothing added '
+                  + _source_hint(args.source))
+            return 1
         target, existing = _upsert_decl(cur, args.source, args.ref)
         plugins.set_declared(cfg_file, cur)
         verb, pin = ('re-pinned' if existing else 'added'), (f' @{args.ref}' if args.ref else '')
@@ -1439,7 +1465,6 @@ def cmd_plugin(ctx, args):
         else:
             print(f'configsys: {verb} {args.source}{pin}'
                   + (' (this machine only)' if primary else ''))
-        _sync_and_report(ctx, [target])
         if getattr(args, 'pin', False):
             _pin_checksum(ctx, cfg_file, cur, target)
         return 0

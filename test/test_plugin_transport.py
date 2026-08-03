@@ -8,6 +8,40 @@ import subprocess
 import pytest
 
 from configsys import plugins
+from configsys.runner import Result
+
+
+# -- non-interactive fetches (a bad/private repo fails fast, never hangs on a prompt) ------
+
+def test_noninteractive_git_env_disables_prompts():
+    env = plugins._noninteractive_git_env()
+    assert env['GIT_TERMINAL_PROMPT'] == '0'    # git's own "Username:" terminal prompt
+    assert env['GCM_INTERACTIVE'] == 'never'    # git-credential-manager's prompt
+    assert 'PATH' in env                         # inherits the ambient env, doesn't replace it
+
+
+class _RecRunner:
+    '''Records (cmd, env) per run and reports success — enough to walk _git_transport.'''
+    def __init__(self):
+        self.calls = []
+
+    def run(self, cmd, *, sudo=False, capture=True, tui_active=None, cwd=None, env=None):
+        self.calls.append((cmd, env))
+        return Result(cmd, 0, stdout='deadbeef')   # rev-parse/checkout/clone all "ok"
+
+
+def test_git_transport_clone_and_fetch_pass_noninteractive_env(tmp_path):
+    r = _RecRunner()
+    dest = tmp_path / 'plugins' / 'p'
+    plugins._git_transport(r, dest, 'github:me/p', 'v1')          # dest absent -> clone path
+    clone = next((env for cmd, env in r.calls if 'git clone' in cmd), None)
+    assert clone is not None and clone['GIT_TERMINAL_PROMPT'] == '0'
+
+    dest.mkdir(parents=True, exist_ok=True)
+    r2 = _RecRunner()
+    plugins._git_transport(r2, dest, 'github:me/p', 'v1')          # dest present -> fetch path
+    fetch = next((env for cmd, env in r2.calls if 'git -C' in cmd and 'fetch' in cmd), None)
+    assert fetch is not None and fetch['GIT_TERMINAL_PROMPT'] == '0'
 
 
 # -- private-repo auth ----------------------------------------------------

@@ -651,19 +651,31 @@ def is_local_authored(source, dest):
         return False
 
 
+def _noninteractive_git_env():
+    '''Env for plugin git fetches so they NEVER block on a credential prompt: an unreachable,
+    nonexistent, or private repo must fail fast (sync -> 'failed') instead of hanging the CLI/TUI
+    on `Username for 'https://github.com':`. GIT_TERMINAL_PROMPT=0 kills git's own terminal prompt;
+    GCM_INTERACTIVE=never stops git-credential-manager from popping one. A configured credential
+    helper still answers non-interactively, so a properly set-up private repo (ssh, a token via
+    CONFIGSYS_GIT_TOKEN, or a helper with stored creds) keeps working.'''
+    return {**os.environ, 'GIT_TERMINAL_PROMPT': '0', 'GCM_INTERACTIVE': 'never'}
+
+
 def _git_transport(runner, dest, source, ref):
     '''The built-in transport: clone/fetch a git repo to `dest`, then detach at `ref` as it is on
     the remote now (see _git_checkout). `fetch --force` so a re-pointed tag updates; a failed
     checkout is reported as 'failed', not silently 'updated'. A locally-authored plugin (source ==
-    its own dir) is 'local' — untouched. Returns 'local'/'cloned'/'updated'/'failed'.'''
+    its own dir) is 'local' — untouched. Fetches run NON-INTERACTIVELY (never prompt for
+    credentials — a bad/private source fails fast). Returns 'local'/'cloned'/'updated'/'failed'.'''
     if is_local_authored(source, dest):
         return 'local'
     dq = shlex.quote(str(dest))
+    genv = _noninteractive_git_env()
     if dest.exists():
-        runner.run(f'git -C {dq} fetch --force --tags --quiet', capture=False)   # --force: re-pointed tags
+        runner.run(f'git -C {dq} fetch --force --tags --quiet', capture=False, env=genv)   # --force: re-pointed tags; non-fatal (offline -> checkout from local refs)
         return 'updated' if _git_checkout(runner, dq, ref) else 'failed'
     dest.parent.mkdir(parents=True, exist_ok=True)
-    r = runner.run(f'git clone --quiet {shlex.quote(clone_url(source))} {dq}', capture=False)
+    r = runner.run(f'git clone --quiet {shlex.quote(clone_url(source))} {dq}', capture=False, env=genv)
     if r is not None and not r.ok:
         return 'failed'
     return 'cloned' if _git_checkout(runner, dq, ref) else 'failed'
