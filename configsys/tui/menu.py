@@ -644,7 +644,7 @@ def _fill_bg(stdscr, pal, h, w):
 # -- screen router / nav bar ----------------------------------------------
 SCREENS = [('1', 'components', 'Components'), ('2', 'profiles', 'Profiles'),
            ('3', 'plugins', 'Plugins'), ('4', 'dotfiles', 'Dotfiles'), ('5', 'config', 'Config')]
-IMPLEMENTED = {'components', 'profiles'}
+IMPLEMENTED = {'components', 'profiles', 'config'}
 KEY_TO_SCREEN = {ord(k): sid for k, sid, _name in SCREENS}
 
 
@@ -1101,6 +1101,105 @@ def _draw_profiles(stdscr, pal, ps, ctx, note, screen):
     stdscr.refresh()
 
 
+# -- F2 primitive: a single-line text-input modal -------------------------
+def _input_box(stdscr, pal, title, initial=''):
+    '''Modal single-line text entry over the current screen. Returns the string on Enter, or None
+    on Esc. Handles printable ASCII + backspace.'''
+    h, w = stdscr.getmaxyx()
+    box_w = min(max(len(title) + 4, 60), max(24, w - 2))
+    box_h = 5
+    y0, x0 = max(0, (h - box_h) // 2), max(0, (w - box_w) // 2)
+    border = pal.get('accent') | curses.A_BOLD
+    buf = list(initial)
+    try:
+        curses.curs_set(1)
+    except curses.error:
+        pass
+    try:
+        while True:
+            _put(stdscr, y0, x0, '┌' + '─' * (box_w - 2) + '┐', border)
+            _put(stdscr, y0, x0 + 2, f' {_fit(title, box_w - 4)} ', border)
+            for r in range(1, box_h - 1):
+                _put(stdscr, y0 + r, x0, '│' + ' ' * (box_w - 2) + '│', border)
+            _put(stdscr, y0 + box_h - 1, x0, '└' + '─' * (box_w - 2) + '┘', border)
+            _put(stdscr, y0 + box_h - 1, x0 + 2, ' enter · esc ', border)
+            s = ''.join(buf)
+            _put(stdscr, y0 + 2, x0 + 2, _fit(s, box_w - 4).ljust(box_w - 4), curses.A_UNDERLINE)
+            try:
+                stdscr.move(y0 + 2, x0 + 2 + min(len(s), box_w - 5))
+            except curses.error:
+                pass
+            stdscr.refresh()
+            ch = stdscr.getch()
+            if ch == 27:
+                return None
+            if ch in (ord('\n'), curses.KEY_ENTER):
+                return ''.join(buf)
+            if ch in (curses.KEY_BACKSPACE, 127, 8):
+                if buf:
+                    buf.pop()
+            elif 32 <= ch < 127:
+                buf.append(chr(ch))
+    finally:
+        try:
+            curses.curs_set(0)
+        except curses.error:
+            pass
+
+
+def _setting_str(kind, val):
+    if kind == 'list':
+        return ' '.join(val) if val else '(unset — built-in default)'
+    if kind == 'bool':
+        return 'true' if val else 'false'
+    return str(val) if val not in (None, '') else '(unset)'
+
+
+# -- Config screen --------------------------------------------------------
+class ConfigScreen:
+    '''Machine-settings form — a skin over configsys.actions.config_settings/set_config_setting.'''
+    def __init__(self, ctx):
+        self.ctx = ctx
+        self.cur = 0
+        self.reload()
+
+    def reload(self):
+        from .. import actions
+        self.settings = actions.config_settings(self.ctx)
+        self.keys = list(self.settings)
+        self.cur = min(self.cur, max(0, len(self.keys) - 1))
+
+
+def _draw_config(stdscr, pal, cs, ctx, note, screen):
+    stdscr.erase()
+    h, w = stdscr.getmaxyx()
+    if pal.gradient:
+        _fill_bg(stdscr, pal, h, w)
+    _draw_nav(stdscr, pal, screen, h, w)
+    it, il, ih, iw = _panel(stdscr, pal, 1, 0, h - 3, w, 'machine settings', True, h, w)
+    y = it
+    for i, key in enumerate(cs.keys):
+        if y + 1 >= it + ih:
+            break
+        info = cs.settings[key]
+        sel = i == cs.cur
+        if sel:
+            _put(stdscr, y, il, ' ' * iw, pal.fill(y, il, h, w, selected=True))
+        _put(stdscr, y, il, _fit(f'{key:18} {_setting_str(info["kind"], info["value"])}', iw),
+             pal.style('label' if sel else 'component', y, il, h, w, selected=sel))
+        _put(stdscr, y + 1, il, _fit(f'   {info["desc"]}  (man: {info["man"]})', iw),
+             pal.style('info_dim', y + 1, il, h, w))
+        y += 3
+    from .. import actions
+    status = f' edits → {actions.edit_target(ctx)[1]}'
+    if note:
+        status += f'    {note}'
+    navf = ' j/k move · enter/space edit · 1-5 screens · q quit '
+    _put(stdscr, h - 2, 0, _fit(status, w), pal.style('status_line', h - 2, 0, h, w))
+    _put(stdscr, h - 1, 0, _fit(navf.ljust(w), w), pal.style('footer', h - 1, 0, h, w))
+    stdscr.refresh()
+
+
 def run(ctx):
     '''Entry point used by app.cmd_tui. Returns an exit code.'''
     # First-run config generation + the interactive primary-plugin offer must happen on the MAIN
@@ -1135,7 +1234,8 @@ def run(ctx):
         diag_top = 0
         screen = 'components'
         ps = None                                 # ProfileScreen, built lazily on first visit
-        menu_dirty = False                        # a profile edit -> rebuild the Components tree
+        cs = None                                 # ConfigScreen, built lazily on first visit
+        menu_dirty = False                        # a profile/config edit -> rebuild the Components tree
         pending_report = None                     # a component whose op failed this session
         pending_notes = []                         # messages saved for after the TUI exits
         while True:
@@ -1145,6 +1245,10 @@ def run(ctx):
                 if ps is None:
                     ps = ProfileScreen(ctx)
                 _draw_profiles(stdscr, pal, ps, ctx, note, screen)
+            elif screen == 'config':
+                if cs is None:
+                    cs = ConfigScreen(ctx)
+                _draw_config(stdscr, pal, cs, ctx, note, screen)
             else:
                 diag_top = _draw(stdscr, pal, ms, ctx, note, diags, False, diag_top, screen)
             note = ''
@@ -1196,7 +1300,9 @@ def run(ctx):
                         ps.lcur = max(0, ps.lcur - 1)
                     else:
                         ps.rcur = max(0, ps.rcur - 1)
-                elif ch in (ord('l'), ord('\t'), curses.KEY_RIGHT):
+                elif ch == ord('\t'):
+                    ps.focus = 'right' if ps.focus == 'left' else 'left'   # toggle
+                elif ch in (ord('l'), curses.KEY_RIGHT):
                     ps.focus = 'right'
                 elif ch in (ord('h'), curses.KEY_LEFT):
                     ps.focus = 'left'
@@ -1228,6 +1334,49 @@ def run(ctx):
                                     if changed else 'no change')
                         except Exception as e:  # noqa: BLE001 — surface, don't crash
                             note = f'edit failed: {e}'
+                continue
+
+            # -- Config screen --
+            if screen == 'config':
+                from .. import actions
+                if ch in (ord('j'), curses.KEY_DOWN):
+                    cs.cur = min(len(cs.keys) - 1, cs.cur + 1)
+                elif ch in (ord('k'), curses.KEY_UP):
+                    cs.cur = max(0, cs.cur - 1)
+                elif ch == ord('g'):
+                    cs.cur = 0
+                elif ch == ord('G'):
+                    cs.cur = max(0, len(cs.keys) - 1)
+                elif ch in (ord(' '), ord('\n'), curses.KEY_ENTER):
+                    key = cs.keys[cs.cur]
+                    info = cs.settings[key]
+                    try:
+                        if info['kind'] == 'bool':
+                            actions.set_config_setting(
+                                ctx, key, ['false' if info['value'] else 'true'])
+                            note = f'{key} = {"false" if info["value"] else "true"}'
+                            cs.reload()
+                            menu_dirty = True
+                        elif info['kind'] == 'scalar':      # scope: user/system/unset picker
+                            cur_idx = {'user': 0, 'system': 1}.get(info['value'], 2)
+                            idx = _popup_choose(stdscr, pal, key,
+                                                [('user', ''), ('system', ''), ('(unset)', '')], cur_idx)
+                            if idx is not None:
+                                actions.set_config_setting(ctx, key, [['user'], ['system'], []][idx])
+                                note = f'{key} set'
+                                cs.reload()
+                                menu_dirty = True
+                        else:                               # list: edit via input box
+                            new = _input_box(stdscr, pal,
+                                             f'{key}  (space-separated; empty clears)',
+                                             ' '.join(info['value'] or []))
+                            if new is not None:
+                                actions.set_config_setting(ctx, key, new.split())
+                                note = f'{key} set'
+                                cs.reload()
+                                menu_dirty = True
+                    except Exception as e:  # noqa: BLE001 — surface, don't crash
+                        note = f'edit failed: {e}'
                 continue
 
             # -- Components screen --
