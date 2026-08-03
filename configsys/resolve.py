@@ -144,6 +144,20 @@ def _most_specific_binding(matching, cascade):
     return mins[0] if len(mins) == 1 else None
 
 
+def via_representatives(matching, cascade):
+    '''One binding per via — the one that RESOLVES when that via is pinned: its most-specific
+    `when:` among the via's valid bindings. The picker and pins choose a VIA (1:1 with a driver),
+    so same-via siblings collapse to this representative; a shadowed same-via binding (e.g.
+    fastfetch's bare `via: native` behind its `when: debian` .deb binding) is not separately
+    reachable. Same-via valid bindings are guaranteed comparable (incomparable = a routecheck load
+    error), so the representative is unique. Preserves first-seen via order.'''
+    by_via = {}
+    for b in matching:
+        by_via.setdefault(b.via, []).append(b)
+    return [g[0] if len(g) == 1 else (_most_specific_binding(g, cascade) or g[0])
+            for g in by_via.values()]
+
+
 def _by_preference(matching, component, cascade, context, preference):
     '''Pick among incomparable/equally-specific candidates via the preference channel — separate
     from `when:`. Order: explicit `prefer:` (higher wins), then driver-preference index. A true

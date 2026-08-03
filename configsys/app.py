@@ -742,12 +742,14 @@ def _fmt_val(v):
     return s if len(s) <= 60 else s[:57] + '...'
 
 
-def _fmt_binding(b, selected, candidate=False):
+def _fmt_binding(b, selected, reachable=False, shadowed=False):
     when = b.when if b.when else 'always'
     details = '  '.join(f'{k}={_fmt_val(v)}' for k, v in b.details.items())
     if selected:
         mark = '  <- default here'
-    elif candidate:
+    elif shadowed:
+        mark = f'  (shadowed — pinning via:{b.via} resolves a more-specific binding above)'
+    elif reachable:
         mark = '  (alternative here — pin to use)'
     else:
         mark = ''
@@ -802,14 +804,17 @@ def cmd_where(ctx, args):
     cx = r.cascade.context(r.block, r.version, r.cpu)
     selected, candidates, reason = None, [], None
     if comp.bindings:
-        from .resolve import _select, candidate_bindings
+        from .resolve import _select, candidate_bindings, via_representatives
         try:
             selected, candidates, reason = _select(comp, r.cascade, cx, r.pins, r.preference)
         except ResolveError:
             candidates = candidate_bindings(comp, r.cascade, cx, r.pins)  # valid but none / undecidable
+        reps = via_representatives(candidates, r.cascade)      # per-via winners — the pin-reachable set
         print('  bindings')
         for b in comp.bindings:
-            print(_fmt_binding(b, b is selected, b in candidates))
+            valid = b in candidates
+            print(_fmt_binding(b, b is selected, reachable=(b in reps and b is not selected),
+                               shadowed=(valid and b not in reps)))
         if selected is not None and len(candidates) > 1:
             print(f'    default: via {selected.via}  (by {reason})')
 

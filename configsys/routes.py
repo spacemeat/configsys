@@ -309,7 +309,7 @@ class Resolver:
         the one that resolves now (a pin, else the preference-picked binding); `pinned` flags the
         via a binding-pin names. [] if the component is unknown / removed / unroutable here. Feeds
         `where`, the pin CLI, and the TUI method picker.'''
-        from .resolve import candidate_bindings, _select, ResolveError
+        from .resolve import candidate_bindings, _select, via_representatives, ResolveError
         comp = self.components.get(name)
         if comp is None or not comp.bindings:
             return []
@@ -317,10 +317,15 @@ class Resolver:
         cands = candidate_bindings(comp, self.cascade, ctx)      # all methods, ignore pin filter
         if not cands:
             return []
+        # The picker and pins choose a VIA (1:1 with a driver), not an individual binding — the
+        # resolver auto-picks the most-specific binding within a via. So collapse multiple same-via
+        # candidates (e.g. fastfetch's `when: debian` .deb binding subsumed by its bare `via:
+        # native`) to the one that resolves for that via, so the picker lists one row per real choice.
+        reps = via_representatives(cands, self.cascade)
         try:
             winner = _select(comp, self.cascade, ctx, self.pins, self.preference)[0]
         except ResolveError:
             winner = None
         pinned_via = self.pins.get(name)
         return [{'via': b.via, 'when': b.when, 'default': b is winner,
-                 'pinned': pinned_via == b.via} for b in cands]
+                 'pinned': pinned_via == b.via} for b in reps]

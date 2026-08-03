@@ -92,3 +92,17 @@ def test_most_specific_same_method_still_wins(tmp_path):
     cascade, cs, _ = _load(tmp_path, comps)
     winner, _c, reason = _select(cs['pkg'], cascade, cascade.context('debian', '12', None))
     assert reason == 'most-specific when:' and winner.details.get('repo-component') == 'extra'
+
+
+def test_candidates_collapse_same_via_to_one_row(tmp_path):
+    # The picker/pin choose a VIA, not an individual binding — so two comparable native bindings
+    # (fastfetch's real bug: a `when: debian` .deb subsumed by a bare `via: native`) must collapse
+    # to ONE native row (the one that resolves), alongside genuinely-distinct vias. Guards the
+    # picker from showing two indistinguishable "via native" rows.
+    comps = ('pkg: { install: [ { via: native } { via: native  when: debian  repo-component: extra }'
+             '                   { via: flatpak  app: org.x.P } ] }')
+    cands = Resolver(str(_write(tmp_path, comps)), 'debian', '12').candidates('pkg')
+    vias = [c['via'] for c in cands]
+    assert vias.count('native') == 1 and 'flatpak' in vias        # one native row, plus the distinct via
+    native = next(c for c in cands if c['via'] == 'native')
+    assert native['when'] == 'debian' and native['default'] is True   # the specialized binding, and it wins
