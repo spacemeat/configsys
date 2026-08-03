@@ -28,10 +28,11 @@ def _comps():
     }
 
 
-def _rust_report(default_ver, tarball_ver):
+def _rust_report(default_ver, tarball_ver, default_installed=None):
     MV = versionreport.MethodVersion
     return versionreport.VersionReport(name='rust', tip=tarball_ver, methods=[
-        MV(via='native', driver='apt', package='rust', latest=default_ver, is_default=True),
+        MV(via='native', driver='apt', package='rust', latest=default_ver, is_default=True,
+           installed=default_installed),
         MV(via='tarball', driver='tarball', package='rust', latest=tarball_ver)])
 
 
@@ -56,6 +57,24 @@ def test_advises_when_default_below_floor_and_names_the_pin(monkeypatch):
     assert 'provides 1.75' in t
     assert 'pin rust to tarball' in t                      # surface-and-choose: names the fix
     assert advs[0]['level'] == 'warn'
+
+
+def test_advises_meets_is_singular(monkeypatch):
+    _mock(monkeypatch, _rust_report(default_ver='1.75', tarball_ver='1.97'))
+    advs = flooradvise.advise(_Ctx(_comps()), [_src_unit()])
+    assert 'tarball meets it' in advs[0]['text']            # one method -> "meets", not "meet"
+
+
+def test_replacement_caveat_when_default_is_installed(monkeypatch):
+    # the too-old provider is already installed via the default method -> explicit "won't remove it"
+    _mock(monkeypatch, _rust_report(default_ver='1.75', tarball_ver='1.97', default_installed='1.75'))
+    advs = flooradvise.advise(_Ctx(_comps()), [_src_unit()])
+    assert "installed via native; switching won't remove it" in advs[0]['text']
+
+
+def test_no_replacement_caveat_when_not_installed(monkeypatch):
+    _mock(monkeypatch, _rust_report(default_ver='1.75', tarball_ver='1.97', default_installed=None))
+    assert 'switching won' not in flooradvise.advise(_Ctx(_comps()), [_src_unit()])[0]['text']
 
 
 def test_no_advice_when_default_meets_floor(monkeypatch):

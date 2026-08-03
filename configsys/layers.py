@@ -222,6 +222,24 @@ def merge_name_overrides(layers, roles=None):
     return out
 
 
+def merge_version_floors(layers, roles=None):
+    '''Overlay the `version-floors` section across layers -> {component: {cap: constraint}}. The
+    analog of component-names for VERSION constraints: a higher layer patches a (component,
+    capability) floor WITHOUT redefining the component, so a `main`-keyed data plugin can supply
+    auto-derived toolchain floors that fold into existing recipes. Later layers win per
+    (component, cap).'''
+    out = {}
+    for layer in layers:
+        if roles is not None and layer.role not in roles:
+            continue
+        sec = layer.data.get('version-floors')
+        if isinstance(sec, dict):
+            for comp, cap_map in sec.items():
+                if isinstance(cap_map, dict):
+                    out.setdefault(comp, {}).update(cap_map)
+    return out
+
+
 def merge_scalar(layers, section, roles):
     '''Last (highest-precedence) value for a single-valued section, among `roles` layers.'''
     val = None

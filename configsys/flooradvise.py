@@ -55,11 +55,16 @@ def advise(ctx, units):
                 if meets(default.latest, floor):
                     continue                              # the default method meets the floor
                 who = [m.via for m in rp.methods if m.latest and meets(m.latest, floor)]
-                fix = (f'pin {provider} to {who[0]} ({", ".join(who)} meet it): '
+                verb = 'meets' if len(who) == 1 else 'meet'
+                fix = (f'pin {provider} to {who[0]} ({", ".join(who)} {verb} it): '
                        f'`configsys pin set {provider} {who[0]}`') if who else \
                       f'no install method here meets {cap} {floor}'
+                # method-replacement is explicit, never automatic: if the too-old provider is
+                # already INSTALLED via the default method, switching won't remove that install.
+                replace = (f'  ({provider} is installed via {default.via}; switching won\'t remove '
+                           f'it — remove it after)') if default.installed else ''
                 text = (f'{rc.comp} (via {rc.via}) needs {cap} {floor}, but the default method for '
-                        f'{provider} provides {default.latest}; {fix}')
+                        f'{provider} provides {default.latest}; {fix}{replace}')
                 if text not in seen:
                     seen.add(text)
                     out.append({'level': 'warn', 'tag': 'floor', 'text': text})

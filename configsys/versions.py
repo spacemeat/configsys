@@ -106,7 +106,12 @@ def _discover_live(spec, fetch):
         text = fetch(spec['url'])
         pattern = spec.get('regex') or r'[0-9]+(?:\.[0-9]+)+'
         m = re.search(pattern, text)
-        return (m.group(0) if m else None), None
+        if not m:
+            return None, None
+        # a capture group extracts the version out of surrounding text (e.g. the rust stable
+        # channel manifest's `[pkg.rust]\nversion = "1.97.1 (...)"`); groupless regexes match it
+        # directly, as before.
+        return (m.group(1) if m.groups() else m.group(0)), None
     for name, fn in _SOURCES.items():            # plugin-registered sources (P2c)
         if name in spec:
             return fn(spec, fetch)

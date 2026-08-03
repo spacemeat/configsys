@@ -243,8 +243,19 @@ stays the common form.
      `ctx.diagnostics` (inspect + the TUI `!` page); a no-op until floors are active. Verified live:
      ripgrep-via-source needs cargo ≥1.96, box's apt rust is 1.95 → "no install method here meets
      cargo ≥1.96".
-   - **3b remaining** — the first recent-toolchain bindings (a rustup / recent-Go method with a
-     declared `provides:` floor) so the advisory becomes ACTIONABLE ("pin rust to …"), plus the
-     explicit method-REPLACEMENT flow for an already-installed provider. Also: build the
-     `version-floors:` section merge/apply so floors fold in from the main-keyed plugin.
+   - **3b SHIPPED.** Three pieces, working end-to-end:
+     - **`version-floors:` section** (`layers.merge_version_floors` + `routes._apply_version_floors`)
+       — a mergeable patch (sibling of `component-names`) that TIGHTENS an existing requirement's
+       floor without redefining the component; only where the cap is required (never creates one),
+       so resolution is byte-identical. A `main`-keyed data plugin folds floors into bare recipes.
+     - **First recent-toolchain binding** — `rust` gains a `via: script` rustup method (latest
+       stable, userland `~/.cargo`, least-preferred so native stays default), with a `provides:
+       { cargo }` floor and a `url`-regex version source (the stable channel manifest). Fixed a
+       general bug: the `url` version kind now returns the regex CAPTURE GROUP, not the whole match.
+     - **Method-replacement caveat** — the advisory now becomes ACTIONABLE ("pin rust to script")
+       and, when the too-old provider is already INSTALLED via the default method, adds an explicit
+       "switching won't remove it" note — replacement stays a deliberate act, never automatic.
+     - Verified live: a `version-floors` floor of cargo ≥1.96 on ripgrep-via-source → "pin rust to
+       script (script meets it): `configsys pin set rust script` (rust is installed via native;
+       switching won't remove it)".
 4. **(Later, opt-in)** monotonic auto-tightening for users who want "just meet the floor."

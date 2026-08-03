@@ -224,7 +224,27 @@ def load(path, overrides_path=None, discovered=(), plugin_files=(), validate=Tru
 
     drvs = layers.merge_dict_section(layer_list, 'drivers', ('repo', 'plugin', 'primary'))
     drivers = {name: cap_names((spec or {}).get('requires')) for name, spec in drvs.items()}
+    _apply_version_floors(components, layers.merge_version_floors(layer_list))
     return cascade, components, drivers
+
+
+def _apply_version_floors(components, floors):
+    '''Patch merged `version-floors` {component: {cap: constraint}} onto the built components: set
+    the floor wherever the component ALREADY requires the cap (its component-level `requires`, and
+    any binding that requires it). A patch only TIGHTENS an existing requirement — a floor for a cap
+    the component doesn't require is IGNORED, so it never creates a requirement and resolution is
+    unchanged (only the sweep / advisory read the added version metadata).'''
+    for cname, cap_map in floors.items():
+        comp = components.get(cname)
+        if comp is None or not isinstance(cap_map, dict):
+            continue
+        for cap, con in cap_map.items():
+            con = str(con)
+            if cap in comp.requires:
+                comp.req_versions[cap] = con
+            for b in comp.bindings:
+                if cap in cap_names(b.details.get('requires')):
+                    b.req_versions[cap] = con
 
 
 class Resolver:

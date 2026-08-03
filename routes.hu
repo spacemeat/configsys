@@ -262,7 +262,25 @@
         // cargo), and elsewhere `cargo` transitively pulls rustc (dnf/apk/zypper).
         rust: {
             provides: cargo
-            install: [ { via: native  repo-component: universe  name: { apt: rust-all  pacman: rust  brew: rust  default: cargo } } ]
+            install: [
+                { via: native  repo-component: universe  name: { apt: rust-all  pacman: rust  brew: rust  default: cargo } }
+                // rustup: the official installer -> the LATEST STABLE toolchain, userland in
+                // ~/.cargo (no sudo, on the standard ~/.cargo/bin PATH). For source builds that
+                // need a newer cargo than the distro ships (the toolchain-floor case). Least-
+                // preferred (via: script is last in driver-preference), so it NEVER wins by default
+                // — native stays the default; pin `rust script` (or let a cargo>=X floor advise it).
+                // Its available version is the current stable (read from the stable channel
+                // manifest); `provides: { cargo }` is the floor it guarantees.
+                { via: script  requires: curl
+                  provides: { cargo: ">=1.80" }
+                  version: { url: "https://static.rust-lang.org/dist/channel-rust-stable.toml"
+                             regex: '\[pkg\.rust\]\s*\n\s*version = "([0-9]+\.[0-9]+\.[0-9]+)' }
+                  install-cmd:   "curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --no-modify-path"
+                  version-cmd:   "$HOME/.cargo/bin/cargo --version"
+                  version-re:    '([0-9]+\.[0-9]+\.[0-9]+)'
+                  uninstall-cmd: "$HOME/.cargo/bin/rustup self uninstall -y"
+                  location:      "~/.cargo/bin" }
+            ]
         }
 
         // Node.js toolchain (node + npm), directly usable. It `provides: npm`, so the npm
