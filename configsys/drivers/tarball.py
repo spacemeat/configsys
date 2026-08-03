@@ -81,8 +81,10 @@ class Tarball(Driver):
                    f'curl -fSL {uq} -o {binpath} && chmod +x {binpath} && '
                    f'printf %s {verq} > {marker}')
         else:
-            # download + unpack via the shared acquire (same fragment the source driver builds on)
-            cmd = (f'{self._fetch_and_extract(url, d, rc.fields.get("archive"))} && '
+            # download + unpack via the shared acquire (same fragment the source driver builds on).
+            # `strip:` drops N leading tar path components — e.g. the Go tarball's `go/` wrapper so
+            # its bin/pkg/src land directly in installDir; default None = extract as-is (unchanged).
+            cmd = (f'{self._fetch_and_extract(url, d, rc.fields.get("archive"), rc.fields.get("strip"))} && '
                    f'printf %s {verq} > {marker}')
         return self.runner.run(cmd, sudo=self.sudo(rc), capture=False)
 

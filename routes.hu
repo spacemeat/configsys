@@ -326,7 +326,19 @@
         // Go toolchain, directly usable. Auto-provides the `go` capability the go-install
         // driver requires. Package names: apt `golang-go`, dnf `golang`, else `go`.
         go: {
-            install: [ { via: native  name: { apt: golang-go  dnf: golang  default: go } } ]
+            install: [
+                { via: native  name: { apt: golang-go  dnf: golang  default: go } }
+                // the official Go toolchain tarball — latest stable, userland under
+                // $CONFIGSYS_SDK_DIR/go (~/sdks/go by default; `strip: 1` drops the archive's `go/`
+                // wrapper so `go` lands at .../go/bin). For source builds that need a newer Go than
+                // the distro ships (lazygit/superfile floors). Least-preferred (native stays the
+                // default; pin `go tarball`, or let a go>=X floor advise it). The source driver puts
+                // ~/sdks/go/bin on PATH for builds; `provides: { go }` is the floor it guarantees.
+                { via: tarball  installDir: "$CONFIGSYS_SDK_DIR/go"  strip: 1  requires: [ glibc, curl ]
+                  provides: { go: ">=1.21" }
+                  version: { url: "https://go.dev/VERSION?m=text"  regex: "go([0-9.]+)" }
+                  url: "https://go.dev/dl/go$VERSION.linux-amd64.tar.gz" }
+            ]
         }
         // Sample `go install` tool (module path in `name:`; binary = its last segment).
         goimports: { install: [ { via: go-install  name: "golang.org/x/tools/cmd/goimports" } ] }

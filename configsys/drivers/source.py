@@ -136,12 +136,15 @@ class Source(Driver):
         return self.runner.run(cmd, capture=False)
 
     # Well-known USERLAND toolchain bin dirs, prepended to PATH for the build so a NON-native
-    # toolchain a recipe `requires:` is found — rustup's cargo/rustc in ~/.cargo/bin, `go install`
-    # tools in ~/go/bin (GOPATH/bin). A native toolchain on the system PATH still works (these just
-    # take precedence when present; a missing dir is harmlessly ignored by PATH lookup). This is
-    # what lets a floor-pinned toolchain (e.g. rust->rustup) actually build, since the build runs in
-    # a fresh non-interactive shell that hasn't sourced bash.d. A recipe adds more via `build-path:`.
-    _TOOLCHAIN_BINDIRS = ('$HOME/.cargo/bin', '$HOME/go/bin')
+    # toolchain a recipe `requires:` is found — rustup's cargo/rustc in ~/.cargo/bin, the Go
+    # toolchain tarball in ~/sdks/go/bin ($CONFIGSYS_SDK_DIR default), and `go install` tools in
+    # ~/go/bin (GOPATH/bin). A native toolchain on the system PATH still works (these just take
+    # precedence when present; a missing dir is harmlessly ignored by PATH lookup). This is what lets
+    # a floor-pinned toolchain (rust->rustup, go->tarball) actually build, since the build runs in a
+    # fresh non-interactive shell that hasn't sourced bash.d. (These are the DEFAULT locations; if you
+    # override CONFIGSYS_SDK_DIR/scope, add that bin dir via the recipe's `build-path:`.) A recipe
+    # adds more via `build-path:`.
+    _TOOLCHAIN_BINDIRS = ('$HOME/.cargo/bin', '$HOME/sdks/go/bin', '$HOME/go/bin')
 
     def _build_path(self, rc, version, src, prefix):
         extra = rc.fields.get('build-path')

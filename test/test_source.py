@@ -37,7 +37,7 @@ def test_install_command_construction(tmp_path):
     assert f'git clone https://example.com/x/mytool.git {src}' in cmd
     assert f'git -C {src} checkout v1.2.3' in cmd
     assert 'git -C' in cmd and 'fetch --tags' in cmd
-    assert (f'( cd {src} && export PATH="$HOME/.cargo/bin:$HOME/go/bin:$PATH" && '
+    assert (f'( cd {src} && export PATH="$HOME/.cargo/bin:$HOME/sdks/go/bin:$HOME/go/bin:$PATH" && '
             f'./configure --prefix={prefix} && make && make install )') in cmd
     assert f'mkdir -p {src.parent} {prefix}' in cmd
     assert 'printf %s v1.2.3' in cmd                       # marker records the version/ref
@@ -49,7 +49,7 @@ def test_build_gets_toolchain_bin_dirs_on_path(tmp_path):
     # since it runs in a fresh non-interactive shell — so those dirs are prepended to PATH.
     r = Runner(pretend=True)
     Source(r, paths=None).install(src_unit(tmp_path, ref='v1', build='cargo build --release'))
-    assert 'export PATH="$HOME/.cargo/bin:$HOME/go/bin:$PATH" && cargo build --release' in r.calls[0]
+    assert 'export PATH="$HOME/.cargo/bin:$HOME/sdks/go/bin:$HOME/go/bin:$PATH" && cargo build --release' in r.calls[0]
 
 
 def test_build_path_adds_extra_dirs(tmp_path):
@@ -57,7 +57,7 @@ def test_build_path_adds_extra_dirs(tmp_path):
     rc = src_unit(tmp_path, ref='v1', build='make', **{'build-path': '$PREFIX/toolchain/bin'})
     Source(r, paths=None).install(rc)
     prefix = tmp_path / 'prefix'
-    assert f'export PATH="$HOME/.cargo/bin:$HOME/go/bin:{prefix}/toolchain/bin:$PATH"' in r.calls[0]
+    assert f'export PATH="$HOME/.cargo/bin:$HOME/sdks/go/bin:$HOME/go/bin:{prefix}/toolchain/bin:$PATH"' in r.calls[0]
 
 
 def test_version_static_forms_the_tag(tmp_path):
@@ -97,7 +97,7 @@ def test_install_from_source_archive(tmp_path):
     cmd = r.calls[0]
     assert 'curl -fSL' in cmd and 'foo-1.2.3.tar.gz' in cmd
     assert 'tar -xf' in cmd and '--strip-components=1' in cmd   # strip the foo-1.2.3/ wrapper
-    assert (f'( cd {src} && export PATH="$HOME/.cargo/bin:$HOME/go/bin:$PATH" && '
+    assert (f'( cd {src} && export PATH="$HOME/.cargo/bin:$HOME/sdks/go/bin:$HOME/go/bin:$PATH" && '
             f'./configure --prefix={prefix} && make install )') in cmd
     assert 'git clone' not in cmd                               # archive path, not git
 
