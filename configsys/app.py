@@ -1964,6 +1964,26 @@ def build_parser():
     cfg_unset.add_argument('--local', action='store_true',
                            help="write to this machine's top config, not the primary plugin")
 
+    thp = sub.add_parser('theme', help='view or edit the TUI theme; save/load shareable themes')
+    thsub = thp.add_subparsers(dest='theme_command')
+    thsub.add_parser('show', help='the theme overrides currently in effect (default)')
+    thsub.add_parser('list', help='saved/available theme plugins')
+    th_set = thsub.add_parser('set', help='set a theme value, e.g. theme set colors.accent "#c88cf0"')
+    th_set.add_argument('key', help='colors.<name> | elements.<el>.<attr> | gradient.<from|to|selected>')
+    th_set.add_argument('value')
+    th_set.add_argument('--local', action='store_true',
+                        help="write to this machine's top config, not the primary plugin")
+    th_unset = thsub.add_parser('unset', help='remove a theme value')
+    th_unset.add_argument('key')
+    th_unset.add_argument('--local', action='store_true')
+    th_save = thsub.add_parser('save', help='snapshot your theme into a shareable theme plugin')
+    th_save.add_argument('name')
+    th_save.add_argument('--force', action='store_true',
+                         help='overwrite an existing theme plugin of that name')
+    th_load = thsub.add_parser('load', help='apply a saved theme plugin')
+    th_load.add_argument('name')
+    th_load.add_argument('--local', action='store_true')
+
     pl = sub.add_parser('plugin', help='manage plugins: declare/sync, bless or init a personal '
                                        'primary plugin, trust code plugins')
     plsub = pl.add_subparsers(dest='plugin_command')
@@ -2295,11 +2315,70 @@ def cmd_config(ctx, args):
     return 0
 
 
+def _print_theme(ov, indent=2):
+    for k, v in ov.items():
+        if isinstance(v, dict):
+            print(' ' * indent + f'{k}:')
+            _print_theme(v, indent + 2)
+        else:
+            print(' ' * indent + f'{k}: {v}')
+
+
+def cmd_theme(ctx, args):
+    '''View or edit the TUI theme, and save/load theme plugins. A skin over configsys.actions —
+    the same functions the TUI theme editor (Config screen) will call.'''
+    from . import actions
+    sub = getattr(args, 'theme_command', None) or 'show'
+
+    if sub == 'show':
+        ov = actions.theme_overrides(ctx)
+        if ov:
+            _print_theme(ov)
+        else:
+            print('configsys: no theme overrides (using built-in defaults)')
+        return 0
+    if sub == 'list':
+        names = actions.theme_plugins(ctx)
+        print('\n'.join(f'  {n}' for n in names) if names
+              else 'configsys: no theme plugins saved (create one: configsys theme save <name>)')
+        return 0
+
+    ctx.ensure_user_config()
+    target = str(ctx.paths.user_config_file) if getattr(args, 'local', False) else None
+
+    if sub in ('set', 'unset'):
+        val = None if sub == 'unset' else args.value
+        _changed, label = actions.set_theme_value(ctx, args.key, val, target=target)
+        verb = 'cleared' if val is None else f'set {args.key} = {args.value}'
+        print(f'configsys: {"cleared " + args.key if val is None else verb}  (in {label})')
+        return 0
+    if sub == 'save':
+        pdir, existed = actions.save_theme_plugin(ctx, args.name, force=args.force)
+        if existed and not args.force:
+            print(f'configsys: theme plugin {args.name!r} already exists at {pdir} — '
+                  f'use --force to overwrite', file=sys.stderr)
+            return 1
+        print(f'configsys: saved current theme -> {pdir}\n'
+              f'  to share: cd {pdir}; git init + push, then bless/declare it as a plugin')
+        return 0
+    if sub == 'load':
+        _changed, label = actions.load_theme(ctx, args.name, target=target)
+        if label is None:
+            print(f'configsys: no theme plugin {args.name!r} (see `configsys theme list`)',
+                  file=sys.stderr)
+            return 1
+        print(f'configsys: applied theme {args.name}  (in {label}) — '
+              f'retune with `configsys theme set`')
+        return 0
+    return 0
+
+
 _COMMANDS = {
     'inspect': cmd_inspect,
     'dotfiles': cmd_dotfiles,
     'profile': cmd_profile,
     'config': cmd_config,
+    'theme': cmd_theme,
     'install': cmd_install,
     'remove': cmd_remove,
     'upgrade': cmd_upgrade,

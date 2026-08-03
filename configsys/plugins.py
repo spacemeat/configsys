@@ -566,6 +566,45 @@ def read_configs(config_file):
     return read_list_section(config_file, 'configs')
 
 
+def _emit_kv(key, value, indent):
+    '''One `key: <value>` line (or block) at `indent`, recursing into nested dicts — for the `theme:`
+    section (colors / elements.<el>.<attr> / gradient). Bools emit as bare humon true/false.'''
+    pad = ' ' * indent
+    if isinstance(value, dict):
+        lines = [f'{pad}{key}: {{']
+        for k, v in value.items():
+            lines.append(_emit_kv(k, v, indent + 4))
+        return '\n'.join(lines + [pad + '}'])
+    if isinstance(value, bool):
+        return f'{pad}{key}: {"true" if value else "false"}'
+    if isinstance(value, list):
+        return f'{pad}{key}: [ {"  ".join(_scalar(x) for x in value)} ]'
+    return f'{pad}{key}: {_scalar(value)}'
+
+
+def read_theme(config_file):
+    '''The raw nested `theme:` override dict from ONE .hu file, or {}.'''
+    p = Path(config_file)
+    if not p.exists():
+        return {}
+    data = layers.materialize_string(p.read_text(encoding='utf-8'))
+    t = data.get('theme') if isinstance(data, dict) else None
+    return t if isinstance(t, dict) else {}
+
+
+def set_theme(config_file, theme):
+    '''Rewrite the nested `theme:` node in place (or remove it when empty).'''
+    if not theme:
+        remove_sections(config_file, ['theme'])
+        return
+
+    def emit(indent):
+        pad = ' ' * indent
+        body = [_emit_kv(k, v, indent + 4) for k, v in theme.items()]
+        return '\n'.join(['theme: {'] + body + [pad + '}'])
+    set_section(config_file, 'theme', emit)
+
+
 def set_configs(config_file, names):
     '''Rewrite the `configs:` node in place (or remove it when empty).'''
     set_list_section(config_file, 'configs', names)
