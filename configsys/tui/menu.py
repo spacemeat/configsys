@@ -641,7 +641,26 @@ def _fill_bg(stdscr, pal, h, w):
             x = x2
 
 
-def _draw(stdscr, pal, ms, ctx, note, diags=(), show_diag=False, diag_top=0):
+# -- screen router / nav bar ----------------------------------------------
+SCREENS = [('1', 'components', 'Components'), ('2', 'profiles', 'Profiles'),
+           ('3', 'plugins', 'Plugins'), ('4', 'dotfiles', 'Dotfiles'), ('5', 'config', 'Config')]
+IMPLEMENTED = {'components', 'profiles'}
+KEY_TO_SCREEN = {ord(k): sid for k, sid, _name in SCREENS}
+
+
+def _draw_nav(stdscr, pal, screen, h, w):
+    '''Row-0 chip bar: press a number to switch screens. Unbuilt screens are dimmed.'''
+    x = 0
+    for key, sid, name in SCREENS:
+        chip = f' {key} {name} '
+        elem = 'label' if sid == screen else ('menu_header' if sid in IMPLEMENTED else 'info_dim')
+        _put(stdscr, 0, x, chip, pal.style(elem, 0, x, h, w))
+        x += len(chip) + 1
+    hint = ' ! issues · q quit '
+    _put(stdscr, 0, max(x + 1, w - len(hint) - 1), _fit(hint, w - x), pal.style('footer', 0, x, h, w))
+
+
+def _draw(stdscr, pal, ms, ctx, note, diags=(), show_diag=False, diag_top=0, screen='components'):
     if show_diag:
         return _draw_diagnostics(stdscr, pal, diags, diag_top)
     stdscr.erase()
@@ -650,26 +669,27 @@ def _draw(stdscr, pal, ms, ctx, note, diags=(), show_diag=False, diag_top=0):
     if pal.gradient:
         _fill_bg(stdscr, pal, h, w)
 
-    # top line: the `configsys` chip, then the OS block (+ PRETEND) to its right, then the badge.
+    _draw_nav(stdscr, pal, screen, h, w)
+    # second line: the `configsys` chip, then the OS block (+ PRETEND) to its right, then the badge.
     title = ' configsys '
-    _put(stdscr, 0, 0, title, pal.style('label', 0, 0, h, w))
+    _put(stdscr, 1, 0, title, pal.style('label', 1, 0, h, w))
     sub = f'  {ctx.os_info.block}'
     if ctx.runner.pretend:
         sub += '   [PRETEND]'
-    _put(stdscr, 0, len(title), _fit(sub, max(1, w - len(title))), pal.style('os', 0, len(title), h, w))
-    if diags:                                        # attention badge, right-aligned on the top line
+    _put(stdscr, 1, len(title), _fit(sub, max(1, w - len(title))), pal.style('os', 1, len(title), h, w))
+    if diags:                                        # attention badge, right-aligned on the title line
         n = len(diags)
         elem = 'issue_error' if any(d['level'] == 'error' for d in diags) else 'issue_warning'
         badge = f' ⚠ {n} issue{"s" if n != 1 else ""} — press ! to view '
         bx = max(len(title) + len(sub) + 2, w - len(badge) - 1)
-        _put(stdscr, 0, bx, _fit(badge, w - bx), pal.style(elem, 0, bx, h, w))
+        _put(stdscr, 1, bx, _fit(badge, w - bx), pal.style(elem, 1, bx, h, w))
 
     for c, text in (('name', 'COMPONENT'), ('driver', 'DRIVER'), ('scope', 'SCOPE'),
                     ('status', 'STATUS'), ('inst', 'INSTALLED'), ('latest', 'LATEST')):
         x, cw = cols[c]
-        _put(stdscr, 1, x, _fit(text, cw), pal.style('menu_header', 1, x, h, w))
+        _put(stdscr, 2, x, _fit(text, cw), pal.style('menu_header', 2, x, h, w))
 
-    list_top = 2
+    list_top = 3
     list_h = max(1, h - list_top - 6)  # methods + 2 infoblock + status + 2 footer lines
     ms.top = first = _scroll_top(ms.cursor, ms.top, list_h, len(ms.rows))
 
@@ -980,6 +1000,107 @@ class _InspectWorker:
         return self._result
 
 
+# -- F2 primitive: a bordered panel ---------------------------------------
+def _panel(stdscr, pal, top, left, height, width, title, focused, h, w):
+    '''Draw a bordered box; return (inner_top, inner_left, inner_h, inner_w) for its content.'''
+    elem = 'menu_header' if focused else 'info_dim'
+    bar = '─' * (width - 2)
+    _put(stdscr, top, left, '┌' + bar + '┐', pal.style(elem, top, left, h, w))
+    for r in range(top + 1, top + height - 1):
+        _put(stdscr, r, left, '│', pal.style(elem, r, left, h, w))
+        _put(stdscr, r, left + width - 1, '│', pal.style(elem, r, left + width - 1, h, w))
+    _put(stdscr, top + height - 1, left, '└' + bar + '┘', pal.style(elem, top + height - 1, left, h, w))
+    if title:
+        te = 'label' if focused else 'menu_header'
+        _put(stdscr, top, left + 2, _fit(f' {title} ', width - 4), pal.style(te, top, left + 2, h, w))
+    return top + 1, left + 1, height - 2, width - 2
+
+
+# -- Profiles screen ------------------------------------------------------
+class ProfileScreen:
+    '''Two-panel profile editor: profiles (left) + the full component catalog (right). A skin over
+    configsys.actions — space toggles membership, `a` toggles a profile active.'''
+    def __init__(self, ctx):
+        self.ctx = ctx
+        self.focus = 'left'          # 'left' = profiles, 'right' = catalog
+        self.lcur = self.rcur = self.ltop = self.rtop = 0
+        self.reload()
+
+    def reload(self):
+        cfg = self.ctx.config
+        self.profiles = cfg.profile_names()
+        self.active = set(cfg.active_profiles)
+        self.catalog = sorted(self.ctx.routes.components)
+        self._avail = {}
+        self.lcur = min(self.lcur, max(0, len(self.profiles) - 1))
+        self.rcur = min(self.rcur, max(0, len(self.catalog) - 1))
+
+    def cur_profile(self):
+        return self.profiles[self.lcur] if 0 <= self.lcur < len(self.profiles) else None
+
+    def members(self, profile):
+        try:
+            return set(self.ctx.config.profile_components(profile)) if profile else set()
+        except ConfigError:
+            return set()
+
+    def available(self, name):
+        if name not in self._avail:
+            try:
+                self._avail[name] = bool(self.ctx.routes.candidates(name))
+            except Exception:                       # noqa: BLE001 — unroutable -> grayed
+                self._avail[name] = False
+        return self._avail[name]
+
+
+def _draw_profiles(stdscr, pal, ps, ctx, note, screen):
+    stdscr.erase()
+    h, w = stdscr.getmaxyx()
+    if pal.gradient:
+        _fill_bg(stdscr, pal, h, w)
+    _draw_nav(stdscr, pal, screen, h, w)
+
+    top, body_h = 1, h - 3
+    lw = max(20, w // 3)
+    prof = ps.cur_profile()
+    members = ps.members(prof)
+
+    lit, lil, lih, liw = _panel(stdscr, pal, top, 0, body_h, lw, 'profiles',
+                                ps.focus == 'left', h, w)
+    ps.ltop = _scroll_top(ps.lcur, ps.ltop, lih, len(ps.profiles))
+    for vis, i in enumerate(range(ps.ltop, min(len(ps.profiles), ps.ltop + lih))):
+        name, y = ps.profiles[i], lit + vis
+        sel = i == ps.lcur and ps.focus == 'left'
+        if sel:
+            _put(stdscr, y, lil, ' ' * liw, pal.fill(y, lil, h, w, selected=True))
+        _put(stdscr, y, lil, _fit(f'{"●" if name in ps.active else "○"} {name}', liw),
+             pal.style('profile', y, lil, h, w, selected=sel))
+
+    rit, ril, rih, riw = _panel(stdscr, pal, top, lw + 1, body_h, w - lw - 1,
+                                f'components — in "{prof}"' if prof else 'components',
+                                ps.focus == 'right', h, w)
+    ps.rtop = _scroll_top(ps.rcur, ps.rtop, rih, len(ps.catalog))
+    for vis, i in enumerate(range(ps.rtop, min(len(ps.catalog), ps.rtop + rih))):
+        name, y = ps.catalog[i], rit + vis
+        sel = i == ps.rcur and ps.focus == 'right'
+        elem = 'component' if ps.available(name) else 'info_dim'
+        if sel:
+            _put(stdscr, y, ril, ' ' * riw, pal.fill(y, ril, h, w, selected=True))
+        _put(stdscr, y, ril, _fit(f'{"●" if name in members else " "} {name}', riw),
+             pal.style(elem, y, ril, h, w, selected=sel))
+
+    from .. import actions
+    tgt = actions.edit_target(ctx)[1]
+    status = f' profile: {prof or "—"}    edits → {tgt}'
+    if note:
+        status += f'    {note}'
+    navf = (' j/k move · h/l or tab focus · space toggle membership · a (de)activate profile'
+            ' · 1-5 screens · q quit ')
+    _put(stdscr, h - 2, 0, _fit(status, w), pal.style('status_line', h - 2, 0, h, w))
+    _put(stdscr, h - 1, 0, _fit(navf.ljust(w), w), pal.style('footer', h - 1, 0, h, w))
+    stdscr.refresh()
+
+
 def run(ctx):
     '''Entry point used by app.cmd_tui. Returns an exit code.'''
     # First-run config generation + the interactive primary-plugin offer must happen on the MAIN
@@ -1012,14 +1133,24 @@ def run(ctx):
         note = ''
         show_diag = False
         diag_top = 0
+        screen = 'components'
+        ps = None                                 # ProfileScreen, built lazily on first visit
+        menu_dirty = False                        # a profile edit -> rebuild the Components tree
         pending_report = None                     # a component whose op failed this session
         pending_notes = []                         # messages saved for after the TUI exits
         while True:
-            diag_top = _draw(stdscr, pal, ms, ctx, note, diags, show_diag, diag_top)
+            if show_diag:
+                diag_top = _draw_diagnostics(stdscr, pal, diags, diag_top)
+            elif screen == 'profiles':
+                if ps is None:
+                    ps = ProfileScreen(ctx)
+                _draw_profiles(stdscr, pal, ps, ctx, note, screen)
+            else:
+                diag_top = _draw(stdscr, pal, ms, ctx, note, diags, False, diag_top, screen)
             note = ''
             ch = stdscr.getch()
 
-            if show_diag:                               # diagnostics page: scroll or exit
+            if show_diag:                               # diagnostics overlay: scroll or exit
                 if ch in (ord('!'), ord('q'), 27):
                     show_diag = False
                 elif ch in (ord('j'), curses.KEY_DOWN):
@@ -1032,12 +1163,75 @@ def run(ctx):
                     diag_top = 10 ** 6                  # clamped by _draw
                 continue
 
+            # -- global keys (every screen) --
             if ch in (ord('q'), 27):
                 break
-            elif ch == ord('!'):
+            if ch == ord('!'):
                 if diags:
                     show_diag, diag_top = True, 0
-            elif ch in (ord('j'), curses.KEY_DOWN):
+                continue
+            if ch in KEY_TO_SCREEN:
+                dest = KEY_TO_SCREEN[ch]
+                if dest in IMPLEMENTED:
+                    if dest == 'components' and menu_dirty:   # a profile edit changed membership
+                        cfg = ctx.config                       # already invalidated by the edit
+                        layouts, transitive = _menu_model(cfg)
+                        ms = MenuState(states, layouts, transitive)   # states unchanged (config-only)
+                        menu_dirty = False
+                    screen = dest
+                else:
+                    note = f'the {dest} screen is not built yet'
+                continue
+
+            # -- Profiles screen --
+            if screen == 'profiles':
+                from .. import actions
+                if ch in (ord('j'), curses.KEY_DOWN):
+                    if ps.focus == 'left':
+                        ps.lcur = min(len(ps.profiles) - 1, ps.lcur + 1)
+                    else:
+                        ps.rcur = min(len(ps.catalog) - 1, ps.rcur + 1)
+                elif ch in (ord('k'), curses.KEY_UP):
+                    if ps.focus == 'left':
+                        ps.lcur = max(0, ps.lcur - 1)
+                    else:
+                        ps.rcur = max(0, ps.rcur - 1)
+                elif ch in (ord('l'), ord('\t'), curses.KEY_RIGHT):
+                    ps.focus = 'right'
+                elif ch in (ord('h'), curses.KEY_LEFT):
+                    ps.focus = 'left'
+                elif ch == ord('g'):
+                    setattr(ps, 'lcur' if ps.focus == 'left' else 'rcur', 0)
+                elif ch == ord('G'):
+                    if ps.focus == 'left':
+                        ps.lcur = max(0, len(ps.profiles) - 1)
+                    else:
+                        ps.rcur = max(0, len(ps.catalog) - 1)
+                elif ch == ord('a') and ps.focus == 'left':
+                    prof = ps.cur_profile()
+                    if prof:
+                        changed, _lbl = actions.set_profile_active(ctx, prof, prof not in ps.active)
+                        ps.reload()
+                        menu_dirty = menu_dirty or changed
+                        note = (f'{prof} {"activated" if prof in ps.active else "deactivated"}'
+                                if changed else 'no change')
+                elif ch in (ord(' '), ord('\n'), curses.KEY_ENTER) and ps.focus == 'right':
+                    prof = ps.cur_profile()
+                    if prof and ps.catalog:
+                        name = ps.catalog[ps.rcur]
+                        act = 'remove' if name in ps.members(prof) else 'add'
+                        try:
+                            changed, _lbl = actions.set_profile_membership(ctx, prof, name, act)
+                            ps.reload()
+                            menu_dirty = menu_dirty or changed
+                            note = (f'{name} {"added" if act == "add" else "removed"}'
+                                    if changed else 'no change')
+                        except Exception as e:  # noqa: BLE001 — surface, don't crash
+                            note = f'edit failed: {e}'
+                continue
+
+            # -- Components screen --
+            if ch in (ord('j'), curses.KEY_DOWN):
                 ms.move(1)
             elif ch in (ord('k'), curses.KEY_UP):
                 ms.move(-1)
