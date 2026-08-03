@@ -135,6 +135,35 @@ def clone_url(source):
     return url
 
 
+def ssh_url(source):
+    '''The SSH clone URL (`git@host:owner/repo.git`) for a `github:`/`gitlab:` shorthand, else None.
+    A plugin clone FETCHES over https (so consuming a public plugin needs no keys), but PUSHING an
+    authored plugin needs auth — and since GitHub/GitLab dropped password-over-https, an https push
+    needs a token while most authors push via SSH keys. So we give the clone an ssh PUSH url and
+    leave fetch on https. Only the shorthands convert; a full-URL / already-ssh source is left as-is.'''
+    for scheme, host in (('github:', 'github.com'), ('gitlab:', 'gitlab.com')):
+        if source.startswith(scheme):
+            path = source[len(scheme):]
+            return f'git@{host}:{path}' + ('' if path.endswith('.git') else '.git')
+    return None
+
+
+def _set_push_remote(runner, dest, source, *, only_if_unset=False):
+    '''Point `origin`'s PUSH url at the ssh form (fetch untouched) so `git push` from an authored
+    plugin uses the user's ssh keys. `only_if_unset` (re-sync of an existing clone) respects a push
+    url the user set by hand — we set the default on first clone, then never clobber their choice.
+    No-op for a non-shorthand source or a pretending runner. Best-effort.'''
+    ssh = ssh_url(source)
+    if not ssh:
+        return
+    dq = shlex.quote(str(dest))
+    if only_if_unset:
+        cur = runner.run(f'git -C {dq} config --get remote.origin.pushurl', capture=True)
+        if cur is not None and cur.ok and cur.stdout.strip():
+            return                               # user configured a push url — leave it alone
+    runner.run(f'git -C {dq} remote set-url --push origin {shlex.quote(ssh)}', capture=True)
+
+
 _SCHEME_RE = re.compile(r'^[a-zA-Z][a-zA-Z0-9+.\-]*:(?!//)')   # `github:`, `tarball:` — NOT `https://`
 
 
@@ -699,11 +728,13 @@ def _git_transport(runner, dest, source, ref):
     genv = _noninteractive_git_env()
     if dest.exists():
         runner.run(f'git -C {dq} fetch --force --tags --quiet', capture=False, env=genv)   # --force: re-pointed tags; non-fatal (offline -> checkout from local refs)
+        _set_push_remote(runner, dest, source, only_if_unset=True)   # keep ssh push url, don't clobber a manual one
         return 'updated' if _git_checkout(runner, dq, ref) else 'failed'
     dest.parent.mkdir(parents=True, exist_ok=True)
     r = runner.run(f'git clone --quiet {shlex.quote(clone_url(source))} {dq}', capture=False, env=genv)
     if r is not None and not r.ok:
         return 'failed'
+    _set_push_remote(runner, dest, source)          # push via ssh keys; fetch stays https
     return 'cloned' if _git_checkout(runner, dq, ref) else 'failed'
 
 

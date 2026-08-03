@@ -64,6 +64,38 @@ def test_clone_url_without_token_is_plain(monkeypatch):
     assert plugins.clone_url('github:me/p') == 'https://github.com/me/p.git'
 
 
+# -- ssh push url (author over ssh keys while fetching over https) ---------
+
+def test_ssh_url_for_shorthands():
+    assert plugins.ssh_url('github:me/p') == 'git@github.com:me/p.git'
+    assert plugins.ssh_url('gitlab:me/p.git') == 'git@gitlab.com:me/p.git'   # keeps a present .git
+    assert plugins.ssh_url('git@github.com:me/p.git') is None                # already ssh
+    assert plugins.ssh_url('https://github.com/me/p.git') is None            # full url — leave it
+    assert plugins.ssh_url('/local/p') is None
+
+
+@pytest.mark.skipif(shutil.which('git') is None, reason='git not available')
+def test_set_push_remote_gives_ssh_pushurl_but_keeps_https_fetch(tmp_path):
+    repo = tmp_path / 'r'; repo.mkdir()
+    subprocess.run(['git', '-C', str(repo), 'init', '-q'], check=True)
+    subprocess.run(['git', '-C', str(repo), 'remote', 'add', 'origin',
+                    'https://github.com/me/p.git'], check=True)
+    from configsys.runner import Runner
+    plugins._set_push_remote(Runner(pretend=False), repo, 'github:me/p')
+
+    def _url(*extra):
+        return subprocess.run(['git', '-C', str(repo), 'remote', 'get-url', *extra, 'origin'],
+                              capture_output=True, text=True).stdout.strip()
+    assert _url('--push') == 'git@github.com:me/p.git'   # push over ssh
+    assert _url() == 'https://github.com/me/p.git'       # fetch stays https
+
+    # a re-sync with only_if_unset must NOT clobber a push url the user set by hand
+    subprocess.run(['git', '-C', str(repo), 'remote', 'set-url', '--push', 'origin',
+                    'https://github.com/me/p.git'], check=True)
+    plugins._set_push_remote(Runner(pretend=False), repo, 'github:me/p', only_if_unset=True)
+    assert _url('--push') == 'https://github.com/me/p.git'   # left the user's choice alone
+
+
 # -- checksum verification ------------------------------------------------
 
 def _data_plugin(pd, name):
