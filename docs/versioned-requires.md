@@ -166,6 +166,35 @@ already trusted and is the lowest-risk place to introduce the floor syntax.
   `provides:` to accept a `{cap: floor}` map, keeping the bare form).
 - Constraint syntax for a requirement inside a list vs a dedicated `requires-version:` block.
 
+## Auto-derived floors + the `version-floors:` patch section
+
+Floors are *knowledge about a recipe*, so they should write themselves rather than be hand-kept:
+
+- **Derivation (SHIPPED — `configsys/floorderive.py`, `tools/versionsweep.py --derive`).** For each
+  `via: source` recipe, read the build manifest straight from its repo and extract the toolchain
+  minimum: Rust MSRV (`Cargo.toml` `rust-version`), Go (`go.mod` `go` directive). Emits
+  `{ component: { cap: ">=X" } }`. Verified live: ripgrep→cargo 1.96, lazygit→go 1.25, superfile→
+  go 1.26 (matches the hand-found values). Pure (fetch injected), unit-tested offline. The
+  maintainer's daily sweep runs this and publishes the result.
+
+- **The `version-floors:` section (DESIGNED).** A new mergeable section, a sibling of
+  `component-names:` — it PATCHES a floor onto a component's requirement for a capability without
+  redefining the component:
+
+  ```
+  version-floors: { ripgrep: { cargo: ">=1.96" }  lazygit: { go: ">=1.25" } }
+  ```
+
+  Folding reuses existing machinery: (1) `merge_version_floors(layers)` unions it low→high (a copy
+  of `merge_name_overrides`); (2) after components build, apply each `(component, cap, constraint)`
+  wherever that component ALREADY requires `cap` — a patch only TIGHTENS an existing requirement,
+  never creates one (additive-safe, like inline floors); (3) consumers (sweep, stage-3 resolution)
+  read the same `req_versions` maps, unchanged. Precedence is normal layer order (a user's
+  `version-floors` > a plugin's > the repo's), so recipes ship BARE `requires: cargo` and a
+  **`main`-keyed** `configsys-versions` data plugin supplies the floors, updated daily with no
+  version bump — the plugin ABI gate still guards code/data skew. This is the out-of-band data
+  channel done with the mechanism that already exists (a data plugin), not a bespoke live file.
+
 ## Roadmap (each stage is useful alone and de-risks the next)
 
 1. **Visibility — SHIPPED.** `configsys versions <component> [--min V] [--refresh]` lists each

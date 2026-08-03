@@ -18,6 +18,17 @@ from configsys.app import Context, build_parser          # noqa: E402
 
 def main():
     ctx = Context(build_parser().parse_args(['check']))  # a ctx to load routes from; no args used
+    if '--derive' in sys.argv:
+        # auto-derive toolchain floors from each source recipe's manifest and print a ready-to-
+        # commit `version-floors:` block (the maintainer's daily job). Needs the source plugin
+        # loaded (its recipes carry the `via: source` repos), so run it with that config.
+        from configsys import floorderive
+        from configsys.versions import http_fetch
+        floors = floorderive.derive_floors(ctx.routes.components, http_fetch)
+        if not floors:
+            print('# no source recipes with derivable (cargo/go) floors are loaded', file=sys.stderr)
+        print(floorderive.emit_floors(floors), end='')
+        return 0
     findings = versionsweep.sweep_ctx(ctx)
     for f in findings:
         print(versionsweep.format_finding(f))
