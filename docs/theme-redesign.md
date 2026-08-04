@@ -71,5 +71,9 @@ theme: {
 
 ## Open / deferred
 
-- Per-role hex validation UX; palette-name autocomplete in the role editor.
-- Reordering palette entries; duplicate-a-page-theme shortcut.
+- Reordering color-map entries (low value — built-in order is fixed; only user-added colors carry
+  order in the file).
+
+Done: per-role hex/ref **validation** (invalid input is rejected with a note), palette-name
+**autocomplete** in the fg/bg/gradient inputs (Tab-complete with a dim ghost), and **duplicate a
+page's look** onto another (`D`).

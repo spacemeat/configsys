@@ -253,6 +253,21 @@ def load_theme(ctx, name, *, target=None):
     return True, label
 
 
+def copy_page_theme(ctx, src, dst):
+    '''Copy one page's theme overrides (its role styles + gradient) onto another page, in the edit
+    target. Returns (ok, label|reason). Nothing to copy if the source page has no overrides.'''
+    tfile, label = edit_target(ctx)
+    theme = plugins.read_theme(tfile)
+    pages = theme.setdefault('pages', {})
+    srcov = pages.get(src)
+    if not isinstance(srcov, dict) or not srcov:
+        return False, f'{src} has no overrides to copy'
+    pages[dst] = {k: (dict(v) if isinstance(v, dict) else v) for k, v in srcov.items()}
+    plugins.set_theme(tfile, theme)
+    ctx.invalidate()
+    return True, label
+
+
 def _primary_data_file(ctx):
     '''The primary plugin's highest-precedence synced data file (where a theme/pin can be written so
     it travels with the primary), plus the primary's name — or (None, None) if no primary is blessed

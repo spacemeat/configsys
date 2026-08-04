@@ -90,6 +90,15 @@ def test_theme_plugins_list(tmp_path):
     assert 't1' in actions.theme_plugins(ctx)
 
 
+def test_copy_page_theme(tmp_path):
+    ctx, _u, _ = _ctx(tmp_path, '{ theme: { pages: { components: { component: { fg: error } } } } }\n')
+    ok, _label = actions.copy_page_theme(ctx, 'components', 'profiles')
+    assert ok
+    assert ctx.config.theme()['pages']['profiles']['component']['fg'] == 'error'   # copied onto profiles
+    ok2, msg = actions.copy_page_theme(ctx, 'plugins', 'dotfiles')   # nothing to copy
+    assert ok2 is False and 'no overrides' in msg
+
+
 def test_no_primary_theme_target(tmp_path):
     ctx, _u, _p = _ctx(tmp_path)
     assert actions.primary_theme_target(ctx) is None
