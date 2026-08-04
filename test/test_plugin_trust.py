@@ -111,3 +111,38 @@ def test_trust_a_dataonly_plugin_is_a_noop(tmp_path, capsys):
     assert main(home + ['plugin', 'trust', 'dataonly']) == 0
     assert 'ships no code' in capsys.readouterr().out
     assert not (tmp_path / '.config' / 'configsys' / 'plugin-trust.hu').exists()
+
+
+def test_trust_untrust_actions(tmp_path):
+    # action-layer trust/untrust (what the TUI Plugins screen t/T keys call)
+    import types
+    from configsys import actions, layers
+    from configsys.config import Config
+    pdir = tmp_path / 'plugins'
+    (pdir / 'codeplug').mkdir(parents=True)
+    (pdir / 'codeplug' / 'plugin.hu').write_text(
+        f'{{ name: codeplug  requires-abi: {plugins.ABI_VERSION}  code: driver.py }}\n', encoding='utf-8')
+    (pdir / 'codeplug' / 'driver.py').write_text('# a driver\n', encoding='utf-8')
+    (pdir / 'nocode').mkdir(parents=True)
+    (pdir / 'nocode' / 'plugin.hu').write_text(
+        f'{{ name: nocode  requires-abi: {plugins.ABI_VERSION}  data: [ d.hu ] }}\n', encoding='utf-8')
+    (pdir / 'nocode' / 'd.hu').write_text('{ }\n', encoding='utf-8')
+    user = tmp_path / 'user.hu'
+    user.write_text('{ plugins: [ { source: codeplug }  { source: nocode } ] }\n', encoding='utf-8')
+    tf = tmp_path / 'trust.hu'
+
+    def load():
+        return Config([layers.Layer(str(user), 'user', layers.materialize_string(user.read_text()))])
+    ctx = types.SimpleNamespace(config=load(), paths=types.SimpleNamespace(
+        user_config_file=str(user), plugins_dir=pdir, plugin_trust_file=str(tf)))
+    ctx.invalidate = lambda: setattr(ctx, 'config', load())
+
+    ok, note = actions.plugin_trust(ctx, 'codeplug')
+    assert ok and 'trusted' in note
+    ident = plugins.plugin_identity(pdir / 'codeplug')
+    assert plugins.is_trusted(tf, 'codeplug', ident)
+    ok2, _n = actions.plugin_untrust(ctx, 'codeplug')
+    assert ok2 and not plugins.is_trusted(tf, 'codeplug', ident)
+    # a data-only plugin has nothing to trust
+    ok3, note3 = actions.plugin_trust(ctx, 'nocode')
+    assert ok3 is False and 'no code' in note3

@@ -1708,8 +1708,8 @@ def _draw_plugins(stdscr, pal, pl, ctx, note, screen):
     status = f' {len(pl.rows)} plugin(s)'
     if note:
         status += f'    {note}'
-    navf = (' j/k · a add · x remove · s sync · S sync-all · b bless · B unbless · u update'
-            ' · 1-6 screens · q quit ')
+    navf = (' j/k · a add · x remove · s sync · S all · b bless · B unbless · u update · '
+            't trust · T untrust · v set-ref · 1-6 · q ')
     _put(stdscr, h - 2, 0, _fit(status, w), pal.style('status_line', h - 2, 0, h, w))
     _put(stdscr, h - 1, 0, _fit(navf.ljust(w), w), pal.style('footer', h - 1, 0, h, w))
     stdscr.refresh()
@@ -2044,6 +2044,22 @@ def run(ctx):
                             _ok, msg, _r = actions.plugin_update(ctx, row['name'])
                         pl.reload()
                         note = msg
+                    elif ch == ord('t') and row:               # trust this code plugin's content
+                        _ok, note = actions.plugin_trust(ctx, row['name'])
+                        pl.reload()
+                        menu_dirty = menu_dirty or _ok
+                    elif ch == ord('T') and row:               # untrust
+                        _ok, note = actions.plugin_untrust(ctx, row['name'])
+                        pl.reload()
+                        menu_dirty = menu_dirty or _ok
+                    elif ch == ord('v') and row:               # set the git ref (version/branch/tag)
+                        ref = _input_box(stdscr, pal, f'{row["name"]} — set ref (tag/branch/sha)', '')
+                        if ref and ref.strip():
+                            with suspended(stdscr):
+                                _ok, msg, _r = actions.plugin_update(ctx, row['name'], ref.strip())
+                            pl.reload()
+                            menu_dirty = True
+                            note = msg
                 except Exception as e:  # noqa: BLE001 — surface, don't crash
                     note = f'error: {e}'
                 continue

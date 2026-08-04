@@ -454,6 +454,42 @@ def plugin_unbless(ctx):
     return True, 'cleared the primary designation'
 
 
+def plugin_trust(ctx, ident):
+    '''Approve a code plugin's CURRENT content to run during installs (trust-on-content-hash).
+    Returns (ok, note). Mirrors `configsys plugin trust`.'''
+    eff = plugins.effective_declared(ctx.paths.user_config_file, ctx.paths.plugins_dir)
+    target = plugins.find_decl(eff, ctx.paths.plugins_dir, ident)
+    if target is None:
+        return False, f'no declared plugin matches {ident!r}'
+    key = plugins.dir_name(target['source'])
+    pdir = Path(ctx.paths.plugins_dir) / key
+    if not pdir.exists():
+        return False, f'{key} is not synced — sync it first'
+    manifest = plugins.read_manifest(pdir)
+    disp = manifest.get('name', key)
+    if not manifest.get('code'):
+        return False, f'{disp} ships no code — nothing to trust'
+    identity = plugins.plugin_identity(pdir)
+    if identity is None:
+        return False, f'could not read {disp}’s contents'
+    plugins.set_trust(ctx.paths.plugin_trust_file, key, identity)
+    ctx.invalidate()
+    return True, f'trusted {disp} @ {identity.split(":")[-1][:12]} — its code will run'
+
+
+def plugin_untrust(ctx, ident):
+    '''Revoke a code plugin's trust. Returns (ok, note). Mirrors `configsys plugin untrust`.'''
+    eff = plugins.effective_declared(ctx.paths.user_config_file, ctx.paths.plugins_dir)
+    target = plugins.find_decl(eff, ctx.paths.plugins_dir, ident)
+    key = plugins.dir_name(target['source']) if target else ident
+    pdir = Path(ctx.paths.plugins_dir) / key
+    disp = plugins.read_manifest(pdir).get('name', key) if pdir.exists() else key
+    if plugins.remove_trust(ctx.paths.plugin_trust_file, key):
+        ctx.invalidate()
+        return True, f'untrusted {disp}'
+    return False, f'{disp} was not trusted'
+
+
 # -- dotfiles (`configsys dotfiles` + the TUI Dotfiles screen) ------------------------------------
 
 def dotfiles_units(ctx):
