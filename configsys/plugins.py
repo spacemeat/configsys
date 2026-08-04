@@ -21,11 +21,12 @@ from pathlib import Path
 
 import humon
 
-from . import layers, versions
+from . import layers, splashes, versions
 from .driver import Driver
 from .drivers import register_driver
 from .errors import ConfigError
 from .runner import Result
+from .splashes import Splash, SplashFrame, register_splash
 from .troveio import _scalar
 
 register_version_source = versions.register_source   # re-export on the frozen surface
@@ -35,6 +36,7 @@ register_version_source = versions.register_source   # re-export on the frozen s
 # the schemes git / source_url already handle.
 _BUILTIN_SOURCE_NAMES = frozenset(versions._BUILTIN_KINDS) | {'github'}
 _RESERVED_SCHEMES = frozenset({'github', 'gitlab', 'git', 'https', 'http', 'file', 'ssh'})
+_BUILTIN_SPLASH_NAMES = splashes._BUILTIN_SPLASH_NAMES     # names shipped in core (populated at import)
 
 # The plugin ABI version (Driver contract + data schema + registration + RC shape). One coarse
 # integer (KISS). A manifest declares `requires-abi: N`; we load it iff N is in ABI_SUPPORTED.
@@ -48,12 +50,15 @@ ABI_SUPPORTED = frozenset({1})
 # call). `register_driver(SubclassOfDriver)` binds it so `via: <name>` resolves; `Result` is
 # the return type of the mutating ops (construct one for synthetic outcomes, e.g. a no-op
 # lock). The parallel hooks `register_version_source(name, fn)` (a new `version: { <name>: }`
-# backend) and `register_transport(scheme, fn)` (a new `source:` sync scheme) let a plugin
-# extend discovery and sync too — all three gated the same way (only trusted plugin code ever
-# calls them). Everything re-exported here is ABI-stable within a given ABI_VERSION; the
-# underscore members of Driver are internal and may change without a bump.
+# backend), `register_transport(scheme, fn)` (a new `source:` sync scheme), and `register_splash`
+# (a startup wait-screen animation — a plugin subclasses `Splash` and exports `SPLASHES = [cls]`,
+# see configsys/splashes.py) let a plugin extend discovery, sync, and the splash too — all gated
+# the same way (only trusted plugin code ever calls them). Everything re-exported here is
+# ABI-stable within a given ABI_VERSION; the underscore members of Driver are internal and may
+# change without a bump.
 __all__ = [
     'Driver', 'register_driver', 'register_version_source', 'register_transport', 'Result',
+    'Splash', 'SplashFrame', 'register_splash',
     'ABI_VERSION', 'ABI_SUPPORTED',
     'declared', 'source_url', 'dir_name', 'read_manifest', 'layer_files', 'status', 'sync',
     'set_declared', 'set_section', 'read_pins', 'set_pins',
@@ -709,10 +714,10 @@ def scaffold_primary(plug_dir, name, transitive_decls=(), sections=None):
     (plug_dir / 'dotfiles').mkdir(exist_ok=True)
 
 
-def _import_drivers(pdir, manifest):
-    '''Import the plugin's `code:` module from disk and return its `DRIVERS` list (the explicit
-    registration export). This RUNS the module's top-level code — reached only for a plugin the
-    user has trusted at this exact commit. Raises on a missing file / import error / bad export.'''
+def _import_module(pdir, manifest):
+    '''Import the plugin's `code:` module from disk and return the module object. This RUNS the
+    module's top-level code — reached only for a plugin the user has trusted at this exact content.
+    Raises on a missing file / import error.'''
     import importlib.util
     import sys
     code_file = pdir / manifest['code']
@@ -727,7 +732,14 @@ def _import_drivers(pdir, manifest):
     except BaseException:
         sys.modules.pop(mod_name, None)
         raise
-    exported = getattr(module, 'DRIVERS', None)
+    return module
+
+
+def _import_drivers(pdir, manifest):
+    '''Import the plugin's code module and return its `DRIVERS` list (the explicit registration
+    export). Raises if the module defines no DRIVERS. (A splash-only plugin uses SPLASHES instead;
+    load_code reads both — this stays for the driver-plugin path and its tests.)'''
+    exported = getattr(_import_module(pdir, manifest), 'DRIVERS', None)
     if exported is None:
         raise AttributeError('module defines no DRIVERS = [ ... ] export')
     return list(exported)
@@ -757,7 +769,7 @@ def load_code(plugins_dir, trust_file, decls, register, conflicts=None):
     a built-in. These are observable only by running the code, so they can't be found
     declaratively — driver-name conflicts, which can, are left to declared_conflicts.'''
     loaded, skipped = [], []
-    src_owners, tr_owners = {}, {}       # registered name/scheme -> [plugin keys that added it]
+    src_owners, tr_owners, spl_owners = {}, {}, {}   # registered name/scheme -> [plugin keys]
     for d in decls:
         key = dir_name(d['source'])
         pdir = plugins_dir / key
@@ -777,16 +789,26 @@ def load_code(plugins_dir, trust_file, decls, register, conflicts=None):
             continue
         try:
             before_src, before_tr = dict(versions._SOURCES), dict(_TRANSPORTS)
-            drivers = _import_drivers(pdir, manifest)
+            before_spl = dict(splashes._SPLASHES)
+            module = _import_module(pdir, manifest)
+            drivers = list(getattr(module, 'DRIVERS', None) or [])
+            splash_classes = list(getattr(module, 'SPLASHES', None) or [])
+            if getattr(module, 'DRIVERS', None) is None and getattr(module, 'SPLASHES', None) is None:
+                raise AttributeError('module defines no DRIVERS or SPLASHES = [ ... ] export')
             for cls in drivers:
                 register(cls)
+            for cls in splash_classes:
+                register_splash(cls)
             for n, fn in versions._SOURCES.items():      # names this plugin (re)registered
                 if before_src.get(n) is not fn:
                     src_owners.setdefault(n, []).append(key)
             for s, fn in _TRANSPORTS.items():
                 if before_tr.get(s) is not fn:
                     tr_owners.setdefault(s, []).append(key)
-            loaded.append((key, [getattr(c, 'name', '?') for c in drivers]))
+            for n, cls in splashes._SPLASHES.items():
+                if before_spl.get(n) is not cls:
+                    spl_owners.setdefault(n, []).append(key)
+            loaded.append((key, [getattr(c, 'name', '?') for c in drivers + splash_classes]))
         except Exception as e:                           # noqa: BLE001 — a broken module is skipped
             skipped.append((key, f'code failed to load — {e}'))
     if conflicts is not None:
@@ -794,6 +816,8 @@ def load_code(plugins_dir, trust_file, decls, register, conflicts=None):
                                'shadows a built-in source (ignored — built-ins win)')
         _collect_reg_conflicts(conflicts, 'transport', tr_owners, _RESERVED_SCHEMES,
                                'overrides the built-in git handling for that scheme')
+        _collect_reg_conflicts(conflicts, 'splash', spl_owners, _BUILTIN_SPLASH_NAMES,
+                               'shadows a built-in splash (last loaded wins)')
     return loaded, skipped
 
 

@@ -946,20 +946,27 @@ def _menu_model(cfg):
 SPLASH_THRESHOLD = 0.25    # only show the liquid fill if inspection is still going after this
 
 
-def _splash_enabled(ctx):
-    '''Whether the startup fill is ALLOWED (independent of the "is there work" timing gate). Off
-    when: disabled via env, the user asked for verbose logging (they want the text log, not an
-    animation), or a `theme: { splash: false }` opt-out. cmd_tui already guarantees a TTY.'''
+def _chosen_splash(ctx):
+    '''(enabled, name): whether the startup splash is ALLOWED (independent of the "is there work"
+    timing gate) and which provider was chosen — the `splash:` machine setting's value, or None for
+    the built-in default. Off when: disabled via env, verbose logging (they want the text log), a
+    `splash: off` setting, or the legacy `theme: { splash: false }` opt-out. TTY is guaranteed by
+    cmd_tui. Whether a NAMED provider is actually registered is resolved at construction time.'''
     import os
     from .. import report
     if os.environ.get('CONFIGSYS_NO_SPLASH'):
-        return False
+        return False, None
     if ctx.reporter.level >= report.VERBOSE:
-        return False
-    s = (ctx.config.theme() or {}).get('splash')
-    if s is False or s in ('false', 'no', 'off') or (isinstance(s, dict) and s.get('enabled') in (False, 'false', 'no')):
-        return False
-    return True
+        return False, None
+    v = ctx.config.splash()
+    if isinstance(v, str) and v.lower() in ('false', 'no', 'off', '0'):
+        return False, None
+    if v is None:                                    # legacy: theme.splash false still disables
+        s = (ctx.config.theme() or {}).get('splash')
+        if s is False or s in ('false', 'no', 'off') or (isinstance(s, dict) and s.get('enabled') in (False, 'false', 'no')):
+            return False, None
+    name = None if (v is None or v.lower() in ('true', 'default', 'on')) else v
+    return True, name
 
 
 def _splash_forced():
@@ -1814,25 +1821,37 @@ def run(ctx):
     # thread, in the normal terminal, BEFORE the worker/curses — it prompts on stdin, which would
     # collide with the background load and curses init. load_pipeline's own call then no-ops.
     ctx.ensure_user_config(offer_primary=True)
+    # Register trusted plugin code (incl. any splash providers) NOW, on the main thread and BEFORE
+    # the worker starts — the worker's load_pipeline would otherwise register concurrently, and the
+    # splash is chosen before the worker joins. Idempotent, so the worker's later call no-ops.
+    ctx.ensure_plugin_code()
     # Inspect on a worker thread; only paint the splash if it's still going after a short beat
     # ("only when there's work" — a warm/fast run skips straight to the menu), unless forced.
     worker = _InspectWorker(ctx).start()
-    if not _splash_enabled(ctx):
+    splash_on, splash_name = _chosen_splash(ctx)
+    if not splash_on:
         show_splash = False
     elif _splash_forced():
         show_splash = True                       # skip the timing gate entirely
     else:
         show_splash = worker.wait_settled(SPLASH_THRESHOLD)
 
+    splash_note = None
     with curses_screen() as stdscr:
         ctx.reporter.pause()          # curses owns the screen now; don't stream to stderr
         pal = Palette(ctx.config.theme())
         if show_splash:
             import random
-            from .splash import LiquidSplash
-            LiquidSplash(stdscr, pal, random.Random(),
-                         label='checking install state').play(
-                             worker.done, worker.frac, worker.counts)
+            from .splash import LiquidSplash, run_splash   # importing registers the built-ins
+            from ..splashes import get_splash
+            provider = get_splash(splash_name) if splash_name else None
+            if provider is None:
+                if splash_name:                  # named but not registered/trusted -> default + note
+                    splash_note = f"splash '{splash_name}' unavailable — using the default"
+                provider = LiquidSplash          # the in-core default (until it moves to a plugin)
+            run_splash(stdscr, pal, provider, label='checking install state',
+                       is_done=worker.done, frac=worker.frac, counts=worker.counts,
+                       seed=random.randrange(1 << 30))
             # The splash allocated a run-varying number of RANDOM color slots + pairs into `pal`
             # (its water/fish palette). Rebuild the Palette so the menu starts from a clean,
             # deterministic allocator — otherwise those random colors leak into the UI and, on a
@@ -1842,7 +1861,7 @@ def run(ctx):
         layouts, transitive = _menu_model(cfg)
         ms = MenuState(states, layouts, transitive)
         diags = ctx.diagnostics(states)
-        note = ''
+        note = splash_note or ''
         show_diag = False
         diag_top = 0
         screen = 'components'
@@ -2121,7 +2140,7 @@ def run(ctx):
                             note = f'{key} = {"false" if info["value"] else "true"}'
                             cs.reload()
                             menu_dirty = True
-                        elif info['kind'] == 'scalar':      # scope: user (default) / system / unset
+                        elif key == 'scope':                # scope: user (default) / system / unset
                             cur_idx = {'user': 0, 'system': 1}.get(info['value'], 2)
                             idx = _popup_choose(stdscr, pal, key,
                                                 [('user', '(default)'), ('system', ''),
@@ -2131,6 +2150,28 @@ def run(ctx):
                                 note = f'{key} set'
                                 cs.reload()
                                 menu_dirty = True
+                        elif key == 'splash':               # default (built-in) / off / a provider
+                            from ..splashes import splash_names
+                            opts = ([('default', '(built-in)'), ('off', '(no animation)')]
+                                    + [(n, '') for n in splash_names()])
+                            names = [o[0] for o in opts]
+                            cur = info['value']
+                            cur_idx = (1 if isinstance(cur, str) and cur.lower() in ('off', 'false', 'no')
+                                       else names.index(cur) if cur in names else 0)
+                            idx = _popup_choose(stdscr, pal, key, opts, cur_idx)
+                            if idx is not None:
+                                val = names[idx]
+                                actions.set_config_setting(ctx, key, [] if val == 'default' else [val])
+                                note = f'{key} = {val}'
+                                cs.reload()
+                        elif info['kind'] == 'scalar':      # any other scalar -> text input
+                            new = _input_box(stdscr, pal, f'{key}  (empty clears)',
+                                             str(info['value'] or ''))
+                            if new is not None:
+                                v = new.strip()
+                                actions.set_config_setting(ctx, key, [v] if v else [])
+                                note = f'{key} {"set" if v else "cleared"}'
+                                cs.reload()
                         elif key == 'driver-preference':    # ordered list -> reorder editor
                             from ..resolve import DEFAULT_DRIVER_PREFERENCE
                             cur = info['value'] or list(DEFAULT_DRIVER_PREFERENCE)

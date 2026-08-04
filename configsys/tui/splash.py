@@ -25,6 +25,8 @@ import curses
 import math
 import time
 
+from ..splashes import Splash, SplashFrame, register_splash
+
 BLOCKS = ' ▁▂▃▄▅▆▇█'   # 8 partial-height blocks + space
 FULL = '█'
 BUBBLES = '°∘•'
@@ -259,42 +261,45 @@ class LiquidSim:
                                             self.rng.choice(SKELETONS)))
 
 
-class LiquidSplash:
-    '''The curses driver around a LiquidSim: precomputes the colour ramp once (random per run),
-    then renders frames and eases the fill until the worker is done and the water is full (or the
-    user presses a key to skip).'''
+class LiquidSplash(Splash):
+    '''The built-in "liquid fill" splash: a curses driver around a LiquidSim. Precomputes a random
+    colour ramp once, then render(frame) eases the fill toward frame.progress and paints the water,
+    inhabitants, and sky. The host owns the loop (run_splash) — this just draws one frame and
+    reports whether the water has reached its target. A reference implementation of the Splash ABI
+    (configsys/splashes.py); it will move into its own code plugin.'''
 
-    def __init__(self, stdscr, palette, rng, *, label=None):
-        self.scr = stdscr
-        self.pal = palette
-        self.rng = rng
-        self.label = label
-        self.h, self.w = stdscr.getmaxyx()
+    name = 'liquid'
+    fps = FPS
+    min_duration = MIN_DURATION
+
+    def __init__(self, scr, pal, size, seed=None):
+        super().__init__(scr, pal, size, seed)
+        pal, rng = self.pal, self.rng
         self.sim = LiquidSim(self.w, self.h, rng)
         deep, surface, foam, fish, bubble = random_palette(rng)
         self.nbands = max(4, min(24, self.h))    # cap bands so pair usage is bounded by height
         ramp_rgb = [_lerp(deep, surface, k / (self.nbands - 1)) for k in range(self.nbands)]
-        self._ramp = [palette.rgb_attr(c) for c in ramp_rgb]
+        self._ramp = [pal.rgb_attr(c) for c in ramp_rgb]
         # fish/bubbles are painted OVER the liquid colour at their depth (not the black default),
         # so they look submerged — one pair per band, precomputed.
-        self._fish = [palette.rgb_pair(fish, c) | curses.A_BOLD for c in ramp_rgb]
-        self._bubble = [palette.rgb_pair(bubble, c) for c in ramp_rgb]
+        self._fish = [pal.rgb_pair(fish, c) | curses.A_BOLD for c in ramp_rgb]
+        self._bubble = [pal.rgb_pair(bubble, c) for c in ramp_rgb]
         # Froth is tinted by fill level so the crest isn't one flat bright line: a thin sliver is
         # whitest foam, a nearly-full cell sits closer to the water it's cresting over. The topmost
         # submerged row then blends halfway to foam, feathering the whitecap into the body over ~2
         # rows — softens the "blocky under the edge" hard step (can't de-quantize, but hides it).
         top_water = ramp_rgb[-1]
-        self._froth = [0] + [palette.rgb_attr(_lerp(top_water, foam, 1 - (lvl - 1) / 7))
+        self._froth = [0] + [pal.rgb_attr(_lerp(top_water, foam, 1 - (lvl - 1) / 7))
                              for lvl in range(1, 9)]     # indexed by BLOCKS level 1..8
-        self._crest = palette.rgb_attr(_lerp(top_water, foam, 0.45))
-        self._boat = palette.rgb_attr((240, 240, 248)) | curses.A_BOLD
-        self._moon = palette.rgb_attr((245, 240, 205)) | curses.A_BOLD
-        self._comet = palette.rgb_attr((215, 235, 255)) | curses.A_BOLD
+        self._crest = pal.rgb_attr(_lerp(top_water, foam, 0.45))
+        self._boat = pal.rgb_attr((240, 240, 248)) | curses.A_BOLD
+        self._moon = pal.rgb_attr((245, 240, 205)) | curses.A_BOLD
+        self._comet = pal.rgb_attr((215, 235, 255)) | curses.A_BOLD
         _star_cols = ((222, 226, 242), (240, 238, 224), (250, 250, 255))   # cool / warm / white
-        self._star_dim = [palette.rgb_attr(_lerp((0, 0, 0), c, 0.5)) for c in _star_cols]
-        self._star_bright = [palette.rgb_attr(c) | curses.A_BOLD for c in _star_cols]
-        self._skel = palette.rgb_pair((226, 222, 205), ramp_rgb[0]) | curses.A_BOLD  # over deep water
-        self._label_attr = palette.get('title') | curses.A_BOLD
+        self._star_dim = [pal.rgb_attr(_lerp((0, 0, 0), c, 0.5)) for c in _star_cols]
+        self._star_bright = [pal.rgb_attr(c) | curses.A_BOLD for c in _star_cols]
+        self._skel = pal.rgb_pair((226, 222, 205), ramp_rgb[0]) | curses.A_BOLD  # over deep water
+        self._label_attr = pal.get('title') | curses.A_BOLD
 
     def _band_index(self, height_from_bottom):
         '''Ramp band for a height: deeper water (nearer the floor) is the dark end, the surface
@@ -306,7 +311,12 @@ class LiquidSplash:
     def _band_attr(self, height_from_bottom):
         return self._ramp[self._band_index(height_from_bottom)]
 
-    def _render(self, counts):
+    def render(self, frame):
+        '''Draw ONE frame: ease the fill toward frame.progress, then paint sky + water + inhabitants
+        + the centred label. The host refreshes; returns True once the water has reached its target
+        (so the host may stop as soon as inspection is done too).'''
+        self.sim.set_progress(frame.progress)
+        self.sim.step(frame.dt)
         scr, h, w, sim = self.scr, self.h, self.w, self.sim
         scr.erase()
         # Sky first (stars, moon, comet), so the water drawn on top naturally hides whatever it
@@ -359,29 +369,19 @@ class LiquidSplash:
             if 0 <= bx < w:
                 row = max(0, h - 1 - int(sim.surface_height(boat.x)) - 1)
                 self._safe_add(row, bx, BOAT, self._boat)
-        if self.label:
-            self._draw_label(counts)
-        scr.noutrefresh()
-        curses.doupdate()
+        if frame.label:
+            self._draw_label(frame)
+        return sim.filled
 
-    def _render_text(self, counts):
-        '''After a skip: the liquid is cancelled, but keep the progress line updating on a clean
-        screen until inspection finishes.'''
-        self.scr.erase()
-        if self.label:
-            self._draw_label(counts)
-        self.scr.noutrefresh()
-        curses.doupdate()
-
-    def _label_text(self, counts):
+    def _label_text(self, counts, label):
         i, total = counts
         if not total:
-            return f'{self.label}…'
+            return f'{label}…'
         pct = int(i / total * 100)
-        return f'{self.label}:   {i}/{total} ({pct}%)'
+        return f'{label}:   {i}/{total} ({pct}%)'
 
-    def _draw_label(self, counts):
-        text = self._label_text(counts)
+    def _draw_label(self, frame):
+        text = self._label_text(frame.counts, frame.label)
         y = max(0, self.h // 2)
         x = max(0, (self.w - len(text)) // 2)
         for k, ch in enumerate(text):
@@ -395,41 +395,74 @@ class LiquidSplash:
         except curses.error:
             pass
 
-    def play(self, is_done, target, counts, *, deadline=None):
-        '''Animate until inspection is done AND the water has filled. A keypress (Esc) CANCELS the
-        liquid but keeps a plain progress line updating on a clean screen until inspection actually
-        finishes — so cancelling the eye-candy never hides the real state. `target()` is the live
-        0..1 fraction, `counts()` the (i, total) for the label, `is_done` the worker flag — all
-        polled each frame. `deadline` is an optional hard wall-clock stop. Easing is dt-based, so a
-        slow frame just eases further, never desyncs.'''
-        self.scr.nodelay(True)
+
+register_splash(LiquidSplash, builtin=True)
+
+
+# -- the host frame loop (shared by every splash provider) ----------------------------------------
+
+def _draw_progress_text(scr, pal, label, counts, h, w):
+    '''The host's plain progress line — shown after a skip, and the safe fallback for any splash.
+    A clean screen with a centred "<label>: i/total (pct%)" so cancelling the animation never
+    hides the real state.'''
+    i, total = counts
+    text = (f'{label}…' if not total else
+            f'{label}:   {i}/{total} ({int(i / total * 100)}%)') if label else ''
+    scr.erase()
+    if text:
+        y, x = max(0, h // 2), max(0, (w - len(text)) // 2)
         try:
-            start = last = time.monotonic()
-            animate = True
-            while True:
-                now = time.monotonic()
-                dt = now - last
-                last = now
-                if animate:
-                    self.sim.set_progress(target())
-                    self.sim.step(dt)
-                    self._render(counts())
-                    if self.scr.getch() != -1:        # Esc/any key -> drop the liquid, keep text
-                        animate = False
-                else:
-                    self._render_text(counts())
-                done = is_done()
-                if done:
-                    self.sim.set_progress(1.0)        # top it off once inspection has finished
-                if deadline is not None and now >= deadline:
+            scr.addstr(y, x, text[:max(0, w - x)], pal.get('title') | curses.A_BOLD)
+        except curses.error:
+            pass
+
+
+def run_splash(scr, pal, provider_cls, *, is_done, frac, counts, label, deadline=None, seed=None):
+    '''Drive a Splash provider's frame loop until inspection is done AND the animation is at rest
+    (or a hard `deadline`). The provider only draws one frame from a SplashFrame; the HOST owns the
+    clock, the skip key, and the plain-text fallback: a keypress CANCELS the animation but a plain
+    progress line keeps updating on a clean screen until inspection actually finishes, so dropping
+    the eye-candy never hides the real state. `frac()`/`counts()`/`is_done()` are polled each frame;
+    dt-based timing means a slow frame just eases further, never desyncs. Never raises for a
+    misbehaving provider frame — a broken render falls back to the text line.'''
+    h, w = scr.getmaxyx()
+    provider = provider_cls(scr, pal, (h, w), seed)
+    fps = getattr(provider_cls, 'fps', 30.0) or 30.0
+    frame_dt = 1.0 / fps
+    min_dur = getattr(provider_cls, 'min_duration', MIN_DURATION)
+    scr.nodelay(True)
+    try:
+        start = last = time.monotonic()
+        animate = True
+        while True:
+            now = time.monotonic()
+            dt = now - last
+            last = now
+            done = is_done()
+            frame = SplashFrame(progress=(1.0 if done else frac()), counts=counts(),
+                                label=label, dt=dt, elapsed=now - start, done=done)
+            at_rest = False
+            if animate:
+                try:
+                    at_rest = bool(provider.render(frame))
+                except Exception:                     # noqa: BLE001 — a broken splash never bricks startup
+                    animate = False
+                    _draw_progress_text(scr, pal, label, frame.counts, h, w)
+                if animate and scr.getch() != -1:     # Esc/any key -> drop the animation, keep text
+                    animate = False
+            else:
+                _draw_progress_text(scr, pal, label, frame.counts, h, w)
+            scr.noutrefresh()
+            curses.doupdate()
+            if deadline is not None and now >= deadline:
+                return
+            if animate:
+                if done and at_rest and (now - start) >= min_dur:
                     return
-                if animate:
-                    if done and self.sim.filled and (now - start) >= MIN_DURATION:
-                        return
-                elif done:                            # text mode: leave as soon as it's finished
-                    return
-                slack = FRAME - (time.monotonic() - now)
-                if slack > 0:
-                    time.sleep(slack)
-        finally:
-            self.scr.nodelay(False)
+            elif done:                                # text mode: leave as soon as it's finished
+                return
+            slack = frame_dt - (time.monotonic() - now)
+            if slack > 0:
+                time.sleep(slack)
+    finally:
+        scr.nodelay(False)

@@ -183,12 +183,12 @@ def test_fish_use_all_tail_brackets_for_variety():
 
 
 def test_label_shows_counts_and_percent():
-    # exact format the label renders (built without curses via __new__)
+    # exact format the label renders (built without curses via __new__); label is per-frame now
     s = splash.LiquidSplash.__new__(splash.LiquidSplash)
-    s.label = 'checking install state'
-    assert s._label_text((14, 70)) == 'checking install state:   14/70 (20%)'
-    assert s._label_text((70, 70)) == 'checking install state:   70/70 (100%)'
-    assert s._label_text((0, 0)) == 'checking install state…'      # total unknown yet
+    lbl = 'checking install state'
+    assert s._label_text((14, 70), lbl) == 'checking install state:   14/70 (20%)'
+    assert s._label_text((70, 70), lbl) == 'checking install state:   70/70 (100%)'
+    assert s._label_text((0, 0), lbl) == 'checking install state…'      # total unknown yet
 
 
 def test_random_palette_shape_and_range():

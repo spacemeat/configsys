@@ -48,6 +48,8 @@ Lives under `$XDG_CONFIG_HOME` (defaults to `~/.config/configsys/configsys.hu`);
 
     ignore-profiles: [ gaming ]      // suppress an auto-activated project profile
 
+    splash: liquid                   // startup wait-screen animation (name / off / unset=default)
+
     dirs: { sdk: "~/toolchains"  system: /srv/opt }   // relocate install-layout dirs
 
     discover: false                  // opt out of project discovery on this machine
@@ -69,6 +71,10 @@ Lives under `$XDG_CONFIG_HOME` (defaults to `~/.config/configsys/configsys.hu`);
 - **`driver-preference:`** is a global tiebreak order over drivers, used to pick the default
   when a component has several valid install methods (see "Choosing among methods" below). It
   replaces the whole list across layers (repo < primary < user).
+- **`splash:`** picks the startup wait-screen animation: a registered splash-provider name, `off`
+  to disable, or unset for the built-in default. Splash providers are shipped by code plugins
+  (`SPLASHES` export — see docs/plugins.md); `env CONFIGSYS_NO_SPLASH` and `--verbose` also
+  suppress it.
 - **`components:`** *amends* a route: bindings merge **additively** across layers by
   `(via, when)` identity — a higher layer adds an install method, overrides a matching
   binding, retracts one with a `drop:` binding, or removes the whole component with `{}`.
@@ -83,7 +89,7 @@ Lives under `$XDG_CONFIG_HOME` (defaults to `~/.config/configsys/configsys.hu`);
 - **uniform** settings are the same on every machine, so an edit defaults into your **primary
   plugin** (portable — commit + push + re-tag the primary + `plugin sync` to propagate; it's
   effective on this machine immediately). These are `driver-preference`, `auto-tighten`,
-  `ignore-profiles`, and the category dirs `dirs.app`/`dirs.sdk`/`dirs.src`.
+  `ignore-profiles`, `splash`, and the category dirs `dirs.app`/`dirs.sdk`/`dirs.src`.
 - **machine** settings are a truth about *this* box, so an edit defaults to your **top config**
   (`~/.config/configsys/configsys.hu`), local and unshared. These are `scope`, `dirs.user`, and
   `dirs.system`.

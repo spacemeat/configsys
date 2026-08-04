@@ -268,6 +268,18 @@ it; retrofitting versioning after plugins exist is the expensive path.
     default; `dir_name` now strips any `scheme:` prefix). Code trust binds to a CONTENT hash
     (P2b), not a git commit, so a plugin fetched by ANY transport — including a non-git one — can
     ship trusted `code:` too. `test_plugin_hooks.py`.
+  - **P2d — splash providers (startup wait-screen animations). ✅ BUILT.** A third code export,
+    `SPLASHES = [SubclassOfSplash, ...]`, parallel to `DRIVERS`. A `Splash` (base +
+    `register_splash` re-exported on the frozen surface; the curses-free ABI lives in
+    `configsys/splashes.py`) subclasses and implements `render(frame)` — the **host** (`configsys.
+    tui.splash.run_splash`) owns the frame loop, the skip key, the deadline, and the safe
+    plain-text fallback, feeding each frame a minimal `SplashFrame(progress, counts, label, dt,
+    elapsed, done)`. `load_code` imports + registers a trusted plugin's `SPLASHES` under the same
+    checksum→ABI→trust gates, and snapshot-tracks splash-name collisions (two plugins, or one
+    shadowing a built-in). Pick one with the **`splash:`** machine setting (a provider name, `off`
+    to disable, or unset for the built-in default); an unknown/untrusted name degrades to the
+    default with a note. `test_splashes.py`. The in-tree reference is the built-in `liquid` splash
+    (`configsys/tui/splash.py`), which will move out into its own code plugin.
   - **Example plugin. ✅ BUILT** — `examples/examplos/` (`plugin.hu` + `routes.hu` +
     `driver.py` + `WALKTHROUGH.md`): a fictional distro **ExamplOS** with a `toybox` `Driver`, an
     `examplos` os block, a `via: toybox` component (`toychest`), and a `component-names:` name map.

@@ -94,6 +94,9 @@ CONFIG_SETTINGS = {
                                     'advising.', 'configsys(1)'),
     'ignore-profiles':   ('list',   'Discovered project profiles to NOT auto-activate.',
                           'configsys(1)'),
+    'splash':            ('scalar', 'Startup wait-screen animation: a splash provider name, '
+                                    'off to disable, or unset for the built-in default.',
+                          'configsys(1)'),
     # install-layout dirs (the `dirs:` section) — default < config < env (CONFIGSYS_*_DIR)
     'dirs.user':         ('dir',    'Base dir for user-scope installs (default ~). '
                                     'env CONFIGSYS_USERSCOPE_DIR wins.', 'configsys.hu(5)'),
@@ -116,6 +119,7 @@ SETTING_NATURE = {
     'driver-preference': 'uniform',
     'auto-tighten':      'uniform',
     'ignore-profiles':   'uniform',
+    'splash':            'uniform',
     'dirs.user':         'machine',
     'dirs.system':       'machine',
     'dirs.app':          'uniform',
@@ -185,6 +189,7 @@ def config_settings(ctx):
         'driver-preference': cfg.driver_preference(),
         'auto-tighten':      cfg.auto_tighten(),
         'ignore-profiles':   cfg.ignore_profiles(),
+        'splash':            cfg.splash(),
     }
     cfg_dirs = cfg.install_dirs()
     env_map = getattr(ctx.paths, 'env', {}) or {}

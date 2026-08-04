@@ -78,6 +78,24 @@ def test_move_local_to_primary_and_back(tmp_path):
     assert plugins.read_scalar_section(str(prim), 'scope') is None
 
 
+def test_splash_setting_roundtrip_and_disable(tmp_path):
+    ctx, user, prim = _ctx_with_primary(tmp_path)
+    assert ctx.config.splash() is None                          # unset -> built-in default
+
+    # uniform nature -> a default edit lands in the primary plugin
+    _ok, label = actions.set_config_setting(ctx, 'splash', ['aquarium'])
+    assert label == 'myprim'
+    assert plugins.read_scalar_section(str(prim), 'splash') == 'aquarium'
+    s = actions.config_settings(ctx)
+    assert s['splash']['nature'] == 'uniform' and s['splash']['home'] == 'primary'
+
+    # a local disable is what the accessor reads (the user layer IS loaded)
+    actions.set_config_setting(ctx, 'splash', ['off'], target=str(user))
+    assert ctx.config.splash() == 'off'
+    actions.set_config_setting(ctx, 'splash', [], target=str(user))   # clear local
+    assert plugins.read_scalar_section(str(user), 'splash') is None
+
+
 def test_move_carries_dir_value(tmp_path):
     ctx, user, prim = _ctx_with_primary(tmp_path)
     actions.set_config_setting(ctx, 'dirs.system', ['/srv/apps'])    # machine dir -> local

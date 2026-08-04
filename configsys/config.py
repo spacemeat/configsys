@@ -202,6 +202,17 @@ class Config:
         v = layers.merge_scalar(self._layers, 'auto-tighten', _MACHINE_ROLES)
         return str(v).strip().lower() in ('true', 'yes', 'on', '1') if v is not None else False
 
+    def splash(self):
+        '''The chosen startup splash: a registered provider NAME, a disable token (false/off/no),
+        or None when unset (use the built-in default). A machine setting (repo < primary < user).
+        Selection only; whether a named provider is actually registered is resolved at TUI start.'''
+        v = layers.merge_scalar(self._layers, 'splash', _MACHINE_ROLES)
+        if v is False:
+            return 'false'                       # a bare humon bool -> a disable token
+        if v is True:
+            return 'true'
+        return v.strip() if isinstance(v, str) and v.strip() else None
+
     def layer_pins(self, role):
         '''The raw scalar pins from the single layer of this role (repo/primary/user) — for
         editing that one layer's pins and for provenance, distinct from the merged pins().'''
