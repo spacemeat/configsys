@@ -90,13 +90,6 @@ def test_theme_plugins_list(tmp_path):
     assert 't1' in actions.theme_plugins(ctx)
 
 
-def test_save_theme_local_writes_top_config(tmp_path):
-    ctx, user, _ = _ctx(tmp_path, '{ theme: { colors: { accent: "#123456" } } }\n')
-    ok, label = actions.save_theme_local(ctx)
-    assert ok and label == 'top config'
-    assert plugins.read_theme(str(user))['colors']['accent'] == '#123456'
-
-
 def test_no_primary_theme_target(tmp_path):
     ctx, _u, _p = _ctx(tmp_path)
     assert actions.primary_theme_target(ctx) is None
@@ -104,8 +97,8 @@ def test_no_primary_theme_target(tmp_path):
     assert ok is False and 'primary' in msg
 
 
-def test_save_theme_to_primary_writes_into_primary(tmp_path):
-    # a synced primary plugin declared in the top config, plus a local theme to snapshot
+def test_promote_full_theme_into_primary_and_move(tmp_path):
+    # a synced primary plugin declared in the top config, plus a local theme edit to promote
     pdir = tmp_path / 'plugins'
     (pdir / 'myprim').mkdir(parents=True)
     (pdir / 'myprim' / 'plugin.hu').write_text(
@@ -129,5 +122,8 @@ def test_save_theme_to_primary_writes_into_primary(tmp_path):
     assert actions.primary_theme_target(ctx) == 'myprim'
     ok, label = actions.save_theme_to_primary(ctx)
     assert ok and label == 'myprim'
-    # the current theme landed in the primary's data file (travels with the primary)
-    assert plugins.read_theme(str(pdir / 'myprim' / 'data.hu'))['colors']['accent'] == '#123456'
+    saved = plugins.read_theme(str(pdir / 'myprim' / 'data.hu'))
+    assert saved['colors']['accent'] == '#123456'             # the edited color kept
+    assert 'title' in saved['colors']                         # FULL map, not just the diff
+    assert 'component' in saved['pages']['components']         # roles spelled out (drift-immune)
+    assert not plugins.read_theme(str(user)).get('colors')    # MOVED — top-config theme cleared

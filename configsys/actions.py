@@ -230,11 +230,12 @@ def save_theme_plugin(ctx, name, *, force=False):
     existed = pdir.exists()
     if existed and not force:
         return pdir, existed
+    from .tui import theme as _theme
     pdir.mkdir(parents=True, exist_ok=True)
     (pdir / 'plugin.hu').write_text(
         f'{{\n    name: {name}\n    requires-abi: {plugins.ABI_VERSION}\n'
         f'    data: [ theme.hu ]\n}}\n', encoding='utf-8')
-    block = plugins._emit_kv('theme', theme_overrides(ctx), 4)
+    block = plugins._emit_kv('theme', _theme.full_snapshot(ctx.config.theme()), 4)   # full, not diff
     (pdir / 'theme.hu').write_text('{\n' + block + '\n}\n', encoding='utf-8')
     (pdir / 'dotfiles').mkdir(exist_ok=True)
     return pdir, existed
@@ -271,23 +272,19 @@ def primary_theme_target(ctx):
 
 
 def save_theme_to_primary(ctx):
-    '''Write the current effective theme into the PRIMARY plugin's data file, so it travels/versions
-    with the rest of your config-as-a-plugin. Returns (ok, label): the primary name on success, or a
-    reason string when there is no primary to write into.'''
+    '''PROMOTE the current look into the PRIMARY plugin as a COMPLETE theme (full snapshot, not just
+    diffs) and MOVE it there — clearing any theme in the top config so the primary's now-absolute
+    theme isn't shadowed. This is deliberately absolute: a full theme in the primary overrides any
+    theme plugin (the caller confirms first). Returns (ok, label): the primary name, or a reason.'''
+    from .tui import theme as _theme
     target, prim = _primary_data_file(ctx)
     if not target:
-        return False, 'no primary plugin blessed/synced to save into'
-    plugins.set_theme(target, theme_overrides(ctx))
+        return False, 'no primary plugin blessed/synced to promote into'
+    plugins.set_theme(target, _theme.full_snapshot(ctx.config.theme()))
+    if str(target) != str(ctx.paths.user_config_file) and plugins.read_theme(ctx.paths.user_config_file):
+        plugins.set_theme(str(ctx.paths.user_config_file), {})   # move, not copy — drop the local one
     ctx.invalidate()
     return True, prim
-
-
-def save_theme_local(ctx):
-    '''Write the current effective theme into THIS machine's top config (a machine-local look that
-    overrides everything). Returns (True, 'top config').'''
-    plugins.set_theme(str(ctx.paths.user_config_file), theme_overrides(ctx))
-    ctx.invalidate()
-    return True, 'top config'
 
 
 # -- plugins (`configsys plugin` + the TUI Plugins screen) ----------------------------------------

@@ -119,9 +119,15 @@ so you can tell what your terminal gave us.
   which page you're editing; **`p`** toggles the focused page's gradient on/off.
 - **Right — the sample page**: a mock of that *actual* screen (its layout + its own roles) in the
   page's colors + gradient, so cycling shows a faithful, distinct preview. Edits repaint live.
-- **`s` save** opens a destination picker: **into primary plugin** (writes the look into your
-  primary plugin's data file, so it travels/versions with the rest of your config — shown only when
-  a primary is blessed + synced), **local config** (this machine's top config), or **standalone
-  theme plugin** (a named pack, loadable later with `L`). **`L`** loads a saved theme plugin.
+- **Editing already persists** — every color/role/gradient edit writes as a *diff* to your primary
+  plugin (or, with no primary, this machine's top config), shown in the status line. So your theme
+  already lives in the right place, WYSIWYG, and theme plugins still layer through the parts you
+  haven't touched. `s` is only for deliberate **full-snapshot** saves:
+  - **export theme pack…** — writes the *complete* look (every map color + every page role +
+    gradients, spelled out) to a named standalone pack, loadable later with `L` and shareable.
+    Full, not diff, so it reproduces exactly even if built-in defaults later change.
+  - **promote full theme → primary** (only when a primary is blessed + synced) — pins the complete
+    look into your primary and moves it there (clearing the local copy). This is deliberately
+    **absolute**: a full theme in the primary overrides any theme plugin, so it asks first.
 - The status line shows the **detected terminal color mode** — if it reads `256-color (approx)`
   rather than `24-bit`, color collapse/collisions are your terminal quantizing, not the theme.

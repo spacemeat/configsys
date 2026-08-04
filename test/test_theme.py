@@ -4,7 +4,8 @@ config `theme:` deep-merge. Pure functions — no curses.'''
 from configsys import layers
 from configsys.config import Config
 from configsys.tui.theme import (
-    ALL_PAGES, BUILTIN_GRADIENTS, COLOR_MAP, DEMO_PAGES, _flag, parse_color, resolve_theme,
+    ALL_PAGES, BUILTIN_GRADIENTS, COLOR_MAP, DEMO_PAGES, PAGE_ROLES, _flag, full_snapshot,
+    parse_color, resolve_theme,
 )
 
 
@@ -114,3 +115,21 @@ def test_config_theme_deep_merge_across_layers():
 def test_demo_pages_are_the_five_content_screens():
     assert DEMO_PAGES == ['components', 'profiles', 'plugins', 'dotfiles', 'config']
     assert 'theme' in ALL_PAGES and 'theme' not in DEMO_PAGES
+
+
+def test_full_snapshot_is_complete_and_drift_immune():
+    snap = full_snapshot({'colors': {'accent': '#010203'},
+                          'pages': {'components': {'component': {'fg': 'accent', 'bold': False}}}})
+    # every built-in map color is spelled out as a hex (not just the one diff)
+    assert set(COLOR_MAP).issubset(snap['colors'])
+    assert snap['colors']['accent'] == '#010203' and snap['colors']['title'].startswith('#')
+    # every role a page uses is spelled out, plus the gradient endpoints
+    for page in DEMO_PAGES:
+        for role in PAGE_ROLES[page]:
+            assert 'fg' in snap['pages'][page][role]
+        assert snap['pages'][page]['gradient']['from'] and snap['pages'][page]['gradient']['to']
+    comp = snap['pages']['components']['component']
+    assert comp['fg'] == 'accent' and 'bold' not in comp        # the override captured (bold dropped)
+    # re-resolving the snapshot reproduces the look (self-contained)
+    _c, pages = resolve_theme(snap)
+    assert pages['components']['roles']['component']['fg'] == (1, 2, 3)

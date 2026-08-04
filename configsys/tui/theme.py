@@ -213,6 +213,43 @@ def resolve_theme(theme):
     return colors, pages
 
 
+def full_snapshot(theme):
+    '''The COMPLETE current theme as a self-contained two-tier dict — every color-map entry
+    (name -> #rrggbb) and, per content page, EVERY role that page uses (fg/bg refs + effects) plus
+    the gradient endpoints — resolved from the built-in defaults overlaid by `theme`. Unlike the
+    diff overrides (theme_overrides), this pins the whole look so a saved pack reproduces exactly
+    even if built-in defaults later change. fg/bg stay as refs (map names or literals) so the map is
+    still the single place to retint; the full map is saved alongside, so the refs always resolve.'''
+    colors, pages = resolve_theme(theme)
+    upages = (theme.get('pages') if isinstance(theme, dict) else None) or {}
+    out_pages = {}
+    for page in DEMO_PAGES:
+        spec = upages.get(page) if isinstance(upages.get(page), dict) else {}
+        pg = {}
+        for role in PAGE_ROLES.get(page, []):
+            st = dict(ROLE_DEFAULTS.get(role, {}))
+            ov = spec.get(role)
+            if isinstance(ov, dict):
+                st.update(ov)
+            entry = {'fg': st.get('fg', 'title')}
+            if st.get('bg') not in (None, '', 'none', 'false', False):
+                entry['bg'] = st['bg']
+            for fl in ('bold', 'underline', 'reverse'):
+                if _flag(st.get(fl)):
+                    entry[fl] = True
+            pg[role] = entry
+        g = spec.get('gradient') if isinstance(spec.get('gradient'), dict) else {}
+        ga, gb = BUILTIN_GRADIENTS.get(page, BUILTIN_GRADIENTS['components'])
+        grad = {'from': g.get('from') or '#%02x%02x%02x' % ga,
+                'to': g.get('to') or '#%02x%02x%02x' % gb}
+        if not pages[page]['grad'][2]:
+            grad['enabled'] = False
+        pg['gradient'] = grad
+        out_pages[page] = pg
+    return {'colors': {name: '#%02x%02x%02x' % rgb for name, rgb in colors.items()},
+            'pages': out_pages}
+
+
 def rgb_to_256(r, g, b):
     if r == g == b:
         if r < 8:

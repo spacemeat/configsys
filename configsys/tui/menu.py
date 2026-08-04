@@ -2183,35 +2183,41 @@ def run(ctx):
                         pal = Palette(ctx.config.theme())
                         note = f'{page} gradient {"on" if on else "off"}'
                     elif ch == ord('s'):
+                        # Live edits already persist to your primary/local, WYSIWYG. `s` is only for
+                        # deliberate FULL-SNAPSHOT saves: export a shareable pack, or promote the
+                        # complete look into your primary (absolute — overrides theme plugins).
                         prim = actions.primary_theme_target(ctx)             # primary name, or None
-                        opts = ([('into primary plugin (' + prim + ')', 'primary')] if prim else []) \
-                            + [('local config (this machine)', 'local'),
-                               ('standalone theme plugin…', 'standalone')]
-                        idx = _popup_choose(stdscr, pal, 'save theme to',
+                        opts = [('export theme pack…', 'export')]
+                        if prim:
+                            opts.append((f'promote full theme → primary ({prim})', 'promote'))
+                        idx = _popup_choose(stdscr, pal, 'save theme',
                                             [(lbl, '') for lbl, _ in opts], 0)
-                        if idx is not None:
-                            dest = opts[idx][1]
-                            if dest == 'primary':
+                        if idx is not None and opts[idx][1] == 'promote':
+                            ci = _popup_choose(stdscr, pal,
+                                               'promote pins the FULL look into the primary (theme '
+                                               'plugins won\'t show through) — continue?',
+                                               [('promote', ''), ('cancel', '')], 1)
+                            if ci == 0:
                                 ok, label = actions.save_theme_to_primary(ctx)
-                                note = f'saved into primary plugin ({label})' if ok else label
-                            elif dest == 'local':
-                                _ok, label = actions.save_theme_local(ctx)
-                                note = f'saved to {label}'
+                                pal = Palette(ctx.config.theme())
+                                note = f'promoted full theme → {label}' if ok else label
                             else:
-                                nm = _input_box(stdscr, pal, 'standalone theme plugin — name', '')
-                                if nm and nm.strip():
-                                    nm = nm.strip()
-                                    _pdir, existed = actions.save_theme_plugin(ctx, nm)
-                                    if existed:
-                                        oi = _popup_choose(stdscr, pal, f'{nm} exists — overwrite?',
-                                                           [('overwrite', ''), ('cancel', '')], 1)
-                                        if oi == 0:
-                                            actions.save_theme_plugin(ctx, nm, force=True)
-                                            note = f'saved {nm} (overwritten)'
-                                        else:
-                                            note = 'save cancelled'
+                                note = 'promote cancelled'
+                        elif idx is not None:                                # export a standalone pack
+                            nm = _input_box(stdscr, pal, 'export theme pack — name', '')
+                            if nm and nm.strip():
+                                nm = nm.strip()
+                                _pdir, existed = actions.save_theme_plugin(ctx, nm)
+                                if existed:
+                                    oi = _popup_choose(stdscr, pal, f'{nm} exists — overwrite?',
+                                                       [('overwrite', ''), ('cancel', '')], 1)
+                                    if oi == 0:
+                                        actions.save_theme_plugin(ctx, nm, force=True)
+                                        note = f'exported theme pack {nm} (overwritten)'
                                     else:
-                                        note = f'saved theme plugin {nm}'
+                                        note = 'export cancelled'
+                                else:
+                                    note = f'exported theme pack {nm}'
                     elif ch == ord('L'):
                         names = actions.theme_plugins(ctx)
                         if names:
