@@ -340,10 +340,12 @@ class Config:
         return []
 
     def _members_safe(self, profile):
-        try:
-            return self.profile_components(profile)
-        except ConfigError:
+        '''Effective members, treating an UNDEFINED profile as empty (so `add` may create it) but
+        letting a DEFINED-but-broken profile (bad include / cycle / `+self` with nothing below)
+        RAISE — so an edit surfaces the error instead of silently no-oping on the remove path.'''
+        if profile != self.ALL_PROFILE and profile not in self._chain:
             return []
+        return self.profile_components(profile)
 
     def plan_membership_edit(self, profile, comp, action, target_file):
         '''Compute the new raw term list for `profile` in `target_file` so `comp` becomes a member

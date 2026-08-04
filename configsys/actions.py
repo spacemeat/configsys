@@ -12,9 +12,10 @@ from . import plugins
 
 
 def edit_target(ctx):
-    '''(file, label) that profile / configs edits write to by default: the primary plugin's data
-    file when a primary is blessed + synced (so edits travel to your other machines), else this
-    machine's top config. The TUI/CLI can override the target explicitly.'''
+    '''(file, label) for a PORTABLE edit: the primary plugin's data file when a primary is blessed +
+    synced (so edits travel to your other machines), else this machine's top config. NOTE: the
+    primary layer sits BELOW the top config, so an edit here is only effective when a higher layer
+    doesn't shadow it — profile/config edits use the effective-target helpers below instead.'''
     decls = plugins.declared(ctx.paths.user_config_file)
     prim = plugins.primary_name(decls)
     if prim:
@@ -25,11 +26,33 @@ def edit_target(ctx):
     return str(ctx.paths.user_config_file), 'top config'
 
 
+def _dir_label(ctx, f):
+    return 'top config' if str(f) == str(ctx.paths.user_config_file) else Path(f).parent.name
+
+
+def _profile_target(ctx, profile):
+    '''Where a membership edit is EFFECTIVE: the profile's highest-precedence definition layer if
+    it's already defined (editing a lower layer would be shadowed by that definition), else the
+    portable default (primary-if-set) for a brand-new profile.'''
+    src = ctx.config.profile_source(profile)
+    if src is not None:
+        return str(src), _dir_label(ctx, src)
+    return edit_target(ctx)
+
+
+def _configs_target(ctx):
+    '''Where a `configs:` edit is EFFECTIVE: the top config if it already has a `configs:` (it
+    shadows lower layers whole-list), else the portable default.'''
+    if plugins.read_configs(ctx.paths.user_config_file):
+        return str(ctx.paths.user_config_file), 'top config'
+    return edit_target(ctx)
+
+
 def set_profile_membership(ctx, profile, comp, action, *, target=None):
     '''Add or remove `comp` in `profile` (`action` = 'add'|'remove'), writing the term-algebra edit
-    (via Config.plan_membership_edit) to `target` or the default edit target. Returns
-    (changed, target_label); a no-op (already in the wanted state) returns (False, label).'''
-    tfile, label = (target, target) if target else edit_target(ctx)
+    (via Config.plan_membership_edit) to `target` or the effective target. Returns (changed, label);
+    a no-op returns (False, label); a shadowed target that took no effect returns (False, warning).'''
+    tfile, label = (target, target) if target else _profile_target(ctx, profile)
     new_terms = ctx.config.plan_membership_edit(profile, comp, action, tfile)
     if new_terms is None:
         return False, label
@@ -37,13 +60,15 @@ def set_profile_membership(ctx, profile, comp, action, *, target=None):
     profs[profile] = new_terms
     plugins.set_profiles(tfile, profs)
     ctx.invalidate()
+    if (comp in ctx.config._members_safe(profile)) != (action == 'add'):   # shadowed -> no effect
+        return False, f'{label}: "{profile}" is overridden by a higher-precedence layer (no effect)'
     return True, label
 
 
 def set_profile_active(ctx, profile, on, *, target=None):
     '''Activate (`on=True`) or deactivate `profile` in the active `configs:` set. Returns
     (changed, target_label).'''
-    tfile, label = (target, target) if target else edit_target(ctx)
+    tfile, label = (target, target) if target else _configs_target(ctx)
     names = plugins.read_configs(tfile)
     present = profile in names
     if on and not present:
@@ -140,13 +165,21 @@ def set_theme_value(ctx, dotted_key, value, *, target=None):
 
 
 def theme_overrides(ctx):
-    '''The MERGED theme overrides in effect (colors / elements / gradient, empties dropped) — for
-    display and for snapshotting into a theme plugin.'''
+    '''The MERGED theme overrides in effect (colors / elements / gradient / splash, empties dropped)
+    — for display and for snapshotting into a theme plugin. Preserves a disabled gradient
+    (`gradient: false`, which resolve_theme understands) and the splash choice, so save/load is
+    faithful for those.'''
     t = ctx.config.theme()
     out = {k: t[k] for k in ('colors', 'elements') if t.get(k)}
-    grad = {gk: gv for gk, gv in (t.get('gradient') or {}).items() if gk != 'enabled'}
-    if grad:
-        out['gradient'] = grad
+    grad = dict(t.get('gradient') or {})
+    if grad.get('enabled') is False:
+        out['gradient'] = False                       # explicit disable survives the round-trip
+    else:
+        g = {gk: gv for gk, gv in grad.items() if gk != 'enabled'}
+        if g:
+            out['gradient'] = g
+    if t.get('splash') is not None:
+        out['splash'] = t['splash']
     return out
 
 

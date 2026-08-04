@@ -358,7 +358,10 @@ class Context:
             return
         if not ans or ans.lower() == 'none':
             return
-        ok, msg = _bless_primary(self, ans)
+        from . import actions
+        _ok, msg, results = actions.plugin_bless(self, ans)
+        for name, action in results:
+            print(f'  {action:8} {name}')
         print(f'configsys: {msg}')
 
     def load_pipeline(self, reuse=None, dirty=None, progress=None):
@@ -1169,106 +1172,8 @@ def _find_decl(decls, plugins_dir, ident):
     return None
 
 
-def _locate_decl(ctx, ident):
-    '''Find WHERE `ident` is declared — the top config, or a synced plugin's transitive
-    `plugins:` (e.g. your primary) — and return (config_file, decls, target). This lets remove /
-    update edit the file that actually declares the plugin, wherever it lives. The top config
-    wins if a name somehow appears in more than one place. (None, None, None) if not found.'''
-    from . import plugins
-    pdir = ctx.paths.plugins_dir
-    top = plugins.declared(ctx.paths.user_config_file)
-    t = _find_decl(top, pdir, ident)
-    if t is not None:
-        return ctx.paths.user_config_file, top, t
-    if pdir.exists():
-        for sub in sorted(p for p in pdir.iterdir() if p.is_dir()):
-            raw = plugins.read_manifest(sub).get('plugins') or []
-            decls = [d for d in (plugins._decl(e) for e in raw) if d]
-            t = _find_decl(decls, pdir, ident)
-            if t is not None:
-                return sub / 'plugin.hu', decls, t
-    return None, None, None
-
-
-def _sync_and_report(ctx, decls):
-    from . import plugins
-    ctx.ensure_plugin_code()     # register transports from already-trusted plugins before sync
-    return [(name, action) for name, action in
-            _print_sync(plugins.sync(ctx.runner, ctx.paths.plugins_dir, decls))]
-
-
-def _print_sync(results):
-    for name, action in results:
-        print(f'  {action:8} {name}')
-        yield name, action
-
-
-def _source_hint(source):
-    '''A nudge when a source can't be synced: the common `github.com:x/y` mistyping of the
-    `github:x/y` shorthand, else how to reach a private repo.'''
-    for prov in ('github', 'gitlab'):
-        pfx = prov + '.com:'
-        if source.startswith(pfx):
-            return f'(did you mean {prov}:{source[len(pfx):]} ?)'
-    return ('(private repo? use ssh git@host:owner/repo.git, a token via '
-            'CONFIGSYS_GIT_TOKEN, or a configured git credential helper)')
-
-
-def _bless_primary(ctx, ident):
-    '''Make `ident` the sole `primary` plugin in the top config. Syncs it FIRST (the findability
-    gate — "if it can find it"), pulling its transitive plugins too; only on success does it
-    declare + mark primary (clearing any other primary). `ident` is a source
-    (<provider>:<user>/<name>) or an already-declared plugin's name. Returns (ok, message).'''
-    from . import plugins
-    ctx.ensure_user_config()
-    decls = plugins.declared(ctx.paths.user_config_file)
-    existing = _find_decl(decls, ctx.paths.plugins_dir, ident)
-    source = existing['source'] if existing else ident
-    ref = existing.get('ref') if existing else None
-    ctx.ensure_plugin_code()                         # register transports before sync
-    results = plugins.sync(ctx.runner, ctx.paths.plugins_dir, [{'source': source, 'ref': ref}])
-    for name, action in results:
-        print(f'  {action:8} {name}')
-    if not results or 'failed' in results[0][1].lower():
-        return False, f"could not find/sync '{ident}' — nothing changed"
-    if existing is None:
-        existing = {'source': source, 'ref': ref}
-        decls.append(existing)
-    for d in decls:
-        d.pop('primary', None)                       # exactly one primary
-    existing['primary'] = True
-    if ctx.runner.pretend:
-        return True, f"[pretend] would bless {plugins.dir_name(source)} as primary"
-    plugins.set_declared(ctx.paths.user_config_file, decls)
-    return True, f"blessed {plugins.dir_name(source)} as primary (its machine settings now apply)"
-
-
-def _upsert_decl(decls, source, ref):
-    '''Add `source` to a decls list, or re-pin its ref if it's already there. Returns
-    (target, existed) — the target dict is a live element of `decls`.'''
-    target = next((d for d in decls if d['source'] == source), None)
-    if target is not None:
-        target['ref'] = ref
-        return target, True
-    target = {'source': source, 'ref': ref}
-    decls.append(target)
-    return target, False
-
-
-def _pin_checksum(ctx, config_file, decls, target):
-    '''Record the just-synced content hash of `target` as its `sha256` (a trust-on-first-use
-    pin), so later syncs are verified against exactly this content. Writes back to `config_file`
-    (the top config, or a primary plugin's plugin.hu when the add landed there).'''
-    from . import plugins
-    pdir = ctx.paths.plugins_dir / plugins.dir_name(target['source'])
-    ident = plugins.plugin_identity(pdir)
-    if ident is None:
-        print('configsys: could not pin — plugin is not synced')
-        return
-    target['sha256'] = ident
-    plugins.set_declared(config_file, decls)
-    disp = plugins.read_manifest(pdir).get('name', plugins.dir_name(target['source']))
-    print(f'configsys: pinned {disp} @ {ident.split(":")[-1][:12]} (sha256)')
+# NOTE: plugin add/remove/sync/bless/update orchestration moved to configsys.actions (F3 slice 4);
+# cmd_plugin + the first-run offer call it. `_find_decl` above is still used by the `trust` branch.
 
 
 def _git_init_commit(ctx, d, msg):

@@ -434,11 +434,19 @@ def set_section(user_config_file, section, emit):
     trove = humon.from_string(text)                 # keep alive while reading source_text
     node = trove.root[section]
     if node is not None:
-        old = node.source_text                      # '<section>: ...', starts at the key
-        pos = text.find(old)
+        old = node.source_text                      # may include comment lines humon BOUND to the node
+        # Keep any leading comment lines (humon attaches a comment to the node below it, even across
+        # a blank line) — replace only from the `<section>:` key line so the comment survives.
+        lines = old.split('\n')
+        ki = next((i for i, ln in enumerate(lines)
+                   if ln.lstrip().startswith(section + ':')
+                   and not ln.lstrip().startswith(('//', '/*', '*'))), 0)
+        lead = '\n'.join(lines[:ki])
+        node_text = '\n'.join(lines[ki:])
+        pos = text.find(old) + (len(lead) + 1 if lead else 0)
         line_start = text.rfind('\n', 0, pos) + 1
         indent = pos - line_start                   # whitespace before the key on its line
-        text = text.replace(old, emit(indent), 1)
+        text = text[:pos] + emit(indent) + text[pos + len(node_text):]
     else:
         idx = text.rstrip().rfind('}')              # before the root's closing brace
         text = text[:idx] + '    ' + emit(4) + '\n' + text[idx:]

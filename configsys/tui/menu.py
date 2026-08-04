@@ -302,10 +302,10 @@ class MenuState:
         if self.rows:
             self.cursor = max(0, min(len(self.rows) - 1, self.cursor + delta))
 
-    def top(self):
+    def go_top(self):                 # NB: not `top` — that would shadow the `self.top` scroll offset
         self.cursor = 0
 
-    def bottom(self):
+    def go_bottom(self):
         if self.rows:
             self.cursor = len(self.rows) - 1
 
@@ -1587,10 +1587,14 @@ def run(ctx):
             if ch in KEY_TO_SCREEN:
                 dest = KEY_TO_SCREEN[ch]
                 if dest in IMPLEMENTED:
-                    if dest == 'components' and menu_dirty:   # a profile edit changed membership
-                        cfg = ctx.config                       # already invalidated by the edit
-                        layouts, transitive = _menu_model(cfg)
-                        ms = MenuState(states, layouts, transitive)   # states unchanged (config-only)
+                    if dest == 'components' and menu_dirty:   # a profile/config edit changed resolution
+                        try:
+                            # re-resolve + re-probe newly-appearing/changed units (a membership,
+                            # driver-preference or scope edit can add units or change how they
+                            # resolve); reuses the rest and preserves selection/staging/expansion.
+                            ms, cfg, ledger, states, diags = _reload(ctx, ms, set())
+                        except Exception as e:  # noqa: BLE001 — surface, don't crash
+                            note = f'reload failed: {e}'
                         menu_dirty = False
                     screen = dest
                 else:
@@ -1626,11 +1630,15 @@ def run(ctx):
                 elif ch == ord('a') and ps.focus == 'left':
                     prof = ps.cur_profile()
                     if prof:
-                        changed, _lbl = actions.set_profile_active(ctx, prof, prof not in ps.active)
-                        ps.reload()
-                        menu_dirty = menu_dirty or changed
-                        note = (f'{prof} {"activated" if prof in ps.active else "deactivated"}'
-                                if changed else 'no change')
+                        try:
+                            changed, _lbl = actions.set_profile_active(ctx, prof,
+                                                                       prof not in ps.active)
+                            ps.reload()
+                            menu_dirty = menu_dirty or changed
+                            note = (f'{prof} {"activated" if prof in ps.active else "deactivated"}'
+                                    if changed else 'no change')
+                        except Exception as e:  # noqa: BLE001 — surface, don't crash
+                            note = f'edit failed: {e}'
                 elif ch in (ord(' '), ord('\n'), curses.KEY_ENTER) and ps.focus == 'right':
                     prof = ps.cur_profile()
                     if prof and ps.catalog:
@@ -1649,83 +1657,89 @@ def run(ctx):
             # -- Dotfiles screen --
             if screen == 'dotfiles':
                 row = ds.cur_row()          # (rc, name, target, state, root, rel, here)
-                if ch in (ord('j'), curses.KEY_DOWN):
-                    ds.cur = min(len(ds.rows) - 1, ds.cur + 1)
-                elif ch in (ord('k'), curses.KEY_UP):
-                    ds.cur = max(0, ds.cur - 1)
-                elif ch == ord('g'):
-                    ds.cur = 0
-                elif ch == ord('G'):
-                    ds.cur = max(0, len(ds.rows) - 1)
-                elif ch == ord('l') and row:            # link (clobber-proof; refuses over a real file)
-                    with suspended(stdscr):
-                        res = ds.df.install(row[0])
-                    ds.reload()
-                    note = (f'{row[0].comp}: {res.output().strip()}'
-                            if res is not None and not res.ok else f'linked {row[0].comp}')
-                elif ch == ord('x') and row:            # unlink (restores any backup)
-                    with suspended(stdscr):
-                        ds.df.uninstall(row[0])
-                    ds.reload()
-                    note = f'unlinked {row[0].comp}'
-                elif ch == ord('c') and row:            # capture: adopt on-system content into the store
-                    done = ds.df.capture(row[0], force=False)
-                    ds.reload()
-                    note = (f'captured {len(done)} target(s) for {row[0].comp}'
-                            if done else f'nothing to capture for {row[0].comp}')
+                try:
+                    if ch in (ord('j'), curses.KEY_DOWN):
+                        ds.cur = min(len(ds.rows) - 1, ds.cur + 1)
+                    elif ch in (ord('k'), curses.KEY_UP):
+                        ds.cur = max(0, ds.cur - 1)
+                    elif ch == ord('g'):
+                        ds.cur = 0
+                    elif ch == ord('G'):
+                        ds.cur = max(0, len(ds.rows) - 1)
+                    elif ch == ord('l') and row:            # link (clobber-proof; refuses over a real file)
+                        with suspended(stdscr):
+                            res = ds.df.install(row[0])
+                        ds.reload()
+                        note = (f'{row[0].comp}: {res.output().strip()}'
+                                if res is not None and not res.ok else f'linked {row[0].comp}')
+                    elif ch == ord('x') and row:            # unlink (restores any backup)
+                        with suspended(stdscr):
+                            ds.df.uninstall(row[0])
+                        ds.reload()
+                        note = f'unlinked {row[0].comp}'
+                    elif ch == ord('c') and row:            # capture: adopt on-system content
+                        done = ds.df.capture(row[0], force=False)
+                        ds.reload()
+                        note = (f'captured {len(done)} target(s) for {row[0].comp}'
+                                if done else f'nothing to capture for {row[0].comp}')
+                except Exception as e:  # noqa: BLE001 — surface, don't crash
+                    note = f'error: {e}'
                 continue
 
             # -- Plugins screen (git ops run under `suspended` so their output owns the terminal) --
             if screen == 'plugins':
                 from .. import actions, plugins
                 row = pl.cur_row()
-                if ch in (ord('j'), curses.KEY_DOWN):
-                    pl.cur = min(len(pl.rows) - 1, pl.cur + 1)
-                elif ch in (ord('k'), curses.KEY_UP):
-                    pl.cur = max(0, pl.cur - 1)
-                elif ch == ord('g'):
-                    pl.cur = 0
-                elif ch == ord('G'):
-                    pl.cur = max(0, len(pl.rows) - 1)
-                elif ch == ord('a'):
-                    src = _input_box(stdscr, pal, 'add plugin — source (e.g. github:owner/repo)', '')
-                    if src and src.strip():
-                        with suspended(stdscr):
-                            ok, msg, _r = actions.plugin_add(ctx, src.strip())
+                try:
+                    if ch in (ord('j'), curses.KEY_DOWN):
+                        pl.cur = min(len(pl.rows) - 1, pl.cur + 1)
+                    elif ch in (ord('k'), curses.KEY_UP):
+                        pl.cur = max(0, pl.cur - 1)
+                    elif ch == ord('g'):
+                        pl.cur = 0
+                    elif ch == ord('G'):
+                        pl.cur = max(0, len(pl.rows) - 1)
+                    elif ch == ord('a'):
+                        src = _input_box(stdscr, pal, 'add plugin — source (github:owner/repo)', '')
+                        if src and src.strip():
+                            with suspended(stdscr):
+                                _ok, msg, _r = actions.plugin_add(ctx, src.strip())
+                            pl.reload()
+                            menu_dirty = True
+                            note = msg.split('\n')[0]
+                    elif ch == ord('x') and row:
+                        _ok, note = actions.plugin_remove(ctx, row['name'])
                         pl.reload()
                         menu_dirty = True
-                        note = msg.split('\n')[0]
-                elif ch == ord('x') and row:
-                    _ok, note = actions.plugin_remove(ctx, row['name'])
-                    pl.reload()
-                    menu_dirty = True
-                elif ch == ord('s') and row:
-                    tgt = [d for d in pl.decls
-                           if plugins.dir_name(d['source']) == plugins.dir_name(row['source'])]
-                    with suspended(stdscr):
-                        actions.plugin_sync(ctx, tgt)
-                    pl.reload()
-                    note = f'synced {row["name"]}'
-                elif ch == ord('S'):
-                    with suspended(stdscr):
-                        actions.plugin_sync(ctx, plugins.declared(ctx.paths.user_config_file))
-                    pl.reload()
-                    note = 'synced all'
-                elif ch == ord('b') and row:
-                    with suspended(stdscr):
-                        _ok, msg, _r = actions.plugin_bless(ctx, row['source'])
-                    pl.reload()
-                    menu_dirty = True
-                    note = msg
-                elif ch == ord('B'):
-                    _ok, note = actions.plugin_unbless(ctx)
-                    pl.reload()
-                    menu_dirty = True
-                elif ch == ord('u') and row:
-                    with suspended(stdscr):
-                        _ok, msg, _r = actions.plugin_update(ctx, row['name'])
-                    pl.reload()
-                    note = msg
+                    elif ch == ord('s') and row:
+                        tgt = [d for d in pl.decls
+                               if plugins.dir_name(d['source']) == plugins.dir_name(row['source'])]
+                        with suspended(stdscr):
+                            actions.plugin_sync(ctx, tgt)
+                        pl.reload()
+                        note = f'synced {row["name"]}'
+                    elif ch == ord('S'):
+                        with suspended(stdscr):
+                            actions.plugin_sync(ctx, plugins.declared(ctx.paths.user_config_file))
+                        pl.reload()
+                        note = 'synced all'
+                    elif ch == ord('b') and row:
+                        with suspended(stdscr):
+                            _ok, msg, _r = actions.plugin_bless(ctx, row['source'])
+                        pl.reload()
+                        menu_dirty = True
+                        note = msg
+                    elif ch == ord('B'):
+                        _ok, note = actions.plugin_unbless(ctx)
+                        pl.reload()
+                        menu_dirty = True
+                    elif ch == ord('u') and row:
+                        with suspended(stdscr):
+                            _ok, msg, _r = actions.plugin_update(ctx, row['name'])
+                        pl.reload()
+                        note = msg
+                except Exception as e:  # noqa: BLE001 — surface, don't crash
+                    note = f'error: {e}'
                 continue
 
             # -- Config screen --
@@ -1787,53 +1801,57 @@ def run(ctx):
             # -- Theme editor (sub-screen of Config); edits re-instantiate pal for live preview --
             if screen == 'theme':
                 from .. import actions
-                if ch in (ord('j'), curses.KEY_DOWN):
-                    ts.cur = min(len(ts.roles) - 1, ts.cur + 1)
-                elif ch in (ord('k'), curses.KEY_UP):
-                    ts.cur = max(0, ts.cur - 1)
-                elif ch == ord('g'):
-                    ts.cur = 0
-                elif ch == ord('G'):
-                    ts.cur = max(0, len(ts.roles) - 1)
-                elif ch == ord('t'):
-                    screen = 'config'
-                elif ch in (ord(' '), ord('\n'), curses.KEY_ENTER):
-                    role = ts.roles[ts.cur]
-                    new = _input_box(stdscr, pal, f'{role[2]}  (#rrggbb)', _hex(ts.rgb(role)))
-                    if new and new.strip():
-                        actions.set_theme_value(ctx, f'{role[0]}.{role[1]}', new.strip())
-                        pal = Palette(ctx.config.theme())          # live preview
-                        note = f'{role[2]} = {new.strip()}'
-                elif ch == ord('r'):
-                    role = ts.roles[ts.cur]
-                    actions.set_theme_value(ctx, f'{role[0]}.{role[1]}', None)   # drop override
-                    pal = Palette(ctx.config.theme())
-                    note = f'{role[2]} reset to default'
-                elif ch == ord('s'):
-                    name = _input_box(stdscr, pal, 'save current theme as plugin — name', '')
-                    if name and name.strip():
-                        name = name.strip()
-                        _pdir, existed = actions.save_theme_plugin(ctx, name)
-                        if existed:
-                            idx = _popup_choose(stdscr, pal, f'{name} exists — overwrite?',
-                                                [('overwrite', ''), ('cancel', '')], 1)
-                            if idx == 0:
-                                actions.save_theme_plugin(ctx, name, force=True)
-                                note = f'saved {name} (overwritten)'
+                try:
+                    if ch in (ord('j'), curses.KEY_DOWN):
+                        ts.cur = min(len(ts.roles) - 1, ts.cur + 1)
+                    elif ch in (ord('k'), curses.KEY_UP):
+                        ts.cur = max(0, ts.cur - 1)
+                    elif ch == ord('g'):
+                        ts.cur = 0
+                    elif ch == ord('G'):
+                        ts.cur = max(0, len(ts.roles) - 1)
+                    elif ch == ord('t'):
+                        screen = 'config'
+                    elif ch in (ord(' '), ord('\n'), curses.KEY_ENTER):
+                        role = ts.roles[ts.cur]
+                        new = _input_box(stdscr, pal, f'{role[2]}  (#rrggbb)', _hex(ts.rgb(role)))
+                        if new and new.strip():
+                            actions.set_theme_value(ctx, f'{role[0]}.{role[1]}', new.strip())
+                            pal = Palette(ctx.config.theme())          # live preview
+                            note = f'{role[2]} = {new.strip()}'
+                    elif ch == ord('r'):
+                        role = ts.roles[ts.cur]
+                        actions.set_theme_value(ctx, f'{role[0]}.{role[1]}', None)   # drop override
+                        pal = Palette(ctx.config.theme())
+                        note = f'{role[2]} reset to default'
+                    elif ch == ord('s'):
+                        name = _input_box(stdscr, pal, 'save current theme as plugin — name', '')
+                        if name and name.strip():
+                            name = name.strip()
+                            _pdir, existed = actions.save_theme_plugin(ctx, name)
+                            if existed:
+                                idx = _popup_choose(stdscr, pal, f'{name} exists — overwrite?',
+                                                    [('overwrite', ''), ('cancel', '')], 1)
+                                if idx == 0:
+                                    actions.save_theme_plugin(ctx, name, force=True)
+                                    note = f'saved {name} (overwritten)'
+                                else:
+                                    note = 'save cancelled'
                             else:
-                                note = 'save cancelled'
+                                note = f'saved theme plugin {name}'
+                    elif ch == ord('L'):
+                        names = actions.theme_plugins(ctx)
+                        if names:
+                            idx = _popup_choose(stdscr, pal, 'load theme',
+                                                [(n, '') for n in names], 0)
+                            if idx is not None:
+                                actions.load_theme(ctx, names[idx])
+                                pal = Palette(ctx.config.theme())
+                                note = f'loaded {names[idx]}'
                         else:
-                            note = f'saved theme plugin {name}'
-                elif ch == ord('L'):
-                    names = actions.theme_plugins(ctx)
-                    if names:
-                        idx = _popup_choose(stdscr, pal, 'load theme', [(n, '') for n in names], 0)
-                        if idx is not None:
-                            actions.load_theme(ctx, names[idx])
-                            pal = Palette(ctx.config.theme())
-                            note = f'loaded {names[idx]}'
-                    else:
-                        note = 'no theme plugins saved yet (s to save one)'
+                            note = 'no theme plugins saved yet (s to save one)'
+                except Exception as e:  # noqa: BLE001 — surface, don't crash
+                    note = f'error: {e}'
                 continue
 
             # -- Components screen --
@@ -1842,9 +1860,9 @@ def run(ctx):
             elif ch in (ord('k'), curses.KEY_UP):
                 ms.move(-1)
             elif ch == ord('g'):
-                ms.top()
+                ms.go_top()
             elif ch == ord('G'):
-                ms.bottom()
+                ms.go_bottom()
             elif ch in (ord('\n'), curses.KEY_ENTER):
                 ms.enter()
             elif ch in (ord('l'), curses.KEY_RIGHT):
