@@ -13,6 +13,7 @@ unit appears. Enter/→ expand, ← collapse, Tab expands/collapses all componen
 '''
 
 import curses
+from pathlib import Path
 
 from .. import reportgen
 from ..drivers import get_driver, scope_meta
@@ -644,7 +645,7 @@ def _fill_bg(stdscr, pal, h, w):
 # -- screen router / nav bar ----------------------------------------------
 SCREENS = [('1', 'components', 'Components'), ('2', 'profiles', 'Profiles'),
            ('3', 'plugins', 'Plugins'), ('4', 'dotfiles', 'Dotfiles'), ('5', 'config', 'Config')]
-IMPLEMENTED = {'components', 'profiles', 'plugins', 'config'}
+IMPLEMENTED = {'components', 'profiles', 'plugins', 'dotfiles', 'config'}
 KEY_TO_SCREEN = {ord(k): sid for k, sid, _name in SCREENS}
 
 
@@ -1431,6 +1432,69 @@ def _draw_plugins(stdscr, pal, pl, ctx, note, screen):
     stdscr.refresh()
 
 
+# -- Dotfiles screen ------------------------------------------------------
+_DF_STATE_ELEM = {'linked': 'installed', 'adopted': 'partial', 'unmanaged': 'outdated',
+                  'template': 'info_dim', 'empty': 'info_dim'}
+
+
+class DotfilesScreen:
+    '''Link-state table over the via:dotfiles units — a skin over the dotfiles driver
+    (spec_states / install / uninstall / capture).'''
+    def __init__(self, ctx):
+        self.ctx = ctx
+        self.cur = 0
+        self.top = 0
+        self.reload()
+
+    def reload(self):
+        from .. import actions
+        self.df, self.units = actions.dotfiles_units(self.ctx)
+        self.rows = []
+        for rc in self.units:
+            for name, tgt, state, src_root, src_rel, here in self.df.spec_states(rc):
+                self.rows.append((rc, name, tgt, state, src_root, src_rel, here))
+        self.cur = min(self.cur, max(0, len(self.rows) - 1))
+
+    def cur_row(self):
+        return self.rows[self.cur] if 0 <= self.cur < len(self.rows) else None
+
+
+def _draw_dotfiles(stdscr, pal, ds, ctx, note, screen):
+    stdscr.erase()
+    h, w = stdscr.getmaxyx()
+    if pal.gradient:
+        _fill_bg(stdscr, pal, h, w)
+    _draw_nav(stdscr, pal, screen, h, w)
+    it, il, ih, iw = _panel(stdscr, pal, 1, 0, h - 3, w, 'dotfiles (link state)', True, h, w)
+    _put(stdscr, it, il, _fit(f'  {"STATE":11}{"TARGET":30}{"COMPONENT":18}SOURCE (→ = on capture)', iw),
+         pal.style('menu_header', it, il, h, w))
+    ds.top = _scroll_top(ds.cur, ds.top, ih - 1, len(ds.rows))
+    if not ds.rows:
+        _put(stdscr, it + 1, il, _fit('(no dotfiles in the active profiles)', iw),
+             pal.style('info_dim', it + 1, il, h, w))
+    for vis, i in enumerate(range(ds.top, min(len(ds.rows), ds.top + ih - 1))):
+        rc, _name, tgt, state, root, rel, here = ds.rows[i]
+        y, sel = it + 1 + vis, i == ds.cur
+        if sel:
+            _put(stdscr, y, il, ' ' * iw, pal.fill(y, il, h, w, selected=True))
+        mark = '!' if state == 'unmanaged' else ' '
+        src = ('' if here else '→ ') + f'{Path(root).name}/{rel}'
+        elem = 'label' if sel else _DF_STATE_ELEM.get(state, 'component')
+        _put(stdscr, y, il, _fit(f'{mark} {state:10}{tgt:30}{rc.comp:18}{src}', iw),
+             pal.style(elem, y, il, h, w, selected=sel))
+
+    n_unmanaged = sum(1 for r in ds.rows if r[3] == 'unmanaged')
+    status = f' {len(ds.rows)} dotfile target(s)'
+    if n_unmanaged:
+        status += f'   ! {n_unmanaged} unmanaged (capture before linking)'
+    if note:
+        status += f'    {note}'
+    navf = ' j/k · l link · x unlink · c capture (adopt on-system) · 1-5 screens · q quit '
+    _put(stdscr, h - 2, 0, _fit(status, w), pal.style('status_line', h - 2, 0, h, w))
+    _put(stdscr, h - 1, 0, _fit(navf.ljust(w), w), pal.style('footer', h - 1, 0, h, w))
+    stdscr.refresh()
+
+
 def run(ctx):
     '''Entry point used by app.cmd_tui. Returns an exit code.'''
     # First-run config generation + the interactive primary-plugin offer must happen on the MAIN
@@ -1468,6 +1532,7 @@ def run(ctx):
         cs = None                                 # ConfigScreen, built lazily on first visit
         ts = None                                 # ThemeScreen (sub-screen of Config)
         pl = None                                 # PluginScreen, built lazily on first visit
+        ds = None                                 # DotfilesScreen, built lazily on first visit
         menu_dirty = False                        # a profile/config edit -> rebuild the Components tree
         pending_report = None                     # a component whose op failed this session
         pending_notes = []                         # messages saved for after the TUI exits
@@ -1482,6 +1547,10 @@ def run(ctx):
                 if pl is None:
                     pl = PluginScreen(ctx)
                 _draw_plugins(stdscr, pal, pl, ctx, note, screen)
+            elif screen == 'dotfiles':
+                if ds is None:
+                    ds = DotfilesScreen(ctx)
+                _draw_dotfiles(stdscr, pal, ds, ctx, note, screen)
             elif screen == 'config':
                 if cs is None:
                     cs = ConfigScreen(ctx)
@@ -1575,6 +1644,35 @@ def run(ctx):
                                     if changed else 'no change')
                         except Exception as e:  # noqa: BLE001 — surface, don't crash
                             note = f'edit failed: {e}'
+                continue
+
+            # -- Dotfiles screen --
+            if screen == 'dotfiles':
+                row = ds.cur_row()          # (rc, name, target, state, root, rel, here)
+                if ch in (ord('j'), curses.KEY_DOWN):
+                    ds.cur = min(len(ds.rows) - 1, ds.cur + 1)
+                elif ch in (ord('k'), curses.KEY_UP):
+                    ds.cur = max(0, ds.cur - 1)
+                elif ch == ord('g'):
+                    ds.cur = 0
+                elif ch == ord('G'):
+                    ds.cur = max(0, len(ds.rows) - 1)
+                elif ch == ord('l') and row:            # link (clobber-proof; refuses over a real file)
+                    with suspended(stdscr):
+                        res = ds.df.install(row[0])
+                    ds.reload()
+                    note = (f'{row[0].comp}: {res.output().strip()}'
+                            if res is not None and not res.ok else f'linked {row[0].comp}')
+                elif ch == ord('x') and row:            # unlink (restores any backup)
+                    with suspended(stdscr):
+                        ds.df.uninstall(row[0])
+                    ds.reload()
+                    note = f'unlinked {row[0].comp}'
+                elif ch == ord('c') and row:            # capture: adopt on-system content into the store
+                    done = ds.df.capture(row[0], force=False)
+                    ds.reload()
+                    note = (f'captured {len(done)} target(s) for {row[0].comp}'
+                            if done else f'nothing to capture for {row[0].comp}')
                 continue
 
             # -- Plugins screen (git ops run under `suspended` so their output owns the terminal) --

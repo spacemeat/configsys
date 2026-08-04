@@ -2029,10 +2029,8 @@ _DOTFILES_STATE_NOTE = {
 def _active_dotfiles(ctx):
     '''(driver, [ResolvedComponent]) — the via:dotfiles units in the active profiles. Resolution
     only (no install-state query), so it's cheap and side-effect-free.'''
-    from .drivers import get_driver
-    units, _errs = ctx.routes.resolve_resilient(list(ctx.config.requested()))
-    df = get_driver('dotfiles', ctx.runner, ctx.paths)
-    return df, [units[k] for k in sorted(units) if units[k].driver == 'dotfiles']
+    from . import actions
+    return actions.dotfiles_units(ctx)
 
 
 def cmd_dotfiles(ctx, args):
@@ -2096,7 +2094,6 @@ def cmd_dotfiles_capture(ctx, args):
     else ~/.config/configsys/dotfiles) so a later install links YOUR content, not a template.
     Read-only on the system side — it only copies FROM your dotfiles INTO the store; it never
     modifies or deletes an on-system file.'''
-    import shutil
     df, units = _active_dotfiles(ctx)
     want = set(args.names or [])
     store = df._capture_root()
@@ -2130,17 +2127,12 @@ def cmd_dotfiles_capture(ctx, args):
         if resp.strip().lower() not in ('y', 'yes'):
             print('aborted.')
             return 1
-    for comp, dst, dest, _a in plan:
-        dest.parent.mkdir(parents=True, exist_ok=True)
-        if dest.is_symlink() or dest.is_file():
-            dest.unlink()
-        elif dest.is_dir():
-            shutil.rmtree(dest)
-        if dst.is_dir():
-            shutil.copytree(dst, dest)                 # follows into the tree; copies content
-        else:
-            shutil.copy2(dst, dest)
-    print(f'\ncaptured {len(plan)} target(s) into {df.display_path(store)}.')
+    captured = 0
+    for rc in units:
+        if want and rc.comp not in want:
+            continue
+        captured += len(df.capture(rc, force=args.force))
+    print(f'\ncaptured {captured} target(s) into {df.display_path(store)}.')
     return 0
 
 

@@ -352,3 +352,14 @@ def plugin_unbless(ctx):
     plugins.set_declared(ctx.paths.user_config_file, decls)
     ctx.invalidate()
     return True, 'cleared the primary designation'
+
+
+# -- dotfiles (`configsys dotfiles` + the TUI Dotfiles screen) ------------------------------------
+
+def dotfiles_units(ctx):
+    '''(driver, [ResolvedComponent]) — the via:dotfiles units in the active profiles. Resolution
+    only (no install-state query), cheap + side-effect-free. Shared by the CLI + the TUI screen.'''
+    from .drivers import get_driver
+    units, _errs = ctx.routes.resolve_resilient(list(ctx.config.requested()))
+    df = get_driver('dotfiles', ctx.runner, ctx.paths)
+    return df, [units[k] for k in sorted(units) if units[k].driver == 'dotfiles']

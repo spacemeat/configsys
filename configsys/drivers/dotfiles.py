@@ -194,6 +194,27 @@ class DotFiles(Driver):
             out.append((name, tgt, dest, action))
         return out
 
+    def capture(self, rc, force=False):
+        '''Adopt on-system dotfiles for `rc` into the content store — the WRITE half of
+        capture_plan. Copies each `copy` target FROM the on-system dst INTO the store; never
+        modifies or deletes an on-system file. Returns the list of (name, dst, dest) captured.'''
+        import shutil
+        done = []
+        for name, dst, dest, action in self.capture_plan(rc, force):
+            if action != 'copy':
+                continue
+            dest.parent.mkdir(parents=True, exist_ok=True)
+            if dest.is_symlink() or dest.is_file():
+                dest.unlink()
+            elif dest.is_dir():
+                shutil.rmtree(dest)
+            if dst.is_dir():
+                shutil.copytree(dst, dest)                 # follows into the tree; copies content
+            else:
+                shutil.copy2(dst, dest)
+            done.append((name, dst, dest))
+        return done
+
     # -- read -------------------------------------------------------------
 
     def get_version(self, rc):
