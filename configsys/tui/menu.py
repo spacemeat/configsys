@@ -1331,41 +1331,53 @@ def _eff_flags(st):
             | (curses.A_REVERSE if st.get('reverse') else 0))
 
 
-# Static fake data the demo subpanels render, so each page shows its colors in-place. Each row is
-# (label, status-palette-name-or-''); the first row of each panel is drawn selected.
-_DEMO_ROWS = {
-    'components': [('ripgrep      12.0.1', 'installed'), ('neovim       0.9.5', 'outdated'),
-                   ('btop         —', 'missing')],
-    'profiles':   [('dev', ''), ('+base', 'partial'), ('web', '')],
-    'plugins':    [('configsys-user', 'installed'), ('void-linux', 'partial'),
-                   ('theme-rose', 'missing')],
-    'dotfiles':   [('nvim → ~/.config/nvim', 'installed'), ('zsh  → ~/.zshrc', 'installed'),
-                   ('git  → ~/.gitconfig', 'missing')],
-    'config':     [('scope            user', ''), ('driver-preference  …', ''),
-                   ('splash           liquid', '')],
-}
+# The representative rows the sample page shows: (name, row-role, driver, version, status-role, op).
+_SAMPLE_ROWS = [
+    ('ripgrep', 'component', 'apt', '14.1.0', 'installed', 'op_install'),
+    ('neovim', 'unit', 'tarball', '0.9.5', 'outdated', 'op_upgrade'),
+    ('btop', 'component', 'native', '—', 'missing', None),
+    ('steam', 'unit', 'flatpak', '1.0', 'locked', 'op_lock'),
+    ('podman', 'unit', 'dnf', '4.9', 'partial', None),
+]
 
 
-def _demo_panel(stdscr, pal, page, y0, x0, hh, ww, focused, key):
-    '''Render one page's colors in-place: fill the rect with that page's gradient, then a header +
-    a few fake rows (first selected) in its roles. Switches the palette's active page and back.'''
-    if hh < 2 or ww < 6:
+def _sample_page(stdscr, pal, page, y0, x0, hh, ww):
+    '''Render ONE mock full page in `page`'s colors + gradient, exercising every representative role
+    (chrome, columns, status colors, op badges, info/status/footer) so the whole palette AND the
+    page's gradient are visible at once. Switches the palette's active page; the caller restores.'''
+    if hh < 6 or ww < 24:
         return
     pal.use_page(page)
     for yy in range(hh):
-        _put(stdscr, y0 + yy, x0, ' ' * ww,
-             pal.fill(yy, 0, hh, ww) if pal.gradient else pal.style('unit', yy, 0, hh, ww))
-    _put(stdscr, y0, x0, _fit(f' {key}  {page} ', ww),
-         pal.style('label' if focused else 'menu_header', 0, 0, hh, ww))
-    for ri, (label, status) in enumerate(_DEMO_ROWS.get(page, [])[:hh - 1]):
-        ry, sel = y0 + 1 + ri, ri == 0
+        bg = pal.fill(yy, 0, hh, ww) if pal.gradient else pal.style('unit', yy, 0, hh, ww)
+        _put(stdscr, y0 + yy, x0, ' ' * ww, bg)
+
+    def put(yy, x, text, role, *, sel=False, row=0):
+        if 0 <= yy < hh and 0 <= x < ww - 1:
+            _put(stdscr, y0 + yy, x0 + x, _fit(text, ww - 1 - x),
+                 pal.style(role, yy, x, hh, ww, selected=sel, row=row))
+
+    put(0, 1, ' configsys ', 'label')                    # top chrome
+    put(0, 13, 'Pop!_OS 22.04', 'os')
+    put(0, max(14, ww - 6), ' ⚠ 2 ', 'issue_warning')
+    put(1, 1, f'{"COMPONENT":16}{"DRIVER":9}{"VERSION":9}STATUS', 'menu_header')
+    for ri, (nm, role, drv, ver, status, op) in enumerate(_SAMPLE_ROWS):
+        yy, sel = 2 + ri, ri == 0                         # first row selected -> the cursor bar
+        if yy >= hh - 4:
+            break
         if sel and pal.gradient:
-            _put(stdscr, ry, x0, ' ' * ww, pal.fill(1 + ri, 0, hh, ww, selected=True))
-        _put(stdscr, ry, x0 + 1, _fit(label, ww - 11),
-             pal.style('component', 1 + ri, 1, hh, ww, selected=sel, row=ri))
-        if status and ww > 12:
-            _put(stdscr, ry, x0 + ww - 10, _fit(status, 9),
-                 pal.at(status, 1 + ri, ww - 10, hh, ww, selected=sel))
+            _put(stdscr, y0 + yy, x0, ' ' * ww, pal.fill(yy, 0, hh, ww, selected=True))
+        put(yy, 1, f'» {nm:14}' if sel else f'  {nm:14}', 'select_marker' if sel else role,
+            sel=sel, row=ri)
+        put(yy, 17, f'{drv:9}', 'driver', sel=sel)
+        put(yy, 26, f'{ver:9}', 'version', sel=sel)
+        put(yy, 35, f'{status:11}', status, sel=sel)
+        if op and ww > 50:
+            put(yy, 47, f'[{op[3:]}]', op, sel=sel)
+    put(hh - 4, 1, 'ripgrep — fast recursive line search', 'info')
+    put(hh - 3, 1, 'methods: apt · tarball · cargo', 'info_dim')
+    put(hh - 2, 1, ' selected: ripgrep    staged: 2 ops ', 'status_line')
+    put(hh - 1, 1, _fit(' j/k move · space stage · l lock · q quit ', ww - 2).ljust(ww - 2), 'footer')
     pal.use_page('theme')
 
 
@@ -1396,12 +1408,11 @@ def _draw_theme(stdscr, pal, ts, ctx, note, screen):
              pal.style('label' if sel else 'component', y, lil + 6, h, w, selected=sel))
 
     rx, rw = lw + 1, w - lw - 1
-    n = len(DEMO_PAGES)
-    ph = max(4, body_h // n)
-    for pi, page in enumerate(DEMO_PAGES):
-        py = 1 + pi * ph
-        _demo_panel(stdscr, pal, page, py, rx, min(ph, h - 2 - py), rw, pi == ts.page,
-                    chr(ord('a') + pi))
+    page = DEMO_PAGES[ts.page]
+    tabs = '  '.join(f'{chr(ord("a") + i)}·{p}' for i, p in enumerate(DEMO_PAGES))
+    st_it, st_il, st_ih, st_iw = _panel(stdscr, pal, 1, rx, body_h, rw,
+                                        _fit(f'sample page — {tabs}', rw - 4), False, h, w)
+    _sample_page(stdscr, pal, page, st_it, st_il, st_ih, st_iw)
     pal.use_page('theme')
 
     from .. import actions
@@ -1598,6 +1609,11 @@ def run(ctx):
             LiquidSplash(stdscr, pal, random.Random(),
                          label='checking install state').play(
                              worker.done, worker.frac, worker.counts)
+            # The splash allocated a run-varying number of RANDOM color slots + pairs into `pal`
+            # (its water/fish palette). Rebuild the Palette so the menu starts from a clean,
+            # deterministic allocator — otherwise those random colors leak into the UI and, on a
+            # small-COLOR_PAIRS terminal, shift which theme colors survive every run.
+            pal = Palette(ctx.config.theme())
         cfg, _requested, _units, ledger, states = worker.join()   # re-raises load errors, if any
         layouts, transitive = _menu_model(cfg)
         ms = MenuState(states, layouts, transitive)

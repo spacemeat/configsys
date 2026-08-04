@@ -126,8 +126,10 @@ still apply, cube-approximated.
 - **Left** — the palette: each entry's swatch (in its own colors) + `fg`/`bg`/effects. `↵` sets
   `fg`, `B` sets `bg` (empty clears), `o`/`u`/`v` toggle bold/underline/reverse, `n` adds an entry,
   `r` resets one to the built-in default.
-- **Right** — a live demo subpanel per page (static fake data) so you see the colors *in place*;
-  `a`–`e` focus a page, and `p` edits the focused page's gradient (from / to / selected / on-off).
+- **Right** — one live **sample page**: a mock full screen (chrome, columns, status colors, op
+  badges, info/status/footer) rendered in the focused page's colors + gradient, so you see every
+  color *in place*. `a`–`e` cycle which page it shows; `p` edits that page's gradient (from / to /
+  selected / on-off).
 - `s` save the current look as a theme plugin, `L` load one. Every edit repaints instantly.
 
 ## Tips

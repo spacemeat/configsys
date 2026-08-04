@@ -55,9 +55,13 @@ theme: {
 ## Editor (Theme screen, key 6)
 
 - Left: the **palette** (name → swatch + fg/bg/effects), editable; add/remove entries.
-- Right: **demo subpanels** rendering each page with static fake data in that page's live
-  colors; cycle the focused page with `a`–`e`. Editing a palette entry or a page's role/gradient
-  repaints instantly (re-instantiate `Palette`).
+- Right: one **sample page** — a mock full screen (all representative fields) in the focused
+  page's live colors + gradient; cycle which page it shows with `a`–`e`. Editing a palette entry
+  or a page's gradient repaints instantly (re-instantiate `Palette`). One page at a time keeps
+  color-pair usage bounded (a 5-page grid could exhaust a 256-pair terminal).
+- **No random color** anywhere in the UI — only the startup splash's water is random. The splash
+  allocates its random colors into the shared curses palette, so after it plays the menu rebuilds
+  its `Palette` from a clean allocator; otherwise those colors leak in and vary run-to-run.
 - Save/Load a theme **plugin** (unchanged mechanism — a plugin whose only content is a `theme:`).
 
 ## Open / deferred
