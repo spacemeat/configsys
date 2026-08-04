@@ -36,7 +36,7 @@ profiles: {
     ocaml-dev: [ ocaml  opam  dune ]
     lua-dev: [ lua  luarocks ]
     lisp-dev: [ sbcl  quicklisp ]
-    user: [ +terminal  codecs  firefox  chrome  neovim ]
+    user: [ +terminal  configsys-dotfiles codecs  firefox  chrome  neovim ]
     gaming: [ +user  vulkan-runtime  steam ]
     dev: [ +user  cpp-toolchain  make  rust  gcc-13  gcc-14  gcc-15  clang-18  clang-19  clang-20  gdb  analysis  cmake  ninja  meson  just  vscode ]
     web-dev: [ +user  node  typescript  prettier  pnpm  yarn  sass  brave  opera  vivaldi  edge  httpie  jq  yq  mitmproxy  xh  websocat  postman  insomnia  bruno ]
