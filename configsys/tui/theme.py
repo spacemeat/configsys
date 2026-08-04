@@ -89,15 +89,32 @@ EDITABLE_ROLES = [r for r in ROLE_DEFAULTS if r not in ('accent', 'dim', 'title'
 DEMO_PAGES = ['components', 'profiles', 'plugins', 'dotfiles', 'config']
 ALL_PAGES = DEMO_PAGES + ['theme']
 
+# The roles each SCREEN actually uses — drives both the editor's per-page list (list 2) and its
+# sample mock, so they swap as you cycle pages and show only what that page needs.
+PAGE_ROLES = {
+    'components': ['label', 'os', 'issue_warning', 'menu_header', 'component', 'unit', 'driver',
+                   'version', 'scope', 'scope_choice', 'installed', 'outdated', 'partial', 'missing',
+                   'locked', 'op_install', 'op_upgrade', 'op_remove', 'op_lock', 'row_error',
+                   'methods', 'info', 'info_dim', 'status_line', 'footer', 'selection'],
+    'profiles':  ['label', 'os', 'menu_header', 'profile', 'link', 'component', 'info', 'info_dim',
+                  'status_line', 'footer', 'selection'],
+    'plugins':   ['label', 'os', 'menu_header', 'component', 'unit', 'installed', 'missing',
+                  'untrusted', 'info', 'info_dim', 'status_line', 'footer', 'selection'],
+    'dotfiles':  ['label', 'os', 'menu_header', 'component', 'unit', 'installed', 'outdated',
+                  'missing', 'info_dim', 'status_line', 'footer', 'selection'],
+    'config':    ['label', 'os', 'menu_header', 'component', 'scope', 'scope_choice', 'info_dim',
+                  'status_line', 'footer', 'selection'],
+}
+
 # Each page's default background gradient (top-left -> bottom-right) — a distinct dark hue per page,
-# for the whims. Overridable via `pages.<page>.gradient`.
+# for the whims. Kept genuinely dark (brightest corner stays low) so text always reads over it.
 BUILTIN_GRADIENTS = {
-    'components': ((22, 10, 34), (5, 2, 10)),      # purple
-    'profiles':   ((8, 34, 28), (2, 9, 6)),        # teal
-    'plugins':    ((10, 22, 40), (2, 5, 12)),      # blue
-    'dotfiles':   ((36, 24, 8), (9, 6, 2)),        # amber
-    'config':     ((20, 20, 42), (5, 5, 16)),      # indigo/slate
-    'theme':      ((38, 10, 26), (10, 2, 6)),      # rose
+    'components': ((20, 10, 30), (5, 2, 10)),      # purple
+    'profiles':   ((7, 24, 20), (2, 8, 6)),        # teal
+    'plugins':    ((8, 18, 34), (2, 5, 12)),       # blue
+    'dotfiles':   ((28, 20, 8), (8, 6, 2)),        # amber
+    'config':     ((16, 17, 34), (4, 4, 12)),      # indigo/slate
+    'theme':      ((32, 11, 24), (9, 3, 7)),       # rose
 }
 
 
@@ -178,6 +195,8 @@ def resolve_theme(theme):
             fg = _ref_rgb(st.get('fg'), colors) or (235, 235, 235)
             bgref = st.get('bg')
             bg = _ref_rgb(bgref, colors) if bgref not in (None, '', 'none', 'false', False) else None
+            if bg == fg:                              # never paint text invisibly on its own color
+                bg = None
             roles[role] = {'fg': fg, 'bg': bg, 'bold': _flag(st.get('bold')),
                            'underline': _flag(st.get('underline')), 'reverse': _flag(st.get('reverse'))}
         ga, gb = BUILTIN_GRADIENTS.get(page, BUILTIN_GRADIENTS['components'])

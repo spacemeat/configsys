@@ -1302,27 +1302,31 @@ class ThemeScreen:
         self.reload()
 
     def reload(self):
-        from .theme import COLOR_MAP, EDITABLE_ROLES, resolve_theme
+        from .theme import COLOR_MAP, resolve_theme
         self.theme = self.ctx.config.theme()
         names = list(COLOR_MAP)
         for n in (self.theme.get('colors') or {}):
             if n not in names:
                 names.append(n)                     # user-added map colors after the built-ins
         self.map_names = names
-        self.roles = EDITABLE_ROLES
         self.colors, self.pages = resolve_theme(self.theme)      # resolved rgb
         self.map_cur = min(self.map_cur, max(0, len(names) - 1))
-        self.role_cur = min(self.role_cur, max(0, len(self.roles) - 1))
+        self.role_cur = min(self.role_cur, max(0, len(self.role_list()) - 1))
 
     def page_name(self):
         from .theme import DEMO_PAGES
         return DEMO_PAGES[self.page]
 
+    def role_list(self):
+        from .theme import PAGE_ROLES
+        return PAGE_ROLES.get(self.page_name(), [])   # only the roles THIS page uses
+
     def cur_color(self):
         return self.map_names[self.map_cur] if self.map_names else None
 
     def cur_role(self):
-        return self.roles[self.role_cur] if self.roles else None
+        rl = self.role_list()
+        return rl[self.role_cur] if rl else None
 
     def color_override(self, name):
         return (self.theme.get('colors') or {}).get(name)
@@ -1359,53 +1363,111 @@ def _eff_flags(st):
             | (curses.A_REVERSE if st.get('reverse') else 0))
 
 
-# The representative rows the sample page shows: (name, row-role, driver, version, status-role, op).
-_SAMPLE_ROWS = [
-    ('ripgrep', 'component', 'apt', '14.1.0', 'installed', 'op_install'),
-    ('neovim', 'unit', 'tarball', '0.9.5', 'outdated', 'op_upgrade'),
-    ('btop', 'component', 'native', '—', 'missing', None),
-    ('steam', 'unit', 'flatpak', '1.0', 'locked', 'op_lock'),
-    ('podman', 'unit', 'dnf', '4.9', 'partial', None),
-]
+# A faithful mock of each real screen — a header line, rows (first selected), and footer lines —
+# so the sample REPRESENTS that page and uses that page's own roles. A row is a list of
+# (text, width, role) segments; width 0 = run to the panel edge. `badge` is an optional top-right
+# chrome chip (text, role).
+_SAMPLES = {
+    'components': {
+        'badge': (' ⚠ 2 ', 'issue_warning'),
+        'header': f'{"COMPONENT":15}{"DRIVER":9}{"VER":7}STATUS',
+        'rows': [
+            [('ripgrep', 15, 'component'), ('apt', 9, 'driver'), ('14.1', 7, 'version'),
+             ('installed', 10, 'installed'), ('[i]', 0, 'op_install')],
+            [('neovim', 15, 'unit'), ('tarball', 9, 'driver'), ('0.9', 7, 'version'),
+             ('outdated', 10, 'outdated'), ('[u]', 0, 'op_upgrade')],
+            [('btop', 15, 'component'), ('native', 9, 'driver'), ('—', 7, 'version'),
+             ('missing', 10, 'missing')],
+            [('steam', 15, 'unit'), ('flatpak', 9, 'driver'), ('1.0', 7, 'version'),
+             ('locked', 10, 'locked'), ('[L]', 0, 'op_lock')],
+        ],
+        'foot': [('ripgrep — fast recursive search', 'info'),
+                 ('methods: apt · tarball · cargo', 'info_dim'),
+                 (' selected: ripgrep    staged: 2 ', 'status_line')],
+    },
+    'profiles': {
+        'header': f'{"PROFILES":22}COMPONENTS IN dev',
+        'rows': [
+            [('dev', 22, 'profile'), ('btop', 0, 'component')],
+            [('+base', 22, 'link'), ('ripgrep', 0, 'component')],
+            [('web', 22, 'profile'), ('neovim', 0, 'component')],
+        ],
+        'foot': [('dev = base + your tools', 'info'), ('3 profiles active', 'info_dim'),
+                 (' selected: dev ', 'status_line')],
+    },
+    'plugins': {
+        'header': f'{"PLUGIN":22}STATUS',
+        'rows': [
+            [('configsys-user', 22, 'component'), ('★ primary', 0, 'info')],
+            [('void-linux', 22, 'unit'), ('code', 0, 'installed')],
+            [('theme-rose', 22, 'unit'), ('unsynced', 0, 'missing')],
+            [('acme-corp', 22, 'unit'), ('quarantined', 0, 'untrusted')],
+        ],
+        'foot': [('configsys-user — dotfiles + settings', 'info'),
+                 ('4 declared · 1 primary', 'info_dim'), (' selected: configsys-user ', 'status_line')],
+    },
+    'dotfiles': {
+        'header': f'{"STATE":10}{"TARGET":20}COMPONENT',
+        'rows': [
+            [('linked', 10, 'installed'), ('~/.config/nvim', 20, 'unit'), ('nvim', 0, 'component')],
+            [('unmanaged', 10, 'missing'), ('~/.zshrc', 20, 'unit'), ('zsh', 0, 'component')],
+            [('linked', 10, 'installed'), ('~/.gitconfig', 20, 'unit'), ('git', 0, 'component')],
+        ],
+        'foot': [('nvim → ~/.config/nvim', 'info_dim'), ('3 targets · 1 unmanaged', 'info_dim'),
+                 (' l link · x unlink · c capture ', 'status_line')],
+    },
+    'config': {
+        'header': f'{"SETTING":20}VALUE',
+        'rows': [
+            [('scope', 20, 'component'), ('system', 12, 'scope_choice'), ('· override', 0, 'info_dim')],
+            [('driver-preference', 20, 'component'), ('native…', 12, 'scope'), ('· default', 0, 'info_dim')],
+            [('auto-tighten', 20, 'component'), ('false', 12, 'scope'), ('· default', 0, 'info_dim')],
+        ],
+        'foot': [('scope — default install location', 'info_dim'), ('4 settings', 'info_dim'),
+                 (' ↵ edit ', 'status_line')],
+    },
+}
 
 
 def _sample_page(stdscr, pal, page, y0, x0, hh, ww):
-    '''Render ONE mock full page in `page`'s colors + gradient, exercising every representative role
-    (chrome, columns, status colors, op badges, info/status/footer) so the whole palette AND the
-    page's gradient are visible at once. Switches the palette's active page; the caller restores.'''
+    '''Render a mock of the REAL `page` (its layout + its own roles) in that page's colors + gradient,
+    so cycling pages shows a faithful, distinct preview. Switches the palette's active page; the
+    caller restores.'''
     if hh < 6 or ww < 24:
         return
     pal.use_page(page)
     for yy in range(hh):
         bg = pal.fill(yy, 0, hh, ww) if pal.gradient else pal.style('unit', yy, 0, hh, ww)
         _put(stdscr, y0 + yy, x0, ' ' * ww, bg)
+    spec = _SAMPLES.get(page, _SAMPLES['components'])
 
-    def put(yy, x, text, role, *, sel=False, row=0):
+    def put(yy, x, text, role, *, sel=False):
         if 0 <= yy < hh and 0 <= x < ww - 1:
             _put(stdscr, y0 + yy, x0 + x, _fit(text, ww - 1 - x),
-                 pal.style(role, yy, x, hh, ww, selected=sel, row=row))
+                 pal.style(role, yy, x, hh, ww, selected=sel))
 
-    put(0, 1, ' configsys ', 'label')                    # top chrome
+    put(0, 1, ' configsys ', 'label')                              # shared chrome
     put(0, 13, 'Pop!_OS 22.04', 'os')
-    put(0, max(14, ww - 6), ' ⚠ 2 ', 'issue_warning')
-    put(1, 1, f'{"COMPONENT":16}{"DRIVER":9}{"VERSION":9}STATUS', 'menu_header')
-    for ri, (nm, role, drv, ver, status, op) in enumerate(_SAMPLE_ROWS):
-        yy, sel = 2 + ri, ri == 0                         # first row selected -> the cursor bar
-        if yy >= hh - 4:
-            break
+    if spec.get('badge') and ww > 24:
+        put(0, ww - len(spec['badge'][0]) - 1, spec['badge'][0], spec['badge'][1])
+    put(1, 1, spec['header'], 'menu_header')
+
+    foot = spec['foot']
+    maxrows = hh - 2 - len(foot) - 1
+    for ri, row in enumerate(spec['rows'][:max(0, maxrows)]):
+        yy, sel = 2 + ri, ri == 0                                  # first row selected -> cursor bar
         if sel and pal.gradient:
             _put(stdscr, y0 + yy, x0, ' ' * ww, pal.fill(yy, 0, hh, ww, selected=True))
-        put(yy, 1, f'» {nm:14}' if sel else f'  {nm:14}', 'select_marker' if sel else role,
-            sel=sel, row=ri)
-        put(yy, 17, f'{drv:9}', 'driver', sel=sel)
-        put(yy, 26, f'{ver:9}', 'version', sel=sel)
-        put(yy, 35, f'{status:11}', status, sel=sel)
-        if op and ww > 50:
-            put(yy, 47, f'[{op[3:]}]', op, sel=sel)
-    put(hh - 4, 1, 'ripgrep — fast recursive line search', 'info')
-    put(hh - 3, 1, 'methods: apt · tarball · cargo', 'info_dim')
-    put(hh - 2, 1, ' selected: ripgrep    staged: 2 ops ', 'status_line')
-    put(hh - 1, 1, _fit(' j/k move · space stage · l lock · q quit ', ww - 2).ljust(ww - 2), 'footer')
+        x = 1
+        for si, (text, wd, role) in enumerate(row):
+            disp = ('» ' + text) if (sel and si == 0) else (('  ' + text) if si == 0 else text)
+            width = wd or (ww - x)
+            put(yy, x, _fit(disp, width), role, sel=sel)
+            x += wd if wd else (len(disp) + 1)
+    fy = hh - len(foot) - 1
+    for i, (text, role) in enumerate(foot):
+        put(fy + i, 1, text, role)
+    put(hh - 1, 1, _fit(' j/k move · space · q ', ww - 2).ljust(ww - 2), 'footer')
     pal.use_page('theme')
 
 
@@ -1445,12 +1507,14 @@ def _draw_theme(stdscr, pal, ts, ctx, note, screen):
              pal.style('label' if sel else 'component', y, m_il + 6, h, w, selected=sel))
 
     # -- List 2: the focused page's role styles (fg/bg reference the map, or a literal) --
+    roles = ts.role_list()
+    ts.role_cur = min(ts.role_cur, max(0, len(roles) - 1))
     r_it, r_il, r_ih, r_iw = _panel(stdscr, pal, 1 + map_h, 0, body_h - map_h, lw,
                                     _fit(f'page roles — {page}  (a-e)', lw - 4), ts.focus == 'roles',
                                     h, w)
-    ts.role_top = _scroll_top(ts.role_cur, ts.role_top, r_ih, len(ts.roles))
-    for vis, i in enumerate(range(ts.role_top, min(len(ts.roles), ts.role_top + r_ih))):
-        role, y = ts.roles[i], r_it + vis
+    ts.role_top = _scroll_top(ts.role_cur, ts.role_top, r_ih, len(roles))
+    for vis, i in enumerate(range(ts.role_top, min(len(roles), ts.role_top + r_ih))):
+        role, y = roles[i], r_it + vis
         sel = i == ts.role_cur and ts.focus == 'roles'
         ref, rst = ts.role_ref(role), ts.role_style(role)
         if sel:
@@ -1471,7 +1535,7 @@ def _draw_theme(stdscr, pal, ts, ctx, note, screen):
     pal.use_page('theme')
 
     from .. import actions
-    status = f' {pal.color_mode}   ·   edits → {actions.edit_target(ctx)[1]}'
+    status = f' terminal color: {pal.color_mode}   ·   edits → {actions.edit_target(ctx)[1]}'
     if note:
         status += f'    {note}'
     if ts.focus == 'map':
@@ -1965,7 +2029,7 @@ def run(ctx):
                         if ts.focus == 'map':
                             ts.map_cur = min(len(ts.map_names) - 1, ts.map_cur + 1)
                         else:
-                            ts.role_cur = min(len(ts.roles) - 1, ts.role_cur + 1)
+                            ts.role_cur = min(len(ts.role_list()) - 1, ts.role_cur + 1)
                     elif ch in (ord('k'), curses.KEY_UP):
                         if ts.focus == 'map':
                             ts.map_cur = max(0, ts.map_cur - 1)
@@ -1977,7 +2041,7 @@ def run(ctx):
                         if ts.focus == 'map':
                             ts.map_cur = max(0, len(ts.map_names) - 1)
                         else:
-                            ts.role_cur = max(0, len(ts.roles) - 1)
+                            ts.role_cur = max(0, len(ts.role_list()) - 1)
 
                     # -- color-map edits --
                     elif ts.focus == 'map' and ch in (ord(' '), ord('\n'), curses.KEY_ENTER):

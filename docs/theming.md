@@ -110,10 +110,13 @@ so you can tell what your terminal gave us.
 
 - **Top-left — the color map**: name → swatch + hex. `↵` set a color, `n` add, `x`/`r` remove an
   override.
-- **Bottom-left — the focused page's roles**: role → its fg/bg refs + effects; changes as you cycle
-  pages. `↵` set fg (a map name or `#hex`), `B` set bg, `o`/`u`/`v` toggle bold/underline/reverse,
-  `r` reset the role on this page.
+- **Bottom-left — the focused page's roles**: only the roles *that page actually uses*, each with
+  its fg/bg refs + effects; the list swaps as you cycle pages. `↵` set fg (a map name or `#hex`),
+  `B` set bg, `o`/`u`/`v` toggle bold/underline/reverse, `r` reset the role on this page.
 - **`Tab`** toggles focus between the two lists; **`a`–`e`** cycle which page you're editing;
   **`p`** edits the focused page's gradient.
-- **Right — the sample page**: a mock full screen in the focused page's colors + gradient, so you
-  see every role in place. `s` save the look as a theme plugin, `L` load one. Edits repaint live.
+- **Right — the sample page**: a mock of that *actual* screen (its layout + its own roles) in the
+  page's colors + gradient, so cycling shows a faithful, distinct preview. `s` save the look as a
+  theme plugin, `L` load one. Edits repaint live.
+- The status line shows the **detected terminal color mode** — if it reads `256-color (approx)`
+  rather than `24-bit`, color collapse/collisions are your terminal quantizing, not the theme.
