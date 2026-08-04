@@ -29,6 +29,7 @@ COLOR_MAP = {
     'op_install': (90, 200, 120), 'op_upgrade': (230, 190, 70), 'op_remove': (235, 95, 95),
     'op_lock': (110, 165, 255), 'op_unlock': (120, 210, 210),
     'sel_bg': (58, 34, 88),
+    'row_desc': (108, 112, 128),                         # faded inline component descriptions
 }
 
 GRAD_MAX_BANDS = 96         # cap on the (range-adaptive) number of diagonal gradient steps
@@ -67,6 +68,7 @@ ROLE_DEFAULTS = {
     'version': _r('dim'),
     'row_error': _r('error'),
     'methods': _r('header'),
+    'row_desc': _r('row_desc'),                          # faded description trailing the row name
     'info': _r('accent'),
     'info_dim': _r('dim'),
     'status_line': _r('accent'),
@@ -95,7 +97,7 @@ PAGE_ROLES = {
     'components': ['label', 'os', 'issue_warning', 'menu_header', 'component', 'unit', 'driver',
                    'version', 'scope', 'scope_choice', 'installed', 'outdated', 'partial', 'missing',
                    'locked', 'op_install', 'op_upgrade', 'op_remove', 'op_lock', 'row_error',
-                   'methods', 'info', 'info_dim', 'status_line', 'footer', 'selection'],
+                   'row_desc', 'methods', 'info', 'info_dim', 'status_line', 'footer', 'selection'],
     'profiles':  ['label', 'os', 'menu_header', 'profile', 'link', 'component', 'info', 'info_dim',
                   'status_line', 'footer', 'selection'],
     'plugins':   ['label', 'os', 'menu_header', 'component', 'unit', 'installed', 'missing',

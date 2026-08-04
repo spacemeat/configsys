@@ -2163,12 +2163,12 @@ def cmd_config(ctx, args):
             src = info.get('source')
             if isinstance(src, str) and src.startswith('env '):
                 loc = src + ' overrides config'
-            else:
+            elif info.get('home') in ('local', 'primary'):
                 loc = {'local': 'local (top config)',
-                       'primary': f'primary: {info.get("home_label")}'}.get(
-                           info.get('home'), 'built-in default')
-            print(f'  {key:18} {_fmt_setting_value(info["kind"], info["value"])}'
-                  f'  ({loc} · {info.get("nature", "uniform")})')
+                       'primary': f'primary: {info.get("home_label")}'}[info['home']]
+            else:                                 # at default -> name where an edit would land
+                loc = f'built-in default → edits: {info.get("target")}'
+            print(f'  {key:18} {_fmt_setting_value(info["kind"], info["value"])}  ({loc})')
             print(f'  {"":18} {info["desc"]}  (see {info["man"]})')
         print('\n  uniform settings default to your primary plugin; machine settings to this box.'
               '\n  edit: configsys config set <key> <value>   (--local = this machine only)'

@@ -725,7 +725,16 @@ def _draw(stdscr, pal, ms, ctx, note, diags=(), show_diag=False, diag_top=0, scr
             _put(stdscr, y, 0, ' ' * (w - 1), pal.fill(y, 0, h, w, selected=True))
         _put(stdscr, y, 0, marker_sel, pal.style('select_marker', y, 0, h, w, selected=sel))
         _put(stdscr, y, 1, bch, pal.style(belem, y, 1, h, w, selected=sel))
-        col('name', name, _KIND_ELEM.get(n.kind, 'unit'))
+        nx, ncw = cols['name']
+        _put(stdscr, y, nx, _fit(name, ncw).ljust(ncw),
+             pal.style(_KIND_ELEM.get(n.kind, 'unit'), y, nx, h, w, selected=sel))
+        rc = _row_component(n)                        # trail a faded description in the name slack
+        rcomp = ctx.routes.components.get(rc) if rc else None
+        rdesc = (rcomp.description if rcomp else '') or ''
+        davail = ncw - len(name) - 2
+        if rdesc and davail >= 6:
+            _put(stdscr, y, nx + len(name) + 2, _fit(rdesc, davail),
+                 pal.style('row_desc', y, nx + len(name) + 2, h, w, selected=sel))
         col('driver', n.driver, 'driver')
         col('scope', n.scope_str(), 'scope_choice' if _scope_is_choice(n) else 'scope')
         col('status', n.status, n.status if n.status in STATUS_COLOR else 'unit')
@@ -1304,18 +1313,18 @@ def _draw_config(stdscr, pal, cs, ctx, note, screen):
         sel = i == cs.cur
         if sel:
             _put(stdscr, y, il, ' ' * iw, pal.fill(y, il, h, w, selected=True))
-        # where does this setting live now (local / primary / default / env), and its nature?
+        # where does this setting live now, and (when unset) where would a fresh edit land?
         src = info.get('source')
-        nature = info.get('nature', 'uniform')
+        tgt = info.get('target')                          # named target: 'top config' | primary name
         if isinstance(src, str) and src.startswith('env '):
-            loc, set_ = src + ' (overrides config)', True      # env escape hatch wins
+            loc, set_, tail = src + ' overrides config', True, ''
         elif info.get('home') == 'local':
-            loc, set_ = 'local (top config)', True
+            loc, set_, tail = 'local (top config)', True, ''
         elif info.get('home') == 'primary':
-            loc, set_ = f'primary: {info.get("home_label")}', True
-        else:
-            loc, set_ = 'built-in default', False
-        tag = f'   · {loc} · {nature}'
+            loc, set_, tail = f'primary: {info.get("home_label")}', True, ''
+        else:                                             # at default -> show the edit destination by name
+            loc, set_, tail = 'built-in default', False, (f'  → edits: {tgt}' if tgt else '')
+        tag = f'   · {loc}{tail}'
         _put(stdscr, y, il, _fit(f'{key:18} {_setting_str(info["kind"], info["value"], key)}', iw),
              pal.style('label' if sel else 'component', y, il, h, w, selected=sel))
         _put(stdscr, y, il + max(0, iw - len(tag) - 1), _fit(tag, len(tag)),
