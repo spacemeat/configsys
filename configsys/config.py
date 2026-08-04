@@ -242,6 +242,17 @@ class Config:
         idx, val, _src = chain[-1]
         return self._expand(profile, idx, val, (), own_only=True)
 
+    def profile_removed(self, profile):
+        '''Components a `~term` drops anywhere in `profile`'s chain — for the profile editor's `~`
+        marker (a component explicitly removed, so it isn't a member even if an include brought it).'''
+        out = set()
+        for idx, _val, _src in self._chain.get(profile, ()):
+            for term in self._own_terms(profile, idx):
+                op, ref = _split_term(term)
+                if op == '~':
+                    out.add(ref)
+        return out
+
     def _all_components(self):
         '''Every defined component name (the built-in `all` profile), or [] before the app has
         supplied the universe. Sorted for a stable menu order.'''

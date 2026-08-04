@@ -20,95 +20,37 @@
     // environments, individual languages, GPU SDKs) are deliberately left OUT of profiles — install
     // them by name or add them to your own profile. See docs/profiles-plan.md for the rationale.
     // Your ~/.config/configsys/configsys.hu may add profiles or shadow any of these by name.
-    profiles: {
-        // ---- leaf bundles (composable; no +user) --------------------------------
-        terminal: [
-            bash-dotfiles  configsys-dotfiles  git  curl
-            fastfetch  fzf  ripgrep  xclip
-            htop  btop  tmux  lazygit
-            kitty  ghostty  yazi  superfile
-            mononoki-nerd
-        ]
-        net-tools: [
-            iproute2
-            wireshark  wireshark-group  tshark  tcpdump  nmap        // capture & probe
-            mtr  traceroute  iperf3  socat  ethtool  whois  netcat  dig
-            iftop  nethogs  nload  vnstat                            // live monitors
-        ]
-        cloud:       [ awscli  gcloud  azure-cli  opentofu  grpcurl ]
-        containers:  [ docker  docker-group  lazydocker ]           // podman = install by name
-        k8s:         [ kubectl  helm  k9s  k3s ]
-        db-clients:  [ pgcli  mycli  dbeaver  sqlitebrowser  lazysql ]
-        db-servers:  [ postgresql-service  mariadb-service  redis-service ]
-        jvm:         [ jdk  kotlin  maven  gradle ]                  // sdkman = install by name
-
-        // Per-language dev leaves — the language + its ecosystem tooling. Opt-in; add a `+lang-dev`
-        // to your profile (everyone's particular about which languages they want).
-        latex:       [ texlive ]                                     // texlive-full = heavier alt
-        go-dev:      [ go  goimports ]
-        ruby-dev:    [ ruby  bundler ]
-        haskell-dev: [ haskell  cabal  hlint ]
-        ocaml-dev:   [ ocaml  opam  dune ]
-        lua-dev:     [ lua  luarocks ]
-        lisp-dev:    [ sbcl  quicklisp ]
-
-        // ---- role profiles ------------------------------------------------------
-        user: [
-            +terminal
-            codecs                                                  // free media codecs (ffmpeg + gst good/bad)
-            firefox  chrome
-            neovim
-        ]
-        gaming: [ +user  vulkan-runtime  steam ]
-        dev: [
-            +user
-            cpp-toolchain  make  rust
-            gcc-13  gcc-14  gcc-15  clang-18  clang-19  clang-20
-            gdb  analysis                                           // analysis = valgrind/cppcheck/lldb/strace/ltrace/clang-tidy
-            cmake  ninja  meson  just
-            vscode
-        ]
-        // Additive tool bundles (no +user of their own beyond the base) — compose per machine.
-        web-dev: [
-            +user
-            node  typescript  prettier  pnpm  yarn  sass            // node toolchain + front-end
-            brave  opera  vivaldi  edge                             // extra browsers (firefox/chrome via +user)
-            httpie  jq  yq  mitmproxy  xh  websocat                 // HTTP/API CLI
-            postman  insomnia  bruno                                // GUI API clients
-        ]
-        // Back-end / platform engineering: app + data platform (containers, k8s, cloud, DBs).
-        backend: [
-            +user  +containers  +k8s  +cloud  +db-clients  +db-servers
-            protobuf  ansible
-        ]
-        electronics: [ +dev  arduino  kicad  gnuradio ]
-        graphics:    [ +user  vulkan-dev  blender ]
-        // Digital-art workstation: 2D/photo/vector/3D/DTP + capture.
-        artist: [
-            +user  blender  krita  gimp  inkscape  darktable
-            freecad  openscad  godot  scribus  digikam  obs-studio
-        ]
-        // Digital-music workstation: DAWs, notation, synths, live-coding + the audio server.
-        audio: [
-            +user  pipewire  ardour  lmms  tenacity  musescore
-            hydrogen  carla  sonic-pi  supercollider  qjackctl
-        ]
-        // Scientific computing: languages + Jupyter + plotting/viz + conda + LaTeX.
-        science: [ +user  +latex  julia  r  octave  jupyterlab  gnuplot  paraview  miniforge ]
-        // Mathematics: CAS + number theory + plotting + LaTeX (debian/redhat-oriented — sagemath/
-        // wxmaxima aren't in Arch/Fedora base repos, so they surface as error rows there).
-        math:    [ +user  +latex  julia  r  octave  maxima  wxmaxima  pari  gap  gnuplot  sagemath ]
-        // Networking toolkit; composes the net-tools leaf onto the desktop base.
-        networking: [ +user  +net-tools ]
-
-        // ---- more role profiles (opt-in; not in the default configs: above) ------
-        // AI-assisted dev CLIs (+terminal, not +user, so it's usable on a headless box).
-        ai:   [ +terminal  claude-code  codex  llm  aider  ollama ]
-        // A KVM/libvirt virtualization host (virtualbox = install by name).
-        virt: [ +user  qemu  libvirt  libvirt-service  virt-manager ]
-        // Infrastructure focus, lighter than backend (no DB servers/clients).
-        devops: [ +terminal  +containers  +k8s  +cloud  ansible  opentofu ]
-        // Daily-driver desktop extras.
-        desktop-apps: [ +user  libreoffice  vlc  discord  slack ]
-    }
+profiles: {
+    terminal: [ bash-dotfiles  configsys-dotfiles  git  curl  fastfetch  fzf  ripgrep  xclip  htop  btop  tmux  lazygit  kitty  ghostty  yazi  superfile  mononoki-nerd ]
+    net-tools: [ iproute2  wireshark  wireshark-group  tshark  tcpdump  nmap  mtr  traceroute  iperf3  socat  ethtool  whois  netcat  dig  iftop  nethogs  nload  vnstat ]
+    cloud: [ awscli  gcloud  azure-cli  opentofu  grpcurl ]
+    containers: [ docker  docker-group  lazydocker ]
+    k8s: [ kubectl  helm  k9s  k3s ]
+    db-clients: [ pgcli  mycli  dbeaver  sqlitebrowser  lazysql ]
+    db-servers: [ postgresql-service  mariadb-service  redis-service ]
+    jvm: [ jdk  kotlin  maven  gradle ]
+    latex: [ texlive ]
+    go-dev: [ go  goimports ]
+    ruby-dev: [ ruby  bundler ]
+    haskell-dev: [ haskell  cabal  hlint ]
+    ocaml-dev: [ ocaml  opam  dune ]
+    lua-dev: [ lua  luarocks ]
+    lisp-dev: [ sbcl  quicklisp ]
+    user: [ +terminal  codecs  firefox  chrome  neovim ]
+    gaming: [ +user  vulkan-runtime  steam ]
+    dev: [ +user  cpp-toolchain  make  rust  gcc-13  gcc-14  gcc-15  clang-18  clang-19  clang-20  gdb  analysis  cmake  ninja  meson  just  vscode ]
+    web-dev: [ +user  node  typescript  prettier  pnpm  yarn  sass  brave  opera  vivaldi  edge  httpie  jq  yq  mitmproxy  xh  websocat  postman  insomnia  bruno ]
+    backend: [ +user  +containers  +k8s  +cloud  +db-clients  +db-servers  protobuf  ansible ]
+    electronics: [ +dev  arduino  kicad  gnuradio ]
+    graphics: [ +user  vulkan-dev  blender ]
+    artist: [ +user  blender  krita  gimp  inkscape  darktable  freecad  openscad  godot  scribus  digikam  obs-studio ]
+    audio: [ +user  pipewire  ardour  lmms  tenacity  musescore  hydrogen  carla  sonic-pi  supercollider  qjackctl ]
+    science: [ +user  +latex  julia  r  octave  jupyterlab  gnuplot  paraview  miniforge ]
+    math: [ +user  +latex  julia  r  octave  maxima  wxmaxima  pari  gap  gnuplot  sagemath ]
+    networking: [ +user  +net-tools ]
+    ai: [ +terminal  claude-code  codex  llm  aider  ollama  analysis ]
+    virt: [ +user  qemu  libvirt  libvirt-service  virt-manager ]
+    devops: [ +terminal  +containers  +k8s  +cloud  ansible  opentofu ]
+    desktop-apps: [ +user  libreoffice  vlc  discord  slack ]
+}
 }

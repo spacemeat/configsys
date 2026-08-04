@@ -851,12 +851,17 @@ def _apply_method_pin(ctx, name, via, already_pinned):
 
 
 def _pick_method(stdscr, pal, ms, ctx):
-    '''Install-method picker for the current component: an in-place popup of its candidate methods;
-    choosing one writes a binding-pin. Returns (changed, note, deferred). No drop to the terminal;
-    the promote hint is deferred to TUI exit.'''
+    '''Components-screen entry to the install-method picker: the current row's component.'''
     name = _row_component(ms.cur())
     if not name:
         return False, 'pick a component row to choose its install method', None
+    return _pick_method_name(stdscr, pal, ctx, name)
+
+
+def _pick_method_name(stdscr, pal, ctx, name):
+    '''Install-method picker for component `name`: an in-place popup of its candidate methods;
+    choosing one writes a binding-pin. Returns (changed, note, deferred). No drop to the terminal;
+    the promote hint is deferred to TUI exit.'''
     cands = ctx.routes.candidates(name)
     if len(cands) < 2:
         return False, f'{name}: only one install method available here', None
@@ -1047,6 +1052,17 @@ class ProfileScreen:
         except ConfigError:
             return set()
 
+    def own_members(self, profile):
+        '''Components the profile declares as its OWN (direct/self-amend, not via a +other include).'''
+        try:
+            return set(self.ctx.config.profile_own_components(profile)) if profile else set()
+        except ConfigError:
+            return set()
+
+    def removed_members(self, profile):
+        '''Components a `~term` removes from the profile (for the `~` marker).'''
+        return self.ctx.config.profile_removed(profile) if profile else set()
+
     def available(self, name):
         if name not in self._avail:
             try:
@@ -1069,6 +1085,8 @@ def _draw_profiles(stdscr, pal, ps, ctx, note, screen):
     rleft, rw = lw + 1, w - lw - 1
     prof = ps.cur_profile()
     members = ps.members(prof)
+    own = ps.own_members(prof)                       # direct (●) vs via-include (↳)
+    removed = ps.removed_members(prof)               # ~term drops (~)
 
     # LEFT: profiles (full height)
     lit, lil, lih, liw = _panel(stdscr, pal, top, 0, body_h, lw, 'profiles',
@@ -1118,15 +1136,17 @@ def _draw_profiles(stdscr, pal, ps, ctx, note, screen):
         if foc:
             _put(stdscr, y, ril, ' ' * riw, pal.fill(y, ril, h, w, selected=True))
         cm = '▸' if cur else ' '
-        _put(stdscr, y, ril, _fit(f'{cm}{"●" if name in members else " "} {name}', riw),
-             pal.style(elem, y, ril, h, w, selected=foc))
+        mk = ('●' if name in own else '↳') if name in members else ('~' if name in removed else ' ')
+        pinned = ctx.config.pins().get(name)         # a binding-pin shows the chosen via
+        row = f'{cm}{mk} {name}' + (f'  [{pinned}]' if pinned else '')
+        _put(stdscr, y, ril, _fit(row, riw), pal.style(elem, y, ril, h, w, selected=foc))
 
     from .. import actions
     status = f' profile: {prof or "—"}    edits → {actions.edit_target(ctx)[1]}'
     if note:
         status += f'    {note}'
-    navf = (' j/k move · h/l or tab focus · space toggle membership · a (de)activate profile'
-            ' · 1-6 screens · q quit ')
+    navf = (' j/k · h/l focus · space toggle · a (de)activate · m pin method · '
+            '●own ↳via-include ~removed · 1-6 · q ')
     _put(stdscr, h - 2, 0, _fit(status, w), pal.style('status_line', h - 2, 0, h, w))
     _put(stdscr, h - 1, 0, _fit(navf.ljust(w), w), pal.style('footer', h - 1, 0, h, w))
     stdscr.refresh()
@@ -1915,6 +1935,16 @@ def run(ctx):
                                     if changed else 'no change')
                         except Exception as e:  # noqa: BLE001 — surface, don't crash
                             note = f'edit failed: {e}'
+                elif ch == ord('m') and ps.focus == 'right':
+                    if ps.catalog:                         # pin the selected component's install method
+                        name = ps.catalog[ps.rcur]
+                        changed, note, deferred = _pick_method_name(stdscr, pal, ctx, name)
+                        if deferred:
+                            pending_notes.append(deferred)
+                        if changed:
+                            ctx.invalidate()               # re-read so the new [via] pin shows
+                            ps.reload()
+                            menu_dirty = True
                 elif ch in (ord(' '), ord('\n'), curses.KEY_ENTER) and ps.focus == 'right':
                     prof = ps.cur_profile()
                     if prof and ps.catalog:

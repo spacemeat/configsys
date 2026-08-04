@@ -126,3 +126,12 @@ def test_configs_writer_roundtrip(tmp_path):
     assert plugins.read_configs(str(f)) == ['dev', 'games']
     plugins.set_configs(str(f), [])               # empty -> node removed
     assert plugins.read_configs(str(f)) == []
+
+
+def test_profile_membership_provenance():
+    # dev includes base, adds neovim, removes gdb — the markers the Profiles screen shows.
+    c = cfg('{ profiles: { base: [ btop  ripgrep  gdb ]  dev: [ +base  neovim  ~gdb ] } }')
+    assert set(c.profile_components('dev')) == {'btop', 'ripgrep', 'neovim'}   # gdb removed
+    own = set(c.profile_own_components('dev'))
+    assert 'neovim' in own and 'btop' not in own          # neovim direct (●); btop via +base (↳)
+    assert c.profile_removed('dev') == {'gdb'}             # ~gdb (~)
