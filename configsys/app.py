@@ -1396,7 +1396,7 @@ def cmd_plugin_set_source(ctx, args, decls):
 
 
 def cmd_plugin(ctx, args):
-    from . import plugins
+    from . import actions, plugins
     decls = plugins.declared(ctx.paths.user_config_file)   # top-config decls (for edits)
     # the full set incl. transitively-declared plugins (for read-only views + trust)
     eff = plugins.effective_declared(ctx.paths.user_config_file, ctx.paths.plugins_dir)
@@ -1406,7 +1406,8 @@ def cmd_plugin(ctx, args):
         if not decls:
             print('configsys: no plugins declared (add one: `configsys plugin add <source>`)')
             return 0
-        _sync_and_report(ctx, decls)
+        for name, action in actions.plugin_sync(ctx, decls):
+            print(f'  {action:8} {name}')
         return 0
 
     if sub == 'init':
@@ -1418,102 +1419,49 @@ def cmd_plugin(ctx, args):
     if sub == 'bless':
         if args.source.lower() == 'none':
             return cmd_plugin(ctx, argparse.Namespace(plugin_command='unbless'))
-        ok, msg = _bless_primary(ctx, args.source)
+        ok, msg, results = actions.plugin_bless(ctx, args.source)
+        for name, action in results:
+            print(f'  {action:8} {name}')
         print(f'configsys: {msg}')
         return 0 if ok else 1
 
     if sub == 'unbless':
-        if not any(d.get('primary') for d in decls):
-            print('configsys: no primary plugin set')
-            return 0
-        if ctx.runner.pretend:
-            print('configsys: [pretend] would clear the primary designation')
-            return 0
-        for d in decls:
-            d.pop('primary', None)
-        plugins.set_declared(ctx.paths.user_config_file, decls)
-        print('configsys: cleared the primary designation')
+        _ok, msg = actions.plugin_unbless(ctx)
+        print(f'configsys: {msg}')
         return 0
 
     if sub == 'add':
-        ctx.ensure_user_config()                    # the file must exist to edit it
-        # With a primary plugin set, a new plugin rides IT — appended to the primary's transitive
-        # `plugins:` — so it's portable to every machine that uses your primary. `--local` (or no
-        # primary at all) pins it to this machine's top config instead. The primary is your own
-        # synced repo, so this edits its on-disk clone; propagating to other machines still means
-        # commit + push + re-tag the primary and bump its ref, same as any primary change.
-        primary = plugins.primary_name(decls)
-        primary_dir = ctx.paths.plugins_dir / primary if primary else None
-        to_primary = (primary is not None and not getattr(args, 'local', False)
-                      and primary_dir is not None and (primary_dir / 'plugin.hu').exists())
-        if to_primary:
-            cfg_file = primary_dir / 'plugin.hu'
-            # Author on a real BRANCH, never a detached HEAD (a tag-pinned sync detaches it; a commit
-            # there would land on no branch and eventually gc). No-op when already on a branch.
-            if plugins.ensure_branch(ctx.runner, primary_dir) is None and not ctx.runner.pretend:
-                print(f'configsys: note — {primary} is in a detached HEAD with no branch to author on; '
-                      f'commit there by hand, or pin it to a branch (e.g. `ref: main`)')
-            cur = [d for d in (plugins._decl(e) for e in
-                               (plugins.read_manifest(primary_dir).get('plugins') or [])) if d]
-        else:
-            cfg_file, cur = ctx.paths.user_config_file, decls
-        # Sync FIRST (the findability gate): a source that can't be cloned declares NOTHING, so a
-        # typo / gone / private repo doesn't leave a broken decl behind. Fetches are
-        # non-interactive (plugins._noninteractive_git_env), so a bad source fails fast instead of
-        # hanging on a credential prompt. Only on a good sync do we persist the declaration.
-        results = _sync_and_report(ctx, [{'source': args.source, 'ref': args.ref}])
-        if not results or 'failed' in results[0][1].lower():
-            print(f'configsys: could not sync {args.source} — nothing added '
-                  + _source_hint(args.source))
+        ok, msg, results = actions.plugin_add(ctx, args.source, args.ref,
+                                              local=getattr(args, 'local', False),
+                                              pin=getattr(args, 'pin', False))
+        for name, action in results:
+            print(f'  {action:8} {name}')
+        if not ok:
+            print(f'configsys: {msg}')
             return 1
-        target, existing = _upsert_decl(cur, args.source, args.ref)
-        plugins.set_declared(cfg_file, cur)
-        verb, pin = ('re-pinned' if existing else 'added'), (f' @{args.ref}' if args.ref else '')
-        if to_primary:
-            print(f'configsys: {verb} {args.source}{pin} in the primary plugin ({primary})')
-            print(f'configsys: it now rides {primary} to your other machines once you commit + '
-                  f'push + re-tag {primary} and bump its ref (locally it works right away)')
-        else:
-            print(f'configsys: {verb} {args.source}{pin}'
-                  + (' (this machine only)' if primary else ''))
-        if getattr(args, 'pin', False):
-            _pin_checksum(ctx, cfg_file, cur, target)
+        for line in msg.split('\n'):
+            print(f'configsys: {line}')
         return 0
 
     if sub == 'remove':
-        cfg_file, cur, target = _locate_decl(ctx, args.name)     # top config OR the plugin that declares it
-        if target is None:
-            print(f'configsys: no declared plugin matches {args.name!r}')
+        ok, msg = actions.plugin_remove(ctx, args.name)
+        print(f'configsys: {msg}')
+        if not ok:
             return 1
-        plugins.set_declared(cfg_file, [d for d in cur if d is not target])
-        pdir = ctx.paths.plugins_dir / plugins.dir_name(target['source'])
-        if pdir.exists() and not ctx.runner.pretend:
-            import shutil
-            shutil.rmtree(pdir)
-        if cfg_file == ctx.paths.user_config_file:
-            print(f'configsys: removed {target["source"]}')
-        else:
-            plug = cfg_file.parent.name
-            print(f'configsys: removed {target["source"]} from {plug}')
+        if ' from ' in msg:                          # removed from a plugin's own file
+            plug = msg.rsplit(' from ', 1)[1]
             print(f'configsys: commit + push + re-tag {plug} and bump its ref to propagate the removal')
         return 0
 
     if sub == 'update':
-        cfg_file, cur, target = _locate_decl(ctx, args.name)
-        if target is None:
-            print(f'configsys: no declared plugin matches {args.name!r}')
+        ok, msg, results = actions.plugin_update(ctx, args.name, args.ref,
+                                                 pin=getattr(args, 'pin', False))
+        if not ok:
+            print(f'configsys: {msg}')
             return 1
-        if args.ref:
-            target['ref'] = args.ref
-            plugins.set_declared(cfg_file, cur)
-            where = '' if cfg_file == ctx.paths.user_config_file else f' in {cfg_file.parent.name}'
-            print(f'configsys: re-pinned {target["source"]} @{args.ref}{where}')
-        _sync_and_report(ctx, [target])
-        if getattr(args, 'pin', False):
-            _pin_checksum(ctx, cfg_file, cur, target)
-        elif target.get('sha256') and not plugins.checksum_ok(ctx.paths.plugins_dir, target):
-            print(f'configsys: warning — {plugins.dir_name(target["source"])} no longer matches '
-                  f'its pinned sha256; it is quarantined until you re-pin (update --pin) or drop it')
+        for name, action in results:
+            print(f'  {action:8} {name}')
+        print(f'configsys: {msg}')
         return 0
 
     if sub == 'trust':

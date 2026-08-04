@@ -835,6 +835,38 @@ def is_local_authored(source, dest):
         return False
 
 
+def find_decl(decls, plugins_dir, ident):
+    '''A declared plugin matching `ident` — its source, dir basename, or manifest name.'''
+    for d in decls:
+        dn = dir_name(d['source'])
+        if ident in (d['source'], dn) or read_manifest(Path(plugins_dir) / dn).get('name') == ident:
+            return d
+    return None
+
+
+def upsert_decl(decls, source, ref):
+    '''Add `source` to a decls list, or re-pin its ref if already there. Returns (target, existed);
+    target is a live element of `decls`.'''
+    target = next((d for d in decls if d['source'] == source), None)
+    if target is not None:
+        target['ref'] = ref
+        return target, True
+    target = {'source': source, 'ref': ref}
+    decls.append(target)
+    return target, False
+
+
+def source_hint(source):
+    '''A nudge when a source can't be synced: the common `github.com:x/y` mistyping of the
+    `github:x/y` shorthand, else how to reach a private repo.'''
+    for prov in ('github', 'gitlab'):
+        pfx = prov + '.com:'
+        if source.startswith(pfx):
+            return f'(did you mean {prov}:{source[len(pfx):]} ?)'
+    return ('(private repo? use ssh git@host:owner/repo.git, a token via '
+            'CONFIGSYS_GIT_TOKEN, or a configured git credential helper)')
+
+
 def _noninteractive_git_env():
     '''Env for plugin git fetches so they NEVER block on a credential prompt: an unreachable,
     nonexistent, or private repo must fail fast (sync -> 'failed') instead of hanging the CLI/TUI

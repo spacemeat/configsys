@@ -200,3 +200,155 @@ def load_theme(ctx, name, *, target=None):
     plugins.set_theme(tfile, theme)
     ctx.invalidate()
     return True, label
+
+
+# -- plugins (`configsys plugin` + the TUI Plugins screen) ----------------------------------------
+# Orchestration extracted from cmd_plugin so the CLI and the TUI Plugins screen share one path
+# (docs/tui-screens-plan.md, F3 slice 4). Each returns structured results (ok/message/sync-actions);
+# the caller prints (CLI) or shows a note (TUI).
+
+def _locate_decl(ctx, ident):
+    '''(config_file, decls, target) for the declared plugin `ident` — the top config, or a synced
+    plugin's transitive `plugins:` (e.g. your primary). (None, None, None) if not found.'''
+    pdir = ctx.paths.plugins_dir
+    top = plugins.declared(ctx.paths.user_config_file)
+    t = plugins.find_decl(top, pdir, ident)
+    if t is not None:
+        return ctx.paths.user_config_file, top, t
+    if Path(pdir).exists():
+        for sub in sorted(p for p in Path(pdir).iterdir() if p.is_dir()):
+            decls = [d for d in (plugins._decl(e) for e in
+                                 (plugins.read_manifest(sub).get('plugins') or [])) if d]
+            t = plugins.find_decl(decls, pdir, ident)
+            if t is not None:
+                return sub / 'plugin.hu', decls, t
+    return None, None, None
+
+
+def plugin_sync(ctx, decls):
+    '''Sync each declared plugin to its ref (transitive fixpoint). Returns [(name, action)].'''
+    ctx.ensure_plugin_code()     # register transports from already-trusted plugins before sync
+    return plugins.sync(ctx.runner, ctx.paths.plugins_dir, decls)
+
+
+def plugin_add(ctx, source, ref=None, *, local=False, pin=False):
+    '''Sync-FIRST add: a source that can't be cloned declares nothing. Lands in the primary's
+    transitive `plugins:` (portable) when a primary is set, else this machine's top config (or with
+    `local=True`). `pin` records the synced content sha256. Returns (ok, message, sync_results).'''
+    ctx.ensure_user_config()
+    decls = plugins.declared(ctx.paths.user_config_file)
+    primary = plugins.primary_name(decls)
+    primary_dir = ctx.paths.plugins_dir / primary if primary else None
+    to_primary = (primary is not None and not local and primary_dir is not None
+                  and (primary_dir / 'plugin.hu').exists())
+    lead = ''
+    if to_primary:
+        cfg_file = primary_dir / 'plugin.hu'
+        if plugins.ensure_branch(ctx.runner, primary_dir) is None and not ctx.runner.pretend:
+            lead = (f'note — {primary} is in a detached HEAD with no branch to author on; '
+                    f'commit by hand or pin it to a branch (ref: main)\n')
+        cur = [d for d in (plugins._decl(e) for e in
+                           (plugins.read_manifest(primary_dir).get('plugins') or [])) if d]
+    else:
+        cfg_file, cur = ctx.paths.user_config_file, decls
+    results = plugin_sync(ctx, [{'source': source, 'ref': ref}])
+    if not results or 'failed' in results[0][1].lower():
+        return False, f'could not sync {source} — nothing added {plugins.source_hint(source)}', results
+    target, existing = plugins.upsert_decl(cur, source, ref)
+    plugins.set_declared(cfg_file, cur)
+    pin_msg = ''
+    if pin:                                          # trust-on-first-use content pin
+        pdir = ctx.paths.plugins_dir / plugins.dir_name(source)
+        h = plugins.plugin_identity(pdir)
+        if h:
+            target['sha256'] = h
+            plugins.set_declared(cfg_file, cur)
+            disp = plugins.read_manifest(pdir).get('name', plugins.dir_name(source))
+            pin_msg = f'\npinned {disp} @ {h.split(":")[-1][:12]} (sha256)'
+    ctx.invalidate()
+    verb, at = ('re-pinned' if existing else 'added'), (f' @{ref}' if ref else '')
+    if to_primary:
+        msg = (f'{verb} {source}{at} in the primary plugin ({primary}) — commit + push + re-tag '
+               f'{primary} and bump its ref to propagate (works locally now)')
+    else:
+        msg = f'{verb} {source}{at}' + (' (this machine only)' if primary else '')
+    return True, lead + msg + pin_msg, results
+
+
+def plugin_remove(ctx, ident):
+    '''Undeclare a plugin (wherever it's declared) + delete its synced dir. Returns (ok, message).'''
+    import shutil
+    cfg_file, cur, target = _locate_decl(ctx, ident)
+    if target is None:
+        return False, f'no declared plugin matches {ident!r}'
+    plugins.set_declared(cfg_file, [d for d in cur if d is not target])
+    pdir = ctx.paths.plugins_dir / plugins.dir_name(target['source'])
+    if pdir.exists() and not ctx.runner.pretend:
+        shutil.rmtree(pdir)
+    ctx.invalidate()
+    where = ('' if str(cfg_file) == str(ctx.paths.user_config_file)
+             else f' from {Path(cfg_file).parent.name}')
+    return True, f'removed {target["source"]}{where}'
+
+
+def plugin_update(ctx, ident, ref=None, *, pin=False):
+    '''Re-pin a declared plugin's ref (if given) and re-sync it; `pin` re-records its sha256.
+    Returns (ok, message, results).'''
+    cfg_file, cur, target = _locate_decl(ctx, ident)
+    if target is None:
+        return False, f'no declared plugin matches {ident!r}', []
+    if ref:
+        target['ref'] = ref
+        plugins.set_declared(cfg_file, cur)
+    results = plugin_sync(ctx, [target])
+    warn = ''
+    if pin:
+        h = plugins.plugin_identity(ctx.paths.plugins_dir / plugins.dir_name(target['source']))
+        if h:
+            target['sha256'] = h
+            plugins.set_declared(cfg_file, cur)
+    elif target.get('sha256') and not plugins.checksum_ok(ctx.paths.plugins_dir, target):
+        warn = (f' — warning: {plugins.dir_name(target["source"])} no longer matches its pinned '
+                f'sha256; quarantined until you re-pin (update --pin) or drop it')
+    ctx.invalidate()
+    where = '' if str(cfg_file) == str(ctx.paths.user_config_file) else f' in {Path(cfg_file).parent.name}'
+    msg = (f're-pinned {target["source"]} @{ref}{where}' if ref else f're-synced {target["source"]}')
+    return True, msg + warn, results
+
+
+def plugin_bless(ctx, ident):
+    '''Make `ident` the sole `primary` plugin. Syncs it FIRST (+ its transitive plugins); only on a
+    good sync does it declare + mark primary (clearing any other). Returns (ok, message, results).'''
+    ctx.ensure_user_config()
+    decls = plugins.declared(ctx.paths.user_config_file)
+    existing = plugins.find_decl(decls, ctx.paths.plugins_dir, ident)
+    source = existing['source'] if existing else ident
+    ref = existing.get('ref') if existing else None
+    results = plugin_sync(ctx, [{'source': source, 'ref': ref}])
+    if not results or 'failed' in results[0][1].lower():
+        return False, f"could not find/sync '{ident}' — nothing changed", results
+    if existing is None:
+        existing = {'source': source, 'ref': ref}
+        decls.append(existing)
+    for d in decls:
+        d.pop('primary', None)                       # exactly one primary
+    existing['primary'] = True
+    if ctx.runner.pretend:
+        return True, f'[pretend] would bless {plugins.dir_name(source)} as primary', results
+    plugins.set_declared(ctx.paths.user_config_file, decls)
+    ctx.invalidate()
+    return True, f'blessed {plugins.dir_name(source)} as primary (its machine settings now apply)', results
+
+
+def plugin_unbless(ctx):
+    '''Clear the primary designation. Returns (ok, message).'''
+    decls = plugins.declared(ctx.paths.user_config_file)
+    if not any(d.get('primary') for d in decls):
+        return False, 'no primary plugin set'
+    if ctx.runner.pretend:
+        return True, '[pretend] would clear the primary designation'
+    for d in decls:
+        d.pop('primary', None)
+    plugins.set_declared(ctx.paths.user_config_file, decls)
+    ctx.invalidate()
+    return True, 'cleared the primary designation'
