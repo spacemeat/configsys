@@ -693,7 +693,7 @@ def _draw(stdscr, pal, ms, ctx, note, diags=(), show_diag=False, diag_top=0, scr
         _put(stdscr, 2, x, _fit(text, cw), pal.style('menu_header', 2, x, h, w))
 
     list_top = 3
-    list_h = max(1, h - list_top - 6)  # methods + 2 infoblock + status + 2 footer lines
+    list_h = max(1, h - list_top - 7)  # description + methods + 2 infoblock + status + 2 footers
     ms.top = first = _scroll_top(ms.cursor, ms.top, list_h, len(ms.rows))
 
     _KIND_ELEM = {PROFILE: 'profile', LINK: 'link', COMPONENT: 'component', UNIT: 'unit'}
@@ -736,6 +736,11 @@ def _draw(stdscr, pal, ms, ctx, note, diags=(), show_diag=False, diag_top=0, scr
             col('inst', n.installed_str(), 'version')
             col('latest', n.latest_str(), 'version', pad=False)
 
+    _cn = _row_component(ms.cur())               # the selected component's brief description
+    _comp = ctx.routes.components.get(_cn) if _cn else None
+    _desc = (_comp.description if _comp else '') or ''
+    _put(stdscr, h - 7, 0, _fit(f' {_cn} — {_desc}' if _desc else '', w),
+         pal.style('info', h - 7, 0, h, w))
     _put(stdscr, h - 6, 0, _fit(_methods_line(ms, ctx), w), pal.style('methods', h - 6, 0, h, w))
     info1, info2 = _infoblock(ms, ctx)
     _put(stdscr, h - 5, 0, _fit(info1, w), pal.style('info', h - 5, 0, h, w))

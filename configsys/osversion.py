@@ -75,7 +75,8 @@ def clean_version(s):
     if t[:1] in ('v', 'V') and t[1:2].isdigit():
         t = t[1:]
     t = re.sub(r'~.*$', '', t)          # packaging suffix (~0ubuntu2)
-    t = re.sub(r'-\d+$', '', t)         # numeric Debian revision (-1), but not a `-rc1` pre-release
+    t = re.sub(r'-\d[^-]*$', '', t)     # Debian revision (-1, -1ubuntu1.12): it starts with a digit,
+                                        # so a `-rc1` pre-release (starts with a letter) is kept
     return t if t[:1].isdigit() else s
 
 

@@ -53,3 +53,14 @@ def test_specificity_ordering():
     assert ov.specificity(ov.parse_constraint('>=20.04,<23.04')) == 2  # bounded
     assert ov.specificity(ov.parse_constraint('<23.04')) == 1       # open
     assert ov.specificity(None) == 0
+
+
+def test_clean_version_strips_debian_revision():
+    from configsys.osversion import clean_version
+    assert clean_version('2.34.1-1ubuntu1.12') == '2.34.1'     # full Debian revision + suffix
+    assert clean_version('1.2.3-1ubuntu2~20.04') == '1.2.3'
+    assert clean_version('2:1.18-1') == '1.18'                 # epoch + revision
+    assert clean_version('26.5.6-1') == '26.5.6'               # bare numeric revision
+    assert clean_version('15.2.0-rc1') == '15.2.0-rc1'         # pre-release KEPT (starts with letter)
+    assert clean_version('1.7.0-beta2') == '1.7.0-beta2'
+    assert clean_version('14.1.0') == '14.1.0'                 # already clean
