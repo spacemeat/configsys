@@ -645,8 +645,8 @@ def _fill_bg(stdscr, pal, h, w):
 # -- screen router / nav bar ----------------------------------------------
 SCREENS = [('1', 'components', 'Components'), ('2', 'profiles', 'Profiles'),
            ('3', 'plugins', 'Plugins'), ('4', 'dotfiles', 'Dotfiles'), ('5', 'config', 'Config'),
-           ('6', 'theme', 'Theme'), ('7', 'versions', 'Versions')]
-IMPLEMENTED = {'components', 'profiles', 'plugins', 'dotfiles', 'config', 'theme', 'versions'}
+           ('6', 'theme', 'Theme')]
+IMPLEMENTED = {'components', 'profiles', 'plugins', 'dotfiles', 'config', 'theme'}
 KEY_TO_SCREEN = {ord(k): sid for k, sid, _name in SCREENS}
 
 
@@ -1146,7 +1146,7 @@ def _draw_profiles(stdscr, pal, ps, ctx, note, screen):
     if note:
         status += f'    {note}'
     navf = (' j/k · h/l focus · space toggle · a (de)activate · m pin method · '
-            '●own ↳via-include ~removed · 1-7 · q ')
+            '●own ↳via-include ~removed · 1-6 · q ')
     _put(stdscr, h - 2, 0, _fit(status, w), pal.style('status_line', h - 2, 0, h, w))
     _put(stdscr, h - 1, 0, _fit(navf.ljust(w), w), pal.style('footer', h - 1, 0, h, w))
     stdscr.refresh()
@@ -1314,7 +1314,7 @@ def _draw_config(stdscr, pal, cs, ctx, note, screen):
     status = f' edits → {actions.edit_target(ctx)[1]}'
     if note:
         status += f'    {note}'
-    navf = ' j/k move · enter/space edit · 1-7 screens · q quit '
+    navf = ' j/k move · enter/space edit · 1-6 screens · q quit '
     _put(stdscr, h - 2, 0, _fit(status, w), pal.style('status_line', h - 2, 0, h, w))
     _put(stdscr, h - 1, 0, _fit(navf.ljust(w), w), pal.style('footer', h - 1, 0, h, w))
     stdscr.refresh()
@@ -1617,7 +1617,7 @@ def _draw_theme(stdscr, pal, ts, ctx, note, screen):
         status += f'    {note}'
     if ts.focus == 'map':
         navf = (' tab→roles · h/l/j/k · a-e page · ↵ set #rrggbb · n new · x/r remove · '
-                's save · L load · 1-7 · q ')
+                's save · L load · 1-6 · q ')
     else:
         navf = (' tab→map · j/k · a-e page · ↵ fg · B bg · o/u/v fx · r reset · p grad on/off · '
                 'D copy-page · s save · L load · q ')
@@ -1709,7 +1709,7 @@ def _draw_plugins(stdscr, pal, pl, ctx, note, screen):
     if note:
         status += f'    {note}'
     navf = (' j/k · a add · x remove · s sync · S all · b bless · B unbless · u update · '
-            't trust · T untrust · v set-ref · 1-7 · q ')
+            't trust · T untrust · v set-ref · 1-6 · q ')
     _put(stdscr, h - 2, 0, _fit(status, w), pal.style('status_line', h - 2, 0, h, w))
     _put(stdscr, h - 1, 0, _fit(navf.ljust(w), w), pal.style('footer', h - 1, 0, h, w))
     stdscr.refresh()
@@ -1778,103 +1778,7 @@ def _draw_dotfiles(stdscr, pal, ds, ctx, note, screen):
         status += f'   ! {n_unmanaged} unmanaged (capture before linking)'
     if note:
         status += f'    {note}'
-    navf = ' j/k · l link · x unlink · c capture (adopt on-system) · 1-7 screens · q quit '
-    _put(stdscr, h - 2, 0, _fit(status, w), pal.style('status_line', h - 2, 0, h, w))
-    _put(stdscr, h - 1, 0, _fit(navf.ljust(w), w), pal.style('footer', h - 1, 0, h, w))
-    stdscr.refresh()
-
-
-# -- Versions screen ------------------------------------------------------
-class VersionScreen:
-    '''Per-install-method version view: pick a component (left), see what version each method would
-    install (right) — native vs tarball/source/…, the tip, lag, and floor. A skin over
-    versionreport; reports are computed lazily + cached per name. `m` pins a method.'''
-    def __init__(self, ctx):
-        self.ctx = ctx
-        self.cur = self.top = 0
-        self._cache = {}
-        self.reload()
-
-    def reload(self):
-        self.catalog = sorted(self.ctx.routes.components)
-        self.cur = min(self.cur, max(0, len(self.catalog) - 1))
-
-    def cur_name(self):
-        return self.catalog[self.cur] if self.catalog else None
-
-    def report(self, name, refresh=False):
-        '''The cached VersionReport for `name`, or an Exception instance if it isn't routable here.'''
-        if name is None:
-            return None
-        if refresh or name not in self._cache:
-            from .. import versionreport
-            try:
-                self._cache[name] = versionreport.report(self.ctx, name, refresh=refresh)
-            except Exception as e:  # noqa: BLE001 — a version probe never crashes the screen
-                self._cache[name] = e
-        return self._cache[name]
-
-
-def _draw_versions(stdscr, pal, vs, ctx, note, screen):
-    stdscr.erase()
-    h, w = stdscr.getmaxyx()
-    pal.use_page(screen)                             # 'versions' falls back to the components palette
-    if pal.gradient:
-        _fill_bg(stdscr, pal, h, w)
-    _draw_nav(stdscr, pal, screen, h, w)
-    top, body_h = 1, h - 3
-    lw = max(22, w // 3)
-
-    # LEFT: the component catalog
-    lit, lil, lih, liw = _panel(stdscr, pal, top, 0, body_h, lw, 'components', True, h, w)
-    vs.top = _scroll_top(vs.cur, vs.top, lih, len(vs.catalog))
-    for vis, i in enumerate(range(vs.top, min(len(vs.catalog), vs.top + lih))):
-        name, y = vs.catalog[i], lit + vis
-        sel = i == vs.cur
-        if sel:
-            _put(stdscr, y, lil, ' ' * liw, pal.fill(y, lil, h, w, selected=True))
-        _put(stdscr, y, lil, _fit(f'{"▸" if sel else " "} {name}', liw),
-             pal.style('label' if sel else 'component', y, lil, h, w, selected=sel))
-
-    # RIGHT: the per-method version table for the selected component
-    name = vs.cur_name()
-    rep = vs.report(name)
-    tip = f'   (tip {rep.tip})' if (rep and not isinstance(rep, Exception) and rep.tip) else ''
-    rit, ril, rih, riw = _panel(stdscr, pal, top, lw + 1, body_h, w - lw - 1,
-                                _fit(f'versions — {name}{tip}', w - lw - 5), False, h, w)
-    if isinstance(rep, Exception):
-        _put(stdscr, rit, ril, _fit(f'not available here: {rep}', riw),
-             pal.style('info_dim', rit, ril, h, w))
-    elif rep and rep.methods:
-        _put(stdscr, rit, ril, _fit(f'{"METHOD":16}{"VERSION":14}NOTES', riw),
-             pal.style('menu_header', rit, ril, h, w))
-        for k, m in enumerate(rep.methods[:rih - 1]):
-            y = rit + 1 + k
-            label = f'{m.via} ({m.driver})' if m.via == 'native' else m.via
-            tags = []
-            if m.is_pinned:
-                tags.append('pinned')
-            elif m.is_default:
-                tags.append('default')
-            if m.installed:
-                tags.append('installed' if m.installed == m.latest else f'installed {m.installed}')
-            if m.lags_tip:
-                tags.append('lags tip')
-            if m.meets_min is True:
-                tags.append(f'meets ≥{rep.min_version}')
-            elif m.meets_min is False:
-                tags.append(f'below ≥{rep.min_version}')
-            elem = 'installed' if m.installed else ('outdated' if m.lags_tip else 'component')
-            _put(stdscr, y, ril, _fit(f'{label:16}{(m.latest or "—"):14}{"  ".join(tags)}', riw),
-                 pal.style(elem, y, ril, h, w))
-    else:
-        _put(stdscr, rit, ril, _fit('(no install method here)', riw),
-             pal.style('info_dim', rit, ril, h, w))
-
-    status = f' {name or "—"}    (versions are cached machine-locally; r refreshes)'
-    if note:
-        status += f'    {note}'
-    navf = ' j/k · m pin method · r refresh · g/G top/bottom · 1-7 screens · q quit '
+    navf = ' j/k · l link · x unlink · c capture (adopt on-system) · 1-6 screens · q quit '
     _put(stdscr, h - 2, 0, _fit(status, w), pal.style('status_line', h - 2, 0, h, w))
     _put(stdscr, h - 1, 0, _fit(navf.ljust(w), w), pal.style('footer', h - 1, 0, h, w))
     stdscr.refresh()
@@ -1923,7 +1827,6 @@ def run(ctx):
         ts = None                                 # ThemeScreen (sub-screen of Config)
         pl = None                                 # PluginScreen, built lazily on first visit
         ds = None                                 # DotfilesScreen, built lazily on first visit
-        vs = None                                 # VersionScreen, built lazily on first visit
         menu_dirty = False                        # a profile/config edit -> rebuild the Components tree
         pending_report = None                     # a component whose op failed this session
         pending_notes = []                         # messages saved for after the TUI exits
@@ -1952,10 +1855,6 @@ def run(ctx):
                 if ts is None:
                     ts = ThemeScreen(ctx)
                 _draw_theme(stdscr, pal, ts, ctx, note, screen)
-            elif screen == 'versions':
-                if vs is None:
-                    vs = VersionScreen(ctx)
-                _draw_versions(stdscr, pal, vs, ctx, note, screen)
             else:
                 diag_top = _draw(stdscr, pal, ms, ctx, note, diags, False, diag_top, screen)
             note = ''
@@ -2426,33 +2325,6 @@ def run(ctx):
                                 note = f'loaded {names[idx]}'
                         else:
                             note = 'no theme plugins saved yet (s to save one)'
-                except Exception as e:  # noqa: BLE001 — surface, don't crash
-                    note = f'error: {e}'
-                continue
-
-            # -- Versions screen --
-            if screen == 'versions':
-                try:
-                    if ch in (ord('j'), curses.KEY_DOWN):
-                        vs.cur = min(len(vs.catalog) - 1, vs.cur + 1)
-                    elif ch in (ord('k'), curses.KEY_UP):
-                        vs.cur = max(0, vs.cur - 1)
-                    elif ch == ord('g'):
-                        vs.cur = 0
-                    elif ch == ord('G'):
-                        vs.cur = max(0, len(vs.catalog) - 1)
-                    elif ch == ord('r') and vs.cur_name():           # re-query this component
-                        with suspended(stdscr):
-                            vs.report(vs.cur_name(), refresh=True)
-                        note = f'refreshed {vs.cur_name()}'
-                    elif ch == ord('m') and vs.cur_name():           # pin an install method
-                        changed, note, deferred = _pick_method_name(stdscr, pal, ctx, vs.cur_name())
-                        if deferred:
-                            pending_notes.append(deferred)
-                        if changed:
-                            ctx.invalidate()
-                            vs._cache.pop(vs.cur_name(), None)       # its report may have changed
-                            menu_dirty = True
                 except Exception as e:  # noqa: BLE001 — surface, don't crash
                     note = f'error: {e}'
                 continue
