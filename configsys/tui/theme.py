@@ -292,6 +292,17 @@ class Palette:
             return '256-color (approx)'
         return '8-color'
 
+    def new_frame(self):
+        '''Reset the color-PAIR allocator at the start of each full redraw. `curses.color_pair()`
+        encodes the pair number in only 8 bits (A_COLOR == 0xff00), so pair numbers MUST stay < 256
+        or they wrap to a different pair's colors. One Palette is shared for the whole session and
+        pairs never free, so without this a long session (or the pair-heavy Theme screen) eventually
+        exceeds 255 and every over-256 cell renders in the wrong color. Color SLOTS persist (they're
+        bounded by the theme's distinct colors, < 256); only pairs — the fg×bg combinations, of
+        which there are far more — are recycled each frame, which curses is built to handle.'''
+        self._next_pair = 1
+        self._pair_cache.clear()
+
     def use_page(self, page):
         pg = self._pages.get(page) or self._pages['components']
         self._roles = pg['roles']
@@ -332,6 +343,8 @@ class Palette:
         attr = self._pair_cache.get((fg_idx, bg_idx))
         if attr is None:
             n = self._next_pair
+            if n > 255:                      # color_pair() only encodes 8 bits — pair >255 would WRAP
+                return curses.A_NORMAL       # to another pair's colors; degrade instead of corrupt
             try:
                 curses.init_pair(n, fg_idx, bg_idx)
                 attr = curses.color_pair(n)

@@ -1754,6 +1754,8 @@ def run(ctx):
         pending_report = None                     # a component whose op failed this session
         pending_notes = []                         # messages saved for after the TUI exits
         while True:
+            pal.new_frame()          # recycle color pairs each frame (color_pair() is 8-bit; a
+            # long session or the pair-heavy Theme screen would otherwise exceed 255 pairs and wrap
             if show_diag:
                 diag_top = _draw_diagnostics(stdscr, pal, diags, diag_top)
             elif screen == 'profiles':
