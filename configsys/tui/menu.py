@@ -644,7 +644,7 @@ def _fill_bg(stdscr, pal, h, w):
 # -- screen router / nav bar ----------------------------------------------
 SCREENS = [('1', 'components', 'Components'), ('2', 'profiles', 'Profiles'),
            ('3', 'plugins', 'Plugins'), ('4', 'dotfiles', 'Dotfiles'), ('5', 'config', 'Config')]
-IMPLEMENTED = {'components', 'profiles', 'config'}
+IMPLEMENTED = {'components', 'profiles', 'plugins', 'config'}
 KEY_TO_SCREEN = {ord(k): sid for k, sid, _name in SCREENS}
 
 
@@ -1343,6 +1343,94 @@ def _draw_theme(stdscr, pal, ts, ctx, note, screen):
     stdscr.refresh()
 
 
+# -- Plugins screen -------------------------------------------------------
+class PluginScreen:
+    '''Layer-stack view of declared plugins (incl. transitive) with per-plugin status + a detail
+    pane. A skin over configsys.actions.plugin_* — add/remove/sync/bless/update.'''
+    def __init__(self, ctx):
+        self.ctx = ctx
+        self.cur = 0
+        self.top = 0
+        self.reload()
+
+    def reload(self):
+        from .. import plugins
+        self.decls = plugins.effective_declared(self.ctx.paths.user_config_file,
+                                                self.ctx.paths.plugins_dir)
+        self.rows = plugins.status(self.ctx.paths.plugins_dir, self.decls,
+                                   trust_file=self.ctx.paths.plugin_trust_file)
+        self.cur = min(self.cur, max(0, len(self.rows) - 1))
+
+    def cur_row(self):
+        return self.rows[self.cur] if 0 <= self.cur < len(self.rows) else None
+
+
+def _plugin_state(row):
+    if not row['synced']:
+        return '⚠ unsynced'
+    if not row['abi_ok']:
+        return '≠ abi'
+    if row['checksum'] == 'mismatch':
+        return '⚑ quarantined'
+    return 'code' if row['has_code'] else 'ok'
+
+
+def _draw_plugins(stdscr, pal, pl, ctx, note, screen):
+    stdscr.erase()
+    h, w = stdscr.getmaxyx()
+    if pal.gradient:
+        _fill_bg(stdscr, pal, h, w)
+    _draw_nav(stdscr, pal, screen, h, w)
+    top, body_h = 1, h - 3
+    lw = max(28, 2 * w // 5)
+    lit, lil, lih, liw = _panel(stdscr, pal, top, 0, body_h, lw, 'plugins (layer stack)', True, h, w)
+    pl.top = _scroll_top(pl.cur, pl.top, lih, len(pl.rows))
+    if not pl.rows:
+        _put(stdscr, lit, lil, _fit('(no plugins declared — a to add)', liw),
+             pal.style('info_dim', lit, lil, h, w))
+    for vis, i in enumerate(range(pl.top, min(len(pl.rows), pl.top + lih))):
+        row, y = pl.rows[i], lit + vis
+        sel = i == pl.cur
+        if sel:
+            _put(stdscr, y, lil, ' ' * liw, pal.fill(y, lil, h, w, selected=True))
+        glyph = '★' if row['primary'] else ' '
+        healthy = row['synced'] and row['abi_ok'] and row['checksum'] != 'mismatch'
+        elem = 'label' if sel else ('component' if healthy else 'info_dim')
+        _put(stdscr, y, lil, _fit(f'{glyph} {row["name"]:20} {_plugin_state(row)}', liw),
+             pal.style(elem, y, lil, h, w, selected=sel))
+
+    rit, ril, rih, riw = _panel(stdscr, pal, top, lw + 1, body_h, w - lw - 1, 'detail', False, h, w)
+    row = pl.cur_row()
+    if row:
+        det = [f'name     {row["name"]}',
+               f'source   {row["source"]}',
+               f'ref      {row["ref"] or "(default branch)"}',
+               f'synced   {"yes" if row["synced"] else "NO — press s to sync"}',
+               f'abi      {"ok" if row["abi_ok"] else "INCOMPATIBLE (needs " + str(row["requires_abi"]) + ")"}']
+        if row['primary']:
+            det.append('primary  ★ yes — its machine settings apply here')
+        if row['local']:
+            det.append('local    authored in place (not pushed)')
+        if row['checksum']:
+            det.append(f'checksum {row["checksum"].upper()}')
+        if row['has_code']:
+            det.append(f'code     {row["code_state"]}')
+        prov = row['provides']
+        if isinstance(prov, dict) and prov:
+            det.append(f'provides {", ".join(prov)}')
+        for k, line in enumerate(det[:rih]):
+            _put(stdscr, rit + k, ril, _fit(line, riw), pal.style('info', rit + k, ril, h, w))
+
+    status = f' {len(pl.rows)} plugin(s)'
+    if note:
+        status += f'    {note}'
+    navf = (' j/k · a add · x remove · s sync · S sync-all · b bless · B unbless · u update'
+            ' · 1-5 screens · q quit ')
+    _put(stdscr, h - 2, 0, _fit(status, w), pal.style('status_line', h - 2, 0, h, w))
+    _put(stdscr, h - 1, 0, _fit(navf.ljust(w), w), pal.style('footer', h - 1, 0, h, w))
+    stdscr.refresh()
+
+
 def run(ctx):
     '''Entry point used by app.cmd_tui. Returns an exit code.'''
     # First-run config generation + the interactive primary-plugin offer must happen on the MAIN
@@ -1379,6 +1467,7 @@ def run(ctx):
         ps = None                                 # ProfileScreen, built lazily on first visit
         cs = None                                 # ConfigScreen, built lazily on first visit
         ts = None                                 # ThemeScreen (sub-screen of Config)
+        pl = None                                 # PluginScreen, built lazily on first visit
         menu_dirty = False                        # a profile/config edit -> rebuild the Components tree
         pending_report = None                     # a component whose op failed this session
         pending_notes = []                         # messages saved for after the TUI exits
@@ -1389,6 +1478,10 @@ def run(ctx):
                 if ps is None:
                     ps = ProfileScreen(ctx)
                 _draw_profiles(stdscr, pal, ps, ctx, note, screen)
+            elif screen == 'plugins':
+                if pl is None:
+                    pl = PluginScreen(ctx)
+                _draw_plugins(stdscr, pal, pl, ctx, note, screen)
             elif screen == 'config':
                 if cs is None:
                     cs = ConfigScreen(ctx)
@@ -1482,6 +1575,59 @@ def run(ctx):
                                     if changed else 'no change')
                         except Exception as e:  # noqa: BLE001 — surface, don't crash
                             note = f'edit failed: {e}'
+                continue
+
+            # -- Plugins screen (git ops run under `suspended` so their output owns the terminal) --
+            if screen == 'plugins':
+                from .. import actions, plugins
+                row = pl.cur_row()
+                if ch in (ord('j'), curses.KEY_DOWN):
+                    pl.cur = min(len(pl.rows) - 1, pl.cur + 1)
+                elif ch in (ord('k'), curses.KEY_UP):
+                    pl.cur = max(0, pl.cur - 1)
+                elif ch == ord('g'):
+                    pl.cur = 0
+                elif ch == ord('G'):
+                    pl.cur = max(0, len(pl.rows) - 1)
+                elif ch == ord('a'):
+                    src = _input_box(stdscr, pal, 'add plugin — source (e.g. github:owner/repo)', '')
+                    if src and src.strip():
+                        with suspended(stdscr):
+                            ok, msg, _r = actions.plugin_add(ctx, src.strip())
+                        pl.reload()
+                        menu_dirty = True
+                        note = msg.split('\n')[0]
+                elif ch == ord('x') and row:
+                    _ok, note = actions.plugin_remove(ctx, row['name'])
+                    pl.reload()
+                    menu_dirty = True
+                elif ch == ord('s') and row:
+                    tgt = [d for d in pl.decls
+                           if plugins.dir_name(d['source']) == plugins.dir_name(row['source'])]
+                    with suspended(stdscr):
+                        actions.plugin_sync(ctx, tgt)
+                    pl.reload()
+                    note = f'synced {row["name"]}'
+                elif ch == ord('S'):
+                    with suspended(stdscr):
+                        actions.plugin_sync(ctx, plugins.declared(ctx.paths.user_config_file))
+                    pl.reload()
+                    note = 'synced all'
+                elif ch == ord('b') and row:
+                    with suspended(stdscr):
+                        _ok, msg, _r = actions.plugin_bless(ctx, row['source'])
+                    pl.reload()
+                    menu_dirty = True
+                    note = msg
+                elif ch == ord('B'):
+                    _ok, note = actions.plugin_unbless(ctx)
+                    pl.reload()
+                    menu_dirty = True
+                elif ch == ord('u') and row:
+                    with suspended(stdscr):
+                        _ok, msg, _r = actions.plugin_update(ctx, row['name'])
+                    pl.reload()
+                    note = msg
                 continue
 
             # -- Config screen --
