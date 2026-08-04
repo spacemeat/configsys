@@ -102,3 +102,17 @@ def test_theme_overrides_preserves_disabled_gradient(tmp_path):
     ctx.config = Config([layers.Layer(str(user), 'user', layers.materialize_string(user.read_text()))])
     ov = actions.theme_overrides(ctx)
     assert ov['pages']['profiles']['gradient'] is False   # explicit disable survives the round-trip
+
+
+def test_theme_role_fg_references_color_map(tmp_path):
+    # a per-page role fg that names a color in the shared map resolves to that color, and retinting
+    # the map re-tints the role (the two-list model's whole point)
+    user = tmp_path / 'user.hu'
+    user.write_text('{ theme: { colors: { brand: "#0a0b0c" }'
+                    '          pages: { components: { component: { fg: brand } } } } }\n',
+                    encoding='utf-8')
+    ctx = types.SimpleNamespace()
+    ctx.config = Config([layers.Layer(str(user), 'user', layers.materialize_string(user.read_text()))])
+    from configsys.tui.theme import resolve_theme
+    _colors, pages = resolve_theme(ctx.config.theme())
+    assert pages['components']['roles']['component']['fg'] == (10, 11, 12)

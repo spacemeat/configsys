@@ -1289,32 +1289,60 @@ def _draw_config(stdscr, pal, cs, ctx, note, screen):
 
 # -- Theme editor (its own screen, key 6) ---------------------------------
 class ThemeScreen:
-    '''Palette + per-page-gradient editor with live demo subpanels (one per content page). Edits
-    write via actions.set_theme_value (`palette.<name>.<attr>` / `pages.<page>.gradient.<stop>`);
-    the caller re-instantiates the Palette so every panel repaints instantly.'''
+    '''Two lists over one sample page: the shared color MAP (name -> #rrggbb) and the focused page's
+    ROLE styles (fg/bg/effects, fg/bg referencing a map name or a literal). Tab toggles focus; a-e
+    cycles the page. Edits write via actions.set_theme_value; the caller re-instantiates the Palette
+    so the sample repaints instantly.'''
     def __init__(self, ctx):
         self.ctx = ctx
-        self.cur = 0             # selected palette entry (left column)
-        self.top = 0
-        self.page = 0            # focused demo page (index into DEMO_PAGES)
+        self.page = 0                              # focused page (index into DEMO_PAGES)
+        self.focus = 'map'                         # 'map' | 'roles'
+        self.map_cur = self.map_top = 0
+        self.role_cur = self.role_top = 0
         self.reload()
 
     def reload(self):
-        from .theme import BUILTIN_PALETTE, resolve_theme
+        from .theme import COLOR_MAP, EDITABLE_ROLES, resolve_theme
         self.theme = self.ctx.config.theme()
-        names = list(BUILTIN_PALETTE.keys())
-        for n in (self.theme.get('palette') or {}):
+        names = list(COLOR_MAP)
+        for n in (self.theme.get('colors') or {}):
             if n not in names:
-                names.append(n)                     # user-added entries after the built-ins
-        self.names = names
-        self.resolved = resolve_theme(self.theme)[0]
-        self.cur = min(self.cur, max(0, len(names) - 1))
+                names.append(n)                     # user-added map colors after the built-ins
+        self.map_names = names
+        self.roles = EDITABLE_ROLES
+        self.colors, self.pages = resolve_theme(self.theme)      # resolved rgb
+        self.map_cur = min(self.map_cur, max(0, len(names) - 1))
+        self.role_cur = min(self.role_cur, max(0, len(self.roles) - 1))
 
-    def cur_name(self):
-        return self.names[self.cur] if self.names else None
+    def page_name(self):
+        from .theme import DEMO_PAGES
+        return DEMO_PAGES[self.page]
 
-    def override(self, name):
-        return (self.theme.get('palette') or {}).get(name)
+    def cur_color(self):
+        return self.map_names[self.map_cur] if self.map_names else None
+
+    def cur_role(self):
+        return self.roles[self.role_cur] if self.roles else None
+
+    def color_override(self, name):
+        return (self.theme.get('colors') or {}).get(name)
+
+    def role_override(self, role):
+        return ((self.theme.get('pages') or {}).get(self.page_name()) or {}).get(role)
+
+    def role_ref(self, role):
+        '''Effective fg/bg refs (map name or literal) for a role = built-in default overlaid by the
+        page's override — what the user is editing (before resolution to rgb).'''
+        from .theme import ROLE_DEFAULTS
+        st = dict(ROLE_DEFAULTS.get(role, {}))
+        ov = self.role_override(role)
+        if isinstance(ov, dict):
+            st.update(ov)
+        return st
+
+    def role_style(self, role):
+        '''Resolved rgb style {fg, bg, bold, ...} for a role on the focused page (for the swatch).'''
+        return self.pages[self.page_name()]['roles'].get(role, {'fg': (235, 235, 235), 'bg': None})
 
     def page_gradient_enabled(self, page):
         g = (((self.theme.get('pages') or {}).get(page) or {}).get('gradient') or {})
@@ -1381,6 +1409,13 @@ def _sample_page(stdscr, pal, page, y0, x0, hh, ww):
     pal.use_page('theme')
 
 
+def _ref_str(ref):
+    '''Show a role's fg/bg reference as-authored: a map name, a literal, or — for the gradient.'''
+    if ref in (None, '', 'none', 'false', False):
+        return '—'
+    return str(ref)
+
+
 def _draw_theme(stdscr, pal, ts, ctx, note, screen):
     stdscr.erase()
     h, w = stdscr.getmaxyx()
@@ -1390,37 +1425,61 @@ def _draw_theme(stdscr, pal, ts, ctx, note, screen):
     _draw_nav(stdscr, pal, 'theme', h, w)
     ts.reload()
     from .theme import DEMO_PAGES
-    body_h, lw = h - 3, max(38, 2 * w // 5)
-    lit, lil, lih, liw = _panel(stdscr, pal, 1, 0, body_h, lw, 'palette', True, h, w)
-    ts.top = _scroll_top(ts.cur, ts.top, lih, len(ts.names))
-    for vis, i in enumerate(range(ts.top, min(len(ts.names), ts.top + lih))):
-        name, y = ts.names[i], lit + vis
-        sel = i == ts.cur
-        st = ts.resolved.get(name, {'fg': (235, 235, 235)})
-        if sel:
-            _put(stdscr, y, lil, ' ' * liw, pal.fill(y, lil, h, w, selected=True))
-        sw = pal.rgb_pair(st['fg'], st['bg']) if st.get('bg') else pal.rgb_attr(st['fg'])
-        _put(stdscr, y, lil + 1, ' Aa ', sw | _eff_flags(st))          # swatch in the entry's colors
-        eff = ''.join(c for c, f in (('b', 'bold'), ('u', 'underline'), ('r', 'reverse')) if st.get(f))
-        mark = '*' if ts.override(name) is not None else ' '
-        cols = _hex(st['fg']) + (('/' + _hex(st['bg'])) if st.get('bg') else '')
-        _put(stdscr, y, lil + 6, _fit(f'{mark}{name:15} {cols} {eff}', liw - 6),
-             pal.style('label' if sel else 'component', y, lil + 6, h, w, selected=sel))
-
-    rx, rw = lw + 1, w - lw - 1
     page = DEMO_PAGES[ts.page]
-    tabs = '  '.join(f'{chr(ord("a") + i)}·{p}' for i, p in enumerate(DEMO_PAGES))
+    body_h, lw = h - 3, max(42, 5 * w // 11)
+    map_h = max(6, body_h * 2 // 5)
+
+    # -- List 1: the shared color map (name -> #rrggbb) --
+    m_it, m_il, m_ih, m_iw = _panel(stdscr, pal, 1, 0, map_h, lw, 'color map (shared)',
+                                    ts.focus == 'map', h, w)
+    ts.map_top = _scroll_top(ts.map_cur, ts.map_top, m_ih, len(ts.map_names))
+    for vis, i in enumerate(range(ts.map_top, min(len(ts.map_names), ts.map_top + m_ih))):
+        name, y = ts.map_names[i], m_it + vis
+        sel = i == ts.map_cur and ts.focus == 'map'
+        rgb = ts.colors.get(name, (235, 235, 235))
+        if sel:
+            _put(stdscr, y, m_il, ' ' * m_iw, pal.fill(y, m_il, h, w, selected=True))
+        _put(stdscr, y, m_il + 1, ' ██ ', pal.rgb_attr(rgb))
+        mark = '*' if ts.color_override(name) is not None else ' '
+        _put(stdscr, y, m_il + 6, _fit(f'{mark}{name:14} {_hex(rgb)}', m_iw - 6),
+             pal.style('label' if sel else 'component', y, m_il + 6, h, w, selected=sel))
+
+    # -- List 2: the focused page's role styles (fg/bg reference the map, or a literal) --
+    r_it, r_il, r_ih, r_iw = _panel(stdscr, pal, 1 + map_h, 0, body_h - map_h, lw,
+                                    _fit(f'page roles — {page}  (a-e)', lw - 4), ts.focus == 'roles',
+                                    h, w)
+    ts.role_top = _scroll_top(ts.role_cur, ts.role_top, r_ih, len(ts.roles))
+    for vis, i in enumerate(range(ts.role_top, min(len(ts.roles), ts.role_top + r_ih))):
+        role, y = ts.roles[i], r_it + vis
+        sel = i == ts.role_cur and ts.focus == 'roles'
+        ref, rst = ts.role_ref(role), ts.role_style(role)
+        if sel:
+            _put(stdscr, y, r_il, ' ' * r_iw, pal.fill(y, r_il, h, w, selected=True))
+        sw = pal.rgb_pair(rst['fg'], rst['bg']) if rst.get('bg') else pal.rgb_attr(rst['fg'])
+        _put(stdscr, y, r_il + 1, ' Aa ', sw | _eff_flags(rst))
+        eff = ''.join(c for c, f in (('b', 'bold'), ('u', 'underline'), ('r', 'reverse')) if rst.get(f))
+        mark = '*' if ts.role_override(role) is not None else ' '
+        txt = f'{mark}{role:14} {_ref_str(ref.get("fg")):>8}/{_ref_str(ref.get("bg")):<8}{eff}'
+        _put(stdscr, y, r_il + 6, _fit(txt, r_iw - 6),
+             pal.style('label' if sel else 'component', y, r_il + 6, h, w, selected=sel))
+
+    # -- the sample page (right) --
+    rx, rw = lw + 1, w - lw - 1
     st_it, st_il, st_ih, st_iw = _panel(stdscr, pal, 1, rx, body_h, rw,
-                                        _fit(f'sample page — {tabs}', rw - 4), False, h, w)
+                                        _fit(f'sample page — {page}', rw - 4), False, h, w)
     _sample_page(stdscr, pal, page, st_it, st_il, st_ih, st_iw)
     pal.use_page('theme')
 
     from .. import actions
-    status = f' palette + gradients → {actions.edit_target(ctx)[1]}'
+    status = f' {pal.color_mode}   ·   edits → {actions.edit_target(ctx)[1]}'
     if note:
         status += f'    {note}'
-    navf = (' j/k entry · a-e page · ↵ fg · B bg · o/u/v bold/undl/rev · n new · r reset · '
-            'p gradient · s save · L load · 1-6 · q ')
+    if ts.focus == 'map':
+        navf = (' tab→roles · j/k · a-e page · ↵ set #rrggbb · n new · x/r remove · p gradient · '
+                's save · L load · 1-6 · q ')
+    else:
+        navf = (' tab→map · j/k · a-e page · ↵ fg(name|#hex) · B bg · o/u/v effects · r reset · '
+                'p gradient · s save · L load · q ')
     _put(stdscr, h - 2, 0, _fit(status, w), pal.style('status_line', h - 2, 0, h, w))
     _put(stdscr, h - 1, 0, _fit(navf.ljust(w), w), pal.style('footer', h - 1, 0, h, w))
     stdscr.refresh()
@@ -1897,72 +1956,104 @@ def run(ctx):
                 from .. import actions
                 from .theme import DEMO_PAGES
                 try:
-                    name = ts.cur_name()
-                    if ch in (ord('j'), curses.KEY_DOWN):
-                        ts.cur = min(len(ts.names) - 1, ts.cur + 1)
-                    elif ch in (ord('k'), curses.KEY_UP):
-                        ts.cur = max(0, ts.cur - 1)
-                    elif ch == ord('g'):
-                        ts.cur = 0
-                    elif ch == ord('G'):
-                        ts.cur = max(0, len(ts.names) - 1)
+                    page = DEMO_PAGES[ts.page]
+                    if ch in (ord('\t'), curses.KEY_BTAB, curses.KEY_RIGHT, curses.KEY_LEFT):
+                        ts.focus = 'roles' if ts.focus == 'map' else 'map'    # toggle the two lists
                     elif ord('a') <= ch <= ord('e'):
-                        ts.page = min(len(DEMO_PAGES) - 1, ch - ord('a'))   # focus a demo page
-                    elif ch in (ord(' '), ord('\n'), curses.KEY_ENTER) and name:
-                        # start empty (show the current value in the prompt) so a typed hex replaces
-                        # rather than appends — enter alone leaves it unchanged.
-                        cur = _hex(ts.resolved.get(name, {}).get('fg', (235, 235, 235)))
-                        new = _input_box(stdscr, pal, f'{name} · fg  (now {cur} → #rrggbb)', '')
+                        ts.page = min(len(DEMO_PAGES) - 1, ch - ord('a'))     # cycle the sample page
+                    elif ch in (ord('j'), curses.KEY_DOWN):
+                        if ts.focus == 'map':
+                            ts.map_cur = min(len(ts.map_names) - 1, ts.map_cur + 1)
+                        else:
+                            ts.role_cur = min(len(ts.roles) - 1, ts.role_cur + 1)
+                    elif ch in (ord('k'), curses.KEY_UP):
+                        if ts.focus == 'map':
+                            ts.map_cur = max(0, ts.map_cur - 1)
+                        else:
+                            ts.role_cur = max(0, ts.role_cur - 1)
+                    elif ch == ord('g'):
+                        setattr(ts, 'map_cur' if ts.focus == 'map' else 'role_cur', 0)
+                    elif ch == ord('G'):
+                        if ts.focus == 'map':
+                            ts.map_cur = max(0, len(ts.map_names) - 1)
+                        else:
+                            ts.role_cur = max(0, len(ts.roles) - 1)
+
+                    # -- color-map edits --
+                    elif ts.focus == 'map' and ch in (ord(' '), ord('\n'), curses.KEY_ENTER):
+                        name = ts.cur_color()
+                        cur = _hex(ts.colors.get(name, (235, 235, 235)))
+                        new = _input_box(stdscr, pal, f'color {name}  (now {cur} → #rrggbb)', '')
                         if new and new.strip():
-                            actions.set_theme_value(ctx, f'palette.{name}.fg', new.strip())
-                            pal = Palette(ctx.config.theme())              # live preview
-                            note = f'{name} fg = {new.strip()}'
-                    elif ch == ord('B') and name:
-                        st = ts.resolved.get(name, {})
-                        cur = _hex(st['bg']) if st.get('bg') else 'none'
-                        new = _input_box(stdscr, pal, f'{name} · bg  (now {cur} → #rrggbb, empty clears)', '')
-                        if new is not None:                # None = Esc (cancel); '' = clear the bg
-                            actions.set_theme_value(ctx, f'palette.{name}.bg', new.strip() or None)
+                            actions.set_theme_value(ctx, f'colors.{name}', new.strip())
                             pal = Palette(ctx.config.theme())
-                            note = f'{name} bg {"set" if new.strip() else "cleared"}'
-                    elif ch in (ord('o'), ord('u'), ord('v')) and name:
-                        attr = {'o': 'bold', 'u': 'underline', 'v': 'reverse'}[chr(ch)]
-                        on = not bool(ts.resolved.get(name, {}).get(attr))
-                        actions.set_theme_value(ctx, f'palette.{name}.{attr}', on)
-                        pal = Palette(ctx.config.theme())
-                        note = f'{name} {attr} {"on" if on else "off"}'
-                    elif ch == ord('n'):
-                        nm = _input_box(stdscr, pal, 'new palette entry — name', '')
+                            note = f'{name} = {new.strip()}'
+                    elif ts.focus == 'map' and ch == ord('n'):
+                        nm = _input_box(stdscr, pal, 'new color name', '')
                         if nm and nm.strip():
                             nm = nm.strip().replace(' ', '_')
-                            fg = _input_box(stdscr, pal, f'{nm} · fg  (#rrggbb)', '#cccccc')
-                            actions.set_theme_value(ctx, f'palette.{nm}.fg', (fg or '#cccccc').strip())
+                            hexv = _input_box(stdscr, pal, f'{nm}  (#rrggbb)', '#cccccc')
+                            actions.set_theme_value(ctx, f'colors.{nm}', (hexv or '#cccccc').strip())
                             pal = Palette(ctx.config.theme())
                             ts.reload()
-                            if nm in ts.names:
-                                ts.cur = ts.names.index(nm)
-                            note = f'added {nm}'
-                    elif ch in (ord('r'), ord('x')) and name:
-                        if ts.override(name) is None:
-                            note = f'{name} is a built-in default (nothing to reset)'
+                            if nm in ts.map_names:
+                                ts.map_cur = ts.map_names.index(nm)
+                            note = f'added color {nm}'
+                    elif ts.focus == 'map' and ch in (ord('r'), ord('x')):
+                        name = ts.cur_color()
+                        if ts.color_override(name) is None:
+                            note = f'{name} is a built-in color (nothing to remove)'
                         else:
-                            actions.set_theme_value(ctx, f'palette.{name}', None)  # drop the override
+                            actions.set_theme_value(ctx, f'colors.{name}', None)
                             pal = Palette(ctx.config.theme())
                             ts.reload()
                             note = f'{name} reset to default'
+
+                    # -- per-page role edits --
+                    elif ts.focus == 'roles' and ch in (ord(' '), ord('\n'), curses.KEY_ENTER):
+                        role = ts.cur_role()
+                        cur = _ref_str(ts.role_ref(role).get('fg'))
+                        new = _input_box(stdscr, pal, f'{page} · {role} · fg  (now {cur} → map name or #hex)', '')
+                        if new and new.strip():
+                            actions.set_theme_value(ctx, f'pages.{page}.{role}.fg', new.strip())
+                            pal = Palette(ctx.config.theme())
+                            note = f'{role} fg = {new.strip()}'
+                    elif ts.focus == 'roles' and ch == ord('B'):
+                        role = ts.cur_role()
+                        cur = _ref_str(ts.role_ref(role).get('bg'))
+                        new = _input_box(stdscr, pal, f'{page} · {role} · bg  (now {cur} → name/#hex, empty clears)', '')
+                        if new is not None:
+                            actions.set_theme_value(ctx, f'pages.{page}.{role}.bg', new.strip() or None)
+                            pal = Palette(ctx.config.theme())
+                            note = f'{role} bg {"set" if new.strip() else "cleared"}'
+                    elif ts.focus == 'roles' and ch in (ord('o'), ord('u'), ord('v')):
+                        role = ts.cur_role()
+                        attr = {'o': 'bold', 'u': 'underline', 'v': 'reverse'}[chr(ch)]
+                        on = not bool(ts.role_style(role).get(attr))
+                        actions.set_theme_value(ctx, f'pages.{page}.{role}.{attr}', on)
+                        pal = Palette(ctx.config.theme())
+                        note = f'{role} {attr} {"on" if on else "off"}'
+                    elif ts.focus == 'roles' and ch in (ord('r'), ord('x')):
+                        role = ts.cur_role()
+                        if ts.role_override(role) is None:
+                            note = f'{role} is default on {page} (nothing to reset)'
+                        else:
+                            actions.set_theme_value(ctx, f'pages.{page}.{role}', None)
+                            pal = Palette(ctx.config.theme())
+                            ts.reload()
+                            note = f'{role} reset to default on {page}'
+
                     elif ch == ord('p'):
-                        page = DEMO_PAGES[ts.page]
                         idx = _popup_choose(stdscr, pal, f'{page} gradient',
-                                            [('from', ''), ('to', ''), ('selected bar', ''),
-                                             ('toggle on/off', '')], 0)
-                        if idx in (0, 1, 2):
-                            stop = ('from', 'to', 'selected')[idx]
+                                            [('from', ''), ('to', ''), ('toggle on/off', '')], 0)
+                        if idx in (0, 1):
+                            stop = ('from', 'to')[idx]
                             new = _input_box(stdscr, pal, f'{page} gradient · {stop}  (#rrggbb)', '')
                             if new and new.strip():
                                 actions.set_theme_value(ctx, f'pages.{page}.gradient.{stop}', new.strip())
                                 pal = Palette(ctx.config.theme())
                                 note = f'{page} gradient {stop} = {new.strip()}'
-                        elif idx == 3:
+                        elif idx == 2:
                             on = not ts.page_gradient_enabled(page)
                             actions.set_theme_value(ctx, f'pages.{page}.gradient.enabled', on)
                             pal = Palette(ctx.config.theme())

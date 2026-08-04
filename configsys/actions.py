@@ -169,25 +169,28 @@ def set_theme_value(ctx, dotted_key, value, *, target=None):
 
 
 def theme_overrides(ctx):
-    '''The MERGED theme overrides in effect (palette / pages / splash, empties dropped) — for
-    display and for snapshotting into a theme plugin. A per-page `gradient: {enabled: false}`
-    round-trips as `gradient: false`, and the splash choice is preserved, so save/load is faithful.'''
+    '''The MERGED theme overrides in effect (colors map / per-page roles + gradient / splash,
+    empties dropped) — for display and for snapshotting into a theme plugin. A per-page
+    `gradient: {enabled: false}` round-trips as `gradient: false`, and the splash choice is
+    preserved, so save/load is faithful.'''
     t = ctx.config.theme()
     out = {}
-    if t.get('palette'):
-        out['palette'] = t['palette']
+    if t.get('colors'):
+        out['colors'] = t['colors']
     pages = {}
     for page, spec in (t.get('pages') or {}).items():
         p = {}
-        if spec.get('roles'):
-            p['roles'] = spec['roles']
-        grad = dict(spec.get('gradient') or {})
-        if grad.get('enabled') in (False, 'false', 'no', 'off'):
-            p['gradient'] = False                     # explicit disable survives the round-trip
-        else:
-            g = {gk: gv for gk, gv in grad.items() if gk != 'enabled'}
-            if g:
-                p['gradient'] = g
+        for k, v in spec.items():                     # roles (dict) + the reserved `gradient`
+            if k == 'gradient':
+                grad = dict(v) if isinstance(v, dict) else {}
+                if v in (False, 'false', 'no', 'off') or grad.get('enabled') in (False, 'false', 'no', 'off'):
+                    p['gradient'] = False             # explicit disable survives the round-trip
+                else:
+                    g = {gk: gv for gk, gv in grad.items() if gk != 'enabled'}
+                    if g:
+                        p['gradient'] = g
+            elif v:
+                p[k] = v
         if p:
             pages[page] = p
     if pages:

@@ -134,38 +134,41 @@ class Config:
         cosmetic, so it is contributed by EVERY layer (a theme-only plugin can ship a look; a
         primary plugin can link one) and merged per key across the full stack repo < plugins <
         primary < discovered < top-config — later wins, so your own config always has the last
-        word. Returns {palette: {name: style}, pages: {page: {roles, gradient}}, splash}, deep-merged
-        per palette-entry, per page, per role/gradient-key. Parsed by tui.theme.resolve_theme; the
-        old `colors`/`elements` schema is ignored (a check warning points at the new shape).'''
-        palette, pages = {}, {}
+        word. Returns {colors: {name: #rrggbb}, pages: {page: {<role>: style, gradient: {...}}},
+        splash}, deep-merged per map-color, per page, per role/gradient-key. Parsed by
+        tui.theme.resolve_theme; the old `elements`/`palette` schema is ignored (a check warning).'''
+        colors, pages = {}, {}
         splash = None                              # startup-fill effect: last layer to speak wins
         for layer in self._layers:                 # low -> high precedence; no role restriction
             t = layer.data.get('theme')
             if not isinstance(t, dict):
                 continue
-            if isinstance(t.get('palette'), dict):
-                for name, style in t['palette'].items():
-                    if isinstance(style, dict):
-                        palette.setdefault(name, {}).update(style)
-                    else:
-                        palette[name] = style       # bare color shorthand -> fg
+            if isinstance(t.get('colors'), dict):
+                colors.update(t['colors'])         # the shared name -> #rrggbb map
             if isinstance(t.get('pages'), dict):
                 for page, spec in t['pages'].items():
                     if not isinstance(spec, dict):
                         continue
-                    dst = pages.setdefault(page, {'roles': {}, 'gradient': {}})
-                    if isinstance(spec.get('roles'), dict):
-                        dst['roles'].update(spec['roles'])
-                    g = spec.get('gradient')
-                    if isinstance(g, dict):
-                        dst['gradient'].update(g)
-                    elif g in (False, 'false', 'no', 'off'):
-                        dst['gradient']['enabled'] = False
-                    elif g in (True, 'true', 'yes', 'on'):
-                        dst['gradient']['enabled'] = True
+                    dst = pages.setdefault(page, {})
+                    for k, v in spec.items():      # roles (dict styles) + the reserved `gradient`
+                        if k == 'gradient':
+                            if isinstance(v, dict) and isinstance(dst.get('gradient'), dict):
+                                dst['gradient'].update(v)
+                            elif isinstance(v, dict):
+                                dst['gradient'] = dict(v)
+                            else:
+                                dst['gradient'] = v          # false/true
+                        elif isinstance(v, dict):
+                            r = dst.get(k)
+                            if isinstance(r, dict):
+                                r.update(v)
+                            else:
+                                dst[k] = dict(v)
+                        else:
+                            dst[k] = v
             if 'splash' in t:
                 splash = t['splash']
-        return {'palette': palette, 'pages': pages, 'splash': splash}
+        return {'colors': colors, 'pages': pages, 'splash': splash}
 
     def driver_preference(self):
         '''The global driver-preference order (a machine setting; whole-list replace across

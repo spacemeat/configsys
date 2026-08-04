@@ -61,20 +61,18 @@ USER_CONFIG_TEMPLATE = '''{
     //     steam: flatpak
     // }
 
-    // TUI theme (all optional; edit live on the Theme screen, key 6). `palette:` maps a NAME to a
-    // full style { fg  bg  bold  underline  reverse } (fg/bg: hex "#rrggbb" or [r,g,b]); `pages:`
-    // binds each screen's ROLES to palette names (a [list] zebra-stripes rows) and owns that page's
-    // background `gradient:` (24-bit terminals only; `gradient: false` turns it off). A role
-    // defaults to the same-named palette entry, so you only spell out what differs. See
-    // docs/theming.md for the role catalog.
+    // TUI theme (all optional; edit live on the Theme screen, key 6). `colors:` is a shared MAP of
+    // name -> #rrggbb; `pages:` gives each screen's ROLES a style { fg  bg  bold  underline
+    // reverse } where fg/bg name a map color OR are a literal "#rrggbb", plus that page's background
+    // `gradient:` (24-bit terminals only; `gradient: false` turns it off). A role defaults to a
+    // built-in style, so a page spells out only what differs. See docs/theming.md for the roles.
     // theme: {
-    //     palette: {
-    //         accent: { fg: "#c88cf0"  bold: true }
-    //         ink:    { fg: "#dcdcdc" }   ink_dim: { fg: "#9a9a9a" }
-    //     }
+    //     colors: { accent: "#c88cf0"  ink: "#dcdcdc"  ink_dim: "#9a9a9a" }
     //     pages: {
-    //         components: { roles: { component: [ ink  ink_dim ] }   // zebra rows
-    //                       gradient: { from: "#160a22"  to: "#050208"  selected: "#3a2258" } }
+    //         components: { component: { fg: ink }              // fg references the map
+    //                       driver:    { fg: ink_dim }
+    //                       selection: { fg: "#ffffff"  bg: accent  bold: true }
+    //                       gradient:  { from: "#160a22"  to: "#050208" } }
     //         profiles:   { gradient: { from: "#08221e"  to: "#020806" } }   // just a different bg
     //     }
     // }
@@ -1091,17 +1089,18 @@ def cmd_check(ctx, args):
                                  pending_vias=ctx.plugin_pending_vias)
     include_warnings = layers.ignored_section_warnings(layer_list)
 
-    # the theme model changed (palette:/pages:); a leftover colors/elements/top-level-gradient block
-    # is ignored, so flag it rather than let a stale theme silently do nothing.
+    # the theme model is `colors:` (a shared map) + `pages.<page>.<role>`; a leftover
+    # palette/elements block or a top-level gradient is ignored, so flag it rather than let a stale
+    # theme silently do nothing.
     theme_warnings = []
     for lyr in layer_list:
         t = lyr.data.get('theme')
         if isinstance(t, dict):
-            stale = [k for k in ('colors', 'elements', 'gradient') if k in t]
+            stale = [k for k in ('palette', 'elements', 'gradient') if k in t]
             if stale:
                 theme_warnings.append(
                     f'{os.path.basename(lyr.path)}: theme uses the old {"/".join(stale)} schema '
-                    f'(now palette:/pages:) — ignored; see docs/theming.md')
+                    f'(now colors: + pages.<page>.<role>) — ignored; see docs/theming.md')
 
     # profile references: a selected profile naming a component that doesn't exist, plus
     # structural errors from expansion (undefined `+include`, include cycle).
@@ -1843,10 +1842,11 @@ def build_parser():
     thsub = thp.add_subparsers(dest='theme_command')
     thsub.add_parser('show', help='the theme overrides currently in effect (default)')
     thsub.add_parser('list', help='saved/available theme plugins')
-    th_set = thsub.add_parser('set', help='set a theme value, e.g. theme set palette.accent.fg "#c88cf0"')
-    th_set.add_argument('key', help='palette.<name>.<fg|bg|bold|underline|reverse> | '
-                                    'pages.<page>.gradient.<from|to|selected|enabled> | '
-                                    'pages.<page>.roles.<role>')
+    th_set = thsub.add_parser('set', help='set a theme value, e.g. theme set colors.accent "#c88cf0"')
+    th_set.add_argument('key', help='colors.<name> | '
+                                    'pages.<page>.<role>.<fg|bg|bold|underline|reverse> | '
+                                    'pages.<page>.gradient.<from|to|enabled>  '
+                                    '(fg/bg = a color-map name or #rrggbb)')
     th_set.add_argument('value')
     th_set.add_argument('--local', action='store_true',
                         help="write to this machine's top config, not the primary plugin")

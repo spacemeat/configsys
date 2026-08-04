@@ -1,8 +1,13 @@
-# Theme redesign — named palette + per-page roles
+# Theme redesign — shared color map + per-page role styles
 
-Reworks the `theme:` model from "global palette + ~40 global elements + one gradient" to a
-**named palette of full styles** that each **page** binds to its own roles, with a **per-page
-background gradient**. Drives a standalone Theme screen (nav key 6) with live demo subpanels.
+Reworks the `theme:` model to two tiers: a shared **color map** (`colors:` — name → #rrggbb) and
+**per-page role styles** (`pages.<page>.<role>` → `{ fg, bg, effects }`, fg/bg referencing a map
+name or a literal), each page owning a **background gradient**. Drives a standalone Theme screen
+(nav key 6) with two editable lists (map + focused page's roles) beside one live sample page.
+
+(Earlier iterations of this doc described a "named palette of full styles + per-page role→name
+bindings". That collapsed into the current map+role-styles model — the map holds *colors*, roles
+hold *styles that reference colors* — after the two-list editor made the split concrete.)
 
 ## Locked (decided)
 
