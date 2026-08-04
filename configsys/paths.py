@@ -33,10 +33,24 @@ _DIR_VARS = {
     'CONFIGSYS_SRC_DIR': 'src',
 }
 
+# The install-layout dirs, by short `dirs:` config key -> (env var, built-in default). Resolution
+# precedence is default < config `dirs:` section < env var (env stays the per-invocation escape
+# hatch). The scope BASES (user/system) plus the three category dirs (app/sdk/src) live here; the
+# BOOTSTRAP paths (home/state/config/repo) deliberately do NOT — they're needed to FIND the config.
+CONFIG_DIR_KEYS = {
+    'user':   ('CONFIGSYS_USERSCOPE_DIR', '~'),
+    'system': ('CONFIGSYS_SYSTEMSCOPE_DIR', '/opt'),
+    'app':    ('CONFIGSYS_APP_DIR', 'apps'),
+    'sdk':    ('CONFIGSYS_SDK_DIR', 'sdks'),
+    'src':    ('CONFIGSYS_SRC_DIR', 'src'),
+}
+_ENV_TO_DIR_KEY = {env: key for key, (env, _d) in CONFIG_DIR_KEYS.items()}
+
 
 class Paths:
     def __init__(self, env=None):
         self.env = dict(os.environ) if env is None else dict(env)
+        self._config_dirs = {}          # install-layout dirs from the loaded config's `dirs:` section
 
         self.home = Path(
             self.env.get('CONFIGSYS_HOME') or self.env.get('HOME') or Path.home()
@@ -129,10 +143,21 @@ class Paths:
             return path
         return self.home / path            # bare relative -> home-relative
 
+    def set_config_dirs(self, dirs):
+        '''Inject the `dirs:` install-layout overrides from the loaded Config (Context does this once
+        the config layer stack is built). Env vars still win; these sit above the built-in defaults.'''
+        self._config_dirs = {k: v for k, v in (dirs or {}).items() if k in CONFIG_DIR_KEYS and v}
+
+    def _resolve_dir(self, key):
+        '''An install-layout dir by short key (user/system/app/sdk/src): env var > config `dirs:` >
+        built-in default.'''
+        env, default = CONFIG_DIR_KEYS[key]
+        return self.env.get(env) or self._config_dirs.get(key) or default
+
     def dir_var(self, name):
-        '''The value of an install-layout category variable (CONFIGSYS_APP_DIR, ...), from the
-        env or its default.'''
-        return self.env.get(name, _DIR_VARS[name])
+        '''The value of an install-layout category variable (CONFIGSYS_APP_DIR, ...): env > config
+        `dirs:` > default.'''
+        return self._resolve_dir(_ENV_TO_DIR_KEY[name])
 
     def _subst_dir_vars(self, s):
         for name in _DIR_VARS:
@@ -142,11 +167,9 @@ class Paths:
         return s
 
     def scope_base(self, scope):
-        '''The base dir a `scope` ('user'|'system') installs under — CONFIGSYS_USERSCOPE_DIR
-        (default `~`, i.e. configsys HOME) or CONFIGSYS_SYSTEMSCOPE_DIR (default `/opt`).'''
-        raw = (self.env.get('CONFIGSYS_SYSTEMSCOPE_DIR', '/opt') if scope == 'system'
-               else self.env.get('CONFIGSYS_USERSCOPE_DIR', '~'))
-        return self.expand(raw)
+        '''The base dir a `scope` ('user'|'system') installs under — env (CONFIGSYS_USER/SYSTEM
+        SCOPE_DIR) > config `dirs:` (user/system) > default (`~` = configsys HOME, `/opt`).'''
+        return self.expand(self._resolve_dir('system' if scope == 'system' else 'user'))
 
     def install_dir(self, raw, scope):
         '''Resolve a driver install location: substitute the $CONFIGSYS_*_DIR category vars (env

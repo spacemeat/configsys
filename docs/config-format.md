@@ -48,12 +48,22 @@ Lives under `$XDG_CONFIG_HOME` (defaults to `~/.config/configsys/configsys.hu`);
 
     ignore-profiles: [ gaming ]      // suppress an auto-activated project profile
 
+    dirs: { sdk: "~/toolchains"  system: /srv/opt }   // relocate install-layout dirs
+
     discover: false                  // opt out of project discovery on this machine
 }
 ```
 
 - **`configs:`** is the set of profiles active on this machine.
 - **`scope:`** sets the default install scope (`user` or `system`) for scope-honoring drivers.
+- **`dirs:`** relocates the install-layout directories without a shell env var. Keys: `user`
+  (user-scope base, default `~`), `system` (system-scope base, default `/opt`), and the category
+  dirs `app`/`sdk`/`src` (defaults `apps`/`sdks`/`src`, referenced in routes as `$CONFIGSYS_APP_DIR`
+  etc.). Precedence is **default < `dirs:` < env** — the `CONFIGSYS_USERSCOPE_DIR` /
+  `CONFIGSYS_SYSTEMSCOPE_DIR` / `CONFIGSYS_APP_DIR` / `CONFIGSYS_SDK_DIR` / `CONFIGSYS_SRC_DIR` env
+  vars still win, so `dirs:` is the durable setting and the env var the per-invocation override.
+  (Bootstrap paths — where the config/state/repo live — stay env-only; they're needed before the
+  config loads.) Merged repo < primary < user like the other machine settings.
 - **`pins:`** reroutes without redefining: a binding-pin forces a component's driver, a
   provider-pin forces which component satisfies a capability.
 - **`driver-preference:`** is a global tiebreak order over drivers, used to pick the default

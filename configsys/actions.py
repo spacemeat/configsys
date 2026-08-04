@@ -94,12 +94,24 @@ CONFIG_SETTINGS = {
                                     'advising.', 'configsys(1)'),
     'ignore-profiles':   ('list',   'Discovered project profiles to NOT auto-activate.',
                           'configsys(1)'),
+    # install-layout dirs (the `dirs:` section) — default < config < env (CONFIGSYS_*_DIR)
+    'dirs.user':         ('dir',    'Base dir for user-scope installs (default ~). '
+                                    'env CONFIGSYS_USERSCOPE_DIR wins.', 'configsys.hu(5)'),
+    'dirs.system':       ('dir',    'Base dir for system-scope installs (default /opt). '
+                                    'env CONFIGSYS_SYSTEMSCOPE_DIR wins.', 'configsys.hu(5)'),
+    'dirs.app':          ('dir',    'Category dir for self-contained apps ($CONFIGSYS_APP_DIR, '
+                                    'default apps).', 'configsys.hu(5)'),
+    'dirs.sdk':          ('dir',    'Category dir for SDKs/libraries ($CONFIGSYS_SDK_DIR, '
+                                    'default sdks).', 'configsys.hu(5)'),
+    'dirs.src':          ('dir',    'Category dir for source trees ($CONFIGSYS_SRC_DIR, '
+                                    'default src).', 'configsys.hu(5)'),
 }
 
 
 def config_settings(ctx):
     '''{key: {kind, value, desc, man}} — the effective machine settings for display (CLI
     `config show` and the TUI Config screen). Read-only.'''
+    from .paths import CONFIG_DIR_KEYS
     cfg = ctx.config
     values = {
         'scope':             cfg.default_scope(),
@@ -107,11 +119,21 @@ def config_settings(ctx):
         'auto-tighten':      cfg.auto_tighten(),
         'ignore-profiles':   cfg.ignore_profiles(),
     }
+    cfg_dirs = cfg.install_dirs()
+    env_map = getattr(ctx.paths, 'env', {}) or {}
     out = {}
     for key, (kind, desc, man) in CONFIG_SETTINGS.items():
-        src = cfg.machine_setting_source(key)             # (file, is_override) or None
-        out[key] = {'kind': kind, 'value': values.get(key), 'desc': desc, 'man': man,
-                    'source': src[0] if src and src[1] else None}
+        if kind == 'dir':
+            sub = key.split('.', 1)[1]                    # user/system/app/sdk/src
+            env, default = CONFIG_DIR_KEYS[sub]
+            envval = env_map.get(env)
+            out[key] = {'kind': kind, 'value': envval or cfg_dirs.get(sub) or default,
+                        'desc': desc, 'man': man,
+                        'source': f'env ${env}' if envval else cfg.dir_source(sub)}
+        else:
+            src = cfg.machine_setting_source(key)         # (file, is_override) or None
+            out[key] = {'kind': kind, 'value': values.get(key), 'desc': desc, 'man': man,
+                        'source': src[0] if src and src[1] else None}
     return out
 
 
@@ -124,6 +146,16 @@ def set_config_setting(ctx, key, values, *, target=None):
     `values` clears it. Returns (changed, target_label). Raises KeyError for an unknown key.'''
     kind = CONFIG_SETTINGS[key][0]
     tfile, label = (target, target) if target else edit_target(ctx)
+    if kind == 'dir':                                     # nested `dirs.<sub>`: edit the dirs map
+        sub = key.split('.', 1)[1]
+        dirs = plugins.read_dirs(tfile)
+        if values:
+            dirs[sub] = values[0]
+        else:
+            dirs.pop(sub, None)
+        plugins.set_dirs(tfile, dirs)
+        ctx.invalidate()
+        return True, label
     if not values:                                        # clear
         (plugins.set_list_section if kind == 'list' else plugins.set_scalar_section)(
             tfile, key, [] if kind == 'list' else None)

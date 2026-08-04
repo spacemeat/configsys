@@ -2111,6 +2111,15 @@ def run(ctx):
                                 note = f'{key} reordered'
                                 cs.reload()
                                 menu_dirty = True
+                        elif info['kind'] == 'dir':         # an install-layout path -> text input
+                            new = _input_box(stdscr, pal, f'{key}  (path; empty = default/env)',
+                                             str(info['value'] or ''))
+                            if new is not None:
+                                v = new.strip()
+                                actions.set_config_setting(ctx, key, [v] if v else [])
+                                note = f'{key} {"set" if v else "cleared"}'
+                                cs.reload()
+                                menu_dirty = True
                         else:                               # other list settings: input box
                             new = _input_box(stdscr, pal,
                                              f'{key}  (space-separated; empty clears)',

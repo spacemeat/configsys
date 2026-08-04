@@ -489,6 +489,29 @@ def set_pins(config_file, pins):
     set_section(config_file, 'pins', lambda indent: _emit_pins(pins, indent))
 
 
+def read_dirs(config_file):
+    '''The install-layout `dirs:` map (user/system/app/sdk/src -> path) from ONE .hu file, or {}.
+    For editing a single layer's own dirs in place (config.install_dirs() gives the MERGED view).'''
+    p = Path(config_file)
+    if not p.exists():
+        return {}
+    data = layers.materialize_string(p.read_text(encoding='utf-8'))
+    d = data.get('dirs') if isinstance(data, dict) else None
+    return {k: v for k, v in d.items() if not isinstance(v, (dict, list))} if isinstance(d, dict) else {}
+
+
+def set_dirs(config_file, dirs):
+    '''Rewrite the `dirs:` node of a config .hu file in place (comments + the rest preserved), or
+    remove it when empty.'''
+    if not dirs:
+        remove_sections(config_file, ['dirs'])
+        return
+    pad_body = lambda indent: '\n'.join(                       # noqa: E731 — small local emitter
+        [' ' * indent + 'dirs: {'] + [f'{" " * (indent + 4)}{k}: {_scalar(v)}' for k, v in dirs.items()]
+        + [' ' * indent + '}'])
+    set_section(config_file, 'dirs', pad_body)
+
+
 def _flat(v):
     '''Flatten a profile/configs value to a flat list of term strings.'''
     if isinstance(v, list):

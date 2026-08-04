@@ -118,6 +118,22 @@ class Config:
                 return (os.path.basename(layer.path), layer.role != 'repo')
         return None
 
+    def install_dirs(self):
+        '''The install-layout dirs from the `dirs:` section (keys user/system/app/sdk/src), merged
+        repo < primary < user — a machine setting. Paths applies the CONFIGSYS_*_DIR env overrides
+        ON TOP (env wins). Only the install-layout dirs live here; bootstrap paths stay env-only.'''
+        return layers.merge_dict_section(self._layers, 'dirs', _MACHINE_ROLES)
+
+    def dir_source(self, key):
+        '''The basename of the highest of YOUR layers (primary/user, not the repo baseline) that
+        sets `dirs.<key>`, or None (built-in default / env). For the Config screen's attribution.'''
+        for layer in reversed(self._layers):
+            d = layer.data.get('dirs')
+            if (layer.role in _MACHINE_ROLES and layer.role != 'repo'
+                    and isinstance(d, dict) and d.get(key) not in (None, '')):
+                return os.path.basename(layer.path)
+        return None
+
     def ignore_profiles(self):
         '''Discovered-project profiles NOT to auto-activate (a machine setting; repo < primary <
         user). The counterpart accessor to configs/scope, for the config editor.'''

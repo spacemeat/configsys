@@ -318,6 +318,7 @@ class Context:
             self._config = Config.load(self.paths, self.discovered, self.plugin_files)
             # back the built-in `all` profile with the loaded component set (lazy: routes carry it)
             self._config._universe_provider = lambda: set(self.routes.components)
+            self.paths.set_config_dirs(self._config.install_dirs())   # env still overrides these
         return self._config
 
     def invalidate(self):

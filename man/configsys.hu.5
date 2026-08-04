@@ -39,6 +39,8 @@ Lives under \fB$XDG_CONFIG_HOME\fR (defaults to \fB~/.config/configsys/configsys
 
     ignore-profiles: [ gaming ]      // suppress an auto-activated project profile
 
+    dirs: { sdk: "~/toolchains"  system: /srv/opt }   // relocate install-layout dirs
+
     discover: false                  // opt out of project discovery on this machine
 }
 .fi
@@ -47,6 +49,8 @@ Lives under \fB$XDG_CONFIG_HOME\fR (defaults to \fB~/.config/configsys/configsys
 \fB\fBconfigs:\fR\fR is the set of profiles active on this machine.
 .IP \(bu 2
 \fB\fBscope:\fR\fR sets the default install scope (\fBuser\fR or \fBsystem\fR) for scope-honoring drivers.
+.IP \(bu 2
+\fB\fBdirs:\fR\fR relocates the install-layout directories without a shell env var. Keys: \fBuser\fR (user-scope base, default \fB~\fR), \fBsystem\fR (system-scope base, default \fB/opt\fR), and the category dirs \fBapp\fR/\fBsdk\fR/\fBsrc\fR (defaults \fBapps\fR/\fBsdks\fR/\fBsrc\fR, referenced in routes as \fB$CONFIGSYS_APP_DIR\fR etc.). Precedence is \fBdefault < \fBdirs:\fR < env\fR — the \fBCONFIGSYS_USERSCOPE_DIR\fR / \fBCONFIGSYS_SYSTEMSCOPE_DIR\fR / \fBCONFIGSYS_APP_DIR\fR / \fBCONFIGSYS_SDK_DIR\fR / \fBCONFIGSYS_SRC_DIR\fR env vars still win, so \fBdirs:\fR is the durable setting and the env var the per-invocation override. (Bootstrap paths — where the config/state/repo live — stay env-only; they're needed before the config loads.) Merged repo < primary < user like the other machine settings.
 .IP \(bu 2
 \fB\fBpins:\fR\fR reroutes without redefining: a binding-pin forces a component's driver, a provider-pin forces which component satisfies a capability.
 .IP \(bu 2
