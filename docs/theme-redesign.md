@@ -1,0 +1,66 @@
+# Theme redesign — named palette + per-page roles
+
+Reworks the `theme:` model from "global palette + ~40 global elements + one gradient" to a
+**named palette of full styles** that each **page** binds to its own roles, with a **per-page
+background gradient**. Drives a standalone Theme screen (nav key 6) with live demo subpanels.
+
+## Locked (decided)
+
+- **Two tiers.** `theme.palette` maps a **name → full style** `{ fg, bg, bold, underline,
+  reverse }` (fg/bg are literal colors — hex / `#rgb` / `[r,g,b]` / `"r,g,b"`). `theme.pages.
+  <page>` binds that page's **roles → palette name(s)** and carries the page's **gradient**.
+  ("Named roles per page" fork.)
+- **Roles default to identity.** A role resolves to the palette entry of the *same name* unless
+  the page remaps it. So a page's `roles:` only spells out what *differs* — the built-in look is
+  uniform across pages, and per-page divergence is opt-in ("for the whims"). A role may map to a
+  **list** of palette names → the renderer **zebra-stripes** rows by index (`row: [ink, ink_dim]`).
+- **Per-page gradient.** Each page owns `gradient: { from, to, selected }` (or `false` to drop
+  it). Built-in defaults give every page a **distinct dark hue** (purple / teal / blue / amber /
+  slate / rose).
+- **Pages** = the five content screens `components profiles plugins dotfiles config` (+ the Theme
+  screen previews all five). Chrome roles (label, os, footer, nav, panel, status_line, …) are
+  ordinary roles, identity-default, overridable per page.
+- **Clean break.** New built-in defaults reproduce today's look. The old `theme.colors` /
+  `theme.elements` schema is **ignored** (a `check` warning points at the new shape). No
+  released userbase (clone-first, pre-0.1.0), so no migration path is kept.
+- **Theme is its own nav screen** (key `6`), not a Config sub-screen — it's a different page even
+  though it writes the same files.
+
+## Schema
+
+```humon
+theme: {
+    palette: {
+        ink:      { fg: "#dcdcdc" }
+        ink_dim:  { fg: "#9a9a9a" }
+        selection:{ fg: "#f0f0f0"  bg: "#3a2258"  bold: true }
+        header:   { fg: "#8ac8ff"  bold: true }
+        installed:{ fg: "#5ac878" }
+        // …users add their own names
+    }
+    pages: {
+        components: {
+            gradient: { from: "#160a22"  to: "#050208"  selected: "#3a2258" }
+            roles: {
+                component:  [ ink  ink_dim ]      // zebra rows
+                menu_header: header
+                installed:  installed             // (identity — could be dropped)
+            }
+        }
+        profiles: { gradient: { from: "#08221e"  to: "#020806" } }   // just a different bg
+    }
+}
+```
+
+## Editor (Theme screen, key 6)
+
+- Left: the **palette** (name → swatch + fg/bg/effects), editable; add/remove entries.
+- Right: **demo subpanels** rendering each page with static fake data in that page's live
+  colors; cycle the focused page with `a`–`e`. Editing a palette entry or a page's role/gradient
+  repaints instantly (re-instantiate `Palette`).
+- Save/Load a theme **plugin** (unchanged mechanism — a plugin whose only content is a `theme:`).
+
+## Open / deferred
+
+- Per-role hex validation UX; palette-name autocomplete in the role editor.
+- Reordering palette entries; duplicate-a-page-theme shortcut.

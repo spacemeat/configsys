@@ -93,11 +93,12 @@ def test_profile_target_picks_the_defining_layer(tmp_path):
     assert tfile == str(top)
 
 
-# -- A4: theme save must preserve a disabled gradient (and not drop it) ----------------------------
+# -- A4: theme save must preserve a disabled per-page gradient (and not drop it) --------------------
 
 def test_theme_overrides_preserves_disabled_gradient(tmp_path):
     user = tmp_path / 'user.hu'
-    user.write_text('{ theme: { gradient: false } }\n', encoding='utf-8')
+    user.write_text('{ theme: { pages: { profiles: { gradient: false } } } }\n', encoding='utf-8')
     ctx = types.SimpleNamespace()
     ctx.config = Config([layers.Layer(str(user), 'user', layers.materialize_string(user.read_text()))])
-    assert actions.theme_overrides(ctx).get('gradient') is False
+    ov = actions.theme_overrides(ctx)
+    assert ov['pages']['profiles']['gradient'] is False   # explicit disable survives the round-trip

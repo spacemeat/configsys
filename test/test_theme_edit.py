@@ -30,30 +30,32 @@ def _ctx(tmp_path, user_text='{ }\n'):
 def test_theme_writer_roundtrip_nested_and_bare_bool(tmp_path):
     f = tmp_path / 'u.hu'
     f.write_text('{ configs: [ dev ] }\n', encoding='utf-8')
-    theme = {'colors': {'accent': '#c88cf0'},
-             'elements': {'profile': {'fg': 'accent', 'bold': True}},
-             'gradient': {'from': '#160a22'}}
+    theme = {'palette': {'accent': {'fg': '#c88cf0', 'bold': True}},
+             'pages': {'components': {'roles': {'component': ['ink', 'ink_dim']},
+                                      'gradient': {'from': '#160a22'}}}}
     plugins.set_theme(str(f), theme)
     got = plugins.read_theme(str(f))
-    assert got['colors']['accent'] == '#c88cf0'
-    assert got['elements']['profile']['fg'] == 'accent'
-    assert got['elements']['profile']['bold'] in (True, 'true')
+    assert got['palette']['accent']['fg'] == '#c88cf0'
+    assert got['palette']['accent']['bold'] in (True, 'true')
+    assert got['pages']['components']['roles']['component'] == ['ink', 'ink_dim']   # list survives
     assert 'bold: true' in f.read_text()              # bare humon bool, not quoted
     assert 'configs: [ dev ]' in f.read_text()        # sibling preserved
 
 
 def test_set_theme_value_and_bool_coercion(tmp_path):
     ctx, user, _ = _ctx(tmp_path)
-    actions.set_theme_value(ctx, 'colors.accent', '#123456')
-    assert ctx.config.theme()['colors']['accent'] == '#123456'
-    actions.set_theme_value(ctx, 'elements.profile.bold', 'true')
-    assert 'bold: true' in user.read_text()
-    actions.set_theme_value(ctx, 'colors.accent', None)      # unset
-    assert 'accent' not in ctx.config.theme()['colors']
+    actions.set_theme_value(ctx, 'palette.accent.fg', '#123456')
+    assert ctx.config.theme()['palette']['accent']['fg'] == '#123456'
+    actions.set_theme_value(ctx, 'palette.profile.bold', 'true')
+    assert 'bold: true' in user.read_text()                  # bare humon bool, coerced
+    actions.set_theme_value(ctx, 'pages.components.gradient.from', '#0a0b0c')
+    assert ctx.config.theme()['pages']['components']['gradient']['from'] == '#0a0b0c'
+    actions.set_theme_value(ctx, 'palette.accent', None)      # unset the whole entry
+    assert 'accent' not in ctx.config.theme()['palette']
 
 
 def test_save_theme_plugin_and_overwrite_guard(tmp_path):
-    ctx, _user, pdir = _ctx(tmp_path, '{ theme: { colors: { accent: "#abcabc" } } }\n')
+    ctx, _user, pdir = _ctx(tmp_path, '{ theme: { palette: { accent: { fg: "#abcabc" } } } }\n')
     path, existed = actions.save_theme_plugin(ctx, 'mytheme')
     assert not existed
     assert (pdir / 'mytheme' / 'theme.hu').exists()
@@ -61,18 +63,19 @@ def test_save_theme_plugin_and_overwrite_guard(tmp_path):
     _p, existed2 = actions.save_theme_plugin(ctx, 'mytheme')   # refuses without force
     assert existed2
     _p, _e = actions.save_theme_plugin(ctx, 'mytheme', force=True)   # force overwrites
-    assert plugins.read_theme(str(pdir / 'mytheme' / 'theme.hu'))['colors']['accent'] == '#abcabc'
+    saved = plugins.read_theme(str(pdir / 'mytheme' / 'theme.hu'))
+    assert saved['palette']['accent']['fg'] == '#abcabc'
 
 
 def test_load_theme_applies_it(tmp_path):
-    ctx, user, _pdir = _ctx(tmp_path, '{ theme: { colors: { accent: "#abcabc" } } }\n')
+    ctx, user, _pdir = _ctx(tmp_path, '{ theme: { palette: { accent: { fg: "#abcabc" } } } }\n')
     actions.save_theme_plugin(ctx, 'mytheme')
     user.write_text('{ }\n', encoding='utf-8')                # clear the local theme
     ctx.invalidate()
-    assert ctx.config.theme()['colors'] == {}
+    assert ctx.config.theme()['palette'] == {}
     changed, label = actions.load_theme(ctx, 'mytheme')
     assert changed
-    assert ctx.config.theme()['colors']['accent'] == '#abcabc'
+    assert ctx.config.theme()['palette']['accent']['fg'] == '#abcabc'
 
 
 def test_load_missing_theme_is_a_noop(tmp_path):
@@ -82,6 +85,6 @@ def test_load_missing_theme_is_a_noop(tmp_path):
 
 
 def test_theme_plugins_list(tmp_path):
-    ctx, _u, _p = _ctx(tmp_path, '{ theme: { colors: { accent: "#111" } } }\n')
+    ctx, _u, _p = _ctx(tmp_path, '{ theme: { palette: { accent: { fg: "#111" } } } }\n')
     actions.save_theme_plugin(ctx, 't1')
     assert 't1' in actions.theme_plugins(ctx)

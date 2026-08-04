@@ -107,8 +107,12 @@ def config_settings(ctx):
         'auto-tighten':      cfg.auto_tighten(),
         'ignore-profiles':   cfg.ignore_profiles(),
     }
-    return {key: {'kind': kind, 'value': values.get(key), 'desc': desc, 'man': man}
-            for key, (kind, desc, man) in CONFIG_SETTINGS.items()}
+    out = {}
+    for key, (kind, desc, man) in CONFIG_SETTINGS.items():
+        src = cfg.machine_setting_source(key)             # (file, is_override) or None
+        out[key] = {'kind': kind, 'value': values.get(key), 'desc': desc, 'man': man,
+                    'source': src[0] if src and src[1] else None}
+    return out
 
 
 def _to_bool(s):
@@ -165,19 +169,29 @@ def set_theme_value(ctx, dotted_key, value, *, target=None):
 
 
 def theme_overrides(ctx):
-    '''The MERGED theme overrides in effect (colors / elements / gradient / splash, empties dropped)
-    — for display and for snapshotting into a theme plugin. Preserves a disabled gradient
-    (`gradient: false`, which resolve_theme understands) and the splash choice, so save/load is
-    faithful for those.'''
+    '''The MERGED theme overrides in effect (palette / pages / splash, empties dropped) — for
+    display and for snapshotting into a theme plugin. A per-page `gradient: {enabled: false}`
+    round-trips as `gradient: false`, and the splash choice is preserved, so save/load is faithful.'''
     t = ctx.config.theme()
-    out = {k: t[k] for k in ('colors', 'elements') if t.get(k)}
-    grad = dict(t.get('gradient') or {})
-    if grad.get('enabled') is False:
-        out['gradient'] = False                       # explicit disable survives the round-trip
-    else:
-        g = {gk: gv for gk, gv in grad.items() if gk != 'enabled'}
-        if g:
-            out['gradient'] = g
+    out = {}
+    if t.get('palette'):
+        out['palette'] = t['palette']
+    pages = {}
+    for page, spec in (t.get('pages') or {}).items():
+        p = {}
+        if spec.get('roles'):
+            p['roles'] = spec['roles']
+        grad = dict(spec.get('gradient') or {})
+        if grad.get('enabled') in (False, 'false', 'no', 'off'):
+            p['gradient'] = False                     # explicit disable survives the round-trip
+        else:
+            g = {gk: gv for gk, gv in grad.items() if gk != 'enabled'}
+            if g:
+                p['gradient'] = g
+        if p:
+            pages[page] = p
+    if pages:
+        out['pages'] = pages
     if t.get('splash') is not None:
         out['splash'] = t['splash']
     return out

@@ -54,7 +54,7 @@ Lives under \fB$XDG_CONFIG_HOME\fR (defaults to \fB~/.config/configsys/configsys
 .IP \(bu 2
 \fB\fBcomponents:\fR\fR \fIamends\fR a route: bindings merge \fBadditively\fR across layers by \fB(via, when)\fR identity — a higher layer adds an install method, overrides a matching binding, retracts one with a \fBdrop:\fR binding, or removes the whole component with \fB{}\fR.
 .IP \(bu 2
-\fB\fBtheme:\fR\fR restyles the TUI (colors, per-element styles, background gradient). It is the one cosmetic section any layer may set; see docs/theming.md.
+\fB\fBtheme:\fR\fR restyles the TUI: a named \fBpalette:\fR of styles and per-screen \fBpages:\fR (role bindings + a background gradient). It is the one cosmetic section any layer may set; see docs/theming.md.
 .SH PROFILES
 .PP
 A profile is a named list of components. Its value is a list of \fBterms\fR, applied left-to-right:

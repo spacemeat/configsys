@@ -1,7 +1,11 @@
-'''TUI color config: hex/rgb parsing, theme-override resolution, and the config `theme:` merge.
-Pure functions — no curses.'''
+'''TUI color config (two-tier model): hex/rgb parsing, palette + per-page role/gradient
+resolution, and the config `theme:` deep-merge. Pure functions — no curses.'''
 
-from configsys.tui.theme import GRAD_A, SEL_BG, SEMANTIC, parse_color, resolve_theme
+from configsys import layers
+from configsys.config import Config
+from configsys.tui.theme import (
+    ALL_PAGES, BUILTIN_GRADIENTS, DEMO_PAGES, _flag, parse_color, resolve_theme,
+)
 
 
 def test_parse_color_forms():
@@ -13,40 +17,96 @@ def test_parse_color_forms():
     assert parse_color([1, 2]) is None                       # wrong arity
 
 
-def test_resolve_theme_defaults():
-    colors, elements, ga, gb, gs, enabled = resolve_theme(None)
-    assert colors['accent'] == SEMANTIC['accent'] and ga == GRAD_A and gs == SEL_BG and enabled
-    assert elements['profile']['fg'] == 'accent'             # default element style
+def test_resolve_defaults_reproduce_builtin_look():
+    palette, pages = resolve_theme(None)
+    assert palette['accent']['fg'] == (200, 140, 240)        # raw color as an fg-only style
+    assert palette['component'] == {'fg': (235, 235, 235), 'bold': True}
+    assert palette['label']['bg'] == (200, 140, 240)         # composite: fg + bg
+    assert palette['footer'].get('reverse') is True
+    # every page present with its own default gradient; components is the built-in purple
+    assert set(pages) == set(ALL_PAGES)
+    ga, gb, gs, enabled = pages['components']['grad']
+    assert (ga, gb, gs) == BUILTIN_GRADIENTS['components'] and enabled
+    # the whims: pages differ in gradient
+    assert pages['profiles']['grad'][0] != pages['components']['grad'][0]
 
 
-def test_resolve_theme_overrides_colors_elements_and_gradient():
-    colors, elements, ga, _gb, gs, enabled = resolve_theme({
-        'colors': {'accent': '#010203', 'my-purple': '#ffffff'},   # override + a NEW palette name
-        'elements': {'profile': {'fg': '#abcdef', 'underline': True}, 'bogus': {'fg': '#fff'}},
-        'gradient': {'from': '#0a0b0c', 'selected': [1, 2, 3]},
-    })
-    assert colors['accent'] == (1, 2, 3)                     # built-in override applied
-    assert colors['my-purple'] == (255, 255, 255)            # arbitrary name added to the palette
-    assert elements['profile'] == {'fg': '#abcdef', 'bold': True, 'underline': True}  # merged
-    assert 'bogus' not in elements                           # only KNOWN elements
-    assert ga == (10, 11, 12) and gs == (1, 2, 3) and enabled
+def test_palette_override_and_new_entry():
+    palette, _ = resolve_theme({'palette': {
+        'accent': {'fg': '#010203'},          # override a built-in
+        'ink': {'fg': '#dcdcdc', 'bg': '#222222', 'bold': True},   # a brand-new named style
+    }})
+    assert palette['accent']['fg'] == (1, 2, 3)
+    assert palette['ink'] == {'fg': (220, 220, 220), 'bg': (34, 34, 34), 'bold': True}
 
 
-def test_resolve_theme_gradient_can_be_disabled():
-    assert resolve_theme({'gradient': False})[5] is False
-    assert resolve_theme({'gradient': {'enabled': False}})[5] is False
-    assert resolve_theme({'gradient': {'from': '#000000'}})[5] is True
+def test_palette_effect_toggles_and_bg_clear():
+    palette, _ = resolve_theme({'palette': {
+        'component': {'bold': False, 'underline': True},   # drop a default flag, add another
+        'label': {'bg': ''},                               # clear the built-in bg
+    }})
+    assert 'bold' not in palette['component'] and palette['component']['underline'] is True
+    assert 'bg' not in palette['label']
 
 
-def test_element_references_custom_palette_color():
-    from configsys.tui.theme import _ref_rgb
-    colors, *_ = resolve_theme({'colors': {'my-teal': '#00ffcc'}})
-    assert _ref_rgb('my-teal', colors) == (0, 255, 204)          # a name -> its rgb
-    assert _ref_rgb('#123456', colors) == (0x12, 0x34, 0x56)     # a literal
-    assert _ref_rgb('no-such', colors) == (0, 0, 0)              # unknown name -> black
+def test_bare_color_shorthand_sets_fg():
+    palette, _ = resolve_theme({'palette': {'accent': '#00ff00'}})
+    assert palette['accent']['fg'] == (0, 255, 0)
+
+
+def test_page_roles_and_zebra_list():
+    _, pages = resolve_theme({'pages': {'components': {
+        'roles': {'component': ['ink', 'ink_dim'], 'menu_header': 'header'}}}})
+    assert pages['components']['roles']['component'] == ['ink', 'ink_dim']
+    assert pages['components']['roles']['menu_header'] == 'header'
+
+
+def test_page_gradient_override_and_disable():
+    _, pages = resolve_theme({'pages': {
+        'profiles': {'gradient': {'from': '#010203', 'enabled': False}},
+        'plugins': {'gradient': False},
+    }})
+    ga, _gb, _gs, enabled = pages['profiles']['grad']
+    assert ga == (1, 2, 3) and enabled is False
+    assert pages['plugins']['grad'][3] is False              # gradient: false disables
 
 
 def test_flag_treats_humon_string_bools_correctly():
-    from configsys.tui.theme import _flag
     assert _flag('true') and _flag(True) and _flag('yes') and _flag('1')
     assert not _flag('false') and not _flag(False) and not _flag(None) and not _flag('no')
+
+
+def _cfg(*texts):
+    roles = ['repo'] + ['user'] * (len(texts) - 1)
+    return Config([layers.Layer(f'l{i}.hu', roles[i], layers.materialize_string(t))
+                   for i, t in enumerate(texts)])
+
+
+def test_config_theme_deep_merge_across_layers():
+    c = _cfg(
+        '{ theme: { palette: { accent: { fg: "#111111" } }'
+        '          pages: { components: { gradient: { from: "#0a0a0a" } } } } }',
+        '{ theme: { palette: { accent: { bold: true }  ink: { fg: "#dcdcdc" } }'
+        '          pages: { components: { gradient: { to: "#020202" }'
+        '                                 roles: { component: ink } } }'
+        '          splash: liquid } }',
+    )
+    t = c.theme()
+    # accent merged across layers (fg from repo, bold from user); ink added. NB: humon materializes
+    # `true` as the string 'true' in raw data — resolve_theme's _flag normalizes it (asserted below).
+    assert t['palette']['accent'] == {'fg': '#111111', 'bold': 'true'}
+    assert t['palette']['ink'] == {'fg': '#dcdcdc'}
+    # page gradient keys merged from both layers; role from the user layer
+    grad = t['pages']['components']['gradient']
+    assert grad['from'] == '#0a0a0a' and grad['to'] == '#020202'
+    assert t['pages']['components']['roles']['component'] == 'ink'
+    assert t['splash'] == 'liquid'
+    # and it resolves without error
+    palette, pages = resolve_theme(t)
+    assert palette['accent'] == {'fg': (17, 17, 17), 'bold': True}
+    assert pages['components']['grad'][0] == (10, 10, 10)
+
+
+def test_demo_pages_are_the_five_content_screens():
+    assert DEMO_PAGES == ['components', 'profiles', 'plugins', 'dotfiles', 'config']
+    assert 'theme' in ALL_PAGES and 'theme' not in DEMO_PAGES

@@ -62,8 +62,9 @@ Lives under `$XDG_CONFIG_HOME` (defaults to `~/.config/configsys/configsys.hu`);
 - **`components:`** *amends* a route: bindings merge **additively** across layers by
   `(via, when)` identity — a higher layer adds an install method, overrides a matching
   binding, retracts one with a `drop:` binding, or removes the whole component with `{}`.
-- **`theme:`** restyles the TUI (colors, per-element styles, background gradient). It is the
-  one cosmetic section any layer may set; see docs/theming.md.
+- **`theme:`** restyles the TUI: a named `palette:` of styles and per-screen `pages:` (role
+  bindings + a background gradient). It is the one cosmetic section any layer may set; see
+  docs/theming.md.
 
 ## Profiles
 

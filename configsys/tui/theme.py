@@ -1,92 +1,102 @@
 '''theme.py — color for the TUI, 24-bit when the terminal allows it.
 
-Preference order per color: (1) true 24-bit via `curses.init_color` (an exact RGB defined into a
-private palette slot) when the terminal can change colors — smooth, faithful, darks stay dark;
-(2) the xterm-256 cube approximation otherwise; (3) the basic 8 on a <256-color terminal. The
-diagonal background GRADIENT is only painted when we have true 24-bit (otherwise the cube turns
-very-dark purples into a few bright blocks) — off it, the menu just uses the default background.
+The model is two tiers (see docs/theme-redesign.md):
+
+- a **palette**: a name -> full STYLE map `{ fg, bg, bold, underline, reverse }` (fg/bg are
+  literal colors: hex / `#rgb` / `[r,g,b]` / `"r,g,b"`); and
+- **pages**: each screen binds its ROLES -> palette name(s) and owns a background GRADIENT.
+
+A role resolves to the palette entry of the SAME name unless the page remaps it (identity
+default), so the built-in look is uniform and per-page divergence is opt-in. A role mapped to a
+LIST of names zebra-stripes rows by index. Every page gets a distinct default gradient.
+
+Preference order per color: (1) true 24-bit via `curses.init_color` when the terminal can change
+colors; (2) the xterm-256 cube approximation; (3) the basic 8. The diagonal background GRADIENT
+is only painted under true 24-bit (the cube crushes dark purples into a few bright blocks).
 
 Colors are user-overridable: a `theme:` section in the config (see Config.theme / resolve_theme)
-supplies hex or [r,g,b] values for any semantic color and for the gradient endpoints.
+supplies `palette:` entries and `pages:` bindings/gradients.
 '''
 
 import curses
 
-# Default semantic RGB (0-255). A `theme.colors.<name>` override replaces any of these.
-SEMANTIC = {
-    'header': (120, 200, 255),
-    'title': (235, 235, 235),
-    'installed': (90, 200, 120),
-    'outdated': (230, 190, 70),
-    'partial': (90, 190, 205),
-    'missing': (150, 150, 150),
-    'locked': (110, 165, 255),
-    'unsupported': (110, 110, 110),
-    'untrusted': (220, 140, 60),   # a plugin driver present but not yet trusted (action needed)
-    'error': (235, 95, 95),
-    'op_install': (90, 200, 120),
-    'op_upgrade': (230, 190, 70),
-    'op_remove': (235, 95, 95),
-    'op_lock': (110, 165, 255),
-    'op_unlock': (120, 210, 210),
-    'dim': (120, 120, 120),
-    'accent': (200, 140, 240),
+# Raw semantic RGB (0-255) — the source the built-in palette is built from, and a friendly set of
+# names to reference. A `palette.<name>` override replaces or extends any of these.
+_SEM = {
+    'header': (120, 200, 255), 'title': (235, 235, 235),
+    'installed': (90, 200, 120), 'outdated': (230, 190, 70), 'partial': (90, 190, 205),
+    'missing': (150, 150, 150), 'locked': (110, 165, 255), 'unsupported': (110, 110, 110),
+    'untrusted': (220, 140, 60), 'error': (235, 95, 95),
+    'op_install': (90, 200, 120), 'op_upgrade': (230, 190, 70), 'op_remove': (235, 95, 95),
+    'op_lock': (110, 165, 255), 'op_unlock': (120, 210, 210),
+    'dim': (120, 120, 120), 'accent': (200, 140, 240),
+}
+SEMANTIC = _SEM             # back-compat alias
+
+GRAD_MAX_BANDS = 96         # cap on the (range-adaptive) number of diagonal gradient steps
+
+
+def _s(fg, bg=None, bold=False, underline=False, reverse=False):
+    '''Build a built-in palette style; `fg`/`bg` may name a _SEM color or be an rgb tuple.'''
+    st = {'fg': _SEM.get(fg, fg) if isinstance(fg, str) else fg}
+    if bg is not None:
+        st['bg'] = _SEM.get(bg, bg) if isinstance(bg, str) else bg
+    if bold:
+        st['bold'] = True
+    if underline:
+        st['underline'] = True
+    if reverse:
+        st['reverse'] = True
+    return st
+
+
+# The built-in palette: every raw color as an fg-only style, plus the composite element styles
+# that make up the default look. Role names match what the renderer asks for (identity binding).
+BUILTIN_PALETTE = {
+    **{name: {'fg': rgb} for name, rgb in _SEM.items()},
+    'label':          _s('title', bg='accent', bold=True),   # the `configsys` chip
+    'os':             _s('header', bold=True),
+    'issue_error':    _s('error', bold=True, reverse=True),
+    'issue_warning':  _s('outdated', bold=True, reverse=True),
+    'menu_header':    _s('dim', bold=True),
+    'select_marker':  _s('accent', bold=True),
+    'profile':        _s('accent', bold=True),
+    'link':           _s('accent', bold=True),
+    'component':      _s('title', bold=True),
+    'unit':           _s('title'),
+    'driver':         _s('dim'),
+    'scope':          _s('dim'),
+    'scope_choice':   _s('accent'),
+    'version':        _s('dim'),
+    'row_error':      _s('error'),
+    'methods':        _s('header'),
+    'info':           _s('accent'),
+    'info_dim':       _s('dim'),
+    'status_line':    _s('accent'),
+    'footer':         _s('dim', reverse=True),
+    'op_install':     _s('op_install', bold=True), 'op_upgrade': _s('op_upgrade', bold=True),
+    'op_remove':      _s('op_remove', bold=True),  'op_lock':    _s('op_lock', bold=True),
+    'op_unlock':      _s('op_unlock', bold=True),  'op_mixed':   _s('accent', bold=True),
 }
 
-# Default menu background: a very dark purple diagonal (top-left -> bottom-right), quantized into
-# GRAD_BANDS steps; the selected row is a brighter solid bar. Overridable via theme.gradient.
-GRAD_A = (22, 10, 34)     # top-left    — dark purple
-GRAD_B = (5, 2, 10)       # bottom-right — near-black
-SEL_BG = (58, 34, 88)     # selected-row bar
-GRAD_MAX_BANDS = 96       # cap on the (range-adaptive) number of diagonal steps
+# The five content screens (the Theme editor previews all of them); 'theme' is the editor's own.
+DEMO_PAGES = ['components', 'profiles', 'plugins', 'dotfiles', 'config']
+ALL_PAGES = DEMO_PAGES + ['theme']
 
-
-# UI elements, each a style: fg / bg are a semantic color NAME or a hex/[r,g,b] value (bg omitted
-# = the gradient background); bold / underline / reverse are flags. Every element is overridable
-# via `theme.elements.<name>.{fg,bg,bold,underline,reverse}`. These defaults reproduce the built-in
-# look. Component-status and op-badge elements share their name with the status/op.
-ELEMENTS = {
-    'label':         {'fg': 'title', 'bg': 'accent', 'bold': True},   # the `configsys` chip
-    'os':            {'fg': 'header', 'bold': True},
-    'issue_error':   {'fg': 'error', 'bold': True, 'reverse': True},   # the ! badge (errors)
-    'issue_warning': {'fg': 'outdated', 'bold': True, 'reverse': True},
-    'menu_header':   {'fg': 'dim', 'bold': True},
-    'select_marker': {'fg': 'accent', 'bold': True},
-    'profile':       {'fg': 'accent', 'bold': True},
-    'link':          {'fg': 'accent', 'bold': True},
-    'component':     {'fg': 'title', 'bold': True},
-    'unit':          {'fg': 'title'},
-    'driver':        {'fg': 'dim'},
-    'scope':         {'fg': 'dim'},
-    'scope_choice':  {'fg': 'accent'},
-    'version':       {'fg': 'dim'},
-    'row_error':     {'fg': 'error'},
-    'methods':       {'fg': 'header'},
-    'info':          {'fg': 'accent'},
-    'info_dim':      {'fg': 'dim'},
-    'status_line':   {'fg': 'accent'},
-    'footer':        {'fg': 'dim', 'reverse': True},
-    # component-status colors (the STATUS column)
-    'installed':   {'fg': 'installed'}, 'outdated': {'fg': 'outdated'},
-    'partial':     {'fg': 'partial'},   'missing':  {'fg': 'missing'},
-    'locked':      {'fg': 'locked'},    'unsupported': {'fg': 'unsupported'},
-    'untrusted':   {'fg': 'untrusted'}, 'error':    {'fg': 'error'},
-    # op badges
-    'op_install': {'fg': 'op_install', 'bold': True}, 'op_upgrade': {'fg': 'op_upgrade', 'bold': True},
-    'op_remove':  {'fg': 'op_remove', 'bold': True},  'op_lock':    {'fg': 'op_lock', 'bold': True},
-    'op_unlock':  {'fg': 'op_unlock', 'bold': True},  'op_mixed':   {'fg': 'accent', 'bold': True},
+# Each page's default background gradient (from top-left, to bottom-right, selected-row bar) — a
+# distinct dark hue per page, for the whims. Overridable via `pages.<page>.gradient`.
+BUILTIN_GRADIENTS = {
+    'components': ((22, 10, 34), (5, 2, 10), (58, 34, 88)),    # purple
+    'profiles':   ((8, 34, 28), (2, 9, 6), (28, 74, 62)),      # teal
+    'plugins':    ((10, 22, 40), (2, 5, 12), (34, 62, 108)),   # blue
+    'dotfiles':   ((36, 24, 8), (9, 6, 2), (78, 58, 28)),      # amber
+    'config':     ((20, 20, 42), (5, 5, 16), (44, 44, 88)),    # indigo/slate
+    'theme':      ((38, 10, 26), (10, 2, 6), (86, 34, 58)),    # rose
 }
 
 
 def _lerp(a, b, t):
     return tuple(round(a[i] + (b[i] - a[i]) * t) for i in range(3))
-
-
-def _ref_rgb(val, colors):
-    '''Resolve a style fg/bg reference: a semantic color NAME -> its rgb, else a hex/[r,g,b].'''
-    if isinstance(val, str) and val in colors:
-        return colors[val]
-    return parse_color(val) or (0, 0, 0)
 
 
 def _flag(v):
@@ -127,33 +137,68 @@ def parse_color(v):
     return None
 
 
+def _resolve_style(st):
+    '''Coerce a palette style dict's fg/bg to rgb tuples (dropping an unparseable bg), leaving the
+    effect flags. Returns a normalized {fg:(r,g,b), bg:(r,g,b)?, bold?, underline?, reverse?}.'''
+    out = {}
+    fg = st.get('fg')
+    out['fg'] = fg if isinstance(fg, tuple) else (parse_color(fg) or _SEM['title'])
+    if st.get('bg') is not None:
+        bg = st['bg'] if isinstance(st['bg'], tuple) else parse_color(st['bg'])
+        if bg:
+            out['bg'] = bg
+    for fl in ('bold', 'underline', 'reverse'):
+        if st.get(fl):
+            out[fl] = True
+    return out
+
+
 def resolve_theme(theme):
-    '''Merge a `theme:` override dict onto the defaults. Returns (colors {name:(r,g,b)}, elements
-    {name: style-dict}, grad_from, grad_to, grad_sel, gradient_enabled). Pure — no curses.
-    `theme.colors.<name>` overrides a semantic color; `theme.elements.<name>.{fg,bg,bold,underline,
-    reverse}` overrides an element's style; `theme.gradient.{from,to,selected}` the background;
-    `theme.gradient: false` (or `.enabled: false`) turns the background gradient off.'''
-    colors = dict(SEMANTIC)
-    elements = {name: dict(style) for name, style in ELEMENTS.items()}
-    ga, gb, gs, enabled = GRAD_A, GRAD_B, SEL_BG, True
-    if isinstance(theme, dict):
-        # the palette is an open map: `colors:` may override a built-in name OR define a brand-new
-        # one, which elements can then reference by name (theme.elements.<el>.fg: my-color).
-        for name, val in (theme.get('colors') or {}).items():
-            rgb = parse_color(val)
-            if rgb:
-                colors[name] = rgb
-        for name, ov in (theme.get('elements') or {}).items():
-            if name in elements and isinstance(ov, dict):
-                elements[name].update(ov)
-        g = theme.get('gradient')
-        if g is False or (isinstance(g, dict) and g.get('enabled') in (False, 'false', 'no')):
-            enabled = False
+    '''Merge a `theme:` override dict (already layer-merged by Config.theme — {palette, pages,
+    splash}) onto the built-ins. Pure — no curses. Returns (palette, pages):
+
+    - palette: {name: normalized-style} (fg/bg rgb tuples + effect flags);
+    - pages:   {page: {'roles': {role: name | [names]}, 'grad': (from, to, sel, enabled)}}.
+    '''
+    theme = theme if isinstance(theme, dict) else {}
+    palette = {name: dict(st) for name, st in BUILTIN_PALETTE.items()}
+    for name, ov in (theme.get('palette') or {}).items():
+        base = palette.get(name, {})
+        if isinstance(ov, dict):
+            for k in ('fg', 'bg', 'bold', 'underline', 'reverse'):
+                if k not in ov:
+                    continue
+                if k == 'bg' and ov[k] in (None, 'none', '', 'false', False):
+                    base.pop('bg', None)
+                elif k in ('bold', 'underline', 'reverse'):
+                    base[k] = _flag(ov[k])
+                    if not base[k]:
+                        base.pop(k)
+                else:
+                    base[k] = ov[k]
+        else:                                        # bare color shorthand -> fg
+            base = dict(base, fg=ov)
+        palette[name] = base
+    palette = {name: _resolve_style(st) for name, st in palette.items()}
+
+    upages = theme.get('pages') or {}
+    pages = {}
+    for page in ALL_PAGES:
+        spec = upages.get(page) if isinstance(upages.get(page), dict) else {}
+        roles = dict(spec.get('roles') or {})
+        ga, gb, gs = BUILTIN_GRADIENTS.get(page, BUILTIN_GRADIENTS['components'])
+        enabled = True
+        g = spec.get('gradient')
         if isinstance(g, dict):
+            if g.get('enabled') in (False, 'false', 'no', 'off'):
+                enabled = False
             ga = parse_color(g.get('from')) or ga
             gb = parse_color(g.get('to')) or gb
             gs = parse_color(g.get('selected')) or gs
-    return colors, elements, ga, gb, gs, enabled
+        elif g in (False, 'false', 'no', 'off'):
+            enabled = False
+        pages[page] = {'roles': roles, 'grad': (ga, gb, gs, enabled)}
+    return palette, pages
 
 
 def rgb_to_256(r, g, b):
@@ -180,6 +225,9 @@ def rgb_to_basic8(r, g, b):
 
 
 class Palette:
+    '''Resolves the theme to curses attrs. Holds every page's resolved roles + gradient; the active
+    page is selected with `use_page` (call sites stay `pal.style('component', ...)`). Color slots
+    and pairs are deduped across all pages, so switching pages is free and never overflows.'''
     def __init__(self, theme=None):
         curses.start_color()
         self.bg = -1
@@ -188,53 +236,68 @@ class Palette:
         except curses.error:
             self.bg = curses.COLOR_BLACK
         self.have256 = curses.COLORS >= 256
-        # True 24-bit reaches us two ways: a direct-color terminal (COLORS == 2**24, e.g.
-        # TERM=xterm-direct) where the color NUMBER is the packed RGB, or a palette-redefinable one
-        # (init_color / can_change_color, e.g. xterm-256color with `ccc`). Either lets us paint the
-        # background gradient with faithful darks; without it we fall back (cube fg, no gradient) —
-        # the 256 cube crushes dark purples into a few bright blocks.
         self.direct = curses.COLORS >= (1 << 24)
         try:
             self.truecolor = self.direct or (self.have256 and curses.can_change_color())
         except curses.error:
             self.truecolor = self.direct
 
-        colors, elements, ga, gb, gs, grad_enabled = resolve_theme(theme)
+        palette, pages = resolve_theme(theme)
         self._next_color = 16          # private palette-slot allocator (truecolor mode)
         self._next_pair = 1
         self._color_cache = {}         # rgb -> palette index
         self._pair_cache = {}          # (fg_idx, bg_idx) -> attr
-        self._fg = {}                  # semantic name -> fg palette index
-        self.attrs = {}
-        for name, rgb in colors.items():
-            idx = self._color(rgb)
-            self._fg[name] = idx
-            self.attrs[name] = self._pair(idx, self.bg)
 
-        self.gradient = self.truecolor and grad_enabled
-        self._grad_bg = []
-        if self.gradient:
-            # one band per distinct 8-bit step across the range (adaptive) so the diagonal is as
-            # smooth as the endpoints allow — no visible stepping — capped at GRAD_MAX_BANDS.
-            span = max(abs(ga[i] - gb[i]) for i in range(3))
-            n = max(16, min(GRAD_MAX_BANDS, span + 1))
-            self._grad_bg = [self._color(_lerp(ga, gb, k / (n - 1))) for k in range(n)]
-            self._sel_bg = self._color(gs)
+        # resolve each palette entry to (fg_idx, bg_idx-or-None, attr-flags)
+        self._pal = {}
+        self._fg = {}                  # name -> fg palette index (at()/get()/fallback)
+        for name, st in palette.items():
+            fg = self._color(st['fg'])
+            bg = self._color(st['bg']) if st.get('bg') else None
+            flags = ((curses.A_BOLD if st.get('bold') else 0)
+                     | (curses.A_UNDERLINE if st.get('underline') else 0)
+                     | (curses.A_REVERSE if st.get('reverse') else 0))
+            self._pal[name] = (fg, bg, flags)
+            self._fg[name] = fg
 
-        # resolve each UI element to (fg_idx, bg_idx-or-None, attr-flags); fg/bg may name a color.
-        self._elements = {}
-        for name, st in elements.items():
-            fg = self._color(_ref_rgb(st.get('fg', 'title'), colors))
-            bg = st.get('bg')
-            bg_idx = self._color(_ref_rgb(bg, colors)) if bg is not None else None
-            flags = ((curses.A_BOLD if _flag(st.get('bold')) else 0)
-                     | (curses.A_UNDERLINE if _flag(st.get('underline')) else 0)
-                     | (curses.A_REVERSE if _flag(st.get('reverse')) else 0))
-            self._elements[name] = (fg, bg_idx, flags)
+        # per-page gradient bands + role bindings
+        self._pages = {}
+        for page, pg in pages.items():
+            ga, gb, gs, enabled = pg['grad']
+            on = self.truecolor and enabled
+            grad_bg, sel_bg = [], None
+            if on:
+                span = max(abs(ga[i] - gb[i]) for i in range(3))
+                n = max(16, min(GRAD_MAX_BANDS, span + 1))
+                grad_bg = [self._color(_lerp(ga, gb, k / (n - 1))) for k in range(n)]
+                sel_bg = self._color(gs)
+            self._pages[page] = {'roles': pg['roles'], 'grad_bg': grad_bg, 'sel_bg': sel_bg, 'on': on}
+        self.page_name = None
+        self.use_page('components')
+
+    # -- page selection --------------------------------------------------
+
+    def use_page(self, page):
+        '''Make `page` the active page — its role bindings + gradient drive subsequent draws.'''
+        pg = self._pages.get(page) or self._pages['components']
+        self._roles = pg['roles']
+        self._grad_bg = pg['grad_bg']
+        self._sel_bg = pg['sel_bg']
+        self.gradient = pg['on']
+        self.page_name = page
+
+    def _entry(self, role, row=0):
+        '''(fg_idx, bg_idx|None, flags) for a role on the active page: the page's binding for
+        `role` (a palette name, or a list zebra-indexed by `row`), else the same-named palette
+        entry (identity), else a dim fallback.'''
+        name = self._roles.get(role, role)
+        if isinstance(name, list):
+            name = name[row % len(name)] if name else role
+        return self._pal.get(name) or self._pal.get(role) or (self._fg.get('dim', 0), None, 0)
+
+    # -- color/pair allocation ------------------------------------------
 
     def _color(self, rgb):
-        '''A palette index for an RGB: an exact custom slot via init_color when we have true
-        24-bit; else the nearest xterm-256 cube (or basic-8) index. Cached + deduped.'''
         key = tuple(rgb)
         if key in self._color_cache:
             return self._color_cache[key]
@@ -269,33 +332,31 @@ class Palette:
         return attr
 
     def get(self, name):
-        return self.attrs.get(name, curses.A_NORMAL)
+        fg = self._fg.get(name)
+        return self._pair(fg, self.bg) if fg is not None else curses.A_NORMAL
 
     def rgb_attr(self, rgb):
-        '''An attr painting `rgb` as fg over the palette's default background — for ad-hoc
-        colors (the startup splash) that aren't part of the semantic map. Shares the slot/pair
-        allocator + caches, and degrades (init_color -> 256-cube -> basic-8) like everything else,
-        so a whole random gradient costs one pair per distinct color and never overflows fatally.'''
+        '''An attr painting `rgb` as fg over the default background — for ad-hoc colors (the splash)
+        outside the semantic map. Shares the slot/pair allocator + caches and degrades gracefully.'''
         return self._pair(self._color(rgb), self.bg)
 
     def rgb_pair(self, fg_rgb, bg_rgb):
-        '''Like rgb_attr but over an explicit bg colour — e.g. a splash fish/bubble glyph painted
-        over the liquid colour at its depth, instead of the default (black) background.'''
+        '''Like rgb_attr but over an explicit bg colour (a splash glyph over the liquid colour).'''
         return self._pair(self._color(fg_rgb), self._color(bg_rgb))
 
-    # -- gradient background ---------------------------------------------
+    # -- gradient-aware drawing (active page) ---------------------------
 
     def band(self, y, x, h, w):
-        '''The gradient band for a cell, along the top-left -> bottom-right diagonal.'''
+        '''The gradient band index for a cell, along the top-left -> bottom-right diagonal.'''
         n = len(self._grad_bg)
         t = (y / max(1, h - 1) + x / max(1, w - 1)) / 2
         return min(n - 1, int(t * n))
 
-    def style(self, element, y, x, h, w, *, selected=False):
-        '''The attr for a named UI element at cell (y, x): its fg + flags, over its own bg if it
-        declares one, else the diagonal gradient (or the selected-row bar). Falls back to a plain
-        pair (reverse when selected) with no gradient.'''
-        fg, elem_bg, flags = self._elements.get(element, (self._fg.get('dim'), None, 0))
+    def style(self, element, y, x, h, w, *, selected=False, row=0):
+        '''The attr for a role at cell (y, x): its fg + flags, over its own bg if the palette entry
+        declares one, else the active page's diagonal gradient (or the selected-row bar). `row`
+        zebra-indexes a list-valued role binding.'''
+        fg, elem_bg, flags = self._entry(element, row)
         if not self.gradient:
             base = self._pair(fg, elem_bg if elem_bg is not None else self.bg)
             return base | flags | (curses.A_REVERSE if selected else 0)
@@ -303,30 +364,25 @@ class Palette:
                                             else self._grad_bg[self.band(y, x, h, w)])
         return self._pair(fg, bg) | flags
 
-    def at(self, name, y, x, h, w, *, selected=False):
-        '''`name`'s fg over the gradient background at cell (y, x) — or the selected-row bar. With
-        no gradient, the plain semantic pair (reverse if selected).'''
+    def at(self, name, y, x, h, w, *, selected=False, row=0):
+        '''`name`'s fg over the gradient background (or the selected bar) — flags/bg ignored, for
+        the many by-name row colorings (status column, etc).'''
+        fg = self._entry(name, row)[0]
         if not self.gradient:
-            return self.get(name) | (curses.A_REVERSE if selected else 0)
+            return self._pair(fg, self.bg) | (curses.A_REVERSE if selected else 0)
         bg = self._sel_bg if selected else self._grad_bg[self.band(y, x, h, w)]
-        return self._pair(self._fg.get(name, self._fg.get('dim')), bg)
+        return self._pair(fg, bg)
 
     def fill(self, y, x, h, w, *, selected=False):
-        '''A blank-cell background attr (fg == bg) for painting the empty canvas behind the text.'''
+        '''A blank-cell background attr (fg == bg) for painting the empty canvas behind text.'''
         if not self.gradient:
             return curses.A_REVERSE if selected else curses.A_NORMAL
         bg = self._sel_bg if selected else self._grad_bg[self.band(y, x, h, w)]
         return self._pair(bg, bg)
 
 
-# Which palette color to paint each component status.
+# Which palette role to paint each component status.
 STATUS_COLOR = {
-    'installed': 'installed',
-    'outdated': 'outdated',
-    'partial': 'partial',
-    'missing': 'missing',
-    'locked': 'locked',
-    'unsupported': 'unsupported',
-    'untrusted': 'untrusted',
-    'error': 'error',
+    'installed': 'installed', 'outdated': 'outdated', 'partial': 'partial', 'missing': 'missing',
+    'locked': 'locked', 'unsupported': 'unsupported', 'untrusted': 'untrusted', 'error': 'error',
 }

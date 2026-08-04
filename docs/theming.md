@@ -1,48 +1,55 @@
 # Theming the TUI
 
 The whole TUI palette is yours. A `theme:` section in your config
-(`~/.config/configsys/configsys.hu`) sets the colors, per-element styles, and the background
-gradient. Nothing here is required — every value has a built-in default; you override only what
-you care about.
+(`~/.config/configsys/configsys.hu`) — or a theme **plugin** — sets the colors and the per-page
+background gradients. Everything has a built-in default; you override only what you care about,
+and you can do it **live** on the Theme screen (nav key `6`).
+
+The model is two tiers:
+
+- a **palette** — a name → full **style** (`fg` / `bg` / effects); and
+- **pages** — each screen binds its **roles** to palette names and owns a background **gradient**.
 
 ```humon
 theme: {
-    colors: {
-        accent:    "#c88cf0"          // override a built-in palette color
-        my-purple: "#8a5cff"          // …or define your OWN name to reference below
+    palette: {
+        accent: { fg: "#c88cf0"  bold: true }        // override a built-in style
+        ink:    { fg: "#dcdcdc" }                     // …or define your OWN named style
+        ink_dim:{ fg: "#9a9a9a" }
+        sel:    { fg: "#f0f0f0"  bg: "#3a2258"  bold: true }
     }
-    elements: {
-        profile:   { fg: accent  bold: true }
-        os:        { fg: "#78c8ff"  underline: true }
-        installed: { fg: "#5ac878" }
-        label:     { fg: "#f0f0f0"  bg: my-purple  bold: true }
+    pages: {
+        components: {
+            roles: { component: [ ink  ink_dim ]  selection: sel }   // zebra rows + cursor bar
+            gradient: { from: "#160a22"  to: "#050208"  selected: "#3a2258" }
+        }
+        profiles: { gradient: { from: "#08221e"  to: "#020806" } }   // just a different backdrop
     }
-    gradient: { from: "#160a22"  to: "#050208"  selected: "#3a2258" }
 }
 ```
 
 ## Where it lives, and precedence
 
-Unlike the other config sections, `theme:` is purely **cosmetic**, so — deliberately — **any
-layer can contribute it**, merged **per key** across the full stack:
+`theme:` is purely **cosmetic**, so — deliberately — **any layer can contribute it**, deep-merged
+per palette-entry and per page across the full stack:
 
 > **repo < plugins < primary < discovered < your top config**
 
-Later wins, so *your* config always has the last word. Two consequences worth calling out:
+Later wins, so *your* config always has the last word. Two consequences:
 
 - **Theme plugins work — however they're wired.** A plugin whose whole job is a theme (just a
-  `theme:` block) applies whether you declare it directly or your **primary** plugin *links* it as
-  a transitive plugin. (This is unlike `scope`/`pins`/`configs`, which only a `primary` plugin may
-  set — those change *what/where* things install, so they're trust-gated; a theme only changes how
-  the TUI looks.)
-- **You always override.** Because your top config is highest-precedence and the merge is per key,
-  you can adopt a theme plugin wholesale and still retune a single color or element on top of it.
+  `theme:` block) applies whether you declare it directly or your **primary** plugin *links* it.
+  (Unlike `scope`/`pins`/`configs`, which only a `primary` may set — a theme only changes how the
+  TUI looks, so it isn't trust-gated.)
+- **You always override.** Because the merge is per key, you can adopt a theme plugin wholesale
+  and still retune a single palette entry or one page's gradient on top of it.
 
-A "theme pack" is therefore just a plugin containing a `theme:` section and nothing else.
+Save your current look as a theme plugin from the Theme screen (`s`), or `configsys theme save
+<name>`; load one with `L` / `configsys theme load <name>`.
 
 ## Color values
 
-Anywhere a color is expected, three forms work:
+Anywhere a color is expected (a palette entry's `fg`/`bg`), three forms work:
 
 | form | example |
 |------|---------|
@@ -50,46 +57,54 @@ Anywhere a color is expected, three forms work:
 | rgb list | `[ 200, 140, 240 ]` |
 | rgb string | `"200,140,240"` |
 
-## `colors:` — the palette (an open map)
+## `palette:` — named styles (an open map)
 
-`colors:` maps **any name** to a color. Use it to override a built-in palette color *or* to define
-new names you reference from `elements:`. The built-in names:
+`palette:` maps **any name** to a style. A style is `{ fg  bg  bold  underline  reverse }` — `fg`
+required, `bg` optional (omit it and the role sits on the page's gradient background; give it one
+for a solid chip, like `label`/`selection`), effects are `true`/`false`. Override a built-in name
+or invent your own to reference from `pages`. A bare color (`accent: "#c88cf0"`) is shorthand for
+`{ fg: "#c88cf0" }`.
+
+The built-in names (each reproduces today's look — override any):
 
 `header` · `title` · `accent` · `dim` · `installed` · `outdated` · `partial` · `missing` ·
-`locked` · `unsupported` · `untrusted` · `error` · `op_install` · `op_upgrade` · `op_remove` ·
-`op_lock` · `op_unlock`
+`locked` · `unsupported` · `untrusted` · `error` · `op_install…op_unlock` · `op_mixed` · `label` ·
+`os` · `menu_header` · `select_marker` · `profile` · `link` · `component` · `unit` · `driver` ·
+`scope` · `scope_choice` · `version` · `row_error` · `methods` · `info` · `info_dim` ·
+`status_line` · `footer` · `issue_error` · `issue_warning`
 
-## `elements:` — per-element style
+## `pages:` — per-screen role bindings + gradient
 
-Each element takes `fg`, `bg`, `bold`, `underline`, `reverse`. `fg`/`bg` may name a palette color
-(built-in or your own) or be a literal color value; omit `bg` and the element sits on the gradient
-background (give it a `bg` for a solid chip, like `label`). Booleans are `true`/`false`.
+Each page is one screen: `components`, `profiles`, `plugins`, `dotfiles`, `config`. A page has:
 
-| element | what it styles |
-|---------|----------------|
-| `label` | the `configsys` chip (top-left) |
-| `os` | the OS block + `[PRETEND]` on the top line |
-| `issue_error` / `issue_warning` | the `⚠ N issues` badge (by severity) |
-| `menu_header` | the column header row (`COMPONENT`, `DRIVER`, …) |
-| `select_marker` | the `»` selection marker |
-| `profile` | a profile row |
-| `link` | an `+include` link row |
-| `component` | a composite component row (expands to units) |
-| `unit` | a leaf/unit row (also the default text color) |
-| `driver` | the `DRIVER` column (the resolved driver: apt, tarball, flatpak, …) |
-| `scope` / `scope_choice` | the `SCOPE` column (`_choice` = a non-default scope) |
-| `version` | the `INSTALLED` / `LATEST` columns |
-| `row_error` | an op-failure message on a row |
-| `installed` `outdated` `partial` `missing` `locked` `unsupported` `untrusted` `error` | the `STATUS` column, by state |
-| `op_install` `op_upgrade` `op_remove` `op_lock` `op_unlock` `op_mixed` | the staged-op badge |
-| `methods` | the "install methods" line |
-| `info` / `info_dim` | the two infoblock detail lines |
-| `status_line` | the `selected:/staged:` line |
-| `footer` | the two key-hint footer bars |
+- **`roles:`** — a map of that page's UI role → a palette **name** (or a **list** of names, which
+  zebra-stripes successive rows). A role you don't mention defaults to the **same-named palette
+  entry** (identity), so a page's `roles:` only spells out what *differs*. This is why the built-in
+  look is uniform and per-page divergence is opt-in.
+- **`gradient:`** — that page's background wash (below).
 
-## `gradient:` — the menu background
+The roles are the palette names above, in the context of that page. The ones you'll reach for
+most: `component`/`unit` (row text), `selection` (the cursor bar — give it a `bg`), `menu_header`
+(column headers), `driver`/`version`/`scope` (columns), the `installed…error` status colors, and
+the chrome (`label`, `os`, `status_line`, `footer`).
 
-A dark diagonal wash behind the menu (top-left → bottom-right):
+```humon
+pages: {
+    components: {
+        roles: {
+            component:   [ ink  ink_dim ]     // alternate row colors
+            selection:   sel                  // the highlighted row
+            menu_header: header
+            installed:   installed            // (identity — could be omitted)
+        }
+    }
+}
+```
+
+## `gradient:` — a page's background
+
+A dark diagonal wash behind that page (top-left → bottom-right). **Every page has a distinct
+default** (purple / teal / blue / amber / indigo), for the whims.
 
 ```humon
 gradient: { from: "#160a22"  to: "#050208"  selected: "#3a2258" }
@@ -97,9 +112,8 @@ gradient: { from: "#160a22"  to: "#050208"  selected: "#3a2258" }
 
 - `from` / `to` — the diagonal endpoints; `selected` — the highlighted-row bar.
 - The step count is **adaptive** — one shade per distinct 8-bit level across your range — so a
-  wider range renders a smoother ramp automatically. Keep both endpoints dark so it never fights
-  the text.
-- `gradient: false` (or `gradient: { enabled: false }`) turns the background off.
+  wider range renders a smoother ramp. Keep both endpoints dark so it never fights the text.
+- `gradient: false` (or `gradient: { enabled: false }`) turns that page's background off.
 
 **24-bit only.** The gradient is painted only on a terminal that can render true color — either a
 direct-color terminal (`TERM=*-direct`) or one that allows palette redefinition
@@ -107,8 +121,17 @@ direct-color terminal (`TERM=*-direct`) or one that allows palette redefinition
 background is left default (the 256-color cube is too coarse for dark purples); foreground colors
 still apply, cube-approximated.
 
+## The Theme screen (key 6)
+
+- **Left** — the palette: each entry's swatch (in its own colors) + `fg`/`bg`/effects. `↵` sets
+  `fg`, `B` sets `bg` (empty clears), `o`/`u`/`v` toggle bold/underline/reverse, `n` adds an entry,
+  `r` resets one to the built-in default.
+- **Right** — a live demo subpanel per page (static fake data) so you see the colors *in place*;
+  `a`–`e` focus a page, and `p` edits the focused page's gradient (from / to / selected / on-off).
+- `s` save the current look as a theme plugin, `L` load one. Every edit repaints instantly.
+
 ## Tips
 
-- Edit `theme:`, relaunch the TUI — no restart of anything else, no code changes.
-- To move the *built-in defaults* (not just your overrides), see
-  `configsys/tui/theme.py` (`SEMANTIC`, `ELEMENTS`, `GRAD_A`/`GRAD_B`, `SEL_BG`, `GRAD_MAX_BANDS`).
+- Edit `theme:` (or use key 6), relaunch the TUI — no restart of anything else, no code changes.
+- Role remapping (per-page `roles:`) is authored in the config today; the Theme screen edits the
+  palette + gradients live. See `docs/theme-redesign.md` for the full model.

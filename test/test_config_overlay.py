@@ -267,23 +267,26 @@ def test_overlap_across_profiles_tracks_all_requesters():
 
 
 def test_theme_merges_across_all_layers_including_plugins():
-    # theme is cosmetic, so EVERY layer contributes (a linked theme plugin works), merged per key
-    # with your top config winning. Includes an ordinary `plugin`-role layer and an elements merge.
+    # theme is cosmetic, so EVERY layer contributes (a linked theme plugin works), merged per
+    # palette-entry / page with your top config winning. Includes an ordinary `plugin`-role layer.
     c = Config(_layers(
-        ('repo',    '{ theme: { colors: { accent: "#111111" } } }'),
-        ('plugin',  '{ theme: { colors: { installed: "#222222" }'
-                    '           elements: { profile: { fg: installed } }'
-                    '           gradient: { from: "#000000" } } }'),
-        ('primary', '{ theme: { elements: { profile: { bold: true } } } }'),
-        ('user',    '{ theme: { colors: { accent: "#333333" } } }')))
+        ('repo',    '{ theme: { palette: { accent: { fg: "#111111" } } } }'),
+        ('plugin',  '{ theme: { palette: { installed: { fg: "#222222" } }'
+                    '           pages: { components: { roles: { component: installed }'
+                    '                                  gradient: { from: "#000000" } } } } }'),
+        ('primary', '{ theme: { palette: { accent: { bold: true } } } }'),
+        ('user',    '{ theme: { palette: { accent: { fg: "#333333" } } } }')))
     t = c.theme()
-    assert t['colors'] == {'accent': '#333333', 'installed': '#222222'}      # user accent wins
-    assert t['elements'] == {'profile': {'fg': 'installed', 'bold': 'true'}}  # plugin+primary merged (raw)
-    assert t['gradient'] == {'from': '#000000'}                             # from a plugin layer
+    # accent merged across repo/primary/user (user fg wins, primary bold kept); installed from plugin
+    assert t['palette'] == {'accent': {'fg': '#333333', 'bold': 'true'},
+                            'installed': {'fg': '#222222'}}
+    assert t['pages']['components']['roles'] == {'component': 'installed'}
+    assert t['pages']['components']['gradient'] == {'from': '#000000'}      # from a plugin layer
 
 
 def test_theme_gradient_disable():
-    assert cfg(REPO, '{ theme: { gradient: false } }').theme()['gradient'] == {'enabled': False}
+    t = cfg(REPO, '{ theme: { pages: { profiles: { gradient: false } } } }').theme()
+    assert t['pages']['profiles']['gradient'] == {'enabled': False}
 
 
 def test_auto_tighten_off_by_default():
@@ -296,7 +299,7 @@ def test_auto_tighten_reads_setting():
 
 
 def test_theme_absent_is_empty():
-    assert cfg(REPO).theme() == {'colors': {}, 'elements': {}, 'gradient': {}, 'splash': None}
+    assert cfg(REPO).theme() == {'palette': {}, 'pages': {}, 'splash': None}
 
 
 def test_theme_splash_opt_out():

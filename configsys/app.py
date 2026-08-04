@@ -61,16 +61,22 @@ USER_CONFIG_TEMPLATE = '''{
     //     steam: flatpak
     // }
 
-    // TUI theme (all optional; hex "#rrggbb" or [r,g,b]). `colors:` overrides a named palette
-    // color; `elements:` styles a UI element with fg/bg/bold/underline/reverse (fg/bg may name a
-    // palette color) — elements: label, os, menu_header, profile, link, component, unit, driver,
-    // scope, scope_choice, version, installed/outdated/missing/locked/error/..., op_install/...,
-    // issue_error, issue_warning, methods, info, status_line, footer. `gradient:` is the dark
-    // diagonal menu background (24-bit terminals only; `gradient: false` turns it off).
+    // TUI theme (all optional; edit live on the Theme screen, key 6). `palette:` maps a NAME to a
+    // full style { fg  bg  bold  underline  reverse } (fg/bg: hex "#rrggbb" or [r,g,b]); `pages:`
+    // binds each screen's ROLES to palette names (a [list] zebra-stripes rows) and owns that page's
+    // background `gradient:` (24-bit terminals only; `gradient: false` turns it off). A role
+    // defaults to the same-named palette entry, so you only spell out what differs. See
+    // docs/theming.md for the role catalog.
     // theme: {
-    //     colors:   { accent: "#c88cf0"  installed: [ 90, 200, 120 ] }
-    //     elements: { profile: { fg: accent  bold: true }  os: { fg: "#78c8ff"  underline: true } }
-    //     gradient: { from: "#160a22"  to: "#050208"  selected: "#3a2258" }
+    //     palette: {
+    //         accent: { fg: "#c88cf0"  bold: true }
+    //         ink:    { fg: "#dcdcdc" }   ink_dim: { fg: "#9a9a9a" }
+    //     }
+    //     pages: {
+    //         components: { roles: { component: [ ink  ink_dim ] }   // zebra rows
+    //                       gradient: { from: "#160a22"  to: "#050208"  selected: "#3a2258" } }
+    //         profiles:   { gradient: { from: "#08221e"  to: "#020806" } }   // just a different bg
+    //     }
     // }
 
     // Define, amend, or shadow profiles. A profile is an ordered list of terms: a bare `name`
@@ -1085,6 +1091,18 @@ def cmd_check(ctx, args):
                                  pending_vias=ctx.plugin_pending_vias)
     include_warnings = layers.ignored_section_warnings(layer_list)
 
+    # the theme model changed (palette:/pages:); a leftover colors/elements/top-level-gradient block
+    # is ignored, so flag it rather than let a stale theme silently do nothing.
+    theme_warnings = []
+    for lyr in layer_list:
+        t = lyr.data.get('theme')
+        if isinstance(t, dict):
+            stale = [k for k in ('colors', 'elements', 'gradient') if k in t]
+            if stale:
+                theme_warnings.append(
+                    f'{os.path.basename(lyr.path)}: theme uses the old {"/".join(stale)} schema '
+                    f'(now palette:/pages:) — ignored; see docs/theming.md')
+
     # profile references: a selected profile naming a component that doesn't exist, plus
     # structural errors from expansion (undefined `+include`, include cycle).
     prof_issues = []
@@ -1129,7 +1147,8 @@ def cmd_check(ctx, args):
     warnings = [i for i in issues if not i.is_error]
     code_warnings = ctx.plugin_code_warnings
     if (not errors and not warnings and not prof_issues and not prof_errors and not pin_issues
-            and not include_warnings and not code_warnings and not conflict_warnings):
+            and not include_warnings and not code_warnings and not conflict_warnings
+            and not theme_warnings):
         print(f'configsys: OK — {len(components)} components, no issues')
         return 0
 
@@ -1149,8 +1168,11 @@ def cmd_check(ctx, args):
         print(f'  warn    {msg}')
     for msg in conflict_warnings:
         print(f'  warn    {msg}')
+    for msg in theme_warnings:
+        print(f'  warn    {msg}')
     n_err = len(errors) + len(prof_errors) + len(prof_issues) + len(pin_issues)
-    n_warn = len(warnings) + len(include_warnings) + len(code_warnings) + len(conflict_warnings)
+    n_warn = (len(warnings) + len(include_warnings) + len(code_warnings) + len(conflict_warnings)
+              + len(theme_warnings))
     print(f'\nconfigsys: {n_err} error(s), {n_warn} warning(s) '
           f'across {len(components)} components')
     return 1 if n_err else 0
@@ -1821,8 +1843,10 @@ def build_parser():
     thsub = thp.add_subparsers(dest='theme_command')
     thsub.add_parser('show', help='the theme overrides currently in effect (default)')
     thsub.add_parser('list', help='saved/available theme plugins')
-    th_set = thsub.add_parser('set', help='set a theme value, e.g. theme set colors.accent "#c88cf0"')
-    th_set.add_argument('key', help='colors.<name> | elements.<el>.<attr> | gradient.<from|to|selected>')
+    th_set = thsub.add_parser('set', help='set a theme value, e.g. theme set palette.accent.fg "#c88cf0"')
+    th_set.add_argument('key', help='palette.<name>.<fg|bg|bold|underline|reverse> | '
+                                    'pages.<page>.gradient.<from|to|selected|enabled> | '
+                                    'pages.<page>.roles.<role>')
     th_set.add_argument('value')
     th_set.add_argument('--local', action='store_true',
                         help="write to this machine's top config, not the primary plugin")
@@ -2132,9 +2156,11 @@ def cmd_config(ctx, args):
 
     if sub == 'show':
         for key, info in settings.items():
-            print(f'  {key:18} {_fmt_setting_value(info["kind"], info["value"])}')
+            tag = f'  (set in {info["source"]})' if info.get('source') else '  (built-in default)'
+            print(f'  {key:18} {_fmt_setting_value(info["kind"], info["value"])}{tag}')
             print(f'  {"":18} {info["desc"]}  (see {info["man"]})')
-        print('\n  edit: configsys config set <key> <value>   (--local = this machine only)')
+        print('\n  values you set here OVERRIDE the built-in defaults.'
+              '\n  edit: configsys config set <key> <value>   (--local = this machine only)')
         return 0
 
     if sub == 'get':

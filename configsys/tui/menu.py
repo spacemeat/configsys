@@ -644,8 +644,9 @@ def _fill_bg(stdscr, pal, h, w):
 
 # -- screen router / nav bar ----------------------------------------------
 SCREENS = [('1', 'components', 'Components'), ('2', 'profiles', 'Profiles'),
-           ('3', 'plugins', 'Plugins'), ('4', 'dotfiles', 'Dotfiles'), ('5', 'config', 'Config')]
-IMPLEMENTED = {'components', 'profiles', 'plugins', 'dotfiles', 'config'}
+           ('3', 'plugins', 'Plugins'), ('4', 'dotfiles', 'Dotfiles'), ('5', 'config', 'Config'),
+           ('6', 'theme', 'Theme')]
+IMPLEMENTED = {'components', 'profiles', 'plugins', 'dotfiles', 'config', 'theme'}
 KEY_TO_SCREEN = {ord(k): sid for k, sid, _name in SCREENS}
 
 
@@ -667,6 +668,7 @@ def _draw(stdscr, pal, ms, ctx, note, diags=(), show_diag=False, diag_top=0, scr
     stdscr.erase()
     h, w = stdscr.getmaxyx()
     cols = _columns(w)
+    pal.use_page(screen)
     if pal.gradient:
         _fill_bg(stdscr, pal, h, w)
 
@@ -1057,6 +1059,7 @@ class ProfileScreen:
 def _draw_profiles(stdscr, pal, ps, ctx, note, screen):
     stdscr.erase()
     h, w = stdscr.getmaxyx()
+    pal.use_page(screen)
     if pal.gradient:
         _fill_bg(stdscr, pal, h, w)
     _draw_nav(stdscr, pal, screen, h, w)
@@ -1123,7 +1126,7 @@ def _draw_profiles(stdscr, pal, ps, ctx, note, screen):
     if note:
         status += f'    {note}'
     navf = (' j/k move · h/l or tab focus · space toggle membership · a (de)activate profile'
-            ' · 1-5 screens · q quit ')
+            ' · 1-6 screens · q quit ')
     _put(stdscr, h - 2, 0, _fit(status, w), pal.style('status_line', h - 2, 0, h, w))
     _put(stdscr, h - 1, 0, _fit(navf.ljust(w), w), pal.style('footer', h - 1, 0, h, w))
     stdscr.refresh()
@@ -1249,10 +1252,13 @@ class ConfigScreen:
 def _draw_config(stdscr, pal, cs, ctx, note, screen):
     stdscr.erase()
     h, w = stdscr.getmaxyx()
+    pal.use_page(screen)
     if pal.gradient:
         _fill_bg(stdscr, pal, h, w)
     _draw_nav(stdscr, pal, screen, h, w)
-    it, il, ih, iw = _panel(stdscr, pal, 1, 0, h - 3, w, 'machine settings', True, h, w)
+    it, il, ih, iw = _panel(stdscr, pal, 1, 0, h - 3, w,
+                            'machine settings  ·  your values here override the built-in defaults',
+                            True, h, w)
     y = it
     for i, key in enumerate(cs.keys):
         if y + 1 >= it + ih:
@@ -1261,8 +1267,13 @@ def _draw_config(stdscr, pal, cs, ctx, note, screen):
         sel = i == cs.cur
         if sel:
             _put(stdscr, y, il, ' ' * iw, pal.fill(y, il, h, w, selected=True))
+        # is this the built-in default, or a value you (or a primary plugin) set on top of it?
+        src = info.get('source')
+        tag = f'   · overrides default (set in {src})' if src else '   · built-in default'
         _put(stdscr, y, il, _fit(f'{key:18} {_setting_str(info["kind"], info["value"], key)}', iw),
              pal.style('label' if sel else 'component', y, il, h, w, selected=sel))
+        _put(stdscr, y, il + max(0, iw - len(tag) - 1), _fit(tag, len(tag)),
+             pal.style('scope_choice' if src else 'info_dim', y, il, h, w, selected=sel))
         _put(stdscr, y + 1, il, _fit(f'   {info["desc"]}  (man: {info["man"]})', iw),
              pal.style('info_dim', y + 1, il, h, w))
         y += 3
@@ -1270,75 +1281,135 @@ def _draw_config(stdscr, pal, cs, ctx, note, screen):
     status = f' edits → {actions.edit_target(ctx)[1]}'
     if note:
         status += f'    {note}'
-    navf = ' j/k move · enter/space edit · 1-5 screens · q quit '
+    navf = ' j/k move · enter/space edit · 1-6 screens · q quit '
     _put(stdscr, h - 2, 0, _fit(status, w), pal.style('status_line', h - 2, 0, h, w))
     _put(stdscr, h - 1, 0, _fit(navf.ljust(w), w), pal.style('footer', h - 1, 0, h, w))
     stdscr.refresh()
 
 
-# -- Theme editor (sub-screen of Config) ----------------------------------
+# -- Theme editor (its own screen, key 6) ---------------------------------
 class ThemeScreen:
-    '''Live per-role color editor over the `theme:` section. Each edit writes via
-    actions.set_theme_value; the caller re-instantiates the Palette so the whole TUI (this editor
-    included) redraws in the new colors — instant preview.'''
+    '''Palette + per-page-gradient editor with live demo subpanels (one per content page). Edits
+    write via actions.set_theme_value (`palette.<name>.<attr>` / `pages.<page>.gradient.<stop>`);
+    the caller re-instantiates the Palette so every panel repaints instantly.'''
     def __init__(self, ctx):
         self.ctx = ctx
-        self.cur = 0
+        self.cur = 0             # selected palette entry (left column)
         self.top = 0
-        from .theme import SEMANTIC, GRAD_A, GRAD_B, SEL_BG
-        self.roles = [('colors', name, name, rgb) for name, rgb in SEMANTIC.items()]
-        self.roles += [('gradient', k, f'gradient {k}', d) for k, d in
-                       (('from', GRAD_A), ('to', GRAD_B), ('selected', SEL_BG))]
+        self.page = 0            # focused demo page (index into DEMO_PAGES)
         self.reload()
 
     def reload(self):
+        from .theme import BUILTIN_PALETTE, resolve_theme
         self.theme = self.ctx.config.theme()
+        names = list(BUILTIN_PALETTE.keys())
+        for n in (self.theme.get('palette') or {}):
+            if n not in names:
+                names.append(n)                     # user-added entries after the built-ins
+        self.names = names
+        self.resolved = resolve_theme(self.theme)[0]
+        self.cur = min(self.cur, max(0, len(names) - 1))
 
-    def override(self, role):
-        cat, key, _label, _default = role
-        node = self.theme.get(cat)
-        return node.get(key) if isinstance(node, dict) else None
+    def cur_name(self):
+        return self.names[self.cur] if self.names else None
 
-    def rgb(self, role):
-        from .theme import parse_color
-        ov = self.override(role)
-        if ov:
-            try:
-                return parse_color(ov)
-            except Exception:                       # noqa: BLE001 — bad value -> show default
-                pass
-        return role[3]
+    def override(self, name):
+        return (self.theme.get('palette') or {}).get(name)
+
+    def page_gradient_enabled(self, page):
+        g = (((self.theme.get('pages') or {}).get(page) or {}).get('gradient') or {})
+        return g.get('enabled') not in (False, 'false', 'no', 'off')
 
 
 def _hex(rgb):
     return '#%02x%02x%02x' % (rgb[0], rgb[1], rgb[2])
 
 
+def _eff_flags(st):
+    return ((curses.A_BOLD if st.get('bold') else 0)
+            | (curses.A_UNDERLINE if st.get('underline') else 0)
+            | (curses.A_REVERSE if st.get('reverse') else 0))
+
+
+# Static fake data the demo subpanels render, so each page shows its colors in-place. Each row is
+# (label, status-palette-name-or-''); the first row of each panel is drawn selected.
+_DEMO_ROWS = {
+    'components': [('ripgrep      12.0.1', 'installed'), ('neovim       0.9.5', 'outdated'),
+                   ('btop         —', 'missing')],
+    'profiles':   [('dev', ''), ('+base', 'partial'), ('web', '')],
+    'plugins':    [('configsys-user', 'installed'), ('void-linux', 'partial'),
+                   ('theme-rose', 'missing')],
+    'dotfiles':   [('nvim → ~/.config/nvim', 'installed'), ('zsh  → ~/.zshrc', 'installed'),
+                   ('git  → ~/.gitconfig', 'missing')],
+    'config':     [('scope            user', ''), ('driver-preference  …', ''),
+                   ('splash           liquid', '')],
+}
+
+
+def _demo_panel(stdscr, pal, page, y0, x0, hh, ww, focused, key):
+    '''Render one page's colors in-place: fill the rect with that page's gradient, then a header +
+    a few fake rows (first selected) in its roles. Switches the palette's active page and back.'''
+    if hh < 2 or ww < 6:
+        return
+    pal.use_page(page)
+    for yy in range(hh):
+        _put(stdscr, y0 + yy, x0, ' ' * ww,
+             pal.fill(yy, 0, hh, ww) if pal.gradient else pal.style('unit', yy, 0, hh, ww))
+    _put(stdscr, y0, x0, _fit(f' {key}  {page} ', ww),
+         pal.style('label' if focused else 'menu_header', 0, 0, hh, ww))
+    for ri, (label, status) in enumerate(_DEMO_ROWS.get(page, [])[:hh - 1]):
+        ry, sel = y0 + 1 + ri, ri == 0
+        if sel and pal.gradient:
+            _put(stdscr, ry, x0, ' ' * ww, pal.fill(1 + ri, 0, hh, ww, selected=True))
+        _put(stdscr, ry, x0 + 1, _fit(label, ww - 11),
+             pal.style('component', 1 + ri, 1, hh, ww, selected=sel, row=ri))
+        if status and ww > 12:
+            _put(stdscr, ry, x0 + ww - 10, _fit(status, 9),
+                 pal.at(status, 1 + ri, ww - 10, hh, ww, selected=sel))
+    pal.use_page('theme')
+
+
 def _draw_theme(stdscr, pal, ts, ctx, note, screen):
     stdscr.erase()
     h, w = stdscr.getmaxyx()
+    pal.use_page('theme')
     if pal.gradient:
         _fill_bg(stdscr, pal, h, w)
-    _draw_nav(stdscr, pal, 'config', h, w)
-    it, il, ih, iw = _panel(stdscr, pal, 1, 0, h - 3, w, 'theme editor — live preview', True, h, w)
+    _draw_nav(stdscr, pal, 'theme', h, w)
     ts.reload()
-    ts.top = _scroll_top(ts.cur, ts.top, ih, len(ts.roles))
-    for vis, i in enumerate(range(ts.top, min(len(ts.roles), ts.top + ih))):
-        role, y = ts.roles[i], it + vis
+    from .theme import DEMO_PAGES
+    body_h, lw = h - 3, max(38, 2 * w // 5)
+    lit, lil, lih, liw = _panel(stdscr, pal, 1, 0, body_h, lw, 'palette', True, h, w)
+    ts.top = _scroll_top(ts.cur, ts.top, lih, len(ts.names))
+    for vis, i in enumerate(range(ts.top, min(len(ts.names), ts.top + lih))):
+        name, y = ts.names[i], lit + vis
         sel = i == ts.cur
-        rgb = ts.rgb(role)
+        st = ts.resolved.get(name, {'fg': (235, 235, 235)})
         if sel:
-            _put(stdscr, y, il, ' ' * iw, pal.fill(y, il, h, w, selected=True))
-        _put(stdscr, y, il + 1, '█████', pal.rgb_attr(rgb))       # live swatch in the role's color
-        tag = '  (override)' if ts.override(role) is not None else ''
-        _put(stdscr, y, il + 8, _fit(f'{role[2]:20} {_hex(rgb)}{tag}', iw - 8),
-             pal.style('label' if sel else 'component', y, il + 8, h, w, selected=sel))
+            _put(stdscr, y, lil, ' ' * liw, pal.fill(y, lil, h, w, selected=True))
+        sw = pal.rgb_pair(st['fg'], st['bg']) if st.get('bg') else pal.rgb_attr(st['fg'])
+        _put(stdscr, y, lil + 1, ' Aa ', sw | _eff_flags(st))          # swatch in the entry's colors
+        eff = ''.join(c for c, f in (('b', 'bold'), ('u', 'underline'), ('r', 'reverse')) if st.get(f))
+        mark = '*' if ts.override(name) is not None else ' '
+        cols = _hex(st['fg']) + (('/' + _hex(st['bg'])) if st.get('bg') else '')
+        _put(stdscr, y, lil + 6, _fit(f'{mark}{name:15} {cols} {eff}', liw - 6),
+             pal.style('label' if sel else 'component', y, lil + 6, h, w, selected=sel))
+
+    rx, rw = lw + 1, w - lw - 1
+    n = len(DEMO_PAGES)
+    ph = max(4, body_h // n)
+    for pi, page in enumerate(DEMO_PAGES):
+        py = 1 + pi * ph
+        _demo_panel(stdscr, pal, page, py, rx, min(ph, h - 2 - py), rw, pi == ts.page,
+                    chr(ord('a') + pi))
+    pal.use_page('theme')
+
     from .. import actions
-    status = f' edits → {actions.edit_target(ctx)[1]}'
+    status = f' palette + gradients → {actions.edit_target(ctx)[1]}'
     if note:
         status += f'    {note}'
-    navf = (' j/k move · enter set hex · r reset · s save theme · L load theme · t back'
-            ' · 1-5 screens · q quit ')
+    navf = (' j/k entry · a-e page · ↵ fg · B bg · o/u/v bold/undl/rev · n new · r reset · '
+            'p gradient · s save · L load · 1-6 · q ')
     _put(stdscr, h - 2, 0, _fit(status, w), pal.style('status_line', h - 2, 0, h, w))
     _put(stdscr, h - 1, 0, _fit(navf.ljust(w), w), pal.style('footer', h - 1, 0, h, w))
     stdscr.refresh()
@@ -1379,6 +1450,7 @@ def _plugin_state(row):
 def _draw_plugins(stdscr, pal, pl, ctx, note, screen):
     stdscr.erase()
     h, w = stdscr.getmaxyx()
+    pal.use_page(screen)
     if pal.gradient:
         _fill_bg(stdscr, pal, h, w)
     _draw_nav(stdscr, pal, screen, h, w)
@@ -1426,7 +1498,7 @@ def _draw_plugins(stdscr, pal, pl, ctx, note, screen):
     if note:
         status += f'    {note}'
     navf = (' j/k · a add · x remove · s sync · S sync-all · b bless · B unbless · u update'
-            ' · 1-5 screens · q quit ')
+            ' · 1-6 screens · q quit ')
     _put(stdscr, h - 2, 0, _fit(status, w), pal.style('status_line', h - 2, 0, h, w))
     _put(stdscr, h - 1, 0, _fit(navf.ljust(w), w), pal.style('footer', h - 1, 0, h, w))
     stdscr.refresh()
@@ -1462,11 +1534,17 @@ class DotfilesScreen:
 def _draw_dotfiles(stdscr, pal, ds, ctx, note, screen):
     stdscr.erase()
     h, w = stdscr.getmaxyx()
+    pal.use_page(screen)
     if pal.gradient:
         _fill_bg(stdscr, pal, h, w)
     _draw_nav(stdscr, pal, screen, h, w)
     it, il, ih, iw = _panel(stdscr, pal, 1, 0, h - 3, w, 'dotfiles (link state)', True, h, w)
-    _put(stdscr, it, il, _fit(f'  {"STATE":11}{"TARGET":30}{"COMPONENT":18}SOURCE (→ = on capture)', iw),
+    # component names are esoteric and vary in length — size the column to the widest one (+ pad),
+    # floored at the header and capped so SOURCE still fits.
+    comp_w = 18
+    if ds.rows:
+        comp_w = max(len('COMPONENT') + 1, min(34, max(len(r[0].comp) for r in ds.rows) + 2))
+    _put(stdscr, it, il, _fit(f'  {"STATE":11}{"TARGET":30}{"COMPONENT":{comp_w}}SOURCE (→ = on capture)', iw),
          pal.style('menu_header', it, il, h, w))
     ds.top = _scroll_top(ds.cur, ds.top, ih - 1, len(ds.rows))
     if not ds.rows:
@@ -1480,7 +1558,7 @@ def _draw_dotfiles(stdscr, pal, ds, ctx, note, screen):
         mark = '!' if state == 'unmanaged' else ' '
         src = ('' if here else '→ ') + f'{Path(root).name}/{rel}'
         elem = 'label' if sel else _DF_STATE_ELEM.get(state, 'component')
-        _put(stdscr, y, il, _fit(f'{mark} {state:10}{tgt:30}{rc.comp:18}{src}', iw),
+        _put(stdscr, y, il, _fit(f'{mark} {state:10}{tgt:30}{rc.comp:{comp_w}}{src}', iw),
              pal.style(elem, y, il, h, w, selected=sel))
 
     n_unmanaged = sum(1 for r in ds.rows if r[3] == 'unmanaged')
@@ -1489,7 +1567,7 @@ def _draw_dotfiles(stdscr, pal, ds, ctx, note, screen):
         status += f'   ! {n_unmanaged} unmanaged (capture before linking)'
     if note:
         status += f'    {note}'
-    navf = ' j/k · l link · x unlink · c capture (adopt on-system) · 1-5 screens · q quit '
+    navf = ' j/k · l link · x unlink · c capture (adopt on-system) · 1-6 screens · q quit '
     _put(stdscr, h - 2, 0, _fit(status, w), pal.style('status_line', h - 2, 0, h, w))
     _put(stdscr, h - 1, 0, _fit(navf.ljust(w), w), pal.style('footer', h - 1, 0, h, w))
     stdscr.refresh()
@@ -1801,49 +1879,97 @@ def run(ctx):
             # -- Theme editor (sub-screen of Config); edits re-instantiate pal for live preview --
             if screen == 'theme':
                 from .. import actions
+                from .theme import DEMO_PAGES
                 try:
+                    name = ts.cur_name()
                     if ch in (ord('j'), curses.KEY_DOWN):
-                        ts.cur = min(len(ts.roles) - 1, ts.cur + 1)
+                        ts.cur = min(len(ts.names) - 1, ts.cur + 1)
                     elif ch in (ord('k'), curses.KEY_UP):
                         ts.cur = max(0, ts.cur - 1)
                     elif ch == ord('g'):
                         ts.cur = 0
                     elif ch == ord('G'):
-                        ts.cur = max(0, len(ts.roles) - 1)
-                    elif ch == ord('t'):
-                        screen = 'config'
-                    elif ch in (ord(' '), ord('\n'), curses.KEY_ENTER):
-                        role = ts.roles[ts.cur]
-                        new = _input_box(stdscr, pal, f'{role[2]}  (#rrggbb)', _hex(ts.rgb(role)))
+                        ts.cur = max(0, len(ts.names) - 1)
+                    elif ord('a') <= ch <= ord('e'):
+                        ts.page = min(len(DEMO_PAGES) - 1, ch - ord('a'))   # focus a demo page
+                    elif ch in (ord(' '), ord('\n'), curses.KEY_ENTER) and name:
+                        # start empty (show the current value in the prompt) so a typed hex replaces
+                        # rather than appends — enter alone leaves it unchanged.
+                        cur = _hex(ts.resolved.get(name, {}).get('fg', (235, 235, 235)))
+                        new = _input_box(stdscr, pal, f'{name} · fg  (now {cur} → #rrggbb)', '')
                         if new and new.strip():
-                            actions.set_theme_value(ctx, f'{role[0]}.{role[1]}', new.strip())
-                            pal = Palette(ctx.config.theme())          # live preview
-                            note = f'{role[2]} = {new.strip()}'
-                    elif ch == ord('r'):
-                        role = ts.roles[ts.cur]
-                        actions.set_theme_value(ctx, f'{role[0]}.{role[1]}', None)   # drop override
+                            actions.set_theme_value(ctx, f'palette.{name}.fg', new.strip())
+                            pal = Palette(ctx.config.theme())              # live preview
+                            note = f'{name} fg = {new.strip()}'
+                    elif ch == ord('B') and name:
+                        st = ts.resolved.get(name, {})
+                        cur = _hex(st['bg']) if st.get('bg') else 'none'
+                        new = _input_box(stdscr, pal, f'{name} · bg  (now {cur} → #rrggbb, empty clears)', '')
+                        if new is not None:                # None = Esc (cancel); '' = clear the bg
+                            actions.set_theme_value(ctx, f'palette.{name}.bg', new.strip() or None)
+                            pal = Palette(ctx.config.theme())
+                            note = f'{name} bg {"set" if new.strip() else "cleared"}'
+                    elif ch in (ord('o'), ord('u'), ord('v')) and name:
+                        attr = {'o': 'bold', 'u': 'underline', 'v': 'reverse'}[chr(ch)]
+                        on = not bool(ts.resolved.get(name, {}).get(attr))
+                        actions.set_theme_value(ctx, f'palette.{name}.{attr}', on)
                         pal = Palette(ctx.config.theme())
-                        note = f'{role[2]} reset to default'
+                        note = f'{name} {attr} {"on" if on else "off"}'
+                    elif ch == ord('n'):
+                        nm = _input_box(stdscr, pal, 'new palette entry — name', '')
+                        if nm and nm.strip():
+                            nm = nm.strip().replace(' ', '_')
+                            fg = _input_box(stdscr, pal, f'{nm} · fg  (#rrggbb)', '#cccccc')
+                            actions.set_theme_value(ctx, f'palette.{nm}.fg', (fg or '#cccccc').strip())
+                            pal = Palette(ctx.config.theme())
+                            ts.reload()
+                            if nm in ts.names:
+                                ts.cur = ts.names.index(nm)
+                            note = f'added {nm}'
+                    elif ch in (ord('r'), ord('x')) and name:
+                        if ts.override(name) is None:
+                            note = f'{name} is a built-in default (nothing to reset)'
+                        else:
+                            actions.set_theme_value(ctx, f'palette.{name}', None)  # drop the override
+                            pal = Palette(ctx.config.theme())
+                            ts.reload()
+                            note = f'{name} reset to default'
+                    elif ch == ord('p'):
+                        page = DEMO_PAGES[ts.page]
+                        idx = _popup_choose(stdscr, pal, f'{page} gradient',
+                                            [('from', ''), ('to', ''), ('selected bar', ''),
+                                             ('toggle on/off', '')], 0)
+                        if idx in (0, 1, 2):
+                            stop = ('from', 'to', 'selected')[idx]
+                            new = _input_box(stdscr, pal, f'{page} gradient · {stop}  (#rrggbb)', '')
+                            if new and new.strip():
+                                actions.set_theme_value(ctx, f'pages.{page}.gradient.{stop}', new.strip())
+                                pal = Palette(ctx.config.theme())
+                                note = f'{page} gradient {stop} = {new.strip()}'
+                        elif idx == 3:
+                            on = not ts.page_gradient_enabled(page)
+                            actions.set_theme_value(ctx, f'pages.{page}.gradient.enabled', on)
+                            pal = Palette(ctx.config.theme())
+                            note = f'{page} gradient {"on" if on else "off"}'
                     elif ch == ord('s'):
-                        name = _input_box(stdscr, pal, 'save current theme as plugin — name', '')
-                        if name and name.strip():
-                            name = name.strip()
-                            _pdir, existed = actions.save_theme_plugin(ctx, name)
+                        nm = _input_box(stdscr, pal, 'save current theme as plugin — name', '')
+                        if nm and nm.strip():
+                            nm = nm.strip()
+                            _pdir, existed = actions.save_theme_plugin(ctx, nm)
                             if existed:
-                                idx = _popup_choose(stdscr, pal, f'{name} exists — overwrite?',
+                                idx = _popup_choose(stdscr, pal, f'{nm} exists — overwrite?',
                                                     [('overwrite', ''), ('cancel', '')], 1)
                                 if idx == 0:
-                                    actions.save_theme_plugin(ctx, name, force=True)
-                                    note = f'saved {name} (overwritten)'
+                                    actions.save_theme_plugin(ctx, nm, force=True)
+                                    note = f'saved {nm} (overwritten)'
                                 else:
                                     note = 'save cancelled'
                             else:
-                                note = f'saved theme plugin {name}'
+                                note = f'saved theme plugin {nm}'
                     elif ch == ord('L'):
                         names = actions.theme_plugins(ctx)
                         if names:
-                            idx = _popup_choose(stdscr, pal, 'load theme',
-                                                [(n, '') for n in names], 0)
+                            idx = _popup_choose(stdscr, pal, 'load theme', [(n, '') for n in names], 0)
                             if idx is not None:
                                 actions.load_theme(ctx, names[idx])
                                 pal = Palette(ctx.config.theme())
