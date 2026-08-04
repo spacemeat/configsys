@@ -504,8 +504,8 @@ def _columns(w):
     start = 3                                     # after the select marker + op badge
     scope_w, status_w = 8, 9
     flex = max(24, (w - 1) - start - scope_w - status_w - 5)   # 5 inter-column gaps
-    ver_w = max(8, min(24, flex // 4))            # INSTALLED == LATEST (roomier)
-    rest = max(20, flex - 2 * ver_w)              # NAME + DRIVER share the remainder
+    ver_w = max(9, min(12, flex // 8))            # INSTALLED == LATEST — compact (clean_version'd)
+    rest = max(20, flex - 2 * ver_w)              # NAME + DRIVER absorb the freed width
     driver_w = max(7, min(rest // 4, 16))         # DRIVER: compact (driver names are short)
     name_w = max(14, rest - driver_w)                # NAME takes the rest
     nx = start
@@ -567,19 +567,18 @@ def _methods_line(ms, ctx):
 
 
 def _infoblock(ms, ctx):
-    '''Two detail lines for the current row: (1) full versions / lock state, (2) the
-    install location on its own line (paths get long). Groups get a one-line summary.
-    (The columns truncate these; here is where they show in full.)'''
+    '''One detail line for the current row: versions / lock state, then the install location right
+    after (the columns truncate these; here they show in full). Groups get a one-line summary.'''
     n = ms.cur()
     if n is None:
-        return '', ''
+        return ''
     if n.kind != UNIT:
-        return ' ' + n.summary(), ''
+        return ' ' + n.summary()
     m = n.members[0]
     rc = m.component
     if not m.supported:
         # `error` carries the right message: the trust hint for untrusted, else "not supported"
-        return f' {rc.driver}\\{rc.comp}   ·   {m.error or "driver not yet supported"}', ''
+        return f' {rc.driver}\\{rc.comp}   ·   {m.error or "driver not yet supported"}'
     parts = [f'{rc.driver}\\{rc.comp}']
     if m.scope:
         parts.append(f'scope: {m.scope}')
@@ -589,7 +588,9 @@ def _infoblock(ms, ctx):
         parts.append('version-locked')
     drv = get_driver(rc.driver, ctx.runner, ctx.paths)
     loc = drv.location(rc) if drv is not None else None
-    return ' ' + '   ·   '.join(parts), (f' at: {loc}' if loc else '')
+    if loc:
+        parts.append(f'at: {loc}')                # location now rides the same line as the versions
+    return ' ' + '   ·   '.join(parts)
 
 
 def _wrap(s, width):
@@ -693,7 +694,7 @@ def _draw(stdscr, pal, ms, ctx, note, diags=(), show_diag=False, diag_top=0, scr
         _put(stdscr, 2, x, _fit(text, cw), pal.style('menu_header', 2, x, h, w))
 
     list_top = 3
-    list_h = max(1, h - list_top - 7)  # description + methods + 2 infoblock + status + 2 footers
+    list_h = max(1, h - list_top - 6)  # description + methods + infoblock + status + 2 footers
     ms.top = first = _scroll_top(ms.cursor, ms.top, list_h, len(ms.rows))
 
     _KIND_ELEM = {PROFILE: 'profile', LINK: 'link', COMPONENT: 'component', UNIT: 'unit'}
@@ -739,12 +740,10 @@ def _draw(stdscr, pal, ms, ctx, note, diags=(), show_diag=False, diag_top=0, scr
     _cn = _row_component(ms.cur())               # the selected component's brief description
     _comp = ctx.routes.components.get(_cn) if _cn else None
     _desc = (_comp.description if _comp else '') or ''
-    _put(stdscr, h - 7, 0, _fit(f' {_cn} — {_desc}' if _desc else '', w),
-         pal.style('info', h - 7, 0, h, w))
-    _put(stdscr, h - 6, 0, _fit(_methods_line(ms, ctx), w), pal.style('methods', h - 6, 0, h, w))
-    info1, info2 = _infoblock(ms, ctx)
-    _put(stdscr, h - 5, 0, _fit(info1, w), pal.style('info', h - 5, 0, h, w))
-    _put(stdscr, h - 4, 0, _fit(info2, w), pal.style('info_dim', h - 4, 0, h, w))
+    _put(stdscr, h - 6, 0, _fit(f' {_cn} — {_desc}' if _desc else '', w),
+         pal.style('info', h - 6, 0, h, w))
+    _put(stdscr, h - 5, 0, _fit(_methods_line(ms, ctx), w), pal.style('methods', h - 5, 0, h, w))
+    _put(stdscr, h - 4, 0, _fit(_infoblock(ms, ctx), w), pal.style('info_dim', h - 4, 0, h, w))
 
     status_line = f' selected:{len(ms.selected)}  staged:{len(ms.staged)}'
     if note:
