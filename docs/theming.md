@@ -108,15 +108,20 @@ so you can tell what your terminal gave us.
 
 ## The Theme screen (key 6)
 
-- **Top-left — the color map**: name → swatch + hex. `↵` set a color, `n` add, `x`/`r` remove an
-  override.
+- **Top-left — the color map**: name → swatch + hex, laid out in **two columns** when the panel is
+  wide enough. `↵` set a color, `n` add, `x`/`r` remove an override. `h`/`l` move between columns.
 - **Bottom-left — the focused page's roles**: only the roles *that page actually uses*, each with
-  its fg/bg refs + effects; the list swaps as you cycle pages. `↵` set fg (a map name or `#hex`),
-  `B` set bg, `o`/`u`/`v` toggle bold/underline/reverse, `r` reset the role on this page.
-- **`Tab`** toggles focus between the two lists; **`a`–`e`** cycle which page you're editing;
-  **`p`** edits the focused page's gradient.
+  its fg/bg refs + effects; the list swaps as you cycle pages. It also lists the two **gradient
+  endpoints** (`gradient from` / `gradient to`) as single-color rows — edit them like any role
+  (a map name or `#hex`), no bg/effects. `↵` set fg, `B` set bg, `o`/`u`/`v` toggle
+  bold/underline/reverse, `r` reset the role on this page.
+- **`Tab`** toggles focus between the two lists (`h`/`l` also cross the boundary); **`a`–`e`** cycle
+  which page you're editing; **`p`** toggles the focused page's gradient on/off.
 - **Right — the sample page**: a mock of that *actual* screen (its layout + its own roles) in the
-  page's colors + gradient, so cycling shows a faithful, distinct preview. `s` save the look as a
-  theme plugin, `L` load one. Edits repaint live.
+  page's colors + gradient, so cycling shows a faithful, distinct preview. Edits repaint live.
+- **`s` save** opens a destination picker: **into primary plugin** (writes the look into your
+  primary plugin's data file, so it travels/versions with the rest of your config — shown only when
+  a primary is blessed + synced), **local config** (this machine's top config), or **standalone
+  theme plugin** (a named pack, loadable later with `L`). **`L`** loads a saved theme plugin.
 - The status line shows the **detected terminal color mode** — if it reads `256-color (approx)`
   rather than `24-bit`, color collapse/collisions are your terminal quantizing, not the theme.

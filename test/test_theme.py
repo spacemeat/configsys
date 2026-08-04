@@ -59,6 +59,15 @@ def test_selection_bg_drives_the_selected_bar():
     assert pages['components']['sel_bg'] == (0x12, 0x34, 0x56)
 
 
+def test_gradient_endpoint_references_color_map():
+    # a gradient endpoint may name a map color (like a role fg) or be a literal
+    _c, pages = resolve_theme({'colors': {'sky': '#0a0b0c'},
+                               'pages': {'components': {'gradient': {'from': 'sky', 'to': '#010203'}}}})
+    ga, gb, _en = pages['components']['grad']
+    assert ga == (10, 11, 12)          # 'from' followed the map color 'sky'
+    assert gb == (1, 2, 3)             # 'to' is a literal
+
+
 def test_page_gradient_override_and_disable():
     _c, pages = resolve_theme({'pages': {
         'profiles': {'gradient': {'from': '#010203', 'enabled': False}},

@@ -88,3 +88,46 @@ def test_theme_plugins_list(tmp_path):
     ctx, _u, _p = _ctx(tmp_path, '{ theme: { colors: { accent: "#111" } } }\n')
     actions.save_theme_plugin(ctx, 't1')
     assert 't1' in actions.theme_plugins(ctx)
+
+
+def test_save_theme_local_writes_top_config(tmp_path):
+    ctx, user, _ = _ctx(tmp_path, '{ theme: { colors: { accent: "#123456" } } }\n')
+    ok, label = actions.save_theme_local(ctx)
+    assert ok and label == 'top config'
+    assert plugins.read_theme(str(user))['colors']['accent'] == '#123456'
+
+
+def test_no_primary_theme_target(tmp_path):
+    ctx, _u, _p = _ctx(tmp_path)
+    assert actions.primary_theme_target(ctx) is None
+    ok, msg = actions.save_theme_to_primary(ctx)
+    assert ok is False and 'primary' in msg
+
+
+def test_save_theme_to_primary_writes_into_primary(tmp_path):
+    # a synced primary plugin declared in the top config, plus a local theme to snapshot
+    pdir = tmp_path / 'plugins'
+    (pdir / 'myprim').mkdir(parents=True)
+    (pdir / 'myprim' / 'plugin.hu').write_text(
+        f'{{\n  name: myprim\n  requires-abi: {plugins.ABI_VERSION}\n  data: [ data.hu ]\n}}\n',
+        encoding='utf-8')
+    (pdir / 'myprim' / 'data.hu').write_text('{ }\n', encoding='utf-8')
+    repo = tmp_path / 'config.hu'
+    repo.write_text('{ }\n', encoding='utf-8')
+    user = tmp_path / 'user.hu'
+    user.write_text('{ plugins: [ { source: myprim  primary: true } ]\n'
+                    '  theme: { colors: { accent: "#123456" } } }\n', encoding='utf-8')
+
+    def load():
+        return Config([layers.Layer(str(repo), 'repo', layers.materialize_string(repo.read_text())),
+                       layers.Layer(str(user), 'user', layers.materialize_string(user.read_text()))])
+
+    ctx = types.SimpleNamespace(config=load(),
+                                paths=types.SimpleNamespace(user_config_file=str(user), plugins_dir=pdir))
+    ctx.invalidate = lambda: setattr(ctx, 'config', load())
+
+    assert actions.primary_theme_target(ctx) == 'myprim'
+    ok, label = actions.save_theme_to_primary(ctx)
+    assert ok and label == 'myprim'
+    # the current theme landed in the primary's data file (travels with the primary)
+    assert plugins.read_theme(str(pdir / 'myprim' / 'data.hu'))['colors']['accent'] == '#123456'

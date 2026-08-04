@@ -252,6 +252,44 @@ def load_theme(ctx, name, *, target=None):
     return True, label
 
 
+def _primary_data_file(ctx):
+    '''The primary plugin's highest-precedence synced data file (where a theme/pin can be written so
+    it travels with the primary), plus the primary's name — or (None, None) if no primary is blessed
+    and synced. Mirrors the edit_target / _pin_promote idiom.'''
+    decls = plugins.declared(ctx.paths.user_config_file)
+    prim = plugins.primary_name(decls)
+    if not prim:
+        return None, None
+    files = [f for f, role in plugins.layer_files(ctx.paths.plugins_dir, decls) if role == 'primary']
+    return (files[0], prim) if files else (None, None)
+
+
+def primary_theme_target(ctx):
+    '''The primary plugin's name if one is blessed AND synced (so a theme can be written into it),
+    else None — used to offer/hide the "save into primary plugin" destination.'''
+    return _primary_data_file(ctx)[1]
+
+
+def save_theme_to_primary(ctx):
+    '''Write the current effective theme into the PRIMARY plugin's data file, so it travels/versions
+    with the rest of your config-as-a-plugin. Returns (ok, label): the primary name on success, or a
+    reason string when there is no primary to write into.'''
+    target, prim = _primary_data_file(ctx)
+    if not target:
+        return False, 'no primary plugin blessed/synced to save into'
+    plugins.set_theme(target, theme_overrides(ctx))
+    ctx.invalidate()
+    return True, prim
+
+
+def save_theme_local(ctx):
+    '''Write the current effective theme into THIS machine's top config (a machine-local look that
+    overrides everything). Returns (True, 'top config').'''
+    plugins.set_theme(str(ctx.paths.user_config_file), theme_overrides(ctx))
+    ctx.invalidate()
+    return True, 'top config'
+
+
 # -- plugins (`configsys plugin` + the TUI Plugins screen) ----------------------------------------
 # Orchestration extracted from cmd_plugin so the CLI and the TUI Plugins screen share one path
 # (docs/tui-screens-plan.md, F3 slice 4). Each returns structured results (ok/message/sync-actions);

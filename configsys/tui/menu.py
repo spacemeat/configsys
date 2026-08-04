@@ -1299,6 +1299,8 @@ class ThemeScreen:
         self.focus = 'map'                         # 'map' | 'roles'
         self.map_cur = self.map_top = 0
         self.role_cur = self.role_top = 0
+        self.map_ncols = 1                         # set during draw; the h/l column stride
+        self.map_rows_per_col = 10 ** 6
         self.reload()
 
     def reload(self):
@@ -1319,7 +1321,27 @@ class ThemeScreen:
 
     def role_list(self):
         from .theme import PAGE_ROLES
-        return PAGE_ROLES.get(self.page_name(), [])   # only the roles THIS page uses
+        # the roles THIS page uses, plus the two gradient endpoints as single-color pseudo-roles
+        return PAGE_ROLES.get(self.page_name(), []) + ['@grad_from', '@grad_to']
+
+    def grad_override(self, which):
+        g = ((self.theme.get('pages') or {}).get(self.page_name()) or {}).get('gradient')
+        return g.get(which) if isinstance(g, dict) else None
+
+    def grad_ref(self, which):
+        '''The authored ref (map name or literal) for a gradient endpoint, else the built-in
+        default as a hex — what the user edits.'''
+        from .theme import BUILTIN_GRADIENTS
+        ov = self.grad_override(which)
+        if ov not in (None, ''):
+            return ov
+        page = self.page_name()
+        dflt = BUILTIN_GRADIENTS.get(page, BUILTIN_GRADIENTS['components'])
+        return _hex(dflt[0 if which == 'from' else 1])
+
+    def grad_rgb(self, which):
+        '''The resolved rgb of a gradient endpoint on the focused page (for the swatch).'''
+        return self.pages[self.page_name()]['grad'][0 if which == 'from' else 1]
 
     def cur_color(self):
         return self.map_names[self.map_cur] if self.map_names else None
@@ -1382,7 +1404,7 @@ _SAMPLES = {
              ('locked', 10, 'locked'), ('[L]', 0, 'op_lock')],
         ],
         'foot': [('ripgrep — fast recursive search', 'info'),
-                 ('methods: apt · tarball · cargo', 'info_dim'),
+                 ('methods: apt · tarball · cargo', 'methods'),
                  (' selected: ripgrep    staged: 2 ', 'status_line')],
     },
     'profiles': {
@@ -1491,22 +1513,30 @@ def _draw_theme(stdscr, pal, ts, ctx, note, screen):
     body_h, lw = h - 3, max(42, 5 * w // 11)
     map_h = max(6, body_h * 2 // 5)
 
-    # -- List 1: the shared color map (name -> #rrggbb) --
+    # -- List 1: the shared color map (name -> #rrggbb), two columns when the panel is wide enough --
     m_it, m_il, m_ih, m_iw = _panel(stdscr, pal, 1, 0, map_h, lw, 'color map (shared)',
                                     ts.focus == 'map', h, w)
-    ts.map_top = _scroll_top(ts.map_cur, ts.map_top, m_ih, len(ts.map_names))
-    for vis, i in enumerate(range(ts.map_top, min(len(ts.map_names), ts.map_top + m_ih))):
-        name, y = ts.map_names[i], m_it + vis
+    ncols = 2 if m_iw >= 60 else 1
+    rows_per_col = max(1, -(-len(ts.map_names) // ncols))      # ceil
+    ts.map_ncols, ts.map_rows_per_col = ncols, rows_per_col
+    col_w = m_iw // ncols
+    nw = 12 if ncols == 2 else 14
+    ts.map_top = _scroll_top(ts.map_cur % rows_per_col, ts.map_top, m_ih, rows_per_col)
+    for i, name in enumerate(ts.map_names):
+        col, row = divmod(i, rows_per_col)
+        if not (ts.map_top <= row < ts.map_top + m_ih):
+            continue
+        y, x = m_it + (row - ts.map_top), m_il + col * col_w
         sel = i == ts.map_cur and ts.focus == 'map'
         rgb = ts.colors.get(name, (235, 235, 235))
         if sel:
-            _put(stdscr, y, m_il, ' ' * m_iw, pal.fill(y, m_il, h, w, selected=True))
-        _put(stdscr, y, m_il + 1, ' ██ ', pal.rgb_attr(rgb))
+            _put(stdscr, y, x, ' ' * col_w, pal.fill(y, x, h, w, selected=True))
+        _put(stdscr, y, x + 1, ' ██ ', pal.rgb_attr(rgb))
         mark = '*' if ts.color_override(name) is not None else ' '
-        _put(stdscr, y, m_il + 6, _fit(f'{mark}{name:14} {_hex(rgb)}', m_iw - 6),
-             pal.style('label' if sel else 'component', y, m_il + 6, h, w, selected=sel))
+        _put(stdscr, y, x + 6, _fit(f'{mark}{name:{nw}} {_hex(rgb)}', col_w - 6),
+             pal.style('label' if sel else 'component', y, x + 6, h, w, selected=sel))
 
-    # -- List 2: the focused page's role styles (fg/bg reference the map, or a literal) --
+    # -- List 2: the focused page's role styles, plus the gradient endpoints as single-color rows --
     roles = ts.role_list()
     ts.role_cur = min(ts.role_cur, max(0, len(roles) - 1))
     r_it, r_il, r_ih, r_iw = _panel(stdscr, pal, 1 + map_h, 0, body_h - map_h, lw,
@@ -1516,9 +1546,16 @@ def _draw_theme(stdscr, pal, ts, ctx, note, screen):
     for vis, i in enumerate(range(ts.role_top, min(len(roles), ts.role_top + r_ih))):
         role, y = roles[i], r_it + vis
         sel = i == ts.role_cur and ts.focus == 'roles'
-        ref, rst = ts.role_ref(role), ts.role_style(role)
         if sel:
             _put(stdscr, y, r_il, ' ' * r_iw, pal.fill(y, r_il, h, w, selected=True))
+        if role.startswith('@grad'):                          # a gradient endpoint: one color, no fx
+            which = 'from' if role == '@grad_from' else 'to'
+            _put(stdscr, y, r_il + 1, ' ██ ', pal.rgb_attr(ts.grad_rgb(which)))
+            mark = '*' if ts.grad_override(which) is not None else ' '
+            _put(stdscr, y, r_il + 6, _fit(f'{mark}gradient {which:5} {_ref_str(ts.grad_ref(which))}',
+                 r_iw - 6), pal.style('label' if sel else 'component', y, r_il + 6, h, w, selected=sel))
+            continue
+        ref, rst = ts.role_ref(role), ts.role_style(role)
         sw = pal.rgb_pair(rst['fg'], rst['bg']) if rst.get('bg') else pal.rgb_attr(rst['fg'])
         _put(stdscr, y, r_il + 1, ' Aa ', sw | _eff_flags(rst))
         eff = ''.join(c for c, f in (('b', 'bold'), ('u', 'underline'), ('r', 'reverse')) if rst.get(f))
@@ -1539,11 +1576,11 @@ def _draw_theme(stdscr, pal, ts, ctx, note, screen):
     if note:
         status += f'    {note}'
     if ts.focus == 'map':
-        navf = (' tab→roles · j/k · a-e page · ↵ set #rrggbb · n new · x/r remove · p gradient · '
+        navf = (' tab→roles · h/l/j/k · a-e page · ↵ set #rrggbb · n new · x/r remove · '
                 's save · L load · 1-6 · q ')
     else:
-        navf = (' tab→map · j/k · a-e page · ↵ fg(name|#hex) · B bg · o/u/v effects · r reset · '
-                'p gradient · s save · L load · q ')
+        navf = (' tab→map · j/k · a-e page · ↵ fg(name|#hex) · B bg · o/u/v fx · r reset · '
+                'p grad on/off · s save · L load · q ')
     _put(stdscr, h - 2, 0, _fit(status, w), pal.style('status_line', h - 2, 0, h, w))
     _put(stdscr, h - 1, 0, _fit(navf.ljust(w), w), pal.style('footer', h - 1, 0, h, w))
     stdscr.refresh()
@@ -2023,8 +2060,16 @@ def run(ctx):
                 from .theme import DEMO_PAGES
                 try:
                     page = DEMO_PAGES[ts.page]
-                    if ch in (ord('\t'), curses.KEY_BTAB, curses.KEY_RIGHT, curses.KEY_LEFT):
+                    if ch in (ord('\t'), curses.KEY_BTAB):
                         ts.focus = 'roles' if ts.focus == 'map' else 'map'    # toggle the two lists
+                    elif ch in (ord('h'), ord('l'), curses.KEY_LEFT, curses.KEY_RIGHT):
+                        left = ch in (ord('h'), curses.KEY_LEFT)
+                        if ts.focus == 'map' and ts.map_ncols > 1:            # move between columns
+                            step = ts.map_rows_per_col
+                            ts.map_cur = (max(0, ts.map_cur - step) if left
+                                          else min(len(ts.map_names) - 1, ts.map_cur + step))
+                        else:
+                            ts.focus = 'roles' if ts.focus == 'map' else 'map'   # else cross panels
                     elif ord('a') <= ch <= ord('e'):
                         ts.page = min(len(DEMO_PAGES) - 1, ch - ord('a'))     # cycle the sample page
                     elif ch in (ord('j'), curses.KEY_DOWN):
@@ -2075,6 +2120,29 @@ def run(ctx):
                             ts.reload()
                             note = f'{name} reset to default'
 
+                    # -- gradient endpoints (single-color pseudo-roles) --
+                    elif (ts.focus == 'roles' and str(ts.cur_role()).startswith('@grad')
+                          and ch in (ord(' '), ord('\n'), curses.KEY_ENTER, ord('r'), ord('x'),
+                                     ord('B'), ord('o'), ord('u'), ord('v'))):
+                        which = 'from' if ts.cur_role() == '@grad_from' else 'to'
+                        if ch in (ord(' '), ord('\n'), curses.KEY_ENTER):
+                            cur = ts.grad_ref(which)
+                            new = _input_box(stdscr, pal,
+                                             f'{page} · gradient {which}  (now {cur} → map name or #hex)', '')
+                            if new and new.strip():
+                                actions.set_theme_value(ctx, f'pages.{page}.gradient.{which}', new.strip())
+                                pal = Palette(ctx.config.theme())
+                                note = f'gradient {which} = {new.strip()}'
+                        elif ch in (ord('r'), ord('x')):
+                            if ts.grad_override(which) is None:
+                                note = f'gradient {which} is default on {page} (nothing to reset)'
+                            else:
+                                actions.set_theme_value(ctx, f'pages.{page}.gradient.{which}', None)
+                                pal = Palette(ctx.config.theme())
+                                note = f'gradient {which} reset to default on {page}'
+                        else:                                     # B/o/u/v — endpoints are one color
+                            note = 'gradient endpoints have no bg or effects'
+
                     # -- per-page role edits --
                     elif ts.focus == 'roles' and ch in (ord(' '), ord('\n'), curses.KEY_ENTER):
                         role = ts.cur_role()
@@ -2109,36 +2177,41 @@ def run(ctx):
                             ts.reload()
                             note = f'{role} reset to default on {page}'
 
-                    elif ch == ord('p'):
-                        idx = _popup_choose(stdscr, pal, f'{page} gradient',
-                                            [('from', ''), ('to', ''), ('toggle on/off', '')], 0)
-                        if idx in (0, 1):
-                            stop = ('from', 'to')[idx]
-                            new = _input_box(stdscr, pal, f'{page} gradient · {stop}  (#rrggbb)', '')
-                            if new and new.strip():
-                                actions.set_theme_value(ctx, f'pages.{page}.gradient.{stop}', new.strip())
-                                pal = Palette(ctx.config.theme())
-                                note = f'{page} gradient {stop} = {new.strip()}'
-                        elif idx == 2:
-                            on = not ts.page_gradient_enabled(page)
-                            actions.set_theme_value(ctx, f'pages.{page}.gradient.enabled', on)
-                            pal = Palette(ctx.config.theme())
-                            note = f'{page} gradient {"on" if on else "off"}'
+                    elif ch == ord('p'):                          # from/to now live in the role list
+                        on = not ts.page_gradient_enabled(page)
+                        actions.set_theme_value(ctx, f'pages.{page}.gradient.enabled', on)
+                        pal = Palette(ctx.config.theme())
+                        note = f'{page} gradient {"on" if on else "off"}'
                     elif ch == ord('s'):
-                        nm = _input_box(stdscr, pal, 'save current theme as plugin — name', '')
-                        if nm and nm.strip():
-                            nm = nm.strip()
-                            _pdir, existed = actions.save_theme_plugin(ctx, nm)
-                            if existed:
-                                idx = _popup_choose(stdscr, pal, f'{nm} exists — overwrite?',
-                                                    [('overwrite', ''), ('cancel', '')], 1)
-                                if idx == 0:
-                                    actions.save_theme_plugin(ctx, nm, force=True)
-                                    note = f'saved {nm} (overwritten)'
-                                else:
-                                    note = 'save cancelled'
+                        prim = actions.primary_theme_target(ctx)             # primary name, or None
+                        opts = ([('into primary plugin (' + prim + ')', 'primary')] if prim else []) \
+                            + [('local config (this machine)', 'local'),
+                               ('standalone theme plugin…', 'standalone')]
+                        idx = _popup_choose(stdscr, pal, 'save theme to',
+                                            [(lbl, '') for lbl, _ in opts], 0)
+                        if idx is not None:
+                            dest = opts[idx][1]
+                            if dest == 'primary':
+                                ok, label = actions.save_theme_to_primary(ctx)
+                                note = f'saved into primary plugin ({label})' if ok else label
+                            elif dest == 'local':
+                                _ok, label = actions.save_theme_local(ctx)
+                                note = f'saved to {label}'
                             else:
-                                note = f'saved theme plugin {nm}'
+                                nm = _input_box(stdscr, pal, 'standalone theme plugin — name', '')
+                                if nm and nm.strip():
+                                    nm = nm.strip()
+                                    _pdir, existed = actions.save_theme_plugin(ctx, nm)
+                                    if existed:
+                                        oi = _popup_choose(stdscr, pal, f'{nm} exists — overwrite?',
+                                                           [('overwrite', ''), ('cancel', '')], 1)
+                                        if oi == 0:
+                                            actions.save_theme_plugin(ctx, nm, force=True)
+                                            note = f'saved {nm} (overwritten)'
+                                        else:
+                                            note = 'save cancelled'
+                                    else:
+                                        note = f'saved theme plugin {nm}'
                     elif ch == ord('L'):
                         names = actions.theme_plugins(ctx)
                         if names:

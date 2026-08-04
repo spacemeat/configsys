@@ -205,8 +205,8 @@ def resolve_theme(theme):
         if isinstance(g, dict):
             if g.get('enabled') in (False, 'false', 'no', 'off'):
                 enabled = False
-            ga = parse_color(g.get('from')) or ga
-            gb = parse_color(g.get('to')) or gb
+            ga = _ref_rgb(g.get('from'), colors) or ga   # endpoints may name a map color or literal
+            gb = _ref_rgb(g.get('to'), colors) or gb
         elif g in (False, 'false', 'no', 'off'):
             enabled = False
         pages[page] = {'roles': roles, 'grad': (ga, gb, enabled), 'sel_bg': roles['selection']['bg']}
