@@ -107,6 +107,73 @@ CONFIG_SETTINGS = {
                                     'default src).', 'configsys.hu(5)'),
 }
 
+# Per-setting NATURE decides where a fresh edit lands by default: 'uniform' settings are the same
+# on every machine, so they default to your primary plugin (portable); 'machine' settings are a
+# truth about THIS box (scope, home/system layout), so they default to the top config (local). A
+# per-setting `m` move overrides either way — see _setting_target / move_config_setting.
+SETTING_NATURE = {
+    'scope':             'machine',
+    'driver-preference': 'uniform',
+    'auto-tighten':      'uniform',
+    'ignore-profiles':   'uniform',
+    'dirs.user':         'machine',
+    'dirs.system':       'machine',
+    'dirs.app':          'uniform',
+    'dirs.sdk':          'uniform',
+    'dirs.src':          'uniform',
+}
+
+
+def _read_setting(config_file, key):
+    '''The value of machine setting `key` in ONE .hu file (kind-aware), or None if absent.'''
+    kind = CONFIG_SETTINGS[key][0]
+    if kind == 'dir':
+        return plugins.read_dirs(config_file).get(key.split('.', 1)[1])
+    if kind == 'list':
+        return plugins.read_list_section(config_file, key) or None
+    return plugins.read_scalar_section(config_file, key)      # scalar + bool
+
+
+def _setting_tokens(value, kind):
+    '''A value read from a file back into the token list set_config_setting expects.'''
+    if value is None:
+        return []
+    if kind == 'list':
+        return list(value)
+    if kind == 'bool':
+        return ['true' if _to_bool(value) else 'false']
+    return [str(value)]                                       # scalar + dir
+
+
+def _setting_home(ctx, key):
+    '''(where, label) for machine setting `key`: whether it currently lives in this machine's top
+    config ('local'), the primary plugin ('primary'), or neither (None = built-in/repo default).
+    The top config shadows the primary, so it's checked first.'''
+    local = str(ctx.paths.user_config_file)
+    if _read_setting(local, key) is not None:
+        return 'local', 'top config'
+    pfile, pname = _primary_data_file(ctx)
+    if pfile and _read_setting(pfile, key) is not None:
+        return 'primary', pname
+    return None, None
+
+
+def _setting_target(ctx, key):
+    '''(file, label) where an edit to machine setting `key` is EFFECTIVE: the writable layer it
+    already lives in (editing a lower one would be shadowed), else its nature default — the primary
+    plugin for a 'uniform' setting when one is blessed+synced, this machine's top config for a
+    'machine' setting (or when no primary exists). The counterpart to _profile_target for scalars.'''
+    where, _who = _setting_home(ctx, key)
+    local = str(ctx.paths.user_config_file)
+    if where == 'local':
+        return local, 'top config'
+    pfile, pname = _primary_data_file(ctx)
+    if where == 'primary':
+        return pfile, pname
+    if SETTING_NATURE.get(key) == 'uniform' and pfile:       # unset -> nature default
+        return pfile, pname
+    return local, 'top config'
+
 
 def config_settings(ctx):
     '''{key: {kind, value, desc, man}} — the effective machine settings for display (CLI
@@ -121,6 +188,7 @@ def config_settings(ctx):
     }
     cfg_dirs = cfg.install_dirs()
     env_map = getattr(ctx.paths, 'env', {}) or {}
+    ucf = getattr(ctx.paths, 'user_config_file', None)    # absent in some test fakes -> skip homing
     out = {}
     for key, (kind, desc, man) in CONFIG_SETTINGS.items():
         if kind == 'dir':
@@ -134,6 +202,12 @@ def config_settings(ctx):
             src = cfg.machine_setting_source(key)         # (file, is_override) or None
             out[key] = {'kind': kind, 'value': values.get(key), 'desc': desc, 'man': man,
                         'source': src[0] if src and src[1] else None}
+        out[key]['nature'] = SETTING_NATURE.get(key, 'uniform')
+        if ucf:
+            where, home_label = _setting_home(ctx, key)
+            out[key]['home'] = where                      # 'local' | 'primary' | None (default)
+            out[key]['home_label'] = home_label
+            out[key]['target'] = _setting_target(ctx, key)[1]   # where an edit would land
     return out
 
 
@@ -145,7 +219,7 @@ def set_config_setting(ctx, key, values, *, target=None):
     '''Set machine setting `key` from `values` (tokens, parsed per the setting's kind); an empty
     `values` clears it. Returns (changed, target_label). Raises KeyError for an unknown key.'''
     kind = CONFIG_SETTINGS[key][0]
-    tfile, label = (target, target) if target else edit_target(ctx)
+    tfile, label = (target, target) if target else _setting_target(ctx, key)
     if kind == 'dir':                                     # nested `dirs.<sub>`: edit the dirs map
         sub = key.split('.', 1)[1]
         dirs = plugins.read_dirs(tfile)
@@ -168,6 +242,30 @@ def set_config_setting(ctx, key, values, *, target=None):
         plugins.set_scalar_section(tfile, key, values[0])
     ctx.invalidate()
     return True, label
+
+
+def move_config_setting(ctx, key):
+    '''Move machine setting `key` between this machine's top config and the primary plugin, carrying
+    its effective value and clearing the source. The direction is inferred from where it lives now
+    (local->primary, or primary->local); a setting at its built-in default has nothing to move.
+    Returns (ok, message).'''
+    where, _who = _setting_home(ctx, key)
+    if where is None:
+        return False, f'{key} is at its default — set a value before moving it'
+    kind = CONFIG_SETTINGS[key][0]
+    local = str(ctx.paths.user_config_file)
+    pfile, pname = _primary_data_file(ctx)
+    if where == 'local':
+        if not pfile:
+            return False, 'no primary plugin blessed + synced to move into'
+        src, dst, dst_label = local, pfile, pname
+    else:                                                 # primary -> local
+        src, dst, dst_label = pfile, local, 'top config'
+    tokens = _setting_tokens(_read_setting(src, key), kind)
+    set_config_setting(ctx, key, tokens, target=dst)      # write the value at the destination
+    set_config_setting(ctx, key, [], target=src)          # clear it from the source
+    ctx.invalidate()
+    return True, f'{key} → {dst_label}'
 
 
 # -- theme (`configsys theme` + the TUI theme editor) ---------------------------------------------

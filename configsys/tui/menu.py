@@ -1304,21 +1304,32 @@ def _draw_config(stdscr, pal, cs, ctx, note, screen):
         sel = i == cs.cur
         if sel:
             _put(stdscr, y, il, ' ' * iw, pal.fill(y, il, h, w, selected=True))
-        # is this the built-in default, or a value you (or a primary plugin) set on top of it?
+        # where does this setting live now (local / primary / default / env), and its nature?
         src = info.get('source')
-        tag = f'   · overrides default (set in {src})' if src else '   · built-in default'
+        nature = info.get('nature', 'uniform')
+        if isinstance(src, str) and src.startswith('env '):
+            loc, set_ = src + ' (overrides config)', True      # env escape hatch wins
+        elif info.get('home') == 'local':
+            loc, set_ = 'local (top config)', True
+        elif info.get('home') == 'primary':
+            loc, set_ = f'primary: {info.get("home_label")}', True
+        else:
+            loc, set_ = 'built-in default', False
+        tag = f'   · {loc} · {nature}'
         _put(stdscr, y, il, _fit(f'{key:18} {_setting_str(info["kind"], info["value"], key)}', iw),
              pal.style('label' if sel else 'component', y, il, h, w, selected=sel))
         _put(stdscr, y, il + max(0, iw - len(tag) - 1), _fit(tag, len(tag)),
-             pal.style('scope_choice' if src else 'info_dim', y, il, h, w, selected=sel))
+             pal.style('scope_choice' if set_ else 'info_dim', y, il, h, w, selected=sel))
         _put(stdscr, y + 1, il, _fit(f'   {info["desc"]}  (man: {info["man"]})', iw),
              pal.style('info_dim', y + 1, il, h, w))
         y += 3
     from .. import actions
-    status = f' edits → {actions.edit_target(ctx)[1]}'
+    cur_key = cs.keys[cs.cur] if cs.keys else None
+    tgt = cs.settings.get(cur_key, {}).get('target') if cur_key else None
+    status = f' {cur_key}: edits → {tgt}' if tgt else f' edits → {actions.edit_target(ctx)[1]}'
     if note:
         status += f'    {note}'
-    navf = ' j/k move · enter/space edit · 1-6 screens · q quit '
+    navf = ' j/k move · enter/space edit · m local↔primary · t theme · 1-6 screens · q quit '
     _put(stdscr, h - 2, 0, _fit(status, w), pal.style('status_line', h - 2, 0, h, w))
     _put(stdscr, h - 1, 0, _fit(navf.ljust(w), w), pal.style('footer', h - 1, 0, h, w))
     stdscr.refresh()
@@ -2081,6 +2092,16 @@ def run(ctx):
                     cs.cur = max(0, len(cs.keys) - 1)
                 elif ch == ord('t'):
                     screen = 'theme'
+                elif ch == ord('m'):                    # move this setting local <-> primary
+                    key = cs.keys[cs.cur]
+                    try:
+                        ok, msg = actions.move_config_setting(ctx, key)
+                        note = msg
+                        if ok:
+                            cs.reload()
+                            menu_dirty = True
+                    except Exception as e:  # noqa: BLE001 — surface, don't crash
+                        note = f'move failed: {e}'
                 elif ch in (ord(' '), ord('\n'), curses.KEY_ENTER):
                     key = cs.keys[cs.cur]
                     info = cs.settings[key]

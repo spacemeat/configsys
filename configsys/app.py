@@ -1838,6 +1838,9 @@ def build_parser():
     cfg_unset.add_argument('key')
     cfg_unset.add_argument('--local', action='store_true',
                            help="write to this machine's top config, not the primary plugin")
+    cfg_move = cfsub.add_parser('move', help='move a setting between local (top config) and the '
+                                             'primary plugin, carrying its value')
+    cfg_move.add_argument('key')
 
     thp = sub.add_parser('theme', help='view or edit the TUI theme; save/load shareable themes')
     thsub = thp.add_subparsers(dest='theme_command')
@@ -2157,12 +2160,29 @@ def cmd_config(ctx, args):
 
     if sub == 'show':
         for key, info in settings.items():
-            tag = f'  (set in {info["source"]})' if info.get('source') else '  (built-in default)'
-            print(f'  {key:18} {_fmt_setting_value(info["kind"], info["value"])}{tag}')
+            src = info.get('source')
+            if isinstance(src, str) and src.startswith('env '):
+                loc = src + ' overrides config'
+            else:
+                loc = {'local': 'local (top config)',
+                       'primary': f'primary: {info.get("home_label")}'}.get(
+                           info.get('home'), 'built-in default')
+            print(f'  {key:18} {_fmt_setting_value(info["kind"], info["value"])}'
+                  f'  ({loc} · {info.get("nature", "uniform")})')
             print(f'  {"":18} {info["desc"]}  (see {info["man"]})')
-        print('\n  values you set here OVERRIDE the built-in defaults.'
-              '\n  edit: configsys config set <key> <value>   (--local = this machine only)')
+        print('\n  uniform settings default to your primary plugin; machine settings to this box.'
+              '\n  edit: configsys config set <key> <value>   (--local = this machine only)'
+              '\n  move: configsys config move <key>          (local <-> primary)')
         return 0
+
+    if sub == 'move':
+        if args.key not in actions.CONFIG_SETTINGS:
+            print(f'configsys: unknown setting {args.key!r}', file=sys.stderr)
+            return 1
+        ctx.ensure_user_config()
+        ok, msg = actions.move_config_setting(ctx, args.key)
+        print(f'configsys: {msg}', file=sys.stdout if ok else sys.stderr)
+        return 0 if ok else 1
 
     if sub == 'get':
         if args.key not in settings:

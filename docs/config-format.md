@@ -76,6 +76,31 @@ Lives under `$XDG_CONFIG_HOME` (defaults to `~/.config/configsys/configsys.hu`);
   bindings + a background gradient). It is the one cosmetic section any layer may set; see
   docs/theming.md.
 
+## Where a machine-setting edit lands
+
+`configsys config set …` and the TUI **Config** screen route each setting by its **nature**:
+
+- **uniform** settings are the same on every machine, so an edit defaults into your **primary
+  plugin** (portable — commit + push + re-tag the primary + `plugin sync` to propagate; it's
+  effective on this machine immediately). These are `driver-preference`, `auto-tighten`,
+  `ignore-profiles`, and the category dirs `dirs.app`/`dirs.sdk`/`dirs.src`.
+- **machine** settings are a truth about *this* box, so an edit defaults to your **top config**
+  (`~/.config/configsys/configsys.hu`), local and unshared. These are `scope`, `dirs.user`, and
+  `dirs.system`.
+
+When no primary is blessed, everything lands local. An edit to a setting you've *already* set
+goes to the layer it lives in (so a lower layer can't silently shadow it). The Config screen
+shows each setting's current home (`local` / `primary: <name>` / `built-in default`) and its
+nature, and `config show` prints the same.
+
+- `config set <key> <value> --local` forces this-machine-only (bypasses the uniform default).
+- `config move <key>` (TUI: **`m`**) carries a setting the other way — `local ↔ primary` —
+  writing its value at the destination and clearing the source. Direction is inferred from where
+  it lives now; a setting still at its built-in default has nothing to move.
+
+An **env var always wins** over both (the per-invocation escape hatch), and is surfaced as the
+source when set.
+
 ## Profiles
 
 A profile is a named list of components. Its value is a list of **terms**, applied

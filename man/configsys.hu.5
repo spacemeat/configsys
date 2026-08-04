@@ -59,6 +59,21 @@ Lives under \fB$XDG_CONFIG_HOME\fR (defaults to \fB~/.config/configsys/configsys
 \fB\fBcomponents:\fR\fR \fIamends\fR a route: bindings merge \fBadditively\fR across layers by \fB(via, when)\fR identity — a higher layer adds an install method, overrides a matching binding, retracts one with a \fBdrop:\fR binding, or removes the whole component with \fB{}\fR.
 .IP \(bu 2
 \fB\fBtheme:\fR\fR restyles the TUI: a named \fBpalette:\fR of styles and per-screen \fBpages:\fR (role bindings + a background gradient). It is the one cosmetic section any layer may set; see docs/theming.md.
+.SH WHERE A MACHINE-SETTING EDIT LANDS
+.PP
+\fBconfigsys config set …\fR and the TUI \fBConfig\fR screen route each setting by its \fBnature\fR:
+.IP \(bu 2
+\fBuniform\fR settings are the same on every machine, so an edit defaults into your \fBprimary plugin\fR (portable — commit + push + re-tag the primary + \fBplugin sync\fR to propagate; it's effective on this machine immediately). These are \fBdriver-preference\fR, \fBauto-tighten\fR, \fBignore-profiles\fR, and the category dirs \fBdirs.app\fR/\fBdirs.sdk\fR/\fBdirs.src\fR.
+.IP \(bu 2
+\fBmachine\fR settings are a truth about \fIthis\fR box, so an edit defaults to your \fBtop config\fR (\fB~/.config/configsys/configsys.hu\fR), local and unshared. These are \fBscope\fR, \fBdirs.user\fR, and \fBdirs.system\fR.
+.PP
+When no primary is blessed, everything lands local. An edit to a setting you've \fIalready\fR set goes to the layer it lives in (so a lower layer can't silently shadow it). The Config screen shows each setting's current home (\fBlocal\fR / \fBprimary: <name>\fR / \fBbuilt-in default\fR) and its nature, and \fBconfig show\fR prints the same.
+.IP \(bu 2
+\fBconfig set <key> <value> --local\fR forces this-machine-only (bypasses the uniform default).
+.IP \(bu 2
+\fBconfig move <key>\fR (TUI: \fB\fBm\fR\fR) carries a setting the other way — \fBlocal ↔ primary\fR — writing its value at the destination and clearing the source. Direction is inferred from where it lives now; a setting still at its built-in default has nothing to move.
+.PP
+An \fBenv var always wins\fR over both (the per-invocation escape hatch), and is surfaced as the source when set.
 .SH PROFILES
 .PP
 A profile is a named list of components. Its value is a list of \fBterms\fR, applied left-to-right:
