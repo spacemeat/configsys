@@ -218,8 +218,10 @@ stays the common form.
    `--min`) which methods meet a floor + the pin to use one. Reusable core in
    `configsys/versionreport.py` (per-binding `get_latest` via `resolve.unit_for_binding`, cached
    machine-locally in `method-versions.hu` with a TTL; installed versions read live). **TUI:** the
-   `m` install-method picker now shows each method's version + a "lags" flag and the tip in its
-   title, so switching methods is version-informed. Read-only, low risk.
+   `m` install-method picker shows each method's version + a "lags" flag and the tip in its title,
+   AND a dedicated **Versions screen** (nav key 7) — pick a component (left), see the per-method
+   version table (right: method · version · default/pinned/installed/lags/meets), `m` pins a
+   method, `r` refreshes. Read-only, low risk.
 2. **Authored floors + version-sweep — SHIPPED (machinery).** Versioned `requires:`/`provides:`
    syntax parses ADDITIVELY: a `{ cap: ">=1.96" }` entry contributes exactly its capability name to
    the resolver (closure unchanged — golden byte-identical) while its constraint is stored on the
