@@ -3,10 +3,10 @@
 configsys splashes are provider plugins (see configsys/splashes.py for the ABI). This module owns
 the FRAME LOOP shared by every provider (`run_splash`): it constructs the chosen `Splash`, drives
 it at its frame rate while feeding live progress, and owns the skip key, the deadline, and the safe
-plain-text fallback. The only provider shipped in core is `plain` — a static centred progress line
-(no animation, no trust) that is both the default when `splash:` is unset and the universal
-fallback. Fancier splashes (e.g. the ASCII-water `liquid` fill) live in code plugins like
-configsys-liquid.
+plain-text fallback. The only provider shipped in core is `plain` — a light spinner + determinate
+progress bar (no trust, adds no time) that is both the default when `splash:` is unset and the
+universal fallback. Fancier splashes (e.g. the ASCII-water `ocean` fill) live in code plugins like
+configsys-splash-ocean.
 '''
 
 import curses
@@ -14,14 +14,15 @@ import time
 
 from ..splashes import Splash, SplashFrame, register_splash
 
-MIN_DURATION = 0.6         # if a splash is shown at all, play at least this long (no one-frame flash)
+MIN_DURATION = 0.6         # a plugin splash floor (no one-frame flash); `plain` overrides it to 0
 DEFAULT_SPLASH = 'plain'   # the built-in, trust-free default when `splash:` is unset
+_SPINNER = '⠋⠙⠹⠸⠼⠴⠦⠧⠇⠏'   # a braille spinner, 12 steps/sec
 
 
 def _draw_progress_text(scr, pal, label, counts, h, w):
-    '''The host's plain progress line — the `plain` splash's whole body, shown after a skip, and the
-    safe fallback for any splash. A clean screen with a centred "<label>: i/total (pct%)" so
-    cancelling an animation never hides the real state.'''
+    '''The host's plain progress line — the safe STATIC fallback after a skip or a broken provider.
+    A clean screen with a centred "<label>: i/total (pct%)" so cancelling an animation never hides
+    the real state. (The default `plain` splash itself is the livelier PlainSplash below.)'''
     i, total = counts
     text = (f'{label}…' if not total else
             f'{label}:   {i}/{total} ({int(i / total * 100)}%)') if label else ''
@@ -34,19 +35,40 @@ def _draw_progress_text(scr, pal, label, counts, h, w):
             pass
 
 
-class TextSplash(Splash):
-    '''The built-in default: a plain centred progress line, no animation. Trust-free and always
-    available — the fallback any splash degrades to, and what ships until/unless a plugin provides
-    something fancier. A minimal reference for the Splash ABI.'''
+class PlainSplash(Splash):
+    '''The built-in default: a calm centred wait screen — a braille spinner, the label + counts, and
+    a slim determinate progress bar tracking real progress. Trust-free, always available, and adds
+    no time of its own (min_duration 0, so it exits the moment inspection is done). The fancier
+    animations (the ASCII-water `ocean` fill, …) live in code plugins. Reference for the Splash ABI.'''
     name = DEFAULT_SPLASH
     min_duration = 0.0
 
+    def _add(self, y, x, s, attr):
+        try:
+            self.scr.addstr(y, x, s, attr)
+        except curses.error:
+            pass
+
     def render(self, frame):
-        _draw_progress_text(self.scr, self.pal, frame.label, frame.counts, self.h, self.w)
+        scr, h, w = self.scr, self.h, self.w
+        scr.erase()
+        i, total = frame.counts
+        label = frame.label or 'working'
+        spin = _SPINNER[int(frame.elapsed * 12) % len(_SPINNER)]
+        pct = int(frame.progress * 100)
+        head = f'{spin}  {label}' + (f'   {i}/{total} ({pct}%)' if total else '')
+        title = self.pal.get('title') | curses.A_BOLD
+        y = max(0, h // 2 - 1)
+        self._add(y, max(0, (w - len(head)) // 2), head[:w], title)
+        barw = max(10, min(48, w - 6))
+        fill = max(0, min(barw, int(frame.progress * barw)))
+        bx = max(0, (w - barw) // 2)
+        self._add(y + 2, bx, '█' * fill, self.pal.get('accent') | curses.A_BOLD)
+        self._add(y + 2, bx + fill, '░' * (barw - fill), self.pal.get('dim'))
         return frame.done
 
 
-register_splash(TextSplash, builtin=True)
+register_splash(PlainSplash, builtin=True)
 
 
 def run_splash(scr, pal, provider_cls, *, is_done, frac, counts, label, deadline=None, seed=None):

@@ -39,7 +39,7 @@ Lives under \fB$XDG_CONFIG_HOME\fR (defaults to \fB~/.config/configsys/configsys
 
     ignore-profiles: [ gaming ]      // suppress an auto-activated project profile
 
-    splash: liquid                   // startup wait-screen animation (name / off / unset=default)
+    splash: ocean                   // startup wait-screen animation (name / off / unset=default)
 
     dirs: { sdk: "~/toolchains"  system: /srv/opt }   // relocate install-layout dirs
 
@@ -58,7 +58,7 @@ Lives under \fB$XDG_CONFIG_HOME\fR (defaults to \fB~/.config/configsys/configsys
 .IP \(bu 2
 \fB\fBdriver-preference:\fR\fR is a global tiebreak order over drivers, used to pick the default when a component has several valid install methods (see "Choosing among methods" below). It replaces the whole list across layers (repo < primary < user).
 .IP \(bu 2
-\fB\fBsplash:\fR\fR picks the startup wait-screen animation: a registered splash-provider name, \fBoff\fR to disable, or unset for the built-in default (\fBplain\fR — a static progress line). Fancier splashes are shipped by code plugins (\fBSPLASHES\fR export — e.g. \fBconfigsys-liquid\fR, the ASCII-water fill; see docs/plugins.md), and must be trusted before they load; \fBenv CONFIGSYS_NO_SPLASH\fR and \fB--verbose\fR also suppress the splash.
+\fB\fBsplash:\fR\fR picks the startup wait-screen animation: a registered splash-provider name, \fBoff\fR to disable, or unset for the built-in default (\fBplain\fR — a static progress line). Fancier splashes are shipped by code plugins (\fBSPLASHES\fR export — e.g. \fBconfigsys-splash-ocean\fR, the ASCII-water fill; see docs/plugins.md), and must be trusted before they load; \fBenv CONFIGSYS_NO_SPLASH\fR and \fB--verbose\fR also suppress the splash.
 .IP \(bu 2
 \fB\fBcomponents:\fR\fR \fIamends\fR a route: bindings merge \fBadditively\fR across layers by \fB(via, when)\fR identity — a higher layer adds an install method, overrides a matching binding, retracts one with a \fBdrop:\fR binding, or removes the whole component with \fB{}\fR.
 .IP \(bu 2

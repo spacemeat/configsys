@@ -175,6 +175,16 @@ class _StubPal:
         return 0
 
 
+def test_plain_splash_renders_and_signals_done():
+    import configsys.tui.splash as host
+    from configsys.splashes import SplashFrame
+    p = host.PlainSplash(_FakeWin(), _StubPal(), (24, 80), seed=0)
+    mid = SplashFrame(progress=0.5, counts=(5, 10), label='checking', dt=0.03, elapsed=1.0, done=False)
+    assert p.render(mid) is False            # still inspecting -> keep going
+    end = SplashFrame(progress=1.0, counts=(10, 10), label='checking', dt=0.03, elapsed=2.0, done=True)
+    assert p.render(end) is True             # done -> at rest, host may stop
+
+
 def test_module_with_no_exports_is_skipped(tmp_path):
     pdir = _plugin(tmp_path / 'plugins' / 'empty',
                    '{ name: empty  requires-abi: 1  code: mod.py }',

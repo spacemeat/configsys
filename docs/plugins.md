@@ -279,10 +279,10 @@ it; retrofitting versioning after plugins exist is the expensive path.
     shadowing a built-in). Pick one with the **`splash:`** machine setting (a provider name, `off`
     to disable, or unset for the built-in default); an unknown/untrusted name degrades to the
     default with a note. `test_splashes.py`. Core ships only the trust-free **`plain`** splash (a
-    static centred progress line, `configsys/tui/splash.py:TextSplash`) as the default + universal
-    fallback; the ASCII-water **`liquid`** fill was extracted into its own plugin
-    (**configsys-liquid**: `plugin.hu` with `provides.splashes: [liquid]` + `code: liquid.py`
-    exporting `SPLASHES = [LiquidSplash]`) — the reference splash plugin to copy.
+    light spinner + determinate progress bar, `configsys/tui/splash.py:PlainSplash`) as the default
+    + universal fallback; the ASCII-water **`ocean`** fill was extracted into its own plugin
+    (**configsys-splash-ocean**: `plugin.hu` with `provides.splashes: [ocean]` + `code: ocean.py`
+    exporting `SPLASHES = [OceanSplash]`) — the reference splash plugin to copy.
   - **Example plugin. ✅ BUILT** — `examples/examplos/` (`plugin.hu` + `routes.hu` +
     `driver.py` + `WALKTHROUGH.md`): a fictional distro **ExamplOS** with a `toybox` `Driver`, an
     `examplos` os block, a `via: toybox` component (`toychest`), and a `component-names:` name map.

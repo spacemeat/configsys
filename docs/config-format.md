@@ -48,7 +48,7 @@ Lives under `$XDG_CONFIG_HOME` (defaults to `~/.config/configsys/configsys.hu`);
 
     ignore-profiles: [ gaming ]      // suppress an auto-activated project profile
 
-    splash: liquid                   // startup wait-screen animation (name / off / unset=default)
+    splash: ocean                   // startup wait-screen animation (name / off / unset=default)
 
     dirs: { sdk: "~/toolchains"  system: /srv/opt }   // relocate install-layout dirs
 
@@ -73,7 +73,7 @@ Lives under `$XDG_CONFIG_HOME` (defaults to `~/.config/configsys/configsys.hu`);
   replaces the whole list across layers (repo < primary < user).
 - **`splash:`** picks the startup wait-screen animation: a registered splash-provider name, `off`
   to disable, or unset for the built-in default (`plain` — a static progress line). Fancier
-  splashes are shipped by code plugins (`SPLASHES` export — e.g. **configsys-liquid**, the
+  splashes are shipped by code plugins (`SPLASHES` export — e.g. **configsys-splash-ocean**, the
   ASCII-water fill; see docs/plugins.md), and must be trusted before they load; `env
   CONFIGSYS_NO_SPLASH` and `--verbose` also suppress the splash.
 - **`components:`** *amends* a route: bindings merge **additively** across layers by

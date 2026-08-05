@@ -1842,14 +1842,18 @@ def run(ctx):
     # thread, in the normal terminal, BEFORE the worker/curses — it prompts on stdin, which would
     # collide with the background load and curses init. load_pipeline's own call then no-ops.
     ctx.ensure_user_config(offer_primary=True)
-    # Register trusted plugin code (incl. any splash providers) NOW, on the main thread and BEFORE
-    # the worker starts — the worker's load_pipeline would otherwise register concurrently, and the
-    # splash is chosen before the worker joins. Idempotent, so the worker's later call no-ops.
-    ctx.ensure_plugin_code()
+    splash_on, splash_name = _chosen_splash(ctx)
+    # A PLUGIN splash must be registered before we can construct it, and the splash is chosen before
+    # the worker joins — so register trusted plugin code up front, on the main thread, ONLY when a
+    # plugin splash is actually selected (the built-in default needs nothing). Doing it
+    # unconditionally serialized plugin loading ahead of inspection for everyone. Idempotent, so the
+    # worker's own later call no-ops; skipping it here lets the worker load it lazily instead.
+    from .splash import DEFAULT_SPLASH
+    if splash_on and splash_name and splash_name != DEFAULT_SPLASH:
+        ctx.ensure_plugin_code()
     # Inspect on a worker thread; only paint the splash if it's still going after a short beat
     # ("only when there's work" — a warm/fast run skips straight to the menu), unless forced.
     worker = _InspectWorker(ctx).start()
-    splash_on, splash_name = _chosen_splash(ctx)
     if not splash_on:
         show_splash = False
     elif _splash_forced():
