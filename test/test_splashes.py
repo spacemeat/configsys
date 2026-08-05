@@ -66,10 +66,11 @@ def test_base_render_is_abstract():
         s.render(None)
 
 
-def test_builtin_liquid_is_registered():
-    import configsys.tui.splash  # noqa: F401 — importing registers the built-ins
-    assert splashes.get_splash('liquid') is not None
-    assert 'liquid' in splashes._BUILTIN_SPLASH_NAMES
+def test_builtin_plain_is_registered():
+    import configsys.tui.splash as host  # noqa: F401 — importing registers the built-in `plain`
+    assert splashes.get_splash('plain') is not None
+    assert 'plain' in splashes._BUILTIN_SPLASH_NAMES
+    assert host.DEFAULT_SPLASH == 'plain'
 
 
 # -- load_code registers SPLASHES under the trust gate ------------------------
@@ -95,8 +96,8 @@ def test_load_code_registers_trusted_splashes(tmp_path):
 
 
 def test_load_code_flags_splash_shadowing_a_builtin(tmp_path):
-    import configsys.tui.splash  # noqa: F401 — ensure 'liquid' is a known built-in
-    shadow = SPLASH_PY.replace("name = 'aquarium'", "name = 'liquid'").replace('Aquarium', 'Liquid')
+    import configsys.tui.splash  # noqa: F401 — ensure 'plain' is a known built-in
+    shadow = SPLASH_PY.replace("name = 'aquarium'", "name = 'plain'").replace('Aquarium', 'Plain')
     pdir = _plugin(tmp_path / 'plugins' / 'shdw',
                    '{ name: shdw  requires-abi: 1  code: splash.py }',
                    {'splash.py': shadow})
@@ -105,7 +106,7 @@ def test_load_code_flags_splash_shadowing_a_builtin(tmp_path):
     conflicts = []
     plugins.load_code(tmp_path / 'plugins', tf, [{'source': 'github:x/shdw'}],
                       lambda cls: None, conflicts=conflicts)
-    assert any("splash 'liquid'" in c for c in conflicts)
+    assert any("splash 'plain'" in c for c in conflicts)
 
 
 class _FakeWin:

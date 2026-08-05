@@ -1863,13 +1863,13 @@ def run(ctx):
         pal = Palette(ctx.config.theme())
         if show_splash:
             import random
-            from .splash import LiquidSplash, run_splash   # importing registers the built-ins
+            from .splash import DEFAULT_SPLASH, run_splash   # importing registers the `plain` default
             from ..splashes import get_splash
-            provider = get_splash(splash_name) if splash_name else None
+            provider = get_splash(splash_name) if splash_name else get_splash(DEFAULT_SPLASH)
             if provider is None:
                 if splash_name:                  # named but not registered/trusted -> default + note
-                    splash_note = f"splash '{splash_name}' unavailable — using the default"
-                provider = LiquidSplash          # the in-core default (until it moves to a plugin)
+                    splash_note = f"splash '{splash_name}' unavailable — using '{DEFAULT_SPLASH}'"
+                provider = get_splash(DEFAULT_SPLASH)   # the trust-free in-core default
             run_splash(stdscr, pal, provider, label='checking install state',
                        is_done=worker.done, frac=worker.frac, counts=worker.counts,
                        seed=random.randrange(1 << 30))

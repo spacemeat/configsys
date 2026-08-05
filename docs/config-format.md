@@ -72,9 +72,10 @@ Lives under `$XDG_CONFIG_HOME` (defaults to `~/.config/configsys/configsys.hu`);
   when a component has several valid install methods (see "Choosing among methods" below). It
   replaces the whole list across layers (repo < primary < user).
 - **`splash:`** picks the startup wait-screen animation: a registered splash-provider name, `off`
-  to disable, or unset for the built-in default. Splash providers are shipped by code plugins
-  (`SPLASHES` export — see docs/plugins.md); `env CONFIGSYS_NO_SPLASH` and `--verbose` also
-  suppress it.
+  to disable, or unset for the built-in default (`plain` — a static progress line). Fancier
+  splashes are shipped by code plugins (`SPLASHES` export — e.g. **configsys-liquid**, the
+  ASCII-water fill; see docs/plugins.md), and must be trusted before they load; `env
+  CONFIGSYS_NO_SPLASH` and `--verbose` also suppress the splash.
 - **`components:`** *amends* a route: bindings merge **additively** across layers by
   `(via, when)` identity — a higher layer adds an install method, overrides a matching
   binding, retracts one with a `drop:` binding, or removes the whole component with `{}`.
