@@ -669,6 +669,7 @@ def _draw(stdscr, pal, ms, ctx, note, diags=(), show_diag=False, diag_top=0, scr
     stdscr.erase()
     h, w = stdscr.getmaxyx()
     cols = _columns(w)
+    descriptions = getattr(ms, 'descriptions', None) or {}   # {name -> desc}, cached per menu build
     pal.use_page(screen)
     if pal.gradient:
         _fill_bg(stdscr, pal, h, w)
@@ -728,9 +729,8 @@ def _draw(stdscr, pal, ms, ctx, note, diags=(), show_diag=False, diag_top=0, scr
         nx, ncw = cols['name']
         _put(stdscr, y, nx, _fit(name, ncw).ljust(ncw),
              pal.style(_KIND_ELEM.get(n.kind, 'unit'), y, nx, h, w, selected=sel))
-        rc = _row_component(n)                        # trail a faded description in the name slack
-        rcomp = ctx.routes.components.get(rc) if rc else None
-        rdesc = (rcomp.description if rcomp else '') or ''
+        rc = _node_component(n)                       # trail a faded description in the name slack
+        rdesc = descriptions.get(rc, '') if rc else ''
         davail = ncw - len(name) - 2
         if rdesc and davail >= 6:
             _put(stdscr, y, nx + len(name) + 2, _fit(rdesc, davail),
@@ -746,9 +746,8 @@ def _draw(stdscr, pal, ms, ctx, note, diags=(), show_diag=False, diag_top=0, scr
             col('inst', n.installed_str(), 'version')
             col('latest', n.latest_str(), 'version', pad=False)
 
-    _cn = _row_component(ms.cur())               # the selected component's brief description
-    _comp = ctx.routes.components.get(_cn) if _cn else None
-    _desc = (_comp.description if _comp else '') or ''
+    _cn = _node_component(ms.cur())              # the selected row's OWN brief description
+    _desc = descriptions.get(_cn, '') if _cn else ''
     _put(stdscr, h - 6, 0, _fit(f' {_cn} — {_desc}' if _desc else '', w),
          pal.style('info', h - 6, 0, h, w))
     _put(stdscr, h - 5, 0, _fit(_methods_line(ms, ctx), w), pal.style('methods', h - 5, 0, h, w))
@@ -782,6 +781,7 @@ def _reload(ctx, old, dirty):
         if n.expandable:
             n.expanded = n.id in expanded
     ms._refresh(keep_id=(old.cur().id if old.cur() else None))
+    ms.descriptions = _describe(ctx)             # cache once; never hit ctx.routes per frame
     return ms, cfg, ledger, states, ctx.diagnostics(states)
 
 
@@ -805,6 +805,27 @@ def _row_component(node):
         return None
     parts = node.id.split(':')
     return parts[2] if parts[0] in ('c', 'u') and len(parts) >= 3 else None
+
+
+def _node_component(node):
+    '''The component name a row represents — its OWN, so a child unit under a group reports its own
+    component (e.g. a gcc-13 part), not the parent's. A UNIT node carries the resolved component;
+    a group / leaf falls back to the name in the node id.'''
+    if node is None:
+        return None
+    if node.kind == UNIT and node.members:
+        return node.members[0].component.comp
+    return _row_component(node)
+
+
+def _describe(ctx):
+    '''{component name -> one-line description}, built ONCE per menu build. `ctx.routes` rebuilds a
+    Resolver (re-parsing routes.hu) on EVERY access, so this must never be called per-row/per-frame
+    — cache it on the MenuState and look up from the dict in the draw loop.'''
+    try:
+        return {name: c.description for name, c in ctx.routes.components.items()}
+    except Exception:   # noqa: BLE001 — a resolve hiccup shouldn't blank the whole screen
+        return {}
 
 
 def _popup_choose(stdscr, pal, title, options, start=0):
@@ -1860,6 +1881,7 @@ def run(ctx):
         cfg, _requested, _units, ledger, states = worker.join()   # re-raises load errors, if any
         layouts, transitive = _menu_model(cfg)
         ms = MenuState(states, layouts, transitive)
+        ms.descriptions = _describe(ctx)          # {name -> desc}, cached; not touched per frame
         diags = ctx.diagnostics(states)
         note = splash_note or ''
         show_diag = False
