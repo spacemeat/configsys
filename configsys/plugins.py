@@ -115,15 +115,31 @@ def primary_name(decls):
     return prim[0] if prim else None
 
 
+_FILE_SCHEME_RE = re.compile(r'^file:(?://[^/]*)?(/.*)$')   # file:/p, file://host/p, file:///p
+
+
+def _file_scheme_path(source):
+    '''The local filesystem path a `file:` source names — normalised across every form. git only
+    accepts `file:///abs` (or a bare path); it MISREADS `file:/abs` and `file://abs` as scp syntax
+    (`host:path`) and tries to ssh to a host literally named "file". We hand git a clean path
+    instead, so all of `file:/p`, `file://p`, `file:///p`, `file:~/p`, and `file:rel` just work.'''
+    m = _FILE_SCHEME_RE.match(source)
+    raw = m.group(1) if m else source[len('file:'):]        # authority (host) dropped for local use
+    return str(Path(raw).expanduser())
+
+
 def source_url(source):
-    '''`github:owner/repo` / `gitlab:owner/repo` -> clone URL; anything else (full URL, ssh,
-    file://, local path) passes through. So a private repo works by giving an ssh source
-    (`git@host:owner/repo.git`) or a credential‑bearing URL, or by having git's own credential
-    helper configured — configsys just shells out to git.'''
+    '''`github:owner/repo` / `gitlab:owner/repo` -> clone URL; a `file:` source -> a clean local
+    path git can clone (see _file_scheme_path); anything else (full URL, ssh, local path) passes
+    through. So a private repo works by giving an ssh source (`git@host:owner/repo.git`) or a
+    credential‑bearing URL, or by having git's own credential helper configured — configsys just
+    shells out to git.'''
     if source.startswith('github:'):
         return f'https://github.com/{source[len("github:"):]}.git'
     if source.startswith('gitlab:'):
         return f'https://gitlab.com/{source[len("gitlab:"):]}.git'
+    if source.startswith('file:'):
+        return _file_scheme_path(source)
     return source
 
 
@@ -872,7 +888,11 @@ def _local_source_path(source):
     '''The filesystem path a LOCAL `source:` refers to (a plugin authored in place, not fetched
     from a remote), or None for a remote source (github:/gitlab:/a URL/ssh). Lets sync no-op a
     plugin whose source IS its own on-disk dir — the `plugin init` local-authoring model.'''
-    if not source or '://' in source or source.startswith('git@'):
+    if not source or source.startswith('git@'):
+        return None
+    if source.startswith('file:'):
+        return Path(_file_scheme_path(source))
+    if '://' in source:
         return None
     head = source.split(':', 1)[0] if ':' in source else ''
     if head in ('github', 'gitlab'):

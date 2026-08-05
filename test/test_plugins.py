@@ -2,6 +2,7 @@
 The code/trust/ABI-gate escalation is P2 (see docs/plugins.md).'''
 
 import os
+import pathlib
 import shutil
 import subprocess
 
@@ -31,6 +32,20 @@ def test_source_url_and_dir_name():
     assert plugins.source_url('/local/path') == '/local/path'
     assert plugins.dir_name('github:someone/configsys-opensuse') == 'configsys-opensuse'
     assert plugins.dir_name('/x/y/myplugin.git') == 'myplugin'
+
+
+def test_file_scheme_normalises_to_a_clean_local_path():
+    '''git misreads `file:/abs` / `file://abs` as scp syntax (ssh to a host named "file"); we hand
+    it a plain local path so every `file:` form clones. (Regression: `plugin add file:/path`.)'''
+    # the exact form a user types — one slash after the scheme — must NOT stay `file:/...`
+    assert plugins.source_url('file:/home/me/plug') == '/home/me/plug'
+    assert plugins.source_url('file:///home/me/plug') == '/home/me/plug'   # the git-native triple slash
+    assert plugins.source_url('file:~/plug').endswith('/plug')             # ~ expands
+    assert plugins.dir_name('file:/home/me/configsys-splash-cove') == 'configsys-splash-cove'
+    assert plugins.dir_name('file:///home/me/configsys-splash-cove') == 'configsys-splash-cove'
+    # a file: source pointing elsewhere is a CLONE target, not authored-in-place
+    assert plugins._local_source_path('file:/home/me/plug') == pathlib.Path('/home/me/plug')
+    assert not plugins.is_local_authored('file:/home/me/plug', pathlib.Path('/somewhere/else'))
 
 
 def test_declared_reads_plugins_list(tmp_path):
