@@ -1867,7 +1867,7 @@ def run(ctx):
         pal = Palette(ctx.config.theme())
         if show_splash:
             import random
-            from .splash import DEFAULT_SPLASH, run_splash   # importing registers the `plain` default
+            from .splash import DEFAULT_SPLASH, run_splash   # importing registers the built-in default
             from ..splashes import get_splash
             provider = get_splash(splash_name) if splash_name else get_splash(DEFAULT_SPLASH)
             if provider is None:
@@ -2176,18 +2176,23 @@ def run(ctx):
                                 note = f'{key} set'
                                 cs.reload()
                                 menu_dirty = True
-                        elif key == 'splash':               # default (built-in) / off / a provider
-                            from ..splashes import splash_names
-                            opts = ([('default', '(built-in)'), ('off', '(no animation)')]
-                                    + [(n, '') for n in splash_names()])
+                        elif key == 'splash':               # off / built-in / a plugin provider
+                            from ..splashes import splash_names, _BUILTIN_SPLASH_NAMES
+                            from .splash import DEFAULT_SPLASH
+                            opts = ([('off', '(no animation)')]
+                                    + [(n, '(built-in)' if n in _BUILTIN_SPLASH_NAMES else '(plugin)')
+                                       for n in splash_names()])
                             names = [o[0] for o in opts]
                             cur = info['value']
-                            cur_idx = (1 if isinstance(cur, str) and cur.lower() in ('off', 'false', 'no')
-                                       else names.index(cur) if cur in names else 0)
+                            cur_idx = (0 if isinstance(cur, str) and cur.lower() in ('off', 'false', 'no')
+                                       else names.index(cur) if cur in names
+                                       else names.index(DEFAULT_SPLASH) if cur in (None, 'default')
+                                       and DEFAULT_SPLASH in names else 0)
                             idx = _popup_choose(stdscr, pal, key, opts, cur_idx)
                             if idx is not None:
                                 val = names[idx]
-                                actions.set_config_setting(ctx, key, [] if val == 'default' else [val])
+                                # picking the built-in default clears the setting (tracks the default)
+                                actions.set_config_setting(ctx, key, [] if val == DEFAULT_SPLASH else [val])
                                 note = f'{key} = {val}'
                                 cs.reload()
                         elif info['kind'] == 'scalar':      # any other scalar -> text input

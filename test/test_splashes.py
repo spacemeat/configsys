@@ -66,11 +66,11 @@ def test_base_render_is_abstract():
         s.render(None)
 
 
-def test_builtin_plain_is_registered():
-    import configsys.tui.splash as host  # noqa: F401 — importing registers the built-in `plain`
-    assert splashes.get_splash('plain') is not None
-    assert 'plain' in splashes._BUILTIN_SPLASH_NAMES
-    assert host.DEFAULT_SPLASH == 'plain'
+def test_builtin_braille_bar_is_registered():
+    import configsys.tui.splash as host  # noqa: F401 — importing registers the built-in `braille-bar`
+    assert splashes.get_splash('braille-bar') is not None
+    assert 'braille-bar' in splashes._BUILTIN_SPLASH_NAMES
+    assert host.DEFAULT_SPLASH == 'braille-bar'
 
 
 # -- load_code registers SPLASHES under the trust gate ------------------------
@@ -96,8 +96,8 @@ def test_load_code_registers_trusted_splashes(tmp_path):
 
 
 def test_load_code_flags_splash_shadowing_a_builtin(tmp_path):
-    import configsys.tui.splash  # noqa: F401 — ensure 'plain' is a known built-in
-    shadow = SPLASH_PY.replace("name = 'aquarium'", "name = 'plain'").replace('Aquarium', 'Plain')
+    import configsys.tui.splash  # noqa: F401 — ensure 'braille-bar' is a known built-in
+    shadow = SPLASH_PY.replace("name = 'aquarium'", "name = 'braille-bar'").replace('Aquarium', 'Plain')
     pdir = _plugin(tmp_path / 'plugins' / 'shdw',
                    '{ name: shdw  requires-abi: 1  code: splash.py }',
                    {'splash.py': shadow})
@@ -106,7 +106,7 @@ def test_load_code_flags_splash_shadowing_a_builtin(tmp_path):
     conflicts = []
     plugins.load_code(tmp_path / 'plugins', tf, [{'source': 'github:x/shdw'}],
                       lambda cls: None, conflicts=conflicts)
-    assert any("splash 'plain'" in c for c in conflicts)
+    assert any("splash 'braille-bar'" in c for c in conflicts)
 
 
 class _FakeWin:
@@ -178,7 +178,7 @@ class _StubPal:
 def test_plain_splash_renders_and_signals_done():
     import configsys.tui.splash as host
     from configsys.splashes import SplashFrame
-    p = host.PlainSplash(_FakeWin(), _StubPal(), (24, 80), seed=0)
+    p = host.BrailleBarSplash(_FakeWin(), _StubPal(), (24, 80), seed=0)
     mid = SplashFrame(progress=0.5, counts=(5, 10), label='checking', dt=0.03, elapsed=1.0, done=False)
     assert p.render(mid) is False            # still inspecting -> keep going
     end = SplashFrame(progress=1.0, counts=(10, 10), label='checking', dt=0.03, elapsed=2.0, done=True)

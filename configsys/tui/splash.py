@@ -1,12 +1,12 @@
-'''splash.py — the splash HOST loop + the built-in `plain` default.
+'''splash.py — the splash HOST loop + the built-in `braille-bar` default.
 
 configsys splashes are provider plugins (see configsys/splashes.py for the ABI). This module owns
 the FRAME LOOP shared by every provider (`run_splash`): it constructs the chosen `Splash`, drives
 it at its frame rate while feeding live progress, and owns the skip key, the deadline, and the safe
-plain-text fallback. The only provider shipped in core is `plain` — a light spinner + determinate
-progress bar (no trust, adds no time) that is both the default when `splash:` is unset and the
-universal fallback. Fancier splashes (e.g. the ASCII-water `ocean` fill) live in code plugins like
-configsys-splash-ocean.
+plain-text fallback. The only provider shipped in core is `braille-bar` — a light braille spinner +
+determinate progress bar (no trust, adds no time) that is both the default when `splash:` is unset
+and the universal fallback. Fancier splashes (e.g. the ASCII-water `ocean` fill) live in code
+plugins like configsys-splash-ocean.
 '''
 
 import curses
@@ -14,15 +14,15 @@ import time
 
 from ..splashes import Splash, SplashFrame, register_splash
 
-MIN_DURATION = 0.6         # a plugin splash floor (no one-frame flash); `plain` overrides it to 0
-DEFAULT_SPLASH = 'plain'   # the built-in, trust-free default when `splash:` is unset
+MIN_DURATION = 0.6              # a plugin splash floor (no one-frame flash); the default overrides it to 0
+DEFAULT_SPLASH = 'braille-bar'  # the built-in, trust-free default when `splash:` is unset
 _SPINNER = '⠋⠙⠹⠸⠼⠴⠦⠧⠇⠏'   # a braille spinner, 12 steps/sec
 
 
 def _draw_progress_text(scr, pal, label, counts, h, w):
     '''The host's plain progress line — the safe STATIC fallback after a skip or a broken provider.
     A clean screen with a centred "<label>: i/total (pct%)" so cancelling an animation never hides
-    the real state. (The default `plain` splash itself is the livelier PlainSplash below.)'''
+    the real state. (The default `braille-bar` splash itself is the livelier BrailleBarSplash below.)'''
     i, total = counts
     text = (f'{label}…' if not total else
             f'{label}:   {i}/{total} ({int(i / total * 100)}%)') if label else ''
@@ -35,7 +35,7 @@ def _draw_progress_text(scr, pal, label, counts, h, w):
             pass
 
 
-class PlainSplash(Splash):
+class BrailleBarSplash(Splash):
     '''The built-in default: a calm centred wait screen — a braille spinner, the label + counts, and
     a slim determinate progress bar tracking real progress. Trust-free, always available, and adds
     no time of its own (min_duration 0, so it exits the moment inspection is done). The fancier
@@ -68,7 +68,7 @@ class PlainSplash(Splash):
         return frame.done
 
 
-register_splash(PlainSplash, builtin=True)
+register_splash(BrailleBarSplash, builtin=True)
 
 
 def run_splash(scr, pal, provider_cls, *, is_done, frac, counts, label, deadline=None, seed=None):
