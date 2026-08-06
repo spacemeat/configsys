@@ -987,6 +987,10 @@ def _chosen_splash(ctx):
         if s is False or s in ('false', 'no', 'off') or (isinstance(s, dict) and s.get('enabled') in (False, 'false', 'no')):
             return False, None
     name = None if (v is None or v.lower() in ('true', 'default', 'on')) else v
+    if name is not None:                             # accept a plugin name as an alias for its splash
+        from .. import plugins
+        decls = plugins.effective_declared(ctx.paths.user_config_file, ctx.paths.plugins_dir)
+        name = plugins.resolve_splash_value(name, ctx.paths.plugins_dir, decls)
     return True, name
 
 
@@ -2179,11 +2183,17 @@ def run(ctx):
                         elif key == 'splash':               # off / built-in / a plugin provider
                             from ..splashes import splash_names, _BUILTIN_SPLASH_NAMES
                             from .splash import DEFAULT_SPLASH
-                            opts = ([('off', '(no animation)')]
-                                    + [(n, '(built-in)' if n in _BUILTIN_SPLASH_NAMES else '(plugin)')
-                                       for n in splash_names()])
+                            from .. import plugins as _pl
+                            _decls = _pl.effective_declared(ctx.paths.user_config_file, ctx.paths.plugins_dir)
+                            prov2plug = _pl.splash_plugins(ctx.paths.plugins_dir, _decls)
+
+                            def _tag(n):                    # show WHICH plugin provides a splash
+                                return ('(built-in)' if n in _BUILTIN_SPLASH_NAMES
+                                        else prov2plug.get(n, '(plugin)'))
+                            opts = [('off', '(no animation)')] + [(n, _tag(n)) for n in splash_names()]
                             names = [o[0] for o in opts]
                             cur = info['value']
+                            cur = _pl.resolve_splash_value(cur, ctx.paths.plugins_dir, _decls) if isinstance(cur, str) else cur
                             cur_idx = (0 if isinstance(cur, str) and cur.lower() in ('off', 'false', 'no')
                                        else names.index(cur) if cur in names
                                        else names.index(DEFAULT_SPLASH) if cur in (None, 'default')

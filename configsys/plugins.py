@@ -389,6 +389,36 @@ def _as_name_list(v):
     return v if isinstance(v, list) else ([v] if v else [])
 
 
+def splash_plugins(plugins_dir, decls):
+    '''Map each splash-PROVIDER name to the PLUGIN name that provides it, read from every synced,
+    ABI-ok plugin's manifest `provides.splashes` (no code run). Lets the config surface WHICH plugin
+    a splash comes from, and lets a user name the plugin instead of the provider (see
+    resolve_splash_value).'''
+    out = {}
+    for d in decls:
+        pdir = plugins_dir / dir_name(d['source'])
+        if not pdir.exists():
+            continue
+        manifest = read_manifest(pdir)
+        if not _abi_ok(manifest):
+            continue
+        for sp in _as_name_list((manifest.get('provides') or {}).get('splashes')):
+            out[sp] = manifest.get('name', dir_name(d['source']))
+    return out
+
+
+def resolve_splash_value(value, plugins_dir, decls):
+    '''Resolve a `splash:` setting VALUE to a registered provider name. Accepts a provider name as-is
+    (e.g. `blocks`), or the PLUGIN name that provides it as an alias (e.g. `configsys-splash-blocks`)
+    when that plugin provides exactly one splash — since a user knows the plugin they installed, not
+    what it calls its provider internally. An unknown value passes through unchanged (so the existing
+    unknown→default degrade + note still applies). Manifest-only; needs no code loaded.'''
+    if not value or splashes.get_splash(value) is not None:
+        return value                                   # already a live provider name
+    provs = [sp for sp, plug in splash_plugins(plugins_dir, decls).items() if plug == value]
+    return provs[0] if len(provs) == 1 else value      # sole-splash plugin name -> its provider
+
+
 def declared_conflicts(plugins_dir, decls):
     '''Names claimed by MORE THAN ONE plugin — an order-dependent collision the layer stack /
     registry resolves silently (last declared wins). Detected from manifests + data files only

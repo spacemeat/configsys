@@ -278,7 +278,11 @@ it; retrofitting versioning after plugins exist is the expensive path.
     checksum→ABI→trust gates, and snapshot-tracks splash-name collisions (two plugins, or one
     shadowing a built-in). Pick one with the **`splash:`** machine setting (a provider name, `off`
     to disable, or unset for the built-in default); an unknown/untrusted name degrades to the
-    default with a note. `test_splashes.py`. Core ships only the trust-free **`braille-bar`** splash (a
+    default with a note. As a convenience the **plugin name** works as an alias for its splash when
+    the plugin provides exactly one (`splash: configsys-splash-blocks` == `splash: blocks`) — a user
+    knows the plugin they installed, not what it calls its provider internally — and the Config
+    picker labels each splash with the plugin that provides it (`plugins.splash_plugins` /
+    `resolve_splash_value`). `test_splashes.py`. Core ships only the trust-free **`braille-bar`** splash (a
     braille spinner + determinate progress bar, `configsys/tui/splash.py:BrailleBarSplash`) as the default
     + universal fallback; the ASCII-water **`ocean`** fill was extracted into its own plugin
     (**configsys-splash-ocean**: `plugin.hu` with `provides.splashes: [ocean]` + `code: ocean.py`

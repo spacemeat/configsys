@@ -194,3 +194,38 @@ def test_module_with_no_exports_is_skipped(tmp_path):
     loaded, skipped = plugins.load_code(tmp_path / 'plugins', tf, [{'source': 'github:x/empty'}],
                                         lambda cls: None)
     assert loaded == [] and 'no DRIVERS or SPLASHES' in dict(skipped)['empty']
+
+
+# -- plugin name as an alias for its splash (config UX) -----------------------
+
+def test_splash_plugins_and_plugin_name_alias(tmp_path):
+    '''A user names the PLUGIN they installed (configsys-splash-blocks), not the provider it calls
+    itself internally (blocks). resolve_splash_value maps the sole-splash plugin name -> provider;
+    splash_plugins surfaces which plugin provides each splash (for the picker label).'''
+    pdir = tmp_path / 'plugins' / 'configsys-splash-blocks'
+    _plugin(pdir, '{ name: configsys-splash-blocks  requires-abi: 1'
+                  '  provides: { splashes: [ blocks ] }  code: blocks.py }',
+            {'blocks.py': 'X = 1\n'})
+    decls = [{'source': 'file:/somewhere/configsys-splash-blocks'}]
+    pd = tmp_path / 'plugins'
+
+    assert plugins.splash_plugins(pd, decls) == {'blocks': 'configsys-splash-blocks'}
+    # the plugin name resolves to its sole provider...
+    assert plugins.resolve_splash_value('configsys-splash-blocks', pd, decls) == 'blocks'
+    # ...a real provider name passes through (get_splash sees it once registered; here it's unknown
+    # so it falls to the plugin map, which has no plugin named 'blocks' -> unchanged)
+    assert plugins.resolve_splash_value('blocks', pd, decls) == 'blocks'
+    # an unknown value is left alone (existing unknown->default degrade still applies)
+    assert plugins.resolve_splash_value('nope', pd, decls) == 'nope'
+
+
+def test_multi_splash_plugin_name_is_not_aliased(tmp_path):
+    '''A plugin providing MORE than one splash can't be aliased by plugin name alone (ambiguous) —
+    the value passes through so the user must name the provider.'''
+    pdir = tmp_path / 'plugins' / 'combo'
+    _plugin(pdir, '{ name: combo  requires-abi: 1  provides: { splashes: [ a  b ] }  code: c.py }',
+            {'c.py': 'X = 1\n'})
+    decls = [{'source': 'file:/x/combo'}]
+    pd = tmp_path / 'plugins'
+    assert plugins.splash_plugins(pd, decls) == {'a': 'combo', 'b': 'combo'}
+    assert plugins.resolve_splash_value('combo', pd, decls) == 'combo'   # ambiguous -> unchanged
