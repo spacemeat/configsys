@@ -229,3 +229,23 @@ def test_multi_splash_plugin_name_is_not_aliased(tmp_path):
     pd = tmp_path / 'plugins'
     assert plugins.splash_plugins(pd, decls) == {'a': 'combo', 'b': 'combo'}
     assert plugins.resolve_splash_value('combo', pd, decls) == 'combo'   # ambiguous -> unchanged
+
+
+def test_splash_value_hint_flags_multi_splash_plugin(tmp_path):
+    '''Setting a plugin that provides 2+ splashes is ambiguous (can't alias by plugin name) — the
+    hint names the choices instead of the misleading "unavailable" fallback. A sole-splash plugin,
+    a bare provider name, and off/unknown give no hint.'''
+    _plugin(tmp_path / 'plugins' / 'combo',
+            '{ name: combo  requires-abi: 1  provides: { splashes: [ a  b ] }  code: c.py }',
+            {'c.py': 'X=1\n'})
+    _plugin(tmp_path / 'plugins' / 'configsys-splash-blocks',
+            '{ name: configsys-splash-blocks  requires-abi: 1'
+            '  provides: { splashes: [ blocks ] }  code: b.py }', {'b.py': 'X=1\n'})
+    pd = tmp_path / 'plugins'
+    decls = [{'source': 'file:/x/combo'}, {'source': 'file:/x/configsys-splash-blocks'}]
+
+    hint = plugins.splash_value_hint('combo', pd, decls)
+    assert hint and 'multiple splashes' in hint and 'a, b' in hint
+    assert plugins.splash_value_hint('configsys-splash-blocks', pd, decls) is None   # sole splash: fine
+    assert plugins.splash_value_hint('blocks', pd, decls) is None                    # a provider name
+    assert plugins.splash_value_hint('off', pd, decls) is None

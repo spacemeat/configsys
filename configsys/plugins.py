@@ -419,6 +419,18 @@ def resolve_splash_value(value, plugins_dir, decls):
     return provs[0] if len(provs) == 1 else value      # sole-splash plugin name -> its provider
 
 
+def splash_value_hint(value, plugins_dir, decls):
+    '''If `value` names a plugin that provides MORE THAN ONE splash — so the plugin-name alias is
+    ambiguous and can't resolve — return an actionable hint listing the choices; else None. Used to
+    explain the fallback (at set-time and at runtime) instead of a misleading "unavailable".'''
+    if not value:
+        return None
+    provs = sorted(sp for sp, plug in splash_plugins(plugins_dir, decls).items() if plug == value)
+    if len(provs) > 1:
+        return f"plugin '{value}' provides multiple splashes; set splash to one of: " + ', '.join(provs)
+    return None
+
+
 def declared_conflicts(plugins_dir, decls):
     '''Names claimed by MORE THAN ONE plugin — an order-dependent collision the layer stack /
     registry resolves silently (last declared wins). Detected from manifests + data files only

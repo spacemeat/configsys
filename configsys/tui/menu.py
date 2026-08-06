@@ -1876,7 +1876,10 @@ def run(ctx):
             provider = get_splash(splash_name) if splash_name else get_splash(DEFAULT_SPLASH)
             if provider is None:
                 if splash_name:                  # named but not registered/trusted -> default + note
-                    splash_note = f"splash '{splash_name}' unavailable — using '{DEFAULT_SPLASH}'"
+                    from .. import plugins as _pl
+                    _decls = _pl.effective_declared(ctx.paths.user_config_file, ctx.paths.plugins_dir)
+                    hint = _pl.splash_value_hint(splash_name, ctx.paths.plugins_dir, _decls)
+                    splash_note = hint or f"splash '{splash_name}' unavailable — using '{DEFAULT_SPLASH}'"
                 provider = get_splash(DEFAULT_SPLASH)   # the trust-free in-core default
             run_splash(stdscr, pal, provider, label='checking install state',
                        is_done=worker.done, frac=worker.frac, counts=worker.counts,
