@@ -21,6 +21,7 @@
         debian:    { using: glibc_linux  native: apt   scale-root: true }
         ubuntu:    { using: debian    scale-root: true }
         pop_os!:   { using: ubuntu }
+        elementary:{ using: ubuntu    scale-root: true }            // elementary OS (own numbering: 6/7/8); ships the Pantheon desktop
         linuxmint: { using: ubuntu    scale-root: true }            // Mint main (own numbering)
         lmde:      { using: debian    scale-root: true }            // Mint Debian Edition (own numbering)
         kali:      { using: debian }                                // kali-rolling (Debian testing) — rolling, bare membership like tumbleweed
@@ -1088,7 +1089,7 @@
         mariadb:            { description: "MariaDB — MySQL-compatible relational database." install: [ { via: native  when: "debian or redhat or arch"  name: { pacman: mariadb  default: mariadb-server } }  { via: native  when: "fedora_atomic"  name: mariadb } ] }   // brew formula `mariadb` (not the distro `-server` split)
         mariadb-service:    { description: "Enable and start the MariaDB server (systemd)." requires: mariadb  install: [ { via: service  unit: mariadb } ] }
         // redis is being replaced by its FOSS fork valkey on Fedora/Arch (drop-in compatible).
-        redis:              { description: "Redis — in-memory data store and cache." install: [ { via: native  when: "debian or redhat or arch"  name: { apt: redis-server  dnf: valkey  pacman: valkey } } ] }
+        redis:              { description: "Redis — in-memory data store and cache." install: [ { via: native  when: "debian or redhat or arch"  name: { apt: redis-server  dnf: valkey  pacman: valkey } }  { via: native  when: "fedora_atomic"  name: redis } ] }   // brew formula `redis` (distro repos lean valkey post-relicense; brew keeps redis)
         redis-service:      { description: "Enable and start the Redis server (systemd)." requires: redis  install: [ { via: service  when: "debian"  unit: redis-server }
                                                           { via: service  when: "redhat or arch"  unit: valkey } ] }
 

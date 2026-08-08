@@ -26,7 +26,8 @@ GOLDEN = os.path.join(HERE, 'routing_golden.json')
 
 CONTEXTS = [('ubuntu', '24.04'), ('ubuntu', '22.04'), ('pop_os!', '22.04'),
             ('debian', '12'), ('debian', '11'), ('fedora', '41'), ('fedora', '42'),
-            ('rhel', '9.8'), ('arch', '20260101')]
+            ('rhel', '9.8'), ('arch', '20260101'), ('fedora_atomic', '41'),
+            ('elementary', '8')]
 
 
 def _canon(rc):

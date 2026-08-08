@@ -12844,6 +12844,4389 @@
    }
   }
  },
+ "elementary@8": {
+  "abseil": {
+   "apt\\abseil": {
+    "driver": "apt",
+    "fields": {
+     "name": "libabsl-dev",
+     "repo-component": "universe"
+    },
+    "name": "libabsl-dev"
+   }
+  },
+  "aider": {
+   "apt\\pipx": {
+    "driver": "apt",
+    "fields": {
+     "name": "pipx"
+    },
+    "name": "pipx"
+   },
+   "pipx\\aider": {
+    "driver": "pipx",
+    "fields": {
+     "name": "aider-chat"
+    },
+    "name": "aider-chat"
+   }
+  },
+  "analysis": {
+   "apt\\clang-tidy": {
+    "driver": "apt",
+    "fields": {
+     "name": "clang-tidy"
+    },
+    "name": "clang-tidy"
+   },
+   "apt\\cppcheck": {
+    "driver": "apt",
+    "fields": {
+     "name": "cppcheck"
+    },
+    "name": "cppcheck"
+   },
+   "apt\\lldb": {
+    "driver": "apt",
+    "fields": {
+     "name": "lldb"
+    },
+    "name": "lldb"
+   },
+   "apt\\ltrace": {
+    "driver": "apt",
+    "fields": {
+     "name": "ltrace"
+    },
+    "name": "ltrace"
+   },
+   "apt\\strace": {
+    "driver": "apt",
+    "fields": {
+     "name": "strace"
+    },
+    "name": "strace"
+   },
+   "apt\\valgrind": {
+    "driver": "apt",
+    "fields": {
+     "name": "valgrind"
+    },
+    "name": "valgrind"
+   }
+  },
+  "android-studio": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "tarball\\android-studio": {
+    "driver": "tarball",
+    "fields": {
+     "name": "android-studio",
+     "url": "https://redirector.gvt1.com/edgedl/android/studio/ide-zips/$VERSION/android-studio-$VERSION-linux.tar.gz",
+     "version": {
+      "static": "2024.2.1.11"
+     }
+    },
+    "name": "android-studio"
+   }
+  },
+  "ansible": {
+   "apt\\ansible": {
+    "driver": "apt",
+    "fields": {
+     "name": "ansible",
+     "repo-component": "universe"
+    },
+    "name": "ansible"
+   }
+  },
+  "ardour": {
+   "apt\\flatpak": {
+    "driver": "apt",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\ardour": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "org.ardour.Ardour"
+    },
+    "name": "org.ardour.Ardour"
+   }
+  },
+  "arduino": {
+   "apt\\flatpak": {
+    "driver": "apt",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "dotfiles\\arduino-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/arduino.sh",
+     "src": "bash.d/arduino.sh"
+    },
+    "name": "arduino-dotfiles"
+   },
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.bash.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "flatpak\\arduino": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "cc.arduino.IDE2"
+    },
+    "name": "cc.arduino.IDE2"
+   }
+  },
+  "arduino-dotfiles": {
+   "dotfiles\\arduino-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/arduino.sh",
+     "src": "bash.d/arduino.sh"
+    },
+    "name": "arduino-dotfiles"
+   },
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.bash.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   }
+  },
+  "awscli": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "apt\\unzip": {
+    "driver": "apt",
+    "fields": {
+     "name": "unzip"
+    },
+    "name": "unzip"
+   },
+   "script\\awscli": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "curl -fsSL \"https://awscli.amazonaws.com/awscli-exe-linux-$(uname -m).zip\" -o /tmp/awscliv2.zip && unzip -q -o /tmp/awscliv2.zip -d /tmp/awscli-inst && /tmp/awscli-inst/aws/install --update -i \"$HOME/.local/aws-cli\" -b \"$HOME/.local/bin\" && rm -rf /tmp/awscliv2.zip /tmp/awscli-inst",
+     "location": "~/.local/bin/aws",
+     "name": "awscli",
+     "uninstall-cmd": "rm -rf \"$HOME/.local/aws-cli\" \"$HOME/.local/bin/aws\" \"$HOME/.local/bin/aws_completer\"",
+     "version-cmd": "\"$HOME/.local/bin/aws\" --version",
+     "version-re": "([0-9]+\\.[0-9]+\\.[0-9]+)"
+    },
+    "name": "awscli"
+   }
+  },
+  "azure-cli": {
+   "apt\\pipx": {
+    "driver": "apt",
+    "fields": {
+     "name": "pipx"
+    },
+    "name": "pipx"
+   },
+   "pipx\\azure-cli": {
+    "driver": "pipx",
+    "fields": {
+     "name": "azure-cli"
+    },
+    "name": "azure-cli"
+   }
+  },
+  "bash-dotfiles": {
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.bash.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   }
+  },
+  "bazelisk": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "tarball\\bazelisk": {
+    "driver": "tarball",
+    "fields": {
+     "archive": "none",
+     "binary": "bazelisk",
+     "installDir": "$CONFIGSYS_APP_DIR/bazelisk",
+     "name": "bazelisk",
+     "url": "https://github.com/bazelbuild/bazelisk/releases/latest/download/bazelisk-linux-amd64",
+     "version": {
+      "static": "latest"
+     }
+    },
+    "name": "bazelisk"
+   }
+  },
+  "blender": {
+   "apt\\blender": {
+    "driver": "apt",
+    "fields": {
+     "name": "blender",
+     "repo-component": "universe"
+    },
+    "name": "blender"
+   }
+  },
+  "boost": {
+   "apt\\boost": {
+    "driver": "apt",
+    "fields": {
+     "name": "libboost-all-dev",
+     "repo-component": "universe"
+    },
+    "name": "libboost-all-dev"
+   }
+  },
+  "brave": {
+   "apt\\flatpak": {
+    "driver": "apt",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\brave": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "com.brave.Browser"
+    },
+    "name": "com.brave.Browser"
+   }
+  },
+  "bruno": {
+   "apt\\flatpak": {
+    "driver": "apt",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\bruno": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "com.usebruno.Bruno"
+    },
+    "name": "com.usebruno.Bruno"
+   }
+  },
+  "btop": {
+   "apt\\btop": {
+    "driver": "apt",
+    "fields": {
+     "name": "btop",
+     "repo-component": "universe"
+    },
+    "name": "btop"
+   }
+  },
+  "budgie": {
+   "apt\\budgie": {
+    "driver": "apt",
+    "fields": {
+     "name": "budgie-desktop"
+    },
+    "name": "budgie-desktop"
+   }
+  },
+  "bun": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "apt\\unzip": {
+    "driver": "apt",
+    "fields": {
+     "name": "unzip"
+    },
+    "name": "unzip"
+   },
+   "tarball\\bun": {
+    "driver": "tarball",
+    "fields": {
+     "installDir": "$CONFIGSYS_APP_DIR/bun",
+     "name": "bun",
+     "url": "https://github.com/oven-sh/bun/releases/latest/download/bun-linux-x64.zip",
+     "version": {
+      "static": "latest"
+     }
+    },
+    "name": "bun"
+   }
+  },
+  "bundler": {
+   "apt\\ruby": {
+    "driver": "apt",
+    "fields": {
+     "name": "ruby-full"
+    },
+    "name": "ruby-full"
+   },
+   "gem\\bundler": {
+    "driver": "gem",
+    "fields": {
+     "name": "bundler"
+    },
+    "name": "bundler"
+   }
+  },
+  "c-toolchain": {
+   "apt\\c-toolchain": {
+    "driver": "apt",
+    "fields": {
+     "name": "gcc"
+    },
+    "name": "gcc"
+   }
+  },
+  "cabal": {
+   "apt\\cabal": {
+    "driver": "apt",
+    "fields": {
+     "name": "cabal-install",
+     "repo-component": "universe"
+    },
+    "name": "cabal-install"
+   },
+   "apt\\haskell": {
+    "driver": "apt",
+    "fields": {
+     "name": "ghc",
+     "repo-component": "universe"
+    },
+    "name": "ghc"
+   }
+  },
+  "carla": {
+   "apt\\flatpak": {
+    "driver": "apt",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\carla": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "studio.kx.carla"
+    },
+    "name": "studio.kx.carla"
+   }
+  },
+  "chrome": {
+   "apt\\flatpak": {
+    "driver": "apt",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\chrome": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "com.google.Chrome"
+    },
+    "name": "com.google.Chrome"
+   }
+  },
+  "chromium": {
+   "snap\\chromium": {
+    "driver": "snap",
+    "fields": {
+     "name": "chromium"
+    },
+    "name": "chromium"
+   }
+  },
+  "cinnamon": {
+   "apt\\cinnamon": {
+    "driver": "apt",
+    "fields": {
+     "name": "cinnamon-desktop-environment"
+    },
+    "name": "cinnamon-desktop-environment"
+   }
+  },
+  "clang-18": {
+   "apt\\c-toolchain": {
+    "driver": "apt",
+    "fields": {
+     "name": "gcc"
+    },
+    "name": "gcc"
+   },
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "apt\\libstdc++": {
+    "driver": "apt",
+    "fields": {
+     "name": "g++"
+    },
+    "name": "g++"
+   },
+   "clang\\clang-18": {
+    "driver": "clang",
+    "fields": {
+     "name": "clang-18",
+     "packages": [
+      "clang-18"
+     ]
+    },
+    "name": "clang-18"
+   },
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.bash.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\clang-select": {
+    "driver": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/clang.sh",
+     "src": "bash.d/clang.sh"
+    },
+    "name": "clang-select"
+   }
+  },
+  "clang-19": {
+   "apt\\c-toolchain": {
+    "driver": "apt",
+    "fields": {
+     "name": "gcc"
+    },
+    "name": "gcc"
+   },
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "apt\\libstdc++": {
+    "driver": "apt",
+    "fields": {
+     "name": "g++"
+    },
+    "name": "g++"
+   },
+   "clang\\clang-19": {
+    "driver": "clang",
+    "fields": {
+     "name": "clang-19",
+     "packages": [
+      "clang-19"
+     ]
+    },
+    "name": "clang-19"
+   },
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.bash.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\clang-select": {
+    "driver": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/clang.sh",
+     "src": "bash.d/clang.sh"
+    },
+    "name": "clang-select"
+   }
+  },
+  "clang-20": {
+   "apt\\c-toolchain": {
+    "driver": "apt",
+    "fields": {
+     "name": "gcc"
+    },
+    "name": "gcc"
+   },
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "apt\\libstdc++": {
+    "driver": "apt",
+    "fields": {
+     "name": "g++"
+    },
+    "name": "g++"
+   },
+   "clang\\clang-20": {
+    "driver": "clang",
+    "fields": {
+     "name": "clang-20",
+     "packages": [
+      "clang-20"
+     ]
+    },
+    "name": "clang-20"
+   },
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.bash.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\clang-select": {
+    "driver": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/clang.sh",
+     "src": "bash.d/clang.sh"
+    },
+    "name": "clang-select"
+   }
+  },
+  "clang-select": {
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.bash.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\clang-select": {
+    "driver": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/clang.sh",
+     "src": "bash.d/clang.sh"
+    },
+    "name": "clang-select"
+   }
+  },
+  "clang-tidy": {
+   "apt\\clang-tidy": {
+    "driver": "apt",
+    "fields": {
+     "name": "clang-tidy"
+    },
+    "name": "clang-tidy"
+   }
+  },
+  "claude-code": {
+   "apt\\node": {
+    "driver": "apt",
+    "fields": {
+     "name": "npm",
+     "repo-component": "universe"
+    },
+    "name": "npm"
+   },
+   "npm\\claude-code": {
+    "driver": "npm",
+    "fields": {
+     "name": "@anthropic-ai/claude-code"
+    },
+    "name": "@anthropic-ai/claude-code"
+   }
+  },
+  "cmake": {
+   "apt\\cmake": {
+    "driver": "apt",
+    "fields": {
+     "name": "cmake"
+    },
+    "name": "cmake"
+   }
+  },
+  "codecs": {
+   "apt\\ffmpeg": {
+    "driver": "apt",
+    "fields": {
+     "name": "ffmpeg"
+    },
+    "name": "ffmpeg"
+   },
+   "apt\\gst-bad": {
+    "driver": "apt",
+    "fields": {
+     "name": "gstreamer1.0-plugins-bad"
+    },
+    "name": "gstreamer1.0-plugins-bad"
+   },
+   "apt\\gst-good": {
+    "driver": "apt",
+    "fields": {
+     "name": "gstreamer1.0-plugins-good"
+    },
+    "name": "gstreamer1.0-plugins-good"
+   }
+  },
+  "codecs-restricted": {
+   "apt\\gst-libav": {
+    "driver": "apt",
+    "fields": {
+     "name": "gstreamer1.0-libav",
+     "repo-component": "universe"
+    },
+    "name": "gstreamer1.0-libav"
+   },
+   "apt\\gst-ugly": {
+    "driver": "apt",
+    "fields": {
+     "name": "gstreamer1.0-plugins-ugly",
+     "repo-component": "multiverse"
+    },
+    "name": "gstreamer1.0-plugins-ugly"
+   },
+   "apt\\libavcodec-extra": {
+    "driver": "apt",
+    "fields": {
+     "name": "libavcodec-extra",
+     "repo-component": "universe"
+    },
+    "name": "libavcodec-extra"
+   }
+  },
+  "codex": {
+   "apt\\node": {
+    "driver": "apt",
+    "fields": {
+     "name": "npm",
+     "repo-component": "universe"
+    },
+    "name": "npm"
+   },
+   "npm\\codex": {
+    "driver": "npm",
+    "fields": {
+     "name": "@openai/codex"
+    },
+    "name": "@openai/codex"
+   }
+  },
+  "compression": {
+   "apt\\lz4": {
+    "driver": "apt",
+    "fields": {
+     "name": "lz4"
+    },
+    "name": "lz4"
+   },
+   "apt\\p7zip": {
+    "driver": "apt",
+    "fields": {
+     "name": "p7zip-full"
+    },
+    "name": "p7zip-full"
+   },
+   "apt\\unzip": {
+    "driver": "apt",
+    "fields": {
+     "name": "unzip"
+    },
+    "name": "unzip"
+   },
+   "apt\\zip": {
+    "driver": "apt",
+    "fields": {
+     "name": "zip"
+    },
+    "name": "zip"
+   },
+   "apt\\zstd": {
+    "driver": "apt",
+    "fields": {
+     "name": "zstd"
+    },
+    "name": "zstd"
+   }
+  },
+  "conan": {
+   "apt\\pipx": {
+    "driver": "apt",
+    "fields": {
+     "name": "pipx"
+    },
+    "name": "pipx"
+   },
+   "pipx\\conan": {
+    "driver": "pipx",
+    "fields": {
+     "name": "conan"
+    },
+    "name": "conan"
+   }
+  },
+  "configsys-dotfiles": {
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.bash.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\configsys-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/00-configsys.sh",
+     "src": "bash.d/00-configsys.sh"
+    },
+    "name": "configsys-dotfiles"
+   }
+  },
+  "cpp-toolchain": {
+   "apt\\c-toolchain": {
+    "driver": "apt",
+    "fields": {
+     "name": "gcc"
+    },
+    "name": "gcc"
+   },
+   "apt\\cpp-toolchain": {
+    "driver": "apt",
+    "fields": {
+     "name": "g++"
+    },
+    "name": "g++"
+   }
+  },
+  "cppcheck": {
+   "apt\\cppcheck": {
+    "driver": "apt",
+    "fields": {
+     "name": "cppcheck"
+    },
+    "name": "cppcheck"
+   }
+  },
+  "cuda-toolkit": {
+   "apt\\cuda-toolkit": {
+    "driver": "apt",
+    "fields": {
+     "name": "nvidia-cuda-toolkit"
+    },
+    "name": "nvidia-cuda-toolkit"
+   }
+  },
+  "curl": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   }
+  },
+  "darktable": {
+   "apt\\flatpak": {
+    "driver": "apt",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\darktable": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "org.darktable.Darktable"
+    },
+    "name": "org.darktable.Darktable"
+   }
+  },
+  "dbeaver": {
+   "apt\\flatpak": {
+    "driver": "apt",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\dbeaver": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "io.dbeaver.DBeaverCommunity"
+    },
+    "name": "io.dbeaver.DBeaverCommunity"
+   }
+  },
+  "deno": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "apt\\unzip": {
+    "driver": "apt",
+    "fields": {
+     "name": "unzip"
+    },
+    "name": "unzip"
+   },
+   "tarball\\deno": {
+    "driver": "tarball",
+    "fields": {
+     "installDir": "$CONFIGSYS_APP_DIR/deno",
+     "name": "deno",
+     "url": "https://github.com/denoland/deno/releases/latest/download/deno-x86_64-unknown-linux-gnu.zip",
+     "version": {
+      "static": "latest"
+     }
+    },
+    "name": "deno"
+   }
+  },
+  "dig": {
+   "apt\\dig": {
+    "driver": "apt",
+    "fields": {
+     "name": "dnsutils"
+    },
+    "name": "dnsutils"
+   }
+  },
+  "digikam": {
+   "apt\\flatpak": {
+    "driver": "apt",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\digikam": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "org.kde.digikam"
+    },
+    "name": "org.kde.digikam"
+   }
+  },
+  "discord": {
+   "apt\\flatpak": {
+    "driver": "apt",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\discord": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "com.discordapp.Discord"
+    },
+    "name": "com.discordapp.Discord"
+   }
+  },
+  "dkjson": {
+   "apt\\luarocks": {
+    "driver": "apt",
+    "fields": {
+     "name": "luarocks",
+     "repo-component": "universe"
+    },
+    "name": "luarocks"
+   },
+   "luarocks\\dkjson": {
+    "driver": "luarocks",
+    "fields": {
+     "name": "dkjson"
+    },
+    "name": "dkjson"
+   }
+  },
+  "docker": {
+   "apt\\docker-engine": {
+    "driver": "apt",
+    "fields": {
+     "name": "docker.io",
+     "repo-component": "universe"
+    },
+    "name": "docker.io"
+   },
+   "service\\docker-service": {
+    "driver": "service",
+    "fields": {
+     "name": "docker-service",
+     "unit": "docker"
+    },
+    "name": "docker-service"
+   }
+  },
+  "docker-engine": {
+   "apt\\docker-engine": {
+    "driver": "apt",
+    "fields": {
+     "name": "docker.io",
+     "repo-component": "universe"
+    },
+    "name": "docker.io"
+   }
+  },
+  "docker-group": {
+   "apt\\docker-engine": {
+    "driver": "apt",
+    "fields": {
+     "name": "docker.io",
+     "repo-component": "universe"
+    },
+    "name": "docker.io"
+   },
+   "group\\docker-group": {
+    "driver": "group",
+    "fields": {
+     "name": "docker"
+    },
+    "name": "docker"
+   }
+  },
+  "docker-service": {
+   "apt\\docker-engine": {
+    "driver": "apt",
+    "fields": {
+     "name": "docker.io",
+     "repo-component": "universe"
+    },
+    "name": "docker.io"
+   },
+   "service\\docker-service": {
+    "driver": "service",
+    "fields": {
+     "name": "docker-service",
+     "unit": "docker"
+    },
+    "name": "docker-service"
+   }
+  },
+  "dune": {
+   "apt\\opam": {
+    "driver": "apt",
+    "fields": {
+     "name": "opam",
+     "repo-component": "universe"
+    },
+    "name": "opam"
+   },
+   "opam\\dune": {
+    "driver": "opam",
+    "fields": {
+     "name": "dune"
+    },
+    "name": "dune"
+   }
+  },
+  "edge": {
+   "apt\\flatpak": {
+    "driver": "apt",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\edge": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "com.microsoft.Edge"
+    },
+    "name": "com.microsoft.Edge"
+   }
+  },
+  "elixir": {
+   "apt\\elixir": {
+    "driver": "apt",
+    "fields": {
+     "name": "elixir",
+     "repo-component": "universe"
+    },
+    "name": "elixir"
+   }
+  },
+  "emacs": {
+   "apt\\emacs": {
+    "driver": "apt",
+    "fields": {
+     "name": "emacs",
+     "repo-component": "universe"
+    },
+    "name": "emacs"
+   }
+  },
+  "erlang": {
+   "apt\\erlang": {
+    "driver": "apt",
+    "fields": {
+     "name": "erlang",
+     "repo-component": "universe"
+    },
+    "name": "erlang"
+   }
+  },
+  "ethtool": {
+   "apt\\ethtool": {
+    "driver": "apt",
+    "fields": {
+     "name": "ethtool"
+    },
+    "name": "ethtool"
+   }
+  },
+  "fastfetch": {
+   "native-pkg-file\\fastfetch": {
+    "driver": "native-pkg-file",
+    "fields": {
+     "asset": {
+      "aarch64": "fastfetch-linux-aarch64.deb",
+      "x86_64": "fastfetch-linux-amd64.deb"
+     },
+     "name": "fastfetch",
+     "version": {
+      "github": "fastfetch-cli/fastfetch"
+     }
+    },
+    "name": "fastfetch"
+   }
+  },
+  "ffmpeg": {
+   "apt\\ffmpeg": {
+    "driver": "apt",
+    "fields": {
+     "name": "ffmpeg"
+    },
+    "name": "ffmpeg"
+   }
+  },
+  "firefox": {
+   "apt\\firefox": {
+    "driver": "apt",
+    "fields": {
+     "name": "firefox",
+     "repo-component": "universe"
+    },
+    "name": "firefox"
+   }
+  },
+  "fish": {
+   "apt\\fish": {
+    "driver": "apt",
+    "fields": {
+     "name": "fish"
+    },
+    "name": "fish"
+   }
+  },
+  "flatpak": {
+   "apt\\flatpak": {
+    "driver": "apt",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   }
+  },
+  "fontconfig": {
+   "apt\\fontconfig": {
+    "driver": "apt",
+    "fields": {
+     "name": "fontconfig"
+    },
+    "name": "fontconfig"
+   }
+  },
+  "freecad": {
+   "apt\\flatpak": {
+    "driver": "apt",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\freecad": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "org.freecad.FreeCAD"
+    },
+    "name": "org.freecad.FreeCAD"
+   }
+  },
+  "fvwm2": {
+   "apt\\fvwm2": {
+    "driver": "apt",
+    "fields": {
+     "name": "fvwm"
+    },
+    "name": "fvwm"
+   }
+  },
+  "fzf": {
+   "apt\\fzf": {
+    "driver": "apt",
+    "fields": {
+     "name": "fzf",
+     "repo-component": "universe"
+    },
+    "name": "fzf"
+   }
+  },
+  "gap": {
+   "apt\\gap": {
+    "driver": "apt",
+    "fields": {
+     "name": "gap",
+     "repo-component": "universe"
+    },
+    "name": "gap"
+   }
+  },
+  "gcc-13": {
+   "apt\\software-properties-common": {
+    "driver": "apt",
+    "fields": {
+     "name": "software-properties-common"
+    },
+    "name": "software-properties-common"
+   },
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.bash.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\gcc-select": {
+    "driver": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/gcc.sh",
+     "src": "bash.d/gcc.sh"
+    },
+    "name": "gcc-select"
+   },
+   "gcc\\gcc-13": {
+    "driver": "gcc",
+    "fields": {
+     "name": "gcc-13",
+     "packages": [
+      "gcc-13",
+      "g++-13"
+     ],
+     "ppa": "ubuntu-toolchain-r/test",
+     "slaves": [
+      "g++"
+     ]
+    },
+    "name": "gcc-13"
+   }
+  },
+  "gcc-14": {
+   "apt\\software-properties-common": {
+    "driver": "apt",
+    "fields": {
+     "name": "software-properties-common"
+    },
+    "name": "software-properties-common"
+   },
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.bash.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\gcc-select": {
+    "driver": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/gcc.sh",
+     "src": "bash.d/gcc.sh"
+    },
+    "name": "gcc-select"
+   },
+   "gcc\\gcc-14": {
+    "driver": "gcc",
+    "fields": {
+     "name": "gcc-14",
+     "packages": [
+      "gcc-14",
+      "g++-14"
+     ],
+     "ppa": "ubuntu-toolchain-r/test",
+     "slaves": [
+      "g++"
+     ]
+    },
+    "name": "gcc-14"
+   }
+  },
+  "gcc-15": {
+   "apt\\software-properties-common": {
+    "driver": "apt",
+    "fields": {
+     "name": "software-properties-common"
+    },
+    "name": "software-properties-common"
+   },
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.bash.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\gcc-select": {
+    "driver": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/gcc.sh",
+     "src": "bash.d/gcc.sh"
+    },
+    "name": "gcc-select"
+   },
+   "gcc\\gcc-15": {
+    "driver": "gcc",
+    "fields": {
+     "name": "gcc-15",
+     "packages": [
+      "gcc-15",
+      "g++-15"
+     ],
+     "ppa": "ubuntu-toolchain-r/test",
+     "slaves": [
+      "g++"
+     ]
+    },
+    "name": "gcc-15"
+   }
+  },
+  "gcc-select": {
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.bash.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\gcc-select": {
+    "driver": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/gcc.sh",
+     "src": "bash.d/gcc.sh"
+    },
+    "name": "gcc-select"
+   }
+  },
+  "gcloud": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "script\\gcloud": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "curl -fsSL https://sdk.cloud.google.com | bash -s -- --disable-prompts --install-dir=\"$HOME\"",
+     "location": "~/google-cloud-sdk/bin",
+     "name": "gcloud",
+     "uninstall-cmd": "rm -rf \"$HOME/google-cloud-sdk\"",
+     "version-cmd": "\"$HOME/google-cloud-sdk/bin/gcloud\" version",
+     "version-re": "([0-9]+\\.[0-9]+\\.[0-9]+)"
+    },
+    "name": "gcloud"
+   }
+  },
+  "gdb": {
+   "apt\\gdb": {
+    "driver": "apt",
+    "fields": {
+     "name": "gdb"
+    },
+    "name": "gdb"
+   },
+   "dotfiles\\gdb-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "dst": "~/.gdbinit",
+     "src": "gdbinit"
+    },
+    "name": "gdb-dotfiles"
+   }
+  },
+  "gdb-dotfiles": {
+   "dotfiles\\gdb-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "dst": "~/.gdbinit",
+     "src": "gdbinit"
+    },
+    "name": "gdb-dotfiles"
+   }
+  },
+  "ghostty": {
+   "appImage\\ghostty": {
+    "driver": "appImage",
+    "fields": {
+     "name": "Ghostty",
+     "path": "~/apps/ghostty.appimage",
+     "scope": "user",
+     "version": {
+      "asset": "Ghostty-*-$ARCH.AppImage",
+      "github": "pkgforge-dev/ghostty-appimage",
+      "strip-v": "true"
+     }
+    },
+    "name": "Ghostty"
+   },
+   "apt\\libfuse2": {
+    "driver": "apt",
+    "fields": {
+     "name": "libfuse2",
+     "repo-component": "universe"
+    },
+    "name": "libfuse2"
+   }
+  },
+  "gimp": {
+   "apt\\flatpak": {
+    "driver": "apt",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\gimp": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "org.gimp.GIMP"
+    },
+    "name": "org.gimp.GIMP"
+   }
+  },
+  "git": {
+   "apt\\git": {
+    "driver": "apt",
+    "fields": {
+     "name": "git"
+    },
+    "name": "git"
+   }
+  },
+  "gnome": {
+   "apt\\gnome": {
+    "driver": "apt",
+    "fields": {
+     "name": "gnome-shell"
+    },
+    "name": "gnome-shell"
+   }
+  },
+  "gnuplot": {
+   "apt\\gnuplot": {
+    "driver": "apt",
+    "fields": {
+     "name": "gnuplot",
+     "repo-component": "universe"
+    },
+    "name": "gnuplot"
+   }
+  },
+  "gnuradio": {
+   "apt\\gnuradio": {
+    "driver": "apt",
+    "fields": {
+     "name": "gnuradio"
+    },
+    "name": "gnuradio"
+   }
+  },
+  "go": {
+   "apt\\go": {
+    "driver": "apt",
+    "fields": {
+     "name": "golang-go"
+    },
+    "name": "golang-go"
+   }
+  },
+  "godot": {
+   "apt\\flatpak": {
+    "driver": "apt",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\godot": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "org.godotengine.Godot"
+    },
+    "name": "org.godotengine.Godot"
+   }
+  },
+  "goimports": {
+   "apt\\go": {
+    "driver": "apt",
+    "fields": {
+     "name": "golang-go"
+    },
+    "name": "golang-go"
+   },
+   "go-install\\goimports": {
+    "driver": "go-install",
+    "fields": {
+     "name": "golang.org/x/tools/cmd/goimports"
+    },
+    "name": "golang.org/x/tools/cmd/goimports"
+   }
+  },
+  "gradle": {
+   "apt\\gradle": {
+    "driver": "apt",
+    "fields": {
+     "name": "gradle"
+    },
+    "name": "gradle"
+   },
+   "apt\\jdk": {
+    "driver": "apt",
+    "fields": {
+     "name": "default-jdk"
+    },
+    "name": "default-jdk"
+   }
+  },
+  "grpcurl": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "tarball\\grpcurl": {
+    "driver": "tarball",
+    "fields": {
+     "installDir": "$CONFIGSYS_APP_DIR/grpcurl",
+     "name": "grpcurl",
+     "version": {
+      "asset": "grpcurl_*_linux_x86_64.tar.gz",
+      "github": "fullstorydev/grpcurl",
+      "strip-v": "true"
+     }
+    },
+    "name": "grpcurl"
+   }
+  },
+  "gst-bad": {
+   "apt\\gst-bad": {
+    "driver": "apt",
+    "fields": {
+     "name": "gstreamer1.0-plugins-bad"
+    },
+    "name": "gstreamer1.0-plugins-bad"
+   }
+  },
+  "gst-good": {
+   "apt\\gst-good": {
+    "driver": "apt",
+    "fields": {
+     "name": "gstreamer1.0-plugins-good"
+    },
+    "name": "gstreamer1.0-plugins-good"
+   }
+  },
+  "gst-libav": {
+   "apt\\gst-libav": {
+    "driver": "apt",
+    "fields": {
+     "name": "gstreamer1.0-libav",
+     "repo-component": "universe"
+    },
+    "name": "gstreamer1.0-libav"
+   }
+  },
+  "gst-ugly": {
+   "apt\\gst-ugly": {
+    "driver": "apt",
+    "fields": {
+     "name": "gstreamer1.0-plugins-ugly",
+     "repo-component": "multiverse"
+    },
+    "name": "gstreamer1.0-plugins-ugly"
+   }
+  },
+  "gtk": {
+   "apt\\gtk": {
+    "driver": "apt",
+    "fields": {
+     "name": "libgtk-4-dev",
+     "repo-component": "universe"
+    },
+    "name": "libgtk-4-dev"
+   }
+  },
+  "gtkmm": {
+   "apt\\gtk": {
+    "driver": "apt",
+    "fields": {
+     "name": "libgtk-4-dev",
+     "repo-component": "universe"
+    },
+    "name": "libgtk-4-dev"
+   },
+   "apt\\gtkmm": {
+    "driver": "apt",
+    "fields": {
+     "name": "libgtkmm-4.0-dev",
+     "repo-component": "universe"
+    },
+    "name": "libgtkmm-4.0-dev"
+   }
+  },
+  "haskell": {
+   "apt\\haskell": {
+    "driver": "apt",
+    "fields": {
+     "name": "ghc",
+     "repo-component": "universe"
+    },
+    "name": "ghc"
+   }
+  },
+  "heaptrack": {
+   "apt\\heaptrack": {
+    "driver": "apt",
+    "fields": {
+     "name": "heaptrack"
+    },
+    "name": "heaptrack"
+   }
+  },
+  "helix": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "tarball\\helix": {
+    "driver": "tarball",
+    "fields": {
+     "installDir": "$CONFIGSYS_APP_DIR/helix",
+     "name": "helix",
+     "version": {
+      "asset": "helix-*-x86_64-linux.tar.xz",
+      "github": "helix-editor/helix",
+      "strip-v": "true"
+     }
+    },
+    "name": "helix"
+   }
+  },
+  "helm": {
+   "script\\helm": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "curl -fsSL https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash",
+     "location": "/usr/local/bin/helm",
+     "name": "helm",
+     "uninstall-cmd": "sudo rm -f /usr/local/bin/helm",
+     "version-cmd": "helm version --short",
+     "version-re": "(v?[0-9]+\\.[0-9]+\\.[0-9]+)"
+    },
+    "name": "helm"
+   }
+  },
+  "hlint": {
+   "apt\\cabal": {
+    "driver": "apt",
+    "fields": {
+     "name": "cabal-install",
+     "repo-component": "universe"
+    },
+    "name": "cabal-install"
+   },
+   "apt\\haskell": {
+    "driver": "apt",
+    "fields": {
+     "name": "ghc",
+     "repo-component": "universe"
+    },
+    "name": "ghc"
+   },
+   "cabal\\hlint": {
+    "driver": "cabal",
+    "fields": {
+     "name": "hlint"
+    },
+    "name": "hlint"
+   }
+  },
+  "htop": {
+   "apt\\htop": {
+    "driver": "apt",
+    "fields": {
+     "name": "htop",
+     "repo-component": "universe"
+    },
+    "name": "htop"
+   },
+   "dotfiles\\htop-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/htop",
+      "src": "htop"
+     }
+    },
+    "name": "htop-dotfiles"
+   }
+  },
+  "htop-dotfiles": {
+   "dotfiles\\htop-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/htop",
+      "src": "htop"
+     }
+    },
+    "name": "htop-dotfiles"
+   }
+  },
+  "httpie": {
+   "apt\\httpie": {
+    "driver": "apt",
+    "fields": {
+     "name": "httpie"
+    },
+    "name": "httpie"
+   }
+  },
+  "hydrogen": {
+   "apt\\flatpak": {
+    "driver": "apt",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\hydrogen": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "org.hydrogenmusic.Hydrogen"
+    },
+    "name": "org.hydrogenmusic.Hydrogen"
+   }
+  },
+  "i3": {
+   "apt\\i3": {
+    "driver": "apt",
+    "fields": {
+     "name": "i3"
+    },
+    "name": "i3"
+   }
+  },
+  "iftop": {
+   "apt\\iftop": {
+    "driver": "apt",
+    "fields": {
+     "name": "iftop"
+    },
+    "name": "iftop"
+   }
+  },
+  "inkscape": {
+   "apt\\flatpak": {
+    "driver": "apt",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\inkscape": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "org.inkscape.Inkscape"
+    },
+    "name": "org.inkscape.Inkscape"
+   }
+  },
+  "insomnia": {
+   "apt\\flatpak": {
+    "driver": "apt",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\insomnia": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "rest.insomnia.Insomnia"
+    },
+    "name": "rest.insomnia.Insomnia"
+   }
+  },
+  "intel-oneapi-basekit": {
+   "apt\\intel-oneapi-basekit": {
+    "driver": "apt",
+    "fields": {
+     "name": "intel-basekit"
+    },
+    "name": "intel-basekit"
+   }
+  },
+  "iperf3": {
+   "apt\\iperf3": {
+    "driver": "apt",
+    "fields": {
+     "name": "iperf3"
+    },
+    "name": "iperf3"
+   }
+  },
+  "iproute2": {
+   "apt\\iproute2": {
+    "driver": "apt",
+    "fields": {
+     "name": "iproute2"
+    },
+    "name": "iproute2"
+   }
+  },
+  "jdk": {
+   "apt\\jdk": {
+    "driver": "apt",
+    "fields": {
+     "name": "default-jdk"
+    },
+    "name": "default-jdk"
+   }
+  },
+  "jetbrains-toolbox": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "tarball\\jetbrains-toolbox": {
+    "driver": "tarball",
+    "fields": {
+     "installDir": "$CONFIGSYS_APP_DIR/jetbrains-toolbox",
+     "name": "jetbrains-toolbox",
+     "url": "https://download.jetbrains.com/product?code=TBA&latest&distribution=linux",
+     "version": {
+      "static": "latest"
+     }
+    },
+    "name": "jetbrains-toolbox"
+   }
+  },
+  "jmtpfs": {
+   "apt\\jmtpfs": {
+    "driver": "apt",
+    "fields": {
+     "name": "jmtpfs",
+     "repo-component": "universe"
+    },
+    "name": "jmtpfs"
+   }
+  },
+  "jq": {
+   "apt\\jq": {
+    "driver": "apt",
+    "fields": {
+     "name": "jq"
+    },
+    "name": "jq"
+   }
+  },
+  "julia": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "tarball\\julia": {
+    "driver": "tarball",
+    "fields": {
+     "installDir": "$CONFIGSYS_APP_DIR/julia",
+     "name": "julia",
+     "url": "https://julialang-s3.julialang.org/bin/linux/x64/1.12/julia-1.12.6-linux-x86_64.tar.gz",
+     "version": {
+      "static": "1.12.6"
+     }
+    },
+    "name": "julia"
+   }
+  },
+  "jupyterlab": {
+   "apt\\pipx": {
+    "driver": "apt",
+    "fields": {
+     "name": "pipx"
+    },
+    "name": "pipx"
+   },
+   "pipx\\jupyterlab": {
+    "driver": "pipx",
+    "fields": {
+     "name": "jupyterlab"
+    },
+    "name": "jupyterlab"
+   }
+  },
+  "just": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "tarball\\just": {
+    "driver": "tarball",
+    "fields": {
+     "installDir": "$CONFIGSYS_APP_DIR/just",
+     "name": "just",
+     "version": {
+      "asset": "just-*-x86_64-unknown-linux-musl.tar.gz",
+      "github": "casey/just",
+      "strip-v": "true"
+     }
+    },
+    "name": "just"
+   }
+  },
+  "k3s": {
+   "script\\k3s": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "curl -sfL https://get.k3s.io | sh",
+     "location": "/usr/local/bin/k3s",
+     "name": "k3s",
+     "uninstall-cmd": "/usr/local/bin/k3s-uninstall.sh",
+     "version-cmd": "k3s --version",
+     "version-re": "(v[0-9]+\\.[0-9]+\\.[0-9]+)"
+    },
+    "name": "k3s"
+   }
+  },
+  "k9s": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "tarball\\k9s": {
+    "driver": "tarball",
+    "fields": {
+     "installDir": "$CONFIGSYS_APP_DIR/k9s",
+     "name": "k9s",
+     "url": "https://github.com/derailed/k9s/releases/latest/download/k9s_Linux_amd64.tar.gz",
+     "version": {
+      "static": "latest"
+     }
+    },
+    "name": "k9s"
+   }
+  },
+  "kde": {
+   "apt\\kde": {
+    "driver": "apt",
+    "fields": {
+     "name": "kde-plasma-desktop"
+    },
+    "name": "kde-plasma-desktop"
+   }
+  },
+  "kicad": {
+   "apt\\kicad": {
+    "driver": "apt",
+    "fields": {
+     "name": "kicad",
+     "repo-component": "universe"
+    },
+    "name": "kicad"
+   }
+  },
+  "kitty": {
+   "apt\\kitty": {
+    "driver": "apt",
+    "fields": {
+     "name": "kitty"
+    },
+    "name": "kitty"
+   }
+  },
+  "kotlin": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "apt\\jdk": {
+    "driver": "apt",
+    "fields": {
+     "name": "default-jdk"
+    },
+    "name": "default-jdk"
+   },
+   "apt\\unzip": {
+    "driver": "apt",
+    "fields": {
+     "name": "unzip"
+    },
+    "name": "unzip"
+   },
+   "tarball\\kotlin": {
+    "driver": "tarball",
+    "fields": {
+     "installDir": "$CONFIGSYS_APP_DIR/kotlin",
+     "name": "kotlin",
+     "url": "https://github.com/JetBrains/kotlin/releases/download/v$VERSION/kotlin-compiler-$VERSION.zip",
+     "version": {
+      "asset": "kotlin-compiler-*.zip",
+      "github": "JetBrains/kotlin",
+      "strip-v": "true"
+     }
+    },
+    "name": "kotlin"
+   }
+  },
+  "krita": {
+   "apt\\flatpak": {
+    "driver": "apt",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\krita": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "org.kde.krita"
+    },
+    "name": "org.kde.krita"
+   }
+  },
+  "kubectl": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "tarball\\kubectl": {
+    "driver": "tarball",
+    "fields": {
+     "archive": "none",
+     "installDir": "$CONFIGSYS_APP_DIR/kubectl",
+     "name": "kubectl",
+     "url": "https://dl.k8s.io/release/v$VERSION/bin/linux/amd64/kubectl",
+     "version": {
+      "url": "https://dl.k8s.io/release/stable.txt"
+     }
+    },
+    "name": "kubectl"
+   }
+  },
+  "lazydocker": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "tarball\\lazydocker": {
+    "driver": "tarball",
+    "fields": {
+     "installDir": "$CONFIGSYS_APP_DIR/lazydocker",
+     "name": "lazydocker",
+     "version": {
+      "asset": "lazydocker_*_Linux_x86_64.tar.gz",
+      "github": "jesseduffield/lazydocker",
+      "strip-v": "true"
+     }
+    },
+    "name": "lazydocker"
+   }
+  },
+  "lazygit": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.bash.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\lazygit-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/lazygit.sh",
+     "src": "bash.d/lazygit.sh"
+    },
+    "name": "lazygit-dotfiles"
+   },
+   "tarball\\lazygit": {
+    "driver": "tarball",
+    "fields": {
+     "installDir": "$CONFIGSYS_APP_DIR/lazygit",
+     "name": "lazygit",
+     "version": {
+      "asset": "lazygit_*_Linux_x86_64.tar.gz",
+      "github": "jesseduffield/lazygit",
+      "strip-v": "true"
+     }
+    },
+    "name": "lazygit"
+   }
+  },
+  "lazygit-dotfiles": {
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.bash.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\lazygit-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/lazygit.sh",
+     "src": "bash.d/lazygit.sh"
+    },
+    "name": "lazygit-dotfiles"
+   }
+  },
+  "lazysql": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "tarball\\lazysql": {
+    "driver": "tarball",
+    "fields": {
+     "installDir": "$CONFIGSYS_APP_DIR/lazysql",
+     "name": "lazysql",
+     "url": "https://github.com/jorgerojas26/lazysql/releases/latest/download/lazysql_Linux_x86_64.tar.gz",
+     "version": {
+      "static": "latest"
+     }
+    },
+    "name": "lazysql"
+   }
+  },
+  "libavcodec-extra": {
+   "apt\\libavcodec-extra": {
+    "driver": "apt",
+    "fields": {
+     "name": "libavcodec-extra",
+     "repo-component": "universe"
+    },
+    "name": "libavcodec-extra"
+   }
+  },
+  "libc++": {
+   "apt\\libc++": {
+    "driver": "apt",
+    "fields": {
+     "name": "libc++-dev"
+    },
+    "name": "libc++-dev"
+   },
+   "apt\\libc++abi": {
+    "driver": "apt",
+    "fields": {
+     "name": "libc++abi-dev"
+    },
+    "name": "libc++abi-dev"
+   }
+  },
+  "libc++abi": {
+   "apt\\libc++abi": {
+    "driver": "apt",
+    "fields": {
+     "name": "libc++abi-dev"
+    },
+    "name": "libc++abi-dev"
+   }
+  },
+  "libfuse2": {
+   "apt\\libfuse2": {
+    "driver": "apt",
+    "fields": {
+     "name": "libfuse2",
+     "repo-component": "universe"
+    },
+    "name": "libfuse2"
+   }
+  },
+  "libreoffice": {
+   "apt\\libreoffice": {
+    "driver": "apt",
+    "fields": {
+     "name": "libreoffice",
+     "repo-component": "universe"
+    },
+    "name": "libreoffice"
+   }
+  },
+  "libstdc++": {
+   "apt\\libstdc++": {
+    "driver": "apt",
+    "fields": {
+     "name": "g++"
+    },
+    "name": "g++"
+   }
+  },
+  "libvirt": {
+   "apt\\libvirt": {
+    "driver": "apt",
+    "fields": {
+     "name": "libvirt-daemon-system"
+    },
+    "name": "libvirt-daemon-system"
+   }
+  },
+  "libvirt-service": {
+   "apt\\libvirt": {
+    "driver": "apt",
+    "fields": {
+     "name": "libvirt-daemon-system"
+    },
+    "name": "libvirt-daemon-system"
+   },
+   "service\\libvirt-service": {
+    "driver": "service",
+    "fields": {
+     "name": "libvirt-service",
+     "unit": "libvirtd"
+    },
+    "name": "libvirt-service"
+   }
+  },
+  "libvulkan1": {
+   "apt\\libvulkan1": {
+    "driver": "apt",
+    "fields": {
+     "name": "libvulkan1"
+    },
+    "name": "libvulkan1"
+   }
+  },
+  "libxcb-cursor-dev": {
+   "apt\\libxcb-cursor-dev": {
+    "driver": "apt",
+    "fields": {
+     "name": "libxcb-cursor-dev",
+     "repo-component": "universe"
+    },
+    "name": "libxcb-cursor-dev"
+   }
+  },
+  "libxcb-xinerama0": {
+   "apt\\libxcb-xinerama0": {
+    "driver": "apt",
+    "fields": {
+     "name": "libxcb-xinerama0",
+     "repo-component": "universe"
+    },
+    "name": "libxcb-xinerama0"
+   }
+  },
+  "libxcb-xinput0": {
+   "apt\\libxcb-xinput0": {
+    "driver": "apt",
+    "fields": {
+     "name": "libxcb-xinput0",
+     "repo-component": "universe"
+    },
+    "name": "libxcb-xinput0"
+   }
+  },
+  "lldb": {
+   "apt\\lldb": {
+    "driver": "apt",
+    "fields": {
+     "name": "lldb"
+    },
+    "name": "lldb"
+   }
+  },
+  "llm": {
+   "apt\\pipx": {
+    "driver": "apt",
+    "fields": {
+     "name": "pipx"
+    },
+    "name": "pipx"
+   },
+   "pipx\\llm": {
+    "driver": "pipx",
+    "fields": {
+     "name": "llm"
+    },
+    "name": "llm"
+   }
+  },
+  "lmms": {
+   "apt\\flatpak": {
+    "driver": "apt",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\lmms": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "io.lmms.LMMS"
+    },
+    "name": "io.lmms.LMMS"
+   }
+  },
+  "ltrace": {
+   "apt\\ltrace": {
+    "driver": "apt",
+    "fields": {
+     "name": "ltrace"
+    },
+    "name": "ltrace"
+   }
+  },
+  "lua": {
+   "apt\\lua": {
+    "driver": "apt",
+    "fields": {
+     "name": "lua5.4",
+     "repo-component": "universe"
+    },
+    "name": "lua5.4"
+   }
+  },
+  "luarocks": {
+   "apt\\luarocks": {
+    "driver": "apt",
+    "fields": {
+     "name": "luarocks",
+     "repo-component": "universe"
+    },
+    "name": "luarocks"
+   }
+  },
+  "lxqt": {
+   "apt\\lxqt": {
+    "driver": "apt",
+    "fields": {
+     "name": "lxqt"
+    },
+    "name": "lxqt"
+   }
+  },
+  "lz4": {
+   "apt\\lz4": {
+    "driver": "apt",
+    "fields": {
+     "name": "lz4"
+    },
+    "name": "lz4"
+   }
+  },
+  "make": {
+   "apt\\make": {
+    "driver": "apt",
+    "fields": {
+     "name": "make"
+    },
+    "name": "make"
+   }
+  },
+  "mariadb": {
+   "apt\\mariadb": {
+    "driver": "apt",
+    "fields": {
+     "name": "mariadb-server"
+    },
+    "name": "mariadb-server"
+   }
+  },
+  "mariadb-service": {
+   "apt\\mariadb": {
+    "driver": "apt",
+    "fields": {
+     "name": "mariadb-server"
+    },
+    "name": "mariadb-server"
+   },
+   "service\\mariadb-service": {
+    "driver": "service",
+    "fields": {
+     "name": "mariadb-service",
+     "unit": "mariadb"
+    },
+    "name": "mariadb-service"
+   }
+  },
+  "mate": {
+   "apt\\mate": {
+    "driver": "apt",
+    "fields": {
+     "name": "mate-desktop-environment"
+    },
+    "name": "mate-desktop-environment"
+   }
+  },
+  "maven": {
+   "apt\\jdk": {
+    "driver": "apt",
+    "fields": {
+     "name": "default-jdk"
+    },
+    "name": "default-jdk"
+   },
+   "apt\\maven": {
+    "driver": "apt",
+    "fields": {
+     "name": "maven"
+    },
+    "name": "maven"
+   }
+  },
+  "maxima": {
+   "apt\\maxima": {
+    "driver": "apt",
+    "fields": {
+     "name": "maxima",
+     "repo-component": "universe"
+    },
+    "name": "maxima"
+   }
+  },
+  "mesa-vulkan-drivers": {
+   "apt\\mesa-vulkan-drivers": {
+    "driver": "apt",
+    "fields": {
+     "name": "mesa-vulkan-drivers"
+    },
+    "name": "mesa-vulkan-drivers"
+   }
+  },
+  "meson": {
+   "apt\\meson": {
+    "driver": "apt",
+    "fields": {
+     "name": "meson"
+    },
+    "name": "meson"
+   }
+  },
+  "miniforge": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "script\\miniforge": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "curl -fsSL \"https://github.com/conda-forge/miniforge/releases/latest/download/Miniforge3-Linux-x86_64.sh\" -o /tmp/mf.sh && bash /tmp/mf.sh -b -p \"$HOME/miniforge3\" && rm -f /tmp/mf.sh",
+     "location": "~/miniforge3/bin",
+     "name": "miniforge",
+     "uninstall-cmd": "rm -rf \"$HOME/miniforge3\"",
+     "version-cmd": "\"$HOME/miniforge3/bin/conda\" --version",
+     "version-re": "([0-9]+\\.[0-9]+\\.[0-9]+)"
+    },
+    "name": "miniforge"
+   }
+  },
+  "mitmproxy": {
+   "apt\\pipx": {
+    "driver": "apt",
+    "fields": {
+     "name": "pipx"
+    },
+    "name": "pipx"
+   },
+   "pipx\\mitmproxy": {
+    "driver": "pipx",
+    "fields": {
+     "name": "mitmproxy",
+     "version": {
+      "pypi": "mitmproxy"
+     }
+    },
+    "name": "mitmproxy"
+   }
+  },
+  "mononoki-nerd": {
+   "apt\\fontconfig": {
+    "driver": "apt",
+    "fields": {
+     "name": "fontconfig"
+    },
+    "name": "fontconfig"
+   },
+   "apt\\unzip": {
+    "driver": "apt",
+    "fields": {
+     "name": "unzip"
+    },
+    "name": "unzip"
+   },
+   "font\\mononoki-nerd": {
+    "driver": "font",
+    "fields": {
+     "name": "Mononoki",
+     "url": "https://github.com/ryanoasis/nerd-fonts/releases/download/$VERSION/Mononoki.zip",
+     "version": {
+      "asset": "Mononoki.zip",
+      "github": "ryanoasis/nerd-fonts"
+     }
+    },
+    "name": "Mononoki"
+   }
+  },
+  "mtr": {
+   "apt\\mtr": {
+    "driver": "apt",
+    "fields": {
+     "name": "mtr"
+    },
+    "name": "mtr"
+   }
+  },
+  "musescore": {
+   "apt\\flatpak": {
+    "driver": "apt",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\musescore": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "org.musescore.MuseScore"
+    },
+    "name": "org.musescore.MuseScore"
+   }
+  },
+  "mycli": {
+   "apt\\pipx": {
+    "driver": "apt",
+    "fields": {
+     "name": "pipx"
+    },
+    "name": "pipx"
+   },
+   "pipx\\mycli": {
+    "driver": "pipx",
+    "fields": {
+     "name": "mycli"
+    },
+    "name": "mycli"
+   }
+  },
+  "neovim": {
+   "appImage\\neovim": {
+    "driver": "appImage",
+    "fields": {
+     "name": "Neovim",
+     "path": "~/apps/nvim.appimage",
+     "scope": "user",
+     "url": "https://github.com/neovim/neovim/releases/download/$VERSION/nvim-linux-$ARCH.appimage",
+     "version": {
+      "asset": "nvim-linux-$ARCH.appimage",
+      "github": "neovim/neovim"
+     }
+    },
+    "name": "Neovim"
+   },
+   "apt\\libfuse2": {
+    "driver": "apt",
+    "fields": {
+     "name": "libfuse2",
+     "repo-component": "universe"
+    },
+    "name": "libfuse2"
+   },
+   "apt\\ripgrep": {
+    "driver": "apt",
+    "fields": {
+     "name": "ripgrep",
+     "repo-component": "universe"
+    },
+    "name": "ripgrep"
+   },
+   "apt\\rust": {
+    "driver": "apt",
+    "fields": {
+     "name": "rust-all",
+     "repo-component": "universe"
+    },
+    "name": "rust-all"
+   },
+   "cargo\\tree-sitter-cli": {
+    "driver": "cargo",
+    "fields": {
+     "name": "tree-sitter-cli",
+     "version": {
+      "crates": "tree-sitter-cli"
+     }
+    },
+    "name": "tree-sitter-cli"
+   },
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.bash.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\neovim-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "dst": "~/.bash.d/neovim.sh",
+      "src": "bash.d/neovim.sh"
+     },
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/nvim",
+      "src": "neovim"
+     }
+    },
+    "name": "neovim-dotfiles"
+   }
+  },
+  "neovim-dotfiles": {
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.bash.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\neovim-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "dst": "~/.bash.d/neovim.sh",
+      "src": "bash.d/neovim.sh"
+     },
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/nvim",
+      "src": "neovim"
+     }
+    },
+    "name": "neovim-dotfiles"
+   }
+  },
+  "netcat": {
+   "apt\\netcat": {
+    "driver": "apt",
+    "fields": {
+     "name": "netcat-openbsd"
+    },
+    "name": "netcat-openbsd"
+   }
+  },
+  "nethogs": {
+   "apt\\nethogs": {
+    "driver": "apt",
+    "fields": {
+     "name": "nethogs"
+    },
+    "name": "nethogs"
+   }
+  },
+  "nim": {
+   "apt\\nim": {
+    "driver": "apt",
+    "fields": {
+     "name": "nim",
+     "repo-component": "universe"
+    },
+    "name": "nim"
+   }
+  },
+  "ninja": {
+   "apt\\ninja": {
+    "driver": "apt",
+    "fields": {
+     "name": "ninja-build"
+    },
+    "name": "ninja-build"
+   }
+  },
+  "nload": {
+   "apt\\nload": {
+    "driver": "apt",
+    "fields": {
+     "name": "nload"
+    },
+    "name": "nload"
+   }
+  },
+  "nmap": {
+   "apt\\nmap": {
+    "driver": "apt",
+    "fields": {
+     "name": "nmap"
+    },
+    "name": "nmap"
+   }
+  },
+  "node": {
+   "apt\\node": {
+    "driver": "apt",
+    "fields": {
+     "name": "npm",
+     "repo-component": "universe"
+    },
+    "name": "npm"
+   }
+  },
+  "nushell": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "tarball\\nushell": {
+    "driver": "tarball",
+    "fields": {
+     "installDir": "$CONFIGSYS_APP_DIR/nushell",
+     "name": "nushell",
+     "version": {
+      "asset": "nu-*-x86_64-unknown-linux-gnu.tar.gz",
+      "github": "nushell/nushell",
+      "strip-v": "true"
+     }
+    },
+    "name": "nushell"
+   }
+  },
+  "obs-studio": {
+   "apt\\flatpak": {
+    "driver": "apt",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\obs-studio": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "com.obsproject.Studio"
+    },
+    "name": "com.obsproject.Studio"
+   }
+  },
+  "ocaml": {
+   "apt\\ocaml": {
+    "driver": "apt",
+    "fields": {
+     "name": "ocaml",
+     "repo-component": "universe"
+    },
+    "name": "ocaml"
+   }
+  },
+  "octave": {
+   "apt\\octave": {
+    "driver": "apt",
+    "fields": {
+     "name": "octave",
+     "repo-component": "universe"
+    },
+    "name": "octave"
+   }
+  },
+  "odin": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "tarball\\odin": {
+    "driver": "tarball",
+    "fields": {
+     "installDir": "$CONFIGSYS_APP_DIR/odin",
+     "name": "odin",
+     "url": "https://github.com/odin-lang/Odin/releases/download/$VERSION/odin-linux-amd64-$VERSION.tar.gz",
+     "version": {
+      "asset": "odin-linux-amd64-*.tar.gz",
+      "github": "odin-lang/Odin"
+     }
+    },
+    "name": "odin"
+   }
+  },
+  "ollama": {
+   "script\\ollama": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "curl -fsSL https://ollama.com/install.sh | sh",
+     "location": "/usr/local/bin/ollama",
+     "name": "ollama",
+     "uninstall-cmd": "sudo systemctl stop ollama 2>/dev/null; sudo rm -f /usr/local/bin/ollama /etc/systemd/system/ollama.service; sudo rm -rf /usr/share/ollama",
+     "version-cmd": "ollama --version",
+     "version-re": "([0-9]+\\.[0-9]+\\.[0-9]+)"
+    },
+    "name": "ollama"
+   }
+  },
+  "opam": {
+   "apt\\opam": {
+    "driver": "apt",
+    "fields": {
+     "name": "opam",
+     "repo-component": "universe"
+    },
+    "name": "opam"
+   }
+  },
+  "opencv": {
+   "apt\\opencv": {
+    "driver": "apt",
+    "fields": {
+     "name": "libopencv-dev",
+     "repo-component": "universe"
+    },
+    "name": "libopencv-dev"
+   }
+  },
+  "opencv-python": {
+   "apt\\opencv-python": {
+    "driver": "apt",
+    "fields": {
+     "name": "python3-opencv",
+     "repo-component": "universe"
+    },
+    "name": "python3-opencv"
+   }
+  },
+  "openscad": {
+   "apt\\flatpak": {
+    "driver": "apt",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\openscad": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "org.openscad.OpenSCAD"
+    },
+    "name": "org.openscad.OpenSCAD"
+   }
+  },
+  "opentofu": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "tarball\\opentofu": {
+    "driver": "tarball",
+    "fields": {
+     "installDir": "$CONFIGSYS_APP_DIR/opentofu",
+     "name": "opentofu",
+     "version": {
+      "asset": "tofu_*_linux_amd64.tar.gz",
+      "github": "opentofu/opentofu",
+      "strip-v": "true"
+     }
+    },
+    "name": "opentofu"
+   }
+  },
+  "opera": {
+   "apt\\flatpak": {
+    "driver": "apt",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\opera": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "com.opera.Opera"
+    },
+    "name": "com.opera.Opera"
+   }
+  },
+  "p7zip": {
+   "apt\\p7zip": {
+    "driver": "apt",
+    "fields": {
+     "name": "p7zip-full"
+    },
+    "name": "p7zip-full"
+   }
+  },
+  "paraview": {
+   "apt\\paraview": {
+    "driver": "apt",
+    "fields": {
+     "name": "paraview",
+     "repo-component": "universe"
+    },
+    "name": "paraview"
+   }
+  },
+  "pari": {
+   "apt\\pari": {
+    "driver": "apt",
+    "fields": {
+     "name": "pari-gp",
+     "repo-component": "universe"
+    },
+    "name": "pari-gp"
+   }
+  },
+  "perf": {
+   "apt\\perf": {
+    "driver": "apt",
+    "fields": {
+     "name": "linux-tools-generic"
+    },
+    "name": "linux-tools-generic"
+   }
+  },
+  "pgcli": {
+   "apt\\pipx": {
+    "driver": "apt",
+    "fields": {
+     "name": "pipx"
+    },
+    "name": "pipx"
+   },
+   "pipx\\pgcli": {
+    "driver": "pipx",
+    "fields": {
+     "name": "pgcli"
+    },
+    "name": "pgcli"
+   }
+  },
+  "pipewire": {
+   "apt\\pipewire": {
+    "driver": "apt",
+    "fields": {
+     "name": "pipewire"
+    },
+    "name": "pipewire"
+   }
+  },
+  "pipx": {
+   "apt\\pipx": {
+    "driver": "apt",
+    "fields": {
+     "name": "pipx"
+    },
+    "name": "pipx"
+   }
+  },
+  "pnpm": {
+   "apt\\node": {
+    "driver": "apt",
+    "fields": {
+     "name": "npm",
+     "repo-component": "universe"
+    },
+    "name": "npm"
+   },
+   "npm\\pnpm": {
+    "driver": "npm",
+    "fields": {
+     "name": "pnpm"
+    },
+    "name": "pnpm"
+   }
+  },
+  "podman": {
+   "apt\\podman": {
+    "driver": "apt",
+    "fields": {
+     "name": "podman",
+     "repo-component": "universe"
+    },
+    "name": "podman"
+   },
+   "dotfiles\\podman-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/containers",
+      "src": "containers"
+     }
+    },
+    "name": "podman-dotfiles"
+   }
+  },
+  "podman-dotfiles": {
+   "dotfiles\\podman-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/containers",
+      "src": "containers"
+     }
+    },
+    "name": "podman-dotfiles"
+   }
+  },
+  "postgresql": {
+   "apt\\postgresql": {
+    "driver": "apt",
+    "fields": {
+     "name": "postgresql"
+    },
+    "name": "postgresql"
+   }
+  },
+  "postgresql-service": {
+   "apt\\postgresql": {
+    "driver": "apt",
+    "fields": {
+     "name": "postgresql"
+    },
+    "name": "postgresql"
+   },
+   "service\\postgresql-service": {
+    "driver": "service",
+    "fields": {
+     "name": "postgresql-service",
+     "unit": "postgresql"
+    },
+    "name": "postgresql-service"
+   }
+  },
+  "postman": {
+   "apt\\flatpak": {
+    "driver": "apt",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\postman": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "com.getpostman.Postman"
+    },
+    "name": "com.getpostman.Postman"
+   }
+  },
+  "prettier": {
+   "apt\\node": {
+    "driver": "apt",
+    "fields": {
+     "name": "npm",
+     "repo-component": "universe"
+    },
+    "name": "npm"
+   },
+   "npm\\prettier": {
+    "driver": "npm",
+    "fields": {
+     "name": "prettier"
+    },
+    "name": "prettier"
+   }
+  },
+  "protobuf": {
+   "apt\\protobuf": {
+    "driver": "apt",
+    "fields": {
+     "name": "protobuf-compiler",
+     "repo-component": "universe"
+    },
+    "name": "protobuf-compiler"
+   }
+  },
+  "puppet": {
+   "apt\\ruby": {
+    "driver": "apt",
+    "fields": {
+     "name": "ruby-full"
+    },
+    "name": "ruby-full"
+   },
+   "gem\\puppet": {
+    "driver": "gem",
+    "fields": {
+     "name": "puppet"
+    },
+    "name": "puppet"
+   }
+  },
+  "python3-pip": {
+   "apt\\python3-pip": {
+    "driver": "apt",
+    "fields": {
+     "name": "python3-pip"
+    },
+    "name": "python3-pip"
+   }
+  },
+  "qemu": {
+   "apt\\qemu": {
+    "driver": "apt",
+    "fields": {
+     "name": "qemu-system-x86"
+    },
+    "name": "qemu-system-x86"
+   }
+  },
+  "qjackctl": {
+   "apt\\qjackctl": {
+    "driver": "apt",
+    "fields": {
+     "name": "qjackctl",
+     "repo-component": "universe"
+    },
+    "name": "qjackctl"
+   }
+  },
+  "qt": {
+   "apt\\qt": {
+    "driver": "apt",
+    "fields": {
+     "name": "qt6-base-dev",
+     "repo-component": "universe"
+    },
+    "name": "qt6-base-dev"
+   }
+  },
+  "qtile": {
+   "apt\\qtile": {
+    "driver": "apt",
+    "fields": {
+     "name": "qtile"
+    },
+    "name": "qtile"
+   }
+  },
+  "quicklisp": {
+   "apt\\sbcl": {
+    "driver": "apt",
+    "fields": {
+     "name": "sbcl",
+     "repo-component": "universe"
+    },
+    "name": "sbcl"
+   },
+   "script\\quicklisp": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "curl -fsSL https://beta.quicklisp.org/quicklisp.lisp -o /tmp/quicklisp.lisp && printf \"\\n\" | sbcl --non-interactive --load /tmp/quicklisp.lisp --eval \"(quicklisp-quickstart:install)\" --eval \"(ql:add-to-init-file)\" && rm -f /tmp/quicklisp.lisp",
+     "location": "~/quicklisp",
+     "name": "quicklisp",
+     "uninstall-cmd": "rm -rf \"$HOME/quicklisp\"",
+     "version-cmd": "test -d \"$HOME/quicklisp\" && echo present"
+    },
+    "name": "quicklisp"
+   }
+  },
+  "r": {
+   "apt\\r": {
+    "driver": "apt",
+    "fields": {
+     "name": "r-base",
+     "repo-component": "universe"
+    },
+    "name": "r-base"
+   }
+  },
+  "redis": {
+   "apt\\redis": {
+    "driver": "apt",
+    "fields": {
+     "name": "redis-server"
+    },
+    "name": "redis-server"
+   }
+  },
+  "redis-service": {
+   "apt\\redis": {
+    "driver": "apt",
+    "fields": {
+     "name": "redis-server"
+    },
+    "name": "redis-server"
+   },
+   "service\\redis-service": {
+    "driver": "service",
+    "fields": {
+     "name": "redis-service",
+     "unit": "redis-server"
+    },
+    "name": "redis-service"
+   }
+  },
+  "ripgrep": {
+   "apt\\ripgrep": {
+    "driver": "apt",
+    "fields": {
+     "name": "ripgrep",
+     "repo-component": "universe"
+    },
+    "name": "ripgrep"
+   }
+  },
+  "rocm-hip": {
+   "apt\\rocm-hip": {
+    "driver": "apt",
+    "fields": {
+     "name": "rocm-hip-sdk"
+    },
+    "name": "rocm-hip-sdk"
+   }
+  },
+  "ruby": {
+   "apt\\ruby": {
+    "driver": "apt",
+    "fields": {
+     "name": "ruby-full"
+    },
+    "name": "ruby-full"
+   }
+  },
+  "rust": {
+   "apt\\rust": {
+    "driver": "apt",
+    "fields": {
+     "name": "rust-all",
+     "repo-component": "universe"
+    },
+    "name": "rust-all"
+   }
+  },
+  "sagemath": {
+   "apt\\sagemath": {
+    "driver": "apt",
+    "fields": {
+     "name": "sagemath",
+     "repo-component": "universe"
+    },
+    "name": "sagemath"
+   }
+  },
+  "salt": {
+   "apt\\pipx": {
+    "driver": "apt",
+    "fields": {
+     "name": "pipx"
+    },
+    "name": "pipx"
+   },
+   "pipx\\salt": {
+    "driver": "pipx",
+    "fields": {
+     "name": "salt"
+    },
+    "name": "salt"
+   }
+  },
+  "sass": {
+   "apt\\node": {
+    "driver": "apt",
+    "fields": {
+     "name": "npm",
+     "repo-component": "universe"
+    },
+    "name": "npm"
+   },
+   "npm\\sass": {
+    "driver": "npm",
+    "fields": {
+     "name": "sass"
+    },
+    "name": "sass"
+   }
+  },
+  "sbcl": {
+   "apt\\sbcl": {
+    "driver": "apt",
+    "fields": {
+     "name": "sbcl",
+     "repo-component": "universe"
+    },
+    "name": "sbcl"
+   }
+  },
+  "scribus": {
+   "apt\\flatpak": {
+    "driver": "apt",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\scribus": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "net.scribus.Scribus"
+    },
+    "name": "net.scribus.Scribus"
+   }
+  },
+  "sdkman": {
+   "script\\sdkman": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "curl -s https://get.sdkman.io | bash",
+     "location": "~/.sdkman",
+     "name": "sdkman",
+     "uninstall-cmd": "rm -rf \"$HOME/.sdkman\"",
+     "version-cmd": "source \"$HOME/.sdkman/bin/sdkman-init.sh\" && sdk version",
+     "version-re": "([0-9]+\\.[0-9]+\\.[0-9]+)"
+    },
+    "name": "sdkman"
+   }
+  },
+  "slack": {
+   "apt\\flatpak": {
+    "driver": "apt",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\slack": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "com.slack.Slack"
+    },
+    "name": "com.slack.Slack"
+   }
+  },
+  "socat": {
+   "apt\\socat": {
+    "driver": "apt",
+    "fields": {
+     "name": "socat"
+    },
+    "name": "socat"
+   }
+  },
+  "software-properties-common": {
+   "apt\\software-properties-common": {
+    "driver": "apt",
+    "fields": {
+     "name": "software-properties-common"
+    },
+    "name": "software-properties-common"
+   }
+  },
+  "sonic-pi": {
+   "apt\\flatpak": {
+    "driver": "apt",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\sonic-pi": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "net.sonic_pi.SonicPi"
+    },
+    "name": "net.sonic_pi.SonicPi"
+   }
+  },
+  "spotify": {
+   "apt\\flatpak": {
+    "driver": "apt",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\spotify": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "com.spotify.Client"
+    },
+    "name": "com.spotify.Client"
+   }
+  },
+  "sqlitebrowser": {
+   "apt\\flatpak": {
+    "driver": "apt",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\sqlitebrowser": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "org.sqlitebrowser.sqlitebrowser"
+    },
+    "name": "org.sqlitebrowser.sqlitebrowser"
+   }
+  },
+  "steam": {
+   "apt\\flatpak": {
+    "driver": "apt",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\steam": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "com.valvesoftware.Steam"
+    },
+    "name": "com.valvesoftware.Steam"
+   }
+  },
+  "strace": {
+   "apt\\strace": {
+    "driver": "apt",
+    "fields": {
+     "name": "strace"
+    },
+    "name": "strace"
+   }
+  },
+  "supercollider": {
+   "apt\\supercollider": {
+    "driver": "apt",
+    "fields": {
+     "name": "supercollider",
+     "repo-component": "universe"
+    },
+    "name": "supercollider"
+   }
+  },
+  "superfile": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.bash.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\superfile-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/superfile.sh",
+     "src": "bash.d/superfile.sh"
+    },
+    "name": "superfile-dotfiles"
+   },
+   "tarball\\superfile": {
+    "driver": "tarball",
+    "fields": {
+     "installDir": "$CONFIGSYS_APP_DIR/superfile",
+     "name": "superfile",
+     "version": {
+      "asset": "superfile-linux-*-amd64.tar.gz",
+      "github": "yorukot/superfile"
+     }
+    },
+    "name": "superfile"
+   }
+  },
+  "superfile-dotfiles": {
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.bash.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\superfile-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/superfile.sh",
+     "src": "bash.d/superfile.sh"
+    },
+    "name": "superfile-dotfiles"
+   }
+  },
+  "sway": {
+   "apt\\sway": {
+    "driver": "apt",
+    "fields": {
+     "name": "sway"
+    },
+    "name": "sway"
+   }
+  },
+  "tcpdump": {
+   "apt\\tcpdump": {
+    "driver": "apt",
+    "fields": {
+     "name": "tcpdump"
+    },
+    "name": "tcpdump"
+   }
+  },
+  "tenacity": {
+   "apt\\flatpak": {
+    "driver": "apt",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\tenacity": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "org.tenacityaudio.Tenacity"
+    },
+    "name": "org.tenacityaudio.Tenacity"
+   }
+  },
+  "texlive": {
+   "apt\\texlive": {
+    "driver": "apt",
+    "fields": {
+     "name": "texlive-latex-recommended"
+    },
+    "name": "texlive-latex-recommended"
+   }
+  },
+  "texlive-full": {
+   "apt\\texlive-full": {
+    "driver": "apt",
+    "fields": {
+     "name": "texlive-full"
+    },
+    "name": "texlive-full"
+   }
+  },
+  "tmux": {
+   "apt\\tmux": {
+    "driver": "apt",
+    "fields": {
+     "name": "tmux"
+    },
+    "name": "tmux"
+   }
+  },
+  "traceroute": {
+   "apt\\traceroute": {
+    "driver": "apt",
+    "fields": {
+     "name": "traceroute"
+    },
+    "name": "traceroute"
+   }
+  },
+  "tree-sitter-cli": {
+   "apt\\rust": {
+    "driver": "apt",
+    "fields": {
+     "name": "rust-all",
+     "repo-component": "universe"
+    },
+    "name": "rust-all"
+   },
+   "cargo\\tree-sitter-cli": {
+    "driver": "cargo",
+    "fields": {
+     "name": "tree-sitter-cli",
+     "version": {
+      "crates": "tree-sitter-cli"
+     }
+    },
+    "name": "tree-sitter-cli"
+   }
+  },
+  "tshark": {
+   "apt\\tshark": {
+    "driver": "apt",
+    "fields": {
+     "name": "tshark"
+    },
+    "name": "tshark"
+   }
+  },
+  "typescript": {
+   "apt\\node": {
+    "driver": "apt",
+    "fields": {
+     "name": "npm",
+     "repo-component": "universe"
+    },
+    "name": "npm"
+   },
+   "npm\\typescript": {
+    "driver": "npm",
+    "fields": {
+     "name": "typescript"
+    },
+    "name": "typescript"
+   }
+  },
+  "unityhub": {
+   "appImage\\unityhub": {
+    "driver": "appImage",
+    "fields": {
+     "name": "Unity Hub",
+     "path": "~/apps/UnityHub.AppImage",
+     "url": "https://public-cdn.cloud.unity3d.com/hub/prod/UnityHub.AppImage",
+     "version": {
+      "static": "latest"
+     }
+    },
+    "name": "Unity Hub"
+   },
+   "apt\\libfuse2": {
+    "driver": "apt",
+    "fields": {
+     "name": "libfuse2",
+     "repo-component": "universe"
+    },
+    "name": "libfuse2"
+   }
+  },
+  "unrar": {
+   "apt\\unrar": {
+    "driver": "apt",
+    "fields": {
+     "name": "unrar",
+     "repo-component": "multiverse"
+    },
+    "name": "unrar"
+   }
+  },
+  "unzip": {
+   "apt\\unzip": {
+    "driver": "apt",
+    "fields": {
+     "name": "unzip"
+    },
+    "name": "unzip"
+   }
+  },
+  "valgrind": {
+   "apt\\valgrind": {
+    "driver": "apt",
+    "fields": {
+     "name": "valgrind"
+    },
+    "name": "valgrind"
+   }
+  },
+  "vcpkg": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "apt\\git": {
+    "driver": "apt",
+    "fields": {
+     "name": "git"
+    },
+    "name": "git"
+   },
+   "apt\\unzip": {
+    "driver": "apt",
+    "fields": {
+     "name": "unzip"
+    },
+    "name": "unzip"
+   },
+   "apt\\zip": {
+    "driver": "apt",
+    "fields": {
+     "name": "zip"
+    },
+    "name": "zip"
+   },
+   "script\\vcpkg": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "git clone https://github.com/microsoft/vcpkg \"$HOME/.vcpkg\" && \"$HOME/.vcpkg/bootstrap-vcpkg.sh\" -disableMetrics",
+     "location": "~/.vcpkg",
+     "name": "vcpkg",
+     "uninstall-cmd": "rm -rf \"$HOME/.vcpkg\"",
+     "version-cmd": "\"$HOME/.vcpkg/vcpkg\" version",
+     "version-re": "([0-9]{4}-[0-9]{2}-[0-9]{2})"
+    },
+    "name": "vcpkg"
+   }
+  },
+  "virt-manager": {
+   "apt\\libvirt": {
+    "driver": "apt",
+    "fields": {
+     "name": "libvirt-daemon-system"
+    },
+    "name": "libvirt-daemon-system"
+   },
+   "apt\\qemu": {
+    "driver": "apt",
+    "fields": {
+     "name": "qemu-system-x86"
+    },
+    "name": "qemu-system-x86"
+   },
+   "apt\\virt-manager": {
+    "driver": "apt",
+    "fields": {
+     "name": "virt-manager"
+    },
+    "name": "virt-manager"
+   },
+   "service\\libvirt-service": {
+    "driver": "service",
+    "fields": {
+     "name": "libvirt-service",
+     "unit": "libvirtd"
+    },
+    "name": "libvirt-service"
+   }
+  },
+  "virtualbox": {
+   "apt\\virtualbox": {
+    "driver": "apt",
+    "fields": {
+     "name": "virtualbox",
+     "repo-component": "multiverse"
+    },
+    "name": "virtualbox"
+   }
+  },
+  "vivaldi": {
+   "apt\\flatpak": {
+    "driver": "apt",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\vivaldi": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "com.vivaldi.Vivaldi"
+    },
+    "name": "com.vivaldi.Vivaldi"
+   }
+  },
+  "vlc": {
+   "apt\\vlc": {
+    "driver": "apt",
+    "fields": {
+     "name": "vlc"
+    },
+    "name": "vlc"
+   }
+  },
+  "vnstat": {
+   "apt\\vnstat": {
+    "driver": "apt",
+    "fields": {
+     "name": "vnstat"
+    },
+    "name": "vnstat"
+   }
+  },
+  "vscode": {
+   "apt\\vscode": {
+    "driver": "apt",
+    "fields": {
+     "name": "code",
+     "pubkey-path": "/usr/share/keyrings/packages.microsoft.asc",
+     "pubkey-url": "https://packages.microsoft.com/keys/microsoft.asc",
+     "source-line": "deb [arch=amd64,arm64,armhf signed-by=/usr/share/keyrings/packages.microsoft.asc] https://packages.microsoft.com/repos/code stable main",
+     "source-path": "/etc/apt/sources.list.d/vscode.list"
+    },
+    "name": "code"
+   }
+  },
+  "vulkan-dev": {
+   "apt\\c-toolchain": {
+    "driver": "apt",
+    "fields": {
+     "name": "gcc"
+    },
+    "name": "gcc"
+   },
+   "apt\\cpp-toolchain": {
+    "driver": "apt",
+    "fields": {
+     "name": "g++"
+    },
+    "name": "g++"
+   },
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "apt\\libvulkan1": {
+    "driver": "apt",
+    "fields": {
+     "name": "libvulkan1"
+    },
+    "name": "libvulkan1"
+   },
+   "apt\\libxcb-cursor-dev": {
+    "driver": "apt",
+    "fields": {
+     "name": "libxcb-cursor-dev",
+     "repo-component": "universe"
+    },
+    "name": "libxcb-cursor-dev"
+   },
+   "apt\\libxcb-xinerama0": {
+    "driver": "apt",
+    "fields": {
+     "name": "libxcb-xinerama0",
+     "repo-component": "universe"
+    },
+    "name": "libxcb-xinerama0"
+   },
+   "apt\\libxcb-xinput0": {
+    "driver": "apt",
+    "fields": {
+     "name": "libxcb-xinput0",
+     "repo-component": "universe"
+    },
+    "name": "libxcb-xinput0"
+   },
+   "apt\\make": {
+    "driver": "apt",
+    "fields": {
+     "name": "make"
+    },
+    "name": "make"
+   },
+   "apt\\mesa-vulkan-drivers": {
+    "driver": "apt",
+    "fields": {
+     "name": "mesa-vulkan-drivers"
+    },
+    "name": "mesa-vulkan-drivers"
+   },
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.bash.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\vulkan-sdk-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "dst": "~/.bash.d/vulkan-sdk.sh",
+      "src": "bash.d/vulkan-sdk.sh"
+     }
+    },
+    "name": "vulkan-sdk-dotfiles"
+   },
+   "tarball\\vulkan-sdk": {
+    "driver": "tarball",
+    "fields": {
+     "installDir": "$CONFIGSYS_SDK_DIR/vulkan",
+     "name": "vulkan-sdk",
+     "url": "https://sdk.lunarg.com/sdk/download/$VERSION/linux/vulkansdk-linux-$ARCH-$VERSION.tar.xz",
+     "version": {
+      "static": "1.4.350.1"
+     }
+    },
+    "name": "vulkan-sdk"
+   }
+  },
+  "vulkan-runtime": {
+   "apt\\libvulkan1": {
+    "driver": "apt",
+    "fields": {
+     "name": "libvulkan1"
+    },
+    "name": "libvulkan1"
+   },
+   "apt\\mesa-vulkan-drivers": {
+    "driver": "apt",
+    "fields": {
+     "name": "mesa-vulkan-drivers"
+    },
+    "name": "mesa-vulkan-drivers"
+   }
+  },
+  "vulkan-sdk": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.bash.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\vulkan-sdk-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "dst": "~/.bash.d/vulkan-sdk.sh",
+      "src": "bash.d/vulkan-sdk.sh"
+     }
+    },
+    "name": "vulkan-sdk-dotfiles"
+   },
+   "tarball\\vulkan-sdk": {
+    "driver": "tarball",
+    "fields": {
+     "installDir": "$CONFIGSYS_SDK_DIR/vulkan",
+     "name": "vulkan-sdk",
+     "url": "https://sdk.lunarg.com/sdk/download/$VERSION/linux/vulkansdk-linux-$ARCH-$VERSION.tar.xz",
+     "version": {
+      "static": "1.4.350.1"
+     }
+    },
+    "name": "vulkan-sdk"
+   }
+  },
+  "vulkan-sdk-dotfiles": {
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.bash.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\vulkan-sdk-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "dst": "~/.bash.d/vulkan-sdk.sh",
+      "src": "bash.d/vulkan-sdk.sh"
+     }
+    },
+    "name": "vulkan-sdk-dotfiles"
+   }
+  },
+  "websocat": {
+   "apt\\rust": {
+    "driver": "apt",
+    "fields": {
+     "name": "rust-all",
+     "repo-component": "universe"
+    },
+    "name": "rust-all"
+   },
+   "cargo\\websocat": {
+    "driver": "cargo",
+    "fields": {
+     "name": "websocat",
+     "version": {
+      "crates": "websocat"
+     }
+    },
+    "name": "websocat"
+   }
+  },
+  "whois": {
+   "apt\\whois": {
+    "driver": "apt",
+    "fields": {
+     "name": "whois"
+    },
+    "name": "whois"
+   }
+  },
+  "wireshark": {
+   "apt\\wireshark": {
+    "driver": "apt",
+    "fields": {
+     "debconf": "wireshark-common wireshark-common/install-setuid boolean true",
+     "name": "wireshark"
+    },
+    "name": "wireshark"
+   }
+  },
+  "wireshark-group": {
+   "apt\\wireshark": {
+    "driver": "apt",
+    "fields": {
+     "debconf": "wireshark-common wireshark-common/install-setuid boolean true",
+     "name": "wireshark"
+    },
+    "name": "wireshark"
+   },
+   "group\\wireshark-group": {
+    "driver": "group",
+    "fields": {
+     "name": "wireshark"
+    },
+    "name": "wireshark"
+   }
+  },
+  "wxmaxima": {
+   "apt\\wxmaxima": {
+    "driver": "apt",
+    "fields": {
+     "name": "wxmaxima",
+     "repo-component": "universe"
+    },
+    "name": "wxmaxima"
+   }
+  },
+  "xclip": {
+   "apt\\xclip": {
+    "driver": "apt",
+    "fields": {
+     "name": "xclip",
+     "repo-component": "universe"
+    },
+    "name": "xclip"
+   },
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.bash.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\xclip-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/xclip.sh",
+     "src": "bash.d/xclip.sh"
+    },
+    "name": "xclip-dotfiles"
+   }
+  },
+  "xclip-dotfiles": {
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.bash.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\xclip-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/xclip.sh",
+     "src": "bash.d/xclip.sh"
+    },
+    "name": "xclip-dotfiles"
+   }
+  },
+  "xfce": {
+   "apt\\xfce": {
+    "driver": "apt",
+    "fields": {
+     "name": "xfce4"
+    },
+    "name": "xfce4"
+   }
+  },
+  "xh": {
+   "apt\\rust": {
+    "driver": "apt",
+    "fields": {
+     "name": "rust-all",
+     "repo-component": "universe"
+    },
+    "name": "rust-all"
+   },
+   "cargo\\xh": {
+    "driver": "cargo",
+    "fields": {
+     "name": "xh",
+     "version": {
+      "crates": "xh"
+     }
+    },
+    "name": "xh"
+   }
+  },
+  "xmonad": {
+   "apt\\xmonad": {
+    "driver": "apt",
+    "fields": {
+     "name": "xmonad"
+    },
+    "name": "xmonad"
+   }
+  },
+  "yarn": {
+   "apt\\node": {
+    "driver": "apt",
+    "fields": {
+     "name": "npm",
+     "repo-component": "universe"
+    },
+    "name": "npm"
+   },
+   "npm\\yarn": {
+    "driver": "npm",
+    "fields": {
+     "name": "yarn"
+    },
+    "name": "yarn"
+   }
+  },
+  "yazi": {
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.bash.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\yazi-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/yazi.sh",
+     "src": "bash.d/yazi.sh"
+    },
+    "name": "yazi-dotfiles"
+   },
+   "native-pkg-file\\yazi": {
+    "driver": "native-pkg-file",
+    "fields": {
+     "asset": {
+      "aarch64": "yazi-aarch64-unknown-linux-gnu.deb",
+      "x86_64": "yazi-x86_64-unknown-linux-gnu.deb"
+     },
+     "name": "yazi",
+     "version": {
+      "github": "sxyazi/yazi"
+     }
+    },
+    "name": "yazi"
+   }
+  },
+  "yazi-dotfiles": {
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.bash.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\yazi-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/yazi.sh",
+     "src": "bash.d/yazi.sh"
+    },
+    "name": "yazi-dotfiles"
+   }
+  },
+  "yq": {
+   "apt\\jq": {
+    "driver": "apt",
+    "fields": {
+     "name": "jq"
+    },
+    "name": "jq"
+   },
+   "apt\\pipx": {
+    "driver": "apt",
+    "fields": {
+     "name": "pipx"
+    },
+    "name": "pipx"
+   },
+   "pipx\\yq": {
+    "driver": "pipx",
+    "fields": {
+     "name": "yq",
+     "version": {
+      "pypi": "yq"
+     }
+    },
+    "name": "yq"
+   }
+  },
+  "zed": {
+   "apt\\flatpak": {
+    "driver": "apt",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\zed": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "dev.zed.Zed"
+    },
+    "name": "dev.zed.Zed"
+   }
+  },
+  "zig": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "tarball\\zig": {
+    "driver": "tarball",
+    "fields": {
+     "installDir": "$CONFIGSYS_APP_DIR/zig",
+     "name": "zig",
+     "url": "https://ziglang.org/download/$VERSION/zig-linux-$ARCH-$VERSION.tar.xz",
+     "version": {
+      "github": "ziglang/zig",
+      "strip-v": "true"
+     }
+    },
+    "name": "zig"
+   }
+  },
+  "zip": {
+   "apt\\zip": {
+    "driver": "apt",
+    "fields": {
+     "name": "zip"
+    },
+    "name": "zip"
+   }
+  },
+  "zsh": {
+   "apt\\zsh": {
+    "driver": "apt",
+    "fields": {
+     "name": "zsh"
+    },
+    "name": "zsh"
+   }
+  },
+  "zstd": {
+   "apt\\zstd": {
+    "driver": "apt",
+    "fields": {
+     "name": "zstd"
+    },
+    "name": "zstd"
+   }
+  }
+ },
  "fedora@41": {
   "abseil": {
    "dnf\\abseil": {
@@ -21119,6 +25502,2971 @@
   "zstd": {
    "dnf\\zstd": {
     "driver": "dnf",
+    "fields": {
+     "name": "zstd"
+    },
+    "name": "zstd"
+   }
+  }
+ },
+ "fedora_atomic@41": {
+  "aider": {
+   "brew\\pipx": {
+    "driver": "brew",
+    "fields": {
+     "name": "pipx"
+    },
+    "name": "pipx"
+   },
+   "pipx\\aider": {
+    "driver": "pipx",
+    "fields": {
+     "name": "aider-chat"
+    },
+    "name": "aider-chat"
+   }
+  },
+  "android-studio": {
+   "brew\\curl": {
+    "driver": "brew",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "tarball\\android-studio": {
+    "driver": "tarball",
+    "fields": {
+     "name": "android-studio",
+     "url": "https://redirector.gvt1.com/edgedl/android/studio/ide-zips/$VERSION/android-studio-$VERSION-linux.tar.gz",
+     "version": {
+      "static": "2024.2.1.11"
+     }
+    },
+    "name": "android-studio"
+   }
+  },
+  "ansible": {
+   "brew\\ansible": {
+    "driver": "brew",
+    "fields": {
+     "name": "ansible",
+     "repo-component": "universe"
+    },
+    "name": "ansible"
+   }
+  },
+  "ardour": {
+   "flatpak\\ardour": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "org.ardour.Ardour"
+    },
+    "name": "org.ardour.Ardour"
+   }
+  },
+  "arduino": {
+   "dotfiles\\arduino-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/arduino.sh",
+     "src": "bash.d/arduino.sh"
+    },
+    "name": "arduino-dotfiles"
+   },
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.bash.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "flatpak\\arduino": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "cc.arduino.IDE2"
+    },
+    "name": "cc.arduino.IDE2"
+   }
+  },
+  "arduino-dotfiles": {
+   "dotfiles\\arduino-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/arduino.sh",
+     "src": "bash.d/arduino.sh"
+    },
+    "name": "arduino-dotfiles"
+   },
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.bash.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   }
+  },
+  "awscli": {
+   "brew\\curl": {
+    "driver": "brew",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "brew\\unzip": {
+    "driver": "brew",
+    "fields": {
+     "name": "unzip"
+    },
+    "name": "unzip"
+   },
+   "script\\awscli": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "curl -fsSL \"https://awscli.amazonaws.com/awscli-exe-linux-$(uname -m).zip\" -o /tmp/awscliv2.zip && unzip -q -o /tmp/awscliv2.zip -d /tmp/awscli-inst && /tmp/awscli-inst/aws/install --update -i \"$HOME/.local/aws-cli\" -b \"$HOME/.local/bin\" && rm -rf /tmp/awscliv2.zip /tmp/awscli-inst",
+     "location": "~/.local/bin/aws",
+     "name": "awscli",
+     "uninstall-cmd": "rm -rf \"$HOME/.local/aws-cli\" \"$HOME/.local/bin/aws\" \"$HOME/.local/bin/aws_completer\"",
+     "version-cmd": "\"$HOME/.local/bin/aws\" --version",
+     "version-re": "([0-9]+\\.[0-9]+\\.[0-9]+)"
+    },
+    "name": "awscli"
+   }
+  },
+  "azure-cli": {
+   "brew\\pipx": {
+    "driver": "brew",
+    "fields": {
+     "name": "pipx"
+    },
+    "name": "pipx"
+   },
+   "pipx\\azure-cli": {
+    "driver": "pipx",
+    "fields": {
+     "name": "azure-cli"
+    },
+    "name": "azure-cli"
+   }
+  },
+  "bash-dotfiles": {
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.bash.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   }
+  },
+  "bazelisk": {
+   "brew\\bazelisk": {
+    "driver": "brew",
+    "fields": {
+     "name": "bazelisk"
+    },
+    "name": "bazelisk"
+   }
+  },
+  "blender": {
+   "flatpak\\blender": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "org.blender.Blender"
+    },
+    "name": "org.blender.Blender"
+   }
+  },
+  "brave": {
+   "flatpak\\brave": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "com.brave.Browser"
+    },
+    "name": "com.brave.Browser"
+   }
+  },
+  "bruno": {
+   "flatpak\\bruno": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "com.usebruno.Bruno"
+    },
+    "name": "com.usebruno.Bruno"
+   }
+  },
+  "btop": {
+   "brew\\btop": {
+    "driver": "brew",
+    "fields": {
+     "name": "btop",
+     "repo-component": "universe"
+    },
+    "name": "btop"
+   }
+  },
+  "bun": {
+   "brew\\bun": {
+    "driver": "brew",
+    "fields": {
+     "name": "bun"
+    },
+    "name": "bun"
+   }
+  },
+  "bundler": {
+   "brew\\ruby": {
+    "driver": "brew",
+    "fields": {
+     "name": "ruby"
+    },
+    "name": "ruby"
+   },
+   "gem\\bundler": {
+    "driver": "gem",
+    "fields": {
+     "name": "bundler"
+    },
+    "name": "bundler"
+   }
+  },
+  "c-toolchain": {
+   "brew\\c-toolchain": {
+    "driver": "brew",
+    "fields": {
+     "name": "gcc"
+    },
+    "name": "gcc"
+   }
+  },
+  "cabal": {
+   "brew\\cabal": {
+    "driver": "brew",
+    "fields": {
+     "name": "cabal-install",
+     "repo-component": "universe"
+    },
+    "name": "cabal-install"
+   },
+   "brew\\haskell": {
+    "driver": "brew",
+    "fields": {
+     "name": "ghc",
+     "repo-component": "universe"
+    },
+    "name": "ghc"
+   }
+  },
+  "carla": {
+   "flatpak\\carla": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "studio.kx.carla"
+    },
+    "name": "studio.kx.carla"
+   }
+  },
+  "chrome": {
+   "flatpak\\chrome": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "com.google.Chrome"
+    },
+    "name": "com.google.Chrome"
+   }
+  },
+  "claude-code": {
+   "brew\\node": {
+    "driver": "brew",
+    "fields": {
+     "name": "node",
+     "repo-component": "universe"
+    },
+    "name": "node"
+   },
+   "npm\\claude-code": {
+    "driver": "npm",
+    "fields": {
+     "name": "@anthropic-ai/claude-code"
+    },
+    "name": "@anthropic-ai/claude-code"
+   }
+  },
+  "cmake": {
+   "brew\\cmake": {
+    "driver": "brew",
+    "fields": {
+     "name": "cmake"
+    },
+    "name": "cmake"
+   }
+  },
+  "codex": {
+   "brew\\node": {
+    "driver": "brew",
+    "fields": {
+     "name": "node",
+     "repo-component": "universe"
+    },
+    "name": "node"
+   },
+   "npm\\codex": {
+    "driver": "npm",
+    "fields": {
+     "name": "@openai/codex"
+    },
+    "name": "@openai/codex"
+   }
+  },
+  "compression": {
+   "brew\\lz4": {
+    "driver": "brew",
+    "fields": {
+     "name": "lz4"
+    },
+    "name": "lz4"
+   },
+   "brew\\p7zip": {
+    "driver": "brew",
+    "fields": {
+     "name": "sevenzip"
+    },
+    "name": "sevenzip"
+   },
+   "brew\\unzip": {
+    "driver": "brew",
+    "fields": {
+     "name": "unzip"
+    },
+    "name": "unzip"
+   },
+   "brew\\zip": {
+    "driver": "brew",
+    "fields": {
+     "name": "zip"
+    },
+    "name": "zip"
+   },
+   "brew\\zstd": {
+    "driver": "brew",
+    "fields": {
+     "name": "zstd"
+    },
+    "name": "zstd"
+   }
+  },
+  "conan": {
+   "brew\\pipx": {
+    "driver": "brew",
+    "fields": {
+     "name": "pipx"
+    },
+    "name": "pipx"
+   },
+   "pipx\\conan": {
+    "driver": "pipx",
+    "fields": {
+     "name": "conan"
+    },
+    "name": "conan"
+   }
+  },
+  "configsys-dotfiles": {
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.bash.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\configsys-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/00-configsys.sh",
+     "src": "bash.d/00-configsys.sh"
+    },
+    "name": "configsys-dotfiles"
+   }
+  },
+  "cpp-toolchain": {
+   "brew\\c-toolchain": {
+    "driver": "brew",
+    "fields": {
+     "name": "gcc"
+    },
+    "name": "gcc"
+   },
+   "brew\\cpp-toolchain": {
+    "driver": "brew",
+    "fields": {
+     "name": "gcc"
+    },
+    "name": "gcc"
+   }
+  },
+  "cppcheck": {
+   "brew\\cppcheck": {
+    "driver": "brew",
+    "fields": {
+     "name": "cppcheck"
+    },
+    "name": "cppcheck"
+   }
+  },
+  "cuda-toolkit": {
+   "brew\\cuda-toolkit": {
+    "driver": "brew",
+    "fields": {
+     "name": "cuda-toolkit"
+    },
+    "name": "cuda-toolkit"
+   }
+  },
+  "curl": {
+   "brew\\curl": {
+    "driver": "brew",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   }
+  },
+  "darktable": {
+   "flatpak\\darktable": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "org.darktable.Darktable"
+    },
+    "name": "org.darktable.Darktable"
+   }
+  },
+  "dbeaver": {
+   "flatpak\\dbeaver": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "io.dbeaver.DBeaverCommunity"
+    },
+    "name": "io.dbeaver.DBeaverCommunity"
+   }
+  },
+  "deno": {
+   "brew\\deno": {
+    "driver": "brew",
+    "fields": {
+     "name": "deno"
+    },
+    "name": "deno"
+   }
+  },
+  "dig": {
+   "brew\\dig": {
+    "driver": "brew",
+    "fields": {
+     "name": "bind"
+    },
+    "name": "bind"
+   }
+  },
+  "digikam": {
+   "flatpak\\digikam": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "org.kde.digikam"
+    },
+    "name": "org.kde.digikam"
+   }
+  },
+  "discord": {
+   "flatpak\\discord": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "com.discordapp.Discord"
+    },
+    "name": "com.discordapp.Discord"
+   }
+  },
+  "dkjson": {
+   "brew\\luarocks": {
+    "driver": "brew",
+    "fields": {
+     "name": "luarocks",
+     "repo-component": "universe"
+    },
+    "name": "luarocks"
+   },
+   "luarocks\\dkjson": {
+    "driver": "luarocks",
+    "fields": {
+     "name": "dkjson"
+    },
+    "name": "dkjson"
+   }
+  },
+  "docker": {
+   "brew\\docker-engine": {
+    "driver": "brew",
+    "fields": {
+     "name": "docker.io",
+     "repo-component": "universe"
+    },
+    "name": "docker.io"
+   },
+   "service\\docker-service": {
+    "driver": "service",
+    "fields": {
+     "name": "docker-service",
+     "unit": "docker"
+    },
+    "name": "docker-service"
+   }
+  },
+  "docker-engine": {
+   "brew\\docker-engine": {
+    "driver": "brew",
+    "fields": {
+     "name": "docker.io",
+     "repo-component": "universe"
+    },
+    "name": "docker.io"
+   }
+  },
+  "docker-group": {
+   "brew\\docker-engine": {
+    "driver": "brew",
+    "fields": {
+     "name": "docker.io",
+     "repo-component": "universe"
+    },
+    "name": "docker.io"
+   },
+   "group\\docker-group": {
+    "driver": "group",
+    "fields": {
+     "name": "docker"
+    },
+    "name": "docker"
+   }
+  },
+  "docker-service": {
+   "brew\\docker-engine": {
+    "driver": "brew",
+    "fields": {
+     "name": "docker.io",
+     "repo-component": "universe"
+    },
+    "name": "docker.io"
+   },
+   "service\\docker-service": {
+    "driver": "service",
+    "fields": {
+     "name": "docker-service",
+     "unit": "docker"
+    },
+    "name": "docker-service"
+   }
+  },
+  "dune": {
+   "brew\\opam": {
+    "driver": "brew",
+    "fields": {
+     "name": "opam",
+     "repo-component": "universe"
+    },
+    "name": "opam"
+   },
+   "opam\\dune": {
+    "driver": "opam",
+    "fields": {
+     "name": "dune"
+    },
+    "name": "dune"
+   }
+  },
+  "edge": {
+   "flatpak\\edge": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "com.microsoft.Edge"
+    },
+    "name": "com.microsoft.Edge"
+   }
+  },
+  "elixir": {
+   "brew\\elixir": {
+    "driver": "brew",
+    "fields": {
+     "name": "elixir",
+     "repo-component": "universe"
+    },
+    "name": "elixir"
+   }
+  },
+  "emacs": {
+   "brew\\emacs": {
+    "driver": "brew",
+    "fields": {
+     "name": "emacs",
+     "repo-component": "universe"
+    },
+    "name": "emacs"
+   }
+  },
+  "erlang": {
+   "brew\\erlang": {
+    "driver": "brew",
+    "fields": {
+     "name": "erlang"
+    },
+    "name": "erlang"
+   }
+  },
+  "ethtool": {
+   "brew\\ethtool": {
+    "driver": "brew",
+    "fields": {
+     "name": "ethtool"
+    },
+    "name": "ethtool"
+   }
+  },
+  "fastfetch": {
+   "brew\\fastfetch": {
+    "driver": "brew",
+    "fields": {
+     "name": "fastfetch"
+    },
+    "name": "fastfetch"
+   }
+  },
+  "ffmpeg": {
+   "brew\\ffmpeg": {
+    "driver": "brew",
+    "fields": {
+     "name": "ffmpeg"
+    },
+    "name": "ffmpeg"
+   }
+  },
+  "firefox": {
+   "flatpak\\firefox": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "org.mozilla.firefox"
+    },
+    "name": "org.mozilla.firefox"
+   }
+  },
+  "fish": {
+   "brew\\fish": {
+    "driver": "brew",
+    "fields": {
+     "name": "fish"
+    },
+    "name": "fish"
+   }
+  },
+  "flatpak": {
+   "brew\\flatpak": {
+    "driver": "brew",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   }
+  },
+  "fontconfig": {
+   "brew\\fontconfig": {
+    "driver": "brew",
+    "fields": {
+     "name": "fontconfig"
+    },
+    "name": "fontconfig"
+   }
+  },
+  "freecad": {
+   "flatpak\\freecad": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "org.freecad.FreeCAD"
+    },
+    "name": "org.freecad.FreeCAD"
+   }
+  },
+  "fzf": {
+   "brew\\fzf": {
+    "driver": "brew",
+    "fields": {
+     "name": "fzf",
+     "repo-component": "universe"
+    },
+    "name": "fzf"
+   }
+  },
+  "gap": {
+   "brew\\gap": {
+    "driver": "brew",
+    "fields": {
+     "name": "gap"
+    },
+    "name": "gap"
+   }
+  },
+  "gcloud": {
+   "brew\\curl": {
+    "driver": "brew",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "script\\gcloud": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "curl -fsSL https://sdk.cloud.google.com | bash -s -- --disable-prompts --install-dir=\"$HOME\"",
+     "location": "~/google-cloud-sdk/bin",
+     "name": "gcloud",
+     "uninstall-cmd": "rm -rf \"$HOME/google-cloud-sdk\"",
+     "version-cmd": "\"$HOME/google-cloud-sdk/bin/gcloud\" version",
+     "version-re": "([0-9]+\\.[0-9]+\\.[0-9]+)"
+    },
+    "name": "gcloud"
+   }
+  },
+  "gdb": {
+   "brew\\gdb": {
+    "driver": "brew",
+    "fields": {
+     "name": "gdb"
+    },
+    "name": "gdb"
+   },
+   "dotfiles\\gdb-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "dst": "~/.gdbinit",
+     "src": "gdbinit"
+    },
+    "name": "gdb-dotfiles"
+   }
+  },
+  "gdb-dotfiles": {
+   "dotfiles\\gdb-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "dst": "~/.gdbinit",
+     "src": "gdbinit"
+    },
+    "name": "gdb-dotfiles"
+   }
+  },
+  "ghostty": {
+   "appImage\\ghostty": {
+    "driver": "appImage",
+    "fields": {
+     "name": "Ghostty",
+     "path": "~/apps/ghostty.appimage",
+     "scope": "user",
+     "version": {
+      "asset": "Ghostty-*-$ARCH.AppImage",
+      "github": "pkgforge-dev/ghostty-appimage",
+      "strip-v": "true"
+     }
+    },
+    "name": "Ghostty"
+   },
+   "brew\\libfuse2": {
+    "driver": "brew",
+    "fields": {
+     "name": "libfuse2",
+     "repo-component": "universe"
+    },
+    "name": "libfuse2"
+   }
+  },
+  "gimp": {
+   "flatpak\\gimp": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "org.gimp.GIMP"
+    },
+    "name": "org.gimp.GIMP"
+   }
+  },
+  "git": {
+   "brew\\git": {
+    "driver": "brew",
+    "fields": {
+     "name": "git"
+    },
+    "name": "git"
+   }
+  },
+  "gnuplot": {
+   "brew\\gnuplot": {
+    "driver": "brew",
+    "fields": {
+     "name": "gnuplot",
+     "repo-component": "universe"
+    },
+    "name": "gnuplot"
+   }
+  },
+  "gnuradio": {
+   "brew\\gnuradio": {
+    "driver": "brew",
+    "fields": {
+     "name": "gnuradio"
+    },
+    "name": "gnuradio"
+   }
+  },
+  "go": {
+   "brew\\go": {
+    "driver": "brew",
+    "fields": {
+     "name": "go"
+    },
+    "name": "go"
+   }
+  },
+  "godot": {
+   "flatpak\\godot": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "org.godotengine.Godot"
+    },
+    "name": "org.godotengine.Godot"
+   }
+  },
+  "goimports": {
+   "brew\\go": {
+    "driver": "brew",
+    "fields": {
+     "name": "go"
+    },
+    "name": "go"
+   },
+   "go-install\\goimports": {
+    "driver": "go-install",
+    "fields": {
+     "name": "golang.org/x/tools/cmd/goimports"
+    },
+    "name": "golang.org/x/tools/cmd/goimports"
+   }
+  },
+  "gradle": {
+   "brew\\gradle": {
+    "driver": "brew",
+    "fields": {
+     "name": "gradle"
+    },
+    "name": "gradle"
+   },
+   "brew\\jdk": {
+    "driver": "brew",
+    "fields": {
+     "name": "openjdk"
+    },
+    "name": "openjdk"
+   }
+  },
+  "grpcurl": {
+   "brew\\curl": {
+    "driver": "brew",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "tarball\\grpcurl": {
+    "driver": "tarball",
+    "fields": {
+     "installDir": "$CONFIGSYS_APP_DIR/grpcurl",
+     "name": "grpcurl",
+     "version": {
+      "asset": "grpcurl_*_linux_x86_64.tar.gz",
+      "github": "fullstorydev/grpcurl",
+      "strip-v": "true"
+     }
+    },
+    "name": "grpcurl"
+   }
+  },
+  "haskell": {
+   "brew\\haskell": {
+    "driver": "brew",
+    "fields": {
+     "name": "ghc",
+     "repo-component": "universe"
+    },
+    "name": "ghc"
+   }
+  },
+  "helix": {
+   "brew\\helix": {
+    "driver": "brew",
+    "fields": {
+     "name": "helix"
+    },
+    "name": "helix"
+   }
+  },
+  "helm": {
+   "brew\\helm": {
+    "driver": "brew",
+    "fields": {
+     "name": "helm"
+    },
+    "name": "helm"
+   }
+  },
+  "hlint": {
+   "brew\\cabal": {
+    "driver": "brew",
+    "fields": {
+     "name": "cabal-install",
+     "repo-component": "universe"
+    },
+    "name": "cabal-install"
+   },
+   "brew\\haskell": {
+    "driver": "brew",
+    "fields": {
+     "name": "ghc",
+     "repo-component": "universe"
+    },
+    "name": "ghc"
+   },
+   "cabal\\hlint": {
+    "driver": "cabal",
+    "fields": {
+     "name": "hlint"
+    },
+    "name": "hlint"
+   }
+  },
+  "htop": {
+   "brew\\htop": {
+    "driver": "brew",
+    "fields": {
+     "name": "htop",
+     "repo-component": "universe"
+    },
+    "name": "htop"
+   },
+   "dotfiles\\htop-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/htop",
+      "src": "htop"
+     }
+    },
+    "name": "htop-dotfiles"
+   }
+  },
+  "htop-dotfiles": {
+   "dotfiles\\htop-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/htop",
+      "src": "htop"
+     }
+    },
+    "name": "htop-dotfiles"
+   }
+  },
+  "httpie": {
+   "brew\\httpie": {
+    "driver": "brew",
+    "fields": {
+     "name": "httpie"
+    },
+    "name": "httpie"
+   }
+  },
+  "hydrogen": {
+   "flatpak\\hydrogen": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "org.hydrogenmusic.Hydrogen"
+    },
+    "name": "org.hydrogenmusic.Hydrogen"
+   }
+  },
+  "iftop": {
+   "brew\\iftop": {
+    "driver": "brew",
+    "fields": {
+     "name": "iftop"
+    },
+    "name": "iftop"
+   }
+  },
+  "inkscape": {
+   "flatpak\\inkscape": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "org.inkscape.Inkscape"
+    },
+    "name": "org.inkscape.Inkscape"
+   }
+  },
+  "insomnia": {
+   "flatpak\\insomnia": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "rest.insomnia.Insomnia"
+    },
+    "name": "rest.insomnia.Insomnia"
+   }
+  },
+  "intel-oneapi-basekit": {
+   "brew\\intel-oneapi-basekit": {
+    "driver": "brew",
+    "fields": {
+     "name": "intel-oneapi-basekit"
+    },
+    "name": "intel-oneapi-basekit"
+   }
+  },
+  "iperf3": {
+   "brew\\iperf3": {
+    "driver": "brew",
+    "fields": {
+     "name": "iperf3"
+    },
+    "name": "iperf3"
+   }
+  },
+  "iproute2": {
+   "brew\\iproute2": {
+    "driver": "brew",
+    "fields": {
+     "name": "iproute2"
+    },
+    "name": "iproute2"
+   }
+  },
+  "jdk": {
+   "brew\\jdk": {
+    "driver": "brew",
+    "fields": {
+     "name": "openjdk"
+    },
+    "name": "openjdk"
+   }
+  },
+  "jetbrains-toolbox": {
+   "brew\\curl": {
+    "driver": "brew",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "tarball\\jetbrains-toolbox": {
+    "driver": "tarball",
+    "fields": {
+     "installDir": "$CONFIGSYS_APP_DIR/jetbrains-toolbox",
+     "name": "jetbrains-toolbox",
+     "url": "https://download.jetbrains.com/product?code=TBA&latest&distribution=linux",
+     "version": {
+      "static": "latest"
+     }
+    },
+    "name": "jetbrains-toolbox"
+   }
+  },
+  "jq": {
+   "brew\\jq": {
+    "driver": "brew",
+    "fields": {
+     "name": "jq"
+    },
+    "name": "jq"
+   }
+  },
+  "julia": {
+   "brew\\julia": {
+    "driver": "brew",
+    "fields": {
+     "name": "julia"
+    },
+    "name": "julia"
+   }
+  },
+  "jupyterlab": {
+   "brew\\pipx": {
+    "driver": "brew",
+    "fields": {
+     "name": "pipx"
+    },
+    "name": "pipx"
+   },
+   "pipx\\jupyterlab": {
+    "driver": "pipx",
+    "fields": {
+     "name": "jupyterlab"
+    },
+    "name": "jupyterlab"
+   }
+  },
+  "just": {
+   "brew\\just": {
+    "driver": "brew",
+    "fields": {
+     "name": "just"
+    },
+    "name": "just"
+   }
+  },
+  "k3s": {
+   "script\\k3s": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "curl -sfL https://get.k3s.io | sh",
+     "location": "/usr/local/bin/k3s",
+     "name": "k3s",
+     "uninstall-cmd": "/usr/local/bin/k3s-uninstall.sh",
+     "version-cmd": "k3s --version",
+     "version-re": "(v[0-9]+\\.[0-9]+\\.[0-9]+)"
+    },
+    "name": "k3s"
+   }
+  },
+  "k9s": {
+   "brew\\k9s": {
+    "driver": "brew",
+    "fields": {
+     "name": "k9s"
+    },
+    "name": "k9s"
+   }
+  },
+  "kicad": {
+   "flatpak\\kicad": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "org.kicad.KiCad"
+    },
+    "name": "org.kicad.KiCad"
+   }
+  },
+  "kitty": {
+   "brew\\kitty": {
+    "driver": "brew",
+    "fields": {
+     "name": "kitty"
+    },
+    "name": "kitty"
+   }
+  },
+  "kotlin": {
+   "brew\\kotlin": {
+    "driver": "brew",
+    "fields": {
+     "name": "kotlin"
+    },
+    "name": "kotlin"
+   }
+  },
+  "krita": {
+   "flatpak\\krita": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "org.kde.krita"
+    },
+    "name": "org.kde.krita"
+   }
+  },
+  "kubectl": {
+   "brew\\kubectl": {
+    "driver": "brew",
+    "fields": {
+     "name": "kubectl"
+    },
+    "name": "kubectl"
+   }
+  },
+  "lazydocker": {
+   "brew\\curl": {
+    "driver": "brew",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "tarball\\lazydocker": {
+    "driver": "tarball",
+    "fields": {
+     "installDir": "$CONFIGSYS_APP_DIR/lazydocker",
+     "name": "lazydocker",
+     "version": {
+      "asset": "lazydocker_*_Linux_x86_64.tar.gz",
+      "github": "jesseduffield/lazydocker",
+      "strip-v": "true"
+     }
+    },
+    "name": "lazydocker"
+   }
+  },
+  "lazygit": {
+   "brew\\curl": {
+    "driver": "brew",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.bash.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\lazygit-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/lazygit.sh",
+     "src": "bash.d/lazygit.sh"
+    },
+    "name": "lazygit-dotfiles"
+   },
+   "tarball\\lazygit": {
+    "driver": "tarball",
+    "fields": {
+     "installDir": "$CONFIGSYS_APP_DIR/lazygit",
+     "name": "lazygit",
+     "version": {
+      "asset": "lazygit_*_Linux_x86_64.tar.gz",
+      "github": "jesseduffield/lazygit",
+      "strip-v": "true"
+     }
+    },
+    "name": "lazygit"
+   }
+  },
+  "lazygit-dotfiles": {
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.bash.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\lazygit-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/lazygit.sh",
+     "src": "bash.d/lazygit.sh"
+    },
+    "name": "lazygit-dotfiles"
+   }
+  },
+  "lazysql": {
+   "brew\\curl": {
+    "driver": "brew",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "tarball\\lazysql": {
+    "driver": "tarball",
+    "fields": {
+     "installDir": "$CONFIGSYS_APP_DIR/lazysql",
+     "name": "lazysql",
+     "url": "https://github.com/jorgerojas26/lazysql/releases/latest/download/lazysql_Linux_x86_64.tar.gz",
+     "version": {
+      "static": "latest"
+     }
+    },
+    "name": "lazysql"
+   }
+  },
+  "libc++": {
+   "brew\\libc++": {
+    "driver": "brew",
+    "fields": {
+     "name": "libc++"
+    },
+    "name": "libc++"
+   },
+   "brew\\libc++abi": {
+    "driver": "brew",
+    "fields": {
+     "name": "libc++abi"
+    },
+    "name": "libc++abi"
+   }
+  },
+  "libc++abi": {
+   "brew\\libc++abi": {
+    "driver": "brew",
+    "fields": {
+     "name": "libc++abi"
+    },
+    "name": "libc++abi"
+   }
+  },
+  "libfuse2": {
+   "brew\\libfuse2": {
+    "driver": "brew",
+    "fields": {
+     "name": "libfuse2",
+     "repo-component": "universe"
+    },
+    "name": "libfuse2"
+   }
+  },
+  "libreoffice": {
+   "flatpak\\libreoffice": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "org.libreoffice.LibreOffice"
+    },
+    "name": "org.libreoffice.LibreOffice"
+   }
+  },
+  "libstdc++": {
+   "brew\\libstdc++": {
+    "driver": "brew",
+    "fields": {
+     "name": "gcc"
+    },
+    "name": "gcc"
+   }
+  },
+  "libvirt": {
+   "brew\\libvirt": {
+    "driver": "brew",
+    "fields": {
+     "name": "libvirt"
+    },
+    "name": "libvirt"
+   }
+  },
+  "libvirt-service": {
+   "brew\\libvirt": {
+    "driver": "brew",
+    "fields": {
+     "name": "libvirt"
+    },
+    "name": "libvirt"
+   },
+   "service\\libvirt-service": {
+    "driver": "service",
+    "fields": {
+     "name": "libvirt-service",
+     "unit": "libvirtd"
+    },
+    "name": "libvirt-service"
+   }
+  },
+  "lldb": {
+   "brew\\lldb": {
+    "driver": "brew",
+    "fields": {
+     "name": "lldb"
+    },
+    "name": "lldb"
+   }
+  },
+  "llm": {
+   "brew\\pipx": {
+    "driver": "brew",
+    "fields": {
+     "name": "pipx"
+    },
+    "name": "pipx"
+   },
+   "pipx\\llm": {
+    "driver": "pipx",
+    "fields": {
+     "name": "llm"
+    },
+    "name": "llm"
+   }
+  },
+  "lmms": {
+   "flatpak\\lmms": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "io.lmms.LMMS"
+    },
+    "name": "io.lmms.LMMS"
+   }
+  },
+  "ltrace": {
+   "brew\\ltrace": {
+    "driver": "brew",
+    "fields": {
+     "name": "ltrace"
+    },
+    "name": "ltrace"
+   }
+  },
+  "lua": {
+   "brew\\lua": {
+    "driver": "brew",
+    "fields": {
+     "name": "lua",
+     "repo-component": "universe"
+    },
+    "name": "lua"
+   }
+  },
+  "luarocks": {
+   "brew\\luarocks": {
+    "driver": "brew",
+    "fields": {
+     "name": "luarocks",
+     "repo-component": "universe"
+    },
+    "name": "luarocks"
+   }
+  },
+  "lz4": {
+   "brew\\lz4": {
+    "driver": "brew",
+    "fields": {
+     "name": "lz4"
+    },
+    "name": "lz4"
+   }
+  },
+  "make": {
+   "brew\\make": {
+    "driver": "brew",
+    "fields": {
+     "name": "make"
+    },
+    "name": "make"
+   }
+  },
+  "mariadb": {
+   "brew\\mariadb": {
+    "driver": "brew",
+    "fields": {
+     "name": "mariadb"
+    },
+    "name": "mariadb"
+   }
+  },
+  "mariadb-service": {
+   "brew\\mariadb": {
+    "driver": "brew",
+    "fields": {
+     "name": "mariadb"
+    },
+    "name": "mariadb"
+   },
+   "service\\mariadb-service": {
+    "driver": "service",
+    "fields": {
+     "name": "mariadb-service",
+     "unit": "mariadb"
+    },
+    "name": "mariadb-service"
+   }
+  },
+  "maven": {
+   "brew\\jdk": {
+    "driver": "brew",
+    "fields": {
+     "name": "openjdk"
+    },
+    "name": "openjdk"
+   },
+   "brew\\maven": {
+    "driver": "brew",
+    "fields": {
+     "name": "maven"
+    },
+    "name": "maven"
+   }
+  },
+  "maxima": {
+   "brew\\maxima": {
+    "driver": "brew",
+    "fields": {
+     "name": "maxima"
+    },
+    "name": "maxima"
+   }
+  },
+  "meson": {
+   "brew\\meson": {
+    "driver": "brew",
+    "fields": {
+     "name": "meson"
+    },
+    "name": "meson"
+   }
+  },
+  "miniforge": {
+   "brew\\curl": {
+    "driver": "brew",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "script\\miniforge": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "curl -fsSL \"https://github.com/conda-forge/miniforge/releases/latest/download/Miniforge3-Linux-x86_64.sh\" -o /tmp/mf.sh && bash /tmp/mf.sh -b -p \"$HOME/miniforge3\" && rm -f /tmp/mf.sh",
+     "location": "~/miniforge3/bin",
+     "name": "miniforge",
+     "uninstall-cmd": "rm -rf \"$HOME/miniforge3\"",
+     "version-cmd": "\"$HOME/miniforge3/bin/conda\" --version",
+     "version-re": "([0-9]+\\.[0-9]+\\.[0-9]+)"
+    },
+    "name": "miniforge"
+   }
+  },
+  "mitmproxy": {
+   "brew\\pipx": {
+    "driver": "brew",
+    "fields": {
+     "name": "pipx"
+    },
+    "name": "pipx"
+   },
+   "pipx\\mitmproxy": {
+    "driver": "pipx",
+    "fields": {
+     "name": "mitmproxy",
+     "version": {
+      "pypi": "mitmproxy"
+     }
+    },
+    "name": "mitmproxy"
+   }
+  },
+  "mononoki-nerd": {
+   "brew\\fontconfig": {
+    "driver": "brew",
+    "fields": {
+     "name": "fontconfig"
+    },
+    "name": "fontconfig"
+   },
+   "brew\\unzip": {
+    "driver": "brew",
+    "fields": {
+     "name": "unzip"
+    },
+    "name": "unzip"
+   },
+   "font\\mononoki-nerd": {
+    "driver": "font",
+    "fields": {
+     "name": "Mononoki",
+     "url": "https://github.com/ryanoasis/nerd-fonts/releases/download/$VERSION/Mononoki.zip",
+     "version": {
+      "asset": "Mononoki.zip",
+      "github": "ryanoasis/nerd-fonts"
+     }
+    },
+    "name": "Mononoki"
+   }
+  },
+  "mtr": {
+   "brew\\mtr": {
+    "driver": "brew",
+    "fields": {
+     "name": "mtr"
+    },
+    "name": "mtr"
+   }
+  },
+  "musescore": {
+   "flatpak\\musescore": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "org.musescore.MuseScore"
+    },
+    "name": "org.musescore.MuseScore"
+   }
+  },
+  "mycli": {
+   "brew\\pipx": {
+    "driver": "brew",
+    "fields": {
+     "name": "pipx"
+    },
+    "name": "pipx"
+   },
+   "pipx\\mycli": {
+    "driver": "pipx",
+    "fields": {
+     "name": "mycli"
+    },
+    "name": "mycli"
+   }
+  },
+  "neovim": {
+   "brew\\neovim": {
+    "driver": "brew",
+    "fields": {
+     "name": "neovim"
+    },
+    "name": "neovim"
+   },
+   "brew\\ripgrep": {
+    "driver": "brew",
+    "fields": {
+     "name": "ripgrep",
+     "repo-component": "universe"
+    },
+    "name": "ripgrep"
+   },
+   "brew\\rust": {
+    "driver": "brew",
+    "fields": {
+     "name": "rust",
+     "repo-component": "universe"
+    },
+    "name": "rust"
+   },
+   "cargo\\tree-sitter-cli": {
+    "driver": "cargo",
+    "fields": {
+     "name": "tree-sitter-cli",
+     "version": {
+      "crates": "tree-sitter-cli"
+     }
+    },
+    "name": "tree-sitter-cli"
+   },
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.bash.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\neovim-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "dst": "~/.bash.d/neovim.sh",
+      "src": "bash.d/neovim.sh"
+     },
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/nvim",
+      "src": "neovim"
+     }
+    },
+    "name": "neovim-dotfiles"
+   }
+  },
+  "neovim-dotfiles": {
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.bash.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\neovim-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "dst": "~/.bash.d/neovim.sh",
+      "src": "bash.d/neovim.sh"
+     },
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/nvim",
+      "src": "neovim"
+     }
+    },
+    "name": "neovim-dotfiles"
+   }
+  },
+  "netcat": {
+   "brew\\netcat": {
+    "driver": "brew",
+    "fields": {
+     "name": "netcat-openbsd"
+    },
+    "name": "netcat-openbsd"
+   }
+  },
+  "nethogs": {
+   "brew\\nethogs": {
+    "driver": "brew",
+    "fields": {
+     "name": "nethogs"
+    },
+    "name": "nethogs"
+   }
+  },
+  "nim": {
+   "brew\\nim": {
+    "driver": "brew",
+    "fields": {
+     "name": "nim"
+    },
+    "name": "nim"
+   }
+  },
+  "ninja": {
+   "brew\\ninja": {
+    "driver": "brew",
+    "fields": {
+     "name": "ninja"
+    },
+    "name": "ninja"
+   }
+  },
+  "nload": {
+   "brew\\nload": {
+    "driver": "brew",
+    "fields": {
+     "name": "nload"
+    },
+    "name": "nload"
+   }
+  },
+  "nmap": {
+   "brew\\nmap": {
+    "driver": "brew",
+    "fields": {
+     "name": "nmap"
+    },
+    "name": "nmap"
+   }
+  },
+  "node": {
+   "brew\\node": {
+    "driver": "brew",
+    "fields": {
+     "name": "node",
+     "repo-component": "universe"
+    },
+    "name": "node"
+   }
+  },
+  "nushell": {
+   "brew\\nushell": {
+    "driver": "brew",
+    "fields": {
+     "name": "nushell"
+    },
+    "name": "nushell"
+   }
+  },
+  "obs-studio": {
+   "flatpak\\obs-studio": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "com.obsproject.Studio"
+    },
+    "name": "com.obsproject.Studio"
+   }
+  },
+  "ocaml": {
+   "brew\\ocaml": {
+    "driver": "brew",
+    "fields": {
+     "name": "ocaml",
+     "repo-component": "universe"
+    },
+    "name": "ocaml"
+   }
+  },
+  "octave": {
+   "brew\\octave": {
+    "driver": "brew",
+    "fields": {
+     "name": "octave",
+     "repo-component": "universe"
+    },
+    "name": "octave"
+   }
+  },
+  "odin": {
+   "brew\\odin": {
+    "driver": "brew",
+    "fields": {
+     "name": "odin"
+    },
+    "name": "odin"
+   }
+  },
+  "ollama": {
+   "brew\\ollama": {
+    "driver": "brew",
+    "fields": {
+     "name": "ollama"
+    },
+    "name": "ollama"
+   }
+  },
+  "opam": {
+   "brew\\opam": {
+    "driver": "brew",
+    "fields": {
+     "name": "opam",
+     "repo-component": "universe"
+    },
+    "name": "opam"
+   }
+  },
+  "opencv": {
+   "brew\\opencv": {
+    "driver": "brew",
+    "fields": {
+     "name": "opencv"
+    },
+    "name": "opencv"
+   }
+  },
+  "openscad": {
+   "flatpak\\openscad": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "org.openscad.OpenSCAD"
+    },
+    "name": "org.openscad.OpenSCAD"
+   }
+  },
+  "opentofu": {
+   "brew\\curl": {
+    "driver": "brew",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "tarball\\opentofu": {
+    "driver": "tarball",
+    "fields": {
+     "installDir": "$CONFIGSYS_APP_DIR/opentofu",
+     "name": "opentofu",
+     "version": {
+      "asset": "tofu_*_linux_amd64.tar.gz",
+      "github": "opentofu/opentofu",
+      "strip-v": "true"
+     }
+    },
+    "name": "opentofu"
+   }
+  },
+  "opera": {
+   "flatpak\\opera": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "com.opera.Opera"
+    },
+    "name": "com.opera.Opera"
+   }
+  },
+  "p7zip": {
+   "brew\\p7zip": {
+    "driver": "brew",
+    "fields": {
+     "name": "sevenzip"
+    },
+    "name": "sevenzip"
+   }
+  },
+  "paraview": {
+   "flatpak\\paraview": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "org.paraview.ParaView"
+    },
+    "name": "org.paraview.ParaView"
+   }
+  },
+  "pari": {
+   "brew\\pari": {
+    "driver": "brew",
+    "fields": {
+     "name": "pari",
+     "repo-component": "universe"
+    },
+    "name": "pari"
+   }
+  },
+  "perf": {
+   "brew\\perf": {
+    "driver": "brew",
+    "fields": {
+     "name": "perf"
+    },
+    "name": "perf"
+   }
+  },
+  "pgcli": {
+   "brew\\pipx": {
+    "driver": "brew",
+    "fields": {
+     "name": "pipx"
+    },
+    "name": "pipx"
+   },
+   "pipx\\pgcli": {
+    "driver": "pipx",
+    "fields": {
+     "name": "pgcli"
+    },
+    "name": "pgcli"
+   }
+  },
+  "pipewire": {
+   "brew\\pipewire": {
+    "driver": "brew",
+    "fields": {
+     "name": "pipewire"
+    },
+    "name": "pipewire"
+   }
+  },
+  "pipx": {
+   "brew\\pipx": {
+    "driver": "brew",
+    "fields": {
+     "name": "pipx"
+    },
+    "name": "pipx"
+   }
+  },
+  "pnpm": {
+   "brew\\node": {
+    "driver": "brew",
+    "fields": {
+     "name": "node",
+     "repo-component": "universe"
+    },
+    "name": "node"
+   },
+   "npm\\pnpm": {
+    "driver": "npm",
+    "fields": {
+     "name": "pnpm"
+    },
+    "name": "pnpm"
+   }
+  },
+  "podman": {
+   "brew\\podman": {
+    "driver": "brew",
+    "fields": {
+     "name": "podman",
+     "repo-component": "universe"
+    },
+    "name": "podman"
+   },
+   "dotfiles\\podman-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/containers",
+      "src": "containers"
+     }
+    },
+    "name": "podman-dotfiles"
+   }
+  },
+  "podman-dotfiles": {
+   "dotfiles\\podman-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/containers",
+      "src": "containers"
+     }
+    },
+    "name": "podman-dotfiles"
+   }
+  },
+  "postman": {
+   "flatpak\\postman": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "com.getpostman.Postman"
+    },
+    "name": "com.getpostman.Postman"
+   }
+  },
+  "prettier": {
+   "brew\\node": {
+    "driver": "brew",
+    "fields": {
+     "name": "node",
+     "repo-component": "universe"
+    },
+    "name": "node"
+   },
+   "npm\\prettier": {
+    "driver": "npm",
+    "fields": {
+     "name": "prettier"
+    },
+    "name": "prettier"
+   }
+  },
+  "protobuf": {
+   "brew\\protobuf": {
+    "driver": "brew",
+    "fields": {
+     "name": "protobuf",
+     "repo-component": "universe"
+    },
+    "name": "protobuf"
+   }
+  },
+  "puppet": {
+   "brew\\ruby": {
+    "driver": "brew",
+    "fields": {
+     "name": "ruby"
+    },
+    "name": "ruby"
+   },
+   "gem\\puppet": {
+    "driver": "gem",
+    "fields": {
+     "name": "puppet"
+    },
+    "name": "puppet"
+   }
+  },
+  "python3-pip": {
+   "brew\\python3-pip": {
+    "driver": "brew",
+    "fields": {
+     "name": "python3-pip"
+    },
+    "name": "python3-pip"
+   }
+  },
+  "qemu": {
+   "brew\\qemu": {
+    "driver": "brew",
+    "fields": {
+     "name": "qemu"
+    },
+    "name": "qemu"
+   }
+  },
+  "qjackctl": {
+   "brew\\qjackctl": {
+    "driver": "brew",
+    "fields": {
+     "name": "qjackctl",
+     "repo-component": "universe"
+    },
+    "name": "qjackctl"
+   }
+  },
+  "quicklisp": {
+   "brew\\sbcl": {
+    "driver": "brew",
+    "fields": {
+     "name": "sbcl",
+     "repo-component": "universe"
+    },
+    "name": "sbcl"
+   },
+   "script\\quicklisp": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "curl -fsSL https://beta.quicklisp.org/quicklisp.lisp -o /tmp/quicklisp.lisp && printf \"\\n\" | sbcl --non-interactive --load /tmp/quicklisp.lisp --eval \"(quicklisp-quickstart:install)\" --eval \"(ql:add-to-init-file)\" && rm -f /tmp/quicklisp.lisp",
+     "location": "~/quicklisp",
+     "name": "quicklisp",
+     "uninstall-cmd": "rm -rf \"$HOME/quicklisp\"",
+     "version-cmd": "test -d \"$HOME/quicklisp\" && echo present"
+    },
+    "name": "quicklisp"
+   }
+  },
+  "r": {
+   "brew\\r": {
+    "driver": "brew",
+    "fields": {
+     "name": "r",
+     "repo-component": "universe"
+    },
+    "name": "r"
+   }
+  },
+  "redis": {
+   "brew\\redis": {
+    "driver": "brew",
+    "fields": {
+     "name": "redis"
+    },
+    "name": "redis"
+   }
+  },
+  "ripgrep": {
+   "brew\\ripgrep": {
+    "driver": "brew",
+    "fields": {
+     "name": "ripgrep",
+     "repo-component": "universe"
+    },
+    "name": "ripgrep"
+   }
+  },
+  "rocm-hip": {
+   "brew\\rocm-hip": {
+    "driver": "brew",
+    "fields": {
+     "name": "rocm-hip"
+    },
+    "name": "rocm-hip"
+   }
+  },
+  "ruby": {
+   "brew\\ruby": {
+    "driver": "brew",
+    "fields": {
+     "name": "ruby"
+    },
+    "name": "ruby"
+   }
+  },
+  "rust": {
+   "brew\\rust": {
+    "driver": "brew",
+    "fields": {
+     "name": "rust",
+     "repo-component": "universe"
+    },
+    "name": "rust"
+   }
+  },
+  "salt": {
+   "brew\\pipx": {
+    "driver": "brew",
+    "fields": {
+     "name": "pipx"
+    },
+    "name": "pipx"
+   },
+   "pipx\\salt": {
+    "driver": "pipx",
+    "fields": {
+     "name": "salt"
+    },
+    "name": "salt"
+   }
+  },
+  "sass": {
+   "brew\\node": {
+    "driver": "brew",
+    "fields": {
+     "name": "node",
+     "repo-component": "universe"
+    },
+    "name": "node"
+   },
+   "npm\\sass": {
+    "driver": "npm",
+    "fields": {
+     "name": "sass"
+    },
+    "name": "sass"
+   }
+  },
+  "sbcl": {
+   "brew\\sbcl": {
+    "driver": "brew",
+    "fields": {
+     "name": "sbcl",
+     "repo-component": "universe"
+    },
+    "name": "sbcl"
+   }
+  },
+  "scribus": {
+   "flatpak\\scribus": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "net.scribus.Scribus"
+    },
+    "name": "net.scribus.Scribus"
+   }
+  },
+  "sdkman": {
+   "script\\sdkman": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "curl -s https://get.sdkman.io | bash",
+     "location": "~/.sdkman",
+     "name": "sdkman",
+     "uninstall-cmd": "rm -rf \"$HOME/.sdkman\"",
+     "version-cmd": "source \"$HOME/.sdkman/bin/sdkman-init.sh\" && sdk version",
+     "version-re": "([0-9]+\\.[0-9]+\\.[0-9]+)"
+    },
+    "name": "sdkman"
+   }
+  },
+  "slack": {
+   "flatpak\\slack": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "com.slack.Slack"
+    },
+    "name": "com.slack.Slack"
+   }
+  },
+  "socat": {
+   "brew\\socat": {
+    "driver": "brew",
+    "fields": {
+     "name": "socat"
+    },
+    "name": "socat"
+   }
+  },
+  "sonic-pi": {
+   "flatpak\\sonic-pi": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "net.sonic_pi.SonicPi"
+    },
+    "name": "net.sonic_pi.SonicPi"
+   }
+  },
+  "spotify": {
+   "flatpak\\spotify": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "com.spotify.Client"
+    },
+    "name": "com.spotify.Client"
+   }
+  },
+  "sqlitebrowser": {
+   "flatpak\\sqlitebrowser": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "org.sqlitebrowser.sqlitebrowser"
+    },
+    "name": "org.sqlitebrowser.sqlitebrowser"
+   }
+  },
+  "steam": {
+   "flatpak\\steam": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "com.valvesoftware.Steam"
+    },
+    "name": "com.valvesoftware.Steam"
+   }
+  },
+  "strace": {
+   "brew\\strace": {
+    "driver": "brew",
+    "fields": {
+     "name": "strace"
+    },
+    "name": "strace"
+   }
+  },
+  "supercollider": {
+   "brew\\supercollider": {
+    "driver": "brew",
+    "fields": {
+     "name": "supercollider"
+    },
+    "name": "supercollider"
+   }
+  },
+  "superfile": {
+   "brew\\superfile": {
+    "driver": "brew",
+    "fields": {
+     "name": "superfile"
+    },
+    "name": "superfile"
+   },
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.bash.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\superfile-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/superfile.sh",
+     "src": "bash.d/superfile.sh"
+    },
+    "name": "superfile-dotfiles"
+   }
+  },
+  "superfile-dotfiles": {
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.bash.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\superfile-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/superfile.sh",
+     "src": "bash.d/superfile.sh"
+    },
+    "name": "superfile-dotfiles"
+   }
+  },
+  "tcpdump": {
+   "brew\\tcpdump": {
+    "driver": "brew",
+    "fields": {
+     "name": "tcpdump"
+    },
+    "name": "tcpdump"
+   }
+  },
+  "tenacity": {
+   "flatpak\\tenacity": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "org.tenacityaudio.Tenacity"
+    },
+    "name": "org.tenacityaudio.Tenacity"
+   }
+  },
+  "texlive": {
+   "brew\\texlive": {
+    "driver": "brew",
+    "fields": {
+     "name": "texlive"
+    },
+    "name": "texlive"
+   }
+  },
+  "tmux": {
+   "brew\\tmux": {
+    "driver": "brew",
+    "fields": {
+     "name": "tmux"
+    },
+    "name": "tmux"
+   }
+  },
+  "tree-sitter-cli": {
+   "brew\\rust": {
+    "driver": "brew",
+    "fields": {
+     "name": "rust",
+     "repo-component": "universe"
+    },
+    "name": "rust"
+   },
+   "cargo\\tree-sitter-cli": {
+    "driver": "cargo",
+    "fields": {
+     "name": "tree-sitter-cli",
+     "version": {
+      "crates": "tree-sitter-cli"
+     }
+    },
+    "name": "tree-sitter-cli"
+   }
+  },
+  "tshark": {
+   "brew\\tshark": {
+    "driver": "brew",
+    "fields": {
+     "name": "tshark"
+    },
+    "name": "tshark"
+   }
+  },
+  "typescript": {
+   "brew\\node": {
+    "driver": "brew",
+    "fields": {
+     "name": "node",
+     "repo-component": "universe"
+    },
+    "name": "node"
+   },
+   "npm\\typescript": {
+    "driver": "npm",
+    "fields": {
+     "name": "typescript"
+    },
+    "name": "typescript"
+   }
+  },
+  "unityhub": {
+   "appImage\\unityhub": {
+    "driver": "appImage",
+    "fields": {
+     "name": "Unity Hub",
+     "path": "~/apps/UnityHub.AppImage",
+     "url": "https://public-cdn.cloud.unity3d.com/hub/prod/UnityHub.AppImage",
+     "version": {
+      "static": "latest"
+     }
+    },
+    "name": "Unity Hub"
+   },
+   "brew\\libfuse2": {
+    "driver": "brew",
+    "fields": {
+     "name": "libfuse2",
+     "repo-component": "universe"
+    },
+    "name": "libfuse2"
+   }
+  },
+  "unzip": {
+   "brew\\unzip": {
+    "driver": "brew",
+    "fields": {
+     "name": "unzip"
+    },
+    "name": "unzip"
+   }
+  },
+  "valgrind": {
+   "brew\\valgrind": {
+    "driver": "brew",
+    "fields": {
+     "name": "valgrind"
+    },
+    "name": "valgrind"
+   }
+  },
+  "vcpkg": {
+   "brew\\curl": {
+    "driver": "brew",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "brew\\git": {
+    "driver": "brew",
+    "fields": {
+     "name": "git"
+    },
+    "name": "git"
+   },
+   "brew\\unzip": {
+    "driver": "brew",
+    "fields": {
+     "name": "unzip"
+    },
+    "name": "unzip"
+   },
+   "brew\\zip": {
+    "driver": "brew",
+    "fields": {
+     "name": "zip"
+    },
+    "name": "zip"
+   },
+   "script\\vcpkg": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "git clone https://github.com/microsoft/vcpkg \"$HOME/.vcpkg\" && \"$HOME/.vcpkg/bootstrap-vcpkg.sh\" -disableMetrics",
+     "location": "~/.vcpkg",
+     "name": "vcpkg",
+     "uninstall-cmd": "rm -rf \"$HOME/.vcpkg\"",
+     "version-cmd": "\"$HOME/.vcpkg/vcpkg\" version",
+     "version-re": "([0-9]{4}-[0-9]{2}-[0-9]{2})"
+    },
+    "name": "vcpkg"
+   }
+  },
+  "virt-manager": {
+   "brew\\libvirt": {
+    "driver": "brew",
+    "fields": {
+     "name": "libvirt"
+    },
+    "name": "libvirt"
+   },
+   "brew\\qemu": {
+    "driver": "brew",
+    "fields": {
+     "name": "qemu"
+    },
+    "name": "qemu"
+   },
+   "brew\\virt-manager": {
+    "driver": "brew",
+    "fields": {
+     "name": "virt-manager"
+    },
+    "name": "virt-manager"
+   },
+   "service\\libvirt-service": {
+    "driver": "service",
+    "fields": {
+     "name": "libvirt-service",
+     "unit": "libvirtd"
+    },
+    "name": "libvirt-service"
+   }
+  },
+  "vivaldi": {
+   "flatpak\\vivaldi": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "com.vivaldi.Vivaldi"
+    },
+    "name": "com.vivaldi.Vivaldi"
+   }
+  },
+  "vlc": {
+   "flatpak\\vlc": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "org.videolan.VLC"
+    },
+    "name": "org.videolan.VLC"
+   }
+  },
+  "vnstat": {
+   "brew\\vnstat": {
+    "driver": "brew",
+    "fields": {
+     "name": "vnstat"
+    },
+    "name": "vnstat"
+   }
+  },
+  "vscode": {
+   "flatpak\\vscode": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "com.visualstudio.code"
+    },
+    "name": "com.visualstudio.code"
+   }
+  },
+  "vulkan-sdk": {
+   "brew\\curl": {
+    "driver": "brew",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.bash.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\vulkan-sdk-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "dst": "~/.bash.d/vulkan-sdk.sh",
+      "src": "bash.d/vulkan-sdk.sh"
+     }
+    },
+    "name": "vulkan-sdk-dotfiles"
+   },
+   "tarball\\vulkan-sdk": {
+    "driver": "tarball",
+    "fields": {
+     "installDir": "$CONFIGSYS_SDK_DIR/vulkan",
+     "name": "vulkan-sdk",
+     "url": "https://sdk.lunarg.com/sdk/download/$VERSION/linux/vulkansdk-linux-$ARCH-$VERSION.tar.xz",
+     "version": {
+      "static": "1.4.350.1"
+     }
+    },
+    "name": "vulkan-sdk"
+   }
+  },
+  "vulkan-sdk-dotfiles": {
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.bash.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\vulkan-sdk-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "dst": "~/.bash.d/vulkan-sdk.sh",
+      "src": "bash.d/vulkan-sdk.sh"
+     }
+    },
+    "name": "vulkan-sdk-dotfiles"
+   }
+  },
+  "websocat": {
+   "brew\\rust": {
+    "driver": "brew",
+    "fields": {
+     "name": "rust",
+     "repo-component": "universe"
+    },
+    "name": "rust"
+   },
+   "cargo\\websocat": {
+    "driver": "cargo",
+    "fields": {
+     "name": "websocat",
+     "version": {
+      "crates": "websocat"
+     }
+    },
+    "name": "websocat"
+   }
+  },
+  "whois": {
+   "brew\\whois": {
+    "driver": "brew",
+    "fields": {
+     "name": "whois"
+    },
+    "name": "whois"
+   }
+  },
+  "wireshark": {
+   "brew\\wireshark": {
+    "driver": "brew",
+    "fields": {
+     "debconf": "wireshark-common wireshark-common/install-setuid boolean true",
+     "name": "wireshark"
+    },
+    "name": "wireshark"
+   }
+  },
+  "wireshark-group": {
+   "brew\\wireshark": {
+    "driver": "brew",
+    "fields": {
+     "debconf": "wireshark-common wireshark-common/install-setuid boolean true",
+     "name": "wireshark"
+    },
+    "name": "wireshark"
+   },
+   "group\\wireshark-group": {
+    "driver": "group",
+    "fields": {
+     "name": "wireshark"
+    },
+    "name": "wireshark"
+   }
+  },
+  "wxmaxima": {
+   "flatpak\\wxmaxima": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "io.github.wxmaxima_developers.wxMaxima"
+    },
+    "name": "io.github.wxmaxima_developers.wxMaxima"
+   }
+  },
+  "xclip": {
+   "brew\\xclip": {
+    "driver": "brew",
+    "fields": {
+     "name": "xclip",
+     "repo-component": "universe"
+    },
+    "name": "xclip"
+   },
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.bash.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\xclip-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/xclip.sh",
+     "src": "bash.d/xclip.sh"
+    },
+    "name": "xclip-dotfiles"
+   }
+  },
+  "xclip-dotfiles": {
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.bash.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\xclip-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/xclip.sh",
+     "src": "bash.d/xclip.sh"
+    },
+    "name": "xclip-dotfiles"
+   }
+  },
+  "xh": {
+   "brew\\rust": {
+    "driver": "brew",
+    "fields": {
+     "name": "rust",
+     "repo-component": "universe"
+    },
+    "name": "rust"
+   },
+   "cargo\\xh": {
+    "driver": "cargo",
+    "fields": {
+     "name": "xh",
+     "version": {
+      "crates": "xh"
+     }
+    },
+    "name": "xh"
+   }
+  },
+  "yarn": {
+   "brew\\node": {
+    "driver": "brew",
+    "fields": {
+     "name": "node",
+     "repo-component": "universe"
+    },
+    "name": "node"
+   },
+   "npm\\yarn": {
+    "driver": "npm",
+    "fields": {
+     "name": "yarn"
+    },
+    "name": "yarn"
+   }
+  },
+  "yazi": {
+   "brew\\yazi": {
+    "driver": "brew",
+    "fields": {
+     "name": "yazi"
+    },
+    "name": "yazi"
+   },
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.bash.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\yazi-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/yazi.sh",
+     "src": "bash.d/yazi.sh"
+    },
+    "name": "yazi-dotfiles"
+   }
+  },
+  "yazi-dotfiles": {
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.bash.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\yazi-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/yazi.sh",
+     "src": "bash.d/yazi.sh"
+    },
+    "name": "yazi-dotfiles"
+   }
+  },
+  "yq": {
+   "brew\\jq": {
+    "driver": "brew",
+    "fields": {
+     "name": "jq"
+    },
+    "name": "jq"
+   },
+   "brew\\pipx": {
+    "driver": "brew",
+    "fields": {
+     "name": "pipx"
+    },
+    "name": "pipx"
+   },
+   "pipx\\yq": {
+    "driver": "pipx",
+    "fields": {
+     "name": "yq",
+     "version": {
+      "pypi": "yq"
+     }
+    },
+    "name": "yq"
+   }
+  },
+  "zed": {
+   "flatpak\\zed": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "dev.zed.Zed"
+    },
+    "name": "dev.zed.Zed"
+   }
+  },
+  "zig": {
+   "brew\\zig": {
+    "driver": "brew",
+    "fields": {
+     "name": "zig"
+    },
+    "name": "zig"
+   }
+  },
+  "zip": {
+   "brew\\zip": {
+    "driver": "brew",
+    "fields": {
+     "name": "zip"
+    },
+    "name": "zip"
+   }
+  },
+  "zsh": {
+   "brew\\zsh": {
+    "driver": "brew",
+    "fields": {
+     "name": "zsh"
+    },
+    "name": "zsh"
+   }
+  },
+  "zstd": {
+   "brew\\zstd": {
+    "driver": "brew",
     "fields": {
      "name": "zstd"
     },
