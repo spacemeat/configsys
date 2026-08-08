@@ -318,8 +318,11 @@ class Palette:
                 span = max(abs(ga[i] - gb[i]) for i in range(3))
                 n = max(16, min(GRAD_MAX_BANDS, span + 1))
                 grad_bg = [self._color(_lerp(ga, gb, k / (n - 1))) for k in range(n)]
-            sel_bg = self._color(pg['sel_bg']) if pg['sel_bg'] is not None else self.bg
-            self._pages[page] = {'roles': roles, 'grad_bg': grad_bg, 'sel_bg': sel_bg, 'on': on}
+            sel_bg_rgb = pg['sel_bg']
+            sel_bg = self._color(sel_bg_rgb) if sel_bg_rgb is not None else self.bg
+            self._pages[page] = {'roles': roles, 'grad_bg': grad_bg, 'sel_bg': sel_bg,
+                                 'sel_bg_rgb': tuple(sel_bg_rgb) if sel_bg_rgb is not None else (0, 0, 0),
+                                 'on': on}
         self.page_name = None
         self.use_page('components')
 
@@ -349,8 +352,15 @@ class Palette:
         self._roles = pg['roles']
         self._grad_bg = pg['grad_bg']
         self._sel_bg = pg['sel_bg']
+        self._sel_bg_rgb = pg['sel_bg_rgb']
         self.gradient = pg['on']
         self.page_name = page
+
+    @property
+    def sel_bg_rgb(self):
+        '''The active page's selection-bar rgb — so callers can derive dimmer/subtler row tints
+        (e.g. a residual selection or a member highlight) that stay in the theme's family.'''
+        return self._sel_bg_rgb
 
     def _entry(self, role):
         r = self._roles.get(role)
@@ -416,18 +426,21 @@ class Palette:
         t = (y / max(1, h - 1) + x / max(1, w - 1)) / 2
         return min(n - 1, int(t * n))
 
-    def style(self, element, y, x, h, w, *, selected=False, row=0):
+    def style(self, element, y, x, h, w, *, selected=False, row=0, bg=None):
         '''The attr for a role at cell (y, x): its fg + flags, over its own bg if it declares one,
-        else the active page's diagonal gradient (or the selected-row bar). `row` is accepted for
-        call-site compatibility and ignored (roles are single styles now).'''
+        else the active page's diagonal gradient (or the selected-row bar). `bg` (an rgb) forces the
+        background for this cell — for a row tint (residual selection / profile member). `row` is
+        accepted for call-site compatibility and ignored (roles are single styles now).'''
         fg, elem_bg, flags = self._entry(element)
+        if bg is not None:
+            return self._pair(fg, self._color(bg)) | flags
         if not self.gradient:
             base = self._pair(fg, self._sel_bg if selected else (elem_bg if elem_bg is not None
                                                                  else self.bg))
             return base | flags
-        bg = self._sel_bg if selected else (elem_bg if elem_bg is not None
-                                            else self._grad_bg[self.band(y, x, h, w)])
-        return self._pair(fg, bg) | flags
+        b = self._sel_bg if selected else (elem_bg if elem_bg is not None
+                                           else self._grad_bg[self.band(y, x, h, w)])
+        return self._pair(fg, b) | flags
 
     def at(self, name, y, x, h, w, *, selected=False, row=0):
         '''`name`'s fg over the gradient background (or the selected bar) — flags/bg ignored, for
@@ -438,12 +451,16 @@ class Palette:
         bg = self._sel_bg if selected else self._grad_bg[self.band(y, x, h, w)]
         return self._pair(fg, bg)
 
-    def fill(self, y, x, h, w, *, selected=False):
-        '''A blank-cell background attr (fg == bg) for painting the empty canvas behind text.'''
+    def fill(self, y, x, h, w, *, selected=False, bg=None):
+        '''A blank-cell background attr (fg == bg) for painting the empty canvas behind text. `bg`
+        (an rgb) forces a specific fill colour (a row tint), in every colour mode.'''
+        if bg is not None:
+            idx = self._color(bg)
+            return self._pair(idx, idx)
         if not self.gradient:
             return curses.A_REVERSE if selected else curses.A_NORMAL
-        bg = self._sel_bg if selected else self._grad_bg[self.band(y, x, h, w)]
-        return self._pair(bg, bg)
+        b = self._sel_bg if selected else self._grad_bg[self.band(y, x, h, w)]
+        return self._pair(b, b)
 
 
 # Which role to paint each component status.

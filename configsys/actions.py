@@ -65,6 +65,46 @@ def set_profile_membership(ctx, profile, comp, action, *, target=None):
     return True, label
 
 
+def add_profile(ctx, name):
+    '''Create a new, empty profile in the portable edit target (primary-if-set, else top config).
+    Returns (changed, label); a bad/duplicate name returns (False, reason).'''
+    name = (name or '').strip()
+    if not name:
+        return False, 'a profile name is required'
+    if name == 'all':
+        return False, '"all" is reserved'
+    if name in ctx.config.profile_names():
+        return False, f'"{name}" already exists'
+    tfile, label = edit_target(ctx)
+    profs = plugins.read_profiles(tfile)
+    profs[name] = []                                 # a fresh profile with no members yet
+    plugins.set_profiles(tfile, profs)
+    ctx.invalidate()
+    return True, label
+
+
+def remove_profile(ctx, name):
+    '''Delete a profile from the editable layer that defines it (top config or the primary plugin),
+    first dropping it from the active `configs:` set. Refuses a profile defined only in a
+    non-editable layer (the repo or a data plugin). Returns (changed, label/reason).'''
+    src = ctx.config.profile_source(name)
+    if src is None:
+        return False, f'"{name}" is not defined'
+    editable = {str(ctx.paths.user_config_file), str(edit_target(ctx)[0])}
+    if str(src) not in editable:
+        return False, f'cannot remove "{name}" (defined in {_dir_label(ctx, src)}, not editable here)'
+    if name in set(ctx.config.active_profiles):      # drop the active reference first
+        set_profile_active(ctx, name, False)
+    profs = plugins.read_profiles(str(src))
+    profs.pop(name, None)
+    plugins.set_profiles(str(src), profs)
+    ctx.invalidate()
+    label = _dir_label(ctx, src)
+    if name in ctx.config.profile_names():           # a lower layer still defines it
+        return True, f'removed "{name}" from {label} (still defined by a lower layer)'
+    return True, f'removed "{name}" (from {label})'
+
+
 def set_profile_active(ctx, profile, on, *, target=None):
     '''Activate (`on=True`) or deactivate `profile` in the active `configs:` set. Returns
     (changed, target_label).'''

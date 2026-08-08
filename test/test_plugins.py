@@ -556,3 +556,24 @@ def test_cli_plugin_bless_unknown_source_changes_nothing(tmp_path, capsys):
     assert 'could not find' in capsys.readouterr().out
     cfg = tmp_path / '.config' / 'configsys' / 'configsys.hu'
     assert not cfg.exists() or 'primary: true' not in cfg.read_text()   # no broken primary left
+
+
+def test_remove_sections_keeps_bound_leading_comments(tmp_path):
+    '''Regression: humon binds the comment block above a node to it, so node.source_text prefixes
+    those comments. remove_sections must delete only the `<key>:` span, not the comments (else a
+    commented-up section like `profiles:` takes the whole file with it).'''
+    f = tmp_path / 'u.hu'
+    f.write_text('{\n'
+                 '    // keep me — a big comment above the section\n'
+                 '    // second comment line\n'
+                 '    profiles: {\n        demo: [ btop ]\n    }\n'
+                 '    scope: user\n'
+                 '}\n', encoding='utf-8')
+    removed = plugins.remove_sections(str(f), ['profiles'])
+    txt = f.read_text()
+    assert removed == ['profiles']
+    assert 'keep me' in txt and 'second comment line' in txt      # comments survive
+    assert 'scope: user' in txt                                   # sibling survives
+    assert 'demo' not in txt                                      # the section is gone
+    import configsys.layers as layers
+    assert layers.materialize_string(txt).get('profiles') in (None, {})

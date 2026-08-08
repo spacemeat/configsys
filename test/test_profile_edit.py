@@ -135,3 +135,53 @@ def test_profile_membership_provenance():
     own = set(c.profile_own_components('dev'))
     assert 'neovim' in own and 'btop' not in own          # neovim direct (●); btop via +base (↳)
     assert c.profile_removed('dev') == {'gdb'}             # ~gdb (~)
+
+
+# -- add / remove whole profiles (actions over a real Context) ------------
+
+def _rctx(tmp_path):
+    from configsys.app import Context, build_parser
+    ctx = Context(build_parser().parse_args(['--home', str(tmp_path), '--os', 'pop', 'inspect']))
+    ctx.ensure_user_config()
+    return ctx
+
+
+def test_add_and_remove_profile_roundtrip(tmp_path):
+    from configsys import actions
+    ctx = _rctx(tmp_path)
+    changed, _lbl = actions.add_profile(ctx, 'demo')
+    assert changed and 'demo' in ctx.config.profile_names()
+    assert ctx.config.profile_components('demo') == []          # a fresh, empty profile
+    assert actions.add_profile(ctx, 'demo')[0] is False          # duplicate
+    assert actions.add_profile(ctx, 'all')[0] is False           # reserved
+    assert actions.add_profile(ctx, '   ')[0] is False           # empty
+    actions.set_profile_membership(ctx, 'demo', 'btop', 'add')
+    actions.set_profile_active(ctx, 'demo', True)
+    assert 'demo' in set(ctx.config.active_profiles)
+    changed, _msg = actions.remove_profile(ctx, 'demo')
+    assert changed
+    assert 'demo' not in ctx.config.profile_names()
+    assert 'demo' not in set(ctx.config.active_profiles)         # deactivated on the way out
+
+
+def test_remove_profile_refuses_a_non_editable_layer(tmp_path):
+    from configsys import actions
+    ctx = _rctx(tmp_path)
+    repo_defined = ctx.config.profile_names()[0]                 # all come from the repo at fresh install
+    changed, msg = actions.remove_profile(ctx, repo_defined)
+    assert changed is False and 'not editable' in msg
+
+
+def test_remove_last_profile_keeps_the_file_and_comments(tmp_path):
+    '''Regression: set_profiles({}) -> remove_sections used to take the whole file with the profiles
+    node's bound leading comments, wiping the config to `{}`.'''
+    import pathlib
+
+    from configsys import actions, layers
+    ctx = _rctx(tmp_path)
+    f = pathlib.Path(ctx.paths.user_config_file)
+    actions.add_profile(ctx, 'solo')
+    actions.remove_profile(ctx, 'solo')
+    txt = f.read_text()
+    assert 'Override component routes' in txt                    # template comments survived
+    assert isinstance(layers.materialize_string(txt), dict)      # and it still parses

@@ -1149,6 +1149,12 @@ def _draw_profiles(stdscr, pal, ps, ctx, note, screen):
     members = ps.members(prof)
     own = ps.own_members(prof)                       # direct (●) vs via-include (↳)
     removed = ps.removed_members(prof)               # ~term drops (~)
+    # row-tint backgrounds derived from the theme's selection colour: a dimmer bar marks the current
+    # row of the UNFOCUSED pane (so the profile stays visible while you navigate components), and a
+    # subtle tint marks the components that are members of the selected profile.
+    _sel = pal.sel_bg_rgb
+    residual_bg = tuple(round(_sel[i] * 0.55) for i in range(3))
+    member_bg = tuple(round(_sel[i] * 0.28) for i in range(3))
 
     # LEFT: profiles (full height)
     lit, lil, lih, liw = _panel(stdscr, pal, top, 0, body_h, lw, 'profiles',
@@ -1158,11 +1164,14 @@ def _draw_profiles(stdscr, pal, ps, ctx, note, screen):
         name, y = ps.profiles[i], lit + vis
         cur = i == ps.lcur
         foc = cur and ps.focus == 'left'
+        rbg = residual_bg if (cur and not foc) else None   # dimmer bar for the current row unfocused
         if foc:
             _put(stdscr, y, lil, ' ' * liw, pal.fill(y, lil, h, w, selected=True))
+        elif rbg is not None:
+            _put(stdscr, y, lil, ' ' * liw, pal.fill(y, lil, h, w, bg=rbg))
         cm = '▸' if cur else ' '                     # residual cursor persists when focus is right
         _put(stdscr, y, lil, _fit(f'{cm}{"●" if name in ps.active else "○"} {name}', liw),
-             pal.style('profile', y, lil, h, w, selected=foc))
+             pal.style('profile', y, lil, h, w, selected=foc, bg=rbg))
 
     # RIGHT TOP: detail for the highlighted component (names are esoteric) — description + methods
     cur = ps.catalog[ps.rcur] if ps.catalog and 0 <= ps.rcur < len(ps.catalog) else None
@@ -1222,8 +1231,13 @@ def _draw_profiles(stdscr, pal, ps, ctx, note, screen):
             avail, via, pinned = ps._resolve(name)
             elem = 'component' if avail else 'info_dim'
             cell = col_w - 1
+            # background: focused cursor (bright) > current-but-unfocused (residual) > member (tint)
+            rbg = (residual_bg if (cur and not foc)
+                   else member_bg if (name in members) else None)
             if foc:
                 _put(stdscr, y, cx, ' ' * cell, pal.fill(y, cx, h, w, selected=True))
+            elif rbg is not None:
+                _put(stdscr, y, cx, ' ' * cell, pal.fill(y, cx, h, w, bg=rbg))
             cm = '▸' if cur else ' '
             mk = ('●' if name in own else '↳') if name in members else ('~' if name in removed else ' ')
             # the resolved method trails the name, in the muted method colour; a pin is marked `[via]`
@@ -1231,18 +1245,18 @@ def _draw_profiles(stdscr, pal, ps, ctx, note, screen):
             nm_txt = f'{cm}{mk} {name}'
             if mstr and cell > len(mstr) + 4:
                 _put(stdscr, y, cx, _fit(nm_txt, cell - len(mstr) - 1),
-                     pal.style(elem, y, cx, h, w, selected=foc))
+                     pal.style(elem, y, cx, h, w, selected=foc, bg=rbg))
                 mx = cx + cell - len(mstr)
-                _put(stdscr, y, mx, mstr, pal.style('method_dim', y, mx, h, w, selected=foc))
+                _put(stdscr, y, mx, mstr, pal.style('method_dim', y, mx, h, w, selected=foc, bg=rbg))
             else:                                    # too narrow for a method column: just the name
-                _put(stdscr, y, cx, _fit(nm_txt, cell), pal.style(elem, y, cx, h, w, selected=foc))
+                _put(stdscr, y, cx, _fit(nm_txt, cell), pal.style(elem, y, cx, h, w, selected=foc, bg=rbg))
 
     from .. import actions
     status = f' profile: {prof or "—"}    edits → {actions.edit_target(ctx)[1]}'
     if note:
         status += f'    {note}'
-    navf = (' j/k/h/l move · tab focus · space toggle · a (de)activate · m pin method · '
-            '●own ↳via-include ~removed · 1-6 · q ')
+    navf = (' j/k/h/l move · tab focus · space member · a active · n/d new/del profile · '
+            'm method · ●own ↳via ~removed · 1-6 · q ')
     _put(stdscr, h - 2, 0, _fit(status, w), pal.style('status_line', h - 2, 0, h, w))
     _put(stdscr, h - 1, 0, _fit(navf.ljust(w), w), pal.style('footer', h - 1, 0, h, w))
     stdscr.refresh()
@@ -2068,6 +2082,31 @@ def run(ctx):
                                     if changed else 'no change')
                         except Exception as e:  # noqa: BLE001 — surface, don't crash
                             note = f'edit failed: {e}'
+                elif ch == ord('n'):                       # new profile (any focus)
+                    nm = _input_box(stdscr, pal, 'new profile name')
+                    if nm and nm.strip():
+                        try:
+                            changed, lbl = actions.add_profile(ctx, nm.strip())
+                            ps.reload()
+                            if changed and nm.strip() in ps.profiles:
+                                ps.lcur, ps.focus = ps.profiles.index(nm.strip()), 'left'
+                            menu_dirty = menu_dirty or changed
+                            note = f'created "{nm.strip()}" ({lbl})' if changed else lbl
+                        except Exception as e:  # noqa: BLE001 — surface, don't crash
+                            note = f'add failed: {e}'
+                elif ch == ord('d') and ps.focus == 'left':  # delete the selected profile (confirm)
+                    prof = ps.cur_profile()
+                    if prof:
+                        idx = _popup_choose(stdscr, pal, f'delete profile "{prof}"?',
+                                            [('cancel', ''), ('delete', '')], 0)
+                        if idx == 1:
+                            try:
+                                changed, note = actions.remove_profile(ctx, prof)
+                                ps.reload()
+                                ps.lcur = min(ps.lcur, max(0, len(ps.profiles) - 1))
+                                menu_dirty = menu_dirty or changed
+                            except Exception as e:  # noqa: BLE001 — surface, don't crash
+                                note = f'remove failed: {e}'
                 elif ch == ord('m') and ps.focus == 'right':
                     if ps.catalog:                         # pin the selected component's install method
                         name = ps.catalog[ps.rcur]

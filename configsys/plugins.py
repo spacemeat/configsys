@@ -733,14 +733,24 @@ def remove_sections(user_config_file, keys):
         node = trove.root[k]
         if node is None:
             continue
-        span = node.source_text                      # 'profiles: { ... }', starts at the key
-        idx = text.find(span)
-        if idx < 0:
+        span = node.source_text                      # may PREFIX comment lines humon bound to the node
+        # humon attaches the comment block above a node to it; strip that lead so we delete only the
+        # `<key>: ...` span (not the comments), exactly as set_section does — else a section with a
+        # big leading comment (e.g. `profiles:` in the template) takes the whole file with it.
+        lines = span.split('\n')
+        ki = next((i for i, ln in enumerate(lines)
+                   if ln.lstrip().startswith(k + ':')
+                   and not ln.lstrip().startswith(('//', '/*', '*'))), 0)
+        lead = '\n'.join(lines[:ki])
+        key_span = '\n'.join(lines[ki:])
+        base = text.find(span)
+        if base < 0:
             continue
+        idx = base + (len(lead) + 1 if lead else 0)   # jump past the bound comments to the key line
         start = idx                                   # eat SAME-LINE leading whitespace only (so a
         while start > 0 and text[start - 1] in ' \t':  # single-line `{ a  profiles:… }` is safe)
             start -= 1
-        end = idx + len(span)                         # then trailing spaces + one optional newline
+        end = idx + len(key_span)                      # then trailing spaces + one optional newline
         while end < len(text) and text[end] in ' \t':
             end += 1
         if end < len(text) and text[end] == '\n':
