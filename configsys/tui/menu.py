@@ -747,6 +747,8 @@ def _draw(stdscr, pal, ms, ctx, note, diags=(), show_diag=False, diag_top=0, scr
         else:
             col('inst', n.installed_str(), 'version')
             col('latest', n.latest_str(), 'version', pad=False)
+    # vertical scroll indicator at the right edge (this list is full-width, no border box)
+    _scrollbar_v(stdscr, pal, list_top, w - 1, list_h, ms.top, list_h, len(ms.rows), h, w)
 
     _cn = _node_component(ms.cur())              # the selected row's OWN brief description
     _desc = descriptions.get(_cn, '') if _cn else ''
@@ -1071,6 +1073,42 @@ def _panel(stdscr, pal, top, left, height, width, title, focused, h, w):
     return top + 1, left + 1, height - 2, width - 2
 
 
+def _thumb(span, offset, window, total):
+    '''(pos, size) of a scrollbar thumb along a track of `span` cells, or None when everything fits.
+    `window` items are visible starting at `offset` of `total`.'''
+    if total <= window or span < 2:
+        return None
+    size = max(1, min(span, round(span * window / total)))
+    maxoff = total - window
+    pos = round((span - size) * offset / maxoff) if maxoff > 0 else 0
+    return max(0, min(span - size, pos)), size
+
+
+def _scrollbar_v(stdscr, pal, top, col, rows, offset, window, total, h, w):
+    '''Overlay a vertical scrollbar on a panel's right border column: the track reuses the border,
+    an accent thumb shows the visible fraction + position. No-op when it all fits.'''
+    t = _thumb(rows, offset, window, total)
+    if t is None:
+        return
+    pos, size = t
+    for k in range(rows):
+        on = pos <= k < pos + size
+        _put(stdscr, top + k, col, '█' if on else '│',
+             pal.style('select_marker' if on else 'info_dim', top + k, col, h, w))
+
+
+def _scrollbar_h(stdscr, pal, row, left, cols, offset, window, total, h, w):
+    '''Overlay a horizontal scrollbar on a panel's bottom border row (accent thumb over `─`).'''
+    t = _thumb(cols, offset, window, total)
+    if t is None:
+        return
+    pos, size = t
+    for k in range(cols):
+        on = pos <= k < pos + size
+        _put(stdscr, row, left + k, '█' if on else '─',
+             pal.style('select_marker' if on else 'info_dim', row, left + k, h, w))
+
+
 # -- Profiles screen ------------------------------------------------------
 class ProfileScreen:
     '''Two-panel profile editor: profiles (left) + the full component catalog (right). A skin over
@@ -1172,6 +1210,7 @@ def _draw_profiles(stdscr, pal, ps, ctx, note, screen):
         cm = '▸' if cur else ' '                     # residual cursor persists when focus is right
         _put(stdscr, y, lil, _fit(f'{cm}{"●" if name in ps.active else "○"} {name}', liw),
              pal.style('profile', y, lil, h, w, selected=foc, bg=rbg))
+    _scrollbar_v(stdscr, pal, lit, lw - 1, lih, ps.ltop, lih, len(ps.profiles), h, w)
 
     # RIGHT TOP: detail for the highlighted component (names are esoteric) — description + methods
     cur = ps.catalog[ps.rcur] if ps.catalog and 0 <= ps.rcur < len(ps.catalog) else None
@@ -1231,9 +1270,15 @@ def _draw_profiles(stdscr, pal, ps, ctx, note, screen):
             avail, via, pinned = ps._resolve(name)
             elem = 'component' if avail else 'info_dim'
             cell = col_w - 1
-            # background: focused cursor (bright) > current-but-unfocused (residual) > member (tint)
-            rbg = (residual_bg if (cur and not foc)
-                   else member_bg if (name in members) else None)
+            # background: focused cursor (bright, wins) > current-but-unfocused (residual) > member
+            if foc:
+                rbg = None                           # the selection bar overrides the member tint
+            elif cur:
+                rbg = residual_bg
+            elif name in members:
+                rbg = member_bg
+            else:
+                rbg = None
             if foc:
                 _put(stdscr, y, cx, ' ' * cell, pal.fill(y, cx, h, w, selected=True))
             elif rbg is not None:
@@ -1250,6 +1295,8 @@ def _draw_profiles(stdscr, pal, ps, ctx, note, screen):
                 _put(stdscr, y, mx, mstr, pal.style('method_dim', y, mx, h, w, selected=foc, bg=rbg))
             else:                                    # too narrow for a method column: just the name
                 _put(stdscr, y, cx, _fit(nm_txt, cell), pal.style(elem, y, cx, h, w, selected=foc, bg=rbg))
+    # the catalog scrolls horizontally by column; show which columns are in view on the bottom border
+    _scrollbar_h(stdscr, pal, ctop + cath - 1, ril, riw, ps.rcol_left, ncols, total_cols, h, w)
 
     from .. import actions
     status = f' profile: {prof or "—"}    edits → {actions.edit_target(ctx)[1]}'
@@ -1696,6 +1743,7 @@ def _draw_theme(stdscr, pal, ts, ctx, note, screen):
         mark = '*' if ts.color_override(name) is not None else ' '
         _put(stdscr, y, x + 6, _fit(f'{mark}{name:{nw}} {_hex(rgb)}', col_w - 6),
              pal.style('label' if sel else 'component', y, x + 6, h, w, selected=sel))
+    _scrollbar_v(stdscr, pal, m_it, m_il + m_iw, m_ih, ts.map_top, m_ih, rows_per_col, h, w)
 
     # -- List 2: the focused page's role styles, plus the gradient endpoints as single-color rows --
     roles = ts.role_list()
@@ -1724,6 +1772,7 @@ def _draw_theme(stdscr, pal, ts, ctx, note, screen):
         txt = f'{mark}{role:14} {_ref_str(ref.get("fg")):>8}/{_ref_str(ref.get("bg")):<8}{eff}'
         _put(stdscr, y, r_il + 6, _fit(txt, r_iw - 6),
              pal.style('label' if sel else 'component', y, r_il + 6, h, w, selected=sel))
+    _scrollbar_v(stdscr, pal, r_it, r_il + r_iw, r_ih, ts.role_top, r_ih, len(roles), h, w)
 
     # -- the sample page (right) --
     rx, rw = lw + 1, w - lw - 1
@@ -1803,6 +1852,7 @@ def _draw_plugins(stdscr, pal, pl, ctx, note, screen):
         elem = 'label' if sel else ('component' if healthy else 'info_dim')
         _put(stdscr, y, lil, _fit(f'{glyph} {row["name"]:20} {_plugin_state(row)}', liw),
              pal.style(elem, y, lil, h, w, selected=sel))
+    _scrollbar_v(stdscr, pal, lit, lil + liw, lih, pl.top, lih, len(pl.rows), h, w)
 
     rit, ril, rih, riw = _panel(stdscr, pal, top, lw + 1, body_h, w - lw - 1, 'detail', False, h, w)
     row = pl.cur_row()
@@ -1892,6 +1942,7 @@ def _draw_dotfiles(stdscr, pal, ds, ctx, note, screen):
         elem = 'label' if sel else _DF_STATE_ELEM.get(state, 'component')
         _put(stdscr, y, il, _fit(f'{mark} {state:10}{tgt:30}{rc.comp:{comp_w}}{src}', iw),
              pal.style(elem, y, il, h, w, selected=sel))
+    _scrollbar_v(stdscr, pal, it + 1, il + iw, ih - 1, ds.top, ih - 1, len(ds.rows), h, w)
 
     n_unmanaged = sum(1 for r in ds.rows if r[3] == 'unmanaged')
     status = f' {len(ds.rows)} dotfile target(s)'
@@ -2051,8 +2102,8 @@ def run(ctx):
                         ps.lcur = max(0, ps.lcur - 1)
                     else:
                         ps.rcur = max(0, ps.rcur - 1)
-                elif ch == ord('\t'):
-                    ps.focus = 'right' if ps.focus == 'left' else 'left'   # toggle
+                elif ch in (ord('\t'), curses.KEY_BTAB):
+                    ps.focus = 'right' if ps.focus == 'left' else 'left'   # tab / shift-tab toggle
                 elif ch in (ord('l'), curses.KEY_RIGHT):
                     if ps.focus == 'left':
                         ps.focus = 'right'             # cross into the grid

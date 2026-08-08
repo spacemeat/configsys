@@ -222,3 +222,14 @@ def test_scope_highlight_only_for_nondefault_choice():
     # tarball honors scope: at its default (user) not highlighted, at system it IS a choice
     assert not _scope_is_choice(_scope_node('tarball', 'user'))
     assert _scope_is_choice(_scope_node('tarball', 'system'))
+
+
+def test_thumb_scrollbar_math():
+    from configsys.tui.menu import _thumb
+    assert _thumb(10, 0, 10, 10) is None                 # everything fits -> no scrollbar
+    assert _thumb(1, 0, 1, 100) is None                  # too small a track -> none
+    assert _thumb(10, 0, 5, 100) == (0, 1)               # tiny window -> min thumb, pinned at top
+    assert _thumb(20, 0, 10, 20) == (0, 10)              # half visible from the top
+    assert _thumb(20, 10, 10, 20) == (10, 10)            # scrolled to the end -> thumb at the bottom
+    pos, size = _thumb(20, 5, 10, 20)                    # mid-scroll -> thumb somewhere in between
+    assert 0 < pos < 20 - size
