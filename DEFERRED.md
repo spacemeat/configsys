@@ -41,10 +41,11 @@ scripts. dbeaver/bruno default flatpak→native-pkg-file on debian/redhat: their
 is `when:`-gated so it wins by specificity — a sensible native default for a DB GUI; flatpak stays
 the default on arch/atomic and remains a listed option everywhere.)
 
-**STILL DEFERRED (4, with the specific blocker):**
-- **tree-sitter-cli** — asset is a plain-gzipped single ELF (`.gz`, not a tar); the tarball driver
-  only does tar/zip/raw, so it can't gunzip-a-single-file. Left cargo-only (so no `prefer:` needed —
-  cargo is the sole method). Would need a driver `gunzip` mode or a `via: script`.
+**STILL DEFERRED (3, with the specific blocker):**
+- ~~tree-sitter-cli~~ **DONE** — added an `archive: gz` mode to the tarball driver (gunzip a single
+  compressed binary straight to installDir/<binary>; distinct from `.tar.gz`, which tar handles).
+  tree-sitter-cli now offers it but KEEPS cargo as the default via `prefer: 1` (build-from-source
+  for those who don't want the prebuilt binary).
 - **insomnia** — monorepo release tags (`core@13.1.0`); `discover_asset_url` only reads
   `releases/latest`, which for a monorepo may not be the Core release → unreliable. Needs
   release-search-by-asset, not latest-only. Left flatpak-only.

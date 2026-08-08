@@ -522,7 +522,8 @@
         insomnia: { description: "Insomnia — an open-source API client and design tool." install: [ { via: flatpak  hub: flathub  app: rest.insomnia.Insomnia } ] }
         bruno:    { description: "Bruno — a fast, git-friendly, offline-first API client." install: [ { via: flatpak  hub: flathub  app: com.usebruno.Bruno }  { via: native-pkg-file  when: "debian or redhat"  version: { github: usebruno/bruno  strip-v: true }  asset: { deb: { x86_64: "bruno_*_amd64_linux.deb" }  rpm: { x86_64: "bruno_*_x86_64_linux.rpm" } } } ] }   // upstream .deb (amd64)/.rpm (x86_64 token differs)
         tree-sitter-cli: { description: "tree-sitter CLI — build and test tree-sitter grammars."
-            install: [ { via: cargo  name: tree-sitter-cli  version: { crates: tree-sitter-cli } } ]
+            install: [ { via: cargo  name: tree-sitter-cli  prefer: 1  version: { crates: tree-sitter-cli } }   // kept the default (some want it built from source, without the prebuilt-binary apparatus)
+                       { via: tarball  archive: gz  binary: tree-sitter  installDir: "$CONFIGSYS_APP_DIR/tree-sitter"  version: { github: tree-sitter/tree-sitter  asset: "tree-sitter-linux-x64.gz" } } ]   // upstream ships a plain-gzipped single binary
         }
         mononoki-nerd: { description: "Mononoki Nerd Font — a clean monospace coding font with icons."
             install: [ { via: font  name: Mononoki          // -> requires fontconfig + unzip

@@ -73,6 +73,21 @@ def test_install_bare_binary_custom_name(tmp_path):
     assert f'chmod +x {d / "kubectl"}' in r.calls[0]
 
 
+def test_install_gz_single_binary(tmp_path):
+    # archive:gz -> a PLAIN gzipped single binary (not a .tar.gz): gunzip -c straight to
+    # installDir/<binary>, chmod +x, clean the temp. No tar/unzip.
+    d = tmp_path / 'inst'
+    rc = tb_unit(d, url='https://x/tree-sitter-linux-x64.gz', comp='tree-sitter-cli')
+    rc.fields.update({'archive': 'gz', 'binary': 'tree-sitter'})
+    r = Runner(pretend=True)
+    Tarball(r, paths=None).install(rc)
+    cmd = r.calls[0]
+    assert 'curl -fSL' in cmd and 'gunzip -c' in cmd
+    assert f'> {d / "tree-sitter"}' in cmd and f'chmod +x {d / "tree-sitter"}' in cmd
+    assert 'tar -xf' not in cmd and 'unzip -o' not in cmd   # not tar, not the zip path (gunzip != unzip)
+    assert 'printf %s 1.2.3' in cmd
+
+
 def test_pretend_version_discovery_is_offline(tmp_path):
     # --pretend (Runner(pretend=True)) must not touch the network: a github spec with an empty
     # cache resolves to None, and the url falls back to github's API-free latest/download.

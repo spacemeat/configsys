@@ -73,12 +73,23 @@ class Tarball(Driver):
         marker = shlex.quote(str(self._marker(rc)))
         verq = shlex.quote(version)
 
-        if str(rc.fields.get('archive') or '').lower() == 'none':
+        archive = str(rc.fields.get('archive') or '').lower()
+        if archive == 'none':
             # bare executable (bazelisk, kubectl, ...): no archive to unpack — download straight
             # to installDir/<binary> and make it executable. `binary:` overrides the file name.
             binpath = shlex.quote(str(d / (rc.fields.get('binary') or rc.comp)))
             cmd = (f'mkdir -p {dq} && '
                    f'curl -fSL {uq} -o {binpath} && chmod +x {binpath} && '
+                   f'printf %s {verq} > {marker}')
+        elif archive in ('gz', 'gzip'):
+            # a SINGLE gzip-compressed binary (e.g. tree-sitter's `tree-sitter-linux-x64.gz`) — NOT
+            # a `.tar.gz` (those are tar streams, handled by the tar branch below, which auto-detects
+            # gzip/xz/bz2/zst). There is no archive to walk; gunzip the stream straight to
+            # installDir/<binary> and make it executable. `binary:` overrides the file name.
+            binpath = shlex.quote(str(d / (rc.fields.get('binary') or rc.comp)))
+            tmp = shlex.quote(str(d / '.configsys-download.gz'))
+            cmd = (f'mkdir -p {dq} && curl -fSL {uq} -o {tmp} && '
+                   f'gunzip -c {tmp} > {binpath} && chmod +x {binpath} && rm -f {tmp} && '
                    f'printf %s {verq} > {marker}')
         else:
             # download + unpack via the shared acquire (same fragment the source driver builds on).
