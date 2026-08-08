@@ -1331,8 +1331,10 @@ def _draw_profiles(stdscr, pal, ps, ctx, note, screen):
     rit, ril, rih, riw = _panel(stdscr, pal, ctop, rleft, cath, rw, ctitle, ps.focus == 'right', h, w)
     n = len(vcat)
     rows = max(1, rih)                               # each column is as tall as the pane
-    longest = max((len(nm) for nm in vcat), default=12)
-    col_w = max(1, min(riw, max(20, min(32, longest + 9))))  # room for `▸● name  method`
+    # size columns from the FULL catalog's longest NAME (stable) so a filter that narrows to short
+    # names doesn't shrink the columns; the draw keeps the name readable and truncates a long method.
+    longest = max((len(nm) for nm in ps.catalog), default=12)
+    col_w = max(1, min(riw, max(20, min(34, longest + 10))))  # `▸● name  method`
     ncols = max(1, riw // col_w) if riw > 0 else 1
     col_w = riw // ncols if ncols else riw           # redistribute to fill the width exactly
     total_cols = (n + rows - 1) // rows
@@ -1376,12 +1378,16 @@ def _draw_profiles(stdscr, pal, ps, ctx, note, screen):
             # the resolved method trails the name, in the muted method colour; a pin is marked `[via]`
             mstr = (f'[{via}]' if pinned else via) if via else ''
             nm_txt = f'{cm}{mk} {name}'
-            if mstr and cell > len(mstr) + 4:
-                _put(stdscr, y, cx, _fit(nm_txt, cell - len(mstr) - 1),
+            # the NAME has priority: it keeps its full width; the method gets whatever room is left
+            # after it (right-aligned, truncated if long), and is dropped when there's < 3 cols left.
+            m_room = cell - len(nm_txt) - 1
+            if mstr and m_room >= 3:
+                mshow = _fit(mstr, m_room)
+                _put(stdscr, y, cx, _fit(nm_txt, cell - len(mshow) - 1),
                      pal.style(elem, y, cx, h, w, selected=foc, bg=rbg))
-                mx = cx + cell - len(mstr)
-                _put(stdscr, y, mx, mstr, pal.style('method_dim', y, mx, h, w, selected=foc, bg=rbg))
-            else:                                    # too narrow for a method column: just the name
+                mx = cx + cell - len(mshow)
+                _put(stdscr, y, mx, mshow, pal.style('method_dim', y, mx, h, w, selected=foc, bg=rbg))
+            else:                                    # no room for a method column: just the name
                 _put(stdscr, y, cx, _fit(nm_txt, cell), pal.style(elem, y, cx, h, w, selected=foc, bg=rbg))
     # the catalog scrolls horizontally by column; show which columns are in view on the bottom border
     _scrollbar_h(stdscr, pal, ctop + cath - 1, ril, riw, ps.rcol_left, ncols, total_cols, h, w)
