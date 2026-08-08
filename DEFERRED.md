@@ -94,3 +94,59 @@ Flathub, then add `{ via: flatpak  hub: flathub  app: <ID> }`.
 - **gtkmm** currently skips alpine (name unconfirmed — `gtkmm4-dev`?). **folly** on Debian/Ubuntu/
   Alpine/openSUSE and **eastl** everywhere but Arch have no repo package → a `via: source` recipe
   (github facebook/folly, electronicarts/EASTL) in configsys-source or a bespoke plugin.
+
+## 5. Desktop environments / window managers
+Added natively (commit): i3, qtile, xmonad, fvwm2. Still deferred:
+- **pantheon** — elementary OS's desktop is hard to install cleanly outside elementary (no tidy
+  metapackage on Debian/Fedora; Arch has it via AUR `pantheon-*`, elementary via its own repos).
+  Needs a per-distro decision (AUR on Arch? a `pantheon-session`/`pantheon-shell` metapackage that
+  actually exists?) before adding. Verify package names first.
+- **fvwm2** naming: shipped gated to debian/arch (their `fvwm` is the 2.x line). Fedora/openSUSE/
+  Alpine ship the 3.x line as `fvwm3` (or nothing) — add those with the right name if wanted.
+
+## 6. Homebrew (brew) sweep — VERIFY formula/cask names then add to native `name:` maps
+Brew is configsys's native package manager on **fedora_atomic** (and a future macOS block), so a
+component's brew coverage is a `brew: <formula>` entry in its `via: native` `name:` map (see
+rust/node/openjdk/r/dig for the shape). Casks (GUI apps) install with `--cask`. Proposals below were
+researched offline — verify each formula/cask name exists before adding.
+
+### What the sweep actually found (two structural facts changed the plan)
+1. **formula == component name → already works, no edit.** On fedora_atomic a `via: native` binding
+   with no name map installs the *component name*, which for ~66 of the researched formulae (git,
+   curl, jq, ripgrep, go, htop, neovim, podman, helm, …) IS the brew formula. These resolve to
+   `brew\<comp>` today wherever their native binding reaches fedora_atomic — nothing to add.
+   Likewise `haskell` (`default: ghc`) and `cabal` (`default: cabal-install`) already install the
+   right brew formula via their existing `default:` names.
+2. **Linux Homebrew has no casks.** Every cask the researcher listed (firefox, vlc, gimp, krita,
+   blender, vscode, kitty, ghostty, zed, steam, libreoffice, virtualbox, wireshark-GUI, paraview…)
+   is **macOS-only**. They are inert on fedora_atomic (the only current brew OS). Revisit ALL casks
+   only when/if a `macos`/`darwin` OS block is added — then they'd need a `cask: true` field + the
+   brew driver learning `--cask`. Parked entirely until then.
+
+### Integrated this pass (committed) — added a `{ via: native  when: "fedora_atomic" }` binding to
+components that had a real brew formula but whose native binding **didn't reach fedora_atomic** (so
+they declined there entirely — the nushell/yazi pattern): **erlang, nim, maxima, gap, supercollider,
+opencv (`name: opencv`), texlive (`name: texlive`), mariadb (`name: mariadb`, not the distro
+`-server` split).** All verified to resolve to `brew\<comp>` on fedora_atomic. (The golden gate
+doesn't cover fedora_atomic, so these are resolve-verified, not golden-locked — see note below.)
+
+### Deferred (verify a name/policy before adding)
+- **redis** — its Linux binding installs `valkey` (dnf/pacman) post-relicense, `redis-server` (apt).
+  Brew has both `redis` and `valkey` formulae. Pick the policy (match component identity `redis`, or
+  stay consistent with the Linux `valkey` lean) then add a fedora_atomic binding.
+- **kubectl** — resolves to `brew install kubectl` (a stable Homebrew alias for `kubernetes-cli`);
+  works as-is, optionally pin `name: kubernetes-cli` for explicitness.
+- Researcher's **DEFER** list (unconfirmed/removed/versioned formula names — verify before adding a
+  fedora_atomic binding): `postgresql` (brew ships versioned `postgresql@16` etc., bare is deprecated
+  — pick a version), `julia`/`odin` (formula-vs-cask/existence unsure), `p7zip`→`7-zip`/`sevenzip`
+  (renamed), `unrar` (removed then re-added — confirm), `bun` (in the `oven-sh/bun` tap, not core),
+  `clang-tidy`/`lldb`/`tshark` (ship *inside* `llvm`/`wireshark`, no standalone formula), `strace`
+  (Linuxbrew-only), `virt-manager`/`qjackctl`/`traceroute` (formula existence unsure),
+  `texlive-full`/`opencv-python` (brew's single `texlive`/`opencv` bundles them — no `-full`/`-python`).
+- **M-confidence formulae the researcher flagged** (name likely right, double-check): valgrind, iftop,
+  nethogs, nload, vnstat, mtr, netcat, wxmaxima. Most already resolve via `default:` where their
+  native binding reaches fedora_atomic; only add a fedora_atomic binding if they currently decline.
+
+### Suggested follow-up: add `('fedora_atomic', '41')` to the golden matrix (`test/test_golden.py`
+`CONTEXTS`) so brew resolution is regression-locked like the other OSes. Deferred here because it's a
+large one-time golden diff (301 components × a new context) and is a gate-policy call for you.

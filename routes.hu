@@ -385,10 +385,10 @@
         // Haskell — the GHC compiler (cabal driver deferred).
         haskell: { description: "Haskell toolchain (GHC) — pure functional programming." install: [ { via: native  repo-component: universe  name: { default: ghc } } ] }
         // Erlang/OTP + Elixir (elixir pulls erlang, but erlang is nameable on its own).
-        erlang: { description: "Erlang/OTP — battle-tested concurrent, fault-tolerant runtime." install: [ { via: native  when: "debian or redhat or arch or opensuse"  repo-component: universe } ] }
+        erlang: { description: "Erlang/OTP — battle-tested concurrent, fault-tolerant runtime." install: [ { via: native  when: "debian or redhat or arch or opensuse"  repo-component: universe }  { via: native  when: "fedora_atomic" } ] }   // brew formula `erlang`
         elixir: { description: "Elixir — functional, concurrent language on the Erlang VM." install: [ { via: native  repo-component: universe } ] }
         // Nim compiler (nimble ships alongside).
-        nim:   { description: "Nim — expressive, statically-typed compiled systems language." install: [ { via: native  when: "debian or arch or opensuse or alpine"  repo-component: universe } ] }   // not in Fedora repos
+        nim:   { description: "Nim — expressive, statically-typed compiled systems language." install: [ { via: native  when: "debian or arch or opensuse or alpine"  repo-component: universe }  { via: native  when: "fedora_atomic" } ] }   // not in Fedora repos; brew formula `nim`
 
         // R (statistics) and GNU Octave (numerical computing) — native everywhere.
         r:      { description: "R — language and environment for statistical computing." install: [ { via: native  repo-component: universe  name: { apt: r-base  dnf: R  pacman: r  zypper: R-base  apk: R  brew: r } } ] }
@@ -592,7 +592,8 @@
         // — `configsys pin set opencv source` to get it.
         opencv: { description: "OpenCV computer-vision library — C++ headers and libraries (dev)."
             install: [ { via: native  when: "debian or redhat or opensuse or arch or alpine"  repo-component: universe
-                         name: { apt: libopencv-dev  dnf: opencv-devel  zypper: opencv-devel  pacman: opencv  apk: opencv-dev } } ]
+                         name: { apt: libopencv-dev  dnf: opencv-devel  zypper: opencv-devel  pacman: opencv  apk: opencv-dev } }
+                       { via: native  when: "fedora_atomic"  name: opencv } ]   // brew formula `opencv`
         }
         opencv-python: { description: "OpenCV Python bindings (the `cv2` module)."
             install: [ { via: native  when: "debian or redhat or opensuse or arch or alpine"  repo-component: universe
@@ -709,7 +710,7 @@
         hydrogen:      { description: "Hydrogen — a pattern-based drum machine." install: [ { via: flatpak  hub: flathub  app: org.hydrogenmusic.Hydrogen } ] }
         carla:         { description: "Carla — an audio plugin host (LV2/VST/…)." install: [ { via: flatpak  hub: flathub  app: studio.kx.carla } ] }
         sonic-pi:      { description: "Sonic Pi — a live-coding music synth for everyone." install: [ { via: flatpak  hub: flathub  app: net.sonic_pi.SonicPi } ] }
-        supercollider: { description: "SuperCollider — audio synthesis and algorithmic composition." install: [ { via: native  when: "debian or redhat or arch or opensuse"  repo-component: universe } ] }
+        supercollider: { description: "SuperCollider — audio synthesis and algorithmic composition." install: [ { via: native  when: "debian or redhat or arch or opensuse"  repo-component: universe }  { via: native  when: "fedora_atomic" } ] }   // brew formula `supercollider`
         qjackctl:      { description: "QjackCtl — a GUI controller for the JACK audio server." install: [ { via: native  repo-component: universe } ] }
         // PipeWire — the modern audio/video server. Native; already the default on most current
         // distros (where installing it is a harmless no-op).
@@ -1074,7 +1075,7 @@
         // first-run init differs per distro (Fedora postgres needs `postgresql-setup --initdb`).
         postgresql:         { description: "PostgreSQL — advanced open-source relational database." install: [ { via: native  when: "debian or redhat or arch"  name: { dnf: postgresql-server  default: postgresql } } ] }
         postgresql-service: { description: "Enable and start the PostgreSQL server (systemd)." requires: postgresql  install: [ { via: service  unit: postgresql } ] }
-        mariadb:            { description: "MariaDB — MySQL-compatible relational database." install: [ { via: native  when: "debian or redhat or arch"  name: { pacman: mariadb  default: mariadb-server } } ] }
+        mariadb:            { description: "MariaDB — MySQL-compatible relational database." install: [ { via: native  when: "debian or redhat or arch"  name: { pacman: mariadb  default: mariadb-server } }  { via: native  when: "fedora_atomic"  name: mariadb } ] }   // brew formula `mariadb` (not the distro `-server` split)
         mariadb-service:    { description: "Enable and start the MariaDB server (systemd)." requires: mariadb  install: [ { via: service  unit: mariadb } ] }
         // redis is being replaced by its FOSS fork valkey on Fedora/Arch (drop-in compatible).
         redis:              { description: "Redis — in-memory data store and cache." install: [ { via: native  when: "debian or redhat or arch"  name: { apt: redis-server  dnf: valkey  pacman: valkey } } ] }
@@ -1085,14 +1086,14 @@
         gnuplot:    { description: "gnuplot — command-driven plotting for data and functions." install: [ { via: native  repo-component: universe } ] }
         jupyterlab: { description: "JupyterLab — notebooks and IDE for data science." install: [ { via: pipx  name: jupyterlab } ] }        // `jupyter-lab` on PATH
         paraview:   { description: "ParaView — large-scale scientific data visualization." install: [ { via: native  when: "debian or redhat or arch or opensuse"  repo-component: universe } ] }
-        maxima:     { description: "Maxima — a computer algebra system for symbolic math." install: [ { via: native  when: "debian or redhat or arch or opensuse"  repo-component: universe } ] }
+        maxima:     { description: "Maxima — a computer algebra system for symbolic math." install: [ { via: native  when: "debian or redhat or arch or opensuse"  repo-component: universe }  { via: native  when: "fedora_atomic" } ] }   // brew formula `maxima`
         wxmaxima:   { description: "wxMaxima — a GUI front end for the Maxima CAS." install: [ { via: native  when: "debian or redhat"  repo-component: universe } ] }   // Arch: AUR only
         pari:       { description: "PARI/GP — computer algebra for number theory." install: [ { via: native  repo-component: universe  name: { apt: pari-gp  dnf: pari-gp  pacman: pari  zypper: pari-gp  default: pari } } ] }
-        gap:        { description: "GAP — a system for computational discrete algebra (group theory)." install: [ { via: native  when: "debian or redhat or arch or opensuse"  repo-component: universe } ] }
+        gap:        { description: "GAP — a system for computational discrete algebra (group theory)." install: [ { via: native  when: "debian or redhat or arch or opensuse"  repo-component: universe }  { via: native  when: "fedora_atomic" } ] }   // brew formula `gap`
         sagemath:   { description: "SageMath — an open-source mathematics software system." install: [ { via: native  when: "debian or arch"  repo-component: universe } ] }      // Fedora: COPR/conda only
 
         // LaTeX (TeX Live) — the recommended subset vs the full multi-GB distribution.
-        texlive:      { description: "TeX Live — the TeX/LaTeX typesetting distribution." install: [ { via: native  when: "debian or redhat or arch"  name: { apt: texlive-latex-recommended  dnf: texlive-scheme-medium  pacman: texlive-latexrecommended } } ] }
+        texlive:      { description: "TeX Live — the TeX/LaTeX typesetting distribution." install: [ { via: native  when: "debian or redhat or arch"  name: { apt: texlive-latex-recommended  dnf: texlive-scheme-medium  pacman: texlive-latexrecommended }  }  { via: native  when: "fedora_atomic"  name: texlive } ] }   // brew formula `texlive`
         texlive-full: { description: "TeX Live (full) — the complete TeX/LaTeX distribution." install: [ { via: native  when: "debian or redhat or arch"  name: { apt: texlive-full  dnf: texlive-scheme-full  pacman: texlive-meta } } ] }
 
         // Miniforge — a conda env manager (the right home for the numpy/scipy/pandas stack).
