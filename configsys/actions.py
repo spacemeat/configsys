@@ -105,6 +105,24 @@ def remove_profile(ctx, name):
     return True, f'removed "{name}" (from {label})'
 
 
+def set_profile_include(ctx, profile, other, add, *, target=None):
+    '''Add (`add=True`) or remove a `+other` include term in `profile` — include another profile's
+    members. Returns (changed, label); a no-op or invalid include returns (False, reason).'''
+    if other == profile:
+        return False, "a profile can't include itself"
+    if other not in ctx.config.profile_names():
+        return False, f'no profile "{other}"'
+    tfile, label = (target, target) if target else _profile_target(ctx, profile)
+    new_terms = ctx.config.plan_include_edit(profile, other, add, tfile)
+    if new_terms is None:
+        return False, label
+    profs = plugins.read_profiles(tfile)
+    profs[profile] = new_terms
+    plugins.set_profiles(tfile, profs)
+    ctx.invalidate()
+    return True, label
+
+
 def set_profile_active(ctx, profile, on, *, target=None):
     '''Activate (`on=True`) or deactivate `profile` in the active `configs:` set. Returns
     (changed, target_label).'''

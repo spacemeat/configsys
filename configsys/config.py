@@ -445,6 +445,40 @@ class Config:
             return without if neg in without else without + [neg]
         return without
 
+    def plan_include_edit(self, profile, other, add, target_file):
+        '''New raw term list for `profile` in `target_file` so it INCLUDES (`add=True`) or drops the
+        include of `other` (a `+other` term = pull in another profile's members). Pure; None for a
+        no-op. Removing only drops an include OWNED in the target layer.'''
+        tidx = self.layer_index(target_file)
+        if tidx is None:
+            raise ConfigError(f'{target_file} is not a loaded config layer')
+        chain = self._chain.get(profile, ())
+        own = self._own_terms(profile, tidx)
+        in_target = any(i == tidx for i, _v, _s in chain)
+        defined_below = any(i < tidx for i, _v, _s in chain)
+        term = '+' + other
+        selfinc = '+' + profile
+        if add:
+            if term in own:
+                return None
+            base = list(own)
+            if not in_target and defined_below:
+                base = [selfinc] + base                       # amend the lower def instead of shadowing
+            return base + [term]
+        if term not in own:
+            return None                                       # not an include we own here
+        return [t for t in own if t != term]
+
+    def profile_includes(self, profile):
+        '''Profiles that `profile` pulls in via `+other` terms across the layer stack (excludes the
+        `+self` amend term).'''
+        out = set()
+        for _i, terms, _s in self._chain.get(profile, ()):
+            for t in terms:
+                if isinstance(t, str) and t.startswith('+') and t[1:] and t[1:] != profile:
+                    out.add(t[1:])
+        return out
+
     def requested(self):
         '''Ordered {component_name: [profiles that requested it]} across active profiles.'''
         out = {}

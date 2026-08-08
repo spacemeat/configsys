@@ -185,3 +185,20 @@ def test_remove_last_profile_keeps_the_file_and_comments(tmp_path):
     txt = f.read_text()
     assert 'Override component routes' in txt                    # template comments survived
     assert isinstance(layers.materialize_string(txt), dict)      # and it still parses
+
+
+def test_include_and_uninclude_profile(tmp_path):
+    from configsys import actions
+    ctx = _rctx(tmp_path)
+    actions.add_profile(ctx, 'a')
+    actions.add_profile(ctx, 'b')
+    actions.set_profile_membership(ctx, 'b', 'btop', 'add')
+    changed, _ = actions.set_profile_include(ctx, 'a', 'b', True)      # a includes b -> a gets btop
+    assert changed
+    assert 'btop' in ctx.config.profile_components('a')
+    assert ctx.config.profile_includes('a') == {'b'}
+    assert actions.set_profile_include(ctx, 'a', 'a', True)[0] is False        # no self-include
+    assert actions.set_profile_include(ctx, 'a', 'nope', True)[0] is False     # unknown profile
+    changed, _ = actions.set_profile_include(ctx, 'a', 'b', False)     # drop the include
+    assert changed and 'btop' not in ctx.config.profile_components('a')
+    assert ctx.config.profile_includes('a') == set()

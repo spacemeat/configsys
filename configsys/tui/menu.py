@@ -1108,6 +1108,30 @@ def _scrollbar_h(stdscr, pal, row, left, cols, offset, window, total, h, w):
              pal.style('select_marker' if on else 'info_dim', row, left + k, h, w))
 
 
+def _filter_edit(stdscr, initial, apply_fn, redraw):
+    '''Live substring-filter entry. Starts empty; `apply_fn(text)` sets the filter (called every
+    keystroke so the view filters live) and `redraw()` repaints the screen. Enter commits the typed
+    text (empty text clears the filter); Esc reverts to `initial`. A `/query` prompt shows on the
+    bottom line. Workflow: `/gnuplot⏎` filters, `/god⎋` cancels, `/⎋` cancels, `/⎋`→`/⎋`, `/⏎` clears.'''
+    buf = ''
+    while True:
+        apply_fn(buf)
+        redraw()                                       # repaint with the live filter applied
+        h, w = stdscr.getmaxyx()
+        _put(stdscr, h - 1, 0, _fit(f' /{buf}▏', w).ljust(w), curses.A_REVERSE)
+        stdscr.refresh()
+        ch = stdscr.getch()
+        if ch in (10, 13, curses.KEY_ENTER):
+            return buf                                 # commit (empty -> cleared)
+        if ch == 27:                                   # Esc -> revert to the pre-filter state
+            apply_fn(initial)
+            return None
+        if ch in (curses.KEY_BACKSPACE, 127, 8):
+            buf = buf[:-1]
+        elif 32 <= ch <= 126:
+            buf += chr(ch)
+
+
 # -- Profiles screen ------------------------------------------------------
 class ProfileScreen:
     '''Two-panel profile editor: profiles (left) + the full component catalog (right). A skin over
@@ -1118,7 +1142,26 @@ class ProfileScreen:
         self.lcur = self.rcur = self.ltop = self.rtop = 0
         self.rcol_left = 0           # leftmost visible catalog column (grid horizontal scroll)
         self.rrows, self.rncols = 1, 1   # grid dims, set each draw; the key handler moves by column
+        self.pfilter = self.cfilter = ''   # substring filters for the profiles / catalog panes
         self.reload()
+
+    # -- filtered views (both panes support `/` substring filtering) ------
+    def vprofiles(self):
+        f = self.pfilter.lower()
+        return [p for p in self.profiles if f in p.lower()] if f else self.profiles
+
+    def vcatalog(self):
+        f = self.cfilter.lower()
+        return [c for c in self.catalog if f in c.lower()] if f else self.catalog
+
+    def set_pfilter(self, text):
+        self.pfilter = text
+        self.lcur = min(self.lcur, max(0, len(self.vprofiles()) - 1))
+
+    def set_cfilter(self, text):
+        self.cfilter = text
+        self.rcur = min(self.rcur, max(0, len(self.vcatalog()) - 1))
+        self.rcol_left = 0
 
     def reload(self):
         cfg = self.ctx.config
@@ -1126,8 +1169,8 @@ class ProfileScreen:
         self.active = set(cfg.active_profiles)
         self.catalog = sorted(self.ctx.routes.components)
         self._res = {}
-        self.lcur = min(self.lcur, max(0, len(self.profiles) - 1))
-        self.rcur = min(self.rcur, max(0, len(self.catalog) - 1))
+        self.lcur = min(self.lcur, max(0, len(self.vprofiles()) - 1))
+        self.rcur = min(self.rcur, max(0, len(self.vcatalog()) - 1))
         self._warm_cache()               # resolving each component is ~17ms; warm off-thread so
                                          # scrolling the catalog isn't sluggish the first time through
 
@@ -1149,7 +1192,8 @@ class ProfileScreen:
         threading.Thread(target=run, daemon=True).start()
 
     def cur_profile(self):
-        return self.profiles[self.lcur] if 0 <= self.lcur < len(self.profiles) else None
+        vp = self.vprofiles()
+        return vp[self.lcur] if 0 <= self.lcur < len(vp) else None
 
     def members(self, profile):
         try:
@@ -1212,12 +1256,14 @@ def _draw_profiles(stdscr, pal, ps, ctx, note, screen):
     residual_bg = tuple(round(_sel[i] * 0.55) for i in range(3))
     member_bg = tuple(round(_sel[i] * 0.28) for i in range(3))
 
-    # LEFT: profiles (full height)
-    lit, lil, lih, liw = _panel(stdscr, pal, top, 0, body_h, lw, 'profiles',
+    # LEFT: profiles (full height), filtered by ps.pfilter
+    vprofs = ps.vprofiles()
+    ltitle = 'profiles' + (f'  /{ps.pfilter}' if ps.pfilter else '')
+    lit, lil, lih, liw = _panel(stdscr, pal, top, 0, body_h, lw, ltitle,
                                 ps.focus == 'left', h, w)
-    ps.ltop = _scroll_top(ps.lcur, ps.ltop, lih, len(ps.profiles))
-    for vis, i in enumerate(range(ps.ltop, min(len(ps.profiles), ps.ltop + lih))):
-        name, y = ps.profiles[i], lit + vis
+    ps.ltop = _scroll_top(ps.lcur, ps.ltop, lih, len(vprofs))
+    for vis, i in enumerate(range(ps.ltop, min(len(vprofs), ps.ltop + lih))):
+        name, y = vprofs[i], lit + vis
         cur = i == ps.lcur
         foc = cur and ps.focus == 'left'
         rbg = residual_bg if (cur and not foc) else None   # dimmer bar for the current row unfocused
@@ -1228,10 +1274,11 @@ def _draw_profiles(stdscr, pal, ps, ctx, note, screen):
         cm = '▸' if cur else ' '                     # residual cursor persists when focus is right
         _put(stdscr, y, lil, _fit(f'{cm}{"●" if name in ps.active else "○"} {name}', liw),
              pal.style('profile', y, lil, h, w, selected=foc, bg=rbg))
-    _scrollbar_v(stdscr, pal, lit, lw - 1, lih, ps.ltop, lih, len(ps.profiles), h, w)
+    _scrollbar_v(stdscr, pal, lit, lw - 1, lih, ps.ltop, lih, len(vprofs), h, w)
 
     # RIGHT TOP: detail for the highlighted component (names are esoteric) — description + methods
-    cur = ps.catalog[ps.rcur] if ps.catalog and 0 <= ps.rcur < len(ps.catalog) else None
+    vcat = ps.vcatalog()
+    cur = vcat[ps.rcur] if vcat and 0 <= ps.rcur < len(vcat) else None
     # the component NAME rides the panel title, so the box is short (2 desc lines + methods) and the
     # catalog grid below gets the reclaimed rows.
     desc_h = 5 if body_h >= 10 else 0
@@ -1257,14 +1304,13 @@ def _draw_profiles(stdscr, pal, ps, ctx, note, screen):
             _put(stdscr, dit + dih - 1, dil, _fit(mtext, diw),
                  pal.style('method_dim', dit + dih - 1, dil, h, w))
 
-    # RIGHT BOTTOM: the component catalog, as a COLUMN-MAJOR grid filling the pane width
+    # RIGHT BOTTOM: the component catalog (filtered), as a COLUMN-MAJOR grid filling the pane width
     ctop, cath = top + desc_h, body_h - desc_h
-    rit, ril, rih, riw = _panel(stdscr, pal, ctop, rleft, cath, rw,
-                                f'components — in "{prof}"' if prof else 'components',
-                                ps.focus == 'right', h, w)
-    n = len(ps.catalog)
+    ctitle = (f'components — in "{prof}"' if prof else 'components') + (f'  /{ps.cfilter}' if ps.cfilter else '')
+    rit, ril, rih, riw = _panel(stdscr, pal, ctop, rleft, cath, rw, ctitle, ps.focus == 'right', h, w)
+    n = len(vcat)
     rows = max(1, rih)                               # each column is as tall as the pane
-    longest = max((len(nm) for nm in ps.catalog), default=12)
+    longest = max((len(nm) for nm in vcat), default=12)
     col_w = max(1, min(riw, max(20, min(32, longest + 9))))  # room for `▸● name  method`
     ncols = max(1, riw // col_w) if riw > 0 else 1
     col_w = riw // ncols if ncols else riw           # redistribute to fill the width exactly
@@ -1285,7 +1331,7 @@ def _draw_profiles(stdscr, pal, ps, ctx, note, screen):
             i = col * rows + rr
             if i >= n:
                 break
-            name, y = ps.catalog[i], rit + rr
+            name, y = vcat[i], rit + rr
             cur = i == ps.rcur
             foc = cur and ps.focus == 'right'
             avail, via, pinned = ps._resolve(name)
@@ -1323,8 +1369,8 @@ def _draw_profiles(stdscr, pal, ps, ctx, note, screen):
     status = f' profile: {prof or "—"}    edits → {actions.edit_target(ctx)[1]}'
     if note:
         status += f'    {note}'
-    navf = (' j/k/h/l move · tab focus · space member · a active · n/d new/del profile · '
-            'm method · ●own ↳via ~removed · 1-6 · q ')
+    navf = (' j/k/h/l · space member · + include · a active · n/d new/del · m method · '
+            '/ filter · ●own ↳via ~removed · q ')
     _put(stdscr, h - 2, 0, _fit(status, w), pal.style('status_line', h - 2, 0, h, w))
     _put(stdscr, h - 1, 0, _fit(navf.ljust(w), w), pal.style('footer', h - 1, 0, h, w))
     stdscr.refresh()
@@ -2115,9 +2161,9 @@ def run(ctx):
                 from .. import actions
                 if ch in (ord('j'), curses.KEY_DOWN):
                     if ps.focus == 'left':
-                        ps.lcur = min(len(ps.profiles) - 1, ps.lcur + 1)
+                        ps.lcur = min(len(ps.vprofiles()) - 1, ps.lcur + 1)
                     else:                              # column-major grid: down = next item, wraps col
-                        ps.rcur = min(len(ps.catalog) - 1, ps.rcur + 1)
+                        ps.rcur = min(len(ps.vcatalog()) - 1, ps.rcur + 1)
                 elif ch in (ord('k'), curses.KEY_UP):
                     if ps.focus == 'left':
                         ps.lcur = max(0, ps.lcur - 1)
@@ -2129,7 +2175,7 @@ def run(ctx):
                     if ps.focus == 'left':
                         ps.focus = 'right'             # cross into the grid
                     else:                              # next column, same row (clamped)
-                        ps.rcur = min(len(ps.catalog) - 1, ps.rcur + ps.rrows)
+                        ps.rcur = min(len(ps.vcatalog()) - 1, ps.rcur + ps.rrows)
                 elif ch in (ord('h'), curses.KEY_LEFT):
                     if ps.focus == 'right' and ps.rcur >= ps.rrows:
                         ps.rcur -= ps.rrows            # previous column
@@ -2139,9 +2185,16 @@ def run(ctx):
                     setattr(ps, 'lcur' if ps.focus == 'left' else 'rcur', 0)
                 elif ch == ord('G'):
                     if ps.focus == 'left':
-                        ps.lcur = max(0, len(ps.profiles) - 1)
+                        ps.lcur = max(0, len(ps.vprofiles()) - 1)
                     else:
-                        ps.rcur = max(0, len(ps.catalog) - 1)
+                        ps.rcur = max(0, len(ps.vcatalog()) - 1)
+                elif ch == ord('/'):                   # filter the focused pane (live; enter/esc)
+                    if ps.focus == 'left':
+                        _filter_edit(stdscr, ps.pfilter, ps.set_pfilter,
+                                     lambda: _draw_profiles(stdscr, pal, ps, ctx, note, screen))
+                    else:
+                        _filter_edit(stdscr, ps.cfilter, ps.set_cfilter,
+                                     lambda: _draw_profiles(stdscr, pal, ps, ctx, note, screen))
                 elif ch == ord('a') and ps.focus == 'left':
                     prof = ps.cur_profile()
                     if prof:
@@ -2159,9 +2212,11 @@ def run(ctx):
                     if nm and nm.strip():
                         try:
                             changed, lbl = actions.add_profile(ctx, nm.strip())
+                            if changed:
+                                ps.pfilter = ''        # clear any filter so the new profile is visible
                             ps.reload()
-                            if changed and nm.strip() in ps.profiles:
-                                ps.lcur, ps.focus = ps.profiles.index(nm.strip()), 'left'
+                            if changed and nm.strip() in ps.vprofiles():
+                                ps.lcur, ps.focus = ps.vprofiles().index(nm.strip()), 'left'
                             menu_dirty = menu_dirty or changed
                             note = f'created "{nm.strip()}" ({lbl})' if changed else lbl
                         except Exception as e:  # noqa: BLE001 — surface, don't crash
@@ -2175,13 +2230,30 @@ def run(ctx):
                             try:
                                 changed, note = actions.remove_profile(ctx, prof)
                                 ps.reload()
-                                ps.lcur = min(ps.lcur, max(0, len(ps.profiles) - 1))
+                                ps.lcur = min(ps.lcur, max(0, len(ps.vprofiles()) - 1))
                                 menu_dirty = menu_dirty or changed
                             except Exception as e:  # noqa: BLE001 — surface, don't crash
                                 note = f'remove failed: {e}'
+                elif ch == ord('+') and ps.focus == 'left':  # include another profile (+other)
+                    prof = ps.cur_profile()
+                    others = [p for p in ps.profiles if p != prof]
+                    if prof and others:
+                        inc = ctx.config.profile_includes(prof)
+                        opts = [(p, '[included]' if p in inc else '') for p in others]
+                        idx = _popup_choose(stdscr, pal, f'include in "{prof}" (toggle +profile)', opts, 0)
+                        if idx is not None:
+                            other = others[idx]
+                            try:
+                                changed, note = actions.set_profile_include(ctx, prof, other,
+                                                                            other not in inc)
+                                ps.reload()
+                                menu_dirty = menu_dirty or changed
+                            except Exception as e:  # noqa: BLE001 — surface, don't crash
+                                note = f'include failed: {e}'
                 elif ch == ord('m') and ps.focus == 'right':
-                    if ps.catalog:                         # pin the selected component's install method
-                        name = ps.catalog[ps.rcur]
+                    vcat = ps.vcatalog()
+                    if vcat:                               # pin the selected component's install method
+                        name = vcat[ps.rcur]
                         changed, note, deferred = _pick_method_name(stdscr, pal, ctx, name)
                         if deferred:
                             pending_notes.append(deferred)
@@ -2191,8 +2263,9 @@ def run(ctx):
                             menu_dirty = True
                 elif ch in (ord(' '), ord('\n'), curses.KEY_ENTER) and ps.focus == 'right':
                     prof = ps.cur_profile()
-                    if prof and ps.catalog:
-                        name = ps.catalog[ps.rcur]
+                    vcat = ps.vcatalog()
+                    if prof and vcat:
+                        name = vcat[ps.rcur]
                         act = 'remove' if name in ps.members(prof) else 'add'
                         try:
                             changed, _lbl = actions.set_profile_membership(ctx, prof, name, act)
