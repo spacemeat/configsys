@@ -3635,23 +3635,26 @@
    }
   },
   "websocat": {
-   "cargo\\websocat": {
-    "driver": "cargo",
+   "pacman\\curl": {
+    "driver": "pacman",
     "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "tarball\\websocat": {
+    "driver": "tarball",
+    "fields": {
+     "archive": "none",
+     "binary": "websocat",
+     "installDir": "$CONFIGSYS_APP_DIR/websocat",
      "name": "websocat",
      "version": {
-      "crates": "websocat"
+      "asset": "websocat.x86_64-unknown-linux-musl",
+      "github": "vi/websocat"
      }
     },
     "name": "websocat"
-   },
-   "pacman\\rust": {
-    "driver": "pacman",
-    "fields": {
-     "name": "rust",
-     "repo-component": "universe"
-    },
-    "name": "rust"
    }
   },
   "whois": {
@@ -3776,23 +3779,24 @@
    }
   },
   "xh": {
-   "cargo\\xh": {
-    "driver": "cargo",
+   "pacman\\curl": {
+    "driver": "pacman",
     "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "tarball\\xh": {
+    "driver": "tarball",
+    "fields": {
+     "installDir": "$CONFIGSYS_APP_DIR/xh",
      "name": "xh",
      "version": {
-      "crates": "xh"
+      "asset": "xh-*-x86_64-unknown-linux-musl.tar.gz",
+      "github": "ducaale/xh"
      }
     },
     "name": "xh"
-   },
-   "pacman\\rust": {
-    "driver": "pacman",
-    "fields": {
-     "name": "rust",
-     "repo-component": "universe"
-    },
-    "name": "rust"
    }
   },
   "xmonad": {
@@ -4281,20 +4285,24 @@
    }
   },
   "bruno": {
-   "apt\\flatpak": {
-    "driver": "apt",
+   "native-pkg-file\\bruno": {
+    "driver": "native-pkg-file",
     "fields": {
-     "name": "flatpak"
+     "asset": {
+      "deb": {
+       "x86_64": "bruno_*_amd64_linux.deb"
+      },
+      "rpm": {
+       "x86_64": "bruno_*_x86_64_linux.rpm"
+      }
+     },
+     "name": "bruno",
+     "version": {
+      "github": "usebruno/bruno",
+      "strip-v": "true"
+     }
     },
-    "name": "flatpak"
-   },
-   "flatpak\\bruno": {
-    "driver": "flatpak",
-    "fields": {
-     "hub": "flathub",
-     "name": "com.usebruno.Bruno"
-    },
-    "name": "com.usebruno.Bruno"
+    "name": "bruno"
    }
   },
   "btop": {
@@ -4862,20 +4870,23 @@
    }
   },
   "dbeaver": {
-   "apt\\flatpak": {
-    "driver": "apt",
+   "native-pkg-file\\dbeaver": {
+    "driver": "native-pkg-file",
     "fields": {
-     "name": "flatpak"
+     "asset": {
+      "deb": {
+       "x86_64": "dbeaver-ce-*-linux-x86_64.deb"
+      },
+      "rpm": {
+       "x86_64": "dbeaver-ce-*-linux-x86_64.rpm"
+      }
+     },
+     "name": "dbeaver",
+     "version": {
+      "github": "dbeaver/dbeaver"
+     }
     },
-    "name": "flatpak"
-   },
-   "flatpak\\dbeaver": {
-    "driver": "flatpak",
-    "fields": {
-     "hub": "flathub",
-     "name": "io.dbeaver.DBeaverCommunity"
-    },
-    "name": "io.dbeaver.DBeaverCommunity"
+    "name": "dbeaver"
    }
   },
   "deno": {
@@ -6906,15 +6917,30 @@
    }
   },
   "ollama": {
-   "script\\ollama": {
-    "driver": "script",
+   "apt\\curl": {
+    "driver": "apt",
     "fields": {
-     "install-cmd": "curl -fsSL https://ollama.com/install.sh | sh",
-     "location": "/usr/local/bin/ollama",
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "apt\\zstd": {
+    "driver": "apt",
+    "fields": {
+     "name": "zstd"
+    },
+    "name": "zstd"
+   },
+   "tarball\\ollama": {
+    "driver": "tarball",
+    "fields": {
+     "installDir": "$CONFIGSYS_APP_DIR/ollama",
      "name": "ollama",
-     "uninstall-cmd": "sudo systemctl stop ollama 2>/dev/null; sudo rm -f /usr/local/bin/ollama /etc/systemd/system/ollama.service; sudo rm -rf /usr/share/ollama",
-     "version-cmd": "ollama --version",
-     "version-re": "([0-9]+\\.[0-9]+\\.[0-9]+)"
+     "version": {
+      "asset": "ollama-linux-amd64.tar.zst",
+      "github": "ollama/ollama",
+      "strip-v": "true"
+     }
     },
     "name": "ollama"
    }
@@ -8132,20 +8158,23 @@
    }
   },
   "websocat": {
-   "apt\\rust": {
+   "apt\\curl": {
     "driver": "apt",
     "fields": {
-     "name": "rust-all",
-     "repo-component": "universe"
+     "name": "curl"
     },
-    "name": "rust-all"
+    "name": "curl"
    },
-   "cargo\\websocat": {
-    "driver": "cargo",
+   "tarball\\websocat": {
+    "driver": "tarball",
     "fields": {
+     "archive": "none",
+     "binary": "websocat",
+     "installDir": "$CONFIGSYS_APP_DIR/websocat",
      "name": "websocat",
      "version": {
-      "crates": "websocat"
+      "asset": "websocat.x86_64-unknown-linux-musl",
+      "github": "vi/websocat"
      }
     },
     "name": "websocat"
@@ -8257,20 +8286,21 @@
    }
   },
   "xh": {
-   "apt\\rust": {
+   "apt\\curl": {
     "driver": "apt",
     "fields": {
-     "name": "rust-all",
-     "repo-component": "universe"
+     "name": "curl"
     },
-    "name": "rust-all"
+    "name": "curl"
    },
-   "cargo\\xh": {
-    "driver": "cargo",
+   "tarball\\xh": {
+    "driver": "tarball",
     "fields": {
+     "installDir": "$CONFIGSYS_APP_DIR/xh",
      "name": "xh",
      "version": {
-      "crates": "xh"
+      "asset": "xh-*-x86_64-unknown-linux-musl.tar.gz",
+      "github": "ducaale/xh"
      }
     },
     "name": "xh"
@@ -8754,20 +8784,24 @@
    }
   },
   "bruno": {
-   "apt\\flatpak": {
-    "driver": "apt",
+   "native-pkg-file\\bruno": {
+    "driver": "native-pkg-file",
     "fields": {
-     "name": "flatpak"
+     "asset": {
+      "deb": {
+       "x86_64": "bruno_*_amd64_linux.deb"
+      },
+      "rpm": {
+       "x86_64": "bruno_*_x86_64_linux.rpm"
+      }
+     },
+     "name": "bruno",
+     "version": {
+      "github": "usebruno/bruno",
+      "strip-v": "true"
+     }
     },
-    "name": "flatpak"
-   },
-   "flatpak\\bruno": {
-    "driver": "flatpak",
-    "fields": {
-     "hub": "flathub",
-     "name": "com.usebruno.Bruno"
-    },
-    "name": "com.usebruno.Bruno"
+    "name": "bruno"
    }
   },
   "btop": {
@@ -9325,20 +9359,23 @@
    }
   },
   "dbeaver": {
-   "apt\\flatpak": {
-    "driver": "apt",
+   "native-pkg-file\\dbeaver": {
+    "driver": "native-pkg-file",
     "fields": {
-     "name": "flatpak"
+     "asset": {
+      "deb": {
+       "x86_64": "dbeaver-ce-*-linux-x86_64.deb"
+      },
+      "rpm": {
+       "x86_64": "dbeaver-ce-*-linux-x86_64.rpm"
+      }
+     },
+     "name": "dbeaver",
+     "version": {
+      "github": "dbeaver/dbeaver"
+     }
     },
-    "name": "flatpak"
-   },
-   "flatpak\\dbeaver": {
-    "driver": "flatpak",
-    "fields": {
-     "hub": "flathub",
-     "name": "io.dbeaver.DBeaverCommunity"
-    },
-    "name": "io.dbeaver.DBeaverCommunity"
+    "name": "dbeaver"
    }
   },
   "deno": {
@@ -11329,15 +11366,30 @@
    }
   },
   "ollama": {
-   "script\\ollama": {
-    "driver": "script",
+   "apt\\curl": {
+    "driver": "apt",
     "fields": {
-     "install-cmd": "curl -fsSL https://ollama.com/install.sh | sh",
-     "location": "/usr/local/bin/ollama",
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "apt\\zstd": {
+    "driver": "apt",
+    "fields": {
+     "name": "zstd"
+    },
+    "name": "zstd"
+   },
+   "tarball\\ollama": {
+    "driver": "tarball",
+    "fields": {
+     "installDir": "$CONFIGSYS_APP_DIR/ollama",
      "name": "ollama",
-     "uninstall-cmd": "sudo systemctl stop ollama 2>/dev/null; sudo rm -f /usr/local/bin/ollama /etc/systemd/system/ollama.service; sudo rm -rf /usr/share/ollama",
-     "version-cmd": "ollama --version",
-     "version-re": "([0-9]+\\.[0-9]+\\.[0-9]+)"
+     "version": {
+      "asset": "ollama-linux-amd64.tar.zst",
+      "github": "ollama/ollama",
+      "strip-v": "true"
+     }
     },
     "name": "ollama"
    }
@@ -12525,20 +12577,23 @@
    }
   },
   "websocat": {
-   "apt\\rust": {
+   "apt\\curl": {
     "driver": "apt",
     "fields": {
-     "name": "rust-all",
-     "repo-component": "universe"
+     "name": "curl"
     },
-    "name": "rust-all"
+    "name": "curl"
    },
-   "cargo\\websocat": {
-    "driver": "cargo",
+   "tarball\\websocat": {
+    "driver": "tarball",
     "fields": {
+     "archive": "none",
+     "binary": "websocat",
+     "installDir": "$CONFIGSYS_APP_DIR/websocat",
      "name": "websocat",
      "version": {
-      "crates": "websocat"
+      "asset": "websocat.x86_64-unknown-linux-musl",
+      "github": "vi/websocat"
      }
     },
     "name": "websocat"
@@ -12650,20 +12705,21 @@
    }
   },
   "xh": {
-   "apt\\rust": {
+   "apt\\curl": {
     "driver": "apt",
     "fields": {
-     "name": "rust-all",
-     "repo-component": "universe"
+     "name": "curl"
     },
-    "name": "rust-all"
+    "name": "curl"
    },
-   "cargo\\xh": {
-    "driver": "cargo",
+   "tarball\\xh": {
+    "driver": "tarball",
     "fields": {
+     "installDir": "$CONFIGSYS_APP_DIR/xh",
      "name": "xh",
      "version": {
-      "crates": "xh"
+      "asset": "xh-*-x86_64-unknown-linux-musl.tar.gz",
+      "github": "ducaale/xh"
      }
     },
     "name": "xh"
@@ -13137,20 +13193,24 @@
    }
   },
   "bruno": {
-   "apt\\flatpak": {
-    "driver": "apt",
+   "native-pkg-file\\bruno": {
+    "driver": "native-pkg-file",
     "fields": {
-     "name": "flatpak"
+     "asset": {
+      "deb": {
+       "x86_64": "bruno_*_amd64_linux.deb"
+      },
+      "rpm": {
+       "x86_64": "bruno_*_x86_64_linux.rpm"
+      }
+     },
+     "name": "bruno",
+     "version": {
+      "github": "usebruno/bruno",
+      "strip-v": "true"
+     }
     },
-    "name": "flatpak"
-   },
-   "flatpak\\bruno": {
-    "driver": "flatpak",
-    "fields": {
-     "hub": "flathub",
-     "name": "com.usebruno.Bruno"
-    },
-    "name": "com.usebruno.Bruno"
+    "name": "bruno"
    }
   },
   "btop": {
@@ -13708,20 +13768,23 @@
    }
   },
   "dbeaver": {
-   "apt\\flatpak": {
-    "driver": "apt",
+   "native-pkg-file\\dbeaver": {
+    "driver": "native-pkg-file",
     "fields": {
-     "name": "flatpak"
+     "asset": {
+      "deb": {
+       "x86_64": "dbeaver-ce-*-linux-x86_64.deb"
+      },
+      "rpm": {
+       "x86_64": "dbeaver-ce-*-linux-x86_64.rpm"
+      }
+     },
+     "name": "dbeaver",
+     "version": {
+      "github": "dbeaver/dbeaver"
+     }
     },
-    "name": "flatpak"
-   },
-   "flatpak\\dbeaver": {
-    "driver": "flatpak",
-    "fields": {
-     "hub": "flathub",
-     "name": "io.dbeaver.DBeaverCommunity"
-    },
-    "name": "io.dbeaver.DBeaverCommunity"
+    "name": "dbeaver"
    }
   },
   "deno": {
@@ -15712,15 +15775,30 @@
    }
   },
   "ollama": {
-   "script\\ollama": {
-    "driver": "script",
+   "apt\\curl": {
+    "driver": "apt",
     "fields": {
-     "install-cmd": "curl -fsSL https://ollama.com/install.sh | sh",
-     "location": "/usr/local/bin/ollama",
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "apt\\zstd": {
+    "driver": "apt",
+    "fields": {
+     "name": "zstd"
+    },
+    "name": "zstd"
+   },
+   "tarball\\ollama": {
+    "driver": "tarball",
+    "fields": {
+     "installDir": "$CONFIGSYS_APP_DIR/ollama",
      "name": "ollama",
-     "uninstall-cmd": "sudo systemctl stop ollama 2>/dev/null; sudo rm -f /usr/local/bin/ollama /etc/systemd/system/ollama.service; sudo rm -rf /usr/share/ollama",
-     "version-cmd": "ollama --version",
-     "version-re": "([0-9]+\\.[0-9]+\\.[0-9]+)"
+     "version": {
+      "asset": "ollama-linux-amd64.tar.zst",
+      "github": "ollama/ollama",
+      "strip-v": "true"
+     }
     },
     "name": "ollama"
    }
@@ -16908,20 +16986,23 @@
    }
   },
   "websocat": {
-   "apt\\rust": {
+   "apt\\curl": {
     "driver": "apt",
     "fields": {
-     "name": "rust-all",
-     "repo-component": "universe"
+     "name": "curl"
     },
-    "name": "rust-all"
+    "name": "curl"
    },
-   "cargo\\websocat": {
-    "driver": "cargo",
+   "tarball\\websocat": {
+    "driver": "tarball",
     "fields": {
+     "archive": "none",
+     "binary": "websocat",
+     "installDir": "$CONFIGSYS_APP_DIR/websocat",
      "name": "websocat",
      "version": {
-      "crates": "websocat"
+      "asset": "websocat.x86_64-unknown-linux-musl",
+      "github": "vi/websocat"
      }
     },
     "name": "websocat"
@@ -17033,20 +17114,21 @@
    }
   },
   "xh": {
-   "apt\\rust": {
+   "apt\\curl": {
     "driver": "apt",
     "fields": {
-     "name": "rust-all",
-     "repo-component": "universe"
+     "name": "curl"
     },
-    "name": "rust-all"
+    "name": "curl"
    },
-   "cargo\\xh": {
-    "driver": "cargo",
+   "tarball\\xh": {
+    "driver": "tarball",
     "fields": {
+     "installDir": "$CONFIGSYS_APP_DIR/xh",
      "name": "xh",
      "version": {
-      "crates": "xh"
+      "asset": "xh-*-x86_64-unknown-linux-musl.tar.gz",
+      "github": "ducaale/xh"
      }
     },
     "name": "xh"
@@ -17520,20 +17602,24 @@
    }
   },
   "bruno": {
-   "dnf\\flatpak": {
-    "driver": "dnf",
+   "native-pkg-file\\bruno": {
+    "driver": "native-pkg-file",
     "fields": {
-     "name": "flatpak"
+     "asset": {
+      "deb": {
+       "x86_64": "bruno_*_amd64_linux.deb"
+      },
+      "rpm": {
+       "x86_64": "bruno_*_x86_64_linux.rpm"
+      }
+     },
+     "name": "bruno",
+     "version": {
+      "github": "usebruno/bruno",
+      "strip-v": "true"
+     }
     },
-    "name": "flatpak"
-   },
-   "flatpak\\bruno": {
-    "driver": "flatpak",
-    "fields": {
-     "hub": "flathub",
-     "name": "com.usebruno.Bruno"
-    },
-    "name": "com.usebruno.Bruno"
+    "name": "bruno"
    }
   },
   "btop": {
@@ -17987,20 +18073,23 @@
    }
   },
   "dbeaver": {
-   "dnf\\flatpak": {
-    "driver": "dnf",
+   "native-pkg-file\\dbeaver": {
+    "driver": "native-pkg-file",
     "fields": {
-     "name": "flatpak"
+     "asset": {
+      "deb": {
+       "x86_64": "dbeaver-ce-*-linux-x86_64.deb"
+      },
+      "rpm": {
+       "x86_64": "dbeaver-ce-*-linux-x86_64.rpm"
+      }
+     },
+     "name": "dbeaver",
+     "version": {
+      "github": "dbeaver/dbeaver"
+     }
     },
-    "name": "flatpak"
-   },
-   "flatpak\\dbeaver": {
-    "driver": "flatpak",
-    "fields": {
-     "hub": "flathub",
-     "name": "io.dbeaver.DBeaverCommunity"
-    },
-    "name": "io.dbeaver.DBeaverCommunity"
+    "name": "dbeaver"
    }
   },
   "deno": {
@@ -19795,15 +19884,30 @@
    }
   },
   "ollama": {
-   "script\\ollama": {
-    "driver": "script",
+   "dnf\\curl": {
+    "driver": "dnf",
     "fields": {
-     "install-cmd": "curl -fsSL https://ollama.com/install.sh | sh",
-     "location": "/usr/local/bin/ollama",
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "dnf\\zstd": {
+    "driver": "dnf",
+    "fields": {
+     "name": "zstd"
+    },
+    "name": "zstd"
+   },
+   "tarball\\ollama": {
+    "driver": "tarball",
+    "fields": {
+     "installDir": "$CONFIGSYS_APP_DIR/ollama",
      "name": "ollama",
-     "uninstall-cmd": "sudo systemctl stop ollama 2>/dev/null; sudo rm -f /usr/local/bin/ollama /etc/systemd/system/ollama.service; sudo rm -rf /usr/share/ollama",
-     "version-cmd": "ollama --version",
-     "version-re": "([0-9]+\\.[0-9]+\\.[0-9]+)"
+     "version": {
+      "asset": "ollama-linux-amd64.tar.zst",
+      "github": "ollama/ollama",
+      "strip-v": "true"
+     }
     },
     "name": "ollama"
    }
@@ -21015,23 +21119,26 @@
    }
   },
   "websocat": {
-   "cargo\\websocat": {
-    "driver": "cargo",
+   "dnf\\curl": {
+    "driver": "dnf",
     "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "tarball\\websocat": {
+    "driver": "tarball",
+    "fields": {
+     "archive": "none",
+     "binary": "websocat",
+     "installDir": "$CONFIGSYS_APP_DIR/websocat",
      "name": "websocat",
      "version": {
-      "crates": "websocat"
+      "asset": "websocat.x86_64-unknown-linux-musl",
+      "github": "vi/websocat"
      }
     },
     "name": "websocat"
-   },
-   "dnf\\rust": {
-    "driver": "dnf",
-    "fields": {
-     "name": "cargo",
-     "repo-component": "universe"
-    },
-    "name": "cargo"
    }
   },
   "whois": {
@@ -21149,23 +21256,24 @@
    }
   },
   "xh": {
-   "cargo\\xh": {
-    "driver": "cargo",
+   "dnf\\curl": {
+    "driver": "dnf",
     "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "tarball\\xh": {
+    "driver": "tarball",
+    "fields": {
+     "installDir": "$CONFIGSYS_APP_DIR/xh",
      "name": "xh",
      "version": {
-      "crates": "xh"
+      "asset": "xh-*-x86_64-unknown-linux-musl.tar.gz",
+      "github": "ducaale/xh"
      }
     },
     "name": "xh"
-   },
-   "dnf\\rust": {
-    "driver": "dnf",
-    "fields": {
-     "name": "cargo",
-     "repo-component": "universe"
-    },
-    "name": "cargo"
    }
   },
   "xmonad": {
@@ -21648,20 +21756,24 @@
    }
   },
   "bruno": {
-   "dnf\\flatpak": {
-    "driver": "dnf",
+   "native-pkg-file\\bruno": {
+    "driver": "native-pkg-file",
     "fields": {
-     "name": "flatpak"
+     "asset": {
+      "deb": {
+       "x86_64": "bruno_*_amd64_linux.deb"
+      },
+      "rpm": {
+       "x86_64": "bruno_*_x86_64_linux.rpm"
+      }
+     },
+     "name": "bruno",
+     "version": {
+      "github": "usebruno/bruno",
+      "strip-v": "true"
+     }
     },
-    "name": "flatpak"
-   },
-   "flatpak\\bruno": {
-    "driver": "flatpak",
-    "fields": {
-     "hub": "flathub",
-     "name": "com.usebruno.Bruno"
-    },
-    "name": "com.usebruno.Bruno"
+    "name": "bruno"
    }
   },
   "btop": {
@@ -22141,20 +22253,23 @@
    }
   },
   "dbeaver": {
-   "dnf\\flatpak": {
-    "driver": "dnf",
+   "native-pkg-file\\dbeaver": {
+    "driver": "native-pkg-file",
     "fields": {
-     "name": "flatpak"
+     "asset": {
+      "deb": {
+       "x86_64": "dbeaver-ce-*-linux-x86_64.deb"
+      },
+      "rpm": {
+       "x86_64": "dbeaver-ce-*-linux-x86_64.rpm"
+      }
+     },
+     "name": "dbeaver",
+     "version": {
+      "github": "dbeaver/dbeaver"
+     }
     },
-    "name": "flatpak"
-   },
-   "flatpak\\dbeaver": {
-    "driver": "flatpak",
-    "fields": {
-     "hub": "flathub",
-     "name": "io.dbeaver.DBeaverCommunity"
-    },
-    "name": "io.dbeaver.DBeaverCommunity"
+    "name": "dbeaver"
    }
   },
   "deno": {
@@ -23949,15 +24064,30 @@
    }
   },
   "ollama": {
-   "script\\ollama": {
-    "driver": "script",
+   "dnf\\curl": {
+    "driver": "dnf",
     "fields": {
-     "install-cmd": "curl -fsSL https://ollama.com/install.sh | sh",
-     "location": "/usr/local/bin/ollama",
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "dnf\\zstd": {
+    "driver": "dnf",
+    "fields": {
+     "name": "zstd"
+    },
+    "name": "zstd"
+   },
+   "tarball\\ollama": {
+    "driver": "tarball",
+    "fields": {
+     "installDir": "$CONFIGSYS_APP_DIR/ollama",
      "name": "ollama",
-     "uninstall-cmd": "sudo systemctl stop ollama 2>/dev/null; sudo rm -f /usr/local/bin/ollama /etc/systemd/system/ollama.service; sudo rm -rf /usr/share/ollama",
-     "version-cmd": "ollama --version",
-     "version-re": "([0-9]+\\.[0-9]+\\.[0-9]+)"
+     "version": {
+      "asset": "ollama-linux-amd64.tar.zst",
+      "github": "ollama/ollama",
+      "strip-v": "true"
+     }
     },
     "name": "ollama"
    }
@@ -25169,23 +25299,26 @@
    }
   },
   "websocat": {
-   "cargo\\websocat": {
-    "driver": "cargo",
+   "dnf\\curl": {
+    "driver": "dnf",
     "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "tarball\\websocat": {
+    "driver": "tarball",
+    "fields": {
+     "archive": "none",
+     "binary": "websocat",
+     "installDir": "$CONFIGSYS_APP_DIR/websocat",
      "name": "websocat",
      "version": {
-      "crates": "websocat"
+      "asset": "websocat.x86_64-unknown-linux-musl",
+      "github": "vi/websocat"
      }
     },
     "name": "websocat"
-   },
-   "dnf\\rust": {
-    "driver": "dnf",
-    "fields": {
-     "name": "cargo",
-     "repo-component": "universe"
-    },
-    "name": "cargo"
    }
   },
   "whois": {
@@ -25303,23 +25436,24 @@
    }
   },
   "xh": {
-   "cargo\\xh": {
-    "driver": "cargo",
+   "dnf\\curl": {
+    "driver": "dnf",
     "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "tarball\\xh": {
+    "driver": "tarball",
+    "fields": {
+     "installDir": "$CONFIGSYS_APP_DIR/xh",
      "name": "xh",
      "version": {
-      "crates": "xh"
+      "asset": "xh-*-x86_64-unknown-linux-musl.tar.gz",
+      "github": "ducaale/xh"
      }
     },
     "name": "xh"
-   },
-   "dnf\\rust": {
-    "driver": "dnf",
-    "fields": {
-     "name": "cargo",
-     "repo-component": "universe"
-    },
-    "name": "cargo"
    }
   },
   "xmonad": {
@@ -28200,20 +28334,23 @@
    }
   },
   "websocat": {
-   "brew\\rust": {
+   "brew\\curl": {
     "driver": "brew",
     "fields": {
-     "name": "rust",
-     "repo-component": "universe"
+     "name": "curl"
     },
-    "name": "rust"
+    "name": "curl"
    },
-   "cargo\\websocat": {
-    "driver": "cargo",
+   "tarball\\websocat": {
+    "driver": "tarball",
     "fields": {
+     "archive": "none",
+     "binary": "websocat",
+     "installDir": "$CONFIGSYS_APP_DIR/websocat",
      "name": "websocat",
      "version": {
-      "crates": "websocat"
+      "asset": "websocat.x86_64-unknown-linux-musl",
+      "github": "vi/websocat"
      }
     },
     "name": "websocat"
@@ -28316,20 +28453,21 @@
    }
   },
   "xh": {
-   "brew\\rust": {
+   "brew\\curl": {
     "driver": "brew",
     "fields": {
-     "name": "rust",
-     "repo-component": "universe"
+     "name": "curl"
     },
-    "name": "rust"
+    "name": "curl"
    },
-   "cargo\\xh": {
-    "driver": "cargo",
+   "tarball\\xh": {
+    "driver": "tarball",
     "fields": {
+     "installDir": "$CONFIGSYS_APP_DIR/xh",
      "name": "xh",
      "version": {
-      "crates": "xh"
+      "asset": "xh-*-x86_64-unknown-linux-musl.tar.gz",
+      "github": "ducaale/xh"
      }
     },
     "name": "xh"
@@ -28787,20 +28925,24 @@
    }
   },
   "bruno": {
-   "apt\\flatpak": {
-    "driver": "apt",
+   "native-pkg-file\\bruno": {
+    "driver": "native-pkg-file",
     "fields": {
-     "name": "flatpak"
+     "asset": {
+      "deb": {
+       "x86_64": "bruno_*_amd64_linux.deb"
+      },
+      "rpm": {
+       "x86_64": "bruno_*_x86_64_linux.rpm"
+      }
+     },
+     "name": "bruno",
+     "version": {
+      "github": "usebruno/bruno",
+      "strip-v": "true"
+     }
     },
-    "name": "flatpak"
-   },
-   "flatpak\\bruno": {
-    "driver": "flatpak",
-    "fields": {
-     "hub": "flathub",
-     "name": "com.usebruno.Bruno"
-    },
-    "name": "com.usebruno.Bruno"
+    "name": "bruno"
    }
   },
   "btop": {
@@ -29377,20 +29519,23 @@
    }
   },
   "dbeaver": {
-   "apt\\flatpak": {
-    "driver": "apt",
+   "native-pkg-file\\dbeaver": {
+    "driver": "native-pkg-file",
     "fields": {
-     "name": "flatpak"
+     "asset": {
+      "deb": {
+       "x86_64": "dbeaver-ce-*-linux-x86_64.deb"
+      },
+      "rpm": {
+       "x86_64": "dbeaver-ce-*-linux-x86_64.rpm"
+      }
+     },
+     "name": "dbeaver",
+     "version": {
+      "github": "dbeaver/dbeaver"
+     }
     },
-    "name": "flatpak"
-   },
-   "flatpak\\dbeaver": {
-    "driver": "flatpak",
-    "fields": {
-     "hub": "flathub",
-     "name": "io.dbeaver.DBeaverCommunity"
-    },
-    "name": "io.dbeaver.DBeaverCommunity"
+    "name": "dbeaver"
    }
   },
   "deno": {
@@ -31421,15 +31566,30 @@
    }
   },
   "ollama": {
-   "script\\ollama": {
-    "driver": "script",
+   "apt\\curl": {
+    "driver": "apt",
     "fields": {
-     "install-cmd": "curl -fsSL https://ollama.com/install.sh | sh",
-     "location": "/usr/local/bin/ollama",
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "apt\\zstd": {
+    "driver": "apt",
+    "fields": {
+     "name": "zstd"
+    },
+    "name": "zstd"
+   },
+   "tarball\\ollama": {
+    "driver": "tarball",
+    "fields": {
+     "installDir": "$CONFIGSYS_APP_DIR/ollama",
      "name": "ollama",
-     "uninstall-cmd": "sudo systemctl stop ollama 2>/dev/null; sudo rm -f /usr/local/bin/ollama /etc/systemd/system/ollama.service; sudo rm -rf /usr/share/ollama",
-     "version-cmd": "ollama --version",
-     "version-re": "([0-9]+\\.[0-9]+\\.[0-9]+)"
+     "version": {
+      "asset": "ollama-linux-amd64.tar.zst",
+      "github": "ollama/ollama",
+      "strip-v": "true"
+     }
     },
     "name": "ollama"
    }
@@ -32640,20 +32800,23 @@
    }
   },
   "websocat": {
-   "apt\\rust": {
+   "apt\\curl": {
     "driver": "apt",
     "fields": {
-     "name": "rust-all",
-     "repo-component": "universe"
+     "name": "curl"
     },
-    "name": "rust-all"
+    "name": "curl"
    },
-   "cargo\\websocat": {
-    "driver": "cargo",
+   "tarball\\websocat": {
+    "driver": "tarball",
     "fields": {
+     "archive": "none",
+     "binary": "websocat",
+     "installDir": "$CONFIGSYS_APP_DIR/websocat",
      "name": "websocat",
      "version": {
-      "crates": "websocat"
+      "asset": "websocat.x86_64-unknown-linux-musl",
+      "github": "vi/websocat"
      }
     },
     "name": "websocat"
@@ -32765,20 +32928,21 @@
    }
   },
   "xh": {
-   "apt\\rust": {
+   "apt\\curl": {
     "driver": "apt",
     "fields": {
-     "name": "rust-all",
-     "repo-component": "universe"
+     "name": "curl"
     },
-    "name": "rust-all"
+    "name": "curl"
    },
-   "cargo\\xh": {
-    "driver": "cargo",
+   "tarball\\xh": {
+    "driver": "tarball",
     "fields": {
+     "installDir": "$CONFIGSYS_APP_DIR/xh",
      "name": "xh",
      "version": {
-      "crates": "xh"
+      "asset": "xh-*-x86_64-unknown-linux-musl.tar.gz",
+      "github": "ducaale/xh"
      }
     },
     "name": "xh"
@@ -33282,20 +33446,24 @@
    }
   },
   "bruno": {
-   "dnf\\flatpak": {
-    "driver": "dnf",
+   "native-pkg-file\\bruno": {
+    "driver": "native-pkg-file",
     "fields": {
-     "name": "flatpak"
+     "asset": {
+      "deb": {
+       "x86_64": "bruno_*_amd64_linux.deb"
+      },
+      "rpm": {
+       "x86_64": "bruno_*_x86_64_linux.rpm"
+      }
+     },
+     "name": "bruno",
+     "version": {
+      "github": "usebruno/bruno",
+      "strip-v": "true"
+     }
     },
-    "name": "flatpak"
-   },
-   "flatpak\\bruno": {
-    "driver": "flatpak",
-    "fields": {
-     "hub": "flathub",
-     "name": "com.usebruno.Bruno"
-    },
-    "name": "com.usebruno.Bruno"
+    "name": "bruno"
    }
   },
   "btop": {
@@ -33792,20 +33960,23 @@
    }
   },
   "dbeaver": {
-   "dnf\\flatpak": {
-    "driver": "dnf",
+   "native-pkg-file\\dbeaver": {
+    "driver": "native-pkg-file",
     "fields": {
-     "name": "flatpak"
+     "asset": {
+      "deb": {
+       "x86_64": "dbeaver-ce-*-linux-x86_64.deb"
+      },
+      "rpm": {
+       "x86_64": "dbeaver-ce-*-linux-x86_64.rpm"
+      }
+     },
+     "name": "dbeaver",
+     "version": {
+      "github": "dbeaver/dbeaver"
+     }
     },
-    "name": "flatpak"
-   },
-   "flatpak\\dbeaver": {
-    "driver": "flatpak",
-    "fields": {
-     "hub": "flathub",
-     "name": "io.dbeaver.DBeaverCommunity"
-    },
-    "name": "io.dbeaver.DBeaverCommunity"
+    "name": "dbeaver"
    }
   },
   "deno": {
@@ -35726,15 +35897,30 @@
    }
   },
   "ollama": {
-   "script\\ollama": {
-    "driver": "script",
+   "dnf\\curl": {
+    "driver": "dnf",
     "fields": {
-     "install-cmd": "curl -fsSL https://ollama.com/install.sh | sh",
-     "location": "/usr/local/bin/ollama",
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "dnf\\zstd": {
+    "driver": "dnf",
+    "fields": {
+     "name": "zstd"
+    },
+    "name": "zstd"
+   },
+   "tarball\\ollama": {
+    "driver": "tarball",
+    "fields": {
+     "installDir": "$CONFIGSYS_APP_DIR/ollama",
      "name": "ollama",
-     "uninstall-cmd": "sudo systemctl stop ollama 2>/dev/null; sudo rm -f /usr/local/bin/ollama /etc/systemd/system/ollama.service; sudo rm -rf /usr/share/ollama",
-     "version-cmd": "ollama --version",
-     "version-re": "([0-9]+\\.[0-9]+\\.[0-9]+)"
+     "version": {
+      "asset": "ollama-linux-amd64.tar.zst",
+      "github": "ollama/ollama",
+      "strip-v": "true"
+     }
     },
     "name": "ollama"
    }
@@ -37000,23 +37186,26 @@
    }
   },
   "websocat": {
-   "cargo\\websocat": {
-    "driver": "cargo",
+   "dnf\\curl": {
+    "driver": "dnf",
     "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "tarball\\websocat": {
+    "driver": "tarball",
+    "fields": {
+     "archive": "none",
+     "binary": "websocat",
+     "installDir": "$CONFIGSYS_APP_DIR/websocat",
      "name": "websocat",
      "version": {
-      "crates": "websocat"
+      "asset": "websocat.x86_64-unknown-linux-musl",
+      "github": "vi/websocat"
      }
     },
     "name": "websocat"
-   },
-   "dnf\\rust": {
-    "driver": "dnf",
-    "fields": {
-     "name": "cargo",
-     "repo-component": "universe"
-    },
-    "name": "cargo"
    }
   },
   "whois": {
@@ -37140,23 +37329,24 @@
    }
   },
   "xh": {
-   "cargo\\xh": {
-    "driver": "cargo",
+   "dnf\\curl": {
+    "driver": "dnf",
     "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "tarball\\xh": {
+    "driver": "tarball",
+    "fields": {
+     "installDir": "$CONFIGSYS_APP_DIR/xh",
      "name": "xh",
      "version": {
-      "crates": "xh"
+      "asset": "xh-*-x86_64-unknown-linux-musl.tar.gz",
+      "github": "ducaale/xh"
      }
     },
     "name": "xh"
-   },
-   "dnf\\rust": {
-    "driver": "dnf",
-    "fields": {
-     "name": "cargo",
-     "repo-component": "universe"
-    },
-    "name": "cargo"
    }
   },
   "xmonad": {
@@ -37666,20 +37856,24 @@
    }
   },
   "bruno": {
-   "apt\\flatpak": {
-    "driver": "apt",
+   "native-pkg-file\\bruno": {
+    "driver": "native-pkg-file",
     "fields": {
-     "name": "flatpak"
+     "asset": {
+      "deb": {
+       "x86_64": "bruno_*_amd64_linux.deb"
+      },
+      "rpm": {
+       "x86_64": "bruno_*_x86_64_linux.rpm"
+      }
+     },
+     "name": "bruno",
+     "version": {
+      "github": "usebruno/bruno",
+      "strip-v": "true"
+     }
     },
-    "name": "flatpak"
-   },
-   "flatpak\\bruno": {
-    "driver": "flatpak",
-    "fields": {
-     "hub": "flathub",
-     "name": "com.usebruno.Bruno"
-    },
-    "name": "com.usebruno.Bruno"
+    "name": "bruno"
    }
   },
   "btop": {
@@ -38247,20 +38441,23 @@
    }
   },
   "dbeaver": {
-   "apt\\flatpak": {
-    "driver": "apt",
+   "native-pkg-file\\dbeaver": {
+    "driver": "native-pkg-file",
     "fields": {
-     "name": "flatpak"
+     "asset": {
+      "deb": {
+       "x86_64": "dbeaver-ce-*-linux-x86_64.deb"
+      },
+      "rpm": {
+       "x86_64": "dbeaver-ce-*-linux-x86_64.rpm"
+      }
+     },
+     "name": "dbeaver",
+     "version": {
+      "github": "dbeaver/dbeaver"
+     }
     },
-    "name": "flatpak"
-   },
-   "flatpak\\dbeaver": {
-    "driver": "flatpak",
-    "fields": {
-     "hub": "flathub",
-     "name": "io.dbeaver.DBeaverCommunity"
-    },
-    "name": "io.dbeaver.DBeaverCommunity"
+    "name": "dbeaver"
    }
   },
   "deno": {
@@ -40291,15 +40488,30 @@
    }
   },
   "ollama": {
-   "script\\ollama": {
-    "driver": "script",
+   "apt\\curl": {
+    "driver": "apt",
     "fields": {
-     "install-cmd": "curl -fsSL https://ollama.com/install.sh | sh",
-     "location": "/usr/local/bin/ollama",
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "apt\\zstd": {
+    "driver": "apt",
+    "fields": {
+     "name": "zstd"
+    },
+    "name": "zstd"
+   },
+   "tarball\\ollama": {
+    "driver": "tarball",
+    "fields": {
+     "installDir": "$CONFIGSYS_APP_DIR/ollama",
      "name": "ollama",
-     "uninstall-cmd": "sudo systemctl stop ollama 2>/dev/null; sudo rm -f /usr/local/bin/ollama /etc/systemd/system/ollama.service; sudo rm -rf /usr/share/ollama",
-     "version-cmd": "ollama --version",
-     "version-re": "([0-9]+\\.[0-9]+\\.[0-9]+)"
+     "version": {
+      "asset": "ollama-linux-amd64.tar.zst",
+      "github": "ollama/ollama",
+      "strip-v": "true"
+     }
     },
     "name": "ollama"
    }
@@ -41517,20 +41729,23 @@
    }
   },
   "websocat": {
-   "apt\\rust": {
+   "apt\\curl": {
     "driver": "apt",
     "fields": {
-     "name": "rust-all",
-     "repo-component": "universe"
+     "name": "curl"
     },
-    "name": "rust-all"
+    "name": "curl"
    },
-   "cargo\\websocat": {
-    "driver": "cargo",
+   "tarball\\websocat": {
+    "driver": "tarball",
     "fields": {
+     "archive": "none",
+     "binary": "websocat",
+     "installDir": "$CONFIGSYS_APP_DIR/websocat",
      "name": "websocat",
      "version": {
-      "crates": "websocat"
+      "asset": "websocat.x86_64-unknown-linux-musl",
+      "github": "vi/websocat"
      }
     },
     "name": "websocat"
@@ -41642,20 +41857,21 @@
    }
   },
   "xh": {
-   "apt\\rust": {
+   "apt\\curl": {
     "driver": "apt",
     "fields": {
-     "name": "rust-all",
-     "repo-component": "universe"
+     "name": "curl"
     },
-    "name": "rust-all"
+    "name": "curl"
    },
-   "cargo\\xh": {
-    "driver": "cargo",
+   "tarball\\xh": {
+    "driver": "tarball",
     "fields": {
+     "installDir": "$CONFIGSYS_APP_DIR/xh",
      "name": "xh",
      "version": {
-      "crates": "xh"
+      "asset": "xh-*-x86_64-unknown-linux-musl.tar.gz",
+      "github": "ducaale/xh"
      }
     },
     "name": "xh"
@@ -42139,20 +42355,24 @@
    }
   },
   "bruno": {
-   "apt\\flatpak": {
-    "driver": "apt",
+   "native-pkg-file\\bruno": {
+    "driver": "native-pkg-file",
     "fields": {
-     "name": "flatpak"
+     "asset": {
+      "deb": {
+       "x86_64": "bruno_*_amd64_linux.deb"
+      },
+      "rpm": {
+       "x86_64": "bruno_*_x86_64_linux.rpm"
+      }
+     },
+     "name": "bruno",
+     "version": {
+      "github": "usebruno/bruno",
+      "strip-v": "true"
+     }
     },
-    "name": "flatpak"
-   },
-   "flatpak\\bruno": {
-    "driver": "flatpak",
-    "fields": {
-     "hub": "flathub",
-     "name": "com.usebruno.Bruno"
-    },
-    "name": "com.usebruno.Bruno"
+    "name": "bruno"
    }
   },
   "btop": {
@@ -42710,20 +42930,23 @@
    }
   },
   "dbeaver": {
-   "apt\\flatpak": {
-    "driver": "apt",
+   "native-pkg-file\\dbeaver": {
+    "driver": "native-pkg-file",
     "fields": {
-     "name": "flatpak"
+     "asset": {
+      "deb": {
+       "x86_64": "dbeaver-ce-*-linux-x86_64.deb"
+      },
+      "rpm": {
+       "x86_64": "dbeaver-ce-*-linux-x86_64.rpm"
+      }
+     },
+     "name": "dbeaver",
+     "version": {
+      "github": "dbeaver/dbeaver"
+     }
     },
-    "name": "flatpak"
-   },
-   "flatpak\\dbeaver": {
-    "driver": "flatpak",
-    "fields": {
-     "hub": "flathub",
-     "name": "io.dbeaver.DBeaverCommunity"
-    },
-    "name": "io.dbeaver.DBeaverCommunity"
+    "name": "dbeaver"
    }
   },
   "deno": {
@@ -44714,15 +44937,30 @@
    }
   },
   "ollama": {
-   "script\\ollama": {
-    "driver": "script",
+   "apt\\curl": {
+    "driver": "apt",
     "fields": {
-     "install-cmd": "curl -fsSL https://ollama.com/install.sh | sh",
-     "location": "/usr/local/bin/ollama",
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "apt\\zstd": {
+    "driver": "apt",
+    "fields": {
+     "name": "zstd"
+    },
+    "name": "zstd"
+   },
+   "tarball\\ollama": {
+    "driver": "tarball",
+    "fields": {
+     "installDir": "$CONFIGSYS_APP_DIR/ollama",
      "name": "ollama",
-     "uninstall-cmd": "sudo systemctl stop ollama 2>/dev/null; sudo rm -f /usr/local/bin/ollama /etc/systemd/system/ollama.service; sudo rm -rf /usr/share/ollama",
-     "version-cmd": "ollama --version",
-     "version-re": "([0-9]+\\.[0-9]+\\.[0-9]+)"
+     "version": {
+      "asset": "ollama-linux-amd64.tar.zst",
+      "github": "ollama/ollama",
+      "strip-v": "true"
+     }
     },
     "name": "ollama"
    }
@@ -45910,20 +46148,23 @@
    }
   },
   "websocat": {
-   "apt\\rust": {
+   "apt\\curl": {
     "driver": "apt",
     "fields": {
-     "name": "rust-all",
-     "repo-component": "universe"
+     "name": "curl"
     },
-    "name": "rust-all"
+    "name": "curl"
    },
-   "cargo\\websocat": {
-    "driver": "cargo",
+   "tarball\\websocat": {
+    "driver": "tarball",
     "fields": {
+     "archive": "none",
+     "binary": "websocat",
+     "installDir": "$CONFIGSYS_APP_DIR/websocat",
      "name": "websocat",
      "version": {
-      "crates": "websocat"
+      "asset": "websocat.x86_64-unknown-linux-musl",
+      "github": "vi/websocat"
      }
     },
     "name": "websocat"
@@ -46035,20 +46276,21 @@
    }
   },
   "xh": {
-   "apt\\rust": {
+   "apt\\curl": {
     "driver": "apt",
     "fields": {
-     "name": "rust-all",
-     "repo-component": "universe"
+     "name": "curl"
     },
-    "name": "rust-all"
+    "name": "curl"
    },
-   "cargo\\xh": {
-    "driver": "cargo",
+   "tarball\\xh": {
+    "driver": "tarball",
     "fields": {
+     "installDir": "$CONFIGSYS_APP_DIR/xh",
      "name": "xh",
      "version": {
-      "crates": "xh"
+      "asset": "xh-*-x86_64-unknown-linux-musl.tar.gz",
+      "github": "ducaale/xh"
      }
     },
     "name": "xh"

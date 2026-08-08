@@ -30,7 +30,30 @@ proved ZERO default flips from these (candidate-only). `gh` snap SKIPPED — it'
 official GitHub. Remaining snap candidates if wanted (all verified official/Canonical): a `code`-vs-
 native question is moot now; could still add snaps for more apps, but they'd all be candidate-only.
 
-## 2. Binary-release sweep (tarball / native-pkg-file / appImage) — NOW VERIFIED, ready to author
+## 2. Binary-release sweep — MOSTLY SHIPPED (globs live-validated against GitHub)
+**INTEGRATED (14 components, every asset glob confirmed to match a current release asset):**
+tarball → ripgrep, fzf, btop, jq (raw), protobuf, xh*, websocat* (raw), ollama†, zed, k3s (kept
+script default via `prefer:` — the get.k3s.io script sets up the systemd service; tarball is the
+bare-binary option); native-pkg-file (.deb+.rpm in one binding) → dbeaver, bruno; appImage →
+musescore, freecad. (* xh/websocat default flipped cargo→tarball as you OK'd. † ollama default
+flipped script→tarball — the tarball is userland, consistent with configsys avoiding curl|sudo
+scripts. dbeaver/bruno default flatpak→native-pkg-file on debian/redhat: their `.deb`/`.rpm` binding
+is `when:`-gated so it wins by specificity — a sensible native default for a DB GUI; flatpak stays
+the default on arch/atomic and remains a listed option everywhere.)
+
+**STILL DEFERRED (4, with the specific blocker):**
+- **tree-sitter-cli** — asset is a plain-gzipped single ELF (`.gz`, not a tar); the tarball driver
+  only does tar/zip/raw, so it can't gunzip-a-single-file. Left cargo-only (so no `prefer:` needed —
+  cargo is the sole method). Would need a driver `gunzip` mode or a `via: script`.
+- **insomnia** — monorepo release tags (`core@13.1.0`); `discover_asset_url` only reads
+  `releases/latest`, which for a monorepo may not be the Core release → unreliable. Needs
+  release-search-by-asset, not latest-only. Left flatpak-only.
+- **godot** — `releases/latest` is often an `-rc`/`-dev`, but the stable asset glob is `*-stable*`;
+  latest-only discovery would miss it. Left flatpak-only.
+- **openscad** — GitHub "latest" is the stale 2021.01; current nightlies live on files.openscad.org
+  (not GitHub), so no GH `version:` discovery works. Needs a bespoke non-GH `url:`. Left flatpak-only.
+
+--- original research notes (asset facts now folded into the shipped bindings) ---
 **Asset names below were confirmed on the actual GitHub releases (2026-08-08 networked pass).**
 Study existing `via: tarball` / `via: native-pkg-file` / `via: appImage` bindings for field syntax
 (`version: { github: owner/repo  strip-v:  asset: }`, `installDir`, `archive`, `binary`, `requires`).
