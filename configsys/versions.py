@@ -24,6 +24,7 @@ from .troveio import emit_hu, load
 
 DEFAULT_TTL = 86400  # 24h
 GITHUB_LATEST = 'https://api.github.com/repos/{repo}/releases/latest'
+GITHUB_RELEASES = 'https://api.github.com/repos/{repo}/releases?per_page=30'
 
 
 def http_fetch(url, timeout=10):
@@ -71,24 +72,56 @@ def source_key(spec):
     return 'spec:' + json.dumps(spec, sort_keys=True)
 
 
+def _match_release(rel, pattern):
+    '''(tag, asset-download-url) for one GitHub release JSON. url is None when `pattern` is falsy
+    or no asset name matches the glob (case-insensitive — upstream varies Linux/linux).'''
+    tag = rel.get('tag_name')
+    if pattern:
+        pat = pattern.lower()
+        for asset in rel.get('assets', []):
+            if fnmatch.fnmatch(asset.get('name', '').lower(), pat):
+                return tag, asset.get('browser_download_url')
+    return tag, None
+
+
 def _discover_live(spec, fetch):
     '''Return (version, download_url). download_url is only set when a github
     `asset` glob matches a release asset (authoritative URL from the API).'''
     if 'static' in spec:
         return str(spec['static']), None
     if 'github' in spec:
-        data = json.loads(fetch(GITHUB_LATEST.format(repo=spec['github'])))
-        tag = data.get('tag_name')
-        if tag and spec.get('strip-v') and tag.startswith('v'):
-            tag = tag[1:]
-        url = None
-        pattern = spec.get('asset')
-        if pattern:
-            pat = pattern.lower()          # case-insensitive: upstream varies Linux/linux etc.
-            for asset in data.get('assets', []):
-                if fnmatch.fnmatch(asset.get('name', '').lower(), pat):
-                    url = asset.get('browser_download_url')
+        repo, pattern = spec['github'], spec.get('asset')
+        tag = url = None
+        try:
+            tag, url = _match_release(json.loads(fetch(GITHUB_LATEST.format(repo=repo))), pattern)
+        except Exception:
+            pass          # only-prerelease repo (no `latest`), or transient — scan the list below
+        # Scan recent releases (newest first, incl. prereleases) when the `latest` shortcut can't
+        # answer: it failed, or an `asset` glob was given but the latest release has no matching
+        # asset — a monorepo tagging scheme (`core@X.Y.Z`) or a newest release that's an RC / a
+        # different component's build. The glob does the filtering, so a `*-stable*` asset still
+        # skips RC releases even though the scan includes them.
+        if tag is None or (pattern and url is None):
+            for rel in json.loads(fetch(GITHUB_RELEASES.format(repo=repo))):
+                t, u = _match_release(rel, pattern)
+                if tag is None:
+                    tag = t                        # newest tag, if `latest` gave us nothing
+                if not pattern:
+                    break                          # only a version wanted; newest tag suffices
+                if u is not None:
+                    tag, url = t, u                # this release actually carries the asset
                     break
+        if tag:
+            # `tag-re:` extracts the version from a tag that carries more than the number — a
+            # monorepo scope (`core@13.1.0`) or a channel suffix (`4.7.1-stable`). First capture
+            # group if any, else the whole match. `strip-v:` is the common special case.
+            tre = spec.get('tag-re')
+            if tre:
+                m = re.search(tre, tag)
+                if m:
+                    tag = m.group(1) if m.groups() else m.group(0)
+            if spec.get('strip-v') and tag.startswith('v'):
+                tag = tag[1:]
         return tag, url
     if 'crates' in spec:
         data = json.loads(fetch(CRATES_LATEST.format(crate=spec['crates'])))

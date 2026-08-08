@@ -41,16 +41,14 @@ scripts. dbeaver/bruno default flatpak→native-pkg-file on debian/redhat: their
 is `when:`-gated so it wins by specificity — a sensible native default for a DB GUI; flatpak stays
 the default on arch/atomic and remains a listed option everywhere.)
 
-**STILL DEFERRED (3, with the specific blocker):**
-- ~~tree-sitter-cli~~ **DONE** — added an `archive: gz` mode to the tarball driver (gunzip a single
-  compressed binary straight to installDir/<binary>; distinct from `.tar.gz`, which tar handles).
-  tree-sitter-cli now offers it but KEEPS cargo as the default via `prefer: 1` (build-from-source
-  for those who don't want the prebuilt binary).
-- **insomnia** — monorepo release tags (`core@13.1.0`); `discover_asset_url` only reads
-  `releases/latest`, which for a monorepo may not be the Core release → unreliable. Needs
-  release-search-by-asset, not latest-only. Left flatpak-only.
-- **godot** — `releases/latest` is often an `-rc`/`-dev`, but the stable asset glob is `*-stable*`;
-  latest-only discovery would miss it. Left flatpak-only.
+**STILL DEFERRED (1, with the specific blocker):**
+- ~~tree-sitter-cli~~ **DONE** — `archive: gz` mode on the tarball driver (gunzip a single compressed
+  binary; distinct from `.tar.gz`). Offers it but KEEPS cargo default via `prefer: 1`.
+- ~~insomnia, godot~~ **DONE** — `discover_asset_url` now scans recent releases (not just
+  `releases/latest`) for one whose assets match the glob, so monorepo `core@` tags and RC-latest
+  repos resolve; a new `tag-re:` extracts a clean version (`core@13.1.0`→`13.1.0`, `4.7.1-stable`→
+  `4.7.1`). insomnia = .deb/.rpm (default on debian/redhat, flatpak elsewhere); godot = tarball
+  option (flatpak stays default; the zip holds a single `Godot_v<ver>_linux.x86_64` exe).
 - **openscad** — GitHub "latest" is the stale 2021.01; current nightlies live on files.openscad.org
   (not GitHub), so no GH `version:` discovery works. Needs a bespoke non-GH `url:`. Left flatpak-only.
 

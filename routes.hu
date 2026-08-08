@@ -519,7 +519,7 @@
 
         // GUI API clients — Flatpak from Flathub, like chrome (all community-maintained, current).
         postman:  { description: "Postman — a GUI for building and testing APIs." install: [ { via: flatpak  hub: flathub  app: com.getpostman.Postman }  { via: snap  when: "ubuntu"  name: postman } ] }
-        insomnia: { description: "Insomnia — an open-source API client and design tool." install: [ { via: flatpak  hub: flathub  app: rest.insomnia.Insomnia } ] }
+        insomnia: { description: "Insomnia — an open-source API client and design tool." install: [ { via: flatpak  hub: flathub  app: rest.insomnia.Insomnia }  { via: native-pkg-file  when: "debian or redhat"  version: { github: Kong/insomnia  tag-re: "([0-9][0-9.]*)" }  asset: { deb: { x86_64: "Insomnia.Core-*.deb" }  rpm: { x86_64: "Insomnia.Core-*.rpm" } } } ] }   // monorepo `core@` tags: the release scan finds the Core release; tag-re -> clean version
         bruno:    { description: "Bruno — a fast, git-friendly, offline-first API client." install: [ { via: flatpak  hub: flathub  app: com.usebruno.Bruno }  { via: native-pkg-file  when: "debian or redhat"  version: { github: usebruno/bruno  strip-v: true }  asset: { deb: { x86_64: "bruno_*_amd64_linux.deb" }  rpm: { x86_64: "bruno_*_x86_64_linux.rpm" } } } ] }   // upstream .deb (amd64)/.rpm (x86_64 token differs)
         tree-sitter-cli: { description: "tree-sitter CLI — build and test tree-sitter grammars."
             install: [ { via: cargo  name: tree-sitter-cli  prefer: 1  version: { crates: tree-sitter-cli } }   // kept the default (some want it built from source, without the prebuilt-binary apparatus)
@@ -712,7 +712,7 @@
         darktable:  { description: "darktable — RAW photo workflow and non-destructive editing." install: [ { via: flatpak  hub: flathub  app: org.darktable.Darktable } ] }
         freecad:    { description: "FreeCAD — a parametric 3D CAD modeler." install: [ { via: flatpak  hub: flathub  app: org.freecad.FreeCAD }  { via: appImage  name: FreeCAD  scope: user  version: { github: FreeCAD/FreeCAD  asset: "FreeCAD_*-Linux-x86_64-*.AppImage" }  path: ~/apps/freecad.appimage } ] }   // asset glob absorbs the bundled-python (pyXYZ) token
         openscad:   { description: "OpenSCAD — the programmer's solid 3D CAD modeller." install: [ { via: flatpak  hub: flathub  app: org.openscad.OpenSCAD } ] }
-        godot:      { description: "Godot — an open-source 2D/3D game engine." install: [ { via: flatpak  hub: flathub  app: org.godotengine.Godot } ] }
+        godot:      { description: "Godot — an open-source 2D/3D game engine." install: [ { via: flatpak  hub: flathub  app: org.godotengine.Godot }  { via: tarball  installDir: "$CONFIGSYS_APP_DIR/godot"  requires: unzip  version: { github: godotengine/godot  tag-re: "([0-9][0-9.]*)"  asset: "Godot_v*-stable_linux.x86_64.zip" } } ] }   // flatpak stays default; the zip holds a single `Godot_v<ver>_linux.x86_64` exe (no clean rename for zip)
         scribus:    { description: "Scribus — open-source desktop publishing (DTP)." install: [ { via: flatpak  hub: flathub  app: net.scribus.Scribus } ] }
         digikam:    { description: "digiKam — photo management and RAW editing." install: [ { via: flatpak  hub: flathub  app: org.kde.digikam } ] }
         obs-studio: { description: "OBS Studio — live streaming and screen recording." install: [ { via: flatpak  hub: flathub  app: com.obsproject.Studio }  { via: snap  when: "ubuntu"  name: obs-studio } ] }

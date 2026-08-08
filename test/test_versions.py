@@ -64,6 +64,54 @@ def test_asset_absent_url_is_none():
     assert versions.discover_asset_url({'github': 'neovim/neovim'}, fetch=f) is None
 
 
+# -- multi-release scan (monorepo tags / RC-latest) + tag-re -----------------
+INS = 'kong/insomnia'
+INS_LATEST = versions.GITHUB_LATEST.format(repo=INS)
+INS_LIST = versions.GITHUB_RELEASES.format(repo=INS)
+
+
+def test_asset_scan_falls_back_to_recent_releases():
+    # the newest release is a different monorepo component (no Core .deb); an earlier release has it
+    latest = json.dumps({'tag_name': 'inso@11.0.0', 'assets': [
+        {'name': 'inso-linux-11.0.0.tar.xz', 'browser_download_url': 'https://gh/inso.txz'}]})
+    listing = json.dumps([
+        {'tag_name': 'inso@11.0.0', 'assets': [
+            {'name': 'inso-linux-11.0.0.tar.xz', 'browser_download_url': 'https://gh/inso.txz'}]},
+        {'tag_name': 'core@13.1.0', 'assets': [
+            {'name': 'Insomnia.Core-13.1.0.deb', 'browser_download_url': 'https://gh/core.deb'}]}])
+    f = fetcher({INS_LATEST: latest, INS_LIST: listing})
+    spec = {'github': INS, 'asset': 'Insomnia.Core-*.deb'}
+    assert versions.discover_asset_url(spec, fetch=f) == 'https://gh/core.deb'
+    assert versions.discover(spec, fetch=f) == 'core@13.1.0'   # the MATCHING release's tag, not latest
+
+
+def test_tag_re_extracts_version_from_scoped_tag():
+    latest = json.dumps({'tag_name': 'core@13.1.0', 'assets': [
+        {'name': 'Insomnia.Core-13.1.0.deb', 'browser_download_url': 'https://gh/core.deb'}]})
+    f = fetcher({INS_LATEST: latest})
+    spec = {'github': INS, 'asset': 'Insomnia.Core-*.deb', 'tag-re': '([0-9][0-9.]*)'}
+    assert versions.discover(spec, fetch=f) == '13.1.0'
+
+
+def test_no_release_list_fetch_when_latest_matches():
+    # perf guard: when the latest release already carries the asset, the list endpoint is NOT hit
+    # (the fetcher would KeyError on the un-provided list URL if it were).
+    f = fetcher({GH: RELEASE_JSON})
+    spec = {'github': 'neovim/neovim', 'asset': 'nvim-linux-x86_64.appimage'}
+    assert versions.discover_asset_url(spec, fetch=f) == 'https://gh/x86_64.appimage'
+    assert all('releases?per_page' not in u for u in f.calls)
+
+
+def test_latest_failure_falls_back_to_release_list():
+    # only-prerelease repo: /releases/latest 404s (fetcher raises) -> scan the list instead
+    listing = json.dumps([{'tag_name': 'v2.0.0', 'assets': [
+        {'name': 'tool-linux.tar.gz', 'browser_download_url': 'https://gh/t.tgz'}]}])
+    f = fetcher({versions.GITHUB_RELEASES.format(repo='neovim/neovim'): listing})  # no latest URL
+    spec = {'github': 'neovim/neovim', 'asset': 'tool-linux.tar.gz'}
+    assert versions.discover_asset_url(spec, fetch=f) == 'https://gh/t.tgz'
+    assert versions.discover(spec, fetch=f) == 'v2.0.0'
+
+
 def test_asset_glob_matches_case_insensitively():
     # upstream varies Linux/linux (lazygit ships `..._linux_x86_64...`); a route glob written
     # with `Linux` must still match, else the tarball driver bails with "no url".

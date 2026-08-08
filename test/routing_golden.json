@@ -5817,20 +5817,24 @@
    }
   },
   "insomnia": {
-   "apt\\flatpak": {
-    "driver": "apt",
+   "native-pkg-file\\insomnia": {
+    "driver": "native-pkg-file",
     "fields": {
-     "name": "flatpak"
+     "asset": {
+      "deb": {
+       "x86_64": "Insomnia.Core-*.deb"
+      },
+      "rpm": {
+       "x86_64": "Insomnia.Core-*.rpm"
+      }
+     },
+     "name": "insomnia",
+     "version": {
+      "github": "Kong/insomnia",
+      "tag-re": "([0-9][0-9.]*)"
+     }
     },
-    "name": "flatpak"
-   },
-   "flatpak\\insomnia": {
-    "driver": "flatpak",
-    "fields": {
-     "hub": "flathub",
-     "name": "rest.insomnia.Insomnia"
-    },
-    "name": "rest.insomnia.Insomnia"
+    "name": "insomnia"
    }
   },
   "intel-oneapi-basekit": {
@@ -10306,20 +10310,24 @@
    }
   },
   "insomnia": {
-   "apt\\flatpak": {
-    "driver": "apt",
+   "native-pkg-file\\insomnia": {
+    "driver": "native-pkg-file",
     "fields": {
-     "name": "flatpak"
+     "asset": {
+      "deb": {
+       "x86_64": "Insomnia.Core-*.deb"
+      },
+      "rpm": {
+       "x86_64": "Insomnia.Core-*.rpm"
+      }
+     },
+     "name": "insomnia",
+     "version": {
+      "github": "Kong/insomnia",
+      "tag-re": "([0-9][0-9.]*)"
+     }
     },
-    "name": "flatpak"
-   },
-   "flatpak\\insomnia": {
-    "driver": "flatpak",
-    "fields": {
-     "hub": "flathub",
-     "name": "rest.insomnia.Insomnia"
-    },
-    "name": "rest.insomnia.Insomnia"
+    "name": "insomnia"
    }
   },
   "intel-oneapi-basekit": {
@@ -14715,20 +14723,24 @@
    }
   },
   "insomnia": {
-   "apt\\flatpak": {
-    "driver": "apt",
+   "native-pkg-file\\insomnia": {
+    "driver": "native-pkg-file",
     "fields": {
-     "name": "flatpak"
+     "asset": {
+      "deb": {
+       "x86_64": "Insomnia.Core-*.deb"
+      },
+      "rpm": {
+       "x86_64": "Insomnia.Core-*.rpm"
+      }
+     },
+     "name": "insomnia",
+     "version": {
+      "github": "Kong/insomnia",
+      "tag-re": "([0-9][0-9.]*)"
+     }
     },
-    "name": "flatpak"
-   },
-   "flatpak\\insomnia": {
-    "driver": "flatpak",
-    "fields": {
-     "hub": "flathub",
-     "name": "rest.insomnia.Insomnia"
-    },
-    "name": "rest.insomnia.Insomnia"
+    "name": "insomnia"
    }
   },
   "intel-oneapi-basekit": {
@@ -18887,20 +18899,24 @@
    }
   },
   "insomnia": {
-   "dnf\\flatpak": {
-    "driver": "dnf",
+   "native-pkg-file\\insomnia": {
+    "driver": "native-pkg-file",
     "fields": {
-     "name": "flatpak"
+     "asset": {
+      "deb": {
+       "x86_64": "Insomnia.Core-*.deb"
+      },
+      "rpm": {
+       "x86_64": "Insomnia.Core-*.rpm"
+      }
+     },
+     "name": "insomnia",
+     "version": {
+      "github": "Kong/insomnia",
+      "tag-re": "([0-9][0-9.]*)"
+     }
     },
-    "name": "flatpak"
-   },
-   "flatpak\\insomnia": {
-    "driver": "flatpak",
-    "fields": {
-     "hub": "flathub",
-     "name": "rest.insomnia.Insomnia"
-    },
-    "name": "rest.insomnia.Insomnia"
+    "name": "insomnia"
    }
   },
   "intel-oneapi-basekit": {
@@ -23067,20 +23083,24 @@
    }
   },
   "insomnia": {
-   "dnf\\flatpak": {
-    "driver": "dnf",
+   "native-pkg-file\\insomnia": {
+    "driver": "native-pkg-file",
     "fields": {
-     "name": "flatpak"
+     "asset": {
+      "deb": {
+       "x86_64": "Insomnia.Core-*.deb"
+      },
+      "rpm": {
+       "x86_64": "Insomnia.Core-*.rpm"
+      }
+     },
+     "name": "insomnia",
+     "version": {
+      "github": "Kong/insomnia",
+      "tag-re": "([0-9][0-9.]*)"
+     }
     },
-    "name": "flatpak"
-   },
-   "flatpak\\insomnia": {
-    "driver": "flatpak",
-    "fields": {
-     "hub": "flathub",
-     "name": "rest.insomnia.Insomnia"
-    },
-    "name": "rest.insomnia.Insomnia"
+    "name": "insomnia"
    }
   },
   "intel-oneapi-basekit": {
@@ -30466,20 +30486,24 @@
    }
   },
   "insomnia": {
-   "apt\\flatpak": {
-    "driver": "apt",
+   "native-pkg-file\\insomnia": {
+    "driver": "native-pkg-file",
     "fields": {
-     "name": "flatpak"
+     "asset": {
+      "deb": {
+       "x86_64": "Insomnia.Core-*.deb"
+      },
+      "rpm": {
+       "x86_64": "Insomnia.Core-*.rpm"
+      }
+     },
+     "name": "insomnia",
+     "version": {
+      "github": "Kong/insomnia",
+      "tag-re": "([0-9][0-9.]*)"
+     }
     },
-    "name": "flatpak"
-   },
-   "flatpak\\insomnia": {
-    "driver": "flatpak",
-    "fields": {
-     "hub": "flathub",
-     "name": "rest.insomnia.Insomnia"
-    },
-    "name": "rest.insomnia.Insomnia"
+    "name": "insomnia"
    }
   },
   "intel-oneapi-basekit": {
@@ -34845,20 +34869,24 @@
    }
   },
   "insomnia": {
-   "dnf\\flatpak": {
-    "driver": "dnf",
+   "native-pkg-file\\insomnia": {
+    "driver": "native-pkg-file",
     "fields": {
-     "name": "flatpak"
+     "asset": {
+      "deb": {
+       "x86_64": "Insomnia.Core-*.deb"
+      },
+      "rpm": {
+       "x86_64": "Insomnia.Core-*.rpm"
+      }
+     },
+     "name": "insomnia",
+     "version": {
+      "github": "Kong/insomnia",
+      "tag-re": "([0-9][0-9.]*)"
+     }
     },
-    "name": "flatpak"
-   },
-   "flatpak\\insomnia": {
-    "driver": "flatpak",
-    "fields": {
-     "hub": "flathub",
-     "name": "rest.insomnia.Insomnia"
-    },
-    "name": "rest.insomnia.Insomnia"
+    "name": "insomnia"
    }
   },
   "intel-oneapi-basekit": {
@@ -39388,20 +39416,24 @@
    }
   },
   "insomnia": {
-   "apt\\flatpak": {
-    "driver": "apt",
+   "native-pkg-file\\insomnia": {
+    "driver": "native-pkg-file",
     "fields": {
-     "name": "flatpak"
+     "asset": {
+      "deb": {
+       "x86_64": "Insomnia.Core-*.deb"
+      },
+      "rpm": {
+       "x86_64": "Insomnia.Core-*.rpm"
+      }
+     },
+     "name": "insomnia",
+     "version": {
+      "github": "Kong/insomnia",
+      "tag-re": "([0-9][0-9.]*)"
+     }
     },
-    "name": "flatpak"
-   },
-   "flatpak\\insomnia": {
-    "driver": "flatpak",
-    "fields": {
-     "hub": "flathub",
-     "name": "rest.insomnia.Insomnia"
-    },
-    "name": "rest.insomnia.Insomnia"
+    "name": "insomnia"
    }
   },
   "intel-oneapi-basekit": {
@@ -43877,20 +43909,24 @@
    }
   },
   "insomnia": {
-   "apt\\flatpak": {
-    "driver": "apt",
+   "native-pkg-file\\insomnia": {
+    "driver": "native-pkg-file",
     "fields": {
-     "name": "flatpak"
+     "asset": {
+      "deb": {
+       "x86_64": "Insomnia.Core-*.deb"
+      },
+      "rpm": {
+       "x86_64": "Insomnia.Core-*.rpm"
+      }
+     },
+     "name": "insomnia",
+     "version": {
+      "github": "Kong/insomnia",
+      "tag-re": "([0-9][0-9.]*)"
+     }
     },
-    "name": "flatpak"
-   },
-   "flatpak\\insomnia": {
-    "driver": "flatpak",
-    "fields": {
-     "hub": "flathub",
-     "name": "rest.insomnia.Insomnia"
-    },
-    "name": "rest.insomnia.Insomnia"
+    "name": "insomnia"
    }
   },
   "intel-oneapi-basekit": {
