@@ -202,3 +202,28 @@ def test_include_and_uninclude_profile(tmp_path):
     changed, _ = actions.set_profile_include(ctx, 'a', 'b', False)     # drop the include
     assert changed and 'btop' not in ctx.config.profile_components('a')
     assert ctx.config.profile_includes('a') == set()
+
+
+def test_profile_tree_and_star_filter(tmp_path):
+    from configsys import actions
+    from configsys.tui import menu
+    ctx = _rctx(tmp_path)
+    actions.add_profile(ctx, 'base')
+    actions.set_profile_membership(ctx, 'base', 'btop', 'add')
+    actions.add_profile(ctx, 'mine')
+    actions.set_profile_include(ctx, 'mine', 'base', True)   # mine includes base
+
+    ps = menu.ProfileScreen(ctx)
+    names = [nd[0] for nd in ps.visible_pnodes()]
+    assert 'mine' in names and 'base' in names
+    ps.lcur = names.index('mine')
+    assert ps.cur_node()[3] is True                          # mine is expandable (has an include)
+    ps.expand_cur()
+    v = ps.visible_pnodes()
+    assert any(nd[0] == 'base' and nd[1] == 1 for nd in v)   # base shows indented under mine
+    # star `base` -> the catalog filters to base's members
+    ps.lcur = next(i for i, nd in enumerate(v) if nd[0] == 'base' and nd[1] == 1)
+    ps.toggle_star()
+    assert ps.vcatalog() == ['btop']
+    ps.toggle_star()                                         # unstar -> full catalog again
+    assert len(ps.vcatalog()) == len(ps.catalog)

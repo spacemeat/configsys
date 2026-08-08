@@ -1168,20 +1168,84 @@ class ProfileScreen:
         self.rcol_left = 0           # leftmost visible catalog column (grid horizontal scroll)
         self.rrows, self.rncols = 1, 1   # grid dims, set each draw; the key handler moves by column
         self.pfilter = self.cfilter = ''   # substring filters for the profiles / catalog panes
+        self.expanded = set()            # node keys of expanded profiles (inline `+include` tree)
+        self.starred = set()             # profile NAMES starred (▸) — their members filter the catalog
         self.reload()
 
-    # -- filtered views (both panes support `/` substring filtering) ------
-    def vprofiles(self):
+    # -- profiles tree (top-level profiles + inline `+include` children) --
+    def visible_pnodes(self):
+        '''Flattened visible tree: [(name, depth, key, expandable, expanded)]. Top-level profiles
+        (filtered by pfilter) with each expanded profile's `+includes` shown indented beneath it
+        (cycle-guarded). `key` is the ancestor path, so the same profile expands independently under
+        different parents.'''
         f = self.pfilter.lower()
-        return [p for p in self.profiles if f in p.lower()] if f else self.profiles
+        roots = [p for p in self.profiles if f in p.lower()] if f else self.profiles
+        out = []
+
+        def walk(name, depth, path):
+            key = '\x00'.join(path + [name])
+            kids = [c for c in sorted(self.ctx.config.profile_includes(name))
+                    if c not in path and c != name and c in self._profset]
+            expandable = bool(kids)
+            expanded = expandable and key in self.expanded
+            out.append((name, depth, key, expandable, expanded))
+            if expanded:
+                for c in kids:
+                    walk(c, depth + 1, path + [name])
+        for r in roots:
+            walk(r, 0, [])
+        return out
+
+    def cur_node(self):
+        v = self.visible_pnodes()
+        return v[self.lcur] if 0 <= self.lcur < len(v) else None
+
+    def expand_cur(self):
+        nd = self.cur_node()
+        if nd and nd[3] and not nd[4]:               # expandable and collapsed
+            self.expanded.add(nd[2])
+            return True
+        return False
+
+    def collapse_cur(self):
+        v = self.visible_pnodes()
+        if not (0 <= self.lcur < len(v)):
+            return
+        name, depth, key, expandable, expanded = v[self.lcur]
+        if expanded:
+            self.expanded.discard(key)
+        elif depth > 0:                              # a child -> jump to its parent row
+            for j in range(self.lcur - 1, -1, -1):
+                if v[j][1] == depth - 1:
+                    self.lcur = j
+                    break
+
+    def toggle_star(self):
+        nd = self.cur_node()
+        if nd:
+            (self.starred.discard if nd[0] in self.starred else self.starred.add)(nd[0])
+            self.rcur, self.rcol_left = 0, 0         # catalog membership changed -> reset its cursor
+
+    def _starred_members(self):
+        if not self.starred:
+            return None
+        m = set()
+        for p in self.starred:
+            try:
+                m |= set(self.ctx.config.profile_components(p))
+            except Exception:                        # noqa: BLE001 — a bad profile just contributes nothing
+                pass
+        return m
 
     def vcatalog(self):
         f = self.cfilter.lower()
-        return [c for c in self.catalog if f in c.lower()] if f else self.catalog
+        cat = [c for c in self.catalog if f in c.lower()] if f else self.catalog
+        sm = self._starred_members()                 # `*` star filter: only starred profiles' members
+        return [c for c in cat if c in sm] if sm is not None else cat
 
     def set_pfilter(self, text):
         self.pfilter = text
-        self.lcur = min(self.lcur, max(0, len(self.vprofiles()) - 1))
+        self.lcur = min(self.lcur, max(0, len(self.visible_pnodes()) - 1))
 
     def set_cfilter(self, text):
         self.cfilter = text
@@ -1191,10 +1255,12 @@ class ProfileScreen:
     def reload(self):
         cfg = self.ctx.config
         self.profiles = cfg.profile_names()
+        self._profset = set(self.profiles)
+        self.starred &= self._profset                # drop stars for profiles that no longer exist
         self.active = set(cfg.active_profiles)
         self.catalog = sorted(self.ctx.routes.components)
         self._res = {}
-        self.lcur = min(self.lcur, max(0, len(self.vprofiles()) - 1))
+        self.lcur = min(self.lcur, max(0, len(self.visible_pnodes()) - 1))
         self.rcur = min(self.rcur, max(0, len(self.vcatalog()) - 1))
         self._warm_cache()               # resolving each component is ~17ms; warm off-thread so
                                          # scrolling the catalog isn't sluggish the first time through
@@ -1217,8 +1283,8 @@ class ProfileScreen:
         threading.Thread(target=run, daemon=True).start()
 
     def cur_profile(self):
-        vp = self.vprofiles()
-        return vp[self.lcur] if 0 <= self.lcur < len(vp) else None
+        nd = self.cur_node()
+        return nd[0] if nd else None
 
     def members(self, profile):
         try:
@@ -1281,14 +1347,15 @@ def _draw_profiles(stdscr, pal, ps, ctx, note, screen):
     residual_bg = tuple(round(_sel[i] * 0.55) for i in range(3))
     member_bg = tuple(round(_sel[i] * 0.28) for i in range(3))
 
-    # LEFT: profiles (full height), filtered by ps.pfilter
-    vprofs = ps.vprofiles()
-    ltitle = 'profiles' + (f'  /{ps.pfilter}' if ps.pfilter else '')
+    # LEFT: profiles as a tree — top-level + inline `+include` children; ▸ marks a starred profile
+    vnodes = ps.visible_pnodes()
+    ltitle = 'profiles' + (f'  /{ps.pfilter}' if ps.pfilter else '') + (f'  ▸{len(ps.starred)}' if ps.starred else '')
     lit, lil, lih, liw = _panel(stdscr, pal, top, 0, body_h, lw, ltitle,
                                 ps.focus == 'left', h, w)
-    ps.ltop = _scroll_top(ps.lcur, ps.ltop, lih, len(vprofs))
-    for vis, i in enumerate(range(ps.ltop, min(len(vprofs), ps.ltop + lih))):
-        name, y = vprofs[i], lit + vis
+    ps.ltop = _scroll_top(ps.lcur, ps.ltop, lih, len(vnodes))
+    for vis, i in enumerate(range(ps.ltop, min(len(vnodes), ps.ltop + lih))):
+        name, depth, key, expandable, expanded = vnodes[i]
+        y = lit + vis
         cur = i == ps.lcur
         foc = cur and ps.focus == 'left'
         rbg = residual_bg if (cur and not foc) else None   # dimmer bar for the current row unfocused
@@ -1296,10 +1363,12 @@ def _draw_profiles(stdscr, pal, ps, ctx, note, screen):
             _put(stdscr, y, lil, ' ' * liw, pal.fill(y, lil, h, w, selected=True))
         elif rbg is not None:
             _put(stdscr, y, lil, ' ' * liw, pal.fill(y, lil, h, w, bg=rbg))
-        cm = '▸' if cur else ' '                     # residual cursor persists when focus is right
-        _put(stdscr, y, lil, _fit(f'{cm}{"●" if name in ps.active else "○"} {name}', liw),
-             pal.style('profile', y, lil, h, w, selected=foc, bg=rbg))
-    _scrollbar_v(stdscr, pal, lit, lw - 1, lih, ps.ltop, lih, len(vprofs), h, w)
+        star = '▸' if name in ps.starred else ' '     # selection is the bar; ▸ now means "starred"
+        exp = '▾' if expanded else ('▹' if expandable else ' ')
+        act = '●' if name in ps.active else '○'
+        row = f'{star}{"  " * depth}{exp}{act} {name}'
+        _put(stdscr, y, lil, _fit(row, liw), pal.style('profile', y, lil, h, w, selected=foc, bg=rbg))
+    _scrollbar_v(stdscr, pal, lit, lw - 1, lih, ps.ltop, lih, len(vnodes), h, w)
 
     # RIGHT TOP: detail for the highlighted component (names are esoteric) — description + methods
     vcat = ps.vcatalog()
@@ -1331,7 +1400,9 @@ def _draw_profiles(stdscr, pal, ps, ctx, note, screen):
 
     # RIGHT BOTTOM: the component catalog (filtered), as a COLUMN-MAJOR grid filling the pane width
     ctop, cath = top + desc_h, body_h - desc_h
-    ctitle = (f'components — in "{prof}"' if prof else 'components') + (f'  /{ps.cfilter}' if ps.cfilter else '')
+    ctitle = ((f'components — in "{prof}"' if prof else 'components')
+              + (f'  /{ps.cfilter}' if ps.cfilter else '')
+              + (f'  ▸{",".join(sorted(ps.starred))}' if ps.starred else ''))
     rit, ril, rih, riw = _panel(stdscr, pal, ctop, rleft, cath, rw, ctitle, ps.focus == 'right', h, w)
     n = len(vcat)
     rows = max(1, rih)                               # each column is as tall as the pane
@@ -1400,8 +1471,8 @@ def _draw_profiles(stdscr, pal, ps, ctx, note, screen):
     status = f' profile: {prof or "—"}    edits → {actions.edit_target(ctx)[1]}'
     if note:
         status += f'    {note}'
-    navf = (' j/k/h/l · space member · + include · a active · n/d new/del · m method · '
-            '/ filter · ●own ↳via ~removed · q ')
+    navf = (' j/k · h/l expand · tab/⏎ components · * star-filter · + include · a active · '
+            'n/d new/del · space member · m method · / filter · q ')
     _put(stdscr, h - 2, 0, _fit(status, w), pal.style('status_line', h - 2, 0, h, w))
     _put(stdscr, h - 1, 0, _fit(navf.ljust(w), w), pal.style('footer', h - 1, 0, h, w))
     stdscr.refresh()
@@ -2192,7 +2263,7 @@ def run(ctx):
                 from .. import actions
                 if ch in (ord('j'), curses.KEY_DOWN):
                     if ps.focus == 'left':
-                        ps.lcur = min(len(ps.vprofiles()) - 1, ps.lcur + 1)
+                        ps.lcur = min(len(ps.visible_pnodes()) - 1, ps.lcur + 1)
                     else:                              # column-major grid: down = next item, wraps col
                         ps.rcur = min(len(ps.vcatalog()) - 1, ps.rcur + 1)
                 elif ch in (ord('k'), curses.KEY_UP):
@@ -2202,21 +2273,27 @@ def run(ctx):
                         ps.rcur = max(0, ps.rcur - 1)
                 elif ch in (ord('\t'), curses.KEY_BTAB):
                     ps.focus = 'right' if ps.focus == 'left' else 'left'   # tab / shift-tab toggle
+                elif ch in (ord('\n'), curses.KEY_ENTER) and ps.focus == 'left':
+                    ps.focus = 'right'                 # a profile: open the components pane for it
                 elif ch in (ord('l'), curses.KEY_RIGHT):
                     if ps.focus == 'left':
-                        ps.focus = 'right'             # cross into the grid
+                        ps.expand_cur()                # h/l now expand/collapse the include tree
                     else:                              # next column, same row (clamped)
                         ps.rcur = min(len(ps.vcatalog()) - 1, ps.rcur + ps.rrows)
                 elif ch in (ord('h'), curses.KEY_LEFT):
-                    if ps.focus == 'right' and ps.rcur >= ps.rrows:
+                    if ps.focus == 'left':
+                        ps.collapse_cur()              # collapse, or step to the parent profile
+                    elif ps.rcur >= ps.rrows:
                         ps.rcur -= ps.rrows            # previous column
                     else:
-                        ps.focus = 'left'              # leftmost column (or already left) -> profiles
+                        ps.focus = 'left'              # leftmost column -> back to the profiles pane
+                elif ch == ord('*') and ps.focus == 'left':
+                    ps.toggle_star()                   # ▸ this profile -> filter the catalog to its members
                 elif ch == ord('g'):
                     setattr(ps, 'lcur' if ps.focus == 'left' else 'rcur', 0)
                 elif ch == ord('G'):
                     if ps.focus == 'left':
-                        ps.lcur = max(0, len(ps.vprofiles()) - 1)
+                        ps.lcur = max(0, len(ps.visible_pnodes()) - 1)
                     else:
                         ps.rcur = max(0, len(ps.vcatalog()) - 1)
                 elif ch == ord('/'):                   # filter the focused pane (live; enter/esc)
@@ -2246,8 +2323,9 @@ def run(ctx):
                             if changed:
                                 ps.pfilter = ''        # clear any filter so the new profile is visible
                             ps.reload()
-                            if changed and nm.strip() in ps.vprofiles():
-                                ps.lcur, ps.focus = ps.vprofiles().index(nm.strip()), 'left'
+                            names = [nd[0] for nd in ps.visible_pnodes()]
+                            if changed and nm.strip() in names:
+                                ps.lcur, ps.focus = names.index(nm.strip()), 'left'
                             menu_dirty = menu_dirty or changed
                             note = f'created "{nm.strip()}" ({lbl})' if changed else lbl
                         except Exception as e:  # noqa: BLE001 — surface, don't crash
@@ -2261,7 +2339,7 @@ def run(ctx):
                             try:
                                 changed, note = actions.remove_profile(ctx, prof)
                                 ps.reload()
-                                ps.lcur = min(ps.lcur, max(0, len(ps.vprofiles()) - 1))
+                                ps.lcur = min(ps.lcur, max(0, len(ps.visible_pnodes()) - 1))
                                 menu_dirty = menu_dirty or changed
                             except Exception as e:  # noqa: BLE001 — surface, don't crash
                                 note = f'remove failed: {e}'
