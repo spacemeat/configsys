@@ -1169,7 +1169,7 @@ class ProfileScreen:
         self.rrows, self.rncols = 1, 1   # grid dims, set each draw; the key handler moves by column
         self.pfilter = self.cfilter = ''   # substring filters for the profiles / catalog panes
         self.expanded = set()            # node keys of expanded profiles (inline `+include` tree)
-        self.starred = set()             # profile NAMES starred (▸) — their members filter the catalog
+        self.starred = set()             # profile NAMES starred (▸) — their OWN members filter the catalog
         self._res = {}                   # component -> (available, via, pinned); survives reloads
         self.reload()
 
@@ -1232,8 +1232,8 @@ class ProfileScreen:
             return None
         m = set()
         for p in self.starred:
-            try:
-                m |= set(self.ctx.config.profile_components(p))
+            try:                                     # a starred profile's OWN (directly-declared)
+                m |= set(self.ctx.config.profile_own_components(p))   # members — NOT its +include'd ones
             except Exception:                        # noqa: BLE001 — a bad profile just contributes nothing
                 pass
         return m
@@ -1241,7 +1241,7 @@ class ProfileScreen:
     def vcatalog(self):
         f = self.cfilter.lower()
         cat = [c for c in self.catalog if f in c.lower()] if f else self.catalog
-        sm = self._starred_members()                 # `*` star filter: only starred profiles' members
+        sm = self._starred_members()                 # `*` star filter: starred profiles' OWN members
         return [c for c in cat if c in sm] if sm is not None else cat
 
     def set_pfilter(self, text):

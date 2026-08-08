@@ -221,9 +221,14 @@ def test_profile_tree_and_star_filter(tmp_path):
     ps.expand_cur()
     v = ps.visible_pnodes()
     assert any(nd[0] == 'base' and nd[1] == 1 for nd in v)   # base shows indented under mine
-    # star `base` -> the catalog filters to base's members
+    # star `base` -> the catalog filters to base's OWN members
     ps.lcur = next(i for i, nd in enumerate(v) if nd[0] == 'base' and nd[1] == 1)
     ps.toggle_star()
     assert ps.vcatalog() == ['btop']
     ps.toggle_star()                                         # unstar -> full catalog again
     assert len(ps.vcatalog()) == len(ps.catalog)
+    # starring `mine` (which only INCLUDES base, no own members) contributes nothing — the star
+    # filter is OWN members only, not via-include ones
+    ps.lcur = [nd[0] for nd in ps.visible_pnodes()].index('mine')
+    ps.toggle_star()
+    assert ps.vcatalog() == []                               # 'btop' comes via +base, so it's excluded
