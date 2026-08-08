@@ -131,6 +131,7 @@ class MenuState:
         self.roots = self._build_tree()
         self.rows = []
         self.cursor = 0
+        self.filter = ''                   # `/` substring filter over the tree
         self.top = 0                       # first visible row (persistent scroll offset)
         self.selected = set()              # node ids
         self.staged = {}                   # unit_key -> op
@@ -191,15 +192,33 @@ class MenuState:
 
     def _visible(self):
         out = []
+        filt = getattr(self, 'filter', '').lower()
+
+        def submatch(n):
+            return filt in (n.label or '').lower() or any(submatch(c) for c in n.children)
 
         def walk(n):
-            out.append(n)
-            if n.expandable and n.expanded:
+            if filt:                                   # while filtering, show every branch that has a
+                if not submatch(n):                    # match, expansion state ignored so it's visible
+                    return
+                out.append(n)
                 for c in n.children:
                     walk(c)
+            else:
+                out.append(n)
+                if n.expandable and n.expanded:
+                    for c in n.children:
+                        walk(c)
         for r in self.roots:
             walk(r)
         return out
+
+    def set_filter(self, text):
+        '''Set the substring filter over the tree (matches a row or any descendant) and rebuild the
+        visible rows, keeping the cursor on the same node when it survives.'''
+        self.filter = text
+        keep = self.cur().id if self.cur() else None
+        self._refresh(keep_id=keep)
 
     def _all_nodes(self):
         '''Every node in the tree (visible or not) — for carrying expansion/selection across a
@@ -757,9 +776,11 @@ def _draw(stdscr, pal, ms, ctx, note, diags=(), show_diag=False, diag_top=0, scr
     _put(stdscr, h - 4, 0, _fit(_infoblock(ms, ctx), w), pal.style('info_dim', h - 4, 0, h, w))
 
     status_line = f' selected:{len(ms.selected)}  staged:{len(ms.staged)}'
+    if ms.filter:
+        status_line += f'   filter /{ms.filter}'
     if note:
         status_line += f'   {note}'
-    nav = ' j/k move · g/G top/bottom · l/→ expand · h/← collapse · enter open · tab expand-all '
+    nav = ' j/k · g/G top/bottom · l/h expand/collapse · enter open · / filter · tab expand-all '
     act = ' space sel · a all · i/u/x inst/upg/rm · L lock · m method · c clear · X exec · ! issues · q quit '
     _put(stdscr, h - 3, 0, _fit(status_line, w), pal.style('status_line', h - 3, 0, h, w))
     _put(stdscr, h - 2, 0, _fit(nav.ljust(w), w), pal.style('footer', h - 2, 0, h, w))
@@ -2707,6 +2728,9 @@ def run(ctx):
                 ms.go_top()
             elif ch == ord('G'):
                 ms.go_bottom()
+            elif ch == ord('/'):                     # live substring filter over the tree
+                _filter_edit(stdscr, ms.filter, ms.set_filter,
+                             lambda: _draw(stdscr, pal, ms, ctx, note, diags, False, diag_top, screen))
             elif ch in (ord('\n'), curses.KEY_ENTER):
                 ms.enter()
             elif ch in (ord('l'), curses.KEY_RIGHT):
