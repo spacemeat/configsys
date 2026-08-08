@@ -118,19 +118,6 @@
    }
   },
   "arduino": {
-   "appImage\\arduino": {
-    "driver": "appImage",
-    "fields": {
-     "name": "Arduino IDE",
-     "path": "~/apps/arduino-ide.appimage",
-     "url": "https://github.com/arduino/arduino-ide/releases/download/$VERSION/arduino-ide_$VERSION_Linux_64bit.AppImage",
-     "version": {
-      "asset": "arduino-ide_*_Linux_64bit.AppImage",
-      "github": "arduino/arduino-ide"
-     }
-    },
-    "name": "Arduino IDE"
-   },
    "dotfiles\\arduino-dotfiles": {
     "driver": "dotfiles",
     "fields": {
@@ -150,13 +137,20 @@
     },
     "name": "bash-dotfiles"
    },
-   "pacman\\libfuse2": {
+   "flatpak\\arduino": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "cc.arduino.IDE2"
+    },
+    "name": "cc.arduino.IDE2"
+   },
+   "pacman\\flatpak": {
     "driver": "pacman",
     "fields": {
-     "name": "fuse2",
-     "repo-component": "universe"
+     "name": "flatpak"
     },
-    "name": "fuse2"
+    "name": "flatpak"
    }
   },
   "arduino-dotfiles": {
@@ -3696,6 +3690,23 @@
     "name": "wireshark-qt"
    }
   },
+  "wxmaxima": {
+   "flatpak\\wxmaxima": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "io.github.wxmaxima_developers.wxMaxima"
+    },
+    "name": "io.github.wxmaxima_developers.wxMaxima"
+   },
+   "pacman\\flatpak": {
+    "driver": "pacman",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   }
+  },
   "xcb-util-cursor": {
    "pacman\\xcb-util-cursor": {
     "driver": "pacman",
@@ -4086,26 +4097,12 @@
    }
   },
   "arduino": {
-   "appImage\\arduino": {
-    "driver": "appImage",
-    "fields": {
-     "name": "Arduino IDE",
-     "path": "~/apps/arduino-ide.appimage",
-     "url": "https://github.com/arduino/arduino-ide/releases/download/$VERSION/arduino-ide_$VERSION_Linux_64bit.AppImage",
-     "version": {
-      "asset": "arduino-ide_*_Linux_64bit.AppImage",
-      "github": "arduino/arduino-ide"
-     }
-    },
-    "name": "Arduino IDE"
-   },
-   "apt\\libfuse2": {
+   "apt\\flatpak": {
     "driver": "apt",
     "fields": {
-     "name": "libfuse2",
-     "repo-component": "universe"
+     "name": "flatpak"
     },
-    "name": "libfuse2"
+    "name": "flatpak"
    },
    "dotfiles\\arduino-dotfiles": {
     "driver": "dotfiles",
@@ -4125,6 +4122,14 @@
      }
     },
     "name": "bash-dotfiles"
+   },
+   "flatpak\\arduino": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "cc.arduino.IDE2"
+    },
+    "name": "cc.arduino.IDE2"
    }
   },
   "arduino-dotfiles": {
@@ -8575,26 +8580,12 @@
    }
   },
   "arduino": {
-   "appImage\\arduino": {
-    "driver": "appImage",
-    "fields": {
-     "name": "Arduino IDE",
-     "path": "~/apps/arduino-ide.appimage",
-     "url": "https://github.com/arduino/arduino-ide/releases/download/$VERSION/arduino-ide_$VERSION_Linux_64bit.AppImage",
-     "version": {
-      "asset": "arduino-ide_*_Linux_64bit.AppImage",
-      "github": "arduino/arduino-ide"
-     }
-    },
-    "name": "Arduino IDE"
-   },
-   "apt\\libfuse2": {
+   "apt\\flatpak": {
     "driver": "apt",
     "fields": {
-     "name": "libfuse2",
-     "repo-component": "universe"
+     "name": "flatpak"
     },
-    "name": "libfuse2"
+    "name": "flatpak"
    },
    "dotfiles\\arduino-dotfiles": {
     "driver": "dotfiles",
@@ -8614,6 +8605,14 @@
      }
     },
     "name": "bash-dotfiles"
+   },
+   "flatpak\\arduino": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "cc.arduino.IDE2"
+    },
+    "name": "cc.arduino.IDE2"
    }
   },
   "arduino-dotfiles": {
@@ -12964,26 +12963,12 @@
    }
   },
   "arduino": {
-   "appImage\\arduino": {
-    "driver": "appImage",
-    "fields": {
-     "name": "Arduino IDE",
-     "path": "~/apps/arduino-ide.appimage",
-     "url": "https://github.com/arduino/arduino-ide/releases/download/$VERSION/arduino-ide_$VERSION_Linux_64bit.AppImage",
-     "version": {
-      "asset": "arduino-ide_*_Linux_64bit.AppImage",
-      "github": "arduino/arduino-ide"
-     }
-    },
-    "name": "Arduino IDE"
-   },
-   "dnf\\libfuse2": {
+   "dnf\\flatpak": {
     "driver": "dnf",
     "fields": {
-     "name": "fuse-libs",
-     "repo-component": "universe"
+     "name": "flatpak"
     },
-    "name": "fuse-libs"
+    "name": "flatpak"
    },
    "dotfiles\\arduino-dotfiles": {
     "driver": "dotfiles",
@@ -13003,6 +12988,14 @@
      }
     },
     "name": "bash-dotfiles"
+   },
+   "flatpak\\arduino": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "cc.arduino.IDE2"
+    },
+    "name": "cc.arduino.IDE2"
    }
   },
   "arduino-dotfiles": {
@@ -17098,26 +17091,12 @@
    }
   },
   "arduino": {
-   "appImage\\arduino": {
-    "driver": "appImage",
-    "fields": {
-     "name": "Arduino IDE",
-     "path": "~/apps/arduino-ide.appimage",
-     "url": "https://github.com/arduino/arduino-ide/releases/download/$VERSION/arduino-ide_$VERSION_Linux_64bit.AppImage",
-     "version": {
-      "asset": "arduino-ide_*_Linux_64bit.AppImage",
-      "github": "arduino/arduino-ide"
-     }
-    },
-    "name": "Arduino IDE"
-   },
-   "dnf\\libfuse2": {
+   "dnf\\flatpak": {
     "driver": "dnf",
     "fields": {
-     "name": "fuse-libs",
-     "repo-component": "universe"
+     "name": "flatpak"
     },
-    "name": "fuse-libs"
+    "name": "flatpak"
    },
    "dotfiles\\arduino-dotfiles": {
     "driver": "dotfiles",
@@ -17137,6 +17116,14 @@
      }
     },
     "name": "bash-dotfiles"
+   },
+   "flatpak\\arduino": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "cc.arduino.IDE2"
+    },
+    "name": "cc.arduino.IDE2"
    }
   },
   "arduino-dotfiles": {
@@ -21268,26 +21255,12 @@
    }
   },
   "arduino": {
-   "appImage\\arduino": {
-    "driver": "appImage",
-    "fields": {
-     "name": "Arduino IDE",
-     "path": "~/apps/arduino-ide.appimage",
-     "url": "https://github.com/arduino/arduino-ide/releases/download/$VERSION/arduino-ide_$VERSION_Linux_64bit.AppImage",
-     "version": {
-      "asset": "arduino-ide_*_Linux_64bit.AppImage",
-      "github": "arduino/arduino-ide"
-     }
-    },
-    "name": "Arduino IDE"
-   },
-   "apt\\libfuse2": {
+   "apt\\flatpak": {
     "driver": "apt",
     "fields": {
-     "name": "libfuse2",
-     "repo-component": "universe"
+     "name": "flatpak"
     },
-    "name": "libfuse2"
+    "name": "flatpak"
    },
    "dotfiles\\arduino-dotfiles": {
     "driver": "dotfiles",
@@ -21307,6 +21280,14 @@
      }
     },
     "name": "bash-dotfiles"
+   },
+   "flatpak\\arduino": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "cc.arduino.IDE2"
+    },
+    "name": "cc.arduino.IDE2"
    }
   },
   "arduino-dotfiles": {
@@ -25766,26 +25747,12 @@
    }
   },
   "arduino": {
-   "appImage\\arduino": {
-    "driver": "appImage",
-    "fields": {
-     "name": "Arduino IDE",
-     "path": "~/apps/arduino-ide.appimage",
-     "url": "https://github.com/arduino/arduino-ide/releases/download/$VERSION/arduino-ide_$VERSION_Linux_64bit.AppImage",
-     "version": {
-      "asset": "arduino-ide_*_Linux_64bit.AppImage",
-      "github": "arduino/arduino-ide"
-     }
-    },
-    "name": "Arduino IDE"
-   },
-   "dnf\\libfuse2": {
+   "dnf\\flatpak": {
     "driver": "dnf",
     "fields": {
-     "name": "fuse-libs",
-     "repo-component": "universe"
+     "name": "flatpak"
     },
-    "name": "fuse-libs"
+    "name": "flatpak"
    },
    "dotfiles\\arduino-dotfiles": {
     "driver": "dotfiles",
@@ -25805,6 +25772,14 @@
      }
     },
     "name": "bash-dotfiles"
+   },
+   "flatpak\\arduino": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "cc.arduino.IDE2"
+    },
+    "name": "cc.arduino.IDE2"
    }
   },
   "arduino-dotfiles": {
@@ -30159,26 +30134,12 @@
    }
   },
   "arduino": {
-   "appImage\\arduino": {
-    "driver": "appImage",
-    "fields": {
-     "name": "Arduino IDE",
-     "path": "~/apps/arduino-ide.appimage",
-     "url": "https://github.com/arduino/arduino-ide/releases/download/$VERSION/arduino-ide_$VERSION_Linux_64bit.AppImage",
-     "version": {
-      "asset": "arduino-ide_*_Linux_64bit.AppImage",
-      "github": "arduino/arduino-ide"
-     }
-    },
-    "name": "Arduino IDE"
-   },
-   "apt\\libfuse2": {
+   "apt\\flatpak": {
     "driver": "apt",
     "fields": {
-     "name": "libfuse2",
-     "repo-component": "universe"
+     "name": "flatpak"
     },
-    "name": "libfuse2"
+    "name": "flatpak"
    },
    "dotfiles\\arduino-dotfiles": {
     "driver": "dotfiles",
@@ -30198,6 +30159,14 @@
      }
     },
     "name": "bash-dotfiles"
+   },
+   "flatpak\\arduino": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "cc.arduino.IDE2"
+    },
+    "name": "cc.arduino.IDE2"
    }
   },
   "arduino-dotfiles": {
@@ -34648,26 +34617,12 @@
    }
   },
   "arduino": {
-   "appImage\\arduino": {
-    "driver": "appImage",
-    "fields": {
-     "name": "Arduino IDE",
-     "path": "~/apps/arduino-ide.appimage",
-     "url": "https://github.com/arduino/arduino-ide/releases/download/$VERSION/arduino-ide_$VERSION_Linux_64bit.AppImage",
-     "version": {
-      "asset": "arduino-ide_*_Linux_64bit.AppImage",
-      "github": "arduino/arduino-ide"
-     }
-    },
-    "name": "Arduino IDE"
-   },
-   "apt\\libfuse2": {
+   "apt\\flatpak": {
     "driver": "apt",
     "fields": {
-     "name": "libfuse2",
-     "repo-component": "universe"
+     "name": "flatpak"
     },
-    "name": "libfuse2"
+    "name": "flatpak"
    },
    "dotfiles\\arduino-dotfiles": {
     "driver": "dotfiles",
@@ -34687,6 +34642,14 @@
      }
     },
     "name": "bash-dotfiles"
+   },
+   "flatpak\\arduino": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "cc.arduino.IDE2"
+    },
+    "name": "cc.arduino.IDE2"
    }
   },
   "arduino-dotfiles": {

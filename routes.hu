@@ -486,7 +486,7 @@
         nmap:       { description: "Nmap — a network scanner and security probe." install: [ { via: native } ] }
         mtr:        { description: "Live network diagnostic — ping + traceroute in one display."
                       install: [ { via: native } ] }
-        traceroute: { description: "Trace the network path to a host, hop by hop." install: [ { via: native } ] }
+        traceroute: { description: "Trace the network path to a host, hop by hop." install: [ { via: native  when: "not fedora_atomic" } ] }   // no `traceroute` brew formula (Homebrew has mtr/tcptraceroute instead); macOS ships it in base — so decline on brew-native atomic rather than fail
         iperf3:     { description: "iperf3 — measure network throughput between two hosts." install: [ { via: native  name: { zypper: iperf  default: iperf3 } } ] }
         socat:      { description: "Multipurpose socket relay — bidirectional data between two endpoints." install: [ { via: native } ] }
         ethtool:    { description: "ethtool — query and control NIC driver/hardware settings." install: [ { via: native } ] }
@@ -633,7 +633,8 @@
         // virt-manager pulls the whole stack (hypervisor + daemon) so it's usable out of the box.
         virt-manager: { description: "Virtual Machine Manager — a GUI for libvirt/KVM."
             requires: [ qemu, libvirt, libvirt-service ]
-            install: [ { via: native } ]
+            install: [ { via: native }
+                       { via: flatpak  hub: flathub  app: org.virt_manager.virt-manager } ]   // talks to the host libvirt socket (requires: still pull the host stack)
         }
         // VirtualBox needs a kernel module (vboxdrv, built via DKMS; Secure Boot requires signing
         // it — configsys can't do that part). apt: multiverse; Fedora: RPM Fusion; Arch/openSUSE: base.
@@ -647,7 +648,7 @@
         // gzip/bzip2/xz are on every base system already; these are the ones worth adding.
         zstd:  { description: "Zstandard — fast, high-ratio compression (`zstd`)." install: [ { via: native } ] }
         lz4:   { description: "LZ4 — extremely fast compression (`lz4`)." install: [ { via: native } ] }
-        p7zip: { description: "7-Zip for Unix (`7z`) — high-ratio archiver, many formats." install: [ { via: native  name: { apt: p7zip-full  pacman: 7zip  zypper: 7zip  apk: 7zip  default: p7zip } } ] }
+        p7zip: { description: "7-Zip for Unix (`7z`) — high-ratio archiver, many formats." install: [ { via: native  name: { apt: p7zip-full  pacman: 7zip  zypper: 7zip  apk: 7zip  default: p7zip } }  { via: native  when: "fedora_atomic"  name: sevenzip } ] }   // brew's current formula is `sevenzip` (p7zip is the legacy 17.06 fork)
         // unrar is nonfree (patent-encumbered): apt multiverse, Fedora RPM Fusion, Arch base.
         unrar: { description: "Extract RAR archives."
             install: [
@@ -1094,9 +1095,9 @@
         // --- science & math ---
         gnuplot:    { description: "gnuplot — command-driven plotting for data and functions." install: [ { via: native  repo-component: universe } ] }
         jupyterlab: { description: "JupyterLab — notebooks and IDE for data science." install: [ { via: pipx  name: jupyterlab } ] }        // `jupyter-lab` on PATH
-        paraview:   { description: "ParaView — large-scale scientific data visualization." install: [ { via: native  when: "debian or redhat or arch or opensuse"  repo-component: universe } ] }
+        paraview:   { description: "ParaView — large-scale scientific data visualization." install: [ { via: native  when: "debian or redhat or arch or opensuse"  repo-component: universe }  { via: flatpak  hub: flathub  app: org.paraview.ParaView } ] }
         maxima:     { description: "Maxima — a computer algebra system for symbolic math." install: [ { via: native  when: "debian or redhat or arch or opensuse"  repo-component: universe }  { via: native  when: "fedora_atomic" } ] }   // brew formula `maxima`
-        wxmaxima:   { description: "wxMaxima — a GUI front end for the Maxima CAS." install: [ { via: native  when: "debian or redhat"  repo-component: universe } ] }   // Arch: AUR only
+        wxmaxima:   { description: "wxMaxima — a GUI front end for the Maxima CAS." install: [ { via: native  when: "debian or redhat"  repo-component: universe }  { via: flatpak  hub: flathub  app: io.github.wxmaxima_developers.wxMaxima } ] }   // native: debian/redhat (Arch AUR only); flatpak covers the rest
         pari:       { description: "PARI/GP — computer algebra for number theory." install: [ { via: native  repo-component: universe  name: { apt: pari-gp  dnf: pari-gp  pacman: pari  zypper: pari-gp  default: pari } } ] }
         gap:        { description: "GAP — a system for computational discrete algebra (group theory)." install: [ { via: native  when: "debian or redhat or arch or opensuse"  repo-component: universe }  { via: native  when: "fedora_atomic" } ] }   // brew formula `gap`
         sagemath:   { description: "SageMath — an open-source mathematics software system." install: [ { via: native  when: "debian or arch"  repo-component: universe } ] }      // Fedora: COPR/conda only
@@ -1121,7 +1122,8 @@
             install: [ { via: appImage  name: "Arduino IDE"
                          version: { github: arduino/arduino-ide  asset: "arduino-ide_*_Linux_64bit.AppImage" }
                          url: "https://github.com/arduino/arduino-ide/releases/download/$VERSION/arduino-ide_$VERSION_Linux_64bit.AppImage"
-                         path: ~/apps/arduino-ide.appimage } ]
+                         path: ~/apps/arduino-ide.appimage }
+                       { via: flatpak  hub: flathub  app: cc.arduino.IDE2 } ]
         }
         arduino-dotfiles: { description: "Arduino config, linked into place."
             install: [ { via: dotfiles  requires: bash-dotfiles  src: bash.d/arduino.sh  dst: ~/.bash.d/arduino.sh } ]
