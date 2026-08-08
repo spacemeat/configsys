@@ -785,6 +785,11 @@
         budgie:   { description: "Budgie — an elegant, modern desktop environment." install: [ { via: native  when: "debian or redhat or arch or opensuse"  name: { default: budgie-desktop } } ] }                                                                    // not packaged for Alpine
         hyprland: { description: "Hyprland — a dynamic tiling Wayland compositor with eye candy." install: [ { via: native  when: "redhat or arch or opensuse or alpine"  name: { default: hyprland } } ] }                                                                          // not in stock Ubuntu
         cosmic:   { description: "COSMIC — System76's Rust-based desktop environment." install: [ { via: native  when: "pop_os! or redhat or arch or opensuse or alpine"  name: { default: cosmic-session } } ] }                                                          // stock Debian/Ubuntu lack it; Pop + others ship cosmic-session
+        // Window managers (X11/Wayland tilers + a classic). Gated to the families that package them.
+        i3:       { description: "i3 — a keyboard-driven tiling window manager (X11)." install: [ { via: native  when: "debian or redhat or arch or opensuse or alpine"  name: { pacman: i3-wm  apk: i3wm  default: i3 } } ] }
+        qtile:    { description: "Qtile — a tiling window manager written and configured in Python." install: [ { via: native  when: "debian or redhat or arch"  name: { default: qtile } } ] }
+        xmonad:   { description: "xmonad — a tiling window manager written and configured in Haskell." install: [ { via: native  when: "debian or redhat or arch or opensuse"  name: { default: xmonad } } ] }
+        fvwm2:    { description: "FVWM2 — the classic, highly configurable X11 window manager." install: [ { via: native  when: "debian or arch"  name: { default: fvwm } } ] }   // fvwm2 packaging varies (many distros ship the 3.x line as `fvwm3`); debian/arch `fvwm` is the 2.x classic
 
         // lazygit: native on fedora/arch; elsewhere (debian/EL) a static Go binary from the
         // GitHub release, unpacked under ~/apps/lazygit (scope-honoring). Its bash.d snippet

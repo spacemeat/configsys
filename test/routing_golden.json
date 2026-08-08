@@ -1030,6 +1030,15 @@
     "name": "flatpak"
    }
   },
+  "fvwm2": {
+   "pacman\\fvwm2": {
+    "driver": "pacman",
+    "fields": {
+     "name": "fvwm"
+    },
+    "name": "fvwm"
+   }
+  },
   "fzf": {
    "pacman\\fzf": {
     "driver": "pacman",
@@ -1432,6 +1441,15 @@
      "name": "hyprland"
     },
     "name": "hyprland"
+   }
+  },
+  "i3": {
+   "pacman\\i3": {
+    "driver": "pacman",
+    "fields": {
+     "name": "i3-wm"
+    },
+    "name": "i3-wm"
    }
   },
   "iftop": {
@@ -2720,6 +2738,15 @@
     "name": "qt6-base"
    }
   },
+  "qtile": {
+   "pacman\\qtile": {
+    "driver": "pacman",
+    "fields": {
+     "name": "qtile"
+    },
+    "name": "qtile"
+   }
+  },
   "quicklisp": {
    "pacman\\sbcl": {
     "driver": "pacman",
@@ -3729,6 +3756,15 @@
      "repo-component": "universe"
     },
     "name": "rust"
+   }
+  },
+  "xmonad": {
+   "pacman\\xmonad": {
+    "driver": "pacman",
+    "fields": {
+     "name": "xmonad"
+    },
+    "name": "xmonad"
    }
   },
   "yarn": {
@@ -5105,6 +5141,15 @@
     "name": "org.freecad.FreeCAD"
    }
   },
+  "fvwm2": {
+   "apt\\fvwm2": {
+    "driver": "apt",
+    "fields": {
+     "name": "fvwm"
+    },
+    "name": "fvwm"
+   }
+  },
   "fzf": {
    "apt\\fzf": {
     "driver": "apt",
@@ -5683,6 +5728,15 @@
      "name": "org.hydrogenmusic.Hydrogen"
     },
     "name": "org.hydrogenmusic.Hydrogen"
+   }
+  },
+  "i3": {
+   "apt\\i3": {
+    "driver": "apt",
+    "fields": {
+     "name": "i3"
+    },
+    "name": "i3"
    }
   },
   "iftop": {
@@ -7176,6 +7230,15 @@
     "name": "qt6-base-dev"
    }
   },
+  "qtile": {
+   "apt\\qtile": {
+    "driver": "apt",
+    "fields": {
+     "name": "qtile"
+    },
+    "name": "qtile"
+   }
+  },
   "quicklisp": {
    "apt\\sbcl": {
     "driver": "apt",
@@ -8154,6 +8217,15 @@
      }
     },
     "name": "xh"
+   }
+  },
+  "xmonad": {
+   "apt\\xmonad": {
+    "driver": "apt",
+    "fields": {
+     "name": "xmonad"
+    },
+    "name": "xmonad"
    }
   },
   "yarn": {
@@ -9512,6 +9584,15 @@
     "name": "org.freecad.FreeCAD"
    }
   },
+  "fvwm2": {
+   "apt\\fvwm2": {
+    "driver": "apt",
+    "fields": {
+     "name": "fvwm"
+    },
+    "name": "fvwm"
+   }
+  },
   "fzf": {
    "apt\\fzf": {
     "driver": "apt",
@@ -10090,6 +10171,15 @@
      "name": "org.hydrogenmusic.Hydrogen"
     },
     "name": "org.hydrogenmusic.Hydrogen"
+   }
+  },
+  "i3": {
+   "apt\\i3": {
+    "driver": "apt",
+    "fields": {
+     "name": "i3"
+    },
+    "name": "i3"
    }
   },
   "iftop": {
@@ -11523,6 +11613,15 @@
     "name": "qt6-base-dev"
    }
   },
+  "qtile": {
+   "apt\\qtile": {
+    "driver": "apt",
+    "fields": {
+     "name": "qtile"
+    },
+    "name": "qtile"
+   }
+  },
   "quicklisp": {
    "apt\\sbcl": {
     "driver": "apt",
@@ -12491,6 +12590,15 @@
      }
     },
     "name": "xh"
+   }
+  },
+  "xmonad": {
+   "apt\\xmonad": {
+    "driver": "apt",
+    "fields": {
+     "name": "xmonad"
+    },
+    "name": "xmonad"
    }
   },
   "yarn": {
@@ -14191,6 +14299,15 @@
     "name": "hyprland"
    }
   },
+  "i3": {
+   "dnf\\i3": {
+    "driver": "dnf",
+    "fields": {
+     "name": "i3"
+    },
+    "name": "i3"
+   }
+  },
   "iftop": {
    "dnf\\iftop": {
     "driver": "dnf",
@@ -15559,6 +15676,15 @@
     "name": "qt6-qtbase-devel"
    }
   },
+  "qtile": {
+   "dnf\\qtile": {
+    "driver": "dnf",
+    "fields": {
+     "name": "qtile"
+    },
+    "name": "qtile"
+   }
+  },
   "quicklisp": {
    "dnf\\sbcl": {
     "driver": "dnf",
@@ -16560,6 +16686,15 @@
      "repo-component": "universe"
     },
     "name": "cargo"
+   }
+  },
+  "xmonad": {
+   "dnf\\xmonad": {
+    "driver": "dnf",
+    "fields": {
+     "name": "xmonad"
+    },
+    "name": "xmonad"
    }
   },
   "yarn": {
@@ -18298,6 +18433,15 @@
     "name": "hyprland"
    }
   },
+  "i3": {
+   "dnf\\i3": {
+    "driver": "dnf",
+    "fields": {
+     "name": "i3"
+    },
+    "name": "i3"
+   }
+  },
   "iftop": {
    "dnf\\iftop": {
     "driver": "dnf",
@@ -19666,6 +19810,15 @@
     "name": "qt6-qtbase-devel"
    }
   },
+  "qtile": {
+   "dnf\\qtile": {
+    "driver": "dnf",
+    "fields": {
+     "name": "qtile"
+    },
+    "name": "qtile"
+   }
+  },
   "quicklisp": {
    "dnf\\sbcl": {
     "driver": "dnf",
@@ -20667,6 +20820,15 @@
      "repo-component": "universe"
     },
     "name": "cargo"
+   }
+  },
+  "xmonad": {
+   "dnf\\xmonad": {
+    "driver": "dnf",
+    "fields": {
+     "name": "xmonad"
+    },
+    "name": "xmonad"
    }
   },
   "yarn": {
@@ -22066,6 +22228,15 @@
     "name": "org.freecad.FreeCAD"
    }
   },
+  "fvwm2": {
+   "apt\\fvwm2": {
+    "driver": "apt",
+    "fields": {
+     "name": "fvwm"
+    },
+    "name": "fvwm"
+   }
+  },
   "fzf": {
    "apt\\fzf": {
     "driver": "apt",
@@ -22644,6 +22815,15 @@
      "name": "org.hydrogenmusic.Hydrogen"
     },
     "name": "org.hydrogenmusic.Hydrogen"
+   }
+  },
+  "i3": {
+   "apt\\i3": {
+    "driver": "apt",
+    "fields": {
+     "name": "i3"
+    },
+    "name": "i3"
    }
   },
   "iftop": {
@@ -24137,6 +24317,15 @@
     "name": "qt6-base-dev"
    }
   },
+  "qtile": {
+   "apt\\qtile": {
+    "driver": "apt",
+    "fields": {
+     "name": "qtile"
+    },
+    "name": "qtile"
+   }
+  },
   "quicklisp": {
    "apt\\sbcl": {
     "driver": "apt",
@@ -25108,6 +25297,15 @@
      }
     },
     "name": "xh"
+   }
+  },
+  "xmonad": {
+   "apt\\xmonad": {
+    "driver": "apt",
+    "fields": {
+     "name": "xmonad"
+    },
+    "name": "xmonad"
    }
   },
   "yarn": {
@@ -26945,6 +27143,15 @@
     "name": "hyprland"
    }
   },
+  "i3": {
+   "dnf\\i3": {
+    "driver": "dnf",
+    "fields": {
+     "name": "i3"
+    },
+    "name": "i3"
+   }
+  },
   "iftop": {
    "dnf\\epel-release": {
     "driver": "dnf",
@@ -28389,6 +28596,15 @@
     "name": "qt6-qtbase-devel"
    }
   },
+  "qtile": {
+   "dnf\\qtile": {
+    "driver": "dnf",
+    "fields": {
+     "name": "qtile"
+    },
+    "name": "qtile"
+   }
+  },
   "quicklisp": {
    "dnf\\sbcl": {
     "driver": "dnf",
@@ -29436,6 +29652,15 @@
      "repo-component": "universe"
     },
     "name": "cargo"
+   }
+  },
+  "xmonad": {
+   "dnf\\xmonad": {
+    "driver": "dnf",
+    "fields": {
+     "name": "xmonad"
+    },
+    "name": "xmonad"
    }
   },
   "yarn": {
@@ -30833,6 +31058,15 @@
     "name": "org.freecad.FreeCAD"
    }
   },
+  "fvwm2": {
+   "apt\\fvwm2": {
+    "driver": "apt",
+    "fields": {
+     "name": "fvwm"
+    },
+    "name": "fvwm"
+   }
+  },
   "fzf": {
    "apt\\fzf": {
     "driver": "apt",
@@ -31411,6 +31645,15 @@
      "name": "org.hydrogenmusic.Hydrogen"
     },
     "name": "org.hydrogenmusic.Hydrogen"
+   }
+  },
+  "i3": {
+   "apt\\i3": {
+    "driver": "apt",
+    "fields": {
+     "name": "i3"
+    },
+    "name": "i3"
    }
   },
   "iftop": {
@@ -32904,6 +33147,15 @@
     "name": "qt6-base-dev"
    }
   },
+  "qtile": {
+   "apt\\qtile": {
+    "driver": "apt",
+    "fields": {
+     "name": "qtile"
+    },
+    "name": "qtile"
+   }
+  },
   "quicklisp": {
    "apt\\sbcl": {
     "driver": "apt",
@@ -33882,6 +34134,15 @@
      }
     },
     "name": "xh"
+   }
+  },
+  "xmonad": {
+   "apt\\xmonad": {
+    "driver": "apt",
+    "fields": {
+     "name": "xmonad"
+    },
+    "name": "xmonad"
    }
   },
   "yarn": {
@@ -35240,6 +35501,15 @@
     "name": "org.freecad.FreeCAD"
    }
   },
+  "fvwm2": {
+   "apt\\fvwm2": {
+    "driver": "apt",
+    "fields": {
+     "name": "fvwm"
+    },
+    "name": "fvwm"
+   }
+  },
   "fzf": {
    "apt\\fzf": {
     "driver": "apt",
@@ -35818,6 +36088,15 @@
      "name": "org.hydrogenmusic.Hydrogen"
     },
     "name": "org.hydrogenmusic.Hydrogen"
+   }
+  },
+  "i3": {
+   "apt\\i3": {
+    "driver": "apt",
+    "fields": {
+     "name": "i3"
+    },
+    "name": "i3"
    }
   },
   "iftop": {
@@ -37251,6 +37530,15 @@
     "name": "qt6-base-dev"
    }
   },
+  "qtile": {
+   "apt\\qtile": {
+    "driver": "apt",
+    "fields": {
+     "name": "qtile"
+    },
+    "name": "qtile"
+   }
+  },
   "quicklisp": {
    "apt\\sbcl": {
     "driver": "apt",
@@ -38219,6 +38507,15 @@
      }
     },
     "name": "xh"
+   }
+  },
+  "xmonad": {
+   "apt\\xmonad": {
+    "driver": "apt",
+    "fields": {
+     "name": "xmonad"
+    },
+    "name": "xmonad"
    }
   },
   "yarn": {
