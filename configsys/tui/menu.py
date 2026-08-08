@@ -2455,11 +2455,13 @@ def run(ctx):
                         with suspended(stdscr):
                             actions.plugin_sync(ctx, tgt)
                         pl.reload()
+                        menu_dirty = True          # new data/drivers on disk -> rebuild Components
                         note = f'synced {row["name"]}'
                     elif ch == ord('S'):
                         with suspended(stdscr):
                             actions.plugin_sync(ctx, plugins.declared(ctx.paths.user_config_file))
                         pl.reload()
+                        menu_dirty = True          # new data/drivers on disk -> rebuild Components
                         note = 'synced all'
                     elif ch == ord('b') and row:
                         with suspended(stdscr):

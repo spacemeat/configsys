@@ -322,9 +322,17 @@ class Context:
         return self._config
 
     def invalidate(self):
-        '''Drop the cached config so the next access re-reads it — after an in-process config
-        write (the TUI method picker writing a pin), so the reload sees the new pins.'''
+        '''Drop cached state so the next access rebuilds it — after an in-process write. Config
+        edits (a pin, a profile toggle) need only the config reread; a plugin add/sync/trust also
+        changes what's on disk, so we also drop the plugin data-file layer and the once-only code
+        load. That way newly-available components, install methods, and plugin DRIVERS (e.g.
+        opencv-build) show up across the TUI without a restart — the `routes` property rebuilds the
+        Resolver on every access, so once these caches clear it picks up the new layers + drivers.
+        Cheap: for the common no-plugin case the code reload loops over nothing.'''
         self._config = None
+        self._plugin_files = None        # re-glob declared+synced plugin data layers
+        self._plugin_code_loaded = False  # re-register trusted plugin drivers (idempotent overwrite)
+        self._os_refined = False          # a plugin may add a derivative-distro os block w/ a detect: marker
 
     def apply_scope_default(self, units):
         '''Stamp the machine-wide scope default onto units whose driver *honors*

@@ -167,3 +167,42 @@ def test_trusted_driver_makes_via_resolve_end_to_end(tmp_path, capsys):
     capsys.readouterr()
     main(home + ['check'])
     assert 'untrusted code' not in capsys.readouterr().out
+
+
+@pytest.mark.skipif(shutil.which('git') is None, reason='git not available')
+def test_plugin_add_surfaces_components_and_drivers_live_in_one_context(tmp_path):
+    '''The TUI keeps ONE long-lived Context; adding a plugin mid-session must surface its new
+    components/methods and (once trusted) its DRIVERS without a restart — ctx.invalidate() (which
+    plugin actions call) now drops the plugin data + code caches, not just config.'''
+    import argparse
+
+    from configsys import actions
+    from configsys.app import Context
+    from configsys.drivers import is_supported
+
+    src = _plugin(tmp_path / 'src',
+                  '{ name: apkp  requires-abi: 1  code: driver.py  data: [ routes.hu ] }',
+                  {'driver.py': DRIVER_PY,
+                   'routes.hu': '{ os: { demoos: { using: linux  native: demopm } }'
+                                '  components: { demo-tool: { install: [ { via: demopm } ] } } }'})
+    for cmd in (['init', '-q'], ['config', 'user.email', 't@t'], ['config', 'user.name', 't'],
+                ['add', '-A'], ['commit', '-qm', 'i']):
+        subprocess.run(['git', *cmd], cwd=src, check=True)
+
+    # pretend=False so the plugin actually clones to disk (we only add/trust/resolve — no installs)
+    ctx = Context(argparse.Namespace(pretend=False, os='demoos', home=str(tmp_path), config=None))
+    # baseline (nothing added): the component + driver are absent
+    assert 'demo-tool' not in ctx.routes.components
+    assert not is_supported('demopm')
+
+    # add + sync: the DATA layer (component + os block) surfaces live; code stays gated (untrusted)
+    actions.plugin_add(ctx, str(src))
+    assert 'demo-tool' in ctx.routes.components
+    assert not is_supported('demopm')
+
+    # trust: invalidate drops the once-only code load; the next routes access (the TUI re-render)
+    # re-runs it, registering the driver so `via: demopm` resolves — all in the SAME Context
+    actions.plugin_trust(ctx, 'apkp')
+    resolved = set(ctx.routes.resolve_names(['demo-tool']))   # re-render path re-loads plugin code
+    assert is_supported('demopm')
+    assert resolved == {'demopm\\demo-tool'}

@@ -521,7 +521,9 @@ def _locate_decl(ctx, ident):
 def plugin_sync(ctx, decls):
     '''Sync each declared plugin to its ref (transitive fixpoint). Returns [(name, action)].'''
     ctx.ensure_plugin_code()     # register transports from already-trusted plugins before sync
-    return plugins.sync(ctx.runner, ctx.paths.plugins_dir, decls)
+    results = plugins.sync(ctx.runner, ctx.paths.plugins_dir, decls)
+    ctx.invalidate()             # new data files / drivers are now on disk — rebuild so they surface
+    return results
 
 
 def plugin_add(ctx, source, ref=None, *, local=False, pin=False):
