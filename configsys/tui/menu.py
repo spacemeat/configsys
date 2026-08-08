@@ -1132,8 +1132,9 @@ def _scrollbar_h(stdscr, pal, row, left, cols, offset, window, total, h, w):
 def _filter_edit(stdscr, initial, apply_fn, redraw):
     '''Live substring-filter entry. Starts empty; `apply_fn(text)` sets the filter (called every
     keystroke so the view filters live) and `redraw()` repaints the screen. Enter commits the typed
-    text (empty text clears the filter); Esc reverts to `initial`. A `/query` prompt shows on the
-    bottom line. Workflow: `/gnuplot⏎` filters, `/god⎋` cancels, `/⎋` cancels, `/⎋`→`/⎋`, `/⏎` clears.'''
+    text (empty text clears the filter); Esc — or backspace on an empty query — reverts to
+    `initial`. A `/query` prompt shows on the bottom line. Workflow: `/gnuplot⏎` filters, `/god⎋`
+    cancels, `/⌫` cancels, `/⏎` clears.'''
     buf = ''
     while True:
         apply_fn(buf)
@@ -1148,6 +1149,9 @@ def _filter_edit(stdscr, initial, apply_fn, redraw):
             apply_fn(initial)
             return None
         if ch in (curses.KEY_BACKSPACE, 127, 8):
+            if not buf:                                # backspace on an empty query -> cancel too
+                apply_fn(initial)
+                return None
             buf = buf[:-1]
         elif 32 <= ch <= 126:
             buf += chr(ch)
