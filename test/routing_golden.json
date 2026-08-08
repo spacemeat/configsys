@@ -1,5 +1,15 @@
 {
  "arch@20260101": {
+  "abseil": {
+   "pacman\\abseil": {
+    "driver": "pacman",
+    "fields": {
+     "name": "abseil-cpp",
+     "repo-component": "universe"
+    },
+    "name": "abseil-cpp"
+   }
+  },
   "aider": {
    "pacman\\pipx": {
     "driver": "pacman",
@@ -267,6 +277,16 @@
      "repo-component": "universe"
     },
     "name": "blender"
+   }
+  },
+  "boost": {
+   "pacman\\boost": {
+    "driver": "pacman",
+    "fields": {
+     "name": "boost",
+     "repo-component": "universe"
+    },
+    "name": "boost"
    }
   },
   "brave": {
@@ -836,6 +856,29 @@
     "name": "opam"
    }
   },
+  "eastl": {
+   "aur\\eastl": {
+    "driver": "aur",
+    "fields": {
+     "name": "eastl"
+    },
+    "name": "eastl"
+   },
+   "pacman\\base-devel": {
+    "driver": "pacman",
+    "fields": {
+     "name": "base-devel"
+    },
+    "name": "base-devel"
+   },
+   "pacman\\git": {
+    "driver": "pacman",
+    "fields": {
+     "name": "git"
+    },
+    "name": "git"
+   }
+  },
   "edge": {
    "flatpak\\edge": {
     "driver": "flatpak",
@@ -936,6 +979,29 @@
      "name": "flatpak"
     },
     "name": "flatpak"
+   }
+  },
+  "folly": {
+   "aur\\folly": {
+    "driver": "aur",
+    "fields": {
+     "name": "folly"
+    },
+    "name": "folly"
+   },
+   "pacman\\base-devel": {
+    "driver": "pacman",
+    "fields": {
+     "name": "base-devel"
+    },
+    "name": "base-devel"
+   },
+   "pacman\\git": {
+    "driver": "pacman",
+    "fields": {
+     "name": "git"
+    },
+    "name": "git"
    }
   },
   "fontconfig": {
@@ -1209,6 +1275,34 @@
      "name": "gst-plugins-ugly"
     },
     "name": "gst-plugins-ugly"
+   }
+  },
+  "gtk": {
+   "pacman\\gtk": {
+    "driver": "pacman",
+    "fields": {
+     "name": "gtk4",
+     "repo-component": "universe"
+    },
+    "name": "gtk4"
+   }
+  },
+  "gtkmm": {
+   "pacman\\gtk": {
+    "driver": "pacman",
+    "fields": {
+     "name": "gtk4",
+     "repo-component": "universe"
+    },
+    "name": "gtk4"
+   },
+   "pacman\\gtkmm": {
+    "driver": "pacman",
+    "fields": {
+     "name": "gtkmm-4.0",
+     "repo-component": "universe"
+    },
+    "name": "gtkmm-4.0"
    }
   },
   "haskell": {
@@ -2616,6 +2710,16 @@
     "name": "qjackctl"
    }
   },
+  "qt": {
+   "pacman\\qt": {
+    "driver": "pacman",
+    "fields": {
+     "name": "qt6-base",
+     "repo-component": "universe"
+    },
+    "name": "qt6-base"
+   }
+  },
   "quicklisp": {
    "pacman\\sbcl": {
     "driver": "pacman",
@@ -3792,6 +3896,16 @@
   }
  },
  "debian@11": {
+  "abseil": {
+   "apt\\abseil": {
+    "driver": "apt",
+    "fields": {
+     "name": "libabsl-dev",
+     "repo-component": "universe"
+    },
+    "name": "libabsl-dev"
+   }
+  },
   "aider": {
    "apt\\python3-pip": {
     "driver": "apt",
@@ -4070,6 +4184,16 @@
      "repo-component": "universe"
     },
     "name": "blender"
+   }
+  },
+  "boost": {
+   "apt\\boost": {
+    "driver": "apt",
+    "fields": {
+     "name": "libboost-all-dev",
+     "repo-component": "universe"
+    },
+    "name": "libboost-all-dev"
    }
   },
   "brave": {
@@ -5393,6 +5517,34 @@
      "repo-component": "multiverse"
     },
     "name": "gstreamer1.0-plugins-ugly"
+   }
+  },
+  "gtk": {
+   "apt\\gtk": {
+    "driver": "apt",
+    "fields": {
+     "name": "libgtk-4-dev",
+     "repo-component": "universe"
+    },
+    "name": "libgtk-4-dev"
+   }
+  },
+  "gtkmm": {
+   "apt\\gtk": {
+    "driver": "apt",
+    "fields": {
+     "name": "libgtk-4-dev",
+     "repo-component": "universe"
+    },
+    "name": "libgtk-4-dev"
+   },
+   "apt\\gtkmm": {
+    "driver": "apt",
+    "fields": {
+     "name": "libgtkmm-4.0-dev",
+     "repo-component": "universe"
+    },
+    "name": "libgtkmm-4.0-dev"
    }
   },
   "haskell": {
@@ -7014,6 +7166,16 @@
     "name": "qjackctl"
    }
   },
+  "qt": {
+   "apt\\qt": {
+    "driver": "apt",
+    "fields": {
+     "name": "qt6-base-dev",
+     "repo-component": "universe"
+    },
+    "name": "qt6-base-dev"
+   }
+  },
   "quicklisp": {
    "apt\\sbcl": {
     "driver": "apt",
@@ -8104,17 +8266,20 @@
    }
   },
   "zed": {
-   "script\\zed": {
-    "driver": "script",
+   "apt\\flatpak": {
+    "driver": "apt",
     "fields": {
-     "install-cmd": "curl -f https://zed.dev/install.sh | sh",
-     "location": "~/.local/bin/zed",
-     "name": "zed",
-     "uninstall-cmd": "rm -rf \"$HOME/.local/zed.app\" \"$HOME/.local/bin/zed\"",
-     "version-cmd": "\"$HOME/.local/bin/zed\" --version",
-     "version-re": "([0-9]+\\.[0-9]+\\.[0-9]+)"
+     "name": "flatpak"
     },
-    "name": "zed"
+    "name": "flatpak"
+   },
+   "flatpak\\zed": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "dev.zed.Zed"
+    },
+    "name": "dev.zed.Zed"
    }
   },
   "zig": {
@@ -8168,6 +8333,16 @@
   }
  },
  "debian@12": {
+  "abseil": {
+   "apt\\abseil": {
+    "driver": "apt",
+    "fields": {
+     "name": "libabsl-dev",
+     "repo-component": "universe"
+    },
+    "name": "libabsl-dev"
+   }
+  },
   "aider": {
    "apt\\pipx": {
     "driver": "apt",
@@ -8426,6 +8601,16 @@
      "repo-component": "universe"
     },
     "name": "blender"
+   }
+  },
+  "boost": {
+   "apt\\boost": {
+    "driver": "apt",
+    "fields": {
+     "name": "libboost-all-dev",
+     "repo-component": "universe"
+    },
+    "name": "libboost-all-dev"
    }
   },
   "brave": {
@@ -9739,6 +9924,34 @@
      "repo-component": "multiverse"
     },
     "name": "gstreamer1.0-plugins-ugly"
+   }
+  },
+  "gtk": {
+   "apt\\gtk": {
+    "driver": "apt",
+    "fields": {
+     "name": "libgtk-4-dev",
+     "repo-component": "universe"
+    },
+    "name": "libgtk-4-dev"
+   }
+  },
+  "gtkmm": {
+   "apt\\gtk": {
+    "driver": "apt",
+    "fields": {
+     "name": "libgtk-4-dev",
+     "repo-component": "universe"
+    },
+    "name": "libgtk-4-dev"
+   },
+   "apt\\gtkmm": {
+    "driver": "apt",
+    "fields": {
+     "name": "libgtkmm-4.0-dev",
+     "repo-component": "universe"
+    },
+    "name": "libgtkmm-4.0-dev"
    }
   },
   "haskell": {
@@ -11300,6 +11513,16 @@
     "name": "qjackctl"
    }
   },
+  "qt": {
+   "apt\\qt": {
+    "driver": "apt",
+    "fields": {
+     "name": "qt6-base-dev",
+     "repo-component": "universe"
+    },
+    "name": "qt6-base-dev"
+   }
+  },
   "quicklisp": {
    "apt\\sbcl": {
     "driver": "apt",
@@ -12370,17 +12593,20 @@
    }
   },
   "zed": {
-   "script\\zed": {
-    "driver": "script",
+   "apt\\flatpak": {
+    "driver": "apt",
     "fields": {
-     "install-cmd": "curl -f https://zed.dev/install.sh | sh",
-     "location": "~/.local/bin/zed",
-     "name": "zed",
-     "uninstall-cmd": "rm -rf \"$HOME/.local/zed.app\" \"$HOME/.local/bin/zed\"",
-     "version-cmd": "\"$HOME/.local/bin/zed\" --version",
-     "version-re": "([0-9]+\\.[0-9]+\\.[0-9]+)"
+     "name": "flatpak"
     },
-    "name": "zed"
+    "name": "flatpak"
+   },
+   "flatpak\\zed": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "dev.zed.Zed"
+    },
+    "name": "dev.zed.Zed"
    }
   },
   "zig": {
@@ -12434,6 +12660,16 @@
   }
  },
  "fedora@41": {
+  "abseil": {
+   "dnf\\abseil": {
+    "driver": "dnf",
+    "fields": {
+     "name": "abseil-cpp-devel",
+     "repo-component": "universe"
+    },
+    "name": "abseil-cpp-devel"
+   }
+  },
   "aider": {
    "dnf\\pipx": {
     "driver": "dnf",
@@ -12692,6 +12928,16 @@
      "repo-component": "universe"
     },
     "name": "blender"
+   }
+  },
+  "boost": {
+   "dnf\\boost": {
+    "driver": "dnf",
+    "fields": {
+     "name": "boost-devel",
+     "repo-component": "universe"
+    },
+    "name": "boost-devel"
    }
   },
   "brave": {
@@ -13467,6 +13713,15 @@
     "name": "flatpak"
    }
   },
+  "folly": {
+   "dnf\\folly": {
+    "driver": "dnf",
+    "fields": {
+     "name": "folly-devel"
+    },
+    "name": "folly-devel"
+   }
+  },
   "fontconfig": {
    "dnf\\fontconfig": {
     "driver": "dnf",
@@ -13772,6 +14027,34 @@
      "repo-url": "https://download1.rpmfusion.org/free/fedora/releases/$releasever/Everything/$basearch/os/"
     },
     "name": "rpmfusion-free-release"
+   }
+  },
+  "gtk": {
+   "dnf\\gtk": {
+    "driver": "dnf",
+    "fields": {
+     "name": "gtk4-devel",
+     "repo-component": "universe"
+    },
+    "name": "gtk4-devel"
+   }
+  },
+  "gtkmm": {
+   "dnf\\gtk": {
+    "driver": "dnf",
+    "fields": {
+     "name": "gtk4-devel",
+     "repo-component": "universe"
+    },
+    "name": "gtk4-devel"
+   },
+   "dnf\\gtkmm": {
+    "driver": "dnf",
+    "fields": {
+     "name": "gtkmm4.0-devel",
+     "repo-component": "universe"
+    },
+    "name": "gtkmm4.0-devel"
    }
   },
   "haskell": {
@@ -15266,6 +15549,16 @@
     "name": "qjackctl"
    }
   },
+  "qt": {
+   "dnf\\qt": {
+    "driver": "dnf",
+    "fields": {
+     "name": "qt6-qtbase-devel",
+     "repo-component": "universe"
+    },
+    "name": "qt6-qtbase-devel"
+   }
+  },
   "quicklisp": {
    "dnf\\sbcl": {
     "driver": "dnf",
@@ -16381,17 +16674,20 @@
    }
   },
   "zed": {
-   "script\\zed": {
-    "driver": "script",
+   "dnf\\flatpak": {
+    "driver": "dnf",
     "fields": {
-     "install-cmd": "curl -f https://zed.dev/install.sh | sh",
-     "location": "~/.local/bin/zed",
-     "name": "zed",
-     "uninstall-cmd": "rm -rf \"$HOME/.local/zed.app\" \"$HOME/.local/bin/zed\"",
-     "version-cmd": "\"$HOME/.local/bin/zed\" --version",
-     "version-re": "([0-9]+\\.[0-9]+\\.[0-9]+)"
+     "name": "flatpak"
     },
-    "name": "zed"
+    "name": "flatpak"
+   },
+   "flatpak\\zed": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "dev.zed.Zed"
+    },
+    "name": "dev.zed.Zed"
    }
   },
   "zig": {
@@ -16445,6 +16741,16 @@
   }
  },
  "fedora@42": {
+  "abseil": {
+   "dnf\\abseil": {
+    "driver": "dnf",
+    "fields": {
+     "name": "abseil-cpp-devel",
+     "repo-component": "universe"
+    },
+    "name": "abseil-cpp-devel"
+   }
+  },
   "aider": {
    "dnf\\pipx": {
     "driver": "dnf",
@@ -16703,6 +17009,16 @@
      "repo-component": "universe"
     },
     "name": "blender"
+   }
+  },
+  "boost": {
+   "dnf\\boost": {
+    "driver": "dnf",
+    "fields": {
+     "name": "boost-devel",
+     "repo-component": "universe"
+    },
+    "name": "boost-devel"
    }
   },
   "brave": {
@@ -17504,6 +17820,15 @@
     "name": "flatpak"
    }
   },
+  "folly": {
+   "dnf\\folly": {
+    "driver": "dnf",
+    "fields": {
+     "name": "folly-devel"
+    },
+    "name": "folly-devel"
+   }
+  },
   "fontconfig": {
    "dnf\\fontconfig": {
     "driver": "dnf",
@@ -17809,6 +18134,34 @@
      "repo-url": "https://download1.rpmfusion.org/free/fedora/releases/$releasever/Everything/$basearch/os/"
     },
     "name": "rpmfusion-free-release"
+   }
+  },
+  "gtk": {
+   "dnf\\gtk": {
+    "driver": "dnf",
+    "fields": {
+     "name": "gtk4-devel",
+     "repo-component": "universe"
+    },
+    "name": "gtk4-devel"
+   }
+  },
+  "gtkmm": {
+   "dnf\\gtk": {
+    "driver": "dnf",
+    "fields": {
+     "name": "gtk4-devel",
+     "repo-component": "universe"
+    },
+    "name": "gtk4-devel"
+   },
+   "dnf\\gtkmm": {
+    "driver": "dnf",
+    "fields": {
+     "name": "gtkmm4.0-devel",
+     "repo-component": "universe"
+    },
+    "name": "gtkmm4.0-devel"
    }
   },
   "haskell": {
@@ -19303,6 +19656,16 @@
     "name": "qjackctl"
    }
   },
+  "qt": {
+   "dnf\\qt": {
+    "driver": "dnf",
+    "fields": {
+     "name": "qt6-qtbase-devel",
+     "repo-component": "universe"
+    },
+    "name": "qt6-qtbase-devel"
+   }
+  },
   "quicklisp": {
    "dnf\\sbcl": {
     "driver": "dnf",
@@ -20418,17 +20781,20 @@
    }
   },
   "zed": {
-   "script\\zed": {
-    "driver": "script",
+   "dnf\\flatpak": {
+    "driver": "dnf",
     "fields": {
-     "install-cmd": "curl -f https://zed.dev/install.sh | sh",
-     "location": "~/.local/bin/zed",
-     "name": "zed",
-     "uninstall-cmd": "rm -rf \"$HOME/.local/zed.app\" \"$HOME/.local/bin/zed\"",
-     "version-cmd": "\"$HOME/.local/bin/zed\" --version",
-     "version-re": "([0-9]+\\.[0-9]+\\.[0-9]+)"
+     "name": "flatpak"
     },
-    "name": "zed"
+    "name": "flatpak"
+   },
+   "flatpak\\zed": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "dev.zed.Zed"
+    },
+    "name": "dev.zed.Zed"
    }
   },
   "zig": {
@@ -20482,6 +20848,16 @@
   }
  },
  "pop_os!@22.04": {
+  "abseil": {
+   "apt\\abseil": {
+    "driver": "apt",
+    "fields": {
+     "name": "libabsl-dev",
+     "repo-component": "universe"
+    },
+    "name": "libabsl-dev"
+   }
+  },
   "aider": {
    "apt\\python3-pip": {
     "driver": "apt",
@@ -20760,6 +21136,16 @@
      "repo-component": "universe"
     },
     "name": "blender"
+   }
+  },
+  "boost": {
+   "apt\\boost": {
+    "driver": "apt",
+    "fields": {
+     "name": "libboost-all-dev",
+     "repo-component": "universe"
+    },
+    "name": "libboost-all-dev"
    }
   },
   "brave": {
@@ -22092,6 +22478,34 @@
      "repo-component": "multiverse"
     },
     "name": "gstreamer1.0-plugins-ugly"
+   }
+  },
+  "gtk": {
+   "apt\\gtk": {
+    "driver": "apt",
+    "fields": {
+     "name": "libgtk-4-dev",
+     "repo-component": "universe"
+    },
+    "name": "libgtk-4-dev"
+   }
+  },
+  "gtkmm": {
+   "apt\\gtk": {
+    "driver": "apt",
+    "fields": {
+     "name": "libgtk-4-dev",
+     "repo-component": "universe"
+    },
+    "name": "libgtk-4-dev"
+   },
+   "apt\\gtkmm": {
+    "driver": "apt",
+    "fields": {
+     "name": "libgtkmm-4.0-dev",
+     "repo-component": "universe"
+    },
+    "name": "libgtkmm-4.0-dev"
    }
   },
   "haskell": {
@@ -23713,6 +24127,16 @@
     "name": "qjackctl"
    }
   },
+  "qt": {
+   "apt\\qt": {
+    "driver": "apt",
+    "fields": {
+     "name": "qt6-base-dev",
+     "repo-component": "universe"
+    },
+    "name": "qt6-base-dev"
+   }
+  },
   "quicklisp": {
    "apt\\sbcl": {
     "driver": "apt",
@@ -24796,17 +25220,20 @@
    }
   },
   "zed": {
-   "script\\zed": {
-    "driver": "script",
+   "apt\\flatpak": {
+    "driver": "apt",
     "fields": {
-     "install-cmd": "curl -f https://zed.dev/install.sh | sh",
-     "location": "~/.local/bin/zed",
-     "name": "zed",
-     "uninstall-cmd": "rm -rf \"$HOME/.local/zed.app\" \"$HOME/.local/bin/zed\"",
-     "version-cmd": "\"$HOME/.local/bin/zed\" --version",
-     "version-re": "([0-9]+\\.[0-9]+\\.[0-9]+)"
+     "name": "flatpak"
     },
-    "name": "zed"
+    "name": "flatpak"
+   },
+   "flatpak\\zed": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "dev.zed.Zed"
+    },
+    "name": "dev.zed.Zed"
    }
   },
   "zig": {
@@ -24860,6 +25287,16 @@
   }
  },
  "rhel@9.8": {
+  "abseil": {
+   "dnf\\abseil": {
+    "driver": "dnf",
+    "fields": {
+     "name": "abseil-cpp-devel",
+     "repo-component": "universe"
+    },
+    "name": "abseil-cpp-devel"
+   }
+  },
   "aider": {
    "dnf\\epel-release": {
     "driver": "dnf",
@@ -25138,6 +25575,16 @@
      "name": "epel-release"
     },
     "name": "epel-release"
+   }
+  },
+  "boost": {
+   "dnf\\boost": {
+    "driver": "dnf",
+    "fields": {
+     "name": "boost-devel",
+     "repo-component": "universe"
+    },
+    "name": "boost-devel"
    }
   },
   "brave": {
@@ -26321,6 +26768,34 @@
      "repo-url": "https://download1.rpmfusion.org/free/el/updates/$releasever/$basearch/"
     },
     "name": "rpmfusion-free-release"
+   }
+  },
+  "gtk": {
+   "dnf\\gtk": {
+    "driver": "dnf",
+    "fields": {
+     "name": "gtk4-devel",
+     "repo-component": "universe"
+    },
+    "name": "gtk4-devel"
+   }
+  },
+  "gtkmm": {
+   "dnf\\gtk": {
+    "driver": "dnf",
+    "fields": {
+     "name": "gtk4-devel",
+     "repo-component": "universe"
+    },
+    "name": "gtk4-devel"
+   },
+   "dnf\\gtkmm": {
+    "driver": "dnf",
+    "fields": {
+     "name": "gtkmm4.0-devel",
+     "repo-component": "universe"
+    },
+    "name": "gtkmm4.0-devel"
    }
   },
   "haskell": {
@@ -27904,6 +28379,16 @@
     "name": "qjackctl"
    }
   },
+  "qt": {
+   "dnf\\qt": {
+    "driver": "dnf",
+    "fields": {
+     "name": "qt6-qtbase-devel",
+     "repo-component": "universe"
+    },
+    "name": "qt6-qtbase-devel"
+   }
+  },
   "quicklisp": {
    "dnf\\sbcl": {
     "driver": "dnf",
@@ -29072,17 +29557,20 @@
    }
   },
   "zed": {
-   "script\\zed": {
-    "driver": "script",
+   "dnf\\flatpak": {
+    "driver": "dnf",
     "fields": {
-     "install-cmd": "curl -f https://zed.dev/install.sh | sh",
-     "location": "~/.local/bin/zed",
-     "name": "zed",
-     "uninstall-cmd": "rm -rf \"$HOME/.local/zed.app\" \"$HOME/.local/bin/zed\"",
-     "version-cmd": "\"$HOME/.local/bin/zed\" --version",
-     "version-re": "([0-9]+\\.[0-9]+\\.[0-9]+)"
+     "name": "flatpak"
     },
-    "name": "zed"
+    "name": "flatpak"
+   },
+   "flatpak\\zed": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "dev.zed.Zed"
+    },
+    "name": "dev.zed.Zed"
    }
   },
   "zig": {
@@ -29136,6 +29624,16 @@
   }
  },
  "ubuntu@22.04": {
+  "abseil": {
+   "apt\\abseil": {
+    "driver": "apt",
+    "fields": {
+     "name": "libabsl-dev",
+     "repo-component": "universe"
+    },
+    "name": "libabsl-dev"
+   }
+  },
   "aider": {
    "apt\\python3-pip": {
     "driver": "apt",
@@ -29414,6 +29912,16 @@
      "repo-component": "universe"
     },
     "name": "blender"
+   }
+  },
+  "boost": {
+   "apt\\boost": {
+    "driver": "apt",
+    "fields": {
+     "name": "libboost-all-dev",
+     "repo-component": "universe"
+    },
+    "name": "libboost-all-dev"
    }
   },
   "brave": {
@@ -30737,6 +31245,34 @@
      "repo-component": "multiverse"
     },
     "name": "gstreamer1.0-plugins-ugly"
+   }
+  },
+  "gtk": {
+   "apt\\gtk": {
+    "driver": "apt",
+    "fields": {
+     "name": "libgtk-4-dev",
+     "repo-component": "universe"
+    },
+    "name": "libgtk-4-dev"
+   }
+  },
+  "gtkmm": {
+   "apt\\gtk": {
+    "driver": "apt",
+    "fields": {
+     "name": "libgtk-4-dev",
+     "repo-component": "universe"
+    },
+    "name": "libgtk-4-dev"
+   },
+   "apt\\gtkmm": {
+    "driver": "apt",
+    "fields": {
+     "name": "libgtkmm-4.0-dev",
+     "repo-component": "universe"
+    },
+    "name": "libgtkmm-4.0-dev"
    }
   },
   "haskell": {
@@ -32358,6 +32894,16 @@
     "name": "qjackctl"
    }
   },
+  "qt": {
+   "apt\\qt": {
+    "driver": "apt",
+    "fields": {
+     "name": "qt6-base-dev",
+     "repo-component": "universe"
+    },
+    "name": "qt6-base-dev"
+   }
+  },
   "quicklisp": {
    "apt\\sbcl": {
     "driver": "apt",
@@ -33448,17 +33994,20 @@
    }
   },
   "zed": {
-   "script\\zed": {
-    "driver": "script",
+   "apt\\flatpak": {
+    "driver": "apt",
     "fields": {
-     "install-cmd": "curl -f https://zed.dev/install.sh | sh",
-     "location": "~/.local/bin/zed",
-     "name": "zed",
-     "uninstall-cmd": "rm -rf \"$HOME/.local/zed.app\" \"$HOME/.local/bin/zed\"",
-     "version-cmd": "\"$HOME/.local/bin/zed\" --version",
-     "version-re": "([0-9]+\\.[0-9]+\\.[0-9]+)"
+     "name": "flatpak"
     },
-    "name": "zed"
+    "name": "flatpak"
+   },
+   "flatpak\\zed": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "dev.zed.Zed"
+    },
+    "name": "dev.zed.Zed"
    }
   },
   "zig": {
@@ -33512,6 +34061,16 @@
   }
  },
  "ubuntu@24.04": {
+  "abseil": {
+   "apt\\abseil": {
+    "driver": "apt",
+    "fields": {
+     "name": "libabsl-dev",
+     "repo-component": "universe"
+    },
+    "name": "libabsl-dev"
+   }
+  },
   "aider": {
    "apt\\pipx": {
     "driver": "apt",
@@ -33770,6 +34329,16 @@
      "repo-component": "universe"
     },
     "name": "blender"
+   }
+  },
+  "boost": {
+   "apt\\boost": {
+    "driver": "apt",
+    "fields": {
+     "name": "libboost-all-dev",
+     "repo-component": "universe"
+    },
+    "name": "libboost-all-dev"
    }
   },
   "brave": {
@@ -35083,6 +35652,34 @@
      "repo-component": "multiverse"
     },
     "name": "gstreamer1.0-plugins-ugly"
+   }
+  },
+  "gtk": {
+   "apt\\gtk": {
+    "driver": "apt",
+    "fields": {
+     "name": "libgtk-4-dev",
+     "repo-component": "universe"
+    },
+    "name": "libgtk-4-dev"
+   }
+  },
+  "gtkmm": {
+   "apt\\gtk": {
+    "driver": "apt",
+    "fields": {
+     "name": "libgtk-4-dev",
+     "repo-component": "universe"
+    },
+    "name": "libgtk-4-dev"
+   },
+   "apt\\gtkmm": {
+    "driver": "apt",
+    "fields": {
+     "name": "libgtkmm-4.0-dev",
+     "repo-component": "universe"
+    },
+    "name": "libgtkmm-4.0-dev"
    }
   },
   "haskell": {
@@ -36644,6 +37241,16 @@
     "name": "qjackctl"
    }
   },
+  "qt": {
+   "apt\\qt": {
+    "driver": "apt",
+    "fields": {
+     "name": "qt6-base-dev",
+     "repo-component": "universe"
+    },
+    "name": "qt6-base-dev"
+   }
+  },
   "quicklisp": {
    "apt\\sbcl": {
     "driver": "apt",
@@ -37714,17 +38321,20 @@
    }
   },
   "zed": {
-   "script\\zed": {
-    "driver": "script",
+   "apt\\flatpak": {
+    "driver": "apt",
     "fields": {
-     "install-cmd": "curl -f https://zed.dev/install.sh | sh",
-     "location": "~/.local/bin/zed",
-     "name": "zed",
-     "uninstall-cmd": "rm -rf \"$HOME/.local/zed.app\" \"$HOME/.local/bin/zed\"",
-     "version-cmd": "\"$HOME/.local/bin/zed\" --version",
-     "version-re": "([0-9]+\\.[0-9]+\\.[0-9]+)"
+     "name": "flatpak"
     },
-    "name": "zed"
+    "name": "flatpak"
+   },
+   "flatpak\\zed": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "dev.zed.Zed"
+    },
+    "name": "dev.zed.Zed"
    }
   },
   "zig": {

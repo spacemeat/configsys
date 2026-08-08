@@ -392,7 +392,7 @@
 
         // R (statistics) and GNU Octave (numerical computing) — native everywhere.
         r:      { description: "R — language and environment for statistical computing." install: [ { via: native  repo-component: universe  name: { apt: r-base  dnf: R  pacman: r  zypper: R-base  apk: R  brew: r } } ] }
-        octave: { description: "GNU Octave — numerical computing, largely MATLAB-compatible." install: [ { via: native  repo-component: universe } ] }
+        octave: { description: "GNU Octave — numerical computing, largely MATLAB-compatible." install: [ { via: native  repo-component: universe }  { via: flatpak  hub: flathub  app: org.octave.Octave } ] }
         // Common Lisp: SBCL (the compiler) + Quicklisp (the library manager, bootstrapped by its
         // own lisp script and wired into the SBCL init file).
         sbcl: { description: "Steel Bank Common Lisp — a fast Common Lisp compiler." install: [ { via: native  repo-component: universe } ] }
@@ -832,7 +832,7 @@
                          aliases: { src: bash.d/neovim.sh  dst: ~/.bash.d/neovim.sh } } ]
         }
         // Emacs — native under `emacs` in every family.
-        emacs: { description: "The extensible, self-documenting text editor." install: [ { via: native  repo-component: universe } ] }
+        emacs: { description: "The extensible, self-documenting text editor." install: [ { via: native  repo-component: universe }  { via: flatpak  hub: flathub  app: org.gnu.emacs } ] }
         // Helix — native on dnf/pacman/zypper/apk/brew; NOT in the Ubuntu base repos, so the github
         // release tarball on the Debian family (ships `hx` alongside its runtime/ dir).
         helix: { description: "Post-modern modal editor (`hx`) — batteries included."
@@ -845,6 +845,7 @@
         zed: { description: "High-performance, multiplayer code editor from the Atom team."
             install: [
                 { via: native  when: "arch" }
+                { via: flatpak  hub: flathub  app: dev.zed.Zed }
                 { via: script
                   install-cmd:   'curl -f https://zed.dev/install.sh | sh'
                   version-cmd:   '"$HOME/.local/bin/zed" --version'
@@ -1388,6 +1389,40 @@
                 { via: clang  when: "fedora = 42"  packages: [ clang ] }      // system clang -> /usr/bin/clang-20
                 { via: clang  when: "rhel"  packages: [ clang20 ]  requires: epel }
             ]
+        }
+
+        // ===================== C/C++ libraries + GUI toolkits =====================
+        // Dev packages (headers + libs). Native names are gated to the distros whose package name
+        // is known-good; openSUSE / brew / others are extendable later (their split/renamed packages
+        // need a per-manager name). folly + EASTL aren't packaged in the mainstream repos — they get
+        // what IS available (Fedora / the AUR) and decline elsewhere (build from source there).
+        boost: { description: "Boost — peer-reviewed, portable C++ source libraries (dev)."
+            install: [ { via: native  when: "debian or redhat or arch or alpine"  repo-component: universe
+                         name: { apt: libboost-all-dev  dnf: boost-devel  pacman: boost  apk: boost-dev } } ]
+        }
+        abseil: { description: "Abseil — Google's C++ common libraries (dev)."
+            install: [ { via: native  when: "debian or redhat or arch or alpine"  repo-component: universe
+                         name: { apt: libabsl-dev  dnf: abseil-cpp-devel  pacman: abseil-cpp  apk: abseil-cpp-dev } } ]
+        }
+        folly: { description: "Folly — Facebook's C++ utility library (dev)."
+            install: [ { via: native  when: "fedora"  name: folly-devel }        // Fedora repos (not EL)
+                       { via: aur     when: "arch"    name: folly } ]             // Arch: AUR
+        }
+        eastl: { description: "EASTL — Electronic Arts' STL implementation (dev)."
+            install: [ { via: aur  when: "arch"  name: eastl } ]                  // AUR only; vendor/source elsewhere
+        }
+        qt: { description: "Qt 6 — cross-platform C++ application framework (Qt Base, dev)."
+            install: [ { via: native  when: "debian or redhat or arch or alpine"  repo-component: universe
+                         name: { apt: qt6-base-dev  dnf: qt6-qtbase-devel  pacman: qt6-base  apk: qt6-qtbase-dev } } ]
+        }
+        gtk: { description: "GTK 4 — the GTK GUI toolkit (dev)."
+            install: [ { via: native  when: "debian or redhat or arch or alpine"  repo-component: universe
+                         name: { apt: libgtk-4-dev  dnf: gtk4-devel  pacman: gtk4  apk: gtk4.0-dev } } ]
+        }
+        gtkmm: { description: "gtkmm — the C++ bindings for GTK 4 (dev)."
+            requires: gtk
+            install: [ { via: native  when: "debian or redhat or arch"  repo-component: universe
+                         name: { apt: libgtkmm-4.0-dev  dnf: gtkmm4.0-devel  pacman: gtkmm-4.0 } } ]
         }
 
     }
