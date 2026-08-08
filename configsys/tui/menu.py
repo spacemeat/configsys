@@ -13,6 +13,7 @@ unit appears. Enter/→ expand, ← collapse, Tab expands/collapses all componen
 '''
 
 import curses
+import threading
 from pathlib import Path
 
 from .. import reportgen
@@ -559,11 +560,9 @@ def _methods_line(ms, ctx):
     choice = len(cands) >= 2
     parts = []
     for c in cands:
-        tag = c['via']
-        if c['pinned']:
-            tag += ' (pinned)'
-        elif c['default'] and choice:
-            tag += ' *'
+        tag = f'[{c["via"]}]' if c['pinned'] else c['via']   # a PIN is bracketed (uniform w/ Profiles)
+        if c['default'] and not c['pinned'] and choice:
+            tag += ' *'                                      # the auto-default among a real choice
         parts.append(tag)
     return f' methods: {"   ".join(parts)}' + ('      (m to change)' if choice else '')
 
@@ -1105,7 +1104,7 @@ def _scrollbar_h(stdscr, pal, row, left, cols, offset, window, total, h, w):
     pos, size = t
     for k in range(cols):
         on = pos <= k < pos + size
-        _put(stdscr, row, left + k, '█' if on else '─',
+        _put(stdscr, row, left + k, '🬋' if on else '─',     # a vertically-centred bar, like the v-thumb
              pal.style('select_marker' if on else 'info_dim', row, left + k, h, w))
 
 
@@ -1129,6 +1128,25 @@ class ProfileScreen:
         self._res = {}
         self.lcur = min(self.lcur, max(0, len(self.profiles) - 1))
         self.rcur = min(self.rcur, max(0, len(self.catalog) - 1))
+        self._warm_cache()               # resolving each component is ~17ms; warm off-thread so
+                                         # scrolling the catalog isn't sluggish the first time through
+
+    def _warm_cache(self):
+        '''Populate _resolve for the whole catalog on a daemon thread. The menu loop blocks in
+        getch() (GIL released) while idle, so this fills within a few seconds of opening the screen
+        without stuttering the UI. A generation guard makes a later reload() abandon this sweep.'''
+        self._warm_gen = getattr(self, '_warm_gen', 0) + 1
+        gen, catalog = self._warm_gen, list(self.catalog)
+
+        def run():
+            for name in catalog:
+                if self._warm_gen != gen:            # a reload superseded us — stop
+                    return
+                try:
+                    self._resolve(name)
+                except Exception:                    # noqa: BLE001 — never let warming crash
+                    pass
+        threading.Thread(target=run, daemon=True).start()
 
     def cur_profile(self):
         return self.profiles[self.lcur] if 0 <= self.lcur < len(self.profiles) else None
@@ -1214,23 +1232,26 @@ def _draw_profiles(stdscr, pal, ps, ctx, note, screen):
 
     # RIGHT TOP: detail for the highlighted component (names are esoteric) — description + methods
     cur = ps.catalog[ps.rcur] if ps.catalog and 0 <= ps.rcur < len(ps.catalog) else None
-    desc_h = 7 if body_h >= 12 else 0
+    # the component NAME rides the panel title, so the box is short (2 desc lines + methods) and the
+    # catalog grid below gets the reclaimed rows.
+    desc_h = 5 if body_h >= 10 else 0
     if desc_h:
-        dit, dil, dih, diw = _panel(stdscr, pal, top, rleft, desc_h, rw, 'component', False, h, w)
+        dit, dil, dih, diw = _panel(stdscr, pal, top, rleft, desc_h, rw, cur or 'component', False, h, w)
         if cur:
             comp = ctx.routes.components.get(cur)
-            _put(stdscr, dit, dil, _fit(cur, diw), pal.style('label', dit, dil, h, w))
             desc = (comp.description if comp else '') or '(no description yet)'
-            for k, line in enumerate(_wrap(desc, diw)[:dih - 2]):
-                _put(stdscr, dit + 1 + k, dil, _fit(line, diw), pal.style('info', dit + 1 + k, dil, h, w))
+            for k, line in enumerate(_wrap(desc, diw)[:dih - 1]):
+                _put(stdscr, dit + k, dil, _fit(line, diw), pal.style('info', dit + k, dil, h, w))
             try:
                 cands = ctx.routes.candidates(cur)
             except Exception:                       # noqa: BLE001
                 cands = []
-            if cands:                               # always name the method, even for a single option
+            if cands:                               # name the method (a pin is bracketed); '*' = default
                 choice = len(cands) > 1
-                mtext = 'methods: ' + '  '.join(c['via'] + ('*' if c['default'] and choice else '')
-                                                for c in cands)
+                mtext = 'methods: ' + '  '.join(
+                    (f'[{c["via"]}]' if c['pinned'] else c['via'])
+                    + (' *' if c['default'] and not c['pinned'] and choice else '')
+                    for c in cands)
             else:
                 mtext = 'methods: (not available on this OS)'
             _put(stdscr, dit + dih - 1, dil, _fit(mtext, diw),
