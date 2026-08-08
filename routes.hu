@@ -586,6 +586,19 @@
             install: [ { via: native  name: { apt: intel-basekit  dnf: intel-basekit  pacman: intel-oneapi-basekit } } ]
         }
 
+        // OpenCV — computer-vision library, split by face: the C++ dev library and the Python
+        // (cv2) bindings. The distro packages here are CPU-only; a CUDA-accelerated build is an
+        // opt-in `via: source` method (requires cuda-toolkit) added by the configsys-source plugin
+        // — `configsys pin set opencv source` to get it.
+        opencv: { description: "OpenCV computer-vision library — C++ headers and libraries (dev)."
+            install: [ { via: native  when: "debian or redhat or opensuse or arch or alpine"  repo-component: universe
+                         name: { apt: libopencv-dev  dnf: opencv-devel  zypper: opencv-devel  pacman: opencv  apk: opencv-dev } } ]
+        }
+        opencv-python: { description: "OpenCV Python bindings (the `cv2` module)."
+            install: [ { via: native  when: "debian or redhat or opensuse or arch or alpine"  repo-component: universe
+                         name: { apt: python3-opencv  dnf: python3-opencv  zypper: python3-opencv  pacman: opencv  apk: py3-opencv } } ]
+        }
+
         // docker: "the engine, working" = the package + its daemon enabled. Post-install is just
         // composition — docker-service is an ordinary component ordered after docker-engine via
         // `requires:` (which also avoids the package<->service dependency cycle a single unit

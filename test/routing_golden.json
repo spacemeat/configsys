@@ -2305,6 +2305,26 @@
     "name": "opam"
    }
   },
+  "opencv": {
+   "pacman\\opencv": {
+    "driver": "pacman",
+    "fields": {
+     "name": "opencv",
+     "repo-component": "universe"
+    },
+    "name": "opencv"
+   }
+  },
+  "opencv-python": {
+   "pacman\\opencv-python": {
+    "driver": "pacman",
+    "fields": {
+     "name": "opencv",
+     "repo-component": "universe"
+    },
+    "name": "opencv"
+   }
+  },
   "openscad": {
    "flatpak\\openscad": {
     "driver": "flatpak",
@@ -6663,6 +6683,26 @@
     "name": "opam"
    }
   },
+  "opencv": {
+   "apt\\opencv": {
+    "driver": "apt",
+    "fields": {
+     "name": "libopencv-dev",
+     "repo-component": "universe"
+    },
+    "name": "libopencv-dev"
+   }
+  },
+  "opencv-python": {
+   "apt\\opencv-python": {
+    "driver": "apt",
+    "fields": {
+     "name": "python3-opencv",
+     "repo-component": "universe"
+    },
+    "name": "python3-opencv"
+   }
+  },
   "openscad": {
    "apt\\flatpak": {
     "driver": "apt",
@@ -10949,6 +10989,26 @@
     "name": "opam"
    }
   },
+  "opencv": {
+   "apt\\opencv": {
+    "driver": "apt",
+    "fields": {
+     "name": "libopencv-dev",
+     "repo-component": "universe"
+    },
+    "name": "libopencv-dev"
+   }
+  },
+  "opencv-python": {
+   "apt\\opencv-python": {
+    "driver": "apt",
+    "fields": {
+     "name": "python3-opencv",
+     "repo-component": "universe"
+    },
+    "name": "python3-opencv"
+   }
+  },
   "openscad": {
    "apt\\flatpak": {
     "driver": "apt",
@@ -14893,6 +14953,26 @@
      "repo-component": "universe"
     },
     "name": "opam"
+   }
+  },
+  "opencv": {
+   "dnf\\opencv": {
+    "driver": "dnf",
+    "fields": {
+     "name": "opencv-devel",
+     "repo-component": "universe"
+    },
+    "name": "opencv-devel"
+   }
+  },
+  "opencv-python": {
+   "dnf\\opencv-python": {
+    "driver": "dnf",
+    "fields": {
+     "name": "python3-opencv",
+     "repo-component": "universe"
+    },
+    "name": "python3-opencv"
    }
   },
   "openscad": {
@@ -18910,6 +18990,26 @@
      "repo-component": "universe"
     },
     "name": "opam"
+   }
+  },
+  "opencv": {
+   "dnf\\opencv": {
+    "driver": "dnf",
+    "fields": {
+     "name": "opencv-devel",
+     "repo-component": "universe"
+    },
+    "name": "opencv-devel"
+   }
+  },
+  "opencv-python": {
+   "dnf\\opencv-python": {
+    "driver": "dnf",
+    "fields": {
+     "name": "python3-opencv",
+     "repo-component": "universe"
+    },
+    "name": "python3-opencv"
    }
   },
   "openscad": {
@@ -23282,6 +23382,26 @@
     "name": "opam"
    }
   },
+  "opencv": {
+   "apt\\opencv": {
+    "driver": "apt",
+    "fields": {
+     "name": "libopencv-dev",
+     "repo-component": "universe"
+    },
+    "name": "libopencv-dev"
+   }
+  },
+  "opencv-python": {
+   "apt\\opencv-python": {
+    "driver": "apt",
+    "fields": {
+     "name": "python3-opencv",
+     "repo-component": "universe"
+    },
+    "name": "python3-opencv"
+   }
+  },
   "openscad": {
    "apt\\flatpak": {
     "driver": "apt",
@@ -27457,6 +27577,26 @@
      "repo-component": "universe"
     },
     "name": "opam"
+   }
+  },
+  "opencv": {
+   "dnf\\opencv": {
+    "driver": "dnf",
+    "fields": {
+     "name": "opencv-devel",
+     "repo-component": "universe"
+    },
+    "name": "opencv-devel"
+   }
+  },
+  "opencv-python": {
+   "dnf\\opencv-python": {
+    "driver": "dnf",
+    "fields": {
+     "name": "python3-opencv",
+     "repo-component": "universe"
+    },
+    "name": "python3-opencv"
    }
   },
   "openscad": {
@@ -31887,6 +32027,26 @@
     "name": "opam"
    }
   },
+  "opencv": {
+   "apt\\opencv": {
+    "driver": "apt",
+    "fields": {
+     "name": "libopencv-dev",
+     "repo-component": "universe"
+    },
+    "name": "libopencv-dev"
+   }
+  },
+  "opencv-python": {
+   "apt\\opencv-python": {
+    "driver": "apt",
+    "fields": {
+     "name": "python3-opencv",
+     "repo-component": "universe"
+    },
+    "name": "python3-opencv"
+   }
+  },
   "openscad": {
    "apt\\flatpak": {
     "driver": "apt",
@@ -36171,6 +36331,26 @@
      "repo-component": "universe"
     },
     "name": "opam"
+   }
+  },
+  "opencv": {
+   "apt\\opencv": {
+    "driver": "apt",
+    "fields": {
+     "name": "libopencv-dev",
+     "repo-component": "universe"
+    },
+    "name": "libopencv-dev"
+   }
+  },
+  "opencv-python": {
+   "apt\\opencv-python": {
+    "driver": "apt",
+    "fields": {
+     "name": "python3-opencv",
+     "repo-component": "universe"
+    },
+    "name": "python3-opencv"
    }
   },
   "openscad": {
