@@ -179,26 +179,38 @@ def _by_preference(matching, component, cascade, context, preference):
     return best, rule
 
 
-def _select(component, cascade, context, pins=None, preference=None):
+def _select(component, cascade, context, pins=None, preference=None, candidate_only=None):
     '''-> (winning Binding, [all candidates], reason). Candidates = `when:`-valid bindings
     (validity only). The default among them: the single most-specific `when:`, else the
-    preference channel. Raises ResolveError if nothing is valid or the choice is undecidable.'''
+    preference channel. Raises ResolveError if nothing is valid or the choice is undecidable.
+
+    `candidate_only` (a set of via/driver names, e.g. {'snap'}, from the `drivers:` section's
+    `candidate-only:` flag) marks methods that are valid and LISTED but never win the AUTO-default
+    while any ordinary method is valid here — so a low-preference-yet-narrowly-gated method (snap
+    is gated `when: ubuntu`, which would otherwise beat a broad native binding by specificity)
+    can be offered without hijacking the default. A binding-pin still forces such a method (it
+    filters `matching` to that via upstream); and if EVERY valid method here is candidate-only,
+    they compete among themselves normally. The candidate list returned is ALWAYS the full
+    `matching` set, so the picker/`where` still show the opt-in methods.'''
     matching, pin = _matching(component, context, pins)
     if not matching:
         extra = f' (pinned to via:{pin!r})' if pin is not None else ''
         raise ResolveError(f'no binding for {component.name} in this context{extra}')
     if len(matching) == 1:
         return matching[0], matching, 'only method here'
-    ms = _most_specific_binding(matching, cascade)
+    pool = [b for b in matching if b.via not in (candidate_only or frozenset())] or matching
+    if len(pool) == 1:
+        return pool[0], matching, 'only ordinary method here'
+    ms = _most_specific_binding(pool, cascade)
     if ms is not None:
         return ms, matching, 'most-specific when:'
-    winner, rule = _by_preference(matching, component, cascade, context, preference)
+    winner, rule = _by_preference(pool, component, cascade, context, preference)
     return winner, matching, rule
 
 
-def select_binding(component, cascade, context, pins=None, preference=None):
+def select_binding(component, cascade, context, pins=None, preference=None, candidate_only=None):
     '''The one binding that resolves here (the default method). See _select.'''
-    return _select(component, cascade, context, pins, preference)[0]
+    return _select(component, cascade, context, pins, preference, candidate_only)[0]
 
 
 def _driver(binding, cascade, block):
@@ -275,12 +287,12 @@ def unit_for_binding(component, binding, cascade, block, overrides=None):
 
 
 def resolve_one(name, cascade, components, block, version=None, cpu=None, overrides=None,
-                preference=None):
+                preference=None, candidate_only=None):
     if name not in components:
         raise ResolveError(f'unknown component: {name}')
     comp = components[name]
     ctx = cascade.context(block, version, cpu)
-    binding = select_binding(comp, cascade, ctx, None, preference)
+    binding = select_binding(comp, cascade, ctx, None, preference, candidate_only)
     drv = _driver(binding, cascade, block)
     override, drop = _name_override(overrides, drv, name)
     if drop:
@@ -292,7 +304,7 @@ def resolve_one(name, cascade, components, block, version=None, cpu=None, overri
 # -- full resolution: the worklist to a fixpoint ---------------------------
 
 def resolve(names, cascade, components, drivers, block, version=None, cpu=None, pins=None,
-            overrides=None, preference=None):
+            overrides=None, preference=None, candidate_only=None):
     '''Resolve a profile (component names) to the full unit closure for a context.
 
     Phase 1 seeds every explicit want and registers what it provides, BEFORE any
@@ -308,16 +320,16 @@ def resolve(names, cascade, components, drivers, block, version=None, cpu=None, 
     component, several for a `via: parts` aggregator (which has no unit of its own).
     '''
     return resolve_roots(names, cascade, components, drivers, block, version, cpu, pins,
-                         overrides, preference)[0]
+                         overrides, preference, candidate_only)[0]
 
 
 def resolve_roots(names, cascade, components, drivers, block, version=None, cpu=None, pins=None,
-                  overrides=None, preference=None):
+                  overrides=None, preference=None, candidate_only=None):
     '''Like resolve(), but also return the set of unit keys bound *directly* by the named
     components (a named parts-component contributes its parts' keys; driver/driver deps
     are not roots). The app applies the requested op to these, and expand_plan folds in deps.'''
     st = _State(cascade, components, drivers, cascade.context(block, version, cpu), pins or {},
-                overrides or {}, preference)
+                overrides or {}, preference, candidate_only)
     roots = set()
     for name in names:
         roots |= st.add_component(name, root=name)  # phase 1: wants + their provides
@@ -327,14 +339,14 @@ def resolve_roots(names, cascade, components, drivers, block, version=None, cpu=
 
 
 def resolve_resilient(names, cascade, components, drivers, block, version=None, cpu=None,
-                      pins=None, overrides=None, preference=None):
+                      pins=None, overrides=None, preference=None, candidate_only=None):
     '''Resilient resolution for the inspect/TUI pipeline: a requested name that can't resolve
     (unknown, no binding here, or an unsatisfiable requirement) is collected into `errors`
     instead of aborting the whole set — everything resolvable still resolves. Returns
     (units, errors) with errors = {requested_name: message}. So one broken component in the
     active set (e.g. from an auto-activated project profile) can't brick the tool.'''
     st = _State(cascade, components, drivers, cascade.context(block, version, cpu), pins or {},
-                overrides or {}, preference)
+                overrides or {}, preference, candidate_only)
     errors = {}
     for name in names:
         try:
@@ -346,22 +358,24 @@ def resolve_resilient(names, cascade, components, drivers, block, version=None, 
     return st.units, errors
 
 
-def _bindable(component, cascade, ctx, pins, preference=None):
+def _bindable(component, cascade, ctx, pins, preference=None, candidate_only=None):
     try:
-        select_binding(component, cascade, ctx, pins, preference)
+        select_binding(component, cascade, ctx, pins, preference, candidate_only)
         return True
     except ResolveError:
         return False
 
 
 class _State:
-    def __init__(self, cascade, components, drivers, ctx, pins, overrides=None, preference=None):
+    def __init__(self, cascade, components, drivers, ctx, pins, overrides=None, preference=None,
+                 candidate_only=None):
         self.cascade = cascade
         self.components = components
         self.drivers = drivers
         self.ctx = ctx
         self.pins = pins
         self.preference = preference       # driver-preference order (config global); None = built-in
+        self.candidate_only = candidate_only or frozenset()   # vias never auto-defaulted (e.g. snap)
         self.overrides = overrides or {}   # {driver: {component: pkg-or-drop}} (component-names)
         self.block = ctx.lineage[0]
         self.units = {}
@@ -392,7 +406,8 @@ class _State:
         # bindings but none match the context (select_binding below errors "no binding here").
         if not comp.bindings:
             return frozenset()
-        binding = select_binding(comp, self.cascade, self.ctx, self.pins, self.preference)
+        binding = select_binding(comp, self.cascade, self.ctx, self.pins, self.preference,
+                                 self.candidate_only)
 
         # a `via: parts` binding is a pure aggregator: no unit of its own, just the
         # union of its (recursively resolved) parts, each attributed to this root.
@@ -460,7 +475,8 @@ class _State:
             return self.inventory[cap]                  # reuse (keys, or empty for env)
         candidates = [p for p in self.providers.get(cap, []) if p != requiring]  # bootstrap guard
         viable = [p for p in candidates
-                  if _bindable(self.components[p], self.cascade, self.ctx, self.pins, self.preference)]
+                  if _bindable(self.components[p], self.cascade, self.ctx, self.pins,
+                               self.preference, self.candidate_only)]
         if not viable:
             raise ResolveError(f'nothing provides "{cap}" here (required by {requiring})')
         pin = self.pins.get(cap)

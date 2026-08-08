@@ -165,7 +165,7 @@ def test_no_source_bindings_in_core():
     import os
     from configsys.routes import load
     ROUTES = os.path.join(os.path.dirname(__file__), '..', 'routes.hu')
-    _cascade, components, _drivers = load(ROUTES)
+    _cascade, components, _drivers, _co = load(ROUTES)
     with_source = sorted(n for n, c in components.items()
                          if any(b.via == 'source' for b in c.bindings))
     assert with_source == [], f'core should ship no source bindings (moved to the plugin): {with_source}'

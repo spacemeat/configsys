@@ -459,7 +459,8 @@ class Context:
                 r.event(report.DEBUG, f'    · {name:22} (removed / no binding)')
                 continue
             try:
-                b = select_binding(comp, routes.cascade, cx, routes.pins, routes.preference)
+                b = select_binding(comp, routes.cascade, cx, routes.pins, routes.preference,
+                                   routes.candidate_only)
             except ResolveError:
                 b = None
             if b is None:
@@ -814,7 +815,8 @@ def cmd_where(ctx, args):
     if comp.bindings:
         from .resolve import _select, candidate_bindings, via_representatives
         try:
-            selected, candidates, reason = _select(comp, r.cascade, cx, r.pins, r.preference)
+            selected, candidates, reason = _select(comp, r.cascade, cx, r.pins, r.preference,
+                                                   r.candidate_only)
         except ResolveError:
             candidates = candidate_bindings(comp, r.cascade, cx, r.pins)  # valid but none / undecidable
         reps = via_representatives(candidates, r.cascade)      # per-via winners — the pin-reachable set
@@ -1074,7 +1076,7 @@ def cmd_check(ctx, args):
     from . import layers, routes, routecheck
     ctx.ensure_plugin_code()          # register trusted plugin drivers so `via:` validates
     try:
-        cascade, components, drivers = routes.load(
+        cascade, components, drivers, _candidate_only = routes.load(
             ctx.paths.routes_file, ctx.paths.user_config_file, ctx.discovered,
             ctx.plugin_files, validate=False)
         roots = ([(ctx.paths.routes_file, 'repo'), (ctx.paths.config_file, 'repo')]

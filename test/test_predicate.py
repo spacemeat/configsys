@@ -56,7 +56,7 @@ def test_empty_when_is_always_true():
 def test_specificity_prefers_narrow():
     import os
     from configsys import routes
-    cascade, _c, _m = routes.load(os.path.join(os.path.dirname(__file__), '..', 'routes.hu'))
+    cascade, _c, _m, _co = routes.load(os.path.join(os.path.dirname(__file__), '..', 'routes.hu'))
     assert most_specific([Os('pop_os!'), ALWAYS], cascade) is not ALWAYS
 
 

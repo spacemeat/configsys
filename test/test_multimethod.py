@@ -27,7 +27,7 @@ def _resolve(tmp_path, comps, names, block='debian', pins=None, preference=None)
 
 
 def _load(tmp_path, comps):
-    return routes.load(str(_write(tmp_path, comps)))     # (cascade, components, drivers)
+    return routes.load(str(_write(tmp_path, comps)))[:3]     # (cascade, components, drivers)
 
 
 # a component with two equally-valid methods (no when: on either) -----------

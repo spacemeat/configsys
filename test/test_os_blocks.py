@@ -16,7 +16,7 @@ ROUTES = os.path.join(os.path.dirname(__file__), '..', 'routes.hu')
 
 @pytest.fixture(scope='module')
 def cascade():
-    c, _components, _m = routes.load(ROUTES)
+    c, _components, _m, _co = routes.load(ROUTES)
     return c
 
 

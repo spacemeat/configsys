@@ -34,7 +34,7 @@ def _canon(rc):
 
 
 def _snapshot():
-    _cascade, components, _mechs = routes.load(ROUTES)
+    _cascade, components, _mechs, _co = routes.load(ROUTES)
     names = sorted(components)
     snap = {}
     for block, version in CONTEXTS:

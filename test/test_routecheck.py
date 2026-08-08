@@ -13,7 +13,7 @@ from configsys.routes import Binding, Component
 
 @pytest.fixture(scope='module')
 def cascade():
-    c, _components, _m = routes.load(os.path.join(os.path.dirname(__file__), '..', 'routes.hu'))
+    c, _components, _m, _co = routes.load(os.path.join(os.path.dirname(__file__), '..', 'routes.hu'))
     return c
 
 
@@ -60,7 +60,7 @@ def _component(name, *whens):
 
 
 def test_real_routes_are_unambiguous(cascade):
-    _c, components, _m = routes.load(os.path.join(os.path.dirname(__file__), '..', 'routes.hu'))
+    _c, components, _m, _co = routes.load(os.path.join(os.path.dirname(__file__), '..', 'routes.hu'))
     check_all(components, cascade)          # must not raise
 
 
@@ -129,7 +129,7 @@ def _comp(name, spec):
 def _validate(cascade, extra):
     '''Run validate() over the real components plus some hand-built extras.'''
     from configsys import routes, routecheck
-    _c, components, drivers = routes.load(
+    _c, components, drivers, _co = routes.load(
         os.path.join(os.path.dirname(__file__), '..', 'routes.hu'), validate=False)
     for name, comp in extra.items():
         components[name] = comp
@@ -138,7 +138,7 @@ def _validate(cascade, extra):
 
 def test_validate_clean_routes_has_no_issues(cascade):
     from configsys import routes, routecheck
-    _c, components, drivers = routes.load(
+    _c, components, drivers, _co = routes.load(
         os.path.join(os.path.dirname(__file__), '..', 'routes.hu'), validate=False)
     assert routecheck.validate(components, cascade, drivers) == []
 

@@ -150,7 +150,7 @@ def report(ctx, name, *, min_version=None, refresh=False, now=None):
     # you could pin to; the pin/default are marked per method below.
     cands = candidate_bindings(comp, r.cascade, cx, None)
     try:
-        default_binding = select_binding(comp, r.cascade, cx, r.pins, r.preference)
+        default_binding = select_binding(comp, r.cascade, cx, r.pins, r.preference, r.candidate_only)
     except ResolveError:
         default_binding = None                    # undecidable/none-here: no default marker
     pin = r.pins.get(name)

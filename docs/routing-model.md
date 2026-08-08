@@ -266,6 +266,9 @@ narrow a validity `when:`.
 The bindings valid in a context (their `when:` matches) form its **candidate set**
 (`candidate_bindings`, resolve.py). One is chosen as the default, deterministically:
 
+0. **candidate-only filter** — bindings whose via is marked `candidate-only` (see below) are
+   dropped from the default pool *unless every valid method here is candidate-only*. They stay
+   in the candidate set (still listed / pinnable), they just can't win the auto-default.
 1. **most specific** among *comparable* candidates (the §8 subset order);
 2. **`driver-preference`** — a global driver order (a machine setting), overridable per OS
    block (so e.g. flatpak > native lives in the `os:` data on `fedora_atomic`, not smuggled
@@ -274,7 +277,19 @@ The bindings valid in a context (their `when:` matches) form its **candidate set
 
 If the preorder still ties, it is an error whose message names the preference channel (add
 `driver-preference` / `prefer:`) — never `when:`. A user **binding-pin** (§10) overrides the
-default outright. Because `when:` is validity-only, `configsys where <comp>` can show every
+default outright.
+
+**Candidate-only vias.** A driver block in the `drivers:` section may set `candidate-only:
+true` (e.g. `snap: { candidate-only: true }`). Every binding of that via is then a valid,
+listed install method that never wins the auto-default while any ordinary method is valid.
+This exists because a method like snap must be gated `when: ubuntu` for *validity* (snapd
+only ships there) — which would make it the §8 most-specific candidate and hijack the Ubuntu
+default over a broad `native` binding, even though snap is only meant to be *offered*. The
+flag decouples "valid here" from "should win here" without abusing `when:`. It applies at the
+driver level (not per-binding), is overlaid like the rest of `drivers:` (repo → plugin →
+primary — so a user's primary plugin can mark `flatpak` candidate-only too), and a binding-pin
+still forces such a method. If it is the *only* valid method (e.g. chromium on Ubuntu, which
+ships solely as a snap), it wins normally. Because `when:` is validity-only, `configsys where <comp>` can show every
 candidate method, the default, and *which rule decided it*.
 
 **Checker shape:** decidable and cheap. Enumerate the finite (OS-block × cpu-value)

@@ -228,8 +228,14 @@ def load(path, overrides_path=None, discovered=(), plugin_files=(), validate=Tru
 
     drvs = layers.merge_dict_section(layer_list, 'drivers', ('repo', 'plugin', 'primary'))
     drivers = {name: cap_names((spec or {}).get('requires')) for name, spec in drvs.items()}
+    # `candidate-only: true` in a driver's block marks EVERY binding of that via as valid+listed
+    # but never the auto-default (see resolve._select). Ships true on snap; a user's primary
+    # plugin (or any plugin) can add flatpak etc. via the same overlaid `drivers:` section.
+    candidate_only = frozenset(
+        name for name, spec in drvs.items()
+        if str((spec or {}).get('candidate-only', '')).lower() in ('true', '1', 'yes', 'on'))
     _apply_version_floors(components, layers.merge_version_floors(layer_list))
-    return cascade, components, drivers
+    return cascade, components, drivers, candidate_only
 
 
 def _apply_version_floors(components, floors):
@@ -261,7 +267,7 @@ class Resolver:
                  overrides_path=None, discovered=(), plugin_files=(), preference=None):
         self.load_warnings = []       # skipped files/components (for diagnostics)
         self.layers = []              # expanded layer stack low→high (for `-v` reporting)
-        self.cascade, self.components, self.drivers = load(
+        self.cascade, self.components, self.drivers, self.candidate_only = load(
             routes_path, overrides_path, discovered, plugin_files,
             warnings_out=self.load_warnings, layers_out=self.layers)
         # per-driver package-name patches for existing components (a plugin OS supplying its
@@ -282,7 +288,7 @@ class Resolver:
         from .resolve import resolve_roots
         return resolve_roots(list(names), self.cascade, self.components, self.drivers,
                              self.block, self.version, self.cpu, self.pins, self.overrides,
-                             self.preference)
+                             self.preference, self.candidate_only)
 
     def resolve_names(self, names):
         from .adapt import to_resolved_components
@@ -299,7 +305,8 @@ class Resolver:
         pins = {**self.pins, **extra_pins} if extra_pins else self.pins
         units, errors = resolve_resilient(list(names), self.cascade, self.components,
                                           self.drivers, self.block, self.version,
-                                          self.cpu, pins, self.overrides, self.preference)
+                                          self.cpu, pins, self.overrides, self.preference,
+                                          self.candidate_only)
         return to_resolved_components(units), errors
 
     def resolve_with_roots(self, names):
@@ -327,7 +334,8 @@ class Resolver:
         # native`) to the one that resolves for that via, so the picker lists one row per real choice.
         reps = via_representatives(cands, self.cascade)
         try:
-            winner = _select(comp, self.cascade, ctx, self.pins, self.preference)[0]
+            winner = _select(comp, self.cascade, ctx, self.pins, self.preference,
+                             self.candidate_only)[0]
         except ResolveError:
             winner = None
         pinned_via = self.pins.get(name)

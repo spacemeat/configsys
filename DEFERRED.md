@@ -15,28 +15,20 @@ before integrating** — the notes are transcribed from training knowledge.
 
 ---
 
-## 1. Snap bindings — DECISION NEEDED (driver is ready)
-A snap binding must be gated `when: ubuntu` for validity. But that makes it **more specific** than
-the broader `native`/`flatpak` bindings, so the resolver's "most-specific `when:` wins before
-driver-preference" rule makes **snap the Ubuntu DEFAULT**, not just an option. e.g. `vscode` would
-flip from the Microsoft apt repo to the `code` snap. Given your ambivalence about snaps, this is a
-call for you:
+## 1. Snap bindings — RESOLVED (candidate-only driver flag + verified bindings shipped)
+The "snap gated `when: ubuntu` becomes the Ubuntu default by specificity" problem is fixed by a
+**driver-level `candidate-only` flag** (`drivers: { snap: { candidate-only: true } }`): a snap
+binding is valid + listed in the picker + pinnable, but never the auto-default while any ordinary
+method is valid (native/flatpak keep the Ubuntu default). A binding-pin still forces it; if snap is
+the *only* method (chromium on Ubuntu) it wins. See docs/routing-model.md §8a. Overlaid repo→plugin→
+primary, so your configsys-user primary can add `flatpak: { candidate-only: true }` the same way.
 
-- **(A)** Accept snap-as-Ubuntu-default for components that have a good snap (add the bindings).
-- **(B)** Only add snap where you actually want it to win on Ubuntu (curated, deliberate).
-- **(C)** Ship the driver only; users add snap bindings per-machine / via a pin.
-
-Candidate bindings I had queued (all famous snaps; add `classic: true` only where noted):
-```
-vscode      { via: snap  when: "ubuntu"  name: code  classic: true }   // MS official (classic)
-slack       { via: snap  when: "ubuntu"  name: slack }
-discord     { via: snap  when: "ubuntu"  name: discord }
-postman     { via: snap  when: "ubuntu"  name: postman }
-obs-studio  { via: snap  when: "ubuntu"  name: obs-studio }
-blender     { via: snap  when: "ubuntu"  name: blender }
-```
-A fuller sweep (node, gh, kubectl, helm, chromium, spotify [not yet a component], …) waits on the
-same decision + name verification.
+Shipped snap bindings (names verified on snapcraft.io): vscode (`code`, classic), slack, discord,
+postman, obs-studio, blender (classic), node (classic), kubectl (classic), helm (classic), firefox,
+chromium, and a new **spotify** component (Flathub `com.spotify.Client` + `spotify` snap). Golden
+proved ZERO default flips from these (candidate-only). `gh` snap SKIPPED — it's community, not
+official GitHub. Remaining snap candidates if wanted (all verified official/Canonical): a `code`-vs-
+native question is moot now; could still add snaps for more apps, but they'd all be candidate-only.
 
 ## 2. Binary-release sweep (tarball / native-pkg-file / appImage) — VERIFY URLs/assets then add
 From an offline research pass. `H` = confident about repo + asset shape; `M` = repo known, asset

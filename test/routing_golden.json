@@ -447,6 +447,15 @@
     "name": "flatpak"
    }
   },
+  "chromium": {
+   "pacman\\chromium": {
+    "driver": "pacman",
+    "fields": {
+     "name": "chromium"
+    },
+    "name": "chromium"
+   }
+  },
   "cinnamon": {
    "pacman\\cinnamon": {
     "driver": "pacman",
@@ -2969,6 +2978,23 @@
     "name": "flatpak"
    }
   },
+  "spotify": {
+   "flatpak\\spotify": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "com.spotify.Client"
+    },
+    "name": "com.spotify.Client"
+   },
+   "pacman\\flatpak": {
+    "driver": "pacman",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   }
+  },
   "sqlitebrowser": {
    "flatpak\\sqlitebrowser": {
     "driver": "flatpak",
@@ -4390,6 +4416,15 @@
     "name": "com.google.Chrome"
    }
   },
+  "chromium": {
+   "apt\\chromium": {
+    "driver": "apt",
+    "fields": {
+     "name": "chromium"
+    },
+    "name": "chromium"
+   }
+  },
   "cinnamon": {
    "apt\\cinnamon": {
     "driver": "apt",
@@ -7478,6 +7513,23 @@
      "name": "net.sonic_pi.SonicPi"
     },
     "name": "net.sonic_pi.SonicPi"
+   }
+  },
+  "spotify": {
+   "apt\\flatpak": {
+    "driver": "apt",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\spotify": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "com.spotify.Client"
+    },
+    "name": "com.spotify.Client"
    }
   },
   "sqlitebrowser": {
@@ -8843,6 +8895,15 @@
     "name": "com.google.Chrome"
    }
   },
+  "chromium": {
+   "apt\\chromium": {
+    "driver": "apt",
+    "fields": {
+     "name": "chromium"
+    },
+    "name": "chromium"
+   }
+  },
   "cinnamon": {
    "apt\\cinnamon": {
     "driver": "apt",
@@ -11853,6 +11914,23 @@
     "name": "net.sonic_pi.SonicPi"
    }
   },
+  "spotify": {
+   "apt\\flatpak": {
+    "driver": "apt",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\spotify": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "com.spotify.Client"
+    },
+    "name": "com.spotify.Client"
+   }
+  },
   "sqlitebrowser": {
    "apt\\flatpak": {
     "driver": "apt",
@@ -13204,6 +13282,15 @@
      "name": "com.google.Chrome"
     },
     "name": "com.google.Chrome"
+   }
+  },
+  "chromium": {
+   "dnf\\chromium": {
+    "driver": "dnf",
+    "fields": {
+     "name": "chromium"
+    },
+    "name": "chromium"
    }
   },
   "cinnamon": {
@@ -15910,6 +15997,23 @@
     "name": "net.sonic_pi.SonicPi"
    }
   },
+  "spotify": {
+   "dnf\\flatpak": {
+    "driver": "dnf",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\spotify": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "com.spotify.Client"
+    },
+    "name": "com.spotify.Client"
+   }
+  },
   "sqlitebrowser": {
    "dnf\\flatpak": {
     "driver": "dnf",
@@ -17312,6 +17416,15 @@
      "name": "com.google.Chrome"
     },
     "name": "com.google.Chrome"
+   }
+  },
+  "chromium": {
+   "dnf\\chromium": {
+    "driver": "dnf",
+    "fields": {
+     "name": "chromium"
+    },
+    "name": "chromium"
    }
   },
   "cinnamon": {
@@ -20044,6 +20157,23 @@
     "name": "net.sonic_pi.SonicPi"
    }
   },
+  "spotify": {
+   "dnf\\flatpak": {
+    "driver": "dnf",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\spotify": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "com.spotify.Client"
+    },
+    "name": "com.spotify.Client"
+   }
+  },
   "sqlitebrowser": {
    "dnf\\flatpak": {
     "driver": "dnf",
@@ -21466,6 +21596,15 @@
      "name": "com.google.Chrome"
     },
     "name": "com.google.Chrome"
+   }
+  },
+  "chromium": {
+   "snap\\chromium": {
+    "driver": "snap",
+    "fields": {
+     "name": "chromium"
+    },
+    "name": "chromium"
    }
   },
   "cinnamon": {
@@ -24567,6 +24706,23 @@
     "name": "net.sonic_pi.SonicPi"
    }
   },
+  "spotify": {
+   "apt\\flatpak": {
+    "driver": "apt",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\spotify": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "com.spotify.Client"
+    },
+    "name": "com.spotify.Client"
+   }
+  },
   "sqlitebrowser": {
    "apt\\flatpak": {
     "driver": "apt",
@@ -25947,6 +26103,15 @@
      "name": "com.google.Chrome"
     },
     "name": "com.google.Chrome"
+   }
+  },
+  "chromium": {
+   "dnf\\chromium": {
+    "driver": "dnf",
+    "fields": {
+     "name": "chromium"
+    },
+    "name": "chromium"
    }
   },
   "cinnamon": {
@@ -28851,6 +29016,23 @@
     "name": "net.sonic_pi.SonicPi"
    }
   },
+  "spotify": {
+   "dnf\\flatpak": {
+    "driver": "dnf",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\spotify": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "com.spotify.Client"
+    },
+    "name": "com.spotify.Client"
+   }
+  },
   "sqlitebrowser": {
    "dnf\\flatpak": {
     "driver": "dnf",
@@ -30307,6 +30489,15 @@
     "name": "com.google.Chrome"
    }
   },
+  "chromium": {
+   "snap\\chromium": {
+    "driver": "snap",
+    "fields": {
+     "name": "chromium"
+    },
+    "name": "chromium"
+   }
+  },
   "cinnamon": {
    "apt\\cinnamon": {
     "driver": "apt",
@@ -33395,6 +33586,23 @@
      "name": "net.sonic_pi.SonicPi"
     },
     "name": "net.sonic_pi.SonicPi"
+   }
+  },
+  "spotify": {
+   "apt\\flatpak": {
+    "driver": "apt",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\spotify": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "com.spotify.Client"
+    },
+    "name": "com.spotify.Client"
    }
   },
   "sqlitebrowser": {
@@ -34760,6 +34968,15 @@
     "name": "com.google.Chrome"
    }
   },
+  "chromium": {
+   "snap\\chromium": {
+    "driver": "snap",
+    "fields": {
+     "name": "chromium"
+    },
+    "name": "chromium"
+   }
+  },
   "cinnamon": {
    "apt\\cinnamon": {
     "driver": "apt",
@@ -37768,6 +37985,23 @@
      "name": "net.sonic_pi.SonicPi"
     },
     "name": "net.sonic_pi.SonicPi"
+   }
+  },
+  "spotify": {
+   "apt\\flatpak": {
+    "driver": "apt",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\spotify": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "com.spotify.Client"
+    },
+    "name": "com.spotify.Client"
    }
   },
   "sqlitebrowser": {
