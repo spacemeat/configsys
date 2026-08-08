@@ -33,8 +33,8 @@ class FakeRunner:
 
 def test_registry_resolves_apt_and_rejects_others():
     assert isinstance(get_driver('apt', Runner(pretend=True)), Apt)
-    assert get_driver('snap', Runner(pretend=True)) is None   # not implemented
-    assert is_supported('apt') and not is_supported('snap')
+    assert get_driver('nosuchvia', Runner(pretend=True)) is None   # not implemented
+    assert is_supported('apt') and not is_supported('nosuchvia')
 
 
 def test_install_command():

@@ -24,9 +24,9 @@ def apt_unit(name='btop'):
 
 
 def unsupported_unit():
-    # `snap` is not implemented -> exercises graceful degradation (all real routed
+    # `nosuchvia` is not implemented -> exercises graceful degradation (all real routed
     # drivers are now supported, so use a synthetic unregistered one)
-    return ResolvedComponent(key='snap\\foo', driver='snap', comp='foo',
+    return ResolvedComponent(key='nosuchvia\\foo', driver='nosuchvia', comp='foo',
                              fields={'name': 'foo'})
 
 
@@ -132,12 +132,12 @@ def test_both_lock_sources():
 def test_unsupported_family_degrades():
     fr = FakeRunner()
     led = Ledger()
-    led.set_managed('snap\\foo', True)
+    led.set_managed('nosuchvia\\foo', True)
     st = InstallState(fr, led).inspect_one(unsupported_unit())
     assert not st.supported
     assert st.status == 'unsupported'
     assert st.managed is True
-    assert 'snap' in st.error
+    assert 'nosuchvia' in st.error
     # a degraded inspection must not have shelled out
     assert fr.calls == []
 
@@ -148,10 +148,10 @@ def test_inspect_many():
         ('apt-cache policy', 0, '  Candidate: 1.0.0\n'),
         ('apt-mark showhold', 0, ''),
     ])
-    units = {'apt\\btop': apt_unit('btop'), 'snap\\foo': unsupported_unit()}
+    units = {'apt\\btop': apt_unit('btop'), 'nosuchvia\\foo': unsupported_unit()}
     states = InstallState(fr).inspect(units)
     assert states['apt\\btop'].status == 'installed'
-    assert states['snap\\foo'].status == 'unsupported'
+    assert states['nosuchvia\\foo'].status == 'unsupported'
 
 
 def test_untrusted_driver_reads_as_untrusted_not_unsupported():
