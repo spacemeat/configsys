@@ -1088,7 +1088,7 @@ class ProfileScreen:
         self.profiles = cfg.profile_names()
         self.active = set(cfg.active_profiles)
         self.catalog = sorted(self.ctx.routes.components)
-        self._avail = {}
+        self._res = {}
         self.lcur = min(self.lcur, max(0, len(self.profiles) - 1))
         self.rcur = min(self.rcur, max(0, len(self.catalog) - 1))
 
@@ -1112,13 +1112,26 @@ class ProfileScreen:
         '''Components a `~term` removes from the profile (for the `~` marker).'''
         return self.ctx.config.profile_removed(profile) if profile else set()
 
-    def available(self, name):
-        if name not in self._avail:
+    def _resolve(self, name):
+        '''(available, resolved_via, pinned) for a component — cached. The resolved via is the
+        method it installs with now (the pin, else the preference-picked default); `pinned` is set
+        when a binding-pin chose it. One candidates() call feeds both the grey-out and the method.'''
+        if name not in self._res:
             try:
-                self._avail[name] = bool(self.ctx.routes.candidates(name))
-            except Exception:                       # noqa: BLE001 — unroutable -> grayed
-                self._avail[name] = False
-        return self._avail[name]
+                cands = self.ctx.routes.candidates(name)
+            except Exception:                       # noqa: BLE001 — unroutable
+                cands = []
+            win = next((c for c in cands if c['default']), None)
+            self._res[name] = (bool(cands), win['via'] if win else None, bool(win and win['pinned']))
+        return self._res[name]
+
+    def available(self, name):
+        return self._resolve(name)[0]
+
+    def method(self, name):
+        '''(resolved_via, pinned) for the row's method label.'''
+        _avail, via, pinned = self._resolve(name)
+        return via, pinned
 
 
 def _draw_profiles(stdscr, pal, ps, ctx, note, screen):
@@ -1183,7 +1196,7 @@ def _draw_profiles(stdscr, pal, ps, ctx, note, screen):
     n = len(ps.catalog)
     rows = max(1, rih)                               # each column is as tall as the pane
     longest = max((len(nm) for nm in ps.catalog), default=12)
-    col_w = max(1, min(riw, max(16, min(30, longest + 6))))  # room for `▸● name` (+ an odd `[via]`)
+    col_w = max(1, min(riw, max(20, min(32, longest + 9))))  # room for `▸● name  method`
     ncols = max(1, riw // col_w) if riw > 0 else 1
     col_w = riw // ncols if ncols else riw           # redistribute to fill the width exactly
     total_cols = (n + rows - 1) // rows
@@ -1206,14 +1219,23 @@ def _draw_profiles(stdscr, pal, ps, ctx, note, screen):
             name, y = ps.catalog[i], rit + rr
             cur = i == ps.rcur
             foc = cur and ps.focus == 'right'
-            elem = 'component' if ps.available(name) else 'info_dim'
+            avail, via, pinned = ps._resolve(name)
+            elem = 'component' if avail else 'info_dim'
+            cell = col_w - 1
             if foc:
-                _put(stdscr, y, cx, ' ' * (col_w - 1), pal.fill(y, cx, h, w, selected=True))
+                _put(stdscr, y, cx, ' ' * cell, pal.fill(y, cx, h, w, selected=True))
             cm = '▸' if cur else ' '
             mk = ('●' if name in own else '↳') if name in members else ('~' if name in removed else ' ')
-            pinned = ctx.config.pins().get(name)     # a binding-pin shows the chosen via
-            row = f'{cm}{mk} {name}' + (f' [{pinned}]' if pinned else '')
-            _put(stdscr, y, cx, _fit(row, col_w - 1), pal.style(elem, y, cx, h, w, selected=foc))
+            # the resolved method trails the name, in the muted method colour; a pin is marked `[via]`
+            mstr = (f'[{via}]' if pinned else via) if via else ''
+            nm_txt = f'{cm}{mk} {name}'
+            if mstr and cell > len(mstr) + 4:
+                _put(stdscr, y, cx, _fit(nm_txt, cell - len(mstr) - 1),
+                     pal.style(elem, y, cx, h, w, selected=foc))
+                mx = cx + cell - len(mstr)
+                _put(stdscr, y, mx, mstr, pal.style('method_dim', y, mx, h, w, selected=foc))
+            else:                                    # too narrow for a method column: just the name
+                _put(stdscr, y, cx, _fit(nm_txt, cell), pal.style(elem, y, cx, h, w, selected=foc))
 
     from .. import actions
     status = f' profile: {prof or "—"}    edits → {actions.edit_target(ctx)[1]}'
