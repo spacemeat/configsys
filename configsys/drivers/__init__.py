@@ -20,6 +20,7 @@ from .font import Font
 from .dnf import Dnf
 from .dotfiles import DotFiles
 from .flatpak import Flatpak
+from .snap import Snap
 from .gcc import Gcc
 from .gem import Gem
 from .gcc_toolset import GccToolset
@@ -50,6 +51,7 @@ _REGISTRY = {
     Tarball.name: Tarball,
     NativePkgFile.name: NativePkgFile,
     Flatpak.name: Flatpak,
+    Snap.name: Snap,
     AppImage.name: AppImage,
     DotFiles.name: DotFiles,
     Font.name: Font,
