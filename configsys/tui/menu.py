@@ -1170,6 +1170,7 @@ class ProfileScreen:
         self.pfilter = self.cfilter = ''   # substring filters for the profiles / catalog panes
         self.expanded = set()            # node keys of expanded profiles (inline `+include` tree)
         self.starred = set()             # profile NAMES starred (▸) — their members filter the catalog
+        self._res = {}                   # component -> (available, via, pinned); survives reloads
         self.reload()
 
     # -- profiles tree (top-level profiles + inline `+include` children) --
@@ -1259,7 +1260,9 @@ class ProfileScreen:
         self.starred &= self._profset                # drop stars for profiles that no longer exist
         self.active = set(cfg.active_profiles)
         self.catalog = sorted(self.ctx.routes.components)
-        self._res = {}
+        # KEEP self._res: a membership / profile edit doesn't change how a component RESOLVES (its
+        # via), so re-resolving the whole visible set (~17ms each) on every toggle was the ~1.5s lag.
+        # The method picker (`m`) is the only edit that changes resolution; it drops its own entry.
         self.lcur = min(self.lcur, max(0, len(self.visible_pnodes()) - 1))
         self.rcur = min(self.rcur, max(0, len(self.vcatalog()) - 1))
         self._warm_cache()               # resolving each component is ~17ms; warm off-thread so
@@ -1269,6 +1272,8 @@ class ProfileScreen:
         '''Populate _resolve for the whole catalog on a daemon thread. The menu loop blocks in
         getch() (GIL released) while idle, so this fills within a few seconds of opening the screen
         without stuttering the UI. A generation guard makes a later reload() abandon this sweep.'''
+        if all(nm in self._res for nm in self.catalog):
+            return                                   # already warm (the cache survives reloads)
         self._warm_gen = getattr(self, '_warm_gen', 0) + 1
         gen, catalog = self._warm_gen, list(self.catalog)
 
@@ -2368,6 +2373,7 @@ def run(ctx):
                             pending_notes.append(deferred)
                         if changed:
                             ctx.invalidate()               # re-read so the new [via] pin shows
+                            ps._res.pop(name, None)        # its resolution changed -> drop the stale entry
                             ps.reload()
                             menu_dirty = True
                 elif ch in (ord(' '), ord('\n'), curses.KEY_ENTER) and ps.focus == 'right':
