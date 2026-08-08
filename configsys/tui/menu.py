@@ -547,23 +547,25 @@ def _put(stdscr, y, x, s, attr=0):
 
 def _methods_line(ms, ctx):
     '''A line listing every install method eligible for the current component here — not just the
-    default or the pin — with the default marked `*` and a pin marked. Blank unless there's a
-    real choice (>=2). `m` opens the picker.'''
+    default or the pin — with the default marked `*` and a pin marked. Always names the method, even
+    when there's only one option (no `*`/choice hint then). `m` opens the picker when there's a
+    real choice (>=2).'''
     name = _row_component(ms.cur())
     if not name:
         return ''
     cands = ctx.routes.candidates(name)
-    if len(cands) < 2:
+    if not cands:
         return ''
+    choice = len(cands) >= 2
     parts = []
     for c in cands:
         tag = c['via']
         if c['pinned']:
             tag += ' (pinned)'
-        elif c['default']:
+        elif c['default'] and choice:
             tag += ' *'
         parts.append(tag)
-    return f' methods: {"   ".join(parts)}      (m to change)'
+    return f' methods: {"   ".join(parts)}' + ('      (m to change)' if choice else '')
 
 
 def _infoblock(ms, ctx):
@@ -1077,6 +1079,8 @@ class ProfileScreen:
         self.ctx = ctx
         self.focus = 'left'          # 'left' = profiles, 'right' = catalog
         self.lcur = self.rcur = self.ltop = self.rtop = 0
+        self.rcol_left = 0           # leftmost visible catalog column (grid horizontal scroll)
+        self.rrows, self.rncols = 1, 1   # grid dims, set each draw; the key handler moves by column
         self.reload()
 
     def reload(self):
@@ -1126,7 +1130,7 @@ def _draw_profiles(stdscr, pal, ps, ctx, note, screen):
     _draw_nav(stdscr, pal, screen, h, w)
 
     top, body_h = 1, h - 3
-    lw = max(20, w // 3)
+    lw = max(16, w // 6)                             # profiles pane: narrow, leaving the grid room
     rleft, rw = lw + 1, w - lw - 1
     prof = ps.cur_profile()
     members = ps.members(prof)
@@ -1162,35 +1166,60 @@ def _draw_profiles(stdscr, pal, ps, ctx, note, screen):
                 cands = ctx.routes.candidates(cur)
             except Exception:                       # noqa: BLE001
                 cands = []
-            mtext = ('methods: ' + '  '.join(c['via'] + ('*' if c['default'] else '') for c in cands)
-                     if cands else 'methods: (not available on this OS)')
+            if cands:                               # always name the method, even for a single option
+                choice = len(cands) > 1
+                mtext = 'methods: ' + '  '.join(c['via'] + ('*' if c['default'] and choice else '')
+                                                for c in cands)
+            else:
+                mtext = 'methods: (not available on this OS)'
             _put(stdscr, dit + dih - 1, dil, _fit(mtext, diw),
-                 pal.style('info_dim', dit + dih - 1, dil, h, w))
+                 pal.style('method_dim', dit + dih - 1, dil, h, w))
 
-    # RIGHT BOTTOM: the component catalog
+    # RIGHT BOTTOM: the component catalog, as a COLUMN-MAJOR grid filling the pane width
     ctop, cath = top + desc_h, body_h - desc_h
     rit, ril, rih, riw = _panel(stdscr, pal, ctop, rleft, cath, rw,
                                 f'components — in "{prof}"' if prof else 'components',
                                 ps.focus == 'right', h, w)
-    ps.rtop = _scroll_top(ps.rcur, ps.rtop, rih, len(ps.catalog))
-    for vis, i in enumerate(range(ps.rtop, min(len(ps.catalog), ps.rtop + rih))):
-        name, y = ps.catalog[i], rit + vis
-        cur = i == ps.rcur
-        foc = cur and ps.focus == 'right'
-        elem = 'component' if ps.available(name) else 'info_dim'
-        if foc:
-            _put(stdscr, y, ril, ' ' * riw, pal.fill(y, ril, h, w, selected=True))
-        cm = '▸' if cur else ' '
-        mk = ('●' if name in own else '↳') if name in members else ('~' if name in removed else ' ')
-        pinned = ctx.config.pins().get(name)         # a binding-pin shows the chosen via
-        row = f'{cm}{mk} {name}' + (f'  [{pinned}]' if pinned else '')
-        _put(stdscr, y, ril, _fit(row, riw), pal.style(elem, y, ril, h, w, selected=foc))
+    n = len(ps.catalog)
+    rows = max(1, rih)                               # each column is as tall as the pane
+    longest = max((len(nm) for nm in ps.catalog), default=12)
+    col_w = max(1, min(riw, max(16, min(30, longest + 6))))  # room for `▸● name` (+ an odd `[via]`)
+    ncols = max(1, riw // col_w) if riw > 0 else 1
+    col_w = riw // ncols if ncols else riw           # redistribute to fill the width exactly
+    total_cols = (n + rows - 1) // rows
+    ps.rrows, ps.rncols = rows, ncols                # let the key handler move by column
+    cur_col = ps.rcur // rows
+    if cur_col < ps.rcol_left:                       # keep the cursor's column in view
+        ps.rcol_left = cur_col
+    elif cur_col >= ps.rcol_left + ncols:
+        ps.rcol_left = cur_col - ncols + 1
+    ps.rcol_left = max(0, min(ps.rcol_left, max(0, total_cols - ncols)))
+    for vc in range(ncols if riw > 0 else 0):
+        col = ps.rcol_left + vc
+        if col >= total_cols:
+            break
+        cx = ril + vc * col_w
+        for rr in range(rows):
+            i = col * rows + rr
+            if i >= n:
+                break
+            name, y = ps.catalog[i], rit + rr
+            cur = i == ps.rcur
+            foc = cur and ps.focus == 'right'
+            elem = 'component' if ps.available(name) else 'info_dim'
+            if foc:
+                _put(stdscr, y, cx, ' ' * (col_w - 1), pal.fill(y, cx, h, w, selected=True))
+            cm = '▸' if cur else ' '
+            mk = ('●' if name in own else '↳') if name in members else ('~' if name in removed else ' ')
+            pinned = ctx.config.pins().get(name)     # a binding-pin shows the chosen via
+            row = f'{cm}{mk} {name}' + (f' [{pinned}]' if pinned else '')
+            _put(stdscr, y, cx, _fit(row, col_w - 1), pal.style(elem, y, cx, h, w, selected=foc))
 
     from .. import actions
     status = f' profile: {prof or "—"}    edits → {actions.edit_target(ctx)[1]}'
     if note:
         status += f'    {note}'
-    navf = (' j/k · h/l focus · space toggle · a (de)activate · m pin method · '
+    navf = (' j/k/h/l move · tab focus · space toggle · a (de)activate · m pin method · '
             '●own ↳via-include ~removed · 1-6 · q ')
     _put(stdscr, h - 2, 0, _fit(status, w), pal.style('status_line', h - 2, 0, h, w))
     _put(stdscr, h - 1, 0, _fit(navf.ljust(w), w), pal.style('footer', h - 1, 0, h, w))
@@ -1979,7 +2008,7 @@ def run(ctx):
                 if ch in (ord('j'), curses.KEY_DOWN):
                     if ps.focus == 'left':
                         ps.lcur = min(len(ps.profiles) - 1, ps.lcur + 1)
-                    else:
+                    else:                              # column-major grid: down = next item, wraps col
                         ps.rcur = min(len(ps.catalog) - 1, ps.rcur + 1)
                 elif ch in (ord('k'), curses.KEY_UP):
                     if ps.focus == 'left':
@@ -1989,9 +2018,15 @@ def run(ctx):
                 elif ch == ord('\t'):
                     ps.focus = 'right' if ps.focus == 'left' else 'left'   # toggle
                 elif ch in (ord('l'), curses.KEY_RIGHT):
-                    ps.focus = 'right'
+                    if ps.focus == 'left':
+                        ps.focus = 'right'             # cross into the grid
+                    else:                              # next column, same row (clamped)
+                        ps.rcur = min(len(ps.catalog) - 1, ps.rcur + ps.rrows)
                 elif ch in (ord('h'), curses.KEY_LEFT):
-                    ps.focus = 'left'
+                    if ps.focus == 'right' and ps.rcur >= ps.rrows:
+                        ps.rcur -= ps.rrows            # previous column
+                    else:
+                        ps.focus = 'left'              # leftmost column (or already left) -> profiles
                 elif ch == ord('g'):
                     setattr(ps, 'lcur' if ps.focus == 'left' else 'rcur', 0)
                 elif ch == ord('G'):

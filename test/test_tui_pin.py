@@ -195,10 +195,12 @@ def test_methods_line_lists_eligible_drivers(tmp_path):
     assert '(m to change)' in line
 
 
-def test_methods_line_blank_when_no_choice(tmp_path):
+def test_methods_line_names_the_method_even_with_one_option(tmp_path):
     _steam_home(tmp_path)
     ctx = _ctx(tmp_path)
-    assert menu._methods_line(_menu_on(ctx, 'zsh'), ctx) == ''   # native-only: no line
+    line = menu._methods_line(_menu_on(ctx, 'zsh'), ctx)         # native-only: still name the method
+    assert 'native' in line and '*' not in line                 # named, but no choice marker...
+    assert '(m to change)' not in line                          # ...and no change hint
 
 
 def _scope_node(driver, scope):
