@@ -30,11 +30,40 @@ proved ZERO default flips from these (candidate-only). `gh` snap SKIPPED — it'
 official GitHub. Remaining snap candidates if wanted (all verified official/Canonical): a `code`-vs-
 native question is moot now; could still add snaps for more apps, but they'd all be candidate-only.
 
-## 2. Binary-release sweep (tarball / native-pkg-file / appImage) — VERIFY URLs/assets then add
-From an offline research pass. `H` = confident about repo + asset shape; `M` = repo known, asset
-pattern needs checking. Study the existing `via: tarball` / `via: native-pkg-file` / `via: appImage`
-bindings in routes.hu for the exact field syntax (`version: { github: owner/repo  strip-v:  asset: }`,
-`installDir`, `archive`, `binary`, `requires`, etc.).
+## 2. Binary-release sweep (tarball / native-pkg-file / appImage) — NOW VERIFIED, ready to author
+**Asset names below were confirmed on the actual GitHub releases (2026-08-08 networked pass).**
+Study existing `via: tarball` / `via: native-pkg-file` / `via: appImage` bindings for field syntax
+(`version: { github: owner/repo  strip-v:  asset: }`, `installDir`, `archive`, `binary`, `requires`).
+
+**ONE JUDGMENT CALL before authoring:** for components currently **cargo-only** (xh, tree-sitter-cli,
+websocat), adding a tarball binding FLIPS their default cargo→tarball (cargo isn't in the driver-
+preference list, so it's least-preferred; tarball outranks it). That's arguably better (prebuilt vs
+build-from-source), but it IS a default change — decide whether to accept it or add `prefer:`/keep
+cargo. native-only (ripgrep/fzf/btop/protobuf/jq/ollama) and flatpak-only (godot/insomnia/dbeaver/
+bruno/musescore/freecad/openscad) components keep their current default; the binary method is just an
+added option, so those are pure wins with no flip.
+
+**Verified asset facts (corrections in bold — several drifted from the old offline guesses):**
+- ripgrep BurntSushi/ripgrep — tag `15.2.0` (no v) — `ripgrep-15.2.0-x86_64-unknown-linux-musl.tar.gz`, bin at `<name>/rg` (versioned subdir, strip 1)
+- fzf junegunn/fzf — tag `v0.74.2` (**asset uses bare `0.74.2`**) — `fzf-0.74.2-linux_amd64.tar.gz`, single `fzf` at root
+- btop aristocratos/btop — tag `v1.4.7` — **`btop-x86_64-unknown-linux-musl.tar.gz` (NOT the old `.tbz`; no version in name)**, `btop/bin/btop`
+- xh ducaale/xh — tag `v0.26.2` — `xh-v0.26.2-x86_64-unknown-linux-musl.tar.gz`, `xh-v.../xh`
+- ollama ollama/ollama — tag `v0.32.6` — **`ollama-linux-amd64.tar.zst` (CHANGED from `.tgz`; zstd)**, `bin/ollama`+`lib/ollama`
+- tree-sitter tree-sitter/tree-sitter — tag `v0.26.12` — `tree-sitter-linux-x64.gz` (plain gzip single ELF; gunzip→rename)
+- protobuf protocolbuffers/protobuf — tag `v35.1` (asset bare `35.1`) — `protoc-35.1-linux-x86_64.zip`, `bin/protoc`+`include/`
+- jq jqlang/jq — tag **`jq-1.8.2` (strip `jq-`, not v)** — `jq-linux-amd64` raw ELF, archive:none, rename jq
+- websocat vi/websocat — tag `v1.14.1` — `websocat.x86_64-unknown-linux-musl` raw, rename websocat
+- zed zed-industries/zed — tag `v1.14.2` — `zed-linux-x86_64.tar.gz` → `zed.app/bin/zed` bundle
+- k3s k3s-io/k3s — tag `v1.36.3+k3s1` (**URL-encode the `+` as `%2B`**) — raw `k3s`, archive:none
+- godot godotengine/godot — tag `4.7.1-stable` (no v; **asset carries a v**) — `Godot_v4.7.1-stable_linux.x86_64.zip`, single exe
+- insomnia Kong/insomnia — tag **`core@13.1.0` (parse version out of the monorepo tag)** — `Insomnia.Core-13.1.0.deb`/`.rpm`
+- dbeaver dbeaver/dbeaver — tag `26.1.4` — `dbeaver-ce-26.1.4-linux-x86_64.deb`/`.rpm`
+- bruno usebruno/bruno — tag `v4.0.0` — `bruno_4.0.0_amd64_linux.deb` / `bruno_4.0.0_x86_64_linux.rpm` (**deb=amd64, rpm=x86_64**)
+- musescore musescore/MuseScore — tag `v4.7.4` — **`MuseScore-Studio-4.7.4.260706075-x86_64.AppImage` (build suffix NOT derivable from the tag — must SCRAPE the asset name, can't template)**
+- freecad FreeCAD/FreeCAD — tag `1.1.3` — `FreeCAD_1.1.3-Linux-x86_64-py311.AppImage` (**`py311` token varies per release**)
+- openscad — **GitHub "latest" is the old 2021.01 stable; current nightlies live at files.openscad.org, NOT GitHub** → needs a `url:`-based (non-GH) binding or leave flatpak-only
+
+(Original H/M tables below retained for the repo/binary-layout notes.)
 
 ### tarball (prebuilt binary from a GitHub release)
 | comp | repo | conf | asset / notes |
@@ -73,11 +102,11 @@ vendor URLs, no versioned tag), virtualbox (Oracle per-distro matrix), krita/ink
 AppImages (KDE/GitLab/PPA, not upstream GH), awscli (installer zip + ./install), gcloud/helm (vendor
 storage). Each needs a bespoke `url:` (not GH `version:` discovery) or is fine as-is.
 
-## 3. Flatpak deferred (GUI apps, exact Flathub ID unconfirmed)
-arduino (cc.arduino.IDE2?), ghostty (com.mitchellh.ghostty?), gnuradio (org.gnuradio.GNURadio?),
-paraview (org.paraview.ParaView?), qjackctl (org.rncbc.qjackctl?), supercollider (?), virt-manager
-(needs system libvirt; Flathub presence uncertain), wxmaxima (?). Confirm the reverse-DNS IDs on
-Flathub, then add `{ via: flatpak  hub: flathub  app: <ID> }`.
+## 3. Flatpak — RESOLVED (networked pass)
+**ADDED (IDs confirmed on flathub.org):** arduino (cc.arduino.IDE2), paraview (org.paraview.ParaView),
+virt-manager (org.virt_manager.virt-manager), wxmaxima (io.github.wxmaxima_developers.wxMaxima).
+**NOT on Flathub (confirmed 404) — leave as-is:** ghostty, gnuradio, qjackctl, supercollider (these
+distribute via their own sites / community third-party Flatpaks, not the official Flathub remote).
 
 ## 4. C++ lib coverage gaps
 - **boost/abseil/qt/gtk/gtkmm**: native names are gated to debian/redhat/arch/alpine. Add
