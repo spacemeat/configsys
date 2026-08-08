@@ -45,7 +45,7 @@ profiles: {
     graphics: [ +user  vulkan-dev  blender ]
     artist: [ +user  blender  krita  gimp  inkscape  darktable  freecad  openscad  godot  scribus  digikam  obs-studio ]
     audio: [ +user  pipewire  ardour  lmms  tenacity  musescore  hydrogen  carla  sonic-pi  supercollider  qjackctl ]
-    science: [ +user  +latex  julia  r  octave  jupyterlab  gnuplot  paraview  miniforge ]
+    science: [ +user  +latex  julia  r  octave  jupyterlab  gnuplot  paraview  miniforge  opencv  opencv-python ]
     math: [ +user  +latex  julia  r  octave  maxima  wxmaxima  pari  gap  gnuplot  sagemath ]
     networking: [ +user  +net-tools ]
     ai: [ +terminal  claude-code  codex  llm  aider  ollama  analysis ]
