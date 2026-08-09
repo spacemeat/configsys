@@ -95,6 +95,19 @@ def test_stage_on_component_marks_its_missing_units():
     assert ms.staged == {'apt\\libxcb': 'install', 'tarball\\vulkan-sdk': 'install'}
 
 
+def test_stage_install_upgrades_outdated_units():
+    # `i` = "make it current": missing -> install, outdated -> UPGRADE, up-to-date -> skip
+    states = {
+        'apt\\a-missing':  cs('apt\\a-missing', 'missing', ['a-missing']),
+        'apt\\b-outdated': cs('apt\\b-outdated', 'outdated', ['b-outdated']),
+        'apt\\c-current':  cs('apt\\c-current', 'installed', ['c-current']),
+    }
+    ms = MenuState(states, [('p', ['a-missing', 'b-outdated', 'c-current'])])
+    ms.cursor = 0                                   # the profile row -> all its units
+    ms.stage('install')
+    assert ms.staged == {'apt\\a-missing': 'install', 'apt\\b-outdated': 'upgrade'}
+
+
 def test_select_individual_unit_after_expand():
     ms = make()
     ms.cursor = ms.rows.index(next(n for n in ms.rows if n.id == 'c:user:neovim'))

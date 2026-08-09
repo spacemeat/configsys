@@ -118,7 +118,11 @@ class NativePkgFile(Driver):
         inst = self._install_cmd(fmt, '$PKG')
         if inst is None:
             return Result('(native-pkg-file: no supported native package tool on this system)', 1)
-        tmp = shlex.quote(f'/tmp/configsys-{rc.comp}.pkg')
+        # the file MUST keep the format's real extension: `apt-get install <file>` recognizes a
+        # local package only by a `.deb` suffix (a bare `.pkg` -> "E: Unsupported file … given on
+        # commandline"), and dnf/rpm likewise want `.rpm`.
+        ext = {'deb': 'deb', 'rpm': 'rpm', 'pacman': 'pkg.tar.zst'}.get(fmt, 'pkg')
+        tmp = shlex.quote(f'/tmp/configsys-{rc.comp}.{ext}')
         cmd = (f'PKG={tmp}; curl -fSL {shlex.quote(url)} -o $PKG && '
                f'{inst} && rm -f $PKG')
         return self.runner.run(cmd, sudo=True, capture=False)

@@ -349,12 +349,17 @@ class MenuState:
     # -- staging (unit-keyed) ---------------------------------------------
 
     def stage(self, op):
-        pred = OPS[op][2]
         staged_any = False
         for node in self._target_nodes():
             for m in node.members:
-                if pred(m):
-                    self.staged[m.key] = op
+                # `i` (install) means "make it current": install if absent, else upgrade if
+                # outdated. So one key covers both — a present-but-outdated unit stages an upgrade
+                # instead of doing nothing. Other ops keep their own predicate.
+                eff = op
+                if op == 'install' and not OPS['install'][2](m) and OPS['upgrade'][2](m):
+                    eff = 'upgrade'
+                if OPS[eff][2](m):
+                    self.staged[m.key] = eff
                     self.errors.pop(m.key, None)
                     staged_any = True
         return staged_any
@@ -781,7 +786,7 @@ def _draw(stdscr, pal, ms, ctx, note, diags=(), show_diag=False, diag_top=0, scr
     if note:
         status_line += f'   {note}'
     nav = ' j/k · g/G top/bottom · l/h expand/collapse · enter open · / filter · tab expand-all '
-    act = ' space sel · a all · i/u/x inst/upg/rm · L lock · m method · c clear · X exec · ! issues · q quit '
+    act = ' space sel · a all · i inst/upg · u upg · x rm · L lock · m method · c clear · X exec · ! issues · q quit '
     _put(stdscr, h - 3, 0, _fit(status_line, w), pal.style('status_line', h - 3, 0, h, w))
     _put(stdscr, h - 2, 0, _fit(nav.ljust(w), w), pal.style('footer', h - 2, 0, h, w))
     _put(stdscr, h - 1, 0, _fit(act.ljust(w), w), pal.style('footer', h - 1, 0, h, w))
