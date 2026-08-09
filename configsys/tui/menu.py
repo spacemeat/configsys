@@ -2903,13 +2903,19 @@ def run(ctx):
                     curses.flushinp()  # ...and any typed during the re-inspect
             elif ch == ord('R'):               # refresh version caches + the native package index
                 with suspended(stdscr):
+                    print('Refreshing the package view — re-querying version sources and running the\n'
+                          'package-manager index update. This takes a moment; sudo may prompt below.\n',
+                          flush=True)               # up front so the slow first step doesn't look hung
                     from .. import app
-                    app.cmd_refresh(ctx, None)     # sudo apt-get update etc. prompts here; stamps the time
+                    app.cmd_refresh(ctx, None)     # apt-get update etc.; stamps the refresh time on success
                     try:
                         input('\n[Enter] to return')
                     except EOFError:
                         pass
                 curses.flushinp()
+                # the stamp is already written, so repaint once NOW — the staleness chip clears
+                # instantly, before the (slower) re-probe of every unit's latest version below.
+                _draw(stdscr, pal, ms, ctx, 'updating latest versions…', diags, False, 0, screen)
                 try:                              # a fresh index changes every unit's "latest" -> re-probe all
                     ms, cfg, ledger, states, diags = _reload(ctx, ms, set(states))
                 except Exception as e:  # noqa: BLE001 — surface, don't crash

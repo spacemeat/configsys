@@ -708,8 +708,10 @@ def cmd_set_version(ctx, args):
 
 def cmd_refresh(ctx, args):
     from .versions import discover, source_key
+    print('configsys refresh — re-querying version sources and the package index '
+          '(this can take a moment; sudo may prompt)…', flush=True)
     _cfg, _req, units, _ledger, _states = ctx.load_pipeline()
-    print('Refreshing discovered versions...')
+    print('\nRefreshing discovered versions...')
     seen = {}
     for key in sorted(units):
         rc = units[key]
@@ -734,8 +736,7 @@ def cmd_refresh(ctx, args):
               'CONFIGSYS_GITHUB_TOKEN or GITHUB_TOKEN to lift the API limit.')
     # refresh the native package index too — the SOURCE for `via: native` components, so their
     # get_latest / installs reflect the current candidates (apt in particular NEVER auto-updates
-    # for a plain install). sudo runs as a subprocess (prompts in this terminal), not the whole
-    # app. pacman is left to `pacman -Syu` by design (a bare `-Sy` invites a partial upgrade).
+    # for a plain install). sudo runs as a subprocess (prompts in this terminal), not the whole app.
     from . import refreshstate
     pm = ctx.routes.cascade.native(ctx.os_info.block)
     native = {'apt': 'apt-get update', 'dnf': 'dnf -q makecache',
@@ -746,7 +747,21 @@ def cmd_refresh(ctx, args):
         print(f'\nRefreshing the {pm} package index...')
         ok = ctx.runner.run(native, sudo=(pm != 'brew'), capture=False).ok
     elif pm == 'pacman':
-        print('\n(pacman DB left alone — run `pacman -Syu` to refresh + upgrade the Arch way)')
+        # Arch has no safe index-only refresh: a bare `pacman -Sy` leaves the DB newer than the
+        # installed system, so the next single-package install (`pacman -S`, exactly how this driver
+        # installs) is a partial upgrade -> breakage. The only safe refresh is a full `-Syu`. Confirm
+        # first, then run it to completion (--noconfirm) so we never leave that partial-sync state.
+        print('\nOn Arch a safe refresh is a FULL SYSTEM UPGRADE (pacman -Syu) — a bare `pacman -Sy`\n'
+              'leaves a partial-sync state that breaks the next install, so configsys never does one.')
+        try:
+            go = input('Run `pacman -Syu` now (upgrades ALL installed packages)? [y/N] ').strip().lower() == 'y'
+        except EOFError:
+            go = False
+        if go:
+            ok = ctx.runner.run('pacman -Syu --noconfirm', sudo=True, capture=False).ok
+        else:
+            print('Skipped — pacman DB left unchanged.')
+            ok = False                                 # nothing refreshed -> don't stamp
     if ok:
         refreshstate.record(ctx.paths)                # stamp only a successful index refresh
     return 0
