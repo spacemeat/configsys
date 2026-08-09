@@ -485,7 +485,11 @@ class _State:
                 raise ResolveError(f'"{cap}" pinned to {pin!r}, which cannot provide it here')
             chosen = pin
         else:
-            auto = [p for p in viable if p not in self.optin]   # opt-in ones need a pin/explicit want
+            # opt-in providers aren't AUTO-pulled to satisfy a CAPABILITY (e.g. a versioned gcc-13
+            # must not silently become the `cc`/`cxx` provider) — a pin or explicit want enables
+            # them. BUT requiring a component by its OWN NAME (`requires: gcc-10`, where the provider
+            # p == the required cap) IS that explicit want, so it bypasses opt-in.
+            auto = [p for p in viable if p not in self.optin or p == cap]
             if not auto:
                 hint = f' — enable one with a provider-pin, e.g. pins: {{ {cap}: {viable[0]} }}'
                 raise ResolveError(f'nothing auto-provides "{cap}" here (required by {requiring}){hint}')

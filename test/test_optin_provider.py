@@ -40,6 +40,16 @@ def test_optin_provider_used_when_explicitly_wanted(tmp_path):
     assert _resolve(tmp_path, ['shim', 'app']) == {'apt\\app', 'apt\\shim'}
 
 
+def test_optin_provider_pulled_when_required_by_its_own_name(tmp_path):
+    # opt-in blocks auto-satisfying a CAPABILITY (cap), but requiring the component BY ITS OWN NAME
+    # is an explicit want -> it IS pulled. (This is how `opencv requires: gcc-10` works, gcc-10 being
+    # opt-in so it never becomes the generic cc/cxx provider.)
+    comps = COMPS + '  byname: { requires: shim  install: [ { via: native } ] }'
+    p = tmp_path / 'routes.hu'
+    p.write_text('{ ' + OS + '  components: { ' + comps + ' } }')
+    assert set(Resolver(str(p), 'debian', '12').resolve_names(['byname'])) == {'apt\\byname', 'apt\\shim'}
+
+
 def test_ordinary_provider_is_auto_pulled(tmp_path):
     # the contrast: a normal provider (no opt-in) DOES auto-pull to satisfy a requirement
     assert _resolve(tmp_path, ['app2']) == {'apt\\app2', 'apt\\ordinary'}
