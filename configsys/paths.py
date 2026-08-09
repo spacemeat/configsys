@@ -89,6 +89,7 @@ class Paths:
         self.method_versions_file = self.state_dir / 'method-versions.hu'  # per-method get_latest cache (native queries are slow)
         self.plugins_dir = self.state_dir / 'plugins'         # synced remote plugin repos
         self.plugin_trust_file = self.state_dir / 'plugin-trust.hu'   # {plugin: approved commit}
+        self.last_refresh_file = self.state_dir / 'last-refresh'   # unix ts of the last `configsys refresh`
 
         # dotfiles content overlay: the machine-local store (always) that capture writes to when
         # there's no primary plugin, and that the driver reads FIRST — so your own content shadows

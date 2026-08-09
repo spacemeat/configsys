@@ -732,6 +732,23 @@ def cmd_refresh(ctx, args):
             and 'GITHUB_TOKEN' not in ctx.env:
         print('\nSome lookups failed (network or GitHub rate limit). Set '
               'CONFIGSYS_GITHUB_TOKEN or GITHUB_TOKEN to lift the API limit.')
+    # refresh the native package index too — the SOURCE for `via: native` components, so their
+    # get_latest / installs reflect the current candidates (apt in particular NEVER auto-updates
+    # for a plain install). sudo runs as a subprocess (prompts in this terminal), not the whole
+    # app. pacman is left to `pacman -Syu` by design (a bare `-Sy` invites a partial upgrade).
+    from . import refreshstate
+    pm = ctx.routes.cascade.native(ctx.os_info.block)
+    native = {'apt': 'apt-get update', 'dnf': 'dnf -q makecache',
+              'zypper': 'zypper --non-interactive refresh', 'apk': 'apk update',
+              'brew': 'brew update'}.get(pm)
+    ok = True
+    if native:
+        print(f'\nRefreshing the {pm} package index...')
+        ok = ctx.runner.run(native, sudo=(pm != 'brew'), capture=False).ok
+    elif pm == 'pacman':
+        print('\n(pacman DB left alone — run `pacman -Syu` to refresh + upgrade the Arch way)')
+    if ok:
+        refreshstate.record(ctx.paths)                # stamp only a successful index refresh
     return 0
 
 

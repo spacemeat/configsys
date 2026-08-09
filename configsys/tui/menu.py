@@ -37,6 +37,8 @@ KEY_TO_OP = {
     ord('i'): 'install', ord('u'): 'upgrade', ord('x'): 'remove',
 }
 
+_REFRESH_WARN_DAYS = 30   # a package index older than this shows in warn-color on the Components header
+
 PROFILE, COMPONENT, UNIT, LINK = 'profile', 'component', 'unit', 'link'
 
 
@@ -707,11 +709,26 @@ def _draw(stdscr, pal, ms, ctx, note, diags=(), show_diag=False, diag_top=0, scr
     if ctx.runner.pretend:
         sub += '   [PRETEND]'
     _put(stdscr, 1, len(title), _fit(sub, max(1, w - len(title))), pal.style('os', 1, len(title), h, w))
+    rend = len(title) + len(sub)
+    if screen == 'components':                       # package-index staleness, right of the OS tag
+        from .. import refreshstate
+        age = refreshstate.age_days(ctx.paths)
+        if age is None:
+            rtext, relem = 'index never refreshed', 'issue_warning'
+        elif age < 1:
+            rtext, relem = 'index refreshed today', 'info_dim'
+        else:
+            rtext, relem = f'index refreshed {int(age)}d ago', \
+                'issue_warning' if age >= _REFRESH_WARN_DAYS else 'info_dim'
+        rx = rend + 3
+        if rx < w - 4:
+            _put(stdscr, 1, rx, _fit(rtext, max(1, w - rx - 1)), pal.style(relem, 1, rx, h, w))
+            rend = rx + len(rtext)
     if diags:                                        # attention badge, right-aligned on the title line
         n = len(diags)
         elem = 'issue_error' if any(d['level'] == 'error' for d in diags) else 'issue_warning'
         badge = f' ⚠ {n} issue{"s" if n != 1 else ""} — press ! to view '
-        bx = max(len(title) + len(sub) + 2, w - len(badge) - 1)
+        bx = max(rend + 2, w - len(badge) - 1)
         _put(stdscr, 1, bx, _fit(badge, w - bx), pal.style(elem, 1, bx, h, w))
 
     for c, text in (('name', 'COMPONENT'), ('driver', 'DRIVER'), ('scope', 'SCOPE'),
@@ -786,7 +803,7 @@ def _draw(stdscr, pal, ms, ctx, note, diags=(), show_diag=False, diag_top=0, scr
     if note:
         status_line += f'   {note}'
     nav = ' j/k · g/G top/bottom · l/h expand/collapse · enter open · / filter · tab expand-all '
-    act = ' space sel · a all · i inst/upg · u upg · x rm · L lock · m method · c clear · X exec · ! issues · q quit '
+    act = ' space sel · a all · i inst/upg · u upg · x rm · L lock · m method · c clear · X exec · R refresh · ! issues · q quit '
     _put(stdscr, h - 3, 0, _fit(status_line, w), pal.style('status_line', h - 3, 0, h, w))
     _put(stdscr, h - 2, 0, _fit(nav.ljust(w), w), pal.style('footer', h - 2, 0, h, w))
     _put(stdscr, h - 1, 0, _fit(act.ljust(w), w), pal.style('footer', h - 1, 0, h, w))
@@ -2884,6 +2901,21 @@ def run(ctx):
                     ms.staged.clear()          # the staged ops just ran; don't leave them badged
                     ms.errors = failed
                     curses.flushinp()  # ...and any typed during the re-inspect
+            elif ch == ord('R'):               # refresh version caches + the native package index
+                with suspended(stdscr):
+                    from .. import app
+                    app.cmd_refresh(ctx, None)     # sudo apt-get update etc. prompts here; stamps the time
+                    try:
+                        input('\n[Enter] to return')
+                    except EOFError:
+                        pass
+                curses.flushinp()
+                try:                              # a fresh index changes every unit's "latest" -> re-probe all
+                    ms, cfg, ledger, states, diags = _reload(ctx, ms, set(states))
+                except Exception as e:  # noqa: BLE001 — surface, don't crash
+                    note = f'reload failed: {e}'
+                else:
+                    note = 'refreshed version caches + package index'
     ctx.reporter.resume()             # back on the console (endwin has restored the terminal)
     ctx.report_session_summary(cfg, states, diags)   # -v+: leave a recap in the scrollback
     for msg in pending_notes:         # pin/promote hints held back so they don't interrupt the TUI
