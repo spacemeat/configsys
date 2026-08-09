@@ -5221,6 +5221,135 @@
     "name": "gap"
    }
   },
+  "gcc-10": {
+   "apt\\software-properties-common": {
+    "driver": "apt",
+    "fields": {
+     "name": "software-properties-common"
+    },
+    "name": "software-properties-common"
+   },
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.bash.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\gcc-select": {
+    "driver": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/gcc.sh",
+     "src": "bash.d/gcc.sh"
+    },
+    "name": "gcc-select"
+   },
+   "gcc\\gcc-10": {
+    "driver": "gcc",
+    "fields": {
+     "name": "gcc-10",
+     "packages": [
+      "gcc-10",
+      "g++-10"
+     ],
+     "ppa": "ubuntu-toolchain-r/test",
+     "slaves": [
+      "g++"
+     ]
+    },
+    "name": "gcc-10"
+   }
+  },
+  "gcc-11": {
+   "apt\\software-properties-common": {
+    "driver": "apt",
+    "fields": {
+     "name": "software-properties-common"
+    },
+    "name": "software-properties-common"
+   },
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.bash.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\gcc-select": {
+    "driver": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/gcc.sh",
+     "src": "bash.d/gcc.sh"
+    },
+    "name": "gcc-select"
+   },
+   "gcc\\gcc-11": {
+    "driver": "gcc",
+    "fields": {
+     "name": "gcc-11",
+     "packages": [
+      "gcc-11",
+      "g++-11"
+     ],
+     "ppa": "ubuntu-toolchain-r/test",
+     "slaves": [
+      "g++"
+     ]
+    },
+    "name": "gcc-11"
+   }
+  },
+  "gcc-12": {
+   "apt\\software-properties-common": {
+    "driver": "apt",
+    "fields": {
+     "name": "software-properties-common"
+    },
+    "name": "software-properties-common"
+   },
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.bash.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\gcc-select": {
+    "driver": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/gcc.sh",
+     "src": "bash.d/gcc.sh"
+    },
+    "name": "gcc-select"
+   },
+   "gcc\\gcc-12": {
+    "driver": "gcc",
+    "fields": {
+     "name": "gcc-12",
+     "packages": [
+      "gcc-12",
+      "g++-12"
+     ],
+     "ppa": "ubuntu-toolchain-r/test",
+     "slaves": [
+      "g++"
+     ]
+    },
+    "name": "gcc-12"
+   }
+  },
   "gcc-13": {
    "apt\\software-properties-common": {
     "driver": "apt",
@@ -9714,6 +9843,135 @@
     "name": "gap"
    }
   },
+  "gcc-10": {
+   "apt\\software-properties-common": {
+    "driver": "apt",
+    "fields": {
+     "name": "software-properties-common"
+    },
+    "name": "software-properties-common"
+   },
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.bash.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\gcc-select": {
+    "driver": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/gcc.sh",
+     "src": "bash.d/gcc.sh"
+    },
+    "name": "gcc-select"
+   },
+   "gcc\\gcc-10": {
+    "driver": "gcc",
+    "fields": {
+     "name": "gcc-10",
+     "packages": [
+      "gcc-10",
+      "g++-10"
+     ],
+     "ppa": "ubuntu-toolchain-r/test",
+     "slaves": [
+      "g++"
+     ]
+    },
+    "name": "gcc-10"
+   }
+  },
+  "gcc-11": {
+   "apt\\software-properties-common": {
+    "driver": "apt",
+    "fields": {
+     "name": "software-properties-common"
+    },
+    "name": "software-properties-common"
+   },
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.bash.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\gcc-select": {
+    "driver": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/gcc.sh",
+     "src": "bash.d/gcc.sh"
+    },
+    "name": "gcc-select"
+   },
+   "gcc\\gcc-11": {
+    "driver": "gcc",
+    "fields": {
+     "name": "gcc-11",
+     "packages": [
+      "gcc-11",
+      "g++-11"
+     ],
+     "ppa": "ubuntu-toolchain-r/test",
+     "slaves": [
+      "g++"
+     ]
+    },
+    "name": "gcc-11"
+   }
+  },
+  "gcc-12": {
+   "apt\\software-properties-common": {
+    "driver": "apt",
+    "fields": {
+     "name": "software-properties-common"
+    },
+    "name": "software-properties-common"
+   },
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.bash.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\gcc-select": {
+    "driver": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/gcc.sh",
+     "src": "bash.d/gcc.sh"
+    },
+    "name": "gcc-select"
+   },
+   "gcc\\gcc-12": {
+    "driver": "gcc",
+    "fields": {
+     "name": "gcc-12",
+     "packages": [
+      "gcc-12",
+      "g++-12"
+     ],
+     "ppa": "ubuntu-toolchain-r/test",
+     "slaves": [
+      "g++"
+     ]
+    },
+    "name": "gcc-12"
+   }
+  },
   "gcc-13": {
    "apt\\software-properties-common": {
     "driver": "apt",
@@ -14125,6 +14383,135 @@
      "repo-component": "universe"
     },
     "name": "gap"
+   }
+  },
+  "gcc-10": {
+   "apt\\software-properties-common": {
+    "driver": "apt",
+    "fields": {
+     "name": "software-properties-common"
+    },
+    "name": "software-properties-common"
+   },
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.bash.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\gcc-select": {
+    "driver": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/gcc.sh",
+     "src": "bash.d/gcc.sh"
+    },
+    "name": "gcc-select"
+   },
+   "gcc\\gcc-10": {
+    "driver": "gcc",
+    "fields": {
+     "name": "gcc-10",
+     "packages": [
+      "gcc-10",
+      "g++-10"
+     ],
+     "ppa": "ubuntu-toolchain-r/test",
+     "slaves": [
+      "g++"
+     ]
+    },
+    "name": "gcc-10"
+   }
+  },
+  "gcc-11": {
+   "apt\\software-properties-common": {
+    "driver": "apt",
+    "fields": {
+     "name": "software-properties-common"
+    },
+    "name": "software-properties-common"
+   },
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.bash.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\gcc-select": {
+    "driver": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/gcc.sh",
+     "src": "bash.d/gcc.sh"
+    },
+    "name": "gcc-select"
+   },
+   "gcc\\gcc-11": {
+    "driver": "gcc",
+    "fields": {
+     "name": "gcc-11",
+     "packages": [
+      "gcc-11",
+      "g++-11"
+     ],
+     "ppa": "ubuntu-toolchain-r/test",
+     "slaves": [
+      "g++"
+     ]
+    },
+    "name": "gcc-11"
+   }
+  },
+  "gcc-12": {
+   "apt\\software-properties-common": {
+    "driver": "apt",
+    "fields": {
+     "name": "software-properties-common"
+    },
+    "name": "software-properties-common"
+   },
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.bash.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\gcc-select": {
+    "driver": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/gcc.sh",
+     "src": "bash.d/gcc.sh"
+    },
+    "name": "gcc-select"
+   },
+   "gcc\\gcc-12": {
+    "driver": "gcc",
+    "fields": {
+     "name": "gcc-12",
+     "packages": [
+      "gcc-12",
+      "g++-12"
+     ],
+     "ppa": "ubuntu-toolchain-r/test",
+     "slaves": [
+      "g++"
+     ]
+    },
+    "name": "gcc-12"
    }
   },
   "gcc-13": {
@@ -29890,6 +30277,135 @@
     "name": "gap"
    }
   },
+  "gcc-10": {
+   "apt\\software-properties-common": {
+    "driver": "apt",
+    "fields": {
+     "name": "software-properties-common"
+    },
+    "name": "software-properties-common"
+   },
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.bash.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\gcc-select": {
+    "driver": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/gcc.sh",
+     "src": "bash.d/gcc.sh"
+    },
+    "name": "gcc-select"
+   },
+   "gcc\\gcc-10": {
+    "driver": "gcc",
+    "fields": {
+     "name": "gcc-10",
+     "packages": [
+      "gcc-10",
+      "g++-10"
+     ],
+     "ppa": "ubuntu-toolchain-r/test",
+     "slaves": [
+      "g++"
+     ]
+    },
+    "name": "gcc-10"
+   }
+  },
+  "gcc-11": {
+   "apt\\software-properties-common": {
+    "driver": "apt",
+    "fields": {
+     "name": "software-properties-common"
+    },
+    "name": "software-properties-common"
+   },
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.bash.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\gcc-select": {
+    "driver": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/gcc.sh",
+     "src": "bash.d/gcc.sh"
+    },
+    "name": "gcc-select"
+   },
+   "gcc\\gcc-11": {
+    "driver": "gcc",
+    "fields": {
+     "name": "gcc-11",
+     "packages": [
+      "gcc-11",
+      "g++-11"
+     ],
+     "ppa": "ubuntu-toolchain-r/test",
+     "slaves": [
+      "g++"
+     ]
+    },
+    "name": "gcc-11"
+   }
+  },
+  "gcc-12": {
+   "apt\\software-properties-common": {
+    "driver": "apt",
+    "fields": {
+     "name": "software-properties-common"
+    },
+    "name": "software-properties-common"
+   },
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.bash.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\gcc-select": {
+    "driver": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/gcc.sh",
+     "src": "bash.d/gcc.sh"
+    },
+    "name": "gcc-select"
+   },
+   "gcc\\gcc-12": {
+    "driver": "gcc",
+    "fields": {
+     "name": "gcc-12",
+     "packages": [
+      "gcc-12",
+      "g++-12"
+     ],
+     "ppa": "ubuntu-toolchain-r/test",
+     "slaves": [
+      "g++"
+     ]
+    },
+    "name": "gcc-12"
+   }
+  },
   "gcc-13": {
    "apt\\software-properties-common": {
     "driver": "apt",
@@ -34360,6 +34876,33 @@
     "name": "gap"
    }
   },
+  "gcc-10": {
+   "gcc-toolset\\gcc-10": {
+    "driver": "gcc-toolset",
+    "fields": {
+     "name": "gcc-10"
+    },
+    "name": "gcc-10"
+   }
+  },
+  "gcc-11": {
+   "gcc-toolset\\gcc-11": {
+    "driver": "gcc-toolset",
+    "fields": {
+     "name": "gcc-11"
+    },
+    "name": "gcc-11"
+   }
+  },
+  "gcc-12": {
+   "gcc-toolset\\gcc-12": {
+    "driver": "gcc-toolset",
+    "fields": {
+     "name": "gcc-12"
+    },
+    "name": "gcc-12"
+   }
+  },
   "gcc-13": {
    "gcc-toolset\\gcc-13": {
     "driver": "gcc-toolset",
@@ -38818,6 +39361,135 @@
      "repo-component": "universe"
     },
     "name": "gap"
+   }
+  },
+  "gcc-10": {
+   "apt\\software-properties-common": {
+    "driver": "apt",
+    "fields": {
+     "name": "software-properties-common"
+    },
+    "name": "software-properties-common"
+   },
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.bash.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\gcc-select": {
+    "driver": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/gcc.sh",
+     "src": "bash.d/gcc.sh"
+    },
+    "name": "gcc-select"
+   },
+   "gcc\\gcc-10": {
+    "driver": "gcc",
+    "fields": {
+     "name": "gcc-10",
+     "packages": [
+      "gcc-10",
+      "g++-10"
+     ],
+     "ppa": "ubuntu-toolchain-r/test",
+     "slaves": [
+      "g++"
+     ]
+    },
+    "name": "gcc-10"
+   }
+  },
+  "gcc-11": {
+   "apt\\software-properties-common": {
+    "driver": "apt",
+    "fields": {
+     "name": "software-properties-common"
+    },
+    "name": "software-properties-common"
+   },
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.bash.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\gcc-select": {
+    "driver": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/gcc.sh",
+     "src": "bash.d/gcc.sh"
+    },
+    "name": "gcc-select"
+   },
+   "gcc\\gcc-11": {
+    "driver": "gcc",
+    "fields": {
+     "name": "gcc-11",
+     "packages": [
+      "gcc-11",
+      "g++-11"
+     ],
+     "ppa": "ubuntu-toolchain-r/test",
+     "slaves": [
+      "g++"
+     ]
+    },
+    "name": "gcc-11"
+   }
+  },
+  "gcc-12": {
+   "apt\\software-properties-common": {
+    "driver": "apt",
+    "fields": {
+     "name": "software-properties-common"
+    },
+    "name": "software-properties-common"
+   },
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.bash.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\gcc-select": {
+    "driver": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/gcc.sh",
+     "src": "bash.d/gcc.sh"
+    },
+    "name": "gcc-select"
+   },
+   "gcc\\gcc-12": {
+    "driver": "gcc",
+    "fields": {
+     "name": "gcc-12",
+     "packages": [
+      "gcc-12",
+      "g++-12"
+     ],
+     "ppa": "ubuntu-toolchain-r/test",
+     "slaves": [
+      "g++"
+     ]
+    },
+    "name": "gcc-12"
    }
   },
   "gcc-13": {
@@ -43311,6 +43983,135 @@
      "repo-component": "universe"
     },
     "name": "gap"
+   }
+  },
+  "gcc-10": {
+   "apt\\software-properties-common": {
+    "driver": "apt",
+    "fields": {
+     "name": "software-properties-common"
+    },
+    "name": "software-properties-common"
+   },
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.bash.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\gcc-select": {
+    "driver": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/gcc.sh",
+     "src": "bash.d/gcc.sh"
+    },
+    "name": "gcc-select"
+   },
+   "gcc\\gcc-10": {
+    "driver": "gcc",
+    "fields": {
+     "name": "gcc-10",
+     "packages": [
+      "gcc-10",
+      "g++-10"
+     ],
+     "ppa": "ubuntu-toolchain-r/test",
+     "slaves": [
+      "g++"
+     ]
+    },
+    "name": "gcc-10"
+   }
+  },
+  "gcc-11": {
+   "apt\\software-properties-common": {
+    "driver": "apt",
+    "fields": {
+     "name": "software-properties-common"
+    },
+    "name": "software-properties-common"
+   },
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.bash.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\gcc-select": {
+    "driver": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/gcc.sh",
+     "src": "bash.d/gcc.sh"
+    },
+    "name": "gcc-select"
+   },
+   "gcc\\gcc-11": {
+    "driver": "gcc",
+    "fields": {
+     "name": "gcc-11",
+     "packages": [
+      "gcc-11",
+      "g++-11"
+     ],
+     "ppa": "ubuntu-toolchain-r/test",
+     "slaves": [
+      "g++"
+     ]
+    },
+    "name": "gcc-11"
+   }
+  },
+  "gcc-12": {
+   "apt\\software-properties-common": {
+    "driver": "apt",
+    "fields": {
+     "name": "software-properties-common"
+    },
+    "name": "software-properties-common"
+   },
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.bash.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\gcc-select": {
+    "driver": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/gcc.sh",
+     "src": "bash.d/gcc.sh"
+    },
+    "name": "gcc-select"
+   },
+   "gcc\\gcc-12": {
+    "driver": "gcc",
+    "fields": {
+     "name": "gcc-12",
+     "packages": [
+      "gcc-12",
+      "g++-12"
+     ],
+     "ppa": "ubuntu-toolchain-r/test",
+     "slaves": [
+      "g++"
+     ]
+    },
+    "name": "gcc-12"
    }
   },
   "gcc-13": {

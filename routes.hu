@@ -1338,6 +1338,37 @@
         // `cpp-toolchain` (the system default compiler) wins and there's no ambiguity. The provides
         // are capability LABELS (the `-std` mode exists + is substantially usable), easy to hand-tune
         // per real support; the newest standards (C++26) are the most likely to want adjusting.
+        // Older lines (10/11/12) are useful as pinned HOST compilers for toolchains that reject a
+        // too-new gcc — notably CUDA's nvcc (a from-source CUDA build `requires: gcc-10` and points
+        // nvcc at it). debian: repo/PPA packages; rhel: the gcc-toolset-NN SCL. Not carried on
+        // current Fedora/Arch (their repos ship only the latest), so they decline there.
+        gcc-10: { description: "GCC 10 — the GNU Compiler Collection, version 10."
+            provides: [ cc, cxx, C11, C17, "C++17", "C++20" ]
+            opt-in: true
+            install: [
+                { via: gcc  when: "debian"  packages: [ gcc-10, g++-10 ]  slaves: [ g++ ]  ppa: ubuntu-toolchain-r/test
+                  requires: [ cxx, software-properties-common ]  suggests: gcc-select }
+                { via: gcc-toolset  when: "rhel" }
+            ]
+        }
+        gcc-11: { description: "GCC 11 — the GNU Compiler Collection, version 11."
+            provides: [ cc, cxx, C11, C17, C23, "C++17", "C++20", "C++23" ]
+            opt-in: true
+            install: [
+                { via: gcc  when: "debian"  packages: [ gcc-11, g++-11 ]  slaves: [ g++ ]  ppa: ubuntu-toolchain-r/test
+                  requires: [ cxx, software-properties-common ]  suggests: gcc-select }
+                { via: gcc-toolset  when: "rhel" }
+            ]
+        }
+        gcc-12: { description: "GCC 12 — the GNU Compiler Collection, version 12."
+            provides: [ cc, cxx, C11, C17, C23, "C++17", "C++20", "C++23" ]
+            opt-in: true
+            install: [
+                { via: gcc  when: "debian"  packages: [ gcc-12, g++-12 ]  slaves: [ g++ ]  ppa: ubuntu-toolchain-r/test
+                  requires: [ cxx, software-properties-common ]  suggests: gcc-select }
+                { via: gcc-toolset  when: "rhel" }
+            ]
+        }
         gcc-13: { description: "GCC 13 — the GNU Compiler Collection, version 13."
             provides: [ cc, cxx, C11, C17, C23, "C++17", "C++20", "C++23" ]
             opt-in: true
