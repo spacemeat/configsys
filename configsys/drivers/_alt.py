@@ -100,7 +100,28 @@ class AltDriver(Driver):
         return m.group(0) if m else self._ver(rc)
 
     def get_latest(self, rc):
-        return None  # the component is itself a pinned major version
+        '''The package manager's candidate version for the versioned master package (gcc-13 / gcc13)
+        — so a bugfix release WITHIN the pinned major (13.1.0 -> 13.2.0) shows as an available
+        update. Extracted to bare X.Y[.Z] so it lines up with get_version's parse. None if the PM
+        can't answer (e.g. --pretend, offline).'''
+        master = self._packages(rc)[0]                     # e.g. gcc-13 (apt) / gcc13 (dnf)
+        if self._pm() == 'apt':
+            r = self.runner.run(f'apt-cache policy {shlex.quote(master)}')
+            for line in (r.stdout or '').splitlines() if r.ok else ():
+                line = line.strip()
+                if line.startswith('Candidate:'):
+                    cand = line.split(':', 1)[1].strip()
+                    m = _VER_RE.search(cand)
+                    return m.group(0) if (m and cand not in ('(none)', '')) else None
+            return None
+        r = self.runner.run(f'dnf --quiet list {shlex.quote(master)} 2>/dev/null')   # dnf
+        for line in (r.stdout or '').splitlines() if r.ok else ():
+            cols = line.split()
+            if len(cols) >= 2 and cols[0].split('.')[0] == master:
+                m = _VER_RE.search(cols[1])
+                if m:
+                    return m.group(0)
+        return None
 
     def is_locked(self, rc):
         return False  # configsys doesn't manage the active selection

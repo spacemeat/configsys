@@ -44,6 +44,18 @@ def test_packages_derivation():
     assert Gcc._packages(Gcc(Runner(pretend=True)), gcc_unit()) == ['gcc-13', 'g++-13']
 
 
+def test_get_latest_reads_apt_candidate():
+    # a bugfix within the pinned major shows as available: apt-cache policy's Candidate, extracted
+    # to bare X.Y.Z so it lines up with get_version (13.1.0 installed, 13.2.0 available)
+    policy = 'gcc-13:\n  Installed: 13.1.0-8ubuntu1\n  Candidate: 13.2.0-4ubuntu3\n  Version table:\n'
+    r = FakeRunner([('apt-cache policy gcc-13', 0, policy)])
+    assert Gcc(r).get_latest(gcc_unit()) == '13.2.0'
+    assert 'apt-cache policy gcc-13' in ' '.join(r.calls)          # queried the master pkg, not `gcc`
+    # no candidate -> None (not a crash)
+    r2 = FakeRunner([('apt-cache policy', 0, 'gcc-99:\n  Candidate: (none)\n')])
+    assert Gcc(r2).get_latest(gcc_unit(comp='gcc-99', version=99)) is None
+
+
 def test_install_adds_ppa_installs_and_registers_alternative():
     r = Runner(pretend=True)
     Gcc(r).install(gcc_unit())
