@@ -82,3 +82,24 @@ def test_version_facet_specificity_nests():
     c = _cascade()
     assert subset(parse('cuda >= 12'), parse('cuda >= 11'), c)       # >=12 ⊆ >=11
     assert not subset(parse('cuda >= 11'), parse('cuda >= 12'), c)
+
+
+# -- end-to-end: a facet gates which binding resolves -----------------------
+
+_ROUTES = ('{ os: { linux: {}  debian: { using: linux  native: apt } }'
+           '  facets: { gpu: { kind: categorical  detect: "true"'
+           '                   match: { nvidia: "NVIDIA"  amd: "AMD" } } }'
+           '  components: { thing: { install: ['
+           '    { via: native }'
+           '    { via: script  when: "gpu:nvidia"  install-cmd: "x"  version-cmd: "x"'
+           '      version-re: "(.*)"  uninstall-cmd: "x" } ] } } }')
+
+
+def test_facet_gated_binding_selection(tmp_path, monkeypatch):
+    from configsys.routes import Resolver
+    p = tmp_path / 'routes.hu'
+    p.write_text(_ROUTES)
+    monkeypatch.delenv('CONFIGSYS_FACET_gpu', raising=False)          # no GPU (detect `true` -> no match)
+    assert set(Resolver(str(p), 'debian', '12').resolve_names(['thing'])) == {'apt\\thing'}
+    monkeypatch.setenv('CONFIGSYS_FACET_gpu', 'nvidia')              # inject an NVIDIA GPU
+    assert set(Resolver(str(p), 'debian', '12').resolve_names(['thing'])) == {'script\\thing'}

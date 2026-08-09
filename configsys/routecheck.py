@@ -135,7 +135,9 @@ def validate(components, cascade, drivers, pending_vias=frozenset()):
             if b.via not in valid_via:
                 add('unknown-via', f'via:{b.via!r} is not a known driver', comp)
             for os_name in predicate.os_names(b.pred):
-                if os_name not in cascade.blocks:
+                # a versioned atom naming a declared facet (`cuda >= 12`) is a version FACET, not an
+                # OS typo — exempt it. (Bare-name facets don't exist; facets are versioned/categorical.)
+                if os_name not in cascade.blocks and os_name not in cascade.facet_specs:
                     add('unknown-os', f'when: names unknown OS {os_name!r}', comp, 'warning')
             if b.via == 'parts':
                 for part in _as_list(b.details.get('parts')):

@@ -128,10 +128,13 @@ class OsCascade:
     '''The OS layer: `using` inheritance, the `native` driver, scale-roots, and the
     capabilities each environment provides for free.'''
 
-    def __init__(self, os_dict):
+    def __init__(self, os_dict, facet_specs=None):
         self.blocks = os_dict
         self.scale_roots = {n for n, b in os_dict.items()
                             if isinstance(b, dict) and _truthy(b.get('scale-root'))}
+        self.facet_specs = facet_specs or {}   # declared `facets:` {name: {kind, detect, …}}
+        self.facets_cat = {}                   # detected {ns: frozenset(tags)}  (set by detect_facets)
+        self.facets_ver = {}                   # detected {name: version string}
 
     def provides(self, block):
         '''Capabilities baseline in this environment (union over the lineage's blocks).'''
@@ -163,7 +166,8 @@ class OsCascade:
         return y in self.lineage(x)
 
     def context(self, block, version=None, cpu=None):
-        return predicate.Context(self.lineage(block), version, cpu, self.scale_roots)
+        return predicate.Context(self.lineage(block), version, cpu, self.scale_roots,
+                                 facets_cat=self.facets_cat, facets_ver=self.facets_ver)
 
 
 def _pf(entry):
@@ -199,7 +203,8 @@ def load(path, overrides_path=None, discovered=(), plugin_files=(), validate=Tru
     if layers_out is not None:                       # (path, role) low→high, for `-v` reporting
         layers_out.extend(layer_list)
 
-    cascade = OsCascade(layers.merge_dict_section(layer_list, 'os', ('repo', 'plugin', 'primary')))
+    cascade = OsCascade(layers.merge_dict_section(layer_list, 'os', ('repo', 'plugin', 'primary')),
+                        layers.merge_dict_section(layer_list, 'facets', ('repo', 'plugin', 'primary')))
     forgiving = ({os.path.normpath(d) for d in discovered}
                  | {os.path.normpath(_pf(p)[0]) for p in plugin_files})
     from . import routecheck
@@ -257,6 +262,62 @@ def _apply_version_floors(components, floors):
                     b.req_versions[cap] = con
 
 
+_FACET_CACHE = {}
+
+
+def detect_facets(specs, env=None, run=None):
+    '''Probe the declared `facets:` and return (facets_cat {ns: frozenset(tags)}, facets_ver
+    {name: version}). Each facet: run its `detect:` command (or read a `CONFIGSYS_FACET_<name>`
+    env override) and classify per `kind` — `categorical` matches each `match:` regex against the
+    output (a machine may match several tags); `version` pulls `version-re`'s first group. Read-only
+    and resilient: any probe failure / no match leaves the facet ABSENT (a `when:` over it is then
+    simply false, so a GPU binding degrades to CPU). Cached per (specs, env-overrides) so repeated
+    Resolver builds don't re-probe. `run(cmd)->stdout` is injectable for tests.'''
+    import json
+    import os
+    import re
+    import subprocess
+    env = env if env is not None else os.environ
+    key = json.dumps({'specs': specs, 'ov': {k: v for k, v in env.items()
+                                             if k.startswith('CONFIGSYS_FACET_')}}, sort_keys=True)
+    if run is None and key in _FACET_CACHE:
+        return _FACET_CACHE[key]
+
+    def _run(cmd):
+        if run is not None:
+            return run(cmd)
+        try:
+            return subprocess.run(str(cmd), shell=True, capture_output=True, text=True,
+                                  timeout=15).stdout or ''
+        except (OSError, subprocess.SubprocessError):
+            return ''
+
+    cat, ver = {}, {}
+    for name, spec in (specs or {}).items():
+        spec = spec or {}
+        override = env.get(f'CONFIGSYS_FACET_{name}')
+        if spec.get('kind') == 'categorical':
+            if override is not None:
+                tags = frozenset(t for t in re.split(r'[,\s]+', override) if t)
+            else:
+                out = _run(spec['detect']) if spec.get('detect') else ''
+                tags = frozenset(tag for tag, pat in (spec.get('match') or {}).items()
+                                 if pat and re.search(str(pat), out))
+            if tags:
+                cat[name] = tags
+        elif spec.get('kind') == 'version':
+            v = override
+            if v is None and spec.get('detect'):
+                m = re.search(str(spec.get('version-re') or r'([0-9]+(?:\.[0-9]+)*)'),
+                              _run(spec['detect']))
+                v = m.group(1) if m else None
+            if v:
+                ver[name] = v
+    if run is None:
+        _FACET_CACHE[key] = (cat, ver)
+    return cat, ver
+
+
 class Resolver:
     '''The app-facing resolver: load routes.hu once, then resolve a profile's component
     names to `{key: ResolvedComponent}` for this machine's context (OS block + version +
@@ -270,6 +331,10 @@ class Resolver:
         self.cascade, self.components, self.drivers, self.candidate_only = load(
             routes_path, overrides_path, discovered, plugin_files,
             warnings_out=self.load_warnings, layers_out=self.layers)
+        # probe declared facets (gpu vendor, cuda version, …) so `when:` can gate on hardware /
+        # environment; cached, read-only, resilient. No `facets:` declared -> a no-op.
+        if self.cascade.facet_specs:
+            self.cascade.facets_cat, self.cascade.facets_ver = detect_facets(self.cascade.facet_specs)
         # per-driver package-name patches for existing components (a plugin OS supplying its
         # own names / dropping absent ones) — overlaid across the whole layer stack.
         self.overrides = layers.merge_name_overrides(self.layers)
