@@ -21,6 +21,7 @@ conjunctions of atoms (the "broad default + narrow overrides" idiom) and raises 
 or/not, which the full checker slice will handle.
 '''
 
+import itertools
 import operator
 import re
 
@@ -80,6 +81,11 @@ class Os:
         self.version = version          # a version tuple, or None for a bare atom
 
     def eval(self, ctx):
+        # A versioned atom whose name isn't an OS block in this lineage is a version FACET
+        # (`cuda >= 12`): compare the detected facet version. Absent facet -> never matches.
+        if self.op is not None and self.name not in ctx.lineage and ctx.has_version_facet(self.name):
+            v = ctx.facet_version(self.name)
+            return v is not None and _CMP[self.op](v, self.version)
         if self.name not in ctx.lineage:
             return False
         if self.op is None:
@@ -89,12 +95,20 @@ class Os:
         return ctx.version is not None and _CMP[self.op](ctx.version, self.version)
 
 
-class Cpu:
-    def __init__(self, cpus):
-        self.cpus = frozenset(cpus)
+class Categorical:
+    '''A detected categorical dimension `ns:value` — cpu (ns='cpu') or a declared facet
+    (ns='gpu', ...). Matches when the machine's value-set for that namespace intersects.'''
+    def __init__(self, ns, values):
+        self.ns = ns
+        self.values = frozenset(values)
 
     def eval(self, ctx):
-        return ctx.cpu in self.cpus
+        return bool(self.values & ctx.categorical(self.ns))
+
+
+def Cpu(cpus):
+    '''Back-compat constructor: `cpu:` is just the categorical facet named 'cpu'.'''
+    return Categorical('cpu', cpus)
 
 
 def os_names(pred):
@@ -121,11 +135,29 @@ class Context:
     '''A machine: OS lineage (leaf-first, from the cascade), version, cpu, and which
     blocks are version scale-roots.'''
 
-    def __init__(self, lineage, version=None, cpu=None, scale_roots=()):
+    def __init__(self, lineage, version=None, cpu=None, scale_roots=(),
+                 facets_cat=None, facets_ver=None):
         self.lineage = list(lineage)
         self.version = parse_version(version) if isinstance(version, str) else version
         self.cpu = cpu
         self.scale_roots = set(scale_roots)
+        # detected environment facets. categorical: {ns -> frozenset(tags)} (cpu folds in here);
+        # versioned: {name -> version tuple}. Absent = a `when:` atom over it is simply false.
+        self.facets_cat = {ns: frozenset(v) for ns, v in (facets_cat or {}).items()}
+        if cpu is not None:
+            self.facets_cat.setdefault('cpu', frozenset([cpu]))
+        self.facets_ver = {n: (parse_version(v) if isinstance(v, str) else v)
+                           for n, v in (facets_ver or {}).items()}
+
+    def categorical(self, ns):
+        '''The machine's tag-set for a categorical namespace (cpu/gpu/…); empty if undetected.'''
+        return self.facets_cat.get(ns, frozenset())
+
+    def has_version_facet(self, name):
+        return name in self.facets_ver
+
+    def facet_version(self, name):
+        return self.facets_ver.get(name)
 
     @property
     def system_scale_root(self):
@@ -208,27 +240,26 @@ class _Parser:
         if kind != 'ident' or val in _KEYWORDS:
             raise PredicateError(f'expected an atom in when: {self.text!r}, got {val!r}')
         self._next()
-        if val == 'cpu':
-            return self._cpu()
-        # os atom, optionally versioned
         nkind, nval = self._peek()
-        if nkind == 'cmp':
+        if nkind == 'colon':                    # `ns:value` / `ns:[…]` — cpu or a categorical facet
+            return self._categorical(val)
+        if nkind == 'cmp':                      # `name op version` — OS block or a version facet
             self._next()
             vkind, vval = self._next()
             if vkind != 'version':
                 raise PredicateError(f'expected a version after {nval} in {self.text!r}')
             return Os(val, nval, parse_version(vval))
-        return Os(val)
+        return Os(val)                          # bare OS subtree atom
 
-    def _cpu(self):
+    def _categorical(self, ns):
         if self._next()[0] != 'colon':
-            raise PredicateError(f'expected `cpu:` in when: {self.text!r}')
+            raise PredicateError(f'expected `{ns}:` in when: {self.text!r}')
         kind, val = self._next()
         if kind == 'ident':
-            return Cpu([val])
+            return Categorical(ns, [val])
         if kind != 'lbrack':
-            raise PredicateError(f'expected cpu value or [ in when: {self.text!r}')
-        cpus = []
+            raise PredicateError(f'expected a value or [ after `{ns}:` in when: {self.text!r}')
+        vals = []
         while True:
             k, v = self._next()
             if k == 'rbrack':
@@ -236,9 +267,9 @@ class _Parser:
             if k == 'comma':
                 continue
             if k != 'ident':
-                raise PredicateError(f'bad cpu list in when: {self.text!r}')
-            cpus.append(v)
-        return Cpu(cpus)
+                raise PredicateError(f'bad `{ns}:` list in when: {self.text!r}')
+            vals.append(v)
+        return Categorical(ns, vals)
 
 
 ALWAYS = And([])   # empty conjunction is vacuously true — the "no when:" default
@@ -264,16 +295,32 @@ def parse(text):
 _SENTINEL_CPU = '\x00other'
 
 
-def _collect(pred, bounds, cpus):
-    if isinstance(pred, (Or, And)):
-        for t in pred.terms:
-            _collect(t, bounds, cpus)
-    elif isinstance(pred, Not):
-        _collect(pred.term, bounds, cpus)
-    elif isinstance(pred, Cpu):
-        cpus.update(pred.cpus)
-    elif isinstance(pred, Os) and pred.version is not None:
-        bounds.add(pred.version)
+def _collect(preds, cascade):
+    '''Discretize the grid dimensions a set of predicates mentions:
+       cat_dims: {ns -> [values…, sentinel]}   categorical facets (cpu, gpu, …)
+       vaxes:    {axis -> [samples]}            version axes; axis None = the OS version, a facet
+                                                name = that version facet. Each mentioned boundary
+                                                -> three samples (just below / at / just above).'''
+    cat, vbounds = {}, {}
+
+    def walk(p):
+        if isinstance(p, (Or, And)):
+            for t in p.terms:
+                walk(t)
+        elif isinstance(p, Not):
+            walk(p.term)
+        elif isinstance(p, Categorical):
+            cat.setdefault(p.ns, set()).update(p.values)
+        elif isinstance(p, Os) and p.version is not None:
+            axis = None if p.name in cascade.blocks else p.name   # OS version vs a version facet
+            vbounds.setdefault(axis, set()).add(p.version)
+
+    for p in preds:
+        walk(p)
+    cat_dims = {ns: sorted(vals) + [_SENTINEL_CPU] for ns, vals in cat.items()}
+    vaxes = {axis: sorted({(b, e) for b in bs for e in (-1, 0, 1)}) for axis, bs in vbounds.items()}
+    vaxes.setdefault(None, [((0,), 0)])           # the OS version axis is always present
+    return cat_dims, vaxes
 
 
 def _scale_root(name, lineage, scale_roots):
@@ -299,50 +346,61 @@ def _cmp_sample(op, sample, v):
     return pos == 0                        # '=' / '=='
 
 
-def _holds(pred, lineage, sroot_leaf, scale_roots, cpu, sample):
+def _holds(pred, lineage, sroot_leaf, scale_roots, blocks, cat_assign, ver_assign):
+    '''Does `pred` hold in one fully-concrete cell? `cat_assign` maps each categorical namespace
+    to this cell's value; `ver_assign` maps each version axis (None=OS, or a facet name) to its
+    sample. `blocks` = every OS block name (so a versioned atom naming a non-block is a facet).'''
     if isinstance(pred, Or):
-        return any(_holds(t, lineage, sroot_leaf, scale_roots, cpu, sample) for t in pred.terms)
+        return any(_holds(t, lineage, sroot_leaf, scale_roots, blocks, cat_assign, ver_assign)
+                   for t in pred.terms)
     if isinstance(pred, And):
-        return all(_holds(t, lineage, sroot_leaf, scale_roots, cpu, sample) for t in pred.terms)
+        return all(_holds(t, lineage, sroot_leaf, scale_roots, blocks, cat_assign, ver_assign)
+                   for t in pred.terms)
     if isinstance(pred, Not):
-        return not _holds(pred.term, lineage, sroot_leaf, scale_roots, cpu, sample)
-    if isinstance(pred, Cpu):
-        return cpu in pred.cpus
+        return not _holds(pred.term, lineage, sroot_leaf, scale_roots, blocks, cat_assign, ver_assign)
+    if isinstance(pred, Categorical):
+        return cat_assign.get(pred.ns) in pred.values
     if isinstance(pred, Os):
-        if pred.name not in lineage:
-            return False
+        if pred.name in blocks:                       # an OS block atom
+            if pred.name not in lineage:
+                return False
+            if pred.op is None:
+                return True
+            if _scale_root(pred.name, lineage, scale_roots) != sroot_leaf:
+                return False
+            return _cmp_sample(pred.op, ver_assign[None], pred.version)
+        # name is not any OS block -> a version facet (only the versioned form is meaningful)
         if pred.op is None:
-            return True
-        if _scale_root(pred.name, lineage, scale_roots) != sroot_leaf:
             return False
-        return _cmp_sample(pred.op, sample, pred.version)
+        s = ver_assign.get(pred.name)
+        return s is not None and _cmp_sample(pred.op, s, pred.version)
     raise PredicateError(f'unknown predicate node {pred!r}')
 
 
 def _cells(preds, cascade):
-    '''Yield (leaf, lineage, scale_root, cpu, samples) for every (os, cpu) grid cell.'''
-    bounds, cpus = set(), set()
-    for p in preds:
-        _collect(p, bounds, cpus)
-    cpu_vals = sorted(cpus) + [_SENTINEL_CPU]
-    samples = {(b, e) for b in bounds for e in (-1, 0, 1)} or {((0,), 0)}
+    '''Yield (lineage, sroot, blocks, cat_assign, ver_assign) for every fully-concrete grid cell:
+       OS-leaf × each categorical dim's values × each version axis's samples. With no facets the
+       product collapses to the old OS×cpu×OS-version grid, so existing behavior is unchanged.'''
+    cat_dims, vaxes = _collect(preds, cascade)
+    blocks = set(cascade.blocks)
+    cat_names = sorted(cat_dims)
+    ver_names = sorted(vaxes, key=lambda x: (x is not None, x or ''))
+    cat_lists = [cat_dims[n] for n in cat_names]
+    ver_lists = [vaxes[n] for n in ver_names]
     for leaf in cascade.blocks:
         lineage = cascade.lineage(leaf)
         sroot = _scale_root(leaf, lineage, cascade.scale_roots)
-        for cpu in cpu_vals:
-            yield leaf, lineage, sroot, cpu, samples
-
-
-def _vec(pred, lineage, sroot, scale_roots, cpu, samples):
-    return frozenset(s for s in samples
-                     if _holds(pred, lineage, sroot, scale_roots, cpu, s))
+        for cat_combo in itertools.product(*cat_lists):
+            cat_assign = dict(zip(cat_names, cat_combo))
+            for ver_combo in itertools.product(*ver_lists):
+                yield lineage, sroot, blocks, cat_assign, dict(zip(ver_names, ver_combo))
 
 
 def subset(a, b, cascade):
     '''True if a's match-set ⊆ b's (a is at-least-as-specific as b), over all machines.'''
     sr = cascade.scale_roots
-    for _leaf, lineage, sroot, cpu, samples in _cells([a, b], cascade):
-        if not _vec(a, lineage, sroot, sr, cpu, samples) <= _vec(b, lineage, sroot, sr, cpu, samples):
+    for lineage, sroot, blocks, ca, va in _cells([a, b], cascade):
+        if _holds(a, lineage, sroot, sr, blocks, ca, va) and not _holds(b, lineage, sroot, sr, blocks, ca, va):
             return False
     return True
 
@@ -350,11 +408,18 @@ def subset(a, b, cascade):
 def witness(a, b, cascade):
     '''A human-readable context where both a and b match, or None if disjoint.'''
     sr = cascade.scale_roots
-    for leaf, lineage, sroot, cpu, samples in _cells([a, b], cascade):
-        for s in samples:
-            if _holds(a, lineage, sroot, sr, cpu, s) and _holds(b, lineage, sroot, sr, cpu, s):
-                ver = '.'.join(map(str, s[0])) if s != ((0,), 0) else 'any-version'
-                return f'{leaf} {ver} {"any-cpu" if cpu == _SENTINEL_CPU else cpu}'
+    for lineage, sroot, blocks, ca, va in _cells([a, b], cascade):
+        if _holds(a, lineage, sroot, sr, blocks, ca, va) and _holds(b, lineage, sroot, sr, blocks, ca, va):
+            osver = va.get(None, ((0,), 0))
+            parts = [lineage[0], 'any-version' if osver == ((0,), 0) else '.'.join(map(str, osver[0]))]
+            cpu = ca.get('cpu', _SENTINEL_CPU)
+            parts.append('any-cpu' if cpu == _SENTINEL_CPU else cpu)
+            for ns, v in sorted(ca.items()):
+                if ns != 'cpu' and v != _SENTINEL_CPU:
+                    parts.append(f'{ns}:{v}')
+            for name, s in sorted((kv for kv in va.items() if kv[0] is not None)):
+                parts.append(f'{name} {".".join(map(str, s[0]))}')
+            return ' '.join(parts)
     return None
 
 
