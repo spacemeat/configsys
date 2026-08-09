@@ -265,21 +265,25 @@ def _apply_version_floors(components, floors):
 _FACET_CACHE = {}
 
 
-def detect_facets(specs, env=None, run=None):
+def detect_facets(specs, env=None, run=None, overrides=None):
     '''Probe the declared `facets:` and return (facets_cat {ns: frozenset(tags)}, facets_ver
-    {name: version}). Each facet: run its `detect:` command (or read a `CONFIGSYS_FACET_<name>`
-    env override) and classify per `kind` — `categorical` matches each `match:` regex against the
-    output (a machine may match several tags); `version` pulls `version-re`'s first group. Read-only
-    and resilient: any probe failure / no match leaves the facet ABSENT (a `when:` over it is then
-    simply false, so a GPU binding degrades to CPU). Cached per (specs, env-overrides) so repeated
-    Resolver builds don't re-probe. `run(cmd)->stdout` is injectable for tests.'''
+    {name: version}). A facet's value is, in precedence order: a `CONFIGSYS_FACET_<name>` ENV var;
+    then a config `overrides` entry (the user's declared machine fact — so "detected OR declared" is
+    ONE mechanism, key to bootstrap: on a box without CUDA yet, `facets: { cuda: 12 }` in the config
+    states the target); then the `detect:` PROBE, classified per `kind` — `categorical` matches each
+    `match:` regex against the output (a machine may match several tags); `version` pulls
+    `version-re`'s first group. Read-only and resilient: any probe failure / no value leaves the
+    facet ABSENT (a `when:` over it is then simply false). Cached per (specs, env+config overrides)
+    so repeated Resolver builds don't re-probe. `run(cmd)->stdout` is injectable for tests.'''
     import json
     import os
     import re
     import subprocess
     env = env if env is not None else os.environ
-    key = json.dumps({'specs': specs, 'ov': {k: v for k, v in env.items()
-                                             if k.startswith('CONFIGSYS_FACET_')}}, sort_keys=True)
+    overrides = overrides or {}
+    key = json.dumps({'specs': specs, 'cfg': overrides,
+                      'ov': {k: v for k, v in env.items()
+                             if k.startswith('CONFIGSYS_FACET_')}}, sort_keys=True)
     if run is None and key in _FACET_CACHE:
         return _FACET_CACHE[key]
 
@@ -296,6 +300,8 @@ def detect_facets(specs, env=None, run=None):
     for name, spec in (specs or {}).items():
         spec = spec or {}
         override = env.get(f'CONFIGSYS_FACET_{name}')
+        if override is None and name in overrides:
+            override = str(overrides[name])           # config-declared value (env still wins)
         if spec.get('kind') == 'categorical':
             if override is not None:
                 tags = frozenset(t for t in re.split(r'[,\s]+', override) if t)
@@ -332,9 +338,13 @@ class Resolver:
             routes_path, overrides_path, discovered, plugin_files,
             warnings_out=self.load_warnings, layers_out=self.layers)
         # probe declared facets (gpu vendor, cuda version, …) so `when:` can gate on hardware /
-        # environment; cached, read-only, resilient. No `facets:` declared -> a no-op.
+        # environment; cached, read-only, resilient. No `facets:` declared -> a no-op. A `facets:`
+        # value-map in the user config declares facts (e.g. `facets: { cuda: 12 }` on a box without
+        # CUDA yet) — it overrides the probe, env (CONFIGSYS_FACET_*) overrides both.
         if self.cascade.facet_specs:
-            self.cascade.facets_cat, self.cascade.facets_ver = detect_facets(self.cascade.facet_specs)
+            ov = layers.read_setting(overrides_path, 'facets') if overrides_path else None
+            self.cascade.facets_cat, self.cascade.facets_ver = detect_facets(
+                self.cascade.facet_specs, overrides=ov if isinstance(ov, dict) else None)
         # per-driver package-name patches for existing components (a plugin OS supplying its
         # own names / dropping absent ones) — overlaid across the whole layer stack.
         self.overrides = layers.merge_name_overrides(self.layers)
