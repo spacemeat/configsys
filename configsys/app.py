@@ -2251,6 +2251,7 @@ def cmd_config(ctx, args):
     else:
         print(f'configsys: set {args.key} = {" ".join(args.value)}  (in {label})')
         if args.key == 'splash':                 # warn now if the value can't resolve to one splash
+            from . import plugins
             decls = plugins.effective_declared(ctx.paths.user_config_file, ctx.paths.plugins_dir)
             hint = plugins.splash_value_hint(' '.join(args.value), ctx.paths.plugins_dir, decls)
             if hint:

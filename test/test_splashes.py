@@ -282,3 +282,12 @@ def test_random_splash_is_none_when_only_the_default_is_registered():
         if n != _hostsplash.DEFAULT_SPLASH:
             del splashes._SPLASHES[n]
     assert splashes.random_splash(exclude=_hostsplash.DEFAULT_SPLASH) is None
+
+
+def test_config_set_splash_does_not_crash(tmp_path):
+    '''`config set splash <value>` must not blow up on the splash-resolve warn path (it referenced
+    an un-imported `plugins`). Covers 'random' and a plain provider name.'''
+    from configsys.app import main
+    home = ['--home', str(tmp_path), '--os', 'pop']
+    assert main(home + ['config', 'set', 'splash', 'random']) == 0
+    assert main(home + ['config', 'set', 'splash', 'blocks']) == 0
