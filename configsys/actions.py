@@ -153,7 +153,8 @@ CONFIG_SETTINGS = {
     'ignore-profiles':   ('list',   'Discovered project profiles to NOT auto-activate.',
                           'configsys(1)'),
     'splash':            ('scalar', 'Startup wait-screen animation: a splash provider name, '
-                                    'off to disable, or unset for the built-in default.',
+                                    "'random' to pick one at random each run, off to disable, or "
+                                    'unset for the built-in default.',
                           'configsys(1)'),
     # install-layout dirs (the `dirs:` section) — default < config < env (CONFIGSYS_*_DIR)
     'dirs.user':         ('dir',    'Base dir for user-scope installs (default ~). '
@@ -526,11 +527,26 @@ def plugin_sync(ctx, decls):
     return results
 
 
-def plugin_add(ctx, source, ref=None, *, local=False, pin=False):
+def plugin_add(ctx, source, ref=None, *, local=False, pin=False, replace=False):
     '''Sync-FIRST add: a source that can't be cloned declares nothing. Lands in the primary's
     transitive `plugins:` (portable) when a primary is set, else this machine's top config (or with
-    `local=True`). `pin` records the synced content sha256. Returns (ok, message, sync_results).'''
+    `local=True`). `pin` records the synced content sha256. If a plugin of the same NAME is already
+    declared from a DIFFERENT source, refuse unless `replace=True` (then drop the old one first — the
+    easy way to swap an in-development local copy for its published version). Returns (ok, message,
+    sync_results).'''
     ctx.ensure_user_config()
+    # collision: another declared plugin lands in the same synced dir (same name) from a different
+    # source. They'd clobber each other, so require an explicit --replace.
+    new_dn = plugins.dir_name(source)
+    clashes = [d for d in plugins.effective_declared(ctx.paths.user_config_file, ctx.paths.plugins_dir)
+               if plugins.dir_name(d['source']) == new_dn and d['source'] != source]
+    if clashes and not replace:
+        others = ', '.join(sorted({d['source'] for d in clashes}))
+        return (False, f"a plugin named '{new_dn}' is already declared from {others}; "
+                       f"re-run with --replace to swap it for {source}", [])
+    if clashes and replace:
+        for old in {d['source'] for d in clashes}:       # drop each old decl (wherever it's declared)
+            plugin_remove(ctx, old)
     decls = plugins.declared(ctx.paths.user_config_file)
     primary = plugins.primary_name(decls)
     primary_dir = ctx.paths.plugins_dir / primary if primary else None

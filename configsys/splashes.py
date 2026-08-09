@@ -83,3 +83,14 @@ def get_splash(name):
 def splash_names():
     '''Sorted names of every registered splash (built-ins + trusted plugin providers).'''
     return sorted(_SPLASHES)
+
+
+def random_splash(exclude=None, rng=None):
+    '''A random registered splash NAME, excluding `exclude` (e.g. the built-in default) — this is
+    what `splash: random` resolves to each run. None if nothing else is registered. Pass an `rng`
+    (a random.Random) to make the choice deterministic/testable.'''
+    import random as _random
+    pool = [n for n in splash_names() if n != exclude]
+    if not pool:
+        return None
+    return (rng or _random).choice(pool)

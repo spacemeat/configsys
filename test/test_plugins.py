@@ -577,3 +577,42 @@ def test_remove_sections_keeps_bound_leading_comments(tmp_path):
     assert 'demo' not in txt                                      # the section is gone
     import configsys.layers as layers
     assert layers.materialize_string(txt).get('profiles') in (None, {})
+
+
+@pytest.mark.skipif(shutil.which('git') is None, reason='git not available')
+def test_plugin_add_same_name_needs_replace(tmp_path, capsys):
+    '''Adding a plugin whose dir-name collides with an already-declared one (a different source)
+    is refused, pointing at --replace; --replace swaps it.'''
+    from configsys.app import main
+
+    def make(path, name):
+        path.mkdir(parents=True)
+        (path / 'plugin.hu').write_text(f'{{ name: {name}  requires-abi: 1  data: [ routes.hu ] }}')
+        (path / 'routes.hu').write_text('{ components: { mtool: { install: [ { via: native } ] } } }')
+        for cmd in (['init', '-q'], ['config', 'user.email', 't@t'], ['config', 'user.name', 't'],
+                    ['add', '-A'], ['commit', '-qm', 'i'], ['tag', 'v1']):
+            subprocess.run(['git', *cmd], cwd=path, check=True)
+
+    a = tmp_path / 'a' / 'mazeplug'                          # both sources share dir-name "mazeplug"
+    b = tmp_path / 'b' / 'mazeplug'
+    make(a, 'mazeplug')
+    make(b, 'mazeplug')
+    home = ['--home', str(tmp_path), '--os', 'pop']
+    uc = tmp_path / '.config' / 'configsys' / 'configsys.hu'
+
+    assert main(home + ['plugin', 'add', str(a), '--ref', 'v1']) == 0
+    capsys.readouterr()
+
+    # same name from a different source -> refused, names --replace, nothing changed
+    assert main(home + ['plugin', 'add', str(b), '--ref', 'v1']) == 1
+    out = capsys.readouterr().out
+    assert '--replace' in out and 'mazeplug' in out
+    assert [d['source'] for d in plugins.declared(str(uc))] == [str(a)]
+
+    # --replace drops the old and uses the new source
+    assert main(home + ['plugin', 'add', str(b), '--ref', 'v1', '--replace']) == 0
+    capsys.readouterr()
+    assert [d['source'] for d in plugins.declared(str(uc))] == [str(b)]
+
+    # re-adding the SAME source is a re-pin, not a collision
+    assert main(home + ['plugin', 'add', str(b), '--ref', 'v1']) == 0

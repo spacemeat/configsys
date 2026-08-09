@@ -2184,7 +2184,9 @@ def run(ctx):
         if show_splash:
             import random
             from .splash import DEFAULT_SPLASH, run_splash   # importing registers the built-in default
-            from ..splashes import get_splash
+            from ..splashes import get_splash, random_splash
+            if splash_name == 'random':              # surprise me: any registered splash but the default
+                splash_name = random_splash(exclude=DEFAULT_SPLASH) or DEFAULT_SPLASH
             provider = get_splash(splash_name) if splash_name else get_splash(DEFAULT_SPLASH)
             if provider is None:
                 if splash_name:                  # named but not registered/trusted -> default + note
@@ -2573,7 +2575,8 @@ def run(ctx):
                             def _tag(n):                    # show WHICH plugin provides a splash
                                 return ('(built-in)' if n in _BUILTIN_SPLASH_NAMES
                                         else prov2plug.get(n, '(plugin)'))
-                            opts = [('off', '(no animation)')] + [(n, _tag(n)) for n in splash_names()]
+                            opts = ([('off', '(no animation)'), ('random', '(any installed splash)')]
+                                    + [(n, _tag(n)) for n in splash_names()])
                             names = [o[0] for o in opts]
                             cur = info['value']
                             cur = _pl.resolve_splash_value(cur, ctx.paths.plugins_dir, _decls) if isinstance(cur, str) else cur

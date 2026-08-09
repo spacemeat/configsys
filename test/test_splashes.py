@@ -249,3 +249,36 @@ def test_splash_value_hint_flags_multi_splash_plugin(tmp_path):
     assert plugins.splash_value_hint('configsys-splash-blocks', pd, decls) is None   # sole splash: fine
     assert plugins.splash_value_hint('blocks', pd, decls) is None                    # a provider name
     assert plugins.splash_value_hint('off', pd, decls) is None
+
+
+# -- `splash: random` provider selection --------------------------------------
+
+def test_random_splash_excludes_the_default_and_is_deterministic_with_rng():
+    import random
+    from configsys.tui import splash as _hostsplash          # registers the built-in default
+    default = _hostsplash.DEFAULT_SPLASH
+
+    class A(splashes.Splash):
+        name = 'aq-a'
+        def render(self, frame):
+            return True
+
+    class B(splashes.Splash):
+        name = 'aq-b'
+        def render(self, frame):
+            return True
+    splashes.register_splash(A)
+    splashes.register_splash(B)
+
+    picks = {splashes.random_splash(exclude=default, rng=random.Random(s)) for s in range(30)}
+    assert picks == {'aq-a', 'aq-b'}                          # only the two plugin splashes, never default
+    assert default not in picks
+
+
+def test_random_splash_is_none_when_only_the_default_is_registered():
+    from configsys.tui import splash as _hostsplash
+    # snapshot fixture leaves only the built-ins; drop all but the default so there's nothing to pick
+    for n in list(splashes._SPLASHES):
+        if n != _hostsplash.DEFAULT_SPLASH:
+            del splashes._SPLASHES[n]
+    assert splashes.random_splash(exclude=_hostsplash.DEFAULT_SPLASH) is None

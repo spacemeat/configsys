@@ -1402,7 +1402,8 @@ def cmd_plugin(ctx, args):
     if sub == 'add':
         ok, msg, results = actions.plugin_add(ctx, args.source, args.ref,
                                               local=getattr(args, 'local', False),
-                                              pin=getattr(args, 'pin', False))
+                                              pin=getattr(args, 'pin', False),
+                                              replace=getattr(args, 'replace', False))
         for name, action in results:
             print(f'  {action:8} {name}')
         if not ok:
@@ -1925,6 +1926,9 @@ def build_parser():
     pa.add_argument('--local', action='store_true',
                     help='add to this machine\'s top config even if a primary plugin is set '
                          '(default: a new plugin rides the primary, portable to all machines)')
+    pa.add_argument('--replace', action='store_true',
+                    help='if a plugin of the same name is already declared from another source, '
+                         'drop that one and use this source instead')
     pr = plsub.add_parser('remove', help='undeclare a plugin and delete its synced copy')
     pr.add_argument('name', help='plugin name, source, or dir')
     pu = plsub.add_parser('update', help="re-sync a plugin (move its pin with --ref)")
