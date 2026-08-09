@@ -54,6 +54,16 @@ def test_get_version_none_when_no_cmd_or_fails():
     assert Script(fr).get_version(sc(**{'version-cmd': 'vc'})) is None            # tool absent
 
 
+def test_get_latest_from_latest_cmd():
+    # a package-install script reports its candidate via latest-cmd (same version-re)
+    fr = FakeRunner([('apt-cache policy', 0, '  Candidate: 8.9.7.29-1+cuda12.2\n')])
+    rc = sc(**{'latest-cmd': 'apt-cache policy libcudnn8-dev | grep Candidate',
+               'version-re': r'([0-9][0-9.+-]*)'})
+    assert Script(fr).get_latest(rc) == '8.9.7.29-1+'
+    # no latest-cmd and no version: spec -> None (unchanged)
+    assert Script(FakeRunner()).get_latest(sc(**{'version-cmd': 'vc'})) is None
+
+
 def test_uninstall_runs_command_when_present():
     r = Runner(pretend=True)
     Script(r).uninstall(sc(**{'uninstall-cmd': 'rm -rf ~/.sdkman'}))

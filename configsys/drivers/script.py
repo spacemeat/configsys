@@ -7,7 +7,12 @@ so the black box is explicit in the route rather than hidden in driver code:
   install-cmd     (required) shell command that installs the tool
   version-cmd     (optional) command whose output reports the installed version;
                   absent / failing / empty output  =>  "not installed"
-  version-re      (optional) regex whose group 1 is the version inside version-cmd output
+  version-re      (optional) regex whose group 1 is the version inside version-cmd (and
+                  latest-cmd) output
+  latest-cmd      (optional) command whose output reports the UPSTREAM/candidate version (same
+                  version-re applied) — e.g. `apt-cache policy <pkg> | grep Candidate` for a
+                  script that's really a package install. Absent => falls back to a `version:`
+                  spec (github/url/static), else no "latest" is shown.
   uninstall-cmd   (optional) command that removes it. ABSENT is allowed — configsys does
                   NOT block the install; it just warns it can't cleanly remove the tool
                   later (surfaced up front by `configsys check`, and again at uninstall).
@@ -37,11 +42,13 @@ class Script(Driver):
 
     # -- read -------------------------------------------------------------
 
-    def get_version(self, rc):
-        vc = self._cmd(rc, 'version-cmd')
-        if not vc:
-            return None                    # no way to tell; treated as unknown/not-installed
-        r = self.runner.run(vc)
+    def _probe(self, rc, cmd_field):
+        '''Run the named command field and extract a version via `version-re` (group 1), else the
+        first output line. None if the field / command output is empty or the command fails.'''
+        cmd = self._cmd(rc, cmd_field)
+        if not cmd:
+            return None
+        r = self.runner.run(cmd)
         out = (r.stdout or '').strip()
         if not r.ok or not out:
             return None
@@ -51,7 +58,15 @@ class Script(Driver):
             return m.group(1) if m else None
         return out.splitlines()[0].strip()
 
+    def get_version(self, rc):
+        return self._probe(rc, 'version-cmd')          # None = treated as unknown/not-installed
+
     def get_latest(self, rc):
+        # a script component that's really a package/repo install can report its upstream candidate
+        # via an optional `latest-cmd` (+ the same `version-re`) — e.g. `apt-cache policy <pkg> |
+        # grep Candidate`. Else fall back to a `version:` spec (github/url/static), if the route has one.
+        if rc.fields.get('latest-cmd'):
+            return self._probe(rc, 'latest-cmd')
         return self.resolve_version(rc)
 
     def is_locked(self, rc):
