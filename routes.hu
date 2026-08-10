@@ -719,7 +719,8 @@
 
         // discord / slack: flatpak everywhere (no uniform native path — Fedora has none), and
         // their config is sandboxed under ~/.var/app and holds auth tokens, so no dotfiles.
-        discord: { description: "Discord — voice, video, and text chat." install: [ { via: flatpak  hub: flathub  app: com.discordapp.Discord }  { via: snap  when: "ubuntu"  name: discord } ] }
+        discord: { description: "Discord — voice, video, and text chat." install: [ { via: flatpak  hub: flathub  app: com.discordapp.Discord }  { via: snap  when: "ubuntu"  name: discord }
+                             { via: native-pkg-file  when: "debian"  name: discord  url: "https://discord.com/api/download?platform=linux&format=deb" } ] }   // Discord's official .deb (rolling; the URL 302-redirects to the latest — no version API, so latest reads as unknown, never a false "outdated"). Debian-gated, so it BEATS the universal flatpak by specificity and becomes the default there.
         slack:   { description: "Slack — team messaging and collaboration." install: [ { via: flatpak  hub: flathub  app: com.slack.Slack }  { via: snap  when: "ubuntu"  name: slack } ] }
 
         // --- media & creative apps -------------------------------------------------
