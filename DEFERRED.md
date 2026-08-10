@@ -7,13 +7,22 @@
 > - Atomic-gated flatpaks made universal: firefox/libreoffice/vlc/blender/vscode + chromium (2b7777f).
 > - Over-narrow binaries broadened: just (5105301), helix/kubectl (55d0b86).
 > - Flathub-verified sweep of all 251 no-flatpak components → added android-studio/unityhub/mitmproxy
->   (9a81e5b, official build kept default via prefer:). Flatpak catalog now essentially COMPLETE.
->   Skipped: wireshark (sandbox can't capture), httpie (Flathub app is a different product), helix
->   (native competes; poor sandbox fit for a TUI editor).
-> - STILL TODO (next batches): binary/tarball for CLI tools that lack one but have a GitHub release
->   (musl=universal, glibc=not-alpine); snap-everywhere question (currently ubuntu-gated,
->   candidate-only); the hard vendor-repo native bucket (chrome/discord/slack .deb — bespoke URLs);
->   brew casks (parked until a macOS block — mac-only); folly/eastl source recipes; openscad url.
+>   (9a81e5b, official build kept default via prefer:). Flatpak catalog COMPLETE. wireshark corrected
+>   (52707ee — it's the only GUI on atomic). Skipped: httpie (Flathub = a different product).
+> - nushell musl tarball for Alpine (2bfce89). Coverage holes analyzed: mainstream complete, rest by-design.
+> - NEW PRIMITIVE: per-binding `candidate-only: true` (b96cb45) — a validity-gated method offered
+>   without beating a universal one by specificity. Used for discord's rolling .deb.
+> - Vendor-repo native (all verified live): chrome (8209ba8), brave/opera/vivaldi/edge (ee78047),
+>   slack (6810ef5) — each wires its official apt+dnf repo (+ AUR / Arch extra), native default there,
+>   flatpak candidate + openSUSE/atomic default. discord's rolling .deb (56b664d) as a candidate-only.
+> - snapd component + snaps offered on every distro (589d8e2): snapd/snapd-socket/snapd-snap-link,
+>   snap driver `requires` them, the 12 snaps de-gated (candidate-only everywhere).
+>
+> **The full-choice sweep is essentially DONE.** Genuinely remaining (lower value / needs a real box):
+> - snapd socket-enable + /snap symlink UNVALIDATED on real Fedora/Arch (needs a VM — snapd can't run
+>   cleanly in the container harness).
+> - brew casks (parked until a macOS OS block — mac-only); folly/eastl `source` recipes; openscad's
+>   non-GitHub URL; per-binding review of the `prefer:` methods (android-studio/unityhub/mitmproxy).
 
 
 Batch task: add C++ libs; sweep flatpak / snap / tarball / native-pkg-file / appImage methods so
