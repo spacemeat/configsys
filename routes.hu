@@ -72,7 +72,7 @@
 
     // Driver config: dependencies inherent to a driver (its prerequisite tooling).
     drivers: {
-        snap:        { candidate-only: true }         // snapd ships on Ubuntu; a snap binding is gated `when: ubuntu`, which would otherwise beat a broad native binding by specificity. candidate-only = valid + listed in the picker, but never the auto-default (native/flatpak still win); a binding-pin still forces it. A user's primary plugin can add `flatpak: { candidate-only: true }` here the same way.
+        snap:        { candidate-only: true  requires: [ snapd-socket, snapd-snap-link ] }   // candidate-only = valid + listed + pinnable, never the auto-default (native/flatpak win); a pin forces it. `requires` pulls in snapd + its socket + the /snap symlink, so a snap works on any distro where snapd is installable (a no-op on Ubuntu, which ships snapd). Snaps are now offered everywhere, not just Ubuntu. A user's primary plugin can add `flatpak: { candidate-only: true }` the same way.
         flatpak:     { requires: flatpak }
         appImage:    { requires: [ libfuse2, glibc ] }   // AppImages are glibc-built: decline on musl
         cargo:       { requires: cargo }              // a crate needs the cargo tool
@@ -312,7 +312,7 @@
         node: { description: "Node.js — JavaScript runtime built on V8."
             provides: npm
             install: [ { via: native  repo-component: universe  name: { apt: npm  pacman: npm  apk: npm  brew: node  zypper: nodejs-default  default: nodejs } }
-                       { via: snap  when: "ubuntu"  name: node  classic: true } ]   // OpenJS-official snap (candidate-only)
+                       { via: snap  name: node  classic: true } ]   // OpenJS-official snap (candidate-only)
         }
         // Sample global npm CLIs (installed userland by default; see the npm driver). More can
         // be added the same way, or pulled per-user via a plugin layer.
@@ -485,8 +485,8 @@
         // vivaldi, which is in the official `extra` repo. Flathub Chrome/Edge are community-maintained.
         firefox: { description: "Mozilla Firefox — the open-source web browser." install: [ { via: flatpak  hub: flathub  app: org.mozilla.firefox }
                               { via: native  when: "not fedora_atomic"  repo-component: universe  name: { zypper: MozillaFirefox  default: firefox } }
-                              { via: snap  when: "ubuntu"  name: firefox } ] }
-        chromium: { description: "Chromium — the open-source browser upstream of Chrome." install: [ { via: native  when: "(debian or redhat or arch or opensuse) and not ubuntu"  name: { default: chromium } }  { via: snap  when: "ubuntu"  name: chromium }  { via: flatpak  hub: flathub  app: org.chromium.Chromium } ] }   // Ubuntu ships chromium ONLY as the (Canonical-official) snap — its apt `chromium-browser` is a snap shim; ubuntu excluded from native so the snap is the sole real method there. Flathub flatpak offered everywhere (+ the only method on atomic).
+                              { via: snap  name: firefox } ] }
+        chromium: { description: "Chromium — the open-source browser upstream of Chrome." install: [ { via: native  when: "(debian or redhat or arch or opensuse) and not ubuntu"  name: { default: chromium } }  { via: snap  name: chromium }  { via: flatpak  hub: flathub  app: org.chromium.Chromium } ] }   // Ubuntu ships chromium ONLY as the (Canonical-official) snap — its apt `chromium-browser` is a snap shim; ubuntu excluded from native so the snap is the sole real method there. Flathub flatpak offered everywhere (+ the only method on atomic).
         chrome:  { description: "Google Chrome — Google's web browser."
             install: [
                 { via: native  when: "debian"  name: google-chrome-stable   // Google's official apt repo
@@ -603,7 +603,7 @@
         websocat:  { description: "netcat for WebSockets — connect, pipe, and script ws:// endpoints." install: [ { via: cargo  name: websocat  version: { crates: websocat } }  { via: tarball  archive: none  binary: websocat  installDir: "$CONFIGSYS_APP_DIR/websocat"  version: { github: vi/websocat  asset: "websocat.x86_64-unknown-linux-musl" } } ] }   // prebuilt musl binary default
 
         // GUI API clients — Flatpak from Flathub, like chrome (all community-maintained, current).
-        postman:  { description: "Postman — a GUI for building and testing APIs." install: [ { via: flatpak  hub: flathub  app: com.getpostman.Postman }  { via: snap  when: "ubuntu"  name: postman } ] }
+        postman:  { description: "Postman — a GUI for building and testing APIs." install: [ { via: flatpak  hub: flathub  app: com.getpostman.Postman }  { via: snap  name: postman } ] }
         insomnia: { description: "Insomnia — an open-source API client and design tool." install: [ { via: flatpak  hub: flathub  app: rest.insomnia.Insomnia }  { via: native-pkg-file  when: "debian or redhat"  version: { github: Kong/insomnia  tag-re: "([0-9][0-9.]*)" }  asset: { deb: { x86_64: "Insomnia.Core-*.deb" }  rpm: { x86_64: "Insomnia.Core-*.rpm" } } } ] }   // monorepo `core@` tags: the release scan finds the Core release; tag-re -> clean version
         bruno:    { description: "Bruno — a fast, git-friendly, offline-first API client." install: [ { via: flatpak  hub: flathub  app: com.usebruno.Bruno }  { via: native-pkg-file  when: "debian or redhat"  version: { github: usebruno/bruno  strip-v: true }  asset: { deb: { x86_64: "bruno_*_amd64_linux.deb" }  rpm: { x86_64: "bruno_*_x86_64_linux.rpm" } } } ] }   // upstream .deb (amd64)/.rpm (x86_64 token differs)
         tree-sitter-cli: { description: "tree-sitter CLI — build and test tree-sitter grammars."
@@ -664,7 +664,7 @@
             install: [ { via: flatpak  hub: flathub  app: org.blender.Blender }   // uniform option everywhere; the only method on atomic (brew's blender is a mac-only cask)
                        { via: native  when: "rhel"  requires: epel }
                        { via: native  when: "not fedora_atomic"  repo-component: universe }
-                       { via: snap  when: "ubuntu"  name: blender  classic: true } ]   // Blender-official snap (candidate-only)
+                       { via: snap  name: blender  classic: true } ]   // Blender-official snap (candidate-only)
         }
 
         // GPU compute toolchains (promoted from the configsys-blender plugin). General-purpose —
@@ -715,6 +715,30 @@
         docker-group: { description: "Add your user to the `docker` group (non-root docker access)."   // opt-in: passwordless docker (usermod -aG docker $YOU). Needs the group the engine creates.
             requires: docker-engine
             install: [ { via: group  name: docker } ]
+        }
+
+        // --- snapd: the daemon behind `via: snap`. The snap DRIVER `requires` the two setup
+        // components below (see drivers:), so pinning a snap on a non-Ubuntu distro installs snapd,
+        // enables its socket, and creates the /snap symlink classic snaps need. On Ubuntu it's all
+        // preinstalled, so these resolve as already-satisfied (no action). openSUSE/Alpine have no
+        // snapd binding here (snapd needs a community repo / isn't supported) — a snap pin there is
+        // an honest resolve error; flatpak/native cover those apps.
+        snapd: { description: "snapd — the daemon that installs and runs snap packages."
+            install: [ { via: native  when: "debian or redhat"  name: snapd }   // apt / dnf snapd
+                       { via: aur     when: "arch"  name: snapd } ]              // Arch: AUR
+        }
+        snapd-socket: { description: "Enable snapd's systemd socket (so snaps can install/run)."
+            requires: snapd
+            install: [ { via: service  unit: snapd.socket } ]
+        }
+        snapd-snap-link: { description: "The /snap symlink classic-confinement snaps need (snapd stores snaps under /var/lib/snapd/snap)."
+            requires: snapd
+            install: [ { via: script
+              install-cmd:   "test -e /snap || sudo ln -s /var/lib/snapd/snap /snap"   // Ubuntu already has /snap -> no-op; Fedora/Arch need the link
+              version-cmd:   "test -e /snap && echo present"
+              version-re:    "(present)"
+              uninstall-cmd: "test -L /snap && sudo rm -f /snap || true"
+              location:      "/snap" } ]
         }
 
         // --- virtualization: QEMU/KVM + libvirt + virt-manager, and VirtualBox ---
@@ -773,7 +797,7 @@
 
         // discord / slack: flatpak everywhere (no uniform native path — Fedora has none), and
         // their config is sandboxed under ~/.var/app and holds auth tokens, so no dotfiles.
-        discord: { description: "Discord — voice, video, and text chat." install: [ { via: flatpak  hub: flathub  app: com.discordapp.Discord }  { via: snap  when: "ubuntu"  name: discord }
+        discord: { description: "Discord — voice, video, and text chat." install: [ { via: flatpak  hub: flathub  app: com.discordapp.Discord }  { via: snap  name: discord }
                              { via: native-pkg-file  when: "debian"  name: discord  candidate-only: true  url: "https://discord.com/api/download?platform=linux&format=deb" } ] }   // Discord's official .deb (rolling; the URL 302-redirects to the latest — no version API, so latest reads as unknown, never a false "outdated"). `candidate-only` so the debian gate doesn't make it beat the universal flatpak by specificity — the sandboxed flatpak stays the default; the .deb is a pinnable option.
         slack:   { description: "Slack — team messaging and collaboration."
             install: [
@@ -788,7 +812,7 @@
                   repo-url: "https://packagecloud.io/slacktechnologies/slack/fedora/21/x86_64" }
                 { via: aur  when: "arch"  name: slack-desktop }
                 { via: flatpak  hub: flathub  app: com.slack.Slack }
-                { via: snap  when: "ubuntu"  name: slack } ]
+                { via: snap  name: slack } ]
         }
 
         // --- media & creative apps -------------------------------------------------
@@ -815,8 +839,8 @@
         godot:      { description: "Godot — an open-source 2D/3D game engine." install: [ { via: flatpak  hub: flathub  app: org.godotengine.Godot }  { via: tarball  installDir: "$CONFIGSYS_APP_DIR/godot"  requires: unzip  version: { github: godotengine/godot  tag-re: "([0-9][0-9.]*)"  asset: "Godot_v*-stable_linux.x86_64.zip" } } ] }   // flatpak stays default; the zip holds a single `Godot_v<ver>_linux.x86_64` exe (no clean rename for zip)
         scribus:    { description: "Scribus — open-source desktop publishing (DTP)." install: [ { via: flatpak  hub: flathub  app: net.scribus.Scribus } ] }
         digikam:    { description: "digiKam — photo management and RAW editing." install: [ { via: flatpak  hub: flathub  app: org.kde.digikam } ] }
-        obs-studio: { description: "OBS Studio — live streaming and screen recording." install: [ { via: flatpak  hub: flathub  app: com.obsproject.Studio }  { via: snap  when: "ubuntu"  name: obs-studio } ] }
-        spotify:    { description: "Spotify — music streaming client." install: [ { via: flatpak  hub: flathub  app: com.spotify.Client }  { via: snap  when: "ubuntu"  name: spotify } ] }   // not in distro repos; Flathub + official snap
+        obs-studio: { description: "OBS Studio — live streaming and screen recording." install: [ { via: flatpak  hub: flathub  app: com.obsproject.Studio }  { via: snap  name: obs-studio } ] }
+        spotify:    { description: "Spotify — music streaming client." install: [ { via: flatpak  hub: flathub  app: com.spotify.Client }  { via: snap  name: spotify } ] }   // not in distro repos; Flathub + official snap
 
         // --- digital-music tools --- (GUI apps via Flathub; audio-system bits native)
         musescore:     { description: "MuseScore — music notation and composition." install: [ { via: flatpak  hub: flathub  app: org.musescore.MuseScore }  { via: appImage  name: MuseScore  scope: user  version: { github: musescore/MuseScore  strip-v: true  asset: "MuseScore-Studio-*-x86_64.AppImage" }  path: ~/apps/musescore.appimage } ] }   // asset glob absorbs the build-number suffix
@@ -991,7 +1015,7 @@
                   repo-id: code  repo-name: "Visual Studio Code"
                   repo-url: "https://packages.microsoft.com/yumrepos/vscode" }
                 { via: aur  when: "arch"  name: visual-studio-code-bin }
-                { via: snap  when: "ubuntu"  name: code  classic: true }   // Microsoft-official snap (candidate-only: the MS apt repo stays the Ubuntu default)
+                { via: snap  name: code  classic: true }   // Microsoft-official snap (candidate-only: the MS apt repo stays the Ubuntu default)
             ]
         }
         // android-studio: Google's official tarball, unpacked scope-honoring (~/android-studio
@@ -1074,7 +1098,7 @@
                 { via: tarball  installDir: "$CONFIGSYS_APP_DIR/kubectl"  archive: none   // static Go binary from dl.k8s.io — runs anywhere; a uniform option (native stays default on arch/atomic)
                   version: { url: "https://dl.k8s.io/release/stable.txt" }
                   url: "https://dl.k8s.io/release/v$VERSION/bin/linux/amd64/kubectl" }
-                { via: snap  when: "ubuntu"  name: kubectl  classic: true } ]   // Canonical-official snap (candidate-only)
+                { via: snap  name: kubectl  classic: true } ]   // Canonical-official snap (candidate-only)
         }
         // helm & k3s install via their upstream scripts (script driver) where not native.
         helm: { description: "Helm — the package manager for Kubernetes."
@@ -1087,7 +1111,7 @@
                   version-re:    '(v?[0-9]+\.[0-9]+\.[0-9]+)'
                   uninstall-cmd: 'sudo rm -f /usr/local/bin/helm'
                   location:      '/usr/local/bin/helm' }
-                { via: snap  when: "ubuntu"  name: helm  classic: true } ]   // community (Snapcrafters) snap (candidate-only)
+                { via: snap  name: helm  classic: true } ]   // community (Snapcrafters) snap (candidate-only)
         }
         k3s: { description: "k3s — lightweight, single-binary Kubernetes."
             install: [ { via: script  prefer: 1                              // keep the get.k3s.io script the default: it sets up the systemd SERVICE (the point of a k8s server); the tarball is just the bare binary

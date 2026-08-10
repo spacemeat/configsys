@@ -2976,6 +2976,95 @@
     "name": "git"
    }
   },
+  "snapd": {
+   "aur\\snapd": {
+    "driver": "aur",
+    "fields": {
+     "name": "snapd"
+    },
+    "name": "snapd"
+   },
+   "pacman\\base-devel": {
+    "driver": "pacman",
+    "fields": {
+     "name": "base-devel"
+    },
+    "name": "base-devel"
+   },
+   "pacman\\git": {
+    "driver": "pacman",
+    "fields": {
+     "name": "git"
+    },
+    "name": "git"
+   }
+  },
+  "snapd-snap-link": {
+   "aur\\snapd": {
+    "driver": "aur",
+    "fields": {
+     "name": "snapd"
+    },
+    "name": "snapd"
+   },
+   "pacman\\base-devel": {
+    "driver": "pacman",
+    "fields": {
+     "name": "base-devel"
+    },
+    "name": "base-devel"
+   },
+   "pacman\\git": {
+    "driver": "pacman",
+    "fields": {
+     "name": "git"
+    },
+    "name": "git"
+   },
+   "script\\snapd-snap-link": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "test -e /snap || sudo ln -s /var/lib/snapd/snap /snap",
+     "location": "/snap",
+     "name": "snapd-snap-link",
+     "uninstall-cmd": "test -L /snap && sudo rm -f /snap || true",
+     "version-cmd": "test -e /snap && echo present",
+     "version-re": "(present)"
+    },
+    "name": "snapd-snap-link"
+   }
+  },
+  "snapd-socket": {
+   "aur\\snapd": {
+    "driver": "aur",
+    "fields": {
+     "name": "snapd"
+    },
+    "name": "snapd"
+   },
+   "pacman\\base-devel": {
+    "driver": "pacman",
+    "fields": {
+     "name": "base-devel"
+    },
+    "name": "base-devel"
+   },
+   "pacman\\git": {
+    "driver": "pacman",
+    "fields": {
+     "name": "git"
+    },
+    "name": "git"
+   },
+   "service\\snapd-socket": {
+    "driver": "service",
+    "fields": {
+     "name": "snapd-socket",
+     "unit": "snapd.socket"
+    },
+    "name": "snapd-socket"
+   }
+  },
   "socat": {
    "pacman\\socat": {
     "driver": "pacman",
@@ -7646,6 +7735,53 @@
     "name": "slack-desktop"
    }
   },
+  "snapd": {
+   "apt\\snapd": {
+    "driver": "apt",
+    "fields": {
+     "name": "snapd"
+    },
+    "name": "snapd"
+   }
+  },
+  "snapd-snap-link": {
+   "apt\\snapd": {
+    "driver": "apt",
+    "fields": {
+     "name": "snapd"
+    },
+    "name": "snapd"
+   },
+   "script\\snapd-snap-link": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "test -e /snap || sudo ln -s /var/lib/snapd/snap /snap",
+     "location": "/snap",
+     "name": "snapd-snap-link",
+     "uninstall-cmd": "test -L /snap && sudo rm -f /snap || true",
+     "version-cmd": "test -e /snap && echo present",
+     "version-re": "(present)"
+    },
+    "name": "snapd-snap-link"
+   }
+  },
+  "snapd-socket": {
+   "apt\\snapd": {
+    "driver": "apt",
+    "fields": {
+     "name": "snapd"
+    },
+    "name": "snapd"
+   },
+   "service\\snapd-socket": {
+    "driver": "service",
+    "fields": {
+     "name": "snapd-socket",
+     "unit": "snapd.socket"
+    },
+    "name": "snapd-socket"
+   }
+  },
   "socat": {
    "apt\\socat": {
     "driver": "apt",
@@ -12174,6 +12310,53 @@
     "name": "slack-desktop"
    }
   },
+  "snapd": {
+   "apt\\snapd": {
+    "driver": "apt",
+    "fields": {
+     "name": "snapd"
+    },
+    "name": "snapd"
+   }
+  },
+  "snapd-snap-link": {
+   "apt\\snapd": {
+    "driver": "apt",
+    "fields": {
+     "name": "snapd"
+    },
+    "name": "snapd"
+   },
+   "script\\snapd-snap-link": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "test -e /snap || sudo ln -s /var/lib/snapd/snap /snap",
+     "location": "/snap",
+     "name": "snapd-snap-link",
+     "uninstall-cmd": "test -L /snap && sudo rm -f /snap || true",
+     "version-cmd": "test -e /snap && echo present",
+     "version-re": "(present)"
+    },
+    "name": "snapd-snap-link"
+   }
+  },
+  "snapd-socket": {
+   "apt\\snapd": {
+    "driver": "apt",
+    "fields": {
+     "name": "snapd"
+    },
+    "name": "snapd"
+   },
+   "service\\snapd-socket": {
+    "driver": "service",
+    "fields": {
+     "name": "snapd-socket",
+     "unit": "snapd.socket"
+    },
+    "name": "snapd-socket"
+   }
+  },
   "socat": {
    "apt\\socat": {
     "driver": "apt",
@@ -16700,6 +16883,53 @@
     "name": "slack-desktop"
    }
   },
+  "snapd": {
+   "apt\\snapd": {
+    "driver": "apt",
+    "fields": {
+     "name": "snapd"
+    },
+    "name": "snapd"
+   }
+  },
+  "snapd-snap-link": {
+   "apt\\snapd": {
+    "driver": "apt",
+    "fields": {
+     "name": "snapd"
+    },
+    "name": "snapd"
+   },
+   "script\\snapd-snap-link": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "test -e /snap || sudo ln -s /var/lib/snapd/snap /snap",
+     "location": "/snap",
+     "name": "snapd-snap-link",
+     "uninstall-cmd": "test -L /snap && sudo rm -f /snap || true",
+     "version-cmd": "test -e /snap && echo present",
+     "version-re": "(present)"
+    },
+    "name": "snapd-snap-link"
+   }
+  },
+  "snapd-socket": {
+   "apt\\snapd": {
+    "driver": "apt",
+    "fields": {
+     "name": "snapd"
+    },
+    "name": "snapd"
+   },
+   "service\\snapd-socket": {
+    "driver": "service",
+    "fields": {
+     "name": "snapd-socket",
+     "unit": "snapd.socket"
+    },
+    "name": "snapd-socket"
+   }
+  },
   "socat": {
    "apt\\socat": {
     "driver": "apt",
@@ -20790,6 +21020,53 @@
      "repo-url": "https://packagecloud.io/slacktechnologies/slack/fedora/21/x86_64"
     },
     "name": "slack"
+   }
+  },
+  "snapd": {
+   "dnf\\snapd": {
+    "driver": "dnf",
+    "fields": {
+     "name": "snapd"
+    },
+    "name": "snapd"
+   }
+  },
+  "snapd-snap-link": {
+   "dnf\\snapd": {
+    "driver": "dnf",
+    "fields": {
+     "name": "snapd"
+    },
+    "name": "snapd"
+   },
+   "script\\snapd-snap-link": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "test -e /snap || sudo ln -s /var/lib/snapd/snap /snap",
+     "location": "/snap",
+     "name": "snapd-snap-link",
+     "uninstall-cmd": "test -L /snap && sudo rm -f /snap || true",
+     "version-cmd": "test -e /snap && echo present",
+     "version-re": "(present)"
+    },
+    "name": "snapd-snap-link"
+   }
+  },
+  "snapd-socket": {
+   "dnf\\snapd": {
+    "driver": "dnf",
+    "fields": {
+     "name": "snapd"
+    },
+    "name": "snapd"
+   },
+   "service\\snapd-socket": {
+    "driver": "service",
+    "fields": {
+     "name": "snapd-socket",
+     "unit": "snapd.socket"
+    },
+    "name": "snapd-socket"
    }
   },
   "socat": {
@@ -24950,6 +25227,53 @@
      "repo-url": "https://packagecloud.io/slacktechnologies/slack/fedora/21/x86_64"
     },
     "name": "slack"
+   }
+  },
+  "snapd": {
+   "dnf\\snapd": {
+    "driver": "dnf",
+    "fields": {
+     "name": "snapd"
+    },
+    "name": "snapd"
+   }
+  },
+  "snapd-snap-link": {
+   "dnf\\snapd": {
+    "driver": "dnf",
+    "fields": {
+     "name": "snapd"
+    },
+    "name": "snapd"
+   },
+   "script\\snapd-snap-link": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "test -e /snap || sudo ln -s /var/lib/snapd/snap /snap",
+     "location": "/snap",
+     "name": "snapd-snap-link",
+     "uninstall-cmd": "test -L /snap && sudo rm -f /snap || true",
+     "version-cmd": "test -e /snap && echo present",
+     "version-re": "(present)"
+    },
+    "name": "snapd-snap-link"
+   }
+  },
+  "snapd-socket": {
+   "dnf\\snapd": {
+    "driver": "dnf",
+    "fields": {
+     "name": "snapd"
+    },
+    "name": "snapd"
+   },
+   "service\\snapd-socket": {
+    "driver": "service",
+    "fields": {
+     "name": "snapd-socket",
+     "unit": "snapd.socket"
+    },
+    "name": "snapd-socket"
    }
   },
   "socat": {
@@ -32608,6 +32932,53 @@
     "name": "slack-desktop"
    }
   },
+  "snapd": {
+   "apt\\snapd": {
+    "driver": "apt",
+    "fields": {
+     "name": "snapd"
+    },
+    "name": "snapd"
+   }
+  },
+  "snapd-snap-link": {
+   "apt\\snapd": {
+    "driver": "apt",
+    "fields": {
+     "name": "snapd"
+    },
+    "name": "snapd"
+   },
+   "script\\snapd-snap-link": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "test -e /snap || sudo ln -s /var/lib/snapd/snap /snap",
+     "location": "/snap",
+     "name": "snapd-snap-link",
+     "uninstall-cmd": "test -L /snap && sudo rm -f /snap || true",
+     "version-cmd": "test -e /snap && echo present",
+     "version-re": "(present)"
+    },
+    "name": "snapd-snap-link"
+   }
+  },
+  "snapd-socket": {
+   "apt\\snapd": {
+    "driver": "apt",
+    "fields": {
+     "name": "snapd"
+    },
+    "name": "snapd"
+   },
+   "service\\snapd-socket": {
+    "driver": "service",
+    "fields": {
+     "name": "snapd-socket",
+     "unit": "snapd.socket"
+    },
+    "name": "snapd-socket"
+   }
+  },
   "socat": {
    "apt\\socat": {
     "driver": "apt",
@@ -36952,6 +37323,53 @@
      "repo-url": "https://packagecloud.io/slacktechnologies/slack/fedora/21/x86_64"
     },
     "name": "slack"
+   }
+  },
+  "snapd": {
+   "dnf\\snapd": {
+    "driver": "dnf",
+    "fields": {
+     "name": "snapd"
+    },
+    "name": "snapd"
+   }
+  },
+  "snapd-snap-link": {
+   "dnf\\snapd": {
+    "driver": "dnf",
+    "fields": {
+     "name": "snapd"
+    },
+    "name": "snapd"
+   },
+   "script\\snapd-snap-link": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "test -e /snap || sudo ln -s /var/lib/snapd/snap /snap",
+     "location": "/snap",
+     "name": "snapd-snap-link",
+     "uninstall-cmd": "test -L /snap && sudo rm -f /snap || true",
+     "version-cmd": "test -e /snap && echo present",
+     "version-re": "(present)"
+    },
+    "name": "snapd-snap-link"
+   }
+  },
+  "snapd-socket": {
+   "dnf\\snapd": {
+    "driver": "dnf",
+    "fields": {
+     "name": "snapd"
+    },
+    "name": "snapd"
+   },
+   "service\\snapd-socket": {
+    "driver": "service",
+    "fields": {
+     "name": "snapd-socket",
+     "unit": "snapd.socket"
+    },
+    "name": "snapd-socket"
    }
   },
   "socat": {
@@ -41654,6 +42072,53 @@
     "name": "slack-desktop"
    }
   },
+  "snapd": {
+   "apt\\snapd": {
+    "driver": "apt",
+    "fields": {
+     "name": "snapd"
+    },
+    "name": "snapd"
+   }
+  },
+  "snapd-snap-link": {
+   "apt\\snapd": {
+    "driver": "apt",
+    "fields": {
+     "name": "snapd"
+    },
+    "name": "snapd"
+   },
+   "script\\snapd-snap-link": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "test -e /snap || sudo ln -s /var/lib/snapd/snap /snap",
+     "location": "/snap",
+     "name": "snapd-snap-link",
+     "uninstall-cmd": "test -L /snap && sudo rm -f /snap || true",
+     "version-cmd": "test -e /snap && echo present",
+     "version-re": "(present)"
+    },
+    "name": "snapd-snap-link"
+   }
+  },
+  "snapd-socket": {
+   "apt\\snapd": {
+    "driver": "apt",
+    "fields": {
+     "name": "snapd"
+    },
+    "name": "snapd"
+   },
+   "service\\snapd-socket": {
+    "driver": "service",
+    "fields": {
+     "name": "snapd-socket",
+     "unit": "snapd.socket"
+    },
+    "name": "snapd-socket"
+   }
+  },
   "socat": {
    "apt\\socat": {
     "driver": "apt",
@@ -46188,6 +46653,53 @@
      "source-path": "/etc/apt/sources.list.d/slack.list"
     },
     "name": "slack-desktop"
+   }
+  },
+  "snapd": {
+   "apt\\snapd": {
+    "driver": "apt",
+    "fields": {
+     "name": "snapd"
+    },
+    "name": "snapd"
+   }
+  },
+  "snapd-snap-link": {
+   "apt\\snapd": {
+    "driver": "apt",
+    "fields": {
+     "name": "snapd"
+    },
+    "name": "snapd"
+   },
+   "script\\snapd-snap-link": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "test -e /snap || sudo ln -s /var/lib/snapd/snap /snap",
+     "location": "/snap",
+     "name": "snapd-snap-link",
+     "uninstall-cmd": "test -L /snap && sudo rm -f /snap || true",
+     "version-cmd": "test -e /snap && echo present",
+     "version-re": "(present)"
+    },
+    "name": "snapd-snap-link"
+   }
+  },
+  "snapd-socket": {
+   "apt\\snapd": {
+    "driver": "apt",
+    "fields": {
+     "name": "snapd"
+    },
+    "name": "snapd"
+   },
+   "service\\snapd-socket": {
+    "driver": "service",
+    "fields": {
+     "name": "snapd-socket",
+     "unit": "snapd.socket"
+    },
+    "name": "snapd-socket"
    }
   },
   "socat": {
