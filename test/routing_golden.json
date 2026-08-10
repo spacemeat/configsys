@@ -4946,13 +4946,20 @@
    }
   },
   "discord": {
-   "native-pkg-file\\discord": {
-    "driver": "native-pkg-file",
+   "apt\\flatpak": {
+    "driver": "apt",
     "fields": {
-     "name": "discord",
-     "url": "https://discord.com/api/download?platform=linux&format=deb"
+     "name": "flatpak"
     },
-    "name": "discord"
+    "name": "flatpak"
+   },
+   "flatpak\\discord": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "com.discordapp.Discord"
+    },
+    "name": "com.discordapp.Discord"
    }
   },
   "dkjson": {
@@ -9557,13 +9564,20 @@
    }
   },
   "discord": {
-   "native-pkg-file\\discord": {
-    "driver": "native-pkg-file",
+   "apt\\flatpak": {
+    "driver": "apt",
     "fields": {
-     "name": "discord",
-     "url": "https://discord.com/api/download?platform=linux&format=deb"
+     "name": "flatpak"
     },
-    "name": "discord"
+    "name": "flatpak"
+   },
+   "flatpak\\discord": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "com.discordapp.Discord"
+    },
+    "name": "com.discordapp.Discord"
    }
   },
   "dkjson": {
@@ -14096,13 +14110,20 @@
    }
   },
   "discord": {
-   "native-pkg-file\\discord": {
-    "driver": "native-pkg-file",
+   "apt\\flatpak": {
+    "driver": "apt",
     "fields": {
-     "name": "discord",
-     "url": "https://discord.com/api/download?platform=linux&format=deb"
+     "name": "flatpak"
     },
-    "name": "discord"
+    "name": "flatpak"
+   },
+   "flatpak\\discord": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "com.discordapp.Discord"
+    },
+    "name": "com.discordapp.Discord"
    }
   },
   "dkjson": {
@@ -29987,13 +30008,20 @@
    }
   },
   "discord": {
-   "native-pkg-file\\discord": {
-    "driver": "native-pkg-file",
+   "apt\\flatpak": {
+    "driver": "apt",
     "fields": {
-     "name": "discord",
-     "url": "https://discord.com/api/download?platform=linux&format=deb"
+     "name": "flatpak"
     },
-    "name": "discord"
+    "name": "flatpak"
+   },
+   "flatpak\\discord": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "com.discordapp.Discord"
+    },
+    "name": "com.discordapp.Discord"
    }
   },
   "dkjson": {
@@ -39066,13 +39094,20 @@
    }
   },
   "discord": {
-   "native-pkg-file\\discord": {
-    "driver": "native-pkg-file",
+   "apt\\flatpak": {
+    "driver": "apt",
     "fields": {
-     "name": "discord",
-     "url": "https://discord.com/api/download?platform=linux&format=deb"
+     "name": "flatpak"
     },
-    "name": "discord"
+    "name": "flatpak"
+   },
+   "flatpak\\discord": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "com.discordapp.Discord"
+    },
+    "name": "com.discordapp.Discord"
    }
   },
   "dkjson": {
@@ -43685,13 +43720,20 @@
    }
   },
   "discord": {
-   "native-pkg-file\\discord": {
-    "driver": "native-pkg-file",
+   "apt\\flatpak": {
+    "driver": "apt",
     "fields": {
-     "name": "discord",
-     "url": "https://discord.com/api/download?platform=linux&format=deb"
+     "name": "flatpak"
     },
-    "name": "discord"
+    "name": "flatpak"
+   },
+   "flatpak\\discord": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "com.discordapp.Discord"
+    },
+    "name": "com.discordapp.Discord"
    }
   },
   "dkjson": {

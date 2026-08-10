@@ -124,6 +124,15 @@ def _prefer_rank(binding):
         return 0
 
 
+def _binding_candidate_only(binding):
+    '''True if this binding carries `candidate-only: true` — the PER-BINDING analog of the
+    `drivers:` candidate-only flag. Offered/listed/pinnable, but never the auto-default while an
+    ordinary method is valid: lets a validity-gated method (a debian-only vendor `.deb`, say) be
+    available without beating a broad method (a universal flatpak) by specificity.'''
+    v = binding.details.get('candidate-only')
+    return str(v).strip().lower() in ('true', 'yes', 'on', '1') if v is not None else False
+
+
 def _effective_preference(cascade, context, preference):
     '''The driver-preference order for this context: the nearest OS block's `driver-preference:`
     (walking the lineage) wins, else the passed-in global (config) list, else the built-in.'''
@@ -188,17 +197,21 @@ def _select(component, cascade, context, pins=None, preference=None, candidate_o
     `candidate-only:` flag) marks methods that are valid and LISTED but never win the AUTO-default
     while any ordinary method is valid here — so a low-preference-yet-narrowly-gated method (snap
     is gated `when: ubuntu`, which would otherwise beat a broad native binding by specificity)
-    can be offered without hijacking the default. A binding-pin still forces such a method (it
-    filters `matching` to that via upstream); and if EVERY valid method here is candidate-only,
-    they compete among themselves normally. The candidate list returned is ALWAYS the full
-    `matching` set, so the picker/`where` still show the opt-in methods.'''
+    can be offered without hijacking the default. A binding may ALSO opt into this per-binding with
+    `candidate-only: true` (e.g. a debian-only vendor `.deb` that should stay a candidate under a
+    universal flatpak). A binding-pin still forces such a method (it filters `matching` to that via
+    upstream); and if EVERY valid method here is candidate-only, they compete among themselves
+    normally. The candidate list returned is ALWAYS the full `matching` set, so the picker/`where`
+    still show the opt-in methods.'''
     matching, pin = _matching(component, context, pins)
     if not matching:
         extra = f' (pinned to via:{pin!r})' if pin is not None else ''
         raise ResolveError(f'no binding for {component.name} in this context{extra}')
     if len(matching) == 1:
         return matching[0], matching, 'only method here'
-    pool = [b for b in matching if b.via not in (candidate_only or frozenset())] or matching
+    excluded = candidate_only or frozenset()
+    pool = [b for b in matching
+            if b.via not in excluded and not _binding_candidate_only(b)] or matching
     if len(pool) == 1:
         return pool[0], matching, 'only ordinary method here'
     ms = _most_specific_binding(pool, cascade)
@@ -237,7 +250,7 @@ def _package(binding, driver, component):
 
 
 # keys that steer resolution, not installation — never handed to a driver.
-_RESOLVER_KEYS = ('requires', 'suggests', 'parts', 'app', 'prefer')
+_RESOLVER_KEYS = ('requires', 'suggests', 'parts', 'app', 'prefer', 'candidate-only')
 
 
 def _install_fields(details, package):

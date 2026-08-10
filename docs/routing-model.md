@@ -292,6 +292,14 @@ still forces such a method. If it is the *only* valid method (e.g. chromium on U
 ships solely as a snap), it wins normally. Because `when:` is validity-only, `configsys where <comp>` can show every
 candidate method, the default, and *which rule decided it*.
 
+A single **binding** may also opt in with `candidate-only: true` in its details (rather than the
+whole driver) — same semantics, but scoped to that one method. This is for the case where a via is
+usually a fine default but one component wants it offered-not-default: e.g. `native-pkg-file` is the
+sensible debian default for a versioned GitHub `.deb` (dbeaver/bruno), but for a *rolling* vendor
+`.deb` under a universal flatpak (discord) you want the sandboxed flatpak to stay the default and the
+`.deb` merely available. Marking just that binding `candidate-only` decouples it without changing the
+driver globally.
+
 **Checker shape:** decidable and cheap. Enumerate the finite (OS-block × cpu-value)
 grid; in each cell the predicate collapses to a set of version intervals *in that
 cell's scale*; then it's interval algebra — containment for ⊆, non-empty intersection

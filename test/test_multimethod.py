@@ -107,6 +107,19 @@ def test_candidates_include_unavailable_lists_when_gated_methods(tmp_path):
     assert allm['native']['available'] is True and allm['flatpak']['available'] is False
 
 
+def test_per_binding_candidate_only_offered_but_never_default(tmp_path):
+    # A debian-gated method tagged `candidate-only: true` is listed + pinnable, but its narrow
+    # `when:` must NOT let it beat a universal method by specificity (the vendor-.deb-under-flatpak
+    # case). Distinct from the driver-level flag: only THIS binding opts out.
+    comps = ('app: { install: [ { via: flatpak  app: org.x.App } '
+             '                   { via: native-pkg-file  when: debian  candidate-only: true '
+             '                     url: "http://x/app.deb" } ] }')
+    assert _resolve(tmp_path, comps, ['app']) == {'flatpak\\app'}      # flatpak wins despite the deb's specificity
+    cands = Resolver(str(_write(tmp_path, comps)), 'debian', '12').candidates('app')
+    assert {c['via'] for c in cands} == {'flatpak', 'native-pkg-file'}  # the deb is still offered
+    assert _resolve(tmp_path, comps, ['app'], pins={'app': 'native-pkg-file'}) == {'native-pkg-file\\app'}  # a pin forces it
+
+
 def test_candidates_collapse_same_via_to_one_row(tmp_path):
     # The picker/pin choose a VIA, not an individual binding — so two comparable native bindings
     # (fastfetch's real bug: a `when: debian` .deb subsumed by a bare `via: native`) must collapse
