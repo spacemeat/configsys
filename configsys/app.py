@@ -126,6 +126,7 @@ class Context:
         self.reporter = report.Reporter(level)
         self.runner = Runner(pretend=args.pretend, echo=lambda m: print(m))
         self._config = None
+        self._routes = None            # cached Resolver (rebuilding it = parse routes.hu + routecheck)
         self._discovered = None
         self._os_refined = False       # detect:-marker refinement runs once, lazily
         self._plugin_files = None
@@ -300,16 +301,24 @@ class Context:
 
     @property
     def routes(self):
+        # MEMOIZED: building a Resolver = parse routes.hu + all layers + routecheck (~150ms), and
+        # callers hit this property hundreds of times (the Profiles catalog resolves every component
+        # via `ctx.routes.candidates`). Cache it; `invalidate()` clears the cache on any in-process
+        # write (a pin, a config/profile edit, a plugin sync/trust — all route through invalidate),
+        # so the cached Resolver never goes stale.
+        if self._routes is not None:
+            return self._routes
         r = self._resolver(self.os_info.block)
         # Once the cascade is loaded (with plugin os blocks), refine the block via `detect:`
-        # markers — e.g. an ID=debian host with /etc/pve is really `proxmox`. Cached; only rebuilds
-        # when a marker actually reroutes (rare), and only the first time.
+        # markers — e.g. an ID=debian host with /etc/pve is really `proxmox`. Runs once; only
+        # rebuilds when a marker actually reroutes (rare).
         if not self._os_refined:
             self._os_refined = True
             refined = osdetect.refine(self.os_info.block, r.cascade, self.env)
             if refined != self.os_info.block:
                 self.os_info.block = refined
                 r = self._resolver(refined)
+        self._routes = r
         return r
 
     @property
@@ -326,10 +335,11 @@ class Context:
         edits (a pin, a profile toggle) need only the config reread; a plugin add/sync/trust also
         changes what's on disk, so we also drop the plugin data-file layer and the once-only code
         load. That way newly-available components, install methods, and plugin DRIVERS (e.g.
-        opencv-build) show up across the TUI without a restart — the `routes` property rebuilds the
-        Resolver on every access, so once these caches clear it picks up the new layers + drivers.
+        opencv-build) show up across the TUI without a restart — dropping the cached Resolver forces
+        the next `routes` access to rebuild it from the new layers + drivers.
         Cheap: for the common no-plugin case the code reload loops over nothing.'''
         self._config = None
+        self._routes = None              # drop the cached Resolver; next access rebuilds it
         self._plugin_files = None        # re-glob declared+synced plugin data layers
         self._plugin_code_loaded = False  # re-register trusted plugin drivers (idempotent overwrite)
         self._os_refined = False          # a plugin may add a derivative-distro os block w/ a detect: marker
