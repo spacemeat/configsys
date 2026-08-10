@@ -1,5 +1,21 @@
 # Deferred sweep work (2026-08-08)
 
+> **POLICY REVERSED 2026-08-10:** the "minimize install options" stance below is dropped — the goal
+> is now **full choice**: offer EVERY valid method per component (native stays the default where the
+> distro packages it; extras are candidates you can pin). Network verification is now available
+> (flathub/snapcraft/GitHub APIs), so adds are verified, not guessed. Progress this pass:
+> - Atomic-gated flatpaks made universal: firefox/libreoffice/vlc/blender/vscode + chromium (2b7777f).
+> - Over-narrow binaries broadened: just (5105301), helix/kubectl (55d0b86).
+> - Flathub-verified sweep of all 251 no-flatpak components → added android-studio/unityhub/mitmproxy
+>   (9a81e5b, official build kept default via prefer:). Flatpak catalog now essentially COMPLETE.
+>   Skipped: wireshark (sandbox can't capture), httpie (Flathub app is a different product), helix
+>   (native competes; poor sandbox fit for a TUI editor).
+> - STILL TODO (next batches): binary/tarball for CLI tools that lack one but have a GitHub release
+>   (musl=universal, glibc=not-alpine); snap-everywhere question (currently ubuntu-gated,
+>   candidate-only); the hard vendor-repo native bucket (chrome/discord/slack .deb — bespoke URLs);
+>   brew casks (parked until a macOS block — mac-only); folly/eastl source recipes; openscad url.
+
+
 Batch task: add C++ libs; sweep flatpak / snap / tarball / native-pkg-file / appImage methods so
 users get "full options and control." Done offline (no network to verify app IDs / snap names /
 release asset URLs), so this file collects what still needs a networked pass. **Verify each item
