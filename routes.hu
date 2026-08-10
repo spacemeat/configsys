@@ -193,8 +193,10 @@
             install: [
                 { via: native  when: "arch" }
                 { via: native  when: "fedora_atomic" }              // brew formula `nushell`
-                { via: tarball  installDir: "$CONFIGSYS_APP_DIR/nushell"  requires: glibc
+                { via: tarball  when: "not alpine"  installDir: "$CONFIGSYS_APP_DIR/nushell"  requires: glibc
                   version: { github: nushell/nushell  strip-v: true  asset: "nu-*-x86_64-unknown-linux-gnu.tar.gz" } }
+                { via: tarball  when: "alpine"  installDir: "$CONFIGSYS_APP_DIR/nushell"   // musl build for Alpine (the gnu one needs glibc)
+                  version: { github: nushell/nushell  strip-v: true  asset: "nu-*-x86_64-unknown-linux-musl.tar.gz" } }
             ]
         }
 
