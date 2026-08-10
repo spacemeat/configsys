@@ -145,6 +145,14 @@ class Config:
         rather than replacing the whole block, so portable pins survive a single local override.'''
         return layers.merge_scalar_map(self._layers, 'pins', _MACHINE_ROLES)
 
+    def locations(self):
+        '''The effective per-component install-location map (component -> absolute path), merged
+        PER KEY across repo < primary < user like pins(). A machine setting: "this component's
+        install lives HERE, find/manage it there" — an absolute, scope-bypassing override that
+        path-based drivers (source builds, appImage, tarball, font) honor over their computed dir.
+        Distinct from the per-CATEGORY `dirs:` layout (which applies to every component of a class).'''
+        return layers.merge_scalar_map(self._layers, 'locations', _MACHINE_ROLES)
+
     def theme(self):
         '''The merged TUI `theme:` overrides. Unlike the other machine settings, `theme` is purely
         cosmetic, so it is contributed by EVERY layer (a theme-only plugin can ship a look; a
@@ -201,6 +209,14 @@ class Config:
         under this (flooradvise.tighten_pins skips those — they remain advisories).'''
         v = layers.merge_scalar(self._layers, 'auto-tighten', _MACHINE_ROLES)
         return str(v).strip().lower() in ('true', 'yes', 'on', '1') if v is not None else False
+
+    def detect_coexisting(self):
+        '''Default ON: after inspect, detect installs of a component via its OTHER (non-managed)
+        methods and surface them as "also present (unmanaged)" — so an existing machine's real state
+        is visible. `detect-coexisting: false` skips the pass (the per-method sweep stays available
+        via `configsys versions`). A machine setting (repo < primary < user).'''
+        v = layers.merge_scalar(self._layers, 'detect-coexisting', _MACHINE_ROLES)
+        return str(v).strip().lower() not in ('false', 'no', 'off', '0') if v is not None else True
 
     def splash(self):
         '''The chosen startup splash: a registered provider NAME, a disable token (false/off/no),

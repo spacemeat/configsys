@@ -147,6 +147,16 @@ class Driver:
         return (f'mkdir -p {dq} && curl -fSL {shlex.quote(url)} -o {tmp} && '
                 f'{self._extract_cmd(url, tmp, dq, archive_fmt, strip)} && rm -f {tmp}')
 
+    def location_override(self, rc):
+        '''The per-component install-location override for this unit, or None. Set from the config
+        `locations:` map (component -> path) and injected onto the unit as the reserved
+        `location-override` field (a distinct key — `location` is already an authored DISPLAY field
+        on the source/script drivers). An ABSOLUTE, scope-bypassing path: "find/manage this
+        component's install HERE", regardless of the binding's `dir`/`installDir` and the scope
+        layout. Path-based drivers prefer it over their computed target; package drivers ignore it.'''
+        loc = rc.fields.get('location-override')
+        return Path(str(loc)).expanduser() if loc else None
+
     def scoped_dir(self, raw, rc):
         '''Resolve an install path via the Paths layout (single source of truth): the
         $CONFIGSYS_*_DIR category vars are substituted, then absolute/`~` passes through and a
@@ -194,6 +204,20 @@ class Driver:
                 rc.fields['scope'] = saved
             else:
                 rc.fields.pop('scope', None)
+
+    def installed_index(self):
+        '''For a package-manager driver: {package_key: version} of EVERYTHING it currently has
+        installed, from ONE enumeration call — so the coexistence detector can check many components
+        with a single subprocess instead of one probe per component. None = not enumerable
+        (path/build drivers): the detector falls back to their fast per-method get_version. Returns
+        None on command failure too (fall back rather than claim nothing is installed).'''
+        return None
+
+    def index_key(self, rc):
+        '''The key under which this unit would appear in installed_index() — the same handle
+        get_version looks up. Default: the resolved package name (rc.name). Drivers whose install
+        identity isn't rc.name (flatpak app id, snap name) override.'''
+        return rc.name
 
     def get_latest(self, rc):
         '''Latest/candidate available version string, or None if unknown.'''

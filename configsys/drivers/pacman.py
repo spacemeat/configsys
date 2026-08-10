@@ -30,6 +30,19 @@ class Pacman(Driver):
 
     # -- read -------------------------------------------------------------
 
+    def installed_index(self):
+        # ONE `pacman -Q` lists every installed package -> {name: version} (groups aren't listed;
+        # a group component just falls back to per-method get_version, which handles -Qg).
+        r = self.runner.run('pacman -Q')
+        if not r.ok:
+            return None
+        idx = {}
+        for line in r.stdout.splitlines():
+            cols = line.split()
+            if cols:
+                idx[cols[0]] = (cols[1] if len(cols) > 1 else '') or 'installed'
+        return idx
+
     def get_version(self, rc):
         # `pacman -Q btop` -> "btop 1.4.7-1"; nonzero + not-found message if absent
         r = self.runner.run(f'pacman -Q {shlex.quote(rc.name)}')

@@ -28,6 +28,7 @@ class ComponentState:
     error: Optional[str]
     scope: Optional[str] = None  # 'user' | 'system' | None (unsupported driver)
     untrusted: bool = False      # driver exists but its plugin isn't trusted yet (not just unknown)
+    also_present: tuple = ()     # coexisting installs via OTHER methods: ((via, package, version), ...)
 
     @property
     def key(self):
@@ -136,3 +137,57 @@ class InstallState:
             installed_version=version, latest_version=latest,
             locked=locked, lock_source=lock_source, managed=managed, error=None,
             scope=detected_scope or drv.scope(rc))   # detected reality if installed, else target
+
+
+def detect_coexisting(ctx, states):
+    '''Augment each state with `also_present`: coexisting installs found via the component's OTHER
+    (non-managed) candidate methods — the "walk up to an existing machine and see EVERYTHING that's
+    installed" pass. Cheap: package-manager drivers are enumerated ONCE each (batched
+    `installed_index`), path/build drivers use their fast per-method get_version; NO get_latest (no
+    network — "outdated" is only for the managed method). Mutates and returns `states`.'''
+    from .adapt import to_resolved_component
+    from .resolve import candidate_bindings, unit_for_binding, via_representatives
+    r = ctx.routes
+    cx = r.cascade.context(r.block, r.version, r.cpu)
+    enum = {}                                       # driver name -> installed_index() dict or None
+
+    def index_of(drv):
+        if drv.name not in enum:
+            try:
+                enum[drv.name] = drv.installed_index()
+            except Exception:                       # noqa: BLE001 - a flaky lister must not brick inspect
+                enum[drv.name] = None
+        return enum[drv.name]
+
+    for st in states.values():
+        managed = st.component
+        comp = r.components.get(managed.comp)
+        if comp is None or not comp.bindings:
+            continue
+        try:
+            reps = via_representatives(candidate_bindings(comp, r.cascade, cx, None), r.cascade)
+        except Exception:                           # noqa: BLE001
+            continue
+        if len(reps) < 2:
+            continue                                # only one method here -> nothing else to find
+        also = []
+        for b in reps:
+            if b.via == managed.via:
+                continue                            # the managed method is already this state
+            unit = unit_for_binding(comp, b, r.cascade, r.block, r.overrides)
+            if unit is None:
+                continue
+            rc = to_resolved_component(unit)
+            drv = get_driver(rc.driver, ctx.runner, ctx.paths)
+            if drv is None:
+                continue
+            try:
+                idx = index_of(drv)
+                ver = idx.get(drv.index_key(rc)) if idx is not None else drv.get_version(rc)
+            except Exception:                       # noqa: BLE001
+                ver = None
+            if ver is not None:
+                also.append((rc.via, rc.name, ver))
+        if also:
+            st.also_present = tuple(also)
+    return states

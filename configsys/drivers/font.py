@@ -38,7 +38,7 @@ class Font(Driver):
         return base / 'fonts'
 
     def _font_dir(self, rc):
-        return self._font_base(rc) / f'configsys-{rc.comp}'
+        return self.location_override(rc) or (self._font_base(rc) / f'configsys-{rc.comp}')
 
     def _marker(self, rc):
         return self._font_dir(rc) / f'{MARKER_PREFIX}{rc.comp}.version'

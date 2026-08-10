@@ -38,6 +38,21 @@ class Snap(Driver):
 
     # -- read (no sudo) ---------------------------------------------------
 
+    def installed_index(self):
+        # ONE `snap list` (no name) -> header + a row per snap: Name Version Rev ...
+        r = self.runner.run('snap list')
+        if not r.ok:
+            return None
+        idx = {}
+        for ln in r.stdout.splitlines()[1:]:            # skip the header
+            cols = ln.split()
+            if cols:
+                idx[cols[0]] = (cols[1] if len(cols) > 1 else '') or 'installed'
+        return idx
+
+    def index_key(self, rc):
+        return self._snap(rc)
+
     def get_version(self, rc):
         # `snap list <name>` -> header + one row: Name Version Rev Tracking Publisher Notes
         r = self.runner.run(f'snap list {shlex.quote(self._snap(rc))}')

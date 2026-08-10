@@ -35,6 +35,21 @@ class Brew(Driver):
 
     # -- read -------------------------------------------------------------
 
+    def installed_index(self):
+        # ONE `brew list --versions` -> "<formula> <v1> [<v2>...]" per line -> {formula: newest-listed}.
+        r = self.runner.run('brew list --versions')
+        if not r.ok:
+            return None
+        idx = {}
+        for line in r.stdout.splitlines():
+            cols = line.split()
+            if cols:
+                idx[cols[0]] = (cols[1] if len(cols) > 1 else '') or 'installed'
+        return idx
+
+    def index_key(self, rc):
+        return self._formula(rc)
+
     def get_version(self, rc):
         f = self._formula(rc)
         r = self.runner.run(f'brew list --versions {shlex.quote(f)}')

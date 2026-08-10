@@ -52,6 +52,10 @@ Lives under `$XDG_CONFIG_HOME` (defaults to `~/.config/configsys/configsys.hu`);
 
     dirs: { sdk: "~/toolchains"  system: /srv/opt }   // relocate install-layout dirs
 
+    locations: { blender: ~/dev/blender-git  kicad: /opt/kicad }   // per-component: find/manage HERE
+
+    detect-coexisting: false         // skip the "also present (unmanaged)" pass (default on)
+
     discover: false                  // opt out of project discovery on this machine
 }
 ```
@@ -66,6 +70,15 @@ Lives under `$XDG_CONFIG_HOME` (defaults to `~/.config/configsys/configsys.hu`);
   vars still win, so `dirs:` is the durable setting and the env var the per-invocation override.
   (Bootstrap paths — where the config/state/repo live — stay env-only; they're needed before the
   config loads.) Merged repo < primary < user like the other machine settings.
+- **`locations:`** is a per-component install-location override (`component: path`): "find/manage
+  THIS component's install here", an absolute, scope-bypassing path honored by the path-based
+  drivers (source builds, appImage, tarball, font, and the build plugins) over their computed dir.
+  Distinct from `dirs:`, which relocates a whole category. Merged repo < primary < user per key.
+- **`detect-coexisting:`** (default **on**) — after inspect, configsys probes each component's OTHER
+  (non-managed) install methods and surfaces any it finds installed as *"also present (unmanaged)"*
+  (with a `pin` hint), so an existing machine's full state is visible. Package managers are
+  enumerated once (batched), so the cost is a handful of "list installed" calls, not one per
+  component. Set `false` to skip the pass; `configsys versions <name>` still shows per-method state.
 - **`pins:`** reroutes without redefining: a binding-pin forces a component's driver, a
   provider-pin forces which component satisfies a capability.
 - **`driver-preference:`** is a global tiebreak order over drivers, used to pick the default

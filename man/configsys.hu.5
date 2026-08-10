@@ -43,6 +43,10 @@ Lives under \fB$XDG_CONFIG_HOME\fR (defaults to \fB~/.config/configsys/configsys
 
     dirs: { sdk: "~/toolchains"  system: /srv/opt }   // relocate install-layout dirs
 
+    locations: { blender: ~/dev/blender-git  kicad: /opt/kicad }   // per-component: find/manage HERE
+
+    detect-coexisting: false         // skip the "also present (unmanaged)" pass (default on)
+
     discover: false                  // opt out of project discovery on this machine
 }
 .fi
@@ -53,6 +57,10 @@ Lives under \fB$XDG_CONFIG_HOME\fR (defaults to \fB~/.config/configsys/configsys
 \fB\fBscope:\fR\fR sets the default install scope (\fBuser\fR or \fBsystem\fR) for scope-honoring drivers.
 .IP \(bu 2
 \fB\fBdirs:\fR\fR relocates the install-layout directories without a shell env var. Keys: \fBuser\fR (user-scope base, default \fB~\fR), \fBsystem\fR (system-scope base, default \fB/opt\fR), and the category dirs \fBapp\fR/\fBsdk\fR/\fBsrc\fR (defaults \fBapps\fR/\fBsdks\fR/\fBsrc\fR, referenced in routes as \fB$CONFIGSYS_APP_DIR\fR etc.). Precedence is \fBdefault < \fBdirs:\fR < env\fR — the \fBCONFIGSYS_USERSCOPE_DIR\fR / \fBCONFIGSYS_SYSTEMSCOPE_DIR\fR / \fBCONFIGSYS_APP_DIR\fR / \fBCONFIGSYS_SDK_DIR\fR / \fBCONFIGSYS_SRC_DIR\fR env vars still win, so \fBdirs:\fR is the durable setting and the env var the per-invocation override. (Bootstrap paths — where the config/state/repo live — stay env-only; they're needed before the config loads.) Merged repo < primary < user like the other machine settings.
+.IP \(bu 2
+\fB\fBlocations:\fR\fR is a per-component install-location override (\fBcomponent: path\fR): "find/manage THIS component's install here", an absolute, scope-bypassing path honored by the path-based drivers (source builds, appImage, tarball, font, and the build plugins) over their computed dir. Distinct from \fBdirs:\fR, which relocates a whole category. Merged repo < primary < user per key.
+.IP \(bu 2
+\fB\fBdetect-coexisting:\fR\fR (default \fBon\fR) — after inspect, configsys probes each component's OTHER (non-managed) install methods and surfaces any it finds installed as \fI"also present (unmanaged)"\fR (with a \fBpin\fR hint), so an existing machine's full state is visible. Package managers are enumerated once (batched), so the cost is a handful of "list installed" calls, not one per component. Set \fBfalse\fR to skip the pass; \fBconfigsys versions <name>\fR still shows per-method state.
 .IP \(bu 2
 \fB\fBpins:\fR\fR reroutes without redefining: a binding-pin forces a component's driver, a provider-pin forces which component satisfies a capability.
 .IP \(bu 2

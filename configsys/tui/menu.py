@@ -617,6 +617,8 @@ def _infoblock(ms, ctx):
     loc = drv.location(rc) if drv is not None else None
     if loc:
         parts.append(f'at: {loc}')                # location now rides the same line as the versions
+    if m.also_present:                            # coexisting installs via OTHER (unmanaged) methods
+        parts.append('also present: ' + ', '.join(f'{via} {ver}' for via, _pkg, ver in m.also_present))
     return ' ' + '   ·   '.join(parts)
 
 

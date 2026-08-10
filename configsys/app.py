@@ -346,6 +346,18 @@ class Context:
                     rc.fields.setdefault('scope', default)
         return units
 
+    def apply_locations(self, units):
+        '''Stamp the per-component install-location override (config `locations:`) onto matching
+        units as the reserved `location` field, so a path-based driver finds/manages the install
+        where the user put it. Keyed by component name; a route field named `location` is left
+        alone (the config override only fills, never clobbers an explicit binding value).'''
+        locs = self.config.locations()
+        if locs:
+            for rc in units.values():
+                if rc.comp in locs:
+                    rc.fields.setdefault('location-override', locs[rc.comp])
+        return units
+
     def ensure_user_config(self, *, offer_primary=False):
         p = self.paths.user_config_file
         if p.exists():
@@ -411,10 +423,14 @@ class Context:
         r.event(report.VERBOSE, f'  resolved {len(requested)} requested -> {len(units)} unit(s)')
         self._report_routing(routes, requested)         # -v overrides, -vv winning binding + why
         self.apply_scope_default(units)
+        self.apply_locations(units)
         ledger = Ledger.load(self.paths)
         states = InstallState(self.runner, ledger, self.paths,
                               pending_vias=self.plugin_pending_vias).inspect(
             units, progress=(progress or self._inspect_progress), reuse=reuse, dirty=dirty)
+        if cfg.detect_coexisting():
+            from .installState import detect_coexisting     # "also present (unmanaged)" per component
+            detect_coexisting(self, states)
         # warnings stream to the console too (errors already did, inline). These need `states`
         # (scope drift) so they land here at the end; the ! page / footer still collect them.
         for d in self.diagnostics(states):
@@ -518,6 +534,8 @@ def cmd_inspect(ctx, args):
         na = '?' if s.untrusted else '-'      # untrusted: unknown (can't read without the driver)
         print(f'{key:30} {_STATUS_LABEL.get(s.status, s.status):12} '
               f'{str(s.installed_version or na):20} {s.latest_version or na}{lock}')
+        for via, pkg, ver in s.also_present:   # coexisting installs via OTHER (unmanaged) methods
+            print(f'{"":30} also present: {via} {ver}  ({pkg}) — `pin {s.component.comp} {via}` to manage')
     # non-fatal skips/warnings that would otherwise go unseen (dropped layers, quarantined
     # plugins, unroutable components, ...) — the same set the TUI shows on its `!` page.
     diags = ctx.diagnostics(states)

@@ -24,8 +24,9 @@ class Tarball(Driver):
     # -- locations --------------------------------------------------------
 
     def _install_dir(self, rc):
-        # bare-relative installDir (e.g. `vulkan`) -> HOME (user) or /opt (system)
-        return self.scoped_dir(rc.fields.get('installDir', ''), rc)
+        # bare-relative installDir (e.g. `vulkan`) -> HOME (user) or /opt (system); a config
+        # `locations:` override (absolute) points straight at the install dir, scope-bypassing.
+        return self.location_override(rc) or self.scoped_dir(rc.fields.get('installDir', ''), rc)
 
     def _marker(self, rc):
         return self._install_dir(rc) / f'{MARKER_PREFIX}{rc.comp}.version'

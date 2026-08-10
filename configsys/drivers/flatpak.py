@@ -63,6 +63,23 @@ class Flatpak(Driver):
 
     # -- read (scope-agnostic: detect it wherever it's installed; no sudo) -
 
+    def installed_index(self):
+        # ONE call lists every installed app (either installation) -> {app-id: version}.
+        r = self.runner.run('flatpak list --app --columns=application,version')
+        if not r.ok:
+            return None
+        idx = {}
+        for line in r.stdout.splitlines():
+            if not line.strip():
+                continue
+            cols = line.split('\t') if '\t' in line else line.split()
+            if cols and cols[0].strip():
+                idx[cols[0].strip()] = (cols[1].strip() if len(cols) > 1 else '') or 'installed'
+        return idx
+
+    def index_key(self, rc):
+        return self._appid(rc)
+
     def get_version(self, rc):
         # no --user/--system flag: find the app in EITHER installation. (Otherwise a
         # system-installed app looks "missing" under the default user scope.)

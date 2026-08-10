@@ -87,6 +87,19 @@ class Apt(Driver):
 
     # -- read -------------------------------------------------------------
 
+    def installed_index(self):
+        # ONE call lists every installed package -> {name: version}; the coexistence detector does
+        # membership lookups instead of a dpkg-query per component. \n-terminated (multiarch rows).
+        r = self.runner.run("dpkg-query -W -f='${Package} ${Version}\\n'")
+        if not r.ok:
+            return None
+        idx = {}
+        for line in r.stdout.splitlines():
+            name, _, ver = line.partition(' ')
+            if name:
+                idx[name] = ver.strip() or 'installed'
+        return idx
+
     def get_version(self, rc):
         pkg = shlex.quote(rc.name)
         # `\n`-terminate the format: a multiarch package (e.g. libvulkan1:amd64 + :i386,

@@ -33,8 +33,9 @@ class AppImage(Driver):
         return self.paths.home if self.paths is not None else Path.home()
 
     def _target(self, rc):
-        # bare-relative path -> HOME (user) or /opt (system); ~/absolute pass through
-        return self.scoped_dir(rc.fields.get('path', ''), rc)
+        # bare-relative path -> HOME (user) or /opt (system); ~/absolute pass through. A config
+        # `locations:` override (absolute) points straight at the .AppImage, scope-bypassing.
+        return self.location_override(rc) or self.scoped_dir(rc.fields.get('path', ''), rc)
 
     def _marker(self, rc):
         t = self._target(rc)

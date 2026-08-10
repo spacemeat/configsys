@@ -28,6 +28,18 @@ class Dnf(Driver):
 
     # -- read -------------------------------------------------------------
 
+    def installed_index(self):
+        # ONE rpm query lists every installed package -> {name: version}.
+        r = self.runner.run("rpm -qa --qf '%{NAME} %{VERSION}\\n'")
+        if not r.ok:
+            return None
+        idx = {}
+        for line in r.stdout.splitlines():
+            name, _, ver = line.partition(' ')
+            if name:
+                idx[name] = ver.strip() or 'installed'
+        return idx
+
     def get_version(self, rc):
         pkg = shlex.quote(rc.name)
         r = self.runner.run(f"rpm -q --qf '%{{VERSION}}\\n' {pkg}")
