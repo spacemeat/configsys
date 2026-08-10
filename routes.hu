@@ -872,8 +872,8 @@
         helix: { description: "Post-modern modal editor (`hx`) — batteries included."
             install: [
                 { via: native  when: "redhat or arch or opensuse or alpine or fedora_atomic" }
-                { via: tarball  when: "debian"  installDir: "$CONFIGSYS_APP_DIR/helix"  requires: glibc
-                  version: { github: helix-editor/helix  strip-v: true  asset: "helix-*-x86_64-linux.tar.xz" } } ]
+                { via: tarball  when: "not alpine"  installDir: "$CONFIGSYS_APP_DIR/helix"  requires: glibc
+                  version: { github: helix-editor/helix  strip-v: true  asset: "helix-*-x86_64-linux.tar.xz" } } ]   // glibc build — offered everywhere except musl (alpine has the native pkg)
         }
         // Zed — native on Arch; elsewhere its own install script (installs into ~/.local).
         zed: { description: "High-performance, multiplayer code editor from the Atom team."
@@ -984,7 +984,7 @@
             install: [
                 { via: native  when: "arch" }
                 { via: native  when: "fedora_atomic" }
-                { via: tarball  when: "debian or redhat or opensuse or alpine"  installDir: "$CONFIGSYS_APP_DIR/kubectl"  archive: none
+                { via: tarball  installDir: "$CONFIGSYS_APP_DIR/kubectl"  archive: none   // static Go binary from dl.k8s.io — runs anywhere; a uniform option (native stays default on arch/atomic)
                   version: { url: "https://dl.k8s.io/release/stable.txt" }
                   url: "https://dl.k8s.io/release/v$VERSION/bin/linux/amd64/kubectl" }
                 { via: snap  when: "ubuntu"  name: kubectl  classic: true } ]   // Canonical-official snap (candidate-only)
