@@ -2954,20 +2954,26 @@
    }
   },
   "slack": {
-   "flatpak\\slack": {
-    "driver": "flatpak",
+   "aur\\slack": {
+    "driver": "aur",
     "fields": {
-     "hub": "flathub",
-     "name": "com.slack.Slack"
+     "name": "slack-desktop"
     },
-    "name": "com.slack.Slack"
+    "name": "slack-desktop"
    },
-   "pacman\\flatpak": {
+   "pacman\\base-devel": {
     "driver": "pacman",
     "fields": {
-     "name": "flatpak"
+     "name": "base-devel"
     },
-    "name": "flatpak"
+    "name": "base-devel"
+   },
+   "pacman\\git": {
+    "driver": "pacman",
+    "fields": {
+     "name": "git"
+    },
+    "name": "git"
    }
   },
   "socat": {
@@ -7628,20 +7634,16 @@
    }
   },
   "slack": {
-   "apt\\flatpak": {
+   "apt\\slack": {
     "driver": "apt",
     "fields": {
-     "name": "flatpak"
+     "name": "slack-desktop",
+     "pubkey-path": "/usr/share/keyrings/slack.asc",
+     "pubkey-url": "https://packagecloud.io/slacktechnologies/slack/gpgkey",
+     "source-line": "deb [signed-by=/usr/share/keyrings/slack.asc] https://packagecloud.io/slacktechnologies/slack/debian/ jessie main",
+     "source-path": "/etc/apt/sources.list.d/slack.list"
     },
-    "name": "flatpak"
-   },
-   "flatpak\\slack": {
-    "driver": "flatpak",
-    "fields": {
-     "hub": "flathub",
-     "name": "com.slack.Slack"
-    },
-    "name": "com.slack.Slack"
+    "name": "slack-desktop"
    }
   },
   "socat": {
@@ -12160,20 +12162,16 @@
    }
   },
   "slack": {
-   "apt\\flatpak": {
+   "apt\\slack": {
     "driver": "apt",
     "fields": {
-     "name": "flatpak"
+     "name": "slack-desktop",
+     "pubkey-path": "/usr/share/keyrings/slack.asc",
+     "pubkey-url": "https://packagecloud.io/slacktechnologies/slack/gpgkey",
+     "source-line": "deb [signed-by=/usr/share/keyrings/slack.asc] https://packagecloud.io/slacktechnologies/slack/debian/ jessie main",
+     "source-path": "/etc/apt/sources.list.d/slack.list"
     },
-    "name": "flatpak"
-   },
-   "flatpak\\slack": {
-    "driver": "flatpak",
-    "fields": {
-     "hub": "flathub",
-     "name": "com.slack.Slack"
-    },
-    "name": "com.slack.Slack"
+    "name": "slack-desktop"
    }
   },
   "socat": {
@@ -16690,20 +16688,16 @@
    }
   },
   "slack": {
-   "apt\\flatpak": {
+   "apt\\slack": {
     "driver": "apt",
     "fields": {
-     "name": "flatpak"
+     "name": "slack-desktop",
+     "pubkey-path": "/usr/share/keyrings/slack.asc",
+     "pubkey-url": "https://packagecloud.io/slacktechnologies/slack/gpgkey",
+     "source-line": "deb [signed-by=/usr/share/keyrings/slack.asc] https://packagecloud.io/slacktechnologies/slack/debian/ jessie main",
+     "source-path": "/etc/apt/sources.list.d/slack.list"
     },
-    "name": "flatpak"
-   },
-   "flatpak\\slack": {
-    "driver": "flatpak",
-    "fields": {
-     "hub": "flathub",
-     "name": "com.slack.Slack"
-    },
-    "name": "com.slack.Slack"
+    "name": "slack-desktop"
    }
   },
   "socat": {
@@ -20786,20 +20780,16 @@
    }
   },
   "slack": {
-   "dnf\\flatpak": {
+   "dnf\\slack": {
     "driver": "dnf",
     "fields": {
-     "name": "flatpak"
+     "name": "slack",
+     "pubkey-url": "https://packagecloud.io/slacktechnologies/slack/gpgkey",
+     "repo-id": "slack",
+     "repo-name": "Slack",
+     "repo-url": "https://packagecloud.io/slacktechnologies/slack/fedora/21/x86_64"
     },
-    "name": "flatpak"
-   },
-   "flatpak\\slack": {
-    "driver": "flatpak",
-    "fields": {
-     "hub": "flathub",
-     "name": "com.slack.Slack"
-    },
-    "name": "com.slack.Slack"
+    "name": "slack"
    }
   },
   "socat": {
@@ -24950,20 +24940,16 @@
    }
   },
   "slack": {
-   "dnf\\flatpak": {
+   "dnf\\slack": {
     "driver": "dnf",
     "fields": {
-     "name": "flatpak"
+     "name": "slack",
+     "pubkey-url": "https://packagecloud.io/slacktechnologies/slack/gpgkey",
+     "repo-id": "slack",
+     "repo-name": "Slack",
+     "repo-url": "https://packagecloud.io/slacktechnologies/slack/fedora/21/x86_64"
     },
-    "name": "flatpak"
-   },
-   "flatpak\\slack": {
-    "driver": "flatpak",
-    "fields": {
-     "hub": "flathub",
-     "name": "com.slack.Slack"
-    },
-    "name": "com.slack.Slack"
+    "name": "slack"
    }
   },
   "socat": {
@@ -32610,20 +32596,16 @@
    }
   },
   "slack": {
-   "apt\\flatpak": {
+   "apt\\slack": {
     "driver": "apt",
     "fields": {
-     "name": "flatpak"
+     "name": "slack-desktop",
+     "pubkey-path": "/usr/share/keyrings/slack.asc",
+     "pubkey-url": "https://packagecloud.io/slacktechnologies/slack/gpgkey",
+     "source-line": "deb [signed-by=/usr/share/keyrings/slack.asc] https://packagecloud.io/slacktechnologies/slack/debian/ jessie main",
+     "source-path": "/etc/apt/sources.list.d/slack.list"
     },
-    "name": "flatpak"
-   },
-   "flatpak\\slack": {
-    "driver": "flatpak",
-    "fields": {
-     "hub": "flathub",
-     "name": "com.slack.Slack"
-    },
-    "name": "com.slack.Slack"
+    "name": "slack-desktop"
    }
   },
   "socat": {
@@ -36960,20 +36942,16 @@
    }
   },
   "slack": {
-   "dnf\\flatpak": {
+   "dnf\\slack": {
     "driver": "dnf",
     "fields": {
-     "name": "flatpak"
+     "name": "slack",
+     "pubkey-url": "https://packagecloud.io/slacktechnologies/slack/gpgkey",
+     "repo-id": "slack",
+     "repo-name": "Slack",
+     "repo-url": "https://packagecloud.io/slacktechnologies/slack/fedora/21/x86_64"
     },
-    "name": "flatpak"
-   },
-   "flatpak\\slack": {
-    "driver": "flatpak",
-    "fields": {
-     "hub": "flathub",
-     "name": "com.slack.Slack"
-    },
-    "name": "com.slack.Slack"
+    "name": "slack"
    }
   },
   "socat": {
@@ -41664,20 +41642,16 @@
    }
   },
   "slack": {
-   "apt\\flatpak": {
+   "apt\\slack": {
     "driver": "apt",
     "fields": {
-     "name": "flatpak"
+     "name": "slack-desktop",
+     "pubkey-path": "/usr/share/keyrings/slack.asc",
+     "pubkey-url": "https://packagecloud.io/slacktechnologies/slack/gpgkey",
+     "source-line": "deb [signed-by=/usr/share/keyrings/slack.asc] https://packagecloud.io/slacktechnologies/slack/debian/ jessie main",
+     "source-path": "/etc/apt/sources.list.d/slack.list"
     },
-    "name": "flatpak"
-   },
-   "flatpak\\slack": {
-    "driver": "flatpak",
-    "fields": {
-     "hub": "flathub",
-     "name": "com.slack.Slack"
-    },
-    "name": "com.slack.Slack"
+    "name": "slack-desktop"
    }
   },
   "socat": {
@@ -46204,20 +46178,16 @@
    }
   },
   "slack": {
-   "apt\\flatpak": {
+   "apt\\slack": {
     "driver": "apt",
     "fields": {
-     "name": "flatpak"
+     "name": "slack-desktop",
+     "pubkey-path": "/usr/share/keyrings/slack.asc",
+     "pubkey-url": "https://packagecloud.io/slacktechnologies/slack/gpgkey",
+     "source-line": "deb [signed-by=/usr/share/keyrings/slack.asc] https://packagecloud.io/slacktechnologies/slack/debian/ jessie main",
+     "source-path": "/etc/apt/sources.list.d/slack.list"
     },
-    "name": "flatpak"
-   },
-   "flatpak\\slack": {
-    "driver": "flatpak",
-    "fields": {
-     "hub": "flathub",
-     "name": "com.slack.Slack"
-    },
-    "name": "com.slack.Slack"
+    "name": "slack-desktop"
    }
   },
   "socat": {

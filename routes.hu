@@ -775,7 +775,21 @@
         // their config is sandboxed under ~/.var/app and holds auth tokens, so no dotfiles.
         discord: { description: "Discord — voice, video, and text chat." install: [ { via: flatpak  hub: flathub  app: com.discordapp.Discord }  { via: snap  when: "ubuntu"  name: discord }
                              { via: native-pkg-file  when: "debian"  name: discord  candidate-only: true  url: "https://discord.com/api/download?platform=linux&format=deb" } ] }   // Discord's official .deb (rolling; the URL 302-redirects to the latest — no version API, so latest reads as unknown, never a false "outdated"). `candidate-only` so the debian gate doesn't make it beat the universal flatpak by specificity — the sandboxed flatpak stays the default; the .deb is a pinnable option.
-        slack:   { description: "Slack — team messaging and collaboration." install: [ { via: flatpak  hub: flathub  app: com.slack.Slack }  { via: snap  when: "ubuntu"  name: slack } ] }
+        slack:   { description: "Slack — team messaging and collaboration."
+            install: [
+                { via: native  when: "debian"  name: slack-desktop   // Slack's official packagecloud apt repo (jessie-pinned upstream; serves current builds)
+                  pubkey-url: "https://packagecloud.io/slacktechnologies/slack/gpgkey"
+                  pubkey-path: /usr/share/keyrings/slack.asc
+                  source-line: "deb [signed-by=/usr/share/keyrings/slack.asc] https://packagecloud.io/slacktechnologies/slack/debian/ jessie main"
+                  source-path: /etc/apt/sources.list.d/slack.list }
+                { via: native  when: "redhat"  name: slack   // Slack's official packagecloud dnf repo (rpm package is `slack`)
+                  pubkey-url: "https://packagecloud.io/slacktechnologies/slack/gpgkey"
+                  repo-id: slack  repo-name: "Slack"
+                  repo-url: "https://packagecloud.io/slacktechnologies/slack/fedora/21/x86_64" }
+                { via: aur  when: "arch"  name: slack-desktop }
+                { via: flatpak  hub: flathub  app: com.slack.Slack }
+                { via: snap  when: "ubuntu"  name: slack } ]
+        }
 
         // --- media & creative apps -------------------------------------------------
         // Flatpak-preferred: the Flathub builds are current and not hobbled by the sandbox for
