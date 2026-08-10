@@ -97,6 +97,19 @@
         aur:         { requires: [ base-devel, git ] } // makepkg -si builds from PKGBUILD
     }
 
+    // Detected environment facts that `when:` can gate on (see docs/facets.md). General-purpose and
+    // shared: a plugin that wants to gate a per-vendor variant on `when: "gpu:nvidia"` / `gpu:amd`
+    // (e.g. the opencv plugin's CUDA-vs-HIP stacks) reuses this probe rather than redefining it.
+    // Value precedence: a
+    // `CONFIGSYS_FACET_gpu` env var, a `facets:` value in the user config, else this probe. Only
+    // nvidia/amd are auto-detected (Intel iGPUs vs the compute-capable path are too ambiguous to
+    // auto-pick — leave oneAPI opt-in). Override with `facets: { gpu: nvidia }` if the probe is wrong.
+    facets: {
+        gpu: { kind: categorical
+               detect: 'lspci 2>/dev/null || { command -v nvidia-smi >/dev/null 2>&1 && echo NVIDIA; command -v rocminfo >/dev/null 2>&1 && echo "AMD/ATI"; }'
+               match: { nvidia: "NVIDIA"  amd: "AMD/ATI" } }   // lspci (pciutils) preferred; falls back to the driver tools if absent (containers/minimal)
+    }
+
     // Component layer: each is a capability + a list of context-selected bindings.
     components: {
         // --- core utilities (base tools; several are driver prerequisites) ---
