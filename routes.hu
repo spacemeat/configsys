@@ -473,14 +473,16 @@
         }
 
         // --- web browsers ---
-        // Firefox is native (in every base repo; openSUSE calls it MozillaFirefox), flatpak on
-        // atomic (brew has no firefox cask). Chrome/Brave/Opera/Vivaldi/Edge aren't in any base
-        // repo and a native install would need each vendor's apt/dnf repo wired in — the Flathub
-        // Flatpak is the one uniform route (Opera/Vivaldi/Edge are community-maintained there).
-        firefox: { description: "Mozilla Firefox — the open-source web browser." install: [ { via: flatpak  when: fedora_atomic  hub: flathub  app: org.mozilla.firefox }
-                              { via: native  repo-component: universe  name: { zypper: MozillaFirefox  default: firefox } }
+        // Firefox is native (in every base repo; openSUSE calls it MozillaFirefox) with the Flathub
+        // Flatpak (org.mozilla.firefox) offered as a uniform alternative everywhere — native stays
+        // the default where the distro packages it, flatpak wins on atomic (brew has no firefox).
+        // Chrome/Brave/Opera/Vivaldi/Edge aren't in any base repo and a native install would need
+        // each vendor's apt/dnf repo wired in — the Flathub Flatpak is the one uniform route today
+        // (Opera/Vivaldi/Edge are community-maintained there); vendor-repo native is a TODO.
+        firefox: { description: "Mozilla Firefox — the open-source web browser." install: [ { via: flatpak  hub: flathub  app: org.mozilla.firefox }
+                              { via: native  when: "not fedora_atomic"  repo-component: universe  name: { zypper: MozillaFirefox  default: firefox } }
                               { via: snap  when: "ubuntu"  name: firefox } ] }
-        chromium: { description: "Chromium — the open-source browser upstream of Chrome." install: [ { via: native  when: "(debian or redhat or arch or opensuse) and not ubuntu"  name: { default: chromium } }  { via: snap  when: "ubuntu"  name: chromium } ] }   // Ubuntu ships chromium ONLY as the (Canonical-official) snap — its apt `chromium-browser` is a snap shim; ubuntu excluded from native so the snap is the sole real method there
+        chromium: { description: "Chromium — the open-source browser upstream of Chrome." install: [ { via: native  when: "(debian or redhat or arch or opensuse) and not ubuntu"  name: { default: chromium } }  { via: snap  when: "ubuntu"  name: chromium }  { via: flatpak  hub: flathub  app: org.chromium.Chromium } ] }   // Ubuntu ships chromium ONLY as the (Canonical-official) snap — its apt `chromium-browser` is a snap shim; ubuntu excluded from native so the snap is the sole real method there. Flathub flatpak offered everywhere (+ the only method on atomic).
         chrome:  { description: "Google Chrome — Google's web browser." install: [ { via: flatpak  hub: flathub  app: com.google.Chrome } ] }
         brave:   { description: "Brave — a privacy-focused Chromium browser with built-in ad-blocking." install: [ { via: flatpak  hub: flathub  app: com.brave.Browser } ] }
         opera:   { description: "Opera — a feature-rich Chromium browser." install: [ { via: flatpak  hub: flathub  app: com.opera.Opera } ] }
@@ -567,8 +569,8 @@
 
         libreoffice: { description: "LibreOffice — the open-source office suite."   // fat ~/.config/libreoffice (profile + cache) — dotfiles pending
             suggests: libreoffice-dotfiles
-            install: [ { via: flatpak  when: fedora_atomic  hub: flathub  app: org.libreoffice.LibreOffice }   // atomic: brew's libreoffice is a mac-only cask
-                       { via: native  repo-component: universe  name: { pacman: libreoffice-fresh } } ]
+            install: [ { via: flatpak  hub: flathub  app: org.libreoffice.LibreOffice }   // uniform option everywhere; the only method on atomic (brew's libreoffice is a mac-only cask)
+                       { via: native  when: "not fedora_atomic"  repo-component: universe  name: { pacman: libreoffice-fresh } } ]
         }
 
         // kicad: native where it's packaged, Flathub (org.kicad.KiCad) where it isn't. It's in
@@ -589,9 +591,9 @@
         // (~/.config/blender/<ver>) — dotfiles deferred. On EL it's in EPEL; base repos elsewhere.
         blender: { description: "Blender — 3D modeling, animation, and rendering suite."
             suggests: blender-dotfiles
-            install: [ { via: flatpak  when: fedora_atomic  hub: flathub  app: org.blender.Blender }   // atomic: brew's blender is a mac-only cask
+            install: [ { via: flatpak  hub: flathub  app: org.blender.Blender }   // uniform option everywhere; the only method on atomic (brew's blender is a mac-only cask)
                        { via: native  when: "rhel"  requires: epel }
-                       { via: native  repo-component: universe }
+                       { via: native  when: "not fedora_atomic"  repo-component: universe }
                        { via: snap  when: "ubuntu"  name: blender  classic: true } ]   // Blender-official snap (candidate-only)
         }
 
@@ -759,10 +761,10 @@
         // vlc: RPM Fusion on Fedora, but EL carries it in EPEL (not RPM Fusion) — so the two
         // rpm families take different capability edges. Base repos everywhere else.
         vlc: { description: "VLC — plays virtually any media file or stream."
-            install: [ { via: flatpak  when: fedora_atomic  hub: flathub  app: org.videolan.VLC }   // atomic: brew's vlc is a mac-only cask
+            install: [ { via: flatpak  hub: flathub  app: org.videolan.VLC }   // uniform option everywhere; the only method on atomic (brew's vlc is a mac-only cask)
                        { via: native  when: "fedora"  requires: rpmfusion }
                        { via: native  when: "rhel"    requires: epel }
-                       { via: native } ]
+                       { via: native  when: "not fedora_atomic" } ]
         }
         // RPM Fusion Free: enabling it = (EL only) turn on EPEL + CRB, then drop the free
         // .repo (dnf expands $releasever/$basearch and auto-imports the per-release key on the
@@ -892,7 +894,7 @@
         // (the OSS `code` in the Arch repos is a different, unbranded build).
         vscode: { description: "Visual Studio Code — Microsoft's extensible code editor."
             install: [
-                { via: flatpak  when: fedora_atomic  hub: flathub  app: com.visualstudio.code }   // atomic: no MS vendor repo to wire in — the community Flathub build
+                { via: flatpak  hub: flathub  app: com.visualstudio.code }   // community Flathub build — offered everywhere; the only method on atomic (no MS vendor repo to wire in)
                 { via: native  when: "debian"  name: code
                   pubkey-url: "https://packages.microsoft.com/keys/microsoft.asc"
                   pubkey-path: /usr/share/keyrings/packages.microsoft.asc

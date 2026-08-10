@@ -13604,12 +13604,20 @@
    }
   },
   "chromium": {
-   "snap\\chromium": {
-    "driver": "snap",
+   "apt\\flatpak": {
+    "driver": "apt",
     "fields": {
-     "name": "chromium"
+     "name": "flatpak"
     },
-    "name": "chromium"
+    "name": "flatpak"
+   },
+   "flatpak\\chromium": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "org.chromium.Chromium"
+    },
+    "name": "org.chromium.Chromium"
    }
   },
   "cinnamon": {
@@ -26335,6 +26343,16 @@
     "name": "com.google.Chrome"
    }
   },
+  "chromium": {
+   "flatpak\\chromium": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "org.chromium.Chromium"
+    },
+    "name": "org.chromium.Chromium"
+   }
+  },
   "claude-code": {
    "brew\\node": {
     "driver": "brew",
@@ -29477,12 +29495,20 @@
    }
   },
   "chromium": {
-   "snap\\chromium": {
-    "driver": "snap",
+   "apt\\flatpak": {
+    "driver": "apt",
     "fields": {
-     "name": "chromium"
+     "name": "flatpak"
     },
-    "name": "chromium"
+    "name": "flatpak"
+   },
+   "flatpak\\chromium": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "org.chromium.Chromium"
+    },
+    "name": "org.chromium.Chromium"
    }
   },
   "cinnamon": {
@@ -38572,12 +38598,20 @@
    }
   },
   "chromium": {
-   "snap\\chromium": {
-    "driver": "snap",
+   "apt\\flatpak": {
+    "driver": "apt",
     "fields": {
-     "name": "chromium"
+     "name": "flatpak"
     },
-    "name": "chromium"
+    "name": "flatpak"
+   },
+   "flatpak\\chromium": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "org.chromium.Chromium"
+    },
+    "name": "org.chromium.Chromium"
    }
   },
   "cinnamon": {
@@ -43204,12 +43238,20 @@
    }
   },
   "chromium": {
-   "snap\\chromium": {
-    "driver": "snap",
+   "apt\\flatpak": {
+    "driver": "apt",
     "fields": {
-     "name": "chromium"
+     "name": "flatpak"
     },
-    "name": "chromium"
+    "name": "flatpak"
+   },
+   "flatpak\\chromium": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "org.chromium.Chromium"
+    },
+    "name": "org.chromium.Chromium"
    }
   },
   "cinnamon": {
