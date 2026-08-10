@@ -1410,18 +1410,19 @@ def _draw_profiles(stdscr, pal, ps, ctx, note, screen):
             desc = (comp.description if comp else '') or '(no description yet)'
             for k, line in enumerate(_wrap(desc, diw)[:dih - 1]):
                 _put(stdscr, dit + k, dil, _fit(line, diw), pal.style('info', dit + k, dil, h, w))
-            try:
-                cands = ctx.routes.candidates(cur)
+            try:                                    # Profiles shows ALL methods (may author for
+                cands = ctx.routes.candidates(cur, include_unavailable=True)   # other machines)
             except Exception:                       # noqa: BLE001
                 cands = []
-            if cands:                               # name the method (a pin is bracketed); '*' = default
+            if cands:                               # pin bracketed; '*' = default here; '~' = n/a here
                 choice = len(cands) > 1
                 mtext = 'methods: ' + '  '.join(
                     (f'[{c["via"]}]' if c['pinned'] else c['via'])
+                    + ('' if c.get('available', True) else '~')
                     + (' *' if c['default'] and not c['pinned'] and choice else '')
                     for c in cands)
             else:
-                mtext = 'methods: (not available on this OS)'
+                mtext = 'methods: (none defined)'
             _put(stdscr, dit + dih - 1, dil, _fit(mtext, diw),
                  pal.style('method_dim', dit + dih - 1, dil, h, w))
 

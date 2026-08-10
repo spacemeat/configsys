@@ -94,6 +94,19 @@ def test_most_specific_same_method_still_wins(tmp_path):
     assert reason == 'most-specific when:' and winner.details.get('repo-component') == 'extra'
 
 
+def test_candidates_include_unavailable_lists_when_gated_methods(tmp_path):
+    # A method gated to another OS is hidden by default (the Components "what can I install here"
+    # set) but listed with available=False under include_unavailable (the Profiles menu, where the
+    # user may be authoring for other machines).
+    comps = ('pkg: { install: [ { via: native } '
+             '                   { via: flatpak  app: org.x.P  when: fedora } ] }')
+    r = Resolver(str(_write(tmp_path, comps)), 'debian', '12')
+    assert [c['via'] for c in r.candidates('pkg')] == ['native']          # Components: valid-here only
+    allm = {c['via']: c for c in r.candidates('pkg', include_unavailable=True)}
+    assert set(allm) == {'native', 'flatpak'}                             # Profiles: the whole menu
+    assert allm['native']['available'] is True and allm['flatpak']['available'] is False
+
+
 def test_candidates_collapse_same_via_to_one_row(tmp_path):
     # The picker/pin choose a VIA, not an individual binding — so two comparable native bindings
     # (fastfetch's real bug: a `when: debian` .deb subsumed by a bare `via: native`) must collapse
