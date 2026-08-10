@@ -494,8 +494,9 @@
         iproute2:   { description: "iproute2 — modern Linux networking tools (`ip`, `ss`)." install: [ { via: native  name: { dnf: iproute  default: iproute2 } } ] }
         // Capture & probe — native CLI staples. Name maps only where distros diverge; the
         // rest carry the same package name everywhere.
-        wireshark:  { description: "Wireshark — a GUI network protocol analyzer." install: [ { via: native  name: { pacman: wireshark-qt }
-                                   debconf: "wireshark-common wireshark-common/install-setuid boolean true" } ] }   // GUI analyzer; Arch splits the GUI into wireshark-qt. NOT flatpak (sandbox can't live-capture). debconf preseed enables non-root capture on Debian (apt reads it; dnf/pacman ignore it & set dumpcap's caps in-package). Pair with wireshark-group.
+        wireshark:  { description: "Wireshark — a GUI network protocol analyzer." install: [ { via: native  when: "not fedora_atomic"  name: { pacman: wireshark-qt }
+                                   debconf: "wireshark-common wireshark-common/install-setuid boolean true" }
+                                 { via: flatpak  hub: flathub  app: org.wireshark.Wireshark } ] }   // GUI analyzer; Arch splits the GUI into wireshark-qt. debconf preseed enables non-root capture on Debian (apt reads it; dnf/pacman ignore it & set dumpcap's caps in-package). Pair with wireshark-group. Flatpak offered everywhere (analyzing .pcap files is zero-config; LIVE capture needs its bundled setuid dumpcap + wireshark-group, like native) — and it's the ONLY GUI on atomic (Linux brew has no wireshark cask, just the CLI formula).
         wireshark-group: { description: "Add your user to the wireshark group (non-root capture)."   // opt-in: non-root capture. usermod -aG wireshark $YOU; needs the group the package creates (hence requires). On Fedora/Arch the package pre-sets dumpcap's file caps, so group membership alone enables capture. On Debian/Ubuntu dumpcap is NOT setcap'd by a non-interactive install — group membership is necessary but not sufficient there (see the wireshark story). Mirrors docker-group.
             requires: wireshark
             install: [ { via: group  name: wireshark } ]

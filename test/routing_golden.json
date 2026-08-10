@@ -28791,23 +28791,23 @@
    }
   },
   "wireshark": {
-   "brew\\wireshark": {
-    "driver": "brew",
+   "flatpak\\wireshark": {
+    "driver": "flatpak",
     "fields": {
-     "debconf": "wireshark-common wireshark-common/install-setuid boolean true",
-     "name": "wireshark"
+     "hub": "flathub",
+     "name": "org.wireshark.Wireshark"
     },
-    "name": "wireshark"
+    "name": "org.wireshark.Wireshark"
    }
   },
   "wireshark-group": {
-   "brew\\wireshark": {
-    "driver": "brew",
+   "flatpak\\wireshark": {
+    "driver": "flatpak",
     "fields": {
-     "debconf": "wireshark-common wireshark-common/install-setuid boolean true",
-     "name": "wireshark"
+     "hub": "flathub",
+     "name": "org.wireshark.Wireshark"
     },
-    "name": "wireshark"
+    "name": "org.wireshark.Wireshark"
    },
    "group\\wireshark-group": {
     "driver": "group",
