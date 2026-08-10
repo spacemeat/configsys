@@ -284,20 +284,26 @@
    }
   },
   "brave": {
-   "flatpak\\brave": {
-    "driver": "flatpak",
+   "aur\\brave": {
+    "driver": "aur",
     "fields": {
-     "hub": "flathub",
-     "name": "com.brave.Browser"
+     "name": "brave-bin"
     },
-    "name": "com.brave.Browser"
+    "name": "brave-bin"
    },
-   "pacman\\flatpak": {
+   "pacman\\base-devel": {
     "driver": "pacman",
     "fields": {
-     "name": "flatpak"
+     "name": "base-devel"
     },
-    "name": "flatpak"
+    "name": "base-devel"
+   },
+   "pacman\\git": {
+    "driver": "pacman",
+    "fields": {
+     "name": "git"
+    },
+    "name": "git"
    }
   },
   "bruno": {
@@ -889,20 +895,26 @@
    }
   },
   "edge": {
-   "flatpak\\edge": {
-    "driver": "flatpak",
+   "aur\\edge": {
+    "driver": "aur",
     "fields": {
-     "hub": "flathub",
-     "name": "com.microsoft.Edge"
+     "name": "microsoft-edge-stable-bin"
     },
-    "name": "com.microsoft.Edge"
+    "name": "microsoft-edge-stable-bin"
    },
-   "pacman\\flatpak": {
+   "pacman\\base-devel": {
     "driver": "pacman",
     "fields": {
-     "name": "flatpak"
+     "name": "base-devel"
     },
-    "name": "flatpak"
+    "name": "base-devel"
+   },
+   "pacman\\git": {
+    "driver": "pacman",
+    "fields": {
+     "name": "git"
+    },
+    "name": "git"
    }
   },
   "elixir": {
@@ -2486,20 +2498,26 @@
    }
   },
   "opera": {
-   "flatpak\\opera": {
-    "driver": "flatpak",
+   "aur\\opera": {
+    "driver": "aur",
     "fields": {
-     "hub": "flathub",
-     "name": "com.opera.Opera"
+     "name": "opera"
     },
-    "name": "com.opera.Opera"
+    "name": "opera"
    },
-   "pacman\\flatpak": {
+   "pacman\\base-devel": {
     "driver": "pacman",
     "fields": {
-     "name": "flatpak"
+     "name": "base-devel"
     },
-    "name": "flatpak"
+    "name": "base-devel"
+   },
+   "pacman\\git": {
+    "driver": "pacman",
+    "fields": {
+     "name": "git"
+    },
+    "name": "git"
    }
   },
   "p7zip": {
@@ -3347,20 +3365,12 @@
    }
   },
   "vivaldi": {
-   "flatpak\\vivaldi": {
-    "driver": "flatpak",
-    "fields": {
-     "hub": "flathub",
-     "name": "com.vivaldi.Vivaldi"
-    },
-    "name": "com.vivaldi.Vivaldi"
-   },
-   "pacman\\flatpak": {
+   "pacman\\vivaldi": {
     "driver": "pacman",
     "fields": {
-     "name": "flatpak"
+     "name": "vivaldi"
     },
-    "name": "flatpak"
+    "name": "vivaldi"
    }
   },
   "vlc": {
@@ -4274,20 +4284,16 @@
    }
   },
   "brave": {
-   "apt\\flatpak": {
+   "apt\\brave": {
     "driver": "apt",
     "fields": {
-     "name": "flatpak"
+     "name": "brave-browser",
+     "pubkey-path": "/usr/share/keyrings/brave-browser-archive-keyring.gpg",
+     "pubkey-url": "https://brave-browser-apt-release.s3.brave.com/brave-browser-archive-keyring.gpg",
+     "source-line": "deb [arch=amd64 signed-by=/usr/share/keyrings/brave-browser-archive-keyring.gpg] https://brave-browser-apt-release.s3.brave.com/ stable main",
+     "source-path": "/etc/apt/sources.list.d/brave-browser-release.list"
     },
-    "name": "flatpak"
-   },
-   "flatpak\\brave": {
-    "driver": "flatpak",
-    "fields": {
-     "hub": "flathub",
-     "name": "com.brave.Browser"
-    },
-    "name": "com.brave.Browser"
+    "name": "brave-browser"
    }
   },
   "bruno": {
@@ -5060,20 +5066,16 @@
    }
   },
   "edge": {
-   "apt\\flatpak": {
+   "apt\\edge": {
     "driver": "apt",
     "fields": {
-     "name": "flatpak"
+     "name": "microsoft-edge-stable",
+     "pubkey-path": "/usr/share/keyrings/microsoft-edge.asc",
+     "pubkey-url": "https://packages.microsoft.com/keys/microsoft.asc",
+     "source-line": "deb [arch=amd64 signed-by=/usr/share/keyrings/microsoft-edge.asc] https://packages.microsoft.com/repos/edge stable main",
+     "source-path": "/etc/apt/sources.list.d/microsoft-edge.list"
     },
-    "name": "flatpak"
-   },
-   "flatpak\\edge": {
-    "driver": "flatpak",
-    "fields": {
-     "hub": "flathub",
-     "name": "com.microsoft.Edge"
-    },
-    "name": "com.microsoft.Edge"
+    "name": "microsoft-edge-stable"
    }
   },
   "elixir": {
@@ -7150,20 +7152,16 @@
    }
   },
   "opera": {
-   "apt\\flatpak": {
+   "apt\\opera": {
     "driver": "apt",
     "fields": {
-     "name": "flatpak"
+     "name": "opera-stable",
+     "pubkey-path": "/usr/share/keyrings/opera.asc",
+     "pubkey-url": "https://deb.opera.com/archive.key",
+     "source-line": "deb [signed-by=/usr/share/keyrings/opera.asc] https://deb.opera.com/opera-stable/ stable non-free",
+     "source-path": "/etc/apt/sources.list.d/opera-stable.list"
     },
-    "name": "flatpak"
-   },
-   "flatpak\\opera": {
-    "driver": "flatpak",
-    "fields": {
-     "hub": "flathub",
-     "name": "com.opera.Opera"
-    },
-    "name": "com.opera.Opera"
+    "name": "opera-stable"
    }
   },
   "p7zip": {
@@ -8063,20 +8061,16 @@
    }
   },
   "vivaldi": {
-   "apt\\flatpak": {
+   "apt\\vivaldi": {
     "driver": "apt",
     "fields": {
-     "name": "flatpak"
+     "name": "vivaldi-stable",
+     "pubkey-path": "/usr/share/keyrings/vivaldi-browser.asc",
+     "pubkey-url": "https://repo.vivaldi.com/archive/linux_signing_key.pub",
+     "source-line": "deb [signed-by=/usr/share/keyrings/vivaldi-browser.asc] https://repo.vivaldi.com/archive/deb/ stable main",
+     "source-path": "/etc/apt/sources.list.d/vivaldi.list"
     },
-    "name": "flatpak"
-   },
-   "flatpak\\vivaldi": {
-    "driver": "flatpak",
-    "fields": {
-     "hub": "flathub",
-     "name": "com.vivaldi.Vivaldi"
-    },
-    "name": "com.vivaldi.Vivaldi"
+    "name": "vivaldi-stable"
    }
   },
   "vlc": {
@@ -8902,20 +8896,16 @@
    }
   },
   "brave": {
-   "apt\\flatpak": {
+   "apt\\brave": {
     "driver": "apt",
     "fields": {
-     "name": "flatpak"
+     "name": "brave-browser",
+     "pubkey-path": "/usr/share/keyrings/brave-browser-archive-keyring.gpg",
+     "pubkey-url": "https://brave-browser-apt-release.s3.brave.com/brave-browser-archive-keyring.gpg",
+     "source-line": "deb [arch=amd64 signed-by=/usr/share/keyrings/brave-browser-archive-keyring.gpg] https://brave-browser-apt-release.s3.brave.com/ stable main",
+     "source-path": "/etc/apt/sources.list.d/brave-browser-release.list"
     },
-    "name": "flatpak"
-   },
-   "flatpak\\brave": {
-    "driver": "flatpak",
-    "fields": {
-     "hub": "flathub",
-     "name": "com.brave.Browser"
-    },
-    "name": "com.brave.Browser"
+    "name": "brave-browser"
    }
   },
   "bruno": {
@@ -9678,20 +9668,16 @@
    }
   },
   "edge": {
-   "apt\\flatpak": {
+   "apt\\edge": {
     "driver": "apt",
     "fields": {
-     "name": "flatpak"
+     "name": "microsoft-edge-stable",
+     "pubkey-path": "/usr/share/keyrings/microsoft-edge.asc",
+     "pubkey-url": "https://packages.microsoft.com/keys/microsoft.asc",
+     "source-line": "deb [arch=amd64 signed-by=/usr/share/keyrings/microsoft-edge.asc] https://packages.microsoft.com/repos/edge stable main",
+     "source-path": "/etc/apt/sources.list.d/microsoft-edge.list"
     },
-    "name": "flatpak"
-   },
-   "flatpak\\edge": {
-    "driver": "flatpak",
-    "fields": {
-     "hub": "flathub",
-     "name": "com.microsoft.Edge"
-    },
-    "name": "com.microsoft.Edge"
+    "name": "microsoft-edge-stable"
    }
   },
   "elixir": {
@@ -11728,20 +11714,16 @@
    }
   },
   "opera": {
-   "apt\\flatpak": {
+   "apt\\opera": {
     "driver": "apt",
     "fields": {
-     "name": "flatpak"
+     "name": "opera-stable",
+     "pubkey-path": "/usr/share/keyrings/opera.asc",
+     "pubkey-url": "https://deb.opera.com/archive.key",
+     "source-line": "deb [signed-by=/usr/share/keyrings/opera.asc] https://deb.opera.com/opera-stable/ stable non-free",
+     "source-path": "/etc/apt/sources.list.d/opera-stable.list"
     },
-    "name": "flatpak"
-   },
-   "flatpak\\opera": {
-    "driver": "flatpak",
-    "fields": {
-     "hub": "flathub",
-     "name": "com.opera.Opera"
-    },
-    "name": "com.opera.Opera"
+    "name": "opera-stable"
    }
   },
   "p7zip": {
@@ -12611,20 +12593,16 @@
    }
   },
   "vivaldi": {
-   "apt\\flatpak": {
+   "apt\\vivaldi": {
     "driver": "apt",
     "fields": {
-     "name": "flatpak"
+     "name": "vivaldi-stable",
+     "pubkey-path": "/usr/share/keyrings/vivaldi-browser.asc",
+     "pubkey-url": "https://repo.vivaldi.com/archive/linux_signing_key.pub",
+     "source-line": "deb [signed-by=/usr/share/keyrings/vivaldi-browser.asc] https://repo.vivaldi.com/archive/deb/ stable main",
+     "source-path": "/etc/apt/sources.list.d/vivaldi.list"
     },
-    "name": "flatpak"
-   },
-   "flatpak\\vivaldi": {
-    "driver": "flatpak",
-    "fields": {
-     "hub": "flathub",
-     "name": "com.vivaldi.Vivaldi"
-    },
-    "name": "com.vivaldi.Vivaldi"
+    "name": "vivaldi-stable"
    }
   },
   "vlc": {
@@ -13440,20 +13418,16 @@
    }
   },
   "brave": {
-   "apt\\flatpak": {
+   "apt\\brave": {
     "driver": "apt",
     "fields": {
-     "name": "flatpak"
+     "name": "brave-browser",
+     "pubkey-path": "/usr/share/keyrings/brave-browser-archive-keyring.gpg",
+     "pubkey-url": "https://brave-browser-apt-release.s3.brave.com/brave-browser-archive-keyring.gpg",
+     "source-line": "deb [arch=amd64 signed-by=/usr/share/keyrings/brave-browser-archive-keyring.gpg] https://brave-browser-apt-release.s3.brave.com/ stable main",
+     "source-path": "/etc/apt/sources.list.d/brave-browser-release.list"
     },
-    "name": "flatpak"
-   },
-   "flatpak\\brave": {
-    "driver": "flatpak",
-    "fields": {
-     "hub": "flathub",
-     "name": "com.brave.Browser"
-    },
-    "name": "com.brave.Browser"
+    "name": "brave-browser"
    }
   },
   "bruno": {
@@ -14224,20 +14198,16 @@
    }
   },
   "edge": {
-   "apt\\flatpak": {
+   "apt\\edge": {
     "driver": "apt",
     "fields": {
-     "name": "flatpak"
+     "name": "microsoft-edge-stable",
+     "pubkey-path": "/usr/share/keyrings/microsoft-edge.asc",
+     "pubkey-url": "https://packages.microsoft.com/keys/microsoft.asc",
+     "source-line": "deb [arch=amd64 signed-by=/usr/share/keyrings/microsoft-edge.asc] https://packages.microsoft.com/repos/edge stable main",
+     "source-path": "/etc/apt/sources.list.d/microsoft-edge.list"
     },
-    "name": "flatpak"
-   },
-   "flatpak\\edge": {
-    "driver": "flatpak",
-    "fields": {
-     "hub": "flathub",
-     "name": "com.microsoft.Edge"
-    },
-    "name": "com.microsoft.Edge"
+    "name": "microsoft-edge-stable"
    }
   },
   "elixir": {
@@ -16274,20 +16244,16 @@
    }
   },
   "opera": {
-   "apt\\flatpak": {
+   "apt\\opera": {
     "driver": "apt",
     "fields": {
-     "name": "flatpak"
+     "name": "opera-stable",
+     "pubkey-path": "/usr/share/keyrings/opera.asc",
+     "pubkey-url": "https://deb.opera.com/archive.key",
+     "source-line": "deb [signed-by=/usr/share/keyrings/opera.asc] https://deb.opera.com/opera-stable/ stable non-free",
+     "source-path": "/etc/apt/sources.list.d/opera-stable.list"
     },
-    "name": "flatpak"
-   },
-   "flatpak\\opera": {
-    "driver": "flatpak",
-    "fields": {
-     "hub": "flathub",
-     "name": "com.opera.Opera"
-    },
-    "name": "com.opera.Opera"
+    "name": "opera-stable"
    }
   },
   "p7zip": {
@@ -17157,20 +17123,16 @@
    }
   },
   "vivaldi": {
-   "apt\\flatpak": {
+   "apt\\vivaldi": {
     "driver": "apt",
     "fields": {
-     "name": "flatpak"
+     "name": "vivaldi-stable",
+     "pubkey-path": "/usr/share/keyrings/vivaldi-browser.asc",
+     "pubkey-url": "https://repo.vivaldi.com/archive/linux_signing_key.pub",
+     "source-line": "deb [signed-by=/usr/share/keyrings/vivaldi-browser.asc] https://repo.vivaldi.com/archive/deb/ stable main",
+     "source-path": "/etc/apt/sources.list.d/vivaldi.list"
     },
-    "name": "flatpak"
-   },
-   "flatpak\\vivaldi": {
-    "driver": "flatpak",
-    "fields": {
-     "hub": "flathub",
-     "name": "com.vivaldi.Vivaldi"
-    },
-    "name": "com.vivaldi.Vivaldi"
+    "name": "vivaldi-stable"
    }
   },
   "vlc": {
@@ -17986,20 +17948,16 @@
    }
   },
   "brave": {
-   "dnf\\flatpak": {
+   "dnf\\brave": {
     "driver": "dnf",
     "fields": {
-     "name": "flatpak"
+     "name": "brave-browser",
+     "pubkey-url": "https://brave-browser-rpm-release.s3.brave.com/brave-core.asc",
+     "repo-id": "brave-browser",
+     "repo-name": "Brave Browser",
+     "repo-url": "https://brave-browser-rpm-release.s3.brave.com/x86_64/"
     },
-    "name": "flatpak"
-   },
-   "flatpak\\brave": {
-    "driver": "flatpak",
-    "fields": {
-     "hub": "flathub",
-     "name": "com.brave.Browser"
-    },
-    "name": "com.brave.Browser"
+    "name": "brave-browser"
    }
   },
   "bruno": {
@@ -18658,20 +18616,16 @@
    }
   },
   "edge": {
-   "dnf\\flatpak": {
+   "dnf\\edge": {
     "driver": "dnf",
     "fields": {
-     "name": "flatpak"
+     "name": "microsoft-edge-stable",
+     "pubkey-url": "https://packages.microsoft.com/keys/microsoft.asc",
+     "repo-id": "microsoft-edge",
+     "repo-name": "Microsoft Edge",
+     "repo-url": "https://packages.microsoft.com/yumrepos/edge"
     },
-    "name": "flatpak"
-   },
-   "flatpak\\edge": {
-    "driver": "flatpak",
-    "fields": {
-     "hub": "flathub",
-     "name": "com.microsoft.Edge"
-    },
-    "name": "com.microsoft.Edge"
+    "name": "microsoft-edge-stable"
    }
   },
   "elixir": {
@@ -20383,20 +20337,16 @@
    }
   },
   "opera": {
-   "dnf\\flatpak": {
+   "dnf\\opera": {
     "driver": "dnf",
     "fields": {
-     "name": "flatpak"
+     "name": "opera-stable",
+     "pubkey-url": "https://rpm.opera.com/rpmrepo.key",
+     "repo-id": "opera",
+     "repo-name": "Opera",
+     "repo-url": "https://rpm.opera.com/rpm"
     },
-    "name": "flatpak"
-   },
-   "flatpak\\opera": {
-    "driver": "flatpak",
-    "fields": {
-     "hub": "flathub",
-     "name": "com.opera.Opera"
-    },
-    "name": "com.opera.Opera"
+    "name": "opera-stable"
    }
   },
   "p7zip": {
@@ -21280,20 +21230,16 @@
    }
   },
   "vivaldi": {
-   "dnf\\flatpak": {
+   "dnf\\vivaldi": {
     "driver": "dnf",
     "fields": {
-     "name": "flatpak"
+     "name": "vivaldi-stable",
+     "pubkey-url": "https://repo.vivaldi.com/archive/linux_signing_key.pub",
+     "repo-id": "vivaldi",
+     "repo-name": "Vivaldi",
+     "repo-url": "https://repo.vivaldi.com/archive/rpm/x86_64"
     },
-    "name": "flatpak"
-   },
-   "flatpak\\vivaldi": {
-    "driver": "flatpak",
-    "fields": {
-     "hub": "flathub",
-     "name": "com.vivaldi.Vivaldi"
-    },
-    "name": "com.vivaldi.Vivaldi"
+    "name": "vivaldi-stable"
    }
   },
   "vlc": {
@@ -22140,20 +22086,16 @@
    }
   },
   "brave": {
-   "dnf\\flatpak": {
+   "dnf\\brave": {
     "driver": "dnf",
     "fields": {
-     "name": "flatpak"
+     "name": "brave-browser",
+     "pubkey-url": "https://brave-browser-rpm-release.s3.brave.com/brave-core.asc",
+     "repo-id": "brave-browser",
+     "repo-name": "Brave Browser",
+     "repo-url": "https://brave-browser-rpm-release.s3.brave.com/x86_64/"
     },
-    "name": "flatpak"
-   },
-   "flatpak\\brave": {
-    "driver": "flatpak",
-    "fields": {
-     "hub": "flathub",
-     "name": "com.brave.Browser"
-    },
-    "name": "com.brave.Browser"
+    "name": "brave-browser"
    }
   },
   "bruno": {
@@ -22838,20 +22780,16 @@
    }
   },
   "edge": {
-   "dnf\\flatpak": {
+   "dnf\\edge": {
     "driver": "dnf",
     "fields": {
-     "name": "flatpak"
+     "name": "microsoft-edge-stable",
+     "pubkey-url": "https://packages.microsoft.com/keys/microsoft.asc",
+     "repo-id": "microsoft-edge",
+     "repo-name": "Microsoft Edge",
+     "repo-url": "https://packages.microsoft.com/yumrepos/edge"
     },
-    "name": "flatpak"
-   },
-   "flatpak\\edge": {
-    "driver": "flatpak",
-    "fields": {
-     "hub": "flathub",
-     "name": "com.microsoft.Edge"
-    },
-    "name": "com.microsoft.Edge"
+    "name": "microsoft-edge-stable"
    }
   },
   "elixir": {
@@ -24563,20 +24501,16 @@
    }
   },
   "opera": {
-   "dnf\\flatpak": {
+   "dnf\\opera": {
     "driver": "dnf",
     "fields": {
-     "name": "flatpak"
+     "name": "opera-stable",
+     "pubkey-url": "https://rpm.opera.com/rpmrepo.key",
+     "repo-id": "opera",
+     "repo-name": "Opera",
+     "repo-url": "https://rpm.opera.com/rpm"
     },
-    "name": "flatpak"
-   },
-   "flatpak\\opera": {
-    "driver": "flatpak",
-    "fields": {
-     "hub": "flathub",
-     "name": "com.opera.Opera"
-    },
-    "name": "com.opera.Opera"
+    "name": "opera-stable"
    }
   },
   "p7zip": {
@@ -25460,20 +25394,16 @@
    }
   },
   "vivaldi": {
-   "dnf\\flatpak": {
+   "dnf\\vivaldi": {
     "driver": "dnf",
     "fields": {
-     "name": "flatpak"
+     "name": "vivaldi-stable",
+     "pubkey-url": "https://repo.vivaldi.com/archive/linux_signing_key.pub",
+     "repo-id": "vivaldi",
+     "repo-name": "Vivaldi",
+     "repo-url": "https://repo.vivaldi.com/archive/rpm/x86_64"
     },
-    "name": "flatpak"
-   },
-   "flatpak\\vivaldi": {
-    "driver": "flatpak",
-    "fields": {
-     "hub": "flathub",
-     "name": "com.vivaldi.Vivaldi"
-    },
-    "name": "com.vivaldi.Vivaldi"
+    "name": "vivaldi-stable"
    }
   },
   "vlc": {
@@ -29319,20 +29249,16 @@
    }
   },
   "brave": {
-   "apt\\flatpak": {
+   "apt\\brave": {
     "driver": "apt",
     "fields": {
-     "name": "flatpak"
+     "name": "brave-browser",
+     "pubkey-path": "/usr/share/keyrings/brave-browser-archive-keyring.gpg",
+     "pubkey-url": "https://brave-browser-apt-release.s3.brave.com/brave-browser-archive-keyring.gpg",
+     "source-line": "deb [arch=amd64 signed-by=/usr/share/keyrings/brave-browser-archive-keyring.gpg] https://brave-browser-apt-release.s3.brave.com/ stable main",
+     "source-path": "/etc/apt/sources.list.d/brave-browser-release.list"
     },
-    "name": "flatpak"
-   },
-   "flatpak\\brave": {
-    "driver": "flatpak",
-    "fields": {
-     "hub": "flathub",
-     "name": "com.brave.Browser"
-    },
-    "name": "com.brave.Browser"
+    "name": "brave-browser"
    }
   },
   "bruno": {
@@ -30122,20 +30048,16 @@
    }
   },
   "edge": {
-   "apt\\flatpak": {
+   "apt\\edge": {
     "driver": "apt",
     "fields": {
-     "name": "flatpak"
+     "name": "microsoft-edge-stable",
+     "pubkey-path": "/usr/share/keyrings/microsoft-edge.asc",
+     "pubkey-url": "https://packages.microsoft.com/keys/microsoft.asc",
+     "source-line": "deb [arch=amd64 signed-by=/usr/share/keyrings/microsoft-edge.asc] https://packages.microsoft.com/repos/edge stable main",
+     "source-path": "/etc/apt/sources.list.d/microsoft-edge.list"
     },
-    "name": "flatpak"
-   },
-   "flatpak\\edge": {
-    "driver": "flatpak",
-    "fields": {
-     "hub": "flathub",
-     "name": "com.microsoft.Edge"
-    },
-    "name": "com.microsoft.Edge"
+    "name": "microsoft-edge-stable"
    }
   },
   "elixir": {
@@ -32212,20 +32134,16 @@
    }
   },
   "opera": {
-   "apt\\flatpak": {
+   "apt\\opera": {
     "driver": "apt",
     "fields": {
-     "name": "flatpak"
+     "name": "opera-stable",
+     "pubkey-path": "/usr/share/keyrings/opera.asc",
+     "pubkey-url": "https://deb.opera.com/archive.key",
+     "source-line": "deb [signed-by=/usr/share/keyrings/opera.asc] https://deb.opera.com/opera-stable/ stable non-free",
+     "source-path": "/etc/apt/sources.list.d/opera-stable.list"
     },
-    "name": "flatpak"
-   },
-   "flatpak\\opera": {
-    "driver": "flatpak",
-    "fields": {
-     "hub": "flathub",
-     "name": "com.opera.Opera"
-    },
-    "name": "com.opera.Opera"
+    "name": "opera-stable"
    }
   },
   "p7zip": {
@@ -33118,20 +33036,16 @@
    }
   },
   "vivaldi": {
-   "apt\\flatpak": {
+   "apt\\vivaldi": {
     "driver": "apt",
     "fields": {
-     "name": "flatpak"
+     "name": "vivaldi-stable",
+     "pubkey-path": "/usr/share/keyrings/vivaldi-browser.asc",
+     "pubkey-url": "https://repo.vivaldi.com/archive/linux_signing_key.pub",
+     "source-line": "deb [signed-by=/usr/share/keyrings/vivaldi-browser.asc] https://repo.vivaldi.com/archive/deb/ stable main",
+     "source-path": "/etc/apt/sources.list.d/vivaldi.list"
     },
-    "name": "flatpak"
-   },
-   "flatpak\\vivaldi": {
-    "driver": "flatpak",
-    "fields": {
-     "hub": "flathub",
-     "name": "com.vivaldi.Vivaldi"
-    },
-    "name": "com.vivaldi.Vivaldi"
+    "name": "vivaldi-stable"
    }
   },
   "vlc": {
@@ -33977,20 +33891,16 @@
    }
   },
   "brave": {
-   "dnf\\flatpak": {
+   "dnf\\brave": {
     "driver": "dnf",
     "fields": {
-     "name": "flatpak"
+     "name": "brave-browser",
+     "pubkey-url": "https://brave-browser-rpm-release.s3.brave.com/brave-core.asc",
+     "repo-id": "brave-browser",
+     "repo-name": "Brave Browser",
+     "repo-url": "https://brave-browser-rpm-release.s3.brave.com/x86_64/"
     },
-    "name": "flatpak"
-   },
-   "flatpak\\brave": {
-    "driver": "flatpak",
-    "fields": {
-     "hub": "flathub",
-     "name": "com.brave.Browser"
-    },
-    "name": "com.brave.Browser"
+    "name": "brave-browser"
    }
   },
   "bruno": {
@@ -34692,20 +34602,16 @@
    }
   },
   "edge": {
-   "dnf\\flatpak": {
+   "dnf\\edge": {
     "driver": "dnf",
     "fields": {
-     "name": "flatpak"
+     "name": "microsoft-edge-stable",
+     "pubkey-url": "https://packages.microsoft.com/keys/microsoft.asc",
+     "repo-id": "microsoft-edge",
+     "repo-name": "Microsoft Edge",
+     "repo-url": "https://packages.microsoft.com/yumrepos/edge"
     },
-    "name": "flatpak"
-   },
-   "flatpak\\edge": {
-    "driver": "flatpak",
-    "fields": {
-     "hub": "flathub",
-     "name": "com.microsoft.Edge"
-    },
-    "name": "com.microsoft.Edge"
+    "name": "microsoft-edge-stable"
    }
   },
   "elixir": {
@@ -36570,20 +36476,16 @@
    }
   },
   "opera": {
-   "dnf\\flatpak": {
+   "dnf\\opera": {
     "driver": "dnf",
     "fields": {
-     "name": "flatpak"
+     "name": "opera-stable",
+     "pubkey-url": "https://rpm.opera.com/rpmrepo.key",
+     "repo-id": "opera",
+     "repo-name": "Opera",
+     "repo-url": "https://rpm.opera.com/rpm"
     },
-    "name": "flatpak"
-   },
-   "flatpak\\opera": {
-    "driver": "flatpak",
-    "fields": {
-     "hub": "flathub",
-     "name": "com.opera.Opera"
-    },
-    "name": "com.opera.Opera"
+    "name": "opera-stable"
    }
   },
   "p7zip": {
@@ -37518,20 +37420,16 @@
    }
   },
   "vivaldi": {
-   "dnf\\flatpak": {
+   "dnf\\vivaldi": {
     "driver": "dnf",
     "fields": {
-     "name": "flatpak"
+     "name": "vivaldi-stable",
+     "pubkey-url": "https://repo.vivaldi.com/archive/linux_signing_key.pub",
+     "repo-id": "vivaldi",
+     "repo-name": "Vivaldi",
+     "repo-url": "https://repo.vivaldi.com/archive/rpm/x86_64"
     },
-    "name": "flatpak"
-   },
-   "flatpak\\vivaldi": {
-    "driver": "flatpak",
-    "fields": {
-     "hub": "flathub",
-     "name": "com.vivaldi.Vivaldi"
-    },
-    "name": "com.vivaldi.Vivaldi"
+    "name": "vivaldi-stable"
    }
   },
   "vlc": {
@@ -38414,20 +38312,16 @@
    }
   },
   "brave": {
-   "apt\\flatpak": {
+   "apt\\brave": {
     "driver": "apt",
     "fields": {
-     "name": "flatpak"
+     "name": "brave-browser",
+     "pubkey-path": "/usr/share/keyrings/brave-browser-archive-keyring.gpg",
+     "pubkey-url": "https://brave-browser-apt-release.s3.brave.com/brave-browser-archive-keyring.gpg",
+     "source-line": "deb [arch=amd64 signed-by=/usr/share/keyrings/brave-browser-archive-keyring.gpg] https://brave-browser-apt-release.s3.brave.com/ stable main",
+     "source-path": "/etc/apt/sources.list.d/brave-browser-release.list"
     },
-    "name": "flatpak"
-   },
-   "flatpak\\brave": {
-    "driver": "flatpak",
-    "fields": {
-     "hub": "flathub",
-     "name": "com.brave.Browser"
-    },
-    "name": "com.brave.Browser"
+    "name": "brave-browser"
    }
   },
   "bruno": {
@@ -39208,20 +39102,16 @@
    }
   },
   "edge": {
-   "apt\\flatpak": {
+   "apt\\edge": {
     "driver": "apt",
     "fields": {
-     "name": "flatpak"
+     "name": "microsoft-edge-stable",
+     "pubkey-path": "/usr/share/keyrings/microsoft-edge.asc",
+     "pubkey-url": "https://packages.microsoft.com/keys/microsoft.asc",
+     "source-line": "deb [arch=amd64 signed-by=/usr/share/keyrings/microsoft-edge.asc] https://packages.microsoft.com/repos/edge stable main",
+     "source-path": "/etc/apt/sources.list.d/microsoft-edge.list"
     },
-    "name": "flatpak"
-   },
-   "flatpak\\edge": {
-    "driver": "flatpak",
-    "fields": {
-     "hub": "flathub",
-     "name": "com.microsoft.Edge"
-    },
-    "name": "com.microsoft.Edge"
+    "name": "microsoft-edge-stable"
    }
   },
   "elixir": {
@@ -41298,20 +41188,16 @@
    }
   },
   "opera": {
-   "apt\\flatpak": {
+   "apt\\opera": {
     "driver": "apt",
     "fields": {
-     "name": "flatpak"
+     "name": "opera-stable",
+     "pubkey-path": "/usr/share/keyrings/opera.asc",
+     "pubkey-url": "https://deb.opera.com/archive.key",
+     "source-line": "deb [signed-by=/usr/share/keyrings/opera.asc] https://deb.opera.com/opera-stable/ stable non-free",
+     "source-path": "/etc/apt/sources.list.d/opera-stable.list"
     },
-    "name": "flatpak"
-   },
-   "flatpak\\opera": {
-    "driver": "flatpak",
-    "fields": {
-     "hub": "flathub",
-     "name": "com.opera.Opera"
-    },
-    "name": "com.opera.Opera"
+    "name": "opera-stable"
    }
   },
   "p7zip": {
@@ -42211,20 +42097,16 @@
    }
   },
   "vivaldi": {
-   "apt\\flatpak": {
+   "apt\\vivaldi": {
     "driver": "apt",
     "fields": {
-     "name": "flatpak"
+     "name": "vivaldi-stable",
+     "pubkey-path": "/usr/share/keyrings/vivaldi-browser.asc",
+     "pubkey-url": "https://repo.vivaldi.com/archive/linux_signing_key.pub",
+     "source-line": "deb [signed-by=/usr/share/keyrings/vivaldi-browser.asc] https://repo.vivaldi.com/archive/deb/ stable main",
+     "source-path": "/etc/apt/sources.list.d/vivaldi.list"
     },
-    "name": "flatpak"
-   },
-   "flatpak\\vivaldi": {
-    "driver": "flatpak",
-    "fields": {
-     "hub": "flathub",
-     "name": "com.vivaldi.Vivaldi"
-    },
-    "name": "com.vivaldi.Vivaldi"
+    "name": "vivaldi-stable"
    }
   },
   "vlc": {
@@ -43050,20 +42932,16 @@
    }
   },
   "brave": {
-   "apt\\flatpak": {
+   "apt\\brave": {
     "driver": "apt",
     "fields": {
-     "name": "flatpak"
+     "name": "brave-browser",
+     "pubkey-path": "/usr/share/keyrings/brave-browser-archive-keyring.gpg",
+     "pubkey-url": "https://brave-browser-apt-release.s3.brave.com/brave-browser-archive-keyring.gpg",
+     "source-line": "deb [arch=amd64 signed-by=/usr/share/keyrings/brave-browser-archive-keyring.gpg] https://brave-browser-apt-release.s3.brave.com/ stable main",
+     "source-path": "/etc/apt/sources.list.d/brave-browser-release.list"
     },
-    "name": "flatpak"
-   },
-   "flatpak\\brave": {
-    "driver": "flatpak",
-    "fields": {
-     "hub": "flathub",
-     "name": "com.brave.Browser"
-    },
-    "name": "com.brave.Browser"
+    "name": "brave-browser"
    }
   },
   "bruno": {
@@ -43834,20 +43712,16 @@
    }
   },
   "edge": {
-   "apt\\flatpak": {
+   "apt\\edge": {
     "driver": "apt",
     "fields": {
-     "name": "flatpak"
+     "name": "microsoft-edge-stable",
+     "pubkey-path": "/usr/share/keyrings/microsoft-edge.asc",
+     "pubkey-url": "https://packages.microsoft.com/keys/microsoft.asc",
+     "source-line": "deb [arch=amd64 signed-by=/usr/share/keyrings/microsoft-edge.asc] https://packages.microsoft.com/repos/edge stable main",
+     "source-path": "/etc/apt/sources.list.d/microsoft-edge.list"
     },
-    "name": "flatpak"
-   },
-   "flatpak\\edge": {
-    "driver": "flatpak",
-    "fields": {
-     "hub": "flathub",
-     "name": "com.microsoft.Edge"
-    },
-    "name": "com.microsoft.Edge"
+    "name": "microsoft-edge-stable"
    }
   },
   "elixir": {
@@ -45884,20 +45758,16 @@
    }
   },
   "opera": {
-   "apt\\flatpak": {
+   "apt\\opera": {
     "driver": "apt",
     "fields": {
-     "name": "flatpak"
+     "name": "opera-stable",
+     "pubkey-path": "/usr/share/keyrings/opera.asc",
+     "pubkey-url": "https://deb.opera.com/archive.key",
+     "source-line": "deb [signed-by=/usr/share/keyrings/opera.asc] https://deb.opera.com/opera-stable/ stable non-free",
+     "source-path": "/etc/apt/sources.list.d/opera-stable.list"
     },
-    "name": "flatpak"
-   },
-   "flatpak\\opera": {
-    "driver": "flatpak",
-    "fields": {
-     "hub": "flathub",
-     "name": "com.opera.Opera"
-    },
-    "name": "com.opera.Opera"
+    "name": "opera-stable"
    }
   },
   "p7zip": {
@@ -46767,20 +46637,16 @@
    }
   },
   "vivaldi": {
-   "apt\\flatpak": {
+   "apt\\vivaldi": {
     "driver": "apt",
     "fields": {
-     "name": "flatpak"
+     "name": "vivaldi-stable",
+     "pubkey-path": "/usr/share/keyrings/vivaldi-browser.asc",
+     "pubkey-url": "https://repo.vivaldi.com/archive/linux_signing_key.pub",
+     "source-line": "deb [signed-by=/usr/share/keyrings/vivaldi-browser.asc] https://repo.vivaldi.com/archive/deb/ stable main",
+     "source-path": "/etc/apt/sources.list.d/vivaldi.list"
     },
-    "name": "flatpak"
-   },
-   "flatpak\\vivaldi": {
-    "driver": "flatpak",
-    "fields": {
-     "hub": "flathub",
-     "name": "com.vivaldi.Vivaldi"
-    },
-    "name": "com.vivaldi.Vivaldi"
+    "name": "vivaldi-stable"
    }
   },
   "vlc": {

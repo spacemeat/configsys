@@ -478,9 +478,11 @@
         // Firefox is native (in every base repo; openSUSE calls it MozillaFirefox) with the Flathub
         // Flatpak (org.mozilla.firefox) offered as a uniform alternative everywhere — native stays
         // the default where the distro packages it, flatpak wins on atomic (brew has no firefox).
-        // Chrome/Brave/Opera/Vivaldi/Edge aren't in any base repo and a native install would need
-        // each vendor's apt/dnf repo wired in — the Flathub Flatpak is the one uniform route today
-        // (Opera/Vivaldi/Edge are community-maintained there); vendor-repo native is a TODO.
+        // Chrome/Brave/Opera/Vivaldi/Edge aren't in any base distro repo, so each wires in its
+        // vendor's own apt + dnf repo (native, the default there) with the Flathub Flatpak kept as a
+        // uniform candidate everywhere (and the default on openSUSE/atomic, which have no vendor repo
+        // set up here). Arch: AUR (google-chrome/brave-bin/opera/microsoft-edge-stable-bin) except
+        // vivaldi, which is in the official `extra` repo. Flathub Chrome/Edge are community-maintained.
         firefox: { description: "Mozilla Firefox — the open-source web browser." install: [ { via: flatpak  hub: flathub  app: org.mozilla.firefox }
                               { via: native  when: "not fedora_atomic"  repo-component: universe  name: { zypper: MozillaFirefox  default: firefox } }
                               { via: snap  when: "ubuntu"  name: firefox } ] }
@@ -499,10 +501,62 @@
                 { via: aur  when: "arch"  name: google-chrome }             // AUR
                 { via: flatpak  hub: flathub  app: com.google.Chrome } ]    // Flathub — default on openSUSE/atomic, a candidate everywhere
         }
-        brave:   { description: "Brave — a privacy-focused Chromium browser with built-in ad-blocking." install: [ { via: flatpak  hub: flathub  app: com.brave.Browser } ] }
-        opera:   { description: "Opera — a feature-rich Chromium browser." install: [ { via: flatpak  hub: flathub  app: com.opera.Opera } ] }
-        vivaldi: { description: "Vivaldi — a highly customizable Chromium browser." install: [ { via: flatpak  hub: flathub  app: com.vivaldi.Vivaldi } ] }
-        edge:    { description: "Microsoft Edge — a Chromium-based browser." install: [ { via: flatpak  hub: flathub  app: com.microsoft.Edge } ] }
+        brave:   { description: "Brave — a privacy-focused Chromium browser with built-in ad-blocking."
+            install: [
+                { via: native  when: "debian"  name: brave-browser   // Brave's official apt repo
+                  pubkey-url: "https://brave-browser-apt-release.s3.brave.com/brave-browser-archive-keyring.gpg"
+                  pubkey-path: /usr/share/keyrings/brave-browser-archive-keyring.gpg
+                  source-line: "deb [arch=amd64 signed-by=/usr/share/keyrings/brave-browser-archive-keyring.gpg] https://brave-browser-apt-release.s3.brave.com/ stable main"
+                  source-path: /etc/apt/sources.list.d/brave-browser-release.list }
+                { via: native  when: "redhat"  name: brave-browser   // Brave's official dnf repo
+                  pubkey-url: "https://brave-browser-rpm-release.s3.brave.com/brave-core.asc"
+                  repo-id: brave-browser  repo-name: "Brave Browser"
+                  repo-url: "https://brave-browser-rpm-release.s3.brave.com/x86_64/" }
+                { via: aur  when: "arch"  name: brave-bin }
+                { via: flatpak  hub: flathub  app: com.brave.Browser } ]
+        }
+        opera:   { description: "Opera — a feature-rich Chromium browser."
+            install: [
+                { via: native  when: "debian"  name: opera-stable   // Opera's official apt repo
+                  pubkey-url: "https://deb.opera.com/archive.key"
+                  pubkey-path: /usr/share/keyrings/opera.asc
+                  source-line: "deb [signed-by=/usr/share/keyrings/opera.asc] https://deb.opera.com/opera-stable/ stable non-free"
+                  source-path: /etc/apt/sources.list.d/opera-stable.list }
+                { via: native  when: "redhat"  name: opera-stable   // Opera's official dnf repo
+                  pubkey-url: "https://rpm.opera.com/rpmrepo.key"
+                  repo-id: opera  repo-name: "Opera"
+                  repo-url: "https://rpm.opera.com/rpm" }
+                { via: aur  when: "arch"  name: opera }
+                { via: flatpak  hub: flathub  app: com.opera.Opera } ]
+        }
+        vivaldi: { description: "Vivaldi — a highly customizable Chromium browser."
+            install: [
+                { via: native  when: "debian"  name: vivaldi-stable   // Vivaldi's official apt repo
+                  pubkey-url: "https://repo.vivaldi.com/archive/linux_signing_key.pub"
+                  pubkey-path: /usr/share/keyrings/vivaldi-browser.asc
+                  source-line: "deb [signed-by=/usr/share/keyrings/vivaldi-browser.asc] https://repo.vivaldi.com/archive/deb/ stable main"
+                  source-path: /etc/apt/sources.list.d/vivaldi.list }
+                { via: native  when: "redhat"  name: vivaldi-stable   // Vivaldi's official dnf repo
+                  pubkey-url: "https://repo.vivaldi.com/archive/linux_signing_key.pub"
+                  repo-id: vivaldi  repo-name: "Vivaldi"
+                  repo-url: "https://repo.vivaldi.com/archive/rpm/x86_64" }
+                { via: native  when: "arch"  name: vivaldi }   // in Arch's official extra repo
+                { via: flatpak  hub: flathub  app: com.vivaldi.Vivaldi } ]
+        }
+        edge:    { description: "Microsoft Edge — a Chromium-based browser."
+            install: [
+                { via: native  when: "debian"  name: microsoft-edge-stable   // Microsoft's official apt repo
+                  pubkey-url: "https://packages.microsoft.com/keys/microsoft.asc"
+                  pubkey-path: /usr/share/keyrings/microsoft-edge.asc
+                  source-line: "deb [arch=amd64 signed-by=/usr/share/keyrings/microsoft-edge.asc] https://packages.microsoft.com/repos/edge stable main"
+                  source-path: /etc/apt/sources.list.d/microsoft-edge.list }
+                { via: native  when: "redhat"  name: microsoft-edge-stable   // Microsoft's official dnf repo
+                  pubkey-url: "https://packages.microsoft.com/keys/microsoft.asc"
+                  repo-id: microsoft-edge  repo-name: "Microsoft Edge"
+                  repo-url: "https://packages.microsoft.com/yumrepos/edge" }
+                { via: aur  when: "arch"  name: microsoft-edge-stable-bin }
+                { via: flatpak  hub: flathub  app: com.microsoft.Edge } ]
+        }
 
         // ===================== network + web-dev tooling =====================
         // iproute2 — `ip`/`ss`/`tc`. Native everywhere; EL's dnf calls the package `iproute`.
