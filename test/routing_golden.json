@@ -425,20 +425,26 @@
    }
   },
   "chrome": {
-   "flatpak\\chrome": {
-    "driver": "flatpak",
+   "aur\\chrome": {
+    "driver": "aur",
     "fields": {
-     "hub": "flathub",
-     "name": "com.google.Chrome"
+     "name": "google-chrome"
     },
-    "name": "com.google.Chrome"
+    "name": "google-chrome"
    },
-   "pacman\\flatpak": {
+   "pacman\\base-devel": {
     "driver": "pacman",
     "fields": {
-     "name": "flatpak"
+     "name": "base-devel"
     },
-    "name": "flatpak"
+    "name": "base-devel"
+   },
+   "pacman\\git": {
+    "driver": "pacman",
+    "fields": {
+     "name": "git"
+    },
+    "name": "git"
    }
   },
   "chromium": {
@@ -4413,20 +4419,16 @@
    }
   },
   "chrome": {
-   "apt\\flatpak": {
+   "apt\\chrome": {
     "driver": "apt",
     "fields": {
-     "name": "flatpak"
+     "name": "google-chrome-stable",
+     "pubkey-path": "/usr/share/keyrings/google-chrome.asc",
+     "pubkey-url": "https://dl.google.com/linux/linux_signing_key.pub",
+     "source-line": "deb [arch=amd64 signed-by=/usr/share/keyrings/google-chrome.asc] https://dl.google.com/linux/chrome/deb/ stable main",
+     "source-path": "/etc/apt/sources.list.d/google-chrome.list"
     },
-    "name": "flatpak"
-   },
-   "flatpak\\chrome": {
-    "driver": "flatpak",
-    "fields": {
-     "hub": "flathub",
-     "name": "com.google.Chrome"
-    },
-    "name": "com.google.Chrome"
+    "name": "google-chrome-stable"
    }
   },
   "chromium": {
@@ -9045,20 +9047,16 @@
    }
   },
   "chrome": {
-   "apt\\flatpak": {
+   "apt\\chrome": {
     "driver": "apt",
     "fields": {
-     "name": "flatpak"
+     "name": "google-chrome-stable",
+     "pubkey-path": "/usr/share/keyrings/google-chrome.asc",
+     "pubkey-url": "https://dl.google.com/linux/linux_signing_key.pub",
+     "source-line": "deb [arch=amd64 signed-by=/usr/share/keyrings/google-chrome.asc] https://dl.google.com/linux/chrome/deb/ stable main",
+     "source-path": "/etc/apt/sources.list.d/google-chrome.list"
     },
-    "name": "flatpak"
-   },
-   "flatpak\\chrome": {
-    "driver": "flatpak",
-    "fields": {
-     "hub": "flathub",
-     "name": "com.google.Chrome"
-    },
-    "name": "com.google.Chrome"
+    "name": "google-chrome-stable"
    }
   },
   "chromium": {
@@ -13587,20 +13585,16 @@
    }
   },
   "chrome": {
-   "apt\\flatpak": {
+   "apt\\chrome": {
     "driver": "apt",
     "fields": {
-     "name": "flatpak"
+     "name": "google-chrome-stable",
+     "pubkey-path": "/usr/share/keyrings/google-chrome.asc",
+     "pubkey-url": "https://dl.google.com/linux/linux_signing_key.pub",
+     "source-line": "deb [arch=amd64 signed-by=/usr/share/keyrings/google-chrome.asc] https://dl.google.com/linux/chrome/deb/ stable main",
+     "source-path": "/etc/apt/sources.list.d/google-chrome.list"
     },
-    "name": "flatpak"
-   },
-   "flatpak\\chrome": {
-    "driver": "flatpak",
-    "fields": {
-     "hub": "flathub",
-     "name": "com.google.Chrome"
-    },
-    "name": "com.google.Chrome"
+    "name": "google-chrome-stable"
    }
   },
   "chromium": {
@@ -18137,20 +18131,16 @@
    }
   },
   "chrome": {
-   "dnf\\flatpak": {
+   "dnf\\chrome": {
     "driver": "dnf",
     "fields": {
-     "name": "flatpak"
+     "name": "google-chrome-stable",
+     "pubkey-url": "https://dl.google.com/linux/linux_signing_key.pub",
+     "repo-id": "google-chrome",
+     "repo-name": "Google Chrome",
+     "repo-url": "https://dl.google.com/linux/chrome/rpm/stable/x86_64"
     },
-    "name": "flatpak"
-   },
-   "flatpak\\chrome": {
-    "driver": "flatpak",
-    "fields": {
-     "hub": "flathub",
-     "name": "com.google.Chrome"
-    },
-    "name": "com.google.Chrome"
+    "name": "google-chrome-stable"
    }
   },
   "chromium": {
@@ -22295,20 +22285,16 @@
    }
   },
   "chrome": {
-   "dnf\\flatpak": {
+   "dnf\\chrome": {
     "driver": "dnf",
     "fields": {
-     "name": "flatpak"
+     "name": "google-chrome-stable",
+     "pubkey-url": "https://dl.google.com/linux/linux_signing_key.pub",
+     "repo-id": "google-chrome",
+     "repo-name": "Google Chrome",
+     "repo-url": "https://dl.google.com/linux/chrome/rpm/stable/x86_64"
     },
-    "name": "flatpak"
-   },
-   "flatpak\\chrome": {
-    "driver": "flatpak",
-    "fields": {
-     "hub": "flathub",
-     "name": "com.google.Chrome"
-    },
-    "name": "com.google.Chrome"
+    "name": "google-chrome-stable"
    }
   },
   "chromium": {
@@ -29478,20 +29464,16 @@
    }
   },
   "chrome": {
-   "apt\\flatpak": {
+   "apt\\chrome": {
     "driver": "apt",
     "fields": {
-     "name": "flatpak"
+     "name": "google-chrome-stable",
+     "pubkey-path": "/usr/share/keyrings/google-chrome.asc",
+     "pubkey-url": "https://dl.google.com/linux/linux_signing_key.pub",
+     "source-line": "deb [arch=amd64 signed-by=/usr/share/keyrings/google-chrome.asc] https://dl.google.com/linux/chrome/deb/ stable main",
+     "source-path": "/etc/apt/sources.list.d/google-chrome.list"
     },
-    "name": "flatpak"
-   },
-   "flatpak\\chrome": {
-    "driver": "flatpak",
-    "fields": {
-     "hub": "flathub",
-     "name": "com.google.Chrome"
-    },
-    "name": "com.google.Chrome"
+    "name": "google-chrome-stable"
    }
   },
   "chromium": {
@@ -34146,20 +34128,16 @@
    }
   },
   "chrome": {
-   "dnf\\flatpak": {
+   "dnf\\chrome": {
     "driver": "dnf",
     "fields": {
-     "name": "flatpak"
+     "name": "google-chrome-stable",
+     "pubkey-url": "https://dl.google.com/linux/linux_signing_key.pub",
+     "repo-id": "google-chrome",
+     "repo-name": "Google Chrome",
+     "repo-url": "https://dl.google.com/linux/chrome/rpm/stable/x86_64"
     },
-    "name": "flatpak"
-   },
-   "flatpak\\chrome": {
-    "driver": "flatpak",
-    "fields": {
-     "hub": "flathub",
-     "name": "com.google.Chrome"
-    },
-    "name": "com.google.Chrome"
+    "name": "google-chrome-stable"
    }
   },
   "chromium": {
@@ -38581,20 +38559,16 @@
    }
   },
   "chrome": {
-   "apt\\flatpak": {
+   "apt\\chrome": {
     "driver": "apt",
     "fields": {
-     "name": "flatpak"
+     "name": "google-chrome-stable",
+     "pubkey-path": "/usr/share/keyrings/google-chrome.asc",
+     "pubkey-url": "https://dl.google.com/linux/linux_signing_key.pub",
+     "source-line": "deb [arch=amd64 signed-by=/usr/share/keyrings/google-chrome.asc] https://dl.google.com/linux/chrome/deb/ stable main",
+     "source-path": "/etc/apt/sources.list.d/google-chrome.list"
     },
-    "name": "flatpak"
-   },
-   "flatpak\\chrome": {
-    "driver": "flatpak",
-    "fields": {
-     "hub": "flathub",
-     "name": "com.google.Chrome"
-    },
-    "name": "com.google.Chrome"
+    "name": "google-chrome-stable"
    }
   },
   "chromium": {
@@ -43221,20 +43195,16 @@
    }
   },
   "chrome": {
-   "apt\\flatpak": {
+   "apt\\chrome": {
     "driver": "apt",
     "fields": {
-     "name": "flatpak"
+     "name": "google-chrome-stable",
+     "pubkey-path": "/usr/share/keyrings/google-chrome.asc",
+     "pubkey-url": "https://dl.google.com/linux/linux_signing_key.pub",
+     "source-line": "deb [arch=amd64 signed-by=/usr/share/keyrings/google-chrome.asc] https://dl.google.com/linux/chrome/deb/ stable main",
+     "source-path": "/etc/apt/sources.list.d/google-chrome.list"
     },
-    "name": "flatpak"
-   },
-   "flatpak\\chrome": {
-    "driver": "flatpak",
-    "fields": {
-     "hub": "flathub",
-     "name": "com.google.Chrome"
-    },
-    "name": "com.google.Chrome"
+    "name": "google-chrome-stable"
    }
   },
   "chromium": {

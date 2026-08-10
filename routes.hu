@@ -485,7 +485,20 @@
                               { via: native  when: "not fedora_atomic"  repo-component: universe  name: { zypper: MozillaFirefox  default: firefox } }
                               { via: snap  when: "ubuntu"  name: firefox } ] }
         chromium: { description: "Chromium — the open-source browser upstream of Chrome." install: [ { via: native  when: "(debian or redhat or arch or opensuse) and not ubuntu"  name: { default: chromium } }  { via: snap  when: "ubuntu"  name: chromium }  { via: flatpak  hub: flathub  app: org.chromium.Chromium } ] }   // Ubuntu ships chromium ONLY as the (Canonical-official) snap — its apt `chromium-browser` is a snap shim; ubuntu excluded from native so the snap is the sole real method there. Flathub flatpak offered everywhere (+ the only method on atomic).
-        chrome:  { description: "Google Chrome — Google's web browser." install: [ { via: flatpak  hub: flathub  app: com.google.Chrome } ] }
+        chrome:  { description: "Google Chrome — Google's web browser."
+            install: [
+                { via: native  when: "debian"  name: google-chrome-stable   // Google's official apt repo
+                  pubkey-url: "https://dl.google.com/linux/linux_signing_key.pub"
+                  pubkey-path: /usr/share/keyrings/google-chrome.asc
+                  source-line: "deb [arch=amd64 signed-by=/usr/share/keyrings/google-chrome.asc] https://dl.google.com/linux/chrome/deb/ stable main"
+                  source-path: /etc/apt/sources.list.d/google-chrome.list }
+                { via: native  when: "redhat"  name: google-chrome-stable   // Google's official dnf repo
+                  pubkey-url: "https://dl.google.com/linux/linux_signing_key.pub"
+                  repo-id: google-chrome  repo-name: "Google Chrome"
+                  repo-url: "https://dl.google.com/linux/chrome/rpm/stable/x86_64" }
+                { via: aur  when: "arch"  name: google-chrome }             // AUR
+                { via: flatpak  hub: flathub  app: com.google.Chrome } ]    // Flathub — default on openSUSE/atomic, a candidate everywhere
+        }
         brave:   { description: "Brave — a privacy-focused Chromium browser with built-in ad-blocking." install: [ { via: flatpak  hub: flathub  app: com.brave.Browser } ] }
         opera:   { description: "Opera — a feature-rich Chromium browser." install: [ { via: flatpak  hub: flathub  app: com.opera.Opera } ] }
         vivaldi: { description: "Vivaldi — a highly customizable Chromium browser." install: [ { via: flatpak  hub: flathub  app: com.vivaldi.Vivaldi } ] }
