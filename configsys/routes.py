@@ -366,15 +366,16 @@ class Resolver:
         from .adapt import to_resolved_components
         return to_resolved_components(self._resolve(names)[0])
 
-    def resolve_resilient(self, names, extra_pins=None):
+    def resolve_resilient(self, names, extra_pins=None, soft_pins=None):
         '''-> ({key: ResolvedComponent}, {name: error_message}). Tolerant: a requested name
         that can't route here is reported, not fatal (for inspect/TUI over the active set).
-        `extra_pins` (auto-tighten) layer on top of the config pins for THIS resolve only — the
-        Resolver isn't mutated — so a second pass can re-resolve with a provider pinned to a
-        floor-satisfying method.'''
+        `extra_pins` (auto-tighten) layer ON TOP of the config pins; `soft_pins` (the detection
+        tier) layer BELOW them — so precedence is soft/detected < user pin < extra/tighten. Applied
+        to THIS resolve only (the Resolver isn't mutated).'''
         from .adapt import to_resolved_components
         from .resolve import resolve_resilient
-        pins = {**self.pins, **extra_pins} if extra_pins else self.pins
+        pins = ({**(soft_pins or {}), **self.pins, **(extra_pins or {})}
+                if (extra_pins or soft_pins) else self.pins)
         units, errors = resolve_resilient(list(names), self.cascade, self.components,
                                           self.drivers, self.block, self.version,
                                           self.cpu, pins, self.overrides, self.preference,

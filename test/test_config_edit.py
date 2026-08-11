@@ -89,9 +89,11 @@ def test_clear_setting(tmp_path):
 def test_config_settings_view_has_desc_and_man(tmp_path):
     ctx, _user = _ctx(tmp_path)
     s = actions.config_settings(ctx)
-    assert set(s) == {'scope', 'driver-preference', 'auto-tighten', 'ignore-profiles', 'splash',
+    assert set(s) == {'scope', 'driver-preference', 'auto-tighten', 'adopt-installed',
+                      'ignore-profiles', 'splash',
                       'dirs.user', 'dirs.system', 'dirs.app', 'dirs.sdk', 'dirs.src'}
     assert s['scope']['value'] == 'user' and s['scope']['desc'] and s['scope']['man']
     assert s['auto-tighten']['kind'] == 'bool'
+    assert s['adopt-installed']['kind'] == 'bool' and s['adopt-installed']['value'] is True
     assert s['dirs.sdk']['kind'] == 'dir' and s['dirs.sdk']['value'] == 'sdks'   # built-in default
     assert s['dirs.user']['value'] == '~'

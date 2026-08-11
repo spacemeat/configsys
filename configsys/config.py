@@ -218,6 +218,15 @@ class Config:
         v = layers.merge_scalar(self._layers, 'detect-coexisting', _MACHINE_ROLES)
         return str(v).strip().lower() not in ('false', 'no', 'off', '0') if v is not None else True
 
+    def adopt_installed(self):
+        '''Default ON: the detection tier — bias resolution toward what's ALREADY installed, so an
+        installed non-default method/provider is preferred over the blind default (you're never
+        pushed to reinstall via a different route, or toward a fresh provider when a valid one is on
+        disk). Precedence stays: explicit pin > detected-installed > default. `adopt-installed: false`
+        turns it off (resolution ignores installed state, as before). Machine setting (repo<primary<user).'''
+        v = layers.merge_scalar(self._layers, 'adopt-installed', _MACHINE_ROLES)
+        return str(v).strip().lower() not in ('false', 'no', 'off', '0') if v is not None else True
+
     def splash(self):
         '''The chosen startup splash: a registered provider NAME, a disable token (false/off/no),
         or None when unset (use the built-in default). A machine setting (repo < primary < user).

@@ -155,6 +155,8 @@ CONFIG_SETTINGS = {
                           'configsys(1)'),
     'auto-tighten':      ('bool',   'Auto-pick a floor-satisfying install method instead of only '
                                     'advising.', 'configsys(1)'),
+    'adopt-installed':   ('bool',   'Prefer an already-installed method/provider over the default '
+                                    '(detection tier). On by default.', 'configsys(1)'),
     'ignore-profiles':   ('list',   'Discovered project profiles to NOT auto-activate.',
                           'configsys(1)'),
     'splash':            ('scalar', 'Startup wait-screen animation: a splash provider name, '
@@ -182,6 +184,7 @@ SETTING_NATURE = {
     'scope':             'machine',
     'driver-preference': 'uniform',
     'auto-tighten':      'uniform',
+    'adopt-installed':   'uniform',
     'ignore-profiles':   'uniform',
     'splash':            'uniform',
     'dirs.user':         'machine',
@@ -252,6 +255,7 @@ def config_settings(ctx):
         'scope':             cfg.default_scope(),
         'driver-preference': cfg.driver_preference(),
         'auto-tighten':      cfg.auto_tighten(),
+        'adopt-installed':   cfg.adopt_installed(),
         'ignore-profiles':   cfg.ignore_profiles(),
         'splash':            cfg.splash(),
     }
