@@ -846,11 +846,15 @@ def _scope_is_choice(node):
 
 
 def _row_component(node):
-    '''The profile-entry component name at a row, or None for a profile row. Node ids are
-    `p:<profile>`, `c:<profile>:<name>` (a component / single-unit leaf) or
-    `u:<profile>:<name>:<unit-key>` — the component name is the 3rd `:`-field.'''
+    '''The component name at a row, or None for a profile row. A UNIT row's TRUE component comes from
+    its member — a dependency unit is grouped under the component that requested it, so its id encodes
+    the REQUESTER's name (`u:<profile>:<requester>:<unit-key>`), not its own. So an action on a
+    dep row (e.g. `m`/`P` on cuda-toolkit-12 nested under blender) targets the dep, not the requester.
+    Component-group / profile rows carry their own name in the id (`c:<profile>:<name>`).'''
     if node is None:
         return None
+    if node.kind == UNIT and node.members:
+        return node.members[0].component.comp
     parts = node.id.split(':')
     return parts[2] if parts[0] in ('c', 'u') and len(parts) >= 3 else None
 

@@ -36,7 +36,8 @@ def _ctx(tmp_path):
 
 
 def _row(name):
-    node = types.SimpleNamespace(id=f'c:dev:{name}')
+    state = types.SimpleNamespace(component=types.SimpleNamespace(comp=name))
+    node = types.SimpleNamespace(kind=menu.UNIT, id=f'c:dev:{name}', members=[state])
     return types.SimpleNamespace(cur=lambda: node)
 
 
@@ -81,3 +82,22 @@ def test_pick_provider_declines_a_row_without_alternatives(tmp_path):
     ctx = _ctx(tmp_path)
     changed, note, _d = menu._pick_provider(_Scr([]), _Pal(), _row('git'), ctx)
     assert not changed and 'no capability with alternative providers' in note
+
+
+# -- row identity: a dependency unit resolves to ITS component, not its requester's ---------
+
+def test_row_component_of_a_dependency_unit_is_the_dependency(tmp_path):
+    '''Regression: a dep unit is grouped under its requester, so its id encodes the requester's name
+    (`u:<profile>:blender:script\\cuda-toolkit-12`). _row_component must return the dep's OWN
+    component (from its member), else `m`/`P` act on the requester (blender) — the reported bug.'''
+    state = types.SimpleNamespace(component=types.SimpleNamespace(comp='cuda-toolkit-12'))
+    dep = menu.Node(menu.UNIT, 'u:dev:blender:script\\cuda-toolkit-12', 'cuda-toolkit-12', 2, [state])
+    assert menu._row_component(dep) == 'cuda-toolkit-12'          # the dep, not 'blender'
+
+    # a single-unit leaf and a component-group row still read their name from the id
+    leaf_state = types.SimpleNamespace(component=types.SimpleNamespace(comp='git'))
+    leaf = menu.Node(menu.UNIT, 'c:dev:git', 'git', 1, [leaf_state])
+    assert menu._row_component(leaf) == 'git'
+    group = menu.Node(menu.COMPONENT, 'c:dev:blender', 'blender', 1, [], expandable=True)
+    assert menu._row_component(group) == 'blender'
+    assert menu._row_component(menu.Node(menu.PROFILE, 'p:dev', 'dev', 0, [])) is None
