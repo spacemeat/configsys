@@ -267,46 +267,48 @@ narrow a validity `when:`.
 The bindings valid in a context (their `when:` matches) form its **candidate set**
 (`candidate_bindings`, resolve.py). One is chosen as the default, deterministically:
 
-0. **candidate-only filter** — bindings whose via is marked `candidate-only` (see below) are
-   dropped from the default pool *unless every valid method here is candidate-only*. They stay
-   in the candidate set (still listed / pinnable), they just can't win the auto-default.
+0. **`never-auto` filter** — bindings with `standing: never-auto` are dropped from the default pool
+   *unless every valid method here is never-auto*. They stay in the candidate set (still listed /
+   pinnable), they just can't win the auto-default.
 1. **most specific** among *comparable* candidates (the §8 subset order);
-2. a per-binding **`prefer:`** rank — a NARROW, per-binding author signal, so it **outranks** the
-   broad `driver-preference` below: a targeted per-package decision beats a blanket machine-wide
-   order (the machine owner still overrides any specific case with a **pin**);
+2. per-binding **`standing:`** rank — an integer, a NARROW per-binding author signal, so it
+   **outranks** the broad `driver-preference` below: a targeted per-package decision beats a blanket
+   machine-wide order (the machine owner still overrides any specific case with a **pin**);
 3. **`driver-preference`** — a global driver order (a machine setting), overridable per OS
    block (so e.g. flatpak > native lives in the `os:` data on `fedora_atomic`, not smuggled
    into a `when:`).
 
-If the preorder still ties, it is an error whose message names the preference channel (add
-`driver-preference` / `prefer:`) — never `when:`. A user **binding-pin** (§10) overrides the
-default outright.
+If the preorder still ties, it is an error whose message names the preference channel (set a
+`driver-preference` order or a `standing:` rank) — never `when:`. A user **binding-pin** (§10)
+overrides the default outright, and the detection tier adopts an installed method over the default
+(precedence: pin > detected-installed > standing default).
 
-**Candidate-only vias.** A driver block in the `drivers:` section may set `candidate-only:
-true` (e.g. `snap: { candidate-only: true }`). Every binding of that via is then a valid,
-listed install method that never wins the auto-default while any ordinary method is valid.
-This exists because a method like snap must be gated `when: ubuntu` for *validity* (snapd
-only ships there) — which would make it the §8 most-specific candidate and hijack the Ubuntu
-default over a broad `native` binding, even though snap is only meant to be *offered*. The
-flag decouples "valid here" from "should win here" without abusing `when:`. It applies at the
-driver level (not per-binding), is overlaid like the rest of `drivers:` (repo → plugin →
-primary — so a user's primary plugin can mark `flatpak` candidate-only too), and a binding-pin
-still forces such a method. If it is the *only* valid method (e.g. chromium on Ubuntu, which
-ships solely as a snap), it wins normally. Because `when:` is validity-only, `configsys where <comp>` can show every
-candidate method, the default, and *which rule decided it*.
+**`standing:` — the one preference knob.** It unified the old `prefer:` / `candidate-only:` /
+`opt-in:` trio (which remain deprecated aliases). A binding, an `os:` `drivers:` block, or a
+component may carry `standing:`:
+- **`never-auto`** — valid + listed + pinnable, but never the auto-default (on a binding/driver),
+  or never auto-pulled to satisfy a `requires:` (on a component-provider). Was `candidate-only:` /
+  `opt-in:`.
+- an **integer** — a preference rank, higher wins. Was `prefer:`.
 
-A single **binding** may also opt in with `candidate-only: true` in its details (rather than the
-whole driver) — same semantics, but scoped to that one method. This is for the case where a via is
-usually a fine default but one component wants it offered-not-default: e.g. `native-pkg-file` is the
-sensible debian default for a versioned GitHub `.deb` (dbeaver/bruno), but for a *rolling* vendor
-`.deb` under a universal flatpak (discord) you want the sandboxed flatpak to stay the default and the
-`.deb` merely available. Marking just that binding `candidate-only` decouples it without changing the
-driver globally.
+`never-auto` exists because a method like snap must be gated `when: ubuntu` for *validity* (snapd
+only ships there) — which would make it the §8 most-specific candidate and hijack the Ubuntu default
+over a broad `native` binding, even though snap is only meant to be *offered*. `standing: never-auto`
+decouples "valid here" from "should win here" without abusing `when:`. At the **driver** level
+(`snap: { standing: never-auto }`) it covers every binding of that via; at the **binding** level it
+scopes to one method — e.g. `native-pkg-file` is the sensible debian default for a versioned GitHub
+`.deb` (dbeaver/bruno), but for a *rolling* vendor `.deb` under a universal flatpak (discord) you
+want the flatpak to stay default and the `.deb` merely available. On a **component-provider** it is
+the old `opt-in` (the non-default of a versioned pair, or a caveated shim like gcompat). It is
+overlaid like the rest of `drivers:` (repo → plugin → primary), and a binding-pin still forces such a
+method. If a `never-auto` method is the *only* valid one (e.g. chromium on Ubuntu, snap-only), it
+wins normally. Because `when:` is validity-only, `configsys where <comp>` can show every candidate
+method, the default, and *which rule decided it*.
 
 **Checker shape:** decidable and cheap. Enumerate the finite (OS-block × cpu-value)
 grid; in each cell the predicate collapses to a set of version intervals *in that
 cell's scale*; then it's interval algebra — containment for ⊆, non-empty intersection
-for "overlap." Guarded `not` keeps complements to subtree-minus-subtree.
+for "overlap." `not`/`or` are handled generally (per-cell complement/union).
 
 ## 9. Resolution
 

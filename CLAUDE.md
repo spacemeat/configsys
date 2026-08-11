@@ -33,11 +33,17 @@ the full spec). Its three sections:
   with a `name:` map keyed by driver). `when:` is a boolean DSL over OS atoms (bare = subtree
   membership; versioned e.g. `ubuntu < 23.04`, scale-bound) and `cpu:`, with and/or/guarded-not.
   `when:` states VALIDITY ONLY (does this method work here), never preference. Among the valid
-  ("candidate") bindings, the default is: most-specific comparable `when:` -> per-binding `prefer:`
+  ("candidate") bindings, the default is: most-specific comparable `when:` -> per-binding `standing:`
   (a NARROW author signal, so it outranks the broad machine order below) -> global
   `driver-preference` (a machine setting, overridable per OS block); a
   remaining tie is an error naming the preference channel (never `when:`), a user binding-pin
-  overrides. Two bindings of the SAME `via:` that overlap incomparably are a load-time ambiguity
+  overrides. **`standing:`** is the ONE preference knob (it unified the old `prefer:`/`candidate-only:`/
+  `opt-in:` trio, which remain deprecated aliases): `standing: never-auto` = valid+listed+pinnable but
+  never the auto-default (on a binding/driver) or never auto-pulled to satisfy a `requires:` (on a
+  component-provider); an INTEGER = a preference rank (higher wins). A versioned capability adds
+  `provides: { cap: N }` + `requires: { cap: ">=N" }` (constraint selects a resident by version; a
+  constraint ENABLES a `never-auto` provider) — an installed provider/method is also adopted over the
+  default by the detection tier (`adopt-installed`, precedence: pin > detected > standing default). Two bindings of the SAME `via:` that overlap incomparably are a load-time ambiguity
   error (routecheck); different-`via:` overlap is a legal multi-method choice decided by
   preference (a genuine tie there is a resolve-time error + a `check` warning). A component may
   also declare `provides:`/`requires:`/`suggests:`
