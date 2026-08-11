@@ -54,7 +54,12 @@ def terminal_released(tui_active: bool):
         )
         sys.stdout.flush()
 
-    old_int = signal.signal(signal.SIGINT, signal.SIG_IGN)
+    # While the child owns the terminal, the PARENT must not die on Ctrl+C (it's the TUI/CLI). Use a
+    # no-op HANDLER, not SIG_IGN: a caught signal is reset to SIG_DFL in the child across exec, so the
+    # child (cmake, make, …) receives Ctrl+C and stops — whereas SIG_IGN is INHERITED across exec, so
+    # the child would ignore Ctrl+C too (a long source build you couldn't interrupt). Both keep the
+    # parent alive; only the handler lets the child be interrupted.
+    old_int = signal.signal(signal.SIGINT, lambda *_: None)
     try:
         yield
     finally:
