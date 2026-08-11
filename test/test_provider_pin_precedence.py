@@ -49,3 +49,15 @@ def test_no_pin_still_reuses(tmp_path):
         consumer: { requires: cap  install: [ { via: native } ] }
     '''
     assert _resolve(tmp_path, ENV_OS, comps, ['consumer']) == {'apt\\consumer'}
+
+
+def test_binding_pin_not_misread_as_provider_pin(tmp_path):
+    '''pins is one namespace for binding-pins (comp->via) and provider-pins (cap->provider). A
+    binding-pin `cargo: native` must NOT be read as a provider-pin when `cargo` is required as a
+    capability — that used to throw "cargo pinned to 'native', which cannot provide it here".'''
+    comps = '''
+        cargo: { install: [ { via: native } ] }
+        tool:  { requires: cargo  install: [ { via: native } ] }
+    '''
+    # cargo required as a capability, with a BINDING-pin cargo->native: resolves cleanly, no error
+    assert _resolve(tmp_path, OS, comps, ['tool'], pins={'cargo': 'native'}) == {'apt\\tool', 'apt\\cargo'}

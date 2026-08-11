@@ -467,6 +467,13 @@ class _State:
 
     def _satisfy(self, cap, root, requiring):
         pin = self.pins.get(cap)
+        # `pins:` is one flat namespace for BOTH binding-pins (comp -> via) and provider-pins
+        # (cap -> provider component). Here we satisfy a CAPABILITY, so only a pin naming a real
+        # provider COMPONENT is a provider-pin; a via-valued pin is a binding-pin for the component
+        # `cap` (honored in _matching when it resolves) — treating it as a provider-pin would throw a
+        # bogus "cap pinned to 'native', which cannot provide it here".
+        if pin is not None and pin not in self.components:
+            pin = None
         # Fast reuse path — but a provider-pin is TOP precedence and must never be shadowed by reuse
         # (previously the inventory hit returned first, silently ignoring a pin on an env-provided or
         # already-wanted capability). With a pin present we fall through and honor it.
