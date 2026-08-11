@@ -668,20 +668,21 @@
         }
 
         // GPU compute toolchains + NVIDIA infra. General-purpose — used well beyond Blender/OpenCV —
-        // so they live in base. NVIDIA CUDA is an EXPLICIT version pair (cuda-toolkit-11 /
-        // cuda-toolkit-12); both `provides: cuda-toolkit`, the generic capability a version-agnostic
-        // consumer requires (e.g. a source-build Blender's Cycles backends `requires: cuda-toolkit`).
-        // cuda-toolkit-12 is the DEFAULT provider; -11 is `opt-in` (pulled only when required BY NAME
-        // — the CUDA-11 OpenCV/cuDNN stack), so the generic `cuda-toolkit` resolves unambiguously to
-        // 12 everywhere (incl. Fedora/Arch, where -11 has no binding). The -12 toolkit + versioned
+        // so they live in base. NVIDIA CUDA is a VERSION-SCOPED capability: cuda-toolkit-11 and -12
+        // each `provides: { cuda-toolkit: N }`, so a consumer can select by version —
+        // `requires: { cuda-toolkit: ">=12" }` (cudnn-9) picks 12, `"<12"` (cudnn-8) picks 11 (the
+        // constraint ENABLES the opt-in -11). A version-agnostic consumer (`requires: cuda-toolkit`,
+        // e.g. a source-build Blender's Cycles backends) takes the DEFAULT — cuda-toolkit-12; -11 is
+        // `opt-in` so it never becomes the generic default, but it's still adopted when it's the one
+        // actually installed (the detection tier) or named/constrained. The -12 toolkit + versioned
         // cuDNNs ride NVIDIA's network repo (cuda-repo) — real GPU work wants the vendor repo, not the
         // lagging distro one; -11 stays the low-friction distro package for the older CUDA-11 line.
         cuda-toolkit-11: { description: "NVIDIA CUDA Toolkit 11 — GPU compute compiler and libraries (distro package)."
-            opt-in: true  provides: cuda-toolkit
+            opt-in: true  provides: { cuda-toolkit: 11 }
             install: [ { via: native  name: { apt: nvidia-cuda-toolkit  dnf: cuda  pacman: cuda } } ]
         }
         cuda-toolkit-12: { description: "NVIDIA CUDA Toolkit 12 (from NVIDIA's CUDA repo)."
-            provides: cuda-toolkit
+            provides: { cuda-toolkit: 12 }
             install: [
                 { via: native  when: "arch"  name: cuda }              // Arch: rolling latest (12.x)
                 { via: script  when: "debian"  requires: cuda-repo
@@ -728,7 +729,7 @@
         // adds NVIDIA's source. Arch ships one rolling `cudnn` (currently 9.x) — attached to cudnn-9.
         cudnn-8: {
             description: "NVIDIA cuDNN 8 — DNN primitives for the CUDA 11 line."
-            requires: cuda-toolkit-11
+            requires: { cuda-toolkit: "<12" }
             install: [
                 { via: script  when: "debian"  requires: cuda-repo
                   install-cmd:   'sudo apt-get install -y libcudnn8-dev && sudo ldconfig'
@@ -748,7 +749,7 @@
         }
         cudnn-9: {
             description: "NVIDIA cuDNN 9 — DNN primitives for the CUDA 12 line."
-            requires: cuda-toolkit-12
+            requires: { cuda-toolkit: ">=12" }
             install: [
                 { via: native  when: "arch"  name: cudnn }             // Arch's rolling cudnn (9.x); pacman runs ldconfig
                 { via: script  when: "debian"  requires: cuda-repo
