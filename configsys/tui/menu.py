@@ -805,7 +805,7 @@ def _draw(stdscr, pal, ms, ctx, note, diags=(), show_diag=False, diag_top=0, scr
     if note:
         status_line += f'   {note}'
     nav = ' j/k · g/G top/bottom · l/h expand/collapse · enter open · / find · F filter · tab expand-all '
-    act = ' space sel · a all · i inst/upg · u upg · x rm · L lock · m method · c clear · X exec · R refresh · ! issues · q quit '
+    act = ' space sel · a all · i inst/upg · u upg · x rm · L lock · m method · P provider · c clear · X exec · R refresh · ! issues · q quit '
     _put(stdscr, h - 3, 0, _fit(status_line, w), pal.style('status_line', h - 3, 0, h, w))
     _put(stdscr, h - 2, 0, _fit(nav.ljust(w), w), pal.style('footer', h - 2, 0, h, w))
     _put(stdscr, h - 1, 0, _fit(act.ljust(w), w), pal.style('footer', h - 1, 0, h, w))
@@ -979,6 +979,98 @@ def _pick_method_name(stdscr, pal, ctx, name):
         return False, 'method unchanged', None
     chosen = cands[idx]
     return _apply_method_pin(ctx, name, chosen['via'], chosen['pinned'])
+
+
+def _providers_of(routes, cap):
+    '''Component names that declare `provides: cap` — a capability's candidate providers (the
+    capability itself is not a component here, so it's not included).'''
+    return sorted(n for n, c in routes.components.items()
+                  if cap in getattr(c, 'provides', ()))
+
+
+def _capability_choices(routes, name):
+    '''Capabilities relevant to component `name` that have MORE THAN ONE provider — a real choice.
+    Considers the caps it PROVIDES (so you repoint from a provider's row, e.g. stand on
+    cuda-toolkit-12 to switch the `cuda-toolkit` capability to cuda-toolkit-11) and the ones it
+    REQUIRES at the component level. Returns [(cap, [providers])], deduped and sorted.'''
+    comp = routes.components.get(name)
+    if comp is None:
+        return []
+    caps = set(getattr(comp, 'provides', ())) | set(getattr(comp, 'requires', ()))
+    out = []
+    for cap in sorted(caps):
+        provs = _providers_of(routes, cap)
+        if len(provs) >= 2:
+            out.append((cap, provs))
+    return out
+
+
+def _apply_provider_pin(ctx, cap, provider, current):
+    '''Write a provider-pin (capability `cap` -> component `provider`) to the top config — "whatever
+    needs `cap`, use `provider`". Returns (changed, note, deferred); the promote hint is deferred.'''
+    from .. import plugins
+    if provider == current:
+        return False, f'{cap} already provided by {provider}', None
+    if ctx.runner.pretend:
+        return False, f'[pretend] would set provider {cap} → {provider}', None
+    ctx.ensure_user_config()
+    pins = plugins.read_pins(ctx.paths.user_config_file)
+    pins[cap] = provider
+    plugins.set_pins(ctx.paths.user_config_file, pins)
+    hint = (f'set provider {cap} → {provider} (local); '
+            f'run `configsys pin promote {cap}` to make it portable via your primary plugin.')
+    return True, f'{cap} now provided by {provider}', hint
+
+
+def _pick_provider(stdscr, pal, ms, ctx):
+    '''Components-screen entry: for the current row's component, choose which component PROVIDES a
+    capability it's tied to (a provider-pin). The generic answer to "this capability has several
+    providers — use that one instead" (e.g. the opt-in cuda-toolkit-11 vs default cuda-toolkit-12).
+    Returns (changed, note, deferred).'''
+    name = _row_component(ms.cur())
+    if not name:
+        return False, 'pick a component row to choose a provider', None
+    routes = ctx.routes
+    choices = _capability_choices(routes, name)
+    if not choices:
+        return False, f'{name}: no capability with alternative providers here', None
+    if len(choices) == 1:
+        cap, provs = choices[0]
+    else:                                                # more than one cap -> pick which first
+        cidx = _popup_choose(stdscr, pal, f'capability — {name}',
+                             [(c, f'{len(p)} providers') for c, p in choices], 0)
+        if cidx is None:
+            return False, 'provider unchanged', None
+        cap, provs = choices[cidx]
+
+    pins = ctx.config.pins()
+    pinned = pins.get(cap)
+    default = next((p for p in provs if not getattr(routes.components[p], 'opt_in', False)), None)
+    # the provider in effect now: an explicit pin, else this row (if it provides cap), else the default
+    current = pinned or (name if cap in getattr(routes.components.get(name), 'provides', ()) else default)
+    avail, options = {}, []
+    for p in provs:
+        here = bool(routes.candidates(p))
+        avail[p] = here
+        tags = []
+        if p == pinned:
+            tags.append('pinned')
+        elif p == current:
+            tags.append('current')
+        if not getattr(routes.components[p], 'opt_in', False):
+            tags.append('default')
+        if not here:
+            tags.append('n/a here')
+        options.append((p, ' '.join(tags)))
+    start = (provs.index(pinned) if pinned in provs
+             else provs.index(current) if current in provs else 0)
+    idx = _popup_choose(stdscr, pal, f'provider for {cap}', options, start)
+    if idx is None:
+        return False, 'provider unchanged', None
+    chosen = provs[idx]
+    if not avail.get(chosen, True):
+        return False, f'{chosen} has no install method on this machine — not set', None
+    return _apply_provider_pin(ctx, cap, chosen, current)
 
 
 def _menu_model(cfg):
@@ -2954,6 +3046,16 @@ def run(ctx):
                     try:
                         # partial requery: a pin change only alters the picked component's units,
                         # so reuse every cached state and re-probe just the new ones (dirty empty).
+                        ms, cfg, ledger, states, diags = _reload(ctx, ms, set())
+                    except Exception as e:  # noqa: BLE001 - surface, don't crash
+                        note = f'reload failed: {e}'
+            elif ch == ord('P'):                           # pick which component PROVIDES a capability
+                changed, note, deferred = _pick_provider(stdscr, pal, ms, ctx)
+                if deferred:
+                    pending_notes.append(deferred)
+                if changed:
+                    ctx.invalidate()                       # a provider-pin changes the whole closure
+                    try:
                         ms, cfg, ledger, states, diags = _reload(ctx, ms, set())
                     except Exception as e:  # noqa: BLE001 - surface, don't crash
                         note = f'reload failed: {e}'
