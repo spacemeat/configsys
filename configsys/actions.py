@@ -644,6 +644,28 @@ def plugin_update(ctx, ident, ref=None, *, pin=False, latest=False):
     return True, msg + warn, results
 
 
+def plugin_update_all(ctx, *, latest=True, pin=False):
+    '''Update EVERY declared plugin (top + transitive) — the bulk counterpart to a single
+    `plugin update`, mirroring `plugin sync`'s get-'em-all reach. With `latest` (the default), each
+    is re-pinned to its newest remote version tag, else main/master (see plugins.latest_ref); a
+    locally-authored plugin (edited in place, never fetched) is skipped. Returns [(source, ok, msg)]
+    in declared order, deduped by source.'''
+    decls = plugins.effective_declared(ctx.paths.user_config_file, ctx.paths.plugins_dir)
+    out, seen = [], set()
+    for d in decls:
+        src = d['source']
+        if src in seen:
+            continue
+        seen.add(src)
+        dest = ctx.paths.plugins_dir / plugins.dir_name(src)
+        if latest and plugins.is_local_authored(src, dest):
+            out.append((src, True, 'local — skipped (authored in place)'))
+            continue
+        ok, msg, _results = plugin_update(ctx, src, pin=pin, latest=latest)
+        out.append((src, ok, msg))
+    return out
+
+
 def plugin_bless(ctx, ident):
     '''Make `ident` the sole `primary` plugin. Syncs it FIRST (+ its transitive plugins); only on a
     good sync does it declare + mark primary (clearing any other). Returns (ok, message, results).'''

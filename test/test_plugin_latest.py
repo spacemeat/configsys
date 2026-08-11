@@ -63,3 +63,40 @@ def test_unreachable_remote_returns_none():
 def test_no_tags_no_known_branch_returns_none():
     r = _LsRemoteRunner(tags=[], heads=['develop', 'trunk'])
     assert plugins.latest_ref(r, 'github:me/p') == (None, None)
+
+
+# -- plugin_update_all: the bulk "get 'em all to --latest" orchestration --------------------
+
+def test_update_all_iterates_dedups_and_skips_local_authored(tmp_path, monkeypatch):
+    import types
+
+    from configsys import actions
+
+    ctx = types.SimpleNamespace(paths=types.SimpleNamespace(
+        user_config_file=str(tmp_path / 'configsys.hu'), plugins_dir=tmp_path / 'plugins'))
+
+    # primary + two remotes + a duplicate of the first (dedup) + a locally-authored one
+    monkeypatch.setattr(plugins, 'effective_declared', lambda *a: [
+        {'source': 'github:me/primary'}, {'source': 'github:x/blender'},
+        {'source': 'github:me/primary'},                 # dup -> collapsed
+        {'source': str(tmp_path / 'plugins' / 'devplug')},   # local-authored -> skipped
+    ])
+    monkeypatch.setattr(plugins, 'is_local_authored',
+                        lambda src, dest: 'devplug' in str(src))
+
+    calls = []
+
+    def fake_update(_ctx, src, *, pin=False, latest=False):
+        calls.append((src, latest, pin))
+        return True, f're-pinned {src} @v1.2.3 (latest tag)', []
+
+    monkeypatch.setattr(actions, 'plugin_update', fake_update)
+
+    rows = actions.plugin_update_all(ctx, latest=True, pin=True)
+
+    updated = [src for src, _l, _p in calls]
+    assert updated == ['github:me/primary', 'github:x/blender']       # deduped, local one not called
+    assert all(latest and pin for _s, latest, pin in calls)           # flags threaded through
+    assert len(rows) == 3                                             # 2 updated + 1 skipped (dup dropped)
+    skipped = [m for s, ok, m in rows if 'skipped' in m]
+    assert len(skipped) == 1 and 'devplug' in [s for s, _o, m in rows if 'skipped' in m][0]
