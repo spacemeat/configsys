@@ -133,7 +133,7 @@ class MenuState:
         self.roots = self._build_tree()
         self.rows = []
         self.cursor = 0
-        self.filter = ''                   # `/` substring filter over the tree
+        self.filter = ''                   # `F` substring filter over the tree (`/` is find)
         self.top = 0                       # first visible row (persistent scroll offset)
         self.selected = set()              # node ids
         self.staged = {}                   # unit_key -> op
@@ -801,10 +801,10 @@ def _draw(stdscr, pal, ms, ctx, note, diags=(), show_diag=False, diag_top=0, scr
 
     status_line = f' selected:{len(ms.selected)}  staged:{len(ms.staged)}'
     if ms.filter:
-        status_line += f'   filter /{ms.filter}'
+        status_line += f'   filter:{ms.filter}'
     if note:
         status_line += f'   {note}'
-    nav = ' j/k · g/G top/bottom · l/h expand/collapse · enter open · / filter · tab expand-all '
+    nav = ' j/k · g/G top/bottom · l/h expand/collapse · enter open · / find · F filter · tab expand-all '
     act = ' space sel · a all · i inst/upg · u upg · x rm · L lock · m method · c clear · X exec · R refresh · ! issues · q quit '
     _put(stdscr, h - 3, 0, _fit(status_line, w), pal.style('status_line', h - 3, 0, h, w))
     _put(stdscr, h - 2, 0, _fit(nav.ljust(w), w), pal.style('footer', h - 2, 0, h, w))
@@ -1153,18 +1153,40 @@ def _scrollbar_h(stdscr, pal, row, left, cols, offset, window, total, h, w):
              pal.style('select_marker' if on else 'info_dim', row, left + k, h, w))
 
 
+def _fuzzy_score(query, text):
+    '''Score how well `text` fuzzy-matches `query` (case-insensitive); higher is better, None means
+    no match. A contiguous substring beats a scattered subsequence; an earlier hit and a word-
+    boundary start rank higher. Powers `/` find (jump the cursor to the best match).'''
+    q = (query or '').lower()
+    if not q:
+        return None
+    t = (text or '').lower()
+    idx = t.find(q)
+    if idx != -1:                                      # substring: the strongest kind of match
+        boundary = idx == 0 or not t[idx - 1].isalnum()
+        return 10000 - idx * 5 + (50 if boundary else 0)
+    score, ti = 0, 0                                   # subsequence: every query char, in order
+    for qc in q:
+        nxt = t.find(qc, ti)
+        if nxt == -1:
+            return None
+        score -= (nxt - ti)                            # penalize the gap skipped over
+        ti = nxt + 1
+    return score - ti                                  # a later finish is marginally worse
+
+
 def _filter_edit(stdscr, initial, apply_fn, redraw):
-    '''Live substring-filter entry. Starts empty; `apply_fn(text)` sets the filter (called every
-    keystroke so the view filters live) and `redraw()` repaints the screen. Enter commits the typed
-    text (empty text clears the filter); Esc — or backspace on an empty query — reverts to
-    `initial`. A `/query` prompt shows on the bottom line. Workflow: `/gnuplot⏎` filters, `/god⎋`
-    cancels, `/⌫` cancels, `/⏎` clears.'''
+    '''Live substring-FILTER entry (`F`): narrows the view to matching rows. Starts empty;
+    `apply_fn(text)` sets the filter (called every keystroke so the view filters live) and
+    `redraw()` repaints. Enter commits the typed text (empty text clears the filter); Esc — or
+    backspace on an empty query — reverts to `initial`. A `filter:` prompt shows on the bottom line.
+    Workflow: `Fgnuplot⏎` filters, `Fgod⎋` cancels, `F⌫` cancels, `F⏎` clears.'''
     buf = ''
     while True:
         apply_fn(buf)
         redraw()                                       # repaint with the live filter applied
         h, w = stdscr.getmaxyx()
-        _put(stdscr, h - 1, 0, _fit(f' /{buf}▏', w).ljust(w), curses.A_REVERSE)
+        _put(stdscr, h - 1, 0, _fit(f' filter:{buf}▏', w).ljust(w), curses.A_REVERSE)
         stdscr.refresh()
         ch = stdscr.getch()
         if ch in (10, 13, curses.KEY_ENTER):
@@ -1176,6 +1198,43 @@ def _filter_edit(stdscr, initial, apply_fn, redraw):
             if not buf:                                # backspace on an empty query -> cancel too
                 apply_fn(initial)
                 return None
+            buf = buf[:-1]
+        elif 32 <= ch <= 126:
+            buf += chr(ch)
+
+
+def _find_edit(stdscr, labels, restore, set_cursor, redraw):
+    '''Live fuzzy-FIND (`/`): as you type, jump the cursor to the best fuzzy match among `labels`
+    (the visible items, index-aligned with the cursor). Unlike the old `/`, this does NOT filter —
+    the list stays whole and only the cursor moves; type more to disambiguate. Enter keeps the
+    cursor at the match; Esc — or backspace on an empty query — restores the `restore` index. A
+    vim-style `/query` prompt shows on the bottom line.'''
+    buf = ''
+
+    def jump(b):
+        best_i, best_s = None, None
+        for i, lab in enumerate(labels):
+            s = _fuzzy_score(b, lab)
+            if s is not None and (best_s is None or s > best_s):
+                best_i, best_s = i, s
+        set_cursor(best_i if best_i is not None else restore)
+
+    while True:
+        jump(buf)                                      # empty query -> best_i None -> restore
+        redraw()
+        h, w = stdscr.getmaxyx()
+        _put(stdscr, h - 1, 0, _fit(f' /{buf}▏', w).ljust(w), curses.A_REVERSE)
+        stdscr.refresh()
+        ch = stdscr.getch()
+        if ch in (10, 13, curses.KEY_ENTER):
+            return                                     # commit — leave the cursor at the match
+        if ch == 27:                                   # Esc -> restore the pre-find cursor
+            set_cursor(restore)
+            return
+        if ch in (curses.KEY_BACKSPACE, 127, 8):
+            if not buf:
+                set_cursor(restore)
+                return
             buf = buf[:-1]
         elif 32 <= ch <= 126:
             buf += chr(ch)
@@ -1378,7 +1437,7 @@ def _draw_profiles(stdscr, pal, ps, ctx, note, screen):
 
     # LEFT: profiles as a tree — top-level + inline `+include` children; ▸ marks a starred profile
     vnodes = ps.visible_pnodes()
-    ltitle = 'profiles' + (f'  /{ps.pfilter}' if ps.pfilter else '') + (f'  ▸{len(ps.starred)}' if ps.starred else '')
+    ltitle = 'profiles' + (f'  filter:{ps.pfilter}' if ps.pfilter else '') + (f'  ▸{len(ps.starred)}' if ps.starred else '')
     lit, lil, lih, liw = _panel(stdscr, pal, top, 0, body_h, lw, ltitle,
                                 ps.focus == 'left', h, w)
     ps.ltop = _scroll_top(ps.lcur, ps.ltop, lih, len(vnodes))
@@ -1431,7 +1490,7 @@ def _draw_profiles(stdscr, pal, ps, ctx, note, screen):
     # RIGHT BOTTOM: the component catalog (filtered), as a COLUMN-MAJOR grid filling the pane width
     ctop, cath = top + desc_h, body_h - desc_h
     ctitle = ((f'components — in "{prof}"' if prof else 'components')
-              + (f'  /{ps.cfilter}' if ps.cfilter else '')
+              + (f'  filter:{ps.cfilter}' if ps.cfilter else '')
               + (f'  ▸{",".join(sorted(ps.starred))}' if ps.starred else ''))
     rit, ril, rih, riw = _panel(stdscr, pal, ctop, rleft, cath, rw, ctitle, ps.focus == 'right', h, w)
     n = len(vcat)
@@ -1502,7 +1561,7 @@ def _draw_profiles(stdscr, pal, ps, ctx, note, screen):
     if note:
         status += f'    {note}'
     navf = (' j/k · h/l expand · tab/⏎ components · * star-filter · + include · a active · '
-            'n/d new/del · space member · m method · / filter · q ')
+            'n/d new/del · space member · m method · / find · F filter · q ')
     _put(stdscr, h - 2, 0, _fit(status, w), pal.style('status_line', h - 2, 0, h, w))
     _put(stdscr, h - 1, 0, _fit(navf.ljust(w), w), pal.style('footer', h - 1, 0, h, w))
     stdscr.refresh()
@@ -2328,13 +2387,21 @@ def run(ctx):
                         ps.lcur = max(0, len(ps.visible_pnodes()) - 1)
                     else:
                         ps.rcur = max(0, len(ps.vcatalog()) - 1)
-                elif ch == ord('/'):                   # filter the focused pane (live; enter/esc)
+                elif ch == ord('F'):                   # FILTER the focused pane (live; narrows)
                     if ps.focus == 'left':
                         _filter_edit(stdscr, ps.pfilter, ps.set_pfilter,
                                      lambda: _draw_profiles(stdscr, pal, ps, ctx, note, screen))
                     else:
                         _filter_edit(stdscr, ps.cfilter, ps.set_cfilter,
                                      lambda: _draw_profiles(stdscr, pal, ps, ctx, note, screen))
+                elif ch == ord('/'):                   # fuzzy FIND in the focused pane: jump cursor
+                    rdraw = lambda: _draw_profiles(stdscr, pal, ps, ctx, note, screen)
+                    if ps.focus == 'left':
+                        _find_edit(stdscr, [nd[0] for nd in ps.visible_pnodes()], ps.lcur,
+                                   lambda i: setattr(ps, 'lcur', i), rdraw)
+                    else:
+                        _find_edit(stdscr, list(ps.vcatalog()), ps.rcur,
+                                   lambda i: setattr(ps, 'rcur', i), rdraw)
                 elif ch == ord('a') and ps.focus == 'left':
                     prof = ps.cur_profile()
                     if prof:
@@ -2852,9 +2919,13 @@ def run(ctx):
                 ms.go_top()
             elif ch == ord('G'):
                 ms.go_bottom()
-            elif ch == ord('/'):                     # live substring filter over the tree
+            elif ch == ord('F'):                     # live substring FILTER over the tree (narrows)
                 _filter_edit(stdscr, ms.filter, ms.set_filter,
                              lambda: _draw(stdscr, pal, ms, ctx, note, diags, False, diag_top, screen))
+            elif ch == ord('/'):                     # fuzzy FIND: jump the cursor to the best match
+                _find_edit(stdscr, [n.label for n in ms.rows], ms.cursor,
+                           lambda i: setattr(ms, 'cursor', i),
+                           lambda: _draw(stdscr, pal, ms, ctx, note, diags, False, diag_top, screen))
             elif ch in (ord('\n'), curses.KEY_ENTER):
                 ms.enter()
             elif ch in (ord('l'), curses.KEY_RIGHT):
