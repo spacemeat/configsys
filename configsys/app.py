@@ -1452,12 +1452,13 @@ def cmd_plugin(ctx, args):
         return 0
 
     if sub == 'update':
-        if getattr(args, 'all', False):
+        # No name means every plugin (like `sync`); --all is an explicit alias for the same.
+        if getattr(args, 'all', False) or not args.name:
             if args.name:
                 print('configsys: pass a plugin name OR --all, not both')
                 return 1
             if args.ref:
-                print('configsys: --ref updates one plugin; use --all with --latest')
+                print('configsys: --ref updates a single plugin — drop it (with --latest) to update all')
                 return 1
             rows = actions.plugin_update_all(ctx, latest=getattr(args, 'latest', False),
                                              pin=getattr(args, 'pin', False))
@@ -1470,9 +1471,6 @@ def cmd_plugin(ctx, args):
             print(f'configsys: updated {len(rows) - len(failed)}/{len(rows)} plugins'
                   + (f' ({len(failed)} failed)' if failed else ''))
             return 1 if failed else 0
-        if not args.name:
-            print('configsys: give a plugin name, or --all to update every plugin')
-            return 1
         ok, msg, results = actions.plugin_update(ctx, args.name, args.ref,
                                                  pin=getattr(args, 'pin', False),
                                                  latest=getattr(args, 'latest', False))
@@ -1981,10 +1979,12 @@ def build_parser():
                          'drop that one and use this source instead')
     pr = plsub.add_parser('remove', help='undeclare a plugin and delete its synced copy')
     pr.add_argument('name', help='plugin name, source, or dir')
-    pu = plsub.add_parser('update', help="re-sync a plugin (move its pin with --ref/--latest)")
-    pu.add_argument('name', nargs='?', help='plugin name, source, or dir (omit with --all)')
+    pu = plsub.add_parser('update',
+                          help="re-sync a plugin, or all of them (move pins with --ref/--latest)")
+    pu.add_argument('name', nargs='?',
+                    help='plugin name, source, or dir — OMIT to update every declared plugin (like sync)')
     pu.add_argument('--all', action='store_true', dest='all',
-                    help="update every declared plugin (pair with --latest to bump each to its newest tag)")
+                    help="update every declared plugin (the same as omitting the name)")
     pu.add_argument('--ref', help='new tag / commit / branch to pin to')
     pu.add_argument('--latest', action='store_true',
                     help="pin to the newest version tag on the remote (or main/master if it has none)")
