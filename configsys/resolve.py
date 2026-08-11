@@ -377,12 +377,19 @@ class _State:
         # capability -> frozenset of unit keys satisfying it (empty = the environment
         # provides it, no unit needed).
         self.inventory = {cap: frozenset() for cap in cascade.provides(self.block)}
+        # version-scoped residency (Phase 2): the DEFAULT (unconstrained) resident per cap stays in
+        # `inventory`; `resident_version` records its provided version so a later CONSTRAINED require
+        # can test it, and `constrained` caches a distinct resident per (cap, constraint) so two
+        # consumers wanting different versions coexist. Empty/untouched for unversioned caps -> the
+        # unconstrained path is byte-identical (the golden).
+        self.resident_version = {}                 # cap -> provided version of the default resident
+        self.constrained = {}                      # (cap, constraint) -> frozenset(keys)
         self.providers = self._provider_index()
         # opt-in providers are never AUTO-pulled to close a requirement — only used when the
         # component is explicitly wanted (then it's in inventory before we look for candidates)
         # or named by a provider-pin. Keeps a best-effort shim (gcompat) from installing itself.
         self.optin = {n for n, c in components.items() if getattr(c, 'opt_in', False)}
-        self.queue = []                            # (requiring_key, requiring_name, cap, root)
+        self.queue = []                            # (req_key, req_name, cap, constraint, root, optional)
 
     def _provider_index(self):
         idx = {}
@@ -432,21 +439,23 @@ class _State:
         unit.source = binding.source or comp.source
         self.units[key] = unit
         for cap in set(comp.provides) | {name}:
-            self.inventory.setdefault(cap, frozenset({key}))
-        # requires (HARD): method-independent (component) + driver-level + binding-specific.
-        # A component's config is just another required component (a `via: dotfiles` one),
-        # so it flows through here too — no special-cased dotfiles field.
-        # cap_names extracts the name from a versioned `{ cap: constraint }` entry too, so a floor
-        # never changes what gets required — only the sweep / floor-aware resolution read the version.
-        reqs = (list(comp.requires) + list(self.drivers.get(binding.via, []))
-                + cap_names(binding.details.get('requires')))
-        for cap in reqs:
-            self.queue.append((key, name, cap, root, False))
-        # suggests (SOFT): pulled in if resolvable in the loaded layers, skipped silently if
-        # not — the edge is optional (a package's dotfiles that may live only in a user layer).
-        # A suggested component's OWN requires stay hard once it is pulled.
+            if cap not in self.inventory:                          # first provider = the default resident
+                self.inventory[cap] = frozenset({key})
+                self.resident_version[cap] = comp.prov_versions.get(cap)
+        # requires (HARD): method-independent (component) + driver-level + binding-specific. Each
+        # edge carries its version CONSTRAINT (or None) so a versioned `requires: {cap: ">=12"}`
+        # selects a resident by version. A component's config is just another required component
+        # (a `via: dotfiles` one), so it flows through here too.
+        bind_cons = cap_constraints(binding.details.get('requires'))
+        reqs = ([(cap, comp.req_versions.get(cap)) for cap in comp.requires]
+                + [(cap, None) for cap in self.drivers.get(binding.via, [])]
+                + [(cap, bind_cons.get(cap)) for cap in cap_names(binding.details.get('requires'))])
+        for cap, con in reqs:
+            self.queue.append((key, name, cap, con, root, False))
+        # suggests (SOFT): pulled in if resolvable in the loaded layers, skipped silently if not.
+        # A suggested component's OWN requires stay hard once it is pulled. (Suggests are unversioned.)
         for cap in list(comp.suggests) + cap_names(binding.details.get('suggests')):
-            self.queue.append((key, name, cap, root, True))
+            self.queue.append((key, name, cap, None, root, True))
         return frozenset({key})
 
     def drain(self, errors=None):
@@ -455,9 +464,9 @@ class _State:
         requesting root) and keep going. A SOFT edge (`suggests:`) that can't be satisfied here
         is skipped silently — never an error, in either mode.'''
         while self.queue:
-            requiring_key, requiring_name, cap, root, optional = self.queue.pop(0)
+            requiring_key, requiring_name, cap, constraint, root, optional = self.queue.pop(0)
             try:
-                self.units[requiring_key].deps |= self._satisfy(cap, root, requiring_name)
+                self.units[requiring_key].deps |= self._satisfy(cap, constraint, root, requiring_name)
             except ResolveError as e:
                 if optional:
                     continue                     # a `suggests:` unmet here is simply not pulled
@@ -465,7 +474,13 @@ class _State:
                     raise
                 errors.setdefault(root, str(e))
 
-    def _satisfy(self, cap, root, requiring):
+    def _bindable_viable(self, cap, requiring):
+        '''Providers of `cap` that can bind in this context (bootstrap guard: never self-provide).'''
+        return [p for p in self.providers.get(cap, []) if p != requiring
+                and _bindable(self.components[p], self.cascade, self.ctx, self.pins,
+                              self.preference, self.candidate_only)]
+
+    def _satisfy(self, cap, constraint, root, requiring):
         pin = self.pins.get(cap)
         # `pins:` is one flat namespace for BOTH binding-pins (comp -> via) and provider-pins
         # (cap -> provider component). Here we satisfy a CAPABILITY, so only a pin naming a real
@@ -474,15 +489,15 @@ class _State:
         # bogus "cap pinned to 'native', which cannot provide it here".
         if pin is not None and pin not in self.components:
             pin = None
+        if constraint:
+            return self._satisfy_constrained(cap, constraint, root, requiring, pin)
+        # --- unconstrained: the single-resident DEFAULT path (byte-identical to pre-Phase-2) ---
         # Fast reuse path — but a provider-pin is TOP precedence and must never be shadowed by reuse
-        # (previously the inventory hit returned first, silently ignoring a pin on an env-provided or
-        # already-wanted capability). With a pin present we fall through and honor it.
+        # (the inventory hit would otherwise silently ignore a pin on an env-provided or already-
+        # wanted capability). With a pin present we fall through and honor it.
         if pin is None and cap in self.inventory:
             return self.inventory[cap]                  # reuse (keys, or empty for env)
-        candidates = [p for p in self.providers.get(cap, []) if p != requiring]  # bootstrap guard
-        viable = [p for p in candidates
-                  if _bindable(self.components[p], self.cascade, self.ctx, self.pins,
-                               self.preference, self.candidate_only)]
+        viable = self._bindable_viable(cap, requiring)
         if not viable:
             raise ResolveError(f'nothing provides "{cap}" here (required by {requiring})')
         if pin is not None:                             # provider-pin (may name an opt-in one)
@@ -505,6 +520,44 @@ class _State:
                                    f'(required by {requiring}) — needs a provider-pin')
         keys = self.add_component(chosen, root)
         self.inventory[cap] = keys
+        self.resident_version[cap] = self.components[chosen].prov_versions.get(cap)
+        return keys
+
+    def _satisfy_constrained(self, cap, constraint, root, requiring, pin):
+        '''Version-scoped selection: pick/reuse the resident whose PROVIDED version meets `constraint`
+        (`>=12`, `<12`, …). Lets two consumers of one capability run different versions side-by-side,
+        and a constraint ENABLES an opt-in provider (like a by-name require does — the constraint IS
+        an explicit selection). A provider-pin still wins if it also meets the constraint.'''
+        from .versionsweep import meets
+        # 1. the default resident, if it meets the constraint
+        if pin is None and cap in self.inventory and meets(self.resident_version.get(cap), constraint):
+            return self.inventory[cap]
+        # 2. a prior resident pulled for this exact (cap, constraint)
+        ck = (cap, constraint)
+        if pin is None and ck in self.constrained:
+            return self.constrained[ck]
+        # 3. pull a provider whose declared version satisfies the constraint
+        viable = [p for p in self._bindable_viable(cap, requiring)
+                  if meets(self.components[p].prov_versions.get(cap), constraint)]
+        if not viable:
+            raise ResolveError(f'nothing provides "{cap} {constraint}" here (required by {requiring})')
+        if pin is not None:
+            if pin not in viable:
+                raise ResolveError(f'"{cap}" pinned to {pin!r}, which cannot provide '
+                                   f'"{cap} {constraint}" here')
+            chosen = pin
+        else:                                           # the constraint enables opt-in; prefer non-opt-in on a tie
+            pool = [p for p in viable if p not in self.optin] or viable
+            if len(pool) == 1:
+                chosen = pool[0]
+            else:
+                raise ResolveError(f'ambiguous providers for "{cap} {constraint}": {sorted(pool)} '
+                                   f'(required by {requiring}) — needs a provider-pin')
+        keys = self.add_component(chosen, root)
+        self.constrained[ck] = keys
+        if cap not in self.inventory:                   # nothing unconstrained yet -> this is the default too
+            self.inventory[cap] = keys
+            self.resident_version[cap] = self.components[chosen].prov_versions.get(cap)
         return keys
 
     def propagate_requested(self):
