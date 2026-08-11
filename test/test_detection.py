@@ -28,7 +28,7 @@ def _installed(mapping):
 
 PROVIDERS = '''
     prov-default: { provides: cap  install: [ { via: native } ] }
-    prov-alt:     { provides: cap  opt-in: true  install: [ { via: native } ] }
+    prov-alt:     { provides: cap  standing: never-auto  install: [ { via: native } ] }
     consumer:     { requires: cap  install: [ { via: native } ] }
 '''
 

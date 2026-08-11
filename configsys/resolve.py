@@ -117,46 +117,36 @@ NEVER_AUTO = 'never-auto'   # a binding/provider that is valid + listed + pinnab
 
 
 def _standing(spec):
-    '''The unified `standing:` of a binding/driver/component spec — the ONE preference knob that
-    subsumes the old `prefer:` / `candidate-only:` / `opt-in:` trio:
+    '''The `standing:` of a binding/driver/component spec — the ONE preference knob:
       * `never-auto` -> valid + offered, but never the auto-default while an ordinary method is valid
-        (was `candidate-only:` on a binding/driver, `opt-in:` on a component-provider);
-      * an INTEGER   -> a preference rank, higher wins (was `prefer:`);
+        (a binding/driver method never wins the default; a component-provider is never auto-pulled);
+      * an INTEGER   -> a preference rank, higher wins;
       * None         -> normal.
-    Reads `standing:` first, then falls back to the legacy spellings for byte-equivalence during the
-    flip. `spec` is any dict carrying these keys (a binding's details, an os `drivers:` block, or a
-    component spec).'''
+    `spec` is any dict carrying the key (a binding's details, an os `drivers:` block, or a component
+    spec).'''
     s = spec.get('standing')
-    if s is not None:
-        st = str(s).strip().lower()
-        if st in (NEVER_AUTO, 'candidate', 'never'):
-            return NEVER_AUTO
-        try:
-            return int(st)
-        except ValueError:
-            return None
-    if str(spec.get('candidate-only', '')).strip().lower() in ('true', 'yes', 'on', '1'):
-        return NEVER_AUTO                                     # legacy: candidate-only:
-    if spec.get('prefer') is not None:                       # legacy: prefer:
-        try:
-            return int(spec.get('prefer'))
-        except (TypeError, ValueError):
-            return None
-    return None
+    if s is None:
+        return None
+    st = str(s).strip().lower()
+    if st in (NEVER_AUTO, 'candidate', 'never'):
+        return NEVER_AUTO
+    try:
+        return int(st)
+    except ValueError:
+        return None
 
 
 def _prefer_rank(binding):
-    '''The binding's preference rank (higher wins), default 0 — from `standing:` (int) or legacy
-    `prefer:`. A `never-auto` binding has no rank (it's excluded from the auto-default pool anyway).'''
+    '''The binding's `standing:` preference rank (higher wins), default 0. A `never-auto` binding has
+    no rank (it's excluded from the auto-default pool anyway).'''
     s = _standing(binding.details)
     return s if isinstance(s, int) else 0
 
 
 def _binding_candidate_only(binding):
-    '''True if this binding is `never-auto` (from `standing: never-auto` or legacy `candidate-only:
-    true`): offered / listed / pinnable, but never the auto-default while an ordinary method is valid
-    — so a validity-gated method (a debian-only vendor `.deb`) can be available without beating a
-    broad method (a universal flatpak) by specificity.'''
+    '''True if this binding is `standing: never-auto`: offered / listed / pinnable, but never the
+    auto-default while an ordinary method is valid — so a validity-gated method (a debian-only vendor
+    `.deb`) can be available without beating a broad method (a universal flatpak) by specificity.'''
     return _standing(binding.details) == NEVER_AUTO
 
 
@@ -196,8 +186,8 @@ def via_representatives(matching, cascade):
 
 def _by_preference(matching, component, cascade, context, preference):
     '''Pick among incomparable/equally-specific candidates via the preference channel — separate
-    from `when:`. Order: explicit `prefer:` (higher wins), then driver-preference index. A true
-    tie is a ResolveError that points at the preference channel, NEVER at narrowing `when:`.'''
+    from `when:`. Order: explicit `standing:` rank (higher wins), then driver-preference index. A
+    true tie is a ResolveError that points at the preference channel, NEVER at narrowing `when:`.'''
     order = _effective_preference(cascade, context, preference)
 
     def key(b):
@@ -209,9 +199,9 @@ def _by_preference(matching, component, cascade, context, preference):
         tied = sorted({b.via for b in ranked if key(b) == key(best)})
         raise ResolveError(
             f'{component.name}: install methods {tied} are equally valid AND equally preferred '
-            f'here — set a `driver-preference` order or a per-binding `prefer:` to choose one '
+            f'here — set a `driver-preference` order or a per-binding `standing:` rank to choose one '
             f'(do not narrow `when:`: every one of these methods genuinely works here)')
-    rule = 'prefer:' if _prefer_rank(best) != _prefer_rank(ranked[1]) else 'driver-preference'
+    rule = 'standing:' if _prefer_rank(best) != _prefer_rank(ranked[1]) else 'driver-preference'
     return best, rule
 
 
@@ -220,16 +210,15 @@ def _select(component, cascade, context, pins=None, preference=None, candidate_o
     (validity only). The default among them: the single most-specific `when:`, else the
     preference channel. Raises ResolveError if nothing is valid or the choice is undecidable.
 
-    `candidate_only` (a set of via/driver names, e.g. {'snap'}, from the `drivers:` section's
-    `candidate-only:` flag) marks methods that are valid and LISTED but never win the AUTO-default
-    while any ordinary method is valid here — so a low-preference-yet-narrowly-gated method (snap
-    is gated `when: ubuntu`, which would otherwise beat a broad native binding by specificity)
-    can be offered without hijacking the default. A binding may ALSO opt into this per-binding with
-    `candidate-only: true` (e.g. a debian-only vendor `.deb` that should stay a candidate under a
-    universal flatpak). A binding-pin still forces such a method (it filters `matching` to that via
-    upstream); and if EVERY valid method here is candidate-only, they compete among themselves
-    normally. The candidate list returned is ALWAYS the full `matching` set, so the picker/`where`
-    still show the opt-in methods.'''
+    `candidate_only` (a set of via/driver names, e.g. {'snap'}, from `standing: never-auto` on a
+    `drivers:` block) marks methods that are valid and LISTED but never win the AUTO-default while
+    any ordinary method is valid here — so a low-preference-yet-narrowly-gated method (snap is gated
+    `when: ubuntu`, which would otherwise beat a broad native binding by specificity) can be offered
+    without hijacking the default. A binding may ALSO carry `standing: never-auto` itself (e.g. a
+    debian-only vendor `.deb` that should stay a candidate under a universal flatpak). A binding-pin
+    still forces such a method (it filters `matching` to that via upstream); and if EVERY valid
+    method here is never-auto, they compete among themselves normally. The candidate list returned is
+    ALWAYS the full `matching` set, so the picker/`where` still show the never-auto methods.'''
     matching, pin = _matching(component, context, pins)
     if not matching:
         extra = f' (pinned to via:{pin!r})' if pin is not None else ''
@@ -277,7 +266,7 @@ def _package(binding, driver, component):
 
 
 # keys that steer resolution, not installation — never handed to a driver.
-_RESOLVER_KEYS = ('requires', 'suggests', 'parts', 'app', 'standing', 'prefer', 'candidate-only')
+_RESOLVER_KEYS = ('requires', 'suggests', 'parts', 'app', 'standing')
 
 
 def _install_fields(details, package):
@@ -415,7 +404,7 @@ class _State:
         self.resident_version = {}                 # cap -> provided version of the default resident
         self.constrained = {}                      # (cap, constraint) -> frozenset(keys)
         self.providers = self._provider_index()
-        # opt-in providers are never AUTO-pulled to close a requirement — only used when the
+        # never-auto providers are never AUTO-pulled to close a requirement — only used when the
         # component is explicitly wanted (then it's in inventory before we look for candidates)
         # or named by a provider-pin. Keeps a best-effort shim (gcompat) from installing itself.
         self.optin = {n for n, c in components.items() if getattr(c, 'opt_in', False)}
@@ -530,15 +519,15 @@ class _State:
         viable = self._bindable_viable(cap, requiring)
         if not viable:
             raise ResolveError(f'nothing provides "{cap}" here (required by {requiring})')
-        if pin is not None:                             # provider-pin (may name an opt-in one)
+        if pin is not None:                             # provider-pin (may name a never-auto one)
             if pin not in viable:
                 raise ResolveError(f'"{cap}" pinned to {pin!r}, which cannot provide it here')
             chosen = pin
         else:
-            # opt-in providers aren't AUTO-pulled to satisfy a CAPABILITY (e.g. a versioned gcc-13
+            # never-auto providers aren't AUTO-pulled to satisfy a CAPABILITY (e.g. a versioned gcc-13
             # must not silently become the `cc`/`cxx` provider) — a pin or explicit want enables
             # them. BUT requiring a component by its OWN NAME (`requires: gcc-10`, where the provider
-            # p == the required cap) IS that explicit want, so it bypasses opt-in.
+            # p == the required cap) IS that explicit want, so it bypasses never-auto.
             auto = [p for p in viable if p not in self.optin or p == cap]
             if not auto:
                 hint = f' — enable one with a provider-pin, e.g. pins: {{ {cap}: {viable[0]} }}'
@@ -556,7 +545,7 @@ class _State:
     def _satisfy_constrained(self, cap, constraint, root, requiring, pin):
         '''Version-scoped selection: pick/reuse the resident whose PROVIDED version meets `constraint`
         (`>=12`, `<12`, …). Lets two consumers of one capability run different versions side-by-side,
-        and a constraint ENABLES an opt-in provider (like a by-name require does — the constraint IS
+        and a constraint ENABLES a never-auto provider (like a by-name require does — the constraint IS
         an explicit selection). A provider-pin still wins if it also meets the constraint.'''
         from .versionsweep import meets
         # 1. the default resident, if it meets the constraint
@@ -576,7 +565,7 @@ class _State:
                 raise ResolveError(f'"{cap}" pinned to {pin!r}, which cannot provide '
                                    f'"{cap} {constraint}" here')
             chosen = pin
-        else:                                           # the constraint enables opt-in; prefer non-opt-in on a tie
+        else:                                           # the constraint enables never-auto; prefer ordinary on a tie
             pool = [p for p in viable if p not in self.optin] or viable
             if len(pool) == 1:
                 chosen = pool[0]

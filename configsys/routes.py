@@ -35,9 +35,9 @@ class Binding:
 # top-level keys a component may carry; anything else is a typo or a removed construct
 # (e.g. the old inline `dotfiles:` node) and must fail loudly, not vanish silently.
 _COMPONENT_KEYS = frozenset({'provides', 'requires', 'suggests', 'parts', 'install', 'standing',
-                             'opt-in', 'description'})
+                             'description'})
 # the non-`install` fields, which merge with inheritance (a layer that omits one keeps the lower).
-_COMPONENT_FIELDS = ('provides', 'requires', 'suggests', 'parts', 'standing', 'opt-in', 'description')
+_COMPONENT_FIELDS = ('provides', 'requires', 'suggests', 'parts', 'standing', 'description')
 
 
 def _check_component_keys(name, spec):
@@ -63,7 +63,7 @@ def _merge_component_chain(name, chain):
       removal, the unchanged `{}` convention);
     - `install:` bindings UNION keyed by (via, when): a higher binding with the same identity
       overrides the lower, a `drop:` binding retracts the matching inherited one;
-    - the other fields (provides/requires/suggests/parts/opt-in) override with inheritance.
+    - the other fields (provides/requires/suggests/parts/standing) override with inheritance.
     Each surviving binding is tagged `__source__` with the layer that contributed it (so a dotfiles
     binding's content root, and provenance, follow the defining layer even across an amend).'''
     fields, bindings = {}, {}          # bindings: (via, when) -> spec dict (insertion order kept)
@@ -100,12 +100,12 @@ class Component:
         self.req_versions = cap_constraints(spec.get('requires'))
         self.suggests = cap_names(spec.get('suggests'))   # soft deps: pulled if resolvable, else skipped
         self.parts = _as_list(spec.get('parts'))
-        # a `never-auto` provider (component `standing: never-auto`, legacy `opt-in: true`) satisfies a
-        # `requires:` only when explicitly wanted / provider-pinned / version-constrained — NEVER
-        # auto-pulled to close someone else's requirement. For best-effort/caveated providers (e.g.
-        # gcompat, a glibc shim) or the non-default of a versioned pair. See resolve.py `_satisfy`.
+        # a `standing: never-auto` provider satisfies a `requires:` only when explicitly wanted /
+        # provider-pinned / version-constrained — NEVER auto-pulled to close someone else's
+        # requirement. For best-effort/caveated providers (e.g. gcompat, a glibc shim) or the
+        # non-default of a versioned pair. See resolve.py `_satisfy`.
         from .resolve import NEVER_AUTO, _standing
-        self.opt_in = _standing(spec) == NEVER_AUTO or _truthy(spec.get('opt-in'))
+        self.opt_in = _standing(spec) == NEVER_AUTO
         # optional one-line human description (names can be esoteric); shown in the TUI. Empty if
         # unset — populated incrementally in routes.hu/plugins.
         self.description = str(spec.get('description') or '')
@@ -231,7 +231,7 @@ def load(path, overrides_path=None, discovered=(), plugin_files=(), validate=Tru
 
     drvs = layers.merge_dict_section(layer_list, 'drivers', ('repo', 'plugin', 'primary'))
     drivers = {name: cap_names((spec or {}).get('requires')) for name, spec in drvs.items()}
-    # a driver block's `standing: never-auto` (legacy `candidate-only: true`) marks EVERY binding of
+    # a driver block's `standing: never-auto` marks EVERY binding of
     # that via as valid+listed but never the auto-default (see resolve._select). Ships on snap; a
     # user's primary plugin (or any plugin) can add flatpak etc. via the same overlaid `drivers:`.
     from .resolve import NEVER_AUTO, _standing

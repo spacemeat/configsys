@@ -24,7 +24,7 @@ def check_component(name, component, cascade):
     overlap must be comparable (one `when:` ⊆ the other) — else which variant of that one method
     wins is genuinely undefined and only `when:` can fix it. Two bindings of DIFFERENT `via:` MAY
     overlap incomparably: those are alternative install methods, and the driver-preference /
-    `prefer:` channel picks the default at resolve time (a true tie errors there, pointing at
+    `standing:` channel picks the default at resolve time (a true tie errors there, pointing at
     preference — never at `when:`). So `when:` stays validity-only and is never forced narrower.'''
     for (i, a), (j, b) in combinations(enumerate(component.bindings), 2):
         if a.via != b.via:
@@ -59,7 +59,7 @@ def _method_tie_warnings(name, component, cascade):
             continue
         out.append(f'methods via:{a.via} and via:{b.via} overlap (e.g. on '
                    f'{predicate.witness(a.pred, b.pred, cascade)}) and are equally preferred '
-                   f'by default — add a `driver-preference` order or a `prefer:` to pick one')
+                   f'by default — add a `driver-preference` order or a `standing:` rank to pick one')
     return out
 
 

@@ -2,7 +2,7 @@
 
 Each `gcc-NN` / `clang-NN` `provides:` the standards its compiler accepts (`cc`/`cxx` + C11/
 C17/C23 and "C++17"/"C++20"/...) so a build can `requires: "C++20"` (or pin `gcc-15`). They are
-`opt-in: true`, so a plain `requires: cxx` still resolves to the unversioned `cpp-toolchain`
+`standing: never-auto`, so a plain `requires: cxx` still resolves to the unversioned `cpp-toolchain`
 (the system default) with no ambiguity — the opt-in mechanics themselves live in
 test_optin_provider.py; this pins the actual toolchain data.'''
 

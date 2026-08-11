@@ -283,9 +283,9 @@ If the preorder still ties, it is an error whose message names the preference ch
 overrides the default outright, and the detection tier adopts an installed method over the default
 (precedence: pin > detected-installed > standing default).
 
-**`standing:` — the one preference knob.** It unified the old `prefer:` / `candidate-only:` /
-`opt-in:` trio (which remain deprecated aliases). A binding, an `os:` `drivers:` block, or a
-component may carry `standing:`:
+**`standing:` — the one preference knob.** It replaced the old `prefer:` / `candidate-only:` /
+`opt-in:` trio (those names are gone). A binding, an `os:` `drivers:` block, or a component may
+carry `standing:`:
 - **`never-auto`** — valid + listed + pinnable, but never the auto-default (on a binding/driver),
   or never auto-pulled to satisfy a `requires:` (on a component-provider). Was `candidate-only:` /
   `opt-in:`.

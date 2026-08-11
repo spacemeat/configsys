@@ -1,4 +1,4 @@
-'''opt-in providers — a component that `provides:` a capability but is marked `opt-in: true`
+'''opt-in providers — a component that `provides:` a capability but is marked `standing: never-auto`
 never gets AUTO-pulled to satisfy someone else's `requires:`. It satisfies the capability only
 when explicitly wanted (named in the resolve set / a profile) or named by a provider-pin. This
 is the "best-effort shim" primitive: gcompat provides `glibc` on Alpine but must never install
@@ -13,7 +13,7 @@ OS = 'os: { linux: {}  debian: { using: linux  native: apt } }'
 
 COMPS = '''
     app:      { requires: cap  install: [ { via: native } ] }
-    shim:     { provides: cap  opt-in: true  install: [ { via: native } ] }
+    shim:     { provides: cap  standing: never-auto  install: [ { via: native } ] }
     ordinary: { provides: cap2  install: [ { via: native } ] }
     app2:     { requires: cap2  install: [ { via: native } ] }
 '''
@@ -60,7 +60,7 @@ def test_bad_pin_to_optin_that_cannot_provide_here(tmp_path):
     os2 = 'os: { linux: {}  debian: { using: linux  native: apt }  other: { using: linux  native: apt } }'
     comps = '''
         app:  { requires: cap  install: [ { via: native } ] }
-        shim: { provides: cap  opt-in: true  install: [ { via: native  when: "other" } ] }
+        shim: { provides: cap  standing: never-auto  install: [ { via: native  when: "other" } ] }
     '''
     p = tmp_path / 'r.hu'
     p.write_text('{ ' + os2 + '  components: { ' + comps + ' } }')

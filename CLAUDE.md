@@ -37,10 +37,10 @@ the full spec). Its three sections:
   (a NARROW author signal, so it outranks the broad machine order below) -> global
   `driver-preference` (a machine setting, overridable per OS block); a
   remaining tie is an error naming the preference channel (never `when:`), a user binding-pin
-  overrides. **`standing:`** is the ONE preference knob (it unified the old `prefer:`/`candidate-only:`/
-  `opt-in:` trio, which remain deprecated aliases): `standing: never-auto` = valid+listed+pinnable but
+  overrides. **`standing:`** is the ONE preference knob: `standing: never-auto` = valid+listed+pinnable but
   never the auto-default (on a binding/driver) or never auto-pulled to satisfy a `requires:` (on a
-  component-provider); an INTEGER = a preference rank (higher wins). A versioned capability adds
+  component-provider); an INTEGER = a preference rank (higher wins). (`standing` replaced the old
+  `prefer:`/`candidate-only:`/`opt-in:` trio — those names are gone.) A versioned capability adds
   `provides: { cap: N }` + `requires: { cap: ">=N" }` (constraint selects a resident by version; a
   constraint ENABLES a `never-auto` provider) — an installed provider/method is also adopted over the
   default by the detection tier (`adopt-installed`, precedence: pin > detected > standing default). Two bindings of the SAME `via:` that overlap incomparably are a load-time ambiguity

@@ -18,7 +18,7 @@ def _resolve(tmp_path, comps, names, pins=None):
 
 # tk-11 is opt-in (not the default); tk-12 is the default. Both provide the `tk` capability, versioned.
 TK = '''
-    tk-11: { provides: { tk: 11 }  opt-in: true  install: [ { via: native } ] }
+    tk-11: { provides: { tk: 11 }  standing: never-auto  install: [ { via: native } ] }
     tk-12: { provides: { tk: 12 }              install: [ { via: native } ] }
     generic:  { requires: tk                    install: [ { via: native } ] }
     want-12:  { requires: { tk: ">=12" }        install: [ { via: native } ] }

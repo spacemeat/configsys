@@ -49,7 +49,7 @@ def test_default_follows_driver_preference(tmp_path):
 
 
 def test_prefer_overrides_the_global_order(tmp_path):
-    comps = 'browser: { install: [ { via: native } { via: flatpak  app: X  prefer: 10 } ] }'
+    comps = 'browser: { install: [ { via: native } { via: flatpak  app: X  standing: 10 } ] }'
     assert _resolve(tmp_path, comps, ['browser']) == {'flatpak\\browser'}
     # prefer: is resolver-only — it must NOT leak into the driver's install fields
     cascade, cs, _ = _load(tmp_path, comps)
@@ -108,11 +108,11 @@ def test_candidates_include_unavailable_lists_when_gated_methods(tmp_path):
 
 
 def test_per_binding_candidate_only_offered_but_never_default(tmp_path):
-    # A debian-gated method tagged `candidate-only: true` is listed + pinnable, but its narrow
+    # A debian-gated method tagged `standing: never-auto` is listed + pinnable, but its narrow
     # `when:` must NOT let it beat a universal method by specificity (the vendor-.deb-under-flatpak
     # case). Distinct from the driver-level flag: only THIS binding opts out.
     comps = ('app: { install: [ { via: flatpak  app: org.x.App } '
-             '                   { via: native-pkg-file  when: debian  candidate-only: true '
+             '                   { via: native-pkg-file  when: debian  standing: never-auto '
              '                     url: "http://x/app.deb" } ] }')
     assert _resolve(tmp_path, comps, ['app']) == {'flatpak\\app'}      # flatpak wins despite the deb's specificity
     cands = Resolver(str(_write(tmp_path, comps)), 'debian', '12').candidates('app')
