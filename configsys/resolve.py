@@ -466,7 +466,11 @@ class _State:
                 errors.setdefault(root, str(e))
 
     def _satisfy(self, cap, root, requiring):
-        if cap in self.inventory:
+        pin = self.pins.get(cap)
+        # Fast reuse path — but a provider-pin is TOP precedence and must never be shadowed by reuse
+        # (previously the inventory hit returned first, silently ignoring a pin on an env-provided or
+        # already-wanted capability). With a pin present we fall through and honor it.
+        if pin is None and cap in self.inventory:
             return self.inventory[cap]                  # reuse (keys, or empty for env)
         candidates = [p for p in self.providers.get(cap, []) if p != requiring]  # bootstrap guard
         viable = [p for p in candidates
@@ -474,7 +478,6 @@ class _State:
                                self.preference, self.candidate_only)]
         if not viable:
             raise ResolveError(f'nothing provides "{cap}" here (required by {requiring})')
-        pin = self.pins.get(cap)
         if pin is not None:                             # provider-pin (may name an opt-in one)
             if pin not in viable:
                 raise ResolveError(f'"{cap}" pinned to {pin!r}, which cannot provide it here')

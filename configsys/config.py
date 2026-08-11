@@ -1,7 +1,7 @@
 '''config.py — the per-machine selection + profile definitions, over the layer stack.
 
 Reads from the shared layer engine (layers.py): the repo config.hu is the base, an included
-file sits below the file that includes it, and the user ~/configsys.hu wins. `configs` (which
+file sits below the file that includes it, and the user ~/.config/configsys/configsys.hu wins. `configs` (which
 profiles apply) and `scope` are machine SETTINGS — from the repo/user files, not includes.
 `profiles:` are DEFINITIONS — merged per name across all layers (so an included project file
 can contribute a profile). `pins:` likewise (repo/user). Values flatten to leaf names.
@@ -266,7 +266,7 @@ class Config:
         if not chain:
             raise ConfigError(
                 f'profile "{profile}" is selected but not defined '
-                f'(add it under `profiles:` in config.hu, ~/configsys.hu, or an included file)')
+                f'(add it under `profiles:` in config.hu, ~/.config/configsys/configsys.hu, or an included file)')
         idx, val, _src = chain[-1]                       # top (highest-precedence) definition
         return self._expand(profile, idx, val, ())
 

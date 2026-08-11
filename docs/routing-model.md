@@ -270,10 +270,12 @@ The bindings valid in a context (their `when:` matches) form its **candidate set
    dropped from the default pool *unless every valid method here is candidate-only*. They stay
    in the candidate set (still listed / pinnable), they just can't win the auto-default.
 1. **most specific** among *comparable* candidates (the §8 subset order);
-2. **`driver-preference`** — a global driver order (a machine setting), overridable per OS
+2. a per-binding **`prefer:`** rank — a NARROW, per-binding author signal, so it **outranks** the
+   broad `driver-preference` below: a targeted per-package decision beats a blanket machine-wide
+   order (the machine owner still overrides any specific case with a **pin**);
+3. **`driver-preference`** — a global driver order (a machine setting), overridable per OS
    block (so e.g. flatpak > native lives in the `os:` data on `fedora_atomic`, not smuggled
-   into a `when:`);
-3. a per-binding **`prefer:`** rank.
+   into a `when:`).
 
 If the preorder still ties, it is an error whose message names the preference channel (add
 `driver-preference` / `prefer:`) — never `when:`. A user **binding-pin** (§10) overrides the

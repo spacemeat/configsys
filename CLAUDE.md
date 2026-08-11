@@ -33,8 +33,9 @@ the full spec). Its three sections:
   with a `name:` map keyed by driver). `when:` is a boolean DSL over OS atoms (bare = subtree
   membership; versioned e.g. `ubuntu < 23.04`, scale-bound) and `cpu:`, with and/or/guarded-not.
   `when:` states VALIDITY ONLY (does this method work here), never preference. Among the valid
-  ("candidate") bindings, the default is: most-specific comparable `when:` -> global
-  `driver-preference` (a machine setting, overridable per OS block) -> per-binding `prefer:`; a
+  ("candidate") bindings, the default is: most-specific comparable `when:` -> per-binding `prefer:`
+  (a NARROW author signal, so it outranks the broad machine order below) -> global
+  `driver-preference` (a machine setting, overridable per OS block); a
   remaining tie is an error naming the preference channel (never `when:`), a user binding-pin
   overrides. Two bindings of the SAME `via:` that overlap incomparably are a load-time ambiguity
   error (routecheck); different-`via:` overlap is a legal multi-method choice decided by

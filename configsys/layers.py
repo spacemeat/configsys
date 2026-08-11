@@ -4,7 +4,7 @@ Every config/routes file is a LAYER contributing sections: os / drivers / compon
 profiles / configs / scope / pins. A file may `include:` others (paths relative to the
 including file resolve against ITS directory). Layers overlay lowest-precedence-first: the
 repo (routes.hu + config.hu) is the base, an included file sits below the file that
-includes it, and the top user file (~/configsys.hu) wins. Merge is by section and, within
+includes it, and the top user file (~/.config/configsys/configsys.hu) wins. Merge is by section and, within
 components/profiles, by name (later wins).
 
 Includes are DEFINITIONS-ONLY: an included file's components + profiles merge in, but its
@@ -68,7 +68,7 @@ class Layer:
 
     def __init__(self, path, role, data):
         self.path = path          # source file path
-        self.role = role          # 'repo' | 'user' | 'include'
+        self.role = role          # 'repo' | 'user' | 'plugin' | 'primary' | 'discover' | 'include'
         self.data = data          # {section: value}
 
 
