@@ -34,10 +34,10 @@ class Binding:
 
 # top-level keys a component may carry; anything else is a typo or a removed construct
 # (e.g. the old inline `dotfiles:` node) and must fail loudly, not vanish silently.
-_COMPONENT_KEYS = frozenset({'provides', 'requires', 'suggests', 'parts', 'install', 'opt-in',
-                             'description'})
+_COMPONENT_KEYS = frozenset({'provides', 'requires', 'suggests', 'parts', 'install', 'standing',
+                             'opt-in', 'description'})
 # the non-`install` fields, which merge with inheritance (a layer that omits one keeps the lower).
-_COMPONENT_FIELDS = ('provides', 'requires', 'suggests', 'parts', 'opt-in', 'description')
+_COMPONENT_FIELDS = ('provides', 'requires', 'suggests', 'parts', 'standing', 'opt-in', 'description')
 
 
 def _check_component_keys(name, spec):
@@ -100,11 +100,12 @@ class Component:
         self.req_versions = cap_constraints(spec.get('requires'))
         self.suggests = cap_names(spec.get('suggests'))   # soft deps: pulled if resolvable, else skipped
         self.parts = _as_list(spec.get('parts'))
-        # opt-in provider: satisfies a `requires:` only when explicitly wanted (in a profile)
-        # or provider-pinned — NEVER auto-pulled to close someone else's requirement. For
-        # best-effort/caveated providers (e.g. gcompat, a glibc shim) that shouldn't be
-        # chosen silently. See resolve.py `_satisfy`.
-        self.opt_in = _truthy(spec.get('opt-in'))
+        # a `never-auto` provider (component `standing: never-auto`, legacy `opt-in: true`) satisfies a
+        # `requires:` only when explicitly wanted / provider-pinned / version-constrained — NEVER
+        # auto-pulled to close someone else's requirement. For best-effort/caveated providers (e.g.
+        # gcompat, a glibc shim) or the non-default of a versioned pair. See resolve.py `_satisfy`.
+        from .resolve import NEVER_AUTO, _standing
+        self.opt_in = _standing(spec) == NEVER_AUTO or _truthy(spec.get('opt-in'))
         # optional one-line human description (names can be esoteric); shown in the TUI. Empty if
         # unset — populated incrementally in routes.hu/plugins.
         self.description = str(spec.get('description') or '')
@@ -230,12 +231,12 @@ def load(path, overrides_path=None, discovered=(), plugin_files=(), validate=Tru
 
     drvs = layers.merge_dict_section(layer_list, 'drivers', ('repo', 'plugin', 'primary'))
     drivers = {name: cap_names((spec or {}).get('requires')) for name, spec in drvs.items()}
-    # `candidate-only: true` in a driver's block marks EVERY binding of that via as valid+listed
-    # but never the auto-default (see resolve._select). Ships true on snap; a user's primary
-    # plugin (or any plugin) can add flatpak etc. via the same overlaid `drivers:` section.
-    candidate_only = frozenset(
-        name for name, spec in drvs.items()
-        if str((spec or {}).get('candidate-only', '')).lower() in ('true', '1', 'yes', 'on'))
+    # a driver block's `standing: never-auto` (legacy `candidate-only: true`) marks EVERY binding of
+    # that via as valid+listed but never the auto-default (see resolve._select). Ships on snap; a
+    # user's primary plugin (or any plugin) can add flatpak etc. via the same overlaid `drivers:`.
+    from .resolve import NEVER_AUTO, _standing
+    candidate_only = frozenset(name for name, spec in drvs.items()
+                               if _standing(spec or {}) == NEVER_AUTO)
     _apply_version_floors(components, layers.merge_version_floors(layer_list))
     return cascade, components, drivers, candidate_only
 

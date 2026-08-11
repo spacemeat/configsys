@@ -113,21 +113,51 @@ def candidate_bindings(component, cascade, context, pins=None):
     return _matching(component, context, pins)[0]
 
 
+NEVER_AUTO = 'never-auto'   # a binding/provider that is valid + listed + pinnable, but never the auto-default
+
+
+def _standing(spec):
+    '''The unified `standing:` of a binding/driver/component spec — the ONE preference knob that
+    subsumes the old `prefer:` / `candidate-only:` / `opt-in:` trio:
+      * `never-auto` -> valid + offered, but never the auto-default while an ordinary method is valid
+        (was `candidate-only:` on a binding/driver, `opt-in:` on a component-provider);
+      * an INTEGER   -> a preference rank, higher wins (was `prefer:`);
+      * None         -> normal.
+    Reads `standing:` first, then falls back to the legacy spellings for byte-equivalence during the
+    flip. `spec` is any dict carrying these keys (a binding's details, an os `drivers:` block, or a
+    component spec).'''
+    s = spec.get('standing')
+    if s is not None:
+        st = str(s).strip().lower()
+        if st in (NEVER_AUTO, 'candidate', 'never'):
+            return NEVER_AUTO
+        try:
+            return int(st)
+        except ValueError:
+            return None
+    if str(spec.get('candidate-only', '')).strip().lower() in ('true', 'yes', 'on', '1'):
+        return NEVER_AUTO                                     # legacy: candidate-only:
+    if spec.get('prefer') is not None:                       # legacy: prefer:
+        try:
+            return int(spec.get('prefer'))
+        except (TypeError, ValueError):
+            return None
+    return None
+
+
 def _prefer_rank(binding):
-    '''The binding's explicit `prefer:` rank (higher wins), default 0.'''
-    try:
-        return int(binding.details.get('prefer'))
-    except (TypeError, ValueError):
-        return 0
+    '''The binding's preference rank (higher wins), default 0 — from `standing:` (int) or legacy
+    `prefer:`. A `never-auto` binding has no rank (it's excluded from the auto-default pool anyway).'''
+    s = _standing(binding.details)
+    return s if isinstance(s, int) else 0
 
 
 def _binding_candidate_only(binding):
-    '''True if this binding carries `candidate-only: true` — the PER-BINDING analog of the
-    `drivers:` candidate-only flag. Offered/listed/pinnable, but never the auto-default while an
-    ordinary method is valid: lets a validity-gated method (a debian-only vendor `.deb`, say) be
-    available without beating a broad method (a universal flatpak) by specificity.'''
-    v = binding.details.get('candidate-only')
-    return str(v).strip().lower() in ('true', 'yes', 'on', '1') if v is not None else False
+    '''True if this binding is `never-auto` (from `standing: never-auto` or legacy `candidate-only:
+    true`): offered / listed / pinnable, but never the auto-default while an ordinary method is valid
+    — so a validity-gated method (a debian-only vendor `.deb`) can be available without beating a
+    broad method (a universal flatpak) by specificity.'''
+    return _standing(binding.details) == NEVER_AUTO
 
 
 def _effective_preference(cascade, context, preference):
@@ -247,7 +277,7 @@ def _package(binding, driver, component):
 
 
 # keys that steer resolution, not installation — never handed to a driver.
-_RESOLVER_KEYS = ('requires', 'suggests', 'parts', 'app', 'prefer', 'candidate-only')
+_RESOLVER_KEYS = ('requires', 'suggests', 'parts', 'app', 'standing', 'prefer', 'candidate-only')
 
 
 def _install_fields(details, package):
