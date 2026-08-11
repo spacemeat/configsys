@@ -670,13 +670,38 @@
     "name": "cppcheck"
    }
   },
-  "cuda-toolkit": {
-   "pacman\\cuda-toolkit": {
+  "cuda-toolkit-11": {
+   "pacman\\cuda-toolkit-11": {
     "driver": "pacman",
     "fields": {
      "name": "cuda"
     },
     "name": "cuda"
+   }
+  },
+  "cuda-toolkit-12": {
+   "pacman\\cuda-toolkit-12": {
+    "driver": "pacman",
+    "fields": {
+     "name": "cuda"
+    },
+    "name": "cuda"
+   }
+  },
+  "cudnn-9": {
+   "pacman\\cuda-toolkit-12": {
+    "driver": "pacman",
+    "fields": {
+     "name": "cuda"
+    },
+    "name": "cuda"
+   },
+   "pacman\\cudnn-9": {
+    "driver": "pacman",
+    "fields": {
+     "name": "cudnn"
+    },
+    "name": "cudnn"
    }
   },
   "curl": {
@@ -4937,13 +4962,132 @@
     "name": "cppcheck"
    }
   },
-  "cuda-toolkit": {
-   "apt\\cuda-toolkit": {
+  "cuda-repo": {
+   "script\\cuda-repo": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "set -e; . /etc/os-release; if [ -n \"${UBUNTU_CODENAME:-}\" ]; then case \"$UBUNTU_CODENAME\" in focal) SEG=ubuntu2004;; jammy) SEG=ubuntu2204;; noble) SEG=ubuntu2404;; *) SEG=ubuntu2204;; esac; elif [ \"$ID\" = debian ]; then SEG=\"debian${VERSION_ID%%.*}\"; else SEG=\"${ID}$(echo \"$VERSION_ID\" | tr -d .)\"; fi; A=\"$(uname -m)\"; if [ \"$A\" = aarch64 ]; then A=sbsa; else A=x86_64; fi; T=\"$(mktemp -d)\"; curl -fSL \"https://developer.download.nvidia.com/compute/cuda/repos/$SEG/$A/cuda-keyring_1.1-1_all.deb\" -o \"$T/k.deb\"; sudo dpkg -i \"$T/k.deb\"; sudo apt-get update; rm -rf \"$T\"",
+     "latest-cmd": "apt-cache policy cuda-keyring 2>/dev/null | grep Candidate",
+     "location": "/etc/apt/sources.list.d/cuda-*.list (+ cuda-keyring)",
+     "name": "cuda-repo",
+     "uninstall-cmd": "sudo apt-get remove -y cuda-keyring",
+     "version-cmd": "dpkg-query -W -f='${Version}' cuda-keyring 2>/dev/null",
+     "version-re": "([0-9][0-9.+-]*)"
+    },
+    "name": "cuda-repo"
+   }
+  },
+  "cuda-toolkit-11": {
+   "apt\\cuda-toolkit-11": {
     "driver": "apt",
     "fields": {
      "name": "nvidia-cuda-toolkit"
     },
     "name": "nvidia-cuda-toolkit"
+   }
+  },
+  "cuda-toolkit-12": {
+   "script\\cuda-repo": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "set -e; . /etc/os-release; if [ -n \"${UBUNTU_CODENAME:-}\" ]; then case \"$UBUNTU_CODENAME\" in focal) SEG=ubuntu2004;; jammy) SEG=ubuntu2204;; noble) SEG=ubuntu2404;; *) SEG=ubuntu2204;; esac; elif [ \"$ID\" = debian ]; then SEG=\"debian${VERSION_ID%%.*}\"; else SEG=\"${ID}$(echo \"$VERSION_ID\" | tr -d .)\"; fi; A=\"$(uname -m)\"; if [ \"$A\" = aarch64 ]; then A=sbsa; else A=x86_64; fi; T=\"$(mktemp -d)\"; curl -fSL \"https://developer.download.nvidia.com/compute/cuda/repos/$SEG/$A/cuda-keyring_1.1-1_all.deb\" -o \"$T/k.deb\"; sudo dpkg -i \"$T/k.deb\"; sudo apt-get update; rm -rf \"$T\"",
+     "latest-cmd": "apt-cache policy cuda-keyring 2>/dev/null | grep Candidate",
+     "location": "/etc/apt/sources.list.d/cuda-*.list (+ cuda-keyring)",
+     "name": "cuda-repo",
+     "uninstall-cmd": "sudo apt-get remove -y cuda-keyring",
+     "version-cmd": "dpkg-query -W -f='${Version}' cuda-keyring 2>/dev/null",
+     "version-re": "([0-9][0-9.+-]*)"
+    },
+    "name": "cuda-repo"
+   },
+   "script\\cuda-toolkit-12": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "sudo apt-get install -y cuda-toolkit-12-6 && sudo ldconfig",
+     "latest-cmd": "apt-cache policy cuda-toolkit-12-6 2>/dev/null | grep Candidate",
+     "location": "cuda-toolkit-12-6 (apt)",
+     "name": "cuda-toolkit-12",
+     "uninstall-cmd": "sudo apt-get remove -y cuda-toolkit-12-6 && sudo ldconfig",
+     "version-cmd": "dpkg-query -W -f='${Version}' cuda-toolkit-12-6 2>/dev/null",
+     "version-re": "([0-9][0-9.+-]*)"
+    },
+    "name": "cuda-toolkit-12"
+   }
+  },
+  "cudnn-8": {
+   "apt\\cuda-toolkit-11": {
+    "driver": "apt",
+    "fields": {
+     "name": "nvidia-cuda-toolkit"
+    },
+    "name": "nvidia-cuda-toolkit"
+   },
+   "script\\cuda-repo": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "set -e; . /etc/os-release; if [ -n \"${UBUNTU_CODENAME:-}\" ]; then case \"$UBUNTU_CODENAME\" in focal) SEG=ubuntu2004;; jammy) SEG=ubuntu2204;; noble) SEG=ubuntu2404;; *) SEG=ubuntu2204;; esac; elif [ \"$ID\" = debian ]; then SEG=\"debian${VERSION_ID%%.*}\"; else SEG=\"${ID}$(echo \"$VERSION_ID\" | tr -d .)\"; fi; A=\"$(uname -m)\"; if [ \"$A\" = aarch64 ]; then A=sbsa; else A=x86_64; fi; T=\"$(mktemp -d)\"; curl -fSL \"https://developer.download.nvidia.com/compute/cuda/repos/$SEG/$A/cuda-keyring_1.1-1_all.deb\" -o \"$T/k.deb\"; sudo dpkg -i \"$T/k.deb\"; sudo apt-get update; rm -rf \"$T\"",
+     "latest-cmd": "apt-cache policy cuda-keyring 2>/dev/null | grep Candidate",
+     "location": "/etc/apt/sources.list.d/cuda-*.list (+ cuda-keyring)",
+     "name": "cuda-repo",
+     "uninstall-cmd": "sudo apt-get remove -y cuda-keyring",
+     "version-cmd": "dpkg-query -W -f='${Version}' cuda-keyring 2>/dev/null",
+     "version-re": "([0-9][0-9.+-]*)"
+    },
+    "name": "cuda-repo"
+   },
+   "script\\cudnn-8": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "sudo apt-get install -y libcudnn8-dev && sudo ldconfig",
+     "latest-cmd": "apt-cache policy libcudnn8-dev 2>/dev/null | grep Candidate",
+     "location": "libcudnn8-dev (apt) + ldconfig cache",
+     "name": "cudnn-8",
+     "uninstall-cmd": "sudo apt-get remove -y libcudnn8-dev && sudo ldconfig",
+     "version-cmd": "dpkg-query -W -f='${Version}' libcudnn8-dev 2>/dev/null",
+     "version-re": "([0-9][0-9.+-]*)"
+    },
+    "name": "cudnn-8"
+   }
+  },
+  "cudnn-9": {
+   "script\\cuda-repo": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "set -e; . /etc/os-release; if [ -n \"${UBUNTU_CODENAME:-}\" ]; then case \"$UBUNTU_CODENAME\" in focal) SEG=ubuntu2004;; jammy) SEG=ubuntu2204;; noble) SEG=ubuntu2404;; *) SEG=ubuntu2204;; esac; elif [ \"$ID\" = debian ]; then SEG=\"debian${VERSION_ID%%.*}\"; else SEG=\"${ID}$(echo \"$VERSION_ID\" | tr -d .)\"; fi; A=\"$(uname -m)\"; if [ \"$A\" = aarch64 ]; then A=sbsa; else A=x86_64; fi; T=\"$(mktemp -d)\"; curl -fSL \"https://developer.download.nvidia.com/compute/cuda/repos/$SEG/$A/cuda-keyring_1.1-1_all.deb\" -o \"$T/k.deb\"; sudo dpkg -i \"$T/k.deb\"; sudo apt-get update; rm -rf \"$T\"",
+     "latest-cmd": "apt-cache policy cuda-keyring 2>/dev/null | grep Candidate",
+     "location": "/etc/apt/sources.list.d/cuda-*.list (+ cuda-keyring)",
+     "name": "cuda-repo",
+     "uninstall-cmd": "sudo apt-get remove -y cuda-keyring",
+     "version-cmd": "dpkg-query -W -f='${Version}' cuda-keyring 2>/dev/null",
+     "version-re": "([0-9][0-9.+-]*)"
+    },
+    "name": "cuda-repo"
+   },
+   "script\\cuda-toolkit-12": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "sudo apt-get install -y cuda-toolkit-12-6 && sudo ldconfig",
+     "latest-cmd": "apt-cache policy cuda-toolkit-12-6 2>/dev/null | grep Candidate",
+     "location": "cuda-toolkit-12-6 (apt)",
+     "name": "cuda-toolkit-12",
+     "uninstall-cmd": "sudo apt-get remove -y cuda-toolkit-12-6 && sudo ldconfig",
+     "version-cmd": "dpkg-query -W -f='${Version}' cuda-toolkit-12-6 2>/dev/null",
+     "version-re": "([0-9][0-9.+-]*)"
+    },
+    "name": "cuda-toolkit-12"
+   },
+   "script\\cudnn-9": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "sudo apt-get install -y libcudnn9-dev-cuda-12 && sudo ldconfig",
+     "latest-cmd": "apt-cache policy libcudnn9-dev-cuda-12 2>/dev/null | grep Candidate",
+     "location": "libcudnn9-dev-cuda-12 (apt) + ldconfig cache",
+     "name": "cudnn-9",
+     "uninstall-cmd": "sudo apt-get remove -y libcudnn9-dev-cuda-12 && sudo ldconfig",
+     "version-cmd": "dpkg-query -W -f='${Version}' libcudnn9-dev-cuda-12 2>/dev/null",
+     "version-re": "([0-9][0-9.+-]*)"
+    },
+    "name": "cudnn-9"
    }
   },
   "curl": {
@@ -9582,13 +9726,132 @@
     "name": "cppcheck"
    }
   },
-  "cuda-toolkit": {
-   "apt\\cuda-toolkit": {
+  "cuda-repo": {
+   "script\\cuda-repo": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "set -e; . /etc/os-release; if [ -n \"${UBUNTU_CODENAME:-}\" ]; then case \"$UBUNTU_CODENAME\" in focal) SEG=ubuntu2004;; jammy) SEG=ubuntu2204;; noble) SEG=ubuntu2404;; *) SEG=ubuntu2204;; esac; elif [ \"$ID\" = debian ]; then SEG=\"debian${VERSION_ID%%.*}\"; else SEG=\"${ID}$(echo \"$VERSION_ID\" | tr -d .)\"; fi; A=\"$(uname -m)\"; if [ \"$A\" = aarch64 ]; then A=sbsa; else A=x86_64; fi; T=\"$(mktemp -d)\"; curl -fSL \"https://developer.download.nvidia.com/compute/cuda/repos/$SEG/$A/cuda-keyring_1.1-1_all.deb\" -o \"$T/k.deb\"; sudo dpkg -i \"$T/k.deb\"; sudo apt-get update; rm -rf \"$T\"",
+     "latest-cmd": "apt-cache policy cuda-keyring 2>/dev/null | grep Candidate",
+     "location": "/etc/apt/sources.list.d/cuda-*.list (+ cuda-keyring)",
+     "name": "cuda-repo",
+     "uninstall-cmd": "sudo apt-get remove -y cuda-keyring",
+     "version-cmd": "dpkg-query -W -f='${Version}' cuda-keyring 2>/dev/null",
+     "version-re": "([0-9][0-9.+-]*)"
+    },
+    "name": "cuda-repo"
+   }
+  },
+  "cuda-toolkit-11": {
+   "apt\\cuda-toolkit-11": {
     "driver": "apt",
     "fields": {
      "name": "nvidia-cuda-toolkit"
     },
     "name": "nvidia-cuda-toolkit"
+   }
+  },
+  "cuda-toolkit-12": {
+   "script\\cuda-repo": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "set -e; . /etc/os-release; if [ -n \"${UBUNTU_CODENAME:-}\" ]; then case \"$UBUNTU_CODENAME\" in focal) SEG=ubuntu2004;; jammy) SEG=ubuntu2204;; noble) SEG=ubuntu2404;; *) SEG=ubuntu2204;; esac; elif [ \"$ID\" = debian ]; then SEG=\"debian${VERSION_ID%%.*}\"; else SEG=\"${ID}$(echo \"$VERSION_ID\" | tr -d .)\"; fi; A=\"$(uname -m)\"; if [ \"$A\" = aarch64 ]; then A=sbsa; else A=x86_64; fi; T=\"$(mktemp -d)\"; curl -fSL \"https://developer.download.nvidia.com/compute/cuda/repos/$SEG/$A/cuda-keyring_1.1-1_all.deb\" -o \"$T/k.deb\"; sudo dpkg -i \"$T/k.deb\"; sudo apt-get update; rm -rf \"$T\"",
+     "latest-cmd": "apt-cache policy cuda-keyring 2>/dev/null | grep Candidate",
+     "location": "/etc/apt/sources.list.d/cuda-*.list (+ cuda-keyring)",
+     "name": "cuda-repo",
+     "uninstall-cmd": "sudo apt-get remove -y cuda-keyring",
+     "version-cmd": "dpkg-query -W -f='${Version}' cuda-keyring 2>/dev/null",
+     "version-re": "([0-9][0-9.+-]*)"
+    },
+    "name": "cuda-repo"
+   },
+   "script\\cuda-toolkit-12": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "sudo apt-get install -y cuda-toolkit-12-6 && sudo ldconfig",
+     "latest-cmd": "apt-cache policy cuda-toolkit-12-6 2>/dev/null | grep Candidate",
+     "location": "cuda-toolkit-12-6 (apt)",
+     "name": "cuda-toolkit-12",
+     "uninstall-cmd": "sudo apt-get remove -y cuda-toolkit-12-6 && sudo ldconfig",
+     "version-cmd": "dpkg-query -W -f='${Version}' cuda-toolkit-12-6 2>/dev/null",
+     "version-re": "([0-9][0-9.+-]*)"
+    },
+    "name": "cuda-toolkit-12"
+   }
+  },
+  "cudnn-8": {
+   "apt\\cuda-toolkit-11": {
+    "driver": "apt",
+    "fields": {
+     "name": "nvidia-cuda-toolkit"
+    },
+    "name": "nvidia-cuda-toolkit"
+   },
+   "script\\cuda-repo": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "set -e; . /etc/os-release; if [ -n \"${UBUNTU_CODENAME:-}\" ]; then case \"$UBUNTU_CODENAME\" in focal) SEG=ubuntu2004;; jammy) SEG=ubuntu2204;; noble) SEG=ubuntu2404;; *) SEG=ubuntu2204;; esac; elif [ \"$ID\" = debian ]; then SEG=\"debian${VERSION_ID%%.*}\"; else SEG=\"${ID}$(echo \"$VERSION_ID\" | tr -d .)\"; fi; A=\"$(uname -m)\"; if [ \"$A\" = aarch64 ]; then A=sbsa; else A=x86_64; fi; T=\"$(mktemp -d)\"; curl -fSL \"https://developer.download.nvidia.com/compute/cuda/repos/$SEG/$A/cuda-keyring_1.1-1_all.deb\" -o \"$T/k.deb\"; sudo dpkg -i \"$T/k.deb\"; sudo apt-get update; rm -rf \"$T\"",
+     "latest-cmd": "apt-cache policy cuda-keyring 2>/dev/null | grep Candidate",
+     "location": "/etc/apt/sources.list.d/cuda-*.list (+ cuda-keyring)",
+     "name": "cuda-repo",
+     "uninstall-cmd": "sudo apt-get remove -y cuda-keyring",
+     "version-cmd": "dpkg-query -W -f='${Version}' cuda-keyring 2>/dev/null",
+     "version-re": "([0-9][0-9.+-]*)"
+    },
+    "name": "cuda-repo"
+   },
+   "script\\cudnn-8": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "sudo apt-get install -y libcudnn8-dev && sudo ldconfig",
+     "latest-cmd": "apt-cache policy libcudnn8-dev 2>/dev/null | grep Candidate",
+     "location": "libcudnn8-dev (apt) + ldconfig cache",
+     "name": "cudnn-8",
+     "uninstall-cmd": "sudo apt-get remove -y libcudnn8-dev && sudo ldconfig",
+     "version-cmd": "dpkg-query -W -f='${Version}' libcudnn8-dev 2>/dev/null",
+     "version-re": "([0-9][0-9.+-]*)"
+    },
+    "name": "cudnn-8"
+   }
+  },
+  "cudnn-9": {
+   "script\\cuda-repo": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "set -e; . /etc/os-release; if [ -n \"${UBUNTU_CODENAME:-}\" ]; then case \"$UBUNTU_CODENAME\" in focal) SEG=ubuntu2004;; jammy) SEG=ubuntu2204;; noble) SEG=ubuntu2404;; *) SEG=ubuntu2204;; esac; elif [ \"$ID\" = debian ]; then SEG=\"debian${VERSION_ID%%.*}\"; else SEG=\"${ID}$(echo \"$VERSION_ID\" | tr -d .)\"; fi; A=\"$(uname -m)\"; if [ \"$A\" = aarch64 ]; then A=sbsa; else A=x86_64; fi; T=\"$(mktemp -d)\"; curl -fSL \"https://developer.download.nvidia.com/compute/cuda/repos/$SEG/$A/cuda-keyring_1.1-1_all.deb\" -o \"$T/k.deb\"; sudo dpkg -i \"$T/k.deb\"; sudo apt-get update; rm -rf \"$T\"",
+     "latest-cmd": "apt-cache policy cuda-keyring 2>/dev/null | grep Candidate",
+     "location": "/etc/apt/sources.list.d/cuda-*.list (+ cuda-keyring)",
+     "name": "cuda-repo",
+     "uninstall-cmd": "sudo apt-get remove -y cuda-keyring",
+     "version-cmd": "dpkg-query -W -f='${Version}' cuda-keyring 2>/dev/null",
+     "version-re": "([0-9][0-9.+-]*)"
+    },
+    "name": "cuda-repo"
+   },
+   "script\\cuda-toolkit-12": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "sudo apt-get install -y cuda-toolkit-12-6 && sudo ldconfig",
+     "latest-cmd": "apt-cache policy cuda-toolkit-12-6 2>/dev/null | grep Candidate",
+     "location": "cuda-toolkit-12-6 (apt)",
+     "name": "cuda-toolkit-12",
+     "uninstall-cmd": "sudo apt-get remove -y cuda-toolkit-12-6 && sudo ldconfig",
+     "version-cmd": "dpkg-query -W -f='${Version}' cuda-toolkit-12-6 2>/dev/null",
+     "version-re": "([0-9][0-9.+-]*)"
+    },
+    "name": "cuda-toolkit-12"
+   },
+   "script\\cudnn-9": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "sudo apt-get install -y libcudnn9-dev-cuda-12 && sudo ldconfig",
+     "latest-cmd": "apt-cache policy libcudnn9-dev-cuda-12 2>/dev/null | grep Candidate",
+     "location": "libcudnn9-dev-cuda-12 (apt) + ldconfig cache",
+     "name": "cudnn-9",
+     "uninstall-cmd": "sudo apt-get remove -y libcudnn9-dev-cuda-12 && sudo ldconfig",
+     "version-cmd": "dpkg-query -W -f='${Version}' libcudnn9-dev-cuda-12 2>/dev/null",
+     "version-re": "([0-9][0-9.+-]*)"
+    },
+    "name": "cudnn-9"
    }
   },
   "curl": {
@@ -14155,13 +14418,132 @@
     "name": "cppcheck"
    }
   },
-  "cuda-toolkit": {
-   "apt\\cuda-toolkit": {
+  "cuda-repo": {
+   "script\\cuda-repo": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "set -e; . /etc/os-release; if [ -n \"${UBUNTU_CODENAME:-}\" ]; then case \"$UBUNTU_CODENAME\" in focal) SEG=ubuntu2004;; jammy) SEG=ubuntu2204;; noble) SEG=ubuntu2404;; *) SEG=ubuntu2204;; esac; elif [ \"$ID\" = debian ]; then SEG=\"debian${VERSION_ID%%.*}\"; else SEG=\"${ID}$(echo \"$VERSION_ID\" | tr -d .)\"; fi; A=\"$(uname -m)\"; if [ \"$A\" = aarch64 ]; then A=sbsa; else A=x86_64; fi; T=\"$(mktemp -d)\"; curl -fSL \"https://developer.download.nvidia.com/compute/cuda/repos/$SEG/$A/cuda-keyring_1.1-1_all.deb\" -o \"$T/k.deb\"; sudo dpkg -i \"$T/k.deb\"; sudo apt-get update; rm -rf \"$T\"",
+     "latest-cmd": "apt-cache policy cuda-keyring 2>/dev/null | grep Candidate",
+     "location": "/etc/apt/sources.list.d/cuda-*.list (+ cuda-keyring)",
+     "name": "cuda-repo",
+     "uninstall-cmd": "sudo apt-get remove -y cuda-keyring",
+     "version-cmd": "dpkg-query -W -f='${Version}' cuda-keyring 2>/dev/null",
+     "version-re": "([0-9][0-9.+-]*)"
+    },
+    "name": "cuda-repo"
+   }
+  },
+  "cuda-toolkit-11": {
+   "apt\\cuda-toolkit-11": {
     "driver": "apt",
     "fields": {
      "name": "nvidia-cuda-toolkit"
     },
     "name": "nvidia-cuda-toolkit"
+   }
+  },
+  "cuda-toolkit-12": {
+   "script\\cuda-repo": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "set -e; . /etc/os-release; if [ -n \"${UBUNTU_CODENAME:-}\" ]; then case \"$UBUNTU_CODENAME\" in focal) SEG=ubuntu2004;; jammy) SEG=ubuntu2204;; noble) SEG=ubuntu2404;; *) SEG=ubuntu2204;; esac; elif [ \"$ID\" = debian ]; then SEG=\"debian${VERSION_ID%%.*}\"; else SEG=\"${ID}$(echo \"$VERSION_ID\" | tr -d .)\"; fi; A=\"$(uname -m)\"; if [ \"$A\" = aarch64 ]; then A=sbsa; else A=x86_64; fi; T=\"$(mktemp -d)\"; curl -fSL \"https://developer.download.nvidia.com/compute/cuda/repos/$SEG/$A/cuda-keyring_1.1-1_all.deb\" -o \"$T/k.deb\"; sudo dpkg -i \"$T/k.deb\"; sudo apt-get update; rm -rf \"$T\"",
+     "latest-cmd": "apt-cache policy cuda-keyring 2>/dev/null | grep Candidate",
+     "location": "/etc/apt/sources.list.d/cuda-*.list (+ cuda-keyring)",
+     "name": "cuda-repo",
+     "uninstall-cmd": "sudo apt-get remove -y cuda-keyring",
+     "version-cmd": "dpkg-query -W -f='${Version}' cuda-keyring 2>/dev/null",
+     "version-re": "([0-9][0-9.+-]*)"
+    },
+    "name": "cuda-repo"
+   },
+   "script\\cuda-toolkit-12": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "sudo apt-get install -y cuda-toolkit-12-6 && sudo ldconfig",
+     "latest-cmd": "apt-cache policy cuda-toolkit-12-6 2>/dev/null | grep Candidate",
+     "location": "cuda-toolkit-12-6 (apt)",
+     "name": "cuda-toolkit-12",
+     "uninstall-cmd": "sudo apt-get remove -y cuda-toolkit-12-6 && sudo ldconfig",
+     "version-cmd": "dpkg-query -W -f='${Version}' cuda-toolkit-12-6 2>/dev/null",
+     "version-re": "([0-9][0-9.+-]*)"
+    },
+    "name": "cuda-toolkit-12"
+   }
+  },
+  "cudnn-8": {
+   "apt\\cuda-toolkit-11": {
+    "driver": "apt",
+    "fields": {
+     "name": "nvidia-cuda-toolkit"
+    },
+    "name": "nvidia-cuda-toolkit"
+   },
+   "script\\cuda-repo": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "set -e; . /etc/os-release; if [ -n \"${UBUNTU_CODENAME:-}\" ]; then case \"$UBUNTU_CODENAME\" in focal) SEG=ubuntu2004;; jammy) SEG=ubuntu2204;; noble) SEG=ubuntu2404;; *) SEG=ubuntu2204;; esac; elif [ \"$ID\" = debian ]; then SEG=\"debian${VERSION_ID%%.*}\"; else SEG=\"${ID}$(echo \"$VERSION_ID\" | tr -d .)\"; fi; A=\"$(uname -m)\"; if [ \"$A\" = aarch64 ]; then A=sbsa; else A=x86_64; fi; T=\"$(mktemp -d)\"; curl -fSL \"https://developer.download.nvidia.com/compute/cuda/repos/$SEG/$A/cuda-keyring_1.1-1_all.deb\" -o \"$T/k.deb\"; sudo dpkg -i \"$T/k.deb\"; sudo apt-get update; rm -rf \"$T\"",
+     "latest-cmd": "apt-cache policy cuda-keyring 2>/dev/null | grep Candidate",
+     "location": "/etc/apt/sources.list.d/cuda-*.list (+ cuda-keyring)",
+     "name": "cuda-repo",
+     "uninstall-cmd": "sudo apt-get remove -y cuda-keyring",
+     "version-cmd": "dpkg-query -W -f='${Version}' cuda-keyring 2>/dev/null",
+     "version-re": "([0-9][0-9.+-]*)"
+    },
+    "name": "cuda-repo"
+   },
+   "script\\cudnn-8": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "sudo apt-get install -y libcudnn8-dev && sudo ldconfig",
+     "latest-cmd": "apt-cache policy libcudnn8-dev 2>/dev/null | grep Candidate",
+     "location": "libcudnn8-dev (apt) + ldconfig cache",
+     "name": "cudnn-8",
+     "uninstall-cmd": "sudo apt-get remove -y libcudnn8-dev && sudo ldconfig",
+     "version-cmd": "dpkg-query -W -f='${Version}' libcudnn8-dev 2>/dev/null",
+     "version-re": "([0-9][0-9.+-]*)"
+    },
+    "name": "cudnn-8"
+   }
+  },
+  "cudnn-9": {
+   "script\\cuda-repo": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "set -e; . /etc/os-release; if [ -n \"${UBUNTU_CODENAME:-}\" ]; then case \"$UBUNTU_CODENAME\" in focal) SEG=ubuntu2004;; jammy) SEG=ubuntu2204;; noble) SEG=ubuntu2404;; *) SEG=ubuntu2204;; esac; elif [ \"$ID\" = debian ]; then SEG=\"debian${VERSION_ID%%.*}\"; else SEG=\"${ID}$(echo \"$VERSION_ID\" | tr -d .)\"; fi; A=\"$(uname -m)\"; if [ \"$A\" = aarch64 ]; then A=sbsa; else A=x86_64; fi; T=\"$(mktemp -d)\"; curl -fSL \"https://developer.download.nvidia.com/compute/cuda/repos/$SEG/$A/cuda-keyring_1.1-1_all.deb\" -o \"$T/k.deb\"; sudo dpkg -i \"$T/k.deb\"; sudo apt-get update; rm -rf \"$T\"",
+     "latest-cmd": "apt-cache policy cuda-keyring 2>/dev/null | grep Candidate",
+     "location": "/etc/apt/sources.list.d/cuda-*.list (+ cuda-keyring)",
+     "name": "cuda-repo",
+     "uninstall-cmd": "sudo apt-get remove -y cuda-keyring",
+     "version-cmd": "dpkg-query -W -f='${Version}' cuda-keyring 2>/dev/null",
+     "version-re": "([0-9][0-9.+-]*)"
+    },
+    "name": "cuda-repo"
+   },
+   "script\\cuda-toolkit-12": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "sudo apt-get install -y cuda-toolkit-12-6 && sudo ldconfig",
+     "latest-cmd": "apt-cache policy cuda-toolkit-12-6 2>/dev/null | grep Candidate",
+     "location": "cuda-toolkit-12-6 (apt)",
+     "name": "cuda-toolkit-12",
+     "uninstall-cmd": "sudo apt-get remove -y cuda-toolkit-12-6 && sudo ldconfig",
+     "version-cmd": "dpkg-query -W -f='${Version}' cuda-toolkit-12-6 2>/dev/null",
+     "version-re": "([0-9][0-9.+-]*)"
+    },
+    "name": "cuda-toolkit-12"
+   },
+   "script\\cudnn-9": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "sudo apt-get install -y libcudnn9-dev-cuda-12 && sudo ldconfig",
+     "latest-cmd": "apt-cache policy libcudnn9-dev-cuda-12 2>/dev/null | grep Candidate",
+     "location": "libcudnn9-dev-cuda-12 (apt) + ldconfig cache",
+     "name": "cudnn-9",
+     "uninstall-cmd": "sudo apt-get remove -y libcudnn9-dev-cuda-12 && sudo ldconfig",
+     "version-cmd": "dpkg-query -W -f='${Version}' libcudnn9-dev-cuda-12 2>/dev/null",
+     "version-re": "([0-9][0-9.+-]*)"
+    },
+    "name": "cudnn-9"
    }
   },
   "curl": {
@@ -18616,13 +18998,128 @@
     "name": "cppcheck"
    }
   },
-  "cuda-toolkit": {
-   "dnf\\cuda-toolkit": {
+  "cuda-repo": {
+   "script\\cuda-repo": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "set -e; . /etc/os-release; case \"$ID\" in fedora) SEG=\"fedora$VERSION_ID\";; *) SEG=\"rhel${VERSION_ID%%.*}\";; esac; A=\"$(uname -m)\"; if [ \"$A\" = aarch64 ]; then A=sbsa; else A=x86_64; fi; sudo dnf config-manager --add-repo \"https://developer.download.nvidia.com/compute/cuda/repos/$SEG/$A/cuda-$SEG.repo\"; sudo dnf -q clean expire-cache",
+     "location": "/etc/yum.repos.d/cuda-*.repo",
+     "name": "cuda-repo",
+     "uninstall-cmd": "sudo rm -f /etc/yum.repos.d/cuda-*.repo",
+     "version-cmd": "ls /etc/yum.repos.d/cuda-*.repo >/dev/null 2>&1 && echo present",
+     "version-re": "(present)"
+    },
+    "name": "cuda-repo"
+   }
+  },
+  "cuda-toolkit-11": {
+   "dnf\\cuda-toolkit-11": {
     "driver": "dnf",
     "fields": {
      "name": "cuda"
     },
     "name": "cuda"
+   }
+  },
+  "cuda-toolkit-12": {
+   "script\\cuda-repo": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "set -e; . /etc/os-release; case \"$ID\" in fedora) SEG=\"fedora$VERSION_ID\";; *) SEG=\"rhel${VERSION_ID%%.*}\";; esac; A=\"$(uname -m)\"; if [ \"$A\" = aarch64 ]; then A=sbsa; else A=x86_64; fi; sudo dnf config-manager --add-repo \"https://developer.download.nvidia.com/compute/cuda/repos/$SEG/$A/cuda-$SEG.repo\"; sudo dnf -q clean expire-cache",
+     "location": "/etc/yum.repos.d/cuda-*.repo",
+     "name": "cuda-repo",
+     "uninstall-cmd": "sudo rm -f /etc/yum.repos.d/cuda-*.repo",
+     "version-cmd": "ls /etc/yum.repos.d/cuda-*.repo >/dev/null 2>&1 && echo present",
+     "version-re": "(present)"
+    },
+    "name": "cuda-repo"
+   },
+   "script\\cuda-toolkit-12": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "sudo dnf install -y cuda-toolkit-12-6 && sudo ldconfig",
+     "latest-cmd": "dnf -q repoquery --qf '%{version}' cuda-toolkit-12-6 2>/dev/null | tail -1",
+     "location": "cuda-toolkit-12-6 (dnf)",
+     "name": "cuda-toolkit-12",
+     "uninstall-cmd": "sudo dnf remove -y cuda-toolkit-12-6",
+     "version-cmd": "rpm -q --qf %{VERSION} cuda-toolkit-12-6 2>/dev/null",
+     "version-re": "([0-9][0-9.+-]*)"
+    },
+    "name": "cuda-toolkit-12"
+   }
+  },
+  "cudnn-8": {
+   "dnf\\cuda-toolkit-11": {
+    "driver": "dnf",
+    "fields": {
+     "name": "cuda"
+    },
+    "name": "cuda"
+   },
+   "script\\cuda-repo": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "set -e; . /etc/os-release; case \"$ID\" in fedora) SEG=\"fedora$VERSION_ID\";; *) SEG=\"rhel${VERSION_ID%%.*}\";; esac; A=\"$(uname -m)\"; if [ \"$A\" = aarch64 ]; then A=sbsa; else A=x86_64; fi; sudo dnf config-manager --add-repo \"https://developer.download.nvidia.com/compute/cuda/repos/$SEG/$A/cuda-$SEG.repo\"; sudo dnf -q clean expire-cache",
+     "location": "/etc/yum.repos.d/cuda-*.repo",
+     "name": "cuda-repo",
+     "uninstall-cmd": "sudo rm -f /etc/yum.repos.d/cuda-*.repo",
+     "version-cmd": "ls /etc/yum.repos.d/cuda-*.repo >/dev/null 2>&1 && echo present",
+     "version-re": "(present)"
+    },
+    "name": "cuda-repo"
+   },
+   "script\\cudnn-8": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "sudo dnf install -y libcudnn8-devel && sudo ldconfig",
+     "latest-cmd": "dnf -q repoquery --qf '%{version}' libcudnn8-devel 2>/dev/null | tail -1",
+     "location": "libcudnn8-devel (dnf) + ldconfig cache",
+     "name": "cudnn-8",
+     "uninstall-cmd": "sudo dnf remove -y libcudnn8-devel && sudo ldconfig",
+     "version-cmd": "rpm -q --qf %{VERSION} libcudnn8-devel 2>/dev/null",
+     "version-re": "([0-9][0-9.+-]*)"
+    },
+    "name": "cudnn-8"
+   }
+  },
+  "cudnn-9": {
+   "script\\cuda-repo": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "set -e; . /etc/os-release; case \"$ID\" in fedora) SEG=\"fedora$VERSION_ID\";; *) SEG=\"rhel${VERSION_ID%%.*}\";; esac; A=\"$(uname -m)\"; if [ \"$A\" = aarch64 ]; then A=sbsa; else A=x86_64; fi; sudo dnf config-manager --add-repo \"https://developer.download.nvidia.com/compute/cuda/repos/$SEG/$A/cuda-$SEG.repo\"; sudo dnf -q clean expire-cache",
+     "location": "/etc/yum.repos.d/cuda-*.repo",
+     "name": "cuda-repo",
+     "uninstall-cmd": "sudo rm -f /etc/yum.repos.d/cuda-*.repo",
+     "version-cmd": "ls /etc/yum.repos.d/cuda-*.repo >/dev/null 2>&1 && echo present",
+     "version-re": "(present)"
+    },
+    "name": "cuda-repo"
+   },
+   "script\\cuda-toolkit-12": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "sudo dnf install -y cuda-toolkit-12-6 && sudo ldconfig",
+     "latest-cmd": "dnf -q repoquery --qf '%{version}' cuda-toolkit-12-6 2>/dev/null | tail -1",
+     "location": "cuda-toolkit-12-6 (dnf)",
+     "name": "cuda-toolkit-12",
+     "uninstall-cmd": "sudo dnf remove -y cuda-toolkit-12-6",
+     "version-cmd": "rpm -q --qf %{VERSION} cuda-toolkit-12-6 2>/dev/null",
+     "version-re": "([0-9][0-9.+-]*)"
+    },
+    "name": "cuda-toolkit-12"
+   },
+   "script\\cudnn-9": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "sudo dnf install -y libcudnn9-devel-cuda-12 && sudo ldconfig",
+     "latest-cmd": "dnf -q repoquery --qf '%{version}' libcudnn9-devel-cuda-12 2>/dev/null | tail -1",
+     "location": "libcudnn9-devel-cuda-12 (dnf) + ldconfig cache",
+     "name": "cudnn-9",
+     "uninstall-cmd": "sudo dnf remove -y libcudnn9-devel-cuda-12 && sudo ldconfig",
+     "version-cmd": "rpm -q --qf %{VERSION} libcudnn9-devel-cuda-12 2>/dev/null",
+     "version-re": "([0-9][0-9.+-]*)"
+    },
+    "name": "cudnn-9"
    }
   },
   "curl": {
@@ -22823,13 +23320,128 @@
     "name": "cppcheck"
    }
   },
-  "cuda-toolkit": {
-   "dnf\\cuda-toolkit": {
+  "cuda-repo": {
+   "script\\cuda-repo": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "set -e; . /etc/os-release; case \"$ID\" in fedora) SEG=\"fedora$VERSION_ID\";; *) SEG=\"rhel${VERSION_ID%%.*}\";; esac; A=\"$(uname -m)\"; if [ \"$A\" = aarch64 ]; then A=sbsa; else A=x86_64; fi; sudo dnf config-manager --add-repo \"https://developer.download.nvidia.com/compute/cuda/repos/$SEG/$A/cuda-$SEG.repo\"; sudo dnf -q clean expire-cache",
+     "location": "/etc/yum.repos.d/cuda-*.repo",
+     "name": "cuda-repo",
+     "uninstall-cmd": "sudo rm -f /etc/yum.repos.d/cuda-*.repo",
+     "version-cmd": "ls /etc/yum.repos.d/cuda-*.repo >/dev/null 2>&1 && echo present",
+     "version-re": "(present)"
+    },
+    "name": "cuda-repo"
+   }
+  },
+  "cuda-toolkit-11": {
+   "dnf\\cuda-toolkit-11": {
     "driver": "dnf",
     "fields": {
      "name": "cuda"
     },
     "name": "cuda"
+   }
+  },
+  "cuda-toolkit-12": {
+   "script\\cuda-repo": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "set -e; . /etc/os-release; case \"$ID\" in fedora) SEG=\"fedora$VERSION_ID\";; *) SEG=\"rhel${VERSION_ID%%.*}\";; esac; A=\"$(uname -m)\"; if [ \"$A\" = aarch64 ]; then A=sbsa; else A=x86_64; fi; sudo dnf config-manager --add-repo \"https://developer.download.nvidia.com/compute/cuda/repos/$SEG/$A/cuda-$SEG.repo\"; sudo dnf -q clean expire-cache",
+     "location": "/etc/yum.repos.d/cuda-*.repo",
+     "name": "cuda-repo",
+     "uninstall-cmd": "sudo rm -f /etc/yum.repos.d/cuda-*.repo",
+     "version-cmd": "ls /etc/yum.repos.d/cuda-*.repo >/dev/null 2>&1 && echo present",
+     "version-re": "(present)"
+    },
+    "name": "cuda-repo"
+   },
+   "script\\cuda-toolkit-12": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "sudo dnf install -y cuda-toolkit-12-6 && sudo ldconfig",
+     "latest-cmd": "dnf -q repoquery --qf '%{version}' cuda-toolkit-12-6 2>/dev/null | tail -1",
+     "location": "cuda-toolkit-12-6 (dnf)",
+     "name": "cuda-toolkit-12",
+     "uninstall-cmd": "sudo dnf remove -y cuda-toolkit-12-6",
+     "version-cmd": "rpm -q --qf %{VERSION} cuda-toolkit-12-6 2>/dev/null",
+     "version-re": "([0-9][0-9.+-]*)"
+    },
+    "name": "cuda-toolkit-12"
+   }
+  },
+  "cudnn-8": {
+   "dnf\\cuda-toolkit-11": {
+    "driver": "dnf",
+    "fields": {
+     "name": "cuda"
+    },
+    "name": "cuda"
+   },
+   "script\\cuda-repo": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "set -e; . /etc/os-release; case \"$ID\" in fedora) SEG=\"fedora$VERSION_ID\";; *) SEG=\"rhel${VERSION_ID%%.*}\";; esac; A=\"$(uname -m)\"; if [ \"$A\" = aarch64 ]; then A=sbsa; else A=x86_64; fi; sudo dnf config-manager --add-repo \"https://developer.download.nvidia.com/compute/cuda/repos/$SEG/$A/cuda-$SEG.repo\"; sudo dnf -q clean expire-cache",
+     "location": "/etc/yum.repos.d/cuda-*.repo",
+     "name": "cuda-repo",
+     "uninstall-cmd": "sudo rm -f /etc/yum.repos.d/cuda-*.repo",
+     "version-cmd": "ls /etc/yum.repos.d/cuda-*.repo >/dev/null 2>&1 && echo present",
+     "version-re": "(present)"
+    },
+    "name": "cuda-repo"
+   },
+   "script\\cudnn-8": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "sudo dnf install -y libcudnn8-devel && sudo ldconfig",
+     "latest-cmd": "dnf -q repoquery --qf '%{version}' libcudnn8-devel 2>/dev/null | tail -1",
+     "location": "libcudnn8-devel (dnf) + ldconfig cache",
+     "name": "cudnn-8",
+     "uninstall-cmd": "sudo dnf remove -y libcudnn8-devel && sudo ldconfig",
+     "version-cmd": "rpm -q --qf %{VERSION} libcudnn8-devel 2>/dev/null",
+     "version-re": "([0-9][0-9.+-]*)"
+    },
+    "name": "cudnn-8"
+   }
+  },
+  "cudnn-9": {
+   "script\\cuda-repo": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "set -e; . /etc/os-release; case \"$ID\" in fedora) SEG=\"fedora$VERSION_ID\";; *) SEG=\"rhel${VERSION_ID%%.*}\";; esac; A=\"$(uname -m)\"; if [ \"$A\" = aarch64 ]; then A=sbsa; else A=x86_64; fi; sudo dnf config-manager --add-repo \"https://developer.download.nvidia.com/compute/cuda/repos/$SEG/$A/cuda-$SEG.repo\"; sudo dnf -q clean expire-cache",
+     "location": "/etc/yum.repos.d/cuda-*.repo",
+     "name": "cuda-repo",
+     "uninstall-cmd": "sudo rm -f /etc/yum.repos.d/cuda-*.repo",
+     "version-cmd": "ls /etc/yum.repos.d/cuda-*.repo >/dev/null 2>&1 && echo present",
+     "version-re": "(present)"
+    },
+    "name": "cuda-repo"
+   },
+   "script\\cuda-toolkit-12": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "sudo dnf install -y cuda-toolkit-12-6 && sudo ldconfig",
+     "latest-cmd": "dnf -q repoquery --qf '%{version}' cuda-toolkit-12-6 2>/dev/null | tail -1",
+     "location": "cuda-toolkit-12-6 (dnf)",
+     "name": "cuda-toolkit-12",
+     "uninstall-cmd": "sudo dnf remove -y cuda-toolkit-12-6",
+     "version-cmd": "rpm -q --qf %{VERSION} cuda-toolkit-12-6 2>/dev/null",
+     "version-re": "([0-9][0-9.+-]*)"
+    },
+    "name": "cuda-toolkit-12"
+   },
+   "script\\cudnn-9": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "sudo dnf install -y libcudnn9-devel-cuda-12 && sudo ldconfig",
+     "latest-cmd": "dnf -q repoquery --qf '%{version}' libcudnn9-devel-cuda-12 2>/dev/null | tail -1",
+     "location": "libcudnn9-devel-cuda-12 (dnf) + ldconfig cache",
+     "name": "cudnn-9",
+     "uninstall-cmd": "sudo dnf remove -y libcudnn9-devel-cuda-12 && sudo ldconfig",
+     "version-cmd": "rpm -q --qf %{VERSION} libcudnn9-devel-cuda-12 2>/dev/null",
+     "version-re": "([0-9][0-9.+-]*)"
+    },
+    "name": "cudnn-9"
    }
   },
   "curl": {
@@ -26721,13 +27333,13 @@
     "name": "cppcheck"
    }
   },
-  "cuda-toolkit": {
-   "brew\\cuda-toolkit": {
+  "cuda-toolkit-11": {
+   "brew\\cuda-toolkit-11": {
     "driver": "brew",
     "fields": {
-     "name": "cuda-toolkit"
+     "name": "cuda-toolkit-11"
     },
-    "name": "cuda-toolkit"
+    "name": "cuda-toolkit-11"
    }
   },
   "curl": {
@@ -30134,13 +30746,132 @@
     "name": "cppcheck"
    }
   },
-  "cuda-toolkit": {
-   "apt\\cuda-toolkit": {
+  "cuda-repo": {
+   "script\\cuda-repo": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "set -e; . /etc/os-release; if [ -n \"${UBUNTU_CODENAME:-}\" ]; then case \"$UBUNTU_CODENAME\" in focal) SEG=ubuntu2004;; jammy) SEG=ubuntu2204;; noble) SEG=ubuntu2404;; *) SEG=ubuntu2204;; esac; elif [ \"$ID\" = debian ]; then SEG=\"debian${VERSION_ID%%.*}\"; else SEG=\"${ID}$(echo \"$VERSION_ID\" | tr -d .)\"; fi; A=\"$(uname -m)\"; if [ \"$A\" = aarch64 ]; then A=sbsa; else A=x86_64; fi; T=\"$(mktemp -d)\"; curl -fSL \"https://developer.download.nvidia.com/compute/cuda/repos/$SEG/$A/cuda-keyring_1.1-1_all.deb\" -o \"$T/k.deb\"; sudo dpkg -i \"$T/k.deb\"; sudo apt-get update; rm -rf \"$T\"",
+     "latest-cmd": "apt-cache policy cuda-keyring 2>/dev/null | grep Candidate",
+     "location": "/etc/apt/sources.list.d/cuda-*.list (+ cuda-keyring)",
+     "name": "cuda-repo",
+     "uninstall-cmd": "sudo apt-get remove -y cuda-keyring",
+     "version-cmd": "dpkg-query -W -f='${Version}' cuda-keyring 2>/dev/null",
+     "version-re": "([0-9][0-9.+-]*)"
+    },
+    "name": "cuda-repo"
+   }
+  },
+  "cuda-toolkit-11": {
+   "apt\\cuda-toolkit-11": {
     "driver": "apt",
     "fields": {
      "name": "nvidia-cuda-toolkit"
     },
     "name": "nvidia-cuda-toolkit"
+   }
+  },
+  "cuda-toolkit-12": {
+   "script\\cuda-repo": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "set -e; . /etc/os-release; if [ -n \"${UBUNTU_CODENAME:-}\" ]; then case \"$UBUNTU_CODENAME\" in focal) SEG=ubuntu2004;; jammy) SEG=ubuntu2204;; noble) SEG=ubuntu2404;; *) SEG=ubuntu2204;; esac; elif [ \"$ID\" = debian ]; then SEG=\"debian${VERSION_ID%%.*}\"; else SEG=\"${ID}$(echo \"$VERSION_ID\" | tr -d .)\"; fi; A=\"$(uname -m)\"; if [ \"$A\" = aarch64 ]; then A=sbsa; else A=x86_64; fi; T=\"$(mktemp -d)\"; curl -fSL \"https://developer.download.nvidia.com/compute/cuda/repos/$SEG/$A/cuda-keyring_1.1-1_all.deb\" -o \"$T/k.deb\"; sudo dpkg -i \"$T/k.deb\"; sudo apt-get update; rm -rf \"$T\"",
+     "latest-cmd": "apt-cache policy cuda-keyring 2>/dev/null | grep Candidate",
+     "location": "/etc/apt/sources.list.d/cuda-*.list (+ cuda-keyring)",
+     "name": "cuda-repo",
+     "uninstall-cmd": "sudo apt-get remove -y cuda-keyring",
+     "version-cmd": "dpkg-query -W -f='${Version}' cuda-keyring 2>/dev/null",
+     "version-re": "([0-9][0-9.+-]*)"
+    },
+    "name": "cuda-repo"
+   },
+   "script\\cuda-toolkit-12": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "sudo apt-get install -y cuda-toolkit-12-6 && sudo ldconfig",
+     "latest-cmd": "apt-cache policy cuda-toolkit-12-6 2>/dev/null | grep Candidate",
+     "location": "cuda-toolkit-12-6 (apt)",
+     "name": "cuda-toolkit-12",
+     "uninstall-cmd": "sudo apt-get remove -y cuda-toolkit-12-6 && sudo ldconfig",
+     "version-cmd": "dpkg-query -W -f='${Version}' cuda-toolkit-12-6 2>/dev/null",
+     "version-re": "([0-9][0-9.+-]*)"
+    },
+    "name": "cuda-toolkit-12"
+   }
+  },
+  "cudnn-8": {
+   "apt\\cuda-toolkit-11": {
+    "driver": "apt",
+    "fields": {
+     "name": "nvidia-cuda-toolkit"
+    },
+    "name": "nvidia-cuda-toolkit"
+   },
+   "script\\cuda-repo": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "set -e; . /etc/os-release; if [ -n \"${UBUNTU_CODENAME:-}\" ]; then case \"$UBUNTU_CODENAME\" in focal) SEG=ubuntu2004;; jammy) SEG=ubuntu2204;; noble) SEG=ubuntu2404;; *) SEG=ubuntu2204;; esac; elif [ \"$ID\" = debian ]; then SEG=\"debian${VERSION_ID%%.*}\"; else SEG=\"${ID}$(echo \"$VERSION_ID\" | tr -d .)\"; fi; A=\"$(uname -m)\"; if [ \"$A\" = aarch64 ]; then A=sbsa; else A=x86_64; fi; T=\"$(mktemp -d)\"; curl -fSL \"https://developer.download.nvidia.com/compute/cuda/repos/$SEG/$A/cuda-keyring_1.1-1_all.deb\" -o \"$T/k.deb\"; sudo dpkg -i \"$T/k.deb\"; sudo apt-get update; rm -rf \"$T\"",
+     "latest-cmd": "apt-cache policy cuda-keyring 2>/dev/null | grep Candidate",
+     "location": "/etc/apt/sources.list.d/cuda-*.list (+ cuda-keyring)",
+     "name": "cuda-repo",
+     "uninstall-cmd": "sudo apt-get remove -y cuda-keyring",
+     "version-cmd": "dpkg-query -W -f='${Version}' cuda-keyring 2>/dev/null",
+     "version-re": "([0-9][0-9.+-]*)"
+    },
+    "name": "cuda-repo"
+   },
+   "script\\cudnn-8": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "sudo apt-get install -y libcudnn8-dev && sudo ldconfig",
+     "latest-cmd": "apt-cache policy libcudnn8-dev 2>/dev/null | grep Candidate",
+     "location": "libcudnn8-dev (apt) + ldconfig cache",
+     "name": "cudnn-8",
+     "uninstall-cmd": "sudo apt-get remove -y libcudnn8-dev && sudo ldconfig",
+     "version-cmd": "dpkg-query -W -f='${Version}' libcudnn8-dev 2>/dev/null",
+     "version-re": "([0-9][0-9.+-]*)"
+    },
+    "name": "cudnn-8"
+   }
+  },
+  "cudnn-9": {
+   "script\\cuda-repo": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "set -e; . /etc/os-release; if [ -n \"${UBUNTU_CODENAME:-}\" ]; then case \"$UBUNTU_CODENAME\" in focal) SEG=ubuntu2004;; jammy) SEG=ubuntu2204;; noble) SEG=ubuntu2404;; *) SEG=ubuntu2204;; esac; elif [ \"$ID\" = debian ]; then SEG=\"debian${VERSION_ID%%.*}\"; else SEG=\"${ID}$(echo \"$VERSION_ID\" | tr -d .)\"; fi; A=\"$(uname -m)\"; if [ \"$A\" = aarch64 ]; then A=sbsa; else A=x86_64; fi; T=\"$(mktemp -d)\"; curl -fSL \"https://developer.download.nvidia.com/compute/cuda/repos/$SEG/$A/cuda-keyring_1.1-1_all.deb\" -o \"$T/k.deb\"; sudo dpkg -i \"$T/k.deb\"; sudo apt-get update; rm -rf \"$T\"",
+     "latest-cmd": "apt-cache policy cuda-keyring 2>/dev/null | grep Candidate",
+     "location": "/etc/apt/sources.list.d/cuda-*.list (+ cuda-keyring)",
+     "name": "cuda-repo",
+     "uninstall-cmd": "sudo apt-get remove -y cuda-keyring",
+     "version-cmd": "dpkg-query -W -f='${Version}' cuda-keyring 2>/dev/null",
+     "version-re": "([0-9][0-9.+-]*)"
+    },
+    "name": "cuda-repo"
+   },
+   "script\\cuda-toolkit-12": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "sudo apt-get install -y cuda-toolkit-12-6 && sudo ldconfig",
+     "latest-cmd": "apt-cache policy cuda-toolkit-12-6 2>/dev/null | grep Candidate",
+     "location": "cuda-toolkit-12-6 (apt)",
+     "name": "cuda-toolkit-12",
+     "uninstall-cmd": "sudo apt-get remove -y cuda-toolkit-12-6 && sudo ldconfig",
+     "version-cmd": "dpkg-query -W -f='${Version}' cuda-toolkit-12-6 2>/dev/null",
+     "version-re": "([0-9][0-9.+-]*)"
+    },
+    "name": "cuda-toolkit-12"
+   },
+   "script\\cudnn-9": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "sudo apt-get install -y libcudnn9-dev-cuda-12 && sudo ldconfig",
+     "latest-cmd": "apt-cache policy libcudnn9-dev-cuda-12 2>/dev/null | grep Candidate",
+     "location": "libcudnn9-dev-cuda-12 (apt) + ldconfig cache",
+     "name": "cudnn-9",
+     "uninstall-cmd": "sudo apt-get remove -y libcudnn9-dev-cuda-12 && sudo ldconfig",
+     "version-cmd": "dpkg-query -W -f='${Version}' libcudnn9-dev-cuda-12 2>/dev/null",
+     "version-re": "([0-9][0-9.+-]*)"
+    },
+    "name": "cudnn-9"
    }
   },
   "curl": {
@@ -34731,13 +35462,128 @@
     "name": "cppcheck"
    }
   },
-  "cuda-toolkit": {
-   "dnf\\cuda-toolkit": {
+  "cuda-repo": {
+   "script\\cuda-repo": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "set -e; . /etc/os-release; case \"$ID\" in fedora) SEG=\"fedora$VERSION_ID\";; *) SEG=\"rhel${VERSION_ID%%.*}\";; esac; A=\"$(uname -m)\"; if [ \"$A\" = aarch64 ]; then A=sbsa; else A=x86_64; fi; sudo dnf config-manager --add-repo \"https://developer.download.nvidia.com/compute/cuda/repos/$SEG/$A/cuda-$SEG.repo\"; sudo dnf -q clean expire-cache",
+     "location": "/etc/yum.repos.d/cuda-*.repo",
+     "name": "cuda-repo",
+     "uninstall-cmd": "sudo rm -f /etc/yum.repos.d/cuda-*.repo",
+     "version-cmd": "ls /etc/yum.repos.d/cuda-*.repo >/dev/null 2>&1 && echo present",
+     "version-re": "(present)"
+    },
+    "name": "cuda-repo"
+   }
+  },
+  "cuda-toolkit-11": {
+   "dnf\\cuda-toolkit-11": {
     "driver": "dnf",
     "fields": {
      "name": "cuda"
     },
     "name": "cuda"
+   }
+  },
+  "cuda-toolkit-12": {
+   "script\\cuda-repo": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "set -e; . /etc/os-release; case \"$ID\" in fedora) SEG=\"fedora$VERSION_ID\";; *) SEG=\"rhel${VERSION_ID%%.*}\";; esac; A=\"$(uname -m)\"; if [ \"$A\" = aarch64 ]; then A=sbsa; else A=x86_64; fi; sudo dnf config-manager --add-repo \"https://developer.download.nvidia.com/compute/cuda/repos/$SEG/$A/cuda-$SEG.repo\"; sudo dnf -q clean expire-cache",
+     "location": "/etc/yum.repos.d/cuda-*.repo",
+     "name": "cuda-repo",
+     "uninstall-cmd": "sudo rm -f /etc/yum.repos.d/cuda-*.repo",
+     "version-cmd": "ls /etc/yum.repos.d/cuda-*.repo >/dev/null 2>&1 && echo present",
+     "version-re": "(present)"
+    },
+    "name": "cuda-repo"
+   },
+   "script\\cuda-toolkit-12": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "sudo dnf install -y cuda-toolkit-12-6 && sudo ldconfig",
+     "latest-cmd": "dnf -q repoquery --qf '%{version}' cuda-toolkit-12-6 2>/dev/null | tail -1",
+     "location": "cuda-toolkit-12-6 (dnf)",
+     "name": "cuda-toolkit-12",
+     "uninstall-cmd": "sudo dnf remove -y cuda-toolkit-12-6",
+     "version-cmd": "rpm -q --qf %{VERSION} cuda-toolkit-12-6 2>/dev/null",
+     "version-re": "([0-9][0-9.+-]*)"
+    },
+    "name": "cuda-toolkit-12"
+   }
+  },
+  "cudnn-8": {
+   "dnf\\cuda-toolkit-11": {
+    "driver": "dnf",
+    "fields": {
+     "name": "cuda"
+    },
+    "name": "cuda"
+   },
+   "script\\cuda-repo": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "set -e; . /etc/os-release; case \"$ID\" in fedora) SEG=\"fedora$VERSION_ID\";; *) SEG=\"rhel${VERSION_ID%%.*}\";; esac; A=\"$(uname -m)\"; if [ \"$A\" = aarch64 ]; then A=sbsa; else A=x86_64; fi; sudo dnf config-manager --add-repo \"https://developer.download.nvidia.com/compute/cuda/repos/$SEG/$A/cuda-$SEG.repo\"; sudo dnf -q clean expire-cache",
+     "location": "/etc/yum.repos.d/cuda-*.repo",
+     "name": "cuda-repo",
+     "uninstall-cmd": "sudo rm -f /etc/yum.repos.d/cuda-*.repo",
+     "version-cmd": "ls /etc/yum.repos.d/cuda-*.repo >/dev/null 2>&1 && echo present",
+     "version-re": "(present)"
+    },
+    "name": "cuda-repo"
+   },
+   "script\\cudnn-8": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "sudo dnf install -y libcudnn8-devel && sudo ldconfig",
+     "latest-cmd": "dnf -q repoquery --qf '%{version}' libcudnn8-devel 2>/dev/null | tail -1",
+     "location": "libcudnn8-devel (dnf) + ldconfig cache",
+     "name": "cudnn-8",
+     "uninstall-cmd": "sudo dnf remove -y libcudnn8-devel && sudo ldconfig",
+     "version-cmd": "rpm -q --qf %{VERSION} libcudnn8-devel 2>/dev/null",
+     "version-re": "([0-9][0-9.+-]*)"
+    },
+    "name": "cudnn-8"
+   }
+  },
+  "cudnn-9": {
+   "script\\cuda-repo": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "set -e; . /etc/os-release; case \"$ID\" in fedora) SEG=\"fedora$VERSION_ID\";; *) SEG=\"rhel${VERSION_ID%%.*}\";; esac; A=\"$(uname -m)\"; if [ \"$A\" = aarch64 ]; then A=sbsa; else A=x86_64; fi; sudo dnf config-manager --add-repo \"https://developer.download.nvidia.com/compute/cuda/repos/$SEG/$A/cuda-$SEG.repo\"; sudo dnf -q clean expire-cache",
+     "location": "/etc/yum.repos.d/cuda-*.repo",
+     "name": "cuda-repo",
+     "uninstall-cmd": "sudo rm -f /etc/yum.repos.d/cuda-*.repo",
+     "version-cmd": "ls /etc/yum.repos.d/cuda-*.repo >/dev/null 2>&1 && echo present",
+     "version-re": "(present)"
+    },
+    "name": "cuda-repo"
+   },
+   "script\\cuda-toolkit-12": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "sudo dnf install -y cuda-toolkit-12-6 && sudo ldconfig",
+     "latest-cmd": "dnf -q repoquery --qf '%{version}' cuda-toolkit-12-6 2>/dev/null | tail -1",
+     "location": "cuda-toolkit-12-6 (dnf)",
+     "name": "cuda-toolkit-12",
+     "uninstall-cmd": "sudo dnf remove -y cuda-toolkit-12-6",
+     "version-cmd": "rpm -q --qf %{VERSION} cuda-toolkit-12-6 2>/dev/null",
+     "version-re": "([0-9][0-9.+-]*)"
+    },
+    "name": "cuda-toolkit-12"
+   },
+   "script\\cudnn-9": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "sudo dnf install -y libcudnn9-devel-cuda-12 && sudo ldconfig",
+     "latest-cmd": "dnf -q repoquery --qf '%{version}' libcudnn9-devel-cuda-12 2>/dev/null | tail -1",
+     "location": "libcudnn9-devel-cuda-12 (dnf) + ldconfig cache",
+     "name": "cudnn-9",
+     "uninstall-cmd": "sudo dnf remove -y libcudnn9-devel-cuda-12 && sudo ldconfig",
+     "version-cmd": "rpm -q --qf %{VERSION} libcudnn9-devel-cuda-12 2>/dev/null",
+     "version-re": "([0-9][0-9.+-]*)"
+    },
+    "name": "cudnn-9"
    }
   },
   "curl": {
@@ -39274,13 +40120,132 @@
     "name": "cppcheck"
    }
   },
-  "cuda-toolkit": {
-   "apt\\cuda-toolkit": {
+  "cuda-repo": {
+   "script\\cuda-repo": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "set -e; . /etc/os-release; if [ -n \"${UBUNTU_CODENAME:-}\" ]; then case \"$UBUNTU_CODENAME\" in focal) SEG=ubuntu2004;; jammy) SEG=ubuntu2204;; noble) SEG=ubuntu2404;; *) SEG=ubuntu2204;; esac; elif [ \"$ID\" = debian ]; then SEG=\"debian${VERSION_ID%%.*}\"; else SEG=\"${ID}$(echo \"$VERSION_ID\" | tr -d .)\"; fi; A=\"$(uname -m)\"; if [ \"$A\" = aarch64 ]; then A=sbsa; else A=x86_64; fi; T=\"$(mktemp -d)\"; curl -fSL \"https://developer.download.nvidia.com/compute/cuda/repos/$SEG/$A/cuda-keyring_1.1-1_all.deb\" -o \"$T/k.deb\"; sudo dpkg -i \"$T/k.deb\"; sudo apt-get update; rm -rf \"$T\"",
+     "latest-cmd": "apt-cache policy cuda-keyring 2>/dev/null | grep Candidate",
+     "location": "/etc/apt/sources.list.d/cuda-*.list (+ cuda-keyring)",
+     "name": "cuda-repo",
+     "uninstall-cmd": "sudo apt-get remove -y cuda-keyring",
+     "version-cmd": "dpkg-query -W -f='${Version}' cuda-keyring 2>/dev/null",
+     "version-re": "([0-9][0-9.+-]*)"
+    },
+    "name": "cuda-repo"
+   }
+  },
+  "cuda-toolkit-11": {
+   "apt\\cuda-toolkit-11": {
     "driver": "apt",
     "fields": {
      "name": "nvidia-cuda-toolkit"
     },
     "name": "nvidia-cuda-toolkit"
+   }
+  },
+  "cuda-toolkit-12": {
+   "script\\cuda-repo": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "set -e; . /etc/os-release; if [ -n \"${UBUNTU_CODENAME:-}\" ]; then case \"$UBUNTU_CODENAME\" in focal) SEG=ubuntu2004;; jammy) SEG=ubuntu2204;; noble) SEG=ubuntu2404;; *) SEG=ubuntu2204;; esac; elif [ \"$ID\" = debian ]; then SEG=\"debian${VERSION_ID%%.*}\"; else SEG=\"${ID}$(echo \"$VERSION_ID\" | tr -d .)\"; fi; A=\"$(uname -m)\"; if [ \"$A\" = aarch64 ]; then A=sbsa; else A=x86_64; fi; T=\"$(mktemp -d)\"; curl -fSL \"https://developer.download.nvidia.com/compute/cuda/repos/$SEG/$A/cuda-keyring_1.1-1_all.deb\" -o \"$T/k.deb\"; sudo dpkg -i \"$T/k.deb\"; sudo apt-get update; rm -rf \"$T\"",
+     "latest-cmd": "apt-cache policy cuda-keyring 2>/dev/null | grep Candidate",
+     "location": "/etc/apt/sources.list.d/cuda-*.list (+ cuda-keyring)",
+     "name": "cuda-repo",
+     "uninstall-cmd": "sudo apt-get remove -y cuda-keyring",
+     "version-cmd": "dpkg-query -W -f='${Version}' cuda-keyring 2>/dev/null",
+     "version-re": "([0-9][0-9.+-]*)"
+    },
+    "name": "cuda-repo"
+   },
+   "script\\cuda-toolkit-12": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "sudo apt-get install -y cuda-toolkit-12-6 && sudo ldconfig",
+     "latest-cmd": "apt-cache policy cuda-toolkit-12-6 2>/dev/null | grep Candidate",
+     "location": "cuda-toolkit-12-6 (apt)",
+     "name": "cuda-toolkit-12",
+     "uninstall-cmd": "sudo apt-get remove -y cuda-toolkit-12-6 && sudo ldconfig",
+     "version-cmd": "dpkg-query -W -f='${Version}' cuda-toolkit-12-6 2>/dev/null",
+     "version-re": "([0-9][0-9.+-]*)"
+    },
+    "name": "cuda-toolkit-12"
+   }
+  },
+  "cudnn-8": {
+   "apt\\cuda-toolkit-11": {
+    "driver": "apt",
+    "fields": {
+     "name": "nvidia-cuda-toolkit"
+    },
+    "name": "nvidia-cuda-toolkit"
+   },
+   "script\\cuda-repo": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "set -e; . /etc/os-release; if [ -n \"${UBUNTU_CODENAME:-}\" ]; then case \"$UBUNTU_CODENAME\" in focal) SEG=ubuntu2004;; jammy) SEG=ubuntu2204;; noble) SEG=ubuntu2404;; *) SEG=ubuntu2204;; esac; elif [ \"$ID\" = debian ]; then SEG=\"debian${VERSION_ID%%.*}\"; else SEG=\"${ID}$(echo \"$VERSION_ID\" | tr -d .)\"; fi; A=\"$(uname -m)\"; if [ \"$A\" = aarch64 ]; then A=sbsa; else A=x86_64; fi; T=\"$(mktemp -d)\"; curl -fSL \"https://developer.download.nvidia.com/compute/cuda/repos/$SEG/$A/cuda-keyring_1.1-1_all.deb\" -o \"$T/k.deb\"; sudo dpkg -i \"$T/k.deb\"; sudo apt-get update; rm -rf \"$T\"",
+     "latest-cmd": "apt-cache policy cuda-keyring 2>/dev/null | grep Candidate",
+     "location": "/etc/apt/sources.list.d/cuda-*.list (+ cuda-keyring)",
+     "name": "cuda-repo",
+     "uninstall-cmd": "sudo apt-get remove -y cuda-keyring",
+     "version-cmd": "dpkg-query -W -f='${Version}' cuda-keyring 2>/dev/null",
+     "version-re": "([0-9][0-9.+-]*)"
+    },
+    "name": "cuda-repo"
+   },
+   "script\\cudnn-8": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "sudo apt-get install -y libcudnn8-dev && sudo ldconfig",
+     "latest-cmd": "apt-cache policy libcudnn8-dev 2>/dev/null | grep Candidate",
+     "location": "libcudnn8-dev (apt) + ldconfig cache",
+     "name": "cudnn-8",
+     "uninstall-cmd": "sudo apt-get remove -y libcudnn8-dev && sudo ldconfig",
+     "version-cmd": "dpkg-query -W -f='${Version}' libcudnn8-dev 2>/dev/null",
+     "version-re": "([0-9][0-9.+-]*)"
+    },
+    "name": "cudnn-8"
+   }
+  },
+  "cudnn-9": {
+   "script\\cuda-repo": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "set -e; . /etc/os-release; if [ -n \"${UBUNTU_CODENAME:-}\" ]; then case \"$UBUNTU_CODENAME\" in focal) SEG=ubuntu2004;; jammy) SEG=ubuntu2204;; noble) SEG=ubuntu2404;; *) SEG=ubuntu2204;; esac; elif [ \"$ID\" = debian ]; then SEG=\"debian${VERSION_ID%%.*}\"; else SEG=\"${ID}$(echo \"$VERSION_ID\" | tr -d .)\"; fi; A=\"$(uname -m)\"; if [ \"$A\" = aarch64 ]; then A=sbsa; else A=x86_64; fi; T=\"$(mktemp -d)\"; curl -fSL \"https://developer.download.nvidia.com/compute/cuda/repos/$SEG/$A/cuda-keyring_1.1-1_all.deb\" -o \"$T/k.deb\"; sudo dpkg -i \"$T/k.deb\"; sudo apt-get update; rm -rf \"$T\"",
+     "latest-cmd": "apt-cache policy cuda-keyring 2>/dev/null | grep Candidate",
+     "location": "/etc/apt/sources.list.d/cuda-*.list (+ cuda-keyring)",
+     "name": "cuda-repo",
+     "uninstall-cmd": "sudo apt-get remove -y cuda-keyring",
+     "version-cmd": "dpkg-query -W -f='${Version}' cuda-keyring 2>/dev/null",
+     "version-re": "([0-9][0-9.+-]*)"
+    },
+    "name": "cuda-repo"
+   },
+   "script\\cuda-toolkit-12": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "sudo apt-get install -y cuda-toolkit-12-6 && sudo ldconfig",
+     "latest-cmd": "apt-cache policy cuda-toolkit-12-6 2>/dev/null | grep Candidate",
+     "location": "cuda-toolkit-12-6 (apt)",
+     "name": "cuda-toolkit-12",
+     "uninstall-cmd": "sudo apt-get remove -y cuda-toolkit-12-6 && sudo ldconfig",
+     "version-cmd": "dpkg-query -W -f='${Version}' cuda-toolkit-12-6 2>/dev/null",
+     "version-re": "([0-9][0-9.+-]*)"
+    },
+    "name": "cuda-toolkit-12"
+   },
+   "script\\cudnn-9": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "sudo apt-get install -y libcudnn9-dev-cuda-12 && sudo ldconfig",
+     "latest-cmd": "apt-cache policy libcudnn9-dev-cuda-12 2>/dev/null | grep Candidate",
+     "location": "libcudnn9-dev-cuda-12 (apt) + ldconfig cache",
+     "name": "cudnn-9",
+     "uninstall-cmd": "sudo apt-get remove -y libcudnn9-dev-cuda-12 && sudo ldconfig",
+     "version-cmd": "dpkg-query -W -f='${Version}' libcudnn9-dev-cuda-12 2>/dev/null",
+     "version-re": "([0-9][0-9.+-]*)"
+    },
+    "name": "cudnn-9"
    }
   },
   "curl": {
@@ -43927,13 +44892,132 @@
     "name": "cppcheck"
    }
   },
-  "cuda-toolkit": {
-   "apt\\cuda-toolkit": {
+  "cuda-repo": {
+   "script\\cuda-repo": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "set -e; . /etc/os-release; if [ -n \"${UBUNTU_CODENAME:-}\" ]; then case \"$UBUNTU_CODENAME\" in focal) SEG=ubuntu2004;; jammy) SEG=ubuntu2204;; noble) SEG=ubuntu2404;; *) SEG=ubuntu2204;; esac; elif [ \"$ID\" = debian ]; then SEG=\"debian${VERSION_ID%%.*}\"; else SEG=\"${ID}$(echo \"$VERSION_ID\" | tr -d .)\"; fi; A=\"$(uname -m)\"; if [ \"$A\" = aarch64 ]; then A=sbsa; else A=x86_64; fi; T=\"$(mktemp -d)\"; curl -fSL \"https://developer.download.nvidia.com/compute/cuda/repos/$SEG/$A/cuda-keyring_1.1-1_all.deb\" -o \"$T/k.deb\"; sudo dpkg -i \"$T/k.deb\"; sudo apt-get update; rm -rf \"$T\"",
+     "latest-cmd": "apt-cache policy cuda-keyring 2>/dev/null | grep Candidate",
+     "location": "/etc/apt/sources.list.d/cuda-*.list (+ cuda-keyring)",
+     "name": "cuda-repo",
+     "uninstall-cmd": "sudo apt-get remove -y cuda-keyring",
+     "version-cmd": "dpkg-query -W -f='${Version}' cuda-keyring 2>/dev/null",
+     "version-re": "([0-9][0-9.+-]*)"
+    },
+    "name": "cuda-repo"
+   }
+  },
+  "cuda-toolkit-11": {
+   "apt\\cuda-toolkit-11": {
     "driver": "apt",
     "fields": {
      "name": "nvidia-cuda-toolkit"
     },
     "name": "nvidia-cuda-toolkit"
+   }
+  },
+  "cuda-toolkit-12": {
+   "script\\cuda-repo": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "set -e; . /etc/os-release; if [ -n \"${UBUNTU_CODENAME:-}\" ]; then case \"$UBUNTU_CODENAME\" in focal) SEG=ubuntu2004;; jammy) SEG=ubuntu2204;; noble) SEG=ubuntu2404;; *) SEG=ubuntu2204;; esac; elif [ \"$ID\" = debian ]; then SEG=\"debian${VERSION_ID%%.*}\"; else SEG=\"${ID}$(echo \"$VERSION_ID\" | tr -d .)\"; fi; A=\"$(uname -m)\"; if [ \"$A\" = aarch64 ]; then A=sbsa; else A=x86_64; fi; T=\"$(mktemp -d)\"; curl -fSL \"https://developer.download.nvidia.com/compute/cuda/repos/$SEG/$A/cuda-keyring_1.1-1_all.deb\" -o \"$T/k.deb\"; sudo dpkg -i \"$T/k.deb\"; sudo apt-get update; rm -rf \"$T\"",
+     "latest-cmd": "apt-cache policy cuda-keyring 2>/dev/null | grep Candidate",
+     "location": "/etc/apt/sources.list.d/cuda-*.list (+ cuda-keyring)",
+     "name": "cuda-repo",
+     "uninstall-cmd": "sudo apt-get remove -y cuda-keyring",
+     "version-cmd": "dpkg-query -W -f='${Version}' cuda-keyring 2>/dev/null",
+     "version-re": "([0-9][0-9.+-]*)"
+    },
+    "name": "cuda-repo"
+   },
+   "script\\cuda-toolkit-12": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "sudo apt-get install -y cuda-toolkit-12-6 && sudo ldconfig",
+     "latest-cmd": "apt-cache policy cuda-toolkit-12-6 2>/dev/null | grep Candidate",
+     "location": "cuda-toolkit-12-6 (apt)",
+     "name": "cuda-toolkit-12",
+     "uninstall-cmd": "sudo apt-get remove -y cuda-toolkit-12-6 && sudo ldconfig",
+     "version-cmd": "dpkg-query -W -f='${Version}' cuda-toolkit-12-6 2>/dev/null",
+     "version-re": "([0-9][0-9.+-]*)"
+    },
+    "name": "cuda-toolkit-12"
+   }
+  },
+  "cudnn-8": {
+   "apt\\cuda-toolkit-11": {
+    "driver": "apt",
+    "fields": {
+     "name": "nvidia-cuda-toolkit"
+    },
+    "name": "nvidia-cuda-toolkit"
+   },
+   "script\\cuda-repo": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "set -e; . /etc/os-release; if [ -n \"${UBUNTU_CODENAME:-}\" ]; then case \"$UBUNTU_CODENAME\" in focal) SEG=ubuntu2004;; jammy) SEG=ubuntu2204;; noble) SEG=ubuntu2404;; *) SEG=ubuntu2204;; esac; elif [ \"$ID\" = debian ]; then SEG=\"debian${VERSION_ID%%.*}\"; else SEG=\"${ID}$(echo \"$VERSION_ID\" | tr -d .)\"; fi; A=\"$(uname -m)\"; if [ \"$A\" = aarch64 ]; then A=sbsa; else A=x86_64; fi; T=\"$(mktemp -d)\"; curl -fSL \"https://developer.download.nvidia.com/compute/cuda/repos/$SEG/$A/cuda-keyring_1.1-1_all.deb\" -o \"$T/k.deb\"; sudo dpkg -i \"$T/k.deb\"; sudo apt-get update; rm -rf \"$T\"",
+     "latest-cmd": "apt-cache policy cuda-keyring 2>/dev/null | grep Candidate",
+     "location": "/etc/apt/sources.list.d/cuda-*.list (+ cuda-keyring)",
+     "name": "cuda-repo",
+     "uninstall-cmd": "sudo apt-get remove -y cuda-keyring",
+     "version-cmd": "dpkg-query -W -f='${Version}' cuda-keyring 2>/dev/null",
+     "version-re": "([0-9][0-9.+-]*)"
+    },
+    "name": "cuda-repo"
+   },
+   "script\\cudnn-8": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "sudo apt-get install -y libcudnn8-dev && sudo ldconfig",
+     "latest-cmd": "apt-cache policy libcudnn8-dev 2>/dev/null | grep Candidate",
+     "location": "libcudnn8-dev (apt) + ldconfig cache",
+     "name": "cudnn-8",
+     "uninstall-cmd": "sudo apt-get remove -y libcudnn8-dev && sudo ldconfig",
+     "version-cmd": "dpkg-query -W -f='${Version}' libcudnn8-dev 2>/dev/null",
+     "version-re": "([0-9][0-9.+-]*)"
+    },
+    "name": "cudnn-8"
+   }
+  },
+  "cudnn-9": {
+   "script\\cuda-repo": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "set -e; . /etc/os-release; if [ -n \"${UBUNTU_CODENAME:-}\" ]; then case \"$UBUNTU_CODENAME\" in focal) SEG=ubuntu2004;; jammy) SEG=ubuntu2204;; noble) SEG=ubuntu2404;; *) SEG=ubuntu2204;; esac; elif [ \"$ID\" = debian ]; then SEG=\"debian${VERSION_ID%%.*}\"; else SEG=\"${ID}$(echo \"$VERSION_ID\" | tr -d .)\"; fi; A=\"$(uname -m)\"; if [ \"$A\" = aarch64 ]; then A=sbsa; else A=x86_64; fi; T=\"$(mktemp -d)\"; curl -fSL \"https://developer.download.nvidia.com/compute/cuda/repos/$SEG/$A/cuda-keyring_1.1-1_all.deb\" -o \"$T/k.deb\"; sudo dpkg -i \"$T/k.deb\"; sudo apt-get update; rm -rf \"$T\"",
+     "latest-cmd": "apt-cache policy cuda-keyring 2>/dev/null | grep Candidate",
+     "location": "/etc/apt/sources.list.d/cuda-*.list (+ cuda-keyring)",
+     "name": "cuda-repo",
+     "uninstall-cmd": "sudo apt-get remove -y cuda-keyring",
+     "version-cmd": "dpkg-query -W -f='${Version}' cuda-keyring 2>/dev/null",
+     "version-re": "([0-9][0-9.+-]*)"
+    },
+    "name": "cuda-repo"
+   },
+   "script\\cuda-toolkit-12": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "sudo apt-get install -y cuda-toolkit-12-6 && sudo ldconfig",
+     "latest-cmd": "apt-cache policy cuda-toolkit-12-6 2>/dev/null | grep Candidate",
+     "location": "cuda-toolkit-12-6 (apt)",
+     "name": "cuda-toolkit-12",
+     "uninstall-cmd": "sudo apt-get remove -y cuda-toolkit-12-6 && sudo ldconfig",
+     "version-cmd": "dpkg-query -W -f='${Version}' cuda-toolkit-12-6 2>/dev/null",
+     "version-re": "([0-9][0-9.+-]*)"
+    },
+    "name": "cuda-toolkit-12"
+   },
+   "script\\cudnn-9": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "sudo apt-get install -y libcudnn9-dev-cuda-12 && sudo ldconfig",
+     "latest-cmd": "apt-cache policy libcudnn9-dev-cuda-12 2>/dev/null | grep Candidate",
+     "location": "libcudnn9-dev-cuda-12 (apt) + ldconfig cache",
+     "name": "cudnn-9",
+     "uninstall-cmd": "sudo apt-get remove -y libcudnn9-dev-cuda-12 && sudo ldconfig",
+     "version-cmd": "dpkg-query -W -f='${Version}' libcudnn9-dev-cuda-12 2>/dev/null",
+     "version-re": "([0-9][0-9.+-]*)"
+    },
+    "name": "cudnn-9"
    }
   },
   "curl": {
