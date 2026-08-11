@@ -105,7 +105,13 @@ plugins: [
   undeclared ones; report what changed; prompt for trust on new/changed **code** plugins.
 - `configsys plugin list` — installed plugins: name, version, ref, data‑only|code, trust
   status, what they provide.
-- `configsys plugin update [name]` — move the pin forward (re‑prompts trust on code change).
+- `configsys plugin update [name] [--ref R | --latest] [--pin]` — move a pin forward and re‑sync
+  (re‑prompts trust on code change). `--ref` pins an exact tag/commit/branch; `--latest` reads the
+  remote and pins to its newest **stable** version tag (`v?X.Y.Z`, numeric order — pre‑release/
+  suffixed tags ignored), falling back to `main` (or `master`) when a repo publishes no version
+  tags. **Omit the name** (or pass `--all`) to update *every* declared plugin, like `sync` — so
+  `configsys plugin update --latest` bumps them all; locally‑authored plugins are skipped, and a
+  per‑plugin ok/FAIL summary is printed (exit 1 if any failed).
 - `configsys plugin remove name` — drop from `plugins:` and delete the dir.
 - `configsys plugin trust|untrust name` — approve / revoke a code plugin's current content (§6).
 - `configsys plugin bless <source>` / `unbless` — designate (or clear) your **primary** personal
@@ -237,8 +243,9 @@ it; retrofitting versioning after plugins exist is the expensive path.
   git sync to pinned refs, `plugin`‑role layers in the stack, os‑block additions (derivative
   distros), `ABI_VERSION`/`ABI_SUPPORTED` + the `requires-abi` gate already live.
 - **P1.5 — the nice CLI. ✅ BUILT.** `configsys plugin add <source> [--ref R]` (declare + sync),
-  `remove <name>` (undeclare + delete the synced dir), `update <name> [--ref R]` (re-pin +
-  re-sync). Edits the `plugins:` list IN PLACE via a comment-preserving surgical rewrite
+  `remove <name>` (undeclare + delete the synced dir), `update [name] [--ref R | --latest]` (re-pin +
+  re-sync; no name / `--all` = every plugin; `--latest` = newest remote tag → `main`/`master`).
+  Edits the `plugins:` list IN PLACE via a comment-preserving surgical rewrite
   (`plugins.set_declared` replaces the `plugins:` node's exact `source_text` span, or inserts a
   block before the root's closing brace — every other line, comments and all, is untouched).
 - **P2 — code plugins.** Built on P1's proven sync, in slices:
