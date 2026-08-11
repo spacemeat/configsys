@@ -15,10 +15,9 @@ Semantics against a Context ⟨lineage, version, cpu, scale-roots⟩:
                          (so `debian < 12` never matches Pop, which is on ubuntu's scale)
   * cpu atom          -> the system cpu is in the set
 
-`not` is guarded to OS atoms by the (later) static ambiguity checker; evaluation here is
-general. Specificity is set-inclusion over a per-dimension "box"; it currently supports
-conjunctions of atoms (the "broad default + narrow overrides" idiom) and raises for
-or/not, which the full checker slice will handle.
+Evaluation is general over `and`/`or`/`not`. Specificity is set-inclusion over a per-dimension
+"box"; the grid-based ambiguity checker handles the full boolean case (`or`/`not` included), so
+negation is not restricted to OS atoms.
 '''
 
 import itertools

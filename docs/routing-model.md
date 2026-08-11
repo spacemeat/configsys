@@ -180,10 +180,11 @@ parser. The context is ⟨os-lineage, version, cpu⟩.
 
 **Operators:** `and`, `or`, `not` (or `!`), parentheses. Precedence `not > and > or`.
 
-**Guarded `not`.** Negation is restricted to **OS atoms only** (complement over OS
-subtrees). This keeps the ambiguity checker's complement operation to "subtree minus
-subtree" and dodges interval/cpu complements. It is exactly enough to carve family
-members apart:
+**Negation.** `not` (or `!`) complements any atom — an OS subtree, a `cpu:`/facet set, or a
+versioned bound. (It was historically restricted to OS atoms to keep the ambiguity checker's
+complement to "subtree minus subtree"; the grid-based checker handles the general case now, so that
+restriction is lifted — evaluation and the checker both accept `not`/`or` over any atom.) It is
+exactly enough to carve subtree members apart:
 
 ```
 { via: native  name: snapd  when: "ubuntu and not pop_os!" }   // snaps on bare Ubuntu, not Pop
@@ -415,9 +416,12 @@ Two different words, both "version":
 No comparative math on tool-versions or on capability labels — gcc's and clang's
 numbers are unrelated, and labels are equality-matched.
 
-## 12. What today's constructs become
+## 12. What the old constructs became (historical)
 
-| today | v2 |
+This maps the pre-migration `\family`/OS-cascade constructs (the "old" column — that resolver + data
+are now deleted) onto the capability model.
+
+| old (deleted v1) | capability model |
 | --- | --- |
 | `\apt btop {name: btop}` (×3 families) | `btop: { via: native }` |
 | `*: apt\*` wildcard | `debian: { native: apt }` |
@@ -430,14 +434,17 @@ numbers are unrelated, and labels are equality-matched.
 
 ## 13. Open questions
 
-- **Where driver-specific binding fields live** (`foreign-arch: i386`,
-  `repo-component: universe`, the apt `deb` mode) so apt-jargon doesn't leak onto every
-  component. Working hypothesis: they hang off the relevant binding as driver-scoped
-  fields, ignored by non-matching drivers.
-- **Sugar** for the trivial single-binding component (`btop: { via: native }` vs a
-  bare-string form).
-- **Capability-name hygiene** — a registry to catch typos, or rely on "nothing provides
-  X → error" (probably the latter).
+- **Sugar** for the trivial single-binding component (`btop: { via: native }` vs a bare-string
+  form) — never built; ~37 components spell out `install: [ { via: native } ]`. Still a live
+  decision: add the sugar or leave it explicit.
+
+Resolved since the first draft: **driver-specific binding fields** DO hang off the binding as
+driver-scoped fields, ignored by non-matching drivers (`repo-component:`, `debconf:` shipped);
+**capability-name hygiene** is the `dangling-requires` lint in routecheck (the "nothing provides
+X → warn" path), not a registry.
+
+The larger consolidation now under way — folding the preference cluster into one `standing`,
+version-scoped providers, detection-first resolution — lives in `docs/routing-overhaul-plan.md`.
 
 ## 14. Migration (parallel, iterated) — DONE (history)
 
