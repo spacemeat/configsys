@@ -86,8 +86,6 @@ def _merge_component_chain(name, chain):
 
 
 class Component:
-    _KEYS = _COMPONENT_KEYS
-
     def __init__(self, name, spec):
         self.source = None       # file this definition came from (provenance for `where`)
         self.shadows = False     # True if more than one layer contributed to this component
@@ -101,7 +99,6 @@ class Component:
         self.requires = cap_names(spec.get('requires'))
         self.req_versions = cap_constraints(spec.get('requires'))
         self.suggests = cap_names(spec.get('suggests'))   # soft deps: pulled if resolvable, else skipped
-        self.sug_versions = cap_constraints(spec.get('suggests'))
         self.parts = _as_list(spec.get('parts'))
         # opt-in provider: satisfies a `requires:` only when explicitly wanted (in a profile)
         # or provider-pinned — NEVER auto-pulled to close someone else's requirement. For

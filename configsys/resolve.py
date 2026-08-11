@@ -82,9 +82,6 @@ class Unit:
     def key(self):
         return f'{self.driver}\\{self.component}'
 
-    def as_tuple(self):
-        return (self.driver, self.component, self.package)
-
     def __repr__(self):
         return f'Unit({self.key} -> {self.package!r})'
 
@@ -297,21 +294,6 @@ def unit_for_binding(component, binding, cascade, block, overrides=None):
     unit.details = _install_fields(binding.details, unit.package)
     unit.source = binding.source or component.source
     return unit
-
-
-def resolve_one(name, cascade, components, block, version=None, cpu=None, overrides=None,
-                preference=None, candidate_only=None):
-    if name not in components:
-        raise ResolveError(f'unknown component: {name}')
-    comp = components[name]
-    ctx = cascade.context(block, version, cpu)
-    binding = select_binding(comp, cascade, ctx, None, preference, candidate_only)
-    drv = _driver(binding, cascade, block)
-    override, drop = _name_override(overrides, drv, name)
-    if drop:
-        raise ResolveError(f'{name}: no {drv} package here (dropped by component-names)')
-    package = override if override is not _NO_OVERRIDE else _package(binding, drv, comp)
-    return Unit(drv, name, package)
 
 
 # -- full resolution: the worklist to a fixpoint ---------------------------

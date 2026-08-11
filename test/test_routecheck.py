@@ -165,6 +165,18 @@ def test_validate_flags_dangling_requires_as_warning(cascade):
     assert xs and xs[0].kind == 'dangling-requires' and not xs[0].is_error
 
 
+def test_validate_survives_a_binding_level_versioned_requires(cascade):
+    '''Regression (D3): validate() iterated raw binding `requires:`, so a versioned entry
+    `[ { cargo: ">=1.96" } ]` (the versioned-requires shape) yielded a dict and crashed with
+    `TypeError: unhashable`. It must read the capability NAME via cap_names, like component-level.'''
+    good = _comp('vok', {'install': [{'via': 'native', 'requires': [{'cargo': '>=1.96'}]}]})
+    issues = _validate(cascade, {'vok': good})       # must not raise
+    assert 'dangling-requires' not in _kinds(issues, 'vok')   # cargo IS providable
+    bad = _comp('vbad', {'install': [{'via': 'native', 'requires': [{'nope-cap': '>=1'}]}]})
+    issues = _validate(cascade, {'vbad': bad})
+    assert 'dangling-requires' in _kinds(issues, 'vbad')      # by NAME, still linted
+
+
 def test_validate_flags_unknown_part(cascade):
     issues = _validate(cascade, {'x': _comp('x', {'install': [{'via': 'parts', 'parts': ['btop', 'ghost']}]})})
     assert 'unknown-part' in _kinds(issues, 'x')

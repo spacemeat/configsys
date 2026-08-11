@@ -117,6 +117,7 @@ def validate(components, cascade, drivers, pending_vias=frozenset()):
     loaded (untrusted / incompatible): they're known-but-unavailable, so they don't count as
     unknown-via errors here — the app surfaces a single "trust the plugin" nudge instead.'''
     from .drivers import supported_names
+    from .resolve import cap_names
     valid_via = _SPECIAL_VIA | supported_names() | set(pending_vias)
     providable = _providable_caps(components, cascade)
     issues = []
@@ -149,7 +150,7 @@ def validate(components, cascade, drivers, pending_vias=frozenset()):
                 if not b.details.get('uninstall-cmd'):
                     add('script-no-uninstall', 'via:script has no uninstall-cmd — configsys '
                         'cannot cleanly remove it (install still allowed)', comp, 'warning')
-            for cap in _as_list(b.details.get('requires')):
+            for cap in cap_names(b.details.get('requires')):   # cap_names: tolerates versioned {cap: floor} entries
                 if cap not in providable:
                     add('dangling-requires', f'requires {cap!r} which nothing provides', comp, 'warning')
         for cap in comp.requires:
