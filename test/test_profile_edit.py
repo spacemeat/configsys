@@ -172,6 +172,33 @@ def test_remove_profile_refuses_a_non_editable_layer(tmp_path):
     assert changed is False and 'not editable' in msg
 
 
+def test_membership_edit_never_writes_the_repo_baseline(tmp_path):
+    '''Regression: adding to a profile defined ONLY in the repo (e.g. `dev`) must NOT mutate the
+    shipped config.hu — it amends from the editable layer (top config / primary) via +self. Bug:
+    _profile_target returned profile_source() = the repo file, so TUI edits wrote into the repo.'''
+    import pathlib
+
+    from configsys import actions
+    ctx = _rctx(tmp_path)
+    repo_defined = 'dev'
+    assert repo_defined in ctx.config.profile_names()               # ships in the repo config.hu
+    repo_file = pathlib.Path(ctx.paths.config_file)
+    before = repo_file.read_text()
+
+    tf, _label = actions._profile_target(ctx, repo_defined)
+    assert str(tf) != str(repo_file)                                # never the repo
+    assert str(tf) == str(ctx.paths.user_config_file)               # -> this machine's top config
+
+    comp = 'hyperfine'                                             # a real component NOT in dev
+    assert comp not in ctx.config.profile_components(repo_defined)
+    changed, _lbl = actions.set_profile_membership(ctx, repo_defined, comp, 'add')
+    assert changed
+    assert comp in ctx.config.profile_components(repo_defined)      # effective (via +self amend)
+    assert repo_file.read_text() == before                         # the repo template is untouched
+    # the write landed in the top config as a self-amend, not a shadowing full copy
+    assert plugins.read_profiles(str(ctx.paths.user_config_file))[repo_defined][0] == '+' + repo_defined
+
+
 def test_remove_last_profile_keeps_the_file_and_comments(tmp_path):
     '''Regression: set_profiles({}) -> remove_sections used to take the whole file with the profiles
     node's bound leading comments, wiping the config to `{}`.'''

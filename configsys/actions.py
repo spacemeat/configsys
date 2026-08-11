@@ -31,11 +31,16 @@ def _dir_label(ctx, f):
 
 
 def _profile_target(ctx, profile):
-    '''Where a membership edit is EFFECTIVE: the profile's highest-precedence definition layer if
-    it's already defined (editing a lower layer would be shadowed by that definition), else the
-    portable default (primary-if-set) for a brand-new profile.'''
+    '''Where a membership edit is EFFECTIVE **and writable**: the profile's highest-precedence
+    definition layer when that layer is one we may edit — this machine's top config or the primary
+    plugin (editing a lower layer would be shadowed by that definition) — else the portable default
+    (primary-if-set, then top config). NEVER the repo baseline or a data plugin: when a profile is
+    defined only in a non-editable lower layer (e.g. the shipped `dev` in the repo's config.hu), the
+    term-algebra writer AMENDS it from the editable layer via `+self`, so the template stays
+    untouched. Mirrors remove_profile's `editable` set.'''
     src = ctx.config.profile_source(profile)
-    if src is not None:
+    editable = {str(ctx.paths.user_config_file), str(edit_target(ctx)[0])}
+    if src is not None and str(src) in editable:
         return str(src), _dir_label(ctx, src)
     return edit_target(ctx)
 
