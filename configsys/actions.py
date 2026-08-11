@@ -607,12 +607,23 @@ def plugin_remove(ctx, ident):
     return True, f'removed {target["source"]}{where}'
 
 
-def plugin_update(ctx, ident, ref=None, *, pin=False):
+def plugin_update(ctx, ident, ref=None, *, pin=False, latest=False):
     '''Re-pin a declared plugin's ref (if given) and re-sync it; `pin` re-records its sha256.
-    Returns (ok, message, results).'''
+    `latest` resolves the ref from the REMOTE — the newest stable version tag, else main/master
+    (see plugins.latest_ref) — and is mutually exclusive with an explicit `ref`. Returns
+    (ok, message, results).'''
     cfg_file, cur, target = _locate_decl(ctx, ident)
     if target is None:
         return False, f'no declared plugin matches {ident!r}', []
+    latest_note = ''
+    if latest:
+        if ref:
+            return False, 'pass either --ref or --latest, not both', []
+        ref, kind = plugins.latest_ref(ctx.runner, target['source'])
+        if ref is None:
+            return False, (f'could not resolve --latest for {target["source"]} — no version tags '
+                           f'and no main/master branch (unreachable or private?)'), []
+        latest_note = f' (latest {kind})'
     if ref:
         target['ref'] = ref
         plugins.set_declared(cfg_file, cur)
@@ -628,7 +639,8 @@ def plugin_update(ctx, ident, ref=None, *, pin=False):
                 f'sha256; quarantined until you re-pin (update --pin) or drop it')
     ctx.invalidate()
     where = '' if str(cfg_file) == str(ctx.paths.user_config_file) else f' in {Path(cfg_file).parent.name}'
-    msg = (f're-pinned {target["source"]} @{ref}{where}' if ref else f're-synced {target["source"]}')
+    msg = (f're-pinned {target["source"]} @{ref}{latest_note}{where}' if ref
+           else f're-synced {target["source"]}')
     return True, msg + warn, results
 
 

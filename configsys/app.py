@@ -1453,7 +1453,8 @@ def cmd_plugin(ctx, args):
 
     if sub == 'update':
         ok, msg, results = actions.plugin_update(ctx, args.name, args.ref,
-                                                 pin=getattr(args, 'pin', False))
+                                                 pin=getattr(args, 'pin', False),
+                                                 latest=getattr(args, 'latest', False))
         if not ok:
             print(f'configsys: {msg}')
             return 1
@@ -1959,9 +1960,11 @@ def build_parser():
                          'drop that one and use this source instead')
     pr = plsub.add_parser('remove', help='undeclare a plugin and delete its synced copy')
     pr.add_argument('name', help='plugin name, source, or dir')
-    pu = plsub.add_parser('update', help="re-sync a plugin (move its pin with --ref)")
+    pu = plsub.add_parser('update', help="re-sync a plugin (move its pin with --ref/--latest)")
     pu.add_argument('name', help='plugin name, source, or dir')
     pu.add_argument('--ref', help='new tag / commit / branch to pin to')
+    pu.add_argument('--latest', action='store_true',
+                    help="pin to the newest version tag on the remote (or main/master if it has none)")
     pu.add_argument('--pin', action='store_true', help='re-lock to the new synced content hash')
     pt = plsub.add_parser('trust', help="approve a code plugin's current content to run during installs")
     pt.add_argument('name', help='plugin name, source, or dir')

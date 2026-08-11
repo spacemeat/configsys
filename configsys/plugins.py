@@ -1026,6 +1026,40 @@ def _git_transport(runner, dest, source, ref):
     return 'cloned' if _git_checkout(runner, dq, ref) else 'failed'
 
 
+_SEMVER_TAG = re.compile(r'^v?\d+(?:\.\d+)*$')   # stable only: v1.2.3 / 1.2 — no -rc/-beta suffixes
+
+
+def _version_key(tag):
+    return tuple(int(p) for p in tag.lstrip('v').split('.'))
+
+
+def latest_ref(runner, source):
+    '''Resolve the ref that `plugin update --latest` should pin to, by reading the REMOTE (read-only
+    `git ls-remote`): the highest semver-style tag (`v?X.Y.Z`, stable only — pre-release/suffixed tags
+    are ignored), else the default branch (`main`, or `master` if there is no `main`). Returns
+    (ref, kind) with kind 'tag'|'branch', or (None, None) if the remote can't be read or offers
+    neither. Non-interactive, so a bad/private/offline source fails fast instead of prompting.'''
+    url = clone_url(source)
+    dq = shlex.quote(url)
+    genv = _noninteractive_git_env()
+    tags = runner.run(f'git ls-remote --tags --refs {dq}', capture=True, env=genv)
+    if tags is not None and tags.ok and tags.stdout:
+        vers = [ref for line in tags.stdout.splitlines()
+                if 'refs/tags/' in line
+                for ref in [line.rsplit('refs/tags/', 1)[-1].strip()]
+                if _SEMVER_TAG.match(ref)]
+        if vers:
+            return max(vers, key=_version_key), 'tag'
+    heads = runner.run(f'git ls-remote --heads {dq}', capture=True, env=genv)
+    if heads is not None and heads.ok and heads.stdout:
+        names = {line.rsplit('refs/heads/', 1)[-1].strip() for line in heads.stdout.splitlines()
+                 if 'refs/heads/' in line}
+        for branch in ('main', 'master'):
+            if branch in names:
+                return branch, 'branch'
+    return None, None
+
+
 # Registered sync transports (P2c): a plugin claims a `source:` scheme so `source:
 # "<scheme>:..."` syncs via its fn instead of git. scheme -> fn(runner, dest, source, ref) ->
 # action_str. Registration happens only from trusted plugin code (via load_code).
