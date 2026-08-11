@@ -97,15 +97,14 @@ class Driver:
 
     def resolve_version(self, rc, *, refresh=False):
         '''The version to install / treat as latest. A `version:` dict is a discovery
-        spec (github / url / static); a string is a literal; otherwise fall back to a
-        legacy $VERSION route var. Returns None if undiscoverable.'''
+        spec (github / url / static); a string is a literal; otherwise None (undiscoverable).'''
         spec = self._disco_spec(rc)
         if isinstance(spec, dict):
             from . import versions
             return versions.discover(spec, self.paths, refresh=refresh, offline=self._offline())
         if isinstance(spec, str) and spec:
             return spec
-        return rc.vars.get('$VERSION') or rc.vars.get('$SDKVERSION')
+        return None
 
     def download_url(self, rc, version):
         '''Preferred download URL: a matched github release asset (authoritative,

@@ -9,7 +9,7 @@ from configsys.runner import Result
 
 
 def rc(**fields):
-    return NS(name='app', driver='x', comp='app', fields=dict(fields), vars={})
+    return NS(name='app', driver='x', comp='app', fields=dict(fields))
 
 
 class _Stub(Driver):

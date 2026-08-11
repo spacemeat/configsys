@@ -15,8 +15,7 @@ class ResolvedComponent:
     driver: str                                 # e.g. "apt", "flatpak", "appImage"
     comp: str                                   # component name within the driver
     via: str = ''                               # the winning binding's `via:` (native/source/…) — maps binding-level floors back to the unit
-    fields: dict = field(default_factory=dict)  # driver-node fields ($vars substituted)
-    vars: dict = field(default_factory=dict)    # variables in scope (fonts, etc.)
+    fields: dict = field(default_factory=dict)  # driver-node install fields
     requested_as: set = field(default_factory=set)  # OS-level names that pulled it in
     deps: set = field(default_factory=set)      # unit keys this unit requires first
     source: str = ''                            # the .hu file that defined the component (content roots, diagnostics)

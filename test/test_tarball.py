@@ -12,8 +12,8 @@ from configsys.runner import Runner
 
 def tb_unit(installdir, url='https://x/y-1.2.3.tar.xz', version='1.2.3', comp='vulkan-sdk'):
     return ResolvedComponent(key=f'tarball\\{comp}', driver='tarball', comp=comp,
-                             fields={'url': url, 'installDir': str(installdir)},
-                             vars={'$SDKVERSION': version})
+                             fields={'url': url, 'installDir': str(installdir),
+                                     'version': {'static': version}})
 
 
 def test_registry_has_tarball():
@@ -136,8 +136,7 @@ def test_uninstall_guarded_by_marker(tmp_path):
 def test_installdir_expands_via_paths():
     p = Paths(env={'CONFIGSYS_HOME': '/sandbox'})
     rc = ResolvedComponent(key='tarball\\vulkan-sdk', driver='tarball', comp='vulkan-sdk',
-                           fields={'url': 'u', 'installDir': '~/vulkan'},
-                           vars={'$SDKVERSION': '1'})
+                           fields={'url': 'u', 'installDir': '~/vulkan'})
     tb = Tarball(Runner(pretend=True), paths=p)
     assert str(tb._marker(rc)) == '/sandbox/vulkan/.configsys-vulkan-sdk.version'
 
@@ -145,8 +144,7 @@ def test_installdir_expands_via_paths():
 def test_user_scope_relative_installdir_is_home():
     p = Paths(env={'CONFIGSYS_HOME': '/home/u'})
     rc = ResolvedComponent(key='tarball\\vulkan-sdk', driver='tarball', comp='vulkan-sdk',
-                           fields={'url': 'https://x/v.tar', 'installDir': 'vulkan'},
-                           vars={'$SDKVERSION': '1'})
+                           fields={'url': 'https://x/v.tar', 'installDir': 'vulkan'})
     r = Runner(pretend=True)
     Tarball(r, paths=p).install(rc)
     assert 'sudo' not in r.calls[0]
@@ -157,8 +155,7 @@ def test_system_scope_relative_installdir_is_opt_with_sudo():
     p = Paths(env={'CONFIGSYS_HOME': '/home/u'})
     rc = ResolvedComponent(key='tarball\\vulkan-sdk', driver='tarball', comp='vulkan-sdk',
                            fields={'url': 'https://x/v.tar', 'installDir': 'vulkan',
-                                   'scope': 'system'},
-                           vars={'$SDKVERSION': '1'})
+                                   'scope': 'system'})
     r = Runner(pretend=True)
     Tarball(r, paths=p).install(rc)
     assert r.calls[0].startswith('sudo ')
@@ -198,8 +195,8 @@ def test_real_download_extract_and_uninstall(tmp_path):
 
     inst = tmp_path / 'inst'
     rc = ResolvedComponent(key='tarball\\pkg', driver='tarball', comp='pkg',
-                           fields={'url': f'file://{tarpath}', 'installDir': str(inst)},
-                           vars={'$SDKVERSION': '9.9'})
+                           fields={'url': f'file://{tarpath}', 'installDir': str(inst),
+                                   'version': {'static': '9.9'}})
     tb = Tarball(Runner(pretend=False), paths=None)
 
     res = tb.install(rc)

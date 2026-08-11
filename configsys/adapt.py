@@ -1,11 +1,11 @@
-'''adapt.py — build the app's ResolvedComponent objects from v2 resolution.
+'''adapt.py — build the app's ResolvedComponent objects from resolution.
 
-The v2 resolver produces Units (driver, component, package, details, deps,
-requested_as). The rest of the app (planning, InstallState, the drivers, the TUI) is
-driven by `{key: ResolvedComponent}`. This is the thin, permanent glue between them: it
-carries no field translation — `unit.details` is already the install-field shape the
-drivers read (normalized in resolve._install_fields). Not an adapter layer; just the
-v2 resolver's output object mapped onto the driver contract.
+The resolver produces Units (driver, component, package, details, deps, requested_as); the
+rest of the app (planning, InstallState, the drivers, the TUI) is driven by
+`{key: ResolvedComponent}`. This is the thin, permanent glue between them: it carries no field
+translation — `unit.details` is already the install-field shape the drivers read (normalized in
+resolve._install_fields). Not an adapter layer; just the resolver's output object mapped onto the
+driver contract (the resolver stays free of the app-facing type).
 '''
 
 from .componentObj import ResolvedComponent
@@ -18,7 +18,6 @@ def to_resolved_component(unit):
         comp=unit.component,
         via=unit.via or '',
         fields=dict(unit.details),
-        vars={},                      # v2 carries version info in `version:` specs, not $VARS
         source=unit.source or '',     # the .hu file that defined the component (content roots)
     )
     rc.requested_as = set(unit.requested_as)

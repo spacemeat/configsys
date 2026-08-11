@@ -1,4 +1,4 @@
-'''predicate.py — the v2 `when:` boolean DSL: parse, evaluate, and rank by specificity.
+'''predicate.py — the `when:` boolean DSL: parse, evaluate, and rank by specificity.
 
 Grammar (recursive descent):
     expr     := or_expr
