@@ -216,8 +216,14 @@ class Runner:
                     return Result(full, rc, captured=tail)
                 except Exception:               # noqa: BLE001 — degrade to plain streaming
                     pass
-            cp = subprocess.run(argv, capture_output=capture, text=True,
-                                cwd=cwd, env=env)
+            # A CAPTURED run is a read-only probe (get_version, installed_index, …) that never needs
+            # input — and the background inspection worker fires these while curses owns the terminal.
+            # Inheriting stdin (the real tty) lets such a child reset the terminal's modes and drop
+            # the TUI back into cooked/echo (keys echo, need Enter). Detach stdin so a probe child can
+            # NEVER touch the controlling terminal; a STREAMED (capture=False) op keeps the tty (sudo
+            # password, interactive build) and is fenced by terminal_released on the main thread.
+            cp = subprocess.run(argv, capture_output=capture, text=True, cwd=cwd, env=env,
+                                stdin=(subprocess.DEVNULL if capture else None))
         return Result(full, cp.returncode,
                       stdout=cp.stdout if capture else '',
                       stderr=cp.stderr if capture else '')

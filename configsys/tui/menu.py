@@ -2362,6 +2362,11 @@ def run(ctx):
             # small-COLOR_PAIRS terminal, shift which theme colors survive every run.
             pal = Palette(ctx.config.theme())
         cfg, _requested, _units, ledger, states = worker.join()   # re-raises load errors, if any
+        # Re-assert curses input modes before the interactive loop: a startup probe that briefly
+        # inherited the tty (or a splash quirk) must never leave us in cooked/echo mode.
+        curses.noecho()
+        curses.cbreak()
+        stdscr.keypad(True)
         layouts, transitive = _menu_model(cfg)
         ms = MenuState(states, layouts, transitive)
         ms.descriptions = _describe(ctx)          # {name -> desc}, cached; not touched per frame
