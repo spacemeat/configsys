@@ -106,6 +106,19 @@ def test_choices_single_provider_axis_opens_the_provider_picker(tmp_path):
     assert ctx.config.pins().get('cuda-toolkit') == 'cuda-toolkit-11'   # wrote a provider-pin
 
 
+def test_capability_choices_surface_the_winning_bindings_requires(tmp_path, monkeypatch):
+    # the blender case: a variant's SDK need (cuda-toolkit) is declared on its WINNING binding, not
+    # the component. The chooser must still surface the provider choice from the component's own row.
+    # (synthesize the winner so the test doesn't depend on the blender plugin being synced here.)
+    import types
+    import configsys.resolve as resolve
+    ctx = _ctx(tmp_path)
+    won = types.SimpleNamespace(details={'requires': ['cuda-toolkit']})
+    monkeypatch.setattr(resolve, '_select', lambda *a, **k: (won, None, ''))
+    caps = dict(menu._capability_choices(ctx.routes, 'git'))   # git has no component-level requires
+    assert caps.get('cuda-toolkit') == ['cuda-toolkit-11', 'cuda-toolkit-12']
+
+
 def test_choices_with_no_axis_is_a_noop(tmp_path):
     ctx = _ctx(tmp_path)                                          # zsh: one method, no cap -> nothing
     changed, note, _d = menu._pick_choices(_Scr([]), _Pal(), _row('zsh'), ctx)

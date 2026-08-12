@@ -1120,12 +1120,21 @@ def _providers_of(routes, cap):
 def _capability_choices(routes, name):
     '''Capabilities relevant to component `name` that have MORE THAN ONE provider — a real choice.
     Considers the caps it PROVIDES (so you repoint from a provider's row, e.g. stand on
-    cuda-toolkit-12 to switch the `cuda-toolkit` capability to cuda-toolkit-11) and the ones it
-    REQUIRES at the component level. Returns [(cap, [providers])], deduped and sorted.'''
+    cuda-toolkit-12 to switch the `cuda-toolkit` capability to cuda-toolkit-11), the ones it REQUIRES
+    at the component level, AND the requires declared on the binding that WINS here — so a variant
+    whose SDK need rides its method (blender-optix's binding-level `cuda-toolkit`) still surfaces the
+    provider choice from the component's own row. Returns [(cap, [providers])], deduped and sorted.'''
     comp = routes.components.get(name)
     if comp is None:
         return []
     caps = set(getattr(comp, 'provides', ())) | set(getattr(comp, 'requires', ()))
+    try:                                                 # + the winning binding's requires (mirrors _edges_text)
+        from ..resolve import ResolveError, _select, cap_names
+        cx = routes.cascade.context(routes.block, routes.version, routes.cpu)
+        won = _select(comp, routes.cascade, cx, routes.pins, routes.preference, routes.candidate_only)[0]
+        caps.update(cap_names(won.details.get('requires')))
+    except ResolveError:
+        pass
     out = []
     for cap in sorted(caps):
         provs = _providers_of(routes, cap)
