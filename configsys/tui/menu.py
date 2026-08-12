@@ -612,6 +612,53 @@ def _why(ctx, name):
         return ''
 
 
+def _edges_text(ctx, name):
+    '''The capability edges for `name` — `requires:` / `provides:` with version floors — the graph
+    the tree otherwise hides. Includes the requires declared on the binding that WINS here (e.g.
+    blender-optix's `cuda-toolkit` is binding-level), so the edge shows regardless of where it's
+    authored. No leading space (for embedding in the identity line); '' when it declares neither.'''
+    comp = ctx.routes.components.get(name)
+    if comp is None:
+        return ''
+
+    def fmt(names, versions):
+        return ', '.join(f'{n} ({versions[n]})' if n in versions else n for n in names)
+
+    req_names, reqs = list(comp.requires), dict(comp.req_versions)
+    try:
+        from ..resolve import ResolveError, _select, cap_constraints, cap_names
+        r = ctx.routes
+        cx = r.cascade.context(r.block, r.version, r.cpu)
+        won = _select(comp, r.cascade, cx, r.pins, r.preference, r.candidate_only)[0]
+        for cap in cap_names(won.details.get('requires')):
+            if cap not in req_names:
+                req_names.append(cap)
+        reqs.update(cap_constraints(won.details.get('requires')))
+    except ResolveError:
+        pass
+    parts = []
+    if req_names:
+        parts.append('requires: ' + fmt(req_names, reqs))
+    if comp.provides:
+        parts.append('provides: ' + fmt(comp.provides, comp.prov_versions))
+    return '   ·   '.join(parts)
+
+
+def _identity_line(ms, ctx, descriptions):
+    '''The ambient identity+edges line for the current row: `name — description` followed by its
+    capability edges. Folds the "where" graph into the EXISTING description slot — no extra row, so
+    it never squeezes the component list (the cramping we wanted to avoid).'''
+    name = _node_component(ms.cur())
+    if not name:
+        return ''
+    desc = (descriptions or {}).get(name, '')
+    parts = [f'{name} — {desc}' if desc else name]
+    edges = _edges_text(ctx, name)
+    if edges:
+        parts.append(edges)
+    return ' ' + '   ·   '.join(parts)
+
+
 def _infoblock(ms, ctx):
     '''One detail line for the current row: versions / lock state, then the install location right
     after (the columns truncate these; here they show in full). Groups get a one-line summary.'''
@@ -811,9 +858,7 @@ def _draw(stdscr, pal, ms, ctx, note, diags=(), show_diag=False, diag_top=0, scr
     # vertical scroll indicator at the right edge (this list is full-width, no border box)
     _scrollbar_v(stdscr, pal, list_top, w - 1, list_h, ms.top, list_h, len(ms.rows), h, w)
 
-    _cn = _node_component(ms.cur())              # the selected row's OWN brief description
-    _desc = descriptions.get(_cn, '') if _cn else ''
-    _put(stdscr, h - 6, 0, _fit(f' {_cn} — {_desc}' if _desc else '', w),
+    _put(stdscr, h - 6, 0, _fit(_identity_line(ms, ctx, descriptions), w),   # name — desc · requires/provides
          pal.style('info', h - 6, 0, h, w))
     _put(stdscr, h - 5, 0, _fit(_methods_line(ms, ctx), w), pal.style('methods', h - 5, 0, h, w))
     _put(stdscr, h - 4, 0, _fit(_infoblock(ms, ctx), w), pal.style('info_dim', h - 4, 0, h, w))

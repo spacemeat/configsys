@@ -84,6 +84,23 @@ def test_pick_provider_declines_a_row_without_alternatives(tmp_path):
     assert not changed and 'no capability with alternative providers' in note
 
 
+# -- ambient "where" panel: capability edges folded into the identity line (no extra row) -----
+
+def test_edges_text_surfaces_the_capability_graph(tmp_path):
+    ctx = _ctx(tmp_path)
+    assert 'requires: cuda-toolkit (<12)' in menu._edges_text(ctx, 'cudnn-8')   # constraint edge
+    assert 'provides: cuda-toolkit (12)' in menu._edges_text(ctx, 'cuda-toolkit-12')
+    assert menu._edges_text(ctx, 'git') == ''                    # a plain tool has no edges
+
+
+def test_identity_line_folds_edges_without_a_new_row(tmp_path):
+    ctx = _ctx(tmp_path)
+    il = menu._identity_line(_row('cuda-toolkit-12'), ctx, {'cuda-toolkit-12': 'CUDA 12'})
+    assert 'cuda-toolkit-12 — CUDA 12' in il and 'provides: cuda-toolkit (12)' in il
+    # a plain tool with no edges shows JUST its identity — no wasted content
+    assert menu._identity_line(_row('git'), ctx, {'git': 'vcs'}) == ' git — vcs'
+
+
 # -- row identity: a dependency unit resolves to ITS component, not its requester's ---------
 
 def test_row_component_of_a_dependency_unit_is_the_dependency(tmp_path):
