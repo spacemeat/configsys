@@ -70,6 +70,26 @@ def test_unsupported_family_is_a_failed_outcome(tmp_path, capsys):
     assert 'unsupported driver' in outcomes[0].detail
 
 
+def test_dispatch_op_prints_the_failure_reason_to_the_console(tmp_path, capsys, monkeypatch):
+    # a driver that bails pre-flight (Result.fail -> reason in output, no command) must have its
+    # reason SHOWN on the console, not buried only in last-failure.hu.
+    from configsys import app
+    from configsys.app import Context, build_parser
+
+    class StubDrv:
+        honors_scope = False
+
+        def install(self, rc):
+            return Result.fail('blender-build: optix-root ~/sdks/optix has no include/optix.h')
+
+    monkeypatch.setattr(app, 'get_driver', lambda *a, **k: StubDrv())
+    ctx = Context(build_parser().parse_args(['--home', str(tmp_path), '--os', 'pop', 'inspect']))
+    code = app._dispatch_op(ctx, ['git'], 'install')
+    out = capsys.readouterr().out
+    assert code == 1 and 'FAILED (exit 1)' in out
+    assert 'optix-root ~/sdks/optix has no include/optix.h' in out   # the WHY is on the console
+
+
 def test_summary_note_formatting():
     class O:
         def __init__(self, ok):

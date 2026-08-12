@@ -656,6 +656,8 @@ def _dispatch_op(ctx, names, op, *, ledger=None, version=None):
         elif not res.ok:
             rc_code = res.returncode or 1
             print(f'  -> FAILED (exit {res.returncode})')
+            for line in (res.output or res.cmd or '').strip().splitlines():
+                print(f'     {line}')                 # show WHY here, not only in last-failure.hu
             last_failure = reportgen.failure_from_result(key, rc.driver, cur_op, res)
         else:
             print('  -> ok')
@@ -710,6 +712,8 @@ def cmd_fix_scope(ctx, args):
             fixed += 1
         else:
             print(f'  -> FAILED (exit {res.returncode})')
+            for line in (res.output or res.cmd or '').strip().splitlines():
+                print(f'     {line}')
             failed += 1
     if not fixed and not failed:
         print('configsys: no scope mismatches to fix')
