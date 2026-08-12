@@ -155,10 +155,11 @@ def test_terminal_released_is_a_noop_off_the_main_thread(monkeypatch):
 
 
 def test_presudo_preauthenticates_before_teeing_then_stops_keepalive(monkeypatch):
-    # the sudo/TTY fix: on a teed (streamed, presudo) build, sudo is pre-authenticated UN-teed and a
-    # keep-alive is started BEFORE the tee, and stopped after — so the build's internal sudo never
-    # prompts inside the tee (which deadlocks). Order matters.
+    # the presudo FALLBACK (ctty disabled): sudo is pre-authenticated UN-teed and a keep-alive is
+    # started BEFORE the tee, and stopped after — so the build's internal sudo never prompts inside
+    # the tee (which deadlocks). Order matters. (ctty is the default; =0 selects this path.)
     from configsys import runner as R
+    monkeypatch.setenv('CONFIGSYS_PTY_CTTY', '0')
     order = []
     monkeypatch.setattr(R, '_can_tee', lambda: True)
     monkeypatch.setattr(R, '_run_teed', lambda *a, **k: (order.append('tee'), (0, 'out'))[1])
@@ -190,11 +191,11 @@ def test_no_presudo_does_not_preauthenticate(monkeypatch):
     assert order == ['tee']                                  # no pre-auth, no keepalive
 
 
-def test_pty_ctty_mode_skips_presudo_and_passes_ctty(monkeypatch):
-    # CONFIGSYS_PTY_CTTY: the holistic path — the child gets the pty as its controlling terminal, so
-    # presudo (pre-auth + keepalive) is NOT used, and _run_teed is told ctty=True.
+def test_ctty_is_the_default_and_skips_presudo(monkeypatch):
+    # baked in: with no env override the child gets the pty as its controlling terminal (ctty=True),
+    # so presudo (pre-auth + keepalive) is NOT used even when the caller passes presudo=True.
     from configsys import runner as R
-    monkeypatch.setenv('CONFIGSYS_PTY_CTTY', '1')
+    monkeypatch.delenv('CONFIGSYS_PTY_CTTY', raising=False)
     order, seen = [], {}
     monkeypatch.setattr(R, '_can_tee', lambda: True)
 

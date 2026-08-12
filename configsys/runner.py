@@ -21,12 +21,11 @@ from contextlib import contextmanager
 
 
 def _pty_ctty():
-    '''A/B toggle for the streamed-build terminal strategy. Default (unset): pre-authenticate sudo
-    (presudo) so a build's internal sudo doesn't prompt inside the tee. Set CONFIGSYS_PTY_CTTY=1: give
-    the teed child its OWN controlling terminal (the pty), so an internal prompt flows through the tee
-    naturally — the holistic fix that makes presudo unnecessary. Env-gated so the two can be compared
-    on a real build before the workaround is retired.'''
-    return bool(os.environ.get('CONFIGSYS_PTY_CTTY'))
+    '''Streamed-build terminal strategy. DEFAULT (baked in): give the teed child its OWN controlling
+    terminal (the pty), so an internal `sudo` prompt (and Ctrl-C) flow through the tee naturally — no
+    dual-reader contention with the real terminal. Escape hatch `CONFIGSYS_PTY_CTTY=0` disables it and
+    falls back to the pre-auth (presudo) path, for debugging the old shared-terminal behavior.'''
+    return os.environ.get('CONFIGSYS_PTY_CTTY') != '0'
 
 
 def _child_setctty():
