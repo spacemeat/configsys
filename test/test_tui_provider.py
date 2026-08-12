@@ -84,6 +84,47 @@ def test_pick_provider_declines_a_row_without_alternatives(tmp_path):
     assert not changed and 'no capability with alternative providers' in note
 
 
+# -- unified `m`: the choices chooser folds the method picker + the provider picker -----------
+
+def test_choices_single_method_axis_opens_the_method_picker(tmp_path):
+    ctx = _ctx(tmp_path)
+    ENTER = 10
+    # steam: 2 methods, no multi-provider cap -> a single (method) axis -> straight to the method popup
+    changed, note, _d = menu._pick_choices(_Scr([ord('j'), ENTER]), _Pal(), _row('steam'), ctx)
+    assert changed and 'flatpak' in note
+    ctx.invalidate()
+    assert ctx.config.pins().get('steam') == 'flatpak'           # wrote a binding-pin
+
+
+def test_choices_single_provider_axis_opens_the_provider_picker(tmp_path):
+    ctx = _ctx(tmp_path)
+    ENTER = 10
+    # cuda-toolkit-12: 1 method but provides a 2-provider cap -> a single (provider) axis
+    changed, note, _d = menu._pick_choices(_Scr([ord('k'), ENTER]), _Pal(), _row('cuda-toolkit-12'), ctx)
+    assert changed and 'cuda-toolkit-11' in note
+    ctx.invalidate()
+    assert ctx.config.pins().get('cuda-toolkit') == 'cuda-toolkit-11'   # wrote a provider-pin
+
+
+def test_choices_with_no_axis_is_a_noop(tmp_path):
+    ctx = _ctx(tmp_path)                                          # zsh: one method, no cap -> nothing
+    changed, note, _d = menu._pick_choices(_Scr([]), _Pal(), _row('zsh'), ctx)
+    assert not changed and 'nothing to choose' in note
+
+
+def test_choices_multi_axis_asks_which_to_change_then_dispatches(tmp_path, monkeypatch):
+    ctx = _ctx(tmp_path)
+    ENTER = 10
+    # give steam a second (provider) axis so the chooser must first ask WHICH axis to change
+    monkeypatch.setattr(menu, '_capability_choices',
+                        lambda routes, name: [('cuda-toolkit', ['cuda-toolkit-11', 'cuda-toolkit-12'])])
+    # top menu (axis 0 = install method, axis 1 = provider): pick axis 0, then move+select flatpak
+    changed, note, _d = menu._pick_choices(_Scr([ENTER, ord('j'), ENTER]), _Pal(), _row('steam'), ctx)
+    assert changed and 'flatpak' in note                         # dispatched into the method picker
+    ctx.invalidate()
+    assert ctx.config.pins().get('steam') == 'flatpak'
+
+
 # -- ambient "where" panel: capability edges folded into the identity line (no extra row) -----
 
 def test_edges_text_surfaces_the_capability_graph(tmp_path):

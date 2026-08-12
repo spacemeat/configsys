@@ -930,7 +930,7 @@ def _draw(stdscr, pal, ms, ctx, note, diags=(), show_diag=False, diag_top=0, scr
     if note:
         status_line += f'   {note}'
     nav = ' j/k · g/G top/bottom · l/h expand/collapse · enter open · / find · F filter · tab expand-all '
-    act = ' space sel · a all · i inst/upg · u upg · x rm · L lock · m method · P provider · w where · c clear · X exec · R refresh · ! issues · q quit '
+    act = ' space sel · a all · i inst/upg · u upg · x rm · L lock · m change · w where · c clear · X exec · R refresh · ! issues · q quit '
     _put(stdscr, h - 3, 0, _fit(status_line, w), pal.style('status_line', h - 3, 0, h, w))
     _put(stdscr, h - 2, 0, _fit(nav.ljust(w), w), pal.style('footer', h - 2, 0, h, w))
     _put(stdscr, h - 1, 0, _fit(act.ljust(w), w), pal.style('footer', h - 1, 0, h, w))
@@ -1159,8 +1159,7 @@ def _pick_provider(stdscr, pal, ms, ctx):
     name = _row_component(ms.cur())
     if not name:
         return False, 'pick a component row to choose a provider', None
-    routes = ctx.routes
-    choices = _capability_choices(routes, name)
+    choices = _capability_choices(ctx.routes, name)
     if not choices:
         return False, f'{name}: no capability with alternative providers here', None
     if len(choices) == 1:
@@ -1171,7 +1170,14 @@ def _pick_provider(stdscr, pal, ms, ctx):
         if cidx is None:
             return False, 'provider unchanged', None
         cap, provs = choices[cidx]
+    return _pick_provider_cap(stdscr, pal, ctx, name, cap, provs)
 
+
+def _pick_provider_cap(stdscr, pal, ctx, name, cap, provs):
+    '''Provider picker for ONE already-chosen capability `cap` (providers `provs`), from `name`'s row.
+    Writes a provider-pin cap->provider. Split out of `_pick_provider` so the unified chooser, which
+    has already picked the capability axis, can jump straight here. Returns (changed, note, deferred).'''
+    routes = ctx.routes
     pins = ctx.config.pins()
     pinned = pins.get(cap)
     default = next((p for p in provs if not getattr(routes.components[p], 'opt_in', False)), None)
@@ -1200,6 +1206,35 @@ def _pick_provider(stdscr, pal, ms, ctx):
     if not avail.get(chosen, True):
         return False, f'{chosen} has no install method on this machine — not set', None
     return _apply_provider_pin(ctx, cap, chosen, current)
+
+
+def _pick_choices(stdscr, pal, ms, ctx):
+    '''The unified "change how this resolves" chooser for the current row's component — one key that
+    folds the install-method picker (a binding-pin) and the provider picker (a provider-pin). Lists
+    only the axes this component actually has a choice on; a single axis opens its picker directly,
+    several first ask which to change. Returns (changed, note, deferred).'''
+    name = _row_component(ms.cur())
+    if not name:
+        return False, 'pick a component row to change how it resolves', None
+    routes = ctx.routes
+    axes = []                                            # (menu-label, kind, payload)
+    if len(routes.candidates(name)) >= 2:
+        axes.append((f'install method — {name}', 'method', None))
+    for cap, provs in _capability_choices(routes, name):
+        axes.append((f'provider for {cap}', 'provider', (cap, provs)))
+    if not axes:
+        return False, f'{name}: nothing to choose (one method, no multi-provider capability)', None
+    if len(axes) == 1:
+        _label, kind, payload = axes[0]                  # skip the menu when there's a single axis
+    else:
+        idx = _popup_choose(stdscr, pal, f'change — {name}', [(lbl, '') for lbl, _k, _p in axes], 0)
+        if idx is None:
+            return False, 'unchanged', None
+        _label, kind, payload = axes[idx]
+    if kind == 'method':
+        return _pick_method_name(stdscr, pal, ctx, name)
+    cap, provs = payload
+    return _pick_provider_cap(stdscr, pal, ctx, name, cap, provs)
 
 
 def _menu_model(cfg):
@@ -3192,25 +3227,16 @@ def run(ctx):
                 ms.unstage()
                 ms.clear_selection()
                 ms.errors.clear()
-            elif ch == ord('m'):
-                changed, note, deferred = _pick_method(stdscr, pal, ms, ctx)
+            elif ch == ord('m'):                           # unified: pick an install method OR a provider
+                changed, note, deferred = _pick_choices(stdscr, pal, ms, ctx)
                 if deferred:
                     pending_notes.append(deferred)
                 if changed:
                     ctx.invalidate()                       # re-read config so the new pin applies
                     try:
-                        # partial requery: a pin change only alters the picked component's units,
+                        # partial requery: a pin change only alters the affected component's units,
                         # so reuse every cached state and re-probe just the new ones (dirty empty).
-                        ms, cfg, ledger, states, diags = _reload(ctx, ms, set())
-                    except Exception as e:  # noqa: BLE001 - surface, don't crash
-                        note = f'reload failed: {e}'
-            elif ch == ord('P'):                           # pick which component PROVIDES a capability
-                changed, note, deferred = _pick_provider(stdscr, pal, ms, ctx)
-                if deferred:
-                    pending_notes.append(deferred)
-                if changed:
-                    ctx.invalidate()                       # a provider-pin changes the whole closure
-                    try:
+                        # (a provider-pin can shift the closure, but _reload re-resolves regardless.)
                         ms, cfg, ledger, states, diags = _reload(ctx, ms, set())
                     except Exception as e:  # noqa: BLE001 - surface, don't crash
                         note = f'reload failed: {e}'
