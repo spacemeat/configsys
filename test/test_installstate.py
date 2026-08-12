@@ -143,15 +143,36 @@ def test_unsupported_family_degrades():
 
 
 def test_inspect_many():
+    # inspect() runs the batch prepass, so apt is probed via `dpkg-query -W` (Package Version rows),
+    # one `apt-cache policy` (column-0 `name:` blocks), and `apt-mark showhold` — not per-unit.
     fr = FakeRunner([
-        ('dpkg-query', 0, '1.0.0'),
-        ('apt-cache policy', 0, '  Candidate: 1.0.0\n'),
+        ('dpkg-query', 0, 'btop 1.0.0\n'),
+        ('apt-cache policy', 0, 'btop:\n  Installed: 1.0.0\n  Candidate: 1.0.0\n'),
         ('apt-mark showhold', 0, ''),
     ])
     units = {'apt\\btop': apt_unit('btop'), 'nosuchvia\\foo': unsupported_unit()}
     states = InstallState(fr).inspect(units)
     assert states['apt\\btop'].status == 'installed'
     assert states['nosuchvia\\foo'].status == 'unsupported'
+
+
+def test_inspect_batches_apt_probes_across_units():
+    # THE optimization: N apt units cost a FIXED few spawns (one dpkg-query -W, one apt-cache policy,
+    # one apt-mark showhold), not 3 per unit. Regression guard for the startup-perf Phase A work.
+    fr = FakeRunner([
+        ('dpkg-query', 0, 'btop 1.0.0\nfd 2.0.0\n'),                    # one index, all packages
+        ('apt-cache policy', 0, 'btop:\n  Candidate: 1.1.0\n'
+                                'fd:\n  Candidate: 2.0.0\n'),           # one policy, all packages
+        ('apt-mark showhold', 0, 'fd\n'),                              # one hold list
+    ])
+    units = {'apt\\btop': apt_unit('btop'), 'apt\\fd': apt_unit('fd')}
+    states = InstallState(fr).inspect(units)
+    assert states['apt\\btop'].status == 'outdated'                   # 1.0.0 < candidate 1.1.0
+    assert states['apt\\fd'].status == 'locked' and states['apt\\fd'].locked      # held -> locked
+    # exactly one of each batched probe, regardless of unit count (no per-package dpkg/policy/hold)
+    assert sum('dpkg-query -W' in c for c in fr.calls) == 1
+    assert sum('apt-cache policy' in c for c in fr.calls) == 1
+    assert sum('apt-mark showhold' in c for c in fr.calls) == 1
 
 
 def test_untrusted_driver_reads_as_untrusted_not_unsupported():

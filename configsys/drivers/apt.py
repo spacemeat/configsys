@@ -10,6 +10,25 @@ import shlex
 from ..driver import Driver
 
 
+def _parse_policy(text, want):
+    '''{name: candidate-version} from `apt-cache policy pkg1 pkg2 ...` output, restricted to `want`.
+    Each package block starts with `<name>:` at column 0; its indented `Candidate:` line gives the
+    version ((none)/empty -> None). Packages apt can't find are simply omitted (no block).'''
+    out = {}
+    cur = None
+    for line in text.splitlines():
+        if line[:1] and not line[:1].isspace() and line.rstrip().endswith(':'):
+            hdr = line.rstrip()[:-1]              # a column-0 `name:` header starts a package block
+            cur = hdr if hdr in want else None
+        elif cur is not None:
+            s = line.strip()
+            if s.startswith('Candidate:'):
+                cand = s.split(':', 1)[1].strip()
+                out[cur] = None if cand in ('(none)', '') else cand
+                cur = None
+    return out
+
+
 class Apt(Driver):
     name = 'apt'
     privileged = True
@@ -96,11 +115,31 @@ class Apt(Driver):
         idx = {}
         for line in r.stdout.splitlines():
             name, _, ver = line.partition(' ')
-            if name:
+            if name and name not in idx:          # first row wins (matches per-pkg get_version)
                 idx[name] = ver.strip() or 'installed'
         return idx
 
+    def batch_index(self, names):
+        '''Pre-fetch the three inspect probes for `names` in THREE calls (not three per package):
+        the installed-version index (dpkg-query -W, all packages), the held set (apt-mark showhold,
+        which ignores its arg and lists them all anyway), and candidate versions (one `apt-cache
+        policy pkg...`). Returned as a dict the read ops below consult via self._batch. None on the
+        rare total failure -> the caller falls back to per-unit probes.'''
+        installed = self.installed_index()
+        if installed is None:
+            return None
+        r = self.runner.run('apt-mark showhold')
+        held = set(r.stdout.split()) if r.ok else set()
+        candidate = {}
+        if names:
+            r = self.runner.run('apt-cache policy ' + ' '.join(shlex.quote(n) for n in names))
+            if r.ok:
+                candidate = _parse_policy(r.stdout, set(names))
+        return {'installed': installed, 'held': held, 'candidate': candidate}
+
     def get_version(self, rc):
+        if self._batch is not None:               # batched: answer from the one dpkg-query index
+            return self._batch['installed'].get(rc.name)
         pkg = shlex.quote(rc.name)
         # `\n`-terminate the format: a multiarch package (e.g. libvulkan1:amd64 + :i386,
         # once i386 is enabled for Steam) prints one row per installed instance. Without a
@@ -116,11 +155,13 @@ class Apt(Driver):
     # native-pkg-file — see drivers/native_pkg_file.py. apt is just the distro repos.)
 
     def get_latest(self, rc):
+        if self._batch is not None:               # batched: answer from the one apt-cache policy call
+            return self._batch['candidate'].get(rc.name)
         pkg = shlex.quote(rc.name)
         r = self.runner.run(f'apt-cache policy {pkg}')
         if not r.ok:
             return None
-        for line in r.stdout.splitlines():
+        for line in r.stdout.splitlines():        # single block -> first Candidate: is ours
             line = line.strip()
             if line.startswith('Candidate:'):
                 cand = line.split(':', 1)[1].strip()
@@ -128,6 +169,8 @@ class Apt(Driver):
         return None
 
     def is_locked(self, rc):
+        if self._batch is not None:               # batched: membership in the one showhold list
+            return rc.name in self._batch['held']
         r = self.runner.run('apt-mark showhold')
         return bool(r.ok and rc.name in r.stdout.split())
 

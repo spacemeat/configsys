@@ -178,7 +178,7 @@ def test_partial_inspect_reuses_and_reprobes(tmp_path):
     rc_b, st_b = _st('apt\\b')
     probed = []
     inst = InstallState(Runner(pretend=True))
-    inst.inspect_one = lambda rc: (probed.append(rc.key), st_a)[1]   # spy
+    inst.inspect_one = lambda rc, batch=None: (probed.append(rc.key), st_a)[1]   # spy
     # reuse both; mark only a dirty -> a is re-probed, b is reused untouched
     out = inst.inspect({'apt\\a': rc_a, 'apt\\b': rc_b},
                        reuse={'apt\\a': st_a, 'apt\\b': st_b}, dirty={'apt\\a'})

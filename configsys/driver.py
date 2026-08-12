@@ -43,6 +43,12 @@ class Driver:
     privileged = False      # True if mutating ops need sudo
     default_scope = 'user'  # this driver's scope when not overridden
     honors_scope = False    # True if user/system is selectable (flatpak, tarball, ...)
+    # Optional per-inspect BATCH context: InstallState.inspect pre-computes a driver's enumerable
+    # probe data ONCE (via the driver's `batch_index(names)`) and sets it here on each per-unit
+    # instance, so read ops (get_version/get_latest/is_locked) can answer from it instead of a
+    # subprocess per unit. None = no batch available -> the per-unit fallback path runs. Opaque:
+    # only the driver that produced it reads it.
+    _batch = None
 
     def __init__(self, runner, paths=None):
         self.runner = runner

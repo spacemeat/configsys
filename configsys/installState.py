@@ -81,6 +81,12 @@ class InstallState:
         re-probe of specific keys (the ones an op just changed). So a pin change re-probes only
         the newly-appearing units, and an execute re-probes only what it touched.'''
         reuse, dirty = reuse or {}, dirty or set()
+        # BATCH PREPASS: for the units we'll actually probe, let each driver pre-fetch its enumerable
+        # state ONCE (one `dpkg-query -W` / `apt-mark showhold` / `apt-cache policy pkg...` instead of
+        # three subprocesses per unit) — the startup cost was ~440 serial spawns. Drivers without a
+        # batch_index simply don't participate and fall back to per-unit probes.
+        to_probe = {k: rc for k, rc in units.items() if k not in reuse or k in dirty}
+        batch = self._build_batch(to_probe)
         out, total = {}, len(units)
         for i, (key, rc) in enumerate(units.items(), 1):
             if key in reuse and key not in dirty:
@@ -89,13 +95,35 @@ class InstallState:
                 out[key] = st
                 continue
             t0 = time.perf_counter()
-            st = self.inspect_one(rc)
+            st = self.inspect_one(rc, batch.get(rc.driver))
             out[key] = st
             if progress is not None:
                 progress(i, total, key, st, (time.perf_counter() - t0) * 1000)
         return out
 
-    def inspect_one(self, rc):
+    def _build_batch(self, units):
+        '''{driver_name: batch-context} — one pre-fetch per DRIVER present in `units`, for drivers
+        that implement `batch_index(names)`. The context is opaque (only that driver reads it) and
+        lets its read ops answer in-process instead of a subprocess per unit. A driver that has no
+        batch_index, or whose batch probe fails, is simply absent -> inspect_one falls back.'''
+        by_driver = {}
+        for rc in units.values():
+            by_driver.setdefault(rc.driver, set()).add(rc.name)
+        batch = {}
+        for driver, names in by_driver.items():
+            drv = get_driver(driver, self.runner, self.paths)
+            fn = getattr(drv, 'batch_index', None)
+            if fn is None:
+                continue
+            try:
+                bi = fn(sorted(names))
+            except Exception:  # noqa: BLE001 — batching is an optimization, never fatal
+                bi = None
+            if bi is not None:
+                batch[driver] = bi
+        return batch
+
+    def inspect_one(self, rc, batch=None):
         led_lock = self.ledger.is_locked(rc.key)
         managed = self.ledger.is_managed(rc.key)
         drv = get_driver(rc.driver, self.runner, self.paths)
@@ -111,6 +139,7 @@ class InstallState:
                 locked=led_lock, lock_source=('ledger' if led_lock else None),
                 managed=managed, untrusted=untrusted, error=msg)
 
+        drv._batch = batch                        # per-inspect batch context (None -> per-unit probes)
         try:
             version, detected_scope = drv.get_installed(rc)   # reality: version + where installed
             latest = drv.get_latest(rc)
