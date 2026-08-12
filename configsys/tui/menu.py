@@ -572,11 +572,45 @@ def _put(stdscr, y, x, s, attr=0):
         pass
 
 
+def _current_via(node, name):
+    '''The via `name` ACTUALLY resolved to here — a pin, a detected-adopted method, or the auto-
+    default — read off its resolved unit (`ResolvedComponent.via`), so it reflects the detection
+    soft-pins that candidates() (routes-only) can't see. Matches the member whose component IS `name`
+    (a component node also groups its transitive deps, whose vias are not ours). None when the row has
+    no resolved unit on this machine.'''
+    if node is None:
+        return None
+    for m in node.members:
+        comp = getattr(m, 'component', None)
+        if comp is not None and comp.comp == name and comp.via:
+            return comp.via
+    return None
+
+
+def _method_tags(cands, current_via, default_via, choice, mark_unavailable=False):
+    '''Render each candidate as a display tag. The CURRENT method (what installs now) is bracketed
+    `[via]`; the auto-default is flagged `via *` ONLY when you're on something else (so an unmarked-
+    but-not-bracketed list means "on the natural default", and a `*` elsewhere means "you've diverged"
+    — the no-surprises signal, whether the divergence is a pin or a detected install). `~` marks a
+    method not valid on this machine (Profiles' author-for-any-box view).'''
+    out = []
+    for c in cands:
+        via = c['via']
+        tag = f'[{via}]' if (choice and via == current_via) else via   # a lone method needs no marker
+        if mark_unavailable and not c.get('available', True):
+            tag += '~'
+        if choice and via == default_via and via != current_via:
+            tag += ' *'
+        out.append(tag)
+    return out
+
+
 def _methods_line(ms, ctx):
     '''A line listing every install method eligible for the current component here — not just the
-    default or the pin — with the default marked `*` and a pin marked. Always names the method, even
-    when there's only one option (no `*`/choice hint then). `m` opens the picker when there's a
-    real choice (>=2).'''
+    default or the pin. The method that ACTUALLY resolves now (a pin, a detected-adopted install, or
+    the auto-default) is bracketed `[via]`; when you're off the auto-default, that default is flagged
+    `via *` (what unpinning would give you). Always names the method, even with one option. `m` opens
+    the picker when there's a real choice (>=2).'''
     name = _row_component(ms.cur())
     if not name:
         return ''
@@ -584,12 +618,9 @@ def _methods_line(ms, ctx):
     if not cands:
         return ''
     choice = len(cands) >= 2
-    parts = []
-    for c in cands:
-        tag = f'[{c["via"]}]' if c['pinned'] else c['via']   # a PIN is bracketed (uniform w/ Profiles)
-        if c['default'] and not c['pinned'] and choice:
-            tag += ' *'                                      # the auto-default among a real choice
-        parts.append(tag)
+    default_via = next((c['via'] for c in cands if c['default']), None)
+    current_via = _current_via(ms.cur(), name) or default_via   # what installs now (detection-aware)
+    parts = _method_tags(cands, current_via, default_via, choice)
     line = f' methods: {"   ".join(parts)}'
     if choice:                                               # surface the deciding rule (the "why")
         why = _why(ctx, name)
@@ -1665,13 +1696,11 @@ def _draw_profiles(stdscr, pal, ps, ctx, note, screen):
                 cands = ctx.routes.candidates(cur, include_unavailable=True)   # other machines)
             except Exception:                       # noqa: BLE001
                 cands = []
-            if cands:                               # pin bracketed; '*' = default here; '~' = n/a here
+            if cands:                               # current (the default here) bracketed; '~' = n/a here
                 choice = len(cands) > 1
+                default_via = next((c['via'] for c in cands if c['default']), None)
                 mtext = 'methods: ' + '  '.join(
-                    (f'[{c["via"]}]' if c['pinned'] else c['via'])
-                    + ('' if c.get('available', True) else '~')
-                    + (' *' if c['default'] and not c['pinned'] and choice else '')
-                    for c in cands)
+                    _method_tags(cands, default_via, default_via, choice, mark_unavailable=True))
             else:
                 mtext = 'methods: (none defined)'
             _put(stdscr, dit + dih - 1, dil, _fit(mtext, diw),

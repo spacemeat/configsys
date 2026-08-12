@@ -191,10 +191,35 @@ def test_methods_line_lists_eligible_drivers(tmp_path):
     ctx = _ctx(tmp_path)
     ms = _menu_on(ctx, 'steam')
     line = menu._methods_line(ms, ctx)
-    assert 'native' in line and 'flatpak' in line and '*' in line   # all methods, default marked
+    # on the auto-default: the CURRENT method is bracketed, and no `*` (no divergence to flag)
+    assert '[native]' in line and 'flatpak' in line and '*' not in line
     assert 'm to change' in line and 'default:' in line             # change hint + the deciding rule (why)
     assert menu._why(ctx, 'steam') in (                             # a real rule for a multi-method comp
         'most-specific when:', 'standing:', 'driver-preference')
+
+
+def test_methods_line_brackets_the_current_resolved_method(tmp_path):
+    # pin steam away from its native default -> the current (flatpak) is the bracketed method; the
+    # group node also holds steam's flatpak-runtime dep, whose via must NOT be mistaken for steam's.
+    _steam_home(tmp_path)
+    ctx = _ctx(tmp_path)
+    menu._apply_method_pin(ctx, 'steam', 'flatpak', already_pinned=False)
+    ctx.invalidate()
+    line = menu._methods_line(_menu_on(ctx, 'steam'), ctx)
+    assert '[flatpak]' in line and '[native]' not in line     # the current is flatpak, not native
+
+
+def test_method_tags_flags_the_auto_default_only_when_you_are_off_it():
+    # the pure render contract: [current] bracketed; the auto-default flagged `*` ONLY when it isn't
+    # the current (a detected-adopted install diverging from the preference default -> the no-surprises
+    # signal). A lone method is never bracketed.
+    cands = [{'via': 'native', 'default': True}, {'via': 'flatpak', 'default': False}]
+    # on the default: current == default -> current bracketed, no `*`
+    assert menu._method_tags(cands, 'native', 'native', True) == ['[native]', 'flatpak']
+    # adopted away from the default: current=flatpak bracketed, the default native flagged `*`
+    assert menu._method_tags(cands, 'flatpak', 'native', True) == ['native *', '[flatpak]']
+    # a single method (no choice) is named plain, never bracketed
+    assert menu._method_tags([{'via': 'native', 'default': True}], 'native', 'native', False) == ['native']
 
 
 def test_methods_line_names_the_method_even_with_one_option(tmp_path):
