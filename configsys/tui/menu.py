@@ -590,7 +590,26 @@ def _methods_line(ms, ctx):
         if c['default'] and not c['pinned'] and choice:
             tag += ' *'                                      # the auto-default among a real choice
         parts.append(tag)
-    return f' methods: {"   ".join(parts)}' + ('      (m to change)' if choice else '')
+    line = f' methods: {"   ".join(parts)}'
+    if choice:                                               # surface the deciding rule (the "why")
+        why = _why(ctx, name)
+        line += f'      (default: {why} · m to change)' if why else '      (m to change)'
+    return line
+
+
+def _why(ctx, name):
+    '''The rule that picked the default method for `name` here — most-specific `when:` / `standing:` /
+    driver-preference / only method — for the ambient "why" hint. '' if undecidable/unroutable.'''
+    from ..resolve import ResolveError, _select
+    r = ctx.routes
+    comp = r.components.get(name)
+    if comp is None or not comp.bindings:
+        return ''
+    cx = r.cascade.context(r.block, r.version, r.cpu)
+    try:
+        return _select(comp, r.cascade, cx, r.pins, r.preference, r.candidate_only)[2]
+    except ResolveError:
+        return ''
 
 
 def _infoblock(ms, ctx):
