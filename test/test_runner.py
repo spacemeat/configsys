@@ -188,3 +188,65 @@ def test_no_presudo_does_not_preauthenticate(monkeypatch):
     monkeypatch.setattr(R.subprocess, 'run', lambda *a, **k: order.append('sub'))
     R.Runner().run('bash build.sh', capture=False)          # presudo defaults False
     assert order == ['tee']                                  # no pre-auth, no keepalive
+
+
+def test_pty_ctty_mode_skips_presudo_and_passes_ctty(monkeypatch):
+    # CONFIGSYS_PTY_CTTY: the holistic path — the child gets the pty as its controlling terminal, so
+    # presudo (pre-auth + keepalive) is NOT used, and _run_teed is told ctty=True.
+    from configsys import runner as R
+    monkeypatch.setenv('CONFIGSYS_PTY_CTTY', '1')
+    order, seen = [], {}
+    monkeypatch.setattr(R, '_can_tee', lambda: True)
+
+    def fake_teed(argv, cwd, env, limit, ctty=False):
+        seen['ctty'] = ctty
+        order.append('tee')
+        return (0, 'out')
+    monkeypatch.setattr(R, '_run_teed', fake_teed)
+    monkeypatch.setattr(R.subprocess, 'run', lambda *a, **k: order.append('preauth'))
+    monkeypatch.setattr(R, '_sudo_keepalive', lambda: order.append('keepalive'))
+    R.Runner().run('bash build.sh', capture=False, presudo=True)
+    assert seen['ctty'] is True
+    assert order == ['tee']                     # no pre-auth, no keepalive under ctty mode
+
+
+def test_child_setctty_claims_controlling_terminal(monkeypatch):
+    import termios
+    from configsys import runner as R
+    calls = []
+    monkeypatch.setattr(R.fcntl, 'ioctl', lambda fd, req, arg=0: calls.append((fd, req, arg)))
+    R._child_setctty()
+    assert calls == [(0, termios.TIOCSCTTY, 0)]     # fd 0 (the pty slave) -> our controlling terminal
+
+
+def _teed_popen_kwargs(monkeypatch, ctty):
+    from configsys import runner as R
+    import pty
+    popen_kw = {}
+
+    class _Sentinel(Exception):
+        pass
+
+    def fake_popen(argv, **kw):
+        popen_kw.update(kw)
+        raise _Sentinel()                        # stop before the io loop; we only inspect kwargs
+    monkeypatch.setattr(pty, 'openpty', lambda: (10, 11))
+    monkeypatch.setattr(R.os, 'close', lambda fd: None)
+    monkeypatch.setattr(R.fcntl, 'ioctl', lambda *a, **k: b'\0' * 8)
+    monkeypatch.setattr(R.subprocess, 'Popen', fake_popen)
+    try:
+        R._run_teed(['bash', '-c', 'x'], None, None, 1024, ctty=ctty)
+    except _Sentinel:
+        pass
+    return popen_kw
+
+
+def test_run_teed_ctty_gives_child_its_own_controlling_terminal(monkeypatch):
+    kw = _teed_popen_kwargs(monkeypatch, ctty=True)
+    from configsys import runner as R
+    assert kw.get('start_new_session') is True and kw.get('preexec_fn') is R._child_setctty
+
+
+def test_run_teed_without_ctty_shares_the_real_terminal(monkeypatch):
+    kw = _teed_popen_kwargs(monkeypatch, ctty=False)
+    assert 'start_new_session' not in kw and 'preexec_fn' not in kw

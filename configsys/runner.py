@@ -8,6 +8,7 @@ Every shell-out goes through Runner.run so that:
   * tests can inject a recording/mock runner.
 '''
 
+import fcntl
 import os
 import select
 import signal
@@ -17,6 +18,26 @@ import termios
 import threading
 import tty
 from contextlib import contextmanager
+
+
+def _pty_ctty():
+    '''A/B toggle for the streamed-build terminal strategy. Default (unset): pre-authenticate sudo
+    (presudo) so a build's internal sudo doesn't prompt inside the tee. Set CONFIGSYS_PTY_CTTY=1: give
+    the teed child its OWN controlling terminal (the pty), so an internal prompt flows through the tee
+    naturally — the holistic fix that makes presudo unnecessary. Env-gated so the two can be compared
+    on a real build before the workaround is retired.'''
+    return bool(os.environ.get('CONFIGSYS_PTY_CTTY'))
+
+
+def _child_setctty():
+    '''preexec_fn: runs in the child AFTER start_new_session's setsid() (so it's a session leader with
+    no controlling terminal) and AFTER stdin/out/err are dup'd onto the pty slave (so fd 0 IS the
+    slave). Claim that slave as the controlling terminal: then the child's `/dev/tty` is the pty, so
+    an internal `sudo` reads the password FROM the pty (relayed by the tee loop — no dual-reader
+    contention) and a forwarded Ctrl-C reaches this session's foreground group. Kept minimal (module
+    globals only, no import/alloc) since it runs post-fork; a failure raises -> Popen raises ->
+    _run_teed degrades to plain streaming (where sudo prompts un-teed anyway).'''
+    fcntl.ioctl(0, termios.TIOCSCTTY, 0)
 
 
 @contextmanager
@@ -115,69 +136,79 @@ def _can_tee():
         return False
 
 
-def _run_teed(argv, cwd, env, limit):
+def _run_teed(argv, cwd, env, limit, ctty=False):
     '''Run argv with its stdio on a pty: stream output to the real terminal live while
     retaining the last `limit` bytes, and forward the user's keystrokes to the child (so an
     interactive build still works). Returns (returncode, captured_tail). The child sees a tty,
-    so colour/progress behave as normal. Used only for unprivileged streamed ops — a `sudo`
-    password prompt goes to /dev/tty and is deliberately left off this path.'''
+    so colour/progress behave as normal.
+
+    `ctty=True` gives the child its OWN session with the pty slave as its controlling terminal
+    (start_new_session + TIOCSCTTY via _child_setctty). Then a `sudo` (or any prompt) the child runs
+    INTERNALLY reads from the pty — relayed by this loop — instead of racing us on the real /dev/tty,
+    and a forwarded Ctrl-C reaches the child's foreground group. Without it (the historical default),
+    the child shares our real controlling terminal, so an internal sudo prompt would deadlock (see
+    Runner._preauth_sudo). master is always closed; a Popen/preexec failure propagates so the caller
+    degrades to plain streaming.'''
     import pty
     master, slave = pty.openpty()
-    try:                                        # match the child pty to the real window size
-        import fcntl
-        sz = fcntl.ioctl(sys.stdout.fileno(), termios.TIOCGWINSZ, b'\0' * 8)
-        fcntl.ioctl(master, termios.TIOCSWINSZ, sz)
-    except Exception:                           # noqa: BLE001 — best effort
-        pass
     try:
-        proc = subprocess.Popen(argv, stdin=slave, stdout=slave, stderr=slave,
-                                cwd=cwd, env=env, close_fds=True)
-    finally:
-        os.close(slave)
-    in_fd = sys.stdin.fileno()
-    old = None
-    try:
-        old = termios.tcgetattr(in_fd)
-        tty.setraw(in_fd)                       # child pty owns echo/line-editing -> single echo
-    except Exception:                           # noqa: BLE001
+        try:                                    # match the child pty to the real window size
+            sz = fcntl.ioctl(sys.stdout.fileno(), termios.TIOCGWINSZ, b'\0' * 8)
+            fcntl.ioctl(master, termios.TIOCSWINSZ, sz)
+        except Exception:                       # noqa: BLE001 — best effort
+            pass
+        popen_kw = dict(stdin=slave, stdout=slave, stderr=slave, cwd=cwd, env=env, close_fds=True)
+        if ctty:                                # the child owns the pty as its controlling terminal
+            popen_kw.update(start_new_session=True, preexec_fn=_child_setctty)
+        try:
+            proc = subprocess.Popen(argv, **popen_kw)
+        finally:
+            os.close(slave)
+        in_fd = sys.stdin.fileno()
         old = None
-    tail = bytearray()
-    try:
-        while True:
-            try:
-                rlist, _, _ = select.select([master, in_fd], [], [])
-            except (InterruptedError, OSError):
-                continue
-            if master in rlist:
+        try:
+            old = termios.tcgetattr(in_fd)
+            tty.setraw(in_fd)                   # child pty owns echo/line-editing -> single echo
+        except Exception:                       # noqa: BLE001
+            old = None
+        tail = bytearray()
+        try:
+            while True:
                 try:
-                    data = os.read(master, 4096)
-                except OSError:                 # EIO on Linux once the child exits == EOF
-                    data = b''
-                if not data:
-                    break
-                os.write(sys.stdout.fileno(), data)
-                tail.extend(data)
-                if len(tail) > limit:
-                    del tail[:len(tail) - limit]
-            if in_fd in rlist:
-                try:
-                    inp = os.read(in_fd, 4096)
-                except OSError:
-                    inp = b''
-                if inp:
+                    rlist, _, _ = select.select([master, in_fd], [], [])
+                except (InterruptedError, OSError):
+                    continue
+                if master in rlist:
                     try:
-                        os.write(master, inp)
+                        data = os.read(master, 4096)
+                    except OSError:             # EIO on Linux once the child exits == EOF
+                        data = b''
+                    if not data:
+                        break
+                    os.write(sys.stdout.fileno(), data)
+                    tail.extend(data)
+                    if len(tail) > limit:
+                        del tail[:len(tail) - limit]
+                if in_fd in rlist:
+                    try:
+                        inp = os.read(in_fd, 4096)
                     except OSError:
-                        pass
+                        inp = b''
+                    if inp:
+                        try:
+                            os.write(master, inp)
+                        except OSError:
+                            pass
+        finally:
+            if old is not None:
+                try:
+                    termios.tcsetattr(in_fd, termios.TCSADRAIN, old)
+                except Exception:               # noqa: BLE001
+                    pass
+        text = tail.decode('utf-8', 'replace').replace('\r\n', '\n')   # de-pty the line endings
+        return proc.wait(), text
     finally:
-        if old is not None:
-            try:
-                termios.tcsetattr(in_fd, termios.TCSADRAIN, old)
-            except Exception:                   # noqa: BLE001
-                pass
         os.close(master)
-    text = tail.decode('utf-8', 'replace').replace('\r\n', '\n')   # de-pty the line endings
-    return proc.wait(), text
 
 
 def _sudo_keepalive():
@@ -245,15 +276,18 @@ class Runner:
             # the output live AND keep a bounded tail for failure reports. Any pty hiccup falls
             # back to a plain inherited-stdio run — reporting must never break an install.
             if not capture and not sudo and _can_tee():
-                # presudo: the command sudo's internally (a source build installing deps). Pre-auth
-                # un-teed + keep the timestamp warm, so its sudo never prompts inside the tee (which
-                # would deadlock — see _preauth_sudo). Only meaningful on the teed path.
+                # presudo: the command sudo's internally (a source build installing deps). Two
+                # strategies (A/B via CONFIGSYS_PTY_CTTY): default = pre-auth un-teed + keep the
+                # timestamp warm so the internal sudo never prompts inside the tee; ctty = give the
+                # child the pty as its controlling terminal so the prompt flows through the tee
+                # naturally (then presudo is unnecessary). Only meaningful on the teed path.
+                ctty = _pty_ctty()
                 keepalive = None
-                if presudo:
+                if presudo and not ctty:
                     self._preauth_sudo()
                     keepalive = _sudo_keepalive()
                 try:
-                    rc, tail = _run_teed(argv, cwd, env, self.tee_limit)
+                    rc, tail = _run_teed(argv, cwd, env, self.tee_limit, ctty=ctty)
                     return Result(full, rc, captured=tail)
                 except Exception:               # noqa: BLE001 — degrade to plain streaming
                     pass
