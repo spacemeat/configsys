@@ -180,6 +180,24 @@ def _run_teed(argv, cwd, env, limit):
     return proc.wait(), text
 
 
+def _sudo_keepalive():
+    '''Refresh the sudo timestamp non-interactively every ~60s until the returned Event is set — so a
+    long teed build (~40 min) whose internal sudo runs past the ~15 min sudo timeout never has to
+    RE-prompt mid-build (a prompt inside the tee deadlocks: the tee loop and sudo both read the one
+    terminal). Daemon thread; `-n` + DEVNULL stdio so it never prompts, blocks, or touches the tty.'''
+    stop = threading.Event()
+
+    def loop():
+        while not stop.wait(60):
+            try:
+                subprocess.run(['sudo', '-n', '-v'], stdin=subprocess.DEVNULL,
+                               stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+            except Exception:            # noqa: BLE001 — best-effort; never crash the build
+                pass
+    threading.Thread(target=loop, daemon=True).start()
+    return stop
+
+
 class Runner:
     def __init__(self, pretend=False, echo=None):
         self.pretend = pretend
@@ -192,8 +210,24 @@ class Runner:
         if self._echo:
             self._echo(msg)
 
+    def _preauth_sudo(self):
+        '''Prompt for the sudo password ONCE, un-teed, on the inherited terminal — so a following
+        teed build that runs `sudo` internally (to install system deps) finds a valid timestamp and
+        never prompts. A prompt INSIDE the tee deadlocks: `_run_teed` holds the real stdin in raw mode
+        and reads it to feed the pty, while sudo reads the same /dev/tty for the password — two readers
+        on one terminal, so keystrokes are split and sudo hangs (and raw mode swallows Ctrl-C). Doing
+        it here, before the tee starts, keeps the prompt on a normal terminal. Best-effort: a declined
+        auth just means the build may prompt itself (still un-teed via the plain fallback).'''
+        self.calls.append('sudo bash -c true')
+        self.echo('configsys: this build may need sudo (system deps) — authenticating now so it '
+                  "won't stop to prompt mid-build.")
+        try:
+            subprocess.run(['sudo', 'bash', '-c', 'true'])   # inherits the tty -> a normal prompt
+        except Exception:                # noqa: BLE001 — never let pre-auth break the run
+            pass
+
     def run(self, cmd, *, sudo=False, capture=True, tui_active=None,
-            cwd=None, env=None) -> Result:
+            cwd=None, env=None, presudo=False) -> Result:
         full = f'sudo {cmd}' if sudo else cmd    # readable form for logs/tests
         self.calls.append(full)
 
@@ -211,11 +245,21 @@ class Runner:
             # the output live AND keep a bounded tail for failure reports. Any pty hiccup falls
             # back to a plain inherited-stdio run — reporting must never break an install.
             if not capture and not sudo and _can_tee():
+                # presudo: the command sudo's internally (a source build installing deps). Pre-auth
+                # un-teed + keep the timestamp warm, so its sudo never prompts inside the tee (which
+                # would deadlock — see _preauth_sudo). Only meaningful on the teed path.
+                keepalive = None
+                if presudo:
+                    self._preauth_sudo()
+                    keepalive = _sudo_keepalive()
                 try:
                     rc, tail = _run_teed(argv, cwd, env, self.tee_limit)
                     return Result(full, rc, captured=tail)
                 except Exception:               # noqa: BLE001 — degrade to plain streaming
                     pass
+                finally:
+                    if keepalive is not None:
+                        keepalive.set()
             # A CAPTURED run is a read-only probe (get_version, installed_index, …) that never needs
             # input — and the background inspection worker fires these while curses owns the terminal.
             # Inheriting stdin (the real tty) lets such a child reset the terminal's modes and drop

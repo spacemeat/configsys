@@ -152,3 +152,39 @@ def test_terminal_released_is_a_noop_off_the_main_thread(monkeypatch):
     t.start()
     t.join()
     assert calls == []
+
+
+def test_presudo_preauthenticates_before_teeing_then_stops_keepalive(monkeypatch):
+    # the sudo/TTY fix: on a teed (streamed, presudo) build, sudo is pre-authenticated UN-teed and a
+    # keep-alive is started BEFORE the tee, and stopped after — so the build's internal sudo never
+    # prompts inside the tee (which deadlocks). Order matters.
+    from configsys import runner as R
+    order = []
+    monkeypatch.setattr(R, '_can_tee', lambda: True)
+    monkeypatch.setattr(R, '_run_teed', lambda *a, **k: (order.append('tee'), (0, 'out'))[1])
+
+    def fake_sub(argv, **kw):
+        order.append('preauth' if argv[:1] == ['sudo'] else f'sub:{argv}')
+        return type('C', (), {'returncode': 0})()
+    monkeypatch.setattr(R.subprocess, 'run', fake_sub)
+
+    class FakeStop:
+        def set(self):
+            order.append('keepalive-stop')
+    monkeypatch.setattr(R, '_sudo_keepalive',
+                        lambda: (order.append('keepalive-start'), FakeStop())[1])
+
+    r = R.Runner()
+    res = r.run('bash build.sh', capture=False, presudo=True)
+    assert res.ok
+    assert order == ['preauth', 'keepalive-start', 'tee', 'keepalive-stop']
+
+
+def test_no_presudo_does_not_preauthenticate(monkeypatch):
+    from configsys import runner as R
+    order = []
+    monkeypatch.setattr(R, '_can_tee', lambda: True)
+    monkeypatch.setattr(R, '_run_teed', lambda *a, **k: (order.append('tee'), (0, ''))[1])
+    monkeypatch.setattr(R.subprocess, 'run', lambda *a, **k: order.append('sub'))
+    R.Runner().run('bash build.sh', capture=False)          # presudo defaults False
+    assert order == ['tee']                                  # no pre-auth, no keepalive
