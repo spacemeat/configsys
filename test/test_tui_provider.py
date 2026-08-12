@@ -101,6 +101,18 @@ def test_identity_line_folds_edges_without_a_new_row(tmp_path):
     assert menu._identity_line(_row('git'), ctx, {'git': 'vcs'}) == ' git — vcs'
 
 
+# -- `w` full-page: the shared where-report (CLI + TUI overlay) -----------------------------
+
+def test_where_report_is_the_full_graph(tmp_path):
+    from configsys.app import where_report
+    ctx = _ctx(tmp_path)
+    text = '\n'.join(where_report(ctx, 'cudnn-8'))
+    assert 'requires    cuda-toolkit (<12)' in text        # the versioned edge
+    assert 'bindings' in text                               # every binding, the winner marked
+    assert 'on pop_os' in text and 'cuda-toolkit-11' in text  # resolves to -11 (constraint <12)
+    assert where_report(ctx, 'no-such-component') is None   # unknown -> None (caller shows the message)
+
+
 # -- row identity: a dependency unit resolves to ITS component, not its requester's ---------
 
 def test_row_component_of_a_dependency_unit_is_the_dependency(tmp_path):

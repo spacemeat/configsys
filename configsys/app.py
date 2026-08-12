@@ -861,69 +861,77 @@ def _source_label(comp, paths):
     return f'{where}   (overrides routes.hu)' if comp.shadows else f'{where}   (new; not in routes.hu)'
 
 
-def cmd_where(ctx, args):
-    from .resolve import select_binding, ResolveError
-    name = args.name
+def where_report(ctx, name):
+    '''The `configsys where` report for `name` as a list of text lines — shared by the CLI
+    (cmd_where prints them) and the TUI (`w` full-page overlay renders them). None if unknown.'''
+    from .resolve import ResolveError, _select, candidate_bindings, via_representatives
     r = ctx.routes
     comp = r.components.get(name)
     if comp is None:
-        print(f'configsys: unknown component "{name}" '
-              f'(not in routes.hu or your ~/configsys.hu)')
-        return 1
+        return None
 
     def _fmt_caps(names, versions):
         # annotate a capability with its version floor when one is declared: `cargo (>=1.96)`
         return ', '.join(f'{n} ({versions[n]})' if n in versions else n for n in names)
 
-    print(f'\n{name}')
-    print(f'  defined in  {_source_label(comp, ctx.paths)}')
+    out = [name, f'  defined in  {_source_label(comp, ctx.paths)}']
     if comp.provides:
-        print(f'  provides    {_fmt_caps(comp.provides, comp.prov_versions)}')
+        out.append(f'  provides    {_fmt_caps(comp.provides, comp.prov_versions)}')
     if comp.requires:
-        print(f'  requires    {_fmt_caps(comp.requires, comp.req_versions)}')
+        out.append(f'  requires    {_fmt_caps(comp.requires, comp.req_versions)}')
     pinned = r.pins.get(name)
     if pinned is not None:
-        print(f'  pinned      via:{pinned}   (from ~/configsys.hu)')
+        out.append(f'  pinned      via:{pinned}   (from your config)')
 
     # which binding wins in this machine's context, plus the alternatives available here
     cx = r.cascade.context(r.block, r.version, r.cpu)
     selected, candidates, reason = None, [], None
     if comp.bindings:
-        from .resolve import _select, candidate_bindings, via_representatives
         try:
             selected, candidates, reason = _select(comp, r.cascade, cx, r.pins, r.preference,
                                                    r.candidate_only)
         except ResolveError:
             candidates = candidate_bindings(comp, r.cascade, cx, r.pins)  # valid but none / undecidable
         reps = via_representatives(candidates, r.cascade)      # per-via winners — the pin-reachable set
-        print('  bindings')
+        out.append('  bindings')
         for b in comp.bindings:
             valid = b in candidates
-            print(_fmt_binding(b, b is selected, reachable=(b in reps and b is not selected),
-                               shadowed=(valid and b not in reps)))
+            out.append(_fmt_binding(b, b is selected, reachable=(b in reps and b is not selected),
+                                    shadowed=(valid and b not in reps)))
         if selected is not None and len(candidates) > 1:
-            print(f'    default: via {selected.via}  (by {reason})')
+            out.append(f'    default: via {selected.via}  (by {reason})')
 
     # how it actually resolves on this machine
     ver = f' {r.version}' if r.version else ''
-    print(f'\n  on {r.block}{ver} ({r.cpu}):')
+    out.append('')
+    out.append(f'  on {r.block}{ver} ({r.cpu}):')
     if not comp.bindings:
-        print('    nothing (removed)')
-        return 0
+        out.append('    nothing (removed)')
+        return out
     try:
         units = r.resolve_names([name])
     except ResolveError as e:
-        print(f'    ERROR: {e}')
-        return 0
+        out.append(f'    ERROR: {e}')
+        return out
     if not units:
-        print('    nothing')
-        return 0
+        out.append('    nothing')
+        return out
     own = {k for k in units if k.split('\\', 1)[-1] == name}
     for key in sorted(units):
         rc = units[key]
         tag = '' if key in own else '   (dep)'
         pkg = f'  pkg {rc.name}' if rc.name else ''
-        print(f'    {key}{pkg}{tag}')
+        out.append(f'    {key}{pkg}{tag}')
+    return out
+
+
+def cmd_where(ctx, args):
+    lines = where_report(ctx, args.name)
+    if lines is None:
+        print(f'configsys: unknown component "{args.name}" '
+              f'(not in routes.hu or your ~/configsys.hu)')
+        return 1
+    print('\n' + '\n'.join(lines))
     return 0
 
 

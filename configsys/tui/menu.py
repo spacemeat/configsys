@@ -720,6 +720,36 @@ def _draw_diagnostics(stdscr, pal, diags, top):
     return top
 
 
+def _draw_where(stdscr, pal, lines, top, subject):
+    '''The `w` full-page: the complete `configsys where` report for one component — every binding
+    (valid / reachable / shadowed, the winner marked), the deciding rule, and the resolved dep tree.
+    Scrollable, for the deep dive the ambient panel can't hold. Returns the clamped scroll top.'''
+    stdscr.erase()
+    h, w = stdscr.getmaxyx()
+    _put(stdscr, 0, 0, _fit(f' where — {subject} ', w),
+         pal.get('title') | curses.A_BOLD | curses.A_REVERSE)
+    body = []
+    for ln in lines or ['(unknown component)']:
+        low = ln.strip()
+        if '<- default here' in ln or low.startswith('on '):
+            attr = pal.get('installed') | curses.A_BOLD          # the winner / where it resolves
+        elif low.startswith(('provides', 'requires', 'defined in', 'pinned')):
+            attr = pal.get('accent')
+        elif ln and not ln.startswith(' '):
+            attr = pal.get('label') | curses.A_BOLD              # the component name header
+        else:
+            attr = pal.get('dim')
+        body.append((ln, attr))
+    body_h = max(1, h - 3)
+    top = max(0, min(top, max(0, len(body) - body_h)))
+    for i, (text, attr) in enumerate(body[top:top + body_h]):
+        _put(stdscr, 2 + i, 0, _fit(text, w), attr)
+    foot = ' j/k scroll · g/G top/bottom · w or q back '
+    _put(stdscr, h - 1, 0, _fit(foot.ljust(w), w), pal.get('dim') | curses.A_REVERSE)
+    stdscr.refresh()
+    return top
+
+
 def _fill_bg(stdscr, pal, h, w):
     '''Paint the diagonal gradient behind the whole screen, in constant-band segments per row.'''
     for y in range(h):
@@ -869,7 +899,7 @@ def _draw(stdscr, pal, ms, ctx, note, diags=(), show_diag=False, diag_top=0, scr
     if note:
         status_line += f'   {note}'
     nav = ' j/k · g/G top/bottom · l/h expand/collapse · enter open · / find · F filter · tab expand-all '
-    act = ' space sel · a all · i inst/upg · u upg · x rm · L lock · m method · P provider · c clear · X exec · R refresh · ! issues · q quit '
+    act = ' space sel · a all · i inst/upg · u upg · x rm · L lock · m method · P provider · w where · c clear · X exec · R refresh · ! issues · q quit '
     _put(stdscr, h - 3, 0, _fit(status_line, w), pal.style('status_line', h - 3, 0, h, w))
     _put(stdscr, h - 2, 0, _fit(nav.ljust(w), w), pal.style('footer', h - 2, 0, h, w))
     _put(stdscr, h - 1, 0, _fit(act.ljust(w), w), pal.style('footer', h - 1, 0, h, w))
@@ -2438,6 +2468,8 @@ def run(ctx):
         note = splash_note or ''
         show_diag = False
         diag_top = 0
+        show_where = False                        # `w` full-page: the complete where-report for a row
+        where_lines, where_top, where_subject = [], 0, ''
         screen = 'components'
         ps = None                                 # ProfileScreen, built lazily on first visit
         cs = None                                 # ConfigScreen, built lazily on first visit
@@ -2450,7 +2482,9 @@ def run(ctx):
         while True:
             pal.new_frame()          # recycle color pairs each frame (color_pair() is 8-bit; a
             # long session or the pair-heavy Theme screen would otherwise exceed 255 pairs and wrap
-            if show_diag:
+            if show_where:
+                where_top = _draw_where(stdscr, pal, where_lines, where_top, where_subject)
+            elif show_diag:
                 diag_top = _draw_diagnostics(stdscr, pal, diags, diag_top)
             elif screen == 'profiles':
                 if ps is None:
@@ -2476,6 +2510,19 @@ def run(ctx):
                 diag_top = _draw(stdscr, pal, ms, ctx, note, diags, False, diag_top, screen)
             note = ''
             ch = stdscr.getch()
+
+            if show_where:                              # where overlay: scroll or exit
+                if ch in (ord('w'), ord('q'), 27):
+                    show_where = False
+                elif ch in (ord('j'), curses.KEY_DOWN):
+                    where_top += 1
+                elif ch in (ord('k'), curses.KEY_UP):
+                    where_top = max(0, where_top - 1)
+                elif ch == ord('g'):
+                    where_top = 0
+                elif ch == ord('G'):
+                    where_top = 10 ** 6                  # clamped by _draw_where
+                continue
 
             if show_diag:                               # diagnostics overlay: scroll or exit
                 if ch in (ord('!'), ord('q'), 27):
@@ -3084,6 +3131,12 @@ def run(ctx):
                 ms.go_top()
             elif ch == ord('G'):
                 ms.go_bottom()
+            elif ch == ord('w'):                     # full-page `where`: the complete graph for this row
+                _wname = _row_component(ms.cur())
+                if _wname:
+                    from ..app import where_report
+                    where_lines = where_report(ctx, _wname) or [f'{_wname}: nothing to show']
+                    where_subject, where_top, show_where = _wname, 0, True
             elif ch == ord('F'):                     # live substring FILTER over the tree (narrows)
                 _filter_edit(stdscr, ms.filter, ms.set_filter,
                              lambda: _draw(stdscr, pal, ms, ctx, note, diags, False, diag_top, screen))
