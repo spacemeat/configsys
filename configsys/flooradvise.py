@@ -8,7 +8,20 @@ when no floors are active, so it costs nothing until floors exist.
 '''
 
 from .resolve import cap_names
-from .versionsweep import meets, providers_of
+from .versionsweep import _pv, meets, providers_of
+
+
+def _declared_version(comp, cap):
+    '''The CONCRETE version `comp` declares it provides for `cap` (component- or binding-level
+    `provides: {cap: N}`), or None when it provides `cap` unversioned / by name. This is a
+    version-scoped provider's fixed identity — what a constraint selects it BY.'''
+    v = getattr(comp, 'prov_versions', {}).get(cap)
+    if v is None:
+        for b in comp.bindings:
+            v = getattr(b, 'prov_versions', {}).get(cap)
+            if v is not None:
+                break
+    return v if (v is not None and _pv(str(v)) is not None) else None
 
 
 def active_floors(rc, comp):
@@ -45,6 +58,13 @@ def _unmet(ctx, units):
             continue
         for cap, floor in active_floors(rc, comp).items():
             for provider in providers_of(r.components, cap):
+                pc = r.components.get(provider)
+                # version-scoped providers: a provider whose FIXED declared version the floor excludes
+                # is not the one the resolver picks for this constraint (a `<12` require selects
+                # cuda-toolkit-11, never -12) — so its default method being "too old" is irrelevant.
+                declared = _declared_version(pc, cap) if pc else None
+                if declared is not None and not meets(str(declared), floor):
+                    continue
                 rp = rep(provider)
                 if rp is None:
                     continue

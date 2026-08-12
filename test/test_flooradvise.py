@@ -121,6 +121,39 @@ def test_tighten_pins_empty_when_default_already_meets(monkeypatch):
     assert flooradvise.tighten_pins(_Ctx(_comps()), [_src_unit()]) == {}
 
 
+def _cuda_comps():
+    return {
+        # cudnn-8 needs the cuda-toolkit CAPABILITY at <12; two version-scoped providers exist
+        'cudnn-8': Component('cudnn-8', {'requires': {'cuda-toolkit': '<12'},
+                                         'install': [{'via': 'script'}]}),
+        'cuda-toolkit-11': Component('cuda-toolkit-11', {'provides': {'cuda-toolkit': 11},
+                                                         'install': [{'via': 'native'}]}),
+        'cuda-toolkit-12': Component('cuda-toolkit-12', {'provides': {'cuda-toolkit': 12},
+                                                         'install': [{'via': 'native'}]}),
+    }
+
+
+def _cuda_unit():
+    return ResolvedComponent(key='script\\cudnn-8', driver='script', comp='cudnn-8', via='script')
+
+
+def _cuda_report(name):
+    MV = versionreport.MethodVersion
+    ver = {'cuda-toolkit-11': '11.8', 'cuda-toolkit-12': '12.6.3'}.get(name)
+    if ver is None:
+        return None
+    return versionreport.VersionReport(name=name, tip=ver, methods=[
+        MV(via='native', driver='apt', package=name, latest=ver, is_default=True)])
+
+
+def test_version_scoped_provider_excluded_by_the_constraint_is_not_advised(monkeypatch):
+    # cudnn-8 requires cuda-toolkit <12. cuda-toolkit-12 provides 12.6.3 — but the <12 constraint
+    # SELECTS cuda-toolkit-11 (11.8, which meets it), so -12 is not this floor's provider at all.
+    # The advisory must NOT fire (the false `floor:` warning we were chasing).
+    monkeypatch.setattr(versionreport, 'report', lambda ctx, name, **k: _cuda_report(name))
+    assert flooradvise.advise(_Ctx(_cuda_comps()), [_cuda_unit()]) == []
+
+
 def test_active_floors_reads_component_and_winning_binding():
     comps = _comps()
     # via source -> the source binding's cargo floor is active
