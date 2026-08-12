@@ -590,7 +590,61 @@ def _methods_line(ms, ctx):
         if c['default'] and not c['pinned'] and choice:
             tag += ' *'                                      # the auto-default among a real choice
         parts.append(tag)
-    return f' methods: {"   ".join(parts)}' + ('      (m to change)' if choice else '')
+    line = f' methods: {"   ".join(parts)}'
+    if choice:
+        why = _why(ctx, name)
+        line += f'      (default: {why} · m to change)' if why else '      (m to change)'
+    return line
+
+
+def _why(ctx, name):
+    '''The rule that picked the default method for `name` here — most-specific `when:` / `standing:` /
+    driver-preference / only method — for the ambient "why" hint. '' if undecidable/unroutable.'''
+    from ..resolve import ResolveError, _select
+    r = ctx.routes
+    comp = r.components.get(name)
+    if comp is None or not comp.bindings:
+        return ''
+    cx = r.cascade.context(r.block, r.version, r.cpu)
+    try:
+        return _select(comp, r.cascade, cx, r.pins, r.preference, r.candidate_only)[2]
+    except ResolveError:
+        return ''
+
+
+def _edges_line(ms, ctx):
+    '''Ambient capability edges for the current row's component: what it `requires:` / `provides:`
+    (with version floors) — the graph the tree otherwise hides. Includes the requires declared on the
+    binding that WINS here (e.g. blender-optix's `cuda-toolkit` is binding-level), so the edge shows
+    regardless of where it's authored. '' when the component declares neither.'''
+    name = _row_component(ms.cur())
+    if not name:
+        return ''
+    comp = ctx.routes.components.get(name)
+    if comp is None:
+        return ''
+
+    def fmt(names, versions):
+        return ', '.join(f'{n} ({versions[n]})' if n in versions else n for n in names)
+
+    req_names, reqs = list(comp.requires), dict(comp.req_versions)
+    try:
+        from ..resolve import ResolveError, _select, cap_constraints, cap_names
+        r = ctx.routes
+        cx = r.cascade.context(r.block, r.version, r.cpu)
+        won = _select(comp, r.cascade, cx, r.pins, r.preference, r.candidate_only)[0]
+        for cap in cap_names(won.details.get('requires')):
+            if cap not in req_names:
+                req_names.append(cap)
+        reqs.update(cap_constraints(won.details.get('requires')))
+    except ResolveError:
+        pass
+    parts = []
+    if req_names:
+        parts.append('requires: ' + fmt(req_names, reqs))
+    if comp.provides:
+        parts.append('provides: ' + fmt(comp.provides, comp.prov_versions))
+    return (' ' + '   ·   '.join(parts)) if parts else ''
 
 
 def _infoblock(ms, ctx):
@@ -739,7 +793,7 @@ def _draw(stdscr, pal, ms, ctx, note, diags=(), show_diag=False, diag_top=0, scr
         _put(stdscr, 2, x, _fit(text, cw), pal.style('menu_header', 2, x, h, w))
 
     list_top = 3
-    list_h = max(1, h - list_top - 6)  # description + methods + infoblock + status + 2 footers
+    list_h = max(1, h - list_top - 7)  # description + edges + methods + infoblock + status + 2 footers
     ms.top = first = _scroll_top(ms.cursor, ms.top, list_h, len(ms.rows))
 
     _KIND_ELEM = {PROFILE: 'profile', LINK: 'link', COMPONENT: 'component', UNIT: 'unit'}
@@ -794,8 +848,9 @@ def _draw(stdscr, pal, ms, ctx, note, diags=(), show_diag=False, diag_top=0, scr
 
     _cn = _node_component(ms.cur())              # the selected row's OWN brief description
     _desc = descriptions.get(_cn, '') if _cn else ''
-    _put(stdscr, h - 6, 0, _fit(f' {_cn} — {_desc}' if _desc else '', w),
-         pal.style('info', h - 6, 0, h, w))
+    _put(stdscr, h - 7, 0, _fit(f' {_cn} — {_desc}' if _desc else '', w),
+         pal.style('info', h - 7, 0, h, w))
+    _put(stdscr, h - 6, 0, _fit(_edges_line(ms, ctx), w), pal.style('info_dim', h - 6, 0, h, w))
     _put(stdscr, h - 5, 0, _fit(_methods_line(ms, ctx), w), pal.style('methods', h - 5, 0, h, w))
     _put(stdscr, h - 4, 0, _fit(_infoblock(ms, ctx), w), pal.style('info_dim', h - 4, 0, h, w))
 

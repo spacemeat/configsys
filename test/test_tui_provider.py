@@ -84,6 +84,24 @@ def test_pick_provider_declines_a_row_without_alternatives(tmp_path):
     assert not changed and 'no capability with alternative providers' in note
 
 
+# -- ambient panel: capability edges + the deciding rule (Phase 4) --------------------------
+
+def test_edges_line_surfaces_the_capability_graph(tmp_path):
+    ctx = _ctx(tmp_path)
+    # the versioned cuda edges the tree otherwise hides
+    assert 'requires: cuda-toolkit (<12)' in menu._edges_line(_row('cudnn-8'), ctx)
+    assert 'provides: cuda-toolkit (12)' in menu._edges_line(_row('cuda-toolkit-12'), ctx)
+    assert menu._edges_line(_row('git'), ctx) == ''          # a plain tool has no component-level edges
+
+
+def test_why_names_the_deciding_rule(tmp_path):
+    ctx = _ctx(tmp_path)
+    assert menu._why(ctx, 'git') in (
+        'driver-preference', 'most-specific when:', 'standing:', 'only method here',
+        'only ordinary method here')                          # a real rule, never blank for a routable comp
+    assert menu._why(ctx, 'no-such-component') == ''          # unknown -> empty (no crash)
+
+
 # -- row identity: a dependency unit resolves to ITS component, not its requester's ---------
 
 def test_row_component_of_a_dependency_unit_is_the_dependency(tmp_path):
