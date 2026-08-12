@@ -119,12 +119,13 @@ class Apt(Driver):
                 idx[name] = ver.strip() or 'installed'
         return idx
 
-    def batch_index(self, names):
-        '''Pre-fetch the three inspect probes for `names` in THREE calls (not three per package):
+    def batch_index(self, rcs):
+        '''Pre-fetch the three inspect probes for these units in THREE calls (not three per package):
         the installed-version index (dpkg-query -W, all packages), the held set (apt-mark showhold,
         which ignores its arg and lists them all anyway), and candidate versions (one `apt-cache
         policy pkg...`). Returned as a dict the read ops below consult via self._batch. None on the
         rare total failure -> the caller falls back to per-unit probes.'''
+        names = sorted({rc.name for rc in rcs})
         installed = self.installed_index()
         if installed is None:
             return None

@@ -80,7 +80,45 @@ class Flatpak(Driver):
     def index_key(self, rc):
         return self._appid(rc)
 
+    def batch_index(self, rcs):
+        '''Pre-fetch the inspect probes for these units in a FIXED few calls instead of ~4 per app.
+        remote-info is ~2s/app; `flatpak remote-ls <hub>` lists a whole remote (all of flathub =
+        3453 apps in ~2s), so ONE remote-ls per distinct hub replaces every per-app remote-info for
+        that hub. Plus one `flatpak list` (installed app -> version+scope) and one `flatpak mask` per
+        installation (mask ignores its arg). None only if nothing probes -> per-unit fallback.'''
+        installed = {}                                 # app -> (version, scope)
+        r = self.runner.run('flatpak list --app --columns=application,version,installation')
+        if r.ok:
+            for line in r.stdout.splitlines():
+                cols = line.split('\t') if '\t' in line else line.split()
+                if cols and cols[0].strip():
+                    ver = (cols[1].strip() if len(cols) > 1 else '') or 'installed'
+                    inst = cols[2].strip() if len(cols) > 2 else ''
+                    installed[cols[0].strip()] = (ver, inst if inst in ('user', 'system') else 'user')
+        masked = set()                                 # locked (masked) app ids, either installation
+        for flag in ('--user', '--system'):
+            r = self.runner.run(f'flatpak mask {flag}')
+            if r.ok:
+                masked.update(x.strip() for x in r.stdout.split() if x.strip())
+        candidate = {}                                 # hub -> {app: version}
+        for hub in sorted({rc.fields.get('hub') for rc in rcs if rc.fields.get('hub')}):
+            hubq = shlex.quote(hub)
+            for flag in ('--system', '--user'):        # the version is scope-independent; first hit wins
+                r = self.runner.run(f'flatpak remote-ls {flag} {hubq} --app --columns=application,version')
+                if r.ok:
+                    m = {}
+                    for line in r.stdout.splitlines():
+                        cols = line.split('\t') if '\t' in line else line.split()
+                        if cols and cols[0].strip():
+                            m[cols[0].strip()] = (cols[1].strip() if len(cols) > 1 else '') or None
+                    candidate[hub] = m
+                    break
+        return {'installed': installed, 'masked': masked, 'candidate': candidate}
+
     def get_version(self, rc):
+        if self._batch is not None:                    # batched: from the one `flatpak list`
+            v = self._batch['installed'].get(self._appid(rc))
+            return v[0] if v else None
         # no --user/--system flag: find the app in EITHER installation. (Otherwise a
         # system-installed app looks "missing" under the default user scope.)
         app = shlex.quote(self._appid(rc))
@@ -92,6 +130,9 @@ class Flatpak(Driver):
                 or 'installed')
 
     def get_installed(self, rc):
+        if self._batch is not None:                    # batched: version + which installation
+            v = self._batch['installed'].get(self._appid(rc))
+            return v if v else (None, None)
         # which installation actually has it — so the menu shows the real scope, not the target
         app = shlex.quote(self._appid(rc))
         for scope, flag in (('user', '--user'), ('system', '--system')):
@@ -102,15 +143,16 @@ class Flatpak(Driver):
         return (None, None)
 
     def get_latest(self, rc):
-        # The remote's available version, from `flatpak remote-info` — read from flatpak's LOCAL
-        # appstream metadata (refreshed on `flatpak update`/`flatpak remote-ls`), NOT a live network
-        # fetch, so it's cheap (~10ms) even during inspect. The remote can exist in BOTH the user
-        # and system installations, which makes a bare `remote-info` ambiguous (it prompts) — so
-        # disambiguate with a scope flag; either resolves the same remote metadata. Version only
-        # (a bare commit hash isn't version-comparable); None if unknown locally.
         hub = rc.fields.get('hub')
         if not hub:
             return None
+        if self._batch is not None:                    # batched: from the one remote-ls per hub
+            return (self._batch['candidate'].get(hub) or {}).get(self._appid(rc)) or None
+        # The remote's available version, from `flatpak remote-info` — read from flatpak's LOCAL
+        # appstream metadata (refreshed on `flatpak update`/`flatpak remote-ls`), NOT a live network
+        # fetch. The remote can exist in BOTH the user and system installations, which makes a bare
+        # `remote-info` ambiguous (it prompts) — so disambiguate with a scope flag; either resolves
+        # the same remote metadata. Version only (a bare commit hash isn't version-comparable).
         app, hubq = shlex.quote(self._appid(rc)), shlex.quote(hub)
         for flag in ('--user', '--system'):
             r = self.runner.run(f'flatpak remote-info {flag} {hubq} {app}')
@@ -120,6 +162,8 @@ class Flatpak(Driver):
 
     def is_locked(self, rc):
         appid = self._appid(rc)
+        if self._batch is not None:                    # batched: membership in the mask set
+            return appid in self._batch['masked']
         for flag in ('--user', '--system'):
             r = self.runner.run(f'flatpak mask {flag}')
             if r.ok and any(appid in line for line in r.stdout.splitlines()):

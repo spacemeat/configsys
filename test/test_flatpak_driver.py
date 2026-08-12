@@ -197,3 +197,24 @@ def test_per_component_scope_from_route_is_honored():
         'sudo flatpak install --system -y flathub com.a',
         'flatpak install --user -y flathub com.b',
     ]
+
+
+def test_batch_index_collapses_probes_and_read_ops_use_it():
+    # startup-perf Phase B: N flatpak units on one hub cost ONE `remote-ls` (all of the remote), not
+    # a ~2s `remote-info` per app; plus one `flatpak list` and one `mask` per installation.
+    r = FakeRunner([
+        ('flatpak list --app', 0, 'org.blender.Blender\t4.3.0\tuser\n'),
+        ('flatpak mask', 0, ''),
+        ('flatpak remote-ls', 0, 'org.blender.Blender\t5.2\norg.gimp.GIMP\t3.2\n'),
+    ])
+    d = Flatpak(r)
+    d._batch = d.batch_index([fp('org.blender.Blender'), fp('org.gimp.GIMP')])   # both flathub
+    assert sum('remote-ls' in c for c in r.calls) == 1              # one per shared hub, not per app
+    assert sum('flatpak list --app' in c for c in r.calls) == 1
+    assert sum('remote-info' in c for c in r.calls) == 0           # the per-app path is skipped
+    # read ops answer from the batch, no further spawns
+    assert d.get_version(fp('org.blender.Blender')) == '4.3.0'
+    assert d.get_installed(fp('org.blender.Blender')) == ('4.3.0', 'user')
+    assert d.get_latest(fp('org.blender.Blender')) == '5.2'
+    assert d.get_latest(fp('org.gimp.GIMP')) == '3.2'
+    assert d.get_version(fp('org.gimp.GIMP')) is None              # not installed -> absent from list

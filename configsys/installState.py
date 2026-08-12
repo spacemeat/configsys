@@ -103,20 +103,21 @@ class InstallState:
 
     def _build_batch(self, units):
         '''{driver_name: batch-context} — one pre-fetch per DRIVER present in `units`, for drivers
-        that implement `batch_index(names)`. The context is opaque (only that driver reads it) and
-        lets its read ops answer in-process instead of a subprocess per unit. A driver that has no
-        batch_index, or whose batch probe fails, is simply absent -> inspect_one falls back.'''
+        that implement `batch_index(rcs)` (given the units' ResolvedComponents, so a driver can read
+        whatever fields it needs — e.g. flatpak's `hub`). The context is opaque (only that driver
+        reads it) and lets its read ops answer in-process instead of a subprocess per unit. A driver
+        with no batch_index, or whose batch probe fails, is simply absent -> inspect_one falls back.'''
         by_driver = {}
         for rc in units.values():
-            by_driver.setdefault(rc.driver, set()).add(rc.name)
+            by_driver.setdefault(rc.driver, []).append(rc)
         batch = {}
-        for driver, names in by_driver.items():
+        for driver, rcs in by_driver.items():
             drv = get_driver(driver, self.runner, self.paths)
             fn = getattr(drv, 'batch_index', None)
             if fn is None:
                 continue
             try:
-                bi = fn(sorted(names))
+                bi = fn(rcs)
             except Exception:  # noqa: BLE001 — batching is an optimization, never fatal
                 bi = None
             if bi is not None:
