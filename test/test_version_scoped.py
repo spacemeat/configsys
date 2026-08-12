@@ -64,3 +64,24 @@ def test_provider_pin_still_wins_when_it_meets_the_constraint(tmp_path):
     with pytest.raises(ResolveError) as e:
         _resolve(tmp_path, TK, ['want-11'], pins={'tk': 'tk-12'})
     assert 'cannot provide' in str(e.value)
+
+
+# The opencv + blender shape: blender needs the `cuda-toolkit` CAPABILITY (steerable by a provider-pin),
+# opencv-cuda12 needs the `cuda-toolkit-12` COMPONENT by name (insulated from that pin) — so a global
+# cuda pin steers blender WITHOUT dragging opencv off its required version, and both coexist.
+BY_NAME = TK + '  by-name-12: { requires: tk-12  install: [ { via: native } ] }'
+
+
+def test_by_name_require_is_insulated_from_a_capability_pin(tmp_path):
+    # `generic` uses the tk capability (blender), `by-name-12` names the tk-12 component (opencv).
+    # Pinning the tk capability to tk-11 steers generic to 11 but leaves by-name-12 on 12 -> coexist.
+    got = _resolve(tmp_path, BY_NAME, ['generic', 'by-name-12'], pins={'tk': 'tk-11'})
+    assert 'apt\\tk-11' in got and 'apt\\tk-12' in got            # different versions, both resident
+
+
+def test_resolution_is_order_independent(tmp_path):
+    # a worklist-to-fixpoint has no order dependence: install/resolve order of the two consumers
+    # yields the identical unit set (so "install opencv then blender" == "blender then opencv").
+    a = _resolve(tmp_path, BY_NAME, ['generic', 'by-name-12'], pins={'tk': 'tk-11'})
+    b = _resolve(tmp_path, BY_NAME, ['by-name-12', 'generic'], pins={'tk': 'tk-11'})
+    assert a == b and {'apt\\tk-11', 'apt\\tk-12'} <= a
