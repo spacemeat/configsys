@@ -192,7 +192,7 @@ def test_methods_line_lists_eligible_drivers(tmp_path):
     ms = _menu_on(ctx, 'steam')
     line = menu._methods_line(ms, ctx)
     assert 'native' in line and 'flatpak' in line and '*' in line   # all methods, default marked
-    assert 'm to change' in line and 'default:' in line             # change hint + the deciding rule (why)
+    assert '(m to change)' in line
 
 
 def test_methods_line_names_the_method_even_with_one_option(tmp_path):
