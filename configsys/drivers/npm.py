@@ -39,7 +39,40 @@ class Npm(Driver):
 
     # -- read -------------------------------------------------------------
 
+    def batch_index(self, rcs):
+        '''ONE `npm ls -g … --json` per SCOPE prefix (each lists every package in that prefix),
+        instead of that same call once per (package × scope) — get_installed probes user+system, so
+        N packages was ~2N identical `npm ls` spawns. -> {scope: {pkg: version}}; the scope-probe
+        then reads it via get_version. Empty scope maps on failure -> per-unit fallback still works.'''
+        home = self.paths.home if self.paths is not None else Path.home()
+        cmds = {'user': f'npm ls -g --prefix {shlex.quote(str(home / ".local"))} --depth=0 --json',
+                'system': 'npm ls -g --depth=0 --json'}
+        out = {}
+        for scope, cmd in cmds.items():
+            m = {}
+            r = self.runner.run(cmd)
+            if r.stdout:
+                try:
+                    for pkg, dep in (json.loads(r.stdout).get('dependencies') or {}).items():
+                        if isinstance(dep, dict) and dep.get('version'):
+                            m[pkg] = dep['version']
+                except ValueError:
+                    pass
+            out[scope] = m
+        return out
+
+    def installed_index(self):
+        '''Flat {pkg: version} across BOTH scope prefixes (union) — for the coexistence detector's
+        membership test, so N npm units cost two `npm ls` calls, not one per unit. inspect uses the
+        SCOPED batch_index instead (get_version needs the per-scope answer). None if nothing found.'''
+        flat = {}
+        for m in self.batch_index([]).values():
+            flat.update(m)
+        return flat or None
+
     def get_version(self, rc):
+        if self._batch is not None:               # batched: the scope's pre-listed index
+            return self._batch.get(self._scope(rc), {}).get(self._pkg(rc))
         # `npm ls -g` often exits non-zero (unmet peer deps, extraneous pkgs) while still
         # emitting valid JSON, so parse stdout rather than gating on returncode.
         r = self.runner.run(f'npm ls -g {self._prefix_flag(rc)}--depth=0 --json')

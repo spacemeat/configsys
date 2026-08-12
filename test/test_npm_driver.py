@@ -82,3 +82,19 @@ def test_location_follows_scope():
     d = Npm(Runner(pretend=True))
     assert d.location(pkg()) == '~/.local/bin'             # user scope
     assert d.location(pkg(scope='system')) is None         # system: no single user path
+
+
+def test_batch_index_scopes_and_get_version_reads_it():
+    # startup-perf: ONE `npm ls` per scope prefix (each lists everything there), not per package.
+    # The user prefix carries a --prefix flag; system uses the global prefix.
+    user = '{"dependencies": {"prettier": {"version": "3.2.5"}}}'
+    system = '{"dependencies": {"typescript": {"version": "5.4.2"}}}'
+    fr = FakeRunner([('npm ls -g --prefix', 1, user), ('npm ls -g --depth', 1, system)])
+    d = Npm(fr)
+    d._batch = d.batch_index([pkg('prettier'), pkg('typescript')])
+    assert sum('npm ls' in c for c in fr.calls) == 2                      # one per scope, not per pkg
+    assert d.get_version(pkg('prettier', scope='user')) == '3.2.5'        # from the user prefix list
+    assert d.get_version(pkg('typescript', scope='system')) == '5.4.2'    # from the global list
+    assert d.get_version(pkg('typescript', scope='user')) is None         # not in the user prefix
+    # flat installed_index unions both scopes (for the coexistence detector)
+    assert d.installed_index() == {'prettier': '3.2.5', 'typescript': '5.4.2'}

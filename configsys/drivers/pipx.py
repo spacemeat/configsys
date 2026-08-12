@@ -32,7 +32,9 @@ class Pipx(Driver):
 
     # -- read -------------------------------------------------------------
 
-    def get_version(self, rc):
+    def installed_index(self):
+        '''ONE `pipx list --json` -> {dist: version}. Feeds BOTH the inspect batch and the
+        coexistence detector, so N pipx units cost one call, not one per unit. None on failure.'''
         r = self.runner.run(f'{_PIPX} list --json')
         if not r.ok or not r.stdout:
             return None
@@ -40,11 +42,19 @@ class Pipx(Driver):
             data = json.loads(r.stdout)
         except ValueError:
             return None
-        venv = (data.get('venvs') or {}).get(self._dist(rc))
-        if not venv:
-            return None
-        main = (venv.get('metadata') or {}).get('main_package') or {}
-        return main.get('package_version')
+        idx = {}
+        for dist, venv in (data.get('venvs') or {}).items():
+            ver = ((venv.get('metadata') or {}).get('main_package') or {}).get('package_version')
+            if ver:
+                idx[dist] = ver
+        return idx
+
+    def batch_index(self, rcs):
+        return self.installed_index() or {}
+
+    def get_version(self, rc):
+        idx = self._batch if self._batch is not None else self.installed_index()
+        return idx.get(self._dist(rc)) if idx else None
 
     def get_latest(self, rc):
         return self.resolve_version(rc)

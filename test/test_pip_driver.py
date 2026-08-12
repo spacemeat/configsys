@@ -51,14 +51,16 @@ def test_set_version_pins():
     assert r.calls == ['python3 -m pip install --user pipx==1.4.2']
 
 
-def test_get_version_parses_pip_show():
-    show = 'Name: pipx\nVersion: 1.4.2\nSummary: install and run python apps\n'
-    fr = FakeRunner([('pip show pipx', 0, show)])
+def test_get_version_from_pip_list():
+    # get_version now reads the batched `pip list --format=json` index (PEP-503-normalized), so N
+    # units cost one call; the lookup matches case/-_. spelling.
+    listing = '[{"name": "Pipx", "version": "1.4.2"}, {"name": "other", "version": "9"}]'
+    fr = FakeRunner([('pip list --format=json', 0, listing)])
     assert Pip(fr).get_version(dist()) == '1.4.2'
 
 
 def test_get_version_not_installed():
-    fr = FakeRunner([('pip show pipx', 1, '')])   # pip show -> nonzero
+    fr = FakeRunner([('pip list --format=json', 0, '[]')])   # not in the listing
     assert Pip(fr).get_version(dist()) is None
 
 
