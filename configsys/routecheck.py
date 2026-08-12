@@ -108,6 +108,63 @@ def _providable_caps(components, cascade):
     return caps
 
 
+def _versioned_providers(components):
+    '''cap -> [(provider_name, provided_version)] from every `provides: {cap: V}`, component- and
+    binding-level. This is the population a versioned `requires:` constraint selects from (the
+    resolver picks a provider whose provided version `meets()` the constraint), so it's exactly what
+    decides whether a constraint is satisfiable at all.'''
+    out = {}
+    for name, comp in components.items():
+        for cap, v in getattr(comp, 'prov_versions', {}).items():
+            out.setdefault(cap, []).append((name, v))
+        for b in comp.bindings:
+            for cap, v in getattr(b, 'prov_versions', {}).items():
+                out.setdefault(cap, []).append((name, v))
+    return out
+
+
+def _unsatisfiable(cap, constraint, vprov):
+    '''A versioned require `{cap: constraint}` is unsatisfiable when `cap`'s providers all declare a
+    CONCRETE provided version and none meets the constraint (`>=13` against providers 11/12). Returns
+    the sorted "have" versions to name in the message, else None (satisfiable, or not our concern).
+
+    ABSTAINS when any provider declares a FLOOR-style provided version (`cargo: ">=1.80"` — a rustup
+    that installs the LATEST, unbounded upward): such a provider satisfies any upward require, so a
+    `>=` floor is never unsatisfiable against it. Only the concrete version-scoped case (cuda-toolkit
+    11/12) is a genuine impossibility. Absence of any provider is `dangling-requires`' job, not ours.'''
+    from .versionsweep import meets, _pv
+    havers = vprov.get(cap)
+    if not havers:
+        return None
+    if any(_pv(v) is None for _n, v in havers):      # a floor/latest provider -> upward requires are met
+        return None
+    if any(meets(v, constraint) for _n, v in havers):
+        return None
+    return ', '.join(sorted({str(v) for _n, v in havers}))
+
+
+def pin_constraint_conflicts(pins, components, valid_via):
+    '''[message] for every provider-pin whose CONCRETE provided version fails a version constraint
+    some component requires on that capability — e.g. `cuda-toolkit: cuda-toolkit-12` (provides 12)
+    while cudnn-8 requires cuda-toolkit "<12". Such a pin can never resolve for that consumer, and
+    otherwise only surfaces at install/inspect time. Component-level requires only (unconditional);
+    a binding-level constraint is conditional on that method winning, so it's not flagged here.'''
+    from .versionsweep import meets, _pv
+    out = []
+    for cap, prov in pins.items():
+        if prov in valid_via or prov not in components:      # binding-pin / invalid -> not a provider-pin
+            continue
+        pv = getattr(components[prov], 'prov_versions', {}).get(cap)
+        if pv is None or _pv(pv) is None:                    # no concrete provided version to judge
+            continue
+        for cname, comp in components.items():
+            con = getattr(comp, 'req_versions', {}).get(cap)
+            if con and not meets(pv, con):
+                out.append(f"pin '{cap}: {prov}' (provides {cap} {pv}) conflicts with "
+                           f"'{cname}' requiring {cap} {con!r}")
+    return out
+
+
 def validate(components, cascade, drivers, pending_vias=frozenset()):
     '''Lint the merged component set -> [Issue] (empty = clean). Covers ambiguity, unknown
     via: driver, unknown component in parts: (all errors), and when:-names-unknown-OS +
@@ -120,6 +177,7 @@ def validate(components, cascade, drivers, pending_vias=frozenset()):
     from .resolve import cap_names
     valid_via = _SPECIAL_VIA | supported_names() | set(pending_vias)
     providable = _providable_caps(components, cascade)
+    vprov = _versioned_providers(components)
     issues = []
 
     def add(kind, msg, comp, sev='error'):
@@ -153,9 +211,19 @@ def validate(components, cascade, drivers, pending_vias=frozenset()):
             for cap in cap_names(b.details.get('requires')):   # cap_names: tolerates versioned {cap: floor} entries
                 if cap not in providable:
                     add('dangling-requires', f'requires {cap!r} which nothing provides', comp, 'warning')
+            for cap, con in getattr(b, 'req_versions', {}).items():
+                have = _unsatisfiable(cap, con, vprov)
+                if have is not None:
+                    add('unsatisfiable-constraint', f'via:{b.via} requires {cap} {con!r} but no '
+                        f'provider satisfies it (have: {have})', comp, 'warning')
         for cap in comp.requires:
             if cap not in providable:
                 add('dangling-requires', f'requires {cap!r} which nothing provides', comp, 'warning')
+        for cap, con in getattr(comp, 'req_versions', {}).items():
+            have = _unsatisfiable(cap, con, vprov)
+            if have is not None:
+                add('unsatisfiable-constraint', f'requires {cap} {con!r} but no provider satisfies '
+                    f'it (have: {have})', comp, 'warning')
 
     for drv, reqs in drivers.items():
         for cap in reqs:

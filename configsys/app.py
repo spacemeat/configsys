@@ -1213,6 +1213,11 @@ def cmd_check(ctx, args):
             pin_issues.append(f"pin '{key}: {val}': '{val}' is neither a known driver "
                               f'(binding-pin) nor a component (provider-pin)')
 
+    # provider-pin vs version constraint: a pin whose provided version fails a constraint some
+    # component requires on that cap can never resolve for that consumer — flag it here rather than
+    # let it surface only at install/inspect time. (helper is unit-tested in routecheck.)
+    pin_conflict_warnings = routecheck.pin_constraint_conflicts(ctx.config.pins(), components, valid_via)
+
     from . import plugins as _plugins
     _top = _plugins.declared(ctx.paths.user_config_file)
     _decls = _plugins.effective_declared(ctx.paths.user_config_file, ctx.paths.plugins_dir)
@@ -1234,7 +1239,7 @@ def cmd_check(ctx, args):
     code_warnings = ctx.plugin_code_warnings
     if (not errors and not warnings and not prof_issues and not prof_errors and not pin_issues
             and not include_warnings and not code_warnings and not conflict_warnings
-            and not theme_warnings):
+            and not theme_warnings and not pin_conflict_warnings):
         print(f'configsys: OK — {len(components)} components, no issues')
         return 0
 
@@ -1256,9 +1261,11 @@ def cmd_check(ctx, args):
         print(f'  warn    {msg}')
     for msg in theme_warnings:
         print(f'  warn    {msg}')
+    for msg in pin_conflict_warnings:
+        print(f'  warn    {msg}')
     n_err = len(errors) + len(prof_errors) + len(prof_issues) + len(pin_issues)
     n_warn = (len(warnings) + len(include_warnings) + len(code_warnings) + len(conflict_warnings)
-              + len(theme_warnings))
+              + len(theme_warnings) + len(pin_conflict_warnings))
     print(f'\nconfigsys: {n_err} error(s), {n_warn} warning(s) '
           f'across {len(components)} components')
     return 1 if n_err else 0

@@ -76,6 +76,68 @@ def test_overlapping_incomparable_bindings_raise(cascade):
     assert 'oops' in str(ei.value) and 'debian' in str(ei.value)
 
 
+# -- versioned requires: unsatisfiable-constraint lint --------------------
+
+def _v(name, spec):
+    return Component(name, spec)
+
+
+def _cuda_providers():
+    return [_v('cuda-toolkit-11', {'provides': {'cuda-toolkit': 11}, 'install': [{'via': 'native'}]}),
+            _v('cuda-toolkit-12', {'provides': {'cuda-toolkit': 12}, 'install': [{'via': 'native'}]})]
+
+
+def _uc(components, cascade):
+    from configsys.routecheck import validate
+    return [i for i in validate(components, cascade, {}) if i.kind == 'unsatisfiable-constraint']
+
+
+def test_unsatisfiable_version_constraint_names_the_available_versions(cascade):
+    comps = {c.name: c for c in _cuda_providers()
+             + [_v('needs13', {'requires': {'cuda-toolkit': '>=13'}, 'install': [{'via': 'native'}]})]}
+    uc = _uc(comps, cascade)
+    assert len(uc) == 1 and uc[0].component == 'needs13' and uc[0].severity == 'warning'
+    assert "cuda-toolkit '>=13'" in uc[0].message and 'have: 11, 12' in uc[0].message
+
+
+def test_satisfiable_version_constraint_is_clean(cascade):
+    comps = {c.name: c for c in _cuda_providers()
+             + [_v('needs12', {'requires': {'cuda-toolkit': '>=12'}, 'install': [{'via': 'native'}]})]}
+    assert _uc(comps, cascade) == []                       # 12 meets >=12
+
+
+def test_binding_level_constraint_is_also_checked(cascade):
+    comps = {c.name: c for c in _cuda_providers() + [_v('app', {'install': [
+        {'via': 'native'}, {'via': 'source', 'requires': {'cuda-toolkit': '<10'}}]})]}
+    uc = _uc(comps, cascade)
+    assert len(uc) == 1 and 'via:source' in uc[0].message and 'have: 11, 12' in uc[0].message
+
+
+def test_floor_provider_never_reads_as_unsatisfiable(cascade):
+    # a rustup-style provider declares a FLOOR (`cargo >=1.80`, installs the LATEST): an upward
+    # require is always satisfiable, so the lint must ABSTAIN rather than flag a false impossibility.
+    comps = {c.name: c for c in [
+        _v('rustup', {'provides': {'cargo': '>=1.80'}, 'install': [{'via': 'native'}]}),
+        _v('mybin', {'requires': {'cargo': '>=1.95'}, 'install': [{'via': 'native'}]})]}
+    assert _uc(comps, cascade) == []
+
+
+# -- provider-pin vs version constraint -----------------------------------
+
+def test_pin_constraint_conflict_flags_and_clears(cascade):
+    from configsys.routecheck import pin_constraint_conflicts
+    comps = {c.name: c for c in _cuda_providers() + [
+        _v('cudnn-8', {'requires': {'cuda-toolkit': '<12'}, 'install': [{'via': 'native'}]})]}
+    valid_via = {'native', 'parts'}
+    # pin cuda-toolkit -> the 12 provider while cudnn-8 requires <12: a real conflict
+    msgs = pin_constraint_conflicts({'cuda-toolkit': 'cuda-toolkit-12'}, comps, valid_via)
+    assert len(msgs) == 1 and 'cudnn-8' in msgs[0] and "cuda-toolkit '<12'" in msgs[0]
+    # pin to the 11 provider instead: cudnn-8's <12 is satisfied -> clean
+    assert pin_constraint_conflicts({'cuda-toolkit': 'cuda-toolkit-11'}, comps, valid_via) == []
+    # a binding-pin (value is a via, not a component) is not a provider-pin -> ignored
+    assert pin_constraint_conflicts({'cudnn-8': 'native'}, comps, valid_via) == []
+
+
 def test_disjoint_bindings_are_fine(cascade):
     check_component('ok', _component('ok', 'fedora', 'arch'), cascade)
 
