@@ -427,3 +427,26 @@ class Resolver:
         pinned_via = self.pins.get(name)
         return [{'via': b.via, 'when': b.when, 'default': b is winner,
                  'pinned': pinned_via == b.via, 'available': b.via in valid_vias} for b in reps]
+
+    def dependents(self, name):
+        '''Components that DEPEND ON `name` — i.e. name a capability `name` provides in their own
+        `requires:`, `suggests:`, or `parts:`, at the component level OR in ANY binding (every install
+        method, regardless of `when:`/machine-legality — this feeds the machine-agnostic Profiles
+        screen). A component provides its own name as a capability, so a bare `requires: <name>` counts;
+        a versioned-capability provider (e.g. `python3.13` provides `python3`) also surfaces the
+        consumers of that shared capability. Sorted; `[]` for an unknown component.'''
+        comp = self.components.get(name)
+        if comp is None:
+            return []
+        caps = set(comp.provides) | {name}          # what `name` can satisfy
+        out = []
+        for other, c in self.components.items():
+            if other == name:
+                continue
+            edges = set(c.requires) | set(c.suggests) | set(c.parts)
+            for b in c.bindings:
+                edges |= set(cap_names(b.details.get('requires')))
+                edges |= set(cap_names(b.details.get('suggests')))
+            if edges & caps:
+                out.append(other)
+        return sorted(out)

@@ -295,18 +295,26 @@ class Config:
         return self._expand(profile, idx, val, (), own_only=True)
 
     def profiles_containing(self, name):
-        '''Profile names that DIRECTLY declare `name` — its own term or a `+self` amendment — NOT those
-        that only pull it in through a `+other` cross-profile include (it belongs to the other profile
-        there). Sorted; a profile that fails to expand is skipped, never fatal. For the Profiles
-        screen's "in profiles: …" detail.'''
-        out = []
+        '''Profiles that contain `name`, split into `(direct, indirect)`. DIRECT = the profile declares
+        it as its own (a bare term or a `+self` amendment). INDIRECT = the profile only pulls it in
+        through a `+other` cross-profile include (it belongs to the other profile there, but its members
+        still land in this profile). Both sorted; a profile that fails to expand is skipped, never fatal.
+        For the Profiles screen's "in profiles: …" detail.'''
+        direct, indirect = [], []
         for p in self.profile_names():
             try:
-                if name in self.profile_own_components(p):
-                    out.append(p)
+                own = self.profile_own_components(p)
+            except ConfigError:
+                continue
+            if name in own:
+                direct.append(p)
+                continue
+            try:
+                if name in self.profile_components(p):
+                    indirect.append(p)
             except ConfigError:
                 pass
-        return out
+        return direct, indirect
 
     def profile_removed(self, profile):
         '''Components a `~term` drops anywhere in `profile`'s chain — for the profile editor's `~`

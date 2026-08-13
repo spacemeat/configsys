@@ -1738,23 +1738,38 @@ def _draw_profiles(stdscr, pal, ps, ctx, note, screen):
     # RIGHT TOP: detail for the highlighted component (names are esoteric) — description + methods
     vcat = ps.vcatalog()
     cur = vcat[ps.rcur] if vcat and 0 <= ps.rcur < len(vcat) else None
-    # the component NAME rides the panel title, so the box is short (2 desc lines + methods) and the
-    # catalog grid below gets the reclaimed rows.
-    desc_h = 5 if body_h >= 10 else 0
+    # the component NAME rides the panel title, so the box is short (2 desc lines + a "required by"
+    # line + an "in profiles" line) and the catalog grid below gets the reclaimed rows.
+    desc_h = 6 if body_h >= 11 else 0
     if desc_h:
         dit, dil, dih, diw = _panel(stdscr, pal, top, rleft, desc_h, rw, cur or 'component', False, h, w)
         if cur:
             comp = ctx.routes.components.get(cur)
             desc = (comp.description if comp else '') or '(no description yet)'
-            for k, line in enumerate(_wrap(desc, diw)[:dih - 1]):
+            for k, line in enumerate(_wrap(desc, diw)[:dih - 2]):
                 _put(stdscr, dit + k, dil, _fit(line, diw), pal.style('info', dit + k, dil, h, w))
-            # Which profiles DIRECTLY contain this component — the useful context while authoring
+            # What DEPENDS ON this component — every other component that names a capability it provides
+            # in its requires/suggests/parts, across ALL install methods (machine-agnostic: we're
+            # authoring profiles, not installing). Distinct from "in profiles" below it.
+            try:
+                deps = ctx.routes.dependents(cur)
+            except Exception:                       # noqa: BLE001 — never let the detail box break the screen
+                deps = []
+            dtext = 'required by: ' + (', '.join(deps) if deps else '(none)')
+            _put(stdscr, dit + dih - 2, dil, _fit(dtext, diw),
+                 pal.style('dependents', dit + dih - 2, dil, h, w))
+            # Which profiles contain this component — ● direct owners (declared as their own), then ↳
+            # indirect (pulled in only via a `+other` include). The useful context while authoring
             # profiles (install methods are a machine concern, out of place on this screen).
             try:
-                here = ctx.config.profiles_containing(cur)
+                direct, indirect = ctx.config.profiles_containing(cur)
             except Exception:                       # noqa: BLE001 — never let the detail box break the screen
-                here = []
-            ptext = 'in profiles: ' + (', '.join(here) if here else '(none)')
+                direct, indirect = [], []
+            if direct or indirect:
+                tags = ['●' + p for p in direct] + ['↳' + p for p in indirect]
+                ptext = 'in profiles: ' + ' '.join(tags)
+            else:
+                ptext = 'in profiles: (none)'
             _put(stdscr, dit + dih - 1, dil, _fit(ptext, diw),
                  pal.style('method_dim', dit + dih - 1, dil, h, w))
 

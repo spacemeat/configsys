@@ -330,16 +330,16 @@ def test_pins_non_scalar_values_dropped():
     assert c.pins() == {'steam': 'flatpak'}
 
 
-def test_profiles_containing_lists_direct_declarers_not_includers():
+def test_profiles_containing_splits_direct_owners_from_indirect_includers():
     c = cfg('''{ configs: [ dev ]  profiles: {
         dev: [ ripgrep, git ]
         web: [ +dev, nodejs ]
         games: [ ripgrep ]
     } }''')
-    # `web` only PULLS ripgrep in via `+dev` -> not a direct declarer
-    assert c.profiles_containing('ripgrep') == ['dev', 'games']
-    assert c.profiles_containing('nodejs') == ['web']
-    assert c.profiles_containing('not-a-component') == []
+    # `web` only PULLS ripgrep in via `+dev` -> INDIRECT (owned by dev), a direct owner of nodejs
+    assert c.profiles_containing('ripgrep') == (['dev', 'games'], ['web'])
+    assert c.profiles_containing('nodejs') == (['web'], [])
+    assert c.profiles_containing('not-a-component') == ([], [])
 
 
 def test_profiles_containing_excludes_a_removed_component():
@@ -347,4 +347,5 @@ def test_profiles_containing_excludes_a_removed_component():
         dev: [ ripgrep ]
         nope: [ +dev, ~ripgrep ]
     } }''')
-    assert c.profiles_containing('ripgrep') == ['dev']       # `nope` drops it, doesn't own it
+    # `nope` drops ripgrep -> not its own AND not in its expansion, so neither direct nor indirect
+    assert c.profiles_containing('ripgrep') == (['dev'], [])

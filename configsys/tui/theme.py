@@ -31,6 +31,7 @@ COLOR_MAP = {
     'sel_bg': (58, 34, 88),
     'row_desc': (108, 112, 128),                         # faded inline component descriptions
     'method_dim': (124, 150, 176),                       # muted slate-blue for the method label
+    'dep_dim': (192, 158, 108),                          # muted amber for the "required by" line
 }
 
 GRAD_MAX_BANDS = 96         # cap on the (range-adaptive) number of diagonal gradient steps
@@ -70,6 +71,7 @@ ROLE_DEFAULTS = {
     'row_error': _r('error'),
     'methods': _r('header'),
     'method_dim': _r('method_dim'),                      # muted method label (Profiles detail pane)
+    'dependents': _r('dep_dim'),                         # "required by" reverse-deps (Profiles detail)
     'row_desc': _r('row_desc'),                          # faded description trailing the row name
     'info': _r('accent'),
     'info_dim': _r('dim'),
@@ -101,7 +103,7 @@ PAGE_ROLES = {
                    'locked', 'op_install', 'op_upgrade', 'op_remove', 'op_lock', 'row_error',
                    'row_desc', 'methods', 'info', 'info_dim', 'status_line', 'footer', 'selection'],
     'profiles':  ['label', 'os', 'menu_header', 'profile', 'link', 'component', 'info', 'info_dim',
-                  'method_dim', 'status_line', 'footer', 'selection'],
+                  'dependents', 'method_dim', 'status_line', 'footer', 'selection'],
     'plugins':   ['label', 'os', 'menu_header', 'component', 'unit', 'installed', 'missing',
                   'untrusted', 'info', 'info_dim', 'status_line', 'footer', 'selection'],
     'dotfiles':  ['label', 'os', 'menu_header', 'component', 'unit', 'installed', 'outdated',
