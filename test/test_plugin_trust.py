@@ -95,6 +95,54 @@ def test_trust_untrust_cli_lifecycle(tmp_path, capsys):
 
 
 @pytest.mark.skipif(shutil.which('git') is None, reason='git not available')
+def test_trust_all_trusts_every_untrusted_code_plugin(tmp_path, capsys):
+    from configsys.app import main
+
+    def make_src(name, *, code):
+        src = tmp_path / name
+        src.mkdir()
+        comp = name.replace('-', '') + 'tool'
+        (src / 'plugin.hu').write_text('{ name: ' + name + '  requires-abi: 1  '
+                                       + ('code: driver.py  ' if code else '')
+                                       + 'data: [ routes.hu ] }')
+        (src / 'routes.hu').write_text('{ components: { ' + comp + ': { install: [ { via: native } ] } } }')
+        if code:
+            (src / 'driver.py').write_text('# a would-be Driver subclass\n')
+        for cmd in (['init', '-q'], ['config', 'user.email', 't@t'], ['config', 'user.name', 't'],
+                    ['add', '-A'], ['commit', '-qm', 'i'], ['tag', 'v1']):
+            subprocess.run(['git', *cmd], cwd=src, check=True)
+        return src
+
+    a, b, d = make_src('codeplug-a', code=True), make_src('codeplug-b', code=True), make_src('dataonly', code=False)
+    home = ['--home', str(tmp_path), '--os', 'pop']
+    for s in (a, b, d):
+        assert main(home + ['plugin', 'add', str(s), '--ref', 'v1']) == 0
+    capsys.readouterr()
+
+    # trust --all: both code plugins trusted, the data-only one untouched
+    assert main(home + ['plugin', 'trust', '--all']) == 0
+    out = capsys.readouterr().out
+    assert 'codeplug-a' in out and 'codeplug-b' in out and 'dataonly' not in out
+    assert 'trusted 2 code plugin' in out
+    trust_file = tmp_path / '.config' / 'configsys' / 'plugin-trust.hu'
+    trust = plugins.read_trust(trust_file)
+    assert plugins.dir_name(str(a)) in trust and plugins.dir_name(str(b)) in trust
+
+    # idempotent: nothing left untrusted
+    assert main(home + ['plugin', 'trust', '--all']) == 0
+    assert 'no untrusted code plugins' in capsys.readouterr().out
+
+    # a bare `plugin trust` (no name) behaves like --all — here it re-approves a changed plugin
+    pdir = tmp_path / '.config' / 'configsys' / 'plugins' / plugins.dir_name(str(a))
+    (pdir / 'driver.py').write_text('# tampered\n')
+    assert main(home + ['plugin', 'list']) == 0
+    assert 'code changed since trust' in capsys.readouterr().out
+    assert main(home + ['plugin', 'trust']) == 0
+    out2 = capsys.readouterr().out
+    assert 're-approved' in out2 and 'codeplug-a' in out2
+
+
+@pytest.mark.skipif(shutil.which('git') is None, reason='git not available')
 def test_trust_a_dataonly_plugin_is_a_noop(tmp_path, capsys):
     from configsys.app import main
     src = tmp_path / 'src'

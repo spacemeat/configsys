@@ -1524,6 +1524,26 @@ def cmd_plugin(ctx, args):
         return 0
 
     if sub == 'trust':
+        # No name (or --all): trust every code plugin that is currently untrusted or changed.
+        if getattr(args, 'all', False) or not args.name:
+            rows = plugins.status(ctx.paths.plugins_dir, eff,
+                                  trust_file=ctx.paths.plugin_trust_file)
+            pending = [r for r in rows if r['code_state'] in ('untrusted', 'changed')]
+            unsynced = [r for r in rows if r['code_state'] == 'unsynced']
+            if not pending:
+                print('configsys: no untrusted code plugins'
+                      + (' (some ship code but are unsynced — run: configsys plugin sync)'
+                         if unsynced else ''))
+                return 0
+            for r in pending:
+                key = plugins.dir_name(r['source'])
+                plugins.set_trust(ctx.paths.plugin_trust_file, key, r['identity'])
+                short = r['identity'].split(':')[-1][:12]
+                verb = 're-approved' if r['code_state'] == 'changed' else 'trusted'
+                print(f'  {verb:11} {r["name"]} @ {short}')
+            print(f'configsys: trusted {len(pending)} code plugin(s) — their code will run during installs'
+                  + (f'; {len(unsynced)} unsynced (run: configsys plugin sync)' if unsynced else ''))
+            return 0
         target = _find_decl(eff, ctx.paths.plugins_dir, args.name)   # incl. transitive plugins
         if target is None:
             print(f'configsys: no declared plugin matches {args.name!r}')
@@ -2031,7 +2051,10 @@ def build_parser():
                     help="pin to the newest version tag on the remote (or main/master if it has none)")
     pu.add_argument('--pin', action='store_true', help='re-lock to the new synced content hash')
     pt = plsub.add_parser('trust', help="approve a code plugin's current content to run during installs")
-    pt.add_argument('name', help='plugin name, source, or dir')
+    pt.add_argument('name', nargs='?', help='plugin name, source, or dir (omit, or use --all, to '
+                                            'trust every currently-untrusted code plugin)')
+    pt.add_argument('--all', action='store_true',
+                    help='trust every code plugin that is currently untrusted or changed')
     pun = plsub.add_parser('untrust', help="revoke a code plugin's trust")
     pun.add_argument('name', help='plugin name, source, or dir')
     pin = plsub.add_parser('init', help='assemble a personal primary plugin from local bits '
