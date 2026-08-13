@@ -1,6 +1,6 @@
 # Python versions as components — design proposal
 
-Status: PROPOSAL (not built). Written 2026-08-12 in response to "what about python versions in
+Status: BUILT (2026-08-12, commits ab3dd8d + f48080d). Originally a proposal; now shipped in base.
 general, as components?" Decisions still open — see the end.
 
 ## Current state
