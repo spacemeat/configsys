@@ -1766,7 +1766,7 @@ def _draw_profiles(stdscr, pal, ps, ctx, note, screen):
             except Exception:                       # noqa: BLE001 — never let the detail box break the screen
                 direct, indirect = [], []
             if direct or indirect:
-                tags = ['●' + p for p in direct] + ['↳' + p for p in indirect]
+                tags = ['● ' + p for p in direct] + ['↳ ' + p for p in indirect]
                 ptext = 'in profiles: ' + ' '.join(tags)
             else:
                 ptext = 'in profiles: (none)'
