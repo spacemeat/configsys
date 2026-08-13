@@ -429,19 +429,22 @@ class Resolver:
                  'pinned': pinned_via == b.via, 'available': b.via in valid_vias} for b in reps]
 
     def dependents(self, name):
-        '''Components that DEPEND ON `name` — i.e. name a capability `name` provides in their own
-        `requires:`, `suggests:`, or `parts:`, at the component level OR in ANY binding (every install
-        method, regardless of `when:`/machine-legality — this feeds the machine-agnostic Profiles
-        screen). A component provides its own name as a capability, so a bare `requires: <name>` counts;
-        a versioned-capability provider (e.g. `python3.13` provides `python3`) also surfaces the
-        consumers of that shared capability. `parts:` is authored on the `via: parts` binding (a
-        bundle = the union of its parts, often `when:`-gated per OS), so a component that lists `name`
-        among a bundle's parts counts too. Sorted; `[]` for an unknown component.'''
+        '''What DEPENDS ON `name` -> a list of `(dependent, is_driver)` pairs, components first (both
+        groups sorted). A dependent names a capability `name` provides in its `requires:`, `suggests:`,
+        or `parts:` — at the component level OR in ANY binding (every install method, regardless of
+        `when:`/machine-legality — this feeds the machine-agnostic Profiles screen). A component
+        provides its own name as a capability, so a bare `requires: <name>` counts; a versioned-
+        capability provider (e.g. `python3.13` provides `python3`) also surfaces the consumers of that
+        shared capability. `parts:` is authored on the `via: parts` binding (a bundle = the union of
+        its parts, often `when:`-gated per OS), so a component that lists `name` among a bundle's parts
+        counts too. DRIVERS count as well (`is_driver=True`): a driver's inherent `requires:` (e.g.
+        appImage -> libfuse2) means `name` is needed by every install THROUGH that driver. `[]` for an
+        unknown component.'''
         comp = self.components.get(name)
         if comp is None:
             return []
         caps = set(comp.provides) | {name}          # what `name` can satisfy
-        out = []
+        comps = []
         for other, c in self.components.items():
             if other == name:
                 continue
@@ -451,5 +454,6 @@ class Resolver:
                 edges |= set(cap_names(b.details.get('suggests')))
                 edges |= set(_as_list(b.details.get('parts')))        # a `via: parts` bundle's members
             if edges & caps:
-                out.append(other)
-        return sorted(out)
+                comps.append(other)
+        drivers = [d for d, reqs in self.drivers.items() if caps & set(reqs)]
+        return [(n, False) for n in sorted(comps)] + [(n, True) for n in sorted(drivers)]

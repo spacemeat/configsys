@@ -1748,14 +1748,18 @@ def _draw_profiles(stdscr, pal, ps, ctx, note, screen):
             desc = (comp.description if comp else '') or '(no description yet)'
             for k, line in enumerate(_wrap(desc, diw)[:dih - 2]):
                 _put(stdscr, dit + k, dil, _fit(line, diw), pal.style('info', dit + k, dil, h, w))
-            # What DEPENDS ON this component — every other component that names a capability it provides
-            # in its requires/suggests/parts, across ALL install methods (machine-agnostic: we're
-            # authoring profiles, not installing). Distinct from "in profiles" below it.
+            # What DEPENDS ON this component — every other component (and DRIVER, marked ⎈) that names
+            # a capability it provides in its requires/suggests/parts, across ALL install methods
+            # (machine-agnostic: we're authoring profiles, not installing). Distinct from "in profiles".
             try:
                 deps = ctx.routes.dependents(cur)
             except Exception:                       # noqa: BLE001 — never let the detail box break the screen
                 deps = []
-            dtext = 'required by: ' + (', '.join(deps) if deps else '(none)')
+            if deps:
+                names = [(f'⎈ {n}' if is_drv else n) for n, is_drv in deps]
+                dtext = 'required by: ' + ', '.join(names)
+            else:
+                dtext = 'required by: (none)'
             _put(stdscr, dit + dih - 2, dil, _fit(dtext, diw),
                  pal.style('dependents', dit + dih - 2, dil, h, w))
             # Which profiles contain this component — ● direct owners (declared as their own), then ↳

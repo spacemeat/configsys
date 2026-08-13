@@ -28,7 +28,6 @@ profiles: {
     k8s: [ kubectl  helm  k9s  k3s ]
     db-clients: [ pgcli  mycli  dbeaver  sqlitebrowser  lazysql ]
     db-servers: [ postgresql-service  mariadb-service  redis-service ]
-    jvm: [ jdk  kotlin  maven  gradle ]
     latex: [ texlive ]
     go-dev: [ go  goimports ]
     ruby-dev: [ ruby  bundler ]
@@ -36,6 +35,10 @@ profiles: {
     ocaml-dev: [ ocaml  opam  dune ]
     lua-dev: [ lua  luarocks ]
     lisp-dev: [ sbcl  quicklisp ]
+    python-dev: [ python3.11  python3.12  python3.13  cython  pyenv  jupyterlab ]
+    languages: [ +go-dev +ruby-dev +haskell-dev +lua-dev +lisp-dev +python-dev julia nim nasm ]
+    java-dev: [ jdk  kotlin  maven  gradle ]
+    desktops-compositors: [ i3 lxqt kde mate ]
     user: [ +terminal  configsys-dotfiles codecs  firefox  chrome  neovim ]
     gaming: [ +user  vulkan-runtime  steam ]
     dev: [ +user  cpp-toolchain  make  rust  gcc-10 gcc-11 gcc-12 gcc-13  gcc-14  gcc-15  clang-18  clang-19  clang-20  gdb  analysis  cmake  ninja  meson  just  vscode ]
@@ -52,6 +55,5 @@ profiles: {
     virt: [ +user  qemu  libvirt  libvirt-service  virt-manager ]
     devops: [ +terminal  +containers  +k8s  +cloud  ansible  opentofu ]
     desktop-apps: [ +user  libreoffice  vlc  discord  slack ]
-    python: [ python3.11  python3.12  python3.13  cython  pyenv ]
 }
 }
