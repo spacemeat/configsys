@@ -199,3 +199,36 @@ def test_run_teed_always_gives_child_its_own_controlling_terminal(monkeypatch):
     except _Sentinel:
         pass
     assert popen_kw.get('start_new_session') is True and popen_kw.get('preexec_fn') is R._child_setctty
+
+
+def test_run_term_guards_runs_lifo_and_clears():
+    from configsys import runner as R
+    R._TERM_GUARDS.clear()
+    order = []
+    R._TERM_GUARDS.append(lambda: order.append('a'))
+    R._TERM_GUARDS.append(lambda: order.append('b'))
+    R._run_term_guards()
+    assert order == ['b', 'a'] and R._TERM_GUARDS == []   # LIFO, then empty
+
+
+def test_term_guard_deregisters_on_normal_exit():
+    from configsys import runner as R
+    sentinel = lambda: None                               # noqa: E731
+    with R._term_guard(sentinel):
+        assert sentinel in R._TERM_GUARDS
+    assert sentinel not in R._TERM_GUARDS                 # gone on clean unwind -> no fire at atexit
+
+
+def test_terminal_released_restores_termios_on_a_fatal_signal(monkeypatch):
+    # SIGTERM/SIGHUP bypass the `finally`; the registered guard must still reset termios so the
+    # terminal isn't left in the raw mode a teed child put it in.
+    import types
+    from configsys import runner as R
+    monkeypatch.setattr(R.sys, 'stdin', types.SimpleNamespace(fileno=lambda: 0))
+    monkeypatch.setattr(R.os, 'isatty', lambda fd: True)
+    monkeypatch.setattr(R.termios, 'tcgetattr', lambda fd: ['SAVED'])
+    restored = []
+    monkeypatch.setattr(R.termios, 'tcsetattr', lambda fd, when, attrs: restored.append(attrs))
+    with R.terminal_released(False):
+        R._run_term_guards()                              # simulate the fatal signal firing mid-child
+    assert ['SAVED'] in restored                          # termios reset to the saved (sane) attrs

@@ -31,6 +31,68 @@ def _child_setctty():
     fcntl.ioctl(0, termios.TIOCSCTTY, 0)
 
 
+# A sane terminal: leave alt-screen, show cursor, reset SGR, wrap on, mouse + bracketed-paste off.
+_SANE_TERM = ('\x1b[?1049l\x1b[?25h\x1b[0m\x1b[?7h\x1b[?1000l\x1b[?1002l\x1b[?1006l\x1b[?2004l')
+
+# Terminal restoration on FATAL exit. _run_teed puts the real terminal in raw mode (and a child may
+# change its modes); those are undone in `finally` on a normal/exception exit. But SIGTERM/SIGHUP
+# terminate the process WITHOUT running finally, leaving the terminal wedged (raw, no echo — you'd need
+# `reset`). These guards re-run the restoration on a fatal signal or at interpreter exit. (SIGKILL is
+# uncatchable — nothing to do there; both real fixes above just remove the reason to send one.)
+_TERM_GUARDS = []            # stack of zero-arg restore callables, run on SIGTERM/SIGHUP/atexit
+_TERM_HOOKS = False
+
+
+def _run_term_guards(*_a):
+    while _TERM_GUARDS:
+        try:
+            _TERM_GUARDS.pop()()
+        except Exception:    # noqa: BLE001 — a dying process must not raise out of cleanup
+            pass
+
+
+def _install_term_hooks():
+    global _TERM_HOOKS
+    if _TERM_HOOKS:
+        return
+    _TERM_HOOKS = True
+    import atexit
+    atexit.register(_run_term_guards)
+    for sig in (signal.SIGTERM, signal.SIGHUP):
+        prev = signal.getsignal(sig)
+
+        def handler(signum, frame, sig=sig, prev=prev):
+            _run_term_guards()                     # un-wreck the terminal first
+            # restore the prior disposition and re-raise, so the process still dies as it would have
+            signal.signal(sig, prev if (prev in (signal.SIG_DFL, signal.SIG_IGN) or callable(prev))
+                          else signal.SIG_DFL)
+            os.kill(os.getpid(), sig)
+        try:
+            signal.signal(sig, handler)
+        except (ValueError, OSError):              # signal unavailable / not main thread
+            pass
+
+
+@contextmanager
+def _term_guard(restore):
+    '''Register `restore` to also run on SIGTERM/SIGHUP/atexit while active — a fatal signal bypasses
+    the local `finally`, so this is what un-wedges the terminal then. Main-thread only (signal.signal
+    raises off-main; only the main thread ever owns the tty). Deregistered on normal unwind, so it
+    never double-restores or fires after a clean exit.'''
+    if threading.current_thread() is not threading.main_thread():
+        yield
+        return
+    _install_term_hooks()
+    _TERM_GUARDS.append(restore)
+    try:
+        yield
+    finally:
+        try:
+            _TERM_GUARDS.remove(restore)
+        except ValueError:
+            pass
+
+
 @contextmanager
 def terminal_released(tui_active: bool):
     '''Temporarily hand the terminal back to a child process. When the TUI is
@@ -56,15 +118,25 @@ def terminal_released(tui_active: bool):
     saved = termios.tcgetattr(fd) if isatty else None
 
     if tui_active:
-        sys.stdout.write(
-            '\x1b[?1049l'                        # leave alternate screen
-            '\x1b[?25h'                          # show cursor
-            '\x1b[0m'                            # reset SGR
-            '\x1b[?7h'                           # re-enable line wrap
-            '\x1b[?1000l\x1b[?1002l\x1b[?1006l'  # mouse reporting off
-            '\x1b[?2004l'                        # bracketed paste off
-        )
+        sys.stdout.write(_SANE_TERM)
         sys.stdout.flush()
+
+    # On a FATAL signal (SIGTERM/SIGHUP) or interpreter exit, the `finally` below never runs — so
+    # register the same restoration to run then, un-wedging a terminal left in raw mode by a teed
+    # child. (We're already out of the alt-screen here, so this restores termios + reasserts sane
+    # modes and stops there — it never re-enters the alt-screen of a dying process.)
+    def _restore_on_fatal():
+        if tui_active:
+            try:
+                sys.stdout.write(_SANE_TERM)
+                sys.stdout.flush()
+            except Exception:    # noqa: BLE001
+                pass
+        if isatty and saved is not None:
+            try:
+                termios.tcsetattr(fd, termios.TCSADRAIN, saved)
+            except Exception:    # noqa: BLE001
+                pass
 
     # While the child owns the terminal, the PARENT must not die on Ctrl+C (it's the TUI/CLI). Use a
     # no-op HANDLER, not SIG_IGN: a caught signal is reset to SIG_DFL in the child across exec, so the
@@ -72,14 +144,15 @@ def terminal_released(tui_active: bool):
     # the child would ignore Ctrl+C too (a long source build you couldn't interrupt). Both keep the
     # parent alive; only the handler lets the child be interrupted.
     old_int = signal.signal(signal.SIGINT, lambda *_: None)
-    try:
-        yield
-    finally:
-        signal.signal(signal.SIGINT, old_int)
-        if isatty and saved is not None:
-            termios.tcsetattr(fd, termios.TCSADRAIN, saved)
-        if tui_active:
-            sys.stdout.write('\x1b[?1049h')  # re-enter alternate screen
+    with _term_guard(_restore_on_fatal):
+        try:
+            yield
+        finally:
+            signal.signal(signal.SIGINT, old_int)
+            if isatty and saved is not None:
+                termios.tcsetattr(fd, termios.TCSADRAIN, saved)
+            if tui_active:
+                sys.stdout.write('\x1b[?1049h')  # re-enter alternate screen
             sys.stdout.flush()
 
 
