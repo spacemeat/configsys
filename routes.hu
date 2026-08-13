@@ -1624,9 +1624,17 @@
         // are capability LABELS (the `-std` mode exists + is substantially usable), easy to hand-tune
         // per real support; the newest standards (C++26) are the most likely to want adjusting.
         // Older lines (10/11/12) are useful as pinned HOST compilers for toolchains that reject a
-        // too-new gcc — notably CUDA's nvcc (a from-source CUDA build `requires: gcc-10` and points
-        // nvcc at it). debian: repo/PPA packages; rhel: the gcc-toolset-NN SCL. Not carried on
-        // current Fedora/Arch (their repos ship only the latest), so they decline there.
+        // too-new gcc — notably CUDA's nvcc (points nvcc at gcc-10), and OpenCV's CUDA-11 build
+        // (requires: gcc-10) and Blender 4.3 (requires: gcc-11), both in their plugins. Availability
+        // of a DOWNLEVEL (older-than-default) gcc, the shared story those consumers refer back to:
+        //   debian/ubuntu -> parallel apt packages (ubuntu-toolchain-r PPA); additive, no rollback.
+        //   rhel/EL       -> the gcc-toolset-NN SCL under /opt/rh; isolated from the system gcc.
+        //   fedora/arch   -> NOT carried: their repos ship only the latest gcc, and no clean COPR/AUR
+        //                    parallel gccNN lands at /usr/bin/gcc-NN. So a downlevel pin there is an
+        //                    honest unmet-require at resolve/check time — not a rollback, not a
+        //                    mid-build failure — until it's built from source. (fedora DOES carry the
+        //                    near-default compat gccNN used by the `when: "fedora = NN"` bindings
+        //                    below; that's a native package, not a downlevel side-install.)
         gcc-10: { description: "GCC 10 — the GNU Compiler Collection, version 10."
             provides: [ cc, cxx, C11, C17, "C++17", "C++20" ]
             standing: never-auto
