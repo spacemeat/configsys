@@ -713,6 +713,29 @@
     "name": "curl"
    }
   },
+  "cython": {
+   "pacman\\c-toolchain": {
+    "driver": "pacman",
+    "fields": {
+     "name": "gcc"
+    },
+    "name": "gcc"
+   },
+   "pacman\\cpp-toolchain": {
+    "driver": "pacman",
+    "fields": {
+     "name": "gcc"
+    },
+    "name": "gcc"
+   },
+   "pacman\\cython": {
+    "driver": "pacman",
+    "fields": {
+     "name": "cython"
+    },
+    "name": "cython"
+   }
+  },
   "darktable": {
    "flatpak\\darktable": {
     "driver": "flatpak",
@@ -2750,6 +2773,26 @@
      "name": "ruby"
     },
     "name": "ruby"
+   }
+  },
+  "pyenv": {
+   "pacman\\curl": {
+    "driver": "pacman",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "script\\pyenv": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "curl -fsSL https://pyenv.run | bash",
+     "name": "pyenv",
+     "uninstall-cmd": "rm -rf \"$HOME/.pyenv\"",
+     "version-cmd": "\"$HOME/.pyenv/bin/pyenv\" --version 2>/dev/null",
+     "version-re": "([0-9][0-9.]*)"
+    },
+    "name": "pyenv"
    }
   },
   "python3-pip": {
@@ -5099,6 +5142,29 @@
     "name": "curl"
    }
   },
+  "cython": {
+   "apt\\c-toolchain": {
+    "driver": "apt",
+    "fields": {
+     "name": "gcc"
+    },
+    "name": "gcc"
+   },
+   "apt\\cpp-toolchain": {
+    "driver": "apt",
+    "fields": {
+     "name": "g++"
+    },
+    "name": "g++"
+   },
+   "apt\\cython": {
+    "driver": "apt",
+    "fields": {
+     "name": "cython3"
+    },
+    "name": "cython3"
+   }
+  },
   "darktable": {
    "apt\\flatpak": {
     "driver": "apt",
@@ -7630,6 +7696,48 @@
     "name": "puppet"
    }
   },
+  "pyenv": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "script\\pyenv": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "curl -fsSL https://pyenv.run | bash",
+     "name": "pyenv",
+     "uninstall-cmd": "rm -rf \"$HOME/.pyenv\"",
+     "version-cmd": "\"$HOME/.pyenv/bin/pyenv\" --version 2>/dev/null",
+     "version-re": "([0-9][0-9.]*)"
+    },
+    "name": "pyenv"
+   }
+  },
+  "python-build-deps": {
+   "apt\\python-build-deps": {
+    "driver": "apt",
+    "fields": {
+     "name": "python-build-deps",
+     "packages": [
+      "build-essential",
+      "libssl-dev",
+      "zlib1g-dev",
+      "libbz2-dev",
+      "libreadline-dev",
+      "libsqlite3-dev",
+      "libncursesw5-dev",
+      "xz-utils",
+      "tk-dev",
+      "libffi-dev",
+      "liblzma-dev"
+     ]
+    },
+    "name": "python-build-deps"
+   }
+  },
   "python3-pip": {
    "apt\\python3-pip": {
     "driver": "apt",
@@ -7637,6 +7745,72 @@
      "name": "python3-pip"
     },
     "name": "python3-pip"
+   }
+  },
+  "python3.11": {
+   "apt\\python3.11": {
+    "driver": "apt",
+    "fields": {
+     "name": "python3.11",
+     "packages": [
+      "python3.11",
+      "python3.11-venv",
+      "python3.11-dev"
+     ],
+     "ppa": "deadsnakes/ppa"
+    },
+    "name": "python3.11"
+   },
+   "apt\\software-properties-common": {
+    "driver": "apt",
+    "fields": {
+     "name": "software-properties-common"
+    },
+    "name": "software-properties-common"
+   }
+  },
+  "python3.12": {
+   "apt\\python3.12": {
+    "driver": "apt",
+    "fields": {
+     "name": "python3.12",
+     "packages": [
+      "python3.12",
+      "python3.12-venv",
+      "python3.12-dev"
+     ],
+     "ppa": "deadsnakes/ppa"
+    },
+    "name": "python3.12"
+   },
+   "apt\\software-properties-common": {
+    "driver": "apt",
+    "fields": {
+     "name": "software-properties-common"
+    },
+    "name": "software-properties-common"
+   }
+  },
+  "python3.13": {
+   "apt\\python3.13": {
+    "driver": "apt",
+    "fields": {
+     "name": "python3.13",
+     "packages": [
+      "python3.13",
+      "python3.13-venv",
+      "python3.13-dev"
+     ],
+     "ppa": "deadsnakes/ppa"
+    },
+    "name": "python3.13"
+   },
+   "apt\\software-properties-common": {
+    "driver": "apt",
+    "fields": {
+     "name": "software-properties-common"
+    },
+    "name": "software-properties-common"
    }
   },
   "qemu": {
@@ -9863,6 +10037,29 @@
     "name": "curl"
    }
   },
+  "cython": {
+   "apt\\c-toolchain": {
+    "driver": "apt",
+    "fields": {
+     "name": "gcc"
+    },
+    "name": "gcc"
+   },
+   "apt\\cpp-toolchain": {
+    "driver": "apt",
+    "fields": {
+     "name": "g++"
+    },
+    "name": "g++"
+   },
+   "apt\\cython": {
+    "driver": "apt",
+    "fields": {
+     "name": "cython3"
+    },
+    "name": "cython3"
+   }
+  },
   "darktable": {
    "apt\\flatpak": {
     "driver": "apt",
@@ -12334,6 +12531,48 @@
     "name": "puppet"
    }
   },
+  "pyenv": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "script\\pyenv": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "curl -fsSL https://pyenv.run | bash",
+     "name": "pyenv",
+     "uninstall-cmd": "rm -rf \"$HOME/.pyenv\"",
+     "version-cmd": "\"$HOME/.pyenv/bin/pyenv\" --version 2>/dev/null",
+     "version-re": "([0-9][0-9.]*)"
+    },
+    "name": "pyenv"
+   }
+  },
+  "python-build-deps": {
+   "apt\\python-build-deps": {
+    "driver": "apt",
+    "fields": {
+     "name": "python-build-deps",
+     "packages": [
+      "build-essential",
+      "libssl-dev",
+      "zlib1g-dev",
+      "libbz2-dev",
+      "libreadline-dev",
+      "libsqlite3-dev",
+      "libncursesw5-dev",
+      "xz-utils",
+      "tk-dev",
+      "libffi-dev",
+      "liblzma-dev"
+     ]
+    },
+    "name": "python-build-deps"
+   }
+  },
   "python3-pip": {
    "apt\\python3-pip": {
     "driver": "apt",
@@ -12341,6 +12580,72 @@
      "name": "python3-pip"
     },
     "name": "python3-pip"
+   }
+  },
+  "python3.11": {
+   "apt\\python3.11": {
+    "driver": "apt",
+    "fields": {
+     "name": "python3.11",
+     "packages": [
+      "python3.11",
+      "python3.11-venv",
+      "python3.11-dev"
+     ],
+     "ppa": "deadsnakes/ppa"
+    },
+    "name": "python3.11"
+   },
+   "apt\\software-properties-common": {
+    "driver": "apt",
+    "fields": {
+     "name": "software-properties-common"
+    },
+    "name": "software-properties-common"
+   }
+  },
+  "python3.12": {
+   "apt\\python3.12": {
+    "driver": "apt",
+    "fields": {
+     "name": "python3.12",
+     "packages": [
+      "python3.12",
+      "python3.12-venv",
+      "python3.12-dev"
+     ],
+     "ppa": "deadsnakes/ppa"
+    },
+    "name": "python3.12"
+   },
+   "apt\\software-properties-common": {
+    "driver": "apt",
+    "fields": {
+     "name": "software-properties-common"
+    },
+    "name": "software-properties-common"
+   }
+  },
+  "python3.13": {
+   "apt\\python3.13": {
+    "driver": "apt",
+    "fields": {
+     "name": "python3.13",
+     "packages": [
+      "python3.13",
+      "python3.13-venv",
+      "python3.13-dev"
+     ],
+     "ppa": "deadsnakes/ppa"
+    },
+    "name": "python3.13"
+   },
+   "apt\\software-properties-common": {
+    "driver": "apt",
+    "fields": {
+     "name": "software-properties-common"
+    },
+    "name": "software-properties-common"
    }
   },
   "qemu": {
@@ -14555,6 +14860,29 @@
     "name": "curl"
    }
   },
+  "cython": {
+   "apt\\c-toolchain": {
+    "driver": "apt",
+    "fields": {
+     "name": "gcc"
+    },
+    "name": "gcc"
+   },
+   "apt\\cpp-toolchain": {
+    "driver": "apt",
+    "fields": {
+     "name": "g++"
+    },
+    "name": "g++"
+   },
+   "apt\\cython": {
+    "driver": "apt",
+    "fields": {
+     "name": "cython3"
+    },
+    "name": "cython3"
+   }
+  },
   "darktable": {
    "apt\\flatpak": {
     "driver": "apt",
@@ -17026,6 +17354,48 @@
     "name": "puppet"
    }
   },
+  "pyenv": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "script\\pyenv": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "curl -fsSL https://pyenv.run | bash",
+     "name": "pyenv",
+     "uninstall-cmd": "rm -rf \"$HOME/.pyenv\"",
+     "version-cmd": "\"$HOME/.pyenv/bin/pyenv\" --version 2>/dev/null",
+     "version-re": "([0-9][0-9.]*)"
+    },
+    "name": "pyenv"
+   }
+  },
+  "python-build-deps": {
+   "apt\\python-build-deps": {
+    "driver": "apt",
+    "fields": {
+     "name": "python-build-deps",
+     "packages": [
+      "build-essential",
+      "libssl-dev",
+      "zlib1g-dev",
+      "libbz2-dev",
+      "libreadline-dev",
+      "libsqlite3-dev",
+      "libncursesw5-dev",
+      "xz-utils",
+      "tk-dev",
+      "libffi-dev",
+      "liblzma-dev"
+     ]
+    },
+    "name": "python-build-deps"
+   }
+  },
   "python3-pip": {
    "apt\\python3-pip": {
     "driver": "apt",
@@ -17033,6 +17403,72 @@
      "name": "python3-pip"
     },
     "name": "python3-pip"
+   }
+  },
+  "python3.11": {
+   "apt\\python3.11": {
+    "driver": "apt",
+    "fields": {
+     "name": "python3.11",
+     "packages": [
+      "python3.11",
+      "python3.11-venv",
+      "python3.11-dev"
+     ],
+     "ppa": "deadsnakes/ppa"
+    },
+    "name": "python3.11"
+   },
+   "apt\\software-properties-common": {
+    "driver": "apt",
+    "fields": {
+     "name": "software-properties-common"
+    },
+    "name": "software-properties-common"
+   }
+  },
+  "python3.12": {
+   "apt\\python3.12": {
+    "driver": "apt",
+    "fields": {
+     "name": "python3.12",
+     "packages": [
+      "python3.12",
+      "python3.12-venv",
+      "python3.12-dev"
+     ],
+     "ppa": "deadsnakes/ppa"
+    },
+    "name": "python3.12"
+   },
+   "apt\\software-properties-common": {
+    "driver": "apt",
+    "fields": {
+     "name": "software-properties-common"
+    },
+    "name": "software-properties-common"
+   }
+  },
+  "python3.13": {
+   "apt\\python3.13": {
+    "driver": "apt",
+    "fields": {
+     "name": "python3.13",
+     "packages": [
+      "python3.13",
+      "python3.13-venv",
+      "python3.13-dev"
+     ],
+     "ppa": "deadsnakes/ppa"
+    },
+    "name": "python3.13"
+   },
+   "apt\\software-properties-common": {
+    "driver": "apt",
+    "fields": {
+     "name": "software-properties-common"
+    },
+    "name": "software-properties-common"
    }
   },
   "qemu": {
@@ -19129,6 +19565,29 @@
      "name": "curl"
     },
     "name": "curl"
+   }
+  },
+  "cython": {
+   "dnf\\c-toolchain": {
+    "driver": "dnf",
+    "fields": {
+     "name": "gcc"
+    },
+    "name": "gcc"
+   },
+   "dnf\\cpp-toolchain": {
+    "driver": "dnf",
+    "fields": {
+     "name": "gcc-c++"
+    },
+    "name": "gcc-c++"
+   },
+   "dnf\\cython": {
+    "driver": "dnf",
+    "fields": {
+     "name": "python3-Cython"
+    },
+    "name": "python3-Cython"
    }
   },
   "darktable": {
@@ -21277,6 +21736,47 @@
     "name": "puppet"
    }
   },
+  "pyenv": {
+   "dnf\\curl": {
+    "driver": "dnf",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "script\\pyenv": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "curl -fsSL https://pyenv.run | bash",
+     "name": "pyenv",
+     "uninstall-cmd": "rm -rf \"$HOME/.pyenv\"",
+     "version-cmd": "\"$HOME/.pyenv/bin/pyenv\" --version 2>/dev/null",
+     "version-re": "([0-9][0-9.]*)"
+    },
+    "name": "pyenv"
+   }
+  },
+  "python-build-deps": {
+   "dnf\\python-build-deps": {
+    "driver": "dnf",
+    "fields": {
+     "name": "python-build-deps",
+     "packages": [
+      "gcc",
+      "make",
+      "zlib-devel",
+      "bzip2-devel",
+      "readline-devel",
+      "sqlite-devel",
+      "openssl-devel",
+      "tk-devel",
+      "libffi-devel",
+      "xz-devel"
+     ]
+    },
+    "name": "python-build-deps"
+   }
+  },
   "python3-pip": {
    "dnf\\python3-pip": {
     "driver": "dnf",
@@ -21284,6 +21784,42 @@
      "name": "python3-pip"
     },
     "name": "python3-pip"
+   }
+  },
+  "python3.11": {
+   "dnf\\python3.11": {
+    "driver": "dnf",
+    "fields": {
+     "name": "python3.11",
+     "packages": [
+      "python3.11"
+     ]
+    },
+    "name": "python3.11"
+   }
+  },
+  "python3.12": {
+   "dnf\\python3.12": {
+    "driver": "dnf",
+    "fields": {
+     "name": "python3.12",
+     "packages": [
+      "python3.12"
+     ]
+    },
+    "name": "python3.12"
+   }
+  },
+  "python3.13": {
+   "dnf\\python3.13": {
+    "driver": "dnf",
+    "fields": {
+     "name": "python3.13",
+     "packages": [
+      "python3.13"
+     ]
+    },
+    "name": "python3.13"
    }
   },
   "qemu": {
@@ -23453,6 +23989,29 @@
     "name": "curl"
    }
   },
+  "cython": {
+   "dnf\\c-toolchain": {
+    "driver": "dnf",
+    "fields": {
+     "name": "gcc"
+    },
+    "name": "gcc"
+   },
+   "dnf\\cpp-toolchain": {
+    "driver": "dnf",
+    "fields": {
+     "name": "gcc-c++"
+    },
+    "name": "gcc-c++"
+   },
+   "dnf\\cython": {
+    "driver": "dnf",
+    "fields": {
+     "name": "python3-Cython"
+    },
+    "name": "python3-Cython"
+   }
+  },
   "darktable": {
    "dnf\\flatpak": {
     "driver": "dnf",
@@ -25599,6 +26158,47 @@
     "name": "puppet"
    }
   },
+  "pyenv": {
+   "dnf\\curl": {
+    "driver": "dnf",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "script\\pyenv": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "curl -fsSL https://pyenv.run | bash",
+     "name": "pyenv",
+     "uninstall-cmd": "rm -rf \"$HOME/.pyenv\"",
+     "version-cmd": "\"$HOME/.pyenv/bin/pyenv\" --version 2>/dev/null",
+     "version-re": "([0-9][0-9.]*)"
+    },
+    "name": "pyenv"
+   }
+  },
+  "python-build-deps": {
+   "dnf\\python-build-deps": {
+    "driver": "dnf",
+    "fields": {
+     "name": "python-build-deps",
+     "packages": [
+      "gcc",
+      "make",
+      "zlib-devel",
+      "bzip2-devel",
+      "readline-devel",
+      "sqlite-devel",
+      "openssl-devel",
+      "tk-devel",
+      "libffi-devel",
+      "xz-devel"
+     ]
+    },
+    "name": "python-build-deps"
+   }
+  },
   "python3-pip": {
    "dnf\\python3-pip": {
     "driver": "dnf",
@@ -25606,6 +26206,42 @@
      "name": "python3-pip"
     },
     "name": "python3-pip"
+   }
+  },
+  "python3.11": {
+   "dnf\\python3.11": {
+    "driver": "dnf",
+    "fields": {
+     "name": "python3.11",
+     "packages": [
+      "python3.11"
+     ]
+    },
+    "name": "python3.11"
+   }
+  },
+  "python3.12": {
+   "dnf\\python3.12": {
+    "driver": "dnf",
+    "fields": {
+     "name": "python3.12",
+     "packages": [
+      "python3.12"
+     ]
+    },
+    "name": "python3.12"
+   }
+  },
+  "python3.13": {
+   "dnf\\python3.13": {
+    "driver": "dnf",
+    "fields": {
+     "name": "python3.13",
+     "packages": [
+      "python3.13"
+     ]
+    },
+    "name": "python3.13"
    }
   },
   "qemu": {
@@ -27351,6 +27987,29 @@
     "name": "curl"
    }
   },
+  "cython": {
+   "brew\\c-toolchain": {
+    "driver": "brew",
+    "fields": {
+     "name": "gcc"
+    },
+    "name": "gcc"
+   },
+   "brew\\cpp-toolchain": {
+    "driver": "brew",
+    "fields": {
+     "name": "gcc"
+    },
+    "name": "gcc"
+   },
+   "brew\\cython": {
+    "driver": "brew",
+    "fields": {
+     "name": "cython"
+    },
+    "name": "cython"
+   }
+  },
   "darktable": {
    "flatpak\\darktable": {
     "driver": "flatpak",
@@ -28995,6 +29654,26 @@
      "name": "puppet"
     },
     "name": "puppet"
+   }
+  },
+  "pyenv": {
+   "brew\\curl": {
+    "driver": "brew",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "script\\pyenv": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "curl -fsSL https://pyenv.run | bash",
+     "name": "pyenv",
+     "uninstall-cmd": "rm -rf \"$HOME/.pyenv\"",
+     "version-cmd": "\"$HOME/.pyenv/bin/pyenv\" --version 2>/dev/null",
+     "version-re": "([0-9][0-9.]*)"
+    },
+    "name": "pyenv"
    }
   },
   "python3-pip": {
@@ -30881,6 +31560,29 @@
      "name": "curl"
     },
     "name": "curl"
+   }
+  },
+  "cython": {
+   "apt\\c-toolchain": {
+    "driver": "apt",
+    "fields": {
+     "name": "gcc"
+    },
+    "name": "gcc"
+   },
+   "apt\\cpp-toolchain": {
+    "driver": "apt",
+    "fields": {
+     "name": "g++"
+    },
+    "name": "g++"
+   },
+   "apt\\cython": {
+    "driver": "apt",
+    "fields": {
+     "name": "cython3"
+    },
+    "name": "cython3"
    }
   },
   "darktable": {
@@ -33414,6 +34116,48 @@
     "name": "puppet"
    }
   },
+  "pyenv": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "script\\pyenv": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "curl -fsSL https://pyenv.run | bash",
+     "name": "pyenv",
+     "uninstall-cmd": "rm -rf \"$HOME/.pyenv\"",
+     "version-cmd": "\"$HOME/.pyenv/bin/pyenv\" --version 2>/dev/null",
+     "version-re": "([0-9][0-9.]*)"
+    },
+    "name": "pyenv"
+   }
+  },
+  "python-build-deps": {
+   "apt\\python-build-deps": {
+    "driver": "apt",
+    "fields": {
+     "name": "python-build-deps",
+     "packages": [
+      "build-essential",
+      "libssl-dev",
+      "zlib1g-dev",
+      "libbz2-dev",
+      "libreadline-dev",
+      "libsqlite3-dev",
+      "libncursesw5-dev",
+      "xz-utils",
+      "tk-dev",
+      "libffi-dev",
+      "liblzma-dev"
+     ]
+    },
+    "name": "python-build-deps"
+   }
+  },
   "python3-pip": {
    "apt\\python3-pip": {
     "driver": "apt",
@@ -33421,6 +34165,72 @@
      "name": "python3-pip"
     },
     "name": "python3-pip"
+   }
+  },
+  "python3.11": {
+   "apt\\python3.11": {
+    "driver": "apt",
+    "fields": {
+     "name": "python3.11",
+     "packages": [
+      "python3.11",
+      "python3.11-venv",
+      "python3.11-dev"
+     ],
+     "ppa": "deadsnakes/ppa"
+    },
+    "name": "python3.11"
+   },
+   "apt\\software-properties-common": {
+    "driver": "apt",
+    "fields": {
+     "name": "software-properties-common"
+    },
+    "name": "software-properties-common"
+   }
+  },
+  "python3.12": {
+   "apt\\python3.12": {
+    "driver": "apt",
+    "fields": {
+     "name": "python3.12",
+     "packages": [
+      "python3.12",
+      "python3.12-venv",
+      "python3.12-dev"
+     ],
+     "ppa": "deadsnakes/ppa"
+    },
+    "name": "python3.12"
+   },
+   "apt\\software-properties-common": {
+    "driver": "apt",
+    "fields": {
+     "name": "software-properties-common"
+    },
+    "name": "software-properties-common"
+   }
+  },
+  "python3.13": {
+   "apt\\python3.13": {
+    "driver": "apt",
+    "fields": {
+     "name": "python3.13",
+     "packages": [
+      "python3.13",
+      "python3.13-venv",
+      "python3.13-dev"
+     ],
+     "ppa": "deadsnakes/ppa"
+    },
+    "name": "python3.13"
+   },
+   "apt\\software-properties-common": {
+    "driver": "apt",
+    "fields": {
+     "name": "software-properties-common"
+    },
+    "name": "software-properties-common"
    }
   },
   "qemu": {
@@ -35593,6 +36403,29 @@
      "name": "curl"
     },
     "name": "curl"
+   }
+  },
+  "cython": {
+   "dnf\\c-toolchain": {
+    "driver": "dnf",
+    "fields": {
+     "name": "gcc"
+    },
+    "name": "gcc"
+   },
+   "dnf\\cpp-toolchain": {
+    "driver": "dnf",
+    "fields": {
+     "name": "gcc-c++"
+    },
+    "name": "gcc-c++"
+   },
+   "dnf\\cython": {
+    "driver": "dnf",
+    "fields": {
+     "name": "python3-Cython"
+    },
+    "name": "python3-Cython"
    }
   },
   "darktable": {
@@ -37908,6 +38741,47 @@
     "name": "puppet"
    }
   },
+  "pyenv": {
+   "dnf\\curl": {
+    "driver": "dnf",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "script\\pyenv": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "curl -fsSL https://pyenv.run | bash",
+     "name": "pyenv",
+     "uninstall-cmd": "rm -rf \"$HOME/.pyenv\"",
+     "version-cmd": "\"$HOME/.pyenv/bin/pyenv\" --version 2>/dev/null",
+     "version-re": "([0-9][0-9.]*)"
+    },
+    "name": "pyenv"
+   }
+  },
+  "python-build-deps": {
+   "dnf\\python-build-deps": {
+    "driver": "dnf",
+    "fields": {
+     "name": "python-build-deps",
+     "packages": [
+      "gcc",
+      "make",
+      "zlib-devel",
+      "bzip2-devel",
+      "readline-devel",
+      "sqlite-devel",
+      "openssl-devel",
+      "tk-devel",
+      "libffi-devel",
+      "xz-devel"
+     ]
+    },
+    "name": "python-build-deps"
+   }
+  },
   "python3-pip": {
    "dnf\\python3-pip": {
     "driver": "dnf",
@@ -37915,6 +38789,42 @@
      "name": "python3-pip"
     },
     "name": "python3-pip"
+   }
+  },
+  "python3.11": {
+   "dnf\\python3.11": {
+    "driver": "dnf",
+    "fields": {
+     "name": "python3.11",
+     "packages": [
+      "python3.11"
+     ]
+    },
+    "name": "python3.11"
+   }
+  },
+  "python3.12": {
+   "dnf\\python3.12": {
+    "driver": "dnf",
+    "fields": {
+     "name": "python3.12",
+     "packages": [
+      "python3.12"
+     ]
+    },
+    "name": "python3.12"
+   }
+  },
+  "python3.13": {
+   "dnf\\python3.13": {
+    "driver": "dnf",
+    "fields": {
+     "name": "python3.13",
+     "packages": [
+      "python3.13"
+     ]
+    },
+    "name": "python3.13"
    }
   },
   "qemu": {
@@ -40257,6 +41167,29 @@
     "name": "curl"
    }
   },
+  "cython": {
+   "apt\\c-toolchain": {
+    "driver": "apt",
+    "fields": {
+     "name": "gcc"
+    },
+    "name": "gcc"
+   },
+   "apt\\cpp-toolchain": {
+    "driver": "apt",
+    "fields": {
+     "name": "g++"
+    },
+    "name": "g++"
+   },
+   "apt\\cython": {
+    "driver": "apt",
+    "fields": {
+     "name": "cython3"
+    },
+    "name": "cython3"
+   }
+  },
   "darktable": {
    "apt\\flatpak": {
     "driver": "apt",
@@ -42788,6 +43721,48 @@
     "name": "puppet"
    }
   },
+  "pyenv": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "script\\pyenv": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "curl -fsSL https://pyenv.run | bash",
+     "name": "pyenv",
+     "uninstall-cmd": "rm -rf \"$HOME/.pyenv\"",
+     "version-cmd": "\"$HOME/.pyenv/bin/pyenv\" --version 2>/dev/null",
+     "version-re": "([0-9][0-9.]*)"
+    },
+    "name": "pyenv"
+   }
+  },
+  "python-build-deps": {
+   "apt\\python-build-deps": {
+    "driver": "apt",
+    "fields": {
+     "name": "python-build-deps",
+     "packages": [
+      "build-essential",
+      "libssl-dev",
+      "zlib1g-dev",
+      "libbz2-dev",
+      "libreadline-dev",
+      "libsqlite3-dev",
+      "libncursesw5-dev",
+      "xz-utils",
+      "tk-dev",
+      "libffi-dev",
+      "liblzma-dev"
+     ]
+    },
+    "name": "python-build-deps"
+   }
+  },
   "python3-pip": {
    "apt\\python3-pip": {
     "driver": "apt",
@@ -42795,6 +43770,72 @@
      "name": "python3-pip"
     },
     "name": "python3-pip"
+   }
+  },
+  "python3.11": {
+   "apt\\python3.11": {
+    "driver": "apt",
+    "fields": {
+     "name": "python3.11",
+     "packages": [
+      "python3.11",
+      "python3.11-venv",
+      "python3.11-dev"
+     ],
+     "ppa": "deadsnakes/ppa"
+    },
+    "name": "python3.11"
+   },
+   "apt\\software-properties-common": {
+    "driver": "apt",
+    "fields": {
+     "name": "software-properties-common"
+    },
+    "name": "software-properties-common"
+   }
+  },
+  "python3.12": {
+   "apt\\python3.12": {
+    "driver": "apt",
+    "fields": {
+     "name": "python3.12",
+     "packages": [
+      "python3.12",
+      "python3.12-venv",
+      "python3.12-dev"
+     ],
+     "ppa": "deadsnakes/ppa"
+    },
+    "name": "python3.12"
+   },
+   "apt\\software-properties-common": {
+    "driver": "apt",
+    "fields": {
+     "name": "software-properties-common"
+    },
+    "name": "software-properties-common"
+   }
+  },
+  "python3.13": {
+   "apt\\python3.13": {
+    "driver": "apt",
+    "fields": {
+     "name": "python3.13",
+     "packages": [
+      "python3.13",
+      "python3.13-venv",
+      "python3.13-dev"
+     ],
+     "ppa": "deadsnakes/ppa"
+    },
+    "name": "python3.13"
+   },
+   "apt\\software-properties-common": {
+    "driver": "apt",
+    "fields": {
+     "name": "software-properties-common"
+    },
+    "name": "software-properties-common"
    }
   },
   "qemu": {
@@ -45029,6 +46070,29 @@
     "name": "curl"
    }
   },
+  "cython": {
+   "apt\\c-toolchain": {
+    "driver": "apt",
+    "fields": {
+     "name": "gcc"
+    },
+    "name": "gcc"
+   },
+   "apt\\cpp-toolchain": {
+    "driver": "apt",
+    "fields": {
+     "name": "g++"
+    },
+    "name": "g++"
+   },
+   "apt\\cython": {
+    "driver": "apt",
+    "fields": {
+     "name": "cython3"
+    },
+    "name": "cython3"
+   }
+  },
   "darktable": {
    "apt\\flatpak": {
     "driver": "apt",
@@ -47500,6 +48564,48 @@
     "name": "puppet"
    }
   },
+  "pyenv": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "script\\pyenv": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "curl -fsSL https://pyenv.run | bash",
+     "name": "pyenv",
+     "uninstall-cmd": "rm -rf \"$HOME/.pyenv\"",
+     "version-cmd": "\"$HOME/.pyenv/bin/pyenv\" --version 2>/dev/null",
+     "version-re": "([0-9][0-9.]*)"
+    },
+    "name": "pyenv"
+   }
+  },
+  "python-build-deps": {
+   "apt\\python-build-deps": {
+    "driver": "apt",
+    "fields": {
+     "name": "python-build-deps",
+     "packages": [
+      "build-essential",
+      "libssl-dev",
+      "zlib1g-dev",
+      "libbz2-dev",
+      "libreadline-dev",
+      "libsqlite3-dev",
+      "libncursesw5-dev",
+      "xz-utils",
+      "tk-dev",
+      "libffi-dev",
+      "liblzma-dev"
+     ]
+    },
+    "name": "python-build-deps"
+   }
+  },
   "python3-pip": {
    "apt\\python3-pip": {
     "driver": "apt",
@@ -47507,6 +48613,72 @@
      "name": "python3-pip"
     },
     "name": "python3-pip"
+   }
+  },
+  "python3.11": {
+   "apt\\python3.11": {
+    "driver": "apt",
+    "fields": {
+     "name": "python3.11",
+     "packages": [
+      "python3.11",
+      "python3.11-venv",
+      "python3.11-dev"
+     ],
+     "ppa": "deadsnakes/ppa"
+    },
+    "name": "python3.11"
+   },
+   "apt\\software-properties-common": {
+    "driver": "apt",
+    "fields": {
+     "name": "software-properties-common"
+    },
+    "name": "software-properties-common"
+   }
+  },
+  "python3.12": {
+   "apt\\python3.12": {
+    "driver": "apt",
+    "fields": {
+     "name": "python3.12",
+     "packages": [
+      "python3.12",
+      "python3.12-venv",
+      "python3.12-dev"
+     ],
+     "ppa": "deadsnakes/ppa"
+    },
+    "name": "python3.12"
+   },
+   "apt\\software-properties-common": {
+    "driver": "apt",
+    "fields": {
+     "name": "software-properties-common"
+    },
+    "name": "software-properties-common"
+   }
+  },
+  "python3.13": {
+   "apt\\python3.13": {
+    "driver": "apt",
+    "fields": {
+     "name": "python3.13",
+     "packages": [
+      "python3.13",
+      "python3.13-venv",
+      "python3.13-dev"
+     ],
+     "ppa": "deadsnakes/ppa"
+    },
+    "name": "python3.13"
+   },
+   "apt\\software-properties-common": {
+    "driver": "apt",
+    "fields": {
+     "name": "software-properties-common"
+    },
+    "name": "software-properties-common"
    }
   },
   "qemu": {

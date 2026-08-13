@@ -4,7 +4,11 @@
     // OS layer: lineage (`using`) + which package manager is `native` + version scales.
     // `provides:` lists capabilities baseline in that environment (satisfied for free).
     os: {
-        linux:   { }
+        // `provides: python3` — the configsys bootstrap guarantees a system python3 (>=3.10) on every
+        // supported OS, so a bare `requires: python3` is satisfied for free (nothing installed). A
+        // VERSIONED need (`requires: { python3: ">=3.11" }`) isn't met by this unversioned baseline and
+        // pulls a python3.X interpreter component instead.
+        linux:   { provides: python3 }
 
         // The C library is an axis orthogonal to distro family: mainstream distros are glibc,
         // Alpine (and musl-Void) are musl. Prebuilt glibc binaries (most AppImages, many
@@ -92,6 +96,7 @@
         // component is affected — this only concerns C-extension tools a user adds on Alpine.
         pip:         { requires: python3-pip }        // `pip install --user` needs pip
         pipx:        { requires: pipx }               // a PyPI CLI needs the pipx tool
+        pyenv:       { requires: [ pyenv, python-build-deps ] }   // compile CPython: the tool + C build libs
         tarball:     { requires: curl }               // fetch the archive with curl
         source:      { requires: git }                // clone + build from a git checkout
         aur:         { requires: [ base-devel, git ] } // makepkg -si builds from PKGBUILD
@@ -139,6 +144,65 @@
             install: [ { via: apk  when: "alpine" } ]
         }
         python3-pip: { description: "pip — the Python package installer." install: [ { via: native  name: { pacman: python-pip  zypper: python313-pip  apk: py3-pip } } ] }
+
+        // Python interpreters as VERSION-SCOPED providers of the `python3` capability. Install specific
+        // versions side-by-side — each is a distinct `/usr/bin/python3.X` (or a pyenv build), so they
+        // coexist as normal residents — and let a tool floor its interpreter with
+        // `requires: { python3: ">=3.11" }` (the constraint selects/enables the matching version;
+        // 3.13 is the default when several qualify). Two methods each: `native` for a fast binary
+        // (Ubuntu's non-default versions come from the deadsnakes PPA; Fedora ships them directly), and
+        // `pyenv` to COMPILE any version user-scope (newest/RCs, per-project via `.python-version`) —
+        // pick the method with a binding-pin. NEVER repoints the system `python3` default (apt and
+        // distro tools depend on it): select a version by calling `python3.X` or a venv built from it.
+        // 3.11 / 3.12 are `never-auto` (constraint- or explicitly-selected); 3.13 is the modern default.
+        python3.11: { description: "Python 3.11 interpreter (+ venv, dev headers)."
+            standing: never-auto  provides: { python3: "3.11" }
+            install: [
+                { via: native  when: "debian"  packages: [ python3.11, python3.11-venv, python3.11-dev ]
+                  ppa: deadsnakes/ppa  requires: software-properties-common }
+                { via: native  when: "fedora or redhat"  packages: [ python3.11 ] }
+                { via: pyenv  version: "3.11" }
+            ]
+        }
+        python3.12: { description: "Python 3.12 interpreter (+ venv, dev headers)."
+            standing: never-auto  provides: { python3: "3.12" }
+            install: [
+                { via: native  when: "debian"  packages: [ python3.12, python3.12-venv, python3.12-dev ]
+                  ppa: deadsnakes/ppa  requires: software-properties-common }
+                { via: native  when: "fedora or redhat"  packages: [ python3.12 ] }
+                { via: pyenv  version: "3.12" }
+            ]
+        }
+        python3.13: { description: "Python 3.13 interpreter (+ venv, dev headers) — the modern default."
+            provides: { python3: "3.13" }
+            install: [
+                { via: native  when: "debian"  packages: [ python3.13, python3.13-venv, python3.13-dev ]
+                  ppa: deadsnakes/ppa  requires: software-properties-common }
+                { via: native  when: "fedora or redhat"  packages: [ python3.13 ] }
+                { via: pyenv  version: "3.13" }
+            ]
+        }
+        cython: { description: "Cython — compile Python-like code to C extension modules."
+            requires: [ python3, cpp-toolchain ]
+            install: [ { via: native  name: { apt: cython3  dnf: python3-Cython  pacman: cython  zypper: python3-Cython  apk: py3-cython } } ] }
+
+        // pyenv itself + the C libraries it needs to COMPILE CPython — the `via: pyenv` method's deps
+        // (see drivers.pyenv). pyenv installs user-scope under ~/.pyenv via its official installer.
+        pyenv: { description: "pyenv — build & switch Python versions from source, user-scope."
+            requires: curl
+            install: [ { via: script
+                install-cmd:   'curl -fsSL https://pyenv.run | bash'
+                version-cmd:   '"$HOME/.pyenv/bin/pyenv" --version 2>/dev/null'
+                version-re:    '([0-9][0-9.]*)'
+                uninstall-cmd: 'rm -rf "$HOME/.pyenv"' } ] }
+        python-build-deps: { description: "System libraries pyenv needs to compile CPython (ssl/zlib/ffi/…)."
+            standing: never-auto
+            install: [
+                { via: native  when: "debian"  packages: [ build-essential, libssl-dev, zlib1g-dev, libbz2-dev,
+                    libreadline-dev, libsqlite3-dev, libncursesw5-dev, xz-utils, tk-dev, libffi-dev, liblzma-dev ] }
+                { via: native  when: "fedora or redhat"  packages: [ gcc, make, zlib-devel, bzip2-devel,
+                    readline-devel, sqlite-devel, openssl-devel, tk-devel, libffi-devel, xz-devel ] }
+            ] }
         // EL keeps these in EPEL, base repos everywhere else — same two-binding shape as btop.
         // `repo-component: universe` is the apt archive area (read only by apt; ignored on dnf/pacman).
         ripgrep: { description: "Fast recursive regex search (`rg`) — grep, but much quicker."

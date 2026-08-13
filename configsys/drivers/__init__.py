@@ -33,6 +33,7 @@ from .opam import Opam
 from .pacman import Pacman
 from .pip import Pip
 from .pipx import Pipx
+from .pyenv import Pyenv
 from .rpm_ostree import RpmOstree
 from .script import Script
 from .service import Service
@@ -67,6 +68,7 @@ _REGISTRY = {
     Clang.name: Clang,
     Pip.name: Pip,
     Pipx.name: Pipx,
+    Pyenv.name: Pyenv,
     RpmOstree.name: RpmOstree,
     Script.name: Script,
     Source.name: Source,
