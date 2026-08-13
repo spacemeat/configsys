@@ -20,14 +20,6 @@ import tty
 from contextlib import contextmanager
 
 
-def _pty_ctty():
-    '''Streamed-build terminal strategy. DEFAULT (baked in): give the teed child its OWN controlling
-    terminal (the pty), so an internal `sudo` prompt (and Ctrl-C) flow through the tee naturally — no
-    dual-reader contention with the real terminal. Escape hatch `CONFIGSYS_PTY_CTTY=0` disables it and
-    falls back to the pre-auth (presudo) path, for debugging the old shared-terminal behavior.'''
-    return os.environ.get('CONFIGSYS_PTY_CTTY') != '0'
-
-
 def _child_setctty():
     '''preexec_fn: runs in the child AFTER start_new_session's setsid() (so it's a session leader with
     no controlling terminal) and AFTER stdin/out/err are dup'd onto the pty slave (so fd 0 IS the
@@ -135,19 +127,17 @@ def _can_tee():
         return False
 
 
-def _run_teed(argv, cwd, env, limit, ctty=False):
+def _run_teed(argv, cwd, env, limit):
     '''Run argv with its stdio on a pty: stream output to the real terminal live while
     retaining the last `limit` bytes, and forward the user's keystrokes to the child (so an
     interactive build still works). Returns (returncode, captured_tail). The child sees a tty,
     so colour/progress behave as normal.
 
-    `ctty=True` gives the child its OWN session with the pty slave as its controlling terminal
-    (start_new_session + TIOCSCTTY via _child_setctty). Then a `sudo` (or any prompt) the child runs
-    INTERNALLY reads from the pty — relayed by this loop — instead of racing us on the real /dev/tty,
-    and a forwarded Ctrl-C reaches the child's foreground group. Without it (the historical default),
-    the child shares our real controlling terminal, so an internal sudo prompt would deadlock (see
-    Runner._preauth_sudo). master is always closed; a Popen/preexec failure propagates so the caller
-    degrades to plain streaming.'''
+    The child gets its OWN session with the pty slave as its controlling terminal (start_new_session +
+    TIOCSCTTY via _child_setctty). So a `sudo` (or any prompt) the child runs INTERNALLY reads from
+    the pty — relayed by this loop — instead of racing us on the real /dev/tty, and a forwarded Ctrl-C
+    reaches the child's foreground group. master is always closed; a Popen/preexec failure propagates
+    so the caller degrades to plain streaming (where an internal sudo prompts un-teed anyway).'''
     import pty
     master, slave = pty.openpty()
     try:
@@ -156,11 +146,9 @@ def _run_teed(argv, cwd, env, limit, ctty=False):
             fcntl.ioctl(master, termios.TIOCSWINSZ, sz)
         except Exception:                       # noqa: BLE001 — best effort
             pass
-        popen_kw = dict(stdin=slave, stdout=slave, stderr=slave, cwd=cwd, env=env, close_fds=True)
-        if ctty:                                # the child owns the pty as its controlling terminal
-            popen_kw.update(start_new_session=True, preexec_fn=_child_setctty)
-        try:
-            proc = subprocess.Popen(argv, **popen_kw)
+        try:                                    # the child owns the pty as its controlling terminal
+            proc = subprocess.Popen(argv, stdin=slave, stdout=slave, stderr=slave, cwd=cwd, env=env,
+                                    close_fds=True, start_new_session=True, preexec_fn=_child_setctty)
         finally:
             os.close(slave)
         in_fd = sys.stdin.fileno()
@@ -210,24 +198,6 @@ def _run_teed(argv, cwd, env, limit, ctty=False):
         os.close(master)
 
 
-def _sudo_keepalive():
-    '''Refresh the sudo timestamp non-interactively every ~60s until the returned Event is set — so a
-    long teed build (~40 min) whose internal sudo runs past the ~15 min sudo timeout never has to
-    RE-prompt mid-build (a prompt inside the tee deadlocks: the tee loop and sudo both read the one
-    terminal). Daemon thread; `-n` + DEVNULL stdio so it never prompts, blocks, or touches the tty.'''
-    stop = threading.Event()
-
-    def loop():
-        while not stop.wait(60):
-            try:
-                subprocess.run(['sudo', '-n', '-v'], stdin=subprocess.DEVNULL,
-                               stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-            except Exception:            # noqa: BLE001 — best-effort; never crash the build
-                pass
-    threading.Thread(target=loop, daemon=True).start()
-    return stop
-
-
 class Runner:
     def __init__(self, pretend=False, echo=None):
         self.pretend = pretend
@@ -240,24 +210,10 @@ class Runner:
         if self._echo:
             self._echo(msg)
 
-    def _preauth_sudo(self):
-        '''Prompt for the sudo password ONCE, un-teed, on the inherited terminal — so a following
-        teed build that runs `sudo` internally (to install system deps) finds a valid timestamp and
-        never prompts. A prompt INSIDE the tee deadlocks: `_run_teed` holds the real stdin in raw mode
-        and reads it to feed the pty, while sudo reads the same /dev/tty for the password — two readers
-        on one terminal, so keystrokes are split and sudo hangs (and raw mode swallows Ctrl-C). Doing
-        it here, before the tee starts, keeps the prompt on a normal terminal. Best-effort: a declined
-        auth just means the build may prompt itself (still un-teed via the plain fallback).'''
-        self.calls.append('sudo bash -c true')
-        self.echo('configsys: this build may need sudo (system deps) — authenticating now so it '
-                  "won't stop to prompt mid-build.")
-        try:
-            subprocess.run(['sudo', 'bash', '-c', 'true'])   # inherits the tty -> a normal prompt
-        except Exception:                # noqa: BLE001 — never let pre-auth break the run
-            pass
-
     def run(self, cmd, *, sudo=False, capture=True, tui_active=None,
             cwd=None, env=None, presudo=False) -> Result:
+        # `presudo` is a no-op kept for source-build drivers that still pass it: internal sudo now
+        # works because the teed child gets its own pty as controlling terminal (see _run_teed).
         full = f'sudo {cmd}' if sudo else cmd    # readable form for logs/tests
         self.calls.append(full)
 
@@ -275,24 +231,14 @@ class Runner:
             # the output live AND keep a bounded tail for failure reports. Any pty hiccup falls
             # back to a plain inherited-stdio run — reporting must never break an install.
             if not capture and not sudo and _can_tee():
-                # presudo: the command sudo's internally (a source build installing deps). Two
-                # strategies (A/B via CONFIGSYS_PTY_CTTY): default = pre-auth un-teed + keep the
-                # timestamp warm so the internal sudo never prompts inside the tee; ctty = give the
-                # child the pty as its controlling terminal so the prompt flows through the tee
-                # naturally (then presudo is unnecessary). Only meaningful on the teed path.
-                ctty = _pty_ctty()
-                keepalive = None
-                if presudo and not ctty:
-                    self._preauth_sudo()
-                    keepalive = _sudo_keepalive()
+                # The child gets the pty as its OWN controlling terminal, so a `sudo` it runs
+                # internally (a source build installing deps) prompts THROUGH the tee — no dual-reader
+                # contention with the real terminal — and Ctrl-C reaches it. (See _run_teed.)
                 try:
-                    rc, tail = _run_teed(argv, cwd, env, self.tee_limit, ctty=ctty)
+                    rc, tail = _run_teed(argv, cwd, env, self.tee_limit)
                     return Result(full, rc, captured=tail)
                 except Exception:               # noqa: BLE001 — degrade to plain streaming
                     pass
-                finally:
-                    if keepalive is not None:
-                        keepalive.set()
             # A CAPTURED run is a read-only probe (get_version, installed_index, …) that never needs
             # input — and the background inspection worker fires these while curses owns the terminal.
             # Inheriting stdin (the real tty) lets such a child reset the terminal's modes and drop
