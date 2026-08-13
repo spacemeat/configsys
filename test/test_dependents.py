@@ -14,6 +14,7 @@ COMPS = '''
     lazygit:    { install: [ { via: source  requires: [ cmake ] } ] }
     yazi:       { suggests: [ cmake ]  install: [ { via: cargo } ] }
     bundle:     { parts: [ cmake ]  install: [ { via: parts } ] }
+    kit:        { install: [ { via: parts  parts: [ cmake, make ] } ] }
     unrelated:  { install: [ { via: native } ] }
     python3.13: { provides: { python3: "3.13" }  install: [ { via: native } ] }
     tool:       { requires: { python3: ">=3.11" }  install: [ { via: pipx } ] }
@@ -29,8 +30,9 @@ def _res(tmp_path, comps=COMPS, block='debian'):
 def test_dependents_gathers_component_and_binding_edges(tmp_path):
     r = _res(tmp_path)
     # cmake is required (component-level: ripgrep), required (binding-level: lazygit's source method),
-    # suggested (yazi), and a part (bundle) — every edge kind surfaces, sorted.
-    assert r.dependents('cmake') == ['bundle', 'lazygit', 'ripgrep', 'yazi']
+    # suggested (yazi), a component-level part (bundle), AND a `via: parts` binding member (kit) —
+    # every edge kind surfaces, sorted.
+    assert r.dependents('cmake') == ['bundle', 'kit', 'lazygit', 'ripgrep', 'yazi']
 
 
 def test_dependents_matches_a_provided_capability_not_just_the_name(tmp_path):

@@ -434,7 +434,9 @@ class Resolver:
         method, regardless of `when:`/machine-legality — this feeds the machine-agnostic Profiles
         screen). A component provides its own name as a capability, so a bare `requires: <name>` counts;
         a versioned-capability provider (e.g. `python3.13` provides `python3`) also surfaces the
-        consumers of that shared capability. Sorted; `[]` for an unknown component.'''
+        consumers of that shared capability. `parts:` is authored on the `via: parts` binding (a
+        bundle = the union of its parts, often `when:`-gated per OS), so a component that lists `name`
+        among a bundle's parts counts too. Sorted; `[]` for an unknown component.'''
         comp = self.components.get(name)
         if comp is None:
             return []
@@ -443,10 +445,11 @@ class Resolver:
         for other, c in self.components.items():
             if other == name:
                 continue
-            edges = set(c.requires) | set(c.suggests) | set(c.parts)
-            for b in c.bindings:
+            edges = set(c.requires) | set(c.suggests) | set(c.parts)   # component-level edges
+            for b in c.bindings:                                      # + every binding's edges
                 edges |= set(cap_names(b.details.get('requires')))
                 edges |= set(cap_names(b.details.get('suggests')))
+                edges |= set(_as_list(b.details.get('parts')))        # a `via: parts` bundle's members
             if edges & caps:
                 out.append(other)
         return sorted(out)
