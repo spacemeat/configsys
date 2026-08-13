@@ -58,11 +58,27 @@ def _installed_via(ctx, comp, cx, cache):
 def detect_pins(ctx, units):
     '''Soft {name-or-cap: via-or-provider} pins biasing resolution toward installed reality. User-
     pinned components/caps are left alone. Returns {} when nothing applies (fresh machine).'''
+    from .installState import _parallel_map
     r = ctx.routes
     cx = r.cascade.context(r.block, r.version, r.cpu)
     user_pins = ctx.config.pins()
     cache = {}
     pins = {}
+
+    # Pre-warm the per-driver installed_index cache CONCURRENTLY. Otherwise it fills LAZILY and
+    # serially — the component loops below call installed_index the first time they hit each driver,
+    # summing the same slow enumerations (apt dpkg-query, npm/pipx/pip/flatpak list) the inspect batch
+    # runs. Enumerating the units' drivers up front, in parallel, collapses that to the slowest one.
+    def _enum(name):
+        drv = get_driver(name, ctx.runner, ctx.paths)
+        if drv is None:
+            return name, None
+        try:
+            return name, drv.installed_index()
+        except Exception:                           # noqa: BLE001 — a flaky lister must not brick resolve
+            return name, None
+    for name, idx in _parallel_map(_enum, list({rc.driver for rc in units.values()})):
+        cache[name] = idx
 
     # -- method detection: a resolved component installed via a different valid method --
     for rc in units.values():

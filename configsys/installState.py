@@ -7,8 +7,20 @@ degrade to an 'unsupported' state rather than crashing. Inspection is read-only.
 '''
 
 import time
+from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass
 from typing import Optional
+
+
+def _parallel_map(fn, items):
+    '''Map `fn` over `items` CONCURRENTLY — for I/O-bound, captured (terminal-untouching) probes, so
+    wall time is the slowest single call, not the sum. Serial for <=1 item (no pool overhead). Order
+    of results is unspecified (callers are order-independent). Exceptions are the callee's problem —
+    `fn` here always returns, never raises.'''
+    if len(items) <= 1:
+        return [fn(it) for it in items]
+    with ThreadPoolExecutor(max_workers=min(8, len(items))) as ex:
+        return list(ex.map(fn, items))
 
 from .componentObj import ResolvedComponent
 from .drivers import get_driver
@@ -88,17 +100,33 @@ class InstallState:
         to_probe = {k: rc for k, rc in units.items() if k not in reuse or k in dirty}
         batch = self._build_batch(to_probe)
         out, total = {}, len(units)
-        for i, (key, rc) in enumerate(units.items(), 1):
+        for key, rc in units.items():             # reused units keep their cached probe, no work
             if key in reuse and key not in dirty:
                 st = reuse[key]
-                st.component = rc                 # keep the cached probe, refresh resolution facts
+                st.component = rc                 # refresh resolution facts on the cached state
                 out[key] = st
-                continue
+        # Probe the rest CONCURRENTLY — inspect_one is read-only, captured (stdin=DEVNULL) I/O per
+        # unit, so the non-batched drivers' per-unit probes overlap instead of summing. `progress`
+        # still fires once per unit AS IT COMPLETES (on this thread, via as_completed), so the splash
+        # keeps animating; only the probes themselves run on the pool.
+        to_do = [(k, rc) for k, rc in units.items() if k not in reuse or k in dirty]
+        if len(to_do) <= 1:
+            for i, (key, rc) in enumerate(to_do, 1):
+                t0 = time.perf_counter()
+                out[key] = st = self.inspect_one(rc, batch.get(rc.driver))
+                if progress is not None:
+                    progress(i, total, key, st, (time.perf_counter() - t0) * 1000)
+        else:
+            from concurrent.futures import as_completed
             t0 = time.perf_counter()
-            st = self.inspect_one(rc, batch.get(rc.driver))
-            out[key] = st
-            if progress is not None:
-                progress(i, total, key, st, (time.perf_counter() - t0) * 1000)
+            with ThreadPoolExecutor(max_workers=min(8, len(to_do))) as ex:
+                futs = {ex.submit(self.inspect_one, rc, batch.get(rc.driver)): key
+                        for key, rc in to_do}
+                for i, fut in enumerate(as_completed(futs), 1):
+                    key = futs[fut]
+                    out[key] = st = fut.result()
+                    if progress is not None:
+                        progress(i, total, key, st, (time.perf_counter() - t0) * 1000)
         return out
 
     def _build_batch(self, units):
@@ -110,19 +138,22 @@ class InstallState:
         by_driver = {}
         for rc in units.values():
             by_driver.setdefault(rc.driver, []).append(rc)
-        batch = {}
-        for driver, rcs in by_driver.items():
+
+        def probe(item):
+            driver, rcs = item
             drv = get_driver(driver, self.runner, self.paths)
             fn = getattr(drv, 'batch_index', None)
             if fn is None:
-                continue
+                return driver, None
             try:
-                bi = fn(rcs)
+                return driver, fn(rcs)
             except Exception:  # noqa: BLE001 — batching is an optimization, never fatal
-                bi = None
-            if bi is not None:
-                batch[driver] = bi
-        return batch
+                return driver, None
+
+        # Each driver's batch_index is independent, captured (stdin=DEVNULL, terminal-untouching) I/O —
+        # so run them CONCURRENTLY: the prepass wall time drops from the SUM of per-driver enumerations
+        # (flatpak remote-ls + npm ls + apt + pipx/pip …) to the slowest single one.
+        return {d: bi for d, bi in _parallel_map(probe, list(by_driver.items())) if bi is not None}
 
     def inspect_one(self, rc, batch=None):
         led_lock = self.ledger.is_locked(rc.key)
