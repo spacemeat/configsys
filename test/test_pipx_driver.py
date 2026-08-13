@@ -6,10 +6,12 @@ from configsys.drivers.pipx import Pipx
 from configsys.runner import Result, Runner
 
 
-def dist(comp='apod', name='termapod', version_spec=None):
+def dist(comp='apod', name='termapod', version_spec=None, python=None):
     fields = {'name': name}
     if version_spec is not None:
         fields['version'] = version_spec
+    if python is not None:
+        fields['python'] = python
     return ResolvedComponent(key=f'pipx\\{comp}', driver='pipx', comp=comp, fields=fields)
 
 
@@ -80,3 +82,9 @@ def test_get_latest_none_without_spec_and_no_native_lock():
 
 def test_location_is_local_bin():
     assert Pipx(Runner(pretend=True)).location(dist()) == '~/.local/bin'
+
+
+def test_interpreter_pin_passes_python_flag_to_pipx():
+    r = Runner(pretend=True)
+    Pipx(r).install(dist(name='black', python='python3.12'))
+    assert r.calls == ['python3 -m pipx install --python python3.12 black']

@@ -5,10 +5,12 @@ from configsys.runner import Result, Runner
 
 
 # The pip driver is now used mainly to bootstrap pipx on OSs without an apt pipx.
-def dist(comp='pipx', name='pipx', version_spec=None):
+def dist(comp='pipx', name='pipx', version_spec=None, python=None):
     fields = {'name': name}
     if version_spec is not None:
         fields['version'] = version_spec
+    if python is not None:
+        fields['python'] = python
     return ResolvedComponent(key=f'pip\\{comp}', driver='pip', comp=comp, fields=fields)
 
 
@@ -83,3 +85,15 @@ def test_get_latest_from_pypi_spec(tmp_path):
 
 def test_location_is_local_bin():
     assert Pip(Runner(pretend=True)).location(dist()) == '~/.local/bin'
+
+
+def test_interpreter_pin_installs_into_a_specific_python():
+    r = Runner(pretend=True)
+    Pip(r).install(dist(name='black', python='python3.12'))
+    assert r.calls == ['python3.12 -m pip install --user black']   # not bare `python3`
+
+
+def test_interpreter_pin_get_version_probes_that_python():
+    show = 'Name: black\nVersion: 24.1.0\n'
+    fr = FakeRunner([('python3.12 -m pip show black', 0, show)])   # NOT the default-python batch
+    assert Pip(fr).get_version(dist(name='black', python='python3.12')) == '24.1.0'

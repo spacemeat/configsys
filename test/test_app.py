@@ -108,10 +108,19 @@ def test_where_unknown_component_exits_one(tmp_path, capsys):
     assert 'unknown component' in capsys.readouterr().out
 
 
-def test_check_clean_config_is_ok(tmp_path, capsys):
+def test_check_clean_config_is_ok(tmp_path, capsys, monkeypatch):
+    # pin the runtime python above configsys's floor so the (env-dependent) python-floor warning
+    # doesn't fire — this test is about a clean CONFIG, not the interpreter the suite runs on.
+    monkeypatch.setattr('configsys.app.sys.version_info', (3, 12, 0))
     rc = main(base_args(tmp_path) + ['check'])
     assert rc == 0
     assert 'no issues' in capsys.readouterr().out
+
+
+def test_check_warns_when_running_python_is_at_the_floor(tmp_path, capsys, monkeypatch):
+    monkeypatch.setattr('configsys.app.sys.version_info', (3, 10, 12))
+    main(base_args(tmp_path) + ['check'])
+    assert "configsys's minimum" in capsys.readouterr().out       # a heads-up, not an error (rc still 0)
 
 
 def test_check_reports_errors_and_warnings_with_exit_code(tmp_path, capsys):

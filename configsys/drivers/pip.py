@@ -56,7 +56,20 @@ class Pip(Driver):
     def batch_index(self, rcs):
         return self.installed_index() or {}
 
+    @staticmethod
+    def _pip(rc):
+        # interpreter-pin: `python: python3.12` on the binding installs into THAT python's user site;
+        # default is the system python3. `python3.X -m pip` (not bare pip) keeps the interpreter explicit.
+        return f'{shlex.quote(str(rc.fields.get("python") or "python3"))} -m pip'
+
     def get_version(self, rc):
+        if rc.fields.get('python'):
+            # a pinned interpreter's user site — probe IT (the batch enumerates the default python only)
+            r = self.runner.run(f'{self._pip(rc)} show {shlex.quote(self._dist(rc))}')
+            if not r.ok or not r.stdout:
+                return None
+            m = _VERSION_RE.search(r.stdout)
+            return m.group(1).strip() if m else None
         idx = self._batch if self._batch is not None else self.installed_index()
         return idx.get(_norm(self._dist(rc))) if idx else None
 
@@ -72,20 +85,20 @@ class Pip(Driver):
 
     def install(self, rc):
         return self.runner.run(
-            f'{_PIP} install --user {shlex.quote(self._dist(rc))}', capture=False)
+            f'{self._pip(rc)} install --user {shlex.quote(self._dist(rc))}', capture=False)
 
     def uninstall(self, rc):
         return self.runner.run(
-            f'{_PIP} uninstall -y {shlex.quote(self._dist(rc))}', capture=False)
+            f'{self._pip(rc)} uninstall -y {shlex.quote(self._dist(rc))}', capture=False)
 
     def upgrade(self, rc):
         return self.runner.run(
-            f'{_PIP} install --user --upgrade {shlex.quote(self._dist(rc))}',
+            f'{self._pip(rc)} install --user --upgrade {shlex.quote(self._dist(rc))}',
             capture=False)
 
     def set_version(self, rc, version):
         spec = f'{self._dist(rc)}=={version}'
-        return self.runner.run(f'{_PIP} install --user {shlex.quote(spec)}',
+        return self.runner.run(f'{self._pip(rc)} install --user {shlex.quote(spec)}',
                                capture=False)
 
     def lock(self, rc):

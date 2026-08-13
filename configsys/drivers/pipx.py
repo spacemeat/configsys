@@ -64,8 +64,15 @@ class Pipx(Driver):
 
     # -- mutate -----------------------------------------------------------
 
+    @staticmethod
+    def _py_flag(rc):
+        # interpreter-pin: `python: python3.12` builds the app's venv with that interpreter (pipx finds
+        # it on PATH). Default: pipx's own default python. Only the venv-creating ops take it.
+        py = rc.fields.get('python')
+        return f'--python {shlex.quote(str(py))} ' if py else ''
+
     def install(self, rc):
-        return self.runner.run(f'{_PIPX} install {shlex.quote(self._dist(rc))}',
+        return self.runner.run(f'{_PIPX} install {self._py_flag(rc)}{shlex.quote(self._dist(rc))}',
                                capture=False)
 
     def uninstall(self, rc):
@@ -79,7 +86,7 @@ class Pipx(Driver):
     def set_version(self, rc, version):
         spec = f'{self._dist(rc)}=={version}'
         # --force overwrites an existing venv (e.g. a downgrade, or a prior pip install)
-        return self.runner.run(f'{_PIPX} install --force {shlex.quote(spec)}',
+        return self.runner.run(f'{_PIPX} install --force {self._py_flag(rc)}{shlex.quote(spec)}',
                                capture=False)
 
     def lock(self, rc):

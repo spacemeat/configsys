@@ -1222,6 +1222,18 @@ def cmd_check(ctx, args):
     # let it surface only at install/inspect time. (helper is unit-tested in routecheck.)
     pin_conflict_warnings = routecheck.pin_constraint_conflicts(ctx.config.pins(), components, valid_via)
 
+    # python floor: configsys runs on the system python3 (the .venv inherits its version) and needs
+    # >= 3.10 (configsys.sh). Warn when it's AT that minimum, so you upgrade before a dependency — or
+    # configsys itself — needs newer. (The system python is what the bootstrap requires; installing a
+    # python3.X component doesn't change the interpreter configsys runs on.)
+    py_floor_warnings = []
+    _py = sys.version_info[:2]
+    if _py <= (3, 10):
+        py_floor_warnings.append(
+            f"Python {_py[0]}.{_py[1]} is configsys's minimum (3.10) — upgrade the system python "
+            f"before it ages out (a python3.X component installs a NEWER interpreter alongside, but "
+            f"doesn't replace the one configsys runs on).")
+
     from . import plugins as _plugins
     _top = _plugins.declared(ctx.paths.user_config_file)
     _decls = _plugins.effective_declared(ctx.paths.user_config_file, ctx.paths.plugins_dir)
@@ -1243,7 +1255,7 @@ def cmd_check(ctx, args):
     code_warnings = ctx.plugin_code_warnings
     if (not errors and not warnings and not prof_issues and not prof_errors and not pin_issues
             and not include_warnings and not code_warnings and not conflict_warnings
-            and not theme_warnings and not pin_conflict_warnings):
+            and not theme_warnings and not pin_conflict_warnings and not py_floor_warnings):
         print(f'configsys: OK — {len(components)} components, no issues')
         return 0
 
@@ -1267,9 +1279,11 @@ def cmd_check(ctx, args):
         print(f'  warn    {msg}')
     for msg in pin_conflict_warnings:
         print(f'  warn    {msg}')
+    for msg in py_floor_warnings:
+        print(f'  warn    {msg}')
     n_err = len(errors) + len(prof_errors) + len(prof_issues) + len(pin_issues)
     n_warn = (len(warnings) + len(include_warnings) + len(code_warnings) + len(conflict_warnings)
-              + len(theme_warnings) + len(pin_conflict_warnings))
+              + len(theme_warnings) + len(pin_conflict_warnings) + len(py_floor_warnings))
     print(f'\nconfigsys: {n_err} error(s), {n_warn} warning(s) '
           f'across {len(components)} components')
     return 1 if n_err else 0
