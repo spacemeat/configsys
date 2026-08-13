@@ -1,7 +1,9 @@
 # Python versions as components — design proposal
 
-Status: BUILT (2026-08-12, commits ab3dd8d + f48080d). Originally a proposal; now shipped in base.
-general, as components?" Decisions still open — see the end.
+Status: BUILT (2026-08-12, commits ab3dd8d + f48080d). Originally a proposal; now shipped in base —
+all four open questions below were answered "yes": both native + pyenv, versions 3.11/3.12/3.13, a
+`check` floor warning, and the pip/pipx interpreter-pin (plus a `cython` component). See the memory
+`python-versions` for the as-built details; the design below stands as written.
 
 ## Current state
 
