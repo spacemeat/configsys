@@ -294,6 +294,20 @@ class Config:
         idx, val, _src = chain[-1]
         return self._expand(profile, idx, val, (), own_only=True)
 
+    def profiles_containing(self, name):
+        '''Profile names that DIRECTLY declare `name` — its own term or a `+self` amendment — NOT those
+        that only pull it in through a `+other` cross-profile include (it belongs to the other profile
+        there). Sorted; a profile that fails to expand is skipped, never fatal. For the Profiles
+        screen's "in profiles: …" detail.'''
+        out = []
+        for p in self.profile_names():
+            try:
+                if name in self.profile_own_components(p):
+                    out.append(p)
+            except ConfigError:
+                pass
+        return out
+
     def profile_removed(self, profile):
         '''Components a `~term` drops anywhere in `profile`'s chain — for the profile editor's `~`
         marker (a component explicitly removed, so it isn't a member even if an include brought it).'''

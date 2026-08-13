@@ -1736,18 +1736,14 @@ def _draw_profiles(stdscr, pal, ps, ctx, note, screen):
             desc = (comp.description if comp else '') or '(no description yet)'
             for k, line in enumerate(_wrap(desc, diw)[:dih - 1]):
                 _put(stdscr, dit + k, dil, _fit(line, diw), pal.style('info', dit + k, dil, h, w))
-            try:                                    # Profiles shows ALL methods (may author for
-                cands = ctx.routes.candidates(cur, include_unavailable=True)   # other machines)
-            except Exception:                       # noqa: BLE001
-                cands = []
-            if cands:                               # current (the default here) bracketed; '~' = n/a here
-                choice = len(cands) > 1
-                default_via = next((c['via'] for c in cands if c['default']), None)
-                mtext = 'methods: ' + '  '.join(
-                    _method_tags(cands, default_via, default_via, choice, mark_unavailable=True))
-            else:
-                mtext = 'methods: (none defined)'
-            _put(stdscr, dit + dih - 1, dil, _fit(mtext, diw),
+            # Which profiles DIRECTLY contain this component — the useful context while authoring
+            # profiles (install methods are a machine concern, out of place on this screen).
+            try:
+                here = ctx.config.profiles_containing(cur)
+            except Exception:                       # noqa: BLE001 — never let the detail box break the screen
+                here = []
+            ptext = 'in profiles: ' + (', '.join(here) if here else '(none)')
+            _put(stdscr, dit + dih - 1, dil, _fit(ptext, diw),
                  pal.style('method_dim', dit + dih - 1, dil, h, w))
 
     # RIGHT BOTTOM: the component catalog (filtered), as a COLUMN-MAJOR grid filling the pane width

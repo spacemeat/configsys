@@ -328,3 +328,23 @@ def test_pins_merge_per_key_local_over_portable():
 def test_pins_non_scalar_values_dropped():
     c = cfg(REPO, '{ pins: { steam: flatpak  bogus: { a: 1 }  also: [ x ] } }')
     assert c.pins() == {'steam': 'flatpak'}
+
+
+def test_profiles_containing_lists_direct_declarers_not_includers():
+    c = cfg('''{ configs: [ dev ]  profiles: {
+        dev: [ ripgrep, git ]
+        web: [ +dev, nodejs ]
+        games: [ ripgrep ]
+    } }''')
+    # `web` only PULLS ripgrep in via `+dev` -> not a direct declarer
+    assert c.profiles_containing('ripgrep') == ['dev', 'games']
+    assert c.profiles_containing('nodejs') == ['web']
+    assert c.profiles_containing('not-a-component') == []
+
+
+def test_profiles_containing_excludes_a_removed_component():
+    c = cfg('''{ configs: [ dev ]  profiles: {
+        dev: [ ripgrep ]
+        nope: [ +dev, ~ripgrep ]
+    } }''')
+    assert c.profiles_containing('ripgrep') == ['dev']       # `nope` drops it, doesn't own it
