@@ -291,3 +291,23 @@ def test_config_set_splash_does_not_crash(tmp_path):
     home = ['--home', str(tmp_path), '--os', 'pop']
     assert main(home + ['config', 'set', 'splash', 'random']) == 0
     assert main(home + ['config', 'set', 'splash', 'blocks']) == 0
+
+
+def test_inspect_worker_frac_eases_through_prelude_then_tracks_inspect():
+    # the splash bar shows motion during the pre-inspect phases (load/resolve/detect) instead of a
+    # stalled 0%, then the real per-unit progress fills the rest — monotonic across the handoff.
+    import time
+    from configsys.tui.menu import _InspectWorker, _PRELUDE_SHARE
+    w = _InspectWorker.__new__(_InspectWorker)
+    w._i, w._total = 0, 0
+    w._start = time.monotonic()
+    early = w.frac()
+    w._start = time.monotonic() - 2.0
+    later = w.frac()
+    assert 0.0 <= early < later < _PRELUDE_SHARE          # eases up, always below the reserved share
+    w._total, w._i = 10, 0
+    assert abs(w.frac() - _PRELUDE_SHARE) < 1e-9          # inspect starts right at the share (no dip back)
+    w._i = 5
+    assert _PRELUDE_SHARE < w.frac() < 1.0
+    w._i = 10
+    assert w.frac() == 1.0

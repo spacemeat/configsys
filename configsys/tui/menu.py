@@ -13,7 +13,9 @@ unit appears. Enter/→ expand, ← collapse, Tab expands/collapses all componen
 '''
 
 import curses
+import math
 import threading
+import time
 from pathlib import Path
 
 from .. import reportgen
@@ -1314,17 +1316,24 @@ def _splash_forced():
     return os.environ.get('CONFIGSYS_SPLASH', '').lower() in ('always', 'force', '1')
 
 
+# The pre-inspect phases (load routes/config -> resolve -> detection) run BEFORE the per-unit inspect
+# loop that drives real progress, so the bar would sit at 0% while they work. Reserve this share of the
+# bar for them and EASE it up over ~_PRELUDE_TAU seconds, so the splash shows motion instead of a stall;
+# the real per-unit progress then fills the remaining (1 - share).
+_PRELUDE_SHARE = 0.35
+_PRELUDE_TAU = 0.8       # seconds — ease time-constant (bar reaches ~63%/86%/95% of the share at 1/2/3τ)
+
+
 class _InspectWorker:
     '''Runs load_pipeline on a background thread so the main thread can animate the splash while
     inspection proceeds. Exposes a live 0..1 progress fraction, a done flag, and re-raises any
     exception from the worker on join (so load errors still surface normally).'''
 
     def __init__(self, ctx):
-        import threading
         self.ctx = ctx
-        self._frac = 0.0
         self._i = 0
         self._total = 0
+        self._start = time.monotonic()
         self._done = threading.Event()
         self._result = None
         self._exc = None
@@ -1332,7 +1341,6 @@ class _InspectWorker:
 
     def _sink(self, i, total, *rest):
         self._i, self._total = i, total
-        self._frac = (i / total) if total else 1.0
 
     def _work(self):
         try:
@@ -1351,7 +1359,11 @@ class _InspectWorker:
         return not self._done.wait(timeout)
 
     def frac(self):
-        return self._frac
+        if self._total:                          # inspecting: real per-unit progress, above the prelude
+            return _PRELUDE_SHARE + (1 - _PRELUDE_SHARE) * (self._i / self._total)
+        # pre-inspect: no per-unit signal yet — ease the bar UP toward the prelude share over ~its
+        # duration, so the splash shows motion (not a stalled 0%) while routes load / resolve / detect.
+        return _PRELUDE_SHARE * (1.0 - math.exp(-(time.monotonic() - self._start) / _PRELUDE_TAU))
 
     def counts(self):
         return (self._i, self._total)
