@@ -555,6 +555,12 @@
         ocaml: { description: "OCaml — pragmatic functional language with a fast native compiler." install: [ { via: native  repo-component: universe } ] }
         // Lua interpreter (luarocks deferred). Some distros suffix the package with the version.
         lua:   { description: "The Lua programming language — small, embeddable scripting." install: [ { via: native  repo-component: universe  name: { apt: lua5.4  apk: lua5.4  zypper: lua54  default: lua } } ] }
+        // Tcl/Tk — the Tool Command Language interpreter (`tclsh`) + its Tk GUI toolkit (`wish`).
+        // Native everywhere (uniform `tcl`/`tk`); Homebrew ships both in one `tcl-tk` formula.
+        tcl: { description: "Tcl — the Tool Command Language interpreter (`tclsh`)."
+            install: [ { via: native  repo-component: universe  name: { brew: tcl-tk } } ] }
+        tk:  { description: "Tk — the Tcl GUI toolkit (`wish`) and widget library." requires: tcl
+            install: [ { via: native  repo-component: universe  name: { brew: tcl-tk } } ] }
         // Haskell — the GHC compiler (cabal driver deferred).
         haskell: { description: "Haskell toolchain (GHC) — pure functional programming." install: [ { via: native  repo-component: universe  name: { default: ghc } } ] }
         // Erlang/OTP + Elixir (elixir pulls erlang, but erlang is nameable on its own).

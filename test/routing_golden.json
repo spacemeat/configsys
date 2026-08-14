@@ -4048,6 +4048,16 @@
     "name": "tailscale-service"
    }
   },
+  "tcl": {
+   "pacman\\tcl": {
+    "driver": "pacman",
+    "fields": {
+     "name": "tcl",
+     "repo-component": "universe"
+    },
+    "name": "tcl"
+   }
+  },
   "tcpdump": {
    "pacman\\tcpdump": {
     "driver": "pacman",
@@ -4090,6 +4100,24 @@
      "name": "texlive-meta"
     },
     "name": "texlive-meta"
+   }
+  },
+  "tk": {
+   "pacman\\tcl": {
+    "driver": "pacman",
+    "fields": {
+     "name": "tcl",
+     "repo-component": "universe"
+    },
+    "name": "tcl"
+   },
+   "pacman\\tk": {
+    "driver": "pacman",
+    "fields": {
+     "name": "tk",
+     "repo-component": "universe"
+    },
+    "name": "tk"
    }
   },
   "tmux": {
@@ -9688,6 +9716,16 @@
     "name": "tailscale-service"
    }
   },
+  "tcl": {
+   "apt\\tcl": {
+    "driver": "apt",
+    "fields": {
+     "name": "tcl",
+     "repo-component": "universe"
+    },
+    "name": "tcl"
+   }
+  },
   "tcpdump": {
    "apt\\tcpdump": {
     "driver": "apt",
@@ -9730,6 +9768,24 @@
      "name": "texlive-full"
     },
     "name": "texlive-full"
+   }
+  },
+  "tk": {
+   "apt\\tcl": {
+    "driver": "apt",
+    "fields": {
+     "name": "tcl",
+     "repo-component": "universe"
+    },
+    "name": "tcl"
+   },
+   "apt\\tk": {
+    "driver": "apt",
+    "fields": {
+     "name": "tk",
+     "repo-component": "universe"
+    },
+    "name": "tk"
    }
   },
   "tmux": {
@@ -15188,6 +15244,16 @@
     "name": "tailscale-service"
    }
   },
+  "tcl": {
+   "apt\\tcl": {
+    "driver": "apt",
+    "fields": {
+     "name": "tcl",
+     "repo-component": "universe"
+    },
+    "name": "tcl"
+   }
+  },
   "tcpdump": {
    "apt\\tcpdump": {
     "driver": "apt",
@@ -15230,6 +15296,24 @@
      "name": "texlive-full"
     },
     "name": "texlive-full"
+   }
+  },
+  "tk": {
+   "apt\\tcl": {
+    "driver": "apt",
+    "fields": {
+     "name": "tcl",
+     "repo-component": "universe"
+    },
+    "name": "tcl"
+   },
+   "apt\\tk": {
+    "driver": "apt",
+    "fields": {
+     "name": "tk",
+     "repo-component": "universe"
+    },
+    "name": "tk"
    }
   },
   "tmux": {
@@ -20677,6 +20761,16 @@
     "name": "tailscale-service"
    }
   },
+  "tcl": {
+   "apt\\tcl": {
+    "driver": "apt",
+    "fields": {
+     "name": "tcl",
+     "repo-component": "universe"
+    },
+    "name": "tcl"
+   }
+  },
   "tcpdump": {
    "apt\\tcpdump": {
     "driver": "apt",
@@ -20719,6 +20813,24 @@
      "name": "texlive-full"
     },
     "name": "texlive-full"
+   }
+  },
+  "tk": {
+   "apt\\tcl": {
+    "driver": "apt",
+    "fields": {
+     "name": "tcl",
+     "repo-component": "universe"
+    },
+    "name": "tcl"
+   },
+   "apt\\tk": {
+    "driver": "apt",
+    "fields": {
+     "name": "tk",
+     "repo-component": "universe"
+    },
+    "name": "tk"
    }
   },
   "tmux": {
@@ -25737,6 +25849,16 @@
     "name": "tailscale-service"
    }
   },
+  "tcl": {
+   "dnf\\tcl": {
+    "driver": "dnf",
+    "fields": {
+     "name": "tcl",
+     "repo-component": "universe"
+    },
+    "name": "tcl"
+   }
+  },
   "tcpdump": {
    "dnf\\tcpdump": {
     "driver": "dnf",
@@ -25779,6 +25901,24 @@
      "name": "texlive-scheme-full"
     },
     "name": "texlive-scheme-full"
+   }
+  },
+  "tk": {
+   "dnf\\tcl": {
+    "driver": "dnf",
+    "fields": {
+     "name": "tcl",
+     "repo-component": "universe"
+    },
+    "name": "tcl"
+   },
+   "dnf\\tk": {
+    "driver": "dnf",
+    "fields": {
+     "name": "tk",
+     "repo-component": "universe"
+    },
+    "name": "tk"
    }
   },
   "tmux": {
@@ -30871,6 +31011,16 @@
     "name": "tailscale-service"
    }
   },
+  "tcl": {
+   "dnf\\tcl": {
+    "driver": "dnf",
+    "fields": {
+     "name": "tcl",
+     "repo-component": "universe"
+    },
+    "name": "tcl"
+   }
+  },
   "tcpdump": {
    "dnf\\tcpdump": {
     "driver": "dnf",
@@ -30913,6 +31063,24 @@
      "name": "texlive-scheme-full"
     },
     "name": "texlive-scheme-full"
+   }
+  },
+  "tk": {
+   "dnf\\tcl": {
+    "driver": "dnf",
+    "fields": {
+     "name": "tcl",
+     "repo-component": "universe"
+    },
+    "name": "tcl"
+   },
+   "dnf\\tk": {
+    "driver": "dnf",
+    "fields": {
+     "name": "tk",
+     "repo-component": "universe"
+    },
+    "name": "tk"
    }
   },
   "tmux": {
@@ -34486,6 +34654,16 @@
     "name": "syncthing"
    }
   },
+  "tcl": {
+   "brew\\tcl": {
+    "driver": "brew",
+    "fields": {
+     "name": "tcl-tk",
+     "repo-component": "universe"
+    },
+    "name": "tcl-tk"
+   }
+  },
   "tcpdump": {
    "brew\\tcpdump": {
     "driver": "brew",
@@ -34512,6 +34690,24 @@
      "name": "texlive"
     },
     "name": "texlive"
+   }
+  },
+  "tk": {
+   "brew\\tcl": {
+    "driver": "brew",
+    "fields": {
+     "name": "tcl-tk",
+     "repo-component": "universe"
+    },
+    "name": "tcl-tk"
+   },
+   "brew\\tk": {
+    "driver": "brew",
+    "fields": {
+     "name": "tcl-tk",
+     "repo-component": "universe"
+    },
+    "name": "tcl-tk"
    }
   },
   "tmux": {
@@ -39810,6 +40006,16 @@
     "name": "tailscale-service"
    }
   },
+  "tcl": {
+   "apt\\tcl": {
+    "driver": "apt",
+    "fields": {
+     "name": "tcl",
+     "repo-component": "universe"
+    },
+    "name": "tcl"
+   }
+  },
   "tcpdump": {
    "apt\\tcpdump": {
     "driver": "apt",
@@ -39852,6 +40058,24 @@
      "name": "texlive-full"
     },
     "name": "texlive-full"
+   }
+  },
+  "tk": {
+   "apt\\tcl": {
+    "driver": "apt",
+    "fields": {
+     "name": "tcl",
+     "repo-component": "universe"
+    },
+    "name": "tcl"
+   },
+   "apt\\tk": {
+    "driver": "apt",
+    "fields": {
+     "name": "tk",
+     "repo-component": "universe"
+    },
+    "name": "tk"
    }
   },
   "tmux": {
@@ -45148,6 +45372,16 @@
     "name": "tailscale-service"
    }
   },
+  "tcl": {
+   "dnf\\tcl": {
+    "driver": "dnf",
+    "fields": {
+     "name": "tcl",
+     "repo-component": "universe"
+    },
+    "name": "tcl"
+   }
+  },
   "tcpdump": {
    "dnf\\tcpdump": {
     "driver": "dnf",
@@ -45190,6 +45424,24 @@
      "name": "texlive-scheme-full"
     },
     "name": "texlive-scheme-full"
+   }
+  },
+  "tk": {
+   "dnf\\tcl": {
+    "driver": "dnf",
+    "fields": {
+     "name": "tcl",
+     "repo-component": "universe"
+    },
+    "name": "tcl"
+   },
+   "dnf\\tk": {
+    "driver": "dnf",
+    "fields": {
+     "name": "tk",
+     "repo-component": "universe"
+    },
+    "name": "tk"
    }
   },
   "tmux": {
@@ -50854,6 +51106,16 @@
     "name": "tailscale-service"
    }
   },
+  "tcl": {
+   "apt\\tcl": {
+    "driver": "apt",
+    "fields": {
+     "name": "tcl",
+     "repo-component": "universe"
+    },
+    "name": "tcl"
+   }
+  },
   "tcpdump": {
    "apt\\tcpdump": {
     "driver": "apt",
@@ -50896,6 +51158,24 @@
      "name": "texlive-full"
     },
     "name": "texlive-full"
+   }
+  },
+  "tk": {
+   "apt\\tcl": {
+    "driver": "apt",
+    "fields": {
+     "name": "tcl",
+     "repo-component": "universe"
+    },
+    "name": "tcl"
+   },
+   "apt\\tk": {
+    "driver": "apt",
+    "fields": {
+     "name": "tk",
+     "repo-component": "universe"
+    },
+    "name": "tk"
    }
   },
   "tmux": {
@@ -56363,6 +56643,16 @@
     "name": "tailscale-service"
    }
   },
+  "tcl": {
+   "apt\\tcl": {
+    "driver": "apt",
+    "fields": {
+     "name": "tcl",
+     "repo-component": "universe"
+    },
+    "name": "tcl"
+   }
+  },
   "tcpdump": {
    "apt\\tcpdump": {
     "driver": "apt",
@@ -56405,6 +56695,24 @@
      "name": "texlive-full"
     },
     "name": "texlive-full"
+   }
+  },
+  "tk": {
+   "apt\\tcl": {
+    "driver": "apt",
+    "fields": {
+     "name": "tcl",
+     "repo-component": "universe"
+    },
+    "name": "tcl"
+   },
+   "apt\\tk": {
+    "driver": "apt",
+    "fields": {
+     "name": "tk",
+     "repo-component": "universe"
+    },
+    "name": "tk"
    }
   },
   "tmux": {
