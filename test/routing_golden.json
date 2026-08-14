@@ -1533,20 +1533,31 @@
    }
   },
   "groovy": {
-   "pacman\\groovy": {
-    "driver": "pacman",
-    "fields": {
-     "name": "groovy",
-     "repo-component": "universe"
-    },
-    "name": "groovy"
-   },
    "pacman\\jdk": {
     "driver": "pacman",
     "fields": {
      "name": "jdk-openjdk"
     },
     "name": "jdk-openjdk"
+   },
+   "script\\sdkman": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "curl -s https://get.sdkman.io | bash",
+     "location": "~/.sdkman",
+     "name": "sdkman",
+     "uninstall-cmd": "rm -rf \"$HOME/.sdkman\"",
+     "version-cmd": "source \"$HOME/.sdkman/bin/sdkman-init.sh\" && sdk version",
+     "version-re": "([0-9]+\\.[0-9]+\\.[0-9]+)"
+    },
+    "name": "sdkman"
+   },
+   "sdkman\\groovy": {
+    "driver": "sdkman",
+    "fields": {
+     "name": "groovy"
+    },
+    "name": "groovy"
    }
   },
   "grpcurl": {
@@ -2272,6 +2283,34 @@
      }
     },
     "name": "lazysql"
+   }
+  },
+  "leiningen": {
+   "pacman\\jdk": {
+    "driver": "pacman",
+    "fields": {
+     "name": "jdk-openjdk"
+    },
+    "name": "jdk-openjdk"
+   },
+   "script\\sdkman": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "curl -s https://get.sdkman.io | bash",
+     "location": "~/.sdkman",
+     "name": "sdkman",
+     "uninstall-cmd": "rm -rf \"$HOME/.sdkman\"",
+     "version-cmd": "source \"$HOME/.sdkman/bin/sdkman-init.sh\" && sdk version",
+     "version-re": "([0-9]+\\.[0-9]+\\.[0-9]+)"
+    },
+    "name": "sdkman"
+   },
+   "sdkman\\leiningen": {
+    "driver": "sdkman",
+    "fields": {
+     "name": "leiningen"
+    },
+    "name": "leiningen"
    }
   },
   "libc++": {
@@ -3842,34 +3881,60 @@
     "name": "sbcl"
    }
   },
-  "scala": {
-   "aur\\scala": {
-    "driver": "aur",
-    "fields": {
-     "name": "scala"
-    },
-    "name": "scala"
-   },
-   "pacman\\base-devel": {
-    "driver": "pacman",
-    "fields": {
-     "name": "base-devel"
-    },
-    "name": "base-devel"
-   },
-   "pacman\\git": {
-    "driver": "pacman",
-    "fields": {
-     "name": "git"
-    },
-    "name": "git"
-   },
+  "sbt": {
    "pacman\\jdk": {
     "driver": "pacman",
     "fields": {
      "name": "jdk-openjdk"
     },
     "name": "jdk-openjdk"
+   },
+   "script\\sdkman": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "curl -s https://get.sdkman.io | bash",
+     "location": "~/.sdkman",
+     "name": "sdkman",
+     "uninstall-cmd": "rm -rf \"$HOME/.sdkman\"",
+     "version-cmd": "source \"$HOME/.sdkman/bin/sdkman-init.sh\" && sdk version",
+     "version-re": "([0-9]+\\.[0-9]+\\.[0-9]+)"
+    },
+    "name": "sdkman"
+   },
+   "sdkman\\sbt": {
+    "driver": "sdkman",
+    "fields": {
+     "name": "sbt"
+    },
+    "name": "sbt"
+   }
+  },
+  "scala": {
+   "pacman\\jdk": {
+    "driver": "pacman",
+    "fields": {
+     "name": "jdk-openjdk"
+    },
+    "name": "jdk-openjdk"
+   },
+   "script\\sdkman": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "curl -s https://get.sdkman.io | bash",
+     "location": "~/.sdkman",
+     "name": "sdkman",
+     "uninstall-cmd": "rm -rf \"$HOME/.sdkman\"",
+     "version-cmd": "source \"$HOME/.sdkman/bin/sdkman-init.sh\" && sdk version",
+     "version-re": "([0-9]+\\.[0-9]+\\.[0-9]+)"
+    },
+    "name": "sdkman"
+   },
+   "sdkman\\scala": {
+    "driver": "sdkman",
+    "fields": {
+     "name": "scala"
+    },
+    "name": "scala"
    }
   },
   "scribus": {
@@ -7415,20 +7480,31 @@
    }
   },
   "groovy": {
-   "apt\\groovy": {
-    "driver": "apt",
-    "fields": {
-     "name": "groovy",
-     "repo-component": "universe"
-    },
-    "name": "groovy"
-   },
    "apt\\jdk": {
     "driver": "apt",
     "fields": {
      "name": "default-jdk"
     },
     "name": "default-jdk"
+   },
+   "script\\sdkman": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "curl -s https://get.sdkman.io | bash",
+     "location": "~/.sdkman",
+     "name": "sdkman",
+     "uninstall-cmd": "rm -rf \"$HOME/.sdkman\"",
+     "version-cmd": "source \"$HOME/.sdkman/bin/sdkman-init.sh\" && sdk version",
+     "version-re": "([0-9]+\\.[0-9]+\\.[0-9]+)"
+    },
+    "name": "sdkman"
+   },
+   "sdkman\\groovy": {
+    "driver": "sdkman",
+    "fields": {
+     "name": "groovy"
+    },
+    "name": "groovy"
    }
   },
   "grpcurl": {
@@ -8251,6 +8327,34 @@
      }
     },
     "name": "lazysql"
+   }
+  },
+  "leiningen": {
+   "apt\\jdk": {
+    "driver": "apt",
+    "fields": {
+     "name": "default-jdk"
+    },
+    "name": "default-jdk"
+   },
+   "script\\sdkman": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "curl -s https://get.sdkman.io | bash",
+     "location": "~/.sdkman",
+     "name": "sdkman",
+     "uninstall-cmd": "rm -rf \"$HOME/.sdkman\"",
+     "version-cmd": "source \"$HOME/.sdkman/bin/sdkman-init.sh\" && sdk version",
+     "version-re": "([0-9]+\\.[0-9]+\\.[0-9]+)"
+    },
+    "name": "sdkman"
+   },
+   "sdkman\\leiningen": {
+    "driver": "sdkman",
+    "fields": {
+     "name": "leiningen"
+    },
+    "name": "leiningen"
    }
   },
   "libavcodec-extra": {
@@ -9814,6 +9918,34 @@
     "name": "sbcl"
    }
   },
+  "sbt": {
+   "apt\\jdk": {
+    "driver": "apt",
+    "fields": {
+     "name": "default-jdk"
+    },
+    "name": "default-jdk"
+   },
+   "script\\sdkman": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "curl -s https://get.sdkman.io | bash",
+     "location": "~/.sdkman",
+     "name": "sdkman",
+     "uninstall-cmd": "rm -rf \"$HOME/.sdkman\"",
+     "version-cmd": "source \"$HOME/.sdkman/bin/sdkman-init.sh\" && sdk version",
+     "version-re": "([0-9]+\\.[0-9]+\\.[0-9]+)"
+    },
+    "name": "sdkman"
+   },
+   "sdkman\\sbt": {
+    "driver": "sdkman",
+    "fields": {
+     "name": "sbt"
+    },
+    "name": "sbt"
+   }
+  },
   "scala": {
    "apt\\jdk": {
     "driver": "apt",
@@ -9822,8 +9954,20 @@
     },
     "name": "default-jdk"
    },
-   "apt\\scala": {
-    "driver": "apt",
+   "script\\sdkman": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "curl -s https://get.sdkman.io | bash",
+     "location": "~/.sdkman",
+     "name": "sdkman",
+     "uninstall-cmd": "rm -rf \"$HOME/.sdkman\"",
+     "version-cmd": "source \"$HOME/.sdkman/bin/sdkman-init.sh\" && sdk version",
+     "version-re": "([0-9]+\\.[0-9]+\\.[0-9]+)"
+    },
+    "name": "sdkman"
+   },
+   "sdkman\\scala": {
+    "driver": "sdkman",
     "fields": {
      "name": "scala"
     },
@@ -13266,20 +13410,31 @@
    }
   },
   "groovy": {
-   "apt\\groovy": {
-    "driver": "apt",
-    "fields": {
-     "name": "groovy",
-     "repo-component": "universe"
-    },
-    "name": "groovy"
-   },
    "apt\\jdk": {
     "driver": "apt",
     "fields": {
      "name": "default-jdk"
     },
     "name": "default-jdk"
+   },
+   "script\\sdkman": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "curl -s https://get.sdkman.io | bash",
+     "location": "~/.sdkman",
+     "name": "sdkman",
+     "uninstall-cmd": "rm -rf \"$HOME/.sdkman\"",
+     "version-cmd": "source \"$HOME/.sdkman/bin/sdkman-init.sh\" && sdk version",
+     "version-re": "([0-9]+\\.[0-9]+\\.[0-9]+)"
+    },
+    "name": "sdkman"
+   },
+   "sdkman\\groovy": {
+    "driver": "sdkman",
+    "fields": {
+     "name": "groovy"
+    },
+    "name": "groovy"
    }
   },
   "grpcurl": {
@@ -14082,6 +14237,34 @@
      }
     },
     "name": "lazysql"
+   }
+  },
+  "leiningen": {
+   "apt\\jdk": {
+    "driver": "apt",
+    "fields": {
+     "name": "default-jdk"
+    },
+    "name": "default-jdk"
+   },
+   "script\\sdkman": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "curl -s https://get.sdkman.io | bash",
+     "location": "~/.sdkman",
+     "name": "sdkman",
+     "uninstall-cmd": "rm -rf \"$HOME/.sdkman\"",
+     "version-cmd": "source \"$HOME/.sdkman/bin/sdkman-init.sh\" && sdk version",
+     "version-re": "([0-9]+\\.[0-9]+\\.[0-9]+)"
+    },
+    "name": "sdkman"
+   },
+   "sdkman\\leiningen": {
+    "driver": "sdkman",
+    "fields": {
+     "name": "leiningen"
+    },
+    "name": "leiningen"
    }
   },
   "libavcodec-extra": {
@@ -15585,6 +15768,34 @@
     "name": "sbcl"
    }
   },
+  "sbt": {
+   "apt\\jdk": {
+    "driver": "apt",
+    "fields": {
+     "name": "default-jdk"
+    },
+    "name": "default-jdk"
+   },
+   "script\\sdkman": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "curl -s https://get.sdkman.io | bash",
+     "location": "~/.sdkman",
+     "name": "sdkman",
+     "uninstall-cmd": "rm -rf \"$HOME/.sdkman\"",
+     "version-cmd": "source \"$HOME/.sdkman/bin/sdkman-init.sh\" && sdk version",
+     "version-re": "([0-9]+\\.[0-9]+\\.[0-9]+)"
+    },
+    "name": "sdkman"
+   },
+   "sdkman\\sbt": {
+    "driver": "sdkman",
+    "fields": {
+     "name": "sbt"
+    },
+    "name": "sbt"
+   }
+  },
   "scala": {
    "apt\\jdk": {
     "driver": "apt",
@@ -15593,8 +15804,20 @@
     },
     "name": "default-jdk"
    },
-   "apt\\scala": {
-    "driver": "apt",
+   "script\\sdkman": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "curl -s https://get.sdkman.io | bash",
+     "location": "~/.sdkman",
+     "name": "sdkman",
+     "uninstall-cmd": "rm -rf \"$HOME/.sdkman\"",
+     "version-cmd": "source \"$HOME/.sdkman/bin/sdkman-init.sh\" && sdk version",
+     "version-re": "([0-9]+\\.[0-9]+\\.[0-9]+)"
+    },
+    "name": "sdkman"
+   },
+   "sdkman\\scala": {
+    "driver": "sdkman",
     "fields": {
      "name": "scala"
     },
@@ -19020,20 +19243,31 @@
    }
   },
   "groovy": {
-   "apt\\groovy": {
-    "driver": "apt",
-    "fields": {
-     "name": "groovy",
-     "repo-component": "universe"
-    },
-    "name": "groovy"
-   },
    "apt\\jdk": {
     "driver": "apt",
     "fields": {
      "name": "default-jdk"
     },
     "name": "default-jdk"
+   },
+   "script\\sdkman": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "curl -s https://get.sdkman.io | bash",
+     "location": "~/.sdkman",
+     "name": "sdkman",
+     "uninstall-cmd": "rm -rf \"$HOME/.sdkman\"",
+     "version-cmd": "source \"$HOME/.sdkman/bin/sdkman-init.sh\" && sdk version",
+     "version-re": "([0-9]+\\.[0-9]+\\.[0-9]+)"
+    },
+    "name": "sdkman"
+   },
+   "sdkman\\groovy": {
+    "driver": "sdkman",
+    "fields": {
+     "name": "groovy"
+    },
+    "name": "groovy"
    }
   },
   "grpcurl": {
@@ -19829,6 +20063,34 @@
      }
     },
     "name": "lazysql"
+   }
+  },
+  "leiningen": {
+   "apt\\jdk": {
+    "driver": "apt",
+    "fields": {
+     "name": "default-jdk"
+    },
+    "name": "default-jdk"
+   },
+   "script\\sdkman": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "curl -s https://get.sdkman.io | bash",
+     "location": "~/.sdkman",
+     "name": "sdkman",
+     "uninstall-cmd": "rm -rf \"$HOME/.sdkman\"",
+     "version-cmd": "source \"$HOME/.sdkman/bin/sdkman-init.sh\" && sdk version",
+     "version-re": "([0-9]+\\.[0-9]+\\.[0-9]+)"
+    },
+    "name": "sdkman"
+   },
+   "sdkman\\leiningen": {
+    "driver": "sdkman",
+    "fields": {
+     "name": "leiningen"
+    },
+    "name": "leiningen"
    }
   },
   "libavcodec-extra": {
@@ -21345,6 +21607,34 @@
     "name": "sbcl"
    }
   },
+  "sbt": {
+   "apt\\jdk": {
+    "driver": "apt",
+    "fields": {
+     "name": "default-jdk"
+    },
+    "name": "default-jdk"
+   },
+   "script\\sdkman": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "curl -s https://get.sdkman.io | bash",
+     "location": "~/.sdkman",
+     "name": "sdkman",
+     "uninstall-cmd": "rm -rf \"$HOME/.sdkman\"",
+     "version-cmd": "source \"$HOME/.sdkman/bin/sdkman-init.sh\" && sdk version",
+     "version-re": "([0-9]+\\.[0-9]+\\.[0-9]+)"
+    },
+    "name": "sdkman"
+   },
+   "sdkman\\sbt": {
+    "driver": "sdkman",
+    "fields": {
+     "name": "sbt"
+    },
+    "name": "sbt"
+   }
+  },
   "scala": {
    "apt\\jdk": {
     "driver": "apt",
@@ -21353,8 +21643,20 @@
     },
     "name": "default-jdk"
    },
-   "apt\\scala": {
-    "driver": "apt",
+   "script\\sdkman": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "curl -s https://get.sdkman.io | bash",
+     "location": "~/.sdkman",
+     "name": "sdkman",
+     "uninstall-cmd": "rm -rf \"$HOME/.sdkman\"",
+     "version-cmd": "source \"$HOME/.sdkman/bin/sdkman-init.sh\" && sdk version",
+     "version-re": "([0-9]+\\.[0-9]+\\.[0-9]+)"
+    },
+    "name": "sdkman"
+   },
+   "sdkman\\scala": {
+    "driver": "sdkman",
     "fields": {
      "name": "scala"
     },
@@ -24375,35 +24677,20 @@
     },
     "name": "java-17-openjdk-devel"
    },
-   "dnf\\snapd": {
-    "driver": "dnf",
-    "fields": {
-     "name": "snapd"
-    },
-    "name": "snapd"
-   },
-   "script\\snapd-snap-link": {
+   "script\\sdkman": {
     "driver": "script",
     "fields": {
-     "install-cmd": "test -e /snap || sudo ln -s /var/lib/snapd/snap /snap",
-     "location": "/snap",
-     "name": "snapd-snap-link",
-     "uninstall-cmd": "test -L /snap && sudo rm -f /snap || true",
-     "version-cmd": "test -e /snap && echo present",
-     "version-re": "(present)"
+     "install-cmd": "curl -s https://get.sdkman.io | bash",
+     "location": "~/.sdkman",
+     "name": "sdkman",
+     "uninstall-cmd": "rm -rf \"$HOME/.sdkman\"",
+     "version-cmd": "source \"$HOME/.sdkman/bin/sdkman-init.sh\" && sdk version",
+     "version-re": "([0-9]+\\.[0-9]+\\.[0-9]+)"
     },
-    "name": "snapd-snap-link"
+    "name": "sdkman"
    },
-   "service\\snapd-socket": {
-    "driver": "service",
-    "fields": {
-     "name": "snapd-socket",
-     "unit": "snapd.socket"
-    },
-    "name": "snapd-socket"
-   },
-   "snap\\groovy": {
-    "driver": "snap",
+   "sdkman\\groovy": {
+    "driver": "sdkman",
     "fields": {
      "name": "groovy"
     },
@@ -25243,6 +25530,34 @@
      }
     },
     "name": "lazysql"
+   }
+  },
+  "leiningen": {
+   "dnf\\jdk": {
+    "driver": "dnf",
+    "fields": {
+     "name": "java-17-openjdk-devel"
+    },
+    "name": "java-17-openjdk-devel"
+   },
+   "script\\sdkman": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "curl -s https://get.sdkman.io | bash",
+     "location": "~/.sdkman",
+     "name": "sdkman",
+     "uninstall-cmd": "rm -rf \"$HOME/.sdkman\"",
+     "version-cmd": "source \"$HOME/.sdkman/bin/sdkman-init.sh\" && sdk version",
+     "version-re": "([0-9]+\\.[0-9]+\\.[0-9]+)"
+    },
+    "name": "sdkman"
+   },
+   "sdkman\\leiningen": {
+    "driver": "sdkman",
+    "fields": {
+     "name": "leiningen"
+    },
+    "name": "leiningen"
    }
   },
   "libc++": {
@@ -26692,6 +27007,62 @@
      "repo-component": "universe"
     },
     "name": "sbcl"
+   }
+  },
+  "sbt": {
+   "dnf\\jdk": {
+    "driver": "dnf",
+    "fields": {
+     "name": "java-17-openjdk-devel"
+    },
+    "name": "java-17-openjdk-devel"
+   },
+   "script\\sdkman": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "curl -s https://get.sdkman.io | bash",
+     "location": "~/.sdkman",
+     "name": "sdkman",
+     "uninstall-cmd": "rm -rf \"$HOME/.sdkman\"",
+     "version-cmd": "source \"$HOME/.sdkman/bin/sdkman-init.sh\" && sdk version",
+     "version-re": "([0-9]+\\.[0-9]+\\.[0-9]+)"
+    },
+    "name": "sdkman"
+   },
+   "sdkman\\sbt": {
+    "driver": "sdkman",
+    "fields": {
+     "name": "sbt"
+    },
+    "name": "sbt"
+   }
+  },
+  "scala": {
+   "dnf\\jdk": {
+    "driver": "dnf",
+    "fields": {
+     "name": "java-17-openjdk-devel"
+    },
+    "name": "java-17-openjdk-devel"
+   },
+   "script\\sdkman": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "curl -s https://get.sdkman.io | bash",
+     "location": "~/.sdkman",
+     "name": "sdkman",
+     "uninstall-cmd": "rm -rf \"$HOME/.sdkman\"",
+     "version-cmd": "source \"$HOME/.sdkman/bin/sdkman-init.sh\" && sdk version",
+     "version-re": "([0-9]+\\.[0-9]+\\.[0-9]+)"
+    },
+    "name": "sdkman"
+   },
+   "sdkman\\scala": {
+    "driver": "sdkman",
+    "fields": {
+     "name": "scala"
+    },
+    "name": "scala"
    }
   },
   "scribus": {
@@ -29773,35 +30144,20 @@
     },
     "name": "java-17-openjdk-devel"
    },
-   "dnf\\snapd": {
-    "driver": "dnf",
-    "fields": {
-     "name": "snapd"
-    },
-    "name": "snapd"
-   },
-   "script\\snapd-snap-link": {
+   "script\\sdkman": {
     "driver": "script",
     "fields": {
-     "install-cmd": "test -e /snap || sudo ln -s /var/lib/snapd/snap /snap",
-     "location": "/snap",
-     "name": "snapd-snap-link",
-     "uninstall-cmd": "test -L /snap && sudo rm -f /snap || true",
-     "version-cmd": "test -e /snap && echo present",
-     "version-re": "(present)"
+     "install-cmd": "curl -s https://get.sdkman.io | bash",
+     "location": "~/.sdkman",
+     "name": "sdkman",
+     "uninstall-cmd": "rm -rf \"$HOME/.sdkman\"",
+     "version-cmd": "source \"$HOME/.sdkman/bin/sdkman-init.sh\" && sdk version",
+     "version-re": "([0-9]+\\.[0-9]+\\.[0-9]+)"
     },
-    "name": "snapd-snap-link"
+    "name": "sdkman"
    },
-   "service\\snapd-socket": {
-    "driver": "service",
-    "fields": {
-     "name": "snapd-socket",
-     "unit": "snapd.socket"
-    },
-    "name": "snapd-socket"
-   },
-   "snap\\groovy": {
-    "driver": "snap",
+   "sdkman\\groovy": {
+    "driver": "sdkman",
     "fields": {
      "name": "groovy"
     },
@@ -30641,6 +30997,34 @@
      }
     },
     "name": "lazysql"
+   }
+  },
+  "leiningen": {
+   "dnf\\jdk": {
+    "driver": "dnf",
+    "fields": {
+     "name": "java-17-openjdk-devel"
+    },
+    "name": "java-17-openjdk-devel"
+   },
+   "script\\sdkman": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "curl -s https://get.sdkman.io | bash",
+     "location": "~/.sdkman",
+     "name": "sdkman",
+     "uninstall-cmd": "rm -rf \"$HOME/.sdkman\"",
+     "version-cmd": "source \"$HOME/.sdkman/bin/sdkman-init.sh\" && sdk version",
+     "version-re": "([0-9]+\\.[0-9]+\\.[0-9]+)"
+    },
+    "name": "sdkman"
+   },
+   "sdkman\\leiningen": {
+    "driver": "sdkman",
+    "fields": {
+     "name": "leiningen"
+    },
+    "name": "leiningen"
    }
   },
   "libc++": {
@@ -32090,6 +32474,62 @@
      "repo-component": "universe"
     },
     "name": "sbcl"
+   }
+  },
+  "sbt": {
+   "dnf\\jdk": {
+    "driver": "dnf",
+    "fields": {
+     "name": "java-17-openjdk-devel"
+    },
+    "name": "java-17-openjdk-devel"
+   },
+   "script\\sdkman": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "curl -s https://get.sdkman.io | bash",
+     "location": "~/.sdkman",
+     "name": "sdkman",
+     "uninstall-cmd": "rm -rf \"$HOME/.sdkman\"",
+     "version-cmd": "source \"$HOME/.sdkman/bin/sdkman-init.sh\" && sdk version",
+     "version-re": "([0-9]+\\.[0-9]+\\.[0-9]+)"
+    },
+    "name": "sdkman"
+   },
+   "sdkman\\sbt": {
+    "driver": "sdkman",
+    "fields": {
+     "name": "sbt"
+    },
+    "name": "sbt"
+   }
+  },
+  "scala": {
+   "dnf\\jdk": {
+    "driver": "dnf",
+    "fields": {
+     "name": "java-17-openjdk-devel"
+    },
+    "name": "java-17-openjdk-devel"
+   },
+   "script\\sdkman": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "curl -s https://get.sdkman.io | bash",
+     "location": "~/.sdkman",
+     "name": "sdkman",
+     "uninstall-cmd": "rm -rf \"$HOME/.sdkman\"",
+     "version-cmd": "source \"$HOME/.sdkman/bin/sdkman-init.sh\" && sdk version",
+     "version-re": "([0-9]+\\.[0-9]+\\.[0-9]+)"
+    },
+    "name": "sdkman"
+   },
+   "sdkman\\scala": {
+    "driver": "sdkman",
+    "fields": {
+     "name": "scala"
+    },
+    "name": "scala"
    }
   },
   "scribus": {
@@ -34510,20 +34950,31 @@
    }
   },
   "groovy": {
-   "brew\\groovy": {
-    "driver": "brew",
-    "fields": {
-     "name": "groovy",
-     "repo-component": "universe"
-    },
-    "name": "groovy"
-   },
    "brew\\jdk": {
     "driver": "brew",
     "fields": {
      "name": "openjdk"
     },
     "name": "openjdk"
+   },
+   "script\\sdkman": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "curl -s https://get.sdkman.io | bash",
+     "location": "~/.sdkman",
+     "name": "sdkman",
+     "uninstall-cmd": "rm -rf \"$HOME/.sdkman\"",
+     "version-cmd": "source \"$HOME/.sdkman/bin/sdkman-init.sh\" && sdk version",
+     "version-re": "([0-9]+\\.[0-9]+\\.[0-9]+)"
+    },
+    "name": "sdkman"
+   },
+   "sdkman\\groovy": {
+    "driver": "sdkman",
+    "fields": {
+     "name": "groovy"
+    },
+    "name": "groovy"
    }
   },
   "grpcurl": {
@@ -35000,6 +35451,34 @@
      }
     },
     "name": "lazysql"
+   }
+  },
+  "leiningen": {
+   "brew\\jdk": {
+    "driver": "brew",
+    "fields": {
+     "name": "openjdk"
+    },
+    "name": "openjdk"
+   },
+   "script\\sdkman": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "curl -s https://get.sdkman.io | bash",
+     "location": "~/.sdkman",
+     "name": "sdkman",
+     "uninstall-cmd": "rm -rf \"$HOME/.sdkman\"",
+     "version-cmd": "source \"$HOME/.sdkman/bin/sdkman-init.sh\" && sdk version",
+     "version-re": "([0-9]+\\.[0-9]+\\.[0-9]+)"
+    },
+    "name": "sdkman"
+   },
+   "sdkman\\leiningen": {
+    "driver": "sdkman",
+    "fields": {
+     "name": "leiningen"
+    },
+    "name": "leiningen"
    }
   },
   "libc++": {
@@ -36060,6 +36539,34 @@
     "name": "sbcl"
    }
   },
+  "sbt": {
+   "brew\\jdk": {
+    "driver": "brew",
+    "fields": {
+     "name": "openjdk"
+    },
+    "name": "openjdk"
+   },
+   "script\\sdkman": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "curl -s https://get.sdkman.io | bash",
+     "location": "~/.sdkman",
+     "name": "sdkman",
+     "uninstall-cmd": "rm -rf \"$HOME/.sdkman\"",
+     "version-cmd": "source \"$HOME/.sdkman/bin/sdkman-init.sh\" && sdk version",
+     "version-re": "([0-9]+\\.[0-9]+\\.[0-9]+)"
+    },
+    "name": "sdkman"
+   },
+   "sdkman\\sbt": {
+    "driver": "sdkman",
+    "fields": {
+     "name": "sbt"
+    },
+    "name": "sbt"
+   }
+  },
   "scala": {
    "brew\\jdk": {
     "driver": "brew",
@@ -36068,8 +36575,20 @@
     },
     "name": "openjdk"
    },
-   "brew\\scala": {
-    "driver": "brew",
+   "script\\sdkman": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "curl -s https://get.sdkman.io | bash",
+     "location": "~/.sdkman",
+     "name": "sdkman",
+     "uninstall-cmd": "rm -rf \"$HOME/.sdkman\"",
+     "version-cmd": "source \"$HOME/.sdkman/bin/sdkman-init.sh\" && sdk version",
+     "version-re": "([0-9]+\\.[0-9]+\\.[0-9]+)"
+    },
+    "name": "sdkman"
+   },
+   "sdkman\\scala": {
+    "driver": "sdkman",
     "fields": {
      "name": "scala"
     },
@@ -39081,20 +39600,31 @@
    }
   },
   "groovy": {
-   "apt\\groovy": {
-    "driver": "apt",
-    "fields": {
-     "name": "groovy",
-     "repo-component": "universe"
-    },
-    "name": "groovy"
-   },
    "apt\\jdk": {
     "driver": "apt",
     "fields": {
      "name": "default-jdk"
     },
     "name": "default-jdk"
+   },
+   "script\\sdkman": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "curl -s https://get.sdkman.io | bash",
+     "location": "~/.sdkman",
+     "name": "sdkman",
+     "uninstall-cmd": "rm -rf \"$HOME/.sdkman\"",
+     "version-cmd": "source \"$HOME/.sdkman/bin/sdkman-init.sh\" && sdk version",
+     "version-re": "([0-9]+\\.[0-9]+\\.[0-9]+)"
+    },
+    "name": "sdkman"
+   },
+   "sdkman\\groovy": {
+    "driver": "sdkman",
+    "fields": {
+     "name": "groovy"
+    },
+    "name": "groovy"
    }
   },
   "grpcurl": {
@@ -39910,6 +40440,34 @@
      }
     },
     "name": "lazysql"
+   }
+  },
+  "leiningen": {
+   "apt\\jdk": {
+    "driver": "apt",
+    "fields": {
+     "name": "default-jdk"
+    },
+    "name": "default-jdk"
+   },
+   "script\\sdkman": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "curl -s https://get.sdkman.io | bash",
+     "location": "~/.sdkman",
+     "name": "sdkman",
+     "uninstall-cmd": "rm -rf \"$HOME/.sdkman\"",
+     "version-cmd": "source \"$HOME/.sdkman/bin/sdkman-init.sh\" && sdk version",
+     "version-re": "([0-9]+\\.[0-9]+\\.[0-9]+)"
+    },
+    "name": "sdkman"
+   },
+   "sdkman\\leiningen": {
+    "driver": "sdkman",
+    "fields": {
+     "name": "leiningen"
+    },
+    "name": "leiningen"
    }
   },
   "libavcodec-extra": {
@@ -41486,6 +42044,34 @@
     "name": "sbcl"
    }
   },
+  "sbt": {
+   "apt\\jdk": {
+    "driver": "apt",
+    "fields": {
+     "name": "default-jdk"
+    },
+    "name": "default-jdk"
+   },
+   "script\\sdkman": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "curl -s https://get.sdkman.io | bash",
+     "location": "~/.sdkman",
+     "name": "sdkman",
+     "uninstall-cmd": "rm -rf \"$HOME/.sdkman\"",
+     "version-cmd": "source \"$HOME/.sdkman/bin/sdkman-init.sh\" && sdk version",
+     "version-re": "([0-9]+\\.[0-9]+\\.[0-9]+)"
+    },
+    "name": "sdkman"
+   },
+   "sdkman\\sbt": {
+    "driver": "sdkman",
+    "fields": {
+     "name": "sbt"
+    },
+    "name": "sbt"
+   }
+  },
   "scala": {
    "apt\\jdk": {
     "driver": "apt",
@@ -41494,8 +42080,20 @@
     },
     "name": "default-jdk"
    },
-   "apt\\scala": {
-    "driver": "apt",
+   "script\\sdkman": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "curl -s https://get.sdkman.io | bash",
+     "location": "~/.sdkman",
+     "name": "sdkman",
+     "uninstall-cmd": "rm -rf \"$HOME/.sdkman\"",
+     "version-cmd": "source \"$HOME/.sdkman/bin/sdkman-init.sh\" && sdk version",
+     "version-re": "([0-9]+\\.[0-9]+\\.[0-9]+)"
+    },
+    "name": "sdkman"
+   },
+   "sdkman\\scala": {
+    "driver": "sdkman",
     "fields": {
      "name": "scala"
     },
@@ -44690,35 +45288,20 @@
     },
     "name": "java-17-openjdk-devel"
    },
-   "dnf\\snapd": {
-    "driver": "dnf",
-    "fields": {
-     "name": "snapd"
-    },
-    "name": "snapd"
-   },
-   "script\\snapd-snap-link": {
+   "script\\sdkman": {
     "driver": "script",
     "fields": {
-     "install-cmd": "test -e /snap || sudo ln -s /var/lib/snapd/snap /snap",
-     "location": "/snap",
-     "name": "snapd-snap-link",
-     "uninstall-cmd": "test -L /snap && sudo rm -f /snap || true",
-     "version-cmd": "test -e /snap && echo present",
-     "version-re": "(present)"
+     "install-cmd": "curl -s https://get.sdkman.io | bash",
+     "location": "~/.sdkman",
+     "name": "sdkman",
+     "uninstall-cmd": "rm -rf \"$HOME/.sdkman\"",
+     "version-cmd": "source \"$HOME/.sdkman/bin/sdkman-init.sh\" && sdk version",
+     "version-re": "([0-9]+\\.[0-9]+\\.[0-9]+)"
     },
-    "name": "snapd-snap-link"
+    "name": "sdkman"
    },
-   "service\\snapd-socket": {
-    "driver": "service",
-    "fields": {
-     "name": "snapd-socket",
-     "unit": "snapd.socket"
-    },
-    "name": "snapd-socket"
-   },
-   "snap\\groovy": {
-    "driver": "snap",
+   "sdkman\\groovy": {
+    "driver": "sdkman",
     "fields": {
      "name": "groovy"
     },
@@ -45564,6 +46147,34 @@
      }
     },
     "name": "lazysql"
+   }
+  },
+  "leiningen": {
+   "dnf\\jdk": {
+    "driver": "dnf",
+    "fields": {
+     "name": "java-17-openjdk-devel"
+    },
+    "name": "java-17-openjdk-devel"
+   },
+   "script\\sdkman": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "curl -s https://get.sdkman.io | bash",
+     "location": "~/.sdkman",
+     "name": "sdkman",
+     "uninstall-cmd": "rm -rf \"$HOME/.sdkman\"",
+     "version-cmd": "source \"$HOME/.sdkman/bin/sdkman-init.sh\" && sdk version",
+     "version-re": "([0-9]+\\.[0-9]+\\.[0-9]+)"
+    },
+    "name": "sdkman"
+   },
+   "sdkman\\leiningen": {
+    "driver": "sdkman",
+    "fields": {
+     "name": "leiningen"
+    },
+    "name": "leiningen"
    }
   },
   "libc++": {
@@ -47103,6 +47714,62 @@
      "repo-component": "universe"
     },
     "name": "sbcl"
+   }
+  },
+  "sbt": {
+   "dnf\\jdk": {
+    "driver": "dnf",
+    "fields": {
+     "name": "java-17-openjdk-devel"
+    },
+    "name": "java-17-openjdk-devel"
+   },
+   "script\\sdkman": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "curl -s https://get.sdkman.io | bash",
+     "location": "~/.sdkman",
+     "name": "sdkman",
+     "uninstall-cmd": "rm -rf \"$HOME/.sdkman\"",
+     "version-cmd": "source \"$HOME/.sdkman/bin/sdkman-init.sh\" && sdk version",
+     "version-re": "([0-9]+\\.[0-9]+\\.[0-9]+)"
+    },
+    "name": "sdkman"
+   },
+   "sdkman\\sbt": {
+    "driver": "sdkman",
+    "fields": {
+     "name": "sbt"
+    },
+    "name": "sbt"
+   }
+  },
+  "scala": {
+   "dnf\\jdk": {
+    "driver": "dnf",
+    "fields": {
+     "name": "java-17-openjdk-devel"
+    },
+    "name": "java-17-openjdk-devel"
+   },
+   "script\\sdkman": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "curl -s https://get.sdkman.io | bash",
+     "location": "~/.sdkman",
+     "name": "sdkman",
+     "uninstall-cmd": "rm -rf \"$HOME/.sdkman\"",
+     "version-cmd": "source \"$HOME/.sdkman/bin/sdkman-init.sh\" && sdk version",
+     "version-re": "([0-9]+\\.[0-9]+\\.[0-9]+)"
+    },
+    "name": "sdkman"
+   },
+   "sdkman\\scala": {
+    "driver": "sdkman",
+    "fields": {
+     "name": "scala"
+    },
+    "name": "scala"
    }
   },
   "scribus": {
@@ -50652,20 +51319,31 @@
    }
   },
   "groovy": {
-   "apt\\groovy": {
-    "driver": "apt",
-    "fields": {
-     "name": "groovy",
-     "repo-component": "universe"
-    },
-    "name": "groovy"
-   },
    "apt\\jdk": {
     "driver": "apt",
     "fields": {
      "name": "default-jdk"
     },
     "name": "default-jdk"
+   },
+   "script\\sdkman": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "curl -s https://get.sdkman.io | bash",
+     "location": "~/.sdkman",
+     "name": "sdkman",
+     "uninstall-cmd": "rm -rf \"$HOME/.sdkman\"",
+     "version-cmd": "source \"$HOME/.sdkman/bin/sdkman-init.sh\" && sdk version",
+     "version-re": "([0-9]+\\.[0-9]+\\.[0-9]+)"
+    },
+    "name": "sdkman"
+   },
+   "sdkman\\groovy": {
+    "driver": "sdkman",
+    "fields": {
+     "name": "groovy"
+    },
+    "name": "groovy"
    }
   },
   "grpcurl": {
@@ -51481,6 +52159,34 @@
      }
     },
     "name": "lazysql"
+   }
+  },
+  "leiningen": {
+   "apt\\jdk": {
+    "driver": "apt",
+    "fields": {
+     "name": "default-jdk"
+    },
+    "name": "default-jdk"
+   },
+   "script\\sdkman": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "curl -s https://get.sdkman.io | bash",
+     "location": "~/.sdkman",
+     "name": "sdkman",
+     "uninstall-cmd": "rm -rf \"$HOME/.sdkman\"",
+     "version-cmd": "source \"$HOME/.sdkman/bin/sdkman-init.sh\" && sdk version",
+     "version-re": "([0-9]+\\.[0-9]+\\.[0-9]+)"
+    },
+    "name": "sdkman"
+   },
+   "sdkman\\leiningen": {
+    "driver": "sdkman",
+    "fields": {
+     "name": "leiningen"
+    },
+    "name": "leiningen"
    }
   },
   "libavcodec-extra": {
@@ -53057,6 +53763,34 @@
     "name": "sbcl"
    }
   },
+  "sbt": {
+   "apt\\jdk": {
+    "driver": "apt",
+    "fields": {
+     "name": "default-jdk"
+    },
+    "name": "default-jdk"
+   },
+   "script\\sdkman": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "curl -s https://get.sdkman.io | bash",
+     "location": "~/.sdkman",
+     "name": "sdkman",
+     "uninstall-cmd": "rm -rf \"$HOME/.sdkman\"",
+     "version-cmd": "source \"$HOME/.sdkman/bin/sdkman-init.sh\" && sdk version",
+     "version-re": "([0-9]+\\.[0-9]+\\.[0-9]+)"
+    },
+    "name": "sdkman"
+   },
+   "sdkman\\sbt": {
+    "driver": "sdkman",
+    "fields": {
+     "name": "sbt"
+    },
+    "name": "sbt"
+   }
+  },
   "scala": {
    "apt\\jdk": {
     "driver": "apt",
@@ -53065,8 +53799,20 @@
     },
     "name": "default-jdk"
    },
-   "apt\\scala": {
-    "driver": "apt",
+   "script\\sdkman": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "curl -s https://get.sdkman.io | bash",
+     "location": "~/.sdkman",
+     "name": "sdkman",
+     "uninstall-cmd": "rm -rf \"$HOME/.sdkman\"",
+     "version-cmd": "source \"$HOME/.sdkman/bin/sdkman-init.sh\" && sdk version",
+     "version-re": "([0-9]+\\.[0-9]+\\.[0-9]+)"
+    },
+    "name": "sdkman"
+   },
+   "sdkman\\scala": {
+    "driver": "sdkman",
     "fields": {
      "name": "scala"
     },
@@ -56512,20 +57258,31 @@
    }
   },
   "groovy": {
-   "apt\\groovy": {
-    "driver": "apt",
-    "fields": {
-     "name": "groovy",
-     "repo-component": "universe"
-    },
-    "name": "groovy"
-   },
    "apt\\jdk": {
     "driver": "apt",
     "fields": {
      "name": "default-jdk"
     },
     "name": "default-jdk"
+   },
+   "script\\sdkman": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "curl -s https://get.sdkman.io | bash",
+     "location": "~/.sdkman",
+     "name": "sdkman",
+     "uninstall-cmd": "rm -rf \"$HOME/.sdkman\"",
+     "version-cmd": "source \"$HOME/.sdkman/bin/sdkman-init.sh\" && sdk version",
+     "version-re": "([0-9]+\\.[0-9]+\\.[0-9]+)"
+    },
+    "name": "sdkman"
+   },
+   "sdkman\\groovy": {
+    "driver": "sdkman",
+    "fields": {
+     "name": "groovy"
+    },
+    "name": "groovy"
    }
   },
   "grpcurl": {
@@ -57321,6 +58078,34 @@
      }
     },
     "name": "lazysql"
+   }
+  },
+  "leiningen": {
+   "apt\\jdk": {
+    "driver": "apt",
+    "fields": {
+     "name": "default-jdk"
+    },
+    "name": "default-jdk"
+   },
+   "script\\sdkman": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "curl -s https://get.sdkman.io | bash",
+     "location": "~/.sdkman",
+     "name": "sdkman",
+     "uninstall-cmd": "rm -rf \"$HOME/.sdkman\"",
+     "version-cmd": "source \"$HOME/.sdkman/bin/sdkman-init.sh\" && sdk version",
+     "version-re": "([0-9]+\\.[0-9]+\\.[0-9]+)"
+    },
+    "name": "sdkman"
+   },
+   "sdkman\\leiningen": {
+    "driver": "sdkman",
+    "fields": {
+     "name": "leiningen"
+    },
+    "name": "leiningen"
    }
   },
   "libavcodec-extra": {
@@ -58837,6 +59622,34 @@
     "name": "sbcl"
    }
   },
+  "sbt": {
+   "apt\\jdk": {
+    "driver": "apt",
+    "fields": {
+     "name": "default-jdk"
+    },
+    "name": "default-jdk"
+   },
+   "script\\sdkman": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "curl -s https://get.sdkman.io | bash",
+     "location": "~/.sdkman",
+     "name": "sdkman",
+     "uninstall-cmd": "rm -rf \"$HOME/.sdkman\"",
+     "version-cmd": "source \"$HOME/.sdkman/bin/sdkman-init.sh\" && sdk version",
+     "version-re": "([0-9]+\\.[0-9]+\\.[0-9]+)"
+    },
+    "name": "sdkman"
+   },
+   "sdkman\\sbt": {
+    "driver": "sdkman",
+    "fields": {
+     "name": "sbt"
+    },
+    "name": "sbt"
+   }
+  },
   "scala": {
    "apt\\jdk": {
     "driver": "apt",
@@ -58845,8 +59658,20 @@
     },
     "name": "default-jdk"
    },
-   "apt\\scala": {
-    "driver": "apt",
+   "script\\sdkman": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "curl -s https://get.sdkman.io | bash",
+     "location": "~/.sdkman",
+     "name": "sdkman",
+     "uninstall-cmd": "rm -rf \"$HOME/.sdkman\"",
+     "version-cmd": "source \"$HOME/.sdkman/bin/sdkman-init.sh\" && sdk version",
+     "version-re": "([0-9]+\\.[0-9]+\\.[0-9]+)"
+    },
+    "name": "sdkman"
+   },
+   "sdkman\\scala": {
+    "driver": "sdkman",
     "fields": {
      "name": "scala"
     },

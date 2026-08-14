@@ -36,6 +36,7 @@ from .pipx import Pipx
 from .pyenv import Pyenv
 from .rpm_ostree import RpmOstree
 from .script import Script
+from .sdkman import Sdkman
 from .service import Service
 from .source import Source
 from .tarball import Tarball
@@ -63,6 +64,7 @@ _REGISTRY = {
     Opam.name: Opam,
     LuaRocks.name: LuaRocks,
     Cabal.name: Cabal,
+    Sdkman.name: Sdkman,
     Gcc.name: Gcc,
     GccToolset.name: GccToolset,
     Clang.name: Clang,

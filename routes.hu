@@ -86,6 +86,7 @@
         opam:        { requires: opam }                // an OCaml package needs the opam tool
         luarocks:    { requires: luarocks }            // a rock needs the luarocks tool (-> lua)
         cabal:       { requires: cabal }               // a hackage exe needs cabal (-> ghc)
+        sdkman:      { requires: sdkman }              // a JVM SDK (scala/groovy/sbt/…) needs the sdkman tool
         font: { requires: [ fontconfig, unzip ] }
         // pip / pipx on musl (Alpine): pip prefers a `musllinux` wheel and pure-Python wheels
         // install fine, but a C-extension package that ships ONLY `manylinux` (glibc) wheels
@@ -622,12 +623,16 @@
                          uninstall-cmd: 'sudo rm -rf /usr/local/bin/clj /usr/local/bin/clojure /usr/local/lib/clojure'
                          location:      '/usr/local/lib/clojure' } ] }
         groovy: { description: "Apache Groovy — a dynamic language for the JVM." requires: jdk
-            install: [ { via: native  when: "arch or debian or fedora_atomic"  repo-component: universe }   // pacman/apt/brew groovy
-                       { via: snap  name: groovy } ] }   // fallback where native is absent (fedora/opensuse); resolves when wanted
+            install: [ { via: sdkman }   // current Groovy 5, any distro (the clean default)
+                       { via: native  when: "arch or debian or fedora_atomic"  standing: never-auto  repo-component: universe } ] }   // pacman/apt/brew (older); pinnable
         scala: { description: "Scala — an object-functional language on the JVM." requires: jdk
-            install: [ { via: native  when: "fedora_atomic" }   // brew scala (Scala 3)
-                       { via: native  when: "debian" }          // apt scala (older 2.x line)
-                       { via: aur  when: "arch"  name: scala } ] }   // elsewhere use Coursier `cs setup` / SDKMAN (manual)
+            install: [ { via: sdkman }   // current Scala 3, any distro (SDKMAN — native is ancient on debian, AUR-only on arch)
+                       { via: native  when: "fedora_atomic"  standing: never-auto }   // brew scala (pinnable alt)
+                       { via: aur  when: "arch"  name: scala  standing: never-auto } ] }
+        sbt: { description: "sbt — the interactive build tool for Scala." requires: jdk
+            install: [ { via: sdkman } ] }
+        leiningen: { description: "Leiningen — build automation for Clojure (`lein`)." requires: jdk
+            install: [ { via: sdkman } ] }
         racket: { description: "Racket — a full-spectrum Scheme/Lisp language (ships DrRacket)."
             install: [ { via: native  when: "debian or redhat or arch or alpine"  repo-component: universe } ] }   // uniform `racket` (brew ships a macOS cask, not a formula)
         guile: { description: "GNU Guile — the GNU Scheme interpreter."
