@@ -42,10 +42,19 @@ class Splash:
     is full) so the host may stop as soon as inspection is also done; a falsey return keeps going.
 
     Class attributes tune the host loop: `fps` (target frame rate) and `min_duration` (if shown at
-    all, play at least this long — no one-frame flash).'''
+    all, play at least this long — no one-frame flash).
+
+    RAW (truecolor) providers: set class attr `raw = True` to bypass curses' colour model entirely
+    (curses `color_pair()` caps at 256 pairs — too few for a smooth 24-bit gradient). A raw
+    provider's `render(frame)` RETURNS a str of ANSI (positioned from the top-left, e.g. per-row
+    `\\033[<row>;1H…` with `\\033[38;2;r;g;bm`/`\\033[48;2;r;g;bm` SGR); the host writes it straight
+    to the terminal and skips its own curses repaint for that frame (so don't touch self.scr). `pal`
+    is unused. Set `self.at_rest = True` when the animation has settled (default: at rest once
+    inspection is done). The host still owns the clock, skip key, deadline, and the text fallback.'''
     name = None
     fps = 30.0
     min_duration = 0.6
+    raw = False                     # True -> render() returns an ANSI string; host writes it raw (truecolor)
 
     def __init__(self, scr, pal, size, seed=None):
         import random

@@ -10,9 +10,20 @@ plugins like configsys-splash-ocean.
 '''
 
 import curses
+import sys
 import time
 
 from ..splashes import Splash, SplashFrame, register_splash
+
+
+def _tty_write(s):
+    '''Write a raw ANSI string straight to the terminal — for `raw` (truecolor) splashes that bypass
+    curses' 256-pair colour model. Best-effort; never raises into the splash loop.'''
+    try:
+        sys.stdout.write(s)
+        sys.stdout.flush()
+    except (OSError, ValueError):
+        pass
 
 MIN_DURATION = 0.6              # a plugin splash floor (no one-frame flash); the default overrides it to 0
 DEFAULT_SPLASH = 'braille-bar'  # the built-in, trust-free default when `splash:` is unset
@@ -84,7 +95,11 @@ def run_splash(scr, pal, provider_cls, *, is_done, frac, counts, label, deadline
     fps = getattr(provider_cls, 'fps', 30.0) or 30.0
     frame_dt = 1.0 / fps
     min_dur = getattr(provider_cls, 'min_duration', MIN_DURATION)
+    raw = bool(getattr(provider_cls, 'raw', False))   # provider paints truecolor to the tty itself
     scr.nodelay(True)
+    used_raw = False
+    if raw:
+        _tty_write('\033[?25l\033[2J')                # hide cursor, clear once; frames repaint in place
     try:
         start = last = time.monotonic()
         animate = True
@@ -98,16 +113,28 @@ def run_splash(scr, pal, provider_cls, *, is_done, frac, counts, label, deadline
             at_rest = False
             if animate:
                 try:
-                    at_rest = bool(provider.render(frame))
+                    if raw:
+                        used_raw = True
+                        _tty_write(provider.render(frame) or '')
+                        at_rest = bool(getattr(provider, 'at_rest', done))
+                    else:
+                        at_rest = bool(provider.render(frame))
                 except Exception:                     # noqa: BLE001 — a broken splash never bricks startup
                     animate = False
+                    if used_raw:
+                        _tty_write('\033[0m')
+                        scr.clearok(True)
                     _draw_progress_text(scr, pal, label, frame.counts, h, w)
                 if animate and scr.getch() != -1:     # Esc/any key -> drop the animation, keep text
                     animate = False
+                    if used_raw:
+                        _tty_write('\033[0m')
+                        scr.clearok(True)
             else:
                 _draw_progress_text(scr, pal, label, frame.counts, h, w)
-            scr.noutrefresh()
-            curses.doupdate()
+            if not (raw and animate):                 # raw frames own the tty; skip curses' repaint
+                scr.noutrefresh()
+                curses.doupdate()
             if deadline is not None and now >= deadline:
                 return
             if animate:
@@ -120,3 +147,6 @@ def run_splash(scr, pal, provider_cls, *, is_done, frac, counts, label, deadline
                 time.sleep(slack)
     finally:
         scr.nodelay(False)
+        if used_raw:
+            _tty_write('\033[0m\033[?25h')            # reset colours, restore the cursor
+            scr.clearok(True)                         # force the next curses refresh to wipe the raw frame

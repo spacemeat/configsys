@@ -126,6 +126,8 @@ class _FakeWin:
         pass
     def addstr(self, y, x, s, attr=0):
         pass
+    def clearok(self, flag):
+        self.cleared = flag
 
 
 def test_run_splash_drives_a_provider_and_stops(monkeypatch):
@@ -149,6 +151,32 @@ def test_run_splash_drives_a_provider_and_stops(monkeypatch):
                        frac=lambda: 1.0, counts=lambda: (5, 5), label='x')
     assert len(seen) == 1                        # done immediately -> one frame then stop
     assert seen[0].progress == 1.0 and seen[0].done is True
+
+
+def test_run_splash_drives_a_raw_truecolor_provider(monkeypatch):
+    # a `raw` splash returns an ANSI STRING; the host writes it to the tty (bypassing curses colour)
+    # and skips its own curses repaint, then resets colours + clearok's the screen on the way out.
+    from configsys.tui import splash as hostmod
+    monkeypatch.setattr(hostmod.time, 'sleep', lambda s: None)
+    written = []
+    monkeypatch.setattr(hostmod, '_tty_write', lambda s: written.append(s))
+
+    class Raw(splashes.Splash):
+        name = 'raw-one'
+        raw = True
+        min_duration = 0.0
+        def render(self, frame):
+            self.at_rest = frame.progress >= 1.0
+            return f'\033[1;1H\033[48;2;10;20;30m \033[0m'   # a truecolor frame string
+
+    win = _FakeWin()
+    hostmod.run_splash(win, pal=None, provider_cls=Raw, is_done=lambda: True,
+                       frac=lambda: 1.0, counts=lambda: (5, 5), label='x')
+    joined = ''.join(written)
+    assert '\033[?25l' in joined and '48;2;10;20;30' in joined      # cursor hidden + the frame's SGR
+    assert joined.rstrip().endswith('\033[?25h') or '\033[?25h' in joined   # cursor restored on exit
+    assert win.frames == 0                                          # raw frames skip curses noutrefresh
+    assert getattr(win, 'cleared', False) is True                  # clearok set so the TUI wipes it
 
 
 def test_run_splash_survives_a_broken_provider(monkeypatch):
