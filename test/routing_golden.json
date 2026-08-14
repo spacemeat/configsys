@@ -527,9 +527,9 @@
    "pacman\\jdk": {
     "driver": "pacman",
     "fields": {
-     "name": "jdk-openjdk"
+     "name": "jdk21-openjdk"
     },
-    "name": "jdk-openjdk"
+    "name": "jdk21-openjdk"
    }
   },
   "cmake": {
@@ -1490,6 +1490,47 @@
     "name": "go"
    }
   },
+  "graalvm": {
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.bash.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\sdkman-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/sdkman.sh",
+     "src": "bash.d/sdkman.sh"
+    },
+    "name": "sdkman-dotfiles"
+   },
+   "script\\sdkman": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "curl -s https://get.sdkman.io | bash",
+     "location": "~/.sdkman",
+     "name": "sdkman",
+     "uninstall-cmd": "rm -rf \"$HOME/.sdkman\"",
+     "version-cmd": "source \"$HOME/.sdkman/bin/sdkman-init.sh\" && sdk version",
+     "version-re": "([0-9]+\\.[0-9]+\\.[0-9]+)"
+    },
+    "name": "sdkman"
+   },
+   "sdkman\\graalvm": {
+    "driver": "sdkman",
+    "fields": {
+     "name": "java",
+     "version": "21.0.2-graalce"
+    },
+    "name": "java"
+   }
+  },
   "gradle": {
    "pacman\\gradle": {
     "driver": "pacman",
@@ -1501,9 +1542,9 @@
    "pacman\\jdk": {
     "driver": "pacman",
     "fields": {
-     "name": "jdk-openjdk"
+     "name": "jdk21-openjdk"
     },
-    "name": "jdk-openjdk"
+    "name": "jdk21-openjdk"
    }
   },
   "grafana": {
@@ -1533,12 +1574,31 @@
    }
   },
   "groovy": {
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.bash.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\sdkman-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/sdkman.sh",
+     "src": "bash.d/sdkman.sh"
+    },
+    "name": "sdkman-dotfiles"
+   },
    "pacman\\jdk": {
     "driver": "pacman",
     "fields": {
-     "name": "jdk-openjdk"
+     "name": "jdk21-openjdk"
     },
-    "name": "jdk-openjdk"
+    "name": "jdk21-openjdk"
    },
    "script\\sdkman": {
     "driver": "script",
@@ -1972,9 +2032,27 @@
    "pacman\\jdk": {
     "driver": "pacman",
     "fields": {
-     "name": "jdk-openjdk"
+     "name": "jdk21-openjdk"
     },
-    "name": "jdk-openjdk"
+    "name": "jdk21-openjdk"
+   }
+  },
+  "jdk-17": {
+   "pacman\\jdk-17": {
+    "driver": "pacman",
+    "fields": {
+     "name": "jdk17-openjdk"
+    },
+    "name": "jdk17-openjdk"
+   }
+  },
+  "jdk-25": {
+   "pacman\\jdk-25": {
+    "driver": "pacman",
+    "fields": {
+     "name": "jdk25-openjdk"
+    },
+    "name": "jdk25-openjdk"
    }
   },
   "jellyfin": {
@@ -2286,12 +2364,31 @@
    }
   },
   "leiningen": {
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.bash.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\sdkman-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/sdkman.sh",
+     "src": "bash.d/sdkman.sh"
+    },
+    "name": "sdkman-dotfiles"
+   },
    "pacman\\jdk": {
     "driver": "pacman",
     "fields": {
-     "name": "jdk-openjdk"
+     "name": "jdk21-openjdk"
     },
-    "name": "jdk-openjdk"
+    "name": "jdk21-openjdk"
    },
    "script\\sdkman": {
     "driver": "script",
@@ -2539,9 +2636,9 @@
    "pacman\\jdk": {
     "driver": "pacman",
     "fields": {
-     "name": "jdk-openjdk"
+     "name": "jdk21-openjdk"
     },
-    "name": "jdk-openjdk"
+    "name": "jdk21-openjdk"
    },
    "pacman\\maven": {
     "driver": "pacman",
@@ -3882,12 +3979,31 @@
    }
   },
   "sbt": {
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.bash.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\sdkman-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/sdkman.sh",
+     "src": "bash.d/sdkman.sh"
+    },
+    "name": "sdkman-dotfiles"
+   },
    "pacman\\jdk": {
     "driver": "pacman",
     "fields": {
-     "name": "jdk-openjdk"
+     "name": "jdk21-openjdk"
     },
-    "name": "jdk-openjdk"
+    "name": "jdk21-openjdk"
    },
    "script\\sdkman": {
     "driver": "script",
@@ -3910,12 +4026,31 @@
    }
   },
   "scala": {
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.bash.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\sdkman-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/sdkman.sh",
+     "src": "bash.d/sdkman.sh"
+    },
+    "name": "sdkman-dotfiles"
+   },
    "pacman\\jdk": {
     "driver": "pacman",
     "fields": {
-     "name": "jdk-openjdk"
+     "name": "jdk21-openjdk"
     },
-    "name": "jdk-openjdk"
+    "name": "jdk21-openjdk"
    },
    "script\\sdkman": {
     "driver": "script",
@@ -3955,6 +4090,25 @@
    }
   },
   "sdkman": {
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.bash.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\sdkman-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/sdkman.sh",
+     "src": "bash.d/sdkman.sh"
+    },
+    "name": "sdkman-dotfiles"
+   },
    "script\\sdkman": {
     "driver": "script",
     "fields": {
@@ -3966,6 +4120,27 @@
      "version-re": "([0-9]+\\.[0-9]+\\.[0-9]+)"
     },
     "name": "sdkman"
+   }
+  },
+  "sdkman-dotfiles": {
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.bash.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\sdkman-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/sdkman.sh",
+     "src": "bash.d/sdkman.sh"
+    },
+    "name": "sdkman-dotfiles"
    }
   },
   "sdl": {
@@ -6063,9 +6238,9 @@
    "apt\\jdk": {
     "driver": "apt",
     "fields": {
-     "name": "default-jdk"
+     "name": "openjdk-21-jdk"
     },
-    "name": "default-jdk"
+    "name": "openjdk-21-jdk"
    }
   },
   "cmake": {
@@ -7429,6 +7604,47 @@
     "name": "golang.org/x/tools/cmd/goimports"
    }
   },
+  "graalvm": {
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.bash.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\sdkman-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/sdkman.sh",
+     "src": "bash.d/sdkman.sh"
+    },
+    "name": "sdkman-dotfiles"
+   },
+   "script\\sdkman": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "curl -s https://get.sdkman.io | bash",
+     "location": "~/.sdkman",
+     "name": "sdkman",
+     "uninstall-cmd": "rm -rf \"$HOME/.sdkman\"",
+     "version-cmd": "source \"$HOME/.sdkman/bin/sdkman-init.sh\" && sdk version",
+     "version-re": "([0-9]+\\.[0-9]+\\.[0-9]+)"
+    },
+    "name": "sdkman"
+   },
+   "sdkman\\graalvm": {
+    "driver": "sdkman",
+    "fields": {
+     "name": "java",
+     "version": "21.0.2-graalce"
+    },
+    "name": "java"
+   }
+  },
   "gradle": {
    "apt\\gradle": {
     "driver": "apt",
@@ -7440,9 +7656,9 @@
    "apt\\jdk": {
     "driver": "apt",
     "fields": {
-     "name": "default-jdk"
+     "name": "openjdk-21-jdk"
     },
-    "name": "default-jdk"
+    "name": "openjdk-21-jdk"
    }
   },
   "grafana": {
@@ -7483,9 +7699,28 @@
    "apt\\jdk": {
     "driver": "apt",
     "fields": {
-     "name": "default-jdk"
+     "name": "openjdk-21-jdk"
     },
-    "name": "default-jdk"
+    "name": "openjdk-21-jdk"
+   },
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.bash.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\sdkman-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/sdkman.sh",
+     "src": "bash.d/sdkman.sh"
+    },
+    "name": "sdkman-dotfiles"
    },
    "script\\sdkman": {
     "driver": "script",
@@ -7920,9 +8155,27 @@
    "apt\\jdk": {
     "driver": "apt",
     "fields": {
-     "name": "default-jdk"
+     "name": "openjdk-21-jdk"
     },
-    "name": "default-jdk"
+    "name": "openjdk-21-jdk"
+   }
+  },
+  "jdk-17": {
+   "apt\\jdk-17": {
+    "driver": "apt",
+    "fields": {
+     "name": "openjdk-17-jdk"
+    },
+    "name": "openjdk-17-jdk"
+   }
+  },
+  "jdk-25": {
+   "apt\\jdk-25": {
+    "driver": "apt",
+    "fields": {
+     "name": "openjdk-25-jdk"
+    },
+    "name": "openjdk-25-jdk"
    }
   },
   "jellyfin": {
@@ -8159,9 +8412,9 @@
    "apt\\jdk": {
     "driver": "apt",
     "fields": {
-     "name": "default-jdk"
+     "name": "openjdk-21-jdk"
     },
-    "name": "default-jdk"
+    "name": "openjdk-21-jdk"
    },
    "apt\\unzip": {
     "driver": "apt",
@@ -8333,9 +8586,28 @@
    "apt\\jdk": {
     "driver": "apt",
     "fields": {
-     "name": "default-jdk"
+     "name": "openjdk-21-jdk"
     },
-    "name": "default-jdk"
+    "name": "openjdk-21-jdk"
+   },
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.bash.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\sdkman-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/sdkman.sh",
+     "src": "bash.d/sdkman.sh"
+    },
+    "name": "sdkman-dotfiles"
    },
    "script\\sdkman": {
     "driver": "script",
@@ -8633,9 +8905,9 @@
    "apt\\jdk": {
     "driver": "apt",
     "fields": {
-     "name": "default-jdk"
+     "name": "openjdk-21-jdk"
     },
-    "name": "default-jdk"
+    "name": "openjdk-21-jdk"
    },
    "apt\\maven": {
     "driver": "apt",
@@ -9922,9 +10194,28 @@
    "apt\\jdk": {
     "driver": "apt",
     "fields": {
-     "name": "default-jdk"
+     "name": "openjdk-21-jdk"
     },
-    "name": "default-jdk"
+    "name": "openjdk-21-jdk"
+   },
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.bash.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\sdkman-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/sdkman.sh",
+     "src": "bash.d/sdkman.sh"
+    },
+    "name": "sdkman-dotfiles"
    },
    "script\\sdkman": {
     "driver": "script",
@@ -9950,9 +10241,28 @@
    "apt\\jdk": {
     "driver": "apt",
     "fields": {
-     "name": "default-jdk"
+     "name": "openjdk-21-jdk"
     },
-    "name": "default-jdk"
+    "name": "openjdk-21-jdk"
+   },
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.bash.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\sdkman-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/sdkman.sh",
+     "src": "bash.d/sdkman.sh"
+    },
+    "name": "sdkman-dotfiles"
    },
    "script\\sdkman": {
     "driver": "script",
@@ -9992,6 +10302,25 @@
    }
   },
   "sdkman": {
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.bash.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\sdkman-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/sdkman.sh",
+     "src": "bash.d/sdkman.sh"
+    },
+    "name": "sdkman-dotfiles"
+   },
    "script\\sdkman": {
     "driver": "script",
     "fields": {
@@ -10003,6 +10332,27 @@
      "version-re": "([0-9]+\\.[0-9]+\\.[0-9]+)"
     },
     "name": "sdkman"
+   }
+  },
+  "sdkman-dotfiles": {
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.bash.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\sdkman-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/sdkman.sh",
+     "src": "bash.d/sdkman.sh"
+    },
+    "name": "sdkman-dotfiles"
    }
   },
   "sdl": {
@@ -12003,9 +12353,9 @@
    "apt\\jdk": {
     "driver": "apt",
     "fields": {
-     "name": "default-jdk"
+     "name": "openjdk-21-jdk"
     },
-    "name": "default-jdk"
+    "name": "openjdk-21-jdk"
    }
   },
   "cmake": {
@@ -13359,6 +13709,47 @@
     "name": "golang.org/x/tools/cmd/goimports"
    }
   },
+  "graalvm": {
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.bash.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\sdkman-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/sdkman.sh",
+     "src": "bash.d/sdkman.sh"
+    },
+    "name": "sdkman-dotfiles"
+   },
+   "script\\sdkman": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "curl -s https://get.sdkman.io | bash",
+     "location": "~/.sdkman",
+     "name": "sdkman",
+     "uninstall-cmd": "rm -rf \"$HOME/.sdkman\"",
+     "version-cmd": "source \"$HOME/.sdkman/bin/sdkman-init.sh\" && sdk version",
+     "version-re": "([0-9]+\\.[0-9]+\\.[0-9]+)"
+    },
+    "name": "sdkman"
+   },
+   "sdkman\\graalvm": {
+    "driver": "sdkman",
+    "fields": {
+     "name": "java",
+     "version": "21.0.2-graalce"
+    },
+    "name": "java"
+   }
+  },
   "gradle": {
    "apt\\gradle": {
     "driver": "apt",
@@ -13370,9 +13761,9 @@
    "apt\\jdk": {
     "driver": "apt",
     "fields": {
-     "name": "default-jdk"
+     "name": "openjdk-21-jdk"
     },
-    "name": "default-jdk"
+    "name": "openjdk-21-jdk"
    }
   },
   "grafana": {
@@ -13413,9 +13804,28 @@
    "apt\\jdk": {
     "driver": "apt",
     "fields": {
-     "name": "default-jdk"
+     "name": "openjdk-21-jdk"
     },
-    "name": "default-jdk"
+    "name": "openjdk-21-jdk"
+   },
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.bash.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\sdkman-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/sdkman.sh",
+     "src": "bash.d/sdkman.sh"
+    },
+    "name": "sdkman-dotfiles"
    },
    "script\\sdkman": {
     "driver": "script",
@@ -13840,9 +14250,27 @@
    "apt\\jdk": {
     "driver": "apt",
     "fields": {
-     "name": "default-jdk"
+     "name": "openjdk-21-jdk"
     },
-    "name": "default-jdk"
+    "name": "openjdk-21-jdk"
+   }
+  },
+  "jdk-17": {
+   "apt\\jdk-17": {
+    "driver": "apt",
+    "fields": {
+     "name": "openjdk-17-jdk"
+    },
+    "name": "openjdk-17-jdk"
+   }
+  },
+  "jdk-25": {
+   "apt\\jdk-25": {
+    "driver": "apt",
+    "fields": {
+     "name": "openjdk-25-jdk"
+    },
+    "name": "openjdk-25-jdk"
    }
   },
   "jellyfin": {
@@ -14069,9 +14497,9 @@
    "apt\\jdk": {
     "driver": "apt",
     "fields": {
-     "name": "default-jdk"
+     "name": "openjdk-21-jdk"
     },
-    "name": "default-jdk"
+    "name": "openjdk-21-jdk"
    },
    "apt\\unzip": {
     "driver": "apt",
@@ -14243,9 +14671,28 @@
    "apt\\jdk": {
     "driver": "apt",
     "fields": {
-     "name": "default-jdk"
+     "name": "openjdk-21-jdk"
     },
-    "name": "default-jdk"
+    "name": "openjdk-21-jdk"
+   },
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.bash.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\sdkman-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/sdkman.sh",
+     "src": "bash.d/sdkman.sh"
+    },
+    "name": "sdkman-dotfiles"
    },
    "script\\sdkman": {
     "driver": "script",
@@ -14533,9 +14980,9 @@
    "apt\\jdk": {
     "driver": "apt",
     "fields": {
-     "name": "default-jdk"
+     "name": "openjdk-21-jdk"
     },
-    "name": "default-jdk"
+    "name": "openjdk-21-jdk"
    },
    "apt\\maven": {
     "driver": "apt",
@@ -15772,9 +16219,28 @@
    "apt\\jdk": {
     "driver": "apt",
     "fields": {
-     "name": "default-jdk"
+     "name": "openjdk-21-jdk"
     },
-    "name": "default-jdk"
+    "name": "openjdk-21-jdk"
+   },
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.bash.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\sdkman-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/sdkman.sh",
+     "src": "bash.d/sdkman.sh"
+    },
+    "name": "sdkman-dotfiles"
    },
    "script\\sdkman": {
     "driver": "script",
@@ -15800,9 +16266,28 @@
    "apt\\jdk": {
     "driver": "apt",
     "fields": {
-     "name": "default-jdk"
+     "name": "openjdk-21-jdk"
     },
-    "name": "default-jdk"
+    "name": "openjdk-21-jdk"
+   },
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.bash.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\sdkman-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/sdkman.sh",
+     "src": "bash.d/sdkman.sh"
+    },
+    "name": "sdkman-dotfiles"
    },
    "script\\sdkman": {
     "driver": "script",
@@ -15842,6 +16327,25 @@
    }
   },
   "sdkman": {
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.bash.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\sdkman-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/sdkman.sh",
+     "src": "bash.d/sdkman.sh"
+    },
+    "name": "sdkman-dotfiles"
+   },
    "script\\sdkman": {
     "driver": "script",
     "fields": {
@@ -15853,6 +16357,27 @@
      "version-re": "([0-9]+\\.[0-9]+\\.[0-9]+)"
     },
     "name": "sdkman"
+   }
+  },
+  "sdkman-dotfiles": {
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.bash.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\sdkman-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/sdkman.sh",
+     "src": "bash.d/sdkman.sh"
+    },
+    "name": "sdkman-dotfiles"
    }
   },
   "sdl": {
@@ -17841,9 +18366,9 @@
    "apt\\jdk": {
     "driver": "apt",
     "fields": {
-     "name": "default-jdk"
+     "name": "openjdk-21-jdk"
     },
-    "name": "default-jdk"
+    "name": "openjdk-21-jdk"
    }
   },
   "cmake": {
@@ -19192,6 +19717,47 @@
     "name": "golang.org/x/tools/cmd/goimports"
    }
   },
+  "graalvm": {
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.bash.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\sdkman-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/sdkman.sh",
+     "src": "bash.d/sdkman.sh"
+    },
+    "name": "sdkman-dotfiles"
+   },
+   "script\\sdkman": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "curl -s https://get.sdkman.io | bash",
+     "location": "~/.sdkman",
+     "name": "sdkman",
+     "uninstall-cmd": "rm -rf \"$HOME/.sdkman\"",
+     "version-cmd": "source \"$HOME/.sdkman/bin/sdkman-init.sh\" && sdk version",
+     "version-re": "([0-9]+\\.[0-9]+\\.[0-9]+)"
+    },
+    "name": "sdkman"
+   },
+   "sdkman\\graalvm": {
+    "driver": "sdkman",
+    "fields": {
+     "name": "java",
+     "version": "21.0.2-graalce"
+    },
+    "name": "java"
+   }
+  },
   "gradle": {
    "apt\\gradle": {
     "driver": "apt",
@@ -19203,9 +19769,9 @@
    "apt\\jdk": {
     "driver": "apt",
     "fields": {
-     "name": "default-jdk"
+     "name": "openjdk-21-jdk"
     },
-    "name": "default-jdk"
+    "name": "openjdk-21-jdk"
    }
   },
   "grafana": {
@@ -19246,9 +19812,28 @@
    "apt\\jdk": {
     "driver": "apt",
     "fields": {
-     "name": "default-jdk"
+     "name": "openjdk-21-jdk"
     },
-    "name": "default-jdk"
+    "name": "openjdk-21-jdk"
+   },
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.bash.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\sdkman-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/sdkman.sh",
+     "src": "bash.d/sdkman.sh"
+    },
+    "name": "sdkman-dotfiles"
    },
    "script\\sdkman": {
     "driver": "script",
@@ -19673,9 +20258,27 @@
    "apt\\jdk": {
     "driver": "apt",
     "fields": {
-     "name": "default-jdk"
+     "name": "openjdk-21-jdk"
     },
-    "name": "default-jdk"
+    "name": "openjdk-21-jdk"
+   }
+  },
+  "jdk-17": {
+   "apt\\jdk-17": {
+    "driver": "apt",
+    "fields": {
+     "name": "openjdk-17-jdk"
+    },
+    "name": "openjdk-17-jdk"
+   }
+  },
+  "jdk-25": {
+   "apt\\jdk-25": {
+    "driver": "apt",
+    "fields": {
+     "name": "openjdk-25-jdk"
+    },
+    "name": "openjdk-25-jdk"
    }
   },
   "jellyfin": {
@@ -19895,9 +20498,9 @@
    "apt\\jdk": {
     "driver": "apt",
     "fields": {
-     "name": "default-jdk"
+     "name": "openjdk-21-jdk"
     },
-    "name": "default-jdk"
+    "name": "openjdk-21-jdk"
    },
    "apt\\unzip": {
     "driver": "apt",
@@ -20069,9 +20672,28 @@
    "apt\\jdk": {
     "driver": "apt",
     "fields": {
-     "name": "default-jdk"
+     "name": "openjdk-21-jdk"
     },
-    "name": "default-jdk"
+    "name": "openjdk-21-jdk"
+   },
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.bash.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\sdkman-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/sdkman.sh",
+     "src": "bash.d/sdkman.sh"
+    },
+    "name": "sdkman-dotfiles"
    },
    "script\\sdkman": {
     "driver": "script",
@@ -20359,9 +20981,9 @@
    "apt\\jdk": {
     "driver": "apt",
     "fields": {
-     "name": "default-jdk"
+     "name": "openjdk-21-jdk"
     },
-    "name": "default-jdk"
+    "name": "openjdk-21-jdk"
    },
    "apt\\maven": {
     "driver": "apt",
@@ -21611,9 +22233,28 @@
    "apt\\jdk": {
     "driver": "apt",
     "fields": {
-     "name": "default-jdk"
+     "name": "openjdk-21-jdk"
     },
-    "name": "default-jdk"
+    "name": "openjdk-21-jdk"
+   },
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.bash.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\sdkman-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/sdkman.sh",
+     "src": "bash.d/sdkman.sh"
+    },
+    "name": "sdkman-dotfiles"
    },
    "script\\sdkman": {
     "driver": "script",
@@ -21639,9 +22280,28 @@
    "apt\\jdk": {
     "driver": "apt",
     "fields": {
-     "name": "default-jdk"
+     "name": "openjdk-21-jdk"
     },
-    "name": "default-jdk"
+    "name": "openjdk-21-jdk"
+   },
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.bash.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\sdkman-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/sdkman.sh",
+     "src": "bash.d/sdkman.sh"
+    },
+    "name": "sdkman-dotfiles"
    },
    "script\\sdkman": {
     "driver": "script",
@@ -21681,6 +22341,25 @@
    }
   },
   "sdkman": {
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.bash.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\sdkman-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/sdkman.sh",
+     "src": "bash.d/sdkman.sh"
+    },
+    "name": "sdkman-dotfiles"
+   },
    "script\\sdkman": {
     "driver": "script",
     "fields": {
@@ -21692,6 +22371,27 @@
      "version-re": "([0-9]+\\.[0-9]+\\.[0-9]+)"
     },
     "name": "sdkman"
+   }
+  },
+  "sdkman-dotfiles": {
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.bash.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\sdkman-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/sdkman.sh",
+     "src": "bash.d/sdkman.sh"
+    },
+    "name": "sdkman-dotfiles"
    }
   },
   "sdl": {
@@ -23538,9 +24238,9 @@
    "dnf\\jdk": {
     "driver": "dnf",
     "fields": {
-     "name": "java-17-openjdk-devel"
+     "name": "java-21-openjdk-devel"
     },
-    "name": "java-17-openjdk-devel"
+    "name": "java-21-openjdk-devel"
    },
    "script\\clojure": {
     "driver": "script",
@@ -24635,6 +25335,47 @@
     "name": "golang.org/x/tools/cmd/goimports"
    }
   },
+  "graalvm": {
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.bash.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\sdkman-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/sdkman.sh",
+     "src": "bash.d/sdkman.sh"
+    },
+    "name": "sdkman-dotfiles"
+   },
+   "script\\sdkman": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "curl -s https://get.sdkman.io | bash",
+     "location": "~/.sdkman",
+     "name": "sdkman",
+     "uninstall-cmd": "rm -rf \"$HOME/.sdkman\"",
+     "version-cmd": "source \"$HOME/.sdkman/bin/sdkman-init.sh\" && sdk version",
+     "version-re": "([0-9]+\\.[0-9]+\\.[0-9]+)"
+    },
+    "name": "sdkman"
+   },
+   "sdkman\\graalvm": {
+    "driver": "sdkman",
+    "fields": {
+     "name": "java",
+     "version": "21.0.2-graalce"
+    },
+    "name": "java"
+   }
+  },
   "grafana": {
    "dnf\\grafana": {
     "driver": "dnf",
@@ -24673,9 +25414,28 @@
    "dnf\\jdk": {
     "driver": "dnf",
     "fields": {
-     "name": "java-17-openjdk-devel"
+     "name": "java-21-openjdk-devel"
     },
-    "name": "java-17-openjdk-devel"
+    "name": "java-21-openjdk-devel"
+   },
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.bash.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\sdkman-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/sdkman.sh",
+     "src": "bash.d/sdkman.sh"
+    },
+    "name": "sdkman-dotfiles"
    },
    "script\\sdkman": {
     "driver": "script",
@@ -25121,9 +25881,27 @@
    "dnf\\jdk": {
     "driver": "dnf",
     "fields": {
+     "name": "java-21-openjdk-devel"
+    },
+    "name": "java-21-openjdk-devel"
+   }
+  },
+  "jdk-17": {
+   "dnf\\jdk-17": {
+    "driver": "dnf",
+    "fields": {
      "name": "java-17-openjdk-devel"
     },
     "name": "java-17-openjdk-devel"
+   }
+  },
+  "jdk-25": {
+   "dnf\\jdk-25": {
+    "driver": "dnf",
+    "fields": {
+     "name": "java-25-openjdk-devel"
+    },
+    "name": "java-25-openjdk-devel"
    }
   },
   "jellyfin": {
@@ -25362,9 +26140,9 @@
    "dnf\\jdk": {
     "driver": "dnf",
     "fields": {
-     "name": "java-17-openjdk-devel"
+     "name": "java-21-openjdk-devel"
     },
-    "name": "java-17-openjdk-devel"
+    "name": "java-21-openjdk-devel"
    },
    "dnf\\unzip": {
     "driver": "dnf",
@@ -25536,9 +26314,28 @@
    "dnf\\jdk": {
     "driver": "dnf",
     "fields": {
-     "name": "java-17-openjdk-devel"
+     "name": "java-21-openjdk-devel"
     },
-    "name": "java-17-openjdk-devel"
+    "name": "java-21-openjdk-devel"
+   },
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.bash.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\sdkman-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/sdkman.sh",
+     "src": "bash.d/sdkman.sh"
+    },
+    "name": "sdkman-dotfiles"
    },
    "script\\sdkman": {
     "driver": "script",
@@ -25786,9 +26583,9 @@
    "dnf\\jdk": {
     "driver": "dnf",
     "fields": {
-     "name": "java-17-openjdk-devel"
+     "name": "java-21-openjdk-devel"
     },
-    "name": "java-17-openjdk-devel"
+    "name": "java-21-openjdk-devel"
    },
    "dnf\\maven": {
     "driver": "dnf",
@@ -27013,9 +27810,28 @@
    "dnf\\jdk": {
     "driver": "dnf",
     "fields": {
-     "name": "java-17-openjdk-devel"
+     "name": "java-21-openjdk-devel"
     },
-    "name": "java-17-openjdk-devel"
+    "name": "java-21-openjdk-devel"
+   },
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.bash.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\sdkman-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/sdkman.sh",
+     "src": "bash.d/sdkman.sh"
+    },
+    "name": "sdkman-dotfiles"
    },
    "script\\sdkman": {
     "driver": "script",
@@ -27041,9 +27857,28 @@
    "dnf\\jdk": {
     "driver": "dnf",
     "fields": {
-     "name": "java-17-openjdk-devel"
+     "name": "java-21-openjdk-devel"
     },
-    "name": "java-17-openjdk-devel"
+    "name": "java-21-openjdk-devel"
+   },
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.bash.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\sdkman-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/sdkman.sh",
+     "src": "bash.d/sdkman.sh"
+    },
+    "name": "sdkman-dotfiles"
    },
    "script\\sdkman": {
     "driver": "script",
@@ -27083,6 +27918,25 @@
    }
   },
   "sdkman": {
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.bash.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\sdkman-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/sdkman.sh",
+     "src": "bash.d/sdkman.sh"
+    },
+    "name": "sdkman-dotfiles"
+   },
    "script\\sdkman": {
     "driver": "script",
     "fields": {
@@ -27094,6 +27948,27 @@
      "version-re": "([0-9]+\\.[0-9]+\\.[0-9]+)"
     },
     "name": "sdkman"
+   }
+  },
+  "sdkman-dotfiles": {
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.bash.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\sdkman-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/sdkman.sh",
+     "src": "bash.d/sdkman.sh"
+    },
+    "name": "sdkman-dotfiles"
    }
   },
   "sdl": {
@@ -29005,9 +29880,9 @@
    "dnf\\jdk": {
     "driver": "dnf",
     "fields": {
-     "name": "java-17-openjdk-devel"
+     "name": "java-21-openjdk-devel"
     },
-    "name": "java-17-openjdk-devel"
+    "name": "java-21-openjdk-devel"
    },
    "script\\clojure": {
     "driver": "script",
@@ -30102,6 +30977,47 @@
     "name": "golang.org/x/tools/cmd/goimports"
    }
   },
+  "graalvm": {
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.bash.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\sdkman-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/sdkman.sh",
+     "src": "bash.d/sdkman.sh"
+    },
+    "name": "sdkman-dotfiles"
+   },
+   "script\\sdkman": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "curl -s https://get.sdkman.io | bash",
+     "location": "~/.sdkman",
+     "name": "sdkman",
+     "uninstall-cmd": "rm -rf \"$HOME/.sdkman\"",
+     "version-cmd": "source \"$HOME/.sdkman/bin/sdkman-init.sh\" && sdk version",
+     "version-re": "([0-9]+\\.[0-9]+\\.[0-9]+)"
+    },
+    "name": "sdkman"
+   },
+   "sdkman\\graalvm": {
+    "driver": "sdkman",
+    "fields": {
+     "name": "java",
+     "version": "21.0.2-graalce"
+    },
+    "name": "java"
+   }
+  },
   "grafana": {
    "dnf\\grafana": {
     "driver": "dnf",
@@ -30140,9 +31056,28 @@
    "dnf\\jdk": {
     "driver": "dnf",
     "fields": {
-     "name": "java-17-openjdk-devel"
+     "name": "java-21-openjdk-devel"
     },
-    "name": "java-17-openjdk-devel"
+    "name": "java-21-openjdk-devel"
+   },
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.bash.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\sdkman-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/sdkman.sh",
+     "src": "bash.d/sdkman.sh"
+    },
+    "name": "sdkman-dotfiles"
    },
    "script\\sdkman": {
     "driver": "script",
@@ -30588,9 +31523,27 @@
    "dnf\\jdk": {
     "driver": "dnf",
     "fields": {
+     "name": "java-21-openjdk-devel"
+    },
+    "name": "java-21-openjdk-devel"
+   }
+  },
+  "jdk-17": {
+   "dnf\\jdk-17": {
+    "driver": "dnf",
+    "fields": {
      "name": "java-17-openjdk-devel"
     },
     "name": "java-17-openjdk-devel"
+   }
+  },
+  "jdk-25": {
+   "dnf\\jdk-25": {
+    "driver": "dnf",
+    "fields": {
+     "name": "java-25-openjdk-devel"
+    },
+    "name": "java-25-openjdk-devel"
    }
   },
   "jellyfin": {
@@ -30829,9 +31782,9 @@
    "dnf\\jdk": {
     "driver": "dnf",
     "fields": {
-     "name": "java-17-openjdk-devel"
+     "name": "java-21-openjdk-devel"
     },
-    "name": "java-17-openjdk-devel"
+    "name": "java-21-openjdk-devel"
    },
    "dnf\\unzip": {
     "driver": "dnf",
@@ -31003,9 +31956,28 @@
    "dnf\\jdk": {
     "driver": "dnf",
     "fields": {
-     "name": "java-17-openjdk-devel"
+     "name": "java-21-openjdk-devel"
     },
-    "name": "java-17-openjdk-devel"
+    "name": "java-21-openjdk-devel"
+   },
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.bash.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\sdkman-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/sdkman.sh",
+     "src": "bash.d/sdkman.sh"
+    },
+    "name": "sdkman-dotfiles"
    },
    "script\\sdkman": {
     "driver": "script",
@@ -31253,9 +32225,9 @@
    "dnf\\jdk": {
     "driver": "dnf",
     "fields": {
-     "name": "java-17-openjdk-devel"
+     "name": "java-21-openjdk-devel"
     },
-    "name": "java-17-openjdk-devel"
+    "name": "java-21-openjdk-devel"
    },
    "dnf\\maven": {
     "driver": "dnf",
@@ -32480,9 +33452,28 @@
    "dnf\\jdk": {
     "driver": "dnf",
     "fields": {
-     "name": "java-17-openjdk-devel"
+     "name": "java-21-openjdk-devel"
     },
-    "name": "java-17-openjdk-devel"
+    "name": "java-21-openjdk-devel"
+   },
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.bash.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\sdkman-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/sdkman.sh",
+     "src": "bash.d/sdkman.sh"
+    },
+    "name": "sdkman-dotfiles"
    },
    "script\\sdkman": {
     "driver": "script",
@@ -32508,9 +33499,28 @@
    "dnf\\jdk": {
     "driver": "dnf",
     "fields": {
-     "name": "java-17-openjdk-devel"
+     "name": "java-21-openjdk-devel"
     },
-    "name": "java-17-openjdk-devel"
+    "name": "java-21-openjdk-devel"
+   },
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.bash.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\sdkman-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/sdkman.sh",
+     "src": "bash.d/sdkman.sh"
+    },
+    "name": "sdkman-dotfiles"
    },
    "script\\sdkman": {
     "driver": "script",
@@ -32550,6 +33560,25 @@
    }
   },
   "sdkman": {
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.bash.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\sdkman-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/sdkman.sh",
+     "src": "bash.d/sdkman.sh"
+    },
+    "name": "sdkman-dotfiles"
+   },
    "script\\sdkman": {
     "driver": "script",
     "fields": {
@@ -32561,6 +33590,27 @@
      "version-re": "([0-9]+\\.[0-9]+\\.[0-9]+)"
     },
     "name": "sdkman"
+   }
+  },
+  "sdkman-dotfiles": {
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.bash.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\sdkman-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/sdkman.sh",
+     "src": "bash.d/sdkman.sh"
+    },
+    "name": "sdkman-dotfiles"
    }
   },
   "sdl": {
@@ -34241,9 +35291,9 @@
    "brew\\jdk": {
     "driver": "brew",
     "fields": {
-     "name": "openjdk"
+     "name": "openjdk@21"
     },
-    "name": "openjdk"
+    "name": "openjdk@21"
    }
   },
   "cmake": {
@@ -34933,6 +35983,47 @@
     "name": "golang.org/x/tools/cmd/goimports"
    }
   },
+  "graalvm": {
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.bash.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\sdkman-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/sdkman.sh",
+     "src": "bash.d/sdkman.sh"
+    },
+    "name": "sdkman-dotfiles"
+   },
+   "script\\sdkman": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "curl -s https://get.sdkman.io | bash",
+     "location": "~/.sdkman",
+     "name": "sdkman",
+     "uninstall-cmd": "rm -rf \"$HOME/.sdkman\"",
+     "version-cmd": "source \"$HOME/.sdkman/bin/sdkman-init.sh\" && sdk version",
+     "version-re": "([0-9]+\\.[0-9]+\\.[0-9]+)"
+    },
+    "name": "sdkman"
+   },
+   "sdkman\\graalvm": {
+    "driver": "sdkman",
+    "fields": {
+     "name": "java",
+     "version": "21.0.2-graalce"
+    },
+    "name": "java"
+   }
+  },
   "gradle": {
    "brew\\gradle": {
     "driver": "brew",
@@ -34944,18 +36035,37 @@
    "brew\\jdk": {
     "driver": "brew",
     "fields": {
-     "name": "openjdk"
+     "name": "openjdk@21"
     },
-    "name": "openjdk"
+    "name": "openjdk@21"
    }
   },
   "groovy": {
    "brew\\jdk": {
     "driver": "brew",
     "fields": {
-     "name": "openjdk"
+     "name": "openjdk@21"
     },
-    "name": "openjdk"
+    "name": "openjdk@21"
+   },
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.bash.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\sdkman-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/sdkman.sh",
+     "src": "bash.d/sdkman.sh"
+    },
+    "name": "sdkman-dotfiles"
    },
    "script\\sdkman": {
     "driver": "script",
@@ -35199,9 +36309,27 @@
    "brew\\jdk": {
     "driver": "brew",
     "fields": {
-     "name": "openjdk"
+     "name": "openjdk@21"
     },
-    "name": "openjdk"
+    "name": "openjdk@21"
+   }
+  },
+  "jdk-17": {
+   "brew\\jdk-17": {
+    "driver": "brew",
+    "fields": {
+     "name": "openjdk@17"
+    },
+    "name": "openjdk@17"
+   }
+  },
+  "jdk-25": {
+   "brew\\jdk-25": {
+    "driver": "brew",
+    "fields": {
+     "name": "openjdk@25"
+    },
+    "name": "openjdk@25"
    }
   },
   "jetbrains-toolbox": {
@@ -35457,9 +36585,28 @@
    "brew\\jdk": {
     "driver": "brew",
     "fields": {
-     "name": "openjdk"
+     "name": "openjdk@21"
     },
-    "name": "openjdk"
+    "name": "openjdk@21"
+   },
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.bash.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\sdkman-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/sdkman.sh",
+     "src": "bash.d/sdkman.sh"
+    },
+    "name": "sdkman-dotfiles"
    },
    "script\\sdkman": {
     "driver": "script",
@@ -35673,9 +36820,9 @@
    "brew\\jdk": {
     "driver": "brew",
     "fields": {
-     "name": "openjdk"
+     "name": "openjdk@21"
     },
-    "name": "openjdk"
+    "name": "openjdk@21"
    },
    "brew\\maven": {
     "driver": "brew",
@@ -36543,9 +37690,28 @@
    "brew\\jdk": {
     "driver": "brew",
     "fields": {
-     "name": "openjdk"
+     "name": "openjdk@21"
     },
-    "name": "openjdk"
+    "name": "openjdk@21"
+   },
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.bash.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\sdkman-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/sdkman.sh",
+     "src": "bash.d/sdkman.sh"
+    },
+    "name": "sdkman-dotfiles"
    },
    "script\\sdkman": {
     "driver": "script",
@@ -36571,9 +37737,28 @@
    "brew\\jdk": {
     "driver": "brew",
     "fields": {
-     "name": "openjdk"
+     "name": "openjdk@21"
     },
-    "name": "openjdk"
+    "name": "openjdk@21"
+   },
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.bash.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\sdkman-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/sdkman.sh",
+     "src": "bash.d/sdkman.sh"
+    },
+    "name": "sdkman-dotfiles"
    },
    "script\\sdkman": {
     "driver": "script",
@@ -36606,6 +37791,25 @@
    }
   },
   "sdkman": {
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.bash.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\sdkman-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/sdkman.sh",
+     "src": "bash.d/sdkman.sh"
+    },
+    "name": "sdkman-dotfiles"
+   },
    "script\\sdkman": {
     "driver": "script",
     "fields": {
@@ -36617,6 +37821,27 @@
      "version-re": "([0-9]+\\.[0-9]+\\.[0-9]+)"
     },
     "name": "sdkman"
+   }
+  },
+  "sdkman-dotfiles": {
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.bash.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\sdkman-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/sdkman.sh",
+     "src": "bash.d/sdkman.sh"
+    },
+    "name": "sdkman-dotfiles"
    }
   },
   "sdl": {
@@ -38179,9 +39404,9 @@
    "apt\\jdk": {
     "driver": "apt",
     "fields": {
-     "name": "default-jdk"
+     "name": "openjdk-21-jdk"
     },
-    "name": "default-jdk"
+    "name": "openjdk-21-jdk"
    }
   },
   "cmake": {
@@ -39549,6 +40774,47 @@
     "name": "golang.org/x/tools/cmd/goimports"
    }
   },
+  "graalvm": {
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.bash.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\sdkman-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/sdkman.sh",
+     "src": "bash.d/sdkman.sh"
+    },
+    "name": "sdkman-dotfiles"
+   },
+   "script\\sdkman": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "curl -s https://get.sdkman.io | bash",
+     "location": "~/.sdkman",
+     "name": "sdkman",
+     "uninstall-cmd": "rm -rf \"$HOME/.sdkman\"",
+     "version-cmd": "source \"$HOME/.sdkman/bin/sdkman-init.sh\" && sdk version",
+     "version-re": "([0-9]+\\.[0-9]+\\.[0-9]+)"
+    },
+    "name": "sdkman"
+   },
+   "sdkman\\graalvm": {
+    "driver": "sdkman",
+    "fields": {
+     "name": "java",
+     "version": "21.0.2-graalce"
+    },
+    "name": "java"
+   }
+  },
   "gradle": {
    "apt\\gradle": {
     "driver": "apt",
@@ -39560,9 +40826,9 @@
    "apt\\jdk": {
     "driver": "apt",
     "fields": {
-     "name": "default-jdk"
+     "name": "openjdk-21-jdk"
     },
-    "name": "default-jdk"
+    "name": "openjdk-21-jdk"
    }
   },
   "grafana": {
@@ -39603,9 +40869,28 @@
    "apt\\jdk": {
     "driver": "apt",
     "fields": {
-     "name": "default-jdk"
+     "name": "openjdk-21-jdk"
     },
-    "name": "default-jdk"
+    "name": "openjdk-21-jdk"
+   },
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.bash.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\sdkman-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/sdkman.sh",
+     "src": "bash.d/sdkman.sh"
+    },
+    "name": "sdkman-dotfiles"
    },
    "script\\sdkman": {
     "driver": "script",
@@ -40040,9 +41325,27 @@
    "apt\\jdk": {
     "driver": "apt",
     "fields": {
-     "name": "default-jdk"
+     "name": "openjdk-21-jdk"
     },
-    "name": "default-jdk"
+    "name": "openjdk-21-jdk"
+   }
+  },
+  "jdk-17": {
+   "apt\\jdk-17": {
+    "driver": "apt",
+    "fields": {
+     "name": "openjdk-17-jdk"
+    },
+    "name": "openjdk-17-jdk"
+   }
+  },
+  "jdk-25": {
+   "apt\\jdk-25": {
+    "driver": "apt",
+    "fields": {
+     "name": "openjdk-25-jdk"
+    },
+    "name": "openjdk-25-jdk"
    }
   },
   "jellyfin": {
@@ -40272,9 +41575,9 @@
    "apt\\jdk": {
     "driver": "apt",
     "fields": {
-     "name": "default-jdk"
+     "name": "openjdk-21-jdk"
     },
-    "name": "default-jdk"
+    "name": "openjdk-21-jdk"
    },
    "apt\\unzip": {
     "driver": "apt",
@@ -40446,9 +41749,28 @@
    "apt\\jdk": {
     "driver": "apt",
     "fields": {
-     "name": "default-jdk"
+     "name": "openjdk-21-jdk"
     },
-    "name": "default-jdk"
+    "name": "openjdk-21-jdk"
+   },
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.bash.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\sdkman-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/sdkman.sh",
+     "src": "bash.d/sdkman.sh"
+    },
+    "name": "sdkman-dotfiles"
    },
    "script\\sdkman": {
     "driver": "script",
@@ -40746,9 +42068,9 @@
    "apt\\jdk": {
     "driver": "apt",
     "fields": {
-     "name": "default-jdk"
+     "name": "openjdk-21-jdk"
     },
-    "name": "default-jdk"
+    "name": "openjdk-21-jdk"
    },
    "apt\\maven": {
     "driver": "apt",
@@ -42048,9 +43370,28 @@
    "apt\\jdk": {
     "driver": "apt",
     "fields": {
-     "name": "default-jdk"
+     "name": "openjdk-21-jdk"
     },
-    "name": "default-jdk"
+    "name": "openjdk-21-jdk"
+   },
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.bash.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\sdkman-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/sdkman.sh",
+     "src": "bash.d/sdkman.sh"
+    },
+    "name": "sdkman-dotfiles"
    },
    "script\\sdkman": {
     "driver": "script",
@@ -42076,9 +43417,28 @@
    "apt\\jdk": {
     "driver": "apt",
     "fields": {
-     "name": "default-jdk"
+     "name": "openjdk-21-jdk"
     },
-    "name": "default-jdk"
+    "name": "openjdk-21-jdk"
+   },
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.bash.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\sdkman-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/sdkman.sh",
+     "src": "bash.d/sdkman.sh"
+    },
+    "name": "sdkman-dotfiles"
    },
    "script\\sdkman": {
     "driver": "script",
@@ -42118,6 +43478,25 @@
    }
   },
   "sdkman": {
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.bash.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\sdkman-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/sdkman.sh",
+     "src": "bash.d/sdkman.sh"
+    },
+    "name": "sdkman-dotfiles"
+   },
    "script\\sdkman": {
     "driver": "script",
     "fields": {
@@ -42129,6 +43508,27 @@
      "version-re": "([0-9]+\\.[0-9]+\\.[0-9]+)"
     },
     "name": "sdkman"
+   }
+  },
+  "sdkman-dotfiles": {
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.bash.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\sdkman-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/sdkman.sh",
+     "src": "bash.d/sdkman.sh"
+    },
+    "name": "sdkman-dotfiles"
    }
   },
   "sdl": {
@@ -44042,9 +45442,9 @@
    "dnf\\jdk": {
     "driver": "dnf",
     "fields": {
-     "name": "java-17-openjdk-devel"
+     "name": "java-21-openjdk-devel"
     },
-    "name": "java-17-openjdk-devel"
+    "name": "java-21-openjdk-devel"
    },
    "script\\clojure": {
     "driver": "script",
@@ -45246,6 +46646,47 @@
     "name": "golang.org/x/tools/cmd/goimports"
    }
   },
+  "graalvm": {
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.bash.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\sdkman-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/sdkman.sh",
+     "src": "bash.d/sdkman.sh"
+    },
+    "name": "sdkman-dotfiles"
+   },
+   "script\\sdkman": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "curl -s https://get.sdkman.io | bash",
+     "location": "~/.sdkman",
+     "name": "sdkman",
+     "uninstall-cmd": "rm -rf \"$HOME/.sdkman\"",
+     "version-cmd": "source \"$HOME/.sdkman/bin/sdkman-init.sh\" && sdk version",
+     "version-re": "([0-9]+\\.[0-9]+\\.[0-9]+)"
+    },
+    "name": "sdkman"
+   },
+   "sdkman\\graalvm": {
+    "driver": "sdkman",
+    "fields": {
+     "name": "java",
+     "version": "21.0.2-graalce"
+    },
+    "name": "java"
+   }
+  },
   "grafana": {
    "dnf\\grafana": {
     "driver": "dnf",
@@ -45284,9 +46725,28 @@
    "dnf\\jdk": {
     "driver": "dnf",
     "fields": {
-     "name": "java-17-openjdk-devel"
+     "name": "java-21-openjdk-devel"
     },
-    "name": "java-17-openjdk-devel"
+    "name": "java-21-openjdk-devel"
+   },
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.bash.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\sdkman-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/sdkman.sh",
+     "src": "bash.d/sdkman.sh"
+    },
+    "name": "sdkman-dotfiles"
    },
    "script\\sdkman": {
     "driver": "script",
@@ -45783,9 +47243,27 @@
    "dnf\\jdk": {
     "driver": "dnf",
     "fields": {
+     "name": "java-21-openjdk-devel"
+    },
+    "name": "java-21-openjdk-devel"
+   }
+  },
+  "jdk-17": {
+   "dnf\\jdk-17": {
+    "driver": "dnf",
+    "fields": {
      "name": "java-17-openjdk-devel"
     },
     "name": "java-17-openjdk-devel"
+   }
+  },
+  "jdk-25": {
+   "dnf\\jdk-25": {
+    "driver": "dnf",
+    "fields": {
+     "name": "java-25-openjdk-devel"
+    },
+    "name": "java-25-openjdk-devel"
    }
   },
   "jetbrains-toolbox": {
@@ -45979,9 +47457,9 @@
    "dnf\\jdk": {
     "driver": "dnf",
     "fields": {
-     "name": "java-17-openjdk-devel"
+     "name": "java-21-openjdk-devel"
     },
-    "name": "java-17-openjdk-devel"
+    "name": "java-21-openjdk-devel"
    },
    "dnf\\unzip": {
     "driver": "dnf",
@@ -46153,9 +47631,28 @@
    "dnf\\jdk": {
     "driver": "dnf",
     "fields": {
-     "name": "java-17-openjdk-devel"
+     "name": "java-21-openjdk-devel"
     },
-    "name": "java-17-openjdk-devel"
+    "name": "java-21-openjdk-devel"
+   },
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.bash.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\sdkman-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/sdkman.sh",
+     "src": "bash.d/sdkman.sh"
+    },
+    "name": "sdkman-dotfiles"
    },
    "script\\sdkman": {
     "driver": "script",
@@ -46410,9 +47907,9 @@
    "dnf\\jdk": {
     "driver": "dnf",
     "fields": {
-     "name": "java-17-openjdk-devel"
+     "name": "java-21-openjdk-devel"
     },
-    "name": "java-17-openjdk-devel"
+    "name": "java-21-openjdk-devel"
    },
    "dnf\\maven": {
     "driver": "dnf",
@@ -47720,9 +49217,28 @@
    "dnf\\jdk": {
     "driver": "dnf",
     "fields": {
-     "name": "java-17-openjdk-devel"
+     "name": "java-21-openjdk-devel"
     },
-    "name": "java-17-openjdk-devel"
+    "name": "java-21-openjdk-devel"
+   },
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.bash.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\sdkman-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/sdkman.sh",
+     "src": "bash.d/sdkman.sh"
+    },
+    "name": "sdkman-dotfiles"
    },
    "script\\sdkman": {
     "driver": "script",
@@ -47748,9 +49264,28 @@
    "dnf\\jdk": {
     "driver": "dnf",
     "fields": {
-     "name": "java-17-openjdk-devel"
+     "name": "java-21-openjdk-devel"
     },
-    "name": "java-17-openjdk-devel"
+    "name": "java-21-openjdk-devel"
+   },
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.bash.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\sdkman-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/sdkman.sh",
+     "src": "bash.d/sdkman.sh"
+    },
+    "name": "sdkman-dotfiles"
    },
    "script\\sdkman": {
     "driver": "script",
@@ -47790,6 +49325,25 @@
    }
   },
   "sdkman": {
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.bash.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\sdkman-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/sdkman.sh",
+     "src": "bash.d/sdkman.sh"
+    },
+    "name": "sdkman-dotfiles"
+   },
    "script\\sdkman": {
     "driver": "script",
     "fields": {
@@ -47801,6 +49355,27 @@
      "version-re": "([0-9]+\\.[0-9]+\\.[0-9]+)"
     },
     "name": "sdkman"
+   }
+  },
+  "sdkman-dotfiles": {
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.bash.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\sdkman-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/sdkman.sh",
+     "src": "bash.d/sdkman.sh"
+    },
+    "name": "sdkman-dotfiles"
    }
   },
   "sdl": {
@@ -49907,9 +51482,9 @@
    "apt\\jdk": {
     "driver": "apt",
     "fields": {
-     "name": "default-jdk"
+     "name": "openjdk-21-jdk"
     },
-    "name": "default-jdk"
+    "name": "openjdk-21-jdk"
    }
   },
   "cmake": {
@@ -51268,6 +52843,47 @@
     "name": "golang.org/x/tools/cmd/goimports"
    }
   },
+  "graalvm": {
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.bash.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\sdkman-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/sdkman.sh",
+     "src": "bash.d/sdkman.sh"
+    },
+    "name": "sdkman-dotfiles"
+   },
+   "script\\sdkman": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "curl -s https://get.sdkman.io | bash",
+     "location": "~/.sdkman",
+     "name": "sdkman",
+     "uninstall-cmd": "rm -rf \"$HOME/.sdkman\"",
+     "version-cmd": "source \"$HOME/.sdkman/bin/sdkman-init.sh\" && sdk version",
+     "version-re": "([0-9]+\\.[0-9]+\\.[0-9]+)"
+    },
+    "name": "sdkman"
+   },
+   "sdkman\\graalvm": {
+    "driver": "sdkman",
+    "fields": {
+     "name": "java",
+     "version": "21.0.2-graalce"
+    },
+    "name": "java"
+   }
+  },
   "gradle": {
    "apt\\gradle": {
     "driver": "apt",
@@ -51279,9 +52895,9 @@
    "apt\\jdk": {
     "driver": "apt",
     "fields": {
-     "name": "default-jdk"
+     "name": "openjdk-21-jdk"
     },
-    "name": "default-jdk"
+    "name": "openjdk-21-jdk"
    }
   },
   "grafana": {
@@ -51322,9 +52938,28 @@
    "apt\\jdk": {
     "driver": "apt",
     "fields": {
-     "name": "default-jdk"
+     "name": "openjdk-21-jdk"
     },
-    "name": "default-jdk"
+    "name": "openjdk-21-jdk"
+   },
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.bash.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\sdkman-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/sdkman.sh",
+     "src": "bash.d/sdkman.sh"
+    },
+    "name": "sdkman-dotfiles"
    },
    "script\\sdkman": {
     "driver": "script",
@@ -51759,9 +53394,27 @@
    "apt\\jdk": {
     "driver": "apt",
     "fields": {
-     "name": "default-jdk"
+     "name": "openjdk-21-jdk"
     },
-    "name": "default-jdk"
+    "name": "openjdk-21-jdk"
+   }
+  },
+  "jdk-17": {
+   "apt\\jdk-17": {
+    "driver": "apt",
+    "fields": {
+     "name": "openjdk-17-jdk"
+    },
+    "name": "openjdk-17-jdk"
+   }
+  },
+  "jdk-25": {
+   "apt\\jdk-25": {
+    "driver": "apt",
+    "fields": {
+     "name": "openjdk-25-jdk"
+    },
+    "name": "openjdk-25-jdk"
    }
   },
   "jellyfin": {
@@ -51991,9 +53644,9 @@
    "apt\\jdk": {
     "driver": "apt",
     "fields": {
-     "name": "default-jdk"
+     "name": "openjdk-21-jdk"
     },
-    "name": "default-jdk"
+    "name": "openjdk-21-jdk"
    },
    "apt\\unzip": {
     "driver": "apt",
@@ -52165,9 +53818,28 @@
    "apt\\jdk": {
     "driver": "apt",
     "fields": {
-     "name": "default-jdk"
+     "name": "openjdk-21-jdk"
     },
-    "name": "default-jdk"
+    "name": "openjdk-21-jdk"
+   },
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.bash.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\sdkman-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/sdkman.sh",
+     "src": "bash.d/sdkman.sh"
+    },
+    "name": "sdkman-dotfiles"
    },
    "script\\sdkman": {
     "driver": "script",
@@ -52465,9 +54137,9 @@
    "apt\\jdk": {
     "driver": "apt",
     "fields": {
-     "name": "default-jdk"
+     "name": "openjdk-21-jdk"
     },
-    "name": "default-jdk"
+    "name": "openjdk-21-jdk"
    },
    "apt\\maven": {
     "driver": "apt",
@@ -53767,9 +55439,28 @@
    "apt\\jdk": {
     "driver": "apt",
     "fields": {
-     "name": "default-jdk"
+     "name": "openjdk-21-jdk"
     },
-    "name": "default-jdk"
+    "name": "openjdk-21-jdk"
+   },
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.bash.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\sdkman-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/sdkman.sh",
+     "src": "bash.d/sdkman.sh"
+    },
+    "name": "sdkman-dotfiles"
    },
    "script\\sdkman": {
     "driver": "script",
@@ -53795,9 +55486,28 @@
    "apt\\jdk": {
     "driver": "apt",
     "fields": {
-     "name": "default-jdk"
+     "name": "openjdk-21-jdk"
     },
-    "name": "default-jdk"
+    "name": "openjdk-21-jdk"
+   },
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.bash.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\sdkman-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/sdkman.sh",
+     "src": "bash.d/sdkman.sh"
+    },
+    "name": "sdkman-dotfiles"
    },
    "script\\sdkman": {
     "driver": "script",
@@ -53837,6 +55547,25 @@
    }
   },
   "sdkman": {
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.bash.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\sdkman-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/sdkman.sh",
+     "src": "bash.d/sdkman.sh"
+    },
+    "name": "sdkman-dotfiles"
+   },
    "script\\sdkman": {
     "driver": "script",
     "fields": {
@@ -53848,6 +55577,27 @@
      "version-re": "([0-9]+\\.[0-9]+\\.[0-9]+)"
     },
     "name": "sdkman"
+   }
+  },
+  "sdkman-dotfiles": {
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.bash.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\sdkman-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/sdkman.sh",
+     "src": "bash.d/sdkman.sh"
+    },
+    "name": "sdkman-dotfiles"
    }
   },
   "sdl": {
@@ -55856,9 +57606,9 @@
    "apt\\jdk": {
     "driver": "apt",
     "fields": {
-     "name": "default-jdk"
+     "name": "openjdk-21-jdk"
     },
-    "name": "default-jdk"
+    "name": "openjdk-21-jdk"
    }
   },
   "cmake": {
@@ -57207,6 +58957,47 @@
     "name": "golang.org/x/tools/cmd/goimports"
    }
   },
+  "graalvm": {
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.bash.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\sdkman-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/sdkman.sh",
+     "src": "bash.d/sdkman.sh"
+    },
+    "name": "sdkman-dotfiles"
+   },
+   "script\\sdkman": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "curl -s https://get.sdkman.io | bash",
+     "location": "~/.sdkman",
+     "name": "sdkman",
+     "uninstall-cmd": "rm -rf \"$HOME/.sdkman\"",
+     "version-cmd": "source \"$HOME/.sdkman/bin/sdkman-init.sh\" && sdk version",
+     "version-re": "([0-9]+\\.[0-9]+\\.[0-9]+)"
+    },
+    "name": "sdkman"
+   },
+   "sdkman\\graalvm": {
+    "driver": "sdkman",
+    "fields": {
+     "name": "java",
+     "version": "21.0.2-graalce"
+    },
+    "name": "java"
+   }
+  },
   "gradle": {
    "apt\\gradle": {
     "driver": "apt",
@@ -57218,9 +59009,9 @@
    "apt\\jdk": {
     "driver": "apt",
     "fields": {
-     "name": "default-jdk"
+     "name": "openjdk-21-jdk"
     },
-    "name": "default-jdk"
+    "name": "openjdk-21-jdk"
    }
   },
   "grafana": {
@@ -57261,9 +59052,28 @@
    "apt\\jdk": {
     "driver": "apt",
     "fields": {
-     "name": "default-jdk"
+     "name": "openjdk-21-jdk"
     },
-    "name": "default-jdk"
+    "name": "openjdk-21-jdk"
+   },
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.bash.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\sdkman-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/sdkman.sh",
+     "src": "bash.d/sdkman.sh"
+    },
+    "name": "sdkman-dotfiles"
    },
    "script\\sdkman": {
     "driver": "script",
@@ -57688,9 +59498,27 @@
    "apt\\jdk": {
     "driver": "apt",
     "fields": {
-     "name": "default-jdk"
+     "name": "openjdk-21-jdk"
     },
-    "name": "default-jdk"
+    "name": "openjdk-21-jdk"
+   }
+  },
+  "jdk-17": {
+   "apt\\jdk-17": {
+    "driver": "apt",
+    "fields": {
+     "name": "openjdk-17-jdk"
+    },
+    "name": "openjdk-17-jdk"
+   }
+  },
+  "jdk-25": {
+   "apt\\jdk-25": {
+    "driver": "apt",
+    "fields": {
+     "name": "openjdk-25-jdk"
+    },
+    "name": "openjdk-25-jdk"
    }
   },
   "jellyfin": {
@@ -57910,9 +59738,9 @@
    "apt\\jdk": {
     "driver": "apt",
     "fields": {
-     "name": "default-jdk"
+     "name": "openjdk-21-jdk"
     },
-    "name": "default-jdk"
+    "name": "openjdk-21-jdk"
    },
    "apt\\unzip": {
     "driver": "apt",
@@ -58084,9 +59912,28 @@
    "apt\\jdk": {
     "driver": "apt",
     "fields": {
-     "name": "default-jdk"
+     "name": "openjdk-21-jdk"
     },
-    "name": "default-jdk"
+    "name": "openjdk-21-jdk"
+   },
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.bash.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\sdkman-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/sdkman.sh",
+     "src": "bash.d/sdkman.sh"
+    },
+    "name": "sdkman-dotfiles"
    },
    "script\\sdkman": {
     "driver": "script",
@@ -58374,9 +60221,9 @@
    "apt\\jdk": {
     "driver": "apt",
     "fields": {
-     "name": "default-jdk"
+     "name": "openjdk-21-jdk"
     },
-    "name": "default-jdk"
+    "name": "openjdk-21-jdk"
    },
    "apt\\maven": {
     "driver": "apt",
@@ -59626,9 +61473,28 @@
    "apt\\jdk": {
     "driver": "apt",
     "fields": {
-     "name": "default-jdk"
+     "name": "openjdk-21-jdk"
     },
-    "name": "default-jdk"
+    "name": "openjdk-21-jdk"
+   },
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.bash.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\sdkman-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/sdkman.sh",
+     "src": "bash.d/sdkman.sh"
+    },
+    "name": "sdkman-dotfiles"
    },
    "script\\sdkman": {
     "driver": "script",
@@ -59654,9 +61520,28 @@
    "apt\\jdk": {
     "driver": "apt",
     "fields": {
-     "name": "default-jdk"
+     "name": "openjdk-21-jdk"
     },
-    "name": "default-jdk"
+    "name": "openjdk-21-jdk"
+   },
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.bash.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\sdkman-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/sdkman.sh",
+     "src": "bash.d/sdkman.sh"
+    },
+    "name": "sdkman-dotfiles"
    },
    "script\\sdkman": {
     "driver": "script",
@@ -59696,6 +61581,25 @@
    }
   },
   "sdkman": {
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.bash.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\sdkman-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/sdkman.sh",
+     "src": "bash.d/sdkman.sh"
+    },
+    "name": "sdkman-dotfiles"
+   },
    "script\\sdkman": {
     "driver": "script",
     "fields": {
@@ -59707,6 +61611,27 @@
      "version-re": "([0-9]+\\.[0-9]+\\.[0-9]+)"
     },
     "name": "sdkman"
+   }
+  },
+  "sdkman-dotfiles": {
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.bash.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\sdkman-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/sdkman.sh",
+     "src": "bash.d/sdkman.sh"
+    },
+    "name": "sdkman-dotfiles"
    }
   },
   "sdl": {
