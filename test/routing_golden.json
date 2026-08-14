@@ -695,6 +695,15 @@
     "name": "cppcheck"
    }
   },
+  "crystal": {
+   "pacman\\crystal": {
+    "driver": "pacman",
+    "fields": {
+     "name": "crystal"
+    },
+    "name": "crystal"
+   }
+  },
   "cuda-toolkit-11": {
    "pacman\\cuda-toolkit-11": {
     "driver": "pacman",
@@ -771,6 +780,15 @@
     "name": "cython"
    }
   },
+  "d": {
+   "pacman\\d": {
+    "driver": "pacman",
+    "fields": {
+     "name": "ldc"
+    },
+    "name": "ldc"
+   }
+  },
   "darktable": {
    "flatpak\\darktable": {
     "driver": "flatpak",
@@ -786,6 +804,15 @@
      "name": "flatpak"
     },
     "name": "flatpak"
+   }
+  },
+  "dart": {
+   "pacman\\dart": {
+    "driver": "pacman",
+    "fields": {
+     "name": "dart"
+    },
+    "name": "dart"
    }
   },
   "dbeaver": {
@@ -1083,6 +1110,23 @@
     "name": "fastfetch"
    }
   },
+  "fennel": {
+   "pacman\\fennel": {
+    "driver": "pacman",
+    "fields": {
+     "name": "fennel"
+    },
+    "name": "fennel"
+   },
+   "pacman\\lua": {
+    "driver": "pacman",
+    "fields": {
+     "name": "lua",
+     "repo-component": "universe"
+    },
+    "name": "lua"
+   }
+  },
   "ffmpeg": {
    "pacman\\ffmpeg": {
     "driver": "pacman",
@@ -1256,6 +1300,15 @@
     "name": "gdb-dotfiles"
    }
   },
+  "gfortran": {
+   "pacman\\gfortran": {
+    "driver": "pacman",
+    "fields": {
+     "name": "gcc-fortran"
+    },
+    "name": "gcc-fortran"
+   }
+  },
   "ghostty": {
    "pacman\\ghostty": {
     "driver": "pacman",
@@ -1291,6 +1344,23 @@
     "name": "git"
    }
   },
+  "gleam": {
+   "pacman\\erlang": {
+    "driver": "pacman",
+    "fields": {
+     "name": "erlang",
+     "repo-component": "universe"
+    },
+    "name": "erlang"
+   },
+   "pacman\\gleam": {
+    "driver": "pacman",
+    "fields": {
+     "name": "gleam"
+    },
+    "name": "gleam"
+   }
+  },
   "glfw": {
    "pacman\\glfw": {
     "driver": "pacman",
@@ -1301,6 +1371,15 @@
     "name": "glfw"
    }
   },
+  "gnat": {
+   "pacman\\gnat": {
+    "driver": "pacman",
+    "fields": {
+     "name": "gcc-ada"
+    },
+    "name": "gcc-ada"
+   }
+  },
   "gnome": {
    "pacman\\gnome": {
     "driver": "pacman",
@@ -1308,6 +1387,29 @@
      "name": "gnome-shell"
     },
     "name": "gnome-shell"
+   }
+  },
+  "gnucobol": {
+   "aur\\gnucobol": {
+    "driver": "aur",
+    "fields": {
+     "name": "gnucobol"
+    },
+    "name": "gnucobol"
+   },
+   "pacman\\base-devel": {
+    "driver": "pacman",
+    "fields": {
+     "name": "base-devel"
+    },
+    "name": "base-devel"
+   },
+   "pacman\\git": {
+    "driver": "pacman",
+    "fields": {
+     "name": "git"
+    },
+    "name": "git"
    }
   },
   "gnuplot": {
@@ -3546,6 +3648,29 @@
     "name": "r"
    }
   },
+  "raku": {
+   "aur\\raku": {
+    "driver": "aur",
+    "fields": {
+     "name": "rakudo-star"
+    },
+    "name": "rakudo-star"
+   },
+   "pacman\\base-devel": {
+    "driver": "pacman",
+    "fields": {
+     "name": "base-devel"
+    },
+    "name": "base-devel"
+   },
+   "pacman\\git": {
+    "driver": "pacman",
+    "fields": {
+     "name": "git"
+    },
+    "name": "git"
+   }
+  },
   "redis": {
    "pacman\\redis": {
     "driver": "pacman",
@@ -4013,6 +4138,29 @@
     "name": "sway"
    }
   },
+  "swift": {
+   "aur\\swift": {
+    "driver": "aur",
+    "fields": {
+     "name": "swift-bin"
+    },
+    "name": "swift-bin"
+   },
+   "pacman\\base-devel": {
+    "driver": "pacman",
+    "fields": {
+     "name": "base-devel"
+    },
+    "name": "base-devel"
+   },
+   "pacman\\git": {
+    "driver": "pacman",
+    "fields": {
+     "name": "git"
+    },
+    "name": "git"
+   }
+  },
   "syncthing": {
    "pacman\\syncthing": {
     "driver": "pacman",
@@ -4253,6 +4401,36 @@
      "name": "uv"
     },
     "name": "uv"
+   }
+  },
+  "v": {
+   "aur\\v": {
+    "driver": "aur",
+    "fields": {
+     "name": "vlang-bin"
+    },
+    "name": "vlang-bin"
+   },
+   "pacman\\base-devel": {
+    "driver": "pacman",
+    "fields": {
+     "name": "base-devel"
+    },
+    "name": "base-devel"
+   },
+   "pacman\\c-toolchain": {
+    "driver": "pacman",
+    "fields": {
+     "name": "gcc"
+    },
+    "name": "gcc"
+   },
+   "pacman\\git": {
+    "driver": "pacman",
+    "fields": {
+     "name": "git"
+    },
+    "name": "git"
    }
   },
   "valgrind": {
@@ -5915,6 +6093,20 @@
     "name": "cppcheck"
    }
   },
+  "crystal": {
+   "script\\crystal": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "curl -fsSL https://crystal-lang.org/install.sh | sudo bash",
+     "location": "crystal (dist.crystal-lang.org repo)",
+     "name": "crystal",
+     "uninstall-cmd": "sudo apt-get remove -y crystal 2>/dev/null || sudo dnf remove -y crystal 2>/dev/null",
+     "version-cmd": "crystal --version 2>/dev/null",
+     "version-re": "([0-9][0-9.]*)"
+    },
+    "name": "crystal"
+   }
+  },
   "cuda-repo": {
    "script\\cuda-repo": {
     "driver": "script",
@@ -6085,6 +6277,15 @@
     "name": "cython3"
    }
   },
+  "d": {
+   "apt\\d": {
+    "driver": "apt",
+    "fields": {
+     "name": "gdc"
+    },
+    "name": "gdc"
+   }
+  },
   "darktable": {
    "apt\\flatpak": {
     "driver": "apt",
@@ -6100,6 +6301,19 @@
      "name": "org.darktable.Darktable"
     },
     "name": "org.darktable.Darktable"
+   }
+  },
+  "dart": {
+   "apt\\dart": {
+    "driver": "apt",
+    "fields": {
+     "name": "dart",
+     "pubkey-path": "/usr/share/keyrings/dart.gpg",
+     "pubkey-url": "https://dl-ssl.google.com/linux/linux_signing_key.pub",
+     "source-line": "deb [signed-by=/usr/share/keyrings/dart.gpg arch=amd64] https://storage.googleapis.com/download.dartlang.org/linux/debian stable main",
+     "source-path": "/etc/apt/sources.list.d/dart.list"
+    },
+    "name": "dart"
    }
   },
   "dbeaver": {
@@ -6406,6 +6620,31 @@
      }
     },
     "name": "fastfetch"
+   }
+  },
+  "fennel": {
+   "apt\\lua": {
+    "driver": "apt",
+    "fields": {
+     "name": "lua5.4",
+     "repo-component": "universe"
+    },
+    "name": "lua5.4"
+   },
+   "apt\\luarocks": {
+    "driver": "apt",
+    "fields": {
+     "name": "luarocks",
+     "repo-component": "universe"
+    },
+    "name": "luarocks"
+   },
+   "luarocks\\fennel": {
+    "driver": "luarocks",
+    "fields": {
+     "name": "fennel"
+    },
+    "name": "fennel"
    }
   },
   "ffmpeg": {
@@ -6837,6 +7076,15 @@
     "name": "gdb-dotfiles"
    }
   },
+  "gfortran": {
+   "apt\\gfortran": {
+    "driver": "apt",
+    "fields": {
+     "name": "gfortran"
+    },
+    "name": "gfortran"
+   }
+  },
   "ghostty": {
    "appImage\\ghostty": {
     "driver": "appImage",
@@ -6887,6 +7135,36 @@
     "name": "git"
    }
   },
+  "gleam": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "apt\\erlang": {
+    "driver": "apt",
+    "fields": {
+     "name": "erlang",
+     "repo-component": "universe"
+    },
+    "name": "erlang"
+   },
+   "tarball\\gleam": {
+    "driver": "tarball",
+    "fields": {
+     "installDir": "$CONFIGSYS_APP_DIR/gleam",
+     "name": "gleam",
+     "version": {
+      "asset": "gleam-*-x86_64-unknown-linux-musl.tar.gz",
+      "github": "gleam-lang/gleam",
+      "strip-v": "true"
+     }
+    },
+    "name": "gleam"
+   }
+  },
   "glfw": {
    "apt\\glfw": {
     "driver": "apt",
@@ -6897,6 +7175,15 @@
     "name": "libglfw3-dev"
    }
   },
+  "gnat": {
+   "apt\\gnat": {
+    "driver": "apt",
+    "fields": {
+     "name": "gnat"
+    },
+    "name": "gnat"
+   }
+  },
   "gnome": {
    "apt\\gnome": {
     "driver": "apt",
@@ -6904,6 +7191,15 @@
      "name": "gnome-shell"
     },
     "name": "gnome-shell"
+   }
+  },
+  "gnucobol": {
+   "apt\\gnucobol": {
+    "driver": "apt",
+    "fields": {
+     "name": "gnucobol"
+    },
+    "name": "gnucobol"
    }
   },
   "gnuplot": {
@@ -9243,6 +9539,16 @@
     "name": "r-base"
    }
   },
+  "raku": {
+   "apt\\raku": {
+    "driver": "apt",
+    "fields": {
+     "name": "rakudo",
+     "repo-component": "universe"
+    },
+    "name": "rakudo"
+   }
+  },
   "redis": {
    "apt\\redis": {
     "driver": "apt",
@@ -9949,6 +10255,41 @@
      "name": "uv"
     },
     "name": "uv"
+   }
+  },
+  "v": {
+   "apt\\c-toolchain": {
+    "driver": "apt",
+    "fields": {
+     "name": "gcc"
+    },
+    "name": "gcc"
+   },
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "apt\\unzip": {
+    "driver": "apt",
+    "fields": {
+     "name": "unzip"
+    },
+    "name": "unzip"
+   },
+   "tarball\\v": {
+    "driver": "tarball",
+    "fields": {
+     "installDir": "$CONFIGSYS_APP_DIR/v",
+     "name": "v",
+     "url": "https://github.com/vlang/v/releases/latest/download/v_linux.zip",
+     "version": {
+      "static": "latest"
+     }
+    },
+    "name": "v"
    }
   },
   "valgrind": {
@@ -11533,6 +11874,20 @@
     "name": "cppcheck"
    }
   },
+  "crystal": {
+   "script\\crystal": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "curl -fsSL https://crystal-lang.org/install.sh | sudo bash",
+     "location": "crystal (dist.crystal-lang.org repo)",
+     "name": "crystal",
+     "uninstall-cmd": "sudo apt-get remove -y crystal 2>/dev/null || sudo dnf remove -y crystal 2>/dev/null",
+     "version-cmd": "crystal --version 2>/dev/null",
+     "version-re": "([0-9][0-9.]*)"
+    },
+    "name": "crystal"
+   }
+  },
   "cuda-repo": {
    "script\\cuda-repo": {
     "driver": "script",
@@ -11703,6 +12058,15 @@
     "name": "cython3"
    }
   },
+  "d": {
+   "apt\\d": {
+    "driver": "apt",
+    "fields": {
+     "name": "gdc"
+    },
+    "name": "gdc"
+   }
+  },
   "darktable": {
    "apt\\flatpak": {
     "driver": "apt",
@@ -11718,6 +12082,19 @@
      "name": "org.darktable.Darktable"
     },
     "name": "org.darktable.Darktable"
+   }
+  },
+  "dart": {
+   "apt\\dart": {
+    "driver": "apt",
+    "fields": {
+     "name": "dart",
+     "pubkey-path": "/usr/share/keyrings/dart.gpg",
+     "pubkey-url": "https://dl-ssl.google.com/linux/linux_signing_key.pub",
+     "source-line": "deb [signed-by=/usr/share/keyrings/dart.gpg arch=amd64] https://storage.googleapis.com/download.dartlang.org/linux/debian stable main",
+     "source-path": "/etc/apt/sources.list.d/dart.list"
+    },
+    "name": "dart"
    }
   },
   "dbeaver": {
@@ -12024,6 +12401,31 @@
      }
     },
     "name": "fastfetch"
+   }
+  },
+  "fennel": {
+   "apt\\lua": {
+    "driver": "apt",
+    "fields": {
+     "name": "lua5.4",
+     "repo-component": "universe"
+    },
+    "name": "lua5.4"
+   },
+   "apt\\luarocks": {
+    "driver": "apt",
+    "fields": {
+     "name": "luarocks",
+     "repo-component": "universe"
+    },
+    "name": "luarocks"
+   },
+   "luarocks\\fennel": {
+    "driver": "luarocks",
+    "fields": {
+     "name": "fennel"
+    },
+    "name": "fennel"
    }
   },
   "ffmpeg": {
@@ -12455,6 +12857,15 @@
     "name": "gdb-dotfiles"
    }
   },
+  "gfortran": {
+   "apt\\gfortran": {
+    "driver": "apt",
+    "fields": {
+     "name": "gfortran"
+    },
+    "name": "gfortran"
+   }
+  },
   "ghostty": {
    "appImage\\ghostty": {
     "driver": "appImage",
@@ -12505,6 +12916,36 @@
     "name": "git"
    }
   },
+  "gleam": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "apt\\erlang": {
+    "driver": "apt",
+    "fields": {
+     "name": "erlang",
+     "repo-component": "universe"
+    },
+    "name": "erlang"
+   },
+   "tarball\\gleam": {
+    "driver": "tarball",
+    "fields": {
+     "installDir": "$CONFIGSYS_APP_DIR/gleam",
+     "name": "gleam",
+     "version": {
+      "asset": "gleam-*-x86_64-unknown-linux-musl.tar.gz",
+      "github": "gleam-lang/gleam",
+      "strip-v": "true"
+     }
+    },
+    "name": "gleam"
+   }
+  },
   "glfw": {
    "apt\\glfw": {
     "driver": "apt",
@@ -12515,6 +12956,15 @@
     "name": "libglfw3-dev"
    }
   },
+  "gnat": {
+   "apt\\gnat": {
+    "driver": "apt",
+    "fields": {
+     "name": "gnat"
+    },
+    "name": "gnat"
+   }
+  },
   "gnome": {
    "apt\\gnome": {
     "driver": "apt",
@@ -12522,6 +12972,15 @@
      "name": "gnome-shell"
     },
     "name": "gnome-shell"
+   }
+  },
+  "gnucobol": {
+   "apt\\gnucobol": {
+    "driver": "apt",
+    "fields": {
+     "name": "gnucobol"
+    },
+    "name": "gnucobol"
    }
   },
   "gnuplot": {
@@ -14791,6 +15250,16 @@
     "name": "r-base"
    }
   },
+  "raku": {
+   "apt\\raku": {
+    "driver": "apt",
+    "fields": {
+     "name": "rakudo",
+     "repo-component": "universe"
+    },
+    "name": "rakudo"
+   }
+  },
   "redis": {
    "apt\\redis": {
     "driver": "apt",
@@ -15477,6 +15946,41 @@
      "name": "uv"
     },
     "name": "uv"
+   }
+  },
+  "v": {
+   "apt\\c-toolchain": {
+    "driver": "apt",
+    "fields": {
+     "name": "gcc"
+    },
+    "name": "gcc"
+   },
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "apt\\unzip": {
+    "driver": "apt",
+    "fields": {
+     "name": "unzip"
+    },
+    "name": "unzip"
+   },
+   "tarball\\v": {
+    "driver": "tarball",
+    "fields": {
+     "installDir": "$CONFIGSYS_APP_DIR/v",
+     "name": "v",
+     "url": "https://github.com/vlang/v/releases/latest/download/v_linux.zip",
+     "version": {
+      "static": "latest"
+     }
+    },
+    "name": "v"
    }
   },
   "valgrind": {
@@ -17059,6 +17563,20 @@
     "name": "cppcheck"
    }
   },
+  "crystal": {
+   "script\\crystal": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "curl -fsSL https://crystal-lang.org/install.sh | sudo bash",
+     "location": "crystal (dist.crystal-lang.org repo)",
+     "name": "crystal",
+     "uninstall-cmd": "sudo apt-get remove -y crystal 2>/dev/null || sudo dnf remove -y crystal 2>/dev/null",
+     "version-cmd": "crystal --version 2>/dev/null",
+     "version-re": "([0-9][0-9.]*)"
+    },
+    "name": "crystal"
+   }
+  },
   "cuda-repo": {
    "script\\cuda-repo": {
     "driver": "script",
@@ -17229,6 +17747,15 @@
     "name": "cython3"
    }
   },
+  "d": {
+   "apt\\d": {
+    "driver": "apt",
+    "fields": {
+     "name": "gdc"
+    },
+    "name": "gdc"
+   }
+  },
   "darktable": {
    "apt\\flatpak": {
     "driver": "apt",
@@ -17244,6 +17771,19 @@
      "name": "org.darktable.Darktable"
     },
     "name": "org.darktable.Darktable"
+   }
+  },
+  "dart": {
+   "apt\\dart": {
+    "driver": "apt",
+    "fields": {
+     "name": "dart",
+     "pubkey-path": "/usr/share/keyrings/dart.gpg",
+     "pubkey-url": "https://dl-ssl.google.com/linux/linux_signing_key.pub",
+     "source-line": "deb [signed-by=/usr/share/keyrings/dart.gpg arch=amd64] https://storage.googleapis.com/download.dartlang.org/linux/debian stable main",
+     "source-path": "/etc/apt/sources.list.d/dart.list"
+    },
+    "name": "dart"
    }
   },
   "dbeaver": {
@@ -17545,6 +18085,31 @@
      }
     },
     "name": "fastfetch"
+   }
+  },
+  "fennel": {
+   "apt\\lua": {
+    "driver": "apt",
+    "fields": {
+     "name": "lua5.4",
+     "repo-component": "universe"
+    },
+    "name": "lua5.4"
+   },
+   "apt\\luarocks": {
+    "driver": "apt",
+    "fields": {
+     "name": "luarocks",
+     "repo-component": "universe"
+    },
+    "name": "luarocks"
+   },
+   "luarocks\\fennel": {
+    "driver": "luarocks",
+    "fields": {
+     "name": "fennel"
+    },
+    "name": "fennel"
    }
   },
   "ffmpeg": {
@@ -17976,6 +18541,15 @@
     "name": "gdb-dotfiles"
    }
   },
+  "gfortran": {
+   "apt\\gfortran": {
+    "driver": "apt",
+    "fields": {
+     "name": "gfortran"
+    },
+    "name": "gfortran"
+   }
+  },
   "ghostty": {
    "appImage\\ghostty": {
     "driver": "appImage",
@@ -18026,6 +18600,36 @@
     "name": "git"
    }
   },
+  "gleam": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "apt\\erlang": {
+    "driver": "apt",
+    "fields": {
+     "name": "erlang",
+     "repo-component": "universe"
+    },
+    "name": "erlang"
+   },
+   "tarball\\gleam": {
+    "driver": "tarball",
+    "fields": {
+     "installDir": "$CONFIGSYS_APP_DIR/gleam",
+     "name": "gleam",
+     "version": {
+      "asset": "gleam-*-x86_64-unknown-linux-musl.tar.gz",
+      "github": "gleam-lang/gleam",
+      "strip-v": "true"
+     }
+    },
+    "name": "gleam"
+   }
+  },
   "glfw": {
    "apt\\glfw": {
     "driver": "apt",
@@ -18036,6 +18640,15 @@
     "name": "libglfw3-dev"
    }
   },
+  "gnat": {
+   "apt\\gnat": {
+    "driver": "apt",
+    "fields": {
+     "name": "gnat"
+    },
+    "name": "gnat"
+   }
+  },
   "gnome": {
    "apt\\gnome": {
     "driver": "apt",
@@ -18043,6 +18656,15 @@
      "name": "gnome-shell"
     },
     "name": "gnome-shell"
+   }
+  },
+  "gnucobol": {
+   "apt\\gnucobol": {
+    "driver": "apt",
+    "fields": {
+     "name": "gnucobol"
+    },
+    "name": "gnucobol"
    }
   },
   "gnuplot": {
@@ -20318,6 +20940,16 @@
     "name": "r-base"
    }
   },
+  "raku": {
+   "apt\\raku": {
+    "driver": "apt",
+    "fields": {
+     "name": "rakudo",
+     "repo-component": "universe"
+    },
+    "name": "rakudo"
+   }
+  },
   "redis": {
    "apt\\redis": {
     "driver": "apt",
@@ -21004,6 +21636,41 @@
      "name": "uv"
     },
     "name": "uv"
+   }
+  },
+  "v": {
+   "apt\\c-toolchain": {
+    "driver": "apt",
+    "fields": {
+     "name": "gcc"
+    },
+    "name": "gcc"
+   },
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "apt\\unzip": {
+    "driver": "apt",
+    "fields": {
+     "name": "unzip"
+    },
+    "name": "unzip"
+   },
+   "tarball\\v": {
+    "driver": "tarball",
+    "fields": {
+     "installDir": "$CONFIGSYS_APP_DIR/v",
+     "name": "v",
+     "url": "https://github.com/vlang/v/releases/latest/download/v_linux.zip",
+     "version": {
+      "static": "latest"
+     }
+    },
+    "name": "v"
    }
   },
   "valgrind": {
@@ -22473,6 +23140,20 @@
     "name": "cppcheck"
    }
   },
+  "crystal": {
+   "script\\crystal": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "curl -fsSL https://crystal-lang.org/install.sh | sudo bash",
+     "location": "crystal (dist.crystal-lang.org repo)",
+     "name": "crystal",
+     "uninstall-cmd": "sudo apt-get remove -y crystal 2>/dev/null || sudo dnf remove -y crystal 2>/dev/null",
+     "version-cmd": "crystal --version 2>/dev/null",
+     "version-re": "([0-9][0-9.]*)"
+    },
+    "name": "crystal"
+   }
+  },
   "cuda-repo": {
    "script\\cuda-repo": {
     "driver": "script",
@@ -22637,6 +23318,15 @@
      "name": "python3-Cython"
     },
     "name": "python3-Cython"
+   }
+  },
+  "d": {
+   "dnf\\d": {
+    "driver": "dnf",
+    "fields": {
+     "name": "ldc"
+    },
+    "name": "ldc"
    }
   },
   "darktable": {
@@ -22950,6 +23640,23 @@
     "name": "fastfetch"
    }
   },
+  "fennel": {
+   "dnf\\fennel": {
+    "driver": "dnf",
+    "fields": {
+     "name": "fennel"
+    },
+    "name": "fennel"
+   },
+   "dnf\\lua": {
+    "driver": "dnf",
+    "fields": {
+     "name": "lua",
+     "repo-component": "universe"
+    },
+    "name": "lua"
+   }
+  },
   "ffmpeg": {
    "dnf\\ffmpeg": {
     "driver": "dnf",
@@ -23124,6 +23831,15 @@
     "name": "gdb-dotfiles"
    }
   },
+  "gfortran": {
+   "dnf\\gfortran": {
+    "driver": "dnf",
+    "fields": {
+     "name": "gcc-gfortran"
+    },
+    "name": "gcc-gfortran"
+   }
+  },
   "ghostty": {
    "appImage\\ghostty": {
     "driver": "appImage",
@@ -23174,6 +23890,36 @@
     "name": "git"
    }
   },
+  "gleam": {
+   "dnf\\curl": {
+    "driver": "dnf",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "dnf\\erlang": {
+    "driver": "dnf",
+    "fields": {
+     "name": "erlang",
+     "repo-component": "universe"
+    },
+    "name": "erlang"
+   },
+   "tarball\\gleam": {
+    "driver": "tarball",
+    "fields": {
+     "installDir": "$CONFIGSYS_APP_DIR/gleam",
+     "name": "gleam",
+     "version": {
+      "asset": "gleam-*-x86_64-unknown-linux-musl.tar.gz",
+      "github": "gleam-lang/gleam",
+      "strip-v": "true"
+     }
+    },
+    "name": "gleam"
+   }
+  },
   "glfw": {
    "dnf\\glfw": {
     "driver": "dnf",
@@ -23184,6 +23930,15 @@
     "name": "glfw-devel"
    }
   },
+  "gnat": {
+   "dnf\\gnat": {
+    "driver": "dnf",
+    "fields": {
+     "name": "gcc-gnat"
+    },
+    "name": "gcc-gnat"
+   }
+  },
   "gnome": {
    "dnf\\gnome": {
     "driver": "dnf",
@@ -23191,6 +23946,15 @@
      "name": "gnome-shell"
     },
     "name": "gnome-shell"
+   }
+  },
+  "gnucobol": {
+   "dnf\\gnucobol": {
+    "driver": "dnf",
+    "fields": {
+     "name": "gnucobol"
+    },
+    "name": "gnucobol"
    }
   },
   "gnuplot": {
@@ -25422,6 +26186,16 @@
     "name": "R"
    }
   },
+  "raku": {
+   "dnf\\raku": {
+    "driver": "dnf",
+    "fields": {
+     "name": "rakudo",
+     "repo-component": "universe"
+    },
+    "name": "rakudo"
+   }
+  },
   "redis": {
    "dnf\\redis": {
     "driver": "dnf",
@@ -26112,6 +26886,41 @@
      "name": "uv"
     },
     "name": "uv"
+   }
+  },
+  "v": {
+   "dnf\\c-toolchain": {
+    "driver": "dnf",
+    "fields": {
+     "name": "gcc"
+    },
+    "name": "gcc"
+   },
+   "dnf\\curl": {
+    "driver": "dnf",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "dnf\\unzip": {
+    "driver": "dnf",
+    "fields": {
+     "name": "unzip"
+    },
+    "name": "unzip"
+   },
+   "tarball\\v": {
+    "driver": "tarball",
+    "fields": {
+     "installDir": "$CONFIGSYS_APP_DIR/v",
+     "name": "v",
+     "url": "https://github.com/vlang/v/releases/latest/download/v_linux.zip",
+     "version": {
+      "static": "latest"
+     }
+    },
+    "name": "v"
    }
   },
   "valgrind": {
@@ -27645,6 +28454,20 @@
     "name": "cppcheck"
    }
   },
+  "crystal": {
+   "script\\crystal": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "curl -fsSL https://crystal-lang.org/install.sh | sudo bash",
+     "location": "crystal (dist.crystal-lang.org repo)",
+     "name": "crystal",
+     "uninstall-cmd": "sudo apt-get remove -y crystal 2>/dev/null || sudo dnf remove -y crystal 2>/dev/null",
+     "version-cmd": "crystal --version 2>/dev/null",
+     "version-re": "([0-9][0-9.]*)"
+    },
+    "name": "crystal"
+   }
+  },
   "cuda-repo": {
    "script\\cuda-repo": {
     "driver": "script",
@@ -27809,6 +28632,15 @@
      "name": "python3-Cython"
     },
     "name": "python3-Cython"
+   }
+  },
+  "d": {
+   "dnf\\d": {
+    "driver": "dnf",
+    "fields": {
+     "name": "ldc"
+    },
+    "name": "ldc"
    }
   },
   "darktable": {
@@ -28122,6 +28954,23 @@
     "name": "fastfetch"
    }
   },
+  "fennel": {
+   "dnf\\fennel": {
+    "driver": "dnf",
+    "fields": {
+     "name": "fennel"
+    },
+    "name": "fennel"
+   },
+   "dnf\\lua": {
+    "driver": "dnf",
+    "fields": {
+     "name": "lua",
+     "repo-component": "universe"
+    },
+    "name": "lua"
+   }
+  },
   "ffmpeg": {
    "dnf\\ffmpeg": {
     "driver": "dnf",
@@ -28296,6 +29145,15 @@
     "name": "gdb-dotfiles"
    }
   },
+  "gfortran": {
+   "dnf\\gfortran": {
+    "driver": "dnf",
+    "fields": {
+     "name": "gcc-gfortran"
+    },
+    "name": "gcc-gfortran"
+   }
+  },
   "ghostty": {
    "appImage\\ghostty": {
     "driver": "appImage",
@@ -28346,6 +29204,36 @@
     "name": "git"
    }
   },
+  "gleam": {
+   "dnf\\curl": {
+    "driver": "dnf",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "dnf\\erlang": {
+    "driver": "dnf",
+    "fields": {
+     "name": "erlang",
+     "repo-component": "universe"
+    },
+    "name": "erlang"
+   },
+   "tarball\\gleam": {
+    "driver": "tarball",
+    "fields": {
+     "installDir": "$CONFIGSYS_APP_DIR/gleam",
+     "name": "gleam",
+     "version": {
+      "asset": "gleam-*-x86_64-unknown-linux-musl.tar.gz",
+      "github": "gleam-lang/gleam",
+      "strip-v": "true"
+     }
+    },
+    "name": "gleam"
+   }
+  },
   "glfw": {
    "dnf\\glfw": {
     "driver": "dnf",
@@ -28356,6 +29244,15 @@
     "name": "glfw-devel"
    }
   },
+  "gnat": {
+   "dnf\\gnat": {
+    "driver": "dnf",
+    "fields": {
+     "name": "gcc-gnat"
+    },
+    "name": "gcc-gnat"
+   }
+  },
   "gnome": {
    "dnf\\gnome": {
     "driver": "dnf",
@@ -28363,6 +29260,15 @@
      "name": "gnome-shell"
     },
     "name": "gnome-shell"
+   }
+  },
+  "gnucobol": {
+   "dnf\\gnucobol": {
+    "driver": "dnf",
+    "fields": {
+     "name": "gnucobol"
+    },
+    "name": "gnucobol"
    }
   },
   "gnuplot": {
@@ -30594,6 +31500,16 @@
     "name": "R"
    }
   },
+  "raku": {
+   "dnf\\raku": {
+    "driver": "dnf",
+    "fields": {
+     "name": "rakudo",
+     "repo-component": "universe"
+    },
+    "name": "rakudo"
+   }
+  },
   "redis": {
    "dnf\\redis": {
     "driver": "dnf",
@@ -31284,6 +32200,41 @@
      "name": "uv"
     },
     "name": "uv"
+   }
+  },
+  "v": {
+   "dnf\\c-toolchain": {
+    "driver": "dnf",
+    "fields": {
+     "name": "gcc"
+    },
+    "name": "gcc"
+   },
+   "dnf\\curl": {
+    "driver": "dnf",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "dnf\\unzip": {
+    "driver": "dnf",
+    "fields": {
+     "name": "unzip"
+    },
+    "name": "unzip"
+   },
+   "tarball\\v": {
+    "driver": "tarball",
+    "fields": {
+     "installDir": "$CONFIGSYS_APP_DIR/v",
+     "name": "v",
+     "url": "https://github.com/vlang/v/releases/latest/download/v_linux.zip",
+     "version": {
+      "static": "latest"
+     }
+    },
+    "name": "v"
    }
   },
   "valgrind": {
@@ -32482,6 +33433,15 @@
     "name": "cppcheck"
    }
   },
+  "crystal": {
+   "brew\\crystal": {
+    "driver": "brew",
+    "fields": {
+     "name": "crystal"
+    },
+    "name": "crystal"
+   }
+  },
   "cuda-toolkit-11": {
    "brew\\cuda-toolkit-11": {
     "driver": "brew",
@@ -32533,6 +33493,15 @@
     "name": "cython"
    }
   },
+  "d": {
+   "brew\\d": {
+    "driver": "brew",
+    "fields": {
+     "name": "ldc"
+    },
+    "name": "ldc"
+   }
+  },
   "darktable": {
    "flatpak\\darktable": {
     "driver": "flatpak",
@@ -32541,6 +33510,15 @@
      "name": "org.darktable.Darktable"
     },
     "name": "org.darktable.Darktable"
+   }
+  },
+  "dart": {
+   "brew\\dart": {
+    "driver": "brew",
+    "fields": {
+     "name": "dart-sdk"
+    },
+    "name": "dart-sdk"
    }
   },
   "dbeaver": {
@@ -32745,6 +33723,23 @@
     "name": "fastfetch"
    }
   },
+  "fennel": {
+   "brew\\fennel": {
+    "driver": "brew",
+    "fields": {
+     "name": "fennel"
+    },
+    "name": "fennel"
+   },
+   "brew\\lua": {
+    "driver": "brew",
+    "fields": {
+     "name": "lua",
+     "repo-component": "universe"
+    },
+    "name": "lua"
+   }
+  },
   "ffmpeg": {
    "brew\\ffmpeg": {
     "driver": "brew",
@@ -32878,6 +33873,15 @@
     "name": "gdb-dotfiles"
    }
   },
+  "gfortran": {
+   "brew\\gfortran": {
+    "driver": "brew",
+    "fields": {
+     "name": "gcc"
+    },
+    "name": "gcc"
+   }
+  },
   "ghostty": {
    "appImage\\ghostty": {
     "driver": "appImage",
@@ -32921,6 +33925,22 @@
     "name": "git"
    }
   },
+  "gleam": {
+   "brew\\erlang": {
+    "driver": "brew",
+    "fields": {
+     "name": "erlang"
+    },
+    "name": "erlang"
+   },
+   "brew\\gleam": {
+    "driver": "brew",
+    "fields": {
+     "name": "gleam"
+    },
+    "name": "gleam"
+   }
+  },
   "glfw": {
    "brew\\glfw": {
     "driver": "brew",
@@ -32929,6 +33949,15 @@
      "repo-component": "universe"
     },
     "name": "glfw"
+   }
+  },
+  "gnucobol": {
+   "brew\\gnucobol": {
+    "driver": "brew",
+    "fields": {
+     "name": "gnucobol"
+    },
+    "name": "gnucobol"
    }
   },
   "gnuplot": {
@@ -34425,6 +35454,16 @@
     "name": "r"
    }
   },
+  "raku": {
+   "brew\\raku": {
+    "driver": "brew",
+    "fields": {
+     "name": "rakudo-star",
+     "repo-component": "universe"
+    },
+    "name": "rakudo-star"
+   }
+  },
   "redis": {
    "brew\\redis": {
     "driver": "brew",
@@ -34885,6 +35924,22 @@
      "name": "uv"
     },
     "name": "uv"
+   }
+  },
+  "v": {
+   "brew\\c-toolchain": {
+    "driver": "brew",
+    "fields": {
+     "name": "gcc"
+    },
+    "name": "gcc"
+   },
+   "brew\\v": {
+    "driver": "brew",
+    "fields": {
+     "name": "vlang"
+    },
+    "name": "vlang"
    }
   },
   "valgrind": {
@@ -36271,6 +37326,20 @@
     "name": "cppcheck"
    }
   },
+  "crystal": {
+   "script\\crystal": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "curl -fsSL https://crystal-lang.org/install.sh | sudo bash",
+     "location": "crystal (dist.crystal-lang.org repo)",
+     "name": "crystal",
+     "uninstall-cmd": "sudo apt-get remove -y crystal 2>/dev/null || sudo dnf remove -y crystal 2>/dev/null",
+     "version-cmd": "crystal --version 2>/dev/null",
+     "version-re": "([0-9][0-9.]*)"
+    },
+    "name": "crystal"
+   }
+  },
   "cuda-repo": {
    "script\\cuda-repo": {
     "driver": "script",
@@ -36441,6 +37510,15 @@
     "name": "cython3"
    }
   },
+  "d": {
+   "apt\\d": {
+    "driver": "apt",
+    "fields": {
+     "name": "gdc"
+    },
+    "name": "gdc"
+   }
+  },
   "darktable": {
    "apt\\flatpak": {
     "driver": "apt",
@@ -36456,6 +37534,19 @@
      "name": "org.darktable.Darktable"
     },
     "name": "org.darktable.Darktable"
+   }
+  },
+  "dart": {
+   "apt\\dart": {
+    "driver": "apt",
+    "fields": {
+     "name": "dart",
+     "pubkey-path": "/usr/share/keyrings/dart.gpg",
+     "pubkey-url": "https://dl-ssl.google.com/linux/linux_signing_key.pub",
+     "source-line": "deb [signed-by=/usr/share/keyrings/dart.gpg arch=amd64] https://storage.googleapis.com/download.dartlang.org/linux/debian stable main",
+     "source-path": "/etc/apt/sources.list.d/dart.list"
+    },
+    "name": "dart"
    }
   },
   "dbeaver": {
@@ -36757,6 +37848,31 @@
      }
     },
     "name": "fastfetch"
+   }
+  },
+  "fennel": {
+   "apt\\lua": {
+    "driver": "apt",
+    "fields": {
+     "name": "lua5.4",
+     "repo-component": "universe"
+    },
+    "name": "lua5.4"
+   },
+   "apt\\luarocks": {
+    "driver": "apt",
+    "fields": {
+     "name": "luarocks",
+     "repo-component": "universe"
+    },
+    "name": "luarocks"
+   },
+   "luarocks\\fennel": {
+    "driver": "luarocks",
+    "fields": {
+     "name": "fennel"
+    },
+    "name": "fennel"
    }
   },
   "ffmpeg": {
@@ -37188,6 +38304,15 @@
     "name": "gdb-dotfiles"
    }
   },
+  "gfortran": {
+   "apt\\gfortran": {
+    "driver": "apt",
+    "fields": {
+     "name": "gfortran"
+    },
+    "name": "gfortran"
+   }
+  },
   "ghostty": {
    "appImage\\ghostty": {
     "driver": "appImage",
@@ -37238,6 +38363,36 @@
     "name": "git"
    }
   },
+  "gleam": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "apt\\erlang": {
+    "driver": "apt",
+    "fields": {
+     "name": "erlang",
+     "repo-component": "universe"
+    },
+    "name": "erlang"
+   },
+   "tarball\\gleam": {
+    "driver": "tarball",
+    "fields": {
+     "installDir": "$CONFIGSYS_APP_DIR/gleam",
+     "name": "gleam",
+     "version": {
+      "asset": "gleam-*-x86_64-unknown-linux-musl.tar.gz",
+      "github": "gleam-lang/gleam",
+      "strip-v": "true"
+     }
+    },
+    "name": "gleam"
+   }
+  },
   "glfw": {
    "apt\\glfw": {
     "driver": "apt",
@@ -37248,6 +38403,15 @@
     "name": "libglfw3-dev"
    }
   },
+  "gnat": {
+   "apt\\gnat": {
+    "driver": "apt",
+    "fields": {
+     "name": "gnat"
+    },
+    "name": "gnat"
+   }
+  },
   "gnome": {
    "apt\\gnome": {
     "driver": "apt",
@@ -37255,6 +38419,15 @@
      "name": "gnome-shell"
     },
     "name": "gnome-shell"
+   }
+  },
+  "gnucobol": {
+   "apt\\gnucobol": {
+    "driver": "apt",
+    "fields": {
+     "name": "gnucobol"
+    },
+    "name": "gnucobol"
    }
   },
   "gnuplot": {
@@ -39600,6 +40773,16 @@
     "name": "r-base"
    }
   },
+  "raku": {
+   "apt\\raku": {
+    "driver": "apt",
+    "fields": {
+     "name": "rakudo",
+     "repo-component": "universe"
+    },
+    "name": "rakudo"
+   }
+  },
   "redis": {
    "apt\\redis": {
     "driver": "apt",
@@ -40299,6 +41482,41 @@
      "name": "uv"
     },
     "name": "uv"
+   }
+  },
+  "v": {
+   "apt\\c-toolchain": {
+    "driver": "apt",
+    "fields": {
+     "name": "gcc"
+    },
+    "name": "gcc"
+   },
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "apt\\unzip": {
+    "driver": "apt",
+    "fields": {
+     "name": "unzip"
+    },
+    "name": "unzip"
+   },
+   "tarball\\v": {
+    "driver": "tarball",
+    "fields": {
+     "installDir": "$CONFIGSYS_APP_DIR/v",
+     "name": "v",
+     "url": "https://github.com/vlang/v/releases/latest/download/v_linux.zip",
+     "version": {
+      "static": "latest"
+     }
+    },
+    "name": "v"
    }
   },
   "valgrind": {
@@ -41861,6 +43079,20 @@
     "name": "cppcheck"
    }
   },
+  "crystal": {
+   "script\\crystal": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "curl -fsSL https://crystal-lang.org/install.sh | sudo bash",
+     "location": "crystal (dist.crystal-lang.org repo)",
+     "name": "crystal",
+     "uninstall-cmd": "sudo apt-get remove -y crystal 2>/dev/null || sudo dnf remove -y crystal 2>/dev/null",
+     "version-cmd": "crystal --version 2>/dev/null",
+     "version-re": "([0-9][0-9.]*)"
+    },
+    "name": "crystal"
+   }
+  },
   "cuda-repo": {
    "script\\cuda-repo": {
     "driver": "script",
@@ -42365,6 +43597,31 @@
     "name": "fastfetch"
    }
   },
+  "fennel": {
+   "dnf\\lua": {
+    "driver": "dnf",
+    "fields": {
+     "name": "lua",
+     "repo-component": "universe"
+    },
+    "name": "lua"
+   },
+   "dnf\\luarocks": {
+    "driver": "dnf",
+    "fields": {
+     "name": "luarocks",
+     "repo-component": "universe"
+    },
+    "name": "luarocks"
+   },
+   "luarocks\\fennel": {
+    "driver": "luarocks",
+    "fields": {
+     "name": "fennel"
+    },
+    "name": "fennel"
+   }
+  },
   "ffmpeg": {
    "dnf\\epel-release": {
     "driver": "dnf",
@@ -42591,6 +43848,15 @@
     "name": "gdb-dotfiles"
    }
   },
+  "gfortran": {
+   "dnf\\gfortran": {
+    "driver": "dnf",
+    "fields": {
+     "name": "gcc-gfortran"
+    },
+    "name": "gcc-gfortran"
+   }
+  },
   "ghostty": {
    "appImage\\ghostty": {
     "driver": "appImage",
@@ -42641,6 +43907,36 @@
     "name": "git"
    }
   },
+  "gleam": {
+   "dnf\\curl": {
+    "driver": "dnf",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "dnf\\erlang": {
+    "driver": "dnf",
+    "fields": {
+     "name": "erlang",
+     "repo-component": "universe"
+    },
+    "name": "erlang"
+   },
+   "tarball\\gleam": {
+    "driver": "tarball",
+    "fields": {
+     "installDir": "$CONFIGSYS_APP_DIR/gleam",
+     "name": "gleam",
+     "version": {
+      "asset": "gleam-*-x86_64-unknown-linux-musl.tar.gz",
+      "github": "gleam-lang/gleam",
+      "strip-v": "true"
+     }
+    },
+    "name": "gleam"
+   }
+  },
   "glfw": {
    "dnf\\glfw": {
     "driver": "dnf",
@@ -42651,6 +43947,15 @@
     "name": "glfw-devel"
    }
   },
+  "gnat": {
+   "dnf\\gnat": {
+    "driver": "dnf",
+    "fields": {
+     "name": "gcc-gnat"
+    },
+    "name": "gcc-gnat"
+   }
+  },
   "gnome": {
    "dnf\\gnome": {
     "driver": "dnf",
@@ -42658,6 +43963,15 @@
      "name": "gnome-shell"
     },
     "name": "gnome-shell"
+   }
+  },
+  "gnucobol": {
+   "dnf\\gnucobol": {
+    "driver": "dnf",
+    "fields": {
+     "name": "gnucobol"
+    },
+    "name": "gnucobol"
    }
   },
   "gnuplot": {
@@ -44964,6 +46278,16 @@
     "name": "R"
    }
   },
+  "raku": {
+   "dnf\\raku": {
+    "driver": "dnf",
+    "fields": {
+     "name": "rakudo",
+     "repo-component": "universe"
+    },
+    "name": "rakudo"
+   }
+  },
   "redis": {
    "dnf\\redis": {
     "driver": "dnf",
@@ -45690,6 +47014,41 @@
      "name": "uv"
     },
     "name": "uv"
+   }
+  },
+  "v": {
+   "dnf\\c-toolchain": {
+    "driver": "dnf",
+    "fields": {
+     "name": "gcc"
+    },
+    "name": "gcc"
+   },
+   "dnf\\curl": {
+    "driver": "dnf",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "dnf\\unzip": {
+    "driver": "dnf",
+    "fields": {
+     "name": "unzip"
+    },
+    "name": "unzip"
+   },
+   "tarball\\v": {
+    "driver": "tarball",
+    "fields": {
+     "installDir": "$CONFIGSYS_APP_DIR/v",
+     "name": "v",
+     "url": "https://github.com/vlang/v/releases/latest/download/v_linux.zip",
+     "version": {
+      "static": "latest"
+     }
+    },
+    "name": "v"
    }
   },
   "valgrind": {
@@ -47384,6 +48743,20 @@
     "name": "cppcheck"
    }
   },
+  "crystal": {
+   "script\\crystal": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "curl -fsSL https://crystal-lang.org/install.sh | sudo bash",
+     "location": "crystal (dist.crystal-lang.org repo)",
+     "name": "crystal",
+     "uninstall-cmd": "sudo apt-get remove -y crystal 2>/dev/null || sudo dnf remove -y crystal 2>/dev/null",
+     "version-cmd": "crystal --version 2>/dev/null",
+     "version-re": "([0-9][0-9.]*)"
+    },
+    "name": "crystal"
+   }
+  },
   "cuda-repo": {
    "script\\cuda-repo": {
     "driver": "script",
@@ -47554,6 +48927,15 @@
     "name": "cython3"
    }
   },
+  "d": {
+   "apt\\d": {
+    "driver": "apt",
+    "fields": {
+     "name": "gdc"
+    },
+    "name": "gdc"
+   }
+  },
   "darktable": {
    "apt\\flatpak": {
     "driver": "apt",
@@ -47569,6 +48951,19 @@
      "name": "org.darktable.Darktable"
     },
     "name": "org.darktable.Darktable"
+   }
+  },
+  "dart": {
+   "apt\\dart": {
+    "driver": "apt",
+    "fields": {
+     "name": "dart",
+     "pubkey-path": "/usr/share/keyrings/dart.gpg",
+     "pubkey-url": "https://dl-ssl.google.com/linux/linux_signing_key.pub",
+     "source-line": "deb [signed-by=/usr/share/keyrings/dart.gpg arch=amd64] https://storage.googleapis.com/download.dartlang.org/linux/debian stable main",
+     "source-path": "/etc/apt/sources.list.d/dart.list"
+    },
+    "name": "dart"
    }
   },
   "dbeaver": {
@@ -47870,6 +49265,31 @@
      }
     },
     "name": "fastfetch"
+   }
+  },
+  "fennel": {
+   "apt\\lua": {
+    "driver": "apt",
+    "fields": {
+     "name": "lua5.4",
+     "repo-component": "universe"
+    },
+    "name": "lua5.4"
+   },
+   "apt\\luarocks": {
+    "driver": "apt",
+    "fields": {
+     "name": "luarocks",
+     "repo-component": "universe"
+    },
+    "name": "luarocks"
+   },
+   "luarocks\\fennel": {
+    "driver": "luarocks",
+    "fields": {
+     "name": "fennel"
+    },
+    "name": "fennel"
    }
   },
   "ffmpeg": {
@@ -48301,6 +49721,15 @@
     "name": "gdb-dotfiles"
    }
   },
+  "gfortran": {
+   "apt\\gfortran": {
+    "driver": "apt",
+    "fields": {
+     "name": "gfortran"
+    },
+    "name": "gfortran"
+   }
+  },
   "ghostty": {
    "appImage\\ghostty": {
     "driver": "appImage",
@@ -48351,6 +49780,36 @@
     "name": "git"
    }
   },
+  "gleam": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "apt\\erlang": {
+    "driver": "apt",
+    "fields": {
+     "name": "erlang",
+     "repo-component": "universe"
+    },
+    "name": "erlang"
+   },
+   "tarball\\gleam": {
+    "driver": "tarball",
+    "fields": {
+     "installDir": "$CONFIGSYS_APP_DIR/gleam",
+     "name": "gleam",
+     "version": {
+      "asset": "gleam-*-x86_64-unknown-linux-musl.tar.gz",
+      "github": "gleam-lang/gleam",
+      "strip-v": "true"
+     }
+    },
+    "name": "gleam"
+   }
+  },
   "glfw": {
    "apt\\glfw": {
     "driver": "apt",
@@ -48361,6 +49820,15 @@
     "name": "libglfw3-dev"
    }
   },
+  "gnat": {
+   "apt\\gnat": {
+    "driver": "apt",
+    "fields": {
+     "name": "gnat"
+    },
+    "name": "gnat"
+   }
+  },
   "gnome": {
    "apt\\gnome": {
     "driver": "apt",
@@ -48368,6 +49836,15 @@
      "name": "gnome-shell"
     },
     "name": "gnome-shell"
+   }
+  },
+  "gnucobol": {
+   "apt\\gnucobol": {
+    "driver": "apt",
+    "fields": {
+     "name": "gnucobol"
+    },
+    "name": "gnucobol"
    }
   },
   "gnuplot": {
@@ -50713,6 +52190,16 @@
     "name": "r-base"
    }
   },
+  "raku": {
+   "apt\\raku": {
+    "driver": "apt",
+    "fields": {
+     "name": "rakudo",
+     "repo-component": "universe"
+    },
+    "name": "rakudo"
+   }
+  },
   "redis": {
    "apt\\redis": {
     "driver": "apt",
@@ -51419,6 +52906,41 @@
      "name": "uv"
     },
     "name": "uv"
+   }
+  },
+  "v": {
+   "apt\\c-toolchain": {
+    "driver": "apt",
+    "fields": {
+     "name": "gcc"
+    },
+    "name": "gcc"
+   },
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "apt\\unzip": {
+    "driver": "apt",
+    "fields": {
+     "name": "unzip"
+    },
+    "name": "unzip"
+   },
+   "tarball\\v": {
+    "driver": "tarball",
+    "fields": {
+     "installDir": "$CONFIGSYS_APP_DIR/v",
+     "name": "v",
+     "url": "https://github.com/vlang/v/releases/latest/download/v_linux.zip",
+     "version": {
+      "static": "latest"
+     }
+    },
+    "name": "v"
    }
   },
   "valgrind": {
@@ -53011,6 +54533,20 @@
     "name": "cppcheck"
    }
   },
+  "crystal": {
+   "script\\crystal": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "curl -fsSL https://crystal-lang.org/install.sh | sudo bash",
+     "location": "crystal (dist.crystal-lang.org repo)",
+     "name": "crystal",
+     "uninstall-cmd": "sudo apt-get remove -y crystal 2>/dev/null || sudo dnf remove -y crystal 2>/dev/null",
+     "version-cmd": "crystal --version 2>/dev/null",
+     "version-re": "([0-9][0-9.]*)"
+    },
+    "name": "crystal"
+   }
+  },
   "cuda-repo": {
    "script\\cuda-repo": {
     "driver": "script",
@@ -53181,6 +54717,15 @@
     "name": "cython3"
    }
   },
+  "d": {
+   "apt\\d": {
+    "driver": "apt",
+    "fields": {
+     "name": "gdc"
+    },
+    "name": "gdc"
+   }
+  },
   "darktable": {
    "apt\\flatpak": {
     "driver": "apt",
@@ -53196,6 +54741,19 @@
      "name": "org.darktable.Darktable"
     },
     "name": "org.darktable.Darktable"
+   }
+  },
+  "dart": {
+   "apt\\dart": {
+    "driver": "apt",
+    "fields": {
+     "name": "dart",
+     "pubkey-path": "/usr/share/keyrings/dart.gpg",
+     "pubkey-url": "https://dl-ssl.google.com/linux/linux_signing_key.pub",
+     "source-line": "deb [signed-by=/usr/share/keyrings/dart.gpg arch=amd64] https://storage.googleapis.com/download.dartlang.org/linux/debian stable main",
+     "source-path": "/etc/apt/sources.list.d/dart.list"
+    },
+    "name": "dart"
    }
   },
   "dbeaver": {
@@ -53497,6 +55055,31 @@
      }
     },
     "name": "fastfetch"
+   }
+  },
+  "fennel": {
+   "apt\\lua": {
+    "driver": "apt",
+    "fields": {
+     "name": "lua5.4",
+     "repo-component": "universe"
+    },
+    "name": "lua5.4"
+   },
+   "apt\\luarocks": {
+    "driver": "apt",
+    "fields": {
+     "name": "luarocks",
+     "repo-component": "universe"
+    },
+    "name": "luarocks"
+   },
+   "luarocks\\fennel": {
+    "driver": "luarocks",
+    "fields": {
+     "name": "fennel"
+    },
+    "name": "fennel"
    }
   },
   "ffmpeg": {
@@ -53928,6 +55511,15 @@
     "name": "gdb-dotfiles"
    }
   },
+  "gfortran": {
+   "apt\\gfortran": {
+    "driver": "apt",
+    "fields": {
+     "name": "gfortran"
+    },
+    "name": "gfortran"
+   }
+  },
   "ghostty": {
    "appImage\\ghostty": {
     "driver": "appImage",
@@ -53978,6 +55570,36 @@
     "name": "git"
    }
   },
+  "gleam": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "apt\\erlang": {
+    "driver": "apt",
+    "fields": {
+     "name": "erlang",
+     "repo-component": "universe"
+    },
+    "name": "erlang"
+   },
+   "tarball\\gleam": {
+    "driver": "tarball",
+    "fields": {
+     "installDir": "$CONFIGSYS_APP_DIR/gleam",
+     "name": "gleam",
+     "version": {
+      "asset": "gleam-*-x86_64-unknown-linux-musl.tar.gz",
+      "github": "gleam-lang/gleam",
+      "strip-v": "true"
+     }
+    },
+    "name": "gleam"
+   }
+  },
   "glfw": {
    "apt\\glfw": {
     "driver": "apt",
@@ -53988,6 +55610,15 @@
     "name": "libglfw3-dev"
    }
   },
+  "gnat": {
+   "apt\\gnat": {
+    "driver": "apt",
+    "fields": {
+     "name": "gnat"
+    },
+    "name": "gnat"
+   }
+  },
   "gnome": {
    "apt\\gnome": {
     "driver": "apt",
@@ -53995,6 +55626,15 @@
      "name": "gnome-shell"
     },
     "name": "gnome-shell"
+   }
+  },
+  "gnucobol": {
+   "apt\\gnucobol": {
+    "driver": "apt",
+    "fields": {
+     "name": "gnucobol"
+    },
+    "name": "gnucobol"
    }
   },
   "gnuplot": {
@@ -56270,6 +57910,16 @@
     "name": "r-base"
    }
   },
+  "raku": {
+   "apt\\raku": {
+    "driver": "apt",
+    "fields": {
+     "name": "rakudo",
+     "repo-component": "universe"
+    },
+    "name": "rakudo"
+   }
+  },
   "redis": {
    "apt\\redis": {
     "driver": "apt",
@@ -56956,6 +58606,41 @@
      "name": "uv"
     },
     "name": "uv"
+   }
+  },
+  "v": {
+   "apt\\c-toolchain": {
+    "driver": "apt",
+    "fields": {
+     "name": "gcc"
+    },
+    "name": "gcc"
+   },
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "apt\\unzip": {
+    "driver": "apt",
+    "fields": {
+     "name": "unzip"
+    },
+    "name": "unzip"
+   },
+   "tarball\\v": {
+    "driver": "tarball",
+    "fields": {
+     "installDir": "$CONFIGSYS_APP_DIR/v",
+     "name": "v",
+     "url": "https://github.com/vlang/v/releases/latest/download/v_linux.zip",
+     "version": {
+      "static": "latest"
+     }
+    },
+    "name": "v"
    }
   },
   "valgrind": {

@@ -562,6 +562,54 @@
             install: [ { via: native  repo-component: universe  name: { brew: tcl-tk } } ] }
         tk:  { description: "Tk — the Tcl GUI toolkit (`wish`) and widget library." requires: tcl
             install: [ { via: native  repo-component: universe  name: { brew: tcl-tk } } ] }
+
+        // --- more languages. GCC front-ends (gfortran/gnat/d-via-gdc) whose package name varies
+        // per manager; niche/compiled langs via github release or an official repo. ---
+        gfortran: { description: "GNU Fortran — the GCC Fortran compiler (`gfortran`)."
+            install: [ { via: native  name: { dnf: gcc-gfortran  pacman: gcc-fortran  zypper: gcc-fortran  brew: gcc  default: gfortran } } ] }   // brew bundles gfortran in `gcc`
+        gnat: { description: "GNAT — the GCC Ada compiler."
+            install: [ { via: native  when: "not fedora_atomic"  name: { dnf: gcc-gnat  pacman: gcc-ada  apk: gcc-gnat  zypper: gcc-ada  default: gnat } } ] }   // no brew Ada front-end
+        gnucobol: { description: "GnuCOBOL — a COBOL compiler (`cobc`)."
+            install: [ { via: native  when: "not arch"  name: { zypper: gnu-cobol  default: gnucobol } }
+                       { via: aur  when: "arch"  name: gnucobol } ] }   // AUR-only on Arch
+        d: { description: "The D programming language (a D compiler — LDC / GDC / DMD per distro)."
+            install: [ { via: native  when: "fedora or arch or alpine or fedora_atomic"  name: ldc }   // LLVM D compiler
+                       { via: native  when: "debian"  name: gdc }        // GCC D front-end (ldc is sid-only on debian)
+                       { via: native  when: "opensuse"  name: dmd } ] }
+        crystal: { description: "Crystal — a Ruby-like, LLVM-backed compiled language."
+            install: [ { via: native  when: "arch or alpine or fedora_atomic" }   // pacman/apk/brew `crystal`
+                       { via: script  when: "debian or redhat"           // official installer: adds the crystal repo + installs the package
+                         install-cmd:   'curl -fsSL https://crystal-lang.org/install.sh | sudo bash'
+                         version-cmd:   'crystal --version 2>/dev/null'
+                         version-re:    '([0-9][0-9.]*)'
+                         uninstall-cmd: 'sudo apt-get remove -y crystal 2>/dev/null || sudo dnf remove -y crystal 2>/dev/null'
+                         location:      'crystal (dist.crystal-lang.org repo)' } ] }
+        dart: { description: "Dart — Google's language & SDK for apps and Flutter."
+            install: [ { via: native  when: "arch" }                     // pacman: dart (extra)
+                       { via: native  when: "fedora_atomic"  name: dart-sdk }   // brew dart-sdk
+                       { via: native  when: "debian"  name: dart          // Google's official apt repo (single `stable` suite — codename-independent)
+                         pubkey-url: "https://dl-ssl.google.com/linux/linux_signing_key.pub"  pubkey-path: /usr/share/keyrings/dart.gpg
+                         source-line: "deb [signed-by=/usr/share/keyrings/dart.gpg arch=amd64] https://storage.googleapis.com/download.dartlang.org/linux/debian stable main"
+                         source-path: /etc/apt/sources.list.d/dart.list } ] }
+        raku: { description: "Raku (Rakudo) — the Raku language, formerly Perl 6."
+            install: [ { via: native  when: "not arch"  repo-component: universe  name: { brew: rakudo-star  default: rakudo } }
+                       { via: aur  when: "arch"  name: rakudo-star } ] }   // AUR-only on Arch
+        v: { description: "V — a simple, fast-compiling language (the `v` compiler)." requires: cc
+            install: [ { via: native  when: "fedora_atomic"  name: vlang }   // brew vlang
+                       { via: aur  when: "arch"  name: vlang-bin }
+                       { via: tarball  when: "not arch and not fedora_atomic"  installDir: "$CONFIGSYS_APP_DIR/v"  requires: [ glibc, unzip ]  version: { static: latest }
+                         url: "https://github.com/vlang/v/releases/latest/download/v_linux.zip" } ] }   // prebuilt zip
+        gleam: { description: "Gleam — a friendly, statically-typed language for the Erlang VM." requires: erlang
+            install: [ { via: native  when: "arch or alpine or fedora_atomic" }   // pacman/apk/brew gleam
+                       { via: tarball  when: "not arch and not alpine and not fedora_atomic"  installDir: "$CONFIGSYS_APP_DIR/gleam"  requires: glibc
+                         version: { github: gleam-lang/gleam  strip-v: true  asset: "gleam-*-x86_64-unknown-linux-musl.tar.gz" } } ] }   // single static binary
+        fennel: { description: "Fennel — a Lisp that compiles to Lua." requires: lua
+            install: [ { via: native  when: "fedora or arch or alpine or fedora_atomic" }   // dnf/pacman/apk/brew fennel
+                       { via: luarocks  when: "not fedora and not arch and not alpine and not fedora_atomic"  name: fennel } ] }
+        // swift: no distro-native package (Linux install is swiftly/tarball, manual); Arch has an AUR
+        // binary. Listed for arch; elsewhere it's an honest unroutable until we model swiftly.
+        swift: { description: "Swift — the Swift language toolchain."
+            install: [ { via: aur  when: "arch"  name: swift-bin } ] }
         // Haskell — the GHC compiler (cabal driver deferred).
         haskell: { description: "Haskell toolchain (GHC) — pure functional programming." install: [ { via: native  repo-component: universe  name: { default: ghc } } ] }
         // Erlang/OTP + Elixir (elixir pulls erlang, but erlang is nameable on its own).
