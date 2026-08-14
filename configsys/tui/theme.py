@@ -84,6 +84,9 @@ ROLE_DEFAULTS = {
     'op_install': _r('op_install', bold=True), 'op_upgrade': _r('op_upgrade', bold=True),
     'op_remove': _r('op_remove', bold=True), 'op_lock': _r('op_lock', bold=True),
     'op_unlock': _r('op_unlock', bold=True), 'op_mixed': _r('accent', bold=True),
+    # Plugins diff pane: added/removed lines and the hunk/meta gutter (git-diff green/red).
+    'diff_add': _r('installed'), 'diff_del': _r('error'),
+    'diff_hunk': _r('partial', bold=True), 'diff_meta': _r('dim'),
     # raw passthrough roles for direct at()/get() references (identity -> the same-named map color)
     'accent': _r('accent'), 'dim': _r('dim'), 'title': _r('title'), 'header': _r('header'),
 }
@@ -104,8 +107,9 @@ PAGE_ROLES = {
                    'row_desc', 'methods', 'info', 'info_dim', 'status_line', 'footer', 'selection'],
     'profiles':  ['label', 'os', 'menu_header', 'profile', 'link', 'component', 'info', 'info_dim',
                   'dependents', 'method_dim', 'status_line', 'footer', 'selection'],
-    'plugins':   ['label', 'os', 'menu_header', 'component', 'unit', 'installed', 'missing',
-                  'untrusted', 'info', 'info_dim', 'status_line', 'footer', 'selection'],
+    'plugins':   ['label', 'os', 'menu_header', 'component', 'unit', 'installed', 'outdated',
+                  'missing', 'untrusted', 'accent', 'diff_add', 'diff_del', 'diff_hunk', 'diff_meta',
+                  'info', 'info_dim', 'status_line', 'footer', 'selection'],
     'dotfiles':  ['label', 'os', 'menu_header', 'component', 'unit', 'installed', 'outdated',
                   'missing', 'info_dim', 'status_line', 'footer', 'selection'],
     'config':    ['label', 'os', 'menu_header', 'component', 'scope', 'scope_choice', 'info_dim',

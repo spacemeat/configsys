@@ -194,3 +194,37 @@ def test_trust_untrust_actions(tmp_path):
     # a data-only plugin has nothing to trust
     ok3, note3 = actions.plugin_trust(ctx, 'nocode')
     assert ok3 is False and 'no code' in note3
+
+
+def test_trust_all_action_trusts_every_untrusted_code_plugin(tmp_path):
+    # the TUI Plugins screen `T` key: bulk-trust all currently-untrusted code plugins
+    import types
+    from configsys import actions, layers
+    from configsys.config import Config
+    pdir = tmp_path / 'plugins'
+    for nm in ('one', 'two'):
+        (pdir / nm).mkdir(parents=True)
+        (pdir / nm / 'plugin.hu').write_text(
+            f'{{ name: {nm}  requires-abi: {plugins.ABI_VERSION}  code: driver.py }}\n', encoding='utf-8')
+        (pdir / nm / 'driver.py').write_text(f'# {nm}\n', encoding='utf-8')
+    (pdir / 'data').mkdir(parents=True)                    # a data-only plugin: not counted
+    (pdir / 'data' / 'plugin.hu').write_text(
+        f'{{ name: data  requires-abi: {plugins.ABI_VERSION}  data: [ d.hu ] }}\n', encoding='utf-8')
+    (pdir / 'data' / 'd.hu').write_text('{ }\n', encoding='utf-8')
+    user = tmp_path / 'user.hu'
+    user.write_text('{ plugins: [ { source: one } { source: two } { source: data } ] }\n', encoding='utf-8')
+    tf = tmp_path / 'trust.hu'
+
+    def load():
+        return Config([layers.Layer(str(user), 'user', layers.materialize_string(user.read_text()))])
+    ctx = types.SimpleNamespace(config=load(), paths=types.SimpleNamespace(
+        user_config_file=str(user), plugins_dir=pdir, plugin_trust_file=str(tf)))
+    ctx.invalidate = lambda: setattr(ctx, 'config', load())
+
+    n, note = actions.plugin_trust_all(ctx)
+    assert n == 2 and 'trusted 2' in note
+    for nm in ('one', 'two'):
+        assert plugins.is_trusted(tf, nm, plugins.plugin_identity(pdir / nm))
+    # idempotent: a second run finds nothing untrusted
+    n2, note2 = actions.plugin_trust_all(ctx)
+    assert n2 == 0 and 'no untrusted' in note2

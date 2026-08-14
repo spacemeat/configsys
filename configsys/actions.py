@@ -731,6 +731,25 @@ def plugin_trust(ctx, ident):
     return True, f'trusted {disp} @ {identity.split(":")[-1][:12]} — its code will run'
 
 
+def plugin_trust_all(ctx):
+    '''Trust EVERY code plugin currently untrusted or changed (the bulk `T` / `plugin trust --all`).
+    Returns (n_trusted, note). Unsynced code plugins are counted in the note but skipped (nothing
+    on disk to hash yet).'''
+    eff = plugins.effective_declared(ctx.paths.user_config_file, ctx.paths.plugins_dir)
+    rows = plugins.status(ctx.paths.plugins_dir, eff, trust_file=ctx.paths.plugin_trust_file)
+    pending = [r for r in rows if r['code_state'] in ('untrusted', 'changed')]
+    unsynced = [r for r in rows if r['code_state'] == 'unsynced']
+    n = 0
+    for r in pending:
+        ok, _note = plugin_trust(ctx, r['name'])
+        n += 1 if ok else 0
+    if not pending:
+        return 0, ('no untrusted code plugins'
+                   + (' (some ship code but are unsynced — sync first)' if unsynced else ''))
+    tail = f'; {len(unsynced)} unsynced skipped' if unsynced else ''
+    return n, f'trusted {n} code plugin(s){tail}'
+
+
 def plugin_untrust(ctx, ident):
     '''Revoke a code plugin's trust. Returns (ok, note). Mirrors `configsys plugin untrust`.'''
     eff = plugins.effective_declared(ctx.paths.user_config_file, ctx.paths.plugins_dir)

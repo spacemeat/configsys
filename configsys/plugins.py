@@ -108,6 +108,37 @@ def effective_declared(user_config_file, plugins_dir):
     return out
 
 
+def declared_tree(user_config_file, plugins_dir):
+    '''DFS pre-order of declared plugins carrying their transitive hierarchy, for a `tree`-style
+    view. Top-config decls are roots; each synced plugin's manifest `plugins:` are its children
+    (same reach + first-encounter dedup as effective_declared, but nested rather than flattened).
+    Returns [{decl, depth, last}] where `last[i]` = "is the ancestor at level i the last of its
+    siblings" — the flags a caller uses to draw the ├─ │ └─ prefix.'''
+    seen, out = set(), []
+
+    def children(decl):
+        subs = []
+        for sub in (read_manifest(plugins_dir / dir_name(decl['source'])).get('plugins') or []):
+            nd = _decl(sub)                              # transitive: primary stripped
+            if nd and dir_name(nd['source']) not in seen:
+                subs.append(nd)
+        return subs
+
+    def walk(decl, last):
+        if dir_name(decl['source']) in seen:            # a shared child reached twice — list once
+            return
+        seen.add(dir_name(decl['source']))
+        out.append({'decl': decl, 'depth': len(last) - 1, 'last': list(last)})
+        kids = children(decl)
+        for i, kid in enumerate(kids):
+            walk(kid, last + [i == len(kids) - 1])
+
+    roots = declared(user_config_file)
+    for i, r in enumerate(roots):
+        walk(r, [i == len(roots) - 1])
+    return out
+
+
 def primary_name(decls):
     '''The plugin dir the top config marks `primary`, or None. With more than one primary the
     first (declaration order) wins here — `check` reports the conflict as an error.'''
@@ -1058,6 +1089,54 @@ def latest_ref(runner, source):
             if branch in names:
                 return branch, 'branch'
     return None, None
+
+
+def _parse_unified_diff(text):
+    '''Split `git diff` output into per-file blocks for the TUI diff pane. Returns
+    [{path, lines: [(kind, text)]}] with kind in {add, del, hunk, meta, ctx} so the renderer can
+    colour +added/-removed lines and dim the @@ hunk / file-meta gutter.'''
+    files, cur = [], None
+    for line in (text or '').splitlines():
+        if line.startswith('diff --git'):
+            path = line.split(' b/', 1)[-1] if ' b/' in line else line[len('diff --git '):]
+            cur = {'path': path, 'lines': []}
+            files.append(cur)
+        elif cur is None:
+            continue
+        elif line.startswith('@@'):
+            cur['lines'].append(('hunk', line))
+        elif line[:3] in ('+++', '---') or line.startswith(
+                ('index ', 'new file', 'deleted file', 'old mode', 'new mode',
+                 'similarity', 'rename ', 'copy ', 'Binary ', '\\ No newline')):
+            cur['lines'].append(('meta', line))
+        elif line.startswith('+'):
+            cur['lines'].append(('add', line))
+        elif line.startswith('-'):
+            cur['lines'].append(('del', line))
+        else:
+            cur['lines'].append(('ctx', line))
+    return files
+
+
+def diff_against_ref(runner, plugins_dir, decl, target_ref):
+    '''Unified diff of a synced plugin's current HEAD against `target_ref` fetched from its remote —
+    "what updating to target_ref would change" (the review-before-you-trust view). Fetches the ref
+    read-only (no working-tree mutation), then `git diff HEAD..FETCH_HEAD`. Returns (files, err):
+    files as in _parse_unified_diff (empty = no changes / already there), err a message or None.'''
+    pdir = plugins_dir / dir_name(decl['source'])
+    if not pdir.exists():
+        return [], 'not synced — press s to sync first'
+    if not target_ref:
+        return [], 'no upstream ref to compare against'
+    genv = _noninteractive_git_env()
+    cq, dq, rq = shlex.quote(str(pdir)), shlex.quote(clone_url(decl['source'])), shlex.quote(target_ref)
+    fetched = runner.run(f'git -C {cq} fetch --quiet {dq} {rq}', capture=True, env=genv)
+    if fetched is None or not fetched.ok:
+        return [], f'could not fetch {target_ref} (unreachable or private?)'
+    d = runner.run(f'git -C {cq} diff HEAD..FETCH_HEAD', capture=True, env=genv)
+    if d is None or not d.ok:
+        return [], 'diff failed'
+    return _parse_unified_diff(d.stdout or ''), None
 
 
 # Registered sync transports (P2c): a plugin claims a `source:` scheme so `source:

@@ -2345,35 +2345,214 @@ def _draw_theme(stdscr, pal, ts, ctx, note, screen):
 
 
 # -- Plugins screen -------------------------------------------------------
+# The top table's columns (header, width). The name column also carries the tree prefix + ★.
+_PLUGIN_COLS = [('name', 26), ('source', 30), ('ref', 13), ('remote-ref', 13),
+                ('abi', 5), ('code', 10), ('provides', 20)]
+_PLUGIN_COL_X = []                                   # virtual x of each column (filled below)
+_vx = 0
+for _hdr, _wd in _PLUGIN_COLS:
+    _PLUGIN_COL_X.append(_vx)
+    _vx += _wd + 1                                   # one space between columns
+_PLUGIN_VIRT_W = _vx - 1
+_DIFF_ELEM = {'add': 'diff_add', 'del': 'diff_del', 'hunk': 'diff_hunk',
+              'meta': 'diff_meta', 'ctx': 'info_dim'}
+
+
 class PluginScreen:
-    '''Layer-stack view of declared plugins (incl. transitive) with per-plugin status + a detail
-    pane. A skin over configsys.actions.plugin_* — add/remove/sync/bless/update.'''
+    '''Two-pane Plugins screen. TOP: a `tree`-style table of declared plugins (incl. transitive)
+    with name│source│ref│remote-ref│abi│code│provides columns — j/k select, h/l scroll columns.
+    BOTTOM: a diff of what updating the selected plugin to its remote-ref would change (fetched on
+    demand; files as headers; hjkl scroll). Tab cycles focus table→diff→next file→table; Shift-Tab
+    reverses. A skin over configsys.actions.plugin_* — add/remove/sync/bless/update/trust.'''
+
     def __init__(self, ctx):
         self.ctx = ctx
         self.cur = 0
         self.top = 0
+        self.hscroll = 0                 # horizontal scroll across the columns
+        self.focus = 'table'             # 'table' | 'diff'
+        self.remote = {}                 # dir_name -> ref(str) | 'pending' | None(unreachable/none)
+        self._remote_gen = 0
+        self.dfile = 0                   # selected file within the loaded diff
+        self.dtop = 0                    # vertical scroll within the diff file
+        self.dhscroll = 0                # horizontal scroll within the diff
+        self.diff_key = None             # (name, from_ref, to_ref) the loaded diff belongs to
+        self.diff_files = []
+        self.diff_note = ''
         self.reload()
 
     def reload(self):
         from .. import plugins
-        self.decls = plugins.effective_declared(self.ctx.paths.user_config_file,
-                                                self.ctx.paths.plugins_dir)
-        self.rows = plugins.status(self.ctx.paths.plugins_dir, self.decls,
+        self.tree = plugins.declared_tree(self.ctx.paths.user_config_file, self.ctx.paths.plugins_dir)
+        self.rows = plugins.status(self.ctx.paths.plugins_dir, [t['decl'] for t in self.tree],
                                    trust_file=self.ctx.paths.plugin_trust_file)
         self.cur = min(self.cur, max(0, len(self.rows) - 1))
+        self._invalidate_diff()
+        self._start_remote()
 
     def cur_row(self):
         return self.rows[self.cur] if 0 <= self.cur < len(self.rows) else None
 
+    def cur_tree(self):
+        return self.tree[self.cur] if 0 <= self.cur < len(self.tree) else None
 
-def _plugin_state(row):
-    if not row['synced']:
-        return '⚠ unsynced'
-    if not row['abi_ok']:
-        return '≠ abi'
-    if row['checksum'] == 'mismatch':
-        return '⚑ quarantined'
-    return 'code' if row['has_code'] else 'ok'
+    def _start_remote(self):
+        '''Resolve each plugin's remote-ref on a daemon thread (read-only `git ls-remote`); the
+        table shows '…' until each lands. Like ProfileScreen._warm_cache: the menu loop blocks in
+        getch() while idle, so cells fill without stalling screen entry on the network.'''
+        from .. import plugins
+        self._remote_gen += 1
+        gen, rows = self._remote_gen, list(self.rows)
+        for r in rows:
+            self.remote.setdefault(plugins.dir_name(r['source']), 'pending')
+
+        def run():
+            for r in rows:
+                if self._remote_gen != gen:              # a reload superseded us
+                    return
+                key = plugins.dir_name(r['source'])
+                try:
+                    ref, _kind = plugins.latest_ref(self.ctx.runner, r['source'])
+                    self.remote[key] = ref               # str, or None if unreachable / no ref
+                except Exception:                        # noqa: BLE001 — never let it crash
+                    self.remote[key] = None
+        threading.Thread(target=run, daemon=True).start()
+
+    def _invalidate_diff(self):
+        self.diff_key, self.diff_files, self.diff_note = None, [], ''
+        self.dfile = self.dtop = self.dhscroll = 0
+
+    def load_diff(self):
+        '''Fetch + parse the selected plugin's diff against its remote-ref (what updating pulls in),
+        cached by (name, ref, remote). No-op if already loaded; retries while the remote is pending.'''
+        from .. import plugins
+        row, node = self.cur_row(), self.cur_tree()
+        if row is None or node is None:
+            self.diff_key, self.diff_files, self.diff_note = None, [], 'no plugin selected'
+            return
+        key = plugins.dir_name(row['source'])
+        remote = self.remote.get(key)
+        target = remote if isinstance(remote, str) else None
+        ident = (key, row['ref'], target)
+        if ident == self.diff_key:
+            return                                       # already loaded this exact diff
+        if remote == 'pending':
+            self.diff_files, self.diff_note = [], 'resolving remote-ref…'
+            return                                       # not cached — retry once it lands
+        self.dfile = self.dtop = self.dhscroll = 0
+        if not target:
+            self.diff_key, self.diff_files = ident, []
+            self.diff_note = 'no upstream ref to compare against'
+            return
+        files, err = plugins.diff_against_ref(self.ctx.runner, self.ctx.paths.plugins_dir,
+                                              node['decl'], target)
+        self.diff_key, self.diff_files = ident, files
+        self.diff_note = err or ('' if files else 'up to date — nothing to pull in')
+        self.dfile = min(self.dfile, max(0, len(files) - 1))
+
+
+def _plugin_tree_prefix(node):
+    '''The ├─ │ └─ prefix for a tree row from its ancestry is-last flags. Roots sit flush-left.'''
+    flags = node['last']
+    if node['depth'] == 0:
+        return ''
+    return ''.join('   ' if f else '│  ' for f in flags[:-1]) + ('└─ ' if flags[-1] else '├─ ')
+
+
+def _plugin_cells(row, node, remote):
+    '''The seven column strings for a plugin row (name carries the tree prefix + ★).'''
+    rref = '…' if remote == 'pending' else (remote if isinstance(remote, str) else '—')
+    return [f'{_plugin_tree_prefix(node)}{"★" if row["primary"] else ""}{row["name"]}',
+            row['source'], row['ref'] or '—', rref,
+            'ok' if row['abi_ok'] else f'≠{row["requires_abi"]}',
+            row['code_state'] if row['has_code'] else '—',
+            ','.join(row['provides']) if isinstance(row['provides'], dict) and row['provides'] else '—']
+
+
+def _put_hscroll(stdscr, y, left, win_w, vx, hscroll, text, attr):
+    '''Draw `text` starting at virtual column `vx`, clipped to a window `win_w` wide scrolled by
+    `hscroll` — the primitive behind the plugins table's horizontal (h/l) scroll.'''
+    start = vx - hscroll
+    if start >= win_w or start + len(text) <= 0:
+        return
+    if start < 0:
+        text, start = text[-start:], 0
+    _put(stdscr, y, left + start, text[:win_w - start], attr)
+
+
+def _plugin_remote_elem(row, remote):
+    if remote == 'pending' or not isinstance(remote, str):
+        return 'info_dim'
+    return 'installed' if remote == (row['ref'] or None) else 'outdated'   # green=up-to-date, amber=update
+
+
+def _plugin_code_elem(row):
+    return {'trusted': 'installed', 'untrusted': 'untrusted', 'changed': 'untrusted',
+            'none': 'info_dim', 'unsynced': 'info_dim'}.get(row['code_state'], 'info_dim')
+
+
+def _draw_plugins_table(stdscr, pal, pl, h, w, top, table_h):
+    from .. import plugins
+    tit, til, tih, tiw = _panel(stdscr, pal, top, 0, table_h, w, 'plugins (tree)',
+                                pl.focus == 'table', h, w)
+    if not pl.rows:
+        _put(stdscr, tit, til, _fit('(no plugins declared — a to add)', tiw),
+             pal.style('info_dim', tit, til, h, w))
+        return
+    # sticky column header on the first inner row, then rows scroll below it
+    for (hdr, _wd), vx in zip(_PLUGIN_COLS, _PLUGIN_COL_X):
+        _put_hscroll(stdscr, tit, til, tiw, vx, pl.hscroll, hdr, pal.style('menu_header', tit, til, h, w))
+    rows_h = tih - 1
+    pl.top = _scroll_top(pl.cur, pl.top, rows_h, len(pl.rows))
+    for vis, i in enumerate(range(pl.top, min(len(pl.rows), pl.top + rows_h))):
+        row, node, y, sel = pl.rows[i], pl.tree[i], tit + 1 + vis, i == pl.cur
+        if sel:
+            _put(stdscr, y, til, ' ' * tiw, pal.fill(y, til, h, w, selected=True))
+        remote = pl.remote.get(plugins.dir_name(row['source']))
+        cells = _plugin_cells(row, node, remote)
+        healthy = row['synced'] and row['abi_ok'] and row['checksum'] != 'mismatch'
+        base = 'component' if healthy else 'info_dim'
+        elems = [base, 'info_dim', 'info', _plugin_remote_elem(row, remote),
+                 'installed' if row['abi_ok'] else 'error', _plugin_code_elem(row), 'info_dim']
+        for cell, (_hdr, wd), vx, el in zip(cells, _PLUGIN_COLS, _PLUGIN_COL_X, elems):
+            style = pal.style('label' if sel else el, y, til, h, w, selected=sel)
+            _put_hscroll(stdscr, y, til, tiw, vx, pl.hscroll, _fit(cell, wd), style)
+    _scrollbar_v(stdscr, pal, tit + 1, til + tiw, rows_h, pl.top, rows_h, len(pl.rows), h, w)
+    _scrollbar_h(stdscr, pal, tit + table_h - 1, til, tiw, pl.hscroll, tiw, _PLUGIN_VIRT_W, h, w)
+
+
+def _draw_plugins_diff(stdscr, pal, pl, h, w, top, diff_h):
+    from .. import plugins
+    row = pl.cur_row()
+    title = 'diff'
+    if row is not None:
+        remote = pl.remote.get(plugins.dir_name(row['source']))
+        to = remote if isinstance(remote, str) else '—'
+        title = f'diff · {row["name"]} · {row["ref"] or "HEAD"} → {to}'
+    dit, dil, dih, diw = _panel(stdscr, pal, top, 0, diff_h, w, title, pl.focus == 'diff', h, w)
+    files = pl.diff_files
+    if not files:
+        msg = pl.diff_note or 'Tab here to review what an update would change'
+        _put(stdscr, dit, dil, _fit(msg, diw), pal.style('info_dim', dit, dil, h, w))
+        return
+    pl.dfile = max(0, min(pl.dfile, len(files) - 1))
+    f = files[pl.dfile]
+    added = sum(1 for k, _t in f['lines'] if k == 'add')
+    removed = sum(1 for k, _t in f['lines'] if k == 'del')
+    header = f'[{pl.dfile + 1}/{len(files)}] {f["path"]}   +{added} -{removed}   (Tab: next file)'
+    _put(stdscr, dit, dil, _fit(header, diw), pal.style('accent', dit, dil, h, w))
+    body_h = dih - 1
+    lines = f['lines']
+    pl.dtop = max(0, min(pl.dtop, max(0, len(lines) - body_h)))
+    maxlen = max((len(t) for _k, t in lines), default=0)
+    pl.dhscroll = max(0, min(pl.dhscroll, max(0, maxlen - diw)))
+    for vis, i in enumerate(range(pl.dtop, min(len(lines), pl.dtop + body_h))):
+        kind, txt = lines[i]
+        y = dit + 1 + vis
+        _put(stdscr, y, dil, _fit(txt[pl.dhscroll:], diw),
+             pal.style(_DIFF_ELEM.get(kind, 'info_dim'), y, dil, h, w))
+    _scrollbar_v(stdscr, pal, dit + 1, dil + diw, body_h, pl.dtop, body_h, len(lines), h, w)
+    _scrollbar_h(stdscr, pal, dit + diff_h - 1, dil, diw, pl.dhscroll, diw, maxlen, h, w)
 
 
 def _draw_plugins(stdscr, pal, pl, ctx, note, screen):
@@ -2384,51 +2563,16 @@ def _draw_plugins(stdscr, pal, pl, ctx, note, screen):
         _fill_bg(stdscr, pal, h, w)
     _draw_nav(stdscr, pal, screen, h, w)
     top, body_h = 1, h - 3
-    lw = max(28, 2 * w // 5)
-    lit, lil, lih, liw = _panel(stdscr, pal, top, 0, body_h, lw, 'plugins (layer stack)', True, h, w)
-    pl.top = _scroll_top(pl.cur, pl.top, lih, len(pl.rows))
-    if not pl.rows:
-        _put(stdscr, lit, lil, _fit('(no plugins declared — a to add)', liw),
-             pal.style('info_dim', lit, lil, h, w))
-    for vis, i in enumerate(range(pl.top, min(len(pl.rows), pl.top + lih))):
-        row, y = pl.rows[i], lit + vis
-        sel = i == pl.cur
-        if sel:
-            _put(stdscr, y, lil, ' ' * liw, pal.fill(y, lil, h, w, selected=True))
-        glyph = '★' if row['primary'] else ' '
-        healthy = row['synced'] and row['abi_ok'] and row['checksum'] != 'mismatch'
-        elem = 'label' if sel else ('component' if healthy else 'info_dim')
-        _put(stdscr, y, lil, _fit(f'{glyph} {row["name"]:20} {_plugin_state(row)}', liw),
-             pal.style(elem, y, lil, h, w, selected=sel))
-    _scrollbar_v(stdscr, pal, lit, lil + liw, lih, pl.top, lih, len(pl.rows), h, w)
+    table_h = max(6, body_h * 3 // 5)                    # table gets the larger share; diff the rest
+    diff_h = body_h - table_h
+    _draw_plugins_table(stdscr, pal, pl, h, w, top, table_h)
+    _draw_plugins_diff(stdscr, pal, pl, h, w, top + table_h, diff_h)
 
-    rit, ril, rih, riw = _panel(stdscr, pal, top, lw + 1, body_h, w - lw - 1, 'detail', False, h, w)
-    row = pl.cur_row()
-    if row:
-        det = [f'name     {row["name"]}',
-               f'source   {row["source"]}',
-               f'ref      {row["ref"] or "(default branch)"}',
-               f'synced   {"yes" if row["synced"] else "NO — press s to sync"}',
-               f'abi      {"ok" if row["abi_ok"] else "INCOMPATIBLE (needs " + str(row["requires_abi"]) + ")"}']
-        if row['primary']:
-            det.append('primary  ★ yes — its machine settings apply here')
-        if row['local']:
-            det.append('local    authored in place (not pushed)')
-        if row['checksum']:
-            det.append(f'checksum {row["checksum"].upper()}')
-        if row['has_code']:
-            det.append(f'code     {row["code_state"]}')
-        prov = row['provides']
-        if isinstance(prov, dict) and prov:
-            det.append(f'provides {", ".join(prov)}')
-        for k, line in enumerate(det[:rih]):
-            _put(stdscr, rit + k, ril, _fit(line, riw), pal.style('info', rit + k, ril, h, w))
-
-    status = f' {len(pl.rows)} plugin(s)'
+    status = f' {len(pl.rows)} plugin(s) · focus: {pl.focus}'
     if note:
         status += f'    {note}'
-    navf = (' j/k · a add · x remove · s sync · S all · b bless · B unbless · u update · '
-            't trust · T untrust · v set-ref · 1-6 · q ')
+    navf = (' tab focus · j/k · h/l scroll · a add · x rm · s/S sync · b/B bless · u/U update · '
+            'v ref · t trust · T trust-all · 1-6 · q ')
     _put(stdscr, h - 2, 0, _fit(status, w), pal.style('status_line', h - 2, 0, h, w))
     _put(stdscr, h - 1, 0, _fit(navf.ljust(w), w), pal.style('footer', h - 1, 0, h, w))
     stdscr.refresh()
@@ -2835,14 +2979,57 @@ def run(ctx):
                 from .. import actions, plugins
                 row = pl.cur_row()
                 try:
-                    if ch in (ord('j'), curses.KEY_DOWN):
-                        pl.cur = min(len(pl.rows) - 1, pl.cur + 1)
+                    if pl.focus == 'diff' and pl.diff_key is None:
+                        pl.load_diff()                         # remote-ref landed -> fetch it now
+                    # -- focus + navigation (focus-aware j/k/h/l/g/G) --
+                    if ch == ord('\t'):                        # Tab: table→diff, then file→file, then →table
+                        if pl.focus == 'table':
+                            pl.focus, pl.dfile = 'diff', 0
+                            pl.load_diff()
+                        elif pl.dfile + 1 < len(pl.diff_files):
+                            pl.dfile, pl.dtop, pl.dhscroll = pl.dfile + 1, 0, 0
+                        else:
+                            pl.focus = 'table'
+                    elif ch == curses.KEY_BTAB:                # Shift-Tab: reverse
+                        if pl.focus == 'table':
+                            pl.focus = 'diff'
+                            pl.load_diff()
+                            pl.dfile = max(0, len(pl.diff_files) - 1)
+                        elif pl.dfile > 0:
+                            pl.dfile, pl.dtop, pl.dhscroll = pl.dfile - 1, 0, 0
+                        else:
+                            pl.focus = 'table'
+                    elif ch in (ord('j'), curses.KEY_DOWN):
+                        if pl.focus == 'diff':
+                            pl.dtop += 1
+                        else:
+                            pl.cur = min(len(pl.rows) - 1, pl.cur + 1); pl._invalidate_diff()
                     elif ch in (ord('k'), curses.KEY_UP):
-                        pl.cur = max(0, pl.cur - 1)
+                        if pl.focus == 'diff':
+                            pl.dtop = max(0, pl.dtop - 1)
+                        else:
+                            pl.cur = max(0, pl.cur - 1); pl._invalidate_diff()
+                    elif ch in (ord('l'), curses.KEY_RIGHT):
+                        if pl.focus == 'diff':
+                            pl.dhscroll += 4
+                        else:
+                            pl.hscroll += 6
+                    elif ch in (ord('h'), curses.KEY_LEFT):
+                        if pl.focus == 'diff':
+                            pl.dhscroll = max(0, pl.dhscroll - 4)
+                        else:
+                            pl.hscroll = max(0, pl.hscroll - 6)
                     elif ch == ord('g'):
-                        pl.cur = 0
+                        if pl.focus == 'diff':
+                            pl.dtop = 0
+                        else:
+                            pl.cur = 0; pl._invalidate_diff()
                     elif ch == ord('G'):
-                        pl.cur = max(0, len(pl.rows) - 1)
+                        if pl.focus == 'diff':
+                            pl.dtop = 10 ** 6                   # clamped in the draw
+                        else:
+                            pl.cur = max(0, len(pl.rows) - 1); pl._invalidate_diff()
+                    # -- actions --
                     elif ch == ord('a'):
                         src = _input_box(stdscr, pal, 'add plugin — source (github:owner/repo)', '')
                         if src and src.strip():
@@ -2856,8 +3043,8 @@ def run(ctx):
                         pl.reload()
                         menu_dirty = True
                     elif ch == ord('s') and row:
-                        tgt = [d for d in pl.decls
-                               if plugins.dir_name(d['source']) == plugins.dir_name(row['source'])]
+                        tgt = [t['decl'] for t in pl.tree
+                               if plugins.dir_name(t['decl']['source']) == plugins.dir_name(row['source'])]
                         with suspended(stdscr):
                             actions.plugin_sync(ctx, tgt)
                         pl.reload()
@@ -2879,19 +3066,30 @@ def run(ctx):
                         _ok, note = actions.plugin_unbless(ctx)
                         pl.reload()
                         menu_dirty = True
-                    elif ch == ord('u') and row:
+                    elif ch == ord('u') and row:               # re-sync at the current ref
                         with suspended(stdscr):
                             _ok, msg, _r = actions.plugin_update(ctx, row['name'])
                         pl.reload()
                         note = msg
-                    elif ch == ord('t') and row:               # trust this code plugin's content
-                        _ok, note = actions.plugin_trust(ctx, row['name'])
+                    elif ch == ord('U'):                       # update ALL to latest tag / main|master
+                        with suspended(stdscr):
+                            rows_ = actions.plugin_update_all(ctx, latest=True)
+                        pl.reload()
+                        menu_dirty = True
+                        failed = [s for s, ok, _m in rows_ if not ok]
+                        note = f'updated {len(rows_) - len(failed)}/{len(rows_)} to latest' + (
+                            f' ({len(failed)} failed)' if failed else '')
+                    elif ch == ord('t') and row:               # trust TOGGLE for this code plugin
+                        if row['code_state'] == 'trusted':
+                            _ok, note = actions.plugin_untrust(ctx, row['name'])
+                        else:
+                            _ok, note = actions.plugin_trust(ctx, row['name'])
                         pl.reload()
                         menu_dirty = menu_dirty or _ok
-                    elif ch == ord('T') and row:               # untrust
-                        _ok, note = actions.plugin_untrust(ctx, row['name'])
+                    elif ch == ord('T'):                       # trust ALL currently-untrusted
+                        _n, note = actions.plugin_trust_all(ctx)
                         pl.reload()
-                        menu_dirty = menu_dirty or _ok
+                        menu_dirty = menu_dirty or bool(_n)
                     elif ch == ord('v') and row:               # set the git ref (version/branch/tag)
                         ref = _input_box(stdscr, pal, f'{row["name"]} — set ref (tag/branch/sha)', '')
                         if ref and ref.strip():
