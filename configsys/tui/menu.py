@@ -2345,15 +2345,8 @@ def _draw_theme(stdscr, pal, ts, ctx, note, screen):
 
 
 # -- Plugins screen -------------------------------------------------------
-# The top table's columns (header, width). The name column also carries the tree prefix + ★.
-_PLUGIN_COLS = [('name', 26), ('source', 30), ('ref', 13), ('remote-ref', 13),
-                ('abi', 5), ('code', 10), ('provides', 20)]
-_PLUGIN_COL_X = []                                   # virtual x of each column (filled below)
-_vx = 0
-for _hdr, _wd in _PLUGIN_COLS:
-    _PLUGIN_COL_X.append(_vx)
-    _vx += _wd + 1                                   # one space between columns
-_PLUGIN_VIRT_W = _vx - 1
+# Column headers; widths are computed per-draw to fit content (name/source show full length).
+_PLUGIN_HEADERS = ['name', 'source', 'ref', 'remote-ref', 'abi', 'code', 'provides']
 _DIFF_ELEM = {'add': 'diff_add', 'del': 'diff_del', 'hunk': 'diff_hunk',
               'meta': 'diff_meta', 'ctx': 'info_dim'}
 
@@ -2452,11 +2445,13 @@ class PluginScreen:
 
 
 def _plugin_tree_prefix(node):
-    '''The ├─ │ └─ prefix for a tree row from its ancestry is-last flags. Roots sit flush-left.'''
+    '''The ├─ │ └─ prefix for a tree row from its ancestry is-last flags. Roots sit flush-left, and
+    a depth-1 child's connector starts at column 0 (under the root name's first letter) — the root
+    level contributes no indent (flags[1:-1]), so the tree stays tight against the name column.'''
     flags = node['last']
     if node['depth'] == 0:
         return ''
-    return ''.join('   ' if f else '│  ' for f in flags[:-1]) + ('└─ ' if flags[-1] else '├─ ')
+    return ''.join('   ' if f else '│  ' for f in flags[1:-1]) + ('└─ ' if flags[-1] else '├─ ')
 
 
 def _plugin_cells(row, node, remote):
@@ -2499,26 +2494,35 @@ def _draw_plugins_table(stdscr, pal, pl, h, w, top, table_h):
         _put(stdscr, tit, til, _fit('(no plugins declared — a to add)', tiw),
              pal.style('info_dim', tit, til, h, w))
         return
+    # one cell-set per row; columns are sized to their longest cell so name/source show in full
+    remotes = [pl.remote.get(plugins.dir_name(r['source'])) for r in pl.rows]
+    cells_by_row = [_plugin_cells(r, pl.tree[i], remotes[i]) for i, r in enumerate(pl.rows)]
+    widths = [max(len(_PLUGIN_HEADERS[c]), max((len(cs[c]) for cs in cells_by_row), default=0))
+              for c in range(len(_PLUGIN_HEADERS))]
+    xs, vx = [], 0
+    for wd in widths:
+        xs.append(vx)
+        vx += wd + 1                                     # one space between columns
+    virt_w = vx - 1
+    pl.hscroll = max(0, min(pl.hscroll, max(0, virt_w - tiw)))   # clamp: no scrolling past the end
     # sticky column header on the first inner row, then rows scroll below it
-    for (hdr, _wd), vx in zip(_PLUGIN_COLS, _PLUGIN_COL_X):
-        _put_hscroll(stdscr, tit, til, tiw, vx, pl.hscroll, hdr, pal.style('menu_header', tit, til, h, w))
+    for hdr, vx0 in zip(_PLUGIN_HEADERS, xs):
+        _put_hscroll(stdscr, tit, til, tiw, vx0, pl.hscroll, hdr, pal.style('menu_header', tit, til, h, w))
     rows_h = tih - 1
     pl.top = _scroll_top(pl.cur, pl.top, rows_h, len(pl.rows))
     for vis, i in enumerate(range(pl.top, min(len(pl.rows), pl.top + rows_h))):
-        row, node, y, sel = pl.rows[i], pl.tree[i], tit + 1 + vis, i == pl.cur
+        row, y, sel = pl.rows[i], tit + 1 + vis, i == pl.cur
         if sel:
             _put(stdscr, y, til, ' ' * tiw, pal.fill(y, til, h, w, selected=True))
-        remote = pl.remote.get(plugins.dir_name(row['source']))
-        cells = _plugin_cells(row, node, remote)
         healthy = row['synced'] and row['abi_ok'] and row['checksum'] != 'mismatch'
         base = 'component' if healthy else 'info_dim'
-        elems = [base, 'info_dim', 'info', _plugin_remote_elem(row, remote),
+        elems = [base, 'info_dim', 'info', _plugin_remote_elem(row, remotes[i]),
                  'installed' if row['abi_ok'] else 'error', _plugin_code_elem(row), 'info_dim']
-        for cell, (_hdr, wd), vx, el in zip(cells, _PLUGIN_COLS, _PLUGIN_COL_X, elems):
+        for cell, wd, vx0, el in zip(cells_by_row[i], widths, xs, elems):
             style = pal.style('label' if sel else el, y, til, h, w, selected=sel)
-            _put_hscroll(stdscr, y, til, tiw, vx, pl.hscroll, _fit(cell, wd), style)
+            _put_hscroll(stdscr, y, til, tiw, vx0, pl.hscroll, cell.ljust(wd), style)
     _scrollbar_v(stdscr, pal, tit + 1, til + tiw, rows_h, pl.top, rows_h, len(pl.rows), h, w)
-    _scrollbar_h(stdscr, pal, tit + table_h - 1, til, tiw, pl.hscroll, tiw, _PLUGIN_VIRT_W, h, w)
+    _scrollbar_h(stdscr, pal, tit + table_h - 1, til, tiw, pl.hscroll, tiw, virt_w, h, w)
 
 
 def _draw_plugins_diff(stdscr, pal, pl, h, w, top, diff_h):
@@ -2563,7 +2567,7 @@ def _draw_plugins(stdscr, pal, pl, ctx, note, screen):
         _fill_bg(stdscr, pal, h, w)
     _draw_nav(stdscr, pal, screen, h, w)
     top, body_h = 1, h - 3
-    table_h = max(6, body_h * 3 // 5)                    # table gets the larger share; diff the rest
+    table_h = max(6, body_h * 2 // 5)                    # diff gets the larger share (~3/5); table the rest
     diff_h = body_h - table_h
     _draw_plugins_table(stdscr, pal, pl, h, w, top, table_h)
     _draw_plugins_diff(stdscr, pal, pl, h, w, top + table_h, diff_h)
@@ -3066,10 +3070,11 @@ def run(ctx):
                         _ok, note = actions.plugin_unbless(ctx)
                         pl.reload()
                         menu_dirty = True
-                    elif ch == ord('u') and row:               # re-sync at the current ref
+                    elif ch == ord('u') and row:               # update this plugin to its latest ref
                         with suspended(stdscr):
-                            _ok, msg, _r = actions.plugin_update(ctx, row['name'])
+                            _ok, msg, _r = actions.plugin_update(ctx, row['name'], latest=True)
                         pl.reload()
+                        menu_dirty = menu_dirty or _ok
                         note = msg
                     elif ch == ord('U'):                       # update ALL to latest tag / main|master
                         with suspended(stdscr):

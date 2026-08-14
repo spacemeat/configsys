@@ -45,6 +45,15 @@ def test_declared_tree_nests_transitive_under_their_parent(tmp_path):
     assert flags['opencv'] == [True, False, True]
 
 
+def test_tree_prefix_chokes_up_under_the_root_first_letter():
+    from configsys.tui.menu import _plugin_tree_prefix
+    # cfg(root) -> blender(not-last) -> opencv(last) ; kicad(last)
+    assert _plugin_tree_prefix({'depth': 0, 'last': [True]}) == ''
+    assert _plugin_tree_prefix({'depth': 1, 'last': [True, False]}) == '├─ '   # col 0, under root
+    assert _plugin_tree_prefix({'depth': 1, 'last': [True, True]}) == '└─ '
+    assert _plugin_tree_prefix({'depth': 2, 'last': [True, False, True]}) == '│  └─ '
+
+
 def test_declared_tree_dedups_a_shared_child_to_one_row(tmp_path):
     pdir = tmp_path / 'plugins'
     _plugin(pdir, 'cfg', '{ name: cfg  requires-abi: 1  plugins: ['
