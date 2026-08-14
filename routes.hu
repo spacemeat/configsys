@@ -1556,6 +1556,19 @@
                 { via: snap  name: codium  classic: true }
             ]
         }
+        // antigravity: Google's agent-first AI IDE (a VS Code fork — imports VS Code settings/exts;
+        // "Manager view" orchestrates parallel agents across Gemini/Claude/GPT-OSS). Free PREVIEW.
+        // Google ships auto-updating GAR apt/dnf repos (us-central1-apt/yum.pkg.dev, package
+        // `antigravity`) — the ideal binding, but its exact key + apt suite are behind a JS page we
+        // couldn't pin, so those are a TODO (a good target for a refresh version/preview hook). Here:
+        // Arch AUR, and the upstream tarball elsewhere (a manual VERSION pin — bump the url; the app
+        // self-updates after first launch, so a stale pin only affects the initial install).
+        antigravity: { description: "Google Antigravity — Google's agent-first AI IDE (a VS Code fork; Gemini/Claude/GPT-OSS)."
+            install: [
+                { via: aur  when: "arch"  name: antigravity-bin }
+                { via: tarball  when: "not arch"  installDir: "$CONFIGSYS_APP_DIR/antigravity"  requires: glibc  version: { static: "1.23.2" }
+                  url: "https://edgedl.me.gvt1.com/edgedl/release2/j0qc3/antigravity/stable/1.23.2-4781536860569600/linux-x64/Antigravity.tar.gz" } ]
+        }
         // android-studio: Google's official tarball, unpacked scope-honoring (~/android-studio
         // for user, /opt/android-studio for system). No clean version API, so the version is a
         // manual pin — bump it from developer.android.com/studio. Fat IDE config deferred.

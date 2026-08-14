@@ -156,6 +156,29 @@
     "name": "ant"
    }
   },
+  "antigravity": {
+   "aur\\antigravity": {
+    "driver": "aur",
+    "fields": {
+     "name": "antigravity-bin"
+    },
+    "name": "antigravity-bin"
+   },
+   "pacman\\base-devel": {
+    "driver": "pacman",
+    "fields": {
+     "name": "base-devel"
+    },
+    "name": "base-devel"
+   },
+   "pacman\\git": {
+    "driver": "pacman",
+    "fields": {
+     "name": "git"
+    },
+    "name": "git"
+   }
+  },
   "ardour": {
    "flatpak\\ardour": {
     "driver": "flatpak",
@@ -6477,6 +6500,27 @@
      "name": "ant"
     },
     "name": "ant"
+   }
+  },
+  "antigravity": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "tarball\\antigravity": {
+    "driver": "tarball",
+    "fields": {
+     "installDir": "$CONFIGSYS_APP_DIR/antigravity",
+     "name": "antigravity",
+     "url": "https://edgedl.me.gvt1.com/edgedl/release2/j0qc3/antigravity/stable/1.23.2-4781536860569600/linux-x64/Antigravity.tar.gz",
+     "version": {
+      "static": "1.23.2"
+     }
+    },
+    "name": "antigravity"
    }
   },
   "ardour": {
@@ -13369,6 +13413,27 @@
     "name": "ant"
    }
   },
+  "antigravity": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "tarball\\antigravity": {
+    "driver": "tarball",
+    "fields": {
+     "installDir": "$CONFIGSYS_APP_DIR/antigravity",
+     "name": "antigravity",
+     "url": "https://edgedl.me.gvt1.com/edgedl/release2/j0qc3/antigravity/stable/1.23.2-4781536860569600/linux-x64/Antigravity.tar.gz",
+     "version": {
+      "static": "1.23.2"
+     }
+    },
+    "name": "antigravity"
+   }
+  },
   "ardour": {
    "apt\\flatpak": {
     "driver": "apt",
@@ -20137,6 +20202,27 @@
      "name": "ant"
     },
     "name": "ant"
+   }
+  },
+  "antigravity": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "tarball\\antigravity": {
+    "driver": "tarball",
+    "fields": {
+     "installDir": "$CONFIGSYS_APP_DIR/antigravity",
+     "name": "antigravity",
+     "url": "https://edgedl.me.gvt1.com/edgedl/release2/j0qc3/antigravity/stable/1.23.2-4781536860569600/linux-x64/Antigravity.tar.gz",
+     "version": {
+      "static": "1.23.2"
+     }
+    },
+    "name": "antigravity"
    }
   },
   "ardour": {
@@ -26918,6 +27004,27 @@
     "name": "ant"
    }
   },
+  "antigravity": {
+   "dnf\\curl": {
+    "driver": "dnf",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "tarball\\antigravity": {
+    "driver": "tarball",
+    "fields": {
+     "installDir": "$CONFIGSYS_APP_DIR/antigravity",
+     "name": "antigravity",
+     "url": "https://edgedl.me.gvt1.com/edgedl/release2/j0qc3/antigravity/stable/1.23.2-4781536860569600/linux-x64/Antigravity.tar.gz",
+     "version": {
+      "static": "1.23.2"
+     }
+    },
+    "name": "antigravity"
+   }
+  },
   "ardour": {
    "dnf\\flatpak": {
     "driver": "dnf",
@@ -33346,6 +33453,27 @@
     "name": "ant"
    }
   },
+  "antigravity": {
+   "dnf\\curl": {
+    "driver": "dnf",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "tarball\\antigravity": {
+    "driver": "tarball",
+    "fields": {
+     "installDir": "$CONFIGSYS_APP_DIR/antigravity",
+     "name": "antigravity",
+     "url": "https://edgedl.me.gvt1.com/edgedl/release2/j0qc3/antigravity/stable/1.23.2-4781536860569600/linux-x64/Antigravity.tar.gz",
+     "version": {
+      "static": "1.23.2"
+     }
+    },
+    "name": "antigravity"
+   }
+  },
   "ardour": {
    "dnf\\flatpak": {
     "driver": "dnf",
@@ -39746,6 +39874,27 @@
     "name": "ant"
    }
   },
+  "antigravity": {
+   "brew\\curl": {
+    "driver": "brew",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "tarball\\antigravity": {
+    "driver": "tarball",
+    "fields": {
+     "installDir": "$CONFIGSYS_APP_DIR/antigravity",
+     "name": "antigravity",
+     "url": "https://edgedl.me.gvt1.com/edgedl/release2/j0qc3/antigravity/stable/1.23.2-4781536860569600/linux-x64/Antigravity.tar.gz",
+     "version": {
+      "static": "1.23.2"
+     }
+    },
+    "name": "antigravity"
+   }
+  },
   "ardour": {
    "flatpak\\ardour": {
     "driver": "flatpak",
@@ -44316,6 +44465,27 @@
      "name": "ant"
     },
     "name": "ant"
+   }
+  },
+  "antigravity": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "tarball\\antigravity": {
+    "driver": "tarball",
+    "fields": {
+     "installDir": "$CONFIGSYS_APP_DIR/antigravity",
+     "name": "antigravity",
+     "url": "https://edgedl.me.gvt1.com/edgedl/release2/j0qc3/antigravity/stable/1.23.2-4781536860569600/linux-x64/Antigravity.tar.gz",
+     "version": {
+      "static": "1.23.2"
+     }
+    },
+    "name": "antigravity"
    }
   },
   "ardour": {
@@ -51226,6 +51396,27 @@
     "name": "ant"
    }
   },
+  "antigravity": {
+   "dnf\\curl": {
+    "driver": "dnf",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "tarball\\antigravity": {
+    "driver": "tarball",
+    "fields": {
+     "installDir": "$CONFIGSYS_APP_DIR/antigravity",
+     "name": "antigravity",
+     "url": "https://edgedl.me.gvt1.com/edgedl/release2/j0qc3/antigravity/stable/1.23.2-4781536860569600/linux-x64/Antigravity.tar.gz",
+     "version": {
+      "static": "1.23.2"
+     }
+    },
+    "name": "antigravity"
+   }
+  },
   "ardour": {
    "dnf\\flatpak": {
     "driver": "dnf",
@@ -57971,6 +58162,27 @@
      "name": "ant"
     },
     "name": "ant"
+   }
+  },
+  "antigravity": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "tarball\\antigravity": {
+    "driver": "tarball",
+    "fields": {
+     "installDir": "$CONFIGSYS_APP_DIR/antigravity",
+     "name": "antigravity",
+     "url": "https://edgedl.me.gvt1.com/edgedl/release2/j0qc3/antigravity/stable/1.23.2-4781536860569600/linux-x64/Antigravity.tar.gz",
+     "version": {
+      "static": "1.23.2"
+     }
+    },
+    "name": "antigravity"
    }
   },
   "ardour": {
@@ -64870,6 +65082,27 @@
      "name": "ant"
     },
     "name": "ant"
+   }
+  },
+  "antigravity": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "tarball\\antigravity": {
+    "driver": "tarball",
+    "fields": {
+     "installDir": "$CONFIGSYS_APP_DIR/antigravity",
+     "name": "antigravity",
+     "url": "https://edgedl.me.gvt1.com/edgedl/release2/j0qc3/antigravity/stable/1.23.2-4781536860569600/linux-x64/Antigravity.tar.gz",
+     "version": {
+      "static": "1.23.2"
+     }
+    },
+    "name": "antigravity"
    }
   },
   "ardour": {
