@@ -253,7 +253,7 @@
                     libreadline-dev, libsqlite3-dev, libncursesw5-dev, xz-utils, tk-dev, libffi-dev, liblzma-dev ] }
                 { via: native  when: "fedora or redhat"  packages: [ gcc, make, zlib-devel, bzip2-devel,
                     readline-devel, sqlite-devel, openssl-devel, tk-devel, libffi-devel, xz-devel ] }
-                { via: native  when: "arch"  packages: [ base-devel, openssl, zlib, xz, tk ] }   // pyenv's documented Arch build env (Arch bundles headers, no -dev split)
+                { via: native  when: "arch"  packages: [ base-devel, openssl, zlib, xz, tk ] }   // pyenv's documented Arch build env (Arch bundles headers, no -dev split). Keep `base-devel` — it's a META-package now (not a group, since 2023-02), so `pacman -Q` detects it exactly AND it tracks new build-tool members on upgrade; expanding it to concrete members would silently miss future additions.
             ] }
         // EL keeps these in EPEL, base repos everywhere else — same two-binding shape as btop.
         // `repo-component: universe` is the apt archive area (read only by apt; ignored on dnf/pacman).
