@@ -4074,6 +4074,52 @@
     "name": "protobuf"
    }
   },
+  "protontricks": {
+   "aur\\protontricks": {
+    "driver": "aur",
+    "fields": {
+     "name": "protontricks"
+    },
+    "name": "protontricks"
+   },
+   "pacman\\base-devel": {
+    "driver": "pacman",
+    "fields": {
+     "name": "base-devel"
+    },
+    "name": "base-devel"
+   },
+   "pacman\\git": {
+    "driver": "pacman",
+    "fields": {
+     "name": "git"
+    },
+    "name": "git"
+   }
+  },
+  "protonup-qt": {
+   "aur\\protonup-qt": {
+    "driver": "aur",
+    "fields": {
+     "name": "protonup-qt"
+    },
+    "name": "protonup-qt"
+   },
+   "pacman\\base-devel": {
+    "driver": "pacman",
+    "fields": {
+     "name": "base-devel"
+    },
+    "name": "base-devel"
+   },
+   "pacman\\git": {
+    "driver": "pacman",
+    "fields": {
+     "name": "git"
+    },
+    "name": "git"
+   }
+  },
   "puppet": {
    "gem\\puppet": {
     "driver": "gem",
@@ -11163,6 +11209,40 @@
     "name": "protobuf-compiler"
    }
   },
+  "protontricks": {
+   "apt\\flatpak": {
+    "driver": "apt",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\protontricks": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "com.github.Matoking.protontricks"
+    },
+    "name": "com.github.Matoking.protontricks"
+   }
+  },
+  "protonup-qt": {
+   "apt\\flatpak": {
+    "driver": "apt",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\protonup-qt": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "net.davidotek.pupgui2"
+    },
+    "name": "net.davidotek.pupgui2"
+   }
+  },
   "puppet": {
    "apt\\ruby": {
     "driver": "apt",
@@ -17988,6 +18068,40 @@
     "name": "protobuf-compiler"
    }
   },
+  "protontricks": {
+   "apt\\flatpak": {
+    "driver": "apt",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\protontricks": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "com.github.Matoking.protontricks"
+    },
+    "name": "com.github.Matoking.protontricks"
+   }
+  },
+  "protonup-qt": {
+   "apt\\flatpak": {
+    "driver": "apt",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\protonup-qt": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "net.davidotek.pupgui2"
+    },
+    "name": "net.davidotek.pupgui2"
+   }
+  },
   "puppet": {
    "apt\\ruby": {
     "driver": "apt",
@@ -24792,6 +24906,40 @@
     "name": "protobuf-compiler"
    }
   },
+  "protontricks": {
+   "apt\\flatpak": {
+    "driver": "apt",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\protontricks": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "com.github.Matoking.protontricks"
+    },
+    "name": "com.github.Matoking.protontricks"
+   }
+  },
+  "protonup-qt": {
+   "apt\\flatpak": {
+    "driver": "apt",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\protonup-qt": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "net.davidotek.pupgui2"
+    },
+    "name": "net.davidotek.pupgui2"
+   }
+  },
   "puppet": {
    "apt\\ruby": {
     "driver": "apt",
@@ -31242,6 +31390,40 @@
      "repo-component": "universe"
     },
     "name": "protobuf-compiler"
+   }
+  },
+  "protontricks": {
+   "dnf\\flatpak": {
+    "driver": "dnf",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\protontricks": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "com.github.Matoking.protontricks"
+    },
+    "name": "com.github.Matoking.protontricks"
+   }
+  },
+  "protonup-qt": {
+   "dnf\\flatpak": {
+    "driver": "dnf",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\protonup-qt": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "net.davidotek.pupgui2"
+    },
+    "name": "net.davidotek.pupgui2"
    }
   },
   "puppet": {
@@ -37723,6 +37905,40 @@
     "name": "protobuf-compiler"
    }
   },
+  "protontricks": {
+   "dnf\\flatpak": {
+    "driver": "dnf",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\protontricks": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "com.github.Matoking.protontricks"
+    },
+    "name": "com.github.Matoking.protontricks"
+   }
+  },
+  "protonup-qt": {
+   "dnf\\flatpak": {
+    "driver": "dnf",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\protonup-qt": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "net.davidotek.pupgui2"
+    },
+    "name": "net.davidotek.pupgui2"
+   }
+  },
   "puppet": {
    "dnf\\ruby": {
     "driver": "dnf",
@@ -42877,6 +43093,26 @@
      "repo-component": "universe"
     },
     "name": "protobuf"
+   }
+  },
+  "protontricks": {
+   "flatpak\\protontricks": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "com.github.Matoking.protontricks"
+    },
+    "name": "com.github.Matoking.protontricks"
+   }
+  },
+  "protonup-qt": {
+   "flatpak\\protonup-qt": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "net.davidotek.pupgui2"
+    },
+    "name": "net.davidotek.pupgui2"
    }
   },
   "puppet": {
@@ -49168,6 +49404,40 @@
      "repo-component": "universe"
     },
     "name": "protobuf-compiler"
+   }
+  },
+  "protontricks": {
+   "apt\\flatpak": {
+    "driver": "apt",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\protontricks": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "com.github.Matoking.protontricks"
+    },
+    "name": "com.github.Matoking.protontricks"
+   }
+  },
+  "protonup-qt": {
+   "apt\\flatpak": {
+    "driver": "apt",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\protonup-qt": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "net.davidotek.pupgui2"
+    },
+    "name": "net.davidotek.pupgui2"
    }
   },
   "puppet": {
@@ -55879,6 +56149,40 @@
      "repo-component": "universe"
     },
     "name": "protobuf-compiler"
+   }
+  },
+  "protontricks": {
+   "dnf\\flatpak": {
+    "driver": "dnf",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\protontricks": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "com.github.Matoking.protontricks"
+    },
+    "name": "com.github.Matoking.protontricks"
+   }
+  },
+  "protonup-qt": {
+   "dnf\\flatpak": {
+    "driver": "dnf",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\protonup-qt": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "net.davidotek.pupgui2"
+    },
+    "name": "net.davidotek.pupgui2"
    }
   },
   "puppet": {
@@ -62866,6 +63170,40 @@
     "name": "protobuf-compiler"
    }
   },
+  "protontricks": {
+   "apt\\flatpak": {
+    "driver": "apt",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\protontricks": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "com.github.Matoking.protontricks"
+    },
+    "name": "com.github.Matoking.protontricks"
+   }
+  },
+  "protonup-qt": {
+   "apt\\flatpak": {
+    "driver": "apt",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\protonup-qt": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "net.davidotek.pupgui2"
+    },
+    "name": "net.davidotek.pupgui2"
+   }
+  },
   "puppet": {
    "apt\\ruby": {
     "driver": "apt",
@@ -69698,6 +70036,40 @@
      "repo-component": "universe"
     },
     "name": "protobuf-compiler"
+   }
+  },
+  "protontricks": {
+   "apt\\flatpak": {
+    "driver": "apt",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\protontricks": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "com.github.Matoking.protontricks"
+    },
+    "name": "com.github.Matoking.protontricks"
+   }
+  },
+  "protonup-qt": {
+   "apt\\flatpak": {
+    "driver": "apt",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\protonup-qt": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "net.davidotek.pupgui2"
+    },
+    "name": "net.davidotek.pupgui2"
    }
   },
   "puppet": {

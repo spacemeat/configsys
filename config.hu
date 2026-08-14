@@ -35,7 +35,7 @@ profiles: {
     text-editors: [ android-studio  antigravity  emacs  helix  jetbrains-toolbox  neovim  vscode  vscodium  zed ]
     web-browsers: [ chrome  chromium  firefox  brave  opera  vivaldi  edge ]
     audio: [ pipewire  jack ]
-    gaming: [ +user  vulkan-runtime  steam  wine  winetricks ]
+    gaming: [ +user  vulkan-runtime  steam  wine  winetricks  protonup-qt  protontricks ]
 
     virtual-machines: [ qemu  libvirt  libvirt-service  virt-manager  virtualbox ]
     containers: [ docker  docker-group  lazydocker  podman ]

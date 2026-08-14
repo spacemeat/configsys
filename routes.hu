@@ -905,6 +905,19 @@
         winetricks: { description: "winetricks — fetch runtime DLLs/fonts and tweak Wine prefixes." requires: wine
             install: [ { via: native  when: "rhel"  requires: epel }   // EPEL8+
                        { via: native  when: "debian or fedora or arch or opensuse or alpine"  repo-component: universe } ] }
+        // Proton tooling. Proton itself is SELF-CONTAINED (bundles its own Wine + DXVK/VKD3D + a Steam
+        // runtime) and is installed BY Steam (Steam Play) — not a package, and independent of the
+        // system `wine` above. What you install by hand is the community tooling: ProtonUp-Qt (the GUI
+        // that fetches GE-Proton and other custom compat tools into ~/.steam/…/compatibilitytools.d)
+        // and protontricks (winetricks for Proton game prefixes). No `requires: wine` — both are for
+        // Steam's Proton stack, which carries its own Wine.
+        protonup-qt: { description: "ProtonUp-Qt — a GUI to install & manage GE-Proton and other Steam/Wine compatibility tools."
+            install: [ { via: flatpak  hub: flathub  app: net.davidotek.pupgui2 }
+                       { via: aur  when: "arch"  name: protonup-qt } ] }
+        protontricks: { description: "protontricks — winetricks for Steam Proton game prefixes."
+            install: [ { via: flatpak  hub: flathub  app: com.github.Matoking.protontricks }
+                       { via: aur  when: "arch"  name: protontricks }
+                       { via: pipx  name: protontricks  standing: never-auto } ] }
 
         // --- apps: native everywhere. A clean-config tool manages its ~/.config as a
         // dir-dotfile (content in dotfiles/<name>/ symlinked to $XDG_CONFIG_HOME/<name>, like
