@@ -240,6 +240,15 @@
     "name": "bash-dotfiles"
    }
   },
+  "bazaar": {
+   "pacman\\bazaar": {
+    "driver": "pacman",
+    "fields": {
+     "name": "breezy"
+    },
+    "name": "breezy"
+   }
+  },
   "bazelisk": {
    "pacman\\curl": {
     "driver": "pacman",
@@ -562,6 +571,24 @@
     "name": "npm"
    }
   },
+  "composer": {
+   "pacman\\composer": {
+    "driver": "pacman",
+    "fields": {
+     "name": "composer",
+     "repo-component": "universe"
+    },
+    "name": "composer"
+   },
+   "pacman\\php": {
+    "driver": "pacman",
+    "fields": {
+     "name": "php",
+     "repo-component": "universe"
+    },
+    "name": "php"
+   }
+  },
   "compression": {
    "pacman\\lz4": {
     "driver": "pacman",
@@ -576,6 +603,13 @@
      "name": "7zip"
     },
     "name": "7zip"
+   },
+   "pacman\\unrar": {
+    "driver": "pacman",
+    "fields": {
+     "name": "unrar"
+    },
+    "name": "unrar"
    },
    "pacman\\unzip": {
     "driver": "pacman",
@@ -711,6 +745,16 @@
      "name": "curl"
     },
     "name": "curl"
+   }
+  },
+  "cvs": {
+   "pacman\\cvs": {
+    "driver": "pacman",
+    "fields": {
+     "name": "cvs",
+     "repo-component": "universe"
+    },
+    "name": "cvs"
    }
   },
   "cython": {
@@ -902,6 +946,15 @@
     "name": "docker-service"
    }
   },
+  "dotnet": {
+   "pacman\\dotnet": {
+    "driver": "pacman",
+    "fields": {
+     "name": "dotnet-sdk"
+    },
+    "name": "dotnet-sdk"
+   }
+  },
   "dune": {
    "opam\\dune": {
     "driver": "opam",
@@ -983,6 +1036,32 @@
      "repo-component": "universe"
     },
     "name": "emacs"
+   }
+  },
+  "emby": {
+   "pacman\\emby": {
+    "driver": "pacman",
+    "fields": {
+     "name": "emby-server"
+    },
+    "name": "emby-server"
+   }
+  },
+  "emby-service": {
+   "pacman\\emby": {
+    "driver": "pacman",
+    "fields": {
+     "name": "emby-server"
+    },
+    "name": "emby-server"
+   },
+   "service\\emby-service": {
+    "driver": "service",
+    "fields": {
+     "name": "emby-service",
+     "unit": "emby-server"
+    },
+    "name": "emby-service"
    }
   },
   "erlang": {
@@ -1080,6 +1159,16 @@
      "name": "fontconfig"
     },
     "name": "fontconfig"
+   }
+  },
+  "fossil": {
+   "pacman\\fossil": {
+    "driver": "pacman",
+    "fields": {
+     "name": "fossil",
+     "repo-component": "universe"
+    },
+    "name": "fossil"
    }
   },
   "freecad": {
@@ -1209,6 +1298,16 @@
      "name": "git"
     },
     "name": "git"
+   }
+  },
+  "glfw": {
+   "pacman\\glfw": {
+    "driver": "pacman",
+    "fields": {
+     "name": "glfw",
+     "repo-component": "universe"
+    },
+    "name": "glfw"
    }
   },
   "gnome": {
@@ -1591,6 +1690,15 @@
     "name": "iproute2"
    }
   },
+  "jack": {
+   "pacman\\jack": {
+    "driver": "pacman",
+    "fields": {
+     "name": "jack2"
+    },
+    "name": "jack2"
+   }
+  },
   "jdk": {
    "pacman\\jdk": {
     "driver": "pacman",
@@ -1598,6 +1706,40 @@
      "name": "jdk-openjdk"
     },
     "name": "jdk-openjdk"
+   }
+  },
+  "jellyfin": {
+   "pacman\\jellyfin": {
+    "driver": "pacman",
+    "fields": {
+     "name": "jellyfin",
+     "packages": [
+      "jellyfin-server",
+      "jellyfin-web"
+     ]
+    },
+    "name": "jellyfin"
+   }
+  },
+  "jellyfin-service": {
+   "pacman\\jellyfin": {
+    "driver": "pacman",
+    "fields": {
+     "name": "jellyfin",
+     "packages": [
+      "jellyfin-server",
+      "jellyfin-web"
+     ]
+    },
+    "name": "jellyfin"
+   },
+   "service\\jellyfin-service": {
+    "driver": "service",
+    "fields": {
+     "name": "jellyfin-service",
+     "unit": "jellyfin"
+    },
+    "name": "jellyfin-service"
    }
   },
   "jetbrains-toolbox": {
@@ -1736,6 +1878,15 @@
      "name": "kitty"
     },
     "name": "kitty"
+   }
+  },
+  "kodi": {
+   "pacman\\kodi": {
+    "driver": "pacman",
+    "fields": {
+     "name": "kodi"
+    },
+    "name": "kodi"
    }
   },
   "kotlin": {
@@ -2113,6 +2264,16 @@
     "name": "maxima"
    }
   },
+  "mercurial": {
+   "pacman\\mercurial": {
+    "driver": "pacman",
+    "fields": {
+     "name": "mercurial",
+     "repo-component": "universe"
+    },
+    "name": "mercurial"
+   }
+  },
   "meson": {
    "pacman\\meson": {
     "driver": "pacman",
@@ -2230,6 +2391,22 @@
      "name": "mycli"
     },
     "name": "mycli"
+   }
+  },
+  "navidrome": {
+   "pacman\\ffmpeg": {
+    "driver": "pacman",
+    "fields": {
+     "name": "ffmpeg"
+    },
+    "name": "ffmpeg"
+   },
+   "pacman\\navidrome": {
+    "driver": "pacman",
+    "fields": {
+     "name": "navidrome"
+    },
+    "name": "navidrome"
    }
   },
   "neovim": {
@@ -2506,6 +2683,19 @@
     "name": "opencv"
    }
   },
+  "opengl": {
+   "pacman\\opengl": {
+    "driver": "pacman",
+    "fields": {
+     "name": "opengl",
+     "packages": [
+      "mesa",
+      "glu"
+     ]
+    },
+    "name": "opengl"
+   }
+  },
   "openscad": {
    "flatpak\\openscad": {
     "driver": "flatpak",
@@ -2606,6 +2796,29 @@
     "name": "perf"
    }
   },
+  "perforce": {
+   "aur\\perforce": {
+    "driver": "aur",
+    "fields": {
+     "name": "p4"
+    },
+    "name": "p4"
+   },
+   "pacman\\base-devel": {
+    "driver": "pacman",
+    "fields": {
+     "name": "base-devel"
+    },
+    "name": "base-devel"
+   },
+   "pacman\\git": {
+    "driver": "pacman",
+    "fields": {
+     "name": "git"
+    },
+    "name": "git"
+   }
+  },
   "pgcli": {
    "pacman\\pipx": {
     "driver": "pacman",
@@ -2620,6 +2833,16 @@
      "name": "pgcli"
     },
     "name": "pgcli"
+   }
+  },
+  "php": {
+   "pacman\\php": {
+    "driver": "pacman",
+    "fields": {
+     "name": "php",
+     "repo-component": "universe"
+    },
+    "name": "php"
    }
   },
   "pipewire": {
@@ -2638,6 +2861,60 @@
      "name": "python-pipx"
     },
     "name": "python-pipx"
+   }
+  },
+  "plex": {
+   "aur\\plex": {
+    "driver": "aur",
+    "fields": {
+     "name": "plex-media-server"
+    },
+    "name": "plex-media-server"
+   },
+   "pacman\\base-devel": {
+    "driver": "pacman",
+    "fields": {
+     "name": "base-devel"
+    },
+    "name": "base-devel"
+   },
+   "pacman\\git": {
+    "driver": "pacman",
+    "fields": {
+     "name": "git"
+    },
+    "name": "git"
+   }
+  },
+  "plex-service": {
+   "aur\\plex": {
+    "driver": "aur",
+    "fields": {
+     "name": "plex-media-server"
+    },
+    "name": "plex-media-server"
+   },
+   "pacman\\base-devel": {
+    "driver": "pacman",
+    "fields": {
+     "name": "base-devel"
+    },
+    "name": "base-devel"
+   },
+   "pacman\\git": {
+    "driver": "pacman",
+    "fields": {
+     "name": "git"
+    },
+    "name": "git"
+   },
+   "service\\plex-service": {
+    "driver": "service",
+    "fields": {
+     "name": "plex-service",
+     "unit": "plexmediaserver"
+    },
+    "name": "plex-service"
    }
   },
   "pnpm": {
@@ -3021,6 +3298,26 @@
     "name": "sdkman"
    }
   },
+  "sdl": {
+   "pacman\\sdl": {
+    "driver": "pacman",
+    "fields": {
+     "name": "sdl2-compat",
+     "repo-component": "universe"
+    },
+    "name": "sdl2-compat"
+   }
+  },
+  "sfml": {
+   "pacman\\sfml": {
+    "driver": "pacman",
+    "fields": {
+     "name": "sfml",
+     "repo-component": "universe"
+    },
+    "name": "sfml"
+   }
+  },
   "slack": {
    "aur\\slack": {
     "driver": "aur",
@@ -3219,6 +3516,39 @@
     "name": "strace"
    }
   },
+  "stremio": {
+   "aur\\stremio": {
+    "driver": "aur",
+    "fields": {
+     "name": "stremio"
+    },
+    "name": "stremio"
+   },
+   "pacman\\base-devel": {
+    "driver": "pacman",
+    "fields": {
+     "name": "base-devel"
+    },
+    "name": "base-devel"
+   },
+   "pacman\\git": {
+    "driver": "pacman",
+    "fields": {
+     "name": "git"
+    },
+    "name": "git"
+   }
+  },
+  "subversion": {
+   "pacman\\subversion": {
+    "driver": "pacman",
+    "fields": {
+     "name": "subversion",
+     "repo-component": "universe"
+    },
+    "name": "subversion"
+   }
+  },
   "supercollider": {
    "pacman\\supercollider": {
     "driver": "pacman",
@@ -3340,6 +3670,18 @@
     "name": "tmux"
    }
   },
+  "tmux-dotfiles": {
+   "dotfiles\\tmux-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/tmux",
+      "src": "tmux"
+     }
+    },
+    "name": "tmux-dotfiles"
+   }
+  },
   "traceroute": {
    "pacman\\traceroute": {
     "driver": "pacman",
@@ -3433,6 +3775,15 @@
      "name": "unzip"
     },
     "name": "unzip"
+   }
+  },
+  "uv": {
+   "pacman\\uv": {
+    "driver": "pacman",
+    "fields": {
+     "name": "uv"
+    },
+    "name": "uv"
    }
   },
   "valgrind": {
@@ -3845,6 +4196,32 @@
     "name": "whois"
    }
   },
+  "wine": {
+   "pacman\\wine": {
+    "driver": "pacman",
+    "fields": {
+     "name": "wine"
+    },
+    "name": "wine"
+   }
+  },
+  "winetricks": {
+   "pacman\\wine": {
+    "driver": "pacman",
+    "fields": {
+     "name": "wine"
+    },
+    "name": "wine"
+   },
+   "pacman\\winetricks": {
+    "driver": "pacman",
+    "fields": {
+     "name": "winetricks",
+     "repo-component": "universe"
+    },
+    "name": "winetricks"
+   }
+  },
   "wireshark": {
    "pacman\\wireshark": {
     "driver": "pacman",
@@ -3985,6 +4362,22 @@
      "name": "xmonad"
     },
     "name": "xmonad"
+   }
+  },
+  "yabridge": {
+   "pacman\\wine": {
+    "driver": "pacman",
+    "fields": {
+     "name": "wine"
+    },
+    "name": "wine"
+   },
+   "pacman\\yabridge": {
+    "driver": "pacman",
+    "fields": {
+     "name": "yabridge"
+    },
+    "name": "yabridge"
    }
   },
   "yarn": {
@@ -4403,6 +4796,16 @@
     "name": "bash-dotfiles"
    }
   },
+  "bazaar": {
+   "apt\\bazaar": {
+    "driver": "apt",
+    "fields": {
+     "name": "brz",
+     "repo-component": "universe"
+    },
+    "name": "brz"
+   }
+  },
   "bazelisk": {
    "apt\\curl": {
     "driver": "apt",
@@ -4896,6 +5299,24 @@
     "name": "@openai/codex"
    }
   },
+  "composer": {
+   "apt\\composer": {
+    "driver": "apt",
+    "fields": {
+     "name": "composer",
+     "repo-component": "universe"
+    },
+    "name": "composer"
+   },
+   "apt\\php": {
+    "driver": "apt",
+    "fields": {
+     "name": "php-cli",
+     "repo-component": "universe"
+    },
+    "name": "php-cli"
+   }
+  },
   "compression": {
    "apt\\lz4": {
     "driver": "apt",
@@ -4910,6 +5331,14 @@
      "name": "p7zip-full"
     },
     "name": "p7zip-full"
+   },
+   "apt\\unrar": {
+    "driver": "apt",
+    "fields": {
+     "name": "unrar",
+     "repo-component": "multiverse"
+    },
+    "name": "unrar"
    },
    "apt\\unzip": {
     "driver": "apt",
@@ -5142,6 +5571,16 @@
     "name": "curl"
    }
   },
+  "cvs": {
+   "apt\\cvs": {
+    "driver": "apt",
+    "fields": {
+     "name": "cvs",
+     "repo-component": "universe"
+    },
+    "name": "cvs"
+   }
+  },
   "cython": {
    "apt\\c-toolchain": {
     "driver": "apt",
@@ -5353,6 +5792,20 @@
     "name": "docker-service"
    }
   },
+  "dotnet": {
+   "script\\dotnet": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "curl -fsSL https://dot.net/v1/dotnet-install.sh | bash -s -- --channel 8.0",
+     "location": "~/.dotnet",
+     "name": "dotnet",
+     "uninstall-cmd": "rm -rf \"$HOME/.dotnet\"",
+     "version-cmd": "\"$HOME/.dotnet/dotnet\" --version 2>/dev/null",
+     "version-re": "([0-9]+\\.[0-9]+\\.[0-9]+)"
+    },
+    "name": "dotnet"
+   }
+  },
   "dune": {
    "apt\\opam": {
     "driver": "apt",
@@ -5401,6 +5854,42 @@
      "repo-component": "universe"
     },
     "name": "emacs"
+   }
+  },
+  "emby": {
+   "native-pkg-file\\emby": {
+    "driver": "native-pkg-file",
+    "fields": {
+     "asset": "emby-server-deb_*_amd64.deb",
+     "name": "emby-server",
+     "version": {
+      "github": "MediaBrowser/Emby.Releases",
+      "strip-v": "true"
+     }
+    },
+    "name": "emby-server"
+   }
+  },
+  "emby-service": {
+   "native-pkg-file\\emby": {
+    "driver": "native-pkg-file",
+    "fields": {
+     "asset": "emby-server-deb_*_amd64.deb",
+     "name": "emby-server",
+     "version": {
+      "github": "MediaBrowser/Emby.Releases",
+      "strip-v": "true"
+     }
+    },
+    "name": "emby-server"
+   },
+   "service\\emby-service": {
+    "driver": "service",
+    "fields": {
+     "name": "emby-service",
+     "unit": "emby-server"
+    },
+    "name": "emby-service"
    }
   },
   "erlang": {
@@ -5482,6 +5971,16 @@
      "name": "fontconfig"
     },
     "name": "fontconfig"
+   }
+  },
+  "fossil": {
+   "apt\\fossil": {
+    "driver": "apt",
+    "fields": {
+     "name": "fossil",
+     "repo-component": "universe"
+    },
+    "name": "fossil"
    }
   },
   "freecad": {
@@ -5907,6 +6406,16 @@
     "name": "git"
    }
   },
+  "glfw": {
+   "apt\\glfw": {
+    "driver": "apt",
+    "fields": {
+     "name": "libglfw3-dev",
+     "repo-component": "universe"
+    },
+    "name": "libglfw3-dev"
+   }
+  },
   "gnome": {
    "apt\\gnome": {
     "driver": "apt",
@@ -6302,6 +6811,15 @@
     "name": "iproute2"
    }
   },
+  "jack": {
+   "apt\\jack": {
+    "driver": "apt",
+    "fields": {
+     "name": "jackd2"
+    },
+    "name": "jackd2"
+   }
+  },
   "jdk": {
    "apt\\jdk": {
     "driver": "apt",
@@ -6309,6 +6827,40 @@
      "name": "default-jdk"
     },
     "name": "default-jdk"
+   }
+  },
+  "jellyfin": {
+   "apt\\jellyfin": {
+    "driver": "apt",
+    "fields": {
+     "name": "jellyfin",
+     "pubkey-path": "/usr/share/keyrings/jellyfin.gpg",
+     "pubkey-url": "https://repo.jellyfin.org/debian/jellyfin_team.gpg.key",
+     "source-line": "deb [signed-by=/usr/share/keyrings/jellyfin.gpg] https://repo.jellyfin.org/debian bookworm main",
+     "source-path": "/etc/apt/sources.list.d/jellyfin.list"
+    },
+    "name": "jellyfin"
+   }
+  },
+  "jellyfin-service": {
+   "apt\\jellyfin": {
+    "driver": "apt",
+    "fields": {
+     "name": "jellyfin",
+     "pubkey-path": "/usr/share/keyrings/jellyfin.gpg",
+     "pubkey-url": "https://repo.jellyfin.org/debian/jellyfin_team.gpg.key",
+     "source-line": "deb [signed-by=/usr/share/keyrings/jellyfin.gpg] https://repo.jellyfin.org/debian bookworm main",
+     "source-path": "/etc/apt/sources.list.d/jellyfin.list"
+    },
+    "name": "jellyfin"
+   },
+   "service\\jellyfin-service": {
+    "driver": "service",
+    "fields": {
+     "name": "jellyfin-service",
+     "unit": "jellyfin"
+    },
+    "name": "jellyfin-service"
    }
   },
   "jetbrains-toolbox": {
@@ -6481,6 +7033,23 @@
      "name": "kitty"
     },
     "name": "kitty"
+   }
+  },
+  "kodi": {
+   "apt\\flatpak": {
+    "driver": "apt",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\kodi": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "tv.kodi.Kodi"
+    },
+    "name": "tv.kodi.Kodi"
    }
   },
   "kotlin": {
@@ -6962,6 +7531,16 @@
     "name": "maxima"
    }
   },
+  "mercurial": {
+   "apt\\mercurial": {
+    "driver": "apt",
+    "fields": {
+     "name": "mercurial",
+     "repo-component": "universe"
+    },
+    "name": "mercurial"
+   }
+  },
   "mesa-vulkan-drivers": {
    "apt\\mesa-vulkan-drivers": {
     "driver": "apt",
@@ -7108,6 +7687,27 @@
      "name": "mycli"
     },
     "name": "mycli"
+   }
+  },
+  "navidrome": {
+   "apt\\ffmpeg": {
+    "driver": "apt",
+    "fields": {
+     "name": "ffmpeg"
+    },
+    "name": "ffmpeg"
+   },
+   "native-pkg-file\\navidrome": {
+    "driver": "native-pkg-file",
+    "fields": {
+     "asset": "navidrome_*_linux_amd64.deb",
+     "name": "navidrome",
+     "version": {
+      "github": "navidrome/navidrome",
+      "strip-v": "true"
+     }
+    },
+    "name": "navidrome"
    }
   },
   "neovim": {
@@ -7417,6 +8017,19 @@
     "name": "python3-opencv"
    }
   },
+  "opengl": {
+   "apt\\opengl": {
+    "driver": "apt",
+    "fields": {
+     "name": "opengl",
+     "packages": [
+      "libgl-dev",
+      "libglu1-mesa-dev"
+     ]
+    },
+    "name": "opengl"
+   }
+  },
   "openscad": {
    "apt\\flatpak": {
     "driver": "apt",
@@ -7533,6 +8146,16 @@
     "name": "pgcli"
    }
   },
+  "php": {
+   "apt\\php": {
+    "driver": "apt",
+    "fields": {
+     "name": "php-cli",
+     "repo-component": "universe"
+    },
+    "name": "php-cli"
+   }
+  },
   "pipewire": {
    "apt\\pipewire": {
     "driver": "apt",
@@ -7559,6 +8182,40 @@
      }
     },
     "name": "pipx"
+   }
+  },
+  "plex": {
+   "apt\\plex": {
+    "driver": "apt",
+    "fields": {
+     "name": "plexmediaserver",
+     "pubkey-path": "/usr/share/keyrings/plex.gpg",
+     "pubkey-url": "https://downloads.plex.tv/plex-keys/PlexSign.key",
+     "source-line": "deb [signed-by=/usr/share/keyrings/plex.gpg] https://downloads.plex.tv/repo/deb public main",
+     "source-path": "/etc/apt/sources.list.d/plexmediaserver.list"
+    },
+    "name": "plexmediaserver"
+   }
+  },
+  "plex-service": {
+   "apt\\plex": {
+    "driver": "apt",
+    "fields": {
+     "name": "plexmediaserver",
+     "pubkey-path": "/usr/share/keyrings/plex.gpg",
+     "pubkey-url": "https://downloads.plex.tv/plex-keys/PlexSign.key",
+     "source-line": "deb [signed-by=/usr/share/keyrings/plex.gpg] https://downloads.plex.tv/repo/deb public main",
+     "source-path": "/etc/apt/sources.list.d/plexmediaserver.list"
+    },
+    "name": "plexmediaserver"
+   },
+   "service\\plex-service": {
+    "driver": "service",
+    "fields": {
+     "name": "plex-service",
+     "unit": "plexmediaserver"
+    },
+    "name": "plex-service"
    }
   },
   "pnpm": {
@@ -8040,6 +8697,26 @@
     "name": "sdkman"
    }
   },
+  "sdl": {
+   "apt\\sdl": {
+    "driver": "apt",
+    "fields": {
+     "name": "libsdl2-dev",
+     "repo-component": "universe"
+    },
+    "name": "libsdl2-dev"
+   }
+  },
+  "sfml": {
+   "apt\\sfml": {
+    "driver": "apt",
+    "fields": {
+     "name": "libsfml-dev",
+     "repo-component": "universe"
+    },
+    "name": "libsfml-dev"
+   }
+  },
   "slack": {
    "apt\\slack": {
     "driver": "apt",
@@ -8195,6 +8872,33 @@
     "name": "strace"
    }
   },
+  "stremio": {
+   "apt\\flatpak": {
+    "driver": "apt",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\stremio": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "com.stremio.Stremio"
+    },
+    "name": "com.stremio.Stremio"
+   }
+  },
+  "subversion": {
+   "apt\\subversion": {
+    "driver": "apt",
+    "fields": {
+     "name": "subversion",
+     "repo-component": "universe"
+    },
+    "name": "subversion"
+   }
+  },
   "supercollider": {
    "apt\\supercollider": {
     "driver": "apt",
@@ -8328,6 +9032,18 @@
     "name": "tmux"
    }
   },
+  "tmux-dotfiles": {
+   "dotfiles\\tmux-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/tmux",
+      "src": "tmux"
+     }
+    },
+    "name": "tmux-dotfiles"
+   }
+  },
   "traceroute": {
    "apt\\traceroute": {
     "driver": "apt",
@@ -8422,6 +9138,32 @@
      "name": "unzip"
     },
     "name": "unzip"
+   }
+  },
+  "uv": {
+   "apt\\python3-pip": {
+    "driver": "apt",
+    "fields": {
+     "name": "python3-pip"
+    },
+    "name": "python3-pip"
+   },
+   "pip\\pipx": {
+    "driver": "pip",
+    "fields": {
+     "name": "pipx",
+     "version": {
+      "pypi": "pipx"
+     }
+    },
+    "name": "pipx"
+   },
+   "pipx\\uv": {
+    "driver": "pipx",
+    "fields": {
+     "name": "uv"
+    },
+    "name": "uv"
    }
   },
   "valgrind": {
@@ -8774,6 +9516,34 @@
     "name": "whois"
    }
   },
+  "wine": {
+   "apt\\wine": {
+    "driver": "apt",
+    "fields": {
+     "foreign-arch": "i386",
+     "name": "wine"
+    },
+    "name": "wine"
+   }
+  },
+  "winetricks": {
+   "apt\\wine": {
+    "driver": "apt",
+    "fields": {
+     "foreign-arch": "i386",
+     "name": "wine"
+    },
+    "name": "wine"
+   },
+   "apt\\winetricks": {
+    "driver": "apt",
+    "fields": {
+     "name": "winetricks",
+     "repo-component": "universe"
+    },
+    "name": "winetricks"
+   }
+  },
   "wireshark": {
    "apt\\wireshark": {
     "driver": "apt",
@@ -8898,6 +9668,36 @@
      "name": "xmonad"
     },
     "name": "xmonad"
+   }
+  },
+  "yabridge": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "apt\\wine": {
+    "driver": "apt",
+    "fields": {
+     "foreign-arch": "i386",
+     "name": "wine"
+    },
+    "name": "wine"
+   },
+   "tarball\\yabridge": {
+    "driver": "tarball",
+    "fields": {
+     "installDir": "$CONFIGSYS_APP_DIR/yabridge",
+     "name": "yabridge",
+     "version": {
+      "asset": "yabridge-*.tar.gz",
+      "github": "robbert-vdh/yabridge",
+      "strip-v": "true"
+     }
+    },
+    "name": "yabridge"
    }
   },
   "yarn": {
@@ -9308,6 +10108,16 @@
     "name": "bash-dotfiles"
    }
   },
+  "bazaar": {
+   "apt\\bazaar": {
+    "driver": "apt",
+    "fields": {
+     "name": "brz",
+     "repo-component": "universe"
+    },
+    "name": "brz"
+   }
+  },
   "bazelisk": {
    "apt\\curl": {
     "driver": "apt",
@@ -9801,6 +10611,24 @@
     "name": "@openai/codex"
    }
   },
+  "composer": {
+   "apt\\composer": {
+    "driver": "apt",
+    "fields": {
+     "name": "composer",
+     "repo-component": "universe"
+    },
+    "name": "composer"
+   },
+   "apt\\php": {
+    "driver": "apt",
+    "fields": {
+     "name": "php-cli",
+     "repo-component": "universe"
+    },
+    "name": "php-cli"
+   }
+  },
   "compression": {
    "apt\\lz4": {
     "driver": "apt",
@@ -9815,6 +10643,14 @@
      "name": "p7zip-full"
     },
     "name": "p7zip-full"
+   },
+   "apt\\unrar": {
+    "driver": "apt",
+    "fields": {
+     "name": "unrar",
+     "repo-component": "multiverse"
+    },
+    "name": "unrar"
    },
    "apt\\unzip": {
     "driver": "apt",
@@ -10037,6 +10873,16 @@
     "name": "curl"
    }
   },
+  "cvs": {
+   "apt\\cvs": {
+    "driver": "apt",
+    "fields": {
+     "name": "cvs",
+     "repo-component": "universe"
+    },
+    "name": "cvs"
+   }
+  },
   "cython": {
    "apt\\c-toolchain": {
     "driver": "apt",
@@ -10248,6 +11094,20 @@
     "name": "docker-service"
    }
   },
+  "dotnet": {
+   "script\\dotnet": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "curl -fsSL https://dot.net/v1/dotnet-install.sh | bash -s -- --channel 8.0",
+     "location": "~/.dotnet",
+     "name": "dotnet",
+     "uninstall-cmd": "rm -rf \"$HOME/.dotnet\"",
+     "version-cmd": "\"$HOME/.dotnet/dotnet\" --version 2>/dev/null",
+     "version-re": "([0-9]+\\.[0-9]+\\.[0-9]+)"
+    },
+    "name": "dotnet"
+   }
+  },
   "dune": {
    "apt\\opam": {
     "driver": "apt",
@@ -10296,6 +11156,42 @@
      "repo-component": "universe"
     },
     "name": "emacs"
+   }
+  },
+  "emby": {
+   "native-pkg-file\\emby": {
+    "driver": "native-pkg-file",
+    "fields": {
+     "asset": "emby-server-deb_*_amd64.deb",
+     "name": "emby-server",
+     "version": {
+      "github": "MediaBrowser/Emby.Releases",
+      "strip-v": "true"
+     }
+    },
+    "name": "emby-server"
+   }
+  },
+  "emby-service": {
+   "native-pkg-file\\emby": {
+    "driver": "native-pkg-file",
+    "fields": {
+     "asset": "emby-server-deb_*_amd64.deb",
+     "name": "emby-server",
+     "version": {
+      "github": "MediaBrowser/Emby.Releases",
+      "strip-v": "true"
+     }
+    },
+    "name": "emby-server"
+   },
+   "service\\emby-service": {
+    "driver": "service",
+    "fields": {
+     "name": "emby-service",
+     "unit": "emby-server"
+    },
+    "name": "emby-service"
    }
   },
   "erlang": {
@@ -10377,6 +11273,16 @@
      "name": "fontconfig"
     },
     "name": "fontconfig"
+   }
+  },
+  "fossil": {
+   "apt\\fossil": {
+    "driver": "apt",
+    "fields": {
+     "name": "fossil",
+     "repo-component": "universe"
+    },
+    "name": "fossil"
    }
   },
   "freecad": {
@@ -10802,6 +11708,16 @@
     "name": "git"
    }
   },
+  "glfw": {
+   "apt\\glfw": {
+    "driver": "apt",
+    "fields": {
+     "name": "libglfw3-dev",
+     "repo-component": "universe"
+    },
+    "name": "libglfw3-dev"
+   }
+  },
   "gnome": {
    "apt\\gnome": {
     "driver": "apt",
@@ -11197,6 +12113,15 @@
     "name": "iproute2"
    }
   },
+  "jack": {
+   "apt\\jack": {
+    "driver": "apt",
+    "fields": {
+     "name": "jackd2"
+    },
+    "name": "jackd2"
+   }
+  },
   "jdk": {
    "apt\\jdk": {
     "driver": "apt",
@@ -11204,6 +12129,40 @@
      "name": "default-jdk"
     },
     "name": "default-jdk"
+   }
+  },
+  "jellyfin": {
+   "apt\\jellyfin": {
+    "driver": "apt",
+    "fields": {
+     "name": "jellyfin",
+     "pubkey-path": "/usr/share/keyrings/jellyfin.gpg",
+     "pubkey-url": "https://repo.jellyfin.org/debian/jellyfin_team.gpg.key",
+     "source-line": "deb [signed-by=/usr/share/keyrings/jellyfin.gpg] https://repo.jellyfin.org/debian bookworm main",
+     "source-path": "/etc/apt/sources.list.d/jellyfin.list"
+    },
+    "name": "jellyfin"
+   }
+  },
+  "jellyfin-service": {
+   "apt\\jellyfin": {
+    "driver": "apt",
+    "fields": {
+     "name": "jellyfin",
+     "pubkey-path": "/usr/share/keyrings/jellyfin.gpg",
+     "pubkey-url": "https://repo.jellyfin.org/debian/jellyfin_team.gpg.key",
+     "source-line": "deb [signed-by=/usr/share/keyrings/jellyfin.gpg] https://repo.jellyfin.org/debian bookworm main",
+     "source-path": "/etc/apt/sources.list.d/jellyfin.list"
+    },
+    "name": "jellyfin"
+   },
+   "service\\jellyfin-service": {
+    "driver": "service",
+    "fields": {
+     "name": "jellyfin-service",
+     "unit": "jellyfin"
+    },
+    "name": "jellyfin-service"
    }
   },
   "jetbrains-toolbox": {
@@ -11366,6 +12325,23 @@
      "name": "kitty"
     },
     "name": "kitty"
+   }
+  },
+  "kodi": {
+   "apt\\flatpak": {
+    "driver": "apt",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\kodi": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "tv.kodi.Kodi"
+    },
+    "name": "tv.kodi.Kodi"
    }
   },
   "kotlin": {
@@ -11837,6 +12813,16 @@
     "name": "maxima"
    }
   },
+  "mercurial": {
+   "apt\\mercurial": {
+    "driver": "apt",
+    "fields": {
+     "name": "mercurial",
+     "repo-component": "universe"
+    },
+    "name": "mercurial"
+   }
+  },
   "mesa-vulkan-drivers": {
    "apt\\mesa-vulkan-drivers": {
     "driver": "apt",
@@ -11963,6 +12949,27 @@
      "name": "mycli"
     },
     "name": "mycli"
+   }
+  },
+  "navidrome": {
+   "apt\\ffmpeg": {
+    "driver": "apt",
+    "fields": {
+     "name": "ffmpeg"
+    },
+    "name": "ffmpeg"
+   },
+   "native-pkg-file\\navidrome": {
+    "driver": "native-pkg-file",
+    "fields": {
+     "asset": "navidrome_*_linux_amd64.deb",
+     "name": "navidrome",
+     "version": {
+      "github": "navidrome/navidrome",
+      "strip-v": "true"
+     }
+    },
+    "name": "navidrome"
    }
   },
   "neovim": {
@@ -12272,6 +13279,19 @@
     "name": "python3-opencv"
    }
   },
+  "opengl": {
+   "apt\\opengl": {
+    "driver": "apt",
+    "fields": {
+     "name": "opengl",
+     "packages": [
+      "libgl-dev",
+      "libglu1-mesa-dev"
+     ]
+    },
+    "name": "opengl"
+   }
+  },
   "openscad": {
    "apt\\flatpak": {
     "driver": "apt",
@@ -12378,6 +13398,16 @@
     "name": "pgcli"
    }
   },
+  "php": {
+   "apt\\php": {
+    "driver": "apt",
+    "fields": {
+     "name": "php-cli",
+     "repo-component": "universe"
+    },
+    "name": "php-cli"
+   }
+  },
   "pipewire": {
    "apt\\pipewire": {
     "driver": "apt",
@@ -12394,6 +13424,40 @@
      "name": "pipx"
     },
     "name": "pipx"
+   }
+  },
+  "plex": {
+   "apt\\plex": {
+    "driver": "apt",
+    "fields": {
+     "name": "plexmediaserver",
+     "pubkey-path": "/usr/share/keyrings/plex.gpg",
+     "pubkey-url": "https://downloads.plex.tv/plex-keys/PlexSign.key",
+     "source-line": "deb [signed-by=/usr/share/keyrings/plex.gpg] https://downloads.plex.tv/repo/deb public main",
+     "source-path": "/etc/apt/sources.list.d/plexmediaserver.list"
+    },
+    "name": "plexmediaserver"
+   }
+  },
+  "plex-service": {
+   "apt\\plex": {
+    "driver": "apt",
+    "fields": {
+     "name": "plexmediaserver",
+     "pubkey-path": "/usr/share/keyrings/plex.gpg",
+     "pubkey-url": "https://downloads.plex.tv/plex-keys/PlexSign.key",
+     "source-line": "deb [signed-by=/usr/share/keyrings/plex.gpg] https://downloads.plex.tv/repo/deb public main",
+     "source-path": "/etc/apt/sources.list.d/plexmediaserver.list"
+    },
+    "name": "plexmediaserver"
+   },
+   "service\\plex-service": {
+    "driver": "service",
+    "fields": {
+     "name": "plex-service",
+     "unit": "plexmediaserver"
+    },
+    "name": "plex-service"
    }
   },
   "pnpm": {
@@ -12865,6 +13929,26 @@
     "name": "sdkman"
    }
   },
+  "sdl": {
+   "apt\\sdl": {
+    "driver": "apt",
+    "fields": {
+     "name": "libsdl2-dev",
+     "repo-component": "universe"
+    },
+    "name": "libsdl2-dev"
+   }
+  },
+  "sfml": {
+   "apt\\sfml": {
+    "driver": "apt",
+    "fields": {
+     "name": "libsfml-dev",
+     "repo-component": "universe"
+    },
+    "name": "libsfml-dev"
+   }
+  },
   "slack": {
    "apt\\slack": {
     "driver": "apt",
@@ -13020,6 +14104,33 @@
     "name": "strace"
    }
   },
+  "stremio": {
+   "apt\\flatpak": {
+    "driver": "apt",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\stremio": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "com.stremio.Stremio"
+    },
+    "name": "com.stremio.Stremio"
+   }
+  },
+  "subversion": {
+   "apt\\subversion": {
+    "driver": "apt",
+    "fields": {
+     "name": "subversion",
+     "repo-component": "universe"
+    },
+    "name": "subversion"
+   }
+  },
   "supercollider": {
    "apt\\supercollider": {
     "driver": "apt",
@@ -13153,6 +14264,18 @@
     "name": "tmux"
    }
   },
+  "tmux-dotfiles": {
+   "dotfiles\\tmux-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/tmux",
+      "src": "tmux"
+     }
+    },
+    "name": "tmux-dotfiles"
+   }
+  },
   "traceroute": {
    "apt\\traceroute": {
     "driver": "apt",
@@ -13247,6 +14370,22 @@
      "name": "unzip"
     },
     "name": "unzip"
+   }
+  },
+  "uv": {
+   "apt\\pipx": {
+    "driver": "apt",
+    "fields": {
+     "name": "pipx"
+    },
+    "name": "pipx"
+   },
+   "pipx\\uv": {
+    "driver": "pipx",
+    "fields": {
+     "name": "uv"
+    },
+    "name": "uv"
    }
   },
   "valgrind": {
@@ -13599,6 +14738,34 @@
     "name": "whois"
    }
   },
+  "wine": {
+   "apt\\wine": {
+    "driver": "apt",
+    "fields": {
+     "foreign-arch": "i386",
+     "name": "wine"
+    },
+    "name": "wine"
+   }
+  },
+  "winetricks": {
+   "apt\\wine": {
+    "driver": "apt",
+    "fields": {
+     "foreign-arch": "i386",
+     "name": "wine"
+    },
+    "name": "wine"
+   },
+   "apt\\winetricks": {
+    "driver": "apt",
+    "fields": {
+     "name": "winetricks",
+     "repo-component": "universe"
+    },
+    "name": "winetricks"
+   }
+  },
   "wireshark": {
    "apt\\wireshark": {
     "driver": "apt",
@@ -13723,6 +14890,36 @@
      "name": "xmonad"
     },
     "name": "xmonad"
+   }
+  },
+  "yabridge": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "apt\\wine": {
+    "driver": "apt",
+    "fields": {
+     "foreign-arch": "i386",
+     "name": "wine"
+    },
+    "name": "wine"
+   },
+   "tarball\\yabridge": {
+    "driver": "tarball",
+    "fields": {
+     "installDir": "$CONFIGSYS_APP_DIR/yabridge",
+     "name": "yabridge",
+     "version": {
+      "asset": "yabridge-*.tar.gz",
+      "github": "robbert-vdh/yabridge",
+      "strip-v": "true"
+     }
+    },
+    "name": "yabridge"
    }
   },
   "yarn": {
@@ -14121,6 +15318,16 @@
      }
     },
     "name": "bash-dotfiles"
+   }
+  },
+  "bazaar": {
+   "apt\\bazaar": {
+    "driver": "apt",
+    "fields": {
+     "name": "brz",
+     "repo-component": "universe"
+    },
+    "name": "brz"
    }
   },
   "bazelisk": {
@@ -14624,6 +15831,24 @@
     "name": "@openai/codex"
    }
   },
+  "composer": {
+   "apt\\composer": {
+    "driver": "apt",
+    "fields": {
+     "name": "composer",
+     "repo-component": "universe"
+    },
+    "name": "composer"
+   },
+   "apt\\php": {
+    "driver": "apt",
+    "fields": {
+     "name": "php-cli",
+     "repo-component": "universe"
+    },
+    "name": "php-cli"
+   }
+  },
   "compression": {
    "apt\\lz4": {
     "driver": "apt",
@@ -14638,6 +15863,14 @@
      "name": "p7zip-full"
     },
     "name": "p7zip-full"
+   },
+   "apt\\unrar": {
+    "driver": "apt",
+    "fields": {
+     "name": "unrar",
+     "repo-component": "multiverse"
+    },
+    "name": "unrar"
    },
    "apt\\unzip": {
     "driver": "apt",
@@ -14860,6 +16093,16 @@
     "name": "curl"
    }
   },
+  "cvs": {
+   "apt\\cvs": {
+    "driver": "apt",
+    "fields": {
+     "name": "cvs",
+     "repo-component": "universe"
+    },
+    "name": "cvs"
+   }
+  },
   "cython": {
    "apt\\c-toolchain": {
     "driver": "apt",
@@ -15071,6 +16314,15 @@
     "name": "docker-service"
    }
   },
+  "dotnet": {
+   "apt\\dotnet": {
+    "driver": "apt",
+    "fields": {
+     "name": "dotnet-sdk-8.0"
+    },
+    "name": "dotnet-sdk-8.0"
+   }
+  },
   "dune": {
    "apt\\opam": {
     "driver": "apt",
@@ -15119,6 +16371,42 @@
      "repo-component": "universe"
     },
     "name": "emacs"
+   }
+  },
+  "emby": {
+   "native-pkg-file\\emby": {
+    "driver": "native-pkg-file",
+    "fields": {
+     "asset": "emby-server-deb_*_amd64.deb",
+     "name": "emby-server",
+     "version": {
+      "github": "MediaBrowser/Emby.Releases",
+      "strip-v": "true"
+     }
+    },
+    "name": "emby-server"
+   }
+  },
+  "emby-service": {
+   "native-pkg-file\\emby": {
+    "driver": "native-pkg-file",
+    "fields": {
+     "asset": "emby-server-deb_*_amd64.deb",
+     "name": "emby-server",
+     "version": {
+      "github": "MediaBrowser/Emby.Releases",
+      "strip-v": "true"
+     }
+    },
+    "name": "emby-server"
+   },
+   "service\\emby-service": {
+    "driver": "service",
+    "fields": {
+     "name": "emby-service",
+     "unit": "emby-server"
+    },
+    "name": "emby-service"
    }
   },
   "erlang": {
@@ -15200,6 +16488,16 @@
      "name": "fontconfig"
     },
     "name": "fontconfig"
+   }
+  },
+  "fossil": {
+   "apt\\fossil": {
+    "driver": "apt",
+    "fields": {
+     "name": "fossil",
+     "repo-component": "universe"
+    },
+    "name": "fossil"
    }
   },
   "freecad": {
@@ -15625,6 +16923,16 @@
     "name": "git"
    }
   },
+  "glfw": {
+   "apt\\glfw": {
+    "driver": "apt",
+    "fields": {
+     "name": "libglfw3-dev",
+     "repo-component": "universe"
+    },
+    "name": "libglfw3-dev"
+   }
+  },
   "gnome": {
    "apt\\gnome": {
     "driver": "apt",
@@ -16020,6 +17328,15 @@
     "name": "iproute2"
    }
   },
+  "jack": {
+   "apt\\jack": {
+    "driver": "apt",
+    "fields": {
+     "name": "jackd2"
+    },
+    "name": "jackd2"
+   }
+  },
   "jdk": {
    "apt\\jdk": {
     "driver": "apt",
@@ -16027,6 +17344,40 @@
      "name": "default-jdk"
     },
     "name": "default-jdk"
+   }
+  },
+  "jellyfin": {
+   "apt\\jellyfin": {
+    "driver": "apt",
+    "fields": {
+     "name": "jellyfin",
+     "pubkey-path": "/usr/share/keyrings/jellyfin.gpg",
+     "pubkey-url": "https://repo.jellyfin.org/ubuntu/jellyfin_team.gpg.key",
+     "source-line": "deb [signed-by=/usr/share/keyrings/jellyfin.gpg] https://repo.jellyfin.org/ubuntu noble main",
+     "source-path": "/etc/apt/sources.list.d/jellyfin.list"
+    },
+    "name": "jellyfin"
+   }
+  },
+  "jellyfin-service": {
+   "apt\\jellyfin": {
+    "driver": "apt",
+    "fields": {
+     "name": "jellyfin",
+     "pubkey-path": "/usr/share/keyrings/jellyfin.gpg",
+     "pubkey-url": "https://repo.jellyfin.org/ubuntu/jellyfin_team.gpg.key",
+     "source-line": "deb [signed-by=/usr/share/keyrings/jellyfin.gpg] https://repo.jellyfin.org/ubuntu noble main",
+     "source-path": "/etc/apt/sources.list.d/jellyfin.list"
+    },
+    "name": "jellyfin"
+   },
+   "service\\jellyfin-service": {
+    "driver": "service",
+    "fields": {
+     "name": "jellyfin-service",
+     "unit": "jellyfin"
+    },
+    "name": "jellyfin-service"
    }
   },
   "jetbrains-toolbox": {
@@ -16189,6 +17540,16 @@
      "name": "kitty"
     },
     "name": "kitty"
+   }
+  },
+  "kodi": {
+   "apt\\kodi": {
+    "driver": "apt",
+    "fields": {
+     "name": "kodi",
+     "repo-component": "universe"
+    },
+    "name": "kodi"
    }
   },
   "kotlin": {
@@ -16660,6 +18021,16 @@
     "name": "maxima"
    }
   },
+  "mercurial": {
+   "apt\\mercurial": {
+    "driver": "apt",
+    "fields": {
+     "name": "mercurial",
+     "repo-component": "universe"
+    },
+    "name": "mercurial"
+   }
+  },
   "mesa-vulkan-drivers": {
    "apt\\mesa-vulkan-drivers": {
     "driver": "apt",
@@ -16786,6 +18157,27 @@
      "name": "mycli"
     },
     "name": "mycli"
+   }
+  },
+  "navidrome": {
+   "apt\\ffmpeg": {
+    "driver": "apt",
+    "fields": {
+     "name": "ffmpeg"
+    },
+    "name": "ffmpeg"
+   },
+   "native-pkg-file\\navidrome": {
+    "driver": "native-pkg-file",
+    "fields": {
+     "asset": "navidrome_*_linux_amd64.deb",
+     "name": "navidrome",
+     "version": {
+      "github": "navidrome/navidrome",
+      "strip-v": "true"
+     }
+    },
+    "name": "navidrome"
    }
   },
   "neovim": {
@@ -17095,6 +18487,19 @@
     "name": "python3-opencv"
    }
   },
+  "opengl": {
+   "apt\\opengl": {
+    "driver": "apt",
+    "fields": {
+     "name": "opengl",
+     "packages": [
+      "libgl-dev",
+      "libglu1-mesa-dev"
+     ]
+    },
+    "name": "opengl"
+   }
+  },
   "openscad": {
    "apt\\flatpak": {
     "driver": "apt",
@@ -17185,6 +18590,19 @@
     "name": "linux-tools-generic"
    }
   },
+  "perforce": {
+   "apt\\perforce": {
+    "driver": "apt",
+    "fields": {
+     "name": "helix-cli",
+     "pubkey-path": "/usr/share/keyrings/perforce.gpg",
+     "pubkey-url": "https://package.perforce.com/perforce.pubkey",
+     "source-line": "deb [signed-by=/usr/share/keyrings/perforce.gpg] https://package.perforce.com/apt/ubuntu noble release",
+     "source-path": "/etc/apt/sources.list.d/perforce.list"
+    },
+    "name": "helix-cli"
+   }
+  },
   "pgcli": {
    "apt\\pipx": {
     "driver": "apt",
@@ -17199,6 +18617,16 @@
      "name": "pgcli"
     },
     "name": "pgcli"
+   }
+  },
+  "php": {
+   "apt\\php": {
+    "driver": "apt",
+    "fields": {
+     "name": "php-cli",
+     "repo-component": "universe"
+    },
+    "name": "php-cli"
    }
   },
   "pipewire": {
@@ -17217,6 +18645,40 @@
      "name": "pipx"
     },
     "name": "pipx"
+   }
+  },
+  "plex": {
+   "apt\\plex": {
+    "driver": "apt",
+    "fields": {
+     "name": "plexmediaserver",
+     "pubkey-path": "/usr/share/keyrings/plex.gpg",
+     "pubkey-url": "https://downloads.plex.tv/plex-keys/PlexSign.key",
+     "source-line": "deb [signed-by=/usr/share/keyrings/plex.gpg] https://downloads.plex.tv/repo/deb public main",
+     "source-path": "/etc/apt/sources.list.d/plexmediaserver.list"
+    },
+    "name": "plexmediaserver"
+   }
+  },
+  "plex-service": {
+   "apt\\plex": {
+    "driver": "apt",
+    "fields": {
+     "name": "plexmediaserver",
+     "pubkey-path": "/usr/share/keyrings/plex.gpg",
+     "pubkey-url": "https://downloads.plex.tv/plex-keys/PlexSign.key",
+     "source-line": "deb [signed-by=/usr/share/keyrings/plex.gpg] https://downloads.plex.tv/repo/deb public main",
+     "source-path": "/etc/apt/sources.list.d/plexmediaserver.list"
+    },
+    "name": "plexmediaserver"
+   },
+   "service\\plex-service": {
+    "driver": "service",
+    "fields": {
+     "name": "plex-service",
+     "unit": "plexmediaserver"
+    },
+    "name": "plex-service"
    }
   },
   "pnpm": {
@@ -17688,6 +19150,26 @@
     "name": "sdkman"
    }
   },
+  "sdl": {
+   "apt\\sdl": {
+    "driver": "apt",
+    "fields": {
+     "name": "libsdl2-dev",
+     "repo-component": "universe"
+    },
+    "name": "libsdl2-dev"
+   }
+  },
+  "sfml": {
+   "apt\\sfml": {
+    "driver": "apt",
+    "fields": {
+     "name": "libsfml-dev",
+     "repo-component": "universe"
+    },
+    "name": "libsfml-dev"
+   }
+  },
   "slack": {
    "apt\\slack": {
     "driver": "apt",
@@ -17843,6 +19325,33 @@
     "name": "strace"
    }
   },
+  "stremio": {
+   "apt\\flatpak": {
+    "driver": "apt",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\stremio": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "com.stremio.Stremio"
+    },
+    "name": "com.stremio.Stremio"
+   }
+  },
+  "subversion": {
+   "apt\\subversion": {
+    "driver": "apt",
+    "fields": {
+     "name": "subversion",
+     "repo-component": "universe"
+    },
+    "name": "subversion"
+   }
+  },
   "supercollider": {
    "apt\\supercollider": {
     "driver": "apt",
@@ -17976,6 +19485,18 @@
     "name": "tmux"
    }
   },
+  "tmux-dotfiles": {
+   "dotfiles\\tmux-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/tmux",
+      "src": "tmux"
+     }
+    },
+    "name": "tmux-dotfiles"
+   }
+  },
   "traceroute": {
    "apt\\traceroute": {
     "driver": "apt",
@@ -18070,6 +19591,22 @@
      "name": "unzip"
     },
     "name": "unzip"
+   }
+  },
+  "uv": {
+   "apt\\pipx": {
+    "driver": "apt",
+    "fields": {
+     "name": "pipx"
+    },
+    "name": "pipx"
+   },
+   "pipx\\uv": {
+    "driver": "pipx",
+    "fields": {
+     "name": "uv"
+    },
+    "name": "uv"
    }
   },
   "valgrind": {
@@ -18422,6 +19959,34 @@
     "name": "whois"
    }
   },
+  "wine": {
+   "apt\\wine": {
+    "driver": "apt",
+    "fields": {
+     "foreign-arch": "i386",
+     "name": "wine"
+    },
+    "name": "wine"
+   }
+  },
+  "winetricks": {
+   "apt\\wine": {
+    "driver": "apt",
+    "fields": {
+     "foreign-arch": "i386",
+     "name": "wine"
+    },
+    "name": "wine"
+   },
+   "apt\\winetricks": {
+    "driver": "apt",
+    "fields": {
+     "name": "winetricks",
+     "repo-component": "universe"
+    },
+    "name": "winetricks"
+   }
+  },
   "wireshark": {
    "apt\\wireshark": {
     "driver": "apt",
@@ -18546,6 +20111,36 @@
      "name": "xmonad"
     },
     "name": "xmonad"
+   }
+  },
+  "yabridge": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "apt\\wine": {
+    "driver": "apt",
+    "fields": {
+     "foreign-arch": "i386",
+     "name": "wine"
+    },
+    "name": "wine"
+   },
+   "tarball\\yabridge": {
+    "driver": "tarball",
+    "fields": {
+     "installDir": "$CONFIGSYS_APP_DIR/yabridge",
+     "name": "yabridge",
+     "version": {
+      "asset": "yabridge-*.tar.gz",
+      "github": "robbert-vdh/yabridge",
+      "strip-v": "true"
+     }
+    },
+    "name": "yabridge"
    }
   },
   "yarn": {
@@ -18946,6 +20541,15 @@
     "name": "bash-dotfiles"
    }
   },
+  "bazaar": {
+   "dnf\\bazaar": {
+    "driver": "dnf",
+    "fields": {
+     "name": "breezy"
+    },
+    "name": "breezy"
+   }
+  },
   "bazelisk": {
    "dnf\\curl": {
     "driver": "dnf",
@@ -19326,6 +20930,24 @@
     "name": "@openai/codex"
    }
   },
+  "composer": {
+   "dnf\\composer": {
+    "driver": "dnf",
+    "fields": {
+     "name": "composer",
+     "repo-component": "universe"
+    },
+    "name": "composer"
+   },
+   "dnf\\php": {
+    "driver": "dnf",
+    "fields": {
+     "name": "php-cli",
+     "repo-component": "universe"
+    },
+    "name": "php-cli"
+   }
+  },
   "compression": {
    "dnf\\lz4": {
     "driver": "dnf",
@@ -19340,6 +20962,24 @@
      "name": "p7zip"
     },
     "name": "p7zip"
+   },
+   "dnf\\rpmfusion-free": {
+    "driver": "dnf",
+    "fields": {
+     "name": "rpmfusion-free-release",
+     "pubkey-url": "https://rpmfusion.org/keys?action=AttachFile&do=get&target=RPM-GPG-KEY-rpmfusion-free-fedora-$releasever",
+     "repo-id": "rpmfusion-free",
+     "repo-name": "RPM Fusion Free",
+     "repo-url": "https://download1.rpmfusion.org/free/fedora/releases/$releasever/Everything/$basearch/os/"
+    },
+    "name": "rpmfusion-free-release"
+   },
+   "dnf\\unrar": {
+    "driver": "dnf",
+    "fields": {
+     "name": "unrar"
+    },
+    "name": "unrar"
    },
    "dnf\\unzip": {
     "driver": "dnf",
@@ -19567,6 +21207,16 @@
     "name": "curl"
    }
   },
+  "cvs": {
+   "dnf\\cvs": {
+    "driver": "dnf",
+    "fields": {
+     "name": "cvs",
+     "repo-component": "universe"
+    },
+    "name": "cvs"
+   }
+  },
   "cython": {
    "dnf\\c-toolchain": {
     "driver": "dnf",
@@ -19778,6 +21428,15 @@
     "name": "docker-service"
    }
   },
+  "dotnet": {
+   "dnf\\dotnet": {
+    "driver": "dnf",
+    "fields": {
+     "name": "dotnet-sdk-8.0"
+    },
+    "name": "dotnet-sdk-8.0"
+   }
+  },
   "dune": {
    "dnf\\opam": {
     "driver": "dnf",
@@ -19826,6 +21485,42 @@
      "repo-component": "universe"
     },
     "name": "emacs"
+   }
+  },
+  "emby": {
+   "native-pkg-file\\emby": {
+    "driver": "native-pkg-file",
+    "fields": {
+     "asset": "emby-server-rpm_*_x86_64.rpm",
+     "name": "emby-server",
+     "version": {
+      "github": "MediaBrowser/Emby.Releases",
+      "strip-v": "true"
+     }
+    },
+    "name": "emby-server"
+   }
+  },
+  "emby-service": {
+   "native-pkg-file\\emby": {
+    "driver": "native-pkg-file",
+    "fields": {
+     "asset": "emby-server-rpm_*_x86_64.rpm",
+     "name": "emby-server",
+     "version": {
+      "github": "MediaBrowser/Emby.Releases",
+      "strip-v": "true"
+     }
+    },
+    "name": "emby-server"
+   },
+   "service\\emby-service": {
+    "driver": "service",
+    "fields": {
+     "name": "emby-service",
+     "unit": "emby-server"
+    },
+    "name": "emby-service"
    }
   },
   "erlang": {
@@ -19920,6 +21615,16 @@
      "name": "fontconfig"
     },
     "name": "fontconfig"
+   }
+  },
+  "fossil": {
+   "dnf\\fossil": {
+    "driver": "dnf",
+    "fields": {
+     "name": "fossil",
+     "repo-component": "universe"
+    },
+    "name": "fossil"
    }
   },
   "freecad": {
@@ -20068,6 +21773,16 @@
      "name": "git"
     },
     "name": "git"
+   }
+  },
+  "glfw": {
+   "dnf\\glfw": {
+    "driver": "dnf",
+    "fields": {
+     "name": "glfw-devel",
+     "repo-component": "universe"
+    },
+    "name": "glfw-devel"
    }
   },
   "gnome": {
@@ -20465,6 +22180,15 @@
     "name": "iproute"
    }
   },
+  "jack": {
+   "dnf\\jack": {
+    "driver": "dnf",
+    "fields": {
+     "name": "jack-audio-connection-kit"
+    },
+    "name": "jack-audio-connection-kit"
+   }
+  },
   "jdk": {
    "dnf\\jdk": {
     "driver": "dnf",
@@ -20472,6 +22196,62 @@
      "name": "java-17-openjdk-devel"
     },
     "name": "java-17-openjdk-devel"
+   }
+  },
+  "jellyfin": {
+   "dnf\\jellyfin": {
+    "driver": "dnf",
+    "fields": {
+     "name": "jellyfin",
+     "pubkey-url": "https://repo.jellyfin.org/fedora/jellyfin_team.gpg.key",
+     "repo-id": "jellyfin",
+     "repo-name": "Jellyfin",
+     "repo-url": "https://repo.jellyfin.org/fedora/$releasever/$basearch"
+    },
+    "name": "jellyfin"
+   },
+   "dnf\\rpmfusion-free": {
+    "driver": "dnf",
+    "fields": {
+     "name": "rpmfusion-free-release",
+     "pubkey-url": "https://rpmfusion.org/keys?action=AttachFile&do=get&target=RPM-GPG-KEY-rpmfusion-free-fedora-$releasever",
+     "repo-id": "rpmfusion-free",
+     "repo-name": "RPM Fusion Free",
+     "repo-url": "https://download1.rpmfusion.org/free/fedora/releases/$releasever/Everything/$basearch/os/"
+    },
+    "name": "rpmfusion-free-release"
+   }
+  },
+  "jellyfin-service": {
+   "dnf\\jellyfin": {
+    "driver": "dnf",
+    "fields": {
+     "name": "jellyfin",
+     "pubkey-url": "https://repo.jellyfin.org/fedora/jellyfin_team.gpg.key",
+     "repo-id": "jellyfin",
+     "repo-name": "Jellyfin",
+     "repo-url": "https://repo.jellyfin.org/fedora/$releasever/$basearch"
+    },
+    "name": "jellyfin"
+   },
+   "dnf\\rpmfusion-free": {
+    "driver": "dnf",
+    "fields": {
+     "name": "rpmfusion-free-release",
+     "pubkey-url": "https://rpmfusion.org/keys?action=AttachFile&do=get&target=RPM-GPG-KEY-rpmfusion-free-fedora-$releasever",
+     "repo-id": "rpmfusion-free",
+     "repo-name": "RPM Fusion Free",
+     "repo-url": "https://download1.rpmfusion.org/free/fedora/releases/$releasever/Everything/$basearch/os/"
+    },
+    "name": "rpmfusion-free-release"
+   },
+   "service\\jellyfin-service": {
+    "driver": "service",
+    "fields": {
+     "name": "jellyfin-service",
+     "unit": "jellyfin"
+    },
+    "name": "jellyfin-service"
    }
   },
   "jetbrains-toolbox": {
@@ -20621,6 +22401,26 @@
      "name": "kitty"
     },
     "name": "kitty"
+   }
+  },
+  "kodi": {
+   "dnf\\kodi": {
+    "driver": "dnf",
+    "fields": {
+     "name": "kodi"
+    },
+    "name": "kodi"
+   },
+   "dnf\\rpmfusion-free": {
+    "driver": "dnf",
+    "fields": {
+     "name": "rpmfusion-free-release",
+     "pubkey-url": "https://rpmfusion.org/keys?action=AttachFile&do=get&target=RPM-GPG-KEY-rpmfusion-free-fedora-$releasever",
+     "repo-id": "rpmfusion-free",
+     "repo-name": "RPM Fusion Free",
+     "repo-url": "https://download1.rpmfusion.org/free/fedora/releases/$releasever/Everything/$basearch/os/"
+    },
+    "name": "rpmfusion-free-release"
    }
   },
   "kotlin": {
@@ -21052,6 +22852,16 @@
     "name": "maxima"
    }
   },
+  "mercurial": {
+   "dnf\\mercurial": {
+    "driver": "dnf",
+    "fields": {
+     "name": "mercurial",
+     "repo-component": "universe"
+    },
+    "name": "mercurial"
+   }
+  },
   "mesa-vulkan-drivers": {
    "dnf\\mesa-vulkan-drivers": {
     "driver": "dnf",
@@ -21178,6 +22988,38 @@
      "name": "mycli"
     },
     "name": "mycli"
+   }
+  },
+  "navidrome": {
+   "dnf\\ffmpeg": {
+    "driver": "dnf",
+    "fields": {
+     "name": "ffmpeg"
+    },
+    "name": "ffmpeg"
+   },
+   "dnf\\rpmfusion-free": {
+    "driver": "dnf",
+    "fields": {
+     "name": "rpmfusion-free-release",
+     "pubkey-url": "https://rpmfusion.org/keys?action=AttachFile&do=get&target=RPM-GPG-KEY-rpmfusion-free-fedora-$releasever",
+     "repo-id": "rpmfusion-free",
+     "repo-name": "RPM Fusion Free",
+     "repo-url": "https://download1.rpmfusion.org/free/fedora/releases/$releasever/Everything/$basearch/os/"
+    },
+    "name": "rpmfusion-free-release"
+   },
+   "native-pkg-file\\navidrome": {
+    "driver": "native-pkg-file",
+    "fields": {
+     "asset": "navidrome_*_linux_amd64.rpm",
+     "name": "navidrome",
+     "version": {
+      "github": "navidrome/navidrome",
+      "strip-v": "true"
+     }
+    },
+    "name": "navidrome"
    }
   },
   "neovim": {
@@ -21477,6 +23319,19 @@
     "name": "python3-opencv"
    }
   },
+  "opengl": {
+   "dnf\\opengl": {
+    "driver": "dnf",
+    "fields": {
+     "name": "opengl",
+     "packages": [
+      "mesa-libGL-devel",
+      "mesa-libGLU-devel"
+     ]
+    },
+    "name": "opengl"
+   }
+  },
   "openscad": {
    "dnf\\flatpak": {
     "driver": "dnf",
@@ -21567,6 +23422,19 @@
     "name": "perf"
    }
   },
+  "perforce": {
+   "dnf\\perforce": {
+    "driver": "dnf",
+    "fields": {
+     "name": "helix-cli",
+     "pubkey-url": "https://package.perforce.com/perforce.pubkey",
+     "repo-id": "perforce",
+     "repo-name": "Perforce",
+     "repo-url": "https://package.perforce.com/yum/rhel/9/x86_64"
+    },
+    "name": "helix-cli"
+   }
+  },
   "pgcli": {
    "dnf\\pipx": {
     "driver": "dnf",
@@ -21581,6 +23449,16 @@
      "name": "pgcli"
     },
     "name": "pgcli"
+   }
+  },
+  "php": {
+   "dnf\\php": {
+    "driver": "dnf",
+    "fields": {
+     "name": "php-cli",
+     "repo-component": "universe"
+    },
+    "name": "php-cli"
    }
   },
   "pipewire": {
@@ -21599,6 +23477,40 @@
      "name": "pipx"
     },
     "name": "pipx"
+   }
+  },
+  "plex": {
+   "dnf\\plex": {
+    "driver": "dnf",
+    "fields": {
+     "name": "plexmediaserver",
+     "pubkey-url": "https://downloads.plex.tv/plex-keys/PlexSign.key",
+     "repo-id": "plex",
+     "repo-name": "Plex",
+     "repo-url": "https://downloads.plex.tv/repo/rpm/$basearch/"
+    },
+    "name": "plexmediaserver"
+   }
+  },
+  "plex-service": {
+   "dnf\\plex": {
+    "driver": "dnf",
+    "fields": {
+     "name": "plexmediaserver",
+     "pubkey-url": "https://downloads.plex.tv/plex-keys/PlexSign.key",
+     "repo-id": "plex",
+     "repo-name": "Plex",
+     "repo-url": "https://downloads.plex.tv/repo/rpm/$basearch/"
+    },
+    "name": "plexmediaserver"
+   },
+   "service\\plex-service": {
+    "driver": "service",
+    "fields": {
+     "name": "plex-service",
+     "unit": "plexmediaserver"
+    },
+    "name": "plex-service"
    }
   },
   "pnpm": {
@@ -22042,6 +23954,26 @@
     "name": "sdkman"
    }
   },
+  "sdl": {
+   "dnf\\sdl": {
+    "driver": "dnf",
+    "fields": {
+     "name": "SDL2-devel",
+     "repo-component": "universe"
+    },
+    "name": "SDL2-devel"
+   }
+  },
+  "sfml": {
+   "dnf\\sfml": {
+    "driver": "dnf",
+    "fields": {
+     "name": "SFML-devel",
+     "repo-component": "universe"
+    },
+    "name": "SFML-devel"
+   }
+  },
   "slack": {
    "dnf\\slack": {
     "driver": "dnf",
@@ -22188,6 +24120,33 @@
     "name": "strace"
    }
   },
+  "stremio": {
+   "dnf\\flatpak": {
+    "driver": "dnf",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\stremio": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "com.stremio.Stremio"
+    },
+    "name": "com.stremio.Stremio"
+   }
+  },
+  "subversion": {
+   "dnf\\subversion": {
+    "driver": "dnf",
+    "fields": {
+     "name": "subversion",
+     "repo-component": "universe"
+    },
+    "name": "subversion"
+   }
+  },
   "supercollider": {
    "dnf\\supercollider": {
     "driver": "dnf",
@@ -22321,6 +24280,18 @@
     "name": "tmux"
    }
   },
+  "tmux-dotfiles": {
+   "dotfiles\\tmux-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/tmux",
+      "src": "tmux"
+     }
+    },
+    "name": "tmux-dotfiles"
+   }
+  },
   "traceroute": {
    "dnf\\traceroute": {
     "driver": "dnf",
@@ -22425,6 +24396,22 @@
      "name": "unzip"
     },
     "name": "unzip"
+   }
+  },
+  "uv": {
+   "dnf\\pipx": {
+    "driver": "dnf",
+    "fields": {
+     "name": "pipx"
+    },
+    "name": "pipx"
+   },
+   "pipx\\uv": {
+    "driver": "pipx",
+    "fields": {
+     "name": "uv"
+    },
+    "name": "uv"
    }
   },
   "valgrind": {
@@ -22797,6 +24784,32 @@
     "name": "whois"
    }
   },
+  "wine": {
+   "dnf\\wine": {
+    "driver": "dnf",
+    "fields": {
+     "name": "wine"
+    },
+    "name": "wine"
+   }
+  },
+  "winetricks": {
+   "dnf\\wine": {
+    "driver": "dnf",
+    "fields": {
+     "name": "wine"
+    },
+    "name": "wine"
+   },
+   "dnf\\winetricks": {
+    "driver": "dnf",
+    "fields": {
+     "name": "winetricks",
+     "repo-component": "universe"
+    },
+    "name": "winetricks"
+   }
+  },
   "wireshark": {
    "dnf\\wireshark": {
     "driver": "dnf",
@@ -22930,6 +24943,35 @@
      "name": "xmonad"
     },
     "name": "xmonad"
+   }
+  },
+  "yabridge": {
+   "dnf\\curl": {
+    "driver": "dnf",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "dnf\\wine": {
+    "driver": "dnf",
+    "fields": {
+     "name": "wine"
+    },
+    "name": "wine"
+   },
+   "tarball\\yabridge": {
+    "driver": "tarball",
+    "fields": {
+     "installDir": "$CONFIGSYS_APP_DIR/yabridge",
+     "name": "yabridge",
+     "version": {
+      "asset": "yabridge-*.tar.gz",
+      "github": "robbert-vdh/yabridge",
+      "strip-v": "true"
+     }
+    },
+    "name": "yabridge"
    }
   },
   "yarn": {
@@ -23342,6 +25384,15 @@
     "name": "bash-dotfiles"
    }
   },
+  "bazaar": {
+   "dnf\\bazaar": {
+    "driver": "dnf",
+    "fields": {
+     "name": "breezy"
+    },
+    "name": "breezy"
+   }
+  },
   "bazelisk": {
    "dnf\\curl": {
     "driver": "dnf",
@@ -23748,6 +25799,24 @@
     "name": "@openai/codex"
    }
   },
+  "composer": {
+   "dnf\\composer": {
+    "driver": "dnf",
+    "fields": {
+     "name": "composer",
+     "repo-component": "universe"
+    },
+    "name": "composer"
+   },
+   "dnf\\php": {
+    "driver": "dnf",
+    "fields": {
+     "name": "php-cli",
+     "repo-component": "universe"
+    },
+    "name": "php-cli"
+   }
+  },
   "compression": {
    "dnf\\lz4": {
     "driver": "dnf",
@@ -23762,6 +25831,24 @@
      "name": "p7zip"
     },
     "name": "p7zip"
+   },
+   "dnf\\rpmfusion-free": {
+    "driver": "dnf",
+    "fields": {
+     "name": "rpmfusion-free-release",
+     "pubkey-url": "https://rpmfusion.org/keys?action=AttachFile&do=get&target=RPM-GPG-KEY-rpmfusion-free-fedora-$releasever",
+     "repo-id": "rpmfusion-free",
+     "repo-name": "RPM Fusion Free",
+     "repo-url": "https://download1.rpmfusion.org/free/fedora/releases/$releasever/Everything/$basearch/os/"
+    },
+    "name": "rpmfusion-free-release"
+   },
+   "dnf\\unrar": {
+    "driver": "dnf",
+    "fields": {
+     "name": "unrar"
+    },
+    "name": "unrar"
    },
    "dnf\\unzip": {
     "driver": "dnf",
@@ -23989,6 +26076,16 @@
     "name": "curl"
    }
   },
+  "cvs": {
+   "dnf\\cvs": {
+    "driver": "dnf",
+    "fields": {
+     "name": "cvs",
+     "repo-component": "universe"
+    },
+    "name": "cvs"
+   }
+  },
   "cython": {
    "dnf\\c-toolchain": {
     "driver": "dnf",
@@ -24200,6 +26297,15 @@
     "name": "docker-service"
    }
   },
+  "dotnet": {
+   "dnf\\dotnet": {
+    "driver": "dnf",
+    "fields": {
+     "name": "dotnet-sdk-8.0"
+    },
+    "name": "dotnet-sdk-8.0"
+   }
+  },
   "dune": {
    "dnf\\opam": {
     "driver": "dnf",
@@ -24248,6 +26354,42 @@
      "repo-component": "universe"
     },
     "name": "emacs"
+   }
+  },
+  "emby": {
+   "native-pkg-file\\emby": {
+    "driver": "native-pkg-file",
+    "fields": {
+     "asset": "emby-server-rpm_*_x86_64.rpm",
+     "name": "emby-server",
+     "version": {
+      "github": "MediaBrowser/Emby.Releases",
+      "strip-v": "true"
+     }
+    },
+    "name": "emby-server"
+   }
+  },
+  "emby-service": {
+   "native-pkg-file\\emby": {
+    "driver": "native-pkg-file",
+    "fields": {
+     "asset": "emby-server-rpm_*_x86_64.rpm",
+     "name": "emby-server",
+     "version": {
+      "github": "MediaBrowser/Emby.Releases",
+      "strip-v": "true"
+     }
+    },
+    "name": "emby-server"
+   },
+   "service\\emby-service": {
+    "driver": "service",
+    "fields": {
+     "name": "emby-service",
+     "unit": "emby-server"
+    },
+    "name": "emby-service"
    }
   },
   "erlang": {
@@ -24342,6 +26484,16 @@
      "name": "fontconfig"
     },
     "name": "fontconfig"
+   }
+  },
+  "fossil": {
+   "dnf\\fossil": {
+    "driver": "dnf",
+    "fields": {
+     "name": "fossil",
+     "repo-component": "universe"
+    },
+    "name": "fossil"
    }
   },
   "freecad": {
@@ -24490,6 +26642,16 @@
      "name": "git"
     },
     "name": "git"
+   }
+  },
+  "glfw": {
+   "dnf\\glfw": {
+    "driver": "dnf",
+    "fields": {
+     "name": "glfw-devel",
+     "repo-component": "universe"
+    },
+    "name": "glfw-devel"
    }
   },
   "gnome": {
@@ -24887,6 +27049,15 @@
     "name": "iproute"
    }
   },
+  "jack": {
+   "dnf\\jack": {
+    "driver": "dnf",
+    "fields": {
+     "name": "jack-audio-connection-kit"
+    },
+    "name": "jack-audio-connection-kit"
+   }
+  },
   "jdk": {
    "dnf\\jdk": {
     "driver": "dnf",
@@ -24894,6 +27065,62 @@
      "name": "java-17-openjdk-devel"
     },
     "name": "java-17-openjdk-devel"
+   }
+  },
+  "jellyfin": {
+   "dnf\\jellyfin": {
+    "driver": "dnf",
+    "fields": {
+     "name": "jellyfin",
+     "pubkey-url": "https://repo.jellyfin.org/fedora/jellyfin_team.gpg.key",
+     "repo-id": "jellyfin",
+     "repo-name": "Jellyfin",
+     "repo-url": "https://repo.jellyfin.org/fedora/$releasever/$basearch"
+    },
+    "name": "jellyfin"
+   },
+   "dnf\\rpmfusion-free": {
+    "driver": "dnf",
+    "fields": {
+     "name": "rpmfusion-free-release",
+     "pubkey-url": "https://rpmfusion.org/keys?action=AttachFile&do=get&target=RPM-GPG-KEY-rpmfusion-free-fedora-$releasever",
+     "repo-id": "rpmfusion-free",
+     "repo-name": "RPM Fusion Free",
+     "repo-url": "https://download1.rpmfusion.org/free/fedora/releases/$releasever/Everything/$basearch/os/"
+    },
+    "name": "rpmfusion-free-release"
+   }
+  },
+  "jellyfin-service": {
+   "dnf\\jellyfin": {
+    "driver": "dnf",
+    "fields": {
+     "name": "jellyfin",
+     "pubkey-url": "https://repo.jellyfin.org/fedora/jellyfin_team.gpg.key",
+     "repo-id": "jellyfin",
+     "repo-name": "Jellyfin",
+     "repo-url": "https://repo.jellyfin.org/fedora/$releasever/$basearch"
+    },
+    "name": "jellyfin"
+   },
+   "dnf\\rpmfusion-free": {
+    "driver": "dnf",
+    "fields": {
+     "name": "rpmfusion-free-release",
+     "pubkey-url": "https://rpmfusion.org/keys?action=AttachFile&do=get&target=RPM-GPG-KEY-rpmfusion-free-fedora-$releasever",
+     "repo-id": "rpmfusion-free",
+     "repo-name": "RPM Fusion Free",
+     "repo-url": "https://download1.rpmfusion.org/free/fedora/releases/$releasever/Everything/$basearch/os/"
+    },
+    "name": "rpmfusion-free-release"
+   },
+   "service\\jellyfin-service": {
+    "driver": "service",
+    "fields": {
+     "name": "jellyfin-service",
+     "unit": "jellyfin"
+    },
+    "name": "jellyfin-service"
    }
   },
   "jetbrains-toolbox": {
@@ -25043,6 +27270,26 @@
      "name": "kitty"
     },
     "name": "kitty"
+   }
+  },
+  "kodi": {
+   "dnf\\kodi": {
+    "driver": "dnf",
+    "fields": {
+     "name": "kodi"
+    },
+    "name": "kodi"
+   },
+   "dnf\\rpmfusion-free": {
+    "driver": "dnf",
+    "fields": {
+     "name": "rpmfusion-free-release",
+     "pubkey-url": "https://rpmfusion.org/keys?action=AttachFile&do=get&target=RPM-GPG-KEY-rpmfusion-free-fedora-$releasever",
+     "repo-id": "rpmfusion-free",
+     "repo-name": "RPM Fusion Free",
+     "repo-url": "https://download1.rpmfusion.org/free/fedora/releases/$releasever/Everything/$basearch/os/"
+    },
+    "name": "rpmfusion-free-release"
    }
   },
   "kotlin": {
@@ -25474,6 +27721,16 @@
     "name": "maxima"
    }
   },
+  "mercurial": {
+   "dnf\\mercurial": {
+    "driver": "dnf",
+    "fields": {
+     "name": "mercurial",
+     "repo-component": "universe"
+    },
+    "name": "mercurial"
+   }
+  },
   "mesa-vulkan-drivers": {
    "dnf\\mesa-vulkan-drivers": {
     "driver": "dnf",
@@ -25600,6 +27857,38 @@
      "name": "mycli"
     },
     "name": "mycli"
+   }
+  },
+  "navidrome": {
+   "dnf\\ffmpeg": {
+    "driver": "dnf",
+    "fields": {
+     "name": "ffmpeg"
+    },
+    "name": "ffmpeg"
+   },
+   "dnf\\rpmfusion-free": {
+    "driver": "dnf",
+    "fields": {
+     "name": "rpmfusion-free-release",
+     "pubkey-url": "https://rpmfusion.org/keys?action=AttachFile&do=get&target=RPM-GPG-KEY-rpmfusion-free-fedora-$releasever",
+     "repo-id": "rpmfusion-free",
+     "repo-name": "RPM Fusion Free",
+     "repo-url": "https://download1.rpmfusion.org/free/fedora/releases/$releasever/Everything/$basearch/os/"
+    },
+    "name": "rpmfusion-free-release"
+   },
+   "native-pkg-file\\navidrome": {
+    "driver": "native-pkg-file",
+    "fields": {
+     "asset": "navidrome_*_linux_amd64.rpm",
+     "name": "navidrome",
+     "version": {
+      "github": "navidrome/navidrome",
+      "strip-v": "true"
+     }
+    },
+    "name": "navidrome"
    }
   },
   "neovim": {
@@ -25899,6 +28188,19 @@
     "name": "python3-opencv"
    }
   },
+  "opengl": {
+   "dnf\\opengl": {
+    "driver": "dnf",
+    "fields": {
+     "name": "opengl",
+     "packages": [
+      "mesa-libGL-devel",
+      "mesa-libGLU-devel"
+     ]
+    },
+    "name": "opengl"
+   }
+  },
   "openscad": {
    "dnf\\flatpak": {
     "driver": "dnf",
@@ -25989,6 +28291,19 @@
     "name": "perf"
    }
   },
+  "perforce": {
+   "dnf\\perforce": {
+    "driver": "dnf",
+    "fields": {
+     "name": "helix-cli",
+     "pubkey-url": "https://package.perforce.com/perforce.pubkey",
+     "repo-id": "perforce",
+     "repo-name": "Perforce",
+     "repo-url": "https://package.perforce.com/yum/rhel/9/x86_64"
+    },
+    "name": "helix-cli"
+   }
+  },
   "pgcli": {
    "dnf\\pipx": {
     "driver": "dnf",
@@ -26003,6 +28318,16 @@
      "name": "pgcli"
     },
     "name": "pgcli"
+   }
+  },
+  "php": {
+   "dnf\\php": {
+    "driver": "dnf",
+    "fields": {
+     "name": "php-cli",
+     "repo-component": "universe"
+    },
+    "name": "php-cli"
    }
   },
   "pipewire": {
@@ -26021,6 +28346,40 @@
      "name": "pipx"
     },
     "name": "pipx"
+   }
+  },
+  "plex": {
+   "dnf\\plex": {
+    "driver": "dnf",
+    "fields": {
+     "name": "plexmediaserver",
+     "pubkey-url": "https://downloads.plex.tv/plex-keys/PlexSign.key",
+     "repo-id": "plex",
+     "repo-name": "Plex",
+     "repo-url": "https://downloads.plex.tv/repo/rpm/$basearch/"
+    },
+    "name": "plexmediaserver"
+   }
+  },
+  "plex-service": {
+   "dnf\\plex": {
+    "driver": "dnf",
+    "fields": {
+     "name": "plexmediaserver",
+     "pubkey-url": "https://downloads.plex.tv/plex-keys/PlexSign.key",
+     "repo-id": "plex",
+     "repo-name": "Plex",
+     "repo-url": "https://downloads.plex.tv/repo/rpm/$basearch/"
+    },
+    "name": "plexmediaserver"
+   },
+   "service\\plex-service": {
+    "driver": "service",
+    "fields": {
+     "name": "plex-service",
+     "unit": "plexmediaserver"
+    },
+    "name": "plex-service"
    }
   },
   "pnpm": {
@@ -26464,6 +28823,26 @@
     "name": "sdkman"
    }
   },
+  "sdl": {
+   "dnf\\sdl": {
+    "driver": "dnf",
+    "fields": {
+     "name": "SDL2-devel",
+     "repo-component": "universe"
+    },
+    "name": "SDL2-devel"
+   }
+  },
+  "sfml": {
+   "dnf\\sfml": {
+    "driver": "dnf",
+    "fields": {
+     "name": "SFML-devel",
+     "repo-component": "universe"
+    },
+    "name": "SFML-devel"
+   }
+  },
   "slack": {
    "dnf\\slack": {
     "driver": "dnf",
@@ -26610,6 +28989,33 @@
     "name": "strace"
    }
   },
+  "stremio": {
+   "dnf\\flatpak": {
+    "driver": "dnf",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\stremio": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "com.stremio.Stremio"
+    },
+    "name": "com.stremio.Stremio"
+   }
+  },
+  "subversion": {
+   "dnf\\subversion": {
+    "driver": "dnf",
+    "fields": {
+     "name": "subversion",
+     "repo-component": "universe"
+    },
+    "name": "subversion"
+   }
+  },
   "supercollider": {
    "dnf\\supercollider": {
     "driver": "dnf",
@@ -26743,6 +29149,18 @@
     "name": "tmux"
    }
   },
+  "tmux-dotfiles": {
+   "dotfiles\\tmux-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/tmux",
+      "src": "tmux"
+     }
+    },
+    "name": "tmux-dotfiles"
+   }
+  },
   "traceroute": {
    "dnf\\traceroute": {
     "driver": "dnf",
@@ -26847,6 +29265,22 @@
      "name": "unzip"
     },
     "name": "unzip"
+   }
+  },
+  "uv": {
+   "dnf\\pipx": {
+    "driver": "dnf",
+    "fields": {
+     "name": "pipx"
+    },
+    "name": "pipx"
+   },
+   "pipx\\uv": {
+    "driver": "pipx",
+    "fields": {
+     "name": "uv"
+    },
+    "name": "uv"
    }
   },
   "valgrind": {
@@ -27219,6 +29653,32 @@
     "name": "whois"
    }
   },
+  "wine": {
+   "dnf\\wine": {
+    "driver": "dnf",
+    "fields": {
+     "name": "wine"
+    },
+    "name": "wine"
+   }
+  },
+  "winetricks": {
+   "dnf\\wine": {
+    "driver": "dnf",
+    "fields": {
+     "name": "wine"
+    },
+    "name": "wine"
+   },
+   "dnf\\winetricks": {
+    "driver": "dnf",
+    "fields": {
+     "name": "winetricks",
+     "repo-component": "universe"
+    },
+    "name": "winetricks"
+   }
+  },
   "wireshark": {
    "dnf\\wireshark": {
     "driver": "dnf",
@@ -27352,6 +29812,35 @@
      "name": "xmonad"
     },
     "name": "xmonad"
+   }
+  },
+  "yabridge": {
+   "dnf\\curl": {
+    "driver": "dnf",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "dnf\\wine": {
+    "driver": "dnf",
+    "fields": {
+     "name": "wine"
+    },
+    "name": "wine"
+   },
+   "tarball\\yabridge": {
+    "driver": "tarball",
+    "fields": {
+     "installDir": "$CONFIGSYS_APP_DIR/yabridge",
+     "name": "yabridge",
+     "version": {
+      "asset": "yabridge-*.tar.gz",
+      "github": "robbert-vdh/yabridge",
+      "strip-v": "true"
+     }
+    },
+    "name": "yabridge"
    }
   },
   "yarn": {
@@ -27696,6 +30185,15 @@
     "name": "bash-dotfiles"
    }
   },
+  "bazaar": {
+   "brew\\bazaar": {
+    "driver": "brew",
+    "fields": {
+     "name": "breezy"
+    },
+    "name": "breezy"
+   }
+  },
   "bazelisk": {
    "brew\\bazelisk": {
     "driver": "brew",
@@ -27870,41 +30368,22 @@
     "name": "@openai/codex"
    }
   },
-  "compression": {
-   "brew\\lz4": {
+  "composer": {
+   "brew\\composer": {
     "driver": "brew",
     "fields": {
-     "name": "lz4"
+     "name": "composer",
+     "repo-component": "universe"
     },
-    "name": "lz4"
+    "name": "composer"
    },
-   "brew\\p7zip": {
+   "brew\\php": {
     "driver": "brew",
     "fields": {
-     "name": "sevenzip"
+     "name": "php",
+     "repo-component": "universe"
     },
-    "name": "sevenzip"
-   },
-   "brew\\unzip": {
-    "driver": "brew",
-    "fields": {
-     "name": "unzip"
-    },
-    "name": "unzip"
-   },
-   "brew\\zip": {
-    "driver": "brew",
-    "fields": {
-     "name": "zip"
-    },
-    "name": "zip"
-   },
-   "brew\\zstd": {
-    "driver": "brew",
-    "fields": {
-     "name": "zstd"
-    },
-    "name": "zstd"
+    "name": "php"
    }
   },
   "conan": {
@@ -27985,6 +30464,16 @@
      "name": "curl"
     },
     "name": "curl"
+   }
+  },
+  "cvs": {
+   "brew\\cvs": {
+    "driver": "brew",
+    "fields": {
+     "name": "cvs",
+     "repo-component": "universe"
+    },
+    "name": "cvs"
    }
   },
   "cython": {
@@ -28268,6 +30757,16 @@
     "name": "fontconfig"
    }
   },
+  "fossil": {
+   "brew\\fossil": {
+    "driver": "brew",
+    "fields": {
+     "name": "fossil",
+     "repo-component": "universe"
+    },
+    "name": "fossil"
+   }
+  },
   "freecad": {
    "flatpak\\freecad": {
     "driver": "flatpak",
@@ -28386,6 +30885,16 @@
      "name": "git"
     },
     "name": "git"
+   }
+  },
+  "glfw": {
+   "brew\\glfw": {
+    "driver": "brew",
+    "fields": {
+     "name": "glfw",
+     "repo-component": "universe"
+    },
+    "name": "glfw"
    }
   },
   "gnuplot": {
@@ -28640,6 +31149,15 @@
     "name": "iproute2"
    }
   },
+  "jack": {
+   "brew\\jack": {
+    "driver": "brew",
+    "fields": {
+     "name": "jack"
+    },
+    "name": "jack"
+   }
+  },
   "jdk": {
    "brew\\jdk": {
     "driver": "brew",
@@ -28753,6 +31271,16 @@
      "name": "kitty"
     },
     "name": "kitty"
+   }
+  },
+  "kodi": {
+   "flatpak\\kodi": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "tv.kodi.Kodi"
+    },
+    "name": "tv.kodi.Kodi"
    }
   },
   "kotlin": {
@@ -29101,6 +31629,16 @@
     "name": "maxima"
    }
   },
+  "mercurial": {
+   "brew\\mercurial": {
+    "driver": "brew",
+    "fields": {
+     "name": "mercurial",
+     "repo-component": "universe"
+    },
+    "name": "mercurial"
+   }
+  },
   "meson": {
    "brew\\meson": {
     "driver": "brew",
@@ -29211,6 +31749,35 @@
      "name": "mycli"
     },
     "name": "mycli"
+   }
+  },
+  "navidrome": {
+   "brew\\curl": {
+    "driver": "brew",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "brew\\ffmpeg": {
+    "driver": "brew",
+    "fields": {
+     "name": "ffmpeg"
+    },
+    "name": "ffmpeg"
+   },
+   "tarball\\navidrome": {
+    "driver": "tarball",
+    "fields": {
+     "installDir": "$CONFIGSYS_APP_DIR/navidrome",
+     "name": "navidrome",
+     "version": {
+      "asset": "navidrome_*_linux_amd64.tar.gz",
+      "github": "navidrome/navidrome",
+      "strip-v": "true"
+     }
+    },
+    "name": "navidrome"
    }
   },
   "neovim": {
@@ -29536,6 +32103,16 @@
     "name": "pgcli"
    }
   },
+  "php": {
+   "brew\\php": {
+    "driver": "brew",
+    "fields": {
+     "name": "php",
+     "repo-component": "universe"
+    },
+    "name": "php"
+   }
+  },
   "pipewire": {
    "brew\\pipewire": {
     "driver": "brew",
@@ -29849,6 +32426,26 @@
     "name": "sdkman"
    }
   },
+  "sdl": {
+   "brew\\sdl": {
+    "driver": "brew",
+    "fields": {
+     "name": "sdl2",
+     "repo-component": "universe"
+    },
+    "name": "sdl2"
+   }
+  },
+  "sfml": {
+   "brew\\sfml": {
+    "driver": "brew",
+    "fields": {
+     "name": "sfml",
+     "repo-component": "universe"
+    },
+    "name": "sfml"
+   }
+  },
   "slack": {
    "flatpak\\slack": {
     "driver": "flatpak",
@@ -29915,6 +32512,26 @@
      "name": "strace"
     },
     "name": "strace"
+   }
+  },
+  "stremio": {
+   "flatpak\\stremio": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "com.stremio.Stremio"
+    },
+    "name": "com.stremio.Stremio"
+   }
+  },
+  "subversion": {
+   "brew\\subversion": {
+    "driver": "brew",
+    "fields": {
+     "name": "subversion",
+     "repo-component": "universe"
+    },
+    "name": "subversion"
    }
   },
   "supercollider": {
@@ -30012,6 +32629,18 @@
     "name": "tmux"
    }
   },
+  "tmux-dotfiles": {
+   "dotfiles\\tmux-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/tmux",
+      "src": "tmux"
+     }
+    },
+    "name": "tmux-dotfiles"
+   }
+  },
   "tree-sitter-cli": {
    "brew\\rust": {
     "driver": "brew",
@@ -30087,6 +32716,15 @@
      "name": "unzip"
     },
     "name": "unzip"
+   }
+  },
+  "uv": {
+   "brew\\uv": {
+    "driver": "brew",
+    "fields": {
+     "name": "uv"
+    },
+    "name": "uv"
    }
   },
   "valgrind": {
@@ -30806,6 +33444,16 @@
     "name": "bash-dotfiles"
    }
   },
+  "bazaar": {
+   "apt\\bazaar": {
+    "driver": "apt",
+    "fields": {
+     "name": "brz",
+     "repo-component": "universe"
+    },
+    "name": "brz"
+   }
+  },
   "bazelisk": {
    "apt\\curl": {
     "driver": "apt",
@@ -31307,6 +33955,24 @@
     "name": "@openai/codex"
    }
   },
+  "composer": {
+   "apt\\composer": {
+    "driver": "apt",
+    "fields": {
+     "name": "composer",
+     "repo-component": "universe"
+    },
+    "name": "composer"
+   },
+   "apt\\php": {
+    "driver": "apt",
+    "fields": {
+     "name": "php-cli",
+     "repo-component": "universe"
+    },
+    "name": "php-cli"
+   }
+  },
   "compression": {
    "apt\\lz4": {
     "driver": "apt",
@@ -31321,6 +33987,14 @@
      "name": "p7zip-full"
     },
     "name": "p7zip-full"
+   },
+   "apt\\unrar": {
+    "driver": "apt",
+    "fields": {
+     "name": "unrar",
+     "repo-component": "multiverse"
+    },
+    "name": "unrar"
    },
    "apt\\unzip": {
     "driver": "apt",
@@ -31562,6 +34236,16 @@
     "name": "curl"
    }
   },
+  "cvs": {
+   "apt\\cvs": {
+    "driver": "apt",
+    "fields": {
+     "name": "cvs",
+     "repo-component": "universe"
+    },
+    "name": "cvs"
+   }
+  },
   "cython": {
    "apt\\c-toolchain": {
     "driver": "apt",
@@ -31773,6 +34457,15 @@
     "name": "docker-service"
    }
   },
+  "dotnet": {
+   "apt\\dotnet": {
+    "driver": "apt",
+    "fields": {
+     "name": "dotnet-sdk-8.0"
+    },
+    "name": "dotnet-sdk-8.0"
+   }
+  },
   "dune": {
    "apt\\opam": {
     "driver": "apt",
@@ -31821,6 +34514,42 @@
      "repo-component": "universe"
     },
     "name": "emacs"
+   }
+  },
+  "emby": {
+   "native-pkg-file\\emby": {
+    "driver": "native-pkg-file",
+    "fields": {
+     "asset": "emby-server-deb_*_amd64.deb",
+     "name": "emby-server",
+     "version": {
+      "github": "MediaBrowser/Emby.Releases",
+      "strip-v": "true"
+     }
+    },
+    "name": "emby-server"
+   }
+  },
+  "emby-service": {
+   "native-pkg-file\\emby": {
+    "driver": "native-pkg-file",
+    "fields": {
+     "asset": "emby-server-deb_*_amd64.deb",
+     "name": "emby-server",
+     "version": {
+      "github": "MediaBrowser/Emby.Releases",
+      "strip-v": "true"
+     }
+    },
+    "name": "emby-server"
+   },
+   "service\\emby-service": {
+    "driver": "service",
+    "fields": {
+     "name": "emby-service",
+     "unit": "emby-server"
+    },
+    "name": "emby-service"
    }
   },
   "erlang": {
@@ -31902,6 +34631,16 @@
      "name": "fontconfig"
     },
     "name": "fontconfig"
+   }
+  },
+  "fossil": {
+   "apt\\fossil": {
+    "driver": "apt",
+    "fields": {
+     "name": "fossil",
+     "repo-component": "universe"
+    },
+    "name": "fossil"
    }
   },
   "freecad": {
@@ -32327,6 +35066,16 @@
     "name": "git"
    }
   },
+  "glfw": {
+   "apt\\glfw": {
+    "driver": "apt",
+    "fields": {
+     "name": "libglfw3-dev",
+     "repo-component": "universe"
+    },
+    "name": "libglfw3-dev"
+   }
+  },
   "gnome": {
    "apt\\gnome": {
     "driver": "apt",
@@ -32722,6 +35471,15 @@
     "name": "iproute2"
    }
   },
+  "jack": {
+   "apt\\jack": {
+    "driver": "apt",
+    "fields": {
+     "name": "jackd2"
+    },
+    "name": "jackd2"
+   }
+  },
   "jdk": {
    "apt\\jdk": {
     "driver": "apt",
@@ -32729,6 +35487,40 @@
      "name": "default-jdk"
     },
     "name": "default-jdk"
+   }
+  },
+  "jellyfin": {
+   "apt\\jellyfin": {
+    "driver": "apt",
+    "fields": {
+     "name": "jellyfin",
+     "pubkey-path": "/usr/share/keyrings/jellyfin.gpg",
+     "pubkey-url": "https://repo.jellyfin.org/ubuntu/jellyfin_team.gpg.key",
+     "source-line": "deb [signed-by=/usr/share/keyrings/jellyfin.gpg] https://repo.jellyfin.org/ubuntu noble main",
+     "source-path": "/etc/apt/sources.list.d/jellyfin.list"
+    },
+    "name": "jellyfin"
+   }
+  },
+  "jellyfin-service": {
+   "apt\\jellyfin": {
+    "driver": "apt",
+    "fields": {
+     "name": "jellyfin",
+     "pubkey-path": "/usr/share/keyrings/jellyfin.gpg",
+     "pubkey-url": "https://repo.jellyfin.org/ubuntu/jellyfin_team.gpg.key",
+     "source-line": "deb [signed-by=/usr/share/keyrings/jellyfin.gpg] https://repo.jellyfin.org/ubuntu noble main",
+     "source-path": "/etc/apt/sources.list.d/jellyfin.list"
+    },
+    "name": "jellyfin"
+   },
+   "service\\jellyfin-service": {
+    "driver": "service",
+    "fields": {
+     "name": "jellyfin-service",
+     "unit": "jellyfin"
+    },
+    "name": "jellyfin-service"
    }
   },
   "jetbrains-toolbox": {
@@ -32901,6 +35693,16 @@
      "name": "kitty"
     },
     "name": "kitty"
+   }
+  },
+  "kodi": {
+   "apt\\kodi": {
+    "driver": "apt",
+    "fields": {
+     "name": "kodi",
+     "repo-component": "universe"
+    },
+    "name": "kodi"
    }
   },
   "kotlin": {
@@ -33382,6 +36184,16 @@
     "name": "maxima"
    }
   },
+  "mercurial": {
+   "apt\\mercurial": {
+    "driver": "apt",
+    "fields": {
+     "name": "mercurial",
+     "repo-component": "universe"
+    },
+    "name": "mercurial"
+   }
+  },
   "mesa-vulkan-drivers": {
    "apt\\mesa-vulkan-drivers": {
     "driver": "apt",
@@ -33528,6 +36340,27 @@
      "name": "mycli"
     },
     "name": "mycli"
+   }
+  },
+  "navidrome": {
+   "apt\\ffmpeg": {
+    "driver": "apt",
+    "fields": {
+     "name": "ffmpeg"
+    },
+    "name": "ffmpeg"
+   },
+   "native-pkg-file\\navidrome": {
+    "driver": "native-pkg-file",
+    "fields": {
+     "asset": "navidrome_*_linux_amd64.deb",
+     "name": "navidrome",
+     "version": {
+      "github": "navidrome/navidrome",
+      "strip-v": "true"
+     }
+    },
+    "name": "navidrome"
    }
   },
   "neovim": {
@@ -33837,6 +36670,19 @@
     "name": "python3-opencv"
    }
   },
+  "opengl": {
+   "apt\\opengl": {
+    "driver": "apt",
+    "fields": {
+     "name": "opengl",
+     "packages": [
+      "libgl-dev",
+      "libglu1-mesa-dev"
+     ]
+    },
+    "name": "opengl"
+   }
+  },
   "openscad": {
    "apt\\flatpak": {
     "driver": "apt",
@@ -33927,6 +36773,19 @@
     "name": "linux-tools-generic"
    }
   },
+  "perforce": {
+   "apt\\perforce": {
+    "driver": "apt",
+    "fields": {
+     "name": "helix-cli",
+     "pubkey-path": "/usr/share/keyrings/perforce.gpg",
+     "pubkey-url": "https://package.perforce.com/perforce.pubkey",
+     "source-line": "deb [signed-by=/usr/share/keyrings/perforce.gpg] https://package.perforce.com/apt/ubuntu noble release",
+     "source-path": "/etc/apt/sources.list.d/perforce.list"
+    },
+    "name": "helix-cli"
+   }
+  },
   "pgcli": {
    "apt\\python3-pip": {
     "driver": "apt",
@@ -33951,6 +36810,16 @@
      "name": "pgcli"
     },
     "name": "pgcli"
+   }
+  },
+  "php": {
+   "apt\\php": {
+    "driver": "apt",
+    "fields": {
+     "name": "php-cli",
+     "repo-component": "universe"
+    },
+    "name": "php-cli"
    }
   },
   "pipewire": {
@@ -33979,6 +36848,40 @@
      }
     },
     "name": "pipx"
+   }
+  },
+  "plex": {
+   "apt\\plex": {
+    "driver": "apt",
+    "fields": {
+     "name": "plexmediaserver",
+     "pubkey-path": "/usr/share/keyrings/plex.gpg",
+     "pubkey-url": "https://downloads.plex.tv/plex-keys/PlexSign.key",
+     "source-line": "deb [signed-by=/usr/share/keyrings/plex.gpg] https://downloads.plex.tv/repo/deb public main",
+     "source-path": "/etc/apt/sources.list.d/plexmediaserver.list"
+    },
+    "name": "plexmediaserver"
+   }
+  },
+  "plex-service": {
+   "apt\\plex": {
+    "driver": "apt",
+    "fields": {
+     "name": "plexmediaserver",
+     "pubkey-path": "/usr/share/keyrings/plex.gpg",
+     "pubkey-url": "https://downloads.plex.tv/plex-keys/PlexSign.key",
+     "source-line": "deb [signed-by=/usr/share/keyrings/plex.gpg] https://downloads.plex.tv/repo/deb public main",
+     "source-path": "/etc/apt/sources.list.d/plexmediaserver.list"
+    },
+    "name": "plexmediaserver"
+   },
+   "service\\plex-service": {
+    "driver": "service",
+    "fields": {
+     "name": "plex-service",
+     "unit": "plexmediaserver"
+    },
+    "name": "plex-service"
    }
   },
   "pnpm": {
@@ -34460,6 +37363,26 @@
     "name": "sdkman"
    }
   },
+  "sdl": {
+   "apt\\sdl": {
+    "driver": "apt",
+    "fields": {
+     "name": "libsdl2-dev",
+     "repo-component": "universe"
+    },
+    "name": "libsdl2-dev"
+   }
+  },
+  "sfml": {
+   "apt\\sfml": {
+    "driver": "apt",
+    "fields": {
+     "name": "libsfml-dev",
+     "repo-component": "universe"
+    },
+    "name": "libsfml-dev"
+   }
+  },
   "slack": {
    "apt\\slack": {
     "driver": "apt",
@@ -34608,6 +37531,33 @@
     "name": "strace"
    }
   },
+  "stremio": {
+   "apt\\flatpak": {
+    "driver": "apt",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\stremio": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "com.stremio.Stremio"
+    },
+    "name": "com.stremio.Stremio"
+   }
+  },
+  "subversion": {
+   "apt\\subversion": {
+    "driver": "apt",
+    "fields": {
+     "name": "subversion",
+     "repo-component": "universe"
+    },
+    "name": "subversion"
+   }
+  },
   "supercollider": {
    "apt\\supercollider": {
     "driver": "apt",
@@ -34741,6 +37691,18 @@
     "name": "tmux"
    }
   },
+  "tmux-dotfiles": {
+   "dotfiles\\tmux-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/tmux",
+      "src": "tmux"
+     }
+    },
+    "name": "tmux-dotfiles"
+   }
+  },
   "traceroute": {
    "apt\\traceroute": {
     "driver": "apt",
@@ -34835,6 +37797,32 @@
      "name": "unzip"
     },
     "name": "unzip"
+   }
+  },
+  "uv": {
+   "apt\\python3-pip": {
+    "driver": "apt",
+    "fields": {
+     "name": "python3-pip"
+    },
+    "name": "python3-pip"
+   },
+   "pip\\pipx": {
+    "driver": "pip",
+    "fields": {
+     "name": "pipx",
+     "version": {
+      "pypi": "pipx"
+     }
+    },
+    "name": "pipx"
+   },
+   "pipx\\uv": {
+    "driver": "pipx",
+    "fields": {
+     "name": "uv"
+    },
+    "name": "uv"
    }
   },
   "valgrind": {
@@ -35187,6 +38175,34 @@
     "name": "whois"
    }
   },
+  "wine": {
+   "apt\\wine": {
+    "driver": "apt",
+    "fields": {
+     "foreign-arch": "i386",
+     "name": "wine"
+    },
+    "name": "wine"
+   }
+  },
+  "winetricks": {
+   "apt\\wine": {
+    "driver": "apt",
+    "fields": {
+     "foreign-arch": "i386",
+     "name": "wine"
+    },
+    "name": "wine"
+   },
+   "apt\\winetricks": {
+    "driver": "apt",
+    "fields": {
+     "name": "winetricks",
+     "repo-component": "universe"
+    },
+    "name": "winetricks"
+   }
+  },
   "wireshark": {
    "apt\\wireshark": {
     "driver": "apt",
@@ -35311,6 +38327,36 @@
      "name": "xmonad"
     },
     "name": "xmonad"
+   }
+  },
+  "yabridge": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "apt\\wine": {
+    "driver": "apt",
+    "fields": {
+     "foreign-arch": "i386",
+     "name": "wine"
+    },
+    "name": "wine"
+   },
+   "tarball\\yabridge": {
+    "driver": "tarball",
+    "fields": {
+     "installDir": "$CONFIGSYS_APP_DIR/yabridge",
+     "name": "yabridge",
+     "version": {
+      "asset": "yabridge-*.tar.gz",
+      "github": "robbert-vdh/yabridge",
+      "strip-v": "true"
+     }
+    },
+    "name": "yabridge"
    }
   },
   "yarn": {
@@ -35735,6 +38781,29 @@
     "name": "bash-dotfiles"
    }
   },
+  "bazaar": {
+   "dnf\\epel-release": {
+    "driver": "dnf",
+    "fields": {
+     "name": "epel-release"
+    },
+    "name": "epel-release"
+   },
+   "dnf\\pipx": {
+    "driver": "dnf",
+    "fields": {
+     "name": "pipx"
+    },
+    "name": "pipx"
+   },
+   "pipx\\bazaar": {
+    "driver": "pipx",
+    "fields": {
+     "name": "breezy"
+    },
+    "name": "breezy"
+   }
+  },
   "bazelisk": {
    "dnf\\curl": {
     "driver": "dnf",
@@ -36157,7 +39226,38 @@
     "name": "@openai/codex"
    }
   },
+  "composer": {
+   "dnf\\composer": {
+    "driver": "dnf",
+    "fields": {
+     "name": "composer"
+    },
+    "name": "composer"
+   },
+   "dnf\\epel-release": {
+    "driver": "dnf",
+    "fields": {
+     "name": "epel-release"
+    },
+    "name": "epel-release"
+   },
+   "dnf\\php": {
+    "driver": "dnf",
+    "fields": {
+     "name": "php-cli",
+     "repo-component": "universe"
+    },
+    "name": "php-cli"
+   }
+  },
   "compression": {
+   "dnf\\epel-release": {
+    "driver": "dnf",
+    "fields": {
+     "name": "epel-release"
+    },
+    "name": "epel-release"
+   },
    "dnf\\lz4": {
     "driver": "dnf",
     "fields": {
@@ -36171,6 +39271,25 @@
      "name": "p7zip"
     },
     "name": "p7zip"
+   },
+   "dnf\\rpmfusion-free": {
+    "driver": "dnf",
+    "fields": {
+     "enable-repo": "crb",
+     "name": "rpmfusion-free-release",
+     "pubkey-url": "https://rpmfusion.org/keys?action=AttachFile&do=get&target=RPM-GPG-KEY-rpmfusion-free-el-$releasever",
+     "repo-id": "rpmfusion-free",
+     "repo-name": "RPM Fusion for EL - Free",
+     "repo-url": "https://download1.rpmfusion.org/free/el/updates/$releasever/$basearch/"
+    },
+    "name": "rpmfusion-free-release"
+   },
+   "dnf\\unrar": {
+    "driver": "dnf",
+    "fields": {
+     "name": "unrar"
+    },
+    "name": "unrar"
    },
    "dnf\\unzip": {
     "driver": "dnf",
@@ -36405,6 +39524,22 @@
     "name": "curl"
    }
   },
+  "cvs": {
+   "dnf\\cvs": {
+    "driver": "dnf",
+    "fields": {
+     "name": "cvs"
+    },
+    "name": "cvs"
+   },
+   "dnf\\epel-release": {
+    "driver": "dnf",
+    "fields": {
+     "name": "epel-release"
+    },
+    "name": "epel-release"
+   }
+  },
   "cython": {
    "dnf\\c-toolchain": {
     "driver": "dnf",
@@ -36616,6 +39751,20 @@
     "name": "docker-service"
    }
   },
+  "dotnet": {
+   "script\\dotnet": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "curl -fsSL https://dot.net/v1/dotnet-install.sh | bash -s -- --channel 8.0",
+     "location": "~/.dotnet",
+     "name": "dotnet",
+     "uninstall-cmd": "rm -rf \"$HOME/.dotnet\"",
+     "version-cmd": "\"$HOME/.dotnet/dotnet\" --version 2>/dev/null",
+     "version-re": "([0-9]+\\.[0-9]+\\.[0-9]+)"
+    },
+    "name": "dotnet"
+   }
+  },
   "dune": {
    "dnf\\opam": {
     "driver": "dnf",
@@ -36664,6 +39813,42 @@
      "repo-component": "universe"
     },
     "name": "emacs"
+   }
+  },
+  "emby": {
+   "native-pkg-file\\emby": {
+    "driver": "native-pkg-file",
+    "fields": {
+     "asset": "emby-server-rpm_*_x86_64.rpm",
+     "name": "emby-server",
+     "version": {
+      "github": "MediaBrowser/Emby.Releases",
+      "strip-v": "true"
+     }
+    },
+    "name": "emby-server"
+   }
+  },
+  "emby-service": {
+   "native-pkg-file\\emby": {
+    "driver": "native-pkg-file",
+    "fields": {
+     "asset": "emby-server-rpm_*_x86_64.rpm",
+     "name": "emby-server",
+     "version": {
+      "github": "MediaBrowser/Emby.Releases",
+      "strip-v": "true"
+     }
+    },
+    "name": "emby-server"
+   },
+   "service\\emby-service": {
+    "driver": "service",
+    "fields": {
+     "name": "emby-service",
+     "unit": "emby-server"
+    },
+    "name": "emby-service"
    }
   },
   "epel-release": {
@@ -36773,6 +39958,22 @@
      "name": "fontconfig"
     },
     "name": "fontconfig"
+   }
+  },
+  "fossil": {
+   "dnf\\epel-release": {
+    "driver": "dnf",
+    "fields": {
+     "name": "epel-release"
+    },
+    "name": "epel-release"
+   },
+   "dnf\\fossil": {
+    "driver": "dnf",
+    "fields": {
+     "name": "fossil"
+    },
+    "name": "fossil"
    }
   },
   "freecad": {
@@ -36968,6 +40169,16 @@
      "name": "git"
     },
     "name": "git"
+   }
+  },
+  "glfw": {
+   "dnf\\glfw": {
+    "driver": "dnf",
+    "fields": {
+     "name": "glfw-devel",
+     "repo-component": "universe"
+    },
+    "name": "glfw-devel"
    }
   },
   "gnome": {
@@ -37401,6 +40612,22 @@
     "name": "iproute"
    }
   },
+  "jack": {
+   "dnf\\epel-release": {
+    "driver": "dnf",
+    "fields": {
+     "name": "epel-release"
+    },
+    "name": "epel-release"
+   },
+   "dnf\\jack": {
+    "driver": "dnf",
+    "fields": {
+     "name": "jack-audio-connection-kit"
+    },
+    "name": "jack-audio-connection-kit"
+   }
+  },
   "jdk": {
    "dnf\\jdk": {
     "driver": "dnf",
@@ -37571,6 +40798,23 @@
      "name": "kitty"
     },
     "name": "kitty"
+   }
+  },
+  "kodi": {
+   "dnf\\flatpak": {
+    "driver": "dnf",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\kodi": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "tv.kodi.Kodi"
+    },
+    "name": "tv.kodi.Kodi"
    }
   },
   "kotlin": {
@@ -38009,6 +41253,22 @@
     "name": "maxima"
    }
   },
+  "mercurial": {
+   "dnf\\epel-release": {
+    "driver": "dnf",
+    "fields": {
+     "name": "epel-release"
+    },
+    "name": "epel-release"
+   },
+   "dnf\\mercurial": {
+    "driver": "dnf",
+    "fields": {
+     "name": "mercurial"
+    },
+    "name": "mercurial"
+   }
+  },
   "mesa-vulkan-drivers": {
    "dnf\\mesa-vulkan-drivers": {
     "driver": "dnf",
@@ -38149,6 +41409,46 @@
      "name": "mycli"
     },
     "name": "mycli"
+   }
+  },
+  "navidrome": {
+   "dnf\\epel-release": {
+    "driver": "dnf",
+    "fields": {
+     "name": "epel-release"
+    },
+    "name": "epel-release"
+   },
+   "dnf\\ffmpeg": {
+    "driver": "dnf",
+    "fields": {
+     "name": "ffmpeg"
+    },
+    "name": "ffmpeg"
+   },
+   "dnf\\rpmfusion-free": {
+    "driver": "dnf",
+    "fields": {
+     "enable-repo": "crb",
+     "name": "rpmfusion-free-release",
+     "pubkey-url": "https://rpmfusion.org/keys?action=AttachFile&do=get&target=RPM-GPG-KEY-rpmfusion-free-el-$releasever",
+     "repo-id": "rpmfusion-free",
+     "repo-name": "RPM Fusion for EL - Free",
+     "repo-url": "https://download1.rpmfusion.org/free/el/updates/$releasever/$basearch/"
+    },
+    "name": "rpmfusion-free-release"
+   },
+   "native-pkg-file\\navidrome": {
+    "driver": "native-pkg-file",
+    "fields": {
+     "asset": "navidrome_*_linux_amd64.rpm",
+     "name": "navidrome",
+     "version": {
+      "github": "navidrome/navidrome",
+      "strip-v": "true"
+     }
+    },
+    "name": "navidrome"
    }
   },
   "neovim": {
@@ -38468,6 +41768,19 @@
     "name": "python3-opencv"
    }
   },
+  "opengl": {
+   "dnf\\opengl": {
+    "driver": "dnf",
+    "fields": {
+     "name": "opengl",
+     "packages": [
+      "mesa-libGL-devel",
+      "mesa-libGLU-devel"
+     ]
+    },
+    "name": "opengl"
+   }
+  },
   "openscad": {
    "dnf\\flatpak": {
     "driver": "dnf",
@@ -38558,6 +41871,19 @@
     "name": "perf"
    }
   },
+  "perforce": {
+   "dnf\\perforce": {
+    "driver": "dnf",
+    "fields": {
+     "name": "helix-cli",
+     "pubkey-url": "https://package.perforce.com/perforce.pubkey",
+     "repo-id": "perforce",
+     "repo-name": "Perforce",
+     "repo-url": "https://package.perforce.com/yum/rhel/9/x86_64"
+    },
+    "name": "helix-cli"
+   }
+  },
   "pgcli": {
    "dnf\\epel-release": {
     "driver": "dnf",
@@ -38579,6 +41905,16 @@
      "name": "pgcli"
     },
     "name": "pgcli"
+   }
+  },
+  "php": {
+   "dnf\\php": {
+    "driver": "dnf",
+    "fields": {
+     "name": "php-cli",
+     "repo-component": "universe"
+    },
+    "name": "php-cli"
    }
   },
   "pipewire": {
@@ -38604,6 +41940,40 @@
      "name": "pipx"
     },
     "name": "pipx"
+   }
+  },
+  "plex": {
+   "dnf\\plex": {
+    "driver": "dnf",
+    "fields": {
+     "name": "plexmediaserver",
+     "pubkey-url": "https://downloads.plex.tv/plex-keys/PlexSign.key",
+     "repo-id": "plex",
+     "repo-name": "Plex",
+     "repo-url": "https://downloads.plex.tv/repo/rpm/$basearch/"
+    },
+    "name": "plexmediaserver"
+   }
+  },
+  "plex-service": {
+   "dnf\\plex": {
+    "driver": "dnf",
+    "fields": {
+     "name": "plexmediaserver",
+     "pubkey-url": "https://downloads.plex.tv/plex-keys/PlexSign.key",
+     "repo-id": "plex",
+     "repo-name": "Plex",
+     "repo-url": "https://downloads.plex.tv/repo/rpm/$basearch/"
+    },
+    "name": "plexmediaserver"
+   },
+   "service\\plex-service": {
+    "driver": "service",
+    "fields": {
+     "name": "plex-service",
+     "unit": "plexmediaserver"
+    },
+    "name": "plex-service"
    }
   },
   "pnpm": {
@@ -39068,6 +42438,26 @@
     "name": "sdkman"
    }
   },
+  "sdl": {
+   "dnf\\sdl": {
+    "driver": "dnf",
+    "fields": {
+     "name": "SDL2-devel",
+     "repo-component": "universe"
+    },
+    "name": "SDL2-devel"
+   }
+  },
+  "sfml": {
+   "dnf\\sfml": {
+    "driver": "dnf",
+    "fields": {
+     "name": "SFML-devel",
+     "repo-component": "universe"
+    },
+    "name": "SFML-devel"
+   }
+  },
   "slack": {
    "dnf\\slack": {
     "driver": "dnf",
@@ -39214,6 +42604,33 @@
     "name": "strace"
    }
   },
+  "stremio": {
+   "dnf\\flatpak": {
+    "driver": "dnf",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\stremio": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "com.stremio.Stremio"
+    },
+    "name": "com.stremio.Stremio"
+   }
+  },
+  "subversion": {
+   "dnf\\subversion": {
+    "driver": "dnf",
+    "fields": {
+     "name": "subversion",
+     "repo-component": "universe"
+    },
+    "name": "subversion"
+   }
+  },
   "supercollider": {
    "dnf\\supercollider": {
     "driver": "dnf",
@@ -39347,6 +42764,18 @@
     "name": "tmux"
    }
   },
+  "tmux-dotfiles": {
+   "dotfiles\\tmux-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/tmux",
+      "src": "tmux"
+     }
+    },
+    "name": "tmux-dotfiles"
+   }
+  },
   "traceroute": {
    "dnf\\traceroute": {
     "driver": "dnf",
@@ -39459,6 +42888,29 @@
      "name": "unzip"
     },
     "name": "unzip"
+   }
+  },
+  "uv": {
+   "dnf\\epel-release": {
+    "driver": "dnf",
+    "fields": {
+     "name": "epel-release"
+    },
+    "name": "epel-release"
+   },
+   "dnf\\pipx": {
+    "driver": "dnf",
+    "fields": {
+     "name": "pipx"
+    },
+    "name": "pipx"
+   },
+   "pipx\\uv": {
+    "driver": "pipx",
+    "fields": {
+     "name": "uv"
+    },
+    "name": "uv"
    }
   },
   "valgrind": {
@@ -39842,6 +43294,45 @@
     "name": "whois"
    }
   },
+  "wine": {
+   "dnf\\epel-release": {
+    "driver": "dnf",
+    "fields": {
+     "name": "epel-release"
+    },
+    "name": "epel-release"
+   },
+   "dnf\\wine": {
+    "driver": "dnf",
+    "fields": {
+     "name": "wine"
+    },
+    "name": "wine"
+   }
+  },
+  "winetricks": {
+   "dnf\\epel-release": {
+    "driver": "dnf",
+    "fields": {
+     "name": "epel-release"
+    },
+    "name": "epel-release"
+   },
+   "dnf\\wine": {
+    "driver": "dnf",
+    "fields": {
+     "name": "wine"
+    },
+    "name": "wine"
+   },
+   "dnf\\winetricks": {
+    "driver": "dnf",
+    "fields": {
+     "name": "winetricks"
+    },
+    "name": "winetricks"
+   }
+  },
   "wireshark": {
    "dnf\\wireshark": {
     "driver": "dnf",
@@ -39981,6 +43472,42 @@
      "name": "xmonad"
     },
     "name": "xmonad"
+   }
+  },
+  "yabridge": {
+   "dnf\\curl": {
+    "driver": "dnf",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "dnf\\epel-release": {
+    "driver": "dnf",
+    "fields": {
+     "name": "epel-release"
+    },
+    "name": "epel-release"
+   },
+   "dnf\\wine": {
+    "driver": "dnf",
+    "fields": {
+     "name": "wine"
+    },
+    "name": "wine"
+   },
+   "tarball\\yabridge": {
+    "driver": "tarball",
+    "fields": {
+     "installDir": "$CONFIGSYS_APP_DIR/yabridge",
+     "name": "yabridge",
+     "version": {
+      "asset": "yabridge-*.tar.gz",
+      "github": "robbert-vdh/yabridge",
+      "strip-v": "true"
+     }
+    },
+    "name": "yabridge"
    }
   },
   "yarn": {
@@ -40420,6 +43947,16 @@
     "name": "bash-dotfiles"
    }
   },
+  "bazaar": {
+   "apt\\bazaar": {
+    "driver": "apt",
+    "fields": {
+     "name": "brz",
+     "repo-component": "universe"
+    },
+    "name": "brz"
+   }
+  },
   "bazelisk": {
    "apt\\curl": {
     "driver": "apt",
@@ -40921,6 +44458,24 @@
     "name": "@openai/codex"
    }
   },
+  "composer": {
+   "apt\\composer": {
+    "driver": "apt",
+    "fields": {
+     "name": "composer",
+     "repo-component": "universe"
+    },
+    "name": "composer"
+   },
+   "apt\\php": {
+    "driver": "apt",
+    "fields": {
+     "name": "php-cli",
+     "repo-component": "universe"
+    },
+    "name": "php-cli"
+   }
+  },
   "compression": {
    "apt\\lz4": {
     "driver": "apt",
@@ -40935,6 +44490,14 @@
      "name": "p7zip-full"
     },
     "name": "p7zip-full"
+   },
+   "apt\\unrar": {
+    "driver": "apt",
+    "fields": {
+     "name": "unrar",
+     "repo-component": "multiverse"
+    },
+    "name": "unrar"
    },
    "apt\\unzip": {
     "driver": "apt",
@@ -41167,6 +44730,16 @@
     "name": "curl"
    }
   },
+  "cvs": {
+   "apt\\cvs": {
+    "driver": "apt",
+    "fields": {
+     "name": "cvs",
+     "repo-component": "universe"
+    },
+    "name": "cvs"
+   }
+  },
   "cython": {
    "apt\\c-toolchain": {
     "driver": "apt",
@@ -41378,6 +44951,15 @@
     "name": "docker-service"
    }
   },
+  "dotnet": {
+   "apt\\dotnet": {
+    "driver": "apt",
+    "fields": {
+     "name": "dotnet-sdk-8.0"
+    },
+    "name": "dotnet-sdk-8.0"
+   }
+  },
   "dune": {
    "apt\\opam": {
     "driver": "apt",
@@ -41426,6 +45008,42 @@
      "repo-component": "universe"
     },
     "name": "emacs"
+   }
+  },
+  "emby": {
+   "native-pkg-file\\emby": {
+    "driver": "native-pkg-file",
+    "fields": {
+     "asset": "emby-server-deb_*_amd64.deb",
+     "name": "emby-server",
+     "version": {
+      "github": "MediaBrowser/Emby.Releases",
+      "strip-v": "true"
+     }
+    },
+    "name": "emby-server"
+   }
+  },
+  "emby-service": {
+   "native-pkg-file\\emby": {
+    "driver": "native-pkg-file",
+    "fields": {
+     "asset": "emby-server-deb_*_amd64.deb",
+     "name": "emby-server",
+     "version": {
+      "github": "MediaBrowser/Emby.Releases",
+      "strip-v": "true"
+     }
+    },
+    "name": "emby-server"
+   },
+   "service\\emby-service": {
+    "driver": "service",
+    "fields": {
+     "name": "emby-service",
+     "unit": "emby-server"
+    },
+    "name": "emby-service"
    }
   },
   "erlang": {
@@ -41507,6 +45125,16 @@
      "name": "fontconfig"
     },
     "name": "fontconfig"
+   }
+  },
+  "fossil": {
+   "apt\\fossil": {
+    "driver": "apt",
+    "fields": {
+     "name": "fossil",
+     "repo-component": "universe"
+    },
+    "name": "fossil"
    }
   },
   "freecad": {
@@ -41932,6 +45560,16 @@
     "name": "git"
    }
   },
+  "glfw": {
+   "apt\\glfw": {
+    "driver": "apt",
+    "fields": {
+     "name": "libglfw3-dev",
+     "repo-component": "universe"
+    },
+    "name": "libglfw3-dev"
+   }
+  },
   "gnome": {
    "apt\\gnome": {
     "driver": "apt",
@@ -42327,6 +45965,15 @@
     "name": "iproute2"
    }
   },
+  "jack": {
+   "apt\\jack": {
+    "driver": "apt",
+    "fields": {
+     "name": "jackd2"
+    },
+    "name": "jackd2"
+   }
+  },
   "jdk": {
    "apt\\jdk": {
     "driver": "apt",
@@ -42334,6 +45981,40 @@
      "name": "default-jdk"
     },
     "name": "default-jdk"
+   }
+  },
+  "jellyfin": {
+   "apt\\jellyfin": {
+    "driver": "apt",
+    "fields": {
+     "name": "jellyfin",
+     "pubkey-path": "/usr/share/keyrings/jellyfin.gpg",
+     "pubkey-url": "https://repo.jellyfin.org/ubuntu/jellyfin_team.gpg.key",
+     "source-line": "deb [signed-by=/usr/share/keyrings/jellyfin.gpg] https://repo.jellyfin.org/ubuntu noble main",
+     "source-path": "/etc/apt/sources.list.d/jellyfin.list"
+    },
+    "name": "jellyfin"
+   }
+  },
+  "jellyfin-service": {
+   "apt\\jellyfin": {
+    "driver": "apt",
+    "fields": {
+     "name": "jellyfin",
+     "pubkey-path": "/usr/share/keyrings/jellyfin.gpg",
+     "pubkey-url": "https://repo.jellyfin.org/ubuntu/jellyfin_team.gpg.key",
+     "source-line": "deb [signed-by=/usr/share/keyrings/jellyfin.gpg] https://repo.jellyfin.org/ubuntu noble main",
+     "source-path": "/etc/apt/sources.list.d/jellyfin.list"
+    },
+    "name": "jellyfin"
+   },
+   "service\\jellyfin-service": {
+    "driver": "service",
+    "fields": {
+     "name": "jellyfin-service",
+     "unit": "jellyfin"
+    },
+    "name": "jellyfin-service"
    }
   },
   "jetbrains-toolbox": {
@@ -42506,6 +46187,16 @@
      "name": "kitty"
     },
     "name": "kitty"
+   }
+  },
+  "kodi": {
+   "apt\\kodi": {
+    "driver": "apt",
+    "fields": {
+     "name": "kodi",
+     "repo-component": "universe"
+    },
+    "name": "kodi"
    }
   },
   "kotlin": {
@@ -42987,6 +46678,16 @@
     "name": "maxima"
    }
   },
+  "mercurial": {
+   "apt\\mercurial": {
+    "driver": "apt",
+    "fields": {
+     "name": "mercurial",
+     "repo-component": "universe"
+    },
+    "name": "mercurial"
+   }
+  },
   "mesa-vulkan-drivers": {
    "apt\\mesa-vulkan-drivers": {
     "driver": "apt",
@@ -43133,6 +46834,27 @@
      "name": "mycli"
     },
     "name": "mycli"
+   }
+  },
+  "navidrome": {
+   "apt\\ffmpeg": {
+    "driver": "apt",
+    "fields": {
+     "name": "ffmpeg"
+    },
+    "name": "ffmpeg"
+   },
+   "native-pkg-file\\navidrome": {
+    "driver": "native-pkg-file",
+    "fields": {
+     "asset": "navidrome_*_linux_amd64.deb",
+     "name": "navidrome",
+     "version": {
+      "github": "navidrome/navidrome",
+      "strip-v": "true"
+     }
+    },
+    "name": "navidrome"
    }
   },
   "neovim": {
@@ -43442,6 +47164,19 @@
     "name": "python3-opencv"
    }
   },
+  "opengl": {
+   "apt\\opengl": {
+    "driver": "apt",
+    "fields": {
+     "name": "opengl",
+     "packages": [
+      "libgl-dev",
+      "libglu1-mesa-dev"
+     ]
+    },
+    "name": "opengl"
+   }
+  },
   "openscad": {
    "apt\\flatpak": {
     "driver": "apt",
@@ -43532,6 +47267,19 @@
     "name": "linux-tools-generic"
    }
   },
+  "perforce": {
+   "apt\\perforce": {
+    "driver": "apt",
+    "fields": {
+     "name": "helix-cli",
+     "pubkey-path": "/usr/share/keyrings/perforce.gpg",
+     "pubkey-url": "https://package.perforce.com/perforce.pubkey",
+     "source-line": "deb [signed-by=/usr/share/keyrings/perforce.gpg] https://package.perforce.com/apt/ubuntu noble release",
+     "source-path": "/etc/apt/sources.list.d/perforce.list"
+    },
+    "name": "helix-cli"
+   }
+  },
   "pgcli": {
    "apt\\python3-pip": {
     "driver": "apt",
@@ -43556,6 +47304,16 @@
      "name": "pgcli"
     },
     "name": "pgcli"
+   }
+  },
+  "php": {
+   "apt\\php": {
+    "driver": "apt",
+    "fields": {
+     "name": "php-cli",
+     "repo-component": "universe"
+    },
+    "name": "php-cli"
    }
   },
   "pipewire": {
@@ -43584,6 +47342,40 @@
      }
     },
     "name": "pipx"
+   }
+  },
+  "plex": {
+   "apt\\plex": {
+    "driver": "apt",
+    "fields": {
+     "name": "plexmediaserver",
+     "pubkey-path": "/usr/share/keyrings/plex.gpg",
+     "pubkey-url": "https://downloads.plex.tv/plex-keys/PlexSign.key",
+     "source-line": "deb [signed-by=/usr/share/keyrings/plex.gpg] https://downloads.plex.tv/repo/deb public main",
+     "source-path": "/etc/apt/sources.list.d/plexmediaserver.list"
+    },
+    "name": "plexmediaserver"
+   }
+  },
+  "plex-service": {
+   "apt\\plex": {
+    "driver": "apt",
+    "fields": {
+     "name": "plexmediaserver",
+     "pubkey-path": "/usr/share/keyrings/plex.gpg",
+     "pubkey-url": "https://downloads.plex.tv/plex-keys/PlexSign.key",
+     "source-line": "deb [signed-by=/usr/share/keyrings/plex.gpg] https://downloads.plex.tv/repo/deb public main",
+     "source-path": "/etc/apt/sources.list.d/plexmediaserver.list"
+    },
+    "name": "plexmediaserver"
+   },
+   "service\\plex-service": {
+    "driver": "service",
+    "fields": {
+     "name": "plex-service",
+     "unit": "plexmediaserver"
+    },
+    "name": "plex-service"
    }
   },
   "pnpm": {
@@ -44065,6 +47857,26 @@
     "name": "sdkman"
    }
   },
+  "sdl": {
+   "apt\\sdl": {
+    "driver": "apt",
+    "fields": {
+     "name": "libsdl2-dev",
+     "repo-component": "universe"
+    },
+    "name": "libsdl2-dev"
+   }
+  },
+  "sfml": {
+   "apt\\sfml": {
+    "driver": "apt",
+    "fields": {
+     "name": "libsfml-dev",
+     "repo-component": "universe"
+    },
+    "name": "libsfml-dev"
+   }
+  },
   "slack": {
    "apt\\slack": {
     "driver": "apt",
@@ -44220,6 +48032,33 @@
     "name": "strace"
    }
   },
+  "stremio": {
+   "apt\\flatpak": {
+    "driver": "apt",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\stremio": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "com.stremio.Stremio"
+    },
+    "name": "com.stremio.Stremio"
+   }
+  },
+  "subversion": {
+   "apt\\subversion": {
+    "driver": "apt",
+    "fields": {
+     "name": "subversion",
+     "repo-component": "universe"
+    },
+    "name": "subversion"
+   }
+  },
   "supercollider": {
    "apt\\supercollider": {
     "driver": "apt",
@@ -44353,6 +48192,18 @@
     "name": "tmux"
    }
   },
+  "tmux-dotfiles": {
+   "dotfiles\\tmux-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/tmux",
+      "src": "tmux"
+     }
+    },
+    "name": "tmux-dotfiles"
+   }
+  },
   "traceroute": {
    "apt\\traceroute": {
     "driver": "apt",
@@ -44447,6 +48298,32 @@
      "name": "unzip"
     },
     "name": "unzip"
+   }
+  },
+  "uv": {
+   "apt\\python3-pip": {
+    "driver": "apt",
+    "fields": {
+     "name": "python3-pip"
+    },
+    "name": "python3-pip"
+   },
+   "pip\\pipx": {
+    "driver": "pip",
+    "fields": {
+     "name": "pipx",
+     "version": {
+      "pypi": "pipx"
+     }
+    },
+    "name": "pipx"
+   },
+   "pipx\\uv": {
+    "driver": "pipx",
+    "fields": {
+     "name": "uv"
+    },
+    "name": "uv"
    }
   },
   "valgrind": {
@@ -44799,6 +48676,34 @@
     "name": "whois"
    }
   },
+  "wine": {
+   "apt\\wine": {
+    "driver": "apt",
+    "fields": {
+     "foreign-arch": "i386",
+     "name": "wine"
+    },
+    "name": "wine"
+   }
+  },
+  "winetricks": {
+   "apt\\wine": {
+    "driver": "apt",
+    "fields": {
+     "foreign-arch": "i386",
+     "name": "wine"
+    },
+    "name": "wine"
+   },
+   "apt\\winetricks": {
+    "driver": "apt",
+    "fields": {
+     "name": "winetricks",
+     "repo-component": "universe"
+    },
+    "name": "winetricks"
+   }
+  },
   "wireshark": {
    "apt\\wireshark": {
     "driver": "apt",
@@ -44923,6 +48828,36 @@
      "name": "xmonad"
     },
     "name": "xmonad"
+   }
+  },
+  "yabridge": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "apt\\wine": {
+    "driver": "apt",
+    "fields": {
+     "foreign-arch": "i386",
+     "name": "wine"
+    },
+    "name": "wine"
+   },
+   "tarball\\yabridge": {
+    "driver": "tarball",
+    "fields": {
+     "installDir": "$CONFIGSYS_APP_DIR/yabridge",
+     "name": "yabridge",
+     "version": {
+      "asset": "yabridge-*.tar.gz",
+      "github": "robbert-vdh/yabridge",
+      "strip-v": "true"
+     }
+    },
+    "name": "yabridge"
    }
   },
   "yarn": {
@@ -45333,6 +49268,16 @@
     "name": "bash-dotfiles"
    }
   },
+  "bazaar": {
+   "apt\\bazaar": {
+    "driver": "apt",
+    "fields": {
+     "name": "brz",
+     "repo-component": "universe"
+    },
+    "name": "brz"
+   }
+  },
   "bazelisk": {
    "apt\\curl": {
     "driver": "apt",
@@ -45834,6 +49779,24 @@
     "name": "@openai/codex"
    }
   },
+  "composer": {
+   "apt\\composer": {
+    "driver": "apt",
+    "fields": {
+     "name": "composer",
+     "repo-component": "universe"
+    },
+    "name": "composer"
+   },
+   "apt\\php": {
+    "driver": "apt",
+    "fields": {
+     "name": "php-cli",
+     "repo-component": "universe"
+    },
+    "name": "php-cli"
+   }
+  },
   "compression": {
    "apt\\lz4": {
     "driver": "apt",
@@ -45848,6 +49811,14 @@
      "name": "p7zip-full"
     },
     "name": "p7zip-full"
+   },
+   "apt\\unrar": {
+    "driver": "apt",
+    "fields": {
+     "name": "unrar",
+     "repo-component": "multiverse"
+    },
+    "name": "unrar"
    },
    "apt\\unzip": {
     "driver": "apt",
@@ -46070,6 +50041,16 @@
     "name": "curl"
    }
   },
+  "cvs": {
+   "apt\\cvs": {
+    "driver": "apt",
+    "fields": {
+     "name": "cvs",
+     "repo-component": "universe"
+    },
+    "name": "cvs"
+   }
+  },
   "cython": {
    "apt\\c-toolchain": {
     "driver": "apt",
@@ -46281,6 +50262,15 @@
     "name": "docker-service"
    }
   },
+  "dotnet": {
+   "apt\\dotnet": {
+    "driver": "apt",
+    "fields": {
+     "name": "dotnet-sdk-8.0"
+    },
+    "name": "dotnet-sdk-8.0"
+   }
+  },
   "dune": {
    "apt\\opam": {
     "driver": "apt",
@@ -46329,6 +50319,42 @@
      "repo-component": "universe"
     },
     "name": "emacs"
+   }
+  },
+  "emby": {
+   "native-pkg-file\\emby": {
+    "driver": "native-pkg-file",
+    "fields": {
+     "asset": "emby-server-deb_*_amd64.deb",
+     "name": "emby-server",
+     "version": {
+      "github": "MediaBrowser/Emby.Releases",
+      "strip-v": "true"
+     }
+    },
+    "name": "emby-server"
+   }
+  },
+  "emby-service": {
+   "native-pkg-file\\emby": {
+    "driver": "native-pkg-file",
+    "fields": {
+     "asset": "emby-server-deb_*_amd64.deb",
+     "name": "emby-server",
+     "version": {
+      "github": "MediaBrowser/Emby.Releases",
+      "strip-v": "true"
+     }
+    },
+    "name": "emby-server"
+   },
+   "service\\emby-service": {
+    "driver": "service",
+    "fields": {
+     "name": "emby-service",
+     "unit": "emby-server"
+    },
+    "name": "emby-service"
    }
   },
   "erlang": {
@@ -46410,6 +50436,16 @@
      "name": "fontconfig"
     },
     "name": "fontconfig"
+   }
+  },
+  "fossil": {
+   "apt\\fossil": {
+    "driver": "apt",
+    "fields": {
+     "name": "fossil",
+     "repo-component": "universe"
+    },
+    "name": "fossil"
    }
   },
   "freecad": {
@@ -46835,6 +50871,16 @@
     "name": "git"
    }
   },
+  "glfw": {
+   "apt\\glfw": {
+    "driver": "apt",
+    "fields": {
+     "name": "libglfw3-dev",
+     "repo-component": "universe"
+    },
+    "name": "libglfw3-dev"
+   }
+  },
   "gnome": {
    "apt\\gnome": {
     "driver": "apt",
@@ -47230,6 +51276,15 @@
     "name": "iproute2"
    }
   },
+  "jack": {
+   "apt\\jack": {
+    "driver": "apt",
+    "fields": {
+     "name": "jackd2"
+    },
+    "name": "jackd2"
+   }
+  },
   "jdk": {
    "apt\\jdk": {
     "driver": "apt",
@@ -47237,6 +51292,40 @@
      "name": "default-jdk"
     },
     "name": "default-jdk"
+   }
+  },
+  "jellyfin": {
+   "apt\\jellyfin": {
+    "driver": "apt",
+    "fields": {
+     "name": "jellyfin",
+     "pubkey-path": "/usr/share/keyrings/jellyfin.gpg",
+     "pubkey-url": "https://repo.jellyfin.org/ubuntu/jellyfin_team.gpg.key",
+     "source-line": "deb [signed-by=/usr/share/keyrings/jellyfin.gpg] https://repo.jellyfin.org/ubuntu noble main",
+     "source-path": "/etc/apt/sources.list.d/jellyfin.list"
+    },
+    "name": "jellyfin"
+   }
+  },
+  "jellyfin-service": {
+   "apt\\jellyfin": {
+    "driver": "apt",
+    "fields": {
+     "name": "jellyfin",
+     "pubkey-path": "/usr/share/keyrings/jellyfin.gpg",
+     "pubkey-url": "https://repo.jellyfin.org/ubuntu/jellyfin_team.gpg.key",
+     "source-line": "deb [signed-by=/usr/share/keyrings/jellyfin.gpg] https://repo.jellyfin.org/ubuntu noble main",
+     "source-path": "/etc/apt/sources.list.d/jellyfin.list"
+    },
+    "name": "jellyfin"
+   },
+   "service\\jellyfin-service": {
+    "driver": "service",
+    "fields": {
+     "name": "jellyfin-service",
+     "unit": "jellyfin"
+    },
+    "name": "jellyfin-service"
    }
   },
   "jetbrains-toolbox": {
@@ -47399,6 +51488,16 @@
      "name": "kitty"
     },
     "name": "kitty"
+   }
+  },
+  "kodi": {
+   "apt\\kodi": {
+    "driver": "apt",
+    "fields": {
+     "name": "kodi",
+     "repo-component": "universe"
+    },
+    "name": "kodi"
    }
   },
   "kotlin": {
@@ -47870,6 +51969,16 @@
     "name": "maxima"
    }
   },
+  "mercurial": {
+   "apt\\mercurial": {
+    "driver": "apt",
+    "fields": {
+     "name": "mercurial",
+     "repo-component": "universe"
+    },
+    "name": "mercurial"
+   }
+  },
   "mesa-vulkan-drivers": {
    "apt\\mesa-vulkan-drivers": {
     "driver": "apt",
@@ -47996,6 +52105,27 @@
      "name": "mycli"
     },
     "name": "mycli"
+   }
+  },
+  "navidrome": {
+   "apt\\ffmpeg": {
+    "driver": "apt",
+    "fields": {
+     "name": "ffmpeg"
+    },
+    "name": "ffmpeg"
+   },
+   "native-pkg-file\\navidrome": {
+    "driver": "native-pkg-file",
+    "fields": {
+     "asset": "navidrome_*_linux_amd64.deb",
+     "name": "navidrome",
+     "version": {
+      "github": "navidrome/navidrome",
+      "strip-v": "true"
+     }
+    },
+    "name": "navidrome"
    }
   },
   "neovim": {
@@ -48305,6 +52435,19 @@
     "name": "python3-opencv"
    }
   },
+  "opengl": {
+   "apt\\opengl": {
+    "driver": "apt",
+    "fields": {
+     "name": "opengl",
+     "packages": [
+      "libgl-dev",
+      "libglu1-mesa-dev"
+     ]
+    },
+    "name": "opengl"
+   }
+  },
   "openscad": {
    "apt\\flatpak": {
     "driver": "apt",
@@ -48395,6 +52538,19 @@
     "name": "linux-tools-generic"
    }
   },
+  "perforce": {
+   "apt\\perforce": {
+    "driver": "apt",
+    "fields": {
+     "name": "helix-cli",
+     "pubkey-path": "/usr/share/keyrings/perforce.gpg",
+     "pubkey-url": "https://package.perforce.com/perforce.pubkey",
+     "source-line": "deb [signed-by=/usr/share/keyrings/perforce.gpg] https://package.perforce.com/apt/ubuntu noble release",
+     "source-path": "/etc/apt/sources.list.d/perforce.list"
+    },
+    "name": "helix-cli"
+   }
+  },
   "pgcli": {
    "apt\\pipx": {
     "driver": "apt",
@@ -48409,6 +52565,16 @@
      "name": "pgcli"
     },
     "name": "pgcli"
+   }
+  },
+  "php": {
+   "apt\\php": {
+    "driver": "apt",
+    "fields": {
+     "name": "php-cli",
+     "repo-component": "universe"
+    },
+    "name": "php-cli"
    }
   },
   "pipewire": {
@@ -48427,6 +52593,40 @@
      "name": "pipx"
     },
     "name": "pipx"
+   }
+  },
+  "plex": {
+   "apt\\plex": {
+    "driver": "apt",
+    "fields": {
+     "name": "plexmediaserver",
+     "pubkey-path": "/usr/share/keyrings/plex.gpg",
+     "pubkey-url": "https://downloads.plex.tv/plex-keys/PlexSign.key",
+     "source-line": "deb [signed-by=/usr/share/keyrings/plex.gpg] https://downloads.plex.tv/repo/deb public main",
+     "source-path": "/etc/apt/sources.list.d/plexmediaserver.list"
+    },
+    "name": "plexmediaserver"
+   }
+  },
+  "plex-service": {
+   "apt\\plex": {
+    "driver": "apt",
+    "fields": {
+     "name": "plexmediaserver",
+     "pubkey-path": "/usr/share/keyrings/plex.gpg",
+     "pubkey-url": "https://downloads.plex.tv/plex-keys/PlexSign.key",
+     "source-line": "deb [signed-by=/usr/share/keyrings/plex.gpg] https://downloads.plex.tv/repo/deb public main",
+     "source-path": "/etc/apt/sources.list.d/plexmediaserver.list"
+    },
+    "name": "plexmediaserver"
+   },
+   "service\\plex-service": {
+    "driver": "service",
+    "fields": {
+     "name": "plex-service",
+     "unit": "plexmediaserver"
+    },
+    "name": "plex-service"
    }
   },
   "pnpm": {
@@ -48898,6 +53098,26 @@
     "name": "sdkman"
    }
   },
+  "sdl": {
+   "apt\\sdl": {
+    "driver": "apt",
+    "fields": {
+     "name": "libsdl2-dev",
+     "repo-component": "universe"
+    },
+    "name": "libsdl2-dev"
+   }
+  },
+  "sfml": {
+   "apt\\sfml": {
+    "driver": "apt",
+    "fields": {
+     "name": "libsfml-dev",
+     "repo-component": "universe"
+    },
+    "name": "libsfml-dev"
+   }
+  },
   "slack": {
    "apt\\slack": {
     "driver": "apt",
@@ -49053,6 +53273,33 @@
     "name": "strace"
    }
   },
+  "stremio": {
+   "apt\\flatpak": {
+    "driver": "apt",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\stremio": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "com.stremio.Stremio"
+    },
+    "name": "com.stremio.Stremio"
+   }
+  },
+  "subversion": {
+   "apt\\subversion": {
+    "driver": "apt",
+    "fields": {
+     "name": "subversion",
+     "repo-component": "universe"
+    },
+    "name": "subversion"
+   }
+  },
   "supercollider": {
    "apt\\supercollider": {
     "driver": "apt",
@@ -49186,6 +53433,18 @@
     "name": "tmux"
    }
   },
+  "tmux-dotfiles": {
+   "dotfiles\\tmux-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/tmux",
+      "src": "tmux"
+     }
+    },
+    "name": "tmux-dotfiles"
+   }
+  },
   "traceroute": {
    "apt\\traceroute": {
     "driver": "apt",
@@ -49280,6 +53539,22 @@
      "name": "unzip"
     },
     "name": "unzip"
+   }
+  },
+  "uv": {
+   "apt\\pipx": {
+    "driver": "apt",
+    "fields": {
+     "name": "pipx"
+    },
+    "name": "pipx"
+   },
+   "pipx\\uv": {
+    "driver": "pipx",
+    "fields": {
+     "name": "uv"
+    },
+    "name": "uv"
    }
   },
   "valgrind": {
@@ -49632,6 +53907,34 @@
     "name": "whois"
    }
   },
+  "wine": {
+   "apt\\wine": {
+    "driver": "apt",
+    "fields": {
+     "foreign-arch": "i386",
+     "name": "wine"
+    },
+    "name": "wine"
+   }
+  },
+  "winetricks": {
+   "apt\\wine": {
+    "driver": "apt",
+    "fields": {
+     "foreign-arch": "i386",
+     "name": "wine"
+    },
+    "name": "wine"
+   },
+   "apt\\winetricks": {
+    "driver": "apt",
+    "fields": {
+     "name": "winetricks",
+     "repo-component": "universe"
+    },
+    "name": "winetricks"
+   }
+  },
   "wireshark": {
    "apt\\wireshark": {
     "driver": "apt",
@@ -49756,6 +54059,36 @@
      "name": "xmonad"
     },
     "name": "xmonad"
+   }
+  },
+  "yabridge": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "apt\\wine": {
+    "driver": "apt",
+    "fields": {
+     "foreign-arch": "i386",
+     "name": "wine"
+    },
+    "name": "wine"
+   },
+   "tarball\\yabridge": {
+    "driver": "tarball",
+    "fields": {
+     "installDir": "$CONFIGSYS_APP_DIR/yabridge",
+     "name": "yabridge",
+     "version": {
+      "asset": "yabridge-*.tar.gz",
+      "github": "robbert-vdh/yabridge",
+      "strip-v": "true"
+     }
+    },
+    "name": "yabridge"
    }
   },
   "yarn": {

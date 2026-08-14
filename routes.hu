@@ -124,6 +124,36 @@
         zip:        { description: "Create and update ZIP archives." install: [ { via: native } ] }
         curl:       { description: "Transfer data over HTTP(S) and more — the ubiquitous `curl`." install: [ { via: native } ] }
         git:        { description: "Distributed version control — the `git` you already know." install: [ { via: native } ] }
+        // Other version-control systems (git is above). Package name == component name except:
+        // subversion's CLI is `svn`; bazaar is now Breezy (`brz`); perforce ships `helix-cli` (`p4`).
+        mercurial: { description: "Mercurial — a fast distributed version control system (`hg`)."
+            install: [ { via: native  when: "not rhel"  repo-component: universe }   // uniform pkg `mercurial`
+                       { via: native  when: "rhel"  requires: epel }
+                       { via: pipx  name: mercurial  standing: never-auto } ] }       // Python; pinnable alt
+        subversion: { description: "Apache Subversion — centralized version control (the `svn` CLI)."
+            install: [ { via: native  repo-component: universe } ] }                  // uniform pkg `subversion`
+        cvs: { description: "CVS — the classic Concurrent Versions System."
+            install: [ { via: native  when: "debian or fedora or arch or fedora_atomic"  repo-component: universe }
+                       { via: native  when: "rhel"  requires: epel } ] }              // gone from stable-Alpine + openSUSE
+        fossil: { description: "Fossil — a self-contained distributed SCM (wiki, tickets, web UI in one binary)."
+            install: [ { via: native  when: "not opensuse and not rhel"  repo-component: universe }
+                       { via: native  when: "rhel"  requires: epel }
+                       { via: tarball  when: "opensuse"  installDir: "$CONFIGSYS_APP_DIR/fossil"  requires: glibc  // no openSUSE package; upstream static binary
+                         version: { static: "2.28" }  url: "https://fossil-scm.org/home/uv/fossil-linux-x64-2.28.tar.gz" } ] }
+        perforce: { description: "Perforce Helix Core — the `p4` client and `p4d` server." standing: never-auto
+            install: [   // Perforce's own package repo (no distro-native packages); codenames bump as they add releases
+                { via: native  when: "ubuntu"  name: helix-cli
+                  pubkey-url: "https://package.perforce.com/perforce.pubkey"  pubkey-path: /usr/share/keyrings/perforce.gpg
+                  source-line: "deb [signed-by=/usr/share/keyrings/perforce.gpg] https://package.perforce.com/apt/ubuntu noble release"
+                  source-path: /etc/apt/sources.list.d/perforce.list }
+                { via: native  when: "redhat"  name: helix-cli
+                  pubkey-url: "https://package.perforce.com/perforce.pubkey"
+                  repo-id: perforce  repo-name: "Perforce"  repo-url: "https://package.perforce.com/yum/rhel/9/x86_64" }
+                { via: aur  when: "arch"  name: p4 } ] }
+        bazaar: { description: "Breezy — the maintained fork of GNU Bazaar (the `brz` CLI); reads Bazaar & Git."
+            install: [ { via: native  when: "debian"  name: brz  repo-component: universe }   // `bzr` is a transitional dummy -> brz
+                       { via: native  when: "fedora or arch or alpine or opensuse or fedora_atomic"  name: breezy }
+                       { via: pipx  when: "rhel"  name: breezy } ] }              // no rhel/EPEL package
         // FUSE2 runtime — the appImage driver requires it; native, name differs by manager.
         libfuse2: { description: "libfuse2 — the FUSE runtime many AppImages need."
             install: [ { via: native  repo-component: universe  name: { dnf: fuse-libs  pacman: fuse2  apk: fuse  default: libfuse2 } } ]
@@ -195,6 +225,17 @@
                 version-cmd:   '"$HOME/.pyenv/bin/pyenv" --version 2>/dev/null'
                 version-re:    '([0-9][0-9.]*)'
                 uninstall-cmd: 'rm -rf "$HOME/.pyenv"' } ] }
+        // uv — Astral's very fast Python package/project manager (a single Rust binary). Native
+        // where packaged (arch; brew on atomic); pipx is the universal default elsewhere; the github
+        // tarball and cargo are pinnable alternates. NOT in the debian/ubuntu repos.
+        uv: { description: "uv — Astral's very fast Python package & project manager (Rust)."
+            install: [
+                { via: native   when: "arch" }                     // pacman: uv
+                { via: native   when: "fedora_atomic" }            // brew formula `uv`
+                { via: pipx     name: uv }                         // universal (prebuilt wheels)
+                { via: tarball  installDir: "$CONFIGSYS_APP_DIR/uv"  requires: glibc  standing: never-auto
+                  version: { github: astral-sh/uv  strip-v: true  asset: "uv-x86_64-unknown-linux-gnu.tar.gz" } } ]
+        }
         python-build-deps: { description: "System libraries pyenv needs to compile CPython (ssl/zlib/ffi/…)."
             standing: never-auto
             install: [
@@ -436,6 +477,40 @@
         }
         // Sample gem (userland by default; see the gem driver).
         bundler: { description: "Bundler — manage Ruby gem dependencies (`bundle`)." install: [ { via: gem  name: bundler } ] }
+
+        // PHP toolchain — the CLI interpreter + Composer (its project dependency manager). The bare
+        // `php` package is the Apache/mod_php web stack on apt AND dnf, so the CLI package is
+        // `php-cli` there; Arch/brew ship a plain `php`; Alpine is versioned-only (`php84`);
+        // openSUSE uses `php8-cli`. Third-party repos (Surý on Debian/Ubuntu, Remi on Fedora/RHEL)
+        // add non-default PHP versions — not modeled here; the distro default is enough.
+        php: { description: "PHP — the PHP command-line interpreter (`php`)."
+            install: [ { via: native  repo-component: universe
+                         name: { apt: php-cli  dnf: php-cli  pacman: php  apk: php84  zypper: php8-cli  brew: php } } ]
+        }
+        composer: { description: "Composer — PHP's per-project dependency manager." requires: php
+            install: [ { via: native  when: "not rhel"  repo-component: universe  name: { zypper: php-composer2  default: composer } }
+                       { via: native  when: "rhel"  requires: epel  name: composer } ]
+        }
+
+        // .NET SDK — build & run C#/F# apps. Native from the distro's OWN repos on arch (rolling),
+        // ubuntu 22.04+, fedora, and alpine (no Microsoft feed needed). On debian/rhel/openSUSE the
+        // upstream dotnet-install.sh lands a per-user SDK under ~/.dotnet (add it to PATH yourself);
+        // the Canonical snap (classic) is a pinnable all-distro alternate. Distro packages are
+        // per-major (8.0 = current LTS) — bump the channel/pkg as newer LTS lines land.
+        dotnet: { description: ".NET SDK — build & run .NET (C#/F#) apps (`dotnet`)."
+            install: [
+                { via: native  when: "arch"    name: dotnet-sdk }              // rolling latest
+                { via: native  when: "ubuntu"  name: dotnet-sdk-8.0 }          // Canonical feed (22.04+)
+                { via: native  when: "fedora"  name: dotnet-sdk-8.0 }          // Fedora's own repo
+                { via: native  when: "alpine"  name: dotnet8-sdk }             // community
+                { via: script  when: "debian or rhel or opensuse"
+                  install-cmd:   'curl -fsSL https://dot.net/v1/dotnet-install.sh | bash -s -- --channel 8.0'
+                  version-cmd:   '"$HOME/.dotnet/dotnet" --version 2>/dev/null'
+                  version-re:    '([0-9]+\.[0-9]+\.[0-9]+)'
+                  uninstall-cmd: 'rm -rf "$HOME/.dotnet"'
+                  location:      '~/.dotnet' }
+                { via: snap  name: dotnet-sdk  classic: true } ]               // Canonical; pinnable all-distro
+        }
 
         // --- native language toolchains (directly usable; ecosystem module drivers deferred) ---
         // JVM: OpenJDK (javac/java). kotlin's clean cross-distro path is SDKMAN — it lands with
@@ -690,6 +765,18 @@
             ]
         }
 
+        // Wine — Windows compatibility layer. Distro-native everywhere; debian/ubuntu need i386
+        // multiarch (handled by foreign-arch), Arch needs the `multilib` repo enabled (user does that
+        // once). WineHQ's own repo ships newer builds — not modeled (per-codename); the distro Wine
+        // is a fine default. winetricks fetches runtime DLLs/fonts into a prefix.
+        wine: { description: "Wine — run Windows applications on Linux."
+            install: [ { via: native  when: "debian"  foreign-arch: i386 }
+                       { via: native  when: "rhel"  requires: epel }   // wine ships in EPEL
+                       { via: native  when: "fedora or arch or alpine or opensuse" } ] }
+        winetricks: { description: "winetricks — fetch runtime DLLs/fonts and tweak Wine prefixes." requires: wine
+            install: [ { via: native  when: "rhel"  requires: epel }   // EPEL8+
+                       { via: native  when: "debian or fedora or arch or opensuse or alpine"  repo-component: universe } ] }
+
         // --- apps: native everywhere. A clean-config tool manages its ~/.config as a
         // dir-dotfile (content in dotfiles/<name>/ symlinked to $XDG_CONFIG_HOME/<name>, like
         // neovim). The dotfiles are `suggests:` (soft) so the app installs before dotfiles/<name>/
@@ -931,7 +1018,7 @@
                 { via: native  when: "arch" } ]
         }
         // A ready bundle of the free ones (unrar stays opt-in, separate).
-        compression: { description: "Compression tools bundle — zstd, lz4, 7-zip, zip, unzip." install: [ { via: parts  parts: [ zstd, lz4, p7zip, zip, unzip ] } ] }
+        compression: { description: "Compression tools bundle — zstd, lz4, 7-zip, zip, unzip." install: [ { via: parts  parts: [ zstd, lz4, p7zip, zip, unzip, unrar ] } ] }
 
         // --- audio/video codecs (gstreamer names verified across all five families) ---
         // Free bundle: ffmpeg (already a component) + gstreamer good/bad plugins. The patent-
@@ -998,6 +1085,59 @@
         godot:      { description: "Godot — an open-source 2D/3D game engine." install: [ { via: flatpak  hub: flathub  app: org.godotengine.Godot }  { via: tarball  installDir: "$CONFIGSYS_APP_DIR/godot"  requires: unzip  version: { github: godotengine/godot  tag-re: "([0-9][0-9.]*)"  asset: "Godot_v*-stable_linux.x86_64.zip" } } ] }   // flatpak stays default; the zip holds a single `Godot_v<ver>_linux.x86_64` exe (no clean rename for zip)
         scribus:    { description: "Scribus — open-source desktop publishing (DTP)." install: [ { via: flatpak  hub: flathub  app: net.scribus.Scribus } ] }
         digikam:    { description: "digiKam — photo management and RAW editing." install: [ { via: flatpak  hub: flathub  app: org.kde.digikam } ] }
+
+        // --- media servers (self-hosted; each runs a systemd service — the <name>-service pulls the
+        // install AND starts it, like the db-servers) + media players (kodi/stremio, flatpak-first) ---
+        // No server ships a Flathub build; the only Jellyfin flatpak is the CLIENT, not the server.
+        jellyfin: { description: "Jellyfin — a free, self-hosted media server (movies, TV, music)."
+            install: [
+                { via: native  when: "ubuntu"  name: jellyfin       // official repo (codename bumps as they add releases)
+                  pubkey-url: "https://repo.jellyfin.org/ubuntu/jellyfin_team.gpg.key"  pubkey-path: /usr/share/keyrings/jellyfin.gpg
+                  source-line: "deb [signed-by=/usr/share/keyrings/jellyfin.gpg] https://repo.jellyfin.org/ubuntu noble main"
+                  source-path: /etc/apt/sources.list.d/jellyfin.list }
+                { via: native  when: "debian"  name: jellyfin
+                  pubkey-url: "https://repo.jellyfin.org/debian/jellyfin_team.gpg.key"  pubkey-path: /usr/share/keyrings/jellyfin.gpg
+                  source-line: "deb [signed-by=/usr/share/keyrings/jellyfin.gpg] https://repo.jellyfin.org/debian bookworm main"
+                  source-path: /etc/apt/sources.list.d/jellyfin.list }
+                { via: native  when: "fedora"  name: jellyfin  requires: rpmfusion   // pulls ffmpeg from RPM Fusion
+                  pubkey-url: "https://repo.jellyfin.org/fedora/jellyfin_team.gpg.key"
+                  repo-id: jellyfin  repo-name: "Jellyfin"  repo-url: "https://repo.jellyfin.org/fedora/$releasever/$basearch" }
+                { via: native  when: "arch"  packages: [ jellyfin-server, jellyfin-web ] } ] }   // Arch `extra`
+        jellyfin-service: { description: "Enable and start the Jellyfin server (systemd)." requires: jellyfin  install: [ { via: service  unit: jellyfin } ] }
+        plex: { description: "Plex Media Server — a media server with the Plex client ecosystem."
+            install: [
+                { via: native  when: "debian"  name: plexmediaserver   // official repo (single `public` suite — codename-independent)
+                  pubkey-url: "https://downloads.plex.tv/plex-keys/PlexSign.key"  pubkey-path: /usr/share/keyrings/plex.gpg
+                  source-line: "deb [signed-by=/usr/share/keyrings/plex.gpg] https://downloads.plex.tv/repo/deb public main"
+                  source-path: /etc/apt/sources.list.d/plexmediaserver.list }
+                { via: native  when: "redhat"  name: plexmediaserver
+                  pubkey-url: "https://downloads.plex.tv/plex-keys/PlexSign.key"
+                  repo-id: plex  repo-name: "Plex"  repo-url: "https://downloads.plex.tv/repo/rpm/$basearch/" }
+                { via: aur  when: "arch"  name: plex-media-server } ] }
+        plex-service: { description: "Enable and start Plex Media Server (systemd)." requires: plex  install: [ { via: service  unit: plexmediaserver } ] }
+        emby: { description: "Emby Server — a media server (open-core; some features are premium)."
+            install: [   // no official repo: Arch `extra`, else the upstream .deb/.rpm on GitHub
+                { via: native  when: "arch"  name: emby-server }
+                { via: native-pkg-file  when: "debian"  name: emby-server
+                  version: { github: MediaBrowser/Emby.Releases  strip-v: true }  asset: "emby-server-deb_*_amd64.deb" }
+                { via: native-pkg-file  when: "redhat or opensuse"  name: emby-server
+                  version: { github: MediaBrowser/Emby.Releases  strip-v: true }  asset: "emby-server-rpm_*_x86_64.rpm" } ] }
+        emby-service: { description: "Enable and start Emby Server (systemd)." requires: emby  install: [ { via: service  unit: emby-server } ] }
+        navidrome: { description: "Navidrome — a self-hosted music streaming server (Subsonic/OpenSubsonic-compatible)." requires: ffmpeg
+            install: [   // Arch `extra`; else the upstream .deb/.rpm, or the prebuilt tarball (hand-write a unit)
+                { via: native  when: "arch"  name: navidrome }
+                { via: native-pkg-file  when: "debian"  name: navidrome
+                  version: { github: navidrome/navidrome  strip-v: true }  asset: "navidrome_*_linux_amd64.deb" }
+                { via: native-pkg-file  when: "redhat"  name: navidrome
+                  version: { github: navidrome/navidrome  strip-v: true }  asset: "navidrome_*_linux_amd64.rpm" }
+                { via: tarball  when: "not arch and not debian and not redhat"  installDir: "$CONFIGSYS_APP_DIR/navidrome"  requires: glibc
+                  version: { github: navidrome/navidrome  strip-v: true  asset: "navidrome_*_linux_amd64.tar.gz" } } ] }
+        kodi: { description: "Kodi — an open-source home-theater / media-center app."
+            install: [ { via: flatpak  hub: flathub  app: tv.kodi.Kodi }   // upstream-recommended; native alternates below
+                       { via: native  when: "ubuntu"  repo-component: universe }
+                       { via: native  when: "fedora"  requires: rpmfusion }   // RPM Fusion free, not base Fedora
+                       { via: native  when: "arch" } ] }
+        stremio: { description: "Stremio — a media-center streaming/aggregator client." install: [ { via: flatpak  hub: flathub  app: com.stremio.Stremio }  { via: aur  when: "arch"  name: stremio } ] }
         obs-studio: { description: "OBS Studio — live streaming and screen recording." install: [ { via: flatpak  hub: flathub  app: com.obsproject.Studio }  { via: snap  name: obs-studio } ] }
         spotify:    { description: "Spotify — music streaming client." install: [ { via: flatpak  hub: flathub  app: com.spotify.Client }  { via: snap  name: spotify } ] }   // not in distro repos; Flathub + official snap
 
@@ -1011,6 +1151,20 @@
         // PipeWire — the modern audio/video server. Native; already the default on most current
         // distros (where installing it is a harmless no-op).
         pipewire:      { description: "PipeWire — modern audio/video server (PulseAudio/JACK replacement)." install: [ { via: native } ] }
+        // JACK — low-latency audio server (jack2 is the current implementation). NOTE: conflicts with
+        // pipewire's JACK shim (both provide the client libs) — install one JACK provider or the other.
+        jack: { description: "JACK Audio Connection Kit — low-latency audio server & routing."
+            install: [ { via: native  when: "debian"  name: jackd2 }
+                       { via: native  when: "fedora"  name: jack-audio-connection-kit }
+                       { via: native  when: "rhel"  requires: epel  name: jack-audio-connection-kit }   // EPEL
+                       { via: native  when: "arch or opensuse"  name: jack2 }
+                       { via: native  when: "fedora_atomic"  name: jack } ] }   // brew formula `jack`
+        // yabridge — bridge Windows VST2/VST3/CLAP plugins into Linux audio hosts. Needs Wine; x86_64
+        // only. Native on Arch (`extra`); elsewhere the upstream github release tarball.
+        yabridge: { description: "yabridge — bridge Windows VST/VST3/CLAP plugins into Linux audio hosts." requires: wine
+            install: [ { via: native   when: "arch" }
+                       { via: tarball  when: "not arch"  installDir: "$CONFIGSYS_APP_DIR/yabridge"  requires: glibc
+                         version: { github: robbert-vdh/yabridge  strip-v: true  asset: "yabridge-*.tar.gz" } } ] }
         // tenacity: the telemetry-free Audacity fork. No reliable native package anywhere, so
         // flatpak-only (unroutable on Alpine -> surfaces as a diagnostic, never a crash).
         tenacity: { description: "Tenacity — an open-source multi-track audio editor (Audacity fork)." install: [ { via: flatpak  hub: flathub  app: org.tenacityaudio.Tenacity } ] }
@@ -1775,6 +1929,32 @@
             requires: gtk
             install: [ { via: native  when: "debian or redhat or arch"  repo-component: universe
                          name: { apt: libgtkmm-4.0-dev  dnf: gtkmm4.0-devel  pacman: gtkmm-4.0 } } ]
+        }
+
+        // --- graphics dev SDKs (dev headers + libs) ---
+        // OpenGL is a per-distro parts bundle (GL + GLU) — no single `opengl` package. No brew (macOS
+        // ships GL as a deprecated system framework).
+        opengl: { description: "OpenGL development environment — GL + GLU headers and libraries."
+            install: [ { via: native  when: "debian"    packages: [ libgl-dev, libglu1-mesa-dev ] }
+                       { via: native  when: "redhat"    packages: [ mesa-libGL-devel, mesa-libGLU-devel ] }
+                       { via: native  when: "arch"      packages: [ mesa, glu ] }
+                       { via: native  when: "alpine"    packages: [ mesa-dev, glu-dev ] }
+                       { via: native  when: "opensuse"  packages: [ Mesa-libGL-devel, glu-devel ] } ]
+        }
+        glfw: { description: "GLFW — multi-platform OpenGL/Vulkan window & input library (dev)."
+            install: [ { via: native  when: "debian or redhat or arch or alpine or opensuse or fedora_atomic"  repo-component: universe
+                         name: { apt: libglfw3-dev  dnf: glfw-devel  pacman: glfw  apk: glfw-dev  zypper: libglfw-devel  brew: glfw } } ]
+        }
+        // SDL2 (the common target). Arch dropped classic `sdl2` → `sdl2-compat` (SDL2 API on SDL3).
+        sdl: { description: "SDL2 — Simple DirectMedia Layer (video/audio/input), dev headers + libs."
+            install: [ { via: native  when: "debian or redhat or arch or alpine or opensuse or fedora_atomic"  repo-component: universe
+                         name: { apt: libsdl2-dev  dnf: SDL2-devel  pacman: sdl2-compat  apk: sdl2-dev  zypper: libSDL2-devel  brew: sdl2 } } ]
+        }
+        // SFML — note the major-version skew: 2.x on debian/fedora/alpine, 3.x on arch/brew (a
+        // breaking API change). openSUSE package unconfirmed → omitted there.
+        sfml: { description: "SFML — Simple and Fast Multimedia Library (C++), dev headers + libs."
+            install: [ { via: native  when: "debian or redhat or arch or alpine or fedora_atomic"  repo-component: universe
+                         name: { apt: libsfml-dev  dnf: SFML-devel  pacman: sfml  apk: sfml-dev  brew: sfml } } ]
         }
 
     }

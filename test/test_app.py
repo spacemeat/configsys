@@ -367,11 +367,11 @@ def test_manpages_status_and_install(tmp_path, capsys):
 
 
 def test_install_expands_profile_arg(tmp_path, capsys):
-    # profile:dev expands to the dev profile's components, alongside a bare component arg
+    # profile:c-cpp-lang expands to that profile's components, alongside a bare component arg
     # (exit code isn't asserted: a profile member may report failure under --pretend)
-    main(['--home', str(tmp_path), '--os', 'pop', '--pretend', 'install', 'profile:dev', 'blender'])
+    main(['--home', str(tmp_path), '--os', 'pop', '--pretend', 'install', 'profile:c-cpp-lang', 'blender'])
     out = capsys.readouterr().out
-    assert 'rust' in out and 'cpp-toolchain' in out       # pulled from the profile
+    assert 'cpp-toolchain' in out and 'cmake' in out       # pulled from the profile
     assert 'blender' in out                                # the bare component too
 
 

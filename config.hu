@@ -27,8 +27,8 @@ profiles: {
     desktops-compositors: [ budgie  cosmic  fvwm2  gnome  i3  kde  lxqt  mate  qtile  sway  xfce  xmonad ]
     text-editors: [ android-studio  emacs  helix  jetbrains-toolbox  neovim  neovim-dotfiles  vscode  zed ]
     web-browsers: [ chrome  chromium  firefox  brave  opera  vivaldi  edge ]
-    audio: [ pipewire ]
-    gaming: [ +user  vulkan-runtime  steam ]
+    audio: [ pipewire  jack ]
+    gaming: [ +user  vulkan-runtime  steam  wine  winetricks ]
 
     virtual-machines: [ qemu  libvirt  libvirt-service  virt-manager  virtualbox ]
     containers: [ docker  docker-group  lazydocker  podman podman-dotfiles ]
@@ -51,13 +51,16 @@ profiles: {
     lisp-lang: [ sbcl  quicklisp ]
     lua-lang: [ lua  luarocks ]
     ocaml-lang: [ ocaml  opam  dune ]
-    python-lang: [ python3.11  python3.12  python3.13  cython  pyenv  jupyterlab ]
+    python-lang: [ python3.11  python3.12  python3.13  cython  pyenv  uv  jupyterlab ]
     ruby-lang: [ ruby  bundler ]
     rust-lang: [ rust  miniforge ]
     web-lang: [ node  typescript  sass ]
-    languages: [ +c-cpp-lang  +go-lang  +haskell-lang  +java-lang  +lisp-lang  +lua-lang  +ocaml-lang  +python-lang  +ruby-lang  +rust-lang  +web-lang  erlang  elixir  julia  nim  nasm  octave odin  perl  r  zig ]
+    php-lang: [ php  composer ]
+    dotnet-lang: [ dotnet ]
+    languages: [ +c-cpp-lang  +go-lang  +haskell-lang  +java-lang  +lisp-lang  +lua-lang  +ocaml-lang  +php-lang  +python-lang  +ruby-lang  +rust-lang  +web-lang  +dotnet-lang  erlang  elixir  julia  nim  nasm  octave odin  perl  r  zig ]
 
     dev-tools: [ git  jq  just  protobuf  yq ]
+    version-control: [ git  mercurial  subversion  cvs  perforce  fossil  bazaar ]
     ai-tools: [ claude-code  codex  llm  aider  ollama ]
 
     graphics-dev: [ vulkan-dev  gtk  gtkmm  qt  opengl  glfw  sdl  sfml ]
@@ -68,14 +71,15 @@ profiles: {
 
     electronics-tools: [ arduino  arduino-dotfiles  kicad  gnuradio ]
     graphics-tools: [ blender  krita  gimp  inkscape  darktable  freecad  openscad  scribus  digikam ]
-    autio-tools: [ +audio  ardour  lmms  tenacity  musescore  hydrogen  carla  sonic-pi  supercollider  qjackctl ]
+    audio-tools: [ +audio  ardour  lmms  tenacity  musescore  hydrogen  carla  sonic-pi  supercollider  qjackctl  yabridge ]
 
     science: [ +math  jupyterlab  gnuplot  paraview  opencv  opencv-python ]
     math: [ +latex  julia  r  octave  maxima  wxmaxima  pari  gap  gnuplot  sagemath ]
     latex: [ texlive  texlive-full ]
 
     user: [ +terminal  git  bash-dotfiles  configsys-dotfiles  codecs  firefox  chrome ]
-    desktop-apps: [ libreoffice  vlc  discord  slack  spotify  obs-studio ]
+    desktop-apps: [ libreoffice  vlc  discord  slack  spotify  obs-studio  kodi  stremio ]
+    media-servers: [ jellyfin-service  plex-service  emby-service  navidrome ]
     creative-tools: [ +electronics-tools  +graphics-tools  +audio-tools ]
 }
 }

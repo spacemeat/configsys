@@ -180,7 +180,7 @@ def test_membership_edit_never_writes_the_repo_baseline(tmp_path):
 
     from configsys import actions
     ctx = _rctx(tmp_path)
-    repo_defined = 'dev'
+    repo_defined = 'dev-tools'
     assert repo_defined in ctx.config.profile_names()               # ships in the repo config.hu
     repo_file = pathlib.Path(ctx.paths.config_file)
     before = repo_file.read_text()
