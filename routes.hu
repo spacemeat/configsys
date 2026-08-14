@@ -1537,6 +1537,25 @@
                 { via: snap  name: code  classic: true }   // Microsoft-official snap (candidate-only: the MS apt repo stays the Ubuntu default)
             ]
         }
+        // vscodium: the fully-open build of Code — no Microsoft telemetry/branding, and the OSS
+        // (non-proprietary) marketplace. Its own apt/dnf repos (download.vscodium.com), Flathub, snap,
+        // Arch AUR; package/CLI is `codium`. The telemetry-free sibling of `vscode` (which IS MS's build).
+        vscodium: { description: "VSCodium — the community, telemetry-free open-source build of VS Code (`codium`)."
+            install: [
+                { via: flatpak  hub: flathub  app: com.vscodium.codium }   // universal; the only method on atomic
+                { via: native  when: "debian"  name: codium
+                  pubkey-url: "https://gitlab.com/paulcarroty/vscodium-deb-rpm-repo/raw/master/pub.gpg"
+                  pubkey-path: /usr/share/keyrings/vscodium.asc
+                  source-line: "deb [signed-by=/usr/share/keyrings/vscodium.asc] https://download.vscodium.com/debs vscodium main"
+                  source-path: /etc/apt/sources.list.d/vscodium.list }
+                { via: native  when: "redhat"  name: codium
+                  pubkey-url: "https://gitlab.com/paulcarroty/vscodium-deb-rpm-repo/raw/master/pub.gpg"
+                  repo-id: vscodium  repo-name: "VSCodium"
+                  repo-url: "https://download.vscodium.com/rpms/" }
+                { via: aur  when: "arch"  name: vscodium-bin }
+                { via: snap  name: codium  classic: true }
+            ]
+        }
         // android-studio: Google's official tarball, unpacked scope-honoring (~/android-studio
         // for user, /opt/android-studio for system). No clean version API, so the version is a
         // manual pin — bump it from developer.android.com/studio. Fat IDE config deferred.

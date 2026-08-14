@@ -5651,6 +5651,29 @@
     "name": "git"
    }
   },
+  "vscodium": {
+   "aur\\vscodium": {
+    "driver": "aur",
+    "fields": {
+     "name": "vscodium-bin"
+    },
+    "name": "vscodium-bin"
+   },
+   "pacman\\base-devel": {
+    "driver": "pacman",
+    "fields": {
+     "name": "base-devel"
+    },
+    "name": "base-devel"
+   },
+   "pacman\\git": {
+    "driver": "pacman",
+    "fields": {
+     "name": "git"
+    },
+    "name": "git"
+   }
+  },
   "vulkan-dev": {
    "dotfiles\\bash-dotfiles": {
     "driver": "dotfiles",
@@ -12580,6 +12603,19 @@
     "name": "code"
    }
   },
+  "vscodium": {
+   "apt\\vscodium": {
+    "driver": "apt",
+    "fields": {
+     "name": "codium",
+     "pubkey-path": "/usr/share/keyrings/vscodium.asc",
+     "pubkey-url": "https://gitlab.com/paulcarroty/vscodium-deb-rpm-repo/raw/master/pub.gpg",
+     "source-line": "deb [signed-by=/usr/share/keyrings/vscodium.asc] https://download.vscodium.com/debs vscodium main",
+     "source-path": "/etc/apt/sources.list.d/vscodium.list"
+    },
+    "name": "codium"
+   }
+  },
   "vulkan-dev": {
    "apt\\c-toolchain": {
     "driver": "apt",
@@ -19345,6 +19381,19 @@
      "source-path": "/etc/apt/sources.list.d/vscode.list"
     },
     "name": "code"
+   }
+  },
+  "vscodium": {
+   "apt\\vscodium": {
+    "driver": "apt",
+    "fields": {
+     "name": "codium",
+     "pubkey-path": "/usr/share/keyrings/vscodium.asc",
+     "pubkey-url": "https://gitlab.com/paulcarroty/vscodium-deb-rpm-repo/raw/master/pub.gpg",
+     "source-line": "deb [signed-by=/usr/share/keyrings/vscodium.asc] https://download.vscodium.com/debs vscodium main",
+     "source-path": "/etc/apt/sources.list.d/vscodium.list"
+    },
+    "name": "codium"
    }
   },
   "vulkan-dev": {
@@ -26113,6 +26162,19 @@
     "name": "code"
    }
   },
+  "vscodium": {
+   "apt\\vscodium": {
+    "driver": "apt",
+    "fields": {
+     "name": "codium",
+     "pubkey-path": "/usr/share/keyrings/vscodium.asc",
+     "pubkey-url": "https://gitlab.com/paulcarroty/vscodium-deb-rpm-repo/raw/master/pub.gpg",
+     "source-line": "deb [signed-by=/usr/share/keyrings/vscodium.asc] https://download.vscodium.com/debs vscodium main",
+     "source-path": "/etc/apt/sources.list.d/vscodium.list"
+    },
+    "name": "codium"
+   }
+  },
   "vulkan-dev": {
    "apt\\c-toolchain": {
     "driver": "apt",
@@ -32509,6 +32571,19 @@
      "repo-url": "https://packages.microsoft.com/yumrepos/vscode"
     },
     "name": "code"
+   }
+  },
+  "vscodium": {
+   "dnf\\vscodium": {
+    "driver": "dnf",
+    "fields": {
+     "name": "codium",
+     "pubkey-url": "https://gitlab.com/paulcarroty/vscodium-deb-rpm-repo/raw/master/pub.gpg",
+     "repo-id": "vscodium",
+     "repo-name": "VSCodium",
+     "repo-url": "https://download.vscodium.com/rpms/"
+    },
+    "name": "codium"
    }
   },
   "vulkan-dev": {
@@ -38952,6 +39027,19 @@
     "name": "code"
    }
   },
+  "vscodium": {
+   "dnf\\vscodium": {
+    "driver": "dnf",
+    "fields": {
+     "name": "codium",
+     "pubkey-url": "https://gitlab.com/paulcarroty/vscodium-deb-rpm-repo/raw/master/pub.gpg",
+     "repo-id": "vscodium",
+     "repo-name": "VSCodium",
+     "repo-url": "https://download.vscodium.com/rpms/"
+    },
+    "name": "codium"
+   }
+  },
   "vulkan-dev": {
    "dnf\\c-toolchain": {
     "driver": "dnf",
@@ -43685,6 +43773,16 @@
      "name": "com.visualstudio.code"
     },
     "name": "com.visualstudio.code"
+   }
+  },
+  "vscodium": {
+   "flatpak\\vscodium": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "com.vscodium.codium"
+    },
+    "name": "com.vscodium.codium"
    }
   },
   "vulkan-sdk": {
@@ -50353,6 +50451,19 @@
      "source-path": "/etc/apt/sources.list.d/vscode.list"
     },
     "name": "code"
+   }
+  },
+  "vscodium": {
+   "apt\\vscodium": {
+    "driver": "apt",
+    "fields": {
+     "name": "codium",
+     "pubkey-path": "/usr/share/keyrings/vscodium.asc",
+     "pubkey-url": "https://gitlab.com/paulcarroty/vscodium-deb-rpm-repo/raw/master/pub.gpg",
+     "source-line": "deb [signed-by=/usr/share/keyrings/vscodium.asc] https://download.vscodium.com/debs vscodium main",
+     "source-path": "/etc/apt/sources.list.d/vscodium.list"
+    },
+    "name": "codium"
    }
   },
   "vulkan-dev": {
@@ -57044,6 +57155,19 @@
      "repo-url": "https://packages.microsoft.com/yumrepos/vscode"
     },
     "name": "code"
+   }
+  },
+  "vscodium": {
+   "dnf\\vscodium": {
+    "driver": "dnf",
+    "fields": {
+     "name": "codium",
+     "pubkey-url": "https://gitlab.com/paulcarroty/vscodium-deb-rpm-repo/raw/master/pub.gpg",
+     "repo-id": "vscodium",
+     "repo-name": "VSCodium",
+     "repo-url": "https://download.vscodium.com/rpms/"
+    },
+    "name": "codium"
    }
   },
   "vulkan-dev": {
@@ -63982,6 +64106,19 @@
     "name": "code"
    }
   },
+  "vscodium": {
+   "apt\\vscodium": {
+    "driver": "apt",
+    "fields": {
+     "name": "codium",
+     "pubkey-path": "/usr/share/keyrings/vscodium.asc",
+     "pubkey-url": "https://gitlab.com/paulcarroty/vscodium-deb-rpm-repo/raw/master/pub.gpg",
+     "source-line": "deb [signed-by=/usr/share/keyrings/vscodium.asc] https://download.vscodium.com/debs vscodium main",
+     "source-path": "/etc/apt/sources.list.d/vscodium.list"
+    },
+    "name": "codium"
+   }
+  },
   "vulkan-dev": {
    "apt\\c-toolchain": {
     "driver": "apt",
@@ -70756,6 +70893,19 @@
      "source-path": "/etc/apt/sources.list.d/vscode.list"
     },
     "name": "code"
+   }
+  },
+  "vscodium": {
+   "apt\\vscodium": {
+    "driver": "apt",
+    "fields": {
+     "name": "codium",
+     "pubkey-path": "/usr/share/keyrings/vscodium.asc",
+     "pubkey-url": "https://gitlab.com/paulcarroty/vscodium-deb-rpm-repo/raw/master/pub.gpg",
+     "source-line": "deb [signed-by=/usr/share/keyrings/vscodium.asc] https://download.vscodium.com/debs vscodium main",
+     "source-path": "/etc/apt/sources.list.d/vscodium.list"
+    },
+    "name": "codium"
    }
   },
   "vulkan-dev": {
