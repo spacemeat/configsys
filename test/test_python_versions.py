@@ -2,12 +2,30 @@
 coexists, a versioned floor selects the right one, and the SYSTEM python covers a bare requirement
 for free (the OS `provides: python3`). Uses the real base routes on a debian context.'''
 
+import pytest
+
 from configsys.app import Context, build_parser
 from configsys.routes import Component
 
+_HOME = None                                       # isolated home for this module (set per test)
+
+
+@pytest.fixture(autouse=True)
+def _isolate_home(tmp_path, monkeypatch):
+    '''Keep these routing tests hermetic: point HOME at an empty dir and disable project discovery,
+    so they never read the developer's real ~/.config/configsys (declared plugins, trust store,
+    registered splashes) or a `.configsys.hu` above the CWD. Only the explicit `--os pop` context
+    and the repo's base routes.hu decide the outcome — the suite runs the same anywhere, for anyone.'''
+    global _HOME
+    _HOME = str(tmp_path)
+    monkeypatch.setenv('CONFIGSYS_NO_DISCOVER', '1')
+    yield
+    _HOME = None
+
 
 def _routes():
-    return Context(build_parser().parse_args(['--os', 'pop', 'inspect'])).routes
+    return Context(build_parser().parse_args(
+        ['--home', _HOME, '--os', 'pop', 'inspect'])).routes
 
 
 def _units(r, names):
