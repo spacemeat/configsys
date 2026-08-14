@@ -10,6 +10,15 @@
     "name": "abseil-cpp"
    }
   },
+  "adguardhome": {
+   "pacman\\adguardhome": {
+    "driver": "pacman",
+    "fields": {
+     "name": "adguardhome"
+    },
+    "name": "adguardhome"
+   }
+  },
   "aider": {
    "pacman\\pipx": {
     "driver": "pacman",
@@ -513,6 +522,32 @@
      "name": "cmake"
     },
     "name": "cmake"
+   }
+  },
+  "cockpit": {
+   "pacman\\cockpit": {
+    "driver": "pacman",
+    "fields": {
+     "name": "cockpit"
+    },
+    "name": "cockpit"
+   }
+  },
+  "cockpit-service": {
+   "pacman\\cockpit": {
+    "driver": "pacman",
+    "fields": {
+     "name": "cockpit"
+    },
+    "name": "cockpit"
+   },
+   "service\\cockpit-service": {
+    "driver": "service",
+    "fields": {
+     "name": "cockpit-service",
+     "unit": "cockpit.socket"
+    },
+    "name": "cockpit-service"
    }
   },
   "codecs": {
@@ -1352,6 +1387,32 @@
     "name": "jdk-openjdk"
    }
   },
+  "grafana": {
+   "pacman\\grafana": {
+    "driver": "pacman",
+    "fields": {
+     "name": "grafana"
+    },
+    "name": "grafana"
+   }
+  },
+  "grafana-service": {
+   "pacman\\grafana": {
+    "driver": "pacman",
+    "fields": {
+     "name": "grafana"
+    },
+    "name": "grafana"
+   },
+   "service\\grafana-service": {
+    "driver": "service",
+    "fields": {
+     "name": "grafana-service",
+     "unit": "grafana-server"
+    },
+    "name": "grafana-service"
+   }
+  },
   "grpcurl": {
    "pacman\\curl": {
     "driver": "pacman",
@@ -1498,6 +1559,23 @@
      "repo-component": "universe"
     },
     "name": "ghc"
+   }
+  },
+  "homebridge": {
+   "npm\\homebridge": {
+    "driver": "npm",
+    "fields": {
+     "name": "homebridge"
+    },
+    "name": "homebridge"
+   },
+   "pacman\\node": {
+    "driver": "pacman",
+    "fields": {
+     "name": "npm",
+     "repo-component": "universe"
+    },
+    "name": "npm"
    }
   },
   "htop": {
@@ -2307,6 +2385,32 @@
     "name": "unzip"
    }
   },
+  "mosquitto": {
+   "pacman\\mosquitto": {
+    "driver": "pacman",
+    "fields": {
+     "name": "mosquitto"
+    },
+    "name": "mosquitto"
+   }
+  },
+  "mosquitto-service": {
+   "pacman\\mosquitto": {
+    "driver": "pacman",
+    "fields": {
+     "name": "mosquitto"
+    },
+    "name": "mosquitto"
+   },
+   "service\\mosquitto-service": {
+    "driver": "service",
+    "fields": {
+     "name": "mosquitto-service",
+     "unit": "mosquitto"
+    },
+    "name": "mosquitto-service"
+   }
+  },
   "mtr": {
    "pacman\\mtr": {
     "driver": "pacman",
@@ -2483,6 +2587,56 @@
      "name": "nethogs"
     },
     "name": "nethogs"
+   }
+  },
+  "nextcloud": {
+   "aur\\snapd": {
+    "driver": "aur",
+    "fields": {
+     "name": "snapd"
+    },
+    "name": "snapd"
+   },
+   "pacman\\base-devel": {
+    "driver": "pacman",
+    "fields": {
+     "name": "base-devel"
+    },
+    "name": "base-devel"
+   },
+   "pacman\\git": {
+    "driver": "pacman",
+    "fields": {
+     "name": "git"
+    },
+    "name": "git"
+   },
+   "script\\snapd-snap-link": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "test -e /snap || sudo ln -s /var/lib/snapd/snap /snap",
+     "location": "/snap",
+     "name": "snapd-snap-link",
+     "uninstall-cmd": "test -L /snap && sudo rm -f /snap || true",
+     "version-cmd": "test -e /snap && echo present",
+     "version-re": "(present)"
+    },
+    "name": "snapd-snap-link"
+   },
+   "service\\snapd-socket": {
+    "driver": "service",
+    "fields": {
+     "name": "snapd-socket",
+     "unit": "snapd.socket"
+    },
+    "name": "snapd-socket"
+   },
+   "snap\\nextcloud": {
+    "driver": "snap",
+    "fields": {
+     "name": "nextcloud"
+    },
+    "name": "nextcloud"
    }
   },
   "nim": {
@@ -2801,6 +2955,20 @@
     "name": "php"
    }
   },
+  "pi-hole": {
+   "script\\pi-hole": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "curl -sSL https://install.pi-hole.net | bash",
+     "location": "/etc/pihole",
+     "name": "pi-hole",
+     "uninstall-cmd": "pihole uninstall",
+     "version-cmd": "pihole -v 2>/dev/null",
+     "version-re": "v?([0-9][0-9.]*)"
+    },
+    "name": "pi-hole"
+   }
+  },
   "pipewire": {
    "pacman\\pipewire": {
     "driver": "pacman",
@@ -2980,6 +3148,16 @@
      "repo-component": "universe"
     },
     "name": "npm"
+   }
+  },
+  "prometheus": {
+   "pacman\\prometheus": {
+    "driver": "pacman",
+    "fields": {
+     "name": "prometheus",
+     "repo-component": "universe"
+    },
+    "name": "prometheus"
    }
   },
   "protobuf": {
@@ -3571,6 +3749,41 @@
      "name": "sway"
     },
     "name": "sway"
+   }
+  },
+  "syncthing": {
+   "pacman\\syncthing": {
+    "driver": "pacman",
+    "fields": {
+     "name": "syncthing"
+    },
+    "name": "syncthing"
+   }
+  },
+  "tailscale": {
+   "pacman\\tailscale": {
+    "driver": "pacman",
+    "fields": {
+     "name": "tailscale"
+    },
+    "name": "tailscale"
+   }
+  },
+  "tailscale-service": {
+   "pacman\\tailscale": {
+    "driver": "pacman",
+    "fields": {
+     "name": "tailscale"
+    },
+    "name": "tailscale"
+   },
+   "service\\tailscale-service": {
+    "driver": "service",
+    "fields": {
+     "name": "tailscale-service",
+     "unit": "tailscaled"
+    },
+    "name": "tailscale-service"
    }
   },
   "tcpdump": {
@@ -4178,6 +4391,15 @@
     "name": "winetricks"
    }
   },
+  "wireguard": {
+   "pacman\\wireguard": {
+    "driver": "pacman",
+    "fields": {
+     "name": "wireguard-tools"
+    },
+    "name": "wireguard-tools"
+   }
+  },
   "wireshark": {
    "pacman\\wireshark": {
     "driver": "pacman",
@@ -4509,6 +4731,28 @@
      "repo-component": "universe"
     },
     "name": "libabsl-dev"
+   }
+  },
+  "adguardhome": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "tarball\\adguardhome": {
+    "driver": "tarball",
+    "fields": {
+     "installDir": "$CONFIGSYS_APP_DIR/adguardhome",
+     "name": "adguardhome",
+     "version": {
+      "asset": "AdGuardHome_linux_amd64.tar.gz",
+      "github": "AdguardTeam/AdGuardHome",
+      "strip-v": "true"
+     }
+    },
+    "name": "adguardhome"
    }
   },
   "aider": {
@@ -5187,6 +5431,32 @@
      "name": "cmake"
     },
     "name": "cmake"
+   }
+  },
+  "cockpit": {
+   "apt\\cockpit": {
+    "driver": "apt",
+    "fields": {
+     "name": "cockpit"
+    },
+    "name": "cockpit"
+   }
+  },
+  "cockpit-service": {
+   "apt\\cockpit": {
+    "driver": "apt",
+    "fields": {
+     "name": "cockpit"
+    },
+    "name": "cockpit"
+   },
+   "service\\cockpit-service": {
+    "driver": "service",
+    "fields": {
+     "name": "cockpit-service",
+     "unit": "cockpit.socket"
+    },
+    "name": "cockpit-service"
    }
   },
   "codecs": {
@@ -6413,6 +6683,40 @@
     "name": "default-jdk"
    }
   },
+  "grafana": {
+   "apt\\grafana": {
+    "driver": "apt",
+    "fields": {
+     "name": "grafana",
+     "pubkey-path": "/etc/apt/keyrings/grafana.gpg",
+     "pubkey-url": "https://apt.grafana.com/gpg.key",
+     "source-line": "deb [signed-by=/etc/apt/keyrings/grafana.gpg] https://apt.grafana.com stable main",
+     "source-path": "/etc/apt/sources.list.d/grafana.list"
+    },
+    "name": "grafana"
+   }
+  },
+  "grafana-service": {
+   "apt\\grafana": {
+    "driver": "apt",
+    "fields": {
+     "name": "grafana",
+     "pubkey-path": "/etc/apt/keyrings/grafana.gpg",
+     "pubkey-url": "https://apt.grafana.com/gpg.key",
+     "source-line": "deb [signed-by=/etc/apt/keyrings/grafana.gpg] https://apt.grafana.com stable main",
+     "source-path": "/etc/apt/sources.list.d/grafana.list"
+    },
+    "name": "grafana"
+   },
+   "service\\grafana-service": {
+    "driver": "service",
+    "fields": {
+     "name": "grafana-service",
+     "unit": "grafana-server"
+    },
+    "name": "grafana-service"
+   }
+  },
   "grpcurl": {
    "apt\\curl": {
     "driver": "apt",
@@ -6579,6 +6883,19 @@
      "name": "hlint"
     },
     "name": "hlint"
+   }
+  },
+  "homebridge": {
+   "apt\\homebridge": {
+    "driver": "apt",
+    "fields": {
+     "name": "homebridge",
+     "pubkey-path": "/usr/share/keyrings/homebridge.gpg",
+     "pubkey-url": "https://repo.homebridge.io/KEY.gpg",
+     "source-line": "deb [signed-by=/usr/share/keyrings/homebridge.gpg] https://repo.homebridge.io stable main",
+     "source-path": "/etc/apt/sources.list.d/homebridge.list"
+    },
+    "name": "homebridge"
    }
   },
   "htop": {
@@ -7548,6 +7865,32 @@
     "name": "Mononoki"
    }
   },
+  "mosquitto": {
+   "apt\\mosquitto": {
+    "driver": "apt",
+    "fields": {
+     "name": "mosquitto"
+    },
+    "name": "mosquitto"
+   }
+  },
+  "mosquitto-service": {
+   "apt\\mosquitto": {
+    "driver": "apt",
+    "fields": {
+     "name": "mosquitto"
+    },
+    "name": "mosquitto"
+   },
+   "service\\mosquitto-service": {
+    "driver": "service",
+    "fields": {
+     "name": "mosquitto-service",
+     "unit": "mosquitto"
+    },
+    "name": "mosquitto-service"
+   }
+  },
   "mtr": {
    "apt\\mtr": {
     "driver": "apt",
@@ -7739,6 +8082,42 @@
      "name": "nethogs"
     },
     "name": "nethogs"
+   }
+  },
+  "nextcloud": {
+   "apt\\snapd": {
+    "driver": "apt",
+    "fields": {
+     "name": "snapd"
+    },
+    "name": "snapd"
+   },
+   "script\\snapd-snap-link": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "test -e /snap || sudo ln -s /var/lib/snapd/snap /snap",
+     "location": "/snap",
+     "name": "snapd-snap-link",
+     "uninstall-cmd": "test -L /snap && sudo rm -f /snap || true",
+     "version-cmd": "test -e /snap && echo present",
+     "version-re": "(present)"
+    },
+    "name": "snapd-snap-link"
+   },
+   "service\\snapd-socket": {
+    "driver": "service",
+    "fields": {
+     "name": "snapd-socket",
+     "unit": "snapd.socket"
+    },
+    "name": "snapd-socket"
+   },
+   "snap\\nextcloud": {
+    "driver": "snap",
+    "fields": {
+     "name": "nextcloud"
+    },
+    "name": "nextcloud"
    }
   },
   "nim": {
@@ -8067,6 +8446,20 @@
     "name": "php-cli"
    }
   },
+  "pi-hole": {
+   "script\\pi-hole": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "curl -sSL https://install.pi-hole.net | bash",
+     "location": "/etc/pihole",
+     "name": "pi-hole",
+     "uninstall-cmd": "pihole uninstall",
+     "version-cmd": "pihole -v 2>/dev/null",
+     "version-re": "v?([0-9][0-9.]*)"
+    },
+    "name": "pi-hole"
+   }
+  },
   "pipewire": {
    "apt\\pipewire": {
     "driver": "apt",
@@ -8236,6 +8629,16 @@
      "name": "prettier"
     },
     "name": "prettier"
+   }
+  },
+  "prometheus": {
+   "apt\\prometheus": {
+    "driver": "apt",
+    "fields": {
+     "name": "prometheus",
+     "repo-component": "universe"
+    },
+    "name": "prometheus"
    }
   },
   "protobuf": {
@@ -8890,6 +9293,49 @@
     "name": "sway"
    }
   },
+  "syncthing": {
+   "apt\\syncthing": {
+    "driver": "apt",
+    "fields": {
+     "name": "syncthing"
+    },
+    "name": "syncthing"
+   }
+  },
+  "tailscale": {
+   "apt\\tailscale": {
+    "driver": "apt",
+    "fields": {
+     "name": "tailscale",
+     "pubkey-path": "/usr/share/keyrings/tailscale-archive-keyring.gpg",
+     "pubkey-url": "https://pkgs.tailscale.com/stable/debian/bookworm.noarmor.gpg",
+     "source-line": "deb [signed-by=/usr/share/keyrings/tailscale-archive-keyring.gpg] https://pkgs.tailscale.com/stable/debian bookworm main",
+     "source-path": "/etc/apt/sources.list.d/tailscale.list"
+    },
+    "name": "tailscale"
+   }
+  },
+  "tailscale-service": {
+   "apt\\tailscale": {
+    "driver": "apt",
+    "fields": {
+     "name": "tailscale",
+     "pubkey-path": "/usr/share/keyrings/tailscale-archive-keyring.gpg",
+     "pubkey-url": "https://pkgs.tailscale.com/stable/debian/bookworm.noarmor.gpg",
+     "source-line": "deb [signed-by=/usr/share/keyrings/tailscale-archive-keyring.gpg] https://pkgs.tailscale.com/stable/debian bookworm main",
+     "source-path": "/etc/apt/sources.list.d/tailscale.list"
+    },
+    "name": "tailscale"
+   },
+   "service\\tailscale-service": {
+    "driver": "service",
+    "fields": {
+     "name": "tailscale-service",
+     "unit": "tailscaled"
+    },
+    "name": "tailscale-service"
+   }
+  },
   "tcpdump": {
    "apt\\tcpdump": {
     "driver": "apt",
@@ -9453,6 +9899,15 @@
      "repo-component": "universe"
     },
     "name": "winetricks"
+   }
+  },
+  "wireguard": {
+   "apt\\wireguard": {
+    "driver": "apt",
+    "fields": {
+     "name": "wireguard"
+    },
+    "name": "wireguard"
    }
   },
   "wireshark": {
@@ -9798,6 +10253,28 @@
     "name": "libabsl-dev"
    }
   },
+  "adguardhome": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "tarball\\adguardhome": {
+    "driver": "tarball",
+    "fields": {
+     "installDir": "$CONFIGSYS_APP_DIR/adguardhome",
+     "name": "adguardhome",
+     "version": {
+      "asset": "AdGuardHome_linux_amd64.tar.gz",
+      "github": "AdguardTeam/AdGuardHome",
+      "strip-v": "true"
+     }
+    },
+    "name": "adguardhome"
+   }
+  },
   "aider": {
    "apt\\pipx": {
     "driver": "apt",
@@ -10454,6 +10931,32 @@
      "name": "cmake"
     },
     "name": "cmake"
+   }
+  },
+  "cockpit": {
+   "apt\\cockpit": {
+    "driver": "apt",
+    "fields": {
+     "name": "cockpit"
+    },
+    "name": "cockpit"
+   }
+  },
+  "cockpit-service": {
+   "apt\\cockpit": {
+    "driver": "apt",
+    "fields": {
+     "name": "cockpit"
+    },
+    "name": "cockpit"
+   },
+   "service\\cockpit-service": {
+    "driver": "service",
+    "fields": {
+     "name": "cockpit-service",
+     "unit": "cockpit.socket"
+    },
+    "name": "cockpit-service"
    }
   },
   "codecs": {
@@ -11670,6 +12173,40 @@
     "name": "default-jdk"
    }
   },
+  "grafana": {
+   "apt\\grafana": {
+    "driver": "apt",
+    "fields": {
+     "name": "grafana",
+     "pubkey-path": "/etc/apt/keyrings/grafana.gpg",
+     "pubkey-url": "https://apt.grafana.com/gpg.key",
+     "source-line": "deb [signed-by=/etc/apt/keyrings/grafana.gpg] https://apt.grafana.com stable main",
+     "source-path": "/etc/apt/sources.list.d/grafana.list"
+    },
+    "name": "grafana"
+   }
+  },
+  "grafana-service": {
+   "apt\\grafana": {
+    "driver": "apt",
+    "fields": {
+     "name": "grafana",
+     "pubkey-path": "/etc/apt/keyrings/grafana.gpg",
+     "pubkey-url": "https://apt.grafana.com/gpg.key",
+     "source-line": "deb [signed-by=/etc/apt/keyrings/grafana.gpg] https://apt.grafana.com stable main",
+     "source-path": "/etc/apt/sources.list.d/grafana.list"
+    },
+    "name": "grafana"
+   },
+   "service\\grafana-service": {
+    "driver": "service",
+    "fields": {
+     "name": "grafana-service",
+     "unit": "grafana-server"
+    },
+    "name": "grafana-service"
+   }
+  },
   "grpcurl": {
    "apt\\curl": {
     "driver": "apt",
@@ -11836,6 +12373,19 @@
      "name": "hlint"
     },
     "name": "hlint"
+   }
+  },
+  "homebridge": {
+   "apt\\homebridge": {
+    "driver": "apt",
+    "fields": {
+     "name": "homebridge",
+     "pubkey-path": "/usr/share/keyrings/homebridge.gpg",
+     "pubkey-url": "https://repo.homebridge.io/KEY.gpg",
+     "source-line": "deb [signed-by=/usr/share/keyrings/homebridge.gpg] https://repo.homebridge.io stable main",
+     "source-path": "/etc/apt/sources.list.d/homebridge.list"
+    },
+    "name": "homebridge"
    }
   },
   "htop": {
@@ -12775,6 +13325,32 @@
     "name": "Mononoki"
    }
   },
+  "mosquitto": {
+   "apt\\mosquitto": {
+    "driver": "apt",
+    "fields": {
+     "name": "mosquitto"
+    },
+    "name": "mosquitto"
+   }
+  },
+  "mosquitto-service": {
+   "apt\\mosquitto": {
+    "driver": "apt",
+    "fields": {
+     "name": "mosquitto"
+    },
+    "name": "mosquitto"
+   },
+   "service\\mosquitto-service": {
+    "driver": "service",
+    "fields": {
+     "name": "mosquitto-service",
+     "unit": "mosquitto"
+    },
+    "name": "mosquitto-service"
+   }
+  },
   "mtr": {
    "apt\\mtr": {
     "driver": "apt",
@@ -12956,6 +13532,42 @@
      "name": "nethogs"
     },
     "name": "nethogs"
+   }
+  },
+  "nextcloud": {
+   "apt\\snapd": {
+    "driver": "apt",
+    "fields": {
+     "name": "snapd"
+    },
+    "name": "snapd"
+   },
+   "script\\snapd-snap-link": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "test -e /snap || sudo ln -s /var/lib/snapd/snap /snap",
+     "location": "/snap",
+     "name": "snapd-snap-link",
+     "uninstall-cmd": "test -L /snap && sudo rm -f /snap || true",
+     "version-cmd": "test -e /snap && echo present",
+     "version-re": "(present)"
+    },
+    "name": "snapd-snap-link"
+   },
+   "service\\snapd-socket": {
+    "driver": "service",
+    "fields": {
+     "name": "snapd-socket",
+     "unit": "snapd.socket"
+    },
+    "name": "snapd-socket"
+   },
+   "snap\\nextcloud": {
+    "driver": "snap",
+    "fields": {
+     "name": "nextcloud"
+    },
+    "name": "nextcloud"
    }
   },
   "nim": {
@@ -13274,6 +13886,20 @@
     "name": "php-cli"
    }
   },
+  "pi-hole": {
+   "script\\pi-hole": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "curl -sSL https://install.pi-hole.net | bash",
+     "location": "/etc/pihole",
+     "name": "pi-hole",
+     "uninstall-cmd": "pihole uninstall",
+     "version-cmd": "pihole -v 2>/dev/null",
+     "version-re": "v?([0-9][0-9.]*)"
+    },
+    "name": "pi-hole"
+   }
+  },
   "pipewire": {
    "apt\\pipewire": {
     "driver": "apt",
@@ -13433,6 +14059,16 @@
      "name": "prettier"
     },
     "name": "prettier"
+   }
+  },
+  "prometheus": {
+   "apt\\prometheus": {
+    "driver": "apt",
+    "fields": {
+     "name": "prometheus",
+     "repo-component": "universe"
+    },
+    "name": "prometheus"
    }
   },
   "protobuf": {
@@ -14077,6 +14713,49 @@
     "name": "sway"
    }
   },
+  "syncthing": {
+   "apt\\syncthing": {
+    "driver": "apt",
+    "fields": {
+     "name": "syncthing"
+    },
+    "name": "syncthing"
+   }
+  },
+  "tailscale": {
+   "apt\\tailscale": {
+    "driver": "apt",
+    "fields": {
+     "name": "tailscale",
+     "pubkey-path": "/usr/share/keyrings/tailscale-archive-keyring.gpg",
+     "pubkey-url": "https://pkgs.tailscale.com/stable/debian/bookworm.noarmor.gpg",
+     "source-line": "deb [signed-by=/usr/share/keyrings/tailscale-archive-keyring.gpg] https://pkgs.tailscale.com/stable/debian bookworm main",
+     "source-path": "/etc/apt/sources.list.d/tailscale.list"
+    },
+    "name": "tailscale"
+   }
+  },
+  "tailscale-service": {
+   "apt\\tailscale": {
+    "driver": "apt",
+    "fields": {
+     "name": "tailscale",
+     "pubkey-path": "/usr/share/keyrings/tailscale-archive-keyring.gpg",
+     "pubkey-url": "https://pkgs.tailscale.com/stable/debian/bookworm.noarmor.gpg",
+     "source-line": "deb [signed-by=/usr/share/keyrings/tailscale-archive-keyring.gpg] https://pkgs.tailscale.com/stable/debian bookworm main",
+     "source-path": "/etc/apt/sources.list.d/tailscale.list"
+    },
+    "name": "tailscale"
+   },
+   "service\\tailscale-service": {
+    "driver": "service",
+    "fields": {
+     "name": "tailscale-service",
+     "unit": "tailscaled"
+    },
+    "name": "tailscale-service"
+   }
+  },
   "tcpdump": {
    "apt\\tcpdump": {
     "driver": "apt",
@@ -14632,6 +15311,15 @@
     "name": "winetricks"
    }
   },
+  "wireguard": {
+   "apt\\wireguard": {
+    "driver": "apt",
+    "fields": {
+     "name": "wireguard"
+    },
+    "name": "wireguard"
+   }
+  },
   "wireshark": {
    "apt\\wireshark": {
     "driver": "apt",
@@ -14963,6 +15651,28 @@
      "repo-component": "universe"
     },
     "name": "libabsl-dev"
+   }
+  },
+  "adguardhome": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "tarball\\adguardhome": {
+    "driver": "tarball",
+    "fields": {
+     "installDir": "$CONFIGSYS_APP_DIR/adguardhome",
+     "name": "adguardhome",
+     "version": {
+      "asset": "AdGuardHome_linux_amd64.tar.gz",
+      "github": "AdguardTeam/AdGuardHome",
+      "strip-v": "true"
+     }
+    },
+    "name": "adguardhome"
    }
   },
   "aider": {
@@ -15629,6 +16339,32 @@
      "name": "cmake"
     },
     "name": "cmake"
+   }
+  },
+  "cockpit": {
+   "apt\\cockpit": {
+    "driver": "apt",
+    "fields": {
+     "name": "cockpit"
+    },
+    "name": "cockpit"
+   }
+  },
+  "cockpit-service": {
+   "apt\\cockpit": {
+    "driver": "apt",
+    "fields": {
+     "name": "cockpit"
+    },
+    "name": "cockpit"
+   },
+   "service\\cockpit-service": {
+    "driver": "service",
+    "fields": {
+     "name": "cockpit-service",
+     "unit": "cockpit.socket"
+    },
+    "name": "cockpit-service"
    }
   },
   "codecs": {
@@ -16840,6 +17576,40 @@
     "name": "default-jdk"
    }
   },
+  "grafana": {
+   "apt\\grafana": {
+    "driver": "apt",
+    "fields": {
+     "name": "grafana",
+     "pubkey-path": "/etc/apt/keyrings/grafana.gpg",
+     "pubkey-url": "https://apt.grafana.com/gpg.key",
+     "source-line": "deb [signed-by=/etc/apt/keyrings/grafana.gpg] https://apt.grafana.com stable main",
+     "source-path": "/etc/apt/sources.list.d/grafana.list"
+    },
+    "name": "grafana"
+   }
+  },
+  "grafana-service": {
+   "apt\\grafana": {
+    "driver": "apt",
+    "fields": {
+     "name": "grafana",
+     "pubkey-path": "/etc/apt/keyrings/grafana.gpg",
+     "pubkey-url": "https://apt.grafana.com/gpg.key",
+     "source-line": "deb [signed-by=/etc/apt/keyrings/grafana.gpg] https://apt.grafana.com stable main",
+     "source-path": "/etc/apt/sources.list.d/grafana.list"
+    },
+    "name": "grafana"
+   },
+   "service\\grafana-service": {
+    "driver": "service",
+    "fields": {
+     "name": "grafana-service",
+     "unit": "grafana-server"
+    },
+    "name": "grafana-service"
+   }
+  },
   "grpcurl": {
    "apt\\curl": {
     "driver": "apt",
@@ -17006,6 +17776,19 @@
      "name": "hlint"
     },
     "name": "hlint"
+   }
+  },
+  "homebridge": {
+   "apt\\homebridge": {
+    "driver": "apt",
+    "fields": {
+     "name": "homebridge",
+     "pubkey-path": "/usr/share/keyrings/homebridge.gpg",
+     "pubkey-url": "https://repo.homebridge.io/KEY.gpg",
+     "source-line": "deb [signed-by=/usr/share/keyrings/homebridge.gpg] https://repo.homebridge.io stable main",
+     "source-path": "/etc/apt/sources.list.d/homebridge.list"
+    },
+    "name": "homebridge"
    }
   },
   "htop": {
@@ -17938,6 +18721,32 @@
     "name": "Mononoki"
    }
   },
+  "mosquitto": {
+   "apt\\mosquitto": {
+    "driver": "apt",
+    "fields": {
+     "name": "mosquitto"
+    },
+    "name": "mosquitto"
+   }
+  },
+  "mosquitto-service": {
+   "apt\\mosquitto": {
+    "driver": "apt",
+    "fields": {
+     "name": "mosquitto"
+    },
+    "name": "mosquitto"
+   },
+   "service\\mosquitto-service": {
+    "driver": "service",
+    "fields": {
+     "name": "mosquitto-service",
+     "unit": "mosquitto"
+    },
+    "name": "mosquitto-service"
+   }
+  },
   "mtr": {
    "apt\\mtr": {
     "driver": "apt",
@@ -18119,6 +18928,42 @@
      "name": "nethogs"
     },
     "name": "nethogs"
+   }
+  },
+  "nextcloud": {
+   "apt\\snapd": {
+    "driver": "apt",
+    "fields": {
+     "name": "snapd"
+    },
+    "name": "snapd"
+   },
+   "script\\snapd-snap-link": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "test -e /snap || sudo ln -s /var/lib/snapd/snap /snap",
+     "location": "/snap",
+     "name": "snapd-snap-link",
+     "uninstall-cmd": "test -L /snap && sudo rm -f /snap || true",
+     "version-cmd": "test -e /snap && echo present",
+     "version-re": "(present)"
+    },
+    "name": "snapd-snap-link"
+   },
+   "service\\snapd-socket": {
+    "driver": "service",
+    "fields": {
+     "name": "snapd-socket",
+     "unit": "snapd.socket"
+    },
+    "name": "snapd-socket"
+   },
+   "snap\\nextcloud": {
+    "driver": "snap",
+    "fields": {
+     "name": "nextcloud"
+    },
+    "name": "nextcloud"
    }
   },
   "nim": {
@@ -18450,6 +19295,20 @@
     "name": "php-cli"
    }
   },
+  "pi-hole": {
+   "script\\pi-hole": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "curl -sSL https://install.pi-hole.net | bash",
+     "location": "/etc/pihole",
+     "name": "pi-hole",
+     "uninstall-cmd": "pihole uninstall",
+     "version-cmd": "pihole -v 2>/dev/null",
+     "version-re": "v?([0-9][0-9.]*)"
+    },
+    "name": "pi-hole"
+   }
+  },
   "pipewire": {
    "apt\\pipewire": {
     "driver": "apt",
@@ -18609,6 +19468,16 @@
      "name": "prettier"
     },
     "name": "prettier"
+   }
+  },
+  "prometheus": {
+   "apt\\prometheus": {
+    "driver": "apt",
+    "fields": {
+     "name": "prometheus",
+     "repo-component": "universe"
+    },
+    "name": "prometheus"
    }
   },
   "protobuf": {
@@ -19253,6 +20122,49 @@
     "name": "sway"
    }
   },
+  "syncthing": {
+   "apt\\syncthing": {
+    "driver": "apt",
+    "fields": {
+     "name": "syncthing"
+    },
+    "name": "syncthing"
+   }
+  },
+  "tailscale": {
+   "apt\\tailscale": {
+    "driver": "apt",
+    "fields": {
+     "name": "tailscale",
+     "pubkey-path": "/usr/share/keyrings/tailscale-archive-keyring.gpg",
+     "pubkey-url": "https://pkgs.tailscale.com/stable/ubuntu/noble.noarmor.gpg",
+     "source-line": "deb [signed-by=/usr/share/keyrings/tailscale-archive-keyring.gpg] https://pkgs.tailscale.com/stable/ubuntu noble main",
+     "source-path": "/etc/apt/sources.list.d/tailscale.list"
+    },
+    "name": "tailscale"
+   }
+  },
+  "tailscale-service": {
+   "apt\\tailscale": {
+    "driver": "apt",
+    "fields": {
+     "name": "tailscale",
+     "pubkey-path": "/usr/share/keyrings/tailscale-archive-keyring.gpg",
+     "pubkey-url": "https://pkgs.tailscale.com/stable/ubuntu/noble.noarmor.gpg",
+     "source-line": "deb [signed-by=/usr/share/keyrings/tailscale-archive-keyring.gpg] https://pkgs.tailscale.com/stable/ubuntu noble main",
+     "source-path": "/etc/apt/sources.list.d/tailscale.list"
+    },
+    "name": "tailscale"
+   },
+   "service\\tailscale-service": {
+    "driver": "service",
+    "fields": {
+     "name": "tailscale-service",
+     "unit": "tailscaled"
+    },
+    "name": "tailscale-service"
+   }
+  },
   "tcpdump": {
    "apt\\tcpdump": {
     "driver": "apt",
@@ -19808,6 +20720,15 @@
     "name": "winetricks"
    }
   },
+  "wireguard": {
+   "apt\\wireguard": {
+    "driver": "apt",
+    "fields": {
+     "name": "wireguard"
+    },
+    "name": "wireguard"
+   }
+  },
   "wireshark": {
    "apt\\wireshark": {
     "driver": "apt",
@@ -20139,6 +21060,28 @@
      "repo-component": "universe"
     },
     "name": "abseil-cpp-devel"
+   }
+  },
+  "adguardhome": {
+   "dnf\\curl": {
+    "driver": "dnf",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "tarball\\adguardhome": {
+    "driver": "tarball",
+    "fields": {
+     "installDir": "$CONFIGSYS_APP_DIR/adguardhome",
+     "name": "adguardhome",
+     "version": {
+      "asset": "AdGuardHome_linux_amd64.tar.gz",
+      "github": "AdguardTeam/AdGuardHome",
+      "strip-v": "true"
+     }
+    },
+    "name": "adguardhome"
    }
   },
   "aider": {
@@ -20671,6 +21614,32 @@
      "name": "cmake"
     },
     "name": "cmake"
+   }
+  },
+  "cockpit": {
+   "dnf\\cockpit": {
+    "driver": "dnf",
+    "fields": {
+     "name": "cockpit"
+    },
+    "name": "cockpit"
+   }
+  },
+  "cockpit-service": {
+   "dnf\\cockpit": {
+    "driver": "dnf",
+    "fields": {
+     "name": "cockpit"
+    },
+    "name": "cockpit"
+   },
+   "service\\cockpit-service": {
+    "driver": "service",
+    "fields": {
+     "name": "cockpit-service",
+     "unit": "cockpit.socket"
+    },
+    "name": "cockpit-service"
    }
   },
   "codecs": {
@@ -21621,6 +22590,40 @@
     "name": "golang.org/x/tools/cmd/goimports"
    }
   },
+  "grafana": {
+   "dnf\\grafana": {
+    "driver": "dnf",
+    "fields": {
+     "name": "grafana",
+     "pubkey-url": "https://rpm.grafana.com/gpg.key",
+     "repo-id": "grafana",
+     "repo-name": "Grafana",
+     "repo-url": "https://rpm.grafana.com"
+    },
+    "name": "grafana"
+   }
+  },
+  "grafana-service": {
+   "dnf\\grafana": {
+    "driver": "dnf",
+    "fields": {
+     "name": "grafana",
+     "pubkey-url": "https://rpm.grafana.com/gpg.key",
+     "repo-id": "grafana",
+     "repo-name": "Grafana",
+     "repo-url": "https://rpm.grafana.com"
+    },
+    "name": "grafana"
+   },
+   "service\\grafana-service": {
+    "driver": "service",
+    "fields": {
+     "name": "grafana-service",
+     "unit": "grafana-server"
+    },
+    "name": "grafana-service"
+   }
+  },
   "grpcurl": {
    "dnf\\curl": {
     "driver": "dnf",
@@ -21794,6 +22797,23 @@
      "repo-component": "universe"
     },
     "name": "ghc"
+   }
+  },
+  "homebridge": {
+   "dnf\\node": {
+    "driver": "dnf",
+    "fields": {
+     "name": "nodejs",
+     "repo-component": "universe"
+    },
+    "name": "nodejs"
+   },
+   "npm\\homebridge": {
+    "driver": "npm",
+    "fields": {
+     "name": "homebridge"
+    },
+    "name": "homebridge"
    }
   },
   "htop": {
@@ -22714,6 +23734,32 @@
     "name": "Mononoki"
    }
   },
+  "mosquitto": {
+   "dnf\\mosquitto": {
+    "driver": "dnf",
+    "fields": {
+     "name": "mosquitto"
+    },
+    "name": "mosquitto"
+   }
+  },
+  "mosquitto-service": {
+   "dnf\\mosquitto": {
+    "driver": "dnf",
+    "fields": {
+     "name": "mosquitto"
+    },
+    "name": "mosquitto"
+   },
+   "service\\mosquitto-service": {
+    "driver": "service",
+    "fields": {
+     "name": "mosquitto-service",
+     "unit": "mosquitto"
+    },
+    "name": "mosquitto-service"
+   }
+  },
   "mtr": {
    "dnf\\mtr": {
     "driver": "dnf",
@@ -22906,6 +23952,42 @@
      "name": "nethogs"
     },
     "name": "nethogs"
+   }
+  },
+  "nextcloud": {
+   "dnf\\snapd": {
+    "driver": "dnf",
+    "fields": {
+     "name": "snapd"
+    },
+    "name": "snapd"
+   },
+   "script\\snapd-snap-link": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "test -e /snap || sudo ln -s /var/lib/snapd/snap /snap",
+     "location": "/snap",
+     "name": "snapd-snap-link",
+     "uninstall-cmd": "test -L /snap && sudo rm -f /snap || true",
+     "version-cmd": "test -e /snap && echo present",
+     "version-re": "(present)"
+    },
+    "name": "snapd-snap-link"
+   },
+   "service\\snapd-socket": {
+    "driver": "service",
+    "fields": {
+     "name": "snapd-socket",
+     "unit": "snapd.socket"
+    },
+    "name": "snapd-socket"
+   },
+   "snap\\nextcloud": {
+    "driver": "snap",
+    "fields": {
+     "name": "nextcloud"
+    },
+    "name": "nextcloud"
    }
   },
   "ninja": {
@@ -23227,6 +24309,20 @@
     "name": "php-cli"
    }
   },
+  "pi-hole": {
+   "script\\pi-hole": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "curl -sSL https://install.pi-hole.net | bash",
+     "location": "/etc/pihole",
+     "name": "pi-hole",
+     "uninstall-cmd": "pihole uninstall",
+     "version-cmd": "pihole -v 2>/dev/null",
+     "version-re": "v?([0-9][0-9.]*)"
+    },
+    "name": "pi-hole"
+   }
+  },
   "pipewire": {
    "dnf\\pipewire": {
     "driver": "dnf",
@@ -23386,6 +24482,28 @@
      "name": "prettier"
     },
     "name": "prettier"
+   }
+  },
+  "prometheus": {
+   "dnf\\curl": {
+    "driver": "dnf",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "tarball\\prometheus": {
+    "driver": "tarball",
+    "fields": {
+     "installDir": "$CONFIGSYS_APP_DIR/prometheus",
+     "name": "prometheus",
+     "version": {
+      "asset": "prometheus-*.linux-amd64.tar.gz",
+      "github": "prometheus/prometheus",
+      "strip-v": "true"
+     }
+    },
+    "name": "prometheus"
    }
   },
   "protobuf": {
@@ -23993,6 +25111,49 @@
     "name": "sway"
    }
   },
+  "syncthing": {
+   "dnf\\syncthing": {
+    "driver": "dnf",
+    "fields": {
+     "name": "syncthing"
+    },
+    "name": "syncthing"
+   }
+  },
+  "tailscale": {
+   "dnf\\tailscale": {
+    "driver": "dnf",
+    "fields": {
+     "name": "tailscale",
+     "pubkey-url": "https://pkgs.tailscale.com/stable/fedora/repo.gpg",
+     "repo-id": "tailscale",
+     "repo-name": "Tailscale",
+     "repo-url": "https://pkgs.tailscale.com/stable/fedora/$basearch"
+    },
+    "name": "tailscale"
+   }
+  },
+  "tailscale-service": {
+   "dnf\\tailscale": {
+    "driver": "dnf",
+    "fields": {
+     "name": "tailscale",
+     "pubkey-url": "https://pkgs.tailscale.com/stable/fedora/repo.gpg",
+     "repo-id": "tailscale",
+     "repo-name": "Tailscale",
+     "repo-url": "https://pkgs.tailscale.com/stable/fedora/$basearch"
+    },
+    "name": "tailscale"
+   },
+   "service\\tailscale-service": {
+    "driver": "service",
+    "fields": {
+     "name": "tailscale-service",
+     "unit": "tailscaled"
+    },
+    "name": "tailscale-service"
+   }
+  },
   "tcpdump": {
    "dnf\\tcpdump": {
     "driver": "dnf",
@@ -24576,6 +25737,15 @@
     "name": "winetricks"
    }
   },
+  "wireguard": {
+   "dnf\\wireguard": {
+    "driver": "dnf",
+    "fields": {
+     "name": "wireguard-tools"
+    },
+    "name": "wireguard-tools"
+   }
+  },
   "wireshark": {
    "dnf\\wireshark": {
     "driver": "dnf",
@@ -24927,6 +26097,28 @@
      "repo-component": "universe"
     },
     "name": "abseil-cpp-devel"
+   }
+  },
+  "adguardhome": {
+   "dnf\\curl": {
+    "driver": "dnf",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "tarball\\adguardhome": {
+    "driver": "tarball",
+    "fields": {
+     "installDir": "$CONFIGSYS_APP_DIR/adguardhome",
+     "name": "adguardhome",
+     "version": {
+      "asset": "AdGuardHome_linux_amd64.tar.gz",
+      "github": "AdguardTeam/AdGuardHome",
+      "strip-v": "true"
+     }
+    },
+    "name": "adguardhome"
    }
   },
   "aider": {
@@ -25485,6 +26677,32 @@
      "name": "cmake"
     },
     "name": "cmake"
+   }
+  },
+  "cockpit": {
+   "dnf\\cockpit": {
+    "driver": "dnf",
+    "fields": {
+     "name": "cockpit"
+    },
+    "name": "cockpit"
+   }
+  },
+  "cockpit-service": {
+   "dnf\\cockpit": {
+    "driver": "dnf",
+    "fields": {
+     "name": "cockpit"
+    },
+    "name": "cockpit"
+   },
+   "service\\cockpit-service": {
+    "driver": "service",
+    "fields": {
+     "name": "cockpit-service",
+     "unit": "cockpit.socket"
+    },
+    "name": "cockpit-service"
    }
   },
   "codecs": {
@@ -26435,6 +27653,40 @@
     "name": "golang.org/x/tools/cmd/goimports"
    }
   },
+  "grafana": {
+   "dnf\\grafana": {
+    "driver": "dnf",
+    "fields": {
+     "name": "grafana",
+     "pubkey-url": "https://rpm.grafana.com/gpg.key",
+     "repo-id": "grafana",
+     "repo-name": "Grafana",
+     "repo-url": "https://rpm.grafana.com"
+    },
+    "name": "grafana"
+   }
+  },
+  "grafana-service": {
+   "dnf\\grafana": {
+    "driver": "dnf",
+    "fields": {
+     "name": "grafana",
+     "pubkey-url": "https://rpm.grafana.com/gpg.key",
+     "repo-id": "grafana",
+     "repo-name": "Grafana",
+     "repo-url": "https://rpm.grafana.com"
+    },
+    "name": "grafana"
+   },
+   "service\\grafana-service": {
+    "driver": "service",
+    "fields": {
+     "name": "grafana-service",
+     "unit": "grafana-server"
+    },
+    "name": "grafana-service"
+   }
+  },
   "grpcurl": {
    "dnf\\curl": {
     "driver": "dnf",
@@ -26608,6 +27860,23 @@
      "repo-component": "universe"
     },
     "name": "ghc"
+   }
+  },
+  "homebridge": {
+   "dnf\\node": {
+    "driver": "dnf",
+    "fields": {
+     "name": "nodejs",
+     "repo-component": "universe"
+    },
+    "name": "nodejs"
+   },
+   "npm\\homebridge": {
+    "driver": "npm",
+    "fields": {
+     "name": "homebridge"
+    },
+    "name": "homebridge"
    }
   },
   "htop": {
@@ -27528,6 +28797,32 @@
     "name": "Mononoki"
    }
   },
+  "mosquitto": {
+   "dnf\\mosquitto": {
+    "driver": "dnf",
+    "fields": {
+     "name": "mosquitto"
+    },
+    "name": "mosquitto"
+   }
+  },
+  "mosquitto-service": {
+   "dnf\\mosquitto": {
+    "driver": "dnf",
+    "fields": {
+     "name": "mosquitto"
+    },
+    "name": "mosquitto"
+   },
+   "service\\mosquitto-service": {
+    "driver": "service",
+    "fields": {
+     "name": "mosquitto-service",
+     "unit": "mosquitto"
+    },
+    "name": "mosquitto-service"
+   }
+  },
   "mtr": {
    "dnf\\mtr": {
     "driver": "dnf",
@@ -27720,6 +29015,42 @@
      "name": "nethogs"
     },
     "name": "nethogs"
+   }
+  },
+  "nextcloud": {
+   "dnf\\snapd": {
+    "driver": "dnf",
+    "fields": {
+     "name": "snapd"
+    },
+    "name": "snapd"
+   },
+   "script\\snapd-snap-link": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "test -e /snap || sudo ln -s /var/lib/snapd/snap /snap",
+     "location": "/snap",
+     "name": "snapd-snap-link",
+     "uninstall-cmd": "test -L /snap && sudo rm -f /snap || true",
+     "version-cmd": "test -e /snap && echo present",
+     "version-re": "(present)"
+    },
+    "name": "snapd-snap-link"
+   },
+   "service\\snapd-socket": {
+    "driver": "service",
+    "fields": {
+     "name": "snapd-socket",
+     "unit": "snapd.socket"
+    },
+    "name": "snapd-socket"
+   },
+   "snap\\nextcloud": {
+    "driver": "snap",
+    "fields": {
+     "name": "nextcloud"
+    },
+    "name": "nextcloud"
    }
   },
   "ninja": {
@@ -28041,6 +29372,20 @@
     "name": "php-cli"
    }
   },
+  "pi-hole": {
+   "script\\pi-hole": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "curl -sSL https://install.pi-hole.net | bash",
+     "location": "/etc/pihole",
+     "name": "pi-hole",
+     "uninstall-cmd": "pihole uninstall",
+     "version-cmd": "pihole -v 2>/dev/null",
+     "version-re": "v?([0-9][0-9.]*)"
+    },
+    "name": "pi-hole"
+   }
+  },
   "pipewire": {
    "dnf\\pipewire": {
     "driver": "dnf",
@@ -28200,6 +29545,28 @@
      "name": "prettier"
     },
     "name": "prettier"
+   }
+  },
+  "prometheus": {
+   "dnf\\curl": {
+    "driver": "dnf",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "tarball\\prometheus": {
+    "driver": "tarball",
+    "fields": {
+     "installDir": "$CONFIGSYS_APP_DIR/prometheus",
+     "name": "prometheus",
+     "version": {
+      "asset": "prometheus-*.linux-amd64.tar.gz",
+      "github": "prometheus/prometheus",
+      "strip-v": "true"
+     }
+    },
+    "name": "prometheus"
    }
   },
   "protobuf": {
@@ -28807,6 +30174,49 @@
     "name": "sway"
    }
   },
+  "syncthing": {
+   "dnf\\syncthing": {
+    "driver": "dnf",
+    "fields": {
+     "name": "syncthing"
+    },
+    "name": "syncthing"
+   }
+  },
+  "tailscale": {
+   "dnf\\tailscale": {
+    "driver": "dnf",
+    "fields": {
+     "name": "tailscale",
+     "pubkey-url": "https://pkgs.tailscale.com/stable/fedora/repo.gpg",
+     "repo-id": "tailscale",
+     "repo-name": "Tailscale",
+     "repo-url": "https://pkgs.tailscale.com/stable/fedora/$basearch"
+    },
+    "name": "tailscale"
+   }
+  },
+  "tailscale-service": {
+   "dnf\\tailscale": {
+    "driver": "dnf",
+    "fields": {
+     "name": "tailscale",
+     "pubkey-url": "https://pkgs.tailscale.com/stable/fedora/repo.gpg",
+     "repo-id": "tailscale",
+     "repo-name": "Tailscale",
+     "repo-url": "https://pkgs.tailscale.com/stable/fedora/$basearch"
+    },
+    "name": "tailscale"
+   },
+   "service\\tailscale-service": {
+    "driver": "service",
+    "fields": {
+     "name": "tailscale-service",
+     "unit": "tailscaled"
+    },
+    "name": "tailscale-service"
+   }
+  },
   "tcpdump": {
    "dnf\\tcpdump": {
     "driver": "dnf",
@@ -29390,6 +30800,15 @@
     "name": "winetricks"
    }
   },
+  "wireguard": {
+   "dnf\\wireguard": {
+    "driver": "dnf",
+    "fields": {
+     "name": "wireguard-tools"
+    },
+    "name": "wireguard-tools"
+   }
+  },
   "wireshark": {
    "dnf\\wireshark": {
     "driver": "dnf",
@@ -29733,6 +31152,28 @@
   }
  },
  "fedora_atomic@41": {
+  "adguardhome": {
+   "brew\\curl": {
+    "driver": "brew",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "tarball\\adguardhome": {
+    "driver": "tarball",
+    "fields": {
+     "installDir": "$CONFIGSYS_APP_DIR/adguardhome",
+     "name": "adguardhome",
+     "version": {
+      "asset": "AdGuardHome_linux_amd64.tar.gz",
+      "github": "AdguardTeam/AdGuardHome",
+      "strip-v": "true"
+     }
+    },
+    "name": "adguardhome"
+   }
+  },
   "aider": {
    "brew\\pipx": {
     "driver": "brew",
@@ -30753,6 +32194,23 @@
     "name": "hlint"
    }
   },
+  "homebridge": {
+   "brew\\node": {
+    "driver": "brew",
+    "fields": {
+     "name": "node",
+     "repo-component": "universe"
+    },
+    "name": "node"
+   },
+   "npm\\homebridge": {
+    "driver": "npm",
+    "fields": {
+     "name": "homebridge"
+    },
+    "name": "homebridge"
+   }
+  },
   "htop": {
    "brew\\htop": {
     "driver": "brew",
@@ -31427,6 +32885,32 @@
     "name": "Mononoki"
    }
   },
+  "mosquitto": {
+   "brew\\mosquitto": {
+    "driver": "brew",
+    "fields": {
+     "name": "mosquitto"
+    },
+    "name": "mosquitto"
+   }
+  },
+  "mosquitto-service": {
+   "brew\\mosquitto": {
+    "driver": "brew",
+    "fields": {
+     "name": "mosquitto"
+    },
+    "name": "mosquitto"
+   },
+   "service\\mosquitto-service": {
+    "driver": "service",
+    "fields": {
+     "name": "mosquitto-service",
+     "unit": "mosquitto"
+    },
+    "name": "mosquitto-service"
+   }
+  },
   "mtr": {
    "brew\\mtr": {
     "driver": "brew",
@@ -31824,6 +33308,20 @@
     "name": "php"
    }
   },
+  "pi-hole": {
+   "script\\pi-hole": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "curl -sSL https://install.pi-hole.net | bash",
+     "location": "/etc/pihole",
+     "name": "pi-hole",
+     "uninstall-cmd": "pihole uninstall",
+     "version-cmd": "pihole -v 2>/dev/null",
+     "version-re": "v?([0-9][0-9.]*)"
+    },
+    "name": "pi-hole"
+   }
+  },
   "pipewire": {
    "brew\\pipewire": {
     "driver": "brew",
@@ -31916,6 +33414,28 @@
      "name": "prettier"
     },
     "name": "prettier"
+   }
+  },
+  "prometheus": {
+   "brew\\curl": {
+    "driver": "brew",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "tarball\\prometheus": {
+    "driver": "tarball",
+    "fields": {
+     "installDir": "$CONFIGSYS_APP_DIR/prometheus",
+     "name": "prometheus",
+     "version": {
+      "asset": "prometheus-*.linux-amd64.tar.gz",
+      "github": "prometheus/prometheus",
+      "strip-v": "true"
+     }
+    },
+    "name": "prometheus"
    }
   },
   "protobuf": {
@@ -32303,6 +33823,15 @@
     "name": "superfile-dotfiles"
    }
   },
+  "syncthing": {
+   "brew\\syncthing": {
+    "driver": "brew",
+    "fields": {
+     "name": "syncthing"
+    },
+    "name": "syncthing"
+   }
+  },
   "tcpdump": {
    "brew\\tcpdump": {
     "driver": "brew",
@@ -32656,6 +34185,15 @@
     "name": "whois"
    }
   },
+  "wireguard": {
+   "brew\\wireguard": {
+    "driver": "brew",
+    "fields": {
+     "name": "wireguard-tools"
+    },
+    "name": "wireguard-tools"
+   }
+  },
   "wireshark": {
    "flatpak\\wireshark": {
     "driver": "flatpak",
@@ -32912,6 +34450,28 @@
      "repo-component": "universe"
     },
     "name": "libabsl-dev"
+   }
+  },
+  "adguardhome": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "tarball\\adguardhome": {
+    "driver": "tarball",
+    "fields": {
+     "installDir": "$CONFIGSYS_APP_DIR/adguardhome",
+     "name": "adguardhome",
+     "version": {
+      "asset": "AdGuardHome_linux_amd64.tar.gz",
+      "github": "AdguardTeam/AdGuardHome",
+      "strip-v": "true"
+     }
+    },
+    "name": "adguardhome"
    }
   },
   "aider": {
@@ -33598,6 +35158,32 @@
      "name": "cmake"
     },
     "name": "cmake"
+   }
+  },
+  "cockpit": {
+   "apt\\cockpit": {
+    "driver": "apt",
+    "fields": {
+     "name": "cockpit"
+    },
+    "name": "cockpit"
+   }
+  },
+  "cockpit-service": {
+   "apt\\cockpit": {
+    "driver": "apt",
+    "fields": {
+     "name": "cockpit"
+    },
+    "name": "cockpit"
+   },
+   "service\\cockpit-service": {
+    "driver": "service",
+    "fields": {
+     "name": "cockpit-service",
+     "unit": "cockpit.socket"
+    },
+    "name": "cockpit-service"
    }
   },
   "codecs": {
@@ -34828,6 +36414,40 @@
     "name": "default-jdk"
    }
   },
+  "grafana": {
+   "apt\\grafana": {
+    "driver": "apt",
+    "fields": {
+     "name": "grafana",
+     "pubkey-path": "/etc/apt/keyrings/grafana.gpg",
+     "pubkey-url": "https://apt.grafana.com/gpg.key",
+     "source-line": "deb [signed-by=/etc/apt/keyrings/grafana.gpg] https://apt.grafana.com stable main",
+     "source-path": "/etc/apt/sources.list.d/grafana.list"
+    },
+    "name": "grafana"
+   }
+  },
+  "grafana-service": {
+   "apt\\grafana": {
+    "driver": "apt",
+    "fields": {
+     "name": "grafana",
+     "pubkey-path": "/etc/apt/keyrings/grafana.gpg",
+     "pubkey-url": "https://apt.grafana.com/gpg.key",
+     "source-line": "deb [signed-by=/etc/apt/keyrings/grafana.gpg] https://apt.grafana.com stable main",
+     "source-path": "/etc/apt/sources.list.d/grafana.list"
+    },
+    "name": "grafana"
+   },
+   "service\\grafana-service": {
+    "driver": "service",
+    "fields": {
+     "name": "grafana-service",
+     "unit": "grafana-server"
+    },
+    "name": "grafana-service"
+   }
+  },
   "grpcurl": {
    "apt\\curl": {
     "driver": "apt",
@@ -34994,6 +36614,19 @@
      "name": "hlint"
     },
     "name": "hlint"
+   }
+  },
+  "homebridge": {
+   "apt\\homebridge": {
+    "driver": "apt",
+    "fields": {
+     "name": "homebridge",
+     "pubkey-path": "/usr/share/keyrings/homebridge.gpg",
+     "pubkey-url": "https://repo.homebridge.io/KEY.gpg",
+     "source-line": "deb [signed-by=/usr/share/keyrings/homebridge.gpg] https://repo.homebridge.io stable main",
+     "source-path": "/etc/apt/sources.list.d/homebridge.list"
+    },
+    "name": "homebridge"
    }
   },
   "htop": {
@@ -35956,6 +37589,32 @@
     "name": "Mononoki"
    }
   },
+  "mosquitto": {
+   "apt\\mosquitto": {
+    "driver": "apt",
+    "fields": {
+     "name": "mosquitto"
+    },
+    "name": "mosquitto"
+   }
+  },
+  "mosquitto-service": {
+   "apt\\mosquitto": {
+    "driver": "apt",
+    "fields": {
+     "name": "mosquitto"
+    },
+    "name": "mosquitto"
+   },
+   "service\\mosquitto-service": {
+    "driver": "service",
+    "fields": {
+     "name": "mosquitto-service",
+     "unit": "mosquitto"
+    },
+    "name": "mosquitto-service"
+   }
+  },
   "mtr": {
    "apt\\mtr": {
     "driver": "apt",
@@ -36147,6 +37806,42 @@
      "name": "nethogs"
     },
     "name": "nethogs"
+   }
+  },
+  "nextcloud": {
+   "apt\\snapd": {
+    "driver": "apt",
+    "fields": {
+     "name": "snapd"
+    },
+    "name": "snapd"
+   },
+   "script\\snapd-snap-link": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "test -e /snap || sudo ln -s /var/lib/snapd/snap /snap",
+     "location": "/snap",
+     "name": "snapd-snap-link",
+     "uninstall-cmd": "test -L /snap && sudo rm -f /snap || true",
+     "version-cmd": "test -e /snap && echo present",
+     "version-re": "(present)"
+    },
+    "name": "snapd-snap-link"
+   },
+   "service\\snapd-socket": {
+    "driver": "service",
+    "fields": {
+     "name": "snapd-socket",
+     "unit": "snapd.socket"
+    },
+    "name": "snapd-socket"
+   },
+   "snap\\nextcloud": {
+    "driver": "snap",
+    "fields": {
+     "name": "nextcloud"
+    },
+    "name": "nextcloud"
    }
   },
   "nim": {
@@ -36488,6 +38183,20 @@
     "name": "php-cli"
    }
   },
+  "pi-hole": {
+   "script\\pi-hole": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "curl -sSL https://install.pi-hole.net | bash",
+     "location": "/etc/pihole",
+     "name": "pi-hole",
+     "uninstall-cmd": "pihole uninstall",
+     "version-cmd": "pihole -v 2>/dev/null",
+     "version-re": "v?([0-9][0-9.]*)"
+    },
+    "name": "pi-hole"
+   }
+  },
   "pipewire": {
    "apt\\pipewire": {
     "driver": "apt",
@@ -36657,6 +38366,16 @@
      "name": "prettier"
     },
     "name": "prettier"
+   }
+  },
+  "prometheus": {
+   "apt\\prometheus": {
+    "driver": "apt",
+    "fields": {
+     "name": "prometheus",
+     "repo-component": "universe"
+    },
+    "name": "prometheus"
    }
   },
   "protobuf": {
@@ -37304,6 +39023,49 @@
     "name": "sway"
    }
   },
+  "syncthing": {
+   "apt\\syncthing": {
+    "driver": "apt",
+    "fields": {
+     "name": "syncthing"
+    },
+    "name": "syncthing"
+   }
+  },
+  "tailscale": {
+   "apt\\tailscale": {
+    "driver": "apt",
+    "fields": {
+     "name": "tailscale",
+     "pubkey-path": "/usr/share/keyrings/tailscale-archive-keyring.gpg",
+     "pubkey-url": "https://pkgs.tailscale.com/stable/ubuntu/noble.noarmor.gpg",
+     "source-line": "deb [signed-by=/usr/share/keyrings/tailscale-archive-keyring.gpg] https://pkgs.tailscale.com/stable/ubuntu noble main",
+     "source-path": "/etc/apt/sources.list.d/tailscale.list"
+    },
+    "name": "tailscale"
+   }
+  },
+  "tailscale-service": {
+   "apt\\tailscale": {
+    "driver": "apt",
+    "fields": {
+     "name": "tailscale",
+     "pubkey-path": "/usr/share/keyrings/tailscale-archive-keyring.gpg",
+     "pubkey-url": "https://pkgs.tailscale.com/stable/ubuntu/noble.noarmor.gpg",
+     "source-line": "deb [signed-by=/usr/share/keyrings/tailscale-archive-keyring.gpg] https://pkgs.tailscale.com/stable/ubuntu noble main",
+     "source-path": "/etc/apt/sources.list.d/tailscale.list"
+    },
+    "name": "tailscale"
+   },
+   "service\\tailscale-service": {
+    "driver": "service",
+    "fields": {
+     "name": "tailscale-service",
+     "unit": "tailscaled"
+    },
+    "name": "tailscale-service"
+   }
+  },
   "tcpdump": {
    "apt\\tcpdump": {
     "driver": "apt",
@@ -37869,6 +39631,15 @@
     "name": "winetricks"
    }
   },
+  "wireguard": {
+   "apt\\wireguard": {
+    "driver": "apt",
+    "fields": {
+     "name": "wireguard"
+    },
+    "name": "wireguard"
+   }
+  },
   "wireshark": {
    "apt\\wireshark": {
     "driver": "apt",
@@ -38210,6 +39981,28 @@
      "repo-component": "universe"
     },
     "name": "abseil-cpp-devel"
+   }
+  },
+  "adguardhome": {
+   "dnf\\curl": {
+    "driver": "dnf",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "tarball\\adguardhome": {
+    "driver": "tarball",
+    "fields": {
+     "installDir": "$CONFIGSYS_APP_DIR/adguardhome",
+     "name": "adguardhome",
+     "version": {
+      "asset": "AdGuardHome_linux_amd64.tar.gz",
+      "github": "AdguardTeam/AdGuardHome",
+      "strip-v": "true"
+     }
+    },
+    "name": "adguardhome"
    }
   },
   "aider": {
@@ -38796,6 +40589,32 @@
      "name": "cmake"
     },
     "name": "cmake"
+   }
+  },
+  "cockpit": {
+   "dnf\\cockpit": {
+    "driver": "dnf",
+    "fields": {
+     "name": "cockpit"
+    },
+    "name": "cockpit"
+   }
+  },
+  "cockpit-service": {
+   "dnf\\cockpit": {
+    "driver": "dnf",
+    "fields": {
+     "name": "cockpit"
+    },
+    "name": "cockpit"
+   },
+   "service\\cockpit-service": {
+    "driver": "service",
+    "fields": {
+     "name": "cockpit-service",
+     "unit": "cockpit.socket"
+    },
+    "name": "cockpit-service"
    }
   },
   "codecs": {
@@ -39854,6 +41673,40 @@
     "name": "golang.org/x/tools/cmd/goimports"
    }
   },
+  "grafana": {
+   "dnf\\grafana": {
+    "driver": "dnf",
+    "fields": {
+     "name": "grafana",
+     "pubkey-url": "https://rpm.grafana.com/gpg.key",
+     "repo-id": "grafana",
+     "repo-name": "Grafana",
+     "repo-url": "https://rpm.grafana.com"
+    },
+    "name": "grafana"
+   }
+  },
+  "grafana-service": {
+   "dnf\\grafana": {
+    "driver": "dnf",
+    "fields": {
+     "name": "grafana",
+     "pubkey-url": "https://rpm.grafana.com/gpg.key",
+     "repo-id": "grafana",
+     "repo-name": "Grafana",
+     "repo-url": "https://rpm.grafana.com"
+    },
+    "name": "grafana"
+   },
+   "service\\grafana-service": {
+    "driver": "service",
+    "fields": {
+     "name": "grafana-service",
+     "unit": "grafana-server"
+    },
+    "name": "grafana-service"
+   }
+  },
   "grpcurl": {
    "dnf\\curl": {
     "driver": "dnf",
@@ -40043,6 +41896,23 @@
      "repo-component": "universe"
     },
     "name": "ghc"
+   }
+  },
+  "homebridge": {
+   "dnf\\node": {
+    "driver": "dnf",
+    "fields": {
+     "name": "nodejs",
+     "repo-component": "universe"
+    },
+    "name": "nodejs"
+   },
+   "npm\\homebridge": {
+    "driver": "npm",
+    "fields": {
+     "name": "homebridge"
+    },
+    "name": "homebridge"
    }
   },
   "htop": {
@@ -40965,6 +42835,32 @@
     "name": "Mononoki"
    }
   },
+  "mosquitto": {
+   "dnf\\mosquitto": {
+    "driver": "dnf",
+    "fields": {
+     "name": "mosquitto"
+    },
+    "name": "mosquitto"
+   }
+  },
+  "mosquitto-service": {
+   "dnf\\mosquitto": {
+    "driver": "dnf",
+    "fields": {
+     "name": "mosquitto"
+    },
+    "name": "mosquitto"
+   },
+   "service\\mosquitto-service": {
+    "driver": "service",
+    "fields": {
+     "name": "mosquitto-service",
+     "unit": "mosquitto"
+    },
+    "name": "mosquitto-service"
+   }
+  },
   "mtr": {
    "dnf\\mtr": {
     "driver": "dnf",
@@ -41185,6 +43081,42 @@
      "name": "nethogs"
     },
     "name": "nethogs"
+   }
+  },
+  "nextcloud": {
+   "dnf\\snapd": {
+    "driver": "dnf",
+    "fields": {
+     "name": "snapd"
+    },
+    "name": "snapd"
+   },
+   "script\\snapd-snap-link": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "test -e /snap || sudo ln -s /var/lib/snapd/snap /snap",
+     "location": "/snap",
+     "name": "snapd-snap-link",
+     "uninstall-cmd": "test -L /snap && sudo rm -f /snap || true",
+     "version-cmd": "test -e /snap && echo present",
+     "version-re": "(present)"
+    },
+    "name": "snapd-snap-link"
+   },
+   "service\\snapd-socket": {
+    "driver": "service",
+    "fields": {
+     "name": "snapd-socket",
+     "unit": "snapd.socket"
+    },
+    "name": "snapd-socket"
+   },
+   "snap\\nextcloud": {
+    "driver": "snap",
+    "fields": {
+     "name": "nextcloud"
+    },
+    "name": "nextcloud"
    }
   },
   "ninja": {
@@ -41520,6 +43452,20 @@
     "name": "php-cli"
    }
   },
+  "pi-hole": {
+   "script\\pi-hole": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "curl -sSL https://install.pi-hole.net | bash",
+     "location": "/etc/pihole",
+     "name": "pi-hole",
+     "uninstall-cmd": "pihole uninstall",
+     "version-cmd": "pihole -v 2>/dev/null",
+     "version-re": "v?([0-9][0-9.]*)"
+    },
+    "name": "pi-hole"
+   }
+  },
   "pipewire": {
    "dnf\\pipewire": {
     "driver": "dnf",
@@ -41686,6 +43632,28 @@
      "name": "prettier"
     },
     "name": "prettier"
+   }
+  },
+  "prometheus": {
+   "dnf\\curl": {
+    "driver": "dnf",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "tarball\\prometheus": {
+    "driver": "tarball",
+    "fields": {
+     "installDir": "$CONFIGSYS_APP_DIR/prometheus",
+     "name": "prometheus",
+     "version": {
+      "asset": "prometheus-*.linux-amd64.tar.gz",
+      "github": "prometheus/prometheus",
+      "strip-v": "true"
+     }
+    },
+    "name": "prometheus"
    }
   },
   "protobuf": {
@@ -42314,6 +44282,49 @@
     "name": "sway"
    }
   },
+  "syncthing": {
+   "dnf\\syncthing": {
+    "driver": "dnf",
+    "fields": {
+     "name": "syncthing"
+    },
+    "name": "syncthing"
+   }
+  },
+  "tailscale": {
+   "dnf\\tailscale": {
+    "driver": "dnf",
+    "fields": {
+     "name": "tailscale",
+     "pubkey-url": "https://pkgs.tailscale.com/stable/fedora/repo.gpg",
+     "repo-id": "tailscale",
+     "repo-name": "Tailscale",
+     "repo-url": "https://pkgs.tailscale.com/stable/fedora/$basearch"
+    },
+    "name": "tailscale"
+   }
+  },
+  "tailscale-service": {
+   "dnf\\tailscale": {
+    "driver": "dnf",
+    "fields": {
+     "name": "tailscale",
+     "pubkey-url": "https://pkgs.tailscale.com/stable/fedora/repo.gpg",
+     "repo-id": "tailscale",
+     "repo-name": "Tailscale",
+     "repo-url": "https://pkgs.tailscale.com/stable/fedora/$basearch"
+    },
+    "name": "tailscale"
+   },
+   "service\\tailscale-service": {
+    "driver": "service",
+    "fields": {
+     "name": "tailscale-service",
+     "unit": "tailscaled"
+    },
+    "name": "tailscale-service"
+   }
+  },
   "tcpdump": {
    "dnf\\tcpdump": {
     "driver": "dnf",
@@ -42936,6 +44947,15 @@
     "name": "winetricks"
    }
   },
+  "wireguard": {
+   "dnf\\wireguard": {
+    "driver": "dnf",
+    "fields": {
+     "name": "wireguard-tools"
+    },
+    "name": "wireguard-tools"
+   }
+  },
   "wireshark": {
    "dnf\\wireshark": {
     "driver": "dnf",
@@ -43309,6 +45329,28 @@
     "name": "libabsl-dev"
    }
   },
+  "adguardhome": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "tarball\\adguardhome": {
+    "driver": "tarball",
+    "fields": {
+     "installDir": "$CONFIGSYS_APP_DIR/adguardhome",
+     "name": "adguardhome",
+     "version": {
+      "asset": "AdGuardHome_linux_amd64.tar.gz",
+      "github": "AdguardTeam/AdGuardHome",
+      "strip-v": "true"
+     }
+    },
+    "name": "adguardhome"
+   }
+  },
   "aider": {
    "apt\\python3-pip": {
     "driver": "apt",
@@ -43993,6 +46035,32 @@
      "name": "cmake"
     },
     "name": "cmake"
+   }
+  },
+  "cockpit": {
+   "apt\\cockpit": {
+    "driver": "apt",
+    "fields": {
+     "name": "cockpit"
+    },
+    "name": "cockpit"
+   }
+  },
+  "cockpit-service": {
+   "apt\\cockpit": {
+    "driver": "apt",
+    "fields": {
+     "name": "cockpit"
+    },
+    "name": "cockpit"
+   },
+   "service\\cockpit-service": {
+    "driver": "service",
+    "fields": {
+     "name": "cockpit-service",
+     "unit": "cockpit.socket"
+    },
+    "name": "cockpit-service"
    }
   },
   "codecs": {
@@ -45214,6 +47282,40 @@
     "name": "default-jdk"
    }
   },
+  "grafana": {
+   "apt\\grafana": {
+    "driver": "apt",
+    "fields": {
+     "name": "grafana",
+     "pubkey-path": "/etc/apt/keyrings/grafana.gpg",
+     "pubkey-url": "https://apt.grafana.com/gpg.key",
+     "source-line": "deb [signed-by=/etc/apt/keyrings/grafana.gpg] https://apt.grafana.com stable main",
+     "source-path": "/etc/apt/sources.list.d/grafana.list"
+    },
+    "name": "grafana"
+   }
+  },
+  "grafana-service": {
+   "apt\\grafana": {
+    "driver": "apt",
+    "fields": {
+     "name": "grafana",
+     "pubkey-path": "/etc/apt/keyrings/grafana.gpg",
+     "pubkey-url": "https://apt.grafana.com/gpg.key",
+     "source-line": "deb [signed-by=/etc/apt/keyrings/grafana.gpg] https://apt.grafana.com stable main",
+     "source-path": "/etc/apt/sources.list.d/grafana.list"
+    },
+    "name": "grafana"
+   },
+   "service\\grafana-service": {
+    "driver": "service",
+    "fields": {
+     "name": "grafana-service",
+     "unit": "grafana-server"
+    },
+    "name": "grafana-service"
+   }
+  },
   "grpcurl": {
    "apt\\curl": {
     "driver": "apt",
@@ -45380,6 +47482,19 @@
      "name": "hlint"
     },
     "name": "hlint"
+   }
+  },
+  "homebridge": {
+   "apt\\homebridge": {
+    "driver": "apt",
+    "fields": {
+     "name": "homebridge",
+     "pubkey-path": "/usr/share/keyrings/homebridge.gpg",
+     "pubkey-url": "https://repo.homebridge.io/KEY.gpg",
+     "source-line": "deb [signed-by=/usr/share/keyrings/homebridge.gpg] https://repo.homebridge.io stable main",
+     "source-path": "/etc/apt/sources.list.d/homebridge.list"
+    },
+    "name": "homebridge"
    }
   },
   "htop": {
@@ -46342,6 +48457,32 @@
     "name": "Mononoki"
    }
   },
+  "mosquitto": {
+   "apt\\mosquitto": {
+    "driver": "apt",
+    "fields": {
+     "name": "mosquitto"
+    },
+    "name": "mosquitto"
+   }
+  },
+  "mosquitto-service": {
+   "apt\\mosquitto": {
+    "driver": "apt",
+    "fields": {
+     "name": "mosquitto"
+    },
+    "name": "mosquitto"
+   },
+   "service\\mosquitto-service": {
+    "driver": "service",
+    "fields": {
+     "name": "mosquitto-service",
+     "unit": "mosquitto"
+    },
+    "name": "mosquitto-service"
+   }
+  },
   "mtr": {
    "apt\\mtr": {
     "driver": "apt",
@@ -46533,6 +48674,42 @@
      "name": "nethogs"
     },
     "name": "nethogs"
+   }
+  },
+  "nextcloud": {
+   "apt\\snapd": {
+    "driver": "apt",
+    "fields": {
+     "name": "snapd"
+    },
+    "name": "snapd"
+   },
+   "script\\snapd-snap-link": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "test -e /snap || sudo ln -s /var/lib/snapd/snap /snap",
+     "location": "/snap",
+     "name": "snapd-snap-link",
+     "uninstall-cmd": "test -L /snap && sudo rm -f /snap || true",
+     "version-cmd": "test -e /snap && echo present",
+     "version-re": "(present)"
+    },
+    "name": "snapd-snap-link"
+   },
+   "service\\snapd-socket": {
+    "driver": "service",
+    "fields": {
+     "name": "snapd-socket",
+     "unit": "snapd.socket"
+    },
+    "name": "snapd-socket"
+   },
+   "snap\\nextcloud": {
+    "driver": "snap",
+    "fields": {
+     "name": "nextcloud"
+    },
+    "name": "nextcloud"
    }
   },
   "nim": {
@@ -46874,6 +49051,20 @@
     "name": "php-cli"
    }
   },
+  "pi-hole": {
+   "script\\pi-hole": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "curl -sSL https://install.pi-hole.net | bash",
+     "location": "/etc/pihole",
+     "name": "pi-hole",
+     "uninstall-cmd": "pihole uninstall",
+     "version-cmd": "pihole -v 2>/dev/null",
+     "version-re": "v?([0-9][0-9.]*)"
+    },
+    "name": "pi-hole"
+   }
+  },
   "pipewire": {
    "apt\\pipewire": {
     "driver": "apt",
@@ -47043,6 +49234,16 @@
      "name": "prettier"
     },
     "name": "prettier"
+   }
+  },
+  "prometheus": {
+   "apt\\prometheus": {
+    "driver": "apt",
+    "fields": {
+     "name": "prometheus",
+     "repo-component": "universe"
+    },
+    "name": "prometheus"
    }
   },
   "protobuf": {
@@ -47697,6 +49898,49 @@
     "name": "sway"
    }
   },
+  "syncthing": {
+   "apt\\syncthing": {
+    "driver": "apt",
+    "fields": {
+     "name": "syncthing"
+    },
+    "name": "syncthing"
+   }
+  },
+  "tailscale": {
+   "apt\\tailscale": {
+    "driver": "apt",
+    "fields": {
+     "name": "tailscale",
+     "pubkey-path": "/usr/share/keyrings/tailscale-archive-keyring.gpg",
+     "pubkey-url": "https://pkgs.tailscale.com/stable/ubuntu/noble.noarmor.gpg",
+     "source-line": "deb [signed-by=/usr/share/keyrings/tailscale-archive-keyring.gpg] https://pkgs.tailscale.com/stable/ubuntu noble main",
+     "source-path": "/etc/apt/sources.list.d/tailscale.list"
+    },
+    "name": "tailscale"
+   }
+  },
+  "tailscale-service": {
+   "apt\\tailscale": {
+    "driver": "apt",
+    "fields": {
+     "name": "tailscale",
+     "pubkey-path": "/usr/share/keyrings/tailscale-archive-keyring.gpg",
+     "pubkey-url": "https://pkgs.tailscale.com/stable/ubuntu/noble.noarmor.gpg",
+     "source-line": "deb [signed-by=/usr/share/keyrings/tailscale-archive-keyring.gpg] https://pkgs.tailscale.com/stable/ubuntu noble main",
+     "source-path": "/etc/apt/sources.list.d/tailscale.list"
+    },
+    "name": "tailscale"
+   },
+   "service\\tailscale-service": {
+    "driver": "service",
+    "fields": {
+     "name": "tailscale-service",
+     "unit": "tailscaled"
+    },
+    "name": "tailscale-service"
+   }
+  },
   "tcpdump": {
    "apt\\tcpdump": {
     "driver": "apt",
@@ -48260,6 +50504,15 @@
      "repo-component": "universe"
     },
     "name": "winetricks"
+   }
+  },
+  "wireguard": {
+   "apt\\wireguard": {
+    "driver": "apt",
+    "fields": {
+     "name": "wireguard"
+    },
+    "name": "wireguard"
    }
   },
   "wireshark": {
@@ -48605,6 +50858,28 @@
     "name": "libabsl-dev"
    }
   },
+  "adguardhome": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "tarball\\adguardhome": {
+    "driver": "tarball",
+    "fields": {
+     "installDir": "$CONFIGSYS_APP_DIR/adguardhome",
+     "name": "adguardhome",
+     "version": {
+      "asset": "AdGuardHome_linux_amd64.tar.gz",
+      "github": "AdguardTeam/AdGuardHome",
+      "strip-v": "true"
+     }
+    },
+    "name": "adguardhome"
+   }
+  },
   "aider": {
    "apt\\pipx": {
     "driver": "apt",
@@ -49269,6 +51544,32 @@
      "name": "cmake"
     },
     "name": "cmake"
+   }
+  },
+  "cockpit": {
+   "apt\\cockpit": {
+    "driver": "apt",
+    "fields": {
+     "name": "cockpit"
+    },
+    "name": "cockpit"
+   }
+  },
+  "cockpit-service": {
+   "apt\\cockpit": {
+    "driver": "apt",
+    "fields": {
+     "name": "cockpit"
+    },
+    "name": "cockpit"
+   },
+   "service\\cockpit-service": {
+    "driver": "service",
+    "fields": {
+     "name": "cockpit-service",
+     "unit": "cockpit.socket"
+    },
+    "name": "cockpit-service"
    }
   },
   "codecs": {
@@ -50480,6 +52781,40 @@
     "name": "default-jdk"
    }
   },
+  "grafana": {
+   "apt\\grafana": {
+    "driver": "apt",
+    "fields": {
+     "name": "grafana",
+     "pubkey-path": "/etc/apt/keyrings/grafana.gpg",
+     "pubkey-url": "https://apt.grafana.com/gpg.key",
+     "source-line": "deb [signed-by=/etc/apt/keyrings/grafana.gpg] https://apt.grafana.com stable main",
+     "source-path": "/etc/apt/sources.list.d/grafana.list"
+    },
+    "name": "grafana"
+   }
+  },
+  "grafana-service": {
+   "apt\\grafana": {
+    "driver": "apt",
+    "fields": {
+     "name": "grafana",
+     "pubkey-path": "/etc/apt/keyrings/grafana.gpg",
+     "pubkey-url": "https://apt.grafana.com/gpg.key",
+     "source-line": "deb [signed-by=/etc/apt/keyrings/grafana.gpg] https://apt.grafana.com stable main",
+     "source-path": "/etc/apt/sources.list.d/grafana.list"
+    },
+    "name": "grafana"
+   },
+   "service\\grafana-service": {
+    "driver": "service",
+    "fields": {
+     "name": "grafana-service",
+     "unit": "grafana-server"
+    },
+    "name": "grafana-service"
+   }
+  },
   "grpcurl": {
    "apt\\curl": {
     "driver": "apt",
@@ -50646,6 +52981,19 @@
      "name": "hlint"
     },
     "name": "hlint"
+   }
+  },
+  "homebridge": {
+   "apt\\homebridge": {
+    "driver": "apt",
+    "fields": {
+     "name": "homebridge",
+     "pubkey-path": "/usr/share/keyrings/homebridge.gpg",
+     "pubkey-url": "https://repo.homebridge.io/KEY.gpg",
+     "source-line": "deb [signed-by=/usr/share/keyrings/homebridge.gpg] https://repo.homebridge.io stable main",
+     "source-path": "/etc/apt/sources.list.d/homebridge.list"
+    },
+    "name": "homebridge"
    }
   },
   "htop": {
@@ -51578,6 +53926,32 @@
     "name": "Mononoki"
    }
   },
+  "mosquitto": {
+   "apt\\mosquitto": {
+    "driver": "apt",
+    "fields": {
+     "name": "mosquitto"
+    },
+    "name": "mosquitto"
+   }
+  },
+  "mosquitto-service": {
+   "apt\\mosquitto": {
+    "driver": "apt",
+    "fields": {
+     "name": "mosquitto"
+    },
+    "name": "mosquitto"
+   },
+   "service\\mosquitto-service": {
+    "driver": "service",
+    "fields": {
+     "name": "mosquitto-service",
+     "unit": "mosquitto"
+    },
+    "name": "mosquitto-service"
+   }
+  },
   "mtr": {
    "apt\\mtr": {
     "driver": "apt",
@@ -51759,6 +54133,42 @@
      "name": "nethogs"
     },
     "name": "nethogs"
+   }
+  },
+  "nextcloud": {
+   "apt\\snapd": {
+    "driver": "apt",
+    "fields": {
+     "name": "snapd"
+    },
+    "name": "snapd"
+   },
+   "script\\snapd-snap-link": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "test -e /snap || sudo ln -s /var/lib/snapd/snap /snap",
+     "location": "/snap",
+     "name": "snapd-snap-link",
+     "uninstall-cmd": "test -L /snap && sudo rm -f /snap || true",
+     "version-cmd": "test -e /snap && echo present",
+     "version-re": "(present)"
+    },
+    "name": "snapd-snap-link"
+   },
+   "service\\snapd-socket": {
+    "driver": "service",
+    "fields": {
+     "name": "snapd-socket",
+     "unit": "snapd.socket"
+    },
+    "name": "snapd-socket"
+   },
+   "snap\\nextcloud": {
+    "driver": "snap",
+    "fields": {
+     "name": "nextcloud"
+    },
+    "name": "nextcloud"
    }
   },
   "nim": {
@@ -52090,6 +54500,20 @@
     "name": "php-cli"
    }
   },
+  "pi-hole": {
+   "script\\pi-hole": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "curl -sSL https://install.pi-hole.net | bash",
+     "location": "/etc/pihole",
+     "name": "pi-hole",
+     "uninstall-cmd": "pihole uninstall",
+     "version-cmd": "pihole -v 2>/dev/null",
+     "version-re": "v?([0-9][0-9.]*)"
+    },
+    "name": "pi-hole"
+   }
+  },
   "pipewire": {
    "apt\\pipewire": {
     "driver": "apt",
@@ -52249,6 +54673,16 @@
      "name": "prettier"
     },
     "name": "prettier"
+   }
+  },
+  "prometheus": {
+   "apt\\prometheus": {
+    "driver": "apt",
+    "fields": {
+     "name": "prometheus",
+     "repo-component": "universe"
+    },
+    "name": "prometheus"
    }
   },
   "protobuf": {
@@ -52893,6 +55327,49 @@
     "name": "sway"
    }
   },
+  "syncthing": {
+   "apt\\syncthing": {
+    "driver": "apt",
+    "fields": {
+     "name": "syncthing"
+    },
+    "name": "syncthing"
+   }
+  },
+  "tailscale": {
+   "apt\\tailscale": {
+    "driver": "apt",
+    "fields": {
+     "name": "tailscale",
+     "pubkey-path": "/usr/share/keyrings/tailscale-archive-keyring.gpg",
+     "pubkey-url": "https://pkgs.tailscale.com/stable/ubuntu/noble.noarmor.gpg",
+     "source-line": "deb [signed-by=/usr/share/keyrings/tailscale-archive-keyring.gpg] https://pkgs.tailscale.com/stable/ubuntu noble main",
+     "source-path": "/etc/apt/sources.list.d/tailscale.list"
+    },
+    "name": "tailscale"
+   }
+  },
+  "tailscale-service": {
+   "apt\\tailscale": {
+    "driver": "apt",
+    "fields": {
+     "name": "tailscale",
+     "pubkey-path": "/usr/share/keyrings/tailscale-archive-keyring.gpg",
+     "pubkey-url": "https://pkgs.tailscale.com/stable/ubuntu/noble.noarmor.gpg",
+     "source-line": "deb [signed-by=/usr/share/keyrings/tailscale-archive-keyring.gpg] https://pkgs.tailscale.com/stable/ubuntu noble main",
+     "source-path": "/etc/apt/sources.list.d/tailscale.list"
+    },
+    "name": "tailscale"
+   },
+   "service\\tailscale-service": {
+    "driver": "service",
+    "fields": {
+     "name": "tailscale-service",
+     "unit": "tailscaled"
+    },
+    "name": "tailscale-service"
+   }
+  },
   "tcpdump": {
    "apt\\tcpdump": {
     "driver": "apt",
@@ -53446,6 +55923,15 @@
      "repo-component": "universe"
     },
     "name": "winetricks"
+   }
+  },
+  "wireguard": {
+   "apt\\wireguard": {
+    "driver": "apt",
+    "fields": {
+     "name": "wireguard"
+    },
+    "name": "wireguard"
    }
   },
   "wireshark": {

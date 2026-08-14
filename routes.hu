@@ -1139,6 +1139,78 @@
                        { via: native  when: "fedora"  requires: rpmfusion }   // RPM Fusion free, not base Fedora
                        { via: native  when: "arch" } ] }
         stremio: { description: "Stremio — a media-center streaming/aggregator client." install: [ { via: flatpak  hub: flathub  app: com.stremio.Stremio }  { via: aur  when: "arch"  name: stremio } ] }
+
+        // --- self-hosted / home-server apps. Clean daemons get a matching -service (a plain
+        // `systemctl enable`); pi-hole/adguardhome self-install their service; config-dependent ones
+        // (wireguard tunnels, prometheus units) you wire up yourself. Home Assistant is deliberately
+        // ABSENT: its supported install is Docker/HAOS (no docker driver here), and HA Core needs a
+        // bleeding-edge Python (>=3.14) in a dedicated venv — no clean package-manager path yet. ---
+        pi-hole: { description: "Pi-hole — a network-wide DNS ad-blocker (FTL/dnsmasq + web admin)."
+            install: [ { via: script   // the upstream installer sets up the service + `pihole` CLI (interactive)
+                install-cmd:   'curl -sSL https://install.pi-hole.net | bash'
+                version-cmd:   'pihole -v 2>/dev/null'
+                version-re:    'v?([0-9][0-9.]*)'
+                uninstall-cmd: 'pihole uninstall'
+                location:      '/etc/pihole' } ] }
+        adguardhome: { description: "AdGuard Home — a network-wide DNS ad/tracker blocker (single Go binary)."
+            install: [
+                { via: native   when: "arch" }                     // pacman: adguardhome (extra)
+                { via: tarball  when: "not arch"  installDir: "$CONFIGSYS_APP_DIR/adguardhome"  requires: glibc   // then `AdGuardHome -s install` registers the service; first-run web setup on :3000
+                  version: { github: AdguardTeam/AdGuardHome  strip-v: true  asset: "AdGuardHome_linux_amd64.tar.gz" } }
+                { via: snap  name: adguard-home } ]                // self-contained alternate (pinnable)
+        }
+        homebridge: { description: "Homebridge — bridge non-HomeKit devices to Apple HomeKit (Node.js)."
+            install: [
+                { via: native  when: "debian"  name: homebridge   // official repo (bundles its own Node + a service user); single `stable` suite, codename-independent
+                  pubkey-url: "https://repo.homebridge.io/KEY.gpg"  pubkey-path: /usr/share/keyrings/homebridge.gpg
+                  source-line: "deb [signed-by=/usr/share/keyrings/homebridge.gpg] https://repo.homebridge.io stable main"
+                  source-path: /etc/apt/sources.list.d/homebridge.list }
+                { via: npm  when: "not debian"  name: homebridge } ]   // needs node; then `hb-service install`
+        }
+        mosquitto: { description: "Eclipse Mosquitto — a lightweight MQTT broker (the common Home Assistant companion)." install: [ { via: native } ] }
+        mosquitto-service: { description: "Enable and start the Mosquitto MQTT broker (systemd)." requires: mosquitto  install: [ { via: service  unit: mosquitto } ] }
+        syncthing: { description: "Syncthing — continuous peer-to-peer file synchronization."
+            install: [ { via: native }                             // uniform pkg `syncthing`
+                       { via: tarball  standing: never-auto  installDir: "$CONFIGSYS_APP_DIR/syncthing"  requires: glibc   // newest upstream build (pinnable)
+                         version: { github: syncthing/syncthing  strip-v: true  asset: "syncthing-linux-amd64-*.tar.gz" } } ] }
+        tailscale: { description: "Tailscale — a WireGuard-based mesh VPN (`tailscale` CLI + `tailscaled`)."
+            install: [   // official repo; the apt codename bumps as they add releases, dnf is $basearch-templated
+                { via: native  when: "ubuntu"
+                  pubkey-url: "https://pkgs.tailscale.com/stable/ubuntu/noble.noarmor.gpg"  pubkey-path: /usr/share/keyrings/tailscale-archive-keyring.gpg
+                  source-line: "deb [signed-by=/usr/share/keyrings/tailscale-archive-keyring.gpg] https://pkgs.tailscale.com/stable/ubuntu noble main"
+                  source-path: /etc/apt/sources.list.d/tailscale.list }
+                { via: native  when: "debian"
+                  pubkey-url: "https://pkgs.tailscale.com/stable/debian/bookworm.noarmor.gpg"  pubkey-path: /usr/share/keyrings/tailscale-archive-keyring.gpg
+                  source-line: "deb [signed-by=/usr/share/keyrings/tailscale-archive-keyring.gpg] https://pkgs.tailscale.com/stable/debian bookworm main"
+                  source-path: /etc/apt/sources.list.d/tailscale.list }
+                { via: native  when: "redhat"
+                  pubkey-url: "https://pkgs.tailscale.com/stable/fedora/repo.gpg"
+                  repo-id: tailscale  repo-name: "Tailscale"  repo-url: "https://pkgs.tailscale.com/stable/fedora/$basearch" }
+                { via: native  when: "arch" } ] }
+        tailscale-service: { description: "Enable and start the Tailscale daemon (systemd)." requires: tailscale  install: [ { via: service  unit: tailscaled } ] }
+        grafana: { description: "Grafana — analytics & observability dashboards (OSS)."
+            install: [
+                { via: native  when: "debian"  name: grafana   // official repo (single `stable` suite — codename-independent)
+                  pubkey-url: "https://apt.grafana.com/gpg.key"  pubkey-path: /etc/apt/keyrings/grafana.gpg
+                  source-line: "deb [signed-by=/etc/apt/keyrings/grafana.gpg] https://apt.grafana.com stable main"
+                  source-path: /etc/apt/sources.list.d/grafana.list }
+                { via: native  when: "redhat"  name: grafana
+                  pubkey-url: "https://rpm.grafana.com/gpg.key"
+                  repo-id: grafana  repo-name: "Grafana"  repo-url: "https://rpm.grafana.com" }
+                { via: native  when: "arch"  name: grafana } ] }
+        grafana-service: { description: "Enable and start Grafana (systemd)." requires: grafana  install: [ { via: service  unit: grafana-server } ] }
+        prometheus: { description: "Prometheus — a time-series metrics & alerting server."
+            install: [
+                { via: native  when: "arch or debian"  repo-component: universe }   // pacman/apt `prometheus` (debian lags upstream)
+                { via: tarball  when: "not arch and not debian"  installDir: "$CONFIGSYS_APP_DIR/prometheus"  requires: glibc   // upstream static binaries; self-author the unit
+                  version: { github: prometheus/prometheus  strip-v: true  asset: "prometheus-*.linux-amd64.tar.gz" } } ] }
+        cockpit: { description: "Cockpit — a web-based server administration UI (socket-activated)."
+            install: [ { via: native  when: "debian or redhat or arch or opensuse" } ] }   // uniform pkg `cockpit`
+        cockpit-service: { description: "Enable Cockpit's web UI (systemd socket)." requires: cockpit  install: [ { via: service  unit: cockpit.socket } ] }
+        wireguard: { description: "WireGuard — fast, modern VPN tunneling (`wg`/`wg-quick`)."
+            install: [ { via: native  name: { apt: wireguard  default: wireguard-tools } } ] }   // debian `wireguard` metapkg; else `wireguard-tools`
+        nextcloud: { description: "Nextcloud — a self-hosted file-sync & collaboration server (all-in-one snap)."
+            install: [ { via: snap  name: nextcloud } ] }         // snap-or-Docker in practice; no native server package
         obs-studio: { description: "OBS Studio — live streaming and screen recording." install: [ { via: flatpak  hub: flathub  app: com.obsproject.Studio }  { via: snap  name: obs-studio } ] }
         spotify:    { description: "Spotify — music streaming client." install: [ { via: flatpak  hub: flathub  app: com.spotify.Client }  { via: snap  name: spotify } ] }   // not in distro repos; Flathub + official snap
 
