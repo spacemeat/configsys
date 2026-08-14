@@ -1,7 +1,7 @@
 {
     // Shared, git-synced profile definitions. Per-machine selection + overrides live in
     // ~/configsys.hu, which overlays this file section-by-section (see docs/routing-model.md).
-    configs: [ user, gaming, dev, electronics, graphics ]
+    configs: [ user, gaming, dev-tools, electronics-tools, graphics-tools ]
 
     // OPTIONAL machine-wide install scope for scope-honoring drivers (appImage/flatpak/tarball/
     // font). Left UNSET by default: each such driver uses its own default (user-space by
@@ -21,39 +21,61 @@
     // them by name or add them to your own profile. See docs/profiles-plan.md for the rationale.
     // Your ~/.config/configsys/configsys.hu may add profiles or shadow any of these by name.
 profiles: {
-    terminal: [ bash-dotfiles  configsys-dotfiles  git  curl  fastfetch  fzf  ripgrep  xclip  htop  btop  tmux  lazygit  kitty  ghostty  yazi  superfile  mononoki-nerd ]
-    net-tools: [ iproute2  wireshark  wireshark-group  tshark  tcpdump  nmap  mtr  traceroute  iperf3  socat  ethtool  whois  netcat  dig  iftop  nethogs  nload  vnstat ]
-    cloud: [ awscli  gcloud  azure-cli  opentofu  grpcurl ]
+    terminal: [ +terminal-emulators  curl  fastfetch  fzf  ripgrep  xclip  xclip-dotfiles  htop  htop-dotfiles  btop  neovim  neovim-dotfiles  tmux  tmux-dotfiles  lazygit  yazi  yazi-dotfiles  superfile  superfile-dotfiles  mononoki-nerd ]
+    terminal-emulators: [ ghostty  kitty ]
+    shells: [ fish  nushell  zsh ]
+    desktops-compositors: [ budgie  cosmic  fvwm2  gnome  i3  kde  lxqt  mate  qtile  sway  xfce  xmonad ]
+    text-editors: [ android-studio  emacs  helix  jetbrains-toolbox  neovim  neovim-dotfiles  vscode  zed ]
+    web-browsers: [ chrome  chromium  firefox  brave  opera  vivaldi  edge ]
+    audio: [ pipewire ]
+    gaming: [ +user  vulkan-runtime  steam ]
+
+    virtual-machines: [ qemu  libvirt  libvirt-service  virt-manager  virtualbox ]
     containers: [ docker  docker-group  lazydocker  podman podman-dotfiles ]
     k8s: [ kubectl  helm  k9s  k3s ]
+
     db-clients: [ pgcli  mycli  dbeaver  sqlitebrowser  lazysql ]
     db-servers: [ postgresql-service  mariadb-service  redis-service ]
-    latex: [ texlive ]
-    go-dev: [ go  goimports ]
-    ruby-dev: [ ruby  bundler ]
-    haskell-dev: [ haskell  cabal  hlint ]
-    ocaml-dev: [ ocaml  opam  dune ]
-    lua-dev: [ lua  luarocks ]
-    lisp-dev: [ sbcl  quicklisp ]
-    python-dev: [ python3.11  python3.12  python3.13  cython  pyenv  jupyterlab ]
-    languages: [ +go-dev +ruby-dev +haskell-dev +lua-dev +lisp-dev +python-dev julia nim nasm ]
-    java-dev: [ jdk  kotlin  maven  gradle ]
-    desktops-compositors: [ i3 lxqt kde mate ]
-    user: [ +terminal  configsys-dotfiles codecs  firefox  chrome  neovim ]
-    gaming: [ +user  vulkan-runtime  steam ]
-    dev: [ +user  cpp-toolchain  make  rust  gcc-10 gcc-11 gcc-12 gcc-13  gcc-14  gcc-15  clang-18  clang-19  clang-20  gdb  analysis  cmake  ninja  meson  just  vscode ]
-    web-dev: [ +user  node  typescript  prettier  pnpm  yarn  sass  brave  opera  vivaldi  edge  httpie  jq  yq  mitmproxy  xh  websocat  postman  insomnia  bruno ]
-    backend: [ +user  +containers  +k8s  +cloud  +db-clients  +db-servers  protobuf  ansible ]
-    electronics: [ +dev  arduino  kicad  gnuradio ]
-    graphics: [ +user  vulkan-dev  blender ]
-    artist: [ +user  blender  krita  gimp  inkscape  darktable  freecad  openscad  godot  scribus  digikam  obs-studio ]
-    audio: [ +user  pipewire  ardour  lmms  tenacity  musescore  hydrogen  carla  sonic-pi  supercollider  qjackctl ]
-    science: [ +user  +latex  julia  r  octave  jupyterlab  gnuplot  paraview  miniforge  opencv  opencv-python ]
-    math: [ +user  +latex  julia  r  octave  maxima  wxmaxima  pari  gap  gnuplot  sagemath ]
-    networking: [ +user  +net-tools ]
-    ai: [ +terminal  claude-code  codex  llm  aider  ollama ]
-    virt: [ +user  qemu  libvirt  libvirt-service  virt-manager ]
-    devops: [ +terminal  +containers  +k8s  +cloud  ansible  opentofu ]
-    desktop-apps: [ +user  libreoffice  vlc  discord  slack ]
+
+    cloud-tools: [ awscli  gcloud  azure-cli  opentofu  grpcurl ]
+    net-tools: [ iproute2  wireshark  wireshark-group  tshark  tcpdump  nmap  mtr  traceroute  iperf3  socat  ethtool  whois  netcat  dig  iftop  nethogs  nload  vnstat ]
+
+    devops-tools: [ +backend-tools  ansible  opentofu ]
+
+    backend-tools: [ +containers  +k8s  +cloud-tools  +net-tools  +db-clients  +db-servers  ansible ]
+
+    c-cpp-lang: [ bazelisk  cpp-toolchain  gcc-10 gcc-11 gcc-12 gcc-13  gcc-14  gcc-15  clang-18  clang-19  clang-20  gdb  gdb-dotfiles  make  analysis  cmake  ninja  meson  ]
+    go-lang: [ go  goimports ]
+    haskell-lang: [ haskell  cabal  hlint ]
+    java-lang: [ jdk  kotlin  maven  gradle  sdkman ]
+    lisp-lang: [ sbcl  quicklisp ]
+    lua-lang: [ lua  luarocks ]
+    ocaml-lang: [ ocaml  opam  dune ]
+    python-lang: [ python3.11  python3.12  python3.13  cython  pyenv  jupyterlab ]
+    ruby-lang: [ ruby  bundler ]
+    rust-lang: [ rust  miniforge ]
+    web-lang: [ node  typescript  sass ]
+    languages: [ +c-cpp-lang  +go-lang  +haskell-lang  +java-lang  +lisp-lang  +lua-lang  +ocaml-lang  +python-lang  +ruby-lang  +rust-lang  +web-lang  erlang  elixir  julia  nim  nasm  octave odin  perl  r  zig ]
+
+    dev-tools: [ git  jq  just  protobuf  yq ]
+    ai-tools: [ claude-code  codex  llm  aider  ollama ]
+
+    graphics-dev: [ vulkan-dev  gtk  gtkmm  qt  opengl  glfw  sdl  sfml ]
+    game-dev: [ +graphics-dev  godot  unityhub ]
+
+    web-dev: [ +web-lang  +web-browsers  +web-package-managers  +web-lang  prettier  httpie  mitmproxy  xh  websocat  postman  insomnia  bruno ]
+    web-package-managers: [ bun  pnpm  yarn ]
+
+    electronics-tools: [ arduino  arduino-dotfiles  kicad  gnuradio ]
+    graphics-tools: [ blender  krita  gimp  inkscape  darktable  freecad  openscad  scribus  digikam ]
+    autio-tools: [ +audio  ardour  lmms  tenacity  musescore  hydrogen  carla  sonic-pi  supercollider  qjackctl ]
+
+    science: [ +math  jupyterlab  gnuplot  paraview  opencv  opencv-python ]
+    math: [ +latex  julia  r  octave  maxima  wxmaxima  pari  gap  gnuplot  sagemath ]
+    latex: [ texlive  texlive-full ]
+
+    user: [ +terminal  git  bash-dotfiles  configsys-dotfiles  codecs  firefox  chrome ]
+    desktop-apps: [ libreoffice  vlc  discord  slack  spotify  obs-studio ]
+    creative-tools: [ +electronics-tools  +graphics-tools  +audio-tools ]
 }
 }

@@ -248,6 +248,8 @@
         // tmux/zsh/fish are packaged under the same name in every distro's base repos.
         tmux: { description: "Terminal multiplexer — split panes and detachable sessions."
                 install: [ { via: native } ] }
+        tmux-dotfiles: { description: "tmux config, linked into place."
+                install: [ { via: dotfiles  config: { src: tmux  dst: $XDG_CONFIG_HOME/tmux } } ] }
         zsh:  { description: "Z shell — a powerful interactive shell." install: [ { via: native } ] }
         fish: { description: "Friendly interactive shell — smart autosuggestions out of the box." install: [ { via: native } ] }
         // nushell isn't in Debian/Ubuntu/Fedora base repos; native where it is (Arch, Homebrew),
