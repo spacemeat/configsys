@@ -53,7 +53,7 @@ profiles: {
     lua-lang: [ lua  luarocks ]
     ocaml-lang: [ ocaml  opam  dune ]
     php-lang: [ php  composer ]
-    python-lang: [ python3.11  python3.12  python3.13  cython  pyenv  uv  jupyterlab ]
+    python-lang: [ python3.11  python3.12  python3.13  python3.14  cython  pyenv  uv  jupyterlab ]
     ruby-lang: [ ruby  bundler ]
     rust-lang: [ rust  miniforge ]
     web-lang: [ node  typescript  sass ]
@@ -83,6 +83,6 @@ profiles: {
     creative-tools: [ +electronics-tools  +graphics-tools  +audio-tools ]
 
     media-servers: [ jellyfin-service  plex-service  emby-service  navidrome ]
-    home-server: [ pi-hole  adguardhome  homebridge  mosquitto-service  syncthing  tailscale-service  grafana-service  prometheus  cockpit-service  wireguard  nextcloud ]
+    home-server: [ home-assistant  pi-hole  adguardhome  homebridge  mosquitto-service  syncthing  tailscale-service  grafana-service  prometheus  cockpit-service  wireguard  nextcloud ]
 }
 }

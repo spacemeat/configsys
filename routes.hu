@@ -184,7 +184,8 @@
         // `pyenv` to COMPILE any version user-scope (newest/RCs, per-project via `.python-version`) —
         // pick the method with a binding-pin. NEVER repoints the system `python3` default (apt and
         // distro tools depend on it): select a version by calling `python3.X` or a venv built from it.
-        // 3.11 / 3.12 are `never-auto` (constraint- or explicitly-selected); 3.13 is the modern default.
+        // 3.11 / 3.12 / 3.14 are `never-auto` (constraint- or explicitly-selected); 3.13 is the modern
+        // default (3.14 is stable but opt-in until the package ecosystem fully catches up to it).
         python3.11: { description: "Python 3.11 interpreter (+ venv, dev headers)."
             standing: never-auto  provides: { python3: "3.11" }
             install: [
@@ -210,6 +211,15 @@
                   ppa: deadsnakes/ppa  requires: software-properties-common }
                 { via: native  when: "fedora or redhat"  packages: [ python3.13 ] }
                 { via: pyenv  version: "3.13" }
+            ]
+        }
+        python3.14: { description: "Python 3.14 interpreter (+ venv, dev headers) — the newest stable line."
+            standing: never-auto  provides: { python3: "3.14" }
+            install: [
+                { via: native  when: "debian"  packages: [ python3.14, python3.14-venv, python3.14-dev ]
+                  ppa: deadsnakes/ppa  requires: software-properties-common }
+                { via: native  when: "fedora or redhat"  packages: [ python3.14 ] }
+                { via: pyenv  version: "3.14" }
             ]
         }
         cython: { description: "Cython — compile Python-like code to C extension modules."
@@ -1142,9 +1152,15 @@
 
         // --- self-hosted / home-server apps. Clean daemons get a matching -service (a plain
         // `systemctl enable`); pi-hole/adguardhome self-install their service; config-dependent ones
-        // (wireguard tunnels, prometheus units) you wire up yourself. Home Assistant is deliberately
-        // ABSENT: its supported install is Docker/HAOS (no docker driver here), and HA Core needs a
-        // bleeding-edge Python (>=3.14) in a dedicated venv — no clean package-manager path yet. ---
+        // (wireguard tunnels, prometheus units) you wire up yourself. ---
+        // Home Assistant CORE in a pipx-managed venv on python3.14 (its runtime floor, now stable) —
+        // NOT Home Assistant OS/Supervised, which are Docker/appliance images (no docker driver here).
+        // requires python3.14 BY NAME so /usr/bin/python3.14 exists for pipx's `--python`, plus a C
+        // toolchain + ffmpeg for building/running deps. Some integrations pip-install extra system
+        // libs at runtime — add those to a profile if one you use needs it.
+        home-assistant: { description: "Home Assistant Core — a Python home-automation hub (venv install)."
+            requires: [ python3.14, cpp-toolchain, ffmpeg ]
+            install: [ { via: pipx  name: homeassistant  python: python3.14 } ] }
         pi-hole: { description: "Pi-hole — a network-wide DNS ad-blocker (FTL/dnsmasq + web admin)."
             install: [ { via: script   // the upstream installer sets up the service + `pihole` CLI (interactive)
                 install-cmd:   'curl -sSL https://install.pi-hole.net | bash'

@@ -6885,6 +6885,74 @@
     "name": "hlint"
    }
   },
+  "home-assistant": {
+   "apt\\c-toolchain": {
+    "driver": "apt",
+    "fields": {
+     "name": "gcc"
+    },
+    "name": "gcc"
+   },
+   "apt\\cpp-toolchain": {
+    "driver": "apt",
+    "fields": {
+     "name": "g++"
+    },
+    "name": "g++"
+   },
+   "apt\\ffmpeg": {
+    "driver": "apt",
+    "fields": {
+     "name": "ffmpeg"
+    },
+    "name": "ffmpeg"
+   },
+   "apt\\python3-pip": {
+    "driver": "apt",
+    "fields": {
+     "name": "python3-pip"
+    },
+    "name": "python3-pip"
+   },
+   "apt\\python3.14": {
+    "driver": "apt",
+    "fields": {
+     "name": "python3.14",
+     "packages": [
+      "python3.14",
+      "python3.14-venv",
+      "python3.14-dev"
+     ],
+     "ppa": "deadsnakes/ppa"
+    },
+    "name": "python3.14"
+   },
+   "apt\\software-properties-common": {
+    "driver": "apt",
+    "fields": {
+     "name": "software-properties-common"
+    },
+    "name": "software-properties-common"
+   },
+   "pip\\pipx": {
+    "driver": "pip",
+    "fields": {
+     "name": "pipx",
+     "version": {
+      "pypi": "pipx"
+     }
+    },
+    "name": "pipx"
+   },
+   "pipx\\home-assistant": {
+    "driver": "pipx",
+    "fields": {
+     "name": "homeassistant",
+     "python": "python3.14"
+    },
+    "name": "homeassistant"
+   }
+  },
   "homebridge": {
    "apt\\homebridge": {
     "driver": "apt",
@@ -8775,6 +8843,28 @@
      "ppa": "deadsnakes/ppa"
     },
     "name": "python3.13"
+   },
+   "apt\\software-properties-common": {
+    "driver": "apt",
+    "fields": {
+     "name": "software-properties-common"
+    },
+    "name": "software-properties-common"
+   }
+  },
+  "python3.14": {
+   "apt\\python3.14": {
+    "driver": "apt",
+    "fields": {
+     "name": "python3.14",
+     "packages": [
+      "python3.14",
+      "python3.14-venv",
+      "python3.14-dev"
+     ],
+     "ppa": "deadsnakes/ppa"
+    },
+    "name": "python3.14"
    },
    "apt\\software-properties-common": {
     "driver": "apt",
@@ -12375,6 +12465,64 @@
     "name": "hlint"
    }
   },
+  "home-assistant": {
+   "apt\\c-toolchain": {
+    "driver": "apt",
+    "fields": {
+     "name": "gcc"
+    },
+    "name": "gcc"
+   },
+   "apt\\cpp-toolchain": {
+    "driver": "apt",
+    "fields": {
+     "name": "g++"
+    },
+    "name": "g++"
+   },
+   "apt\\ffmpeg": {
+    "driver": "apt",
+    "fields": {
+     "name": "ffmpeg"
+    },
+    "name": "ffmpeg"
+   },
+   "apt\\pipx": {
+    "driver": "apt",
+    "fields": {
+     "name": "pipx"
+    },
+    "name": "pipx"
+   },
+   "apt\\python3.14": {
+    "driver": "apt",
+    "fields": {
+     "name": "python3.14",
+     "packages": [
+      "python3.14",
+      "python3.14-venv",
+      "python3.14-dev"
+     ],
+     "ppa": "deadsnakes/ppa"
+    },
+    "name": "python3.14"
+   },
+   "apt\\software-properties-common": {
+    "driver": "apt",
+    "fields": {
+     "name": "software-properties-common"
+    },
+    "name": "software-properties-common"
+   },
+   "pipx\\home-assistant": {
+    "driver": "pipx",
+    "fields": {
+     "name": "homeassistant",
+     "python": "python3.14"
+    },
+    "name": "homeassistant"
+   }
+  },
   "homebridge": {
    "apt\\homebridge": {
     "driver": "apt",
@@ -14205,6 +14353,28 @@
      "ppa": "deadsnakes/ppa"
     },
     "name": "python3.13"
+   },
+   "apt\\software-properties-common": {
+    "driver": "apt",
+    "fields": {
+     "name": "software-properties-common"
+    },
+    "name": "software-properties-common"
+   }
+  },
+  "python3.14": {
+   "apt\\python3.14": {
+    "driver": "apt",
+    "fields": {
+     "name": "python3.14",
+     "packages": [
+      "python3.14",
+      "python3.14-venv",
+      "python3.14-dev"
+     ],
+     "ppa": "deadsnakes/ppa"
+    },
+    "name": "python3.14"
    },
    "apt\\software-properties-common": {
     "driver": "apt",
@@ -17778,6 +17948,64 @@
     "name": "hlint"
    }
   },
+  "home-assistant": {
+   "apt\\c-toolchain": {
+    "driver": "apt",
+    "fields": {
+     "name": "gcc"
+    },
+    "name": "gcc"
+   },
+   "apt\\cpp-toolchain": {
+    "driver": "apt",
+    "fields": {
+     "name": "g++"
+    },
+    "name": "g++"
+   },
+   "apt\\ffmpeg": {
+    "driver": "apt",
+    "fields": {
+     "name": "ffmpeg"
+    },
+    "name": "ffmpeg"
+   },
+   "apt\\pipx": {
+    "driver": "apt",
+    "fields": {
+     "name": "pipx"
+    },
+    "name": "pipx"
+   },
+   "apt\\python3.14": {
+    "driver": "apt",
+    "fields": {
+     "name": "python3.14",
+     "packages": [
+      "python3.14",
+      "python3.14-venv",
+      "python3.14-dev"
+     ],
+     "ppa": "deadsnakes/ppa"
+    },
+    "name": "python3.14"
+   },
+   "apt\\software-properties-common": {
+    "driver": "apt",
+    "fields": {
+     "name": "software-properties-common"
+    },
+    "name": "software-properties-common"
+   },
+   "pipx\\home-assistant": {
+    "driver": "pipx",
+    "fields": {
+     "name": "homeassistant",
+     "python": "python3.14"
+    },
+    "name": "homeassistant"
+   }
+  },
   "homebridge": {
    "apt\\homebridge": {
     "driver": "apt",
@@ -19614,6 +19842,28 @@
      "ppa": "deadsnakes/ppa"
     },
     "name": "python3.13"
+   },
+   "apt\\software-properties-common": {
+    "driver": "apt",
+    "fields": {
+     "name": "software-properties-common"
+    },
+    "name": "software-properties-common"
+   }
+  },
+  "python3.14": {
+   "apt\\python3.14": {
+    "driver": "apt",
+    "fields": {
+     "name": "python3.14",
+     "packages": [
+      "python3.14",
+      "python3.14-venv",
+      "python3.14-dev"
+     ],
+     "ppa": "deadsnakes/ppa"
+    },
+    "name": "python3.14"
    },
    "apt\\software-properties-common": {
     "driver": "apt",
@@ -22799,6 +23049,65 @@
     "name": "ghc"
    }
   },
+  "home-assistant": {
+   "dnf\\c-toolchain": {
+    "driver": "dnf",
+    "fields": {
+     "name": "gcc"
+    },
+    "name": "gcc"
+   },
+   "dnf\\cpp-toolchain": {
+    "driver": "dnf",
+    "fields": {
+     "name": "gcc-c++"
+    },
+    "name": "gcc-c++"
+   },
+   "dnf\\ffmpeg": {
+    "driver": "dnf",
+    "fields": {
+     "name": "ffmpeg"
+    },
+    "name": "ffmpeg"
+   },
+   "dnf\\pipx": {
+    "driver": "dnf",
+    "fields": {
+     "name": "pipx"
+    },
+    "name": "pipx"
+   },
+   "dnf\\python3.14": {
+    "driver": "dnf",
+    "fields": {
+     "name": "python3.14",
+     "packages": [
+      "python3.14"
+     ]
+    },
+    "name": "python3.14"
+   },
+   "dnf\\rpmfusion-free": {
+    "driver": "dnf",
+    "fields": {
+     "name": "rpmfusion-free-release",
+     "pubkey-url": "https://rpmfusion.org/keys?action=AttachFile&do=get&target=RPM-GPG-KEY-rpmfusion-free-fedora-$releasever",
+     "repo-id": "rpmfusion-free",
+     "repo-name": "RPM Fusion Free",
+     "repo-url": "https://download1.rpmfusion.org/free/fedora/releases/$releasever/Everything/$basearch/os/"
+    },
+    "name": "rpmfusion-free-release"
+   },
+   "pipx\\home-assistant": {
+    "driver": "pipx",
+    "fields": {
+     "name": "homeassistant",
+     "python": "python3.14"
+    },
+    "name": "homeassistant"
+   }
+  },
   "homebridge": {
    "dnf\\node": {
     "driver": "dnf",
@@ -24616,6 +24925,18 @@
      ]
     },
     "name": "python3.13"
+   }
+  },
+  "python3.14": {
+   "dnf\\python3.14": {
+    "driver": "dnf",
+    "fields": {
+     "name": "python3.14",
+     "packages": [
+      "python3.14"
+     ]
+    },
+    "name": "python3.14"
    }
   },
   "qemu": {
@@ -27862,6 +28183,65 @@
     "name": "ghc"
    }
   },
+  "home-assistant": {
+   "dnf\\c-toolchain": {
+    "driver": "dnf",
+    "fields": {
+     "name": "gcc"
+    },
+    "name": "gcc"
+   },
+   "dnf\\cpp-toolchain": {
+    "driver": "dnf",
+    "fields": {
+     "name": "gcc-c++"
+    },
+    "name": "gcc-c++"
+   },
+   "dnf\\ffmpeg": {
+    "driver": "dnf",
+    "fields": {
+     "name": "ffmpeg"
+    },
+    "name": "ffmpeg"
+   },
+   "dnf\\pipx": {
+    "driver": "dnf",
+    "fields": {
+     "name": "pipx"
+    },
+    "name": "pipx"
+   },
+   "dnf\\python3.14": {
+    "driver": "dnf",
+    "fields": {
+     "name": "python3.14",
+     "packages": [
+      "python3.14"
+     ]
+    },
+    "name": "python3.14"
+   },
+   "dnf\\rpmfusion-free": {
+    "driver": "dnf",
+    "fields": {
+     "name": "rpmfusion-free-release",
+     "pubkey-url": "https://rpmfusion.org/keys?action=AttachFile&do=get&target=RPM-GPG-KEY-rpmfusion-free-fedora-$releasever",
+     "repo-id": "rpmfusion-free",
+     "repo-name": "RPM Fusion Free",
+     "repo-url": "https://download1.rpmfusion.org/free/fedora/releases/$releasever/Everything/$basearch/os/"
+    },
+    "name": "rpmfusion-free-release"
+   },
+   "pipx\\home-assistant": {
+    "driver": "pipx",
+    "fields": {
+     "name": "homeassistant",
+     "python": "python3.14"
+    },
+    "name": "homeassistant"
+   }
+  },
   "homebridge": {
    "dnf\\node": {
     "driver": "dnf",
@@ -29679,6 +30059,18 @@
      ]
     },
     "name": "python3.13"
+   }
+  },
+  "python3.14": {
+   "dnf\\python3.14": {
+    "driver": "dnf",
+    "fields": {
+     "name": "python3.14",
+     "packages": [
+      "python3.14"
+     ]
+    },
+    "name": "python3.14"
    }
   },
   "qemu": {
@@ -36616,6 +37008,74 @@
     "name": "hlint"
    }
   },
+  "home-assistant": {
+   "apt\\c-toolchain": {
+    "driver": "apt",
+    "fields": {
+     "name": "gcc"
+    },
+    "name": "gcc"
+   },
+   "apt\\cpp-toolchain": {
+    "driver": "apt",
+    "fields": {
+     "name": "g++"
+    },
+    "name": "g++"
+   },
+   "apt\\ffmpeg": {
+    "driver": "apt",
+    "fields": {
+     "name": "ffmpeg"
+    },
+    "name": "ffmpeg"
+   },
+   "apt\\python3-pip": {
+    "driver": "apt",
+    "fields": {
+     "name": "python3-pip"
+    },
+    "name": "python3-pip"
+   },
+   "apt\\python3.14": {
+    "driver": "apt",
+    "fields": {
+     "name": "python3.14",
+     "packages": [
+      "python3.14",
+      "python3.14-venv",
+      "python3.14-dev"
+     ],
+     "ppa": "deadsnakes/ppa"
+    },
+    "name": "python3.14"
+   },
+   "apt\\software-properties-common": {
+    "driver": "apt",
+    "fields": {
+     "name": "software-properties-common"
+    },
+    "name": "software-properties-common"
+   },
+   "pip\\pipx": {
+    "driver": "pip",
+    "fields": {
+     "name": "pipx",
+     "version": {
+      "pypi": "pipx"
+     }
+    },
+    "name": "pipx"
+   },
+   "pipx\\home-assistant": {
+    "driver": "pipx",
+    "fields": {
+     "name": "homeassistant",
+     "python": "python3.14"
+    },
+    "name": "homeassistant"
+   }
+  },
   "homebridge": {
    "apt\\homebridge": {
     "driver": "apt",
@@ -38512,6 +38972,28 @@
      "ppa": "deadsnakes/ppa"
     },
     "name": "python3.13"
+   },
+   "apt\\software-properties-common": {
+    "driver": "apt",
+    "fields": {
+     "name": "software-properties-common"
+    },
+    "name": "software-properties-common"
+   }
+  },
+  "python3.14": {
+   "apt\\python3.14": {
+    "driver": "apt",
+    "fields": {
+     "name": "python3.14",
+     "packages": [
+      "python3.14",
+      "python3.14-venv",
+      "python3.14-dev"
+     ],
+     "ppa": "deadsnakes/ppa"
+    },
+    "name": "python3.14"
    },
    "apt\\software-properties-common": {
     "driver": "apt",
@@ -41898,6 +42380,73 @@
     "name": "ghc"
    }
   },
+  "home-assistant": {
+   "dnf\\c-toolchain": {
+    "driver": "dnf",
+    "fields": {
+     "name": "gcc"
+    },
+    "name": "gcc"
+   },
+   "dnf\\cpp-toolchain": {
+    "driver": "dnf",
+    "fields": {
+     "name": "gcc-c++"
+    },
+    "name": "gcc-c++"
+   },
+   "dnf\\epel-release": {
+    "driver": "dnf",
+    "fields": {
+     "name": "epel-release"
+    },
+    "name": "epel-release"
+   },
+   "dnf\\ffmpeg": {
+    "driver": "dnf",
+    "fields": {
+     "name": "ffmpeg"
+    },
+    "name": "ffmpeg"
+   },
+   "dnf\\pipx": {
+    "driver": "dnf",
+    "fields": {
+     "name": "pipx"
+    },
+    "name": "pipx"
+   },
+   "dnf\\python3.14": {
+    "driver": "dnf",
+    "fields": {
+     "name": "python3.14",
+     "packages": [
+      "python3.14"
+     ]
+    },
+    "name": "python3.14"
+   },
+   "dnf\\rpmfusion-free": {
+    "driver": "dnf",
+    "fields": {
+     "enable-repo": "crb",
+     "name": "rpmfusion-free-release",
+     "pubkey-url": "https://rpmfusion.org/keys?action=AttachFile&do=get&target=RPM-GPG-KEY-rpmfusion-free-el-$releasever",
+     "repo-id": "rpmfusion-free",
+     "repo-name": "RPM Fusion for EL - Free",
+     "repo-url": "https://download1.rpmfusion.org/free/el/updates/$releasever/$basearch/"
+    },
+    "name": "rpmfusion-free-release"
+   },
+   "pipx\\home-assistant": {
+    "driver": "pipx",
+    "fields": {
+     "name": "homeassistant",
+     "python": "python3.14"
+    },
+    "name": "homeassistant"
+   }
+  },
   "homebridge": {
    "dnf\\node": {
     "driver": "dnf",
@@ -43766,6 +44315,18 @@
      ]
     },
     "name": "python3.13"
+   }
+  },
+  "python3.14": {
+   "dnf\\python3.14": {
+    "driver": "dnf",
+    "fields": {
+     "name": "python3.14",
+     "packages": [
+      "python3.14"
+     ]
+    },
+    "name": "python3.14"
    }
   },
   "qemu": {
@@ -47484,6 +48045,74 @@
     "name": "hlint"
    }
   },
+  "home-assistant": {
+   "apt\\c-toolchain": {
+    "driver": "apt",
+    "fields": {
+     "name": "gcc"
+    },
+    "name": "gcc"
+   },
+   "apt\\cpp-toolchain": {
+    "driver": "apt",
+    "fields": {
+     "name": "g++"
+    },
+    "name": "g++"
+   },
+   "apt\\ffmpeg": {
+    "driver": "apt",
+    "fields": {
+     "name": "ffmpeg"
+    },
+    "name": "ffmpeg"
+   },
+   "apt\\python3-pip": {
+    "driver": "apt",
+    "fields": {
+     "name": "python3-pip"
+    },
+    "name": "python3-pip"
+   },
+   "apt\\python3.14": {
+    "driver": "apt",
+    "fields": {
+     "name": "python3.14",
+     "packages": [
+      "python3.14",
+      "python3.14-venv",
+      "python3.14-dev"
+     ],
+     "ppa": "deadsnakes/ppa"
+    },
+    "name": "python3.14"
+   },
+   "apt\\software-properties-common": {
+    "driver": "apt",
+    "fields": {
+     "name": "software-properties-common"
+    },
+    "name": "software-properties-common"
+   },
+   "pip\\pipx": {
+    "driver": "pip",
+    "fields": {
+     "name": "pipx",
+     "version": {
+      "pypi": "pipx"
+     }
+    },
+    "name": "pipx"
+   },
+   "pipx\\home-assistant": {
+    "driver": "pipx",
+    "fields": {
+     "name": "homeassistant",
+     "python": "python3.14"
+    },
+    "name": "homeassistant"
+   }
+  },
   "homebridge": {
    "apt\\homebridge": {
     "driver": "apt",
@@ -49380,6 +50009,28 @@
      "ppa": "deadsnakes/ppa"
     },
     "name": "python3.13"
+   },
+   "apt\\software-properties-common": {
+    "driver": "apt",
+    "fields": {
+     "name": "software-properties-common"
+    },
+    "name": "software-properties-common"
+   }
+  },
+  "python3.14": {
+   "apt\\python3.14": {
+    "driver": "apt",
+    "fields": {
+     "name": "python3.14",
+     "packages": [
+      "python3.14",
+      "python3.14-venv",
+      "python3.14-dev"
+     ],
+     "ppa": "deadsnakes/ppa"
+    },
+    "name": "python3.14"
    },
    "apt\\software-properties-common": {
     "driver": "apt",
@@ -52983,6 +53634,64 @@
     "name": "hlint"
    }
   },
+  "home-assistant": {
+   "apt\\c-toolchain": {
+    "driver": "apt",
+    "fields": {
+     "name": "gcc"
+    },
+    "name": "gcc"
+   },
+   "apt\\cpp-toolchain": {
+    "driver": "apt",
+    "fields": {
+     "name": "g++"
+    },
+    "name": "g++"
+   },
+   "apt\\ffmpeg": {
+    "driver": "apt",
+    "fields": {
+     "name": "ffmpeg"
+    },
+    "name": "ffmpeg"
+   },
+   "apt\\pipx": {
+    "driver": "apt",
+    "fields": {
+     "name": "pipx"
+    },
+    "name": "pipx"
+   },
+   "apt\\python3.14": {
+    "driver": "apt",
+    "fields": {
+     "name": "python3.14",
+     "packages": [
+      "python3.14",
+      "python3.14-venv",
+      "python3.14-dev"
+     ],
+     "ppa": "deadsnakes/ppa"
+    },
+    "name": "python3.14"
+   },
+   "apt\\software-properties-common": {
+    "driver": "apt",
+    "fields": {
+     "name": "software-properties-common"
+    },
+    "name": "software-properties-common"
+   },
+   "pipx\\home-assistant": {
+    "driver": "pipx",
+    "fields": {
+     "name": "homeassistant",
+     "python": "python3.14"
+    },
+    "name": "homeassistant"
+   }
+  },
   "homebridge": {
    "apt\\homebridge": {
     "driver": "apt",
@@ -54819,6 +55528,28 @@
      "ppa": "deadsnakes/ppa"
     },
     "name": "python3.13"
+   },
+   "apt\\software-properties-common": {
+    "driver": "apt",
+    "fields": {
+     "name": "software-properties-common"
+    },
+    "name": "software-properties-common"
+   }
+  },
+  "python3.14": {
+   "apt\\python3.14": {
+    "driver": "apt",
+    "fields": {
+     "name": "python3.14",
+     "packages": [
+      "python3.14",
+      "python3.14-venv",
+      "python3.14-dev"
+     ],
+     "ppa": "deadsnakes/ppa"
+    },
+    "name": "python3.14"
    },
    "apt\\software-properties-common": {
     "driver": "apt",
