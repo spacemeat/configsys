@@ -1561,6 +1561,84 @@
     "name": "ghc"
    }
   },
+  "home-assistant": {
+   "pacman\\c-toolchain": {
+    "driver": "pacman",
+    "fields": {
+     "name": "gcc"
+    },
+    "name": "gcc"
+   },
+   "pacman\\cpp-toolchain": {
+    "driver": "pacman",
+    "fields": {
+     "name": "gcc"
+    },
+    "name": "gcc"
+   },
+   "pacman\\curl": {
+    "driver": "pacman",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "pacman\\ffmpeg": {
+    "driver": "pacman",
+    "fields": {
+     "name": "ffmpeg"
+    },
+    "name": "ffmpeg"
+   },
+   "pacman\\pipx": {
+    "driver": "pacman",
+    "fields": {
+     "name": "python-pipx"
+    },
+    "name": "python-pipx"
+   },
+   "pacman\\python-build-deps": {
+    "driver": "pacman",
+    "fields": {
+     "name": "python-build-deps",
+     "packages": [
+      "base-devel",
+      "openssl",
+      "zlib",
+      "xz",
+      "tk"
+     ]
+    },
+    "name": "python-build-deps"
+   },
+   "pipx\\home-assistant": {
+    "driver": "pipx",
+    "fields": {
+     "name": "homeassistant",
+     "python": "python3.14"
+    },
+    "name": "homeassistant"
+   },
+   "pyenv\\python3.14": {
+    "driver": "pyenv",
+    "fields": {
+     "name": "python3.14",
+     "version": "3.14"
+    },
+    "name": "python3.14"
+   },
+   "script\\pyenv": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "curl -fsSL https://pyenv.run | bash",
+     "name": "pyenv",
+     "uninstall-cmd": "rm -rf \"$HOME/.pyenv\"",
+     "version-cmd": "\"$HOME/.pyenv/bin/pyenv\" --version 2>/dev/null",
+     "version-re": "([0-9][0-9.]*)"
+    },
+    "name": "pyenv"
+   }
+  },
   "homebridge": {
    "npm\\homebridge": {
     "driver": "npm",
@@ -3206,6 +3284,22 @@
     "name": "pyenv"
    }
   },
+  "python-build-deps": {
+   "pacman\\python-build-deps": {
+    "driver": "pacman",
+    "fields": {
+     "name": "python-build-deps",
+     "packages": [
+      "base-devel",
+      "openssl",
+      "zlib",
+      "xz",
+      "tk"
+     ]
+    },
+    "name": "python-build-deps"
+   }
+  },
   "python3-pip": {
    "pacman\\python3-pip": {
     "driver": "pacman",
@@ -3213,6 +3307,174 @@
      "name": "python-pip"
     },
     "name": "python-pip"
+   }
+  },
+  "python3.11": {
+   "pacman\\curl": {
+    "driver": "pacman",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "pacman\\python-build-deps": {
+    "driver": "pacman",
+    "fields": {
+     "name": "python-build-deps",
+     "packages": [
+      "base-devel",
+      "openssl",
+      "zlib",
+      "xz",
+      "tk"
+     ]
+    },
+    "name": "python-build-deps"
+   },
+   "pyenv\\python3.11": {
+    "driver": "pyenv",
+    "fields": {
+     "name": "python3.11",
+     "version": "3.11"
+    },
+    "name": "python3.11"
+   },
+   "script\\pyenv": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "curl -fsSL https://pyenv.run | bash",
+     "name": "pyenv",
+     "uninstall-cmd": "rm -rf \"$HOME/.pyenv\"",
+     "version-cmd": "\"$HOME/.pyenv/bin/pyenv\" --version 2>/dev/null",
+     "version-re": "([0-9][0-9.]*)"
+    },
+    "name": "pyenv"
+   }
+  },
+  "python3.12": {
+   "pacman\\curl": {
+    "driver": "pacman",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "pacman\\python-build-deps": {
+    "driver": "pacman",
+    "fields": {
+     "name": "python-build-deps",
+     "packages": [
+      "base-devel",
+      "openssl",
+      "zlib",
+      "xz",
+      "tk"
+     ]
+    },
+    "name": "python-build-deps"
+   },
+   "pyenv\\python3.12": {
+    "driver": "pyenv",
+    "fields": {
+     "name": "python3.12",
+     "version": "3.12"
+    },
+    "name": "python3.12"
+   },
+   "script\\pyenv": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "curl -fsSL https://pyenv.run | bash",
+     "name": "pyenv",
+     "uninstall-cmd": "rm -rf \"$HOME/.pyenv\"",
+     "version-cmd": "\"$HOME/.pyenv/bin/pyenv\" --version 2>/dev/null",
+     "version-re": "([0-9][0-9.]*)"
+    },
+    "name": "pyenv"
+   }
+  },
+  "python3.13": {
+   "pacman\\curl": {
+    "driver": "pacman",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "pacman\\python-build-deps": {
+    "driver": "pacman",
+    "fields": {
+     "name": "python-build-deps",
+     "packages": [
+      "base-devel",
+      "openssl",
+      "zlib",
+      "xz",
+      "tk"
+     ]
+    },
+    "name": "python-build-deps"
+   },
+   "pyenv\\python3.13": {
+    "driver": "pyenv",
+    "fields": {
+     "name": "python3.13",
+     "version": "3.13"
+    },
+    "name": "python3.13"
+   },
+   "script\\pyenv": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "curl -fsSL https://pyenv.run | bash",
+     "name": "pyenv",
+     "uninstall-cmd": "rm -rf \"$HOME/.pyenv\"",
+     "version-cmd": "\"$HOME/.pyenv/bin/pyenv\" --version 2>/dev/null",
+     "version-re": "([0-9][0-9.]*)"
+    },
+    "name": "pyenv"
+   }
+  },
+  "python3.14": {
+   "pacman\\curl": {
+    "driver": "pacman",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "pacman\\python-build-deps": {
+    "driver": "pacman",
+    "fields": {
+     "name": "python-build-deps",
+     "packages": [
+      "base-devel",
+      "openssl",
+      "zlib",
+      "xz",
+      "tk"
+     ]
+    },
+    "name": "python-build-deps"
+   },
+   "pyenv\\python3.14": {
+    "driver": "pyenv",
+    "fields": {
+     "name": "python3.14",
+     "version": "3.14"
+    },
+    "name": "python3.14"
+   },
+   "script\\pyenv": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "curl -fsSL https://pyenv.run | bash",
+     "name": "pyenv",
+     "uninstall-cmd": "rm -rf \"$HOME/.pyenv\"",
+     "version-cmd": "\"$HOME/.pyenv/bin/pyenv\" --version 2>/dev/null",
+     "version-re": "([0-9][0-9.]*)"
+    },
+    "name": "pyenv"
    }
   },
   "qemu": {
