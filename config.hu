@@ -65,7 +65,7 @@ profiles: {
     ruby-lang: [ ruby  bundler ]
     rust-lang: [ rust  miniforge ]
     web-lang: [ node  typescript  sass ]
-    languages: [ +c-cpp-lang  +dotnet-lang  +go-lang  +haskell-lang  +java-lang  +lisp-lang  +lua-lang  +ocaml-lang  +php-lang  +python-lang  +ruby-lang  +rust-lang  +tcl-lang  +web-lang  erlang  elixir  julia  nim  nasm  octave odin  perl  r  zig ]
+    languages: [ +c-cpp-lang  +dotnet-lang  +go-lang  +haskell-lang  +java-lang  +lisp-lang  +lua-lang  +ocaml-lang  +php-lang  +python-lang  +ruby-lang  +rust-lang  +tcl-lang  +web-lang  erlang  elixir  julia  nim  nasm  octave odin  perl  r  zig  gfortran  gnat  gnucobol  d  crystal  dart  raku  v  gleam  fennel  swift  scala  clojure  groovy  racket  guile ]
 
     dev-tools: [ git  jq  just  protobuf  yq ]
     version-control-tools: [ git  mercurial  subversion  cvs  perforce  fossil  bazaar ]

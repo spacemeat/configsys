@@ -610,6 +610,28 @@
         // binary. Listed for arch; elsewhere it's an honest unroutable until we model swiftly.
         swift: { description: "Swift — the Swift language toolchain."
             install: [ { via: aur  when: "arch"  name: swift-bin } ] }
+
+        // JVM + Scheme langs. scala/clojure/groovy need a JDK. (No `via: sdkman` driver exists — sdkman
+        // is only a component — so these use native / official installer scripts / snap, not sdkman.)
+        clojure: { description: "Clojure — a Lisp dialect on the JVM (`clj`)." requires: jdk
+            install: [ { via: native  when: "debian or arch or alpine or fedora_atomic"  repo-component: universe }   // uniform `clojure`
+                       { via: script  when: "fedora or rhel or opensuse"   // clojure.org's official linux-install.sh
+                         install-cmd:   'curl -fsSL https://github.com/clojure/brew-install/releases/latest/download/linux-install.sh | sudo bash'
+                         version-cmd:   'clojure --version 2>/dev/null'
+                         version-re:    '([0-9][0-9.]*)'
+                         uninstall-cmd: 'sudo rm -rf /usr/local/bin/clj /usr/local/bin/clojure /usr/local/lib/clojure'
+                         location:      '/usr/local/lib/clojure' } ] }
+        groovy: { description: "Apache Groovy — a dynamic language for the JVM." requires: jdk
+            install: [ { via: native  when: "arch or debian or fedora_atomic"  repo-component: universe }   // pacman/apt/brew groovy
+                       { via: snap  name: groovy } ] }   // fallback where native is absent (fedora/opensuse); resolves when wanted
+        scala: { description: "Scala — an object-functional language on the JVM." requires: jdk
+            install: [ { via: native  when: "fedora_atomic" }   // brew scala (Scala 3)
+                       { via: native  when: "debian" }          // apt scala (older 2.x line)
+                       { via: aur  when: "arch"  name: scala } ] }   // elsewhere use Coursier `cs setup` / SDKMAN (manual)
+        racket: { description: "Racket — a full-spectrum Scheme/Lisp language (ships DrRacket)."
+            install: [ { via: native  when: "debian or redhat or arch or alpine"  repo-component: universe } ] }   // uniform `racket` (brew ships a macOS cask, not a formula)
+        guile: { description: "GNU Guile — the GNU Scheme interpreter."
+            install: [ { via: native  repo-component: universe  name: { apt: guile-3.0  dnf: guile30  default: guile } } ] }   // versioned name on debian/fedora
         // Haskell — the GHC compiler (cabal driver deferred).
         haskell: { description: "Haskell toolchain (GHC) — pure functional programming." install: [ { via: native  repo-component: universe  name: { default: ghc } } ] }
         // Erlang/OTP + Elixir (elixir pulls erlang, but erlang is nameable on its own).

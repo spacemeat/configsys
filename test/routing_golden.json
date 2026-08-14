@@ -515,6 +515,23 @@
     "name": "npm"
    }
   },
+  "clojure": {
+   "pacman\\clojure": {
+    "driver": "pacman",
+    "fields": {
+     "name": "clojure",
+     "repo-component": "universe"
+    },
+    "name": "clojure"
+   },
+   "pacman\\jdk": {
+    "driver": "pacman",
+    "fields": {
+     "name": "jdk-openjdk"
+    },
+    "name": "jdk-openjdk"
+   }
+  },
   "cmake": {
    "pacman\\cmake": {
     "driver": "pacman",
@@ -1515,6 +1532,23 @@
     "name": "grafana-service"
    }
   },
+  "groovy": {
+   "pacman\\groovy": {
+    "driver": "pacman",
+    "fields": {
+     "name": "groovy",
+     "repo-component": "universe"
+    },
+    "name": "groovy"
+   },
+   "pacman\\jdk": {
+    "driver": "pacman",
+    "fields": {
+     "name": "jdk-openjdk"
+    },
+    "name": "jdk-openjdk"
+   }
+  },
   "grpcurl": {
    "pacman\\curl": {
     "driver": "pacman",
@@ -1599,6 +1633,16 @@
      "repo-component": "universe"
     },
     "name": "gtkmm-4.0"
+   }
+  },
+  "guile": {
+   "pacman\\guile": {
+    "driver": "pacman",
+    "fields": {
+     "name": "guile",
+     "repo-component": "universe"
+    },
+    "name": "guile"
    }
   },
   "haskell": {
@@ -3648,6 +3692,16 @@
     "name": "r"
    }
   },
+  "racket": {
+   "pacman\\racket": {
+    "driver": "pacman",
+    "fields": {
+     "name": "racket",
+     "repo-component": "universe"
+    },
+    "name": "racket"
+   }
+  },
   "raku": {
    "aur\\raku": {
     "driver": "aur",
@@ -3786,6 +3840,36 @@
      "repo-component": "universe"
     },
     "name": "sbcl"
+   }
+  },
+  "scala": {
+   "aur\\scala": {
+    "driver": "aur",
+    "fields": {
+     "name": "scala"
+    },
+    "name": "scala"
+   },
+   "pacman\\base-devel": {
+    "driver": "pacman",
+    "fields": {
+     "name": "base-devel"
+    },
+    "name": "base-devel"
+   },
+   "pacman\\git": {
+    "driver": "pacman",
+    "fields": {
+     "name": "git"
+    },
+    "name": "git"
+   },
+   "pacman\\jdk": {
+    "driver": "pacman",
+    "fields": {
+     "name": "jdk-openjdk"
+    },
+    "name": "jdk-openjdk"
    }
   },
   "scribus": {
@@ -5902,6 +5986,23 @@
     "name": "@anthropic-ai/claude-code"
    }
   },
+  "clojure": {
+   "apt\\clojure": {
+    "driver": "apt",
+    "fields": {
+     "name": "clojure",
+     "repo-component": "universe"
+    },
+    "name": "clojure"
+   },
+   "apt\\jdk": {
+    "driver": "apt",
+    "fields": {
+     "name": "default-jdk"
+    },
+    "name": "default-jdk"
+   }
+  },
   "cmake": {
    "apt\\cmake": {
     "driver": "apt",
@@ -7313,6 +7414,23 @@
     "name": "grafana-service"
    }
   },
+  "groovy": {
+   "apt\\groovy": {
+    "driver": "apt",
+    "fields": {
+     "name": "groovy",
+     "repo-component": "universe"
+    },
+    "name": "groovy"
+   },
+   "apt\\jdk": {
+    "driver": "apt",
+    "fields": {
+     "name": "default-jdk"
+    },
+    "name": "default-jdk"
+   }
+  },
   "grpcurl": {
    "apt\\curl": {
     "driver": "apt",
@@ -7399,6 +7517,16 @@
      "repo-component": "universe"
     },
     "name": "libgtkmm-4.0-dev"
+   }
+  },
+  "guile": {
+   "apt\\guile": {
+    "driver": "apt",
+    "fields": {
+     "name": "guile-3.0",
+     "repo-component": "universe"
+    },
+    "name": "guile-3.0"
    }
   },
   "haskell": {
@@ -9539,6 +9667,16 @@
     "name": "r-base"
    }
   },
+  "racket": {
+   "apt\\racket": {
+    "driver": "apt",
+    "fields": {
+     "name": "racket",
+     "repo-component": "universe"
+    },
+    "name": "racket"
+   }
+  },
   "raku": {
    "apt\\raku": {
     "driver": "apt",
@@ -9674,6 +9812,22 @@
      "repo-component": "universe"
     },
     "name": "sbcl"
+   }
+  },
+  "scala": {
+   "apt\\jdk": {
+    "driver": "apt",
+    "fields": {
+     "name": "default-jdk"
+    },
+    "name": "default-jdk"
+   },
+   "apt\\scala": {
+    "driver": "apt",
+    "fields": {
+     "name": "scala"
+    },
+    "name": "scala"
    }
   },
   "scribus": {
@@ -11693,6 +11847,23 @@
     "name": "@anthropic-ai/claude-code"
    }
   },
+  "clojure": {
+   "apt\\clojure": {
+    "driver": "apt",
+    "fields": {
+     "name": "clojure",
+     "repo-component": "universe"
+    },
+    "name": "clojure"
+   },
+   "apt\\jdk": {
+    "driver": "apt",
+    "fields": {
+     "name": "default-jdk"
+    },
+    "name": "default-jdk"
+   }
+  },
   "cmake": {
    "apt\\cmake": {
     "driver": "apt",
@@ -13094,6 +13265,23 @@
     "name": "grafana-service"
    }
   },
+  "groovy": {
+   "apt\\groovy": {
+    "driver": "apt",
+    "fields": {
+     "name": "groovy",
+     "repo-component": "universe"
+    },
+    "name": "groovy"
+   },
+   "apt\\jdk": {
+    "driver": "apt",
+    "fields": {
+     "name": "default-jdk"
+    },
+    "name": "default-jdk"
+   }
+  },
   "grpcurl": {
    "apt\\curl": {
     "driver": "apt",
@@ -13180,6 +13368,16 @@
      "repo-component": "universe"
     },
     "name": "libgtkmm-4.0-dev"
+   }
+  },
+  "guile": {
+   "apt\\guile": {
+    "driver": "apt",
+    "fields": {
+     "name": "guile-3.0",
+     "repo-component": "universe"
+    },
+    "name": "guile-3.0"
    }
   },
   "haskell": {
@@ -15250,6 +15448,16 @@
     "name": "r-base"
    }
   },
+  "racket": {
+   "apt\\racket": {
+    "driver": "apt",
+    "fields": {
+     "name": "racket",
+     "repo-component": "universe"
+    },
+    "name": "racket"
+   }
+  },
   "raku": {
    "apt\\raku": {
     "driver": "apt",
@@ -15375,6 +15583,22 @@
      "repo-component": "universe"
     },
     "name": "sbcl"
+   }
+  },
+  "scala": {
+   "apt\\jdk": {
+    "driver": "apt",
+    "fields": {
+     "name": "default-jdk"
+    },
+    "name": "default-jdk"
+   },
+   "apt\\scala": {
+    "driver": "apt",
+    "fields": {
+     "name": "scala"
+    },
+    "name": "scala"
    }
   },
   "scribus": {
@@ -17382,6 +17606,23 @@
     "name": "@anthropic-ai/claude-code"
    }
   },
+  "clojure": {
+   "apt\\clojure": {
+    "driver": "apt",
+    "fields": {
+     "name": "clojure",
+     "repo-component": "universe"
+    },
+    "name": "clojure"
+   },
+   "apt\\jdk": {
+    "driver": "apt",
+    "fields": {
+     "name": "default-jdk"
+    },
+    "name": "default-jdk"
+   }
+  },
   "cmake": {
    "apt\\cmake": {
     "driver": "apt",
@@ -18778,6 +19019,23 @@
     "name": "grafana-service"
    }
   },
+  "groovy": {
+   "apt\\groovy": {
+    "driver": "apt",
+    "fields": {
+     "name": "groovy",
+     "repo-component": "universe"
+    },
+    "name": "groovy"
+   },
+   "apt\\jdk": {
+    "driver": "apt",
+    "fields": {
+     "name": "default-jdk"
+    },
+    "name": "default-jdk"
+   }
+  },
   "grpcurl": {
    "apt\\curl": {
     "driver": "apt",
@@ -18864,6 +19122,16 @@
      "repo-component": "universe"
     },
     "name": "libgtkmm-4.0-dev"
+   }
+  },
+  "guile": {
+   "apt\\guile": {
+    "driver": "apt",
+    "fields": {
+     "name": "guile-3.0",
+     "repo-component": "universe"
+    },
+    "name": "guile-3.0"
    }
   },
   "haskell": {
@@ -20940,6 +21208,16 @@
     "name": "r-base"
    }
   },
+  "racket": {
+   "apt\\racket": {
+    "driver": "apt",
+    "fields": {
+     "name": "racket",
+     "repo-component": "universe"
+    },
+    "name": "racket"
+   }
+  },
   "raku": {
    "apt\\raku": {
     "driver": "apt",
@@ -21065,6 +21343,22 @@
      "repo-component": "universe"
     },
     "name": "sbcl"
+   }
+  },
+  "scala": {
+   "apt\\jdk": {
+    "driver": "apt",
+    "fields": {
+     "name": "default-jdk"
+    },
+    "name": "default-jdk"
+   },
+   "apt\\scala": {
+    "driver": "apt",
+    "fields": {
+     "name": "scala"
+    },
+    "name": "scala"
    }
   },
   "scribus": {
@@ -22938,6 +23232,27 @@
     "name": "@anthropic-ai/claude-code"
    }
   },
+  "clojure": {
+   "dnf\\jdk": {
+    "driver": "dnf",
+    "fields": {
+     "name": "java-17-openjdk-devel"
+    },
+    "name": "java-17-openjdk-devel"
+   },
+   "script\\clojure": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "curl -fsSL https://github.com/clojure/brew-install/releases/latest/download/linux-install.sh | sudo bash",
+     "location": "/usr/local/lib/clojure",
+     "name": "clojure",
+     "uninstall-cmd": "sudo rm -rf /usr/local/bin/clj /usr/local/bin/clojure /usr/local/lib/clojure",
+     "version-cmd": "clojure --version 2>/dev/null",
+     "version-re": "([0-9][0-9.]*)"
+    },
+    "name": "clojure"
+   }
+  },
   "cmake": {
    "dnf\\cmake": {
     "driver": "dnf",
@@ -24052,6 +24367,49 @@
     "name": "grafana-service"
    }
   },
+  "groovy": {
+   "dnf\\jdk": {
+    "driver": "dnf",
+    "fields": {
+     "name": "java-17-openjdk-devel"
+    },
+    "name": "java-17-openjdk-devel"
+   },
+   "dnf\\snapd": {
+    "driver": "dnf",
+    "fields": {
+     "name": "snapd"
+    },
+    "name": "snapd"
+   },
+   "script\\snapd-snap-link": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "test -e /snap || sudo ln -s /var/lib/snapd/snap /snap",
+     "location": "/snap",
+     "name": "snapd-snap-link",
+     "uninstall-cmd": "test -L /snap && sudo rm -f /snap || true",
+     "version-cmd": "test -e /snap && echo present",
+     "version-re": "(present)"
+    },
+    "name": "snapd-snap-link"
+   },
+   "service\\snapd-socket": {
+    "driver": "service",
+    "fields": {
+     "name": "snapd-socket",
+     "unit": "snapd.socket"
+    },
+    "name": "snapd-socket"
+   },
+   "snap\\groovy": {
+    "driver": "snap",
+    "fields": {
+     "name": "groovy"
+    },
+    "name": "groovy"
+   }
+  },
   "grpcurl": {
    "dnf\\curl": {
     "driver": "dnf",
@@ -24158,6 +24516,16 @@
      "repo-component": "universe"
     },
     "name": "gtkmm4.0-devel"
+   }
+  },
+  "guile": {
+   "dnf\\guile": {
+    "driver": "dnf",
+    "fields": {
+     "name": "guile30",
+     "repo-component": "universe"
+    },
+    "name": "guile30"
    }
   },
   "haskell": {
@@ -26184,6 +26552,16 @@
      "repo-component": "universe"
     },
     "name": "R"
+   }
+  },
+  "racket": {
+   "dnf\\racket": {
+    "driver": "dnf",
+    "fields": {
+     "name": "racket",
+     "repo-component": "universe"
+    },
+    "name": "racket"
    }
   },
   "raku": {
@@ -28252,6 +28630,27 @@
     "name": "@anthropic-ai/claude-code"
    }
   },
+  "clojure": {
+   "dnf\\jdk": {
+    "driver": "dnf",
+    "fields": {
+     "name": "java-17-openjdk-devel"
+    },
+    "name": "java-17-openjdk-devel"
+   },
+   "script\\clojure": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "curl -fsSL https://github.com/clojure/brew-install/releases/latest/download/linux-install.sh | sudo bash",
+     "location": "/usr/local/lib/clojure",
+     "name": "clojure",
+     "uninstall-cmd": "sudo rm -rf /usr/local/bin/clj /usr/local/bin/clojure /usr/local/lib/clojure",
+     "version-cmd": "clojure --version 2>/dev/null",
+     "version-re": "([0-9][0-9.]*)"
+    },
+    "name": "clojure"
+   }
+  },
   "cmake": {
    "dnf\\cmake": {
     "driver": "dnf",
@@ -29366,6 +29765,49 @@
     "name": "grafana-service"
    }
   },
+  "groovy": {
+   "dnf\\jdk": {
+    "driver": "dnf",
+    "fields": {
+     "name": "java-17-openjdk-devel"
+    },
+    "name": "java-17-openjdk-devel"
+   },
+   "dnf\\snapd": {
+    "driver": "dnf",
+    "fields": {
+     "name": "snapd"
+    },
+    "name": "snapd"
+   },
+   "script\\snapd-snap-link": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "test -e /snap || sudo ln -s /var/lib/snapd/snap /snap",
+     "location": "/snap",
+     "name": "snapd-snap-link",
+     "uninstall-cmd": "test -L /snap && sudo rm -f /snap || true",
+     "version-cmd": "test -e /snap && echo present",
+     "version-re": "(present)"
+    },
+    "name": "snapd-snap-link"
+   },
+   "service\\snapd-socket": {
+    "driver": "service",
+    "fields": {
+     "name": "snapd-socket",
+     "unit": "snapd.socket"
+    },
+    "name": "snapd-socket"
+   },
+   "snap\\groovy": {
+    "driver": "snap",
+    "fields": {
+     "name": "groovy"
+    },
+    "name": "groovy"
+   }
+  },
   "grpcurl": {
    "dnf\\curl": {
     "driver": "dnf",
@@ -29472,6 +29914,16 @@
      "repo-component": "universe"
     },
     "name": "gtkmm4.0-devel"
+   }
+  },
+  "guile": {
+   "dnf\\guile": {
+    "driver": "dnf",
+    "fields": {
+     "name": "guile30",
+     "repo-component": "universe"
+    },
+    "name": "guile30"
    }
   },
   "haskell": {
@@ -31500,6 +31952,16 @@
     "name": "R"
    }
   },
+  "racket": {
+   "dnf\\racket": {
+    "driver": "dnf",
+    "fields": {
+     "name": "racket",
+     "repo-component": "universe"
+    },
+    "name": "racket"
+   }
+  },
   "raku": {
    "dnf\\raku": {
     "driver": "dnf",
@@ -33327,6 +33789,23 @@
     "name": "@anthropic-ai/claude-code"
    }
   },
+  "clojure": {
+   "brew\\clojure": {
+    "driver": "brew",
+    "fields": {
+     "name": "clojure",
+     "repo-component": "universe"
+    },
+    "name": "clojure"
+   },
+   "brew\\jdk": {
+    "driver": "brew",
+    "fields": {
+     "name": "openjdk"
+    },
+    "name": "openjdk"
+   }
+  },
   "cmake": {
    "brew\\cmake": {
     "driver": "brew",
@@ -34030,6 +34509,23 @@
     "name": "openjdk"
    }
   },
+  "groovy": {
+   "brew\\groovy": {
+    "driver": "brew",
+    "fields": {
+     "name": "groovy",
+     "repo-component": "universe"
+    },
+    "name": "groovy"
+   },
+   "brew\\jdk": {
+    "driver": "brew",
+    "fields": {
+     "name": "openjdk"
+    },
+    "name": "openjdk"
+   }
+  },
   "grpcurl": {
    "brew\\curl": {
     "driver": "brew",
@@ -34050,6 +34546,16 @@
      }
     },
     "name": "grpcurl"
+   }
+  },
+  "guile": {
+   "brew\\guile": {
+    "driver": "brew",
+    "fields": {
+     "name": "guile",
+     "repo-component": "universe"
+    },
+    "name": "guile"
    }
   },
   "haskell": {
@@ -35552,6 +36058,22 @@
      "repo-component": "universe"
     },
     "name": "sbcl"
+   }
+  },
+  "scala": {
+   "brew\\jdk": {
+    "driver": "brew",
+    "fields": {
+     "name": "openjdk"
+    },
+    "name": "openjdk"
+   },
+   "brew\\scala": {
+    "driver": "brew",
+    "fields": {
+     "name": "scala"
+    },
+    "name": "scala"
    }
   },
   "scribus": {
@@ -37126,6 +37648,23 @@
     "name": "@anthropic-ai/claude-code"
    }
   },
+  "clojure": {
+   "apt\\clojure": {
+    "driver": "apt",
+    "fields": {
+     "name": "clojure",
+     "repo-component": "universe"
+    },
+    "name": "clojure"
+   },
+   "apt\\jdk": {
+    "driver": "apt",
+    "fields": {
+     "name": "default-jdk"
+    },
+    "name": "default-jdk"
+   }
+  },
   "cmake": {
    "apt\\cmake": {
     "driver": "apt",
@@ -38541,6 +39080,23 @@
     "name": "grafana-service"
    }
   },
+  "groovy": {
+   "apt\\groovy": {
+    "driver": "apt",
+    "fields": {
+     "name": "groovy",
+     "repo-component": "universe"
+    },
+    "name": "groovy"
+   },
+   "apt\\jdk": {
+    "driver": "apt",
+    "fields": {
+     "name": "default-jdk"
+    },
+    "name": "default-jdk"
+   }
+  },
   "grpcurl": {
    "apt\\curl": {
     "driver": "apt",
@@ -38627,6 +39183,16 @@
      "repo-component": "universe"
     },
     "name": "libgtkmm-4.0-dev"
+   }
+  },
+  "guile": {
+   "apt\\guile": {
+    "driver": "apt",
+    "fields": {
+     "name": "guile-3.0",
+     "repo-component": "universe"
+    },
+    "name": "guile-3.0"
    }
   },
   "haskell": {
@@ -40773,6 +41339,16 @@
     "name": "r-base"
    }
   },
+  "racket": {
+   "apt\\racket": {
+    "driver": "apt",
+    "fields": {
+     "name": "racket",
+     "repo-component": "universe"
+    },
+    "name": "racket"
+   }
+  },
   "raku": {
    "apt\\raku": {
     "driver": "apt",
@@ -40908,6 +41484,22 @@
      "repo-component": "universe"
     },
     "name": "sbcl"
+   }
+  },
+  "scala": {
+   "apt\\jdk": {
+    "driver": "apt",
+    "fields": {
+     "name": "default-jdk"
+    },
+    "name": "default-jdk"
+   },
+   "apt\\scala": {
+    "driver": "apt",
+    "fields": {
+     "name": "scala"
+    },
+    "name": "scala"
    }
   },
   "scribus": {
@@ -42848,6 +43440,27 @@
     "name": "@anthropic-ai/claude-code"
    }
   },
+  "clojure": {
+   "dnf\\jdk": {
+    "driver": "dnf",
+    "fields": {
+     "name": "java-17-openjdk-devel"
+    },
+    "name": "java-17-openjdk-devel"
+   },
+   "script\\clojure": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "curl -fsSL https://github.com/clojure/brew-install/releases/latest/download/linux-install.sh | sudo bash",
+     "location": "/usr/local/lib/clojure",
+     "name": "clojure",
+     "uninstall-cmd": "sudo rm -rf /usr/local/bin/clj /usr/local/bin/clojure /usr/local/lib/clojure",
+     "version-cmd": "clojure --version 2>/dev/null",
+     "version-re": "([0-9][0-9.]*)"
+    },
+    "name": "clojure"
+   }
+  },
   "cmake": {
    "dnf\\cmake": {
     "driver": "dnf",
@@ -44069,6 +44682,49 @@
     "name": "grafana-service"
    }
   },
+  "groovy": {
+   "dnf\\jdk": {
+    "driver": "dnf",
+    "fields": {
+     "name": "java-17-openjdk-devel"
+    },
+    "name": "java-17-openjdk-devel"
+   },
+   "dnf\\snapd": {
+    "driver": "dnf",
+    "fields": {
+     "name": "snapd"
+    },
+    "name": "snapd"
+   },
+   "script\\snapd-snap-link": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "test -e /snap || sudo ln -s /var/lib/snapd/snap /snap",
+     "location": "/snap",
+     "name": "snapd-snap-link",
+     "uninstall-cmd": "test -L /snap && sudo rm -f /snap || true",
+     "version-cmd": "test -e /snap && echo present",
+     "version-re": "(present)"
+    },
+    "name": "snapd-snap-link"
+   },
+   "service\\snapd-socket": {
+    "driver": "service",
+    "fields": {
+     "name": "snapd-socket",
+     "unit": "snapd.socket"
+    },
+    "name": "snapd-socket"
+   },
+   "snap\\groovy": {
+    "driver": "snap",
+    "fields": {
+     "name": "groovy"
+    },
+    "name": "groovy"
+   }
+  },
   "grpcurl": {
    "dnf\\curl": {
     "driver": "dnf",
@@ -44191,6 +44847,16 @@
      "repo-component": "universe"
     },
     "name": "gtkmm4.0-devel"
+   }
+  },
+  "guile": {
+   "dnf\\guile": {
+    "driver": "dnf",
+    "fields": {
+     "name": "guile30",
+     "repo-component": "universe"
+    },
+    "name": "guile30"
    }
   },
   "haskell": {
@@ -46276,6 +46942,16 @@
      "repo-component": "universe"
     },
     "name": "R"
+   }
+  },
+  "racket": {
+   "dnf\\racket": {
+    "driver": "dnf",
+    "fields": {
+     "name": "racket",
+     "repo-component": "universe"
+    },
+    "name": "racket"
    }
   },
   "raku": {
@@ -48552,6 +49228,23 @@
     "name": "@anthropic-ai/claude-code"
    }
   },
+  "clojure": {
+   "apt\\clojure": {
+    "driver": "apt",
+    "fields": {
+     "name": "clojure",
+     "repo-component": "universe"
+    },
+    "name": "clojure"
+   },
+   "apt\\jdk": {
+    "driver": "apt",
+    "fields": {
+     "name": "default-jdk"
+    },
+    "name": "default-jdk"
+   }
+  },
   "cmake": {
    "apt\\cmake": {
     "driver": "apt",
@@ -49958,6 +50651,23 @@
     "name": "grafana-service"
    }
   },
+  "groovy": {
+   "apt\\groovy": {
+    "driver": "apt",
+    "fields": {
+     "name": "groovy",
+     "repo-component": "universe"
+    },
+    "name": "groovy"
+   },
+   "apt\\jdk": {
+    "driver": "apt",
+    "fields": {
+     "name": "default-jdk"
+    },
+    "name": "default-jdk"
+   }
+  },
   "grpcurl": {
    "apt\\curl": {
     "driver": "apt",
@@ -50044,6 +50754,16 @@
      "repo-component": "universe"
     },
     "name": "libgtkmm-4.0-dev"
+   }
+  },
+  "guile": {
+   "apt\\guile": {
+    "driver": "apt",
+    "fields": {
+     "name": "guile-3.0",
+     "repo-component": "universe"
+    },
+    "name": "guile-3.0"
    }
   },
   "haskell": {
@@ -52190,6 +52910,16 @@
     "name": "r-base"
    }
   },
+  "racket": {
+   "apt\\racket": {
+    "driver": "apt",
+    "fields": {
+     "name": "racket",
+     "repo-component": "universe"
+    },
+    "name": "racket"
+   }
+  },
   "raku": {
    "apt\\raku": {
     "driver": "apt",
@@ -52325,6 +53055,22 @@
      "repo-component": "universe"
     },
     "name": "sbcl"
+   }
+  },
+  "scala": {
+   "apt\\jdk": {
+    "driver": "apt",
+    "fields": {
+     "name": "default-jdk"
+    },
+    "name": "default-jdk"
+   },
+   "apt\\scala": {
+    "driver": "apt",
+    "fields": {
+     "name": "scala"
+    },
+    "name": "scala"
    }
   },
   "scribus": {
@@ -54352,6 +55098,23 @@
     "name": "@anthropic-ai/claude-code"
    }
   },
+  "clojure": {
+   "apt\\clojure": {
+    "driver": "apt",
+    "fields": {
+     "name": "clojure",
+     "repo-component": "universe"
+    },
+    "name": "clojure"
+   },
+   "apt\\jdk": {
+    "driver": "apt",
+    "fields": {
+     "name": "default-jdk"
+    },
+    "name": "default-jdk"
+   }
+  },
   "cmake": {
    "apt\\cmake": {
     "driver": "apt",
@@ -55748,6 +56511,23 @@
     "name": "grafana-service"
    }
   },
+  "groovy": {
+   "apt\\groovy": {
+    "driver": "apt",
+    "fields": {
+     "name": "groovy",
+     "repo-component": "universe"
+    },
+    "name": "groovy"
+   },
+   "apt\\jdk": {
+    "driver": "apt",
+    "fields": {
+     "name": "default-jdk"
+    },
+    "name": "default-jdk"
+   }
+  },
   "grpcurl": {
    "apt\\curl": {
     "driver": "apt",
@@ -55834,6 +56614,16 @@
      "repo-component": "universe"
     },
     "name": "libgtkmm-4.0-dev"
+   }
+  },
+  "guile": {
+   "apt\\guile": {
+    "driver": "apt",
+    "fields": {
+     "name": "guile-3.0",
+     "repo-component": "universe"
+    },
+    "name": "guile-3.0"
    }
   },
   "haskell": {
@@ -57910,6 +58700,16 @@
     "name": "r-base"
    }
   },
+  "racket": {
+   "apt\\racket": {
+    "driver": "apt",
+    "fields": {
+     "name": "racket",
+     "repo-component": "universe"
+    },
+    "name": "racket"
+   }
+  },
   "raku": {
    "apt\\raku": {
     "driver": "apt",
@@ -58035,6 +58835,22 @@
      "repo-component": "universe"
     },
     "name": "sbcl"
+   }
+  },
+  "scala": {
+   "apt\\jdk": {
+    "driver": "apt",
+    "fields": {
+     "name": "default-jdk"
+    },
+    "name": "default-jdk"
+   },
+   "apt\\scala": {
+    "driver": "apt",
+    "fields": {
+     "name": "scala"
+    },
+    "name": "scala"
    }
   },
   "scribus": {
