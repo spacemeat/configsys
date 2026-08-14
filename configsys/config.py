@@ -139,6 +139,14 @@ class Config:
         user). The counterpart accessor to configs/scope, for the config editor.'''
         return _leaves(layers.merge_scalar(self._layers, 'ignore-profiles', _MACHINE_ROLES))
 
+    def disabled_drivers(self):
+        '''Driver/via names DISABLED on this machine (a machine setting; repo < primary < user). A
+        disabled driver's bindings don't match here, like a false `when:` — so a `suggests:` targeting
+        a component that ONLY installs via it is silently skipped (e.g. `disabled-drivers: [ dotfiles ]`
+        when you manage your own dotfiles), while a hard `requires:`/explicit want on such a component
+        errors honestly. Generalizes to "no snaps here" etc.'''
+        return _leaves(layers.merge_scalar(self._layers, 'disabled-drivers', _MACHINE_ROLES))
+
     def pins(self):
         '''The effective pin map, merged PER KEY across repo < primary < user (see
         merge_scalar_map): a machine's top config overrides a primary plugin's pins key-by-key

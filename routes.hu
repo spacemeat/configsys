@@ -299,6 +299,7 @@
         // --- shells & terminal multiplexers ---
         // tmux/zsh/fish are packaged under the same name in every distro's base repos.
         tmux: { description: "Terminal multiplexer — split panes and detachable sessions."
+                suggests: tmux-dotfiles
                 install: [ { via: native } ] }
         tmux-dotfiles: { description: "tmux config, linked into place."
                 install: [ { via: dotfiles  config: { src: tmux  dst: $XDG_CONFIG_HOME/tmux } } ] }

@@ -103,7 +103,11 @@ def _matching(component, context, pins):
         bindings = [b for b in bindings if b.via == pin]
         if not bindings:
             raise ResolveError(f'{component.name}: pinned to via:{pin!r}, which is not a binding')
-    return [b for b in bindings if b.pred.eval(context)], pin
+    # a DISABLED driver (machine `disabled-drivers:` setting) makes its bindings non-matching here,
+    # exactly like a false `when:` — so a component whose only method is via it becomes unroutable
+    # (a `suggests:` skips it silently, a hard `requires:`/explicit want errors honestly).
+    disabled = getattr(context, 'disabled', frozenset())
+    return [b for b in bindings if b.via not in disabled and b.pred.eval(context)], pin
 
 
 def candidate_bindings(component, cascade, context, pins=None):
@@ -318,7 +322,7 @@ def unit_for_binding(component, binding, cascade, block, overrides=None):
 # -- full resolution: the worklist to a fixpoint ---------------------------
 
 def resolve(names, cascade, components, drivers, block, version=None, cpu=None, pins=None,
-            overrides=None, preference=None, candidate_only=None):
+            overrides=None, preference=None, candidate_only=None, disabled=None):
     '''Resolve a profile (component names) to the full unit closure for a context.
 
     Phase 1 seeds every explicit want and registers what it provides, BEFORE any
@@ -334,16 +338,16 @@ def resolve(names, cascade, components, drivers, block, version=None, cpu=None, 
     component, several for a `via: parts` aggregator (which has no unit of its own).
     '''
     return resolve_roots(names, cascade, components, drivers, block, version, cpu, pins,
-                         overrides, preference, candidate_only)[0]
+                         overrides, preference, candidate_only, disabled)[0]
 
 
 def resolve_roots(names, cascade, components, drivers, block, version=None, cpu=None, pins=None,
-                  overrides=None, preference=None, candidate_only=None):
+                  overrides=None, preference=None, candidate_only=None, disabled=None):
     '''Like resolve(), but also return the set of unit keys bound *directly* by the named
     components (a named parts-component contributes its parts' keys; driver/driver deps
     are not roots). The app applies the requested op to these, and expand_plan folds in deps.'''
-    st = _State(cascade, components, drivers, cascade.context(block, version, cpu), pins or {},
-                overrides or {}, preference, candidate_only)
+    st = _State(cascade, components, drivers, cascade.context(block, version, cpu, disabled or ()),
+                pins or {}, overrides or {}, preference, candidate_only)
     roots = set()
     for name in names:
         roots |= st.add_component(name, root=name)  # phase 1: wants + their provides
@@ -353,14 +357,14 @@ def resolve_roots(names, cascade, components, drivers, block, version=None, cpu=
 
 
 def resolve_resilient(names, cascade, components, drivers, block, version=None, cpu=None,
-                      pins=None, overrides=None, preference=None, candidate_only=None):
+                      pins=None, overrides=None, preference=None, candidate_only=None, disabled=None):
     '''Resilient resolution for the inspect/TUI pipeline: a requested name that can't resolve
     (unknown, no binding here, or an unsatisfiable requirement) is collected into `errors`
     instead of aborting the whole set — everything resolvable still resolves. Returns
     (units, errors) with errors = {requested_name: message}. So one broken component in the
     active set (e.g. from an auto-activated project profile) can't brick the tool.'''
-    st = _State(cascade, components, drivers, cascade.context(block, version, cpu), pins or {},
-                overrides or {}, preference, candidate_only)
+    st = _State(cascade, components, drivers, cascade.context(block, version, cpu, disabled or ()),
+                pins or {}, overrides or {}, preference, candidate_only)
     errors = {}
     for name in names:
         try:

@@ -4121,6 +4121,16 @@
    }
   },
   "tmux": {
+   "dotfiles\\tmux-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/tmux",
+      "src": "tmux"
+     }
+    },
+    "name": "tmux-dotfiles"
+   },
    "pacman\\tmux": {
     "driver": "pacman",
     "fields": {
@@ -9795,6 +9805,16 @@
      "name": "tmux"
     },
     "name": "tmux"
+   },
+   "dotfiles\\tmux-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/tmux",
+      "src": "tmux"
+     }
+    },
+    "name": "tmux-dotfiles"
    }
   },
   "tmux-dotfiles": {
@@ -15323,6 +15343,16 @@
      "name": "tmux"
     },
     "name": "tmux"
+   },
+   "dotfiles\\tmux-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/tmux",
+      "src": "tmux"
+     }
+    },
+    "name": "tmux-dotfiles"
    }
   },
   "tmux-dotfiles": {
@@ -20840,6 +20870,16 @@
      "name": "tmux"
     },
     "name": "tmux"
+   },
+   "dotfiles\\tmux-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/tmux",
+      "src": "tmux"
+     }
+    },
+    "name": "tmux-dotfiles"
    }
   },
   "tmux-dotfiles": {
@@ -25928,6 +25968,16 @@
      "name": "tmux"
     },
     "name": "tmux"
+   },
+   "dotfiles\\tmux-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/tmux",
+      "src": "tmux"
+     }
+    },
+    "name": "tmux-dotfiles"
    }
   },
   "tmux-dotfiles": {
@@ -31090,6 +31140,16 @@
      "name": "tmux"
     },
     "name": "tmux"
+   },
+   "dotfiles\\tmux-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/tmux",
+      "src": "tmux"
+     }
+    },
+    "name": "tmux-dotfiles"
    }
   },
   "tmux-dotfiles": {
@@ -34717,6 +34777,16 @@
      "name": "tmux"
     },
     "name": "tmux"
+   },
+   "dotfiles\\tmux-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/tmux",
+      "src": "tmux"
+     }
+    },
+    "name": "tmux-dotfiles"
    }
   },
   "tmux-dotfiles": {
@@ -40085,6 +40155,16 @@
      "name": "tmux"
     },
     "name": "tmux"
+   },
+   "dotfiles\\tmux-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/tmux",
+      "src": "tmux"
+     }
+    },
+    "name": "tmux-dotfiles"
    }
   },
   "tmux-dotfiles": {
@@ -45451,6 +45531,16 @@
      "name": "tmux"
     },
     "name": "tmux"
+   },
+   "dotfiles\\tmux-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/tmux",
+      "src": "tmux"
+     }
+    },
+    "name": "tmux-dotfiles"
    }
   },
   "tmux-dotfiles": {
@@ -51185,6 +51275,16 @@
      "name": "tmux"
     },
     "name": "tmux"
+   },
+   "dotfiles\\tmux-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/tmux",
+      "src": "tmux"
+     }
+    },
+    "name": "tmux-dotfiles"
    }
   },
   "tmux-dotfiles": {
@@ -56722,6 +56822,16 @@
      "name": "tmux"
     },
     "name": "tmux"
+   },
+   "dotfiles\\tmux-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/tmux",
+      "src": "tmux"
+     }
+    },
+    "name": "tmux-dotfiles"
    }
   },
   "tmux-dotfiles": {

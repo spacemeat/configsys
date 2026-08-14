@@ -297,7 +297,8 @@ class Context:
                         pins=self.config.pins(),
                         overrides_path=self.paths.user_config_file,
                         discovered=self.discovered, plugin_files=self.plugin_files,
-                        preference=self.config.driver_preference())
+                        preference=self.config.driver_preference(),
+                        disabled=self.config.disabled_drivers())
 
     @property
     def routes(self):

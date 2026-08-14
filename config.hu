@@ -12,6 +12,13 @@
     //     scope: system
     // (Fixed-scope drivers — apt/dnf/pacman = system, dotfiles/cargo = user — ignore this.)
 
+    // OPTIONAL: turn a driver OFF on this machine. A disabled driver's bindings stop matching (like
+    // a false `when:`), so a component's `suggests:` for something that only installs that way is
+    // silently skipped — e.g. if you manage your own dotfiles, `disabled-drivers: [ dotfiles ]`
+    // installs every app WITHOUT pulling its `<app>-dotfiles`. Generalizes ("no snaps here" -> add
+    // `snap`). A HARD requires / an explicit want of a now-unroutable component still errors honestly.
+    // A machine setting — usually set per-box in ~/.config/configsys/configsys.hu.
+
     // A profile is a list of component names, each resolved through routes.hu (driver binding,
     // recursive deps, dedup). A `+other` term folds in another profile (union); `~name` removes.
     // A name with no route on the active OS surfaces as a resilient error row, not a hard stop.
@@ -21,17 +28,17 @@
     // them by name or add them to your own profile. See docs/profiles-plan.md for the rationale.
     // Your ~/.config/configsys/configsys.hu may add profiles or shadow any of these by name.
 profiles: {
-    terminal: [ +terminal-emulators  curl  fastfetch  fzf  ripgrep  xclip  xclip-dotfiles  htop  htop-dotfiles  btop  neovim  neovim-dotfiles  tmux  tmux-dotfiles  lazygit  yazi  yazi-dotfiles  superfile  superfile-dotfiles  mononoki-nerd ]
+    terminal: [ +terminal-emulators  curl  fastfetch  fzf  ripgrep  xclip  htop  btop  neovim  tmux  lazygit  yazi  superfile  mononoki-nerd ]
     terminal-emulators: [ ghostty  kitty ]
     shells: [ fish  nushell  zsh ]
     desktops-compositors: [ budgie  cosmic  fvwm2  gnome  i3  kde  lxqt  mate  qtile  sway  xfce  xmonad ]
-    text-editors: [ android-studio  emacs  helix  jetbrains-toolbox  neovim  neovim-dotfiles  vscode  zed ]
+    text-editors: [ android-studio  emacs  helix  jetbrains-toolbox  neovim  vscode  zed ]
     web-browsers: [ chrome  chromium  firefox  brave  opera  vivaldi  edge ]
     audio: [ pipewire  jack ]
     gaming: [ +user  vulkan-runtime  steam  wine  winetricks ]
 
     virtual-machines: [ qemu  libvirt  libvirt-service  virt-manager  virtualbox ]
-    containers: [ docker  docker-group  lazydocker  podman  podman-dotfiles ]
+    containers: [ docker  docker-group  lazydocker  podman ]
     k8s: [ kubectl  helm  k9s  k3s ]
 
     db-clients: [ pgcli  mycli  dbeaver  sqlitebrowser  lazysql ]
@@ -44,7 +51,7 @@ profiles: {
 
     backend-tools: [ +containers  +k8s  +cloud-tools  +net-tools  +db-clients  +db-servers  ansible ]
 
-    c-cpp-lang: [ bazelisk  cpp-toolchain  gcc-10 gcc-11 gcc-12 gcc-13  gcc-14  gcc-15  clang-18  clang-19  clang-20  gdb  gdb-dotfiles  make  analysis  cmake  ninja  meson  ]
+    c-cpp-lang: [ bazelisk  cpp-toolchain  gcc-10 gcc-11 gcc-12 gcc-13  gcc-14  gcc-15  clang-18  clang-19  clang-20  gdb  make  analysis  cmake  ninja  meson  ]
     dotnet-lang: [ dotnet ]
     go-lang: [ go  goimports ]
     haskell-lang: [ haskell  cabal  hlint ]
@@ -71,7 +78,7 @@ profiles: {
     web-dev: [ +web-lang  +web-browsers  +web-package-managers  +web-lang  prettier  httpie  mitmproxy  xh  websocat  postman  insomnia  bruno ]
     web-package-managers: [ bun  pnpm  yarn ]
 
-    electronics-tools: [ arduino  arduino-dotfiles  kicad  gnuradio ]
+    electronics-tools: [ arduino  kicad  gnuradio ]
     graphics-tools: [ blender  krita  gimp  inkscape  darktable  freecad  openscad  scribus  digikam ]
     audio-tools: [ +audio  ardour  lmms  tenacity  musescore  hydrogen  carla  sonic-pi  supercollider  qjackctl  yabridge ]
 

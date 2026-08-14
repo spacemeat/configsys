@@ -163,9 +163,10 @@ class OsCascade:
         '''True if y is ancestor-or-self of x (x's subtree ⊆ y's subtree).'''
         return y in self.lineage(x)
 
-    def context(self, block, version=None, cpu=None):
+    def context(self, block, version=None, cpu=None, disabled=()):
         return predicate.Context(self.lineage(block), version, cpu, self.scale_roots,
-                                 facets_cat=self.facets_cat, facets_ver=self.facets_ver)
+                                 facets_cat=self.facets_cat, facets_ver=self.facets_ver,
+                                 disabled=disabled)
 
 
 def _pf(entry):
@@ -329,7 +330,8 @@ class Resolver:
     an op to (dependency installs are folded in by planning.expand_plan).'''
 
     def __init__(self, routes_path, block, version=None, cpu=None, pins=None,
-                 overrides_path=None, discovered=(), plugin_files=(), preference=None):
+                 overrides_path=None, discovered=(), plugin_files=(), preference=None,
+                 disabled=None):
         self.load_warnings = []       # skipped files/components (for diagnostics)
         self.layers = []              # expanded layer stack low→high (for `-v` reporting)
         self.cascade, self.components, self.drivers, self.candidate_only = load(
@@ -351,6 +353,7 @@ class Resolver:
         self.cpu = cpu
         self.pins = pins or {}
         self.preference = preference or None   # driver-preference order; None = built-in default
+        self.disabled = frozenset(disabled or ())   # vias disabled on this machine (`disabled-drivers:`)
 
     @property
     def cascade_names(self):
@@ -361,7 +364,7 @@ class Resolver:
         from .resolve import resolve_roots
         return resolve_roots(list(names), self.cascade, self.components, self.drivers,
                              self.block, self.version, self.cpu, self.pins, self.overrides,
-                             self.preference, self.candidate_only)
+                             self.preference, self.candidate_only, self.disabled)
 
     def resolve_names(self, names):
         from .adapt import to_resolved_components
@@ -380,7 +383,7 @@ class Resolver:
         units, errors = resolve_resilient(list(names), self.cascade, self.components,
                                           self.drivers, self.block, self.version,
                                           self.cpu, pins, self.overrides, self.preference,
-                                          self.candidate_only)
+                                          self.candidate_only, self.disabled)
         return to_resolved_components(units), errors
 
     def resolve_with_roots(self, names):
@@ -401,7 +404,7 @@ class Resolver:
         comp = self.components.get(name)
         if comp is None or not comp.bindings:
             return []
-        ctx = self.cascade.context(self.block, self.version, self.cpu)
+        ctx = self.cascade.context(self.block, self.version, self.cpu, self.disabled)
         valid = candidate_bindings(comp, self.cascade, ctx)      # `when:`-true here (ignore pin filter)
         valid_vias = {b.via for b in valid}
         if include_unavailable:

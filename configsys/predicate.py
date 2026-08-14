@@ -135,8 +135,11 @@ class Context:
     blocks are version scale-roots.'''
 
     def __init__(self, lineage, version=None, cpu=None, scale_roots=(),
-                 facets_cat=None, facets_ver=None):
+                 facets_cat=None, facets_ver=None, disabled=()):
         self.lineage = list(lineage)
+        # driver/via names DISABLED on this machine (`disabled-drivers:` setting): their bindings
+        # are treated as non-matching here, exactly like a false `when:` (see resolve._matching).
+        self.disabled = frozenset(disabled)
         self.version = parse_version(version) if isinstance(version, str) else version
         self.cpu = cpu
         self.scale_roots = set(scale_roots)
