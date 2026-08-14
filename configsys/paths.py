@@ -86,6 +86,7 @@ class Paths:
         self.ledger_file = self.state_dir / 'state.hu'
         self.failure_file = self.state_dir / 'last-failure.hu'   # last op failure, for `report`
         self.versions_file = self.state_dir / 'versions.hu'   # discovered-version cache
+        self.stale_pins_file = self.state_dir / 'stale-pins.json'   # {comp: [pinned, upstream]} manual pins behind upstream (last refresh)
         self.method_versions_file = self.state_dir / 'method-versions.hu'  # per-method get_latest cache (native queries are slow)
         self.plugins_dir = self.state_dir / 'plugins'         # synced remote plugin repos
         self.plugin_trust_file = self.state_dir / 'plugin-trust.hu'   # {plugin: approved commit}

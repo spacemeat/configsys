@@ -140,7 +140,8 @@
             install: [ { via: native  when: "not opensuse and not rhel"  repo-component: universe }
                        { via: native  when: "rhel"  requires: epel }
                        { via: tarball  when: "opensuse"  installDir: "$CONFIGSYS_APP_DIR/fossil"  requires: glibc  // no openSUSE package; upstream static binary
-                         version: { static: "2.28" }  url: "https://fossil-scm.org/home/uv/fossil-linux-x64-2.28.tar.gz" } ] }
+                         version: { static: "2.28" }  url: "https://fossil-scm.org/home/uv/fossil-linux-x64-2.28.tar.gz"
+                         latest-check: { url: "https://fossil-scm.org/home/uv/download.html"  regex: "x64-([0-9]+[.][0-9]+)[.]tar" } } ] }   // `refresh` flags a newer fossil release
         perforce: { description: "Perforce Helix Core — the `p4` client and `p4d` server." standing: never-auto
             install: [   // Perforce's own package repo (no distro-native packages); codenames bump as they add releases
                 { via: native  when: "ubuntu"  name: helix-cli
@@ -542,7 +543,8 @@
             install: [ { via: native  name: { apt: openjdk-25-jdk  dnf: java-25-openjdk-devel  pacman: jdk25-openjdk  apk: openjdk25  zypper: java-25-openjdk-devel  brew: "openjdk@25" } } ] }
         graalvm: { description: "GraalVM CE 21 — a JDK with native-image (ahead-of-time compilation), via SDKMAN."
             standing: never-auto  provides: { jdk: 21 }
-            install: [ { via: sdkman  name: java  version: "21.0.2-graalce" } ] }   // bump the SDKMAN id as releases roll
+            install: [ { via: sdkman  name: java  version: "21.0.2-graalce"   // bump the SDKMAN id as releases roll
+                         latest-check: { github: graalvm/graalvm-ce-builds  tag-re: "jdk-([0-9][0-9.]*)" } } ] }   // `refresh` flags when a newer GraalVM ships
         // SDKMAN — a JVM SDK manager installed by its own shell script (the demonstrator for the
         // `script` driver: lifecycle commands declared as data, incl. a clean uninstall). `sdk`
         // is a shell function, so version-cmd sources the init script in the same shell.
@@ -1574,7 +1576,7 @@
         // manual pin — bump it from developer.android.com/studio. Fat IDE config deferred.
         android-studio: { description: "Android Studio — the official Android IDE."
             suggests: android-studio-dotfiles
-            install: [ { via: tarball  version: { static: 2024.2.1.11 }  standing: 1  requires: glibc   // Google's official tarball stays the default (glibc-linked JVM/launchers)
+            install: [ { via: tarball  version: { static: 2024.2.1.11 }  standing: 1  requires: glibc   // Google's official tarball stays the default (glibc-linked JVM/launchers). No plain version endpoint for a `latest-check:` (the studio page is JS) — bump from developer.android.com/studio.
                          url: "https://redirector.gvt1.com/edgedl/android/studio/ide-zips/$VERSION/android-studio-$VERSION-linux.tar.gz" }
                        { via: flatpak  hub: flathub  app: com.google.AndroidStudio } ]   // community Flathub build offered as an alternative
         }

@@ -1736,6 +1736,10 @@
    "sdkman\\graalvm": {
     "driver": "sdkman",
     "fields": {
+     "latest-check": {
+      "github": "graalvm/graalvm-ce-builds",
+      "tag-re": "jdk-([0-9][0-9.]*)"
+     },
      "name": "java",
      "version": "21.0.2-graalce"
     },
@@ -8646,6 +8650,10 @@
    "sdkman\\graalvm": {
     "driver": "sdkman",
     "fields": {
+     "latest-check": {
+      "github": "graalvm/graalvm-ce-builds",
+      "tag-re": "jdk-([0-9][0-9.]*)"
+     },
      "name": "java",
      "version": "21.0.2-graalce"
     },
@@ -15537,6 +15545,10 @@
    "sdkman\\graalvm": {
     "driver": "sdkman",
     "fields": {
+     "latest-check": {
+      "github": "graalvm/graalvm-ce-builds",
+      "tag-re": "jdk-([0-9][0-9.]*)"
+     },
      "name": "java",
      "version": "21.0.2-graalce"
     },
@@ -22331,6 +22343,10 @@
    "sdkman\\graalvm": {
     "driver": "sdkman",
     "fields": {
+     "latest-check": {
+      "github": "graalvm/graalvm-ce-builds",
+      "tag-re": "jdk-([0-9][0-9.]*)"
+     },
      "name": "java",
      "version": "21.0.2-graalce"
     },
@@ -28735,6 +28751,10 @@
    "sdkman\\graalvm": {
     "driver": "sdkman",
     "fields": {
+     "latest-check": {
+      "github": "graalvm/graalvm-ce-builds",
+      "tag-re": "jdk-([0-9][0-9.]*)"
+     },
      "name": "java",
      "version": "21.0.2-graalce"
     },
@@ -35210,6 +35230,10 @@
    "sdkman\\graalvm": {
     "driver": "sdkman",
     "fields": {
+     "latest-check": {
+      "github": "graalvm/graalvm-ce-builds",
+      "tag-re": "jdk-([0-9][0-9.]*)"
+     },
      "name": "java",
      "version": "21.0.2-graalce"
     },
@@ -41049,6 +41073,10 @@
    "sdkman\\graalvm": {
     "driver": "sdkman",
     "fields": {
+     "latest-check": {
+      "github": "graalvm/graalvm-ce-builds",
+      "tag-re": "jdk-([0-9][0-9.]*)"
+     },
      "name": "java",
      "version": "21.0.2-graalce"
     },
@@ -46623,6 +46651,10 @@
    "sdkman\\graalvm": {
     "driver": "sdkman",
     "fields": {
+     "latest-check": {
+      "github": "graalvm/graalvm-ce-builds",
+      "tag-re": "jdk-([0-9][0-9.]*)"
+     },
      "name": "java",
      "version": "21.0.2-graalce"
     },
@@ -53281,6 +53313,10 @@
    "sdkman\\graalvm": {
     "driver": "sdkman",
     "fields": {
+     "latest-check": {
+      "github": "graalvm/graalvm-ce-builds",
+      "tag-re": "jdk-([0-9][0-9.]*)"
+     },
      "name": "java",
      "version": "21.0.2-graalce"
     },
@@ -60311,6 +60347,10 @@
    "sdkman\\graalvm": {
     "driver": "sdkman",
     "fields": {
+     "latest-check": {
+      "github": "graalvm/graalvm-ce-builds",
+      "tag-re": "jdk-([0-9][0-9.]*)"
+     },
      "name": "java",
      "version": "21.0.2-graalce"
     },
@@ -67211,6 +67251,10 @@
    "sdkman\\graalvm": {
     "driver": "sdkman",
     "fields": {
+     "latest-check": {
+      "github": "graalvm/graalvm-ce-builds",
+      "tag-re": "jdk-([0-9][0-9.]*)"
+     },
      "name": "java",
      "version": "21.0.2-graalce"
     },

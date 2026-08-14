@@ -775,6 +775,34 @@ def cmd_refresh(ctx, args):
             and 'GITHUB_TOKEN' not in ctx.env:
         print('\nSome lookups failed (network or GitHub rate limit). Set '
               'CONFIGSYS_GITHUB_TOKEN or GITHUB_TOKEN to lift the API limit.')
+
+    # MANUAL (`static:`) version pins are skipped by the discovery loop above (no upstream query).
+    # A component may add a `latest-check:` version-source naming where the CURRENT upstream version
+    # lives (a github repo, or a `url:`+`regex:` page scrape); we fetch it and compare — ADVISORY
+    # only, the pin stays authoritative and nothing auto-bumps, so you just learn WHEN to bump a pin
+    # by hand. `check` re-surfaces this (from the stamp) without hitting the network. Deduped per comp.
+    from . import refreshstate
+    from .versions import discover as _discover_latest
+    from .osversion import parse_version as _pv
+    stale, seen_lc = {}, set()
+    for key in sorted(units):
+        rc = units[key]
+        lc = rc.fields.get('latest-check')
+        if not isinstance(lc, dict) or rc.comp in seen_lc:
+            continue
+        seen_lc.add(rc.comp)
+        drv = get_driver(rc.driver, ctx.runner, ctx.paths)
+        pinned = drv.resolve_version(rc) if drv is not None else None
+        upstream = _discover_latest(lc, ctx.paths, refresh=True)
+        pu, pp = _pv(upstream), _pv(pinned)
+        if pu is not None and pp is not None and pu > pp:
+            stale[rc.comp] = [str(pinned), str(upstream)]
+    if stale:
+        print('\nManual version pins behind upstream (bump the pin in routes.hu / the plugin):')
+        for comp in sorted(stale):
+            print(f'  {comp}: pinned {stale[comp][0]}  ->  {stale[comp][1]} available')
+    refreshstate.record_stale_pins(ctx.paths, stale)
+
     # refresh the native package index too — the SOURCE for `via: native` components, so their
     # get_latest / installs reflect the current candidates (apt in particular NEVER auto-updates
     # for a plain install). sudo runs as a subprocess (prompts in this terminal), not the whole app.
@@ -1251,12 +1279,21 @@ def cmd_check(ctx, args):
                           for d in _decls
                           if d.get('sha256') and not _plugins.checksum_ok(ctx.paths.plugins_dir, d)]
 
+    # manual version pins the LAST `refresh` found behind upstream (from a `latest-check:` source).
+    # Read-only from the stamp — never hits the network here; empty until you run `configsys refresh`.
+    from . import refreshstate
+    stale_pin_warnings = [f'{c}: version pin {p[0]} is behind upstream {p[1]} — bump it '
+                          f'(routes.hu / the plugin)'
+                          for c, p in sorted(refreshstate.read_stale_pins(ctx.paths).items())
+                          if isinstance(p, (list, tuple)) and len(p) == 2]
+
     errors = [i for i in issues if i.is_error]
     warnings = [i for i in issues if not i.is_error]
     code_warnings = ctx.plugin_code_warnings
     if (not errors and not warnings and not prof_issues and not prof_errors and not pin_issues
             and not include_warnings and not code_warnings and not conflict_warnings
-            and not theme_warnings and not pin_conflict_warnings and not py_floor_warnings):
+            and not theme_warnings and not pin_conflict_warnings and not py_floor_warnings
+            and not stale_pin_warnings):
         print(f'configsys: OK — {len(components)} components, no issues')
         return 0
 
@@ -1282,9 +1319,12 @@ def cmd_check(ctx, args):
         print(f'  warn    {msg}')
     for msg in py_floor_warnings:
         print(f'  warn    {msg}')
+    for msg in stale_pin_warnings:
+        print(f'  warn    {msg}')
     n_err = len(errors) + len(prof_errors) + len(prof_issues) + len(pin_issues)
     n_warn = (len(warnings) + len(include_warnings) + len(code_warnings) + len(conflict_warnings)
-              + len(theme_warnings) + len(pin_conflict_warnings) + len(py_floor_warnings))
+              + len(theme_warnings) + len(pin_conflict_warnings) + len(py_floor_warnings)
+              + len(stale_pin_warnings))
     print(f'\nconfigsys: {n_err} error(s), {n_warn} warning(s) '
           f'across {len(components)} components')
     return 1 if n_err else 0

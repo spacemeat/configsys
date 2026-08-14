@@ -1,6 +1,11 @@
 '''refreshstate.py — a one-line stamp of when `configsys refresh` last ran, so the TUI can show
-how stale the package view is. Just a unix timestamp in <state>/last-refresh; missing = never.'''
+how stale the package view is. Just a unix timestamp in <state>/last-refresh; missing = never.
 
+Also stamps `stale-pins.json`: the components whose MANUAL (`static:`) version pin `refresh` found
+behind upstream (via their `latest-check:` source). Advisory only — `check` reads it to nudge you
+to bump the pin; nothing auto-updates.'''
+
+import json
 import time
 
 
@@ -11,6 +16,25 @@ def record(paths):
         paths.last_refresh_file.write_text(str(int(time.time())), encoding='utf-8')
     except OSError:
         pass
+
+
+def record_stale_pins(paths, stale):
+    '''Stamp {component: [pinned, upstream]} for pins refresh found behind upstream — OVERWRITES
+    each run (a fixed pin clears). Best-effort; a write failure is not fatal.'''
+    try:
+        paths.state_dir.mkdir(parents=True, exist_ok=True)
+        paths.stale_pins_file.write_text(json.dumps(stale, sort_keys=True), encoding='utf-8')
+    except OSError:
+        pass
+
+
+def read_stale_pins(paths):
+    '''{component: [pinned, upstream]} from the last refresh, or {} if none / never run / unreadable.'''
+    try:
+        data = json.loads(paths.stale_pins_file.read_text(encoding='utf-8'))
+        return data if isinstance(data, dict) else {}
+    except (OSError, ValueError):
+        return {}
 
 
 def age_days(paths):
