@@ -67,6 +67,7 @@ profiles: {
     web-lang: [ node  typescript  sass ]
     languages: [ +c-cpp-lang  +dotnet-lang  +go-lang  +haskell-lang  +java-lang  +lisp-lang  +lua-lang  +ocaml-lang  +php-lang  +python-lang  +ruby-lang  +rust-lang  +tcl-lang  +web-lang  erlang  elixir  julia  nim  nasm  octave odin  perl  r  zig  gfortran  gnat  gnucobol  d  crystal  dart  raku  v  gleam  fennel  swift  racket  guile ]
 
+    jvm-tools: [ +java-lang  mvnd  ant  jbang  scalacli  coursier  springboot  quarkus  micronaut  liquibase  detekt  jreleaser ]
     dev-tools: [ git  jq  just  protobuf  yq ]
     version-control-tools: [ git  mercurial  subversion  cvs  perforce  fossil  bazaar ]
     compression-tools: [ zstd  lz4  p7zip  zip  unzip  unrar ]

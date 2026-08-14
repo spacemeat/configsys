@@ -648,6 +648,25 @@
             install: [ { via: sdkman } ] }
         leiningen: { description: "Leiningen — build automation for Clojure (`lein`)." requires: jdk
             install: [ { via: sdkman } ] }
+        // More JVM-ecosystem tools via SDKMAN (all need a JDK; `sdk install <name>`, any distro). Build
+        // tools, framework CLIs, run/scripting, data engines, DB/quality/release, profiling. (SDKMAN
+        // has more — grails/vertx/helidon/tomcat/jetty/hadoop/kscript/… — add the same way if wanted.)
+        mvnd:       { description: "Maven Daemon (mvnd) — a faster Maven with a resident build daemon." requires: jdk  install: [ { via: sdkman } ] }
+        ant:        { description: "Apache Ant — the classic XML-driven Java build tool." requires: jdk  install: [ { via: sdkman } ] }
+        springboot: { description: "Spring Boot CLI — scaffold and run Spring Boot applications." requires: jdk  install: [ { via: sdkman } ] }
+        quarkus:    { description: "Quarkus CLI — tooling for the Quarkus Java framework." requires: jdk  install: [ { via: sdkman } ] }
+        micronaut:  { description: "Micronaut CLI (`mn`) — build Micronaut microservices." requires: jdk  install: [ { via: sdkman } ] }
+        jbang:      { description: "JBang — run Java/JVM scripts with no project setup." requires: jdk  install: [ { via: sdkman } ] }
+        scalacli:   { description: "Scala CLI — the modern all-in-one Scala runner and tooling." requires: jdk  install: [ { via: sdkman } ] }
+        coursier:   { description: "Coursier (`cs`) — the JVM artifact fetcher and application installer." requires: jdk  install: [ { via: sdkman } ] }
+        spark:      { description: "Apache Spark — a unified analytics engine for large-scale data." requires: jdk  install: [ { via: sdkman } ] }
+        flink:      { description: "Apache Flink — stream and batch data processing." requires: jdk  install: [ { via: sdkman } ] }
+        liquibase:  { description: "Liquibase — database schema change management and migrations." requires: jdk  install: [ { via: sdkman } ] }
+        detekt:     { description: "detekt — static code analysis for Kotlin." requires: jdk  install: [ { via: sdkman } ] }
+        jreleaser:  { description: "JReleaser — release automation for JVM (and other) projects." requires: jdk  install: [ { via: sdkman } ] }
+        visualvm:   { description: "VisualVM — a visual JVM profiler and monitor." requires: jdk  install: [ { via: sdkman } ] }
+        jmc:        { description: "JDK Mission Control — JVM profiling and diagnostics (JFR)." requires: jdk  install: [ { via: sdkman } ] }
+        jmeter:     { description: "Apache JMeter — load and performance testing." requires: jdk  install: [ { via: sdkman } ] }
         racket: { description: "Racket — a full-spectrum Scheme/Lisp language (ships DrRacket)."
             install: [ { via: native  when: "debian or redhat or arch or alpine"  repo-component: universe } ] }   // uniform `racket` (brew ships a macOS cask, not a formula)
         guile: { description: "GNU Guile — the GNU Scheme interpreter."
@@ -1658,8 +1677,11 @@
         }
         // Maven (native everywhere) and Gradle (native except Fedora base — use SDKMAN there). Both
         // need a JVM.
-        maven:  { description: "Apache Maven — Java build and dependency management." requires: jdk  install: [ { via: native } ] }
-        gradle: { description: "Gradle — JVM build automation." requires: jdk  install: [ { via: native  when: "debian or arch or fedora_atomic" } ] }
+        maven:  { description: "Apache Maven — Java build and dependency management." requires: jdk
+                  install: [ { via: native }  { via: sdkman  standing: never-auto } ] }   // native default; SDKMAN for a pinned version
+        gradle: { description: "Gradle — JVM build automation." requires: jdk
+                  install: [ { via: native  when: "debian or arch or fedora_atomic" }   // native where packaged
+                             { via: sdkman  when: "not debian and not arch and not fedora_atomic" } ] }   // SDKMAN elsewhere (fedora/alpine/opensuse) + any pinned version
 
         // --- debugging / static analysis / profiling (NB: ASan/UBSan/TSan are gcc/clang FLAGS,
         // not packages — nothing to install for those). ---
