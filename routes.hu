@@ -1017,8 +1017,9 @@
                 { via: native  when: "debian"  repo-component: multiverse }
                 { via: native  when: "arch" } ]
         }
-        // A ready bundle of the free ones (unrar stays opt-in, separate).
-        compression: { description: "Compression tools bundle — zstd, lz4, 7-zip, zip, unzip." install: [ { via: parts  parts: [ zstd, lz4, p7zip, zip, unzip, unrar ] } ] }
+        // (The `compression` grouping is a PROFILE, not a parts component: nothing depends on it and
+        // it's not OS-conditional, so the profile degrades gracefully — a part that's unroutable here,
+        // e.g. unrar on musl/atomic, is skipped rather than failing the whole set. See config.hu.)
 
         // --- audio/video codecs (gstreamer names verified across all five families) ---
         // Free bundle: ffmpeg (already a component) + gstreamer good/bad plugins. The patent-
@@ -1488,8 +1489,8 @@
         perf: { description: "Linux `perf` — sampling profiler and performance counters." install: [ { via: native  name: { default: perf } }
                            { via: native  when: debian  name: { apt: linux-perf } }
                            { via: native  when: ubuntu  name: { apt: linux-tools-generic } } ] }
-        // A one-shot bundle of the core analysis kit (a parts aggregator, like `compression` — a
-        // convenience grouping, NOT a tool).
+        // A one-shot bundle of the core analysis kit. This one IS a parts aggregator (not a profile)
+        // because it's OS-conditional — the `when:` gates the whole kit out where some parts are absent.
         analysis: { description: "Debug & analysis kit — valgrind, cppcheck, clang-tidy, lldb, strace, ltrace." install: [ { via: parts  when: "debian or redhat or arch"  parts: [ valgrind, cppcheck, clang-tidy, lldb, strace, ltrace ] } ] }
 
         // --- configuration management ---

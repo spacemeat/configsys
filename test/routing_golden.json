@@ -589,50 +589,6 @@
     "name": "php"
    }
   },
-  "compression": {
-   "pacman\\lz4": {
-    "driver": "pacman",
-    "fields": {
-     "name": "lz4"
-    },
-    "name": "lz4"
-   },
-   "pacman\\p7zip": {
-    "driver": "pacman",
-    "fields": {
-     "name": "7zip"
-    },
-    "name": "7zip"
-   },
-   "pacman\\unrar": {
-    "driver": "pacman",
-    "fields": {
-     "name": "unrar"
-    },
-    "name": "unrar"
-   },
-   "pacman\\unzip": {
-    "driver": "pacman",
-    "fields": {
-     "name": "unzip"
-    },
-    "name": "unzip"
-   },
-   "pacman\\zip": {
-    "driver": "pacman",
-    "fields": {
-     "name": "zip"
-    },
-    "name": "zip"
-   },
-   "pacman\\zstd": {
-    "driver": "pacman",
-    "fields": {
-     "name": "zstd"
-    },
-    "name": "zstd"
-   }
-  },
   "conan": {
    "pacman\\pipx": {
     "driver": "pacman",
@@ -5315,51 +5271,6 @@
      "repo-component": "universe"
     },
     "name": "php-cli"
-   }
-  },
-  "compression": {
-   "apt\\lz4": {
-    "driver": "apt",
-    "fields": {
-     "name": "lz4"
-    },
-    "name": "lz4"
-   },
-   "apt\\p7zip": {
-    "driver": "apt",
-    "fields": {
-     "name": "p7zip-full"
-    },
-    "name": "p7zip-full"
-   },
-   "apt\\unrar": {
-    "driver": "apt",
-    "fields": {
-     "name": "unrar",
-     "repo-component": "multiverse"
-    },
-    "name": "unrar"
-   },
-   "apt\\unzip": {
-    "driver": "apt",
-    "fields": {
-     "name": "unzip"
-    },
-    "name": "unzip"
-   },
-   "apt\\zip": {
-    "driver": "apt",
-    "fields": {
-     "name": "zip"
-    },
-    "name": "zip"
-   },
-   "apt\\zstd": {
-    "driver": "apt",
-    "fields": {
-     "name": "zstd"
-    },
-    "name": "zstd"
    }
   },
   "conan": {
@@ -10629,51 +10540,6 @@
     "name": "php-cli"
    }
   },
-  "compression": {
-   "apt\\lz4": {
-    "driver": "apt",
-    "fields": {
-     "name": "lz4"
-    },
-    "name": "lz4"
-   },
-   "apt\\p7zip": {
-    "driver": "apt",
-    "fields": {
-     "name": "p7zip-full"
-    },
-    "name": "p7zip-full"
-   },
-   "apt\\unrar": {
-    "driver": "apt",
-    "fields": {
-     "name": "unrar",
-     "repo-component": "multiverse"
-    },
-    "name": "unrar"
-   },
-   "apt\\unzip": {
-    "driver": "apt",
-    "fields": {
-     "name": "unzip"
-    },
-    "name": "unzip"
-   },
-   "apt\\zip": {
-    "driver": "apt",
-    "fields": {
-     "name": "zip"
-    },
-    "name": "zip"
-   },
-   "apt\\zstd": {
-    "driver": "apt",
-    "fields": {
-     "name": "zstd"
-    },
-    "name": "zstd"
-   }
-  },
   "conan": {
    "apt\\pipx": {
     "driver": "apt",
@@ -15849,51 +15715,6 @@
     "name": "php-cli"
    }
   },
-  "compression": {
-   "apt\\lz4": {
-    "driver": "apt",
-    "fields": {
-     "name": "lz4"
-    },
-    "name": "lz4"
-   },
-   "apt\\p7zip": {
-    "driver": "apt",
-    "fields": {
-     "name": "p7zip-full"
-    },
-    "name": "p7zip-full"
-   },
-   "apt\\unrar": {
-    "driver": "apt",
-    "fields": {
-     "name": "unrar",
-     "repo-component": "multiverse"
-    },
-    "name": "unrar"
-   },
-   "apt\\unzip": {
-    "driver": "apt",
-    "fields": {
-     "name": "unzip"
-    },
-    "name": "unzip"
-   },
-   "apt\\zip": {
-    "driver": "apt",
-    "fields": {
-     "name": "zip"
-    },
-    "name": "zip"
-   },
-   "apt\\zstd": {
-    "driver": "apt",
-    "fields": {
-     "name": "zstd"
-    },
-    "name": "zstd"
-   }
-  },
   "conan": {
    "apt\\pipx": {
     "driver": "apt",
@@ -20948,61 +20769,6 @@
     "name": "php-cli"
    }
   },
-  "compression": {
-   "dnf\\lz4": {
-    "driver": "dnf",
-    "fields": {
-     "name": "lz4"
-    },
-    "name": "lz4"
-   },
-   "dnf\\p7zip": {
-    "driver": "dnf",
-    "fields": {
-     "name": "p7zip"
-    },
-    "name": "p7zip"
-   },
-   "dnf\\rpmfusion-free": {
-    "driver": "dnf",
-    "fields": {
-     "name": "rpmfusion-free-release",
-     "pubkey-url": "https://rpmfusion.org/keys?action=AttachFile&do=get&target=RPM-GPG-KEY-rpmfusion-free-fedora-$releasever",
-     "repo-id": "rpmfusion-free",
-     "repo-name": "RPM Fusion Free",
-     "repo-url": "https://download1.rpmfusion.org/free/fedora/releases/$releasever/Everything/$basearch/os/"
-    },
-    "name": "rpmfusion-free-release"
-   },
-   "dnf\\unrar": {
-    "driver": "dnf",
-    "fields": {
-     "name": "unrar"
-    },
-    "name": "unrar"
-   },
-   "dnf\\unzip": {
-    "driver": "dnf",
-    "fields": {
-     "name": "unzip"
-    },
-    "name": "unzip"
-   },
-   "dnf\\zip": {
-    "driver": "dnf",
-    "fields": {
-     "name": "zip"
-    },
-    "name": "zip"
-   },
-   "dnf\\zstd": {
-    "driver": "dnf",
-    "fields": {
-     "name": "zstd"
-    },
-    "name": "zstd"
-   }
-  },
   "conan": {
    "dnf\\pipx": {
     "driver": "dnf",
@@ -25815,61 +25581,6 @@
      "repo-component": "universe"
     },
     "name": "php-cli"
-   }
-  },
-  "compression": {
-   "dnf\\lz4": {
-    "driver": "dnf",
-    "fields": {
-     "name": "lz4"
-    },
-    "name": "lz4"
-   },
-   "dnf\\p7zip": {
-    "driver": "dnf",
-    "fields": {
-     "name": "p7zip"
-    },
-    "name": "p7zip"
-   },
-   "dnf\\rpmfusion-free": {
-    "driver": "dnf",
-    "fields": {
-     "name": "rpmfusion-free-release",
-     "pubkey-url": "https://rpmfusion.org/keys?action=AttachFile&do=get&target=RPM-GPG-KEY-rpmfusion-free-fedora-$releasever",
-     "repo-id": "rpmfusion-free",
-     "repo-name": "RPM Fusion Free",
-     "repo-url": "https://download1.rpmfusion.org/free/fedora/releases/$releasever/Everything/$basearch/os/"
-    },
-    "name": "rpmfusion-free-release"
-   },
-   "dnf\\unrar": {
-    "driver": "dnf",
-    "fields": {
-     "name": "unrar"
-    },
-    "name": "unrar"
-   },
-   "dnf\\unzip": {
-    "driver": "dnf",
-    "fields": {
-     "name": "unzip"
-    },
-    "name": "unzip"
-   },
-   "dnf\\zip": {
-    "driver": "dnf",
-    "fields": {
-     "name": "zip"
-    },
-    "name": "zip"
-   },
-   "dnf\\zstd": {
-    "driver": "dnf",
-    "fields": {
-     "name": "zstd"
-    },
-    "name": "zstd"
    }
   },
   "conan": {
@@ -33973,51 +33684,6 @@
     "name": "php-cli"
    }
   },
-  "compression": {
-   "apt\\lz4": {
-    "driver": "apt",
-    "fields": {
-     "name": "lz4"
-    },
-    "name": "lz4"
-   },
-   "apt\\p7zip": {
-    "driver": "apt",
-    "fields": {
-     "name": "p7zip-full"
-    },
-    "name": "p7zip-full"
-   },
-   "apt\\unrar": {
-    "driver": "apt",
-    "fields": {
-     "name": "unrar",
-     "repo-component": "multiverse"
-    },
-    "name": "unrar"
-   },
-   "apt\\unzip": {
-    "driver": "apt",
-    "fields": {
-     "name": "unzip"
-    },
-    "name": "unzip"
-   },
-   "apt\\zip": {
-    "driver": "apt",
-    "fields": {
-     "name": "zip"
-    },
-    "name": "zip"
-   },
-   "apt\\zstd": {
-    "driver": "apt",
-    "fields": {
-     "name": "zstd"
-    },
-    "name": "zstd"
-   }
-  },
   "conan": {
    "apt\\python3-pip": {
     "driver": "apt",
@@ -39250,69 +38916,6 @@
     "name": "php-cli"
    }
   },
-  "compression": {
-   "dnf\\epel-release": {
-    "driver": "dnf",
-    "fields": {
-     "name": "epel-release"
-    },
-    "name": "epel-release"
-   },
-   "dnf\\lz4": {
-    "driver": "dnf",
-    "fields": {
-     "name": "lz4"
-    },
-    "name": "lz4"
-   },
-   "dnf\\p7zip": {
-    "driver": "dnf",
-    "fields": {
-     "name": "p7zip"
-    },
-    "name": "p7zip"
-   },
-   "dnf\\rpmfusion-free": {
-    "driver": "dnf",
-    "fields": {
-     "enable-repo": "crb",
-     "name": "rpmfusion-free-release",
-     "pubkey-url": "https://rpmfusion.org/keys?action=AttachFile&do=get&target=RPM-GPG-KEY-rpmfusion-free-el-$releasever",
-     "repo-id": "rpmfusion-free",
-     "repo-name": "RPM Fusion for EL - Free",
-     "repo-url": "https://download1.rpmfusion.org/free/el/updates/$releasever/$basearch/"
-    },
-    "name": "rpmfusion-free-release"
-   },
-   "dnf\\unrar": {
-    "driver": "dnf",
-    "fields": {
-     "name": "unrar"
-    },
-    "name": "unrar"
-   },
-   "dnf\\unzip": {
-    "driver": "dnf",
-    "fields": {
-     "name": "unzip"
-    },
-    "name": "unzip"
-   },
-   "dnf\\zip": {
-    "driver": "dnf",
-    "fields": {
-     "name": "zip"
-    },
-    "name": "zip"
-   },
-   "dnf\\zstd": {
-    "driver": "dnf",
-    "fields": {
-     "name": "zstd"
-    },
-    "name": "zstd"
-   }
-  },
   "conan": {
    "dnf\\epel-release": {
     "driver": "dnf",
@@ -44474,51 +44077,6 @@
      "repo-component": "universe"
     },
     "name": "php-cli"
-   }
-  },
-  "compression": {
-   "apt\\lz4": {
-    "driver": "apt",
-    "fields": {
-     "name": "lz4"
-    },
-    "name": "lz4"
-   },
-   "apt\\p7zip": {
-    "driver": "apt",
-    "fields": {
-     "name": "p7zip-full"
-    },
-    "name": "p7zip-full"
-   },
-   "apt\\unrar": {
-    "driver": "apt",
-    "fields": {
-     "name": "unrar",
-     "repo-component": "multiverse"
-    },
-    "name": "unrar"
-   },
-   "apt\\unzip": {
-    "driver": "apt",
-    "fields": {
-     "name": "unzip"
-    },
-    "name": "unzip"
-   },
-   "apt\\zip": {
-    "driver": "apt",
-    "fields": {
-     "name": "zip"
-    },
-    "name": "zip"
-   },
-   "apt\\zstd": {
-    "driver": "apt",
-    "fields": {
-     "name": "zstd"
-    },
-    "name": "zstd"
    }
   },
   "conan": {
@@ -49795,51 +49353,6 @@
      "repo-component": "universe"
     },
     "name": "php-cli"
-   }
-  },
-  "compression": {
-   "apt\\lz4": {
-    "driver": "apt",
-    "fields": {
-     "name": "lz4"
-    },
-    "name": "lz4"
-   },
-   "apt\\p7zip": {
-    "driver": "apt",
-    "fields": {
-     "name": "p7zip-full"
-    },
-    "name": "p7zip-full"
-   },
-   "apt\\unrar": {
-    "driver": "apt",
-    "fields": {
-     "name": "unrar",
-     "repo-component": "multiverse"
-    },
-    "name": "unrar"
-   },
-   "apt\\unzip": {
-    "driver": "apt",
-    "fields": {
-     "name": "unzip"
-    },
-    "name": "unzip"
-   },
-   "apt\\zip": {
-    "driver": "apt",
-    "fields": {
-     "name": "zip"
-    },
-    "name": "zip"
-   },
-   "apt\\zstd": {
-    "driver": "apt",
-    "fields": {
-     "name": "zstd"
-    },
-    "name": "zstd"
    }
   },
   "conan": {
