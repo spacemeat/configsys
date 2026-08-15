@@ -43,7 +43,7 @@ MANAGERS = [
 # repo (vscode/MS) or fetches a github .deb (fastfetch): the name only resolves after that setup,
 # so a base-repo existence check would false-positive. These belong to other verifications.
 _NON_REPO_FIELDS = frozenset({'deb-source', 'source-line', 'source-path', 'repo-url', 'repo-id',
-                              'pubkey-url'})
+                              'pubkey-url', 'ppa'})   # `ppa:` wires a PPA (deadsnakes) — not a base-repo name
 
 
 def _native_names(block, ver, manager, plugin_files=(), routes_path=ROUTES):
@@ -59,7 +59,13 @@ def _native_names(block, ver, manager, plugin_files=(), routes_path=ROUTES):
         except ResolveError:
             continue                                     # doesn't route here — skip
         for rc in units.values():
-            if rc.driver == manager and not (_NON_REPO_FIELDS & rc.fields.keys()):
+            if rc.driver != manager or (_NON_REPO_FIELDS & rc.fields.keys()):
+                continue
+            multi = rc.fields.get('packages')            # a multi-package meta unit (opengl, python-build-
+            if isinstance(multi, (list, tuple)):         # deps, …): verify each REAL package, not the unit name
+                for p in multi:
+                    pkgs.setdefault(p, set()).add(name)
+            else:
                 pkgs.setdefault(rc.name, set()).add(name)
     return {p: sorted(cs) for p, cs in pkgs.items()}
 
@@ -76,7 +82,7 @@ def extract(routes_path=ROUTES):
 # and supplies its own image + setup (e.g. Proxmox = apt on debian:12 + the PVE repo).
 _CHECK = {
     'apt':    'apt-cache show "$p" >/dev/null 2>&1',
-    'dnf':    'dnf -q info "$p" >/dev/null 2>&1',
+    'dnf':    '(dnf -q info "$p" >/dev/null 2>&1 || dnf -q provides "$p" >/dev/null 2>&1)',
     'pacman': '(pacman -Si "$p" >/dev/null 2>&1 || pacman -Sg "$p" >/dev/null 2>&1)',
     # `se -x` is already an EXACT name match, so just confirm a binary-package row exists — the
     # name never enters the regex (the old grep -qE "...$p..." broke on names with regex

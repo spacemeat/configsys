@@ -1480,15 +1480,6 @@
     "name": "flatpak"
    }
   },
-  "fvwm2": {
-   "pacman\\fvwm2": {
-    "driver": "pacman",
-    "fields": {
-     "name": "fvwm"
-    },
-    "name": "fvwm"
-   }
-  },
   "fzf": {
    "pacman\\fzf": {
     "driver": "pacman",
@@ -11603,8 +11594,25 @@
    }
   },
   "qtile": {
-   "apt\\qtile": {
+   "apt\\python3-pip": {
     "driver": "apt",
+    "fields": {
+     "name": "python3-pip"
+    },
+    "name": "python3-pip"
+   },
+   "pip\\pipx": {
+    "driver": "pip",
+    "fields": {
+     "name": "pipx",
+     "version": {
+      "pypi": "pipx"
+     }
+    },
+    "name": "pipx"
+   },
+   "pipx\\qtile": {
+    "driver": "pipx",
     "fields": {
      "name": "qtile"
     },
@@ -18556,8 +18564,15 @@
    }
   },
   "qtile": {
-   "apt\\qtile": {
+   "apt\\pipx": {
     "driver": "apt",
+    "fields": {
+     "name": "pipx"
+    },
+    "name": "pipx"
+   },
+   "pipx\\qtile": {
+    "driver": "pipx",
     "fields": {
      "name": "qtile"
     },
@@ -25488,8 +25503,15 @@
    }
   },
   "qtile": {
-   "apt\\qtile": {
+   "apt\\pipx": {
     "driver": "apt",
+    "fields": {
+     "name": "pipx"
+    },
+    "name": "pipx"
+   },
+   "pipx\\qtile": {
+    "driver": "pipx",
     "fields": {
      "name": "qtile"
     },
@@ -41158,15 +41180,6 @@
     "name": "crystal"
    }
   },
-  "cuda-toolkit-11": {
-   "brew\\cuda-toolkit-11": {
-    "driver": "brew",
-    "fields": {
-     "name": "cuda-toolkit-11"
-    },
-    "name": "cuda-toolkit-11"
-   }
-  },
   "curl": {
    "brew\\curl": {
     "driver": "brew",
@@ -50348,8 +50361,25 @@
    }
   },
   "qtile": {
-   "apt\\qtile": {
+   "apt\\python3-pip": {
     "driver": "apt",
+    "fields": {
+     "name": "python3-pip"
+    },
+    "name": "python3-pip"
+   },
+   "pip\\pipx": {
+    "driver": "pip",
+    "fields": {
+     "name": "pipx",
+     "version": {
+      "pypi": "pipx"
+     }
+    },
+    "name": "pipx"
+   },
+   "pipx\\qtile": {
+    "driver": "pipx",
     "fields": {
      "name": "qtile"
     },
@@ -64343,8 +64373,25 @@
    }
   },
   "qtile": {
-   "apt\\qtile": {
+   "apt\\python3-pip": {
     "driver": "apt",
+    "fields": {
+     "name": "python3-pip"
+    },
+    "name": "python3-pip"
+   },
+   "pip\\pipx": {
+    "driver": "pip",
+    "fields": {
+     "name": "pipx",
+     "version": {
+      "pypi": "pipx"
+     }
+    },
+    "name": "pipx"
+   },
+   "pipx\\qtile": {
+    "driver": "pipx",
     "fields": {
      "name": "qtile"
     },
@@ -71297,8 +71344,15 @@
    }
   },
   "qtile": {
-   "apt\\qtile": {
+   "apt\\pipx": {
     "driver": "apt",
+    "fields": {
+     "name": "pipx"
+    },
+    "name": "pipx"
+   },
+   "pipx\\qtile": {
+    "driver": "pipx",
     "fields": {
      "name": "qtile"
     },

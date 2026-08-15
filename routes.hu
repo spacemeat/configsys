@@ -154,8 +154,8 @@
                 { via: aur  when: "arch"  name: p4 } ] }
         bazaar: { description: "Breezy — the maintained fork of GNU Bazaar (the `brz` CLI); reads Bazaar & Git."
             install: [ { via: native  when: "debian"  name: brz  repo-component: universe }   // `bzr` is a transitional dummy -> brz
-                       { via: native  when: "fedora or arch or alpine or opensuse or fedora_atomic"  name: breezy }
-                       { via: pipx  when: "rhel"  name: breezy } ] }              // no rhel/EPEL package
+                       { via: native  when: "fedora or arch or alpine or fedora_atomic"  name: breezy }
+                       { via: pipx  when: "rhel or opensuse"  name: breezy } ] }   // no breezy in EL/EPEL or openSUSE
         // FUSE2 runtime — the appImage driver requires it; native, name differs by manager.
         libfuse2: { description: "libfuse2 — the FUSE runtime many AppImages need."
             install: [ { via: native  repo-component: universe  name: { dnf: fuse-libs  pacman: fuse2  apk: fuse  default: libfuse2 } } ]
@@ -226,7 +226,7 @@
         }
         cython: { description: "Cython — compile Python-like code to C extension modules."
             requires: [ python3, cpp-toolchain ]
-            install: [ { via: native  name: { apt: cython3  dnf: python3-Cython  pacman: cython  zypper: python3-Cython  apk: py3-cython } } ] }
+            install: [ { via: native  name: { apt: cython3  dnf: python3-Cython  pacman: cython  zypper: python313-Cython  apk: cython } } ] }
 
         // pyenv itself + the C libraries it needs to COMPILE CPython — the `via: pyenv` method's deps
         // (see drivers.pyenv). pyenv installs user-scope under ~/.pyenv via its official installer.
@@ -640,7 +640,7 @@
         gnat: { description: "GNAT — the GCC Ada compiler."
             install: [ { via: native  when: "not fedora_atomic"  name: { dnf: gcc-gnat  pacman: gcc-ada  apk: gcc-gnat  zypper: gcc-ada  default: gnat } } ] }   // no brew Ada front-end
         gnucobol: { description: "GnuCOBOL — a COBOL compiler (`cobc`)."
-            install: [ { via: native  when: "not arch"  name: { zypper: gnu-cobol  default: gnucobol } }
+            install: [ { via: native  when: "not arch"  name: gnucobol }   // `gnucobol` on apt/dnf/zypper/apk
                        { via: aur  when: "arch"  name: gnucobol } ] }   // AUR-only on Arch
         d: { description: "The D programming language (a D compiler — LDC / GDC / DMD per distro)."
             install: [ { via: native  when: "fedora or arch or alpine or fedora_atomic"  name: ldc }   // LLVM D compiler
@@ -972,7 +972,7 @@
                        { via: native  when: "fedora or arch or alpine or opensuse" } ] }
         winetricks: { description: "winetricks — fetch runtime DLLs/fonts and tweak Wine prefixes." requires: wine
             install: [ { via: native  when: "rhel"  requires: epel }   // EPEL8+
-                       { via: native  when: "debian or fedora or arch or opensuse or alpine"  repo-component: universe } ] }
+                       { via: native  when: "debian or fedora or arch or opensuse"  repo-component: universe } ] }   // not in Alpine's repos
         // Proton tooling. Proton itself is SELF-CONTAINED (bundles its own Wine + DXVK/VKD3D + a Steam
         // runtime) and is installed BY Steam (Steam Play) — not a package, and independent of the
         // system `wine` above. What you install by hand is the community tooling: ProtonUp-Qt (the GUI
@@ -1042,7 +1042,7 @@
         // lagging distro one; -11 stays the low-friction distro package for the older CUDA-11 line.
         cuda-toolkit-11: { description: "NVIDIA CUDA Toolkit 11 — GPU compute compiler and libraries (distro package)."
             standing: never-auto  provides: { cuda-toolkit: 11 }
-            install: [ { via: native  name: { apt: nvidia-cuda-toolkit  dnf: cuda  pacman: cuda } } ]
+            install: [ { via: native  when: "debian or redhat or arch"  name: { apt: nvidia-cuda-toolkit  dnf: cuda  pacman: cuda } } ]   // only these package a distro CUDA; no CUDA in Alpine/openSUSE base
         }
         cuda-toolkit-12: { description: "NVIDIA CUDA Toolkit 12 (from NVIDIA's CUDA repo)."
             provides: { cuda-toolkit: 12 }
@@ -1149,7 +1149,7 @@
         }
         opencv-python: { description: "OpenCV Python bindings (the `cv2` module)."
             install: [ { via: native  when: "debian or redhat or opensuse or arch or alpine"  repo-component: universe
-                         name: { apt: python3-opencv  dnf: python3-opencv  zypper: python3-opencv  pacman: opencv  apk: py3-opencv } } ]
+                         name: { apt: python3-opencv  dnf: python3-opencv  zypper: python313-opencv  pacman: opencv  apk: py3-opencv } } ]
         }
 
         // docker: "the engine, working" = the package + its daemon enabled. Post-install is just
@@ -1446,7 +1446,7 @@
             install: [ { via: native  when: "debian"  name: jackd2 }
                        { via: native  when: "fedora"  name: jack-audio-connection-kit }
                        { via: native  when: "rhel"  requires: epel  name: jack-audio-connection-kit }   // EPEL
-                       { via: native  when: "arch or opensuse"  name: jack2 }
+                       { via: native  when: "arch or opensuse"  name: { pacman: jack2  zypper: jack } }
                        { via: native  when: "fedora_atomic"  name: jack } ] }   // brew formula `jack`
         // yabridge — bridge Windows VST2/VST3/CLAP plugins into Linux audio hosts. Needs Wine; x86_64
         // only. Native on Arch (`extra`); elsewhere the upstream github release tarball.
@@ -1528,9 +1528,10 @@
         cosmic:   { description: "COSMIC — System76's Rust-based desktop environment." install: [ { via: native  when: "pop_os! or redhat or arch or opensuse or alpine"  name: { default: cosmic-session } } ] }                                                          // stock Debian/Ubuntu lack it; Pop + others ship cosmic-session
         // Window managers (X11/Wayland tilers + a classic). Gated to the families that package them.
         i3:       { description: "i3 — a keyboard-driven tiling window manager (X11)." install: [ { via: native  when: "debian or redhat or arch or opensuse or alpine"  name: { pacman: i3-wm  apk: i3wm  default: i3 } } ] }
-        qtile:    { description: "Qtile — a tiling window manager written and configured in Python." install: [ { via: native  when: "debian or redhat or arch"  name: { default: qtile } } ] }
+        qtile:    { description: "Qtile — a tiling window manager written and configured in Python." install: [ { via: native  when: "redhat or arch" }   // `qtile` on dnf/pacman; NOT packaged in Debian/Ubuntu
+                                { via: pipx  when: "debian"  name: qtile } ] }   // Debian/Ubuntu: install the Python WM with pipx
         xmonad:   { description: "xmonad — a tiling window manager written and configured in Haskell." install: [ { via: native  when: "debian or redhat or arch or opensuse"  name: { default: xmonad } } ] }
-        fvwm2:    { description: "FVWM2 — the classic, highly configurable X11 window manager." install: [ { via: native  when: "debian or arch"  name: { default: fvwm } } ] }   // fvwm2 packaging varies (many distros ship the 3.x line as `fvwm3`); debian/arch `fvwm` is the 2.x classic
+        fvwm2:    { description: "FVWM2 — the classic, highly configurable X11 window manager." install: [ { via: native  when: "debian"  name: fvwm } ] }   // the classic 2.x `fvwm` is Debian-only now; Arch ships only the 3.x line (`fvwm3`, a distinct component/AUR), so decline there rather than route to it
 
         // lazygit: native on fedora/arch; elsewhere (debian/EL) a static Go binary from the
         // GitHub release, unpacked under ~/apps/lazygit (scope-honoring). Its bash.d snippet
@@ -2283,7 +2284,7 @@
         // SDL2 (the common target). Arch dropped classic `sdl2` → `sdl2-compat` (SDL2 API on SDL3).
         sdl: { description: "SDL2 — Simple DirectMedia Layer (video/audio/input), dev headers + libs."
             install: [ { via: native  when: "debian or redhat or arch or alpine or opensuse or fedora_atomic"  repo-component: universe
-                         name: { apt: libsdl2-dev  dnf: SDL2-devel  pacman: sdl2-compat  apk: sdl2-dev  zypper: libSDL2-devel  brew: sdl2 } } ]
+                         name: { apt: libsdl2-dev  dnf: SDL2-devel  pacman: sdl2-compat  apk: sdl2-dev  zypper: sdl2-compat-devel  brew: sdl2 } } ]
         }
         // SFML — note the major-version skew: 2.x on debian/fedora/alpine, 3.x on arch/brew (a
         // breaking API change). openSUSE package unconfirmed → omitted there.
