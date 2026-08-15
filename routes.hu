@@ -290,6 +290,16 @@
             install: [ { via: dotfiles  config: { src: htop  dst: $XDG_CONFIG_HOME/htop } } ]
         }
 
+        // bottom (`btm`): Rust system monitor. Native `bottom` where packaged (Debian 12+/Ubuntu
+        // universe, Fedora, Arch, openSUSE, Alpine, Homebrew); EL has no package, so cargo builds it.
+        bottom: {
+            description: "Cross-platform system monitor (`btm`) — CPU/mem/net/process/disk in a TUI."
+            install: [
+                { via: native  when: "not rhel"  repo-component: universe }
+                { via: cargo  name: bottom }   // builds `btm`; covers EL + any older-distro gap
+            ]
+        }
+
         configsys-dotfiles: { description: "configsys's own shell integration, linked into place."
             install: [
                 // 00- prefix: the ~/.bash.d loader sources files in lexical order, so this runs
@@ -375,6 +385,26 @@
         }
         superfile-dotfiles: { description: "superfile config, linked into place."
             install: [ { via: dotfiles  requires: bash-dotfiles  src: bash.d/superfile.sh  dst: ~/.bash.d/superfile.sh } ]
+        }
+
+        // mc: Midnight Commander — packaged as `mc` in every base repo (EL via EPEL, like htop/btop).
+        mc: {
+            description: "Midnight Commander — a two-pane TUI file manager (`mc`)."
+            install: [
+                { via: native  when: "rhel"  requires: epel }
+                { via: native  repo-component: universe }
+            ]
+        }
+
+        // espeak: we install espeak-ng (the maintained fork; provides the `espeak` command),
+        // packaged as `espeak-ng` everywhere (Debian/Ubuntu universe, Fedora, Arch, openSUSE,
+        // Alpine, Homebrew; EL via EPEL).
+        espeak: {
+            description: "espeak-ng — compact software speech synthesizer (`espeak`)."
+            install: [
+                { via: native  when: "rhel"  requires: epel  name: espeak-ng }
+                { via: native  repo-component: universe  name: espeak-ng }
+            ]
         }
 
         // EPEL: a capability enabled by installing epel-release (only on EL). Anything
@@ -826,6 +856,16 @@
                   repo-url: "https://packages.microsoft.com/yumrepos/edge" }
                 { via: aur  when: "arch"  name: microsoft-edge-stable-bin }
                 { via: flatpak  hub: flathub  app: com.microsoft.Edge } ]
+        }
+        // Tor Browser via torbrowser-launcher (the official downloader/verifier). Native where
+        // packaged (Debian/Ubuntu universe, Fedora, openSUSE), AUR `tor-browser-bin` on Arch, and
+        // Flathub everywhere (self-contained — the only method on atomic/musl).
+        tor-browser: {
+            description: "Tor Browser — anonymized browsing over the Tor network."
+            install: [
+                { via: native  when: "debian or fedora or opensuse"  repo-component: universe  name: torbrowser-launcher }
+                { via: aur  when: "arch"  name: tor-browser-bin }
+                { via: flatpak  hub: flathub  app: org.torproject.torbrowser-launcher } ]
         }
 
         // ===================== network + web-dev tooling =====================
@@ -1518,6 +1558,17 @@
                 { via: native  when: "redhat or arch or opensuse or alpine or fedora_atomic" }
                 { via: tarball  when: "not alpine"  installDir: "$CONFIGSYS_APP_DIR/helix"  requires: glibc
                   version: { github: helix-editor/helix  strip-v: true  asset: "helix-*-x86_64-linux.tar.xz" } } ]   // glibc build — offered everywhere except musl (alpine has the native pkg)
+        }
+        // micro (`micro`): Go terminal editor. Native almost everywhere (Debian/Ubuntu universe,
+        // Fedora, Arch, openSUSE, Alpine, Homebrew); the upstream release tarball (ships `micro`)
+        // covers EL and anything missed.
+        micro: {
+            description: "Modern, intuitive terminal text editor (`micro`)."
+            install: [
+                { via: native  when: "not rhel"  repo-component: universe }
+                { via: tarball  installDir: "$CONFIGSYS_APP_DIR/micro"  requires: glibc
+                  version: { github: zyedidia/micro  strip-v: true  asset: "micro-*-linux64.tar.gz" } }
+            ]
         }
         // Zed — native on Arch; elsewhere its own install script (installs into ~/.local).
         zed: { description: "High-performance, multiplayer code editor from the Atom team."

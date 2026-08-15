@@ -33,7 +33,7 @@ profiles: {
     shells: [ fish  nushell  zsh ]
     desktops-compositors: [ budgie  cosmic  fvwm2  gnome  i3  kde  lxqt  mate  qtile  sway  xfce  xmonad ]
     text-editors: [ android-studio  antigravity  emacs  helix  jetbrains-toolbox  neovim  vscode  vscodium  zed ]
-    web-browsers: [ chrome  chromium  firefox  brave  opera  vivaldi  edge ]
+    web-browsers: [ chrome  chromium  firefox  brave  opera  vivaldi  edge  tor-browser ]
     audio: [ pipewire  jack ]
     gaming: [ vulkan-runtime  steam  wine  winetricks  protonup-qt  protontricks ]
 

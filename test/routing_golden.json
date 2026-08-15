@@ -371,6 +371,16 @@
     "name": "boost"
    }
   },
+  "bottom": {
+   "pacman\\bottom": {
+    "driver": "pacman",
+    "fields": {
+     "name": "bottom",
+     "repo-component": "universe"
+    },
+    "name": "bottom"
+   }
+  },
   "brave": {
    "aur\\brave": {
     "driver": "aur",
@@ -1271,6 +1281,16 @@
      "repo-component": "universe"
     },
     "name": "erlang"
+   }
+  },
+  "espeak": {
+   "pacman\\espeak": {
+    "driver": "pacman",
+    "fields": {
+     "name": "espeak-ng",
+     "repo-component": "universe"
+    },
+    "name": "espeak-ng"
    }
   },
   "ethtool": {
@@ -3108,6 +3128,16 @@
     "name": "maxima"
    }
   },
+  "mc": {
+   "pacman\\mc": {
+    "driver": "pacman",
+    "fields": {
+     "name": "mc",
+     "repo-component": "universe"
+    },
+    "name": "mc"
+   }
+  },
   "mercurial": {
    "pacman\\mercurial": {
     "driver": "pacman",
@@ -3125,6 +3155,16 @@
      "name": "meson"
     },
     "name": "meson"
+   }
+  },
+  "micro": {
+   "pacman\\micro": {
+    "driver": "pacman",
+    "fields": {
+     "name": "micro",
+     "repo-component": "universe"
+    },
+    "name": "micro"
    }
   },
   "micronaut": {
@@ -5401,6 +5441,29 @@
     "name": "tmux-dotfiles"
    }
   },
+  "tor-browser": {
+   "aur\\tor-browser": {
+    "driver": "aur",
+    "fields": {
+     "name": "tor-browser-bin"
+    },
+    "name": "tor-browser-bin"
+   },
+   "pacman\\base-devel": {
+    "driver": "pacman",
+    "fields": {
+     "name": "base-devel"
+    },
+    "name": "base-devel"
+   },
+   "pacman\\git": {
+    "driver": "pacman",
+    "fields": {
+     "name": "git"
+    },
+    "name": "git"
+   }
+  },
   "traceroute": {
    "pacman\\traceroute": {
     "driver": "pacman",
@@ -6767,6 +6830,16 @@
     "name": "libboost-all-dev"
    }
   },
+  "bottom": {
+   "apt\\bottom": {
+    "driver": "apt",
+    "fields": {
+     "name": "bottom",
+     "repo-component": "universe"
+    },
+    "name": "bottom"
+   }
+  },
   "brave": {
    "apt\\brave": {
     "driver": "apt",
@@ -7946,6 +8019,16 @@
      "repo-component": "universe"
     },
     "name": "erlang"
+   }
+  },
+  "espeak": {
+   "apt\\espeak": {
+    "driver": "apt",
+    "fields": {
+     "name": "espeak-ng",
+     "repo-component": "universe"
+    },
+    "name": "espeak-ng"
    }
   },
   "ethtool": {
@@ -10223,6 +10306,16 @@
     "name": "maxima"
    }
   },
+  "mc": {
+   "apt\\mc": {
+    "driver": "apt",
+    "fields": {
+     "name": "mc",
+     "repo-component": "universe"
+    },
+    "name": "mc"
+   }
+  },
   "mercurial": {
    "apt\\mercurial": {
     "driver": "apt",
@@ -10249,6 +10342,16 @@
      "name": "meson"
     },
     "name": "meson"
+   }
+  },
+  "micro": {
+   "apt\\micro": {
+    "driver": "apt",
+    "fields": {
+     "name": "micro",
+     "repo-component": "universe"
+    },
+    "name": "micro"
    }
   },
   "micronaut": {
@@ -12393,6 +12496,16 @@
      }
     },
     "name": "tmux-dotfiles"
+   }
+  },
+  "tor-browser": {
+   "apt\\tor-browser": {
+    "driver": "apt",
+    "fields": {
+     "name": "torbrowser-launcher",
+     "repo-component": "universe"
+    },
+    "name": "torbrowser-launcher"
    }
   },
   "traceroute": {
@@ -13706,6 +13819,16 @@
     "name": "libboost-all-dev"
    }
   },
+  "bottom": {
+   "apt\\bottom": {
+    "driver": "apt",
+    "fields": {
+     "name": "bottom",
+     "repo-component": "universe"
+    },
+    "name": "bottom"
+   }
+  },
   "brave": {
    "apt\\brave": {
     "driver": "apt",
@@ -14875,6 +14998,16 @@
      "repo-component": "universe"
     },
     "name": "erlang"
+   }
+  },
+  "espeak": {
+   "apt\\espeak": {
+    "driver": "apt",
+    "fields": {
+     "name": "espeak-ng",
+     "repo-component": "universe"
+    },
+    "name": "espeak-ng"
    }
   },
   "ethtool": {
@@ -17122,6 +17255,16 @@
     "name": "maxima"
    }
   },
+  "mc": {
+   "apt\\mc": {
+    "driver": "apt",
+    "fields": {
+     "name": "mc",
+     "repo-component": "universe"
+    },
+    "name": "mc"
+   }
+  },
   "mercurial": {
    "apt\\mercurial": {
     "driver": "apt",
@@ -17148,6 +17291,16 @@
      "name": "meson"
     },
     "name": "meson"
+   }
+  },
+  "micro": {
+   "apt\\micro": {
+    "driver": "apt",
+    "fields": {
+     "name": "micro",
+     "repo-component": "universe"
+    },
+    "name": "micro"
    }
   },
   "micronaut": {
@@ -19244,6 +19397,16 @@
     "name": "tmux-dotfiles"
    }
   },
+  "tor-browser": {
+   "apt\\tor-browser": {
+    "driver": "apt",
+    "fields": {
+     "name": "torbrowser-launcher",
+     "repo-component": "universe"
+    },
+    "name": "torbrowser-launcher"
+   }
+  },
   "traceroute": {
    "apt\\traceroute": {
     "driver": "apt",
@@ -20535,6 +20698,16 @@
     "name": "libboost-all-dev"
    }
   },
+  "bottom": {
+   "apt\\bottom": {
+    "driver": "apt",
+    "fields": {
+     "name": "bottom",
+     "repo-component": "universe"
+    },
+    "name": "bottom"
+   }
+  },
   "brave": {
    "apt\\brave": {
     "driver": "apt",
@@ -21707,6 +21880,16 @@
      "repo-component": "universe"
     },
     "name": "erlang"
+   }
+  },
+  "espeak": {
+   "apt\\espeak": {
+    "driver": "apt",
+    "fields": {
+     "name": "espeak-ng",
+     "repo-component": "universe"
+    },
+    "name": "espeak-ng"
    }
   },
   "ethtool": {
@@ -23947,6 +24130,16 @@
     "name": "maxima"
    }
   },
+  "mc": {
+   "apt\\mc": {
+    "driver": "apt",
+    "fields": {
+     "name": "mc",
+     "repo-component": "universe"
+    },
+    "name": "mc"
+   }
+  },
   "mercurial": {
    "apt\\mercurial": {
     "driver": "apt",
@@ -23973,6 +24166,16 @@
      "name": "meson"
     },
     "name": "meson"
+   }
+  },
+  "micro": {
+   "apt\\micro": {
+    "driver": "apt",
+    "fields": {
+     "name": "micro",
+     "repo-component": "universe"
+    },
+    "name": "micro"
    }
   },
   "micronaut": {
@@ -26082,6 +26285,16 @@
     "name": "tmux-dotfiles"
    }
   },
+  "tor-browser": {
+   "apt\\tor-browser": {
+    "driver": "apt",
+    "fields": {
+     "name": "torbrowser-launcher",
+     "repo-component": "universe"
+    },
+    "name": "torbrowser-launcher"
+   }
+  },
   "traceroute": {
    "apt\\traceroute": {
     "driver": "apt",
@@ -27372,6 +27585,16 @@
     "name": "boost-devel"
    }
   },
+  "bottom": {
+   "dnf\\bottom": {
+    "driver": "dnf",
+    "fields": {
+     "name": "bottom",
+     "repo-component": "universe"
+    },
+    "name": "bottom"
+   }
+  },
   "brave": {
    "dnf\\brave": {
     "driver": "dnf",
@@ -28419,6 +28642,16 @@
      "repo-component": "universe"
     },
     "name": "erlang"
+   }
+  },
+  "espeak": {
+   "dnf\\espeak": {
+    "driver": "dnf",
+    "fields": {
+     "name": "espeak-ng",
+     "repo-component": "universe"
+    },
+    "name": "espeak-ng"
    }
   },
   "ethtool": {
@@ -30420,6 +30653,16 @@
     "name": "maxima"
    }
   },
+  "mc": {
+   "dnf\\mc": {
+    "driver": "dnf",
+    "fields": {
+     "name": "mc",
+     "repo-component": "universe"
+    },
+    "name": "mc"
+   }
+  },
   "mercurial": {
    "dnf\\mercurial": {
     "driver": "dnf",
@@ -30446,6 +30689,16 @@
      "name": "meson"
     },
     "name": "meson"
+   }
+  },
+  "micro": {
+   "dnf\\micro": {
+    "driver": "dnf",
+    "fields": {
+     "name": "micro",
+     "repo-component": "universe"
+    },
+    "name": "micro"
    }
   },
   "micronaut": {
@@ -32521,6 +32774,16 @@
     "name": "tmux-dotfiles"
    }
   },
+  "tor-browser": {
+   "dnf\\tor-browser": {
+    "driver": "dnf",
+    "fields": {
+     "name": "torbrowser-launcher",
+     "repo-component": "universe"
+    },
+    "name": "torbrowser-launcher"
+   }
+  },
   "traceroute": {
    "dnf\\traceroute": {
     "driver": "dnf",
@@ -33859,6 +34122,16 @@
     "name": "boost-devel"
    }
   },
+  "bottom": {
+   "dnf\\bottom": {
+    "driver": "dnf",
+    "fields": {
+     "name": "bottom",
+     "repo-component": "universe"
+    },
+    "name": "bottom"
+   }
+  },
   "brave": {
    "dnf\\brave": {
     "driver": "dnf",
@@ -34932,6 +35205,16 @@
      "repo-component": "universe"
     },
     "name": "erlang"
+   }
+  },
+  "espeak": {
+   "dnf\\espeak": {
+    "driver": "dnf",
+    "fields": {
+     "name": "espeak-ng",
+     "repo-component": "universe"
+    },
+    "name": "espeak-ng"
    }
   },
   "ethtool": {
@@ -36933,6 +37216,16 @@
     "name": "maxima"
    }
   },
+  "mc": {
+   "dnf\\mc": {
+    "driver": "dnf",
+    "fields": {
+     "name": "mc",
+     "repo-component": "universe"
+    },
+    "name": "mc"
+   }
+  },
   "mercurial": {
    "dnf\\mercurial": {
     "driver": "dnf",
@@ -36959,6 +37252,16 @@
      "name": "meson"
     },
     "name": "meson"
+   }
+  },
+  "micro": {
+   "dnf\\micro": {
+    "driver": "dnf",
+    "fields": {
+     "name": "micro",
+     "repo-component": "universe"
+    },
+    "name": "micro"
    }
   },
   "micronaut": {
@@ -39034,6 +39337,16 @@
     "name": "tmux-dotfiles"
    }
   },
+  "tor-browser": {
+   "dnf\\tor-browser": {
+    "driver": "dnf",
+    "fields": {
+     "name": "torbrowser-launcher",
+     "repo-component": "universe"
+    },
+    "name": "torbrowser-launcher"
+   }
+  },
   "traceroute": {
    "dnf\\traceroute": {
     "driver": "dnf",
@@ -40280,6 +40593,16 @@
     "name": "org.blender.Blender"
    }
   },
+  "bottom": {
+   "brew\\bottom": {
+    "driver": "brew",
+    "fields": {
+     "name": "bottom",
+     "repo-component": "universe"
+    },
+    "name": "bottom"
+   }
+  },
   "brave": {
    "flatpak\\brave": {
     "driver": "flatpak",
@@ -40896,6 +41219,16 @@
      "name": "erlang"
     },
     "name": "erlang"
+   }
+  },
+  "espeak": {
+   "brew\\espeak": {
+    "driver": "brew",
+    "fields": {
+     "name": "espeak-ng",
+     "repo-component": "universe"
+    },
+    "name": "espeak-ng"
    }
   },
   "ethtool": {
@@ -42351,6 +42684,16 @@
     "name": "maxima"
    }
   },
+  "mc": {
+   "brew\\mc": {
+    "driver": "brew",
+    "fields": {
+     "name": "mc",
+     "repo-component": "universe"
+    },
+    "name": "mc"
+   }
+  },
   "mercurial": {
    "brew\\mercurial": {
     "driver": "brew",
@@ -42368,6 +42711,16 @@
      "name": "meson"
     },
     "name": "meson"
+   }
+  },
+  "micro": {
+   "brew\\micro": {
+    "driver": "brew",
+    "fields": {
+     "name": "micro",
+     "repo-component": "universe"
+    },
+    "name": "micro"
    }
   },
   "micronaut": {
@@ -43918,6 +44271,16 @@
     "name": "tmux-dotfiles"
    }
   },
+  "tor-browser": {
+   "flatpak\\tor-browser": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "org.torproject.torbrowser-launcher"
+    },
+    "name": "org.torproject.torbrowser-launcher"
+   }
+  },
   "tree-sitter-cli": {
    "brew\\rust": {
     "driver": "brew",
@@ -44944,6 +45307,16 @@
      "repo-component": "universe"
     },
     "name": "libboost-all-dev"
+   }
+  },
+  "bottom": {
+   "apt\\bottom": {
+    "driver": "apt",
+    "fields": {
+     "name": "bottom",
+     "repo-component": "universe"
+    },
+    "name": "bottom"
    }
   },
   "brave": {
@@ -46137,6 +46510,16 @@
      "repo-component": "universe"
     },
     "name": "erlang"
+   }
+  },
+  "espeak": {
+   "apt\\espeak": {
+    "driver": "apt",
+    "fields": {
+     "name": "espeak-ng",
+     "repo-component": "universe"
+    },
+    "name": "espeak-ng"
    }
   },
   "ethtool": {
@@ -48407,6 +48790,16 @@
     "name": "maxima"
    }
   },
+  "mc": {
+   "apt\\mc": {
+    "driver": "apt",
+    "fields": {
+     "name": "mc",
+     "repo-component": "universe"
+    },
+    "name": "mc"
+   }
+  },
   "mercurial": {
    "apt\\mercurial": {
     "driver": "apt",
@@ -48433,6 +48826,16 @@
      "name": "meson"
     },
     "name": "meson"
+   }
+  },
+  "micro": {
+   "apt\\micro": {
+    "driver": "apt",
+    "fields": {
+     "name": "micro",
+     "repo-component": "universe"
+    },
+    "name": "micro"
    }
   },
   "micronaut": {
@@ -50585,6 +50988,16 @@
     "name": "tmux-dotfiles"
    }
   },
+  "tor-browser": {
+   "apt\\tor-browser": {
+    "driver": "apt",
+    "fields": {
+     "name": "torbrowser-launcher",
+     "repo-component": "universe"
+    },
+    "name": "torbrowser-launcher"
+   }
+  },
   "traceroute": {
    "apt\\traceroute": {
     "driver": "apt",
@@ -51929,6 +52342,23 @@
     "name": "boost-devel"
    }
   },
+  "bottom": {
+   "cargo\\bottom": {
+    "driver": "cargo",
+    "fields": {
+     "name": "bottom"
+    },
+    "name": "bottom"
+   },
+   "dnf\\rust": {
+    "driver": "dnf",
+    "fields": {
+     "name": "cargo",
+     "repo-component": "universe"
+    },
+    "name": "cargo"
+   }
+  },
   "brave": {
    "dnf\\brave": {
     "driver": "dnf",
@@ -53036,6 +53466,22 @@
      "repo-component": "universe"
     },
     "name": "erlang"
+   }
+  },
+  "espeak": {
+   "dnf\\epel-release": {
+    "driver": "dnf",
+    "fields": {
+     "name": "epel-release"
+    },
+    "name": "epel-release"
+   },
+   "dnf\\espeak": {
+    "driver": "dnf",
+    "fields": {
+     "name": "espeak-ng"
+    },
+    "name": "espeak-ng"
    }
   },
   "ethtool": {
@@ -55117,6 +55563,22 @@
     "name": "maxima"
    }
   },
+  "mc": {
+   "dnf\\epel-release": {
+    "driver": "dnf",
+    "fields": {
+     "name": "epel-release"
+    },
+    "name": "epel-release"
+   },
+   "dnf\\mc": {
+    "driver": "dnf",
+    "fields": {
+     "name": "mc"
+    },
+    "name": "mc"
+   }
+  },
   "mercurial": {
    "dnf\\epel-release": {
     "driver": "dnf",
@@ -55149,6 +55611,28 @@
      "name": "meson"
     },
     "name": "meson"
+   }
+  },
+  "micro": {
+   "dnf\\curl": {
+    "driver": "dnf",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "tarball\\micro": {
+    "driver": "tarball",
+    "fields": {
+     "installDir": "$CONFIGSYS_APP_DIR/micro",
+     "name": "micro",
+     "version": {
+      "asset": "micro-*-linux64.tar.gz",
+      "github": "zyedidia/micro",
+      "strip-v": "true"
+     }
+    },
+    "name": "micro"
    }
   },
   "micronaut": {
@@ -57301,6 +57785,23 @@
     "name": "tmux-dotfiles"
    }
   },
+  "tor-browser": {
+   "dnf\\flatpak": {
+    "driver": "dnf",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\tor-browser": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "org.torproject.torbrowser-launcher"
+    },
+    "name": "org.torproject.torbrowser-launcher"
+   }
+  },
   "traceroute": {
    "dnf\\traceroute": {
     "driver": "dnf",
@@ -58719,6 +59220,16 @@
     "name": "libboost-all-dev"
    }
   },
+  "bottom": {
+   "apt\\bottom": {
+    "driver": "apt",
+    "fields": {
+     "name": "bottom",
+     "repo-component": "universe"
+    },
+    "name": "bottom"
+   }
+  },
   "brave": {
    "apt\\brave": {
     "driver": "apt",
@@ -59901,6 +60412,16 @@
      "repo-component": "universe"
     },
     "name": "erlang"
+   }
+  },
+  "espeak": {
+   "apt\\espeak": {
+    "driver": "apt",
+    "fields": {
+     "name": "espeak-ng",
+     "repo-component": "universe"
+    },
+    "name": "espeak-ng"
    }
   },
   "ethtool": {
@@ -62171,6 +62692,16 @@
     "name": "maxima"
    }
   },
+  "mc": {
+   "apt\\mc": {
+    "driver": "apt",
+    "fields": {
+     "name": "mc",
+     "repo-component": "universe"
+    },
+    "name": "mc"
+   }
+  },
   "mercurial": {
    "apt\\mercurial": {
     "driver": "apt",
@@ -62197,6 +62728,16 @@
      "name": "meson"
     },
     "name": "meson"
+   }
+  },
+  "micro": {
+   "apt\\micro": {
+    "driver": "apt",
+    "fields": {
+     "name": "micro",
+     "repo-component": "universe"
+    },
+    "name": "micro"
    }
   },
   "micronaut": {
@@ -64354,6 +64895,16 @@
      }
     },
     "name": "tmux-dotfiles"
+   }
+  },
+  "tor-browser": {
+   "apt\\tor-browser": {
+    "driver": "apt",
+    "fields": {
+     "name": "torbrowser-launcher",
+     "repo-component": "universe"
+    },
+    "name": "torbrowser-launcher"
    }
   },
   "traceroute": {
@@ -65667,6 +66218,16 @@
     "name": "libboost-all-dev"
    }
   },
+  "bottom": {
+   "apt\\bottom": {
+    "driver": "apt",
+    "fields": {
+     "name": "bottom",
+     "repo-component": "universe"
+    },
+    "name": "bottom"
+   }
+  },
   "brave": {
    "apt\\brave": {
     "driver": "apt",
@@ -66839,6 +67400,16 @@
      "repo-component": "universe"
     },
     "name": "erlang"
+   }
+  },
+  "espeak": {
+   "apt\\espeak": {
+    "driver": "apt",
+    "fields": {
+     "name": "espeak-ng",
+     "repo-component": "universe"
+    },
+    "name": "espeak-ng"
    }
   },
   "ethtool": {
@@ -69079,6 +69650,16 @@
     "name": "maxima"
    }
   },
+  "mc": {
+   "apt\\mc": {
+    "driver": "apt",
+    "fields": {
+     "name": "mc",
+     "repo-component": "universe"
+    },
+    "name": "mc"
+   }
+  },
   "mercurial": {
    "apt\\mercurial": {
     "driver": "apt",
@@ -69105,6 +69686,16 @@
      "name": "meson"
     },
     "name": "meson"
+   }
+  },
+  "micro": {
+   "apt\\micro": {
+    "driver": "apt",
+    "fields": {
+     "name": "micro",
+     "repo-component": "universe"
+    },
+    "name": "micro"
    }
   },
   "micronaut": {
@@ -71212,6 +71803,16 @@
      }
     },
     "name": "tmux-dotfiles"
+   }
+  },
+  "tor-browser": {
+   "apt\\tor-browser": {
+    "driver": "apt",
+    "fields": {
+     "name": "torbrowser-launcher",
+     "repo-component": "universe"
+    },
+    "name": "torbrowser-launcher"
    }
   },
   "traceroute": {
