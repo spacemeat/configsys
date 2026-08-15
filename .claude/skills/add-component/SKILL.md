@@ -147,8 +147,7 @@ for ctx in sorted(set(old) & set(new)):
     a = set(new[ctx]) - set(old[ctx]); c = [x for x in set(old[ctx]) & set(new[ctx]) if old[ctx][x] != new[ctx][x]]
     if a or c: print(f'{ctx}: +{sorted(a)}  changed={sorted(c)}')
 ```
-Finally: `.venv/bin/python -m pytest test/ -q` (full suite green; the only known flake is
-`test_random_splash…`, an env artifact from installed splash plugins).
+Finally: `.venv/bin/python -m pytest test/ -q` (full suite green — no known flakes).
 
 ### 8. Sweeps & real-install (podman) — for confidence / when names are uncertain
 These need **podman** and are NOT part of pytest (slow, networked, container-only):
