@@ -58,6 +58,10 @@ Match the house style. Good exemplars in `routes.hu`:
 A component is `name: { description: "…"  install: [ <bindings> ] }`. Each binding is
 `{ via: <driver>  when: "<expr>"  …fields }`. Put it near siblings of the same kind (monitors,
 editors, browsers, file-managers, …). Rules:
+- **`description:` is mandatory** — one present-tense line naming the tool and what it does, with the
+  real binary in backticks when it differs from the name (``System monitor (`btm`) …``). It's
+  user-facing (TUI rows, `configsys request`, `check`), so write it for a human scanning the catalog,
+  not a package blurb.
 - **`via: native`** resolves to the OS's package manager; package name defaults to the component
   name — override with `name: <pkg>` (scalar = all managers) or `name: { apt: …  dnf: …  default: … }`.
 - **`when:`** states *validity only* (does this method work here), never preference. Bare atom =
@@ -87,7 +91,36 @@ Order native-first, then fallbacks. Typical comprehensive rows:
 - Language-ecosystem tools: `cargo`/`pip`/`pipx`/`npm`/`gem`/`opam`/`luarocks`/`cabal`/`go-install`/
   `sdkman` — each takes `name:` (the crate/pkg/candidate) and often `requires: <toolchain>`.
 
-### 4. (Optional) build-from-source in the configsys-source plugin
+### 4. Add a `-dotfiles` companion whenever the tool has config (implied — don't skip)
+If a new component stores configuration (reads `$XDG_CONFIG_HOME/<name>`, a `~/.<name>rc`, …) OR
+needs shell integration (PATH for a `~/apps` tarball/appImage install, aliases, env, completions),
+give it a `<name>-dotfiles` companion and add `suggests: <name>-dotfiles` to the parent. Two shapes:
+
+- **Shell snippet** — the tool needs PATH/aliases/env to work (a `~/apps` install that isn't on
+  PATH, like yazi/superfile aliasing `yazi`/`spf`; a completions or env line). **You author and ship
+  it** in the base repo at `dotfiles/bash.d/<name>.sh`, then:
+  ```
+  <name>-dotfiles: { install: [ { via: dotfiles  requires: bash-dotfiles
+                                  src: bash.d/<name>.sh  dst: ~/.bash.d/<name>.sh } ] }
+  ```
+  (`~/.bash.d` is sourced by `.bashrc` via `bash-dotfiles`; the loader runs files in lexical order.)
+- **App config** — the tool reads its own config dir/file:
+  ```
+  <name>-dotfiles: { install: [ { via: dotfiles  config: { src: <name>  dst: $XDG_CONFIG_HOME/<name> } } ] }
+  ```
+  `config:` is one named spec; add more named specs for stray files, each with its own `dst`. The
+  content usually **isn't shipped** — it lives in the user's personal layer, captured with `configsys
+  dotfiles capture <name>`. `dotfiles/` content resolves relative to the .hu that *defined* the
+  component (base repo, else a plugin/user layer), so a package can offer a config that simply
+  doesn't attach where the content is absent.
+
+`suggests:` is SOFT: the parent installs fine whether or not the `-dotfiles` content exists, and the
+user can opt the whole mechanism out with `disabled-drivers: [ dotfiles ]`. Links are edit-through
+and back up any pre-existing real file to `<dst>.pre-configsys`. **Rule of thumb:** if installing the
+tool leaves a config it would read or a PATH/alias it needs to be useful, add the `-dotfiles` — a
+shell snippet you write and ship, or an app-config spec you scaffold for capture.
+
+### 5. (Optional) build-from-source in the configsys-source plugin
 `~/src/configsys-source` (a data plugin, its own repo) adds ADDITIVE `via: source` bindings to core
 components — a buildable method for people who want it. If the user wants a source option, add to
 `sources.hu`:
@@ -98,15 +131,16 @@ components — a buildable method for people who want it. If the user wants a so
 ```
 The binding merges into the existing core component by name (additive — doesn't replace core
 methods). Plugin changes need **re-sync + re-trust** to take effect locally (core routes.hu is live
-immediately). Source recipes with a build floor feed the `version-floors:` derivation (see §7).
+immediately). Source recipes with a build floor feed the `version-floors:` derivation (see the
+Versions section).
 
-### 5. Profile placement (config.hu) — only where it clearly belongs
+### 6. Profile placement (config.hu) — only where it clearly belongs
 Components install by name regardless of profiles. Add to a profile only for a natural fit:
 `tor-browser` → the `web-browsers` **catalog** (pick-one lists that aren't auto-installed — safe to
 extend). Be cautious adding to role profiles that auto-install (e.g. `terminal`, which `user`
 pulls in) — that changes what everyone gets. When unsure, leave it out and mention it.
 
-### 6. Validate (always, before committing)
+### 7. Validate (always, before committing)
 ```
 .venv/bin/python -m configsys --os pop check          # lint the merged config (0 errors)
 ```
@@ -130,7 +164,7 @@ for os in ('pop','fedora','arch','alpine','opensuse','rhel','fedora_atomic'):
 Run with `CONFIGSYS_NO_DISCOVER=1 .venv/bin/python reschk.py`. Also handy: `configsys --os <os>
 where <component>` (source layer + resolution) and `configsys --os <os> request <component>`.
 
-### 7. Regenerate the golden gate + run the suite
+### 8. Regenerate the golden gate + run the suite
 Adding components changes the frozen resolution snapshot (`test/routing_golden.json`, every
 component × 9 contexts). Regenerate and confirm it's **purely additive**:
 ```
@@ -149,7 +183,7 @@ for ctx in sorted(set(old) & set(new)):
 ```
 Finally: `.venv/bin/python -m pytest test/ -q` (full suite green — no known flakes).
 
-### 8. Sweeps & real-install (podman) — for confidence / when names are uncertain
+### 9. Sweeps & real-install (podman) — for confidence / when names are uncertain
 These need **podman** and are NOT part of pytest (slow, networked, container-only):
 - **Name-existence sweep** (does the resolved native pkg still exist in each distro's repos —
   catches renames/removals like redis→valkey): `bash test/run-name-sweep-in-podman.sh [manager]`.
@@ -165,7 +199,7 @@ These need **podman** and are NOT part of pytest (slow, networked, container-onl
   source recipes). Networked; reflects THIS machine's repos — run in per-distro containers for full
   coverage.
 
-### 9. Commit
+### 10. Commit
 Commit **locally** (the user pushes). Base identity + trailer:
 ```
 git -c user.name="Trevor Schrock" -c user.email="spacemeat@gmail.com" commit -m "components: add <names>
@@ -199,7 +233,7 @@ pinning): `apt` `dnf` `pacman` `zypper` `apk` `brew`. Plus `aur` (Arch community
 - `snap` — `name: <snap>` (Ubuntu-centric; Chromium's real method there).
 - `script` — declarative installer: `install-cmd`, `version-cmd`, `version-re`, `uninstall-cmd`,
   `location`.
-- `source` — build from a git checkout/archive (lives in the configsys-source plugin, §4).
+- `source` — build from a git checkout/archive (lives in the configsys-source plugin, §5).
 
 **Language toolchains & their module installers** (take `name:` = crate/pkg/candidate, often
 `requires: <toolchain>`): `cargo` `pip` `pipx` `npm` `gem` `opam` `luarocks` `cabal` `go-install`
@@ -217,6 +251,27 @@ a **profile** over a parts-component for user-facing bundles.
 `{ url: "<page>"  regex: "<ver-capture>" }` | `{ static: "<pinned>" }` |
 `{ crates: <crate> }` | `{ pypi: <pkg> }` | `{ aur: <pkg> }` | `tag-re:` for odd tag schemes.
 `asset` is a glob resolved against the GitHub release (no hand-templated URL); `$ARCH` expands.
+
+## Versions — visibility, version-scoped providers, floors
+Three distinct things (full model in `docs/versioned-requires.md` — but note that doc predates the
+`standing` rename: where it says `opt-in:`, the current keyword is **`standing: never-auto`**):
+- **`configsys versions <name> [--min VERSION] [--refresh]`** — shows, per install method, what
+  version it *would* install (native-vs-upstream-tip lag called out), marks which meet `--min`, and
+  how to pin one. Use it to confirm a new component's methods aren't shipping something ancient, and
+  to help a user pick a method by version. `--refresh` bypasses the version cache
+  (`state_dir/versions.hu`) and re-queries each method's `get_latest` live.
+- **Version-scoped providers** — a component providing a *specific version* of a capability:
+  `provides: { <cap>: N }` on the provider + `requires: { <cap>: ">=N" }` on the consumer (the
+  constraint selects a resident by version and can even ENABLE a `standing: never-auto` provider).
+  This is how `python3.11/12/13/14` and `jdk-17/21/25` coexist — each versioned provider is
+  `standing: never-auto` so it never shadows the unversioned default. Add this only when the new
+  component is a *versioned alternative* of something, or genuinely needs a minimum version.
+- **Version floors** — a HARD minimum: `requires: { <toolchain>: ">=X" }`, plus the authored
+  `version-floors:` section. A `via: source` recipe's build-toolchain floor auto-derives via
+  `.venv/bin/python tools/versionsweep.py --derive` (emits a ready-to-commit `version-floors:`
+  block). Run `tools/versionsweep.py` (podman, per-distro) if you add a versioned requirement or a
+  source recipe with a toolchain minimum — it fails if a floor is stranded (no method meets it) or
+  dishonestly claimed.
 
 ## Common gotchas
 - **Fedora ≠ EL.** `fedora` is fine for base repos; `rhel` is EL and usually needs `requires: epel`
