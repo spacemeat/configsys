@@ -118,6 +118,8 @@ class Context:
             env['CONFIGSYS_OS'] = args.os
         if args.config:
             env['CONFIGSYS_CONFIG'] = args.config
+        if getattr(args, 'splash_linger', False):
+            env['CONFIGSYS_SPLASH'] = 'linger'      # force + hold the splash until a keypress
         self.env = env
         self.paths = Paths(env)
         self.os_info = osdetect.detect(env)
@@ -1931,6 +1933,9 @@ def build_parser():
     p.add_argument('--os', help='override detected OS routes block (e.g. pop_os!)')
     p.add_argument('--home', help='override HOME base for all paths (sandboxing)')
     p.add_argument('--config', help='override the per-machine selector file path')
+    p.add_argument('--splash-linger', action='store_true',
+                   help='keep the startup splash animating after load, until you press a key '
+                        '(forces it to show even on a fast run) — for enjoying a splash')
     p.add_argument('-v', '--verbose', action='count', default=0,
                    help='stream load detail to stderr: -v layers/overrides/per-unit state, '
                         '-vv full route/binding/why (errors + progress already show by default)')

@@ -1309,11 +1309,17 @@ def _chosen_splash(ctx):
     return True, name
 
 
-def _splash_forced():
-    '''`CONFIGSYS_SPLASH=always` bypasses the "only when there's work" timing gate — the fill shows
-    even on a fast/warm run (to preview it, or just enjoy it). CONFIGSYS_NO_SPLASH still wins.'''
-    import os
-    return os.environ.get('CONFIGSYS_SPLASH', '').lower() in ('always', 'force', '1')
+def _splash_forced(ctx):
+    '''`CONFIGSYS_SPLASH=always` (or `--splash-linger`) bypasses the "only when there's work" timing
+    gate — the fill shows even on a fast/warm run (to preview it, or just enjoy it). CONFIGSYS_NO_SPLASH
+    still wins.'''
+    return ctx.env.get('CONFIGSYS_SPLASH', '').lower() in ('always', 'force', '1', 'linger', 'hold')
+
+
+def _splash_linger(ctx):
+    '''`--splash-linger` / `CONFIGSYS_SPLASH=linger`: keep the splash animating AFTER inspection is
+    done, until a key is pressed — so a too-fast load doesn't rob you of the show.'''
+    return ctx.env.get('CONFIGSYS_SPLASH', '').lower() in ('linger', 'hold')
 
 
 # The pre-inspect phases (load routes/config -> resolve -> detection) run BEFORE the per-unit inspect
@@ -2672,7 +2678,7 @@ def run(ctx):
     worker = _InspectWorker(ctx).start()
     if not splash_on:
         show_splash = False
-    elif _splash_forced():
+    elif _splash_forced(ctx):
         show_splash = True                       # skip the timing gate entirely
     else:
         show_splash = worker.wait_settled(SPLASH_THRESHOLD)
@@ -2697,7 +2703,7 @@ def run(ctx):
                 provider = get_splash(DEFAULT_SPLASH)   # the trust-free in-core default
             run_splash(stdscr, pal, provider, label='checking install state',
                        is_done=worker.done, frac=worker.frac, counts=worker.counts,
-                       seed=random.randrange(1 << 30))
+                       seed=random.randrange(1 << 30), linger=_splash_linger(ctx))
             # The splash allocated a run-varying number of RANDOM color slots + pairs into `pal`
             # (its water/fish palette). Rebuild the Palette so the menu starts from a clean,
             # deterministic allocator — otherwise those random colors leak into the UI and, on a

@@ -179,6 +179,32 @@ def test_run_splash_drives_a_raw_truecolor_provider(monkeypatch):
     assert getattr(win, 'cleared', False) is True                  # clearok set so the TUI wipes it
 
 
+def test_run_splash_linger_keeps_going_until_a_key(monkeypatch):
+    # normally a done+at-rest splash returns on frame 1; with linger it keeps animating until a key
+    import curses
+
+    from configsys.tui import splash as hostmod
+    monkeypatch.setattr(curses, 'doupdate', lambda: None)
+    monkeypatch.setattr(hostmod.time, 'sleep', lambda s: None)
+
+    n = {'frames': 0}
+
+    class AtRest(splashes.Splash):
+        name = 'atrest'
+        min_duration = 0.0
+        def render(self, frame):
+            n['frames'] += 1
+            return True                              # at rest immediately
+
+    class LingerWin(_FakeWin):
+        def getch(self):                             # -1 for a while, then a key ends it
+            return ord('q') if n['frames'] >= 5 else -1
+
+    hostmod.run_splash(LingerWin(), pal=_StubPal(), provider_cls=AtRest, is_done=lambda: True,
+                       frac=lambda: 1.0, counts=lambda: (1, 1), label='x', linger=True)
+    assert n['frames'] >= 5                           # did NOT stop at 'done'; ran until the keypress
+
+
 def test_run_splash_survives_a_broken_provider(monkeypatch):
     import curses
 

@@ -82,14 +82,19 @@ class BrailleBarSplash(Splash):
 register_splash(BrailleBarSplash, builtin=True)
 
 
-def run_splash(scr, pal, provider_cls, *, is_done, frac, counts, label, deadline=None, seed=None):
+def run_splash(scr, pal, provider_cls, *, is_done, frac, counts, label, deadline=None, seed=None,
+               linger=False):
     '''Drive a Splash provider's frame loop until inspection is done AND the animation is at rest
     (or a hard `deadline`). The provider only draws one frame from a SplashFrame; the HOST owns the
     clock, the skip key, and the plain-text fallback: a keypress CANCELS the animation but a plain
     progress line keeps updating on a clean screen until inspection actually finishes, so dropping
     the eye-candy never hides the real state. `frac()`/`counts()`/`is_done()` are polled each frame;
     dt-based timing means a slow frame just eases further, never desyncs. Never raises for a
-    misbehaving provider frame — a broken render falls back to the text line.'''
+    misbehaving provider frame — a broken render falls back to the text line.
+
+    `linger`: don't auto-exit when inspection is done — keep the animation running (progress pinned
+    at 1.0) until the user presses a key, which then ends it. For enjoying a splash when a fast load
+    would otherwise whisk it away.'''
     h, w = scr.getmaxyx()
     provider = provider_cls(scr, pal, (h, w), seed)
     fps = getattr(provider_cls, 'fps', 30.0) or 30.0
@@ -125,7 +130,9 @@ def run_splash(scr, pal, provider_cls, *, is_done, frac, counts, label, deadline
                         _tty_write('\033[0m')
                         scr.clearok(True)
                     _draw_progress_text(scr, pal, label, frame.counts, h, w)
-                if animate and scr.getch() != -1:     # Esc/any key -> drop the animation, keep text
+                if animate and scr.getch() != -1:     # a key: end the show (linger) or drop to text
+                    if linger:
+                        return                        # linger: watch as long as you like, any key exits
                     animate = False
                     if used_raw:
                         _tty_write('\033[0m')
@@ -138,8 +145,8 @@ def run_splash(scr, pal, provider_cls, *, is_done, frac, counts, label, deadline
             if deadline is not None and now >= deadline:
                 return
             if animate:
-                if done and at_rest and (now - start) >= min_dur:
-                    return
+                if not linger and done and at_rest and (now - start) >= min_dur:
+                    return                            # (linger: keep animating until a keypress above)
             elif done:                                # text mode: leave as soon as it's finished
                 return
             slack = frame_dt - (time.monotonic() - now)
