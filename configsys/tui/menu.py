@@ -1864,20 +1864,26 @@ def _draw_profiles(stdscr, pal, ps, ctx, note, screen):
 
 
 # -- F2 primitive: a single-line text-input modal -------------------------
-def _input_box(stdscr, pal, title, initial='', complete=None):
+def _input_box(stdscr, pal, title, initial='', complete=None, toggle=None):
     '''Modal single-line text entry over the current screen. Returns the string on Enter, or None
     on Esc. Handles printable ASCII + backspace. `complete` is an optional list of candidate strings:
-    the first that extends the current text shows as a dim ghost, and Tab accepts it.'''
+    the first that extends the current text shows as a dim ghost, and Tab accepts it. `toggle` is an
+    optional (label, initial_bool): it adds a checkbox line that Tab flips (when there's no
+    completion to accept), and the box then returns (text, checked) — (None, checked) on Esc.'''
     h, w = stdscr.getmaxyx()
     box_w = min(max(len(title) + 4, 60), max(24, w - 2))
-    box_h = 5
+    box_h = 5 + (1 if toggle else 0)
     y0, x0 = max(0, (h - box_h) // 2), max(0, (w - box_w) // 2)
     border = pal.get('accent') | curses.A_BOLD
     ghost_attr = pal.get('dim')
     buf = list(initial)
+    checked = bool(toggle[1]) if toggle else False
 
     def _match(s):
         return next((c for c in (complete or []) if c.startswith(s) and c != s), None) if s else None
+
+    def _ret(text):
+        return (text, checked) if toggle else text
 
     try:
         curses.curs_set(1)
@@ -1890,13 +1896,17 @@ def _input_box(stdscr, pal, title, initial='', complete=None):
             for r in range(1, box_h - 1):
                 _put(stdscr, y0 + r, x0, '│' + ' ' * (box_w - 2) + '│', border)
             _put(stdscr, y0 + box_h - 1, x0, '└' + '─' * (box_w - 2) + '┘', border)
-            _put(stdscr, y0 + box_h - 1, x0 + 2, ' enter · esc' + (' · tab' if complete else '') + ' ',
-                 border)
+            _put(stdscr, y0 + box_h - 1, x0 + 2,
+                 ' enter · esc' + (' · tab' if (complete or toggle) else '') + ' ', border)
             s = ''.join(buf)
             _put(stdscr, y0 + 2, x0 + 2, _fit(s, box_w - 4).ljust(box_w - 4), curses.A_UNDERLINE)
             m = _match(s)
             if m and len(s) < box_w - 4:                 # dim autocomplete ghost after the text
                 _put(stdscr, y0 + 2, x0 + 2 + len(s), _fit(m[len(s):], box_w - 4 - len(s)), ghost_attr)
+            if toggle:                                   # a checkbox line (tab toggles it)
+                mark = '☑' if checked else '☐'
+                _put(stdscr, y0 + 3, x0 + 2, _fit(f'{mark} {toggle[0]}', box_w - 4),
+                     border if checked else ghost_attr)
             try:
                 stdscr.move(y0 + 2, x0 + 2 + min(len(s), box_w - 5))
             except curses.error:
@@ -1904,12 +1914,14 @@ def _input_box(stdscr, pal, title, initial='', complete=None):
             stdscr.refresh()
             ch = stdscr.getch()
             if ch == 27:
-                return None
+                return _ret(None)
             if ch in (ord('\n'), curses.KEY_ENTER):
-                return ''.join(buf)
+                return _ret(''.join(buf))
             if ch == ord('\t'):
                 if m:
                     buf = list(m)
+                elif toggle:
+                    checked = not checked
             elif ch in (curses.KEY_BACKSPACE, 127, 8):
                 if buf:
                     buf.pop()
@@ -3041,10 +3053,12 @@ def run(ctx):
                             pl.cur = max(0, len(pl.rows) - 1); pl._invalidate_diff()
                     # -- actions --
                     elif ch == ord('a'):
-                        src = _input_box(stdscr, pal, 'add plugin — source (github:owner/repo)', '')
+                        src, replace = _input_box(
+                            stdscr, pal, 'add plugin — source (github:owner/repo)', '',
+                            toggle=('replace an existing plugin of the same name (retarget)', False))
                         if src and src.strip():
                             with suspended(stdscr):
-                                _ok, msg, _r = actions.plugin_add(ctx, src.strip())
+                                _ok, msg, _r = actions.plugin_add(ctx, src.strip(), replace=replace)
                             pl.reload()
                             menu_dirty = True
                             note = msg.split('\n')[0]
