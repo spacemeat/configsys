@@ -290,13 +290,14 @@
             install: [ { via: dotfiles  config: { src: htop  dst: $XDG_CONFIG_HOME/htop } } ]
         }
 
-        // bottom (`btm`): Rust system monitor. Native `bottom` where packaged (Debian 12+/Ubuntu
-        // universe, Fedora, Arch, openSUSE, Alpine, Homebrew); EL has no package, so cargo builds it.
+        // bottom (`btm`): Rust system monitor. Native `bottom` only where packaged (Arch, openSUSE,
+        // Alpine, Homebrew); NOT in Debian/Ubuntu (upstream ships a .deb) nor Fedora/EL — name-sweep
+        // confirmed the apt+dnf gaps — so cargo builds it on the whole debian + redhat families.
         bottom: {
             description: "Cross-platform system monitor (`btm`) — CPU/mem/net/process/disk in a TUI."
             install: [
-                { via: native  when: "not rhel"  repo-component: universe }
-                { via: cargo  name: bottom }   // builds `btm`; covers EL + any older-distro gap
+                { via: native  when: "not (redhat or debian)" }
+                { via: cargo  name: bottom }   // builds `btm`; covers Debian/Ubuntu + Fedora/EL
             ]
         }
 
@@ -311,12 +312,13 @@
         }
 
         // duf: a colorful, friendlier `df` (Go). Native where packaged (Debian 12+/Ubuntu universe,
-        // Fedora, Arch, openSUSE, Alpine, Homebrew); EL has no package, so `go install` builds it.
+        // Fedora, Arch, openSUSE, Homebrew); NOT in Alpine's repos and no EL package, so `go install`
+        // builds it there (name-sweep confirmed the apk gap).
         duf: {
             description: "Disk Usage/Free — a colorful, friendlier `df` (`duf`)."
             install: [
-                { via: native  when: "not rhel"  repo-component: universe }
-                { via: go-install  name: "github.com/muesli/duf" }   // builds `duf`; covers EL
+                { via: native  when: "not (rhel or alpine)"  repo-component: universe }
+                { via: go-install  name: "github.com/muesli/duf" }   // builds `duf`; covers EL + Alpine
             ]
         }
 
@@ -1585,13 +1587,13 @@
                 { via: tarball  when: "not alpine"  installDir: "$CONFIGSYS_APP_DIR/helix"  requires: glibc
                   version: { github: helix-editor/helix  strip-v: true  asset: "helix-*-x86_64-linux.tar.xz" } } ]   // glibc build — offered everywhere except musl (alpine has the native pkg)
         }
-        // micro (`micro`): Go terminal editor. Native almost everywhere (Debian/Ubuntu universe,
-        // Fedora, Arch, openSUSE, Alpine, Homebrew); the upstream release tarball (ships `micro`)
-        // covers EL and anything missed.
+        // micro (`micro`): Go terminal editor. Native on Debian/Ubuntu universe, Fedora, Arch,
+        // Alpine, Homebrew; NOT in openSUSE's repos (name-sweep confirmed) and no EL package, so the
+        // upstream release tarball (ships `micro`) covers openSUSE + EL + anything missed.
         micro: {
             description: "Modern, intuitive terminal text editor (`micro`)."
             install: [
-                { via: native  when: "not rhel"  repo-component: universe }
+                { via: native  when: "not (rhel or opensuse)"  repo-component: universe }
                 { via: tarball  installDir: "$CONFIGSYS_APP_DIR/micro"  requires: glibc
                   version: { github: zyedidia/micro  strip-v: true  asset: "micro-*-linux64.tar.gz" } }
             ]

@@ -375,8 +375,7 @@
    "pacman\\bottom": {
     "driver": "pacman",
     "fields": {
-     "name": "bottom",
-     "repo-component": "universe"
+     "name": "bottom"
     },
     "name": "bottom"
    }
@@ -6860,11 +6859,18 @@
    }
   },
   "bottom": {
-   "apt\\bottom": {
+   "apt\\rust": {
     "driver": "apt",
     "fields": {
-     "name": "bottom",
+     "name": "rust-all",
      "repo-component": "universe"
+    },
+    "name": "rust-all"
+   },
+   "cargo\\bottom": {
+    "driver": "cargo",
+    "fields": {
+     "name": "bottom"
     },
     "name": "bottom"
    }
@@ -13886,11 +13892,18 @@
    }
   },
   "bottom": {
-   "apt\\bottom": {
+   "apt\\rust": {
     "driver": "apt",
     "fields": {
-     "name": "bottom",
+     "name": "rust-all",
      "repo-component": "universe"
+    },
+    "name": "rust-all"
+   },
+   "cargo\\bottom": {
+    "driver": "cargo",
+    "fields": {
+     "name": "bottom"
     },
     "name": "bottom"
    }
@@ -20802,11 +20815,18 @@
    }
   },
   "bottom": {
-   "apt\\bottom": {
+   "apt\\rust": {
     "driver": "apt",
     "fields": {
-     "name": "bottom",
+     "name": "rust-all",
      "repo-component": "universe"
+    },
+    "name": "rust-all"
+   },
+   "cargo\\bottom": {
+    "driver": "cargo",
+    "fields": {
+     "name": "bottom"
     },
     "name": "bottom"
    }
@@ -27726,13 +27746,20 @@
    }
   },
   "bottom": {
-   "dnf\\bottom": {
-    "driver": "dnf",
+   "cargo\\bottom": {
+    "driver": "cargo",
     "fields": {
-     "name": "bottom",
-     "repo-component": "universe"
+     "name": "bottom"
     },
     "name": "bottom"
+   },
+   "dnf\\rust": {
+    "driver": "dnf",
+    "fields": {
+     "name": "cargo",
+     "repo-component": "universe"
+    },
+    "name": "cargo"
    }
   },
   "brave": {
@@ -34300,13 +34327,20 @@
    }
   },
   "bottom": {
-   "dnf\\bottom": {
-    "driver": "dnf",
+   "cargo\\bottom": {
+    "driver": "cargo",
     "fields": {
-     "name": "bottom",
-     "repo-component": "universe"
+     "name": "bottom"
     },
     "name": "bottom"
+   },
+   "dnf\\rust": {
+    "driver": "dnf",
+    "fields": {
+     "name": "cargo",
+     "repo-component": "universe"
+    },
+    "name": "cargo"
    }
   },
   "brave": {
@@ -40811,8 +40845,7 @@
    "brew\\bottom": {
     "driver": "brew",
     "fields": {
-     "name": "bottom",
-     "repo-component": "universe"
+     "name": "bottom"
     },
     "name": "bottom"
    }
@@ -45553,11 +45586,18 @@
    }
   },
   "bottom": {
-   "apt\\bottom": {
+   "apt\\rust": {
     "driver": "apt",
     "fields": {
-     "name": "bottom",
+     "name": "rust-all",
      "repo-component": "universe"
+    },
+    "name": "rust-all"
+   },
+   "cargo\\bottom": {
+    "driver": "cargo",
+    "fields": {
+     "name": "bottom"
     },
     "name": "bottom"
    }
@@ -59550,11 +59590,18 @@
    }
   },
   "bottom": {
-   "apt\\bottom": {
+   "apt\\rust": {
     "driver": "apt",
     "fields": {
-     "name": "bottom",
+     "name": "rust-all",
      "repo-component": "universe"
+    },
+    "name": "rust-all"
+   },
+   "cargo\\bottom": {
+    "driver": "cargo",
+    "fields": {
+     "name": "bottom"
     },
     "name": "bottom"
    }
@@ -66585,11 +66632,18 @@
    }
   },
   "bottom": {
-   "apt\\bottom": {
+   "apt\\rust": {
     "driver": "apt",
     "fields": {
-     "name": "bottom",
+     "name": "rust-all",
      "repo-component": "universe"
+    },
+    "name": "rust-all"
+   },
+   "cargo\\bottom": {
+    "driver": "cargo",
+    "fields": {
+     "name": "bottom"
     },
     "name": "bottom"
    }
