@@ -1164,6 +1164,16 @@
     "name": "dotnet-sdk"
    }
   },
+  "duf": {
+   "pacman\\duf": {
+    "driver": "pacman",
+    "fields": {
+     "name": "duf",
+     "repo-component": "universe"
+    },
+    "name": "duf"
+   }
+  },
   "dune": {
    "opam\\dune": {
     "driver": "opam",
@@ -1719,6 +1729,15 @@
      "name": "go"
     },
     "name": "go"
+   }
+  },
+  "gping": {
+   "pacman\\gping": {
+    "driver": "pacman",
+    "fields": {
+     "name": "gping"
+    },
+    "name": "gping"
    }
   },
   "graalvm": {
@@ -3411,6 +3430,16 @@
      "name": "navidrome"
     },
     "name": "navidrome"
+   }
+  },
+  "ncdu": {
+   "pacman\\ncdu": {
+    "driver": "pacman",
+    "fields": {
+     "name": "ncdu",
+     "repo-component": "universe"
+    },
+    "name": "ncdu"
    }
   },
   "neovim": {
@@ -7925,6 +7954,16 @@
     "name": "dotnet"
    }
   },
+  "duf": {
+   "apt\\duf": {
+    "driver": "apt",
+    "fields": {
+     "name": "duf",
+     "repo-component": "universe"
+    },
+    "name": "duf"
+   }
+  },
   "dune": {
    "apt\\opam": {
     "driver": "apt",
@@ -8742,6 +8781,23 @@
      "name": "golang.org/x/tools/cmd/goimports"
     },
     "name": "golang.org/x/tools/cmd/goimports"
+   }
+  },
+  "gping": {
+   "apt\\rust": {
+    "driver": "apt",
+    "fields": {
+     "name": "rust-all",
+     "repo-component": "universe"
+    },
+    "name": "rust-all"
+   },
+   "cargo\\gping": {
+    "driver": "cargo",
+    "fields": {
+     "name": "gping"
+    },
+    "name": "gping"
    }
   },
   "graalvm": {
@@ -10623,6 +10679,16 @@
      }
     },
     "name": "navidrome"
+   }
+  },
+  "ncdu": {
+   "apt\\ncdu": {
+    "driver": "apt",
+    "fields": {
+     "name": "ncdu",
+     "repo-component": "universe"
+    },
+    "name": "ncdu"
    }
   },
   "neovim": {
@@ -14904,6 +14970,16 @@
     "name": "dotnet"
    }
   },
+  "duf": {
+   "apt\\duf": {
+    "driver": "apt",
+    "fields": {
+     "name": "duf",
+     "repo-component": "universe"
+    },
+    "name": "duf"
+   }
+  },
   "dune": {
    "apt\\opam": {
     "driver": "apt",
@@ -15721,6 +15797,23 @@
      "name": "golang.org/x/tools/cmd/goimports"
     },
     "name": "golang.org/x/tools/cmd/goimports"
+   }
+  },
+  "gping": {
+   "apt\\rust": {
+    "driver": "apt",
+    "fields": {
+     "name": "rust-all",
+     "repo-component": "universe"
+    },
+    "name": "rust-all"
+   },
+   "cargo\\gping": {
+    "driver": "cargo",
+    "fields": {
+     "name": "gping"
+    },
+    "name": "gping"
    }
   },
   "graalvm": {
@@ -17552,6 +17645,16 @@
      }
     },
     "name": "navidrome"
+   }
+  },
+  "ncdu": {
+   "apt\\ncdu": {
+    "driver": "apt",
+    "fields": {
+     "name": "ncdu",
+     "repo-component": "universe"
+    },
+    "name": "ncdu"
    }
   },
   "neovim": {
@@ -21786,6 +21889,16 @@
     "name": "dotnet-sdk-8.0"
    }
   },
+  "duf": {
+   "apt\\duf": {
+    "driver": "apt",
+    "fields": {
+     "name": "duf",
+     "repo-component": "universe"
+    },
+    "name": "duf"
+   }
+  },
   "dune": {
    "apt\\opam": {
     "driver": "apt",
@@ -22603,6 +22716,23 @@
      "name": "golang.org/x/tools/cmd/goimports"
     },
     "name": "golang.org/x/tools/cmd/goimports"
+   }
+  },
+  "gping": {
+   "apt\\rust": {
+    "driver": "apt",
+    "fields": {
+     "name": "rust-all",
+     "repo-component": "universe"
+    },
+    "name": "rust-all"
+   },
+   "cargo\\gping": {
+    "driver": "cargo",
+    "fields": {
+     "name": "gping"
+    },
+    "name": "gping"
    }
   },
   "graalvm": {
@@ -24427,6 +24557,16 @@
      }
     },
     "name": "navidrome"
+   }
+  },
+  "ncdu": {
+   "apt\\ncdu": {
+    "driver": "apt",
+    "fields": {
+     "name": "ncdu",
+     "repo-component": "universe"
+    },
+    "name": "ncdu"
    }
   },
   "neovim": {
@@ -28548,6 +28688,16 @@
     "name": "dotnet-sdk-8.0"
    }
   },
+  "duf": {
+   "dnf\\duf": {
+    "driver": "dnf",
+    "fields": {
+     "name": "duf",
+     "repo-component": "universe"
+    },
+    "name": "duf"
+   }
+  },
   "dune": {
    "dnf\\opam": {
     "driver": "dnf",
@@ -29095,6 +29245,23 @@
      "name": "golang.org/x/tools/cmd/goimports"
     },
     "name": "golang.org/x/tools/cmd/goimports"
+   }
+  },
+  "gping": {
+   "cargo\\gping": {
+    "driver": "cargo",
+    "fields": {
+     "name": "gping"
+    },
+    "name": "gping"
+   },
+   "dnf\\rust": {
+    "driver": "dnf",
+    "fields": {
+     "name": "cargo",
+     "repo-component": "universe"
+    },
+    "name": "cargo"
    }
   },
   "graalvm": {
@@ -30961,6 +31128,16 @@
      }
     },
     "name": "navidrome"
+   }
+  },
+  "ncdu": {
+   "dnf\\ncdu": {
+    "driver": "dnf",
+    "fields": {
+     "name": "ncdu",
+     "repo-component": "universe"
+    },
+    "name": "ncdu"
    }
   },
   "neovim": {
@@ -35111,6 +35288,16 @@
     "name": "dotnet-sdk-8.0"
    }
   },
+  "duf": {
+   "dnf\\duf": {
+    "driver": "dnf",
+    "fields": {
+     "name": "duf",
+     "repo-component": "universe"
+    },
+    "name": "duf"
+   }
+  },
   "dune": {
    "dnf\\opam": {
     "driver": "dnf",
@@ -35658,6 +35845,23 @@
      "name": "golang.org/x/tools/cmd/goimports"
     },
     "name": "golang.org/x/tools/cmd/goimports"
+   }
+  },
+  "gping": {
+   "cargo\\gping": {
+    "driver": "cargo",
+    "fields": {
+     "name": "gping"
+    },
+    "name": "gping"
+   },
+   "dnf\\rust": {
+    "driver": "dnf",
+    "fields": {
+     "name": "cargo",
+     "repo-component": "universe"
+    },
+    "name": "cargo"
    }
   },
   "graalvm": {
@@ -37524,6 +37728,16 @@
      }
     },
     "name": "navidrome"
+   }
+  },
+  "ncdu": {
+   "dnf\\ncdu": {
+    "driver": "dnf",
+    "fields": {
+     "name": "ncdu",
+     "repo-component": "universe"
+    },
+    "name": "ncdu"
    }
   },
   "neovim": {
@@ -41165,6 +41379,16 @@
     "name": "docker-service"
    }
   },
+  "duf": {
+   "brew\\duf": {
+    "driver": "brew",
+    "fields": {
+     "name": "duf",
+     "repo-component": "universe"
+    },
+    "name": "duf"
+   }
+  },
   "dune": {
    "brew\\opam": {
     "driver": "brew",
@@ -41585,6 +41809,15 @@
      "name": "golang.org/x/tools/cmd/goimports"
     },
     "name": "golang.org/x/tools/cmd/goimports"
+   }
+  },
+  "gping": {
+   "brew\\gping": {
+    "driver": "brew",
+    "fields": {
+     "name": "gping"
+    },
+    "name": "gping"
    }
   },
   "graalvm": {
@@ -42973,6 +43206,16 @@
      }
     },
     "name": "navidrome"
+   }
+  },
+  "ncdu": {
+   "brew\\ncdu": {
+    "driver": "brew",
+    "fields": {
+     "name": "ncdu",
+     "repo-component": "universe"
+    },
+    "name": "ncdu"
    }
   },
   "neovim": {
@@ -46416,6 +46659,16 @@
     "name": "dotnet-sdk-8.0"
    }
   },
+  "duf": {
+   "apt\\duf": {
+    "driver": "apt",
+    "fields": {
+     "name": "duf",
+     "repo-component": "universe"
+    },
+    "name": "duf"
+   }
+  },
   "dune": {
    "apt\\opam": {
     "driver": "apt",
@@ -47233,6 +47486,23 @@
      "name": "golang.org/x/tools/cmd/goimports"
     },
     "name": "golang.org/x/tools/cmd/goimports"
+   }
+  },
+  "gping": {
+   "apt\\rust": {
+    "driver": "apt",
+    "fields": {
+     "name": "rust-all",
+     "repo-component": "universe"
+    },
+    "name": "rust-all"
+   },
+   "cargo\\gping": {
+    "driver": "cargo",
+    "fields": {
+     "name": "gping"
+    },
+    "name": "gping"
    }
   },
   "graalvm": {
@@ -49107,6 +49377,16 @@
      }
     },
     "name": "navidrome"
+   }
+  },
+  "ncdu": {
+   "apt\\ncdu": {
+    "driver": "apt",
+    "fields": {
+     "name": "ncdu",
+     "repo-component": "universe"
+    },
+    "name": "ncdu"
    }
   },
   "neovim": {
@@ -53363,6 +53643,22 @@
     "name": "dotnet"
    }
   },
+  "duf": {
+   "dnf\\go": {
+    "driver": "dnf",
+    "fields": {
+     "name": "golang"
+    },
+    "name": "golang"
+   },
+   "go-install\\duf": {
+    "driver": "go-install",
+    "fields": {
+     "name": "github.com/muesli/duf"
+    },
+    "name": "github.com/muesli/duf"
+   }
+  },
   "dune": {
    "dnf\\opam": {
     "driver": "dnf",
@@ -53992,6 +54288,23 @@
      "name": "golang.org/x/tools/cmd/goimports"
     },
     "name": "golang.org/x/tools/cmd/goimports"
+   }
+  },
+  "gping": {
+   "cargo\\gping": {
+    "driver": "cargo",
+    "fields": {
+     "name": "gping"
+    },
+    "name": "gping"
+   },
+   "dnf\\rust": {
+    "driver": "dnf",
+    "fields": {
+     "name": "cargo",
+     "repo-component": "universe"
+    },
+    "name": "cargo"
    }
   },
   "graalvm": {
@@ -55917,6 +56230,22 @@
      }
     },
     "name": "navidrome"
+   }
+  },
+  "ncdu": {
+   "dnf\\epel-release": {
+    "driver": "dnf",
+    "fields": {
+     "name": "epel-release"
+    },
+    "name": "epel-release"
+   },
+   "dnf\\ncdu": {
+    "driver": "dnf",
+    "fields": {
+     "name": "ncdu"
+    },
+    "name": "ncdu"
    }
   },
   "neovim": {
@@ -60318,6 +60647,16 @@
     "name": "dotnet-sdk-8.0"
    }
   },
+  "duf": {
+   "apt\\duf": {
+    "driver": "apt",
+    "fields": {
+     "name": "duf",
+     "repo-component": "universe"
+    },
+    "name": "duf"
+   }
+  },
   "dune": {
    "apt\\opam": {
     "driver": "apt",
@@ -61135,6 +61474,23 @@
      "name": "golang.org/x/tools/cmd/goimports"
     },
     "name": "golang.org/x/tools/cmd/goimports"
+   }
+  },
+  "gping": {
+   "apt\\rust": {
+    "driver": "apt",
+    "fields": {
+     "name": "rust-all",
+     "repo-component": "universe"
+    },
+    "name": "rust-all"
+   },
+   "cargo\\gping": {
+    "driver": "cargo",
+    "fields": {
+     "name": "gping"
+    },
+    "name": "gping"
    }
   },
   "graalvm": {
@@ -63009,6 +63365,16 @@
      }
     },
     "name": "navidrome"
+   }
+  },
+  "ncdu": {
+   "apt\\ncdu": {
+    "driver": "apt",
+    "fields": {
+     "name": "ncdu",
+     "repo-component": "universe"
+    },
+    "name": "ncdu"
    }
   },
   "neovim": {
@@ -67306,6 +67672,16 @@
     "name": "dotnet-sdk-8.0"
    }
   },
+  "duf": {
+   "apt\\duf": {
+    "driver": "apt",
+    "fields": {
+     "name": "duf",
+     "repo-component": "universe"
+    },
+    "name": "duf"
+   }
+  },
   "dune": {
    "apt\\opam": {
     "driver": "apt",
@@ -68123,6 +68499,15 @@
      "name": "golang.org/x/tools/cmd/goimports"
     },
     "name": "golang.org/x/tools/cmd/goimports"
+   }
+  },
+  "gping": {
+   "apt\\gping": {
+    "driver": "apt",
+    "fields": {
+     "name": "gping"
+    },
+    "name": "gping"
    }
   },
   "graalvm": {
@@ -69947,6 +70332,16 @@
      }
     },
     "name": "navidrome"
+   }
+  },
+  "ncdu": {
+   "apt\\ncdu": {
+    "driver": "apt",
+    "fields": {
+     "name": "ncdu",
+     "repo-component": "universe"
+    },
+    "name": "ncdu"
    }
   },
   "neovim": {

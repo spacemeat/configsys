@@ -45,7 +45,7 @@ profiles: {
     db-servers: [ postgresql-service  mariadb-service  redis-service ]
 
     cloud-tools: [ awscli  gcloud  azure-cli  opentofu  grpcurl ]
-    net-tools: [ iproute2  wireshark  wireshark-group  tshark  tcpdump  nmap  mtr  traceroute  iperf3  socat  ethtool  whois  netcat  dig  iftop  nethogs  nload  vnstat ]
+    net-tools: [ iproute2  wireshark  wireshark-group  tshark  tcpdump  nmap  mtr  gping  traceroute  iperf3  socat  ethtool  whois  netcat  dig  iftop  nethogs  nload  vnstat ]
 
     devops-tools: [ +backend-tools  ansible  opentofu ]
 

@@ -300,6 +300,26 @@
             ]
         }
 
+        // ncdu: NCurses disk-usage analyzer. Packaged as `ncdu` in every base repo (EL via EPEL,
+        // Ubuntu universe — the htop/btop pattern).
+        ncdu: {
+            description: "NCurses disk-usage analyzer — find what's eating your disk (`ncdu`)."
+            install: [
+                { via: native  when: "rhel"  requires: epel }
+                { via: native  repo-component: universe }
+            ]
+        }
+
+        // duf: a colorful, friendlier `df` (Go). Native where packaged (Debian 12+/Ubuntu universe,
+        // Fedora, Arch, openSUSE, Alpine, Homebrew); EL has no package, so `go install` builds it.
+        duf: {
+            description: "Disk Usage/Free — a colorful, friendlier `df` (`duf`)."
+            install: [
+                { via: native  when: "not rhel"  repo-component: universe }
+                { via: go-install  name: "github.com/muesli/duf" }   // builds `duf`; covers EL
+            ]
+        }
+
         configsys-dotfiles: { description: "configsys's own shell integration, linked into place."
             install: [
                 // 00- prefix: the ~/.bash.d loader sources files in lexical order, so this runs
@@ -898,6 +918,12 @@
         iftop:   { description: "iftop — a live per-connection bandwidth monitor." install: [ { via: native  when: "rhel"  requires: epel } { via: native } ] }
         nethogs: { description: "NetHogs — a per-process network bandwidth monitor." install: [ { via: native  when: "rhel"  requires: epel } { via: native } ] }
         nload:   { description: "nload — a console real-time network traffic monitor." install: [ { via: native  when: "rhel"  requires: epel } { via: native } ] }
+        // gping: ping with a live graph (Rust). Native where packaged (Arch, Alpine, Homebrew, and
+        // Debian>=13/Ubuntu>=23.10); Fedora is COPR-only and older Debian/Ubuntu/openSUSE/EL lack
+        // it, so cargo builds it there.
+        gping:   { description: "Ping, but with a live graph (`gping`)."
+                   install: [ { via: native  when: "arch or alpine or fedora_atomic or (ubuntu >= 23.10) or (debian >= 13)" }
+                              { via: cargo  name: gping } ] }
         vnstat:  { description: "vnStat — a network traffic logger and stats tool." install: [ { via: native  when: "rhel"  requires: epel } { via: native } ] }
 
         // Web/HTTP dev — httpie + jq native (httpie via EPEL on EL); yq/mitmproxy isolated via
