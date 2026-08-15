@@ -61,7 +61,8 @@ editors, browsers, file-managers, …). Rules:
 - **`description:` is mandatory** — one present-tense line naming the tool and what it does, with the
   real binary in backticks when it differs from the name (``System monitor (`btm`) …``). It's
   user-facing (TUI rows, `configsys request`, `check`), so write it for a human scanning the catalog,
-  not a package blurb.
+  not a package blurb. It only needs to be defined once; for a component modified in layers downstream
+  of the most base definition, the existing description will be used, so don't rewrite it.
 - **`via: native`** resolves to the OS's package manager; package name defaults to the component
   name — override with `name: <pkg>` (scalar = all managers) or `name: { apt: …  dnf: …  default: … }`.
 - **`when:`** states *validity only* (does this method work here), never preference. Bare atom =
