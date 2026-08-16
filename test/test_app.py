@@ -508,3 +508,22 @@ def test_location_reflects_actual_install_scope(tmp_path, monkeypatch, capsys):
     rc = main(base_args(tmp_path) + ['location', 'lazygit'])
     out = capsys.readouterr().out.strip()
     assert rc == 0 and out == str(lg)   # detected system install, not ~/apps/lazygit
+
+
+def test_installed_despite_failure_downgrades_present_package():
+    # verify-after-fail: a non-zero install whose package IS present now -> not a real failure.
+    import types
+    from configsys.app import _installed_despite_failure
+
+    def drv(ver, latest=None):
+        return types.SimpleNamespace(get_version=lambda rc: ver, get_latest=lambda rc: latest)
+
+    rc = object()
+    # install: present at any version -> downgrade (returns the version)
+    assert _installed_despite_failure(drv('0.27.1'), rc, 'install', None) == '0.27.1'
+    assert _installed_despite_failure(drv(None), rc, 'install', None) is None          # genuinely absent
+    # upgrade: only if it reached the target (candidate) version
+    assert _installed_despite_failure(drv('2.0', latest='2.0'), rc, 'upgrade', None) == '2.0'
+    assert _installed_despite_failure(drv('1.0', latest='2.0'), rc, 'upgrade', None) is None  # still old
+    # non-install ops never downgrade
+    assert _installed_despite_failure(drv('1.0'), rc, 'remove', None) is None

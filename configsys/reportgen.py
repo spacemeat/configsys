@@ -223,9 +223,11 @@ def _fence(text):
 
 def _render_failure(L, fail, sc):
     '''Append one failure record's block (op/unit/driver/exit, command, driver output) to L.'''
+    warn = '  ·  _installed (non-fatal: a recommended package / post-install step failed)_' \
+        if str(fail.get('installed', '')).lower() in ('true', '1') else ''
     L.append(f"- **op:** {fail.get('op')}  ·  **unit:** `{fail.get('unit')}`  "
              f"·  **driver:** `{fail.get('driver')}`  ·  **exit:** {fail.get('exit')}"
-             f"{('  ·  ' + fail['at']) if fail.get('at') else ''}")
+             f"{('  ·  ' + fail['at']) if fail.get('at') else ''}{warn}")
     if fail.get('command'):
         L.append('')
         L.append('**Command**')

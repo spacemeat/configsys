@@ -623,7 +623,8 @@ def _dispatch_op(ctx, names, op, *, ledger=None, version=None):
     plan = expand_plan(base_plan, units)
 
     rc_code = 0
-    failures = []
+    failures = []            # every problem record (some fatal, some installed-with-a-warning)
+    n_fatal = 0
     for cur_op, key, rc in plan:
         drv = get_driver(rc.driver, ctx.runner, ctx.paths)
         if drv is None:
@@ -657,26 +658,69 @@ def _dispatch_op(ctx, names, op, *, ledger=None, version=None):
                 print(f'    {line}')
             rc_code = rc_code or res.returncode or 1
         elif not res.ok:
-            rc_code = res.returncode or 1
-            print(f'  -> FAILED (exit {res.returncode})')
+            # verify-after-fail: apt (& friends) exit non-zero when a Recommends / sub-package /
+            # post-install step fails (e.g. sysdig-dkms's kernel module) even though the package you
+            # asked for installed fine. If the unit is actually present now, downgrade the red FAILED
+            # to an installed-with-a-warning (recorded for `report`, but not a failure / non-zero exit).
+            got = _installed_despite_failure(drv, rc, cur_op, version)
+            rec = reportgen.failure_from_result(key, rc.driver, cur_op, res)
+            if got:
+                rec['installed'] = 'true'
+                print(f'  -> installed WITH A WARNING (exit {res.returncode}) — a recommended '
+                      'package or post-install step failed; the package itself is present.')
+            else:
+                rc_code = res.returncode or 1
+                n_fatal += 1
+                print(f'  -> FAILED (exit {res.returncode})')
             for line in (res.output or res.cmd or '').strip().splitlines():
                 print(f'     {line}')                 # show WHY here, not only in last-failure.hu
-            failures.append(reportgen.failure_from_result(key, rc.driver, cur_op, res))
+            failures.append(rec)
         else:
             print('  -> ok')
     if ledger is not None:
         ledger.save(ctx.paths)
     if failures:
-        _offer_report(ctx, failures)
+        _offer_report(ctx, failures, fatal=n_fatal)
     return rc_code
 
 
-def _offer_report(ctx, failures):
-    '''Persist EVERY failure from the run so `configsys report` can reuse them later, and — on a
-    terminal — offer to file them now. Never fatal; a --pretend run doesn't reach here.'''
+def _installed_despite_failure(drv, rc, op, version):
+    '''After a non-zero install/upgrade, is the target unit ACTUALLY present now? apt exits non-zero
+    when a Recommends / sub-package / post-install step fails even though the wanted package
+    installed (e.g. sysdig-dkms's kernel module). Returns the installed version, or None. For an
+    upgrade/set-version "present" isn't enough — it must have reached the target version.'''
+    if op not in ('install', 'upgrade', 'set-version'):
+        return None
+    try:
+        got = drv.get_version(rc)
+    except Exception:                                     # noqa: BLE001
+        return None
+    if not got:
+        return None
+    if op == 'install':
+        return got
+    try:
+        target = version or drv.get_latest(rc)
+    except Exception:                                     # noqa: BLE001
+        target = None
+    return got if (target and str(got) == str(target)) else None
+
+
+def _offer_report(ctx, failures, fatal=None):
+    '''Persist EVERY problem from the run (real failures + installed-with-a-warning) so `configsys
+    report` can reuse them later, and — on a terminal — offer to file real failures now. `fatal` is
+    how many are hard failures (None = treat all as fatal). Never fatal itself; a --pretend run
+    doesn't reach here.'''
     if not isinstance(failures, list):                    # tolerate a single record
         failures = [failures]
     reportgen.save_failures(ctx.paths, failures)
+    fatal = len(failures) if fatal is None else fatal
+    if fatal == 0:                                        # only installed-with-warnings — note, don't push
+        names = [f['component'] for f in failures]
+        print(f'\nconfigsys: {", ".join(names)} installed with a warning — '
+              '`configsys report` files the details.')
+        return
+    failures = [f for f in failures if not f.get('installed')]   # offer on the real failures
     names = [f['component'] for f in failures]
     n = len(failures)
     who = names[0] if n == 1 else f'{n} components ({", ".join(names)})'
