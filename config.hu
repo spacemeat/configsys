@@ -31,7 +31,7 @@ profiles: {
     terminal: [ +terminal-emulators  +disk-utils  +cli-files  +system-monitors  curl  espeak  fastfetch
         fzf  ripgrep  xclip  neovim  tmux  lazygit  mononoki-nerd ]
     terminal-emulators: [ alacritty  ghostty  kitty  wezterm ]
-    system-monitors: [ btop  htop  bottom ]
+    system-monitors: [ btop  htop  bottom  atop  bmon  iotop  s-tui  glances  nvtop  wavemon  sysdig  dstat ]
     disk-utils: [ ncdu  duf ]
     cli-files: [ mc  yazi  superfile ]
     shells: [ fish  nushell  zsh ]
@@ -52,7 +52,7 @@ profiles: {
     db-servers: [ postgresql-service  mariadb-service  redis-service  mongodb  mongodb-service ]
 
     net-tools: [ iproute2  wireshark  wireshark-group  tshark  tcpdump  nmap  mtr  gping  traceroute  iperf3
-        socat  ethtool  whois  netcat  dig  iftop  nethogs  nload  vnstat ]
+        socat  ethtool  whois  netcat  dig  iftop  nethogs  nload  vnstat  dnspeep ]
     cloud-tools: [ awscli  gcloud  azure-cli  opentofu  grpcurl ]
     backend-tools: [ +containers  +k8s  +cloud-tools  +net-tools  +db-clients  +db-servers  ansible ]
 
