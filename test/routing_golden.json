@@ -2078,6 +2078,69 @@
     "name": "elixir"
    }
   },
+  "elm": {
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.bash.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\elm-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/elm.sh",
+     "src": "bash.d/elm.sh"
+    },
+    "name": "elm-dotfiles"
+   },
+   "pacman\\curl": {
+    "driver": "pacman",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "tarball\\elm": {
+    "driver": "tarball",
+    "fields": {
+     "archive": "gz",
+     "binary": "elm",
+     "installDir": "$CONFIGSYS_APP_DIR/elm",
+     "name": "elm",
+     "version": {
+      "asset": "elm-*-linux-x64.gz",
+      "github": "elm/compiler"
+     }
+    },
+    "name": "elm"
+   }
+  },
+  "elm-dotfiles": {
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.bash.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\elm-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/elm.sh",
+     "src": "bash.d/elm.sh"
+    },
+    "name": "elm-dotfiles"
+   }
+  },
   "emacs": {
    "dotfiles\\emacs-dotfiles": {
     "driver": "dotfiles",
@@ -5506,6 +5569,80 @@
     "name": "mitmproxy"
    }
   },
+  "mongodb": {
+   "aur\\mongodb": {
+    "driver": "aur",
+    "fields": {
+     "name": "mongodb-bin"
+    },
+    "name": "mongodb-bin"
+   },
+   "dotfiles\\git-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "~/.gitconfig",
+      "src": "gitconfig"
+     }
+    },
+    "name": "git-dotfiles"
+   },
+   "pacman\\base-devel": {
+    "driver": "pacman",
+    "fields": {
+     "name": "base-devel"
+    },
+    "name": "base-devel"
+   },
+   "pacman\\git": {
+    "driver": "pacman",
+    "fields": {
+     "name": "git"
+    },
+    "name": "git"
+   }
+  },
+  "mongodb-service": {
+   "aur\\mongodb": {
+    "driver": "aur",
+    "fields": {
+     "name": "mongodb-bin"
+    },
+    "name": "mongodb-bin"
+   },
+   "dotfiles\\git-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "~/.gitconfig",
+      "src": "gitconfig"
+     }
+    },
+    "name": "git-dotfiles"
+   },
+   "pacman\\base-devel": {
+    "driver": "pacman",
+    "fields": {
+     "name": "base-devel"
+    },
+    "name": "base-devel"
+   },
+   "pacman\\git": {
+    "driver": "pacman",
+    "fields": {
+     "name": "git"
+    },
+    "name": "git"
+   },
+   "service\\mongodb-service": {
+    "driver": "service",
+    "fields": {
+     "name": "mongodb-service",
+     "unit": "mongod"
+    },
+    "name": "mongodb-service"
+   }
+  },
   "mononoki-nerd": {
    "font\\mononoki-nerd": {
     "driver": "font",
@@ -6106,6 +6243,15 @@
      }
     },
     "name": "nushell-dotfiles"
+   }
+  },
+  "objective-c": {
+   "pacman\\objective-c": {
+    "driver": "pacman",
+    "fields": {
+     "name": "gcc-objc"
+    },
+    "name": "gcc-objc"
    }
   },
   "obs-studio": {
@@ -12848,6 +12994,69 @@
     "name": "elixir"
    }
   },
+  "elm": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.bash.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\elm-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/elm.sh",
+     "src": "bash.d/elm.sh"
+    },
+    "name": "elm-dotfiles"
+   },
+   "tarball\\elm": {
+    "driver": "tarball",
+    "fields": {
+     "archive": "gz",
+     "binary": "elm",
+     "installDir": "$CONFIGSYS_APP_DIR/elm",
+     "name": "elm",
+     "version": {
+      "asset": "elm-*-linux-x64.gz",
+      "github": "elm/compiler"
+     }
+    },
+    "name": "elm"
+   }
+  },
+  "elm-dotfiles": {
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.bash.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\elm-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/elm.sh",
+     "src": "bash.d/elm.sh"
+    },
+    "name": "elm-dotfiles"
+   }
+  },
   "emacs": {
    "apt\\emacs": {
     "driver": "apt",
@@ -16775,6 +16984,40 @@
     "name": "mitmproxy"
    }
   },
+  "mongodb": {
+   "apt\\mongodb": {
+    "driver": "apt",
+    "fields": {
+     "name": "mongodb-org",
+     "pubkey-path": "/usr/share/keyrings/mongodb-server-8.0.asc",
+     "pubkey-url": "https://www.mongodb.org/static/pgp/server-8.0.asc",
+     "source-line": "deb [signed-by=/usr/share/keyrings/mongodb-server-8.0.asc] https://repo.mongodb.org/apt/debian bookworm/mongodb-org/8.0 main",
+     "source-path": "/etc/apt/sources.list.d/mongodb-org-8.0.list"
+    },
+    "name": "mongodb-org"
+   }
+  },
+  "mongodb-service": {
+   "apt\\mongodb": {
+    "driver": "apt",
+    "fields": {
+     "name": "mongodb-org",
+     "pubkey-path": "/usr/share/keyrings/mongodb-server-8.0.asc",
+     "pubkey-url": "https://www.mongodb.org/static/pgp/server-8.0.asc",
+     "source-line": "deb [signed-by=/usr/share/keyrings/mongodb-server-8.0.asc] https://repo.mongodb.org/apt/debian bookworm/mongodb-org/8.0 main",
+     "source-path": "/etc/apt/sources.list.d/mongodb-org-8.0.list"
+    },
+    "name": "mongodb-org"
+   },
+   "service\\mongodb-service": {
+    "driver": "service",
+    "fields": {
+     "name": "mongodb-service",
+     "unit": "mongod"
+    },
+    "name": "mongodb-service"
+   }
+  },
   "mononoki-nerd": {
    "apt\\fontconfig": {
     "driver": "apt",
@@ -17387,6 +17630,15 @@
      }
     },
     "name": "nushell-dotfiles"
+   }
+  },
+  "objective-c": {
+   "apt\\objective-c": {
+    "driver": "apt",
+    "fields": {
+     "name": "gobjc"
+    },
+    "name": "gobjc"
    }
   },
   "obs-studio": {
@@ -23686,6 +23938,69 @@
     "name": "elixir"
    }
   },
+  "elm": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.bash.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\elm-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/elm.sh",
+     "src": "bash.d/elm.sh"
+    },
+    "name": "elm-dotfiles"
+   },
+   "tarball\\elm": {
+    "driver": "tarball",
+    "fields": {
+     "archive": "gz",
+     "binary": "elm",
+     "installDir": "$CONFIGSYS_APP_DIR/elm",
+     "name": "elm",
+     "version": {
+      "asset": "elm-*-linux-x64.gz",
+      "github": "elm/compiler"
+     }
+    },
+    "name": "elm"
+   }
+  },
+  "elm-dotfiles": {
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.bash.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\elm-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/elm.sh",
+     "src": "bash.d/elm.sh"
+    },
+    "name": "elm-dotfiles"
+   }
+  },
   "emacs": {
    "apt\\emacs": {
     "driver": "apt",
@@ -27541,6 +27856,40 @@
     "name": "mitmproxy"
    }
   },
+  "mongodb": {
+   "apt\\mongodb": {
+    "driver": "apt",
+    "fields": {
+     "name": "mongodb-org",
+     "pubkey-path": "/usr/share/keyrings/mongodb-server-8.0.asc",
+     "pubkey-url": "https://www.mongodb.org/static/pgp/server-8.0.asc",
+     "source-line": "deb [signed-by=/usr/share/keyrings/mongodb-server-8.0.asc] https://repo.mongodb.org/apt/debian bookworm/mongodb-org/8.0 main",
+     "source-path": "/etc/apt/sources.list.d/mongodb-org-8.0.list"
+    },
+    "name": "mongodb-org"
+   }
+  },
+  "mongodb-service": {
+   "apt\\mongodb": {
+    "driver": "apt",
+    "fields": {
+     "name": "mongodb-org",
+     "pubkey-path": "/usr/share/keyrings/mongodb-server-8.0.asc",
+     "pubkey-url": "https://www.mongodb.org/static/pgp/server-8.0.asc",
+     "source-line": "deb [signed-by=/usr/share/keyrings/mongodb-server-8.0.asc] https://repo.mongodb.org/apt/debian bookworm/mongodb-org/8.0 main",
+     "source-path": "/etc/apt/sources.list.d/mongodb-org-8.0.list"
+    },
+    "name": "mongodb-org"
+   },
+   "service\\mongodb-service": {
+    "driver": "service",
+    "fields": {
+     "name": "mongodb-service",
+     "unit": "mongod"
+    },
+    "name": "mongodb-service"
+   }
+  },
   "mononoki-nerd": {
    "apt\\fontconfig": {
     "driver": "apt",
@@ -28135,6 +28484,15 @@
      }
     },
     "name": "nushell-dotfiles"
+   }
+  },
+  "objective-c": {
+   "apt\\objective-c": {
+    "driver": "apt",
+    "fields": {
+     "name": "gobjc"
+    },
+    "name": "gobjc"
    }
   },
   "obs-studio": {
@@ -34329,6 +34687,69 @@
     "name": "elixir"
    }
   },
+  "elm": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.bash.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\elm-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/elm.sh",
+     "src": "bash.d/elm.sh"
+    },
+    "name": "elm-dotfiles"
+   },
+   "tarball\\elm": {
+    "driver": "tarball",
+    "fields": {
+     "archive": "gz",
+     "binary": "elm",
+     "installDir": "$CONFIGSYS_APP_DIR/elm",
+     "name": "elm",
+     "version": {
+      "asset": "elm-*-linux-x64.gz",
+      "github": "elm/compiler"
+     }
+    },
+    "name": "elm"
+   }
+  },
+  "elm-dotfiles": {
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.bash.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\elm-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/elm.sh",
+     "src": "bash.d/elm.sh"
+    },
+    "name": "elm-dotfiles"
+   }
+  },
   "emacs": {
    "apt\\emacs": {
     "driver": "apt",
@@ -38177,6 +38598,40 @@
     "name": "mitmproxy"
    }
   },
+  "mongodb": {
+   "apt\\mongodb": {
+    "driver": "apt",
+    "fields": {
+     "name": "mongodb-org",
+     "pubkey-path": "/usr/share/keyrings/mongodb-server-8.0.asc",
+     "pubkey-url": "https://www.mongodb.org/static/pgp/server-8.0.asc",
+     "source-line": "deb [signed-by=/usr/share/keyrings/mongodb-server-8.0.asc] https://repo.mongodb.org/apt/ubuntu noble/mongodb-org/8.0 multiverse",
+     "source-path": "/etc/apt/sources.list.d/mongodb-org-8.0.list"
+    },
+    "name": "mongodb-org"
+   }
+  },
+  "mongodb-service": {
+   "apt\\mongodb": {
+    "driver": "apt",
+    "fields": {
+     "name": "mongodb-org",
+     "pubkey-path": "/usr/share/keyrings/mongodb-server-8.0.asc",
+     "pubkey-url": "https://www.mongodb.org/static/pgp/server-8.0.asc",
+     "source-line": "deb [signed-by=/usr/share/keyrings/mongodb-server-8.0.asc] https://repo.mongodb.org/apt/ubuntu noble/mongodb-org/8.0 multiverse",
+     "source-path": "/etc/apt/sources.list.d/mongodb-org-8.0.list"
+    },
+    "name": "mongodb-org"
+   },
+   "service\\mongodb-service": {
+    "driver": "service",
+    "fields": {
+     "name": "mongodb-service",
+     "unit": "mongod"
+    },
+    "name": "mongodb-service"
+   }
+  },
   "mononoki-nerd": {
    "apt\\fontconfig": {
     "driver": "apt",
@@ -38771,6 +39226,15 @@
      }
     },
     "name": "nushell-dotfiles"
+   }
+  },
+  "objective-c": {
+   "apt\\objective-c": {
+    "driver": "apt",
+    "fields": {
+     "name": "gobjc"
+    },
+    "name": "gobjc"
    }
   },
   "obs-studio": {
@@ -44831,6 +45295,69 @@
     "name": "elixir"
    }
   },
+  "elm": {
+   "dnf\\curl": {
+    "driver": "dnf",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.bash.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\elm-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/elm.sh",
+     "src": "bash.d/elm.sh"
+    },
+    "name": "elm-dotfiles"
+   },
+   "tarball\\elm": {
+    "driver": "tarball",
+    "fields": {
+     "archive": "gz",
+     "binary": "elm",
+     "installDir": "$CONFIGSYS_APP_DIR/elm",
+     "name": "elm",
+     "version": {
+      "asset": "elm-*-linux-x64.gz",
+      "github": "elm/compiler"
+     }
+    },
+    "name": "elm"
+   }
+  },
+  "elm-dotfiles": {
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.bash.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\elm-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/elm.sh",
+     "src": "bash.d/elm.sh"
+    },
+    "name": "elm-dotfiles"
+   }
+  },
   "emacs": {
    "dnf\\emacs": {
     "driver": "dnf",
@@ -49016,6 +49543,15 @@
      }
     },
     "name": "nushell-dotfiles"
+   }
+  },
+  "objective-c": {
+   "dnf\\objective-c": {
+    "driver": "dnf",
+    "fields": {
+     "name": "gcc-objc"
+    },
+    "name": "gcc-objc"
    }
   },
   "obs-studio": {
@@ -55104,6 +55640,69 @@
     "name": "elixir"
    }
   },
+  "elm": {
+   "dnf\\curl": {
+    "driver": "dnf",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.bash.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\elm-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/elm.sh",
+     "src": "bash.d/elm.sh"
+    },
+    "name": "elm-dotfiles"
+   },
+   "tarball\\elm": {
+    "driver": "tarball",
+    "fields": {
+     "archive": "gz",
+     "binary": "elm",
+     "installDir": "$CONFIGSYS_APP_DIR/elm",
+     "name": "elm",
+     "version": {
+      "asset": "elm-*-linux-x64.gz",
+      "github": "elm/compiler"
+     }
+    },
+    "name": "elm"
+   }
+  },
+  "elm-dotfiles": {
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.bash.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\elm-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/elm.sh",
+     "src": "bash.d/elm.sh"
+    },
+    "name": "elm-dotfiles"
+   }
+  },
   "emacs": {
    "dnf\\emacs": {
     "driver": "dnf",
@@ -59289,6 +59888,15 @@
      }
     },
     "name": "nushell-dotfiles"
+   }
+  },
+  "objective-c": {
+   "dnf\\objective-c": {
+    "driver": "dnf",
+    "fields": {
+     "name": "gcc-objc"
+    },
+    "name": "gcc-objc"
    }
   },
   "obs-studio": {
@@ -64750,6 +65358,69 @@
      "repo-component": "universe"
     },
     "name": "elixir"
+   }
+  },
+  "elm": {
+   "brew\\curl": {
+    "driver": "brew",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.bash.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\elm-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/elm.sh",
+     "src": "bash.d/elm.sh"
+    },
+    "name": "elm-dotfiles"
+   },
+   "tarball\\elm": {
+    "driver": "tarball",
+    "fields": {
+     "archive": "gz",
+     "binary": "elm",
+     "installDir": "$CONFIGSYS_APP_DIR/elm",
+     "name": "elm",
+     "version": {
+      "asset": "elm-*-linux-x64.gz",
+      "github": "elm/compiler"
+     }
+    },
+    "name": "elm"
+   }
+  },
+  "elm-dotfiles": {
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.bash.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\elm-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/elm.sh",
+     "src": "bash.d/elm.sh"
+    },
+    "name": "elm-dotfiles"
    }
   },
   "emacs": {
@@ -73650,6 +74321,69 @@
     "name": "elixir"
    }
   },
+  "elm": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.bash.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\elm-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/elm.sh",
+     "src": "bash.d/elm.sh"
+    },
+    "name": "elm-dotfiles"
+   },
+   "tarball\\elm": {
+    "driver": "tarball",
+    "fields": {
+     "archive": "gz",
+     "binary": "elm",
+     "installDir": "$CONFIGSYS_APP_DIR/elm",
+     "name": "elm",
+     "version": {
+      "asset": "elm-*-linux-x64.gz",
+      "github": "elm/compiler"
+     }
+    },
+    "name": "elm"
+   }
+  },
+  "elm-dotfiles": {
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.bash.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\elm-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/elm.sh",
+     "src": "bash.d/elm.sh"
+    },
+    "name": "elm-dotfiles"
+   }
+  },
   "emacs": {
    "apt\\emacs": {
     "driver": "apt",
@@ -77570,6 +78304,40 @@
     "name": "mitmproxy"
    }
   },
+  "mongodb": {
+   "apt\\mongodb": {
+    "driver": "apt",
+    "fields": {
+     "name": "mongodb-org",
+     "pubkey-path": "/usr/share/keyrings/mongodb-server-8.0.asc",
+     "pubkey-url": "https://www.mongodb.org/static/pgp/server-8.0.asc",
+     "source-line": "deb [signed-by=/usr/share/keyrings/mongodb-server-8.0.asc] https://repo.mongodb.org/apt/ubuntu noble/mongodb-org/8.0 multiverse",
+     "source-path": "/etc/apt/sources.list.d/mongodb-org-8.0.list"
+    },
+    "name": "mongodb-org"
+   }
+  },
+  "mongodb-service": {
+   "apt\\mongodb": {
+    "driver": "apt",
+    "fields": {
+     "name": "mongodb-org",
+     "pubkey-path": "/usr/share/keyrings/mongodb-server-8.0.asc",
+     "pubkey-url": "https://www.mongodb.org/static/pgp/server-8.0.asc",
+     "source-line": "deb [signed-by=/usr/share/keyrings/mongodb-server-8.0.asc] https://repo.mongodb.org/apt/ubuntu noble/mongodb-org/8.0 multiverse",
+     "source-path": "/etc/apt/sources.list.d/mongodb-org-8.0.list"
+    },
+    "name": "mongodb-org"
+   },
+   "service\\mongodb-service": {
+    "driver": "service",
+    "fields": {
+     "name": "mongodb-service",
+     "unit": "mongod"
+    },
+    "name": "mongodb-service"
+   }
+  },
   "mononoki-nerd": {
    "apt\\fontconfig": {
     "driver": "apt",
@@ -78182,6 +78950,15 @@
      }
     },
     "name": "nushell-dotfiles"
+   }
+  },
+  "objective-c": {
+   "apt\\objective-c": {
+    "driver": "apt",
+    "fields": {
+     "name": "gobjc"
+    },
+    "name": "gobjc"
    }
   },
   "obs-studio": {
@@ -84472,6 +85249,69 @@
     "name": "elixir"
    }
   },
+  "elm": {
+   "dnf\\curl": {
+    "driver": "dnf",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.bash.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\elm-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/elm.sh",
+     "src": "bash.d/elm.sh"
+    },
+    "name": "elm-dotfiles"
+   },
+   "tarball\\elm": {
+    "driver": "tarball",
+    "fields": {
+     "archive": "gz",
+     "binary": "elm",
+     "installDir": "$CONFIGSYS_APP_DIR/elm",
+     "name": "elm",
+     "version": {
+      "asset": "elm-*-linux-x64.gz",
+      "github": "elm/compiler"
+     }
+    },
+    "name": "elm"
+   }
+  },
+  "elm-dotfiles": {
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.bash.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\elm-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/elm.sh",
+     "src": "bash.d/elm.sh"
+    },
+    "name": "elm-dotfiles"
+   }
+  },
   "emacs": {
    "dnf\\emacs": {
     "driver": "dnf",
@@ -88210,6 +89050,40 @@
     "name": "mitmproxy"
    }
   },
+  "mongodb": {
+   "dnf\\mongodb": {
+    "driver": "dnf",
+    "fields": {
+     "name": "mongodb-org",
+     "pubkey-url": "https://www.mongodb.org/static/pgp/server-8.0.asc",
+     "repo-id": "mongodb-org-8.0",
+     "repo-name": "MongoDB Repository",
+     "repo-url": "https://repo.mongodb.org/yum/redhat/$releasever/mongodb-org/8.0/x86_64/"
+    },
+    "name": "mongodb-org"
+   }
+  },
+  "mongodb-service": {
+   "dnf\\mongodb": {
+    "driver": "dnf",
+    "fields": {
+     "name": "mongodb-org",
+     "pubkey-url": "https://www.mongodb.org/static/pgp/server-8.0.asc",
+     "repo-id": "mongodb-org-8.0",
+     "repo-name": "MongoDB Repository",
+     "repo-url": "https://repo.mongodb.org/yum/redhat/$releasever/mongodb-org/8.0/x86_64/"
+    },
+    "name": "mongodb-org"
+   },
+   "service\\mongodb-service": {
+    "driver": "service",
+    "fields": {
+     "name": "mongodb-service",
+     "unit": "mongod"
+    },
+    "name": "mongodb-service"
+   }
+  },
   "mononoki-nerd": {
    "dnf\\fontconfig": {
     "driver": "dnf",
@@ -88827,6 +89701,15 @@
      }
     },
     "name": "nushell-dotfiles"
+   }
+  },
+  "objective-c": {
+   "dnf\\objective-c": {
+    "driver": "dnf",
+    "fields": {
+     "name": "gcc-objc"
+    },
+    "name": "gcc-objc"
    }
   },
   "obs-studio": {
@@ -95181,6 +96064,69 @@
     "name": "elixir"
    }
   },
+  "elm": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.bash.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\elm-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/elm.sh",
+     "src": "bash.d/elm.sh"
+    },
+    "name": "elm-dotfiles"
+   },
+   "tarball\\elm": {
+    "driver": "tarball",
+    "fields": {
+     "archive": "gz",
+     "binary": "elm",
+     "installDir": "$CONFIGSYS_APP_DIR/elm",
+     "name": "elm",
+     "version": {
+      "asset": "elm-*-linux-x64.gz",
+      "github": "elm/compiler"
+     }
+    },
+    "name": "elm"
+   }
+  },
+  "elm-dotfiles": {
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.bash.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\elm-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/elm.sh",
+     "src": "bash.d/elm.sh"
+    },
+    "name": "elm-dotfiles"
+   }
+  },
   "emacs": {
    "apt\\emacs": {
     "driver": "apt",
@@ -99101,6 +100047,40 @@
     "name": "mitmproxy"
    }
   },
+  "mongodb": {
+   "apt\\mongodb": {
+    "driver": "apt",
+    "fields": {
+     "name": "mongodb-org",
+     "pubkey-path": "/usr/share/keyrings/mongodb-server-8.0.asc",
+     "pubkey-url": "https://www.mongodb.org/static/pgp/server-8.0.asc",
+     "source-line": "deb [signed-by=/usr/share/keyrings/mongodb-server-8.0.asc] https://repo.mongodb.org/apt/ubuntu noble/mongodb-org/8.0 multiverse",
+     "source-path": "/etc/apt/sources.list.d/mongodb-org-8.0.list"
+    },
+    "name": "mongodb-org"
+   }
+  },
+  "mongodb-service": {
+   "apt\\mongodb": {
+    "driver": "apt",
+    "fields": {
+     "name": "mongodb-org",
+     "pubkey-path": "/usr/share/keyrings/mongodb-server-8.0.asc",
+     "pubkey-url": "https://www.mongodb.org/static/pgp/server-8.0.asc",
+     "source-line": "deb [signed-by=/usr/share/keyrings/mongodb-server-8.0.asc] https://repo.mongodb.org/apt/ubuntu noble/mongodb-org/8.0 multiverse",
+     "source-path": "/etc/apt/sources.list.d/mongodb-org-8.0.list"
+    },
+    "name": "mongodb-org"
+   },
+   "service\\mongodb-service": {
+    "driver": "service",
+    "fields": {
+     "name": "mongodb-service",
+     "unit": "mongod"
+    },
+    "name": "mongodb-service"
+   }
+  },
   "mononoki-nerd": {
    "apt\\fontconfig": {
     "driver": "apt",
@@ -99713,6 +100693,15 @@
      }
     },
     "name": "nushell-dotfiles"
+   }
+  },
+  "objective-c": {
+   "apt\\objective-c": {
+    "driver": "apt",
+    "fields": {
+     "name": "gobjc"
+    },
+    "name": "gobjc"
    }
   },
   "obs-studio": {
@@ -106028,6 +107017,69 @@
     "name": "elixir"
    }
   },
+  "elm": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.bash.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\elm-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/elm.sh",
+     "src": "bash.d/elm.sh"
+    },
+    "name": "elm-dotfiles"
+   },
+   "tarball\\elm": {
+    "driver": "tarball",
+    "fields": {
+     "archive": "gz",
+     "binary": "elm",
+     "installDir": "$CONFIGSYS_APP_DIR/elm",
+     "name": "elm",
+     "version": {
+      "asset": "elm-*-linux-x64.gz",
+      "github": "elm/compiler"
+     }
+    },
+    "name": "elm"
+   }
+  },
+  "elm-dotfiles": {
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.bash.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\elm-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/elm.sh",
+     "src": "bash.d/elm.sh"
+    },
+    "name": "elm-dotfiles"
+   }
+  },
   "emacs": {
    "apt\\emacs": {
     "driver": "apt",
@@ -109849,6 +110901,40 @@
     "name": "mitmproxy"
    }
   },
+  "mongodb": {
+   "apt\\mongodb": {
+    "driver": "apt",
+    "fields": {
+     "name": "mongodb-org",
+     "pubkey-path": "/usr/share/keyrings/mongodb-server-8.0.asc",
+     "pubkey-url": "https://www.mongodb.org/static/pgp/server-8.0.asc",
+     "source-line": "deb [signed-by=/usr/share/keyrings/mongodb-server-8.0.asc] https://repo.mongodb.org/apt/ubuntu noble/mongodb-org/8.0 multiverse",
+     "source-path": "/etc/apt/sources.list.d/mongodb-org-8.0.list"
+    },
+    "name": "mongodb-org"
+   }
+  },
+  "mongodb-service": {
+   "apt\\mongodb": {
+    "driver": "apt",
+    "fields": {
+     "name": "mongodb-org",
+     "pubkey-path": "/usr/share/keyrings/mongodb-server-8.0.asc",
+     "pubkey-url": "https://www.mongodb.org/static/pgp/server-8.0.asc",
+     "source-line": "deb [signed-by=/usr/share/keyrings/mongodb-server-8.0.asc] https://repo.mongodb.org/apt/ubuntu noble/mongodb-org/8.0 multiverse",
+     "source-path": "/etc/apt/sources.list.d/mongodb-org-8.0.list"
+    },
+    "name": "mongodb-org"
+   },
+   "service\\mongodb-service": {
+    "driver": "service",
+    "fields": {
+     "name": "mongodb-service",
+     "unit": "mongod"
+    },
+    "name": "mongodb-service"
+   }
+  },
   "mononoki-nerd": {
    "apt\\fontconfig": {
     "driver": "apt",
@@ -110443,6 +111529,15 @@
      }
     },
     "name": "nushell-dotfiles"
+   }
+  },
+  "objective-c": {
+   "apt\\objective-c": {
+    "driver": "apt",
+    "fields": {
+     "name": "gobjc"
+    },
+    "name": "gobjc"
    }
   },
   "obs-studio": {

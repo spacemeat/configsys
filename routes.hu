@@ -504,6 +504,13 @@
         pnpm:       { description: "pnpm — fast, disk-efficient Node package manager." install: [ { via: npm  name: pnpm } ] }
         yarn:       { description: "Yarn — a Node package manager." install: [ { via: npm  name: yarn } ] }
         sass:       { description: "Sass — CSS with superpowers (the `sass` compiler)." install: [ { via: npm  name: sass } ] }
+        // elm: no distro packages it — the official prebuilt binary from elm/compiler releases is a
+        // single gzipped glibc executable (archive: gz). Off-PATH under the app dir, so elm-dotfiles
+        // aliases it; declines on musl Alpine.
+        elm: { suggests: elm-dotfiles  description: "Elm — a functional language for reliable web frontends (compiles to JS)."
+            install: [ { via: tarball  when: "not alpine"  installDir: "$CONFIGSYS_APP_DIR/elm"  requires: glibc  archive: gz  binary: elm
+                         version: { github: elm/compiler  asset: "elm-*-linux-x64.gz" } } ] }
+        elm-dotfiles: { description: "elm shell setup, linked into place." install: [ { via: dotfiles  requires: bash-dotfiles  src: bash.d/elm.sh  dst: ~/.bash.d/elm.sh } ] }
 
         // Deno & Bun — alternative JS/TS runtimes. Native on Arch/Homebrew where packaged; else
         // the upstream github release ZIP (glibc-linked; the tarball driver unzips it). Both have
@@ -652,6 +659,11 @@
         gnucobol: { description: "GnuCOBOL — a COBOL compiler (`cobc`)."
             install: [ { via: native  when: "(not arch) and not amzn"  name: gnucobol }   // `gnucobol` on apt/dnf/zypper/apk
                        { via: aur  when: "arch"  name: gnucobol } ] }   // AUR-only on Arch
+        // Objective-C: the GNU ObjC compiler frontend + libobjc runtime (compile via `gcc -x
+        // objective-c` or clang; no `objc` binary). apt calls it gobjc, everyone else gcc-objc;
+        // Alpine's musl gcc and Amazon's base repo don't package it -> they decline.
+        objective-c: { description: "Objective-C — the GNU Objective-C compiler frontend + libobjc runtime."
+            install: [ { via: native  when: "not (alpine or amzn or fedora_atomic)"  name: { apt: gobjc  default: gcc-objc } } ] }   // no gcc-objc brew formula on atomic (layer/toolbox instead)
         d: { description: "The D programming language (a D compiler — LDC / GDC / DMD per distro)."
             install: [ { via: native  when: "fedora or arch or alpine or fedora_atomic"  name: ldc }   // LLVM D compiler
                        { via: native  when: "debian"  name: gdc }        // GCC D front-end (ldc is sid-only on debian)
@@ -1928,6 +1940,27 @@
         redis:              { description: "Redis — in-memory data store and cache." install: [ { via: native  when: "debian or redhat or arch"  name: { apt: redis-server  dnf: valkey  pacman: valkey } }  { via: native  when: "fedora_atomic"  name: redis } ] }   // brew formula `redis` (distro repos lean valkey post-relicense; brew keeps redis)
         redis-service:      { description: "Enable and start the Redis server (systemd)." requires: redis  install: [ { via: service  when: "debian"  unit: redis-server }
                                                           { via: service  when: "redhat or arch"  unit: valkey } ] }
+        // MongoDB: removed from distro repos over its SSPL license, so it installs from MongoDB's
+        // OWN vendor repos (apt keyed per family with a hardcoded codename, dnf on EL) + the AUR
+        // binary on Arch. MongoDB ships no Fedora/openSUSE/Amazon repo -> those decline. Version-
+        // pathed (8.0) — bump the repo path + key on a major MongoDB bump.
+        mongodb: { description: "MongoDB Community Server — a document (NoSQL) database (`mongod`)."
+            install: [
+                { via: native  when: "ubuntu"  name: mongodb-org   // MongoDB's official apt repo (Ubuntu)
+                  pubkey-url: "https://www.mongodb.org/static/pgp/server-8.0.asc"  pubkey-path: /usr/share/keyrings/mongodb-server-8.0.asc
+                  source-line: "deb [signed-by=/usr/share/keyrings/mongodb-server-8.0.asc] https://repo.mongodb.org/apt/ubuntu noble/mongodb-org/8.0 multiverse"
+                  source-path: /etc/apt/sources.list.d/mongodb-org-8.0.list }
+                { via: native  when: "debian"  name: mongodb-org   // MongoDB's official apt repo (Debian)
+                  pubkey-url: "https://www.mongodb.org/static/pgp/server-8.0.asc"  pubkey-path: /usr/share/keyrings/mongodb-server-8.0.asc
+                  source-line: "deb [signed-by=/usr/share/keyrings/mongodb-server-8.0.asc] https://repo.mongodb.org/apt/debian bookworm/mongodb-org/8.0 main"
+                  source-path: /etc/apt/sources.list.d/mongodb-org-8.0.list }
+                { via: native  when: "rhel"  name: mongodb-org   // MongoDB's official dnf repo (EL only; no Fedora repo)
+                  pubkey-url: "https://www.mongodb.org/static/pgp/server-8.0.asc"
+                  repo-id: mongodb-org-8.0  repo-name: "MongoDB Repository"
+                  repo-url: "https://repo.mongodb.org/yum/redhat/$releasever/mongodb-org/8.0/x86_64/" }
+                { via: aur  when: "arch"  name: mongodb-bin } ]   // AUR (prebuilt)
+        }
+        mongodb-service: { description: "Enable and start the MongoDB server (systemd)." requires: mongodb  install: [ { via: service  unit: mongod } ] }
 
         // --- science & math ---
         gnuplot:    { suggests: gnuplot-dotfiles  description: "gnuplot — command-driven plotting for data and functions." install: [ { via: native  repo-component: universe } ] }
