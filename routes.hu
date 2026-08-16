@@ -40,6 +40,7 @@
         rocky:     { using: rhel }
         almalinux: { using: rhel }
         centos:    { using: rhel }                                  // CentOS Stream
+        ol:        { using: rhel }                                  // Oracle Linux (os-release ID=ol) — EL rebuild, full dnf + its own EPEL pkg name
 
         // Fedora Atomic / uBlue (Silverblue, Kinoite, Sericea, Bazzite, Bluefin, Aurora …) —
         // immutable ostree desktops. Modeled as a distinct ENVIRONMENT, deliberately NOT under
@@ -433,7 +434,11 @@
         // that `requires: epel` is a no-op off EL (nothing needs it) and pulls this in on EL.
         epel-release: { description: "EPEL — Extra Packages for Enterprise Linux (an extra RHEL repo)."
             provides: epel
-            install: [ { via: native  when: "rhel" } ]
+            // Oracle Linux ships EPEL under its own package name (oracle-epel-release-elN); the
+            // narrower `when: ol` wins over the generic rhel binding by specificity. (el9 name —
+            // an OL8 target would want oracle-epel-release-el8.)
+            install: [ { via: native  when: "rhel" }
+                       { via: native  when: "ol"  name: oracle-epel-release-el9 } ]
         }
 
         // pipx: the version-variant collapse. Native package where the repos have it;
