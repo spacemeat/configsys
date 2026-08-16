@@ -353,20 +353,13 @@
    }
   },
   "ardour": {
-   "flatpak\\ardour": {
-    "driver": "flatpak",
-    "fields": {
-     "hub": "flathub",
-     "name": "org.ardour.Ardour"
-    },
-    "name": "org.ardour.Ardour"
-   },
-   "pacman\\flatpak": {
+   "pacman\\ardour": {
     "driver": "pacman",
     "fields": {
-     "name": "flatpak"
+     "name": "ardour",
+     "repo-component": "universe"
     },
-    "name": "flatpak"
+    "name": "ardour"
    }
   },
   "arduino": {
@@ -970,20 +963,13 @@
    }
   },
   "carla": {
-   "flatpak\\carla": {
-    "driver": "flatpak",
-    "fields": {
-     "hub": "flathub",
-     "name": "studio.kx.carla"
-    },
-    "name": "studio.kx.carla"
-   },
-   "pacman\\flatpak": {
+   "pacman\\carla": {
     "driver": "pacman",
     "fields": {
-     "name": "flatpak"
+     "name": "carla",
+     "repo-component": "universe"
     },
-    "name": "flatpak"
+    "name": "carla"
    }
   },
   "chrome": {
@@ -1619,20 +1605,13 @@
    }
   },
   "darktable": {
-   "flatpak\\darktable": {
-    "driver": "flatpak",
-    "fields": {
-     "hub": "flathub",
-     "name": "org.darktable.Darktable"
-    },
-    "name": "org.darktable.Darktable"
-   },
-   "pacman\\flatpak": {
+   "pacman\\darktable": {
     "driver": "pacman",
     "fields": {
-     "name": "flatpak"
+     "name": "darktable",
+     "repo-component": "universe"
     },
-    "name": "flatpak"
+    "name": "darktable"
    }
   },
   "dart": {
@@ -1807,20 +1786,13 @@
    }
   },
   "digikam": {
-   "flatpak\\digikam": {
-    "driver": "flatpak",
-    "fields": {
-     "hub": "flathub",
-     "name": "org.kde.digikam"
-    },
-    "name": "org.kde.digikam"
-   },
-   "pacman\\flatpak": {
+   "pacman\\digikam": {
     "driver": "pacman",
     "fields": {
-     "name": "flatpak"
+     "name": "digikam",
+     "repo-component": "universe"
     },
-    "name": "flatpak"
+    "name": "digikam"
    }
   },
   "discord": {
@@ -3782,20 +3754,13 @@
    }
   },
   "hydrogen": {
-   "flatpak\\hydrogen": {
-    "driver": "flatpak",
-    "fields": {
-     "hub": "flathub",
-     "name": "org.hydrogenmusic.Hydrogen"
-    },
-    "name": "org.hydrogenmusic.Hydrogen"
-   },
-   "pacman\\flatpak": {
+   "pacman\\hydrogen": {
     "driver": "pacman",
     "fields": {
-     "name": "flatpak"
+     "name": "hydrogen",
+     "repo-component": "universe"
     },
-    "name": "flatpak"
+    "name": "hydrogen"
    }
   },
   "hyprland": {
@@ -3870,20 +3835,13 @@
    }
   },
   "inkscape": {
-   "flatpak\\inkscape": {
-    "driver": "flatpak",
-    "fields": {
-     "hub": "flathub",
-     "name": "org.inkscape.Inkscape"
-    },
-    "name": "org.inkscape.Inkscape"
-   },
-   "pacman\\flatpak": {
+   "pacman\\inkscape": {
     "driver": "pacman",
     "fields": {
-     "name": "flatpak"
+     "name": "inkscape",
+     "repo-component": "universe"
     },
-    "name": "flatpak"
+    "name": "inkscape"
    }
   },
   "insomnia": {
@@ -5170,20 +5128,13 @@
    }
   },
   "lmms": {
-   "flatpak\\lmms": {
-    "driver": "flatpak",
-    "fields": {
-     "hub": "flathub",
-     "name": "io.lmms.LMMS"
-    },
-    "name": "io.lmms.LMMS"
-   },
-   "pacman\\flatpak": {
+   "pacman\\lmms": {
     "driver": "pacman",
     "fields": {
-     "name": "flatpak"
+     "name": "lmms",
+     "repo-component": "universe"
     },
-    "name": "flatpak"
+    "name": "lmms"
    }
   },
   "ltrace": {
@@ -6571,20 +6522,13 @@
    }
   },
   "openscad": {
-   "flatpak\\openscad": {
-    "driver": "flatpak",
-    "fields": {
-     "hub": "flathub",
-     "name": "org.openscad.OpenSCAD"
-    },
-    "name": "org.openscad.OpenSCAD"
-   },
-   "pacman\\flatpak": {
+   "pacman\\openscad": {
     "driver": "pacman",
     "fields": {
-     "name": "flatpak"
+     "name": "openscad",
+     "repo-component": "universe"
     },
-    "name": "flatpak"
+    "name": "openscad"
    }
   },
   "opentofu": {
@@ -8336,20 +8280,13 @@
    }
   },
   "scribus": {
-   "flatpak\\scribus": {
-    "driver": "flatpak",
-    "fields": {
-     "hub": "flathub",
-     "name": "net.scribus.Scribus"
-    },
-    "name": "net.scribus.Scribus"
-   },
-   "pacman\\flatpak": {
+   "pacman\\scribus": {
     "driver": "pacman",
     "fields": {
-     "name": "flatpak"
+     "name": "scribus",
+     "repo-component": "universe"
     },
-    "name": "flatpak"
+    "name": "scribus"
    }
   },
   "sdkman": {
@@ -8716,20 +8653,13 @@
    }
   },
   "sqlitebrowser": {
-   "flatpak\\sqlitebrowser": {
-    "driver": "flatpak",
-    "fields": {
-     "hub": "flathub",
-     "name": "org.sqlitebrowser.sqlitebrowser"
-    },
-    "name": "org.sqlitebrowser.sqlitebrowser"
-   },
-   "pacman\\flatpak": {
+   "pacman\\sqlitebrowser": {
     "driver": "pacman",
     "fields": {
-     "name": "flatpak"
+     "name": "sqlitebrowser",
+     "repo-component": "universe"
     },
-    "name": "flatpak"
+    "name": "sqlitebrowser"
    }
   },
   "steam": {
@@ -8979,20 +8909,12 @@
    }
   },
   "tenacity": {
-   "flatpak\\tenacity": {
-    "driver": "flatpak",
-    "fields": {
-     "hub": "flathub",
-     "name": "org.tenacityaudio.Tenacity"
-    },
-    "name": "org.tenacityaudio.Tenacity"
-   },
-   "pacman\\flatpak": {
+   "pacman\\tenacity": {
     "driver": "pacman",
     "fields": {
-     "name": "flatpak"
+     "name": "tenacity"
     },
-    "name": "flatpak"
+    "name": "tenacity"
    }
   },
   "texlive": {
@@ -11075,20 +10997,13 @@
    }
   },
   "ardour": {
-   "apt\\flatpak": {
+   "apt\\ardour": {
     "driver": "apt",
     "fields": {
-     "name": "flatpak"
+     "name": "ardour",
+     "repo-component": "universe"
     },
-    "name": "flatpak"
-   },
-   "flatpak\\ardour": {
-    "driver": "flatpak",
-    "fields": {
-     "hub": "flathub",
-     "name": "org.ardour.Ardour"
-    },
-    "name": "org.ardour.Ardour"
+    "name": "ardour"
    }
   },
   "arduino": {
@@ -11713,20 +11628,13 @@
    }
   },
   "carla": {
-   "apt\\flatpak": {
+   "apt\\carla": {
     "driver": "apt",
     "fields": {
-     "name": "flatpak"
+     "name": "carla",
+     "repo-component": "universe"
     },
-    "name": "flatpak"
-   },
-   "flatpak\\carla": {
-    "driver": "flatpak",
-    "fields": {
-     "hub": "flathub",
-     "name": "studio.kx.carla"
-    },
-    "name": "studio.kx.carla"
+    "name": "carla"
    }
   },
   "chrome": {
@@ -12681,20 +12589,13 @@
    }
   },
   "darktable": {
-   "apt\\flatpak": {
+   "apt\\darktable": {
     "driver": "apt",
     "fields": {
-     "name": "flatpak"
+     "name": "darktable",
+     "repo-component": "universe"
     },
-    "name": "flatpak"
-   },
-   "flatpak\\darktable": {
-    "driver": "flatpak",
-    "fields": {
-     "hub": "flathub",
-     "name": "org.darktable.Darktable"
-    },
-    "name": "org.darktable.Darktable"
+    "name": "darktable"
    }
   },
   "dart": {
@@ -12895,20 +12796,13 @@
    }
   },
   "digikam": {
-   "apt\\flatpak": {
+   "apt\\digikam": {
     "driver": "apt",
     "fields": {
-     "name": "flatpak"
+     "name": "digikam",
+     "repo-component": "universe"
     },
-    "name": "flatpak"
-   },
-   "flatpak\\digikam": {
-    "driver": "flatpak",
-    "fields": {
-     "hub": "flathub",
-     "name": "org.kde.digikam"
-    },
-    "name": "org.kde.digikam"
+    "name": "digikam"
    }
   },
   "discord": {
@@ -15156,20 +15050,13 @@
    }
   },
   "hydrogen": {
-   "apt\\flatpak": {
+   "apt\\hydrogen": {
     "driver": "apt",
     "fields": {
-     "name": "flatpak"
+     "name": "hydrogen",
+     "repo-component": "universe"
     },
-    "name": "flatpak"
-   },
-   "flatpak\\hydrogen": {
-    "driver": "flatpak",
-    "fields": {
-     "hub": "flathub",
-     "name": "org.hydrogenmusic.Hydrogen"
-    },
-    "name": "org.hydrogenmusic.Hydrogen"
+    "name": "hydrogen"
    }
   },
   "hyprland-dotfiles": {
@@ -15225,20 +15112,13 @@
    }
   },
   "inkscape": {
-   "apt\\flatpak": {
+   "apt\\inkscape": {
     "driver": "apt",
     "fields": {
-     "name": "flatpak"
+     "name": "inkscape",
+     "repo-component": "universe"
     },
-    "name": "flatpak"
-   },
-   "flatpak\\inkscape": {
-    "driver": "flatpak",
-    "fields": {
-     "hub": "flathub",
-     "name": "org.inkscape.Inkscape"
-    },
-    "name": "org.inkscape.Inkscape"
+    "name": "inkscape"
    }
   },
   "insomnia": {
@@ -16681,20 +16561,13 @@
    }
   },
   "lmms": {
-   "apt\\flatpak": {
+   "apt\\lmms": {
     "driver": "apt",
     "fields": {
-     "name": "flatpak"
+     "name": "lmms",
+     "repo-component": "universe"
     },
-    "name": "flatpak"
-   },
-   "flatpak\\lmms": {
-    "driver": "flatpak",
-    "fields": {
-     "hub": "flathub",
-     "name": "io.lmms.LMMS"
-    },
-    "name": "io.lmms.LMMS"
+    "name": "lmms"
    }
   },
   "ltrace": {
@@ -18101,20 +17974,13 @@
    }
   },
   "openscad": {
-   "apt\\flatpak": {
+   "apt\\openscad": {
     "driver": "apt",
     "fields": {
-     "name": "flatpak"
+     "name": "openscad",
+     "repo-component": "universe"
     },
-    "name": "flatpak"
-   },
-   "flatpak\\openscad": {
-    "driver": "flatpak",
-    "fields": {
-     "hub": "flathub",
-     "name": "org.openscad.OpenSCAD"
-    },
-    "name": "org.openscad.OpenSCAD"
+    "name": "openscad"
    }
   },
   "opentofu": {
@@ -19643,20 +19509,13 @@
    }
   },
   "scribus": {
-   "apt\\flatpak": {
+   "apt\\scribus": {
     "driver": "apt",
     "fields": {
-     "name": "flatpak"
+     "name": "scribus",
+     "repo-component": "universe"
     },
-    "name": "flatpak"
-   },
-   "flatpak\\scribus": {
-    "driver": "flatpak",
-    "fields": {
-     "hub": "flathub",
-     "name": "net.scribus.Scribus"
-    },
-    "name": "net.scribus.Scribus"
+    "name": "scribus"
    }
   },
   "sdkman": {
@@ -19812,20 +19671,13 @@
    }
   },
   "sonic-pi": {
-   "apt\\flatpak": {
+   "apt\\sonic-pi": {
     "driver": "apt",
     "fields": {
-     "name": "flatpak"
+     "name": "sonic-pi",
+     "repo-component": "universe"
     },
-    "name": "flatpak"
-   },
-   "flatpak\\sonic-pi": {
-    "driver": "flatpak",
-    "fields": {
-     "hub": "flathub",
-     "name": "net.sonic_pi.SonicPi"
-    },
-    "name": "net.sonic_pi.SonicPi"
+    "name": "sonic-pi"
    }
   },
   "spark": {
@@ -19940,20 +19792,13 @@
    }
   },
   "sqlitebrowser": {
-   "apt\\flatpak": {
+   "apt\\sqlitebrowser": {
     "driver": "apt",
     "fields": {
-     "name": "flatpak"
+     "name": "sqlitebrowser",
+     "repo-component": "universe"
     },
-    "name": "flatpak"
-   },
-   "flatpak\\sqlitebrowser": {
-    "driver": "flatpak",
-    "fields": {
-     "hub": "flathub",
-     "name": "org.sqlitebrowser.sqlitebrowser"
-    },
-    "name": "org.sqlitebrowser.sqlitebrowser"
+    "name": "sqlitebrowser"
    }
   },
   "steam": {
@@ -22186,20 +22031,13 @@
    }
   },
   "ardour": {
-   "apt\\flatpak": {
+   "apt\\ardour": {
     "driver": "apt",
     "fields": {
-     "name": "flatpak"
+     "name": "ardour",
+     "repo-component": "universe"
     },
-    "name": "flatpak"
-   },
-   "flatpak\\ardour": {
-    "driver": "flatpak",
-    "fields": {
-     "hub": "flathub",
-     "name": "org.ardour.Ardour"
-    },
-    "name": "org.ardour.Ardour"
+    "name": "ardour"
    }
   },
   "arduino": {
@@ -22806,20 +22644,13 @@
    }
   },
   "carla": {
-   "apt\\flatpak": {
+   "apt\\carla": {
     "driver": "apt",
     "fields": {
-     "name": "flatpak"
+     "name": "carla",
+     "repo-component": "universe"
     },
-    "name": "flatpak"
-   },
-   "flatpak\\carla": {
-    "driver": "flatpak",
-    "fields": {
-     "hub": "flathub",
-     "name": "studio.kx.carla"
-    },
-    "name": "studio.kx.carla"
+    "name": "carla"
    }
   },
   "chrome": {
@@ -23756,20 +23587,13 @@
    }
   },
   "darktable": {
-   "apt\\flatpak": {
+   "apt\\darktable": {
     "driver": "apt",
     "fields": {
-     "name": "flatpak"
+     "name": "darktable",
+     "repo-component": "universe"
     },
-    "name": "flatpak"
-   },
-   "flatpak\\darktable": {
-    "driver": "flatpak",
-    "fields": {
-     "hub": "flathub",
-     "name": "org.darktable.Darktable"
-    },
-    "name": "org.darktable.Darktable"
+    "name": "darktable"
    }
   },
   "dart": {
@@ -23970,20 +23794,13 @@
    }
   },
   "digikam": {
-   "apt\\flatpak": {
+   "apt\\digikam": {
     "driver": "apt",
     "fields": {
-     "name": "flatpak"
+     "name": "digikam",
+     "repo-component": "universe"
     },
-    "name": "flatpak"
-   },
-   "flatpak\\digikam": {
-    "driver": "flatpak",
-    "fields": {
-     "hub": "flathub",
-     "name": "org.kde.digikam"
-    },
-    "name": "org.kde.digikam"
+    "name": "digikam"
    }
   },
   "discord": {
@@ -26213,20 +26030,13 @@
    }
   },
   "hydrogen": {
-   "apt\\flatpak": {
+   "apt\\hydrogen": {
     "driver": "apt",
     "fields": {
-     "name": "flatpak"
+     "name": "hydrogen",
+     "repo-component": "universe"
     },
-    "name": "flatpak"
-   },
-   "flatpak\\hydrogen": {
-    "driver": "flatpak",
-    "fields": {
-     "hub": "flathub",
-     "name": "org.hydrogenmusic.Hydrogen"
-    },
-    "name": "org.hydrogenmusic.Hydrogen"
+    "name": "hydrogen"
    }
   },
   "hyprland-dotfiles": {
@@ -26282,20 +26092,13 @@
    }
   },
   "inkscape": {
-   "apt\\flatpak": {
+   "apt\\inkscape": {
     "driver": "apt",
     "fields": {
-     "name": "flatpak"
+     "name": "inkscape",
+     "repo-component": "universe"
     },
-    "name": "flatpak"
-   },
-   "flatpak\\inkscape": {
-    "driver": "flatpak",
-    "fields": {
-     "hub": "flathub",
-     "name": "org.inkscape.Inkscape"
-    },
-    "name": "org.inkscape.Inkscape"
+    "name": "inkscape"
    }
   },
   "insomnia": {
@@ -27702,20 +27505,13 @@
    }
   },
   "lmms": {
-   "apt\\flatpak": {
+   "apt\\lmms": {
     "driver": "apt",
     "fields": {
-     "name": "flatpak"
+     "name": "lmms",
+     "repo-component": "universe"
     },
-    "name": "flatpak"
-   },
-   "flatpak\\lmms": {
-    "driver": "flatpak",
-    "fields": {
-     "hub": "flathub",
-     "name": "io.lmms.LMMS"
-    },
-    "name": "io.lmms.LMMS"
+    "name": "lmms"
    }
   },
   "ltrace": {
@@ -29086,20 +28882,13 @@
    }
   },
   "openscad": {
-   "apt\\flatpak": {
+   "apt\\openscad": {
     "driver": "apt",
     "fields": {
-     "name": "flatpak"
+     "name": "openscad",
+     "repo-component": "universe"
     },
-    "name": "flatpak"
-   },
-   "flatpak\\openscad": {
-    "driver": "flatpak",
-    "fields": {
-     "hub": "flathub",
-     "name": "org.openscad.OpenSCAD"
-    },
-    "name": "org.openscad.OpenSCAD"
+    "name": "openscad"
    }
   },
   "opentofu": {
@@ -30556,20 +30345,13 @@
    }
   },
   "scribus": {
-   "apt\\flatpak": {
+   "apt\\scribus": {
     "driver": "apt",
     "fields": {
-     "name": "flatpak"
+     "name": "scribus",
+     "repo-component": "universe"
     },
-    "name": "flatpak"
-   },
-   "flatpak\\scribus": {
-    "driver": "flatpak",
-    "fields": {
-     "hub": "flathub",
-     "name": "net.scribus.Scribus"
-    },
-    "name": "net.scribus.Scribus"
+    "name": "scribus"
    }
   },
   "sdkman": {
@@ -30725,20 +30507,13 @@
    }
   },
   "sonic-pi": {
-   "apt\\flatpak": {
+   "apt\\sonic-pi": {
     "driver": "apt",
     "fields": {
-     "name": "flatpak"
+     "name": "sonic-pi",
+     "repo-component": "universe"
     },
-    "name": "flatpak"
-   },
-   "flatpak\\sonic-pi": {
-    "driver": "flatpak",
-    "fields": {
-     "hub": "flathub",
-     "name": "net.sonic_pi.SonicPi"
-    },
-    "name": "net.sonic_pi.SonicPi"
+    "name": "sonic-pi"
    }
   },
   "spark": {
@@ -30853,20 +30628,13 @@
    }
   },
   "sqlitebrowser": {
-   "apt\\flatpak": {
+   "apt\\sqlitebrowser": {
     "driver": "apt",
     "fields": {
-     "name": "flatpak"
+     "name": "sqlitebrowser",
+     "repo-component": "universe"
     },
-    "name": "flatpak"
-   },
-   "flatpak\\sqlitebrowser": {
-    "driver": "flatpak",
-    "fields": {
-     "hub": "flathub",
-     "name": "org.sqlitebrowser.sqlitebrowser"
-    },
-    "name": "org.sqlitebrowser.sqlitebrowser"
+    "name": "sqlitebrowser"
    }
   },
   "steam": {
@@ -33063,20 +32831,13 @@
    }
   },
   "ardour": {
-   "apt\\flatpak": {
+   "apt\\ardour": {
     "driver": "apt",
     "fields": {
-     "name": "flatpak"
+     "name": "ardour",
+     "repo-component": "universe"
     },
-    "name": "flatpak"
-   },
-   "flatpak\\ardour": {
-    "driver": "flatpak",
-    "fields": {
-     "hub": "flathub",
-     "name": "org.ardour.Ardour"
-    },
-    "name": "org.ardour.Ardour"
+    "name": "ardour"
    }
   },
   "arduino": {
@@ -33683,20 +33444,13 @@
    }
   },
   "carla": {
-   "apt\\flatpak": {
+   "apt\\carla": {
     "driver": "apt",
     "fields": {
-     "name": "flatpak"
+     "name": "carla",
+     "repo-component": "universe"
     },
-    "name": "flatpak"
-   },
-   "flatpak\\carla": {
-    "driver": "flatpak",
-    "fields": {
-     "hub": "flathub",
-     "name": "studio.kx.carla"
-    },
-    "name": "studio.kx.carla"
+    "name": "carla"
    }
   },
   "chrome": {
@@ -34641,20 +34395,13 @@
    }
   },
   "darktable": {
-   "apt\\flatpak": {
+   "apt\\darktable": {
     "driver": "apt",
     "fields": {
-     "name": "flatpak"
+     "name": "darktable",
+     "repo-component": "universe"
     },
-    "name": "flatpak"
-   },
-   "flatpak\\darktable": {
-    "driver": "flatpak",
-    "fields": {
-     "hub": "flathub",
-     "name": "org.darktable.Darktable"
-    },
-    "name": "org.darktable.Darktable"
+    "name": "darktable"
    }
   },
   "dart": {
@@ -34855,20 +34602,13 @@
    }
   },
   "digikam": {
-   "apt\\flatpak": {
+   "apt\\digikam": {
     "driver": "apt",
     "fields": {
-     "name": "flatpak"
+     "name": "digikam",
+     "repo-component": "universe"
     },
-    "name": "flatpak"
-   },
-   "flatpak\\digikam": {
-    "driver": "flatpak",
-    "fields": {
-     "hub": "flathub",
-     "name": "org.kde.digikam"
-    },
-    "name": "org.kde.digikam"
+    "name": "digikam"
    }
   },
   "discord": {
@@ -37093,20 +36833,13 @@
    }
   },
   "hydrogen": {
-   "apt\\flatpak": {
+   "apt\\hydrogen": {
     "driver": "apt",
     "fields": {
-     "name": "flatpak"
+     "name": "hydrogen",
+     "repo-component": "universe"
     },
-    "name": "flatpak"
-   },
-   "flatpak\\hydrogen": {
-    "driver": "flatpak",
-    "fields": {
-     "hub": "flathub",
-     "name": "org.hydrogenmusic.Hydrogen"
-    },
-    "name": "org.hydrogenmusic.Hydrogen"
+    "name": "hydrogen"
    }
   },
   "hyprland-dotfiles": {
@@ -37162,20 +36895,13 @@
    }
   },
   "inkscape": {
-   "apt\\flatpak": {
+   "apt\\inkscape": {
     "driver": "apt",
     "fields": {
-     "name": "flatpak"
+     "name": "inkscape",
+     "repo-component": "universe"
     },
-    "name": "flatpak"
-   },
-   "flatpak\\inkscape": {
-    "driver": "flatpak",
-    "fields": {
-     "hub": "flathub",
-     "name": "org.inkscape.Inkscape"
-    },
-    "name": "org.inkscape.Inkscape"
+    "name": "inkscape"
    }
   },
   "insomnia": {
@@ -38575,20 +38301,13 @@
    }
   },
   "lmms": {
-   "apt\\flatpak": {
+   "apt\\lmms": {
     "driver": "apt",
     "fields": {
-     "name": "flatpak"
+     "name": "lmms",
+     "repo-component": "universe"
     },
-    "name": "flatpak"
-   },
-   "flatpak\\lmms": {
-    "driver": "flatpak",
-    "fields": {
-     "hub": "flathub",
-     "name": "io.lmms.LMMS"
-    },
-    "name": "io.lmms.LMMS"
+    "name": "lmms"
    }
   },
   "ltrace": {
@@ -39959,20 +39678,13 @@
    }
   },
   "openscad": {
-   "apt\\flatpak": {
+   "apt\\openscad": {
     "driver": "apt",
     "fields": {
-     "name": "flatpak"
+     "name": "openscad",
+     "repo-component": "universe"
     },
-    "name": "flatpak"
-   },
-   "flatpak\\openscad": {
-    "driver": "flatpak",
-    "fields": {
-     "hub": "flathub",
-     "name": "org.openscad.OpenSCAD"
-    },
-    "name": "org.openscad.OpenSCAD"
+    "name": "openscad"
    }
   },
   "opentofu": {
@@ -41442,20 +41154,13 @@
    }
   },
   "scribus": {
-   "apt\\flatpak": {
+   "apt\\scribus": {
     "driver": "apt",
     "fields": {
-     "name": "flatpak"
+     "name": "scribus",
+     "repo-component": "universe"
     },
-    "name": "flatpak"
-   },
-   "flatpak\\scribus": {
-    "driver": "flatpak",
-    "fields": {
-     "hub": "flathub",
-     "name": "net.scribus.Scribus"
-    },
-    "name": "net.scribus.Scribus"
+    "name": "scribus"
    }
   },
   "sdkman": {
@@ -41611,20 +41316,13 @@
    }
   },
   "sonic-pi": {
-   "apt\\flatpak": {
+   "apt\\sonic-pi": {
     "driver": "apt",
     "fields": {
-     "name": "flatpak"
+     "name": "sonic-pi",
+     "repo-component": "universe"
     },
-    "name": "flatpak"
-   },
-   "flatpak\\sonic-pi": {
-    "driver": "flatpak",
-    "fields": {
-     "hub": "flathub",
-     "name": "net.sonic_pi.SonicPi"
-    },
-    "name": "net.sonic_pi.SonicPi"
+    "name": "sonic-pi"
    }
   },
   "spark": {
@@ -41739,20 +41437,13 @@
    }
   },
   "sqlitebrowser": {
-   "apt\\flatpak": {
+   "apt\\sqlitebrowser": {
     "driver": "apt",
     "fields": {
-     "name": "flatpak"
+     "name": "sqlitebrowser",
+     "repo-component": "universe"
     },
-    "name": "flatpak"
-   },
-   "flatpak\\sqlitebrowser": {
-    "driver": "flatpak",
-    "fields": {
-     "hub": "flathub",
-     "name": "org.sqlitebrowser.sqlitebrowser"
-    },
-    "name": "org.sqlitebrowser.sqlitebrowser"
+    "name": "sqlitebrowser"
    }
   },
   "steam": {
@@ -44568,20 +44259,13 @@
    }
   },
   "carla": {
-   "dnf\\flatpak": {
+   "dnf\\carla": {
     "driver": "dnf",
     "fields": {
-     "name": "flatpak"
+     "name": "carla",
+     "repo-component": "universe"
     },
-    "name": "flatpak"
-   },
-   "flatpak\\carla": {
-    "driver": "flatpak",
-    "fields": {
-     "hub": "flathub",
-     "name": "studio.kx.carla"
-    },
-    "name": "studio.kx.carla"
+    "name": "carla"
    }
   },
   "chrome": {
@@ -45412,20 +45096,13 @@
    }
   },
   "darktable": {
-   "dnf\\flatpak": {
+   "dnf\\darktable": {
     "driver": "dnf",
     "fields": {
-     "name": "flatpak"
+     "name": "darktable",
+     "repo-component": "universe"
     },
-    "name": "flatpak"
-   },
-   "flatpak\\darktable": {
-    "driver": "flatpak",
-    "fields": {
-     "hub": "flathub",
-     "name": "org.darktable.Darktable"
-    },
-    "name": "org.darktable.Darktable"
+    "name": "darktable"
    }
   },
   "dart-dotfiles": {
@@ -45594,20 +45271,13 @@
    }
   },
   "digikam": {
-   "dnf\\flatpak": {
+   "dnf\\digikam": {
     "driver": "dnf",
     "fields": {
-     "name": "flatpak"
+     "name": "digikam",
+     "repo-component": "universe"
     },
-    "name": "flatpak"
-   },
-   "flatpak\\digikam": {
-    "driver": "flatpak",
-    "fields": {
-     "hub": "flathub",
-     "name": "org.kde.digikam"
-    },
-    "name": "org.kde.digikam"
+    "name": "digikam"
    }
   },
   "discord": {
@@ -47596,20 +47266,13 @@
    }
   },
   "hydrogen": {
-   "dnf\\flatpak": {
+   "dnf\\hydrogen": {
     "driver": "dnf",
     "fields": {
-     "name": "flatpak"
+     "name": "hydrogen",
+     "repo-component": "universe"
     },
-    "name": "flatpak"
-   },
-   "flatpak\\hydrogen": {
-    "driver": "flatpak",
-    "fields": {
-     "hub": "flathub",
-     "name": "org.hydrogenmusic.Hydrogen"
-    },
-    "name": "org.hydrogenmusic.Hydrogen"
+    "name": "hydrogen"
    }
   },
   "hyprland": {
@@ -47684,20 +47347,13 @@
    }
   },
   "inkscape": {
-   "dnf\\flatpak": {
+   "dnf\\inkscape": {
     "driver": "dnf",
     "fields": {
-     "name": "flatpak"
+     "name": "inkscape",
+     "repo-component": "universe"
     },
-    "name": "flatpak"
-   },
-   "flatpak\\inkscape": {
-    "driver": "flatpak",
-    "fields": {
-     "hub": "flathub",
-     "name": "org.inkscape.Inkscape"
-    },
-    "name": "org.inkscape.Inkscape"
+    "name": "inkscape"
    }
   },
   "insomnia": {
@@ -49076,20 +48732,13 @@
    }
   },
   "lmms": {
-   "dnf\\flatpak": {
+   "dnf\\lmms": {
     "driver": "dnf",
     "fields": {
-     "name": "flatpak"
+     "name": "lmms",
+     "repo-component": "universe"
     },
-    "name": "flatpak"
-   },
-   "flatpak\\lmms": {
-    "driver": "flatpak",
-    "fields": {
-     "hub": "flathub",
-     "name": "io.lmms.LMMS"
-    },
-    "name": "io.lmms.LMMS"
+    "name": "lmms"
    }
   },
   "ltrace": {
@@ -50408,20 +50057,13 @@
    }
   },
   "openscad": {
-   "dnf\\flatpak": {
+   "dnf\\openscad": {
     "driver": "dnf",
     "fields": {
-     "name": "flatpak"
+     "name": "openscad",
+     "repo-component": "universe"
     },
-    "name": "flatpak"
-   },
-   "flatpak\\openscad": {
-    "driver": "flatpak",
-    "fields": {
-     "hub": "flathub",
-     "name": "org.openscad.OpenSCAD"
-    },
-    "name": "org.openscad.OpenSCAD"
+    "name": "openscad"
    }
   },
   "opentofu": {
@@ -51854,20 +51496,13 @@
    }
   },
   "scribus": {
-   "dnf\\flatpak": {
+   "dnf\\scribus": {
     "driver": "dnf",
     "fields": {
-     "name": "flatpak"
+     "name": "scribus",
+     "repo-component": "universe"
     },
-    "name": "flatpak"
-   },
-   "flatpak\\scribus": {
-    "driver": "flatpak",
-    "fields": {
-     "hub": "flathub",
-     "name": "net.scribus.Scribus"
-    },
-    "name": "net.scribus.Scribus"
+    "name": "scribus"
    }
   },
   "sdkman": {
@@ -52142,20 +51777,13 @@
    }
   },
   "sqlitebrowser": {
-   "dnf\\flatpak": {
+   "dnf\\sqlitebrowser": {
     "driver": "dnf",
     "fields": {
-     "name": "flatpak"
+     "name": "sqlitebrowser",
+     "repo-component": "universe"
     },
-    "name": "flatpak"
-   },
-   "flatpak\\sqlitebrowser": {
-    "driver": "flatpak",
-    "fields": {
-     "hub": "flathub",
-     "name": "org.sqlitebrowser.sqlitebrowser"
-    },
-    "name": "org.sqlitebrowser.sqlitebrowser"
+    "name": "sqlitebrowser"
    }
   },
   "steam": {
@@ -55019,20 +54647,13 @@
    }
   },
   "carla": {
-   "dnf\\flatpak": {
+   "dnf\\carla": {
     "driver": "dnf",
     "fields": {
-     "name": "flatpak"
+     "name": "carla",
+     "repo-component": "universe"
     },
-    "name": "flatpak"
-   },
-   "flatpak\\carla": {
-    "driver": "flatpak",
-    "fields": {
-     "hub": "flathub",
-     "name": "studio.kx.carla"
-    },
-    "name": "studio.kx.carla"
+    "name": "carla"
    }
   },
   "chrome": {
@@ -55889,20 +55510,13 @@
    }
   },
   "darktable": {
-   "dnf\\flatpak": {
+   "dnf\\darktable": {
     "driver": "dnf",
     "fields": {
-     "name": "flatpak"
+     "name": "darktable",
+     "repo-component": "universe"
     },
-    "name": "flatpak"
-   },
-   "flatpak\\darktable": {
-    "driver": "flatpak",
-    "fields": {
-     "hub": "flathub",
-     "name": "org.darktable.Darktable"
-    },
-    "name": "org.darktable.Darktable"
+    "name": "darktable"
    }
   },
   "dart-dotfiles": {
@@ -56071,20 +55685,13 @@
    }
   },
   "digikam": {
-   "dnf\\flatpak": {
+   "dnf\\digikam": {
     "driver": "dnf",
     "fields": {
-     "name": "flatpak"
+     "name": "digikam",
+     "repo-component": "universe"
     },
-    "name": "flatpak"
-   },
-   "flatpak\\digikam": {
-    "driver": "flatpak",
-    "fields": {
-     "hub": "flathub",
-     "name": "org.kde.digikam"
-    },
-    "name": "org.kde.digikam"
+    "name": "digikam"
    }
   },
   "discord": {
@@ -58073,20 +57680,13 @@
    }
   },
   "hydrogen": {
-   "dnf\\flatpak": {
+   "dnf\\hydrogen": {
     "driver": "dnf",
     "fields": {
-     "name": "flatpak"
+     "name": "hydrogen",
+     "repo-component": "universe"
     },
-    "name": "flatpak"
-   },
-   "flatpak\\hydrogen": {
-    "driver": "flatpak",
-    "fields": {
-     "hub": "flathub",
-     "name": "org.hydrogenmusic.Hydrogen"
-    },
-    "name": "org.hydrogenmusic.Hydrogen"
+    "name": "hydrogen"
    }
   },
   "hyprland": {
@@ -58161,20 +57761,13 @@
    }
   },
   "inkscape": {
-   "dnf\\flatpak": {
+   "dnf\\inkscape": {
     "driver": "dnf",
     "fields": {
-     "name": "flatpak"
+     "name": "inkscape",
+     "repo-component": "universe"
     },
-    "name": "flatpak"
-   },
-   "flatpak\\inkscape": {
-    "driver": "flatpak",
-    "fields": {
-     "hub": "flathub",
-     "name": "org.inkscape.Inkscape"
-    },
-    "name": "org.inkscape.Inkscape"
+    "name": "inkscape"
    }
   },
   "insomnia": {
@@ -59553,20 +59146,13 @@
    }
   },
   "lmms": {
-   "dnf\\flatpak": {
+   "dnf\\lmms": {
     "driver": "dnf",
     "fields": {
-     "name": "flatpak"
+     "name": "lmms",
+     "repo-component": "universe"
     },
-    "name": "flatpak"
-   },
-   "flatpak\\lmms": {
-    "driver": "flatpak",
-    "fields": {
-     "hub": "flathub",
-     "name": "io.lmms.LMMS"
-    },
-    "name": "io.lmms.LMMS"
+    "name": "lmms"
    }
   },
   "ltrace": {
@@ -60885,20 +60471,13 @@
    }
   },
   "openscad": {
-   "dnf\\flatpak": {
+   "dnf\\openscad": {
     "driver": "dnf",
     "fields": {
-     "name": "flatpak"
+     "name": "openscad",
+     "repo-component": "universe"
     },
-    "name": "flatpak"
-   },
-   "flatpak\\openscad": {
-    "driver": "flatpak",
-    "fields": {
-     "hub": "flathub",
-     "name": "org.openscad.OpenSCAD"
-    },
-    "name": "org.openscad.OpenSCAD"
+    "name": "openscad"
    }
   },
   "opentofu": {
@@ -62331,20 +61910,13 @@
    }
   },
   "scribus": {
-   "dnf\\flatpak": {
+   "dnf\\scribus": {
     "driver": "dnf",
     "fields": {
-     "name": "flatpak"
+     "name": "scribus",
+     "repo-component": "universe"
     },
-    "name": "flatpak"
-   },
-   "flatpak\\scribus": {
-    "driver": "flatpak",
-    "fields": {
-     "hub": "flathub",
-     "name": "net.scribus.Scribus"
-    },
-    "name": "net.scribus.Scribus"
+    "name": "scribus"
    }
   },
   "sdkman": {
@@ -62619,20 +62191,13 @@
    }
   },
   "sqlitebrowser": {
-   "dnf\\flatpak": {
+   "dnf\\sqlitebrowser": {
     "driver": "dnf",
     "fields": {
-     "name": "flatpak"
+     "name": "sqlitebrowser",
+     "repo-component": "universe"
     },
-    "name": "flatpak"
-   },
-   "flatpak\\sqlitebrowser": {
-    "driver": "flatpak",
-    "fields": {
-     "hub": "flathub",
-     "name": "org.sqlitebrowser.sqlitebrowser"
-    },
-    "name": "org.sqlitebrowser.sqlitebrowser"
+    "name": "sqlitebrowser"
    }
   },
   "steam": {
@@ -73158,20 +72723,13 @@
    }
   },
   "ardour": {
-   "apt\\flatpak": {
+   "apt\\ardour": {
     "driver": "apt",
     "fields": {
-     "name": "flatpak"
+     "name": "ardour",
+     "repo-component": "universe"
     },
-    "name": "flatpak"
-   },
-   "flatpak\\ardour": {
-    "driver": "flatpak",
-    "fields": {
-     "hub": "flathub",
-     "name": "org.ardour.Ardour"
-    },
-    "name": "org.ardour.Ardour"
+    "name": "ardour"
    }
   },
   "arduino": {
@@ -73796,20 +73354,13 @@
    }
   },
   "carla": {
-   "apt\\flatpak": {
+   "apt\\carla": {
     "driver": "apt",
     "fields": {
-     "name": "flatpak"
+     "name": "carla",
+     "repo-component": "universe"
     },
-    "name": "flatpak"
-   },
-   "flatpak\\carla": {
-    "driver": "flatpak",
-    "fields": {
-     "hub": "flathub",
-     "name": "studio.kx.carla"
-    },
-    "name": "studio.kx.carla"
+    "name": "carla"
    }
   },
   "chrome": {
@@ -74781,20 +74332,13 @@
    }
   },
   "darktable": {
-   "apt\\flatpak": {
+   "apt\\darktable": {
     "driver": "apt",
     "fields": {
-     "name": "flatpak"
+     "name": "darktable",
+     "repo-component": "universe"
     },
-    "name": "flatpak"
-   },
-   "flatpak\\darktable": {
-    "driver": "flatpak",
-    "fields": {
-     "hub": "flathub",
-     "name": "org.darktable.Darktable"
-    },
-    "name": "org.darktable.Darktable"
+    "name": "darktable"
    }
   },
   "dart": {
@@ -74995,20 +74539,13 @@
    }
   },
   "digikam": {
-   "apt\\flatpak": {
+   "apt\\digikam": {
     "driver": "apt",
     "fields": {
-     "name": "flatpak"
+     "name": "digikam",
+     "repo-component": "universe"
     },
-    "name": "flatpak"
-   },
-   "flatpak\\digikam": {
-    "driver": "flatpak",
-    "fields": {
-     "hub": "flathub",
-     "name": "org.kde.digikam"
-    },
-    "name": "org.kde.digikam"
+    "name": "digikam"
    }
   },
   "discord": {
@@ -77251,20 +76788,13 @@
    }
   },
   "hydrogen": {
-   "apt\\flatpak": {
+   "apt\\hydrogen": {
     "driver": "apt",
     "fields": {
-     "name": "flatpak"
+     "name": "hydrogen",
+     "repo-component": "universe"
     },
-    "name": "flatpak"
-   },
-   "flatpak\\hydrogen": {
-    "driver": "flatpak",
-    "fields": {
-     "hub": "flathub",
-     "name": "org.hydrogenmusic.Hydrogen"
-    },
-    "name": "org.hydrogenmusic.Hydrogen"
+    "name": "hydrogen"
    }
   },
   "hyprland-dotfiles": {
@@ -77320,20 +76850,13 @@
    }
   },
   "inkscape": {
-   "apt\\flatpak": {
+   "apt\\inkscape": {
     "driver": "apt",
     "fields": {
-     "name": "flatpak"
+     "name": "inkscape",
+     "repo-component": "universe"
     },
-    "name": "flatpak"
-   },
-   "flatpak\\inkscape": {
-    "driver": "flatpak",
-    "fields": {
-     "hub": "flathub",
-     "name": "org.inkscape.Inkscape"
-    },
-    "name": "org.inkscape.Inkscape"
+    "name": "inkscape"
    }
   },
   "insomnia": {
@@ -78769,20 +78292,13 @@
    }
   },
   "lmms": {
-   "apt\\flatpak": {
+   "apt\\lmms": {
     "driver": "apt",
     "fields": {
-     "name": "flatpak"
+     "name": "lmms",
+     "repo-component": "universe"
     },
-    "name": "flatpak"
-   },
-   "flatpak\\lmms": {
-    "driver": "flatpak",
-    "fields": {
-     "hub": "flathub",
-     "name": "io.lmms.LMMS"
-    },
-    "name": "io.lmms.LMMS"
+    "name": "lmms"
    }
   },
   "ltrace": {
@@ -80189,20 +79705,13 @@
    }
   },
   "openscad": {
-   "apt\\flatpak": {
+   "apt\\openscad": {
     "driver": "apt",
     "fields": {
-     "name": "flatpak"
+     "name": "openscad",
+     "repo-component": "universe"
     },
-    "name": "flatpak"
-   },
-   "flatpak\\openscad": {
-    "driver": "flatpak",
-    "fields": {
-     "hub": "flathub",
-     "name": "org.openscad.OpenSCAD"
-    },
-    "name": "org.openscad.OpenSCAD"
+    "name": "openscad"
    }
   },
   "opentofu": {
@@ -81744,20 +81253,13 @@
    }
   },
   "scribus": {
-   "apt\\flatpak": {
+   "apt\\scribus": {
     "driver": "apt",
     "fields": {
-     "name": "flatpak"
+     "name": "scribus",
+     "repo-component": "universe"
     },
-    "name": "flatpak"
-   },
-   "flatpak\\scribus": {
-    "driver": "flatpak",
-    "fields": {
-     "hub": "flathub",
-     "name": "net.scribus.Scribus"
-    },
-    "name": "net.scribus.Scribus"
+    "name": "scribus"
    }
   },
   "sdkman": {
@@ -81913,20 +81415,13 @@
    }
   },
   "sonic-pi": {
-   "apt\\flatpak": {
+   "apt\\sonic-pi": {
     "driver": "apt",
     "fields": {
-     "name": "flatpak"
+     "name": "sonic-pi",
+     "repo-component": "universe"
     },
-    "name": "flatpak"
-   },
-   "flatpak\\sonic-pi": {
-    "driver": "flatpak",
-    "fields": {
-     "hub": "flathub",
-     "name": "net.sonic_pi.SonicPi"
-    },
-    "name": "net.sonic_pi.SonicPi"
+    "name": "sonic-pi"
    }
   },
   "spark": {
@@ -82041,20 +81536,13 @@
    }
   },
   "sqlitebrowser": {
-   "apt\\flatpak": {
+   "apt\\sqlitebrowser": {
     "driver": "apt",
     "fields": {
-     "name": "flatpak"
+     "name": "sqlitebrowser",
+     "repo-component": "universe"
     },
-    "name": "flatpak"
-   },
-   "flatpak\\sqlitebrowser": {
-    "driver": "flatpak",
-    "fields": {
-     "hub": "flathub",
-     "name": "org.sqlitebrowser.sqlitebrowser"
-    },
-    "name": "org.sqlitebrowser.sqlitebrowser"
+    "name": "sqlitebrowser"
    }
   },
   "steam": {
@@ -85868,20 +85356,19 @@
    }
   },
   "darktable": {
-   "dnf\\flatpak": {
+   "dnf\\darktable": {
     "driver": "dnf",
     "fields": {
-     "name": "flatpak"
+     "name": "darktable"
     },
-    "name": "flatpak"
+    "name": "darktable"
    },
-   "flatpak\\darktable": {
-    "driver": "flatpak",
+   "dnf\\epel-release": {
+    "driver": "dnf",
     "fields": {
-     "hub": "flathub",
-     "name": "org.darktable.Darktable"
+     "name": "epel-release"
     },
-    "name": "org.darktable.Darktable"
+    "name": "epel-release"
    }
   },
   "dart-dotfiles": {
@@ -86050,20 +85537,19 @@
    }
   },
   "digikam": {
-   "dnf\\flatpak": {
+   "dnf\\digikam": {
     "driver": "dnf",
     "fields": {
-     "name": "flatpak"
+     "name": "digikam"
     },
-    "name": "flatpak"
+    "name": "digikam"
    },
-   "flatpak\\digikam": {
-    "driver": "flatpak",
+   "dnf\\epel-release": {
+    "driver": "dnf",
     "fields": {
-     "hub": "flathub",
-     "name": "org.kde.digikam"
+     "name": "epel-release"
     },
-    "name": "org.kde.digikam"
+    "name": "epel-release"
    }
   },
   "discord": {
@@ -88276,20 +87762,19 @@
    }
   },
   "inkscape": {
-   "dnf\\flatpak": {
+   "dnf\\epel-release": {
     "driver": "dnf",
     "fields": {
-     "name": "flatpak"
+     "name": "epel-release"
     },
-    "name": "flatpak"
+    "name": "epel-release"
    },
-   "flatpak\\inkscape": {
-    "driver": "flatpak",
+   "dnf\\inkscape": {
+    "driver": "dnf",
     "fields": {
-     "hub": "flathub",
-     "name": "org.inkscape.Inkscape"
+     "name": "inkscape"
     },
-    "name": "org.inkscape.Inkscape"
+    "name": "inkscape"
    }
   },
   "insomnia": {
@@ -91049,20 +90534,19 @@
    }
   },
   "openscad": {
-   "dnf\\flatpak": {
+   "dnf\\epel-release": {
     "driver": "dnf",
     "fields": {
-     "name": "flatpak"
+     "name": "epel-release"
     },
-    "name": "flatpak"
+    "name": "epel-release"
    },
-   "flatpak\\openscad": {
-    "driver": "flatpak",
+   "dnf\\openscad": {
+    "driver": "dnf",
     "fields": {
-     "hub": "flathub",
-     "name": "org.openscad.OpenSCAD"
+     "name": "openscad"
     },
-    "name": "org.openscad.OpenSCAD"
+    "name": "openscad"
    }
   },
   "opentofu": {
@@ -92530,20 +92014,19 @@
    }
   },
   "scribus": {
-   "dnf\\flatpak": {
+   "dnf\\epel-release": {
     "driver": "dnf",
     "fields": {
-     "name": "flatpak"
+     "name": "epel-release"
     },
-    "name": "flatpak"
+    "name": "epel-release"
    },
-   "flatpak\\scribus": {
-    "driver": "flatpak",
+   "dnf\\scribus": {
+    "driver": "dnf",
     "fields": {
-     "hub": "flathub",
-     "name": "net.scribus.Scribus"
+     "name": "scribus"
     },
-    "name": "net.scribus.Scribus"
+    "name": "scribus"
    }
   },
   "sdkman": {
@@ -95160,20 +94643,13 @@
    }
   },
   "ardour": {
-   "apt\\flatpak": {
+   "apt\\ardour": {
     "driver": "apt",
     "fields": {
-     "name": "flatpak"
+     "name": "ardour",
+     "repo-component": "universe"
     },
-    "name": "flatpak"
-   },
-   "flatpak\\ardour": {
-    "driver": "flatpak",
-    "fields": {
-     "hub": "flathub",
-     "name": "org.ardour.Ardour"
-    },
-    "name": "org.ardour.Ardour"
+    "name": "ardour"
    }
   },
   "arduino": {
@@ -95798,20 +95274,13 @@
    }
   },
   "carla": {
-   "apt\\flatpak": {
+   "apt\\carla": {
     "driver": "apt",
     "fields": {
-     "name": "flatpak"
+     "name": "carla",
+     "repo-component": "universe"
     },
-    "name": "flatpak"
-   },
-   "flatpak\\carla": {
-    "driver": "flatpak",
-    "fields": {
-     "hub": "flathub",
-     "name": "studio.kx.carla"
-    },
-    "name": "studio.kx.carla"
+    "name": "carla"
    }
   },
   "chrome": {
@@ -96774,20 +96243,13 @@
    }
   },
   "darktable": {
-   "apt\\flatpak": {
+   "apt\\darktable": {
     "driver": "apt",
     "fields": {
-     "name": "flatpak"
+     "name": "darktable",
+     "repo-component": "universe"
     },
-    "name": "flatpak"
-   },
-   "flatpak\\darktable": {
-    "driver": "flatpak",
-    "fields": {
-     "hub": "flathub",
-     "name": "org.darktable.Darktable"
-    },
-    "name": "org.darktable.Darktable"
+    "name": "darktable"
    }
   },
   "dart": {
@@ -96988,20 +96450,13 @@
    }
   },
   "digikam": {
-   "apt\\flatpak": {
+   "apt\\digikam": {
     "driver": "apt",
     "fields": {
-     "name": "flatpak"
+     "name": "digikam",
+     "repo-component": "universe"
     },
-    "name": "flatpak"
-   },
-   "flatpak\\digikam": {
-    "driver": "flatpak",
-    "fields": {
-     "hub": "flathub",
-     "name": "org.kde.digikam"
-    },
-    "name": "org.kde.digikam"
+    "name": "digikam"
    }
   },
   "discord": {
@@ -99244,20 +98699,13 @@
    }
   },
   "hydrogen": {
-   "apt\\flatpak": {
+   "apt\\hydrogen": {
     "driver": "apt",
     "fields": {
-     "name": "flatpak"
+     "name": "hydrogen",
+     "repo-component": "universe"
     },
-    "name": "flatpak"
-   },
-   "flatpak\\hydrogen": {
-    "driver": "flatpak",
-    "fields": {
-     "hub": "flathub",
-     "name": "org.hydrogenmusic.Hydrogen"
-    },
-    "name": "org.hydrogenmusic.Hydrogen"
+    "name": "hydrogen"
    }
   },
   "hyprland-dotfiles": {
@@ -99313,20 +98761,13 @@
    }
   },
   "inkscape": {
-   "apt\\flatpak": {
+   "apt\\inkscape": {
     "driver": "apt",
     "fields": {
-     "name": "flatpak"
+     "name": "inkscape",
+     "repo-component": "universe"
     },
-    "name": "flatpak"
-   },
-   "flatpak\\inkscape": {
-    "driver": "flatpak",
-    "fields": {
-     "hub": "flathub",
-     "name": "org.inkscape.Inkscape"
-    },
-    "name": "org.inkscape.Inkscape"
+    "name": "inkscape"
    }
   },
   "insomnia": {
@@ -100762,20 +100203,13 @@
    }
   },
   "lmms": {
-   "apt\\flatpak": {
+   "apt\\lmms": {
     "driver": "apt",
     "fields": {
-     "name": "flatpak"
+     "name": "lmms",
+     "repo-component": "universe"
     },
-    "name": "flatpak"
-   },
-   "flatpak\\lmms": {
-    "driver": "flatpak",
-    "fields": {
-     "hub": "flathub",
-     "name": "io.lmms.LMMS"
-    },
-    "name": "io.lmms.LMMS"
+    "name": "lmms"
    }
   },
   "ltrace": {
@@ -102182,20 +101616,13 @@
    }
   },
   "openscad": {
-   "apt\\flatpak": {
+   "apt\\openscad": {
     "driver": "apt",
     "fields": {
-     "name": "flatpak"
+     "name": "openscad",
+     "repo-component": "universe"
     },
-    "name": "flatpak"
-   },
-   "flatpak\\openscad": {
-    "driver": "flatpak",
-    "fields": {
-     "hub": "flathub",
-     "name": "org.openscad.OpenSCAD"
-    },
-    "name": "org.openscad.OpenSCAD"
+    "name": "openscad"
    }
   },
   "opentofu": {
@@ -103737,20 +103164,13 @@
    }
   },
   "scribus": {
-   "apt\\flatpak": {
+   "apt\\scribus": {
     "driver": "apt",
     "fields": {
-     "name": "flatpak"
+     "name": "scribus",
+     "repo-component": "universe"
     },
-    "name": "flatpak"
-   },
-   "flatpak\\scribus": {
-    "driver": "flatpak",
-    "fields": {
-     "hub": "flathub",
-     "name": "net.scribus.Scribus"
-    },
-    "name": "net.scribus.Scribus"
+    "name": "scribus"
    }
   },
   "sdkman": {
@@ -103906,20 +103326,13 @@
    }
   },
   "sonic-pi": {
-   "apt\\flatpak": {
+   "apt\\sonic-pi": {
     "driver": "apt",
     "fields": {
-     "name": "flatpak"
+     "name": "sonic-pi",
+     "repo-component": "universe"
     },
-    "name": "flatpak"
-   },
-   "flatpak\\sonic-pi": {
-    "driver": "flatpak",
-    "fields": {
-     "hub": "flathub",
-     "name": "net.sonic_pi.SonicPi"
-    },
-    "name": "net.sonic_pi.SonicPi"
+    "name": "sonic-pi"
    }
   },
   "spark": {
@@ -104034,20 +103447,13 @@
    }
   },
   "sqlitebrowser": {
-   "apt\\flatpak": {
+   "apt\\sqlitebrowser": {
     "driver": "apt",
     "fields": {
-     "name": "flatpak"
+     "name": "sqlitebrowser",
+     "repo-component": "universe"
     },
-    "name": "flatpak"
-   },
-   "flatpak\\sqlitebrowser": {
-    "driver": "flatpak",
-    "fields": {
-     "hub": "flathub",
-     "name": "org.sqlitebrowser.sqlitebrowser"
-    },
-    "name": "org.sqlitebrowser.sqlitebrowser"
+    "name": "sqlitebrowser"
    }
   },
   "steam": {
@@ -106280,20 +105686,13 @@
    }
   },
   "ardour": {
-   "apt\\flatpak": {
+   "apt\\ardour": {
     "driver": "apt",
     "fields": {
-     "name": "flatpak"
+     "name": "ardour",
+     "repo-component": "universe"
     },
-    "name": "flatpak"
-   },
-   "flatpak\\ardour": {
-    "driver": "flatpak",
-    "fields": {
-     "hub": "flathub",
-     "name": "org.ardour.Ardour"
-    },
-    "name": "org.ardour.Ardour"
+    "name": "ardour"
    }
   },
   "arduino": {
@@ -106900,20 +106299,13 @@
    }
   },
   "carla": {
-   "apt\\flatpak": {
+   "apt\\carla": {
     "driver": "apt",
     "fields": {
-     "name": "flatpak"
+     "name": "carla",
+     "repo-component": "universe"
     },
-    "name": "flatpak"
-   },
-   "flatpak\\carla": {
-    "driver": "flatpak",
-    "fields": {
-     "hub": "flathub",
-     "name": "studio.kx.carla"
-    },
-    "name": "studio.kx.carla"
+    "name": "carla"
    }
   },
   "chrome": {
@@ -107858,20 +107250,13 @@
    }
   },
   "darktable": {
-   "apt\\flatpak": {
+   "apt\\darktable": {
     "driver": "apt",
     "fields": {
-     "name": "flatpak"
+     "name": "darktable",
+     "repo-component": "universe"
     },
-    "name": "flatpak"
-   },
-   "flatpak\\darktable": {
-    "driver": "flatpak",
-    "fields": {
-     "hub": "flathub",
-     "name": "org.darktable.Darktable"
-    },
-    "name": "org.darktable.Darktable"
+    "name": "darktable"
    }
   },
   "dart": {
@@ -108072,20 +107457,13 @@
    }
   },
   "digikam": {
-   "apt\\flatpak": {
+   "apt\\digikam": {
     "driver": "apt",
     "fields": {
-     "name": "flatpak"
+     "name": "digikam",
+     "repo-component": "universe"
     },
-    "name": "flatpak"
-   },
-   "flatpak\\digikam": {
-    "driver": "flatpak",
-    "fields": {
-     "hub": "flathub",
-     "name": "org.kde.digikam"
-    },
-    "name": "org.kde.digikam"
+    "name": "digikam"
    }
   },
   "discord": {
@@ -110283,20 +109661,13 @@
    }
   },
   "hydrogen": {
-   "apt\\flatpak": {
+   "apt\\hydrogen": {
     "driver": "apt",
     "fields": {
-     "name": "flatpak"
+     "name": "hydrogen",
+     "repo-component": "universe"
     },
-    "name": "flatpak"
-   },
-   "flatpak\\hydrogen": {
-    "driver": "flatpak",
-    "fields": {
-     "hub": "flathub",
-     "name": "org.hydrogenmusic.Hydrogen"
-    },
-    "name": "org.hydrogenmusic.Hydrogen"
+    "name": "hydrogen"
    }
   },
   "hyprland-dotfiles": {
@@ -110352,20 +109723,13 @@
    }
   },
   "inkscape": {
-   "apt\\flatpak": {
+   "apt\\inkscape": {
     "driver": "apt",
     "fields": {
-     "name": "flatpak"
+     "name": "inkscape",
+     "repo-component": "universe"
     },
-    "name": "flatpak"
-   },
-   "flatpak\\inkscape": {
-    "driver": "flatpak",
-    "fields": {
-     "hub": "flathub",
-     "name": "org.inkscape.Inkscape"
-    },
-    "name": "org.inkscape.Inkscape"
+    "name": "inkscape"
    }
   },
   "insomnia": {
@@ -111765,20 +111129,13 @@
    }
   },
   "lmms": {
-   "apt\\flatpak": {
+   "apt\\lmms": {
     "driver": "apt",
     "fields": {
-     "name": "flatpak"
+     "name": "lmms",
+     "repo-component": "universe"
     },
-    "name": "flatpak"
-   },
-   "flatpak\\lmms": {
-    "driver": "flatpak",
-    "fields": {
-     "hub": "flathub",
-     "name": "io.lmms.LMMS"
-    },
-    "name": "io.lmms.LMMS"
+    "name": "lmms"
    }
   },
   "ltrace": {
@@ -113149,20 +112506,13 @@
    }
   },
   "openscad": {
-   "apt\\flatpak": {
+   "apt\\openscad": {
     "driver": "apt",
     "fields": {
-     "name": "flatpak"
+     "name": "openscad",
+     "repo-component": "universe"
     },
-    "name": "flatpak"
-   },
-   "flatpak\\openscad": {
-    "driver": "flatpak",
-    "fields": {
-     "hub": "flathub",
-     "name": "org.openscad.OpenSCAD"
-    },
-    "name": "org.openscad.OpenSCAD"
+    "name": "openscad"
    }
   },
   "opentofu": {
@@ -114632,20 +113982,13 @@
    }
   },
   "scribus": {
-   "apt\\flatpak": {
+   "apt\\scribus": {
     "driver": "apt",
     "fields": {
-     "name": "flatpak"
+     "name": "scribus",
+     "repo-component": "universe"
     },
-    "name": "flatpak"
-   },
-   "flatpak\\scribus": {
-    "driver": "flatpak",
-    "fields": {
-     "hub": "flathub",
-     "name": "net.scribus.Scribus"
-    },
-    "name": "net.scribus.Scribus"
+    "name": "scribus"
    }
   },
   "sdkman": {
@@ -114801,20 +114144,13 @@
    }
   },
   "sonic-pi": {
-   "apt\\flatpak": {
+   "apt\\sonic-pi": {
     "driver": "apt",
     "fields": {
-     "name": "flatpak"
+     "name": "sonic-pi",
+     "repo-component": "universe"
     },
-    "name": "flatpak"
-   },
-   "flatpak\\sonic-pi": {
-    "driver": "flatpak",
-    "fields": {
-     "hub": "flathub",
-     "name": "net.sonic_pi.SonicPi"
-    },
-    "name": "net.sonic_pi.SonicPi"
+    "name": "sonic-pi"
    }
   },
   "spark": {
@@ -114929,20 +114265,13 @@
    }
   },
   "sqlitebrowser": {
-   "apt\\flatpak": {
+   "apt\\sqlitebrowser": {
     "driver": "apt",
     "fields": {
-     "name": "flatpak"
+     "name": "sqlitebrowser",
+     "repo-component": "universe"
     },
-    "name": "flatpak"
-   },
-   "flatpak\\sqlitebrowser": {
-    "driver": "flatpak",
-    "fields": {
-     "hub": "flathub",
-     "name": "org.sqlitebrowser.sqlitebrowser"
-    },
-    "name": "org.sqlitebrowser.sqlitebrowser"
+    "name": "sqlitebrowser"
    }
   },
   "steam": {

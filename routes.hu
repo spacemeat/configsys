@@ -1387,17 +1387,17 @@
             install: [ { via: native   when: "alpine" }
                        { via: flatpak  hub: flathub  app: org.kde.krita } ]
         }
-        ardour: { description: "Ardour — a professional digital audio workstation (DAW)." install: [ { via: flatpak  hub: flathub  app: org.ardour.Ardour } ] }
-        lmms:   { description: "LMMS — a music production studio (synths, sequencing, loops)." install: [ { via: flatpak  hub: flathub  app: io.lmms.LMMS } ] }
+        ardour: { description: "Ardour — a professional digital audio workstation (DAW)." install: [ { via: native  when: "debian or arch or opensuse"  repo-component: universe }  { via: flatpak  hub: flathub  app: org.ardour.Ardour } ] }
+        lmms:   { description: "LMMS — a music production studio (synths, sequencing, loops)." install: [ { via: native  when: "debian or fedora or arch or opensuse"  repo-component: universe }  { via: flatpak  hub: flathub  app: io.lmms.LMMS } ] }
 
         // --- digital-art tools (Flathub, matching gimp/krita/ardour above — uniform across distros) ---
-        inkscape:   { description: "Inkscape — a vector graphics editor (SVG)." install: [ { via: flatpak  hub: flathub  app: org.inkscape.Inkscape } ] }
-        darktable:  { description: "darktable — RAW photo workflow and non-destructive editing." install: [ { via: flatpak  hub: flathub  app: org.darktable.Darktable } ] }
+        inkscape:   { description: "Inkscape — a vector graphics editor (SVG)." install: [ { via: native  when: "debian or fedora or arch or opensuse"  repo-component: universe }  { via: native  when: "rhel"  requires: epel }  { via: flatpak  hub: flathub  app: org.inkscape.Inkscape } ] }
+        darktable:  { description: "darktable — RAW photo workflow and non-destructive editing." install: [ { via: native  when: "debian or fedora or arch or opensuse"  repo-component: universe }  { via: native  when: "rhel"  requires: epel }  { via: flatpak  hub: flathub  app: org.darktable.Darktable } ] }
         freecad:    { description: "FreeCAD — a parametric 3D CAD modeler." install: [ { via: flatpak  hub: flathub  app: org.freecad.FreeCAD }  { via: appImage  name: FreeCAD  scope: user  version: { github: FreeCAD/FreeCAD  asset: "FreeCAD_*-Linux-x86_64-*.AppImage" }  path: ~/apps/freecad.appimage } ] }   // asset glob absorbs the bundled-python (pyXYZ) token
-        openscad:   { description: "OpenSCAD — the programmer's solid 3D CAD modeller." install: [ { via: flatpak  hub: flathub  app: org.openscad.OpenSCAD } ] }
+        openscad:   { description: "OpenSCAD — the programmer's solid 3D CAD modeller." install: [ { via: native  when: "debian or fedora or arch or opensuse"  repo-component: universe }  { via: native  when: "rhel"  requires: epel }  { via: flatpak  hub: flathub  app: org.openscad.OpenSCAD } ] }
         godot:      { description: "Godot — an open-source 2D/3D game engine." install: [ { via: flatpak  hub: flathub  app: org.godotengine.Godot }  { via: tarball  installDir: "$CONFIGSYS_APP_DIR/godot"  requires: unzip  version: { github: godotengine/godot  tag-re: "([0-9][0-9.]*)"  asset: "Godot_v*-stable_linux.x86_64.zip" } } ] }   // flatpak stays default; the zip holds a single `Godot_v<ver>_linux.x86_64` exe (no clean rename for zip)
-        scribus:    { description: "Scribus — open-source desktop publishing (DTP)." install: [ { via: flatpak  hub: flathub  app: net.scribus.Scribus } ] }
-        digikam:    { description: "digiKam — photo management and RAW editing." install: [ { via: flatpak  hub: flathub  app: org.kde.digikam } ] }
+        scribus:    { description: "Scribus — open-source desktop publishing (DTP)." install: [ { via: native  when: "debian or fedora or arch or opensuse"  repo-component: universe }  { via: native  when: "rhel"  requires: epel }  { via: flatpak  hub: flathub  app: net.scribus.Scribus } ] }
+        digikam:    { description: "digiKam — photo management and RAW editing." install: [ { via: native  when: "debian or fedora or arch or opensuse"  repo-component: universe }  { via: native  when: "rhel"  requires: epel }  { via: flatpak  hub: flathub  app: org.kde.digikam } ] }
 
         // --- media servers (self-hosted; each runs a systemd service — the <name>-service pulls the
         // install AND starts it, like the db-servers) + media players (kodi/stremio, flatpak-first) ---
@@ -1534,9 +1534,9 @@
 
         // --- digital-music tools --- (GUI apps via Flathub; audio-system bits native)
         musescore:     { description: "MuseScore — music notation and composition." install: [ { via: flatpak  hub: flathub  app: org.musescore.MuseScore }  { via: appImage  name: MuseScore  scope: user  version: { github: musescore/MuseScore  strip-v: true  asset: "MuseScore-Studio-*-x86_64.AppImage" }  path: ~/apps/musescore.appimage } ] }   // asset glob absorbs the build-number suffix
-        hydrogen:      { description: "Hydrogen — a pattern-based drum machine." install: [ { via: flatpak  hub: flathub  app: org.hydrogenmusic.Hydrogen } ] }
-        carla:         { description: "Carla — an audio plugin host (LV2/VST/…)." install: [ { via: flatpak  hub: flathub  app: studio.kx.carla } ] }
-        sonic-pi:      { description: "Sonic Pi — a live-coding music synth for everyone." install: [ { via: flatpak  hub: flathub  app: net.sonic_pi.SonicPi } ] }
+        hydrogen:      { description: "Hydrogen — a pattern-based drum machine." install: [ { via: native  when: "debian or fedora or arch or opensuse"  repo-component: universe }  { via: flatpak  hub: flathub  app: org.hydrogenmusic.Hydrogen } ] }
+        carla:         { description: "Carla — an audio plugin host (LV2/VST/…)." install: [ { via: native  when: "debian or fedora or arch or opensuse"  repo-component: universe }  { via: flatpak  hub: flathub  app: studio.kx.carla } ] }
+        sonic-pi:      { description: "Sonic Pi — a live-coding music synth for everyone." install: [ { via: native  when: "debian"  repo-component: universe }  { via: flatpak  hub: flathub  app: net.sonic_pi.SonicPi } ] }
         supercollider: { description: "SuperCollider — audio synthesis and algorithmic composition." install: [ { via: native  when: "(debian or redhat or arch or opensuse) and not amzn"  repo-component: universe }  { via: native  when: "fedora_atomic" } ] }   // brew formula `supercollider`
         qjackctl:      { description: "QjackCtl — a GUI controller for the JACK audio server." install: [ { via: native  when: "not amzn"   repo-component: universe } ] }
         // PipeWire — the modern audio/video server. Native; already the default on most current
@@ -1558,7 +1558,7 @@
                          version: { github: robbert-vdh/yabridge  strip-v: true  asset: "yabridge-*.tar.gz" } } ] }
         // tenacity: the telemetry-free Audacity fork. No reliable native package anywhere, so
         // flatpak-only (unroutable on Alpine -> surfaces as a diagnostic, never a crash).
-        tenacity: { description: "Tenacity — an open-source multi-track audio editor (Audacity fork)." install: [ { via: flatpak  hub: flathub  app: org.tenacityaudio.Tenacity } ] }
+        tenacity: { description: "Tenacity — an open-source multi-track audio editor (Audacity fork)." install: [ { via: native  when: "arch" }  { via: flatpak  hub: flathub  app: org.tenacityaudio.Tenacity } ] }
 
         // gnuradio: an SDR *framework* (Python bindings, out-of-tree modules) — flatpak is
         // impractical, so native everywhere (package name `gnuradio`).
@@ -1968,7 +1968,7 @@
         dbeaver:       { description: "Universal database GUI — browse and query many DB engines." install: [ { via: flatpak  hub: flathub  app: io.dbeaver.DBeaverCommunity }  { via: native-pkg-file  when: "debian or redhat"  version: { github: dbeaver/dbeaver }  asset: { deb: { x86_64: "dbeaver-ce-*-linux-x86_64.deb" }  rpm: { x86_64: "dbeaver-ce-*-linux-x86_64.rpm" } } } ] }   // upstream .deb/.rpm (CE)
         pgcli:         { suggests: pgcli-dotfiles  description: "Postgres CLI with autocompletion and syntax highlighting." install: [ { via: pipx  name: pgcli } ] }
         mycli:         { suggests: mycli-dotfiles  description: "MySQL/MariaDB CLI with autocompletion and highlighting." install: [ { via: pipx  name: mycli } ] }
-        sqlitebrowser: { description: "GUI to create, design, and edit SQLite databases." install: [ { via: flatpak  hub: flathub  app: org.sqlitebrowser.sqlitebrowser } ] }
+        sqlitebrowser: { description: "GUI to create, design, and edit SQLite databases." install: [ { via: native  when: "debian or fedora or arch or opensuse"  repo-component: universe }  { via: flatpak  hub: flathub  app: org.sqlitebrowser.sqlitebrowser } ] }
         // DB servers: native package + a systemd service (verified on apt/dnf/pacman). NOTE:
         // first-run init differs per distro (Fedora postgres needs `postgresql-setup --initdb`).
         postgresql:         { description: "PostgreSQL — advanced open-source relational database." install: [ { via: native  when: "debian or redhat or arch"  name: { dnf: postgresql-server  default: postgresql } }  { via: native  when: "amzn"  name: postgresql15-server } ] }
