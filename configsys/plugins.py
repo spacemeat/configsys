@@ -515,32 +515,116 @@ def _emit_block(decls, indent):
     return '\n'.join(lines)
 
 
+def _skip_trivia(text, i):
+    '''Advance past ONE run of whitespace / `//` line comment / `/* */` block comment / quoted
+    string starting at `i`; return the new index (unchanged if `i` is none of those). Humon
+    honors both C++ (`//`) and C (`/* */`) comments, and braces/brackets can appear inside a
+    comment or a `"..."`/`'...'` string — the span scanner must step over all of them so their
+    contents never fool the depth counter.'''
+    n = len(text)
+    c = text[i]
+    if c in ' \t\r\n':
+        while i < n and text[i] in ' \t\r\n':
+            i += 1
+        return i
+    if c == '/' and i + 1 < n and text[i + 1] == '/':
+        j = text.find('\n', i)
+        return n if j < 0 else j
+    if c == '/' and i + 1 < n and text[i + 1] == '*':
+        j = text.find('*/', i + 2)
+        return n if j < 0 else j + 2
+    if c in '"\'':
+        q = c
+        i += 1
+        while i < n and text[i] != q:
+            i += 2 if text[i] == '\\' else 1
+        return i + 1
+    return i
+
+
+def _scan_value_end(text, i):
+    '''End index (exclusive) of the humon value beginning at `i` (after `<key>:`). A `{...}`/`[...]`
+    value brace-matches to its close (comment/string-aware); a bare scalar runs to end-of-line.'''
+    n = len(text)
+    while i < n:
+        j = _skip_trivia(text, i)
+        if j != i:
+            i = j
+            continue
+        break
+    if i >= n:
+        return n
+    if text[i] in '{[':
+        opens, closes = '{[', '}]'
+        stack = [text[i]]
+        i += 1
+        while i < n and stack:
+            j = _skip_trivia(text, i)
+            if j != i:
+                i = j
+                continue
+            c = text[i]
+            if c in opens:
+                stack.append(c)
+            elif c in closes:
+                stack.pop()
+            i += 1
+        return i
+    j = text.find('\n', i)                          # scalar value: to end of line
+    return n if j < 0 else j
+
+
+def _locate_section_span(text, section):
+    '''(key_start, value_end) of a TOP-LEVEL `<section>: <value>` span — the key char through the
+    end of its value — or None. Comment- and string-aware so braces inside `/* */`, `//`, or a
+    quoted string never fool the depth counter, and it matches `section` only as a real key
+    (depth 1, token-bounded, followed by `:`). This replaces the old humon-`source_text`-span
+    approach, which mis-reported the span when humon bound a comment to the node (e.g. a trailing
+    `/* */` before the closing brace), duplicating the section and dropping a brace.'''
+    n, i, depth = len(text), 0, 0
+    slen = len(section)
+    while i < n:
+        j = _skip_trivia(text, i)
+        if j != i:
+            i = j
+            continue
+        c = text[i]
+        if c in '{[':
+            depth += 1
+            i += 1
+            continue
+        if c in '}]':
+            depth -= 1
+            i += 1
+            continue
+        if (depth == 1 and text.startswith(section, i)
+                and (i == 0 or text[i - 1] in ' \t\r\n{')      # left token boundary
+                and i + slen <= n):
+            k = i + slen
+            while k < n and text[k] in ' \t':                  # ws before ':'
+                k += 1
+            if k < n and text[k] == ':':                       # a real `<section>:` key
+                return i, _scan_value_end(text, k + 1)
+        i += 1
+    return None
+
+
 def set_section(user_config_file, section, emit):
     '''Rewrite one top-level `<section>:` node in a user config file in place, preserving every
-    other line (comments and all): replace the existing node's exact source span, or — if there
-    is none — insert before the root's closing brace. `emit(indent)` returns the full
-    `<section>: ...` humon text at the given base indent. The single surgical write-back
-    primitive shared by the plugin- and pins-config editors (span-locate via humon
-    `node.source_text`, content via template emit — never a whole-file re-serialization, so
-    comments and layout survive).'''
+    other line (comments and all): replace the existing `<section>: <value>` span exactly, or — if
+    there is none — insert before the root's closing brace. `emit(indent)` returns the full
+    `<section>: ...` humon text at the given base indent. The single surgical write-back primitive
+    shared by the plugin- and pins-config editors — the span is located by a comment/string-aware
+    scan (NOT humon's node.source_text, whose comment-binding mis-reported the span and corrupted
+    the file), content via template emit, so every comment/line OUTSIDE the section survives.'''
     path = Path(user_config_file)
     text = path.read_text(encoding='utf-8')
-    trove = humon.from_string(text)                 # keep alive while reading source_text
-    node = trove.root[section]
-    if node is not None:
-        old = node.source_text                      # may include comment lines humon BOUND to the node
-        # Keep any leading comment lines (humon attaches a comment to the node below it, even across
-        # a blank line) — replace only from the `<section>:` key line so the comment survives.
-        lines = old.split('\n')
-        ki = next((i for i, ln in enumerate(lines)
-                   if ln.lstrip().startswith(section + ':')
-                   and not ln.lstrip().startswith(('//', '/*', '*'))), 0)
-        lead = '\n'.join(lines[:ki])
-        node_text = '\n'.join(lines[ki:])
-        pos = text.find(old) + (len(lead) + 1 if lead else 0)
-        line_start = text.rfind('\n', 0, pos) + 1
-        indent = pos - line_start                   # whitespace before the key on its line
-        text = text[:pos] + emit(indent) + text[pos + len(node_text):]
+    span = _locate_section_span(text, section)
+    if span is not None:
+        start, end = span
+        line_start = text.rfind('\n', 0, start) + 1
+        indent = start - line_start                 # whitespace before the key on its line
+        text = text[:start] + emit(indent) + text[end:]
     else:
         idx = text.rstrip().rfind('}')              # before the root's closing brace
         text = text[:idx] + '    ' + emit(4) + '\n' + text[idx:]

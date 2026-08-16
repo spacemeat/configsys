@@ -388,6 +388,48 @@ def test_set_section_inserts_and_replaces_arbitrary_section(tmp_path):
     assert '// keep me' in text and 'scope: user' in text
 
 
+def test_set_profiles_preserves_c_block_comments(tmp_path):
+    '''Regression: a plugin with a C-style block comment (`/* */`) and profiles got CORRUPTED on a
+    TUI profile edit — the old span-locator trusted humon's node.source_text, whose comment binding
+    mis-reported the span (a trailing `/* */` before `}` made it return only that tail), so the
+    splice duplicated the section and dropped a brace. The comment-aware span scan must replace only
+    the `profiles: {...}` span, leaving VALID humon with every outside comment intact.'''
+    import humon
+    p = tmp_path / 'plugin.hu'
+    p.write_text('{\n'
+                 '    plugins: [ ]\n\n'
+                 '    /* A big C-style block comment documenting the profiles below.\n'
+                 '       It spans several lines and even has braces { } inside it. */\n'
+                 '    profiles: {\n'
+                 '        dev: [ git  ripgrep ]\n'
+                 '        web: [ +dev  node ]\n'
+                 '        /* a trailing block comment right before the close */\n'
+                 '    }\n\n'
+                 '    pins: { }\n'
+                 '}\n')
+    profs = plugins.read_profiles(str(p))
+    profs['games'] = ['steam']                                   # a TUI edit adds a profile
+    plugins.set_profiles(str(p), profs)
+    out = p.read_text()
+    humon.from_string(out)                                       # MUST still parse (raises if corrupt)
+    assert 'A big C-style block comment documenting' in out      # the outside block comment survives
+    assert out.count('profiles:') == 1                           # not duplicated
+    assert '        profiles: {' not in out                      # indentation preserved (4, not 0/8)
+    assert plugins.read_profiles(str(p)) == {
+        'dev': ['git', 'ripgrep'], 'web': ['+dev', 'node'], 'games': ['steam']}
+
+
+def test_locate_section_span_ignores_braces_in_comments_and_strings(tmp_path):
+    from configsys.plugins import _locate_section_span
+    text = ('{\n'
+            '    a: "a } string { with braces and profiles: colon"\n'
+            '    /* comment } with { unbalanced braces and profiles: too */\n'
+            '    profiles: {\n        dev: [ x ]\n    }\n'
+            '    z: 1\n}\n')
+    start, end = _locate_section_span(text, 'profiles')
+    assert text[start:end] == 'profiles: {\n        dev: [ x ]\n    }'
+
+
 @pytest.mark.skipif(shutil.which('git') is None, reason='git not available')
 def test_cli_plugin_add_and_remove(tmp_path, capsys):
     from configsys.app import main
