@@ -1,4 +1,61 @@
+import os
+
+import pytest
+
 from configsys.runner import Runner, Result, _can_tee
+
+
+@pytest.mark.skipif(not hasattr(os, 'fork') or not hasattr(os, 'openpty'),
+                    reason='needs fork + pty')
+def test_run_teed_forwards_sigint_to_child(tmp_path):
+    '''A Ctrl-C typed at the terminal MUST reach the teed child (the old sudo/tee attempt wedged
+    because SIGINT went inert). The child owns the pty as its controlling terminal with ISIG on, so
+    the forwarded `\\x03` byte becomes a SIGINT to it — proven here by driving _run_teed's stdio on a
+    real pty and "typing" Ctrl-C.'''
+    import pty
+    import select
+    import sys
+    import time
+    from configsys import runner as R
+
+    got, rcf = tmp_path / 'got', tmp_path / 'rc'
+    master, slave = pty.openpty()
+    pid = os.fork()
+    if pid == 0:                                          # child: pty slave = our stdio, then tee
+        try:
+            os.setsid()
+            for fd in (0, 1, 2):
+                os.dup2(slave, fd)
+            os.close(master); os.close(slave)
+            sys.stdin = os.fdopen(0, 'r')                 # drop pytest's capture: _run_teed reads
+            sys.stdout = os.fdopen(1, 'w')                # sys.stdin/out.fileno() -> the pty fds
+            sys.stderr = os.fdopen(2, 'w')
+            inner = ("import signal,sys,time\n"
+                     f"signal.signal(signal.SIGINT, lambda *a:(open({str(got)!r},'w').write('INT'),"
+                     " sys.exit(42)))\n"
+                     "sys.stdout.write('READY\\n'); sys.stdout.flush()\n"
+                     "time.sleep(10)\n")
+            rc, _tail = R._run_teed(['python3', '-c', inner], None, None, 65536)
+            rcf.write_text(str(rc))
+        finally:
+            os._exit(0)
+    os.close(slave)
+    buf, t0 = b'', time.time()
+    while b'READY' not in buf and time.time() - t0 < 8:
+        if master in select.select([master], [], [], 0.5)[0]:
+            try:
+                buf += os.read(master, 1024)
+            except OSError:
+                break
+    os.write(master, b'\x03')                             # the Ctrl-C keystroke
+    os.waitpid(pid, 0)
+    os.close(master)
+    for _ in range(20):                                   # let the child flush its marker
+        if got.exists():
+            break
+        time.sleep(0.1)
+    assert got.exists() and got.read_text() == 'INT'      # the teed child got SIGINT
+    assert rcf.read_text() == '42'                        # ...and ran its handler (exit 42)
 
 
 def test_pretend_records_and_does_not_execute():
