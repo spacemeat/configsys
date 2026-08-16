@@ -41,6 +41,7 @@
         almalinux: { using: rhel }
         centos:    { using: rhel }                                  // CentOS Stream
         ol:        { using: rhel }                                  // Oracle Linux (os-release ID=ol) — EL rebuild, full dnf + its own EPEL pkg name
+        amzn:      { using: redhat   scale-root: true }              // Amazon Linux 2023 (ID=amzn): Fedora-derived, own repos+version, NO EPEL
 
         // Fedora Atomic / uBlue (Silverblue, Kinoite, Sericea, Bazzite, Bluefin, Aurora …) —
         // immutable ostree desktops. Modeled as a distinct ENVIRONMENT, deliberately NOT under
@@ -138,7 +139,7 @@
             install: [ { via: native  when: "debian or fedora or arch or fedora_atomic"  repo-component: universe }
                        { via: native  when: "rhel"  requires: epel } ] }              // gone from stable-Alpine + openSUSE
         fossil: { suggests: fossil-dotfiles  description: "Fossil — a self-contained distributed SCM (wiki, tickets, web UI in one binary)."
-            install: [ { via: native  when: "not opensuse and not rhel"  repo-component: universe }
+            install: [ { via: native  when: "(not opensuse and not rhel) and not amzn"  repo-component: universe }
                        { via: native  when: "rhel"  requires: epel }
                        { via: tarball  when: "opensuse"  installDir: "$CONFIGSYS_APP_DIR/fossil"  requires: glibc  // no openSUSE package; upstream static binary
                          version: { static: "2.28" }  url: "https://fossil-scm.org/home/uv/fossil-linux-x64-2.28.tar.gz"
@@ -254,20 +255,20 @@
             install: [
                 { via: native  when: "debian"  packages: [ build-essential, libssl-dev, zlib1g-dev, libbz2-dev,
                     libreadline-dev, libsqlite3-dev, libncursesw5-dev, xz-utils, tk-dev, libffi-dev, liblzma-dev ] }
-                { via: native  when: "fedora or redhat"  packages: [ gcc, make, zlib-devel, bzip2-devel,
+                { via: native  when: "(fedora or redhat) and not amzn"  packages: [ gcc, make, zlib-devel, bzip2-devel,
                     readline-devel, sqlite-devel, openssl-devel, tk-devel, libffi-devel, xz-devel ] }
                 { via: native  when: "arch"  packages: [ base-devel, openssl, zlib, xz, tk ] }   // pyenv's documented Arch build env (Arch bundles headers, no -dev split). Keep `base-devel` — it's a META-package now (not a group, since 2023-02), so `pacman -Q` detects it exactly AND it tracks new build-tool members on upgrade; expanding it to concrete members would silently miss future additions.
             ] }
         // EL keeps these in EPEL, base repos everywhere else — same two-binding shape as btop.
         // `repo-component: universe` is the apt archive area (read only by apt; ignored on dnf/pacman).
         ripgrep: { suggests: ripgrep-dotfiles  description: "Fast recursive regex search (`rg`) — grep, but much quicker."
-                   install: [ { via: native  when: "rhel"  requires: epel } { via: native  repo-component: universe }
+                   install: [ { via: native  when: "rhel"  requires: epel } { via: native  when: "not amzn"   repo-component: universe }
                               { via: tarball  installDir: "$CONFIGSYS_APP_DIR/ripgrep"  version: { github: BurntSushi/ripgrep  asset: "ripgrep-*-x86_64-unknown-linux-musl.tar.gz" } } ] }   // prebuilt musl binary (rg in a versioned subdir)
         fzf:     { suggests: fzf-dotfiles  description: "Fuzzy finder — interactive filtering for files, history, anything piped in."
-                   install: [ { via: native  when: "rhel"  requires: epel } { via: native  repo-component: universe }
+                   install: [ { via: native  when: "rhel"  requires: epel } { via: native  when: "not amzn"   repo-component: universe }
                               { via: tarball  installDir: "$CONFIGSYS_APP_DIR/fzf"  version: { github: junegunn/fzf  strip-v: true  asset: "fzf-*-linux_amd64.tar.gz" } } ] }
         xclip:   { description: "xclip — command-line access to the X clipboard." suggests: xclip-dotfiles
-                   install: [ { via: native  when: "rhel"  requires: epel } { via: native  repo-component: universe } ] }
+                   install: [ { via: native  when: "rhel"  requires: epel } { via: native  when: "not amzn"   repo-component: universe } ] }
         xclip-dotfiles: { description: "xclip helper config, linked into place." install: [ { via: dotfiles  requires: bash-dotfiles  src: bash.d/xclip.sh  dst: ~/.bash.d/xclip.sh } ] }
 
         // btop lives in EPEL on EL (needs epel enabled), base repos everywhere else.
@@ -276,7 +277,7 @@
             description: "System-resource monitor — CPU/mem/net/disk in a colorful TUI."
             install: [
                 { via: native  when: "rhel"  requires: epel }
-                { via: native  repo-component: universe }
+                { via: native  when: "not amzn"   repo-component: universe }
                 { via: tarball  installDir: "$CONFIGSYS_APP_DIR/btop"  version: { github: aristocratos/btop  strip-v: true  asset: "btop-x86_64-unknown-linux-musl.tar.gz" } }   // prebuilt musl binary (btop/bin/btop)
             ]
         }
@@ -308,7 +309,7 @@
             description: "NCurses disk-usage analyzer — find what's eating your disk (`ncdu`)."
             install: [
                 { via: native  when: "rhel"  requires: epel }
-                { via: native  repo-component: universe }
+                { via: native  when: "not amzn"   repo-component: universe }
             ]
         }
 
@@ -318,7 +319,7 @@
         duf: {
             description: "Disk Usage/Free — a colorful, friendlier `df` (`duf`)."
             install: [
-                { via: native  when: "not (rhel or alpine)"  repo-component: universe }
+                { via: native  when: "(not (rhel or alpine)) and not amzn"  repo-component: universe }
                 { via: go-install  name: "github.com/muesli/duf" }   // builds `duf`; covers EL + Alpine
             ]
         }
@@ -339,7 +340,7 @@
         tmux-dotfiles: { description: "tmux config, linked into place."
                 install: [ { via: dotfiles  config: { src: tmux  dst: $XDG_CONFIG_HOME/tmux } } ] }
         zsh:  { suggests: zsh-dotfiles  description: "Z shell — a powerful interactive shell." install: [ { via: native } ] }
-        fish: { suggests: fish-dotfiles  description: "Friendly interactive shell — smart autosuggestions out of the box." install: [ { via: native } ] }
+        fish: { suggests: fish-dotfiles  description: "Friendly interactive shell — smart autosuggestions out of the box." install: [ { via: native  when: "not amzn"  } ] }
         // nushell isn't in Debian/Ubuntu/Fedora base repos; native where it is (Arch, Homebrew),
         // else the upstream glibc release tarball (ships `nu` + its plugins).
         nushell: { suggests: nushell-dotfiles 
@@ -357,7 +358,7 @@
         // --- terminal emulators & TUI file managers ---
         // kitty: GPU-accelerated terminal emulator, packaged natively across every base repo
         // (apt/dnf/pacman/zypper/apk all carry `kitty`).
-        kitty: { suggests: kitty-dotfiles  description: "Fast, GPU-accelerated terminal emulator." install: [ { via: native } ] }
+        kitty: { suggests: kitty-dotfiles  description: "Fast, GPU-accelerated terminal emulator." install: [ { via: native  when: "not amzn"  } ] }
         // ghostty: Zig terminal emulator. The only official native package among our managers is
         // Arch's (openSUSE dropped it over Zig-version churn, Fedora is COPR-only, Debian is
         // community-only, and it's absent from Alpine's community repo — name sweep confirmed) — so
@@ -426,6 +427,7 @@
             description: "espeak-ng — compact software speech synthesizer (`espeak`)."
             install: [
                 { via: native  when: "rhel"  requires: epel  name: espeak-ng }
+                { via: native  when: "amzn"  name: espeak }
                 { via: native  repo-component: universe  name: espeak-ng }
             ]
         }
@@ -446,7 +448,7 @@
         // apt/dnf/pacman entries + two @version blocks + a rhel override — now three bindings.
         pipx: { suggests: pipx-dotfiles  description: "Install and run Python CLI apps in isolated environments."
             install: [
-                { via: pip     when: "(ubuntu < 23.04) or (debian < 12)"  name: pipx  version: { pypi: pipx } }
+                { via: pip     when: "(ubuntu < 23.04) or (debian < 12) or amzn"  name: pipx  version: { pypi: pipx } }
                 { via: native  when: "rhel"  requires: epel  name: { pacman: python-pipx } }
                 { via: native  name: { pacman: python-pipx  zypper: python313-pipx } }
             ]
@@ -592,12 +594,15 @@
         // python3.13-is-default). Native openjdk-N track the latest patch; the SDKMAN graalvm id ages.
         jdk: { description: "Java Development Kit — OpenJDK 21 (the current LTS default)."
             provides: { jdk: 21 }
-            install: [ { via: native  name: { apt: openjdk-21-jdk  dnf: java-21-openjdk-devel  pacman: jdk21-openjdk  apk: openjdk21  zypper: java-21-openjdk-devel  brew: "openjdk@21" } } ]
+            install: [ { via: native  name: { apt: openjdk-21-jdk  dnf: java-21-openjdk-devel  pacman: jdk21-openjdk  apk: openjdk21  zypper: java-21-openjdk-devel  brew: "openjdk@21" } }
+                       { via: native  when: "amzn"  name: java-21-amazon-corretto-devel } ]   // Amazon ships Corretto, not OpenJDK
         }
         jdk-17: { description: "OpenJDK 17 — the previous LTS Java line." standing: never-auto  provides: { jdk: 17 }
-            install: [ { via: native  name: { apt: openjdk-17-jdk  dnf: java-17-openjdk-devel  pacman: jdk17-openjdk  apk: openjdk17  zypper: java-17-openjdk-devel  brew: "openjdk@17" } } ] }
+            install: [ { via: native  name: { apt: openjdk-17-jdk  dnf: java-17-openjdk-devel  pacman: jdk17-openjdk  apk: openjdk17  zypper: java-17-openjdk-devel  brew: "openjdk@17" } }
+                       { via: native  when: "amzn"  name: java-17-amazon-corretto-devel } ] }
         jdk-25: { description: "OpenJDK 25 — the newest LTS Java line." standing: never-auto  provides: { jdk: 25 }
-            install: [ { via: native  name: { apt: openjdk-25-jdk  dnf: java-25-openjdk-devel  pacman: jdk25-openjdk  apk: openjdk25  zypper: java-25-openjdk-devel  brew: "openjdk@25" } } ] }
+            install: [ { via: native  name: { apt: openjdk-25-jdk  dnf: java-25-openjdk-devel  pacman: jdk25-openjdk  apk: openjdk25  zypper: java-25-openjdk-devel  brew: "openjdk@25" } }
+                       { via: native  when: "amzn"  name: java-25-amazon-corretto-devel } ] }
         graalvm: { description: "GraalVM CE 21 — a JDK with native-image (ahead-of-time compilation), via SDKMAN."
             standing: never-auto  provides: { jdk: 21 }
             install: [ { via: sdkman  name: java  version: "21.0.2-graalce"   // bump the SDKMAN id as releases roll
@@ -643,9 +648,9 @@
         gfortran: { description: "GNU Fortran — the GCC Fortran compiler (`gfortran`)."
             install: [ { via: native  name: { dnf: gcc-gfortran  pacman: gcc-fortran  zypper: gcc-fortran  brew: gcc  default: gfortran } } ] }   // brew bundles gfortran in `gcc`
         gnat: { description: "GNAT — the GCC Ada compiler."
-            install: [ { via: native  when: "not fedora_atomic"  name: { dnf: gcc-gnat  pacman: gcc-ada  apk: gcc-gnat  zypper: gcc-ada  default: gnat } } ] }   // no brew Ada front-end
+            install: [ { via: native  when: "(not fedora_atomic) and not amzn"  name: { dnf: gcc-gnat  pacman: gcc-ada  apk: gcc-gnat  zypper: gcc-ada  default: gnat } } ] }   // no brew Ada front-end
         gnucobol: { description: "GnuCOBOL — a COBOL compiler (`cobc`)."
-            install: [ { via: native  when: "not arch"  name: gnucobol }   // `gnucobol` on apt/dnf/zypper/apk
+            install: [ { via: native  when: "(not arch) and not amzn"  name: gnucobol }   // `gnucobol` on apt/dnf/zypper/apk
                        { via: aur  when: "arch"  name: gnucobol } ] }   // AUR-only on Arch
         d: { description: "The D programming language (a D compiler — LDC / GDC / DMD per distro)."
             install: [ { via: native  when: "fedora or arch or alpine or fedora_atomic"  name: ldc }   // LLVM D compiler
@@ -667,7 +672,7 @@
                          source-line: "deb [signed-by=/usr/share/keyrings/dart.gpg arch=amd64] https://storage.googleapis.com/download.dartlang.org/linux/debian stable main"
                          source-path: /etc/apt/sources.list.d/dart.list } ] }
         raku: { description: "Raku (Rakudo) — the Raku language, formerly Perl 6."
-            install: [ { via: native  when: "not arch"  repo-component: universe  name: { brew: rakudo-star  default: rakudo } }
+            install: [ { via: native  when: "(not arch) and not amzn"  repo-component: universe  name: { brew: rakudo-star  default: rakudo } }
                        { via: aur  when: "arch"  name: rakudo-star } ] }   // AUR-only on Arch
         v: { suggests: v-dotfiles  description: "V — a simple, fast-compiling language (the `v` compiler)." requires: cc
             install: [ { via: native  when: "fedora_atomic"  name: vlang }   // brew vlang
@@ -727,23 +732,23 @@
         jmc:        { description: "JDK Mission Control — JVM profiling and diagnostics (JFR)." requires: jdk  install: [ { via: sdkman } ] }
         jmeter:     { description: "Apache JMeter — load and performance testing." requires: jdk  install: [ { via: sdkman } ] }
         racket: { description: "Racket — a full-spectrum Scheme/Lisp language (ships DrRacket)."
-            install: [ { via: native  when: "debian or redhat or arch or alpine"  repo-component: universe } ] }   // uniform `racket` (brew ships a macOS cask, not a formula)
+            install: [ { via: native  when: "(debian or redhat or arch or alpine) and not amzn"  repo-component: universe } ] }   // uniform `racket` (brew ships a macOS cask, not a formula)
         guile: { description: "GNU Guile — the GNU Scheme interpreter."
-            install: [ { via: native  repo-component: universe  name: { apt: guile-3.0  dnf: guile30  default: guile } } ] }   // versioned name on debian/fedora
+            install: [ { via: native  when: "not amzn"   repo-component: universe  name: { apt: guile-3.0  dnf: guile30  default: guile } } ] }   // versioned name on debian/fedora
         // Haskell — the GHC compiler (cabal driver deferred).
-        haskell: { description: "Haskell toolchain (GHC) — pure functional programming." install: [ { via: native  repo-component: universe  name: { default: ghc } } ] }
+        haskell: { description: "Haskell toolchain (GHC) — pure functional programming." install: [ { via: native  when: "not amzn"   repo-component: universe  name: { default: ghc } } ] }
         // Erlang/OTP + Elixir (elixir pulls erlang, but erlang is nameable on its own).
-        erlang: { description: "Erlang/OTP — battle-tested concurrent, fault-tolerant runtime." install: [ { via: native  when: "debian or redhat or arch or opensuse"  repo-component: universe }  { via: native  when: "fedora_atomic" } ] }   // brew formula `erlang`
-        elixir: { description: "Elixir — functional, concurrent language on the Erlang VM." install: [ { via: native  repo-component: universe } ] }
+        erlang: { description: "Erlang/OTP — battle-tested concurrent, fault-tolerant runtime." install: [ { via: native  when: "(debian or redhat or arch or opensuse) and not amzn"  repo-component: universe }  { via: native  when: "fedora_atomic" } ] }   // brew formula `erlang`
+        elixir: { description: "Elixir — functional, concurrent language on the Erlang VM." install: [ { via: native  when: "not amzn"   repo-component: universe } ] }
         // Nim compiler (nimble ships alongside).
         nim:   { suggests: nim-dotfiles  description: "Nim — expressive, statically-typed compiled systems language." install: [ { via: native  when: "debian or arch or opensuse or alpine"  repo-component: universe }  { via: native  when: "fedora_atomic" } ] }   // not in Fedora repos; brew formula `nim`
 
         // R (statistics) and GNU Octave (numerical computing) — native everywhere.
         r:      { suggests: r-dotfiles  description: "R — language and environment for statistical computing." install: [ { via: native  repo-component: universe  name: { apt: r-base  dnf: R  pacman: r  zypper: R-base  apk: R  brew: r } } ] }
-        octave: { suggests: octave-dotfiles  description: "GNU Octave — numerical computing, largely MATLAB-compatible." install: [ { via: native  repo-component: universe }  { via: flatpak  hub: flathub  app: org.octave.Octave } ] }
+        octave: { suggests: octave-dotfiles  description: "GNU Octave — numerical computing, largely MATLAB-compatible." install: [ { via: native  when: "not amzn"   repo-component: universe }  { via: flatpak  hub: flathub  app: org.octave.Octave } ] }
         // Common Lisp: SBCL (the compiler) + Quicklisp (the library manager, bootstrapped by its
         // own lisp script and wired into the SBCL init file).
-        sbcl: { description: "Steel Bank Common Lisp — a fast Common Lisp compiler." install: [ { via: native  repo-component: universe } ] }
+        sbcl: { description: "Steel Bank Common Lisp — a fast Common Lisp compiler." install: [ { via: native  when: "not amzn"   repo-component: universe } ] }
         quicklisp: { description: "Quicklisp — a library manager for Common Lisp."
             requires: sbcl
             install: [ { via: script
@@ -757,15 +762,15 @@
         // opam (OCaml package manager). NOTE: `opam install` needs a one-time `opam init` on a
         // fresh system — the opam driver is validated against opam 2.1.5's CLI, but first use on
         // an uninitialized machine may need `opam init` (tracked; see docs/expansion-plan.md).
-        opam:  { suggests: opam-dotfiles  description: "opam — the OCaml package manager." install: [ { via: native  repo-component: universe } ] }
+        opam:  { suggests: opam-dotfiles  description: "opam — the OCaml package manager." install: [ { via: native  when: "not amzn"  repo-component: universe } ] }
         dune:  { description: "Dune — the build system for OCaml projects." install: [ { via: opam  name: dune } ] }
         // luarocks (Lua package manager; the native package pulls lua) + a sample rock
         // (dkjson is pure-Lua with no C deps, so it installs without lua headers).
-        luarocks: { suggests: luarocks-dotfiles  description: "LuaRocks — package manager for Lua modules." install: [ { via: native  repo-component: universe  name: { zypper: lua54-luarocks  default: luarocks } } ] }
+        luarocks: { suggests: luarocks-dotfiles  description: "LuaRocks — package manager for Lua modules." install: [ { via: native  when: "not amzn"  repo-component: universe  name: { zypper: lua54-luarocks  default: luarocks } } ] }
         dkjson:   { description: "dkjson — a pure-Lua JSON encode/decode library." install: [ { via: luarocks  name: dkjson } ] }
         // cabal (Haskell build tool; needs ghc to build) + a sample executable.
         cabal: { suggests: cabal-dotfiles  description: "Cabal — Haskell's build system and package manager." requires: haskell
-                 install: [ { via: native  repo-component: universe  name: { apk: cabal  default: cabal-install } } ] }
+                 install: [ { via: native  when: "not amzn"   repo-component: universe  name: { apk: cabal  default: cabal-install } } ] }
         hlint: { description: "HLint — suggests improvements to Haskell code." install: [ { via: cabal  name: hlint } ] }
 
         // Zig — native on Arch/Homebrew; elsewhere the upstream tarball. zig's Linux build is
@@ -813,7 +818,7 @@
         firefox: { description: "Mozilla Firefox — the open-source web browser." install: [ { via: flatpak  hub: flathub  app: org.mozilla.firefox }
                               { via: native  when: "not fedora_atomic"  repo-component: universe  name: { zypper: MozillaFirefox  default: firefox } }
                               { via: snap  name: firefox } ] }
-        chromium: { description: "Chromium — the open-source browser upstream of Chrome." install: [ { via: native  when: "(debian or redhat or arch or opensuse) and not ubuntu"  name: { default: chromium } }  { via: snap  name: chromium }  { via: flatpak  hub: flathub  app: org.chromium.Chromium } ] }   // Ubuntu ships chromium ONLY as the (Canonical-official) snap — its apt `chromium-browser` is a snap shim; ubuntu excluded from native so the snap is the sole real method there. Flathub flatpak offered everywhere (+ the only method on atomic).
+        chromium: { description: "Chromium — the open-source browser upstream of Chrome." install: [ { via: native  when: "((debian or redhat or arch or opensuse) and not ubuntu) and not amzn"  name: { default: chromium } }  { via: snap  name: chromium }  { via: flatpak  hub: flathub  app: org.chromium.Chromium } ] }   // Ubuntu ships chromium ONLY as the (Canonical-official) snap — its apt `chromium-browser` is a snap shim; ubuntu excluded from native so the snap is the sole real method there. Flathub flatpak offered everywhere (+ the only method on atomic).
         chrome:  { description: "Google Chrome — Google's web browser."
             install: [
                 { via: native  when: "debian"  name: google-chrome-stable   // Google's official apt repo
@@ -924,18 +929,18 @@
         // elsewhere (the same two-binding shape as btop).
         iftop:   { description: "iftop — a live per-connection bandwidth monitor." install: [ { via: native  when: "rhel"  requires: epel } { via: native } ] }
         nethogs: { description: "NetHogs — a per-process network bandwidth monitor." install: [ { via: native  when: "rhel"  requires: epel } { via: native } ] }
-        nload:   { description: "nload — a console real-time network traffic monitor." install: [ { via: native  when: "rhel"  requires: epel } { via: native } ] }
+        nload:   { description: "nload — a console real-time network traffic monitor." install: [ { via: native  when: "rhel"  requires: epel } { via: native  when: "not amzn"  } ] }
         // gping: ping with a live graph (Rust). Native where packaged (Arch, Alpine, Homebrew, and
         // Debian>=13/Ubuntu>=23.10); Fedora is COPR-only and older Debian/Ubuntu/openSUSE/EL lack
         // it, so cargo builds it there.
         gping:   { description: "Ping, but with a live graph (`gping`)."
                    install: [ { via: native  when: "arch or alpine or fedora_atomic or (ubuntu >= 23.10) or (debian >= 13)" }
                               { via: cargo  name: gping } ] }
-        vnstat:  { description: "vnStat — a network traffic logger and stats tool." install: [ { via: native  when: "rhel"  requires: epel } { via: native } ] }
+        vnstat:  { description: "vnStat — a network traffic logger and stats tool." install: [ { via: native  when: "rhel"  requires: epel } { via: native  when: "not amzn"  } ] }
 
         // Web/HTTP dev — httpie + jq native (httpie via EPEL on EL); yq/mitmproxy isolated via
         // pipx; xh/websocat are Rust crates.
-        httpie:    { suggests: httpie-dotfiles  description: "Human-friendly HTTP client (`http`) — a nicer curl for APIs." install: [ { via: native  when: "rhel"  requires: epel } { via: native } ] }   // the `http`/`https` CLI
+        httpie:    { suggests: httpie-dotfiles  description: "Human-friendly HTTP client (`http`) — a nicer curl for APIs." install: [ { via: native  when: "rhel"  requires: epel } { via: native  when: "not amzn"  } ] }   // the `http`/`https` CLI
         jq:        { suggests: jq-dotfiles  description: "Command-line JSON processor — query and transform JSON."
                      install: [ { via: native }
                                 { via: tarball  archive: none  binary: jq  installDir: "$CONFIGSYS_APP_DIR/jq"  version: { github: jqlang/jq  asset: "jq-linux-amd64" } } ] }   // upstream ships a raw static binary
@@ -999,7 +1004,7 @@
         // their dotfiles for now — pending a dir-vs-specific-files call.
         podman: { description: "Podman — daemonless, rootless container engine (docker-compatible)."
             suggests: podman-dotfiles
-            install: [ { via: native  repo-component: universe } ]   // apt universe / dnf (EL AppStream) / pacman
+            install: [ { via: native  when: "not amzn"   repo-component: universe } ]   // apt universe / dnf (EL AppStream) / pacman
         }
         podman-dotfiles: { description: "Podman config, linked into place."   // ~/.config/containers — shared by podman / buildah / skopeo
             install: [ { via: dotfiles  config: { src: containers  dst: $XDG_CONFIG_HOME/containers } } ]
@@ -1008,7 +1013,7 @@
         libreoffice: { description: "LibreOffice — the open-source office suite."   // fat ~/.config/libreoffice (profile + cache) — dotfiles pending
             suggests: libreoffice-dotfiles
             install: [ { via: flatpak  hub: flathub  app: org.libreoffice.LibreOffice }   // uniform option everywhere; the only method on atomic (brew's libreoffice is a mac-only cask)
-                       { via: native  when: "not fedora_atomic"  repo-component: universe  name: { pacman: libreoffice-fresh } } ]
+                       { via: native  when: "(not fedora_atomic) and not amzn"  repo-component: universe  name: { pacman: libreoffice-fresh } } ]
         }
 
         // kicad: native where it's packaged, Flathub (org.kicad.KiCad) where it isn't. It's in
@@ -1019,7 +1024,7 @@
         kicad: { description: "KiCad — electronics design (schematics and PCB layout)."   // fat-ish config — dotfiles pending
             suggests: kicad-dotfiles
             install: [ { via: flatpak  when: fedora_atomic  hub: flathub  app: org.kicad.KiCad }   // atomic: more specific than `not rhel` so flatpak wins over brew (mac-only cask)
-                       { via: native   when: "not rhel"  repo-component: universe }
+                       { via: native   when: "(not rhel) and not amzn"  repo-component: universe }
                        { via: flatpak  hub: flathub  app: org.kicad.KiCad } ]
         }
 
@@ -1031,7 +1036,7 @@
             suggests: blender-dotfiles
             install: [ { via: flatpak  hub: flathub  app: org.blender.Blender }   // uniform option everywhere; the only method on atomic (brew's blender is a mac-only cask)
                        { via: native  when: "rhel"  requires: epel }
-                       { via: native  when: "not fedora_atomic"  repo-component: universe }
+                       { via: native  when: "(not fedora_atomic) and not amzn"  repo-component: universe }
                        { via: snap  name: blender  classic: true } ]   // Blender-official snap (candidate-only)
         }
 
@@ -1137,7 +1142,7 @@
             ]
         }
         rocm-hip: { description: "AMD ROCm/HIP — GPU compute toolkit for AMD hardware."
-            install: [ { via: native  name: { apt: rocm-hip-sdk  dnf: rocm-hip  pacman: rocm-hip-sdk } } ]
+            install: [ { via: native  when: "not amzn"   name: { apt: rocm-hip-sdk  dnf: rocm-hip  pacman: rocm-hip-sdk } } ]
         }
         intel-oneapi-basekit: { description: "Intel oneAPI Base Toolkit — compute compilers and libraries."
             install: [ { via: native  name: { apt: intel-basekit  dnf: intel-basekit  pacman: intel-oneapi-basekit } } ]
@@ -1148,12 +1153,12 @@
         // opt-in `via: source` method (requires the `cuda-toolkit` capability) added by configsys-source
         // — `configsys pin set opencv source` to get it.
         opencv: { description: "OpenCV computer-vision library — C++ headers and libraries (dev)."
-            install: [ { via: native  when: "debian or redhat or opensuse or arch or alpine"  repo-component: universe
+            install: [ { via: native  when: "(debian or redhat or opensuse or arch or alpine) and not amzn"  repo-component: universe
                          name: { apt: libopencv-dev  dnf: opencv-devel  zypper: opencv-devel  pacman: opencv  apk: opencv-dev } }
                        { via: native  when: "fedora_atomic"  name: opencv } ]   // brew formula `opencv`
         }
         opencv-python: { description: "OpenCV Python bindings (the `cv2` module)."
-            install: [ { via: native  when: "debian or redhat or opensuse or arch or alpine"  repo-component: universe
+            install: [ { via: native  when: "(debian or redhat or opensuse or arch or alpine) and not amzn"  repo-component: universe
                          name: { apt: python3-opencv  dnf: python3-opencv  zypper: python313-opencv  pacman: opencv  apk: py3-opencv } } ]
         }
 
@@ -1167,7 +1172,8 @@
             install: [ { via: parts  parts: [ docker-engine, docker-service ] } ]
         }
         docker-engine: { description: "Docker Engine — the container runtime daemon."
-            install: [ { via: native  repo-component: universe  name: { dnf: moby-engine  pacman: docker  zypper: docker  apk: docker  default: docker.io } } ]
+            install: [ { via: native  repo-component: universe  name: { dnf: moby-engine  pacman: docker  zypper: docker  apk: docker  default: docker.io } }
+                       { via: native  when: "amzn"  name: docker } ]
         }
         docker-service: { description: "Enable and start the Docker daemon (systemd)."
             requires: docker-engine
@@ -1185,7 +1191,7 @@
         // snapd binding here (snapd needs a community repo / isn't supported) — a snap pin there is
         // an honest resolve error; flatpak/native cover those apps.
         snapd: { description: "snapd — the daemon that installs and runs snap packages."
-            install: [ { via: native  when: "debian or redhat"  name: snapd }   // apt / dnf snapd
+            install: [ { via: native  when: "(debian or redhat) and not amzn"  name: snapd }   // apt / dnf snapd
                        { via: aur     when: "arch"  name: snapd } ]              // Arch: AUR
         }
         snapd-socket: { description: "Enable snapd's systemd socket (so snaps can install/run)."
@@ -1203,13 +1209,13 @@
         }
 
         // --- virtualization: QEMU/KVM + libvirt + virt-manager, and VirtualBox ---
-        qemu:    { description: "QEMU — machine emulator and virtualizer." install: [ { via: native  name: { apt: qemu-system-x86  dnf: qemu-kvm  pacman: qemu-base  default: qemu } } ] }
-        libvirt: { description: "libvirt — virtualization management API and daemon." install: [ { via: native  name: { apt: libvirt-daemon-system  default: libvirt } } ] }
+        qemu:    { description: "QEMU — machine emulator and virtualizer." install: [ { via: native  when: "not amzn"   name: { apt: qemu-system-x86  dnf: qemu-kvm  pacman: qemu-base  default: qemu } } ] }
+        libvirt: { description: "libvirt — virtualization management API and daemon." install: [ { via: native  when: "not amzn"   name: { apt: libvirt-daemon-system  default: libvirt } } ] }
         libvirt-service: { description: "Enable and start the libvirt daemon (systemd)." requires: libvirt  install: [ { via: service  unit: libvirtd } ] }
         // virt-manager pulls the whole stack (hypervisor + daemon) so it's usable out of the box.
         virt-manager: { description: "Virtual Machine Manager — a GUI for libvirt/KVM."
             requires: [ qemu, libvirt, libvirt-service ]
-            install: [ { via: native }
+            install: [ { via: native  when: "not amzn"  }
                        { via: flatpak  hub: flathub  app: org.virt_manager.virt-manager } ]   // talks to the host libvirt socket (requires: still pull the host stack)
         }
         // VirtualBox needs a kernel module (vboxdrv, built via DKMS; Secure Boot requires signing
@@ -1388,10 +1394,10 @@
                   source-path: /etc/apt/sources.list.d/homebridge.list }
                 { via: npm  when: "not debian"  name: homebridge } ]   // needs node; then `hb-service install`
         }
-        mosquitto: { description: "Eclipse Mosquitto — a lightweight MQTT broker (the common Home Assistant companion)." install: [ { via: native } ] }
+        mosquitto: { description: "Eclipse Mosquitto — a lightweight MQTT broker (the common Home Assistant companion)." install: [ { via: native  when: "not amzn"  } ] }
         mosquitto-service: { description: "Enable and start the Mosquitto MQTT broker (systemd)." requires: mosquitto  install: [ { via: service  unit: mosquitto } ] }
         syncthing: { description: "Syncthing — continuous peer-to-peer file synchronization."
-            install: [ { via: native }                             // uniform pkg `syncthing`
+            install: [ { via: native  when: "not amzn"  }                             // uniform pkg `syncthing`
                        { via: tarball  standing: never-auto  installDir: "$CONFIGSYS_APP_DIR/syncthing"  requires: glibc   // newest upstream build (pinnable)
                          version: { github: syncthing/syncthing  strip-v: true  asset: "syncthing-linux-amd64-*.tar.gz" } } ] }
         tailscale: { description: "Tailscale — a WireGuard-based mesh VPN (`tailscale` CLI + `tailscaled`)."
@@ -1426,7 +1432,7 @@
                 { via: tarball  when: "not arch and not debian"  installDir: "$CONFIGSYS_APP_DIR/prometheus"  requires: glibc   // upstream static binaries; self-author the unit
                   version: { github: prometheus/prometheus  strip-v: true  asset: "prometheus-*.linux-amd64.tar.gz" } } ] }
         cockpit: { description: "Cockpit — a web-based server administration UI (socket-activated)."
-            install: [ { via: native  when: "debian or redhat or arch or opensuse" } ] }   // uniform pkg `cockpit`
+            install: [ { via: native  when: "(debian or redhat or arch or opensuse) and not amzn" } ] }   // uniform pkg `cockpit`
         cockpit-service: { description: "Enable Cockpit's web UI (systemd socket)." requires: cockpit  install: [ { via: service  unit: cockpit.socket } ] }
         wireguard: { description: "WireGuard — fast, modern VPN tunneling (`wg`/`wg-quick`)."
             install: [ { via: native  name: { apt: wireguard  default: wireguard-tools } } ] }   // debian `wireguard` metapkg; else `wireguard-tools`
@@ -1440,8 +1446,8 @@
         hydrogen:      { description: "Hydrogen — a pattern-based drum machine." install: [ { via: flatpak  hub: flathub  app: org.hydrogenmusic.Hydrogen } ] }
         carla:         { description: "Carla — an audio plugin host (LV2/VST/…)." install: [ { via: flatpak  hub: flathub  app: studio.kx.carla } ] }
         sonic-pi:      { description: "Sonic Pi — a live-coding music synth for everyone." install: [ { via: flatpak  hub: flathub  app: net.sonic_pi.SonicPi } ] }
-        supercollider: { description: "SuperCollider — audio synthesis and algorithmic composition." install: [ { via: native  when: "debian or redhat or arch or opensuse"  repo-component: universe }  { via: native  when: "fedora_atomic" } ] }   // brew formula `supercollider`
-        qjackctl:      { description: "QjackCtl — a GUI controller for the JACK audio server." install: [ { via: native  repo-component: universe } ] }
+        supercollider: { description: "SuperCollider — audio synthesis and algorithmic composition." install: [ { via: native  when: "(debian or redhat or arch or opensuse) and not amzn"  repo-component: universe }  { via: native  when: "fedora_atomic" } ] }   // brew formula `supercollider`
+        qjackctl:      { description: "QjackCtl — a GUI controller for the JACK audio server." install: [ { via: native  when: "not amzn"   repo-component: universe } ] }
         // PipeWire — the modern audio/video server. Native; already the default on most current
         // distros (where installing it is a harmless no-op).
         pipewire:      { description: "PipeWire — modern audio/video server (PulseAudio/JACK replacement)." install: [ { via: native } ] }
@@ -1465,7 +1471,7 @@
 
         // gnuradio: an SDR *framework* (Python bindings, out-of-tree modules) — flatpak is
         // impractical, so native everywhere (package name `gnuradio`).
-        gnuradio: { description: "GNU Radio — a software-defined radio toolkit." install: [ { via: native } ] }
+        gnuradio: { description: "GNU Radio — a software-defined radio toolkit." install: [ { via: native  when: "not amzn"  } ] }
 
         // ffmpeg: native, but neither Fedora nor EL ships it in base repos — the full build
         // lives in RPM Fusion on both (Fedora and EL alike). `when: "redhat"` covers both;
@@ -1480,7 +1486,7 @@
             install: [ { via: flatpak  hub: flathub  app: org.videolan.VLC }   // uniform option everywhere; the only method on atomic (brew's vlc is a mac-only cask)
                        { via: native  when: "fedora"  requires: rpmfusion }
                        { via: native  when: "rhel"    requires: epel }
-                       { via: native  when: "not fedora_atomic" } ]
+                       { via: native  when: "(not fedora_atomic) and not amzn" } ]
         }
         // RPM Fusion Free: enabling it = (EL only) turn on EPEL + CRB, then drop the free
         // .repo (dnf expands $releasever/$basearch and auto-imports the per-release key on the
@@ -1522,20 +1528,20 @@
         // (excludes atomic / brew-native desktops, which are image-based). Arch installs some as
         // package GROUPS (xfce4/mate) — the pacman driver detects group membership for get_version.
         gnome:    { description: "GNOME — the polished, mainstream GNOME desktop." install: [ { via: native  when: "debian or redhat or arch or opensuse or alpine"  name: { default: gnome-shell } } ] }
-        kde:      { description: "KDE Plasma — a feature-rich, highly customizable desktop." install: [ { via: native  when: "debian or redhat or arch or opensuse or alpine"  name: { apt: kde-plasma-desktop  dnf: plasma-desktop  pacman: plasma-meta  zypper: plasma6-session  apk: plasma-desktop } } ] }
-        xfce:     { description: "Xfce — a lightweight, traditional desktop environment." install: [ { via: native  when: "debian or redhat or arch or opensuse or alpine"  name: { apt: xfce4  dnf: xfce4-session  pacman: xfce4  zypper: xfce4-session  apk: xfce4 } } ] }
-        lxqt:     { description: "LXQt — a lightweight Qt desktop." install: [ { via: native  when: "debian or redhat or arch or opensuse or alpine"  name: { apt: lxqt  dnf: lxqt-session  pacman: lxqt  zypper: lxqt-session  apk: lxqt-desktop } } ] }
-        mate:     { description: "MATE — a classic GNOME 2-style desktop." install: [ { via: native  when: "debian or redhat or arch or opensuse or alpine"  name: { apt: mate-desktop-environment  dnf: mate-desktop  pacman: mate  zypper: mate-session-manager  apk: mate-desktop-environment } } ] }
-        sway:     { suggests: sway-dotfiles  description: "Sway — an i3-compatible tiling Wayland compositor." install: [ { via: native  when: "debian or redhat or arch or opensuse or alpine" } ] }   // same package name in every family
-        cinnamon: { description: "Cinnamon — a modern desktop with a traditional layout." install: [ { via: native  when: "debian or redhat or arch or opensuse"  name: { apt: cinnamon-desktop-environment  dnf: cinnamon  pacman: cinnamon  zypper: cinnamon } } ] }   // not packaged for Alpine
-        budgie:   { description: "Budgie — an elegant, modern desktop environment." install: [ { via: native  when: "debian or redhat or arch or opensuse"  name: { default: budgie-desktop } } ] }                                                                    // not packaged for Alpine
-        hyprland: { suggests: hyprland-dotfiles  description: "Hyprland — a dynamic tiling Wayland compositor with eye candy." install: [ { via: native  when: "redhat or arch or opensuse or alpine"  name: { default: hyprland } } ] }                                                                          // not in stock Ubuntu
-        cosmic:   { description: "COSMIC — System76's Rust-based desktop environment." install: [ { via: native  when: "pop_os! or redhat or arch or opensuse or alpine"  name: { default: cosmic-session } } ] }                                                          // stock Debian/Ubuntu lack it; Pop + others ship cosmic-session
+        kde:      { description: "KDE Plasma — a feature-rich, highly customizable desktop." install: [ { via: native  when: "(debian or redhat or arch or opensuse or alpine) and not amzn"  name: { apt: kde-plasma-desktop  dnf: plasma-desktop  pacman: plasma-meta  zypper: plasma6-session  apk: plasma-desktop } } ] }
+        xfce:     { description: "Xfce — a lightweight, traditional desktop environment." install: [ { via: native  when: "(debian or redhat or arch or opensuse or alpine) and not amzn"  name: { apt: xfce4  dnf: xfce4-session  pacman: xfce4  zypper: xfce4-session  apk: xfce4 } } ] }
+        lxqt:     { description: "LXQt — a lightweight Qt desktop." install: [ { via: native  when: "(debian or redhat or arch or opensuse or alpine) and not amzn"  name: { apt: lxqt  dnf: lxqt-session  pacman: lxqt  zypper: lxqt-session  apk: lxqt-desktop } } ] }
+        mate:     { description: "MATE — a classic GNOME 2-style desktop." install: [ { via: native  when: "(debian or redhat or arch or opensuse or alpine) and not amzn"  name: { apt: mate-desktop-environment  dnf: mate-desktop  pacman: mate  zypper: mate-session-manager  apk: mate-desktop-environment } } ] }
+        sway:     { suggests: sway-dotfiles  description: "Sway — an i3-compatible tiling Wayland compositor." install: [ { via: native  when: "(debian or redhat or arch or opensuse or alpine) and not amzn" } ] }   // same package name in every family
+        cinnamon: { description: "Cinnamon — a modern desktop with a traditional layout." install: [ { via: native  when: "(debian or redhat or arch or opensuse) and not amzn"  name: { apt: cinnamon-desktop-environment  dnf: cinnamon  pacman: cinnamon  zypper: cinnamon } } ] }   // not packaged for Alpine
+        budgie:   { description: "Budgie — an elegant, modern desktop environment." install: [ { via: native  when: "(debian or redhat or arch or opensuse) and not amzn"  name: { default: budgie-desktop } } ] }                                                                    // not packaged for Alpine
+        hyprland: { suggests: hyprland-dotfiles  description: "Hyprland — a dynamic tiling Wayland compositor with eye candy." install: [ { via: native  when: "(redhat or arch or opensuse or alpine) and not amzn"  name: { default: hyprland } } ] }                                                                          // not in stock Ubuntu
+        cosmic:   { description: "COSMIC — System76's Rust-based desktop environment." install: [ { via: native  when: "(pop_os! or redhat or arch or opensuse or alpine) and not amzn"  name: { default: cosmic-session } } ] }                                                          // stock Debian/Ubuntu lack it; Pop + others ship cosmic-session
         // Window managers (X11/Wayland tilers + a classic). Gated to the families that package them.
-        i3:       { suggests: i3-dotfiles  description: "i3 — a keyboard-driven tiling window manager (X11)." install: [ { via: native  when: "debian or redhat or arch or opensuse or alpine"  name: { pacman: i3-wm  apk: i3wm  default: i3 } } ] }
-        qtile:    { suggests: qtile-dotfiles  description: "Qtile — a tiling window manager written and configured in Python." install: [ { via: native  when: "redhat or arch" }   // `qtile` on dnf/pacman; NOT packaged in Debian/Ubuntu
+        i3:       { suggests: i3-dotfiles  description: "i3 — a keyboard-driven tiling window manager (X11)." install: [ { via: native  when: "(debian or redhat or arch or opensuse or alpine) and not amzn"  name: { pacman: i3-wm  apk: i3wm  default: i3 } } ] }
+        qtile:    { suggests: qtile-dotfiles  description: "Qtile — a tiling window manager written and configured in Python." install: [ { via: native  when: "(redhat or arch) and not amzn" }   // `qtile` on dnf/pacman; NOT packaged in Debian/Ubuntu
                                 { via: pipx  when: "debian"  name: qtile } ] }   // Debian/Ubuntu: install the Python WM with pipx
-        xmonad:   { suggests: xmonad-dotfiles  description: "xmonad — a tiling window manager written and configured in Haskell." install: [ { via: native  when: "debian or redhat or arch or opensuse"  name: { default: xmonad } } ] }
+        xmonad:   { suggests: xmonad-dotfiles  description: "xmonad — a tiling window manager written and configured in Haskell." install: [ { via: native  when: "(debian or redhat or arch or opensuse) and not amzn"  name: { default: xmonad } } ] }
         fvwm2:    { suggests: fvwm2-dotfiles  description: "FVWM2 — the classic, highly configurable X11 window manager." install: [ { via: native  when: "debian"  name: fvwm } ] }   // the classic 2.x `fvwm` is Debian-only now; Arch ships only the 3.x line (`fvwm3`, a distinct component/AUR), so decline there rather than route to it
 
         // lazygit: native on fedora/arch; elsewhere (debian/EL) a static Go binary from the
@@ -1589,7 +1595,7 @@
         // release tarball on the Debian family (ships `hx` alongside its runtime/ dir).
         helix: { suggests: helix-dotfiles  description: "Post-modern modal editor (`hx`) — batteries included."
             install: [
-                { via: native  when: "redhat or arch or opensuse or alpine or fedora_atomic" }
+                { via: native  when: "(redhat or arch or opensuse or alpine or fedora_atomic) and not amzn" }
                 { via: tarball  when: "not alpine"  installDir: "$CONFIGSYS_APP_DIR/helix"  requires: glibc
                   version: { github: helix-editor/helix  strip-v: true  asset: "helix-*-x86_64-linux.tar.xz" } } ]   // glibc build — offered everywhere except musl (alpine has the native pkg)
         }
@@ -1599,7 +1605,7 @@
         micro: { suggests: micro-dotfiles 
             description: "Modern, intuitive terminal text editor (`micro`)."
             install: [
-                { via: native  when: "not (rhel or opensuse)"  repo-component: universe }
+                { via: native  when: "(not (rhel or opensuse)) and not amzn"  repo-component: universe }
                 { via: tarball  installDir: "$CONFIGSYS_APP_DIR/micro"  requires: glibc
                   version: { github: zyedidia/micro  strip-v: true  asset: "micro-*-linux64.tar.gz" } }
             ]
@@ -1685,7 +1691,7 @@
         jmtpfs: { description: "jmtpfs — mount MTP devices (Android phones) via FUSE."
             install: [
                 { via: aur     when: "arch" }
-                { via: native  when: "debian or redhat"  repo-component: universe }
+                { via: native  when: "(debian or redhat) and not amzn"  repo-component: universe }
             ]
         }
         // JetBrains Toolbox — the launcher that installs/updates IDEA, CLion, PyCharm, etc.
@@ -1796,7 +1802,7 @@
         // elsewhere (native stays the default where the distro packages it).
         just: { suggests: just-dotfiles  description: "just — a handy command runner (Makefile-like `justfile`)."
             install: [
-                { via: native  when: "redhat or arch or opensuse or fedora_atomic" }
+                { via: native  when: "(redhat or arch or opensuse or fedora_atomic) and not amzn" }
                 { via: tarball  installDir: "$CONFIGSYS_APP_DIR/just"
                   version: { github: casey/just  strip-v: true  asset: "just-*-x86_64-unknown-linux-musl.tar.gz" } } ]
         }
@@ -1822,7 +1828,7 @@
         strace:    { description: "strace — trace the system calls of a running program." install: [ { via: native } ] }
         ltrace:    { description: "ltrace — trace the library calls of a running program." install: [ { via: native } ] }
         lldb:      { description: "LLDB — the LLVM project's debugger." install: [ { via: native } ] }
-        heaptrack: { description: "heaptrack — a heap-memory profiler for C/C++." install: [ { via: native  when: "debian or redhat or arch or opensuse" } ] }
+        heaptrack: { description: "heaptrack — a heap-memory profiler for C/C++." install: [ { via: native  when: "(debian or redhat or arch or opensuse) and not amzn" } ] }
         clang-tidy: { description: "clang-tidy — C/C++ linter and static analyzer." install: [ { via: native  when: "debian or redhat or arch"  name: { apt: clang-tidy  dnf: clang-tools-extra  pacman: clang } } ] }
         // perf is kernel-coupled and named per-distro: Ubuntu's linux-tools track, Debian's
         // linux-perf (also Proxmox); plain `perf` on redhat/arch/opensuse/alpine.
@@ -1874,9 +1880,9 @@
         sqlitebrowser: { description: "GUI to create, design, and edit SQLite databases." install: [ { via: flatpak  hub: flathub  app: org.sqlitebrowser.sqlitebrowser } ] }
         // DB servers: native package + a systemd service (verified on apt/dnf/pacman). NOTE:
         // first-run init differs per distro (Fedora postgres needs `postgresql-setup --initdb`).
-        postgresql:         { description: "PostgreSQL — advanced open-source relational database." install: [ { via: native  when: "debian or redhat or arch"  name: { dnf: postgresql-server  default: postgresql } } ] }
+        postgresql:         { description: "PostgreSQL — advanced open-source relational database." install: [ { via: native  when: "debian or redhat or arch"  name: { dnf: postgresql-server  default: postgresql } }  { via: native  when: "amzn"  name: postgresql15-server } ] }
         postgresql-service: { description: "Enable and start the PostgreSQL server (systemd)." requires: postgresql  install: [ { via: service  unit: postgresql } ] }
-        mariadb:            { description: "MariaDB — MySQL-compatible relational database." install: [ { via: native  when: "debian or redhat or arch"  name: { pacman: mariadb  default: mariadb-server } }  { via: native  when: "fedora_atomic"  name: mariadb } ] }   // brew formula `mariadb` (not the distro `-server` split)
+        mariadb:            { description: "MariaDB — MySQL-compatible relational database." install: [ { via: native  when: "debian or redhat or arch"  name: { pacman: mariadb  default: mariadb-server } }  { via: native  when: "amzn"  name: mariadb1011-server }  { via: native  when: "fedora_atomic"  name: mariadb } ] }   // brew formula `mariadb` (not the distro `-server` split)
         mariadb-service:    { description: "Enable and start the MariaDB server (systemd)." requires: mariadb  install: [ { via: service  unit: mariadb } ] }
         // redis is being replaced by its FOSS fork valkey on Fedora/Arch (drop-in compatible).
         redis:              { description: "Redis — in-memory data store and cache." install: [ { via: native  when: "debian or redhat or arch"  name: { apt: redis-server  dnf: valkey  pacman: valkey } }  { via: native  when: "fedora_atomic"  name: redis } ] }   // brew formula `redis` (distro repos lean valkey post-relicense; brew keeps redis)
@@ -1886,11 +1892,11 @@
         // --- science & math ---
         gnuplot:    { suggests: gnuplot-dotfiles  description: "gnuplot — command-driven plotting for data and functions." install: [ { via: native  repo-component: universe } ] }
         jupyterlab: { description: "JupyterLab — notebooks and IDE for data science." install: [ { via: pipx  name: jupyterlab } ] }        // `jupyter-lab` on PATH
-        paraview:   { description: "ParaView — large-scale scientific data visualization." install: [ { via: native  when: "debian or redhat or arch or opensuse"  repo-component: universe }  { via: flatpak  hub: flathub  app: org.paraview.ParaView } ] }
-        maxima:     { suggests: maxima-dotfiles  description: "Maxima — a computer algebra system for symbolic math." install: [ { via: native  when: "debian or redhat or arch or opensuse"  repo-component: universe }  { via: native  when: "fedora_atomic" } ] }   // brew formula `maxima`
-        wxmaxima:   { description: "wxMaxima — a GUI front end for the Maxima CAS." install: [ { via: native  when: "debian or redhat"  repo-component: universe }  { via: flatpak  hub: flathub  app: io.github.wxmaxima_developers.wxMaxima } ] }   // native: debian/redhat (Arch AUR only); flatpak covers the rest
-        pari:       { description: "PARI/GP — computer algebra for number theory." install: [ { via: native  repo-component: universe  name: { apt: pari-gp  dnf: pari-gp  pacman: pari  zypper: pari-gp  default: pari } } ] }
-        gap:        { description: "GAP — a system for computational discrete algebra (group theory)." install: [ { via: native  when: "debian or redhat or arch or opensuse"  repo-component: universe }  { via: native  when: "fedora_atomic" } ] }   // brew formula `gap`
+        paraview:   { description: "ParaView — large-scale scientific data visualization." install: [ { via: native  when: "(debian or redhat or arch or opensuse) and not amzn"  repo-component: universe }  { via: flatpak  hub: flathub  app: org.paraview.ParaView } ] }
+        maxima:     { suggests: maxima-dotfiles  description: "Maxima — a computer algebra system for symbolic math." install: [ { via: native  when: "(debian or redhat or arch or opensuse) and not amzn"  repo-component: universe }  { via: native  when: "fedora_atomic" } ] }   // brew formula `maxima`
+        wxmaxima:   { description: "wxMaxima — a GUI front end for the Maxima CAS." install: [ { via: native  when: "(debian or redhat) and not amzn"  repo-component: universe }  { via: flatpak  hub: flathub  app: io.github.wxmaxima_developers.wxMaxima } ] }   // native: debian/redhat (Arch AUR only); flatpak covers the rest
+        pari:       { description: "PARI/GP — computer algebra for number theory." install: [ { via: native  when: "not amzn"   repo-component: universe  name: { apt: pari-gp  dnf: pari-gp  pacman: pari  zypper: pari-gp  default: pari } } ] }
+        gap:        { description: "GAP — a system for computational discrete algebra (group theory)." install: [ { via: native  when: "(debian or redhat or arch or opensuse) and not amzn"  repo-component: universe }  { via: native  when: "fedora_atomic" } ] }   // brew formula `gap`
         sagemath:   { description: "SageMath — an open-source mathematics software system." install: [ { via: native  when: "debian or arch"  repo-component: universe } ] }      // Fedora: COPR/conda only
 
         // LaTeX (TeX Live) — the recommended subset vs the full multi-GB distribution.
@@ -1990,7 +1996,7 @@
                   version: { github: fastfetch-cli/fastfetch }
                   asset: { x86_64: fastfetch-linux-amd64.deb  aarch64: fastfetch-linux-aarch64.deb } }
                 { via: native  when: "rhel"  requires: epel }   // EL ships fastfetch in EPEL
-                { via: native  when: "not debian" }             // arch/fedora/suse/... carry it in-repo
+                { via: native  when: "(not debian) and not amzn" }             // arch/fedora/suse/... carry it in-repo
             ]
         }
 
@@ -2067,11 +2073,11 @@
             provides: [ cxx-stdlib, libc++ ]
             standing: never-auto
             suggests: libc++abi                       // soft: the split ABI dev package (bundled on Alpine)
-            install: [ { via: native  name: { apt: libc++-dev  dnf: libcxx-devel  zypper: libc++-devel
+            install: [ { via: native  when: "not amzn"   name: { apt: libc++-dev  dnf: libcxx-devel  zypper: libc++-devel
                                               pacman: libc++  apk: libc++-dev } } ]
         }
         libc++abi: { description: "LLVM libc++abi — libc++'s low-level ABI support."                                  // LLVM libc++abi dev — a separate package except on Alpine
-            install: [ { via: native  when: "not alpine"  name: { apt: libc++abi-dev  dnf: libcxxabi-devel
+            install: [ { via: native  when: "(not alpine) and not amzn"  name: { apt: libc++abi-dev  dnf: libcxxabi-devel
                                                                   zypper: libc++abi-devel  pacman: libc++abi } } ]
         }
 
@@ -2259,7 +2265,7 @@
             install: [ { via: aur  when: "arch"  name: eastl } ]                  // AUR only; vendor/source elsewhere
         }
         qt: { description: "Qt 6 — cross-platform C++ application framework (Qt Base, dev)."
-            install: [ { via: native  when: "debian or redhat or arch or alpine"  repo-component: universe
+            install: [ { via: native  when: "(debian or redhat or arch or alpine) and not amzn"  repo-component: universe
                          name: { apt: qt6-base-dev  dnf: qt6-qtbase-devel  pacman: qt6-base  apk: qt6-qtbase-dev } } ]
         }
         gtk: { description: "GTK 4 — the GTK GUI toolkit (dev)."
@@ -2277,24 +2283,24 @@
         // ships GL as a deprecated system framework).
         opengl: { description: "OpenGL development environment — GL + GLU headers and libraries."
             install: [ { via: native  when: "debian"    packages: [ libgl-dev, libglu1-mesa-dev ] }
-                       { via: native  when: "redhat"    packages: [ mesa-libGL-devel, mesa-libGLU-devel ] }
+                       { via: native  when: "(redhat) and not amzn"    packages: [ mesa-libGL-devel, mesa-libGLU-devel ] }
                        { via: native  when: "arch"      packages: [ mesa, glu ] }
                        { via: native  when: "alpine"    packages: [ mesa-dev, glu-dev ] }
                        { via: native  when: "opensuse"  packages: [ Mesa-libGL-devel, glu-devel ] } ]
         }
         glfw: { description: "GLFW — multi-platform OpenGL/Vulkan window & input library (dev)."
-            install: [ { via: native  when: "debian or redhat or arch or alpine or opensuse or fedora_atomic"  repo-component: universe
+            install: [ { via: native  when: "(debian or redhat or arch or alpine or opensuse or fedora_atomic) and not amzn"  repo-component: universe
                          name: { apt: libglfw3-dev  dnf: glfw-devel  pacman: glfw  apk: glfw-dev  zypper: libglfw-devel  brew: glfw } } ]
         }
         // SDL2 (the common target). Arch dropped classic `sdl2` → `sdl2-compat` (SDL2 API on SDL3).
         sdl: { description: "SDL2 — Simple DirectMedia Layer (video/audio/input), dev headers + libs."
-            install: [ { via: native  when: "debian or redhat or arch or alpine or opensuse or fedora_atomic"  repo-component: universe
+            install: [ { via: native  when: "(debian or redhat or arch or alpine or opensuse or fedora_atomic) and not amzn"  repo-component: universe
                          name: { apt: libsdl2-dev  dnf: SDL2-devel  pacman: sdl2-compat  apk: sdl2-dev  zypper: sdl2-compat-devel  brew: sdl2 } } ]
         }
         // SFML — note the major-version skew: 2.x on debian/fedora/alpine, 3.x on arch/brew (a
         // breaking API change). openSUSE package unconfirmed → omitted there.
         sfml: { description: "SFML — Simple and Fast Multimedia Library (C++), dev headers + libs."
-            install: [ { via: native  when: "debian or redhat or arch or alpine or fedora_atomic"  repo-component: universe
+            install: [ { via: native  when: "(debian or redhat or arch or alpine or fedora_atomic) and not amzn"  repo-component: universe
                          name: { apt: libsfml-dev  dnf: SFML-devel  pacman: sfml  apk: sfml-dev  brew: sfml } } ]
         }
 
