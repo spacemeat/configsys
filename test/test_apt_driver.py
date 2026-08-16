@@ -121,8 +121,11 @@ def test_is_locked_true_and_false():
 def resolve_unit(name, os_block='pop_os!'):
     routes = Path(__file__).resolve().parent.parent / 'routes.hu'
     units = Resolver(routes, os_block).resolve_names([name])
-    assert len(units) == 1
-    return next(iter(units.values()))
+    # the component may now softly `suggests:` a <name>-dotfiles companion (which itself
+    # pulls bash-dotfiles); select the unit for the requested component itself.
+    matches = [u for u in units.values() if u.comp == name]
+    assert len(matches) == 1
+    return matches[0]
 
 
 def test_repo_component_enabled_before_install():

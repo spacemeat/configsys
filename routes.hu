@@ -124,19 +124,19 @@
         unzip:      { description: "Extract ZIP archives." install: [ { via: native } ] }
         zip:        { description: "Create and update ZIP archives." install: [ { via: native } ] }
         curl:       { description: "Transfer data over HTTP(S) and more — the ubiquitous `curl`." install: [ { via: native } ] }
-        git:        { description: "Distributed version control — the `git` you already know." install: [ { via: native } ] }
+        git:        { suggests: git-dotfiles  description: "Distributed version control — the `git` you already know." install: [ { via: native } ] }
         // Other version-control systems (git is above). Package name == component name except:
         // subversion's CLI is `svn`; bazaar is now Breezy (`brz`); perforce ships `helix-cli` (`p4`).
-        mercurial: { description: "Mercurial — a fast distributed version control system (`hg`)."
+        mercurial: { suggests: mercurial-dotfiles  description: "Mercurial — a fast distributed version control system (`hg`)."
             install: [ { via: native  when: "not rhel"  repo-component: universe }   // uniform pkg `mercurial`
                        { via: native  when: "rhel"  requires: epel }
                        { via: pipx  name: mercurial  standing: never-auto } ] }       // Python; pinnable alt
         subversion: { description: "Apache Subversion — centralized version control (the `svn` CLI)."
             install: [ { via: native  repo-component: universe } ] }                  // uniform pkg `subversion`
-        cvs: { description: "CVS — the classic Concurrent Versions System."
+        cvs: { suggests: cvs-dotfiles  description: "CVS — the classic Concurrent Versions System."
             install: [ { via: native  when: "debian or fedora or arch or fedora_atomic"  repo-component: universe }
                        { via: native  when: "rhel"  requires: epel } ] }              // gone from stable-Alpine + openSUSE
-        fossil: { description: "Fossil — a self-contained distributed SCM (wiki, tickets, web UI in one binary)."
+        fossil: { suggests: fossil-dotfiles  description: "Fossil — a self-contained distributed SCM (wiki, tickets, web UI in one binary)."
             install: [ { via: native  when: "not opensuse and not rhel"  repo-component: universe }
                        { via: native  when: "rhel"  requires: epel }
                        { via: tarball  when: "opensuse"  installDir: "$CONFIGSYS_APP_DIR/fossil"  requires: glibc  // no openSUSE package; upstream static binary
@@ -175,7 +175,7 @@
             standing: never-auto
             install: [ { via: apk  when: "alpine" } ]
         }
-        python3-pip: { description: "pip — the Python package installer." install: [ { via: native  name: { pacman: python-pip  zypper: python313-pip  apk: py3-pip } } ] }
+        python3-pip: { suggests: python3-pip-dotfiles  description: "pip — the Python package installer." install: [ { via: native  name: { pacman: python-pip  zypper: python313-pip  apk: py3-pip } } ] }
 
         // Python interpreters as VERSION-SCOPED providers of the `python3` capability. Install specific
         // versions side-by-side — each is a distinct `/usr/bin/python3.X` (or a pyenv build), so they
@@ -230,7 +230,7 @@
 
         // pyenv itself + the C libraries it needs to COMPILE CPython — the `via: pyenv` method's deps
         // (see drivers.pyenv). pyenv installs user-scope under ~/.pyenv via its official installer.
-        pyenv: { description: "pyenv — build & switch Python versions from source, user-scope."
+        pyenv: { suggests: pyenv-dotfiles  description: "pyenv — build & switch Python versions from source, user-scope."
             requires: curl
             install: [ { via: script
                 install-cmd:   'curl -fsSL https://pyenv.run | bash'
@@ -240,7 +240,7 @@
         // uv — Astral's very fast Python package/project manager (a single Rust binary). Native
         // where packaged (arch; brew on atomic); pipx is the universal default elsewhere; the github
         // tarball and cargo are pinnable alternates. NOT in the debian/ubuntu repos.
-        uv: { description: "uv — Astral's very fast Python package & project manager (Rust)."
+        uv: { suggests: uv-dotfiles  description: "uv — Astral's very fast Python package & project manager (Rust)."
             install: [
                 { via: native   when: "arch" }                     // pacman: uv
                 { via: native   when: "fedora_atomic" }            // brew formula `uv`
@@ -259,10 +259,10 @@
             ] }
         // EL keeps these in EPEL, base repos everywhere else — same two-binding shape as btop.
         // `repo-component: universe` is the apt archive area (read only by apt; ignored on dnf/pacman).
-        ripgrep: { description: "Fast recursive regex search (`rg`) — grep, but much quicker."
+        ripgrep: { suggests: ripgrep-dotfiles  description: "Fast recursive regex search (`rg`) — grep, but much quicker."
                    install: [ { via: native  when: "rhel"  requires: epel } { via: native  repo-component: universe }
                               { via: tarball  installDir: "$CONFIGSYS_APP_DIR/ripgrep"  version: { github: BurntSushi/ripgrep  asset: "ripgrep-*-x86_64-unknown-linux-musl.tar.gz" } } ] }   // prebuilt musl binary (rg in a versioned subdir)
-        fzf:     { description: "Fuzzy finder — interactive filtering for files, history, anything piped in."
+        fzf:     { suggests: fzf-dotfiles  description: "Fuzzy finder — interactive filtering for files, history, anything piped in."
                    install: [ { via: native  when: "rhel"  requires: epel } { via: native  repo-component: universe }
                               { via: tarball  installDir: "$CONFIGSYS_APP_DIR/fzf"  version: { github: junegunn/fzf  strip-v: true  asset: "fzf-*-linux_amd64.tar.gz" } } ] }
         xclip:   { description: "xclip — command-line access to the X clipboard." suggests: xclip-dotfiles
@@ -271,7 +271,7 @@
 
         // btop lives in EPEL on EL (needs epel enabled), base repos everywhere else.
         // Two native bindings: the EL one adds `requires: epel`; both are dnf\btop.
-        btop: {
+        btop: { suggests: btop-dotfiles 
             description: "System-resource monitor — CPU/mem/net/disk in a colorful TUI."
             install: [
                 { via: native  when: "rhel"  requires: epel }
@@ -293,7 +293,7 @@
         // bottom (`btm`): Rust system monitor. Native `bottom` only where packaged (Arch, openSUSE,
         // Alpine, Homebrew); NOT in Debian/Ubuntu (upstream ships a .deb) nor Fedora/EL — name-sweep
         // confirmed the apt+dnf gaps — so cargo builds it on the whole debian + redhat families.
-        bottom: {
+        bottom: { suggests: bottom-dotfiles 
             description: "Cross-platform system monitor (`btm`) — CPU/mem/net/process/disk in a TUI."
             install: [
                 { via: native  when: "not (redhat or debian)" }
@@ -337,11 +337,11 @@
                 install: [ { via: native } ] }
         tmux-dotfiles: { description: "tmux config, linked into place."
                 install: [ { via: dotfiles  config: { src: tmux  dst: $XDG_CONFIG_HOME/tmux } } ] }
-        zsh:  { description: "Z shell — a powerful interactive shell." install: [ { via: native } ] }
-        fish: { description: "Friendly interactive shell — smart autosuggestions out of the box." install: [ { via: native } ] }
+        zsh:  { suggests: zsh-dotfiles  description: "Z shell — a powerful interactive shell." install: [ { via: native } ] }
+        fish: { suggests: fish-dotfiles  description: "Friendly interactive shell — smart autosuggestions out of the box." install: [ { via: native } ] }
         // nushell isn't in Debian/Ubuntu/Fedora base repos; native where it is (Arch, Homebrew),
         // else the upstream glibc release tarball (ships `nu` + its plugins).
-        nushell: {
+        nushell: { suggests: nushell-dotfiles 
             description: "A shell whose pipelines carry structured data, not just text (`nu`)."
             install: [
                 { via: native  when: "arch" }
@@ -356,7 +356,7 @@
         // --- terminal emulators & TUI file managers ---
         // kitty: GPU-accelerated terminal emulator, packaged natively across every base repo
         // (apt/dnf/pacman/zypper/apk all carry `kitty`).
-        kitty: { description: "Fast, GPU-accelerated terminal emulator." install: [ { via: native } ] }
+        kitty: { suggests: kitty-dotfiles  description: "Fast, GPU-accelerated terminal emulator." install: [ { via: native } ] }
         // ghostty: Zig terminal emulator. The only official native package among our managers is
         // Arch's (openSUSE dropped it over Zig-version churn, Fedora is COPR-only, Debian is
         // community-only, and it's absent from Alpine's community repo — name sweep confirmed) — so
@@ -364,7 +364,7 @@
         // AppImage (pkgforge-dev; glibc/fuse2, unpacked under ~/apps). Musl-only boxes (Alpine)
         // have no verified method, so ghostty simply declines there. The `asset` glob discovers the
         // real download URL from the GitHub API (no hand-templated url).
-        ghostty: { description: "Fast, native GPU-accelerated terminal emulator."
+        ghostty: { suggests: ghostty-dotfiles  description: "Fast, native GPU-accelerated terminal emulator."
             install: [
                 { via: native  when: "arch" }
                 { via: appImage  name: Ghostty  scope: user
@@ -439,7 +439,7 @@
         // pipx: the version-variant collapse. Native package where the repos have it;
         // a pip --user bootstrap on old Ubuntu/Debian; +EPEL on EL. Was a \pip family +
         // apt/dnf/pacman entries + two @version blocks + a rhel override — now three bindings.
-        pipx: { description: "Install and run Python CLI apps in isolated environments."
+        pipx: { suggests: pipx-dotfiles  description: "Install and run Python CLI apps in isolated environments."
             install: [
                 { via: pip     when: "(ubuntu < 23.04) or (debian < 12)"  name: pipx  version: { pypi: pipx } }
                 { via: native  when: "rhel"  requires: epel  name: { pacman: python-pipx } }
@@ -452,7 +452,7 @@
         // installing rust — there is no separate `cargo` component. Package names bring the WHOLE
         // toolchain: apt `rust-all` (metapkg: rustc+cargo+gdb+doc), Arch/Homebrew `rust` (bundles
         // cargo), and elsewhere `cargo` transitively pulls rustc (dnf/apk/zypper).
-        rust: { description: "The Rust toolchain (cargo, rustc) — safe systems programming."
+        rust: { suggests: rust-dotfiles  description: "The Rust toolchain (cargo, rustc) — safe systems programming."
             provides: cargo
             install: [
                 { via: native  repo-component: universe  name: { apt: rust-all  pacman: rust  brew: rust  default: cargo } }
@@ -482,7 +482,7 @@
         // DRIVER's `requires: npm` is met by installing node. One native binding brings both:
         // apt/Arch/Alpine `npm` transitively pulls nodejs; Fedora/openSUSE `nodejs` and
         // Homebrew `node` bundle npm.
-        node: { description: "Node.js — JavaScript runtime built on V8."
+        node: { suggests: node-dotfiles  description: "Node.js — JavaScript runtime built on V8."
             provides: npm
             install: [ { via: native  repo-component: universe  name: { apt: npm  pacman: npm  apk: npm  brew: node  zypper: nodejs-default  default: nodejs } }
                        { via: snap  name: node  classic: true } ]   // OpenJS-official snap (candidate-only)
@@ -502,14 +502,14 @@
         // the upstream github release ZIP (glibc-linked; the tarball driver unzips it). Both have
         // STABLE asset names (no version in the filename), so they use github's API-free
         // `releases/latest/download` URL — robust even when api.github.com is unreachable.
-        deno: { description: "Deno — secure JavaScript/TypeScript runtime with built-in tooling."
+        deno: { suggests: deno-dotfiles  description: "Deno — secure JavaScript/TypeScript runtime with built-in tooling."
             install: [
                 { via: native  when: "arch" }
                 { via: native  when: "fedora_atomic" }             // brew formula `deno`
                 { via: tarball  installDir: "$CONFIGSYS_APP_DIR/deno"  requires: [ glibc, unzip ]  version: { static: latest }
                   url: "https://github.com/denoland/deno/releases/latest/download/deno-x86_64-unknown-linux-gnu.zip" } ]
         }
-        bun: { description: "Bun — fast all-in-one JavaScript runtime, bundler, and package manager."
+        bun: { suggests: bun-dotfiles  description: "Bun — fast all-in-one JavaScript runtime, bundler, and package manager."
             install: [
                 { via: native  when: "fedora_atomic" }             // brew formula `bun`
                 { via: tarball  installDir: "$CONFIGSYS_APP_DIR/bun"  requires: [ glibc, unzip ]  version: { static: latest }
@@ -518,7 +518,7 @@
 
         // Go toolchain, directly usable. Auto-provides the `go` capability the go-install
         // driver requires. Package names: apt `golang-go`, dnf `golang`, else `go`.
-        go: { description: "The Go programming language toolchain."
+        go: { suggests: go-dotfiles  description: "The Go programming language toolchain."
             install: [
                 { via: native  name: { apt: golang-go  dnf: golang  default: go } }
                 // the official Go toolchain tarball — latest stable, userland under
@@ -538,7 +538,7 @@
 
         // Ruby toolchain (ships gem + irb). Auto-provides `ruby` for the gem driver. apt
         // `ruby-full` bundles the dev headers gems' native extensions need; else `ruby`.
-        ruby: { description: "The Ruby programming language."
+        ruby: { suggests: ruby-dotfiles  description: "The Ruby programming language."
             install: [ { via: native  name: { apt: ruby-full  default: ruby } } ]
         }
         // Sample gem (userland by default; see the gem driver).
@@ -553,7 +553,7 @@
             install: [ { via: native  repo-component: universe
                          name: { apt: php-cli  dnf: php-cli  pacman: php  apk: php84  zypper: php8-cli  brew: php } } ]
         }
-        composer: { description: "Composer — PHP's per-project dependency manager." requires: php
+        composer: { suggests: composer-dotfiles  description: "Composer — PHP's per-project dependency manager." requires: php
             install: [ { via: native  when: "not rhel"  repo-component: universe  name: { zypper: php-composer2  default: composer } }
                        { via: native  when: "rhel"  requires: epel  name: composer } ]
         }
@@ -563,7 +563,7 @@
         // upstream dotnet-install.sh lands a per-user SDK under ~/.dotnet (add it to PATH yourself);
         // the Canonical snap (classic) is a pinnable all-distro alternate. Distro packages are
         // per-major (8.0 = current LTS) — bump the channel/pkg as newer LTS lines land.
-        dotnet: { description: ".NET SDK — build & run .NET (C#/F#) apps (`dotnet`)."
+        dotnet: { suggests: dotnet-dotfiles  description: ".NET SDK — build & run .NET (C#/F#) apps (`dotnet`)."
             install: [
                 { via: native  when: "arch"    name: dotnet-sdk }              // rolling latest
                 { via: native  when: "ubuntu"  name: dotnet-sdk-8.0 }          // Canonical feed (22.04+)
@@ -614,7 +614,7 @@
 
         // Kotlin compiler — native on Arch/Homebrew; else the github release ZIP. Needs a JVM to
         // run (requires jdk) and unzip to unpack. (SDKMAN is the other path — via the script driver.)
-        kotlin: { description: "Kotlin — modern JVM language, Android's default."
+        kotlin: { suggests: kotlin-dotfiles  description: "Kotlin — modern JVM language, Android's default."
             install: [
                 { via: native  when: "arch" }                      // pacman: kotlin
                 { via: native  when: "fedora_atomic" }             // brew formula `kotlin`
@@ -654,7 +654,7 @@
                          version-re:    '([0-9][0-9.]*)'
                          uninstall-cmd: 'sudo apt-get remove -y crystal 2>/dev/null || sudo dnf remove -y crystal 2>/dev/null'
                          location:      'crystal (dist.crystal-lang.org repo)' } ] }
-        dart: { description: "Dart — Google's language & SDK for apps and Flutter."
+        dart: { suggests: dart-dotfiles  description: "Dart — Google's language & SDK for apps and Flutter."
             install: [ { via: native  when: "arch" }                     // pacman: dart (extra)
                        { via: native  when: "fedora_atomic"  name: dart-sdk }   // brew dart-sdk
                        { via: native  when: "debian"  name: dart          // Google's official apt repo (single `stable` suite — codename-independent)
@@ -664,12 +664,12 @@
         raku: { description: "Raku (Rakudo) — the Raku language, formerly Perl 6."
             install: [ { via: native  when: "not arch"  repo-component: universe  name: { brew: rakudo-star  default: rakudo } }
                        { via: aur  when: "arch"  name: rakudo-star } ] }   // AUR-only on Arch
-        v: { description: "V — a simple, fast-compiling language (the `v` compiler)." requires: cc
+        v: { suggests: v-dotfiles  description: "V — a simple, fast-compiling language (the `v` compiler)." requires: cc
             install: [ { via: native  when: "fedora_atomic"  name: vlang }   // brew vlang
                        { via: aur  when: "arch"  name: vlang-bin }
                        { via: tarball  when: "not arch and not fedora_atomic"  installDir: "$CONFIGSYS_APP_DIR/v"  requires: [ glibc, unzip ]  version: { static: latest }
                          url: "https://github.com/vlang/v/releases/latest/download/v_linux.zip" } ] }   // prebuilt zip
-        gleam: { description: "Gleam — a friendly, statically-typed language for the Erlang VM." requires: erlang
+        gleam: { suggests: gleam-dotfiles  description: "Gleam — a friendly, statically-typed language for the Erlang VM." requires: erlang
             install: [ { via: native  when: "arch or alpine or fedora_atomic" }   // pacman/apk/brew gleam
                        { via: tarball  when: "not arch and not alpine and not fedora_atomic"  installDir: "$CONFIGSYS_APP_DIR/gleam"  requires: glibc
                          version: { github: gleam-lang/gleam  strip-v: true  asset: "gleam-*-x86_64-unknown-linux-musl.tar.gz" } } ] }   // single static binary
@@ -712,7 +712,7 @@
         micronaut:  { description: "Micronaut CLI (`mn`) — build Micronaut microservices." requires: jdk  install: [ { via: sdkman } ] }
         jbang:      { description: "JBang — run Java/JVM scripts with no project setup." requires: jdk  install: [ { via: sdkman } ] }
         scalacli:   { description: "Scala CLI — the modern all-in-one Scala runner and tooling." requires: jdk  install: [ { via: sdkman } ] }
-        coursier:   { description: "Coursier (`cs`) — the JVM artifact fetcher and application installer." requires: jdk  install: [ { via: sdkman } ] }
+        coursier:   { suggests: coursier-dotfiles  description: "Coursier (`cs`) — the JVM artifact fetcher and application installer." requires: jdk  install: [ { via: sdkman } ] }
         spark:      { description: "Apache Spark — a unified analytics engine for large-scale data." requires: jdk  install: [ { via: sdkman } ] }
         flink:      { description: "Apache Flink — stream and batch data processing." requires: jdk  install: [ { via: sdkman } ] }
         liquibase:  { description: "Liquibase — database schema change management and migrations." requires: jdk  install: [ { via: sdkman } ] }
@@ -731,11 +731,11 @@
         erlang: { description: "Erlang/OTP — battle-tested concurrent, fault-tolerant runtime." install: [ { via: native  when: "debian or redhat or arch or opensuse"  repo-component: universe }  { via: native  when: "fedora_atomic" } ] }   // brew formula `erlang`
         elixir: { description: "Elixir — functional, concurrent language on the Erlang VM." install: [ { via: native  repo-component: universe } ] }
         // Nim compiler (nimble ships alongside).
-        nim:   { description: "Nim — expressive, statically-typed compiled systems language." install: [ { via: native  when: "debian or arch or opensuse or alpine"  repo-component: universe }  { via: native  when: "fedora_atomic" } ] }   // not in Fedora repos; brew formula `nim`
+        nim:   { suggests: nim-dotfiles  description: "Nim — expressive, statically-typed compiled systems language." install: [ { via: native  when: "debian or arch or opensuse or alpine"  repo-component: universe }  { via: native  when: "fedora_atomic" } ] }   // not in Fedora repos; brew formula `nim`
 
         // R (statistics) and GNU Octave (numerical computing) — native everywhere.
-        r:      { description: "R — language and environment for statistical computing." install: [ { via: native  repo-component: universe  name: { apt: r-base  dnf: R  pacman: r  zypper: R-base  apk: R  brew: r } } ] }
-        octave: { description: "GNU Octave — numerical computing, largely MATLAB-compatible." install: [ { via: native  repo-component: universe }  { via: flatpak  hub: flathub  app: org.octave.Octave } ] }
+        r:      { suggests: r-dotfiles  description: "R — language and environment for statistical computing." install: [ { via: native  repo-component: universe  name: { apt: r-base  dnf: R  pacman: r  zypper: R-base  apk: R  brew: r } } ] }
+        octave: { suggests: octave-dotfiles  description: "GNU Octave — numerical computing, largely MATLAB-compatible." install: [ { via: native  repo-component: universe }  { via: flatpak  hub: flathub  app: org.octave.Octave } ] }
         // Common Lisp: SBCL (the compiler) + Quicklisp (the library manager, bootstrapped by its
         // own lisp script and wired into the SBCL init file).
         sbcl: { description: "Steel Bank Common Lisp — a fast Common Lisp compiler." install: [ { via: native  repo-component: universe } ] }
@@ -752,14 +752,14 @@
         // opam (OCaml package manager). NOTE: `opam install` needs a one-time `opam init` on a
         // fresh system — the opam driver is validated against opam 2.1.5's CLI, but first use on
         // an uninitialized machine may need `opam init` (tracked; see docs/expansion-plan.md).
-        opam:  { description: "opam — the OCaml package manager." install: [ { via: native  repo-component: universe } ] }
+        opam:  { suggests: opam-dotfiles  description: "opam — the OCaml package manager." install: [ { via: native  repo-component: universe } ] }
         dune:  { description: "Dune — the build system for OCaml projects." install: [ { via: opam  name: dune } ] }
         // luarocks (Lua package manager; the native package pulls lua) + a sample rock
         // (dkjson is pure-Lua with no C deps, so it installs without lua headers).
-        luarocks: { description: "LuaRocks — package manager for Lua modules." install: [ { via: native  repo-component: universe  name: { zypper: lua54-luarocks  default: luarocks } } ] }
+        luarocks: { suggests: luarocks-dotfiles  description: "LuaRocks — package manager for Lua modules." install: [ { via: native  repo-component: universe  name: { zypper: lua54-luarocks  default: luarocks } } ] }
         dkjson:   { description: "dkjson — a pure-Lua JSON encode/decode library." install: [ { via: luarocks  name: dkjson } ] }
         // cabal (Haskell build tool; needs ghc to build) + a sample executable.
-        cabal: { description: "Cabal — Haskell's build system and package manager." requires: haskell
+        cabal: { suggests: cabal-dotfiles  description: "Cabal — Haskell's build system and package manager." requires: haskell
                  install: [ { via: native  repo-component: universe  name: { apk: cabal  default: cabal-install } } ] }
         hlint: { description: "HLint — suggests improvements to Haskell code." install: [ { via: cabal  name: hlint } ] }
 
@@ -767,7 +767,7 @@
         // statically linked (runs on glibc AND musl), so no glibc requirement. Its prebuilt
         // binaries live on ziglang.org (not github assets), so github supplies only the VERSION
         // and a url template builds the download.
-        zig: { description: "Zig — simple, fast systems language and C/C++ toolchain."
+        zig: { suggests: zig-dotfiles  description: "Zig — simple, fast systems language and C/C++ toolchain."
             install: [
                 { via: native  when: "arch" }
                 { via: native  when: "fedora_atomic" }             // brew formula `zig`
@@ -779,7 +779,7 @@
         // Julia — official binaries live on the julialang S3 (not github releases), so a pinned
         // version + the S3 tarball URL (glibc build; path carries both the X.Y dir and full
         // version, so bump both on update). Native on Arch/Homebrew where packaged.
-        julia: { description: "Julia — high-performance language for scientific computing."
+        julia: { suggests: julia-dotfiles  description: "Julia — high-performance language for scientific computing."
             install: [
                 { via: native  when: "arch" }                      // pacman: julia
                 { via: native  when: "fedora_atomic" }             // brew formula `julia`
@@ -787,7 +787,7 @@
                   url: "https://julialang-s3.julialang.org/bin/linux/x64/1.12/julia-1.12.6-linux-x86_64.tar.gz" } ]
         }
         // Odin — upstream github release tarball (glibc-linked, so it declines on musl).
-        odin: { description: "Odin — data-oriented systems programming language."
+        odin: { suggests: odin-dotfiles  description: "Odin — data-oriented systems programming language."
             install: [
                 { via: native  when: "fedora_atomic" }             // brew formula `odin`
                 { via: tarball  installDir: "$CONFIGSYS_APP_DIR/odin"  requires: glibc
@@ -930,21 +930,21 @@
 
         // Web/HTTP dev — httpie + jq native (httpie via EPEL on EL); yq/mitmproxy isolated via
         // pipx; xh/websocat are Rust crates.
-        httpie:    { description: "Human-friendly HTTP client (`http`) — a nicer curl for APIs." install: [ { via: native  when: "rhel"  requires: epel } { via: native } ] }   // the `http`/`https` CLI
-        jq:        { description: "Command-line JSON processor — query and transform JSON."
+        httpie:    { suggests: httpie-dotfiles  description: "Human-friendly HTTP client (`http`) — a nicer curl for APIs." install: [ { via: native  when: "rhel"  requires: epel } { via: native } ] }   // the `http`/`https` CLI
+        jq:        { suggests: jq-dotfiles  description: "Command-line JSON processor — query and transform JSON."
                      install: [ { via: native }
                                 { via: tarball  archive: none  binary: jq  installDir: "$CONFIGSYS_APP_DIR/jq"  version: { github: jqlang/jq  asset: "jq-linux-amd64" } } ] }   // upstream ships a raw static binary
         yq:        { description: "YAML/JSON/XML processor — jq, but for YAML." requires: jq                                                                    // the jq-family yq (yq/xq/tomlq) — shells out to jq at runtime; NOT mikefarah's Go yq
                      install: [ { via: pipx  name: yq  version: { pypi: yq } } ] }
         mitmproxy: { description: "Interactive HTTPS proxy — intercept, inspect, and replay traffic." install: [ { via: pipx  name: mitmproxy  standing: 1  version: { pypi: mitmproxy } }  { via: flatpak  hub: flathub  app: org.mitmproxy.mitmproxy } ] }   // pipx (official PyPI) stays the default; the Flathub build is an offered option
-        xh:        { description: "Fast HTTPie-compatible HTTP client (`xh`), written in Rust." install: [ { via: cargo  name: xh  version: { crates: xh } }  { via: tarball  installDir: "$CONFIGSYS_APP_DIR/xh"  version: { github: ducaale/xh  asset: "xh-*-x86_64-unknown-linux-musl.tar.gz" } } ] }                // prebuilt musl binary is the default over building from source
-        websocat:  { description: "netcat for WebSockets — connect, pipe, and script ws:// endpoints." install: [ { via: cargo  name: websocat  version: { crates: websocat } }  { via: tarball  archive: none  binary: websocat  installDir: "$CONFIGSYS_APP_DIR/websocat"  version: { github: vi/websocat  asset: "websocat.x86_64-unknown-linux-musl" } } ] }   // prebuilt musl binary default
+        xh:        { suggests: xh-dotfiles  description: "Fast HTTPie-compatible HTTP client (`xh`), written in Rust." install: [ { via: cargo  name: xh  version: { crates: xh } }  { via: tarball  installDir: "$CONFIGSYS_APP_DIR/xh"  version: { github: ducaale/xh  asset: "xh-*-x86_64-unknown-linux-musl.tar.gz" } } ] }                // prebuilt musl binary is the default over building from source
+        websocat:  { suggests: websocat-dotfiles  description: "netcat for WebSockets — connect, pipe, and script ws:// endpoints." install: [ { via: cargo  name: websocat  version: { crates: websocat } }  { via: tarball  archive: none  binary: websocat  installDir: "$CONFIGSYS_APP_DIR/websocat"  version: { github: vi/websocat  asset: "websocat.x86_64-unknown-linux-musl" } } ] }   // prebuilt musl binary default
 
         // GUI API clients — Flatpak from Flathub, like chrome (all community-maintained, current).
         postman:  { description: "Postman — a GUI for building and testing APIs." install: [ { via: flatpak  hub: flathub  app: com.getpostman.Postman }  { via: snap  name: postman } ] }
         insomnia: { description: "Insomnia — an open-source API client and design tool." install: [ { via: flatpak  hub: flathub  app: rest.insomnia.Insomnia }  { via: native-pkg-file  when: "debian or redhat"  version: { github: Kong/insomnia  tag-re: "([0-9][0-9.]*)" }  asset: { deb: { x86_64: "Insomnia.Core-*.deb" }  rpm: { x86_64: "Insomnia.Core-*.rpm" } } } ] }   // monorepo `core@` tags: the release scan finds the Core release; tag-re -> clean version
         bruno:    { description: "Bruno — a fast, git-friendly, offline-first API client." install: [ { via: flatpak  hub: flathub  app: com.usebruno.Bruno }  { via: native-pkg-file  when: "debian or redhat"  version: { github: usebruno/bruno  strip-v: true }  asset: { deb: { x86_64: "bruno_*_amd64_linux.deb" }  rpm: { x86_64: "bruno_*_x86_64_linux.rpm" } } } ] }   // upstream .deb (amd64)/.rpm (x86_64 token differs)
-        tree-sitter-cli: { description: "tree-sitter CLI — build and test tree-sitter grammars."
+        tree-sitter-cli: { suggests: tree-sitter-cli-dotfiles  description: "tree-sitter CLI — build and test tree-sitter grammars."
             install: [ { via: cargo  name: tree-sitter-cli  standing: 1  version: { crates: tree-sitter-cli } }   // kept the default (some want it built from source, without the prebuilt-binary apparatus)
                        { via: tarball  archive: gz  binary: tree-sitter  installDir: "$CONFIGSYS_APP_DIR/tree-sitter"  version: { github: tree-sitter/tree-sitter  asset: "tree-sitter-linux-x64.gz" } } ]   // upstream ships a plain-gzipped single binary
         }
@@ -1521,17 +1521,17 @@
         xfce:     { description: "Xfce — a lightweight, traditional desktop environment." install: [ { via: native  when: "debian or redhat or arch or opensuse or alpine"  name: { apt: xfce4  dnf: xfce4-session  pacman: xfce4  zypper: xfce4-session  apk: xfce4 } } ] }
         lxqt:     { description: "LXQt — a lightweight Qt desktop." install: [ { via: native  when: "debian or redhat or arch or opensuse or alpine"  name: { apt: lxqt  dnf: lxqt-session  pacman: lxqt  zypper: lxqt-session  apk: lxqt-desktop } } ] }
         mate:     { description: "MATE — a classic GNOME 2-style desktop." install: [ { via: native  when: "debian or redhat or arch or opensuse or alpine"  name: { apt: mate-desktop-environment  dnf: mate-desktop  pacman: mate  zypper: mate-session-manager  apk: mate-desktop-environment } } ] }
-        sway:     { description: "Sway — an i3-compatible tiling Wayland compositor." install: [ { via: native  when: "debian or redhat or arch or opensuse or alpine" } ] }   // same package name in every family
+        sway:     { suggests: sway-dotfiles  description: "Sway — an i3-compatible tiling Wayland compositor." install: [ { via: native  when: "debian or redhat or arch or opensuse or alpine" } ] }   // same package name in every family
         cinnamon: { description: "Cinnamon — a modern desktop with a traditional layout." install: [ { via: native  when: "debian or redhat or arch or opensuse"  name: { apt: cinnamon-desktop-environment  dnf: cinnamon  pacman: cinnamon  zypper: cinnamon } } ] }   // not packaged for Alpine
         budgie:   { description: "Budgie — an elegant, modern desktop environment." install: [ { via: native  when: "debian or redhat or arch or opensuse"  name: { default: budgie-desktop } } ] }                                                                    // not packaged for Alpine
-        hyprland: { description: "Hyprland — a dynamic tiling Wayland compositor with eye candy." install: [ { via: native  when: "redhat or arch or opensuse or alpine"  name: { default: hyprland } } ] }                                                                          // not in stock Ubuntu
+        hyprland: { suggests: hyprland-dotfiles  description: "Hyprland — a dynamic tiling Wayland compositor with eye candy." install: [ { via: native  when: "redhat or arch or opensuse or alpine"  name: { default: hyprland } } ] }                                                                          // not in stock Ubuntu
         cosmic:   { description: "COSMIC — System76's Rust-based desktop environment." install: [ { via: native  when: "pop_os! or redhat or arch or opensuse or alpine"  name: { default: cosmic-session } } ] }                                                          // stock Debian/Ubuntu lack it; Pop + others ship cosmic-session
         // Window managers (X11/Wayland tilers + a classic). Gated to the families that package them.
-        i3:       { description: "i3 — a keyboard-driven tiling window manager (X11)." install: [ { via: native  when: "debian or redhat or arch or opensuse or alpine"  name: { pacman: i3-wm  apk: i3wm  default: i3 } } ] }
-        qtile:    { description: "Qtile — a tiling window manager written and configured in Python." install: [ { via: native  when: "redhat or arch" }   // `qtile` on dnf/pacman; NOT packaged in Debian/Ubuntu
+        i3:       { suggests: i3-dotfiles  description: "i3 — a keyboard-driven tiling window manager (X11)." install: [ { via: native  when: "debian or redhat or arch or opensuse or alpine"  name: { pacman: i3-wm  apk: i3wm  default: i3 } } ] }
+        qtile:    { suggests: qtile-dotfiles  description: "Qtile — a tiling window manager written and configured in Python." install: [ { via: native  when: "redhat or arch" }   // `qtile` on dnf/pacman; NOT packaged in Debian/Ubuntu
                                 { via: pipx  when: "debian"  name: qtile } ] }   // Debian/Ubuntu: install the Python WM with pipx
-        xmonad:   { description: "xmonad — a tiling window manager written and configured in Haskell." install: [ { via: native  when: "debian or redhat or arch or opensuse"  name: { default: xmonad } } ] }
-        fvwm2:    { description: "FVWM2 — the classic, highly configurable X11 window manager." install: [ { via: native  when: "debian"  name: fvwm } ] }   // the classic 2.x `fvwm` is Debian-only now; Arch ships only the 3.x line (`fvwm3`, a distinct component/AUR), so decline there rather than route to it
+        xmonad:   { suggests: xmonad-dotfiles  description: "xmonad — a tiling window manager written and configured in Haskell." install: [ { via: native  when: "debian or redhat or arch or opensuse"  name: { default: xmonad } } ] }
+        fvwm2:    { suggests: fvwm2-dotfiles  description: "FVWM2 — the classic, highly configurable X11 window manager." install: [ { via: native  when: "debian"  name: fvwm } ] }   // the classic 2.x `fvwm` is Debian-only now; Arch ships only the 3.x line (`fvwm3`, a distinct component/AUR), so decline there rather than route to it
 
         // lazygit: native on fedora/arch; elsewhere (debian/EL) a static Go binary from the
         // GitHub release, unpacked under ~/apps/lazygit (scope-honoring). Its bash.d snippet
@@ -1579,10 +1579,10 @@
                          aliases: { src: bash.d/neovim.sh  dst: ~/.bash.d/neovim.sh } } ]
         }
         // Emacs — native under `emacs` in every family.
-        emacs: { description: "The extensible, self-documenting text editor." install: [ { via: native  repo-component: universe }  { via: flatpak  hub: flathub  app: org.gnu.emacs } ] }
+        emacs: { suggests: emacs-dotfiles  description: "The extensible, self-documenting text editor." install: [ { via: native  repo-component: universe }  { via: flatpak  hub: flathub  app: org.gnu.emacs } ] }
         // Helix — native on dnf/pacman/zypper/apk/brew; NOT in the Ubuntu base repos, so the github
         // release tarball on the Debian family (ships `hx` alongside its runtime/ dir).
-        helix: { description: "Post-modern modal editor (`hx`) — batteries included."
+        helix: { suggests: helix-dotfiles  description: "Post-modern modal editor (`hx`) — batteries included."
             install: [
                 { via: native  when: "redhat or arch or opensuse or alpine or fedora_atomic" }
                 { via: tarball  when: "not alpine"  installDir: "$CONFIGSYS_APP_DIR/helix"  requires: glibc
@@ -1591,7 +1591,7 @@
         // micro (`micro`): Go terminal editor. Native on Debian/Ubuntu universe, Fedora, Arch,
         // Alpine, Homebrew; NOT in openSUSE's repos (name-sweep confirmed) and no EL package, so the
         // upstream release tarball (ships `micro`) covers openSUSE + EL + anything missed.
-        micro: {
+        micro: { suggests: micro-dotfiles 
             description: "Modern, intuitive terminal text editor (`micro`)."
             install: [
                 { via: native  when: "not (rhel or opensuse)"  repo-component: universe }
@@ -1600,7 +1600,7 @@
             ]
         }
         // Zed — native on Arch; elsewhere its own install script (installs into ~/.local).
-        zed: { description: "High-performance, multiplayer code editor from the Atom team."
+        zed: { suggests: zed-dotfiles  description: "High-performance, multiplayer code editor from the Atom team."
             install: [
                 { via: native  when: "arch" }
                 { via: flatpak  hub: flathub  app: dev.zed.Zed }
@@ -1616,7 +1616,7 @@
         // repo (key + an inline `deb` source-line -> package `code`); Fedora/EL use the MS
         // dnf repo (key + a .repo file); Arch builds `visual-studio-code-bin` from the AUR
         // (the OSS `code` in the Arch repos is a different, unbranded build).
-        vscode: { description: "Visual Studio Code — Microsoft's extensible code editor."
+        vscode: { suggests: vscode-dotfiles  description: "Visual Studio Code — Microsoft's extensible code editor."
             install: [
                 { via: flatpak  hub: flathub  app: com.visualstudio.code }   // community Flathub build — offered everywhere; the only method on atomic (no MS vendor repo to wire in)
                 { via: native  when: "debian"  name: code
@@ -1635,7 +1635,7 @@
         // vscodium: the fully-open build of Code — no Microsoft telemetry/branding, and the OSS
         // (non-proprietary) marketplace. Its own apt/dnf repos (download.vscodium.com), Flathub, snap,
         // Arch AUR; package/CLI is `codium`. The telemetry-free sibling of `vscode` (which IS MS's build).
-        vscodium: { description: "VSCodium — the community, telemetry-free open-source build of VS Code (`codium`)."
+        vscodium: { suggests: vscodium-dotfiles  description: "VSCodium — the community, telemetry-free open-source build of VS Code (`codium`)."
             install: [
                 { via: flatpak  hub: flathub  app: com.vscodium.codium }   // universal; the only method on atomic
                 { via: native  when: "debian"  name: codium
@@ -1658,7 +1658,7 @@
         // couldn't pin, so those are a TODO (a good target for a refresh version/preview hook). Here:
         // Arch AUR, and the upstream tarball elsewhere (a manual VERSION pin — bump the url; the app
         // self-updates after first launch, so a stale pin only affects the initial install).
-        antigravity: { description: "Google Antigravity — Google's agent-first AI IDE (a VS Code fork; Gemini/Claude/GPT-OSS)."
+        antigravity: { suggests: antigravity-dotfiles  description: "Google Antigravity — Google's agent-first AI IDE (a VS Code fork; Gemini/Claude/GPT-OSS)."
             install: [
                 { via: aur  when: "arch"  name: antigravity-bin }
                 { via: tarball  when: "not arch"  installDir: "$CONFIGSYS_APP_DIR/antigravity"  requires: glibc  version: { static: "1.23.2" }
@@ -1686,7 +1686,7 @@
         // JetBrains Toolbox — the launcher that installs/updates IDEA, CLion, PyCharm, etc.
         // (cleaner than one-off IDE components). The version-less URL 302-redirects to the
         // latest tarball, which `curl -fSL` follows — so `static: latest`, no version to chase.
-        jetbrains-toolbox: { description: "JetBrains Toolbox — install and manage JetBrains IDEs."
+        jetbrains-toolbox: { suggests: jetbrains-toolbox-dotfiles  description: "JetBrains Toolbox — install and manage JetBrains IDEs."
             install: [ { via: tarball  installDir: "$CONFIGSYS_APP_DIR/jetbrains-toolbox"  requires: glibc   // glibc-linked launcher
                          version: { static: latest }
                          url: "https://download.jetbrains.com/product?code=TBA&latest&distribution=linux" } ]
@@ -1697,10 +1697,10 @@
         // Python CLIs (pipx). Ollama is a LOCAL INFERENCE SERVER: native on Arch/Homebrew, else its
         // own install script (which also sets up the systemd service); a best-effort uninstall is
         // declared so the script driver can remove it cleanly.
-        claude-code: { description: "Claude Code — Anthropic's agentic coding CLI." install: [ { via: npm  name: "@anthropic-ai/claude-code" } ] }
-        codex:       { description: "OpenAI Codex CLI — agentic coding in the terminal." install: [ { via: npm  name: "@openai/codex" } ] }
+        claude-code: { suggests: claude-code-dotfiles  description: "Claude Code — Anthropic's agentic coding CLI." install: [ { via: npm  name: "@anthropic-ai/claude-code" } ] }
+        codex:       { suggests: codex-dotfiles  description: "OpenAI Codex CLI — agentic coding in the terminal." install: [ { via: npm  name: "@openai/codex" } ] }
         llm:         { description: "`llm` — a CLI to access LLMs from the shell and scripts." install: [ { via: pipx  name: llm } ] }
-        aider:       { description: "Aider — AI pair-programming in your terminal, over your git repo." install: [ { via: pipx  name: aider-chat } ] }        // PyPI dist is aider-chat
+        aider:       { suggests: aider-dotfiles  description: "Aider — AI pair-programming in your terminal, over your git repo." install: [ { via: pipx  name: aider-chat } ] }        // PyPI dist is aider-chat
         ollama: { description: "Ollama — run large language models locally."
             install: [
                 { via: native  when: "arch" }
@@ -1717,16 +1717,16 @@
         // --- container / k8s / dev TUIs & C++ package managers ---
         // lazydocker's asset embeds the version (github asset discovery, like lazygit); lazysql
         // and k9s have stable asset names, so they use github's API-free latest/download URL.
-        lazydocker: {
+        lazydocker: { suggests: lazydocker-dotfiles 
             description: "Terminal UI for Docker/Compose — containers, logs, stats."
             install: [ { via: tarball  installDir: "$CONFIGSYS_APP_DIR/lazydocker"  requires: glibc
                          version: { github: jesseduffield/lazydocker  strip-v: true  asset: "lazydocker_*_Linux_x86_64.tar.gz" } } ]
         }
-        lazysql: { description: "Terminal UI for SQL databases (`lazysql`)."
+        lazysql: { suggests: lazysql-dotfiles  description: "Terminal UI for SQL databases (`lazysql`)."
             install: [ { via: tarball  installDir: "$CONFIGSYS_APP_DIR/lazysql"  requires: glibc  version: { static: latest }
                          url: "https://github.com/jorgerojas26/lazysql/releases/latest/download/lazysql_Linux_x86_64.tar.gz" } ]
         }
-        k9s: {
+        k9s: { suggests: k9s-dotfiles 
             description: "Terminal UI to navigate and manage Kubernetes clusters."
             install: [
                 { via: native  when: "arch" }
@@ -1737,7 +1737,7 @@
         // kubectl isn't in the Debian/Fedora base repos; native on Arch/Homebrew, else the upstream
         // static binary from dl.k8s.io (bare-binary tarball mode; `stable.txt` gives the version).
         // The Go binary runs anywhere, so no glibc gate.
-        kubectl: { description: "kubectl — the Kubernetes command-line client."
+        kubectl: { suggests: kubectl-dotfiles  description: "kubectl — the Kubernetes command-line client."
             install: [
                 { via: native  when: "arch" }
                 { via: native  when: "fedora_atomic" }
@@ -1747,7 +1747,7 @@
                 { via: snap  name: kubectl  classic: true } ]   // Canonical-official snap (candidate-only)
         }
         // helm & k3s install via their upstream scripts (script driver) where not native.
-        helm: { description: "Helm — the package manager for Kubernetes."
+        helm: { suggests: helm-dotfiles  description: "Helm — the package manager for Kubernetes."
             install: [
                 { via: native  when: "arch" }
                 { via: native  when: "fedora_atomic" }
@@ -1770,7 +1770,7 @@
         }
         // conan is a Python CLI (pipx). vcpkg is a git clone + bootstrap (script driver; needs git).
         conan: { description: "Conan — a C/C++ package manager." install: [ { via: pipx  name: conan } ] }
-        vcpkg: { description: "vcpkg — Microsoft's C/C++ library manager."
+        vcpkg: { suggests: vcpkg-dotfiles  description: "vcpkg — Microsoft's C/C++ library manager."
             requires: [ git, curl, zip, unzip ]     // bootstrap-vcpkg fetches + unpacks its tool
             install: [ { via: script
                          install-cmd:   'git clone https://github.com/microsoft/vcpkg "$HOME/.vcpkg" && "$HOME/.vcpkg/bootstrap-vcpkg.sh" -disableMetrics'
@@ -1789,14 +1789,14 @@
         // runs anywhere) is offered as a uniform option everywhere — it's the default on the Debian
         // family (no repo package; works on older apt too, e.g. Ubuntu/Pop 22.04) and a candidate
         // elsewhere (native stays the default where the distro packages it).
-        just: { description: "just — a handy command runner (Makefile-like `justfile`)."
+        just: { suggests: just-dotfiles  description: "just — a handy command runner (Makefile-like `justfile`)."
             install: [
                 { via: native  when: "redhat or arch or opensuse or fedora_atomic" }
                 { via: tarball  installDir: "$CONFIGSYS_APP_DIR/just"
                   version: { github: casey/just  strip-v: true  asset: "just-*-x86_64-unknown-linux-musl.tar.gz" } } ]
         }
         // Bazelisk (the official launcher that manages bazel versions) — a bare static binary.
-        bazelisk: { description: "Bazelisk — a launcher that manages Bazel versions."
+        bazelisk: { suggests: bazelisk-dotfiles  description: "Bazelisk — a launcher that manages Bazel versions."
             install: [
                 { via: native  when: "fedora_atomic" }             // brew formula `bazelisk`
                 { via: tarball  installDir: "$CONFIGSYS_APP_DIR/bazelisk"  archive: none  binary: bazelisk  version: { static: latest }
@@ -1804,15 +1804,15 @@
         }
         // Maven (native everywhere) and Gradle (native except Fedora base — use SDKMAN there). Both
         // need a JVM.
-        maven:  { description: "Apache Maven — Java build and dependency management." requires: jdk
+        maven:  { suggests: maven-dotfiles  description: "Apache Maven — Java build and dependency management." requires: jdk
                   install: [ { via: native }  { via: sdkman  standing: never-auto } ] }   // native default; SDKMAN for a pinned version
-        gradle: { description: "Gradle — JVM build automation." requires: jdk
+        gradle: { suggests: gradle-dotfiles  description: "Gradle — JVM build automation." requires: jdk
                   install: [ { via: native  when: "debian or arch or fedora_atomic" }   // native where packaged
                              { via: sdkman  when: "not debian and not arch and not fedora_atomic" } ] }   // SDKMAN elsewhere (fedora/alpine/opensuse) + any pinned version
 
         // --- debugging / static analysis / profiling (NB: ASan/UBSan/TSan are gcc/clang FLAGS,
         // not packages — nothing to install for those). ---
-        valgrind:  { description: "Valgrind — memory-error and leak detector." install: [ { via: native } ] }
+        valgrind:  { suggests: valgrind-dotfiles  description: "Valgrind — memory-error and leak detector." install: [ { via: native } ] }
         cppcheck:  { description: "Cppcheck — static analysis for C/C++." install: [ { via: native } ] }
         strace:    { description: "strace — trace the system calls of a running program." install: [ { via: native } ] }
         ltrace:    { description: "ltrace — trace the library calls of a running program." install: [ { via: native } ] }
@@ -1839,7 +1839,7 @@
 
         // --- back-end: cloud CLIs, IaC, protobuf, DB clients + servers ---
         // Cloud CLIs via their official installers (script driver, userland).
-        awscli: { description: "AWS CLI — the command-line interface for Amazon Web Services."
+        awscli: { suggests: awscli-dotfiles  description: "AWS CLI — the command-line interface for Amazon Web Services."
             requires: [ curl, unzip ]
             install: [ { via: script
                          install-cmd:   'curl -fsSL "https://awscli.amazonaws.com/awscli-exe-linux-$(uname -m).zip" -o /tmp/awscliv2.zip && unzip -q -o /tmp/awscliv2.zip -d /tmp/awscli-inst && /tmp/awscli-inst/aws/install --update -i "$HOME/.local/aws-cli" -b "$HOME/.local/bin" && rm -rf /tmp/awscliv2.zip /tmp/awscli-inst'
@@ -1848,7 +1848,7 @@
                          uninstall-cmd: 'rm -rf "$HOME/.local/aws-cli" "$HOME/.local/bin/aws" "$HOME/.local/bin/aws_completer"'
                          location:      '~/.local/bin/aws' } ]
         }
-        gcloud: { description: "Google Cloud CLI (`gcloud`) — manage GCP resources."
+        gcloud: { suggests: gcloud-dotfiles  description: "Google Cloud CLI (`gcloud`) — manage GCP resources."
             requires: curl
             install: [ { via: script
                          install-cmd:   'curl -fsSL https://sdk.cloud.google.com | bash -s -- --disable-prompts --install-dir="$HOME"'
@@ -1859,13 +1859,13 @@
         }
         azure-cli: { description: "Azure CLI (`az`) — manage Microsoft Azure resources." install: [ { via: pipx  name: azure-cli } ] }
         // IaC + gRPC — Go static binaries from github release tarballs.
-        opentofu: { description: "OpenTofu — open-source, Terraform-compatible infrastructure as code." install: [ { via: tarball  installDir: "$CONFIGSYS_APP_DIR/opentofu"  version: { github: opentofu/opentofu  strip-v: true  asset: "tofu_*_linux_amd64.tar.gz" } } ] }
-        grpcurl:  { description: "curl for gRPC — call and inspect gRPC services from the shell." install: [ { via: tarball  installDir: "$CONFIGSYS_APP_DIR/grpcurl"   version: { github: fullstorydev/grpcurl  strip-v: true  asset: "grpcurl_*_linux_x86_64.tar.gz" } } ] }
-        protobuf: { description: "Protocol Buffers compiler (`protoc`)." install: [ { via: native  repo-component: universe  name: { apt: protobuf-compiler  dnf: protobuf-compiler  zypper: protobuf-devel  default: protobuf } }  { via: tarball  installDir: "$CONFIGSYS_APP_DIR/protobuf"  requires: unzip  version: { github: protocolbuffers/protobuf  strip-v: true  asset: "protoc-*-linux-x86_64.zip" } } ] }   // prebuilt protoc + well-known-types include/
+        opentofu: { suggests: opentofu-dotfiles  description: "OpenTofu — open-source, Terraform-compatible infrastructure as code." install: [ { via: tarball  installDir: "$CONFIGSYS_APP_DIR/opentofu"  version: { github: opentofu/opentofu  strip-v: true  asset: "tofu_*_linux_amd64.tar.gz" } } ] }
+        grpcurl:  { suggests: grpcurl-dotfiles  description: "curl for gRPC — call and inspect gRPC services from the shell." install: [ { via: tarball  installDir: "$CONFIGSYS_APP_DIR/grpcurl"   version: { github: fullstorydev/grpcurl  strip-v: true  asset: "grpcurl_*_linux_x86_64.tar.gz" } } ] }
+        protobuf: { suggests: protobuf-dotfiles  description: "Protocol Buffers compiler (`protoc`)." install: [ { via: native  repo-component: universe  name: { apt: protobuf-compiler  dnf: protobuf-compiler  zypper: protobuf-devel  default: protobuf } }  { via: tarball  installDir: "$CONFIGSYS_APP_DIR/protobuf"  requires: unzip  version: { github: protocolbuffers/protobuf  strip-v: true  asset: "protoc-*-linux-x86_64.zip" } } ] }   // prebuilt protoc + well-known-types include/
         // DB clients: dbeaver (GUI, Flathub), pgcli/mycli (pipx), sqlitebrowser (Flathub).
         dbeaver:       { description: "Universal database GUI — browse and query many DB engines." install: [ { via: flatpak  hub: flathub  app: io.dbeaver.DBeaverCommunity }  { via: native-pkg-file  when: "debian or redhat"  version: { github: dbeaver/dbeaver }  asset: { deb: { x86_64: "dbeaver-ce-*-linux-x86_64.deb" }  rpm: { x86_64: "dbeaver-ce-*-linux-x86_64.rpm" } } } ] }   // upstream .deb/.rpm (CE)
-        pgcli:         { description: "Postgres CLI with autocompletion and syntax highlighting." install: [ { via: pipx  name: pgcli } ] }
-        mycli:         { description: "MySQL/MariaDB CLI with autocompletion and highlighting." install: [ { via: pipx  name: mycli } ] }
+        pgcli:         { suggests: pgcli-dotfiles  description: "Postgres CLI with autocompletion and syntax highlighting." install: [ { via: pipx  name: pgcli } ] }
+        mycli:         { suggests: mycli-dotfiles  description: "MySQL/MariaDB CLI with autocompletion and highlighting." install: [ { via: pipx  name: mycli } ] }
         sqlitebrowser: { description: "GUI to create, design, and edit SQLite databases." install: [ { via: flatpak  hub: flathub  app: org.sqlitebrowser.sqlitebrowser } ] }
         // DB servers: native package + a systemd service (verified on apt/dnf/pacman). NOTE:
         // first-run init differs per distro (Fedora postgres needs `postgresql-setup --initdb`).
@@ -1879,10 +1879,10 @@
                                                           { via: service  when: "redhat or arch"  unit: valkey } ] }
 
         // --- science & math ---
-        gnuplot:    { description: "gnuplot — command-driven plotting for data and functions." install: [ { via: native  repo-component: universe } ] }
+        gnuplot:    { suggests: gnuplot-dotfiles  description: "gnuplot — command-driven plotting for data and functions." install: [ { via: native  repo-component: universe } ] }
         jupyterlab: { description: "JupyterLab — notebooks and IDE for data science." install: [ { via: pipx  name: jupyterlab } ] }        // `jupyter-lab` on PATH
         paraview:   { description: "ParaView — large-scale scientific data visualization." install: [ { via: native  when: "debian or redhat or arch or opensuse"  repo-component: universe }  { via: flatpak  hub: flathub  app: org.paraview.ParaView } ] }
-        maxima:     { description: "Maxima — a computer algebra system for symbolic math." install: [ { via: native  when: "debian or redhat or arch or opensuse"  repo-component: universe }  { via: native  when: "fedora_atomic" } ] }   // brew formula `maxima`
+        maxima:     { suggests: maxima-dotfiles  description: "Maxima — a computer algebra system for symbolic math." install: [ { via: native  when: "debian or redhat or arch or opensuse"  repo-component: universe }  { via: native  when: "fedora_atomic" } ] }   // brew formula `maxima`
         wxmaxima:   { description: "wxMaxima — a GUI front end for the Maxima CAS." install: [ { via: native  when: "debian or redhat"  repo-component: universe }  { via: flatpak  hub: flathub  app: io.github.wxmaxima_developers.wxMaxima } ] }   // native: debian/redhat (Arch AUR only); flatpak covers the rest
         pari:       { description: "PARI/GP — computer algebra for number theory." install: [ { via: native  repo-component: universe  name: { apt: pari-gp  dnf: pari-gp  pacman: pari  zypper: pari-gp  default: pari } } ] }
         gap:        { description: "GAP — a system for computational discrete algebra (group theory)." install: [ { via: native  when: "debian or redhat or arch or opensuse"  repo-component: universe }  { via: native  when: "fedora_atomic" } ] }   // brew formula `gap`
@@ -1893,7 +1893,7 @@
         texlive-full: { description: "TeX Live (full) — the complete TeX/LaTeX distribution." install: [ { via: native  when: "debian or redhat or arch"  name: { apt: texlive-full  dnf: texlive-scheme-full  pacman: texlive-meta } } ] }
 
         // Miniforge — a conda env manager (the right home for the numpy/scipy/pandas stack).
-        miniforge: { description: "Miniforge — a minimal conda installer (conda-forge default)."
+        miniforge: { suggests: miniforge-dotfiles  description: "Miniforge — a minimal conda installer (conda-forge default)."
             requires: curl
             install: [ { via: script
                          install-cmd:   'curl -fsSL "https://github.com/conda-forge/miniforge/releases/latest/download/Miniforge3-Linux-x86_64.sh" -o /tmp/mf.sh && bash /tmp/mf.sh -b -p "$HOME/miniforge3" && rm -f /tmp/mf.sh'
@@ -1973,7 +1973,7 @@
         }
 
         // --- github .deb where no repo has it, native package elsewhere (cpu-keyed asset) ---
-        fastfetch: {
+        fastfetch: { suggests: fastfetch-dotfiles 
             description: "System info fetcher — the logo + specs banner (neofetch-style)."
             install: [
                 // Debian/Ubuntu don't carry fastfetch in-repo (absent through 22.04/24.04/bookworm),
@@ -2293,5 +2293,98 @@
                          name: { apt: libsfml-dev  dnf: SFML-devel  pacman: sfml  apk: sfml-dev  brew: sfml } } ]
         }
 
+
+        // ---- dotfiles companions (bulk pass) ---------------------------------------
+        // Config pointers (declare WHERE a tool reads its user config; ship no content --
+        // `configsys dotfiles capture <name>` adopts an existing one) and shell-setup snippets
+        // (PATH/alias/env for off-PATH installs). Each is soft-`suggests:`ed by its parent.
+        aider-dotfiles: { description: "aider config, linked into place." install: [ { via: dotfiles  config: { src: aider.conf.yml  dst: ~/.aider.conf.yml } } ] }
+        android-studio-dotfiles: { description: "android-studio shell setup, linked into place." install: [ { via: dotfiles  requires: bash-dotfiles  src: bash.d/android-studio.sh  dst: ~/.bash.d/android-studio.sh } ] }
+        antigravity-dotfiles: { description: "antigravity shell setup, linked into place." install: [ { via: dotfiles  requires: bash-dotfiles  src: bash.d/antigravity.sh  dst: ~/.bash.d/antigravity.sh } ] }
+        awscli-dotfiles: { description: "awscli config, linked into place." install: [ { via: dotfiles  config: { src: aws-config  dst: ~/.aws/config } } ] }
+        bazelisk-dotfiles: { description: "bazelisk shell setup, linked into place." install: [ { via: dotfiles  requires: bash-dotfiles  src: bash.d/bazelisk.sh  dst: ~/.bash.d/bazelisk.sh } ] }
+        blender-dotfiles: { description: "blender config, linked into place." install: [ { via: dotfiles  config: { src: blender  dst: $XDG_CONFIG_HOME/blender } } ] }
+        bottom-dotfiles: { description: "bottom config, linked into place." install: [ { via: dotfiles  config: { src: bottom  dst: $XDG_CONFIG_HOME/bottom } } ] }
+        btop-dotfiles: { description: "btop config + shell setup, linked into place." install: [ { via: dotfiles  requires: bash-dotfiles  config: { src: btop  dst: $XDG_CONFIG_HOME/btop }  aliases: { src: bash.d/btop.sh  dst: ~/.bash.d/btop.sh } } ] }
+        bun-dotfiles: { description: "bun shell setup, linked into place." install: [ { via: dotfiles  requires: bash-dotfiles  src: bash.d/bun.sh  dst: ~/.bash.d/bun.sh } ] }
+        cabal-dotfiles: { description: "cabal shell setup, linked into place." install: [ { via: dotfiles  requires: bash-dotfiles  src: bash.d/cabal.sh  dst: ~/.bash.d/cabal.sh } ] }
+        claude-code-dotfiles: { description: "claude-code config, linked into place." install: [ { via: dotfiles  config: { src: claude-settings.json  dst: ~/.claude/settings.json } } ] }
+        codex-dotfiles: { description: "codex config, linked into place." install: [ { via: dotfiles  config: { src: codex-config.toml  dst: ~/.codex/config.toml } } ] }
+        composer-dotfiles: { description: "composer shell setup, linked into place." install: [ { via: dotfiles  requires: bash-dotfiles  src: bash.d/composer.sh  dst: ~/.bash.d/composer.sh } ] }
+        coursier-dotfiles: { description: "coursier shell setup, linked into place." install: [ { via: dotfiles  requires: bash-dotfiles  src: bash.d/coursier.sh  dst: ~/.bash.d/coursier.sh } ] }
+        cvs-dotfiles: { description: "cvs config, linked into place." install: [ { via: dotfiles  config: { src: cvsrc  dst: ~/.cvsrc } } ] }
+        dart-dotfiles: { description: "dart shell setup, linked into place." install: [ { via: dotfiles  requires: bash-dotfiles  src: bash.d/dart.sh  dst: ~/.bash.d/dart.sh } ] }
+        deno-dotfiles: { description: "deno shell setup, linked into place." install: [ { via: dotfiles  requires: bash-dotfiles  src: bash.d/deno.sh  dst: ~/.bash.d/deno.sh } ] }
+        dotnet-dotfiles: { description: "dotnet shell setup, linked into place." install: [ { via: dotfiles  requires: bash-dotfiles  src: bash.d/dotnet.sh  dst: ~/.bash.d/dotnet.sh } ] }
+        emacs-dotfiles: { description: "emacs config, linked into place." install: [ { via: dotfiles  config: { src: emacs.d  dst: ~/.emacs.d } } ] }
+        fastfetch-dotfiles: { description: "fastfetch config, linked into place." install: [ { via: dotfiles  config: { src: fastfetch  dst: $XDG_CONFIG_HOME/fastfetch } } ] }
+        fish-dotfiles: { description: "fish config, linked into place." install: [ { via: dotfiles  config: { src: fish  dst: $XDG_CONFIG_HOME/fish } } ] }
+        fossil-dotfiles: { description: "fossil shell setup, linked into place." install: [ { via: dotfiles  requires: bash-dotfiles  src: bash.d/fossil.sh  dst: ~/.bash.d/fossil.sh } ] }
+        fvwm2-dotfiles: { description: "fvwm2 config, linked into place." install: [ { via: dotfiles  config: { src: fvwm  dst: ~/.fvwm } } ] }
+        fzf-dotfiles: { description: "fzf shell setup, linked into place." install: [ { via: dotfiles  requires: bash-dotfiles  src: bash.d/fzf.sh  dst: ~/.bash.d/fzf.sh } ] }
+        gcloud-dotfiles: { description: "gcloud shell setup, linked into place." install: [ { via: dotfiles  requires: bash-dotfiles  src: bash.d/gcloud.sh  dst: ~/.bash.d/gcloud.sh } ] }
+        ghostty-dotfiles: { description: "ghostty config + shell setup, linked into place." install: [ { via: dotfiles  requires: bash-dotfiles  config: { src: ghostty  dst: $XDG_CONFIG_HOME/ghostty }  aliases: { src: bash.d/ghostty.sh  dst: ~/.bash.d/ghostty.sh } } ] }
+        git-dotfiles: { description: "git config, linked into place." install: [ { via: dotfiles  config: { src: gitconfig  dst: ~/.gitconfig } } ] }
+        gleam-dotfiles: { description: "gleam shell setup, linked into place." install: [ { via: dotfiles  requires: bash-dotfiles  src: bash.d/gleam.sh  dst: ~/.bash.d/gleam.sh } ] }
+        gnuplot-dotfiles: { description: "gnuplot config, linked into place." install: [ { via: dotfiles  config: { src: gnuplot  dst: ~/.gnuplot } } ] }
+        go-dotfiles: { description: "go shell setup, linked into place." install: [ { via: dotfiles  requires: bash-dotfiles  src: bash.d/go.sh  dst: ~/.bash.d/go.sh } ] }
+        gradle-dotfiles: { description: "gradle config, linked into place." install: [ { via: dotfiles  config: { src: gradle.properties  dst: ~/.gradle/gradle.properties } } ] }
+        grpcurl-dotfiles: { description: "grpcurl shell setup, linked into place." install: [ { via: dotfiles  requires: bash-dotfiles  src: bash.d/grpcurl.sh  dst: ~/.bash.d/grpcurl.sh } ] }
+        helix-dotfiles: { description: "helix config + shell setup, linked into place." install: [ { via: dotfiles  requires: bash-dotfiles  config: { src: helix  dst: $XDG_CONFIG_HOME/helix }  aliases: { src: bash.d/helix.sh  dst: ~/.bash.d/helix.sh } } ] }
+        helm-dotfiles: { description: "helm config, linked into place." install: [ { via: dotfiles  config: { src: helm-repositories.yaml  dst: $XDG_CONFIG_HOME/helm/repositories.yaml } } ] }
+        httpie-dotfiles: { description: "httpie config, linked into place." install: [ { via: dotfiles  config: { src: httpie-config.json  dst: $XDG_CONFIG_HOME/httpie/config.json } } ] }
+        hyprland-dotfiles: { description: "hyprland config, linked into place." install: [ { via: dotfiles  config: { src: hypr  dst: $XDG_CONFIG_HOME/hypr } } ] }
+        i3-dotfiles: { description: "i3 config, linked into place." install: [ { via: dotfiles  config: { src: i3  dst: $XDG_CONFIG_HOME/i3 } } ] }
+        jetbrains-toolbox-dotfiles: { description: "jetbrains-toolbox shell setup, linked into place." install: [ { via: dotfiles  requires: bash-dotfiles  src: bash.d/jetbrains-toolbox.sh  dst: ~/.bash.d/jetbrains-toolbox.sh } ] }
+        jq-dotfiles: { description: "jq shell setup, linked into place." install: [ { via: dotfiles  requires: bash-dotfiles  src: bash.d/jq.sh  dst: ~/.bash.d/jq.sh } ] }
+        julia-dotfiles: { description: "julia shell setup, linked into place." install: [ { via: dotfiles  requires: bash-dotfiles  src: bash.d/julia.sh  dst: ~/.bash.d/julia.sh } ] }
+        just-dotfiles: { description: "just shell setup, linked into place." install: [ { via: dotfiles  requires: bash-dotfiles  src: bash.d/just.sh  dst: ~/.bash.d/just.sh } ] }
+        k9s-dotfiles: { description: "k9s config + shell setup, linked into place." install: [ { via: dotfiles  requires: bash-dotfiles  config: { src: k9s  dst: $XDG_CONFIG_HOME/k9s }  aliases: { src: bash.d/k9s.sh  dst: ~/.bash.d/k9s.sh } } ] }
+        kicad-dotfiles: { description: "kicad config, linked into place." install: [ { via: dotfiles  config: { src: kicad  dst: $XDG_CONFIG_HOME/kicad } } ] }
+        kitty-dotfiles: { description: "kitty config, linked into place." install: [ { via: dotfiles  config: { src: kitty  dst: $XDG_CONFIG_HOME/kitty } } ] }
+        kotlin-dotfiles: { description: "kotlin shell setup, linked into place." install: [ { via: dotfiles  requires: bash-dotfiles  src: bash.d/kotlin.sh  dst: ~/.bash.d/kotlin.sh } ] }
+        kubectl-dotfiles: { description: "kubectl shell setup, linked into place." install: [ { via: dotfiles  requires: bash-dotfiles  src: bash.d/kubectl.sh  dst: ~/.bash.d/kubectl.sh } ] }
+        lazydocker-dotfiles: { description: "lazydocker config + shell setup, linked into place." install: [ { via: dotfiles  requires: bash-dotfiles  config: { src: lazydocker  dst: $XDG_CONFIG_HOME/lazydocker }  aliases: { src: bash.d/lazydocker.sh  dst: ~/.bash.d/lazydocker.sh } } ] }
+        lazysql-dotfiles: { description: "lazysql shell setup, linked into place." install: [ { via: dotfiles  requires: bash-dotfiles  src: bash.d/lazysql.sh  dst: ~/.bash.d/lazysql.sh } ] }
+        libreoffice-dotfiles: { description: "libreoffice config, linked into place." install: [ { via: dotfiles  config: { src: libreoffice  dst: $XDG_CONFIG_HOME/libreoffice } } ] }
+        luarocks-dotfiles: { description: "luarocks shell setup, linked into place." install: [ { via: dotfiles  requires: bash-dotfiles  src: bash.d/luarocks.sh  dst: ~/.bash.d/luarocks.sh } ] }
+        maven-dotfiles: { description: "maven config, linked into place." install: [ { via: dotfiles  config: { src: maven-settings.xml  dst: ~/.m2/settings.xml } } ] }
+        maxima-dotfiles: { description: "maxima config, linked into place." install: [ { via: dotfiles  config: { src: maxima  dst: ~/.maxima } } ] }
+        mercurial-dotfiles: { description: "mercurial config, linked into place." install: [ { via: dotfiles  config: { src: hgrc  dst: ~/.hgrc } } ] }
+        micro-dotfiles: { description: "micro config + shell setup, linked into place." install: [ { via: dotfiles  requires: bash-dotfiles  config: { src: micro  dst: $XDG_CONFIG_HOME/micro }  aliases: { src: bash.d/micro.sh  dst: ~/.bash.d/micro.sh } } ] }
+        miniforge-dotfiles: { description: "miniforge shell setup, linked into place." install: [ { via: dotfiles  requires: bash-dotfiles  src: bash.d/miniforge.sh  dst: ~/.bash.d/miniforge.sh } ] }
+        mycli-dotfiles: { description: "mycli config, linked into place." install: [ { via: dotfiles  config: { src: myclirc  dst: ~/.myclirc } } ] }
+        nim-dotfiles: { description: "nim shell setup, linked into place." install: [ { via: dotfiles  requires: bash-dotfiles  src: bash.d/nim.sh  dst: ~/.bash.d/nim.sh } ] }
+        node-dotfiles: { description: "node shell setup, linked into place." install: [ { via: dotfiles  requires: bash-dotfiles  src: bash.d/node.sh  dst: ~/.bash.d/node.sh } ] }
+        nushell-dotfiles: { description: "nushell config + shell setup, linked into place." install: [ { via: dotfiles  requires: bash-dotfiles  config: { src: nushell  dst: $XDG_CONFIG_HOME/nushell }  aliases: { src: bash.d/nushell.sh  dst: ~/.bash.d/nushell.sh } } ] }
+        octave-dotfiles: { description: "octave config, linked into place." install: [ { via: dotfiles  config: { src: octaverc  dst: ~/.octaverc } } ] }
+        odin-dotfiles: { description: "odin shell setup, linked into place." install: [ { via: dotfiles  requires: bash-dotfiles  src: bash.d/odin.sh  dst: ~/.bash.d/odin.sh } ] }
+        opam-dotfiles: { description: "opam shell setup, linked into place." install: [ { via: dotfiles  requires: bash-dotfiles  src: bash.d/opam.sh  dst: ~/.bash.d/opam.sh } ] }
+        opentofu-dotfiles: { description: "opentofu shell setup, linked into place." install: [ { via: dotfiles  requires: bash-dotfiles  src: bash.d/opentofu.sh  dst: ~/.bash.d/opentofu.sh } ] }
+        pgcli-dotfiles: { description: "pgcli config, linked into place." install: [ { via: dotfiles  config: { src: pgcli-config  dst: $XDG_CONFIG_HOME/pgcli/config } } ] }
+        pipx-dotfiles: { description: "pipx shell setup, linked into place." install: [ { via: dotfiles  requires: bash-dotfiles  src: bash.d/pipx.sh  dst: ~/.bash.d/pipx.sh } ] }
+        protobuf-dotfiles: { description: "protobuf shell setup, linked into place." install: [ { via: dotfiles  requires: bash-dotfiles  src: bash.d/protobuf.sh  dst: ~/.bash.d/protobuf.sh } ] }
+        pyenv-dotfiles: { description: "pyenv shell setup, linked into place." install: [ { via: dotfiles  requires: bash-dotfiles  src: bash.d/pyenv.sh  dst: ~/.bash.d/pyenv.sh } ] }
+        python3-pip-dotfiles: { description: "python3-pip shell setup, linked into place." install: [ { via: dotfiles  requires: bash-dotfiles  src: bash.d/python3-pip.sh  dst: ~/.bash.d/python3-pip.sh } ] }
+        qtile-dotfiles: { description: "qtile config, linked into place." install: [ { via: dotfiles  config: { src: qtile  dst: $XDG_CONFIG_HOME/qtile } } ] }
+        r-dotfiles: { description: "r config, linked into place." install: [ { via: dotfiles  config: { src: Rprofile  dst: ~/.Rprofile } } ] }
+        ripgrep-dotfiles: { description: "ripgrep shell setup, linked into place." install: [ { via: dotfiles  requires: bash-dotfiles  src: bash.d/ripgrep.sh  dst: ~/.bash.d/ripgrep.sh } ] }
+        ruby-dotfiles: { description: "ruby shell setup, linked into place." install: [ { via: dotfiles  requires: bash-dotfiles  src: bash.d/ruby.sh  dst: ~/.bash.d/ruby.sh } ] }
+        rust-dotfiles: { description: "rust shell setup, linked into place." install: [ { via: dotfiles  requires: bash-dotfiles  src: bash.d/rust.sh  dst: ~/.bash.d/rust.sh } ] }
+        sway-dotfiles: { description: "sway config, linked into place." install: [ { via: dotfiles  config: { src: sway  dst: $XDG_CONFIG_HOME/sway } } ] }
+        tree-sitter-cli-dotfiles: { description: "tree-sitter-cli shell setup, linked into place." install: [ { via: dotfiles  requires: bash-dotfiles  src: bash.d/tree-sitter-cli.sh  dst: ~/.bash.d/tree-sitter-cli.sh } ] }
+        unityhub-dotfiles: { description: "unityhub shell setup, linked into place." install: [ { via: dotfiles  requires: bash-dotfiles  src: bash.d/unityhub.sh  dst: ~/.bash.d/unityhub.sh } ] }
+        uv-dotfiles: { description: "uv shell setup, linked into place." install: [ { via: dotfiles  requires: bash-dotfiles  src: bash.d/uv.sh  dst: ~/.bash.d/uv.sh } ] }
+        v-dotfiles: { description: "v shell setup, linked into place." install: [ { via: dotfiles  requires: bash-dotfiles  src: bash.d/v.sh  dst: ~/.bash.d/v.sh } ] }
+        valgrind-dotfiles: { description: "valgrind config, linked into place." install: [ { via: dotfiles  config: { src: valgrindrc  dst: ~/.valgrindrc } } ] }
+        vcpkg-dotfiles: { description: "vcpkg shell setup, linked into place." install: [ { via: dotfiles  requires: bash-dotfiles  src: bash.d/vcpkg.sh  dst: ~/.bash.d/vcpkg.sh } ] }
+        vscode-dotfiles: { description: "vscode config, linked into place." install: [ { via: dotfiles  config: { src: vscode-user  dst: ~/.config/Code/User } } ] }
+        vscodium-dotfiles: { description: "vscodium config, linked into place." install: [ { via: dotfiles  config: { src: vscodium-user  dst: ~/.config/VSCodium/User } } ] }
+        websocat-dotfiles: { description: "websocat shell setup, linked into place." install: [ { via: dotfiles  requires: bash-dotfiles  src: bash.d/websocat.sh  dst: ~/.bash.d/websocat.sh } ] }
+        xh-dotfiles: { description: "xh shell setup, linked into place." install: [ { via: dotfiles  requires: bash-dotfiles  src: bash.d/xh.sh  dst: ~/.bash.d/xh.sh } ] }
+        xmonad-dotfiles: { description: "xmonad config, linked into place." install: [ { via: dotfiles  config: { src: xmonad  dst: ~/.xmonad } } ] }
+        zed-dotfiles: { description: "zed config + shell setup, linked into place." install: [ { via: dotfiles  requires: bash-dotfiles  config: { src: zed  dst: $XDG_CONFIG_HOME/zed }  aliases: { src: bash.d/zed.sh  dst: ~/.bash.d/zed.sh } } ] }
+        zig-dotfiles: { description: "zig shell setup, linked into place." install: [ { via: dotfiles  requires: bash-dotfiles  src: bash.d/zig.sh  dst: ~/.bash.d/zig.sh } ] }
+        zsh-dotfiles: { description: "zsh config, linked into place." install: [ { via: dotfiles  config: { src: zshrc  dst: ~/.zshrc } } ] }
     }
 }
