@@ -28,14 +28,16 @@
     // them by name or add them to your own profile. See docs/profiles-plan.md for the rationale.
     // Your ~/.config/configsys/configsys.hu may add profiles or shadow any of these by name.
 profiles: {
-    terminal: [ +terminal-emulators  +disk-utils  +cli-files  +system-monitors  curl  espeak  fastfetch  fzf  ripgrep  xclip  neovim  tmux  lazygit  mononoki-nerd ]
-    terminal-emulators: [ ghostty  kitty ]
+    terminal: [ +terminal-emulators  +disk-utils  +cli-files  +system-monitors  curl  espeak  fastfetch
+        fzf  ripgrep  xclip  neovim  tmux  lazygit  mononoki-nerd ]
+    terminal-emulators: [ alacritty  ghostty  kitty  wezterm ]
     system-monitors: [ btop  htop  bottom ]
     disk-utils: [ ncdu  duf ]
     cli-files: [ mc  yazi  superfile ]
     shells: [ fish  nushell  zsh ]
 
-    text-editors: [ android-studio  antigravity  emacs  helix  jetbrains-toolbox  micro  neovim  vscode  vscodium  zed ]
+    text-editors: [ android-studio  antigravity  emacs  helix  jetbrains-toolbox  micro  neovim  vscode
+        vscodium  zed ]
 
     desktops-compositors: [ budgie  cosmic  fvwm2  gnome  i3  kde  lxqt  mate  qtile  sway  xfce  xmonad ]
     web-browsers: [ chrome  chromium  firefox  brave  opera  vivaldi  edge  tor-browser ]
@@ -47,21 +49,24 @@ profiles: {
     k8s: [ kubectl  helm  k9s  k3s ]
 
     db-clients: [ pgcli  mycli  dbeaver  sqlitebrowser  lazysql ]
-    db-servers: [ postgresql-service  mariadb-service  redis-service ]
+    db-servers: [ postgresql-service  mariadb-service  redis-service  mongodb  mongodb-service ]
 
-    net-tools: [ iproute2  wireshark  wireshark-group  tshark  tcpdump  nmap  mtr  gping  traceroute  iperf3  socat  ethtool  whois  netcat  dig  iftop  nethogs  nload  vnstat ]
+    net-tools: [ iproute2  wireshark  wireshark-group  tshark  tcpdump  nmap  mtr  gping  traceroute  iperf3
+        socat  ethtool  whois  netcat  dig  iftop  nethogs  nload  vnstat ]
     cloud-tools: [ awscli  gcloud  azure-cli  opentofu  grpcurl ]
     backend-tools: [ +containers  +k8s  +cloud-tools  +net-tools  +db-clients  +db-servers  ansible ]
 
     devops-tools: [ +backend-tools  ansible  opentofu ]
 
-    c-cpp-lang: [ bazelisk  cpp-toolchain  gcc-10 gcc-11 gcc-12 gcc-13  gcc-14  gcc-15  clang-18  clang-19  clang-20  gdb  make  analysis  cmake  ninja  meson  ]
+    c-cpp-lang: [ bazelisk  cpp-toolchain  gcc-10 gcc-11 gcc-12 gcc-13  gcc-14  gcc-15  clang-18  clang-19
+        clang-20  gdb  make  analysis  cmake  ninja  meson ]
     dotnet-lang: [ dotnet ]
     go-lang: [ go  goimports ]
     haskell-lang: [ haskell  cabal  hlint ]
     java-lang: [ jdk  kotlin  maven  gradle  sdkman  scala  sbt  clojure  leiningen  groovy ]
     lisp-lang: [ sbcl  quicklisp ]
     lua-lang: [ lua  luarocks  dkjson ]
+    objective-c-lang: [ gnustep ]
     tcl-lang: [ tcl  tk ]
     ocaml-lang: [ ocaml  opam  dune ]
     php-lang: [ php  composer ]
@@ -69,9 +74,13 @@ profiles: {
     ruby-lang: [ ruby  bundler ]
     rust-lang: [ rust  miniforge ]
     web-lang: [ node  typescript  sass ]
-    languages: [ +c-cpp-lang  +dotnet-lang  +go-lang  +haskell-lang  +java-lang  +lisp-lang  +lua-lang  +ocaml-lang  +php-lang  +python-lang  +ruby-lang  +rust-lang  +tcl-lang  +web-lang  erlang  elixir  julia  nim  nasm  octave odin  perl  r  zig  gfortran  gnat  gnucobol  d  crystal  dart  raku  v  gleam  fennel  swift  racket  guile ]
+    languages: [ +c-cpp-lang  +dotnet-lang  +go-lang  +haskell-lang  +java-lang  +lisp-lang  +lua-lang
+        +objective-c-lang  +ocaml-lang  +php-lang  +python-lang  +ruby-lang  +rust-lang  +tcl-lang  +web-lang
+        elm  erlang  elixir  julia  nim  nasm  octave odin  perl  r  zig  gfortran  gnat  gnucobol  d  crystal
+        dart  raku  v  gleam  fennel  swift  racket  guile ]
 
-    jvm-tools: [ +java-lang  mvnd  ant  jbang  scalacli  coursier  springboot  quarkus  micronaut  liquibase  detekt  jreleaser  spark  flink  visualvm  jmc  jmeter ]
+    jvm-tools: [ +java-lang  mvnd  ant  jbang  scalacli  coursier  springboot  quarkus  micronaut  liquibase
+        detekt  jreleaser  spark  flink  visualvm  jmc  jmeter ]
     dev-tools: [ git  jq  just  protobuf  yq ]
     version-control-tools: [ git  mercurial  subversion  cvs  perforce  fossil  bazaar ]
     compression-tools: [ zstd  lz4  p7zip  zip  unzip  unrar  rar ]
@@ -84,12 +93,14 @@ profiles: {
     graphics-dev: [ vulkan-dev  gtk  gtkmm  qt  opengl  glfw  sdl  sfml ]
     game-dev: [ +graphics-dev  godot  unityhub ]
 
-    web-dev: [ +web-lang  +web-browsers  +web-package-managers  +web-lang  prettier  httpie  mitmproxy  xh  websocat  postman  insomnia  bruno ]
+    web-dev: [ +web-lang  +web-browsers  +web-package-managers  +web-lang  prettier  httpie  mitmproxy  xh
+        websocat  postman  insomnia  bruno ]
     web-package-managers: [ bun  pnpm  yarn ]
 
     electronics-tools: [ arduino  kicad  gnuradio ]
     graphics-tools: [ blender  krita  gimp  inkscape  darktable  freecad  openscad  scribus  digikam ]
-    audio-tools: [ +audio  ardour  lmms  tenacity  musescore  hydrogen  carla  sonic-pi  supercollider  qjackctl  yabridge ]
+    audio-tools: [ +audio  ardour  lmms  tenacity  musescore  hydrogen  carla  sonic-pi  supercollider
+        qjackctl  yabridge ]
 
     science: [ +math  fastdds  jupyterlab  gnuplot  paraview  opencv  opencv-python ]
     math: [ +latex  julia  r  octave  maxima  wxmaxima  pari  gap  gnuplot  sagemath ]
@@ -100,6 +111,7 @@ profiles: {
     creative-tools: [ +electronics-tools  +graphics-tools  +audio-tools ]
 
     media-servers: [ jellyfin-service  plex-service  emby-service  navidrome ]
-    home-server: [ home-assistant  pi-hole  adguardhome  homebridge  mosquitto-service  syncthing  tailscale-service  grafana-service  prometheus  cockpit-service  wireguard  nextcloud ]
+    home-server: [ home-assistant  pi-hole  adguardhome  homebridge  mosquitto-service  syncthing
+        tailscale-service  grafana-service  prometheus  cockpit-service  wireguard  nextcloud ]
 }
 }

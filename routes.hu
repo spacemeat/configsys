@@ -374,6 +374,25 @@
                   path: ~/apps/ghostty.appimage }
             ]
         }
+        // alacritty: Rust GPU terminal. Native in the big-four repo families (Ubuntu universe /
+        // Fedora / Arch / openSUSE); it's NOT in EPEL and has no Flathub app, so EL / Amazon /
+        // atomic / musl-Alpine fall back to a crates.io build (needs the usual freetype/fontconfig
+        // -dev libs + a windowing stack — best-effort).
+        alacritty: { suggests: alacritty-dotfiles  description: "Alacritty — a fast, GPU-accelerated terminal emulator."
+            install: [
+                { via: native  when: "debian or fedora or arch or opensuse"  repo-component: universe }
+                { via: cargo   when: "not (debian or fedora or arch or opensuse)"  name: alacritty } ]
+        }
+        alacritty-dotfiles: { description: "alacritty config, linked into place." install: [ { via: dotfiles  config: { src: alacritty  dst: $XDG_CONFIG_HOME/alacritty } } ] }
+        // wezterm: GPU terminal + multiplexer. Official native on Arch + openSUSE; everywhere else
+        // the Flathub flatpak (upstream marks no GitHub "latest" release — date-tagged pre-releases
+        // only — so there's no clean .deb/.rpm pin to track).
+        wezterm: { suggests: wezterm-dotfiles  description: "WezTerm — a GPU-accelerated cross-platform terminal emulator + multiplexer (`wezterm`)."
+            install: [
+                { via: native   when: "arch or opensuse" }
+                { via: flatpak  hub: flathub  app: org.wezfurlong.wezterm } ]
+        }
+        wezterm-dotfiles: { description: "wezterm config, linked into place." install: [ { via: dotfiles  config: { src: wezterm  dst: $XDG_CONFIG_HOME/wezterm } } ] }
         // yazi: Rust TUI file manager. Native on Arch + Homebrew; upstream ships a real .deb, so on
         // Debian/Ubuntu (not in-repo) install that via the OS package tool — clean and on PATH.
         // Elsewhere (Fedora is COPR-only; openSUSE/Alpine/EL absent) the release zip lands under

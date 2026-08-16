@@ -76,6 +76,38 @@
     "name": "aider-dotfiles"
    }
   },
+  "alacritty": {
+   "dotfiles\\alacritty-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/alacritty",
+      "src": "alacritty"
+     }
+    },
+    "name": "alacritty-dotfiles"
+   },
+   "pacman\\alacritty": {
+    "driver": "pacman",
+    "fields": {
+     "name": "alacritty",
+     "repo-component": "universe"
+    },
+    "name": "alacritty"
+   }
+  },
+  "alacritty-dotfiles": {
+   "dotfiles\\alacritty-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/alacritty",
+      "src": "alacritty"
+     }
+    },
+    "name": "alacritty-dotfiles"
+   }
+  },
   "analysis": {
    "dotfiles\\valgrind-dotfiles": {
     "driver": "dotfiles",
@@ -10040,6 +10072,37 @@
     "name": "websocat-dotfiles"
    }
   },
+  "wezterm": {
+   "dotfiles\\wezterm-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/wezterm",
+      "src": "wezterm"
+     }
+    },
+    "name": "wezterm-dotfiles"
+   },
+   "pacman\\wezterm": {
+    "driver": "pacman",
+    "fields": {
+     "name": "wezterm"
+    },
+    "name": "wezterm"
+   }
+  },
+  "wezterm-dotfiles": {
+   "dotfiles\\wezterm-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/wezterm",
+      "src": "wezterm"
+     }
+    },
+    "name": "wezterm-dotfiles"
+   }
+  },
   "whois": {
    "pacman\\whois": {
     "driver": "pacman",
@@ -10746,6 +10809,38 @@
     "name": "aider-dotfiles"
    }
   },
+  "alacritty": {
+   "apt\\alacritty": {
+    "driver": "apt",
+    "fields": {
+     "name": "alacritty",
+     "repo-component": "universe"
+    },
+    "name": "alacritty"
+   },
+   "dotfiles\\alacritty-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/alacritty",
+      "src": "alacritty"
+     }
+    },
+    "name": "alacritty-dotfiles"
+   }
+  },
+  "alacritty-dotfiles": {
+   "dotfiles\\alacritty-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/alacritty",
+      "src": "alacritty"
+     }
+    },
+    "name": "alacritty-dotfiles"
+   }
+  },
   "analysis": {
    "apt\\clang-tidy": {
     "driver": "apt",
@@ -21085,6 +21180,45 @@
      "src": "bash.d/websocat.sh"
     },
     "name": "websocat-dotfiles"
+   }
+  },
+  "wezterm": {
+   "apt\\flatpak": {
+    "driver": "apt",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "dotfiles\\wezterm-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/wezterm",
+      "src": "wezterm"
+     }
+    },
+    "name": "wezterm-dotfiles"
+   },
+   "flatpak\\wezterm": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "org.wezfurlong.wezterm"
+    },
+    "name": "org.wezfurlong.wezterm"
+   }
+  },
+  "wezterm-dotfiles": {
+   "dotfiles\\wezterm-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/wezterm",
+      "src": "wezterm"
+     }
+    },
+    "name": "wezterm-dotfiles"
    }
   },
   "whois": {
@@ -21785,6 +21919,38 @@
     "name": "aider-dotfiles"
    }
   },
+  "alacritty": {
+   "apt\\alacritty": {
+    "driver": "apt",
+    "fields": {
+     "name": "alacritty",
+     "repo-component": "universe"
+    },
+    "name": "alacritty"
+   },
+   "dotfiles\\alacritty-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/alacritty",
+      "src": "alacritty"
+     }
+    },
+    "name": "alacritty-dotfiles"
+   }
+  },
+  "alacritty-dotfiles": {
+   "dotfiles\\alacritty-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/alacritty",
+      "src": "alacritty"
+     }
+    },
+    "name": "alacritty-dotfiles"
+   }
+  },
   "analysis": {
    "apt\\clang-tidy": {
     "driver": "apt",
@@ -31910,6 +32076,45 @@
     "name": "websocat-dotfiles"
    }
   },
+  "wezterm": {
+   "apt\\flatpak": {
+    "driver": "apt",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "dotfiles\\wezterm-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/wezterm",
+      "src": "wezterm"
+     }
+    },
+    "name": "wezterm-dotfiles"
+   },
+   "flatpak\\wezterm": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "org.wezfurlong.wezterm"
+    },
+    "name": "org.wezfurlong.wezterm"
+   }
+  },
+  "wezterm-dotfiles": {
+   "dotfiles\\wezterm-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/wezterm",
+      "src": "wezterm"
+     }
+    },
+    "name": "wezterm-dotfiles"
+   }
+  },
   "whois": {
    "apt\\whois": {
     "driver": "apt",
@@ -32588,6 +32793,38 @@
      }
     },
     "name": "aider-dotfiles"
+   }
+  },
+  "alacritty": {
+   "apt\\alacritty": {
+    "driver": "apt",
+    "fields": {
+     "name": "alacritty",
+     "repo-component": "universe"
+    },
+    "name": "alacritty"
+   },
+   "dotfiles\\alacritty-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/alacritty",
+      "src": "alacritty"
+     }
+    },
+    "name": "alacritty-dotfiles"
+   }
+  },
+  "alacritty-dotfiles": {
+   "dotfiles\\alacritty-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/alacritty",
+      "src": "alacritty"
+     }
+    },
+    "name": "alacritty-dotfiles"
    }
   },
   "analysis": {
@@ -42724,6 +42961,45 @@
     "name": "websocat-dotfiles"
    }
   },
+  "wezterm": {
+   "apt\\flatpak": {
+    "driver": "apt",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "dotfiles\\wezterm-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/wezterm",
+      "src": "wezterm"
+     }
+    },
+    "name": "wezterm-dotfiles"
+   },
+   "flatpak\\wezterm": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "org.wezfurlong.wezterm"
+    },
+    "name": "org.wezfurlong.wezterm"
+   }
+  },
+  "wezterm-dotfiles": {
+   "dotfiles\\wezterm-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/wezterm",
+      "src": "wezterm"
+     }
+    },
+    "name": "wezterm-dotfiles"
+   }
+  },
   "whois": {
    "apt\\whois": {
     "driver": "apt",
@@ -43402,6 +43678,38 @@
      }
     },
     "name": "aider-dotfiles"
+   }
+  },
+  "alacritty": {
+   "dnf\\alacritty": {
+    "driver": "dnf",
+    "fields": {
+     "name": "alacritty",
+     "repo-component": "universe"
+    },
+    "name": "alacritty"
+   },
+   "dotfiles\\alacritty-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/alacritty",
+      "src": "alacritty"
+     }
+    },
+    "name": "alacritty-dotfiles"
+   }
+  },
+  "alacritty-dotfiles": {
+   "dotfiles\\alacritty-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/alacritty",
+      "src": "alacritty"
+     }
+    },
+    "name": "alacritty-dotfiles"
    }
   },
   "analysis": {
@@ -53085,6 +53393,45 @@
     "name": "websocat-dotfiles"
    }
   },
+  "wezterm": {
+   "dnf\\flatpak": {
+    "driver": "dnf",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "dotfiles\\wezterm-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/wezterm",
+      "src": "wezterm"
+     }
+    },
+    "name": "wezterm-dotfiles"
+   },
+   "flatpak\\wezterm": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "org.wezfurlong.wezterm"
+    },
+    "name": "org.wezfurlong.wezterm"
+   }
+  },
+  "wezterm-dotfiles": {
+   "dotfiles\\wezterm-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/wezterm",
+      "src": "wezterm"
+     }
+    },
+    "name": "wezterm-dotfiles"
+   }
+  },
   "whois": {
    "dnf\\whois": {
     "driver": "dnf",
@@ -53781,6 +54128,38 @@
      }
     },
     "name": "aider-dotfiles"
+   }
+  },
+  "alacritty": {
+   "dnf\\alacritty": {
+    "driver": "dnf",
+    "fields": {
+     "name": "alacritty",
+     "repo-component": "universe"
+    },
+    "name": "alacritty"
+   },
+   "dotfiles\\alacritty-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/alacritty",
+      "src": "alacritty"
+     }
+    },
+    "name": "alacritty-dotfiles"
+   }
+  },
+  "alacritty-dotfiles": {
+   "dotfiles\\alacritty-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/alacritty",
+      "src": "alacritty"
+     }
+    },
+    "name": "alacritty-dotfiles"
    }
   },
   "analysis": {
@@ -63490,6 +63869,45 @@
     "name": "websocat-dotfiles"
    }
   },
+  "wezterm": {
+   "dnf\\flatpak": {
+    "driver": "dnf",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "dotfiles\\wezterm-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/wezterm",
+      "src": "wezterm"
+     }
+    },
+    "name": "wezterm-dotfiles"
+   },
+   "flatpak\\wezterm": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "org.wezfurlong.wezterm"
+    },
+    "name": "org.wezfurlong.wezterm"
+   }
+  },
+  "wezterm-dotfiles": {
+   "dotfiles\\wezterm-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/wezterm",
+      "src": "wezterm"
+     }
+    },
+    "name": "wezterm-dotfiles"
+   }
+  },
   "whois": {
    "dnf\\whois": {
     "driver": "dnf",
@@ -64176,6 +64594,64 @@
      }
     },
     "name": "aider-dotfiles"
+   }
+  },
+  "alacritty": {
+   "brew\\rust": {
+    "driver": "brew",
+    "fields": {
+     "name": "rust",
+     "repo-component": "universe"
+    },
+    "name": "rust"
+   },
+   "cargo\\alacritty": {
+    "driver": "cargo",
+    "fields": {
+     "name": "alacritty"
+    },
+    "name": "alacritty"
+   },
+   "dotfiles\\alacritty-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/alacritty",
+      "src": "alacritty"
+     }
+    },
+    "name": "alacritty-dotfiles"
+   },
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.bash.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\rust-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/rust.sh",
+     "src": "bash.d/rust.sh"
+    },
+    "name": "rust-dotfiles"
+   }
+  },
+  "alacritty-dotfiles": {
+   "dotfiles\\alacritty-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/alacritty",
+      "src": "alacritty"
+     }
+    },
+    "name": "alacritty-dotfiles"
    }
   },
   "android-studio": {
@@ -71794,6 +72270,38 @@
     "name": "websocat-dotfiles"
    }
   },
+  "wezterm": {
+   "dotfiles\\wezterm-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/wezterm",
+      "src": "wezterm"
+     }
+    },
+    "name": "wezterm-dotfiles"
+   },
+   "flatpak\\wezterm": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "org.wezfurlong.wezterm"
+    },
+    "name": "org.wezfurlong.wezterm"
+   }
+  },
+  "wezterm-dotfiles": {
+   "dotfiles\\wezterm-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/wezterm",
+      "src": "wezterm"
+     }
+    },
+    "name": "wezterm-dotfiles"
+   }
+  },
   "whois": {
    "brew\\whois": {
     "driver": "brew",
@@ -72377,6 +72885,38 @@
      }
     },
     "name": "aider-dotfiles"
+   }
+  },
+  "alacritty": {
+   "apt\\alacritty": {
+    "driver": "apt",
+    "fields": {
+     "name": "alacritty",
+     "repo-component": "universe"
+    },
+    "name": "alacritty"
+   },
+   "dotfiles\\alacritty-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/alacritty",
+      "src": "alacritty"
+     }
+    },
+    "name": "alacritty-dotfiles"
+   }
+  },
+  "alacritty-dotfiles": {
+   "dotfiles\\alacritty-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/alacritty",
+      "src": "alacritty"
+     }
+    },
+    "name": "alacritty-dotfiles"
    }
   },
   "analysis": {
@@ -82731,6 +83271,45 @@
     "name": "websocat-dotfiles"
    }
   },
+  "wezterm": {
+   "apt\\flatpak": {
+    "driver": "apt",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "dotfiles\\wezterm-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/wezterm",
+      "src": "wezterm"
+     }
+    },
+    "name": "wezterm-dotfiles"
+   },
+   "flatpak\\wezterm": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "org.wezfurlong.wezterm"
+    },
+    "name": "org.wezfurlong.wezterm"
+   }
+  },
+  "wezterm-dotfiles": {
+   "dotfiles\\wezterm-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/wezterm",
+      "src": "wezterm"
+     }
+    },
+    "name": "wezterm-dotfiles"
+   }
+  },
   "whois": {
    "apt\\whois": {
     "driver": "apt",
@@ -83434,6 +84013,64 @@
      }
     },
     "name": "aider-dotfiles"
+   }
+  },
+  "alacritty": {
+   "cargo\\alacritty": {
+    "driver": "cargo",
+    "fields": {
+     "name": "alacritty"
+    },
+    "name": "alacritty"
+   },
+   "dnf\\rust": {
+    "driver": "dnf",
+    "fields": {
+     "name": "cargo",
+     "repo-component": "universe"
+    },
+    "name": "cargo"
+   },
+   "dotfiles\\alacritty-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/alacritty",
+      "src": "alacritty"
+     }
+    },
+    "name": "alacritty-dotfiles"
+   },
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.bash.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\rust-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/rust.sh",
+     "src": "bash.d/rust.sh"
+    },
+    "name": "rust-dotfiles"
+   }
+  },
+  "alacritty-dotfiles": {
+   "dotfiles\\alacritty-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/alacritty",
+      "src": "alacritty"
+     }
+    },
+    "name": "alacritty-dotfiles"
    }
   },
   "analysis": {
@@ -93462,6 +94099,45 @@
     "name": "websocat-dotfiles"
    }
   },
+  "wezterm": {
+   "dnf\\flatpak": {
+    "driver": "dnf",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "dotfiles\\wezterm-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/wezterm",
+      "src": "wezterm"
+     }
+    },
+    "name": "wezterm-dotfiles"
+   },
+   "flatpak\\wezterm": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "org.wezfurlong.wezterm"
+    },
+    "name": "org.wezfurlong.wezterm"
+   }
+  },
+  "wezterm-dotfiles": {
+   "dotfiles\\wezterm-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/wezterm",
+      "src": "wezterm"
+     }
+    },
+    "name": "wezterm-dotfiles"
+   }
+  },
   "whois": {
    "dnf\\whois": {
     "driver": "dnf",
@@ -94209,6 +94885,38 @@
      }
     },
     "name": "aider-dotfiles"
+   }
+  },
+  "alacritty": {
+   "apt\\alacritty": {
+    "driver": "apt",
+    "fields": {
+     "name": "alacritty",
+     "repo-component": "universe"
+    },
+    "name": "alacritty"
+   },
+   "dotfiles\\alacritty-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/alacritty",
+      "src": "alacritty"
+     }
+    },
+    "name": "alacritty-dotfiles"
+   }
+  },
+  "alacritty-dotfiles": {
+   "dotfiles\\alacritty-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/alacritty",
+      "src": "alacritty"
+     }
+    },
+    "name": "alacritty-dotfiles"
    }
   },
   "analysis": {
@@ -104561,6 +105269,45 @@
     "name": "websocat-dotfiles"
    }
   },
+  "wezterm": {
+   "apt\\flatpak": {
+    "driver": "apt",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "dotfiles\\wezterm-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/wezterm",
+      "src": "wezterm"
+     }
+    },
+    "name": "wezterm-dotfiles"
+   },
+   "flatpak\\wezterm": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "org.wezfurlong.wezterm"
+    },
+    "name": "org.wezfurlong.wezterm"
+   }
+  },
+  "wezterm-dotfiles": {
+   "dotfiles\\wezterm-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/wezterm",
+      "src": "wezterm"
+     }
+    },
+    "name": "wezterm-dotfiles"
+   }
+  },
   "whois": {
    "apt\\whois": {
     "driver": "apt",
@@ -105257,6 +106004,38 @@
      }
     },
     "name": "aider-dotfiles"
+   }
+  },
+  "alacritty": {
+   "apt\\alacritty": {
+    "driver": "apt",
+    "fields": {
+     "name": "alacritty",
+     "repo-component": "universe"
+    },
+    "name": "alacritty"
+   },
+   "dotfiles\\alacritty-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/alacritty",
+      "src": "alacritty"
+     }
+    },
+    "name": "alacritty-dotfiles"
+   }
+  },
+  "alacritty-dotfiles": {
+   "dotfiles\\alacritty-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/alacritty",
+      "src": "alacritty"
+     }
+    },
+    "name": "alacritty-dotfiles"
    }
   },
   "analysis": {
@@ -115364,6 +116143,45 @@
      "src": "bash.d/websocat.sh"
     },
     "name": "websocat-dotfiles"
+   }
+  },
+  "wezterm": {
+   "apt\\flatpak": {
+    "driver": "apt",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "dotfiles\\wezterm-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/wezterm",
+      "src": "wezterm"
+     }
+    },
+    "name": "wezterm-dotfiles"
+   },
+   "flatpak\\wezterm": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "org.wezfurlong.wezterm"
+    },
+    "name": "org.wezfurlong.wezterm"
+   }
+  },
+  "wezterm-dotfiles": {
+   "dotfiles\\wezterm-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/wezterm",
+      "src": "wezterm"
+     }
+    },
+    "name": "wezterm-dotfiles"
    }
   },
   "whois": {
