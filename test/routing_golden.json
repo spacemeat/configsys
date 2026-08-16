@@ -7556,6 +7556,79 @@
     "name": "git"
    }
   },
+  "rar": {
+   "aur\\rar": {
+    "driver": "aur",
+    "fields": {
+     "name": "rar"
+    },
+    "name": "rar"
+   },
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.bash.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\git-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "~/.gitconfig",
+      "src": "gitconfig"
+     }
+    },
+    "name": "git-dotfiles"
+   },
+   "dotfiles\\rar-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/rar.sh",
+     "src": "bash.d/rar.sh"
+    },
+    "name": "rar-dotfiles"
+   },
+   "pacman\\base-devel": {
+    "driver": "pacman",
+    "fields": {
+     "name": "base-devel"
+    },
+    "name": "base-devel"
+   },
+   "pacman\\git": {
+    "driver": "pacman",
+    "fields": {
+     "name": "git"
+    },
+    "name": "git"
+   }
+  },
+  "rar-dotfiles": {
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.bash.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\rar-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/rar.sh",
+     "src": "bash.d/rar.sh"
+    },
+    "name": "rar-dotfiles"
+   }
+  },
   "redis": {
    "pacman\\redis": {
     "driver": "pacman",
@@ -18471,6 +18544,56 @@
     "name": "rakudo"
    }
   },
+  "rar": {
+   "apt\\rar": {
+    "driver": "apt",
+    "fields": {
+     "name": "rar",
+     "repo-component": "multiverse"
+    },
+    "name": "rar"
+   },
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.bash.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\rar-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/rar.sh",
+     "src": "bash.d/rar.sh"
+    },
+    "name": "rar-dotfiles"
+   }
+  },
+  "rar-dotfiles": {
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.bash.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\rar-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/rar.sh",
+     "src": "bash.d/rar.sh"
+    },
+    "name": "rar-dotfiles"
+   }
+  },
   "redis": {
    "apt\\redis": {
     "driver": "apt",
@@ -29020,6 +29143,56 @@
     "name": "rakudo"
    }
   },
+  "rar": {
+   "apt\\rar": {
+    "driver": "apt",
+    "fields": {
+     "name": "rar",
+     "repo-component": "multiverse"
+    },
+    "name": "rar"
+   },
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.bash.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\rar-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/rar.sh",
+     "src": "bash.d/rar.sh"
+    },
+    "name": "rar-dotfiles"
+   }
+  },
+  "rar-dotfiles": {
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.bash.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\rar-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/rar.sh",
+     "src": "bash.d/rar.sh"
+    },
+    "name": "rar-dotfiles"
+   }
+  },
   "redis": {
    "apt\\redis": {
     "driver": "apt",
@@ -39524,6 +39697,56 @@
     "name": "rakudo"
    }
   },
+  "rar": {
+   "apt\\rar": {
+    "driver": "apt",
+    "fields": {
+     "name": "rar",
+     "repo-component": "multiverse"
+    },
+    "name": "rar"
+   },
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.bash.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\rar-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/rar.sh",
+     "src": "bash.d/rar.sh"
+    },
+    "name": "rar-dotfiles"
+   }
+  },
+  "rar-dotfiles": {
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.bash.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\rar-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/rar.sh",
+     "src": "bash.d/rar.sh"
+    },
+    "name": "rar-dotfiles"
+   }
+  },
   "redis": {
    "apt\\redis": {
     "driver": "apt",
@@ -49569,6 +49792,71 @@
      "repo-component": "universe"
     },
     "name": "rakudo"
+   }
+  },
+  "rar": {
+   "dnf\\curl": {
+    "driver": "dnf",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.bash.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\rar-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/rar.sh",
+     "src": "bash.d/rar.sh"
+    },
+    "name": "rar-dotfiles"
+   },
+   "tarball\\rar": {
+    "driver": "tarball",
+    "fields": {
+     "installDir": "$CONFIGSYS_APP_DIR/rar",
+     "latest-check": {
+      "regex": "rarlinux-x64-([0-9]+)[.]tar",
+      "url": "https://www.rarlab.com/download.htm"
+     },
+     "name": "rar",
+     "url": "https://www.rarlab.com/rar/rarlinux-x64-723.tar.gz",
+     "version": {
+      "static": "7.23"
+     }
+    },
+    "name": "rar"
+   }
+  },
+  "rar-dotfiles": {
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.bash.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\rar-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/rar.sh",
+     "src": "bash.d/rar.sh"
+    },
+    "name": "rar-dotfiles"
    }
   },
   "redis": {
@@ -59686,6 +59974,71 @@
     "name": "rakudo"
    }
   },
+  "rar": {
+   "dnf\\curl": {
+    "driver": "dnf",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.bash.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\rar-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/rar.sh",
+     "src": "bash.d/rar.sh"
+    },
+    "name": "rar-dotfiles"
+   },
+   "tarball\\rar": {
+    "driver": "tarball",
+    "fields": {
+     "installDir": "$CONFIGSYS_APP_DIR/rar",
+     "latest-check": {
+      "regex": "rarlinux-x64-([0-9]+)[.]tar",
+      "url": "https://www.rarlab.com/download.htm"
+     },
+     "name": "rar",
+     "url": "https://www.rarlab.com/rar/rarlinux-x64-723.tar.gz",
+     "version": {
+      "static": "7.23"
+     }
+    },
+    "name": "rar"
+   }
+  },
+  "rar-dotfiles": {
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.bash.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\rar-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/rar.sh",
+     "src": "bash.d/rar.sh"
+    },
+    "name": "rar-dotfiles"
+   }
+  },
   "redis": {
    "dnf\\redis": {
     "driver": "dnf",
@@ -68261,6 +68614,71 @@
      "repo-component": "universe"
     },
     "name": "rakudo-star"
+   }
+  },
+  "rar": {
+   "brew\\curl": {
+    "driver": "brew",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.bash.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\rar-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/rar.sh",
+     "src": "bash.d/rar.sh"
+    },
+    "name": "rar-dotfiles"
+   },
+   "tarball\\rar": {
+    "driver": "tarball",
+    "fields": {
+     "installDir": "$CONFIGSYS_APP_DIR/rar",
+     "latest-check": {
+      "regex": "rarlinux-x64-([0-9]+)[.]tar",
+      "url": "https://www.rarlab.com/download.htm"
+     },
+     "name": "rar",
+     "url": "https://www.rarlab.com/rar/rarlinux-x64-723.tar.gz",
+     "version": {
+      "static": "7.23"
+     }
+    },
+    "name": "rar"
+   }
+  },
+  "rar-dotfiles": {
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.bash.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\rar-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/rar.sh",
+     "src": "bash.d/rar.sh"
+    },
+    "name": "rar-dotfiles"
    }
   },
   "redis": {
@@ -78461,6 +78879,56 @@
      "repo-component": "universe"
     },
     "name": "rakudo"
+   }
+  },
+  "rar": {
+   "apt\\rar": {
+    "driver": "apt",
+    "fields": {
+     "name": "rar",
+     "repo-component": "multiverse"
+    },
+    "name": "rar"
+   },
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.bash.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\rar-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/rar.sh",
+     "src": "bash.d/rar.sh"
+    },
+    "name": "rar-dotfiles"
+   }
+  },
+  "rar-dotfiles": {
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.bash.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\rar-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/rar.sh",
+     "src": "bash.d/rar.sh"
+    },
+    "name": "rar-dotfiles"
    }
   },
   "redis": {
@@ -88884,6 +89352,71 @@
      "repo-component": "universe"
     },
     "name": "rakudo"
+   }
+  },
+  "rar": {
+   "dnf\\curl": {
+    "driver": "dnf",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.bash.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\rar-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/rar.sh",
+     "src": "bash.d/rar.sh"
+    },
+    "name": "rar-dotfiles"
+   },
+   "tarball\\rar": {
+    "driver": "tarball",
+    "fields": {
+     "installDir": "$CONFIGSYS_APP_DIR/rar",
+     "latest-check": {
+      "regex": "rarlinux-x64-([0-9]+)[.]tar",
+      "url": "https://www.rarlab.com/download.htm"
+     },
+     "name": "rar",
+     "url": "https://www.rarlab.com/rar/rarlinux-x64-723.tar.gz",
+     "version": {
+      "static": "7.23"
+     }
+    },
+    "name": "rar"
+   }
+  },
+  "rar-dotfiles": {
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.bash.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\rar-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/rar.sh",
+     "src": "bash.d/rar.sh"
+    },
+    "name": "rar-dotfiles"
    }
   },
   "redis": {
@@ -99717,6 +100250,56 @@
     "name": "rakudo"
    }
   },
+  "rar": {
+   "apt\\rar": {
+    "driver": "apt",
+    "fields": {
+     "name": "rar",
+     "repo-component": "multiverse"
+    },
+    "name": "rar"
+   },
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.bash.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\rar-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/rar.sh",
+     "src": "bash.d/rar.sh"
+    },
+    "name": "rar-dotfiles"
+   }
+  },
+  "rar-dotfiles": {
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.bash.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\rar-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/rar.sh",
+     "src": "bash.d/rar.sh"
+    },
+    "name": "rar-dotfiles"
+   }
+  },
   "redis": {
    "apt\\redis": {
     "driver": "apt",
@@ -110246,6 +110829,56 @@
      "repo-component": "universe"
     },
     "name": "rakudo"
+   }
+  },
+  "rar": {
+   "apt\\rar": {
+    "driver": "apt",
+    "fields": {
+     "name": "rar",
+     "repo-component": "multiverse"
+    },
+    "name": "rar"
+   },
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.bash.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\rar-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/rar.sh",
+     "src": "bash.d/rar.sh"
+    },
+    "name": "rar-dotfiles"
+   }
+  },
+  "rar-dotfiles": {
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.bash.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\rar-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/rar.sh",
+     "src": "bash.d/rar.sh"
+    },
+    "name": "rar-dotfiles"
    }
   },
   "redis": {

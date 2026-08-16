@@ -1238,6 +1238,22 @@
                 { via: native  when: "debian"  repo-component: multiverse }
                 { via: native  when: "arch" } ]
         }
+        // rar (proprietary RARLAB) CREATES rar archives (unrar only extracts). Not in Fedora/
+        // RPM Fusion or openSUSE main, and Arch carries it only in the AUR — so it's native only
+        // on Debian (multiverse), AUR on Arch, and the official rarlab tarball everywhere else
+        // (glibc; the tar unpacks a rar/ dir holding the rar + unrar binaries). Declines on musl
+        // Alpine. suggests rar-dotfiles to put the tarball binary on PATH.
+        rar: { description: "Create and extract RAR archives (proprietary RARLAB `rar`)."
+            suggests: rar-dotfiles
+            install: [
+                { via: native  when: "debian"  repo-component: multiverse }
+                { via: aur     when: "arch" }
+                { via: tarball  when: "not (debian or arch or alpine)"  installDir: "$CONFIGSYS_APP_DIR/rar"  requires: glibc
+                  version: { static: "7.23" }  url: "https://www.rarlab.com/rar/rarlinux-x64-723.tar.gz"
+                  latest-check: { url: "https://www.rarlab.com/download.htm"  regex: "rarlinux-x64-([0-9]+)[.]tar" } }
+            ]
+        }
+        rar-dotfiles: { description: "rar shell setup, linked into place." install: [ { via: dotfiles  requires: bash-dotfiles  src: bash.d/rar.sh  dst: ~/.bash.d/rar.sh } ] }
         // (The `compression` grouping is a PROFILE, not a parts component: nothing depends on it and
         // it's not OS-conditional, so the profile degrades gracefully — a part that's unroutable here,
         // e.g. unrar on musl/atomic, is skipped rather than failing the whole set. See config.hu.)

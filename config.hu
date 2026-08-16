@@ -28,28 +28,32 @@
     // them by name or add them to your own profile. See docs/profiles-plan.md for the rationale.
     // Your ~/.config/configsys/configsys.hu may add profiles or shadow any of these by name.
 profiles: {
-    terminal: [ +terminal-emulators  curl  fastfetch  fzf  ripgrep  xclip  htop  btop  neovim  tmux  lazygit  yazi  superfile  mononoki-nerd ]
+    terminal: [ +terminal-emulators  +disk-utils  +cli-files  +system-monitors  curl  espeak  fastfetch  fzf  ripgrep  xclip  neovim  tmux  lazygit  mononoki-nerd ]
     terminal-emulators: [ ghostty  kitty ]
+    system-monitors: [ btop  htop  bottom ]
+    disk-utils: [ ncdu  duf ]
+    cli-files: [ mc  yazi  superfile ]
     shells: [ fish  nushell  zsh ]
+
+    text-editors: [ android-studio  antigravity  emacs  helix  jetbrains-toolbox  micro  neovim  vscode  vscodium  zed ]
+
     desktops-compositors: [ budgie  cosmic  fvwm2  gnome  i3  kde  lxqt  mate  qtile  sway  xfce  xmonad ]
-    text-editors: [ android-studio  antigravity  emacs  helix  jetbrains-toolbox  neovim  vscode  vscodium  zed ]
     web-browsers: [ chrome  chromium  firefox  brave  opera  vivaldi  edge  tor-browser ]
-    audio: [ pipewire  jack ]
+    audio-infra: [ pipewire  jack ]
     gaming: [ vulkan-runtime  steam  wine  winetricks  protonup-qt  protontricks ]
 
-    virtual-machines: [ qemu  libvirt  libvirt-service  virt-manager  virtualbox ]
+    virtual-machines: [ qemu  virt-manager  virtualbox ]
     containers: [ docker  docker-group  lazydocker  podman ]
     k8s: [ kubectl  helm  k9s  k3s ]
 
     db-clients: [ pgcli  mycli  dbeaver  sqlitebrowser  lazysql ]
     db-servers: [ postgresql-service  mariadb-service  redis-service ]
 
-    cloud-tools: [ awscli  gcloud  azure-cli  opentofu  grpcurl ]
     net-tools: [ iproute2  wireshark  wireshark-group  tshark  tcpdump  nmap  mtr  gping  traceroute  iperf3  socat  ethtool  whois  netcat  dig  iftop  nethogs  nload  vnstat ]
+    cloud-tools: [ awscli  gcloud  azure-cli  opentofu  grpcurl ]
+    backend-tools: [ +containers  +k8s  +cloud-tools  +net-tools  +db-clients  +db-servers  ansible ]
 
     devops-tools: [ +backend-tools  ansible  opentofu ]
-
-    backend-tools: [ +containers  +k8s  +cloud-tools  +net-tools  +db-clients  +db-servers  ansible ]
 
     c-cpp-lang: [ bazelisk  cpp-toolchain  gcc-10 gcc-11 gcc-12 gcc-13  gcc-14  gcc-15  clang-18  clang-19  clang-20  gdb  make  analysis  cmake  ninja  meson  ]
     dotnet-lang: [ dotnet ]
@@ -70,7 +74,7 @@ profiles: {
     jvm-tools: [ +java-lang  mvnd  ant  jbang  scalacli  coursier  springboot  quarkus  micronaut  liquibase  detekt  jreleaser  spark  flink  visualvm  jmc  jmeter ]
     dev-tools: [ git  jq  just  protobuf  yq ]
     version-control-tools: [ git  mercurial  subversion  cvs  perforce  fossil  bazaar ]
-    compression-tools: [ zstd  lz4  p7zip  zip  unzip  unrar ]
+    compression-tools: [ zstd  lz4  p7zip  zip  unzip  unrar  rar ]
     ai-tools: [ claude-code  codex  llm  aider  ollama ]
 
     graphics-dev: [ vulkan-dev  gtk  gtkmm  qt  opengl  glfw  sdl  sfml ]
