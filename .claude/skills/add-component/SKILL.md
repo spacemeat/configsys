@@ -283,5 +283,10 @@ Three distinct things (full model in `docs/versioned-requires.md` — but note t
   let it decline (`when: "not alpine"`).
 - **Name drift.** `name:` maps per distro; the name-sweep catches renames/removals — run it.
 - **Binary ≠ package name.** Note the real binary in the description (`btm`, `spf`, `nvim`, `hx`).
+- **Metapackage installed via its parts.** If a component installs an apt METAPACKAGE that a system
+  often has WITHOUT (Debian/Ubuntu/Pop ship LibreOffice as `libreoffice-core`/`-calc`/… without the
+  `libreoffice` meta), probing the meta falsely reports "missing". Add `installed-name: <a-part>` to
+  the native binding — apt READS state from it while `name` still installs the meta (`libreoffice`
+  detects via `libreoffice-core`). apt-only; other drivers ignore it.
 - **Exactness.** Flatpak app-ids and asset globs fail silently if wrong — verify by search, and by
   the resolve sweep + (ideally) a podman real-install for the risky ones.

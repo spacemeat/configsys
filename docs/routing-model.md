@@ -109,6 +109,20 @@ python-pip: { via: native  name: { pacman: python-pip, default: python3-pip } }
 libfuse2:   { via: native  name: { dnf: fuse-libs, pacman: fuse2, default: libfuse2 } }
 ```
 
+**`installed-name:` — detect a metapackage by a part.** `name` drives install/remove/upgrade;
+`installed-name` (optional, apt only today) is the package configsys PROBES for install-state and
+version when it differs from what it installs. The motivating case is a metapackage a system
+commonly has WITHOUT: Debian/Ubuntu/Pop ship LibreOffice as its parts (`libreoffice-core`/`-calc`/…,
+the last owning `/usr/bin/libreoffice`) without the `libreoffice` meta — so installing `libreoffice`
+is right, but probing the meta for state falsely reports "missing". `installed-name: libreoffice-core`
+(a component present whenever any of the suite is) fixes detection while install still targets the
+meta. Only apt reads it; other drivers ignore the field (pacman installs `libreoffice-fresh`, which
+is itself what's present).
+
+```
+libreoffice: { install: [ { via: native  name: { pacman: libreoffice-fresh }  installed-name: libreoffice-core } ] }
+```
+
 This deletes all `\apt btop` / `\dnf btop` / `\pacman btop` triplicate entries and the
 `*: apt\*` wildcard. The OS blocks shrink to *lineage + which manager is native*.
 
@@ -441,7 +455,8 @@ are now deleted) onto the capability model.
   decision: add the sugar or leave it explicit.
 
 Resolved since the first draft: **driver-specific binding fields** DO hang off the binding as
-driver-scoped fields, ignored by non-matching drivers (`repo-component:`, `debconf:` shipped);
+driver-scoped fields, ignored by non-matching drivers (`repo-component:`, `debconf:`,
+`installed-name:` shipped);
 **capability-name hygiene** is the `dangling-requires` lint in routecheck (the "nothing provides
 X → warn" path), not a registry.
 
