@@ -2479,20 +2479,13 @@
    }
   },
   "freecad": {
-   "flatpak\\freecad": {
-    "driver": "flatpak",
-    "fields": {
-     "hub": "flathub",
-     "name": "org.freecad.FreeCAD"
-    },
-    "name": "org.freecad.FreeCAD"
-   },
-   "pacman\\flatpak": {
+   "pacman\\freecad": {
     "driver": "pacman",
     "fields": {
-     "name": "flatpak"
+     "name": "freecad",
+     "repo-component": "universe"
     },
-    "name": "flatpak"
+    "name": "freecad"
    }
   },
   "fvwm2-dotfiles": {
@@ -13452,20 +13445,13 @@
    }
   },
   "freecad": {
-   "apt\\flatpak": {
+   "apt\\freecad": {
     "driver": "apt",
     "fields": {
-     "name": "flatpak"
+     "name": "freecad",
+     "repo-component": "universe"
     },
-    "name": "flatpak"
-   },
-   "flatpak\\freecad": {
-    "driver": "flatpak",
-    "fields": {
-     "hub": "flathub",
-     "name": "org.freecad.FreeCAD"
-    },
-    "name": "org.freecad.FreeCAD"
+    "name": "freecad"
    }
   },
   "fvwm2": {
@@ -24450,20 +24436,13 @@
    }
   },
   "freecad": {
-   "apt\\flatpak": {
+   "apt\\freecad": {
     "driver": "apt",
     "fields": {
-     "name": "flatpak"
+     "name": "freecad",
+     "repo-component": "universe"
     },
-    "name": "flatpak"
-   },
-   "flatpak\\freecad": {
-    "driver": "flatpak",
-    "fields": {
-     "hub": "flathub",
-     "name": "org.freecad.FreeCAD"
-    },
-    "name": "org.freecad.FreeCAD"
+    "name": "freecad"
    }
   },
   "fvwm2": {
@@ -35253,20 +35232,13 @@
    }
   },
   "freecad": {
-   "apt\\flatpak": {
+   "apt\\freecad": {
     "driver": "apt",
     "fields": {
-     "name": "flatpak"
+     "name": "freecad",
+     "repo-component": "universe"
     },
-    "name": "flatpak"
-   },
-   "flatpak\\freecad": {
-    "driver": "flatpak",
-    "fields": {
-     "hub": "flathub",
-     "name": "org.freecad.FreeCAD"
-    },
-    "name": "org.freecad.FreeCAD"
+    "name": "freecad"
    }
   },
   "fvwm2": {
@@ -75190,20 +75162,13 @@
    }
   },
   "freecad": {
-   "apt\\flatpak": {
+   "apt\\freecad": {
     "driver": "apt",
     "fields": {
-     "name": "flatpak"
+     "name": "freecad",
+     "repo-component": "universe"
     },
-    "name": "flatpak"
-   },
-   "flatpak\\freecad": {
-    "driver": "flatpak",
-    "fields": {
-     "hub": "flathub",
-     "name": "org.freecad.FreeCAD"
-    },
-    "name": "org.freecad.FreeCAD"
+    "name": "freecad"
    }
   },
   "fvwm2": {
@@ -97101,20 +97066,13 @@
    }
   },
   "freecad": {
-   "apt\\flatpak": {
+   "apt\\freecad": {
     "driver": "apt",
     "fields": {
-     "name": "flatpak"
+     "name": "freecad",
+     "repo-component": "universe"
     },
-    "name": "flatpak"
-   },
-   "flatpak\\freecad": {
-    "driver": "flatpak",
-    "fields": {
-     "hub": "flathub",
-     "name": "org.freecad.FreeCAD"
-    },
-    "name": "org.freecad.FreeCAD"
+    "name": "freecad"
    }
   },
   "fvwm2": {
@@ -108108,20 +108066,13 @@
    }
   },
   "freecad": {
-   "apt\\flatpak": {
+   "apt\\freecad": {
     "driver": "apt",
     "fields": {
-     "name": "flatpak"
+     "name": "freecad",
+     "repo-component": "universe"
     },
-    "name": "flatpak"
-   },
-   "flatpak\\freecad": {
-    "driver": "flatpak",
-    "fields": {
-     "hub": "flathub",
-     "name": "org.freecad.FreeCAD"
-    },
-    "name": "org.freecad.FreeCAD"
+    "name": "freecad"
    }
   },
   "fvwm2": {
