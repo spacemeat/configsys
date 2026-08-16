@@ -1152,6 +1152,22 @@
         rocm-hip: { description: "AMD ROCm/HIP — GPU compute toolkit for AMD hardware."
             install: [ { via: native  when: "not amzn"   name: { apt: rocm-hip-sdk  dnf: rocm-hip  pacman: rocm-hip-sdk } } ]
         }
+        // MIOpen: AMD's deep-learning primitive library on ROCm/HIP — the true cuDNN analog for AMD
+        // (as cuDNN needs CUDA, MIOpen needs ROCm), so it hard-requires rocm-hip. Fedora ships it in
+        // base (`miopen`), Arch as `miopen-hip`; Debian/Ubuntu pull it from AMD's ROCm repo
+        // (`miopen-hip-dev`, vendor repo — allowlisted like rocm-hip itself).
+        miopen: { description: "AMD MIOpen — deep-learning primitives for ROCm/HIP (AMD's cuDNN)."
+            requires: rocm-hip
+            install: [ { via: native  when: "debian or fedora or arch"  name: { apt: miopen-hip-dev  dnf: miopen  pacman: miopen-hip } } ]
+        }
+        // oneDNN (aka DNNL): Intel's deep-learning primitive library. UNLIKE cuDNN/MIOpen it is a
+        // PORTABLE library (CPU + Intel/other GPU backends) shipped standalone in ordinary distro
+        // repos — it needs neither a vendor repo nor the oneAPI Base Toolkit, so no hard toolkit
+        // edge. Pair it with intel-oneapi-basekit yourself when building for Intel-GPU targets.
+        onednn: { description: "oneDNN (DNNL) — Intel's deep-learning primitives library (portable; Intel's cuDNN)."
+            install: [ { via: native  when: "debian or fedora or arch or opensuse"  repo-component: universe
+                         name: { apt: libdnnl-dev  dnf: onednn-devel  pacman: onednn  zypper: onednn-devel } } ]
+        }
         intel-oneapi-basekit: { description: "Intel oneAPI Base Toolkit — compute compilers and libraries."
             install: [ { via: native  name: { apt: intel-basekit  dnf: intel-basekit  pacman: intel-oneapi-basekit } } ]
         }

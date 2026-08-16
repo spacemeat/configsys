@@ -7,6 +7,7 @@
     // GPU / accelerator SDKs live in VENDOR repos (or the AUR) the user wires up themselves —
     // like the OptiX SDK, these need an extra step configsys can't (and the sweep doesn't) do.
     apt:    [ rocm-hip-sdk        // AMD ROCm apt repo
+              miopen-hip-dev     // AMD ROCm apt repo (MIOpen)
               intel-basekit ]     // Intel oneAPI apt repo
     dnf:    [ cuda                // NVIDIA CUDA dnf repo
               intel-basekit ]     // Intel oneAPI dnf repo

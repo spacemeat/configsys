@@ -5452,6 +5452,22 @@
     "name": "miniforge-dotfiles"
    }
   },
+  "miopen": {
+   "pacman\\miopen": {
+    "driver": "pacman",
+    "fields": {
+     "name": "miopen-hip"
+    },
+    "name": "miopen-hip"
+   },
+   "pacman\\rocm-hip": {
+    "driver": "pacman",
+    "fields": {
+     "name": "rocm-hip-sdk"
+    },
+    "name": "rocm-hip-sdk"
+   }
+  },
   "mitmproxy": {
    "dotfiles\\bash-dotfiles": {
     "driver": "dotfiles",
@@ -6220,6 +6236,16 @@
      "name": "ollama"
     },
     "name": "ollama"
+   }
+  },
+  "onednn": {
+   "pacman\\onednn": {
+    "driver": "pacman",
+    "fields": {
+     "name": "onednn",
+     "repo-component": "universe"
+    },
+    "name": "onednn"
    }
   },
   "opam": {
@@ -16677,6 +16703,22 @@
     "name": "miniforge-dotfiles"
    }
   },
+  "miopen": {
+   "apt\\miopen": {
+    "driver": "apt",
+    "fields": {
+     "name": "miopen-hip-dev"
+    },
+    "name": "miopen-hip-dev"
+   },
+   "apt\\rocm-hip": {
+    "driver": "apt",
+    "fields": {
+     "name": "rocm-hip-sdk"
+    },
+    "name": "rocm-hip-sdk"
+   }
+  },
   "mitmproxy": {
    "apt\\python3-pip": {
     "driver": "apt",
@@ -17495,6 +17537,16 @@
      }
     },
     "name": "ollama"
+   }
+  },
+  "onednn": {
+   "apt\\onednn": {
+    "driver": "apt",
+    "fields": {
+     "name": "libdnnl-dev",
+     "repo-component": "universe"
+    },
+    "name": "libdnnl-dev"
    }
   },
   "opam": {
@@ -27435,6 +27487,22 @@
     "name": "miniforge-dotfiles"
    }
   },
+  "miopen": {
+   "apt\\miopen": {
+    "driver": "apt",
+    "fields": {
+     "name": "miopen-hip-dev"
+    },
+    "name": "miopen-hip-dev"
+   },
+   "apt\\rocm-hip": {
+    "driver": "apt",
+    "fields": {
+     "name": "rocm-hip-sdk"
+    },
+    "name": "rocm-hip-sdk"
+   }
+  },
   "mitmproxy": {
    "apt\\pipx": {
     "driver": "apt",
@@ -28217,6 +28285,16 @@
      }
     },
     "name": "ollama"
+   }
+  },
+  "onednn": {
+   "apt\\onednn": {
+    "driver": "apt",
+    "fields": {
+     "name": "libdnnl-dev",
+     "repo-component": "universe"
+    },
+    "name": "libdnnl-dev"
    }
   },
   "opam": {
@@ -38045,6 +38123,22 @@
     "name": "miniforge-dotfiles"
    }
   },
+  "miopen": {
+   "apt\\miopen": {
+    "driver": "apt",
+    "fields": {
+     "name": "miopen-hip-dev"
+    },
+    "name": "miopen-hip-dev"
+   },
+   "apt\\rocm-hip": {
+    "driver": "apt",
+    "fields": {
+     "name": "rocm-hip-sdk"
+    },
+    "name": "rocm-hip-sdk"
+   }
+  },
   "mitmproxy": {
    "apt\\pipx": {
     "driver": "apt",
@@ -38827,6 +38921,16 @@
      }
     },
     "name": "ollama"
+   }
+  },
+  "onednn": {
+   "apt\\onednn": {
+    "driver": "apt",
+    "fields": {
+     "name": "libdnnl-dev",
+     "repo-component": "universe"
+    },
+    "name": "libdnnl-dev"
    }
   },
   "opam": {
@@ -48282,6 +48386,22 @@
     "name": "miniforge-dotfiles"
    }
   },
+  "miopen": {
+   "dnf\\miopen": {
+    "driver": "dnf",
+    "fields": {
+     "name": "miopen"
+    },
+    "name": "miopen"
+   },
+   "dnf\\rocm-hip": {
+    "driver": "dnf",
+    "fields": {
+     "name": "rocm-hip"
+    },
+    "name": "rocm-hip"
+   }
+  },
   "mitmproxy": {
    "dnf\\pipx": {
     "driver": "dnf",
@@ -49046,6 +49166,16 @@
      }
     },
     "name": "ollama"
+   }
+  },
+  "onednn": {
+   "dnf\\onednn": {
+    "driver": "dnf",
+    "fields": {
+     "name": "onednn-devel",
+     "repo-component": "universe"
+    },
+    "name": "onednn-devel"
    }
   },
   "opam": {
@@ -58529,6 +58659,22 @@
     "name": "miniforge-dotfiles"
    }
   },
+  "miopen": {
+   "dnf\\miopen": {
+    "driver": "dnf",
+    "fields": {
+     "name": "miopen"
+    },
+    "name": "miopen"
+   },
+   "dnf\\rocm-hip": {
+    "driver": "dnf",
+    "fields": {
+     "name": "rocm-hip"
+    },
+    "name": "rocm-hip"
+   }
+  },
   "mitmproxy": {
    "dnf\\pipx": {
     "driver": "dnf",
@@ -59293,6 +59439,16 @@
      }
     },
     "name": "ollama"
+   }
+  },
+  "onednn": {
+   "dnf\\onednn": {
+    "driver": "dnf",
+    "fields": {
+     "name": "onednn-devel",
+     "repo-component": "universe"
+    },
+    "name": "onednn-devel"
    }
   },
   "opam": {
@@ -77342,6 +77498,22 @@
     "name": "miniforge-dotfiles"
    }
   },
+  "miopen": {
+   "apt\\miopen": {
+    "driver": "apt",
+    "fields": {
+     "name": "miopen-hip-dev"
+    },
+    "name": "miopen-hip-dev"
+   },
+   "apt\\rocm-hip": {
+    "driver": "apt",
+    "fields": {
+     "name": "rocm-hip-sdk"
+    },
+    "name": "rocm-hip-sdk"
+   }
+  },
   "mitmproxy": {
    "apt\\python3-pip": {
     "driver": "apt",
@@ -78160,6 +78332,16 @@
      }
     },
     "name": "ollama"
+   }
+  },
+  "onednn": {
+   "apt\\onednn": {
+    "driver": "apt",
+    "fields": {
+     "name": "libdnnl-dev",
+     "repo-component": "universe"
+    },
+    "name": "libdnnl-dev"
    }
   },
   "opam": {
@@ -98847,6 +99029,22 @@
     "name": "miniforge-dotfiles"
    }
   },
+  "miopen": {
+   "apt\\miopen": {
+    "driver": "apt",
+    "fields": {
+     "name": "miopen-hip-dev"
+    },
+    "name": "miopen-hip-dev"
+   },
+   "apt\\rocm-hip": {
+    "driver": "apt",
+    "fields": {
+     "name": "rocm-hip-sdk"
+    },
+    "name": "rocm-hip-sdk"
+   }
+  },
   "mitmproxy": {
    "apt\\python3-pip": {
     "driver": "apt",
@@ -99665,6 +99863,16 @@
      }
     },
     "name": "ollama"
+   }
+  },
+  "onednn": {
+   "apt\\onednn": {
+    "driver": "apt",
+    "fields": {
+     "name": "libdnnl-dev",
+     "repo-component": "universe"
+    },
+    "name": "libdnnl-dev"
    }
   },
   "opam": {
@@ -109587,6 +109795,22 @@
     "name": "miniforge-dotfiles"
    }
   },
+  "miopen": {
+   "apt\\miopen": {
+    "driver": "apt",
+    "fields": {
+     "name": "miopen-hip-dev"
+    },
+    "name": "miopen-hip-dev"
+   },
+   "apt\\rocm-hip": {
+    "driver": "apt",
+    "fields": {
+     "name": "rocm-hip-sdk"
+    },
+    "name": "rocm-hip-sdk"
+   }
+  },
   "mitmproxy": {
    "apt\\pipx": {
     "driver": "apt",
@@ -110369,6 +110593,16 @@
      }
     },
     "name": "ollama"
+   }
+  },
+  "onednn": {
+   "apt\\onednn": {
+    "driver": "apt",
+    "fields": {
+     "name": "libdnnl-dev",
+     "repo-component": "universe"
+    },
+    "name": "libdnnl-dev"
    }
   },
   "opam": {
