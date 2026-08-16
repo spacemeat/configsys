@@ -419,6 +419,15 @@
     "name": "bash-dotfiles"
    }
   },
+  "atop": {
+   "pacman\\atop": {
+    "driver": "pacman",
+    "fields": {
+     "name": "atop"
+    },
+    "name": "atop"
+   }
+  },
   "awscli": {
    "dotfiles\\awscli-dotfiles": {
     "driver": "dotfiles",
@@ -628,6 +637,15 @@
      }
     },
     "name": "blender-dotfiles"
+   }
+  },
+  "bmon": {
+   "pacman\\bmon": {
+    "driver": "pacman",
+    "fields": {
+     "name": "bmon"
+    },
+    "name": "bmon"
    }
   },
   "boost": {
@@ -1848,6 +1866,68 @@
     "name": "luarocks"
    }
   },
+  "dnspeep": {
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.bash.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\dnspeep-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/dnspeep.sh",
+     "src": "bash.d/dnspeep.sh"
+    },
+    "name": "dnspeep-dotfiles"
+   },
+   "pacman\\curl": {
+    "driver": "pacman",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "tarball\\dnspeep": {
+    "driver": "tarball",
+    "fields": {
+     "asset": "dnspeep-linux.tar.gz",
+     "installDir": "$CONFIGSYS_APP_DIR/dnspeep",
+     "name": "dnspeep",
+     "version": {
+      "github": "jvns/dnspeep",
+      "strip-v": "true"
+     }
+    },
+    "name": "dnspeep"
+   }
+  },
+  "dnspeep-dotfiles": {
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.bash.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\dnspeep-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/dnspeep.sh",
+     "src": "bash.d/dnspeep.sh"
+    },
+    "name": "dnspeep-dotfiles"
+   }
+  },
   "docker": {
    "pacman\\docker-engine": {
     "driver": "pacman",
@@ -1958,6 +2038,15 @@
      "src": "bash.d/dotnet.sh"
     },
     "name": "dotnet-dotfiles"
+   }
+  },
+  "dstat": {
+   "pacman\\dstat": {
+    "driver": "pacman",
+    "fields": {
+     "name": "dool"
+    },
+    "name": "dool"
    }
   },
   "duf": {
@@ -2764,6 +2853,37 @@
      }
     },
     "name": "git-dotfiles"
+   }
+  },
+  "glances": {
+   "dotfiles\\glances-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/glances",
+      "src": "glances"
+     }
+    },
+    "name": "glances-dotfiles"
+   },
+   "pacman\\glances": {
+    "driver": "pacman",
+    "fields": {
+     "name": "glances"
+    },
+    "name": "glances"
+   }
+  },
+  "glances-dotfiles": {
+   "dotfiles\\glances-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/glances",
+      "src": "glances"
+     }
+    },
+    "name": "glances-dotfiles"
    }
   },
   "gleam": {
@@ -3861,6 +3981,15 @@
      "name": "intel-oneapi-basekit"
     },
     "name": "intel-oneapi-basekit"
+   }
+  },
+  "iotop": {
+   "pacman\\iotop": {
+    "driver": "pacman",
+    "fields": {
+     "name": "iotop"
+    },
+    "name": "iotop"
    }
   },
   "iperf3": {
@@ -6282,6 +6411,16 @@
     "name": "nushell-dotfiles"
    }
   },
+  "nvtop": {
+   "pacman\\nvtop": {
+    "driver": "pacman",
+    "fields": {
+     "name": "nvtop",
+     "repo-component": "universe"
+    },
+    "name": "nvtop"
+   }
+  },
   "objective-c": {
    "pacman\\objective-c": {
     "driver": "pacman",
@@ -8040,6 +8179,15 @@
     "name": "rust-dotfiles"
    }
   },
+  "s-tui": {
+   "pacman\\s-tui": {
+    "driver": "pacman",
+    "fields": {
+     "name": "s-tui"
+    },
+    "name": "s-tui"
+   }
+  },
   "sagemath": {
    "pacman\\sagemath": {
     "driver": "pacman",
@@ -8854,6 +9002,16 @@
      "name": "syncthing"
     },
     "name": "syncthing"
+   }
+  },
+  "sysdig": {
+   "pacman\\sysdig": {
+    "driver": "pacman",
+    "fields": {
+     "name": "sysdig",
+     "repo-component": "universe"
+    },
+    "name": "sysdig"
    }
   },
   "tailscale": {
@@ -9923,6 +10081,15 @@
      "name": "vulkan-swrast"
     },
     "name": "vulkan-swrast"
+   }
+  },
+  "wavemon": {
+   "pacman\\wavemon": {
+    "driver": "pacman",
+    "fields": {
+     "name": "wavemon"
+    },
+    "name": "wavemon"
    }
   },
   "websocat": {
@@ -11056,6 +11223,15 @@
     "name": "bash-dotfiles"
    }
   },
+  "atop": {
+   "apt\\atop": {
+    "driver": "apt",
+    "fields": {
+     "name": "atop"
+    },
+    "name": "atop"
+   }
+  },
   "awscli": {
    "apt\\curl": {
     "driver": "apt",
@@ -11275,6 +11451,15 @@
      }
     },
     "name": "blender-dotfiles"
+   }
+  },
+  "bmon": {
+   "apt\\bmon": {
+    "driver": "apt",
+    "fields": {
+     "name": "bmon"
+    },
+    "name": "bmon"
    }
   },
   "boost": {
@@ -12851,6 +13036,68 @@
     "name": "dkjson"
    }
   },
+  "dnspeep": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.bash.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\dnspeep-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/dnspeep.sh",
+     "src": "bash.d/dnspeep.sh"
+    },
+    "name": "dnspeep-dotfiles"
+   },
+   "tarball\\dnspeep": {
+    "driver": "tarball",
+    "fields": {
+     "asset": "dnspeep-linux.tar.gz",
+     "installDir": "$CONFIGSYS_APP_DIR/dnspeep",
+     "name": "dnspeep",
+     "version": {
+      "github": "jvns/dnspeep",
+      "strip-v": "true"
+     }
+    },
+    "name": "dnspeep"
+   }
+  },
+  "dnspeep-dotfiles": {
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.bash.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\dnspeep-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/dnspeep.sh",
+     "src": "bash.d/dnspeep.sh"
+    },
+    "name": "dnspeep-dotfiles"
+   }
+  },
   "docker": {
    "apt\\docker-engine": {
     "driver": "apt",
@@ -12966,6 +13213,15 @@
      "src": "bash.d/dotnet.sh"
     },
     "name": "dotnet-dotfiles"
+   }
+  },
+  "dstat": {
+   "apt\\dstat": {
+    "driver": "apt",
+    "fields": {
+     "name": "dstat"
+    },
+    "name": "dstat"
    }
   },
   "duf": {
@@ -14043,6 +14299,37 @@
      }
     },
     "name": "git-dotfiles"
+   }
+  },
+  "glances": {
+   "apt\\glances": {
+    "driver": "apt",
+    "fields": {
+     "name": "glances"
+    },
+    "name": "glances"
+   },
+   "dotfiles\\glances-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/glances",
+      "src": "glances"
+     }
+    },
+    "name": "glances-dotfiles"
+   }
+  },
+  "glances-dotfiles": {
+   "dotfiles\\glances-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/glances",
+      "src": "glances"
+     }
+    },
+    "name": "glances-dotfiles"
    }
   },
   "gleam": {
@@ -15135,6 +15422,15 @@
      "name": "intel-basekit"
     },
     "name": "intel-basekit"
+   }
+  },
+  "iotop": {
+   "apt\\iotop": {
+    "driver": "apt",
+    "fields": {
+     "name": "iotop"
+    },
+    "name": "iotop"
    }
   },
   "iperf3": {
@@ -17707,6 +18003,16 @@
     "name": "nushell-dotfiles"
    }
   },
+  "nvtop": {
+   "apt\\nvtop": {
+    "driver": "apt",
+    "fields": {
+     "name": "nvtop",
+     "repo-component": "universe"
+    },
+    "name": "nvtop"
+   }
+  },
   "objective-c": {
    "apt\\objective-c": {
     "driver": "apt",
@@ -19244,6 +19550,15 @@
     "name": "rust-dotfiles"
    }
   },
+  "s-tui": {
+   "apt\\s-tui": {
+    "driver": "apt",
+    "fields": {
+     "name": "s-tui"
+    },
+    "name": "s-tui"
+   }
+  },
   "sagemath": {
    "apt\\sagemath": {
     "driver": "apt",
@@ -19949,6 +20264,16 @@
      "name": "syncthing"
     },
     "name": "syncthing"
+   }
+  },
+  "sysdig": {
+   "apt\\sysdig": {
+    "driver": "apt",
+    "fields": {
+     "name": "sysdig",
+     "repo-component": "universe"
+    },
+    "name": "sysdig"
    }
   },
   "tailscale": {
@@ -20950,6 +21275,15 @@
      }
     },
     "name": "vulkan-sdk-dotfiles"
+   }
+  },
+  "wavemon": {
+   "apt\\wavemon": {
+    "driver": "apt",
+    "fields": {
+     "name": "wavemon"
+    },
+    "name": "wavemon"
    }
   },
   "websocat": {
@@ -22095,6 +22429,15 @@
     "name": "bash-dotfiles"
    }
   },
+  "atop": {
+   "apt\\atop": {
+    "driver": "apt",
+    "fields": {
+     "name": "atop"
+    },
+    "name": "atop"
+   }
+  },
   "awscli": {
    "apt\\curl": {
     "driver": "apt",
@@ -22296,6 +22639,15 @@
      }
     },
     "name": "blender-dotfiles"
+   }
+  },
+  "bmon": {
+   "apt\\bmon": {
+    "driver": "apt",
+    "fields": {
+     "name": "bmon"
+    },
+    "name": "bmon"
    }
   },
   "boost": {
@@ -23854,6 +24206,68 @@
     "name": "dkjson"
    }
   },
+  "dnspeep": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.bash.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\dnspeep-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/dnspeep.sh",
+     "src": "bash.d/dnspeep.sh"
+    },
+    "name": "dnspeep-dotfiles"
+   },
+   "tarball\\dnspeep": {
+    "driver": "tarball",
+    "fields": {
+     "asset": "dnspeep-linux.tar.gz",
+     "installDir": "$CONFIGSYS_APP_DIR/dnspeep",
+     "name": "dnspeep",
+     "version": {
+      "github": "jvns/dnspeep",
+      "strip-v": "true"
+     }
+    },
+    "name": "dnspeep"
+   }
+  },
+  "dnspeep-dotfiles": {
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.bash.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\dnspeep-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/dnspeep.sh",
+     "src": "bash.d/dnspeep.sh"
+    },
+    "name": "dnspeep-dotfiles"
+   }
+  },
   "docker": {
    "apt\\docker-engine": {
     "driver": "apt",
@@ -23969,6 +24383,15 @@
      "src": "bash.d/dotnet.sh"
     },
     "name": "dotnet-dotfiles"
+   }
+  },
+  "dstat": {
+   "apt\\dstat": {
+    "driver": "apt",
+    "fields": {
+     "name": "dstat"
+    },
+    "name": "dstat"
    }
   },
   "duf": {
@@ -25048,6 +25471,37 @@
     "name": "git-dotfiles"
    }
   },
+  "glances": {
+   "apt\\glances": {
+    "driver": "apt",
+    "fields": {
+     "name": "glances"
+    },
+    "name": "glances"
+   },
+   "dotfiles\\glances-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/glances",
+      "src": "glances"
+     }
+    },
+    "name": "glances-dotfiles"
+   }
+  },
+  "glances-dotfiles": {
+   "dotfiles\\glances-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/glances",
+      "src": "glances"
+     }
+    },
+    "name": "glances-dotfiles"
+   }
+  },
   "gleam": {
    "apt\\curl": {
     "driver": "apt",
@@ -26120,6 +26574,15 @@
      "name": "intel-basekit"
     },
     "name": "intel-basekit"
+   }
+  },
+  "iotop": {
+   "apt\\iotop": {
+    "driver": "apt",
+    "fields": {
+     "name": "iotop"
+    },
+    "name": "iotop"
    }
   },
   "iperf3": {
@@ -28620,6 +29083,16 @@
     "name": "nushell-dotfiles"
    }
   },
+  "nvtop": {
+   "apt\\nvtop": {
+    "driver": "apt",
+    "fields": {
+     "name": "nvtop",
+     "repo-component": "universe"
+    },
+    "name": "nvtop"
+   }
+  },
   "objective-c": {
    "apt\\objective-c": {
     "driver": "apt",
@@ -30103,6 +30576,15 @@
     "name": "rust-dotfiles"
    }
   },
+  "s-tui": {
+   "apt\\s-tui": {
+    "driver": "apt",
+    "fields": {
+     "name": "s-tui"
+    },
+    "name": "s-tui"
+   }
+  },
   "sagemath": {
    "apt\\sagemath": {
     "driver": "apt",
@@ -30790,6 +31272,16 @@
      "name": "syncthing"
     },
     "name": "syncthing"
+   }
+  },
+  "sysdig": {
+   "apt\\sysdig": {
+    "driver": "apt",
+    "fields": {
+     "name": "sysdig",
+     "repo-component": "universe"
+    },
+    "name": "sysdig"
    }
   },
   "tailscale": {
@@ -31773,6 +32265,15 @@
      }
     },
     "name": "vulkan-sdk-dotfiles"
+   }
+  },
+  "wavemon": {
+   "apt\\wavemon": {
+    "driver": "apt",
+    "fields": {
+     "name": "wavemon"
+    },
+    "name": "wavemon"
    }
   },
   "websocat": {
@@ -32900,6 +33401,15 @@
     "name": "bash-dotfiles"
    }
   },
+  "atop": {
+   "apt\\atop": {
+    "driver": "apt",
+    "fields": {
+     "name": "atop"
+    },
+    "name": "atop"
+   }
+  },
   "awscli": {
    "apt\\curl": {
     "driver": "apt",
@@ -33101,6 +33611,15 @@
      }
     },
     "name": "blender-dotfiles"
+   }
+  },
+  "bmon": {
+   "apt\\bmon": {
+    "driver": "apt",
+    "fields": {
+     "name": "bmon"
+    },
+    "name": "bmon"
    }
   },
   "boost": {
@@ -34667,6 +35186,68 @@
     "name": "dkjson"
    }
   },
+  "dnspeep": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.bash.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\dnspeep-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/dnspeep.sh",
+     "src": "bash.d/dnspeep.sh"
+    },
+    "name": "dnspeep-dotfiles"
+   },
+   "tarball\\dnspeep": {
+    "driver": "tarball",
+    "fields": {
+     "asset": "dnspeep-linux.tar.gz",
+     "installDir": "$CONFIGSYS_APP_DIR/dnspeep",
+     "name": "dnspeep",
+     "version": {
+      "github": "jvns/dnspeep",
+      "strip-v": "true"
+     }
+    },
+    "name": "dnspeep"
+   }
+  },
+  "dnspeep-dotfiles": {
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.bash.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\dnspeep-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/dnspeep.sh",
+     "src": "bash.d/dnspeep.sh"
+    },
+    "name": "dnspeep-dotfiles"
+   }
+  },
   "docker": {
    "apt\\docker-engine": {
     "driver": "apt",
@@ -34777,6 +35358,15 @@
      "src": "bash.d/dotnet.sh"
     },
     "name": "dotnet-dotfiles"
+   }
+  },
+  "dstat": {
+   "apt\\dstat": {
+    "driver": "apt",
+    "fields": {
+     "name": "dstat"
+    },
+    "name": "dstat"
    }
   },
   "duf": {
@@ -35856,6 +36446,37 @@
     "name": "git-dotfiles"
    }
   },
+  "glances": {
+   "apt\\glances": {
+    "driver": "apt",
+    "fields": {
+     "name": "glances"
+    },
+    "name": "glances"
+   },
+   "dotfiles\\glances-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/glances",
+      "src": "glances"
+     }
+    },
+    "name": "glances-dotfiles"
+   }
+  },
+  "glances-dotfiles": {
+   "dotfiles\\glances-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/glances",
+      "src": "glances"
+     }
+    },
+    "name": "glances-dotfiles"
+   }
+  },
   "gleam": {
    "apt\\curl": {
     "driver": "apt",
@@ -36928,6 +37549,15 @@
      "name": "intel-basekit"
     },
     "name": "intel-basekit"
+   }
+  },
+  "iotop": {
+   "apt\\iotop": {
+    "driver": "apt",
+    "fields": {
+     "name": "iotop"
+    },
+    "name": "iotop"
    }
   },
   "iperf3": {
@@ -39421,6 +40051,16 @@
     "name": "nushell-dotfiles"
    }
   },
+  "nvtop": {
+   "apt\\nvtop": {
+    "driver": "apt",
+    "fields": {
+     "name": "nvtop",
+     "repo-component": "universe"
+    },
+    "name": "nvtop"
+   }
+  },
   "objective-c": {
    "apt\\objective-c": {
     "driver": "apt",
@@ -40917,6 +41557,15 @@
     "name": "rust-dotfiles"
    }
   },
+  "s-tui": {
+   "apt\\s-tui": {
+    "driver": "apt",
+    "fields": {
+     "name": "s-tui"
+    },
+    "name": "s-tui"
+   }
+  },
   "sagemath": {
    "apt\\sagemath": {
     "driver": "apt",
@@ -41604,6 +42253,16 @@
      "name": "syncthing"
     },
     "name": "syncthing"
+   }
+  },
+  "sysdig": {
+   "apt\\sysdig": {
+    "driver": "apt",
+    "fields": {
+     "name": "sysdig",
+     "repo-component": "universe"
+    },
+    "name": "sysdig"
    }
   },
   "tailscale": {
@@ -42587,6 +43246,15 @@
      }
     },
     "name": "vulkan-sdk-dotfiles"
+   }
+  },
+  "wavemon": {
+   "apt\\wavemon": {
+    "driver": "apt",
+    "fields": {
+     "name": "wavemon"
+    },
+    "name": "wavemon"
    }
   },
   "websocat": {
@@ -43721,6 +44389,15 @@
     "name": "bash-dotfiles"
    }
   },
+  "atop": {
+   "dnf\\atop": {
+    "driver": "dnf",
+    "fields": {
+     "name": "atop"
+    },
+    "name": "atop"
+   }
+  },
   "awscli": {
    "dnf\\curl": {
     "driver": "dnf",
@@ -43921,6 +44598,15 @@
      }
     },
     "name": "blender-dotfiles"
+   }
+  },
+  "bmon": {
+   "dnf\\bmon": {
+    "driver": "dnf",
+    "fields": {
+     "name": "bmon"
+    },
+    "name": "bmon"
    }
   },
   "boost": {
@@ -45341,6 +46027,68 @@
     "name": "dkjson"
    }
   },
+  "dnspeep": {
+   "dnf\\curl": {
+    "driver": "dnf",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.bash.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\dnspeep-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/dnspeep.sh",
+     "src": "bash.d/dnspeep.sh"
+    },
+    "name": "dnspeep-dotfiles"
+   },
+   "tarball\\dnspeep": {
+    "driver": "tarball",
+    "fields": {
+     "asset": "dnspeep-linux.tar.gz",
+     "installDir": "$CONFIGSYS_APP_DIR/dnspeep",
+     "name": "dnspeep",
+     "version": {
+      "github": "jvns/dnspeep",
+      "strip-v": "true"
+     }
+    },
+    "name": "dnspeep"
+   }
+  },
+  "dnspeep-dotfiles": {
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.bash.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\dnspeep-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/dnspeep.sh",
+     "src": "bash.d/dnspeep.sh"
+    },
+    "name": "dnspeep-dotfiles"
+   }
+  },
   "docker": {
    "dnf\\docker-engine": {
     "driver": "dnf",
@@ -46236,6 +46984,37 @@
      }
     },
     "name": "git-dotfiles"
+   }
+  },
+  "glances": {
+   "dnf\\glances": {
+    "driver": "dnf",
+    "fields": {
+     "name": "glances"
+    },
+    "name": "glances"
+   },
+   "dotfiles\\glances-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/glances",
+      "src": "glances"
+     }
+    },
+    "name": "glances-dotfiles"
+   }
+  },
+  "glances-dotfiles": {
+   "dotfiles\\glances-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/glances",
+      "src": "glances"
+     }
+    },
+    "name": "glances-dotfiles"
    }
   },
   "gleam": {
@@ -47392,6 +48171,15 @@
      "name": "intel-basekit"
     },
     "name": "intel-basekit"
+   }
+  },
+  "iotop": {
+   "dnf\\iotop": {
+    "driver": "dnf",
+    "fields": {
+     "name": "iotop-c"
+    },
+    "name": "iotop-c"
    }
   },
   "iperf3": {
@@ -49812,6 +50600,16 @@
     "name": "nushell-dotfiles"
    }
   },
+  "nvtop": {
+   "dnf\\nvtop": {
+    "driver": "dnf",
+    "fields": {
+     "name": "nvtop",
+     "repo-component": "universe"
+    },
+    "name": "nvtop"
+   }
+  },
   "objective-c": {
    "dnf\\objective-c": {
     "driver": "dnf",
@@ -51279,6 +52077,15 @@
      "src": "bash.d/rust.sh"
     },
     "name": "rust-dotfiles"
+   }
+  },
+  "s-tui": {
+   "dnf\\s-tui": {
+    "driver": "dnf",
+    "fields": {
+     "name": "s-tui"
+    },
+    "name": "s-tui"
    }
   },
   "salt": {
@@ -52971,6 +53778,15 @@
     "name": "vulkan-sdk-dotfiles"
    }
   },
+  "wavemon": {
+   "dnf\\wavemon": {
+    "driver": "dnf",
+    "fields": {
+     "name": "wavemon"
+    },
+    "name": "wavemon"
+   }
+  },
   "websocat": {
    "dnf\\curl": {
     "driver": "dnf",
@@ -54109,6 +54925,15 @@
     "name": "bash-dotfiles"
    }
   },
+  "atop": {
+   "dnf\\atop": {
+    "driver": "dnf",
+    "fields": {
+     "name": "atop"
+    },
+    "name": "atop"
+   }
+  },
   "awscli": {
    "dnf\\curl": {
     "driver": "dnf",
@@ -54309,6 +55134,15 @@
      }
     },
     "name": "blender-dotfiles"
+   }
+  },
+  "bmon": {
+   "dnf\\bmon": {
+    "driver": "dnf",
+    "fields": {
+     "name": "bmon"
+    },
+    "name": "bmon"
    }
   },
   "boost": {
@@ -55755,6 +56589,68 @@
     "name": "dkjson"
    }
   },
+  "dnspeep": {
+   "dnf\\curl": {
+    "driver": "dnf",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.bash.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\dnspeep-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/dnspeep.sh",
+     "src": "bash.d/dnspeep.sh"
+    },
+    "name": "dnspeep-dotfiles"
+   },
+   "tarball\\dnspeep": {
+    "driver": "tarball",
+    "fields": {
+     "asset": "dnspeep-linux.tar.gz",
+     "installDir": "$CONFIGSYS_APP_DIR/dnspeep",
+     "name": "dnspeep",
+     "version": {
+      "github": "jvns/dnspeep",
+      "strip-v": "true"
+     }
+    },
+    "name": "dnspeep"
+   }
+  },
+  "dnspeep-dotfiles": {
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.bash.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\dnspeep-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/dnspeep.sh",
+     "src": "bash.d/dnspeep.sh"
+    },
+    "name": "dnspeep-dotfiles"
+   }
+  },
   "docker": {
    "dnf\\docker-engine": {
     "driver": "dnf",
@@ -56650,6 +57546,37 @@
      }
     },
     "name": "git-dotfiles"
+   }
+  },
+  "glances": {
+   "dnf\\glances": {
+    "driver": "dnf",
+    "fields": {
+     "name": "glances"
+    },
+    "name": "glances"
+   },
+   "dotfiles\\glances-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/glances",
+      "src": "glances"
+     }
+    },
+    "name": "glances-dotfiles"
+   }
+  },
+  "glances-dotfiles": {
+   "dotfiles\\glances-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/glances",
+      "src": "glances"
+     }
+    },
+    "name": "glances-dotfiles"
    }
   },
   "gleam": {
@@ -57806,6 +58733,15 @@
      "name": "intel-basekit"
     },
     "name": "intel-basekit"
+   }
+  },
+  "iotop": {
+   "dnf\\iotop": {
+    "driver": "dnf",
+    "fields": {
+     "name": "iotop-c"
+    },
+    "name": "iotop-c"
    }
   },
   "iperf3": {
@@ -60226,6 +61162,16 @@
     "name": "nushell-dotfiles"
    }
   },
+  "nvtop": {
+   "dnf\\nvtop": {
+    "driver": "dnf",
+    "fields": {
+     "name": "nvtop",
+     "repo-component": "universe"
+    },
+    "name": "nvtop"
+   }
+  },
   "objective-c": {
    "dnf\\objective-c": {
     "driver": "dnf",
@@ -61693,6 +62639,15 @@
      "src": "bash.d/rust.sh"
     },
     "name": "rust-dotfiles"
+   }
+  },
+  "s-tui": {
+   "dnf\\s-tui": {
+    "driver": "dnf",
+    "fields": {
+     "name": "s-tui"
+    },
+    "name": "s-tui"
    }
   },
   "salt": {
@@ -63383,6 +64338,15 @@
      }
     },
     "name": "vulkan-sdk-dotfiles"
+   }
+  },
+  "wavemon": {
+   "dnf\\wavemon": {
+    "driver": "dnf",
+    "fields": {
+     "name": "wavemon"
+    },
+    "name": "wavemon"
    }
   },
   "websocat": {
@@ -65622,6 +66586,68 @@
     "name": "dkjson"
    }
   },
+  "dnspeep": {
+   "brew\\curl": {
+    "driver": "brew",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.bash.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\dnspeep-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/dnspeep.sh",
+     "src": "bash.d/dnspeep.sh"
+    },
+    "name": "dnspeep-dotfiles"
+   },
+   "tarball\\dnspeep": {
+    "driver": "tarball",
+    "fields": {
+     "asset": "dnspeep-linux.tar.gz",
+     "installDir": "$CONFIGSYS_APP_DIR/dnspeep",
+     "name": "dnspeep",
+     "version": {
+      "github": "jvns/dnspeep",
+      "strip-v": "true"
+     }
+    },
+    "name": "dnspeep"
+   }
+  },
+  "dnspeep-dotfiles": {
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.bash.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\dnspeep-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/dnspeep.sh",
+     "src": "bash.d/dnspeep.sh"
+    },
+    "name": "dnspeep-dotfiles"
+   }
+  },
   "docker": {
    "brew\\docker-engine": {
     "driver": "brew",
@@ -66401,6 +67427,63 @@
      }
     },
     "name": "git-dotfiles"
+   }
+  },
+  "glances": {
+   "brew\\pipx": {
+    "driver": "brew",
+    "fields": {
+     "name": "pipx"
+    },
+    "name": "pipx"
+   },
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.bash.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\glances-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/glances",
+      "src": "glances"
+     }
+    },
+    "name": "glances-dotfiles"
+   },
+   "dotfiles\\pipx-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/pipx.sh",
+     "src": "bash.d/pipx.sh"
+    },
+    "name": "pipx-dotfiles"
+   },
+   "pipx\\glances": {
+    "driver": "pipx",
+    "fields": {
+     "name": "glances"
+    },
+    "name": "glances"
+   }
+  },
+  "glances-dotfiles": {
+   "dotfiles\\glances-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/glances",
+      "src": "glances"
+     }
+    },
+    "name": "glances-dotfiles"
    }
   },
   "gleam": {
@@ -70474,6 +71557,41 @@
     "name": "rust-dotfiles"
    }
   },
+  "s-tui": {
+   "brew\\pipx": {
+    "driver": "brew",
+    "fields": {
+     "name": "pipx"
+    },
+    "name": "pipx"
+   },
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.bash.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\pipx-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/pipx.sh",
+     "src": "bash.d/pipx.sh"
+    },
+    "name": "pipx-dotfiles"
+   },
+   "pipx\\s-tui": {
+    "driver": "pipx",
+    "fields": {
+     "name": "s-tui"
+    },
+    "name": "s-tui"
+   }
+  },
   "salt": {
    "brew\\pipx": {
     "driver": "brew",
@@ -72797,6 +73915,15 @@
     "name": "bash-dotfiles"
    }
   },
+  "atop": {
+   "apt\\atop": {
+    "driver": "apt",
+    "fields": {
+     "name": "atop"
+    },
+    "name": "atop"
+   }
+  },
   "awscli": {
    "apt\\curl": {
     "driver": "apt",
@@ -73016,6 +74143,15 @@
      }
     },
     "name": "blender-dotfiles"
+   }
+  },
+  "bmon": {
+   "apt\\bmon": {
+    "driver": "apt",
+    "fields": {
+     "name": "bmon"
+    },
+    "name": "bmon"
    }
   },
   "boost": {
@@ -74609,6 +75745,68 @@
     "name": "dkjson"
    }
   },
+  "dnspeep": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.bash.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\dnspeep-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/dnspeep.sh",
+     "src": "bash.d/dnspeep.sh"
+    },
+    "name": "dnspeep-dotfiles"
+   },
+   "tarball\\dnspeep": {
+    "driver": "tarball",
+    "fields": {
+     "asset": "dnspeep-linux.tar.gz",
+     "installDir": "$CONFIGSYS_APP_DIR/dnspeep",
+     "name": "dnspeep",
+     "version": {
+      "github": "jvns/dnspeep",
+      "strip-v": "true"
+     }
+    },
+    "name": "dnspeep"
+   }
+  },
+  "dnspeep-dotfiles": {
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.bash.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\dnspeep-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/dnspeep.sh",
+     "src": "bash.d/dnspeep.sh"
+    },
+    "name": "dnspeep-dotfiles"
+   }
+  },
   "docker": {
    "apt\\docker-engine": {
     "driver": "apt",
@@ -74719,6 +75917,15 @@
      "src": "bash.d/dotnet.sh"
     },
     "name": "dotnet-dotfiles"
+   }
+  },
+  "dstat": {
+   "apt\\dstat": {
+    "driver": "apt",
+    "fields": {
+     "name": "dstat"
+    },
+    "name": "dstat"
    }
   },
   "duf": {
@@ -75796,6 +77003,37 @@
      }
     },
     "name": "git-dotfiles"
+   }
+  },
+  "glances": {
+   "apt\\glances": {
+    "driver": "apt",
+    "fields": {
+     "name": "glances"
+    },
+    "name": "glances"
+   },
+   "dotfiles\\glances-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/glances",
+      "src": "glances"
+     }
+    },
+    "name": "glances-dotfiles"
+   }
+  },
+  "glances-dotfiles": {
+   "dotfiles\\glances-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/glances",
+      "src": "glances"
+     }
+    },
+    "name": "glances-dotfiles"
    }
   },
   "gleam": {
@@ -76888,6 +78126,15 @@
      "name": "intel-basekit"
     },
     "name": "intel-basekit"
+   }
+  },
+  "iotop": {
+   "apt\\iotop": {
+    "driver": "apt",
+    "fields": {
+     "name": "iotop"
+    },
+    "name": "iotop"
    }
   },
   "iperf3": {
@@ -79453,6 +80700,16 @@
     "name": "nushell-dotfiles"
    }
   },
+  "nvtop": {
+   "apt\\nvtop": {
+    "driver": "apt",
+    "fields": {
+     "name": "nvtop",
+     "repo-component": "universe"
+    },
+    "name": "nvtop"
+   }
+  },
   "objective-c": {
    "apt\\objective-c": {
     "driver": "apt",
@@ -81003,6 +82260,15 @@
     "name": "rust-dotfiles"
    }
   },
+  "s-tui": {
+   "apt\\s-tui": {
+    "driver": "apt",
+    "fields": {
+     "name": "s-tui"
+    },
+    "name": "s-tui"
+   }
+  },
   "sagemath": {
    "apt\\sagemath": {
     "driver": "apt",
@@ -81701,6 +82967,16 @@
      "name": "syncthing"
     },
     "name": "syncthing"
+   }
+  },
+  "sysdig": {
+   "apt\\sysdig": {
+    "driver": "apt",
+    "fields": {
+     "name": "sysdig",
+     "repo-component": "universe"
+    },
+    "name": "sysdig"
    }
   },
   "tailscale": {
@@ -82702,6 +83978,15 @@
      }
     },
     "name": "vulkan-sdk-dotfiles"
+   }
+  },
+  "wavemon": {
+   "apt\\wavemon": {
+    "driver": "apt",
+    "fields": {
+     "name": "wavemon"
+    },
+    "name": "wavemon"
    }
   },
   "websocat": {
@@ -83887,6 +85172,22 @@
     "name": "bash-dotfiles"
    }
   },
+  "atop": {
+   "dnf\\atop": {
+    "driver": "dnf",
+    "fields": {
+     "name": "atop"
+    },
+    "name": "atop"
+   },
+   "dnf\\epel-release": {
+    "driver": "dnf",
+    "fields": {
+     "name": "epel-release"
+    },
+    "name": "epel-release"
+   }
+  },
   "awscli": {
    "dnf\\curl": {
     "driver": "dnf",
@@ -84133,6 +85434,22 @@
      }
     },
     "name": "blender-dotfiles"
+   }
+  },
+  "bmon": {
+   "dnf\\bmon": {
+    "driver": "dnf",
+    "fields": {
+     "name": "bmon"
+    },
+    "name": "bmon"
+   },
+   "dnf\\epel-release": {
+    "driver": "dnf",
+    "fields": {
+     "name": "epel-release"
+    },
+    "name": "epel-release"
    }
   },
   "boost": {
@@ -85618,6 +86935,68 @@
     "name": "dkjson"
    }
   },
+  "dnspeep": {
+   "dnf\\curl": {
+    "driver": "dnf",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.bash.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\dnspeep-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/dnspeep.sh",
+     "src": "bash.d/dnspeep.sh"
+    },
+    "name": "dnspeep-dotfiles"
+   },
+   "tarball\\dnspeep": {
+    "driver": "tarball",
+    "fields": {
+     "asset": "dnspeep-linux.tar.gz",
+     "installDir": "$CONFIGSYS_APP_DIR/dnspeep",
+     "name": "dnspeep",
+     "version": {
+      "github": "jvns/dnspeep",
+      "strip-v": "true"
+     }
+    },
+    "name": "dnspeep"
+   }
+  },
+  "dnspeep-dotfiles": {
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.bash.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\dnspeep-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/dnspeep.sh",
+     "src": "bash.d/dnspeep.sh"
+    },
+    "name": "dnspeep-dotfiles"
+   }
+  },
   "docker": {
    "dnf\\docker-engine": {
     "driver": "dnf",
@@ -86644,6 +88023,44 @@
      }
     },
     "name": "git-dotfiles"
+   }
+  },
+  "glances": {
+   "dnf\\epel-release": {
+    "driver": "dnf",
+    "fields": {
+     "name": "epel-release"
+    },
+    "name": "epel-release"
+   },
+   "dnf\\glances": {
+    "driver": "dnf",
+    "fields": {
+     "name": "glances"
+    },
+    "name": "glances"
+   },
+   "dotfiles\\glances-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/glances",
+      "src": "glances"
+     }
+    },
+    "name": "glances-dotfiles"
+   }
+  },
+  "glances-dotfiles": {
+   "dotfiles\\glances-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/glances",
+      "src": "glances"
+     }
+    },
+    "name": "glances-dotfiles"
    }
   },
   "gleam": {
@@ -87818,6 +89235,15 @@
      "name": "intel-basekit"
     },
     "name": "intel-basekit"
+   }
+  },
+  "iotop": {
+   "dnf\\iotop": {
+    "driver": "dnf",
+    "fields": {
+     "name": "iotop"
+    },
+    "name": "iotop"
    }
   },
   "iperf3": {
@@ -90304,6 +91730,22 @@
     "name": "nushell-dotfiles"
    }
   },
+  "nvtop": {
+   "dnf\\epel-release": {
+    "driver": "dnf",
+    "fields": {
+     "name": "epel-release"
+    },
+    "name": "epel-release"
+   },
+   "dnf\\nvtop": {
+    "driver": "dnf",
+    "fields": {
+     "name": "nvtop"
+    },
+    "name": "nvtop"
+   }
+  },
   "objective-c": {
    "dnf\\objective-c": {
     "driver": "dnf",
@@ -91795,6 +93237,48 @@
      "src": "bash.d/rust.sh"
     },
     "name": "rust-dotfiles"
+   }
+  },
+  "s-tui": {
+   "dnf\\epel-release": {
+    "driver": "dnf",
+    "fields": {
+     "name": "epel-release"
+    },
+    "name": "epel-release"
+   },
+   "dnf\\pipx": {
+    "driver": "dnf",
+    "fields": {
+     "name": "pipx"
+    },
+    "name": "pipx"
+   },
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.bash.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\pipx-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/pipx.sh",
+     "src": "bash.d/pipx.sh"
+    },
+    "name": "pipx-dotfiles"
+   },
+   "pipx\\s-tui": {
+    "driver": "pipx",
+    "fields": {
+     "name": "s-tui"
+    },
+    "name": "s-tui"
    }
   },
   "salt": {
@@ -94722,6 +96206,15 @@
     "name": "bash-dotfiles"
    }
   },
+  "atop": {
+   "apt\\atop": {
+    "driver": "apt",
+    "fields": {
+     "name": "atop"
+    },
+    "name": "atop"
+   }
+  },
   "awscli": {
    "apt\\curl": {
     "driver": "apt",
@@ -94941,6 +96434,15 @@
      }
     },
     "name": "blender-dotfiles"
+   }
+  },
+  "bmon": {
+   "apt\\bmon": {
+    "driver": "apt",
+    "fields": {
+     "name": "bmon"
+    },
+    "name": "bmon"
    }
   },
   "boost": {
@@ -96525,6 +98027,68 @@
     "name": "dkjson"
    }
   },
+  "dnspeep": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.bash.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\dnspeep-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/dnspeep.sh",
+     "src": "bash.d/dnspeep.sh"
+    },
+    "name": "dnspeep-dotfiles"
+   },
+   "tarball\\dnspeep": {
+    "driver": "tarball",
+    "fields": {
+     "asset": "dnspeep-linux.tar.gz",
+     "installDir": "$CONFIGSYS_APP_DIR/dnspeep",
+     "name": "dnspeep",
+     "version": {
+      "github": "jvns/dnspeep",
+      "strip-v": "true"
+     }
+    },
+    "name": "dnspeep"
+   }
+  },
+  "dnspeep-dotfiles": {
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.bash.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\dnspeep-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/dnspeep.sh",
+     "src": "bash.d/dnspeep.sh"
+    },
+    "name": "dnspeep-dotfiles"
+   }
+  },
   "docker": {
    "apt\\docker-engine": {
     "driver": "apt",
@@ -96635,6 +98199,15 @@
      "src": "bash.d/dotnet.sh"
     },
     "name": "dotnet-dotfiles"
+   }
+  },
+  "dstat": {
+   "apt\\dstat": {
+    "driver": "apt",
+    "fields": {
+     "name": "dstat"
+    },
+    "name": "dstat"
    }
   },
   "duf": {
@@ -97712,6 +99285,37 @@
      }
     },
     "name": "git-dotfiles"
+   }
+  },
+  "glances": {
+   "apt\\glances": {
+    "driver": "apt",
+    "fields": {
+     "name": "glances"
+    },
+    "name": "glances"
+   },
+   "dotfiles\\glances-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/glances",
+      "src": "glances"
+     }
+    },
+    "name": "glances-dotfiles"
+   }
+  },
+  "glances-dotfiles": {
+   "dotfiles\\glances-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/glances",
+      "src": "glances"
+     }
+    },
+    "name": "glances-dotfiles"
    }
   },
   "gleam": {
@@ -98804,6 +100408,15 @@
      "name": "intel-basekit"
     },
     "name": "intel-basekit"
+   }
+  },
+  "iotop": {
+   "apt\\iotop": {
+    "driver": "apt",
+    "fields": {
+     "name": "iotop"
+    },
+    "name": "iotop"
    }
   },
   "iperf3": {
@@ -101369,6 +102982,16 @@
     "name": "nushell-dotfiles"
    }
   },
+  "nvtop": {
+   "apt\\nvtop": {
+    "driver": "apt",
+    "fields": {
+     "name": "nvtop",
+     "repo-component": "universe"
+    },
+    "name": "nvtop"
+   }
+  },
   "objective-c": {
    "apt\\objective-c": {
     "driver": "apt",
@@ -102919,6 +104542,15 @@
     "name": "rust-dotfiles"
    }
   },
+  "s-tui": {
+   "apt\\s-tui": {
+    "driver": "apt",
+    "fields": {
+     "name": "s-tui"
+    },
+    "name": "s-tui"
+   }
+  },
   "sagemath": {
    "apt\\sagemath": {
     "driver": "apt",
@@ -103624,6 +105256,16 @@
      "name": "syncthing"
     },
     "name": "syncthing"
+   }
+  },
+  "sysdig": {
+   "apt\\sysdig": {
+    "driver": "apt",
+    "fields": {
+     "name": "sysdig",
+     "repo-component": "universe"
+    },
+    "name": "sysdig"
    }
   },
   "tailscale": {
@@ -104625,6 +106267,15 @@
      }
     },
     "name": "vulkan-sdk-dotfiles"
+   }
+  },
+  "wavemon": {
+   "apt\\wavemon": {
+    "driver": "apt",
+    "fields": {
+     "name": "wavemon"
+    },
+    "name": "wavemon"
    }
   },
   "websocat": {
@@ -105770,6 +107421,15 @@
     "name": "bash-dotfiles"
    }
   },
+  "atop": {
+   "apt\\atop": {
+    "driver": "apt",
+    "fields": {
+     "name": "atop"
+    },
+    "name": "atop"
+   }
+  },
   "awscli": {
    "apt\\curl": {
     "driver": "apt",
@@ -105971,6 +107631,15 @@
      }
     },
     "name": "blender-dotfiles"
+   }
+  },
+  "bmon": {
+   "apt\\bmon": {
+    "driver": "apt",
+    "fields": {
+     "name": "bmon"
+    },
+    "name": "bmon"
    }
   },
   "boost": {
@@ -107537,6 +109206,68 @@
     "name": "dkjson"
    }
   },
+  "dnspeep": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.bash.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\dnspeep-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/dnspeep.sh",
+     "src": "bash.d/dnspeep.sh"
+    },
+    "name": "dnspeep-dotfiles"
+   },
+   "tarball\\dnspeep": {
+    "driver": "tarball",
+    "fields": {
+     "asset": "dnspeep-linux.tar.gz",
+     "installDir": "$CONFIGSYS_APP_DIR/dnspeep",
+     "name": "dnspeep",
+     "version": {
+      "github": "jvns/dnspeep",
+      "strip-v": "true"
+     }
+    },
+    "name": "dnspeep"
+   }
+  },
+  "dnspeep-dotfiles": {
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.bash.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\dnspeep-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/dnspeep.sh",
+     "src": "bash.d/dnspeep.sh"
+    },
+    "name": "dnspeep-dotfiles"
+   }
+  },
   "docker": {
    "apt\\docker-engine": {
     "driver": "apt",
@@ -107647,6 +109378,15 @@
      "src": "bash.d/dotnet.sh"
     },
     "name": "dotnet-dotfiles"
+   }
+  },
+  "dstat": {
+   "apt\\dstat": {
+    "driver": "apt",
+    "fields": {
+     "name": "dstat"
+    },
+    "name": "dstat"
    }
   },
   "duf": {
@@ -108726,6 +110466,37 @@
     "name": "git-dotfiles"
    }
   },
+  "glances": {
+   "apt\\glances": {
+    "driver": "apt",
+    "fields": {
+     "name": "glances"
+    },
+    "name": "glances"
+   },
+   "dotfiles\\glances-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/glances",
+      "src": "glances"
+     }
+    },
+    "name": "glances-dotfiles"
+   }
+  },
+  "glances-dotfiles": {
+   "dotfiles\\glances-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/glances",
+      "src": "glances"
+     }
+    },
+    "name": "glances-dotfiles"
+   }
+  },
   "gleam": {
    "apt\\curl": {
     "driver": "apt",
@@ -109771,6 +111542,15 @@
      "name": "intel-basekit"
     },
     "name": "intel-basekit"
+   }
+  },
+  "iotop": {
+   "apt\\iotop": {
+    "driver": "apt",
+    "fields": {
+     "name": "iotop"
+    },
+    "name": "iotop"
    }
   },
   "iperf3": {
@@ -112264,6 +114044,16 @@
     "name": "nushell-dotfiles"
    }
   },
+  "nvtop": {
+   "apt\\nvtop": {
+    "driver": "apt",
+    "fields": {
+     "name": "nvtop",
+     "repo-component": "universe"
+    },
+    "name": "nvtop"
+   }
+  },
   "objective-c": {
    "apt\\objective-c": {
     "driver": "apt",
@@ -113760,6 +115550,15 @@
     "name": "rust-dotfiles"
    }
   },
+  "s-tui": {
+   "apt\\s-tui": {
+    "driver": "apt",
+    "fields": {
+     "name": "s-tui"
+    },
+    "name": "s-tui"
+   }
+  },
   "sagemath": {
    "apt\\sagemath": {
     "driver": "apt",
@@ -114447,6 +116246,16 @@
      "name": "syncthing"
     },
     "name": "syncthing"
+   }
+  },
+  "sysdig": {
+   "apt\\sysdig": {
+    "driver": "apt",
+    "fields": {
+     "name": "sysdig",
+     "repo-component": "universe"
+    },
+    "name": "sysdig"
    }
   },
   "tailscale": {
@@ -115430,6 +117239,15 @@
      }
     },
     "name": "vulkan-sdk-dotfiles"
+   }
+  },
+  "wavemon": {
+   "apt\\wavemon": {
+    "driver": "apt",
+    "fields": {
+     "name": "wavemon"
+    },
+    "name": "wavemon"
    }
   },
   "websocat": {

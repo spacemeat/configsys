@@ -303,6 +303,30 @@
             ]
         }
 
+        // --- extra system/process monitors ---
+        atop: { description: "atop — advanced system and process monitor with logging."
+            install: [ { via: native  when: "debian or fedora or arch or opensuse or alpine or amzn" }
+                       { via: native  when: "rhel"  requires: epel } ] }   // EPEL on EL
+        iotop: { description: "iotop — a per-process disk I/O monitor."
+            install: [ { via: native  when: "fedora"  name: iotop-c }   // Fedora dropped the Python `iotop` for the C rewrite `iotop-c`
+                       { via: native  when: "debian or rhel or arch or opensuse or alpine or amzn"  name: iotop } ] }
+        s-tui: { description: "s-tui — a terminal UI for CPU frequency/temperature/power and stress testing."
+            install: [ { via: native  when: "debian or fedora or arch or opensuse or alpine" }
+                       { via: pipx  name: s-tui } ] }   // Python app; pipx covers EL/Amazon/atomic (not in EPEL)
+        glances: { suggests: glances-dotfiles  description: "Glances — a cross-platform curses system monitor (`glances`)."
+            install: [ { via: native  when: "debian or fedora or arch or alpine" }
+                       { via: native  when: "rhel"  requires: epel }
+                       { via: pipx  name: glances } ] }   // Python; pipx covers openSUSE/Amazon/atomic
+        glances-dotfiles: { description: "glances config, linked into place." install: [ { via: dotfiles  config: { src: glances  dst: $XDG_CONFIG_HOME/glances } } ] }
+        nvtop: { description: "nvtop — a GPU process monitor for NVIDIA/AMD/Intel (an `htop` for GPUs)."
+            install: [ { via: native  when: "debian or fedora or arch or opensuse"  repo-component: universe }
+                       { via: native  when: "rhel"  requires: epel } ] }   // not in Alpine/Amazon base
+        sysdig: { description: "sysdig — system exploration and troubleshooting (ships `sysdig` + the `csysdig` curses UI)."
+            install: [ { via: native  when: "debian or arch or opensuse"  repo-component: universe } ] }   // Fedora/EL only via the upstream Falco repo (not modeled); absent from Alpine/Amazon
+        dstat: { description: "dstat — versatile system resource statistics (deprecated upstream; Arch/openSUSE ship the `dool` fork, binary `dool`)."
+            install: [ { via: native  when: "debian"  name: dstat }
+                       { via: native  when: "arch or opensuse"  name: dool } ] }   // dropped from Fedora/EL/Alpine; the dool fork replaces it on Arch/openSUSE
+
         // ncdu: NCurses disk-usage analyzer. Packaged as `ncdu` in every base repo (EL via EPEL,
         // Ubuntu universe — the htop/btop pattern).
         ncdu: {
@@ -987,6 +1011,15 @@
                    install: [ { via: native  when: "arch or alpine or fedora_atomic or (ubuntu >= 23.10) or (debian >= 13)" }
                               { via: cargo  name: gping } ] }
         vnstat:  { description: "vnStat — a network traffic logger and stats tool." install: [ { via: native  when: "rhel"  requires: epel } { via: native  when: "not amzn"  } ] }
+        bmon:    { description: "bmon — a bandwidth monitor and rate estimator (per-interface)." install: [ { via: native  when: "rhel"  requires: epel } { via: native  when: "debian or fedora or arch or opensuse or alpine or amzn" } ] }
+        wavemon: { description: "wavemon — an ncurses monitor for wireless network devices." install: [ { via: native  when: "debian or fedora or arch or opensuse or alpine" } ] }   // not in EPEL/Amazon/atomic
+        // dnspeep: watch the DNS queries your machine makes. Not distro-packaged nor on crates.io —
+        // upstream's glibc release tarball is a single `dnspeep` binary (dnspeep-dotfiles PATHs it);
+        // declines on musl Alpine. Runs as root (libpcap).
+        dnspeep: { suggests: dnspeep-dotfiles  description: "dnspeep — spy on the DNS queries your computer makes (needs root)."
+            install: [ { via: tarball  when: "not alpine"  installDir: "$CONFIGSYS_APP_DIR/dnspeep"  requires: glibc
+                         version: { github: jvns/dnspeep  strip-v: true }  asset: "dnspeep-linux.tar.gz" } ] }
+        dnspeep-dotfiles: { description: "dnspeep shell setup, linked into place." install: [ { via: dotfiles  requires: bash-dotfiles  src: bash.d/dnspeep.sh  dst: ~/.bash.d/dnspeep.sh } ] }
 
         // Web/HTTP dev — httpie + jq native (httpie via EPEL on EL); yq/mitmproxy isolated via
         // pipx; xh/websocat are Rust crates.
