@@ -5015,6 +5015,7 @@
    "pacman\\libreoffice": {
     "driver": "pacman",
     "fields": {
+     "installed-name": "libreoffice-core",
      "name": "libreoffice-fresh",
      "repo-component": "universe"
     },
@@ -16467,6 +16468,7 @@
    "apt\\libreoffice": {
     "driver": "apt",
     "fields": {
+     "installed-name": "libreoffice-core",
      "name": "libreoffice",
      "repo-component": "universe"
     },
@@ -27505,6 +27507,7 @@
    "apt\\libreoffice": {
     "driver": "apt",
     "fields": {
+     "installed-name": "libreoffice-core",
      "name": "libreoffice",
      "repo-component": "universe"
     },
@@ -38377,6 +38380,7 @@
    "apt\\libreoffice": {
     "driver": "apt",
     "fields": {
+     "installed-name": "libreoffice-core",
      "name": "libreoffice",
      "repo-component": "universe"
     },
@@ -48907,6 +48911,7 @@
    "dnf\\libreoffice": {
     "driver": "dnf",
     "fields": {
+     "installed-name": "libreoffice-core",
      "name": "libreoffice",
      "repo-component": "universe"
     },
@@ -59383,6 +59388,7 @@
    "dnf\\libreoffice": {
     "driver": "dnf",
     "fields": {
+     "installed-name": "libreoffice-core",
      "name": "libreoffice",
      "repo-component": "universe"
     },
@@ -78550,6 +78556,7 @@
    "apt\\libreoffice": {
     "driver": "apt",
     "fields": {
+     "installed-name": "libreoffice-core",
      "name": "libreoffice",
      "repo-component": "universe"
     },
@@ -89458,6 +89465,7 @@
    "dnf\\libreoffice": {
     "driver": "dnf",
     "fields": {
+     "installed-name": "libreoffice-core",
      "name": "libreoffice",
      "repo-component": "universe"
     },
@@ -100541,6 +100549,7 @@
    "apt\\libreoffice": {
     "driver": "apt",
     "fields": {
+     "installed-name": "libreoffice-core",
      "name": "libreoffice",
      "repo-component": "universe"
     },
@@ -111561,6 +111570,7 @@
    "apt\\libreoffice": {
     "driver": "apt",
     "fields": {
+     "installed-name": "libreoffice-core",
      "name": "libreoffice",
      "repo-component": "universe"
     },

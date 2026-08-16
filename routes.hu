@@ -1058,7 +1058,13 @@
         libreoffice: { description: "LibreOffice — the open-source office suite."   // fat ~/.config/libreoffice (profile + cache) — dotfiles pending
             suggests: libreoffice-dotfiles
             install: [ { via: flatpak  hub: flathub  app: org.libreoffice.LibreOffice }   // uniform option everywhere; the only method on atomic (brew's libreoffice is a mac-only cask)
-                       { via: native  when: "(not fedora_atomic) and not amzn"  repo-component: universe  name: { pacman: libreoffice-fresh } } ]
+                       // install the `libreoffice` meta but DETECT via libreoffice-core: Debian/Ubuntu/
+                       // Pop commonly ship the suite as the parts (-core/-calc/…) WITHOUT the meta, so
+                       // probing the meta falsely reports "missing". libreoffice-core is present
+                       // whenever any LibreOffice is (only apt reads installed-name; pacman installs
+                       // libreoffice-fresh, which is itself what's present).
+                       { via: native  when: "(not fedora_atomic) and not amzn"  repo-component: universe
+                         name: { pacman: libreoffice-fresh }  installed-name: libreoffice-core } ]
         }
 
         // kicad: native where it's packaged, Flathub (org.kicad.KiCad) where it isn't. It's in

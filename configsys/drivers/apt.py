@@ -127,13 +127,23 @@ class Apt(Driver):
             idx.setdefault(f'{name}:{arch}', ver) # arch-qualified — for routes like `steam:i386`
         return idx
 
+    @staticmethod
+    def _probe_name(rc):
+        '''The package to READ install-state / version from — the binding's `installed-name:` when
+        set, else the install `name`. For a metapackage that a system commonly has WITHOUT (Debian
+        ships LibreOffice as `libreoffice-core` + `-calc`/… without the `libreoffice` meta), so
+        `name` installs the suite but `installed-name` (a component present whenever any of it is)
+        is what tells us it's installed. Mutation ops (install/remove/upgrade/lock) still use
+        `name`.'''
+        return rc.fields.get('installed-name') or rc.name
+
     def batch_index(self, rcs):
         '''Pre-fetch the three inspect probes for these units in THREE calls (not three per package):
         the installed-version index (dpkg-query -W, all packages), the held set (apt-mark showhold,
         which ignores its arg and lists them all anyway), and candidate versions (one `apt-cache
         policy pkg...`). Returned as a dict the read ops below consult via self._batch. None on the
         rare total failure -> the caller falls back to per-unit probes.'''
-        names = sorted({rc.name for rc in rcs})
+        names = sorted({self._probe_name(rc) for rc in rcs})
         installed = self.installed_index()
         if installed is None:
             return None
@@ -148,8 +158,8 @@ class Apt(Driver):
 
     def get_version(self, rc):
         if self._batch is not None:               # batched: answer from the one dpkg-query index
-            return self._batch['installed'].get(rc.name)
-        pkg = shlex.quote(rc.name)
+            return self._batch['installed'].get(self._probe_name(rc))
+        pkg = shlex.quote(self._probe_name(rc))
         # `\n`-terminate the format: a multiarch package (e.g. libvulkan1:amd64 + :i386,
         # once i386 is enabled for Steam) prints one row per installed instance. Without a
         # separator the two versions concatenate into a doubled string that never matches
@@ -165,8 +175,8 @@ class Apt(Driver):
 
     def get_latest(self, rc):
         if self._batch is not None:               # batched: answer from the one apt-cache policy call
-            return self._batch['candidate'].get(rc.name)
-        pkg = shlex.quote(rc.name)
+            return self._batch['candidate'].get(self._probe_name(rc))
+        pkg = shlex.quote(self._probe_name(rc))
         r = self.runner.run(f'apt-cache policy {pkg}')
         if not r.ok:
             return None

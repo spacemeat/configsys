@@ -48,6 +48,25 @@ def test_installed_index_keys_bare_and_arch_qualified():
     assert idx.get('libvulkan1:i386') == '1.3.0'     # both multiarch instances addressable
 
 
+def test_installed_name_probes_a_different_package_than_install():
+    # A metapackage (libreoffice) is commonly ABSENT while the suite is installed via its parts
+    # (-core/-calc/...). `installed-name` probes libreoffice-core for state while `name` still
+    # drives install/remove — so batched detection reports it installed, not missing.
+    lo = ResolvedComponent(key='apt\\libreoffice', driver='apt', comp='libreoffice',
+                           fields={'name': 'libreoffice', 'installed-name': 'libreoffice-core'})
+    fr = FakeRunner([
+        ('dpkg-query', 0, 'libreoffice-core amd64 1:7.3.7\nlibreoffice-calc amd64 1:7.3.7\n'),  # NO bare `libreoffice`
+        ('apt-cache policy', 0, 'libreoffice-core:\n  Installed: 1:7.3.7\n  Candidate: 1:7.3.7\n'),
+        ('apt-mark showhold', 0, ''),
+    ])
+    apt = Apt(fr)
+    apt._batch = apt.batch_index([lo])
+    assert apt.get_version(lo) == '1:7.3.7'        # detected via libreoffice-core (meta is absent)
+    assert apt.get_latest(lo) == '1:7.3.7'
+    # mutation still targets the install name (the meta)
+    Apt(Runner(pretend=True)).install(lo)          # would `apt-get install -y libreoffice` (name, not -core)
+
+
 def test_registry_resolves_apt_and_rejects_others():
     assert isinstance(get_driver('apt', Runner(pretend=True)), Apt)
     assert get_driver('nosuchvia', Runner(pretend=True)) is None   # not implemented
