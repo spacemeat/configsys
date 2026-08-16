@@ -271,6 +271,41 @@ def _run_teed(argv, cwd, env, limit):
         os.close(master)
 
 
+def _sudo_preauth():
+    '''Cache the sudo credential ONCE on the real terminal (one prompt if a password is needed),
+    so a subsequently-teed `sudo` op won't have to prompt mid-stream — which is what lets us
+    capture sudo-install output without the pty/password contention that used to wedge the
+    terminal. Returns True iff sudo is now usable non-interactively. Best-effort (never raises).'''
+    try:
+        subprocess.run(['sudo', '-v'])                    # inherits the tty; prompts once if needed
+        cp = subprocess.run(['sudo', '-n', '-v'], stdin=subprocess.DEVNULL,
+                            stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        return cp.returncode == 0
+    except Exception:                                     # noqa: BLE001
+        return False
+
+
+class _SudoKeepalive:
+    '''Refresh the cached sudo credential every 50s (well under the default 15-min timeout) until
+    stop(), so a long teed op (a big install / source build with spaced-out sudo calls) never has
+    the credential expire and re-prompt mid-stream. Daemon thread; best-effort.'''
+    def __init__(self):
+        self._stop = threading.Event()
+        self._t = threading.Thread(target=self._loop, daemon=True)
+        self._t.start()
+
+    def _loop(self):
+        while not self._stop.wait(50):
+            try:
+                subprocess.run(['sudo', '-n', '-v'], stdin=subprocess.DEVNULL,
+                               stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+            except Exception:                             # noqa: BLE001
+                return
+
+    def stop(self):
+        self._stop.set()
+
+
 class Runner:
     def __init__(self, pretend=False, echo=None):
         self.pretend = pretend
@@ -285,8 +320,9 @@ class Runner:
 
     def run(self, cmd, *, sudo=False, capture=True, tui_active=None,
             cwd=None, env=None, presudo=False) -> Result:
-        # `presudo` is a no-op kept for source-build drivers that still pass it: internal sudo now
-        # works because the teed child gets its own pty as controlling terminal (see _run_teed).
+        # `presudo=True` (source builds whose script calls sudo internally): pre-authenticate sudo +
+        # keep-alive around the teed run, so the build's internal sudo doesn't stall waiting for a
+        # password it can't prompt for cleanly. A top-level `sudo=True` op pre-auths too (below).
         full = f'sudo {cmd}' if sudo else cmd    # readable form for logs/tests
         self.calls.append(full)
 
@@ -300,18 +336,30 @@ class Runner:
         argv = ['sudo', 'bash', '-c', cmd] if sudo else ['bash', '-c', cmd]
         ta = self.tui_active if tui_active is None else tui_active
         with terminal_released(ta):
-            # Unprivileged streamed op on a real terminal: run it through a pty so we mirror
-            # the output live AND keep a bounded tail for failure reports. Any pty hiccup falls
-            # back to a plain inherited-stdio run — reporting must never break an install.
-            if not capture and not sudo and _can_tee():
-                # The child gets the pty as its OWN controlling terminal, so a `sudo` it runs
-                # internally (a source build installing deps) prompts THROUGH the tee — no dual-reader
-                # contention with the real terminal — and Ctrl-C reaches it. (See _run_teed.)
-                try:
-                    rc, tail = _run_teed(argv, cwd, env, self.tee_limit)
-                    return Result(full, rc, captured=tail)
-                except Exception:               # noqa: BLE001 — degrade to plain streaming
-                    pass
+            # Streamed op on a real terminal: run it through a pty so we mirror the output live AND
+            # keep a bounded tail for failure reports. For a PRIVILEGED op (`sudo=True`) — or a build
+            # whose internal sudo needs the tty (`presudo`) — pre-authenticate sudo ONCE here and keep
+            # the credential warm, so the teed command never prompts mid-stream; that's what lets us
+            # capture sudo-install output cleanly (the teed sudo then behaves like the already-working
+            # non-sudo tee). Any pty hiccup or a failed pre-auth degrades to a plain inherited-stdio
+            # run — reporting must never break an install.
+            if not capture and _can_tee():
+                keepalive = None
+                do_tee = True
+                if sudo or presudo:
+                    if _sudo_preauth():
+                        keepalive = _SudoKeepalive()
+                    elif sudo:
+                        do_tee = False          # couldn't cache creds for a sudo op -> plain (re-prompts)
+                if do_tee:
+                    try:
+                        rc, tail = _run_teed(argv, cwd, env, self.tee_limit)
+                        return Result(full, rc, captured=tail)
+                    except Exception:           # noqa: BLE001 — degrade to plain streaming
+                        pass
+                    finally:
+                        if keepalive is not None:
+                            keepalive.stop()
             # A CAPTURED run is a read-only probe (get_version, installed_index, …) that never needs
             # input — and the background inspection worker fires these while curses owns the terminal.
             # Inheriting stdin (the real tty) lets such a child reset the terminal's modes and drop

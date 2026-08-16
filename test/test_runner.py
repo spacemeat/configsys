@@ -154,19 +154,48 @@ def test_terminal_released_is_a_noop_off_the_main_thread(monkeypatch):
     assert calls == []
 
 
-def test_teed_build_streams_and_presudo_is_a_noop(monkeypatch):
-    # ctty is baked in: a streamed build runs through _run_teed (child owns its own pty as controlling
-    # terminal, so an internal sudo prompts through the tee). presudo is accepted-but-ignored — no
-    # pre-auth, no keep-alive; source-build drivers may still pass it harmlessly.
+def test_teed_plain_stream_does_not_preauth(monkeypatch):
+    # A plain unprivileged streamed op tees with NO sudo pre-auth (nothing needs elevation).
     from configsys import runner as R
     order = []
     monkeypatch.setattr(R, '_can_tee', lambda: True)
-    monkeypatch.setattr(R, '_run_teed',
-                        lambda argv, cwd, env, limit: (order.append('tee'), (0, 'out'))[1])
-    monkeypatch.setattr(R.subprocess, 'run', lambda *a, **k: order.append('sub'))   # must NOT fire
-    res = R.Runner().run('bash build.sh', capture=False, presudo=True)
-    assert res.ok and res.captured == 'out'
-    assert order == ['tee']                          # just the tee — no pre-auth / keep-alive
+    monkeypatch.setattr(R, '_sudo_preauth', lambda: order.append('preauth') or True)
+    monkeypatch.setattr(R, '_run_teed', lambda *a: (order.append('tee'), (0, 'out'))[1])
+    monkeypatch.setattr(R.subprocess, 'run', lambda *a, **k: order.append('sub'))
+    res = R.Runner().run('echo hi', capture=False)
+    assert res.ok and res.captured == 'out' and order == ['tee']   # tee only, no pre-auth
+
+
+def test_teed_sudo_preauths_then_tees_and_captures(monkeypatch):
+    # A privileged (or presudo) streamed op pre-authenticates sudo ONCE + keeps it warm, THEN tees —
+    # so the teed command never prompts mid-stream and its output IS captured for reports.
+    import types
+    from configsys import runner as R
+    order = []
+    monkeypatch.setattr(R, '_can_tee', lambda: True)
+    monkeypatch.setattr(R, '_sudo_preauth', lambda: (order.append('preauth'), True)[1])
+    monkeypatch.setattr(R, '_SudoKeepalive',
+                        lambda: types.SimpleNamespace(stop=lambda: order.append('stop')))
+    monkeypatch.setattr(R, '_run_teed', lambda *a: (order.append('tee'), (0, 'apt output'))[1])
+    monkeypatch.setattr(R.subprocess, 'run', lambda *a, **k: order.append('sub'))   # plain path must NOT fire
+    res = R.Runner().run('apt-get install -y sysdig', sudo=True, capture=False)
+    assert res.ok and res.captured == 'apt output'   # sudo output now captured
+    assert order == ['preauth', 'tee', 'stop']       # pre-auth -> tee -> keep-alive stopped
+
+
+def test_teed_sudo_falls_back_to_plain_when_preauth_fails(monkeypatch):
+    # If the credential can't be cached (user cancels), a sudo op skips teeing and takes the plain
+    # inherited-stdio path (which re-prompts) — never a wedge, never a broken install.
+    import types
+    from configsys import runner as R
+    order = []
+    monkeypatch.setattr(R, '_can_tee', lambda: True)
+    monkeypatch.setattr(R, '_sudo_preauth', lambda: (order.append('preauth'), False)[1])
+    monkeypatch.setattr(R, '_run_teed', lambda *a: (order.append('tee'), (0, 'x'))[1])   # must NOT fire
+    monkeypatch.setattr(R.subprocess, 'run',
+                        lambda *a, **k: (order.append('sub'), types.SimpleNamespace(returncode=0))[1])
+    res = R.Runner().run('apt-get install -y sysdig', sudo=True, capture=False)
+    assert order == ['preauth', 'sub'] and res.returncode == 0   # no tee; plain path ran
 
 
 def test_child_setctty_claims_controlling_terminal(monkeypatch):
