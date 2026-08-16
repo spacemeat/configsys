@@ -10087,7 +10087,8 @@
    "pacman\\wavemon": {
     "driver": "pacman",
     "fields": {
-     "name": "wavemon"
+     "name": "wavemon",
+     "repo-component": "universe"
     },
     "name": "wavemon"
    }
@@ -21281,7 +21282,8 @@
    "apt\\wavemon": {
     "driver": "apt",
     "fields": {
-     "name": "wavemon"
+     "name": "wavemon",
+     "repo-component": "universe"
     },
     "name": "wavemon"
    }
@@ -32271,7 +32273,8 @@
    "apt\\wavemon": {
     "driver": "apt",
     "fields": {
-     "name": "wavemon"
+     "name": "wavemon",
+     "repo-component": "universe"
     },
     "name": "wavemon"
    }
@@ -43252,7 +43255,8 @@
    "apt\\wavemon": {
     "driver": "apt",
     "fields": {
-     "name": "wavemon"
+     "name": "wavemon",
+     "repo-component": "universe"
     },
     "name": "wavemon"
    }
@@ -53782,7 +53786,8 @@
    "dnf\\wavemon": {
     "driver": "dnf",
     "fields": {
-     "name": "wavemon"
+     "name": "wavemon",
+     "repo-component": "universe"
     },
     "name": "wavemon"
    }
@@ -64344,7 +64349,8 @@
    "dnf\\wavemon": {
     "driver": "dnf",
     "fields": {
-     "name": "wavemon"
+     "name": "wavemon",
+     "repo-component": "universe"
     },
     "name": "wavemon"
    }
@@ -83984,7 +83990,8 @@
    "apt\\wavemon": {
     "driver": "apt",
     "fields": {
-     "name": "wavemon"
+     "name": "wavemon",
+     "repo-component": "universe"
     },
     "name": "wavemon"
    }
@@ -106273,7 +106280,8 @@
    "apt\\wavemon": {
     "driver": "apt",
     "fields": {
-     "name": "wavemon"
+     "name": "wavemon",
+     "repo-component": "universe"
     },
     "name": "wavemon"
    }
@@ -117245,7 +117253,8 @@
    "apt\\wavemon": {
     "driver": "apt",
     "fields": {
-     "name": "wavemon"
+     "name": "wavemon",
+     "repo-component": "universe"
     },
     "name": "wavemon"
    }

@@ -1012,7 +1012,7 @@
                               { via: cargo  name: gping } ] }
         vnstat:  { description: "vnStat — a network traffic logger and stats tool." install: [ { via: native  when: "rhel"  requires: epel } { via: native  when: "not amzn"  } ] }
         bmon:    { description: "bmon — a bandwidth monitor and rate estimator (per-interface)." install: [ { via: native  when: "rhel"  requires: epel } { via: native  when: "debian or fedora or arch or opensuse or alpine or amzn" } ] }
-        wavemon: { description: "wavemon — an ncurses monitor for wireless network devices." install: [ { via: native  when: "debian or fedora or arch or opensuse or alpine" } ] }   // not in EPEL/Amazon/atomic
+        wavemon: { description: "wavemon — an ncurses monitor for wireless network devices." install: [ { via: native  when: "debian or fedora or arch or opensuse or alpine"  repo-component: universe } ] }   // Ubuntu universe; not in EPEL/Amazon/atomic
         // dnspeep: watch the DNS queries your machine makes. Not distro-packaged nor on crates.io —
         // upstream's glibc release tarball is a single `dnspeep` binary (dnspeep-dotfiles PATHs it);
         // declines on musl Alpine. Runs as root (libpcap).
