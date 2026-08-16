@@ -146,7 +146,7 @@ def test_inspect_many():
     # inspect() runs the batch prepass, so apt is probed via `dpkg-query -W` (Package Version rows),
     # one `apt-cache policy` (column-0 `name:` blocks), and `apt-mark showhold` — not per-unit.
     fr = FakeRunner([
-        ('dpkg-query', 0, 'btop 1.0.0\n'),
+        ('dpkg-query', 0, 'btop amd64 1.0.0\n'),
         ('apt-cache policy', 0, 'btop:\n  Installed: 1.0.0\n  Candidate: 1.0.0\n'),
         ('apt-mark showhold', 0, ''),
     ])
@@ -160,7 +160,7 @@ def test_inspect_batches_apt_probes_across_units():
     # THE optimization: N apt units cost a FIXED few spawns (one dpkg-query -W, one apt-cache policy,
     # one apt-mark showhold), not 3 per unit. Regression guard for the startup-perf Phase A work.
     fr = FakeRunner([
-        ('dpkg-query', 0, 'btop 1.0.0\nfd 2.0.0\n'),                    # one index, all packages
+        ('dpkg-query', 0, 'btop amd64 1.0.0\nfd amd64 2.0.0\n'),                    # one index, all packages
         ('apt-cache policy', 0, 'btop:\n  Candidate: 1.1.0\n'
                                 'fd:\n  Candidate: 2.0.0\n'),           # one policy, all packages
         ('apt-mark showhold', 0, 'fd\n'),                              # one hold list

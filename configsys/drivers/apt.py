@@ -109,14 +109,22 @@ class Apt(Driver):
     def installed_index(self):
         # ONE call lists every installed package -> {name: version}; the coexistence detector does
         # membership lookups instead of a dpkg-query per component. \n-terminated (multiarch rows).
-        r = self.runner.run("dpkg-query -W -f='${Package} ${Version}\\n'")
+        # Key BOTH the bare name and the arch-qualified `name:arch`: a route may name a foreign-arch
+        # package (e.g. Steam's `steam:i386`), but dpkg reports ${Package} BARE, so without the
+        # qualified key the batched lookup would miss an installed multiarch package (reporting it
+        # "missing" though it's installed).
+        r = self.runner.run("dpkg-query -W -f='${Package} ${Architecture} ${Version}\\n'")
         if not r.ok:
             return None
         idx = {}
         for line in r.stdout.splitlines():
-            name, _, ver = line.partition(' ')
-            if name and name not in idx:          # first row wins (matches per-pkg get_version)
-                idx[name] = ver.strip() or 'installed'
+            parts = line.split(' ', 2)
+            if len(parts) < 2 or not parts[0]:
+                continue
+            name, arch = parts[0], parts[1]
+            ver = (parts[2].strip() if len(parts) > 2 else '') or 'installed'
+            idx.setdefault(name, ver)             # bare name — first row wins (matches get_version)
+            idx.setdefault(f'{name}:{arch}', ver) # arch-qualified — for routes like `steam:i386`
         return idx
 
     def batch_index(self, rcs):

@@ -31,6 +31,23 @@ class FakeRunner:
 
 # -- command construction (via pretend Runner) ---------------------------
 
+def test_installed_index_keys_bare_and_arch_qualified():
+    # A foreign-arch package (Steam's steam:i386) is reported by dpkg with ${Package} BARE
+    # ('steam'), but a route may name it 'steam:i386'. The batched index must carry BOTH keys, or
+    # the startup scan reports an installed multiarch package as "missing".
+    dpkg_out = ('curl amd64 8.5.0-2\n'
+                'steam i386 1:1.0.0.78\n'
+                'steam-installer amd64 1:1.0.0.78\n'
+                'libvulkan1 amd64 1.3.0\n'
+                'libvulkan1 i386 1.3.0\n')
+    apt = Apt(FakeRunner([("dpkg-query -W", 0, dpkg_out)]))
+    idx = apt.installed_index()
+    assert idx.get('steam') == '1:1.0.0.78'          # bare name (dpkg's ${Package})
+    assert idx.get('steam:i386') == '1:1.0.0.78'     # arch-qualified — the route's name
+    assert idx.get('curl') == '8.5.0-2' and idx.get('curl:amd64') == '8.5.0-2'
+    assert idx.get('libvulkan1:i386') == '1.3.0'     # both multiarch instances addressable
+
+
 def test_registry_resolves_apt_and_rejects_others():
     assert isinstance(get_driver('apt', Runner(pretend=True)), Apt)
     assert get_driver('nosuchvia', Runner(pretend=True)) is None   # not implemented
