@@ -21355,6 +21355,20 @@
    }
   },
   "yazi": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "apt\\unzip": {
+    "driver": "apt",
+    "fields": {
+     "name": "unzip"
+    },
+    "name": "unzip"
+   },
    "dotfiles\\bash-dotfiles": {
     "driver": "dotfiles",
     "fields": {
@@ -21374,15 +21388,13 @@
     },
     "name": "yazi-dotfiles"
    },
-   "native-pkg-file\\yazi": {
-    "driver": "native-pkg-file",
+   "tarball\\yazi": {
+    "driver": "tarball",
     "fields": {
-     "asset": {
-      "aarch64": "yazi-aarch64-unknown-linux-gnu.deb",
-      "x86_64": "yazi-x86_64-unknown-linux-gnu.deb"
-     },
+     "installDir": "$CONFIGSYS_APP_DIR/yazi",
      "name": "yazi",
      "version": {
+      "asset": "yazi-$ARCH-unknown-linux-musl.zip",
       "github": "sxyazi/yazi"
      }
     },
@@ -32166,6 +32178,20 @@
    }
   },
   "yazi": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "apt\\unzip": {
+    "driver": "apt",
+    "fields": {
+     "name": "unzip"
+    },
+    "name": "unzip"
+   },
    "dotfiles\\bash-dotfiles": {
     "driver": "dotfiles",
     "fields": {
@@ -32185,15 +32211,13 @@
     },
     "name": "yazi-dotfiles"
    },
-   "native-pkg-file\\yazi": {
-    "driver": "native-pkg-file",
+   "tarball\\yazi": {
+    "driver": "tarball",
     "fields": {
-     "asset": {
-      "aarch64": "yazi-aarch64-unknown-linux-gnu.deb",
-      "x86_64": "yazi-x86_64-unknown-linux-gnu.deb"
-     },
+     "installDir": "$CONFIGSYS_APP_DIR/yazi",
      "name": "yazi",
      "version": {
+      "asset": "yazi-$ARCH-unknown-linux-musl.zip",
       "github": "sxyazi/yazi"
      }
     },
@@ -42968,6 +42992,20 @@
    }
   },
   "yazi": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "apt\\unzip": {
+    "driver": "apt",
+    "fields": {
+     "name": "unzip"
+    },
+    "name": "unzip"
+   },
    "dotfiles\\bash-dotfiles": {
     "driver": "dotfiles",
     "fields": {
@@ -42987,15 +43025,13 @@
     },
     "name": "yazi-dotfiles"
    },
-   "native-pkg-file\\yazi": {
-    "driver": "native-pkg-file",
+   "tarball\\yazi": {
+    "driver": "tarball",
     "fields": {
-     "asset": {
-      "aarch64": "yazi-aarch64-unknown-linux-gnu.deb",
-      "x86_64": "yazi-x86_64-unknown-linux-gnu.deb"
-     },
+     "installDir": "$CONFIGSYS_APP_DIR/yazi",
      "name": "yazi",
      "version": {
+      "asset": "yazi-$ARCH-unknown-linux-musl.zip",
       "github": "sxyazi/yazi"
      }
     },
@@ -53383,7 +53419,7 @@
      "installDir": "$CONFIGSYS_APP_DIR/yazi",
      "name": "yazi",
      "version": {
-      "asset": "yazi-$ARCH-unknown-linux-gnu.zip",
+      "asset": "yazi-$ARCH-unknown-linux-musl.zip",
       "github": "sxyazi/yazi"
      }
     },
@@ -63797,7 +63833,7 @@
      "installDir": "$CONFIGSYS_APP_DIR/yazi",
      "name": "yazi",
      "version": {
-      "asset": "yazi-$ARCH-unknown-linux-gnu.zip",
+      "asset": "yazi-$ARCH-unknown-linux-musl.zip",
       "github": "sxyazi/yazi"
      }
     },
@@ -83071,6 +83107,20 @@
    }
   },
   "yazi": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "apt\\unzip": {
+    "driver": "apt",
+    "fields": {
+     "name": "unzip"
+    },
+    "name": "unzip"
+   },
    "dotfiles\\bash-dotfiles": {
     "driver": "dotfiles",
     "fields": {
@@ -83090,15 +83140,13 @@
     },
     "name": "yazi-dotfiles"
    },
-   "native-pkg-file\\yazi": {
-    "driver": "native-pkg-file",
+   "tarball\\yazi": {
+    "driver": "tarball",
     "fields": {
-     "asset": {
-      "aarch64": "yazi-aarch64-unknown-linux-gnu.deb",
-      "x86_64": "yazi-x86_64-unknown-linux-gnu.deb"
-     },
+     "installDir": "$CONFIGSYS_APP_DIR/yazi",
      "name": "yazi",
      "version": {
+      "asset": "yazi-$ARCH-unknown-linux-musl.zip",
       "github": "sxyazi/yazi"
      }
     },
@@ -93966,7 +94014,7 @@
      "installDir": "$CONFIGSYS_APP_DIR/yazi",
      "name": "yazi",
      "version": {
-      "asset": "yazi-$ARCH-unknown-linux-gnu.zip",
+      "asset": "yazi-$ARCH-unknown-linux-musl.zip",
       "github": "sxyazi/yazi"
      }
     },
@@ -104982,6 +105030,20 @@
    }
   },
   "yazi": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "apt\\unzip": {
+    "driver": "apt",
+    "fields": {
+     "name": "unzip"
+    },
+    "name": "unzip"
+   },
    "dotfiles\\bash-dotfiles": {
     "driver": "dotfiles",
     "fields": {
@@ -105001,15 +105063,13 @@
     },
     "name": "yazi-dotfiles"
    },
-   "native-pkg-file\\yazi": {
-    "driver": "native-pkg-file",
+   "tarball\\yazi": {
+    "driver": "tarball",
     "fields": {
-     "asset": {
-      "aarch64": "yazi-aarch64-unknown-linux-gnu.deb",
-      "x86_64": "yazi-x86_64-unknown-linux-gnu.deb"
-     },
+     "installDir": "$CONFIGSYS_APP_DIR/yazi",
      "name": "yazi",
      "version": {
+      "asset": "yazi-$ARCH-unknown-linux-musl.zip",
       "github": "sxyazi/yazi"
      }
     },

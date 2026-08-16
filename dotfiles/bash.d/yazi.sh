@@ -3,7 +3,7 @@
 # (deb/pacman/brew) and already on PATH.
 _yz=$(configsys location yazi 2>/dev/null)
 if [ -n "$_yz" ]; then
-    _yzbin=$(ls -1 "$_yz"/yazi-*-unknown-linux-gnu/yazi 2>/dev/null | tail -1)
+    _yzbin=$(ls -1 "$_yz"/yazi-*-unknown-linux-*/yazi 2>/dev/null | tail -1)
     [ -x "$_yzbin" ] && alias yazi="$_yzbin"
     unset _yzbin
 fi

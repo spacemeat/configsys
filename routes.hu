@@ -403,11 +403,16 @@
             install: [
                 { via: native  when: "arch" }
                 { via: native  when: "fedora_atomic" }              // brew formula `yazi`
-                { via: native-pkg-file  when: "debian"
+                // upstream's .deb is a glibc build needing libc6 >= 2.39, so it's gated to the OS
+                // versions that ship it (Ubuntu 24.04 / Debian 13); older glibc (e.g. Pop/Ubuntu
+                // 22.04) can't install OR run it -> fall through to the musl tarball below.
+                { via: native-pkg-file  when: "(ubuntu >= 24.04) or (debian >= 13)"
                   version: { github: sxyazi/yazi }
                   asset: { x86_64: yazi-x86_64-unknown-linux-gnu.deb  aarch64: yazi-aarch64-unknown-linux-gnu.deb } }
-                { via: tarball  installDir: "$CONFIGSYS_APP_DIR/yazi"  requires: [ glibc, unzip ]
-                  version: { github: sxyazi/yazi  asset: "yazi-$ARCH-unknown-linux-gnu.zip" } }
+                // the MUSL zip is a static binary — no libc6 floor — so it runs on any glibc (old
+                // Debian/Ubuntu/Pop) AND on musl Alpine. The universal fallback (aliased by yazi.sh).
+                { via: tarball  installDir: "$CONFIGSYS_APP_DIR/yazi"  requires: unzip
+                  version: { github: sxyazi/yazi  asset: "yazi-$ARCH-unknown-linux-musl.zip" } }
             ]
         }
         yazi-dotfiles: { description: "yazi config, linked into place."
