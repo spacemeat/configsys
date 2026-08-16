@@ -664,6 +664,20 @@
         // Alpine's musl gcc and Amazon's base repo don't package it -> they decline.
         objective-c: { description: "Objective-C — the GNU Objective-C compiler frontend + libobjc runtime."
             install: [ { via: native  when: "not (alpine or amzn or fedora_atomic)"  name: { apt: gobjc  default: gcc-objc } } ] }   // no gcc-objc brew formula on atomic (layer/toolbox instead)
+        // GNUstep: the open-source Cocoa/OpenStep framework for Objective-C — needs the ObjC
+        // compiler, so requires: objective-c. Debian/Ubuntu ship the full dev meta (gnustep-devel =
+        // make+base+gui+back); Fedora/Arch/openSUSE package only Foundation + the build system (no
+        // AppKit GUI in their base repos — that's AUR on Arch). gnustep-dotfiles sources the build
+        // environment. Declines where objective-c does (Alpine/Amazon/atomic).
+        gnustep: { suggests: gnustep-dotfiles  requires: objective-c
+            description: "GNUstep — open-source Cocoa/OpenStep framework for Objective-C (Foundation + AppKit)."
+            install: [
+                { via: native  when: "debian"    packages: [ gnustep-devel ] }                        // dev meta: make + base + gui + back
+                { via: native  when: "fedora"    packages: [ gnustep-make, gnustep-base-devel ] }      // Foundation + build system (no AppKit in Fedora repos)
+                { via: native  when: "arch"      packages: [ gnustep-make, gnustep-base ] }            // official base (gnustep-gui is AUR-only)
+                { via: native  when: "opensuse"  packages: [ gnustep-make, gnustep-base-devel ] } ]
+        }
+        gnustep-dotfiles: { description: "gnustep shell setup, linked into place." install: [ { via: dotfiles  requires: bash-dotfiles  src: bash.d/gnustep.sh  dst: ~/.bash.d/gnustep.sh } ] }
         d: { description: "The D programming language (a D compiler — LDC / GDC / DMD per distro)."
             install: [ { via: native  when: "fedora or arch or alpine or fedora_atomic"  name: ldc }   // LLVM D compiler
                        { via: native  when: "debian"  name: gdc }        // GCC D front-end (ldc is sid-only on debian)

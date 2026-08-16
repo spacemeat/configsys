@@ -2928,6 +2928,66 @@
     "name": "gnuradio"
    }
   },
+  "gnustep": {
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.bash.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\gnustep-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/gnustep.sh",
+     "src": "bash.d/gnustep.sh"
+    },
+    "name": "gnustep-dotfiles"
+   },
+   "pacman\\gnustep": {
+    "driver": "pacman",
+    "fields": {
+     "name": "gnustep",
+     "packages": [
+      "gnustep-make",
+      "gnustep-base"
+     ]
+    },
+    "name": "gnustep"
+   },
+   "pacman\\objective-c": {
+    "driver": "pacman",
+    "fields": {
+     "name": "gcc-objc"
+    },
+    "name": "gcc-objc"
+   }
+  },
+  "gnustep-dotfiles": {
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.bash.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\gnustep-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/gnustep.sh",
+     "src": "bash.d/gnustep.sh"
+    },
+    "name": "gnustep-dotfiles"
+   }
+  },
   "go": {
    "dotfiles\\bash-dotfiles": {
     "driver": "dotfiles",
@@ -14157,6 +14217,65 @@
     "name": "gnuradio"
    }
   },
+  "gnustep": {
+   "apt\\gnustep": {
+    "driver": "apt",
+    "fields": {
+     "name": "gnustep",
+     "packages": [
+      "gnustep-devel"
+     ]
+    },
+    "name": "gnustep"
+   },
+   "apt\\objective-c": {
+    "driver": "apt",
+    "fields": {
+     "name": "gobjc"
+    },
+    "name": "gobjc"
+   },
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.bash.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\gnustep-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/gnustep.sh",
+     "src": "bash.d/gnustep.sh"
+    },
+    "name": "gnustep-dotfiles"
+   }
+  },
+  "gnustep-dotfiles": {
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.bash.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\gnustep-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/gnustep.sh",
+     "src": "bash.d/gnustep.sh"
+    },
+    "name": "gnustep-dotfiles"
+   }
+  },
   "go": {
    "apt\\go": {
     "driver": "apt",
@@ -25101,6 +25220,65 @@
     "name": "gnuradio"
    }
   },
+  "gnustep": {
+   "apt\\gnustep": {
+    "driver": "apt",
+    "fields": {
+     "name": "gnustep",
+     "packages": [
+      "gnustep-devel"
+     ]
+    },
+    "name": "gnustep"
+   },
+   "apt\\objective-c": {
+    "driver": "apt",
+    "fields": {
+     "name": "gobjc"
+    },
+    "name": "gobjc"
+   },
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.bash.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\gnustep-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/gnustep.sh",
+     "src": "bash.d/gnustep.sh"
+    },
+    "name": "gnustep-dotfiles"
+   }
+  },
+  "gnustep-dotfiles": {
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.bash.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\gnustep-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/gnustep.sh",
+     "src": "bash.d/gnustep.sh"
+    },
+    "name": "gnustep-dotfiles"
+   }
+  },
   "go": {
    "apt\\go": {
     "driver": "apt",
@@ -35850,6 +36028,65 @@
     "name": "gnuradio"
    }
   },
+  "gnustep": {
+   "apt\\gnustep": {
+    "driver": "apt",
+    "fields": {
+     "name": "gnustep",
+     "packages": [
+      "gnustep-devel"
+     ]
+    },
+    "name": "gnustep"
+   },
+   "apt\\objective-c": {
+    "driver": "apt",
+    "fields": {
+     "name": "gobjc"
+    },
+    "name": "gobjc"
+   },
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.bash.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\gnustep-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/gnustep.sh",
+     "src": "bash.d/gnustep.sh"
+    },
+    "name": "gnustep-dotfiles"
+   }
+  },
+  "gnustep-dotfiles": {
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.bash.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\gnustep-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/gnustep.sh",
+     "src": "bash.d/gnustep.sh"
+    },
+    "name": "gnustep-dotfiles"
+   }
+  },
   "go": {
    "apt\\go": {
     "driver": "apt",
@@ -46157,6 +46394,66 @@
      "name": "gnuradio"
     },
     "name": "gnuradio"
+   }
+  },
+  "gnustep": {
+   "dnf\\gnustep": {
+    "driver": "dnf",
+    "fields": {
+     "name": "gnustep",
+     "packages": [
+      "gnustep-make",
+      "gnustep-base-devel"
+     ]
+    },
+    "name": "gnustep"
+   },
+   "dnf\\objective-c": {
+    "driver": "dnf",
+    "fields": {
+     "name": "gcc-objc"
+    },
+    "name": "gcc-objc"
+   },
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.bash.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\gnustep-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/gnustep.sh",
+     "src": "bash.d/gnustep.sh"
+    },
+    "name": "gnustep-dotfiles"
+   }
+  },
+  "gnustep-dotfiles": {
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.bash.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\gnustep-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/gnustep.sh",
+     "src": "bash.d/gnustep.sh"
+    },
+    "name": "gnustep-dotfiles"
    }
   },
   "go": {
@@ -56504,6 +56801,66 @@
     "name": "gnuradio"
    }
   },
+  "gnustep": {
+   "dnf\\gnustep": {
+    "driver": "dnf",
+    "fields": {
+     "name": "gnustep",
+     "packages": [
+      "gnustep-make",
+      "gnustep-base-devel"
+     ]
+    },
+    "name": "gnustep"
+   },
+   "dnf\\objective-c": {
+    "driver": "dnf",
+    "fields": {
+     "name": "gcc-objc"
+    },
+    "name": "gcc-objc"
+   },
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.bash.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\gnustep-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/gnustep.sh",
+     "src": "bash.d/gnustep.sh"
+    },
+    "name": "gnustep-dotfiles"
+   }
+  },
+  "gnustep-dotfiles": {
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.bash.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\gnustep-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/gnustep.sh",
+     "src": "bash.d/gnustep.sh"
+    },
+    "name": "gnustep-dotfiles"
+   }
+  },
   "go": {
    "dnf\\go": {
     "driver": "dnf",
@@ -66107,6 +66464,27 @@
     "name": "gnuradio"
    }
   },
+  "gnustep-dotfiles": {
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.bash.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\gnustep-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/gnustep.sh",
+     "src": "bash.d/gnustep.sh"
+    },
+    "name": "gnustep-dotfiles"
+   }
+  },
   "go": {
    "brew\\go": {
     "driver": "brew",
@@ -75482,6 +75860,65 @@
      "name": "gnuradio"
     },
     "name": "gnuradio"
+   }
+  },
+  "gnustep": {
+   "apt\\gnustep": {
+    "driver": "apt",
+    "fields": {
+     "name": "gnustep",
+     "packages": [
+      "gnustep-devel"
+     ]
+    },
+    "name": "gnustep"
+   },
+   "apt\\objective-c": {
+    "driver": "apt",
+    "fields": {
+     "name": "gobjc"
+    },
+    "name": "gobjc"
+   },
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.bash.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\gnustep-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/gnustep.sh",
+     "src": "bash.d/gnustep.sh"
+    },
+    "name": "gnustep-dotfiles"
+   }
+  },
+  "gnustep-dotfiles": {
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.bash.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\gnustep-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/gnustep.sh",
+     "src": "bash.d/gnustep.sh"
+    },
+    "name": "gnustep-dotfiles"
    }
   },
   "go": {
@@ -86212,6 +86649,27 @@
      "name": "gnuradio"
     },
     "name": "gnuradio"
+   }
+  },
+  "gnustep-dotfiles": {
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.bash.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\gnustep-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/gnustep.sh",
+     "src": "bash.d/gnustep.sh"
+    },
+    "name": "gnustep-dotfiles"
    }
   },
   "go": {
@@ -97227,6 +97685,65 @@
     "name": "gnuradio"
    }
   },
+  "gnustep": {
+   "apt\\gnustep": {
+    "driver": "apt",
+    "fields": {
+     "name": "gnustep",
+     "packages": [
+      "gnustep-devel"
+     ]
+    },
+    "name": "gnustep"
+   },
+   "apt\\objective-c": {
+    "driver": "apt",
+    "fields": {
+     "name": "gobjc"
+    },
+    "name": "gobjc"
+   },
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.bash.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\gnustep-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/gnustep.sh",
+     "src": "bash.d/gnustep.sh"
+    },
+    "name": "gnustep-dotfiles"
+   }
+  },
+  "gnustep-dotfiles": {
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.bash.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\gnustep-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/gnustep.sh",
+     "src": "bash.d/gnustep.sh"
+    },
+    "name": "gnustep-dotfiles"
+   }
+  },
   "go": {
    "apt\\go": {
     "driver": "apt",
@@ -108178,6 +108695,65 @@
      "name": "gnuradio"
     },
     "name": "gnuradio"
+   }
+  },
+  "gnustep": {
+   "apt\\gnustep": {
+    "driver": "apt",
+    "fields": {
+     "name": "gnustep",
+     "packages": [
+      "gnustep-devel"
+     ]
+    },
+    "name": "gnustep"
+   },
+   "apt\\objective-c": {
+    "driver": "apt",
+    "fields": {
+     "name": "gobjc"
+    },
+    "name": "gobjc"
+   },
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.bash.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\gnustep-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/gnustep.sh",
+     "src": "bash.d/gnustep.sh"
+    },
+    "name": "gnustep-dotfiles"
+   }
+  },
+  "gnustep-dotfiles": {
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.bash.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\gnustep-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "dst": "~/.bash.d/gnustep.sh",
+     "src": "bash.d/gnustep.sh"
+    },
+    "name": "gnustep-dotfiles"
    }
   },
   "go": {
