@@ -1050,6 +1050,14 @@
         // actually installed (the detection tier) or named/constrained. The -12 toolkit + versioned
         // cuDNNs ride NVIDIA's network repo (cuda-repo) — real GPU work wants the vendor repo, not the
         // lagging distro one; -11 stays the low-friction distro package for the older CUDA-11 line.
+        // Convenience aliases to the current default line (CUDA 12 / cuDNN 9) so `cuda`/`cudnn`
+        // just work installed by name or in a profile. Pure `via: parts` aggregators (no unit of
+        // their own); they deliberately do NOT provide the cuda-toolkit capability — dependants
+        // (blender, opencv, …) keep requiring the VERSIONED cuda-toolkit/cuDNN capability directly,
+        // untouched. cudnn already pulls cuda-toolkit-12 via its versioned requires. Bump the part
+        // when the default line moves.
+        cuda:  { description: "NVIDIA CUDA Toolkit — alias for the current default line (CUDA 12)."  install: [ { via: parts  parts: [ cuda-toolkit-12 ] } ] }
+        cudnn: { description: "NVIDIA cuDNN — alias for the current default line (cuDNN 9)."          install: [ { via: parts  parts: [ cudnn-9 ] } ] }
         cuda-toolkit-11: { description: "NVIDIA CUDA Toolkit 11 — GPU compute compiler and libraries (distro package)."
             standing: never-auto  provides: { cuda-toolkit: 11 }
             install: [ { via: native  when: "debian or redhat or arch"  name: { apt: nvidia-cuda-toolkit  dnf: cuda  pacman: cuda } } ]   // only these package a distro CUDA; no CUDA in Alpine/openSUSE base
