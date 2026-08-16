@@ -36,30 +36,48 @@ _SECRET_ENV = re.compile(r'(?i)token|secret|password|passwd|api[_-]?key|\bkey\b'
 
 # -- persistence ----------------------------------------------------------
 
-def save_failure(paths, record):
-    '''Persist the most recent op failure (best-effort — never raise into the op path).'''
+def save_failures(paths, records):
+    '''Persist ALL op failures from a run (best-effort — never raise into the op path). Written as
+    `{ failures: [ ... ] }` so every failed unit is kept, not just the last.'''
     try:
         paths.state_dir.mkdir(parents=True, exist_ok=True)
-        paths.failure_file.write_text(emit_hu(record), encoding='utf-8')
+        paths.failure_file.write_text(emit_hu({'failures': list(records)}), encoding='utf-8')
     except Exception:                                     # noqa: BLE001
         pass
 
 
-def load_failure(paths):
-    '''The saved failure record as a plain dict, or None if absent/unreadable.'''
+def save_failure(paths, record):
+    '''Compat: persist a single failure record (wraps save_failures).'''
+    save_failures(paths, [record])
+
+
+def load_failures(paths):
+    '''Every saved op-failure record (most recent run) as a list of dicts, or []. Back-compat: an
+    OLD single-record file (top-level `component:`, no `failures:` list) reads as a one-element
+    list.'''
     p = paths.failure_file
     if not p.exists() or not p.read_text(encoding='utf-8-sig').strip():
-        return None
+        return []
     try:
         trove = load(p)                                   # keep alive during the walk
         root = trove.root
-        out = {}
-        for i in range(root.num_children):
-            ch = root[i]
-            out[ch.key] = ch.value
-        return out
+        lst = root['failures']
+        if lst is not None and not lst.isnull:            # new list format
+            out = []
+            for i in range(lst.num_children):
+                ch = lst[i]
+                out.append({ch[j].key: ch[j].value for j in range(ch.num_children)})
+            return out
+        rec = {root[i].key: root[i].value for i in range(root.num_children)}   # old bare record
+        return [rec] if rec.get('component') else []
     except Exception:                                     # noqa: BLE001
-        return None
+        return []
+
+
+def load_failure(paths):
+    '''Compat: the most recent single failure record, or None.'''
+    fs = load_failures(paths)
+    return fs[-1] if fs else None
 
 
 def failure_from_result(unit_key, driver, op, res):
@@ -154,9 +172,25 @@ def _layer_label(source, paths):
     return '~' + s[len(home):] if home and s.startswith(home) else s
 
 
-def collect(ctx, component=None, failure=None):
-    '''Assemble the (unscrubbed) report payload. `failure` is a saved/just-happened record;
-    `component` overrides which component the route section explains.'''
+def collect(ctx, component=None, failure=None, failures=None):
+    '''Assemble the (unscrubbed) report payload. `failure` is a single saved/just-happened record;
+    `failures` (list) reports MANY at once (e.g. every unit that failed in a run) — each gets its
+    own route in `routes`. `component` overrides which component the single route section explains.'''
+    if failures:
+        return {
+            'component': None,
+            'os': {'block': ctx.os_info.block, 'id': ctx.os_info.id,
+                   'version': ctx.os_info.version or '', 'pretty': _os_pretty(),
+                   'atomic': osdetect.is_atomic(ctx.os_info.block)},
+            'platform': {'kernel': platform.platform(), 'arch': platform.machine(),
+                         'python': platform.python_version()},
+            'configsys': {'revision': _git_rev(ctx.paths.repo), 'abi': plugins.ABI_VERSION},
+            'profiles': list(ctx.config.active_profiles),
+            'pins': dict(ctx.config.pins() or {}),
+            'routes': {f.get('component'): _route(ctx, f.get('component'))
+                       for f in failures if f.get('component')},
+            'failures': list(failures),
+        }
     name = component or (failure or {}).get('component')
     payload = {
         'component': name,
@@ -185,6 +219,25 @@ def collect(ctx, component=None, failure=None):
 
 def _fence(text):
     return f'```\n{text.rstrip()}\n```'
+
+
+def _render_failure(L, fail, sc):
+    '''Append one failure record's block (op/unit/driver/exit, command, driver output) to L.'''
+    L.append(f"- **op:** {fail.get('op')}  ·  **unit:** `{fail.get('unit')}`  "
+             f"·  **driver:** `{fail.get('driver')}`  ·  **exit:** {fail.get('exit')}"
+             f"{('  ·  ' + fail['at']) if fail.get('at') else ''}")
+    if fail.get('command'):
+        L.append('')
+        L.append('**Command**')
+        L.append(_fence(sc(str(fail['command']))))
+    out = str(fail.get('output') or '').strip()
+    L.append('')
+    L.append('**Driver output**')
+    if out:
+        L.append(_fence(sc(out)))
+    else:
+        L.append('_(streamed to the terminal and not captured — paste the relevant '
+                 'lines here before submitting)_')
 
 
 def render(payload, *, home=None, secrets=()):
@@ -231,21 +284,24 @@ def render(payload, *, home=None, secrets=()):
     if fail:
         L.append('')
         L.append('### Failure')
-        L.append(f"- **op:** {fail.get('op')}  ·  **unit:** `{fail.get('unit')}`  "
-                 f"·  **driver:** `{fail.get('driver')}`  ·  **exit:** {fail.get('exit')}"
-                 f"{('  ·  ' + fail['at']) if fail.get('at') else ''}")
-        if fail.get('command'):
-            L.append('')
-            L.append('**Command**')
-            L.append(_fence(sc(str(fail['command']))))
-        out = str(fail.get('output') or '').strip()
+        _render_failure(L, fail, sc)
+
+    # multi-failure report: every unit that failed in the run, each with its route
+    fails = payload.get('failures')
+    if fails:
+        routes = payload.get('routes') or {}
         L.append('')
-        L.append('**Driver output**')
-        if out:
-            L.append(_fence(sc(out)))
-        else:
-            L.append('_(streamed to the terminal and not captured — paste the relevant '
-                     'lines here before submitting)_')
+        L.append(f'### Failures ({len(fails)})')
+        for f in fails:
+            comp = f.get('component') or '(unknown)'
+            L.append('')
+            L.append(f'#### `{comp}`')
+            r = routes.get(comp)
+            if r and not r.get('error') and r.get('units'):
+                L.append('- **resolves to:** ' + ', '.join(f'`{u}`' for u in r['units']))
+            elif r and r.get('error'):
+                L.append(f"- **route error:** {sc(r['error'])}")
+            _render_failure(L, f, sc)
 
     L.append('')
     L.append('---')
@@ -258,6 +314,11 @@ def render(payload, *, home=None, secrets=()):
 def title(payload):
     os_ = payload['os']
     ver = f" {os_['version']}" if os_['version'] else ''
+    fails = payload.get('failures')
+    if fails:
+        names = [f.get('component') or '?' for f in fails]
+        shown = ', '.join(names[:3]) + (f' +{len(names) - 3} more' if len(names) > 3 else '')
+        return f"[report] {len(fails)} components failed on {os_['block']}{ver}: {shown}"
     return f"[report] {payload['component'] or 'component'} on {os_['block']}{ver}"
 
 

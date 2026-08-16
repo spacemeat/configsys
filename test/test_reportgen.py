@@ -36,6 +36,49 @@ def test_load_failure_absent_is_none(tmp_path):
     assert reportgen.load_failure(paths) is None
 
 
+def test_save_load_multiple_failures(tmp_path):
+    # a run where several units fail must persist ALL of them, not just the last.
+    paths = Paths(env={'CONFIGSYS_HOME': str(tmp_path)})
+    recs = [{'component': 'sysdig', 'unit': 'apt\\sysdig', 'driver': 'apt', 'op': 'install',
+             'command': 'sudo apt-get install -y sysdig', 'exit': 100, 'output': '', 'at': 't1'},
+            {'component': 'wavemon', 'unit': 'apt\\wavemon', 'driver': 'apt', 'op': 'install',
+             'command': 'sudo apt-get install -y wavemon', 'exit': 100, 'output': '', 'at': 't2'}]
+    reportgen.save_failures(paths, recs)
+    got = reportgen.load_failures(paths)
+    assert [f['component'] for f in got] == ['sysdig', 'wavemon']
+    assert reportgen.load_failure(paths)['component'] == 'wavemon'   # compat = most recent
+
+
+def test_load_failures_reads_old_single_record(tmp_path):
+    # a pre-existing bare-record last-failure.hu (no `failures:` list) still loads.
+    paths = Paths(env={'CONFIGSYS_HOME': str(tmp_path)})
+    reportgen.save_failure(paths, {'component': 'oldtool', 'unit': 'apt\\oldtool', 'exit': 100})
+    # rewrite it in the OLD bare format to prove back-compat of the reader
+    paths.failure_file.write_text('{\n    component: oldtool\n    exit: 100\n}\n')
+    got = reportgen.load_failures(paths)
+    assert len(got) == 1 and got[0]['component'] == 'oldtool'
+
+
+def test_render_multi_failure_lists_every_component():
+    payload = {
+        'component': None,
+        'os': {'block': 'pop_os!', 'id': 'pop', 'version': '22.04', 'pretty': 'Pop!_OS 22.04',
+               'atomic': False},
+        'platform': {'kernel': 'Linux', 'arch': 'x86_64', 'python': '3.10'},
+        'configsys': {'revision': 'abc', 'abi': 1}, 'profiles': [], 'pins': {},
+        'routes': {'sysdig': {'units': ['apt\\sysdig']}, 'wavemon': {'units': ['apt\\wavemon']}},
+        'failures': [
+            {'component': 'sysdig', 'unit': 'apt\\sysdig', 'driver': 'apt', 'op': 'install',
+             'exit': 100, 'command': 'sudo apt-get install -y sysdig'},
+            {'component': 'wavemon', 'unit': 'apt\\wavemon', 'driver': 'apt', 'op': 'install',
+             'exit': 100, 'command': 'sudo apt-get install -y wavemon'}],
+    }
+    body = reportgen.render(payload)
+    assert '### Failures (2)' in body
+    assert '#### `sysdig`' in body and '#### `wavemon`' in body
+    assert '2 components failed on pop_os! 22.04' in reportgen.title(payload)
+
+
 def test_failure_from_result_shape():
     res = type('R', (), {'cmd': 'make', 'returncode': 1, 'output': 'oops'})()
     rec = reportgen.failure_from_result('cargo\\ripgrep', 'cargo', 'install', res)

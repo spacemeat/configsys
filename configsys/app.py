@@ -623,7 +623,7 @@ def _dispatch_op(ctx, names, op, *, ledger=None, version=None):
     plan = expand_plan(base_plan, units)
 
     rc_code = 0
-    last_failure = None
+    failures = []
     for cur_op, key, rc in plan:
         drv = get_driver(rc.driver, ctx.runner, ctx.paths)
         if drv is None:
@@ -661,32 +661,42 @@ def _dispatch_op(ctx, names, op, *, ledger=None, version=None):
             print(f'  -> FAILED (exit {res.returncode})')
             for line in (res.output or res.cmd or '').strip().splitlines():
                 print(f'     {line}')                 # show WHY here, not only in last-failure.hu
-            last_failure = reportgen.failure_from_result(key, rc.driver, cur_op, res)
+            failures.append(reportgen.failure_from_result(key, rc.driver, cur_op, res))
         else:
             print('  -> ok')
     if ledger is not None:
         ledger.save(ctx.paths)
-    if last_failure is not None:
-        _offer_report(ctx, last_failure)
+    if failures:
+        _offer_report(ctx, failures)
     return rc_code
 
 
-def _offer_report(ctx, failure):
-    '''Persist the failure so `configsys report` can reuse it later, and — on a terminal —
-    offer to file it now. Never fatal; a --pretend run doesn't reach here.'''
-    reportgen.save_failure(ctx.paths, failure)
+def _offer_report(ctx, failures):
+    '''Persist EVERY failure from the run so `configsys report` can reuse them later, and — on a
+    terminal — offer to file them now. Never fatal; a --pretend run doesn't reach here.'''
+    if not isinstance(failures, list):                    # tolerate a single record
+        failures = [failures]
+    reportgen.save_failures(ctx.paths, failures)
+    names = [f['component'] for f in failures]
+    n = len(failures)
+    who = names[0] if n == 1 else f'{n} components ({", ".join(names)})'
     if not (sys.stdin.isatty() and sys.stdout.isatty()):
-        print(f'\nconfigsys: {failure["unit"]} failed — run `configsys report '
-              f'{failure["component"]}` to file a report.')
+        tail = names[0] if n == 1 else ''                 # `report` with no name files them all
+        print(f'\nconfigsys: {who} failed — run `configsys report {tail}`'.rstrip()
+              + ' to file a report.')
         return
     try:
-        ans = input(f'\nfile a report of this {failure["component"]} failure? [y/N] ').strip().lower()
+        ans = input(f'\nfile a report of {"this" if n == 1 else "these"} '
+                    f'{who} failure{"" if n == 1 else "s"}? [y/N] ').strip().lower()
     except EOFError:
         ans = ''
     if ans in ('y', 'yes'):
-        cmd_report(ctx, argparse.Namespace(name=failure['component'], yes=False, print_only=False))
+        # no name -> report all saved failures; the saved list is what report reads
+        nm = names[0] if n == 1 else None
+        cmd_report(ctx, argparse.Namespace(name=nm, yes=False, print_only=False))
     else:
-        print(f'configsys: saved — `configsys report {failure["component"]}` files it later.')
+        hint = names[0] if n == 1 else '<name>` for one, or `configsys report'
+        print(f'configsys: saved — `configsys report {hint}` files {"it" if n == 1 else "them"} later.')
 
 
 def cmd_fix_scope(ctx, args):
@@ -1720,16 +1730,25 @@ def _send_report(ctx, title, body, label='install-report', save_as='last-report.
 
 def cmd_report(ctx, args):
     from . import reportgen
-    saved = reportgen.load_failure(ctx.paths)
-    name = getattr(args, 'name', None) or (saved or {}).get('component')
-    if name is None:
+    saved = reportgen.load_failures(ctx.paths)             # list of failure records (this run)
+    name = getattr(args, 'name', None)
+
+    multi = None
+    if name:
+        # only attach a saved failure that's about the component we're reporting
+        failure = next((f for f in saved if f.get('component') == name), None)
+    elif len(saved) > 1:
+        multi = saved                                      # no name + many failures -> report ALL
+        failure = None
+    elif len(saved) == 1:
+        name, failure = saved[0].get('component'), saved[0]
+    else:
         print('configsys: nothing to report — name a component (`configsys report <name>`) '
               'or run it after a failed install so the failure is captured.')
         return 1
-    # only attach the saved failure if it's about the component we're reporting
-    failure = saved if saved and saved.get('component') == name else None
 
-    payload = reportgen.collect(ctx, component=name, failure=failure)
+    payload = (reportgen.collect(ctx, failures=multi) if multi
+               else reportgen.collect(ctx, component=name, failure=failure))
     secrets = reportgen.secret_values(ctx.env)
     body = reportgen.render(payload, home=ctx.paths.home, secrets=secrets)
     title = reportgen.title(payload)
@@ -1738,7 +1757,7 @@ def cmd_report(ctx, args):
     print(f'{title}\n')
     print(body)
     print('=' * 72)
-    if not failure:
+    if not failure and not multi:
         print('note: no captured driver output (report either after a failed op, or paste it in).')
     if getattr(args, 'print_only', False):
         return 0
