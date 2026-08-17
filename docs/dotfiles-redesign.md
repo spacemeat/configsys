@@ -225,8 +225,19 @@ moves.
    mixed config+glue components wasn't expanded by `_specs` (they'd silently lost their shell snippet)
    — `_specs` now expands glue at top level AND inside a named spec. Routes/golden unchanged
    (driver/storage only). NOT yet run on the user's live machine (installs will stamp markers there).
-3. **Multi-shell** — `zsh-dotfiles`/`fish-dotfiles` loaders, per-installed-shell activation, first
-   non-bash glue variants. (Convention already supports it; this just adds the loaders + variants.)
+3. **Multi-shell — DONE**: glue now activates per-INSTALLED shell — the driver's `_glue_variants`
+   gates each shell on its binary being on PATH (`_installed_shells`, overridable via
+   `CONFIGSYS_GLUE_SHELLS` for tests). Per-shell GLUE LOADERS via a `loader: <shell>` dotfiles field:
+   `fish-glue` ensures `~/.config/fish/conf.d/` (fish auto-sources it natively — no rc edit);
+   `zsh-glue` inserts ONE configsys-owned, marker-delimited block into `~/.zshrc` sourcing
+   `~/.config/zsh/conf.d/*.zsh` (idempotent; removed on uninstall; SKIPPED when `~/.zshrc` is a
+   configsys-managed symlink, so a captured zshrc owns its own source line — never edit-through). NB:
+   these are NAMED `*-glue` (not `*-dotfiles`) because `zsh-dotfiles`/`fish-dotfiles` were already
+   taken by the shells' own CONFIG components (`~/.zshrc`, `~/.config/fish`); `bash-dotfiles` stays
+   the bash loader (rides the distro `~/.bash_aliases` convention). `zsh`/`fish` now `suggests: [
+   <config>, <glue> ]` so installing the shell sets up its conf.d loader. First non-bash glue variant
+   shipped: `dotfiles/shell/fish/00-configsys.fish`. Golden additive (+zsh-glue/+fish-glue). nushell
+   remains punted (structured config, not `source *.<ext>`) — the layout doesn't preclude it.
 
 ## Resolved (were open)
 - **Manifest** = always a file `<component>.cfs/manifest.hu`, records the `src→content→dst` layout;

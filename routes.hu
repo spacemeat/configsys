@@ -363,8 +363,8 @@
                 install: [ { via: native } ] }
         tmux-dotfiles: { description: "tmux config, linked into place."
                 install: [ { via: dotfiles  config: { src: tmux  dst: $XDG_CONFIG_HOME/tmux } } ] }
-        zsh:  { suggests: zsh-dotfiles  description: "Z shell — a powerful interactive shell." install: [ { via: native } ] }
-        fish: { suggests: fish-dotfiles  description: "Friendly interactive shell — smart autosuggestions out of the box." install: [ { via: native  when: "not amzn"  } ] }
+        zsh:  { suggests: [ zsh-dotfiles, zsh-glue ]  description: "Z shell — a powerful interactive shell." install: [ { via: native } ] }
+        fish: { suggests: [ fish-dotfiles, fish-glue ]  description: "Friendly interactive shell — smart autosuggestions out of the box." install: [ { via: native  when: "not amzn"  } ] }
         // nushell isn't in Debian/Ubuntu/Fedora base repos; native where it is (Arch, Homebrew),
         // else the upstream glibc release tarball (ships `nu` + its plugins).
         nushell: { suggests: nushell-dotfiles 
@@ -1697,6 +1697,16 @@
             install: [ { via: dotfiles  aliases: { src: bash_aliases  dst: ~/.bash_aliases
                          absorb-into: ~/.config/bash/conf.d/pre-configsys-aliases.sh } } ]
         }
+        // Per-shell GLUE LOADERS (distinct from the shells' own *-dotfiles config). Glue snippets
+        // link into the uniform ~/.config/<shell>/conf.d/ and the driver activates a shell's variant
+        // only when that shell's binary is on PATH. fish auto-sources its conf.d natively — fish-glue
+        // just ensures the dir. zsh needs one configsys-owned marker block in ~/.zshrc (added on
+        // install, removed on uninstall) sourcing ~/.config/zsh/conf.d/*.zsh — skipped if ~/.zshrc is
+        // a configsys-managed symlink (your captured config owns the source line then).
+        zsh-glue:  { description: "Zsh glue loader — sources ~/.config/zsh/conf.d/*.zsh from ~/.zshrc."
+            install: [ { via: dotfiles  loader: zsh } ] }
+        fish-glue: { description: "Fish glue loader — ensures ~/.config/fish/conf.d/ (fish auto-sources it)."
+            install: [ { via: dotfiles  loader: fish } ] }
 
         // --- editors / IDEs ---
         neovim: { description: "Hyperextensible Vim-based editor (`nvim`)."

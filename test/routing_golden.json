@@ -2359,6 +2359,13 @@
     },
     "name": "fish-dotfiles"
    },
+   "dotfiles\\fish-glue": {
+    "driver": "dotfiles",
+    "fields": {
+     "loader": "fish"
+    },
+    "name": "fish-glue"
+   },
    "pacman\\fish": {
     "driver": "pacman",
     "fields": {
@@ -2377,6 +2384,15 @@
      }
     },
     "name": "fish-dotfiles"
+   }
+  },
+  "fish-glue": {
+   "dotfiles\\fish-glue": {
+    "driver": "dotfiles",
+    "fields": {
+     "loader": "fish"
+    },
+    "name": "fish-glue"
    }
   },
   "flatpak": {
@@ -10561,6 +10577,13 @@
     },
     "name": "zsh-dotfiles"
    },
+   "dotfiles\\zsh-glue": {
+    "driver": "dotfiles",
+    "fields": {
+     "loader": "zsh"
+    },
+    "name": "zsh-glue"
+   },
    "pacman\\zsh": {
     "driver": "pacman",
     "fields": {
@@ -10579,6 +10602,15 @@
      }
     },
     "name": "zsh-dotfiles"
+   }
+  },
+  "zsh-glue": {
+   "dotfiles\\zsh-glue": {
+    "driver": "dotfiles",
+    "fields": {
+     "loader": "zsh"
+    },
+    "name": "zsh-glue"
    }
   },
   "zstd": {
@@ -13329,6 +13361,13 @@
      }
     },
     "name": "fish-dotfiles"
+   },
+   "dotfiles\\fish-glue": {
+    "driver": "dotfiles",
+    "fields": {
+     "loader": "fish"
+    },
+    "name": "fish-glue"
    }
   },
   "fish-dotfiles": {
@@ -13341,6 +13380,15 @@
      }
     },
     "name": "fish-dotfiles"
+   }
+  },
+  "fish-glue": {
+   "dotfiles\\fish-glue": {
+    "driver": "dotfiles",
+    "fields": {
+     "loader": "fish"
+    },
+    "name": "fish-glue"
    }
   },
   "flatpak": {
@@ -21574,6 +21622,13 @@
      }
     },
     "name": "zsh-dotfiles"
+   },
+   "dotfiles\\zsh-glue": {
+    "driver": "dotfiles",
+    "fields": {
+     "loader": "zsh"
+    },
+    "name": "zsh-glue"
    }
   },
   "zsh-dotfiles": {
@@ -21586,6 +21641,15 @@
      }
     },
     "name": "zsh-dotfiles"
+   }
+  },
+  "zsh-glue": {
+   "dotfiles\\zsh-glue": {
+    "driver": "dotfiles",
+    "fields": {
+     "loader": "zsh"
+    },
+    "name": "zsh-glue"
    }
   },
   "zstd": {
@@ -24285,6 +24349,13 @@
      }
     },
     "name": "fish-dotfiles"
+   },
+   "dotfiles\\fish-glue": {
+    "driver": "dotfiles",
+    "fields": {
+     "loader": "fish"
+    },
+    "name": "fish-glue"
    }
   },
   "fish-dotfiles": {
@@ -24297,6 +24368,15 @@
      }
     },
     "name": "fish-dotfiles"
+   }
+  },
+  "fish-glue": {
+   "dotfiles\\fish-glue": {
+    "driver": "dotfiles",
+    "fields": {
+     "loader": "fish"
+    },
+    "name": "fish-glue"
    }
   },
   "flatpak": {
@@ -32343,6 +32423,13 @@
      }
     },
     "name": "zsh-dotfiles"
+   },
+   "dotfiles\\zsh-glue": {
+    "driver": "dotfiles",
+    "fields": {
+     "loader": "zsh"
+    },
+    "name": "zsh-glue"
    }
   },
   "zsh-dotfiles": {
@@ -32355,6 +32442,15 @@
      }
     },
     "name": "zsh-dotfiles"
+   }
+  },
+  "zsh-glue": {
+   "dotfiles\\zsh-glue": {
+    "driver": "dotfiles",
+    "fields": {
+     "loader": "zsh"
+    },
+    "name": "zsh-glue"
    }
   },
   "zstd": {
@@ -35057,6 +35153,13 @@
      }
     },
     "name": "fish-dotfiles"
+   },
+   "dotfiles\\fish-glue": {
+    "driver": "dotfiles",
+    "fields": {
+     "loader": "fish"
+    },
+    "name": "fish-glue"
    }
   },
   "fish-dotfiles": {
@@ -35069,6 +35172,15 @@
      }
     },
     "name": "fish-dotfiles"
+   }
+  },
+  "fish-glue": {
+   "dotfiles\\fish-glue": {
+    "driver": "dotfiles",
+    "fields": {
+     "loader": "fish"
+    },
+    "name": "fish-glue"
    }
   },
   "flatpak": {
@@ -43121,6 +43233,13 @@
      }
     },
     "name": "zsh-dotfiles"
+   },
+   "dotfiles\\zsh-glue": {
+    "driver": "dotfiles",
+    "fields": {
+     "loader": "zsh"
+    },
+    "name": "zsh-glue"
    }
   },
   "zsh-dotfiles": {
@@ -43133,6 +43252,15 @@
      }
     },
     "name": "zsh-dotfiles"
+   }
+  },
+  "zsh-glue": {
+   "dotfiles\\zsh-glue": {
+    "driver": "dotfiles",
+    "fields": {
+     "loader": "zsh"
+    },
+    "name": "zsh-glue"
    }
   },
   "zstd": {
@@ -45669,6 +45797,13 @@
      }
     },
     "name": "fish-dotfiles"
+   },
+   "dotfiles\\fish-glue": {
+    "driver": "dotfiles",
+    "fields": {
+     "loader": "fish"
+    },
+    "name": "fish-glue"
    }
   },
   "fish-dotfiles": {
@@ -45681,6 +45816,15 @@
      }
     },
     "name": "fish-dotfiles"
+   }
+  },
+  "fish-glue": {
+   "dotfiles\\fish-glue": {
+    "driver": "dotfiles",
+    "fields": {
+     "loader": "fish"
+    },
+    "name": "fish-glue"
    }
   },
   "flatpak": {
@@ -53467,6 +53611,13 @@
      }
     },
     "name": "zsh-dotfiles"
+   },
+   "dotfiles\\zsh-glue": {
+    "driver": "dotfiles",
+    "fields": {
+     "loader": "zsh"
+    },
+    "name": "zsh-glue"
    }
   },
   "zsh-dotfiles": {
@@ -53479,6 +53630,15 @@
      }
     },
     "name": "zsh-dotfiles"
+   }
+  },
+  "zsh-glue": {
+   "dotfiles\\zsh-glue": {
+    "driver": "dotfiles",
+    "fields": {
+     "loader": "zsh"
+    },
+    "name": "zsh-glue"
    }
   },
   "zstd": {
@@ -56041,6 +56201,13 @@
      }
     },
     "name": "fish-dotfiles"
+   },
+   "dotfiles\\fish-glue": {
+    "driver": "dotfiles",
+    "fields": {
+     "loader": "fish"
+    },
+    "name": "fish-glue"
    }
   },
   "fish-dotfiles": {
@@ -56053,6 +56220,15 @@
      }
     },
     "name": "fish-dotfiles"
+   }
+  },
+  "fish-glue": {
+   "dotfiles\\fish-glue": {
+    "driver": "dotfiles",
+    "fields": {
+     "loader": "fish"
+    },
+    "name": "fish-glue"
    }
   },
   "flatpak": {
@@ -63839,6 +64015,13 @@
      }
     },
     "name": "zsh-dotfiles"
+   },
+   "dotfiles\\zsh-glue": {
+    "driver": "dotfiles",
+    "fields": {
+     "loader": "zsh"
+    },
+    "name": "zsh-glue"
    }
   },
   "zsh-dotfiles": {
@@ -63851,6 +64034,15 @@
      }
     },
     "name": "zsh-dotfiles"
+   }
+  },
+  "zsh-glue": {
+   "dotfiles\\zsh-glue": {
+    "driver": "dotfiles",
+    "fields": {
+     "loader": "zsh"
+    },
+    "name": "zsh-glue"
    }
   },
   "zstd": {
@@ -65769,6 +65961,13 @@
      }
     },
     "name": "fish-dotfiles"
+   },
+   "dotfiles\\fish-glue": {
+    "driver": "dotfiles",
+    "fields": {
+     "loader": "fish"
+    },
+    "name": "fish-glue"
    }
   },
   "fish-dotfiles": {
@@ -65781,6 +65980,15 @@
      }
     },
     "name": "fish-dotfiles"
+   }
+  },
+  "fish-glue": {
+   "dotfiles\\fish-glue": {
+    "driver": "dotfiles",
+    "fields": {
+     "loader": "fish"
+    },
+    "name": "fish-glue"
    }
   },
   "flatpak": {
@@ -72070,6 +72278,13 @@
      }
     },
     "name": "zsh-dotfiles"
+   },
+   "dotfiles\\zsh-glue": {
+    "driver": "dotfiles",
+    "fields": {
+     "loader": "zsh"
+    },
+    "name": "zsh-glue"
    }
   },
   "zsh-dotfiles": {
@@ -72082,6 +72297,15 @@
      }
     },
     "name": "zsh-dotfiles"
+   }
+  },
+  "zsh-glue": {
+   "dotfiles\\zsh-glue": {
+    "driver": "dotfiles",
+    "fields": {
+     "loader": "zsh"
+    },
+    "name": "zsh-glue"
    }
   },
   "zstd": {
@@ -74844,6 +75068,13 @@
      }
     },
     "name": "fish-dotfiles"
+   },
+   "dotfiles\\fish-glue": {
+    "driver": "dotfiles",
+    "fields": {
+     "loader": "fish"
+    },
+    "name": "fish-glue"
    }
   },
   "fish-dotfiles": {
@@ -74856,6 +75087,15 @@
      }
     },
     "name": "fish-dotfiles"
+   }
+  },
+  "fish-glue": {
+   "dotfiles\\fish-glue": {
+    "driver": "dotfiles",
+    "fields": {
+     "loader": "fish"
+    },
+    "name": "fish-glue"
    }
   },
   "flatpak": {
@@ -83088,6 +83328,13 @@
      }
     },
     "name": "zsh-dotfiles"
+   },
+   "dotfiles\\zsh-glue": {
+    "driver": "dotfiles",
+    "fields": {
+     "loader": "zsh"
+    },
+    "name": "zsh-glue"
    }
   },
   "zsh-dotfiles": {
@@ -83100,6 +83347,15 @@
      }
     },
     "name": "zsh-dotfiles"
+   }
+  },
+  "zsh-glue": {
+   "dotfiles\\zsh-glue": {
+    "driver": "dotfiles",
+    "fields": {
+     "loader": "zsh"
+    },
+    "name": "zsh-glue"
    }
   },
   "zstd": {
@@ -85877,6 +86133,13 @@
      }
     },
     "name": "fish-dotfiles"
+   },
+   "dotfiles\\fish-glue": {
+    "driver": "dotfiles",
+    "fields": {
+     "loader": "fish"
+    },
+    "name": "fish-glue"
    }
   },
   "fish-dotfiles": {
@@ -85889,6 +86152,15 @@
      }
     },
     "name": "fish-dotfiles"
+   }
+  },
+  "fish-glue": {
+   "dotfiles\\fish-glue": {
+    "driver": "dotfiles",
+    "fields": {
+     "loader": "fish"
+    },
+    "name": "fish-glue"
    }
   },
   "flatpak": {
@@ -93949,6 +94221,13 @@
      }
     },
     "name": "zsh-dotfiles"
+   },
+   "dotfiles\\zsh-glue": {
+    "driver": "dotfiles",
+    "fields": {
+     "loader": "zsh"
+    },
+    "name": "zsh-glue"
    }
   },
   "zsh-dotfiles": {
@@ -93961,6 +94240,15 @@
      }
     },
     "name": "zsh-dotfiles"
+   }
+  },
+  "zsh-glue": {
+   "dotfiles\\zsh-glue": {
+    "driver": "dotfiles",
+    "fields": {
+     "loader": "zsh"
+    },
+    "name": "zsh-glue"
    }
   },
   "zstd": {
@@ -96714,6 +97002,13 @@
      }
     },
     "name": "fish-dotfiles"
+   },
+   "dotfiles\\fish-glue": {
+    "driver": "dotfiles",
+    "fields": {
+     "loader": "fish"
+    },
+    "name": "fish-glue"
    }
   },
   "fish-dotfiles": {
@@ -96726,6 +97021,15 @@
      }
     },
     "name": "fish-dotfiles"
+   }
+  },
+  "fish-glue": {
+   "dotfiles\\fish-glue": {
+    "driver": "dotfiles",
+    "fields": {
+     "loader": "fish"
+    },
+    "name": "fish-glue"
    }
   },
   "flatpak": {
@@ -104965,6 +105269,13 @@
      }
     },
     "name": "zsh-dotfiles"
+   },
+   "dotfiles\\zsh-glue": {
+    "driver": "dotfiles",
+    "fields": {
+     "loader": "zsh"
+    },
+    "name": "zsh-glue"
    }
   },
   "zsh-dotfiles": {
@@ -104977,6 +105288,15 @@
      }
     },
     "name": "zsh-dotfiles"
+   }
+  },
+  "zsh-glue": {
+   "dotfiles\\zsh-glue": {
+    "driver": "dotfiles",
+    "fields": {
+     "loader": "zsh"
+    },
+    "name": "zsh-glue"
    }
   },
   "zstd": {
@@ -107679,6 +107999,13 @@
      }
     },
     "name": "fish-dotfiles"
+   },
+   "dotfiles\\fish-glue": {
+    "driver": "dotfiles",
+    "fields": {
+     "loader": "fish"
+    },
+    "name": "fish-glue"
    }
   },
   "fish-dotfiles": {
@@ -107691,6 +108018,15 @@
      }
     },
     "name": "fish-dotfiles"
+   }
+  },
+  "fish-glue": {
+   "dotfiles\\fish-glue": {
+    "driver": "dotfiles",
+    "fields": {
+     "loader": "fish"
+    },
+    "name": "fish-glue"
    }
   },
   "flatpak": {
@@ -115705,6 +116041,13 @@
      }
     },
     "name": "zsh-dotfiles"
+   },
+   "dotfiles\\zsh-glue": {
+    "driver": "dotfiles",
+    "fields": {
+     "loader": "zsh"
+    },
+    "name": "zsh-glue"
    }
   },
   "zsh-dotfiles": {
@@ -115717,6 +116060,15 @@
      }
     },
     "name": "zsh-dotfiles"
+   }
+  },
+  "zsh-glue": {
+   "dotfiles\\zsh-glue": {
+    "driver": "dotfiles",
+    "fields": {
+     "loader": "zsh"
+    },
+    "name": "zsh-glue"
    }
   },
   "zstd": {

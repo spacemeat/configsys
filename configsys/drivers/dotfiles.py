@@ -47,6 +47,20 @@ MANIFEST_NAME = 'manifest.hu'
 _SECRET_GLOBS = ['.env', '*.env', 'id_*', '*_history', '*.pem', '*.key',
                  'credentials*', '*.secret', 'secrets', '.ssh']
 
+# loader components (`loader: <shell>`): hook a shell up to source its ~/.config/<shell>/conf.d/*.
+# fish auto-sources conf.d natively (no rc edit); bash rides the distro ~/.bash_aliases convention
+# (bash-dotfiles, kept as-is); zsh needs one configsys-owned, marker-delimited rc block; nu is punted
+# (dir only). The markers make the block idempotent + cleanly removable.
+_RC_BEGIN = '# >>> configsys glue >>>'
+_RC_END = '# <<< configsys glue <<<'
+_SHELL_RC = {'zsh': '~/.zshrc'}
+# how each rc-driven shell sources its conf.d dir (empty-glob-safe).
+_RC_SOURCE = {
+    'zsh': ('setopt local_options null_glob\n'
+            'for _f in {confd}/*.zsh; do source "$_f"; done\n'
+            'unset _f'),
+}
+
 
 class DotFiles(Driver):
     name = 'dotfiles'
@@ -84,14 +98,29 @@ class DotFiles(Driver):
         return [(f'{glue}@{shell}', src, f'{_SHELL_CONFD[shell]}/{glue}.{ext}', None, 'glue')
                 for shell, ext, src in self._glue_variants(glue, rc)]
 
+    def _installed_shells(self):
+        '''Which shells to ACTIVATE glue for: those whose binary is on PATH (design: per INSTALLED
+        shell, NOT $SHELL — $SHELL is only the login shell). Overridable via CONFIGSYS_GLUE_SHELLS
+        (comma-separated) for tests / to force a set. Bash is the baseline if nothing is detected,
+        so a user is never left with no glue.'''
+        env = self._env()
+        forced = env.get('CONFIGSYS_GLUE_SHELLS')
+        if forced is not None:
+            return [s.strip() for s in forced.split(',') if s.strip()]
+        found = [s for s in _GLUE_SHELLS if shutil.which(s, path=env.get('PATH'))]
+        return found or ['bash']
+
     def _glue_variants(self, glue, rc):
-        '''(shell, ext, src) for each shell that HAS a snippet for this glue name. Precedence: the
-        highest content root that carries one wins (so YOUR plugin/store copy beats the repo
-        template), and within a root the new `shell/<shell>/<name>.<ext>` path beats the pre-move
-        `bash.d/<name>.sh` fallback (bash only). Repo ships bash today; other shells light up once
-        their variant lands.'''
+        '''(shell, ext, src) for each INSTALLED shell that HAS a snippet for this glue name.
+        Precedence: the highest content root that carries one wins (so YOUR plugin/store copy beats
+        the repo template), and within a root the new `shell/<shell>/<name>.<ext>` path beats the
+        pre-move `bash.d/<name>.sh` fallback (bash only). Repo ships bash today; other shells light up
+        the moment BOTH their binary is present AND a `shell/<shell>/<name>.<ext>` variant lands.'''
         out = []
+        installed = self._installed_shells()
         for shell in _GLUE_SHELLS:
+            if shell not in installed:                     # activate only where the shell is present
+                continue
             ext = _SHELL_EXT[shell]
             srcs = [f'shell/{shell}/{glue}.{ext}']
             if shell == 'bash':
@@ -318,6 +347,74 @@ class DotFiles(Driver):
             return home / s[2:]
         return Path(s)
 
+    # -- per-shell loader hookup (loader: <shell>) ------------------------
+
+    def _confd(self, shell):
+        return self._expand(_SHELL_CONFD[shell])
+
+    def _ensure_confd(self, shell):
+        '''Ensure ~/.config/<shell>/conf.d/ exists (so fish/nu auto-source find it, and links have a
+        home). Returns the dir.'''
+        d = self._confd(shell)
+        d.mkdir(parents=True, exist_ok=True)
+        return d
+
+    def _rc_block(self, shell):
+        confd = self._confd(shell)
+        body = _RC_SOURCE[shell].format(confd=shlex.quote(str(confd)))
+        return f'{_RC_BEGIN}\n{body}\n{_RC_END}\n'
+
+    def _rc_has_block(self, rc_path):
+        try:
+            return _RC_BEGIN in Path(rc_path).read_text()
+        except (FileNotFoundError, OSError):
+            return False
+
+    def _ensure_shell_loader(self, shell):
+        '''Idempotent hookup for a shell's conf.d loader. Always ensures the dir; for a shell that
+        needs an rc line (zsh) inserts/refreshes ONE configsys-owned marker block in its rc file.
+        fish (native conf.d auto-source), nu (punted) and bash (rides ~/.bash_aliases) get the dir
+        only — no rc edit. Returns True if a hookup is now in place for this shell.'''
+        self._ensure_confd(shell)
+        rc_rel = _SHELL_RC.get(shell)
+        if rc_rel is None:                                 # fish / nu / bash: dir is the whole job
+            return True
+        rc_path = self._expand(rc_rel)
+        if rc_path.is_symlink():                           # a captured/managed rc — its own content
+            return False                                   # owns the source line; never edit-through
+        block = self._rc_block(shell)
+        existing = ''
+        if rc_path.exists():
+            existing = rc_path.read_text()
+        if _RC_BEGIN in existing:                          # replace our block in place (idempotent)
+            new = re.sub(re.escape(_RC_BEGIN) + r'.*?' + re.escape(_RC_END) + r'\n?',
+                         block, existing, flags=re.DOTALL)
+        else:
+            sep = '' if (not existing or existing.endswith('\n')) else '\n'
+            new = f'{existing}{sep}{block}'
+        rc_path.parent.mkdir(parents=True, exist_ok=True)
+        rc_path.write_text(new)
+        return True
+
+    def _remove_shell_loader(self, shell):
+        '''Remove our rc block for a shell (leaves the conf.d dir + any content alone).'''
+        rc_rel = _SHELL_RC.get(shell)
+        if rc_rel is None:
+            return
+        rc_path = self._expand(rc_rel)
+        if not rc_path.exists():
+            return
+        text = rc_path.read_text()
+        if _RC_BEGIN not in text:
+            return
+        new = re.sub(r'\n?' + re.escape(_RC_BEGIN) + r'.*?' + re.escape(_RC_END) + r'\n?',
+                     '\n', text, flags=re.DOTALL)
+        rc_path.write_text(new)
+
+    def _loader_shell(self, rc):
+        '''The shell a `loader: <shell>` component hooks up, or None.'''
+        return rc.fields.get('loader')
+
     def _pairs(self, rc):
         '''[(source_path, target_path, absorb_path_or_None)] resolved for this machine — `src`
         resolved through the content search-path (_resolve), kind-aware.'''
@@ -465,6 +562,14 @@ class DotFiles(Driver):
         '''"linked" when every spec's dst is our symlink to present content; else "managed" when a
         config `.cfs` marker exists (managed-when-empty, #5 — the component IS installed, content just
         isn't captured/linked yet); else None (not installed).'''
+        loader = self._loader_shell(rc)
+        if loader:
+            if not self._confd(loader).is_dir():
+                return None
+            rc_rel = _SHELL_RC.get(loader)
+            if rc_rel is not None and not self._rc_has_block(self._expand(rc_rel)):
+                return None
+            return 'linked'
         specs = self._specs(rc)
         if not specs:
             return None
@@ -522,6 +627,10 @@ class DotFiles(Driver):
         return bool(getattr(self.paths, 'dotfiles_force', False)) if self.paths is not None else False
 
     def install(self, rc):
+        loader = self._loader_shell(rc)
+        if loader:                                         # a per-shell loader component (loader: zsh)
+            self._ensure_shell_loader(loader)
+            return Result(f'dotfiles: {loader} conf.d loader hooked up', 0)
         specs = self._specs(rc)
         if not specs:
             return Result.fail(f'{rc.comp}: dotfiles binding has no link specs (needs src:/dst:)')
@@ -597,6 +706,10 @@ class DotFiles(Driver):
         return self.install(rc)
 
     def uninstall(self, rc):
+        loader = self._loader_shell(rc)
+        if loader:
+            self._remove_shell_loader(loader)              # drop the rc block; leave conf.d + content
+            return Result(f'dotfiles: {loader} conf.d loader removed', 0)
         pairs = self._pairs(rc)
         if not pairs:
             return Result.fail(f'{rc.comp}: dotfiles binding has no link specs (needs src:/dst:)')
@@ -615,6 +728,9 @@ class DotFiles(Driver):
         return self.runner.run('\n'.join(lines), capture=False)
 
     def location(self, rc):
+        loader = self._loader_shell(rc)
+        if loader:
+            return self.display_path(self._confd(loader))
         targets = [self.display_path(tgt) for _src, tgt, _absorb in self._pairs(rc)]
         return '; '.join(targets) if targets else None
 
