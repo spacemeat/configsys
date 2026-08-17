@@ -210,8 +210,21 @@ moves.
    dropping the old one — but leaving a `~/.bash.d` link a STILL-ACTIVE component owns, e.g. a
    plugin-only snippet not yet reshaped) and **remove** a dead `~/.bash.d` link stranded pointing into
    the repo's now-gone `bash.d/`. Only golden change: the 68 glue units' fields `{src,dst}`→`{glue}`.
-2. **#5 `.cfs` + manifest + managed state** — config marker, `get_version` "managed", startup warn,
-   exclude=globs, capture auto-suggests secrets.
+2. **#5 `.cfs` + manifest + managed state — DONE**: config content now lives under a
+   `<component>.cfs/` marker dir in the capture root (primary plugin else local store), keyed by each
+   spec's `src`, with a `manifest.hu` (src→dst layout + `exclude:` globs) and a generated
+   `.gitignore`; a legacy bare `<root>/<src>` read-fallback keeps pre-`.cfs` captures linking.
+   `install` stamps the marker + manifest even with no content (the #5 signal); `get_version` returns
+   `managed` when the marker exists but nothing's linked, `linked` when every spec is our symlink to
+   present content. `spec_states` gained `managed`. `capture` writes into `.cfs`, SKIPS excluded
+   paths (verboten at capture) and auto-suggests secret-shaped globs (`.env`, `id_*`, `*.pem`, …) into
+   a fresh manifest; the `.gitignore` blocks a secret that later lands via edit-through from ever
+   syncing. Warn-only startup pass (in `Context.diagnostics`, so `inspect` + TUI `!` show it): a
+   managed `.cfs` whose dst holds a real un-captured file → "capture it"; a link still pointing into
+   the repo → "run migrate". ALSO fixed a Phase 1b regression: nested `aliases: { glue: X }` on the 9
+   mixed config+glue components wasn't expanded by `_specs` (they'd silently lost their shell snippet)
+   — `_specs` now expands glue at top level AND inside a named spec. Routes/golden unchanged
+   (driver/storage only). NOT yet run on the user's live machine (installs will stamp markers there).
 3. **Multi-shell** — `zsh-dotfiles`/`fish-dotfiles` loaders, per-installed-shell activation, first
    non-bash glue variants. (Convention already supports it; this just adds the loaders + variants.)
 

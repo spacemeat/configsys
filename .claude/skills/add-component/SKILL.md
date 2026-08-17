@@ -97,23 +97,28 @@ If a new component stores configuration (reads `$XDG_CONFIG_HOME/<name>`, a `~/.
 needs shell integration (PATH for a `~/apps` tarball/appImage install, aliases, env, completions),
 give it a `<name>-dotfiles` companion and add `suggests: <name>-dotfiles` to the parent. Two shapes:
 
-- **Shell snippet** — the tool needs PATH/aliases/env to work (a `~/apps` install that isn't on
-  PATH, like yazi/superfile aliasing `yazi`/`spf`; a completions or env line). **You author and ship
-  it** in the base repo at `dotfiles/bash.d/<name>.sh`, then:
+- **Shell glue** — the tool needs PATH/aliases/env to work (a `~/apps` install that isn't on PATH,
+  like yazi/superfile aliasing `yazi`/`spf`; a completions or env line). **You author and ship it**
+  in the base repo at `dotfiles/shell/bash/<glue>.sh`, then declare a `glue:` NAME (the driver
+  expands it to a per-shell spec — `shell/<shell>/<glue>.<ext>` → `~/.config/<shell>/conf.d/
+  <glue>.<ext>` — for every shell that ships a variant; bash today):
   ```
-  <name>-dotfiles: { install: [ { via: dotfiles  requires: bash-dotfiles
-                                  src: bash.d/<name>.sh  dst: ~/.bash.d/<name>.sh } ] }
+  <name>-dotfiles: { install: [ { via: dotfiles  requires: bash-dotfiles  glue: <name> } ] }
   ```
-  (`~/.bash.d` is sourced by `.bashrc` via `bash-dotfiles`; the loader runs files in lexical order.)
+  Add a `dotfiles/shell/fish/<glue>.fish` later and fish users light up with ZERO component edits.
+  For a tool that needs BOTH a config dir AND glue, mix them — the config as a named spec, the glue
+  nested: `{ via: dotfiles  requires: bash-dotfiles  config: { src: <name>  dst: … }  aliases: { glue: <name> } }`.
 - **App config** — the tool reads its own config dir/file:
   ```
   <name>-dotfiles: { install: [ { via: dotfiles  config: { src: <name>  dst: $XDG_CONFIG_HOME/<name> } } ] }
   ```
   `config:` is one named spec; add more named specs for stray files, each with its own `dst`. The
   content usually **isn't shipped** — it lives in the user's personal layer, captured with `configsys
-  dotfiles capture <name>`. `dotfiles/` content resolves relative to the .hu that *defined* the
-  component (base repo, else a plugin/user layer), so a package can offer a config that simply
-  doesn't attach where the content is absent.
+  dotfiles capture <name>` (which stores it under a `<name>-dotfiles.cfs/` marker dir + `manifest.hu`
+  in the capture root, auto-excluding secret-shaped paths). Installing a config `-dotfiles` stamps
+  that `.cfs` marker even with no content yet, so the location reads as *managed*. `dotfiles/` content
+  resolves relative to the .hu that *defined* the component (base repo, else a plugin/user layer), so
+  a package can offer a config that simply doesn't attach where the content is absent.
 
 `suggests:` is SOFT: the parent installs fine whether or not the `-dotfiles` content exists, and the
 user can opt the whole mechanism out with `disabled-drivers: [ dotfiles ]`. Links are edit-through

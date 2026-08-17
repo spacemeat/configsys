@@ -15,6 +15,7 @@ User-space only (no sudo); no version — a component is "linked" or not. No nat
 lock (ledger carries intent).
 '''
 
+import fnmatch
 import os
 import re
 import shlex
@@ -35,6 +36,17 @@ _SHELL_CONFD = {'bash': '~/.config/bash/conf.d', 'zsh': '~/.config/zsh/conf.d',
                 'fish': '~/.config/fish/conf.d', 'nu': '~/.config/nushell/conf.d'}
 _GLUE_SHELLS = ('bash', 'zsh', 'fish', 'nu')
 
+# config: an app's own user config lives under a `<component>.cfs/` MARKER dir in the content store,
+# content keyed by each spec's `src` name; a `manifest.hu` inside records the src->dst layout + the
+# exclude list. The dir existing == "configsys manages this config" even before any content (the #5
+# managed-when-empty signal). `.gitignore` is generated from excludes so secrets never sync.
+CFS_SUFFIX = '.cfs'
+MANIFEST_NAME = 'manifest.hu'
+# secret-shaped basenames auto-suggested into a fresh manifest's exclude: on first capture — cheap
+# insurance so credentials never enter the store (verboten at capture AND git-ignored).
+_SECRET_GLOBS = ['.env', '*.env', 'id_*', '*_history', '*.pem', '*.key',
+                 'credentials*', '*.secret', 'secrets', '.ssh']
+
 
 class DotFiles(Driver):
     name = 'dotfiles'
@@ -44,23 +56,33 @@ class DotFiles(Driver):
     # -- specs & paths ----------------------------------------------------
 
     def _specs(self, rc):
-        '''[(name, src, dst, absorb)] link specs. A component may be a single inline spec
-        (top-level src/dst), a set of named specs (config: {src,dst}, ...), and/or GLUE
-        (`glue: <name>` -> one spec per shell that has a snippet: src shell/<shell>/<name>.<ext>
-        [with a bash.d/<name>.sh fallback for pre-move layers], dst ~/.config/<shell>/conf.d/
-        <name>.<ext>). `absorb-into` relocates a pre-existing real dst instead of a plain backup.'''
+        '''[(name, src, dst, absorb, kind)] link specs, kind in {config, glue}. A component may mix:
+          * a single inline spec (top-level src/dst) -> config;
+          * named specs (`config: {src,dst}`, `aliases: {src,dst}`, ...) -> config;
+          * GLUE, either top-level `glue: <name>` OR nested (`aliases: { glue: <name> }`) -> one
+            spec per shell that has a snippet (src shell/<shell>/<name>.<ext>, with a bash.d/<name>.sh
+            fallback for pre-move layers; dst ~/.config/<shell>/conf.d/<name>.<ext>).
+        A `config` spec's content lives under a `<component>.cfs/` marker dir; glue under shell/.
+        `absorb-into` relocates a pre-existing real dst instead of a plain backup.'''
         f = rc.fields
         out = []
         if 'src' in f and 'dst' in f:
-            out.append((rc.comp, f['src'], f['dst'], f.get('absorb-into')))
-        glue = f.get('glue')
-        if glue:
-            for shell, ext, src in self._glue_variants(glue, rc):
-                out.append((f'{glue}@{shell}', src, f'{_SHELL_CONFD[shell]}/{glue}.{ext}', None))
+            out.append((rc.comp, f['src'], f['dst'], f.get('absorb-into'), 'config'))
+        if f.get('glue'):
+            out.extend(self._glue_specs(f['glue'], rc))
         for key, val in f.items():
-            if isinstance(val, dict) and 'src' in val and 'dst' in val:
-                out.append((key, val['src'], val['dst'], val.get('absorb-into')))
+            if not isinstance(val, dict):
+                continue
+            if 'src' in val and 'dst' in val:
+                out.append((key, val['src'], val['dst'], val.get('absorb-into'), 'config'))
+            elif 'glue' in val:                            # nested glue (mixed config+glue component)
+                out.extend(self._glue_specs(val['glue'], rc))
         return out
+
+    def _glue_specs(self, glue, rc):
+        '''glue specs for a glue name: one per shell that actually ships a snippet.'''
+        return [(f'{glue}@{shell}', src, f'{_SHELL_CONFD[shell]}/{glue}.{ext}', None, 'glue')
+                for shell, ext, src in self._glue_variants(glue, rc)]
 
     def _glue_variants(self, glue, rc):
         '''(shell, ext, src) for each shell that HAS a snippet for this glue name. Precedence: the
@@ -130,18 +152,117 @@ class DotFiles(Driver):
                 return Path(d)
         return Path('dotfiles')          # degenerate fallback (no paths); tests always pass paths
 
-    def _resolve(self, src, rc):
+    def _resolve(self, src, rc, kind='config'):
         '''(resolved_src_path, tier, root) — the first content root that actually HAS `src` wins,
-        with tier 'user' or 'template'. If none does, the defining-layer path with tier None: the
-        component is UNPOPULATED — declared but no content anywhere (a personal dotfile you haven't
-        captured). That is an expected state, not an error: configsys has no opinion on your
-        neovim config, it just knows where it goes.'''
+        with tier 'user' or 'template'. A `config` spec's content sits under that root's
+        `<component>.cfs/<src>` marker dir (with a legacy bare `<root>/<src>` fallback so content
+        captured before the .cfs layout still links); a `glue` spec's `src` is already a
+        root-relative path (`shell/<shell>/x.sh`). If none has it, the defining-layer path with tier
+        None: the component is UNPOPULATED — declared but no content anywhere (a personal dotfile you
+        haven't captured). That is an expected state, not an error. `root` is always the BASE content
+        root (for status labeling); the returned path points inside `.cfs` for config.'''
         for root, tier in self._content_roots(rc):
-            cand = root / src
-            if cand.exists():
-                return cand, tier, root
+            if kind == 'config':
+                cand = root / f'{rc.comp}{CFS_SUFFIX}' / src
+                if cand.exists():
+                    return cand, tier, root
+                legacy = root / src                        # pre-.cfs capture layout
+                if legacy.exists():
+                    return legacy, tier, root
+            else:
+                cand = root / src
+                if cand.exists():
+                    return cand, tier, root
         dr = self._defining_root(rc)
+        if kind == 'config':
+            return dr / f'{rc.comp}{CFS_SUFFIX}' / src, None, dr
         return dr / src, None, dr
+
+    # -- config .cfs marker + manifest ------------------------------------
+
+    def _cfs_dir(self, rc, root=None):
+        '''The `<component>.cfs/` marker dir under `root` (default: the capture root). Its existence
+        is the "managed" signal (#5), independent of whether any content lives inside yet.'''
+        base = Path(root) if root is not None else self._capture_root()
+        return base / f'{rc.comp}{CFS_SUFFIX}'
+
+    def _marker_present(self, rc):
+        '''True if a `.cfs` marker exists in ANY content root — the component is managed even if no
+        content or link is in place yet.'''
+        for root, _tier in self._content_roots(rc):
+            if self._cfs_dir(rc, root).is_dir():
+                return True
+        return False
+
+    def _read_manifest(self, path):
+        '''Parse a `.cfs/manifest.hu` -> {specname: {src, dst, exclude:[...]}}. {} if absent/blank.'''
+        from ..troveio import load
+        if not Path(path).exists() or not Path(path).read_text(encoding='utf-8-sig').strip():
+            return {}
+        trove = load(path)
+        specs = trove.root['specs'] if trove.root is not None else None
+        out = {}
+        if specs is not None:
+            for i in range(specs.num_children):
+                node = specs[i]
+                ex = []
+                exn = node['exclude'] if node is not None else None
+                if exn is not None:
+                    ex = [exn[j].value for j in range(exn.num_children)]
+                out[node.key] = {'src': (node['src'].value if node['src'] is not None else node.key),
+                                 'dst': (node['dst'].value if node['dst'] is not None else ''),
+                                 'exclude': ex}
+        return out
+
+    def _write_manifest(self, rc, specs_map):
+        '''Write `<comp>.cfs/manifest.hu` from {specname: {src,dst,exclude}} and a `.gitignore` from
+        the union of excludes (so a secret that lands via edit-through is never committed/synced).'''
+        from ..troveio import emit_hu
+        cfs = self._cfs_dir(rc)
+        cfs.mkdir(parents=True, exist_ok=True)
+        (cfs / MANIFEST_NAME).write_text(emit_hu({'specs': specs_map}))
+        excludes = sorted({g for s in specs_map.values() for g in s.get('exclude', [])})
+        gi = cfs / '.gitignore'
+        if excludes:
+            gi.write_text('# generated by configsys from manifest.hu exclude: — secrets never sync\n'
+                          + '\n'.join(excludes) + '\n')
+        elif gi.exists():
+            gi.unlink()
+
+    def _config_specs(self, rc):
+        return [(n, src, dst, ab) for n, src, dst, ab, kind in self._specs(rc) if kind == 'config']
+
+    def _ensure_marker(self, rc):
+        '''Create/refresh the `.cfs` marker + manifest for a component's config specs (the #5
+        managed signal — happens on install even with no content). Preserves any exclude: the user
+        edited; never overwrites content. No-op for a glue-only component.'''
+        cfg = self._config_specs(rc)
+        if not cfg:
+            return
+        existing = self._read_manifest(self._cfs_dir(rc) / MANIFEST_NAME)
+        specs_map = {}
+        for name, src, dst, _ab in cfg:
+            prev = existing.get(name, {})
+            specs_map[name] = {'src': src, 'dst': dst, 'exclude': prev.get('exclude', [])}
+        self._write_manifest(rc, specs_map)
+
+    def _excludes_for(self, rc, name):
+        '''The exclude globs recorded for a spec (from the manifest), [] if none.'''
+        man = self._read_manifest(self._cfs_dir(rc) / MANIFEST_NAME)
+        return man.get(name, {}).get('exclude', [])
+
+    def _is_excluded(self, rel, globs):
+        '''True if a relative path (POSIX) matches any exclude glob — matched against the full path
+        AND its basename, so `.env`/`id_*` hit at any depth and `secrets/` hits the dir.'''
+        rel = rel.replace(os.sep, '/').strip('/')
+        base = rel.rsplit('/', 1)[-1]
+        for g in globs:
+            gg = g.rstrip('/')
+            if fnmatch.fnmatch(rel, gg) or fnmatch.fnmatch(base, gg) or rel == gg or base == gg:
+                return True
+            if fnmatch.fnmatch(rel, gg + '/*'):            # anything under an excluded dir
+                return True
+        return False
 
     def _store_path(self, src):
         '''Where a SHIPPED TEMPLATE materializes: the machine-local store, at the same relative
@@ -199,59 +320,67 @@ class DotFiles(Driver):
 
     def _pairs(self, rc):
         '''[(source_path, target_path, absorb_path_or_None)] resolved for this machine — `src`
-        resolved through the content search-path (_resolve).'''
-        return [(self._resolve(src, rc)[0], self._expand(dst),
+        resolved through the content search-path (_resolve), kind-aware.'''
+        return [(self._resolve(src, rc, kind)[0], self._expand(dst),
                  self._expand(absorb) if absorb else None)
-                for _n, src, dst, absorb in self._specs(rc)]
+                for _n, src, dst, absorb, kind in self._specs(rc)]
 
     def spec_states(self, rc):
         '''[(name, target_display, state, src_root, src_rel, here)] for `dotfiles status`.
         state is one of:
           linked    — our symlink is in place (managed & active)
           adopted   — your content exists in a user root; not linked yet (capture done)
-          unmanaged — a real on-system file with NO adopted content -> AT RISK on install
+          managed   — config `.cfs` marker exists but no content captured yet (managed-when-empty,
+                      #5 — the component is installed; if a real on-system file sits at dst it's kept
+                      and startup warns you to capture it)
+          unmanaged — a real on-system file with NO marker and NO adopted content -> AT RISK on install
           template  — a shipped template exists, not adopted, nothing on-system yet
-          empty     — declared, no content anywhere, nothing on-system (a personal dotfile
+          empty     — declared, no content/marker anywhere, nothing on-system (a personal dotfile
                       you haven't captured; harmless — install is a no-op until you do).
         (src_root, src_rel) locate the managed content: for content that EXISTS (linked/adopted/
         template) the root it lives in (a user store, or the base <repo> for a template); for
-        unmanaged/empty the capture destination (where it WILL land). `here` is True in the former
-        case, False when it's prospective. The caller labels the distinct roots.'''
+        managed/unmanaged/empty the capture destination (where it WILL land). `here` is True in the
+        former case, False when it's prospective. The caller labels the distinct roots.'''
         capture_root = self._capture_root()
+        marker = self._marker_present(rc)
         out = []
-        for name, src, dst, _absorb in self._specs(rc):
-            srcpath, tier, root = self._resolve(src, rc)
+        for name, src, dst, _absorb, kind in self._specs(rc):
+            srcpath, tier, root = self._resolve(src, rc, kind)
             tgt = self._expand(dst)
             if tgt.is_symlink() and os.path.realpath(tgt) == os.path.realpath(srcpath):
                 state = 'linked'
             elif tgt.is_symlink() or tgt.exists():        # a real file/dir, or a foreign symlink
-                state = 'adopted' if tier == 'user' else 'unmanaged'
+                state = ('adopted' if tier == 'user'
+                         else 'managed' if kind == 'config' and marker else 'unmanaged')
             elif tier == 'user':
                 state = 'adopted'                         # captured, dst absent -> links cleanly
             elif tier == 'template':
                 state = 'template'
+            elif kind == 'config' and marker:
+                state = 'managed'                         # #5: marked, content not captured yet
             else:
                 state = 'empty'
             if state in ('linked', 'adopted', 'template'):
                 src_root, here = root, True               # content exists here
             else:
-                src_root, here = capture_root, False      # unmanaged/empty -> where capture puts it
+                src_root, here = capture_root, False      # managed/unmanaged/empty -> capture dest
             out.append((name, self.display_path(tgt), state, src_root, src, here))
         return out
 
     def capture_plan(self, rc, force=False):
-        '''What `dotfiles capture` WOULD do for this component — pure, no side effects. Per spec,
-        (name, dst_path, dest_path, action):
-          copy         — dst is a real file/dir; copy it into the store
+        '''What `dotfiles capture` WOULD do for this component — pure, no side effects. CONFIG specs
+        only (glue is shipped, never captured). Per spec, (name, dst_path, dest_path, action):
+          copy         — dst is a real file/dir; copy it into the `<comp>.cfs/` store
           skip-linked  — dst is already our managed symlink (nothing to adopt)
           skip-absent  — dst doesn't exist (or a broken symlink) — nothing to adopt
-          skip-exists  — the store already holds content for this src (pass force to overwrite)'''
-        root = self._capture_root()
+          skip-exists  — the store already holds content for this src (pass force to overwrite)
+        dest is `<capture_root>/<comp>.cfs/<src>`.'''
+        cfs = self._cfs_dir(rc)
         out = []
-        for name, src, dst, _absorb in self._specs(rc):
+        for name, src, dst, _absorb in self._config_specs(rc):
             tgt = self._expand(dst)
-            dest = root / src
-            srcpath, _tier, _root = self._resolve(src, rc)
+            dest = cfs / src
+            srcpath, _tier, _root = self._resolve(src, rc, 'config')
             if tgt.is_symlink() and os.path.realpath(tgt) == os.path.realpath(srcpath):
                 action = 'skip-linked'
             elif not tgt.exists():                        # absent, or a broken symlink
@@ -263,39 +392,123 @@ class DotFiles(Driver):
             out.append((name, tgt, dest, action))
         return out
 
-    def capture(self, rc, force=False):
-        '''Adopt on-system dotfiles for `rc` into the content store — the WRITE half of
-        capture_plan. Copies each `copy` target FROM the on-system dst INTO the store; never
-        modifies or deletes an on-system file. Returns the list of (name, dst, dest) captured.'''
-        import shutil
-        done = []
-        for name, dst, dest, action in self.capture_plan(rc, force):
-            if action != 'copy':
+    def _suggest_secrets(self, dst):
+        '''Scan a to-be-captured dir for secret-shaped entries (top level + one deep) and return the
+        matching exclude globs — pre-filled into a fresh manifest so credentials never enter the
+        store. Cheap and best-effort; the user trims the list.'''
+        found = set()
+        if not dst.is_dir():
+            return []
+        try:
+            entries = list(dst.rglob('*'))
+        except OSError:
+            entries = []
+        for e in entries:
+            try:
+                rel = e.relative_to(dst).as_posix()
+            except ValueError:
                 continue
+            for g in _SECRET_GLOBS:
+                if self._is_excluded(rel, [g]):
+                    found.add(g)
+        return sorted(found)
+
+    def capture(self, rc, force=False):
+        '''Adopt on-system config for `rc` into the `<comp>.cfs/` store — the WRITE half of
+        capture_plan. Copies each `copy` target FROM the on-system dst INTO the store, SKIPPING any
+        path the manifest excludes (secrets), and writes/refreshes the manifest (auto-suggesting
+        secret-shaped excludes on FIRST capture) + `.gitignore`. Never modifies or deletes an
+        on-system file. Returns the list of (name, dst, dest) captured.'''
+        man = self._read_manifest(self._cfs_dir(rc) / MANIFEST_NAME)
+        first = not man                                    # no manifest yet -> first capture here
+        done = []
+        specs_map = {}
+        for name, src, dst, _absorb in self._config_specs(rc):
+            excludes = list(man.get(name, {}).get('exclude', []))
+            if first:                                      # auto-suggest secrets into the new manifest
+                excludes = sorted(set(excludes) | set(self._suggest_secrets(self._expand(dst))))
+            specs_map[name] = {'src': src, 'dst': dst, 'exclude': excludes}
+        # capture_plan is computed against pre-copy state; snapshot its actions first.
+        plan = {name: action for name, _dst, _dest, action in self.capture_plan(rc, force)}
+        for name, src, dst, _absorb in self._config_specs(rc):
+            if plan.get(name) != 'copy':
+                continue
+            tgt = self._expand(dst)
+            dest = self._cfs_dir(rc) / src
+            excludes = specs_map[name]['exclude']
             dest.parent.mkdir(parents=True, exist_ok=True)
             if dest.is_symlink() or dest.is_file():
                 dest.unlink()
             elif dest.is_dir():
                 shutil.rmtree(dest)
-            if dst.is_dir():
-                shutil.copytree(dst, dest)                 # follows into the tree; copies content
-            else:
-                shutil.copy2(dst, dest)
-            done.append((name, dst, dest))
+            if tgt.is_dir():
+                def _ignore(dirpath, names, _tgt=tgt, _ex=excludes):
+                    rel_base = os.path.relpath(dirpath, str(_tgt))
+                    skip = []
+                    for n in names:
+                        rel = n if rel_base == '.' else f'{rel_base}/{n}'
+                        if self._is_excluded(rel, _ex):
+                            skip.append(n)
+                    return set(skip)
+                shutil.copytree(tgt, dest, ignore=_ignore)
+            elif not self._is_excluded(src, excludes):
+                shutil.copy2(tgt, dest)
+            done.append((name, tgt, dest))
+        # Always (re)write the marker/manifest so management is recorded even if nothing copied.
+        if specs_map:
+            self._write_manifest(rc, specs_map)
         return done
 
     # -- read -------------------------------------------------------------
 
     def get_version(self, rc):
-        pairs = self._pairs(rc)
-        if not pairs:
+        '''"linked" when every spec's dst is our symlink to present content; else "managed" when a
+        config `.cfs` marker exists (managed-when-empty, #5 — the component IS installed, content just
+        isn't captured/linked yet); else None (not installed).'''
+        specs = self._specs(rc)
+        if not specs:
             return None
-        for src, tgt, _absorb in pairs:
-            if not tgt.is_symlink():
-                return None
-            if os.path.realpath(tgt) != os.path.realpath(src):
-                return None
-        return 'linked'
+        all_linked = True
+        for _name, src, _dst, absorb, kind in specs:
+            srcpath, _tier, _root = self._resolve(src, rc, kind)
+            tgt = self._expand(_dst)
+            if not (tgt.is_symlink() and srcpath.exists()
+                    and os.path.realpath(tgt) == os.path.realpath(srcpath)):
+                all_linked = False
+                break
+        if all_linked:
+            return 'linked'
+        if self._marker_present(rc):
+            return 'managed'
+        return None
+
+    def warnings(self, rc):
+        '''[(tag, text)] warn-only startup checks (design #2/#5/#4), never mutate:
+          * capture   — a config `.cfs` marked-managed whose dst holds a real, un-captured file
+                        (you have config configsys should adopt before it can manage it);
+          * invariant — a managed link that STILL points into the repo (#4 breach; migrate fixes).
+        Cheap and side-effect-free — safe to run on every load.'''
+        out = []
+        repo = os.path.realpath(self.paths.dotfiles_dir) if self.paths is not None else None
+        managed = None                                     # computed lazily (one marker probe/comp)
+        for _name, src, dst, _absorb, kind in self._specs(rc):
+            srcpath, _tier, _root = self._resolve(src, rc, kind)
+            tgt = self._expand(dst)
+            if tgt.is_symlink() and repo is not None:
+                raw = os.readlink(tgt)
+                rp = (os.path.realpath(tgt) if tgt.exists() else
+                      (raw if os.path.isabs(raw)
+                       else os.path.normpath(os.path.join(os.path.dirname(str(tgt)), raw))))
+                if rp == repo or rp.startswith(repo + os.sep):
+                    out.append(('dotfiles', f'{rc.comp}: {self.display_path(tgt)} still links into '
+                                f'the repo — run `configsys dotfiles migrate` to point it at your store'))
+            elif kind == 'config' and not srcpath.exists() and tgt.exists():
+                if managed is None:
+                    managed = self._marker_present(rc)
+                if managed:
+                    out.append(('dotfiles', f'{rc.comp}: config at {self.display_path(tgt)} is managed '
+                                f'but not captured — `configsys dotfiles capture {rc.comp}`'))
+        return out
 
     def get_latest(self, rc):
         return None  # dotfiles track the repo; no version notion
@@ -313,9 +526,13 @@ class DotFiles(Driver):
         if not specs:
             return Result.fail(f'{rc.comp}: dotfiles binding has no link specs (needs src:/dst:)')
         force = self._force()
+        # #5: stamp the config `.cfs` marker + manifest so this location is "managed" even before any
+        # content is captured/linked. No-op for a glue-only component. Runs even if we refuse below —
+        # refusing is itself an act of management (we won't clobber what we now track).
+        self._ensure_marker(rc)
         pairs, blocked = [], []
-        for _name, src, dst, absorb in specs:
-            srcpath, tier, _root = self._resolve(src, rc)
+        for _name, src, dst, absorb, kind in specs:
+            srcpath, tier, _root = self._resolve(src, rc, kind)
             # A shipped TEMPLATE links to its machine-local STORE copy, NOT the repo (requirement #4).
             # Compute that target now (pure); the copy happens below, only for specs we actually link.
             link_src = self._link_source(srcpath, tier, src)
@@ -323,11 +540,12 @@ class DotFiles(Driver):
             ab = self._expand(absorb) if absorb else None
             pairs.append((srcpath, tier, src, link_src, tgt, ab))
             # REFUSE to replace a real on-system file/dir with a TEMPLATE the user hasn't adopted.
-            # tier 'user' = you captured it -> linking to your own content is safe; tier None =
-            # unpopulated -> the shell skips it (nothing to clobber); an `absorb-into` spec has its
-            # own safe relocation. So only an un-adopted TEMPLATE over a real dst is blocked.
-            # A symlink WE made (pointing at the store copy OR the old repo template) is ours — a
-            # legacy repo-link is safe to RE-POINT at the store, not a clobber. (Powers `migrate`.)
+            # tier 'user' = you captured it -> linking to your own content (auto-backing up whatever
+            # sits at dst) is the sanctioned path; tier None = unpopulated -> managed-when-empty, the
+            # shell skips it and leaves any real file alone (startup warns to capture); an
+            # `absorb-into` spec has its own relocation. So only an un-adopted TEMPLATE over a real dst
+            # is blocked. A symlink WE made (store copy OR legacy repo template) is ours — safe to
+            # re-point, not a clobber (powers `migrate`).
             ours = tgt.is_symlink() and os.path.realpath(tgt) in (
                 os.path.realpath(link_src), os.path.realpath(srcpath))
             if (not force and tier == 'template' and ab is None

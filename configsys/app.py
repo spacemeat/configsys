@@ -258,6 +258,9 @@ class Context:
             from . import flooradvise
             for adv in flooradvise.advise(self, [st.component for st in states.values()]):
                 add(adv['level'], adv['tag'], adv['text'])
+            # dotfiles hygiene (warn-only): un-captured managed config + any surviving repo-link.
+            for tag, text in _dotfiles_diagnostics(self):
+                add('warn', tag, text)
         return out
 
     def ensure_plugin_code(self):
@@ -2225,9 +2228,10 @@ def build_parser():
     return p
 
 
-_DOTFILES_STATE_ORDER = ['unmanaged', 'template', 'adopted', 'linked', 'empty']
+_DOTFILES_STATE_ORDER = ['unmanaged', 'managed', 'template', 'adopted', 'linked', 'empty']
 _DOTFILES_STATE_NOTE = {
     'unmanaged': 'real on-system file, not captured — configsys is NOT managing it',
+    'managed':   'managed (.cfs marker) but no content captured yet — capture to link it',
     'template':  'a shipped template exists; not adopted',
     'adopted':   'your captured content is in place; install will link it',
     'linked':    'managed by configsys (symlinked)',
@@ -2240,6 +2244,20 @@ def _active_dotfiles(ctx):
     only (no install-state query), so it's cheap and side-effect-free.'''
     from . import actions
     return actions.dotfiles_units(ctx)
+
+
+def _dotfiles_diagnostics(ctx):
+    '''[(tag, text)] warn-only hygiene over the active via:dotfiles units — un-captured managed
+    config (#5) and any link still pointing into the repo (#4). Fully guarded: a dotfiles issue
+    must never break the diagnostics pass.'''
+    out = []
+    try:
+        df, units = _active_dotfiles(ctx)
+        for rc in units:
+            out.extend(df.warnings(rc))
+    except Exception:
+        pass
+    return out
 
 
 def cmd_dotfiles(ctx, args):
