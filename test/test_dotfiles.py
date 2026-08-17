@@ -21,6 +21,57 @@ def paths_for(tmp_path):
                       'CONFIGSYS_REPO': str(tmp_path / 'repo')})
 
 
+def test_template_materializes_to_store_and_link_survives_repo_removal(tmp_path):
+    # #4 payoff: a shipped template is copied into the machine-local store on install and the link
+    # points THERE — so the link keeps working even if the repo moves or is deleted.
+    p = paths_for(tmp_path)
+    (p.dotfiles_dir / 'bash.d').mkdir(parents=True)
+    (p.dotfiles_dir / 'bash.d' / 'btop.sh').write_text('# btop glue\n')
+    p.home.mkdir(parents=True)
+    df = DotFiles(Runner(pretend=False), paths=p)
+    rc = df_unit(specs={'src': 'bash.d/btop.sh', 'dst': '~/.bash.d/btop.sh'}, comp='btop')
+
+    assert df.install(rc).ok
+    link = p.home / '.bash.d' / 'btop.sh'
+    store_copy = p.user_dotfiles_dir / 'bash.d' / 'btop.sh'
+    assert link.is_symlink() and os.path.realpath(link) == os.path.realpath(store_copy)
+    assert store_copy.read_text() == '# btop glue\n'
+    assert df.get_version(rc) == 'linked'
+
+    # nuke the repo entirely — the link + get_version still hold (store-backed, repo-independent).
+    import shutil as _sh
+    _sh.rmtree(p.dotfiles_dir)
+    assert link.is_symlink() and link.resolve().read_text() == '# btop glue\n'
+    assert df.get_version(rc) == 'linked'
+
+
+def test_dotfiles_migrate_repoints_repo_links_to_store(tmp_path, monkeypatch):
+    # migrate re-points a link that references the repo at the machine-local store (idempotent apply
+    # = re-install), leaving orphan plain files untouched.
+    import types
+    from configsys import app
+    p = paths_for(tmp_path)
+    (p.dotfiles_dir / 'bash.d').mkdir(parents=True)
+    (p.dotfiles_dir / 'bash.d' / 'btop.sh').write_text('# glue\n')
+    (p.home / '.bash.d').mkdir(parents=True)
+    df = DotFiles(Runner(pretend=False), paths=p)
+    rc = df_unit(specs={'src': 'bash.d/btop.sh', 'dst': '~/.bash.d/btop.sh'}, comp='btop')
+
+    link = p.home / '.bash.d' / 'btop.sh'            # OLD broken state: a link straight into the repo
+    link.symlink_to(p.dotfiles_dir / 'bash.d' / 'btop.sh')
+    (p.home / '.bash.d' / 'mine.sh').write_text('# my own orphan\n')   # a non-symlink orphan
+    assert os.path.realpath(link).startswith(str(p.dotfiles_dir))
+
+    monkeypatch.setattr(app, '_active_dotfiles', lambda c: (df, [rc]))
+    ctx = types.SimpleNamespace(paths=p, os_info=types.SimpleNamespace(block='x'))
+    assert app.cmd_dotfiles_migrate(ctx, types.SimpleNamespace(yes=True)) == 0
+
+    store_copy = p.user_dotfiles_dir / 'bash.d' / 'btop.sh'
+    assert os.path.realpath(link) == os.path.realpath(store_copy)          # now the store, not the repo
+    assert not os.path.realpath(link).startswith(str(p.dotfiles_dir))
+    assert (p.home / '.bash.d' / 'mine.sh').read_text() == '# my own orphan\n'   # orphan untouched
+
+
 # -- content root follows the layer that defined the component -------------
 
 def test_src_anchors_at_the_defining_layers_dotfiles_dir(tmp_path):
@@ -102,8 +153,12 @@ def test_real_symlink_install_getversion_uninstall(tmp_path):
 
     assert df.install(rc).ok
     target = p.home / '.config' / 'nvim'
+    store_copy = p.user_dotfiles_dir / 'neovim'                 # a shipped template materializes here
     assert target.is_symlink()
-    assert os.path.realpath(target) == os.path.realpath(src_dir)
+    # #4: the link points at the machine-local STORE copy, NEVER the repo template.
+    assert os.path.realpath(target) == os.path.realpath(store_copy)
+    assert os.path.realpath(target) != os.path.realpath(src_dir)
+    assert store_copy.is_dir() and (store_copy / 'init.lua').read_text() == '-- cfg'
     assert df.get_version(rc) == 'linked'
 
     df.uninstall(rc)
@@ -329,7 +384,9 @@ def test_absorb_moves_preexisting_aliases_into_bash_d(tmp_path):
 
     link = p.home / '.bash_aliases'
     assert link.is_symlink()
-    assert os.path.realpath(link) == os.path.realpath(p.dotfiles_dir / 'bash_aliases')
+    # #4: links at the materialized STORE copy, not the repo template.
+    assert os.path.realpath(link) == os.path.realpath(p.user_dotfiles_dir / 'bash_aliases')
+    assert os.path.realpath(link) != os.path.realpath(p.dotfiles_dir / 'bash_aliases')
     absorbed = p.home / '.bash.d' / 'pre-configsys-aliases.sh'
     assert absorbed.is_file() and not absorbed.is_symlink()
     assert absorbed.read_text() == 'alias mine="echo hi"\n'            # aliases preserved

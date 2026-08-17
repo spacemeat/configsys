@@ -2201,6 +2201,9 @@ def build_parser():
     cap.add_argument('--force', action='store_true', help='overwrite content already in the store')
     cap.add_argument('--dry-run', action='store_true', help='show the plan and exit; write nothing')
     cap.add_argument('--yes', action='store_true', help='skip the confirmation prompt')
+    mig = dfsub.add_parser('migrate', help='re-point any managed link that references the repo at the '
+                                           'machine-local store (previews before touching anything)')
+    mig.add_argument('--yes', action='store_true', help='skip the confirmation prompt')
 
     mp = sub.add_parser('manpages', help='install or check the man pages '
                                          '(configsys(1) + configsys.hu(5))')
@@ -2240,9 +2243,66 @@ def _active_dotfiles(ctx):
 
 
 def cmd_dotfiles(ctx, args):
-    if (getattr(args, 'dotfiles_command', None) or 'status') == 'capture':
+    cmd = getattr(args, 'dotfiles_command', None) or 'status'
+    if cmd == 'capture':
         return cmd_dotfiles_capture(ctx, args)
+    if cmd == 'migrate':
+        return cmd_dotfiles_migrate(ctx, args)
     return cmd_dotfiles_status(ctx, args)
+
+
+def cmd_dotfiles_migrate(ctx, args):
+    '''Re-point any managed dotfile link that references the REPO at the machine-local store instead
+    (requirement #4), materializing the content on the way. Previews the exact before->after and
+    asks before touching anything; reports orphan plain files but NEVER deletes them.'''
+    df, units = _active_dotfiles(ctx)
+    repo = os.path.realpath(ctx.paths.dotfiles_dir)
+    to_fix = []                                          # (rc, tgt)
+    for rc in units:
+        for _srcpath, tgt, _absorb in df._pairs(rc):
+            if not tgt.is_symlink():
+                continue
+            cur = os.path.realpath(tgt)
+            if cur == repo or cur.startswith(repo + os.sep):     # a link INTO the repo
+                to_fix.append((rc, tgt))
+    orphans = []                                         # real (non-symlink) files in the bash loader
+    loader = ctx.paths.home / '.bash.d'
+    if loader.is_dir():
+        orphans = [f for f in sorted(loader.iterdir())
+                   if f.is_file() and not f.is_symlink() and f.suffix == '.sh']
+    if not to_fix and not orphans:
+        print('configsys: nothing to migrate — no managed links reference the repo.')
+        return 0
+    print('configsys dotfiles migrate — the following WILL change:\n')
+    for rc, tgt in to_fix:
+        print(f'  re-point  {df.display_path(tgt)}')
+        print(f'              from  {df.display_path(Path(os.path.realpath(tgt)))}   (repo)')
+        print(f'              to    {df.display_path(ctx.paths.user_dotfiles_dir)}/…   (local store)')
+    if orphans:
+        print('\n  left AS-IS (yours to review — NOT deleted):')
+        for f in orphans:
+            print(f'    {df.display_path(f)}')
+    if not getattr(args, 'yes', False):
+        if not (sys.stdin.isatty() and sys.stdout.isatty()):
+            print('\nconfigsys: not a terminal; re-run with --yes to apply.')
+            return 1
+        try:
+            ans = input('\napply these changes? [y/N] ').strip().lower()
+        except EOFError:
+            ans = ''
+        if ans not in ('y', 'yes'):
+            print('configsys: not applied.')
+            return 0
+    seen = set()
+    for rc, _tgt in to_fix:                              # re-install = materialize + relink to store
+        if rc.key in seen:
+            continue
+        seen.add(rc.key)
+        df.install(rc)
+    print(f'\nconfigsys: re-pointed {len(to_fix)} link(s) at the local store.')
+    if orphans:
+        print(f'  {len(orphans)} orphan file(s) left untouched — review and `rm` any that aren\'t yours.')
+    return 0
 
 
 def _dotfiles_root_label(ctx, root):

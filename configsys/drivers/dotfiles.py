@@ -18,6 +18,7 @@ lock (ledger carries intent).
 import os
 import re
 import shlex
+import shutil
 from pathlib import Path
 
 from ..driver import Driver
@@ -106,6 +107,39 @@ class DotFiles(Driver):
                 return cand, tier, root
         dr = self._defining_root(rc)
         return dr / src, None, dr
+
+    def _store_path(self, src):
+        '''Where a SHIPPED TEMPLATE materializes: the machine-local store, at the same relative
+        `src` (bash.d/btop.sh -> ~/.config/configsys/dotfiles/bash.d/btop.sh). None if no store.
+        Pure — no side effects (used both to decide the link target and, after copy, to link it).'''
+        store = getattr(self.paths, 'user_dotfiles_dir', None) if self.paths is not None else None
+        return (Path(store) / src) if store is not None else None
+
+    def _link_source(self, srcpath, tier, src):
+        '''The path a link should point AT. For a shipped template (tier 'template', content living in
+        the repo/defining layer) that's the machine-local STORE copy — so a link NEVER references the
+        repo (requirement #4). For user content (tier 'user') or unpopulated (None), it's srcpath as
+        resolved. Pure; `_materialize` does the actual copy before we link.'''
+        if tier == 'template':
+            dest = self._store_path(src)
+            if dest is not None:
+                return dest
+        return srcpath
+
+    def _materialize(self, srcpath, src):
+        '''Copy a shipped template into the machine-local store (idempotent — only when the store
+        lacks it), so the subsequent link points at a user-owned file instead of the repo. Returns
+        the store path (or srcpath if there's no store / nothing to copy).'''
+        dest = self._store_path(src)
+        if dest is None or not srcpath.exists():
+            return srcpath
+        if not dest.exists():
+            dest.parent.mkdir(parents=True, exist_ok=True)
+            if srcpath.is_dir():
+                shutil.copytree(srcpath, dest)
+            else:
+                shutil.copy2(srcpath, dest)
+        return dest
 
     def _expand(self, dst):
         '''Expand env vars + ~ in a destination against configsys HOME.'''
@@ -247,14 +281,20 @@ class DotFiles(Driver):
         pairs, blocked = [], []
         for _name, src, dst, absorb in specs:
             srcpath, tier, _root = self._resolve(src, rc)
+            # A shipped TEMPLATE links to its machine-local STORE copy, NOT the repo (requirement #4).
+            # Compute that target now (pure); the copy happens below, only for specs we actually link.
+            link_src = self._link_source(srcpath, tier, src)
             tgt = self._expand(dst)
             ab = self._expand(absorb) if absorb else None
-            pairs.append((srcpath, tgt, ab))
+            pairs.append((srcpath, tier, src, link_src, tgt, ab))
             # REFUSE to replace a real on-system file/dir with a TEMPLATE the user hasn't adopted.
             # tier 'user' = you captured it -> linking to your own content is safe; tier None =
             # unpopulated -> the shell skips it (nothing to clobber); an `absorb-into` spec has its
             # own safe relocation. So only an un-adopted TEMPLATE over a real dst is blocked.
-            ours = tgt.is_symlink() and os.path.realpath(tgt) == os.path.realpath(srcpath)
+            # A symlink WE made (pointing at the store copy OR the old repo template) is ours — a
+            # legacy repo-link is safe to RE-POINT at the store, not a clobber. (Powers `migrate`.)
+            ours = tgt.is_symlink() and os.path.realpath(tgt) in (
+                os.path.realpath(link_src), os.path.realpath(srcpath))
             if (not force and tier == 'template' and ab is None
                     and (tgt.exists() or tgt.is_symlink()) and not ours):
                 blocked.append(tgt)
@@ -268,9 +308,14 @@ class DotFiles(Driver):
                    f'- or replace them now, backing up the original to *{BACKUP_SUFFIX}:  '
                    f'install --force')
             return Result('dotfiles: refused (un-adopted target)', 1, stderr=msg, advisory=True)
+        # Materialize shipped templates into the machine-local store NOW (only the specs we'll link),
+        # so the link below points at a user-owned copy and never into the repo.
+        for _srcpath, tier, src, _link_src, _tgt, _ab in pairs:
+            if tier == 'template':
+                self._materialize(_srcpath, src)
         lines = ['set -e']
-        for src, tgt, absorb in pairs:
-            s, t = shlex.quote(str(src)), shlex.quote(str(tgt))
+        for _srcpath, _tier, src, link_src, tgt, absorb in pairs:
+            s, t = shlex.quote(str(link_src)), shlex.quote(str(tgt))
             # UNPOPULATED is not an error: a component may declare src/dst with no content shipped
             # (a personal dotfile awaiting capture). If the source is absent, skip that spec with a
             # note instead of failing — configsys never invents content for you.
