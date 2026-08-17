@@ -193,10 +193,17 @@ moves.
 - **Glue components become convention-driven** (declare a name, not per-shell src/dst specs) — the
   binding shape changes; regen golden accordingly.
 
-## Phasing (proposed)
-1. **#4 fix + rename + migrate** — the active bug: shell-keyed store, materialize+relink, move to
-   `~/.config/bashrc.d`, `dotfiles migrate`. (Bash-only; convention layout in place.)
-2. **#5 `.cfs` + manifest + managed state** — config marker, `get_version` "managed", startup warn.
+## Phasing
+1a. **#4 fix + migrate — DONE** (commit `b90fb7a`): the driver materializes any repo `template` into
+   the machine-local store (`~/.config/configsys/dotfiles/`, same relative path) and links the store
+   copy, never the repo; a symlink we made (incl. a legacy repo-link) counts as ours so re-pointing
+   isn't a clobber. `configsys dotfiles migrate` re-points existing repo-links with an itemized
+   preview+confirm, flags orphans without deleting. (Kept `~/.bash.d`; no convention yet.)
+1b. **rename + glue: convention — TODO**: move to `~/.config/<shell>/conf.d/`, reshape the ~68 glue
+   `-dotfiles` to the `glue: <name>` convention, `dotfiles/bash.d/` → `dotfiles/shell/bash/`, update
+   the bash loader; `migrate` extends to move `~/.bash.d` → the new dir. Bash-only.
+2. **#5 `.cfs` + manifest + managed state** — config marker, `get_version` "managed", startup warn,
+   exclude=globs, capture auto-suggests secrets.
 3. **Multi-shell** — `zsh-dotfiles`/`fish-dotfiles` loaders, per-installed-shell activation, first
    non-bash glue variants. (Convention already supports it; this just adds the loaders + variants.)
 
