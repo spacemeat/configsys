@@ -209,7 +209,12 @@ moves.
 - **`dotfiles migrate`** offers with an explicit itemized before→after preview + confirm; never
   silent, never on `install`.
 
+## Resolved (round 2)
+- **Exclude patterns = globs** (not gitignore-style — easier to reason about): `.env`, `secrets/`,
+  `*.log`, `id_*`.
+- **`capture` auto-suggests secrets** — on first capture it scans for obvious secret-shaped paths
+  (`.env`, `id_*`, `*_history`, `*.pem`/`*.key`, `credentials*`, `.ssh/`) and pre-fills them into the
+  new manifest's `exclude:` (the user can trim). Rare, but cheap insurance.
+
 ## Still open (minor)
-- Exclude-pattern syntax (globs? gitignore-style? both) and whether `capture` auto-suggests obvious
-  secret patterns (`.env`, `*_history`, `id_*`) into a new manifest.
 - Whether `dotfiles migrate` also offers to `capture` unmanaged config it finds at known `.cfs` dsts.
