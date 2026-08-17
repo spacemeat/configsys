@@ -71,9 +71,12 @@ never touch. Glue is per-machine + shell-shaped; config is portable + shell-agno
   components from each carrying a per-shell block.)
 - **Link chain (satisfies #4):** `~/.config/fish/conf.d/btop.fish` (or the bash/zsh loader dir) →
   `~/.config/configsys/dotfiles/shell/<shell>/btop.<ext>` (a COPY). Never the repo.
-- **Refresh:** re-copy repo→store for **un-edited** copies (hash-tracked); a copy the user edited is
-  now theirs — leave it. (Glue is "part of the app install", so it tracks configsys, but the user can
-  fork any snippet by editing the store copy.)
+- **Refresh:** re-copy repo→store for **un-edited** copies (hash-tracked against the origin repo
+  hash); a copy the user edited is theirs — leave it and **note it once** ("btop.sh is forked from the
+  shipped version — refresh skipped it"). The user can silence that per-snippet by marking the fork
+  **intentional** in the glue manifest (`shell/manifest.hu`: the origin hash + an `edited: intentional`
+  flag), after which refresh stays quiet about it. (Glue is "part of the app install", so it tracks
+  configsys by default, but any snippet is forkable and the fork is respected.)
 - **Opt-out:** **hobble the `-dotfiles` component** (durable — survives refresh). This is the
   documented gesture (removing a loader symlink is not durable; refresh would re-add). Opting out of
   the glue = opting out of the component.
@@ -86,11 +89,27 @@ never touch. Glue is per-machine + shell-shaped; config is portable + shell-agno
   (rides the user's git), else the machine-local store. User picks per capture (#3).
 - **`.cfs` dir = the management marker.** Its existence means "configsys manages this component's
   config." Created on install **even when no content exists yet** — that IS the #5 signal.
-- **A tiny manifest inside it** (`<component>.cfs/managed.hu`) records the **dst mapping(s)**
-  (`nvim → $XDG_CONFIG_HOME/nvim`). Two reasons: (a) git doesn't track empty dirs, so the
-  managed-but-empty state would evaporate on commit/clone without a file in it; (b) startup can read
-  it to know where the config goes *before* any content exists — this powers the warn (#2 / #5).
-  It's one boring co-located file per component — nothing like a central registry to desync/fat-finger.
+- **A manifest inside it — ALWAYS present** (`<component>.cfs/manifest.hu`), records the
+  **`src → content → dst` layout** for every spec. Reasons: (a) git doesn't track empty dirs, so the
+  managed-but-empty state would evaporate on commit/clone without a file in it; (b) startup reads it
+  to know where the config goes *before* any content exists (powers the warn — #2/#5); (c) it carries
+  the exclude list (below). One boring co-located file per component — nothing like a central registry.
+  Shape:
+  ```
+  { specs: { config: { src: nvim  dst: "$XDG_CONFIG_HOME/nvim"
+                       exclude: [ ".env"  "secrets/"  "shada/"  "*.log" ] } } }
+  ```
+- **Include-by-default; explicit exclusions are verboten (security).** The content dir IS the include
+  set — **omissions are honored** (a partial manifest is fine; unlisted content is still managed).
+  What the manifest adds is an explicit **`exclude:`** list of paths that must NEVER be captured,
+  linked, or synced — `.env`, `secrets/`, credential files — **even when they sit inside an included
+  subdirectory**. Enforced at BOTH ends so a secret can't leak:
+  - **capture** skips excluded paths — they never enter the store;
+  - the store **git-ignores** them (a generated `.gitignore` in the `.cfs` from the exclude list), so
+    even if one lands via edit-through (the user creates `~/.config/nvim/.env` inside the linked dir,
+    which writes into the store) it is **never committed/synced** to the primary-plugin git.
+  This is the load-bearing catch of directory-level symlinks: the whole dir is one link, so you can't
+  exclude a member by "not linking" it — you exclude it by keeping it out of capture AND out of sync.
 - **Multi-spec components** (`config:` + `aliases:`, …): key each spec's content by its `src` name
   inside `.cfs`; the manifest lists all their dsts.
 - **Links (satisfies #4):** `dst → <component>.cfs/<src>` (user-owned). Never the repo.
@@ -144,13 +163,19 @@ Cheap pass over the managed set (glue store + `.cfs` manifests), warn (never act
 
 ---
 
-## Migration (one-shot `configsys dotfiles migrate`, run with eyes open — never a surprise on install)
+## Migration (one-shot `configsys dotfiles migrate`)
+**Offers, and is EXPLICIT about exactly what it will do — an itemized preview + confirm, never a
+silent sweep and never triggered by `install`.** The preview lists, per item, the precise before→after:
 - Materialize each currently repo-linked glue snippet into the store, move `~/.bash.d` → the new
-  loader dir, and **re-point the links at the store** (kills the ~15 repo links).
-- Install the per-shell rc hookup for each installed shell.
+  `~/.config/<shell>/conf.d/`, and **re-point the links at the store** (kills the ~15 repo links) —
+  shown as `~/.bash.d/btop.sh → <repo>/…  ⇒  ~/.config/bash/conf.d/btop.sh → <store>/…`.
+- Install the per-shell rc hookup for each installed shell (shown as the exact `.bashrc`/`.zshrc` line
+  to be added).
 - **Flag** the orphan plain files (`cargo.sh`, `python.sh`, `go.sh`, `android.sh`, …) — report, do NOT
-  delete (they may be the user's); let the user decide.
+  delete (they may be the user's); list them as "left as-is, yours to review".
 - Leave `*.pre-configsys` backups untouched.
+The confirm is all-or-per-item; the user sees the full diff of their `~/.bash.d`/store before anything
+moves.
 
 ---
 
@@ -175,8 +200,16 @@ Cheap pass over the managed set (glue store + `.cfs` manifests), warn (never act
 3. **Multi-shell** — `zsh-dotfiles`/`fish-dotfiles` loaders, per-installed-shell activation, first
    non-bash glue variants. (Convention already supports it; this just adds the loaders + variants.)
 
-## Open (small) questions
-- Manifest format/name (`managed.hu` vs `.cfs`-as-file) and whether it also records the `src→content`
-  layout for multi-spec.
-- `refresh` UX when a glue store copy is user-edited (silent-skip vs note).
+## Resolved (were open)
+- **Manifest** = always a file `<component>.cfs/manifest.hu`, records the `src→content→dst` layout;
+  include-by-default (omissions honored) + an explicit **`exclude:`** list that is verboten at capture
+  AND git-ignored in the store (secrets never sync, even inside an included dir).
+- **Glue refresh** on a user-edited copy: note it once; silenceable per-snippet via
+  `edited: intentional` in `shell/manifest.hu`.
+- **`dotfiles migrate`** offers with an explicit itemized before→after preview + confirm; never
+  silent, never on `install`.
+
+## Still open (minor)
+- Exclude-pattern syntax (globs? gitignore-style? both) and whether `capture` auto-suggests obvious
+  secret patterns (`.env`, `*_history`, `id_*`) into a new manifest.
 - Whether `dotfiles migrate` also offers to `capture` unmanaged config it finds at known `.cfs` dsts.
