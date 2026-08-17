@@ -2297,13 +2297,17 @@ def cmd_dotfiles_migrate(ctx, args):
 
     loader = p.home / '.bash.d'
     active_bashd = set()                                 # ~/.bash.d links a live component still owns
-    to_fix, moves = [], []                               # (rc, tgt) ;  (rc, new_tgt, old_link)
+    to_fix, moves, dead = [], [], []                     # (rc,tgt) ; (rc,new_tgt,old_link) ; [tgt]
     for rc in units:
         for _srcpath, tgt, _absorb in df._pairs(rc):
             if tgt.is_symlink():
                 cur = os.path.realpath(tgt)
                 if cur == repo or cur.startswith(repo + os.sep):
-                    to_fix.append((rc, tgt)); continue
+                    # a repo-link WITH a live target re-points to the store; a DANGLING one (the repo
+                    # never shipped/no-longer ships that content, e.g. a stale htop config link) is
+                    # dead cruft with nothing to re-point at — remove it.
+                    (to_fix if tgt.exists() else dead).append((rc, tgt) if tgt.exists() else tgt)
+                    continue
             if tgt.parent.name == 'conf.d':              # reshaped to ~/.config/<shell>/conf.d/
                 old = loader / tgt.name
                 if old != tgt and _managed_link(old):
@@ -2312,7 +2316,7 @@ def cmd_dotfiles_migrate(ctx, args):
                 active_bashd.add(tgt.name)
     moves = [(rc, t, o) for (rc, t, o) in moves if o.name not in active_bashd]
     moving = {o.name for _rc, _t, o in moves}
-    orphans, dead = [], []                               # plain files ;  dangling repo links (bash.d gone)
+    orphans = []                                         # plain files in ~/.bash.d (yours to review)
     if loader.is_dir():
         for f in sorted(loader.iterdir()):
             if f.name in active_bashd or f.name in moving:
@@ -2337,7 +2341,8 @@ def cmd_dotfiles_migrate(ctx, args):
         print(f'  move      {df.display_path(old)}{dangling}')
         print(f'              to    {df.display_path(tgt)}   (from the local store)')
     for f in dead:
-        print(f'  remove    {df.display_path(f)}   (dead link — repo bash.d/ was moved to shell/bash/)')
+        print(f'  remove    {df.display_path(f)}   (dead link — points into the repo at content '
+              f'that isn\'t there)')
     if orphans:
         print('\n  left AS-IS (yours to review — NOT deleted):')
         for f in orphans:
@@ -2371,7 +2376,8 @@ def cmd_dotfiles_migrate(ctx, args):
     if n_moved:
         print(f'configsys: moved {n_moved} glue link(s) into ~/.config/<shell>/conf.d/.')
     if dead:
-        print(f'configsys: removed {len(dead)} dead link(s) left by the bash.d -> shell/bash move.')
+        print(f'configsys: removed {len(dead)} dead link(s) that pointed into the repo at '
+              f'missing content.')
     if orphans:
         print(f'  {len(orphans)} orphan file(s) left untouched — review and `rm` any that aren\'t yours.')
     return 0

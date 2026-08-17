@@ -121,6 +121,27 @@ def test_dotfiles_migrate_removes_dead_repo_link(tmp_path, monkeypatch):
     assert not dead.is_symlink()                                          # dead link cleared
 
 
+def test_dotfiles_migrate_removes_dangling_config_repo_link(tmp_path, monkeypatch):
+    # a config dst symlinked into the repo at content that ISN'T there (a stale link, e.g. htop
+    # config configsys never shipped) can't be re-pointed — migrate removes it as dead, rather than
+    # claiming a re-point that didn't happen.
+    import types
+    from configsys import app
+    p = paths_for(tmp_path)
+    p.dotfiles_dir.mkdir(parents=True)                                    # repo exists; no htop content
+    tgt = p.home / '.config' / 'htop'
+    tgt.parent.mkdir(parents=True)
+    tgt.symlink_to(p.dotfiles_dir / 'htop')                               # dangling repo-link
+    assert tgt.is_symlink() and not tgt.exists()
+    rc = df_unit(specs={'config': {'src': 'htop', 'dst': '$XDG_CONFIG_HOME/htop'}}, comp='htop-dotfiles')
+
+    df = DotFiles(Runner(pretend=False), paths=p)
+    monkeypatch.setattr(app, '_active_dotfiles', lambda c: (df, [rc]))
+    ctx = types.SimpleNamespace(paths=p, os_info=types.SimpleNamespace(block='x'))
+    assert app.cmd_dotfiles_migrate(ctx, types.SimpleNamespace(yes=True)) == 0
+    assert not tgt.is_symlink()                                           # dead config link removed
+
+
 # -- content root follows the layer that defined the component -------------
 
 def test_src_anchors_at_the_defining_layers_dotfiles_dir(tmp_path):
