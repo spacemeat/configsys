@@ -461,7 +461,10 @@ class DotFiles(Driver):
                 src_root, here = root, True               # content exists here
             else:
                 src_root, here = capture_root, False      # managed/unmanaged/empty -> capture dest
-            out.append((name, self.display_path(tgt), state, src_root, src, here))
+            # SRC display: a config spec's content lives under the <comp>.cfs/ marker dir; a glue
+            # spec's `src` is already the full shell/<shell>/… path.
+            rel = f'{rc.comp}{CFS_SUFFIX}/{src}' if kind == 'config' else src
+            out.append((name, self.display_path(tgt), state, src_root, rel, here))
         return out
 
     def capture_plan(self, rc, force=False):

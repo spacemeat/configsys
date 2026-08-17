@@ -2198,12 +2198,14 @@ _SAMPLES = {
     'dotfiles': {
         'header': f'{"STATE":10}{"TARGET":20}COMPONENT',
         'rows': [
-            [('linked', 10, 'installed'), ('~/.config/nvim', 20, 'unit'), ('nvim', 0, 'component')],
-            [('unmanaged', 10, 'missing'), ('~/.zshrc', 20, 'unit'), ('zsh', 0, 'component')],
-            [('linked', 10, 'installed'), ('~/.gitconfig', 20, 'unit'), ('git', 0, 'component')],
+            [('linked', 10, 'installed'), ('~/.config/nvim', 20, 'unit'), ('neovim', 0, 'component')],
+            [('managed', 10, 'outdated'), ('+ ~/.gitconfig', 20, 'unit'), ('git', 0, 'component')],
+            [('loader-on', 10, 'installed'), ('~/.config/zsh/conf.d', 20, 'unit'), ('zsh-glue', 0, 'component')],
+            [('unmanaged', 10, 'missing'), ('! ~/.config/htop', 20, 'unit'), ('htop', 0, 'component')],
         ],
-        'foot': [('nvim → ~/.config/nvim', 'info_dim'), ('3 targets · 1 unmanaged', 'info_dim'),
-                 (' l link · x unlink · c capture ', 'status_line')],
+        'foot': [('git → <plugin>/git-dotfiles.cfs/gitconfig', 'info_dim'),
+                 ('4 targets · 1 to capture', 'info_dim'),
+                 (' l link · x unlink · c capture · m migrate ', 'status_line')],
     },
     'config': {
         'header': f'{"SETTING":20}VALUE',
@@ -2601,13 +2603,18 @@ def _draw_plugins(stdscr, pal, pl, ctx, note, screen):
 
 
 # -- Dotfiles screen ------------------------------------------------------
-_DF_STATE_ELEM = {'linked': 'installed', 'adopted': 'partial', 'unmanaged': 'outdated',
-                  'template': 'info_dim', 'empty': 'info_dim'}
+# state -> theme element. `managed` (a .cfs marker exists but nothing is captured yet — capture to
+# link) and `unmanaged` (a real file we don't manage — at risk) both want attention; `loader-on/off`
+# are the per-shell glue loaders (zsh-glue/fish-glue).
+_DF_STATE_ELEM = {'linked': 'installed', 'adopted': 'unit', 'managed': 'outdated',
+                  'unmanaged': 'missing', 'template': 'info_dim', 'empty': 'info_dim',
+                  'loader-on': 'installed', 'loader-off': 'info_dim'}
+_DF_CAPTURE_STATES = ('managed', 'unmanaged')          # rows a capture would adopt
 
 
 class DotfilesScreen:
     '''Link-state table over the via:dotfiles units — a skin over the dotfiles driver
-    (spec_states / install / uninstall / capture).'''
+    (spec_states / install / uninstall / capture, plus the per-shell glue loaders and `migrate`).'''
     def __init__(self, ctx):
         self.ctx = ctx
         self.cur = 0
@@ -2617,10 +2624,20 @@ class DotfilesScreen:
     def reload(self):
         from .. import actions
         self.df, self.units = actions.dotfiles_units(self.ctx)
-        self.rows = []
+        self.rows = []                                       # (rc, name, tgt, state, root, rel, here, cap)
         for rc in self.units:
+            loader = self.df._loader_shell(rc)
+            if loader:                                      # a per-shell glue loader (zsh-glue/fish-glue)
+                on = self.df.get_version(rc) is not None
+                state = 'loader-on' if on else 'loader-off'
+                self.rows.append((rc, f'{loader} loader', self.df.location(rc) or '', state,
+                                  None, '', True, False))
+                continue
+            # which specs have a real on-system file to adopt (a `managed`/`unmanaged` row is only
+            # capture-ACTIONABLE if something is actually there) — capture_plan tells us per spec.
+            cap = {name: (action == 'copy') for name, _d, _de, action in self.df.capture_plan(rc)}
             for name, tgt, state, src_root, src_rel, here in self.df.spec_states(rc):
-                self.rows.append((rc, name, tgt, state, src_root, src_rel, here))
+                self.rows.append((rc, name, tgt, state, src_root, src_rel, here, cap.get(name, False)))
         self.cur = min(self.cur, max(0, len(self.rows) - 1))
 
     def cur_row(self):
@@ -2647,24 +2664,31 @@ def _draw_dotfiles(stdscr, pal, ds, ctx, note, screen):
         _put(stdscr, it + 1, il, _fit('(no dotfiles in the active profiles)', iw),
              pal.style('info_dim', it + 1, il, h, w))
     for vis, i in enumerate(range(ds.top, min(len(ds.rows), ds.top + ih - 1))):
-        rc, _name, tgt, state, root, rel, here = ds.rows[i]
+        rc, _name, tgt, state, root, rel, here, cap = ds.rows[i]
         y, sel = it + 1 + vis, i == ds.cur
         if sel:
             _put(stdscr, y, il, ' ' * iw, pal.fill(y, il, h, w, selected=True))
-        mark = '!' if state == 'unmanaged' else ' '
-        src = ('' if here else '→ ') + f'{Path(root).name}/{rel}'
+        # `!` a real on-system file we don't manage; `+` a marked config with on-disk content to adopt.
+        mark = '!' if state == 'unmanaged' else '+' if (state == 'managed' and cap) else ' '
+        if root is None:                          # a loader row: no content source, show the hookup
+            src = 'rc hookup' if state == 'loader-on' else '(not hooked up)'
+        else:
+            src = ('' if here else '→ ') + f'{Path(root).name}/{rel}'
         elem = 'label' if sel else _DF_STATE_ELEM.get(state, 'component')
         _put(stdscr, y, il, _fit(f'{mark} {state:10}{tgt:30}{rc.comp:{comp_w}}{src}', iw),
              pal.style(elem, y, il, h, w, selected=sel))
     _scrollbar_v(stdscr, pal, it + 1, il + iw, ih - 1, ds.top, ih - 1, len(ds.rows), h, w)
 
     n_unmanaged = sum(1 for r in ds.rows if r[3] == 'unmanaged')
+    n_adopt = sum(1 for r in ds.rows if r[3] == 'managed' and r[7])   # managed + on-disk to capture
     status = f' {len(ds.rows)} dotfile target(s)'
     if n_unmanaged:
-        status += f'   ! {n_unmanaged} unmanaged (capture before linking)'
+        status += f'   ! {n_unmanaged} unmanaged (at risk)'
+    if n_adopt:
+        status += f'   + {n_adopt} with on-disk config to capture (c)'
     if note:
         status += f'    {note}'
-    navf = ' j/k · l link · x unlink · c capture (adopt on-system) · 1-6 screens · q quit '
+    navf = ' j/k · l link · x unlink · c capture · m migrate · 1-6 screens · q quit '
     _put(stdscr, h - 2, 0, _fit(status, w), pal.style('status_line', h - 2, 0, h, w))
     _put(stdscr, h - 1, 0, _fit(navf.ljust(w), w), pal.style('footer', h - 1, 0, h, w))
     stdscr.refresh()
@@ -2966,7 +2990,7 @@ def run(ctx):
 
             # -- Dotfiles screen --
             if screen == 'dotfiles':
-                row = ds.cur_row()          # (rc, name, target, state, root, rel, here)
+                row = ds.cur_row()          # (rc, name, target, state, root, rel, here, capturable)
                 try:
                     if ch in (ord('j'), curses.KEY_DOWN):
                         ds.cur = min(len(ds.rows) - 1, ds.cur + 1)
@@ -2992,6 +3016,17 @@ def run(ctx):
                         ds.reload()
                         note = (f'captured {len(done)} target(s) for {row[0].comp}'
                                 if done else f'nothing to capture for {row[0].comp}')
+                    elif ch == ord('m'):                    # migrate: re-point repo-links, move glue
+                        import types as _types                # to conf.d, clear dead links (with confirm)
+                        from .. import app as _app
+                        with suspended(stdscr):
+                            _app.cmd_dotfiles_migrate(ctx, _types.SimpleNamespace(yes=False))
+                            try:
+                                input('\n(press Enter to return) ')
+                            except EOFError:
+                                pass
+                        ds.reload()
+                        note = 'migrate: done'
                 except Exception as e:  # noqa: BLE001 — surface, don't crash
                     note = f'error: {e}'
                 continue
