@@ -27,6 +27,14 @@ from ..runner import Result
 _VAR = re.compile(r'\$[A-Za-z_][A-Za-z0-9_]*')
 BACKUP_SUFFIX = '.pre-configsys'
 
+# glue: shell-integration snippets, keyed by shell. `_SHELL_EXT` = the file extension per shell;
+# `_SHELL_CONFD` = the active loader dir (uniform ~/.config/<shell>/conf.d/, mirroring fish's native
+# one). Repo ships bash variants today; other shells activate the moment their variant exists.
+_SHELL_EXT = {'bash': 'sh', 'zsh': 'zsh', 'fish': 'fish', 'nu': 'nu'}
+_SHELL_CONFD = {'bash': '~/.config/bash/conf.d', 'zsh': '~/.config/zsh/conf.d',
+                'fish': '~/.config/fish/conf.d', 'nu': '~/.config/nushell/conf.d'}
+_GLUE_SHELLS = ('bash', 'zsh', 'fish', 'nu')
+
 
 class DotFiles(Driver):
     name = 'dotfiles'
@@ -35,20 +43,47 @@ class DotFiles(Driver):
 
     # -- specs & paths ----------------------------------------------------
 
-    @staticmethod
-    def _specs(rc):
+    def _specs(self, rc):
         '''[(name, src, dst, absorb)] link specs. A component may be a single inline spec
-        (top-level src/dst) or a set of named specs (config: {src,dst}, ...). `absorb-into` is
-        optional: where a PRE-EXISTING real dst is relocated at install (instead of the plain
-        `.pre-configsys` backup) so it stays live — e.g. a stray ~/.bash_aliases moved into the
-        ~/.bash.d loader dir, where the new one still sources it.'''
+        (top-level src/dst), a set of named specs (config: {src,dst}, ...), and/or GLUE
+        (`glue: <name>` -> one spec per shell that has a snippet: src shell/<shell>/<name>.<ext>
+        [with a bash.d/<name>.sh fallback for pre-move layers], dst ~/.config/<shell>/conf.d/
+        <name>.<ext>). `absorb-into` relocates a pre-existing real dst instead of a plain backup.'''
         f = rc.fields
         out = []
         if 'src' in f and 'dst' in f:
             out.append((rc.comp, f['src'], f['dst'], f.get('absorb-into')))
+        glue = f.get('glue')
+        if glue:
+            for shell, ext, src in self._glue_variants(glue, rc):
+                out.append((f'{glue}@{shell}', src, f'{_SHELL_CONFD[shell]}/{glue}.{ext}', None))
         for key, val in f.items():
             if isinstance(val, dict) and 'src' in val and 'dst' in val:
                 out.append((key, val['src'], val['dst'], val.get('absorb-into')))
+        return out
+
+    def _glue_variants(self, glue, rc):
+        '''(shell, ext, src) for each shell that HAS a snippet for this glue name. Precedence: the
+        highest content root that carries one wins (so YOUR plugin/store copy beats the repo
+        template), and within a root the new `shell/<shell>/<name>.<ext>` path beats the pre-move
+        `bash.d/<name>.sh` fallback (bash only). Repo ships bash today; other shells light up once
+        their variant lands.'''
+        out = []
+        for shell in _GLUE_SHELLS:
+            ext = _SHELL_EXT[shell]
+            srcs = [f'shell/{shell}/{glue}.{ext}']
+            if shell == 'bash':
+                srcs.append(f'bash.d/{glue}.sh')          # pre-move layout (unmigrated plugin/store)
+            chosen = None
+            for root, _tier in self._content_roots(rc):   # store, primary plugin, then repo template
+                for src in srcs:
+                    if (root / src).exists():
+                        chosen = src
+                        break
+                if chosen:
+                    break
+            if chosen:
+                out.append((shell, ext, chosen))
         return out
 
     def _home(self):

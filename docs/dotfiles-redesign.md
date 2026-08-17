@@ -199,9 +199,17 @@ moves.
    copy, never the repo; a symlink we made (incl. a legacy repo-link) counts as ours so re-pointing
    isn't a clobber. `configsys dotfiles migrate` re-points existing repo-links with an itemized
    preview+confirm, flags orphans without deleting. (Kept `~/.bash.d`; no convention yet.)
-1b. **rename + glue: convention — TODO**: move to `~/.config/<shell>/conf.d/`, reshape the ~68 glue
-   `-dotfiles` to the `glue: <name>` convention, `dotfiles/bash.d/` → `dotfiles/shell/bash/`, update
-   the bash loader; `migrate` extends to move `~/.bash.d` → the new dir. Bash-only.
+1b. **rename + glue: convention — DONE**: active loader dir is `~/.config/<shell>/conf.d/`; the 68
+   glue `-dotfiles` carry a single `glue: <name>` field (the driver expands it at runtime to a
+   per-shell spec — `shell/<shell>/<name>.<ext>` → `~/.config/<shell>/conf.d/<name>.<ext>` — for every
+   shell that has content, with a `bash.d/<name>.sh` fallback so an un-reshaped primary-plugin snippet
+   keeps resolving). `dotfiles/bash.d/` → `dotfiles/shell/bash/`. The bash loader (`bash_aliases`)
+   dual-sources `~/.config/bash/conf.d` + `~/.bash.d` during the transition. `configsys dotfiles
+   migrate` gained two idempotent transitions on top of 1a's relink: **move** a glue snippet's
+   `~/.bash.d/<name>.sh` link into `conf.d/` (installing the conf.d link from the store first, then
+   dropping the old one — but leaving a `~/.bash.d` link a STILL-ACTIVE component owns, e.g. a
+   plugin-only snippet not yet reshaped) and **remove** a dead `~/.bash.d` link stranded pointing into
+   the repo's now-gone `bash.d/`. Only golden change: the 68 glue units' fields `{src,dst}`→`{glue}`.
 2. **#5 `.cfs` + manifest + managed state** — config marker, `get_version` "managed", startup warn,
    exclude=globs, capture auto-suggests secrets.
 3. **Multi-shell** — `zsh-dotfiles`/`fish-dotfiles` loaders, per-installed-shell activation, first

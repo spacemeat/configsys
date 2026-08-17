@@ -72,6 +72,52 @@ def test_dotfiles_migrate_repoints_repo_links_to_store(tmp_path, monkeypatch):
     assert (p.home / '.bash.d' / 'mine.sh').read_text() == '# my own orphan\n'   # orphan untouched
 
 
+def test_dotfiles_migrate_moves_glue_link_from_bashd_to_confd(tmp_path, monkeypatch):
+    # Phase 1b: a glue component now targets ~/.config/bash/conf.d/. migrate installs the conf.d link
+    # (materialized from the store) and removes the now-superseded ~/.bash.d link.
+    import types
+    from configsys import app
+    p = paths_for(tmp_path)
+    (p.dotfiles_dir / 'shell' / 'bash').mkdir(parents=True)
+    (p.dotfiles_dir / 'shell' / 'bash' / 'btop.sh').write_text('# glue\n')
+    # pre-existing Phase-1a state: a managed store-link at the OLD ~/.bash.d location.
+    store_old = p.user_dotfiles_dir / 'bash.d' / 'btop.sh'
+    store_old.parent.mkdir(parents=True)
+    store_old.write_text('# glue\n')
+    (p.home / '.bash.d').mkdir(parents=True)
+    old_link = p.home / '.bash.d' / 'btop.sh'
+    old_link.symlink_to(store_old)
+
+    df = DotFiles(Runner(pretend=False), paths=p)
+    rc = df_unit(specs={'glue': 'btop'}, comp='btop-dotfiles')
+    monkeypatch.setattr(app, '_active_dotfiles', lambda c: (df, [rc]))
+    ctx = types.SimpleNamespace(paths=p, os_info=types.SimpleNamespace(block='x'))
+    assert app.cmd_dotfiles_migrate(ctx, types.SimpleNamespace(yes=True)) == 0
+
+    confd = p.home / '.config' / 'bash' / 'conf.d' / 'btop.sh'
+    assert confd.is_symlink() and confd.resolve().read_text() == '# glue\n'
+    assert not old_link.exists() and not old_link.is_symlink()             # old bash.d link removed
+
+
+def test_dotfiles_migrate_removes_dead_repo_link(tmp_path, monkeypatch):
+    # A ~/.bash.d symlink into the repo's now-gone bash.d/ is dead cruft (loader skips it) — migrate
+    # clears it even though no active component references it.
+    import types
+    from configsys import app
+    p = paths_for(tmp_path)
+    p.dotfiles_dir.mkdir(parents=True)                                     # repo exists; bash.d/ does NOT
+    (p.home / '.bash.d').mkdir(parents=True)
+    dead = p.home / '.bash.d' / 'clang.sh'
+    dead.symlink_to(p.dotfiles_dir / 'bash.d' / 'clang.sh')               # dangling into the repo
+    assert dead.is_symlink() and not dead.exists()
+
+    df = DotFiles(Runner(pretend=False), paths=p)
+    monkeypatch.setattr(app, '_active_dotfiles', lambda c: (df, []))
+    ctx = types.SimpleNamespace(paths=p, os_info=types.SimpleNamespace(block='x'))
+    assert app.cmd_dotfiles_migrate(ctx, types.SimpleNamespace(yes=True)) == 0
+    assert not dead.is_symlink()                                          # dead link cleared
+
+
 # -- content root follows the layer that defined the component -------------
 
 def test_src_anchors_at_the_defining_layers_dotfiles_dir(tmp_path):
@@ -114,7 +160,26 @@ def test_registry_has_dotfiles():
 def test_single_inline_spec():
     rc = ResolvedComponent(key='dotfiles\\arduino', driver='dotfiles', comp='arduino',
                            fields={'src': 'bash.d/arduino.sh', 'dst': '~/.bash.d/arduino.sh'})
-    assert DotFiles._specs(rc) == [('arduino', 'bash.d/arduino.sh', '~/.bash.d/arduino.sh', None)]
+    assert DotFiles(Runner(pretend=True))._specs(rc) == [
+        ('arduino', 'bash.d/arduino.sh', '~/.bash.d/arduino.sh', None)]
+
+
+def test_glue_expands_to_conf_d_per_shell(tmp_path):
+    # `glue: btop` -> a spec per shell that has a snippet; bash today: src shell/bash/btop.sh,
+    # dst ~/.config/bash/conf.d/btop.sh. The repo template is enough to light up bash.
+    p = paths_for(tmp_path)
+    (p.dotfiles_dir / 'shell' / 'bash').mkdir(parents=True)
+    (p.dotfiles_dir / 'shell' / 'bash' / 'btop.sh').write_text('# glue\n')
+    df = DotFiles(Runner(pretend=True), paths=p)
+    rc = ResolvedComponent(key='dotfiles\\btop-dotfiles', driver='dotfiles', comp='btop-dotfiles',
+                           fields={'glue': 'btop', 'requires': 'bash-dotfiles'})
+    assert df._specs(rc) == [
+        ('btop@bash', 'shell/bash/btop.sh', '~/.config/bash/conf.d/btop.sh', None)]
+
+    # a user copy at the pre-move bash.d/ path (e.g. an un-migrated plugin) still resolves + WINS.
+    (p.user_dotfiles_dir / 'bash.d').mkdir(parents=True)
+    (p.user_dotfiles_dir / 'bash.d' / 'btop.sh').write_text('# my btop\n')
+    assert df._specs(rc)[0][1] == 'bash.d/btop.sh'          # user store (bash.d) beats repo shell/bash
 
 
 def test_dst_env_expansion_defaults_xdg(tmp_path):

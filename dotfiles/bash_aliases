@@ -4,15 +4,18 @@ else
     export PYTHONPATH=.
 fi
 
-# Source ~/.bash.d/*.sh in lexical order (bash sorts glob expansion), so a snippet can order
-# itself with an NN- prefix — 00-configsys.sh runs first and exports the CONFIGSYS_*_DIR layout
-# vars, which later snippets (lazygit.sh, cargo.sh, ...) can then use to target their aliases.
-if [ -d ~/.bash.d ]; then
-    for shfile in ~/.bash.d/*.sh; do
-        if [ -x "$shfile" ]; then
-            source "$shfile"
-        fi
-    done
-fi
+# Source configsys's shell glue in lexical order (bash sorts glob expansion), so a snippet can
+# order itself with an NN- prefix — 00-configsys.sh runs first and exports the CONFIGSYS_*_DIR
+# layout vars, which later snippets can then use. New home is ~/.config/bash/conf.d (managed glue
+# links there); ~/.bash.d is still sourced for any snippets you kept there before the move, so
+# nothing silently stops loading during the transition.
+for _cfsdir in ~/.config/bash/conf.d ~/.bash.d; do
+    if [ -d "$_cfsdir" ]; then
+        for shfile in "$_cfsdir"/*.sh; do
+            [ -x "$shfile" ] && source "$shfile"
+        done
+    fi
+done
+unset _cfsdir shfile
 
 alias x="xdg-open"

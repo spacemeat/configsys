@@ -269,7 +269,7 @@
                               { via: tarball  installDir: "$CONFIGSYS_APP_DIR/fzf"  version: { github: junegunn/fzf  strip-v: true  asset: "fzf-*-linux_amd64.tar.gz" } } ] }
         xclip:   { description: "xclip — command-line access to the X clipboard." suggests: xclip-dotfiles
                    install: [ { via: native  when: "rhel"  requires: epel } { via: native  when: "not amzn"   repo-component: universe } ] }
-        xclip-dotfiles: { description: "xclip helper config, linked into place." install: [ { via: dotfiles  requires: bash-dotfiles  src: bash.d/xclip.sh  dst: ~/.bash.d/xclip.sh } ] }
+        xclip-dotfiles: { description: "xclip helper config, linked into place." install: [ { via: dotfiles  requires: bash-dotfiles  glue: xclip } ] }
 
         // btop lives in EPEL on EL (needs epel enabled), base repos everywhere else.
         // Two native bindings: the EL one adds `requires: epel`; both are dnf\btop.
@@ -352,7 +352,7 @@
             install: [
                 // 00- prefix: the ~/.bash.d loader sources files in lexical order, so this runs
                 // FIRST and its CONFIGSYS_*_DIR exports are available to every other snippet.
-                { via: dotfiles  requires: bash-dotfiles  src: bash.d/00-configsys.sh  dst: ~/.bash.d/00-configsys.sh }
+                { via: dotfiles  requires: bash-dotfiles  glue: 00-configsys }
             ]
         }
 
@@ -440,7 +440,7 @@
             ]
         }
         yazi-dotfiles: { description: "yazi config, linked into place."
-            install: [ { via: dotfiles  requires: bash-dotfiles  src: bash.d/yazi.sh  dst: ~/.bash.d/yazi.sh } ]
+            install: [ { via: dotfiles  requires: bash-dotfiles  glue: yazi } ]
         }
         // superfile (`spf`): Go TUI file manager. Native on Arch + Homebrew; elsewhere the GitHub
         // release tarball (its official install.sh sudo-installs and edits shell rc files — the
@@ -456,7 +456,7 @@
             ]
         }
         superfile-dotfiles: { description: "superfile config, linked into place."
-            install: [ { via: dotfiles  requires: bash-dotfiles  src: bash.d/superfile.sh  dst: ~/.bash.d/superfile.sh } ]
+            install: [ { via: dotfiles  requires: bash-dotfiles  glue: superfile } ]
         }
 
         // mc: Midnight Commander — packaged as `mc` in every base repo (EL via EPEL, like htop/btop).
@@ -558,7 +558,7 @@
         elm: { suggests: elm-dotfiles  description: "Elm — a functional language for reliable web frontends (compiles to JS)."
             install: [ { via: tarball  when: "not alpine"  installDir: "$CONFIGSYS_APP_DIR/elm"  requires: glibc  archive: gz  binary: elm
                          version: { github: elm/compiler  asset: "elm-*-linux-x64.gz" } } ] }
-        elm-dotfiles: { description: "elm shell setup, linked into place." install: [ { via: dotfiles  requires: bash-dotfiles  src: bash.d/elm.sh  dst: ~/.bash.d/elm.sh } ] }
+        elm-dotfiles: { description: "elm shell setup, linked into place." install: [ { via: dotfiles  requires: bash-dotfiles  glue: elm } ] }
 
         // Deno & Bun — alternative JS/TS runtimes. Native on Arch/Homebrew where packaged; else
         // the upstream github release ZIP (glibc-linked; the tarball driver unzips it). Both have
@@ -675,7 +675,7 @@
                          location: '~/.sdkman' } ]
         }
         sdkman-dotfiles: { description: "SDKMAN shell init — sources sdkman-init.sh from ~/.bash.d so `sdk` + the selected SDKs are on PATH."
-            install: [ { via: dotfiles  requires: bash-dotfiles  src: bash.d/sdkman.sh  dst: ~/.bash.d/sdkman.sh } ] }
+            install: [ { via: dotfiles  requires: bash-dotfiles  glue: sdkman } ] }
 
         // Kotlin compiler — native on Arch/Homebrew; else the github release ZIP. Needs a JVM to
         // run (requires jdk) and unzip to unpack. (SDKMAN is the other path — via the script driver.)
@@ -725,7 +725,7 @@
                 { via: native  when: "arch"      packages: [ gnustep-make, gnustep-base ] }            // official base (gnustep-gui is AUR-only)
                 { via: native  when: "opensuse"  packages: [ gnustep-make, gnustep-base-devel ] } ]
         }
-        gnustep-dotfiles: { description: "gnustep shell setup, linked into place." install: [ { via: dotfiles  requires: bash-dotfiles  src: bash.d/gnustep.sh  dst: ~/.bash.d/gnustep.sh } ] }
+        gnustep-dotfiles: { description: "gnustep shell setup, linked into place." install: [ { via: dotfiles  requires: bash-dotfiles  glue: gnustep } ] }
         d: { description: "The D programming language (a D compiler — LDC / GDC / DMD per distro)."
             install: [ { via: native  when: "fedora or arch or alpine or fedora_atomic"  name: ldc }   // LLVM D compiler
                        { via: native  when: "debian"  name: gdc }        // GCC D front-end (ldc is sid-only on debian)
@@ -1019,7 +1019,7 @@
         dnspeep: { suggests: dnspeep-dotfiles  description: "dnspeep — spy on the DNS queries your computer makes (needs root)."
             install: [ { via: tarball  when: "not alpine"  installDir: "$CONFIGSYS_APP_DIR/dnspeep"  requires: glibc
                          version: { github: jvns/dnspeep  strip-v: true }  asset: "dnspeep-linux.tar.gz" } ] }
-        dnspeep-dotfiles: { description: "dnspeep shell setup, linked into place." install: [ { via: dotfiles  requires: bash-dotfiles  src: bash.d/dnspeep.sh  dst: ~/.bash.d/dnspeep.sh } ] }
+        dnspeep-dotfiles: { description: "dnspeep shell setup, linked into place." install: [ { via: dotfiles  requires: bash-dotfiles  glue: dnspeep } ] }
 
         // Web/HTTP dev — httpie + jq native (httpie via EPEL on EL); yq/mitmproxy isolated via
         // pipx; xh/websocat are Rust crates.
@@ -1366,7 +1366,7 @@
                   latest-check: { url: "https://www.rarlab.com/download.htm"  regex: "rarlinux-x64-([0-9]+)[.]tar" } }
             ]
         }
-        rar-dotfiles: { description: "rar shell setup, linked into place." install: [ { via: dotfiles  requires: bash-dotfiles  src: bash.d/rar.sh  dst: ~/.bash.d/rar.sh } ] }
+        rar-dotfiles: { description: "rar shell setup, linked into place." install: [ { via: dotfiles  requires: bash-dotfiles  glue: rar } ] }
         // (The `compression` grouping is a PROFILE, not a parts component: nothing depends on it and
         // it's not OS-conditional, so the profile degrades gracefully — a part that's unroutable here,
         // e.g. unrar on musl/atomic, is skipped rather than failing the whole set. See config.hu.)
@@ -1686,7 +1686,7 @@
             ]
         }
         lazygit-dotfiles: { description: "lazygit config, linked into place."
-            install: [ { via: dotfiles  requires: bash-dotfiles  src: bash.d/lazygit.sh  dst: ~/.bash.d/lazygit.sh } ]
+            install: [ { via: dotfiles  requires: bash-dotfiles  glue: lazygit } ]
         }
 
         // --- dotfiles ---
@@ -1695,7 +1695,7 @@
             // dir (and made executable) instead of just backed up, so the user's own aliases
             // keep running — the new ~/.bash_aliases sources every ~/.bash.d/*.sh.
             install: [ { via: dotfiles  aliases: { src: bash_aliases  dst: ~/.bash_aliases
-                         absorb-into: ~/.bash.d/pre-configsys-aliases.sh } } ]
+                         absorb-into: ~/.config/bash/conf.d/pre-configsys-aliases.sh } } ]
         }
 
         // --- editors / IDEs ---
@@ -1716,7 +1716,7 @@
                          // local store) and manage/sync it from there. Until you capture, this
                          // spec is unpopulated and install leaves ~/.config/nvim untouched.
                          config:  { src: neovim  dst: $XDG_CONFIG_HOME/nvim }
-                         aliases: { src: bash.d/neovim.sh  dst: ~/.bash.d/neovim.sh } } ]
+                         aliases: { glue: neovim } } ]
         }
         // Emacs — native under `emacs` in every family.
         emacs: { suggests: emacs-dotfiles  description: "The extensible, self-documenting text editor." install: [ { via: native  repo-component: universe }  { via: flatpak  hub: flathub  app: org.gnu.emacs } ] }
@@ -2073,7 +2073,7 @@
                        { via: flatpak  hub: flathub  app: cc.arduino.IDE2 } ]
         }
         arduino-dotfiles: { description: "Arduino config, linked into place."
-            install: [ { via: dotfiles  requires: bash-dotfiles  src: bash.d/arduino.sh  dst: ~/.bash.d/arduino.sh } ]
+            install: [ { via: dotfiles  requires: bash-dotfiles  glue: arduino } ]
         }
 
         // --- parts: composition (a component that IS several others, no unit of its own) ---
@@ -2105,7 +2105,7 @@
         }
         vulkan-sdk-dotfiles: { description: "Vulkan SDK env config, linked into place."
             install: [ { via: dotfiles  requires: bash-dotfiles
-                         aliases: { src: bash.d/vulkan-sdk.sh  dst: ~/.bash.d/vulkan-sdk.sh } } ]
+                         glue: vulkan-sdk } ]
         }
         // vulkan-dev X libs, per OS: Debian ships three; Fedora's libxcb-devel bundles
         // xinput+xinerama (+ xcb-util-cursor-devel); Arch's libxcb does likewise (+ xcb-util-cursor).
@@ -2261,7 +2261,7 @@
         // and `gcc-cpp` components that only existed to feed `build-essential`.)
         gcc-select: { description: "Shell alias to switch the default gcc version (update-alternatives)."
             install: [ { via: dotfiles  when: "debian"  requires: bash-dotfiles
-                         src: bash.d/gcc.sh  dst: ~/.bash.d/gcc.sh } ]
+                         glue: gcc } ]
         }
 
         // --- versioned gcc. Three drivers, selected by OS/version:
@@ -2351,7 +2351,7 @@
         //   EL     -> dnf compat clangNN from EPEL (requires epel)
         clang-select: { description: "Shell alias to switch the default clang version (update-alternatives)."             // the `update-alternatives --config clang` alias dotfile
             requires: bash-dotfiles
-            install: [ { via: dotfiles  when: "debian"  src: bash.d/clang.sh  dst: ~/.bash.d/clang.sh } ]
+            install: [ { via: dotfiles  when: "debian"  glue: clang } ]
         }
         // clang ships no C++ stdlib and, on Linux, no C runtime of its own: it uses GCC's crt*.o +
         // libgcc (hence `requires: c-toolchain` — the gcc toolchain COMPONENT, not the g++ compiler)
@@ -2460,92 +2460,92 @@
         // `configsys dotfiles capture <name>` adopts an existing one) and shell-setup snippets
         // (PATH/alias/env for off-PATH installs). Each is soft-`suggests:`ed by its parent.
         aider-dotfiles: { description: "aider config, linked into place." install: [ { via: dotfiles  config: { src: aider.conf.yml  dst: ~/.aider.conf.yml } } ] }
-        android-studio-dotfiles: { description: "android-studio shell setup, linked into place." install: [ { via: dotfiles  requires: bash-dotfiles  src: bash.d/android-studio.sh  dst: ~/.bash.d/android-studio.sh } ] }
-        antigravity-dotfiles: { description: "antigravity shell setup, linked into place." install: [ { via: dotfiles  requires: bash-dotfiles  src: bash.d/antigravity.sh  dst: ~/.bash.d/antigravity.sh } ] }
+        android-studio-dotfiles: { description: "android-studio shell setup, linked into place." install: [ { via: dotfiles  requires: bash-dotfiles  glue: android-studio } ] }
+        antigravity-dotfiles: { description: "antigravity shell setup, linked into place." install: [ { via: dotfiles  requires: bash-dotfiles  glue: antigravity } ] }
         awscli-dotfiles: { description: "awscli config, linked into place." install: [ { via: dotfiles  config: { src: aws-config  dst: ~/.aws/config } } ] }
-        bazelisk-dotfiles: { description: "bazelisk shell setup, linked into place." install: [ { via: dotfiles  requires: bash-dotfiles  src: bash.d/bazelisk.sh  dst: ~/.bash.d/bazelisk.sh } ] }
+        bazelisk-dotfiles: { description: "bazelisk shell setup, linked into place." install: [ { via: dotfiles  requires: bash-dotfiles  glue: bazelisk } ] }
         blender-dotfiles: { description: "blender config, linked into place." install: [ { via: dotfiles  config: { src: blender  dst: $XDG_CONFIG_HOME/blender } } ] }
         bottom-dotfiles: { description: "bottom config, linked into place." install: [ { via: dotfiles  config: { src: bottom  dst: $XDG_CONFIG_HOME/bottom } } ] }
-        btop-dotfiles: { description: "btop config + shell setup, linked into place." install: [ { via: dotfiles  requires: bash-dotfiles  config: { src: btop  dst: $XDG_CONFIG_HOME/btop }  aliases: { src: bash.d/btop.sh  dst: ~/.bash.d/btop.sh } } ] }
-        bun-dotfiles: { description: "bun shell setup, linked into place." install: [ { via: dotfiles  requires: bash-dotfiles  src: bash.d/bun.sh  dst: ~/.bash.d/bun.sh } ] }
-        cabal-dotfiles: { description: "cabal shell setup, linked into place." install: [ { via: dotfiles  requires: bash-dotfiles  src: bash.d/cabal.sh  dst: ~/.bash.d/cabal.sh } ] }
+        btop-dotfiles: { description: "btop config + shell setup, linked into place." install: [ { via: dotfiles  requires: bash-dotfiles  config: { src: btop  dst: $XDG_CONFIG_HOME/btop }  aliases: { glue: btop } } ] }
+        bun-dotfiles: { description: "bun shell setup, linked into place." install: [ { via: dotfiles  requires: bash-dotfiles  glue: bun } ] }
+        cabal-dotfiles: { description: "cabal shell setup, linked into place." install: [ { via: dotfiles  requires: bash-dotfiles  glue: cabal } ] }
         claude-code-dotfiles: { description: "claude-code config, linked into place." install: [ { via: dotfiles  config: { src: claude-settings.json  dst: ~/.claude/settings.json } } ] }
         codex-dotfiles: { description: "codex config, linked into place." install: [ { via: dotfiles  config: { src: codex-config.toml  dst: ~/.codex/config.toml } } ] }
-        composer-dotfiles: { description: "composer shell setup, linked into place." install: [ { via: dotfiles  requires: bash-dotfiles  src: bash.d/composer.sh  dst: ~/.bash.d/composer.sh } ] }
-        coursier-dotfiles: { description: "coursier shell setup, linked into place." install: [ { via: dotfiles  requires: bash-dotfiles  src: bash.d/coursier.sh  dst: ~/.bash.d/coursier.sh } ] }
+        composer-dotfiles: { description: "composer shell setup, linked into place." install: [ { via: dotfiles  requires: bash-dotfiles  glue: composer } ] }
+        coursier-dotfiles: { description: "coursier shell setup, linked into place." install: [ { via: dotfiles  requires: bash-dotfiles  glue: coursier } ] }
         cvs-dotfiles: { description: "cvs config, linked into place." install: [ { via: dotfiles  config: { src: cvsrc  dst: ~/.cvsrc } } ] }
-        dart-dotfiles: { description: "dart shell setup, linked into place." install: [ { via: dotfiles  requires: bash-dotfiles  src: bash.d/dart.sh  dst: ~/.bash.d/dart.sh } ] }
-        deno-dotfiles: { description: "deno shell setup, linked into place." install: [ { via: dotfiles  requires: bash-dotfiles  src: bash.d/deno.sh  dst: ~/.bash.d/deno.sh } ] }
-        dotnet-dotfiles: { description: "dotnet shell setup, linked into place." install: [ { via: dotfiles  requires: bash-dotfiles  src: bash.d/dotnet.sh  dst: ~/.bash.d/dotnet.sh } ] }
+        dart-dotfiles: { description: "dart shell setup, linked into place." install: [ { via: dotfiles  requires: bash-dotfiles  glue: dart } ] }
+        deno-dotfiles: { description: "deno shell setup, linked into place." install: [ { via: dotfiles  requires: bash-dotfiles  glue: deno } ] }
+        dotnet-dotfiles: { description: "dotnet shell setup, linked into place." install: [ { via: dotfiles  requires: bash-dotfiles  glue: dotnet } ] }
         emacs-dotfiles: { description: "emacs config, linked into place." install: [ { via: dotfiles  config: { src: emacs.d  dst: ~/.emacs.d } } ] }
         fastfetch-dotfiles: { description: "fastfetch config, linked into place." install: [ { via: dotfiles  config: { src: fastfetch  dst: $XDG_CONFIG_HOME/fastfetch } } ] }
         fish-dotfiles: { description: "fish config, linked into place." install: [ { via: dotfiles  config: { src: fish  dst: $XDG_CONFIG_HOME/fish } } ] }
-        fossil-dotfiles: { description: "fossil shell setup, linked into place." install: [ { via: dotfiles  requires: bash-dotfiles  src: bash.d/fossil.sh  dst: ~/.bash.d/fossil.sh } ] }
+        fossil-dotfiles: { description: "fossil shell setup, linked into place." install: [ { via: dotfiles  requires: bash-dotfiles  glue: fossil } ] }
         fvwm2-dotfiles: { description: "fvwm2 config, linked into place." install: [ { via: dotfiles  config: { src: fvwm  dst: ~/.fvwm } } ] }
-        fzf-dotfiles: { description: "fzf shell setup, linked into place." install: [ { via: dotfiles  requires: bash-dotfiles  src: bash.d/fzf.sh  dst: ~/.bash.d/fzf.sh } ] }
-        gcloud-dotfiles: { description: "gcloud shell setup, linked into place." install: [ { via: dotfiles  requires: bash-dotfiles  src: bash.d/gcloud.sh  dst: ~/.bash.d/gcloud.sh } ] }
-        ghostty-dotfiles: { description: "ghostty config + shell setup, linked into place." install: [ { via: dotfiles  requires: bash-dotfiles  config: { src: ghostty  dst: $XDG_CONFIG_HOME/ghostty }  aliases: { src: bash.d/ghostty.sh  dst: ~/.bash.d/ghostty.sh } } ] }
+        fzf-dotfiles: { description: "fzf shell setup, linked into place." install: [ { via: dotfiles  requires: bash-dotfiles  glue: fzf } ] }
+        gcloud-dotfiles: { description: "gcloud shell setup, linked into place." install: [ { via: dotfiles  requires: bash-dotfiles  glue: gcloud } ] }
+        ghostty-dotfiles: { description: "ghostty config + shell setup, linked into place." install: [ { via: dotfiles  requires: bash-dotfiles  config: { src: ghostty  dst: $XDG_CONFIG_HOME/ghostty }  aliases: { glue: ghostty } } ] }
         git-dotfiles: { description: "git config, linked into place." install: [ { via: dotfiles  config: { src: gitconfig  dst: ~/.gitconfig } } ] }
-        gleam-dotfiles: { description: "gleam shell setup, linked into place." install: [ { via: dotfiles  requires: bash-dotfiles  src: bash.d/gleam.sh  dst: ~/.bash.d/gleam.sh } ] }
+        gleam-dotfiles: { description: "gleam shell setup, linked into place." install: [ { via: dotfiles  requires: bash-dotfiles  glue: gleam } ] }
         gnuplot-dotfiles: { description: "gnuplot config, linked into place." install: [ { via: dotfiles  config: { src: gnuplot  dst: ~/.gnuplot } } ] }
-        go-dotfiles: { description: "go shell setup, linked into place." install: [ { via: dotfiles  requires: bash-dotfiles  src: bash.d/go.sh  dst: ~/.bash.d/go.sh } ] }
+        go-dotfiles: { description: "go shell setup, linked into place." install: [ { via: dotfiles  requires: bash-dotfiles  glue: go } ] }
         gradle-dotfiles: { description: "gradle config, linked into place." install: [ { via: dotfiles  config: { src: gradle.properties  dst: ~/.gradle/gradle.properties } } ] }
-        grpcurl-dotfiles: { description: "grpcurl shell setup, linked into place." install: [ { via: dotfiles  requires: bash-dotfiles  src: bash.d/grpcurl.sh  dst: ~/.bash.d/grpcurl.sh } ] }
-        helix-dotfiles: { description: "helix config + shell setup, linked into place." install: [ { via: dotfiles  requires: bash-dotfiles  config: { src: helix  dst: $XDG_CONFIG_HOME/helix }  aliases: { src: bash.d/helix.sh  dst: ~/.bash.d/helix.sh } } ] }
+        grpcurl-dotfiles: { description: "grpcurl shell setup, linked into place." install: [ { via: dotfiles  requires: bash-dotfiles  glue: grpcurl } ] }
+        helix-dotfiles: { description: "helix config + shell setup, linked into place." install: [ { via: dotfiles  requires: bash-dotfiles  config: { src: helix  dst: $XDG_CONFIG_HOME/helix }  aliases: { glue: helix } } ] }
         helm-dotfiles: { description: "helm config, linked into place." install: [ { via: dotfiles  config: { src: helm-repositories.yaml  dst: $XDG_CONFIG_HOME/helm/repositories.yaml } } ] }
         httpie-dotfiles: { description: "httpie config, linked into place." install: [ { via: dotfiles  config: { src: httpie-config.json  dst: $XDG_CONFIG_HOME/httpie/config.json } } ] }
         hyprland-dotfiles: { description: "hyprland config, linked into place." install: [ { via: dotfiles  config: { src: hypr  dst: $XDG_CONFIG_HOME/hypr } } ] }
         i3-dotfiles: { description: "i3 config, linked into place." install: [ { via: dotfiles  config: { src: i3  dst: $XDG_CONFIG_HOME/i3 } } ] }
-        jetbrains-toolbox-dotfiles: { description: "jetbrains-toolbox shell setup, linked into place." install: [ { via: dotfiles  requires: bash-dotfiles  src: bash.d/jetbrains-toolbox.sh  dst: ~/.bash.d/jetbrains-toolbox.sh } ] }
-        jq-dotfiles: { description: "jq shell setup, linked into place." install: [ { via: dotfiles  requires: bash-dotfiles  src: bash.d/jq.sh  dst: ~/.bash.d/jq.sh } ] }
-        julia-dotfiles: { description: "julia shell setup, linked into place." install: [ { via: dotfiles  requires: bash-dotfiles  src: bash.d/julia.sh  dst: ~/.bash.d/julia.sh } ] }
-        just-dotfiles: { description: "just shell setup, linked into place." install: [ { via: dotfiles  requires: bash-dotfiles  src: bash.d/just.sh  dst: ~/.bash.d/just.sh } ] }
-        k9s-dotfiles: { description: "k9s config + shell setup, linked into place." install: [ { via: dotfiles  requires: bash-dotfiles  config: { src: k9s  dst: $XDG_CONFIG_HOME/k9s }  aliases: { src: bash.d/k9s.sh  dst: ~/.bash.d/k9s.sh } } ] }
+        jetbrains-toolbox-dotfiles: { description: "jetbrains-toolbox shell setup, linked into place." install: [ { via: dotfiles  requires: bash-dotfiles  glue: jetbrains-toolbox } ] }
+        jq-dotfiles: { description: "jq shell setup, linked into place." install: [ { via: dotfiles  requires: bash-dotfiles  glue: jq } ] }
+        julia-dotfiles: { description: "julia shell setup, linked into place." install: [ { via: dotfiles  requires: bash-dotfiles  glue: julia } ] }
+        just-dotfiles: { description: "just shell setup, linked into place." install: [ { via: dotfiles  requires: bash-dotfiles  glue: just } ] }
+        k9s-dotfiles: { description: "k9s config + shell setup, linked into place." install: [ { via: dotfiles  requires: bash-dotfiles  config: { src: k9s  dst: $XDG_CONFIG_HOME/k9s }  aliases: { glue: k9s } } ] }
         kicad-dotfiles: { description: "kicad config, linked into place." install: [ { via: dotfiles  config: { src: kicad  dst: $XDG_CONFIG_HOME/kicad } } ] }
         kitty-dotfiles: { description: "kitty config, linked into place." install: [ { via: dotfiles  config: { src: kitty  dst: $XDG_CONFIG_HOME/kitty } } ] }
-        kotlin-dotfiles: { description: "kotlin shell setup, linked into place." install: [ { via: dotfiles  requires: bash-dotfiles  src: bash.d/kotlin.sh  dst: ~/.bash.d/kotlin.sh } ] }
-        kubectl-dotfiles: { description: "kubectl shell setup, linked into place." install: [ { via: dotfiles  requires: bash-dotfiles  src: bash.d/kubectl.sh  dst: ~/.bash.d/kubectl.sh } ] }
-        lazydocker-dotfiles: { description: "lazydocker config + shell setup, linked into place." install: [ { via: dotfiles  requires: bash-dotfiles  config: { src: lazydocker  dst: $XDG_CONFIG_HOME/lazydocker }  aliases: { src: bash.d/lazydocker.sh  dst: ~/.bash.d/lazydocker.sh } } ] }
-        lazysql-dotfiles: { description: "lazysql shell setup, linked into place." install: [ { via: dotfiles  requires: bash-dotfiles  src: bash.d/lazysql.sh  dst: ~/.bash.d/lazysql.sh } ] }
+        kotlin-dotfiles: { description: "kotlin shell setup, linked into place." install: [ { via: dotfiles  requires: bash-dotfiles  glue: kotlin } ] }
+        kubectl-dotfiles: { description: "kubectl shell setup, linked into place." install: [ { via: dotfiles  requires: bash-dotfiles  glue: kubectl } ] }
+        lazydocker-dotfiles: { description: "lazydocker config + shell setup, linked into place." install: [ { via: dotfiles  requires: bash-dotfiles  config: { src: lazydocker  dst: $XDG_CONFIG_HOME/lazydocker }  aliases: { glue: lazydocker } } ] }
+        lazysql-dotfiles: { description: "lazysql shell setup, linked into place." install: [ { via: dotfiles  requires: bash-dotfiles  glue: lazysql } ] }
         libreoffice-dotfiles: { description: "libreoffice config, linked into place." install: [ { via: dotfiles  config: { src: libreoffice  dst: $XDG_CONFIG_HOME/libreoffice } } ] }
-        luarocks-dotfiles: { description: "luarocks shell setup, linked into place." install: [ { via: dotfiles  requires: bash-dotfiles  src: bash.d/luarocks.sh  dst: ~/.bash.d/luarocks.sh } ] }
+        luarocks-dotfiles: { description: "luarocks shell setup, linked into place." install: [ { via: dotfiles  requires: bash-dotfiles  glue: luarocks } ] }
         maven-dotfiles: { description: "maven config, linked into place." install: [ { via: dotfiles  config: { src: maven-settings.xml  dst: ~/.m2/settings.xml } } ] }
         maxima-dotfiles: { description: "maxima config, linked into place." install: [ { via: dotfiles  config: { src: maxima  dst: ~/.maxima } } ] }
         mercurial-dotfiles: { description: "mercurial config, linked into place." install: [ { via: dotfiles  config: { src: hgrc  dst: ~/.hgrc } } ] }
-        micro-dotfiles: { description: "micro config + shell setup, linked into place." install: [ { via: dotfiles  requires: bash-dotfiles  config: { src: micro  dst: $XDG_CONFIG_HOME/micro }  aliases: { src: bash.d/micro.sh  dst: ~/.bash.d/micro.sh } } ] }
-        miniforge-dotfiles: { description: "miniforge shell setup, linked into place." install: [ { via: dotfiles  requires: bash-dotfiles  src: bash.d/miniforge.sh  dst: ~/.bash.d/miniforge.sh } ] }
+        micro-dotfiles: { description: "micro config + shell setup, linked into place." install: [ { via: dotfiles  requires: bash-dotfiles  config: { src: micro  dst: $XDG_CONFIG_HOME/micro }  aliases: { glue: micro } } ] }
+        miniforge-dotfiles: { description: "miniforge shell setup, linked into place." install: [ { via: dotfiles  requires: bash-dotfiles  glue: miniforge } ] }
         mycli-dotfiles: { description: "mycli config, linked into place." install: [ { via: dotfiles  config: { src: myclirc  dst: ~/.myclirc } } ] }
-        nim-dotfiles: { description: "nim shell setup, linked into place." install: [ { via: dotfiles  requires: bash-dotfiles  src: bash.d/nim.sh  dst: ~/.bash.d/nim.sh } ] }
-        node-dotfiles: { description: "node shell setup, linked into place." install: [ { via: dotfiles  requires: bash-dotfiles  src: bash.d/node.sh  dst: ~/.bash.d/node.sh } ] }
-        nushell-dotfiles: { description: "nushell config + shell setup, linked into place." install: [ { via: dotfiles  requires: bash-dotfiles  config: { src: nushell  dst: $XDG_CONFIG_HOME/nushell }  aliases: { src: bash.d/nushell.sh  dst: ~/.bash.d/nushell.sh } } ] }
+        nim-dotfiles: { description: "nim shell setup, linked into place." install: [ { via: dotfiles  requires: bash-dotfiles  glue: nim } ] }
+        node-dotfiles: { description: "node shell setup, linked into place." install: [ { via: dotfiles  requires: bash-dotfiles  glue: node } ] }
+        nushell-dotfiles: { description: "nushell config + shell setup, linked into place." install: [ { via: dotfiles  requires: bash-dotfiles  config: { src: nushell  dst: $XDG_CONFIG_HOME/nushell }  aliases: { glue: nushell } } ] }
         octave-dotfiles: { description: "octave config, linked into place." install: [ { via: dotfiles  config: { src: octaverc  dst: ~/.octaverc } } ] }
-        odin-dotfiles: { description: "odin shell setup, linked into place." install: [ { via: dotfiles  requires: bash-dotfiles  src: bash.d/odin.sh  dst: ~/.bash.d/odin.sh } ] }
-        opam-dotfiles: { description: "opam shell setup, linked into place." install: [ { via: dotfiles  requires: bash-dotfiles  src: bash.d/opam.sh  dst: ~/.bash.d/opam.sh } ] }
-        opentofu-dotfiles: { description: "opentofu shell setup, linked into place." install: [ { via: dotfiles  requires: bash-dotfiles  src: bash.d/opentofu.sh  dst: ~/.bash.d/opentofu.sh } ] }
+        odin-dotfiles: { description: "odin shell setup, linked into place." install: [ { via: dotfiles  requires: bash-dotfiles  glue: odin } ] }
+        opam-dotfiles: { description: "opam shell setup, linked into place." install: [ { via: dotfiles  requires: bash-dotfiles  glue: opam } ] }
+        opentofu-dotfiles: { description: "opentofu shell setup, linked into place." install: [ { via: dotfiles  requires: bash-dotfiles  glue: opentofu } ] }
         pgcli-dotfiles: { description: "pgcli config, linked into place." install: [ { via: dotfiles  config: { src: pgcli-config  dst: $XDG_CONFIG_HOME/pgcli/config } } ] }
-        pipx-dotfiles: { description: "pipx shell setup, linked into place." install: [ { via: dotfiles  requires: bash-dotfiles  src: bash.d/pipx.sh  dst: ~/.bash.d/pipx.sh } ] }
-        protobuf-dotfiles: { description: "protobuf shell setup, linked into place." install: [ { via: dotfiles  requires: bash-dotfiles  src: bash.d/protobuf.sh  dst: ~/.bash.d/protobuf.sh } ] }
-        pyenv-dotfiles: { description: "pyenv shell setup, linked into place." install: [ { via: dotfiles  requires: bash-dotfiles  src: bash.d/pyenv.sh  dst: ~/.bash.d/pyenv.sh } ] }
-        python3-pip-dotfiles: { description: "python3-pip shell setup, linked into place." install: [ { via: dotfiles  requires: bash-dotfiles  src: bash.d/python3-pip.sh  dst: ~/.bash.d/python3-pip.sh } ] }
+        pipx-dotfiles: { description: "pipx shell setup, linked into place." install: [ { via: dotfiles  requires: bash-dotfiles  glue: pipx } ] }
+        protobuf-dotfiles: { description: "protobuf shell setup, linked into place." install: [ { via: dotfiles  requires: bash-dotfiles  glue: protobuf } ] }
+        pyenv-dotfiles: { description: "pyenv shell setup, linked into place." install: [ { via: dotfiles  requires: bash-dotfiles  glue: pyenv } ] }
+        python3-pip-dotfiles: { description: "python3-pip shell setup, linked into place." install: [ { via: dotfiles  requires: bash-dotfiles  glue: python3-pip } ] }
         qtile-dotfiles: { description: "qtile config, linked into place." install: [ { via: dotfiles  config: { src: qtile  dst: $XDG_CONFIG_HOME/qtile } } ] }
         r-dotfiles: { description: "r config, linked into place." install: [ { via: dotfiles  config: { src: Rprofile  dst: ~/.Rprofile } } ] }
-        ripgrep-dotfiles: { description: "ripgrep shell setup, linked into place." install: [ { via: dotfiles  requires: bash-dotfiles  src: bash.d/ripgrep.sh  dst: ~/.bash.d/ripgrep.sh } ] }
-        ruby-dotfiles: { description: "ruby shell setup, linked into place." install: [ { via: dotfiles  requires: bash-dotfiles  src: bash.d/ruby.sh  dst: ~/.bash.d/ruby.sh } ] }
-        rust-dotfiles: { description: "rust shell setup, linked into place." install: [ { via: dotfiles  requires: bash-dotfiles  src: bash.d/rust.sh  dst: ~/.bash.d/rust.sh } ] }
+        ripgrep-dotfiles: { description: "ripgrep shell setup, linked into place." install: [ { via: dotfiles  requires: bash-dotfiles  glue: ripgrep } ] }
+        ruby-dotfiles: { description: "ruby shell setup, linked into place." install: [ { via: dotfiles  requires: bash-dotfiles  glue: ruby } ] }
+        rust-dotfiles: { description: "rust shell setup, linked into place." install: [ { via: dotfiles  requires: bash-dotfiles  glue: rust } ] }
         sway-dotfiles: { description: "sway config, linked into place." install: [ { via: dotfiles  config: { src: sway  dst: $XDG_CONFIG_HOME/sway } } ] }
-        tree-sitter-cli-dotfiles: { description: "tree-sitter-cli shell setup, linked into place." install: [ { via: dotfiles  requires: bash-dotfiles  src: bash.d/tree-sitter-cli.sh  dst: ~/.bash.d/tree-sitter-cli.sh } ] }
-        unityhub-dotfiles: { description: "unityhub shell setup, linked into place." install: [ { via: dotfiles  requires: bash-dotfiles  src: bash.d/unityhub.sh  dst: ~/.bash.d/unityhub.sh } ] }
-        uv-dotfiles: { description: "uv shell setup, linked into place." install: [ { via: dotfiles  requires: bash-dotfiles  src: bash.d/uv.sh  dst: ~/.bash.d/uv.sh } ] }
-        v-dotfiles: { description: "v shell setup, linked into place." install: [ { via: dotfiles  requires: bash-dotfiles  src: bash.d/v.sh  dst: ~/.bash.d/v.sh } ] }
+        tree-sitter-cli-dotfiles: { description: "tree-sitter-cli shell setup, linked into place." install: [ { via: dotfiles  requires: bash-dotfiles  glue: tree-sitter-cli } ] }
+        unityhub-dotfiles: { description: "unityhub shell setup, linked into place." install: [ { via: dotfiles  requires: bash-dotfiles  glue: unityhub } ] }
+        uv-dotfiles: { description: "uv shell setup, linked into place." install: [ { via: dotfiles  requires: bash-dotfiles  glue: uv } ] }
+        v-dotfiles: { description: "v shell setup, linked into place." install: [ { via: dotfiles  requires: bash-dotfiles  glue: v } ] }
         valgrind-dotfiles: { description: "valgrind config, linked into place." install: [ { via: dotfiles  config: { src: valgrindrc  dst: ~/.valgrindrc } } ] }
-        vcpkg-dotfiles: { description: "vcpkg shell setup, linked into place." install: [ { via: dotfiles  requires: bash-dotfiles  src: bash.d/vcpkg.sh  dst: ~/.bash.d/vcpkg.sh } ] }
+        vcpkg-dotfiles: { description: "vcpkg shell setup, linked into place." install: [ { via: dotfiles  requires: bash-dotfiles  glue: vcpkg } ] }
         vscode-dotfiles: { description: "vscode config, linked into place." install: [ { via: dotfiles  config: { src: vscode-user  dst: ~/.config/Code/User } } ] }
         vscodium-dotfiles: { description: "vscodium config, linked into place." install: [ { via: dotfiles  config: { src: vscodium-user  dst: ~/.config/VSCodium/User } } ] }
-        websocat-dotfiles: { description: "websocat shell setup, linked into place." install: [ { via: dotfiles  requires: bash-dotfiles  src: bash.d/websocat.sh  dst: ~/.bash.d/websocat.sh } ] }
-        xh-dotfiles: { description: "xh shell setup, linked into place." install: [ { via: dotfiles  requires: bash-dotfiles  src: bash.d/xh.sh  dst: ~/.bash.d/xh.sh } ] }
+        websocat-dotfiles: { description: "websocat shell setup, linked into place." install: [ { via: dotfiles  requires: bash-dotfiles  glue: websocat } ] }
+        xh-dotfiles: { description: "xh shell setup, linked into place." install: [ { via: dotfiles  requires: bash-dotfiles  glue: xh } ] }
         xmonad-dotfiles: { description: "xmonad config, linked into place." install: [ { via: dotfiles  config: { src: xmonad  dst: ~/.xmonad } } ] }
-        zed-dotfiles: { description: "zed config + shell setup, linked into place." install: [ { via: dotfiles  requires: bash-dotfiles  config: { src: zed  dst: $XDG_CONFIG_HOME/zed }  aliases: { src: bash.d/zed.sh  dst: ~/.bash.d/zed.sh } } ] }
-        zig-dotfiles: { description: "zig shell setup, linked into place." install: [ { via: dotfiles  requires: bash-dotfiles  src: bash.d/zig.sh  dst: ~/.bash.d/zig.sh } ] }
+        zed-dotfiles: { description: "zed config + shell setup, linked into place." install: [ { via: dotfiles  requires: bash-dotfiles  config: { src: zed  dst: $XDG_CONFIG_HOME/zed }  aliases: { glue: zed } } ] }
+        zig-dotfiles: { description: "zig shell setup, linked into place." install: [ { via: dotfiles  requires: bash-dotfiles  glue: zig } ] }
         zsh-dotfiles: { description: "zsh config, linked into place." install: [ { via: dotfiles  config: { src: zshrc  dst: ~/.zshrc } } ] }
     }
 }

@@ -2252,32 +2252,74 @@ def cmd_dotfiles(ctx, args):
 
 
 def cmd_dotfiles_migrate(ctx, args):
-    '''Re-point any managed dotfile link that references the REPO at the machine-local store instead
-    (requirement #4), materializing the content on the way. Previews the exact before->after and
-    asks before touching anything; reports orphan plain files but NEVER deletes them.'''
+    '''Bring on-system dotfile links up to the current layout. Two transitions, both idempotent:
+      relink — a managed link that still references the REPO is re-pointed at the machine-local
+               store (requirement #4), materializing the content on the way; and
+      move   — a glue snippet whose target moved to ~/.config/<shell>/conf.d/ is installed there
+               and its now-superseded ~/.bash.d/<name>.sh link (a configsys link, possibly left
+               dangling by the bash.d->shell/bash repo move) is removed.
+    Previews the exact before->after and asks before touching anything. A ~/.bash.d link that a
+    STILL-ACTIVE component targets (e.g. a primary-plugin snippet not yet reshaped) and orphan
+    plain files are left as-is and never deleted.'''
     df, units = _active_dotfiles(ctx)
-    repo = os.path.realpath(ctx.paths.dotfiles_dir)
-    to_fix = []                                          # (rc, tgt)
+    p = ctx.paths
+    repo = os.path.realpath(p.dotfiles_dir)
+    roots = [os.path.realpath(d) for d in
+             (p.user_dotfiles_dir, p.primary_dotfiles_dir, p.dotfiles_dir) if d is not None]
+
+    def _managed_link(path):
+        '''True if `path` is a configsys-made symlink — one pointing into any content root — even
+        if the target no longer exists (a repo link stranded by the bash.d->shell/bash move).'''
+        if not path.is_symlink():
+            return False
+        raw = os.readlink(path)
+        tgt = raw if os.path.isabs(raw) else os.path.join(os.path.dirname(str(path)), raw)
+        rp = os.path.realpath(path) if path.exists() else os.path.normpath(tgt)
+        return any(rp == r or rp.startswith(r + os.sep) for r in roots)
+
+    loader = p.home / '.bash.d'
+    active_bashd = set()                                 # ~/.bash.d links a live component still owns
+    to_fix, moves = [], []                               # (rc, tgt) ;  (rc, new_tgt, old_link)
     for rc in units:
         for _srcpath, tgt, _absorb in df._pairs(rc):
-            if not tgt.is_symlink():
-                continue
-            cur = os.path.realpath(tgt)
-            if cur == repo or cur.startswith(repo + os.sep):     # a link INTO the repo
-                to_fix.append((rc, tgt))
-    orphans = []                                         # real (non-symlink) files in the bash loader
-    loader = ctx.paths.home / '.bash.d'
+            if tgt.is_symlink():
+                cur = os.path.realpath(tgt)
+                if cur == repo or cur.startswith(repo + os.sep):
+                    to_fix.append((rc, tgt)); continue
+            if tgt.parent.name == 'conf.d':              # reshaped to ~/.config/<shell>/conf.d/
+                old = loader / tgt.name
+                if old != tgt and _managed_link(old):
+                    moves.append((rc, tgt, old)); continue
+            if tgt.parent == loader:                     # a component still targeting ~/.bash.d
+                active_bashd.add(tgt.name)
+    moves = [(rc, t, o) for (rc, t, o) in moves if o.name not in active_bashd]
+    moving = {o.name for _rc, _t, o in moves}
+    orphans, dead = [], []                               # plain files ;  dangling repo links (bash.d gone)
     if loader.is_dir():
-        orphans = [f for f in sorted(loader.iterdir())
-                   if f.is_file() and not f.is_symlink() and f.suffix == '.sh']
-    if not to_fix and not orphans:
-        print('configsys: nothing to migrate — no managed links reference the repo.')
+        for f in sorted(loader.iterdir()):
+            if f.name in active_bashd or f.name in moving:
+                continue
+            if f.is_symlink() and not f.exists():        # dangling — dead after the bash.d->shell/bash move?
+                raw = os.readlink(f)
+                tgt = raw if os.path.isabs(raw) else os.path.join(os.path.dirname(str(f)), raw)
+                if os.path.normpath(tgt).startswith(repo + os.sep):
+                    dead.append(f)
+            elif f.is_file() and not f.is_symlink() and f.suffix == '.sh':
+                orphans.append(f)
+    if not to_fix and not moves and not dead and not orphans:
+        print('configsys: nothing to migrate — links already match the current layout.')
         return 0
     print('configsys dotfiles migrate — the following WILL change:\n')
     for rc, tgt in to_fix:
         print(f'  re-point  {df.display_path(tgt)}')
         print(f'              from  {df.display_path(Path(os.path.realpath(tgt)))}   (repo)')
         print(f'              to    {df.display_path(ctx.paths.user_dotfiles_dir)}/…   (local store)')
+    for rc, tgt, old in moves:
+        dangling = '  (dangling)' if not old.exists() else ''
+        print(f'  move      {df.display_path(old)}{dangling}')
+        print(f'              to    {df.display_path(tgt)}   (from the local store)')
+    for f in dead:
+        print(f'  remove    {df.display_path(f)}   (dead link — repo bash.d/ was moved to shell/bash/)')
     if orphans:
         print('\n  left AS-IS (yours to review — NOT deleted):')
         for f in orphans:
@@ -2295,11 +2337,23 @@ def cmd_dotfiles_migrate(ctx, args):
             return 0
     seen = set()
     for rc, _tgt in to_fix:                              # re-install = materialize + relink to store
-        if rc.key in seen:
-            continue
-        seen.add(rc.key)
-        df.install(rc)
-    print(f'\nconfigsys: re-pointed {len(to_fix)} link(s) at the local store.')
+        if rc.key not in seen:
+            seen.add(rc.key); df.install(rc)
+    n_moved = 0
+    for rc, tgt, old in moves:
+        if rc.key not in seen:
+            seen.add(rc.key); df.install(rc)
+        if tgt.is_symlink() or tgt.exists():             # only drop the old link once the new one is in place
+            old.unlink()
+            n_moved += 1
+    for f in dead:
+        f.unlink()
+    if to_fix:
+        print(f'\nconfigsys: re-pointed {len(to_fix)} link(s) at the local store.')
+    if n_moved:
+        print(f'configsys: moved {n_moved} glue link(s) into ~/.config/<shell>/conf.d/.')
+    if dead:
+        print(f'configsys: removed {len(dead)} dead link(s) left by the bash.d -> shell/bash move.')
     if orphans:
         print(f'  {len(orphans)} orphan file(s) left untouched — review and `rm` any that aren\'t yours.')
     return 0
