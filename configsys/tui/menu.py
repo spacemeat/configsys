@@ -2196,16 +2196,20 @@ _SAMPLES = {
                  ('4 declared · 1 primary', 'info_dim'), (' selected: configsys-user ', 'status_line')],
     },
     'dotfiles': {
-        'header': f'{"STATE":10}{"TARGET":20}COMPONENT',
+        'header': f'{"COMPONENT":14}{"STATE":13}{"LINK":22}SOURCE',
         'rows': [
-            [('linked', 10, 'installed'), ('~/.config/nvim', 20, 'unit'), ('neovim', 0, 'component')],
-            [('managed', 10, 'outdated'), ('+ ~/.gitconfig', 20, 'unit'), ('git', 0, 'component')],
-            [('loader-on', 10, 'installed'), ('~/.config/zsh/conf.d', 20, 'unit'), ('zsh-glue', 0, 'component')],
-            [('unmanaged', 10, 'missing'), ('! ~/.config/htop', 20, 'unit'), ('htop', 0, 'component')],
+            [('neovim', 14, 'component'), ('linked', 13, 'installed'),
+             ('~/.config/nvim', 22, 'unit'), ('<plugin>/neovim.cfs', 0, 'installed')],
+            [('git', 14, 'component'), ('+ managed', 13, 'outdated'),
+             ('~/.gitconfig', 22, 'unit'), ('<plugin>/git-dotfiles.cfs', 0, 'outdated')],
+            [('zsh-glue', 14, 'component'), ('loader-on', 13, 'installed'),
+             ('~/.config/zsh/conf.d', 22, 'unit'), ('rc hookup', 0, 'installed')],
+            [('htop', 14, 'component'), ('! unmanaged', 13, 'missing'),
+             ('~/.config/htop', 22, 'unit'), ('(none)', 0, 'missing')],
         ],
-        'foot': [('git → <plugin>/git-dotfiles.cfs/gitconfig', 'info_dim'),
+        'foot': [('git — capture to link ~/.gitconfig', 'info_dim'),
                  ('4 targets · 1 to capture', 'info_dim'),
-                 (' l link · x unlink · c capture · m migrate ', 'status_line')],
+                 (' ↵ link · x unlink · c capture · m migrate · h/l scroll ', 'status_line')],
     },
     'config': {
         'header': f'{"SETTING":20}VALUE',
@@ -2619,29 +2623,56 @@ class DotfilesScreen:
         self.ctx = ctx
         self.cur = 0
         self.top = 0
+        self.hscroll = 0                 # horizontal scroll across the columns (h/l)
         self.reload()
+
+    def _root_label(self, root):
+        '''Short label for a content root: <plugin> / <local> / <repo>, else the dir name — so
+        SOURCE says WHERE the content lives, not just an ambiguous "dotfiles/".'''
+        p, rp = self.ctx.paths, Path(root)
+        if p.primary_dotfiles_dir is not None and rp == Path(p.primary_dotfiles_dir):
+            return '<plugin>'
+        if rp == p.user_dotfiles_dir:
+            return '<local>'
+        if rp == p.dotfiles_dir:
+            return '<repo>'
+        return rp.name
 
     def reload(self):
         from .. import actions
         self.df, self.units = actions.dotfiles_units(self.ctx)
-        self.rows = []                                       # (rc, name, tgt, state, root, rel, here, cap)
+        self.rows = []                                       # (rc, name, tgt, state, source, cap)
         for rc in self.units:
             loader = self.df._loader_shell(rc)
             if loader:                                      # a per-shell glue loader (zsh-glue/fish-glue)
                 on = self.df.get_version(rc) is not None
                 state = 'loader-on' if on else 'loader-off'
-                self.rows.append((rc, f'{loader} loader', self.df.location(rc) or '', state,
-                                  None, '', True, False))
+                src = 'rc hookup' if on else 'not hooked up'
+                self.rows.append((rc, f'{loader} loader', self.df.location(rc) or '', state, src, False))
                 continue
             # which specs have a real on-system file to adopt (a `managed`/`unmanaged` row is only
             # capture-ACTIONABLE if something is actually there) — capture_plan tells us per spec.
             cap = {name: (action == 'copy') for name, _d, _de, action in self.df.capture_plan(rc)}
-            for name, tgt, state, src_root, src_rel, here in self.df.spec_states(rc):
-                self.rows.append((rc, name, tgt, state, src_root, src_rel, here, cap.get(name, False)))
+            for name, tgt, state, src_root, src_rel, _here in self.df.spec_states(rc):
+                source = f'{self._root_label(src_root)}/{src_rel}'
+                self.rows.append((rc, name, tgt, state, source, cap.get(name, False)))
         self.cur = min(self.cur, max(0, len(self.rows) - 1))
 
     def cur_row(self):
         return self.rows[self.cur] if 0 <= self.cur < len(self.rows) else None
+
+
+# Columns: COMPONENT, STATE, LINK (the ~/… symlink location on your system), SOURCE (the managed
+# content it points at — the store/.cfs, or the shell rc hookup for a loader).
+_DF_HEADERS = ['COMPONENT', 'STATE', 'LINK', 'SOURCE']
+
+
+def _df_cells(row):
+    '''The four column strings for a dotfiles row. `!` = a real on-system file we don't manage;
+    `+` = a marked config with on-disk content ready to capture.'''
+    rc, _name, tgt, state, source, cap = row
+    mark = '!' if state == 'unmanaged' else '+' if (state == 'managed' and cap) else ' '
+    return [rc.comp, f'{mark} {state}', str(tgt), source]
 
 
 def _draw_dotfiles(stdscr, pal, ds, ctx, note, screen):
@@ -2652,35 +2683,41 @@ def _draw_dotfiles(stdscr, pal, ds, ctx, note, screen):
         _fill_bg(stdscr, pal, h, w)
     _draw_nav(stdscr, pal, screen, h, w)
     it, il, ih, iw = _panel(stdscr, pal, 1, 0, h - 3, w, 'dotfiles (link state)', True, h, w)
-    # component names are esoteric and vary in length — size the column to the widest one (+ pad),
-    # floored at the header and capped so SOURCE still fits.
-    comp_w = 18
-    if ds.rows:
-        comp_w = max(len('COMPONENT') + 1, min(34, max(len(r[0].comp) for r in ds.rows) + 2))
-    _put(stdscr, it, il, _fit(f'  {"STATE":11}{"TARGET":30}{"COMPONENT":{comp_w}}SOURCE (→ = on capture)', iw),
-         pal.style('menu_header', it, il, h, w))
-    ds.top = _scroll_top(ds.cur, ds.top, ih - 1, len(ds.rows))
     if not ds.rows:
+        _put(stdscr, it, il, _fit('   '.join(_DF_HEADERS), iw), pal.style('menu_header', it, il, h, w))
         _put(stdscr, it + 1, il, _fit('(no dotfiles in the active profiles)', iw),
              pal.style('info_dim', it + 1, il, h, w))
-    for vis, i in enumerate(range(ds.top, min(len(ds.rows), ds.top + ih - 1))):
-        rc, _name, tgt, state, root, rel, here, cap = ds.rows[i]
-        y, sel = it + 1 + vis, i == ds.cur
-        if sel:
-            _put(stdscr, y, il, ' ' * iw, pal.fill(y, il, h, w, selected=True))
-        # `!` a real on-system file we don't manage; `+` a marked config with on-disk content to adopt.
-        mark = '!' if state == 'unmanaged' else '+' if (state == 'managed' and cap) else ' '
-        if root is None:                          # a loader row: no content source, show the hookup
-            src = 'rc hookup' if state == 'loader-on' else '(not hooked up)'
-        else:
-            src = ('' if here else '→ ') + f'{Path(root).name}/{rel}'
-        elem = 'label' if sel else _DF_STATE_ELEM.get(state, 'component')
-        _put(stdscr, y, il, _fit(f'{mark} {state:10}{tgt:30}{rc.comp:{comp_w}}{src}', iw),
-             pal.style(elem, y, il, h, w, selected=sel))
-    _scrollbar_v(stdscr, pal, it + 1, il + iw, ih - 1, ds.top, ih - 1, len(ds.rows), h, w)
+    else:
+        # one cell-set per row; each column is sized to its longest cell so nothing is truncated —
+        # horizontal scroll (h/l) reaches anything wider than the panel.
+        cells_by_row = [_df_cells(r) for r in ds.rows]
+        widths = [max(len(_DF_HEADERS[c]), max((len(cs[c]) for cs in cells_by_row), default=0))
+                  for c in range(len(_DF_HEADERS))]
+        xs, vx = [], 0
+        for wd in widths:
+            xs.append(vx)
+            vx += wd + 2                         # two spaces between columns for breathing room
+        virt_w = vx - 2
+        has_hbar = virt_w > iw
+        rows_h = ih - 1 - (1 if has_hbar else 0)
+        ds.hscroll = max(0, min(ds.hscroll, max(0, virt_w - iw)))   # clamp: no scrolling past the end
+        for hdr, vx0 in zip(_DF_HEADERS, xs):    # sticky header, scrolls horizontally with the rows
+            _put_hscroll(stdscr, it, il, iw, vx0, ds.hscroll, hdr, pal.style('menu_header', it, il, h, w))
+        ds.top = _scroll_top(ds.cur, ds.top, rows_h, len(ds.rows))
+        for vis, i in enumerate(range(ds.top, min(len(ds.rows), ds.top + rows_h))):
+            y, sel = it + 1 + vis, i == ds.cur
+            if sel:
+                _put(stdscr, y, il, ' ' * iw, pal.fill(y, il, h, w, selected=True))
+            elem = 'label' if sel else _DF_STATE_ELEM.get(ds.rows[i][3], 'component')
+            style = pal.style(elem, y, il, h, w, selected=sel)
+            for cell, wd, vx0 in zip(cells_by_row[i], widths, xs):
+                _put_hscroll(stdscr, y, il, iw, vx0, ds.hscroll, cell.ljust(wd), style)
+        _scrollbar_v(stdscr, pal, it + 1, il + iw, rows_h, ds.top, rows_h, len(ds.rows), h, w)
+        if has_hbar:
+            _scrollbar_h(stdscr, pal, it + ih - 1, il, iw, ds.hscroll, iw, virt_w, h, w)
 
     n_unmanaged = sum(1 for r in ds.rows if r[3] == 'unmanaged')
-    n_adopt = sum(1 for r in ds.rows if r[3] == 'managed' and r[7])   # managed + on-disk to capture
+    n_adopt = sum(1 for r in ds.rows if r[3] == 'managed' and r[5])   # managed + on-disk to capture
     status = f' {len(ds.rows)} dotfile target(s)'
     if n_unmanaged:
         status += f'   ! {n_unmanaged} unmanaged (at risk)'
@@ -2688,7 +2725,7 @@ def _draw_dotfiles(stdscr, pal, ds, ctx, note, screen):
         status += f'   + {n_adopt} with on-disk config to capture (c)'
     if note:
         status += f'    {note}'
-    navf = ' j/k · l link · x unlink · c capture · m migrate · 1-6 screens · q quit '
+    navf = ' j/k rows · h/l scroll · ↵ link · x unlink · c capture · m migrate · 1-6 · q '
     _put(stdscr, h - 2, 0, _fit(status, w), pal.style('status_line', h - 2, 0, h, w))
     _put(stdscr, h - 1, 0, _fit(navf.ljust(w), w), pal.style('footer', h - 1, 0, h, w))
     stdscr.refresh()
@@ -2846,6 +2883,8 @@ def run(ctx):
                         except Exception as e:  # noqa: BLE001 — surface, don't crash
                             note = f'reload failed: {e}'
                         menu_dirty = False
+                    if dest == 'dotfiles' and ds is not None:  # re-read link state on entry — an
+                        ds.reload()                            # install/capture elsewhere may have changed it
                     screen = dest
                 else:
                     note = f'the {dest} screen is not built yet'
@@ -2990,18 +3029,22 @@ def run(ctx):
 
             # -- Dotfiles screen --
             if screen == 'dotfiles':
-                row = ds.cur_row()          # (rc, name, target, state, root, rel, here, capturable)
+                row = ds.cur_row()          # (rc, name, target, state, source, capturable)
                 try:
                     if ch in (ord('j'), curses.KEY_DOWN):
                         ds.cur = min(len(ds.rows) - 1, ds.cur + 1)
                     elif ch in (ord('k'), curses.KEY_UP):
                         ds.cur = max(0, ds.cur - 1)
+                    elif ch in (ord('h'), curses.KEY_LEFT):   # horizontal scroll across the columns
+                        ds.hscroll = max(0, ds.hscroll - 4)
+                    elif ch in (ord('l'), curses.KEY_RIGHT):
+                        ds.hscroll += 4                       # clamped to the content width in _draw
                     elif ch == ord('g'):
                         ds.cur = 0
                     elif ch == ord('G'):
                         ds.cur = max(0, len(ds.rows) - 1)
-                    elif ch == ord('l') and row:            # link (clobber-proof; refuses over a real file)
-                        with suspended(stdscr):
+                    elif ch in (ord('\n'), curses.KEY_ENTER) and row:   # link (clobber-proof;
+                        with suspended(stdscr):                          # refuses over a real file)
                             res = ds.df.install(row[0])
                         ds.reload()
                         note = (f'{row[0].comp}: {res.output().strip()}'

@@ -458,12 +458,14 @@ class DotFiles(Driver):
             else:
                 state = 'empty'
             if state in ('linked', 'adopted', 'template'):
-                src_root, here = root, True               # content exists here
-            else:
-                src_root, here = capture_root, False      # managed/unmanaged/empty -> capture dest
-            # SRC display: a config spec's content lives under the <comp>.cfs/ marker dir; a glue
-            # spec's `src` is already the full shell/<shell>/… path.
-            rel = f'{rc.comp}{CFS_SUFFIX}/{src}' if kind == 'config' else src
+                src_root, here = root, True               # content exists here -> show its real path
+                try:
+                    rel = str(srcpath.relative_to(src_root))
+                except ValueError:
+                    rel = src
+            else:                                         # managed/unmanaged/empty -> capture dest
+                src_root, here = capture_root, False      # a config lands under <comp>.cfs/<src>
+                rel = f'{rc.comp}{CFS_SUFFIX}/{src}' if kind == 'config' else src
             out.append((name, self.display_path(tgt), state, src_root, rel, here))
         return out
 
