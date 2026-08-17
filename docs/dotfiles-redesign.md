@@ -56,6 +56,14 @@ never touch. Glue is per-machine + shell-shaped; config is portable + shell-agno
     loader dir it manages. `bash-dotfiles` generalizes into per-shell loader components
     (`zsh-dotfiles`, …); a glue component `requires:` the loader(s) for the shell(s) it activates.
   - **nushell** — structured config, not `source *.sh`; punt, but the layout must not preclude it.
+- **Active loader dirs are uniform: `~/.config/<shell>/conf.d/`** (mirrors fish's real dir), for
+  bash/zsh/fish/nushell. Collision-checked: only fish reads a `conf.d` (its native, auto-sourced
+  one — we use it as intended); bash has no XDG home so `~/.config/bash/` is ours to invent; zsh has
+  no `conf.d` convention (`~/.config/zsh/` may be a user's `ZDOTDIR`, which is benign — our `conf.d/`
+  just co-locates next to their `.zshrc`); nushell's `~/.config/nushell/conf.d/` is free. TWO caveats
+  the uniform NAME doesn't erase: (1) only fish AUTO-sources — bash/zsh still need the configsys rc
+  line (the per-shell loader component); (2) fish's `conf.d` is COMMUNAL (user + other tools drop
+  there) so our files must be namespaced by component, whereas the bash/zsh dirs are configsys-only.
 - **Convention over per-shell specs.** A glue component declares a glue **name** (`btop`), NOT a spec
   per shell. The driver materializes/activates whatever `shell/<shell>/<name>.*` variants exist.
   Today only `shell/bash/btop.sh` exists → bash-only, unchanged. Add `shell/fish/btop.fish` to the
@@ -129,9 +137,9 @@ Cheap pass over the managed set (glue store + `.cfs` manifests), warn (never act
 
 ## Naming decisions
 - **Store glue dir:** `dotfiles/shell/<shell>/` (shell-neutral parent, per-shell subdir).
-- **Active loader dirs:** each shell's own convention where it has one — fish → `~/.config/fish/conf.d/`;
-  bash/zsh → a configsys-sourced dir. **Rename `~/.bash.d` → `~/.config/bashrc.d`** (and `zshrc.d`) —
-  reads as "extends your rc", which is what it is. (Was `bash.d`; the rename rides the move.)
+- **Active loader dirs:** **uniform `~/.config/<shell>/conf.d/`** for all four (bash/zsh/fish/nushell)
+  — mirrors fish's native dir, discoverable, no collisions (see the glue section for the check). This
+  replaces the old `~/.bash.d`; the rename rides the migration.
 - **Config marker:** `<component>.cfs/` + `managed.hu` manifest.
 
 ---
