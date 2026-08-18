@@ -680,6 +680,7 @@ def _dispatch_op(ctx, names, op, *, ledger=None, version=None):
             failures.append(rec)
         else:
             print('  -> ok')
+    ctx.runner.end_sudo()          # release the batch's sudo keep-alive (one prompt covered the run)
     if ledger is not None:
         ledger.save(ctx.paths)
     if failures:

@@ -22,6 +22,9 @@ class FakeRunner:
         code = 100 if any(s in cmd for s in self.fail) else 0
         return Result(full, code)
 
+    def end_sudo(self):
+        pass                       # batch sudo-session release; a no-op for the stub
+
 
 def unit(name, driver='apt'):
     return ResolvedComponent(key=f'{driver}\\{name}', driver=driver, comp=name,

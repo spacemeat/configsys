@@ -8,6 +8,7 @@ Every shell-out goes through Runner.run so that:
   * tests can inject a recording/mock runner.
 '''
 
+import collections
 import fcntl
 import os
 import select
@@ -271,6 +272,28 @@ def _run_teed(argv, cwd, env, limit):
         os.close(master)
 
 
+def _run_captured_tty(argv, cwd, env, limit):
+    '''Run argv keeping the REAL controlling terminal as stdin, while capturing stdout+stderr through
+    a pipe that we mirror live to the terminal and keep a bounded tail of. Returns (rc, tail).
+
+    Unlike _run_teed (which gives the child a fresh pty), the child keeps OUR tty on stdin — so a
+    `sudo` here finds the credential we pre-cached on that same tty (tty_tickets keys the timestamp by
+    tty, so a pty'd op would be a different tty and re-prompt every time) and, as a last resort, could
+    still prompt on it. Used for top-level `sudo=True` ops. Progress/colour degrade to plain (stdout
+    is a pipe, not a tty), which is the acceptable cost of not re-prompting on every op.'''
+    proc = subprocess.Popen(argv, stdin=None, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
+                            cwd=cwd, env=env, text=True, bufsize=1)
+    tail = collections.deque(maxlen=max(1, limit // 80))   # ~limit bytes, counted in lines
+    try:
+        for line in proc.stdout:
+            sys.stdout.write(line)
+            sys.stdout.flush()
+            tail.append(line)
+    finally:
+        proc.stdout.close()
+    return proc.wait(), ''.join(tail)
+
+
 def _sudo_preauth():
     '''Cache the sudo credential ONCE on the real terminal (one prompt if a password is needed),
     so a subsequently-teed `sudo` op won't have to prompt mid-stream — which is what lets us
@@ -313,10 +336,46 @@ class Runner:
         self.tui_active = False  # set by the app while the curses TUI owns the screen
         self.calls = []  # every full command string, in order (for tests/logs)
         self.tee_limit = 64 * 1024  # bytes of streamed output retained for failure reports
+        self._sudo_warm = False       # sudo credential pre-cached for this batch (real tty)
+        self._keepalive = None        # _SudoKeepalive refreshing it, for the batch's duration
 
     def echo(self, msg):
         if self._echo:
             self._echo(msg)
+
+    # -- sudo session: one prompt per batch, kept warm --------------------
+
+    def _ensure_sudo(self):
+        '''Warm the sudo credential ONCE for this batch — one prompt on the real terminal if a
+        password is needed — and keep it refreshed, so every subsequent sudo op reuses the SAME
+        real-tty ticket without re-prompting. This is the fix for tty_tickets (per-tty credential
+        caching): pre-auth on the real tty + run sudo ops on that same tty. Returns True iff sudo is
+        usable non-interactively now. Best-effort; never raises.'''
+        if self._sudo_warm:
+            return True
+        if _sudo_preauth():
+            self._sudo_warm = True
+            if self._keepalive is None:
+                self._keepalive = _SudoKeepalive()
+            return True
+        return False
+
+    def end_sudo(self):
+        '''Drop the keepalive + warm flag at the end of a batch, so sudo can lapse to its normal
+        timeout afterwards (we don't hold the machine authenticated indefinitely).'''
+        if self._keepalive is not None:
+            self._keepalive.stop()
+            self._keepalive = None
+        self._sudo_warm = False
+
+    @contextmanager
+    def sudo_session(self):
+        '''Scope a batch of ops: sudo is pre-authed lazily on the first privileged op and kept warm,
+        then released here. Wrap a multi-component install/upgrade so it prompts at most once.'''
+        try:
+            yield
+        finally:
+            self.end_sudo()
 
     def run(self, cmd, *, sudo=False, capture=True, tui_active=None,
             cwd=None, env=None, presudo=False) -> Result:
@@ -344,22 +403,28 @@ class Runner:
             # non-sudo tee). Any pty hiccup or a failed pre-auth degrades to a plain inherited-stdio
             # run — reporting must never break an install.
             if not capture and _can_tee():
-                keepalive = None
-                do_tee = True
-                if sudo or presudo:
-                    if _sudo_preauth():
-                        keepalive = _SudoKeepalive()
-                    elif sudo:
-                        do_tee = False          # couldn't cache creds for a sudo op -> plain (re-prompts)
-                if do_tee:
+                if sudo:
+                    # Top-level privileged op: warm the credential ONCE for the batch, then run on the
+                    # REAL tty (capturing stdout via a pipe) so the pre-authed ticket applies. A pty'd
+                    # op (the tee path) would be a DIFFERENT tty and, under tty_tickets, re-prompt on
+                    # every op — the cascade the user hits. Falls back to plain streaming if pre-auth
+                    # fails (couldn't cache creds -> it may prompt per-op, but nothing wedges).
+                    if self._ensure_sudo():
+                        try:
+                            rc, tail = _run_captured_tty(argv, cwd, env, self.tee_limit)
+                            return Result(full, rc, captured=tail)
+                        except Exception:       # noqa: BLE001 — degrade to plain streaming
+                            pass
+                else:
+                    # A non-sudo streamed op, or a build whose script runs sudo INTERNALLY (`presudo`),
+                    # which needs a pty to prompt into — pre-auth (best effort) then tee.
+                    if presudo:
+                        self._ensure_sudo()
                     try:
                         rc, tail = _run_teed(argv, cwd, env, self.tee_limit)
                         return Result(full, rc, captured=tail)
                     except Exception:           # noqa: BLE001 — degrade to plain streaming
                         pass
-                    finally:
-                        if keepalive is not None:
-                            keepalive.stop()
             # A CAPTURED run is a read-only probe (get_version, installed_index, …) that never needs
             # input — and the background inspection worker fires these while curses owns the terminal.
             # Inheriting stdin (the real tty) lets such a child reset the terminal's modes and drop

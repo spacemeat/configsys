@@ -482,6 +482,7 @@ def execute_plan(ctx, plan, ledger):
             last_failure = reportgen.failure_from_result(key, rc.driver, op, res)
         outcomes.append(OpOutcome(op, key, rc.name, ok, detail))
 
+    ctx.runner.end_sudo()          # release the batch's sudo keep-alive (one prompt covered the run)
     ledger.save(ctx.paths)
     if last_failure is not None:           # persist for a post-quit `configsys report <c>`
         reportgen.save_failure(ctx.paths, last_failure)
