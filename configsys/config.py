@@ -218,6 +218,26 @@ class Config:
         v = layers.merge_scalar(self._layers, 'auto-tighten', _MACHINE_ROLES)
         return str(v).strip().lower() in ('true', 'yes', 'on', '1') if v is not None else False
 
+    def block_installer_shell_writes(self):
+        '''Default ON (block): wrap each component install so an installer can't scribble in your
+        shell rc files (~/.bashrc, ~/.zshrc, …). configsys owns shell integration (the glue layer),
+        so a write there is a surprise — snapshot/revert it and stage the removed block as a glue
+        candidate you review. `installer-shell-writes: allow` turns the guard off globally; the
+        per-component escape is `installer-shell-writes-allow: [ <comp> ]`. Machine setting
+        (repo < primary < user).'''
+        v = layers.merge_scalar(self._layers, 'installer-shell-writes', _MACHINE_ROLES)
+        return str(v).strip().lower() not in ('allow', 'false', 'no', 'off', '0') if v is not None else True
+
+    def shell_writes_allowlist(self):
+        '''Components exempt from the shell-writes guard — allowed to edit rc files (their write is
+        wanted). A machine setting list (repo < primary < user).'''
+        return _leaves(layers.merge_scalar(self._layers, 'installer-shell-writes-allow', _MACHINE_ROLES))
+
+    def guard_shell_writes(self, component):
+        '''Whether to snapshot/revert this component's install: the guard is on AND the component
+        isn't on the allow-list.'''
+        return self.block_installer_shell_writes() and component not in self.shell_writes_allowlist()
+
     def detect_coexisting(self):
         '''Default ON: after inspect, detect installs of a component via its OTHER (non-managed)
         methods and surface them as "also present (unmanaged)" — so an existing machine's real state

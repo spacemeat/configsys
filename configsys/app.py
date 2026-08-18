@@ -14,6 +14,7 @@ from pathlib import Path
 from . import osdetect
 from . import report
 from . import reportgen
+from . import shellguard
 
 
 def _unskip(w):
@@ -616,6 +617,12 @@ def _expand_profile_args(ctx, names):
     return out
 
 
+def _shell_glue_root(ctx):
+    '''Where staged glue candidates live: the primary plugin's dotfiles/ if configured (portable, in
+    git), else the machine-local store — the same capture root the dotfiles driver reads.'''
+    return getattr(ctx.paths, 'primary_dotfiles_dir', None) or ctx.paths.user_dotfiles_dir
+
+
 def _dispatch_op(ctx, names, op, *, ledger=None, version=None):
     names = _expand_profile_args(ctx, names)
     if names is None:
@@ -646,26 +653,35 @@ def _dispatch_op(ctx, names, op, *, ledger=None, version=None):
             print(f'skip {key}: driver "{rc.driver}" not yet supported')
             continue
         print(f'{cur_op} {key} (pkg: {rc.name}) ...')
+        # shell-writes guard: snapshot the rc files before an installer runs so we can revert any
+        # scribble it makes. Only for installer ops, only when armed (default on).
+        rc_snap = shellguard.arm(ctx.paths, ctx.config, rc.comp, cur_op)
         try:
-            if cur_op == 'install':
-                res = drv.install(rc)
-            elif cur_op == 'remove':
-                res = drv.uninstall(rc)
-            elif cur_op == 'upgrade':
-                res = drv.upgrade(rc)
-            elif cur_op == 'set-version':
-                res = drv.set_version(rc, version)
-            elif cur_op == 'lock':
-                res = drv.lock(rc)
-                if res.ok and ledger is not None:
-                    ledger.set_lock(key, True)
-            elif cur_op == 'unlock':
-                res = drv.unlock(rc)
-                if res.ok and ledger is not None:
-                    ledger.set_lock(key, False)
-            else:
-                print(f'unknown op {cur_op}')
-                return 2
+            try:
+                if cur_op == 'install':
+                    res = drv.install(rc)
+                elif cur_op == 'remove':
+                    res = drv.uninstall(rc)
+                elif cur_op == 'upgrade':
+                    res = drv.upgrade(rc)
+                elif cur_op == 'set-version':
+                    res = drv.set_version(rc, version)
+                elif cur_op == 'lock':
+                    res = drv.lock(rc)
+                    if res.ok and ledger is not None:
+                        ledger.set_lock(key, True)
+                elif cur_op == 'unlock':
+                    res = drv.unlock(rc)
+                    if res.ok and ledger is not None:
+                        ledger.set_lock(key, False)
+                else:
+                    print(f'unknown op {cur_op}')
+                    return 2
+            finally:
+                # revert + stage even on failure/abort — a half-finished installer may have written
+                _guard_msg = shellguard.finish(ctx.paths, rc.comp, rc_snap)
+                if _guard_msg:
+                    print(f'  -> {_guard_msg}')
         except KeyboardInterrupt:          # Ctrl-C aborts the WHOLE batch, not just this op
             print(f'\n  ^C — aborted; {key} may be partially applied. '
                   f'Skipping the rest of the batch.')
@@ -2231,6 +2247,14 @@ def build_parser():
                           '~/.bash.d sweep only runs when unscoped)')
     mig.add_argument('--yes', action='store_true', help='skip the confirmation prompt')
 
+    dfsub.add_parser('staged', help='list inactive glue candidates the shell-writes guard captured '
+                                    '(installers that tried to edit your rc files)')
+    act = dfsub.add_parser('activate', help='promote a staged glue candidate to active glue '
+                                            '(link it into ~/.config/<shell>/conf.d/)')
+    act.add_argument('names', nargs='+', help='component(s) whose staged glue to activate')
+    disc = dfsub.add_parser('discard', help='delete a staged glue candidate without activating it')
+    disc.add_argument('names', nargs='+', help='component(s) whose staged glue to drop')
+
     mp = sub.add_parser('manpages', help='install or check the man pages '
                                          '(configsys(1) + configsys.hu(5))')
     mpsub = mp.add_subparsers(dest='manpages_command')
@@ -2289,7 +2313,59 @@ def cmd_dotfiles(ctx, args):
         return cmd_dotfiles_capture(ctx, args)
     if cmd == 'migrate':
         return cmd_dotfiles_migrate(ctx, args)
+    if cmd == 'staged':
+        return cmd_dotfiles_staged(ctx, args)
+    if cmd == 'activate':
+        return cmd_dotfiles_activate(ctx, args)
+    if cmd == 'discard':
+        return cmd_dotfiles_discard(ctx, args)
     return cmd_dotfiles_status(ctx, args)
+
+
+def cmd_dotfiles_staged(ctx, args):
+    '''List the glue candidates the shell-writes guard captured — each is an rc-file block an
+    installer tried to write, held INACTIVE until you review and activate it.'''
+    root = _shell_glue_root(ctx)
+    rows = shellguard.list_staged(root)
+    if not rows:
+        print('no staged glue — nothing has tried to write your shell rc files.')
+        return 0
+    print(f'staged glue candidates (in {root}/staged-glue):\n')
+    for comp, shell, path in rows:
+        body = path.read_text().strip().splitlines()
+        print(f'  {comp} [{shell}]  ({len(body)} line(s))')
+        for line in body:
+            print(f'      {line}')
+        print()
+    print('activate: `configsys dotfiles activate <component>`   '
+          'discard: `configsys dotfiles discard <component>`')
+    return 0
+
+
+def cmd_dotfiles_activate(ctx, args):
+    '''Promote staged glue to active: link it into ~/.config/<shell>/conf.d/ so the shell sources
+    it on init, and keep the snippet in your managed content store.'''
+    root = _shell_glue_root(ctx)
+    rc = 0
+    for name in args.names:
+        done = shellguard.activate(root, name, ctx.paths.home)
+        if not done:
+            print(f'{name}: nothing staged to activate.')
+            rc = 1
+            continue
+        for shell, link in done:
+            print(f'{name}: activated {shell} glue -> {link}')
+    return rc
+
+
+def cmd_dotfiles_discard(ctx, args):
+    root = _shell_glue_root(ctx)
+    rc = 0
+    for name in args.names:
+        n = shellguard.discard(root, name)
+        print(f'{name}: discarded {n} staged candidate(s)' if n else f'{name}: nothing staged.')
+        rc = rc or (0 if n else 1)
+    return rc
 
 
 def cmd_dotfiles_migrate(ctx, args):

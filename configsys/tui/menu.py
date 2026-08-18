@@ -19,6 +19,7 @@ import time
 from pathlib import Path
 
 from .. import reportgen
+from .. import shellguard
 from ..drivers import get_driver, scope_meta
 from ..errors import ConfigError
 from ..osversion import clean_version
@@ -459,23 +460,31 @@ def execute_plan(ctx, plan, ledger):
             continue
 
         print(f'\n>>> {op} {key} (pkg: {rc.name})')
+        # shell-writes guard: snapshot rc files before an installer op, revert + stage after (same
+        # as the CLI path). Defensive re: a ctx without .config (test stubs) — arm() returns None.
+        rc_snap = shellguard.arm(ctx.paths, getattr(ctx, 'config', None), rc.comp, op)
         try:
-            if op == 'install':
-                res = drv.install(rc)
-            elif op == 'upgrade':
-                res = drv.upgrade(rc)
-            elif op == 'remove':
-                res = drv.uninstall(rc)
-            elif op == 'lock':
-                res = drv.lock(rc)
-                if res.ok:
-                    ledger.set_lock(key, True)
-            elif op == 'unlock':
-                res = drv.unlock(rc)
-                if res.ok:
-                    ledger.set_lock(key, False)
-            else:
-                res = None
+            try:
+                if op == 'install':
+                    res = drv.install(rc)
+                elif op == 'upgrade':
+                    res = drv.upgrade(rc)
+                elif op == 'remove':
+                    res = drv.uninstall(rc)
+                elif op == 'lock':
+                    res = drv.lock(rc)
+                    if res.ok:
+                        ledger.set_lock(key, True)
+                elif op == 'unlock':
+                    res = drv.unlock(rc)
+                    if res.ok:
+                        ledger.set_lock(key, False)
+                else:
+                    res = None
+            finally:
+                _guard_msg = shellguard.finish(ctx.paths, rc.comp, rc_snap)
+                if _guard_msg:
+                    print(f'  -> {_guard_msg}')
         except KeyboardInterrupt:          # Ctrl-C aborts the whole batch, back to the menu
             print(f'\n^C — aborted; {key} may be partially applied. Skipping the rest.')
             outcomes.append(OpOutcome(op, key, rc.name, False, 'interrupted (^C)'))
