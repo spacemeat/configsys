@@ -16,6 +16,11 @@ from ..driver import Driver
 from ..runner import Result
 
 _GOBIN = '~/go/bin'
+# Prefer a configsys-managed Go toolchain (the `go` tarball installs under $CONFIGSYS_SDK_DIR/go) over
+# a system `go`. The non-interactive runner shell doesn't source the PATH glue, so a bare `go install`
+# would run an old /usr/bin/go and choke on a modern module's go.mod ("invalid go version '1.25.0'").
+# If no tarball go is installed, the dir simply doesn't exist and PATH falls through to the system go.
+_GO_PATH = '${CONFIGSYS_SDK_DIR:-$HOME/sdks}/go/bin'
 
 
 class GoInstall(Driver):
@@ -54,17 +59,22 @@ class GoInstall(Driver):
 
     # -- mutate -----------------------------------------------------------
 
+    def _go_install(self, spec):
+        # run `go install` with a configsys-managed go (if any) ahead of the system one on PATH
+        return self.runner.run(f'PATH="{_GO_PATH}:$PATH" go install {shlex.quote(spec)}',
+                               capture=False)
+
     def install(self, rc):
-        return self.runner.run(f'go install {shlex.quote(self._at(rc))}', capture=False)
+        return self._go_install(self._at(rc))
 
     def uninstall(self, rc):
         return self.runner.run(f'rm -f {_GOBIN}/{shlex.quote(self._bin(rc))}', capture=False)
 
     def upgrade(self, rc):
-        return self.runner.run(f'go install {shlex.quote(self._path(rc))}@latest', capture=False)
+        return self._go_install(f'{self._path(rc)}@latest')
 
     def set_version(self, rc, version):
-        return self.runner.run(f'go install {shlex.quote(self._at(rc, version))}', capture=False)
+        return self._go_install(self._at(rc, version))
 
     def lock(self, rc):
         return Result('(go-install lock recorded in ledger)', 0)

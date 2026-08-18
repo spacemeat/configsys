@@ -29,13 +29,18 @@ def test_registered_and_unprivileged():
     assert d.privileged is False
 
 
+_P = 'PATH="${CONFIGSYS_SDK_DIR:-$HOME/sdks}/go/bin:$PATH" '
+
+
 def test_install_uses_latest_and_no_sudo():
     r = Runner(pretend=True)
     GoInstall(r).install(tool())
     GoInstall(r).upgrade(tool())
+    # a configsys-managed go (the `go` tarball) is put ahead of the system go on PATH, so a modern
+    # module's go.mod isn't rejected by an old /usr/bin/go
     assert r.calls == [
-        'go install golang.org/x/tools/cmd/goimports@latest',
-        'go install golang.org/x/tools/cmd/goimports@latest',
+        _P + 'go install golang.org/x/tools/cmd/goimports@latest',
+        _P + 'go install golang.org/x/tools/cmd/goimports@latest',
     ]
     assert all('sudo' not in c for c in r.calls)
 
@@ -49,7 +54,7 @@ def test_uninstall_removes_binary_by_last_segment():
 def test_set_version_pins():
     r = Runner(pretend=True)
     GoInstall(r).set_version(tool(), 'v0.28.0')
-    assert r.calls == ['go install golang.org/x/tools/cmd/goimports@v0.28.0']
+    assert r.calls == [_P + 'go install golang.org/x/tools/cmd/goimports@v0.28.0']
 
 
 def test_get_version_reads_embedded_module_version():
