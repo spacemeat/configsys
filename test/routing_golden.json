@@ -58,7 +58,10 @@
    "pipx\\aider": {
     "driver": "pipx",
     "fields": {
-     "name": "aider-chat"
+     "name": "aider-chat",
+     "version": {
+      "pypi": "aider-chat"
+     }
     },
     "name": "aider-chat"
    }
@@ -499,7 +502,10 @@
    "pipx\\azure-cli": {
     "driver": "pipx",
     "fields": {
-     "name": "azure-cli"
+     "name": "azure-cli",
+     "version": {
+      "pypi": "azure-cli"
+     }
     },
     "name": "azure-cli"
    }
@@ -1322,7 +1328,10 @@
    "pipx\\conan": {
     "driver": "pipx",
     "fields": {
-     "name": "conan"
+     "name": "conan",
+     "version": {
+      "pypi": "conan"
+     }
     },
     "name": "conan"
    }
@@ -4429,7 +4438,10 @@
    "pipx\\jupyterlab": {
     "driver": "pipx",
     "fields": {
-     "name": "jupyterlab"
+     "name": "jupyterlab",
+     "version": {
+      "pypi": "jupyterlab"
+     }
     },
     "name": "jupyterlab"
    }
@@ -5166,7 +5178,10 @@
    "pipx\\llm": {
     "driver": "pipx",
     "fields": {
-     "name": "llm"
+     "name": "llm",
+     "version": {
+      "pypi": "llm"
+     }
     },
     "name": "llm"
    }
@@ -5888,7 +5903,10 @@
    "pipx\\mycli": {
     "driver": "pipx",
     "fields": {
-     "name": "mycli"
+     "name": "mycli",
+     "version": {
+      "pypi": "mycli"
+     }
     },
     "name": "mycli"
    }
@@ -6763,7 +6781,10 @@
    "pipx\\pgcli": {
     "driver": "pipx",
     "fields": {
-     "name": "pgcli"
+     "name": "pgcli",
+     "version": {
+      "pypi": "pgcli"
+     }
     },
     "name": "pgcli"
    }
@@ -8097,7 +8118,10 @@
    "pipx\\salt": {
     "driver": "pipx",
     "fields": {
-     "name": "salt"
+     "name": "salt",
+     "version": {
+      "pypi": "salt"
+     }
     },
     "name": "salt"
    }
@@ -10702,7 +10726,10 @@
    "pipx\\aider": {
     "driver": "pipx",
     "fields": {
-     "name": "aider-chat"
+     "name": "aider-chat",
+     "version": {
+      "pypi": "aider-chat"
+     }
     },
     "name": "aider-chat"
    }
@@ -11148,7 +11175,10 @@
    "pipx\\azure-cli": {
     "driver": "pipx",
     "fields": {
-     "name": "azure-cli"
+     "name": "azure-cli",
+     "version": {
+      "pypi": "azure-cli"
+     }
     },
     "name": "azure-cli"
    }
@@ -12153,7 +12183,10 @@
    "pipx\\conan": {
     "driver": "pipx",
     "fields": {
-     "name": "conan"
+     "name": "conan",
+     "version": {
+      "pypi": "conan"
+     }
     },
     "name": "conan"
    }
@@ -15689,7 +15722,10 @@
    "pipx\\jupyterlab": {
     "driver": "pipx",
     "fields": {
-     "name": "jupyterlab"
+     "name": "jupyterlab",
+     "version": {
+      "pypi": "jupyterlab"
+     }
     },
     "name": "jupyterlab"
    }
@@ -16570,7 +16606,10 @@
    "pipx\\llm": {
     "driver": "pipx",
     "fields": {
-     "name": "llm"
+     "name": "llm",
+     "version": {
+      "pypi": "llm"
+     }
     },
     "name": "llm"
    }
@@ -17295,7 +17334,10 @@
    "pipx\\mycli": {
     "driver": "pipx",
     "fields": {
-     "name": "mycli"
+     "name": "mycli",
+     "version": {
+      "pypi": "mycli"
+     }
     },
     "name": "mycli"
    }
@@ -18148,7 +18190,10 @@
    "pipx\\pgcli": {
     "driver": "pipx",
     "fields": {
-     "name": "pgcli"
+     "name": "pgcli",
+     "version": {
+      "pypi": "pgcli"
+     }
     },
     "name": "pgcli"
    }
@@ -19294,7 +19339,10 @@
    "pipx\\salt": {
     "driver": "pipx",
     "fields": {
-     "name": "salt"
+     "name": "salt",
+     "version": {
+      "pypi": "salt"
+     }
     },
     "name": "salt"
    }
@@ -21714,7 +21762,10 @@
    "pipx\\aider": {
     "driver": "pipx",
     "fields": {
-     "name": "aider-chat"
+     "name": "aider-chat",
+     "version": {
+      "pypi": "aider-chat"
+     }
     },
     "name": "aider-chat"
    }
@@ -22143,7 +22194,10 @@
    "pipx\\azure-cli": {
     "driver": "pipx",
     "fields": {
-     "name": "azure-cli"
+     "name": "azure-cli",
+     "version": {
+      "pypi": "azure-cli"
+     }
     },
     "name": "azure-cli"
    }
@@ -23131,7 +23185,10 @@
    "pipx\\conan": {
     "driver": "pipx",
     "fields": {
-     "name": "conan"
+     "name": "conan",
+     "version": {
+      "pypi": "conan"
+     }
     },
     "name": "conan"
    }
@@ -26633,7 +26690,10 @@
    "pipx\\jupyterlab": {
     "driver": "pipx",
     "fields": {
-     "name": "jupyterlab"
+     "name": "jupyterlab",
+     "version": {
+      "pypi": "jupyterlab"
+     }
     },
     "name": "jupyterlab"
    }
@@ -27497,7 +27557,10 @@
    "pipx\\llm": {
     "driver": "pipx",
     "fields": {
-     "name": "llm"
+     "name": "llm",
+     "version": {
+      "pypi": "llm"
+     }
     },
     "name": "llm"
    }
@@ -28188,7 +28251,10 @@
    "pipx\\mycli": {
     "driver": "pipx",
     "fields": {
-     "name": "mycli"
+     "name": "mycli",
+     "version": {
+      "pypi": "mycli"
+     }
     },
     "name": "mycli"
    }
@@ -29024,7 +29090,10 @@
    "pipx\\pgcli": {
     "driver": "pipx",
     "fields": {
-     "name": "pgcli"
+     "name": "pgcli",
+     "version": {
+      "pypi": "pgcli"
+     }
     },
     "name": "pgcli"
    }
@@ -30119,7 +30188,10 @@
    "pipx\\salt": {
     "driver": "pipx",
     "fields": {
-     "name": "salt"
+     "name": "salt",
+     "version": {
+      "pypi": "salt"
+     }
     },
     "name": "salt"
    }
@@ -32505,7 +32577,10 @@
    "pipx\\aider": {
     "driver": "pipx",
     "fields": {
-     "name": "aider-chat"
+     "name": "aider-chat",
+     "version": {
+      "pypi": "aider-chat"
+     }
     },
     "name": "aider-chat"
    }
@@ -32934,7 +33009,10 @@
    "pipx\\azure-cli": {
     "driver": "pipx",
     "fields": {
-     "name": "azure-cli"
+     "name": "azure-cli",
+     "version": {
+      "pypi": "azure-cli"
+     }
     },
     "name": "azure-cli"
    }
@@ -33930,7 +34008,10 @@
    "pipx\\conan": {
     "driver": "pipx",
     "fields": {
-     "name": "conan"
+     "name": "conan",
+     "version": {
+      "pypi": "conan"
+     }
     },
     "name": "conan"
    }
@@ -37427,7 +37508,10 @@
    "pipx\\jupyterlab": {
     "driver": "pipx",
     "fields": {
-     "name": "jupyterlab"
+     "name": "jupyterlab",
+     "version": {
+      "pypi": "jupyterlab"
+     }
     },
     "name": "jupyterlab"
    }
@@ -38284,7 +38368,10 @@
    "pipx\\llm": {
     "driver": "pipx",
     "fields": {
-     "name": "llm"
+     "name": "llm",
+     "version": {
+      "pypi": "llm"
+     }
     },
     "name": "llm"
    }
@@ -38975,7 +39062,10 @@
    "pipx\\mycli": {
     "driver": "pipx",
     "fields": {
-     "name": "mycli"
+     "name": "mycli",
+     "version": {
+      "pypi": "mycli"
+     }
     },
     "name": "mycli"
    }
@@ -39824,7 +39914,10 @@
    "pipx\\pgcli": {
     "driver": "pipx",
     "fields": {
-     "name": "pgcli"
+     "name": "pgcli",
+     "version": {
+      "pypi": "pgcli"
+     }
     },
     "name": "pgcli"
    }
@@ -40919,7 +41012,10 @@
    "pipx\\salt": {
     "driver": "pipx",
     "fields": {
-     "name": "salt"
+     "name": "salt",
+     "version": {
+      "pypi": "salt"
+     }
     },
     "name": "salt"
    }
@@ -43305,7 +43401,10 @@
    "pipx\\aider": {
     "driver": "pipx",
     "fields": {
-     "name": "aider-chat"
+     "name": "aider-chat",
+     "version": {
+      "pypi": "aider-chat"
+     }
     },
     "name": "aider-chat"
    }
@@ -43741,7 +43840,10 @@
    "pipx\\azure-cli": {
     "driver": "pipx",
     "fields": {
-     "name": "azure-cli"
+     "name": "azure-cli",
+     "version": {
+      "pypi": "azure-cli"
+     }
     },
     "name": "azure-cli"
    }
@@ -44623,7 +44725,10 @@
    "pipx\\conan": {
     "driver": "pipx",
     "fields": {
-     "name": "conan"
+     "name": "conan",
+     "version": {
+      "pypi": "conan"
+     }
     },
     "name": "conan"
    }
@@ -47901,7 +48006,10 @@
    "pipx\\jupyterlab": {
     "driver": "pipx",
     "fields": {
-     "name": "jupyterlab"
+     "name": "jupyterlab",
+     "version": {
+      "pypi": "jupyterlab"
+     }
     },
     "name": "jupyterlab"
    }
@@ -48715,7 +48823,10 @@
    "pipx\\llm": {
     "driver": "pipx",
     "fields": {
-     "name": "llm"
+     "name": "llm",
+     "version": {
+      "pypi": "llm"
+     }
     },
     "name": "llm"
    }
@@ -49372,7 +49483,10 @@
    "pipx\\mycli": {
     "driver": "pipx",
     "fields": {
-     "name": "mycli"
+     "name": "mycli",
+     "version": {
+      "pypi": "mycli"
+     }
     },
     "name": "mycli"
    }
@@ -50204,7 +50318,10 @@
    "pipx\\pgcli": {
     "driver": "pipx",
     "fields": {
-     "name": "pgcli"
+     "name": "pgcli",
+     "version": {
+      "pypi": "pgcli"
+     }
     },
     "name": "pgcli"
    }
@@ -51263,7 +51380,10 @@
    "pipx\\salt": {
     "driver": "pipx",
     "fields": {
-     "name": "salt"
+     "name": "salt",
+     "version": {
+      "pypi": "salt"
+     }
     },
     "name": "salt"
    }
@@ -53683,7 +53803,10 @@
    "pipx\\aider": {
     "driver": "pipx",
     "fields": {
-     "name": "aider-chat"
+     "name": "aider-chat",
+     "version": {
+      "pypi": "aider-chat"
+     }
     },
     "name": "aider-chat"
    }
@@ -54119,7 +54242,10 @@
    "pipx\\azure-cli": {
     "driver": "pipx",
     "fields": {
-     "name": "azure-cli"
+     "name": "azure-cli",
+     "version": {
+      "pypi": "azure-cli"
+     }
     },
     "name": "azure-cli"
    }
@@ -55027,7 +55153,10 @@
    "pipx\\conan": {
     "driver": "pipx",
     "fields": {
-     "name": "conan"
+     "name": "conan",
+     "version": {
+      "pypi": "conan"
+     }
     },
     "name": "conan"
    }
@@ -58305,7 +58434,10 @@
    "pipx\\jupyterlab": {
     "driver": "pipx",
     "fields": {
-     "name": "jupyterlab"
+     "name": "jupyterlab",
+     "version": {
+      "pypi": "jupyterlab"
+     }
     },
     "name": "jupyterlab"
    }
@@ -59119,7 +59251,10 @@
    "pipx\\llm": {
     "driver": "pipx",
     "fields": {
-     "name": "llm"
+     "name": "llm",
+     "version": {
+      "pypi": "llm"
+     }
     },
     "name": "llm"
    }
@@ -59776,7 +59911,10 @@
    "pipx\\mycli": {
     "driver": "pipx",
     "fields": {
-     "name": "mycli"
+     "name": "mycli",
+     "version": {
+      "pypi": "mycli"
+     }
     },
     "name": "mycli"
    }
@@ -60608,7 +60746,10 @@
    "pipx\\pgcli": {
     "driver": "pipx",
     "fields": {
-     "name": "pgcli"
+     "name": "pgcli",
+     "version": {
+      "pypi": "pgcli"
+     }
     },
     "name": "pgcli"
    }
@@ -61667,7 +61808,10 @@
    "pipx\\salt": {
     "driver": "pipx",
     "fields": {
-     "name": "salt"
+     "name": "salt",
+     "version": {
+      "pypi": "salt"
+     }
     },
     "name": "salt"
    }
@@ -64077,7 +64221,10 @@
    "pipx\\aider": {
     "driver": "pipx",
     "fields": {
-     "name": "aider-chat"
+     "name": "aider-chat",
+     "version": {
+      "pypi": "aider-chat"
+     }
     },
     "name": "aider-chat"
    }
@@ -64461,7 +64608,10 @@
    "pipx\\azure-cli": {
     "driver": "pipx",
     "fields": {
-     "name": "azure-cli"
+     "name": "azure-cli",
+     "version": {
+      "pypi": "azure-cli"
+     }
     },
     "name": "azure-cli"
    }
@@ -65079,7 +65229,10 @@
    "pipx\\conan": {
     "driver": "pipx",
     "fields": {
-     "name": "conan"
+     "name": "conan",
+     "version": {
+      "pypi": "conan"
+     }
     },
     "name": "conan"
    }
@@ -67573,7 +67726,10 @@
    "pipx\\jupyterlab": {
     "driver": "pipx",
     "fields": {
-     "name": "jupyterlab"
+     "name": "jupyterlab",
+     "version": {
+      "pypi": "jupyterlab"
+     }
     },
     "name": "jupyterlab"
    }
@@ -68298,7 +68454,10 @@
    "pipx\\llm": {
     "driver": "pipx",
     "fields": {
-     "name": "llm"
+     "name": "llm",
+     "version": {
+      "pypi": "llm"
+     }
     },
     "name": "llm"
    }
@@ -68904,7 +69063,10 @@
    "pipx\\mycli": {
     "driver": "pipx",
     "fields": {
-     "name": "mycli"
+     "name": "mycli",
+     "version": {
+      "pypi": "mycli"
+     }
     },
     "name": "mycli"
    }
@@ -69587,7 +69749,10 @@
    "pipx\\pgcli": {
     "driver": "pipx",
     "fields": {
-     "name": "pgcli"
+     "name": "pgcli",
+     "version": {
+      "pypi": "pgcli"
+     }
     },
     "name": "pgcli"
    }
@@ -70452,7 +70617,10 @@
    "pipx\\salt": {
     "driver": "pipx",
     "fields": {
-     "name": "salt"
+     "name": "salt",
+     "version": {
+      "pypi": "salt"
+     }
     },
     "name": "salt"
    }
@@ -72367,7 +72535,10 @@
    "pipx\\aider": {
     "driver": "pipx",
     "fields": {
-     "name": "aider-chat"
+     "name": "aider-chat",
+     "version": {
+      "pypi": "aider-chat"
+     }
     },
     "name": "aider-chat"
    }
@@ -72813,7 +72984,10 @@
    "pipx\\azure-cli": {
     "driver": "pipx",
     "fields": {
-     "name": "azure-cli"
+     "name": "azure-cli",
+     "version": {
+      "pypi": "azure-cli"
+     }
     },
     "name": "azure-cli"
    }
@@ -73826,7 +74000,10 @@
    "pipx\\conan": {
     "driver": "pipx",
     "fields": {
-     "name": "conan"
+     "name": "conan",
+     "version": {
+      "pypi": "conan"
+     }
     },
     "name": "conan"
    }
@@ -77366,7 +77543,10 @@
    "pipx\\jupyterlab": {
     "driver": "pipx",
     "fields": {
-     "name": "jupyterlab"
+     "name": "jupyterlab",
+     "version": {
+      "pypi": "jupyterlab"
+     }
     },
     "name": "jupyterlab"
    }
@@ -78240,7 +78420,10 @@
    "pipx\\llm": {
     "driver": "pipx",
     "fields": {
-     "name": "llm"
+     "name": "llm",
+     "version": {
+      "pypi": "llm"
+     }
     },
     "name": "llm"
    }
@@ -78965,7 +79148,10 @@
    "pipx\\mycli": {
     "driver": "pipx",
     "fields": {
-     "name": "mycli"
+     "name": "mycli",
+     "version": {
+      "pypi": "mycli"
+     }
     },
     "name": "mycli"
    }
@@ -79831,7 +80017,10 @@
    "pipx\\pgcli": {
     "driver": "pipx",
     "fields": {
-     "name": "pgcli"
+     "name": "pgcli",
+     "version": {
+      "pypi": "pgcli"
+     }
     },
     "name": "pgcli"
    }
@@ -80977,7 +81166,10 @@
    "pipx\\salt": {
     "driver": "pipx",
     "fields": {
-     "name": "salt"
+     "name": "salt",
+     "version": {
+      "pypi": "salt"
+     }
     },
     "name": "salt"
    }
@@ -83397,7 +83589,10 @@
    "pipx\\aider": {
     "driver": "pipx",
     "fields": {
-     "name": "aider-chat"
+     "name": "aider-chat",
+     "version": {
+      "pypi": "aider-chat"
+     }
     },
     "name": "aider-chat"
    }
@@ -83872,7 +84067,10 @@
    "pipx\\azure-cli": {
     "driver": "pipx",
     "fields": {
-     "name": "azure-cli"
+     "name": "azure-cli",
+     "version": {
+      "pypi": "azure-cli"
+     }
     },
     "name": "azure-cli"
    }
@@ -84855,7 +85053,10 @@
    "pipx\\conan": {
     "driver": "pipx",
     "fields": {
-     "name": "conan"
+     "name": "conan",
+     "version": {
+      "pypi": "conan"
+     }
     },
     "name": "conan"
    }
@@ -88255,7 +88456,10 @@
    "pipx\\jupyterlab": {
     "driver": "pipx",
     "fields": {
-     "name": "jupyterlab"
+     "name": "jupyterlab",
+     "version": {
+      "pypi": "jupyterlab"
+     }
     },
     "name": "jupyterlab"
    }
@@ -89080,7 +89284,10 @@
    "pipx\\llm": {
     "driver": "pipx",
     "fields": {
-     "name": "llm"
+     "name": "llm",
+     "version": {
+      "pypi": "llm"
+     }
     },
     "name": "llm"
    }
@@ -89800,7 +90007,10 @@
    "pipx\\mycli": {
     "driver": "pipx",
     "fields": {
-     "name": "mycli"
+     "name": "mycli",
+     "version": {
+      "pypi": "mycli"
+     }
     },
     "name": "mycli"
    }
@@ -90675,7 +90885,10 @@
    "pipx\\pgcli": {
     "driver": "pipx",
     "fields": {
-     "name": "pgcli"
+     "name": "pgcli",
+     "version": {
+      "pypi": "pgcli"
+     }
     },
     "name": "pgcli"
    }
@@ -91794,7 +92007,10 @@
    "pipx\\salt": {
     "driver": "pipx",
     "fields": {
-     "name": "salt"
+     "name": "salt",
+     "version": {
+      "pypi": "salt"
+     }
     },
     "name": "salt"
    }
@@ -94300,7 +94516,10 @@
    "pipx\\aider": {
     "driver": "pipx",
     "fields": {
-     "name": "aider-chat"
+     "name": "aider-chat",
+     "version": {
+      "pypi": "aider-chat"
+     }
     },
     "name": "aider-chat"
    }
@@ -94746,7 +94965,10 @@
    "pipx\\azure-cli": {
     "driver": "pipx",
     "fields": {
-     "name": "azure-cli"
+     "name": "azure-cli",
+     "version": {
+      "pypi": "azure-cli"
+     }
     },
     "name": "azure-cli"
    }
@@ -95759,7 +95981,10 @@
    "pipx\\conan": {
     "driver": "pipx",
     "fields": {
-     "name": "conan"
+     "name": "conan",
+     "version": {
+      "pypi": "conan"
+     }
     },
     "name": "conan"
    }
@@ -99290,7 +99515,10 @@
    "pipx\\jupyterlab": {
     "driver": "pipx",
     "fields": {
-     "name": "jupyterlab"
+     "name": "jupyterlab",
+     "version": {
+      "pypi": "jupyterlab"
+     }
     },
     "name": "jupyterlab"
    }
@@ -100164,7 +100392,10 @@
    "pipx\\llm": {
     "driver": "pipx",
     "fields": {
-     "name": "llm"
+     "name": "llm",
+     "version": {
+      "pypi": "llm"
+     }
     },
     "name": "llm"
    }
@@ -100889,7 +101120,10 @@
    "pipx\\mycli": {
     "driver": "pipx",
     "fields": {
-     "name": "mycli"
+     "name": "mycli",
+     "version": {
+      "pypi": "mycli"
+     }
     },
     "name": "mycli"
    }
@@ -101755,7 +101989,10 @@
    "pipx\\pgcli": {
     "driver": "pipx",
     "fields": {
-     "name": "pgcli"
+     "name": "pgcli",
+     "version": {
+      "pypi": "pgcli"
+     }
     },
     "name": "pgcli"
    }
@@ -102901,7 +103138,10 @@
    "pipx\\salt": {
     "driver": "pipx",
     "fields": {
-     "name": "salt"
+     "name": "salt",
+     "version": {
+      "pypi": "salt"
+     }
     },
     "name": "salt"
    }
@@ -105321,7 +105561,10 @@
    "pipx\\aider": {
     "driver": "pipx",
     "fields": {
-     "name": "aider-chat"
+     "name": "aider-chat",
+     "version": {
+      "pypi": "aider-chat"
+     }
     },
     "name": "aider-chat"
    }
@@ -105750,7 +105993,10 @@
    "pipx\\azure-cli": {
     "driver": "pipx",
     "fields": {
-     "name": "azure-cli"
+     "name": "azure-cli",
+     "version": {
+      "pypi": "azure-cli"
+     }
     },
     "name": "azure-cli"
    }
@@ -106746,7 +106992,10 @@
    "pipx\\conan": {
     "driver": "pipx",
     "fields": {
-     "name": "conan"
+     "name": "conan",
+     "version": {
+      "pypi": "conan"
+     }
     },
     "name": "conan"
    }
@@ -110217,7 +110466,10 @@
    "pipx\\jupyterlab": {
     "driver": "pipx",
     "fields": {
-     "name": "jupyterlab"
+     "name": "jupyterlab",
+     "version": {
+      "pypi": "jupyterlab"
+     }
     },
     "name": "jupyterlab"
    }
@@ -111074,7 +111326,10 @@
    "pipx\\llm": {
     "driver": "pipx",
     "fields": {
-     "name": "llm"
+     "name": "llm",
+     "version": {
+      "pypi": "llm"
+     }
     },
     "name": "llm"
    }
@@ -111765,7 +112020,10 @@
    "pipx\\mycli": {
     "driver": "pipx",
     "fields": {
-     "name": "mycli"
+     "name": "mycli",
+     "version": {
+      "pypi": "mycli"
+     }
     },
     "name": "mycli"
    }
@@ -112614,7 +112872,10 @@
    "pipx\\pgcli": {
     "driver": "pipx",
     "fields": {
-     "name": "pgcli"
+     "name": "pgcli",
+     "version": {
+      "pypi": "pgcli"
+     }
     },
     "name": "pgcli"
    }
@@ -113709,7 +113970,10 @@
    "pipx\\salt": {
     "driver": "pipx",
     "fields": {
-     "name": "salt"
+     "name": "salt",
+     "version": {
+      "pypi": "salt"
+     }
     },
     "name": "salt"
    }

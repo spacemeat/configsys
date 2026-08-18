@@ -1851,8 +1851,8 @@
         // declared so the script driver can remove it cleanly.
         claude-code: { suggests: claude-code-dotfiles  description: "Claude Code — Anthropic's agentic coding CLI." install: [ { via: npm  name: "@anthropic-ai/claude-code" } ] }
         codex:       { suggests: codex-dotfiles  description: "OpenAI Codex CLI — agentic coding in the terminal." install: [ { via: npm  name: "@openai/codex" } ] }
-        llm:         { description: "`llm` — a CLI to access LLMs from the shell and scripts." install: [ { via: pipx  name: llm } ] }
-        aider:       { suggests: aider-dotfiles  description: "Aider — AI pair-programming in your terminal, over your git repo." install: [ { via: pipx  name: aider-chat } ] }        // PyPI dist is aider-chat
+        llm:         { description: "`llm` — a CLI to access LLMs from the shell and scripts." install: [ { via: pipx  name: llm  version: { pypi: llm } } ] }
+        aider:       { suggests: aider-dotfiles  description: "Aider — AI pair-programming in your terminal, over your git repo." install: [ { via: pipx  name: aider-chat  version: { pypi: aider-chat } } ] }        // PyPI dist is aider-chat
         ollama: { description: "Ollama — run large language models locally."
             install: [
                 { via: native  when: "arch" }
@@ -1921,7 +1921,7 @@
                        { via: tarball  archive: none  binary: k3s  installDir: "$CONFIGSYS_APP_DIR/k3s"  version: { github: k3s-io/k3s  asset: "k3s" } } ]   // raw static binary (the API gives the +k3s1-tagged download URL); an option for "just the binary"
         }
         // conan is a Python CLI (pipx). vcpkg is a git clone + bootstrap (script driver; needs git).
-        conan: { description: "Conan — a C/C++ package manager." install: [ { via: pipx  name: conan } ] }
+        conan: { description: "Conan — a C/C++ package manager." install: [ { via: pipx  name: conan  version: { pypi: conan } } ] }
         vcpkg: { suggests: vcpkg-dotfiles  description: "vcpkg — Microsoft's C/C++ library manager."
             requires: [ git, curl, zip, unzip ]     // bootstrap-vcpkg fetches + unpacks its tool
             install: [ { via: script
@@ -1986,7 +1986,7 @@
         // salt is Python with self-contained scripts (pipx). puppet is Ruby (gem). No chef (heavy
         // enterprise tool that also overlaps configsys itself).
         ansible: { description: "Ansible — agentless IT automation and configuration management." install: [ { via: native  repo-component: universe } ] }
-        salt:    { description: "Salt — event-driven automation and configuration management." install: [ { via: pipx  name: salt } ] }
+        salt:    { description: "Salt — event-driven automation and configuration management." install: [ { via: pipx  name: salt  version: { pypi: salt } } ] }
         puppet:  { description: "Puppet — declarative configuration management." install: [ { via: gem   name: puppet } ] }
 
         // --- back-end: cloud CLIs, IaC, protobuf, DB clients + servers ---
@@ -2009,15 +2009,15 @@
                          uninstall-cmd: 'rm -rf "$HOME/google-cloud-sdk"'
                          location:      '~/google-cloud-sdk/bin' } ]
         }
-        azure-cli: { description: "Azure CLI (`az`) — manage Microsoft Azure resources." install: [ { via: pipx  name: azure-cli } ] }
+        azure-cli: { description: "Azure CLI (`az`) — manage Microsoft Azure resources." install: [ { via: pipx  name: azure-cli  version: { pypi: azure-cli } } ] }
         // IaC + gRPC — Go static binaries from github release tarballs.
         opentofu: { suggests: opentofu-dotfiles  description: "OpenTofu — open-source, Terraform-compatible infrastructure as code." install: [ { via: tarball  installDir: "$CONFIGSYS_APP_DIR/opentofu"  version: { github: opentofu/opentofu  strip-v: true  asset: "tofu_*_linux_amd64.tar.gz" } } ] }
         grpcurl:  { suggests: grpcurl-dotfiles  description: "curl for gRPC — call and inspect gRPC services from the shell." install: [ { via: tarball  installDir: "$CONFIGSYS_APP_DIR/grpcurl"   version: { github: fullstorydev/grpcurl  strip-v: true  asset: "grpcurl_*_linux_x86_64.tar.gz" } } ] }
         protobuf: { suggests: protobuf-dotfiles  description: "Protocol Buffers compiler (`protoc`)." install: [ { via: native  repo-component: universe  name: { apt: protobuf-compiler  dnf: protobuf-compiler  zypper: protobuf-devel  default: protobuf } }  { via: tarball  installDir: "$CONFIGSYS_APP_DIR/protobuf"  requires: unzip  version: { github: protocolbuffers/protobuf  strip-v: true  asset: "protoc-*-linux-x86_64.zip" } } ] }   // prebuilt protoc + well-known-types include/
         // DB clients: dbeaver (GUI, Flathub), pgcli/mycli (pipx), sqlitebrowser (Flathub).
         dbeaver:       { description: "Universal database GUI — browse and query many DB engines." install: [ { via: flatpak  hub: flathub  app: io.dbeaver.DBeaverCommunity }  { via: native-pkg-file  when: "debian or redhat"  version: { github: dbeaver/dbeaver }  asset: { deb: { x86_64: "dbeaver-ce-*-linux-x86_64.deb" }  rpm: { x86_64: "dbeaver-ce-*-linux-x86_64.rpm" } } } ] }   // upstream .deb/.rpm (CE)
-        pgcli:         { suggests: pgcli-dotfiles  description: "Postgres CLI with autocompletion and syntax highlighting." install: [ { via: pipx  name: pgcli } ] }
-        mycli:         { suggests: mycli-dotfiles  description: "MySQL/MariaDB CLI with autocompletion and highlighting." install: [ { via: pipx  name: mycli } ] }
+        pgcli:         { suggests: pgcli-dotfiles  description: "Postgres CLI with autocompletion and syntax highlighting." install: [ { via: pipx  name: pgcli  version: { pypi: pgcli } } ] }
+        mycli:         { suggests: mycli-dotfiles  description: "MySQL/MariaDB CLI with autocompletion and highlighting." install: [ { via: pipx  name: mycli  version: { pypi: mycli } } ] }
         sqlitebrowser: { description: "GUI to create, design, and edit SQLite databases." install: [ { via: native  when: "debian or fedora or arch or opensuse"  repo-component: universe }  { via: flatpak  hub: flathub  app: org.sqlitebrowser.sqlitebrowser } ] }
         // DB servers: native package + a systemd service (verified on apt/dnf/pacman). NOTE:
         // first-run init differs per distro (Fedora postgres needs `postgresql-setup --initdb`).
@@ -2053,7 +2053,7 @@
 
         // --- science & math ---
         gnuplot:    { suggests: gnuplot-dotfiles  description: "gnuplot — command-driven plotting for data and functions." install: [ { via: native  repo-component: universe } ] }
-        jupyterlab: { description: "JupyterLab — notebooks and IDE for data science." install: [ { via: pipx  name: jupyterlab } ] }        // `jupyter-lab` on PATH
+        jupyterlab: { description: "JupyterLab — notebooks and IDE for data science." install: [ { via: pipx  name: jupyterlab  version: { pypi: jupyterlab } } ] }        // `jupyter-lab` on PATH
         paraview:   { description: "ParaView — large-scale scientific data visualization." install: [ { via: native  when: "(debian or redhat or arch or opensuse) and not amzn"  repo-component: universe }  { via: flatpak  hub: flathub  app: org.paraview.ParaView } ] }
         maxima:     { suggests: maxima-dotfiles  description: "Maxima — a computer algebra system for symbolic math." install: [ { via: native  when: "(debian or redhat or arch or opensuse) and not amzn"  repo-component: universe }  { via: native  when: "fedora_atomic" } ] }   // brew formula `maxima`
         wxmaxima:   { description: "wxMaxima — a GUI front end for the Maxima CAS." install: [ { via: native  when: "(debian or redhat) and not amzn"  repo-component: universe }  { via: flatpak  hub: flathub  app: io.github.wxmaxima_developers.wxMaxima } ] }   // native: debian/redhat (Arch AUR only); flatpak covers the rest
