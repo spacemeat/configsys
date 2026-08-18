@@ -817,7 +817,14 @@
         erlang: { description: "Erlang/OTP — battle-tested concurrent, fault-tolerant runtime." install: [ { via: native  when: "(debian or redhat or arch or opensuse) and not amzn"  repo-component: universe }  { via: native  when: "fedora_atomic" } ] }   // brew formula `erlang`
         elixir: { description: "Elixir — functional, concurrent language on the Erlang VM." install: [ { via: native  when: "not amzn"   repo-component: universe } ] }
         // Nim compiler (nimble ships alongside).
-        nim:   { suggests: nim-dotfiles  description: "Nim — expressive, statically-typed compiled systems language." install: [ { via: native  when: "debian or arch or opensuse or alpine"  repo-component: universe }  { via: native  when: "fedora_atomic" } ] }   // not in Fedora repos; brew formula `nim`
+        nim:   { suggests: nim-dotfiles  description: "Nim — expressive, statically-typed compiled systems language."
+            // packaged on arch/opensuse/alpine (alpine = musl build) and brew; NOT in the ubuntu/
+            // debian/fedora repos, so those pull the official nim-lang.org prebuilt (glibc x64).
+            install: [ { via: native  when: "arch or opensuse or alpine" }
+                       { via: native  when: "fedora_atomic" }
+                       { via: tarball  when: "debian or (redhat and not amzn)"  installDir: "$CONFIGSYS_APP_DIR/nim"  requires: glibc
+                         version: { url: "https://nim-lang.org/install_unix.html"  regex: "nim-([0-9]+\.[0-9]+\.[0-9]+)-linux_x64" }
+                         url: "https://nim-lang.org/download/nim-$VERSION-linux_x64.tar.xz" } ] }
 
         // R (statistics) and GNU Octave (numerical computing) — native everywhere.
         r:      { suggests: r-dotfiles  description: "R — language and environment for statistical computing." install: [ { via: native  repo-component: universe  name: { apt: r-base  dnf: R  pacman: r  zypper: R-base  apk: R  brew: r } } ] }
@@ -859,7 +866,8 @@
                 { via: native  when: "fedora_atomic" }             // brew formula `zig`
                 { via: tarball  installDir: "$CONFIGSYS_APP_DIR/zig"
                   version: { github: ziglang/zig  strip-v: true }
-                  url: "https://ziglang.org/download/$VERSION/zig-linux-$ARCH-$VERSION.tar.xz" }
+                  // zig 0.14+ swapped the tarball name to zig-<arch>-linux-<ver> (was zig-linux-<arch>-<ver>)
+                  url: "https://ziglang.org/download/$VERSION/zig-$ARCH-linux-$VERSION.tar.xz" }
             ]
         }
         // Julia — official binaries live on the julialang S3 (not github releases), so a pinned
@@ -1646,10 +1654,14 @@
         // runtime — there's no `unity3d` package to route. Config in ~/.config/UnityHub (deferred).
         unityhub: { description: "Unity Hub — manage Unity game-engine installs and projects."
             suggests: unityhub-dotfiles
-            install: [ { via: appImage  name: "Unity Hub"  standing: 1  version: { static: latest }   // Unity's official AppImage stays the default
-                         url: "https://public-cdn.cloud.unity3d.com/hub/prod/UnityHub.AppImage"
-                         path: ~/apps/UnityHub.AppImage }
-                       { via: flatpak  hub: flathub  app: com.unity.UnityHub } ]   // offered as an alternative
+            // Unity retired the public AppImage (URL 404s); the official Linux channel is now their
+            // apt repo. ASCII key -> a `.asc` keyring + signed-by (same pattern as chrome/vivaldi).
+            install: [ { via: native  when: "debian"  name: unityhub  standing: 1
+                         pubkey-url: "https://hub.unity3d.com/linux/keys/public"
+                         pubkey-path: /usr/share/keyrings/unityhub.asc
+                         source-line: "deb [signed-by=/usr/share/keyrings/unityhub.asc] https://hub.unity3d.com/linux/repos/deb stable main"
+                         source-path: /etc/apt/sources.list.d/unityhub.list }
+                       { via: flatpak  hub: flathub  app: com.unity.UnityHub } ]   // universal fallback (+ atomic)
         }
 
         // --- desktop environments (metapackage names verified per-distro in a podman sweep of

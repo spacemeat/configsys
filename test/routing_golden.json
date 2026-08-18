@@ -6169,8 +6169,7 @@
    "pacman\\nim": {
     "driver": "pacman",
     "fields": {
-     "name": "nim",
-     "repo-component": "universe"
+     "name": "nim"
     },
     "name": "nim"
    }
@@ -9160,18 +9159,6 @@
    }
   },
   "unityhub": {
-   "appImage\\unityhub": {
-    "driver": "appImage",
-    "fields": {
-     "name": "Unity Hub",
-     "path": "~/apps/UnityHub.AppImage",
-     "url": "https://public-cdn.cloud.unity3d.com/hub/prod/UnityHub.AppImage",
-     "version": {
-      "static": "latest"
-     }
-    },
-    "name": "Unity Hub"
-   },
    "dotfiles\\bash-dotfiles": {
     "driver": "dotfiles",
     "fields": {
@@ -9190,13 +9177,20 @@
     },
     "name": "unityhub-dotfiles"
    },
-   "pacman\\libfuse2": {
+   "flatpak\\unityhub": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "com.unity.UnityHub"
+    },
+    "name": "com.unity.UnityHub"
+   },
+   "pacman\\flatpak": {
     "driver": "pacman",
     "fields": {
-     "name": "fuse2",
-     "repo-component": "universe"
+     "name": "flatpak"
     },
-    "name": "fuse2"
+    "name": "flatpak"
    }
   },
   "unityhub-dotfiles": {
@@ -17561,13 +17555,12 @@
    }
   },
   "nim": {
-   "apt\\nim": {
+   "apt\\curl": {
     "driver": "apt",
     "fields": {
-     "name": "nim",
-     "repo-component": "universe"
+     "name": "curl"
     },
-    "name": "nim"
+    "name": "curl"
    },
    "dotfiles\\bash-dotfiles": {
     "driver": "dotfiles",
@@ -17586,6 +17579,19 @@
      "glue": "nim"
     },
     "name": "nim-dotfiles"
+   },
+   "tarball\\nim": {
+    "driver": "tarball",
+    "fields": {
+     "installDir": "$CONFIGSYS_APP_DIR/nim",
+     "name": "nim",
+     "url": "https://nim-lang.org/download/nim-$VERSION-linux_x64.tar.xz",
+     "version": {
+      "regex": "nim-([0-9]+\\.[0-9]+\\.[0-9]+)-linux_x64",
+      "url": "https://nim-lang.org/install_unix.html"
+     }
+    },
+    "name": "nim"
    }
   },
   "nim-dotfiles": {
@@ -20248,25 +20254,16 @@
    }
   },
   "unityhub": {
-   "appImage\\unityhub": {
-    "driver": "appImage",
-    "fields": {
-     "name": "Unity Hub",
-     "path": "~/apps/UnityHub.AppImage",
-     "url": "https://public-cdn.cloud.unity3d.com/hub/prod/UnityHub.AppImage",
-     "version": {
-      "static": "latest"
-     }
-    },
-    "name": "Unity Hub"
-   },
-   "apt\\libfuse2": {
+   "apt\\unityhub": {
     "driver": "apt",
     "fields": {
-     "name": "libfuse2",
-     "repo-component": "universe"
+     "name": "unityhub",
+     "pubkey-path": "/usr/share/keyrings/unityhub.asc",
+     "pubkey-url": "https://hub.unity3d.com/linux/keys/public",
+     "source-line": "deb [signed-by=/usr/share/keyrings/unityhub.asc] https://hub.unity3d.com/linux/repos/deb stable main",
+     "source-path": "/etc/apt/sources.list.d/unityhub.list"
     },
-    "name": "libfuse2"
+    "name": "unityhub"
    },
    "dotfiles\\bash-dotfiles": {
     "driver": "dotfiles",
@@ -21596,7 +21593,7 @@
     "fields": {
      "installDir": "$CONFIGSYS_APP_DIR/zig",
      "name": "zig",
-     "url": "https://ziglang.org/download/$VERSION/zig-linux-$ARCH-$VERSION.tar.xz",
+     "url": "https://ziglang.org/download/$VERSION/zig-$ARCH-linux-$VERSION.tar.xz",
      "version": {
       "github": "ziglang/zig",
       "strip-v": "true"
@@ -28479,13 +28476,12 @@
    }
   },
   "nim": {
-   "apt\\nim": {
+   "apt\\curl": {
     "driver": "apt",
     "fields": {
-     "name": "nim",
-     "repo-component": "universe"
+     "name": "curl"
     },
-    "name": "nim"
+    "name": "curl"
    },
    "dotfiles\\bash-dotfiles": {
     "driver": "dotfiles",
@@ -28504,6 +28500,19 @@
      "glue": "nim"
     },
     "name": "nim-dotfiles"
+   },
+   "tarball\\nim": {
+    "driver": "tarball",
+    "fields": {
+     "installDir": "$CONFIGSYS_APP_DIR/nim",
+     "name": "nim",
+     "url": "https://nim-lang.org/download/nim-$VERSION-linux_x64.tar.xz",
+     "version": {
+      "regex": "nim-([0-9]+\\.[0-9]+\\.[0-9]+)-linux_x64",
+      "url": "https://nim-lang.org/install_unix.html"
+     }
+    },
+    "name": "nim"
    }
   },
   "nim-dotfiles": {
@@ -31098,25 +31107,16 @@
    }
   },
   "unityhub": {
-   "appImage\\unityhub": {
-    "driver": "appImage",
-    "fields": {
-     "name": "Unity Hub",
-     "path": "~/apps/UnityHub.AppImage",
-     "url": "https://public-cdn.cloud.unity3d.com/hub/prod/UnityHub.AppImage",
-     "version": {
-      "static": "latest"
-     }
-    },
-    "name": "Unity Hub"
-   },
-   "apt\\libfuse2": {
+   "apt\\unityhub": {
     "driver": "apt",
     "fields": {
-     "name": "libfuse2",
-     "repo-component": "universe"
+     "name": "unityhub",
+     "pubkey-path": "/usr/share/keyrings/unityhub.asc",
+     "pubkey-url": "https://hub.unity3d.com/linux/keys/public",
+     "source-line": "deb [signed-by=/usr/share/keyrings/unityhub.asc] https://hub.unity3d.com/linux/repos/deb stable main",
+     "source-path": "/etc/apt/sources.list.d/unityhub.list"
     },
-    "name": "libfuse2"
+    "name": "unityhub"
    },
    "dotfiles\\bash-dotfiles": {
     "driver": "dotfiles",
@@ -32412,7 +32412,7 @@
     "fields": {
      "installDir": "$CONFIGSYS_APP_DIR/zig",
      "name": "zig",
-     "url": "https://ziglang.org/download/$VERSION/zig-linux-$ARCH-$VERSION.tar.xz",
+     "url": "https://ziglang.org/download/$VERSION/zig-$ARCH-linux-$VERSION.tar.xz",
      "version": {
       "github": "ziglang/zig",
       "strip-v": "true"
@@ -39291,13 +39291,12 @@
    }
   },
   "nim": {
-   "apt\\nim": {
+   "apt\\curl": {
     "driver": "apt",
     "fields": {
-     "name": "nim",
-     "repo-component": "universe"
+     "name": "curl"
     },
-    "name": "nim"
+    "name": "curl"
    },
    "dotfiles\\bash-dotfiles": {
     "driver": "dotfiles",
@@ -39316,6 +39315,19 @@
      "glue": "nim"
     },
     "name": "nim-dotfiles"
+   },
+   "tarball\\nim": {
+    "driver": "tarball",
+    "fields": {
+     "installDir": "$CONFIGSYS_APP_DIR/nim",
+     "name": "nim",
+     "url": "https://nim-lang.org/download/nim-$VERSION-linux_x64.tar.xz",
+     "version": {
+      "regex": "nim-([0-9]+\\.[0-9]+\\.[0-9]+)-linux_x64",
+      "url": "https://nim-lang.org/install_unix.html"
+     }
+    },
+    "name": "nim"
    }
   },
   "nim-dotfiles": {
@@ -41923,25 +41935,16 @@
    }
   },
   "unityhub": {
-   "appImage\\unityhub": {
-    "driver": "appImage",
-    "fields": {
-     "name": "Unity Hub",
-     "path": "~/apps/UnityHub.AppImage",
-     "url": "https://public-cdn.cloud.unity3d.com/hub/prod/UnityHub.AppImage",
-     "version": {
-      "static": "latest"
-     }
-    },
-    "name": "Unity Hub"
-   },
-   "apt\\libfuse2": {
+   "apt\\unityhub": {
     "driver": "apt",
     "fields": {
-     "name": "libfuse2",
-     "repo-component": "universe"
+     "name": "unityhub",
+     "pubkey-path": "/usr/share/keyrings/unityhub.asc",
+     "pubkey-url": "https://hub.unity3d.com/linux/keys/public",
+     "source-line": "deb [signed-by=/usr/share/keyrings/unityhub.asc] https://hub.unity3d.com/linux/repos/deb stable main",
+     "source-path": "/etc/apt/sources.list.d/unityhub.list"
     },
-    "name": "libfuse2"
+    "name": "unityhub"
    },
    "dotfiles\\bash-dotfiles": {
     "driver": "dotfiles",
@@ -43237,7 +43240,7 @@
     "fields": {
      "installDir": "$CONFIGSYS_APP_DIR/zig",
      "name": "zig",
-     "url": "https://ziglang.org/download/$VERSION/zig-linux-$ARCH-$VERSION.tar.xz",
+     "url": "https://ziglang.org/download/$VERSION/zig-$ARCH-linux-$VERSION.tar.xz",
      "version": {
       "github": "ziglang/zig",
       "strip-v": "true"
@@ -49722,6 +49725,46 @@
     "name": "nextcloud"
    }
   },
+  "nim": {
+   "dnf\\curl": {
+    "driver": "dnf",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.config/bash/conf.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\nim-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "glue": "nim"
+    },
+    "name": "nim-dotfiles"
+   },
+   "tarball\\nim": {
+    "driver": "tarball",
+    "fields": {
+     "installDir": "$CONFIGSYS_APP_DIR/nim",
+     "name": "nim",
+     "url": "https://nim-lang.org/download/nim-$VERSION-linux_x64.tar.xz",
+     "version": {
+      "regex": "nim-([0-9]+\\.[0-9]+\\.[0-9]+)-linux_x64",
+      "url": "https://nim-lang.org/install_unix.html"
+     }
+    },
+    "name": "nim"
+   }
+  },
   "nim-dotfiles": {
    "dotfiles\\bash-dotfiles": {
     "driver": "dotfiles",
@@ -52289,25 +52332,12 @@
    }
   },
   "unityhub": {
-   "appImage\\unityhub": {
-    "driver": "appImage",
-    "fields": {
-     "name": "Unity Hub",
-     "path": "~/apps/UnityHub.AppImage",
-     "url": "https://public-cdn.cloud.unity3d.com/hub/prod/UnityHub.AppImage",
-     "version": {
-      "static": "latest"
-     }
-    },
-    "name": "Unity Hub"
-   },
-   "dnf\\libfuse2": {
+   "dnf\\flatpak": {
     "driver": "dnf",
     "fields": {
-     "name": "fuse-libs",
-     "repo-component": "universe"
+     "name": "flatpak"
     },
-    "name": "fuse-libs"
+    "name": "flatpak"
    },
    "dotfiles\\bash-dotfiles": {
     "driver": "dotfiles",
@@ -52326,6 +52356,14 @@
      "glue": "unityhub"
     },
     "name": "unityhub-dotfiles"
+   },
+   "flatpak\\unityhub": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "com.unity.UnityHub"
+    },
+    "name": "com.unity.UnityHub"
    }
   },
   "unityhub-dotfiles": {
@@ -53639,7 +53677,7 @@
     "fields": {
      "installDir": "$CONFIGSYS_APP_DIR/zig",
      "name": "zig",
-     "url": "https://ziglang.org/download/$VERSION/zig-linux-$ARCH-$VERSION.tar.xz",
+     "url": "https://ziglang.org/download/$VERSION/zig-$ARCH-linux-$VERSION.tar.xz",
      "version": {
       "github": "ziglang/zig",
       "strip-v": "true"
@@ -60150,6 +60188,46 @@
     "name": "nextcloud"
    }
   },
+  "nim": {
+   "dnf\\curl": {
+    "driver": "dnf",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.config/bash/conf.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\nim-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "glue": "nim"
+    },
+    "name": "nim-dotfiles"
+   },
+   "tarball\\nim": {
+    "driver": "tarball",
+    "fields": {
+     "installDir": "$CONFIGSYS_APP_DIR/nim",
+     "name": "nim",
+     "url": "https://nim-lang.org/download/nim-$VERSION-linux_x64.tar.xz",
+     "version": {
+      "regex": "nim-([0-9]+\\.[0-9]+\\.[0-9]+)-linux_x64",
+      "url": "https://nim-lang.org/install_unix.html"
+     }
+    },
+    "name": "nim"
+   }
+  },
   "nim-dotfiles": {
    "dotfiles\\bash-dotfiles": {
     "driver": "dotfiles",
@@ -62717,25 +62795,12 @@
    }
   },
   "unityhub": {
-   "appImage\\unityhub": {
-    "driver": "appImage",
-    "fields": {
-     "name": "Unity Hub",
-     "path": "~/apps/UnityHub.AppImage",
-     "url": "https://public-cdn.cloud.unity3d.com/hub/prod/UnityHub.AppImage",
-     "version": {
-      "static": "latest"
-     }
-    },
-    "name": "Unity Hub"
-   },
-   "dnf\\libfuse2": {
+   "dnf\\flatpak": {
     "driver": "dnf",
     "fields": {
-     "name": "fuse-libs",
-     "repo-component": "universe"
+     "name": "flatpak"
     },
-    "name": "fuse-libs"
+    "name": "flatpak"
    },
    "dotfiles\\bash-dotfiles": {
     "driver": "dotfiles",
@@ -62754,6 +62819,14 @@
      "glue": "unityhub"
     },
     "name": "unityhub-dotfiles"
+   },
+   "flatpak\\unityhub": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "com.unity.UnityHub"
+    },
+    "name": "com.unity.UnityHub"
    }
   },
   "unityhub-dotfiles": {
@@ -64067,7 +64140,7 @@
     "fields": {
      "installDir": "$CONFIGSYS_APP_DIR/zig",
      "name": "zig",
-     "url": "https://ziglang.org/download/$VERSION/zig-linux-$ARCH-$VERSION.tar.xz",
+     "url": "https://ziglang.org/download/$VERSION/zig-$ARCH-linux-$VERSION.tar.xz",
      "version": {
       "github": "ziglang/zig",
       "strip-v": "true"
@@ -71357,26 +71430,6 @@
    }
   },
   "unityhub": {
-   "appImage\\unityhub": {
-    "driver": "appImage",
-    "fields": {
-     "name": "Unity Hub",
-     "path": "~/apps/UnityHub.AppImage",
-     "url": "https://public-cdn.cloud.unity3d.com/hub/prod/UnityHub.AppImage",
-     "version": {
-      "static": "latest"
-     }
-    },
-    "name": "Unity Hub"
-   },
-   "brew\\libfuse2": {
-    "driver": "brew",
-    "fields": {
-     "name": "libfuse2",
-     "repo-component": "universe"
-    },
-    "name": "libfuse2"
-   },
    "dotfiles\\bash-dotfiles": {
     "driver": "dotfiles",
     "fields": {
@@ -71394,6 +71447,14 @@
      "glue": "unityhub"
     },
     "name": "unityhub-dotfiles"
+   },
+   "flatpak\\unityhub": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "com.unity.UnityHub"
+    },
+    "name": "com.unity.UnityHub"
    }
   },
   "unityhub-dotfiles": {
@@ -79378,13 +79439,12 @@
    }
   },
   "nim": {
-   "apt\\nim": {
+   "apt\\curl": {
     "driver": "apt",
     "fields": {
-     "name": "nim",
-     "repo-component": "universe"
+     "name": "curl"
     },
-    "name": "nim"
+    "name": "curl"
    },
    "dotfiles\\bash-dotfiles": {
     "driver": "dotfiles",
@@ -79403,6 +79463,19 @@
      "glue": "nim"
     },
     "name": "nim-dotfiles"
+   },
+   "tarball\\nim": {
+    "driver": "tarball",
+    "fields": {
+     "installDir": "$CONFIGSYS_APP_DIR/nim",
+     "name": "nim",
+     "url": "https://nim-lang.org/download/nim-$VERSION-linux_x64.tar.xz",
+     "version": {
+      "regex": "nim-([0-9]+\\.[0-9]+\\.[0-9]+)-linux_x64",
+      "url": "https://nim-lang.org/install_unix.html"
+     }
+    },
+    "name": "nim"
    }
   },
   "nim-dotfiles": {
@@ -82071,25 +82144,16 @@
    }
   },
   "unityhub": {
-   "appImage\\unityhub": {
-    "driver": "appImage",
-    "fields": {
-     "name": "Unity Hub",
-     "path": "~/apps/UnityHub.AppImage",
-     "url": "https://public-cdn.cloud.unity3d.com/hub/prod/UnityHub.AppImage",
-     "version": {
-      "static": "latest"
-     }
-    },
-    "name": "Unity Hub"
-   },
-   "apt\\libfuse2": {
+   "apt\\unityhub": {
     "driver": "apt",
     "fields": {
-     "name": "libfuse2",
-     "repo-component": "universe"
+     "name": "unityhub",
+     "pubkey-path": "/usr/share/keyrings/unityhub.asc",
+     "pubkey-url": "https://hub.unity3d.com/linux/keys/public",
+     "source-line": "deb [signed-by=/usr/share/keyrings/unityhub.asc] https://hub.unity3d.com/linux/repos/deb stable main",
+     "source-path": "/etc/apt/sources.list.d/unityhub.list"
     },
-    "name": "libfuse2"
+    "name": "unityhub"
    },
    "dotfiles\\bash-dotfiles": {
     "driver": "dotfiles",
@@ -83419,7 +83483,7 @@
     "fields": {
      "installDir": "$CONFIGSYS_APP_DIR/zig",
      "name": "zig",
-     "url": "https://ziglang.org/download/$VERSION/zig-linux-$ARCH-$VERSION.tar.xz",
+     "url": "https://ziglang.org/download/$VERSION/zig-$ARCH-linux-$VERSION.tar.xz",
      "version": {
       "github": "ziglang/zig",
       "strip-v": "true"
@@ -90274,6 +90338,46 @@
     "name": "nextcloud"
    }
   },
+  "nim": {
+   "dnf\\curl": {
+    "driver": "dnf",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.config/bash/conf.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\nim-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "glue": "nim"
+    },
+    "name": "nim-dotfiles"
+   },
+   "tarball\\nim": {
+    "driver": "tarball",
+    "fields": {
+     "installDir": "$CONFIGSYS_APP_DIR/nim",
+     "name": "nim",
+     "url": "https://nim-lang.org/download/nim-$VERSION-linux_x64.tar.xz",
+     "version": {
+      "regex": "nim-([0-9]+\\.[0-9]+\\.[0-9]+)-linux_x64",
+      "url": "https://nim-lang.org/install_unix.html"
+     }
+    },
+    "name": "nim"
+   }
+  },
   "nim-dotfiles": {
    "dotfiles\\bash-dotfiles": {
     "driver": "dotfiles",
@@ -92937,25 +93041,12 @@
    }
   },
   "unityhub": {
-   "appImage\\unityhub": {
-    "driver": "appImage",
-    "fields": {
-     "name": "Unity Hub",
-     "path": "~/apps/UnityHub.AppImage",
-     "url": "https://public-cdn.cloud.unity3d.com/hub/prod/UnityHub.AppImage",
-     "version": {
-      "static": "latest"
-     }
-    },
-    "name": "Unity Hub"
-   },
-   "dnf\\libfuse2": {
+   "dnf\\flatpak": {
     "driver": "dnf",
     "fields": {
-     "name": "fuse-libs",
-     "repo-component": "universe"
+     "name": "flatpak"
     },
-    "name": "fuse-libs"
+    "name": "flatpak"
    },
    "dotfiles\\bash-dotfiles": {
     "driver": "dotfiles",
@@ -92974,6 +93065,14 @@
      "glue": "unityhub"
     },
     "name": "unityhub-dotfiles"
+   },
+   "flatpak\\unityhub": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "com.unity.UnityHub"
+    },
+    "name": "com.unity.UnityHub"
    }
   },
   "unityhub-dotfiles": {
@@ -94336,7 +94435,7 @@
     "fields": {
      "installDir": "$CONFIGSYS_APP_DIR/zig",
      "name": "zig",
-     "url": "https://ziglang.org/download/$VERSION/zig-linux-$ARCH-$VERSION.tar.xz",
+     "url": "https://ziglang.org/download/$VERSION/zig-$ARCH-linux-$VERSION.tar.xz",
      "version": {
       "github": "ziglang/zig",
       "strip-v": "true"
@@ -101351,13 +101450,12 @@
    }
   },
   "nim": {
-   "apt\\nim": {
+   "apt\\curl": {
     "driver": "apt",
     "fields": {
-     "name": "nim",
-     "repo-component": "universe"
+     "name": "curl"
     },
-    "name": "nim"
+    "name": "curl"
    },
    "dotfiles\\bash-dotfiles": {
     "driver": "dotfiles",
@@ -101376,6 +101474,19 @@
      "glue": "nim"
     },
     "name": "nim-dotfiles"
+   },
+   "tarball\\nim": {
+    "driver": "tarball",
+    "fields": {
+     "installDir": "$CONFIGSYS_APP_DIR/nim",
+     "name": "nim",
+     "url": "https://nim-lang.org/download/nim-$VERSION-linux_x64.tar.xz",
+     "version": {
+      "regex": "nim-([0-9]+\\.[0-9]+\\.[0-9]+)-linux_x64",
+      "url": "https://nim-lang.org/install_unix.html"
+     }
+    },
+    "name": "nim"
    }
   },
   "nim-dotfiles": {
@@ -104051,25 +104162,16 @@
    }
   },
   "unityhub": {
-   "appImage\\unityhub": {
-    "driver": "appImage",
-    "fields": {
-     "name": "Unity Hub",
-     "path": "~/apps/UnityHub.AppImage",
-     "url": "https://public-cdn.cloud.unity3d.com/hub/prod/UnityHub.AppImage",
-     "version": {
-      "static": "latest"
-     }
-    },
-    "name": "Unity Hub"
-   },
-   "apt\\libfuse2": {
+   "apt\\unityhub": {
     "driver": "apt",
     "fields": {
-     "name": "libfuse2",
-     "repo-component": "universe"
+     "name": "unityhub",
+     "pubkey-path": "/usr/share/keyrings/unityhub.asc",
+     "pubkey-url": "https://hub.unity3d.com/linux/keys/public",
+     "source-line": "deb [signed-by=/usr/share/keyrings/unityhub.asc] https://hub.unity3d.com/linux/repos/deb stable main",
+     "source-path": "/etc/apt/sources.list.d/unityhub.list"
     },
-    "name": "libfuse2"
+    "name": "unityhub"
    },
    "dotfiles\\bash-dotfiles": {
     "driver": "dotfiles",
@@ -105399,7 +105501,7 @@
     "fields": {
      "installDir": "$CONFIGSYS_APP_DIR/zig",
      "name": "zig",
-     "url": "https://ziglang.org/download/$VERSION/zig-linux-$ARCH-$VERSION.tar.xz",
+     "url": "https://ziglang.org/download/$VERSION/zig-$ARCH-linux-$VERSION.tar.xz",
      "version": {
       "github": "ziglang/zig",
       "strip-v": "true"
@@ -112252,13 +112354,12 @@
    }
   },
   "nim": {
-   "apt\\nim": {
+   "apt\\curl": {
     "driver": "apt",
     "fields": {
-     "name": "nim",
-     "repo-component": "universe"
+     "name": "curl"
     },
-    "name": "nim"
+    "name": "curl"
    },
    "dotfiles\\bash-dotfiles": {
     "driver": "dotfiles",
@@ -112277,6 +112378,19 @@
      "glue": "nim"
     },
     "name": "nim-dotfiles"
+   },
+   "tarball\\nim": {
+    "driver": "tarball",
+    "fields": {
+     "installDir": "$CONFIGSYS_APP_DIR/nim",
+     "name": "nim",
+     "url": "https://nim-lang.org/download/nim-$VERSION-linux_x64.tar.xz",
+     "version": {
+      "regex": "nim-([0-9]+\\.[0-9]+\\.[0-9]+)-linux_x64",
+      "url": "https://nim-lang.org/install_unix.html"
+     }
+    },
+    "name": "nim"
    }
   },
   "nim-dotfiles": {
@@ -114884,25 +114998,16 @@
    }
   },
   "unityhub": {
-   "appImage\\unityhub": {
-    "driver": "appImage",
-    "fields": {
-     "name": "Unity Hub",
-     "path": "~/apps/UnityHub.AppImage",
-     "url": "https://public-cdn.cloud.unity3d.com/hub/prod/UnityHub.AppImage",
-     "version": {
-      "static": "latest"
-     }
-    },
-    "name": "Unity Hub"
-   },
-   "apt\\libfuse2": {
+   "apt\\unityhub": {
     "driver": "apt",
     "fields": {
-     "name": "libfuse2",
-     "repo-component": "universe"
+     "name": "unityhub",
+     "pubkey-path": "/usr/share/keyrings/unityhub.asc",
+     "pubkey-url": "https://hub.unity3d.com/linux/keys/public",
+     "source-line": "deb [signed-by=/usr/share/keyrings/unityhub.asc] https://hub.unity3d.com/linux/repos/deb stable main",
+     "source-path": "/etc/apt/sources.list.d/unityhub.list"
     },
-    "name": "libfuse2"
+    "name": "unityhub"
    },
    "dotfiles\\bash-dotfiles": {
     "driver": "dotfiles",
@@ -116186,7 +116291,7 @@
     "fields": {
      "installDir": "$CONFIGSYS_APP_DIR/zig",
      "name": "zig",
-     "url": "https://ziglang.org/download/$VERSION/zig-linux-$ARCH-$VERSION.tar.xz",
+     "url": "https://ziglang.org/download/$VERSION/zig-$ARCH-linux-$VERSION.tar.xz",
      "version": {
       "github": "ziglang/zig",
       "strip-v": "true"
