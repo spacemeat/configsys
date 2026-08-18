@@ -321,8 +321,10 @@
         nvtop: { description: "nvtop — a GPU process monitor for NVIDIA/AMD/Intel (an `htop` for GPUs)."
             install: [ { via: native  when: "debian or fedora or arch or opensuse"  repo-component: universe }
                        { via: native  when: "rhel"  requires: epel } ] }   // not in Alpine/Amazon base
+        /* sysdig is not bheaving with my kernel--need to investigate
         sysdig: { description: "sysdig — system exploration and troubleshooting (ships `sysdig` + the `csysdig` curses UI)."
             install: [ { via: native  when: "debian or arch or opensuse"  repo-component: universe } ] }   // Fedora/EL only via the upstream Falco repo (not modeled); absent from Alpine/Amazon
+        */
         dstat: { description: "dstat — versatile system resource statistics (deprecated upstream; Arch/openSUSE ship the `dool` fork, binary `dool`)."
             install: [ { via: native  when: "debian"  name: dstat }
                        { via: native  when: "arch or opensuse"  name: dool } ] }   // dropped from Fedora/EL/Alpine; the dool fork replaces it on Arch/openSUSE

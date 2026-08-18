@@ -31,7 +31,7 @@ profiles: {
     terminal: [ +terminal-emulators  +disk-utils  +cli-files  +system-monitors  curl  espeak  fastfetch
         fzf  ripgrep  xclip  neovim  tmux  lazygit  mononoki-nerd ]
     terminal-emulators: [ alacritty  ghostty  kitty  wezterm ]
-    system-monitors: [ btop  htop  bottom  atop  bmon  iotop  s-tui  glances  nvtop  wavemon  sysdig  dstat ]
+    system-monitors: [ btop  htop  bottom  atop  bmon  iotop  s-tui  glances  nvtop  wavemon  /*sysdig*/  dstat ]
     disk-utils: [ ncdu  duf ]
     cli-files: [ mc  yazi  superfile ]
     shells: [ fish  nushell  zsh ]
