@@ -17131,7 +17131,7 @@
     "driver": "pipx",
     "fields": {
      "name": "mitmproxy",
-     "python": "python3.13",
+     "python": "/usr/bin/python3.13",
      "version": {
       "pypi": "mitmproxy"
      }
@@ -28093,7 +28093,7 @@
     "driver": "pipx",
     "fields": {
      "name": "mitmproxy",
-     "python": "python3.13",
+     "python": "/usr/bin/python3.13",
      "version": {
       "pypi": "mitmproxy"
      }
@@ -38932,7 +38932,7 @@
     "driver": "pipx",
     "fields": {
      "name": "mitmproxy",
-     "python": "python3.13",
+     "python": "/usr/bin/python3.13",
      "version": {
       "pypi": "mitmproxy"
      }
@@ -79096,7 +79096,7 @@
     "driver": "pipx",
     "fields": {
      "name": "mitmproxy",
-     "python": "python3.13",
+     "python": "/usr/bin/python3.13",
      "version": {
       "pypi": "mitmproxy"
      }
@@ -101134,7 +101134,7 @@
     "driver": "pipx",
     "fields": {
      "name": "mitmproxy",
-     "python": "python3.13",
+     "python": "/usr/bin/python3.13",
      "version": {
       "pypi": "mitmproxy"
      }
@@ -112079,7 +112079,7 @@
     "driver": "pipx",
     "fields": {
      "name": "mitmproxy",
-     "python": "python3.13",
+     "python": "/usr/bin/python3.13",
      "version": {
       "pypi": "mitmproxy"
      }

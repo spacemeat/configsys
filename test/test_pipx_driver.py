@@ -129,12 +129,13 @@ def test_interpreter_pin_passes_python_flag_to_pipx():
 
 
 def test_upgrade_with_interpreter_pin_reinstalls_with_that_python():
-    # `pipx upgrade` reuses the venv's existing python, so it can't apply an interpreter bump (a venv
-    # built on py3.10 caps mitmproxy at 11.x). A pinned python -> force-reinstall at latest with it.
+    # `pipx upgrade` reuses the venv's python and `pipx install --force` IGNORES --python; only
+    # `pipx reinstall` rebuilds the venv with a new interpreter (and re-resolves to latest). A venv
+    # built on py3.10 otherwise caps mitmproxy at 11.x.
     r = Runner(pretend=True)
-    Pipx(r).upgrade(dist(name='mitmproxy', python='python3.13'))
+    Pipx(r).upgrade(dist(name='mitmproxy', python='/usr/bin/python3.13'))
     assert r.calls == ['uv --version',
-                       'python3 -m pipx install --force --python python3.13 mitmproxy']
+                       'python3 -m pipx reinstall --python /usr/bin/python3.13 mitmproxy']
 
 
 def test_upgrade_without_pin_stays_a_plain_upgrade():
