@@ -7,6 +7,8 @@ choice. Reuses versionreport (real per-method versions) + versionsweep.providers
 when no floors are active, so it costs nothing until floors exist.
 '''
 
+import re
+
 from .resolve import cap_names
 from .versionsweep import _pv, meets, providers_of
 
@@ -76,8 +78,26 @@ def _unmet(ctx, units):
                 yield rc, cap, floor, provider, rp, default
 
 
-def _who_meets(rp, floor):
-    return [m.via for m in rp.methods if m.latest and meets(m.latest, floor)]
+def _provides_meets(comp, via, cap, floor):
+    '''True when the binding for `via` DECLARES it provides a `cap` version satisfying `floor` —
+    a static guarantee that stands in for a discovered `latest` when the method has no version
+    source (e.g. the ghcup `via: script` binding promising `provides: { haskell: ">=9.4" }`). A
+    lower-bound promise `>=X` meets a floor `>=Y` iff X itself meets the floor; a concrete `N` uses N.'''
+    if comp is None:
+        return False
+    b = next((b for b in comp.bindings if b.via == via), None)
+    if b is None:
+        return False
+    g = getattr(b, 'prov_versions', {}).get(cap)
+    if g is None:
+        return False
+    m = re.search(r'[0-9][0-9.]*', str(g))            # the version literal inside `>=9.4` or `9.4`
+    return m is not None and meets(m.group(0), floor)
+
+
+def _who_meets(comp, rp, cap, floor):
+    return [m.via for m in rp.methods
+            if (m.latest and meets(m.latest, floor)) or _provides_meets(comp, m.via, cap, floor)]
 
 
 def advise(ctx, units):
@@ -85,7 +105,7 @@ def advise(ctx, units):
     ctx.diagnostics (inspect / the TUI ! page).'''
     out, seen = [], set()
     for rc, cap, floor, provider, rp, default in _unmet(ctx, units):
-        who = _who_meets(rp, floor)
+        who = _who_meets(ctx.routes.components.get(provider), rp, cap, floor)
         verb = 'meets' if len(who) == 1 else 'meet'
         fix = (f'pin {provider} to {who[0]} ({", ".join(who)} {verb} it): '
                f'`configsys pin set {provider} {who[0]}`') if who else \
@@ -108,10 +128,10 @@ def tighten_pins(ctx, units):
     INSTALLED via the default method (replacement stays explicit; those remain advisories). The
     monotonic-tighten step: it only ever moves a provider to a HIGHER-versioned method.'''
     pins = {}
-    for _rc, _cap, floor, provider, rp, default in _unmet(ctx, units):
+    for _rc, cap, floor, provider, rp, default in _unmet(ctx, units):
         if default.installed:                             # a replacement -> never auto
             continue
-        who = _who_meets(rp, floor)
+        who = _who_meets(ctx.routes.components.get(provider), rp, cap, floor)
         if who and provider not in pins:
             pins[provider] = who[0]
     return pins

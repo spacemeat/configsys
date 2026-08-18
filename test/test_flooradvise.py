@@ -219,3 +219,56 @@ def test_resident_upgrades_probed_probes_on_demand(monkeypatch):
     monkeypatch.setattr('configsys.drivers.get_driver',
                         lambda *a, **k: type('D', (), {'get_version': lambda s, rc: '1.97'})())
     assert flooradvise.resident_upgrades_probed(ctx, units) == {}
+
+
+# -- a floor-meeter recognized by its DECLARED provides (no version source) --------------------
+
+def _hask_comps():
+    # hlint needs ghc >=9.4; haskell's ghcup (script) binding has no version source but DECLARES it
+    # provides >=9.4 (a static guarantee). native ghc is the default.
+    return {
+        'hlint': Component('hlint', {'requires': [{'haskell': '>=9.4'}],
+                                     'install': [{'via': 'cabal'}]}),
+        'haskell': Component('haskell', {'install': [
+            {'via': 'native'},
+            {'via': 'script', 'standing': 'never-auto', 'provides': {'haskell': '>=9.4'}}]}),
+    }
+
+
+def _hask_report(native_ver):
+    MV = versionreport.MethodVersion
+    return versionreport.VersionReport(name='haskell', tip=None, methods=[
+        MV(via='native', driver='apt', package='ghc', latest=native_ver, is_default=True),
+        MV(via='script', driver='script', package='haskell', latest=None)])  # no discoverable latest
+
+
+def _hlint_unit():
+    return ResolvedComponent(key='cabal\\hlint', driver='cabal', comp='hlint', via='cabal')
+
+
+def test_provides_floor_recognized_without_a_version_source(monkeypatch):
+    # the script method has latest=None, but its declared `provides: {haskell: >=9.4}` meets the
+    # floor -> it must still be named as the fix (the bug: it was invisible without a version source).
+    _mock(monkeypatch, _hask_report(native_ver='9.0.2'))
+    advs = flooradvise.advise(_Ctx(_hask_comps()), [_hlint_unit()])
+    assert len(advs) == 1
+    t = advs[0]['text']
+    assert 'needs haskell >=9.4' in t and 'provides 9.0.2' in t
+    assert 'pin haskell to script' in t
+
+
+def test_provides_floor_below_requirement_is_not_named(monkeypatch):
+    # a method promising >=9.4 does NOT satisfy a floor of >=9.10 (the guarantee is too weak)
+    comps = _hask_comps()
+    comps['hlint'] = Component('hlint', {'requires': [{'haskell': '>=9.10'}],
+                                         'install': [{'via': 'cabal'}]})
+    _mock(monkeypatch, _hask_report(native_ver='9.0.2'))
+    advs = flooradvise.advise(_Ctx(comps), [_hlint_unit()])
+    assert len(advs) == 1
+    assert 'no install method here meets haskell >=9.10' in advs[0]['text']
+
+
+def test_provides_floor_enables_auto_tighten(monkeypatch):
+    _mock(monkeypatch, _hask_report(native_ver='9.0.2'))
+    pins = flooradvise.tighten_pins(_Ctx(_hask_comps()), [_hlint_unit()])
+    assert pins == {'haskell': 'script'}
