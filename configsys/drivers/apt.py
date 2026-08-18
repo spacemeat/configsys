@@ -71,6 +71,12 @@ class Apt(Driver):
             # add-apt-repository is idempotent and refreshes apt lists itself.
             self.runner.run(f'add-apt-repository -y {c}', sudo=True, capture=False)
 
+        # `ppa`: a Launchpad PPA (e.g. deadsnakes/ppa for python3.12/3.13) — `add-apt-repository -y
+        # ppa:<name>` adds it + refreshes. Needs software-properties-common (declare it in requires:).
+        for ppa in self._as_list(f.get('ppa')):
+            p = shlex.quote(ppa if ppa.startswith('ppa:') else f'ppa:{ppa}')
+            self.runner.run(f'add-apt-repository -y {p}', sudo=True, capture=False)
+
         key_url, key_path = f.get('pubkey-url'), f.get('pubkey-path')
         if key_url and key_path:
             kp, ku = shlex.quote(key_path), shlex.quote(key_url)
@@ -202,19 +208,30 @@ class Apt(Driver):
 
     # -- mutate -----------------------------------------------------------
 
+    @staticmethod
+    def _pkgs(rc):
+        '''The package argument(s) for apt. A `packages: [a, b, ...]` binding installs the whole set
+        (the house convention for a native component that needs several apt packages — e.g. a
+        python3.12 interpreter + -venv + -dev, or GL + GLU dev); otherwise `rc.name` (which may itself
+        be a whitespace-separated set). Each token is quoted. `installed-name:` still governs
+        detection, so state-probing has a single package to look at.'''
+        pkgs = rc.fields.get('packages')
+        names = ([str(p) for p in pkgs] if isinstance(pkgs, list) else
+                 [str(pkgs)] if pkgs else rc.name.split())
+        return ' '.join(shlex.quote(p) for p in names)
+
     def install(self, rc):
         self.ensure_prereqs(rc)
-        pkg = shlex.quote(rc.name)
-        return self.runner.run(f'{_APT_ENV} apt-get install -y {pkg}', sudo=True, capture=False)
+        return self.runner.run(f'{_APT_ENV} apt-get install -y {self._pkgs(rc)}',
+                               sudo=True, capture=False)
 
     def uninstall(self, rc):
-        pkg = shlex.quote(rc.name)
-        return self.runner.run(f'{_APT_ENV} apt-get remove -y {pkg}', sudo=True, capture=False)
+        return self.runner.run(f'{_APT_ENV} apt-get remove -y {self._pkgs(rc)}',
+                               sudo=True, capture=False)
 
     def upgrade(self, rc):
         self.ensure_prereqs(rc)
-        pkg = shlex.quote(rc.name)
-        return self.runner.run(f'{_APT_ENV} apt-get install --only-upgrade -y {pkg}',
+        return self.runner.run(f'{_APT_ENV} apt-get install --only-upgrade -y {self._pkgs(rc)}',
                                sudo=True, capture=False)
 
     def set_version(self, rc, version):

@@ -271,3 +271,26 @@ def test_wireshark_route_carries_debconf_preseed():
     unit = resolve_unit('wireshark')   # pop_os! -> apt
     assert unit.fields.get('debconf') == \
         'wireshark-common wireshark-common/install-setuid boolean true'
+
+
+def test_packages_field_installs_the_whole_set():
+    # a `packages:` binding installs every listed package (opengl -> GL + GLU dev), not the component
+    # name; installed-name governs detection separately.
+    r = Runner(pretend=True)
+    rc = ResolvedComponent(key='apt\\opengl', driver='apt', comp='opengl',
+                           fields={'packages': ['libgl1-mesa-dev', 'libglu1-mesa-dev'],
+                                   'installed-name': 'libgl1-mesa-dev'})
+    Apt(r).install(rc)
+    assert r.calls[-1] == ('sudo DEBIAN_FRONTEND=noninteractive NEEDRESTART_MODE=a '
+                           'apt-get install -y libgl1-mesa-dev libglu1-mesa-dev')
+
+
+def test_ppa_is_added_before_install():
+    # a `ppa:` binding (deadsnakes for python3.12) runs add-apt-repository ppa:... before installing.
+    r = Runner(pretend=True)
+    rc = ResolvedComponent(key='apt\\python3.12', driver='apt', comp='python3.12',
+                           fields={'packages': ['python3.12', 'python3.12-venv'],
+                                   'ppa': 'deadsnakes/ppa', 'requires': 'software-properties-common'})
+    Apt(r).install(rc)
+    assert r.calls[0] == 'sudo add-apt-repository -y ppa:deadsnakes/ppa'
+    assert r.calls[-1].endswith('apt-get install -y python3.12 python3.12-venv')

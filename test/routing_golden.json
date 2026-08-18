@@ -3456,8 +3456,7 @@
    "pacman\\gtkmm": {
     "driver": "pacman",
     "fields": {
-     "name": "gtkmm-4.0",
-     "repo-component": "universe"
+     "name": "gtkmm-4.0"
     },
     "name": "gtkmm-4.0"
    }
@@ -6559,6 +6558,7 @@
    "pacman\\opengl": {
     "driver": "pacman",
     "fields": {
+     "installed-name": "mesa",
      "name": "opengl",
      "packages": [
       "mesa",
@@ -14763,10 +14763,10 @@
    "apt\\gtkmm": {
     "driver": "apt",
     "fields": {
-     "name": "libgtkmm-4.0-dev",
+     "name": "libgtkmm-3.0-dev",
      "repo-component": "universe"
     },
-    "name": "libgtkmm-4.0-dev"
+    "name": "libgtkmm-3.0-dev"
    }
   },
   "guile": {
@@ -18004,9 +18004,10 @@
    "apt\\opengl": {
     "driver": "apt",
     "fields": {
+     "installed-name": "libgl1-mesa-dev",
      "name": "opengl",
      "packages": [
-      "libgl-dev",
+      "libgl1-mesa-dev",
       "libglu1-mesa-dev"
      ]
     },
@@ -25765,10 +25766,10 @@
    "apt\\gtkmm": {
     "driver": "apt",
     "fields": {
-     "name": "libgtkmm-4.0-dev",
+     "name": "libgtkmm-3.0-dev",
      "repo-component": "universe"
     },
-    "name": "libgtkmm-4.0-dev"
+    "name": "libgtkmm-3.0-dev"
    }
   },
   "guile": {
@@ -28921,9 +28922,10 @@
    "apt\\opengl": {
     "driver": "apt",
     "fields": {
+     "installed-name": "libgl1-mesa-dev",
      "name": "opengl",
      "packages": [
-      "libgl-dev",
+      "libgl1-mesa-dev",
       "libglu1-mesa-dev"
      ]
     },
@@ -39732,9 +39734,10 @@
    "apt\\opengl": {
     "driver": "apt",
     "fields": {
+     "installed-name": "libgl1-mesa-dev",
      "name": "opengl",
      "packages": [
-      "libgl-dev",
+      "libgl1-mesa-dev",
       "libglu1-mesa-dev"
      ]
     },
@@ -47030,8 +47033,7 @@
    "dnf\\gtkmm": {
     "driver": "dnf",
     "fields": {
-     "name": "gtkmm4.0-devel",
-     "repo-component": "universe"
+     "name": "gtkmm4.0-devel"
     },
     "name": "gtkmm4.0-devel"
    }
@@ -50136,6 +50138,7 @@
    "dnf\\opengl": {
     "driver": "dnf",
     "fields": {
+     "installed-name": "mesa-libGL-devel",
      "name": "opengl",
      "packages": [
       "mesa-libGL-devel",
@@ -57458,8 +57461,7 @@
    "dnf\\gtkmm": {
     "driver": "dnf",
     "fields": {
-     "name": "gtkmm4.0-devel",
-     "repo-component": "universe"
+     "name": "gtkmm4.0-devel"
     },
     "name": "gtkmm4.0-devel"
    }
@@ -60564,6 +60566,7 @@
    "dnf\\opengl": {
     "driver": "dnf",
     "fields": {
+     "installed-name": "mesa-libGL-devel",
      "name": "opengl",
      "packages": [
       "mesa-libGL-devel",
@@ -76584,10 +76587,10 @@
    "apt\\gtkmm": {
     "driver": "apt",
     "fields": {
-     "name": "libgtkmm-4.0-dev",
+     "name": "libgtkmm-3.0-dev",
      "repo-component": "universe"
     },
-    "name": "libgtkmm-4.0-dev"
+    "name": "libgtkmm-3.0-dev"
    }
   },
   "guile": {
@@ -79818,9 +79821,10 @@
    "apt\\opengl": {
     "driver": "apt",
     "fields": {
+     "installed-name": "libgl1-mesa-dev",
      "name": "opengl",
      "packages": [
-      "libgl-dev",
+      "libgl1-mesa-dev",
       "libglu1-mesa-dev"
      ]
     },
@@ -87481,8 +87485,7 @@
    "dnf\\gtkmm": {
     "driver": "dnf",
     "fields": {
-     "name": "gtkmm4.0-devel",
-     "repo-component": "universe"
+     "name": "gtkmm4.0-devel"
     },
     "name": "gtkmm4.0-devel"
    }
@@ -90690,6 +90693,7 @@
    "dnf\\opengl": {
     "driver": "dnf",
     "fields": {
+     "installed-name": "mesa-libGL-devel",
      "name": "opengl",
      "packages": [
       "mesa-libGL-devel",
@@ -98556,10 +98560,10 @@
    "apt\\gtkmm": {
     "driver": "apt",
     "fields": {
-     "name": "libgtkmm-4.0-dev",
+     "name": "libgtkmm-3.0-dev",
      "repo-component": "universe"
     },
-    "name": "libgtkmm-4.0-dev"
+    "name": "libgtkmm-3.0-dev"
    }
   },
   "guile": {
@@ -101790,9 +101794,10 @@
    "apt\\opengl": {
     "driver": "apt",
     "fields": {
+     "installed-name": "libgl1-mesa-dev",
      "name": "opengl",
      "packages": [
-      "libgl-dev",
+      "libgl1-mesa-dev",
       "libglu1-mesa-dev"
      ]
     },
@@ -112690,9 +112695,10 @@
    "apt\\opengl": {
     "driver": "apt",
     "fields": {
+     "installed-name": "libgl1-mesa-dev",
      "name": "opengl",
      "packages": [
-      "libgl-dev",
+      "libgl1-mesa-dev",
       "libglu1-mesa-dev"
      ]
     },

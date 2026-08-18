@@ -2434,21 +2434,32 @@
             install: [ { via: native  when: "debian or redhat or arch or alpine"  repo-component: universe
                          name: { apt: libgtk-4-dev  dnf: gtk4-devel  pacman: gtk4  apk: gtk4.0-dev } } ]
         }
-        gtkmm: { description: "gtkmm — the C++ bindings for GTK 4 (dev)."
+        gtkmm: { description: "gtkmm — the C++ bindings for GTK (dev; GTK 4 where packaged, else GTK 3)."
             requires: gtk
-            install: [ { via: native  when: "debian or redhat or arch"  repo-component: universe
-                         name: { apt: libgtkmm-4.0-dev  dnf: gtkmm4.0-devel  pacman: gtkmm-4.0 } } ]
+            // gtkmm-4.0 isn't in the Ubuntu repos before 24.04 (nor Debian < 13) — fall back to the
+            // GTK3 bindings there so it still resolves, rather than 404 on libgtkmm-4.0-dev.
+            // 4.0 is the default across the debian subtree; the OLD releases that predate it
+            // (ubuntu < 24.04, debian < 13) explicitly fall back to the GTK3 bindings. Written this
+            // way so a derivative whose version isn't an ubuntu/debian number (elementary, …) still
+            // gets 4.0 rather than dropping out.
+            install: [ { via: native  when: "debian and not ((ubuntu < 24.04) or (debian < 13))"  repo-component: universe  name: { apt: libgtkmm-4.0-dev } }
+                       { via: native  when: "(ubuntu < 24.04) or (debian < 13)"                    repo-component: universe  name: { apt: libgtkmm-3.0-dev } }
+                       { via: native  when: "redhat and not amzn"  name: { dnf: gtkmm4.0-devel } }
+                       { via: native  when: "arch"  name: { pacman: gtkmm-4.0 } } ]
         }
 
         // --- graphics dev SDKs (dev headers + libs) ---
         // OpenGL is a per-distro parts bundle (GL + GLU) — no single `opengl` package. No brew (macOS
         // ships GL as a deprecated system framework).
         opengl: { description: "OpenGL development environment — GL + GLU headers and libraries."
-            install: [ { via: native  when: "debian"    packages: [ libgl-dev, libglu1-mesa-dev ] }
-                       { via: native  when: "(redhat) and not amzn"    packages: [ mesa-libGL-devel, mesa-libGLU-devel ] }
-                       { via: native  when: "arch"      packages: [ mesa, glu ] }
-                       { via: native  when: "alpine"    packages: [ mesa-dev, glu-dev ] }
-                       { via: native  when: "opensuse"  packages: [ Mesa-libGL-devel, glu-devel ] } ]
+            // `packages:` installs the whole set; `installed-name:` gives state-detection one member
+            // to probe (there is no `opengl` package — apt now READS `packages:`, where before it
+            // silently fell back to the component name and tried to install `opengl`).
+            install: [ { via: native  when: "debian"    packages: [ libgl1-mesa-dev, libglu1-mesa-dev ]  installed-name: libgl1-mesa-dev }
+                       { via: native  when: "(redhat) and not amzn"    packages: [ mesa-libGL-devel, mesa-libGLU-devel ]  installed-name: mesa-libGL-devel }
+                       { via: native  when: "arch"      packages: [ mesa, glu ]        installed-name: mesa }
+                       { via: native  when: "alpine"    packages: [ mesa-dev, glu-dev ]  installed-name: mesa-dev }
+                       { via: native  when: "opensuse"  packages: [ Mesa-libGL-devel, glu-devel ]  installed-name: Mesa-libGL-devel } ]
         }
         glfw: { description: "GLFW — multi-platform OpenGL/Vulkan window & input library (dev)."
             install: [ { via: native  when: "(debian or redhat or arch or alpine or opensuse or fedora_atomic) and not amzn"  repo-component: universe
