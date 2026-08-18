@@ -108,6 +108,14 @@ class Pipx(Driver):
                                capture=False)
 
     def upgrade(self, rc):
+        py = self._py_flag(rc)
+        if py:
+            # a pinned interpreter can't be applied by `pipx upgrade` (it reuses the venv's existing
+            # python) — reinstall at latest WITH the interpreter so an interpreter bump takes effect.
+            # e.g. mitmproxy 12 needs py>=3.12; a venv built on py3.10 silently caps upgrades at 11.x.
+            return self.runner.run(
+                f'{_PIPX} install {self._backend()}--force {py}{shlex.quote(self._dist(rc))}',
+                capture=False)
         return self.runner.run(f'{_PIPX} upgrade {shlex.quote(self._dist(rc))}', capture=False)
 
     def set_version(self, rc, version):

@@ -1067,7 +1067,12 @@
                                 { via: tarball  archive: none  binary: jq  installDir: "$CONFIGSYS_APP_DIR/jq"  version: { github: jqlang/jq  asset: "jq-linux-amd64" } } ] }   // upstream ships a raw static binary
         yq:        { description: "YAML/JSON/XML processor — jq, but for YAML." requires: jq                                                                    // the jq-family yq (yq/xq/tomlq) — shells out to jq at runtime; NOT mikefarah's Go yq
                      install: [ { via: pipx  name: yq  version: { pypi: yq } } ] }
-        mitmproxy: { description: "Interactive HTTPS proxy — intercept, inspect, and replay traffic." install: [ { via: pipx  name: mitmproxy  standing: 1  version: { pypi: mitmproxy } }  { via: flatpak  hub: flathub  app: org.mitmproxy.mitmproxy } ] }   // pipx (official PyPI) stays the default; the Flathub build is an offered option
+        // mitmproxy 12+ needs Python >=3.12, but a pipx venv built on an OLD system python (Pop
+        // 22.04 / Debian 11-12 ship 3.10-3.11) silently caps upgrades at the last compatible release
+        // (11.x). On debian, pin the venv interpreter to python3.13 (and pull it via deadsnakes); the
+        // other distros (Fedora/Arch/atomic/…) already ship 3.12+, so plain pipx uses the system
+        // python (and python3.13 doesn't even resolve on atomic — pyenv needs build deps absent there).
+        mitmproxy: { description: "Interactive HTTPS proxy — intercept, inspect, and replay traffic." install: [ { via: pipx  when: "debian"  name: mitmproxy  standing: 1  python: python3.13  requires: python3.13  version: { pypi: mitmproxy } }  { via: pipx  when: "not debian"  name: mitmproxy  standing: 1  version: { pypi: mitmproxy } }  { via: flatpak  hub: flathub  app: org.mitmproxy.mitmproxy } ] }   // pipx (official PyPI) stays the default; the Flathub build is an offered option
         xh:        { suggests: xh-dotfiles  description: "Fast HTTPie-compatible HTTP client (`xh`), written in Rust." install: [ { via: cargo  name: xh  version: { crates: xh } }  { via: tarball  installDir: "$CONFIGSYS_APP_DIR/xh"  version: { github: ducaale/xh  asset: "xh-*-x86_64-unknown-linux-musl.tar.gz" } } ] }                // prebuilt musl binary is the default over building from source
         websocat:  { suggests: websocat-dotfiles  description: "netcat for WebSockets — connect, pipe, and script ws:// endpoints." install: [ { via: cargo  name: websocat  version: { crates: websocat } }  { via: tarball  archive: none  binary: websocat  installDir: "$CONFIGSYS_APP_DIR/websocat"  version: { github: vi/websocat  asset: "websocat.x86_64-unknown-linux-musl" } } ] }   // prebuilt musl binary default
 

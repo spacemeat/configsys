@@ -17072,6 +17072,26 @@
     },
     "name": "python3-pip"
    },
+   "apt\\python3.13": {
+    "driver": "apt",
+    "fields": {
+     "name": "python3.13",
+     "packages": [
+      "python3.13",
+      "python3.13-venv",
+      "python3.13-dev"
+     ],
+     "ppa": "deadsnakes/ppa"
+    },
+    "name": "python3.13"
+   },
+   "apt\\software-properties-common": {
+    "driver": "apt",
+    "fields": {
+     "name": "software-properties-common"
+    },
+    "name": "software-properties-common"
+   },
    "dotfiles\\bash-dotfiles": {
     "driver": "dotfiles",
     "fields": {
@@ -17111,6 +17131,7 @@
     "driver": "pipx",
     "fields": {
      "name": "mitmproxy",
+     "python": "python3.13",
      "version": {
       "pypi": "mitmproxy"
      }
@@ -28030,6 +28051,26 @@
     },
     "name": "pipx"
    },
+   "apt\\python3.13": {
+    "driver": "apt",
+    "fields": {
+     "name": "python3.13",
+     "packages": [
+      "python3.13",
+      "python3.13-venv",
+      "python3.13-dev"
+     ],
+     "ppa": "deadsnakes/ppa"
+    },
+    "name": "python3.13"
+   },
+   "apt\\software-properties-common": {
+    "driver": "apt",
+    "fields": {
+     "name": "software-properties-common"
+    },
+    "name": "software-properties-common"
+   },
    "dotfiles\\bash-dotfiles": {
     "driver": "dotfiles",
     "fields": {
@@ -28052,6 +28093,7 @@
     "driver": "pipx",
     "fields": {
      "name": "mitmproxy",
+     "python": "python3.13",
      "version": {
       "pypi": "mitmproxy"
      }
@@ -38848,6 +38890,26 @@
     },
     "name": "pipx"
    },
+   "apt\\python3.13": {
+    "driver": "apt",
+    "fields": {
+     "name": "python3.13",
+     "packages": [
+      "python3.13",
+      "python3.13-venv",
+      "python3.13-dev"
+     ],
+     "ppa": "deadsnakes/ppa"
+    },
+    "name": "python3.13"
+   },
+   "apt\\software-properties-common": {
+    "driver": "apt",
+    "fields": {
+     "name": "software-properties-common"
+    },
+    "name": "software-properties-common"
+   },
    "dotfiles\\bash-dotfiles": {
     "driver": "dotfiles",
     "fields": {
@@ -38870,6 +38932,7 @@
     "driver": "pipx",
     "fields": {
      "name": "mitmproxy",
+     "python": "python3.13",
      "version": {
       "pypi": "mitmproxy"
      }
@@ -78974,6 +79037,26 @@
     },
     "name": "python3-pip"
    },
+   "apt\\python3.13": {
+    "driver": "apt",
+    "fields": {
+     "name": "python3.13",
+     "packages": [
+      "python3.13",
+      "python3.13-venv",
+      "python3.13-dev"
+     ],
+     "ppa": "deadsnakes/ppa"
+    },
+    "name": "python3.13"
+   },
+   "apt\\software-properties-common": {
+    "driver": "apt",
+    "fields": {
+     "name": "software-properties-common"
+    },
+    "name": "software-properties-common"
+   },
    "dotfiles\\bash-dotfiles": {
     "driver": "dotfiles",
     "fields": {
@@ -79013,6 +79096,7 @@
     "driver": "pipx",
     "fields": {
      "name": "mitmproxy",
+     "python": "python3.13",
      "version": {
       "pypi": "mitmproxy"
      }
@@ -100991,6 +101075,26 @@
     },
     "name": "python3-pip"
    },
+   "apt\\python3.13": {
+    "driver": "apt",
+    "fields": {
+     "name": "python3.13",
+     "packages": [
+      "python3.13",
+      "python3.13-venv",
+      "python3.13-dev"
+     ],
+     "ppa": "deadsnakes/ppa"
+    },
+    "name": "python3.13"
+   },
+   "apt\\software-properties-common": {
+    "driver": "apt",
+    "fields": {
+     "name": "software-properties-common"
+    },
+    "name": "software-properties-common"
+   },
    "dotfiles\\bash-dotfiles": {
     "driver": "dotfiles",
     "fields": {
@@ -101030,6 +101134,7 @@
     "driver": "pipx",
     "fields": {
      "name": "mitmproxy",
+     "python": "python3.13",
      "version": {
       "pypi": "mitmproxy"
      }
@@ -111932,6 +112037,26 @@
     },
     "name": "pipx"
    },
+   "apt\\python3.13": {
+    "driver": "apt",
+    "fields": {
+     "name": "python3.13",
+     "packages": [
+      "python3.13",
+      "python3.13-venv",
+      "python3.13-dev"
+     ],
+     "ppa": "deadsnakes/ppa"
+    },
+    "name": "python3.13"
+   },
+   "apt\\software-properties-common": {
+    "driver": "apt",
+    "fields": {
+     "name": "software-properties-common"
+    },
+    "name": "software-properties-common"
+   },
    "dotfiles\\bash-dotfiles": {
     "driver": "dotfiles",
     "fields": {
@@ -111954,6 +112079,7 @@
     "driver": "pipx",
     "fields": {
      "name": "mitmproxy",
+     "python": "python3.13",
      "version": {
       "pypi": "mitmproxy"
      }
