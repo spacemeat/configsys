@@ -76,25 +76,25 @@ def test_registry_resolves_apt_and_rejects_others():
 def test_install_command():
     r = Runner(pretend=True)
     Apt(r).install(rc())
-    assert r.calls == ['sudo apt-get install -y btop']
+    assert r.calls == ['sudo DEBIAN_FRONTEND=noninteractive NEEDRESTART_MODE=a apt-get install -y btop']
 
 
 def test_uninstall_command():
     r = Runner(pretend=True)
     Apt(r).uninstall(rc())
-    assert r.calls == ['sudo apt-get remove -y btop']
+    assert r.calls == ['sudo DEBIAN_FRONTEND=noninteractive NEEDRESTART_MODE=a apt-get remove -y btop']
 
 
 def test_upgrade_command():
     r = Runner(pretend=True)
     Apt(r).upgrade(rc())
-    assert r.calls == ['sudo apt-get install --only-upgrade -y btop']
+    assert r.calls == ['sudo DEBIAN_FRONTEND=noninteractive NEEDRESTART_MODE=a apt-get install --only-upgrade -y btop']
 
 
 def test_set_version_command():
     r = Runner(pretend=True)
     Apt(r).set_version(rc(), '1.2.3-1')
-    assert r.calls == ['sudo apt-get install -y --allow-downgrades btop=1.2.3-1']
+    assert r.calls == ['sudo DEBIAN_FRONTEND=noninteractive NEEDRESTART_MODE=a apt-get install -y --allow-downgrades btop=1.2.3-1']
 
 
 def test_lock_unlock_commands():
@@ -110,7 +110,7 @@ def test_uses_family_name_field_not_comp():
                              fields={'name': 'vulkan-sdk'})
     r = Runner(pretend=True)
     Apt(r).install(comp)
-    assert r.calls == ['sudo apt-get install -y vulkan-sdk']
+    assert r.calls == ['sudo DEBIAN_FRONTEND=noninteractive NEEDRESTART_MODE=a apt-get install -y vulkan-sdk']
 
 
 # -- output parsing (via FakeRunner) -------------------------------------
@@ -171,7 +171,7 @@ def test_repo_component_enabled_before_install():
     Apt(r).install(comp)
     assert r.calls == [
         'sudo add-apt-repository -y universe',
-        'sudo apt-get install -y btop',
+        'sudo DEBIAN_FRONTEND=noninteractive NEEDRESTART_MODE=a apt-get install -y btop',
     ]
 
 
@@ -184,7 +184,7 @@ def test_repo_component_list():
         'sudo add-apt-repository -y universe',
         'sudo add-apt-repository -y multiverse',
     ]
-    assert r.calls[-1] == 'sudo apt-get install -y x'
+    assert r.calls[-1] == 'sudo DEBIAN_FRONTEND=noninteractive NEEDRESTART_MODE=a apt-get install -y x'
 
 
 def test_universe_route_carries_repo_component():
@@ -195,7 +195,7 @@ def test_universe_route_carries_repo_component():
     Apt(r).install(unit)
     assert r.calls == [
         'sudo add-apt-repository -y universe',
-        'sudo apt-get install -y btop',
+        'sudo DEBIAN_FRONTEND=noninteractive NEEDRESTART_MODE=a apt-get install -y btop',
     ]
 
 
@@ -216,7 +216,7 @@ def test_apt_key_and_source_prereq_still_supported():
     src_cmd = ('if [ ! -f /etc/apt/sources.list.d/ex.list ]; then '
                'sudo curl -fsSL https://ex.com/ex.list -o /etc/apt/sources.list.d/ex.list '
                '&& sudo apt-get update; fi')
-    assert r.calls == [key_cmd, src_cmd, 'sudo apt-get install -y thing']
+    assert r.calls == [key_cmd, src_cmd, 'sudo DEBIAN_FRONTEND=noninteractive NEEDRESTART_MODE=a apt-get install -y thing']
 
 
 def test_source_line_writes_inline_deb_repo():
@@ -231,7 +231,7 @@ def test_source_line_writes_inline_deb_repo():
     })
     r = Runner(pretend=True)
     Apt(r).install(comp)
-    assert r.calls[-1] == 'sudo apt-get install -y code'
+    assert r.calls[-1] == 'sudo DEBIAN_FRONTEND=noninteractive NEEDRESTART_MODE=a apt-get install -y code'
     src_cmd = ("if [ ! -f /etc/apt/sources.list.d/vscode.list ]; then echo 'deb "
                '[signed-by=/usr/share/keyrings/packages.microsoft.asc] '
                "https://packages.microsoft.com/repos/code stable main' "
@@ -243,7 +243,7 @@ def test_source_line_writes_inline_deb_repo():
 def test_no_prereqs_when_none_declared():
     r = Runner(pretend=True)
     Apt(r).install(rc('build-essential'))  # main package, no repo-component
-    assert r.calls == ['sudo apt-get install -y build-essential']
+    assert r.calls == ['sudo DEBIAN_FRONTEND=noninteractive NEEDRESTART_MODE=a apt-get install -y build-essential']
 
 
 def test_debconf_preseed_before_install():
@@ -262,7 +262,7 @@ def test_debconf_preseed_before_install():
         '| grep -q "install ok installed"; then '
         'DEBIAN_FRONTEND=noninteractive dpkg-reconfigure -f noninteractive wireshark-common; fi'
     )
-    assert r.calls == [preseed, 'sudo apt-get install -y wireshark']
+    assert r.calls == [preseed, 'sudo DEBIAN_FRONTEND=noninteractive NEEDRESTART_MODE=a apt-get install -y wireshark']
 
 
 def test_wireshark_route_carries_debconf_preseed():

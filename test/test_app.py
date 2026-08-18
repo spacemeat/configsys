@@ -53,7 +53,7 @@ def test_pretend_install_emits_apt_command_without_executing(tmp_path, capsys):
     rc = main(base_args(tmp_path) + ['install', 'btop'])
     assert rc == 0
     out = capsys.readouterr().out
-    assert '[pretend] sudo apt-get install -y btop' in out
+    assert '[pretend] sudo DEBIAN_FRONTEND=noninteractive NEEDRESTART_MODE=a apt-get install -y btop' in out
 
 
 def test_pretend_lock_emits_apt_mark(tmp_path, capsys):

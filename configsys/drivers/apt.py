@@ -9,6 +9,13 @@ import shlex
 
 from ..driver import Driver
 
+# Keep automated installs from popping interactive TUI dialogs mid-batch — the whiptail/newt screens
+# that paint the whole terminal a solid colour and then linger. DEBIAN_FRONTEND=noninteractive makes
+# debconf answer from preseeds/defaults instead of prompting (e.g. wireshark's non-root-capture
+# question); NEEDRESTART_MODE=a stops Ubuntu's post-apt `needrestart` hook from prompting about which
+# services to restart / a newer kernel. Prepended to every mutating apt-get invocation.
+_APT_ENV = 'DEBIAN_FRONTEND=noninteractive NEEDRESTART_MODE=a'
+
 
 def _parse_policy(text, want):
     '''{name: candidate-version} from `apt-cache policy pkg1 pkg2 ...` output, restricted to `want`.
@@ -198,16 +205,16 @@ class Apt(Driver):
     def install(self, rc):
         self.ensure_prereqs(rc)
         pkg = shlex.quote(rc.name)
-        return self.runner.run(f'apt-get install -y {pkg}', sudo=True, capture=False)
+        return self.runner.run(f'{_APT_ENV} apt-get install -y {pkg}', sudo=True, capture=False)
 
     def uninstall(self, rc):
         pkg = shlex.quote(rc.name)
-        return self.runner.run(f'apt-get remove -y {pkg}', sudo=True, capture=False)
+        return self.runner.run(f'{_APT_ENV} apt-get remove -y {pkg}', sudo=True, capture=False)
 
     def upgrade(self, rc):
         self.ensure_prereqs(rc)
         pkg = shlex.quote(rc.name)
-        return self.runner.run(f'apt-get install --only-upgrade -y {pkg}',
+        return self.runner.run(f'{_APT_ENV} apt-get install --only-upgrade -y {pkg}',
                                sudo=True, capture=False)
 
     def set_version(self, rc, version):
@@ -215,7 +222,7 @@ class Apt(Driver):
         pkg = shlex.quote(rc.name)
         ver = shlex.quote(version)
         return self.runner.run(
-            f'apt-get install -y --allow-downgrades {pkg}={ver}',
+            f'{_APT_ENV} apt-get install -y --allow-downgrades {pkg}={ver}',
             sudo=True, capture=False)
 
     def lock(self, rc):
