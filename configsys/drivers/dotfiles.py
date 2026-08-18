@@ -244,10 +244,14 @@ class DotFiles(Driver):
         return out
 
     def _write_manifest(self, rc, specs_map):
-        '''Write `<comp>.cfs/manifest.hu` from {specname: {src,dst,exclude}} and a `.gitignore` from
-        the union of excludes (so a secret that lands via edit-through is never committed/synced).'''
+        '''Write the manifest into this component's `.cfs` dir in the CAPTURE root.'''
+        self._write_manifest_at(self._cfs_dir(rc), specs_map)
+
+    def _write_manifest_at(self, cfs, specs_map):
+        '''Write `<cfs>/manifest.hu` from {specname: {src,dst,exclude}} and a `.gitignore` from the
+        union of excludes (so a secret that lands via edit-through is never committed/synced).'''
         from ..troveio import emit_hu
-        cfs = self._cfs_dir(rc)
+        cfs = Path(cfs)
         cfs.mkdir(parents=True, exist_ok=True)
         (cfs / MANIFEST_NAME).write_text(emit_hu({'specs': specs_map}))
         excludes = sorted({g for s in specs_map.values() for g in s.get('exclude', [])})
@@ -259,7 +263,11 @@ class DotFiles(Driver):
             gi.unlink()
 
     def _config_specs(self, rc):
-        return [(n, src, dst, ab) for n, src, dst, ab, kind in self._specs(rc) if kind == 'config']
+        '''Config specs (kind=config), EXCLUDING legacy shell-glue snippets declared the old way with
+        an inline src/dst under bash.d/ or shell/ — those read as config but belong to the shell
+        layout, so they never get a .cfs marker/manifest entry or a capture.'''
+        return [(n, src, dst, ab) for n, src, dst, ab, kind in self._specs(rc)
+                if kind == 'config' and not (src.startswith('bash.d/') or src.startswith('shell/'))]
 
     def _ensure_marker(self, rc):
         '''Create/refresh the `.cfs` marker + manifest for a component's config specs (the #5
@@ -279,6 +287,53 @@ class DotFiles(Driver):
         '''The exclude globs recorded for a spec (from the manifest), [] if none.'''
         man = self._read_manifest(self._cfs_dir(rc) / MANIFEST_NAME)
         return man.get(name, {}).get('exclude', [])
+
+    def cfs_migrations(self, rc):
+        '''[(name, src, legacy_path, cfs_path)] for config specs whose content still lives at the
+        PRE-.cfs bare path (`<root>/<src>`) in a USER root — i.e. captured before the `.cfs` layout
+        and relocatable into `<comp>.cfs/`. Empty for glue, for already-.cfs content, and for
+        unpopulated/template specs.'''
+        out = []
+        for name, src, _dst, _absorb, kind in self._specs(rc):
+            if kind != 'config':
+                continue
+            # a shell-glue snippet declared the LEGACY way (inline src/dst under bash.d/ or shell/,
+            # not `glue:`) reads as a config spec but is glue — it belongs in the shell layout, not
+            # .cfs, so never relocate it.
+            if src.startswith('bash.d/') or src.startswith('shell/'):
+                continue
+            srcpath, tier, root = self._resolve(src, rc, kind)
+            if tier != 'user' or not srcpath.exists():
+                continue
+            if srcpath == root / src:                     # resolved to the bare path, not <comp>.cfs/
+                out.append((name, src, srcpath, self._cfs_dir(rc, root) / src))
+        return out
+
+    def migrate_to_cfs(self, rc):
+        '''Relocate this component's legacy bare config content into the `<comp>.cfs/` marker layout:
+        move each bare content path into `.cfs/`, (re)write the manifest — auto-suggesting secret
+        excludes from the relocated content — then re-link the dst at the new path. Returns
+        [(src, legacy_path, cfs_path)] moved; [] if nothing was legacy. The move is a plain rename in
+        the same (user) root, so git records it as a rename on the next commit.'''
+        migs = self.cfs_migrations(rc)
+        if not migs:
+            return []
+        cfs_dir = migs[0][3].parent                       # all specs share one <comp>.cfs dir
+        existing = self._read_manifest(cfs_dir / MANIFEST_NAME)
+        moved, new_ex = [], {}
+        for name, src, legacy, cfs in migs:
+            cfs.parent.mkdir(parents=True, exist_ok=True)
+            shutil.move(str(legacy), str(cfs))
+            new_ex[name] = sorted(set(existing.get(name, {}).get('exclude', []))
+                                  | set(self._suggest_secrets(cfs)))
+            moved.append((src, legacy, cfs))
+        specs_map = {}
+        for name, src, dst, _absorb in self._config_specs(rc):
+            specs_map[name] = {'src': src, 'dst': dst,
+                               'exclude': new_ex.get(name, existing.get(name, {}).get('exclude', []))}
+        self._write_manifest_at(cfs_dir, specs_map)
+        self.install(rc)                                  # re-point the dst symlink at the .cfs content
+        return moved
 
     def _is_excluded(self, rel, globs):
         '''True if a relative path (POSIX) matches any exclude glob — matched against the full path

@@ -2204,8 +2204,12 @@ def build_parser():
     cap.add_argument('--force', action='store_true', help='overwrite content already in the store')
     cap.add_argument('--dry-run', action='store_true', help='show the plan and exit; write nothing')
     cap.add_argument('--yes', action='store_true', help='skip the confirmation prompt')
-    mig = dfsub.add_parser('migrate', help='re-point any managed link that references the repo at the '
-                                           'machine-local store (previews before touching anything)')
+    mig = dfsub.add_parser('migrate', help='bring dotfile links + storage up to the current layout: '
+                                           're-point repo-links, move glue to conf.d, relocate legacy '
+                                           'config into .cfs (previews before touching anything)')
+    mig.add_argument('components', nargs='*',
+                     help='limit to these -dotfiles components (default: all; the whole-machine '
+                          '~/.bash.d sweep only runs when unscoped)')
     mig.add_argument('--yes', action='store_true', help='skip the confirmation prompt')
 
     mp = sub.add_parser('manpages', help='install or check the man pages '
@@ -2282,7 +2286,10 @@ def cmd_dotfiles_migrate(ctx, args):
     per-component transitions to just those (the TUI's lowercase `m`); the whole-machine ~/.bash.d
     sweep only runs unscoped (uppercase `M`).'''
     df, units = _active_dotfiles(ctx)
-    only = getattr(args, 'only', None)                   # {comp names} to scope to, or None for all
+    only = getattr(args, 'only', None)                   # {comp names} (TUI), or None
+    if only is None:                                     # CLI: positional components scope it
+        comps = getattr(args, 'components', None)
+        only = set(comps) if comps else None
     if only is not None:
         units = [u for u in units if u.comp in only]
     p = ctx.paths
@@ -2335,10 +2342,16 @@ def cmd_dotfiles_migrate(ctx, args):
                     dead.append(f)
             elif f.is_file() and not f.is_symlink() and f.suffix == '.sh':
                 orphans.append(f)
-    if not to_fix and not moves and not dead and not orphans:
+    # legacy bare config content (captured before the .cfs layout) relocatable into <comp>.cfs/
+    recfs = [(rc, migs) for rc in units if (migs := df.cfs_migrations(rc))]
+    if not to_fix and not moves and not dead and not orphans and not recfs:
         print('configsys: nothing to migrate — links already match the current layout.')
         return 0
     print('configsys dotfiles migrate — the following WILL change:\n')
+    for rc, migs in recfs:
+        for _name, _src, legacy, cfs in migs:
+            print(f'  re-cfs    {df.display_path(legacy)}')
+            print(f'              to    {df.display_path(cfs)}   (managed .cfs layout + manifest)')
     for rc, tgt in to_fix:
         print(f'  re-point  {df.display_path(tgt)}')
         print(f'              from  {df.display_path(Path(os.path.realpath(tgt)))}   (repo)')
@@ -2378,6 +2391,12 @@ def cmd_dotfiles_migrate(ctx, args):
             n_moved += 1
     for f in dead:
         f.unlink()
+    n_recfs = 0
+    for rc, _migs in recfs:
+        n_recfs += len(df.migrate_to_cfs(rc))
+    if n_recfs:
+        print(f'\nconfigsys: relocated {n_recfs} config path(s) into the .cfs layout '
+              f'(commit your plugin to keep it).')
     if to_fix:
         print(f'\nconfigsys: re-pointed {len(to_fix)} link(s) at the local store.')
     if n_moved:

@@ -613,6 +613,30 @@ def test_capture_respects_a_preexisting_manifest_exclude(tmp_path):
     assert not (store / 'big.log').exists() and not (store / 'cache').exists()
 
 
+def test_migrate_to_cfs_relocates_legacy_bare_config(tmp_path):
+    # a config captured BEFORE the .cfs layout lives at the bare <root>/<src> path with a link to it;
+    # migrate_to_cfs moves it into <comp>.cfs/, writes the manifest, and re-points the link.
+    p = paths_for(tmp_path)
+    (p.user_dotfiles_dir / 'neovim').mkdir(parents=True)          # legacy bare content
+    (p.user_dotfiles_dir / 'neovim' / 'init.lua').write_text('-- cfg')
+    (p.home / '.config').mkdir(parents=True, exist_ok=True)
+    link = p.home / '.config' / 'nvim'
+    link.symlink_to(p.user_dotfiles_dir / 'neovim')              # pre-.cfs link to the bare path
+    df = DotFiles(Runner(pretend=False), paths=p)
+    rc = df_unit()                                               # comp=neovim, src=neovim -> ~/.config/nvim
+
+    assert df.cfs_migrations(rc)                                 # detected as legacy-bare
+    moved = df.migrate_to_cfs(rc)
+    assert len(moved) == 1
+    cfs = p.user_dotfiles_dir / 'neovim.cfs' / 'neovim'
+    assert (cfs / 'init.lua').read_text() == '-- cfg'           # content relocated into .cfs
+    assert not (p.user_dotfiles_dir / 'neovim').exists()        # bare path gone
+    assert (p.user_dotfiles_dir / 'neovim.cfs' / 'manifest.hu').exists()
+    assert os.path.realpath(link) == os.path.realpath(cfs)     # link re-pointed at the .cfs content
+    assert df.get_version(rc) == 'linked'
+    assert not df.cfs_migrations(rc)                            # idempotent — nothing left to migrate
+
+
 def test_capture_then_install_links_from_cfs(tmp_path):
     p = paths_for(tmp_path)
     cfg = p.home / '.config' / 'nvim'
