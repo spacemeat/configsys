@@ -21,6 +21,12 @@ from ..runner import Result
 # module is importable (works the same whether pipx came from apt or pip).
 _PIPX = 'python3 -m pipx'
 
+# pipx prefers a `uv` backend to build its venvs when uv is on PATH, but a uv older than pipx needs
+# makes it ABORT. `_UV_MIN` is that floor for the current pipx line — below it we pick pipx's
+# always-present pip backend UP FRONT (same pipx method + venv, just a different internal installer),
+# with a note, rather than letting pipx discover the mismatch by failing. Bump if pipx raises it.
+_UV_MIN = '0.9.17'
+
 
 class Pipx(Driver):
     name = 'pipx'
@@ -71,32 +77,45 @@ class Pipx(Driver):
         py = rc.fields.get('python')
         return f'--python {shlex.quote(str(py))} ' if py else ''
 
-    def _run(self, tail):
-        '''Run `pipx <tail>` (streamed); if pipx aborts because its DEFAULT uv backend is unusable —
-        a resident uv too old for this pipx (its `--backend pip` fallback is what fixes the whole
-        pipx cluster failing at once) — transparently retry with `--backend pip` inserted after the
-        subcommand, so the install still succeeds. pipx prints the literal hint "run with `--backend
-        pip`" only on that abort, so it's a precise, pipx-version-agnostic trigger.'''
-        res = self.runner.run(f'{_PIPX} {tail}', capture=False)
-        if res.ok or '--backend pip' not in res.output:
-            return res
-        sub, _, rest = tail.partition(' ')
-        return self.runner.run(f'{_PIPX} {sub} --backend pip {rest}', capture=False)
+    def _backend(self):
+        '''pipx's venv backend, chosen UP FRONT and cached per driver instance: `--backend pip ` (with
+        a one-line note) when a uv is on PATH but older than `_UV_MIN`; otherwise `''` (pipx's default
+        — uv when it's present and new enough, pip when uv is absent). Read-only; same pipx method +
+        venv either way. Cached so a batch probes uv (and notes) once, not per component.'''
+        cached = getattr(self, '_backend_flag', None)
+        if cached is not None:
+            return cached
+        from ..versionsweep import _pv, meets
+        flag = ''
+        r = self.runner.run('uv --version')                    # captured probe; fails if uv absent
+        if r.ok and r.stdout:
+            parts = r.stdout.split()
+            ver = parts[1] if len(parts) > 1 else ''
+            if _pv(ver) is not None and not meets(ver, f'>={_UV_MIN}'):
+                self.runner.echo(f'pipx: using its pip backend (installed uv {ver} < {_UV_MIN} '
+                                 f'needed for pipx’s uv backend)')
+                flag = '--backend pip '
+        self._backend_flag = flag
+        return flag
 
     def install(self, rc):
-        return self._run(f'install {self._py_flag(rc)}{shlex.quote(self._dist(rc))}')
+        return self.runner.run(
+            f'{_PIPX} install {self._backend()}{self._py_flag(rc)}{shlex.quote(self._dist(rc))}',
+            capture=False)
 
     def uninstall(self, rc):
         return self.runner.run(f'{_PIPX} uninstall {shlex.quote(self._dist(rc))}',
                                capture=False)
 
     def upgrade(self, rc):
-        return self._run(f'upgrade {shlex.quote(self._dist(rc))}')
+        return self.runner.run(f'{_PIPX} upgrade {shlex.quote(self._dist(rc))}', capture=False)
 
     def set_version(self, rc, version):
         spec = f'{self._dist(rc)}=={version}'
         # --force overwrites an existing venv (e.g. a downgrade, or a prior pip install)
-        return self._run(f'install --force {self._py_flag(rc)}{shlex.quote(spec)}')
+        return self.runner.run(
+            f'{_PIPX} install {self._backend()}--force {self._py_flag(rc)}{shlex.quote(spec)}',
+            capture=False)
 
     def lock(self, rc):
         return Result('(pipx lock recorded in ledger)', 0)

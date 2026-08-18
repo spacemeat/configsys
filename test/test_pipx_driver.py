@@ -28,6 +28,9 @@ class FakeRunner:
                 return Result(full, code, stdout=out)
         return Result(full, 0, stdout='')
 
+    def echo(self, msg):
+        pass                       # the driver's backend note; a no-op for the stub
+
 
 def _pipx_list(name='termapod', version='0.1.3'):
     return json.dumps({'venvs': {name: {'metadata': {
@@ -41,11 +44,14 @@ def test_registered_and_unprivileged():
 
 
 def test_install_uninstall_upgrade_commands_are_user_space():
+    # install probes uv up front to choose pipx's backend; pretend uv-probe returns nothing (no uv)
+    # so the default backend is used (no --backend flag). uninstall/upgrade don't probe.
     r = Runner(pretend=True)
     Pipx(r).install(dist())
     Pipx(r).uninstall(dist())
     Pipx(r).upgrade(dist())
     assert r.calls == [
+        'uv --version',
         'python3 -m pipx install termapod',
         'python3 -m pipx uninstall termapod',
         'python3 -m pipx upgrade termapod',
@@ -53,33 +59,42 @@ def test_install_uninstall_upgrade_commands_are_user_space():
     assert all('sudo' not in c for c in r.calls)   # user-space, no root
 
 
-def test_install_retries_with_pip_backend_when_uv_too_old():
-    # pipx aborts when its default uv backend is too old (its message names `--backend pip`); the
-    # driver transparently retries with that backend so the install still succeeds — no manual uv fix.
-    hint = ('pipx needs uv>=0.9.17, but /home/x/.local/bin/uv reports 0.8.3. '
-            'Upgrade uv, or run with `--backend pip` to bypass.')
-    r = FakeRunner(responses=[('--backend pip', 0, 'installed termapod'),   # the retry succeeds
-                              ('install termapod', 1, hint)])               # first try fails w/ the hint
+def test_install_uses_pip_backend_when_resident_uv_too_old():
+    # UP-FRONT probe: a uv older than pipx needs -> pipx builds the venv with its pip backend instead
+    # (chosen deliberately + noted, not after a failed attempt). Same pipx method, same venv.
+    r = FakeRunner(responses=[('uv --version', 0, 'uv 0.8.3')])
     res = Pipx(r).install(dist())
     assert res.ok
-    assert r.calls == [
-        'python3 -m pipx install termapod',
-        'python3 -m pipx install --backend pip termapod',
-    ]
+    assert r.calls == ['uv --version', 'python3 -m pipx install --backend pip termapod']
 
 
-def test_install_does_not_retry_on_unrelated_failure():
-    # a failure that ISN'T the uv-backend abort (no `--backend pip` hint) is NOT retried.
-    r = FakeRunner(responses=[('install termapod', 1, 'network error: could not reach pypi')])
-    res = Pipx(r).install(dist())
-    assert not res.ok
-    assert r.calls == ['python3 -m pipx install termapod']   # one call, no retry
+def test_install_keeps_default_backend_when_uv_new_enough():
+    r = FakeRunner(responses=[('uv --version', 0, 'uv 0.9.20')])   # >= _UV_MIN
+    Pipx(r).install(dist())
+    assert r.calls == ['uv --version', 'python3 -m pipx install termapod']   # no --backend flag
+
+
+def test_install_keeps_default_backend_when_uv_absent():
+    r = FakeRunner(responses=[('uv --version', 1, '')])            # uv not on PATH -> probe fails
+    Pipx(r).install(dist())
+    assert r.calls == ['uv --version', 'python3 -m pipx install termapod']
+
+
+def test_backend_probe_is_cached_across_ops():
+    # one driver instance probes uv ONCE (a batch shouldn't re-probe / re-note per component).
+    r = FakeRunner(responses=[('uv --version', 0, 'uv 0.8.3')])
+    p = Pipx(r)
+    p.install(dist(comp='a', name='a'))
+    p.install(dist(comp='b', name='b'))
+    assert r.calls.count('uv --version') == 1
+    assert r.calls[1:] == ['python3 -m pipx install --backend pip a',
+                           'python3 -m pipx install --backend pip b']
 
 
 def test_set_version_forces_reinstall():
     r = Runner(pretend=True)
     Pipx(r).set_version(dist(), '0.1.2')
-    assert r.calls == ['python3 -m pipx install --force termapod==0.1.2']
+    assert r.calls == ['uv --version', 'python3 -m pipx install --force termapod==0.1.2']
 
 
 def test_get_version_parses_pipx_list_json():
@@ -110,4 +125,4 @@ def test_location_is_local_bin():
 def test_interpreter_pin_passes_python_flag_to_pipx():
     r = Runner(pretend=True)
     Pipx(r).install(dist(name='black', python='python3.12'))
-    assert r.calls == ['python3 -m pipx install --python python3.12 black']
+    assert r.calls == ['uv --version', 'python3 -m pipx install --python python3.12 black']
