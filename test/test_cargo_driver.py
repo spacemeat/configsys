@@ -29,15 +29,19 @@ def test_registered_and_unprivileged():
     assert fam.privileged is False
 
 
+# the cargo driver prepends a rustup toolchain (if installed) to PATH for its cargo invocations
+_P = 'PATH="$HOME/.cargo/bin:$PATH" '
+
+
 def test_install_uninstall_upgrade_commands():
     r = Runner(pretend=True)
     Cargo(r).install(crate())
     Cargo(r).uninstall(crate())
     Cargo(r).upgrade(crate())
     assert r.calls == [
-        'cargo install tree-sitter-cli',
-        'cargo uninstall tree-sitter-cli',
-        'cargo install --force tree-sitter-cli',
+        _P + 'cargo install tree-sitter-cli',
+        _P + 'cargo uninstall tree-sitter-cli',
+        _P + 'cargo install --force tree-sitter-cli',
     ]
     assert all('sudo' not in c for c in r.calls)   # user-space
 
@@ -45,7 +49,7 @@ def test_install_uninstall_upgrade_commands():
 def test_set_version_pins():
     r = Runner(pretend=True)
     Cargo(r).set_version(crate(), '0.20.8')
-    assert r.calls == ['cargo install --force --version 0.20.8 tree-sitter-cli']
+    assert r.calls == [_P + 'cargo install --force --version 0.20.8 tree-sitter-cli']
 
 
 def test_get_version_parses_list():
