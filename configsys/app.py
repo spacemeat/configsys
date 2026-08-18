@@ -2278,8 +2278,13 @@ def cmd_dotfiles_migrate(ctx, args):
                dangling by the bash.d->shell/bash repo move) is removed.
     Previews the exact before->after and asks before touching anything. A ~/.bash.d link that a
     STILL-ACTIVE component targets (e.g. a primary-plugin snippet not yet reshaped) and orphan
-    plain files are left as-is and never deleted.'''
+    plain files are left as-is and never deleted. `args.only` (a set of component names) scopes the
+    per-component transitions to just those (the TUI's lowercase `m`); the whole-machine ~/.bash.d
+    sweep only runs unscoped (uppercase `M`).'''
     df, units = _active_dotfiles(ctx)
+    only = getattr(args, 'only', None)                   # {comp names} to scope to, or None for all
+    if only is not None:
+        units = [u for u in units if u.comp in only]
     p = ctx.paths
     repo = os.path.realpath(p.dotfiles_dir)
     roots = [os.path.realpath(d) for d in
@@ -2317,7 +2322,9 @@ def cmd_dotfiles_migrate(ctx, args):
     moves = [(rc, t, o) for (rc, t, o) in moves if o.name not in active_bashd]
     moving = {o.name for _rc, _t, o in moves}
     orphans = []                                         # plain files in ~/.bash.d (yours to review)
-    if loader.is_dir():
+    # the machine-wide ~/.bash.d sweep (orphans + dead links not tied to a resolved unit) is a
+    # whole-machine concern — skip it when scoped to specific components.
+    if only is None and loader.is_dir():
         for f in sorted(loader.iterdir()):
             if f.name in active_bashd or f.name in moving:
                 continue

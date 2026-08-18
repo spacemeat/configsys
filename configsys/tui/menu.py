@@ -2209,7 +2209,7 @@ _SAMPLES = {
         ],
         'foot': [('git — capture to link ~/.gitconfig', 'info_dim'),
                  ('4 targets · 1 to capture', 'info_dim'),
-                 (' ↵ link · x unlink · c capture · m migrate · h/l scroll ', 'status_line')],
+                 (' ↵ link · c capture · m migrate · C/L/M = all ', 'status_line')],
     },
     'config': {
         'header': f'{"SETTING":20}VALUE',
@@ -2725,7 +2725,7 @@ def _draw_dotfiles(stdscr, pal, ds, ctx, note, screen):
         status += f'   + {n_adopt} with on-disk config to capture (c)'
     if note:
         status += f'    {note}'
-    navf = ' j/k rows · h/l scroll · ↵ link · x unlink · c capture · m migrate · 1-6 · q '
+    navf = ' j/k · h/l scroll · ↵ link · c capture · m migrate · x unlink · C/L/M = all · q '
     _put(stdscr, h - 2, 0, _fit(status, w), pal.style('status_line', h - 2, 0, h, w))
     _put(stdscr, h - 1, 0, _fit(navf.ljust(w), w), pal.style('footer', h - 1, 0, h, w))
     stdscr.refresh()
@@ -3054,22 +3054,36 @@ def run(ctx):
                             ds.df.uninstall(row[0])
                         ds.reload()
                         note = f'unlinked {row[0].comp}'
-                    elif ch == ord('c') and row:            # capture: adopt on-system content
+                    elif ch == ord('c') and row:            # capture: adopt this row's on-system content
                         done = ds.df.capture(row[0], force=False)
                         ds.reload()
                         note = (f'captured {len(done)} target(s) for {row[0].comp}'
                                 if done else f'nothing to capture for {row[0].comp}')
-                    elif ch == ord('m'):                    # migrate: re-point repo-links, move glue
-                        import types as _types                # to conf.d, clear dead links (with confirm)
-                        from .. import app as _app
+                    elif ch == ord('C'):                    # capture ALL with on-disk config to adopt
+                        total = sum(len(ds.df.capture(rc, force=False)) for rc in ds.units)
+                        ds.reload()
+                        note = (f'captured {total} target(s) across all dotfiles'
+                                if total else 'nothing on-disk to capture')
+                    elif ch == ord('L'):                    # link ALL captured-but-unlinked (adopted)
+                        pend = {r[0].key: r[0] for r in ds.rows if r[3] == 'adopted'}
                         with suspended(stdscr):
-                            _app.cmd_dotfiles_migrate(ctx, _types.SimpleNamespace(yes=False))
+                            for rc in pend.values():
+                                ds.df.install(rc)
+                        ds.reload()
+                        note = (f'linked {len(pend)} captured dotfile(s)'
+                                if pend else 'nothing captured-but-unlinked')
+                    elif ch in (ord('m'), ord('M')):        # migrate: re-point repo-links, move glue to
+                        import types as _types                # conf.d, clear dead links (preview+confirm).
+                        from .. import app as _app            # lowercase = this row's component; upper = all
+                        only = ({row[0].comp} if ch == ord('m') and row else None)
+                        with suspended(stdscr):
+                            _app.cmd_dotfiles_migrate(ctx, _types.SimpleNamespace(yes=False, only=only))
                             try:
                                 input('\n(press Enter to return) ')
                             except EOFError:
                                 pass
                         ds.reload()
-                        note = 'migrate: done'
+                        note = f'migrate {row[0].comp if only else "(all)"}: done'
                 except Exception as e:  # noqa: BLE001 — surface, don't crash
                     note = f'error: {e}'
                 continue

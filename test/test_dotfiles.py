@@ -142,6 +142,32 @@ def test_dotfiles_migrate_removes_dangling_config_repo_link(tmp_path, monkeypatc
     assert not tgt.is_symlink()                                           # dead config link removed
 
 
+def test_dotfiles_migrate_only_scopes_to_named_components(tmp_path, monkeypatch):
+    # `only={comp}` migrates just that component (TUI lowercase m); the other's dead link is left.
+    import types
+    from configsys import app
+    p = paths_for(tmp_path)
+    p.dotfiles_dir.mkdir(parents=True)
+    (p.home / '.config').mkdir(parents=True)
+    links = {}
+    units = []
+    for comp, dst in (('htop-dotfiles', 'htop'), ('mc-dotfiles', 'mc')):
+        t = p.home / '.config' / dst
+        t.symlink_to(p.dotfiles_dir / dst)                                # dangling repo-link
+        links[comp] = t
+        units.append(df_unit(specs={'config': {'src': dst, 'dst': f'$XDG_CONFIG_HOME/{dst}'}},
+                             comp=comp))
+    df = DotFiles(Runner(pretend=False), paths=p)
+    monkeypatch.setattr(app, '_active_dotfiles', lambda c: (df, units))
+    ctx = types.SimpleNamespace(paths=p, os_info=types.SimpleNamespace(block='x'))
+
+    app.cmd_dotfiles_migrate(ctx, types.SimpleNamespace(yes=True, only={'htop-dotfiles'}))
+    assert not links['htop-dotfiles'].is_symlink()                        # scoped one migrated
+    assert links['mc-dotfiles'].is_symlink()                              # the other untouched
+    app.cmd_dotfiles_migrate(ctx, types.SimpleNamespace(yes=True, only=None))
+    assert not links['mc-dotfiles'].is_symlink()                          # migrate-all gets it too
+
+
 # -- content root follows the layer that defined the component -------------
 
 def test_src_anchors_at_the_defining_layers_dotfiles_dir(tmp_path):
