@@ -39,6 +39,20 @@ def test_url_regex_extract():
     assert versions.discover({'url': 'https://x/latest.txt'}, fetch=f) == '1.4.350.1'
 
 
+def test_hackage_preferred_newest_first():
+    # Hackage's preferred.json lists non-deprecated versions newest-first in `normal-version`
+    url = 'https://hackage.haskell.org/package/hlint/preferred.json'
+    f = fetcher({url: json.dumps({'deprecated-version': ['2.1.19'],
+                                  'normal-version': ['3.10', '3.8', '3.6.1']})})
+    assert versions.discover({'hackage': 'hlint'}, fetch=f) == '3.10'
+
+
+def test_hackage_empty_is_none():
+    url = 'https://hackage.haskell.org/package/nope/preferred.json'
+    f = fetcher({url: json.dumps({'normal-version': []})})
+    assert versions.discover({'hackage': 'nope'}, fetch=f) is None
+
+
 RELEASE_JSON = json.dumps({
     'tag_name': 'v0.12.4',
     'assets': [

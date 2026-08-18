@@ -3584,7 +3584,10 @@
    "cabal\\hlint": {
     "driver": "cabal",
     "fields": {
-     "name": "hlint"
+     "name": "hlint",
+     "version": {
+      "hackage": "hlint"
+     }
     },
     "name": "hlint"
    },
@@ -14920,7 +14923,10 @@
    "cabal\\hlint": {
     "driver": "cabal",
     "fields": {
-     "name": "hlint"
+     "name": "hlint",
+     "version": {
+      "hackage": "hlint"
+     }
     },
     "name": "hlint"
    },
@@ -25926,7 +25932,10 @@
    "cabal\\hlint": {
     "driver": "cabal",
     "fields": {
-     "name": "hlint"
+     "name": "hlint",
+     "version": {
+      "hackage": "hlint"
+     }
     },
     "name": "hlint"
    },
@@ -36748,7 +36757,10 @@
    "cabal\\hlint": {
     "driver": "cabal",
     "fields": {
-     "name": "hlint"
+     "name": "hlint",
+     "version": {
+      "hackage": "hlint"
+     }
     },
     "name": "hlint"
    },
@@ -47169,7 +47181,10 @@
    "cabal\\hlint": {
     "driver": "cabal",
     "fields": {
-     "name": "hlint"
+     "name": "hlint",
+     "version": {
+      "hackage": "hlint"
+     }
     },
     "name": "hlint"
    },
@@ -57632,7 +57647,10 @@
    "cabal\\hlint": {
     "driver": "cabal",
     "fields": {
-     "name": "hlint"
+     "name": "hlint",
+     "version": {
+      "hackage": "hlint"
+     }
     },
     "name": "hlint"
    },
@@ -67189,7 +67207,10 @@
    "cabal\\hlint": {
     "driver": "cabal",
     "fields": {
-     "name": "hlint"
+     "name": "hlint",
+     "version": {
+      "hackage": "hlint"
+     }
     },
     "name": "hlint"
    },
@@ -76811,7 +76832,10 @@
    "cabal\\hlint": {
     "driver": "cabal",
     "fields": {
-     "name": "hlint"
+     "name": "hlint",
+     "version": {
+      "hackage": "hlint"
+     }
     },
     "name": "hlint"
    },
@@ -87682,7 +87706,10 @@
    "cabal\\hlint": {
     "driver": "cabal",
     "fields": {
-     "name": "hlint"
+     "name": "hlint",
+     "version": {
+      "hackage": "hlint"
+     }
     },
     "name": "hlint"
    },
@@ -98822,7 +98849,10 @@
    "cabal\\hlint": {
     "driver": "cabal",
     "fields": {
-     "name": "hlint"
+     "name": "hlint",
+     "version": {
+      "hackage": "hlint"
+     }
     },
     "name": "hlint"
    },
@@ -109811,7 +109841,10 @@
    "cabal\\hlint": {
     "driver": "cabal",
     "fields": {
-     "name": "hlint"
+     "name": "hlint",
+     "version": {
+      "hackage": "hlint"
+     }
     },
     "name": "hlint"
    },

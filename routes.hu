@@ -830,6 +830,11 @@
                   provides: { haskell: ">=9.4" }
                   install-cmd:   'export BOOTSTRAP_HASKELL_NONINTERACTIVE=1 BOOTSTRAP_HASKELL_INSTALL_NO_STACK=1 ; curl --proto "=https" --tlsv1.2 -fsSL https://get-ghcup.haskell.org | sh'
                   version-cmd:   '"$HOME/.ghcup/bin/ghc" --numeric-version 2>/dev/null'
+                  // latest = the GHC ghcup RECOMMENDS (what it installs by default — deliberately
+                  // behind the bleeding-edge release for ecosystem compatibility). Needs ghcup on
+                  // disk, so it's blank until this method is installed (there's no clean offline
+                  // source for ghcup's recommended version).
+                  latest-cmd:    '"$HOME/.ghcup/bin/ghcup" list -t ghc -r 2>/dev/null | grep -m1 recommended | cut -d" " -f2'
                   uninstall-cmd: '"$HOME/.ghcup/bin/ghcup" nuke >/dev/null 2>&1 || rm -rf "$HOME/.ghcup"'
                   location:      '~/.ghcup' } ] }
         // Erlang/OTP + Elixir (elixir pulls erlang, but erlang is nameable on its own).
@@ -877,7 +882,7 @@
         // too old. The `haskell >= 9.4` floor advises pinning haskell -> ghcup (auto under
         // `auto-tighten`), and the cabal driver then builds with the ghcup toolchain.
         hlint: { description: "HLint — suggests improvements to Haskell code." requires: [ { haskell: ">=9.4" } ]
-                 install: [ { via: cabal  name: hlint } ] }
+                 install: [ { via: cabal  name: hlint  version: { hackage: hlint } } ] }
 
         // Zig — native on Arch/Homebrew; elsewhere the upstream tarball. zig's Linux build is
         // statically linked (runs on glibc AND musl), so no glibc requirement. Its prebuilt
