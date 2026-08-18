@@ -298,6 +298,27 @@ def test_fish_loader_ensures_confd_and_needs_no_rc_edit(tmp_path):
     assert df.location(rc) == '~/.config/fish/conf.d'
 
 
+def test_glue_materializes_to_store_confd_mirror_executable(tmp_path):
+    # a glue snippet deploys to <store>/<shell>/conf.d/<name>.<ext> — the store mirrors the deployed
+    # ~/.config/<shell>/conf.d/ layout — made a+x so the loader (which sources only executable files)
+    # picks it up; the link points at the store copy, never the repo.
+    p = paths_for(tmp_path)
+    (p.dotfiles_dir / 'shell' / 'bash').mkdir(parents=True)
+    (p.dotfiles_dir / 'shell' / 'bash' / 'btop.sh').write_text('# btop glue\n')   # repo-authored, -x
+    p.home.mkdir(parents=True)
+    df = DotFiles(Runner(pretend=False), paths=p)
+    rc = ResolvedComponent(key='dotfiles\\btop-dotfiles', driver='dotfiles', comp='btop-dotfiles',
+                           fields={'glue': 'btop'})
+    assert df.install(rc).ok
+    link = p.home / '.config' / 'bash' / 'conf.d' / 'btop.sh'
+    store = p.user_dotfiles_dir / 'bash' / 'conf.d' / 'btop.sh'
+    assert link.is_symlink() and os.path.realpath(link) == os.path.realpath(store)
+    assert store.read_text() == '# btop glue\n'
+    assert os.access(store, os.X_OK)                                 # executable
+    assert os.path.realpath(link) != os.path.realpath(p.dotfiles_dir / 'shell' / 'bash' / 'btop.sh')
+    assert df.get_version(rc) == 'linked'
+
+
 def test_dst_env_expansion_defaults_xdg(tmp_path):
     p = paths_for(tmp_path)
     df = DotFiles(Runner(pretend=True), paths=p)

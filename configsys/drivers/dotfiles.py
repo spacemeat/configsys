@@ -122,9 +122,10 @@ class DotFiles(Driver):
             if shell not in installed:                     # activate only where the shell is present
                 continue
             ext = _SHELL_EXT[shell]
-            srcs = [f'shell/{shell}/{glue}.{ext}']
+            srcs = [f'{shell}/conf.d/{glue}.{ext}',       # store deployed-mirror (materialized copies)
+                    f'shell/{shell}/{glue}.{ext}']        # repo/plugin authoring layout
             if shell == 'bash':
-                srcs.append(f'bash.d/{glue}.sh')          # pre-move layout (unmigrated plugin/store)
+                srcs.append(f'bash.d/{glue}.sh')          # legacy plugin/store layout
             chosen = None
             for root, _tier in self._content_roots(rc):   # store, primary plugin, then repo template
                 for src in srcs:
@@ -370,7 +371,12 @@ class DotFiles(Driver):
         '''Copy a shipped template into the machine-local store (idempotent — only when the store
         lacks it), so the subsequent link points at a user-owned file instead of the repo. Returns
         the store path (or srcpath if there's no store / nothing to copy).'''
-        dest = self._store_path(src)
+        return self._materialize_to(srcpath, self._store_path(src))
+
+    def _materialize_to(self, srcpath, dest, executable=False):
+        '''Copy `srcpath` to `dest` (idempotent — only when `dest` is absent); with `executable`, set
+        a+x on the result (glue snippets: the loader sources only executable files). Returns dest
+        (or srcpath if there's nothing to copy / no dest).'''
         if dest is None or not srcpath.exists():
             return srcpath
         if not dest.exists():
@@ -379,7 +385,22 @@ class DotFiles(Driver):
                 shutil.copytree(srcpath, dest)
             else:
                 shutil.copy2(srcpath, dest)
+        if executable and dest.is_file():
+            os.chmod(dest, os.stat(dest).st_mode | 0o111)
         return dest
+
+    def _glue_store(self, dst):
+        '''The machine-local store MIRROR of a glue dst: ~/.config/<shell>/conf.d/<x> maps to
+        <store>/<shell>/conf.d/<x>, so the store lines up with the deployed layout (and links are
+        uniform, never the repo — #4). None if there's no store or the dst isn't under ~/.config.'''
+        store = getattr(self.paths, 'user_dotfiles_dir', None) if self.paths is not None else None
+        if store is None:
+            return None
+        try:
+            rel = self._expand(dst).relative_to(self._home() / '.config')
+        except ValueError:
+            return None
+        return Path(store) / rel
 
     def _expand(self, dst):
         '''Expand env vars + ~ in a destination against configsys HOME.'''
@@ -702,12 +723,15 @@ class DotFiles(Driver):
         pairs, blocked = [], []
         for _name, src, dst, absorb, kind in specs:
             srcpath, tier, _root = self._resolve(src, rc, kind)
-            # A shipped TEMPLATE links to its machine-local STORE copy, NOT the repo (requirement #4).
-            # Compute that target now (pure); the copy happens below, only for specs we actually link.
-            link_src = self._link_source(srcpath, tier, src)
+            # GLUE deploys to the machine-local store MIRROR (<store>/<shell>/conf.d/), executable, so
+            # the loader sources it and the store lines up with the deployed dir. A config TEMPLATE
+            # links to its store copy. Either way a link never references the repo (#4).
+            link_src = self._glue_store(dst) if kind == 'glue' else self._link_source(srcpath, tier, src)
+            if link_src is None:
+                link_src = srcpath
             tgt = self._expand(dst)
             ab = self._expand(absorb) if absorb else None
-            pairs.append((srcpath, tier, src, link_src, tgt, ab))
+            pairs.append((srcpath, tier, src, link_src, tgt, ab, kind))
             # REFUSE to replace a real on-system file/dir with a TEMPLATE the user hasn't adopted.
             # tier 'user' = you captured it -> linking to your own content (auto-backing up whatever
             # sits at dst) is the sanctioned path; tier None = unpopulated -> managed-when-empty, the
@@ -730,13 +754,17 @@ class DotFiles(Driver):
                    f'- or replace them now, backing up the original to *{BACKUP_SUFFIX}:  '
                    f'install --force')
             return Result('dotfiles: refused (un-adopted target)', 1, stderr=msg, advisory=True)
-        # Materialize shipped templates into the machine-local store NOW (only the specs we'll link),
-        # so the link below points at a user-owned copy and never into the repo.
-        for _srcpath, tier, src, _link_src, _tgt, _ab in pairs:
-            if tier == 'template':
+        # Deploy content into the machine-local store NOW (only the specs we'll link), so the link
+        # below points at a user-owned copy and never into the repo. Glue goes to the store's
+        # <shell>/conf.d/ mirror and is made executable (idempotently, so an already-materialized
+        # copy still gets its +x bit); a config template lands at its store path.
+        for _srcpath, tier, src, link_src, _tgt, _ab, kind in pairs:
+            if kind == 'glue':
+                self._materialize_to(_srcpath, link_src, executable=True)
+            elif tier == 'template':
                 self._materialize(_srcpath, src)
         lines = ['set -e']
-        for _srcpath, _tier, src, link_src, tgt, absorb in pairs:
+        for _srcpath, _tier, src, link_src, tgt, absorb, _kind in pairs:
             s, t = shlex.quote(str(link_src)), shlex.quote(str(tgt))
             # UNPOPULATED is not an error: a component may declare src/dst with no content shipped
             # (a personal dotfile awaiting capture). If the source is absent, skip that spec with a
