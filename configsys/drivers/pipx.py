@@ -71,23 +71,32 @@ class Pipx(Driver):
         py = rc.fields.get('python')
         return f'--python {shlex.quote(str(py))} ' if py else ''
 
+    def _run(self, tail):
+        '''Run `pipx <tail>` (streamed); if pipx aborts because its DEFAULT uv backend is unusable —
+        a resident uv too old for this pipx (its `--backend pip` fallback is what fixes the whole
+        pipx cluster failing at once) — transparently retry with `--backend pip` inserted after the
+        subcommand, so the install still succeeds. pipx prints the literal hint "run with `--backend
+        pip`" only on that abort, so it's a precise, pipx-version-agnostic trigger.'''
+        res = self.runner.run(f'{_PIPX} {tail}', capture=False)
+        if res.ok or '--backend pip' not in res.output:
+            return res
+        sub, _, rest = tail.partition(' ')
+        return self.runner.run(f'{_PIPX} {sub} --backend pip {rest}', capture=False)
+
     def install(self, rc):
-        return self.runner.run(f'{_PIPX} install {self._py_flag(rc)}{shlex.quote(self._dist(rc))}',
-                               capture=False)
+        return self._run(f'install {self._py_flag(rc)}{shlex.quote(self._dist(rc))}')
 
     def uninstall(self, rc):
         return self.runner.run(f'{_PIPX} uninstall {shlex.quote(self._dist(rc))}',
                                capture=False)
 
     def upgrade(self, rc):
-        return self.runner.run(f'{_PIPX} upgrade {shlex.quote(self._dist(rc))}',
-                               capture=False)
+        return self._run(f'upgrade {shlex.quote(self._dist(rc))}')
 
     def set_version(self, rc, version):
         spec = f'{self._dist(rc)}=={version}'
         # --force overwrites an existing venv (e.g. a downgrade, or a prior pip install)
-        return self.runner.run(f'{_PIPX} install --force {self._py_flag(rc)}{shlex.quote(spec)}',
-                               capture=False)
+        return self._run(f'install --force {self._py_flag(rc)}{shlex.quote(spec)}')
 
     def lock(self, rc):
         return Result('(pipx lock recorded in ledger)', 0)

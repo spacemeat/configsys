@@ -53,6 +53,29 @@ def test_install_uninstall_upgrade_commands_are_user_space():
     assert all('sudo' not in c for c in r.calls)   # user-space, no root
 
 
+def test_install_retries_with_pip_backend_when_uv_too_old():
+    # pipx aborts when its default uv backend is too old (its message names `--backend pip`); the
+    # driver transparently retries with that backend so the install still succeeds — no manual uv fix.
+    hint = ('pipx needs uv>=0.9.17, but /home/x/.local/bin/uv reports 0.8.3. '
+            'Upgrade uv, or run with `--backend pip` to bypass.')
+    r = FakeRunner(responses=[('--backend pip', 0, 'installed termapod'),   # the retry succeeds
+                              ('install termapod', 1, hint)])               # first try fails w/ the hint
+    res = Pipx(r).install(dist())
+    assert res.ok
+    assert r.calls == [
+        'python3 -m pipx install termapod',
+        'python3 -m pipx install --backend pip termapod',
+    ]
+
+
+def test_install_does_not_retry_on_unrelated_failure():
+    # a failure that ISN'T the uv-backend abort (no `--backend pip` hint) is NOT retried.
+    r = FakeRunner(responses=[('install termapod', 1, 'network error: could not reach pypi')])
+    res = Pipx(r).install(dist())
+    assert not res.ok
+    assert r.calls == ['python3 -m pipx install termapod']   # one call, no retry
+
+
 def test_set_version_forces_reinstall():
     r = Runner(pretend=True)
     Pipx(r).set_version(dist(), '0.1.2')
