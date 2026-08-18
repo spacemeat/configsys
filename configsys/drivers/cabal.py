@@ -51,7 +51,16 @@ class Cabal(Driver):
 
     # -- mutate -----------------------------------------------------------
 
+    def _ensure_index(self):
+        '''cabal's dependency solver needs a package index; a fresh cabal has none, so `cabal install`
+        fails with "goals I've had most trouble fulfilling: <pkg>". Populate it once (idempotent —
+        skipped when an index is already present, so a batch doesn't re-fetch per package).'''
+        r = self.runner.run('ls ~/.cabal/packages/*/*.tar* ~/.cache/cabal/packages/*/*.tar* 2>/dev/null')
+        if not (r.ok and r.stdout.strip()):
+            self.runner.run('cabal update', capture=False)
+
     def install(self, rc):
+        self._ensure_index()
         return self.runner.run(
             f'cabal install {shlex.quote(self._pkg(rc))} --overwrite-policy=always',
             capture=False)
@@ -64,6 +73,7 @@ class Cabal(Driver):
         return self.install(rc)
 
     def set_version(self, rc, version):
+        self._ensure_index()
         spec = f'{self._pkg(rc)}-{version}'
         return self.runner.run(
             f'cabal install {shlex.quote(spec)} --overwrite-policy=always', capture=False)

@@ -95,11 +95,27 @@ def test_luarocks_location_follows_scope():
 # -- cabal (fixed-user) ---------------------------------------------------
 
 def test_cabal_install_uses_overwrite_policy():
-    r = Runner(pretend=True)
+    r = Runner(pretend=True)   # pretend index-probe returns empty -> update runs before each install
     Cabal(r).install(rc('cabal', 'hlint'))
     Cabal(r).set_version(rc('cabal', 'hlint'), '3.5')
-    assert r.calls == ['cabal install hlint --overwrite-policy=always',
-                       'cabal install hlint-3.5 --overwrite-policy=always']
+    installs = [c for c in r.calls if c.startswith('cabal install')]
+    assert installs == ['cabal install hlint --overwrite-policy=always',
+                        'cabal install hlint-3.5 --overwrite-policy=always']
+
+
+def test_cabal_updates_index_when_missing():
+    # a fresh cabal (no package index) gets `cabal update` before install, else the solver has
+    # nothing to resolve against ("goals I've had most trouble fulfilling").
+    r = FakeRunner(responses=[('ls ~/.cabal', 0, '')])        # index probe finds nothing
+    Cabal(r).install(rc('cabal', 'hlint'))
+    assert 'cabal update' in r.calls
+    assert r.calls[-1] == 'cabal install hlint --overwrite-policy=always'
+
+
+def test_cabal_skips_update_when_index_present():
+    r = FakeRunner(responses=[('ls ~/.cabal', 0, '/home/x/.cabal/packages/hackage/01-index.tar')])
+    Cabal(r).install(rc('cabal', 'hlint'))
+    assert 'cabal update' not in r.calls                      # index already there -> no re-fetch
 
 
 def test_cabal_uninstall_removes_binary():
