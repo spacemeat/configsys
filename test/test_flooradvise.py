@@ -160,3 +160,62 @@ def test_active_floors_reads_component_and_winning_binding():
     assert flooradvise.active_floors(_src_unit(), comps['ripgrep']) == {'cargo': '>=1.96'}
     # via native -> nothing active
     assert flooradvise.active_floors(_native_unit(), comps['ripgrep']) == {}
+
+
+# -- resident floors: an INSTALLED toolchain too old for a consumer ------------
+
+def _state(comp, driver, ver, present=True):
+    import types
+    rc = ResolvedComponent(key=f'{driver}\\{comp}', driver=driver, comp=comp, via='native')
+    return types.SimpleNamespace(present=present, installed_version=ver, component=rc)
+
+
+def test_resident_advise_when_installed_toolchain_below_floor():
+    # ripgrep-via-source needs cargo >=1.96; the resident rust provides only 1.75 -> advise upgrade.
+    ctx = _Ctx(_comps())
+    states = {'apt\\rust': _state('rust', 'apt', '1.75')}
+    advs = flooradvise.resident_advise(ctx, [_src_unit()], states)
+    assert len(advs) == 1
+    t = advs[0]['text']
+    assert 'ripgrep needs cargo >=1.96' in t
+    assert 'installed rust is 1.75' in t
+    assert 'configsys upgrade rust' in t and 'auto-tighten' in t
+
+
+def test_resident_ok_when_installed_meets_floor():
+    ctx = _Ctx(_comps())
+    states = {'apt\\rust': _state('rust', 'apt', '1.97')}       # resident already meets the floor
+    assert flooradvise.resident_advise(ctx, [_src_unit()], states) == []
+
+
+def test_resident_abstains_on_unknown_or_absent_version():
+    ctx = _Ctx(_comps())
+    assert flooradvise.resident_advise(ctx, [_src_unit()], {'apt\\rust': _state('rust', 'apt', None)}) == []
+    absent = {'apt\\rust': _state('rust', 'apt', '1.75', present=False)}
+    assert flooradvise.resident_advise(ctx, [_src_unit()], absent) == []   # not present -> not resident
+
+
+def test_resident_upgrades_targets_the_too_old_provider():
+    ctx = _Ctx(_comps())
+    states = {'apt\\rust': _state('rust', 'apt', '1.75')}
+    ups = flooradvise.resident_upgrades(ctx, [_src_unit()], states)
+    assert set(ups) == {'apt\\rust'}                            # the provider unit key to upgrade
+
+
+def test_resident_upgrades_probed_probes_on_demand(monkeypatch):
+    # the install-path variant: no states loaded, so it probes the floored provider's version via its
+    # driver. Resident rust 1.75 < cargo>=1.96 -> the rust unit is scheduled for upgrade.
+    ctx = _Ctx(_comps())
+    units = {'source\\ripgrep': _src_unit(),
+             'apt\\rust': ResolvedComponent(key='apt\\rust', driver='apt', comp='rust', via='native')}
+
+    class _Drv:
+        def get_version(self, rc):
+            return '1.75'
+    monkeypatch.setattr('configsys.drivers.get_driver', lambda *a, **k: _Drv())
+    ups = flooradvise.resident_upgrades_probed(ctx, units)
+    assert set(ups) == {'apt\\rust'}
+    # bump the resident above the floor -> nothing to do
+    monkeypatch.setattr('configsys.drivers.get_driver',
+                        lambda *a, **k: type('D', (), {'get_version': lambda s, rc: '1.97'})())
+    assert flooradvise.resident_upgrades_probed(ctx, units) == {}

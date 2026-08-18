@@ -115,3 +115,89 @@ def tighten_pins(ctx, units):
         if who and provider not in pins:
             pins[provider] = who[0]
     return pins
+
+
+# -- resident floors: an INSTALLED toolchain that's too old for a consumer -----
+# The advisories above ask "can a METHOD produce a version >= the floor?". This half asks the other
+# question the method check misses: "is the toolchain that's ALREADY INSTALLED (and being reused via
+# adopt-installed) new enough?" — e.g. a resident go 1.18 for a consumer that needs go >= 1.21, or a
+# resident uv too old for pipx. It probes the resident version from the live states.
+
+def resident_unmet(ctx, units, states):
+    '''Yield (rc, cap, floor, provider_key, provider_state) for each ACTIVE floor whose RESIDENT
+    provider (present in `states`) has a KNOWN version below the floor. Abstains on an unknown/
+    unparseable version (never a false positive). `states` is {unit_key: ComponentState}.'''
+    r = ctx.routes
+    present = [(k, st) for k, st in (states or {}).items()
+               if st.present and _pv(str(st.installed_version or '')) is not None]
+    for rc in units:
+        comp = r.components.get(rc.comp)
+        if comp is None:
+            continue
+        for cap, floor in active_floors(rc, comp).items():
+            provs = set(providers_of(r.components, cap))
+            for pkey, pst in present:
+                if pst.component.comp not in provs:
+                    continue
+                if meets(str(pst.installed_version), floor):
+                    continue
+                yield rc, cap, floor, pkey, pst
+                break                                     # one provider per (unit, cap) is enough
+
+
+def resident_advise(ctx, units, states):
+    '''[{level, tag, text}] — advisory for each consumer whose resident toolchain is below its floor,
+    pointing at the exact `configsys upgrade <provider>` to run. Surfaced through ctx.diagnostics.'''
+    out, seen = [], set()
+    for rc, cap, floor, pkey, pst in resident_unmet(ctx, units, states):
+        prov = pst.component.comp
+        text = (f'{rc.comp} needs {cap} {floor}, but the installed {prov} is '
+                f'{pst.installed_version} — run `configsys upgrade {prov}` '
+                f'(or set `auto-tighten` to upgrade it automatically before installing {rc.comp})')
+        if text not in seen:
+            seen.add(text)
+            out.append({'level': 'warn', 'tag': 'floor', 'text': text})
+    return out
+
+
+def resident_upgrades(ctx, units, states):
+    '''{provider_key: provider_state} — resident providers to UPGRADE (under opt-in `auto-tighten`)
+    because a consumer being installed floors them above their installed version. The caller inserts
+    an `upgrade` op for each; dependency ordering already places a provider before its consumer.'''
+    ups = {}
+    for _rc, _cap, _floor, pkey, pst in resident_unmet(ctx, units, states):
+        ups.setdefault(pkey, pst)
+    return ups
+
+
+def resident_upgrades_probed(ctx, units):
+    '''{provider_key: provider_rc} to upgrade for the INSTALL path, where full states aren't loaded:
+    probes each FLOORED provider's installed version on demand (only the providers a floor names, so
+    it's cheap) and returns the resident ones below their floor. `units` is {unit_key: rc}.'''
+    from .drivers import get_driver
+    r = ctx.routes
+    by_comp = {}                                          # comp name -> (unit_key, rc), first wins
+    for k, rc in units.items():
+        by_comp.setdefault(rc.comp, (k, rc))
+    ups, probed = {}, {}
+    for rc in units.values():
+        comp = r.components.get(rc.comp)
+        if comp is None:
+            continue
+        for cap, floor in active_floors(rc, comp).items():
+            for prov in providers_of(r.components, cap):
+                hit = by_comp.get(prov)
+                if hit is None or hit[0] in ups:
+                    continue
+                pkey, prc = hit
+                if pkey not in probed:
+                    drv = get_driver(prc.driver, ctx.runner, ctx.paths)
+                    try:
+                        probed[pkey] = drv.get_version(prc) if drv is not None else None
+                    except Exception:                     # noqa: BLE001 — an unprobeable provider abstains
+                        probed[pkey] = None
+                iv = probed[pkey]
+                if iv is None or _pv(str(iv)) is None or meets(str(iv), floor):
+                    continue                              # absent/unknown/already-adequate -> skip
+                ups[pkey] = prc
+    return ups

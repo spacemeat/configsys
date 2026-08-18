@@ -256,7 +256,12 @@ class Context:
             # default method can't meet a version floor. A no-op unless floors are active, so it
             # adds no cost until the version-floors data exists.
             from . import flooradvise
-            for adv in flooradvise.advise(self, [st.component for st in states.values()]):
+            comps = [st.component for st in states.values()]
+            for adv in flooradvise.advise(self, comps):
+                add(adv['level'], adv['tag'], adv['text'])
+            # resident floors: a toolchain that's INSTALLED but too old for a consumer (the gap the
+            # method-based advisory misses — e.g. resident go 1.18 for a go>=1.21 consumer).
+            for adv in flooradvise.resident_advise(self, comps, states):
                 add(adv['level'], adv['tag'], adv['text'])
             # dotfiles hygiene (warn-only): un-captured managed config + any surviving repo-link.
             for tag, text in _dotfiles_diagnostics(self):
@@ -623,6 +628,13 @@ def _dispatch_op(ctx, names, op, *, ledger=None, version=None):
     # Apply the requested op to the *named* units; expand_plan folds in dependency
     # installs (e.g. apt\flatpak before flatpak\firefox) and orders the whole thing.
     base_plan = [(op, key, units[key]) for key in sorted(roots)]
+    # `auto-tighten`: if a consumer being installed floors a toolchain above its INSTALLED version
+    # (e.g. goimports needs go>=1.21 but resident go is 1.18), schedule the provider's upgrade too.
+    # Dependency order already sequences a provider before its consumer, so the upgrade lands first.
+    if op in ('install', 'upgrade', 'set-version') and ctx.config.auto_tighten():
+        from . import flooradvise
+        for pkey, prc in flooradvise.resident_upgrades_probed(ctx, units).items():
+            base_plan.append(('upgrade', pkey, prc))
     plan = expand_plan(base_plan, units)
 
     rc_code = 0
