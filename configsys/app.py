@@ -634,25 +634,31 @@ def _dispatch_op(ctx, names, op, *, ledger=None, version=None):
             print(f'skip {key}: driver "{rc.driver}" not yet supported')
             continue
         print(f'{cur_op} {key} (pkg: {rc.name}) ...')
-        if cur_op == 'install':
-            res = drv.install(rc)
-        elif cur_op == 'remove':
-            res = drv.uninstall(rc)
-        elif cur_op == 'upgrade':
-            res = drv.upgrade(rc)
-        elif cur_op == 'set-version':
-            res = drv.set_version(rc, version)
-        elif cur_op == 'lock':
-            res = drv.lock(rc)
-            if res.ok and ledger is not None:
-                ledger.set_lock(key, True)
-        elif cur_op == 'unlock':
-            res = drv.unlock(rc)
-            if res.ok and ledger is not None:
-                ledger.set_lock(key, False)
-        else:
-            print(f'unknown op {cur_op}')
-            return 2
+        try:
+            if cur_op == 'install':
+                res = drv.install(rc)
+            elif cur_op == 'remove':
+                res = drv.uninstall(rc)
+            elif cur_op == 'upgrade':
+                res = drv.upgrade(rc)
+            elif cur_op == 'set-version':
+                res = drv.set_version(rc, version)
+            elif cur_op == 'lock':
+                res = drv.lock(rc)
+                if res.ok and ledger is not None:
+                    ledger.set_lock(key, True)
+            elif cur_op == 'unlock':
+                res = drv.unlock(rc)
+                if res.ok and ledger is not None:
+                    ledger.set_lock(key, False)
+            else:
+                print(f'unknown op {cur_op}')
+                return 2
+        except KeyboardInterrupt:          # Ctrl-C aborts the WHOLE batch, not just this op
+            print(f'\n  ^C — aborted; {key} may be partially applied. '
+                  f'Skipping the rest of the batch.')
+            rc_code = 130
+            break
         if not res.ok and getattr(res, 'advisory', False):
             # an expected, user-actionable outcome (e.g. dotfiles won't clobber un-adopted config)
             # — explain it, don't treat it as a bug to report.
@@ -2746,6 +2752,13 @@ def main(argv=None):
     except ConfigsysError as e:
         print(f'configsys: {e}', file=sys.stderr)
         return 1
+    except KeyboardInterrupt:                 # any un-handled Ctrl-C exits cleanly, not a traceback
+        try:
+            ctx.runner.end_sudo()
+        except Exception:                     # noqa: BLE001
+            pass
+        print('\nconfigsys: interrupted', file=sys.stderr)
+        return 130
 
 
 if __name__ == '__main__':

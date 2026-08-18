@@ -1,8 +1,35 @@
 import os
+import signal
+import subprocess
+import sys
+import time
 
 import pytest
 
 from configsys.runner import Runner, Result, _can_tee
+
+
+def test_captured_tty_raises_keyboardinterrupt_on_sigint(tmp_path):
+    '''Ctrl-C during a captured sudo op must raise KeyboardInterrupt (so the install loop aborts the
+    WHOLE batch), not just quietly kill this op and march on. Driven in a child process group so the
+    SIGINT we send only hits it.'''
+    prog = (
+        'import sys; sys.path.insert(0, %r)\n'
+        'from configsys import runner as R\n'
+        'try:\n'
+        '    R._run_captured_tty(["bash","-c","echo GO; sleep 30"], None, None, 65536)\n'
+        '    print("NO_INTERRUPT", flush=True)\n'
+        'except KeyboardInterrupt:\n'
+        '    print("KBI", flush=True)\n'
+    ) % os.getcwd()
+    p = subprocess.Popen([sys.executable, '-c', prog], stdout=subprocess.PIPE, text=True,
+                         start_new_session=True)            # own group -> we signal only it
+    assert p.stdout.readline().strip() == 'GO'              # child's grandchild is running
+    time.sleep(0.2)
+    os.killpg(os.getpgid(p.pid), signal.SIGINT)             # Ctrl-C the whole group
+    out = p.stdout.read()
+    p.wait(timeout=10)
+    assert 'KBI' in out and 'NO_INTERRUPT' not in out
 
 
 @pytest.mark.skipif(not hasattr(os, 'fork') or not hasattr(os, 'openpty'),

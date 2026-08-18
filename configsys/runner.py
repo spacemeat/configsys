@@ -284,14 +284,37 @@ def _run_captured_tty(argv, cwd, env, limit):
     proc = subprocess.Popen(argv, stdin=None, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
                             cwd=cwd, env=env, text=True, bufsize=1)
     tail = collections.deque(maxlen=max(1, limit // 80))   # ~limit bytes, counted in lines
+    # terminal_released holds a NO-OP SIGINT handler so the parent survives Ctrl-C during a single
+    # interactive build. For a batch install we want the opposite: Ctrl-C should abort the WHOLE run,
+    # not just kill this op and march on. So restore the normal handler for the duration — Ctrl-C then
+    # raises KeyboardInterrupt HERE (the child, in our process group, gets the SIGINT too and dies); we
+    # reap it and re-raise so the install loop can stop. (Best effort off the main thread.)
+    try:
+        old = signal.signal(signal.SIGINT, signal.default_int_handler)
+    except (ValueError, OSError):
+        old = None
     try:
         for line in proc.stdout:
             sys.stdout.write(line)
             sys.stdout.flush()
             tail.append(line)
+        return proc.wait(), ''.join(tail)
+    except KeyboardInterrupt:
+        try:
+            proc.wait(timeout=5)               # child is dying from the same Ctrl-C — reap it
+        except Exception:                      # noqa: BLE001
+            proc.kill()
+        raise                                  # propagate -> the batch loop aborts
     finally:
-        proc.stdout.close()
-    return proc.wait(), ''.join(tail)
+        try:
+            proc.stdout.close()
+        except Exception:                      # noqa: BLE001
+            pass
+        if old is not None:
+            try:
+                signal.signal(signal.SIGINT, old)
+            except (ValueError, OSError):
+                pass
 
 
 def _sudo_preauth():

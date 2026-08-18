@@ -459,22 +459,27 @@ def execute_plan(ctx, plan, ledger):
             continue
 
         print(f'\n>>> {op} {key} (pkg: {rc.name})')
-        if op == 'install':
-            res = drv.install(rc)
-        elif op == 'upgrade':
-            res = drv.upgrade(rc)
-        elif op == 'remove':
-            res = drv.uninstall(rc)
-        elif op == 'lock':
-            res = drv.lock(rc)
-            if res.ok:
-                ledger.set_lock(key, True)
-        elif op == 'unlock':
-            res = drv.unlock(rc)
-            if res.ok:
-                ledger.set_lock(key, False)
-        else:
-            res = None
+        try:
+            if op == 'install':
+                res = drv.install(rc)
+            elif op == 'upgrade':
+                res = drv.upgrade(rc)
+            elif op == 'remove':
+                res = drv.uninstall(rc)
+            elif op == 'lock':
+                res = drv.lock(rc)
+                if res.ok:
+                    ledger.set_lock(key, True)
+            elif op == 'unlock':
+                res = drv.unlock(rc)
+                if res.ok:
+                    ledger.set_lock(key, False)
+            else:
+                res = None
+        except KeyboardInterrupt:          # Ctrl-C aborts the whole batch, back to the menu
+            print(f'\n^C — aborted; {key} may be partially applied. Skipping the rest.')
+            outcomes.append(OpOutcome(op, key, rc.name, False, 'interrupted (^C)'))
+            break
 
         ok = bool(res and res.ok)
         detail = '' if ok else _fail_detail(res)
