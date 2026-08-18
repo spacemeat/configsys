@@ -85,3 +85,29 @@ def test_resolution_is_order_independent(tmp_path):
     a = _resolve(tmp_path, BY_NAME, ['generic', 'by-name-12'], pins={'tk': 'tk-11'})
     b = _resolve(tmp_path, BY_NAME, ['by-name-12', 'generic'], pins={'tk': 'tk-11'})
     assert a == b and {'apt\\tk-11', 'apt\\tk-12'} <= a
+
+
+# -- soft toolchain floors: a NON-version-scoped cap resolves + advises, never hard-fails ----------
+
+# `go` provides the cap `go` by name; only its TARBALL binding declares a version (a floor). So the
+# cap has NO component-level version -> a constraint on it is a SOFT floor, not a hard selection.
+GOFLOOR = '''
+    go:       { install: [ { via: native }
+                           { via: tarball  provides: { go: ">=1.21" } } ] }
+    needsnew: { requires: [ { go: ">=1.21" } ]  install: [ { via: native } ] }
+'''
+
+
+def test_soft_floor_resolves_with_default_when_unmet(tmp_path):
+    # the default go (native, unversioned) can't be shown to meet >=1.21, but a non-version-scoped
+    # cap resolves with it anyway (the floor is advisory) instead of raising.
+    got = _resolve(tmp_path, GOFLOOR, ['needsnew'])
+    assert 'apt\\needsnew' in got and 'apt\\go' in got      # resolves + pulls the default go
+
+
+def test_version_scoped_floor_with_no_matching_version_still_hard_fails(tmp_path):
+    # a VERSION-SCOPED cap (tk-11/12 declare component-level versions) with a floor no provider
+    # carries stays a HARD error — you asked for a version that doesn't exist.
+    hard = TK + '\n    want-13: { requires: { tk: ">=13" }  install: [ { via: native } ] }'
+    with pytest.raises(ResolveError):
+        _resolve(tmp_path, hard, ['want-13'])

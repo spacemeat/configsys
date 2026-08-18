@@ -503,6 +503,14 @@ class _State:
                 and _bindable(self.components[p], self.cascade, self.ctx, self.pins,
                               self.preference, self.candidate_only)]
 
+    def _version_scoped(self, cap):
+        '''True if `cap` has VERSION-SCOPED providers — provider components that each declare a fixed
+        COMPONENT-level version (python3.11/12/13, jdk-17/21). A constraint on such a cap SELECTS a
+        provider by version and fails if none carries it. A cap with no component-level version
+        (go/ghc — version lives on a binding/method) is NOT scoped: a constraint there is a soft floor.'''
+        return any(self.components[p].prov_versions.get(cap) is not None
+                   for p in self.providers.get(cap, []))
+
     def _satisfy(self, cap, constraint, root, requiring):
         pin = self.pins.get(cap)
         # `pins:` is one flat namespace for BOTH binding-pins (comp -> via) and provider-pins
@@ -563,6 +571,14 @@ class _State:
         viable = [p for p in self._bindable_viable(cap, requiring)
                   if meets(self.components[p].prov_versions.get(cap), constraint)]
         if not viable:
+            # SOFT toolchain floor: a NON-version-scoped cap (no provider declares a component-level
+            # version — go/ghc, whose version lives on a binding/method like the go tarball's
+            # `provides: {go: ">=1.21"}`) resolves with its DEFAULT provider; the floor becomes an
+            # ADVISORY (flooradvise + the resident-floor check surface it / auto-tighten) instead of a
+            # HARD failure. A version-scoped cap (python3.11/12, jdk-17/21) still fails — you asked for
+            # a version that no provider carries. A provider-pin also stays hard.
+            if pin is None and not self._version_scoped(cap):
+                return self._satisfy(cap, None, root, requiring)
             raise ResolveError(f'nothing provides "{cap} {constraint}" here (required by {requiring})')
         if pin is not None:
             if pin not in viable:

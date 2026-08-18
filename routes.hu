@@ -598,7 +598,11 @@
             ]
         }
         // Sample `go install` tool (module path in `name:`; binary = its last segment).
-        goimports: { description: "goimports — format Go code and fix imports." install: [ { via: go-install  name: "golang.org/x/tools/cmd/goimports" } ] }
+        goimports: { description: "goimports — format Go code and fix imports."
+            // goimports@latest's go.mod needs a modern toolchain to even parse (a distro go 1.18
+            // fails "invalid go version"). Soft-floor go >=1.21: resolves with default go, and the
+            // resident-floor check advises `upgrade go` / auto-tightens to the go tarball (>=1.21).
+            install: [ { via: go-install  name: "golang.org/x/tools/cmd/goimports"  requires: [ { go: ">=1.21" } ] } ] }
 
         // Ruby toolchain (ships gem + irb). Auto-provides `ruby` for the gem driver. apt
         // `ruby-full` bundles the dev headers gems' native extensions need; else `ruby`.
