@@ -15,11 +15,19 @@ from ..driver import Driver
 from ..runner import Result
 
 _CABAL_BIN = '~/.cabal/bin'
+# Prefer a ghcup toolchain (modern GHC + cabal in ~/.ghcup/bin) over the distro cabal/ghc when it's
+# installed: the non-interactive runner shell doesn't source ghcup's env, so a bare `cabal`/`ghc`
+# would be the distro's — often too old to build a recent Hackage package (hlint). If ghcup isn't
+# installed the dir doesn't exist and PATH falls through to the distro toolchain.
+_GHCUP_BIN = '$HOME/.ghcup/bin'
 
 
 class Cabal(Driver):
     name = 'cabal'
     privileged = False
+
+    def _cabal(self, subcmd, **kw):
+        return self.runner.run(f'PATH="{_GHCUP_BIN}:$PATH" cabal {subcmd}', **kw)
 
     @staticmethod
     def _pkg(rc):
@@ -33,8 +41,8 @@ class Cabal(Driver):
     # -- read -------------------------------------------------------------
 
     def get_version(self, rc):
-        r = self.runner.run(
-            f'cabal list --installed --simple-output {shlex.quote(self._pkg(rc))}')
+        r = self._cabal(
+            f'list --installed --simple-output {shlex.quote(self._pkg(rc))}')
         if not r.ok or not r.stdout:
             return None
         for line in r.stdout.splitlines():
@@ -57,13 +65,12 @@ class Cabal(Driver):
         skipped when an index is already present, so a batch doesn't re-fetch per package).'''
         r = self.runner.run('ls ~/.cabal/packages/*/*.tar* ~/.cache/cabal/packages/*/*.tar* 2>/dev/null')
         if not (r.ok and r.stdout.strip()):
-            self.runner.run('cabal update', capture=False)
+            self._cabal('update', capture=False)
 
     def install(self, rc):
         self._ensure_index()
-        return self.runner.run(
-            f'cabal install {shlex.quote(self._pkg(rc))} --overwrite-policy=always',
-            capture=False)
+        return self._cabal(
+            f'install {shlex.quote(self._pkg(rc))} --overwrite-policy=always', capture=False)
 
     def uninstall(self, rc):
         # cabal has no `uninstall` for executables — remove the installed binary
@@ -75,8 +82,8 @@ class Cabal(Driver):
     def set_version(self, rc, version):
         self._ensure_index()
         spec = f'{self._pkg(rc)}-{version}'
-        return self.runner.run(
-            f'cabal install {shlex.quote(spec)} --overwrite-policy=always', capture=False)
+        return self._cabal(
+            f'install {shlex.quote(spec)} --overwrite-policy=always', capture=False)
 
     def lock(self, rc):
         return Result('(cabal lock recorded in ledger)', 0)

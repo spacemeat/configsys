@@ -105,6 +105,29 @@ def test_soft_floor_resolves_with_default_when_unmet(tmp_path):
     assert 'apt\\needsnew' in got and 'apt\\go' in got      # resolves + pulls the default go
 
 
+# the haskell/hlint shape: the floor-meeting method is not just non-default but `never-auto` (ghcup),
+# and it carries its own `requires`. The floor must stay SOFT — the default (distro ghc) resolves and
+# the never-auto method is NOT force-pulled to satisfy it (an advisory suggests pinning to it).
+HASKFLOOR = '''
+    curl: { install: [ { via: native } ] }
+    hask: { install: [ { via: native }
+                       { via: script  standing: never-auto  requires: curl  provides: { hask: ">=9.4" } } ] }
+    lint: { requires: [ { hask: ">=9.4" } ]  install: [ { via: native } ] }
+'''
+
+
+def test_never_auto_floor_meeter_stays_soft(tmp_path):
+    got = _resolve(tmp_path, HASKFLOOR, ['lint'])
+    assert 'apt\\lint' in got and 'apt\\hask' in got          # default (distro) ghc resolves
+    assert not any(k.startswith('script\\') for k in got)     # never-auto ghcup NOT auto-pulled
+
+
+def test_never_auto_floor_meeter_is_pinnable(tmp_path):
+    # pinning hask -> its script (ghcup) binding selects the floor-meeting method explicitly
+    got = _resolve(tmp_path, HASKFLOOR, ['lint'], pins={'hask': 'script'})
+    assert 'script\\hask' in got and 'apt\\lint' in got
+
+
 def test_version_scoped_floor_with_no_matching_version_still_hard_fails(tmp_path):
     # a VERSION-SCOPED cap (tk-11/12 declare component-level versions) with a floor no provider
     # carries stays a HARD error — you asked for a version that doesn't exist.

@@ -815,8 +815,23 @@
             install: [ { via: native  when: "(debian or redhat or arch or alpine) and not amzn"  repo-component: universe } ] }   // uniform `racket` (brew ships a macOS cask, not a formula)
         guile: { description: "GNU Guile — the GNU Scheme interpreter."
             install: [ { via: native  when: "not amzn"   repo-component: universe  name: { apt: guile-3.0  dnf: guile30  default: guile } } ] }   // versioned name on debian/fedora
-        // Haskell — the GHC compiler (cabal driver deferred).
-        haskell: { description: "Haskell toolchain (GHC) — pure functional programming." install: [ { via: native  when: "not amzn"   repo-component: universe  name: { default: ghc } } ] }
+        // Haskell — the GHC compiler. Native (distro ghc) is the default; ghcup is the escape hatch
+        // for a MODERN GHC when the distro's is too old to build a recent Hackage package (hlint).
+        haskell: { description: "Haskell toolchain (GHC) — pure functional programming."
+            install: [
+                { via: native  when: "not amzn"   repo-component: universe  name: { default: ghc } }
+                // ghcup — the official Haskell toolchain installer; pulls a modern GHC (+cabal) into
+                // ~/.ghcup/bin. never-auto (distro ghc stays the default); a `haskell >= X` floor
+                // (hlint) advises pinning here, or `pin set haskell haskell` picks it. `provides` is
+                // the floor it guarantees. The cabal driver prepends ~/.ghcup/bin so a ghcup toolchain
+                // is used for cabal builds when present. Non-interactive; any rc-write ghcup's
+                // installer makes is caught + staged by the shell-writes guard.
+                { via: script  when: "not amzn"  standing: never-auto  requires: curl
+                  provides: { haskell: ">=9.4" }
+                  install-cmd:   'export BOOTSTRAP_HASKELL_NONINTERACTIVE=1 BOOTSTRAP_HASKELL_INSTALL_NO_STACK=1 ; curl --proto "=https" --tlsv1.2 -fsSL https://get-ghcup.haskell.org | sh'
+                  version-cmd:   '"$HOME/.ghcup/bin/ghc" --numeric-version 2>/dev/null'
+                  uninstall-cmd: '"$HOME/.ghcup/bin/ghcup" nuke >/dev/null 2>&1 || rm -rf "$HOME/.ghcup"'
+                  location:      '~/.ghcup' } ] }
         // Erlang/OTP + Elixir (elixir pulls erlang, but erlang is nameable on its own).
         erlang: { description: "Erlang/OTP — battle-tested concurrent, fault-tolerant runtime." install: [ { via: native  when: "(debian or redhat or arch or opensuse) and not amzn"  repo-component: universe }  { via: native  when: "fedora_atomic" } ] }   // brew formula `erlang`
         elixir: { description: "Elixir — functional, concurrent language on the Erlang VM." install: [ { via: native  when: "not amzn"   repo-component: universe } ] }
@@ -858,7 +873,11 @@
         // cabal (Haskell build tool; needs ghc to build) + a sample executable.
         cabal: { suggests: cabal-dotfiles  description: "Cabal — Haskell's build system and package manager." requires: haskell
                  install: [ { via: native  when: "not amzn"   repo-component: universe  name: { apk: cabal  default: cabal-install } } ] }
-        hlint: { description: "HLint — suggests improvements to Haskell code." install: [ { via: cabal  name: hlint } ] }
+        // hlint's recent releases need a modern GHC to build from Hackage; the distro ghc is often
+        // too old. The `haskell >= 9.4` floor advises pinning haskell -> ghcup (auto under
+        // `auto-tighten`), and the cabal driver then builds with the ghcup toolchain.
+        hlint: { description: "HLint — suggests improvements to Haskell code." requires: [ { haskell: ">=9.4" } ]
+                 install: [ { via: cabal  name: hlint } ] }
 
         // Zig — native on Arch/Homebrew; elsewhere the upstream tarball. zig's Linux build is
         // statically linked (runs on glibc AND musl), so no glibc requirement. Its prebuilt
