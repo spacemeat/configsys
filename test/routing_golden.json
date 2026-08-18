@@ -8863,16 +8863,6 @@
     "name": "syncthing"
    }
   },
-  "sysdig": {
-   "pacman\\sysdig": {
-    "driver": "pacman",
-    "fields": {
-     "name": "sysdig",
-     "repo-component": "universe"
-    },
-    "name": "sysdig"
-   }
-  },
   "tailscale": {
    "pacman\\tailscale": {
     "driver": "pacman",
@@ -19943,16 +19933,6 @@
     "name": "syncthing"
    }
   },
-  "sysdig": {
-   "apt\\sysdig": {
-    "driver": "apt",
-    "fields": {
-     "name": "sysdig",
-     "repo-component": "universe"
-    },
-    "name": "sysdig"
-   }
-  },
   "tailscale": {
    "apt\\tailscale": {
     "driver": "apt",
@@ -30778,16 +30758,6 @@
     "name": "syncthing"
    }
   },
-  "sysdig": {
-   "apt\\sysdig": {
-    "driver": "apt",
-    "fields": {
-     "name": "sysdig",
-     "repo-component": "universe"
-    },
-    "name": "sysdig"
-   }
-  },
   "tailscale": {
    "apt\\tailscale": {
     "driver": "apt",
@@ -41586,16 +41556,6 @@
      "name": "syncthing"
     },
     "name": "syncthing"
-   }
-  },
-  "sysdig": {
-   "apt\\sysdig": {
-    "driver": "apt",
-    "fields": {
-     "name": "sysdig",
-     "repo-component": "universe"
-    },
-    "name": "sysdig"
    }
   },
   "tailscale": {
@@ -81649,16 +81609,6 @@
     "name": "syncthing"
    }
   },
-  "sysdig": {
-   "apt\\sysdig": {
-    "driver": "apt",
-    "fields": {
-     "name": "sysdig",
-     "repo-component": "universe"
-    },
-    "name": "sysdig"
-   }
-  },
   "tailscale": {
    "apt\\tailscale": {
     "driver": "apt",
@@ -103590,16 +103540,6 @@
     "name": "syncthing"
    }
   },
-  "sysdig": {
-   "apt\\sysdig": {
-    "driver": "apt",
-    "fields": {
-     "name": "sysdig",
-     "repo-component": "universe"
-    },
-    "name": "sysdig"
-   }
-  },
   "tailscale": {
    "apt\\tailscale": {
     "driver": "apt",
@@ -114406,16 +114346,6 @@
      "name": "syncthing"
     },
     "name": "syncthing"
-   }
-  },
-  "sysdig": {
-   "apt\\sysdig": {
-    "driver": "apt",
-    "fields": {
-     "name": "sysdig",
-     "repo-component": "universe"
-    },
-    "name": "sysdig"
    }
   },
   "tailscale": {
