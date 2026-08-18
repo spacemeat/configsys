@@ -7736,7 +7736,7 @@
    "script\\quicklisp": {
     "driver": "script",
     "fields": {
-     "install-cmd": "curl -fsSL https://beta.quicklisp.org/quicklisp.lisp -o /tmp/quicklisp.lisp && printf \"\\n\" | sbcl --non-interactive --load /tmp/quicklisp.lisp --eval \"(quicklisp-quickstart:install)\" --eval \"(ql:add-to-init-file)\" && rm -f /tmp/quicklisp.lisp",
+     "install-cmd": "curl -fsSL https://beta.quicklisp.org/quicklisp.lisp -o /tmp/quicklisp.lisp && yes \"\" | sbcl --non-interactive --load /tmp/quicklisp.lisp --eval \"(quicklisp-quickstart:install)\" --eval \"(ql:add-to-init-file)\" --eval \"(quit)\" && rm -f /tmp/quicklisp.lisp",
      "location": "~/quicklisp",
      "name": "quicklisp",
      "uninstall-cmd": "rm -rf \"$HOME/quicklisp\"",
@@ -18994,7 +18994,7 @@
    "script\\quicklisp": {
     "driver": "script",
     "fields": {
-     "install-cmd": "curl -fsSL https://beta.quicklisp.org/quicklisp.lisp -o /tmp/quicklisp.lisp && printf \"\\n\" | sbcl --non-interactive --load /tmp/quicklisp.lisp --eval \"(quicklisp-quickstart:install)\" --eval \"(ql:add-to-init-file)\" && rm -f /tmp/quicklisp.lisp",
+     "install-cmd": "curl -fsSL https://beta.quicklisp.org/quicklisp.lisp -o /tmp/quicklisp.lisp && yes \"\" | sbcl --non-interactive --load /tmp/quicklisp.lisp --eval \"(quicklisp-quickstart:install)\" --eval \"(ql:add-to-init-file)\" --eval \"(quit)\" && rm -f /tmp/quicklisp.lisp",
      "location": "~/quicklisp",
      "name": "quicklisp",
      "uninstall-cmd": "rm -rf \"$HOME/quicklisp\"",
@@ -29864,7 +29864,7 @@
    "script\\quicklisp": {
     "driver": "script",
     "fields": {
-     "install-cmd": "curl -fsSL https://beta.quicklisp.org/quicklisp.lisp -o /tmp/quicklisp.lisp && printf \"\\n\" | sbcl --non-interactive --load /tmp/quicklisp.lisp --eval \"(quicklisp-quickstart:install)\" --eval \"(ql:add-to-init-file)\" && rm -f /tmp/quicklisp.lisp",
+     "install-cmd": "curl -fsSL https://beta.quicklisp.org/quicklisp.lisp -o /tmp/quicklisp.lisp && yes \"\" | sbcl --non-interactive --load /tmp/quicklisp.lisp --eval \"(quicklisp-quickstart:install)\" --eval \"(ql:add-to-init-file)\" --eval \"(quit)\" && rm -f /tmp/quicklisp.lisp",
      "location": "~/quicklisp",
      "name": "quicklisp",
      "uninstall-cmd": "rm -rf \"$HOME/quicklisp\"",
@@ -40692,7 +40692,7 @@
    "script\\quicklisp": {
     "driver": "script",
     "fields": {
-     "install-cmd": "curl -fsSL https://beta.quicklisp.org/quicklisp.lisp -o /tmp/quicklisp.lisp && printf \"\\n\" | sbcl --non-interactive --load /tmp/quicklisp.lisp --eval \"(quicklisp-quickstart:install)\" --eval \"(ql:add-to-init-file)\" && rm -f /tmp/quicklisp.lisp",
+     "install-cmd": "curl -fsSL https://beta.quicklisp.org/quicklisp.lisp -o /tmp/quicklisp.lisp && yes \"\" | sbcl --non-interactive --load /tmp/quicklisp.lisp --eval \"(quicklisp-quickstart:install)\" --eval \"(ql:add-to-init-file)\" --eval \"(quit)\" && rm -f /tmp/quicklisp.lisp",
      "location": "~/quicklisp",
      "name": "quicklisp",
      "uninstall-cmd": "rm -rf \"$HOME/quicklisp\"",
@@ -51073,7 +51073,7 @@
    "script\\quicklisp": {
     "driver": "script",
     "fields": {
-     "install-cmd": "curl -fsSL https://beta.quicklisp.org/quicklisp.lisp -o /tmp/quicklisp.lisp && printf \"\\n\" | sbcl --non-interactive --load /tmp/quicklisp.lisp --eval \"(quicklisp-quickstart:install)\" --eval \"(ql:add-to-init-file)\" && rm -f /tmp/quicklisp.lisp",
+     "install-cmd": "curl -fsSL https://beta.quicklisp.org/quicklisp.lisp -o /tmp/quicklisp.lisp && yes \"\" | sbcl --non-interactive --load /tmp/quicklisp.lisp --eval \"(quicklisp-quickstart:install)\" --eval \"(ql:add-to-init-file)\" --eval \"(quit)\" && rm -f /tmp/quicklisp.lisp",
      "location": "~/quicklisp",
      "name": "quicklisp",
      "uninstall-cmd": "rm -rf \"$HOME/quicklisp\"",
@@ -61536,7 +61536,7 @@
    "script\\quicklisp": {
     "driver": "script",
     "fields": {
-     "install-cmd": "curl -fsSL https://beta.quicklisp.org/quicklisp.lisp -o /tmp/quicklisp.lisp && printf \"\\n\" | sbcl --non-interactive --load /tmp/quicklisp.lisp --eval \"(quicklisp-quickstart:install)\" --eval \"(ql:add-to-init-file)\" && rm -f /tmp/quicklisp.lisp",
+     "install-cmd": "curl -fsSL https://beta.quicklisp.org/quicklisp.lisp -o /tmp/quicklisp.lisp && yes \"\" | sbcl --non-interactive --load /tmp/quicklisp.lisp --eval \"(quicklisp-quickstart:install)\" --eval \"(ql:add-to-init-file)\" --eval \"(quit)\" && rm -f /tmp/quicklisp.lisp",
      "location": "~/quicklisp",
      "name": "quicklisp",
      "uninstall-cmd": "rm -rf \"$HOME/quicklisp\"",
@@ -70355,7 +70355,7 @@
    "script\\quicklisp": {
     "driver": "script",
     "fields": {
-     "install-cmd": "curl -fsSL https://beta.quicklisp.org/quicklisp.lisp -o /tmp/quicklisp.lisp && printf \"\\n\" | sbcl --non-interactive --load /tmp/quicklisp.lisp --eval \"(quicklisp-quickstart:install)\" --eval \"(ql:add-to-init-file)\" && rm -f /tmp/quicklisp.lisp",
+     "install-cmd": "curl -fsSL https://beta.quicklisp.org/quicklisp.lisp -o /tmp/quicklisp.lisp && yes \"\" | sbcl --non-interactive --load /tmp/quicklisp.lisp --eval \"(quicklisp-quickstart:install)\" --eval \"(ql:add-to-init-file)\" --eval \"(quit)\" && rm -f /tmp/quicklisp.lisp",
      "location": "~/quicklisp",
      "name": "quicklisp",
      "uninstall-cmd": "rm -rf \"$HOME/quicklisp\"",
@@ -80891,7 +80891,7 @@
    "script\\quicklisp": {
     "driver": "script",
     "fields": {
-     "install-cmd": "curl -fsSL https://beta.quicklisp.org/quicklisp.lisp -o /tmp/quicklisp.lisp && printf \"\\n\" | sbcl --non-interactive --load /tmp/quicklisp.lisp --eval \"(quicklisp-quickstart:install)\" --eval \"(ql:add-to-init-file)\" && rm -f /tmp/quicklisp.lisp",
+     "install-cmd": "curl -fsSL https://beta.quicklisp.org/quicklisp.lisp -o /tmp/quicklisp.lisp && yes \"\" | sbcl --non-interactive --load /tmp/quicklisp.lisp --eval \"(quicklisp-quickstart:install)\" --eval \"(ql:add-to-init-file)\" --eval \"(quit)\" && rm -f /tmp/quicklisp.lisp",
      "location": "~/quicklisp",
      "name": "quicklisp",
      "uninstall-cmd": "rm -rf \"$HOME/quicklisp\"",
@@ -91709,7 +91709,7 @@
    "script\\quicklisp": {
     "driver": "script",
     "fields": {
-     "install-cmd": "curl -fsSL https://beta.quicklisp.org/quicklisp.lisp -o /tmp/quicklisp.lisp && printf \"\\n\" | sbcl --non-interactive --load /tmp/quicklisp.lisp --eval \"(quicklisp-quickstart:install)\" --eval \"(ql:add-to-init-file)\" && rm -f /tmp/quicklisp.lisp",
+     "install-cmd": "curl -fsSL https://beta.quicklisp.org/quicklisp.lisp -o /tmp/quicklisp.lisp && yes \"\" | sbcl --non-interactive --load /tmp/quicklisp.lisp --eval \"(quicklisp-quickstart:install)\" --eval \"(ql:add-to-init-file)\" --eval \"(quit)\" && rm -f /tmp/quicklisp.lisp",
      "location": "~/quicklisp",
      "name": "quicklisp",
      "uninstall-cmd": "rm -rf \"$HOME/quicklisp\"",
@@ -102902,7 +102902,7 @@
    "script\\quicklisp": {
     "driver": "script",
     "fields": {
-     "install-cmd": "curl -fsSL https://beta.quicklisp.org/quicklisp.lisp -o /tmp/quicklisp.lisp && printf \"\\n\" | sbcl --non-interactive --load /tmp/quicklisp.lisp --eval \"(quicklisp-quickstart:install)\" --eval \"(ql:add-to-init-file)\" && rm -f /tmp/quicklisp.lisp",
+     "install-cmd": "curl -fsSL https://beta.quicklisp.org/quicklisp.lisp -o /tmp/quicklisp.lisp && yes \"\" | sbcl --non-interactive --load /tmp/quicklisp.lisp --eval \"(quicklisp-quickstart:install)\" --eval \"(ql:add-to-init-file)\" --eval \"(quit)\" && rm -f /tmp/quicklisp.lisp",
      "location": "~/quicklisp",
      "name": "quicklisp",
      "uninstall-cmd": "rm -rf \"$HOME/quicklisp\"",
@@ -113755,7 +113755,7 @@
    "script\\quicklisp": {
     "driver": "script",
     "fields": {
-     "install-cmd": "curl -fsSL https://beta.quicklisp.org/quicklisp.lisp -o /tmp/quicklisp.lisp && printf \"\\n\" | sbcl --non-interactive --load /tmp/quicklisp.lisp --eval \"(quicklisp-quickstart:install)\" --eval \"(ql:add-to-init-file)\" && rm -f /tmp/quicklisp.lisp",
+     "install-cmd": "curl -fsSL https://beta.quicklisp.org/quicklisp.lisp -o /tmp/quicklisp.lisp && yes \"\" | sbcl --non-interactive --load /tmp/quicklisp.lisp --eval \"(quicklisp-quickstart:install)\" --eval \"(ql:add-to-init-file)\" --eval \"(quit)\" && rm -f /tmp/quicklisp.lisp",
      "location": "~/quicklisp",
      "name": "quicklisp",
      "uninstall-cmd": "rm -rf \"$HOME/quicklisp\"",
