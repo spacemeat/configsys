@@ -1,14 +1,17 @@
 '''cabal.py — the cabal driver: Haskell executables via `cabal install`.
 
-User-space: cabal installs executables into ~/.cabal/bin, no sudo. Installed state
-comes from `cabal list --installed --simple-output` (`<name> <version>` lines). cabal
-has no native uninstall for executables, so removal deletes the binary; and no native
-version lock, so lock intent lives in the ledger.
+User-space: cabal installs executables into ~/.cabal/bin, no sudo. Installed state comes
+from that symlink: `cabal install <pkg>` symlinks ~/.cabal/bin/<exe> -> the versioned
+store dir (…/<pkg>-<version>-<hash>/bin/<exe>), so the resolved path carries the version.
+(`cabal list --installed` only reports LIBRARY packages in the ghc db, NOT installed
+executables — it misses hlint et al.) cabal has no native uninstall for executables, so
+removal deletes the binary; and no native version lock, so lock intent lives in the ledger.
 
 The cabal tool is the driver `requires: cabal`, satisfied by the `cabal` component
 (which pulls ghc). Command syntax confirmed against cabal-install 3.8.1.
 '''
 
+import re
 import shlex
 
 from ..driver import Driver
@@ -41,15 +44,15 @@ class Cabal(Driver):
     # -- read -------------------------------------------------------------
 
     def get_version(self, rc):
-        r = self._cabal(
-            f'list --installed --simple-output {shlex.quote(self._pkg(rc))}')
-        if not r.ok or not r.stdout:
-            return None
-        for line in r.stdout.splitlines():
-            parts = line.split()
-            if len(parts) >= 2 and parts[0] == self._pkg(rc):
-                return parts[1]
-        return None
+        # resolve the ~/.cabal/bin/<exe> symlink; the store path it points at carries the version.
+        # `readlink -e` requires the whole chain to EXIST (empty for an absent/broken link) — unlike
+        # `-f`, which prints the path even when the final component is missing (false "installed").
+        r = self.runner.run(f'readlink -e {_CABAL_BIN}/{shlex.quote(self._exe(rc))} 2>/dev/null')
+        tgt = (r.stdout or '').strip()
+        if not tgt:
+            return None                                   # no such binary -> not installed
+        m = re.search(rf'/{re.escape(self._pkg(rc))}-([0-9][0-9.]*)-', tgt)
+        return m.group(1) if m else 'installed'           # present; version unknown (non-store binary)
 
     def get_latest(self, rc):
         return self.resolve_version(rc)

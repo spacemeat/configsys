@@ -132,8 +132,19 @@ def test_cabal_uninstall_removes_binary():
     assert r2.calls == ['rm -f ~/.cabal/bin/ormolu']
 
 
-def test_cabal_get_version_parses_simple_output():
-    fr = FakeRunner([('cabal list --installed --simple-output', 0, 'hlint 3.5\n')])
-    assert Cabal(fr).get_version(rc('cabal', 'hlint')) == '3.5'
-    fr2 = FakeRunner([('cabal list', 0, 'other 1.0\n')])
-    assert Cabal(fr2).get_version(rc('cabal', 'hlint')) is None
+def test_cabal_get_version_reads_store_symlink():
+    # a cabal-installed exe symlinks ~/.cabal/bin/<exe> -> the versioned store dir; the resolved
+    # path carries the version (cabal list --installed doesn't report installed executables)
+    tgt = '/home/x/.cabal/store/ghc-9.10.3-abc/hlint-3.10-e-hlint-deadbeef/bin/hlint\n'
+    fr = FakeRunner([('readlink', 0, tgt)])
+    assert Cabal(fr).get_version(rc('cabal', 'hlint')) == '3.10'
+
+
+def test_cabal_get_version_absent_is_none():
+    fr = FakeRunner([('readlink', 0, '')])            # readlink -e resolves nothing -> not installed
+    assert Cabal(fr).get_version(rc('cabal', 'hlint')) is None
+
+
+def test_cabal_get_version_present_but_non_store_path():
+    fr = FakeRunner([('readlink', 0, '/opt/plain/bin/hlint\n')])   # a real binary, not in the store
+    assert Cabal(fr).get_version(rc('cabal', 'hlint')) == 'installed'
