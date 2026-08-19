@@ -30,6 +30,8 @@
         lmde:      { using: debian    scale-root: true }            // Mint Debian Edition (own numbering)
         kali:      { using: debian }                                // kali-rolling (Debian testing) — rolling, bare membership like tumbleweed
         pikaos:    { using: debian    scale-root: true }            // Debian-based gaming distro; own date numbering (26.MM.DD) so it's its own scale-root
+        mx:        { using: debian    scale-root: true }            // MX Linux (ID=mx, ID_LIKE=debian); own numbering (MX-19/21/23/25 tracking Debian)
+        avlinux:   { using: mx }                                    // AV Linux MX Edition — MX-based multimedia distro; tracks MX (if it keeps ID=mx the `mx` block already covers it)
 
         // RHEL family (dnf). The EL rebuilds share rhel's routes + version line; distinct
         // blocks (vs. one aliased `rhel`) buy them identity — `when: "rocky"`, correct display.
@@ -61,6 +63,7 @@
         endeavouros: { using: arch }
         cachyos:     { using: arch }              // performance-tuned Arch (x86-64-v3/v4 repos); rolling
         garuda:      { using: arch }              // gaming-focused Arch; rolling
+        omarchy:     { using: arch }              // DHH's opinionated Arch+Hyprland; rolling (inert if it keeps ID=arch, active if it rebrands ID=omarchy)
 
         // Alpine (apk). musl, NOT glibc — so it hangs off `linux`, not `glibc_linux`. glibc-only
         // fetch-a-binary bindings decline here (unroutable = a clean diagnostic); the optional

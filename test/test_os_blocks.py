@@ -111,9 +111,12 @@ def test_gcompat_opt_in_enables_glibc_binaries_on_alpine():
 def test_new_descendant_natives(cascade):
     assert cascade.native('cachyos') == 'pacman'   # arch
     assert cascade.native('garuda') == 'pacman'
+    assert cascade.native('omarchy') == 'pacman'   # arch (DHH's Arch+Hyprland)
     assert cascade.native('nobara') == 'dnf'       # fedora
     assert cascade.native('kali') == 'apt'         # debian
     assert cascade.native('pikaos') == 'apt'
+    assert cascade.native('mx') == 'apt'           # debian (ID=mx)
+    assert cascade.native('avlinux') == 'apt'      # MX-based (via mx -> debian)
 
 
 def test_nobara_borrows_fedora_scale_kali_pikaos_own(cascade):
