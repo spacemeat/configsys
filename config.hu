@@ -28,17 +28,19 @@
     // them by name or add them to your own profile. See docs/profiles-plan.md for the rationale.
     // Your ~/.config/configsys/configsys.hu may add profiles or shadow any of these by name.
 profiles: {
-    terminal: [ +terminal-emulators  +disk-utils  +cli-files  +system-monitors  curl  espeak  fastfetch  fd
-        fzf  ripgrep  rsync  xclip  neovim  tmux  lazygit  mononoki-nerd  zoxide ]
+    finders: [ fd  fzf  ripgrep ]
     terminal-emulators: [ alacritty  foot  ghostty  kitty  wezterm ]
+    terminal-utils: [ tmux  xclip  zoxide ]
+    system-utils: [ fastfetch ]
     system-monitors: [ btop  htop  bottom  atop  bmon  iotop  s-tui  glances  nvtop  wavemon  /*sysdig*/  dstat ]
-    disk-utils: [ ncdu  duf  dysk ]
-    cli-files: [ mc  yazi  superfile ]
+    disk-usage-utils: [ ncdu  duf  dysk ]
+    file-browsers: [ mc  yazi  superfile ]
     shells: [ fish  nushell  zsh ]
-    configuration-tools: [ stow ]
+    configuration-tools: [ ansible  stow ]
     password-passkey: [ bitwarden  vaultwarden  doppler  pass ]
+    fonts: [ mononoki-nerd ]
 
-    copy-tools: [ rsync  caligula  stow ]
+    iso-image-tools: [ caligula  balena-etcher ]
 
     text-editors: [ android-studio  antigravity  emacs  helix  jetbrains-toolbox  micro  neovim  vscode
         vscodium  zed ]
@@ -55,19 +57,21 @@ profiles: {
     db-clients: [ pgcli  mycli  dbeaver  sqlitebrowser  lazysql ]
     db-servers: [ postgresql-service  mariadb-service  redis-service  mongodb  mongodb-service ]
 
-    net-tools: [ iproute2  impala  bluetui  wireshark  wireshark-group  tshark  tcpdump  nmap  mtr  gping  traceroute  iperf3
+    net-tools: [ iproute2  impala  bluetui  curl  wireshark  wireshark-group  tshark  tcpdump  nmap  mtr  gping  traceroute  iperf3
         socat  ethtool  whois  netcat  dig  iftop  nethogs  nload  rsync  vnstat  dnspeep ]
     cloud-tools: [ awscli  gcloud  azure-cli  opentofu  grpcurl ]
-    backend-tools: [ +containers  +k8s  +cloud-tools  +net-tools  +db-clients  +db-servers  ansible ]
 
-    devops-tools: [ +backend-tools  ansible  opentofu ]
 
     c-cpp-lang: [ bazelisk  cpp-toolchain  gcc-10 gcc-11 gcc-12 gcc-13  gcc-14  gcc-15  clang-18  clang-19
         clang-20  gdb  make  analysis  cmake  ninja  meson ]
     dotnet-lang: [ dotnet ]
     go-lang: [ go  goimports ]
     haskell-lang: [ haskell  cabal  hlint ]
-    java-lang: [ jdk  kotlin  maven  gradle  sdkman  scala  sbt  clojure  leiningen  groovy ]
+    java-lang: [ jdk ]
+    kotlin-lang: [ detekt  kotlin ]
+    scala-lang: [ scala  sbt  scalacli ]
+    clojure-lang: [ clojure  leiningen ]
+    groovy-lang: [ groovy ]
     lisp-lang: [ sbcl  quicklisp ]
     lua-lang: [ lua  luarocks  dkjson ]
     objective-c-lang: [ gnustep ]
@@ -78,46 +82,53 @@ profiles: {
     ruby-lang: [ ruby  bundler ]
     rust-lang: [ rust  miniforge ]
     web-lang: [ node  typescript  sass ]
-    languages: [ +c-cpp-lang  +dotnet-lang  +go-lang  +haskell-lang  +java-lang  +lisp-lang  +lua-lang
+    jvm-lang: [ +java-lang  +kotlin-lang  +scala-lang  +clojure-lang  +groovy-lang ]
+    languages: [ +c-cpp-lang  +dotnet-lang  +go-lang  +haskell-lang  +jvm-lang  +lisp-lang  +lua-lang
         +objective-c-lang  +ocaml-lang  +php-lang  +python-lang  +ruby-lang  +rust-lang  +tcl-lang  +web-lang
         elm  erlang  elixir  julia  nim  nasm  octave odin  perl  r  zig  gfortran  gnat  gnucobol  d  crystal
         dart  raku  v  gleam  fennel  swift  racket  guile ]
 
-    jvm-tools: [ +java-lang  mvnd  ant  jbang  scalacli  coursier  springboot  quarkus  micronaut  liquibase
-        detekt  jreleaser  spark  flink  visualvm  jmc  jmeter ]
-    dev-tools: [ gh  git  jq  just  protobuf  yq ]
-    version-control-tools: [ git  mercurial  subversion  cvs  perforce  fossil  bazaar ]
+    jvm-tools: [ mvnd  maven  gradle  sdkman  ant  jbang  coursier  springboot  quarkus  micronaut
+        jreleaser  visualvm  jmc ]
+
+    jvm-dev: [ +jvm-lang  +jvm-tools ]
+
+    dev-tools: [ gh  git  lazygit  jq  just  protobuf  yq  liquibase  perf ]
+    version-control-tools: [ git  lazygit  mercurial  subversion  cvs  perforce  fossil  bazaar ]
     compression-tools: [ zstd  lz4  p7zip  zip  unzip  unrar  rar ]
 
     compute-lang: [ cuda  rocm-hip  intel-oneapi-basekit ]
     deep-learning-lang: [ cudnn  miopen  onednn ]
 
-    ai-tools: [ claude-code  codex  llm  aider  ollama ]
+    ai-tools: [ claude-code  codex  llm  aider  ollama  impala ]
+
+    web-tools: [ prettier  httpie  mitmproxy  xh  websocat  postman  insomnia  bruno  jmeter ]
+    web-package-managers: [ bun  pnpm  yarn ]
 
     graphics-dev: [ vulkan-dev  gtk  gtkmm  qt  opengl  glfw  sdl  sfml ]
-    game-dev: [ +graphics-dev  godot  unityhub ]
+    game-dev: [ godot  unityhub ]
 
-    web-dev: [ +web-lang  +web-browsers  +web-package-managers  +web-lang  prettier  httpie  mitmproxy  xh
-        websocat  postman  insomnia  bruno ]
-    web-package-managers: [ bun  pnpm  yarn ]
+    web-dev: [ +web-lang  +web-browsers  +web-package-managers  +web-lang  +web-tools ]
 
     electronics-tools: [ arduino  kicad  gnuradio ]
     graphics-tools: [ blender  durdraw  krita  gimp  inkscape  darktable  freecad  openscad  scribus  digikam  pastel  webcamize ]
-    audio-tools: [ +audio  ardour  lmms  tenacity  musescore  hydrogen  carla  sonic-pi  supercollider
+    audio-tools: [ espeak  ardour  lmms  tenacity  musescore  hydrogen  carla  sonic-pi  supercollider
         qjackctl  yabridge ]
 
-    science: [ +math  fastdds  jupyterlab  gnuplot  paraview  opencv  opencv-python ]
-    math: [ +latex  julia  r  octave  maxima  wxmaxima  pari  gap  gnuplot  sagemath ]
-    latex: [ texlive  texlive-full ]
+    science: [ spark  flink  fastdds  jupyterlab  gnuplot  paraview  opencv  opencv-python ]
+    math: [ texlive  texlive-full  julia  r  octave  maxima  wxmaxima  pari  gap  gnuplot  sagemath ]
 
     communication: [ discord  discordo  slack  obs-studio ]
     creative-tools: [ +electronics-tools  +graphics-tools  +audio-tools  libreoffice ]
 
-    media-servers: [ jellyfin-service  plex-service  emby-service  navidrome ]
-    media-players: [ codecs  ffmpeg  vlc  spotify  kodi  stremio ]
+    media-servers: [ jellyfin-service  plex-service  emby-service  navidrome  mpd ]
+    media-players: [ codecs  ffmpeg  vlc  spotify  kodi  stremio  mpc  strawberry ]
     home-server: [ home-assistant  pi-hole  adguardhome  homebridge  mosquitto-service  syncthing
         tailscale-service  grafana-service  prometheus  cockpit-service  wireguard  nextcloud ]
 
+    terminal: [ +finders  +terminal-emulators  +terminal-utils  +system-utils  +system-monitors
+        +disk-usage-utils  +file-browsers  +shells  +configuration-tools  +password-passkey  +fonts ]
+    backend-tools: [ +containers  +k8s  +cloud-tools  +net-tools  +db-clients  +db-servers ]
     user: [ +terminal  git  bash-dotfiles  configsys-dotfiles  codecs  firefox  chrome ]
 }
 }
