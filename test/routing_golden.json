@@ -414,6 +414,39 @@
     "name": "bash-dotfiles"
    }
   },
+  "astroterm": {
+   "aur\\astroterm": {
+    "driver": "aur",
+    "fields": {
+     "name": "astroterm"
+    },
+    "name": "astroterm"
+   },
+   "dotfiles\\git-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "~/.gitconfig",
+      "src": "gitconfig"
+     }
+    },
+    "name": "git-dotfiles"
+   },
+   "pacman\\base-devel": {
+    "driver": "pacman",
+    "fields": {
+     "name": "base-devel"
+    },
+    "name": "base-devel"
+   },
+   "pacman\\git": {
+    "driver": "pacman",
+    "fields": {
+     "name": "git"
+    },
+    "name": "git"
+   }
+  },
   "atop": {
    "pacman\\atop": {
     "driver": "pacman",
@@ -602,6 +635,15 @@
     "name": "bazelisk-dotfiles"
    }
   },
+  "bitwarden": {
+   "pacman\\bitwarden": {
+    "driver": "pacman",
+    "fields": {
+     "name": "bitwarden"
+    },
+    "name": "bitwarden"
+   }
+  },
   "blender": {
    "dotfiles\\blender-dotfiles": {
     "driver": "dotfiles",
@@ -632,6 +674,15 @@
      }
     },
     "name": "blender-dotfiles"
+   }
+  },
+  "bluetui": {
+   "pacman\\bluetui": {
+    "driver": "pacman",
+    "fields": {
+     "name": "bluetui"
+    },
+    "name": "bluetui"
    }
   },
   "bmon": {
@@ -966,6 +1017,15 @@
      "glue": "cabal"
     },
     "name": "cabal-dotfiles"
+   }
+  },
+  "caligula": {
+   "pacman\\caligula": {
+    "driver": "pacman",
+    "fields": {
+     "name": "caligula"
+    },
+    "name": "caligula"
    }
   },
   "carla": {
@@ -1807,6 +1867,39 @@
     "name": "flatpak"
    }
   },
+  "discordo": {
+   "aur\\discordo": {
+    "driver": "aur",
+    "fields": {
+     "name": "discordo-git"
+    },
+    "name": "discordo-git"
+   },
+   "dotfiles\\git-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "~/.gitconfig",
+      "src": "gitconfig"
+     }
+    },
+    "name": "git-dotfiles"
+   },
+   "pacman\\base-devel": {
+    "driver": "pacman",
+    "fields": {
+     "name": "base-devel"
+    },
+    "name": "base-devel"
+   },
+   "pacman\\git": {
+    "driver": "pacman",
+    "fields": {
+     "name": "git"
+    },
+    "name": "git"
+   }
+  },
   "dkjson": {
    "dotfiles\\bash-dotfiles": {
     "driver": "dotfiles",
@@ -1965,6 +2058,39 @@
     "name": "docker-service"
    }
   },
+  "doppler": {
+   "aur\\doppler": {
+    "driver": "aur",
+    "fields": {
+     "name": "doppler-cli-bin"
+    },
+    "name": "doppler-cli-bin"
+   },
+   "dotfiles\\git-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "~/.gitconfig",
+      "src": "gitconfig"
+     }
+    },
+    "name": "git-dotfiles"
+   },
+   "pacman\\base-devel": {
+    "driver": "pacman",
+    "fields": {
+     "name": "base-devel"
+    },
+    "name": "base-devel"
+   },
+   "pacman\\git": {
+    "driver": "pacman",
+    "fields": {
+     "name": "git"
+    },
+    "name": "git"
+   }
+  },
   "dotnet": {
    "dotfiles\\bash-dotfiles": {
     "driver": "dotfiles",
@@ -2064,6 +2190,49 @@
      "repo-component": "universe"
     },
     "name": "opam"
+   }
+  },
+  "durdraw": {
+   "aur\\durdraw": {
+    "driver": "aur",
+    "fields": {
+     "name": "durdraw"
+    },
+    "name": "durdraw"
+   },
+   "dotfiles\\git-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "~/.gitconfig",
+      "src": "gitconfig"
+     }
+    },
+    "name": "git-dotfiles"
+   },
+   "pacman\\base-devel": {
+    "driver": "pacman",
+    "fields": {
+     "name": "base-devel"
+    },
+    "name": "base-devel"
+   },
+   "pacman\\git": {
+    "driver": "pacman",
+    "fields": {
+     "name": "git"
+    },
+    "name": "git"
+   }
+  },
+  "dysk": {
+   "pacman\\dysk": {
+    "driver": "pacman",
+    "fields": {
+     "name": "dysk",
+     "repo-component": "universe"
+    },
+    "name": "dysk"
    }
   },
   "eastl": {
@@ -2321,6 +2490,54 @@
     "name": "fastfetch-dotfiles"
    }
   },
+  "fd": {
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.config/bash/conf.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\fd-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "glue": "fd"
+    },
+    "name": "fd-dotfiles"
+   },
+   "pacman\\fd": {
+    "driver": "pacman",
+    "fields": {
+     "name": "fd",
+     "repo-component": "universe"
+    },
+    "name": "fd"
+   }
+  },
+  "fd-dotfiles": {
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.config/bash/conf.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\fd-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "glue": "fd"
+    },
+    "name": "fd-dotfiles"
+   }
+  },
   "fennel": {
    "pacman\\fennel": {
     "driver": "pacman",
@@ -2499,6 +2716,38 @@
      "name": "fontconfig"
     },
     "name": "fontconfig"
+   }
+  },
+  "foot": {
+   "dotfiles\\foot-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/foot",
+      "src": "foot"
+     }
+    },
+    "name": "foot-dotfiles"
+   },
+   "pacman\\foot": {
+    "driver": "pacman",
+    "fields": {
+     "name": "foot",
+     "repo-component": "universe"
+    },
+    "name": "foot"
+   }
+  },
+  "foot-dotfiles": {
+   "dotfiles\\foot-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/foot",
+      "src": "foot"
+     }
+    },
+    "name": "foot-dotfiles"
    }
   },
   "fossil": {
@@ -2722,6 +2971,16 @@
      "name": "gcc-fortran"
     },
     "name": "gcc-fortran"
+   }
+  },
+  "gh": {
+   "pacman\\gh": {
+    "driver": "pacman",
+    "fields": {
+     "name": "github-cli",
+     "repo-component": "universe"
+    },
+    "name": "github-cli"
    }
   },
   "ghostty": {
@@ -3906,6 +4165,15 @@
      "name": "iftop"
     },
     "name": "iftop"
+   }
+  },
+  "impala": {
+   "pacman\\impala": {
+    "driver": "pacman",
+    "fields": {
+     "name": "impala"
+    },
+    "name": "impala"
    }
   },
   "inkscape": {
@@ -5272,6 +5540,16 @@
      "name": "lxqt"
     },
     "name": "lxqt"
+   }
+  },
+  "lynx": {
+   "pacman\\lynx": {
+    "driver": "pacman",
+    "fields": {
+     "name": "lynx",
+     "repo-component": "universe"
+    },
+    "name": "lynx"
    }
   },
   "lz4": {
@@ -6702,6 +6980,26 @@
     "name": "pari"
    }
   },
+  "pass": {
+   "pacman\\pass": {
+    "driver": "pacman",
+    "fields": {
+     "name": "pass",
+     "repo-component": "universe"
+    },
+    "name": "pass"
+   }
+  },
+  "pastel": {
+   "pacman\\pastel": {
+    "driver": "pacman",
+    "fields": {
+     "name": "pastel",
+     "repo-component": "universe"
+    },
+    "name": "pastel"
+   }
+  },
   "perf": {
    "pacman\\perf": {
     "driver": "pacman",
@@ -7977,6 +8275,15 @@
     "name": "rocm-hip-sdk"
    }
   },
+  "rsync": {
+   "pacman\\rsync": {
+    "driver": "pacman",
+    "fields": {
+     "name": "rsync"
+    },
+    "name": "rsync"
+   }
+  },
   "ruby": {
    "dotfiles\\bash-dotfiles": {
     "driver": "dotfiles",
@@ -8707,6 +9014,16 @@
     "name": "flatpak"
    }
   },
+  "stow": {
+   "pacman\\stow": {
+    "driver": "pacman",
+    "fields": {
+     "name": "stow",
+     "repo-component": "universe"
+    },
+    "name": "stow"
+   }
+  },
   "strace": {
    "pacman\\strace": {
     "driver": "pacman",
@@ -9390,6 +9707,15 @@
     "name": "valgrind-dotfiles"
    }
   },
+  "vaultwarden": {
+   "pacman\\vaultwarden": {
+    "driver": "pacman",
+    "fields": {
+     "name": "vaultwarden"
+    },
+    "name": "vaultwarden"
+   }
+  },
   "vcpkg": {
    "dotfiles\\bash-dotfiles": {
     "driver": "dotfiles",
@@ -9941,6 +10267,39 @@
     "name": "wavemon"
    }
   },
+  "webcamize": {
+   "aur\\webcamize": {
+    "driver": "aur",
+    "fields": {
+     "name": "webcamize"
+    },
+    "name": "webcamize"
+   },
+   "dotfiles\\git-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "~/.gitconfig",
+      "src": "gitconfig"
+     }
+    },
+    "name": "git-dotfiles"
+   },
+   "pacman\\base-devel": {
+    "driver": "pacman",
+    "fields": {
+     "name": "base-devel"
+    },
+    "name": "base-devel"
+   },
+   "pacman\\git": {
+    "driver": "pacman",
+    "fields": {
+     "name": "git"
+    },
+    "name": "git"
+   }
+  },
   "websocat": {
    "dotfiles\\bash-dotfiles": {
     "driver": "dotfiles",
@@ -10077,6 +10436,16 @@
     "name": "wireguard-tools"
    }
   },
+  "wiremix": {
+   "pacman\\wiremix": {
+    "driver": "pacman",
+    "fields": {
+     "name": "wiremix",
+     "repo-component": "universe"
+    },
+    "name": "wiremix"
+   }
+  },
   "wireshark": {
    "pacman\\wireshark": {
     "driver": "pacman",
@@ -10176,6 +10545,16 @@
      "glue": "xclip"
     },
     "name": "xclip-dotfiles"
+   }
+  },
+  "xephyr": {
+   "pacman\\xephyr": {
+    "driver": "pacman",
+    "fields": {
+     "name": "xorg-server-xephyr",
+     "repo-component": "universe"
+    },
+    "name": "xorg-server-xephyr"
    }
   },
   "xfce": {
@@ -10575,6 +10954,54 @@
      "name": "zip"
     },
     "name": "zip"
+   }
+  },
+  "zoxide": {
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.config/bash/conf.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\zoxide-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "glue": "zoxide"
+    },
+    "name": "zoxide-dotfiles"
+   },
+   "pacman\\zoxide": {
+    "driver": "pacman",
+    "fields": {
+     "name": "zoxide",
+     "repo-component": "universe"
+    },
+    "name": "zoxide"
+   }
+  },
+  "zoxide-dotfiles": {
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.config/bash/conf.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\zoxide-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "glue": "zoxide"
+    },
+    "name": "zoxide-dotfiles"
    }
   },
   "zsh": {
@@ -11264,6 +11691,23 @@
     "name": "bazelisk-dotfiles"
    }
   },
+  "bitwarden": {
+   "apt\\flatpak": {
+    "driver": "apt",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\bitwarden": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "com.bitwarden.desktop"
+    },
+    "name": "com.bitwarden.desktop"
+   }
+  },
   "blender": {
    "apt\\blender": {
     "driver": "apt",
@@ -11294,6 +11738,41 @@
      }
     },
     "name": "blender-dotfiles"
+   }
+  },
+  "bluetui": {
+   "apt\\rust": {
+    "driver": "apt",
+    "fields": {
+     "name": "rust-all",
+     "repo-component": "universe"
+    },
+    "name": "rust-all"
+   },
+   "cargo\\bluetui": {
+    "driver": "cargo",
+    "fields": {
+     "name": "bluetui"
+    },
+    "name": "bluetui"
+   },
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.config/bash/conf.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\rust-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "glue": "rust"
+    },
+    "name": "rust-dotfiles"
    }
   },
   "bmon": {
@@ -11638,6 +12117,41 @@
      "glue": "cabal"
     },
     "name": "cabal-dotfiles"
+   }
+  },
+  "caligula": {
+   "apt\\rust": {
+    "driver": "apt",
+    "fields": {
+     "name": "rust-all",
+     "repo-component": "universe"
+    },
+    "name": "rust-all"
+   },
+   "cargo\\caligula": {
+    "driver": "cargo",
+    "fields": {
+     "name": "caligula"
+    },
+    "name": "caligula"
+   },
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.config/bash/conf.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\rust-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "glue": "rust"
+    },
+    "name": "rust-dotfiles"
    }
   },
   "carla": {
@@ -12819,6 +13333,40 @@
     "name": "com.discordapp.Discord"
    }
   },
+  "discordo": {
+   "apt\\go": {
+    "driver": "apt",
+    "fields": {
+     "name": "golang-go"
+    },
+    "name": "golang-go"
+   },
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.config/bash/conf.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\go-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "glue": "go"
+    },
+    "name": "go-dotfiles"
+   },
+   "go-install\\discordo": {
+    "driver": "go-install",
+    "fields": {
+     "name": "github.com/ayn2op/discordo"
+    },
+    "name": "github.com/ayn2op/discordo"
+   }
+  },
   "dkjson": {
    "apt\\luarocks": {
     "driver": "apt",
@@ -12977,6 +13525,23 @@
     "name": "docker-service"
    }
   },
+  "doppler": {
+   "native-pkg-file\\doppler": {
+    "driver": "native-pkg-file",
+    "fields": {
+     "asset": {
+      "deb": {
+       "x86_64": "doppler_*_linux_amd64.deb"
+      }
+     },
+     "name": "doppler",
+     "version": {
+      "github": "DopplerHQ/cli"
+     }
+    },
+    "name": "doppler"
+   }
+  },
   "dotnet": {
    "dotfiles\\bash-dotfiles": {
     "driver": "dotfiles",
@@ -13081,6 +13646,67 @@
      "name": "dune"
     },
     "name": "dune"
+   }
+  },
+  "durdraw": {
+   "apt\\python3-pip": {
+    "driver": "apt",
+    "fields": {
+     "name": "python3-pip"
+    },
+    "name": "python3-pip"
+   },
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.config/bash/conf.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\pipx-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "glue": "pipx"
+    },
+    "name": "pipx-dotfiles"
+   },
+   "dotfiles\\python3-pip-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "glue": "python3-pip"
+    },
+    "name": "python3-pip-dotfiles"
+   },
+   "pip\\pipx": {
+    "driver": "pip",
+    "fields": {
+     "name": "pipx",
+     "version": {
+      "pypi": "pipx"
+     }
+    },
+    "name": "pipx"
+   },
+   "pipx\\durdraw": {
+    "driver": "pipx",
+    "fields": {
+     "name": "durdraw"
+    },
+    "name": "durdraw"
+   }
+  },
+  "dysk": {
+   "apt\\dysk": {
+    "driver": "apt",
+    "fields": {
+     "name": "dysk",
+     "repo-component": "universe"
+    },
+    "name": "dysk"
    }
   },
   "edge": {
@@ -13302,6 +13928,54 @@
     "name": "fastfetch-dotfiles"
    }
   },
+  "fd": {
+   "apt\\fd": {
+    "driver": "apt",
+    "fields": {
+     "name": "fd-find",
+     "repo-component": "universe"
+    },
+    "name": "fd-find"
+   },
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.config/bash/conf.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\fd-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "glue": "fd"
+    },
+    "name": "fd-dotfiles"
+   }
+  },
+  "fd-dotfiles": {
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.config/bash/conf.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\fd-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "glue": "fd"
+    },
+    "name": "fd-dotfiles"
+   }
+  },
   "fennel": {
    "apt\\lua": {
     "driver": "apt",
@@ -13473,6 +14147,38 @@
      "name": "fontconfig"
     },
     "name": "fontconfig"
+   }
+  },
+  "foot": {
+   "apt\\foot": {
+    "driver": "apt",
+    "fields": {
+     "name": "foot",
+     "repo-component": "universe"
+    },
+    "name": "foot"
+   },
+   "dotfiles\\foot-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/foot",
+      "src": "foot"
+     }
+    },
+    "name": "foot-dotfiles"
+   }
+  },
+  "foot-dotfiles": {
+   "dotfiles\\foot-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/foot",
+      "src": "foot"
+     }
+    },
+    "name": "foot-dotfiles"
    }
   },
   "fossil": {
@@ -13987,6 +14693,16 @@
      "name": "gfortran"
     },
     "name": "gfortran"
+   }
+  },
+  "gh": {
+   "apt\\gh": {
+    "driver": "apt",
+    "fields": {
+     "name": "gh",
+     "repo-component": "universe"
+    },
+    "name": "gh"
    }
   },
   "ghostty": {
@@ -15178,6 +15894,41 @@
      "name": "iftop"
     },
     "name": "iftop"
+   }
+  },
+  "impala": {
+   "apt\\rust": {
+    "driver": "apt",
+    "fields": {
+     "name": "rust-all",
+     "repo-component": "universe"
+    },
+    "name": "rust-all"
+   },
+   "cargo\\impala": {
+    "driver": "cargo",
+    "fields": {
+     "name": "impala"
+    },
+    "name": "impala"
+   },
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.config/bash/conf.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\rust-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "glue": "rust"
+    },
+    "name": "rust-dotfiles"
    }
   },
   "inkscape": {
@@ -16700,6 +17451,16 @@
     "name": "lxqt"
    }
   },
+  "lynx": {
+   "apt\\lynx": {
+    "driver": "apt",
+    "fields": {
+     "name": "lynx",
+     "repo-component": "universe"
+    },
+    "name": "lynx"
+   }
+  },
   "lz4": {
    "apt\\lz4": {
     "driver": "apt",
@@ -18159,6 +18920,26 @@
     "name": "pari-gp"
    }
   },
+  "pass": {
+   "apt\\pass": {
+    "driver": "apt",
+    "fields": {
+     "name": "pass",
+     "repo-component": "universe"
+    },
+    "name": "pass"
+   }
+  },
+  "pastel": {
+   "apt\\pastel": {
+    "driver": "apt",
+    "fields": {
+     "name": "pastel",
+     "repo-component": "universe"
+    },
+    "name": "pastel"
+   }
+  },
   "perf": {
    "apt\\perf": {
     "driver": "apt",
@@ -19213,6 +19994,15 @@
     "name": "rocm-hip-sdk"
    }
   },
+  "rsync": {
+   "apt\\rsync": {
+    "driver": "apt",
+    "fields": {
+     "name": "rsync"
+    },
+    "name": "rsync"
+   }
+  },
   "ruby": {
    "apt\\ruby": {
     "driver": "apt",
@@ -19868,6 +20658,16 @@
      "name": "com.valvesoftware.Steam"
     },
     "name": "com.valvesoftware.Steam"
+   }
+  },
+  "stow": {
+   "apt\\stow": {
+    "driver": "apt",
+    "fields": {
+     "name": "stow",
+     "repo-component": "universe"
+    },
+    "name": "stow"
    }
   },
   "strace": {
@@ -21139,6 +21939,16 @@
     "name": "wireguard"
    }
   },
+  "wiremix": {
+   "apt\\wiremix": {
+    "driver": "apt",
+    "fields": {
+     "name": "wiremix",
+     "repo-component": "universe"
+    },
+    "name": "wiremix"
+   }
+  },
   "wireshark": {
    "apt\\wireshark": {
     "driver": "apt",
@@ -21222,6 +22032,16 @@
      "glue": "xclip"
     },
     "name": "xclip-dotfiles"
+   }
+  },
+  "xephyr": {
+   "apt\\xephyr": {
+    "driver": "apt",
+    "fields": {
+     "name": "xserver-xephyr",
+     "repo-component": "universe"
+    },
+    "name": "xserver-xephyr"
    }
   },
   "xfce": {
@@ -21656,6 +22476,54 @@
      "name": "zip"
     },
     "name": "zip"
+   }
+  },
+  "zoxide": {
+   "apt\\zoxide": {
+    "driver": "apt",
+    "fields": {
+     "name": "zoxide",
+     "repo-component": "universe"
+    },
+    "name": "zoxide"
+   },
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.config/bash/conf.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\zoxide-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "glue": "zoxide"
+    },
+    "name": "zoxide-dotfiles"
+   }
+  },
+  "zoxide-dotfiles": {
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.config/bash/conf.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\zoxide-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "glue": "zoxide"
+    },
+    "name": "zoxide-dotfiles"
    }
   },
   "zsh": {
@@ -22311,6 +23179,23 @@
     "name": "bazelisk-dotfiles"
    }
   },
+  "bitwarden": {
+   "apt\\flatpak": {
+    "driver": "apt",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\bitwarden": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "com.bitwarden.desktop"
+    },
+    "name": "com.bitwarden.desktop"
+   }
+  },
   "blender": {
    "apt\\blender": {
     "driver": "apt",
@@ -22341,6 +23226,41 @@
      }
     },
     "name": "blender-dotfiles"
+   }
+  },
+  "bluetui": {
+   "apt\\rust": {
+    "driver": "apt",
+    "fields": {
+     "name": "rust-all",
+     "repo-component": "universe"
+    },
+    "name": "rust-all"
+   },
+   "cargo\\bluetui": {
+    "driver": "cargo",
+    "fields": {
+     "name": "bluetui"
+    },
+    "name": "bluetui"
+   },
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.config/bash/conf.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\rust-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "glue": "rust"
+    },
+    "name": "rust-dotfiles"
    }
   },
   "bmon": {
@@ -22685,6 +23605,41 @@
      "glue": "cabal"
     },
     "name": "cabal-dotfiles"
+   }
+  },
+  "caligula": {
+   "apt\\rust": {
+    "driver": "apt",
+    "fields": {
+     "name": "rust-all",
+     "repo-component": "universe"
+    },
+    "name": "rust-all"
+   },
+   "cargo\\caligula": {
+    "driver": "cargo",
+    "fields": {
+     "name": "caligula"
+    },
+    "name": "caligula"
+   },
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.config/bash/conf.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\rust-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "glue": "rust"
+    },
+    "name": "rust-dotfiles"
    }
   },
   "carla": {
@@ -23849,6 +24804,40 @@
     "name": "com.discordapp.Discord"
    }
   },
+  "discordo": {
+   "apt\\go": {
+    "driver": "apt",
+    "fields": {
+     "name": "golang-go"
+    },
+    "name": "golang-go"
+   },
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.config/bash/conf.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\go-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "glue": "go"
+    },
+    "name": "go-dotfiles"
+   },
+   "go-install\\discordo": {
+    "driver": "go-install",
+    "fields": {
+     "name": "github.com/ayn2op/discordo"
+    },
+    "name": "github.com/ayn2op/discordo"
+   }
+  },
   "dkjson": {
    "apt\\luarocks": {
     "driver": "apt",
@@ -24007,6 +24996,23 @@
     "name": "docker-service"
    }
   },
+  "doppler": {
+   "native-pkg-file\\doppler": {
+    "driver": "native-pkg-file",
+    "fields": {
+     "asset": {
+      "deb": {
+       "x86_64": "doppler_*_linux_amd64.deb"
+      }
+     },
+     "name": "doppler",
+     "version": {
+      "github": "DopplerHQ/cli"
+     }
+    },
+    "name": "doppler"
+   }
+  },
   "dotnet": {
    "dotfiles\\bash-dotfiles": {
     "driver": "dotfiles",
@@ -24111,6 +25117,50 @@
      "name": "dune"
     },
     "name": "dune"
+   }
+  },
+  "durdraw": {
+   "apt\\pipx": {
+    "driver": "apt",
+    "fields": {
+     "name": "pipx"
+    },
+    "name": "pipx"
+   },
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.config/bash/conf.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\pipx-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "glue": "pipx"
+    },
+    "name": "pipx-dotfiles"
+   },
+   "pipx\\durdraw": {
+    "driver": "pipx",
+    "fields": {
+     "name": "durdraw"
+    },
+    "name": "durdraw"
+   }
+  },
+  "dysk": {
+   "apt\\dysk": {
+    "driver": "apt",
+    "fields": {
+     "name": "dysk",
+     "repo-component": "universe"
+    },
+    "name": "dysk"
    }
   },
   "edge": {
@@ -24332,6 +25382,54 @@
     "name": "fastfetch-dotfiles"
    }
   },
+  "fd": {
+   "apt\\fd": {
+    "driver": "apt",
+    "fields": {
+     "name": "fd-find",
+     "repo-component": "universe"
+    },
+    "name": "fd-find"
+   },
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.config/bash/conf.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\fd-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "glue": "fd"
+    },
+    "name": "fd-dotfiles"
+   }
+  },
+  "fd-dotfiles": {
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.config/bash/conf.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\fd-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "glue": "fd"
+    },
+    "name": "fd-dotfiles"
+   }
+  },
   "fennel": {
    "apt\\lua": {
     "driver": "apt",
@@ -24503,6 +25601,38 @@
      "name": "fontconfig"
     },
     "name": "fontconfig"
+   }
+  },
+  "foot": {
+   "apt\\foot": {
+    "driver": "apt",
+    "fields": {
+     "name": "foot",
+     "repo-component": "universe"
+    },
+    "name": "foot"
+   },
+   "dotfiles\\foot-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/foot",
+      "src": "foot"
+     }
+    },
+    "name": "foot-dotfiles"
+   }
+  },
+  "foot-dotfiles": {
+   "dotfiles\\foot-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/foot",
+      "src": "foot"
+     }
+    },
+    "name": "foot-dotfiles"
    }
   },
   "fossil": {
@@ -25017,6 +26147,16 @@
      "name": "gfortran"
     },
     "name": "gfortran"
+   }
+  },
+  "gh": {
+   "apt\\gh": {
+    "driver": "apt",
+    "fields": {
+     "name": "gh",
+     "repo-component": "universe"
+    },
+    "name": "gh"
    }
   },
   "ghostty": {
@@ -26191,6 +27331,41 @@
      "name": "iftop"
     },
     "name": "iftop"
+   }
+  },
+  "impala": {
+   "apt\\rust": {
+    "driver": "apt",
+    "fields": {
+     "name": "rust-all",
+     "repo-component": "universe"
+    },
+    "name": "rust-all"
+   },
+   "cargo\\impala": {
+    "driver": "cargo",
+    "fields": {
+     "name": "impala"
+    },
+    "name": "impala"
+   },
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.config/bash/conf.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\rust-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "glue": "rust"
+    },
+    "name": "rust-dotfiles"
    }
   },
   "inkscape": {
@@ -27679,6 +28854,16 @@
     "name": "lxqt"
    }
   },
+  "lynx": {
+   "apt\\lynx": {
+    "driver": "apt",
+    "fields": {
+     "name": "lynx",
+     "repo-component": "universe"
+    },
+    "name": "lynx"
+   }
+  },
   "lz4": {
    "apt\\lz4": {
     "driver": "apt",
@@ -29104,6 +30289,26 @@
     "name": "pari-gp"
    }
   },
+  "pass": {
+   "apt\\pass": {
+    "driver": "apt",
+    "fields": {
+     "name": "pass",
+     "repo-component": "universe"
+    },
+    "name": "pass"
+   }
+  },
+  "pastel": {
+   "apt\\pastel": {
+    "driver": "apt",
+    "fields": {
+     "name": "pastel",
+     "repo-component": "universe"
+    },
+    "name": "pastel"
+   }
+  },
   "perf": {
    "apt\\perf": {
     "driver": "apt",
@@ -30107,6 +31312,15 @@
     "name": "rocm-hip-sdk"
    }
   },
+  "rsync": {
+   "apt\\rsync": {
+    "driver": "apt",
+    "fields": {
+     "name": "rsync"
+    },
+    "name": "rsync"
+   }
+  },
   "ruby": {
    "apt\\ruby": {
     "driver": "apt",
@@ -30745,6 +31959,16 @@
      "name": "com.valvesoftware.Steam"
     },
     "name": "com.valvesoftware.Steam"
+   }
+  },
+  "stow": {
+   "apt\\stow": {
+    "driver": "apt",
+    "fields": {
+     "name": "stow",
+     "repo-component": "universe"
+    },
+    "name": "stow"
    }
   },
   "strace": {
@@ -31999,6 +33223,16 @@
     "name": "wireguard"
    }
   },
+  "wiremix": {
+   "apt\\wiremix": {
+    "driver": "apt",
+    "fields": {
+     "name": "wiremix",
+     "repo-component": "universe"
+    },
+    "name": "wiremix"
+   }
+  },
   "wireshark": {
    "apt\\wireshark": {
     "driver": "apt",
@@ -32082,6 +33316,16 @@
      "glue": "xclip"
     },
     "name": "xclip-dotfiles"
+   }
+  },
+  "xephyr": {
+   "apt\\xephyr": {
+    "driver": "apt",
+    "fields": {
+     "name": "xserver-xephyr",
+     "repo-component": "universe"
+    },
+    "name": "xserver-xephyr"
    }
   },
   "xfce": {
@@ -32499,6 +33743,54 @@
      "name": "zip"
     },
     "name": "zip"
+   }
+  },
+  "zoxide": {
+   "apt\\zoxide": {
+    "driver": "apt",
+    "fields": {
+     "name": "zoxide",
+     "repo-component": "universe"
+    },
+    "name": "zoxide"
+   },
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.config/bash/conf.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\zoxide-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "glue": "zoxide"
+    },
+    "name": "zoxide-dotfiles"
+   }
+  },
+  "zoxide-dotfiles": {
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.config/bash/conf.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\zoxide-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "glue": "zoxide"
+    },
+    "name": "zoxide-dotfiles"
    }
   },
   "zsh": {
@@ -33154,6 +34446,23 @@
     "name": "bazelisk-dotfiles"
    }
   },
+  "bitwarden": {
+   "apt\\flatpak": {
+    "driver": "apt",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\bitwarden": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "com.bitwarden.desktop"
+    },
+    "name": "com.bitwarden.desktop"
+   }
+  },
   "blender": {
    "apt\\blender": {
     "driver": "apt",
@@ -33184,6 +34493,41 @@
      }
     },
     "name": "blender-dotfiles"
+   }
+  },
+  "bluetui": {
+   "apt\\rust": {
+    "driver": "apt",
+    "fields": {
+     "name": "rust-all",
+     "repo-component": "universe"
+    },
+    "name": "rust-all"
+   },
+   "cargo\\bluetui": {
+    "driver": "cargo",
+    "fields": {
+     "name": "bluetui"
+    },
+    "name": "bluetui"
+   },
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.config/bash/conf.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\rust-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "glue": "rust"
+    },
+    "name": "rust-dotfiles"
    }
   },
   "bmon": {
@@ -33528,6 +34872,41 @@
      "glue": "cabal"
     },
     "name": "cabal-dotfiles"
+   }
+  },
+  "caligula": {
+   "apt\\rust": {
+    "driver": "apt",
+    "fields": {
+     "name": "rust-all",
+     "repo-component": "universe"
+    },
+    "name": "rust-all"
+   },
+   "cargo\\caligula": {
+    "driver": "cargo",
+    "fields": {
+     "name": "caligula"
+    },
+    "name": "caligula"
+   },
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.config/bash/conf.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\rust-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "glue": "rust"
+    },
+    "name": "rust-dotfiles"
    }
   },
   "carla": {
@@ -34700,6 +36079,40 @@
     "name": "com.discordapp.Discord"
    }
   },
+  "discordo": {
+   "apt\\go": {
+    "driver": "apt",
+    "fields": {
+     "name": "golang-go"
+    },
+    "name": "golang-go"
+   },
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.config/bash/conf.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\go-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "glue": "go"
+    },
+    "name": "go-dotfiles"
+   },
+   "go-install\\discordo": {
+    "driver": "go-install",
+    "fields": {
+     "name": "github.com/ayn2op/discordo"
+    },
+    "name": "github.com/ayn2op/discordo"
+   }
+  },
   "dkjson": {
    "apt\\luarocks": {
     "driver": "apt",
@@ -34858,6 +36271,23 @@
     "name": "docker-service"
    }
   },
+  "doppler": {
+   "native-pkg-file\\doppler": {
+    "driver": "native-pkg-file",
+    "fields": {
+     "asset": {
+      "deb": {
+       "x86_64": "doppler_*_linux_amd64.deb"
+      }
+     },
+     "name": "doppler",
+     "version": {
+      "github": "DopplerHQ/cli"
+     }
+    },
+    "name": "doppler"
+   }
+  },
   "dotnet": {
    "apt\\dotnet": {
     "driver": "apt",
@@ -34957,6 +36387,50 @@
      "name": "dune"
     },
     "name": "dune"
+   }
+  },
+  "durdraw": {
+   "apt\\pipx": {
+    "driver": "apt",
+    "fields": {
+     "name": "pipx"
+    },
+    "name": "pipx"
+   },
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.config/bash/conf.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\pipx-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "glue": "pipx"
+    },
+    "name": "pipx-dotfiles"
+   },
+   "pipx\\durdraw": {
+    "driver": "pipx",
+    "fields": {
+     "name": "durdraw"
+    },
+    "name": "durdraw"
+   }
+  },
+  "dysk": {
+   "apt\\dysk": {
+    "driver": "apt",
+    "fields": {
+     "name": "dysk",
+     "repo-component": "universe"
+    },
+    "name": "dysk"
    }
   },
   "edge": {
@@ -35178,6 +36652,54 @@
     "name": "fastfetch-dotfiles"
    }
   },
+  "fd": {
+   "apt\\fd": {
+    "driver": "apt",
+    "fields": {
+     "name": "fd-find",
+     "repo-component": "universe"
+    },
+    "name": "fd-find"
+   },
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.config/bash/conf.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\fd-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "glue": "fd"
+    },
+    "name": "fd-dotfiles"
+   }
+  },
+  "fd-dotfiles": {
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.config/bash/conf.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\fd-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "glue": "fd"
+    },
+    "name": "fd-dotfiles"
+   }
+  },
   "fennel": {
    "apt\\lua": {
     "driver": "apt",
@@ -35349,6 +36871,38 @@
      "name": "fontconfig"
     },
     "name": "fontconfig"
+   }
+  },
+  "foot": {
+   "apt\\foot": {
+    "driver": "apt",
+    "fields": {
+     "name": "foot",
+     "repo-component": "universe"
+    },
+    "name": "foot"
+   },
+   "dotfiles\\foot-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/foot",
+      "src": "foot"
+     }
+    },
+    "name": "foot-dotfiles"
+   }
+  },
+  "foot-dotfiles": {
+   "dotfiles\\foot-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/foot",
+      "src": "foot"
+     }
+    },
+    "name": "foot-dotfiles"
    }
   },
   "fossil": {
@@ -35863,6 +37417,16 @@
      "name": "gfortran"
     },
     "name": "gfortran"
+   }
+  },
+  "gh": {
+   "apt\\gh": {
+    "driver": "apt",
+    "fields": {
+     "name": "gh",
+     "repo-component": "universe"
+    },
+    "name": "gh"
    }
   },
   "ghostty": {
@@ -37037,6 +38601,41 @@
      "name": "iftop"
     },
     "name": "iftop"
+   }
+  },
+  "impala": {
+   "apt\\rust": {
+    "driver": "apt",
+    "fields": {
+     "name": "rust-all",
+     "repo-component": "universe"
+    },
+    "name": "rust-all"
+   },
+   "cargo\\impala": {
+    "driver": "cargo",
+    "fields": {
+     "name": "impala"
+    },
+    "name": "impala"
+   },
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.config/bash/conf.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\rust-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "glue": "rust"
+    },
+    "name": "rust-dotfiles"
    }
   },
   "inkscape": {
@@ -38518,6 +40117,16 @@
     "name": "lxqt"
    }
   },
+  "lynx": {
+   "apt\\lynx": {
+    "driver": "apt",
+    "fields": {
+     "name": "lynx",
+     "repo-component": "universe"
+    },
+    "name": "lynx"
+   }
+  },
   "lz4": {
    "apt\\lz4": {
     "driver": "apt",
@@ -39943,6 +41552,26 @@
     "name": "pari-gp"
    }
   },
+  "pass": {
+   "apt\\pass": {
+    "driver": "apt",
+    "fields": {
+     "name": "pass",
+     "repo-component": "universe"
+    },
+    "name": "pass"
+   }
+  },
+  "pastel": {
+   "apt\\pastel": {
+    "driver": "apt",
+    "fields": {
+     "name": "pastel",
+     "repo-component": "universe"
+    },
+    "name": "pastel"
+   }
+  },
   "perf": {
    "apt\\perf": {
     "driver": "apt",
@@ -40959,6 +42588,15 @@
     "name": "rocm-hip-sdk"
    }
   },
+  "rsync": {
+   "apt\\rsync": {
+    "driver": "apt",
+    "fields": {
+     "name": "rsync"
+    },
+    "name": "rsync"
+   }
+  },
   "ruby": {
    "apt\\ruby": {
     "driver": "apt",
@@ -41597,6 +43235,16 @@
      "name": "com.valvesoftware.Steam"
     },
     "name": "com.valvesoftware.Steam"
+   }
+  },
+  "stow": {
+   "apt\\stow": {
+    "driver": "apt",
+    "fields": {
+     "name": "stow",
+     "repo-component": "universe"
+    },
+    "name": "stow"
    }
   },
   "strace": {
@@ -42851,6 +44499,16 @@
     "name": "wireguard"
    }
   },
+  "wiremix": {
+   "apt\\wiremix": {
+    "driver": "apt",
+    "fields": {
+     "name": "wiremix",
+     "repo-component": "universe"
+    },
+    "name": "wiremix"
+   }
+  },
   "wireshark": {
    "apt\\wireshark": {
     "driver": "apt",
@@ -42934,6 +44592,16 @@
      "glue": "xclip"
     },
     "name": "xclip-dotfiles"
+   }
+  },
+  "xephyr": {
+   "apt\\xephyr": {
+    "driver": "apt",
+    "fields": {
+     "name": "xserver-xephyr",
+     "repo-component": "universe"
+    },
+    "name": "xserver-xephyr"
    }
   },
   "xfce": {
@@ -43351,6 +45019,54 @@
      "name": "zip"
     },
     "name": "zip"
+   }
+  },
+  "zoxide": {
+   "apt\\zoxide": {
+    "driver": "apt",
+    "fields": {
+     "name": "zoxide",
+     "repo-component": "universe"
+    },
+    "name": "zoxide"
+   },
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.config/bash/conf.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\zoxide-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "glue": "zoxide"
+    },
+    "name": "zoxide-dotfiles"
+   }
+  },
+  "zoxide-dotfiles": {
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.config/bash/conf.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\zoxide-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "glue": "zoxide"
+    },
+    "name": "zoxide-dotfiles"
    }
   },
   "zsh": {
@@ -43833,6 +45549,15 @@
     "name": "bash-dotfiles"
    }
   },
+  "astroterm": {
+   "dnf\\astroterm": {
+    "driver": "dnf",
+    "fields": {
+     "name": "astroterm"
+    },
+    "name": "astroterm"
+   }
+  },
   "atop": {
    "dnf\\atop": {
     "driver": "dnf",
@@ -44012,6 +45737,23 @@
     "name": "bazelisk-dotfiles"
    }
   },
+  "bitwarden": {
+   "dnf\\flatpak": {
+    "driver": "dnf",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\bitwarden": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "com.bitwarden.desktop"
+    },
+    "name": "com.bitwarden.desktop"
+   }
+  },
   "blender": {
    "dnf\\blender": {
     "driver": "dnf",
@@ -44042,6 +45784,41 @@
      }
     },
     "name": "blender-dotfiles"
+   }
+  },
+  "bluetui": {
+   "cargo\\bluetui": {
+    "driver": "cargo",
+    "fields": {
+     "name": "bluetui"
+    },
+    "name": "bluetui"
+   },
+   "dnf\\rust": {
+    "driver": "dnf",
+    "fields": {
+     "name": "cargo",
+     "repo-component": "universe"
+    },
+    "name": "cargo"
+   },
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.config/bash/conf.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\rust-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "glue": "rust"
+    },
+    "name": "rust-dotfiles"
    }
   },
   "bmon": {
@@ -44386,6 +46163,41 @@
      "glue": "cabal"
     },
     "name": "cabal-dotfiles"
+   }
+  },
+  "caligula": {
+   "cargo\\caligula": {
+    "driver": "cargo",
+    "fields": {
+     "name": "caligula"
+    },
+    "name": "caligula"
+   },
+   "dnf\\rust": {
+    "driver": "dnf",
+    "fields": {
+     "name": "cargo",
+     "repo-component": "universe"
+    },
+    "name": "cargo"
+   },
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.config/bash/conf.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\rust-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "glue": "rust"
+    },
+    "name": "rust-dotfiles"
    }
   },
   "carla": {
@@ -45417,6 +47229,40 @@
     "name": "com.discordapp.Discord"
    }
   },
+  "discordo": {
+   "dnf\\go": {
+    "driver": "dnf",
+    "fields": {
+     "name": "golang"
+    },
+    "name": "golang"
+   },
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.config/bash/conf.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\go-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "glue": "go"
+    },
+    "name": "go-dotfiles"
+   },
+   "go-install\\discordo": {
+    "driver": "go-install",
+    "fields": {
+     "name": "github.com/ayn2op/discordo"
+    },
+    "name": "github.com/ayn2op/discordo"
+   }
+  },
   "dkjson": {
    "dnf\\luarocks": {
     "driver": "dnf",
@@ -45575,6 +47421,23 @@
     "name": "docker-service"
    }
   },
+  "doppler": {
+   "native-pkg-file\\doppler": {
+    "driver": "native-pkg-file",
+    "fields": {
+     "asset": {
+      "rpm": {
+       "x86_64": "doppler_*_linux_amd64.rpm"
+      }
+     },
+     "name": "doppler",
+     "version": {
+      "github": "DopplerHQ/cli"
+     }
+    },
+    "name": "doppler"
+   }
+  },
   "dotnet": {
    "dnf\\dotnet": {
     "driver": "dnf",
@@ -45665,6 +47528,75 @@
      "name": "dune"
     },
     "name": "dune"
+   }
+  },
+  "durdraw": {
+   "dnf\\pipx": {
+    "driver": "dnf",
+    "fields": {
+     "name": "pipx"
+    },
+    "name": "pipx"
+   },
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.config/bash/conf.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\pipx-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "glue": "pipx"
+    },
+    "name": "pipx-dotfiles"
+   },
+   "pipx\\durdraw": {
+    "driver": "pipx",
+    "fields": {
+     "name": "durdraw"
+    },
+    "name": "durdraw"
+   }
+  },
+  "dysk": {
+   "cargo\\dysk": {
+    "driver": "cargo",
+    "fields": {
+     "name": "dysk"
+    },
+    "name": "dysk"
+   },
+   "dnf\\rust": {
+    "driver": "dnf",
+    "fields": {
+     "name": "cargo",
+     "repo-component": "universe"
+    },
+    "name": "cargo"
+   },
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.config/bash/conf.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\rust-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "glue": "rust"
+    },
+    "name": "rust-dotfiles"
    }
   },
   "edge": {
@@ -45879,6 +47811,54 @@
     "name": "fastfetch-dotfiles"
    }
   },
+  "fd": {
+   "dnf\\fd": {
+    "driver": "dnf",
+    "fields": {
+     "name": "fd-find",
+     "repo-component": "universe"
+    },
+    "name": "fd-find"
+   },
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.config/bash/conf.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\fd-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "glue": "fd"
+    },
+    "name": "fd-dotfiles"
+   }
+  },
+  "fd-dotfiles": {
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.config/bash/conf.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\fd-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "glue": "fd"
+    },
+    "name": "fd-dotfiles"
+   }
+  },
   "fennel": {
    "dnf\\fennel": {
     "driver": "dnf",
@@ -46044,6 +48024,38 @@
      "name": "fontconfig"
     },
     "name": "fontconfig"
+   }
+  },
+  "foot": {
+   "dnf\\foot": {
+    "driver": "dnf",
+    "fields": {
+     "name": "foot",
+     "repo-component": "universe"
+    },
+    "name": "foot"
+   },
+   "dotfiles\\foot-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/foot",
+      "src": "foot"
+     }
+    },
+    "name": "foot-dotfiles"
+   }
+  },
+  "foot-dotfiles": {
+   "dotfiles\\foot-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/foot",
+      "src": "foot"
+     }
+    },
+    "name": "foot-dotfiles"
    }
   },
   "fossil": {
@@ -46287,6 +48299,16 @@
      "name": "gcc-gfortran"
     },
     "name": "gcc-gfortran"
+   }
+  },
+  "gh": {
+   "dnf\\gh": {
+    "driver": "dnf",
+    "fields": {
+     "name": "gh",
+     "repo-component": "universe"
+    },
+    "name": "gh"
    }
   },
   "ghostty": {
@@ -47540,6 +49562,41 @@
      "name": "iftop"
     },
     "name": "iftop"
+   }
+  },
+  "impala": {
+   "cargo\\impala": {
+    "driver": "cargo",
+    "fields": {
+     "name": "impala"
+    },
+    "name": "impala"
+   },
+   "dnf\\rust": {
+    "driver": "dnf",
+    "fields": {
+     "name": "cargo",
+     "repo-component": "universe"
+    },
+    "name": "cargo"
+   },
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.config/bash/conf.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\rust-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "glue": "rust"
+    },
+    "name": "rust-dotfiles"
    }
   },
   "inkscape": {
@@ -49000,6 +51057,16 @@
     "name": "lxqt-session"
    }
   },
+  "lynx": {
+   "dnf\\lynx": {
+    "driver": "dnf",
+    "fields": {
+     "name": "lynx",
+     "repo-component": "universe"
+    },
+    "name": "lynx"
+   }
+  },
   "lz4": {
    "dnf\\lz4": {
     "driver": "dnf",
@@ -50381,6 +52448,26 @@
     "name": "pari-gp"
    }
   },
+  "pass": {
+   "dnf\\pass": {
+    "driver": "dnf",
+    "fields": {
+     "name": "pass",
+     "repo-component": "universe"
+    },
+    "name": "pass"
+   }
+  },
+  "pastel": {
+   "dnf\\pastel": {
+    "driver": "dnf",
+    "fields": {
+     "name": "pastel",
+     "repo-component": "universe"
+    },
+    "name": "pastel"
+   }
+  },
   "perf": {
    "dnf\\perf": {
     "driver": "dnf",
@@ -51371,6 +53458,15 @@
     "name": "rpmfusion-free-release"
    }
   },
+  "rsync": {
+   "dnf\\rsync": {
+    "driver": "dnf",
+    "fields": {
+     "name": "rsync"
+    },
+    "name": "rsync"
+   }
+  },
   "ruby": {
    "dnf\\ruby": {
     "driver": "dnf",
@@ -51997,6 +54093,16 @@
      "name": "com.valvesoftware.Steam"
     },
     "name": "com.valvesoftware.Steam"
+   }
+  },
+  "stow": {
+   "dnf\\stow": {
+    "driver": "dnf",
+    "fields": {
+     "name": "stow",
+     "repo-component": "universe"
+    },
+    "name": "stow"
    }
   },
   "strace": {
@@ -52658,6 +54764,15 @@
     "name": "valgrind-dotfiles"
    }
   },
+  "vaultwarden": {
+   "dnf\\vaultwarden": {
+    "driver": "dnf",
+    "fields": {
+     "name": "vaultwarden"
+    },
+    "name": "vaultwarden"
+   }
+  },
   "vcpkg": {
    "dnf\\curl": {
     "driver": "dnf",
@@ -53283,6 +55398,16 @@
     "name": "wireguard-tools"
    }
   },
+  "wiremix": {
+   "dnf\\wiremix": {
+    "driver": "dnf",
+    "fields": {
+     "name": "wiremix",
+     "repo-component": "universe"
+    },
+    "name": "wiremix"
+   }
+  },
   "wireshark": {
    "dnf\\wireshark": {
     "driver": "dnf",
@@ -53375,6 +55500,16 @@
      "glue": "xclip"
     },
     "name": "xclip-dotfiles"
+   }
+  },
+  "xephyr": {
+   "dnf\\xephyr": {
+    "driver": "dnf",
+    "fields": {
+     "name": "xorg-x11-server-Xephyr",
+     "repo-component": "universe"
+    },
+    "name": "xorg-x11-server-Xephyr"
    }
   },
   "xfce": {
@@ -53791,6 +55926,54 @@
      "name": "zip"
     },
     "name": "zip"
+   }
+  },
+  "zoxide": {
+   "dnf\\zoxide": {
+    "driver": "dnf",
+    "fields": {
+     "name": "zoxide",
+     "repo-component": "universe"
+    },
+    "name": "zoxide"
+   },
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.config/bash/conf.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\zoxide-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "glue": "zoxide"
+    },
+    "name": "zoxide-dotfiles"
+   }
+  },
+  "zoxide-dotfiles": {
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.config/bash/conf.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\zoxide-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "glue": "zoxide"
+    },
+    "name": "zoxide-dotfiles"
    }
   },
   "zsh": {
@@ -54273,6 +56456,15 @@
     "name": "bash-dotfiles"
    }
   },
+  "astroterm": {
+   "dnf\\astroterm": {
+    "driver": "dnf",
+    "fields": {
+     "name": "astroterm"
+    },
+    "name": "astroterm"
+   }
+  },
   "atop": {
    "dnf\\atop": {
     "driver": "dnf",
@@ -54452,6 +56644,23 @@
     "name": "bazelisk-dotfiles"
    }
   },
+  "bitwarden": {
+   "dnf\\flatpak": {
+    "driver": "dnf",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\bitwarden": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "com.bitwarden.desktop"
+    },
+    "name": "com.bitwarden.desktop"
+   }
+  },
   "blender": {
    "dnf\\blender": {
     "driver": "dnf",
@@ -54482,6 +56691,41 @@
      }
     },
     "name": "blender-dotfiles"
+   }
+  },
+  "bluetui": {
+   "cargo\\bluetui": {
+    "driver": "cargo",
+    "fields": {
+     "name": "bluetui"
+    },
+    "name": "bluetui"
+   },
+   "dnf\\rust": {
+    "driver": "dnf",
+    "fields": {
+     "name": "cargo",
+     "repo-component": "universe"
+    },
+    "name": "cargo"
+   },
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.config/bash/conf.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\rust-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "glue": "rust"
+    },
+    "name": "rust-dotfiles"
    }
   },
   "bmon": {
@@ -54826,6 +57070,41 @@
      "glue": "cabal"
     },
     "name": "cabal-dotfiles"
+   }
+  },
+  "caligula": {
+   "cargo\\caligula": {
+    "driver": "cargo",
+    "fields": {
+     "name": "caligula"
+    },
+    "name": "caligula"
+   },
+   "dnf\\rust": {
+    "driver": "dnf",
+    "fields": {
+     "name": "cargo",
+     "repo-component": "universe"
+    },
+    "name": "cargo"
+   },
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.config/bash/conf.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\rust-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "glue": "rust"
+    },
+    "name": "rust-dotfiles"
    }
   },
   "carla": {
@@ -55883,6 +58162,40 @@
     "name": "com.discordapp.Discord"
    }
   },
+  "discordo": {
+   "dnf\\go": {
+    "driver": "dnf",
+    "fields": {
+     "name": "golang"
+    },
+    "name": "golang"
+   },
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.config/bash/conf.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\go-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "glue": "go"
+    },
+    "name": "go-dotfiles"
+   },
+   "go-install\\discordo": {
+    "driver": "go-install",
+    "fields": {
+     "name": "github.com/ayn2op/discordo"
+    },
+    "name": "github.com/ayn2op/discordo"
+   }
+  },
   "dkjson": {
    "dnf\\luarocks": {
     "driver": "dnf",
@@ -56041,6 +58354,23 @@
     "name": "docker-service"
    }
   },
+  "doppler": {
+   "native-pkg-file\\doppler": {
+    "driver": "native-pkg-file",
+    "fields": {
+     "asset": {
+      "rpm": {
+       "x86_64": "doppler_*_linux_amd64.rpm"
+      }
+     },
+     "name": "doppler",
+     "version": {
+      "github": "DopplerHQ/cli"
+     }
+    },
+    "name": "doppler"
+   }
+  },
   "dotnet": {
    "dnf\\dotnet": {
     "driver": "dnf",
@@ -56131,6 +58461,75 @@
      "name": "dune"
     },
     "name": "dune"
+   }
+  },
+  "durdraw": {
+   "dnf\\pipx": {
+    "driver": "dnf",
+    "fields": {
+     "name": "pipx"
+    },
+    "name": "pipx"
+   },
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.config/bash/conf.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\pipx-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "glue": "pipx"
+    },
+    "name": "pipx-dotfiles"
+   },
+   "pipx\\durdraw": {
+    "driver": "pipx",
+    "fields": {
+     "name": "durdraw"
+    },
+    "name": "durdraw"
+   }
+  },
+  "dysk": {
+   "cargo\\dysk": {
+    "driver": "cargo",
+    "fields": {
+     "name": "dysk"
+    },
+    "name": "dysk"
+   },
+   "dnf\\rust": {
+    "driver": "dnf",
+    "fields": {
+     "name": "cargo",
+     "repo-component": "universe"
+    },
+    "name": "cargo"
+   },
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.config/bash/conf.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\rust-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "glue": "rust"
+    },
+    "name": "rust-dotfiles"
    }
   },
   "edge": {
@@ -56345,6 +58744,54 @@
     "name": "fastfetch-dotfiles"
    }
   },
+  "fd": {
+   "dnf\\fd": {
+    "driver": "dnf",
+    "fields": {
+     "name": "fd-find",
+     "repo-component": "universe"
+    },
+    "name": "fd-find"
+   },
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.config/bash/conf.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\fd-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "glue": "fd"
+    },
+    "name": "fd-dotfiles"
+   }
+  },
+  "fd-dotfiles": {
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.config/bash/conf.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\fd-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "glue": "fd"
+    },
+    "name": "fd-dotfiles"
+   }
+  },
   "fennel": {
    "dnf\\fennel": {
     "driver": "dnf",
@@ -56510,6 +58957,38 @@
      "name": "fontconfig"
     },
     "name": "fontconfig"
+   }
+  },
+  "foot": {
+   "dnf\\foot": {
+    "driver": "dnf",
+    "fields": {
+     "name": "foot",
+     "repo-component": "universe"
+    },
+    "name": "foot"
+   },
+   "dotfiles\\foot-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/foot",
+      "src": "foot"
+     }
+    },
+    "name": "foot-dotfiles"
+   }
+  },
+  "foot-dotfiles": {
+   "dotfiles\\foot-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/foot",
+      "src": "foot"
+     }
+    },
+    "name": "foot-dotfiles"
    }
   },
   "fossil": {
@@ -56753,6 +59232,16 @@
      "name": "gcc-gfortran"
     },
     "name": "gcc-gfortran"
+   }
+  },
+  "gh": {
+   "dnf\\gh": {
+    "driver": "dnf",
+    "fields": {
+     "name": "gh",
+     "repo-component": "universe"
+    },
+    "name": "gh"
    }
   },
   "ghostty": {
@@ -58006,6 +60495,41 @@
      "name": "iftop"
     },
     "name": "iftop"
+   }
+  },
+  "impala": {
+   "cargo\\impala": {
+    "driver": "cargo",
+    "fields": {
+     "name": "impala"
+    },
+    "name": "impala"
+   },
+   "dnf\\rust": {
+    "driver": "dnf",
+    "fields": {
+     "name": "cargo",
+     "repo-component": "universe"
+    },
+    "name": "cargo"
+   },
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.config/bash/conf.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\rust-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "glue": "rust"
+    },
+    "name": "rust-dotfiles"
    }
   },
   "inkscape": {
@@ -59466,6 +61990,16 @@
     "name": "lxqt-session"
    }
   },
+  "lynx": {
+   "dnf\\lynx": {
+    "driver": "dnf",
+    "fields": {
+     "name": "lynx",
+     "repo-component": "universe"
+    },
+    "name": "lynx"
+   }
+  },
   "lz4": {
    "dnf\\lz4": {
     "driver": "dnf",
@@ -60847,6 +63381,26 @@
     "name": "pari-gp"
    }
   },
+  "pass": {
+   "dnf\\pass": {
+    "driver": "dnf",
+    "fields": {
+     "name": "pass",
+     "repo-component": "universe"
+    },
+    "name": "pass"
+   }
+  },
+  "pastel": {
+   "dnf\\pastel": {
+    "driver": "dnf",
+    "fields": {
+     "name": "pastel",
+     "repo-component": "universe"
+    },
+    "name": "pastel"
+   }
+  },
   "perf": {
    "dnf\\perf": {
     "driver": "dnf",
@@ -61837,6 +64391,15 @@
     "name": "rpmfusion-free-release"
    }
   },
+  "rsync": {
+   "dnf\\rsync": {
+    "driver": "dnf",
+    "fields": {
+     "name": "rsync"
+    },
+    "name": "rsync"
+   }
+  },
   "ruby": {
    "dnf\\ruby": {
     "driver": "dnf",
@@ -62463,6 +65026,16 @@
      "name": "com.valvesoftware.Steam"
     },
     "name": "com.valvesoftware.Steam"
+   }
+  },
+  "stow": {
+   "dnf\\stow": {
+    "driver": "dnf",
+    "fields": {
+     "name": "stow",
+     "repo-component": "universe"
+    },
+    "name": "stow"
    }
   },
   "strace": {
@@ -63124,6 +65697,15 @@
     "name": "valgrind-dotfiles"
    }
   },
+  "vaultwarden": {
+   "dnf\\vaultwarden": {
+    "driver": "dnf",
+    "fields": {
+     "name": "vaultwarden"
+    },
+    "name": "vaultwarden"
+   }
+  },
   "vcpkg": {
    "dnf\\curl": {
     "driver": "dnf",
@@ -63749,6 +66331,16 @@
     "name": "wireguard-tools"
    }
   },
+  "wiremix": {
+   "dnf\\wiremix": {
+    "driver": "dnf",
+    "fields": {
+     "name": "wiremix",
+     "repo-component": "universe"
+    },
+    "name": "wiremix"
+   }
+  },
   "wireshark": {
    "dnf\\wireshark": {
     "driver": "dnf",
@@ -63841,6 +66433,16 @@
      "glue": "xclip"
     },
     "name": "xclip-dotfiles"
+   }
+  },
+  "xephyr": {
+   "dnf\\xephyr": {
+    "driver": "dnf",
+    "fields": {
+     "name": "xorg-x11-server-Xephyr",
+     "repo-component": "universe"
+    },
+    "name": "xorg-x11-server-Xephyr"
    }
   },
   "xfce": {
@@ -64257,6 +66859,54 @@
      "name": "zip"
     },
     "name": "zip"
+   }
+  },
+  "zoxide": {
+   "dnf\\zoxide": {
+    "driver": "dnf",
+    "fields": {
+     "name": "zoxide",
+     "repo-component": "universe"
+    },
+    "name": "zoxide"
+   },
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.config/bash/conf.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\zoxide-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "glue": "zoxide"
+    },
+    "name": "zoxide-dotfiles"
+   }
+  },
+  "zoxide-dotfiles": {
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.config/bash/conf.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\zoxide-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "glue": "zoxide"
+    },
+    "name": "zoxide-dotfiles"
    }
   },
   "zsh": {
@@ -64686,6 +67336,15 @@
     "name": "bash-dotfiles"
    }
   },
+  "astroterm": {
+   "brew\\astroterm": {
+    "driver": "brew",
+    "fields": {
+     "name": "astroterm"
+    },
+    "name": "astroterm"
+   }
+  },
   "awscli": {
    "brew\\curl": {
     "driver": "brew",
@@ -64842,6 +67501,16 @@
     "name": "bazelisk-dotfiles"
    }
   },
+  "bitwarden": {
+   "flatpak\\bitwarden": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "com.bitwarden.desktop"
+    },
+    "name": "com.bitwarden.desktop"
+   }
+  },
   "blender": {
    "dotfiles\\blender-dotfiles": {
     "driver": "dotfiles",
@@ -64872,6 +67541,41 @@
      }
     },
     "name": "blender-dotfiles"
+   }
+  },
+  "bluetui": {
+   "brew\\rust": {
+    "driver": "brew",
+    "fields": {
+     "name": "rust",
+     "repo-component": "universe"
+    },
+    "name": "rust"
+   },
+   "cargo\\bluetui": {
+    "driver": "cargo",
+    "fields": {
+     "name": "bluetui"
+    },
+    "name": "bluetui"
+   },
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.config/bash/conf.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\rust-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "glue": "rust"
+    },
+    "name": "rust-dotfiles"
    }
   },
   "bottom": {
@@ -65129,6 +67833,15 @@
      "glue": "cabal"
     },
     "name": "cabal-dotfiles"
+   }
+  },
+  "caligula": {
+   "brew\\caligula": {
+    "driver": "brew",
+    "fields": {
+     "name": "caligula"
+    },
+    "name": "caligula"
    }
   },
   "carla": {
@@ -65783,6 +68496,40 @@
     "name": "com.discordapp.Discord"
    }
   },
+  "discordo": {
+   "brew\\go": {
+    "driver": "brew",
+    "fields": {
+     "name": "go"
+    },
+    "name": "go"
+   },
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.config/bash/conf.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\go-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "glue": "go"
+    },
+    "name": "go-dotfiles"
+   },
+   "go-install\\discordo": {
+    "driver": "go-install",
+    "fields": {
+     "name": "github.com/ayn2op/discordo"
+    },
+    "name": "github.com/ayn2op/discordo"
+   }
+  },
   "dkjson": {
    "brew\\luarocks": {
     "driver": "brew",
@@ -66006,6 +68753,50 @@
     "name": "dune"
    }
   },
+  "durdraw": {
+   "brew\\pipx": {
+    "driver": "brew",
+    "fields": {
+     "name": "pipx"
+    },
+    "name": "pipx"
+   },
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.config/bash/conf.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\pipx-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "glue": "pipx"
+    },
+    "name": "pipx-dotfiles"
+   },
+   "pipx\\durdraw": {
+    "driver": "pipx",
+    "fields": {
+     "name": "durdraw"
+    },
+    "name": "durdraw"
+   }
+  },
+  "dysk": {
+   "brew\\dysk": {
+    "driver": "brew",
+    "fields": {
+     "name": "dysk",
+     "repo-component": "universe"
+    },
+    "name": "dysk"
+   }
+  },
   "edge": {
    "flatpak\\edge": {
     "driver": "flatpak",
@@ -66178,6 +68969,54 @@
     "name": "fastfetch-dotfiles"
    }
   },
+  "fd": {
+   "brew\\fd": {
+    "driver": "brew",
+    "fields": {
+     "name": "fd",
+     "repo-component": "universe"
+    },
+    "name": "fd"
+   },
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.config/bash/conf.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\fd-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "glue": "fd"
+    },
+    "name": "fd-dotfiles"
+   }
+  },
+  "fd-dotfiles": {
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.config/bash/conf.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\fd-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "glue": "fd"
+    },
+    "name": "fd-dotfiles"
+   }
+  },
   "fennel": {
    "brew\\fennel": {
     "driver": "brew",
@@ -66323,6 +69162,18 @@
      "name": "fontconfig"
     },
     "name": "fontconfig"
+   }
+  },
+  "foot-dotfiles": {
+   "dotfiles\\foot-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/foot",
+      "src": "foot"
+     }
+    },
+    "name": "foot-dotfiles"
    }
   },
   "fossil": {
@@ -66545,6 +69396,16 @@
      "name": "gcc"
     },
     "name": "gcc"
+   }
+  },
+  "gh": {
+   "brew\\gh": {
+    "driver": "brew",
+    "fields": {
+     "name": "gh",
+     "repo-component": "universe"
+    },
+    "name": "gh"
    }
   },
   "ghostty": {
@@ -67435,6 +70296,41 @@
      "name": "iftop"
     },
     "name": "iftop"
+   }
+  },
+  "impala": {
+   "brew\\rust": {
+    "driver": "brew",
+    "fields": {
+     "name": "rust",
+     "repo-component": "universe"
+    },
+    "name": "rust"
+   },
+   "cargo\\impala": {
+    "driver": "cargo",
+    "fields": {
+     "name": "impala"
+    },
+    "name": "impala"
+   },
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.config/bash/conf.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\rust-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "glue": "rust"
+    },
+    "name": "rust-dotfiles"
    }
   },
   "inkscape": {
@@ -68699,6 +71595,16 @@
     "name": "luarocks-dotfiles"
    }
   },
+  "lynx": {
+   "brew\\lynx": {
+    "driver": "brew",
+    "fields": {
+     "name": "lynx",
+     "repo-component": "universe"
+    },
+    "name": "lynx"
+   }
+  },
   "lz4": {
    "brew\\lz4": {
     "driver": "brew",
@@ -69861,6 +72767,26 @@
     "name": "pari"
    }
   },
+  "pass": {
+   "brew\\pass": {
+    "driver": "brew",
+    "fields": {
+     "name": "pass",
+     "repo-component": "universe"
+    },
+    "name": "pass"
+   }
+  },
+  "pastel": {
+   "brew\\pastel": {
+    "driver": "brew",
+    "fields": {
+     "name": "pastel",
+     "repo-component": "universe"
+    },
+    "name": "pastel"
+   }
+  },
   "perf": {
    "brew\\perf": {
     "driver": "brew",
@@ -70619,6 +73545,15 @@
     "name": "rocm-hip"
    }
   },
+  "rsync": {
+   "brew\\rsync": {
+    "driver": "brew",
+    "fields": {
+     "name": "rsync"
+    },
+    "name": "rsync"
+   }
+  },
   "ruby": {
    "brew\\ruby": {
     "driver": "brew",
@@ -71199,6 +74134,16 @@
      "name": "com.valvesoftware.Steam"
     },
     "name": "com.valvesoftware.Steam"
+   }
+  },
+  "stow": {
+   "brew\\stow": {
+    "driver": "brew",
+    "fields": {
+     "name": "stow",
+     "repo-component": "universe"
+    },
+    "name": "stow"
    }
   },
   "strace": {
@@ -72132,6 +75077,41 @@
     "name": "wireguard-tools"
    }
   },
+  "wiremix": {
+   "brew\\rust": {
+    "driver": "brew",
+    "fields": {
+     "name": "rust",
+     "repo-component": "universe"
+    },
+    "name": "rust"
+   },
+   "cargo\\wiremix": {
+    "driver": "cargo",
+    "fields": {
+     "name": "wiremix"
+    },
+    "name": "wiremix"
+   },
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.config/bash/conf.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\rust-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "glue": "rust"
+    },
+    "name": "rust-dotfiles"
+   }
+  },
   "wireshark": {
    "flatpak\\wireshark": {
     "driver": "flatpak",
@@ -72535,6 +75515,54 @@
      "name": "zip"
     },
     "name": "zip"
+   }
+  },
+  "zoxide": {
+   "brew\\zoxide": {
+    "driver": "brew",
+    "fields": {
+     "name": "zoxide",
+     "repo-component": "universe"
+    },
+    "name": "zoxide"
+   },
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.config/bash/conf.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\zoxide-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "glue": "zoxide"
+    },
+    "name": "zoxide-dotfiles"
+   }
+  },
+  "zoxide-dotfiles": {
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.config/bash/conf.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\zoxide-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "glue": "zoxide"
+    },
+    "name": "zoxide-dotfiles"
    }
   },
   "zsh": {
@@ -73224,6 +76252,23 @@
     "name": "bazelisk-dotfiles"
    }
   },
+  "bitwarden": {
+   "apt\\flatpak": {
+    "driver": "apt",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\bitwarden": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "com.bitwarden.desktop"
+    },
+    "name": "com.bitwarden.desktop"
+   }
+  },
   "blender": {
    "apt\\blender": {
     "driver": "apt",
@@ -73254,6 +76299,41 @@
      }
     },
     "name": "blender-dotfiles"
+   }
+  },
+  "bluetui": {
+   "apt\\rust": {
+    "driver": "apt",
+    "fields": {
+     "name": "rust-all",
+     "repo-component": "universe"
+    },
+    "name": "rust-all"
+   },
+   "cargo\\bluetui": {
+    "driver": "cargo",
+    "fields": {
+     "name": "bluetui"
+    },
+    "name": "bluetui"
+   },
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.config/bash/conf.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\rust-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "glue": "rust"
+    },
+    "name": "rust-dotfiles"
    }
   },
   "bmon": {
@@ -73598,6 +76678,41 @@
      "glue": "cabal"
     },
     "name": "cabal-dotfiles"
+   }
+  },
+  "caligula": {
+   "apt\\rust": {
+    "driver": "apt",
+    "fields": {
+     "name": "rust-all",
+     "repo-component": "universe"
+    },
+    "name": "rust-all"
+   },
+   "cargo\\caligula": {
+    "driver": "cargo",
+    "fields": {
+     "name": "caligula"
+    },
+    "name": "caligula"
+   },
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.config/bash/conf.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\rust-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "glue": "rust"
+    },
+    "name": "rust-dotfiles"
    }
   },
   "carla": {
@@ -74796,6 +77911,40 @@
     "name": "com.discordapp.Discord"
    }
   },
+  "discordo": {
+   "apt\\go": {
+    "driver": "apt",
+    "fields": {
+     "name": "golang-go"
+    },
+    "name": "golang-go"
+   },
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.config/bash/conf.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\go-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "glue": "go"
+    },
+    "name": "go-dotfiles"
+   },
+   "go-install\\discordo": {
+    "driver": "go-install",
+    "fields": {
+     "name": "github.com/ayn2op/discordo"
+    },
+    "name": "github.com/ayn2op/discordo"
+   }
+  },
   "dkjson": {
    "apt\\luarocks": {
     "driver": "apt",
@@ -74954,6 +78103,23 @@
     "name": "docker-service"
    }
   },
+  "doppler": {
+   "native-pkg-file\\doppler": {
+    "driver": "native-pkg-file",
+    "fields": {
+     "asset": {
+      "deb": {
+       "x86_64": "doppler_*_linux_amd64.deb"
+      }
+     },
+     "name": "doppler",
+     "version": {
+      "github": "DopplerHQ/cli"
+     }
+    },
+    "name": "doppler"
+   }
+  },
   "dotnet": {
    "apt\\dotnet": {
     "driver": "apt",
@@ -75053,6 +78219,67 @@
      "name": "dune"
     },
     "name": "dune"
+   }
+  },
+  "durdraw": {
+   "apt\\python3-pip": {
+    "driver": "apt",
+    "fields": {
+     "name": "python3-pip"
+    },
+    "name": "python3-pip"
+   },
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.config/bash/conf.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\pipx-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "glue": "pipx"
+    },
+    "name": "pipx-dotfiles"
+   },
+   "dotfiles\\python3-pip-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "glue": "python3-pip"
+    },
+    "name": "python3-pip-dotfiles"
+   },
+   "pip\\pipx": {
+    "driver": "pip",
+    "fields": {
+     "name": "pipx",
+     "version": {
+      "pypi": "pipx"
+     }
+    },
+    "name": "pipx"
+   },
+   "pipx\\durdraw": {
+    "driver": "pipx",
+    "fields": {
+     "name": "durdraw"
+    },
+    "name": "durdraw"
+   }
+  },
+  "dysk": {
+   "apt\\dysk": {
+    "driver": "apt",
+    "fields": {
+     "name": "dysk",
+     "repo-component": "universe"
+    },
+    "name": "dysk"
    }
   },
   "edge": {
@@ -75274,6 +78501,54 @@
     "name": "fastfetch-dotfiles"
    }
   },
+  "fd": {
+   "apt\\fd": {
+    "driver": "apt",
+    "fields": {
+     "name": "fd-find",
+     "repo-component": "universe"
+    },
+    "name": "fd-find"
+   },
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.config/bash/conf.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\fd-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "glue": "fd"
+    },
+    "name": "fd-dotfiles"
+   }
+  },
+  "fd-dotfiles": {
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.config/bash/conf.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\fd-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "glue": "fd"
+    },
+    "name": "fd-dotfiles"
+   }
+  },
   "fennel": {
    "apt\\lua": {
     "driver": "apt",
@@ -75445,6 +78720,38 @@
      "name": "fontconfig"
     },
     "name": "fontconfig"
+   }
+  },
+  "foot": {
+   "apt\\foot": {
+    "driver": "apt",
+    "fields": {
+     "name": "foot",
+     "repo-component": "universe"
+    },
+    "name": "foot"
+   },
+   "dotfiles\\foot-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/foot",
+      "src": "foot"
+     }
+    },
+    "name": "foot-dotfiles"
+   }
+  },
+  "foot-dotfiles": {
+   "dotfiles\\foot-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/foot",
+      "src": "foot"
+     }
+    },
+    "name": "foot-dotfiles"
    }
   },
   "fossil": {
@@ -75959,6 +79266,16 @@
      "name": "gfortran"
     },
     "name": "gfortran"
+   }
+  },
+  "gh": {
+   "apt\\gh": {
+    "driver": "apt",
+    "fields": {
+     "name": "gh",
+     "repo-component": "universe"
+    },
+    "name": "gh"
    }
   },
   "ghostty": {
@@ -77150,6 +80467,41 @@
      "name": "iftop"
     },
     "name": "iftop"
+   }
+  },
+  "impala": {
+   "apt\\rust": {
+    "driver": "apt",
+    "fields": {
+     "name": "rust-all",
+     "repo-component": "universe"
+    },
+    "name": "rust-all"
+   },
+   "cargo\\impala": {
+    "driver": "cargo",
+    "fields": {
+     "name": "impala"
+    },
+    "name": "impala"
+   },
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.config/bash/conf.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\rust-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "glue": "rust"
+    },
+    "name": "rust-dotfiles"
    }
   },
   "inkscape": {
@@ -78665,6 +82017,16 @@
     "name": "lxqt"
    }
   },
+  "lynx": {
+   "apt\\lynx": {
+    "driver": "apt",
+    "fields": {
+     "name": "lynx",
+     "repo-component": "universe"
+    },
+    "name": "lynx"
+   }
+  },
   "lz4": {
    "apt\\lz4": {
     "driver": "apt",
@@ -80124,6 +83486,26 @@
     "name": "pari-gp"
    }
   },
+  "pass": {
+   "apt\\pass": {
+    "driver": "apt",
+    "fields": {
+     "name": "pass",
+     "repo-component": "universe"
+    },
+    "name": "pass"
+   }
+  },
+  "pastel": {
+   "apt\\pastel": {
+    "driver": "apt",
+    "fields": {
+     "name": "pastel",
+     "repo-component": "universe"
+    },
+    "name": "pastel"
+   }
+  },
   "perf": {
    "apt\\perf": {
     "driver": "apt",
@@ -81191,6 +84573,15 @@
     "name": "rocm-hip-sdk"
    }
   },
+  "rsync": {
+   "apt\\rsync": {
+    "driver": "apt",
+    "fields": {
+     "name": "rsync"
+    },
+    "name": "rsync"
+   }
+  },
   "ruby": {
    "apt\\ruby": {
     "driver": "apt",
@@ -81839,6 +85230,16 @@
      "name": "steam:i386"
     },
     "name": "steam:i386"
+   }
+  },
+  "stow": {
+   "apt\\stow": {
+    "driver": "apt",
+    "fields": {
+     "name": "stow",
+     "repo-component": "universe"
+    },
+    "name": "stow"
    }
   },
   "strace": {
@@ -83110,6 +86511,16 @@
     "name": "wireguard"
    }
   },
+  "wiremix": {
+   "apt\\wiremix": {
+    "driver": "apt",
+    "fields": {
+     "name": "wiremix",
+     "repo-component": "universe"
+    },
+    "name": "wiremix"
+   }
+  },
   "wireshark": {
    "apt\\wireshark": {
     "driver": "apt",
@@ -83193,6 +86604,16 @@
      "glue": "xclip"
     },
     "name": "xclip-dotfiles"
+   }
+  },
+  "xephyr": {
+   "apt\\xephyr": {
+    "driver": "apt",
+    "fields": {
+     "name": "xserver-xephyr",
+     "repo-component": "universe"
+    },
+    "name": "xserver-xephyr"
    }
   },
   "xfce": {
@@ -83627,6 +87048,54 @@
      "name": "zip"
     },
     "name": "zip"
+   }
+  },
+  "zoxide": {
+   "apt\\zoxide": {
+    "driver": "apt",
+    "fields": {
+     "name": "zoxide",
+     "repo-component": "universe"
+    },
+    "name": "zoxide"
+   },
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.config/bash/conf.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\zoxide-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "glue": "zoxide"
+    },
+    "name": "zoxide-dotfiles"
+   }
+  },
+  "zoxide-dotfiles": {
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.config/bash/conf.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\zoxide-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "glue": "zoxide"
+    },
+    "name": "zoxide-dotfiles"
    }
   },
   "zsh": {
@@ -84366,6 +87835,23 @@
     "name": "bazelisk-dotfiles"
    }
   },
+  "bitwarden": {
+   "dnf\\flatpak": {
+    "driver": "dnf",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\bitwarden": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "com.bitwarden.desktop"
+    },
+    "name": "com.bitwarden.desktop"
+   }
+  },
   "blender": {
    "dnf\\blender": {
     "driver": "dnf",
@@ -84402,6 +87888,41 @@
      }
     },
     "name": "blender-dotfiles"
+   }
+  },
+  "bluetui": {
+   "cargo\\bluetui": {
+    "driver": "cargo",
+    "fields": {
+     "name": "bluetui"
+    },
+    "name": "bluetui"
+   },
+   "dnf\\rust": {
+    "driver": "dnf",
+    "fields": {
+     "name": "cargo",
+     "repo-component": "universe"
+    },
+    "name": "cargo"
+   },
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.config/bash/conf.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\rust-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "glue": "rust"
+    },
+    "name": "rust-dotfiles"
    }
   },
   "bmon": {
@@ -84759,6 +88280,41 @@
      "glue": "cabal"
     },
     "name": "cabal-dotfiles"
+   }
+  },
+  "caligula": {
+   "cargo\\caligula": {
+    "driver": "cargo",
+    "fields": {
+     "name": "caligula"
+    },
+    "name": "caligula"
+   },
+   "dnf\\rust": {
+    "driver": "dnf",
+    "fields": {
+     "name": "cargo",
+     "repo-component": "universe"
+    },
+    "name": "cargo"
+   },
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.config/bash/conf.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\rust-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "glue": "rust"
+    },
+    "name": "rust-dotfiles"
    }
   },
   "carla": {
@@ -85849,6 +89405,40 @@
     "name": "com.discordapp.Discord"
    }
   },
+  "discordo": {
+   "dnf\\go": {
+    "driver": "dnf",
+    "fields": {
+     "name": "golang"
+    },
+    "name": "golang"
+   },
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.config/bash/conf.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\go-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "glue": "go"
+    },
+    "name": "go-dotfiles"
+   },
+   "go-install\\discordo": {
+    "driver": "go-install",
+    "fields": {
+     "name": "github.com/ayn2op/discordo"
+    },
+    "name": "github.com/ayn2op/discordo"
+   }
+  },
   "dkjson": {
    "dnf\\luarocks": {
     "driver": "dnf",
@@ -86007,6 +89597,23 @@
     "name": "docker-service"
    }
   },
+  "doppler": {
+   "native-pkg-file\\doppler": {
+    "driver": "native-pkg-file",
+    "fields": {
+     "asset": {
+      "rpm": {
+       "x86_64": "doppler_*_linux_amd64.rpm"
+      }
+     },
+     "name": "doppler",
+     "version": {
+      "github": "DopplerHQ/cli"
+     }
+    },
+    "name": "doppler"
+   }
+  },
   "dotnet": {
    "dotfiles\\bash-dotfiles": {
     "driver": "dotfiles",
@@ -86126,6 +89733,82 @@
      "name": "dune"
     },
     "name": "dune"
+   }
+  },
+  "durdraw": {
+   "dnf\\epel-release": {
+    "driver": "dnf",
+    "fields": {
+     "name": "epel-release"
+    },
+    "name": "epel-release"
+   },
+   "dnf\\pipx": {
+    "driver": "dnf",
+    "fields": {
+     "name": "pipx"
+    },
+    "name": "pipx"
+   },
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.config/bash/conf.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\pipx-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "glue": "pipx"
+    },
+    "name": "pipx-dotfiles"
+   },
+   "pipx\\durdraw": {
+    "driver": "pipx",
+    "fields": {
+     "name": "durdraw"
+    },
+    "name": "durdraw"
+   }
+  },
+  "dysk": {
+   "cargo\\dysk": {
+    "driver": "cargo",
+    "fields": {
+     "name": "dysk"
+    },
+    "name": "dysk"
+   },
+   "dnf\\rust": {
+    "driver": "dnf",
+    "fields": {
+     "name": "cargo",
+     "repo-component": "universe"
+    },
+    "name": "cargo"
+   },
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.config/bash/conf.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\rust-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "glue": "rust"
+    },
+    "name": "rust-dotfiles"
    }
   },
   "edge": {
@@ -86362,6 +90045,60 @@
     "name": "fastfetch-dotfiles"
    }
   },
+  "fd": {
+   "dnf\\epel-release": {
+    "driver": "dnf",
+    "fields": {
+     "name": "epel-release"
+    },
+    "name": "epel-release"
+   },
+   "dnf\\fd": {
+    "driver": "dnf",
+    "fields": {
+     "name": "fd-find"
+    },
+    "name": "fd-find"
+   },
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.config/bash/conf.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\fd-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "glue": "fd"
+    },
+    "name": "fd-dotfiles"
+   }
+  },
+  "fd-dotfiles": {
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.config/bash/conf.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\fd-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "glue": "fd"
+    },
+    "name": "fd-dotfiles"
+   }
+  },
   "fennel": {
    "dnf\\lua": {
     "driver": "dnf",
@@ -86552,6 +90289,18 @@
      "name": "fontconfig"
     },
     "name": "fontconfig"
+   }
+  },
+  "foot-dotfiles": {
+   "dotfiles\\foot-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/foot",
+      "src": "foot"
+     }
+    },
+    "name": "foot-dotfiles"
    }
   },
   "fossil": {
@@ -86848,6 +90597,23 @@
      "name": "gcc-gfortran"
     },
     "name": "gcc-gfortran"
+   }
+  },
+  "gh": {
+   "native-pkg-file\\gh": {
+    "driver": "native-pkg-file",
+    "fields": {
+     "asset": {
+      "rpm": {
+       "x86_64": "gh_*_linux_amd64.rpm"
+      }
+     },
+     "name": "gh",
+     "version": {
+      "github": "cli/cli"
+     }
+    },
+    "name": "gh"
    }
   },
   "ghostty": {
@@ -88121,6 +91887,41 @@
      "name": "iftop"
     },
     "name": "iftop"
+   }
+  },
+  "impala": {
+   "cargo\\impala": {
+    "driver": "cargo",
+    "fields": {
+     "name": "impala"
+    },
+    "name": "impala"
+   },
+   "dnf\\rust": {
+    "driver": "dnf",
+    "fields": {
+     "name": "cargo",
+     "repo-component": "universe"
+    },
+    "name": "cargo"
+   },
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.config/bash/conf.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\rust-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "glue": "rust"
+    },
+    "name": "rust-dotfiles"
    }
   },
   "inkscape": {
@@ -89561,6 +93362,22 @@
      "name": "lxqt-session"
     },
     "name": "lxqt-session"
+   }
+  },
+  "lynx": {
+   "dnf\\epel-release": {
+    "driver": "dnf",
+    "fields": {
+     "name": "epel-release"
+    },
+    "name": "epel-release"
+   },
+   "dnf\\lynx": {
+    "driver": "dnf",
+    "fields": {
+     "name": "lynx"
+    },
+    "name": "lynx"
    }
   },
   "lz4": {
@@ -91036,6 +94853,57 @@
     "name": "pari-gp"
    }
   },
+  "pass": {
+   "dnf\\epel-release": {
+    "driver": "dnf",
+    "fields": {
+     "name": "epel-release"
+    },
+    "name": "epel-release"
+   },
+   "dnf\\pass": {
+    "driver": "dnf",
+    "fields": {
+     "name": "pass"
+    },
+    "name": "pass"
+   }
+  },
+  "pastel": {
+   "cargo\\pastel": {
+    "driver": "cargo",
+    "fields": {
+     "name": "pastel"
+    },
+    "name": "pastel"
+   },
+   "dnf\\rust": {
+    "driver": "dnf",
+    "fields": {
+     "name": "cargo",
+     "repo-component": "universe"
+    },
+    "name": "cargo"
+   },
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.config/bash/conf.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\rust-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "glue": "rust"
+    },
+    "name": "rust-dotfiles"
+   }
+  },
   "perf": {
    "dnf\\perf": {
     "driver": "dnf",
@@ -92054,6 +95922,15 @@
     "name": "rpmfusion-free-release"
    }
   },
+  "rsync": {
+   "dnf\\rsync": {
+    "driver": "dnf",
+    "fields": {
+     "name": "rsync"
+    },
+    "name": "rsync"
+   }
+  },
   "ruby": {
    "dnf\\ruby": {
     "driver": "dnf",
@@ -92732,6 +96609,22 @@
      "name": "com.valvesoftware.Steam"
     },
     "name": "com.valvesoftware.Steam"
+   }
+  },
+  "stow": {
+   "dnf\\epel-release": {
+    "driver": "dnf",
+    "fields": {
+     "name": "epel-release"
+    },
+    "name": "epel-release"
+   },
+   "dnf\\stow": {
+    "driver": "dnf",
+    "fields": {
+     "name": "stow"
+    },
+    "name": "stow"
    }
   },
   "strace": {
@@ -94054,6 +97947,41 @@
     "name": "wireguard-tools"
    }
   },
+  "wiremix": {
+   "cargo\\wiremix": {
+    "driver": "cargo",
+    "fields": {
+     "name": "wiremix"
+    },
+    "name": "wiremix"
+   },
+   "dnf\\rust": {
+    "driver": "dnf",
+    "fields": {
+     "name": "cargo",
+     "repo-component": "universe"
+    },
+    "name": "cargo"
+   },
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.config/bash/conf.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\rust-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "glue": "rust"
+    },
+    "name": "rust-dotfiles"
+   }
+  },
   "wireshark": {
    "dnf\\wireshark": {
     "driver": "dnf",
@@ -94152,6 +98080,16 @@
      "glue": "xclip"
     },
     "name": "xclip-dotfiles"
+   }
+  },
+  "xephyr": {
+   "dnf\\xephyr": {
+    "driver": "dnf",
+    "fields": {
+     "name": "xorg-x11-server-Xephyr",
+     "repo-component": "universe"
+    },
+    "name": "xorg-x11-server-Xephyr"
    }
   },
   "xfce": {
@@ -94582,6 +98520,60 @@
      "name": "zip"
     },
     "name": "zip"
+   }
+  },
+  "zoxide": {
+   "dnf\\epel-release": {
+    "driver": "dnf",
+    "fields": {
+     "name": "epel-release"
+    },
+    "name": "epel-release"
+   },
+   "dnf\\zoxide": {
+    "driver": "dnf",
+    "fields": {
+     "name": "zoxide"
+    },
+    "name": "zoxide"
+   },
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.config/bash/conf.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\zoxide-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "glue": "zoxide"
+    },
+    "name": "zoxide-dotfiles"
+   }
+  },
+  "zoxide-dotfiles": {
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.config/bash/conf.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\zoxide-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "glue": "zoxide"
+    },
+    "name": "zoxide-dotfiles"
    }
   },
   "zsh": {
@@ -95271,6 +99263,23 @@
     "name": "bazelisk-dotfiles"
    }
   },
+  "bitwarden": {
+   "apt\\flatpak": {
+    "driver": "apt",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\bitwarden": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "com.bitwarden.desktop"
+    },
+    "name": "com.bitwarden.desktop"
+   }
+  },
   "blender": {
    "apt\\blender": {
     "driver": "apt",
@@ -95301,6 +99310,41 @@
      }
     },
     "name": "blender-dotfiles"
+   }
+  },
+  "bluetui": {
+   "apt\\rust": {
+    "driver": "apt",
+    "fields": {
+     "name": "rust-all",
+     "repo-component": "universe"
+    },
+    "name": "rust-all"
+   },
+   "cargo\\bluetui": {
+    "driver": "cargo",
+    "fields": {
+     "name": "bluetui"
+    },
+    "name": "bluetui"
+   },
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.config/bash/conf.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\rust-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "glue": "rust"
+    },
+    "name": "rust-dotfiles"
    }
   },
   "bmon": {
@@ -95645,6 +99689,41 @@
      "glue": "cabal"
     },
     "name": "cabal-dotfiles"
+   }
+  },
+  "caligula": {
+   "apt\\rust": {
+    "driver": "apt",
+    "fields": {
+     "name": "rust-all",
+     "repo-component": "universe"
+    },
+    "name": "rust-all"
+   },
+   "cargo\\caligula": {
+    "driver": "cargo",
+    "fields": {
+     "name": "caligula"
+    },
+    "name": "caligula"
+   },
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.config/bash/conf.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\rust-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "glue": "rust"
+    },
+    "name": "rust-dotfiles"
    }
   },
   "carla": {
@@ -96834,6 +100913,40 @@
     "name": "com.discordapp.Discord"
    }
   },
+  "discordo": {
+   "apt\\go": {
+    "driver": "apt",
+    "fields": {
+     "name": "golang-go"
+    },
+    "name": "golang-go"
+   },
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.config/bash/conf.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\go-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "glue": "go"
+    },
+    "name": "go-dotfiles"
+   },
+   "go-install\\discordo": {
+    "driver": "go-install",
+    "fields": {
+     "name": "github.com/ayn2op/discordo"
+    },
+    "name": "github.com/ayn2op/discordo"
+   }
+  },
   "dkjson": {
    "apt\\luarocks": {
     "driver": "apt",
@@ -96992,6 +101105,23 @@
     "name": "docker-service"
    }
   },
+  "doppler": {
+   "native-pkg-file\\doppler": {
+    "driver": "native-pkg-file",
+    "fields": {
+     "asset": {
+      "deb": {
+       "x86_64": "doppler_*_linux_amd64.deb"
+      }
+     },
+     "name": "doppler",
+     "version": {
+      "github": "DopplerHQ/cli"
+     }
+    },
+    "name": "doppler"
+   }
+  },
   "dotnet": {
    "apt\\dotnet": {
     "driver": "apt",
@@ -97091,6 +101221,67 @@
      "name": "dune"
     },
     "name": "dune"
+   }
+  },
+  "durdraw": {
+   "apt\\python3-pip": {
+    "driver": "apt",
+    "fields": {
+     "name": "python3-pip"
+    },
+    "name": "python3-pip"
+   },
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.config/bash/conf.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\pipx-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "glue": "pipx"
+    },
+    "name": "pipx-dotfiles"
+   },
+   "dotfiles\\python3-pip-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "glue": "python3-pip"
+    },
+    "name": "python3-pip-dotfiles"
+   },
+   "pip\\pipx": {
+    "driver": "pip",
+    "fields": {
+     "name": "pipx",
+     "version": {
+      "pypi": "pipx"
+     }
+    },
+    "name": "pipx"
+   },
+   "pipx\\durdraw": {
+    "driver": "pipx",
+    "fields": {
+     "name": "durdraw"
+    },
+    "name": "durdraw"
+   }
+  },
+  "dysk": {
+   "apt\\dysk": {
+    "driver": "apt",
+    "fields": {
+     "name": "dysk",
+     "repo-component": "universe"
+    },
+    "name": "dysk"
    }
   },
   "edge": {
@@ -97312,6 +101503,54 @@
     "name": "fastfetch-dotfiles"
    }
   },
+  "fd": {
+   "apt\\fd": {
+    "driver": "apt",
+    "fields": {
+     "name": "fd-find",
+     "repo-component": "universe"
+    },
+    "name": "fd-find"
+   },
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.config/bash/conf.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\fd-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "glue": "fd"
+    },
+    "name": "fd-dotfiles"
+   }
+  },
+  "fd-dotfiles": {
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.config/bash/conf.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\fd-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "glue": "fd"
+    },
+    "name": "fd-dotfiles"
+   }
+  },
   "fennel": {
    "apt\\lua": {
     "driver": "apt",
@@ -97483,6 +101722,38 @@
      "name": "fontconfig"
     },
     "name": "fontconfig"
+   }
+  },
+  "foot": {
+   "apt\\foot": {
+    "driver": "apt",
+    "fields": {
+     "name": "foot",
+     "repo-component": "universe"
+    },
+    "name": "foot"
+   },
+   "dotfiles\\foot-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/foot",
+      "src": "foot"
+     }
+    },
+    "name": "foot-dotfiles"
+   }
+  },
+  "foot-dotfiles": {
+   "dotfiles\\foot-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/foot",
+      "src": "foot"
+     }
+    },
+    "name": "foot-dotfiles"
    }
   },
   "fossil": {
@@ -97997,6 +102268,16 @@
      "name": "gfortran"
     },
     "name": "gfortran"
+   }
+  },
+  "gh": {
+   "apt\\gh": {
+    "driver": "apt",
+    "fields": {
+     "name": "gh",
+     "repo-component": "universe"
+    },
+    "name": "gh"
    }
   },
   "ghostty": {
@@ -99190,6 +103471,41 @@
     "name": "iftop"
    }
   },
+  "impala": {
+   "apt\\rust": {
+    "driver": "apt",
+    "fields": {
+     "name": "rust-all",
+     "repo-component": "universe"
+    },
+    "name": "rust-all"
+   },
+   "cargo\\impala": {
+    "driver": "cargo",
+    "fields": {
+     "name": "impala"
+    },
+    "name": "impala"
+   },
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.config/bash/conf.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\rust-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "glue": "rust"
+    },
+    "name": "rust-dotfiles"
+   }
+  },
   "inkscape": {
    "apt\\inkscape": {
     "driver": "apt",
@@ -100703,6 +105019,16 @@
     "name": "lxqt"
    }
   },
+  "lynx": {
+   "apt\\lynx": {
+    "driver": "apt",
+    "fields": {
+     "name": "lynx",
+     "repo-component": "universe"
+    },
+    "name": "lynx"
+   }
+  },
   "lz4": {
    "apt\\lz4": {
     "driver": "apt",
@@ -102162,6 +106488,26 @@
     "name": "pari-gp"
    }
   },
+  "pass": {
+   "apt\\pass": {
+    "driver": "apt",
+    "fields": {
+     "name": "pass",
+     "repo-component": "universe"
+    },
+    "name": "pass"
+   }
+  },
+  "pastel": {
+   "apt\\pastel": {
+    "driver": "apt",
+    "fields": {
+     "name": "pastel",
+     "repo-component": "universe"
+    },
+    "name": "pastel"
+   }
+  },
   "perf": {
    "apt\\perf": {
     "driver": "apt",
@@ -103229,6 +107575,15 @@
     "name": "rocm-hip-sdk"
    }
   },
+  "rsync": {
+   "apt\\rsync": {
+    "driver": "apt",
+    "fields": {
+     "name": "rsync"
+    },
+    "name": "rsync"
+   }
+  },
   "ruby": {
    "apt\\ruby": {
     "driver": "apt",
@@ -103884,6 +108239,16 @@
      "name": "com.valvesoftware.Steam"
     },
     "name": "com.valvesoftware.Steam"
+   }
+  },
+  "stow": {
+   "apt\\stow": {
+    "driver": "apt",
+    "fields": {
+     "name": "stow",
+     "repo-component": "universe"
+    },
+    "name": "stow"
    }
   },
   "strace": {
@@ -105155,6 +109520,16 @@
     "name": "wireguard"
    }
   },
+  "wiremix": {
+   "apt\\wiremix": {
+    "driver": "apt",
+    "fields": {
+     "name": "wiremix",
+     "repo-component": "universe"
+    },
+    "name": "wiremix"
+   }
+  },
   "wireshark": {
    "apt\\wireshark": {
     "driver": "apt",
@@ -105238,6 +109613,16 @@
      "glue": "xclip"
     },
     "name": "xclip-dotfiles"
+   }
+  },
+  "xephyr": {
+   "apt\\xephyr": {
+    "driver": "apt",
+    "fields": {
+     "name": "xserver-xephyr",
+     "repo-component": "universe"
+    },
+    "name": "xserver-xephyr"
    }
   },
   "xfce": {
@@ -105672,6 +110057,54 @@
      "name": "zip"
     },
     "name": "zip"
+   }
+  },
+  "zoxide": {
+   "apt\\zoxide": {
+    "driver": "apt",
+    "fields": {
+     "name": "zoxide",
+     "repo-component": "universe"
+    },
+    "name": "zoxide"
+   },
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.config/bash/conf.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\zoxide-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "glue": "zoxide"
+    },
+    "name": "zoxide-dotfiles"
+   }
+  },
+  "zoxide-dotfiles": {
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.config/bash/conf.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\zoxide-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "glue": "zoxide"
+    },
+    "name": "zoxide-dotfiles"
    }
   },
   "zsh": {
@@ -106327,6 +110760,23 @@
     "name": "bazelisk-dotfiles"
    }
   },
+  "bitwarden": {
+   "apt\\flatpak": {
+    "driver": "apt",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\bitwarden": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "com.bitwarden.desktop"
+    },
+    "name": "com.bitwarden.desktop"
+   }
+  },
   "blender": {
    "apt\\blender": {
     "driver": "apt",
@@ -106357,6 +110807,41 @@
      }
     },
     "name": "blender-dotfiles"
+   }
+  },
+  "bluetui": {
+   "apt\\rust": {
+    "driver": "apt",
+    "fields": {
+     "name": "rust-all",
+     "repo-component": "universe"
+    },
+    "name": "rust-all"
+   },
+   "cargo\\bluetui": {
+    "driver": "cargo",
+    "fields": {
+     "name": "bluetui"
+    },
+    "name": "bluetui"
+   },
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.config/bash/conf.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\rust-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "glue": "rust"
+    },
+    "name": "rust-dotfiles"
    }
   },
   "bmon": {
@@ -106701,6 +111186,41 @@
      "glue": "cabal"
     },
     "name": "cabal-dotfiles"
+   }
+  },
+  "caligula": {
+   "apt\\rust": {
+    "driver": "apt",
+    "fields": {
+     "name": "rust-all",
+     "repo-component": "universe"
+    },
+    "name": "rust-all"
+   },
+   "cargo\\caligula": {
+    "driver": "cargo",
+    "fields": {
+     "name": "caligula"
+    },
+    "name": "caligula"
+   },
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.config/bash/conf.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\rust-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "glue": "rust"
+    },
+    "name": "rust-dotfiles"
    }
   },
   "carla": {
@@ -107873,6 +112393,40 @@
     "name": "com.discordapp.Discord"
    }
   },
+  "discordo": {
+   "apt\\go": {
+    "driver": "apt",
+    "fields": {
+     "name": "golang-go"
+    },
+    "name": "golang-go"
+   },
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.config/bash/conf.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\go-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "glue": "go"
+    },
+    "name": "go-dotfiles"
+   },
+   "go-install\\discordo": {
+    "driver": "go-install",
+    "fields": {
+     "name": "github.com/ayn2op/discordo"
+    },
+    "name": "github.com/ayn2op/discordo"
+   }
+  },
   "dkjson": {
    "apt\\luarocks": {
     "driver": "apt",
@@ -108031,6 +112585,23 @@
     "name": "docker-service"
    }
   },
+  "doppler": {
+   "native-pkg-file\\doppler": {
+    "driver": "native-pkg-file",
+    "fields": {
+     "asset": {
+      "deb": {
+       "x86_64": "doppler_*_linux_amd64.deb"
+      }
+     },
+     "name": "doppler",
+     "version": {
+      "github": "DopplerHQ/cli"
+     }
+    },
+    "name": "doppler"
+   }
+  },
   "dotnet": {
    "apt\\dotnet": {
     "driver": "apt",
@@ -108130,6 +112701,50 @@
      "name": "dune"
     },
     "name": "dune"
+   }
+  },
+  "durdraw": {
+   "apt\\pipx": {
+    "driver": "apt",
+    "fields": {
+     "name": "pipx"
+    },
+    "name": "pipx"
+   },
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.config/bash/conf.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\pipx-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "glue": "pipx"
+    },
+    "name": "pipx-dotfiles"
+   },
+   "pipx\\durdraw": {
+    "driver": "pipx",
+    "fields": {
+     "name": "durdraw"
+    },
+    "name": "durdraw"
+   }
+  },
+  "dysk": {
+   "apt\\dysk": {
+    "driver": "apt",
+    "fields": {
+     "name": "dysk",
+     "repo-component": "universe"
+    },
+    "name": "dysk"
    }
   },
   "edge": {
@@ -108351,6 +112966,54 @@
     "name": "fastfetch-dotfiles"
    }
   },
+  "fd": {
+   "apt\\fd": {
+    "driver": "apt",
+    "fields": {
+     "name": "fd-find",
+     "repo-component": "universe"
+    },
+    "name": "fd-find"
+   },
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.config/bash/conf.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\fd-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "glue": "fd"
+    },
+    "name": "fd-dotfiles"
+   }
+  },
+  "fd-dotfiles": {
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.config/bash/conf.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\fd-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "glue": "fd"
+    },
+    "name": "fd-dotfiles"
+   }
+  },
   "fennel": {
    "apt\\lua": {
     "driver": "apt",
@@ -108522,6 +113185,38 @@
      "name": "fontconfig"
     },
     "name": "fontconfig"
+   }
+  },
+  "foot": {
+   "apt\\foot": {
+    "driver": "apt",
+    "fields": {
+     "name": "foot",
+     "repo-component": "universe"
+    },
+    "name": "foot"
+   },
+   "dotfiles\\foot-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/foot",
+      "src": "foot"
+     }
+    },
+    "name": "foot-dotfiles"
+   }
+  },
+  "foot-dotfiles": {
+   "dotfiles\\foot-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/foot",
+      "src": "foot"
+     }
+    },
+    "name": "foot-dotfiles"
    }
   },
   "fossil": {
@@ -109036,6 +113731,16 @@
      "name": "gfortran"
     },
     "name": "gfortran"
+   }
+  },
+  "gh": {
+   "apt\\gh": {
+    "driver": "apt",
+    "fields": {
+     "name": "gh",
+     "repo-component": "universe"
+    },
+    "name": "gh"
    }
   },
   "ghostty": {
@@ -110184,6 +114889,41 @@
      "name": "iftop"
     },
     "name": "iftop"
+   }
+  },
+  "impala": {
+   "apt\\rust": {
+    "driver": "apt",
+    "fields": {
+     "name": "rust-all",
+     "repo-component": "universe"
+    },
+    "name": "rust-all"
+   },
+   "cargo\\impala": {
+    "driver": "cargo",
+    "fields": {
+     "name": "impala"
+    },
+    "name": "impala"
+   },
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.config/bash/conf.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\rust-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "glue": "rust"
+    },
+    "name": "rust-dotfiles"
    }
   },
   "inkscape": {
@@ -111665,6 +116405,16 @@
     "name": "lxqt"
    }
   },
+  "lynx": {
+   "apt\\lynx": {
+    "driver": "apt",
+    "fields": {
+     "name": "lynx",
+     "repo-component": "universe"
+    },
+    "name": "lynx"
+   }
+  },
   "lz4": {
    "apt\\lz4": {
     "driver": "apt",
@@ -113090,6 +117840,26 @@
     "name": "pari-gp"
    }
   },
+  "pass": {
+   "apt\\pass": {
+    "driver": "apt",
+    "fields": {
+     "name": "pass",
+     "repo-component": "universe"
+    },
+    "name": "pass"
+   }
+  },
+  "pastel": {
+   "apt\\pastel": {
+    "driver": "apt",
+    "fields": {
+     "name": "pastel",
+     "repo-component": "universe"
+    },
+    "name": "pastel"
+   }
+  },
   "perf": {
    "apt\\perf": {
     "driver": "apt",
@@ -114106,6 +118876,15 @@
     "name": "rocm-hip-sdk"
    }
   },
+  "rsync": {
+   "apt\\rsync": {
+    "driver": "apt",
+    "fields": {
+     "name": "rsync"
+    },
+    "name": "rsync"
+   }
+  },
   "ruby": {
    "apt\\ruby": {
     "driver": "apt",
@@ -114744,6 +119523,16 @@
      "name": "com.valvesoftware.Steam"
     },
     "name": "com.valvesoftware.Steam"
+   }
+  },
+  "stow": {
+   "apt\\stow": {
+    "driver": "apt",
+    "fields": {
+     "name": "stow",
+     "repo-component": "universe"
+    },
+    "name": "stow"
    }
   },
   "strace": {
@@ -115998,6 +120787,16 @@
     "name": "wireguard"
    }
   },
+  "wiremix": {
+   "apt\\wiremix": {
+    "driver": "apt",
+    "fields": {
+     "name": "wiremix",
+     "repo-component": "universe"
+    },
+    "name": "wiremix"
+   }
+  },
   "wireshark": {
    "apt\\wireshark": {
     "driver": "apt",
@@ -116081,6 +120880,16 @@
      "glue": "xclip"
     },
     "name": "xclip-dotfiles"
+   }
+  },
+  "xephyr": {
+   "apt\\xephyr": {
+    "driver": "apt",
+    "fields": {
+     "name": "xserver-xephyr",
+     "repo-component": "universe"
+    },
+    "name": "xserver-xephyr"
    }
   },
   "xfce": {
@@ -116486,6 +121295,54 @@
      "name": "zip"
     },
     "name": "zip"
+   }
+  },
+  "zoxide": {
+   "apt\\zoxide": {
+    "driver": "apt",
+    "fields": {
+     "name": "zoxide",
+     "repo-component": "universe"
+    },
+    "name": "zoxide"
+   },
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.config/bash/conf.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\zoxide-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "glue": "zoxide"
+    },
+    "name": "zoxide-dotfiles"
+   }
+  },
+  "zoxide-dotfiles": {
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.config/bash/conf.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\zoxide-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "glue": "zoxide"
+    },
+    "name": "zoxide-dotfiles"
    }
   },
   "zsh": {

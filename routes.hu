@@ -273,6 +273,46 @@
         xclip:   { description: "xclip — command-line access to the X clipboard." suggests: xclip-dotfiles
                    install: [ { via: native  when: "rhel"  requires: epel } { via: native  when: "not amzn"   repo-component: universe } ] }
         xclip-dotfiles: { description: "xclip helper config, linked into place." install: [ { via: dotfiles  requires: bash-dotfiles  glue: xclip } ] }
+        // Xephyr — a nested X server (5 different package names; binary is always `Xephyr`;
+        // openSUSE bundles it in xorg-x11-server-extra).
+        xephyr: { description: "Xephyr — a nested X server (run an X session inside a window; `Xephyr`)."
+                  install: [ { via: native  repo-component: universe  when: "not (fedora_atomic or amzn)"
+                              name: { apt: xserver-xephyr  dnf: xorg-x11-server-Xephyr  pacman: xorg-server-xephyr  apk: xorg-server-xephyr  zypper: xorg-x11-server-extra } } ] }
+
+        // --- more CLI utilities (modern + classic) ---
+        zoxide: { suggests: zoxide-dotfiles  description: "zoxide — a smarter `cd` that jumps by frecency to your most-used dirs (`z`)."
+                  install: [ { via: native  repo-component: universe  when: "not (rhel or amzn)" }
+                             { via: native  when: "rhel"  requires: epel }
+                             { via: cargo   when: "amzn"  name: zoxide } ] }   // ubiquitous native (incl. brew); EL via EPEL; Amazon (no EPEL) via cargo
+        zoxide-dotfiles: { description: "zoxide shell init (adds the `z`/`zi` commands), linked into place." install: [ { via: dotfiles  requires: bash-dotfiles  glue: zoxide } ] }
+        fd: { suggests: fd-dotfiles  description: "fd — a fast, friendly `find` alternative (`fd`; Debian/Ubuntu install it as `fdfind`)."
+              install: [ { via: native  repo-component: universe  when: "not (rhel or amzn)"  name: { apt: fd-find  dnf: fd-find  default: fd } }
+                         { via: native  when: "rhel"  requires: epel  name: fd-find }
+                         { via: cargo   when: "amzn"  name: fd-find } ] }   // cargo crate is `fd-find`; the Debian/Ubuntu pkg installs `fdfind` -> the glue aliases it to `fd`
+        fd-dotfiles: { description: "fd alias (fdfind->fd on Debian/Ubuntu), linked into place." install: [ { via: dotfiles  requires: bash-dotfiles  glue: fd } ] }
+        pastel: { description: "pastel — generate, analyze, convert and manipulate colors from the command line."
+                  install: [ { via: native  repo-component: universe  when: "not (rhel or amzn)" }
+                             { via: cargo   when: "rhel or amzn"  name: pastel } ] }   // native almost everywhere (incl. brew/snap); EL/Amazon via cargo
+        dysk: { description: "dysk — a `df` alternative: mounted filesystems + usage in a clear table (formerly `lfs`)."
+                install: [ { via: native  repo-component: universe  when: "debian or arch or alpine or opensuse or fedora_atomic" }
+                           { via: cargo   when: "not (debian or arch or alpine or opensuse or fedora_atomic)"  name: dysk } ] }   // not in Fedora/EL -> cargo there
+        stow: { description: "GNU Stow — a symlink farm manager for keeping dotfiles/packages tidy (`stow`)."
+                install: [ { via: native  repo-component: universe  when: "not (rhel or amzn)" }
+                           { via: native  when: "rhel"  requires: epel } ] }   // EL: EPEL-only; Alpine: community repo
+        rsync: { description: "rsync — fast incremental file transfer and synchronization." install: [ { via: native } ] }   // core package on every family
+        lynx:  { description: "Lynx — the classic text-mode web browser."
+                 install: [ { via: native  repo-component: universe  when: "not (rhel or amzn)" }
+                            { via: native  when: "rhel"  requires: epel } ] }   // EL: EPEL
+        pass:  { description: "pass — the standard unix password manager (a GPG-encrypted store, `pass`)."
+                 install: [ { via: native  repo-component: universe  when: "not (rhel or amzn)"  name: { zypper: password-store  default: pass } }
+                            { via: native  when: "rhel"  requires: epel } ] }   // openSUSE pkg is `password-store` (binary still `pass`); EL via EPEL
+        gh:    { description: "GitHub CLI — drive GitHub from the terminal (`gh`)."
+                 install: [ { via: native  repo-component: universe  when: "not (rhel or opensuse or amzn)"  name: { pacman: github-cli  apk: github-cli  default: gh } }
+                            { via: native-pkg-file  when: "rhel or opensuse or amzn"  version: { github: cli/cli }  asset: { rpm: { x86_64: "gh_*_linux_amd64.rpm" } } } ] }   // in-repo on debian/ubuntu(universe)/fedora/arch(github-cli)/alpine(github-cli)/brew; upstream .rpm for EL/openSUSE
+        doppler: { description: "Doppler CLI — sync secrets and config across environments (`doppler`)."
+                   install: [ { via: native-pkg-file  when: "debian"  version: { github: DopplerHQ/cli }  asset: { deb: { x86_64: "doppler_*_linux_amd64.deb" } } }
+                              { via: native-pkg-file  when: "redhat or opensuse"  version: { github: DopplerHQ/cli }  asset: { rpm: { x86_64: "doppler_*_linux_amd64.rpm" } } }
+                              { via: aur  when: "arch"  name: doppler-cli-bin } ] }   // not in distro repos; upstream ships .deb/.rpm; AUR pkg is `doppler-cli-bin`
 
         // btop lives in EPEL on EL (needs epel enabled), base repos everywhere else.
         // Two native bindings: the EL one adds `requires: epel`; both are dnf\btop.
@@ -422,6 +462,11 @@
                 { via: flatpak  hub: flathub  app: org.wezfurlong.wezterm } ]
         }
         wezterm-dotfiles: { description: "wezterm config, linked into place." install: [ { via: dotfiles  config: { src: wezterm  dst: $XDG_CONFIG_HOME/wezterm } } ] }
+        // foot: a fast, lightweight Wayland-only terminal. Native across debian/ubuntu/fedora/arch/
+        // alpine/openSUSE; no brew/EL package (and it needs a Wayland compositor at runtime).
+        foot: { suggests: foot-dotfiles  description: "foot — a fast, lightweight Wayland terminal emulator (`foot`)."
+            install: [ { via: native  repo-component: universe  when: "not (rhel or amzn or fedora_atomic)" } ] }
+        foot-dotfiles: { description: "foot terminal config, linked into place." install: [ { via: dotfiles  config: { src: foot  dst: $XDG_CONFIG_HOME/foot } } ] }
         // yazi: Rust TUI file manager. Native on Arch + Homebrew; upstream ships a real .deb, so on
         // Debian/Ubuntu (not in-repo) install that via the OS package tool — clean and on PATH.
         // Elsewhere (Fedora is COPR-only; openSUSE/Alpine/EL absent) the release zip lands under
@@ -1014,6 +1059,17 @@
                 { via: aur  when: "arch"  name: tor-browser-bin }
                 { via: flatpak  hub: flathub  app: org.torproject.torbrowser-launcher } ]
         }
+        // Password managers (Bitwarden). bitwarden = the desktop app (official pacman/zypper pkg;
+        // flatpak everywhere incl. atomic; official snap on ubuntu — no apt/dnf repo pkg exists).
+        bitwarden: { description: "Bitwarden — the desktop password-manager app."
+                     install: [ { via: native  when: "arch or opensuse" }
+                                { via: flatpak  hub: flathub  app: com.bitwarden.desktop }
+                                { via: snap  when: "ubuntu"  name: bitwarden } ] }
+        // vaultwarden = a lightweight self-hosted Bitwarden-compatible SERVER. Officially packaged
+        // only on arch/fedora/alpine; elsewhere it's run as a container (no core install method) so
+        // it declines honestly there.
+        vaultwarden: { description: "Vaultwarden — a lightweight self-hosted Bitwarden-compatible server (Rust)."
+                       install: [ { via: native  when: "arch or fedora or alpine" } ] }
 
         // ===================== network + web-dev tooling =====================
         // iproute2 — `ip`/`ss`/`tc`. Native everywhere; EL's dnf calls the package `iproute`.
@@ -1054,6 +1110,17 @@
         vnstat:  { description: "vnStat — a network traffic logger and stats tool." install: [ { via: native  when: "rhel"  requires: epel } { via: native  when: "not amzn"  } ] }
         bmon:    { description: "bmon — a bandwidth monitor and rate estimator (per-interface)." install: [ { via: native  when: "rhel"  requires: epel } { via: native  when: "debian or fedora or arch or opensuse or alpine or amzn" } ] }
         wavemon: { description: "wavemon — an ncurses monitor for wireless network devices." install: [ { via: native  when: "debian or fedora or arch or opensuse or alpine"  repo-component: universe } ] }   // Ubuntu universe; not in EPEL/Amazon/atomic
+        // Rust hardware/audio TUIs — native only where packaged (arch/alpine/openSUSE, +debian/fedora
+        // for wiremix); cargo builds them everywhere else.
+        impala:  { description: "impala — a TUI to manage Wi‑Fi networks (uses the `iwd` daemon)."
+                   install: [ { via: native  when: "arch or alpine or opensuse" }
+                              { via: cargo   when: "not (arch or alpine or opensuse)"  name: impala } ] }
+        bluetui: { description: "bluetui — a TUI to manage Bluetooth devices (uses BlueZ)."
+                   install: [ { via: native  when: "arch or alpine or opensuse" }
+                              { via: cargo   when: "not (arch or alpine or opensuse)"  name: bluetui } ] }
+        wiremix: { description: "wiremix — a TUI audio mixer for PipeWire."
+                   install: [ { via: native  repo-component: universe  when: "debian or fedora or arch or alpine or opensuse" }
+                              { via: cargo   when: "not (debian or fedora or arch or alpine or opensuse)"  name: wiremix } ] }
         // dnspeep: watch the DNS queries your machine makes. Not distro-packaged nor on crates.io —
         // upstream's glibc release tarball is a single `dnspeep` binary (dnspeep-dotfiles PATHs it);
         // declines on musl Alpine. Runs as root (libpcap).
@@ -1924,6 +1991,21 @@
             install: [ { via: tarball  installDir: "$CONFIGSYS_APP_DIR/lazydocker"  requires: glibc
                          version: { github: jesseduffield/lazydocker  strip-v: true  asset: "lazydocker_*_Linux_x86_64.tar.gz" } } ]
         }
+        // TUI clients + creative/misc terminal apps.
+        discordo: { description: "Discordo — a lightweight terminal (TUI) Discord client."
+                    install: [ { via: aur  when: "arch"  name: discordo-git }
+                               { via: go-install  when: "not arch"  name: "github.com/ayn2op/discordo"  requires: [ { go: ">=1.26" } ] } ] }   // no releases (rolling master); AUR on arch, `go install` elsewhere (a modern Go toolchain floor advises the go tarball)
+        caligula: { description: "Caligula — a user-friendly TUI disk imager / ISO burner."
+                    install: [ { via: native  when: "arch or fedora_atomic" }
+                               { via: cargo   when: "not (arch or fedora_atomic)"  name: caligula } ] }   // pacman / brew where packaged; cargo everywhere else
+        durdraw: { description: "Durdraw — an ASCII/ANSI/Unicode terminal art and animation editor."
+                   install: [ { via: pipx  name: durdraw }
+                              { via: aur   when: "arch"  name: durdraw } ] }   // Python; pipx is the universal method
+        astroterm: { description: "astroterm — a terminal planetarium / star map (stars, planets, constellations)."
+                     install: [ { via: native  when: "fedora or fedora_atomic" }
+                                { via: aur     when: "arch"  name: astroterm } ] }   // dnf on Fedora (F40+), brew on atomic, AUR on arch; declines elsewhere
+        webcamize: { description: "webcamize — use a DSLR/mirrorless/other camera as a Linux webcam (via v4l2loopback)."
+                     install: [ { via: aur  when: "arch"  name: webcamize } ] }   // AUR-only (build-from-source elsewhere); needs v4l2loopback + libgphoto2 at runtime
         lazysql: { suggests: lazysql-dotfiles  description: "Terminal UI for SQL databases (`lazysql`)."
             install: [ { via: tarball  installDir: "$CONFIGSYS_APP_DIR/lazysql"  requires: glibc  version: { static: latest }
                          url: "https://github.com/jorgerojas26/lazysql/releases/latest/download/lazysql_Linux_x86_64.tar.gz" } ]
