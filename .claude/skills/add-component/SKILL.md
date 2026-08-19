@@ -78,6 +78,17 @@ editors, browsers, file-managers, …). Rules:
   opt-in method that shouldn't be picked automatically). `standing: <int>` = a preference rank.
 - Write a **one-line comment** explaining any non-obvious gating (why a `when:`, why EPEL, why a
   tarball) — every existing component does.
+- **`attrs:` is expected on every real component** (an end-user tool/app/lib — not the `-dotfiles`/
+  `-service` companions, which self-tag). It's a free-form multi-tag list for cross-cutting filtering,
+  ORTHOGONAL to profiles. Assign tags across the axes (full vocabulary + case rules in
+  `docs/component-attrs.md`): **interface** `CLI`/`TUI`/`GUI`/`daemon`/`web`; **role**
+  `lib`/`SDK`/`app`/`toolchain`/`runtime`/`driver`/`font`/`theme`/`plugin`/`game`; **license** (combine
+  all that apply) `FOSS`/`FOSSish`/`proprietary`/`source-available`/`GNU`/`copyleft`/`permissive`;
+  **data** `tele`/`tele-optin`/`account`/`cloud`/`online`/`ads`/`paid`; **pedigree** `electron`/
+  `patent`/`legacy`. Case: ALL-CAPS acronyms (`CLI FOSS SDK GNU`), lowercase words. Interface/role you
+  can read off the tool; **the license + data axes you MUST research per tool** (does it phone home?
+  what license?) — only a human knows. `via: dotfiles`/`service`/`font` auto-derive `dotfiles`/
+  `service`/`font`, so companions need no `attrs:`. Example: ``mpv: { … attrs: [ CLI GUI FOSS GPL ] … }``.
 
 ### 3. Fill the fallbacks (pick the right driver — see catalog below)
 Order native-first, then fallbacks. Typical comprehensive rows:

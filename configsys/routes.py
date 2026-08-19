@@ -35,7 +35,21 @@ class Binding:
 # top-level keys a component may carry; anything else is a typo or a removed construct
 # (e.g. the old inline `dotfiles:` node) and must fail loudly, not vanish silently.
 _COMPONENT_KEYS = frozenset({'provides', 'requires', 'suggests', 'parts', 'install', 'standing',
-                             'description'})
+                             'description', 'attrs'})
+
+# Attrs auto-derived from a component's install methods — companion/asset kinds tag themselves, so
+# the -dotfiles/-service companions and font components need no hand-authored `attrs:` (see
+# docs/component-attrs.md). Union'd with authored attrs.
+_VIA_ATTR = {'dotfiles': 'dotfiles', 'service': 'service', 'font': 'font'}
+
+
+def _derived_attrs(bindings):
+    out = []
+    for b in bindings:
+        a = _VIA_ATTR.get(getattr(b, 'via', None))
+        if a and a not in out:
+            out.append(a)
+    return out
 # the non-`install` fields, which merge with inheritance (a layer that omits one keeps the lower).
 _COMPONENT_FIELDS = ('provides', 'requires', 'suggests', 'parts', 'standing', 'description')
 
@@ -66,23 +80,29 @@ def _merge_component_chain(name, chain):
     - the other fields (provides/requires/suggests/parts/standing) override with inheritance.
     Each surviving binding is tagged `__source__` with the layer that contributed it (so a dotfiles
     binding's content root, and provenance, follow the defining layer even across an amend).'''
-    fields, bindings = {}, {}          # bindings: (via, when) -> spec dict (insertion order kept)
+    fields, bindings, attrs = {}, {}, []   # bindings: (via, when) -> spec dict (insertion order kept)
     for val, src in chain:
         spec = val if isinstance(val, dict) else {}
         _check_component_keys(name, spec)
         if not spec:                   # {} tombstone: forget everything below, start fresh
-            fields, bindings = {}, {}
+            fields, bindings, attrs = {}, {}, []
             continue
         for k in _COMPONENT_FIELDS:
             if k in spec:
                 fields[k] = spec[k]
+        for a in _as_list(spec.get('attrs')):   # attrs UNION across layers (a plugin can add tags)
+            if a not in attrs:
+                attrs.append(a)
         for b in (spec.get('install') or []):
             ident = _binding_identity(b)
             if _truthy(b.get('drop')):
                 bindings.pop(ident, None)
                 continue
             bindings[ident] = {**b, '__source__': src}
-    return {**fields, 'install': list(bindings.values())}
+    out = {**fields, 'install': list(bindings.values())}
+    if attrs:
+        out['attrs'] = attrs
+    return out
 
 
 class Component:
@@ -110,6 +130,16 @@ class Component:
         # unset — populated incrementally in routes.hu/plugins.
         self.description = str(spec.get('description') or '')
         self.bindings = [Binding(b) for b in (spec.get('install') or [])]
+        # Component attributes (attrs:) — cross-cutting tags for filtering, ORTHOGONAL to profiles
+        # (interface CLI/TUI/GUI, role lib/SDK/app, license FOSS/GNU/proprietary [free-form multi],
+        # data tele, ...). Case preserved as authored; the eventual filter matches case-insensitively.
+        # Authored tags are UNIONed with a few derived from the route (via:dotfiles -> `dotfiles`,
+        # via:service -> `service`, via:font -> `font`). See docs/component-attrs.md.
+        seen, self.attrs = set(), []
+        for a in [str(x) for x in _as_list(spec.get('attrs'))] + _derived_attrs(self.bindings):
+            if a.lower() not in seen:
+                seen.add(a.lower())
+                self.attrs.append(a)
 
 
 def _as_list(v):

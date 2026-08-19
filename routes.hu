@@ -264,7 +264,7 @@
             ] }
         // EL keeps these in EPEL, base repos everywhere else — same two-binding shape as btop.
         // `repo-component: universe` is the apt archive area (read only by apt; ignored on dnf/pacman).
-        ripgrep: { suggests: ripgrep-dotfiles  description: "Fast recursive regex search (`rg`) — grep, but much quicker."
+        ripgrep: { suggests: ripgrep-dotfiles  attrs: [ CLI  FOSS  permissive ]  description: "Fast recursive regex search (`rg`) — grep, but much quicker."
                    install: [ { via: native  when: "rhel"  requires: epel } { via: native  when: "not amzn"   repo-component: universe }
                               { via: tarball  installDir: "$CONFIGSYS_APP_DIR/ripgrep"  version: { github: BurntSushi/ripgrep  asset: "ripgrep-*-x86_64-unknown-linux-musl.tar.gz" } } ] }   // prebuilt musl binary (rg in a versioned subdir)
         fzf:     { suggests: fzf-dotfiles  description: "Fuzzy finder — interactive filtering for files, history, anything piped in."
@@ -1689,7 +1689,7 @@
         nextcloud: { description: "Nextcloud — a self-hosted file-sync & collaboration server (all-in-one snap)."
             install: [ { via: snap  name: nextcloud } ] }         // snap-or-Docker in practice; no native server package
         obs-studio: { description: "OBS Studio — live streaming and screen recording." install: [ { via: flatpak  hub: flathub  app: com.obsproject.Studio }  { via: snap  name: obs-studio } ] }
-        spotify:    { description: "Spotify — music streaming client." install: [ { via: flatpak  hub: flathub  app: com.spotify.Client }  { via: snap  name: spotify } ] }   // not in distro repos; Flathub + official snap
+        spotify:    { attrs: [ GUI  proprietary  account  ads  cloud ]  description: "Spotify — music streaming client." install: [ { via: flatpak  hub: flathub  app: com.spotify.Client }  { via: snap  name: spotify } ] }   // not in distro repos; Flathub + official snap
         // MPD stack — a music-player daemon + a CLI client, plus the Strawberry GUI player.
         mpd: { suggests: mpd-dotfiles  description: "MPD — Music Player Daemon, a server-side music player driven by clients (`mpd`)."
             install: [ { via: native  when: "rhel"  requires: epel }
