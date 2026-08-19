@@ -1609,10 +1609,10 @@ def _attr_filter_modal(stdscr, pal, inc, exc):
             return None
         if ch in (ord('\n'), curses.KEY_ENTER):
             return inc, exc
-        if ch in (ord('j'), curses.KEY_DOWN):
-            sel = min(len(rows) - 1, sel + 1)
+        if ch in (ord('j'), curses.KEY_DOWN):               # land only on tag rows (skip axis headers)
+            sel = next((i for i in range(sel + 1, len(rows)) if rows[i][0] == 'tag'), sel)
         elif ch in (ord('k'), curses.KEY_UP):
-            sel = max(0, sel - 1)
+            sel = next((i for i in range(sel - 1, -1, -1) if rows[i][0] == 'tag'), sel)
         elif ch == ord('c'):
             inc.clear()
             exc.clear()
