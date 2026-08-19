@@ -508,6 +508,12 @@
         superfile-dotfiles: { description: "superfile config, linked into place."
             install: [ { via: dotfiles  requires: bash-dotfiles  glue: superfile } ]
         }
+        // ueberzugpp — draws images in the terminal (X11/Wayland/Sixel) so file managers like yazi
+        // can show image previews. The maintained C++ fork of the archived Python `ueberzug`;
+        // installs the `ueberzug` command. Only Arch packages it natively (extra); a `via: source`
+        // build for the other distros lives in the configsys-source plugin.
+        ueberzugpp: { description: "ueberzugpp — display images inline in the terminal for previews (`ueberzug`); the maintained ueberzug fork."
+            install: [ { via: native  when: "arch"  name: ueberzugpp } ] }
 
         // mc: Midnight Commander — packaged as `mc` in every base repo (EL via EPEL, like htop/btop).
         mc: {
@@ -1684,6 +1690,18 @@
             install: [ { via: snap  name: nextcloud } ] }         // snap-or-Docker in practice; no native server package
         obs-studio: { description: "OBS Studio — live streaming and screen recording." install: [ { via: flatpak  hub: flathub  app: com.obsproject.Studio }  { via: snap  name: obs-studio } ] }
         spotify:    { description: "Spotify — music streaming client." install: [ { via: flatpak  hub: flathub  app: com.spotify.Client }  { via: snap  name: spotify } ] }   // not in distro repos; Flathub + official snap
+        // MPD stack — a music-player daemon + a CLI client, plus the Strawberry GUI player.
+        mpd: { suggests: mpd-dotfiles  description: "MPD — Music Player Daemon, a server-side music player driven by clients (`mpd`)."
+            install: [ { via: native  when: "rhel"  requires: epel }
+                       { via: native  repo-component: universe  when: "not amzn" } ] }
+        mpd-dotfiles: { description: "mpd config (mpd.conf), linked into place." install: [ { via: dotfiles  config: { src: mpd  dst: $XDG_CONFIG_HOME/mpd } } ] }
+        mpc: { description: "mpc — a minimalist command-line client for MPD (`mpc`)."
+            install: [ { via: native  when: "rhel"  requires: epel }
+                       { via: native  repo-component: universe  when: "not amzn"  name: { zypper: mpclient  default: mpc } } ] }   // openSUSE's `mpc` is the GNU MPC math lib; the MPD client there is `mpclient`
+        strawberry: { description: "Strawberry — a music player and music-collection organizer (a Clementine fork)."
+            install: [ { via: flatpak  hub: flathub  app: org.strawberrymusicplayer.strawberry }   // uniform option + the only method on atomic
+                       { via: native  when: "rhel"  requires: epel }
+                       { via: native  repo-component: universe  when: "(not fedora_atomic) and not amzn" } ] }   // in Fedora proper — no RPM Fusion needed for the app itself
 
         // --- digital-music tools --- (GUI apps via Flathub; audio-system bits native)
         musescore:     { description: "MuseScore — music notation and composition." install: [ { via: flatpak  hub: flathub  app: org.musescore.MuseScore }  { via: appImage  name: MuseScore  scope: user  version: { github: musescore/MuseScore  strip-v: true  asset: "MuseScore-Studio-*-x86_64.AppImage" }  path: ~/apps/musescore.appimage } ] }   // asset glob absorbs the build-number suffix
@@ -1998,6 +2016,13 @@
         caligula: { description: "Caligula — a user-friendly TUI disk imager / ISO burner."
                     install: [ { via: native  when: "arch or fedora_atomic" }
                                { via: cargo   when: "not (arch or fedora_atomic)"  name: caligula } ] }   // pacman / brew where packaged; cargo everywhere else
+        // balenaEtcher (Electron GUI imager). No distro repo pkg, no Flathub, and 2.x dropped the
+        // AppImage — so it's the upstream .deb/.rpm (native-pkg-file) + AUR only. Declines on
+        // Alpine (musl/Electron) and atomic.
+        balena-etcher: { description: "balenaEtcher — a GUI tool to flash OS images to USB/SD cards (`balena-etcher`)."
+            install: [ { via: native-pkg-file  when: "debian"           version: { github: balena-io/etcher }  asset: { deb: { x86_64: "balena-etcher_*_amd64.deb" } } }
+                       { via: native-pkg-file  when: "redhat or opensuse"  version: { github: balena-io/etcher }  asset: { rpm: { x86_64: "balena-etcher-*.x86_64.rpm" } } }
+                       { via: aur  when: "arch"  name: balena-etcher } ] }
         durdraw: { description: "Durdraw — an ASCII/ANSI/Unicode terminal art and animation editor."
                    install: [ { via: pipx  name: durdraw }
                               { via: aur   when: "arch"  name: durdraw } ] }   // Python; pipx is the universal method

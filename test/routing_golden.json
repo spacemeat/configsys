@@ -543,6 +543,39 @@
     "name": "azure-cli"
    }
   },
+  "balena-etcher": {
+   "aur\\balena-etcher": {
+    "driver": "aur",
+    "fields": {
+     "name": "balena-etcher"
+    },
+    "name": "balena-etcher"
+   },
+   "dotfiles\\git-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "~/.gitconfig",
+      "src": "gitconfig"
+     }
+    },
+    "name": "git-dotfiles"
+   },
+   "pacman\\base-devel": {
+    "driver": "pacman",
+    "fields": {
+     "name": "base-devel"
+    },
+    "name": "base-devel"
+   },
+   "pacman\\git": {
+    "driver": "pacman",
+    "fields": {
+     "name": "git"
+    },
+    "name": "git"
+   }
+  },
   "base-devel": {
    "pacman\\base-devel": {
     "driver": "pacman",
@@ -6071,6 +6104,48 @@
     "name": "mosquitto-service"
    }
   },
+  "mpc": {
+   "pacman\\mpc": {
+    "driver": "pacman",
+    "fields": {
+     "name": "mpc",
+     "repo-component": "universe"
+    },
+    "name": "mpc"
+   }
+  },
+  "mpd": {
+   "dotfiles\\mpd-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/mpd",
+      "src": "mpd"
+     }
+    },
+    "name": "mpd-dotfiles"
+   },
+   "pacman\\mpd": {
+    "driver": "pacman",
+    "fields": {
+     "name": "mpd",
+     "repo-component": "universe"
+    },
+    "name": "mpd"
+   }
+  },
+  "mpd-dotfiles": {
+   "dotfiles\\mpd-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/mpd",
+      "src": "mpd"
+     }
+    },
+    "name": "mpd-dotfiles"
+   }
+  },
   "mtr": {
    "pacman\\mtr": {
     "driver": "pacman",
@@ -9031,6 +9106,16 @@
     "name": "strace"
    }
   },
+  "strawberry": {
+   "pacman\\strawberry": {
+    "driver": "pacman",
+    "fields": {
+     "name": "strawberry",
+     "repo-component": "universe"
+    },
+    "name": "strawberry"
+   }
+  },
   "stremio": {
    "aur\\stremio": {
     "driver": "aur",
@@ -9474,6 +9559,15 @@
      "repo-component": "universe"
     },
     "name": "npm"
+   }
+  },
+  "ueberzugpp": {
+   "pacman\\ueberzugpp": {
+    "driver": "pacman",
+    "fields": {
+     "name": "ueberzugpp"
+    },
+    "name": "ueberzugpp"
    }
   },
   "unityhub": {
@@ -11602,6 +11696,23 @@
      }
     },
     "name": "azure-cli"
+   }
+  },
+  "balena-etcher": {
+   "native-pkg-file\\balena-etcher": {
+    "driver": "native-pkg-file",
+    "fields": {
+     "asset": {
+      "deb": {
+       "x86_64": "balena-etcher_*_amd64.deb"
+      }
+     },
+     "name": "balena-etcher",
+     "version": {
+      "github": "balena-io/etcher"
+     }
+    },
+    "name": "balena-etcher"
    }
   },
   "bash-dotfiles": {
@@ -18010,6 +18121,48 @@
     "name": "mosquitto-service"
    }
   },
+  "mpc": {
+   "apt\\mpc": {
+    "driver": "apt",
+    "fields": {
+     "name": "mpc",
+     "repo-component": "universe"
+    },
+    "name": "mpc"
+   }
+  },
+  "mpd": {
+   "apt\\mpd": {
+    "driver": "apt",
+    "fields": {
+     "name": "mpd",
+     "repo-component": "universe"
+    },
+    "name": "mpd"
+   },
+   "dotfiles\\mpd-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/mpd",
+      "src": "mpd"
+     }
+    },
+    "name": "mpd-dotfiles"
+   }
+  },
+  "mpd-dotfiles": {
+   "dotfiles\\mpd-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/mpd",
+      "src": "mpd"
+     }
+    },
+    "name": "mpd-dotfiles"
+   }
+  },
   "mtr": {
    "apt\\mtr": {
     "driver": "apt",
@@ -20724,6 +20877,16 @@
      "name": "strace"
     },
     "name": "strace"
+   }
+  },
+  "strawberry": {
+   "apt\\strawberry": {
+    "driver": "apt",
+    "fields": {
+     "name": "strawberry",
+     "repo-component": "universe"
+    },
+    "name": "strawberry"
    }
   },
   "stremio": {
@@ -23167,6 +23330,23 @@
     "name": "azure-cli"
    }
   },
+  "balena-etcher": {
+   "native-pkg-file\\balena-etcher": {
+    "driver": "native-pkg-file",
+    "fields": {
+     "asset": {
+      "deb": {
+       "x86_64": "balena-etcher_*_amd64.deb"
+      }
+     },
+     "name": "balena-etcher",
+     "version": {
+      "github": "balena-io/etcher"
+     }
+    },
+    "name": "balena-etcher"
+   }
+  },
   "bash-dotfiles": {
    "dotfiles\\bash-dotfiles": {
     "driver": "dotfiles",
@@ -29471,6 +29651,48 @@
     "name": "mosquitto-service"
    }
   },
+  "mpc": {
+   "apt\\mpc": {
+    "driver": "apt",
+    "fields": {
+     "name": "mpc",
+     "repo-component": "universe"
+    },
+    "name": "mpc"
+   }
+  },
+  "mpd": {
+   "apt\\mpd": {
+    "driver": "apt",
+    "fields": {
+     "name": "mpd",
+     "repo-component": "universe"
+    },
+    "name": "mpd"
+   },
+   "dotfiles\\mpd-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/mpd",
+      "src": "mpd"
+     }
+    },
+    "name": "mpd-dotfiles"
+   }
+  },
+  "mpd-dotfiles": {
+   "dotfiles\\mpd-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/mpd",
+      "src": "mpd"
+     }
+    },
+    "name": "mpd-dotfiles"
+   }
+  },
   "mtr": {
    "apt\\mtr": {
     "driver": "apt",
@@ -32102,6 +32324,16 @@
     "name": "strace"
    }
   },
+  "strawberry": {
+   "apt\\strawberry": {
+    "driver": "apt",
+    "fields": {
+     "name": "strawberry",
+     "repo-component": "universe"
+    },
+    "name": "strawberry"
+   }
+  },
   "stremio": {
    "apt\\flatpak": {
     "driver": "apt",
@@ -34507,6 +34739,23 @@
      }
     },
     "name": "azure-cli"
+   }
+  },
+  "balena-etcher": {
+   "native-pkg-file\\balena-etcher": {
+    "driver": "native-pkg-file",
+    "fields": {
+     "asset": {
+      "deb": {
+       "x86_64": "balena-etcher_*_amd64.deb"
+      }
+     },
+     "name": "balena-etcher",
+     "version": {
+      "github": "balena-io/etcher"
+     }
+    },
+    "name": "balena-etcher"
    }
   },
   "bash-dotfiles": {
@@ -40809,6 +41058,48 @@
     "name": "mosquitto-service"
    }
   },
+  "mpc": {
+   "apt\\mpc": {
+    "driver": "apt",
+    "fields": {
+     "name": "mpc",
+     "repo-component": "universe"
+    },
+    "name": "mpc"
+   }
+  },
+  "mpd": {
+   "apt\\mpd": {
+    "driver": "apt",
+    "fields": {
+     "name": "mpd",
+     "repo-component": "universe"
+    },
+    "name": "mpd"
+   },
+   "dotfiles\\mpd-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/mpd",
+      "src": "mpd"
+     }
+    },
+    "name": "mpd-dotfiles"
+   }
+  },
+  "mpd-dotfiles": {
+   "dotfiles\\mpd-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/mpd",
+      "src": "mpd"
+     }
+    },
+    "name": "mpd-dotfiles"
+   }
+  },
   "mtr": {
    "apt\\mtr": {
     "driver": "apt",
@@ -43453,6 +43744,16 @@
     "name": "strace"
    }
   },
+  "strawberry": {
+   "apt\\strawberry": {
+    "driver": "apt",
+    "fields": {
+     "name": "strawberry",
+     "repo-component": "universe"
+    },
+    "name": "strawberry"
+   }
+  },
   "stremio": {
    "apt\\flatpak": {
     "driver": "apt",
@@ -45874,6 +46175,23 @@
      }
     },
     "name": "azure-cli"
+   }
+  },
+  "balena-etcher": {
+   "native-pkg-file\\balena-etcher": {
+    "driver": "native-pkg-file",
+    "fields": {
+     "asset": {
+      "rpm": {
+       "x86_64": "balena-etcher-*.x86_64.rpm"
+      }
+     },
+     "name": "balena-etcher",
+     "version": {
+      "github": "balena-io/etcher"
+     }
+    },
+    "name": "balena-etcher"
    }
   },
   "bash-dotfiles": {
@@ -51744,6 +52062,48 @@
     "name": "mosquitto-service"
    }
   },
+  "mpc": {
+   "dnf\\mpc": {
+    "driver": "dnf",
+    "fields": {
+     "name": "mpc",
+     "repo-component": "universe"
+    },
+    "name": "mpc"
+   }
+  },
+  "mpd": {
+   "dnf\\mpd": {
+    "driver": "dnf",
+    "fields": {
+     "name": "mpd",
+     "repo-component": "universe"
+    },
+    "name": "mpd"
+   },
+   "dotfiles\\mpd-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/mpd",
+      "src": "mpd"
+     }
+    },
+    "name": "mpd-dotfiles"
+   }
+  },
+  "mpd-dotfiles": {
+   "dotfiles\\mpd-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/mpd",
+      "src": "mpd"
+     }
+    },
+    "name": "mpd-dotfiles"
+   }
+  },
   "mtr": {
    "dnf\\mtr": {
     "driver": "dnf",
@@ -54361,6 +54721,16 @@
     "name": "strace"
    }
   },
+  "strawberry": {
+   "dnf\\strawberry": {
+    "driver": "dnf",
+    "fields": {
+     "name": "strawberry",
+     "repo-component": "universe"
+    },
+    "name": "strawberry"
+   }
+  },
   "stremio": {
    "dnf\\flatpak": {
     "driver": "dnf",
@@ -56805,6 +57175,23 @@
      }
     },
     "name": "azure-cli"
+   }
+  },
+  "balena-etcher": {
+   "native-pkg-file\\balena-etcher": {
+    "driver": "native-pkg-file",
+    "fields": {
+     "asset": {
+      "rpm": {
+       "x86_64": "balena-etcher-*.x86_64.rpm"
+      }
+     },
+     "name": "balena-etcher",
+     "version": {
+      "github": "balena-io/etcher"
+     }
+    },
+    "name": "balena-etcher"
    }
   },
   "bash-dotfiles": {
@@ -62701,6 +63088,48 @@
     "name": "mosquitto-service"
    }
   },
+  "mpc": {
+   "dnf\\mpc": {
+    "driver": "dnf",
+    "fields": {
+     "name": "mpc",
+     "repo-component": "universe"
+    },
+    "name": "mpc"
+   }
+  },
+  "mpd": {
+   "dnf\\mpd": {
+    "driver": "dnf",
+    "fields": {
+     "name": "mpd",
+     "repo-component": "universe"
+    },
+    "name": "mpd"
+   },
+   "dotfiles\\mpd-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/mpd",
+      "src": "mpd"
+     }
+    },
+    "name": "mpd-dotfiles"
+   }
+  },
+  "mpd-dotfiles": {
+   "dotfiles\\mpd-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/mpd",
+      "src": "mpd"
+     }
+    },
+    "name": "mpd-dotfiles"
+   }
+  },
   "mtr": {
    "dnf\\mtr": {
     "driver": "dnf",
@@ -65316,6 +65745,16 @@
      "name": "strace"
     },
     "name": "strace"
+   }
+  },
+  "strawberry": {
+   "dnf\\strawberry": {
+    "driver": "dnf",
+    "fields": {
+     "name": "strawberry",
+     "repo-component": "universe"
+    },
+    "name": "strawberry"
    }
   },
   "stremio": {
@@ -72294,6 +72733,48 @@
     "name": "mosquitto-service"
    }
   },
+  "mpc": {
+   "brew\\mpc": {
+    "driver": "brew",
+    "fields": {
+     "name": "mpc",
+     "repo-component": "universe"
+    },
+    "name": "mpc"
+   }
+  },
+  "mpd": {
+   "brew\\mpd": {
+    "driver": "brew",
+    "fields": {
+     "name": "mpd",
+     "repo-component": "universe"
+    },
+    "name": "mpd"
+   },
+   "dotfiles\\mpd-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/mpd",
+      "src": "mpd"
+     }
+    },
+    "name": "mpd-dotfiles"
+   }
+  },
+  "mpd-dotfiles": {
+   "dotfiles\\mpd-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/mpd",
+      "src": "mpd"
+     }
+    },
+    "name": "mpd-dotfiles"
+   }
+  },
   "mtr": {
    "brew\\mtr": {
     "driver": "brew",
@@ -74423,6 +74904,16 @@
     "name": "strace"
    }
   },
+  "strawberry": {
+   "flatpak\\strawberry": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "org.strawberrymusicplayer.strawberry"
+    },
+    "name": "org.strawberrymusicplayer.strawberry"
+   }
+  },
   "stremio": {
    "flatpak\\stremio": {
     "driver": "flatpak",
@@ -76434,6 +76925,23 @@
      }
     },
     "name": "azure-cli"
+   }
+  },
+  "balena-etcher": {
+   "native-pkg-file\\balena-etcher": {
+    "driver": "native-pkg-file",
+    "fields": {
+     "asset": {
+      "deb": {
+       "x86_64": "balena-etcher_*_amd64.deb"
+      }
+     },
+     "name": "balena-etcher",
+     "version": {
+      "github": "balena-io/etcher"
+     }
+    },
+    "name": "balena-etcher"
    }
   },
   "bash-dotfiles": {
@@ -82847,6 +83355,48 @@
     "name": "mosquitto-service"
    }
   },
+  "mpc": {
+   "apt\\mpc": {
+    "driver": "apt",
+    "fields": {
+     "name": "mpc",
+     "repo-component": "universe"
+    },
+    "name": "mpc"
+   }
+  },
+  "mpd": {
+   "apt\\mpd": {
+    "driver": "apt",
+    "fields": {
+     "name": "mpd",
+     "repo-component": "universe"
+    },
+    "name": "mpd"
+   },
+   "dotfiles\\mpd-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/mpd",
+      "src": "mpd"
+     }
+    },
+    "name": "mpd-dotfiles"
+   }
+  },
+  "mpd-dotfiles": {
+   "dotfiles\\mpd-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/mpd",
+      "src": "mpd"
+     }
+    },
+    "name": "mpd-dotfiles"
+   }
+  },
   "mtr": {
    "apt\\mtr": {
     "driver": "apt",
@@ -85569,6 +86119,16 @@
     "name": "strace"
    }
   },
+  "strawberry": {
+   "apt\\strawberry": {
+    "driver": "apt",
+    "fields": {
+     "name": "strawberry",
+     "repo-component": "universe"
+    },
+    "name": "strawberry"
+   }
+  },
   "stremio": {
    "apt\\flatpak": {
     "driver": "apt",
@@ -88061,6 +88621,23 @@
      }
     },
     "name": "azure-cli"
+   }
+  },
+  "balena-etcher": {
+   "native-pkg-file\\balena-etcher": {
+    "driver": "native-pkg-file",
+    "fields": {
+     "asset": {
+      "rpm": {
+       "x86_64": "balena-etcher-*.x86_64.rpm"
+      }
+     },
+     "name": "balena-etcher",
+     "version": {
+      "github": "balena-io/etcher"
+     }
+    },
+    "name": "balena-etcher"
    }
   },
   "bash-dotfiles": {
@@ -94227,6 +94804,60 @@
     "name": "mosquitto-service"
    }
   },
+  "mpc": {
+   "dnf\\epel-release": {
+    "driver": "dnf",
+    "fields": {
+     "name": "epel-release"
+    },
+    "name": "epel-release"
+   },
+   "dnf\\mpc": {
+    "driver": "dnf",
+    "fields": {
+     "name": "mpc"
+    },
+    "name": "mpc"
+   }
+  },
+  "mpd": {
+   "dnf\\epel-release": {
+    "driver": "dnf",
+    "fields": {
+     "name": "epel-release"
+    },
+    "name": "epel-release"
+   },
+   "dnf\\mpd": {
+    "driver": "dnf",
+    "fields": {
+     "name": "mpd"
+    },
+    "name": "mpd"
+   },
+   "dotfiles\\mpd-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/mpd",
+      "src": "mpd"
+     }
+    },
+    "name": "mpd-dotfiles"
+   }
+  },
+  "mpd-dotfiles": {
+   "dotfiles\\mpd-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/mpd",
+      "src": "mpd"
+     }
+    },
+    "name": "mpd-dotfiles"
+   }
+  },
   "mtr": {
    "dnf\\mtr": {
     "driver": "dnf",
@@ -96979,6 +97610,22 @@
     "name": "strace"
    }
   },
+  "strawberry": {
+   "dnf\\epel-release": {
+    "driver": "dnf",
+    "fields": {
+     "name": "epel-release"
+    },
+    "name": "epel-release"
+   },
+   "dnf\\strawberry": {
+    "driver": "dnf",
+    "fields": {
+     "name": "strawberry"
+    },
+    "name": "strawberry"
+   }
+  },
   "stremio": {
    "dnf\\flatpak": {
     "driver": "dnf",
@@ -99520,6 +100167,23 @@
      }
     },
     "name": "azure-cli"
+   }
+  },
+  "balena-etcher": {
+   "native-pkg-file\\balena-etcher": {
+    "driver": "native-pkg-file",
+    "fields": {
+     "asset": {
+      "deb": {
+       "x86_64": "balena-etcher_*_amd64.deb"
+      }
+     },
+     "name": "balena-etcher",
+     "version": {
+      "github": "balena-io/etcher"
+     }
+    },
+    "name": "balena-etcher"
    }
   },
   "bash-dotfiles": {
@@ -105924,6 +106588,48 @@
     "name": "mosquitto-service"
    }
   },
+  "mpc": {
+   "apt\\mpc": {
+    "driver": "apt",
+    "fields": {
+     "name": "mpc",
+     "repo-component": "universe"
+    },
+    "name": "mpc"
+   }
+  },
+  "mpd": {
+   "apt\\mpd": {
+    "driver": "apt",
+    "fields": {
+     "name": "mpd",
+     "repo-component": "universe"
+    },
+    "name": "mpd"
+   },
+   "dotfiles\\mpd-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/mpd",
+      "src": "mpd"
+     }
+    },
+    "name": "mpd-dotfiles"
+   }
+  },
+  "mpd-dotfiles": {
+   "dotfiles\\mpd-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/mpd",
+      "src": "mpd"
+     }
+    },
+    "name": "mpd-dotfiles"
+   }
+  },
   "mtr": {
    "apt\\mtr": {
     "driver": "apt",
@@ -108653,6 +109359,16 @@
     "name": "strace"
    }
   },
+  "strawberry": {
+   "apt\\strawberry": {
+    "driver": "apt",
+    "fields": {
+     "name": "strawberry",
+     "repo-component": "universe"
+    },
+    "name": "strawberry"
+   }
+  },
   "stremio": {
    "apt\\flatpak": {
     "driver": "apt",
@@ -111092,6 +111808,23 @@
      }
     },
     "name": "azure-cli"
+   }
+  },
+  "balena-etcher": {
+   "native-pkg-file\\balena-etcher": {
+    "driver": "native-pkg-file",
+    "fields": {
+     "asset": {
+      "deb": {
+       "x86_64": "balena-etcher_*_amd64.deb"
+      }
+     },
+     "name": "balena-etcher",
+     "version": {
+      "github": "balena-io/etcher"
+     }
+    },
+    "name": "balena-etcher"
    }
   },
   "bash-dotfiles": {
@@ -117368,6 +118101,48 @@
     "name": "mosquitto-service"
    }
   },
+  "mpc": {
+   "apt\\mpc": {
+    "driver": "apt",
+    "fields": {
+     "name": "mpc",
+     "repo-component": "universe"
+    },
+    "name": "mpc"
+   }
+  },
+  "mpd": {
+   "apt\\mpd": {
+    "driver": "apt",
+    "fields": {
+     "name": "mpd",
+     "repo-component": "universe"
+    },
+    "name": "mpd"
+   },
+   "dotfiles\\mpd-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/mpd",
+      "src": "mpd"
+     }
+    },
+    "name": "mpd-dotfiles"
+   }
+  },
+  "mpd-dotfiles": {
+   "dotfiles\\mpd-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/mpd",
+      "src": "mpd"
+     }
+    },
+    "name": "mpd-dotfiles"
+   }
+  },
   "mtr": {
    "apt\\mtr": {
     "driver": "apt",
@@ -120010,6 +120785,16 @@
      "name": "strace"
     },
     "name": "strace"
+   }
+  },
+  "strawberry": {
+   "apt\\strawberry": {
+    "driver": "apt",
+    "fields": {
+     "name": "strawberry",
+     "repo-component": "universe"
+    },
+    "name": "strawberry"
    }
   },
   "stremio": {
