@@ -291,11 +291,11 @@
                          { via: cargo   when: "amzn"  name: fd-find } ] }   // cargo crate is `fd-find`; the Debian/Ubuntu pkg installs `fdfind` -> the glue aliases it to `fd`
         fd-dotfiles: { description: "fd alias (fdfind->fd on Debian/Ubuntu), linked into place." install: [ { via: dotfiles  requires: bash-dotfiles  glue: fd } ] }
         pastel: { description: "pastel — generate, analyze, convert and manipulate colors from the command line."
-                  install: [ { via: native  repo-component: universe  when: "not (rhel or amzn)" }
-                             { via: cargo   when: "rhel or amzn"  name: pastel } ] }   // native almost everywhere (incl. brew/snap); EL/Amazon via cargo
+                  install: [ { via: native  when: "arch or alpine or opensuse or fedora_atomic" }
+                             { via: cargo   when: "not (arch or alpine or opensuse or fedora_atomic)"  name: pastel } ] }   // only arch/alpine/openSUSE(+brew) carry it in-repo (Debian/Fedora are sid/rawhide-only); cargo elsewhere
         dysk: { description: "dysk — a `df` alternative: mounted filesystems + usage in a clear table (formerly `lfs`)."
-                install: [ { via: native  repo-component: universe  when: "debian or arch or alpine or opensuse or fedora_atomic" }
-                           { via: cargo   when: "not (debian or arch or alpine or opensuse or fedora_atomic)"  name: dysk } ] }   // not in Fedora/EL -> cargo there
+                install: [ { via: native  when: "arch or alpine or opensuse or fedora_atomic" }
+                           { via: cargo   when: "not (arch or alpine or opensuse or fedora_atomic)"  name: dysk } ] }   // Debian only has it in sid, Fedora/EL not at all -> cargo there
         stow: { description: "GNU Stow — a symlink farm manager for keeping dotfiles/packages tidy (`stow`)."
                 install: [ { via: native  repo-component: universe  when: "not (rhel or amzn)" }
                            { via: native  when: "rhel"  requires: epel } ] }   // EL: EPEL-only; Alpine: community repo
@@ -1116,11 +1116,11 @@
                    install: [ { via: native  when: "arch or alpine or opensuse" }
                               { via: cargo   when: "not (arch or alpine or opensuse)"  name: impala } ] }
         bluetui: { description: "bluetui — a TUI to manage Bluetooth devices (uses BlueZ)."
-                   install: [ { via: native  when: "arch or alpine or opensuse" }
-                              { via: cargo   when: "not (arch or alpine or opensuse)"  name: bluetui } ] }
+                   install: [ { via: native  when: "arch or opensuse" }
+                              { via: cargo   when: "not (arch or opensuse)"  name: bluetui } ] }   // not in Alpine's repos -> cargo there (impala IS in Alpine, bluetui isn't)
         wiremix: { description: "wiremix — a TUI audio mixer for PipeWire."
-                   install: [ { via: native  repo-component: universe  when: "debian or fedora or arch or alpine or opensuse" }
-                              { via: cargo   when: "not (debian or fedora or arch or alpine or opensuse)"  name: wiremix } ] }
+                   install: [ { via: native  when: "fedora or arch or opensuse" }
+                              { via: cargo   when: "not (fedora or arch or opensuse)"  name: wiremix } ] }   // Debian/Alpine don't carry it in-repo -> cargo there
         // dnspeep: watch the DNS queries your machine makes. Not distro-packaged nor on crates.io —
         // upstream's glibc release tarball is a single `dnspeep` binary (dnspeep-dotfiles PATHs it);
         // declines on musl Alpine. Runs as root (libpcap).

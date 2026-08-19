@@ -2229,8 +2229,7 @@
    "pacman\\dysk": {
     "driver": "pacman",
     "fields": {
-     "name": "dysk",
-     "repo-component": "universe"
+     "name": "dysk"
     },
     "name": "dysk"
    }
@@ -6994,8 +6993,7 @@
    "pacman\\pastel": {
     "driver": "pacman",
     "fields": {
-     "name": "pastel",
-     "repo-component": "universe"
+     "name": "pastel"
     },
     "name": "pastel"
    }
@@ -10440,8 +10438,7 @@
    "pacman\\wiremix": {
     "driver": "pacman",
     "fields": {
-     "name": "wiremix",
-     "repo-component": "universe"
+     "name": "wiremix"
     },
     "name": "wiremix"
    }
@@ -13700,13 +13697,38 @@
    }
   },
   "dysk": {
-   "apt\\dysk": {
+   "apt\\rust": {
     "driver": "apt",
     "fields": {
-     "name": "dysk",
+     "name": "rust-all",
      "repo-component": "universe"
     },
+    "name": "rust-all"
+   },
+   "cargo\\dysk": {
+    "driver": "cargo",
+    "fields": {
+     "name": "dysk"
+    },
     "name": "dysk"
+   },
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.config/bash/conf.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\rust-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "glue": "rust"
+    },
+    "name": "rust-dotfiles"
    }
   },
   "edge": {
@@ -18931,13 +18953,38 @@
    }
   },
   "pastel": {
-   "apt\\pastel": {
+   "apt\\rust": {
     "driver": "apt",
     "fields": {
-     "name": "pastel",
+     "name": "rust-all",
      "repo-component": "universe"
     },
+    "name": "rust-all"
+   },
+   "cargo\\pastel": {
+    "driver": "cargo",
+    "fields": {
+     "name": "pastel"
+    },
     "name": "pastel"
+   },
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.config/bash/conf.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\rust-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "glue": "rust"
+    },
+    "name": "rust-dotfiles"
    }
   },
   "perf": {
@@ -21940,13 +21987,38 @@
    }
   },
   "wiremix": {
-   "apt\\wiremix": {
+   "apt\\rust": {
     "driver": "apt",
     "fields": {
-     "name": "wiremix",
+     "name": "rust-all",
      "repo-component": "universe"
     },
+    "name": "rust-all"
+   },
+   "cargo\\wiremix": {
+    "driver": "cargo",
+    "fields": {
+     "name": "wiremix"
+    },
     "name": "wiremix"
+   },
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.config/bash/conf.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\rust-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "glue": "rust"
+    },
+    "name": "rust-dotfiles"
    }
   },
   "wireshark": {
@@ -25154,13 +25226,38 @@
    }
   },
   "dysk": {
-   "apt\\dysk": {
+   "apt\\rust": {
     "driver": "apt",
     "fields": {
-     "name": "dysk",
+     "name": "rust-all",
      "repo-component": "universe"
     },
+    "name": "rust-all"
+   },
+   "cargo\\dysk": {
+    "driver": "cargo",
+    "fields": {
+     "name": "dysk"
+    },
     "name": "dysk"
+   },
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.config/bash/conf.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\rust-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "glue": "rust"
+    },
+    "name": "rust-dotfiles"
    }
   },
   "edge": {
@@ -30300,13 +30397,38 @@
    }
   },
   "pastel": {
-   "apt\\pastel": {
+   "apt\\rust": {
     "driver": "apt",
     "fields": {
-     "name": "pastel",
+     "name": "rust-all",
      "repo-component": "universe"
     },
+    "name": "rust-all"
+   },
+   "cargo\\pastel": {
+    "driver": "cargo",
+    "fields": {
+     "name": "pastel"
+    },
     "name": "pastel"
+   },
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.config/bash/conf.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\rust-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "glue": "rust"
+    },
+    "name": "rust-dotfiles"
    }
   },
   "perf": {
@@ -33224,13 +33346,38 @@
    }
   },
   "wiremix": {
-   "apt\\wiremix": {
+   "apt\\rust": {
     "driver": "apt",
     "fields": {
-     "name": "wiremix",
+     "name": "rust-all",
      "repo-component": "universe"
     },
+    "name": "rust-all"
+   },
+   "cargo\\wiremix": {
+    "driver": "cargo",
+    "fields": {
+     "name": "wiremix"
+    },
     "name": "wiremix"
+   },
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.config/bash/conf.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\rust-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "glue": "rust"
+    },
+    "name": "rust-dotfiles"
    }
   },
   "wireshark": {
@@ -36424,13 +36571,38 @@
    }
   },
   "dysk": {
-   "apt\\dysk": {
+   "apt\\rust": {
     "driver": "apt",
     "fields": {
-     "name": "dysk",
+     "name": "rust-all",
      "repo-component": "universe"
     },
+    "name": "rust-all"
+   },
+   "cargo\\dysk": {
+    "driver": "cargo",
+    "fields": {
+     "name": "dysk"
+    },
     "name": "dysk"
+   },
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.config/bash/conf.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\rust-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "glue": "rust"
+    },
+    "name": "rust-dotfiles"
    }
   },
   "edge": {
@@ -41563,13 +41735,38 @@
    }
   },
   "pastel": {
-   "apt\\pastel": {
+   "apt\\rust": {
     "driver": "apt",
     "fields": {
-     "name": "pastel",
+     "name": "rust-all",
      "repo-component": "universe"
     },
+    "name": "rust-all"
+   },
+   "cargo\\pastel": {
+    "driver": "cargo",
+    "fields": {
+     "name": "pastel"
+    },
     "name": "pastel"
+   },
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.config/bash/conf.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\rust-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "glue": "rust"
+    },
+    "name": "rust-dotfiles"
    }
   },
   "perf": {
@@ -44500,13 +44697,38 @@
    }
   },
   "wiremix": {
-   "apt\\wiremix": {
+   "apt\\rust": {
     "driver": "apt",
     "fields": {
-     "name": "wiremix",
+     "name": "rust-all",
      "repo-component": "universe"
     },
+    "name": "rust-all"
+   },
+   "cargo\\wiremix": {
+    "driver": "cargo",
+    "fields": {
+     "name": "wiremix"
+    },
     "name": "wiremix"
+   },
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.config/bash/conf.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\rust-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "glue": "rust"
+    },
+    "name": "rust-dotfiles"
    }
   },
   "wireshark": {
@@ -52459,13 +52681,38 @@
    }
   },
   "pastel": {
-   "dnf\\pastel": {
-    "driver": "dnf",
+   "cargo\\pastel": {
+    "driver": "cargo",
     "fields": {
-     "name": "pastel",
-     "repo-component": "universe"
+     "name": "pastel"
     },
     "name": "pastel"
+   },
+   "dnf\\rust": {
+    "driver": "dnf",
+    "fields": {
+     "name": "cargo",
+     "repo-component": "universe"
+    },
+    "name": "cargo"
+   },
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.config/bash/conf.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\rust-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "glue": "rust"
+    },
+    "name": "rust-dotfiles"
    }
   },
   "perf": {
@@ -55402,8 +55649,7 @@
    "dnf\\wiremix": {
     "driver": "dnf",
     "fields": {
-     "name": "wiremix",
-     "repo-component": "universe"
+     "name": "wiremix"
     },
     "name": "wiremix"
    }
@@ -63392,13 +63638,38 @@
    }
   },
   "pastel": {
-   "dnf\\pastel": {
-    "driver": "dnf",
+   "cargo\\pastel": {
+    "driver": "cargo",
     "fields": {
-     "name": "pastel",
-     "repo-component": "universe"
+     "name": "pastel"
     },
     "name": "pastel"
+   },
+   "dnf\\rust": {
+    "driver": "dnf",
+    "fields": {
+     "name": "cargo",
+     "repo-component": "universe"
+    },
+    "name": "cargo"
+   },
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.config/bash/conf.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\rust-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "glue": "rust"
+    },
+    "name": "rust-dotfiles"
    }
   },
   "perf": {
@@ -66335,8 +66606,7 @@
    "dnf\\wiremix": {
     "driver": "dnf",
     "fields": {
-     "name": "wiremix",
-     "repo-component": "universe"
+     "name": "wiremix"
     },
     "name": "wiremix"
    }
@@ -68791,8 +69061,7 @@
    "brew\\dysk": {
     "driver": "brew",
     "fields": {
-     "name": "dysk",
-     "repo-component": "universe"
+     "name": "dysk"
     },
     "name": "dysk"
    }
@@ -72781,8 +73050,7 @@
    "brew\\pastel": {
     "driver": "brew",
     "fields": {
-     "name": "pastel",
-     "repo-component": "universe"
+     "name": "pastel"
     },
     "name": "pastel"
    }
@@ -78273,13 +78541,38 @@
    }
   },
   "dysk": {
-   "apt\\dysk": {
+   "apt\\rust": {
     "driver": "apt",
     "fields": {
-     "name": "dysk",
+     "name": "rust-all",
      "repo-component": "universe"
     },
+    "name": "rust-all"
+   },
+   "cargo\\dysk": {
+    "driver": "cargo",
+    "fields": {
+     "name": "dysk"
+    },
     "name": "dysk"
+   },
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.config/bash/conf.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\rust-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "glue": "rust"
+    },
+    "name": "rust-dotfiles"
    }
   },
   "edge": {
@@ -83497,13 +83790,38 @@
    }
   },
   "pastel": {
-   "apt\\pastel": {
+   "apt\\rust": {
     "driver": "apt",
     "fields": {
-     "name": "pastel",
+     "name": "rust-all",
      "repo-component": "universe"
     },
+    "name": "rust-all"
+   },
+   "cargo\\pastel": {
+    "driver": "cargo",
+    "fields": {
+     "name": "pastel"
+    },
     "name": "pastel"
+   },
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.config/bash/conf.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\rust-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "glue": "rust"
+    },
+    "name": "rust-dotfiles"
    }
   },
   "perf": {
@@ -86512,13 +86830,38 @@
    }
   },
   "wiremix": {
-   "apt\\wiremix": {
+   "apt\\rust": {
     "driver": "apt",
     "fields": {
-     "name": "wiremix",
+     "name": "rust-all",
      "repo-component": "universe"
     },
+    "name": "rust-all"
+   },
+   "cargo\\wiremix": {
+    "driver": "cargo",
+    "fields": {
+     "name": "wiremix"
+    },
     "name": "wiremix"
+   },
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.config/bash/conf.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\rust-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "glue": "rust"
+    },
+    "name": "rust-dotfiles"
    }
   },
   "wireshark": {
@@ -101275,13 +101618,38 @@
    }
   },
   "dysk": {
-   "apt\\dysk": {
+   "apt\\rust": {
     "driver": "apt",
     "fields": {
-     "name": "dysk",
+     "name": "rust-all",
      "repo-component": "universe"
     },
+    "name": "rust-all"
+   },
+   "cargo\\dysk": {
+    "driver": "cargo",
+    "fields": {
+     "name": "dysk"
+    },
     "name": "dysk"
+   },
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.config/bash/conf.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\rust-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "glue": "rust"
+    },
+    "name": "rust-dotfiles"
    }
   },
   "edge": {
@@ -106499,13 +106867,38 @@
    }
   },
   "pastel": {
-   "apt\\pastel": {
+   "apt\\rust": {
     "driver": "apt",
     "fields": {
-     "name": "pastel",
+     "name": "rust-all",
      "repo-component": "universe"
     },
+    "name": "rust-all"
+   },
+   "cargo\\pastel": {
+    "driver": "cargo",
+    "fields": {
+     "name": "pastel"
+    },
     "name": "pastel"
+   },
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.config/bash/conf.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\rust-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "glue": "rust"
+    },
+    "name": "rust-dotfiles"
    }
   },
   "perf": {
@@ -109521,13 +109914,38 @@
    }
   },
   "wiremix": {
-   "apt\\wiremix": {
+   "apt\\rust": {
     "driver": "apt",
     "fields": {
-     "name": "wiremix",
+     "name": "rust-all",
      "repo-component": "universe"
     },
+    "name": "rust-all"
+   },
+   "cargo\\wiremix": {
+    "driver": "cargo",
+    "fields": {
+     "name": "wiremix"
+    },
     "name": "wiremix"
+   },
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.config/bash/conf.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\rust-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "glue": "rust"
+    },
+    "name": "rust-dotfiles"
    }
   },
   "wireshark": {
@@ -112738,13 +113156,38 @@
    }
   },
   "dysk": {
-   "apt\\dysk": {
+   "apt\\rust": {
     "driver": "apt",
     "fields": {
-     "name": "dysk",
+     "name": "rust-all",
      "repo-component": "universe"
     },
+    "name": "rust-all"
+   },
+   "cargo\\dysk": {
+    "driver": "cargo",
+    "fields": {
+     "name": "dysk"
+    },
     "name": "dysk"
+   },
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.config/bash/conf.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\rust-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "glue": "rust"
+    },
+    "name": "rust-dotfiles"
    }
   },
   "edge": {
@@ -117851,13 +118294,38 @@
    }
   },
   "pastel": {
-   "apt\\pastel": {
+   "apt\\rust": {
     "driver": "apt",
     "fields": {
-     "name": "pastel",
+     "name": "rust-all",
      "repo-component": "universe"
     },
+    "name": "rust-all"
+   },
+   "cargo\\pastel": {
+    "driver": "cargo",
+    "fields": {
+     "name": "pastel"
+    },
     "name": "pastel"
+   },
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.config/bash/conf.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\rust-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "glue": "rust"
+    },
+    "name": "rust-dotfiles"
    }
   },
   "perf": {
@@ -120788,13 +121256,38 @@
    }
   },
   "wiremix": {
-   "apt\\wiremix": {
+   "apt\\rust": {
     "driver": "apt",
     "fields": {
-     "name": "wiremix",
+     "name": "rust-all",
      "repo-component": "universe"
     },
+    "name": "rust-all"
+   },
+   "cargo\\wiremix": {
+    "driver": "cargo",
+    "fields": {
+     "name": "wiremix"
+    },
     "name": "wiremix"
+   },
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.config/bash/conf.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\rust-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "glue": "rust"
+    },
+    "name": "rust-dotfiles"
    }
   },
   "wireshark": {
