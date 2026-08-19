@@ -2639,6 +2639,7 @@ class DotfilesScreen:
         self.cur = 0
         self.top = 0
         self.hscroll = 0                 # horizontal scroll across the columns (h/l)
+        self.dirty = set()               # unit keys mutated here -> requeried on return to Components
         self.reload()
 
     def _root_label(self, root):
@@ -2889,15 +2890,21 @@ def run(ctx):
             if ch in KEY_TO_SCREEN:
                 dest = KEY_TO_SCREEN[ch]
                 if dest in IMPLEMENTED:
-                    if dest == 'components' and menu_dirty:   # a profile/config edit changed resolution
+                    # dotfiles mutated on its page (link/capture/migrate) -> re-probe those units so
+                    # Components doesn't show stale 'managed'/'adopted' after they're now linked.
+                    df_dirty = ds.dirty if ds is not None else set()
+                    if dest == 'components' and (menu_dirty or df_dirty):
                         try:
                             # re-resolve + re-probe newly-appearing/changed units (a membership,
                             # driver-preference or scope edit can add units or change how they
-                            # resolve); reuses the rest and preserves selection/staging/expansion.
-                            ms, cfg, ledger, states, diags = _reload(ctx, ms, set())
+                            # resolve) plus the dotfiles units just mutated; reuses the rest and
+                            # preserves selection/staging/expansion.
+                            ms, cfg, ledger, states, diags = _reload(ctx, ms, set(df_dirty))
                         except Exception as e:  # noqa: BLE001 — surface, don't crash
                             note = f'reload failed: {e}'
                         menu_dirty = False
+                        if ds is not None:
+                            ds.dirty = set()
                     if dest == 'dotfiles' and ds is not None:  # re-read link state on entry — an
                         ds.reload()                            # install/capture elsewhere may have changed it
                     screen = dest
@@ -3061,21 +3068,25 @@ def run(ctx):
                     elif ch in (ord('\n'), curses.KEY_ENTER) and row:   # link (clobber-proof;
                         with suspended(stdscr):                          # refuses over a real file)
                             res = ds.df.install(row[0])
+                        ds.dirty.add(row[0].key)
                         ds.reload()
                         note = (f'{row[0].comp}: {res.output().strip()}'
                                 if res is not None and not res.ok else f'linked {row[0].comp}')
                     elif ch == ord('x') and row:            # unlink (restores any backup)
                         with suspended(stdscr):
                             ds.df.uninstall(row[0])
+                        ds.dirty.add(row[0].key)
                         ds.reload()
                         note = f'unlinked {row[0].comp}'
                     elif ch == ord('c') and row:            # capture: adopt this row's on-system content
                         done = ds.df.capture(row[0], force=False)
+                        ds.dirty.add(row[0].key)
                         ds.reload()
                         note = (f'captured {len(done)} target(s) for {row[0].comp}'
                                 if done else f'nothing to capture for {row[0].comp}')
                     elif ch == ord('C'):                    # capture ALL with on-disk config to adopt
                         total = sum(len(ds.df.capture(rc, force=False)) for rc in ds.units)
+                        ds.dirty.update(rc.key for rc in ds.units)
                         ds.reload()
                         note = (f'captured {total} target(s) across all dotfiles'
                                 if total else 'nothing on-disk to capture')
@@ -3084,6 +3095,7 @@ def run(ctx):
                         with suspended(stdscr):
                             for rc in pend.values():
                                 ds.df.install(rc)
+                        ds.dirty.update(pend)
                         ds.reload()
                         note = (f'linked {len(pend)} captured dotfile(s)'
                                 if pend else 'nothing captured-but-unlinked')
@@ -3097,6 +3109,8 @@ def run(ctx):
                                 input('\n(press Enter to return) ')
                             except EOFError:
                                 pass
+                        ds.dirty.update(r[0].key for r in ds.rows
+                                        if only is None or r[0].comp in only)
                         ds.reload()
                         note = f'migrate {row[0].comp if only else "(all)"}: done'
                 except Exception as e:  # noqa: BLE001 — surface, don't crash
