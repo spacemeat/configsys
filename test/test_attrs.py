@@ -46,3 +46,28 @@ def test_tombstone_clears_attrs():
              ({}, 'user'),                                        # {} tombstone clears everything
              ({'attrs': ['GUI'], 'install': [{'via': 'flatpak', 'app': 'a', 'hub': 'flathub'}]}, 'user')]
     assert routes._merge_component_chain('x', chain)['attrs'] == ['GUI']
+
+
+# -- the Profiles-page faceted filter (_attr_pass): per-axis OR, cross-axis AND, exclude ----------
+
+from configsys.tui.menu import _attr_pass, _ATTR_AXIS_OF
+
+
+def test_attr_axes_cover_the_vocabulary():
+    for t in ('cli', 'gui', 'sdk', 'daemon', 'foss', 'gnu', 'proprietary', 'tele', 'electron',
+              'dotfiles', 'service', 'font'):
+        assert t in _ATTR_AXIS_OF, t
+
+
+def test_faceted_filter_per_axis_or_cross_axis_and():
+    assert _attr_pass({'cli', 'foss'}, {'cli', 'tui'}, set())          # interface OR: CLI matches
+    assert not _attr_pass({'gui', 'foss'}, {'cli', 'tui'}, set())      # GUI fails the interface axis
+    assert _attr_pass({'cli', 'foss'}, {'cli', 'foss'}, set())         # CLI(interface) AND FOSS(license)
+    assert not _attr_pass({'cli', 'proprietary'}, {'cli', 'foss'}, set())  # license axis unmet
+
+
+def test_faceted_filter_exclude_and_empty():
+    assert not _attr_pass({'gui', 'proprietary'}, set(), {'proprietary'})
+    assert _attr_pass({'gui', 'foss'}, set(), {'proprietary'})
+    assert _attr_pass(set(), set(), set())                             # untagged passes an empty filter
+    assert not _attr_pass({'dotfiles'}, set(), {'dotfiles'})           # default companion-hide

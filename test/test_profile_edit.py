@@ -241,7 +241,8 @@ def test_profile_tree_and_star_filter(tmp_path):
     actions.set_profile_include(ctx, 'mine', 'base', True)   # mine includes base
 
     ps = menu.ProfileScreen(ctx)
-    names = [nd[0] for nd in ps.visible_pnodes()]
+    ps.attr_exc = set()                                      # isolate star filtering from the attrs
+    names = [nd[0] for nd in ps.visible_pnodes()]            # filter's default `-dotfiles` hide
     assert 'mine' in names and 'base' in names
     ps.lcur = names.index('mine')
     assert ps.cur_node()[3] is True                          # mine is expandable (has an include)

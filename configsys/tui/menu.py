@@ -1539,6 +1539,94 @@ def _find_edit(stdscr, labels, restore, set_cursor, redraw):
 
 
 # -- Profiles screen ------------------------------------------------------
+# ---- attrs filter (Profiles catalog) — faceted include/exclude over component attribute tags ----
+# Axes + vocabulary mirror docs/component-attrs.md. Used by the `A` filter modal + the catalog filter.
+ATTR_AXES = [
+    ('interface', ['CLI', 'TUI', 'GUI', 'daemon', 'web', 'headless']),
+    ('role',      ['lib', 'SDK', 'app', 'toolchain', 'runtime', 'driver', 'font',
+                   'theme', 'plugin', 'game', 'service', 'dotfiles']),
+    ('license',   ['FOSS', 'FOSSish', 'proprietary', 'source-available', 'freeware',
+                   'GNU', 'copyleft', 'permissive']),
+    ('data',      ['tele', 'tele-optin', 'account', 'cloud', 'online', 'ads', 'paid', 'freemium']),
+    ('pedigree',  ['electron', 'patent', 'legacy', 'beta']),
+]
+_ATTR_AXIS_OF = {t.lower(): axis for axis, tags in ATTR_AXES for t in tags}
+
+
+def _attr_pass(tags, inc, exc):
+    '''`tags` (a set of lowercased attrs) passes the faceted filter when it has NONE of the excluded
+    tags AND, for every axis the user included a tag from, at least one of that axis's included tags
+    (per-axis OR, cross-axis AND). Empty inc/exc -> everything passes.'''
+    if exc & tags:
+        return False
+    if inc:
+        for axis in {_ATTR_AXIS_OF.get(t) for t in inc}:
+            if not ({t for t in inc if _ATTR_AXIS_OF.get(t) == axis} & tags):
+                return False
+    return True
+
+
+def _attr_filter_modal(stdscr, pal, inc, exc):
+    '''Tri-state faceted filter over the attr axes, drawn over the screen. space cycles a tag
+    neutral(·) -> include(✓) -> exclude(✗) -> neutral; `c` clears all; enter applies; esc cancels.
+    Returns (new_inc, new_exc) as lowercased sets, or None on cancel.'''
+    rows = []                                       # ('head', axis) | ('tag', tag)
+    for axis, tags in ATTR_AXES:
+        rows.append(('head', axis))
+        rows.extend(('tag', t) for t in tags)
+    inc, exc = {x.lower() for x in inc}, {x.lower() for x in exc}
+    sel = next((i for i, r in enumerate(rows) if r[0] == 'tag'), 0)
+    top = 0
+    border = pal.get('accent') | curses.A_BOLD
+    while True:
+        h, w = stdscr.getmaxyx()
+        box_w = min(48, max(30, w - 4))
+        vis = max(3, min(len(rows), h - 6))
+        box_h = vis + 4
+        y0, x0 = max(0, (h - box_h) // 2), max(0, (w - box_w) // 2)
+        top = min(sel, top) if sel < top else (sel - vis + 1 if sel >= top + vis else top)
+        _put(stdscr, y0, x0, '┌' + '─' * (box_w - 2) + '┐', border)
+        _put(stdscr, y0, x0 + 2, ' filter catalog by attributes ', border)
+        for r in range(1, box_h - 1):
+            _put(stdscr, y0 + r, x0, '│' + ' ' * (box_w - 2) + '│', border)
+        _put(stdscr, y0 + box_h - 1, x0, '└' + '─' * (box_w - 2) + '┘', border)
+        _put(stdscr, y0 + box_h - 1, x0 + 2, ' space:·/✓/✗ · c:clear · enter · esc ', border)
+        for k in range(vis):
+            idx = top + k
+            if idx >= len(rows):
+                break
+            kind, val = rows[idx]
+            yy = y0 + 1 + k
+            if kind == 'head':
+                _put(stdscr, yy, x0 + 2, _fit(val, box_w - 4), pal.get('dim') | curses.A_BOLD)
+            else:
+                mark = '✓' if val.lower() in inc else ('✗' if val.lower() in exc else '·')
+                attr = curses.A_REVERSE if idx == sel else curses.A_NORMAL
+                _put(stdscr, yy, x0 + 2, _fit(f'  [{mark}] {val}'.ljust(box_w - 4), box_w - 4), attr)
+        stdscr.refresh()
+        ch = stdscr.getch()
+        if ch in (27, ord('q')):
+            return None
+        if ch in (ord('\n'), curses.KEY_ENTER):
+            return inc, exc
+        if ch in (ord('j'), curses.KEY_DOWN):
+            sel = min(len(rows) - 1, sel + 1)
+        elif ch in (ord('k'), curses.KEY_UP):
+            sel = max(0, sel - 1)
+        elif ch == ord('c'):
+            inc.clear()
+            exc.clear()
+        elif ch == ord(' ') and rows[sel][0] == 'tag':
+            t = rows[sel][1].lower()
+            if t in inc:                            # ✓ -> ✗
+                inc.discard(t)
+                exc.add(t)
+            elif t in exc:                          # ✗ -> ·
+                exc.discard(t)
+            else:                                   # · -> ✓
+                inc.add(t)
+
+
 class ProfileScreen:
     '''Two-panel profile editor: profiles (left) + the full component catalog (right). A skin over
     configsys.actions — space toggles membership, `a` toggles a profile active.'''
@@ -1551,6 +1639,8 @@ class ProfileScreen:
         self.pfilter = self.cfilter = ''   # substring filters for the profiles / catalog panes
         self.expanded = set()            # node keys of expanded profiles (inline `+include` tree)
         self.starred = set()             # profile NAMES starred (▸) — their OWN members filter the catalog
+        self.attr_inc = set()            # `A` faceted attr filter: lowercased tags to INCLUDE
+        self.attr_exc = {'dotfiles'}     # ...and to EXCLUDE — hide the -dotfiles companions by default
         self._res = {}                   # component -> (available, via, pinned); survives reloads
         self.reload()
 
@@ -1623,7 +1713,21 @@ class ProfileScreen:
         f = self.cfilter.lower()
         cat = [c for c in self.catalog if f in c.lower()] if f else self.catalog
         sm = self._starred_members()                 # `*` star filter: starred profiles' OWN members
-        return [c for c in cat if c in sm] if sm is not None else cat
+        if sm is not None:
+            cat = [c for c in cat if c in sm]
+        if self.attr_inc or self.attr_exc:           # `A` attrs filter (faceted include/exclude)
+            comps = self.ctx.routes.components
+            cat = [c for c in cat if _attr_pass(
+                {a.lower() for a in getattr(comps.get(c), 'attrs', [])}, self.attr_inc, self.attr_exc)]
+        return cat
+
+    def attr_summary(self):
+        '''Short `✓a ✗b` chip for the catalog title, or '' at the pristine default (only the
+        implicit `-dotfiles` hide, which the nav hint already advertises).'''
+        parts = ['✓' + t for t in sorted(self.attr_inc)] + ['✗' + t for t in sorted(self.attr_exc)]
+        if parts == ['✗dotfiles']:
+            return ''
+        return '  ' + ' '.join(parts) if parts else ''
 
     def set_pfilter(self, text):
         self.pfilter = text
@@ -1761,14 +1865,25 @@ def _draw_profiles(stdscr, pal, ps, ctx, note, screen):
     cur = vcat[ps.rcur] if vcat and 0 <= ps.rcur < len(vcat) else None
     # the component NAME rides the panel title, so the box is short (2 desc lines + a "required by"
     # line + an "in profiles" line) and the catalog grid below gets the reclaimed rows.
-    desc_h = 6 if body_h >= 11 else 0
+    desc_h = 7 if body_h >= 12 else 0
     if desc_h:
         dit, dil, dih, diw = _panel(stdscr, pal, top, rleft, desc_h, rw, cur or 'component', False, h, w)
         if cur:
             comp = ctx.routes.components.get(cur)
             desc = (comp.description if comp else '') or '(no description yet)'
-            for k, line in enumerate(_wrap(desc, diw)[:dih - 2]):
+            for k, line in enumerate(_wrap(desc, diw)[:dih - 3]):
                 _put(stdscr, dit + k, dil, _fit(line, diw), pal.style('info', dit + k, dil, h, w))
+            # attribute tags (kind filter, orthogonal to profiles): a tag active in the `A` filter
+            # is marked ✓ (included) / ✗ (excluded) so you can see why a component shows or hides.
+            atags = getattr(comp, 'attrs', []) if comp else []
+            if atags:
+                shown = [(('✓' if a.lower() in ps.attr_inc else '✗' if a.lower() in ps.attr_exc else '')
+                          + a) for a in atags]
+                atext = 'attrs: ' + ' '.join(shown)
+            else:
+                atext = 'attrs: (untagged)'
+            _put(stdscr, dit + dih - 3, dil, _fit(atext, diw),
+                 pal.style('method_dim', dit + dih - 3, dil, h, w))
             # What DEPENDS ON this component — every other component (and DRIVER, marked ⎈) that names
             # a capability it provides in its requires/suggests/parts, across ALL install methods
             # (machine-agnostic: we're authoring profiles, not installing). Distinct from "in profiles".
@@ -1802,7 +1917,8 @@ def _draw_profiles(stdscr, pal, ps, ctx, note, screen):
     ctop, cath = top + desc_h, body_h - desc_h
     ctitle = ((f'components — in "{prof}"' if prof else 'components')
               + (f'  filter:{ps.cfilter}' if ps.cfilter else '')
-              + (f'  ▸{",".join(sorted(ps.starred))}' if ps.starred else ''))
+              + (f'  ▸{",".join(sorted(ps.starred))}' if ps.starred else '')
+              + ps.attr_summary())
     rit, ril, rih, riw = _panel(stdscr, pal, ctop, rleft, cath, rw, ctitle, ps.focus == 'right', h, w)
     n = len(vcat)
     rows = max(1, rih)                               # each column is as tall as the pane
@@ -1872,7 +1988,7 @@ def _draw_profiles(stdscr, pal, ps, ctx, note, screen):
     if note:
         status += f'    {note}'
     navf = (' j/k · h/l expand · tab/⏎ components · * star-filter · + include · a active · '
-            'n/d new/del · space member · m method · / find · F filter · q ')
+            'n/d new/del · space member · m method · / find · F filter · A attrs · q ')
     _put(stdscr, h - 2, 0, _fit(status, w), pal.style('status_line', h - 2, 0, h, w))
     _put(stdscr, h - 1, 0, _fit(navf.ljust(w), w), pal.style('footer', h - 1, 0, h, w))
     stdscr.refresh()
@@ -2957,6 +3073,11 @@ def run(ctx):
                     else:
                         _filter_edit(stdscr, ps.cfilter, ps.set_cfilter,
                                      lambda: _draw_profiles(stdscr, pal, ps, ctx, note, screen))
+                elif ch == ord('A'):                   # faceted attr filter over the catalog (kind)
+                    res = _attr_filter_modal(stdscr, pal, ps.attr_inc, ps.attr_exc)
+                    if res is not None:
+                        ps.attr_inc, ps.attr_exc = res
+                        ps.rcur, ps.rcol_left = 0, 0   # catalog membership changed -> reset its cursor
                 elif ch == ord('/'):                   # fuzzy FIND in the focused pane: jump cursor
                     rdraw = lambda: _draw_profiles(stdscr, pal, ps, ctx, note, screen)
                     if ps.focus == 'left':

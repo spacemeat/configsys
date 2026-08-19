@@ -71,14 +71,20 @@ companion/asset components tag themselves and ~600 components don't all need han
 component → `lib` — but the **license / data / pedigree axes must always be authored**: only a human
 knows Audacity phones home.) Authored tags win/merge; the derivation only *adds*.
 
-## Profiles-view behaviour (planned)
+## Profiles-view behaviour (built)
 
-- **`dotfiles`-tagged components are hidden by default** in the Profiles catalog (they're noise for
-  most filtering); a "show companions" toggle reveals them. **`service`-tagged components stay
-  visible** by default.
-- The active tags render in the component **infobox** (the blank line between the description and the
-  required-by text).
-- A keybound **modal** offers per-tag checkboxes (grouped by axis) for include/exclude filtering.
+- The active tags render in the component **infobox** (`attrs:` line above required-by); a tag that's
+  part of the active filter is marked `✓` (included) / `✗` (excluded) so you can see why a row shows
+  or hides.
+- **`A`** opens a **faceted filter modal**: rows grouped by axis, `space` cycles a tag
+  `· → ✓(include) → ✗(exclude) → ·`, `c` clears, `enter` applies, `esc` cancels. Filter semantics:
+  a component passes when it has **none of the excluded** tags AND, for every axis you included a tag
+  from, **at least one** of that axis's included tags (per-axis OR, cross-axis AND).
+- **`dotfiles`-tagged components are hidden by default** (companions are noise for most filtering) —
+  it's a preset `✗dotfiles` you clear in the modal to reveal them; **`service` stays visible**. The
+  catalog title shows a `✓/✗` chip once the filter deviates from that default.
+- Implementation: `ProfileScreen.attr_inc`/`attr_exc` (lowercased sets), `_attr_pass()`,
+  `_attr_filter_modal()`, `ATTR_AXES` in `configsys/tui/menu.py`.
 
 ## Where this lives
 
