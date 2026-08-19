@@ -27,7 +27,7 @@ web UI) · `headless` (no UI — libs, pure daemons)
 ### 2. Role — what it is
 `lib` · `SDK` · `app` (end-user application) · `toolchain` (compiler/interpreter) · `runtime`
 (language/VM runtime) · `driver` (kernel/hardware/DKMS) · `font` · `theme` · `plugin` (extends
-another app) · `game` · `service` (a `-service` companion) · `dotfiles` (a `-dotfiles` companion)
+another app) · `game` · `service` (a `-service` companion) · `group` (a `-group` usermod companion) · `dotfiles` (a `-dotfiles` companion)
 
 ### 3. License / openness — free-form, combine as many as apply
 `FOSS` (OSI-free) · `FOSSish` (partly non-free — open core) · `proprietary` (closed) ·
@@ -65,6 +65,7 @@ companion/asset components tag themselves and ~600 components don't all need han
 |----------------------------------|--------------|
 | a binding is `via: dotfiles`     | `dotfiles`   |
 | a binding is `via: service`      | `service`    |
+| a binding is `via: group`        | `group`      |
 | a binding is `via: font`         | `font`       |
 
 (Interface/role could be derived further later — e.g. `via: cargo`/`pip` → `CLI`, a dev-headers

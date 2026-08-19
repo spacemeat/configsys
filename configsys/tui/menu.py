@@ -1544,7 +1544,7 @@ def _find_edit(stdscr, labels, restore, set_cursor, redraw):
 ATTR_AXES = [
     ('interface', ['CLI', 'TUI', 'GUI', 'daemon', 'web', 'headless']),
     ('role',      ['lib', 'SDK', 'app', 'toolchain', 'runtime', 'driver', 'font',
-                   'theme', 'plugin', 'game', 'service', 'dotfiles']),
+                   'theme', 'plugin', 'game', 'service', 'group', 'dotfiles']),
     ('license',   ['FOSS', 'FOSSish', 'proprietary', 'source-available', 'freeware',
                    'GNU', 'copyleft', 'permissive']),
     ('data',      ['tele', 'tele-optin', 'account', 'cloud', 'online', 'ads', 'paid', 'freemium']),

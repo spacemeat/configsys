@@ -40,7 +40,7 @@ _COMPONENT_KEYS = frozenset({'provides', 'requires', 'suggests', 'parts', 'insta
 # Attrs auto-derived from a component's install methods — companion/asset kinds tag themselves, so
 # the -dotfiles/-service companions and font components need no hand-authored `attrs:` (see
 # docs/component-attrs.md). Union'd with authored attrs.
-_VIA_ATTR = {'dotfiles': 'dotfiles', 'service': 'service', 'font': 'font'}
+_VIA_ATTR = {'dotfiles': 'dotfiles', 'service': 'service', 'font': 'font', 'group': 'group'}
 
 
 def _derived_attrs(bindings):
