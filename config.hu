@@ -28,31 +28,35 @@
     // them by name or add them to your own profile. See docs/profiles-plan.md for the rationale.
     // Your ~/.config/configsys/configsys.hu may add profiles or shadow any of these by name.
 profiles: {
-    terminal: [ +terminal-emulators  +disk-utils  +cli-files  +system-monitors  curl  espeak  fastfetch
-        fzf  ripgrep  xclip  neovim  tmux  lazygit  mononoki-nerd ]
-    terminal-emulators: [ alacritty  ghostty  kitty  wezterm ]
+    terminal: [ +terminal-emulators  +disk-utils  +cli-files  +system-monitors  curl  espeak  fastfetch  fd
+        fzf  ripgrep  rsync  xclip  neovim  tmux  lazygit  mononoki-nerd  zoxide ]
+    terminal-emulators: [ alacritty  foot  ghostty  kitty  wezterm ]
     system-monitors: [ btop  htop  bottom  atop  bmon  iotop  s-tui  glances  nvtop  wavemon  /*sysdig*/  dstat ]
-    disk-utils: [ ncdu  duf ]
+    disk-utils: [ ncdu  duf  dysk ]
     cli-files: [ mc  yazi  superfile ]
     shells: [ fish  nushell  zsh ]
+    configuration-tools: [ stow ]
+    password-passkey: [ bitwarden  vaultwarden  doppler  pass ]
+
+    copy-tools: [ rsync  caligula  stow ]
 
     text-editors: [ android-studio  antigravity  emacs  helix  jetbrains-toolbox  micro  neovim  vscode
         vscodium  zed ]
 
     desktops-compositors: [ budgie  cosmic  fvwm2  gnome  i3  kde  lxqt  mate  qtile  sway  xfce  xmonad ]
-    web-browsers: [ chrome  chromium  firefox  brave  opera  vivaldi  edge  tor-browser ]
-    audio-infra: [ pipewire  jack ]
+    web-browsers: [ chrome  chromium  firefox  brave  opera  vivaldi  edge  tor-browser  lynx ]
+    audio-infra: [ pipewire  jack  wiremix ]
     gaming: [ vulkan-runtime  steam  wine  winetricks  protonup-qt  protontricks ]
 
     virtual-machines: [ qemu  virt-manager  virtualbox ]
-    containers: [ docker  docker-group  lazydocker  podman ]
+    containers: [ docker  docker-group  lazydocker  podman  xephyr ]
     k8s: [ kubectl  helm  k9s  k3s ]
 
     db-clients: [ pgcli  mycli  dbeaver  sqlitebrowser  lazysql ]
     db-servers: [ postgresql-service  mariadb-service  redis-service  mongodb  mongodb-service ]
 
-    net-tools: [ iproute2  wireshark  wireshark-group  tshark  tcpdump  nmap  mtr  gping  traceroute  iperf3
-        socat  ethtool  whois  netcat  dig  iftop  nethogs  nload  vnstat  dnspeep ]
+    net-tools: [ iproute2  impala  bluetui  wireshark  wireshark-group  tshark  tcpdump  nmap  mtr  gping  traceroute  iperf3
+        socat  ethtool  whois  netcat  dig  iftop  nethogs  nload  rsync  vnstat  dnspeep ]
     cloud-tools: [ awscli  gcloud  azure-cli  opentofu  grpcurl ]
     backend-tools: [ +containers  +k8s  +cloud-tools  +net-tools  +db-clients  +db-servers  ansible ]
 
@@ -81,7 +85,7 @@ profiles: {
 
     jvm-tools: [ +java-lang  mvnd  ant  jbang  scalacli  coursier  springboot  quarkus  micronaut  liquibase
         detekt  jreleaser  spark  flink  visualvm  jmc  jmeter ]
-    dev-tools: [ git  jq  just  protobuf  yq ]
+    dev-tools: [ gh  git  jq  just  protobuf  yq ]
     version-control-tools: [ git  mercurial  subversion  cvs  perforce  fossil  bazaar ]
     compression-tools: [ zstd  lz4  p7zip  zip  unzip  unrar  rar ]
 
@@ -98,7 +102,7 @@ profiles: {
     web-package-managers: [ bun  pnpm  yarn ]
 
     electronics-tools: [ arduino  kicad  gnuradio ]
-    graphics-tools: [ blender  krita  gimp  inkscape  darktable  freecad  openscad  scribus  digikam ]
+    graphics-tools: [ blender  durdraw  krita  gimp  inkscape  darktable  freecad  openscad  scribus  digikam  pastel  webcamize ]
     audio-tools: [ +audio  ardour  lmms  tenacity  musescore  hydrogen  carla  sonic-pi  supercollider
         qjackctl  yabridge ]
 
@@ -106,12 +110,14 @@ profiles: {
     math: [ +latex  julia  r  octave  maxima  wxmaxima  pari  gap  gnuplot  sagemath ]
     latex: [ texlive  texlive-full ]
 
-    user: [ +terminal  git  bash-dotfiles  configsys-dotfiles  codecs  firefox  chrome ]
-    desktop-apps: [ libreoffice  vlc  discord  slack  spotify  obs-studio  kodi  stremio ]
-    creative-tools: [ +electronics-tools  +graphics-tools  +audio-tools ]
+    communication: [ discord  discordo  slack  obs-studio ]
+    creative-tools: [ +electronics-tools  +graphics-tools  +audio-tools  libreoffice ]
 
     media-servers: [ jellyfin-service  plex-service  emby-service  navidrome ]
+    media-players: [ codecs  ffmpeg  vlc  spotify  kodi  stremio ]
     home-server: [ home-assistant  pi-hole  adguardhome  homebridge  mosquitto-service  syncthing
         tailscale-service  grafana-service  prometheus  cockpit-service  wireguard  nextcloud ]
+
+    user: [ +terminal  git  bash-dotfiles  configsys-dotfiles  codecs  firefox  chrome ]
 }
 }
