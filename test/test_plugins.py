@@ -121,6 +121,23 @@ def test_effective_declared_pulls_transitive_from_manifest(tmp_path):
     assert eff[0].get('primary') and 'primary' not in eff[1]   # transitive never inherits primary
 
 
+def test_machine_level_plugin_declared_in_top_config_and_pulls_transitive(tmp_path):
+    # a plugin declared (non-primary) in the MACHINE top config still loads as a `plugin`-role
+    # layer AND pulls its own transitive plugins — the replacement for project discovery.
+    pdir = tmp_path / 'plugins'
+    _plugin(pdir, 'app', '{ name: app  requires-abi: 1  data: [ routes.hu ]'
+                         '  plugins: [ { source: "github:x/dep" } ] }',
+            {'routes.hu': '{ components: { atool: { install: [ { via: native } ] } } }'})
+    _plugin(pdir, 'dep', '{ name: dep  requires-abi: 1 }', {})
+    top = tmp_path / 'configsys.hu'
+    top.write_text('{ plugins: [ { source: "github:me/app" } ] }')     # no primary: machine-level
+    eff = plugins.effective_declared(str(top), pdir)
+    assert [d['source'] for d in eff] == ['github:me/app', 'github:x/dep']
+    assert not any(d.get('primary') for d in eff)          # machine-level, none is primary
+    files = plugins.layer_files(pdir, eff)
+    assert any(f.endswith('app/routes.hu') and role == 'plugin' for f, role in files)
+
+
 # -- resolution: plugin adds a component AND an os block (derivative distro) --
 
 def test_plugin_component_and_os_block_resolve(tmp_path):

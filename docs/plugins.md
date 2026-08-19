@@ -8,7 +8,7 @@ the `Driver` registry (`configsys/drivers/`). (Historical P1/P2 phase notes are 
 
 P1 in a nutshell: `plugins: [ { source: "github:x/y"  ref: v1 } ]` in the user config, then
 `configsys plugin sync` clones each to `~/.config/configsys/plugins/<name>/` at the pinned
-ref; its `.hu` data files become `plugin`‑role layers (repo < plugins < primary < discovered < user).
+ref; its `.hu` data files become `plugin`‑role layers (repo < plugins < primary < user).
 A plugin can add components AND os blocks (derivative distros). Unsynced / ABI‑incompatible /
 malformed → skipped, never fatal (components degrade to resilient error rows). `ABI_VERSION`/
 `ABI_SUPPORTED` live in `plugins.py`; the manifest `requires-abi` is already gated. NOTE: a
@@ -60,11 +60,11 @@ Each synced plugin's `data:` files become `plugin`‑role layers in the stack. P
 lowest → highest:
 
 ```
-repo (routes.hu + config.hu)  <  plugins (declaration order)  <  discovered project files  <  user config
+repo (routes.hu + config.hu)  <  plugins (declaration order)  <  user config
 ```
 
-Plugins sit **above the repo but below your project and your machine config** — so your
-`.configsys.hu` and `~/.config/configsys/configsys.hu` always win over a plugin. Merge, per‑name
+Plugins sit **above the repo but below your machine config** — so your
+`~/.config/configsys/configsys.hu` always wins over a plugin. Merge, per‑name
 override, provenance (`Component.source` → the plugin file), and `where`/`check` attribution all
 come from the existing engine. A plugin can add os blocks and components; **an os/driver block
 that reuses an existing driver is pure data** (the derivative‑distro case, e.g. Linux Mint →
@@ -91,7 +91,7 @@ plugins: [
 - private repos: use an ssh source (`git@host:owner/repo.git`), a credential-bearing URL, or a
   configured git credential helper; `CONFIGSYS_GIT_TOKEN` is a CI convenience for github:/gitlab:.
 - `plugins:` is a machine SETTING (like `configs:`/`pins:`) — repo/user only, not settable by
-  includes or discovered files. The blessed **primary** plugin is the exception among plugins:
+  includes. The blessed **primary** plugin is the exception among plugins:
   it may set machine settings (`configs:`/`scope:`/`pins:`/…) and carry transitive `plugins:`.
 - One section escapes the machine-setting gate entirely: `theme:` is purely cosmetic, so **any**
   plugin — declared directly or linked transitively by a primary — may contribute it, merged per
@@ -129,7 +129,7 @@ plugins: [
 ## 5. Resilience / graceful degradation (inherited + extended)
 
 A plugin that fails — unreachable, malformed, ABI‑incompatible, or an untrusted code plugin —
-is **skipped with a warning**, never fatal, exactly like a bad discovered file. Its data layer
+is **skipped with a warning**, never fatal, exactly like a bad included file. Its data layer
 may still load (definitions), but if its `Driver` isn't registered (untrusted/incompatible),
 `via: <its-driver>` is unknown → components that need it surface as **resilient error rows**
 (see the inspect/TUI resilience) telling you *why* ("plugin opensuse‑support is untrusted; run

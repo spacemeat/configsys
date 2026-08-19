@@ -12,10 +12,10 @@ import os
 from . import layers
 from .errors import ConfigError
 
-# Layer roles that may set MACHINE settings (configs / scope / pins / ignore-profiles), lowest
+# Layer roles that may set MACHINE settings (configs / scope / pins), lowest
 # precedence first: the repo baseline, then a top-config-designated `primary` plugin (your
 # portable personal defaults), then this machine's top user config (which overrides). Ordinary
-# `plugin`/`discover`/`include` layers are excluded — a shared plugin can't seize machine control
+# `plugin`/`include` layers are excluded — a shared plugin can't seize machine control
 # unless the local top config explicitly grants it `primary`.
 _MACHINE_ROLES = ('repo', 'primary', 'user')
 
@@ -63,15 +63,14 @@ class Config:
     ALL_PROFILE = 'all'
 
     @classmethod
-    def load(cls, paths, discovered=(), plugin_files=()):
+    def load(cls, paths, plugin_files=()):
         roots = [(paths.config_file, 'repo')]
         roots += [p if isinstance(p, (tuple, list)) else (p, 'plugin')   # (path, role)
                   for p in plugin_files]
-        roots += [(d, 'discover') for d in discovered]
         roots.append((paths.user_config_file, 'user'))
-        layer_list, warns = layers.expand_tolerant(roots, {'discover', 'plugin', 'primary'})
+        layer_list, warns = layers.expand_tolerant(roots, {'plugin', 'primary'})
         cfg = cls(layer_list)
-        cfg.load_warnings = warns     # a malformed primary/plugin/project file skipped, not fatal
+        cfg.load_warnings = warns     # a malformed primary/plugin layer skipped, not fatal
         return cfg
 
     def ignored_section_warnings(self):
@@ -81,26 +80,14 @@ class Config:
 
     @property
     def active_profiles(self):
-        '''Explicit `configs:` UNION every profile a discovered project file defines (auto-
-        activation), minus `ignore-profiles:`. Explicit first, then discovered. `configs:` and
-        `ignore-profiles:` are machine settings read from repo < a designated `primary` plugin <
-        the top user config (see _MACHINE_ROLES) — so your personal plugin can set the default
-        active set, and this machine's top config overrides it.'''
-        explicit = _leaves(layers.merge_scalar(self._layers, 'configs', _MACHINE_ROLES))
-        ignore = set(_leaves(layers.merge_scalar(self._layers, 'ignore-profiles', _MACHINE_ROLES)))
+        '''The active profile set: `configs:`, a machine setting read from repo < a designated
+        `primary` plugin < the top user config (see _MACHINE_ROLES) — so your personal plugin can
+        set the default active set, and this machine's top config overrides it. Deduped, in order.'''
         seen, out = set(), []
-        for name in explicit + self._discovered_profiles():
-            if name not in seen and name not in ignore:
+        for name in _leaves(layers.merge_scalar(self._layers, 'configs', _MACHINE_ROLES)):
+            if name not in seen:
                 seen.add(name)
                 out.append(name)
-        return out
-
-    def _discovered_profiles(self):
-        '''Profile names from discovered (project) layers — auto-activated on discovery.'''
-        out = []
-        for layer in self._layers:
-            if layer.role == 'discover' and isinstance(layer.data.get('profiles'), dict):
-                out.extend(layer.data['profiles'])
         return out
 
     def default_scope(self):
@@ -134,11 +121,6 @@ class Config:
                 return os.path.basename(layer.path)
         return None
 
-    def ignore_profiles(self):
-        '''Discovered-project profiles NOT to auto-activate (a machine setting; repo < primary <
-        user). The counterpart accessor to configs/scope, for the config editor.'''
-        return _leaves(layers.merge_scalar(self._layers, 'ignore-profiles', _MACHINE_ROLES))
-
     def disabled_drivers(self):
         '''Driver/via names DISABLED on this machine (a machine setting; repo < primary < user). A
         disabled driver's bindings don't match here, like a false `when:` — so a `suggests:` targeting
@@ -165,7 +147,7 @@ class Config:
         '''The merged TUI `theme:` overrides. Unlike the other machine settings, `theme` is purely
         cosmetic, so it is contributed by EVERY layer (a theme-only plugin can ship a look; a
         primary plugin can link one) and merged per key across the full stack repo < plugins <
-        primary < discovered < top-config — later wins, so your own config always has the last
+        primary < top-config — later wins, so your own config always has the last
         word. Returns {colors: {name: #rrggbb}, pages: {page: {<role>: style, gradient: {...}}},
         splash}, deep-merged per map-color, per page, per role/gradient-key. Parsed by
         tui.theme.resolve_theme; the old `elements`/`palette` schema is ignored (a check warning).'''

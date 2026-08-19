@@ -36,19 +36,6 @@ def test_legacy_user_config_is_migrated(tmp_path, capsys):
     assert 'moved' in out and 'profiles: mine' in out     # migrated + its config in effect
 
 
-def test_discover_false_in_user_config_disables_discovery(tmp_path, capsys, monkeypatch):
-    cfgdir = tmp_path / '.config' / 'configsys'
-    cfgdir.mkdir(parents=True)
-    (cfgdir / 'configsys.hu').write_text('{ configs: [ ]  discover: false }')
-    proj = tmp_path / 'proj'
-    proj.mkdir()
-    (proj / '.configsys.hu').write_text('{ profiles: { app-run: [ btop ] } }')
-    monkeypatch.setenv('CONFIGSYS_CWD', str(proj))
-    rc = main(base_args(tmp_path) + ['inspect'])
-    assert rc == 0
-    assert 'app-run' not in capsys.readouterr().out       # discovery disabled by config
-
-
 def test_pretend_install_emits_apt_command_without_executing(tmp_path, capsys):
     rc = main(base_args(tmp_path) + ['install', 'btop'])
     assert rc == 0
@@ -166,32 +153,6 @@ def test_check_flags_bogus_pin(tmp_path, capsys):
     assert "pin 'steam: snapp'" in capsys.readouterr().out
 
 
-def test_cli_discovers_project_and_auto_activates(tmp_path, capsys, monkeypatch):
-    home = tmp_path / 'home'
-    home.mkdir()
-    proj = tmp_path / 'proj'
-    (proj / 'src').mkdir(parents=True)
-    (proj / '.configsys.hu').write_text('{ profiles: { app-run: [ btop ] } }')
-    monkeypatch.setenv('CONFIGSYS_CWD', str(proj / 'src'))       # run "from" a project subdir
-    rc = main(['--home', str(home), '--os', 'pop', '--pretend', 'inspect'])
-    assert rc == 0
-    out = capsys.readouterr().out
-    assert 'app-run' in out and 'project:' in out and '.configsys.hu' in out
-
-
-def test_cli_no_discover_kill_switch(tmp_path, capsys, monkeypatch):
-    home = tmp_path / 'home'
-    home.mkdir()
-    proj = tmp_path / 'proj'
-    proj.mkdir()
-    (proj / '.configsys.hu').write_text('{ profiles: { app-run: [ btop ] } }')
-    monkeypatch.setenv('CONFIGSYS_CWD', str(proj))
-    monkeypatch.setenv('CONFIGSYS_NO_DISCOVER', '1')
-    rc = main(['--home', str(home), '--os', 'pop', '--pretend', 'inspect'])
-    assert rc == 0
-    assert 'app-run' not in capsys.readouterr().out             # discovery disabled
-
-
 def test_inspect_is_resilient_to_a_bad_active_component(tmp_path, capsys):
     # an active profile with an unroutable component -> that one shows as an error,
     # the rest still inspect, exit 0 (you can always get past it)
@@ -202,21 +163,6 @@ def test_inspect_is_resilient_to_a_bad_active_component(tmp_path, capsys):
     out = capsys.readouterr().out
     assert 'apt\\btop' in out                     # good component still resolved + shown
     assert 'unroutable' in out and 'ghost-tool' in out   # surfaced in the diagnostics footer
-
-
-def test_diagnostics_surface_a_skipped_malformed_file(tmp_path, capsys, monkeypatch):
-    # a malformed discovered project file is skipped silently — diagnostics must SHOW it,
-    # so a dropped layer never vanishes without a trace (the primary-plugin footgun).
-    home = tmp_path / 'home'
-    home.mkdir()
-    proj = tmp_path / 'proj'
-    (proj / 'sub').mkdir(parents=True)
-    (proj / '.configsys.hu').write_text('{ profiles: { p: [ btop ] }  components: { x: { install: [ { via:')
-    monkeypatch.setenv('CONFIGSYS_CWD', str(proj / 'sub'))
-    rc = main(['--home', str(home), '--os', 'pop', '--pretend', 'inspect'])
-    assert rc == 0
-    out = capsys.readouterr().out
-    assert 'issue(s)' in out and 'skipped' in out and '.configsys.hu' in out
 
 
 def test_no_diagnostics_footer_when_clean(tmp_path, capsys):

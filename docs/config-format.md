@@ -11,7 +11,7 @@ Every `.hu` file is a **layer**. Layers overlay section-by-section, lowest prece
 and the highest-precedence definition of a thing wins:
 
 ```
-repo (routes.hu + config.hu)  <  plugins  <  primary  <  discovered project files  <  your config
+repo (routes.hu + config.hu)  <  plugins  <  primary  <  your config
 ```
 
 Your machine's own config (`~/.config/configsys/configsys.hu`) always wins. The **primary**
@@ -19,9 +19,9 @@ layer is one plugin you designate as trusted to carry machine settings (see
 docs/plugins.md) — it sits above the ordinary plugins but below your config. A file may
 `include:` other files (paths relative to the including file's directory), which sit just
 below it. Includes are definitions-only: their `components:` and `profiles:` merge in, but
-machine settings (`configs:`, `scope:`, `pins:`, `ignore-profiles:`, `discover:`) and
-code-adjacent sections (`os:`, `drivers:`) are ignored. The one exception is `theme:`, which
-is purely cosmetic and is merged from every layer (see docs/theming.md).
+machine settings (`configs:`, `scope:`, `pins:`) and code-adjacent sections (`os:`,
+`drivers:`) are ignored. The one exception is `theme:`, which is purely cosmetic and is
+merged from every layer (see docs/theming.md).
 
 ## Your config file
 
@@ -46,8 +46,6 @@ Lives under `$XDG_CONFIG_HOME` (defaults to `~/.config/configsys/configsys.hu`);
 
     components: { apod: {} }         // amend a route, add one, or remove one with {}
 
-    ignore-profiles: [ gaming ]      // suppress an auto-activated project profile
-
     splash: ocean                   // startup wait-screen animation (name / off / unset=default)
 
     dirs: { sdk: "~/toolchains"  system: /srv/opt }   // relocate install-layout dirs
@@ -55,8 +53,6 @@ Lives under `$XDG_CONFIG_HOME` (defaults to `~/.config/configsys/configsys.hu`);
     locations: { blender: ~/dev/blender-git  kicad: /opt/kicad }   // per-component: find/manage HERE
 
     detect-coexisting: false         // skip the "also present (unmanaged)" pass (default on)
-
-    discover: false                  // opt out of project discovery on this machine
 }
 ```
 
@@ -103,7 +99,7 @@ Lives under `$XDG_CONFIG_HOME` (defaults to `~/.config/configsys/configsys.hu`);
 - **uniform** settings are the same on every machine, so an edit defaults into your **primary
   plugin** (portable — commit + push + re-tag the primary + `plugin sync` to propagate; it's
   effective on this machine immediately). These are `driver-preference`, `auto-tighten`,
-  `ignore-profiles`, `splash`, and the category dirs `dirs.app`/`dirs.sdk`/`dirs.src`.
+  `splash`, and the category dirs `dirs.app`/`dirs.sdk`/`dirs.src`.
 - **machine** settings are a truth about *this* box, so an edit defaults to your **top config**
   (`~/.config/configsys/configsys.hu`), local and unshared. These are `scope`, `dirs.user`, and
   `dirs.system`.
@@ -302,14 +298,21 @@ commands), the language toolchains and their module installers (`cargo`, `pip`, 
 the post-install primitives `service` (systemd) and `group` (usermod). Two `via:` values are
 special: `native` (resolves to the OS's package manager) and `parts` (a pure aggregator).
 
-## Project discovery
+## Machine-level plugins
 
-configsys walks up from your working directory for `.configsys.hu` (a base file) and
-`.configsys-*.hu` (named variants), and **auto-activates** their profiles — so a source tree
-can declare its own dependency set. Discovery is bounded by `$HOME` and the filesystem root,
-disabled by `CONFIGSYS_NO_DISCOVER=1` (or `discover: false` in your config), and starts from
-`CONFIGSYS_CWD` (or the current directory). A malformed discovered file is skipped, never
-fatal.
+To let a source repo or an app install contribute components (or os/driver blocks) to *this*
+machine, declare it as a **plugin** in your top config rather than your portable primary:
+
+```
+configsys plugin add github:owner/their-configsys-plugin --local
+```
+
+`--local` writes the entry to `~/.config/configsys/configsys.hu`'s `plugins:` list, so it
+applies here and doesn't travel to your other machines the way a **primary** plugin does. It
+loads as a `plugin`-role layer: it may add `components:`/`profiles:`/`os:`/`drivers:`, but not
+machine settings (those stay `primary`/top-config only), and code plugins still require an
+explicit `configsys plugin trust`. Without `--local`, `plugin add` rides your primary plugin
+when one is set. See docs/plugins.md for the plugin model.
 
 ## See also
 

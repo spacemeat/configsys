@@ -74,11 +74,11 @@ a component's source layer + resolution; `configsys check` lints the whole merge
 
 **Layer stack (configsys/layers.py).** Every config/routes file is a LAYER; a file may
 `include:` others (paths relative to the including file's directory). Layers overlay
-lowest-first — repo (routes.hu + config.hu) < discovered project files < the top user file,
-with includes sitting below the file that includes them — merging by section and, for
-components/profiles, by name. Includes are DEFINITIONS-ONLY: their `components:`/`profiles:`
-merge in, but `configs:`/`scope:`/`pins:`/`ignore-profiles:` (machine settings) and
-`os:`/`drivers:` (code-adjacent) are ignored (a `check` warning). Cycles/missing files
+lowest-first — repo (routes.hu + config.hu) < the top user file, with includes sitting below
+the file that includes them — merging by section and, for components/profiles, by name.
+Includes are DEFINITIONS-ONLY: their `components:`/`profiles:` merge in, but
+`configs:`/`scope:`/`pins:` (machine settings) and `os:`/`drivers:` (code-adjacent) are ignored
+(a `check` warning). Cycles/missing files
 error clearly; provenance (`Component.source`, `Config.profile_source`) flows through so
 `where`/`check` attribute to the right file. This is the shared substrate the plugin model
 will reuse — a plugin is just another source in the stack.
@@ -86,21 +86,20 @@ will reuse — a plugin is just another source in the stack.
 **Data plugins (configsys/plugins.py — P1).** `plugins: [ { source: "github:x/y"  ref: v1 } ]`
 in the user config, then `configsys plugin sync` clones each to `~/.config/configsys/plugins/
 <name>/` at the pinned ref (git via the runner). Its `.hu` data files become `plugin`-role
-layers (repo < plugins < discovered < user); a plugin may add components AND os blocks
+layers (repo < plugins < user); a plugin may add components AND os blocks
 (derivative distros — `merge_dict_section` unions os/drivers from repo+plugin). Loading uses
 what's on disk; unsynced / ABI-incompatible (manifest `requires-abi` vs `ABI_VERSION`/
 `ABI_SUPPORTED`) / malformed plugins are skipped, never fatal. `configsys plugin list` shows
 status. Code plugins (Python `Driver` subclasses) + trust are P2 — see docs/plugins.md.
 
-**Project discovery (developer-in-source-tree).** configsys walks up from the CWD to the
-nearest dir holding `.configsys.hu` (base — ships in a bundle) and/or `.configsys-*.hu`
-(named variants like `-dev`, source-tree only), and adds them as `discover`-role layers whose
-profiles **auto-activate** (union into `configs`, minus a user `ignore-profiles:`). Bounded by
-`$HOME` (not a project) and the FS root; disabled by `CONFIGSYS_NO_DISCOVER`; the CWD is
-`CONFIGSYS_CWD` or os.getcwd(). Resilience: a malformed discovered file (or component) is
-SKIPPED, never fatal (repo/user errors still raise); and `inspect` resolves the active set
-resiliently (Context.resolve_errors), so one bad auto-activated entry becomes an error row,
-not a brick. Activation never installs — install stays explicit.
+**Machine-level plugins (was: project discovery).** The old CWD-walk-up scan for
+`.configsys.hu`/`.configsys-*.hu` (auto-activating `discover`-role layers) was REMOVED. A source
+repo or app install now contributes components to a machine by being declared as a **plugin** in
+the top user config — `configsys plugin add <source> --local` writes a non-`primary` entry to
+`~/.config/configsys/configsys.hu`'s `plugins:`, so it applies here (a `plugin`-role layer:
+components/os/drivers, synced + content-trusted, no machine-setting authority) without traveling
+to the user's other machines the way a `primary` plugin does. `inspect` still resolves the active
+set resiliently (Context.resolve_errors) so one bad entry is an error row, not a brick.
 
 Drivers are defined in code (configsys/drivers/) behind a uniform op set: get_version,
 get_latest, is_locked, install, uninstall, upgrade, set_version, lock, unlock, location. apt

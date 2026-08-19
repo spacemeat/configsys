@@ -80,17 +80,17 @@ def test_set_auto_tighten_bool_is_bare(tmp_path):
 
 def test_clear_setting(tmp_path):
     ctx, _user = _ctx(tmp_path)
-    actions.set_config_setting(ctx, 'ignore-profiles', ['games', 'toys'])
-    assert ctx.config.ignore_profiles() == ['games', 'toys']
-    actions.set_config_setting(ctx, 'ignore-profiles', [])         # clear
-    assert ctx.config.ignore_profiles() == []
+    actions.set_config_setting(ctx, 'driver-preference', ['cargo', 'native'])
+    assert ctx.config.driver_preference() == ['cargo', 'native']
+    actions.set_config_setting(ctx, 'driver-preference', [])        # clear
+    assert ctx.config.driver_preference() is None
 
 
 def test_config_settings_view_has_desc_and_man(tmp_path):
     ctx, _user = _ctx(tmp_path)
     s = actions.config_settings(ctx)
     assert set(s) == {'scope', 'driver-preference', 'auto-tighten', 'adopt-installed',
-                      'ignore-profiles', 'splash',
+                      'splash',
                       'dirs.user', 'dirs.system', 'dirs.app', 'dirs.sdk', 'dirs.src'}
     assert s['scope']['value'] == 'user' and s['scope']['desc'] and s['scope']['man']
     assert s['auto-tighten']['kind'] == 'bool'

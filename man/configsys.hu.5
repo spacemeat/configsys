@@ -9,11 +9,11 @@ Every \fB.hu\fR file is a \fBlayer\fR. Layers overlay section-by-section, lowest
 .PP
 .RS 4
 .nf
-repo (routes.hu + config.hu)  <  plugins  <  primary  <  discovered project files  <  your config
+repo (routes.hu + config.hu)  <  plugins  <  primary  <  your config
 .fi
 .RE
 .PP
-Your machine's own config (\fB~/.config/configsys/configsys.hu\fR) always wins. The \fBprimary\fR layer is one plugin you designate as trusted to carry machine settings (see docs/plugins.md) — it sits above the ordinary plugins but below your config. A file may \fBinclude:\fR other files (paths relative to the including file's directory), which sit just below it. Includes are definitions-only: their \fBcomponents:\fR and \fBprofiles:\fR merge in, but machine settings (\fBconfigs:\fR, \fBscope:\fR, \fBpins:\fR, \fBignore-profiles:\fR, \fBdiscover:\fR) and code-adjacent sections (\fBos:\fR, \fBdrivers:\fR) are ignored. The one exception is \fBtheme:\fR, which is purely cosmetic and is merged from every layer (see docs/theming.md).
+Your machine's own config (\fB~/.config/configsys/configsys.hu\fR) always wins. The \fBprimary\fR layer is one plugin you designate as trusted to carry machine settings (see docs/plugins.md) — it sits above the ordinary plugins but below your config. A file may \fBinclude:\fR other files (paths relative to the including file's directory), which sit just below it. Includes are definitions-only: their \fBcomponents:\fR and \fBprofiles:\fR merge in, but machine settings (\fBconfigs:\fR, \fBscope:\fR, \fBpins:\fR) and code-adjacent sections (\fBos:\fR, \fBdrivers:\fR) are ignored. The one exception is \fBtheme:\fR, which is purely cosmetic and is merged from every layer (see docs/theming.md).
 .SH YOUR CONFIG FILE
 .PP
 Lives under \fB$XDG_CONFIG_HOME\fR (defaults to \fB~/.config/configsys/configsys.hu\fR); a legacy \fB~/configsys.hu\fR is migrated automatically on first run. Every section is optional:
@@ -37,8 +37,6 @@ Lives under \fB$XDG_CONFIG_HOME\fR (defaults to \fB~/.config/configsys/configsys
 
     components: { apod: {} }         // amend a route, add one, or remove one with {}
 
-    ignore-profiles: [ gaming ]      // suppress an auto-activated project profile
-
     splash: ocean                   // startup wait-screen animation (name / off / unset=default)
 
     dirs: { sdk: "~/toolchains"  system: /srv/opt }   // relocate install-layout dirs
@@ -46,8 +44,6 @@ Lives under \fB$XDG_CONFIG_HOME\fR (defaults to \fB~/.config/configsys/configsys
     locations: { blender: ~/dev/blender-git  kicad: /opt/kicad }   // per-component: find/manage HERE
 
     detect-coexisting: false         // skip the "also present (unmanaged)" pass (default on)
-
-    discover: false                  // opt out of project discovery on this machine
 }
 .fi
 .RE
@@ -75,7 +71,7 @@ Lives under \fB$XDG_CONFIG_HOME\fR (defaults to \fB~/.config/configsys/configsys
 .PP
 \fBconfigsys config set …\fR and the TUI \fBConfig\fR screen route each setting by its \fBnature\fR:
 .IP \(bu 2
-\fBuniform\fR settings are the same on every machine, so an edit defaults into your \fBprimary plugin\fR (portable — commit + push + re-tag the primary + \fBplugin sync\fR to propagate; it's effective on this machine immediately). These are \fBdriver-preference\fR, \fBauto-tighten\fR, \fBignore-profiles\fR, \fBsplash\fR, and the category dirs \fBdirs.app\fR/\fBdirs.sdk\fR/\fBdirs.src\fR.
+\fBuniform\fR settings are the same on every machine, so an edit defaults into your \fBprimary plugin\fR (portable — commit + push + re-tag the primary + \fBplugin sync\fR to propagate; it's effective on this machine immediately). These are \fBdriver-preference\fR, \fBauto-tighten\fR, \fBsplash\fR, and the category dirs \fBdirs.app\fR/\fBdirs.sdk\fR/\fBdirs.src\fR.
 .IP \(bu 2
 \fBmachine\fR settings are a truth about \fIthis\fR box, so an edit defaults to your \fBtop config\fR (\fB~/.config/configsys/configsys.hu\fR), local and unshared. These are \fBscope\fR, \fBdirs.user\fR, and \fBdirs.system\fR.
 .PP
@@ -211,9 +207,17 @@ Keyed by driver and overlaid across the layer stack (later wins): a string repla
 .SH DRIVERS
 .PP
 Each \fBvia:\fR value names a driver: the OS package managers (\fBapt\fR, \fBdnf\fR, \fBpacman\fR, \fBzypper\fR, \fBapk\fR, \fBaur\fR, \fBbrew\fR, \fBrpm-ostree\fR), \fBflatpak\fR, \fBappImage\fR, \fBtarball\fR (also bare-binary and \fB.zip\fR archives), \fBsource\fR (build from a git checkout or source archive with declared \fBbuild:\fR commands), \fBdotfiles\fR, \fBfont\fR, \fBscript\fR (declared install/version/uninstall commands), the language toolchains and their module installers (\fBcargo\fR, \fBpip\fR, \fBpipx\fR, \fBnpm\fR, \fBgem\fR, \fBgo-install\fR, \fBopam\fR, \fBluarocks\fR, \fBcabal\fR, \fBgcc\fR, \fBclang\fR, \fBgcc-toolset\fR), and the post-install primitives \fBservice\fR (systemd) and \fBgroup\fR (usermod). Two \fBvia:\fR values are special: \fBnative\fR (resolves to the OS's package manager) and \fBparts\fR (a pure aggregator).
-.SH PROJECT DISCOVERY
+.SH MACHINE-LEVEL PLUGINS
 .PP
-configsys walks up from your working directory for \fB.configsys.hu\fR (a base file) and \fB.configsys-*.hu\fR (named variants), and \fBauto-activates\fR their profiles — so a source tree can declare its own dependency set. Discovery is bounded by \fB$HOME\fR and the filesystem root, disabled by \fBCONFIGSYS_NO_DISCOVER=1\fR (or \fBdiscover: false\fR in your config), and starts from \fBCONFIGSYS_CWD\fR (or the current directory). A malformed discovered file is skipped, never fatal.
+To let a source repo or an app install contribute components (or os/driver blocks) to \fIthis\fR machine, declare it as a \fBplugin\fR in your top config rather than your portable primary:
+.PP
+.RS 4
+.nf
+configsys plugin add github:owner/their-configsys-plugin --local
+.fi
+.RE
+.PP
+\fB--local\fR writes the entry to \fB~/.config/configsys/configsys.hu\fR's \fBplugins:\fR list, so it applies here and doesn't travel to your other machines the way a \fBprimary\fR plugin does. It loads as a \fBplugin\fR-role layer: it may add \fBcomponents:\fR/\fBprofiles:\fR/\fBos:\fR/\fBdrivers:\fR, but not machine settings (those stay \fBprimary\fR/top-config only), and code plugins still require an explicit \fBconfigsys plugin trust\fR. Without \fB--local\fR, \fBplugin add\fR rides your primary plugin when one is set. See docs/plugins.md for the plugin model.
 .SH SEE ALSO
 .PP
 \fBconfigsys(1)\fR for the command-line interface; the README for a narrative overview.

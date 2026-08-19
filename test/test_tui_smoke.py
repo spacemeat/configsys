@@ -41,20 +41,16 @@ def test_tui_launches_navigates_and_quits(tmp_path):
 
     # pre-create the user config so first-run onboarding (the primary-plugin prompt) doesn't
     # fire under the PTY and consume the TUI keystrokes — this test is about TUI nav, not setup.
+    # an active profile with an unroutable component -> a real diagnostic, so the `!` page has
+    # content to render (a resilient error row, not a brick).
     cfg = tmp_path / '.config' / 'configsys' / 'configsys.hu'
     cfg.parent.mkdir(parents=True, exist_ok=True)
-    cfg.write_text('{ configs: [ ] }\n')
-
-    # a malformed discovered file -> a real diagnostic, so the `!` page has content to render
-    work = tmp_path / 'work'
-    work.mkdir()
-    (work / '.configsys.hu').write_text('{ components: { x: { install: [ { via:')
+    cfg.write_text('{ configs: [ mine ]  profiles: { mine: [ ghost-tool ] } }\n')
 
     env = dict(os.environ)
     env.update({
         'TERM': 'xterm-256color',
         'CONFIGSYS_HOME': str(tmp_path),
-        'CONFIGSYS_CWD': str(work),
         'CONFIGSYS_OS': 'pop',
         'PYTHONPATH': str(REPO),
     })

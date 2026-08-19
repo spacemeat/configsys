@@ -177,26 +177,24 @@ def _pf(entry):
     return (entry, 'plugin')
 
 
-def load(path, overrides_path=None, discovered=(), plugin_files=(), validate=True,
+def load(path, overrides_path=None, plugin_files=(), validate=True,
          warnings_out=None, layers_out=None):
     '''-> (OsCascade, {component_name: Component}, {driver: [required caps]}).
 
-    Layer stack lowest-first: routes.hu (repo) < plugin data files < discovered project files
-    (.configsys*.hu) < the user's config, each with its `include:` graph expanded. Components
-    merge PER NAME ADDITIVELY (union of install bindings by (via, when) identity; higher layer
-    overrides a matching binding, `drop:` retracts one, `{}` removes the whole component — see
-    _merge_component_chain); os/drivers come from
-    repo + plugins (a plugin may add a derivative-distro os block). A malformed discovered or
-    plugin file is skipped (never bricks the rest). validate=True rejects an ambiguous set.
-    If a list is passed as `warnings_out`, skipped files/components are appended to it (for the
-    diagnostics view) — the return value is unchanged so existing callers are unaffected.
+    Layer stack lowest-first: routes.hu (repo) < plugin data files < the user's config, each with
+    its `include:` graph expanded. Components merge PER NAME ADDITIVELY (union of install bindings
+    by (via, when) identity; higher layer overrides a matching binding, `drop:` retracts one, `{}`
+    removes the whole component — see _merge_component_chain); os/drivers come from repo + plugins
+    (a plugin may add a derivative-distro os block). A malformed plugin file is skipped (never
+    bricks the rest). validate=True rejects an ambiguous set. If a list is passed as `warnings_out`,
+    skipped files/components are appended to it (for the diagnostics view) — the return value is
+    unchanged so existing callers are unaffected.
     '''
     roots = [(path, 'repo')]
     roots += [_pf(p) for p in plugin_files]          # (path, role): 'primary' or 'plugin'
-    roots += [(d, 'discover') for d in discovered]
     if overrides_path is not None:
         roots.append((overrides_path, 'user'))
-    layer_list, _warnings = layers.expand_tolerant(roots, {'discover', 'plugin', 'primary'})
+    layer_list, _warnings = layers.expand_tolerant(roots, {'plugin', 'primary'})
     if warnings_out is not None:
         warnings_out.extend(_warnings)
     if layers_out is not None:                       # (path, role) low→high, for `-v` reporting
@@ -204,8 +202,7 @@ def load(path, overrides_path=None, discovered=(), plugin_files=(), validate=Tru
 
     cascade = OsCascade(layers.merge_dict_section(layer_list, 'os', ('repo', 'plugin', 'primary')),
                         layers.merge_dict_section(layer_list, 'facets', ('repo', 'plugin', 'primary')))
-    forgiving = ({os.path.normpath(d) for d in discovered}
-                 | {os.path.normpath(_pf(p)[0]) for p in plugin_files})
+    forgiving = {os.path.normpath(_pf(p)[0]) for p in plugin_files}
     from . import routecheck
     components = {}
     for name, chain in layers.collect_named(layer_list, 'components').items():
@@ -330,12 +327,12 @@ class Resolver:
     an op to (dependency installs are folded in by planning.expand_plan).'''
 
     def __init__(self, routes_path, block, version=None, cpu=None, pins=None,
-                 overrides_path=None, discovered=(), plugin_files=(), preference=None,
+                 overrides_path=None, plugin_files=(), preference=None,
                  disabled=None):
         self.load_warnings = []       # skipped files/components (for diagnostics)
         self.layers = []              # expanded layer stack low→high (for `-v` reporting)
         self.cascade, self.components, self.drivers, self.candidate_only = load(
-            routes_path, overrides_path, discovered, plugin_files,
+            routes_path, overrides_path, plugin_files,
             warnings_out=self.load_warnings, layers_out=self.layers)
         # probe declared facets (gpu vendor, cuda version, …) so `when:` can gate on hardware /
         # environment; cached, read-only, resilient. No `facets:` declared -> a no-op. A `facets:`

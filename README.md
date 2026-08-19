@@ -119,7 +119,7 @@ drivers.
 Every `.hu` file is a **layer**, overlaid section-by-section, lowest precedence first:
 
 ```
-repo (routes.hu + config.hu)  <  plugins  <  primary  <  discovered project files  <  ~/.config/configsys/configsys.hu
+repo (routes.hu + config.hu)  <  plugins  <  primary  <  ~/.config/configsys/configsys.hu
 ```
 
 Your machine's file always wins:
@@ -146,10 +146,9 @@ Your machine's file always wins:
   `~/configsys.hu` is migrated automatically on first run.
 - **`include:`** — pull profiles/components from other files (definitions only; paths
   resolve against the including file's dir). Handy for per-project dependency sets.
-- **Project discovery** — configsys walks up from your CWD for `.configsys.hu` /
-  `.configsys-*.hu` and auto-activates their profiles, so a source tree can declare its own
-  dependencies. Disable with `discover: false`, or suppress a profile with
-  `ignore-profiles: [ … ]`.
+- **Machine-level plugins** — to let a source repo or app install add components to *this*
+  box, declare it as a plugin in your top config: `configsys plugin add <source> --local`
+  (a `plugin`-role layer here, not carried to your other machines like a `primary` plugin).
 
 ### Your config, as a plugin
 
@@ -231,8 +230,8 @@ Global flags: `--pretend` (dry-run — prints commands, makes no changes and no 
 (stream load detail to stderr), `-q` (quiet).
 
 Environment: `CONFIGSYS_OS` / `CONFIGSYS_OS_VERSION` (override the detected OS), `CONFIGSYS_HOME`
-/ `CONFIGSYS_CONFIG` (relocate paths), `CONFIGSYS_NO_DISCOVER=1` (disable project discovery),
-`CONFIGSYS_CWD`, `CONFIGSYS_ARCH`, `CONFIGSYS_GITHUB_TOKEN` (private-plugin auth). Full list in
+/ `CONFIGSYS_CONFIG` (relocate paths),
+`CONFIGSYS_ARCH`, `CONFIGSYS_GITHUB_TOKEN` (private-plugin auth). Full list in
 `configsys -h`.
 
 ```console
@@ -351,7 +350,7 @@ their package names honest against a real container image as upstream repos roll
 - **No surprises.** Selecting a profile never changes your system; installs are always an
   explicit, reviewable action, and `check` lints the whole merged config without touching
   anything.
-- **Resilient.** A malformed plugin, discovered file, or single component surfaces as an
+- **Resilient.** A malformed plugin or single component surfaces as an
   error row — it can't brick the tool.
 - **One term, one meaning.** Everything about *how* software is acquired is a **driver**;
   everything about *what* you want is a **component**.

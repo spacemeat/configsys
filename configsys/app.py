@@ -50,11 +50,6 @@ USER_CONFIG_TEMPLATE = '''{
     // Machine-wide default install scope for scope-honoring drivers (user | system).
     // scope: system
 
-    // Project discovery walks up from the CWD for .configsys.hu / .configsys-*.hu and
-    // auto-activates their profiles. Turn it off, or suppress specific profiles:
-    // discover: false
-    // ignore-profiles: [ some-profile ]
-
     // Pins — the light way to reroute without redefining a component:
     //   component -> driver  (binding-pin: force a method)
     //   capability -> component  (provider-pin: force who satisfies a requirement)
@@ -130,7 +125,6 @@ class Context:
         self.runner = Runner(pretend=args.pretend, echo=lambda m: print(m))
         self._config = None
         self._routes = None            # cached Resolver (rebuilding it = parse routes.hu + routecheck)
-        self._discovered = None
         self._os_refined = False       # detect:-marker refinement runs once, lazily
         self._plugin_files = None
         self._plugin_code_loaded = False
@@ -165,33 +159,6 @@ class Context:
         import platform
         return self.env.get('CONFIGSYS_ARCH') or platform.machine()
 
-    @property
-    def discovered(self):
-        '''Project configsys files (.configsys.hu + .configsys-*.hu) found by walking up from
-        the CWD to the nearest project root. Disabled by CONFIGSYS_NO_DISCOVER.'''
-        if self._discovered is None:
-            from . import layers
-            if self.env.get('CONFIGSYS_NO_DISCOVER') or self._discovery_disabled():
-                self._discovered = []
-            else:
-                start = self.env.get('CONFIGSYS_CWD') or os.getcwd()
-                self._discovered = layers.discover(start, str(self.paths.home))
-        return self._discovered
-
-    def _discovery_disabled(self):
-        '''`discover: false` in the user config (read directly, before the layer stack).'''
-        from . import layers
-        val = layers.read_setting(self.paths.user_config_file, 'discover')
-        return val is not None and str(val).lower() in ('false', 'no', '0', 'off')
-
-    def discovery_warnings(self):
-        '''Warnings for discovered files that were skipped (malformed/cyclic).'''
-        from . import layers
-        if not self.discovered:
-            return []
-        return layers.expand_tolerant([(d, 'discover') for d in self.discovered],
-                                      {'discover'})[1]
-
     def diagnostics(self, states=None):
         '''Every non-fatal skip/warning from loading + resolution, as {level, tag, text} (deduped
         by text). This is the "silent stuff" — a malformed layer that got dropped (the exact class
@@ -222,11 +189,9 @@ class Context:
 
         self.ensure_plugin_code()                        # populates plugin_code_warnings
         for w in getattr(self.config, 'load_warnings', []):
-            add('error', 'skipped', unskip(w))           # a dropped config layer (primary/plugin/project)
+            add('error', 'skipped', unskip(w))           # a dropped config layer (primary/plugin)
         for w in getattr(self.routes, 'load_warnings', []):
             add('error', 'skipped', unskip(w))           # a dropped routes layer or component
-        for w in self.discovery_warnings():
-            add('error', 'skipped', unskip(w))
         for w in self.config.ignored_section_warnings():
             add('warn', 'ignored', w)
         for w in self.plugin_code_warnings:
@@ -300,14 +265,14 @@ class Context:
         self.plugin_pending_vias = pending
 
     def _resolver(self, block):
-        # layer stack: routes.hu < discovered project files < ~/configsys.hu (components
-        # overlay + pins). A malformed discovered file is skipped, not fatal.
+        # layer stack: routes.hu < plugin data files < ~/configsys.hu (components overlay + pins).
+        # A malformed plugin file is skipped, not fatal.
         self.ensure_plugin_code()     # register trusted plugin drivers before `via:` resolves
         return Resolver(self.paths.routes_file, block,
                         self.os_info.version, self._cpu(),
                         pins=self.config.pins(),
                         overrides_path=self.paths.user_config_file,
-                        discovered=self.discovered, plugin_files=self.plugin_files,
+                        plugin_files=self.plugin_files,
                         preference=self.config.driver_preference(),
                         disabled=self.config.disabled_drivers())
 
@@ -336,7 +301,7 @@ class Context:
     @property
     def config(self):
         if self._config is None:
-            self._config = Config.load(self.paths, self.discovered, self.plugin_files)
+            self._config = Config.load(self.paths, self.plugin_files)
             # back the built-in `all` profile with the loaded component set (lazy: routes carry it)
             self._config._universe_provider = lambda: set(self.routes.components)
             self.paths.set_config_dirs(self._config.install_dirs())   # env still overrides these
@@ -552,9 +517,6 @@ def cmd_inspect(ctx, args):
     _cfg, requested, units, _ledger, states = ctx.load_pipeline()
     print(f'OS: {ctx.os_info.block}   profiles: {_profiles_label(_cfg.active_profiles)}   '
           f'units: {len(units)}')
-    if ctx.discovered:
-        files = ', '.join(os.path.basename(d) for d in ctx.discovered)
-        print(f'project: {os.path.dirname(ctx.discovered[0])}  ({files})')
     print()
     print(f'{"UNIT":30} {"STATUS":12} {"INSTALLED":20} {"LATEST"}')
     print('-' * 78)
@@ -970,7 +932,7 @@ def _fmt_binding(b, selected, reachable=False, shadowed=False):
 
 def _layer_label(source, paths):
     '''A friendly label for a source file: 'routes.hu' for the repo routing base, else the
-    path with $HOME collapsed to ~ (so user/discovered/included files show where they live).'''
+    path with $HOME collapsed to ~ (so user/included files show where they live).'''
     if source in (str(paths.routes_file), paths.routes_file):
         return 'routes.hu'
     s, home = str(source), str(paths.home)
@@ -1288,13 +1250,12 @@ def cmd_check(ctx, args):
     ctx.ensure_plugin_code()          # register trusted plugin drivers so `via:` validates
     try:
         cascade, components, drivers, _candidate_only = routes.load(
-            ctx.paths.routes_file, ctx.paths.user_config_file, ctx.discovered,
+            ctx.paths.routes_file, ctx.paths.user_config_file,
             ctx.plugin_files, validate=False)
         roots = ([(ctx.paths.routes_file, 'repo'), (ctx.paths.config_file, 'repo')]
                  + list(ctx.plugin_files)                 # (path, role): 'primary' or 'plugin'
-                 + [(d, 'discover') for d in ctx.discovered]
                  + [(ctx.paths.user_config_file, 'user')])
-        layer_list, _w = layers.expand_tolerant(roots, {'discover', 'plugin', 'primary'})
+        layer_list, _w = layers.expand_tolerant(roots, {'plugin', 'primary'})
     except ConfigsysError as e:
         print(f'configsys: {e}')          # a parse/structural error before we can lint
         return 1
@@ -2014,8 +1975,6 @@ examples:
 environment:
   CONFIGSYS_OS, CONFIGSYS_OS_VERSION   override the detected OS block / version
   CONFIGSYS_HOME, CONFIGSYS_CONFIG     relocate the HOME base / the selector file
-  CONFIGSYS_NO_DISCOVER=1              disable project (.configsys.hu) discovery
-  CONFIGSYS_CWD                        directory to start project discovery from
   CONFIGSYS_ARCH                       override CPU arch for $ARCH substitution
   CONFIGSYS_GITHUB_TOKEN / _GIT_TOKEN  auth for private plugin repos
 '''
@@ -2123,7 +2082,7 @@ def build_parser():
                         help="write to this machine's top config, not the primary plugin")
 
     cfp = sub.add_parser('config', help='view or edit machine settings (scope, driver-preference, '
-                                        'auto-tighten, ignore-profiles)')
+                                        'auto-tighten)')
     cfsub = cfp.add_subparsers(dest='config_command')
     cfsub.add_parser('show', help='every machine setting, its value, and what it does (default)')
     cfg_get = cfsub.add_parser('get', help="print one setting's effective value")
@@ -2684,7 +2643,7 @@ def _fmt_setting_value(kind, val):
 
 
 def cmd_config(ctx, args):
-    '''View or edit machine settings (scope / driver-preference / auto-tighten / ignore-profiles).
+    '''View or edit machine settings (scope / driver-preference / auto-tighten).
     A skin over configsys.actions — the same functions the TUI Config screen will call.'''
     from . import actions
     sub = getattr(args, 'config_command', None) or 'show'

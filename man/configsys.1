@@ -84,7 +84,7 @@ Subcommands: \fBlist\fR, \fBshow\fR, \fBadd\fR, \fBrm\fR, \fBactivate\fR, \fBdea
 .RE
 .TP
 \fBconfig\fR
-view or edit machine settings (scope, driver-preference, auto-tighten, ignore-profiles)
+view or edit machine settings (scope, driver-preference, auto-tighten)
 .RS
 .PP
 Subcommands: \fBshow\fR, \fBget\fR, \fBset\fR, \fBunset\fR, \fBmove\fR.
@@ -150,8 +150,6 @@ interactive TUI (default)
 .nf
   CONFIGSYS_OS, CONFIGSYS_OS_VERSION   override the detected OS block / version
   CONFIGSYS_HOME, CONFIGSYS_CONFIG     relocate the HOME base / the selector file
-  CONFIGSYS_NO_DISCOVER=1              disable project (.configsys.hu) discovery
-  CONFIGSYS_CWD                        directory to start project discovery from
   CONFIGSYS_ARCH                       override CPU arch for $ARCH substitution
   CONFIGSYS_GITHUB_TOKEN / _GIT_TOKEN  auth for private plugin repos
 .fi

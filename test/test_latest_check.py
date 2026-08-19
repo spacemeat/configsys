@@ -34,7 +34,7 @@ def test_latest_check_specs_resolve_upstream():
 
 
 def test_real_routes_wire_latest_check_onto_static_pins():
-    _, comps, _, _ = routes.load('routes.hu', None, [], [])
+    _, comps, _, _ = routes.load('routes.hu', None, [])
     for comp in ('graalvm', 'fossil'):
         specs = [b.details.get('latest-check') for b in comps[comp].bindings
                  if b.details.get('latest-check')]

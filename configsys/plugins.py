@@ -1,7 +1,7 @@
 '''plugins.py — the plugin subsystem (P1: data plugins + sync).
 
 A plugin is a git repo synced to ~/.config/configsys/plugins/<name>/, contributing DATA
-layers (os / components / profiles) to the stack — precedence repo < plugins < discovered <
+layers (os / components / profiles) to the stack — precedence repo < plugins <
 user. The user declares plugins in their config; `configsys plugin sync` reconciles the
 plugins dir to pinned refs. Loading uses whatever is already on disk (sync is separate), so a
 declared-but-unsynced or incompatible plugin is simply absent — its components then surface as
@@ -262,7 +262,7 @@ def layer_files(plugins_dir, decls):
     / incompatible / checksum-mismatched plugins are skipped. The `primary` plugin's files are
     ordered LAST — it is the authoritative personal layer, so its component/os overrides win over
     the (often transitively-declared) plugins it pulls in; precedence repo < plugins < primary <
-    discovered < top-config.'''
+    top-config.'''
     out = []
     for d in decls:
         pdir = plugins_dir / dir_name(d['source'])
