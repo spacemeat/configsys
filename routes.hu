@@ -273,6 +273,11 @@
         xclip:   { attrs: [ CLI FOSS copyleft ] description: "xclip — command-line access to the X clipboard." suggests: xclip-dotfiles
                    install: [ { via: native  when: "rhel"  requires: epel } { via: native  when: "not amzn"   repo-component: universe } ] }
         xclip-dotfiles: { description: "xclip helper config, linked into place." install: [ { via: dotfiles  requires: bash-dotfiles  glue: xclip } ] }
+        xsel:    { attrs: [ CLI FOSS permissive ] description: "xsel — command-line access to the X11 clipboard/PRIMARY selection."
+                   install: [ { via: native  when: "rhel"  requires: epel } { via: native  when: "not amzn"  repo-component: universe } ] }   // EL via EPEL
+        // wl-clipboard: Wayland clipboard; the binaries are `wl-copy`/`wl-paste` (no `wl-clipboard`).
+        wl-clipboard: { attrs: [ CLI FOSS copyleft ] description: "wl-clipboard — copy/paste for Wayland (`wl-copy`/`wl-paste`)."
+                   install: [ { via: native  when: "rhel"  requires: epel } { via: native  when: "not amzn"  repo-component: universe } ] }   // EL via EPEL
         // Xephyr — a nested X server (5 different package names; binary is always `Xephyr`;
         // openSUSE bundles it in xorg-x11-server-extra).
         xephyr: { attrs: [ GUI FOSS permissive ] description: "Xephyr — a nested X server (run an X session inside a window; `Xephyr`)."
@@ -313,6 +318,30 @@
                    install: [ { via: native-pkg-file  when: "debian"  version: { github: DopplerHQ/cli }  asset: { deb: { x86_64: "doppler_*_linux_amd64.deb" } } }
                               { via: native-pkg-file  when: "redhat or opensuse"  version: { github: DopplerHQ/cli }  asset: { rpm: { x86_64: "doppler_*_linux_amd64.rpm" } } }
                               { via: aur  when: "arch"  name: doppler-cli-bin } ] }   // not in distro repos; upstream ships .deb/.rpm; AUR pkg is `doppler-cli-bin`
+        // bat: `cat` clone w/ highlighting. Debian/Ubuntu install the binary as `batcat` (name clash) ->
+        // the glue aliases it to `bat`. EL via EPEL; amzn has neither -> cargo (crate is `bat`).
+        bat: { attrs: [ CLI FOSS permissive ] suggests: bat-dotfiles  description: "bat — a `cat` clone with syntax highlighting and git integration (Debian/Ubuntu install it as `batcat`)."
+               install: [ { via: native  repo-component: universe  when: "not (rhel or amzn)" }
+                          { via: native  when: "rhel"  requires: epel }
+                          { via: cargo   when: "amzn"  name: bat } ] }
+        bat-dotfiles: { description: "bat alias (batcat->bat on Debian/Ubuntu), linked into place." install: [ { via: dotfiles  requires: bash-dotfiles  glue: bat } ] }
+        // lm-sensors: hardware health (temps/voltages/fans). Package name drifts three ways; the binary
+        // is always `sensors` (+ `sensors-detect`). In EL/Fedora base (no EPEL needed).
+        lm-sensors: { attrs: [ CLI FOSS copyleft ] description: "lm-sensors — read hardware health sensors: temps, voltages, fans (`sensors`, `sensors-detect`)."
+                      install: [ { via: native  when: "not fedora_atomic"  name: { dnf: lm_sensors  pacman: lm_sensors  zypper: sensors  default: lm-sensors } } ] }   // no brew formula (Linux-kernel tool)
+        // lsblk: lists block devices; part of util-linux (essential/preinstalled on glibc distros).
+        // Alpine splits it out as its own `lsblk` package (over busybox's limited applet).
+        lsblk: { attrs: [ CLI FOSS copyleft ] description: "lsblk — list block devices as a tree (part of util-linux)."
+                 install: [ { via: native  name: { apk: lsblk  default: util-linux } } ] }
+        // chafa: render images/animations in the terminal (ANSI/sixel/kitty). EL via EPEL.
+        chafa: { attrs: [ CLI FOSS copyleft ] description: "chafa — display images (and gifs) in the terminal as ANSI/sixel/kitty graphics."
+                 install: [ { via: native  when: "rhel"  requires: epel } { via: native  when: "not amzn"  repo-component: universe } ] }
+        // fff: minimal Bash file manager. Upstream archived (dylanaraps) -> Debian/Ubuntu ship an old
+        // 1.1 and Arch's AUR has 2.2; a `via: source` build (pure Bash `make install`) in the
+        // configsys-source plugin covers Fedora/openSUSE/Alpine/EL.
+        fff: { attrs: [ TUI FOSS permissive legacy ] description: "fff — a fast, minimal terminal file manager written in Bash (`fff`)."
+               install: [ { via: native  repo-component: universe  when: "debian" }
+                          { via: aur  when: "arch" } ] }
 
         // btop lives in EPEL on EL (needs epel enabled), base repos everywhere else.
         // Two native bindings: the EL one adds `requires: epel`; both are dnf\btop.
@@ -467,6 +496,24 @@
         foot: { attrs: [ GUI FOSS permissive ] suggests: foot-dotfiles  description: "foot — a fast, lightweight Wayland terminal emulator (`foot`)."
             install: [ { via: native  repo-component: universe  when: "not (rhel or amzn or fedora_atomic)" } ] }
         foot-dotfiles: { description: "foot terminal config, linked into place." install: [ { via: dotfiles  config: { src: foot  dst: $XDG_CONFIG_HOME/foot } } ] }
+        // grim/slurp/swaybg/wmenu — wlroots-only Wayland tools (won't run on X11 or GNOME/KDE Wayland).
+        // Native on debian/ubuntu/fedora/arch/alpine/openSUSE; no EL/amzn/atomic (like `foot`).
+        grim: { attrs: [ CLI FOSS permissive ] description: "grim — take screenshots on wlroots-based Wayland compositors."
+                install: [ { via: native  repo-component: universe  when: "not (rhel or amzn or fedora_atomic)" } ] }
+        slurp: { attrs: [ CLI FOSS permissive ] description: "slurp — select a region or point on a Wayland compositor (pipe into grim to crop a screenshot)."
+                install: [ { via: native  repo-component: universe  when: "not (rhel or amzn or fedora_atomic)" } ] }
+        swaybg: { attrs: [ CLI FOSS permissive ] description: "swaybg — set the wallpaper/background on wlroots Wayland compositors."
+                install: [ { via: native  repo-component: universe  when: "not (rhel or amzn or fedora_atomic)" } ] }
+        // wmenu: dmenu for Wayland (`wmenu`/`wmenu-run`) — broadly packaged (extra/community/main).
+        wmenu: { attrs: [ GUI FOSS permissive ] description: "wmenu — a dmenu-style menu for Wayland (`wmenu`/`wmenu-run`)."
+                install: [ { via: native  repo-component: universe  when: "not (rhel or amzn or fedora_atomic)" } ] }
+        // wl-screenrec: GPU-accelerated (VAAPI) wlroots screen recorder. Real packaging only on
+        // openSUSE Tumbleweed + Arch AUR; else a cargo build (needs recent Rust [edition 2024] and,
+        // at build time, FFmpeg >=6 + libva + clang dev libs present).
+        wl-screenrec: { attrs: [ CLI FOSS permissive ] description: "wl-screenrec — GPU-accelerated screen recorder for wlroots Wayland compositors."
+                install: [ { via: native  when: "opensuse_tumbleweed" }
+                           { via: aur  when: "arch" }
+                           { via: cargo  when: "not (arch or opensuse_tumbleweed)"  name: wl-screenrec  requires: cargo } ] }
         // yazi: Rust TUI file manager. Native on Arch + Homebrew; upstream ships a real .deb, so on
         // Debian/Ubuntu (not in-repo) install that via the OS package tool — clean and on PATH.
         // Elsewhere (Fedora is COPR-only; openSUSE/Alpine/EL absent) the release zip lands under
@@ -1555,6 +1602,20 @@
         }
         ardour: { attrs: [ GUI app FOSS copyleft ] description: "Ardour — a professional digital audio workstation (DAW)." install: [ { via: native  when: "debian or arch or opensuse"  repo-component: universe }  { via: flatpak  hub: flathub  app: org.ardour.Ardour } ] }
         lmms:   { attrs: [ GUI app FOSS copyleft ] description: "LMMS — a music production studio (synths, sequencing, loops)." install: [ { via: native  when: "debian or fedora or arch or opensuse"  repo-component: universe }  { via: flatpak  hub: flathub  app: io.lmms.LMMS } ] }
+        // Audacity — the Muse-Group telemetry proposal (2021) was walked back and never shipped; no
+        // networked telemetry in released builds. EL via EPEL; flatpak is the universal/atomic method.
+        audacity: { attrs: [ GUI app FOSS copyleft ] description: "Audacity — a multi-track audio recorder and editor."
+            install: [ { via: native  when: "rhel"  requires: epel }
+                       { via: native  when: "(debian or fedora or arch or opensuse or alpine) and not amzn"  repo-component: universe }
+                       { via: flatpak  hub: flathub  app: org.audacityteam.Audacity } ] }
+        // playerctl — control any MPRIS media player (play/pause/next, read metadata). EL via EPEL.
+        playerctl: { attrs: [ CLI FOSS copyleft ] description: "playerctl — control MPRIS media players from the CLI (play/pause/next, metadata)."
+            install: [ { via: native  when: "rhel"  requires: epel } { via: native  when: "not amzn"  repo-component: universe } ] }
+        // mpd-mpris — exposes MPD over MPRIS so playerctl / desktop media keys drive it. Native on
+        // Arch (extra) + Alpine (community); a Go build elsewhere. (Ships a systemd user service.)
+        mpd-mpris: { attrs: [ CLI daemon FOSS permissive ] description: "mpd-mpris — bridge MPD to the MPRIS2 D-Bus interface (control MPD with `playerctl`)."
+            install: [ { via: native  when: "arch or alpine" }
+                       { via: go-install  when: "not (arch or alpine)"  name: "github.com/natsukagami/mpd-mpris/cmd/mpd-mpris"  requires: go } ] }
 
         // --- digital-art tools (Flathub, matching gimp/krita/ardour above — uniform across distros) ---
         inkscape:   { attrs: [ GUI app FOSS copyleft ] description: "Inkscape — a vector graphics editor (SVG)." install: [ { via: native  when: "debian or fedora or arch or opensuse"  repo-component: universe }  { via: native  when: "rhel"  requires: epel }  { via: flatpak  hub: flathub  app: org.inkscape.Inkscape } ] }
@@ -2125,6 +2186,21 @@
         gradle: { attrs: [ CLI FOSS permissive ] suggests: gradle-dotfiles  description: "Gradle — JVM build automation." requires: jdk
                   install: [ { via: native  when: "debian or arch or fedora_atomic" }   // native where packaged
                              { via: sdkman  when: "not debian and not arch and not fedora_atomic" } ] }   // SDKMAN elsewhere (fedora/alpine/opensuse) + any pinned version
+        // Jenkins — CI/CD automation server (web UI on :8080). Official apt/dnf vendor repos (stable
+        // LTS) + AUR on Arch; needs a JDK. No brew/atomic/alpine binding (use the war or a container).
+        jenkins: { attrs: [ web daemon FOSS permissive ] description: "Jenkins — an automation server for CI/CD (web UI on :8080)." requires: jdk
+            install: [
+                { via: native  when: "debian"  name: jenkins   // Jenkins' official apt repo (stable/LTS)
+                  pubkey-url: "https://pkg.jenkins.io/debian-stable/jenkins.io-2023.key"
+                  pubkey-path: /usr/share/keyrings/jenkins-keyring.asc
+                  source-line: "deb [signed-by=/usr/share/keyrings/jenkins-keyring.asc] https://pkg.jenkins.io/debian-stable binary/"
+                  source-path: /etc/apt/sources.list.d/jenkins.list }
+                { via: native  when: "redhat"  name: jenkins   // Jenkins' official dnf repo (stable/LTS)
+                  pubkey-url: "https://pkg.jenkins.io/redhat-stable/jenkins.io-2023.key"
+                  repo-id: jenkins  repo-name: "Jenkins"
+                  repo-url: "https://pkg.jenkins.io/redhat-stable/" }
+                { via: aur  when: "arch"  name: jenkins } ]
+        }
 
         // --- debugging / static analysis / profiling (NB: ASan/UBSan/TSan are gcc/clang FLAGS,
         // not packages — nothing to install for those). ---

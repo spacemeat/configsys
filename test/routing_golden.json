@@ -456,6 +456,16 @@
     "name": "atop"
    }
   },
+  "audacity": {
+   "pacman\\audacity": {
+    "driver": "pacman",
+    "fields": {
+     "name": "audacity",
+     "repo-component": "universe"
+    },
+    "name": "audacity"
+   }
+  },
   "awscli": {
    "dotfiles\\awscli-dotfiles": {
     "driver": "dotfiles",
@@ -596,6 +606,54 @@
      }
     },
     "name": "bash-dotfiles"
+   }
+  },
+  "bat": {
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.config/bash/conf.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\bat-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "glue": "bat"
+    },
+    "name": "bat-dotfiles"
+   },
+   "pacman\\bat": {
+    "driver": "pacman",
+    "fields": {
+     "name": "bat",
+     "repo-component": "universe"
+    },
+    "name": "bat"
+   }
+  },
+  "bat-dotfiles": {
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.config/bash/conf.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\bat-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "glue": "bat"
+    },
+    "name": "bat-dotfiles"
    }
   },
   "bazaar": {
@@ -1069,6 +1127,16 @@
      "repo-component": "universe"
     },
     "name": "carla"
+   }
+  },
+  "chafa": {
+   "pacman\\chafa": {
+    "driver": "pacman",
+    "fields": {
+     "name": "chafa",
+     "repo-component": "universe"
+    },
+    "name": "chafa"
    }
   },
   "chrome": {
@@ -2587,6 +2655,39 @@
     "name": "lua"
    }
   },
+  "fff": {
+   "aur\\fff": {
+    "driver": "aur",
+    "fields": {
+     "name": "fff"
+    },
+    "name": "fff"
+   },
+   "dotfiles\\git-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "~/.gitconfig",
+      "src": "gitconfig"
+     }
+    },
+    "name": "git-dotfiles"
+   },
+   "pacman\\base-devel": {
+    "driver": "pacman",
+    "fields": {
+     "name": "base-devel"
+    },
+    "name": "base-devel"
+   },
+   "pacman\\git": {
+    "driver": "pacman",
+    "fields": {
+     "name": "git"
+    },
+    "name": "git"
+   }
+  },
   "ffmpeg": {
    "pacman\\ffmpeg": {
     "driver": "pacman",
@@ -3583,6 +3684,16 @@
     "name": "grafana-service"
    }
   },
+  "grim": {
+   "pacman\\grim": {
+    "driver": "pacman",
+    "fields": {
+     "name": "grim",
+     "repo-component": "universe"
+    },
+    "name": "grim"
+   }
+  },
   "groovy": {
    "dotfiles\\bash-dotfiles": {
     "driver": "dotfiles",
@@ -4394,6 +4505,46 @@
      "unit": "jellyfin"
     },
     "name": "jellyfin-service"
+   }
+  },
+  "jenkins": {
+   "aur\\jenkins": {
+    "driver": "aur",
+    "fields": {
+     "name": "jenkins"
+    },
+    "name": "jenkins"
+   },
+   "dotfiles\\git-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "~/.gitconfig",
+      "src": "gitconfig"
+     }
+    },
+    "name": "git-dotfiles"
+   },
+   "pacman\\base-devel": {
+    "driver": "pacman",
+    "fields": {
+     "name": "base-devel"
+    },
+    "name": "base-devel"
+   },
+   "pacman\\git": {
+    "driver": "pacman",
+    "fields": {
+     "name": "git"
+    },
+    "name": "git"
+   },
+   "pacman\\jdk": {
+    "driver": "pacman",
+    "fields": {
+     "name": "jdk21-openjdk"
+    },
+    "name": "jdk21-openjdk"
    }
   },
   "jetbrains-toolbox": {
@@ -5497,6 +5648,15 @@
     "name": "llm"
    }
   },
+  "lm-sensors": {
+   "pacman\\lm-sensors": {
+    "driver": "pacman",
+    "fields": {
+     "name": "lm_sensors"
+    },
+    "name": "lm_sensors"
+   }
+  },
   "lmms": {
    "pacman\\lmms": {
     "driver": "pacman",
@@ -5505,6 +5665,15 @@
      "repo-component": "universe"
     },
     "name": "lmms"
+   }
+  },
+  "lsblk": {
+   "pacman\\lsblk": {
+    "driver": "pacman",
+    "fields": {
+     "name": "util-linux"
+    },
+    "name": "util-linux"
    }
   },
   "ltrace": {
@@ -6153,6 +6322,15 @@
      }
     },
     "name": "mpd-dotfiles"
+   }
+  },
+  "mpd-mpris": {
+   "pacman\\mpd-mpris": {
+    "driver": "pacman",
+    "fields": {
+     "name": "mpd-mpris"
+    },
+    "name": "mpd-mpris"
    }
   },
   "mtr": {
@@ -7261,6 +7439,16 @@
      "glue": "pipx"
     },
     "name": "pipx-dotfiles"
+   }
+  },
+  "playerctl": {
+   "pacman\\playerctl": {
+    "driver": "pacman",
+    "fields": {
+     "name": "playerctl",
+     "repo-component": "universe"
+    },
+    "name": "playerctl"
    }
   },
   "plex": {
@@ -8815,6 +9003,16 @@
     "name": "git"
    }
   },
+  "slurp": {
+   "pacman\\slurp": {
+    "driver": "pacman",
+    "fields": {
+     "name": "slurp",
+     "repo-component": "universe"
+    },
+    "name": "slurp"
+   }
+  },
   "snapd": {
    "aur\\snapd": {
     "driver": "aur",
@@ -9254,6 +9452,16 @@
      }
     },
     "name": "sway-dotfiles"
+   }
+  },
+  "swaybg": {
+   "pacman\\swaybg": {
+    "driver": "pacman",
+    "fields": {
+     "name": "swaybg",
+     "repo-component": "universe"
+    },
+    "name": "swaybg"
    }
   },
   "swift": {
@@ -10573,6 +10781,59 @@
     "name": "wireshark-qt"
    }
   },
+  "wl-clipboard": {
+   "pacman\\wl-clipboard": {
+    "driver": "pacman",
+    "fields": {
+     "name": "wl-clipboard",
+     "repo-component": "universe"
+    },
+    "name": "wl-clipboard"
+   }
+  },
+  "wl-screenrec": {
+   "aur\\wl-screenrec": {
+    "driver": "aur",
+    "fields": {
+     "name": "wl-screenrec"
+    },
+    "name": "wl-screenrec"
+   },
+   "dotfiles\\git-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "~/.gitconfig",
+      "src": "gitconfig"
+     }
+    },
+    "name": "git-dotfiles"
+   },
+   "pacman\\base-devel": {
+    "driver": "pacman",
+    "fields": {
+     "name": "base-devel"
+    },
+    "name": "base-devel"
+   },
+   "pacman\\git": {
+    "driver": "pacman",
+    "fields": {
+     "name": "git"
+    },
+    "name": "git"
+   }
+  },
+  "wmenu": {
+   "pacman\\wmenu": {
+    "driver": "pacman",
+    "fields": {
+     "name": "wmenu",
+     "repo-component": "universe"
+    },
+    "name": "wmenu"
+   }
+  },
   "wxmaxima": {
    "flatpak\\wxmaxima": {
     "driver": "flatpak",
@@ -10754,6 +11015,16 @@
      }
     },
     "name": "xmonad-dotfiles"
+   }
+  },
+  "xsel": {
+   "pacman\\xsel": {
+    "driver": "pacman",
+    "fields": {
+     "name": "xsel",
+     "repo-component": "universe"
+    },
+    "name": "xsel"
    }
   },
   "yabridge": {
@@ -11603,6 +11874,16 @@
     "name": "atop"
    }
   },
+  "audacity": {
+   "apt\\audacity": {
+    "driver": "apt",
+    "fields": {
+     "name": "audacity",
+     "repo-component": "universe"
+    },
+    "name": "audacity"
+   }
+  },
   "awscli": {
    "apt\\curl": {
     "driver": "apt",
@@ -11735,6 +12016,54 @@
      }
     },
     "name": "bash-dotfiles"
+   }
+  },
+  "bat": {
+   "apt\\bat": {
+    "driver": "apt",
+    "fields": {
+     "name": "bat",
+     "repo-component": "universe"
+    },
+    "name": "bat"
+   },
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.config/bash/conf.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\bat-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "glue": "bat"
+    },
+    "name": "bat-dotfiles"
+   }
+  },
+  "bat-dotfiles": {
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.config/bash/conf.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\bat-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "glue": "bat"
+    },
+    "name": "bat-dotfiles"
    }
   },
   "bazaar": {
@@ -12279,6 +12608,16 @@
      "repo-component": "universe"
     },
     "name": "carla"
+   }
+  },
+  "chafa": {
+   "apt\\chafa": {
+    "driver": "apt",
+    "fields": {
+     "name": "chafa",
+     "repo-component": "universe"
+    },
+    "name": "chafa"
    }
   },
   "chrome": {
@@ -14161,6 +14500,16 @@
     "name": "fennel"
    }
   },
+  "fff": {
+   "apt\\fff": {
+    "driver": "apt",
+    "fields": {
+     "name": "fff",
+     "repo-component": "universe"
+    },
+    "name": "fff"
+   }
+  },
   "ffmpeg": {
    "apt\\ffmpeg": {
     "driver": "apt",
@@ -15452,6 +15801,16 @@
     "name": "grafana-service"
    }
   },
+  "grim": {
+   "apt\\grim": {
+    "driver": "apt",
+    "fields": {
+     "name": "grim",
+     "repo-component": "universe"
+    },
+    "name": "grim"
+   }
+  },
   "groovy": {
    "apt\\jdk": {
     "driver": "apt",
@@ -16263,6 +16622,26 @@
      "unit": "jellyfin"
     },
     "name": "jellyfin-service"
+   }
+  },
+  "jenkins": {
+   "apt\\jdk": {
+    "driver": "apt",
+    "fields": {
+     "name": "openjdk-21-jdk"
+    },
+    "name": "openjdk-21-jdk"
+   },
+   "apt\\jenkins": {
+    "driver": "apt",
+    "fields": {
+     "name": "jenkins",
+     "pubkey-path": "/usr/share/keyrings/jenkins-keyring.asc",
+     "pubkey-url": "https://pkg.jenkins.io/debian-stable/jenkins.io-2023.key",
+     "source-line": "deb [signed-by=/usr/share/keyrings/jenkins-keyring.asc] https://pkg.jenkins.io/debian-stable binary/",
+     "source-path": "/etc/apt/sources.list.d/jenkins.list"
+    },
+    "name": "jenkins"
    }
   },
   "jetbrains-toolbox": {
@@ -17516,6 +17895,15 @@
     "name": "llm"
    }
   },
+  "lm-sensors": {
+   "apt\\lm-sensors": {
+    "driver": "apt",
+    "fields": {
+     "name": "lm-sensors"
+    },
+    "name": "lm-sensors"
+   }
+  },
   "lmms": {
    "apt\\lmms": {
     "driver": "apt",
@@ -17524,6 +17912,15 @@
      "repo-component": "universe"
     },
     "name": "lmms"
+   }
+  },
+  "lsblk": {
+   "apt\\lsblk": {
+    "driver": "apt",
+    "fields": {
+     "name": "util-linux"
+    },
+    "name": "util-linux"
    }
   },
   "ltrace": {
@@ -18179,6 +18576,40 @@
      }
     },
     "name": "mpd-dotfiles"
+   }
+  },
+  "mpd-mpris": {
+   "apt\\go": {
+    "driver": "apt",
+    "fields": {
+     "name": "golang-go"
+    },
+    "name": "golang-go"
+   },
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.config/bash/conf.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\go-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "glue": "go"
+    },
+    "name": "go-dotfiles"
+   },
+   "go-install\\mpd-mpris": {
+    "driver": "go-install",
+    "fields": {
+     "name": "github.com/natsukagami/mpd-mpris/cmd/mpd-mpris"
+    },
+    "name": "github.com/natsukagami/mpd-mpris/cmd/mpd-mpris"
    }
   },
   "mtr": {
@@ -19338,6 +19769,16 @@
      "glue": "pipx"
     },
     "name": "pipx-dotfiles"
+   }
+  },
+  "playerctl": {
+   "apt\\playerctl": {
+    "driver": "apt",
+    "fields": {
+     "name": "playerctl",
+     "repo-component": "universe"
+    },
+    "name": "playerctl"
    }
   },
   "plex": {
@@ -20667,6 +21108,16 @@
     "name": "slack-desktop"
    }
   },
+  "slurp": {
+   "apt\\slurp": {
+    "driver": "apt",
+    "fields": {
+     "name": "slurp",
+     "repo-component": "universe"
+    },
+    "name": "slurp"
+   }
+  },
   "snapd": {
    "apt\\snapd": {
     "driver": "apt",
@@ -21032,6 +21483,16 @@
      }
     },
     "name": "sway-dotfiles"
+   }
+  },
+  "swaybg": {
+   "apt\\swaybg": {
+    "driver": "apt",
+    "fields": {
+     "name": "swaybg",
+     "repo-component": "universe"
+    },
+    "name": "swaybg"
    }
   },
   "syncthing": {
@@ -22229,6 +22690,61 @@
     "name": "wireshark"
    }
   },
+  "wl-clipboard": {
+   "apt\\wl-clipboard": {
+    "driver": "apt",
+    "fields": {
+     "name": "wl-clipboard",
+     "repo-component": "universe"
+    },
+    "name": "wl-clipboard"
+   }
+  },
+  "wl-screenrec": {
+   "apt\\rust": {
+    "driver": "apt",
+    "fields": {
+     "name": "rust-all",
+     "repo-component": "universe"
+    },
+    "name": "rust-all"
+   },
+   "cargo\\wl-screenrec": {
+    "driver": "cargo",
+    "fields": {
+     "name": "wl-screenrec"
+    },
+    "name": "wl-screenrec"
+   },
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.config/bash/conf.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\rust-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "glue": "rust"
+    },
+    "name": "rust-dotfiles"
+   }
+  },
+  "wmenu": {
+   "apt\\wmenu": {
+    "driver": "apt",
+    "fields": {
+     "name": "wmenu",
+     "repo-component": "universe"
+    },
+    "name": "wmenu"
+   }
+  },
   "wxmaxima": {
    "apt\\wxmaxima": {
     "driver": "apt",
@@ -22394,6 +22910,16 @@
      }
     },
     "name": "xmonad-dotfiles"
+   }
+  },
+  "xsel": {
+   "apt\\xsel": {
+    "driver": "apt",
+    "fields": {
+     "name": "xsel",
+     "repo-component": "universe"
+    },
+    "name": "xsel"
    }
   },
   "yabridge": {
@@ -23261,6 +23787,16 @@
     "name": "atop"
    }
   },
+  "audacity": {
+   "apt\\audacity": {
+    "driver": "apt",
+    "fields": {
+     "name": "audacity",
+     "repo-component": "universe"
+    },
+    "name": "audacity"
+   }
+  },
   "awscli": {
    "apt\\curl": {
     "driver": "apt",
@@ -23376,6 +23912,54 @@
      }
     },
     "name": "bash-dotfiles"
+   }
+  },
+  "bat": {
+   "apt\\bat": {
+    "driver": "apt",
+    "fields": {
+     "name": "bat",
+     "repo-component": "universe"
+    },
+    "name": "bat"
+   },
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.config/bash/conf.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\bat-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "glue": "bat"
+    },
+    "name": "bat-dotfiles"
+   }
+  },
+  "bat-dotfiles": {
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.config/bash/conf.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\bat-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "glue": "bat"
+    },
+    "name": "bat-dotfiles"
    }
   },
   "bazaar": {
@@ -23920,6 +24504,16 @@
      "repo-component": "universe"
     },
     "name": "carla"
+   }
+  },
+  "chafa": {
+   "apt\\chafa": {
+    "driver": "apt",
+    "fields": {
+     "name": "chafa",
+     "repo-component": "universe"
+    },
+    "name": "chafa"
    }
   },
   "chrome": {
@@ -25768,6 +26362,16 @@
     "name": "fennel"
    }
   },
+  "fff": {
+   "apt\\fff": {
+    "driver": "apt",
+    "fields": {
+     "name": "fff",
+     "repo-component": "universe"
+    },
+    "name": "fff"
+   }
+  },
   "ffmpeg": {
    "apt\\ffmpeg": {
     "driver": "apt",
@@ -27059,6 +27663,16 @@
     "name": "grafana-service"
    }
   },
+  "grim": {
+   "apt\\grim": {
+    "driver": "apt",
+    "fields": {
+     "name": "grim",
+     "repo-component": "universe"
+    },
+    "name": "grim"
+   }
+  },
   "groovy": {
    "apt\\jdk": {
     "driver": "apt",
@@ -27853,6 +28467,26 @@
      "unit": "jellyfin"
     },
     "name": "jellyfin-service"
+   }
+  },
+  "jenkins": {
+   "apt\\jdk": {
+    "driver": "apt",
+    "fields": {
+     "name": "openjdk-21-jdk"
+    },
+    "name": "openjdk-21-jdk"
+   },
+   "apt\\jenkins": {
+    "driver": "apt",
+    "fields": {
+     "name": "jenkins",
+     "pubkey-path": "/usr/share/keyrings/jenkins-keyring.asc",
+     "pubkey-url": "https://pkg.jenkins.io/debian-stable/jenkins.io-2023.key",
+     "source-line": "deb [signed-by=/usr/share/keyrings/jenkins-keyring.asc] https://pkg.jenkins.io/debian-stable binary/",
+     "source-path": "/etc/apt/sources.list.d/jenkins.list"
+    },
+    "name": "jenkins"
    }
   },
   "jetbrains-toolbox": {
@@ -29072,6 +29706,15 @@
     "name": "llm"
    }
   },
+  "lm-sensors": {
+   "apt\\lm-sensors": {
+    "driver": "apt",
+    "fields": {
+     "name": "lm-sensors"
+    },
+    "name": "lm-sensors"
+   }
+  },
   "lmms": {
    "apt\\lmms": {
     "driver": "apt",
@@ -29080,6 +29723,15 @@
      "repo-component": "universe"
     },
     "name": "lmms"
+   }
+  },
+  "lsblk": {
+   "apt\\lsblk": {
+    "driver": "apt",
+    "fields": {
+     "name": "util-linux"
+    },
+    "name": "util-linux"
    }
   },
   "ltrace": {
@@ -29718,6 +30370,40 @@
      }
     },
     "name": "mpd-dotfiles"
+   }
+  },
+  "mpd-mpris": {
+   "apt\\go": {
+    "driver": "apt",
+    "fields": {
+     "name": "golang-go"
+    },
+    "name": "golang-go"
+   },
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.config/bash/conf.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\go-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "glue": "go"
+    },
+    "name": "go-dotfiles"
+   },
+   "go-install\\mpd-mpris": {
+    "driver": "go-install",
+    "fields": {
+     "name": "github.com/natsukagami/mpd-mpris/cmd/mpd-mpris"
+    },
+    "name": "github.com/natsukagami/mpd-mpris/cmd/mpd-mpris"
    }
   },
   "mtr": {
@@ -30826,6 +31512,16 @@
      "glue": "pipx"
     },
     "name": "pipx-dotfiles"
+   }
+  },
+  "playerctl": {
+   "apt\\playerctl": {
+    "driver": "apt",
+    "fields": {
+     "name": "playerctl",
+     "repo-component": "universe"
+    },
+    "name": "playerctl"
    }
   },
   "plex": {
@@ -32121,6 +32817,16 @@
     "name": "slack-desktop"
    }
   },
+  "slurp": {
+   "apt\\slurp": {
+    "driver": "apt",
+    "fields": {
+     "name": "slurp",
+     "repo-component": "universe"
+    },
+    "name": "slurp"
+   }
+  },
   "snapd": {
    "apt\\snapd": {
     "driver": "apt",
@@ -32486,6 +33192,16 @@
      }
     },
     "name": "sway-dotfiles"
+   }
+  },
+  "swaybg": {
+   "apt\\swaybg": {
+    "driver": "apt",
+    "fields": {
+     "name": "swaybg",
+     "repo-component": "universe"
+    },
+    "name": "swaybg"
    }
   },
   "syncthing": {
@@ -33666,6 +34382,61 @@
     "name": "wireshark"
    }
   },
+  "wl-clipboard": {
+   "apt\\wl-clipboard": {
+    "driver": "apt",
+    "fields": {
+     "name": "wl-clipboard",
+     "repo-component": "universe"
+    },
+    "name": "wl-clipboard"
+   }
+  },
+  "wl-screenrec": {
+   "apt\\rust": {
+    "driver": "apt",
+    "fields": {
+     "name": "rust-all",
+     "repo-component": "universe"
+    },
+    "name": "rust-all"
+   },
+   "cargo\\wl-screenrec": {
+    "driver": "cargo",
+    "fields": {
+     "name": "wl-screenrec"
+    },
+    "name": "wl-screenrec"
+   },
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.config/bash/conf.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\rust-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "glue": "rust"
+    },
+    "name": "rust-dotfiles"
+   }
+  },
+  "wmenu": {
+   "apt\\wmenu": {
+    "driver": "apt",
+    "fields": {
+     "name": "wmenu",
+     "repo-component": "universe"
+    },
+    "name": "wmenu"
+   }
+  },
   "wxmaxima": {
    "apt\\wxmaxima": {
     "driver": "apt",
@@ -33831,6 +34602,16 @@
      }
     },
     "name": "xmonad-dotfiles"
+   }
+  },
+  "xsel": {
+   "apt\\xsel": {
+    "driver": "apt",
+    "fields": {
+     "name": "xsel",
+     "repo-component": "universe"
+    },
+    "name": "xsel"
    }
   },
   "yabridge": {
@@ -34681,6 +35462,16 @@
     "name": "atop"
    }
   },
+  "audacity": {
+   "apt\\audacity": {
+    "driver": "apt",
+    "fields": {
+     "name": "audacity",
+     "repo-component": "universe"
+    },
+    "name": "audacity"
+   }
+  },
   "awscli": {
    "apt\\curl": {
     "driver": "apt",
@@ -34796,6 +35587,54 @@
      }
     },
     "name": "bash-dotfiles"
+   }
+  },
+  "bat": {
+   "apt\\bat": {
+    "driver": "apt",
+    "fields": {
+     "name": "bat",
+     "repo-component": "universe"
+    },
+    "name": "bat"
+   },
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.config/bash/conf.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\bat-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "glue": "bat"
+    },
+    "name": "bat-dotfiles"
+   }
+  },
+  "bat-dotfiles": {
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.config/bash/conf.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\bat-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "glue": "bat"
+    },
+    "name": "bat-dotfiles"
    }
   },
   "bazaar": {
@@ -35340,6 +36179,16 @@
      "repo-component": "universe"
     },
     "name": "carla"
+   }
+  },
+  "chafa": {
+   "apt\\chafa": {
+    "driver": "apt",
+    "fields": {
+     "name": "chafa",
+     "repo-component": "universe"
+    },
+    "name": "chafa"
    }
   },
   "chrome": {
@@ -37191,6 +38040,16 @@
     "name": "fennel"
    }
   },
+  "fff": {
+   "apt\\fff": {
+    "driver": "apt",
+    "fields": {
+     "name": "fff",
+     "repo-component": "universe"
+    },
+    "name": "fff"
+   }
+  },
   "ffmpeg": {
    "apt\\ffmpeg": {
     "driver": "apt",
@@ -38482,6 +39341,16 @@
     "name": "grafana-service"
    }
   },
+  "grim": {
+   "apt\\grim": {
+    "driver": "apt",
+    "fields": {
+     "name": "grim",
+     "repo-component": "universe"
+    },
+    "name": "grim"
+   }
+  },
   "groovy": {
    "apt\\jdk": {
     "driver": "apt",
@@ -39276,6 +40145,26 @@
      "unit": "jellyfin"
     },
     "name": "jellyfin-service"
+   }
+  },
+  "jenkins": {
+   "apt\\jdk": {
+    "driver": "apt",
+    "fields": {
+     "name": "openjdk-21-jdk"
+    },
+    "name": "openjdk-21-jdk"
+   },
+   "apt\\jenkins": {
+    "driver": "apt",
+    "fields": {
+     "name": "jenkins",
+     "pubkey-path": "/usr/share/keyrings/jenkins-keyring.asc",
+     "pubkey-url": "https://pkg.jenkins.io/debian-stable/jenkins.io-2023.key",
+     "source-line": "deb [signed-by=/usr/share/keyrings/jenkins-keyring.asc] https://pkg.jenkins.io/debian-stable binary/",
+     "source-path": "/etc/apt/sources.list.d/jenkins.list"
+    },
+    "name": "jenkins"
    }
   },
   "jetbrains-toolbox": {
@@ -40488,6 +41377,15 @@
     "name": "llm"
    }
   },
+  "lm-sensors": {
+   "apt\\lm-sensors": {
+    "driver": "apt",
+    "fields": {
+     "name": "lm-sensors"
+    },
+    "name": "lm-sensors"
+   }
+  },
   "lmms": {
    "apt\\lmms": {
     "driver": "apt",
@@ -40496,6 +41394,15 @@
      "repo-component": "universe"
     },
     "name": "lmms"
+   }
+  },
+  "lsblk": {
+   "apt\\lsblk": {
+    "driver": "apt",
+    "fields": {
+     "name": "util-linux"
+    },
+    "name": "util-linux"
    }
   },
   "ltrace": {
@@ -41134,6 +42041,40 @@
      }
     },
     "name": "mpd-dotfiles"
+   }
+  },
+  "mpd-mpris": {
+   "apt\\go": {
+    "driver": "apt",
+    "fields": {
+     "name": "golang-go"
+    },
+    "name": "golang-go"
+   },
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.config/bash/conf.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\go-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "glue": "go"
+    },
+    "name": "go-dotfiles"
+   },
+   "go-install\\mpd-mpris": {
+    "driver": "go-install",
+    "fields": {
+     "name": "github.com/natsukagami/mpd-mpris/cmd/mpd-mpris"
+    },
+    "name": "github.com/natsukagami/mpd-mpris/cmd/mpd-mpris"
    }
   },
   "mtr": {
@@ -42255,6 +43196,16 @@
      "glue": "pipx"
     },
     "name": "pipx-dotfiles"
+   }
+  },
+  "playerctl": {
+   "apt\\playerctl": {
+    "driver": "apt",
+    "fields": {
+     "name": "playerctl",
+     "repo-component": "universe"
+    },
+    "name": "playerctl"
    }
   },
   "plex": {
@@ -43550,6 +44501,16 @@
     "name": "slack-desktop"
    }
   },
+  "slurp": {
+   "apt\\slurp": {
+    "driver": "apt",
+    "fields": {
+     "name": "slurp",
+     "repo-component": "universe"
+    },
+    "name": "slurp"
+   }
+  },
   "snapd": {
    "apt\\snapd": {
     "driver": "apt",
@@ -43915,6 +44876,16 @@
      }
     },
     "name": "sway-dotfiles"
+   }
+  },
+  "swaybg": {
+   "apt\\swaybg": {
+    "driver": "apt",
+    "fields": {
+     "name": "swaybg",
+     "repo-component": "universe"
+    },
+    "name": "swaybg"
    }
   },
   "syncthing": {
@@ -45095,6 +46066,61 @@
     "name": "wireshark"
    }
   },
+  "wl-clipboard": {
+   "apt\\wl-clipboard": {
+    "driver": "apt",
+    "fields": {
+     "name": "wl-clipboard",
+     "repo-component": "universe"
+    },
+    "name": "wl-clipboard"
+   }
+  },
+  "wl-screenrec": {
+   "apt\\rust": {
+    "driver": "apt",
+    "fields": {
+     "name": "rust-all",
+     "repo-component": "universe"
+    },
+    "name": "rust-all"
+   },
+   "cargo\\wl-screenrec": {
+    "driver": "cargo",
+    "fields": {
+     "name": "wl-screenrec"
+    },
+    "name": "wl-screenrec"
+   },
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.config/bash/conf.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\rust-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "glue": "rust"
+    },
+    "name": "rust-dotfiles"
+   }
+  },
+  "wmenu": {
+   "apt\\wmenu": {
+    "driver": "apt",
+    "fields": {
+     "name": "wmenu",
+     "repo-component": "universe"
+    },
+    "name": "wmenu"
+   }
+  },
   "wxmaxima": {
    "apt\\wxmaxima": {
     "driver": "apt",
@@ -45260,6 +46286,16 @@
      }
     },
     "name": "xmonad-dotfiles"
+   }
+  },
+  "xsel": {
+   "apt\\xsel": {
+    "driver": "apt",
+    "fields": {
+     "name": "xsel",
+     "repo-component": "universe"
+    },
+    "name": "xsel"
    }
   },
   "yabridge": {
@@ -46126,6 +47162,16 @@
     "name": "atop"
    }
   },
+  "audacity": {
+   "dnf\\audacity": {
+    "driver": "dnf",
+    "fields": {
+     "name": "audacity",
+     "repo-component": "universe"
+    },
+    "name": "audacity"
+   }
+  },
   "awscli": {
    "dnf\\curl": {
     "driver": "dnf",
@@ -46241,6 +47287,54 @@
      }
     },
     "name": "bash-dotfiles"
+   }
+  },
+  "bat": {
+   "dnf\\bat": {
+    "driver": "dnf",
+    "fields": {
+     "name": "bat",
+     "repo-component": "universe"
+    },
+    "name": "bat"
+   },
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.config/bash/conf.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\bat-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "glue": "bat"
+    },
+    "name": "bat-dotfiles"
+   }
+  },
+  "bat-dotfiles": {
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.config/bash/conf.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\bat-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "glue": "bat"
+    },
+    "name": "bat-dotfiles"
    }
   },
   "bazaar": {
@@ -46784,6 +47878,16 @@
      "repo-component": "universe"
     },
     "name": "carla"
+   }
+  },
+  "chafa": {
+   "dnf\\chafa": {
+    "driver": "dnf",
+    "fields": {
+     "name": "chafa",
+     "repo-component": "universe"
+    },
+    "name": "chafa"
    }
   },
   "chrome": {
@@ -49523,6 +50627,16 @@
     "name": "grafana-service"
    }
   },
+  "grim": {
+   "dnf\\grim": {
+    "driver": "dnf",
+    "fields": {
+     "name": "grim",
+     "repo-component": "universe"
+    },
+    "name": "grim"
+   }
+  },
   "groovy": {
    "dnf\\jdk": {
     "driver": "dnf",
@@ -50387,6 +51501,26 @@
      "unit": "jellyfin"
     },
     "name": "jellyfin-service"
+   }
+  },
+  "jenkins": {
+   "dnf\\jdk": {
+    "driver": "dnf",
+    "fields": {
+     "name": "java-21-openjdk-devel"
+    },
+    "name": "java-21-openjdk-devel"
+   },
+   "dnf\\jenkins": {
+    "driver": "dnf",
+    "fields": {
+     "name": "jenkins",
+     "pubkey-url": "https://pkg.jenkins.io/redhat-stable/jenkins.io-2023.key",
+     "repo-id": "jenkins",
+     "repo-name": "Jenkins",
+     "repo-url": "https://pkg.jenkins.io/redhat-stable/"
+    },
+    "name": "jenkins"
    }
   },
   "jetbrains-toolbox": {
@@ -51556,6 +52690,15 @@
     "name": "llm"
    }
   },
+  "lm-sensors": {
+   "dnf\\lm-sensors": {
+    "driver": "dnf",
+    "fields": {
+     "name": "lm_sensors"
+    },
+    "name": "lm_sensors"
+   }
+  },
   "lmms": {
    "dnf\\lmms": {
     "driver": "dnf",
@@ -51564,6 +52707,15 @@
      "repo-component": "universe"
     },
     "name": "lmms"
+   }
+  },
+  "lsblk": {
+   "dnf\\lsblk": {
+    "driver": "dnf",
+    "fields": {
+     "name": "util-linux"
+    },
+    "name": "util-linux"
    }
   },
   "ltrace": {
@@ -52147,6 +53299,40 @@
      }
     },
     "name": "mpd-dotfiles"
+   }
+  },
+  "mpd-mpris": {
+   "dnf\\go": {
+    "driver": "dnf",
+    "fields": {
+     "name": "golang"
+    },
+    "name": "golang"
+   },
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.config/bash/conf.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\go-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "glue": "go"
+    },
+    "name": "go-dotfiles"
+   },
+   "go-install\\mpd-mpris": {
+    "driver": "go-install",
+    "fields": {
+     "name": "github.com/natsukagami/mpd-mpris/cmd/mpd-mpris"
+    },
+    "name": "github.com/natsukagami/mpd-mpris/cmd/mpd-mpris"
    }
   },
   "mtr": {
@@ -53279,6 +54465,16 @@
      "glue": "pipx"
     },
     "name": "pipx-dotfiles"
+   }
+  },
+  "playerctl": {
+   "dnf\\playerctl": {
+    "driver": "dnf",
+    "fields": {
+     "name": "playerctl",
+     "repo-component": "universe"
+    },
+    "name": "playerctl"
    }
   },
   "plex": {
@@ -54538,6 +55734,16 @@
     "name": "slack"
    }
   },
+  "slurp": {
+   "dnf\\slurp": {
+    "driver": "dnf",
+    "fields": {
+     "name": "slurp",
+     "repo-component": "universe"
+    },
+    "name": "slurp"
+   }
+  },
   "snapd": {
    "dnf\\snapd": {
     "driver": "dnf",
@@ -54901,6 +56107,16 @@
      }
     },
     "name": "sway-dotfiles"
+   }
+  },
+  "swaybg": {
+   "dnf\\swaybg": {
+    "driver": "dnf",
+    "fields": {
+     "name": "swaybg",
+     "repo-component": "universe"
+    },
+    "name": "swaybg"
    }
   },
   "syncthing": {
@@ -56096,6 +57312,61 @@
     "name": "wireshark"
    }
   },
+  "wl-clipboard": {
+   "dnf\\wl-clipboard": {
+    "driver": "dnf",
+    "fields": {
+     "name": "wl-clipboard",
+     "repo-component": "universe"
+    },
+    "name": "wl-clipboard"
+   }
+  },
+  "wl-screenrec": {
+   "cargo\\wl-screenrec": {
+    "driver": "cargo",
+    "fields": {
+     "name": "wl-screenrec"
+    },
+    "name": "wl-screenrec"
+   },
+   "dnf\\rust": {
+    "driver": "dnf",
+    "fields": {
+     "name": "cargo",
+     "repo-component": "universe"
+    },
+    "name": "cargo"
+   },
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.config/bash/conf.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\rust-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "glue": "rust"
+    },
+    "name": "rust-dotfiles"
+   }
+  },
+  "wmenu": {
+   "dnf\\wmenu": {
+    "driver": "dnf",
+    "fields": {
+     "name": "wmenu",
+     "repo-component": "universe"
+    },
+    "name": "wmenu"
+   }
+  },
   "wxmaxima": {
    "dnf\\wxmaxima": {
     "driver": "dnf",
@@ -56270,6 +57541,16 @@
      }
     },
     "name": "xmonad-dotfiles"
+   }
+  },
+  "xsel": {
+   "dnf\\xsel": {
+    "driver": "dnf",
+    "fields": {
+     "name": "xsel",
+     "repo-component": "universe"
+    },
+    "name": "xsel"
    }
   },
   "yabridge": {
@@ -57135,6 +58416,16 @@
     "name": "atop"
    }
   },
+  "audacity": {
+   "dnf\\audacity": {
+    "driver": "dnf",
+    "fields": {
+     "name": "audacity",
+     "repo-component": "universe"
+    },
+    "name": "audacity"
+   }
+  },
   "awscli": {
    "dnf\\curl": {
     "driver": "dnf",
@@ -57250,6 +58541,54 @@
      }
     },
     "name": "bash-dotfiles"
+   }
+  },
+  "bat": {
+   "dnf\\bat": {
+    "driver": "dnf",
+    "fields": {
+     "name": "bat",
+     "repo-component": "universe"
+    },
+    "name": "bat"
+   },
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.config/bash/conf.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\bat-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "glue": "bat"
+    },
+    "name": "bat-dotfiles"
+   }
+  },
+  "bat-dotfiles": {
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.config/bash/conf.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\bat-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "glue": "bat"
+    },
+    "name": "bat-dotfiles"
    }
   },
   "bazaar": {
@@ -57793,6 +59132,16 @@
      "repo-component": "universe"
     },
     "name": "carla"
+   }
+  },
+  "chafa": {
+   "dnf\\chafa": {
+    "driver": "dnf",
+    "fields": {
+     "name": "chafa",
+     "repo-component": "universe"
+    },
+    "name": "chafa"
    }
   },
   "chrome": {
@@ -60558,6 +61907,16 @@
     "name": "grafana-service"
    }
   },
+  "grim": {
+   "dnf\\grim": {
+    "driver": "dnf",
+    "fields": {
+     "name": "grim",
+     "repo-component": "universe"
+    },
+    "name": "grim"
+   }
+  },
   "groovy": {
    "dnf\\jdk": {
     "driver": "dnf",
@@ -61422,6 +62781,26 @@
      "unit": "jellyfin"
     },
     "name": "jellyfin-service"
+   }
+  },
+  "jenkins": {
+   "dnf\\jdk": {
+    "driver": "dnf",
+    "fields": {
+     "name": "java-21-openjdk-devel"
+    },
+    "name": "java-21-openjdk-devel"
+   },
+   "dnf\\jenkins": {
+    "driver": "dnf",
+    "fields": {
+     "name": "jenkins",
+     "pubkey-url": "https://pkg.jenkins.io/redhat-stable/jenkins.io-2023.key",
+     "repo-id": "jenkins",
+     "repo-name": "Jenkins",
+     "repo-url": "https://pkg.jenkins.io/redhat-stable/"
+    },
+    "name": "jenkins"
    }
   },
   "jetbrains-toolbox": {
@@ -62591,6 +63970,15 @@
     "name": "llm"
    }
   },
+  "lm-sensors": {
+   "dnf\\lm-sensors": {
+    "driver": "dnf",
+    "fields": {
+     "name": "lm_sensors"
+    },
+    "name": "lm_sensors"
+   }
+  },
   "lmms": {
    "dnf\\lmms": {
     "driver": "dnf",
@@ -62599,6 +63987,15 @@
      "repo-component": "universe"
     },
     "name": "lmms"
+   }
+  },
+  "lsblk": {
+   "dnf\\lsblk": {
+    "driver": "dnf",
+    "fields": {
+     "name": "util-linux"
+    },
+    "name": "util-linux"
    }
   },
   "ltrace": {
@@ -63182,6 +64579,40 @@
      }
     },
     "name": "mpd-dotfiles"
+   }
+  },
+  "mpd-mpris": {
+   "dnf\\go": {
+    "driver": "dnf",
+    "fields": {
+     "name": "golang"
+    },
+    "name": "golang"
+   },
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.config/bash/conf.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\go-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "glue": "go"
+    },
+    "name": "go-dotfiles"
+   },
+   "go-install\\mpd-mpris": {
+    "driver": "go-install",
+    "fields": {
+     "name": "github.com/natsukagami/mpd-mpris/cmd/mpd-mpris"
+    },
+    "name": "github.com/natsukagami/mpd-mpris/cmd/mpd-mpris"
    }
   },
   "mtr": {
@@ -64314,6 +65745,16 @@
      "glue": "pipx"
     },
     "name": "pipx-dotfiles"
+   }
+  },
+  "playerctl": {
+   "dnf\\playerctl": {
+    "driver": "dnf",
+    "fields": {
+     "name": "playerctl",
+     "repo-component": "universe"
+    },
+    "name": "playerctl"
    }
   },
   "plex": {
@@ -65573,6 +67014,16 @@
     "name": "slack"
    }
   },
+  "slurp": {
+   "dnf\\slurp": {
+    "driver": "dnf",
+    "fields": {
+     "name": "slurp",
+     "repo-component": "universe"
+    },
+    "name": "slurp"
+   }
+  },
   "snapd": {
    "dnf\\snapd": {
     "driver": "dnf",
@@ -65936,6 +67387,16 @@
      }
     },
     "name": "sway-dotfiles"
+   }
+  },
+  "swaybg": {
+   "dnf\\swaybg": {
+    "driver": "dnf",
+    "fields": {
+     "name": "swaybg",
+     "repo-component": "universe"
+    },
+    "name": "swaybg"
    }
   },
   "syncthing": {
@@ -67131,6 +68592,61 @@
     "name": "wireshark"
    }
   },
+  "wl-clipboard": {
+   "dnf\\wl-clipboard": {
+    "driver": "dnf",
+    "fields": {
+     "name": "wl-clipboard",
+     "repo-component": "universe"
+    },
+    "name": "wl-clipboard"
+   }
+  },
+  "wl-screenrec": {
+   "cargo\\wl-screenrec": {
+    "driver": "cargo",
+    "fields": {
+     "name": "wl-screenrec"
+    },
+    "name": "wl-screenrec"
+   },
+   "dnf\\rust": {
+    "driver": "dnf",
+    "fields": {
+     "name": "cargo",
+     "repo-component": "universe"
+    },
+    "name": "cargo"
+   },
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.config/bash/conf.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\rust-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "glue": "rust"
+    },
+    "name": "rust-dotfiles"
+   }
+  },
+  "wmenu": {
+   "dnf\\wmenu": {
+    "driver": "dnf",
+    "fields": {
+     "name": "wmenu",
+     "repo-component": "universe"
+    },
+    "name": "wmenu"
+   }
+  },
   "wxmaxima": {
    "dnf\\wxmaxima": {
     "driver": "dnf",
@@ -67305,6 +68821,16 @@
      }
     },
     "name": "xmonad-dotfiles"
+   }
+  },
+  "xsel": {
+   "dnf\\xsel": {
+    "driver": "dnf",
+    "fields": {
+     "name": "xsel",
+     "repo-component": "universe"
+    },
+    "name": "xsel"
    }
   },
   "yabridge": {
@@ -68108,6 +69634,16 @@
     "name": "astroterm"
    }
   },
+  "audacity": {
+   "flatpak\\audacity": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "org.audacityteam.Audacity"
+    },
+    "name": "org.audacityteam.Audacity"
+   }
+  },
   "awscli": {
    "brew\\curl": {
     "driver": "brew",
@@ -68206,6 +69742,54 @@
      }
     },
     "name": "bash-dotfiles"
+   }
+  },
+  "bat": {
+   "brew\\bat": {
+    "driver": "brew",
+    "fields": {
+     "name": "bat",
+     "repo-component": "universe"
+    },
+    "name": "bat"
+   },
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.config/bash/conf.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\bat-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "glue": "bat"
+    },
+    "name": "bat-dotfiles"
+   }
+  },
+  "bat-dotfiles": {
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.config/bash/conf.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\bat-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "glue": "bat"
+    },
+    "name": "bat-dotfiles"
    }
   },
   "bazaar": {
@@ -68615,6 +70199,16 @@
      "name": "studio.kx.carla"
     },
     "name": "studio.kx.carla"
+   }
+  },
+  "chafa": {
+   "brew\\chafa": {
+    "driver": "brew",
+    "fields": {
+     "name": "chafa",
+     "repo-component": "universe"
+    },
+    "name": "chafa"
    }
   },
   "chrome": {
@@ -72299,6 +73893,15 @@
     "name": "io.lmms.LMMS"
    }
   },
+  "lsblk": {
+   "brew\\lsblk": {
+    "driver": "brew",
+    "fields": {
+     "name": "util-linux"
+    },
+    "name": "util-linux"
+   }
+  },
   "ltrace": {
    "brew\\ltrace": {
     "driver": "brew",
@@ -72836,6 +74439,40 @@
      }
     },
     "name": "mpd-dotfiles"
+   }
+  },
+  "mpd-mpris": {
+   "brew\\go": {
+    "driver": "brew",
+    "fields": {
+     "name": "go"
+    },
+    "name": "go"
+   },
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.config/bash/conf.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\go-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "glue": "go"
+    },
+    "name": "go-dotfiles"
+   },
+   "go-install\\mpd-mpris": {
+    "driver": "go-install",
+    "fields": {
+     "name": "github.com/natsukagami/mpd-mpris/cmd/mpd-mpris"
+    },
+    "name": "github.com/natsukagami/mpd-mpris/cmd/mpd-mpris"
    }
   },
   "mtr": {
@@ -73745,6 +75382,16 @@
      "glue": "pipx"
     },
     "name": "pipx-dotfiles"
+   }
+  },
+  "playerctl": {
+   "brew\\playerctl": {
+    "driver": "brew",
+    "fields": {
+     "name": "playerctl",
+     "repo-component": "universe"
+    },
+    "name": "playerctl"
    }
   },
   "pnpm": {
@@ -75961,6 +77608,51 @@
     "name": "wireshark"
    }
   },
+  "wl-clipboard": {
+   "brew\\wl-clipboard": {
+    "driver": "brew",
+    "fields": {
+     "name": "wl-clipboard",
+     "repo-component": "universe"
+    },
+    "name": "wl-clipboard"
+   }
+  },
+  "wl-screenrec": {
+   "brew\\rust": {
+    "driver": "brew",
+    "fields": {
+     "name": "rust",
+     "repo-component": "universe"
+    },
+    "name": "rust"
+   },
+   "cargo\\wl-screenrec": {
+    "driver": "cargo",
+    "fields": {
+     "name": "wl-screenrec"
+    },
+    "name": "wl-screenrec"
+   },
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.config/bash/conf.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\rust-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "glue": "rust"
+    },
+    "name": "rust-dotfiles"
+   }
+  },
   "wxmaxima": {
    "flatpak\\wxmaxima": {
     "driver": "flatpak",
@@ -76088,6 +77780,16 @@
      }
     },
     "name": "xmonad-dotfiles"
+   }
+  },
+  "xsel": {
+   "brew\\xsel": {
+    "driver": "brew",
+    "fields": {
+     "name": "xsel",
+     "repo-component": "universe"
+    },
+    "name": "xsel"
    }
   },
   "yarn": {
@@ -76886,6 +78588,16 @@
     "name": "atop"
    }
   },
+  "audacity": {
+   "apt\\audacity": {
+    "driver": "apt",
+    "fields": {
+     "name": "audacity",
+     "repo-component": "universe"
+    },
+    "name": "audacity"
+   }
+  },
   "awscli": {
    "apt\\curl": {
     "driver": "apt",
@@ -77018,6 +78730,54 @@
      }
     },
     "name": "bash-dotfiles"
+   }
+  },
+  "bat": {
+   "apt\\bat": {
+    "driver": "apt",
+    "fields": {
+     "name": "bat",
+     "repo-component": "universe"
+    },
+    "name": "bat"
+   },
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.config/bash/conf.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\bat-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "glue": "bat"
+    },
+    "name": "bat-dotfiles"
+   }
+  },
+  "bat-dotfiles": {
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.config/bash/conf.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\bat-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "glue": "bat"
+    },
+    "name": "bat-dotfiles"
    }
   },
   "bazaar": {
@@ -77562,6 +79322,16 @@
      "repo-component": "universe"
     },
     "name": "carla"
+   }
+  },
+  "chafa": {
+   "apt\\chafa": {
+    "driver": "apt",
+    "fields": {
+     "name": "chafa",
+     "repo-component": "universe"
+    },
+    "name": "chafa"
    }
   },
   "chrome": {
@@ -79456,6 +81226,16 @@
     "name": "fennel"
    }
   },
+  "fff": {
+   "apt\\fff": {
+    "driver": "apt",
+    "fields": {
+     "name": "fff",
+     "repo-component": "universe"
+    },
+    "name": "fff"
+   }
+  },
   "ffmpeg": {
    "apt\\ffmpeg": {
     "driver": "apt",
@@ -80747,6 +82527,16 @@
     "name": "grafana-service"
    }
   },
+  "grim": {
+   "apt\\grim": {
+    "driver": "apt",
+    "fields": {
+     "name": "grim",
+     "repo-component": "universe"
+    },
+    "name": "grim"
+   }
+  },
   "groovy": {
    "apt\\jdk": {
     "driver": "apt",
@@ -81558,6 +83348,26 @@
      "unit": "jellyfin"
     },
     "name": "jellyfin-service"
+   }
+  },
+  "jenkins": {
+   "apt\\jdk": {
+    "driver": "apt",
+    "fields": {
+     "name": "openjdk-21-jdk"
+    },
+    "name": "openjdk-21-jdk"
+   },
+   "apt\\jenkins": {
+    "driver": "apt",
+    "fields": {
+     "name": "jenkins",
+     "pubkey-path": "/usr/share/keyrings/jenkins-keyring.asc",
+     "pubkey-url": "https://pkg.jenkins.io/debian-stable/jenkins.io-2023.key",
+     "source-line": "deb [signed-by=/usr/share/keyrings/jenkins-keyring.asc] https://pkg.jenkins.io/debian-stable binary/",
+     "source-path": "/etc/apt/sources.list.d/jenkins.list"
+    },
+    "name": "jenkins"
    }
   },
   "jetbrains-toolbox": {
@@ -82804,6 +84614,15 @@
     "name": "llm"
    }
   },
+  "lm-sensors": {
+   "apt\\lm-sensors": {
+    "driver": "apt",
+    "fields": {
+     "name": "lm-sensors"
+    },
+    "name": "lm-sensors"
+   }
+  },
   "lmms": {
    "apt\\lmms": {
     "driver": "apt",
@@ -82812,6 +84631,15 @@
      "repo-component": "universe"
     },
     "name": "lmms"
+   }
+  },
+  "lsblk": {
+   "apt\\lsblk": {
+    "driver": "apt",
+    "fields": {
+     "name": "util-linux"
+    },
+    "name": "util-linux"
    }
   },
   "ltrace": {
@@ -83467,6 +85295,40 @@
      }
     },
     "name": "mpd-dotfiles"
+   }
+  },
+  "mpd-mpris": {
+   "apt\\go": {
+    "driver": "apt",
+    "fields": {
+     "name": "golang-go"
+    },
+    "name": "golang-go"
+   },
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.config/bash/conf.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\go-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "glue": "go"
+    },
+    "name": "go-dotfiles"
+   },
+   "go-install\\mpd-mpris": {
+    "driver": "go-install",
+    "fields": {
+     "name": "github.com/natsukagami/mpd-mpris/cmd/mpd-mpris"
+    },
+    "name": "github.com/natsukagami/mpd-mpris/cmd/mpd-mpris"
    }
   },
   "mtr": {
@@ -84639,6 +86501,16 @@
      "glue": "pipx"
     },
     "name": "pipx-dotfiles"
+   }
+  },
+  "playerctl": {
+   "apt\\playerctl": {
+    "driver": "apt",
+    "fields": {
+     "name": "playerctl",
+     "repo-component": "universe"
+    },
+    "name": "playerctl"
    }
   },
   "plex": {
@@ -85968,6 +87840,16 @@
     "name": "slack-desktop"
    }
   },
+  "slurp": {
+   "apt\\slurp": {
+    "driver": "apt",
+    "fields": {
+     "name": "slurp",
+     "repo-component": "universe"
+    },
+    "name": "slurp"
+   }
+  },
   "snapd": {
    "apt\\snapd": {
     "driver": "apt",
@@ -86326,6 +88208,16 @@
      }
     },
     "name": "sway-dotfiles"
+   }
+  },
+  "swaybg": {
+   "apt\\swaybg": {
+    "driver": "apt",
+    "fields": {
+     "name": "swaybg",
+     "repo-component": "universe"
+    },
+    "name": "swaybg"
    }
   },
   "syncthing": {
@@ -87523,6 +89415,61 @@
     "name": "wireshark"
    }
   },
+  "wl-clipboard": {
+   "apt\\wl-clipboard": {
+    "driver": "apt",
+    "fields": {
+     "name": "wl-clipboard",
+     "repo-component": "universe"
+    },
+    "name": "wl-clipboard"
+   }
+  },
+  "wl-screenrec": {
+   "apt\\rust": {
+    "driver": "apt",
+    "fields": {
+     "name": "rust-all",
+     "repo-component": "universe"
+    },
+    "name": "rust-all"
+   },
+   "cargo\\wl-screenrec": {
+    "driver": "cargo",
+    "fields": {
+     "name": "wl-screenrec"
+    },
+    "name": "wl-screenrec"
+   },
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.config/bash/conf.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\rust-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "glue": "rust"
+    },
+    "name": "rust-dotfiles"
+   }
+  },
+  "wmenu": {
+   "apt\\wmenu": {
+    "driver": "apt",
+    "fields": {
+     "name": "wmenu",
+     "repo-component": "universe"
+    },
+    "name": "wmenu"
+   }
+  },
   "wxmaxima": {
    "apt\\wxmaxima": {
     "driver": "apt",
@@ -87688,6 +89635,16 @@
      }
     },
     "name": "xmonad-dotfiles"
+   }
+  },
+  "xsel": {
+   "apt\\xsel": {
+    "driver": "apt",
+    "fields": {
+     "name": "xsel",
+     "repo-component": "universe"
+    },
+    "name": "xsel"
    }
   },
   "yabridge": {
@@ -88601,6 +90558,22 @@
     "name": "epel-release"
    }
   },
+  "audacity": {
+   "dnf\\audacity": {
+    "driver": "dnf",
+    "fields": {
+     "name": "audacity"
+    },
+    "name": "audacity"
+   },
+   "dnf\\epel-release": {
+    "driver": "dnf",
+    "fields": {
+     "name": "epel-release"
+    },
+    "name": "epel-release"
+   }
+  },
   "awscli": {
    "dnf\\curl": {
     "driver": "dnf",
@@ -88723,6 +90696,60 @@
      }
     },
     "name": "bash-dotfiles"
+   }
+  },
+  "bat": {
+   "dnf\\bat": {
+    "driver": "dnf",
+    "fields": {
+     "name": "bat"
+    },
+    "name": "bat"
+   },
+   "dnf\\epel-release": {
+    "driver": "dnf",
+    "fields": {
+     "name": "epel-release"
+    },
+    "name": "epel-release"
+   },
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.config/bash/conf.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\bat-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "glue": "bat"
+    },
+    "name": "bat-dotfiles"
+   }
+  },
+  "bat-dotfiles": {
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.config/bash/conf.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\bat-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "glue": "bat"
+    },
+    "name": "bat-dotfiles"
    }
   },
   "bazaar": {
@@ -89324,6 +91351,22 @@
      "name": "studio.kx.carla"
     },
     "name": "studio.kx.carla"
+   }
+  },
+  "chafa": {
+   "dnf\\chafa": {
+    "driver": "dnf",
+    "fields": {
+     "name": "chafa"
+    },
+    "name": "chafa"
+   },
+   "dnf\\epel-release": {
+    "driver": "dnf",
+    "fields": {
+     "name": "epel-release"
+    },
+    "name": "epel-release"
    }
   },
   "chrome": {
@@ -93087,6 +95130,26 @@
     "name": "java-25-openjdk-devel"
    }
   },
+  "jenkins": {
+   "dnf\\jdk": {
+    "driver": "dnf",
+    "fields": {
+     "name": "java-21-openjdk-devel"
+    },
+    "name": "java-21-openjdk-devel"
+   },
+   "dnf\\jenkins": {
+    "driver": "dnf",
+    "fields": {
+     "name": "jenkins",
+     "pubkey-url": "https://pkg.jenkins.io/redhat-stable/jenkins.io-2023.key",
+     "repo-id": "jenkins",
+     "repo-name": "Jenkins",
+     "repo-url": "https://pkg.jenkins.io/redhat-stable/"
+    },
+    "name": "jenkins"
+   }
+  },
   "jetbrains-toolbox": {
    "dnf\\curl": {
     "driver": "dnf",
@@ -94272,6 +96335,15 @@
     "name": "llm"
    }
   },
+  "lm-sensors": {
+   "dnf\\lm-sensors": {
+    "driver": "dnf",
+    "fields": {
+     "name": "lm_sensors"
+    },
+    "name": "lm_sensors"
+   }
+  },
   "lmms": {
    "dnf\\flatpak": {
     "driver": "dnf",
@@ -94287,6 +96359,15 @@
      "name": "io.lmms.LMMS"
     },
     "name": "io.lmms.LMMS"
+   }
+  },
+  "lsblk": {
+   "dnf\\lsblk": {
+    "driver": "dnf",
+    "fields": {
+     "name": "util-linux"
+    },
+    "name": "util-linux"
    }
   },
   "ltrace": {
@@ -94937,6 +97018,40 @@
      }
     },
     "name": "mpd-dotfiles"
+   }
+  },
+  "mpd-mpris": {
+   "dnf\\go": {
+    "driver": "dnf",
+    "fields": {
+     "name": "golang"
+    },
+    "name": "golang"
+   },
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.config/bash/conf.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\go-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "glue": "go"
+    },
+    "name": "go-dotfiles"
+   },
+   "go-install\\mpd-mpris": {
+    "driver": "go-install",
+    "fields": {
+     "name": "github.com/natsukagami/mpd-mpris/cmd/mpd-mpris"
+    },
+    "name": "github.com/natsukagami/mpd-mpris/cmd/mpd-mpris"
    }
   },
   "mtr": {
@@ -96132,6 +98247,22 @@
      "glue": "pipx"
     },
     "name": "pipx-dotfiles"
+   }
+  },
+  "playerctl": {
+   "dnf\\epel-release": {
+    "driver": "dnf",
+    "fields": {
+     "name": "epel-release"
+    },
+    "name": "epel-release"
+   },
+   "dnf\\playerctl": {
+    "driver": "dnf",
+    "fields": {
+     "name": "playerctl"
+    },
+    "name": "playerctl"
    }
   },
   "plex": {
@@ -99080,6 +101211,57 @@
     "name": "wireshark"
    }
   },
+  "wl-clipboard": {
+   "dnf\\epel-release": {
+    "driver": "dnf",
+    "fields": {
+     "name": "epel-release"
+    },
+    "name": "epel-release"
+   },
+   "dnf\\wl-clipboard": {
+    "driver": "dnf",
+    "fields": {
+     "name": "wl-clipboard"
+    },
+    "name": "wl-clipboard"
+   }
+  },
+  "wl-screenrec": {
+   "cargo\\wl-screenrec": {
+    "driver": "cargo",
+    "fields": {
+     "name": "wl-screenrec"
+    },
+    "name": "wl-screenrec"
+   },
+   "dnf\\rust": {
+    "driver": "dnf",
+    "fields": {
+     "name": "cargo",
+     "repo-component": "universe"
+    },
+    "name": "cargo"
+   },
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.config/bash/conf.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\rust-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "glue": "rust"
+    },
+    "name": "rust-dotfiles"
+   }
+  },
   "wxmaxima": {
    "dnf\\wxmaxima": {
     "driver": "dnf",
@@ -99260,6 +101442,22 @@
      }
     },
     "name": "xmonad-dotfiles"
+   }
+  },
+  "xsel": {
+   "dnf\\epel-release": {
+    "driver": "dnf",
+    "fields": {
+     "name": "epel-release"
+    },
+    "name": "epel-release"
+   },
+   "dnf\\xsel": {
+    "driver": "dnf",
+    "fields": {
+     "name": "xsel"
+    },
+    "name": "xsel"
    }
   },
   "yabridge": {
@@ -100146,6 +102344,16 @@
     "name": "atop"
    }
   },
+  "audacity": {
+   "apt\\audacity": {
+    "driver": "apt",
+    "fields": {
+     "name": "audacity",
+     "repo-component": "universe"
+    },
+    "name": "audacity"
+   }
+  },
   "awscli": {
    "apt\\curl": {
     "driver": "apt",
@@ -100278,6 +102486,54 @@
      }
     },
     "name": "bash-dotfiles"
+   }
+  },
+  "bat": {
+   "apt\\bat": {
+    "driver": "apt",
+    "fields": {
+     "name": "bat",
+     "repo-component": "universe"
+    },
+    "name": "bat"
+   },
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.config/bash/conf.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\bat-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "glue": "bat"
+    },
+    "name": "bat-dotfiles"
+   }
+  },
+  "bat-dotfiles": {
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.config/bash/conf.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\bat-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "glue": "bat"
+    },
+    "name": "bat-dotfiles"
    }
   },
   "bazaar": {
@@ -100822,6 +103078,16 @@
      "repo-component": "universe"
     },
     "name": "carla"
+   }
+  },
+  "chafa": {
+   "apt\\chafa": {
+    "driver": "apt",
+    "fields": {
+     "name": "chafa",
+     "repo-component": "universe"
+    },
+    "name": "chafa"
    }
   },
   "chrome": {
@@ -102705,6 +104971,16 @@
      "name": "fennel"
     },
     "name": "fennel"
+   }
+  },
+  "fff": {
+   "apt\\fff": {
+    "driver": "apt",
+    "fields": {
+     "name": "fff",
+     "repo-component": "universe"
+    },
+    "name": "fff"
    }
   },
   "ffmpeg": {
@@ -103998,6 +106274,16 @@
     "name": "grafana-service"
    }
   },
+  "grim": {
+   "apt\\grim": {
+    "driver": "apt",
+    "fields": {
+     "name": "grim",
+     "repo-component": "universe"
+    },
+    "name": "grim"
+   }
+  },
   "groovy": {
    "apt\\jdk": {
     "driver": "apt",
@@ -104809,6 +107095,26 @@
      "unit": "jellyfin"
     },
     "name": "jellyfin-service"
+   }
+  },
+  "jenkins": {
+   "apt\\jdk": {
+    "driver": "apt",
+    "fields": {
+     "name": "openjdk-21-jdk"
+    },
+    "name": "openjdk-21-jdk"
+   },
+   "apt\\jenkins": {
+    "driver": "apt",
+    "fields": {
+     "name": "jenkins",
+     "pubkey-path": "/usr/share/keyrings/jenkins-keyring.asc",
+     "pubkey-url": "https://pkg.jenkins.io/debian-stable/jenkins.io-2023.key",
+     "source-line": "deb [signed-by=/usr/share/keyrings/jenkins-keyring.asc] https://pkg.jenkins.io/debian-stable binary/",
+     "source-path": "/etc/apt/sources.list.d/jenkins.list"
+    },
+    "name": "jenkins"
    }
   },
   "jetbrains-toolbox": {
@@ -106055,6 +108361,15 @@
     "name": "llm"
    }
   },
+  "lm-sensors": {
+   "apt\\lm-sensors": {
+    "driver": "apt",
+    "fields": {
+     "name": "lm-sensors"
+    },
+    "name": "lm-sensors"
+   }
+  },
   "lmms": {
    "apt\\lmms": {
     "driver": "apt",
@@ -106063,6 +108378,15 @@
      "repo-component": "universe"
     },
     "name": "lmms"
+   }
+  },
+  "lsblk": {
+   "apt\\lsblk": {
+    "driver": "apt",
+    "fields": {
+     "name": "util-linux"
+    },
+    "name": "util-linux"
    }
   },
   "ltrace": {
@@ -106718,6 +109042,40 @@
      }
     },
     "name": "mpd-dotfiles"
+   }
+  },
+  "mpd-mpris": {
+   "apt\\go": {
+    "driver": "apt",
+    "fields": {
+     "name": "golang-go"
+    },
+    "name": "golang-go"
+   },
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.config/bash/conf.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\go-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "glue": "go"
+    },
+    "name": "go-dotfiles"
+   },
+   "go-install\\mpd-mpris": {
+    "driver": "go-install",
+    "fields": {
+     "name": "github.com/natsukagami/mpd-mpris/cmd/mpd-mpris"
+    },
+    "name": "github.com/natsukagami/mpd-mpris/cmd/mpd-mpris"
    }
   },
   "mtr": {
@@ -107890,6 +110248,16 @@
      "glue": "pipx"
     },
     "name": "pipx-dotfiles"
+   }
+  },
+  "playerctl": {
+   "apt\\playerctl": {
+    "driver": "apt",
+    "fields": {
+     "name": "playerctl",
+     "repo-component": "universe"
+    },
+    "name": "playerctl"
    }
   },
   "plex": {
@@ -109219,6 +111587,16 @@
     "name": "slack-desktop"
    }
   },
+  "slurp": {
+   "apt\\slurp": {
+    "driver": "apt",
+    "fields": {
+     "name": "slurp",
+     "repo-component": "universe"
+    },
+    "name": "slurp"
+   }
+  },
   "snapd": {
    "apt\\snapd": {
     "driver": "apt",
@@ -109584,6 +111962,16 @@
      }
     },
     "name": "sway-dotfiles"
+   }
+  },
+  "swaybg": {
+   "apt\\swaybg": {
+    "driver": "apt",
+    "fields": {
+     "name": "swaybg",
+     "repo-component": "universe"
+    },
+    "name": "swaybg"
    }
   },
   "syncthing": {
@@ -110781,6 +113169,61 @@
     "name": "wireshark"
    }
   },
+  "wl-clipboard": {
+   "apt\\wl-clipboard": {
+    "driver": "apt",
+    "fields": {
+     "name": "wl-clipboard",
+     "repo-component": "universe"
+    },
+    "name": "wl-clipboard"
+   }
+  },
+  "wl-screenrec": {
+   "apt\\rust": {
+    "driver": "apt",
+    "fields": {
+     "name": "rust-all",
+     "repo-component": "universe"
+    },
+    "name": "rust-all"
+   },
+   "cargo\\wl-screenrec": {
+    "driver": "cargo",
+    "fields": {
+     "name": "wl-screenrec"
+    },
+    "name": "wl-screenrec"
+   },
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.config/bash/conf.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\rust-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "glue": "rust"
+    },
+    "name": "rust-dotfiles"
+   }
+  },
+  "wmenu": {
+   "apt\\wmenu": {
+    "driver": "apt",
+    "fields": {
+     "name": "wmenu",
+     "repo-component": "universe"
+    },
+    "name": "wmenu"
+   }
+  },
   "wxmaxima": {
    "apt\\wxmaxima": {
     "driver": "apt",
@@ -110946,6 +113389,16 @@
      }
     },
     "name": "xmonad-dotfiles"
+   }
+  },
+  "xsel": {
+   "apt\\xsel": {
+    "driver": "apt",
+    "fields": {
+     "name": "xsel",
+     "repo-component": "universe"
+    },
+    "name": "xsel"
    }
   },
   "yabridge": {
@@ -111813,6 +114266,16 @@
     "name": "atop"
    }
   },
+  "audacity": {
+   "apt\\audacity": {
+    "driver": "apt",
+    "fields": {
+     "name": "audacity",
+     "repo-component": "universe"
+    },
+    "name": "audacity"
+   }
+  },
   "awscli": {
    "apt\\curl": {
     "driver": "apt",
@@ -111928,6 +114391,54 @@
      }
     },
     "name": "bash-dotfiles"
+   }
+  },
+  "bat": {
+   "apt\\bat": {
+    "driver": "apt",
+    "fields": {
+     "name": "bat",
+     "repo-component": "universe"
+    },
+    "name": "bat"
+   },
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.config/bash/conf.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\bat-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "glue": "bat"
+    },
+    "name": "bat-dotfiles"
+   }
+  },
+  "bat-dotfiles": {
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.config/bash/conf.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\bat-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "glue": "bat"
+    },
+    "name": "bat-dotfiles"
    }
   },
   "bazaar": {
@@ -112472,6 +114983,16 @@
      "repo-component": "universe"
     },
     "name": "carla"
+   }
+  },
+  "chafa": {
+   "apt\\chafa": {
+    "driver": "apt",
+    "fields": {
+     "name": "chafa",
+     "repo-component": "universe"
+    },
+    "name": "chafa"
    }
   },
   "chrome": {
@@ -114323,6 +116844,16 @@
     "name": "fennel"
    }
   },
+  "fff": {
+   "apt\\fff": {
+    "driver": "apt",
+    "fields": {
+     "name": "fff",
+     "repo-component": "universe"
+    },
+    "name": "fff"
+   }
+  },
   "ffmpeg": {
    "apt\\ffmpeg": {
     "driver": "apt",
@@ -115588,6 +118119,16 @@
     "name": "grafana-service"
    }
   },
+  "grim": {
+   "apt\\grim": {
+    "driver": "apt",
+    "fields": {
+     "name": "grim",
+     "repo-component": "universe"
+    },
+    "name": "grim"
+   }
+  },
   "groovy": {
    "apt\\jdk": {
     "driver": "apt",
@@ -116382,6 +118923,26 @@
      "unit": "jellyfin"
     },
     "name": "jellyfin-service"
+   }
+  },
+  "jenkins": {
+   "apt\\jdk": {
+    "driver": "apt",
+    "fields": {
+     "name": "openjdk-21-jdk"
+    },
+    "name": "openjdk-21-jdk"
+   },
+   "apt\\jenkins": {
+    "driver": "apt",
+    "fields": {
+     "name": "jenkins",
+     "pubkey-path": "/usr/share/keyrings/jenkins-keyring.asc",
+     "pubkey-url": "https://pkg.jenkins.io/debian-stable/jenkins.io-2023.key",
+     "source-line": "deb [signed-by=/usr/share/keyrings/jenkins-keyring.asc] https://pkg.jenkins.io/debian-stable binary/",
+     "source-path": "/etc/apt/sources.list.d/jenkins.list"
+    },
+    "name": "jenkins"
    }
   },
   "jetbrains-toolbox": {
@@ -117594,6 +120155,15 @@
     "name": "llm"
    }
   },
+  "lm-sensors": {
+   "apt\\lm-sensors": {
+    "driver": "apt",
+    "fields": {
+     "name": "lm-sensors"
+    },
+    "name": "lm-sensors"
+   }
+  },
   "lmms": {
    "apt\\lmms": {
     "driver": "apt",
@@ -117602,6 +120172,15 @@
      "repo-component": "universe"
     },
     "name": "lmms"
+   }
+  },
+  "lsblk": {
+   "apt\\lsblk": {
+    "driver": "apt",
+    "fields": {
+     "name": "util-linux"
+    },
+    "name": "util-linux"
    }
   },
   "ltrace": {
@@ -118240,6 +120819,40 @@
      }
     },
     "name": "mpd-dotfiles"
+   }
+  },
+  "mpd-mpris": {
+   "apt\\go": {
+    "driver": "apt",
+    "fields": {
+     "name": "golang-go"
+    },
+    "name": "golang-go"
+   },
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.config/bash/conf.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\go-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "glue": "go"
+    },
+    "name": "go-dotfiles"
+   },
+   "go-install\\mpd-mpris": {
+    "driver": "go-install",
+    "fields": {
+     "name": "github.com/natsukagami/mpd-mpris/cmd/mpd-mpris"
+    },
+    "name": "github.com/natsukagami/mpd-mpris/cmd/mpd-mpris"
    }
   },
   "mtr": {
@@ -119361,6 +121974,16 @@
      "glue": "pipx"
     },
     "name": "pipx-dotfiles"
+   }
+  },
+  "playerctl": {
+   "apt\\playerctl": {
+    "driver": "apt",
+    "fields": {
+     "name": "playerctl",
+     "repo-component": "universe"
+    },
+    "name": "playerctl"
    }
   },
   "plex": {
@@ -120656,6 +123279,16 @@
     "name": "slack-desktop"
    }
   },
+  "slurp": {
+   "apt\\slurp": {
+    "driver": "apt",
+    "fields": {
+     "name": "slurp",
+     "repo-component": "universe"
+    },
+    "name": "slurp"
+   }
+  },
   "snapd": {
    "apt\\snapd": {
     "driver": "apt",
@@ -121021,6 +123654,16 @@
      }
     },
     "name": "sway-dotfiles"
+   }
+  },
+  "swaybg": {
+   "apt\\swaybg": {
+    "driver": "apt",
+    "fields": {
+     "name": "swaybg",
+     "repo-component": "universe"
+    },
+    "name": "swaybg"
    }
   },
   "syncthing": {
@@ -122201,6 +124844,61 @@
     "name": "wireshark"
    }
   },
+  "wl-clipboard": {
+   "apt\\wl-clipboard": {
+    "driver": "apt",
+    "fields": {
+     "name": "wl-clipboard",
+     "repo-component": "universe"
+    },
+    "name": "wl-clipboard"
+   }
+  },
+  "wl-screenrec": {
+   "apt\\rust": {
+    "driver": "apt",
+    "fields": {
+     "name": "rust-all",
+     "repo-component": "universe"
+    },
+    "name": "rust-all"
+   },
+   "cargo\\wl-screenrec": {
+    "driver": "cargo",
+    "fields": {
+     "name": "wl-screenrec"
+    },
+    "name": "wl-screenrec"
+   },
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.config/bash/conf.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\rust-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "glue": "rust"
+    },
+    "name": "rust-dotfiles"
+   }
+  },
+  "wmenu": {
+   "apt\\wmenu": {
+    "driver": "apt",
+    "fields": {
+     "name": "wmenu",
+     "repo-component": "universe"
+    },
+    "name": "wmenu"
+   }
+  },
   "wxmaxima": {
    "apt\\wxmaxima": {
     "driver": "apt",
@@ -122366,6 +125064,16 @@
      }
     },
     "name": "xmonad-dotfiles"
+   }
+  },
+  "xsel": {
+   "apt\\xsel": {
+    "driver": "apt",
+    "fields": {
+     "name": "xsel",
+     "repo-component": "universe"
+    },
+    "name": "xsel"
    }
   },
   "yabridge": {
