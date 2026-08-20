@@ -344,10 +344,30 @@ _PLATFORMS = [
 ]
 
 
+def _parts_targets(r, name, block, version):
+    '''If `name`'s winning binding on this platform is a pure `via: parts` aggregator (an alias
+    like jdk-21 -> jdk, or a bundle like codecs), return the parts it delegates to; else None.'''
+    from .resolve import select_binding, ResolveError
+    comp = r.components.get(name)
+    if comp is None or not comp.bindings:
+        return None
+    cx = r.cascade.context(block, version or None, r.cpu)
+    try:
+        b = select_binding(comp, r.cascade, cx, r.pins, r.preference, r.candidate_only)
+    except ResolveError:
+        return None
+    if b.via != 'parts':
+        return None
+    parts = b.details.get('parts')
+    return [str(p) for p in (parts if isinstance(parts, list) else [parts] if parts else [])]
+
+
 def coverage(ctx, name):
     '''Resolve `name` against each representative platform (reusing the already-loaded layered
     components), so a request can show where it already has a binding — and via which driver —
-    versus where it's missing. The heart of the request payload.'''
+    versus where it's missing. The heart of the request payload. A `via: parts` alias/aggregator
+    carries its delegation targets in `row['parts']` so the matrix can tag it (it has no binding of
+    its own to broaden — coverage is inherited from those parts).'''
     from .resolve import resolve, ResolveError
     r = ctx.routes
     rows = []
@@ -360,7 +380,14 @@ def coverage(ctx, name):
             primary = next((k.split('\\', 1)[0] for k in units
                             if k.split('\\', 1)[-1] == name), None)
             row['ok'] = bool(units)
-            row['via'] = primary or ('parts' if units else None)
+            if primary:
+                row['via'] = primary
+            elif units:                              # no own unit -> a parts aggregator/alias
+                row['via'] = 'parts'
+                row['parts'] = _parts_targets(r, name, block, version) or sorted(
+                    {k.split('\\', 1)[-1] for k in units})
+            else:
+                row['via'] = None
         except ResolveError:
             row['ok'] = False
             row['via'] = None
@@ -372,9 +399,17 @@ def request_payload(ctx, name):
     '''Assemble the (unscrubbed) component-request payload: this machine, the local route (if the
     component is known here at all), and the cross-platform coverage matrix.'''
     known = name in ctx.routes.components
+    comp = ctx.routes.components.get(name)
+    # A pure `via: parts` component (every binding is an aggregator) is an alias/bundle: it has no
+    # binding of its own to broaden, so a coverage request should point at the parts it delegates to.
+    aggregator = bool(comp and comp.bindings and all(b.via == 'parts' for b in comp.bindings))
+    cov = coverage(ctx, name)
+    aggregates = sorted({p for row in cov for p in row.get('parts', [])}) if aggregator else []
     return {
         'component': name,
         'known': known,
+        'aggregator': aggregator,
+        'aggregates': aggregates,
         'os': {
             'block': ctx.os_info.block,
             'version': ctx.os_info.version or '',
@@ -382,7 +417,7 @@ def request_payload(ctx, name):
         },
         'configsys': {'revision': _git_rev(ctx.paths.repo), 'abi': plugins.ABI_VERSION},
         'route': _route(ctx, name) if known else None,
-        'coverage': coverage(ctx, name),
+        'coverage': cov,
     }
 
 
@@ -392,10 +427,17 @@ def render_request(payload, *, home=None, secrets=()):
         return scrub(t, home, secrets)
 
     cov = payload['coverage']
+    agg = payload.get('aggregates') or []
     L = []
     L.append(f"**Component requested:** `{payload['component']}`")
     L.append('')
-    if payload['known']:
+    if payload.get('aggregator'):
+        tgt = ', '.join(f'`{a}`' for a in agg) or 'its parts'
+        L.append(f"This component is an **alias / aggregator** (`via: parts`) that delegates to "
+                 f"{tgt} — it has no binding of its own, so its cross-platform coverage is "
+                 f"**inherited from those parts**. To broaden or fix a binding, request them "
+                 f"instead.")
+    elif payload['known']:
         L.append('This component already exists — this request is to **broaden or fix its '
                  'cross-platform coverage**.')
     else:
@@ -408,7 +450,13 @@ def render_request(payload, *, home=None, secrets=()):
     L.append('| --- | --- | --- |')
     for r in cov:
         status = '✅ resolves' if r.get('ok') else '❌ missing'
-        via = f"`{r['via']}`" if r.get('via') else '—'
+        if r.get('via') == 'parts':                  # tag an alias/aggregator row with its target
+            tgt = ', '.join(f'`{p}`' for p in r.get('parts', []))
+            via = f"`parts` → {tgt}" if tgt else '`parts`'
+        elif r.get('via'):
+            via = f"`{r['via']}`"
+        else:
+            via = '—'
         L.append(f"| {r['label']} | {status} | {via} |")
     L.append('')
 

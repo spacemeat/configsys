@@ -104,6 +104,25 @@ def test_render_request_matrix_and_marker():
     assert 'broaden or fix' in body                       # known component wording
 
 
+def test_render_request_tags_parts_alias():
+    # a pure `via: parts` alias (jdk-21 -> jdk): the matrix tags each row with the delegation
+    # target and the header explains coverage is inherited, not broadened here.
+    payload = {
+        'component': 'jdk-21', 'known': True, 'aggregator': True, 'aggregates': ['jdk'],
+        'os': {'block': 'pop_os!', 'version': '22.04', 'pretty': 'Pop!_OS'},
+        'configsys': {'revision': 'abc', 'abi': 1},
+        'route': {'source': 'routes.hu', 'units': ['apt\\jdk']},
+        'coverage': [
+            {'label': 'Debian / Ubuntu', 'block': 'ubuntu', 'ok': True, 'via': 'parts',
+             'parts': ['jdk']},
+        ],
+    }
+    body = reportgen.render_request(payload)
+    assert 'alias / aggregator' in body and 'delegates to `jdk`' in body
+    assert '| Debian / Ubuntu | ✅ resolves | `parts` → `jdk` |' in body
+    assert 'broaden or fix its cross-platform' not in body   # not the plain known-component wording
+
+
 def test_render_request_unknown_component_wording():
     payload = {
         'component': 'frobnicate', 'known': False,
