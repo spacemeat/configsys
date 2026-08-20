@@ -36,7 +36,13 @@ resolves to *something*, and the method is the one a human would pick there.
 
 ## Step-by-step
 
-### 0. Research each tool (do this first, don't guess)
+### 0. Parse the arguments, then research each tool (do this first, don't guess)
+**Argument syntax:** each entry is a component name, **optionally followed by a bracketed list of
+base profiles** — `<name> [profile1, profile2]` (e.g. `ripgrep [dev-tools, cli-tools]`, `mpv
+[audio-tools]`, `foo` with no bracket). Strip the `[…]` to get the name to research; **carry the
+profile list to step 6** — those are base profiles the component MUST be placed in. Entries are
+comma/space-separated: `foo [a], bar [b, c], baz`.
+
 For every name the user gives, establish: what it is, its **binary name** (may differ from the pkg —
 `bottom`→`btm`, `superfile`→`spf`), the **upstream repo** (for tarball/source/version discovery),
 and its **native package name per distro** (may differ — `espeak`→`espeak-ng`, `iproute2`→`iproute`
@@ -151,11 +157,30 @@ methods). Plugin changes need **re-sync + re-trust** to take effect locally (cor
 immediately). Source recipes with a build floor feed the `version-floors:` derivation (see the
 Versions section).
 
-### 6. Profile placement (config.hu) — only where it clearly belongs
-Components install by name regardless of profiles. Add to a profile only for a natural fit:
-`tor-browser` → the `web-browsers` **catalog** (pick-one lists that aren't auto-installed — safe to
-extend). Be cautious adding to role profiles that auto-install (e.g. `terminal`, which `user`
-pulls in) — that changes what everyone gets. When unsure, leave it out and mention it.
+### 6. Profile placement — the `[…]` protocol, else only where it clearly belongs
+**The bracket protocol (explicit, honor it):** if the argument named the component with a bracketed
+profile list — `<name> [profile1, profile2]` (from step 0) — those are **base profiles the component
+MUST be added to.** This is a direct instruction that overrides the default caution below. Add the
+component as a member of each named profile: append it to that profile's list in `config.hu` (for a
+base component) — e.g. `ripgrep [dev-tools]` → add `ripgrep` to the `dev-tools:` list. The named
+profiles are expected to **already exist**; if a bracketed name matches NO existing base profile,
+treat it as a typo and ask rather than inventing one. Still call out when a named profile
+auto-installs (below), but place it as instructed.
+
+**Where the placement lives — base vs plugin.** A profile edit goes in the layer that DEFINES the
+component, so base never references a plugin-only component:
+- component added to base `routes.hu` → edit the base profile in `config.hu` (append the member).
+- component added to a plugin (a `via: source` recipe in configsys-source, or any plugin) → put the
+  membership in that **plugin's** `profiles.hu` as a `+<profile>` self-amend
+  (`science: [ +science  <name> ]`), which augments the base profile only when the plugin loads —
+  NOT in base `config.hu`. (`profiles:` must be a MAP `{ name: [ … ] }`, never an array
+  `[ name: … ]`, which is a humon syntax error.)
+
+**No bracket → judgment, default out.** Without an explicit list, components install by name
+regardless of profiles — add to one only for a natural fit: `tor-browser` → the `web-browsers`
+**catalog** (pick-one lists that aren't auto-installed — safe to extend). Be cautious adding to role
+profiles that auto-install (e.g. `terminal`, which `user` pulls in) — that changes what everyone
+gets. When unsure and unbracketed, leave it out and mention it.
 
 ### 7. Validate (always, before committing)
 ```
