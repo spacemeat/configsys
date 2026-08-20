@@ -2160,6 +2160,20 @@
         cmake: { attrs: [ CLI FOSS permissive ] description: "CMake — cross-platform build-system generator." install: [ { via: native } ] }
         ninja: { attrs: [ CLI FOSS permissive ] description: "Ninja — a small, fast build backend." install: [ { via: native  name: { apt: ninja-build  dnf: ninja-build  apk: samurai  default: ninja } } ] }
         meson: { attrs: [ CLI FOSS permissive ] description: "Meson — a fast, modern build system." install: [ { via: native } ] }
+
+        // --- autotools / GNU C build tools (the basic C-dev toolchain; grouped in the `autotools`
+        // profile). Same package name on every manager except pkg-config. Source plugins/recipes
+        // `requires:` these by name and resolve them from here. ---
+        pkg-config: { attrs: [ CLI FOSS copyleft ] description: "pkg-config — query installed libraries' compile and link flags at build time."
+                      install: [ { via: native  name: { dnf: pkgconf-pkg-config  pacman: pkgconf  apk: pkgconf } } ] }
+        autoconf: { attrs: [ CLI toolchain FOSS GNU copyleft ] description: "GNU Autoconf — generate a package's `configure` script from autotools macros." install: [ { via: native } ] }
+        automake: { attrs: [ CLI toolchain FOSS GNU copyleft ] description: "GNU Automake — generate a portable Makefile.in from Makefile.am (autotools)." install: [ { via: native } ] }
+        libtool:  { attrs: [ CLI lib FOSS GNU copyleft ] description: "GNU Libtool — a portable shared-library build/link wrapper (autotools)." install: [ { via: native } ] }
+        bison:    { attrs: [ CLI toolchain FOSS GNU copyleft ] description: "GNU Bison — the yacc-compatible parser generator." install: [ { via: native } ] }
+        flex:     { attrs: [ CLI toolchain FOSS permissive ] description: "flex — the fast lexical-analyzer (lexer) generator." install: [ { via: native } ] }
+        // perl + nasm — referenced by the `languages` profile; they belong in base so those resolve.
+        perl:     { attrs: [ CLI runtime FOSS copyleft ] description: "Perl — a capable, mature general-purpose scripting language (`perl`)." install: [ { via: native } ] }
+        nasm:     { attrs: [ CLI toolchain FOSS permissive ] description: "NASM — the Netwide x86/x86-64 assembler (`nasm`)." install: [ { via: native } ] }
         // just: native on rpm/Arch/openSUSE/brew; the upstream musl tarball (statically linked,
         // runs anywhere) is offered as a uniform option everywhere — it's the default on the Debian
         // family (no repo package; works on older apt too, e.g. Ubuntu/Pop 22.04) and a candidate

@@ -94,6 +94,7 @@ profiles: {
     jvm-dev: [ +jvm-lang  +jvm-tools ]
 
     dev-tools: [ gh  git  lazygit  jq  just  protobuf  yq  liquibase  perf ]
+    autotools: [ autoconf  automake  libtool  pkg-config  bison  flex ]   // the basic C-dev / GNU build toolchain (make/cmake are their own tools)
     version-control-tools: [ git  lazygit  mercurial  subversion  cvs  perforce  fossil  bazaar ]
     compression-tools: [ zstd  lz4  p7zip  zip  unzip  unrar  rar ]
 
@@ -115,7 +116,7 @@ profiles: {
     audio-tools: [ espeak  ardour  lmms  tenacity  musescore  hydrogen  carla  sonic-pi  supercollider
         qjackctl  yabridge ]
 
-    science: [ spark  flink  fastdds  jupyterlab  gnuplot  paraview  opencv  opencv-python ]
+    science: [ jupyterlab  gnuplot  paraview  opencv  opencv-python ]
     math: [ texlive  texlive-full  julia  r  octave  maxima  wxmaxima  pari  gap  gnuplot  sagemath ]
 
     communication: [ discord  discordo  slack  obs-studio ]

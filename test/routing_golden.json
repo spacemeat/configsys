@@ -466,6 +466,24 @@
     "name": "audacity"
    }
   },
+  "autoconf": {
+   "pacman\\autoconf": {
+    "driver": "pacman",
+    "fields": {
+     "name": "autoconf"
+    },
+    "name": "autoconf"
+   }
+  },
+  "automake": {
+   "pacman\\automake": {
+    "driver": "pacman",
+    "fields": {
+     "name": "automake"
+    },
+    "name": "automake"
+   }
+  },
   "awscli": {
    "dotfiles\\awscli-dotfiles": {
     "driver": "dotfiles",
@@ -724,6 +742,15 @@
      "glue": "bazelisk"
     },
     "name": "bazelisk-dotfiles"
+   }
+  },
+  "bison": {
+   "pacman\\bison": {
+    "driver": "pacman",
+    "fields": {
+     "name": "bison"
+    },
+    "name": "bison"
    }
   },
   "bitwarden": {
@@ -2761,6 +2788,15 @@
      "name": "flatpak"
     },
     "name": "flatpak"
+   }
+  },
+  "flex": {
+   "pacman\\flex": {
+    "driver": "pacman",
+    "fields": {
+     "name": "flex"
+    },
+    "name": "flex"
    }
   },
   "folly": {
@@ -5475,6 +5511,15 @@
     "name": "gcc"
    }
   },
+  "libtool": {
+   "pacman\\libtool": {
+    "driver": "pacman",
+    "fields": {
+     "name": "libtool"
+    },
+    "name": "libtool"
+   }
+  },
   "libvirt": {
    "pacman\\libvirt": {
     "driver": "pacman",
@@ -6418,6 +6463,15 @@
     "name": "mycli-dotfiles"
    }
   },
+  "nasm": {
+   "pacman\\nasm": {
+    "driver": "pacman",
+    "fields": {
+     "name": "nasm"
+    },
+    "name": "nasm"
+   }
+  },
   "navidrome": {
    "pacman\\ffmpeg": {
     "driver": "pacman",
@@ -7256,6 +7310,15 @@
     "name": "git"
    }
   },
+  "perl": {
+   "pacman\\perl": {
+    "driver": "pacman",
+    "fields": {
+     "name": "perl"
+    },
+    "name": "perl"
+   }
+  },
   "pgcli": {
    "dotfiles\\bash-dotfiles": {
     "driver": "dotfiles",
@@ -7393,6 +7456,15 @@
      "glue": "pipx"
     },
     "name": "pipx-dotfiles"
+   }
+  },
+  "pkg-config": {
+   "pacman\\pkg-config": {
+    "driver": "pacman",
+    "fields": {
+     "name": "pkgconf"
+    },
+    "name": "pkgconf"
    }
   },
   "playerctl": {
@@ -11792,6 +11864,24 @@
     "name": "audacity"
    }
   },
+  "autoconf": {
+   "apt\\autoconf": {
+    "driver": "apt",
+    "fields": {
+     "name": "autoconf"
+    },
+    "name": "autoconf"
+   }
+  },
+  "automake": {
+   "apt\\automake": {
+    "driver": "apt",
+    "fields": {
+     "name": "automake"
+    },
+    "name": "automake"
+   }
+  },
   "awscli": {
    "apt\\curl": {
     "driver": "apt",
@@ -12043,6 +12133,15 @@
      "glue": "bazelisk"
     },
     "name": "bazelisk-dotfiles"
+   }
+  },
+  "bison": {
+   "apt\\bison": {
+    "driver": "apt",
+    "fields": {
+     "name": "bison"
+    },
+    "name": "bison"
    }
   },
   "bitwarden": {
@@ -14491,6 +14590,15 @@
      "name": "flatpak"
     },
     "name": "flatpak"
+   }
+  },
+  "flex": {
+   "apt\\flex": {
+    "driver": "apt",
+    "fields": {
+     "name": "flex"
+    },
+    "name": "flex"
    }
   },
   "fontconfig": {
@@ -17583,6 +17691,15 @@
     "name": "g++"
    }
   },
+  "libtool": {
+   "apt\\libtool": {
+    "driver": "apt",
+    "fields": {
+     "name": "libtool"
+    },
+    "name": "libtool"
+   }
+  },
   "libvirt": {
    "apt\\libvirt": {
     "driver": "apt",
@@ -18622,6 +18739,15 @@
     "name": "mycli-dotfiles"
    }
   },
+  "nasm": {
+   "apt\\nasm": {
+    "driver": "apt",
+    "fields": {
+     "name": "nasm"
+    },
+    "name": "nasm"
+   }
+  },
   "navidrome": {
    "apt\\ffmpeg": {
     "driver": "apt",
@@ -19460,6 +19586,15 @@
     "name": "linux-perf"
    }
   },
+  "perl": {
+   "apt\\perl": {
+    "driver": "apt",
+    "fields": {
+     "name": "perl"
+    },
+    "name": "perl"
+   }
+  },
   "pgcli": {
    "apt\\python3-pip": {
     "driver": "apt",
@@ -19631,6 +19766,15 @@
      "glue": "pipx"
     },
     "name": "pipx-dotfiles"
+   }
+  },
+  "pkg-config": {
+   "apt\\pkg-config": {
+    "driver": "apt",
+    "fields": {
+     "name": "pkg-config"
+    },
+    "name": "pkg-config"
    }
   },
   "playerctl": {
@@ -23613,6 +23757,24 @@
     "name": "audacity"
    }
   },
+  "autoconf": {
+   "apt\\autoconf": {
+    "driver": "apt",
+    "fields": {
+     "name": "autoconf"
+    },
+    "name": "autoconf"
+   }
+  },
+  "automake": {
+   "apt\\automake": {
+    "driver": "apt",
+    "fields": {
+     "name": "automake"
+    },
+    "name": "automake"
+   }
+  },
   "awscli": {
    "apt\\curl": {
     "driver": "apt",
@@ -23847,6 +24009,15 @@
      "glue": "bazelisk"
     },
     "name": "bazelisk-dotfiles"
+   }
+  },
+  "bison": {
+   "apt\\bison": {
+    "driver": "apt",
+    "fields": {
+     "name": "bison"
+    },
+    "name": "bison"
    }
   },
   "bitwarden": {
@@ -26261,6 +26432,15 @@
      "name": "flatpak"
     },
     "name": "flatpak"
+   }
+  },
+  "flex": {
+   "apt\\flex": {
+    "driver": "apt",
+    "fields": {
+     "name": "flex"
+    },
+    "name": "flex"
    }
   },
   "fontconfig": {
@@ -29319,6 +29499,15 @@
     "name": "g++"
    }
   },
+  "libtool": {
+   "apt\\libtool": {
+    "driver": "apt",
+    "fields": {
+     "name": "libtool"
+    },
+    "name": "libtool"
+   }
+  },
   "libvirt": {
    "apt\\libvirt": {
     "driver": "apt",
@@ -30307,6 +30496,15 @@
     "name": "mycli-dotfiles"
    }
   },
+  "nasm": {
+   "apt\\nasm": {
+    "driver": "apt",
+    "fields": {
+     "name": "nasm"
+    },
+    "name": "nasm"
+   }
+  },
   "navidrome": {
    "apt\\ffmpeg": {
     "driver": "apt",
@@ -31145,6 +31343,15 @@
     "name": "linux-perf"
    }
   },
+  "perl": {
+   "apt\\perl": {
+    "driver": "apt",
+    "fields": {
+     "name": "perl"
+    },
+    "name": "perl"
+   }
+  },
   "pgcli": {
    "apt\\pipx": {
     "driver": "apt",
@@ -31282,6 +31489,15 @@
      "glue": "pipx"
     },
     "name": "pipx-dotfiles"
+   }
+  },
+  "pkg-config": {
+   "apt\\pkg-config": {
+    "driver": "apt",
+    "fields": {
+     "name": "pkg-config"
+    },
+    "name": "pkg-config"
    }
   },
   "playerctl": {
@@ -35196,6 +35412,24 @@
     "name": "audacity"
    }
   },
+  "autoconf": {
+   "apt\\autoconf": {
+    "driver": "apt",
+    "fields": {
+     "name": "autoconf"
+    },
+    "name": "autoconf"
+   }
+  },
+  "automake": {
+   "apt\\automake": {
+    "driver": "apt",
+    "fields": {
+     "name": "automake"
+    },
+    "name": "automake"
+   }
+  },
   "awscli": {
    "apt\\curl": {
     "driver": "apt",
@@ -35430,6 +35664,15 @@
      "glue": "bazelisk"
     },
     "name": "bazelisk-dotfiles"
+   }
+  },
+  "bison": {
+   "apt\\bison": {
+    "driver": "apt",
+    "fields": {
+     "name": "bison"
+    },
+    "name": "bison"
    }
   },
   "bitwarden": {
@@ -37847,6 +38090,15 @@
      "name": "flatpak"
     },
     "name": "flatpak"
+   }
+  },
+  "flex": {
+   "apt\\flex": {
+    "driver": "apt",
+    "fields": {
+     "name": "flex"
+    },
+    "name": "flex"
    }
   },
   "fontconfig": {
@@ -40898,6 +41150,15 @@
     "name": "g++"
    }
   },
+  "libtool": {
+   "apt\\libtool": {
+    "driver": "apt",
+    "fields": {
+     "name": "libtool"
+    },
+    "name": "libtool"
+   }
+  },
   "libvirt": {
    "apt\\libvirt": {
     "driver": "apt",
@@ -41886,6 +42147,15 @@
     "name": "mycli-dotfiles"
    }
   },
+  "nasm": {
+   "apt\\nasm": {
+    "driver": "apt",
+    "fields": {
+     "name": "nasm"
+    },
+    "name": "nasm"
+   }
+  },
   "navidrome": {
    "apt\\ffmpeg": {
     "driver": "apt",
@@ -42737,6 +43007,15 @@
     "name": "helix-cli"
    }
   },
+  "perl": {
+   "apt\\perl": {
+    "driver": "apt",
+    "fields": {
+     "name": "perl"
+    },
+    "name": "perl"
+   }
+  },
   "pgcli": {
    "apt\\pipx": {
     "driver": "apt",
@@ -42874,6 +43153,15 @@
      "glue": "pipx"
     },
     "name": "pipx-dotfiles"
+   }
+  },
+  "pkg-config": {
+   "apt\\pkg-config": {
+    "driver": "apt",
+    "fields": {
+     "name": "pkg-config"
+    },
+    "name": "pkg-config"
    }
   },
   "playerctl": {
@@ -46804,6 +47092,24 @@
     "name": "audacity"
    }
   },
+  "autoconf": {
+   "dnf\\autoconf": {
+    "driver": "dnf",
+    "fields": {
+     "name": "autoconf"
+    },
+    "name": "autoconf"
+   }
+  },
+  "automake": {
+   "dnf\\automake": {
+    "driver": "dnf",
+    "fields": {
+     "name": "automake"
+    },
+    "name": "automake"
+   }
+  },
   "awscli": {
    "dnf\\curl": {
     "driver": "dnf",
@@ -47037,6 +47343,15 @@
      "glue": "bazelisk"
     },
     "name": "bazelisk-dotfiles"
+   }
+  },
+  "bison": {
+   "dnf\\bison": {
+    "driver": "dnf",
+    "fields": {
+     "name": "bison"
+    },
+    "name": "bison"
    }
   },
   "bitwarden": {
@@ -49272,6 +49587,15 @@
      "name": "flatpak"
     },
     "name": "flatpak"
+   }
+  },
+  "flex": {
+   "dnf\\flex": {
+    "driver": "dnf",
+    "fields": {
+     "name": "flex"
+    },
+    "name": "flex"
    }
   },
   "folly": {
@@ -52149,6 +52473,15 @@
     "name": "libstdc++-devel"
    }
   },
+  "libtool": {
+   "dnf\\libtool": {
+    "driver": "dnf",
+    "fields": {
+     "name": "libtool"
+    },
+    "name": "libtool"
+   }
+  },
   "libvirt": {
    "dnf\\libvirt": {
     "driver": "dnf",
@@ -53052,6 +53385,15 @@
     "name": "mycli-dotfiles"
    }
   },
+  "nasm": {
+   "dnf\\nasm": {
+    "driver": "dnf",
+    "fields": {
+     "name": "nasm"
+    },
+    "name": "nasm"
+   }
+  },
   "navidrome": {
    "dnf\\ffmpeg": {
     "driver": "dnf",
@@ -53914,6 +54256,15 @@
     "name": "helix-cli"
    }
   },
+  "perl": {
+   "dnf\\perl": {
+    "driver": "dnf",
+    "fields": {
+     "name": "perl"
+    },
+    "name": "perl"
+   }
+  },
   "pgcli": {
    "dnf\\pipx": {
     "driver": "dnf",
@@ -54051,6 +54402,15 @@
      "glue": "pipx"
     },
     "name": "pipx-dotfiles"
+   }
+  },
+  "pkg-config": {
+   "dnf\\pkg-config": {
+    "driver": "dnf",
+    "fields": {
+     "name": "pkgconf-pkg-config"
+    },
+    "name": "pkgconf-pkg-config"
    }
   },
   "playerctl": {
@@ -57966,6 +58326,24 @@
     "name": "audacity"
    }
   },
+  "autoconf": {
+   "dnf\\autoconf": {
+    "driver": "dnf",
+    "fields": {
+     "name": "autoconf"
+    },
+    "name": "autoconf"
+   }
+  },
+  "automake": {
+   "dnf\\automake": {
+    "driver": "dnf",
+    "fields": {
+     "name": "automake"
+    },
+    "name": "automake"
+   }
+  },
   "awscli": {
    "dnf\\curl": {
     "driver": "dnf",
@@ -58199,6 +58577,15 @@
      "glue": "bazelisk"
     },
     "name": "bazelisk-dotfiles"
+   }
+  },
+  "bison": {
+   "dnf\\bison": {
+    "driver": "dnf",
+    "fields": {
+     "name": "bison"
+    },
+    "name": "bison"
    }
   },
   "bitwarden": {
@@ -60460,6 +60847,15 @@
      "name": "flatpak"
     },
     "name": "flatpak"
+   }
+  },
+  "flex": {
+   "dnf\\flex": {
+    "driver": "dnf",
+    "fields": {
+     "name": "flex"
+    },
+    "name": "flex"
    }
   },
   "folly": {
@@ -63337,6 +63733,15 @@
     "name": "libstdc++-devel"
    }
   },
+  "libtool": {
+   "dnf\\libtool": {
+    "driver": "dnf",
+    "fields": {
+     "name": "libtool"
+    },
+    "name": "libtool"
+   }
+  },
   "libvirt": {
    "dnf\\libvirt": {
     "driver": "dnf",
@@ -64240,6 +64645,15 @@
     "name": "mycli-dotfiles"
    }
   },
+  "nasm": {
+   "dnf\\nasm": {
+    "driver": "dnf",
+    "fields": {
+     "name": "nasm"
+    },
+    "name": "nasm"
+   }
+  },
   "navidrome": {
    "dnf\\ffmpeg": {
     "driver": "dnf",
@@ -65102,6 +65516,15 @@
     "name": "helix-cli"
    }
   },
+  "perl": {
+   "dnf\\perl": {
+    "driver": "dnf",
+    "fields": {
+     "name": "perl"
+    },
+    "name": "perl"
+   }
+  },
   "pgcli": {
    "dnf\\pipx": {
     "driver": "dnf",
@@ -65239,6 +65662,15 @@
      "glue": "pipx"
     },
     "name": "pipx-dotfiles"
+   }
+  },
+  "pkg-config": {
+   "dnf\\pkg-config": {
+    "driver": "dnf",
+    "fields": {
+     "name": "pkgconf-pkg-config"
+    },
+    "name": "pkgconf-pkg-config"
    }
   },
   "playerctl": {
@@ -69092,6 +69524,24 @@
     "name": "org.audacityteam.Audacity"
    }
   },
+  "autoconf": {
+   "brew\\autoconf": {
+    "driver": "brew",
+    "fields": {
+     "name": "autoconf"
+    },
+    "name": "autoconf"
+   }
+  },
+  "automake": {
+   "brew\\automake": {
+    "driver": "brew",
+    "fields": {
+     "name": "automake"
+    },
+    "name": "automake"
+   }
+  },
   "awscli": {
    "brew\\curl": {
     "driver": "brew",
@@ -69294,6 +69744,15 @@
      "glue": "bazelisk"
     },
     "name": "bazelisk-dotfiles"
+   }
+  },
+  "bison": {
+   "brew\\bison": {
+    "driver": "brew",
+    "fields": {
+     "name": "bison"
+    },
+    "name": "bison"
    }
   },
   "bitwarden": {
@@ -70911,6 +71370,15 @@
      "name": "flatpak"
     },
     "name": "flatpak"
+   }
+  },
+  "flex": {
+   "brew\\flex": {
+    "driver": "brew",
+    "fields": {
+     "name": "flex"
+    },
+    "name": "flex"
    }
   },
   "fontconfig": {
@@ -73167,6 +73635,15 @@
     "name": "gcc"
    }
   },
+  "libtool": {
+   "brew\\libtool": {
+    "driver": "brew",
+    "fields": {
+     "name": "libtool"
+    },
+    "name": "libtool"
+   }
+  },
   "libvirt": {
    "brew\\libvirt": {
     "driver": "brew",
@@ -74001,6 +74478,15 @@
     "name": "mycli-dotfiles"
    }
   },
+  "nasm": {
+   "brew\\nasm": {
+    "driver": "brew",
+    "fields": {
+     "name": "nasm"
+    },
+    "name": "nasm"
+   }
+  },
   "navidrome": {
    "brew\\curl": {
     "driver": "brew",
@@ -74647,6 +75133,15 @@
     "name": "perf"
    }
   },
+  "perl": {
+   "brew\\perl": {
+    "driver": "brew",
+    "fields": {
+     "name": "perl"
+    },
+    "name": "perl"
+   }
+  },
   "pgcli": {
    "brew\\pipx": {
     "driver": "brew",
@@ -74784,6 +75279,15 @@
      "glue": "pipx"
     },
     "name": "pipx-dotfiles"
+   }
+  },
+  "pkg-config": {
+   "brew\\pkg-config": {
+    "driver": "brew",
+    "fields": {
+     "name": "pkg-config"
+    },
+    "name": "pkg-config"
    }
   },
   "playerctl": {
@@ -77954,6 +78458,24 @@
     "name": "audacity"
    }
   },
+  "autoconf": {
+   "apt\\autoconf": {
+    "driver": "apt",
+    "fields": {
+     "name": "autoconf"
+    },
+    "name": "autoconf"
+   }
+  },
+  "automake": {
+   "apt\\automake": {
+    "driver": "apt",
+    "fields": {
+     "name": "automake"
+    },
+    "name": "automake"
+   }
+  },
   "awscli": {
    "apt\\curl": {
     "driver": "apt",
@@ -78205,6 +78727,15 @@
      "glue": "bazelisk"
     },
     "name": "bazelisk-dotfiles"
+   }
+  },
+  "bison": {
+   "apt\\bison": {
+    "driver": "apt",
+    "fields": {
+     "name": "bison"
+    },
+    "name": "bison"
    }
   },
   "bitwarden": {
@@ -80665,6 +81196,15 @@
      "name": "flatpak"
     },
     "name": "flatpak"
+   }
+  },
+  "flex": {
+   "apt\\flex": {
+    "driver": "apt",
+    "fields": {
+     "name": "flex"
+    },
+    "name": "flex"
    }
   },
   "fontconfig": {
@@ -83750,6 +84290,15 @@
     "name": "g++"
    }
   },
+  "libtool": {
+   "apt\\libtool": {
+    "driver": "apt",
+    "fields": {
+     "name": "libtool"
+    },
+    "name": "libtool"
+   }
+  },
   "libvirt": {
    "apt\\libvirt": {
     "driver": "apt",
@@ -84789,6 +85338,15 @@
     "name": "mycli-dotfiles"
    }
   },
+  "nasm": {
+   "apt\\nasm": {
+    "driver": "apt",
+    "fields": {
+     "name": "nasm"
+    },
+    "name": "nasm"
+   }
+  },
   "navidrome": {
    "apt\\ffmpeg": {
     "driver": "apt",
@@ -85640,6 +86198,15 @@
     "name": "helix-cli"
    }
   },
+  "perl": {
+   "apt\\perl": {
+    "driver": "apt",
+    "fields": {
+     "name": "perl"
+    },
+    "name": "perl"
+   }
+  },
   "pgcli": {
    "apt\\python3-pip": {
     "driver": "apt",
@@ -85811,6 +86378,15 @@
      "glue": "pipx"
     },
     "name": "pipx-dotfiles"
+   }
+  },
+  "pkg-config": {
+   "apt\\pkg-config": {
+    "driver": "apt",
+    "fields": {
+     "name": "pkg-config"
+    },
+    "name": "pkg-config"
    }
   },
   "playerctl": {
@@ -89838,6 +90414,24 @@
     "name": "epel-release"
    }
   },
+  "autoconf": {
+   "dnf\\autoconf": {
+    "driver": "dnf",
+    "fields": {
+     "name": "autoconf"
+    },
+    "name": "autoconf"
+   }
+  },
+  "automake": {
+   "dnf\\automake": {
+    "driver": "dnf",
+    "fields": {
+     "name": "automake"
+    },
+    "name": "automake"
+   }
+  },
   "awscli": {
    "dnf\\curl": {
     "driver": "dnf",
@@ -90116,6 +90710,15 @@
      "glue": "bazelisk"
     },
     "name": "bazelisk-dotfiles"
+   }
+  },
+  "bison": {
+   "dnf\\bison": {
+    "driver": "dnf",
+    "fields": {
+     "name": "bison"
+    },
+    "name": "bison"
    }
   },
   "bitwarden": {
@@ -92533,6 +93136,15 @@
      "name": "flatpak"
     },
     "name": "flatpak"
+   }
+  },
+  "flex": {
+   "dnf\\flex": {
+    "driver": "dnf",
+    "fields": {
+     "name": "flex"
+    },
+    "name": "flex"
    }
   },
   "fontconfig": {
@@ -95419,6 +96031,15 @@
     "name": "libstdc++-devel"
    }
   },
+  "libtool": {
+   "dnf\\libtool": {
+    "driver": "dnf",
+    "fields": {
+     "name": "libtool"
+    },
+    "name": "libtool"
+   }
+  },
   "libvirt": {
    "dnf\\libvirt": {
     "driver": "dnf",
@@ -96410,6 +97031,15 @@
     "name": "mycli-dotfiles"
    }
   },
+  "nasm": {
+   "dnf\\nasm": {
+    "driver": "dnf",
+    "fields": {
+     "name": "nasm"
+    },
+    "name": "nasm"
+   }
+  },
   "navidrome": {
    "dnf\\epel-release": {
     "driver": "dnf",
@@ -97314,6 +97944,15 @@
     "name": "helix-cli"
    }
   },
+  "perl": {
+   "dnf\\perl": {
+    "driver": "dnf",
+    "fields": {
+     "name": "perl"
+    },
+    "name": "perl"
+   }
+  },
   "pgcli": {
    "dnf\\epel-release": {
     "driver": "dnf",
@@ -97465,6 +98104,15 @@
      "glue": "pipx"
     },
     "name": "pipx-dotfiles"
+   }
+  },
+  "pkg-config": {
+   "dnf\\pkg-config": {
+    "driver": "dnf",
+    "fields": {
+     "name": "pkgconf-pkg-config"
+    },
+    "name": "pkgconf-pkg-config"
    }
   },
   "playerctl": {
@@ -101526,6 +102174,24 @@
     "name": "audacity"
    }
   },
+  "autoconf": {
+   "apt\\autoconf": {
+    "driver": "apt",
+    "fields": {
+     "name": "autoconf"
+    },
+    "name": "autoconf"
+   }
+  },
+  "automake": {
+   "apt\\automake": {
+    "driver": "apt",
+    "fields": {
+     "name": "automake"
+    },
+    "name": "automake"
+   }
+  },
   "awscli": {
    "apt\\curl": {
     "driver": "apt",
@@ -101777,6 +102443,15 @@
      "glue": "bazelisk"
     },
     "name": "bazelisk-dotfiles"
+   }
+  },
+  "bison": {
+   "apt\\bison": {
+    "driver": "apt",
+    "fields": {
+     "name": "bison"
+    },
+    "name": "bison"
    }
   },
   "bitwarden": {
@@ -104228,6 +104903,15 @@
      "name": "flatpak"
     },
     "name": "flatpak"
+   }
+  },
+  "flex": {
+   "apt\\flex": {
+    "driver": "apt",
+    "fields": {
+     "name": "flex"
+    },
+    "name": "flex"
    }
   },
   "fontconfig": {
@@ -107313,6 +107997,15 @@
     "name": "g++"
    }
   },
+  "libtool": {
+   "apt\\libtool": {
+    "driver": "apt",
+    "fields": {
+     "name": "libtool"
+    },
+    "name": "libtool"
+   }
+  },
   "libvirt": {
    "apt\\libvirt": {
     "driver": "apt",
@@ -108352,6 +109045,15 @@
     "name": "mycli-dotfiles"
    }
   },
+  "nasm": {
+   "apt\\nasm": {
+    "driver": "apt",
+    "fields": {
+     "name": "nasm"
+    },
+    "name": "nasm"
+   }
+  },
   "navidrome": {
    "apt\\ffmpeg": {
     "driver": "apt",
@@ -109203,6 +109905,15 @@
     "name": "helix-cli"
    }
   },
+  "perl": {
+   "apt\\perl": {
+    "driver": "apt",
+    "fields": {
+     "name": "perl"
+    },
+    "name": "perl"
+   }
+  },
   "pgcli": {
    "apt\\python3-pip": {
     "driver": "apt",
@@ -109374,6 +110085,15 @@
      "glue": "pipx"
     },
     "name": "pipx-dotfiles"
+   }
+  },
+  "pkg-config": {
+   "apt\\pkg-config": {
+    "driver": "apt",
+    "fields": {
+     "name": "pkg-config"
+    },
+    "name": "pkg-config"
    }
   },
   "playerctl": {
@@ -113356,6 +114076,24 @@
     "name": "audacity"
    }
   },
+  "autoconf": {
+   "apt\\autoconf": {
+    "driver": "apt",
+    "fields": {
+     "name": "autoconf"
+    },
+    "name": "autoconf"
+   }
+  },
+  "automake": {
+   "apt\\automake": {
+    "driver": "apt",
+    "fields": {
+     "name": "automake"
+    },
+    "name": "automake"
+   }
+  },
   "awscli": {
    "apt\\curl": {
     "driver": "apt",
@@ -113590,6 +114328,15 @@
      "glue": "bazelisk"
     },
     "name": "bazelisk-dotfiles"
+   }
+  },
+  "bison": {
+   "apt\\bison": {
+    "driver": "apt",
+    "fields": {
+     "name": "bison"
+    },
+    "name": "bison"
    }
   },
   "bitwarden": {
@@ -116007,6 +116754,15 @@
      "name": "flatpak"
     },
     "name": "flatpak"
+   }
+  },
+  "flex": {
+   "apt\\flex": {
+    "driver": "apt",
+    "fields": {
+     "name": "flex"
+    },
+    "name": "flex"
    }
   },
   "fontconfig": {
@@ -119032,6 +119788,15 @@
     "name": "g++"
    }
   },
+  "libtool": {
+   "apt\\libtool": {
+    "driver": "apt",
+    "fields": {
+     "name": "libtool"
+    },
+    "name": "libtool"
+   }
+  },
   "libvirt": {
    "apt\\libvirt": {
     "driver": "apt",
@@ -120020,6 +120785,15 @@
     "name": "mycli-dotfiles"
    }
   },
+  "nasm": {
+   "apt\\nasm": {
+    "driver": "apt",
+    "fields": {
+     "name": "nasm"
+    },
+    "name": "nasm"
+   }
+  },
   "navidrome": {
    "apt\\ffmpeg": {
     "driver": "apt",
@@ -120871,6 +121645,15 @@
     "name": "helix-cli"
    }
   },
+  "perl": {
+   "apt\\perl": {
+    "driver": "apt",
+    "fields": {
+     "name": "perl"
+    },
+    "name": "perl"
+   }
+  },
   "pgcli": {
    "apt\\pipx": {
     "driver": "apt",
@@ -121008,6 +121791,15 @@
      "glue": "pipx"
     },
     "name": "pipx-dotfiles"
+   }
+  },
+  "pkg-config": {
+   "apt\\pkg-config": {
+    "driver": "apt",
+    "fields": {
+     "name": "pkg-config"
+    },
+    "name": "pkg-config"
    }
   },
   "playerctl": {
