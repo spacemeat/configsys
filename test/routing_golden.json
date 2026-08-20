@@ -4344,6 +4344,15 @@
     "name": "jdk17-openjdk"
    }
   },
+  "jdk-21": {
+   "pacman\\jdk": {
+    "driver": "pacman",
+    "fields": {
+     "name": "jdk21-openjdk"
+    },
+    "name": "jdk21-openjdk"
+   }
+  },
   "jdk-25": {
    "pacman\\jdk-25": {
     "driver": "pacman",
@@ -16204,6 +16213,15 @@
     "name": "openjdk-17-jdk"
    }
   },
+  "jdk-21": {
+   "apt\\jdk": {
+    "driver": "apt",
+    "fields": {
+     "name": "openjdk-21-jdk"
+    },
+    "name": "openjdk-21-jdk"
+   }
+  },
   "jdk-25": {
    "apt\\jdk-25": {
     "driver": "apt",
@@ -27785,6 +27803,15 @@
     "name": "openjdk-17-jdk"
    }
   },
+  "jdk-21": {
+   "apt\\jdk": {
+    "driver": "apt",
+    "fields": {
+     "name": "openjdk-21-jdk"
+    },
+    "name": "openjdk-21-jdk"
+   }
+  },
   "jdk-25": {
    "apt\\jdk-25": {
     "driver": "apt",
@@ -39199,6 +39226,15 @@
     "name": "openjdk-17-jdk"
    }
   },
+  "jdk-21": {
+   "apt\\jdk": {
+    "driver": "apt",
+    "fields": {
+     "name": "openjdk-21-jdk"
+    },
+    "name": "openjdk-21-jdk"
+   }
+  },
   "jdk-25": {
    "apt\\jdk-25": {
     "driver": "apt",
@@ -50279,6 +50315,15 @@
     "name": "java-17-openjdk-devel"
    }
   },
+  "jdk-21": {
+   "dnf\\jdk": {
+    "driver": "dnf",
+    "fields": {
+     "name": "java-21-openjdk-devel"
+    },
+    "name": "java-21-openjdk-devel"
+   }
+  },
   "jdk-25": {
    "dnf\\jdk-25": {
     "driver": "dnf",
@@ -61305,6 +61350,15 @@
     "name": "java-17-openjdk-devel"
    }
   },
+  "jdk-21": {
+   "dnf\\jdk": {
+    "driver": "dnf",
+    "fields": {
+     "name": "java-21-openjdk-devel"
+    },
+    "name": "java-21-openjdk-devel"
+   }
+  },
   "jdk-25": {
    "dnf\\jdk-25": {
     "driver": "dnf",
@@ -71159,6 +71213,15 @@
      "name": "openjdk@17"
     },
     "name": "openjdk@17"
+   }
+  },
+  "jdk-21": {
+   "brew\\jdk": {
+    "driver": "brew",
+    "fields": {
+     "name": "openjdk@21"
+    },
+    "name": "openjdk@21"
    }
   },
   "jdk-25": {
@@ -81443,6 +81506,15 @@
      "name": "openjdk-17-jdk"
     },
     "name": "openjdk-17-jdk"
+   }
+  },
+  "jdk-21": {
+   "apt\\jdk": {
+    "driver": "apt",
+    "fields": {
+     "name": "openjdk-21-jdk"
+    },
+    "name": "openjdk-21-jdk"
    }
   },
   "jdk-25": {
@@ -92995,6 +93067,15 @@
      "name": "java-17-openjdk-devel"
     },
     "name": "java-17-openjdk-devel"
+   }
+  },
+  "jdk-21": {
+   "dnf\\jdk": {
+    "driver": "dnf",
+    "fields": {
+     "name": "java-21-openjdk-devel"
+    },
+    "name": "java-21-openjdk-devel"
    }
   },
   "jdk-25": {
@@ -104678,6 +104759,15 @@
     "name": "openjdk-17-jdk"
    }
   },
+  "jdk-21": {
+   "apt\\jdk": {
+    "driver": "apt",
+    "fields": {
+     "name": "openjdk-21-jdk"
+    },
+    "name": "openjdk-21-jdk"
+   }
+  },
   "jdk-25": {
    "apt\\jdk-25": {
     "driver": "apt",
@@ -116240,6 +116330,15 @@
      "name": "openjdk-17-jdk"
     },
     "name": "openjdk-17-jdk"
+   }
+  },
+  "jdk-21": {
+   "apt\\jdk": {
+    "driver": "apt",
+    "fields": {
+     "name": "openjdk-21-jdk"
+    },
+    "name": "openjdk-21-jdk"
    }
   },
   "jdk-25": {

@@ -702,20 +702,27 @@
 
         // --- native language toolchains (directly usable; ecosystem module drivers deferred) ---
         // JDK — VERSION-SCOPED providers of the `jdk` capability (the python3.X pattern for Java).
-        // `jdk` is the default (OpenJDK 21, the current LTS); jdk-17/jdk-25 are opt-in `never-auto`
-        // LTS lines; graalvm is GraalVM CE (native-image) via SDKMAN. A consumer floors its runtime
-        // with `requires: { jdk: ">=21" }` — the constraint selects/enables the matching line; a plain
-        // `requires: jdk` takes the default. Bump `jdk` to the next LTS when it lands (like
-        // python3.13-is-default). Native openjdk-N track the latest patch; the SDKMAN graalvm id ages.
-        jdk: { attrs: [ toolchain runtime FOSS copyleft ] description: "Java Development Kit — OpenJDK 21 (the current LTS default)."
+        // Every LTS line is reachable by a `jdk-NN` name. `jdk` is the canonical default: it holds
+        // the OpenJDK 21 bindings and `provides: { jdk: 21 }` (not `never-auto`), so a bare `jdk` /
+        // `requires: jdk` installs the current LTS default; `jdk-21` is a thin alias to it (so the
+        // -NN naming is complete without a second jdk:21 provider — two would tie). `jdk-17`/`jdk-25`
+        // are opt-in `never-auto` lines; a versioned `requires: { jdk: ">=25" }` selects/enables the
+        // matching line. 17/21/25 are ALL LTS (the non-LTS interim releases aren't packaged here —
+        // mark a future jdk-NN's description `(non-LTS)` if one is added). Native openjdk-N tracks the
+        // latest patch. graalvm is GraalVM CE (native-image) via SDKMAN — another (never-auto) jdk:21
+        // provider; the sdkman/graalvm components are the manual alt-distribution path.
+        // To bump the default LTS: move the native bindings + `provides:` onto `jdk`, turn the OLD
+        // default's `jdk-NN` alias into a real `never-auto` line, and repoint `jdk-NN` at the new line.
+        jdk: { attrs: [ toolchain runtime FOSS copyleft ] description: "Java Development Kit — the current LTS default (OpenJDK 21)."
             provides: { jdk: 21 }
             install: [ { via: native  name: { apt: openjdk-21-jdk  dnf: java-21-openjdk-devel  pacman: jdk21-openjdk  apk: openjdk21  zypper: java-21-openjdk-devel  brew: "openjdk@21" } }
-                       { via: native  when: "amzn"  name: java-21-amazon-corretto-devel } ]   // Amazon ships Corretto, not OpenJDK
-        }
-        jdk-17: { attrs: [ toolchain runtime FOSS copyleft ] description: "OpenJDK 17 — the previous LTS Java line." standing: never-auto  provides: { jdk: 17 }
+                       { via: native  when: "amzn"  name: java-21-amazon-corretto-devel } ] }   // Amazon ships Corretto, not OpenJDK
+        jdk-17: { attrs: [ toolchain runtime FOSS copyleft ] description: "OpenJDK 17 — LTS (2021)." standing: never-auto  provides: { jdk: 17 }
             install: [ { via: native  name: { apt: openjdk-17-jdk  dnf: java-17-openjdk-devel  pacman: jdk17-openjdk  apk: openjdk17  zypper: java-17-openjdk-devel  brew: "openjdk@17" } }
                        { via: native  when: "amzn"  name: java-17-amazon-corretto-devel } ] }
-        jdk-25: { attrs: [ toolchain runtime FOSS copyleft ] description: "OpenJDK 25 — the newest LTS Java line." standing: never-auto  provides: { jdk: 25 }
+        jdk-21: { attrs: [ toolchain runtime FOSS copyleft ] description: "OpenJDK 21 — LTS (2023); the current default (alias for `jdk`)." standing: never-auto
+            install: [ { via: parts  parts: [ jdk ] } ] }
+        jdk-25: { attrs: [ toolchain runtime FOSS copyleft ] description: "OpenJDK 25 — LTS (2025)." standing: never-auto  provides: { jdk: 25 }
             install: [ { via: native  name: { apt: openjdk-25-jdk  dnf: java-25-openjdk-devel  pacman: jdk25-openjdk  apk: openjdk25  zypper: java-25-openjdk-devel  brew: "openjdk@25" } }
                        { via: native  when: "amzn"  name: java-25-amazon-corretto-devel } ] }
         graalvm: { attrs: [ CLI runtime toolchain FOSS copyleft ] description: "GraalVM CE 21 — a JDK with native-image (ahead-of-time compilation), via SDKMAN."
