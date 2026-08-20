@@ -911,8 +911,6 @@
         jbang:      { attrs: [ CLI FOSS permissive ] description: "JBang — run Java/JVM scripts with no project setup." requires: jdk  install: [ { via: sdkman } ] }
         scalacli:   { attrs: [ CLI toolchain FOSS permissive ] description: "Scala CLI — the modern all-in-one Scala runner and tooling." requires: jdk  install: [ { via: sdkman } ] }
         coursier:   { attrs: [ CLI FOSS permissive ] suggests: coursier-dotfiles  description: "Coursier (`cs`) — the JVM artifact fetcher and application installer." requires: jdk  install: [ { via: sdkman } ] }
-        spark:      { attrs: [ CLI FOSS permissive ] description: "Apache Spark — a unified analytics engine for large-scale data." requires: jdk  install: [ { via: sdkman } ] }
-        flink:      { attrs: [ daemon web FOSS permissive ] description: "Apache Flink — stream and batch data processing." requires: jdk  install: [ { via: sdkman } ] }
         liquibase:  { attrs: [ CLI FOSSish permissive freemium ] description: "Liquibase — database schema change management and migrations." requires: jdk  install: [ { via: sdkman } ] }
         detekt:     { attrs: [ CLI FOSS permissive ] description: "detekt — static code analysis for Kotlin." requires: jdk  install: [ { via: sdkman } ] }
         jreleaser:  { attrs: [ CLI FOSS permissive ] description: "JReleaser — release automation for JVM (and other) projects." requires: jdk  install: [ { via: sdkman } ] }

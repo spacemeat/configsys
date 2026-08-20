@@ -2763,52 +2763,6 @@
     "name": "flatpak"
    }
   },
-  "flink": {
-   "dotfiles\\bash-dotfiles": {
-    "driver": "dotfiles",
-    "fields": {
-     "aliases": {
-      "absorb-into": "~/.config/bash/conf.d/pre-configsys-aliases.sh",
-      "dst": "~/.bash_aliases",
-      "src": "bash_aliases"
-     }
-    },
-    "name": "bash-dotfiles"
-   },
-   "dotfiles\\sdkman-dotfiles": {
-    "driver": "dotfiles",
-    "fields": {
-     "glue": "sdkman"
-    },
-    "name": "sdkman-dotfiles"
-   },
-   "pacman\\jdk": {
-    "driver": "pacman",
-    "fields": {
-     "name": "jdk21-openjdk"
-    },
-    "name": "jdk21-openjdk"
-   },
-   "script\\sdkman": {
-    "driver": "script",
-    "fields": {
-     "install-cmd": "curl -s https://get.sdkman.io | bash",
-     "location": "~/.sdkman",
-     "name": "sdkman",
-     "uninstall-cmd": "rm -rf \"$HOME/.sdkman\"",
-     "version-cmd": "source \"$HOME/.sdkman/bin/sdkman-init.sh\" && sdk version",
-     "version-re": "([0-9]+\\.[0-9]+\\.[0-9]+)"
-    },
-    "name": "sdkman"
-   },
-   "sdkman\\flink": {
-    "driver": "sdkman",
-    "fields": {
-     "name": "flink"
-    },
-    "name": "flink"
-   }
-  },
   "folly": {
    "aur\\folly": {
     "driver": "aur",
@@ -9158,52 +9112,6 @@
     "name": "flatpak"
    }
   },
-  "spark": {
-   "dotfiles\\bash-dotfiles": {
-    "driver": "dotfiles",
-    "fields": {
-     "aliases": {
-      "absorb-into": "~/.config/bash/conf.d/pre-configsys-aliases.sh",
-      "dst": "~/.bash_aliases",
-      "src": "bash_aliases"
-     }
-    },
-    "name": "bash-dotfiles"
-   },
-   "dotfiles\\sdkman-dotfiles": {
-    "driver": "dotfiles",
-    "fields": {
-     "glue": "sdkman"
-    },
-    "name": "sdkman-dotfiles"
-   },
-   "pacman\\jdk": {
-    "driver": "pacman",
-    "fields": {
-     "name": "jdk21-openjdk"
-    },
-    "name": "jdk21-openjdk"
-   },
-   "script\\sdkman": {
-    "driver": "script",
-    "fields": {
-     "install-cmd": "curl -s https://get.sdkman.io | bash",
-     "location": "~/.sdkman",
-     "name": "sdkman",
-     "uninstall-cmd": "rm -rf \"$HOME/.sdkman\"",
-     "version-cmd": "source \"$HOME/.sdkman/bin/sdkman-init.sh\" && sdk version",
-     "version-re": "([0-9]+\\.[0-9]+\\.[0-9]+)"
-    },
-    "name": "sdkman"
-   },
-   "sdkman\\spark": {
-    "driver": "sdkman",
-    "fields": {
-     "name": "spark"
-    },
-    "name": "spark"
-   }
-  },
   "spotify": {
    "flatpak\\spotify": {
     "driver": "flatpak",
@@ -14585,52 +14493,6 @@
     "name": "flatpak"
    }
   },
-  "flink": {
-   "apt\\jdk": {
-    "driver": "apt",
-    "fields": {
-     "name": "openjdk-21-jdk"
-    },
-    "name": "openjdk-21-jdk"
-   },
-   "dotfiles\\bash-dotfiles": {
-    "driver": "dotfiles",
-    "fields": {
-     "aliases": {
-      "absorb-into": "~/.config/bash/conf.d/pre-configsys-aliases.sh",
-      "dst": "~/.bash_aliases",
-      "src": "bash_aliases"
-     }
-    },
-    "name": "bash-dotfiles"
-   },
-   "dotfiles\\sdkman-dotfiles": {
-    "driver": "dotfiles",
-    "fields": {
-     "glue": "sdkman"
-    },
-    "name": "sdkman-dotfiles"
-   },
-   "script\\sdkman": {
-    "driver": "script",
-    "fields": {
-     "install-cmd": "curl -s https://get.sdkman.io | bash",
-     "location": "~/.sdkman",
-     "name": "sdkman",
-     "uninstall-cmd": "rm -rf \"$HOME/.sdkman\"",
-     "version-cmd": "source \"$HOME/.sdkman/bin/sdkman-init.sh\" && sdk version",
-     "version-re": "([0-9]+\\.[0-9]+\\.[0-9]+)"
-    },
-    "name": "sdkman"
-   },
-   "sdkman\\flink": {
-    "driver": "sdkman",
-    "fields": {
-     "name": "flink"
-    },
-    "name": "flink"
-   }
-  },
   "fontconfig": {
    "apt\\fontconfig": {
     "driver": "apt",
@@ -21191,52 +21053,6 @@
      "repo-component": "universe"
     },
     "name": "sonic-pi"
-   }
-  },
-  "spark": {
-   "apt\\jdk": {
-    "driver": "apt",
-    "fields": {
-     "name": "openjdk-21-jdk"
-    },
-    "name": "openjdk-21-jdk"
-   },
-   "dotfiles\\bash-dotfiles": {
-    "driver": "dotfiles",
-    "fields": {
-     "aliases": {
-      "absorb-into": "~/.config/bash/conf.d/pre-configsys-aliases.sh",
-      "dst": "~/.bash_aliases",
-      "src": "bash_aliases"
-     }
-    },
-    "name": "bash-dotfiles"
-   },
-   "dotfiles\\sdkman-dotfiles": {
-    "driver": "dotfiles",
-    "fields": {
-     "glue": "sdkman"
-    },
-    "name": "sdkman-dotfiles"
-   },
-   "script\\sdkman": {
-    "driver": "script",
-    "fields": {
-     "install-cmd": "curl -s https://get.sdkman.io | bash",
-     "location": "~/.sdkman",
-     "name": "sdkman",
-     "uninstall-cmd": "rm -rf \"$HOME/.sdkman\"",
-     "version-cmd": "source \"$HOME/.sdkman/bin/sdkman-init.sh\" && sdk version",
-     "version-re": "([0-9]+\\.[0-9]+\\.[0-9]+)"
-    },
-    "name": "sdkman"
-   },
-   "sdkman\\spark": {
-    "driver": "sdkman",
-    "fields": {
-     "name": "spark"
-    },
-    "name": "spark"
    }
   },
   "spotify": {
@@ -26447,52 +26263,6 @@
     "name": "flatpak"
    }
   },
-  "flink": {
-   "apt\\jdk": {
-    "driver": "apt",
-    "fields": {
-     "name": "openjdk-21-jdk"
-    },
-    "name": "openjdk-21-jdk"
-   },
-   "dotfiles\\bash-dotfiles": {
-    "driver": "dotfiles",
-    "fields": {
-     "aliases": {
-      "absorb-into": "~/.config/bash/conf.d/pre-configsys-aliases.sh",
-      "dst": "~/.bash_aliases",
-      "src": "bash_aliases"
-     }
-    },
-    "name": "bash-dotfiles"
-   },
-   "dotfiles\\sdkman-dotfiles": {
-    "driver": "dotfiles",
-    "fields": {
-     "glue": "sdkman"
-    },
-    "name": "sdkman-dotfiles"
-   },
-   "script\\sdkman": {
-    "driver": "script",
-    "fields": {
-     "install-cmd": "curl -s https://get.sdkman.io | bash",
-     "location": "~/.sdkman",
-     "name": "sdkman",
-     "uninstall-cmd": "rm -rf \"$HOME/.sdkman\"",
-     "version-cmd": "source \"$HOME/.sdkman/bin/sdkman-init.sh\" && sdk version",
-     "version-re": "([0-9]+\\.[0-9]+\\.[0-9]+)"
-    },
-    "name": "sdkman"
-   },
-   "sdkman\\flink": {
-    "driver": "sdkman",
-    "fields": {
-     "name": "flink"
-    },
-    "name": "flink"
-   }
-  },
   "fontconfig": {
    "apt\\fontconfig": {
     "driver": "apt",
@@ -32902,52 +32672,6 @@
     "name": "sonic-pi"
    }
   },
-  "spark": {
-   "apt\\jdk": {
-    "driver": "apt",
-    "fields": {
-     "name": "openjdk-21-jdk"
-    },
-    "name": "openjdk-21-jdk"
-   },
-   "dotfiles\\bash-dotfiles": {
-    "driver": "dotfiles",
-    "fields": {
-     "aliases": {
-      "absorb-into": "~/.config/bash/conf.d/pre-configsys-aliases.sh",
-      "dst": "~/.bash_aliases",
-      "src": "bash_aliases"
-     }
-    },
-    "name": "bash-dotfiles"
-   },
-   "dotfiles\\sdkman-dotfiles": {
-    "driver": "dotfiles",
-    "fields": {
-     "glue": "sdkman"
-    },
-    "name": "sdkman-dotfiles"
-   },
-   "script\\sdkman": {
-    "driver": "script",
-    "fields": {
-     "install-cmd": "curl -s https://get.sdkman.io | bash",
-     "location": "~/.sdkman",
-     "name": "sdkman",
-     "uninstall-cmd": "rm -rf \"$HOME/.sdkman\"",
-     "version-cmd": "source \"$HOME/.sdkman/bin/sdkman-init.sh\" && sdk version",
-     "version-re": "([0-9]+\\.[0-9]+\\.[0-9]+)"
-    },
-    "name": "sdkman"
-   },
-   "sdkman\\spark": {
-    "driver": "sdkman",
-    "fields": {
-     "name": "spark"
-    },
-    "name": "spark"
-   }
-  },
   "spotify": {
    "apt\\flatpak": {
     "driver": "apt",
@@ -38123,52 +37847,6 @@
      "name": "flatpak"
     },
     "name": "flatpak"
-   }
-  },
-  "flink": {
-   "apt\\jdk": {
-    "driver": "apt",
-    "fields": {
-     "name": "openjdk-21-jdk"
-    },
-    "name": "openjdk-21-jdk"
-   },
-   "dotfiles\\bash-dotfiles": {
-    "driver": "dotfiles",
-    "fields": {
-     "aliases": {
-      "absorb-into": "~/.config/bash/conf.d/pre-configsys-aliases.sh",
-      "dst": "~/.bash_aliases",
-      "src": "bash_aliases"
-     }
-    },
-    "name": "bash-dotfiles"
-   },
-   "dotfiles\\sdkman-dotfiles": {
-    "driver": "dotfiles",
-    "fields": {
-     "glue": "sdkman"
-    },
-    "name": "sdkman-dotfiles"
-   },
-   "script\\sdkman": {
-    "driver": "script",
-    "fields": {
-     "install-cmd": "curl -s https://get.sdkman.io | bash",
-     "location": "~/.sdkman",
-     "name": "sdkman",
-     "uninstall-cmd": "rm -rf \"$HOME/.sdkman\"",
-     "version-cmd": "source \"$HOME/.sdkman/bin/sdkman-init.sh\" && sdk version",
-     "version-re": "([0-9]+\\.[0-9]+\\.[0-9]+)"
-    },
-    "name": "sdkman"
-   },
-   "sdkman\\flink": {
-    "driver": "sdkman",
-    "fields": {
-     "name": "flink"
-    },
-    "name": "flink"
    }
   },
   "fontconfig": {
@@ -44586,52 +44264,6 @@
     "name": "sonic-pi"
    }
   },
-  "spark": {
-   "apt\\jdk": {
-    "driver": "apt",
-    "fields": {
-     "name": "openjdk-21-jdk"
-    },
-    "name": "openjdk-21-jdk"
-   },
-   "dotfiles\\bash-dotfiles": {
-    "driver": "dotfiles",
-    "fields": {
-     "aliases": {
-      "absorb-into": "~/.config/bash/conf.d/pre-configsys-aliases.sh",
-      "dst": "~/.bash_aliases",
-      "src": "bash_aliases"
-     }
-    },
-    "name": "bash-dotfiles"
-   },
-   "dotfiles\\sdkman-dotfiles": {
-    "driver": "dotfiles",
-    "fields": {
-     "glue": "sdkman"
-    },
-    "name": "sdkman-dotfiles"
-   },
-   "script\\sdkman": {
-    "driver": "script",
-    "fields": {
-     "install-cmd": "curl -s https://get.sdkman.io | bash",
-     "location": "~/.sdkman",
-     "name": "sdkman",
-     "uninstall-cmd": "rm -rf \"$HOME/.sdkman\"",
-     "version-cmd": "source \"$HOME/.sdkman/bin/sdkman-init.sh\" && sdk version",
-     "version-re": "([0-9]+\\.[0-9]+\\.[0-9]+)"
-    },
-    "name": "sdkman"
-   },
-   "sdkman\\spark": {
-    "driver": "sdkman",
-    "fields": {
-     "name": "spark"
-    },
-    "name": "spark"
-   }
-  },
   "spotify": {
    "apt\\flatpak": {
     "driver": "apt",
@@ -49640,52 +49272,6 @@
      "name": "flatpak"
     },
     "name": "flatpak"
-   }
-  },
-  "flink": {
-   "dnf\\jdk": {
-    "driver": "dnf",
-    "fields": {
-     "name": "java-21-openjdk-devel"
-    },
-    "name": "java-21-openjdk-devel"
-   },
-   "dotfiles\\bash-dotfiles": {
-    "driver": "dotfiles",
-    "fields": {
-     "aliases": {
-      "absorb-into": "~/.config/bash/conf.d/pre-configsys-aliases.sh",
-      "dst": "~/.bash_aliases",
-      "src": "bash_aliases"
-     }
-    },
-    "name": "bash-dotfiles"
-   },
-   "dotfiles\\sdkman-dotfiles": {
-    "driver": "dotfiles",
-    "fields": {
-     "glue": "sdkman"
-    },
-    "name": "sdkman-dotfiles"
-   },
-   "script\\sdkman": {
-    "driver": "script",
-    "fields": {
-     "install-cmd": "curl -s https://get.sdkman.io | bash",
-     "location": "~/.sdkman",
-     "name": "sdkman",
-     "uninstall-cmd": "rm -rf \"$HOME/.sdkman\"",
-     "version-cmd": "source \"$HOME/.sdkman/bin/sdkman-init.sh\" && sdk version",
-     "version-re": "([0-9]+\\.[0-9]+\\.[0-9]+)"
-    },
-    "name": "sdkman"
-   },
-   "sdkman\\flink": {
-    "driver": "sdkman",
-    "fields": {
-     "name": "flink"
-    },
-    "name": "flink"
    }
   },
   "folly": {
@@ -55817,52 +55403,6 @@
     "name": "net.sonic_pi.SonicPi"
    }
   },
-  "spark": {
-   "dnf\\jdk": {
-    "driver": "dnf",
-    "fields": {
-     "name": "java-21-openjdk-devel"
-    },
-    "name": "java-21-openjdk-devel"
-   },
-   "dotfiles\\bash-dotfiles": {
-    "driver": "dotfiles",
-    "fields": {
-     "aliases": {
-      "absorb-into": "~/.config/bash/conf.d/pre-configsys-aliases.sh",
-      "dst": "~/.bash_aliases",
-      "src": "bash_aliases"
-     }
-    },
-    "name": "bash-dotfiles"
-   },
-   "dotfiles\\sdkman-dotfiles": {
-    "driver": "dotfiles",
-    "fields": {
-     "glue": "sdkman"
-    },
-    "name": "sdkman-dotfiles"
-   },
-   "script\\sdkman": {
-    "driver": "script",
-    "fields": {
-     "install-cmd": "curl -s https://get.sdkman.io | bash",
-     "location": "~/.sdkman",
-     "name": "sdkman",
-     "uninstall-cmd": "rm -rf \"$HOME/.sdkman\"",
-     "version-cmd": "source \"$HOME/.sdkman/bin/sdkman-init.sh\" && sdk version",
-     "version-re": "([0-9]+\\.[0-9]+\\.[0-9]+)"
-    },
-    "name": "sdkman"
-   },
-   "sdkman\\spark": {
-    "driver": "sdkman",
-    "fields": {
-     "name": "spark"
-    },
-    "name": "spark"
-   }
-  },
   "spotify": {
    "dnf\\flatpak": {
     "driver": "dnf",
@@ -60920,52 +60460,6 @@
      "name": "flatpak"
     },
     "name": "flatpak"
-   }
-  },
-  "flink": {
-   "dnf\\jdk": {
-    "driver": "dnf",
-    "fields": {
-     "name": "java-21-openjdk-devel"
-    },
-    "name": "java-21-openjdk-devel"
-   },
-   "dotfiles\\bash-dotfiles": {
-    "driver": "dotfiles",
-    "fields": {
-     "aliases": {
-      "absorb-into": "~/.config/bash/conf.d/pre-configsys-aliases.sh",
-      "dst": "~/.bash_aliases",
-      "src": "bash_aliases"
-     }
-    },
-    "name": "bash-dotfiles"
-   },
-   "dotfiles\\sdkman-dotfiles": {
-    "driver": "dotfiles",
-    "fields": {
-     "glue": "sdkman"
-    },
-    "name": "sdkman-dotfiles"
-   },
-   "script\\sdkman": {
-    "driver": "script",
-    "fields": {
-     "install-cmd": "curl -s https://get.sdkman.io | bash",
-     "location": "~/.sdkman",
-     "name": "sdkman",
-     "uninstall-cmd": "rm -rf \"$HOME/.sdkman\"",
-     "version-cmd": "source \"$HOME/.sdkman/bin/sdkman-init.sh\" && sdk version",
-     "version-re": "([0-9]+\\.[0-9]+\\.[0-9]+)"
-    },
-    "name": "sdkman"
-   },
-   "sdkman\\flink": {
-    "driver": "sdkman",
-    "fields": {
-     "name": "flink"
-    },
-    "name": "flink"
    }
   },
   "folly": {
@@ -67097,52 +66591,6 @@
     "name": "net.sonic_pi.SonicPi"
    }
   },
-  "spark": {
-   "dnf\\jdk": {
-    "driver": "dnf",
-    "fields": {
-     "name": "java-21-openjdk-devel"
-    },
-    "name": "java-21-openjdk-devel"
-   },
-   "dotfiles\\bash-dotfiles": {
-    "driver": "dotfiles",
-    "fields": {
-     "aliases": {
-      "absorb-into": "~/.config/bash/conf.d/pre-configsys-aliases.sh",
-      "dst": "~/.bash_aliases",
-      "src": "bash_aliases"
-     }
-    },
-    "name": "bash-dotfiles"
-   },
-   "dotfiles\\sdkman-dotfiles": {
-    "driver": "dotfiles",
-    "fields": {
-     "glue": "sdkman"
-    },
-    "name": "sdkman-dotfiles"
-   },
-   "script\\sdkman": {
-    "driver": "script",
-    "fields": {
-     "install-cmd": "curl -s https://get.sdkman.io | bash",
-     "location": "~/.sdkman",
-     "name": "sdkman",
-     "uninstall-cmd": "rm -rf \"$HOME/.sdkman\"",
-     "version-cmd": "source \"$HOME/.sdkman/bin/sdkman-init.sh\" && sdk version",
-     "version-re": "([0-9]+\\.[0-9]+\\.[0-9]+)"
-    },
-    "name": "sdkman"
-   },
-   "sdkman\\spark": {
-    "driver": "sdkman",
-    "fields": {
-     "name": "spark"
-    },
-    "name": "spark"
-   }
-  },
   "spotify": {
    "dnf\\flatpak": {
     "driver": "dnf",
@@ -71463,52 +70911,6 @@
      "name": "flatpak"
     },
     "name": "flatpak"
-   }
-  },
-  "flink": {
-   "brew\\jdk": {
-    "driver": "brew",
-    "fields": {
-     "name": "openjdk@21"
-    },
-    "name": "openjdk@21"
-   },
-   "dotfiles\\bash-dotfiles": {
-    "driver": "dotfiles",
-    "fields": {
-     "aliases": {
-      "absorb-into": "~/.config/bash/conf.d/pre-configsys-aliases.sh",
-      "dst": "~/.bash_aliases",
-      "src": "bash_aliases"
-     }
-    },
-    "name": "bash-dotfiles"
-   },
-   "dotfiles\\sdkman-dotfiles": {
-    "driver": "dotfiles",
-    "fields": {
-     "glue": "sdkman"
-    },
-    "name": "sdkman-dotfiles"
-   },
-   "script\\sdkman": {
-    "driver": "script",
-    "fields": {
-     "install-cmd": "curl -s https://get.sdkman.io | bash",
-     "location": "~/.sdkman",
-     "name": "sdkman",
-     "uninstall-cmd": "rm -rf \"$HOME/.sdkman\"",
-     "version-cmd": "source \"$HOME/.sdkman/bin/sdkman-init.sh\" && sdk version",
-     "version-re": "([0-9]+\\.[0-9]+\\.[0-9]+)"
-    },
-    "name": "sdkman"
-   },
-   "sdkman\\flink": {
-    "driver": "sdkman",
-    "fields": {
-     "name": "flink"
-    },
-    "name": "flink"
    }
   },
   "fontconfig": {
@@ -76473,52 +75875,6 @@
     "name": "net.sonic_pi.SonicPi"
    }
   },
-  "spark": {
-   "brew\\jdk": {
-    "driver": "brew",
-    "fields": {
-     "name": "openjdk@21"
-    },
-    "name": "openjdk@21"
-   },
-   "dotfiles\\bash-dotfiles": {
-    "driver": "dotfiles",
-    "fields": {
-     "aliases": {
-      "absorb-into": "~/.config/bash/conf.d/pre-configsys-aliases.sh",
-      "dst": "~/.bash_aliases",
-      "src": "bash_aliases"
-     }
-    },
-    "name": "bash-dotfiles"
-   },
-   "dotfiles\\sdkman-dotfiles": {
-    "driver": "dotfiles",
-    "fields": {
-     "glue": "sdkman"
-    },
-    "name": "sdkman-dotfiles"
-   },
-   "script\\sdkman": {
-    "driver": "script",
-    "fields": {
-     "install-cmd": "curl -s https://get.sdkman.io | bash",
-     "location": "~/.sdkman",
-     "name": "sdkman",
-     "uninstall-cmd": "rm -rf \"$HOME/.sdkman\"",
-     "version-cmd": "source \"$HOME/.sdkman/bin/sdkman-init.sh\" && sdk version",
-     "version-re": "([0-9]+\\.[0-9]+\\.[0-9]+)"
-    },
-    "name": "sdkman"
-   },
-   "sdkman\\spark": {
-    "driver": "sdkman",
-    "fields": {
-     "name": "spark"
-    },
-    "name": "spark"
-   }
-  },
   "spotify": {
    "flatpak\\spotify": {
     "driver": "flatpak",
@@ -81309,52 +80665,6 @@
      "name": "flatpak"
     },
     "name": "flatpak"
-   }
-  },
-  "flink": {
-   "apt\\jdk": {
-    "driver": "apt",
-    "fields": {
-     "name": "openjdk-21-jdk"
-    },
-    "name": "openjdk-21-jdk"
-   },
-   "dotfiles\\bash-dotfiles": {
-    "driver": "dotfiles",
-    "fields": {
-     "aliases": {
-      "absorb-into": "~/.config/bash/conf.d/pre-configsys-aliases.sh",
-      "dst": "~/.bash_aliases",
-      "src": "bash_aliases"
-     }
-    },
-    "name": "bash-dotfiles"
-   },
-   "dotfiles\\sdkman-dotfiles": {
-    "driver": "dotfiles",
-    "fields": {
-     "glue": "sdkman"
-    },
-    "name": "sdkman-dotfiles"
-   },
-   "script\\sdkman": {
-    "driver": "script",
-    "fields": {
-     "install-cmd": "curl -s https://get.sdkman.io | bash",
-     "location": "~/.sdkman",
-     "name": "sdkman",
-     "uninstall-cmd": "rm -rf \"$HOME/.sdkman\"",
-     "version-cmd": "source \"$HOME/.sdkman/bin/sdkman-init.sh\" && sdk version",
-     "version-re": "([0-9]+\\.[0-9]+\\.[0-9]+)"
-    },
-    "name": "sdkman"
-   },
-   "sdkman\\flink": {
-    "driver": "sdkman",
-    "fields": {
-     "name": "flink"
-    },
-    "name": "flink"
    }
   },
   "fontconfig": {
@@ -87925,52 +87235,6 @@
     "name": "sonic-pi"
    }
   },
-  "spark": {
-   "apt\\jdk": {
-    "driver": "apt",
-    "fields": {
-     "name": "openjdk-21-jdk"
-    },
-    "name": "openjdk-21-jdk"
-   },
-   "dotfiles\\bash-dotfiles": {
-    "driver": "dotfiles",
-    "fields": {
-     "aliases": {
-      "absorb-into": "~/.config/bash/conf.d/pre-configsys-aliases.sh",
-      "dst": "~/.bash_aliases",
-      "src": "bash_aliases"
-     }
-    },
-    "name": "bash-dotfiles"
-   },
-   "dotfiles\\sdkman-dotfiles": {
-    "driver": "dotfiles",
-    "fields": {
-     "glue": "sdkman"
-    },
-    "name": "sdkman-dotfiles"
-   },
-   "script\\sdkman": {
-    "driver": "script",
-    "fields": {
-     "install-cmd": "curl -s https://get.sdkman.io | bash",
-     "location": "~/.sdkman",
-     "name": "sdkman",
-     "uninstall-cmd": "rm -rf \"$HOME/.sdkman\"",
-     "version-cmd": "source \"$HOME/.sdkman/bin/sdkman-init.sh\" && sdk version",
-     "version-re": "([0-9]+\\.[0-9]+\\.[0-9]+)"
-    },
-    "name": "sdkman"
-   },
-   "sdkman\\spark": {
-    "driver": "sdkman",
-    "fields": {
-     "name": "spark"
-    },
-    "name": "spark"
-   }
-  },
   "spotify": {
    "apt\\flatpak": {
     "driver": "apt",
@@ -93269,52 +92533,6 @@
      "name": "flatpak"
     },
     "name": "flatpak"
-   }
-  },
-  "flink": {
-   "dnf\\jdk": {
-    "driver": "dnf",
-    "fields": {
-     "name": "java-21-openjdk-devel"
-    },
-    "name": "java-21-openjdk-devel"
-   },
-   "dotfiles\\bash-dotfiles": {
-    "driver": "dotfiles",
-    "fields": {
-     "aliases": {
-      "absorb-into": "~/.config/bash/conf.d/pre-configsys-aliases.sh",
-      "dst": "~/.bash_aliases",
-      "src": "bash_aliases"
-     }
-    },
-    "name": "bash-dotfiles"
-   },
-   "dotfiles\\sdkman-dotfiles": {
-    "driver": "dotfiles",
-    "fields": {
-     "glue": "sdkman"
-    },
-    "name": "sdkman-dotfiles"
-   },
-   "script\\sdkman": {
-    "driver": "script",
-    "fields": {
-     "install-cmd": "curl -s https://get.sdkman.io | bash",
-     "location": "~/.sdkman",
-     "name": "sdkman",
-     "uninstall-cmd": "rm -rf \"$HOME/.sdkman\"",
-     "version-cmd": "source \"$HOME/.sdkman/bin/sdkman-init.sh\" && sdk version",
-     "version-re": "([0-9]+\\.[0-9]+\\.[0-9]+)"
-    },
-    "name": "sdkman"
-   },
-   "sdkman\\flink": {
-    "driver": "sdkman",
-    "fields": {
-     "name": "flink"
-    },
-    "name": "flink"
    }
   },
   "fontconfig": {
@@ -99654,52 +98872,6 @@
     "name": "net.sonic_pi.SonicPi"
    }
   },
-  "spark": {
-   "dnf\\jdk": {
-    "driver": "dnf",
-    "fields": {
-     "name": "java-21-openjdk-devel"
-    },
-    "name": "java-21-openjdk-devel"
-   },
-   "dotfiles\\bash-dotfiles": {
-    "driver": "dotfiles",
-    "fields": {
-     "aliases": {
-      "absorb-into": "~/.config/bash/conf.d/pre-configsys-aliases.sh",
-      "dst": "~/.bash_aliases",
-      "src": "bash_aliases"
-     }
-    },
-    "name": "bash-dotfiles"
-   },
-   "dotfiles\\sdkman-dotfiles": {
-    "driver": "dotfiles",
-    "fields": {
-     "glue": "sdkman"
-    },
-    "name": "sdkman-dotfiles"
-   },
-   "script\\sdkman": {
-    "driver": "script",
-    "fields": {
-     "install-cmd": "curl -s https://get.sdkman.io | bash",
-     "location": "~/.sdkman",
-     "name": "sdkman",
-     "uninstall-cmd": "rm -rf \"$HOME/.sdkman\"",
-     "version-cmd": "source \"$HOME/.sdkman/bin/sdkman-init.sh\" && sdk version",
-     "version-re": "([0-9]+\\.[0-9]+\\.[0-9]+)"
-    },
-    "name": "sdkman"
-   },
-   "sdkman\\spark": {
-    "driver": "sdkman",
-    "fields": {
-     "name": "spark"
-    },
-    "name": "spark"
-   }
-  },
   "spotify": {
    "dnf\\flatpak": {
     "driver": "dnf",
@@ -105056,52 +104228,6 @@
      "name": "flatpak"
     },
     "name": "flatpak"
-   }
-  },
-  "flink": {
-   "apt\\jdk": {
-    "driver": "apt",
-    "fields": {
-     "name": "openjdk-21-jdk"
-    },
-    "name": "openjdk-21-jdk"
-   },
-   "dotfiles\\bash-dotfiles": {
-    "driver": "dotfiles",
-    "fields": {
-     "aliases": {
-      "absorb-into": "~/.config/bash/conf.d/pre-configsys-aliases.sh",
-      "dst": "~/.bash_aliases",
-      "src": "bash_aliases"
-     }
-    },
-    "name": "bash-dotfiles"
-   },
-   "dotfiles\\sdkman-dotfiles": {
-    "driver": "dotfiles",
-    "fields": {
-     "glue": "sdkman"
-    },
-    "name": "sdkman-dotfiles"
-   },
-   "script\\sdkman": {
-    "driver": "script",
-    "fields": {
-     "install-cmd": "curl -s https://get.sdkman.io | bash",
-     "location": "~/.sdkman",
-     "name": "sdkman",
-     "uninstall-cmd": "rm -rf \"$HOME/.sdkman\"",
-     "version-cmd": "source \"$HOME/.sdkman/bin/sdkman-init.sh\" && sdk version",
-     "version-re": "([0-9]+\\.[0-9]+\\.[0-9]+)"
-    },
-    "name": "sdkman"
-   },
-   "sdkman\\flink": {
-    "driver": "sdkman",
-    "fields": {
-     "name": "flink"
-    },
-    "name": "flink"
    }
   },
   "fontconfig": {
@@ -111672,52 +110798,6 @@
     "name": "sonic-pi"
    }
   },
-  "spark": {
-   "apt\\jdk": {
-    "driver": "apt",
-    "fields": {
-     "name": "openjdk-21-jdk"
-    },
-    "name": "openjdk-21-jdk"
-   },
-   "dotfiles\\bash-dotfiles": {
-    "driver": "dotfiles",
-    "fields": {
-     "aliases": {
-      "absorb-into": "~/.config/bash/conf.d/pre-configsys-aliases.sh",
-      "dst": "~/.bash_aliases",
-      "src": "bash_aliases"
-     }
-    },
-    "name": "bash-dotfiles"
-   },
-   "dotfiles\\sdkman-dotfiles": {
-    "driver": "dotfiles",
-    "fields": {
-     "glue": "sdkman"
-    },
-    "name": "sdkman-dotfiles"
-   },
-   "script\\sdkman": {
-    "driver": "script",
-    "fields": {
-     "install-cmd": "curl -s https://get.sdkman.io | bash",
-     "location": "~/.sdkman",
-     "name": "sdkman",
-     "uninstall-cmd": "rm -rf \"$HOME/.sdkman\"",
-     "version-cmd": "source \"$HOME/.sdkman/bin/sdkman-init.sh\" && sdk version",
-     "version-re": "([0-9]+\\.[0-9]+\\.[0-9]+)"
-    },
-    "name": "sdkman"
-   },
-   "sdkman\\spark": {
-    "driver": "sdkman",
-    "fields": {
-     "name": "spark"
-    },
-    "name": "spark"
-   }
-  },
   "spotify": {
    "apt\\flatpak": {
     "driver": "apt",
@@ -116927,52 +116007,6 @@
      "name": "flatpak"
     },
     "name": "flatpak"
-   }
-  },
-  "flink": {
-   "apt\\jdk": {
-    "driver": "apt",
-    "fields": {
-     "name": "openjdk-21-jdk"
-    },
-    "name": "openjdk-21-jdk"
-   },
-   "dotfiles\\bash-dotfiles": {
-    "driver": "dotfiles",
-    "fields": {
-     "aliases": {
-      "absorb-into": "~/.config/bash/conf.d/pre-configsys-aliases.sh",
-      "dst": "~/.bash_aliases",
-      "src": "bash_aliases"
-     }
-    },
-    "name": "bash-dotfiles"
-   },
-   "dotfiles\\sdkman-dotfiles": {
-    "driver": "dotfiles",
-    "fields": {
-     "glue": "sdkman"
-    },
-    "name": "sdkman-dotfiles"
-   },
-   "script\\sdkman": {
-    "driver": "script",
-    "fields": {
-     "install-cmd": "curl -s https://get.sdkman.io | bash",
-     "location": "~/.sdkman",
-     "name": "sdkman",
-     "uninstall-cmd": "rm -rf \"$HOME/.sdkman\"",
-     "version-cmd": "source \"$HOME/.sdkman/bin/sdkman-init.sh\" && sdk version",
-     "version-re": "([0-9]+\\.[0-9]+\\.[0-9]+)"
-    },
-    "name": "sdkman"
-   },
-   "sdkman\\flink": {
-    "driver": "sdkman",
-    "fields": {
-     "name": "flink"
-    },
-    "name": "flink"
    }
   },
   "fontconfig": {
@@ -123362,52 +122396,6 @@
      "repo-component": "universe"
     },
     "name": "sonic-pi"
-   }
-  },
-  "spark": {
-   "apt\\jdk": {
-    "driver": "apt",
-    "fields": {
-     "name": "openjdk-21-jdk"
-    },
-    "name": "openjdk-21-jdk"
-   },
-   "dotfiles\\bash-dotfiles": {
-    "driver": "dotfiles",
-    "fields": {
-     "aliases": {
-      "absorb-into": "~/.config/bash/conf.d/pre-configsys-aliases.sh",
-      "dst": "~/.bash_aliases",
-      "src": "bash_aliases"
-     }
-    },
-    "name": "bash-dotfiles"
-   },
-   "dotfiles\\sdkman-dotfiles": {
-    "driver": "dotfiles",
-    "fields": {
-     "glue": "sdkman"
-    },
-    "name": "sdkman-dotfiles"
-   },
-   "script\\sdkman": {
-    "driver": "script",
-    "fields": {
-     "install-cmd": "curl -s https://get.sdkman.io | bash",
-     "location": "~/.sdkman",
-     "name": "sdkman",
-     "uninstall-cmd": "rm -rf \"$HOME/.sdkman\"",
-     "version-cmd": "source \"$HOME/.sdkman/bin/sdkman-init.sh\" && sdk version",
-     "version-re": "([0-9]+\\.[0-9]+\\.[0-9]+)"
-    },
-    "name": "sdkman"
-   },
-   "sdkman\\spark": {
-    "driver": "sdkman",
-    "fields": {
-     "name": "spark"
-    },
-    "name": "spark"
    }
   },
   "spotify": {
