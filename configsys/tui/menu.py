@@ -744,6 +744,27 @@ def _wrap(s, width):
     return [s[i:i + width] for i in range(0, len(s), width)] or ['']
 
 
+def _wordwrap(s, width):
+    '''Word-wrap `s` to `width` columns (break on spaces; hard-split a word longer than the line).
+    Never empty — for prose like setting descriptions.'''
+    width = max(1, width)
+    lines, cur = [], ''
+    for wd in (s or '').split():
+        while len(wd) > width:                          # a single word longer than the line
+            if cur:
+                lines.append(cur); cur = ''
+            lines.append(wd[:width]); wd = wd[width:]
+        if not cur:
+            cur = wd
+        elif len(cur) + 1 + len(wd) <= width:
+            cur += ' ' + wd
+        else:
+            lines.append(cur); cur = wd
+    if cur or not lines:
+        lines.append(cur)
+    return lines
+
+
 def _draw_diagnostics(stdscr, pal, diags, top):
     '''The `!` page: every non-fatal skip/warning, scrollable. Returns the clamped scroll top.'''
     stdscr.erase()
@@ -2324,6 +2345,7 @@ class ConfigScreen:
     def __init__(self, ctx):
         self.ctx = ctx
         self.cur = 0
+        self.top = 0                      # first visible setting (variable-height blocks -> scroll)
         self.reload()
 
     def reload(self):
@@ -2331,6 +2353,7 @@ class ConfigScreen:
         self.settings = actions.config_settings(self.ctx)
         self.keys = list(self.settings)
         self.cur = min(self.cur, max(0, len(self.keys) - 1))
+        self.top = min(self.top, self.cur)
 
 
 def _draw_config(stdscr, pal, cs, ctx, note, screen):
@@ -2343,33 +2366,72 @@ def _draw_config(stdscr, pal, cs, ctx, note, screen):
     it, il, ih, iw = _panel(stdscr, pal, 1, 0, h - 3, w,
                             'machine settings  ·  your values here override the built-in defaults',
                             True, h, w)
-    y = it
-    for i, key in enumerate(cs.keys):
-        if y + 1 >= it + ih:
+
+    # aligned columns (lowercase headers, like the Plugins table); the description + man ref wrap on
+    # the rows below each setting. Column x-offsets are relative to the panel interior `il`.
+    nx, vx = 0, min(20, iw // 3)
+    dx = min(vx + 24, iw - 18)
+    ex = min(dx + 9, iw - 13)
+    nw, vw, dw = vx - 1, dx - vx - 1, ex - dx - 1
+    ew = max(6, iw - ex - 1)
+
+    def col(y, cx, text, cw, role, sel):
+        if 0 <= cx < iw - 1:
+            _put(stdscr, y, il + cx, _fit(text, min(cw, iw - cx - 1)),
+                 pal.style(role, y, il + cx, h, w, selected=sel))
+
+    def _state(info):
+        '''(text, role) for the `default` column — is this the built-in default, a config override,
+        or an env override (which supersedes config)?'''
+        if isinstance(info.get('source'), str) and info['source'].startswith('env '):
+            return 'env', 'outdated'                      # amber: an environment override wins
+        if info.get('home') in ('local', 'primary'):
+            return 'custom', 'installed'                  # green: you've set it
+        return 'default', 'info_dim'                      # dim: the built-in default
+
+    def _edits(info):
+        '''Where a change is written (the target file/plugin), by name.'''
+        tgt = info.get('target')
+        if info.get('home') == 'primary':
+            return f'primary: {info.get("home_label")}'
+        return f'→ {tgt}' if tgt else '—'
+
+    def block_h(i):
+        info = cs.settings[cs.keys[i]]
+        return 1 + len(_wordwrap(info['desc'], iw - 4)) + 1 + 1   # cols + desc + man + gap row
+
+    avail = ih - 1                                        # header row consumes one
+    if cs.cur < cs.top:
+        cs.top = cs.cur
+    while cs.top < cs.cur and sum(block_h(i) for i in range(cs.top, cs.cur + 1)) > avail:
+        cs.top += 1                                       # keep the cursor's block in view
+
+    # header row (lowercase column names)
+    for cx, cw, label in ((nx, nw, 'name'), (vx, vw, 'value'), (dx, dw, 'default'), (ex, ew, 'edits')):
+        col(it, cx, label, cw, 'menu_header', False)
+
+    y, shown = it + 1, 0
+    for i in range(cs.top, len(cs.keys)):
+        bh = block_h(i)
+        if y + bh - 1 > it + ih:                          # the whole block wouldn't fit
             break
-        info = cs.settings[key]
-        sel = i == cs.cur
+        key, info, sel = cs.keys[i], cs.settings[cs.keys[i]], i == cs.cur
         if sel:
             _put(stdscr, y, il, ' ' * iw, pal.fill(y, il, h, w, selected=True))
-        # where does this setting live now, and (when unset) where would a fresh edit land?
-        src = info.get('source')
-        tgt = info.get('target')                          # named target: 'top config' | primary name
-        if isinstance(src, str) and src.startswith('env '):
-            loc, set_, tail = src + ' overrides config', True, ''
-        elif info.get('home') == 'local':
-            loc, set_, tail = 'local (top config)', True, ''
-        elif info.get('home') == 'primary':
-            loc, set_, tail = f'primary: {info.get("home_label")}', True, ''
-        else:                                             # at default -> show the edit destination by name
-            loc, set_, tail = 'built-in default', False, (f'  → edits: {tgt}' if tgt else '')
-        tag = f'   · {loc}{tail}'
-        _put(stdscr, y, il, _fit(f'{key:18} {_setting_str(info["kind"], info["value"], key)}', iw),
-             pal.style('label' if sel else 'component', y, il, h, w, selected=sel))
-        _put(stdscr, y, il + max(0, iw - len(tag) - 1), _fit(tag, len(tag)),
-             pal.style('scope_choice' if set_ else 'info_dim', y, il, h, w, selected=sel))
-        _put(stdscr, y + 1, il, _fit(f'   {info["desc"]}  (man: {info["man"]})', iw),
-             pal.style('info_dim', y + 1, il, h, w))
-        y += 3
+        st_txt, st_role = _state(info)
+        col(y, nx, key, nw, 'label' if sel else 'component', sel)
+        col(y, vx, _setting_str(info['kind'], info['value'], key), vw, 'scope_choice', sel)
+        col(y, dx, st_txt, dw, st_role, sel)
+        col(y, ex, _edits(info), ew, 'scope', sel)
+        dy = y + 1
+        for line in _wordwrap(info['desc'], iw - 4):      # word-wrapped description, not cut off
+            _put(stdscr, dy, il + 3, _fit(line, iw - 4), pal.style('info_dim', dy, il, h, w))
+            dy += 1
+        _put(stdscr, dy, il + 3, _fit(f'man: {info["man"]}', iw - 4),  # man ref — its own colour
+             pal.style('method_dim', dy, il, h, w))
+        y += bh
+        shown += 1
+    _scrollbar_v(stdscr, pal, it + 1, il + iw, ih - 1, cs.top, max(1, shown), len(cs.keys), h, w)
     from .. import actions
     cur_key = cs.keys[cs.cur] if cs.keys else None
     tgt = cs.settings.get(cur_key, {}).get('target') if cur_key else None
@@ -2528,13 +2590,17 @@ _SAMPLES = {
         'title': 'dotfiles (link state)',
     },
     'config': {
-        'header': f'{"SETTING":20}VALUE',
+        'header': f'{"name":18}{"value":14}{"default":9}edits',
         'rows': [
-            [('scope', 20, 'component'), ('system', 12, 'scope_choice'), ('· override', 0, 'info_dim')],
-            [('driver-preference', 20, 'component'), ('native…', 12, 'scope'), ('· default', 0, 'info_dim')],
-            [('auto-tighten', 20, 'component'), ('false', 12, 'scope'), ('· default', 0, 'info_dim')],
+            [('scope', 18, 'component'), ('user', 14, 'scope_choice'), ('default', 9, 'info_dim'),
+             ('→ top config', 0, 'scope')],
+            [('adopt-installed', 18, 'component'), ('true', 14, 'scope_choice'), ('custom', 9, 'installed'),
+             ('primary: user', 0, 'scope')],
+            [('splash', 18, 'component'), ('ocean', 14, 'scope_choice'), ('env', 9, 'outdated'),
+             ('→ top config', 0, 'scope')],
         ],
-        'foot': [('scope — default install location', 'info_dim'), ('4 settings', 'info_dim'),
+        'foot': [('scope — default install location (~ vs /opt)', 'info_dim'),
+                 ('man: configsys(1)', 'method_dim'),
                  (' ↵ edit ', 'status_line')],
         'nav': ' j/k · ↵ edit · m move local⇄primary · F1-6 page · q ',
         'title': 'machine settings  ·  your values override defaults',

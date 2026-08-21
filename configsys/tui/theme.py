@@ -191,8 +191,8 @@ PAGE_ROLES = {
                   'info', 'info_dim', 'status_line', 'footer', 'selection'],
     'dotfiles':  ['label', 'os', 'menu_header', 'component', 'unit', 'installed', 'outdated',
                   'missing', 'info_dim', 'status_line', 'footer', 'selection'],
-    'config':    ['label', 'os', 'menu_header', 'component', 'scope', 'scope_choice', 'info_dim',
-                  'status_line', 'footer', 'selection'],
+    'config':    ['label', 'os', 'menu_header', 'component', 'scope', 'scope_choice', 'installed',
+                  'outdated', 'method_dim', 'info_dim', 'status_line', 'footer', 'selection'],
     'theme':     ['label', 'menu_header', 'info_dim', 'component', 'status_line', 'footer', 'selection'],
 }
 
