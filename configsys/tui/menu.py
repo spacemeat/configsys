@@ -1501,6 +1501,19 @@ def _filter_edit(stdscr, initial, apply_fn, redraw):
             buf += chr(ch)
 
 
+def _find_next(labels, query, after):
+    '''Index of the best fuzzy match for `query`, scanning from JUST AFTER `after` (wrapping). So
+    among equally-good matches the next one after the cursor wins — repeated `/` with the same query
+    steps sequentially through siblings (gcc-10..15, cudnn-8/9, python3.11/12/…). None = no match.'''
+    best_i, best_s, n = None, None, len(labels)
+    for off in range(n):
+        i = (after + 1 + off) % n
+        s = _fuzzy_score(query, labels[i])
+        if s is not None and (best_s is None or s > best_s):
+            best_i, best_s = i, s
+    return best_i
+
+
 def _find_edit(stdscr, labels, restore, set_cursor, redraw):
     '''Live fuzzy-FIND (`/`): as you type, jump the cursor to the best fuzzy match among `labels`
     (the visible items, index-aligned with the cursor). Unlike the old `/`, this does NOT filter —
@@ -1510,12 +1523,8 @@ def _find_edit(stdscr, labels, restore, set_cursor, redraw):
     buf = ''
 
     def jump(b):
-        best_i, best_s = None, None
-        for i, lab in enumerate(labels):
-            s = _fuzzy_score(b, lab)
-            if s is not None and (best_s is None or s > best_s):
-                best_i, best_s = i, s
-        set_cursor(best_i if best_i is not None else restore)
+        i = _find_next(labels, b, restore)
+        set_cursor(i if i is not None else restore)
 
     while True:
         jump(buf)                                      # empty query -> best_i None -> restore
@@ -2036,12 +2045,12 @@ def _draw_profiles(stdscr, pal, ps, ctx, note, screen):
     # marker legend for the profiles pane — right-aligned on the status bar so the keys get two
     # full rows below. ● directly active (in configs:), ◐ active only via a +include, ○ inactive,
     # ▸ star-filtered.
-    legend = '●active  ◐inherited  ○inactive  ▸starred '
+    legend = '● active  ◐ inherited  ○ inactive  ▸ starred '
     lg_x = max(0, w - len(legend))
     _put(stdscr, h - 3, 0, _fit(status, max(1, lg_x - 1)), pal.style('status_line', h - 3, 0, h, w))
     _put(stdscr, h - 3, lg_x, _fit(legend, w - lg_x), pal.style('status_line', h - 3, lg_x, h, w))
-    nav1 = (' j/k move · h/l expand · tab/⏎ components · a active · * star · ~ removed · + include ')
-    nav2 = (' n/d new/del · space member · m method · / find · F filter · A attrs · q quit ')
+    nav1 = (' j/k move · g/G top/bottom · h/l expand · tab/⏎ components · / find · F filter · A attrs ')
+    nav2 = (' space member · m method · a active · * star · ~ removed · + include · n/d new/del · q quit ')
     _put(stdscr, h - 2, 0, _fit(nav1.ljust(w), w), pal.style('footer', h - 2, 0, h, w))
     _put(stdscr, h - 1, 0, _fit(nav2.ljust(w), w), pal.style('footer', h - 1, 0, h, w))
     stdscr.refresh()

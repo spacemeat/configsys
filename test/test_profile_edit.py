@@ -265,6 +265,18 @@ def test_profile_tree_and_star_filter(tmp_path):
     assert ps.starred == set() and len(ps.vcatalog()) == len(ps.catalog)
 
 
+def test_find_next_steps_through_siblings():
+    # `/` scans from JUST AFTER the cursor, so repeated finds step through equally-scoring siblings
+    # (and wrap), while a clearly-better match still wins.
+    from configsys.tui.menu import _find_next
+    labels = ['alpha', 'gcc-10', 'gcc-11', 'gcc-12', 'zebra']
+    assert _find_next(labels, 'gcc', 0) == 1          # alpha -> gcc-10
+    assert _find_next(labels, 'gcc', 1) == 2          # gcc-10 -> gcc-11 (the NEXT one)
+    assert _find_next(labels, 'gcc', 3) == 1          # gcc-12 -> wraps back to gcc-10
+    assert _find_next(labels, 'nope', 0) is None      # nothing matches
+    assert _find_next(['xgcc', 'gcc'], 'gcc', 1) == 1  # a boundary/exact match still beats a weaker one
+
+
 def test_profile_active_direct_vs_indirect(tmp_path):
     # `configs:` profiles are DIRECTLY active (● in the pane); profiles reached via +include from an
     # active one are INDIRECTLY active (◐); the rest inactive (○).
