@@ -55,9 +55,11 @@ def _installed_via(ctx, comp, cx, cache):
     return None
 
 
-def detect_pins(ctx, units):
+def detect_pins(ctx, units, progress=None):
     '''Soft {name-or-cap: via-or-provider} pins biasing resolution toward installed reality. User-
-    pinned components/caps are left alone. Returns {} when nothing applies (fresh machine).'''
+    pinned components/caps are left alone. Returns {} when nothing applies (fresh machine).
+    `progress(done, total)` is called as each package manager's installed set is enumerated (the slow,
+    subprocess-bound part of startup) so the splash can show real motion during this pre-inspect phase.'''
     from .installState import _parallel_map
     r = ctx.routes
     cx = r.cascade.context(r.block, r.version, r.cpu)
@@ -77,8 +79,13 @@ def detect_pins(ctx, units):
             return name, drv.installed_index()
         except Exception:                           # noqa: BLE001 — a flaky lister must not brick resolve
             return name, None
-    for name, idx in _parallel_map(_enum, list({rc.driver for rc in units.values()})):
+    drivers = list({rc.driver for rc in units.values()})
+    done = 0
+    for name, idx in _parallel_map(_enum, drivers):
         cache[name] = idx
+        done += 1
+        if progress:
+            progress(done, len(drivers))
 
     # -- method detection: a resolved component installed via a different valid method --
     for rc in units.values():

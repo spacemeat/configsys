@@ -1022,10 +1022,11 @@ def _describe(ctx):
         return {}
 
 
-def _popup_choose(stdscr, pal, title, options, start=0):
+def _popup_choose(stdscr, pal, title, options, start=0, shortcuts=None):
     '''A modal chooser drawn OVER the current screen (no drop to the terminal). `options` is a
     list of (label, tag-string). j/k or arrows move, enter selects, esc/q cancels. Returns the
-    chosen index or None. The background stays put; the main loop redraws on return.'''
+    chosen index or None. `shortcuts` is an optional {char: index} map (e.g. {'y': 0, 'n': 1}) so a
+    letter jumps straight to (and picks) an option. The background stays put; the loop redraws.'''
     h, w = stdscr.getmaxyx()
     n = len(options)
     inner = max([len(title)] + [len(lbl) + len(tag) + 2 for lbl, tag in options] + [24])
@@ -1048,9 +1049,14 @@ def _popup_choose(stdscr, pal, title, options, start=0):
             if tag:
                 _put(stdscr, y0 + 2 + i, x0 + box_w - 2 - len(tag), tag,
                      attr | pal.get('dim'))
-        _put(stdscr, y0 + box_h - 1, x0 + 2, ' j/k · enter · esc ', border)
+        hint = f' {"/".join(shortcuts)} · j/k · enter · esc ' if shortcuts else ' j/k · enter · esc '
+        _put(stdscr, y0 + box_h - 1, x0 + 2, _fit(hint, box_w - 4), border)
         stdscr.refresh()
         ch = stdscr.getch()
+        if shortcuts and 0 <= ch < 256:
+            hit = shortcuts.get(chr(ch).lower())
+            if hit is not None:
+                return hit
         if ch in (27, ord('q')):
             return None
         if ch in (ord('j'), curses.KEY_DOWN):
@@ -1365,7 +1371,9 @@ def _splash_linger(ctx):
 # bar for them and EASE it up over ~_PRELUDE_TAU seconds, so the splash shows motion instead of a stall;
 # the real per-unit progress then fills the remaining (1 - share).
 _PRELUDE_SHARE = 0.35
-_PRELUDE_TAU = 0.8       # seconds — ease time-constant (bar reaches ~63%/86%/95% of the share at 1/2/3τ)
+_PRELUDE_HEAD = 0.12    # the load/route/resolve head of the prelude (no per-item signal) — eased;
+_PRELUDE_TAU = 0.8      # detection then fills _PRELUDE_HEAD.._PRELUDE_SHARE with REAL per-driver ticks.
+#                        seconds — ease time-constant (bar reaches ~63%/86%/95% of the head at 1/2/3τ)
 
 
 class _InspectWorker:
@@ -1377,6 +1385,8 @@ class _InspectWorker:
         self.ctx = ctx
         self._i = 0
         self._total = 0
+        self._pre_i = 0                      # detection-phase (installed-package enumeration) progress
+        self._pre_n = 0
         self._start = time.monotonic()
         self._done = threading.Event()
         self._result = None
@@ -1386,13 +1396,25 @@ class _InspectWorker:
     def _sink(self, i, total, *rest):
         self._i, self._total = i, total
 
+    def _detect_sink(self, done, total):
+        self._pre_i, self._pre_n = done, total
+
     def _work(self):
         try:
-            self._result = self.ctx.load_pipeline(progress=self._sink)
+            self._result = self.ctx.load_pipeline(progress=self._sink, detect_progress=self._detect_sink)
         except BaseException as e:          # captured, re-raised on the main thread in join()
             self._exc = e
         finally:
             self._done.set()
+
+    def phase_label(self):
+        '''What the worker is doing right now — so the splash label tracks the phase, not a fixed
+        string. (Read live by run_splash each frame.)'''
+        if self._total:
+            return 'checking install state'
+        if self._pre_n:
+            return 'scanning installed packages'
+        return 'loading configuration'
 
     def start(self):
         self._thread.start()
@@ -1405,9 +1427,11 @@ class _InspectWorker:
     def frac(self):
         if self._total:                          # inspecting: real per-unit progress, above the prelude
             return _PRELUDE_SHARE + (1 - _PRELUDE_SHARE) * (self._i / self._total)
-        # pre-inspect: no per-unit signal yet — ease the bar UP toward the prelude share over ~its
-        # duration, so the splash shows motion (not a stalled 0%) while routes load / resolve / detect.
-        return _PRELUDE_SHARE * (1.0 - math.exp(-(time.monotonic() - self._start) / _PRELUDE_TAU))
+        if self._pre_n:                          # detecting: REAL per-driver ticks fill the prelude's
+            return _PRELUDE_HEAD + (_PRELUDE_SHARE - _PRELUDE_HEAD) * (self._pre_i / self._pre_n)  # back
+        # load/route/resolve: no per-item signal yet — ease the bar UP toward the prelude HEAD so the
+        # splash shows motion (not a stalled 0%) until detection starts feeding real ticks.
+        return _PRELUDE_HEAD * (1.0 - math.exp(-(time.monotonic() - self._start) / _PRELUDE_TAU))
 
     def counts(self):
         return (self._i, self._total)
@@ -3185,7 +3209,7 @@ def run(ctx):
                     hint = _pl.splash_value_hint(splash_name, ctx.paths.plugins_dir, _decls)
                     splash_note = hint or f"splash '{splash_name}' unavailable — using '{DEFAULT_SPLASH}'"
                 provider = get_splash(DEFAULT_SPLASH)   # the trust-free in-core default
-            run_splash(stdscr, pal, provider, label='checking install state',
+            run_splash(stdscr, pal, provider, label=worker.phase_label,   # tracks the live phase
                        is_done=worker.done, frac=worker.frac, counts=worker.counts,
                        seed=random.randrange(1 << 30), linger=_splash_linger(ctx),
                        fps_cap=(15 if effects in ('reduced', 'none') else None))   # calmer bar
@@ -3279,7 +3303,8 @@ def run(ctx):
             # -- global keys (every screen) --
             if ch == ord('q'):                          # confirm before leaving; esc no longer quits
                 if _popup_choose(stdscr, pal, 'Really quit?',
-                                 [('Yes, quit', ''), ('No, keep working', '')], start=1) == 0:
+                                 [('Yes, quit', ''), ('No, keep working', '')], start=1,
+                                 shortcuts={'y': 0, 'n': 1}) == 0:
                     break
                 continue
             if ch == ord('!'):

@@ -161,8 +161,9 @@ def run_splash(scr, pal, provider_cls, *, is_done, frac, counts, label, deadline
             dt = now - last
             last = now
             done = is_done()
+            lbl = label() if callable(label) else label   # a callable label tracks the live phase
             frame = SplashFrame(progress=(1.0 if done else frac()), counts=counts(),
-                                label=label, dt=dt, elapsed=now - start, done=done)
+                                label=lbl, dt=dt, elapsed=now - start, done=done)
             at_rest = False
             if animate:
                 try:
@@ -177,7 +178,7 @@ def run_splash(scr, pal, provider_cls, *, is_done, frac, counts, label, deadline
                     if used_raw:
                         _tty_write('\033[0m')
                         scr.clearok(True)
-                    _draw_progress_text(scr, pal, label, frame.counts, h, w)
+                    _draw_progress_text(scr, pal, lbl, frame.counts, h, w)
                 if animate and scr.getch() != -1:     # a key: end the show (linger) or drop to text
                     if linger:
                         return                        # linger: watch as long as you like, any key exits
@@ -186,7 +187,7 @@ def run_splash(scr, pal, provider_cls, *, is_done, frac, counts, label, deadline
                         _tty_write('\033[0m')
                         scr.clearok(True)
             else:
-                _draw_progress_text(scr, pal, label, frame.counts, h, w)
+                _draw_progress_text(scr, pal, lbl, frame.counts, h, w)
             if not (raw and animate):                 # raw frames own the tty; skip curses' repaint
                 scr.noutrefresh()
                 curses.doupdate()

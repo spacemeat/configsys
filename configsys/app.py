@@ -379,7 +379,7 @@ class Context:
             print(f'  {action:8} {name}')
         print(f'configsys: {msg}')
 
-    def load_pipeline(self, reuse=None, dirty=None, progress=None):
+    def load_pipeline(self, reuse=None, dirty=None, progress=None, detect_progress=None):
         r = self.reporter
         self.ensure_user_config(offer_primary=True)
         cfg = self.config
@@ -407,7 +407,7 @@ class Context:
             # the detection tier: bias toward what's already installed (soft — below your pins).
             # Skipped under --pretend (probing the disk there is meaningless / non-deterministic).
             from . import detection
-            detected = detection.detect_pins(self, units) or {}
+            detected = detection.detect_pins(self, units, progress=detect_progress) or {}
         if tighten or detected:
             units, self.resolve_errors = routes.resolve_resilient(
                 list(requested), extra_pins=(tighten or None), soft_pins=(detected or None))
