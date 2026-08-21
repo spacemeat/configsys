@@ -162,6 +162,19 @@ def test_check_does_not_escalate_os_unavailability(tmp_path, capsys, monkeypatch
     assert rc == 0 and 'no issues' in capsys.readouterr().out
 
 
+def test_tui_exit_prints_config_errors_at_default_verbosity(tmp_path, capsys):
+    # Quitting the TUI must leave any config ERRORS in the scrollback even at the default verbosity
+    # (they used to be -v+ only, so bare `configsys` swallowed them on exit). Warnings stay -v+.
+    from configsys.app import Context, build_parser
+    ctx = Context(build_parser().parse_args(base_args(tmp_path) + ['inspect']))
+    diags = [{'level': 'error', 'tag': 'unroutable', 'text': 'cudnn-9: cannot provide cuda-toolkit >=12'},
+             {'level': 'warn', 'tag': 'scope', 'text': 'a mere warning'}]
+    ctx.report_session_summary(None, {}, diags)
+    out = capsys.readouterr().out
+    assert '1 config error(s)' in out and 'cudnn-9' in out
+    assert 'a mere warning' not in out                    # warnings remain verbose-only
+
+
 def test_where_shows_active_pin(tmp_path, capsys):
     (tmp_path / 'configsys.hu').write_text('{ pins: { steam: flatpak } }')
     rc = main(base_args(tmp_path) + ['where', 'steam'])

@@ -489,11 +489,18 @@ class Context:
                         f'    · {name:22} via {b.via:13} when: {b.when or "always"}')
 
     def report_session_summary(self, cfg, states, diags):
-        '''Post-TUI recap printed to the console at -v+ (after endwin restores the terminal),
-        so once a long session ends the OS, profiles, final state tally, and any issues persist
-        in the scrollback where configsys was launched.'''
+        '''Post-TUI recap printed to the console (after endwin restores the terminal), so once a long
+        session ends its outcome persists in the scrollback where configsys was launched. ERROR-level
+        issues ALWAYS print — a broken config must never be silently swallowed just because you ran
+        the TUI and quit; the full OS/profiles/state-tally recap (and warnings) stays -v+.'''
         r = self.reporter
         if r.level < report.VERBOSE:
+            errs = [d for d in (diags or []) if d['level'] == 'error']
+            if errs:
+                print(f'\nconfigsys: {len(errs)} config error(s) — also on the TUI ! page; '
+                      f'run `configsys check` for the full lint:')
+                for d in errs:
+                    print(f'  ✗ {d["tag"]:10} {d["text"]}')
             return
         ver = f' {self.os_info.version}' if self.os_info.version else ''
         r.event(report.VERBOSE, f'  session summary — {self.os_info.block}{ver}   '
