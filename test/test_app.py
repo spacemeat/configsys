@@ -128,6 +128,40 @@ def test_check_reports_errors_and_warnings_with_exit_code(tmp_path, capsys):
     assert '.config/configsys/configsys.hu' in out   # attributed to the user file (XDG path)
 
 
+def test_check_surfaces_a_pin_that_blocks_an_active_component(tmp_path, capsys):
+    # A provider-pin that can't satisfy a versioned `requires:` for an ACTIVE consumer is a resolve-
+    # TIME error `check` used to only warn about — it now resolves the active set and reports it as an
+    # error (parity with the `!` page / inspect). Pure OS-availability is NOT escalated (see below).
+    (tmp_path / 'configsys.hu').write_text('''{
+        configs: [ mine ]
+        profiles: { mine: [ needs-v2 ] }
+        pins: { cap: prov-v1 }
+        components: {
+            prov-v1:  { provides: { cap: 1 }      install: [ { via: native } ] }
+            prov-v2:  { provides: { cap: 2 }      install: [ { via: native } ] }
+            needs-v2: { requires: { cap: ">=2" }  install: [ { via: native } ] }
+        }
+    }''')
+    rc = main(base_args(tmp_path) + ['check'])
+    out = capsys.readouterr().out
+    assert rc == 1
+    assert 'needs-v2:' in out and 'pinned to' in out and 'cap >=2' in out
+
+
+def test_check_does_not_escalate_os_unavailability(tmp_path, capsys, monkeypatch):
+    # A config listing a component that simply has no binding on THIS OS is still a clean config —
+    # `check` must NOT turn "no binding for X in this context" into an error (that's an inspect /
+    # per-machine concern, not a config lint). Guards the resolve-pass filter.
+    monkeypatch.setattr('configsys.app.sys.version_info', (3, 12, 0))
+    (tmp_path / 'configsys.hu').write_text('''{
+        configs: [ mine ]
+        profiles: { mine: [ arch-only ] }
+        components: { arch-only: { install: [ { via: native  when: "arch" } ] } }
+    }''')
+    rc = main(base_args(tmp_path) + ['check'])       # base_args is --os pop, so arch-only can't route
+    assert rc == 0 and 'no issues' in capsys.readouterr().out
+
+
 def test_where_shows_active_pin(tmp_path, capsys):
     (tmp_path / 'configsys.hu').write_text('{ pins: { steam: flatpak } }')
     rc = main(base_args(tmp_path) + ['where', 'steam'])

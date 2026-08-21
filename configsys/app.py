@@ -1342,13 +1342,31 @@ def cmd_check(ctx, args):
                           for c, p in sorted(refreshstate.read_stale_pins(ctx.paths).items())
                           if isinstance(p, (list, tuple)) and len(p) == 2]
 
+    # RESOLVE the active set (no disk probe) so `check` surfaces resolve-TIME CONFIG inconsistencies
+    # the static lint sees only as latent — a pin that can't satisfy a versioned `requires:` for an
+    # ACTIVE consumer (e.g. a `cuda-toolkit` pin blocking `cudnn-9`), or an ambiguity needing a pin.
+    # This is the class the TUI `!` page / `inspect` flag as errors but that `check` used to downgrade
+    # to a warning (or miss). We KEEP only pin/ambiguity errors (things the config author controls),
+    # NOT pure OS-availability ("no binding for X in this context") — a config that lists a component
+    # unavailable on THIS OS is still a clean config. Unknown-component members are already reported
+    # by prof_issues, so they're excluded too.
+    resolve_errors = []
+    _known_bad = {c for _p, c in prof_issues}
+    _config_err = ('pinned to', 'ambiguous providers')
+    try:
+        _u, _rerrs = ctx.routes.resolve_resilient(list(ctx.config.requested()))
+        resolve_errors = [f'{n}: {_rerrs[n]}' for n in sorted(_rerrs)
+                          if n not in _known_bad and any(s in _rerrs[n] for s in _config_err)]
+    except ConfigsysError:
+        pass                                        # a structural failure already surfaced above
+
     errors = [i for i in issues if i.is_error]
     warnings = [i for i in issues if not i.is_error]
     code_warnings = ctx.plugin_code_warnings
     if (not errors and not warnings and not prof_issues and not prof_errors and not pin_issues
             and not include_warnings and not code_warnings and not conflict_warnings
             and not theme_warnings and not pin_conflict_warnings and not py_floor_warnings
-            and not stale_pin_warnings):
+            and not stale_pin_warnings and not resolve_errors):
         print(f'configsys: OK — {len(components)} components, no issues')
         return 0
 
@@ -1359,6 +1377,8 @@ def cmd_check(ctx, args):
     for prof, cname in prof_issues:
         print(f"  ERROR   profile '{prof}': unknown component '{cname}'")
     for msg in pin_issues:
+        print(f'  ERROR   {msg}')
+    for msg in resolve_errors:
         print(f'  ERROR   {msg}')
     for i in warnings:
         print(f'  warn    {_issue_loc(i, ctx.paths)}{i.message}')
@@ -1376,7 +1396,7 @@ def cmd_check(ctx, args):
         print(f'  warn    {msg}')
     for msg in stale_pin_warnings:
         print(f'  warn    {msg}')
-    n_err = len(errors) + len(prof_errors) + len(prof_issues) + len(pin_issues)
+    n_err = len(errors) + len(prof_errors) + len(prof_issues) + len(pin_issues) + len(resolve_errors)
     n_warn = (len(warnings) + len(include_warnings) + len(code_warnings) + len(conflict_warnings)
               + len(theme_warnings) + len(pin_conflict_warnings) + len(py_floor_warnings)
               + len(stale_pin_warnings))
