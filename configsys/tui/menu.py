@@ -2379,10 +2379,11 @@ def _eff_flags(st):
             | (curses.A_REVERSE if st.get('reverse') else 0))
 
 
-# A faithful mock of each real screen — a header line, rows (first selected), and footer lines —
-# so the sample REPRESENTS that page and uses that page's own roles. A row is a list of
-# (text, width, role) segments; width 0 = run to the panel edge. `badge` is an optional top-right
-# chrome chip (text, role).
+# A faithful mock of each SINGLE-LIST screen (components/dotfiles/config) — a header line, rows
+# (first selected), and footer lines — so the sample REPRESENTS that page and uses that page's own
+# roles. A row is a list of (text, width, role) segments; width 0 = run to the panel edge. `badge`
+# is an optional top-right chrome chip (text, role). The two-pane screens (profiles, plugins) have
+# their own bespoke renderers below.
 _SAMPLES = {
     'components': {
         'badge': (' ⚠ 2 ', 'issue_warning'),
@@ -2400,27 +2401,7 @@ _SAMPLES = {
         'foot': [('ripgrep — fast recursive search', 'info'),
                  ('methods: apt · tarball · cargo', 'methods'),
                  (' selected: ripgrep    staged: 2 ', 'status_line')],
-    },
-    'profiles': {
-        'header': f'{"PROFILES":22}COMPONENTS IN dev',
-        'rows': [
-            [('dev', 22, 'profile'), ('btop', 0, 'component')],
-            [('+base', 22, 'link'), ('ripgrep', 0, 'component')],
-            [('web', 22, 'profile'), ('neovim', 0, 'component')],
-        ],
-        'foot': [('dev = base + your tools', 'info'), ('3 profiles active', 'info_dim'),
-                 (' selected: dev ', 'status_line')],
-    },
-    'plugins': {
-        'header': f'{"PLUGIN":22}STATUS',
-        'rows': [
-            [('configsys-user', 22, 'component'), ('★ primary', 0, 'info')],
-            [('void-linux', 22, 'unit'), ('code', 0, 'installed')],
-            [('theme-rose', 22, 'unit'), ('unsynced', 0, 'missing')],
-            [('acme-corp', 22, 'unit'), ('quarantined', 0, 'untrusted')],
-        ],
-        'foot': [('configsys-user — dotfiles + settings', 'info'),
-                 ('4 declared · 1 primary', 'info_dim'), (' selected: configsys-user ', 'status_line')],
+        'nav': ' j/k · space mark · i/u/r/x op · / find · a-f page · q ',
     },
     'dotfiles': {
         'header': f'{"COMPONENT":14}{"STATE":13}{"LINK":22}SOURCE',
@@ -2437,6 +2418,7 @@ _SAMPLES = {
         'foot': [('git — capture to link ~/.gitconfig', 'info_dim'),
                  ('4 targets · 1 to capture', 'info_dim'),
                  (' ↵ link · c capture · m migrate · C/L/M = all ', 'status_line')],
+        'nav': ' tab · j/k · ↵ link · c capture · m migrate · a-f · q ',
     },
     'config': {
         'header': f'{"SETTING":20}VALUE',
@@ -2447,6 +2429,7 @@ _SAMPLES = {
         ],
         'foot': [('scope — default install location', 'info_dim'), ('4 settings', 'info_dim'),
                  (' ↵ edit ', 'status_line')],
+        'nav': ' j/k · ↵ edit · m move local⇄primary · a-f page · q ',
     },
 }
 
@@ -2511,14 +2494,135 @@ def _sample_theme_page(stdscr, pal, y0, x0, hh, ww):
     pal.use_page('theme')
 
 
+def _sample_bg_chrome(stdscr, pal, putl, y0, x0, hh, ww):
+    '''Shared preview scaffolding: paint the page background (gradient or flat) + the top chrome row
+    (the `configsys` chip + OS), so every content-screen mock wears the same app frame.'''
+    for yy in range(hh):
+        bg = pal.fill(yy, 0, hh, ww) if pal.gradient else pal.style('unit', yy, 0, hh, ww)
+        _put(stdscr, y0 + yy, x0, ' ' * ww, bg)
+    putl(0, 1, ' configsys ', 'label')
+    putl(0, 13, 'Pop!_OS 22.04', 'os')
+
+
+def _sample_profiles_page(stdscr, pal, y0, x0, hh, ww):
+    '''Mock of the Profiles screen — a narrow profiles TREE (▸ star, ●/◐/○ activity, +include
+    children) beside a component detail line + a catalog grid. Its real two-pane shape, so the
+    preview reads as Profiles, not a recolored Components list.'''
+    pal.use_page('profiles')
+
+    def putl(ry, rx, text, role, *, sel=False):
+        if 0 <= ry < hh and 0 <= rx < ww - 1:
+            _put(stdscr, y0 + ry, x0 + rx, _fit(text, ww - 1 - rx),
+                 pal.style(role, ry, rx, hh, ww, selected=sel))
+
+    _sample_bg_chrome(stdscr, pal, putl, y0, x0, hh, ww)
+    if hh < 8 or ww < 30:                              # too small for two panes: a one-line hint
+        putl(2, 1, '▾● dev   ◐ +base   ○ web', 'profile')
+        pal.use_page('theme')
+        return
+
+    lw = max(12, min(ww // 3, 20))                     # LEFT: the profiles tree
+    putl(1, 1, _fit('profiles', lw - 1), 'menu_header')
+    tree = [('▸▾● dev', 'profile', True), ('    ▹◐ +base', 'link', False),
+            ('  ● web', 'profile', False), ('  ○ media', 'profile', False)]
+    for i, (txt, role, sel) in enumerate(tree):
+        yy = 2 + i
+        if yy >= hh - 2:
+            break
+        if sel:
+            _put(stdscr, y0 + yy, x0, ' ' * lw, pal.fill(yy, 0, hh, ww, selected=True))
+        putl(yy, 1, txt, role, sel=sel)
+    for yy in range(1, hh - 2):                        # the pane divider
+        putl(yy, lw, '│', 'info_dim')
+
+    rx, rw = lw + 2, ww - lw - 3                       # RIGHT: detail line + a catalog grid
+    putl(1, rx, _fit('ripgrep', rw), 'menu_header')
+    putl(2, rx, _fit('fast recursive search (rg)', rw), 'info')
+    putl(3, rx, _fit('required by: fd · bat', rw), 'dependents')
+    putl(4, rx, _fit('in profiles: ● dev  ↳ base', rw), 'method_dim')
+    grid = [('● ripgrep', 'component'), ('○ neovim', 'unit'), ('● btop', 'component'),
+            ('○ fd', 'unit'), ('● bat', 'component'), ('○ fzf', 'unit')]
+    colw = max(10, rw // 2)
+    ncols = max(1, rw // colw)
+    for i, (txt, role) in enumerate(grid):
+        col, r = i % ncols, i // ncols
+        yy = 6 + r
+        if yy >= hh - 2:
+            break
+        putl(yy, rx + col * colw, _fit(txt, colw - 1), role)
+
+    putl(hh - 2, 0, _fit(' selected: dev   ● direct  ◐ via-include  ○ off ', ww).ljust(ww), 'status_line')
+    putl(hh - 1, 0, _fit(' tab · j/k · * star · ↵ toggle · a-f page · q ', ww).ljust(ww), 'footer')
+    pal.use_page('theme')
+
+
+def _sample_plugins_page(stdscr, pal, y0, x0, hh, ww):
+    '''Mock of the Plugins screen — a plugins table above a COLORED unified-diff pane (what an update
+    would change). The diff is the screen's whole point, so the preview shows it; a plain list
+    wouldn't read as Plugins.'''
+    pal.use_page('plugins')
+
+    def putl(ry, rx, text, role, *, sel=False):
+        if 0 <= ry < hh and 0 <= rx < ww - 1:
+            _put(stdscr, y0 + ry, x0 + rx, _fit(text, ww - 1 - rx),
+                 pal.style(role, ry, rx, hh, ww, selected=sel))
+
+    _sample_bg_chrome(stdscr, pal, putl, y0, x0, hh, ww)
+    if hh < 9 or ww < 30:                              # too small for table + diff: a two-line hint
+        putl(2, 1, 'configsys-user  ★ primary', 'component')
+        putl(3, 1, '+ added   - removed', 'diff_add')
+        pal.use_page('theme')
+        return
+
+    table_h = max(3, (hh - 3) * 2 // 5)                # TOP: the plugins table
+    putl(1, 1, _fit(f'{"PLUGIN":18}{"REF":6}STATUS', ww - 2), 'menu_header')
+    rows = [('configsys-user', 'v3', '★ primary', 'info', True),
+            ('void-linux', 'v1', 'trusted code', 'installed', False),
+            ('theme-rose', '—', 'unsynced', 'missing', False),
+            ('acme-corp', 'v2', 'quarantined', 'untrusted', False)]
+    for i, (nm, ref, st, strole, sel) in enumerate(rows):
+        yy = 2 + i
+        if yy >= 1 + table_h:
+            break
+        if sel:
+            _put(stdscr, y0 + yy, x0, ' ' * ww, pal.fill(yy, 0, hh, ww, selected=True))
+        putl(yy, 1, f'{nm:18}', 'label' if sel else 'component', sel=sel)
+        putl(yy, 19, f'{ref:6}', 'label' if sel else 'info_dim', sel=sel)
+        putl(yy, 25, st, 'label' if sel else strole, sel=sel)
+
+    dy = 1 + table_h                                   # BOTTOM: the colored unified diff
+    putl(dy, 0, '─' * (ww - 1), 'info_dim')            # table | diff divider
+    putl(dy + 1, 1, _fit('diff · void-linux · v1 → v2    +3 -1', ww - 2), 'accent')
+    diff = [('@@ routes.hu @@', 'diff_hunk'), ('   components:', 'diff_meta'),
+            ('+    xbps:  { name: ripgrep }', 'diff_add'),
+            ('+    aur:   { name: rust-ripgrep }', 'diff_add'),
+            ('-    cargo: { name: ripgrep }', 'diff_del'),
+            ('     suggests: ripgrep-dotfiles', 'diff_meta')]
+    for i, (txt, role) in enumerate(diff):
+        yy = dy + 2 + i
+        if yy >= hh - 2:
+            break
+        putl(yy, 1, txt, role)
+
+    putl(hh - 2, 0, _fit(' void-linux · trusted · Tab: table ⇄ diff ', ww).ljust(ww), 'status_line')
+    putl(hh - 1, 0, _fit(' tab · j/k · s sync · u update · t trust · a-f · q ', ww).ljust(ww), 'footer')
+    pal.use_page('theme')
+
+
 def _sample_page(stdscr, pal, page, y0, x0, hh, ww):
     '''Render a mock of the REAL `page` (its layout + its own roles) in that page's colors + gradient,
     so cycling pages shows a faithful, distinct preview. Switches the palette's active page; the
     caller restores.'''
     if hh < 6 or ww < 24:
         return
-    if page == 'theme':                                # the editor's own page has a distinct layout
-        _sample_theme_page(stdscr, pal, y0, x0, hh, ww)
+    if page == 'theme':                                # each of these screens has a distinct SHAPE,
+        _sample_theme_page(stdscr, pal, y0, x0, hh, ww)   # not a single list — mock it faithfully so
+        return                                            # the preview reads as that screen
+    if page == 'profiles':
+        _sample_profiles_page(stdscr, pal, y0, x0, hh, ww)
+        return
+    if page == 'plugins':
+        _sample_plugins_page(stdscr, pal, y0, x0, hh, ww)
         return
     pal.use_page(page)
     for yy in range(hh):
@@ -2552,7 +2656,7 @@ def _sample_page(stdscr, pal, page, y0, x0, hh, ww):
     fy = hh - len(foot) - 1
     for i, (text, role) in enumerate(foot):
         put(fy + i, 1, text, role)
-    put(hh - 1, 1, _fit(' j/k move · space · q ', ww - 2).ljust(ww - 2), 'footer')
+    put(hh - 1, 1, _fit(spec.get('nav', ' j/k move · space · q '), ww - 2).ljust(ww - 2), 'footer')
     pal.use_page('theme')
 
 
