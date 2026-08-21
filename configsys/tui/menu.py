@@ -3105,8 +3105,15 @@ def _draw_plugins(stdscr, pal, pl, ctx, note, screen):
     status = f' {len(pl.rows)} plugin(s) · focus: {pl.focus}'
     if note:
         status += f'    {note}'
-    navf = (' tab focus · j/k · h/l scroll · a add · x rm · s/S sync · b/B bless · u/U update · '
-            'v ref · t trust · T trust-all · 1-6 · q ')
+    if _KEYMAP is not None:
+        g = lambda a: _KEYMAP.glyph('plugins', a)
+        navf = (f" {g('switch-pane')} focus · {g('down')}/{g('up')} · {g('left')}/{g('right')} scroll · "
+                f"{g('add')} add · {g('remove')} rm · {g('sync')}/{g('sync-all')} sync · "
+                f"{g('bless')}/{g('unbless')} bless · {g('update')}/{g('update-all')} update · "
+                f"{g('set-ref')} ref · {g('trust')} trust · {g('trust-all')} trust-all · 1-6 · {g('quit')} ")
+    else:
+        navf = (' tab focus · j/k · h/l scroll · a add · x rm · s/S sync · b/B bless · u/U update · '
+                'v ref · t trust · T trust-all · 1-6 · q ')
     _put(stdscr, h - 2, 0, _fit(status, w), pal.style('status_line', h - 2, 0, h, w))
     _put(stdscr, h - 1, 0, _fit(navf.ljust(w), w), pal.style('footer', h - 1, 0, h, w))
     stdscr.refresh()
@@ -3638,11 +3645,12 @@ def run(ctx):
             if screen == 'plugins':
                 from .. import actions, plugins
                 row = pl.cur_row()
+                pact = keymap.action_for('plugins', ch)
                 try:
                     if pl.focus == 'diff' and pl.diff_key is None:
                         pl.load_diff()                         # remote-ref landed -> fetch it now
                     # -- focus + navigation (focus-aware j/k/h/l/g/G) --
-                    if ch == ord('\t'):                        # Tab: table→diff, then file→file, then →table
+                    if pact == 'switch-pane':                  # Tab: table→diff, then file→file, then →table
                         if pl.focus == 'table':
                             pl.focus, pl.dfile = 'diff', 0
                             pl.load_diff()
@@ -3650,7 +3658,7 @@ def run(ctx):
                             pl.dfile, pl.dtop, pl.dhscroll = pl.dfile + 1, 0, 0
                         else:
                             pl.focus = 'table'
-                    elif ch == curses.KEY_BTAB:                # Shift-Tab: reverse
+                    elif pact == 'switch-pane-back':           # Shift-Tab: reverse
                         if pl.focus == 'table':
                             pl.focus = 'diff'
                             pl.load_diff()
@@ -3659,38 +3667,38 @@ def run(ctx):
                             pl.dfile, pl.dtop, pl.dhscroll = pl.dfile - 1, 0, 0
                         else:
                             pl.focus = 'table'
-                    elif ch in (ord('j'), curses.KEY_DOWN):
+                    elif pact == 'down':
                         if pl.focus == 'diff':
                             pl.dtop += 1
                         else:
                             pl.cur = min(len(pl.rows) - 1, pl.cur + 1); pl._invalidate_diff()
-                    elif ch in (ord('k'), curses.KEY_UP):
+                    elif pact == 'up':
                         if pl.focus == 'diff':
                             pl.dtop = max(0, pl.dtop - 1)
                         else:
                             pl.cur = max(0, pl.cur - 1); pl._invalidate_diff()
-                    elif ch in (ord('l'), curses.KEY_RIGHT):
+                    elif pact == 'right':
                         if pl.focus == 'diff':
                             pl.dhscroll += 4
                         else:
                             pl.hscroll += 6
-                    elif ch in (ord('h'), curses.KEY_LEFT):
+                    elif pact == 'left':
                         if pl.focus == 'diff':
                             pl.dhscroll = max(0, pl.dhscroll - 4)
                         else:
                             pl.hscroll = max(0, pl.hscroll - 6)
-                    elif ch == ord('g'):
+                    elif pact == 'top':
                         if pl.focus == 'diff':
                             pl.dtop = 0
                         else:
                             pl.cur = 0; pl._invalidate_diff()
-                    elif ch == ord('G'):
+                    elif pact == 'bottom':
                         if pl.focus == 'diff':
                             pl.dtop = 10 ** 6                   # clamped in the draw
                         else:
                             pl.cur = max(0, len(pl.rows) - 1); pl._invalidate_diff()
                     # -- actions --
-                    elif ch == ord('a'):
+                    elif pact == 'add':
                         src, replace = _input_box(
                             stdscr, pal, 'add plugin — source (github:owner/repo)', '',
                             toggle=('replace an existing plugin of the same name (retarget)', False))
@@ -3700,11 +3708,11 @@ def run(ctx):
                             pl.reload()
                             menu_dirty = True
                             note = msg.split('\n')[0]
-                    elif ch == ord('x') and row:
+                    elif pact == 'remove' and row:
                         _ok, note = actions.plugin_remove(ctx, row['name'])
                         pl.reload()
                         menu_dirty = True
-                    elif ch == ord('s') and row:
+                    elif pact == 'sync' and row:
                         tgt = [t['decl'] for t in pl.tree
                                if plugins.dir_name(t['decl']['source']) == plugins.dir_name(row['source'])]
                         with suspended(stdscr):
@@ -3712,29 +3720,29 @@ def run(ctx):
                         pl.reload()
                         menu_dirty = True          # new data/drivers on disk -> rebuild Components
                         note = f'synced {row["name"]}'
-                    elif ch == ord('S'):
+                    elif pact == 'sync-all':
                         with suspended(stdscr):
                             actions.plugin_sync(ctx, plugins.declared(ctx.paths.user_config_file))
                         pl.reload()
                         menu_dirty = True          # new data/drivers on disk -> rebuild Components
                         note = 'synced all'
-                    elif ch == ord('b') and row:
+                    elif pact == 'bless' and row:
                         with suspended(stdscr):
                             _ok, msg, _r = actions.plugin_bless(ctx, row['source'])
                         pl.reload()
                         menu_dirty = True
                         note = msg
-                    elif ch == ord('B'):
+                    elif pact == 'unbless':
                         _ok, note = actions.plugin_unbless(ctx)
                         pl.reload()
                         menu_dirty = True
-                    elif ch == ord('u') and row:               # update this plugin to its latest ref
+                    elif pact == 'update' and row:             # update this plugin to its latest ref
                         with suspended(stdscr):
                             _ok, msg, _r = actions.plugin_update(ctx, row['name'], latest=True)
                         pl.reload()
                         menu_dirty = menu_dirty or _ok
                         note = msg
-                    elif ch == ord('U'):                       # update ALL to latest tag / main|master
+                    elif pact == 'update-all':                 # update ALL to latest tag / main|master
                         with suspended(stdscr):
                             rows_ = actions.plugin_update_all(ctx, latest=True)
                         pl.reload()
@@ -3742,18 +3750,18 @@ def run(ctx):
                         failed = [s for s, ok, _m in rows_ if not ok]
                         note = f'updated {len(rows_) - len(failed)}/{len(rows_)} to latest' + (
                             f' ({len(failed)} failed)' if failed else '')
-                    elif ch == ord('t') and row:               # trust TOGGLE for this code plugin
+                    elif pact == 'trust' and row:              # trust TOGGLE for this code plugin
                         if row['code_state'] == 'trusted':
                             _ok, note = actions.plugin_untrust(ctx, row['name'])
                         else:
                             _ok, note = actions.plugin_trust(ctx, row['name'])
                         pl.reload()
                         menu_dirty = menu_dirty or _ok
-                    elif ch == ord('T'):                       # trust ALL currently-untrusted
+                    elif pact == 'trust-all':                  # trust ALL currently-untrusted
                         _n, note = actions.plugin_trust_all(ctx)
                         pl.reload()
                         menu_dirty = menu_dirty or bool(_n)
-                    elif ch == ord('v') and row:               # set the git ref (version/branch/tag)
+                    elif pact == 'set-ref' and row:            # set the git ref (version/branch/tag)
                         ref = _input_box(stdscr, pal, f'{row["name"]} — set ref (tag/branch/sha)', '')
                         if ref and ref.strip():
                             with suspended(stdscr):

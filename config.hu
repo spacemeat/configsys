@@ -198,5 +198,21 @@ profiles: {
             link-all: L
             migrate-all: M
         }
+
+        // Plugins screen. Focus-aware nav (down/up/left/right/top/bottom) + switch-pane (table⇄diff)
+        // come from `global`; these are its git/trust actions.
+        plugins: {
+            add: a
+            remove: x
+            sync: s
+            sync-all: S
+            bless: b
+            unbless: B
+            update: u
+            update-all: U
+            trust: t
+            trust-all: T
+            set-ref: v
+        }
     }
 }
