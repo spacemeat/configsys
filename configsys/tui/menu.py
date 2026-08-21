@@ -39,6 +39,8 @@ KEY_TO_OP = {
     ord('i'): 'install', ord('u'): 'upgrade', ord('x'): 'remove',
 }
 
+_KEYMAP = None       # the active tui.keyspec.Keymap (set in run(); read by the draw fns for legends)
+
 _REFRESH_WARN_DAYS = 30   # a package index older than this shows in warn-color on the Components header
 
 PROFILE, COMPONENT, UNIT, LINK = 'profile', 'component', 'unit', 'link'
@@ -824,14 +826,19 @@ KEY_TO_SCREEN = {ord(k): sid for k, sid, _name in SCREENS}
 
 
 def _draw_nav(stdscr, pal, screen, h, w):
-    '''Row-0 chip bar: press a number to switch screens. Unbuilt screens are dimmed.'''
+    '''Row-0 chip bar: press a number to switch screens. Unbuilt screens are dimmed. The switch key
+    and the issues/quit hint come from the keymap, so a rebind shows here too.'''
     x = 0
     for key, sid, name in SCREENS:
-        chip = f' {key} {name} '
+        k = _KEYMAP.glyph('screens', sid) if _KEYMAP is not None else key
+        chip = f' {k} {name} '
         elem = 'label' if sid == screen else ('menu_header' if sid in IMPLEMENTED else 'info_dim')
         _put(stdscr, 0, x, chip, pal.style(elem, 0, x, h, w))
         x += len(chip) + 1
-    hint = ' ! issues · q quit '
+    if _KEYMAP is not None:
+        hint = f' {_KEYMAP.glyph("global", "issues")} issues · {_KEYMAP.glyph("global", "quit")} quit '
+    else:
+        hint = ' ! issues · q quit '
     _put(stdscr, 0, max(x + 1, w - len(hint) - 1), _fit(hint, w - x), pal.style('footer', 0, x, h, w))
 
 
@@ -3274,6 +3281,9 @@ def run(ctx):
         curses.noecho()
         curses.cbreak()
         stdscr.keypad(True)
+        from .keyspec import Keymap
+        global _KEYMAP
+        _KEYMAP = keymap = Keymap(ctx.config.keys())   # merged bindings; legends read the same map
         layouts, transitive = _menu_model(cfg)
         ms = MenuState(states, layouts, transitive)
         ms.descriptions = _describe(ctx)          # {name -> desc}, cached; not touched per frame
@@ -3350,19 +3360,20 @@ def run(ctx):
                     diag_top = 10 ** 6                  # clamped by _draw
                 continue
 
-            # -- global keys (every screen) --
-            if ch == ord('q'):                          # confirm before leaving; esc no longer quits
+            # -- global keys (every screen), resolved through the keymap --
+            gact = keymap.action_for('global', ch)
+            if gact == 'quit':                          # confirm before leaving; esc no longer quits
                 if _popup_choose(stdscr, pal, 'Really quit?',
                                  [('Yes, quit', ''), ('No, keep working', '')], start=1,
                                  shortcuts={'y': 0, 'n': 1}) == 0:
                     break
                 continue
-            if ch == ord('!'):
+            if gact == 'issues':
                 if diags:
                     show_diag, diag_top = True, 0
                 continue
-            if ch in KEY_TO_SCREEN:
-                dest = KEY_TO_SCREEN[ch]
+            dest = keymap.screen_for(ch)
+            if dest is not None:
                 if dest in IMPLEMENTED:
                     # dotfiles mutated on its page (link/capture/migrate) -> re-probe those units so
                     # Components doesn't show stale 'managed'/'adopted' after they're now linked.

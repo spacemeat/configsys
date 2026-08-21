@@ -186,6 +186,25 @@ class Config:
                 splash = t['splash']
         return {'colors': colors, 'colors-basic': colors_basic, 'pages': pages, 'splash': splash}
 
+    def keys(self):
+        '''The merged TUI `keys:` bindings — like `theme`, contributed by EVERY layer and merged
+        per scope, per action across the full stack repo < plugins < primary < top-config (later
+        wins per action). Returns {scope: {action: key-or-[keys]}}, consumed by tui.keyspec.Keymap.
+        A primary plugin's configsys.hu (or your top config) can carry a `keys:` block right beside
+        its profiles/components; a layer overrides just the actions it names.'''
+        out = {}
+        for layer in self._layers:                 # low -> high precedence
+            k = layer.data.get('keys')
+            if not isinstance(k, dict):
+                continue
+            for scope, actions in k.items():
+                if not isinstance(actions, dict):
+                    continue
+                dst = out.setdefault(scope, {})
+                for action, spec in actions.items():
+                    dst[action] = spec                 # per-action override (whole value replaced)
+        return out
+
     def driver_preference(self):
         '''The global driver-preference order (a machine setting; whole-list replace across
         repo < primary < user), or None to use the built-in default. An OS block in routes may

@@ -132,4 +132,37 @@ profiles: {
     backend-tools: [ +containers  +k8s  +cloud-tools  +net-tools  +db-clients  +db-servers ]
     user: [ +terminal  git  bash-dotfiles  configsys-dotfiles  codecs  firefox  chrome ]
 }
+
+    // TUI keybindings. Merged section-by-section up the layer stack (this repo base < plugins <
+    // primary < your top config) — exactly like `theme:` — so a `keys:` block in your PRIMARY
+    // plugin's configsys.hu (alongside your profiles) or in ~/.config/configsys/configsys.hu
+    // overlays these per action. A value is one key or a list of alternates. Key names: a literal
+    // character (case-SENSITIVE, so `g` != `G`), a named key (enter tab esc space up down left right
+    // pgup pgdn home end del shift-tab), or `ctrl-<x>`. Dispatch is by ACTION, and the on-screen
+    // legends read this same map, so a rebind updates the hints too. Override just what you want:
+    //     keys: { global: { quit: [ q  ctrl-c ] }  screens: { theme: t } }
+    keys: {
+        // The number-key screen switcher (the chip bar). One key each.
+        screens: { components: "1"  profiles: "2"  plugins: "3"  dotfiles: "4"  config: "5"  theme: "6" }
+
+        // Actions shared by every screen. A per-page section (added as each screen is wired to the
+        // keymap) overrides these for the same key on that page. Generic navigation is declared here
+        // so it's rebindable in one place; per-screen enforcement is rolling out screen by screen.
+        global: {
+            down: [ j  down ]
+            up: [ k  up ]
+            left: [ h  left ]
+            right: [ l  right ]
+            top: g
+            bottom: G
+            select: space           // toggle / mark the current row
+            confirm: enter          // activate / open / apply
+            switch-pane: tab        // move focus between panes (screens with two panes)
+            switch-pane-back: shift-tab
+            find: "/"               // fuzzy-jump the cursor
+            filter: F               // live substring filter (narrows the list)
+            issues: "!"             // open the diagnostics (issues) overlay
+            quit: q                 // leave the TUI (asks to confirm)
+        }
+    }
 }

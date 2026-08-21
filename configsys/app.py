@@ -1961,6 +1961,25 @@ def _show_file(ctx, what):
             'config': (ctx.paths.config_file, 'config.hu template')}[what]
 
 
+def cmd_keys(ctx, args):
+    '''Print the effective TUI keybindings — the `keys:` section merged across every layer (repo <
+    plugins < primary < your config). For a humon-only user (no TUI editor) to see what's active.'''
+    from .tui.keyspec import Keymap, key_name
+    km = Keymap(ctx.config.keys())
+    print('TUI keybindings — merged repo < plugins < primary < your config '
+          '(edit the `keys:` section in ~/.config/configsys/configsys.hu or your primary plugin):')
+    order = ['screens', 'global', 'components', 'profiles', 'plugins', 'dotfiles', 'config', 'theme']
+    for scope in order + [s for s in km._m if s not in order]:
+        actions = km._m.get(scope)
+        if not actions:
+            continue
+        print(f'\n  [{scope}]')
+        for action in sorted(actions):
+            keys = ' / '.join(key_name(c) for c in actions[action])
+            print(f'    {action:18} {keys}')
+    return 0
+
+
 def cmd_show(ctx, args):
     '''Print a shipped base data file — routes.hu or the config.hu template — or, with --path,
     just its on-disk location. Handy once configsys is installed (pip/pipx) rather than cloned:
@@ -2279,6 +2298,7 @@ def build_parser():
     sh.add_argument('--path', action='store_true',
                     help="print the file's resolved location instead of its contents")
 
+    sub.add_parser('keys', help='show the effective TUI keybindings (the merged `keys:` section)')
     sub.add_parser('tui', help='interactive TUI (default)')
     return p
 
@@ -2835,6 +2855,7 @@ _COMMANDS = {
     'request': cmd_request,
     'manpages': cmd_manpages,
     'show': cmd_show,
+    'keys': cmd_keys,
     'tui': cmd_tui,
 }
 

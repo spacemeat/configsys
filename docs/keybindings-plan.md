@@ -4,6 +4,27 @@
 Share generic navigation (`h/j/k/l`, `g/G`, arrows, `PgUp/PgDn`, `Tab` to switch panes, …) across every
 screen, plus per-page action keys. The key legend/footer must reflect the active bindings.
 
+## Locked decisions (user, 2026-08-21)
+
+1. **The base keymap is humon, layer-merged like `theme:`** — NOT a Python `DEFAULT_KEYMAP` dict. It
+   lives as a `keys:` section in the repo's `config.hu`; `Config.keys()` merges it up the stack
+   (repo < plugins < primary < top config) per action.
+2. **Primary keys share the primary plugin's `configsys.hu`** — a `keys:` block sits beside
+   `profiles:`/`components:`; no separate file needed. (Falls straight out of #1: keys are
+   contributed by any layer, like theme.)
+
+## Progress
+
+- **DONE (commit pending):** `tui/keyspec.py` (`parse_key`/`key_name`/`Keymap`), the `keys:` section
+  in `config.hu` (`screens` + `global` scopes), `Config.keys()` layer-merge, `configsys keys` CLI,
+  tests. Wired the truly-global keys — **quit / issues / screen-switch** — through the keymap, and the
+  nav-bar legend now reads from it. Generic nav + per-page actions are DECLARED in `global:` but still
+  enforced by the (unchanged) hardcoded per-screen handlers.
+- **TODO:** wire each screen's block to `keymap.action_for(scope, ch)` — one screen per commit
+  (components, profiles, plugins, dotfiles, config, theme) — moving its keys into a per-page `keys:`
+  scope and generating its footer legend from the map. Then `check` lint for bad action/key names +
+  conflicts.
+
 ## Current state (what we're refactoring)
 
 - The event loop in `menu.run()` (~`configsys/tui/menu.py:3168`+) dispatches on RAW key codes —
