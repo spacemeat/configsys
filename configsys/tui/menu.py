@@ -2414,20 +2414,67 @@ _SAMPLES = {
         'foot': [('scope — default install location', 'info_dim'), ('4 settings', 'info_dim'),
                  (' ↵ edit ', 'status_line')],
     },
-    # the editor's OWN page (page `f`) — a mock of its two left panels (color map + page roles) so
-    # you can theme the Theme page itself; uses the same roles _draw_theme renders with.
-    'theme': {
-        'header': f'{"COLOR MAP":20}PAGE ROLES',
-        'rows': [
-            [('accent   #c88cf0', 20, 'label'),      ('label     accent/—  b', 0, 'component')],
-            [('fg_main  #ebebeb', 20, 'component'),  ('component fg_main/—', 0, 'component')],
-            [('bg_dim   #12101a', 20, 'component'),  ('footer    fg_dim/bg', 0, 'info_dim')],
-            [('sel_bg   #2a2140', 20, 'component'),  ('status    fg/accent  r', 0, 'component')],
-        ],
-        'foot': [('the theme editor themes itself now', 'info_dim'),
-                 ('edits → your top config', 'info_dim'), (' terminal color: 24-bit ', 'status_line')],
-    },
 }
+
+
+def _sample_theme_page(stdscr, pal, y0, x0, hh, ww):
+    '''Mock of the Theme editor's OWN page (`f`): its two STACKED left panels — color map above page
+    roles — plus a status + footer line, and no configsys/OS chrome. So previewing 'theme' looks like
+    the real Theme page, not the generic single-panel content screens.'''
+    pal.use_page('theme')
+
+    def putl(ry, rx, text, role, *, sel=False):
+        if 0 <= ry < hh and 0 <= rx < ww - 1:
+            _put(stdscr, y0 + ry, x0 + rx, _fit(text, ww - 1 - rx),
+                 pal.style(role, ry, rx, hh, ww, selected=sel))
+
+    for yy in range(hh):                               # page background (gradient or flat)
+        bg = pal.fill(yy, 0, hh, ww) if pal.gradient else pal.style('unit', yy, 0, hh, ww)
+        _put(stdscr, y0 + yy, x0, ' ' * ww, bg)
+    if hh < 9 or ww < 26:
+        pal.use_page('theme')
+        return
+
+    avail = hh - 2                                     # reserve the status + footer rows
+    top_h = max(4, avail * 2 // 5)
+
+    def box(ry, bh, title):                            # a mini bordered panel (info_dim border)
+        putl(ry, 0, '┌' + '─' * (ww - 2) + '┐', 'info_dim')
+        for r in range(1, bh - 1):
+            putl(ry + r, 0, '│', 'info_dim')
+            putl(ry + r, ww - 1, '│', 'info_dim')
+        putl(ry + bh - 1, 0, '└' + '─' * (ww - 2) + '┘', 'info_dim')
+        putl(ry, 2, f' {title} ', 'menu_header')
+
+    def selbar(ry):
+        _put(stdscr, y0 + ry, x0 + 1, ' ' * (ww - 2), pal.fill(ry, 1, hh, ww, selected=True))
+
+    box(0, top_h, 'color map (shared)')                # TOP panel: the shared colours
+    for i, (name, swrole) in enumerate([('accent', 'accent'), ('fg_main', 'label'),
+                                        ('bg_dim', 'info_dim'), ('sel_bg', 'component')]):
+        yy = 1 + i
+        if yy >= top_h - 1:
+            break
+        sel = i == 0
+        if sel:
+            selbar(yy)
+        putl(yy, 2, '██', swrole)                      # a swatch, in a representative theme colour
+        putl(yy, 5, name, 'label' if sel else 'component', sel=sel)
+
+    box(top_h, avail - top_h, 'page roles — theme')    # BOTTOM panel: this page's role styles
+    for i, role in enumerate(['label', 'component', 'footer', 'status_line', 'menu_header']):
+        yy = top_h + 1 + i
+        if yy >= avail - 1:
+            break
+        sel = i == 0
+        if sel:
+            selbar(yy)
+        putl(yy, 2, 'Aa', role)                        # preview each role in its OWN style
+        putl(yy, 5, role, 'label' if sel else 'component', sel=sel)
+
+    putl(hh - 2, 0, _fit(' terminal color: 24-bit   ·   edits → your config ', ww).ljust(ww), 'status_line')
+    putl(hh - 1, 0, _fit(' tab · j/k · a-f page · ↵ set colour · s save · q ', ww).ljust(ww), 'footer')
+    pal.use_page('theme')
 
 
 def _sample_page(stdscr, pal, page, y0, x0, hh, ww):
@@ -2435,6 +2482,9 @@ def _sample_page(stdscr, pal, page, y0, x0, hh, ww):
     so cycling pages shows a faithful, distinct preview. Switches the palette's active page; the
     caller restores.'''
     if hh < 6 or ww < 24:
+        return
+    if page == 'theme':                                # the editor's own page has a distinct layout
+        _sample_theme_page(stdscr, pal, y0, x0, hh, ww)
         return
     pal.use_page(page)
     for yy in range(hh):
