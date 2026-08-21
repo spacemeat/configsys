@@ -23,8 +23,11 @@ screen, plus per-page action keys. The key legend/footer must reflect the active
   where/diagnostics overlays. Page scopes override `global` per key (e.g. `tab` = expand-all on
   Components vs switch-pane globally); the theme `a-f` sample-page cycle stays a reserved literal.
   A cross-check confirms all 57 dispatch action references are producible by the keymap.
-- **TODO (optional polish):** a `configsys check` lint for unknown action ids / unparseable key names
-  / same-key-two-actions conflicts, with layer provenance. Not required for the feature to work.
+- **DONE (polish):** `configsys check` lints every layer's `keys:` (keyspec.lint_keys + KNOWN_ACTIONS
+  registry) — unknown scope/action, unparseable key, same-key-two-actions self-conflict, with the
+  file basename as provenance. The Theme sample-page cycle moved from the a-f literal range to
+  page-1..page-6 on **F1-F6** (real, rebindable keymap actions; a-f freed).
+- **Nothing outstanding.**
 
 ## Current state (what we're refactoring)
 
