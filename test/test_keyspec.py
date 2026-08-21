@@ -113,3 +113,34 @@ def test_repo_every_screen_scope_matches_the_wired_actions():
     for scope in expect:
         assert km.action_for(scope, ord('j')) == 'down'
         assert km.action_for(scope, ord('q')) == 'quit'
+    # theme's sample-page cycle is on F1-F6 (freeing a-f from collisions)
+    for n in range(1, 7):
+        assert km.action_for('theme', curses.KEY_F0 + n) == f'page-{n}'
+    assert km.action_for('theme', ord('a')) is None      # a-f no longer reserved
+
+
+def test_lint_keys_catches_typos_conflicts_and_bad_keys():
+    import types
+    from configsys import layers
+    from configsys.tui import keyspec
+
+    def layer(path, text):
+        return types.SimpleNamespace(path=path, data=layers.materialize_string(text))
+
+    # the repo base is clean
+    import os
+    repo = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'config.hu')
+    assert keyspec.lint_keys([layer('config.hu', open(repo, encoding='utf-8').read())]) == []
+
+    bad = layer('user.hu',
+                '{ keys: { global: { quit: [ q  notakey ] }  components: { op-instal: i }'
+                '  bogus: { x: y }  profiles: { star: "*"  new: "*" } } }')
+    ws = keyspec.lint_keys([bad])
+    joined = '\n'.join(ws)
+    assert "unparseable key 'notakey'" in joined                 # bad key name
+    assert "unknown action 'keys.components.op-instal'" in joined   # typo'd action
+    assert "unknown key scope 'bogus'" in joined                 # typo'd scope
+    assert "'*' bound to both 'star' and 'new'" in joined         # self-conflict in a scope
+    # a page rebinding a GLOBAL action is allowed (not flagged)
+    ok = layer('u2.hu', '{ keys: { components: { down: n  op-install: I } } }')
+    assert keyspec.lint_keys([ok]) == []

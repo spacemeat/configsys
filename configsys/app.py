@@ -1349,6 +1349,11 @@ def cmd_check(ctx, args):
                           for d in _decls
                           if d.get('sha256') and not _plugins.checksum_ok(ctx.paths.plugins_dir, d)]
 
+    # TUI keybindings: an unknown action/scope (typo), an unparseable key name, or a self-conflict
+    # (one key on two actions in a scope) in any layer's `keys:` section.
+    from .tui.keyspec import lint_keys
+    key_warnings = lint_keys(layer_list)
+
     # manual version pins the LAST `refresh` found behind upstream (from a `latest-check:` source).
     # Read-only from the stamp — never hits the network here; empty until you run `configsys refresh`.
     from . import refreshstate
@@ -1381,7 +1386,7 @@ def cmd_check(ctx, args):
     if (not errors and not warnings and not prof_issues and not prof_errors and not pin_issues
             and not include_warnings and not code_warnings and not conflict_warnings
             and not theme_warnings and not pin_conflict_warnings and not py_floor_warnings
-            and not stale_pin_warnings and not resolve_errors):
+            and not stale_pin_warnings and not resolve_errors and not key_warnings):
         print(f'configsys: OK — {len(components)} components, no issues')
         return 0
 
@@ -1411,10 +1416,12 @@ def cmd_check(ctx, args):
         print(f'  warn    {msg}')
     for msg in stale_pin_warnings:
         print(f'  warn    {msg}')
+    for msg in key_warnings:
+        print(f'  warn    {msg}')
     n_err = len(errors) + len(prof_errors) + len(prof_issues) + len(pin_issues) + len(resolve_errors)
     n_warn = (len(warnings) + len(include_warnings) + len(code_warnings) + len(conflict_warnings)
               + len(theme_warnings) + len(pin_conflict_warnings) + len(py_floor_warnings)
-              + len(stale_pin_warnings))
+              + len(stale_pin_warnings) + len(key_warnings))
     print(f'\nconfigsys: {n_err} error(s), {n_warn} warning(s) '
           f'across {len(components)} components')
     return 1 if n_err else 0

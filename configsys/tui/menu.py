@@ -2507,7 +2507,7 @@ _SAMPLES = {
         'foot': [('ripgrep — fast recursive search', 'info'),
                  ('methods: apt · tarball · cargo', 'methods'),
                  (' selected: ripgrep    staged: 2 ', 'status_line')],
-        'nav': ' j/k · space mark · i/u/r/x op · / find · a-f page · q ',
+        'nav': ' j/k · space mark · i/u/r/x op · / find · F1-6 page · q ',
     },
     'dotfiles': {
         'header': f'{"COMPONENT":14}{"STATE":13}{"LINK":22}SOURCE',
@@ -2524,7 +2524,7 @@ _SAMPLES = {
         'foot': [('git — capture to link ~/.gitconfig', 'info_dim'),
                  ('4 targets · 1 to capture', 'info_dim'),
                  (' ↵ link · c capture · m migrate · C/L/M = all ', 'status_line')],
-        'nav': ' tab · j/k · ↵ link · c capture · m migrate · a-f · q ',
+        'nav': ' tab · j/k · ↵ link · c capture · m migrate · F1-6 · q ',
         'title': 'dotfiles (link state)',
     },
     'config': {
@@ -2536,7 +2536,7 @@ _SAMPLES = {
         ],
         'foot': [('scope — default install location', 'info_dim'), ('4 settings', 'info_dim'),
                  (' ↵ edit ', 'status_line')],
-        'nav': ' j/k · ↵ edit · m move local⇄primary · a-f page · q ',
+        'nav': ' j/k · ↵ edit · m move local⇄primary · F1-6 page · q ',
         'title': 'machine settings  ·  your values override defaults',
     },
 }
@@ -2598,7 +2598,7 @@ def _sample_theme_page(stdscr, pal, y0, x0, hh, ww):
         putl(yy, 5, role, 'label' if sel else 'component', sel=sel)
 
     putl(hh - 2, 0, _fit(' terminal color: 24-bit   ·   edits → your config ', ww).ljust(ww), 'status_line')
-    putl(hh - 1, 0, _fit(' tab · j/k · a-f page · ↵ set colour · s save · q ', ww).ljust(ww), 'footer')
+    putl(hh - 1, 0, _fit(' tab · j/k · F1-6 page · ↵ set colour · s save · q ', ww).ljust(ww), 'footer')
     pal.use_page('theme')
 
 
@@ -2662,7 +2662,7 @@ def _sample_profiles_page(stdscr, pal, y0, x0, hh, ww):
         put(yy, rx0 + 2 + col * gcolw, _fit(txt, gcolw - 1), role)
 
     put(hh - 2, 0, _fit(' selected: dev   ● direct  ◐ via-include  ○ off ', ww).ljust(ww), 'status_line')
-    put(hh - 1, 0, _fit(' tab · j/k · * star · ↵ toggle · a-f page · q ', ww).ljust(ww), 'footer')
+    put(hh - 1, 0, _fit(' tab · j/k · * star · ↵ toggle · F1-6 page · q ', ww).ljust(ww), 'footer')
     pal.use_page('theme')
 
 
@@ -2718,7 +2718,7 @@ def _sample_plugins_page(stdscr, pal, y0, x0, hh, ww):
         put(yy, 2, txt, role)
 
     put(hh - 2, 0, _fit(' void-linux · trusted code · Tab: table ⇄ diff ', ww).ljust(ww), 'status_line')
-    put(hh - 1, 0, _fit(' tab · j/k · s sync · u update · t trust · a-f · q ', ww).ljust(ww), 'footer')
+    put(hh - 1, 0, _fit(' tab · j/k · s sync · u update · t trust · F1-6 · q ', ww).ljust(ww), 'footer')
     pal.use_page('theme')
 
 
@@ -2836,7 +2836,7 @@ def _draw_theme(stdscr, pal, ts, ctx, note, screen):
     roles = ts.role_list()
     ts.role_cur = min(ts.role_cur, max(0, len(roles) - 1))
     r_it, r_il, r_ih, r_iw = _panel(stdscr, pal, 1 + map_h, 0, body_h - map_h, lw,
-                                    _fit(f'page roles — {page}  (a-f)', lw - 4), ts.focus == 'roles',
+                                    _fit(f'page roles — {page}  (F1-6)', lw - 4), ts.focus == 'roles',
                                     h, w)
     ts.role_top = _scroll_top(ts.role_cur, ts.role_top, r_ih, len(roles))
     for vis, i in enumerate(range(ts.role_top, min(len(roles), ts.role_top + r_ih))):
@@ -2876,18 +2876,18 @@ def _draw_theme(stdscr, pal, ts, ctx, note, screen):
         g = lambda a: _KEYMAP.glyph('theme', a)
         if ts.focus == 'map':
             navf = (f" {g('switch-pane')}→roles · {g('left')}/{g('right')}/{g('down')}/{g('up')} · "
-                    f"a-f page · {g('confirm')} set #rrggbb · {g('new')} new · {g('reset')} remove · "
+                    f"F1-6 page · {g('confirm')} set #rrggbb · {g('new')} new · {g('reset')} remove · "
                     f"{g('save')} save · {g('load')} load · {g('quit')} ")
         else:
-            navf = (f" {g('switch-pane')}→map · {g('down')}/{g('up')} · a-f page · {g('confirm')} fg · "
+            navf = (f" {g('switch-pane')}→map · {g('down')}/{g('up')} · F1-6 page · {g('confirm')} fg · "
                     f"{g('edit-bg')} bg · {g('effect-bold')}/{g('effect-underline')}/{g('effect-reverse')} fx · "
                     f"{g('reset')} reset · {g('gradient-toggle')} grad · {g('copy-page')} copy-page · "
                     f"{g('save')} save · {g('load')} load · {g('quit')} ")
     elif ts.focus == 'map':
-        navf = (' tab→roles · h/l/j/k · a-f page · ↵ set #rrggbb · n new · x/r remove · '
+        navf = (' tab→roles · h/l/j/k · F1-6 page · ↵ set #rrggbb · n new · x/r remove · '
                 's save · L load · q ')
     else:
-        navf = (' tab→map · j/k · a-f page · ↵ fg · B bg · o/u/v fx · r reset · p grad on/off · '
+        navf = (' tab→map · j/k · F1-6 page · ↵ fg · B bg · o/u/v fx · r reset · p grad on/off · '
                 'D copy-page · s save · L load · q ')
     _put(stdscr, h - 2, 0, _fit(status, w), pal.style('status_line', h - 2, 0, h, w))
     _put(stdscr, h - 1, 0, _fit(navf.ljust(w), w), pal.style('footer', h - 1, 0, h, w))
@@ -3921,8 +3921,8 @@ def run(ctx):
                                           else min(len(ts.map_names) - 1, ts.map_cur + step))
                         else:
                             ts.focus = 'roles' if ts.focus == 'map' else 'map'   # else cross panels
-                    elif ord('a') <= ch <= ord('f'):
-                        ts.page = min(len(ALL_PAGES) - 1, ch - ord('a'))      # cycle the sample page (a-f)
+                    elif tact and tact.startswith('page-'):
+                        ts.page = min(len(ALL_PAGES) - 1, int(tact[5:]) - 1)  # F1-F6 select the sample page
                     elif tact == 'down':
                         if ts.focus == 'map':
                             ts.map_cur = min(len(ts.map_names) - 1, ts.map_cur + 1)

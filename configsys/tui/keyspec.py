@@ -120,3 +120,75 @@ class Keymap:
         '''The primary key for `action` as a legend glyph (scope, then global). '?' if unbound.'''
         codes = self.keys_for(scope, action) or self.keys_for('global', action)
         return key_name(codes[0]) if codes else '?'
+
+
+# The canonical actions each scope's dispatch understands — the contract `configsys check` lints a
+# user's `keys:` against. A page scope may ALSO bind any `global` action (to rebind nav on that page),
+# so a page's valid set is its own actions ∪ global's. `screens` binds screen ids, not actions.
+_GLOBAL_ACTIONS = {'down', 'up', 'left', 'right', 'top', 'bottom', 'select', 'confirm', 'switch-pane',
+                   'switch-pane-back', 'find', 'filter', 'issues', 'quit'}
+SCREEN_IDS = {'components', 'profiles', 'plugins', 'dotfiles', 'config', 'theme'}
+KNOWN_ACTIONS = {
+    'global': _GLOBAL_ACTIONS,
+    'components': {'where', 'lock', 'expand-all', 'select-all', 'clear', 'method', 'op-install',
+                   'op-upgrade', 'op-remove', 'execute', 'refresh'},
+    'config': {'theme', 'move'},
+    'dotfiles': {'unlink', 'capture', 'migrate', 'capture-all', 'link-all', 'migrate-all'},
+    'plugins': {'add', 'remove', 'sync', 'sync-all', 'bless', 'unbless', 'update', 'update-all',
+                'trust', 'trust-all', 'set-ref'},
+    'profiles': {'star', 'reveal-removed', 'toggle-active', 'new', 'delete', 'include', 'method',
+                 'attr-filter'},
+    'theme': {'new', 'reset', 'edit-bg', 'effect-bold', 'effect-underline', 'effect-reverse',
+              'gradient-toggle', 'copy-page', 'save', 'load',
+              'page-1', 'page-2', 'page-3', 'page-4', 'page-5', 'page-6'},
+}
+
+
+def _valid_actions(scope):
+    if scope == 'screens':
+        return SCREEN_IDS
+    if scope == 'global':
+        return _GLOBAL_ACTIONS
+    return KNOWN_ACTIONS.get(scope, frozenset()) | _GLOBAL_ACTIONS
+
+
+def lint_keys(layers):
+    '''Lint every layer's `keys:` section for a `configsys check`. Returns a list of warning strings
+    (with the offending file's basename as provenance). Catches: an unknown scope, an unknown action
+    for its scope (typo), an unparseable key name, and — per layer, per scope — the same key bound to
+    two different actions (a self-conflict; a page key that shadows a `global` one is NOT flagged, that
+    override is intentional and page-wins). `layers` is an iterable of objects with `.data` (dict) and
+    `.path`.'''
+    import os
+    out = []
+    for lyr in layers:
+        keys = getattr(lyr, 'data', {}).get('keys')
+        if not isinstance(keys, dict):
+            continue
+        where = os.path.basename(getattr(lyr, 'path', '') or '?')
+        for scope, actions in keys.items():
+            if not isinstance(actions, dict):
+                out.append(f"{where}: keys.{scope} is not a map — ignored")
+                continue
+            if scope not in KNOWN_ACTIONS and scope != 'screens':
+                out.append(f"{where}: unknown key scope '{scope}' "
+                           f"(scopes: screens, {', '.join(sorted(KNOWN_ACTIONS))})")
+                continue
+            valid = _valid_actions(scope)
+            seen = {}                                  # code -> action, for self-conflict within a scope
+            for action, spec in actions.items():
+                if action not in valid:
+                    out.append(f"{where}: unknown action 'keys.{scope}.{action}' "
+                               f"(not a {scope} action)")
+                specs = spec if isinstance(spec, list) else [spec]
+                for k in specs:
+                    code = parse_key(k)
+                    if code is None:
+                        out.append(f"{where}: keys.{scope}.{action}: unparseable key '{k}'")
+                        continue
+                    if code in seen and seen[code] != action:
+                        out.append(f"{where}: keys.{scope}: '{k}' bound to both "
+                                   f"'{seen[code]}' and '{action}'")
+                    else:
+                        seen[code] = action
+    return out
