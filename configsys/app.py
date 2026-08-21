@@ -490,17 +490,20 @@ class Context:
 
     def report_session_summary(self, cfg, states, diags):
         '''Post-TUI recap printed to the console (after endwin restores the terminal), so once a long
-        session ends its outcome persists in the scrollback where configsys was launched. ERROR-level
-        issues ALWAYS print — a broken config must never be silently swallowed just because you ran
-        the TUI and quit; the full OS/profiles/state-tally recap (and warnings) stays -v+.'''
+        session ends its outcome persists in the scrollback where configsys was launched. Any ISSUES
+        (errors + warnings — the ! page's contents) ALWAYS print, so a broken config is never silently
+        swallowed just because you ran the TUI and quit; the OS/profiles/state-tally recap stays -v+.'''
         r = self.reporter
         if r.level < report.VERBOSE:
-            errs = [d for d in (diags or []) if d['level'] == 'error']
-            if errs:
-                print(f'\nconfigsys: {len(errs)} config error(s) — also on the TUI ! page; '
+            if diags:
+                n_err = sum(1 for d in diags if d['level'] == 'error')
+                bits = ([f'{n_err} error(s)'] if n_err else []) + \
+                       ([f'{len(diags) - n_err} warning(s)'] if len(diags) - n_err else [])
+                print(f'\nconfigsys: {", ".join(bits)} — also on the TUI ! page; '
                       f'run `configsys check` for the full lint:')
-                for d in errs:
-                    print(f'  ✗ {d["tag"]:10} {d["text"]}')
+                for d in sorted(diags, key=lambda d: 0 if d['level'] == 'error' else 1):
+                    mark = '✗' if d['level'] == 'error' else '⚠'
+                    print(f'  {mark} {d["tag"]:10} {d["text"]}')
             return
         ver = f' {self.os_info.version}' if self.os_info.version else ''
         r.event(report.VERBOSE, f'  session summary — {self.os_info.block}{ver}   '
