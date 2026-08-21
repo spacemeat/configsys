@@ -181,5 +181,22 @@ profiles: {
             execute: X              // run the staged ops (asks to confirm)
             refresh: R              // re-query version sources + the native package index
         }
+
+        // Config screen. down/up/top/bottom from `global`; confirm OR select edits the setting.
+        config: {
+            theme: t                // open the theme editor
+            move: m                 // move this setting local <-> primary plugin
+        }
+
+        // Dotfiles screen. down/up/top/bottom + left/right (column scroll) from `global`; confirm
+        // links the current row.
+        dotfiles: {
+            unlink: x
+            capture: c
+            migrate: m              // this row's component
+            capture-all: C
+            link-all: L
+            migrate-all: M
+        }
     }
 }

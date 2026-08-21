@@ -2367,7 +2367,12 @@ def _draw_config(stdscr, pal, cs, ctx, note, screen):
     status = f' {cur_key}: edits → {tgt}' if tgt else f' edits → {actions.edit_target(ctx)[1]}'
     if note:
         status += f'    {note}'
-    navf = ' j/k move · enter/space edit · m local↔primary · t theme · 1-6 screens · q quit '
+    if _KEYMAP is not None:
+        g = lambda a: _KEYMAP.glyph('config', a)
+        navf = (f" {g('down')}/{g('up')} move · {g('confirm')} edit · {g('move')} local↔primary · "
+                f"{g('theme')} theme · 1-6 screens · {g('quit')} quit ")
+    else:
+        navf = ' j/k move · enter/space edit · m local↔primary · t theme · 1-6 screens · q quit '
     _put(stdscr, h - 2, 0, _fit(status, w), pal.style('status_line', h - 2, 0, h, w))
     _put(stdscr, h - 1, 0, _fit(navf.ljust(w), w), pal.style('footer', h - 1, 0, h, w))
     stdscr.refresh()
@@ -3227,7 +3232,13 @@ def _draw_dotfiles(stdscr, pal, ds, ctx, note, screen):
         status += f'   + {n_adopt} with on-disk config to capture (c)'
     if note:
         status += f'    {note}'
-    navf = ' j/k · h/l scroll · ↵ link · c capture · m migrate · x unlink · C/L/M = all · q '
+    if _KEYMAP is not None:
+        g = lambda a: _KEYMAP.glyph('dotfiles', a)
+        navf = (f" {g('down')}/{g('up')} · {g('left')}/{g('right')} scroll · {g('confirm')} link · "
+                f"{g('capture')} capture · {g('migrate')} migrate · {g('unlink')} unlink · "
+                f"{g('capture-all')}/{g('link-all')}/{g('migrate-all')} = all · {g('quit')} ")
+    else:
+        navf = ' j/k · h/l scroll · ↵ link · c capture · m migrate · x unlink · C/L/M = all · q '
     _put(stdscr, h - 2, 0, _fit(status, w), pal.style('status_line', h - 2, 0, h, w))
     _put(stdscr, h - 1, 0, _fit(navf.ljust(w), w), pal.style('footer', h - 1, 0, h, w))
     stdscr.refresh()
@@ -3557,45 +3568,46 @@ def run(ctx):
             # -- Dotfiles screen --
             if screen == 'dotfiles':
                 row = ds.cur_row()          # (rc, name, target, state, source, capturable)
+                dact = keymap.action_for('dotfiles', ch)
                 try:
-                    if ch in (ord('j'), curses.KEY_DOWN):
+                    if dact == 'down':
                         ds.cur = min(len(ds.rows) - 1, ds.cur + 1)
-                    elif ch in (ord('k'), curses.KEY_UP):
+                    elif dact == 'up':
                         ds.cur = max(0, ds.cur - 1)
-                    elif ch in (ord('h'), curses.KEY_LEFT):   # horizontal scroll across the columns
+                    elif dact == 'left':                      # horizontal scroll across the columns
                         ds.hscroll = max(0, ds.hscroll - 4)
-                    elif ch in (ord('l'), curses.KEY_RIGHT):
+                    elif dact == 'right':
                         ds.hscroll += 4                       # clamped to the content width in _draw
-                    elif ch == ord('g'):
+                    elif dact == 'top':
                         ds.cur = 0
-                    elif ch == ord('G'):
+                    elif dact == 'bottom':
                         ds.cur = max(0, len(ds.rows) - 1)
-                    elif ch in (ord('\n'), curses.KEY_ENTER) and row:   # link (clobber-proof;
-                        with suspended(stdscr):                          # refuses over a real file)
+                    elif dact == 'confirm' and row:         # link (clobber-proof;
+                        with suspended(stdscr):              # refuses over a real file)
                             res = ds.df.install(row[0])
                         ds.dirty.add(row[0].key)
                         ds.reload()
                         note = (f'{row[0].comp}: {res.output().strip()}'
                                 if res is not None and not res.ok else f'linked {row[0].comp}')
-                    elif ch == ord('x') and row:            # unlink (restores any backup)
+                    elif dact == 'unlink' and row:          # unlink (restores any backup)
                         with suspended(stdscr):
                             ds.df.uninstall(row[0])
                         ds.dirty.add(row[0].key)
                         ds.reload()
                         note = f'unlinked {row[0].comp}'
-                    elif ch == ord('c') and row:            # capture: adopt this row's on-system content
+                    elif dact == 'capture' and row:         # capture: adopt this row's on-system content
                         done = ds.df.capture(row[0], force=False)
                         ds.dirty.add(row[0].key)
                         ds.reload()
                         note = (f'captured {len(done)} target(s) for {row[0].comp}'
                                 if done else f'nothing to capture for {row[0].comp}')
-                    elif ch == ord('C'):                    # capture ALL with on-disk config to adopt
+                    elif dact == 'capture-all':             # capture ALL with on-disk config to adopt
                         total = sum(len(ds.df.capture(rc, force=False)) for rc in ds.units)
                         ds.dirty.update(rc.key for rc in ds.units)
                         ds.reload()
                         note = (f'captured {total} target(s) across all dotfiles'
                                 if total else 'nothing on-disk to capture')
-                    elif ch == ord('L'):                    # link ALL captured-but-unlinked (adopted)
+                    elif dact == 'link-all':                # link ALL captured-but-unlinked (adopted)
                         pend = {r[0].key: r[0] for r in ds.rows if r[3] == 'adopted'}
                         with suspended(stdscr):
                             for rc in pend.values():
@@ -3604,10 +3616,10 @@ def run(ctx):
                         ds.reload()
                         note = (f'linked {len(pend)} captured dotfile(s)'
                                 if pend else 'nothing captured-but-unlinked')
-                    elif ch in (ord('m'), ord('M')):        # migrate: re-point repo-links, move glue to
-                        import types as _types                # conf.d, clear dead links (preview+confirm).
-                        from .. import app as _app            # lowercase = this row's component; upper = all
-                        only = ({row[0].comp} if ch == ord('m') and row else None)
+                    elif dact in ('migrate', 'migrate-all'):  # migrate: re-point repo-links, move glue
+                        import types as _types                # to conf.d, clear dead links (preview+confirm).
+                        from .. import app as _app            # migrate = this row's component; -all = all
+                        only = ({row[0].comp} if dact == 'migrate' and row else None)
                         with suspended(stdscr):
                             _app.cmd_dotfiles_migrate(ctx, _types.SimpleNamespace(yes=False, only=only))
                             try:
@@ -3756,17 +3768,18 @@ def run(ctx):
             # -- Config screen --
             if screen == 'config':
                 from .. import actions
-                if ch in (ord('j'), curses.KEY_DOWN):
+                cact = keymap.action_for('config', ch)
+                if cact == 'down':
                     cs.cur = min(len(cs.keys) - 1, cs.cur + 1)
-                elif ch in (ord('k'), curses.KEY_UP):
+                elif cact == 'up':
                     cs.cur = max(0, cs.cur - 1)
-                elif ch == ord('g'):
+                elif cact == 'top':
                     cs.cur = 0
-                elif ch == ord('G'):
+                elif cact == 'bottom':
                     cs.cur = max(0, len(cs.keys) - 1)
-                elif ch == ord('t'):
+                elif cact == 'theme':
                     screen = 'theme'
-                elif ch == ord('m'):                    # move this setting local <-> primary
+                elif cact == 'move':                    # move this setting local <-> primary
                     key = cs.keys[cs.cur]
                     try:
                         ok, msg = actions.move_config_setting(ctx, key)
@@ -3776,7 +3789,7 @@ def run(ctx):
                             menu_dirty = True
                     except Exception as e:  # noqa: BLE001 — surface, don't crash
                         note = f'move failed: {e}'
-                elif ch in (ord(' '), ord('\n'), curses.KEY_ENTER):
+                elif cact in ('confirm', 'select'):
                     key = cs.keys[cs.cur]
                     info = cs.settings[key]
                     try:
