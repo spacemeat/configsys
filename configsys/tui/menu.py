@@ -38,6 +38,7 @@ OPS = {
 KEY_TO_OP = {
     ord('i'): 'install', ord('u'): 'upgrade', ord('x'): 'remove',
 }
+_COMP_OPS = {'op-install': 'install', 'op-upgrade': 'upgrade', 'op-remove': 'remove'}   # action -> op
 
 _KEYMAP = None       # the active tui.keyspec.Keymap (set in run(); read by the draw fns for legends)
 
@@ -952,8 +953,18 @@ def _draw(stdscr, pal, ms, ctx, note, diags=(), show_diag=False, diag_top=0, scr
         status_line += f'   filter:{ms.filter}'
     if note:
         status_line += f'   {note}'
-    nav = ' j/k · g/G top/bottom · l/h expand/collapse · enter open · / find · F filter · tab expand-all '
-    act = ' space sel · a all · i inst/upg · u upg · x rm · L lock · m change · w where · c clear · X exec · R refresh · ! issues · q quit '
+    if _KEYMAP is not None:                          # legends read the live keymap (rebinds show here)
+        g = lambda a: _KEYMAP.glyph('components', a)   # components scope, falling back to global
+        nav = (f" {g('down')}/{g('up')} move · {g('top')}/{g('bottom')} top/bottom · "
+               f"{g('right')}/{g('left')} expand/collapse · {g('confirm')} open · {g('find')} find · "
+               f"{g('filter')} filter · {g('expand-all')} expand-all ")
+        act = (f" {g('select')} sel · {g('select-all')} all · {g('op-install')} inst · "
+               f"{g('op-upgrade')} upg · {g('op-remove')} rm · {g('lock')} lock · {g('method')} change · "
+               f"{g('where')} where · {g('clear')} clear · {g('execute')} exec · {g('refresh')} refresh · "
+               f"{g('issues')} issues · {g('quit')} quit ")
+    else:
+        nav = ' j/k · g/G top/bottom · l/h expand/collapse · enter open · / find · F filter · tab expand-all '
+        act = ' space sel · a all · i inst · u upg · x rm · L lock · m change · w where · c clear · X exec · R refresh · ! issues · q quit '
     _put(stdscr, h - 3, 0, _fit(status_line, w), pal.style('status_line', h - 3, 0, h, w))
     _put(stdscr, h - 2, 0, _fit(nav.ljust(w), w), pal.style('footer', h - 2, 0, h, w))
     _put(stdscr, h - 1, 0, _fit(act.ljust(w), w), pal.style('footer', h - 1, 0, h, w))
@@ -3334,29 +3345,30 @@ def run(ctx):
             note = ''
             ch = stdscr.getch()
 
+            oact = keymap.action_for('components', ch)   # overlays scroll via the same nav actions
             if show_where:                              # where overlay: scroll or exit
-                if ch in (ord('w'), ord('q'), 27):
+                if oact in ('where', 'quit') or ch == 27:
                     show_where = False
-                elif ch in (ord('j'), curses.KEY_DOWN):
+                elif oact == 'down':
                     where_top += 1
-                elif ch in (ord('k'), curses.KEY_UP):
+                elif oact == 'up':
                     where_top = max(0, where_top - 1)
-                elif ch == ord('g'):
+                elif oact == 'top':
                     where_top = 0
-                elif ch == ord('G'):
+                elif oact == 'bottom':
                     where_top = 10 ** 6                  # clamped by _draw_where
                 continue
 
             if show_diag:                               # diagnostics overlay: scroll or exit
-                if ch in (ord('!'), ord('q'), 27):
+                if oact in ('issues', 'quit') or ch == 27:
                     show_diag = False
-                elif ch in (ord('j'), curses.KEY_DOWN):
+                elif oact == 'down':
                     diag_top += 1
-                elif ch in (ord('k'), curses.KEY_UP):
+                elif oact == 'up':
                     diag_top = max(0, diag_top - 1)
-                elif ch == ord('g'):
+                elif oact == 'top':
                     diag_top = 0
-                elif ch == ord('G'):
+                elif oact == 'bottom':
                     diag_top = 10 ** 6                  # clamped by _draw
                 continue
 
@@ -4059,48 +4071,49 @@ def run(ctx):
                     note = f'error: {e}'
                 continue
 
-            # -- Components screen --
-            if ch in (ord('j'), curses.KEY_DOWN):
+            # -- Components screen (default) — dispatch through the keymap --
+            act = keymap.action_for('components', ch)
+            if act == 'down':
                 ms.move(1)
-            elif ch in (ord('k'), curses.KEY_UP):
+            elif act == 'up':
                 ms.move(-1)
-            elif ch == ord('g'):
+            elif act == 'top':
                 ms.go_top()
-            elif ch == ord('G'):
+            elif act == 'bottom':
                 ms.go_bottom()
-            elif ch == ord('w'):                     # full-page `where`: the complete graph for this row
+            elif act == 'where':                     # full-page `where`: the complete graph for this row
                 _wname = _row_component(ms.cur())
                 if _wname:
                     from ..app import where_report
                     where_lines = where_report(ctx, _wname) or [f'{_wname}: nothing to show']
                     where_subject, where_top, show_where = _wname, 0, True
-            elif ch == ord('F'):                     # live substring FILTER over the tree (narrows)
+            elif act == 'filter':                    # live substring FILTER over the tree (narrows)
                 _filter_edit(stdscr, ms.filter, ms.set_filter,
                              lambda: _draw(stdscr, pal, ms, ctx, note, diags, False, diag_top, screen))
-            elif ch == ord('/'):                     # fuzzy FIND: jump the cursor to the best match
+            elif act == 'find':                      # fuzzy FIND: jump the cursor to the best match
                 _find_edit(stdscr, [n.label for n in ms.rows], ms.cursor,
                            lambda i: setattr(ms, 'cursor', i),
                            lambda: _draw(stdscr, pal, ms, ctx, note, diags, False, diag_top, screen))
-            elif ch in (ord('\n'), curses.KEY_ENTER):
+            elif act == 'confirm':                   # enter: open/expand the row
                 ms.enter()
-            elif ch in (ord('l'), curses.KEY_RIGHT):
+            elif act == 'right':
                 ms.expand_or_jump()
-            elif ch in (ord('h'), curses.KEY_LEFT):
+            elif act == 'left':
                 ms.collapse()
-            elif ch == ord('L'):
+            elif act == 'lock':
                 if not ms.toggle_lock():
                     note = 'nothing to lock/unlock here'
-            elif ch == ord('\t'):
+            elif act == 'expand-all':
                 ms.toggle_expand_all()
-            elif ch == ord(' '):
+            elif act == 'select':
                 ms.toggle_select()
-            elif ch == ord('a'):
+            elif act == 'select-all':
                 ms.select_all()
-            elif ch == ord('c'):
+            elif act == 'clear':
                 ms.unstage()
                 ms.clear_selection()
                 ms.errors.clear()
-            elif ch == ord('m'):                           # unified: pick an install method OR a provider
+            elif act == 'method':                          # unified: pick an install method OR a provider
                 changed, note, deferred = _pick_choices(stdscr, pal, ms, ctx)
                 if deferred:
                     pending_notes.append(deferred)
@@ -4113,10 +4126,10 @@ def run(ctx):
                         ms, cfg, ledger, states, diags = _reload(ctx, ms, set())
                     except Exception as e:  # noqa: BLE001 - surface, don't crash
                         note = f'reload failed: {e}'
-            elif ch in KEY_TO_OP:
-                if not ms.stage(KEY_TO_OP[ch]):
-                    note = f'{KEY_TO_OP[ch]} not applicable here'
-            elif ch == ord('X'):
+            elif act in _COMP_OPS:
+                if not ms.stage(_COMP_OPS[act]):
+                    note = f'{_COMP_OPS[act]} not applicable here'
+            elif act == 'execute':
                 executed, note, outcomes = _confirm_and_execute(stdscr, pal, ms, ctx, ledger)
                 curses.flushinp()  # drop keys typed during ops / the prompt
                 if executed:
@@ -4134,7 +4147,7 @@ def run(ctx):
                     ms.staged.clear()          # the staged ops just ran; don't leave them badged
                     ms.errors = failed
                     curses.flushinp()  # ...and any typed during the re-inspect
-            elif ch == ord('R'):               # refresh version caches + the native package index
+            elif act == 'refresh':             # refresh version caches + the native package index
                 with suspended(stdscr):
                     print('Refreshing the package view — re-querying version sources and running the\n'
                           'package-manager index update. This takes a moment; sudo may prompt below.\n',

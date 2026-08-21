@@ -75,3 +75,21 @@ def test_repo_config_hu_defines_a_full_global_keymap():
     for a in ('quit', 'issues', 'down', 'up', 'find'):
         assert km.keys_for('global', a), f'{a} unbound in the repo base keymap'
     assert km.screen_for(ord('6')) == 'theme'
+
+
+def test_repo_components_scope_matches_the_wired_actions():
+    # the Components screen's keys resolve to the actions its dispatch expects (guards the humon file
+    # against drift from the wiring in menu.run()).
+    import os
+    repo_cfg = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'config.hu')
+    km = Keymap(_cfg(open(repo_cfg, encoding='utf-8').read()).keys())
+    expect = {'i': 'op-install', 'u': 'op-upgrade', 'x': 'op-remove', 'X': 'execute',
+              'R': 'refresh', 'w': 'where', 'L': 'lock', 'm': 'method', 'a': 'select-all', 'c': 'clear'}
+    for key, action in expect.items():
+        assert km.action_for('components', ord(key)) == action, f'{key} -> {action}'
+    # a page key OVERRIDES global: tab is expand-all on Components, switch-pane globally
+    assert km.action_for('components', ord('\t')) == 'expand-all'
+    assert km.action_for('global', ord('\t')) == 'switch-pane'
+    # generic nav falls back to global on the page
+    assert km.action_for('components', ord('j')) == 'down'
+    assert km.action_for('components', ord('q')) == 'quit'

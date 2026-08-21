@@ -164,5 +164,22 @@ profiles: {
             issues: "!"             // open the diagnostics (issues) overlay
             quit: q                 // leave the TUI (asks to confirm)
         }
+
+        // Components screen. down/up/left(collapse)/right(expand)/top/bottom/find/filter/select
+        // (mark)/confirm(open) come from `global`; these are its own actions (a per-page key wins
+        // over `global` for the same key — e.g. `expand-all` rebinds tab, which is switch-pane globally).
+        components: {
+            where: w                // full graph for the current component
+            lock: L                 // lock / unlock the current unit's version
+            expand-all: tab         // expand / collapse the whole tree
+            select-all: a
+            clear: c                // clear selection + staged ops + errors
+            method: m               // pick an install method or provider (writes a pin)
+            op-install: i           // stage: install
+            op-upgrade: u           // stage: upgrade
+            op-remove: x            // stage: remove
+            execute: X              // run the staged ops (asks to confirm)
+            refresh: R              // re-query version sources + the native package index
+        }
     }
 }
