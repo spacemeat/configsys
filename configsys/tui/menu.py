@@ -1866,7 +1866,7 @@ def _draw_profiles(stdscr, pal, ps, ctx, note, screen):
         _fill_bg(stdscr, pal, h, w)
     _draw_nav(stdscr, pal, screen, h, w)
 
-    top, body_h = 1, h - 3
+    top, body_h = 1, h - 4                           # status + legend row, then TWO nav rows below
     lw = max(16, w // 6)                             # profiles pane: narrow, leaving the grid room
     rleft, rw = lw + 1, w - lw - 1
     prof = ps.cur_profile()
@@ -2033,10 +2033,17 @@ def _draw_profiles(stdscr, pal, ps, ctx, note, screen):
     status = f' profile: {prof or "—"}    edits → {actions.edit_target(ctx)[1]}'
     if note:
         status += f'    {note}'
-    navf = (' j/k · h/l expand · tab/⏎ components · * star-filter · ~ removed · + include · a active · '
-            'n/d new/del · space member · m method · / find · F filter · A attrs · q ')
-    _put(stdscr, h - 2, 0, _fit(status, w), pal.style('status_line', h - 2, 0, h, w))
-    _put(stdscr, h - 1, 0, _fit(navf.ljust(w), w), pal.style('footer', h - 1, 0, h, w))
+    # marker legend for the profiles pane — right-aligned on the status bar so the keys get two
+    # full rows below. ● directly active (in configs:), ◐ active only via a +include, ○ inactive,
+    # ▸ star-filtered.
+    legend = '●active  ◐inherited  ○inactive  ▸starred '
+    lg_x = max(0, w - len(legend))
+    _put(stdscr, h - 3, 0, _fit(status, max(1, lg_x - 1)), pal.style('status_line', h - 3, 0, h, w))
+    _put(stdscr, h - 3, lg_x, _fit(legend, w - lg_x), pal.style('status_line', h - 3, lg_x, h, w))
+    nav1 = (' j/k move · h/l expand · tab/⏎ components · a active · * star · ~ removed · + include ')
+    nav2 = (' n/d new/del · space member · m method · / find · F filter · A attrs · q quit ')
+    _put(stdscr, h - 2, 0, _fit(nav1.ljust(w), w), pal.style('footer', h - 2, 0, h, w))
+    _put(stdscr, h - 1, 0, _fit(nav2.ljust(w), w), pal.style('footer', h - 1, 0, h, w))
     stdscr.refresh()
 
 
