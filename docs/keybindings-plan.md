@@ -13,17 +13,18 @@ screen, plus per-page action keys. The key legend/footer must reflect the active
    `profiles:`/`components:`; no separate file needed. (Falls straight out of #1: keys are
    contributed by any layer, like theme.)
 
-## Progress
+## Progress — FEATURE COMPLETE
 
-- **DONE (commit pending):** `tui/keyspec.py` (`parse_key`/`key_name`/`Keymap`), the `keys:` section
-  in `config.hu` (`screens` + `global` scopes), `Config.keys()` layer-merge, `configsys keys` CLI,
-  tests. Wired the truly-global keys — **quit / issues / screen-switch** — through the keymap, and the
-  nav-bar legend now reads from it. Generic nav + per-page actions are DECLARED in `global:` but still
-  enforced by the (unchanged) hardcoded per-screen handlers.
-- **TODO:** wire each screen's block to `keymap.action_for(scope, ch)` — one screen per commit
-  (components, profiles, plugins, dotfiles, config, theme) — moving its keys into a per-page `keys:`
-  scope and generating its footer legend from the map. Then `check` lint for bad action/key names +
-  conflicts.
+- **DONE:** `tui/keyspec.py` (`parse_key`/`key_name`/`Keymap`), the full `keys:` section in `config.hu`
+  (`screens`, `global`, and every per-screen scope), `Config.keys()` layer-merge (like `theme()`),
+  `configsys keys` CLI, tests. **All six screens wired** to `keymap.action_for(scope, ch)` —
+  components, config, dotfiles, plugins, profiles, theme — each with its footer legend generated from
+  the map (so rebinds show in the hints), plus the global keys (quit/issues/screen-switch) and the
+  where/diagnostics overlays. Page scopes override `global` per key (e.g. `tab` = expand-all on
+  Components vs switch-pane globally); the theme `a-f` sample-page cycle stays a reserved literal.
+  A cross-check confirms all 57 dispatch action references are producible by the keymap.
+- **TODO (optional polish):** a `configsys check` lint for unknown action ids / unparseable key names
+  / same-key-two-actions conflicts, with layer provenance. Not required for the feature to work.
 
 ## Current state (what we're refactoring)
 
