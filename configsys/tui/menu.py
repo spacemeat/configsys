@@ -1778,6 +1778,15 @@ class ProfileScreen:
         self._profset = set(self.profiles)
         self.starred &= self._profset                # drop stars for profiles that no longer exist
         self.active = set(cfg.active_profiles)
+        # profiles reached transitively via `+include` from an active one, but not themselves in
+        # `configs:` — marked ◐ (indirectly active) vs ● (directly active) vs ○ (inactive).
+        ind, stack = set(), list(self.active)
+        while stack:
+            for inc in cfg.profile_includes(stack.pop()):
+                if inc not in self.active and inc not in ind:
+                    ind.add(inc)
+                    stack.append(inc)
+        self.active_indirect = ind
         self.catalog = sorted(self.ctx.routes.components)
         # KEEP self._res: a membership / profile edit doesn't change how a component RESOLVES (its
         # via), so re-resolving the whole visible set (~17ms each) on every toggle was the ~1.5s lag.
@@ -1891,7 +1900,7 @@ def _draw_profiles(stdscr, pal, ps, ctx, note, screen):
             _put(stdscr, y, lil, ' ' * liw, pal.fill(y, lil, h, w, bg=rbg))
         star = '▸' if name in ps.starred else ' '     # selection is the bar; ▸ now means "starred"
         exp = '▾' if expanded else ('▹' if expandable else ' ')
-        act = '●' if name in ps.active else '○'
+        act = '●' if name in ps.active else ('◐' if name in ps.active_indirect else '○')
         row = f'{star}{"  " * depth}{exp}{act} {name}'
         _put(stdscr, y, lil, _fit(row, liw), pal.style('profile', y, lil, h, w, selected=foc, bg=rbg))
     _scrollbar_v(stdscr, pal, lit, lw - 1, lih, ps.ltop, lih, len(vnodes), h, w)

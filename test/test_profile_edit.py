@@ -265,6 +265,25 @@ def test_profile_tree_and_star_filter(tmp_path):
     assert ps.starred == set() and len(ps.vcatalog()) == len(ps.catalog)
 
 
+def test_profile_active_direct_vs_indirect(tmp_path):
+    # `configs:` profiles are DIRECTLY active (● in the pane); profiles reached via +include from an
+    # active one are INDIRECTLY active (◐); the rest inactive (○).
+    from configsys import actions
+    from configsys.tui import menu
+    ctx = _rctx(tmp_path)
+    actions.add_profile(ctx, 'leaf')
+    actions.set_profile_membership(ctx, 'leaf', 'btop', 'add')
+    actions.add_profile(ctx, 'sub')
+    actions.set_profile_include(ctx, 'sub', 'leaf', True)
+    actions.add_profile(ctx, 'top')
+    actions.set_profile_include(ctx, 'top', 'sub', True)
+    actions.set_profile_active(ctx, 'top', True)                # only `top` is in configs
+
+    ps = menu.ProfileScreen(ctx)
+    assert ps.active == {'top'}                                 # ● directly active
+    assert ps.active_indirect == {'sub', 'leaf'}               # ◐ pulled in transitively via +include
+
+
 def test_profile_star_filter_show_removed(tmp_path):
     # The clone-and-prune view: star a profile, then `~` also reveals the components it dropped via
     # `~term` (marked `~`), so you can see what you pruned — not just what survived.
