@@ -12,15 +12,27 @@ from dataclasses import dataclass
 from typing import Optional
 
 
-def _parallel_map(fn, items):
+def _parallel_map(fn, items, progress=None):
     '''Map `fn` over `items` CONCURRENTLY — for I/O-bound, captured (terminal-untouching) probes, so
     wall time is the slowest single call, not the sum. Serial for <=1 item (no pool overhead). Order
-    of results is unspecified (callers are order-independent). Exceptions are the callee's problem —
-    `fn` here always returns, never raises.'''
-    if len(items) <= 1:
-        return [fn(it) for it in items]
-    with ThreadPoolExecutor(max_workers=min(8, len(items))) as ex:
-        return list(ex.map(fn, items))
+    of results is unspecified (callers are order-independent). `progress(done, total)`, if given, is
+    called AS EACH item completes (not at the end) — so a caller can drive a live progress bar through
+    a slow parallel enumeration. Exceptions are the callee's problem — `fn` here always returns.'''
+    n = len(items)
+    if n <= 1:
+        out = [fn(it) for it in items]
+        if progress:
+            progress(n, n)                     # 0 or 1 item: one terminal tick
+        return out
+    from concurrent.futures import as_completed
+    out = []
+    with ThreadPoolExecutor(max_workers=min(8, n)) as ex:
+        futs = [ex.submit(fn, it) for it in items]
+        for done, fut in enumerate(as_completed(futs), 1):
+            out.append(fut.result())
+            if progress:
+                progress(done, n)              # fires as real work finishes -> the bar tracks it
+    return out
 
 from .componentObj import ResolvedComponent
 from .drivers import get_driver
@@ -83,7 +95,7 @@ class InstallState:
         # ABI-incompatible) — lets a missing driver read as "untrusted" rather than "unsupported".
         self.pending_vias = set(pending_vias)
 
-    def inspect(self, units, progress=None, reuse=None, dirty=None):
+    def inspect(self, units, progress=None, reuse=None, dirty=None, batch_progress=None):
         '''units: {key: ResolvedComponent} -> {key: ComponentState}. `progress`, if given, is
         called (i, total, key, state, ms) after each freshly-probed unit — the per-unit state
         check is the slow part, so this lets the caller show motion during a long load.
@@ -98,7 +110,7 @@ class InstallState:
         # three subprocesses per unit) — the startup cost was ~440 serial spawns. Drivers without a
         # batch_index simply don't participate and fall back to per-unit probes.
         to_probe = {k: rc for k, rc in units.items() if k not in reuse or k in dirty}
-        batch = self._build_batch(to_probe)
+        batch = self._build_batch(to_probe, progress=batch_progress)
         out, total = {}, len(units)
         for key, rc in units.items():             # reused units keep their cached probe, no work
             if key in reuse and key not in dirty:
@@ -129,7 +141,7 @@ class InstallState:
                         progress(i, total, key, st, (time.perf_counter() - t0) * 1000)
         return out
 
-    def _build_batch(self, units):
+    def _build_batch(self, units, progress=None):
         '''{driver_name: batch-context} — one pre-fetch per DRIVER present in `units`, for drivers
         that implement `batch_index(rcs)` (given the units' ResolvedComponents, so a driver can read
         whatever fields it needs — e.g. flatpak's `hub`). The context is opaque (only that driver
@@ -153,7 +165,8 @@ class InstallState:
         # Each driver's batch_index is independent, captured (stdin=DEVNULL, terminal-untouching) I/O —
         # so run them CONCURRENTLY: the prepass wall time drops from the SUM of per-driver enumerations
         # (flatpak remote-ls + npm ls + apt + pipx/pip …) to the slowest single one.
-        return {d: bi for d, bi in _parallel_map(probe, list(by_driver.items())) if bi is not None}
+        return {d: bi for d, bi in _parallel_map(probe, list(by_driver.items()), progress=progress)
+                if bi is not None}
 
     def inspect_one(self, rc, batch=None):
         led_lock = self.ledger.is_locked(rc.key)

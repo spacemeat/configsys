@@ -347,37 +347,52 @@ def test_config_set_splash_does_not_crash(tmp_path):
     assert main(home + ['config', 'set', 'splash', 'blocks']) == 0
 
 
-def test_inspect_worker_frac_eases_through_prelude_then_tracks_inspect():
-    # the splash bar shows motion during the pre-inspect phases (load/resolve, then detection) instead
-    # of a stalled 0%, then the real per-unit progress fills the rest — monotonic across the handoffs.
+def test_inspect_worker_frac_is_a_unified_eased_bar_over_phases():
+    # ONE bar over the real startup phases (head -> detect -> batch -> inspect); each real-tick phase
+    # fills a contiguous band, with intra-step easing so a slow driver creeps instead of freezing.
     import time
-    from configsys.tui.menu import _InspectWorker, _PRELUDE_SHARE, _PRELUDE_HEAD
+    from configsys.tui.menu import _InspectWorker, _HEAD_END, _DETECT_END, _BATCH_END
     w = _InspectWorker.__new__(_InspectWorker)
-    w._i, w._total = 0, 0
-    w._pre_i, w._pre_n = 0, 0
-    w._start = time.monotonic()
+    w._i = w._total = w._pre_i = w._pre_n = w._bat_i = w._bat_n = 0
+    now = time.monotonic()
+    w._start, w._tick = now, now
+
+    def just_ticked():                                   # reset the ease clock -> creep ~ 0
+        w._tick = time.monotonic()
+        return w.frac()
+
+    # HEAD: eases up toward _HEAD_END, never past it
     early = w.frac()
     w._start = time.monotonic() - 2.0
-    later = w.frac()
-    assert 0.0 <= early < later <= _PRELUDE_HEAD          # load/route eases up toward the HEAD
-    # detection phase: real per-driver ticks fill HEAD..SHARE
-    w._pre_i, w._pre_n = 0, 8
-    assert abs(w.frac() - _PRELUDE_HEAD) < 1e-9           # starts at the head (no dip back)
-    w._pre_i = 4
-    assert _PRELUDE_HEAD < w.frac() < _PRELUDE_SHARE
-    w._pre_i = 8
-    assert abs(w.frac() - _PRELUDE_SHARE) < 1e-9          # detection done -> right at the share
-    w._total, w._i = 10, 0
-    assert abs(w.frac() - _PRELUDE_SHARE) < 1e-9          # inspect starts right at the share (no dip)
-    w._i = 5
-    assert _PRELUDE_SHARE < w.frac() < 1.0
-    w._i = 10
-    assert w.frac() == 1.0
+    assert 0.0 <= early < w.frac() < _HEAD_END
 
-    # phase_label tracks what the worker is doing
-    w._total = 0; w._pre_n = 0
+    # DETECT band [_HEAD_END, _DETECT_END] — per-driver ticks
+    w._pre_i, w._pre_n = 0, 8
+    assert abs(just_ticked() - _HEAD_END) < 1e-3         # starts at the head (no dip back)
+    w._pre_i = 8
+    assert abs(just_ticked() - _DETECT_END) < 1e-3       # detect done -> band end
+    # BATCH band [_DETECT_END, _BATCH_END] — the second (inspect-prepass) enumeration
+    w._bat_i, w._bat_n = 0, 5
+    assert abs(just_ticked() - _DETECT_END) < 1e-3       # contiguous, no dip
+    w._bat_i = 5
+    assert abs(just_ticked() - _BATCH_END) < 1e-3
+    # INSPECT band [_BATCH_END, 1.0] — per-unit
+    w._total, w._i = 10, 0
+    assert abs(just_ticked() - _BATCH_END) < 1e-3
+    w._i = 10
+    assert abs(just_ticked() - 1.0) < 1e-3
+
+    # intra-step easing: with the step fixed, elapsed time creeps the bar forward — but never into the
+    # next step (so the real tick, when it lands, is always a forward move).
+    w._i = 3
+    w._tick = time.monotonic() - 5.0                     # long stall on this step
+    step = (1.0 - _BATCH_END) / 10
+    base = _BATCH_END + step * 3
+    assert base < w.frac() < base + step
+
+    # phase_label tracks the phase
+    w._total = w._bat_n = w._pre_n = 0
     assert w.phase_label() == 'loading configuration'
-    w._pre_n = 8
-    assert w.phase_label() == 'scanning installed packages'
-    w._total = 10
-    assert w.phase_label() == 'checking install state'
+    w._pre_n = 8; assert w.phase_label() == 'scanning installed packages'
+    w._bat_n = 5; assert w.phase_label() == 'reading package versions'
+    w._total = 10; assert w.phase_label() == 'checking install state'

@@ -379,7 +379,8 @@ class Context:
             print(f'  {action:8} {name}')
         print(f'configsys: {msg}')
 
-    def load_pipeline(self, reuse=None, dirty=None, progress=None, detect_progress=None):
+    def load_pipeline(self, reuse=None, dirty=None, progress=None, detect_progress=None,
+                      batch_progress=None):
         r = self.reporter
         self.ensure_user_config(offer_primary=True)
         cfg = self.config
@@ -425,7 +426,8 @@ class Context:
         ledger = Ledger.load(self.paths)
         states = InstallState(self.runner, ledger, self.paths,
                               pending_vias=self.plugin_pending_vias).inspect(
-            units, progress=(progress or self._inspect_progress), reuse=reuse, dirty=dirty)
+            units, progress=(progress or self._inspect_progress), reuse=reuse, dirty=dirty,
+            batch_progress=batch_progress)
         if cfg.detect_coexisting():
             from .installState import detect_coexisting     # "also present (unmanaged)" per component
             detect_coexisting(self, states)

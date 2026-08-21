@@ -1370,10 +1370,19 @@ def _splash_linger(ctx):
 # loop that drives real progress, so the bar would sit at 0% while they work. Reserve this share of the
 # bar for them and EASE it up over ~_PRELUDE_TAU seconds, so the splash shows motion instead of a stall;
 # the real per-unit progress then fills the remaining (1 - share).
-_PRELUDE_SHARE = 0.35
-_PRELUDE_HEAD = 0.12    # the load/route/resolve head of the prelude (no per-item signal) — eased;
-_PRELUDE_TAU = 0.8      # detection then fills _PRELUDE_HEAD.._PRELUDE_SHARE with REAL per-driver ticks.
-#                        seconds — ease time-constant (bar reaches ~63%/86%/95% of the head at 1/2/3τ)
+# Startup progress is ONE bar over the real phases, each an iterator with a knowable count so the bar
+# is driven by actual work — not a blind time-guess. The bands (cumulative fractions) split the bar by
+# rough wall-time share: a short eased HEAD (load/route/resolve — sub-100ms, no countable items), then
+# DETECT (detect_pins enumerates each package manager's installed set), BATCH (the inspect prepass
+# pre-fetches each driver's versions/holds — a SECOND parallel enumeration), then INSPECT (per-unit).
+# DETECT and BATCH tick per-DRIVER as each finishes; INSPECT ticks per-UNIT. Between ticks the bar
+# EASES toward the next step (capped short of it) so a single slow driver (flatpak ~2s) keeps the bar —
+# and the splash animation it drives — creeping instead of frozen.
+_HEAD_END = 0.06        # end of the eased load/resolve head
+_DETECT_END = 0.34      # end of the detection scan band
+_BATCH_END = 0.56       # end of the inspect batch-prepass band; INSPECT fills _BATCH_END..1.0
+_PRELUDE_TAU = 0.8      # head ease time-constant (seconds)
+_STEP_TAU = 0.5         # intra-step ease time-constant: how fast the bar creeps toward the next tick
 
 
 class _InspectWorker:
@@ -1384,10 +1393,13 @@ class _InspectWorker:
     def __init__(self, ctx):
         self.ctx = ctx
         self._i = 0
-        self._total = 0
-        self._pre_i = 0                      # detection-phase (installed-package enumeration) progress
+        self._total = 0                      # INSPECT: per-unit progress
+        self._pre_i = 0                      # DETECT: per-driver installed-index enumeration
         self._pre_n = 0
+        self._bat_i = 0                      # BATCH: per-driver inspect-prepass enumeration
+        self._bat_n = 0
         self._start = time.monotonic()
+        self._tick = self._start            # time of the last real step tick (for intra-step easing)
         self._done = threading.Event()
         self._result = None
         self._exc = None
@@ -1395,13 +1407,20 @@ class _InspectWorker:
 
     def _sink(self, i, total, *rest):
         self._i, self._total = i, total
+        self._tick = time.monotonic()
 
     def _detect_sink(self, done, total):
         self._pre_i, self._pre_n = done, total
+        self._tick = time.monotonic()
+
+    def _batch_sink(self, done, total):
+        self._bat_i, self._bat_n = done, total
+        self._tick = time.monotonic()
 
     def _work(self):
         try:
-            self._result = self.ctx.load_pipeline(progress=self._sink, detect_progress=self._detect_sink)
+            self._result = self.ctx.load_pipeline(progress=self._sink, detect_progress=self._detect_sink,
+                                                  batch_progress=self._batch_sink)
         except BaseException as e:          # captured, re-raised on the main thread in join()
             self._exc = e
         finally:
@@ -1412,6 +1431,8 @@ class _InspectWorker:
         string. (Read live by run_splash each frame.)'''
         if self._total:
             return 'checking install state'
+        if self._bat_n:
+            return 'reading package versions'
         if self._pre_n:
             return 'scanning installed packages'
         return 'loading configuration'
@@ -1424,14 +1445,28 @@ class _InspectWorker:
         '''Block up to `timeout`; return True if inspection is STILL running (→ show the splash).'''
         return not self._done.wait(timeout)
 
+    def _band(self, lo, hi, done, total):
+        '''Map real step progress (done/total) into the bar band [lo, hi], then EASE forward from the
+        last tick toward the next step (capped at 90% of a step) — so a slow step still shows motion
+        without ever overshooting where the next real tick will land.'''
+        if total <= 0:
+            return lo
+        step = (hi - lo) / total
+        base = lo + step * done
+        creep = step * 0.9 * (1.0 - math.exp(-(time.monotonic() - self._tick) / _STEP_TAU))
+        return min(hi, base + creep)
+
     def frac(self):
-        if self._total:                          # inspecting: real per-unit progress, above the prelude
-            return _PRELUDE_SHARE + (1 - _PRELUDE_SHARE) * (self._i / self._total)
-        if self._pre_n:                          # detecting: REAL per-driver ticks fill the prelude's
-            return _PRELUDE_HEAD + (_PRELUDE_SHARE - _PRELUDE_HEAD) * (self._pre_i / self._pre_n)  # back
-        # load/route/resolve: no per-item signal yet — ease the bar UP toward the prelude HEAD so the
-        # splash shows motion (not a stalled 0%) until detection starts feeding real ticks.
-        return _PRELUDE_HEAD * (1.0 - math.exp(-(time.monotonic() - self._start) / _PRELUDE_TAU))
+        # take the furthest phase that has started (they run in order); each is a real iterator whose
+        # ticks drive its band, with intra-step easing so a slow driver never freezes the bar.
+        if self._total:                          # INSPECT: per-unit
+            return self._band(_BATCH_END, 1.0, self._i, self._total)
+        if self._bat_n:                          # BATCH: per-driver inspect prepass
+            return self._band(_DETECT_END, _BATCH_END, self._bat_i, self._bat_n)
+        if self._pre_n:                          # DETECT: per-driver installed-index scan
+            return self._band(_HEAD_END, _DETECT_END, self._pre_i, self._pre_n)
+        # HEAD (load/route/resolve): no countable items — ease toward _HEAD_END so it's never a stall.
+        return _HEAD_END * (1.0 - math.exp(-(time.monotonic() - self._start) / _PRELUDE_TAU))
 
     def counts(self):
         return (self._i, self._total)

@@ -80,12 +80,8 @@ def detect_pins(ctx, units, progress=None):
         except Exception:                           # noqa: BLE001 — a flaky lister must not brick resolve
             return name, None
     drivers = list({rc.driver for rc in units.values()})
-    done = 0
-    for name, idx in _parallel_map(_enum, drivers):
+    for name, idx in _parallel_map(_enum, drivers, progress=progress):  # ticks as each finishes
         cache[name] = idx
-        done += 1
-        if progress:
-            progress(done, len(drivers))
 
     # -- method detection: a resolved component installed via a different valid method --
     for rc in units.values():
