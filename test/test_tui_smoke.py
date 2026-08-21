@@ -33,7 +33,8 @@ def _drain(fd, deadline):
     return buf
 
 
-@pytest.mark.parametrize('extra', [[], ['--nocolor']], ids=['color', 'nocolor'])
+@pytest.mark.parametrize('extra', [[], ['--nocolor'], ['--color', '16']],
+                         ids=['color', 'nocolor', 'color16'])
 def test_tui_launches_navigates_and_quits(tmp_path, extra):
     try:
         master, slave = pty.openpty()
@@ -65,7 +66,8 @@ def test_tui_launches_navigates_and_quits(tmp_path, extra):
     deadline = time.monotonic() + 8
     first = _drain(master, min(deadline, time.monotonic() + 3))
     # drive: down, open diagnostics page, scroll, close it, select, then quit — `q` opens a
-    # "Really quit?" modal (default No), so `k` moves to "Yes, quit" and Enter confirms.
+    # "Really quit?" modal (default No), so `k` moves to "Yes, quit" and Enter confirms. Runs in
+    # three color modes (auto / --nocolor / --color 16) so a low-color render crash can't slip in.
     for keys in (b'j', b'!', b'j', b'!', b' ', b'q', b'k', b'\n'):
         try:
             os.write(master, keys)

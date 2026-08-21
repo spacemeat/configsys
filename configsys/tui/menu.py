@@ -1890,6 +1890,8 @@ def _draw_profiles(stdscr, pal, ps, ctx, note, screen):
     _sel = pal.sel_bg_rgb
     residual_bg = tuple(round(_sel[i] * 0.55) for i in range(3))
     member_bg = tuple(round(_sel[i] * 0.28) for i in range(3))
+    low_color = not pal.have256    # 8/16-colour has no room for a dim tint -> those quantize to black
+                                   # (invisible); reverse-video the unfocused-current row instead.
 
     # LEFT: profiles as a tree — top-level + inline `+include` children; ▸ marks a starred profile
     vnodes = ps.visible_pnodes()
@@ -1903,15 +1905,18 @@ def _draw_profiles(stdscr, pal, ps, ctx, note, screen):
         cur = i == ps.lcur
         foc = cur and ps.focus == 'left'
         rbg = residual_bg if (cur and not foc) else None   # dimmer bar for the current row unfocused
+        rev = curses.A_REVERSE if (low_color and rbg is not None) else 0
         if foc:
             _put(stdscr, y, lil, ' ' * liw, pal.fill(y, lil, h, w, selected=True))
         elif rbg is not None:
-            _put(stdscr, y, lil, ' ' * liw, pal.fill(y, lil, h, w, bg=rbg))
+            _put(stdscr, y, lil, ' ' * liw,
+                 curses.A_REVERSE if low_color else pal.fill(y, lil, h, w, bg=rbg))
         star = '▸' if name in ps.starred else ' '     # selection is the bar; ▸ now means "starred"
         exp = '▾' if expanded else ('▹' if expandable else ' ')
         act = '●' if name in ps.active else ('◐' if name in ps.active_indirect else '○')
         row = f'{star}{"  " * depth}{exp}{act} {name}'
-        _put(stdscr, y, lil, _fit(row, liw), pal.style('profile', y, lil, h, w, selected=foc, bg=rbg))
+        _put(stdscr, y, lil, _fit(row, liw),
+             pal.style('profile', y, lil, h, w, selected=foc, bg=(None if low_color else rbg)) | rev)
     _scrollbar_v(stdscr, pal, lit, lw - 1, lih, ps.ltop, lih, len(vnodes), h, w)
 
     # RIGHT TOP: detail for the highlighted component (names are esoteric) — description + methods
@@ -2015,10 +2020,16 @@ def _draw_profiles(stdscr, pal, ps, ctx, note, screen):
                 rbg = member_bg
             else:
                 rbg = None
+            # 8/16-colour: the dim tints vanish -> reverse the unfocused-current row so it stays
+            # visible; a member's subtle tint just drops (it's secondary to the cursor).
+            rev = curses.A_REVERSE if (low_color and cur and not foc) else 0
+            tint = None if low_color else rbg
             if foc:
                 _put(stdscr, y, cx, ' ' * cell, pal.fill(y, cx, h, w, selected=True))
-            elif rbg is not None:
-                _put(stdscr, y, cx, ' ' * cell, pal.fill(y, cx, h, w, bg=rbg))
+            elif rev:
+                _put(stdscr, y, cx, ' ' * cell, curses.A_REVERSE)
+            elif tint is not None:
+                _put(stdscr, y, cx, ' ' * cell, pal.fill(y, cx, h, w, bg=tint))
             cm = '▸' if cur else ' '
             mk = ('●' if name in own else '↳') if name in members else ('~' if name in removed else ' ')
             # the resolved method trails the name, in the muted method colour; a pin is marked `[via]`
@@ -2030,11 +2041,11 @@ def _draw_profiles(stdscr, pal, ps, ctx, note, screen):
             if mstr and m_room >= 3:
                 mshow = _fit(mstr, m_room)
                 _put(stdscr, y, cx, _fit(nm_txt, cell - len(mshow) - 1),
-                     pal.style(elem, y, cx, h, w, selected=foc, bg=rbg))
+                     pal.style(elem, y, cx, h, w, selected=foc, bg=tint) | rev)
                 mx = cx + cell - len(mshow)
-                _put(stdscr, y, mx, mshow, pal.style('method_dim', y, mx, h, w, selected=foc, bg=rbg))
+                _put(stdscr, y, mx, mshow, pal.style('method_dim', y, mx, h, w, selected=foc, bg=tint) | rev)
             else:                                    # no room for a method column: just the name
-                _put(stdscr, y, cx, _fit(nm_txt, cell), pal.style(elem, y, cx, h, w, selected=foc, bg=rbg))
+                _put(stdscr, y, cx, _fit(nm_txt, cell), pal.style(elem, y, cx, h, w, selected=foc, bg=tint) | rev)
     # the catalog scrolls horizontally by column; show which columns are in view on the bottom border
     _scrollbar_h(stdscr, pal, ctop + cath - 1, ril, riw, ps.rcol_left, ncols, total_cols, h, w)
 
