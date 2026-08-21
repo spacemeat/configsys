@@ -13,7 +13,6 @@ unit appears. Enter/→ expand, ← collapse, Tab expands/collapses all componen
 '''
 
 import curses
-import math
 import threading
 import time
 from pathlib import Path
@@ -1366,23 +1365,14 @@ def _splash_linger(ctx):
     return ctx.env.get('CONFIGSYS_SPLASH', '').lower() in ('linger', 'hold')
 
 
-# The pre-inspect phases (load routes/config -> resolve -> detection) run BEFORE the per-unit inspect
-# loop that drives real progress, so the bar would sit at 0% while they work. Reserve this share of the
-# bar for them and EASE it up over ~_PRELUDE_TAU seconds, so the splash shows motion instead of a stall;
-# the real per-unit progress then fills the remaining (1 - share).
-# Startup progress is ONE bar over the real phases, each an iterator with a knowable count so the bar
-# is driven by actual work — not a blind time-guess. The bands (cumulative fractions) split the bar by
-# rough wall-time share: a short eased HEAD (load/route/resolve — sub-100ms, no countable items), then
-# DETECT (detect_pins enumerates each package manager's installed set), BATCH (the inspect prepass
-# pre-fetches each driver's versions/holds — a SECOND parallel enumeration), then INSPECT (per-unit).
-# DETECT and BATCH tick per-DRIVER as each finishes; INSPECT ticks per-UNIT. Between ticks the bar
-# EASES toward the next step (capped short of it) so a single slow driver (flatpak ~2s) keeps the bar —
-# and the splash animation it drives — creeping instead of frozen.
-_HEAD_END = 0.06        # end of the eased load/resolve head
-_DETECT_END = 0.34      # end of the detection scan band
-_BATCH_END = 0.56       # end of the inspect batch-prepass band; INSPECT fills _BATCH_END..1.0
-_PRELUDE_TAU = 0.8      # head ease time-constant (seconds)
-_STEP_TAU = 0.5         # intra-step ease time-constant: how fast the bar creeps toward the next tick
+# Startup progress is ONE bar over the real phases: HEAD (load/route/resolve), DETECT (detect_pins),
+# BATCH (the inspect prepass — a second package scan), INSPECT (per-unit). Each phase gets a band whose
+# WIDTH is its learned share of the total time (startuptiming), and within its band the bar is paced by
+# ELAPSED TIME toward that learned duration — so it advances at a roughly constant rate instead of
+# lurching with the front-loaded per-driver counts. Real ticks mark where a phase actually STARTS (so
+# the next band begins) and, on completion, feed next run's estimate. See startuptiming.py.
+_PACE_CAP = 0.985       # a time-paced band creeps to at most this of its width, then waits for the real
+#                         phase end (the next phase's first tick) to snap it forward — no false 100%.
 
 
 class _InspectWorker:
@@ -1391,40 +1381,71 @@ class _InspectWorker:
     exception from the worker on join (so load errors still surface normally).'''
 
     def __init__(self, ctx):
+        from .. import startuptiming
         self.ctx = ctx
         self._i = 0
-        self._total = 0                      # INSPECT: per-unit progress
-        self._pre_i = 0                      # DETECT: per-driver installed-index enumeration
-        self._pre_n = 0
-        self._bat_i = 0                      # BATCH: per-driver inspect-prepass enumeration
-        self._bat_n = 0
+        self._total = 0                      # INSPECT: per-unit progress (kept for phase_label + counts)
+        self._pre_n = 0                      # DETECT active once >0
+        self._bat_n = 0                      # BATCH active once >0
         self._start = time.monotonic()
-        self._tick = self._start            # time of the last real step tick (for intra-step easing)
         self._done = threading.Event()
         self._result = None
         self._exc = None
+        # learned per-phase durations -> band WIDTHS proportional to time share. A phase that won't run
+        # this session (detection is skipped when adopt-installed is off / under --pretend) gets width 0
+        # so the bar doesn't reserve dead space for it.
+        est = startuptiming.load(ctx.paths)
+        if not (ctx.config.adopt_installed() and not ctx.runner.pretend):
+            est['detect'] = 0.0
+        self._est = est
+        tot = max(startuptiming.MIN, sum(est[p] for p in startuptiming.PHASES))
+        self._band = {}                      # phase -> (lo, hi) cumulative fractions
+        acc = 0.0
+        for p in startuptiming.PHASES:
+            lo = acc / tot
+            acc += est[p]
+            self._band[p] = (lo, acc / tot)
+        self._t = {'head': self._start, 'detect': None, 'batch': None, 'inspect': None}
         self._thread = threading.Thread(target=self._work, daemon=True)
 
+    def _phase_start(self, phase):
+        if self._t[phase] is None:
+            self._t[phase] = time.monotonic()
+
     def _sink(self, i, total, *rest):
+        self._phase_start('inspect')
         self._i, self._total = i, total
-        self._tick = time.monotonic()
 
     def _detect_sink(self, done, total):
-        self._pre_i, self._pre_n = done, total
-        self._tick = time.monotonic()
+        self._phase_start('detect')
+        self._pre_n = total
 
     def _batch_sink(self, done, total):
-        self._bat_i, self._bat_n = done, total
-        self._tick = time.monotonic()
+        self._phase_start('batch')
+        self._bat_n = total
 
     def _work(self):
         try:
             self._result = self.ctx.load_pipeline(progress=self._sink, detect_progress=self._detect_sink,
                                                   batch_progress=self._batch_sink)
+            self._record_timing()
         except BaseException as e:          # captured, re-raised on the main thread in join()
             self._exc = e
         finally:
             self._done.set()
+
+    def _record_timing(self):
+        '''Fold this run's actual phase durations into the learned estimate (EMA). A phase's duration
+        runs from its start to the next STARTED phase's start (or, for the last, to now) — so a skipped
+        phase is simply absent and its predecessor absorbs the gap.'''
+        from .. import startuptiming
+        end = time.monotonic()
+        started = [p for p in startuptiming.PHASES if self._t[p] is not None]
+        measured = {}
+        for i, p in enumerate(started):
+            nxt = self._t[started[i + 1]] if i + 1 < len(started) else end
+            measured[p] = nxt - self._t[p]
+        startuptiming.update(self.ctx.paths, measured)
 
     def phase_label(self):
         '''What the worker is doing right now — so the splash label tracks the phase, not a fixed
@@ -1445,28 +1466,22 @@ class _InspectWorker:
         '''Block up to `timeout`; return True if inspection is STILL running (→ show the splash).'''
         return not self._done.wait(timeout)
 
-    def _band(self, lo, hi, done, total):
-        '''Map real step progress (done/total) into the bar band [lo, hi], then EASE forward from the
-        last tick toward the next step (capped at 90% of a step) — so a slow step still shows motion
-        without ever overshooting where the next real tick will land.'''
-        if total <= 0:
-            return lo
-        step = (hi - lo) / total
-        base = lo + step * done
-        creep = step * 0.9 * (1.0 - math.exp(-(time.monotonic() - self._tick) / _STEP_TAU))
-        return min(hi, base + creep)
+    def _paced(self, phase):
+        '''Time-pace the active phase's band: advance from its start proportional to elapsed/estimate,
+        capped at _PACE_CAP of the band so it never shows a false 100% before the phase actually ends.'''
+        lo, hi = self._band[phase]
+        f = min(_PACE_CAP, (time.monotonic() - self._t[phase]) / max(0.02, self._est[phase]))
+        return lo + (hi - lo) * f
 
     def frac(self):
-        # take the furthest phase that has started (they run in order); each is a real iterator whose
-        # ticks drive its band, with intra-step easing so a slow driver never freezes the bar.
-        if self._total:                          # INSPECT: per-unit
-            return self._band(_BATCH_END, 1.0, self._i, self._total)
-        if self._bat_n:                          # BATCH: per-driver inspect prepass
-            return self._band(_DETECT_END, _BATCH_END, self._bat_i, self._bat_n)
-        if self._pre_n:                          # DETECT: per-driver installed-index scan
-            return self._band(_HEAD_END, _DETECT_END, self._pre_i, self._pre_n)
-        # HEAD (load/route/resolve): no countable items — ease toward _HEAD_END so it's never a stall.
-        return _HEAD_END * (1.0 - math.exp(-(time.monotonic() - self._start) / _PRELUDE_TAU))
+        # the furthest phase that has STARTED (phases run in order); each band is paced by time toward
+        # its learned duration, so the bar advances at a ~constant rate through the front-loaded scans
+        # instead of lurching with their per-driver counts. Earlier bands are implicitly full (this
+        # band's `lo` == the prior band's `hi`).
+        for p in ('inspect', 'batch', 'detect'):
+            if self._t[p] is not None:
+                return self._paced(p)
+        return self._paced('head')
 
     def counts(self):
         return (self._i, self._total)

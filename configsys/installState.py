@@ -219,31 +219,36 @@ def detect_coexisting(ctx, states):
     installed" pass. Cheap: package-manager drivers are enumerated ONCE each (batched
     `installed_index`), path/build drivers use their fast per-method get_version; NO get_latest (no
     network — "outdated" is only for the managed method). Mutates and returns `states`.'''
+    import threading
     from .adapt import to_resolved_component
     from .resolve import candidate_bindings, unit_for_binding, via_representatives
     r = ctx.routes
     cx = r.cascade.context(r.block, r.version, r.cpu)
     enum = {}                                       # driver name -> installed_index() dict or None
+    lock = threading.Lock()                         # guards `enum` under the parallel per-state loop
 
     def index_of(drv):
-        if drv.name not in enum:
-            try:
-                enum[drv.name] = drv.installed_index()
-            except Exception:                       # noqa: BLE001 - a flaky lister must not brick inspect
-                enum[drv.name] = None
-        return enum[drv.name]
+        with lock:
+            if drv.name in enum:
+                return enum[drv.name]
+        try:                                        # enumerate outside the lock (slow subprocess)
+            idx = drv.installed_index()
+        except Exception:                           # noqa: BLE001 - a flaky lister must not brick inspect
+            idx = None
+        with lock:
+            return enum.setdefault(drv.name, idx)
 
-    for st in states.values():
+    def _one(st):
         managed = st.component
         comp = r.components.get(managed.comp)
         if comp is None or not comp.bindings:
-            continue
+            return
         try:
             reps = via_representatives(candidate_bindings(comp, r.cascade, cx, None), r.cascade)
         except Exception:                           # noqa: BLE001
-            continue
+            return
         if len(reps) < 2:
-            continue                                # only one method here -> nothing else to find
+            return                                  # only one method here -> nothing else to find
         also = []
         for b in reps:
             if b.via == managed.via:
@@ -264,4 +269,8 @@ def detect_coexisting(ctx, states):
                 also.append((rc.via, rc.name, ver))
         if also:
             st.also_present = tuple(also)
+
+    # per-state candidate probes (get_version for non-indexed drivers) are subprocess-bound and
+    # independent -> run concurrently, like the inspect + detection passes.
+    _parallel_map(_one, list(states.values()))
     return states

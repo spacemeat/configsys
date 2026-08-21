@@ -347,48 +347,55 @@ def test_config_set_splash_does_not_crash(tmp_path):
     assert main(home + ['config', 'set', 'splash', 'blocks']) == 0
 
 
-def test_inspect_worker_frac_is_a_unified_eased_bar_over_phases():
-    # ONE bar over the real startup phases (head -> detect -> batch -> inspect); each real-tick phase
-    # fills a contiguous band, with intra-step easing so a slow driver creeps instead of freezing.
+def _paced_worker(est):
+    # a worker with a fixed estimate, bypassing __init__ (no ctx). Bands = time-share of `est`.
     import time
-    from configsys.tui.menu import _InspectWorker, _HEAD_END, _DETECT_END, _BATCH_END
+    from configsys.tui.menu import _InspectWorker
+    from configsys import startuptiming
     w = _InspectWorker.__new__(_InspectWorker)
-    w._i = w._total = w._pre_i = w._pre_n = w._bat_i = w._bat_n = 0
+    w._i = w._total = w._pre_n = w._bat_n = 0
+    w._est = est
+    tot = sum(est[p] for p in startuptiming.PHASES)
+    acc = 0.0
+    w._band = {}
+    for p in startuptiming.PHASES:
+        lo = acc / tot; acc += est[p]; w._band[p] = (lo, acc / tot)
     now = time.monotonic()
-    w._start, w._tick = now, now
+    w._start = now
+    w._t = {'head': now, 'detect': None, 'batch': None, 'inspect': None}
+    return w
 
-    def just_ticked():                                   # reset the ease clock -> creep ~ 0
-        w._tick = time.monotonic()
-        return w.frac()
 
-    # HEAD: eases up toward _HEAD_END, never past it
-    early = w.frac()
-    w._start = time.monotonic() - 2.0
-    assert 0.0 <= early < w.frac() < _HEAD_END
+def test_inspect_worker_frac_is_time_paced_per_phase():
+    # each phase's band is paced by ELAPSED TIME toward its learned duration (so the front-loaded scans
+    # advance smoothly, not by lurching counts). Real ticks mark where each phase STARTS.
+    import time
+    from configsys.tui.menu import _InspectWorker, _PACE_CAP
+    est = {'head': 0.3, 'detect': 1.6, 'batch': 1.8, 'inspect': 1.6}
+    w = _paced_worker(est)
+    tot = sum(est.values())
 
-    # DETECT band [_HEAD_END, _DETECT_END] — per-driver ticks
-    w._pre_i, w._pre_n = 0, 8
-    assert abs(just_ticked() - _HEAD_END) < 1e-3         # starts at the head (no dip back)
-    w._pre_i = 8
-    assert abs(just_ticked() - _DETECT_END) < 1e-3       # detect done -> band end
-    # BATCH band [_DETECT_END, _BATCH_END] — the second (inspect-prepass) enumeration
-    w._bat_i, w._bat_n = 0, 5
-    assert abs(just_ticked() - _DETECT_END) < 1e-3       # contiguous, no dip
-    w._bat_i = 5
-    assert abs(just_ticked() - _BATCH_END) < 1e-3
-    # INSPECT band [_BATCH_END, 1.0] — per-unit
-    w._total, w._i = 10, 0
-    assert abs(just_ticked() - _BATCH_END) < 1e-3
-    w._i = 10
-    assert abs(just_ticked() - 1.0) < 1e-3
+    # HEAD: at t=0 frac~0; as time elapses it advances within [0, head/tot], capped at _PACE_CAP
+    assert w.frac() < 1e-3
+    w._t['head'] = time.monotonic() - 0.15                     # halfway through head's 0.3s estimate
+    head_hi = est['head'] / tot
+    assert 0.3 * head_hi < w.frac() < 0.7 * head_hi
 
-    # intra-step easing: with the step fixed, elapsed time creeps the bar forward — but never into the
-    # next step (so the real tick, when it lands, is always a forward move).
-    w._i = 3
-    w._tick = time.monotonic() - 5.0                     # long stall on this step
-    step = (1.0 - _BATCH_END) / 10
-    base = _BATCH_END + step * 3
-    assert base < w.frac() < base + step
+    # DETECT starts -> its band begins right where HEAD's ends (no dip); paces over est['detect']
+    det_lo, det_hi = w._band['detect']
+    w._t['detect'] = time.monotonic()
+    assert abs(w.frac() - det_lo) < 5e-3                       # just started -> band floor
+    w._t['detect'] = time.monotonic() - est['detect'] * 10    # long overrun -> capped short of band end
+    assert det_lo < w.frac() <= det_lo + (det_hi - det_lo) * _PACE_CAP + 1e-9
+    assert w.frac() < det_hi                                   # never a false 100% before the real end
+
+    # INSPECT starts -> its band; the earlier bands are implicitly full (its lo == batch's hi)
+    ins_lo, _ = w._band['inspect']
+    w._t['inspect'] = time.monotonic()
+    assert abs(w.frac() - ins_lo) < 5e-3
+    # a skipped phase (detect width 0) collapses its band: head then flows straight into batch
+    w2 = _paced_worker({'head': 0.3, 'detect': 0.0, 'batch': 1.8, 'inspect': 1.6})
+    assert w2._band['detect'][0] == w2._band['detect'][1]      # zero-width band
 
     # phase_label tracks the phase
     w._total = w._bat_n = w._pre_n = 0
@@ -396,3 +403,17 @@ def test_inspect_worker_frac_is_a_unified_eased_bar_over_phases():
     w._pre_n = 8; assert w.phase_label() == 'scanning installed packages'
     w._bat_n = 5; assert w.phase_label() == 'reading package versions'
     w._total = 10; assert w.phase_label() == 'checking install state'
+
+
+def test_startuptiming_load_update_roundtrip(tmp_path):
+    import types
+    from configsys import startuptiming
+    paths = types.SimpleNamespace(startup_timing_file=tmp_path / 'st.json', state_dir=tmp_path)
+    assert startuptiming.load(paths) == startuptiming._DEFAULTS      # missing -> defaults
+    startuptiming.update(paths, {'detect': 3.0, 'inspect': 2.0})
+    got = startuptiming.load(paths)
+    # EMA pulls the estimate toward the sample (between default and sample)
+    assert startuptiming._DEFAULTS['detect'] < got['detect'] < 3.0
+    assert got['head'] == startuptiming._DEFAULTS['head']            # unmeasured phase unchanged
+    startuptiming.update(paths, {'detect': -5})                      # bad sample ignored, floored
+    assert startuptiming.load(paths)['detect'] >= startuptiming.MIN
