@@ -2419,6 +2419,7 @@ _SAMPLES = {
                  ('4 targets · 1 to capture', 'info_dim'),
                  (' ↵ link · c capture · m migrate · C/L/M = all ', 'status_line')],
         'nav': ' tab · j/k · ↵ link · c capture · m migrate · a-f · q ',
+        'title': 'dotfiles (link state)',
     },
     'config': {
         'header': f'{"SETTING":20}VALUE',
@@ -2430,6 +2431,7 @@ _SAMPLES = {
         'foot': [('scope — default install location', 'info_dim'), ('4 settings', 'info_dim'),
                  (' ↵ edit ', 'status_line')],
         'nav': ' j/k · ↵ edit · m move local⇄primary · a-f page · q ',
+        'title': 'machine settings  ·  your values override defaults',
     },
 }
 
@@ -2494,130 +2496,136 @@ def _sample_theme_page(stdscr, pal, y0, x0, hh, ww):
     pal.use_page('theme')
 
 
-def _sample_bg_chrome(stdscr, pal, putl, y0, x0, hh, ww):
-    '''Shared preview scaffolding: paint the page background (gradient or flat) + the top chrome row
-    (the `configsys` chip + OS), so every content-screen mock wears the same app frame.'''
-    for yy in range(hh):
-        bg = pal.fill(yy, 0, hh, ww) if pal.gradient else pal.style('unit', yy, 0, hh, ww)
-        _put(stdscr, y0 + yy, x0, ' ' * ww, bg)
-    putl(0, 1, ' configsys ', 'label')
-    putl(0, 13, 'Pop!_OS 22.04', 'os')
+def _sbox(put, ry, rx, bh, bw, title):
+    '''A light bordered panel with its title set into the top edge — the chrome every non-Components
+    screen wears (each screen's content lives inside a titled `_panel`). Draws via a `put(y,x,text,
+    role)` closure in panel-relative coords.'''
+    put(ry, rx, '┌' + '─' * (bw - 2) + '┐', 'info_dim')
+    for r in range(1, bh - 1):
+        put(ry + r, rx, '│', 'info_dim')
+        put(ry + r, rx + bw - 1, '│', 'info_dim')
+    put(ry + bh - 1, rx, '└' + '─' * (bw - 2) + '┘', 'info_dim')
+    put(ry, rx + 2, f' {title} ', 'menu_header')
 
 
 def _sample_profiles_page(stdscr, pal, y0, x0, hh, ww):
-    '''Mock of the Profiles screen — a narrow profiles TREE (▸ star, ●/◐/○ activity, +include
-    children) beside a component detail line + a catalog grid. Its real two-pane shape, so the
-    preview reads as Profiles, not a recolored Components list.'''
+    '''Mock of the Profiles screen — two titled panels side by side: a narrow profiles TREE (▸ star,
+    ●/◐/○ activity, +include children) and the component detail + catalog grid. Its real two-pane
+    shape (and NO configsys/OS chrome — Profiles doesn't have that row).'''
     pal.use_page('profiles')
 
-    def putl(ry, rx, text, role, *, sel=False):
+    def put(ry, rx, text, role, *, sel=False):
         if 0 <= ry < hh and 0 <= rx < ww - 1:
             _put(stdscr, y0 + ry, x0 + rx, _fit(text, ww - 1 - rx),
                  pal.style(role, ry, rx, hh, ww, selected=sel))
 
-    _sample_bg_chrome(stdscr, pal, putl, y0, x0, hh, ww)
-    if hh < 8 or ww < 30:                              # too small for two panes: a one-line hint
-        putl(2, 1, '▾● dev   ◐ +base   ○ web', 'profile')
+    for yy in range(hh):
+        bg = pal.fill(yy, 0, hh, ww) if pal.gradient else pal.style('unit', yy, 0, hh, ww)
+        _put(stdscr, y0 + yy, x0, ' ' * ww, bg)
+    if hh < 9 or ww < 34:                              # too small for two panes: a one-line hint
+        put(1, 1, '▾● dev   ◐ +base   ○ web', 'profile')
         pal.use_page('theme')
         return
 
-    lw = max(12, min(ww // 3, 20))                     # LEFT: the profiles tree
-    putl(1, 1, _fit('profiles', lw - 1), 'menu_header')
-    tree = [('▸▾● dev', 'profile', True), ('    ▹◐ +base', 'link', False),
+    body_h = hh - 2                                    # leave the status + nav rows
+    lw = max(14, min(ww // 3, 22))
+    _sbox(put, 0, 0, body_h, lw, 'profiles')           # LEFT panel: the profiles tree
+    tree = [('▸▾● dev', 'profile', True), ('   ▹◐ +base', 'link', False),
             ('  ● web', 'profile', False), ('  ○ media', 'profile', False)]
     for i, (txt, role, sel) in enumerate(tree):
-        yy = 2 + i
-        if yy >= hh - 2:
+        yy = 1 + i
+        if yy >= body_h - 1:
             break
         if sel:
-            _put(stdscr, y0 + yy, x0, ' ' * lw, pal.fill(yy, 0, hh, ww, selected=True))
-        putl(yy, 1, txt, role, sel=sel)
-    for yy in range(1, hh - 2):                        # the pane divider
-        putl(yy, lw, '│', 'info_dim')
+            _put(stdscr, y0 + yy, x0 + 1, ' ' * (lw - 2), pal.fill(yy, 1, hh, ww, selected=True))
+        put(yy, 2, txt, role, sel=sel)
 
-    rx, rw = lw + 2, ww - lw - 3                       # RIGHT: detail line + a catalog grid
-    putl(1, rx, _fit('ripgrep', rw), 'menu_header')
-    putl(2, rx, _fit('fast recursive search (rg)', rw), 'info')
-    putl(3, rx, _fit('required by: fd · bat', rw), 'dependents')
-    putl(4, rx, _fit('in profiles: ● dev  ↳ base', rw), 'method_dim')
+    rx0, rw = lw + 1, ww - lw - 2                       # RIGHT panel: detail + catalog grid
+    _sbox(put, 0, rx0, body_h, rw, 'components — in "dev"')  # right border at ww-2 (a writable col)
+    put(1, rx0 + 2, _fit('ripgrep — fast recursive search', rw - 4), 'info')
+    put(2, rx0 + 2, _fit('required by: fd · bat    ● dev  ↳ base', rw - 4), 'method_dim')
     grid = [('● ripgrep', 'component'), ('○ neovim', 'unit'), ('● btop', 'component'),
             ('○ fd', 'unit'), ('● bat', 'component'), ('○ fzf', 'unit')]
-    colw = max(10, rw // 2)
-    ncols = max(1, rw // colw)
+    gcolw = max(11, (rw - 4) // 2)
+    gncols = max(1, (rw - 4) // gcolw)
     for i, (txt, role) in enumerate(grid):
-        col, r = i % ncols, i // ncols
-        yy = 6 + r
-        if yy >= hh - 2:
+        col, r = i % gncols, i // gncols
+        yy = 4 + r
+        if yy >= body_h - 1:
             break
-        putl(yy, rx + col * colw, _fit(txt, colw - 1), role)
+        put(yy, rx0 + 2 + col * gcolw, _fit(txt, gcolw - 1), role)
 
-    putl(hh - 2, 0, _fit(' selected: dev   ● direct  ◐ via-include  ○ off ', ww).ljust(ww), 'status_line')
-    putl(hh - 1, 0, _fit(' tab · j/k · * star · ↵ toggle · a-f page · q ', ww).ljust(ww), 'footer')
+    put(hh - 2, 0, _fit(' selected: dev   ● direct  ◐ via-include  ○ off ', ww).ljust(ww), 'status_line')
+    put(hh - 1, 0, _fit(' tab · j/k · * star · ↵ toggle · a-f page · q ', ww).ljust(ww), 'footer')
     pal.use_page('theme')
 
 
 def _sample_plugins_page(stdscr, pal, y0, x0, hh, ww):
-    '''Mock of the Plugins screen — a plugins table above a COLORED unified-diff pane (what an update
-    would change). The diff is the screen's whole point, so the preview shows it; a plain list
-    wouldn't read as Plugins.'''
+    '''Mock of the Plugins screen — a titled plugins-table panel above a titled COLORED unified-diff
+    panel (what an update would change; the diff is the screen's whole point). NO configsys/OS
+    chrome — Plugins doesn't have that row.'''
     pal.use_page('plugins')
 
-    def putl(ry, rx, text, role, *, sel=False):
+    def put(ry, rx, text, role, *, sel=False):
         if 0 <= ry < hh and 0 <= rx < ww - 1:
             _put(stdscr, y0 + ry, x0 + rx, _fit(text, ww - 1 - rx),
                  pal.style(role, ry, rx, hh, ww, selected=sel))
 
-    _sample_bg_chrome(stdscr, pal, putl, y0, x0, hh, ww)
-    if hh < 9 or ww < 30:                              # too small for table + diff: a two-line hint
-        putl(2, 1, 'configsys-user  ★ primary', 'component')
-        putl(3, 1, '+ added   - removed', 'diff_add')
+    for yy in range(hh):
+        bg = pal.fill(yy, 0, hh, ww) if pal.gradient else pal.style('unit', yy, 0, hh, ww)
+        _put(stdscr, y0 + yy, x0, ' ' * ww, bg)
+    if hh < 10 or ww < 34:                             # too small for table + diff: a two-line hint
+        put(1, 1, 'configsys-user  ★ primary', 'component')
+        put(2, 1, '+ added   - removed', 'diff_add')
         pal.use_page('theme')
         return
 
-    table_h = max(3, (hh - 3) * 2 // 5)                # TOP: the plugins table
-    putl(1, 1, _fit(f'{"PLUGIN":18}{"REF":6}STATUS', ww - 2), 'menu_header')
+    body_h = hh - 2                                    # leave the status + nav rows
+    table_h = max(4, body_h * 2 // 5)
+    bw = ww - 1                                        # box width: right border at ww-2 (writable)
+    _sbox(put, 0, 0, table_h, bw, 'plugins (tree)')    # TOP panel: the plugins table
+    put(1, 2, _fit(f'{"PLUGIN":18}{"REF":6}STATUS', bw - 4), 'menu_header')
     rows = [('configsys-user', 'v3', '★ primary', 'info', True),
             ('void-linux', 'v1', 'trusted code', 'installed', False),
             ('theme-rose', '—', 'unsynced', 'missing', False),
             ('acme-corp', 'v2', 'quarantined', 'untrusted', False)]
     for i, (nm, ref, st, strole, sel) in enumerate(rows):
         yy = 2 + i
-        if yy >= 1 + table_h:
+        if yy >= table_h - 1:
             break
         if sel:
-            _put(stdscr, y0 + yy, x0, ' ' * ww, pal.fill(yy, 0, hh, ww, selected=True))
-        putl(yy, 1, f'{nm:18}', 'label' if sel else 'component', sel=sel)
-        putl(yy, 19, f'{ref:6}', 'label' if sel else 'info_dim', sel=sel)
-        putl(yy, 25, st, 'label' if sel else strole, sel=sel)
+            _put(stdscr, y0 + yy, x0 + 1, ' ' * (bw - 2), pal.fill(yy, 1, hh, ww, selected=True))
+        put(yy, 2, f'{nm:18}', 'label' if sel else 'component', sel=sel)
+        put(yy, 20, f'{ref:6}', 'label' if sel else 'info_dim', sel=sel)
+        put(yy, 26, st, 'label' if sel else strole, sel=sel)
 
-    dy = 1 + table_h                                   # BOTTOM: the colored unified diff
-    putl(dy, 0, '─' * (ww - 1), 'info_dim')            # table | diff divider
-    putl(dy + 1, 1, _fit('diff · void-linux · v1 → v2    +3 -1', ww - 2), 'accent')
+    _sbox(put, table_h, 0, body_h - table_h, bw, 'diff · void-linux · v1 → v2   +3 -1')  # BOTTOM: diff
     diff = [('@@ routes.hu @@', 'diff_hunk'), ('   components:', 'diff_meta'),
             ('+    xbps:  { name: ripgrep }', 'diff_add'),
             ('+    aur:   { name: rust-ripgrep }', 'diff_add'),
             ('-    cargo: { name: ripgrep }', 'diff_del'),
             ('     suggests: ripgrep-dotfiles', 'diff_meta')]
     for i, (txt, role) in enumerate(diff):
-        yy = dy + 2 + i
-        if yy >= hh - 2:
+        yy = table_h + 1 + i
+        if yy >= body_h - 1:
             break
-        putl(yy, 1, txt, role)
+        put(yy, 2, txt, role)
 
-    putl(hh - 2, 0, _fit(' void-linux · trusted · Tab: table ⇄ diff ', ww).ljust(ww), 'status_line')
-    putl(hh - 1, 0, _fit(' tab · j/k · s sync · u update · t trust · a-f · q ', ww).ljust(ww), 'footer')
+    put(hh - 2, 0, _fit(' void-linux · trusted code · Tab: table ⇄ diff ', ww).ljust(ww), 'status_line')
+    put(hh - 1, 0, _fit(' tab · j/k · s sync · u update · t trust · a-f · q ', ww).ljust(ww), 'footer')
     pal.use_page('theme')
 
 
 def _sample_page(stdscr, pal, page, y0, x0, hh, ww):
     '''Render a mock of the REAL `page` (its layout + its own roles) in that page's colors + gradient,
     so cycling pages shows a faithful, distinct preview. Switches the palette's active page; the
-    caller restores.'''
+    caller restores. Profiles/plugins/theme have bespoke SHAPES; the rest are single lists — but only
+    Components carries the `configsys`+OS chrome row (the others live inside a titled panel).'''
     if hh < 6 or ww < 24:
         return
-    if page == 'theme':                                # each of these screens has a distinct SHAPE,
-        _sample_theme_page(stdscr, pal, y0, x0, hh, ww)   # not a single list — mock it faithfully so
-        return                                            # the preview reads as that screen
+    if page == 'theme':
+        _sample_theme_page(stdscr, pal, y0, x0, hh, ww)
+        return
     if page == 'profiles':
         _sample_profiles_page(stdscr, pal, y0, x0, hh, ww)
         return
@@ -2628,34 +2636,41 @@ def _sample_page(stdscr, pal, page, y0, x0, hh, ww):
     for yy in range(hh):
         bg = pal.fill(yy, 0, hh, ww) if pal.gradient else pal.style('unit', yy, 0, hh, ww)
         _put(stdscr, y0 + yy, x0, ' ' * ww, bg)
-    spec = _SAMPLES.get(page, _SAMPLES['components'])
+    spec = _SAMPLES[page]
 
     def put(yy, x, text, role, *, sel=False):
         if 0 <= yy < hh and 0 <= x < ww - 1:
             _put(stdscr, y0 + yy, x0 + x, _fit(text, ww - 1 - x),
                  pal.style(role, yy, x, hh, ww, selected=sel))
 
-    put(0, 1, ' configsys ', 'label')                              # shared chrome
-    put(0, 13, 'Pop!_OS 22.04', 'os')
-    if spec.get('badge') and ww > 24:
-        put(0, ww - len(spec['badge'][0]) - 1, spec['badge'][0], spec['badge'][1])
-    put(1, 1, spec['header'], 'menu_header')
-
     foot = spec['foot']
-    maxrows = hh - 2 - len(foot) - 1
+    body_bottom = hh - len(foot) - 1                   # first foot row; content sits above it
+    boxed = page != 'components'                       # only Components has the configsys+OS list chrome
+    if boxed:
+        _sbox(put, 0, 0, body_bottom, ww - 1, spec['title'])   # right border at ww-2 (writable)
+        cx, edge = 2, 2                                # content inset; keep clear of the right border
+    else:
+        put(0, 1, ' configsys ', 'label')
+        put(0, 13, 'Pop!_OS 22.04', 'os')
+        if spec.get('badge') and ww > 24:
+            put(0, ww - len(spec['badge'][0]) - 1, spec['badge'][0], spec['badge'][1])
+        cx, edge = 1, 0
+    put(1, cx, spec['header'], 'menu_header')
+    row_top = 2
+    maxrows = body_bottom - row_top - (1 if boxed else 0)   # boxed: stay above the bottom border
     for ri, row in enumerate(spec['rows'][:max(0, maxrows)]):
-        yy, sel = 2 + ri, ri == 0                                  # first row selected -> cursor bar
-        if sel and pal.gradient:
-            _put(stdscr, y0 + yy, x0, ' ' * ww, pal.fill(yy, 0, hh, ww, selected=True))
-        x = 1
+        yy, sel = row_top + ri, ri == 0                     # first row selected -> cursor bar
+        if sel:
+            bx, bw = (1, ww - 3) if boxed else (0, ww)
+            _put(stdscr, y0 + yy, x0 + bx, ' ' * bw, pal.fill(yy, bx, hh, ww, selected=True))
+        x = cx
         for si, (text, wd, role) in enumerate(row):
             disp = ('» ' + text) if (sel and si == 0) else (('  ' + text) if si == 0 else text)
-            width = wd or (ww - x)
+            width = wd or (ww - x - edge)
             put(yy, x, _fit(disp, width), role, sel=sel)
             x += wd if wd else (len(disp) + 1)
-    fy = hh - len(foot) - 1
     for i, (text, role) in enumerate(foot):
-        put(fy + i, 1, text, role)
+        put(body_bottom + i, 1, text, role)
     put(hh - 1, 1, _fit(spec.get('nav', ' j/k move · space · q '), ww - 2).ljust(ww - 2), 'footer')
     pal.use_page('theme')
 
