@@ -80,6 +80,43 @@ def test_full_snapshot_includes_colors_basic():
     assert snap['colors-basic']['error'] == 'bright-red'        # a built-in default preserved
 
 
+def test_contrast_guard_promotes_invisible_text():
+    from configsys.tui.theme import Palette
+
+    class F:                                       # exercise _contrast without a real curses Palette
+        _ANSI_LUM = Palette._ANSI_LUM
+        _contrast = Palette._contrast
+
+    f8 = F(); f8.have16 = False                    # 8-color
+    assert f8._contrast(0, -1) == 7                # black on the (dark) terminal default -> white
+    assert f8._contrast(2, -1) == 2                # green already reads on dark -> kept
+    assert f8._contrast(-1, -1) == -1              # the terminal's own default fg is left alone
+    f16 = F(); f16.have16 = True                   # 16-color: keep the hue where possible
+    assert f16._contrast(8, -1) == 8               # bright-black (grey) reads on dark -> kept
+    assert f16._contrast(0, -1) == 15              # black -> bright-white
+    assert f16._contrast(4, -1) == 12              # dark blue on dark -> BRIGHT blue (hue preserved)
+
+
+def test_sgr_downconvert_by_depth():
+    import types
+    from configsys.tui.splash import _sgr_downconvert
+
+    def pal(**kw):
+        base = dict(truecolor=False, direct=False, have256=False, have16=False, mono=False)
+        base.update(kw)
+        return types.SimpleNamespace(**base)
+
+    s = '\x1b[38;2;200;140;240mX\x1b[0m'
+    assert _sgr_downconvert(s, pal(truecolor=True)) == s                 # truecolor: untouched
+    out = _sgr_downconvert(s, pal(have256=True, have16=True))            # -> xterm-256 index
+    assert '38;5;' in out and '38;2;' not in out and out.endswith('X\x1b[0m')
+    assert _sgr_downconvert('\x1b[48;2;10;10;10mY', pal()) == '\x1b[40mY'      # near-black bg -> ANSI 40
+    assert _sgr_downconvert('\x1b[38;2;40;200;40mZ', pal(have16=True)) == '\x1b[92mZ'  # luminous -> bright-green
+    assert _sgr_downconvert('\x1b[38;2;1;2;3mQ\x1b[0m', pal(mono=True)) == '\x1b[mQ\x1b[0m'  # mono: color dropped
+    # a cursor-position escape is not an SGR (...m) sequence -> passes through verbatim
+    assert _sgr_downconvert('\x1b[5;1H\x1b[38;2;40;200;40mZ', pal()) == '\x1b[5;1H\x1b[32mZ'
+
+
 def test_rgb_to_basic8_greys_and_hues():
     import curses
     from configsys.tui.theme import rgb_to_basic8

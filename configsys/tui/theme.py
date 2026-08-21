@@ -432,6 +432,8 @@ class Palette:
         # The bright ANSI slots (8..15) — where the legible low-color look lives — exist only at
         # COLORS>=16; `--color 8` forces the base 8 to preview the true fallback.
         self.have16 = curses.COLORS >= 16 and cap != 'basic8'
+        # the 8/16-color path (where quantization can collide fg with bg) -> the contrast guard runs.
+        self.lowcolor = not (self.have256 or self.truecolor or self.direct or self.mono)
         # motion: reduced/none disable the diagonal gradient (the per-cell repaint that's costly over
         # a thin SSH link); `full` (or unset) keeps it. The splash is gated separately, at the TUI.
         self.grad_ok = env_effects() in (None, 'full')
@@ -541,7 +543,31 @@ class Palette:
         self._color_cache[key] = idx
         return idx
 
-    def _pair(self, fg_idx, bg_idx):
+    # Rough perceived luminance of each ANSI slot (0..1); -1 (terminal default) is assumed dark.
+    _ANSI_LUM = {-1: 0.0, 0: 0.00, 1: 0.30, 2: 0.55, 3: 0.75, 4: 0.20, 5: 0.40, 6: 0.65, 7: 0.78,
+                 8: 0.42, 9: 0.48, 10: 0.72, 11: 0.92, 12: 0.42, 13: 0.60, 14: 0.82, 15: 1.00}
+
+    def _contrast(self, fg, bg):
+        '''Low-color legibility guard: if `fg` would be (near-)invisible on `bg` — too little
+        luminance separation, with the terminal default (-1) treated as dark — nudge it so text never
+        vanishes (the classic "grey quantizes to black on a black terminal"). A hue is brightened to
+        its bright variant where possible (keeps the meaning); greyscale goes to white/black. The
+        theme's own default fg (-1) is left alone — the terminal guarantees it reads on its own bg.'''
+        if fg == -1:
+            return fg
+        lf, lb = self._ANSI_LUM.get(fg, 0.5), self._ANSI_LUM.get(bg, 0.0)
+        if abs(lf - lb) >= 0.28:
+            return fg
+        dark_bg = lb < 0.5
+        if fg in (0, 7, 8, 15):                        # greyscale: no hue to preserve
+            return (15 if self.have16 else 7) if dark_bg else 0
+        if dark_bg:
+            return fg + 8 if (self.have16 and fg < 8) else fg   # brighten the hue (8-color: keep it)
+        return fg - 8 if fg >= 8 else fg                        # a light bg wants the darker hue
+
+    def _pair(self, fg_idx, bg_idx, *, guard=True):
+        if guard and self.lowcolor:                    # 8/16-color: keep text legible on its bg
+            fg_idx = self._contrast(fg_idx, bg_idx)
         attr = self._pair_cache.get((fg_idx, bg_idx))
         if attr is None:
             n = self._next_pair
@@ -567,11 +593,12 @@ class Palette:
     def rgb_attr(self, rgb):
         '''An attr painting `rgb` as fg over the default background — for ad-hoc colors (the splash)
         outside the map. Shares the slot/pair allocator + caches and degrades gracefully.'''
-        return curses.A_NORMAL if self.mono else self._pair(self._color(rgb), self.bg)
+        return curses.A_NORMAL if self.mono else self._pair(self._color(rgb), self.bg, guard=False)
 
     def rgb_pair(self, fg_rgb, bg_rgb):
         '''Like rgb_attr but over an explicit bg colour (a splash glyph over the liquid colour).'''
-        return curses.A_NORMAL if self.mono else self._pair(self._color(fg_rgb), self._color(bg_rgb))
+        return (curses.A_NORMAL if self.mono
+                else self._pair(self._color(fg_rgb), self._color(bg_rgb), guard=False))
 
     def band(self, y, x, h, w):
         '''The gradient band index for a cell, along the top-left -> bottom-right diagonal.'''
@@ -587,15 +614,16 @@ class Palette:
         fg, elem_bg, flags = self._entry(element)
         if self.mono:                                  # no color — keep the role's flags + reverse the bar
             return flags | (curses.A_REVERSE if selected else 0)
+        g = not (flags & curses.A_REVERSE)             # reverse swaps fg/bg on screen -> skip the guard
         if bg is not None:
-            return self._pair(fg, self._color(bg)) | flags
+            return self._pair(fg, self._color(bg), guard=g) | flags
         if not self.gradient:
             base = self._pair(fg, self._sel_bg if selected else (elem_bg if elem_bg is not None
-                                                                 else self.bg))
+                                                                 else self.bg), guard=g)
             return base | flags
         b = self._sel_bg if selected else (elem_bg if elem_bg is not None
                                            else self._grad_bg[self.band(y, x, h, w)])
-        return self._pair(fg, b) | flags
+        return self._pair(fg, b, guard=g) | flags
 
     def at(self, name, y, x, h, w, *, selected=False, row=0):
         '''`name`'s fg over the gradient background (or the selected bar) — flags/bg ignored, for
@@ -615,11 +643,11 @@ class Palette:
             return curses.A_REVERSE if selected else curses.A_NORMAL
         if bg is not None:
             idx = self._color(bg)
-            return self._pair(idx, idx)
+            return self._pair(idx, idx, guard=False)   # a solid block: fg == bg is intentional
         if not self.gradient:                          # no gradient (256/16, or truecolor grad-off):
-            return self._pair(self._sel_bg, self._sel_bg) if selected else curses.A_NORMAL
+            return self._pair(self._sel_bg, self._sel_bg, guard=False) if selected else curses.A_NORMAL
         b = self._sel_bg if selected else self._grad_bg[self.band(y, x, h, w)]
-        return self._pair(b, b)
+        return self._pair(b, b, guard=False)
 
 
 # Which role to paint each component status.

@@ -10,10 +10,12 @@ plugins like configsys-splash-ocean.
 '''
 
 import curses
+import re
 import sys
 import time
 
 from ..splashes import Splash, SplashFrame, register_splash
+from .theme import rgb_to_256, rgb_to_basic8
 
 
 def _tty_write(s):
@@ -24,6 +26,50 @@ def _tty_write(s):
         sys.stdout.flush()
     except (OSError, ValueError):
         pass
+
+
+_SGR_RE = re.compile('\x1b\\[([0-9;]*)m')
+
+
+def _sgr_encode(r, g, b, is_bg, depth):
+    '''One 24-bit SGR run -> the capped depth. 256 -> the xterm cube (38;5/48;5); 16/8 -> the base
+    ANSI codes (30-37/40-47, + the bright 90-97/100-107 in 16-color for luminous colors).'''
+    if depth == '256':
+        return f'{48 if is_bg else 38};5;{rgb_to_256(r, g, b)}'
+    idx = rgb_to_basic8(r, g, b)                        # 0..7 nearest hue
+    if depth == '16' and max(r, g, b) >= 150:           # a luminous color -> the bright ANSI pair
+        return str((100 if is_bg else 90) + idx)
+    return str((40 if is_bg else 30) + idx)
+
+
+def _sgr_downconvert(s, pal):
+    '''Rewrite 24-bit color SGR sequences in a RAW splash's output down to the Palette's resolved
+    depth, so a `raw` (truecolor) splash honors --color/--nocolor like everything else. A no-op under
+    real truecolor (the common case — early return, no scanning). Non-color SGR, cursor moves, and
+    resets pass through untouched. `mono` strips color entirely (structural attrs survive).'''
+    if pal is None or getattr(pal, 'truecolor', False) or getattr(pal, 'direct', False):
+        return s                                        # keep the 24-bit output as-is
+    depth = ('mono' if getattr(pal, 'mono', False) else
+             '256' if getattr(pal, 'have256', False) else '16' if getattr(pal, 'have16', False) else '8')
+
+    def conv(m):
+        toks = (m.group(1) or '0').split(';')
+        out, i = [], 0
+        while i < len(toks):
+            t = toks[i]
+            if t in ('38', '48') and toks[i + 1:i + 2] == ['2'] and i + 4 < len(toks):
+                try:
+                    rgb = int(toks[i + 2]), int(toks[i + 3]), int(toks[i + 4])
+                except ValueError:
+                    out.append(t); i += 1; continue
+                i += 5
+                if depth != 'mono':                     # mono: drop the color run entirely
+                    out.append(_sgr_encode(*rgb, t == '48', depth))
+            else:
+                out.append(t); i += 1
+        return '\x1b[' + ';'.join(out) + 'm'
+
+    return _SGR_RE.sub(conv, s)
 
 MIN_DURATION = 0.6              # a plugin splash floor (no one-frame flash); the default overrides it to 0
 DEFAULT_SPLASH = 'braille-bar'  # the built-in, trust-free default when `splash:` is unset
@@ -122,7 +168,7 @@ def run_splash(scr, pal, provider_cls, *, is_done, frac, counts, label, deadline
                 try:
                     if raw:
                         used_raw = True
-                        _tty_write(provider.render(frame) or '')
+                        _tty_write(_sgr_downconvert(provider.render(frame) or '', pal))
                         at_rest = bool(getattr(provider, 'at_rest', done))
                     else:
                         at_rest = bool(provider.render(frame))
