@@ -1326,8 +1326,6 @@ def _chosen_splash(ctx):
     from .theme import env_color_cap, env_effects
     if os.environ.get('CONFIGSYS_NO_SPLASH'):
         return False, None
-    if env_color_cap() == 'none' or env_effects() == 'none':   # monochrome / no-motion: no eye-candy
-        return False, None
     if ctx.reporter.level >= report.VERBOSE:
         return False, None
     v = ctx.config.splash()
@@ -1337,6 +1335,10 @@ def _chosen_splash(ctx):
         s = (ctx.config.theme() or {}).get('splash')
         if s is False or s in ('false', 'no', 'off') or (isinstance(s, dict) and s.get('enabled') in (False, 'false', 'no')):
             return False, None
+    if env_effects() == 'none' or env_color_cap() == 'none':   # minimal/mono: a progress bar is
+        return True, None                                      # feedback, not eye-candy — keep it,
+                                                               # but force the plain built-in (no
+                                                               # fancy plugin splash, no gradient)
     name = None if (v is None or v.lower() in ('true', 'default', 'on')) else v
     if name is not None:                             # accept a plugin name as an alias for its splash
         from .. import plugins
@@ -3067,7 +3069,7 @@ def run(ctx):
             run_splash(stdscr, pal, provider, label='checking install state',
                        is_done=worker.done, frac=worker.frac, counts=worker.counts,
                        seed=random.randrange(1 << 30), linger=_splash_linger(ctx),
-                       fps_cap=(15 if effects == 'reduced' else None))   # calmer splash over SSH
+                       fps_cap=(15 if effects in ('reduced', 'none') else None))   # calmer bar
             # The splash allocated a run-varying number of RANDOM color slots + pairs into `pal`
             # (its water/fish palette). Rebuild the Palette so the menu starts from a clean,
             # deterministic allocator — otherwise those random colors leak into the UI and, on a
