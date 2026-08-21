@@ -23,6 +23,22 @@ def test_env_color_cap_clamps_down():
     assert env_color_cap({'NO_COLOR': 'x', 'CONFIGSYS_COLOR': '256'}) == 'none'   # NO_COLOR wins
 
 
+def test_rgb_to_basic8_greys_and_hues():
+    import curses
+    from configsys.tui.theme import rgb_to_basic8
+    # greys map to black/white by brightness, not a hue (the old version sent mid-grey to yellow)
+    assert rgb_to_basic8(128, 128, 128) == curses.COLOR_WHITE
+    assert rgb_to_basic8(60, 60, 60) == curses.COLOR_BLACK
+    assert rgb_to_basic8(235, 235, 235) == curses.COLOR_WHITE
+    # saturated colors bucket to the correct ANSI hue
+    assert rgb_to_basic8(220, 60, 60) == curses.COLOR_RED
+    assert rgb_to_basic8(60, 200, 60) == curses.COLOR_GREEN
+    assert rgb_to_basic8(230, 180, 40) == curses.COLOR_YELLOW
+    assert rgb_to_basic8(60, 60, 220) == curses.COLOR_BLUE
+    assert rgb_to_basic8(200, 140, 240) == curses.COLOR_MAGENTA
+    assert rgb_to_basic8(90, 190, 205) == curses.COLOR_CYAN
+
+
 def test_parse_color_forms():
     assert parse_color('#c88cf0') == (200, 140, 240)
     assert parse_color('#abc') == (0xaa, 0xbb, 0xcc)          # short hex expands

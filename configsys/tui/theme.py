@@ -272,16 +272,15 @@ def rgb_to_256(r, g, b):
 
 
 def rgb_to_basic8(r, g, b):
-    bright = (r + g + b) / 3
-    if bright < 40:
-        return curses.COLOR_BLACK
-    if bright > 210 and abs(r - g) < 40 and abs(g - b) < 40:
-        return curses.COLOR_WHITE
-    if r >= g and r >= b:
-        return curses.COLOR_YELLOW if g > 120 else curses.COLOR_RED
-    if g >= r and g >= b:
-        return curses.COLOR_GREEN if b < 150 else curses.COLOR_CYAN
-    return curses.COLOR_BLUE if r < 150 else curses.COLOR_MAGENTA
+    '''Nearest of the 8 ANSI colors. Low-saturation colors are GREY (which the 8-color set lacks), so
+    map those to black/white by brightness rather than forcing a hue — the old hue-first version sent
+    mid-greys to yellow and leaned red. Saturated colors bucket into the 6 hues: a channel counts as
+    "on" at >=60% of the brightest, and R + 2·G + 4·B is exactly the ANSI color order (black=0 … white=7).'''
+    mx, mn = max(r, g, b), min(r, g, b)
+    if mx - mn < 40:                                   # near-grey: no grey in the 8-color set
+        return curses.COLOR_BLACK if mx < 100 else curses.COLOR_WHITE
+    t = mx * 0.6
+    return (1 if r >= t else 0) + 2 * (1 if g >= t else 0) + 4 * (1 if b >= t else 0)
 
 
 def env_color_cap(env=None):
@@ -504,8 +503,8 @@ class Palette:
         if bg is not None:
             idx = self._color(bg)
             return self._pair(idx, idx)
-        if not self.gradient:
-            return curses.A_REVERSE if selected else curses.A_NORMAL
+        if not self.gradient:                          # no gradient (256/16, or truecolor grad-off):
+            return self._pair(self._sel_bg, self._sel_bg) if selected else curses.A_NORMAL
         b = self._sel_bg if selected else self._grad_bg[self.band(y, x, h, w)]
         return self._pair(b, b)
 
