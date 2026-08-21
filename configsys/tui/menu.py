@@ -1641,6 +1641,8 @@ class ProfileScreen:
         self.starred = set()             # profile NAMES starred (▸) — their OWN members filter the catalog
         self.attr_inc = set()            # `A` faceted attr filter: lowercased tags to INCLUDE
         self.attr_exc = {'dotfiles'}     # ...and to EXCLUDE — hide the -dotfiles companions by default
+        self.show_removed = False        # `~`: within the star-filter, also reveal a starred profile's
+                                         #      ~-pruned components (marked `~`) — the clone-and-prune view
         self._res = {}                   # component -> (available, via, pinned); survives reloads
         self.reload()
 
@@ -1709,12 +1711,24 @@ class ProfileScreen:
                 pass
         return m
 
+    def _starred_removed(self):
+        '''Union of ~-pruned components across the starred profiles — what a `~term` dropped, so it
+        isn't a member. Revealed (marked `~`) inside the star filter when `show_removed` is on.'''
+        m = set()
+        for p in self.starred:
+            try:
+                m |= set(self.ctx.config.profile_removed(p))
+            except Exception:                        # noqa: BLE001 — a bad profile contributes nothing
+                pass
+        return m
+
     def vcatalog(self):
         f = self.cfilter.lower()
         cat = [c for c in self.catalog if f in c.lower()] if f else self.catalog
         sm = self._starred_members()                 # `*` star filter: starred profiles' OWN members
         if sm is not None:
-            cat = [c for c in cat if c in sm]
+            allowed = sm | (self._starred_removed() if self.show_removed else set())
+            cat = [c for c in cat if c in allowed]
         if self.attr_inc or self.attr_exc:           # `A` attrs filter (faceted include/exclude)
             comps = self.ctx.routes.components
             cat = [c for c in cat if _attr_pass(
@@ -1829,7 +1843,9 @@ def _draw_profiles(stdscr, pal, ps, ctx, note, screen):
     prof = ps.cur_profile()
     members = ps.members(prof)
     own = ps.own_members(prof)                       # direct (●) vs via-include (↳)
-    removed = ps.removed_members(prof)               # ~term drops (~)
+    removed = ps.removed_members(prof)               # ~term drops (~) for the selected profile
+    if ps.show_removed:                              # ...plus the starred profiles' drops the filter reveals
+        removed = removed | ps._starred_removed()
     # row-tint backgrounds derived from the theme's selection colour: a dimmer bar marks the current
     # row of the UNFOCUSED pane (so the profile stays visible while you navigate components), and a
     # subtle tint marks the components that are members of the selected profile.
@@ -1918,6 +1934,7 @@ def _draw_profiles(stdscr, pal, ps, ctx, note, screen):
     ctitle = ((f'components — in "{prof}"' if prof else 'components')
               + (f'  filter:{ps.cfilter}' if ps.cfilter else '')
               + (f'  ▸{",".join(sorted(ps.starred))}' if ps.starred else '')
+              + ('  +~removed' if ps.show_removed and ps.starred else '')
               + ps.attr_summary())
     rit, ril, rih, riw = _panel(stdscr, pal, ctop, rleft, cath, rw, ctitle, ps.focus == 'right', h, w)
     n = len(vcat)
@@ -1987,7 +2004,7 @@ def _draw_profiles(stdscr, pal, ps, ctx, note, screen):
     status = f' profile: {prof or "—"}    edits → {actions.edit_target(ctx)[1]}'
     if note:
         status += f'    {note}'
-    navf = (' j/k · h/l expand · tab/⏎ components · * star-filter · + include · a active · '
+    navf = (' j/k · h/l expand · tab/⏎ components · * star-filter · ~ removed · + include · a active · '
             'n/d new/del · space member · m method · / find · F filter · A attrs · q ')
     _put(stdscr, h - 2, 0, _fit(status, w), pal.style('status_line', h - 2, 0, h, w))
     _put(stdscr, h - 1, 0, _fit(navf.ljust(w), w), pal.style('footer', h - 1, 0, h, w))
@@ -3059,6 +3076,9 @@ def run(ctx):
                         ps.focus = 'left'              # leftmost column -> back to the profiles pane
                 elif ch == ord('*') and ps.focus == 'left':
                     ps.toggle_star()                   # ▸ this profile -> filter the catalog to its members
+                elif ch == ord('~'):                   # within the star filter, also reveal ~-pruned comps
+                    ps.show_removed = not ps.show_removed
+                    ps.rcur, ps.rcol_left = 0, 0        # catalog membership changed -> reset its cursor
                 elif ch == ord('g'):
                     setattr(ps, 'lcur' if ps.focus == 'left' else 'rcur', 0)
                 elif ch == ord('G'):

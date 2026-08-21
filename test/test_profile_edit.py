@@ -260,3 +260,27 @@ def test_profile_tree_and_star_filter(tmp_path):
     ps.lcur = [nd[0] for nd in ps.visible_pnodes()].index('mine')
     ps.toggle_star()
     assert ps.vcatalog() == []                               # 'btop' comes via +base, so it's excluded
+
+
+def test_profile_star_filter_show_removed(tmp_path):
+    # The clone-and-prune view: star a profile, then `~` also reveals the components it dropped via
+    # `~term` (marked `~`), so you can see what you pruned — not just what survived.
+    from configsys import actions
+    from configsys.tui import menu
+    ctx = _rctx(tmp_path)
+    actions.add_profile(ctx, 'base')
+    actions.set_profile_membership(ctx, 'base', 'htop', 'add')
+    actions.add_profile(ctx, 'mine')
+    actions.set_profile_membership(ctx, 'mine', 'btop', 'add')      # an OWN member
+    actions.set_profile_include(ctx, 'mine', 'base', True)          # +base brings htop
+    actions.set_profile_membership(ctx, 'mine', 'htop', 'remove')   # prune it -> ~htop
+    assert ctx.config.profile_removed('mine') == {'htop'}
+
+    ps = menu.ProfileScreen(ctx)
+    ps.attr_exc = set()                                            # isolate from the attrs filter
+    ps.lcur = [nd[0] for nd in ps.visible_pnodes()].index('mine')
+    ps.toggle_star()                                               # ▸ mine
+    assert ps.vcatalog() == ['btop']                              # own member only; htop was pruned
+    ps.show_removed = True                                        # `~` reveal
+    assert ps.vcatalog() == ['btop', 'htop']                     # the pruned htop is now shown
+    assert 'htop' in ps._starred_removed()                       # ...and marked as a removal (~)
