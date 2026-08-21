@@ -2255,7 +2255,7 @@ class ThemeScreen:
     so the sample repaints instantly.'''
     def __init__(self, ctx):
         self.ctx = ctx
-        self.page = 0                              # focused page (index into DEMO_PAGES)
+        self.page = 0                              # focused page (index into ALL_PAGES, incl. 'theme')
         self.focus = 'map'                         # 'map' | 'roles'
         self.map_cur = self.map_top = 0
         self.role_cur = self.role_top = 0
@@ -2276,8 +2276,8 @@ class ThemeScreen:
         self.role_cur = min(self.role_cur, max(0, len(self.role_list()) - 1))
 
     def page_name(self):
-        from .theme import DEMO_PAGES
-        return DEMO_PAGES[self.page]
+        from .theme import ALL_PAGES                    # DEMO_PAGES + 'theme' (the editor's own page)
+        return ALL_PAGES[self.page]
 
     def role_list(self):
         from .theme import PAGE_ROLES
@@ -2414,6 +2414,19 @@ _SAMPLES = {
         'foot': [('scope — default install location', 'info_dim'), ('4 settings', 'info_dim'),
                  (' ↵ edit ', 'status_line')],
     },
+    # the editor's OWN page (page `f`) — a mock of its two left panels (color map + page roles) so
+    # you can theme the Theme page itself; uses the same roles _draw_theme renders with.
+    'theme': {
+        'header': f'{"COLOR MAP":20}PAGE ROLES',
+        'rows': [
+            [('accent   #c88cf0', 20, 'label'),      ('label     accent/—  b', 0, 'component')],
+            [('fg_main  #ebebeb', 20, 'component'),  ('component fg_main/—', 0, 'component')],
+            [('bg_dim   #12101a', 20, 'component'),  ('footer    fg_dim/bg', 0, 'info_dim')],
+            [('sel_bg   #2a2140', 20, 'component'),  ('status    fg/accent  r', 0, 'component')],
+        ],
+        'foot': [('the theme editor themes itself now', 'info_dim'),
+                 ('edits → your top config', 'info_dim'), (' terminal color: 24-bit ', 'status_line')],
+    },
 }
 
 
@@ -2481,8 +2494,8 @@ def _draw_theme(stdscr, pal, ts, ctx, note, screen):
         _fill_bg(stdscr, pal, h, w)
     _draw_nav(stdscr, pal, 'theme', h, w)
     ts.reload()
-    from .theme import DEMO_PAGES
-    page = DEMO_PAGES[ts.page]
+    from .theme import ALL_PAGES
+    page = ALL_PAGES[ts.page]
     body_h, lw = h - 3, max(42, 5 * w // 11)
     map_h = max(6, body_h * 2 // 5)
 
@@ -2514,7 +2527,7 @@ def _draw_theme(stdscr, pal, ts, ctx, note, screen):
     roles = ts.role_list()
     ts.role_cur = min(ts.role_cur, max(0, len(roles) - 1))
     r_it, r_il, r_ih, r_iw = _panel(stdscr, pal, 1 + map_h, 0, body_h - map_h, lw,
-                                    _fit(f'page roles — {page}  (a-e)', lw - 4), ts.focus == 'roles',
+                                    _fit(f'page roles — {page}  (a-f)', lw - 4), ts.focus == 'roles',
                                     h, w)
     ts.role_top = _scroll_top(ts.role_cur, ts.role_top, r_ih, len(roles))
     for vis, i in enumerate(range(ts.role_top, min(len(roles), ts.role_top + r_ih))):
@@ -2534,7 +2547,7 @@ def _draw_theme(stdscr, pal, ts, ctx, note, screen):
         _put(stdscr, y, r_il + 1, ' Aa ', sw | _eff_flags(rst))
         eff = ''.join(c for c, f in (('b', 'bold'), ('u', 'underline'), ('r', 'reverse')) if rst.get(f))
         mark = '*' if ts.role_override(role) is not None else ' '
-        txt = f'{mark}{role:14} {_ref_str(ref.get("fg")):>8}/{_ref_str(ref.get("bg")):<8}{eff}'
+        txt = f'{mark}{role:14.14} {_ref_str(ref.get("fg")):>8.8}/{_ref_str(ref.get("bg")):<8.8} {eff}'
         _put(stdscr, y, r_il + 6, _fit(txt, r_iw - 6),
              pal.style('label' if sel else 'component', y, r_il + 6, h, w, selected=sel))
     _scrollbar_v(stdscr, pal, r_it, r_il + r_iw, r_ih, ts.role_top, r_ih, len(roles), h, w)
@@ -2551,10 +2564,10 @@ def _draw_theme(stdscr, pal, ts, ctx, note, screen):
     if note:
         status += f'    {note}'
     if ts.focus == 'map':
-        navf = (' tab→roles · h/l/j/k · a-e page · ↵ set #rrggbb · n new · x/r remove · '
-                's save · L load · 1-6 · q ')
+        navf = (' tab→roles · h/l/j/k · a-f page · ↵ set #rrggbb · n new · x/r remove · '
+                's save · L load · q ')
     else:
-        navf = (' tab→map · j/k · a-e page · ↵ fg · B bg · o/u/v fx · r reset · p grad on/off · '
+        navf = (' tab→map · j/k · a-f page · ↵ fg · B bg · o/u/v fx · r reset · p grad on/off · '
                 'D copy-page · s save · L load · q ')
     _put(stdscr, h - 2, 0, _fit(status, w), pal.style('status_line', h - 2, 0, h, w))
     _put(stdscr, h - 1, 0, _fit(navf.ljust(w), w), pal.style('footer', h - 1, 0, h, w))
@@ -3059,8 +3072,11 @@ def run(ctx):
                 continue
 
             # -- global keys (every screen) --
-            if ch in (ord('q'), 27):
-                break
+            if ch == ord('q'):                          # confirm before leaving; esc no longer quits
+                if _popup_choose(stdscr, pal, 'Really quit?',
+                                 [('Yes, quit', ''), ('No, keep working', '')], start=1) == 0:
+                    break
+                continue
             if ch == ord('!'):
                 if diags:
                     show_diag, diag_top = True, 0
@@ -3546,9 +3562,9 @@ def run(ctx):
             # -- Theme editor (sub-screen of Config); edits re-instantiate pal for live preview --
             if screen == 'theme':
                 from .. import actions
-                from .theme import DEMO_PAGES
+                from .theme import ALL_PAGES
                 try:
-                    page = DEMO_PAGES[ts.page]
+                    page = ALL_PAGES[ts.page]
                     if ch in (ord('\t'), curses.KEY_BTAB):
                         ts.focus = 'roles' if ts.focus == 'map' else 'map'    # toggle the two lists
                     elif ch in (ord('h'), ord('l'), curses.KEY_LEFT, curses.KEY_RIGHT):
@@ -3559,8 +3575,8 @@ def run(ctx):
                                           else min(len(ts.map_names) - 1, ts.map_cur + step))
                         else:
                             ts.focus = 'roles' if ts.focus == 'map' else 'map'   # else cross panels
-                    elif ord('a') <= ch <= ord('e'):
-                        ts.page = min(len(DEMO_PAGES) - 1, ch - ord('a'))     # cycle the sample page
+                    elif ord('a') <= ch <= ord('f'):
+                        ts.page = min(len(ALL_PAGES) - 1, ch - ord('a'))      # cycle the sample page
                     elif ch in (ord('j'), curses.KEY_DOWN):
                         if ts.focus == 'map':
                             ts.map_cur = min(len(ts.map_names) - 1, ts.map_cur + 1)
@@ -3692,7 +3708,7 @@ def run(ctx):
                         pal = Palette(ctx.config.theme())
                         note = f'{page} gradient {"on" if on else "off"}'
                     elif ch == ord('D'):                          # copy this page's look onto another
-                        others = [p for p in DEMO_PAGES if p != page]
+                        others = [p for p in ALL_PAGES if p != page]
                         di = _popup_choose(stdscr, pal, f'copy {page}’s theme onto…',
                                            [(p, '') for p in others], 0)
                         if di is not None:

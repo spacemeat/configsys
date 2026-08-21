@@ -63,8 +63,9 @@ def test_tui_launches_navigates_and_quits(tmp_path):
 
     deadline = time.monotonic() + 8
     first = _drain(master, min(deadline, time.monotonic() + 3))
-    # drive: down, open diagnostics page, scroll, close it, select, quit
-    for keys in (b'j', b'!', b'j', b'!', b' ', b'q'):
+    # drive: down, open diagnostics page, scroll, close it, select, then quit — `q` opens a
+    # "Really quit?" modal (default No), so `k` moves to "Yes, quit" and Enter confirms.
+    for keys in (b'j', b'!', b'j', b'!', b' ', b'q', b'k', b'\n'):
         try:
             os.write(master, keys)
         except OSError:

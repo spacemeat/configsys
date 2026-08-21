@@ -114,6 +114,7 @@ PAGE_ROLES = {
                   'missing', 'info_dim', 'status_line', 'footer', 'selection'],
     'config':    ['label', 'os', 'menu_header', 'component', 'scope', 'scope_choice', 'info_dim',
                   'status_line', 'footer', 'selection'],
+    'theme':     ['label', 'menu_header', 'info_dim', 'component', 'status_line', 'footer', 'selection'],
 }
 
 # Each page's default background gradient (top-left -> bottom-right) — a distinct dark hue per page,
