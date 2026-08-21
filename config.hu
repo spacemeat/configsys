@@ -228,5 +228,21 @@ profiles: {
             method: m               // pin the selected component's install method
             attr-filter: A          // faceted kind filter over the catalog
         }
+
+        // Theme editor. Nav (down/up/left/right/top/bottom, switch-pane) from `global`; confirm/select
+        // edits the focused color or role; reset clears it. NOTE: the a-f keys cycle the sample page
+        // and are reserved (not rebindable here). Effects o/u/v = bold/underline/reverse on a role.
+        theme: {
+            new: n                  // add a new color to the map
+            reset: [ r  x ]         // reset the current color / role / gradient endpoint to default
+            edit-bg: B              // edit a role's background
+            effect-bold: o
+            effect-underline: u
+            effect-reverse: v
+            gradient-toggle: p      // toggle the page's background gradient
+            copy-page: D            // copy this page's look onto another
+            save: s                 // export a theme pack / promote to primary
+            load: L                 // load a saved theme pack
+        }
     }
 }

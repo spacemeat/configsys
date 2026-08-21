@@ -2872,7 +2872,18 @@ def _draw_theme(stdscr, pal, ts, ctx, note, screen):
     status = f' terminal color: {pal.color_mode}   ·   edits → {actions.edit_target(ctx)[1]}'
     if note:
         status += f'    {note}'
-    if ts.focus == 'map':
+    if _KEYMAP is not None:
+        g = lambda a: _KEYMAP.glyph('theme', a)
+        if ts.focus == 'map':
+            navf = (f" {g('switch-pane')}→roles · {g('left')}/{g('right')}/{g('down')}/{g('up')} · "
+                    f"a-f page · {g('confirm')} set #rrggbb · {g('new')} new · {g('reset')} remove · "
+                    f"{g('save')} save · {g('load')} load · {g('quit')} ")
+        else:
+            navf = (f" {g('switch-pane')}→map · {g('down')}/{g('up')} · a-f page · {g('confirm')} fg · "
+                    f"{g('edit-bg')} bg · {g('effect-bold')}/{g('effect-underline')}/{g('effect-reverse')} fx · "
+                    f"{g('reset')} reset · {g('gradient-toggle')} grad · {g('copy-page')} copy-page · "
+                    f"{g('save')} save · {g('load')} load · {g('quit')} ")
+    elif ts.focus == 'map':
         navf = (' tab→roles · h/l/j/k · a-f page · ↵ set #rrggbb · n new · x/r remove · '
                 's save · L load · q ')
     else:
@@ -3899,10 +3910,11 @@ def run(ctx):
                 from .theme import ALL_PAGES
                 try:
                     page = ALL_PAGES[ts.page]
-                    if ch in (ord('\t'), curses.KEY_BTAB):
+                    tact = keymap.action_for('theme', ch)
+                    if tact in ('switch-pane', 'switch-pane-back'):
                         ts.focus = 'roles' if ts.focus == 'map' else 'map'    # toggle the two lists
-                    elif ch in (ord('h'), ord('l'), curses.KEY_LEFT, curses.KEY_RIGHT):
-                        left = ch in (ord('h'), curses.KEY_LEFT)
+                    elif tact in ('left', 'right'):
+                        left = tact == 'left'
                         if ts.focus == 'map' and ts.map_ncols > 1:            # move between columns
                             step = ts.map_rows_per_col
                             ts.map_cur = (max(0, ts.map_cur - step) if left
@@ -3910,27 +3922,27 @@ def run(ctx):
                         else:
                             ts.focus = 'roles' if ts.focus == 'map' else 'map'   # else cross panels
                     elif ord('a') <= ch <= ord('f'):
-                        ts.page = min(len(ALL_PAGES) - 1, ch - ord('a'))      # cycle the sample page
-                    elif ch in (ord('j'), curses.KEY_DOWN):
+                        ts.page = min(len(ALL_PAGES) - 1, ch - ord('a'))      # cycle the sample page (a-f)
+                    elif tact == 'down':
                         if ts.focus == 'map':
                             ts.map_cur = min(len(ts.map_names) - 1, ts.map_cur + 1)
                         else:
                             ts.role_cur = min(len(ts.role_list()) - 1, ts.role_cur + 1)
-                    elif ch in (ord('k'), curses.KEY_UP):
+                    elif tact == 'up':
                         if ts.focus == 'map':
                             ts.map_cur = max(0, ts.map_cur - 1)
                         else:
                             ts.role_cur = max(0, ts.role_cur - 1)
-                    elif ch == ord('g'):
+                    elif tact == 'top':
                         setattr(ts, 'map_cur' if ts.focus == 'map' else 'role_cur', 0)
-                    elif ch == ord('G'):
+                    elif tact == 'bottom':
                         if ts.focus == 'map':
                             ts.map_cur = max(0, len(ts.map_names) - 1)
                         else:
                             ts.role_cur = max(0, len(ts.role_list()) - 1)
 
                     # -- color-map edits --
-                    elif ts.focus == 'map' and ch in (ord(' '), ord('\n'), curses.KEY_ENTER):
+                    elif ts.focus == 'map' and tact in ('select', 'confirm'):
                         from .theme import parse_color
                         name = ts.cur_color()
                         cur = _hex(ts.colors.get(name, (235, 235, 235)))
@@ -3942,7 +3954,7 @@ def run(ctx):
                                 actions.set_theme_value(ctx, f'colors.{name}', new.strip())
                                 pal = Palette(ctx.config.theme())
                                 note = f'{name} = {new.strip()}'
-                    elif ts.focus == 'map' and ch == ord('n'):
+                    elif ts.focus == 'map' and tact == 'new':
                         from .theme import parse_color
                         nm = _input_box(stdscr, pal, 'new color name', '')
                         if nm and nm.strip():
@@ -3957,7 +3969,7 @@ def run(ctx):
                                 if nm in ts.map_names:
                                     ts.map_cur = ts.map_names.index(nm)
                                 note = f'added color {nm}'
-                    elif ts.focus == 'map' and ch in (ord('r'), ord('x')):
+                    elif ts.focus == 'map' and tact == 'reset':
                         name = ts.cur_color()
                         if ts.color_override(name) is None:
                             note = f'{name} is a built-in color (nothing to remove)'
@@ -3969,10 +3981,10 @@ def run(ctx):
 
                     # -- gradient endpoints (single-color pseudo-roles) --
                     elif (ts.focus == 'roles' and str(ts.cur_role()).startswith('@grad')
-                          and ch in (ord(' '), ord('\n'), curses.KEY_ENTER, ord('r'), ord('x'),
-                                     ord('B'), ord('o'), ord('u'), ord('v'))):
+                          and tact in ('select', 'confirm', 'reset', 'edit-bg',
+                                       'effect-bold', 'effect-underline', 'effect-reverse')):
                         which = 'from' if ts.cur_role() == '@grad_from' else 'to'
-                        if ch in (ord(' '), ord('\n'), curses.KEY_ENTER):
+                        if tact in ('select', 'confirm'):
                             cur = ts.grad_ref(which)
                             new = _input_box(stdscr, pal,
                                              f'{page} · gradient {which}  (now {cur} → map name or #hex)',
@@ -3984,7 +3996,7 @@ def run(ctx):
                                     actions.set_theme_value(ctx, f'pages.{page}.gradient.{which}', new.strip())
                                     pal = Palette(ctx.config.theme())
                                     note = f'gradient {which} = {new.strip()}'
-                        elif ch in (ord('r'), ord('x')):
+                        elif tact == 'reset':
                             if ts.grad_override(which) is None:
                                 note = f'gradient {which} is default on {page} (nothing to reset)'
                             else:
@@ -3995,7 +4007,7 @@ def run(ctx):
                             note = 'gradient endpoints have no bg or effects'
 
                     # -- per-page role edits --
-                    elif ts.focus == 'roles' and ch in (ord(' '), ord('\n'), curses.KEY_ENTER):
+                    elif ts.focus == 'roles' and tact in ('select', 'confirm'):
                         role = ts.cur_role()
                         cur = _ref_str(ts.role_ref(role).get('fg'))
                         new = _input_box(stdscr, pal, f'{page} · {role} · fg  (now {cur} → map name or #hex)',
@@ -4007,7 +4019,7 @@ def run(ctx):
                                 actions.set_theme_value(ctx, f'pages.{page}.{role}.fg', new.strip())
                                 pal = Palette(ctx.config.theme())
                                 note = f'{role} fg = {new.strip()}'
-                    elif ts.focus == 'roles' and ch == ord('B'):
+                    elif ts.focus == 'roles' and tact == 'edit-bg':
                         role = ts.cur_role()
                         cur = _ref_str(ts.role_ref(role).get('bg'))
                         new = _input_box(stdscr, pal, f'{page} · {role} · bg  (now {cur} → name/#hex, empty clears)',
@@ -4019,14 +4031,15 @@ def run(ctx):
                                 actions.set_theme_value(ctx, f'pages.{page}.{role}.bg', new.strip() or None)
                                 pal = Palette(ctx.config.theme())
                                 note = f'{role} bg {"set" if new.strip() else "cleared"}'
-                    elif ts.focus == 'roles' and ch in (ord('o'), ord('u'), ord('v')):
+                    elif ts.focus == 'roles' and tact in ('effect-bold', 'effect-underline', 'effect-reverse'):
                         role = ts.cur_role()
-                        attr = {'o': 'bold', 'u': 'underline', 'v': 'reverse'}[chr(ch)]
+                        attr = {'effect-bold': 'bold', 'effect-underline': 'underline',
+                                'effect-reverse': 'reverse'}[tact]
                         on = not bool(ts.role_style(role).get(attr))
                         actions.set_theme_value(ctx, f'pages.{page}.{role}.{attr}', on)
                         pal = Palette(ctx.config.theme())
                         note = f'{role} {attr} {"on" if on else "off"}'
-                    elif ts.focus == 'roles' and ch in (ord('r'), ord('x')):
+                    elif ts.focus == 'roles' and tact == 'reset':
                         role = ts.cur_role()
                         if ts.role_override(role) is None:
                             note = f'{role} is default on {page} (nothing to reset)'
@@ -4036,12 +4049,12 @@ def run(ctx):
                             ts.reload()
                             note = f'{role} reset to default on {page}'
 
-                    elif ch == ord('p'):                          # from/to now live in the role list
+                    elif tact == 'gradient-toggle':               # from/to now live in the role list
                         on = not ts.page_gradient_enabled(page)
                         actions.set_theme_value(ctx, f'pages.{page}.gradient.enabled', on)
                         pal = Palette(ctx.config.theme())
                         note = f'{page} gradient {"on" if on else "off"}'
-                    elif ch == ord('D'):                          # copy this page's look onto another
+                    elif tact == 'copy-page':                     # copy this page's look onto another
                         others = [p for p in ALL_PAGES if p != page]
                         di = _popup_choose(stdscr, pal, f'copy {page}’s theme onto…',
                                            [(p, '') for p in others], 0)
@@ -4052,7 +4065,7 @@ def run(ctx):
                                 note = f'copied {page} → {others[di]}'
                             else:
                                 note = label
-                    elif ch == ord('s'):
+                    elif tact == 'save':
                         # Live edits already persist to your primary/local, WYSIWYG. `s` is only for
                         # deliberate FULL-SNAPSHOT saves: export a shareable pack, or promote the
                         # complete look into your primary (absolute — overrides theme plugins).
@@ -4088,7 +4101,7 @@ def run(ctx):
                                         note = 'export cancelled'
                                 else:
                                     note = f'exported theme pack {nm}'
-                    elif ch == ord('L'):
+                    elif tact == 'load':
                         names = actions.theme_plugins(ctx)
                         if names:
                             idx = _popup_choose(stdscr, pal, 'load theme', [(n, '') for n in names], 0)

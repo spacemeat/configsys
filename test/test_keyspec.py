@@ -77,19 +77,39 @@ def test_repo_config_hu_defines_a_full_global_keymap():
     assert km.screen_for(ord('6')) == 'theme'
 
 
-def test_repo_components_scope_matches_the_wired_actions():
-    # the Components screen's keys resolve to the actions its dispatch expects (guards the humon file
-    # against drift from the wiring in menu.run()).
+def _repo_keymap():
     import os
     repo_cfg = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'config.hu')
-    km = Keymap(_cfg(open(repo_cfg, encoding='utf-8').read()).keys())
-    expect = {'i': 'op-install', 'u': 'op-upgrade', 'x': 'op-remove', 'X': 'execute',
-              'R': 'refresh', 'w': 'where', 'L': 'lock', 'm': 'method', 'a': 'select-all', 'c': 'clear'}
-    for key, action in expect.items():
-        assert km.action_for('components', ord(key)) == action, f'{key} -> {action}'
-    # a page key OVERRIDES global: tab is expand-all on Components, switch-pane globally
+    return Keymap(_cfg(open(repo_cfg, encoding='utf-8').read()).keys())
+
+
+def test_repo_every_screen_scope_matches_the_wired_actions():
+    # each screen's keys resolve to the actions its dispatch expects (guards the humon config.hu
+    # against drift from the wiring in menu.run()).
+    km = _repo_keymap()
+    expect = {
+        'components': {'i': 'op-install', 'u': 'op-upgrade', 'x': 'op-remove', 'X': 'execute',
+                       'R': 'refresh', 'w': 'where', 'L': 'lock', 'm': 'method', 'a': 'select-all',
+                       'c': 'clear', '\t': 'expand-all'},
+        'config': {'t': 'theme', 'm': 'move'},
+        'dotfiles': {'x': 'unlink', 'c': 'capture', 'C': 'capture-all', 'L': 'link-all',
+                     'm': 'migrate', 'M': 'migrate-all'},
+        'plugins': {'a': 'add', 'x': 'remove', 's': 'sync', 'S': 'sync-all', 'b': 'bless',
+                    'B': 'unbless', 'u': 'update', 'U': 'update-all', 't': 'trust', 'T': 'trust-all',
+                    'v': 'set-ref'},
+        'profiles': {'*': 'star', '~': 'reveal-removed', 'a': 'toggle-active', 'n': 'new', 'd': 'delete',
+                     '+': 'include', 'm': 'method', 'A': 'attr-filter'},
+        'theme': {'n': 'new', 'r': 'reset', 'x': 'reset', 'B': 'edit-bg', 'o': 'effect-bold',
+                  'u': 'effect-underline', 'v': 'effect-reverse', 'p': 'gradient-toggle',
+                  'D': 'copy-page', 's': 'save', 'L': 'load'},
+    }
+    for scope, keys in expect.items():
+        for key, action in keys.items():
+            assert km.action_for(scope, ord(key)) == action, f'{scope}:{key!r} -> {action}'
+    # a page key OVERRIDES global (tab is expand-all on Components, switch-pane globally)
     assert km.action_for('components', ord('\t')) == 'expand-all'
     assert km.action_for('global', ord('\t')) == 'switch-pane'
-    # generic nav falls back to global on the page
-    assert km.action_for('components', ord('j')) == 'down'
-    assert km.action_for('components', ord('q')) == 'quit'
+    # generic nav + quit fall back to global on every page
+    for scope in expect:
+        assert km.action_for(scope, ord('j')) == 'down'
+        assert km.action_for(scope, ord('q')) == 'quit'
