@@ -2175,8 +2175,17 @@ def _draw_profiles(stdscr, pal, ps, ctx, note, screen):
     lg_x = max(0, w - len(legend))
     _put(stdscr, h - 3, 0, _fit(status, max(1, lg_x - 1)), pal.style('status_line', h - 3, 0, h, w))
     _put(stdscr, h - 3, lg_x, _fit(legend, w - lg_x), pal.style('status_line', h - 3, lg_x, h, w))
-    nav1 = (' j/k move · g/G top/bottom · h/l expand · tab/⏎ components · / find · F filter · A attrs ')
-    nav2 = (' space member · m method · a active · * star · ~ removed · + include · n/d new/del · q quit ')
+    if _KEYMAP is not None:
+        g = lambda a: _KEYMAP.glyph('profiles', a)
+        nav1 = (f" {g('down')}/{g('up')} move · {g('top')}/{g('bottom')} top/bottom · "
+                f"{g('right')}/{g('left')} expand · {g('switch-pane')}/{g('confirm')} components · "
+                f"{g('find')} find · {g('filter')} filter · {g('attr-filter')} attrs ")
+        nav2 = (f" {g('select')} member · {g('method')} method · {g('toggle-active')} active · "
+                f"{g('star')} star · {g('reveal-removed')} removed · {g('include')} include · "
+                f"{g('new')}/{g('delete')} new/del · {g('quit')} quit ")
+    else:
+        nav1 = (' j/k move · g/G top/bottom · h/l expand · tab/⏎ components · / find · F filter · A attrs ')
+        nav2 = (' space member · m method · a active · * star · ~ removed · + include · n/d new/del · q quit ')
     _put(stdscr, h - 2, 0, _fit(nav1.ljust(w), w), pal.style('footer', h - 2, 0, h, w))
     _put(stdscr, h - 1, 0, _fit(nav2.ljust(w), w), pal.style('footer', h - 1, 0, h, w))
     stdscr.refresh()
@@ -3430,57 +3439,58 @@ def run(ctx):
             # -- Profiles screen --
             if screen == 'profiles':
                 from .. import actions
-                if ch in (ord('j'), curses.KEY_DOWN):
+                pfact = keymap.action_for('profiles', ch)
+                if pfact == 'down':
                     if ps.focus == 'left':
                         ps.lcur = min(len(ps.visible_pnodes()) - 1, ps.lcur + 1)
                     else:                              # column-major grid: down = next item, wraps col
                         ps.rcur = min(len(ps.vcatalog()) - 1, ps.rcur + 1)
-                elif ch in (ord('k'), curses.KEY_UP):
+                elif pfact == 'up':
                     if ps.focus == 'left':
                         ps.lcur = max(0, ps.lcur - 1)
                     else:
                         ps.rcur = max(0, ps.rcur - 1)
-                elif ch in (ord('\t'), curses.KEY_BTAB):
+                elif pfact in ('switch-pane', 'switch-pane-back'):
                     ps.focus = 'right' if ps.focus == 'left' else 'left'   # tab / shift-tab toggle
-                elif ch in (ord('\n'), curses.KEY_ENTER) and ps.focus == 'left':
+                elif pfact == 'confirm' and ps.focus == 'left':
                     ps.focus = 'right'                 # a profile: open the components pane for it
-                elif ch in (ord('l'), curses.KEY_RIGHT):
+                elif pfact == 'right':
                     if ps.focus == 'left':
                         ps.expand_cur()                # h/l now expand/collapse the include tree
                     else:                              # next column, same row (clamped)
                         ps.rcur = min(len(ps.vcatalog()) - 1, ps.rcur + ps.rrows)
-                elif ch in (ord('h'), curses.KEY_LEFT):
+                elif pfact == 'left':
                     if ps.focus == 'left':
                         ps.collapse_cur()              # collapse, or step to the parent profile
                     elif ps.rcur >= ps.rrows:
                         ps.rcur -= ps.rrows            # previous column
                     else:
                         ps.focus = 'left'              # leftmost column -> back to the profiles pane
-                elif ch == ord('*') and ps.focus == 'left':
+                elif pfact == 'star' and ps.focus == 'left':
                     ps.toggle_star()                   # ▸ this profile -> filter the catalog to its members
-                elif ch == ord('~'):                   # within the star filter, also reveal ~-pruned comps
+                elif pfact == 'reveal-removed':        # within the star filter, also reveal ~-pruned comps
                     ps.show_removed = not ps.show_removed
                     ps.rcur, ps.rcol_left = 0, 0        # catalog membership changed -> reset its cursor
-                elif ch == ord('g'):
+                elif pfact == 'top':
                     setattr(ps, 'lcur' if ps.focus == 'left' else 'rcur', 0)
-                elif ch == ord('G'):
+                elif pfact == 'bottom':
                     if ps.focus == 'left':
                         ps.lcur = max(0, len(ps.visible_pnodes()) - 1)
                     else:
                         ps.rcur = max(0, len(ps.vcatalog()) - 1)
-                elif ch == ord('F'):                   # FILTER the focused pane (live; narrows)
+                elif pfact == 'filter':                # FILTER the focused pane (live; narrows)
                     if ps.focus == 'left':
                         _filter_edit(stdscr, ps.pfilter, ps.set_pfilter,
                                      lambda: _draw_profiles(stdscr, pal, ps, ctx, note, screen))
                     else:
                         _filter_edit(stdscr, ps.cfilter, ps.set_cfilter,
                                      lambda: _draw_profiles(stdscr, pal, ps, ctx, note, screen))
-                elif ch == ord('A'):                   # faceted attr filter over the catalog (kind)
+                elif pfact == 'attr-filter':           # faceted attr filter over the catalog (kind)
                     res = _attr_filter_modal(stdscr, pal, ps.attr_inc, ps.attr_exc)
                     if res is not None:
                         ps.attr_inc, ps.attr_exc = res
                         ps.rcur, ps.rcol_left = 0, 0   # catalog membership changed -> reset its cursor
-                elif ch == ord('/'):                   # fuzzy FIND in the focused pane: jump cursor
+                elif pfact == 'find':                  # fuzzy FIND in the focused pane: jump cursor
                     rdraw = lambda: _draw_profiles(stdscr, pal, ps, ctx, note, screen)
                     if ps.focus == 'left':
                         _find_edit(stdscr, [nd[0] for nd in ps.visible_pnodes()], ps.lcur,
@@ -3488,7 +3498,7 @@ def run(ctx):
                     else:
                         _find_edit(stdscr, list(ps.vcatalog()), ps.rcur,
                                    lambda i: setattr(ps, 'rcur', i), rdraw)
-                elif ch == ord('a') and ps.focus == 'left':
+                elif pfact == 'toggle-active' and ps.focus == 'left':
                     prof = ps.cur_profile()
                     if prof:
                         try:
@@ -3500,7 +3510,7 @@ def run(ctx):
                                     if changed else 'no change')
                         except Exception as e:  # noqa: BLE001 — surface, don't crash
                             note = f'edit failed: {e}'
-                elif ch == ord('n'):                       # new profile (any focus)
+                elif pfact == 'new':                       # new profile (any focus)
                     nm = _input_box(stdscr, pal, 'new profile name')
                     if nm and nm.strip():
                         try:
@@ -3515,7 +3525,7 @@ def run(ctx):
                             note = f'created "{nm.strip()}" ({lbl})' if changed else lbl
                         except Exception as e:  # noqa: BLE001 — surface, don't crash
                             note = f'add failed: {e}'
-                elif ch == ord('d') and ps.focus == 'left':  # delete the selected profile (confirm)
+                elif pfact == 'delete' and ps.focus == 'left':  # delete the selected profile (confirm)
                     prof = ps.cur_profile()
                     if prof:
                         idx = _popup_choose(stdscr, pal, f'delete profile "{prof}"?',
@@ -3528,7 +3538,7 @@ def run(ctx):
                                 menu_dirty = menu_dirty or changed
                             except Exception as e:  # noqa: BLE001 — surface, don't crash
                                 note = f'remove failed: {e}'
-                elif ch == ord('+') and ps.focus == 'left':  # include another profile (+other)
+                elif pfact == 'include' and ps.focus == 'left':  # include another profile (+other)
                     prof = ps.cur_profile()
                     others = [p for p in ps.profiles if p != prof]
                     if prof and others:
@@ -3544,7 +3554,7 @@ def run(ctx):
                                 menu_dirty = menu_dirty or changed
                             except Exception as e:  # noqa: BLE001 — surface, don't crash
                                 note = f'include failed: {e}'
-                elif ch == ord('m') and ps.focus == 'right':
+                elif pfact == 'method' and ps.focus == 'right':
                     vcat = ps.vcatalog()
                     if vcat:                               # pin the selected component's install method
                         name = vcat[ps.rcur]
@@ -3556,17 +3566,17 @@ def run(ctx):
                             ps._res.pop(name, None)        # its resolution changed -> drop the stale entry
                             ps.reload()
                             menu_dirty = True
-                elif ch in (ord(' '), ord('\n'), curses.KEY_ENTER) and ps.focus == 'right':
+                elif pfact in ('select', 'confirm') and ps.focus == 'right':
                     prof = ps.cur_profile()
                     vcat = ps.vcatalog()
                     if prof and vcat:
                         name = vcat[ps.rcur]
-                        act = 'remove' if name in ps.members(prof) else 'add'
+                        memb = 'remove' if name in ps.members(prof) else 'add'
                         try:
-                            changed, _lbl = actions.set_profile_membership(ctx, prof, name, act)
+                            changed, _lbl = actions.set_profile_membership(ctx, prof, name, memb)
                             ps.reload()
                             menu_dirty = menu_dirty or changed
-                            note = (f'{name} {"added" if act == "add" else "removed"}'
+                            note = (f'{name} {"added" if memb == "add" else "removed"}'
                                     if changed else 'no change')
                         except Exception as e:  # noqa: BLE001 — surface, don't crash
                             note = f'edit failed: {e}'

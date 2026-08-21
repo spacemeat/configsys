@@ -214,5 +214,19 @@ profiles: {
             trust-all: T
             set-ref: v
         }
+
+        // Profiles screen (two panes). Nav is focus-aware from `global` (left pane: up/down the tree,
+        // left/right collapse/expand; right pane: grid move); switch-pane toggles panes; confirm opens
+        // the components pane (left) or toggles membership (right); select toggles membership (right).
+        profiles: {
+            star: "*"               // filter the catalog to a profile's members
+            reveal-removed: "~"     // also show ~-pruned components under the star filter
+            toggle-active: a        // activate / deactivate the selected profile
+            new: n
+            delete: d
+            include: "+"            // fold another profile in (+other)
+            method: m               // pin the selected component's install method
+            attr-filter: A          // faceted kind filter over the catalog
+        }
     }
 }
