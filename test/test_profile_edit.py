@@ -255,11 +255,14 @@ def test_profile_tree_and_star_filter(tmp_path):
     assert ps.vcatalog() == ['btop']
     ps.toggle_star()                                         # unstar -> full catalog again
     assert len(ps.vcatalog()) == len(ps.catalog)
-    # starring `mine` (which only INCLUDES base, no own members) contributes nothing — the star
-    # filter is OWN members only, not via-include ones
+    # starring `mine` (which +includes base) now stars the whole inheritance chain, so base's OWN
+    # members come along — the clone-and-prune view (see the base's members + a derived profile's ~drops)
     ps.lcur = [nd[0] for nd in ps.visible_pnodes()].index('mine')
     ps.toggle_star()
-    assert ps.vcatalog() == []                               # 'btop' comes via +base, so it's excluded
+    assert ps.starred == {'mine', 'base'}                    # * stars the profile AND its includes
+    assert ps.vcatalog() == ['btop']                         # base's own member is now visible
+    ps.toggle_star()                                         # unstar `mine` -> the whole chain clears
+    assert ps.starred == set() and len(ps.vcatalog()) == len(ps.catalog)
 
 
 def test_profile_star_filter_show_removed(tmp_path):
@@ -279,8 +282,13 @@ def test_profile_star_filter_show_removed(tmp_path):
     ps = menu.ProfileScreen(ctx)
     ps.attr_exc = set()                                            # isolate from the attrs filter
     ps.lcur = [nd[0] for nd in ps.visible_pnodes()].index('mine')
-    ps.toggle_star()                                               # ▸ mine
-    assert ps.vcatalog() == ['btop']                              # own member only; htop was pruned
+    ps.toggle_star()                                               # ▸ mine + base (the include closure)
+    assert ps.starred == {'mine', 'base'}
+    assert ps.vcatalog() == ['btop', 'htop']                     # base's htop shows; mine pruned it -> ~
+    # star mine ALONE (unstar the base): only its own member shows, until `~` reveals what it pruned
+    ps.lcur = [nd[0] for nd in ps.visible_pnodes()].index('base')
+    ps.toggle_star()                                              # unstar base
+    assert ps.starred == {'mine'} and ps.vcatalog() == ['btop']
     ps.show_removed = True                                        # `~` reveal
-    assert ps.vcatalog() == ['btop', 'htop']                     # the pruned htop is now shown
+    assert ps.vcatalog() == ['btop', 'htop']                     # the pruned htop is shown again
     assert 'htop' in ps._starred_removed()                       # ...and marked as a removal (~)

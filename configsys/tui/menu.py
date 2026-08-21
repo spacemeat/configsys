@@ -1694,10 +1694,30 @@ class ProfileScreen:
                     self.lcur = j
                     break
 
+    def _include_closure(self, name):
+        '''A profile plus every profile it transitively `+include`s (cycle-guarded). Starring the
+        whole chain makes the base's members visible, and a derived profile's `~`-pruned components
+        (which the base still lists) then render with the `~` marker — the clone-and-prune view.'''
+        seen, stack = set(), [name]
+        while stack:
+            p = stack.pop()
+            if p in seen:
+                continue
+            seen.add(p)
+            try:
+                stack.extend(self.ctx.config.profile_includes(p))
+            except Exception:                        # noqa: BLE001 — a bad include contributes nothing
+                pass
+        return seen & self._profset                  # real profiles only
+
     def toggle_star(self):
         nd = self.cur_node()
         if nd:
-            (self.starred.discard if nd[0] in self.starred else self.starred.add)(nd[0])
+            clan = self._include_closure(nd[0])      # the profile + everything it inherits
+            if nd[0] in self.starred:
+                self.starred -= clan                 # unstar the whole chain
+            else:
+                self.starred |= clan                 # star the profile AND its inherited profiles
             self.rcur, self.rcol_left = 0, 0         # catalog membership changed -> reset its cursor
 
     def _starred_members(self):
