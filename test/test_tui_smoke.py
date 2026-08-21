@@ -33,7 +33,8 @@ def _drain(fd, deadline):
     return buf
 
 
-def test_tui_launches_navigates_and_quits(tmp_path):
+@pytest.mark.parametrize('extra', [[], ['--nocolor']], ids=['color', 'nocolor'])
+def test_tui_launches_navigates_and_quits(tmp_path, extra):
     try:
         master, slave = pty.openpty()
     except OSError:
@@ -55,7 +56,7 @@ def test_tui_launches_navigates_and_quits(tmp_path):
         'PYTHONPATH': str(REPO),
     })
     proc = subprocess.Popen(
-        [sys.executable, '-m', 'configsys', '--pretend', 'tui'],
+        [sys.executable, '-m', 'configsys', '--pretend', *extra, 'tui'],
         stdin=slave, stdout=slave, stderr=slave, env=env, cwd=str(REPO),
         close_fds=True,
     )

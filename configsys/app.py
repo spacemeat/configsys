@@ -2023,6 +2023,12 @@ def build_parser():
     p.add_argument('--os', help='override detected OS routes block (e.g. pop_os!)')
     p.add_argument('--home', help='override HOME base for all paths (sandboxing)')
     p.add_argument('--config', help='override the per-machine selector file path')
+    p.add_argument('--color', choices=['auto', '24bit', '256', '16', 'none'], default=None,
+                   help='cap the TUI color depth (clamps DOWN only) — for testing degradation or a '
+                        'plainer look; overrides the theme. Also reads CONFIGSYS_COLOR / NO_COLOR')
+    p.add_argument('--nocolor', '--no-color', dest='nocolor', action='store_true',
+                   help='monochrome TUI (= --color none): no colors or gradient, splash skipped; '
+                        'reverse-video + bold still mark the cursor and headers')
     p.add_argument('--splash-linger', action='store_true',
                    help='keep the startup splash animating after load, until you press a key '
                         '(forces it to show even on a fast run) — for enjoying a splash')
@@ -2822,6 +2828,12 @@ _COMMANDS = {
 
 def main(argv=None):
     args = build_parser().parse_args(argv)
+    # --nocolor / --color cap the TUI color depth via CONFIGSYS_COLOR (which the Palette + NO_COLOR
+    # both read), set before anything builds a Palette. An explicit flag wins over the env.
+    if getattr(args, 'nocolor', False):
+        os.environ['CONFIGSYS_COLOR'] = 'none'
+    elif getattr(args, 'color', None) and args.color != 'auto':
+        os.environ['CONFIGSYS_COLOR'] = args.color
     command = args.command or 'tui'
     ctx = Context(args)
     try:

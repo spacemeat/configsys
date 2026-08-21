@@ -284,6 +284,27 @@ def rgb_to_basic8(r, g, b):
     return curses.COLOR_BLUE if r < 150 else curses.COLOR_MAGENTA
 
 
+def env_color_cap(env=None):
+    '''Resolve a color-depth CAP from the environment — it only clamps the detected mode DOWN, never
+    up (you can't fake 24-bit on an 8-color tty). `NO_COLOR` (any non-empty value, per no-color.org)
+    forces monochrome; `CONFIGSYS_COLOR` is the explicit override the --color/--nocolor flags set.
+    Returns one of 'none'|'basic'|'256'|'truecolor', or None for auto-detect.'''
+    import os
+    env = os.environ if env is None else env
+    if (env.get('NO_COLOR') or '').strip():
+        return 'none'
+    v = (env.get('CONFIGSYS_COLOR') or '').strip().lower()
+    if v in ('none', 'no', 'off', '0', 'mono', 'nocolor'):
+        return 'none'
+    if v in ('8', '16', 'basic', 'ansi'):
+        return 'basic'
+    if v in ('256', '256color', '8bit'):
+        return '256'
+    if v in ('24bit', '24', 'truecolor', 'direct', 'rgb'):
+        return 'truecolor'
+    return None                                        # 'auto', '', or unrecognized -> auto-detect
+
+
 class Palette:
     '''Resolves the theme to curses attrs. Holds every page's resolved role styles + gradient; the
     active page is selected with `use_page` (call sites stay `pal.style('component', ...)`). Color
@@ -301,6 +322,15 @@ class Palette:
             self.truecolor = self.direct or (self.have256 and curses.can_change_color())
         except curses.error:
             self.truecolor = self.direct
+
+        # CLAMP the detected mode down per --color/--nocolor/NO_COLOR (never up). `none` = monochrome:
+        # no color pairs at all, only structural A_REVERSE/A_BOLD survive (see the render methods).
+        cap = env_color_cap()
+        self.mono = cap == 'none'
+        if cap in ('256', 'basic', 'none'):
+            self.truecolor = self.direct = False
+        if cap in ('basic', 'none'):
+            self.have256 = False
 
         colors, pages = resolve_theme(theme)
         self._next_color = 16          # private palette-slot allocator (truecolor mode)
@@ -335,6 +365,8 @@ class Palette:
 
     @property
     def color_mode(self):
+        if self.mono:
+            return 'none (monochrome)'
         if self.direct:
             return 'direct 24-bit'
         if self.truecolor:
@@ -413,6 +445,8 @@ class Palette:
         return attr
 
     def get(self, name):
+        if self.mono:
+            return curses.A_NORMAL
         idx = self._map.get(name)
         if idx is None:
             idx = self._entry(name)[0]
@@ -421,11 +455,11 @@ class Palette:
     def rgb_attr(self, rgb):
         '''An attr painting `rgb` as fg over the default background — for ad-hoc colors (the splash)
         outside the map. Shares the slot/pair allocator + caches and degrades gracefully.'''
-        return self._pair(self._color(rgb), self.bg)
+        return curses.A_NORMAL if self.mono else self._pair(self._color(rgb), self.bg)
 
     def rgb_pair(self, fg_rgb, bg_rgb):
         '''Like rgb_attr but over an explicit bg colour (a splash glyph over the liquid colour).'''
-        return self._pair(self._color(fg_rgb), self._color(bg_rgb))
+        return curses.A_NORMAL if self.mono else self._pair(self._color(fg_rgb), self._color(bg_rgb))
 
     def band(self, y, x, h, w):
         '''The gradient band index for a cell, along the top-left -> bottom-right diagonal.'''
@@ -439,6 +473,8 @@ class Palette:
         background for this cell — for a row tint (residual selection / profile member). `row` is
         accepted for call-site compatibility and ignored (roles are single styles now).'''
         fg, elem_bg, flags = self._entry(element)
+        if self.mono:                                  # no color — keep the role's flags + reverse the bar
+            return flags | (curses.A_REVERSE if selected else 0)
         if bg is not None:
             return self._pair(fg, self._color(bg)) | flags
         if not self.gradient:
@@ -453,6 +489,8 @@ class Palette:
         '''`name`'s fg over the gradient background (or the selected bar) — flags/bg ignored, for
         by-name row colorings (status column, etc).'''
         fg = self._entry(name)[0]
+        if self.mono:
+            return curses.A_REVERSE if selected else curses.A_NORMAL
         if not self.gradient:
             return self._pair(fg, self._sel_bg if selected else self.bg)
         bg = self._sel_bg if selected else self._grad_bg[self.band(y, x, h, w)]
@@ -461,6 +499,8 @@ class Palette:
     def fill(self, y, x, h, w, *, selected=False, bg=None):
         '''A blank-cell background attr (fg == bg) for painting the empty canvas behind text. `bg`
         (an rgb) forces a specific fill colour (a row tint), in every colour mode.'''
+        if self.mono:
+            return curses.A_REVERSE if selected else curses.A_NORMAL
         if bg is not None:
             idx = self._color(bg)
             return self._pair(idx, idx)

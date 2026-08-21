@@ -23,6 +23,12 @@ override HOME base for all paths (sandboxing)
 \fB--config\fR
 override the per-machine selector file path
 .TP
+\fB--color\fR
+cap the TUI color depth (clamps DOWN only) — for testing degradation or a plainer look; overrides the theme. Also reads CONFIGSYS_COLOR / NO_COLOR
+.TP
+\fB--nocolor\fR, \fB--no-color\fR
+monochrome TUI (= --color none): no colors or gradient, splash skipped; reverse-video + bold still mark the cursor and headers
+.TP
 \fB--splash-linger\fR
 keep the startup splash animating after load, until you press a key (forces it to show even on a fast run) — for enjoying a splash
 .TP

@@ -4,9 +4,23 @@ config `theme:` deep-merge. Pure functions — no curses.'''
 from configsys import layers
 from configsys.config import Config
 from configsys.tui.theme import (
-    ALL_PAGES, BUILTIN_GRADIENTS, COLOR_MAP, DEMO_PAGES, PAGE_ROLES, _flag, full_snapshot,
-    parse_color, resolve_theme,
+    ALL_PAGES, BUILTIN_GRADIENTS, COLOR_MAP, DEMO_PAGES, PAGE_ROLES, _flag, env_color_cap,
+    full_snapshot, parse_color, resolve_theme,
 )
+
+
+def test_env_color_cap_clamps_down():
+    # NO_COLOR (non-empty) and CONFIGSYS_COLOR resolve a depth CAP; auto/empty/unknown -> None.
+    assert env_color_cap({}) is None
+    assert env_color_cap({'CONFIGSYS_COLOR': 'auto'}) is None
+    assert env_color_cap({'NO_COLOR': '1'}) == 'none'
+    assert env_color_cap({'NO_COLOR': ''}) is None                 # empty NO_COLOR is NOT set
+    assert env_color_cap({'CONFIGSYS_COLOR': 'nocolor'}) == 'none'
+    assert env_color_cap({'CONFIGSYS_COLOR': '16'}) == 'basic'
+    assert env_color_cap({'CONFIGSYS_COLOR': '256'}) == '256'
+    assert env_color_cap({'CONFIGSYS_COLOR': 'truecolor'}) == 'truecolor'
+    assert env_color_cap({'CONFIGSYS_COLOR': '24bit'}) == 'truecolor'
+    assert env_color_cap({'NO_COLOR': 'x', 'CONFIGSYS_COLOR': '256'}) == 'none'   # NO_COLOR wins
 
 
 def test_parse_color_forms():
