@@ -90,7 +90,7 @@ def test_config_settings_view_has_desc_and_man(tmp_path):
     ctx, _user = _ctx(tmp_path)
     s = actions.config_settings(ctx)
     assert set(s) == {'scope', 'driver-preference', 'auto-tighten', 'adopt-installed',
-                      'splash',
+                      'splash', 'effects',
                       'dirs.user', 'dirs.system', 'dirs.app', 'dirs.sdk', 'dirs.src'}
     assert s['scope']['value'] == 'user' and s['scope']['desc'] and s['scope']['man']
     assert s['auto-tighten']['kind'] == 'bool'

@@ -23,6 +23,27 @@ def test_env_color_cap_clamps_down():
     assert env_color_cap({'NO_COLOR': 'x', 'CONFIGSYS_COLOR': '256'}) == 'none'   # NO_COLOR wins
 
 
+def test_resolve_effects_priority(monkeypatch):
+    import types
+    from configsys.tui.menu import resolve_effects
+    monkeypatch.setenv('CONFIGSYS_EFFECTS', '')                # so monkeypatch cleans it up at teardown
+
+    def ctx(setting, env):
+        return types.SimpleNamespace(config=types.SimpleNamespace(effects=lambda: setting), env=env)
+
+    # --effects (already in the env) wins over the setting and SSH
+    monkeypatch.setenv('CONFIGSYS_EFFECTS', 'none')
+    assert resolve_effects(ctx('full', {'SSH_TTY': 'x'})) == 'none'
+    monkeypatch.delenv('CONFIGSYS_EFFECTS', raising=False)
+    # then the `effects:` machine setting
+    assert resolve_effects(ctx('reduced', {'SSH_TTY': 'x'})) == 'reduced'
+    monkeypatch.delenv('CONFIGSYS_EFFECTS', raising=False)
+    # then the auto-default: reduced over SSH, full locally
+    assert resolve_effects(ctx(None, {'SSH_CONNECTION': 'x'})) == 'reduced'
+    monkeypatch.delenv('CONFIGSYS_EFFECTS', raising=False)
+    assert resolve_effects(ctx(None, {})) == 'full'
+
+
 def test_rgb_to_basic8_greys_and_hues():
     import curses
     from configsys.tui.theme import rgb_to_basic8

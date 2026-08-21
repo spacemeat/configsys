@@ -248,6 +248,13 @@ class Config:
             return 'true'
         return v.strip() if isinstance(v, str) and v.strip() else None
 
+    def effects(self):
+        '''TUI motion level: 'full' | 'reduced' | 'none', or None when unset (the TUI then auto-picks
+        reduced over SSH, else full). A machine setting (repo < primary < user).'''
+        v = layers.merge_scalar(self._layers, 'effects', _MACHINE_ROLES)
+        v = v.strip().lower() if isinstance(v, str) and v.strip() else None
+        return v if v in ('full', 'reduced', 'none') else None
+
     def layer_pins(self, role):
         '''The raw scalar pins from the single layer of this role (repo/primary/user) — for
         editing that one layer's pins and for provenance, distinct from the merged pins().'''

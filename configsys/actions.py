@@ -161,6 +161,10 @@ CONFIG_SETTINGS = {
                                     "'random' to pick one at random each run, off to disable, or "
                                     'unset for the built-in default.',
                           'configsys(1)'),
+    'effects':           ('scalar', 'TUI motion: full (gradient + splash), reduced (no gradient, '
+                                    'calmer splash), or none (no gradient or splash). Unset '
+                                    'auto-picks reduced over SSH, else full. --effects overrides.',
+                          'configsys(1)'),
     # install-layout dirs (the `dirs:` section) — default < config < env (CONFIGSYS_*_DIR)
     'dirs.user':         ('dir',    'Base dir for user-scope installs (default ~). '
                                     'env CONFIGSYS_USERSCOPE_DIR wins.', 'configsys.hu(5)'),
@@ -184,6 +188,7 @@ SETTING_NATURE = {
     'auto-tighten':      'uniform',
     'adopt-installed':   'uniform',
     'splash':            'uniform',
+    'effects':           'machine',           # about THIS terminal/transport (SSH), not shared config
     'dirs.user':         'machine',
     'dirs.system':       'machine',
     'dirs.app':          'uniform',

@@ -83,7 +83,7 @@ register_splash(BrailleBarSplash, builtin=True)
 
 
 def run_splash(scr, pal, provider_cls, *, is_done, frac, counts, label, deadline=None, seed=None,
-               linger=False):
+               linger=False, fps_cap=None):
     '''Drive a Splash provider's frame loop until inspection is done AND the animation is at rest
     (or a hard `deadline`). The provider only draws one frame from a SplashFrame; the HOST owns the
     clock, the skip key, and the plain-text fallback: a keypress CANCELS the animation but a plain
@@ -98,6 +98,8 @@ def run_splash(scr, pal, provider_cls, *, is_done, frac, counts, label, deadline
     h, w = scr.getmaxyx()
     provider = provider_cls(scr, pal, (h, w), seed)
     fps = getattr(provider_cls, 'fps', 30.0) or 30.0
+    if fps_cap:                                       # reduced motion (e.g. SSH): a calmer frame rate
+        fps = min(fps, fps_cap)
     frame_dt = 1.0 / fps
     min_dur = getattr(provider_cls, 'min_duration', MIN_DURATION)
     raw = bool(getattr(provider_cls, 'raw', False))   # provider paints truecolor to the tty itself

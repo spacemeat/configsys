@@ -304,6 +304,16 @@ def env_color_cap(env=None):
     return None                                        # 'auto', '', or unrecognized -> auto-detect
 
 
+def env_effects(env=None):
+    '''The resolved TUI motion level from the environment ('full'|'reduced'|'none'), or None. The TUI
+    canonicalizes CONFIGSYS_EFFECTS (from --effects / the `effects:` setting / an SSH auto-default)
+    into this before building the Palette, so the gradient + splash read one value.'''
+    import os
+    env = os.environ if env is None else env
+    v = (env.get('CONFIGSYS_EFFECTS') or '').strip().lower()
+    return v if v in ('full', 'reduced', 'none') else None
+
+
 class Palette:
     '''Resolves the theme to curses attrs. Holds every page's resolved role styles + gradient; the
     active page is selected with `use_page` (call sites stay `pal.style('component', ...)`). Color
@@ -330,6 +340,9 @@ class Palette:
             self.truecolor = self.direct = False
         if cap in ('basic', 'none'):
             self.have256 = False
+        # motion: reduced/none disable the diagonal gradient (the per-cell repaint that's costly over
+        # a thin SSH link); `full` (or unset) keeps it. The splash is gated separately, at the TUI.
+        self.grad_ok = env_effects() in (None, 'full')
 
         colors, pages = resolve_theme(theme)
         self._next_color = 16          # private palette-slot allocator (truecolor mode)
@@ -348,7 +361,7 @@ class Palette:
                 bg = self._color(st['bg']) if st['bg'] is not None else None
                 roles[role] = (self._color(st['fg']), bg, flags)
             ga, gb, enabled = pg['grad']
-            on = self.truecolor and enabled
+            on = self.truecolor and enabled and self.grad_ok
             grad_bg = []
             if on:
                 span = max(abs(ga[i] - gb[i]) for i in range(3))

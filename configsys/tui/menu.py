@@ -1297,6 +1297,24 @@ def _menu_model(cfg):
 SPLASH_THRESHOLD = 0.25    # only show the liquid fill if inspection is still going after this
 
 
+def _is_ssh(env):
+    '''Heuristic: are we on a remote (SSH) session? Imperfect — mosh doesn't set these, and tmux /
+    screen often STRIP them — so it only feeds the effects DEFAULT, never a hard gate.'''
+    return any(env.get(k) for k in ('SSH_CONNECTION', 'SSH_TTY', 'SSH_CLIENT'))
+
+
+def resolve_effects(ctx):
+    '''Canonicalize the TUI motion level to 'full'|'reduced'|'none' and stamp CONFIGSYS_EFFECTS, so the
+    Palette (gradient) and the splash both read one value. Priority: --effects (already in the env) >
+    the `effects:` machine setting > an auto-default of reduced over SSH, else full. Call at TUI start,
+    before the first Palette / the splash choice.'''
+    import os
+    from .theme import env_effects
+    lvl = env_effects() or ctx.config.effects() or ('reduced' if _is_ssh(ctx.env) else 'full')
+    os.environ['CONFIGSYS_EFFECTS'] = lvl
+    return lvl
+
+
 def _chosen_splash(ctx):
     '''(enabled, name): whether the startup splash is ALLOWED (independent of the "is there work"
     timing gate) and which provider was chosen — the `splash:` machine setting's value, or None for
@@ -1305,7 +1323,10 @@ def _chosen_splash(ctx):
     cmd_tui. Whether a NAMED provider is actually registered is resolved at construction time.'''
     import os
     from .. import report
+    from .theme import env_color_cap, env_effects
     if os.environ.get('CONFIGSYS_NO_SPLASH'):
+        return False, None
+    if env_color_cap() == 'none' or env_effects() == 'none':   # monochrome / no-motion: no eye-candy
         return False, None
     if ctx.reporter.level >= report.VERBOSE:
         return False, None
@@ -3005,7 +3026,8 @@ def run(ctx):
     # thread, in the normal terminal, BEFORE the worker/curses — it prompts on stdin, which would
     # collide with the background load and curses init. load_pipeline's own call then no-ops.
     ctx.ensure_user_config(offer_primary=True)
-    splash_on, splash_name = _chosen_splash(ctx)
+    effects = resolve_effects(ctx)                # 'full'|'reduced'|'none' -> stamps CONFIGSYS_EFFECTS
+    splash_on, splash_name = _chosen_splash(ctx)  # (which the Palette gradient + this splash choice read)
     # A PLUGIN splash must be registered before we can construct it, and the splash is chosen before
     # the worker joins — so register trusted plugin code up front, on the main thread, ONLY when a
     # plugin splash is actually selected (the built-in default needs nothing). Doing it
@@ -3044,7 +3066,8 @@ def run(ctx):
                 provider = get_splash(DEFAULT_SPLASH)   # the trust-free in-core default
             run_splash(stdscr, pal, provider, label='checking install state',
                        is_done=worker.done, frac=worker.frac, counts=worker.counts,
-                       seed=random.randrange(1 << 30), linger=_splash_linger(ctx))
+                       seed=random.randrange(1 << 30), linger=_splash_linger(ctx),
+                       fps_cap=(15 if effects == 'reduced' else None))   # calmer splash over SSH
             # The splash allocated a run-varying number of RANDOM color slots + pairs into `pal`
             # (its water/fish palette). Rebuild the Palette so the menu starts from a clean,
             # deterministic allocator — otherwise those random colors leak into the UI and, on a

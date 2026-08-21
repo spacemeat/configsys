@@ -2029,6 +2029,13 @@ def build_parser():
     p.add_argument('--nocolor', '--no-color', dest='nocolor', action='store_true',
                    help='monochrome TUI (= --color none): no colors or gradient, splash skipped; '
                         'reverse-video + bold still mark the cursor and headers')
+    p.add_argument('--effects', choices=['full', 'reduced', 'none'], default=None,
+                   help='TUI motion: full (gradient + splash), reduced (no gradient, calmer splash), '
+                        'none (neither). Overrides the `effects:` setting; unset auto-picks reduced '
+                        'over SSH, else full')
+    p.add_argument('--probe', action='store_true',
+                   help='print the resolved TUI color mode + motion (effects) and why, then exit '
+                        '(honors --color/--effects/--nocolor) — for debugging what your terminal gets')
     p.add_argument('--splash-linger', action='store_true',
                    help='keep the startup splash animating after load, until you press a key '
                         '(forces it to show even on a fast run) — for enjoying a splash')
@@ -2826,6 +2833,39 @@ _COMMANDS = {
 }
 
 
+def _probe_color(ctx):
+    '''`--probe`: print the resolved TUI color mode + motion (effects) and WHY, then exit — for
+    debugging "why no color / no gradient". Briefly inits curses to read the terminal's caps.'''
+    from .tui.theme import env_color_cap
+    from .tui.menu import resolve_effects, _is_ssh
+    effects = resolve_effects(ctx)                    # also stamps CONFIGSYS_EFFECTS (fine — we exit)
+    cap = env_color_cap()
+    d = {}
+    if sys.stdout.isatty():
+        import curses
+        from .tui.theme import Palette
+
+        def _p(_scr):
+            pal = Palette(ctx.config.theme())
+            d['mode'], d['colors'] = pal.color_mode, curses.COLORS
+            try:
+                d['can'] = curses.can_change_color()
+            except curses.error:
+                d['can'] = False
+        try:
+            curses.wrapper(_p)
+        except Exception as e:                        # noqa: BLE001
+            d['mode'] = f'(curses error: {e})'
+    else:
+        d['mode'] = '(not a terminal — capability probe skipped)'
+    why = [x for x in (f"COLORS={d['colors']}" if 'colors' in d else None,
+                       f"can_change={d['can']}" if 'can' in d else None,
+                       f'capped={cap}' if cap else None) if x]
+    print(f"color:   {d.get('mode')}" + (f"   ({' · '.join(why)})" if why else ''))
+    print(f"effects: {effects}   (SSH={'yes' if _is_ssh(ctx.env) else 'no'})")
+    return 0
+
+
 def main(argv=None):
     args = build_parser().parse_args(argv)
     # --nocolor / --color cap the TUI color depth via CONFIGSYS_COLOR (which the Palette + NO_COLOR
@@ -2834,8 +2874,12 @@ def main(argv=None):
         os.environ['CONFIGSYS_COLOR'] = 'none'
     elif getattr(args, 'color', None) and args.color != 'auto':
         os.environ['CONFIGSYS_COLOR'] = args.color
+    if getattr(args, 'effects', None):                # --effects wins over the setting + SSH default
+        os.environ['CONFIGSYS_EFFECTS'] = args.effects
     command = args.command or 'tui'
     ctx = Context(args)
+    if getattr(args, 'probe', False):
+        return _probe_color(ctx)
     try:
         return _COMMANDS[command](ctx, args)
     except ConfigsysError as e:

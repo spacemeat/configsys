@@ -29,6 +29,12 @@ cap the TUI color depth (clamps DOWN only) — for testing degradation or a plai
 \fB--nocolor\fR, \fB--no-color\fR
 monochrome TUI (= --color none): no colors or gradient, splash skipped; reverse-video + bold still mark the cursor and headers
 .TP
+\fB--effects\fR
+TUI motion: full (gradient + splash), reduced (no gradient, calmer splash), none (neither). Overrides the \fBeffects:\fR setting; unset auto-picks reduced over SSH, else full
+.TP
+\fB--probe\fR
+print the resolved TUI color mode + motion (effects) and why, then exit (honors --color/--effects/--nocolor) — for debugging what your terminal gets
+.TP
 \fB--splash-linger\fR
 keep the startup splash animating after load, until you press a key (forces it to show even on a fast run) — for enjoying a splash
 .TP
