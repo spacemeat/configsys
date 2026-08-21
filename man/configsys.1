@@ -24,7 +24,7 @@ override HOME base for all paths (sandboxing)
 override the per-machine selector file path
 .TP
 \fB--color\fR
-cap the TUI color depth (clamps DOWN only) — for testing degradation or a plainer look; overrides the theme. Also reads CONFIGSYS_COLOR / NO_COLOR
+cap the TUI color depth (clamps DOWN only) — for testing degradation or a plainer look; overrides the theme. 16 uses the hand-tuned bright ANSI set (theme.colors-basic), 8 forces the base 8. Also reads CONFIGSYS_COLOR / NO_COLOR
 .TP
 \fB--nocolor\fR, \fB--no-color\fR
 monochrome TUI (= --color none): no colors or gradient, splash skipped; reverse-video + bold still mark the cursor and headers

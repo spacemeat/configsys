@@ -4,8 +4,8 @@ config `theme:` deep-merge. Pure functions — no curses.'''
 from configsys import layers
 from configsys.config import Config
 from configsys.tui.theme import (
-    ALL_PAGES, BUILTIN_GRADIENTS, COLOR_MAP, DEMO_PAGES, PAGE_ROLES, _flag, env_color_cap,
-    full_snapshot, parse_color, resolve_theme,
+    ALL_PAGES, BASIC_MAP, BUILTIN_GRADIENTS, COLOR_MAP, DEMO_PAGES, PAGE_ROLES, _flag, ansi_name,
+    env_color_cap, full_snapshot, parse_ansi, parse_color, resolve_basic, resolve_theme,
 )
 
 
@@ -16,7 +16,8 @@ def test_env_color_cap_clamps_down():
     assert env_color_cap({'NO_COLOR': '1'}) == 'none'
     assert env_color_cap({'NO_COLOR': ''}) is None                 # empty NO_COLOR is NOT set
     assert env_color_cap({'CONFIGSYS_COLOR': 'nocolor'}) == 'none'
-    assert env_color_cap({'CONFIGSYS_COLOR': '16'}) == 'basic'
+    assert env_color_cap({'CONFIGSYS_COLOR': '16'}) == 'basic16'    # allows the bright slots
+    assert env_color_cap({'CONFIGSYS_COLOR': '8'}) == 'basic8'      # forces the base 8
     assert env_color_cap({'CONFIGSYS_COLOR': '256'}) == '256'
     assert env_color_cap({'CONFIGSYS_COLOR': 'truecolor'}) == 'truecolor'
     assert env_color_cap({'CONFIGSYS_COLOR': '24bit'}) == 'truecolor'
@@ -42,6 +43,41 @@ def test_resolve_effects_priority(monkeypatch):
     assert resolve_effects(ctx(None, {'SSH_CONNECTION': 'x'})) == 'reduced'
     monkeypatch.delenv('CONFIGSYS_EFFECTS', raising=False)
     assert resolve_effects(ctx(None, {})) == 'full'
+
+
+def test_parse_ansi_forms():
+    assert parse_ansi('red') == 1 and parse_ansi('white') == 7
+    assert parse_ansi('bright-red') == 9 and parse_ansi('red-bright') == 9
+    assert parse_ansi('bright-black') == 8 and parse_ansi('grey') == 8 and parse_ansi('gray') == 8
+    assert parse_ansi('bright-grey') == 15
+    assert parse_ansi(3) == 3 and parse_ansi('11') == 11
+    assert parse_ansi('default') == -1 and parse_ansi('-1') == -1
+    assert parse_ansi('nope') is None and parse_ansi(99) is None and parse_ansi(True) is None
+
+
+def test_ansi_name_is_parse_ansi_inverse():
+    for idx in range(-1, 16):
+        assert parse_ansi(ansi_name(idx)) == idx
+
+
+def test_resolve_basic_keys_by_rgb_and_user_wins():
+    colors = dict(COLOR_MAP)
+    # the built-in hand-tuning: 'error' -> bright-red (9), keyed by error's rgb
+    m = resolve_basic({}, colors)
+    assert m[COLOR_MAP['error']] == 9 and m[COLOR_MAP['accent']] == 13   # bright-magenta
+    # a user override wins, even though 'error' shares its rgb with 'op_remove' (both bright-red)
+    m2 = resolve_basic({'colors-basic': {'error': 'yellow'}}, colors)
+    assert m2[COLOR_MAP['error']] == 3
+    # an unparseable slot or an unknown name is skipped, not an error
+    m3 = resolve_basic({'colors-basic': {'error': 'chartreuse', 'bogus': 'red'}}, colors)
+    assert m3[COLOR_MAP['error']] == 9 and COLOR_MAP['error'] in m3
+
+
+def test_full_snapshot_includes_colors_basic():
+    snap = full_snapshot({'colors-basic': {'accent': 'cyan'}})
+    assert set(BASIC_MAP).issubset(snap['colors-basic'])        # every built-in slot spelled out
+    assert snap['colors-basic']['accent'] == 'cyan'             # the override normalized to a name
+    assert snap['colors-basic']['error'] == 'bright-red'        # a built-in default preserved
 
 
 def test_rgb_to_basic8_greys_and_hues():

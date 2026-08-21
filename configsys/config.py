@@ -151,7 +151,7 @@ class Config:
         word. Returns {colors: {name: #rrggbb}, pages: {page: {<role>: style, gradient: {...}}},
         splash}, deep-merged per map-color, per page, per role/gradient-key. Parsed by
         tui.theme.resolve_theme; the old `elements`/`palette` schema is ignored (a check warning).'''
-        colors, pages = {}, {}
+        colors, pages, colors_basic = {}, {}, {}
         splash = None                              # startup-fill effect: last layer to speak wins
         for layer in self._layers:                 # low -> high precedence; no role restriction
             t = layer.data.get('theme')
@@ -159,6 +159,8 @@ class Config:
                 continue
             if isinstance(t.get('colors'), dict):
                 colors.update(t['colors'])         # the shared name -> #rrggbb map
+            if isinstance(t.get('colors-basic'), dict):
+                colors_basic.update(t['colors-basic'])   # the 8/16-color slot override map
             if isinstance(t.get('pages'), dict):
                 for page, spec in t['pages'].items():
                     if not isinstance(spec, dict):
@@ -182,7 +184,7 @@ class Config:
                             dst[k] = v
             if 'splash' in t:
                 splash = t['splash']
-        return {'colors': colors, 'pages': pages, 'splash': splash}
+        return {'colors': colors, 'colors-basic': colors_basic, 'pages': pages, 'splash': splash}
 
     def driver_preference(self):
         '''The global driver-preference order (a machine setting; whole-list replace across

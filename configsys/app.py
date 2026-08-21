@@ -62,8 +62,11 @@ USER_CONFIG_TEMPLATE = '''{
     // reverse } where fg/bg name a map color OR are a literal "#rrggbb", plus that page's background
     // `gradient:` (24-bit terminals only; `gradient: false` turns it off). A role defaults to a
     // built-in style, so a page spells out only what differs. See docs/theming.md for the roles.
+    // `colors-basic:` pins the SAME map names to an ANSI slot (a color name, `bright-<name>`, 0..15,
+    // or `default`) for the 8/16-color path only — the built-ins are hand-tuned; override to taste.
     // theme: {
     //     colors: { accent: "#c88cf0"  ink: "#dcdcdc"  ink_dim: "#9a9a9a" }
+    //     colors-basic: { accent: bright-magenta  error: bright-red  installed: green }
     //     pages: {
     //         components: { component: { fg: ink }              // fg references the map
     //                       driver:    { fg: ink_dim }
@@ -2023,9 +2026,10 @@ def build_parser():
     p.add_argument('--os', help='override detected OS routes block (e.g. pop_os!)')
     p.add_argument('--home', help='override HOME base for all paths (sandboxing)')
     p.add_argument('--config', help='override the per-machine selector file path')
-    p.add_argument('--color', choices=['auto', '24bit', '256', '16', 'none'], default=None,
+    p.add_argument('--color', choices=['auto', '24bit', '256', '16', '8', 'none'], default=None,
                    help='cap the TUI color depth (clamps DOWN only) — for testing degradation or a '
-                        'plainer look; overrides the theme. Also reads CONFIGSYS_COLOR / NO_COLOR')
+                        'plainer look; overrides the theme. 16 uses the hand-tuned bright ANSI set '
+                        '(theme.colors-basic), 8 forces the base 8. Also reads CONFIGSYS_COLOR / NO_COLOR')
     p.add_argument('--nocolor', '--no-color', dest='nocolor', action='store_true',
                    help='monochrome TUI (= --color none): no colors or gradient, splash skipped; '
                         'reverse-video + bold still mark the cursor and headers')

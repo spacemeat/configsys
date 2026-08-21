@@ -33,8 +33,8 @@ def _drain(fd, deadline):
     return buf
 
 
-@pytest.mark.parametrize('extra', [[], ['--nocolor'], ['--color', '16']],
-                         ids=['color', 'nocolor', 'color16'])
+@pytest.mark.parametrize('extra', [[], ['--nocolor'], ['--color', '16'], ['--color', '8']],
+                         ids=['color', 'nocolor', 'color16', 'color8'])
 def test_tui_launches_navigates_and_quits(tmp_path, extra):
     try:
         master, slave = pty.openpty()

@@ -34,6 +34,85 @@ COLOR_MAP = {
     'dep_dim': (192, 158, 108),                          # muted amber for the "required by" line
 }
 
+# --- low-color (8/16) hand-tuning ---------------------------------------------------------------
+# Quantizing the 24-bit map into 8 ANSI hues loses too much (greys collapse, everything muddies).
+# BASIC_MAP pins each built-in color NAME to an explicit ANSI slot for the 8/16-color path — the ONLY
+# way to reach the bright set (8..15), which is where the legible low-color look lives. A user's
+# `theme.colors-basic` (same name -> slot) overrides/extends this. In 256/truecolor mode it's unused.
+ANSI8 = ['black', 'red', 'green', 'yellow', 'blue', 'magenta', 'cyan', 'white']
+
+BASIC_MAP = {
+    'header': 'bright-blue', 'title': 'bright-white', 'accent': 'bright-magenta',
+    'dim': 'bright-black', 'ink': 'white', 'ink_dim': 'bright-black',
+    'installed': 'bright-green', 'outdated': 'bright-yellow', 'partial': 'bright-cyan',
+    'missing': 'bright-black', 'locked': 'blue', 'unsupported': 'bright-black',
+    'untrusted': 'yellow', 'error': 'bright-red',
+    'op_install': 'bright-green', 'op_upgrade': 'bright-yellow', 'op_remove': 'bright-red',
+    'op_lock': 'blue', 'op_unlock': 'cyan',
+    'sel_bg': 'magenta',                                 # the selection-bar background in 8/16-color
+    'row_desc': 'bright-black', 'method_dim': 'bright-black', 'dep_dim': 'yellow',
+}
+
+
+def parse_ansi(val):
+    '''An ANSI color slot for the low-color path: one of the 8 names (black red green yellow blue
+    magenta cyan white), a `bright-<name>` (slots 8..15), `grey`/`gray` (= bright-black), a bare int
+    0..15, or `default`/`term` (-1, the terminal's own default). Returns the index, -1, or None.'''
+    if val is None or isinstance(val, bool):
+        return None
+    if isinstance(val, int):
+        return val if -1 <= val <= 15 else None
+    s = str(val).strip().lower().replace('_', '-')
+    if s in ('default', 'term', 'terminal', '-1'):
+        return -1
+    if s.lstrip('-').isdigit():
+        n = int(s)
+        return n if 0 <= n <= 15 else None
+    bright = False
+    if s.startswith('bright-'):
+        bright, s = True, s[7:]
+    elif s.endswith('-bright'):
+        bright, s = True, s[:-7]
+    if s in ('grey', 'gray'):
+        return 15 if bright else 8                       # grey == bright-black; bright-grey -> white
+    if s in ANSI8:
+        return ANSI8.index(s) + (8 if bright else 0)
+    return None
+
+
+def ansi_name(idx):
+    '''The canonical name for an ANSI slot (inverse of parse_ansi) — for a readable full_snapshot.'''
+    if idx == -1:
+        return 'default'
+    if 0 <= idx <= 7:
+        return ANSI8[idx]
+    if 8 <= idx <= 15:
+        return 'bright-' + ANSI8[idx - 8]
+    return str(idx)
+
+
+def resolve_basic(theme, colors):
+    '''The low-color (8/16) override as {rgb: ansi_index}: the built-in BASIC_MAP overlaid by
+    `theme.colors-basic` (both name -> ANSI slot), keyed by each name's RESOLVED rgb (from `colors`)
+    so the Palette can consult it before quantizing — one entry then covers every role that
+    references that map color. Names absent from the map or with an unparseable slot are skipped.
+    User entries are applied last, so they win even where two names share an rgb.'''
+    theme = theme if isinstance(theme, dict) else {}
+    out = {}
+
+    def apply(items):
+        for name, val in items:
+            rgb, idx = colors.get(name), parse_ansi(val)
+            if rgb is not None and idx is not None:
+                out[tuple(rgb)] = idx
+
+    apply(BASIC_MAP.items())
+    ub = theme.get('colors-basic')
+    if isinstance(ub, dict):
+        apply(ub.items())
+    return out
+
+
 GRAD_MAX_BANDS = 96         # cap on the (range-adaptive) number of diagonal gradient steps
 
 
@@ -257,8 +336,15 @@ def full_snapshot(theme):
             grad['enabled'] = False
         pg['gradient'] = grad
         out_pages[page] = pg
+    basic = dict(BASIC_MAP)                               # the full low-color map, spelled out
+    ub = theme.get('colors-basic') if isinstance(theme, dict) else None
+    if isinstance(ub, dict):
+        for name, val in ub.items():
+            idx = parse_ansi(val)
+            if idx is not None:
+                basic[name] = ansi_name(idx)             # normalize the override to a canonical name
     return {'colors': {name: '#%02x%02x%02x' % rgb for name, rgb in colors.items()},
-            'pages': out_pages}
+            'colors-basic': basic, 'pages': out_pages}
 
 
 def rgb_to_256(r, g, b):
@@ -287,7 +373,8 @@ def env_color_cap(env=None):
     '''Resolve a color-depth CAP from the environment — it only clamps the detected mode DOWN, never
     up (you can't fake 24-bit on an 8-color tty). `NO_COLOR` (any non-empty value, per no-color.org)
     forces monochrome; `CONFIGSYS_COLOR` is the explicit override the --color/--nocolor flags set.
-    Returns one of 'none'|'basic'|'256'|'truecolor', or None for auto-detect.'''
+    Returns one of 'none'|'basic8'|'basic16'|'256'|'truecolor', or None for auto-detect. `basic8`
+    forces the base 8 (no bright slots); `basic16` allows the bright ANSI colors 8..15.'''
     import os
     env = os.environ if env is None else env
     if (env.get('NO_COLOR') or '').strip():
@@ -295,8 +382,10 @@ def env_color_cap(env=None):
     v = (env.get('CONFIGSYS_COLOR') or '').strip().lower()
     if v in ('none', 'no', 'off', '0', 'mono', 'nocolor'):
         return 'none'
-    if v in ('8', '16', 'basic', 'ansi'):
-        return 'basic'
+    if v in ('8', '8color'):
+        return 'basic8'
+    if v in ('16', 'basic', 'ansi', '16color'):
+        return 'basic16'
     if v in ('256', '256color', '8bit'):
         return '256'
     if v in ('24bit', '24', 'truecolor', 'direct', 'rgb'):
@@ -336,15 +425,19 @@ class Palette:
         # no color pairs at all, only structural A_REVERSE/A_BOLD survive (see the render methods).
         cap = env_color_cap()
         self.mono = cap == 'none'
-        if cap in ('256', 'basic', 'none'):
+        if cap in ('256', 'basic8', 'basic16', 'none'):
             self.truecolor = self.direct = False
-        if cap in ('basic', 'none'):
+        if cap in ('basic8', 'basic16', 'none'):
             self.have256 = False
+        # The bright ANSI slots (8..15) — where the legible low-color look lives — exist only at
+        # COLORS>=16; `--color 8` forces the base 8 to preview the true fallback.
+        self.have16 = curses.COLORS >= 16 and cap != 'basic8'
         # motion: reduced/none disable the diagonal gradient (the per-cell repaint that's costly over
         # a thin SSH link); `full` (or unset) keeps it. The splash is gated separately, at the TUI.
         self.grad_ok = env_effects() in (None, 'full')
 
         colors, pages = resolve_theme(theme)
+        self._basic = resolve_basic(theme, colors)   # {rgb: ansi_slot} hand-tuning for the 8/16 path
         self._next_color = 16          # private palette-slot allocator (truecolor mode)
         self._next_pair = 1
         self._color_cache = {}         # rgb -> palette index
@@ -385,7 +478,7 @@ class Palette:
             return '24-bit'
         if self.have256:
             return '256-color (approx)'
-        return '8-color'
+        return '16-color' if self.have16 else '8-color'
 
     def new_frame(self):
         '''Reset the color-PAIR allocator at the start of each full redraw. `curses.color_pair()`
@@ -437,7 +530,14 @@ class Palette:
             except curses.error:
                 idx = None
         if idx is None:
-            idx = rgb_to_256(*rgb) if self.have256 else rgb_to_basic8(*rgb)
+            if self.have256:
+                idx = rgb_to_256(*rgb)
+            else:                                          # 8/16-color: an explicit hand-tuned slot
+                idx = self._basic.get(key)                 # wins over the automatic quantizer
+                if idx is None:
+                    idx = rgb_to_basic8(*rgb)
+                elif idx >= 8 and not self.have16:
+                    idx -= 8                                # bright slot unavailable -> the base hue
         self._color_cache[key] = idx
         return idx
 

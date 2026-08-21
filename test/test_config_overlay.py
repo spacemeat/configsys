@@ -298,7 +298,7 @@ def test_auto_tighten_reads_setting():
 
 
 def test_theme_absent_is_empty():
-    assert cfg(REPO).theme() == {'colors': {}, 'pages': {}, 'splash': None}
+    assert cfg(REPO).theme() == {'colors': {}, 'colors-basic': {}, 'pages': {}, 'splash': None}
 
 
 def test_theme_splash_opt_out():
