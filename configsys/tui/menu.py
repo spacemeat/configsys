@@ -905,8 +905,8 @@ def _draw(stdscr, pal, ms, ctx, note, diags=(), show_diag=False, diag_top=0, scr
         bx = max(rend + 2, w - len(badge) - 1)
         _put(stdscr, 1, bx, _fit(badge, w - bx), pal.style(elem, 1, bx, h, w))
 
-    for c, text in (('name', 'COMPONENT'), ('driver', 'DRIVER'), ('scope', 'SCOPE'),
-                    ('status', 'STATUS'), ('inst', 'INSTALLED'), ('latest', 'LATEST')):
+    for c, text in (('name', 'component'), ('driver', 'driver'), ('scope', 'scope'),
+                    ('status', 'status'), ('inst', 'installed'), ('latest', 'latest')):
         x, cw = cols[c]
         _put(stdscr, 2, x, _fit(text, cw), pal.style('menu_header', 2, x, h, w))
 
@@ -3308,7 +3308,7 @@ class DotfilesScreen:
 
 # Columns: COMPONENT, STATE, LINK (the ~/… symlink location on your system), SOURCE (the managed
 # content it points at — the store/.cfs, or the shell rc hookup for a loader).
-_DF_HEADERS = ['COMPONENT', 'STATE', 'LINK', 'SOURCE']
+_DF_HEADERS = ['component', 'state', 'link', 'source']
 
 
 def _df_cells(row):
