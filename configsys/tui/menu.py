@@ -2507,7 +2507,57 @@ class ThemeScreen:
         self.role_cur = self.role_top = 0
         self.map_ncols = 1                         # set during draw; the h/l column stride
         self.map_rows_per_col = 10 ** 6
+        self._preview = {}                         # page -> a preview-only state obj (built+augmented once)
+        self.preview_diags = [{'level': 'warn', 'tag': 'sample', 'text': 'example issue'}] * 2
         self.reload()
+
+    def preview_state(self, ctx, page, ms):
+        '''A real state object for `page`'s live sample, built + lightly augmented ONCE (so every
+        themeable role shows) and cached. `ms` is the session's live components state (for the
+        components sample). Returns None if it can't be built (then the sample is simply skipped).'''
+        if page not in self._preview:
+            self._preview[page] = self._build_preview(ctx, page, ms)
+        return self._preview[page]
+
+    def _build_preview(self, ctx, page, ms):
+        try:
+            if page == 'components':
+                if ms is None:
+                    return None
+                pm = MenuState(ms.states, ms.layouts, None)     # private copy (shares read-only states)
+                pm.descriptions = getattr(ms, 'descriptions', {}) or {}
+                if not any(n.kind in (COMPONENT, UNIT) for n in pm.rows):
+                    try:
+                        pm.toggle_expand_all()                  # show leaf rows so op badges appear
+                    except Exception:                           # noqa: BLE001
+                        pass
+                pm.cursor = pm.top = 0
+                ops, n = ('install', 'upgrade', 'remove', 'lock'), 0   # stage on the FIRST visible leaves
+                for node in pm.rows:
+                    if n >= len(ops):
+                        break
+                    if node.kind in (COMPONENT, UNIT):
+                        keys = [m.key for m in getattr(node, 'members', []) if getattr(m, 'key', None)]
+                        if keys:
+                            pm.staged[keys[0]] = ops[n]; n += 1
+                return pm
+            if page == 'profiles':
+                return ProfileScreen(ctx)
+            if page == 'plugins':
+                pl = PluginScreen(ctx)                           # inject a diff so the diff roles show
+                pl.diff_files = [{'path': 'routes.hu', 'lines': [
+                    ('hunk', '@@ components @@'), ('meta', ' ripgrep:'),
+                    ('add', '+   cargo: { name: ripgrep }'), ('del', '-   apt: { name: ripgrep }'),
+                    ('ctx', '    suggests: ripgrep-dotfiles')]}]
+                pl.dfile, pl.diff_note = 0, None
+                return pl
+            if page == 'dotfiles':
+                return DotfilesScreen(ctx)
+            if page == 'config':
+                return ConfigScreen(ctx)
+        except Exception:                                        # noqa: BLE001 — never break the editor
+            return None
+        return None
 
     def reload(self):
         from .theme import COLOR_MAP, resolve_theme
@@ -2591,67 +2641,6 @@ def _eff_flags(st):
             | (curses.A_REVERSE if st.get('reverse') else 0))
 
 
-# A faithful mock of each SINGLE-LIST screen (components/dotfiles/config) — a header line, rows
-# (first selected), and footer lines — so the sample REPRESENTS that page and uses that page's own
-# roles. A row is a list of (text, width, role) segments; width 0 = run to the panel edge. `badge`
-# is an optional top-right chrome chip (text, role). The two-pane screens (profiles, plugins) have
-# their own bespoke renderers below.
-_SAMPLES = {
-    'components': {
-        'badge': (' ⚠ 2 ', 'issue_warning'),
-        'header': f'{"COMPONENT":15}{"DRIVER":9}{"VER":7}STATUS',
-        'rows': [
-            [('ripgrep', 15, 'component'), ('apt', 9, 'driver'), ('14.1', 7, 'version'),
-             ('installed', 10, 'installed'), ('[i]', 0, 'op_install')],
-            [('neovim', 15, 'unit'), ('tarball', 9, 'driver'), ('0.9', 7, 'version'),
-             ('outdated', 10, 'outdated'), ('[u]', 0, 'op_upgrade')],
-            [('btop', 15, 'component'), ('native', 9, 'driver'), ('—', 7, 'version'),
-             ('missing', 10, 'missing')],
-            [('steam', 15, 'unit'), ('flatpak', 9, 'driver'), ('1.0', 7, 'version'),
-             ('locked', 10, 'locked'), ('[L]', 0, 'op_lock')],
-        ],
-        'foot': [('ripgrep — fast recursive search', 'info'),
-                 ('methods: apt · tarball · cargo', 'methods'),
-                 (' selected: ripgrep    staged: 2 ', 'status_line')],
-        'nav': ' j/k · space mark · i/u/r/x op · / find · F1-6 page · q ',
-    },
-    'dotfiles': {
-        'header': f'{"COMPONENT":14}{"STATE":13}{"LINK":22}SOURCE',
-        'rows': [
-            [('neovim', 14, 'component'), ('linked', 13, 'installed'),
-             ('~/.config/nvim', 22, 'unit'), ('<plugin>/neovim.cfs', 0, 'installed')],
-            [('git', 14, 'component'), ('+ managed', 13, 'outdated'),
-             ('~/.gitconfig', 22, 'unit'), ('<plugin>/git-dotfiles.cfs', 0, 'outdated')],
-            [('zsh-glue', 14, 'component'), ('loader-on', 13, 'installed'),
-             ('~/.config/zsh/conf.d', 22, 'unit'), ('rc hookup', 0, 'installed')],
-            [('htop', 14, 'component'), ('! unmanaged', 13, 'missing'),
-             ('~/.config/htop', 22, 'unit'), ('(none)', 0, 'missing')],
-        ],
-        'foot': [('git — capture to link ~/.gitconfig', 'info_dim'),
-                 ('4 targets · 1 to capture', 'info_dim'),
-                 (' ↵ link · c capture · m migrate · C/L/M = all ', 'status_line')],
-        'nav': ' tab · j/k · ↵ link · c capture · m migrate · F1-6 · q ',
-        'title': 'dotfiles (link state)',
-    },
-    'config': {
-        'header': f'{"name":18}{"value":14}{"default":9}store',
-        'rows': [
-            [('scope', 18, 'component'), ('user', 14, 'scope_choice'), ('default', 9, 'info_dim'),
-             ('~/.config/…hu (machine-local)', 0, 'scope')],           # at its default store -> dim
-            [('driver-preference', 18, 'component'), ('na fp sn…', 14, 'scope_choice'),
-             ('custom', 9, 'installed'), ('~/.config/…hu (machine-local)', 0, 'header')],  # MOVED -> hi
-            [('effects', 18, 'component'), ('reduced', 14, 'scope_choice'), ('env', 9, 'outdated'),
-             ('$CONFIGSYS_EFFECTS (env)', 0, 'header')],               # env overrides -> highlighted
-        ],
-        'foot': [('scope — default install location (~ vs /opt)', 'info_dim'),
-                 ('man: configsys(1)', 'method_dim'),
-                 (' ↵ edit ', 'status_line')],
-        'nav': ' j/k · ↵ edit · m move local⇄primary · F1-6 page · q ',
-        'title': 'machine settings  ·  your values override defaults',
-    },
-}
-
-
 def _sample_theme_page(stdscr, pal, y0, x0, hh, ww):
     '''Mock of the Theme editor's OWN page (`f`): its two STACKED left panels — color map above page
     roles — plus a status + footer line, and no configsys/OS chrome. So previewing 'theme' looks like
@@ -2712,183 +2701,45 @@ def _sample_theme_page(stdscr, pal, y0, x0, hh, ww):
     pal.use_page('theme')
 
 
-def _sbox(put, ry, rx, bh, bw, title):
-    '''A light bordered panel with its title set into the top edge — the chrome every non-Components
-    screen wears (each screen's content lives inside a titled `_panel`). Draws via a `put(y,x,text,
-    role)` closure in panel-relative coords.'''
-    put(ry, rx, '┌' + '─' * (bw - 2) + '┐', 'info_dim')
-    for r in range(1, bh - 1):
-        put(ry + r, rx, '│', 'info_dim')
-        put(ry + r, rx + bw - 1, '│', 'info_dim')
-    put(ry + bh - 1, rx, '└' + '─' * (bw - 2) + '┘', 'info_dim')
-    put(ry, rx + 2, f' {title} ', 'menu_header')
-
-
-def _sample_profiles_page(stdscr, pal, y0, x0, hh, ww):
-    '''Mock of the Profiles screen — two titled panels side by side: a narrow profiles TREE (▸ star,
-    ●/◐/○ activity, +include children) and the component detail + catalog grid. Its real two-pane
-    shape (and NO configsys/OS chrome — Profiles doesn't have that row).'''
-    pal.use_page('profiles')
-
-    def put(ry, rx, text, role, *, sel=False):
-        if 0 <= ry < hh and 0 <= rx < ww - 1:
-            _put(stdscr, y0 + ry, x0 + rx, _fit(text, ww - 1 - rx),
-                 pal.style(role, ry, rx, hh, ww, selected=sel))
-
-    for yy in range(hh):
-        bg = pal.fill(yy, 0, hh, ww) if pal.gradient else pal.style('unit', yy, 0, hh, ww)
-        _put(stdscr, y0 + yy, x0, ' ' * ww, bg)
-    if hh < 9 or ww < 34:                              # too small for two panes: a one-line hint
-        put(1, 1, '▾● dev   ◐ +base   ○ web', 'profile')
-        pal.use_page('theme')
-        return
-
-    body_h = hh - 2                                    # leave the status + nav rows
-    lw = max(14, min(ww // 3, 22))
-    _sbox(put, 0, 0, body_h, lw, 'profiles')           # LEFT panel: the profiles tree
-    tree = [('▸▾● dev', 'profile', True), ('   ▹◐ +base', 'link', False),
-            ('  ● web', 'profile', False), ('  ○ media', 'profile', False)]
-    for i, (txt, role, sel) in enumerate(tree):
-        yy = 1 + i
-        if yy >= body_h - 1:
-            break
-        if sel:
-            _put(stdscr, y0 + yy, x0 + 1, ' ' * (lw - 2), pal.fill(yy, 1, hh, ww, selected=True))
-        put(yy, 2, txt, role, sel=sel)
-
-    rx0, rw = lw + 1, ww - lw - 2                       # RIGHT panel: detail + catalog grid
-    _sbox(put, 0, rx0, body_h, rw, 'components — in "dev"')  # right border at ww-2 (a writable col)
-    put(1, rx0 + 2, _fit('ripgrep — fast recursive search', rw - 4), 'info')
-    put(2, rx0 + 2, _fit('required by: fd · bat    ● dev  ↳ base', rw - 4), 'method_dim')
-    grid = [('● ripgrep', 'component'), ('○ neovim', 'unit'), ('● btop', 'component'),
-            ('○ fd', 'unit'), ('● bat', 'component'), ('○ fzf', 'unit')]
-    gcolw = max(11, (rw - 4) // 2)
-    gncols = max(1, (rw - 4) // gcolw)
-    for i, (txt, role) in enumerate(grid):
-        col, r = i % gncols, i // gncols
-        yy = 4 + r
-        if yy >= body_h - 1:
-            break
-        put(yy, rx0 + 2 + col * gcolw, _fit(txt, gcolw - 1), role)
-
-    put(hh - 2, 0, _fit(' selected: dev   ● direct  ◐ via-include  ○ off ', ww).ljust(ww), 'status_line')
-    put(hh - 1, 0, _fit(' tab · j/k · * star · ↵ toggle · F1-6 page · q ', ww).ljust(ww), 'footer')
-    pal.use_page('theme')
-
-
-def _sample_plugins_page(stdscr, pal, y0, x0, hh, ww):
-    '''Mock of the Plugins screen — a titled plugins-table panel above a titled COLORED unified-diff
-    panel (what an update would change; the diff is the screen's whole point). NO configsys/OS
-    chrome — Plugins doesn't have that row.'''
-    pal.use_page('plugins')
-
-    def put(ry, rx, text, role, *, sel=False):
-        if 0 <= ry < hh and 0 <= rx < ww - 1:
-            _put(stdscr, y0 + ry, x0 + rx, _fit(text, ww - 1 - rx),
-                 pal.style(role, ry, rx, hh, ww, selected=sel))
-
-    for yy in range(hh):
-        bg = pal.fill(yy, 0, hh, ww) if pal.gradient else pal.style('unit', yy, 0, hh, ww)
-        _put(stdscr, y0 + yy, x0, ' ' * ww, bg)
-    if hh < 10 or ww < 34:                             # too small for table + diff: a two-line hint
-        put(1, 1, 'configsys-user  ★ primary', 'component')
-        put(2, 1, '+ added   - removed', 'diff_add')
-        pal.use_page('theme')
-        return
-
-    body_h = hh - 2                                    # leave the status + nav rows
-    table_h = max(4, body_h * 2 // 5)
-    bw = ww - 1                                        # box width: right border at ww-2 (writable)
-    _sbox(put, 0, 0, table_h, bw, 'plugins (tree)')    # TOP panel: the plugins table
-    put(1, 2, _fit(f'{"PLUGIN":18}{"REF":6}STATUS', bw - 4), 'menu_header')
-    rows = [('configsys-user', 'v3', '★ primary', 'info', True),
-            ('void-linux', 'v1', 'trusted code', 'installed', False),
-            ('theme-rose', '—', 'unsynced', 'missing', False),
-            ('acme-corp', 'v2', 'quarantined', 'untrusted', False)]
-    for i, (nm, ref, st, strole, sel) in enumerate(rows):
-        yy = 2 + i
-        if yy >= table_h - 1:
-            break
-        if sel:
-            _put(stdscr, y0 + yy, x0 + 1, ' ' * (bw - 2), pal.fill(yy, 1, hh, ww, selected=True))
-        put(yy, 2, f'{nm:18}', 'label' if sel else 'component', sel=sel)
-        put(yy, 20, f'{ref:6}', 'label' if sel else 'info_dim', sel=sel)
-        put(yy, 26, st, 'label' if sel else strole, sel=sel)
-
-    _sbox(put, table_h, 0, body_h - table_h, bw, 'diff · void-linux · v1 → v2   +3 -1')  # BOTTOM: diff
-    diff = [('@@ routes.hu @@', 'diff_hunk'), ('   components:', 'diff_meta'),
-            ('+    xbps:  { name: ripgrep }', 'diff_add'),
-            ('+    aur:   { name: rust-ripgrep }', 'diff_add'),
-            ('-    cargo: { name: ripgrep }', 'diff_del'),
-            ('     suggests: ripgrep-dotfiles', 'diff_meta')]
-    for i, (txt, role) in enumerate(diff):
-        yy = table_h + 1 + i
-        if yy >= body_h - 1:
-            break
-        put(yy, 2, txt, role)
-
-    put(hh - 2, 0, _fit(' void-linux · trusted code · Tab: table ⇄ diff ', ww).ljust(ww), 'status_line')
-    put(hh - 1, 0, _fit(' tab · j/k · s sync · u update · t trust · F1-6 · q ', ww).ljust(ww), 'footer')
-    pal.use_page('theme')
-
-
-def _sample_page(stdscr, pal, page, y0, x0, hh, ww):
-    '''Render a mock of the REAL `page` (its layout + its own roles) in that page's colors + gradient,
-    so cycling pages shows a faithful, distinct preview. Switches the palette's active page; the
-    caller restores. Profiles/plugins/theme have bespoke SHAPES; the rest are single lists — but only
-    Components carries the `configsys`+OS chrome row (the others live inside a titled panel).'''
+def _sample_page(stdscr, pal, ctx, ts, page, y0, x0, hh, ww, ms):
+    '''Paint the sample slot as a live, COMPRESSED instance of the REAL page, so a theme edit previews
+    exactly as it will look — every element, role, and scroll thumb, and future-robust (it IS the real
+    renderer). The Theme editor's OWN page keeps a bespoke two-panel mock (rendering the editor into
+    itself would recurse).'''
     if hh < 6 or ww < 24:
         return
     if page == 'theme':
         _sample_theme_page(stdscr, pal, y0, x0, hh, ww)
         return
-    if page == 'profiles':
-        _sample_profiles_page(stdscr, pal, y0, x0, hh, ww)
-        return
-    if page == 'plugins':
-        _sample_plugins_page(stdscr, pal, y0, x0, hh, ww)
-        return
-    pal.use_page(page)
-    for yy in range(hh):
-        bg = pal.fill(yy, 0, hh, ww) if pal.gradient else pal.style('unit', yy, 0, hh, ww)
-        _put(stdscr, y0 + yy, x0, ' ' * ww, bg)
-    spec = _SAMPLES[page]
+    _sample_real_page(stdscr, pal, ctx, ts, page, y0, x0, hh, ww, ms)
+    pal.use_page('theme')                    # the real draw fn switched the active page; restore it
 
-    def put(yy, x, text, role, *, sel=False):
-        if 0 <= yy < hh and 0 <= x < ww - 1:
-            _put(stdscr, y0 + yy, x0 + x, _fit(text, ww - 1 - x),
-                 pal.style(role, yy, x, hh, ww, selected=sel))
 
-    foot = spec['foot']
-    body_bottom = hh - len(foot) - 1                   # first foot row; content sits above it
-    boxed = page != 'components'                       # only Components has the configsys+OS list chrome
-    if boxed:
-        _sbox(put, 0, 0, body_bottom, ww - 1, spec['title'])   # right border at ww-2 (writable)
-        cx, edge = 2, 2                                # content inset; keep clear of the right border
-    else:
-        put(0, 1, ' configsys ', 'label')
-        put(0, 13, 'Pop!_OS 22.04', 'os')
-        if spec.get('badge') and ww > 24:
-            put(0, ww - len(spec['badge'][0]) - 1, spec['badge'][0], spec['badge'][1])
-        cx, edge = 1, 0
-    put(1, cx, spec['header'], 'menu_header')
-    row_top = 2
-    maxrows = body_bottom - row_top - (1 if boxed else 0)   # boxed: stay above the bottom border
-    for ri, row in enumerate(spec['rows'][:max(0, maxrows)]):
-        yy, sel = row_top + ri, ri == 0                     # first row selected -> cursor bar
-        if sel:
-            bx, bw = (1, ww - 3) if boxed else (0, ww)
-            _put(stdscr, y0 + yy, x0 + bx, ' ' * bw, pal.fill(yy, bx, hh, ww, selected=True))
-        x = cx
-        for si, (text, wd, role) in enumerate(row):
-            disp = ('» ' + text) if (sel and si == 0) else (('  ' + text) if si == 0 else text)
-            width = wd or (ww - x - edge)
-            put(yy, x, _fit(disp, width), role, sel=sel)
-            x += wd if wd else (len(disp) + 1)
-    for i, (text, role) in enumerate(foot):
-        put(body_bottom + i, 1, text, role)
-    put(hh - 1, 1, _fit(spec.get('nav', ' j/k move · space · q '), ww - 2).ljust(ww - 2), 'footer')
-    pal.use_page('theme')
+def _sample_real_page(stdscr, pal, ctx, ts, page, y0, x0, hh, ww, ms):
+    '''Render the actual `_draw_<page>` into a sub-window over the sample slot, fed a preview-only
+    state object (a real instance, lightly augmented so every themeable role shows). The sub-window
+    gives the draw fn its own 0-based coordinate space, so it lays out (and scroll-thumbs) naturally at
+    the compressed size. Never raises — a broken preview must not break the Theme editor.'''
+    try:
+        sub = stdscr.derwin(hh, ww, y0, x0)
+    except curses.error:
+        return
+    try:
+        state = ts.preview_state(ctx, page, ms)
+        if state is None:
+            return
+        if page == 'components':
+            _draw(sub, pal, state, ctx, '', ts.preview_diags, False, 0, 'components')
+        elif page == 'profiles':
+            _draw_profiles(sub, pal, state, ctx, '', 'profiles')
+        elif page == 'plugins':
+            _draw_plugins(sub, pal, state, ctx, '', 'plugins')
+        elif page == 'dotfiles':
+            _draw_dotfiles(sub, pal, state, ctx, '', 'dotfiles')
+        elif page == 'config':
+            _draw_config(sub, pal, state, ctx, '', 'config')
+    except Exception:                        # noqa: BLE001 — a preview never bricks the editor
+        pass
 
 
 def _ref_str(ref):
@@ -2905,7 +2756,7 @@ def _valid_ref(val, map_names):
     return v in map_names or parse_color(v) is not None
 
 
-def _draw_theme(stdscr, pal, ts, ctx, note, screen):
+def _draw_theme(stdscr, pal, ts, ctx, note, screen, ms=None):
     stdscr.erase()
     h, w = stdscr.getmaxyx()
     pal.use_page('theme')
@@ -2971,11 +2822,10 @@ def _draw_theme(stdscr, pal, ts, ctx, note, screen):
              pal.style('label' if sel else 'component', y, r_il + 6, h, w, selected=sel))
     _scrollbar_v(stdscr, pal, r_it, r_il + r_iw, r_ih, ts.role_top, r_ih, len(roles), h, w)
 
-    # -- the sample page (right) --
+    # -- the sample page (right): a live, compressed instance of the REAL page (no outer frame — the
+    # mini page brings its own nav bar / panels / footer) --
     rx, rw = lw + 1, w - lw - 1
-    st_it, st_il, st_ih, st_iw = _panel(stdscr, pal, 1, rx, body_h, rw,
-                                        _fit(f'sample page — {page}', rw - 4), False, h, w)
-    _sample_page(stdscr, pal, page, st_it, st_il, st_ih, st_iw)
+    _sample_page(stdscr, pal, ctx, ts, page, 1, rx, body_h, rw, ms)
     pal.use_page('theme')
 
     from .. import actions
@@ -3487,7 +3337,7 @@ def run(ctx):
             elif screen == 'theme':
                 if ts is None:
                     ts = ThemeScreen(ctx)
-                _draw_theme(stdscr, pal, ts, ctx, note, screen)
+                _draw_theme(stdscr, pal, ts, ctx, note, screen, ms)   # ms feeds the components sample
             else:
                 diag_top = _draw(stdscr, pal, ms, ctx, note, diags, False, diag_top, screen)
             note = ''
