@@ -2390,6 +2390,8 @@ def _draw_config(stdscr, pal, cs, ctx, note, screen):
     ew = max(6, iw - ex - 1)
 
     import os
+    from .. import plugins as _pl
+    has_primary = bool(_pl.primary_name(_pl.declared(ctx.paths.user_config_file)))
     _home = os.path.expanduser('~')
 
     def _homed(p):
@@ -2413,18 +2415,20 @@ def _draw_config(stdscr, pal, cs, ctx, note, screen):
     def _store(info):
         '''(name, suffix, role) for the `store` column — the NORMALIZED location the value lives /
         edits land: "<plugin> (primary plugin)" or "<~-path> (machine-local)". The suffix always shows
-        (the name truncates first). A CUSTOMIZED value (stored, or env-overridden — i.e. not the
-        built-in default) is highlighted; a default just shows where an edit would land, dimmed.'''
+        (the name truncates first). A location that differs from this setting's NATURE-DEFAULT store —
+        a moved setting, or an env override that supersedes config — is highlighted; otherwise dimmed.'''
+        nature = info.get('nature', 'uniform')
+        default_type = 'primary' if (nature == 'uniform' and has_primary) else 'local'
         src = info.get('source')
-        env = isinstance(src, str) and src.startswith('env ')
+        if isinstance(src, str) and src.startswith('env '):
+            return src[4:], '(env override)', 'header'   # env supersedes config -> non-default store
         home, tgt = info.get('home'), info.get('target')
-        role = 'header' if (env or home is not None) else 'scope'   # header = a customized store
-        if env:
-            return src[4:], '(env override)', role
         if home == 'primary' or (home is None and tgt and tgt != 'top config'):
             pname = info.get('home_label') if home == 'primary' else tgt
-            return pname, '(primary plugin)', role
-        return _homed(ctx.paths.user_config_file), '(machine-local)', role
+            name, suffix, loc_type = pname, '(primary plugin)', 'primary'
+        else:
+            name, suffix, loc_type = _homed(ctx.paths.user_config_file), '(machine-local)', 'local'
+        return name, suffix, ('header' if loc_type != default_type else 'scope')   # header = relocated
 
     def col_store(y, cx, name, suffix, cw, role, sel):
         '''Draw the store cell, keeping the (suffix) visible — the descriptor matters more than the
@@ -2633,11 +2637,11 @@ _SAMPLES = {
         'header': f'{"name":18}{"value":14}{"default":9}store',
         'rows': [
             [('scope', 18, 'component'), ('user', 14, 'scope_choice'), ('default', 9, 'info_dim'),
-             ('~/.config/…hu (machine-local)', 0, 'scope')],
-            [('adopt-installed', 18, 'component'), ('true', 14, 'scope_choice'), ('custom', 9, 'installed'),
-             ('user (primary plugin)', 0, 'header')],
+             ('~/.config/…hu (machine-local)', 0, 'scope')],           # at its default store -> dim
+            [('driver-preference', 18, 'component'), ('na fp sn…', 14, 'scope_choice'),
+             ('custom', 9, 'installed'), ('~/.config/…hu (machine-local)', 0, 'header')],  # MOVED -> hi
             [('effects', 18, 'component'), ('reduced', 14, 'scope_choice'), ('env', 9, 'outdated'),
-             ('$CONFIGSYS_EFFECTS (env)', 0, 'header')],
+             ('$CONFIGSYS_EFFECTS (env)', 0, 'header')],               # env overrides -> highlighted
         ],
         'foot': [('scope — default install location (~ vs /opt)', 'info_dim'),
                  ('man: configsys(1)', 'method_dim'),
