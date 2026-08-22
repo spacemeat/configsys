@@ -2285,12 +2285,21 @@ def _input_box(stdscr, pal, title, initial='', complete=None, toggle=None):
             pass
 
 
-def _order_list(stdscr, pal, title, items):
+# Short two/three-letter tags for the cross-cutting install methods in `driver-preference`, so the
+# whole ordered list fits the Config value column. The reorder modal spells each one out (`na: native`).
+_DRIVER_ABBR = {'native': 'na', 'flatpak': 'fp', 'snap': 'sn', 'native-pkg-file': 'nf',
+                'appImage': 'ai', 'tarball': 'tb', 'source': 'src', 'script': 'sc'}
+
+
+def _order_list(stdscr, pal, title, items, label=None):
     '''Reorder modal: j/k move the cursor; `space` grabs/drops the current item; while grabbed, j/k
-    move THE ITEM up/down. Enter commits (returns the new order), Esc cancels (None).'''
+    move THE ITEM up/down. Enter commits (returns the new order), Esc cancels (None). `label(item)`
+    formats an item for DISPLAY only — the returned order is always the original items.'''
     items = list(items)
+    fmt = label or str
+    disp = [fmt(it) for it in items]
     h, w = stdscr.getmaxyx()
-    box_w = min(max(len(title) + 4, 46), max(24, w - 2))
+    box_w = min(max(len(title) + 4, max((len(d) for d in disp), default=0) + 10, 46), max(24, w - 2))
     box_h = min(len(items) + 5, max(7, h - 2))
     y0, x0 = max(0, (h - box_h) // 2), max(0, (w - box_w) // 2)
     border = pal.get('accent') | curses.A_BOLD
@@ -2306,7 +2315,7 @@ def _order_list(stdscr, pal, title, items):
             mark = '↕' if (grabbed and i == sel) else ('▸' if i == sel else ' ')
             attr = curses.A_REVERSE if i == sel else curses.A_NORMAL
             _put(stdscr, y0 + 2 + i, x0 + 2,
-                 _fit(f'{i + 1:>2}. {mark} {it}'.ljust(box_w - 4), box_w - 4), attr)
+                 _fit(f'{i + 1:>2}. {mark} {fmt(it)}'.ljust(box_w - 4), box_w - 4), attr)
         stdscr.refresh()
         ch = stdscr.getch()
         if ch == 27:
@@ -2333,7 +2342,11 @@ def _setting_str(kind, val, key=None):
     if key == 'scope' and val in (None, ''):
         return 'user (default)'
     if kind == 'list':
-        return ' '.join(val) if val else '(unset — built-in default)'
+        if not val:
+            return '(unset — built-in default)'
+        if key == 'driver-preference':                        # abbreviate so the order fits the column
+            return ' '.join(_DRIVER_ABBR.get(d, d) for d in val)
+        return ' '.join(val)
     if kind == 'bool':
         return 'true' if val else 'false'
     return str(val) if val not in (None, '') else '(unset)'
@@ -3942,7 +3955,8 @@ def run(ctx):
                             from ..resolve import DEFAULT_DRIVER_PREFERENCE
                             cur = info['value'] or list(DEFAULT_DRIVER_PREFERENCE)
                             new = _order_list(stdscr, pal,
-                                              'driver-preference — space grab, j/k move', cur)
+                                              'driver-preference — space grab, j/k move', cur,
+                                              label=lambda d: f'{_DRIVER_ABBR.get(d, d) + ":":<5}{d}')
                             if new is not None:
                                 actions.set_config_setting(ctx, key, new)
                                 note = f'{key} reordered'
