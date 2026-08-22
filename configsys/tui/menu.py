@@ -2485,9 +2485,9 @@ def _draw_config(stdscr, pal, cs, ctx, note, screen):
     if _KEYMAP is not None:
         g = lambda a: _KEYMAP.glyph('config', a)
         navf = (f" {g('down')}/{g('up')} move · {g('confirm')} edit · {g('move')} local↔primary · "
-                f"{g('theme')} theme · 1-6 screens · {g('quit')} quit ")
+                f"{g('theme')} theme · {g('quit')} quit ")
     else:
-        navf = ' j/k move · enter/space edit · m local↔primary · t theme · 1-6 screens · q quit '
+        navf = ' j/k move · enter/space edit · m local↔primary · t theme · q quit '
     _put(stdscr, h - 2, 0, _fit(status, w), pal.style('status_line', h - 2, 0, h, w))
     _put(stdscr, h - 1, 0, _fit(navf.ljust(w), w), pal.style('footer', h - 1, 0, h, w))
     stdscr.refresh()
@@ -3090,10 +3090,10 @@ def _draw_plugins(stdscr, pal, pl, ctx, note, screen):
         navf = (f" {g('switch-pane')} focus · {g('down')}/{g('up')} · {g('left')}/{g('right')} scroll · "
                 f"{g('add')} add · {g('remove')} rm · {g('sync')}/{g('sync-all')} sync · "
                 f"{g('bless')}/{g('unbless')} bless · {g('update')}/{g('update-all')} update · "
-                f"{g('set-ref')} ref · {g('trust')} trust · {g('trust-all')} trust-all · 1-6 · {g('quit')} ")
+                f"{g('set-ref')} ref · {g('trust')} trust · {g('trust-all')} trust-all · {g('quit')} ")
     else:
         navf = (' tab focus · j/k · h/l scroll · a add · x rm · s/S sync · b/B bless · u/U update · '
-                'v ref · t trust · T trust-all · 1-6 · q ')
+                'v ref · t trust · T trust-all · q ')
     _put(stdscr, h - 2, 0, _fit(status, w), pal.style('status_line', h - 2, 0, h, w))
     _put(stdscr, h - 1, 0, _fit(navf.ljust(w), w), pal.style('footer', h - 1, 0, h, w))
     stdscr.refresh()
