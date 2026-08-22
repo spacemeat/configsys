@@ -2381,12 +2381,20 @@ def _draw_config(stdscr, pal, cs, ctx, note, screen):
                             True, h, w)
 
     # aligned columns (lowercase headers, like the Plugins table); the description + man ref wrap on
-    # the rows below each setting. Column x-offsets are relative to the panel interior `il`.
-    nx, vx = 0, min(20, iw // 3)
-    dx = min(vx + 24, iw - 18)
-    ex = min(dx + 9, iw - 13)
+    # the rows below each setting. Column x-offsets are relative to the panel interior `il`. `store`
+    # takes the remainder (it holds a path, so it wants the room); `value` got +3 for driver-preference.
+    nx, vx = 0, min(18, iw // 4)
+    dx = min(vx + 27, iw - 24)
+    ex = min(dx + 9, iw - 15)
     nw, vw, dw = vx - 1, dx - vx - 1, ex - dx - 1
     ew = max(6, iw - ex - 1)
+
+    import os
+    _home = os.path.expanduser('~')
+
+    def _homed(p):
+        p = str(p)
+        return '~' + p[len(_home):] if _home and p.startswith(_home) else p
 
     def col(y, cx, text, cw, role, sel):
         if 0 <= cx < iw - 1:
@@ -2402,12 +2410,30 @@ def _draw_config(stdscr, pal, cs, ctx, note, screen):
             return 'custom', 'installed'                  # green: you've set it
         return 'default', 'info_dim'                      # dim: the built-in default
 
-    def _edits(info):
-        '''Where a change is written (the target file/plugin), by name.'''
-        tgt = info.get('target')
-        if info.get('home') == 'primary':
-            return f'primary: {info.get("home_label")}'
-        return f'→ {tgt}' if tgt else '—'
+    def _store(info):
+        '''(name, suffix, role) for the `store` column — the NORMALIZED location the value lives /
+        edits land: "<plugin> (primary plugin)" or "<~-path> (machine-local)". The suffix always shows
+        (the name truncates first). A CUSTOMIZED value (stored, or env-overridden — i.e. not the
+        built-in default) is highlighted; a default just shows where an edit would land, dimmed.'''
+        src = info.get('source')
+        env = isinstance(src, str) and src.startswith('env ')
+        home, tgt = info.get('home'), info.get('target')
+        role = 'header' if (env or home is not None) else 'scope'   # header = a customized store
+        if env:
+            return src[4:], '(env override)', role
+        if home == 'primary' or (home is None and tgt and tgt != 'top config'):
+            pname = info.get('home_label') if home == 'primary' else tgt
+            return pname, '(primary plugin)', role
+        return _homed(ctx.paths.user_config_file), '(machine-local)', role
+
+    def col_store(y, cx, name, suffix, cw, role, sel):
+        '''Draw the store cell, keeping the (suffix) visible — the descriptor matters more than the
+        long path, so the name truncates first.'''
+        if len(name) + 1 + len(suffix) <= cw or cw <= len(suffix) + 4:
+            txt = _fit(f'{name} {suffix}', cw)
+        else:
+            txt = f'{_fit(name, cw - len(suffix) - 1)} {suffix}'
+        col(y, cx, txt, cw, role, sel)
 
     def block_h(i):
         info = cs.settings[cs.keys[i]]
@@ -2420,7 +2446,7 @@ def _draw_config(stdscr, pal, cs, ctx, note, screen):
         cs.top += 1                                       # keep the cursor's block in view
 
     # header row (lowercase column names)
-    for cx, cw, label in ((nx, nw, 'name'), (vx, vw, 'value'), (dx, dw, 'default'), (ex, ew, 'edits')):
+    for cx, cw, label in ((nx, nw, 'name'), (vx, vw, 'value'), (dx, dw, 'default'), (ex, ew, 'store')):
         col(it, cx, label, cw, 'menu_header', False)
 
     y, shown = it + 1, 0
@@ -2432,10 +2458,11 @@ def _draw_config(stdscr, pal, cs, ctx, note, screen):
         if sel:
             _put(stdscr, y, il, ' ' * iw, pal.fill(y, il, h, w, selected=True))
         st_txt, st_role = _state(info)
+        s_name, s_suffix, s_role = _store(info)
         col(y, nx, key, nw, 'label' if sel else 'component', sel)
         col(y, vx, _setting_str(info['kind'], info['value'], key), vw, 'scope_choice', sel)
         col(y, dx, st_txt, dw, st_role, sel)
-        col(y, ex, _edits(info), ew, 'scope', sel)
+        col_store(y, ex, s_name, s_suffix, ew, s_role, sel)
         dy = y + 1
         for line in _wordwrap(info['desc'], iw - 4):      # word-wrapped description, not cut off
             _put(stdscr, dy, il + 3, _fit(line, iw - 4), pal.style('info_dim', dy, il, h, w))
@@ -2603,14 +2630,14 @@ _SAMPLES = {
         'title': 'dotfiles (link state)',
     },
     'config': {
-        'header': f'{"name":18}{"value":14}{"default":9}edits',
+        'header': f'{"name":18}{"value":14}{"default":9}store',
         'rows': [
             [('scope', 18, 'component'), ('user', 14, 'scope_choice'), ('default', 9, 'info_dim'),
-             ('→ top config', 0, 'scope')],
+             ('~/.config/…hu (machine-local)', 0, 'scope')],
             [('adopt-installed', 18, 'component'), ('true', 14, 'scope_choice'), ('custom', 9, 'installed'),
-             ('primary: user', 0, 'scope')],
-            [('splash', 18, 'component'), ('ocean', 14, 'scope_choice'), ('env', 9, 'outdated'),
-             ('→ top config', 0, 'scope')],
+             ('user (primary plugin)', 0, 'header')],
+            [('effects', 18, 'component'), ('reduced', 14, 'scope_choice'), ('env', 9, 'outdated'),
+             ('$CONFIGSYS_EFFECTS (env)', 0, 'header')],
         ],
         'foot': [('scope — default install location (~ vs /opt)', 'info_dim'),
                  ('man: configsys(1)', 'method_dim'),
@@ -3941,6 +3968,18 @@ def run(ctx):
                                 val = names[idx]
                                 # picking the built-in default clears the setting (tracks the default)
                                 actions.set_config_setting(ctx, key, [] if val == DEFAULT_SPLASH else [val])
+                                note = f'{key} = {val}'
+                                cs.reload()
+                        elif key == 'effects':              # motion level: auto (unset) / full / reduced / none
+                            opts = [('auto', '(SSH → reduced, else full)'), ('full', '(gradient + splash)'),
+                                    ('reduced', '(no gradient; calmer splash)'), ('none', '(no gradient/splash)')]
+                            names = [o[0] for o in opts]
+                            cur = info['value']             # 'full' | 'reduced' | 'none' | None (auto)
+                            cur_idx = names.index(cur) if cur in names else 0
+                            idx = _popup_choose(stdscr, pal, key, opts, cur_idx)
+                            if idx is not None:
+                                val = names[idx]
+                                actions.set_config_setting(ctx, key, [] if val == 'auto' else [val])
                                 note = f'{key} = {val}'
                                 cs.reload()
                         elif info['kind'] == 'scalar':      # any other scalar -> text input
