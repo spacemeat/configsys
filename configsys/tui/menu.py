@@ -2699,6 +2699,10 @@ class ThemeScreen:
                 return DotfilesScreen(ctx)
             if page == 'config':
                 return ConfigScreen(ctx)
+            if page == 'theme':                                  # the editor previewing itself
+                pts = ThemeScreen(ctx)
+                pts.focus, pts.map_cur = 'map', 0                # show the map panel's selection
+                return pts
         except Exception:                                        # noqa: BLE001 — never break the editor
             return None
         return None
@@ -2785,75 +2789,12 @@ def _eff_flags(st):
             | (curses.A_REVERSE if st.get('reverse') else 0))
 
 
-def _sample_theme_page(stdscr, pal, y0, x0, hh, ww):
-    '''Mock of the Theme editor's OWN page (`f`): its two STACKED left panels — color map above page
-    roles — plus a status + footer line, and no configsys/OS chrome. So previewing 'theme' looks like
-    the real Theme page, not the generic single-panel content screens.'''
-    pal.use_page('theme')
-
-    def putl(ry, rx, text, role, *, sel=False):
-        if 0 <= ry < hh and 0 <= rx < ww - 1:
-            _put(stdscr, y0 + ry, x0 + rx, _fit(text, ww - 1 - rx),
-                 pal.style(role, ry, rx, hh, ww, selected=sel))
-
-    for yy in range(hh):                               # page background (gradient or flat)
-        bg = pal.fill(yy, 0, hh, ww) if pal.gradient else pal.style('unit', yy, 0, hh, ww)
-        _put(stdscr, y0 + yy, x0, ' ' * ww, bg)
-    if hh < 9 or ww < 26:
-        pal.use_page('theme')
-        return
-
-    avail = hh - 2                                     # reserve the status + footer rows
-    top_h = max(4, avail * 2 // 5)
-
-    def box(ry, bh, title):                            # a mini bordered panel (info_dim border)
-        putl(ry, 0, '┌' + '─' * (ww - 2) + '┐', 'info_dim')
-        for r in range(1, bh - 1):
-            putl(ry + r, 0, '│', 'info_dim')
-            putl(ry + r, ww - 1, '│', 'info_dim')
-        putl(ry + bh - 1, 0, '└' + '─' * (ww - 2) + '┘', 'info_dim')
-        putl(ry, 2, f' {title} ', 'menu_header')
-
-    def selbar(ry):
-        _put(stdscr, y0 + ry, x0 + 1, ' ' * (ww - 2), pal.fill(ry, 1, hh, ww, selected=True))
-
-    box(0, top_h, 'color map (shared)')                # TOP panel: the shared colours
-    for i, (name, swrole) in enumerate([('accent', 'accent'), ('fg_main', 'label'),
-                                        ('bg_dim', 'info_dim'), ('sel_bg', 'component')]):
-        yy = 1 + i
-        if yy >= top_h - 1:
-            break
-        sel = i == 0
-        if sel:
-            selbar(yy)
-        putl(yy, 2, '██', swrole)                      # a swatch, in a representative theme colour
-        putl(yy, 5, name, 'label' if sel else 'component', sel=sel)
-
-    box(top_h, avail - top_h, 'page roles — theme')    # BOTTOM panel: this page's role styles
-    for i, role in enumerate(['label', 'component', 'footer', 'status_line', 'menu_header']):
-        yy = top_h + 1 + i
-        if yy >= avail - 1:
-            break
-        sel = i == 0
-        if sel:
-            selbar(yy)
-        putl(yy, 2, 'Aa', role)                        # preview each role in its OWN style
-        putl(yy, 5, role, 'label' if sel else 'component', sel=sel)
-
-    putl(hh - 2, 0, _fit(' terminal color: 24-bit   ·   edits → your config ', ww).ljust(ww), 'status_line')
-    putl(hh - 1, 0, _fit(' tab · j/k · F1-6 page · ↵ set colour · s save · q ', ww).ljust(ww), 'footer')
-    pal.use_page('theme')
-
-
 def _sample_page(stdscr, pal, ctx, ts, page, y0, x0, hh, ww, ms):
     '''Paint the sample slot as a live, COMPRESSED instance of the REAL page, so a theme edit previews
     exactly as it will look — every element, role, and scroll thumb, and future-robust (it IS the real
-    renderer). The Theme editor's OWN page keeps a bespoke two-panel mock (rendering the editor into
-    itself would recurse).'''
+    renderer). The Theme editor's OWN page renders the real editor too (with its inner sample slot
+    suppressed to avoid recursing).'''
     if hh < 6 or ww < 24:
-        return
-    if page == 'theme':
-        _sample_theme_page(stdscr, pal, y0, x0, hh, ww)
         return
     _sample_real_page(stdscr, pal, ctx, ts, page, y0, x0, hh, ww, ms)
     pal.use_page('theme')                    # the real draw fn switched the active page; restore it
@@ -2882,6 +2823,12 @@ def _sample_real_page(stdscr, pal, ctx, ts, page, y0, x0, hh, ww, ms):
             _draw_dotfiles(sub, pal, state, ctx, '', 'dotfiles')
         elif page == 'config':
             _draw_config(sub, pal, state, ctx, '', 'config')
+        elif page == 'theme':                # the editor itself — sample=False suppresses its own slot
+            try:
+                state.reload()               # keep the mini editor's swatches/hexes current after edits
+            except Exception:                # noqa: BLE001
+                pass
+            _draw_theme(sub, pal, state, ctx, '', 'theme', ms, sample=False)
     except Exception:                        # noqa: BLE001 — a preview never bricks the editor
         pass
 
@@ -2900,7 +2847,7 @@ def _valid_ref(val, map_names):
     return v in map_names or parse_color(v) is not None
 
 
-def _draw_theme(stdscr, pal, ts, ctx, note, screen, ms=None):
+def _draw_theme(stdscr, pal, ts, ctx, note, screen, ms=None, sample=True):
     stdscr.erase()
     h, w = stdscr.getmaxyx()
     pal.use_page('theme')
@@ -2967,10 +2914,18 @@ def _draw_theme(stdscr, pal, ts, ctx, note, screen, ms=None):
     _scrollbar_v(stdscr, pal, r_it, r_il + r_iw, r_ih, ts.role_top, r_ih, len(roles), h, w)
 
     # -- the sample page (right): a live, compressed instance of the REAL page (no outer frame — the
-    # mini page brings its own nav bar / panels / footer) --
+    # mini page brings its own nav bar / panels / footer). `sample=False` means THIS render IS a
+    # sample (in the Theme-page preview) — suppress the inner slot so it doesn't recurse. --
     rx, rw = lw + 1, w - lw - 1
-    _sample_page(stdscr, pal, ctx, ts, page, 1, rx, body_h, rw, ms)
-    pal.use_page('theme')
+    if sample:
+        _sample_page(stdscr, pal, ctx, ts, page, 1, rx, body_h, rw, ms)
+        pal.use_page('theme')
+    else:
+        for yy in range(1, 1 + body_h):                    # dim the slot; a hint reads "the sample goes here"
+            _put(stdscr, yy, rx, ' ' * rw, pal.style('unit', yy, rx, h, w))
+        hint = '· live sample ·'
+        _put(stdscr, 1 + body_h // 2, rx + max(0, (rw - len(hint)) // 2), _fit(hint, rw),
+             pal.style('info_dim', 1 + body_h // 2, rx, h, w))
 
     from .. import actions
     status = f' terminal color: {pal.color_mode}   ·   edits → {actions.edit_target(ctx)[1]}'
