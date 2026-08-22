@@ -765,6 +765,150 @@ def _wordwrap(s, width):
     return lines
 
 
+# Per-page `?` help: a brief description + a glossary of the terms/markers/glyphs that page uses.
+# (Keybindings are generated from the live keymap; these are the reminders that aren't keys.)
+_HELP = {
+    'components': {
+        'desc': "Your active profiles' components, as a tree. Each row is a component (or a unit under "
+                "it) with its install driver, scope, current state, and installed/latest versions. Mark "
+                "rows for an operation, then run them with the execute key.",
+        'glossary': [
+            ('status', 'installed · outdated (newer available) · missing · locked (version-pinned) · '
+                       'partial (some units installed) · unsupported (no route on this OS) · untrusted '
+                       '(from a not-yet-trusted plugin)'),
+            ('op badges', '[i] install · [u] upgrade · [x] remove · [L] lock — staged, run with execute'),
+            ('tree', '▾/▸ expand/collapse; a profile groups the components it pulls in'),
+            ('scope', 'user (~, no sudo) vs system (/opt, needs sudo)'),
+        ],
+    },
+    'profiles': {
+        'desc': "Compose and activate profiles. Left: the profile tree. Right: the component catalog "
+                "for the selected profile, plus a detail box for the highlighted component. Toggle a "
+                "component's membership with select/confirm in the right pane.",
+        'glossary': [
+            ('markers', '● active · ◐ active via +include · ○ inactive · ▸ starred'),
+            ('terms', '+name folds in another profile (union) · ~name removes a component'),
+            ('detail box', 'description · attrs (kind tags) · required-by (reverse deps) · in-profiles'),
+            ('method', "the right-column tag is the component's resolved install driver here"),
+        ],
+    },
+    'plugins': {
+        'desc': "Data/code plugins declared in your config. Top: the plugin tree. Bottom: a diff of "
+                "what updating the selected plugin to its remote ref would change. Sync, bless, trust, "
+                "and update from here.",
+        'glossary': [
+            ('columns', 'name · source · ref (pinned) · remote-ref (upstream) · abi · code · provides'),
+            ('abi', "the plugin's declared ABI vs configsys's — a mismatch is skipped, not loaded"),
+            ('code', 'ships Python drivers? + its trust: trusted / untrusted / quarantined (bad checksum)'),
+            ('★ primary', 'your primary plugin — may set machine settings and travels to your machines'),
+            ('tree', '├─ a transitive plugin (declared by another plugin, not your top config)'),
+        ],
+    },
+    'dotfiles': {
+        'desc': "Link state for via:dotfiles components. Each row: the component, its link state, the "
+                "~/ location, and the managed source it points at. Link, capture, or migrate from here.",
+        'glossary': [
+            ('state', "linked · adopted (captured, not yet linked) · managed (marker only) · unmanaged "
+                      "(a real file we don't manage) · template · empty · loader-on/off (shell glue)"),
+            ('capture', 'adopts on-system content into your store so it can be linked (and travel)'),
+            ('migrate', 're-points legacy repo-links, moves glue into conf.d, clears dead links'),
+            ('safety', 'linking backs up any pre-existing real file to <dst>.pre-configsys'),
+        ],
+    },
+    'config': {
+        'desc': "Machine settings. Each row: the setting, its value, whether it's the built-in default, "
+                "and where it's stored (edits land there). Enter to edit; some open a picker.",
+        'glossary': [
+            ('default', 'default (built-in) · custom (you set it) · env (an environment variable wins)'),
+            ('store', "<plugin> (primary plugin — travels to your machines) · a path (machine-local — "
+                      "this box only). Highlighted when moved off the setting's natural home."),
+            ('move', 'relocate a setting between machine-local and your primary plugin'),
+            ('scope', 'user (~) vs system (/opt) — the default install location'),
+        ],
+    },
+    'theme': {
+        'desc': "Live theme editor. Left: the shared color map (name → #rrggbb), then the focused "
+                "page's role styles. Right: a live sample of the selected page. Edits apply instantly.",
+        'glossary': [
+            ('map', 'shared colors; a role references one by name, or uses a literal #rrggbb'),
+            ('fx', 'per-role bold / underline / reverse'),
+            ('sample', 'F1-F6 cycle which page the sample previews'),
+            ('gradient', "each page's diagonal background; toggle per page"),
+        ],
+    },
+}
+
+
+def _help_modal(stdscr, pal, screen):
+    '''The per-page `?` overlay: a brief description, the live keybindings for this page, and a small
+    glossary of its terms/markers. Scrollable; esc/q/? closes. Drawn OVER the current screen.'''
+    info = _HELP.get(screen, {})
+    h, w = stdscr.getmaxyx()
+    box_w = min(78, max(40, w - 4))
+    iw = box_w - 4
+    rows = []                                              # each row is a list of (text, role, bold) segs
+
+    def line(text, role='info', bold=False):
+        rows.append([(text, role, bold)])
+
+    for dl in _wordwrap(info.get('desc', ''), iw):
+        line(dl, 'info')
+    line('', 'info')
+    line('keys', 'menu_header', True)
+    for keys, label in (_KEYMAP.help_rows(screen) if _KEYMAP is not None else []):
+        rows.append([(f'{keys:>10}  ', 'scope_choice', False), (label, 'ink', False)])
+    if info.get('glossary'):
+        line('', 'info')
+        line('glossary', 'menu_header', True)
+        for term, meaning in info['glossary']:
+            tw = len(term) + 2
+            wrapped = _wordwrap(meaning, max(8, iw - tw))
+            rows.append([(f'{term}  ', 'scope_choice', False), (wrapped[0], 'info_dim', False)])
+            for cont in wrapped[1:]:
+                rows.append([(' ' * tw + cont, 'info_dim', False)])
+
+    box_h = min(len(rows) + 4, max(8, h - 2))
+    vis = box_h - 4
+    y0, x0 = max(0, (h - box_h) // 2), max(0, (w - box_w) // 2)
+    border = pal.get('accent') | curses.A_BOLD
+    top = 0
+    while True:
+        top = max(0, min(top, max(0, len(rows) - vis)))
+        _put(stdscr, y0, x0, '┌' + '─' * (box_w - 2) + '┐', border)
+        _put(stdscr, y0, x0 + 2, f' {screen} · help ', border)
+        for r in range(1, box_h - 1):
+            _put(stdscr, y0 + r, x0, '│' + ' ' * (box_w - 2) + '│', border)
+        _put(stdscr, y0 + box_h - 1, x0, '└' + '─' * (box_w - 2) + '┘', border)
+        _put(stdscr, y0 + box_h - 1, x0 + 2, ' j/k scroll · esc close ', border)
+        for i in range(vis):
+            idx = top + i
+            if idx >= len(rows):
+                break
+            x = x0 + 2
+            for text, role, bold in rows[idx]:
+                _put(stdscr, y0 + 1 + i, x, _fit(text, x0 + box_w - 2 - x),
+                     pal.get(role) | (curses.A_BOLD if bold else 0))
+                x += len(text)
+        _scrollbar_v(stdscr, pal, y0 + 1, x0 + box_w - 1, vis, top, vis, len(rows), h, w)
+        stdscr.refresh()
+        ch = stdscr.getch()
+        act = _KEYMAP.action_for(screen, ch) if _KEYMAP is not None else None
+        if ch == 27 or ch == ord('q') or act in ('quit', 'help'):
+            return
+        if act == 'down':
+            top += 1
+        elif act == 'up':
+            top -= 1
+        elif act == 'top':
+            top = 0
+        elif act == 'bottom':
+            top = len(rows)
+        elif ch == curses.KEY_NPAGE:
+            top += vis
+        elif ch == curses.KEY_PPAGE:
+            top -= vis
+
+
 def _draw_diagnostics(stdscr, pal, diags, top):
     '''The `!` page: every non-fatal skip/warning, scrollable. Returns the clamped scroll top.'''
     stdscr.erase()
@@ -3381,6 +3525,9 @@ def run(ctx):
             if gact == 'issues':
                 if diags:
                     show_diag, diag_top = True, 0
+                continue
+            if gact == 'help':
+                _help_modal(stdscr, pal, screen)
                 continue
             dest = keymap.screen_for(ch)
             if dest is not None:

@@ -162,6 +162,7 @@ profiles: {
             find: "/"               // fuzzy-jump the cursor
             filter: F               // live substring filter (narrows the list)
             issues: "!"             // open the diagnostics (issues) overlay
+            help: "?"               // this page's help (keys + description + glossary)
             quit: q                 // leave the TUI (asks to confirm)
         }
 

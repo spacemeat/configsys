@@ -121,12 +121,37 @@ class Keymap:
         codes = self.keys_for(scope, action) or self.keys_for('global', action)
         return key_name(codes[0]) if codes else '?'
 
+    def help_rows(self, scope):
+        '''[(keys, label)] for the `?` overlay: the shared global keys first, then this page's own
+        actions. page-1..page-6 collapse to one row; up to two alternate keys are shown per action.'''
+        order = ['down', 'up', 'left', 'right', 'top', 'bottom', 'select', 'confirm', 'switch-pane',
+                 'switch-pane-back', 'find', 'filter', 'issues', 'help', 'quit']
+        rows, seen_page = [], False
+
+        def keyglyph(sc, action):
+            codes = self.keys_for(sc, action)
+            return '/'.join(key_name(c) for c in codes[:2]) if codes else ''
+
+        for a in order:                                    # global (shared) keys, in a readable order
+            if a in self._m.get('global', {}):
+                rows.append((keyglyph('global', a), ACTION_LABELS.get(a, a)))
+        for a in sorted(self._m.get(scope, {})):           # then the page's own actions
+            if a.startswith('page-'):
+                if not seen_page:
+                    seen_page = True
+                    lo, hi = self.keys_for(scope, 'page-1'), self.keys_for(scope, 'page-6')
+                    g = f'{key_name(lo[0])}-{key_name(hi[0])}' if lo and hi else 'F1-F6'
+                    rows.append((g, 'preview sample page'))
+                continue
+            rows.append((keyglyph(scope, a), ACTION_LABELS.get(a, a)))
+        return rows
+
 
 # The canonical actions each scope's dispatch understands — the contract `configsys check` lints a
 # user's `keys:` against. A page scope may ALSO bind any `global` action (to rebind nav on that page),
 # so a page's valid set is its own actions ∪ global's. `screens` binds screen ids, not actions.
 _GLOBAL_ACTIONS = {'down', 'up', 'left', 'right', 'top', 'bottom', 'select', 'confirm', 'switch-pane',
-                   'switch-pane-back', 'find', 'filter', 'issues', 'quit'}
+                   'switch-pane-back', 'find', 'filter', 'issues', 'help', 'quit'}
 SCREEN_IDS = {'components', 'profiles', 'plugins', 'dotfiles', 'config', 'theme'}
 KNOWN_ACTIONS = {
     'global': _GLOBAL_ACTIONS,
@@ -141,6 +166,31 @@ KNOWN_ACTIONS = {
     'theme': {'new', 'reset', 'edit-bg', 'effect-bold', 'effect-underline', 'effect-reverse',
               'gradient-toggle', 'copy-page', 'save', 'load',
               'page-1', 'page-2', 'page-3', 'page-4', 'page-5', 'page-6'},
+}
+
+
+# Human labels for each action — used by the per-page `?` help overlay (and available to anything that
+# wants to describe a binding). An action absent here falls back to its id.
+ACTION_LABELS = {
+    'down': 'move down', 'up': 'move up', 'left': 'left / collapse', 'right': 'right / expand',
+    'top': 'jump to top', 'bottom': 'jump to bottom', 'select': 'select / mark', 'confirm': 'activate / open',
+    'switch-pane': 'switch pane', 'switch-pane-back': 'switch pane (back)', 'find': 'find (jump cursor)',
+    'filter': 'filter (narrow the list)', 'issues': 'show issues (!)', 'help': 'this help', 'quit': 'quit',
+    'where': 'explain component (where)', 'lock': 'lock / unlock version', 'expand-all': 'expand / collapse all',
+    'select-all': 'select all', 'clear': 'clear selection + staged', 'method': 'pick install method / provider',
+    'op-install': 'stage install', 'op-upgrade': 'stage upgrade', 'op-remove': 'stage remove',
+    'execute': 'run staged ops', 'refresh': 'refresh versions + package index',
+    'theme': 'open the theme editor', 'move': 'move setting: local ⇄ primary',
+    'unlink': 'unlink', 'capture': 'capture on-system config', 'migrate': 'migrate (this component)',
+    'capture-all': 'capture all', 'link-all': 'link all captured', 'migrate-all': 'migrate all',
+    'add': 'add a plugin', 'remove': 'remove plugin', 'sync': 'sync plugin', 'sync-all': 'sync all',
+    'bless': 'bless (trust content)', 'unbless': 'unbless', 'update': 'update plugin', 'update-all': 'update all',
+    'trust': 'trust code plugin', 'trust-all': 'trust all code', 'set-ref': 'set git ref',
+    'star': 'star (filter to members)', 'reveal-removed': 'reveal ~-removed', 'toggle-active': 'activate / deactivate',
+    'new': 'new', 'delete': 'delete', 'include': 'include another profile (+)', 'attr-filter': 'filter by attrs',
+    'reset': 'reset to default', 'edit-bg': 'edit background', 'effect-bold': 'toggle bold',
+    'effect-underline': 'toggle underline', 'effect-reverse': 'toggle reverse', 'gradient-toggle': 'toggle gradient',
+    'copy-page': 'copy this page onto another', 'save': 'save / export', 'load': 'load a theme pack',
 }
 
 
