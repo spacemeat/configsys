@@ -521,9 +521,12 @@
                 install: [ { via: native  when: "opensuse_tumbleweed" }
                            { via: aur  when: "arch" }
                            // cargo builds ffmpeg-sys-next + drm bindings from source -> needs the FFmpeg/libdrm
-                           // dev headers + pkg-config. openSUSE Leap's ffmpeg dev libs come from Packman (not
-                           // modeled), so decline there; Tumbleweed is covered natively above.
-                           { via: cargo  when: "not (arch or opensuse or fedora_atomic)"  name: wl-screenrec  requires: [ cargo, ffmpeg-dev, libdrm-dev, pkg-config ] } ] }
+                           // dev headers + pkg-config. It also requires FFmpeg >= 6 (uses the 5.1+ channel-layout
+                           // + AVFrame.time_base + VAAPI APIs), so decline on releases that ship an older FFmpeg
+                           // (Ubuntu/Pop < 24.04 = 4.4, Debian < 13 = 5.1) rather than attempt a build that
+                           // fails on missing symbols. openSUSE Leap's ffmpeg dev libs come from Packman (not
+                           // modeled) -> decline there too; Tumbleweed/Arch are covered natively/AUR above.
+                           { via: cargo  when: "not (arch or opensuse or fedora_atomic) and not ((ubuntu < 24.04) or (debian < 13))"  name: wl-screenrec  requires: [ cargo, ffmpeg-dev, libdrm-dev, pkg-config ] } ] }
         // yazi: Rust TUI file manager. Native on Arch + Homebrew; upstream ships a real .deb, so on
         // Debian/Ubuntu (not in-repo) install that via the OS package tool — clean and on PATH.
         // Elsewhere (Fedora is COPR-only; openSUSE/Alpine/EL absent) the release zip lands under
