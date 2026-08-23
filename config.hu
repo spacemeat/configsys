@@ -88,6 +88,9 @@ profiles: {
         elm  erlang  elixir  julia  nim  nasm  octave odin  perl  r  zig  gfortran  gnat  gnucobol  d  crystal
         dart  raku  v  gleam  fennel  swift  racket  guile ]
 
+    c-cpp-libs: [ ]
+    c-cpp-dev-libs: [ pipewire-dev  ffmpeg-dev  libdrm-dev ]
+
     jvm-tools: [ mvnd  maven  gradle  sdkman  ant  jbang  coursier  springboot  quarkus  micronaut
         jreleaser  visualvm  jmc ]
 
