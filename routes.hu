@@ -339,9 +339,16 @@
         // fff: minimal Bash file manager. Upstream archived (dylanaraps) -> Debian/Ubuntu ship an old
         // 1.1 and Arch's AUR has 2.2; a `via: source` build (pure Bash `make install`) in the
         // configsys-source plugin covers Fedora/openSUSE/Alpine/EL.
+        // fff is a single self-contained bash script; upstream is archived and it isn't packaged in
+        // any apt/dnf/zypper repo — fetch the script straight from GitHub to ~/.local/bin (on PATH).
         fff: { attrs: [ TUI FOSS permissive legacy ] description: "fff — a fast, minimal terminal file manager written in Bash (`fff`)."
-               install: [ { via: native  repo-component: universe  when: "debian" }
-                          { via: aur  when: "arch" } ] }
+               install: [ { via: script  when: "not arch"  requires: curl
+                            install-cmd:   'mkdir -p "$HOME/.local/bin" && curl -fsSL https://raw.githubusercontent.com/dylanaraps/fff/master/fff -o "$HOME/.local/bin/fff" && chmod +x "$HOME/.local/bin/fff"'
+                            version-cmd:   '"$HOME/.local/bin/fff" -v 2>/dev/null'
+                            version-re:    '([0-9][0-9.]*)'
+                            uninstall-cmd: 'rm -f "$HOME/.local/bin/fff"'
+                            location:      '~/.local/bin/fff' }
+                          { via: aur  when: "arch"  name: fff } ] }
 
         // btop lives in EPEL on EL (needs epel enabled), base repos everywhere else.
         // Two native bindings: the EL one adds `requires: epel`; both are dnf\btop.
@@ -513,7 +520,10 @@
         wl-screenrec: { attrs: [ CLI FOSS permissive ] description: "wl-screenrec — GPU-accelerated screen recorder for wlroots Wayland compositors."
                 install: [ { via: native  when: "opensuse_tumbleweed" }
                            { via: aur  when: "arch" }
-                           { via: cargo  when: "not (arch or opensuse_tumbleweed)"  name: wl-screenrec  requires: cargo } ] }
+                           // cargo builds ffmpeg-sys-next + drm bindings from source -> needs the FFmpeg/libdrm
+                           // dev headers + pkg-config. openSUSE Leap's ffmpeg dev libs come from Packman (not
+                           // modeled), so decline there; Tumbleweed is covered natively above.
+                           { via: cargo  when: "not (arch or opensuse or fedora_atomic)"  name: wl-screenrec  requires: [ cargo, ffmpeg-dev, libdrm-dev, pkg-config ] } ] }
         // yazi: Rust TUI file manager. Native on Arch + Homebrew; upstream ships a real .deb, so on
         // Debian/Ubuntu (not in-repo) install that via the OS package tool — clean and on PATH.
         // Elsewhere (Fedora is COPR-only; openSUSE/Alpine/EL absent) the release zip lands under
@@ -910,7 +920,15 @@
         micronaut:  { attrs: [ CLI SDK FOSS permissive ] description: "Micronaut CLI (`mn`) — build Micronaut microservices." requires: jdk  install: [ { via: sdkman } ] }
         jbang:      { attrs: [ CLI FOSS permissive ] description: "JBang — run Java/JVM scripts with no project setup." requires: jdk  install: [ { via: sdkman } ] }
         scalacli:   { attrs: [ CLI toolchain FOSS permissive ] description: "Scala CLI — the modern all-in-one Scala runner and tooling." requires: jdk  install: [ { via: sdkman } ] }
-        coursier:   { attrs: [ CLI FOSS permissive ] suggests: coursier-dotfiles  description: "Coursier (`cs`) — the JVM artifact fetcher and application installer." requires: jdk  install: [ { via: sdkman } ] }
+        // coursier isn't an SDKMAN candidate; upstream ships the `cs` launcher as a gzipped native
+        // binary on GitHub (per-arch) — fetch + decompress it to ~/.local/bin (on PATH).
+        coursier:   { attrs: [ CLI FOSS permissive ] suggests: coursier-dotfiles  description: "Coursier (`cs`) — the JVM artifact fetcher and application installer." requires: jdk
+            install: [ { via: script  requires: [ curl, jdk ]
+                         install-cmd:   'mkdir -p "$HOME/.local/bin" && A="$(uname -m)"; case "$A" in aarch64|arm64) F=cs-aarch64-pc-linux.gz ;; *) F=cs-x86_64-pc-linux.gz ;; esac; curl -fL "https://github.com/coursier/coursier/releases/latest/download/$F" | gzip -d > "$HOME/.local/bin/cs" && chmod +x "$HOME/.local/bin/cs"'
+                         version-cmd:   '"$HOME/.local/bin/cs" version 2>/dev/null'
+                         version-re:    '([0-9][0-9.]*)'
+                         uninstall-cmd: 'rm -f "$HOME/.local/bin/cs"'
+                         location:      '~/.local/bin/cs' } ] }
         liquibase:  { attrs: [ CLI FOSSish permissive freemium ] description: "Liquibase — database schema change management and migrations." requires: jdk  install: [ { via: sdkman } ] }
         detekt:     { attrs: [ CLI FOSS permissive ] description: "detekt — static code analysis for Kotlin." requires: jdk  install: [ { via: sdkman } ] }
         jreleaser:  { attrs: [ CLI FOSS permissive ] description: "JReleaser — release automation for JVM (and other) projects." requires: jdk  install: [ { via: sdkman } ] }
@@ -1178,13 +1196,15 @@
                               { via: cargo   when: "not (arch or opensuse)"  name: bluetui } ] }   // not in Alpine's repos -> cargo there (impala IS in Alpine, bluetui isn't)
         wiremix: { attrs: [ TUI app FOSS permissive ] description: "wiremix — a TUI audio mixer for PipeWire."
                    install: [ { via: native  when: "fedora or arch or opensuse" }
-                              { via: cargo   when: "not (fedora or arch or opensuse)"  name: wiremix } ] }   // Debian/Alpine don't carry it in-repo -> cargo there
+                              // cargo builds libspa-sys from source -> needs the PipeWire dev headers + pkg-config
+                              // (absent on immutable atomic, so decline there rather than source-build on it)
+                              { via: cargo   when: "not (fedora or arch or opensuse or fedora_atomic)"  name: wiremix  requires: [ cargo, pipewire-dev, pkg-config ] } ] }   // Debian/Alpine don't carry it in-repo -> cargo there
         // dnspeep: watch the DNS queries your machine makes. Not distro-packaged nor on crates.io —
         // upstream's glibc release tarball is a single `dnspeep` binary (dnspeep-dotfiles PATHs it);
         // declines on musl Alpine. Runs as root (libpcap).
         dnspeep: { attrs: [ CLI FOSS permissive ] suggests: dnspeep-dotfiles  description: "dnspeep — spy on the DNS queries your computer makes (needs root)."
             install: [ { via: tarball  when: "not alpine"  installDir: "$CONFIGSYS_APP_DIR/dnspeep"  requires: glibc
-                         version: { github: jvns/dnspeep  strip-v: true }  asset: "dnspeep-linux.tar.gz" } ] }
+                         version: { github: jvns/dnspeep  strip-v: true  asset: "dnspeep-linux.tar.gz" } } ] }   // asset lives INSIDE version: (the tarball driver reads version.asset)
         dnspeep-dotfiles: { description: "dnspeep shell setup, linked into place." install: [ { via: dotfiles  requires: bash-dotfiles  glue: dnspeep } ] }
 
         // Web/HTTP dev — httpie + jq native (httpie via EPEL on EL); yq/mitmproxy isolated via
@@ -1767,7 +1787,11 @@
         strawberry: { attrs: [ GUI app FOSS copyleft ] description: "Strawberry — a music player and music-collection organizer (a Clementine fork)."
             install: [ { via: flatpak  hub: flathub  app: org.strawberrymusicplayer.strawberry }   // uniform option + the only method on atomic
                        { via: native  when: "rhel"  requires: epel }
-                       { via: native  repo-component: universe  when: "(not fedora_atomic) and not amzn" } ] }   // in Fedora proper — no RPM Fusion needed for the app itself
+                       { via: native  when: "fedora or arch or opensuse" }   // in-repo on these (Fedora proper needs no RPM Fusion for the app)
+                       { via: native  when: "debian and not ubuntu" }   // Debian ships strawberry in its own repos
+                       // Ubuntu/Pop: use Strawberry's official PPA — its placement in `universe` is
+                       // release-dependent (absent on 22.04), so the PPA is the reliable apt route.
+                       { via: native  when: "ubuntu"  ppa: "jonaski/strawberry"  requires: software-properties-common } ] }
 
         // --- digital-music tools --- (GUI apps via Flathub; audio-system bits native)
         musescore:     { attrs: [ GUI app FOSS copyleft ] description: "MuseScore — music notation and composition." install: [ { via: flatpak  hub: flathub  app: org.musescore.MuseScore }  { via: appImage  name: MuseScore  scope: user  version: { github: musescore/MuseScore  strip-v: true  asset: "MuseScore-Studio-*-x86_64.AppImage" }  path: ~/apps/musescore.appimage } ] }   // asset glob absorbs the build-number suffix
@@ -1779,6 +1803,14 @@
         // PipeWire — the modern audio/video server. Native; already the default on most current
         // distros (where installing it is a harmless no-op).
         pipewire:      { attrs: [ daemon FOSS permissive ] description: "PipeWire — modern audio/video server (PulseAudio/JACK replacement)." install: [ { via: native } ] }
+        // PipeWire dev headers (libpipewire-0.3 + libspa) — build dep for things that link PipeWire
+        // (e.g. wiremix's libspa-sys). Arch/openSUSE ship headers in the main package (no -dev split).
+        pipewire-dev:  { attrs: [ lib FOSS permissive ] description: "PipeWire development headers (libpipewire-0.3 / libspa)."
+            install: [ { via: native  when: "debian"  name: libpipewire-0.3-dev }
+                       { via: native  when: "redhat"  name: pipewire-devel }
+                       { via: native  when: "alpine"  name: pipewire-dev }
+                       { via: native  when: "opensuse"  name: pipewire-devel }
+                       { via: native  when: "arch"  name: pipewire } ] }
         // JACK — low-latency audio server (jack2 is the current implementation). NOTE: conflicts with
         // pipewire's JACK shim (both provide the client libs) — install one JACK provider or the other.
         jack: { attrs: [ daemon FOSS copyleft ] description: "JACK Audio Connection Kit — low-latency audio server & routing."
@@ -1808,6 +1840,21 @@
             install: [ { via: native  when: "redhat"  requires: rpmfusion }
                        { via: native  name: { zypper: ffmpeg-7  default: ffmpeg } } ]
         }
+        // FFmpeg/libav dev headers — build dep for things that link FFmpeg (e.g. wl-screenrec's
+        // ffmpeg-sys-next). Debian splits per-lib; Fedora/EL ship a single ffmpeg-devel from RPM
+        // Fusion; Arch bundles headers in the main ffmpeg package.
+        ffmpeg-dev: { attrs: [ lib FOSS copyleft patent ] description: "FFmpeg development headers (libavutil/libavformat/libavcodec/…)."
+            install: [ { via: native  when: "debian"  packages: [ libavutil-dev, libavformat-dev, libavcodec-dev,
+                             libavfilter-dev, libavdevice-dev, libswscale-dev, libswresample-dev ] }
+                       { via: native  when: "redhat"  requires: rpmfusion  name: ffmpeg-devel }
+                       { via: native  when: "alpine"  name: ffmpeg-dev }
+                       { via: native  when: "arch"  name: ffmpeg } ] }
+        // libdrm dev headers — Direct Rendering Manager; wl-screenrec uses it for the DRM capture path.
+        libdrm-dev: { attrs: [ lib FOSS permissive ] description: "libdrm development headers (Direct Rendering Manager)."
+            install: [ { via: native  when: "debian"  name: libdrm-dev }
+                       { via: native  when: "redhat or opensuse"  name: libdrm-devel }
+                       { via: native  when: "alpine"  name: libdrm-dev }
+                       { via: native  when: "arch"  name: libdrm } ] }
         // vlc: RPM Fusion on Fedora, but EL carries it in EPEL (not RPM Fusion) — so the two
         // rpm families take different capability edges. Base repos everywhere else.
         vlc: { attrs: [ GUI app FOSS copyleft patent ] description: "VLC — plays virtually any media file or stream."
@@ -2050,7 +2097,18 @@
         // Python CLIs (pipx). Ollama is a LOCAL INFERENCE SERVER: native on Arch/Homebrew, else its
         // own install script (which also sets up the systemd service); a best-effort uninstall is
         // declared so the script driver can remove it cleanly.
-        claude-code: { attrs: [ CLI proprietary account cloud online paid freemium ] suggests: claude-code-dotfiles  description: "Claude Code — Anthropic's agentic coding CLI." install: [ { via: npm  name: "@anthropic-ai/claude-code" } ] }
+        // Anthropic's official native installer is the preferred method (no Node needed, self-updating);
+        // `claude --version` lets detection SEE an existing native install so it's never reinstalled.
+        // npm stays as a pinnable fallback but is never the auto-default.
+        claude-code: { attrs: [ CLI proprietary account cloud online paid freemium ] suggests: claude-code-dotfiles  description: "Claude Code — Anthropic's agentic coding CLI."
+            install: [ { via: script  requires: curl
+                         install-cmd:   'curl -fsSL https://claude.ai/install.sh | bash'
+                         version-cmd:   'claude --version 2>/dev/null'
+                         version-re:    '([0-9][0-9.]*)'
+                         upgrade-cmd:   'claude update'
+                         uninstall-cmd: 'rm -f "$HOME/.local/bin/claude"'
+                         location:      '~/.local/bin/claude' }
+                       { via: npm  name: "@anthropic-ai/claude-code"  standing: never-auto } ] }
         codex:       { attrs: [ CLI FOSS permissive account cloud online paid freemium ] suggests: codex-dotfiles  description: "OpenAI Codex CLI — agentic coding in the terminal." install: [ { via: npm  name: "@openai/codex" } ] }
         llm:         { attrs: [ CLI FOSS permissive ] description: "`llm` — a CLI to access LLMs from the shell and scripts." install: [ { via: pipx  name: llm  version: { pypi: llm } } ] }
         aider:       { attrs: [ CLI FOSS permissive account cloud ] suggests: aider-dotfiles  description: "Aider — AI pair-programming in your terminal, over your git repo." install: [ { via: pipx  name: aider-chat  version: { pypi: aider-chat } } ] }        // PyPI dist is aider-chat
@@ -2287,13 +2345,13 @@
         // pathed (8.0) — bump the repo path + key on a major MongoDB bump.
         mongodb: { attrs: [ daemon source-available FOSSish ] description: "MongoDB Community Server — a document (NoSQL) database (`mongod`)."
             install: [
-                { via: native  when: "ubuntu"  name: mongodb-org   // MongoDB's official apt repo (Ubuntu)
+                { via: native  when: "ubuntu"  name: mongodb-org   // MongoDB's official apt repo (Ubuntu). $CODENAME is resolved on the target (Pop!_OS -> its Ubuntu base codename), so this works on any release MongoDB publishes for — not just one hardcoded suite.
                   pubkey-url: "https://www.mongodb.org/static/pgp/server-8.0.asc"  pubkey-path: /usr/share/keyrings/mongodb-server-8.0.asc
-                  source-line: "deb [signed-by=/usr/share/keyrings/mongodb-server-8.0.asc] https://repo.mongodb.org/apt/ubuntu noble/mongodb-org/8.0 multiverse"
+                  source-line: "deb [signed-by=/usr/share/keyrings/mongodb-server-8.0.asc] https://repo.mongodb.org/apt/ubuntu $CODENAME/mongodb-org/8.0 multiverse"
                   source-path: /etc/apt/sources.list.d/mongodb-org-8.0.list }
-                { via: native  when: "debian"  name: mongodb-org   // MongoDB's official apt repo (Debian)
+                { via: native  when: "debian"  name: mongodb-org   // MongoDB's official apt repo (Debian); $CODENAME resolved on the target
                   pubkey-url: "https://www.mongodb.org/static/pgp/server-8.0.asc"  pubkey-path: /usr/share/keyrings/mongodb-server-8.0.asc
-                  source-line: "deb [signed-by=/usr/share/keyrings/mongodb-server-8.0.asc] https://repo.mongodb.org/apt/debian bookworm/mongodb-org/8.0 main"
+                  source-line: "deb [signed-by=/usr/share/keyrings/mongodb-server-8.0.asc] https://repo.mongodb.org/apt/debian $CODENAME/mongodb-org/8.0 main"
                   source-path: /etc/apt/sources.list.d/mongodb-org-8.0.list }
                 { via: native  when: "rhel"  name: mongodb-org   // MongoDB's official dnf repo (EL only; no Fedora repo)
                   pubkey-url: "https://www.mongodb.org/static/pgp/server-8.0.asc"

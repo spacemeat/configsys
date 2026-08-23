@@ -1227,17 +1227,6 @@
    }
   },
   "claude-code": {
-   "dotfiles\\bash-dotfiles": {
-    "driver": "dotfiles",
-    "fields": {
-     "aliases": {
-      "absorb-into": "~/.config/bash/conf.d/pre-configsys-aliases.sh",
-      "dst": "~/.bash_aliases",
-      "src": "bash_aliases"
-     }
-    },
-    "name": "bash-dotfiles"
-   },
    "dotfiles\\claude-code-dotfiles": {
     "driver": "dotfiles",
     "fields": {
@@ -1248,27 +1237,25 @@
     },
     "name": "claude-code-dotfiles"
    },
-   "dotfiles\\node-dotfiles": {
-    "driver": "dotfiles",
-    "fields": {
-     "glue": "node"
-    },
-    "name": "node-dotfiles"
-   },
-   "npm\\claude-code": {
-    "driver": "npm",
-    "fields": {
-     "name": "@anthropic-ai/claude-code"
-    },
-    "name": "@anthropic-ai/claude-code"
-   },
-   "pacman\\node": {
+   "pacman\\curl": {
     "driver": "pacman",
     "fields": {
-     "name": "npm",
-     "repo-component": "universe"
+     "name": "curl"
     },
-    "name": "npm"
+    "name": "curl"
+   },
+   "script\\claude-code": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "curl -fsSL https://claude.ai/install.sh | bash",
+     "location": "~/.local/bin/claude",
+     "name": "claude-code",
+     "uninstall-cmd": "rm -f \"$HOME/.local/bin/claude\"",
+     "upgrade-cmd": "claude update",
+     "version-cmd": "claude --version 2>/dev/null",
+     "version-re": "([0-9][0-9.]*)"
+    },
+    "name": "claude-code"
    }
   },
   "claude-code-dotfiles": {
@@ -1572,12 +1559,12 @@
     },
     "name": "coursier-dotfiles"
    },
-   "dotfiles\\sdkman-dotfiles": {
-    "driver": "dotfiles",
+   "pacman\\curl": {
+    "driver": "pacman",
     "fields": {
-     "glue": "sdkman"
+     "name": "curl"
     },
-    "name": "sdkman-dotfiles"
+    "name": "curl"
    },
    "pacman\\jdk": {
     "driver": "pacman",
@@ -1586,22 +1573,15 @@
     },
     "name": "jdk21-openjdk"
    },
-   "script\\sdkman": {
+   "script\\coursier": {
     "driver": "script",
     "fields": {
-     "install-cmd": "curl -s https://get.sdkman.io | bash",
-     "location": "~/.sdkman",
-     "name": "sdkman",
-     "uninstall-cmd": "rm -rf \"$HOME/.sdkman\"",
-     "version-cmd": "source \"$HOME/.sdkman/bin/sdkman-init.sh\" && sdk version",
-     "version-re": "([0-9]+\\.[0-9]+\\.[0-9]+)"
-    },
-    "name": "sdkman"
-   },
-   "sdkman\\coursier": {
-    "driver": "sdkman",
-    "fields": {
-     "name": "coursier"
+     "install-cmd": "mkdir -p \"$HOME/.local/bin\" && A=\"$(uname -m)\"; case \"$A\" in aarch64|arm64) F=cs-aarch64-pc-linux.gz ;; *) F=cs-x86_64-pc-linux.gz ;; esac; curl -fL \"https://github.com/coursier/coursier/releases/latest/download/$F\" | gzip -d > \"$HOME/.local/bin/cs\" && chmod +x \"$HOME/.local/bin/cs\"",
+     "location": "~/.local/bin/cs",
+     "name": "coursier",
+     "uninstall-cmd": "rm -f \"$HOME/.local/bin/cs\"",
+     "version-cmd": "\"$HOME/.local/bin/cs\" version 2>/dev/null",
+     "version-re": "([0-9][0-9.]*)"
     },
     "name": "coursier"
    }
@@ -2092,10 +2072,10 @@
    "tarball\\dnspeep": {
     "driver": "tarball",
     "fields": {
-     "asset": "dnspeep-linux.tar.gz",
      "installDir": "$CONFIGSYS_APP_DIR/dnspeep",
      "name": "dnspeep",
      "version": {
+      "asset": "dnspeep-linux.tar.gz",
       "github": "jvns/dnspeep",
       "strip-v": "true"
      }
@@ -2717,6 +2697,15 @@
   },
   "ffmpeg": {
    "pacman\\ffmpeg": {
+    "driver": "pacman",
+    "fields": {
+     "name": "ffmpeg"
+    },
+    "name": "ffmpeg"
+   }
+  },
+  "ffmpeg-dev": {
+   "pacman\\ffmpeg-dev": {
     "driver": "pacman",
     "fields": {
      "name": "ffmpeg"
@@ -5459,6 +5448,15 @@
     "name": "libc++abi"
    }
   },
+  "libdrm-dev": {
+   "pacman\\libdrm-dev": {
+    "driver": "pacman",
+    "fields": {
+     "name": "libdrm"
+    },
+    "name": "libdrm"
+   }
+  },
   "libfuse2": {
    "pacman\\libfuse2": {
     "driver": "pacman",
@@ -7411,6 +7409,15 @@
     "name": "pipewire"
    }
   },
+  "pipewire-dev": {
+   "pacman\\pipewire-dev": {
+    "driver": "pacman",
+    "fields": {
+     "name": "pipewire"
+    },
+    "name": "pipewire"
+   }
+  },
   "pipx": {
    "dotfiles\\bash-dotfiles": {
     "driver": "dotfiles",
@@ -9297,8 +9304,7 @@
    "pacman\\strawberry": {
     "driver": "pacman",
     "fields": {
-     "name": "strawberry",
-     "repo-component": "universe"
+     "name": "strawberry"
     },
     "name": "strawberry"
    }
@@ -12841,24 +12847,12 @@
    }
   },
   "claude-code": {
-   "apt\\node": {
+   "apt\\curl": {
     "driver": "apt",
     "fields": {
-     "name": "npm",
-     "repo-component": "universe"
+     "name": "curl"
     },
-    "name": "npm"
-   },
-   "dotfiles\\bash-dotfiles": {
-    "driver": "dotfiles",
-    "fields": {
-     "aliases": {
-      "absorb-into": "~/.config/bash/conf.d/pre-configsys-aliases.sh",
-      "dst": "~/.bash_aliases",
-      "src": "bash_aliases"
-     }
-    },
-    "name": "bash-dotfiles"
+    "name": "curl"
    },
    "dotfiles\\claude-code-dotfiles": {
     "driver": "dotfiles",
@@ -12870,19 +12864,18 @@
     },
     "name": "claude-code-dotfiles"
    },
-   "dotfiles\\node-dotfiles": {
-    "driver": "dotfiles",
+   "script\\claude-code": {
+    "driver": "script",
     "fields": {
-     "glue": "node"
+     "install-cmd": "curl -fsSL https://claude.ai/install.sh | bash",
+     "location": "~/.local/bin/claude",
+     "name": "claude-code",
+     "uninstall-cmd": "rm -f \"$HOME/.local/bin/claude\"",
+     "upgrade-cmd": "claude update",
+     "version-cmd": "claude --version 2>/dev/null",
+     "version-re": "([0-9][0-9.]*)"
     },
-    "name": "node-dotfiles"
-   },
-   "npm\\claude-code": {
-    "driver": "npm",
-    "fields": {
-     "name": "@anthropic-ai/claude-code"
-    },
-    "name": "@anthropic-ai/claude-code"
+    "name": "claude-code"
    }
   },
   "claude-code-dotfiles": {
@@ -13186,6 +13179,13 @@
    }
   },
   "coursier": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
    "apt\\jdk": {
     "driver": "apt",
     "fields": {
@@ -13211,29 +13211,15 @@
     },
     "name": "coursier-dotfiles"
    },
-   "dotfiles\\sdkman-dotfiles": {
-    "driver": "dotfiles",
-    "fields": {
-     "glue": "sdkman"
-    },
-    "name": "sdkman-dotfiles"
-   },
-   "script\\sdkman": {
+   "script\\coursier": {
     "driver": "script",
     "fields": {
-     "install-cmd": "curl -s https://get.sdkman.io | bash",
-     "location": "~/.sdkman",
-     "name": "sdkman",
-     "uninstall-cmd": "rm -rf \"$HOME/.sdkman\"",
-     "version-cmd": "source \"$HOME/.sdkman/bin/sdkman-init.sh\" && sdk version",
-     "version-re": "([0-9]+\\.[0-9]+\\.[0-9]+)"
-    },
-    "name": "sdkman"
-   },
-   "sdkman\\coursier": {
-    "driver": "sdkman",
-    "fields": {
-     "name": "coursier"
+     "install-cmd": "mkdir -p \"$HOME/.local/bin\" && A=\"$(uname -m)\"; case \"$A\" in aarch64|arm64) F=cs-aarch64-pc-linux.gz ;; *) F=cs-x86_64-pc-linux.gz ;; esac; curl -fL \"https://github.com/coursier/coursier/releases/latest/download/$F\" | gzip -d > \"$HOME/.local/bin/cs\" && chmod +x \"$HOME/.local/bin/cs\"",
+     "location": "~/.local/bin/cs",
+     "name": "coursier",
+     "uninstall-cmd": "rm -f \"$HOME/.local/bin/cs\"",
+     "version-cmd": "\"$HOME/.local/bin/cs\" version 2>/dev/null",
+     "version-re": "([0-9][0-9.]*)"
     },
     "name": "coursier"
    }
@@ -13894,10 +13880,10 @@
    "tarball\\dnspeep": {
     "driver": "tarball",
     "fields": {
-     "asset": "dnspeep-linux.tar.gz",
      "installDir": "$CONFIGSYS_APP_DIR/dnspeep",
      "name": "dnspeep",
      "version": {
+      "asset": "dnspeep-linux.tar.gz",
       "github": "jvns/dnspeep",
       "strip-v": "true"
      }
@@ -14508,11 +14494,22 @@
    }
   },
   "fff": {
-   "apt\\fff": {
+   "apt\\curl": {
     "driver": "apt",
     "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "script\\fff": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "mkdir -p \"$HOME/.local/bin\" && curl -fsSL https://raw.githubusercontent.com/dylanaraps/fff/master/fff -o \"$HOME/.local/bin/fff\" && chmod +x \"$HOME/.local/bin/fff\"",
+     "location": "~/.local/bin/fff",
      "name": "fff",
-     "repo-component": "universe"
+     "uninstall-cmd": "rm -f \"$HOME/.local/bin/fff\"",
+     "version-cmd": "\"$HOME/.local/bin/fff\" -v 2>/dev/null",
+     "version-re": "([0-9][0-9.]*)"
     },
     "name": "fff"
    }
@@ -14524,6 +14521,24 @@
      "name": "ffmpeg"
     },
     "name": "ffmpeg"
+   }
+  },
+  "ffmpeg-dev": {
+   "apt\\ffmpeg-dev": {
+    "driver": "apt",
+    "fields": {
+     "name": "ffmpeg-dev",
+     "packages": [
+      "libavutil-dev",
+      "libavformat-dev",
+      "libavcodec-dev",
+      "libavfilter-dev",
+      "libavdevice-dev",
+      "libswscale-dev",
+      "libswresample-dev"
+     ]
+    },
+    "name": "ffmpeg-dev"
    }
   },
   "firefox": {
@@ -17639,6 +17654,15 @@
     "name": "libc++abi-dev"
    }
   },
+  "libdrm-dev": {
+   "apt\\libdrm-dev": {
+    "driver": "apt",
+    "fields": {
+     "name": "libdrm-dev"
+    },
+    "name": "libdrm-dev"
+   }
+  },
   "libfuse2": {
    "apt\\libfuse2": {
     "driver": "apt",
@@ -18434,7 +18458,7 @@
      "name": "mongodb-org",
      "pubkey-path": "/usr/share/keyrings/mongodb-server-8.0.asc",
      "pubkey-url": "https://www.mongodb.org/static/pgp/server-8.0.asc",
-     "source-line": "deb [signed-by=/usr/share/keyrings/mongodb-server-8.0.asc] https://repo.mongodb.org/apt/debian bookworm/mongodb-org/8.0 main",
+     "source-line": "deb [signed-by=/usr/share/keyrings/mongodb-server-8.0.asc] https://repo.mongodb.org/apt/debian $CODENAME/mongodb-org/8.0 main",
      "source-path": "/etc/apt/sources.list.d/mongodb-org-8.0.list"
     },
     "name": "mongodb-org"
@@ -18447,7 +18471,7 @@
      "name": "mongodb-org",
      "pubkey-path": "/usr/share/keyrings/mongodb-server-8.0.asc",
      "pubkey-url": "https://www.mongodb.org/static/pgp/server-8.0.asc",
-     "source-line": "deb [signed-by=/usr/share/keyrings/mongodb-server-8.0.asc] https://repo.mongodb.org/apt/debian bookworm/mongodb-org/8.0 main",
+     "source-line": "deb [signed-by=/usr/share/keyrings/mongodb-server-8.0.asc] https://repo.mongodb.org/apt/debian $CODENAME/mongodb-org/8.0 main",
      "source-path": "/etc/apt/sources.list.d/mongodb-org-8.0.list"
     },
     "name": "mongodb-org"
@@ -19702,6 +19726,15 @@
      "name": "pipewire"
     },
     "name": "pipewire"
+   }
+  },
+  "pipewire-dev": {
+   "apt\\pipewire-dev": {
+    "driver": "apt",
+    "fields": {
+     "name": "libpipewire-0.3-dev"
+    },
+    "name": "libpipewire-0.3-dev"
    }
   },
   "pipx": {
@@ -21312,8 +21345,7 @@
    "apt\\strawberry": {
     "driver": "apt",
     "fields": {
-     "name": "strawberry",
-     "repo-component": "universe"
+     "name": "strawberry"
     },
     "name": "strawberry"
    }
@@ -22589,6 +22621,20 @@
    }
   },
   "wiremix": {
+   "apt\\pipewire-dev": {
+    "driver": "apt",
+    "fields": {
+     "name": "libpipewire-0.3-dev"
+    },
+    "name": "libpipewire-0.3-dev"
+   },
+   "apt\\pkg-config": {
+    "driver": "apt",
+    "fields": {
+     "name": "pkg-config"
+    },
+    "name": "pkg-config"
+   },
    "apt\\rust": {
     "driver": "apt",
     "fields": {
@@ -22661,6 +22707,36 @@
    }
   },
   "wl-screenrec": {
+   "apt\\ffmpeg-dev": {
+    "driver": "apt",
+    "fields": {
+     "name": "ffmpeg-dev",
+     "packages": [
+      "libavutil-dev",
+      "libavformat-dev",
+      "libavcodec-dev",
+      "libavfilter-dev",
+      "libavdevice-dev",
+      "libswscale-dev",
+      "libswresample-dev"
+     ]
+    },
+    "name": "ffmpeg-dev"
+   },
+   "apt\\libdrm-dev": {
+    "driver": "apt",
+    "fields": {
+     "name": "libdrm-dev"
+    },
+    "name": "libdrm-dev"
+   },
+   "apt\\pkg-config": {
+    "driver": "apt",
+    "fields": {
+     "name": "pkg-config"
+    },
+    "name": "pkg-config"
+   },
    "apt\\rust": {
     "driver": "apt",
     "fields": {
@@ -24717,24 +24793,12 @@
    }
   },
   "claude-code": {
-   "apt\\node": {
+   "apt\\curl": {
     "driver": "apt",
     "fields": {
-     "name": "npm",
-     "repo-component": "universe"
+     "name": "curl"
     },
-    "name": "npm"
-   },
-   "dotfiles\\bash-dotfiles": {
-    "driver": "dotfiles",
-    "fields": {
-     "aliases": {
-      "absorb-into": "~/.config/bash/conf.d/pre-configsys-aliases.sh",
-      "dst": "~/.bash_aliases",
-      "src": "bash_aliases"
-     }
-    },
-    "name": "bash-dotfiles"
+    "name": "curl"
    },
    "dotfiles\\claude-code-dotfiles": {
     "driver": "dotfiles",
@@ -24746,19 +24810,18 @@
     },
     "name": "claude-code-dotfiles"
    },
-   "dotfiles\\node-dotfiles": {
-    "driver": "dotfiles",
+   "script\\claude-code": {
+    "driver": "script",
     "fields": {
-     "glue": "node"
+     "install-cmd": "curl -fsSL https://claude.ai/install.sh | bash",
+     "location": "~/.local/bin/claude",
+     "name": "claude-code",
+     "uninstall-cmd": "rm -f \"$HOME/.local/bin/claude\"",
+     "upgrade-cmd": "claude update",
+     "version-cmd": "claude --version 2>/dev/null",
+     "version-re": "([0-9][0-9.]*)"
     },
-    "name": "node-dotfiles"
-   },
-   "npm\\claude-code": {
-    "driver": "npm",
-    "fields": {
-     "name": "@anthropic-ai/claude-code"
-    },
-    "name": "@anthropic-ai/claude-code"
+    "name": "claude-code"
    }
   },
   "claude-code-dotfiles": {
@@ -25045,6 +25108,13 @@
    }
   },
   "coursier": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
    "apt\\jdk": {
     "driver": "apt",
     "fields": {
@@ -25070,29 +25140,15 @@
     },
     "name": "coursier-dotfiles"
    },
-   "dotfiles\\sdkman-dotfiles": {
-    "driver": "dotfiles",
-    "fields": {
-     "glue": "sdkman"
-    },
-    "name": "sdkman-dotfiles"
-   },
-   "script\\sdkman": {
+   "script\\coursier": {
     "driver": "script",
     "fields": {
-     "install-cmd": "curl -s https://get.sdkman.io | bash",
-     "location": "~/.sdkman",
-     "name": "sdkman",
-     "uninstall-cmd": "rm -rf \"$HOME/.sdkman\"",
-     "version-cmd": "source \"$HOME/.sdkman/bin/sdkman-init.sh\" && sdk version",
-     "version-re": "([0-9]+\\.[0-9]+\\.[0-9]+)"
-    },
-    "name": "sdkman"
-   },
-   "sdkman\\coursier": {
-    "driver": "sdkman",
-    "fields": {
-     "name": "coursier"
+     "install-cmd": "mkdir -p \"$HOME/.local/bin\" && A=\"$(uname -m)\"; case \"$A\" in aarch64|arm64) F=cs-aarch64-pc-linux.gz ;; *) F=cs-x86_64-pc-linux.gz ;; esac; curl -fL \"https://github.com/coursier/coursier/releases/latest/download/$F\" | gzip -d > \"$HOME/.local/bin/cs\" && chmod +x \"$HOME/.local/bin/cs\"",
+     "location": "~/.local/bin/cs",
+     "name": "coursier",
+     "uninstall-cmd": "rm -f \"$HOME/.local/bin/cs\"",
+     "version-cmd": "\"$HOME/.local/bin/cs\" version 2>/dev/null",
+     "version-re": "([0-9][0-9.]*)"
     },
     "name": "coursier"
    }
@@ -25753,10 +25809,10 @@
    "tarball\\dnspeep": {
     "driver": "tarball",
     "fields": {
-     "asset": "dnspeep-linux.tar.gz",
      "installDir": "$CONFIGSYS_APP_DIR/dnspeep",
      "name": "dnspeep",
      "version": {
+      "asset": "dnspeep-linux.tar.gz",
       "github": "jvns/dnspeep",
       "strip-v": "true"
      }
@@ -26350,11 +26406,22 @@
    }
   },
   "fff": {
-   "apt\\fff": {
+   "apt\\curl": {
     "driver": "apt",
     "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "script\\fff": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "mkdir -p \"$HOME/.local/bin\" && curl -fsSL https://raw.githubusercontent.com/dylanaraps/fff/master/fff -o \"$HOME/.local/bin/fff\" && chmod +x \"$HOME/.local/bin/fff\"",
+     "location": "~/.local/bin/fff",
      "name": "fff",
-     "repo-component": "universe"
+     "uninstall-cmd": "rm -f \"$HOME/.local/bin/fff\"",
+     "version-cmd": "\"$HOME/.local/bin/fff\" -v 2>/dev/null",
+     "version-re": "([0-9][0-9.]*)"
     },
     "name": "fff"
    }
@@ -26366,6 +26433,24 @@
      "name": "ffmpeg"
     },
     "name": "ffmpeg"
+   }
+  },
+  "ffmpeg-dev": {
+   "apt\\ffmpeg-dev": {
+    "driver": "apt",
+    "fields": {
+     "name": "ffmpeg-dev",
+     "packages": [
+      "libavutil-dev",
+      "libavformat-dev",
+      "libavcodec-dev",
+      "libavfilter-dev",
+      "libavdevice-dev",
+      "libswscale-dev",
+      "libswresample-dev"
+     ]
+    },
+    "name": "ffmpeg-dev"
    }
   },
   "firefox": {
@@ -29447,6 +29532,15 @@
     "name": "libc++abi-dev"
    }
   },
+  "libdrm-dev": {
+   "apt\\libdrm-dev": {
+    "driver": "apt",
+    "fields": {
+     "name": "libdrm-dev"
+    },
+    "name": "libdrm-dev"
+   }
+  },
   "libfuse2": {
    "apt\\libfuse2": {
     "driver": "apt",
@@ -30208,7 +30302,7 @@
      "name": "mongodb-org",
      "pubkey-path": "/usr/share/keyrings/mongodb-server-8.0.asc",
      "pubkey-url": "https://www.mongodb.org/static/pgp/server-8.0.asc",
-     "source-line": "deb [signed-by=/usr/share/keyrings/mongodb-server-8.0.asc] https://repo.mongodb.org/apt/debian bookworm/mongodb-org/8.0 main",
+     "source-line": "deb [signed-by=/usr/share/keyrings/mongodb-server-8.0.asc] https://repo.mongodb.org/apt/debian $CODENAME/mongodb-org/8.0 main",
      "source-path": "/etc/apt/sources.list.d/mongodb-org-8.0.list"
     },
     "name": "mongodb-org"
@@ -30221,7 +30315,7 @@
      "name": "mongodb-org",
      "pubkey-path": "/usr/share/keyrings/mongodb-server-8.0.asc",
      "pubkey-url": "https://www.mongodb.org/static/pgp/server-8.0.asc",
-     "source-line": "deb [signed-by=/usr/share/keyrings/mongodb-server-8.0.asc] https://repo.mongodb.org/apt/debian bookworm/mongodb-org/8.0 main",
+     "source-line": "deb [signed-by=/usr/share/keyrings/mongodb-server-8.0.asc] https://repo.mongodb.org/apt/debian $CODENAME/mongodb-org/8.0 main",
      "source-path": "/etc/apt/sources.list.d/mongodb-org-8.0.list"
     },
     "name": "mongodb-org"
@@ -31442,6 +31536,15 @@
      "name": "pipewire"
     },
     "name": "pipewire"
+   }
+  },
+  "pipewire-dev": {
+   "apt\\pipewire-dev": {
+    "driver": "apt",
+    "fields": {
+     "name": "libpipewire-0.3-dev"
+    },
+    "name": "libpipewire-0.3-dev"
    }
   },
   "pipx": {
@@ -33001,8 +33104,7 @@
    "apt\\strawberry": {
     "driver": "apt",
     "fields": {
-     "name": "strawberry",
-     "repo-component": "universe"
+     "name": "strawberry"
     },
     "name": "strawberry"
    }
@@ -34261,6 +34363,20 @@
    }
   },
   "wiremix": {
+   "apt\\pipewire-dev": {
+    "driver": "apt",
+    "fields": {
+     "name": "libpipewire-0.3-dev"
+    },
+    "name": "libpipewire-0.3-dev"
+   },
+   "apt\\pkg-config": {
+    "driver": "apt",
+    "fields": {
+     "name": "pkg-config"
+    },
+    "name": "pkg-config"
+   },
    "apt\\rust": {
     "driver": "apt",
     "fields": {
@@ -34333,6 +34449,36 @@
    }
   },
   "wl-screenrec": {
+   "apt\\ffmpeg-dev": {
+    "driver": "apt",
+    "fields": {
+     "name": "ffmpeg-dev",
+     "packages": [
+      "libavutil-dev",
+      "libavformat-dev",
+      "libavcodec-dev",
+      "libavfilter-dev",
+      "libavdevice-dev",
+      "libswscale-dev",
+      "libswresample-dev"
+     ]
+    },
+    "name": "ffmpeg-dev"
+   },
+   "apt\\libdrm-dev": {
+    "driver": "apt",
+    "fields": {
+     "name": "libdrm-dev"
+    },
+    "name": "libdrm-dev"
+   },
+   "apt\\pkg-config": {
+    "driver": "apt",
+    "fields": {
+     "name": "pkg-config"
+    },
+    "name": "pkg-config"
+   },
    "apt\\rust": {
     "driver": "apt",
     "fields": {
@@ -36380,24 +36526,12 @@
    }
   },
   "claude-code": {
-   "apt\\node": {
+   "apt\\curl": {
     "driver": "apt",
     "fields": {
-     "name": "npm",
-     "repo-component": "universe"
+     "name": "curl"
     },
-    "name": "npm"
-   },
-   "dotfiles\\bash-dotfiles": {
-    "driver": "dotfiles",
-    "fields": {
-     "aliases": {
-      "absorb-into": "~/.config/bash/conf.d/pre-configsys-aliases.sh",
-      "dst": "~/.bash_aliases",
-      "src": "bash_aliases"
-     }
-    },
-    "name": "bash-dotfiles"
+    "name": "curl"
    },
    "dotfiles\\claude-code-dotfiles": {
     "driver": "dotfiles",
@@ -36409,19 +36543,18 @@
     },
     "name": "claude-code-dotfiles"
    },
-   "dotfiles\\node-dotfiles": {
-    "driver": "dotfiles",
+   "script\\claude-code": {
+    "driver": "script",
     "fields": {
-     "glue": "node"
+     "install-cmd": "curl -fsSL https://claude.ai/install.sh | bash",
+     "location": "~/.local/bin/claude",
+     "name": "claude-code",
+     "uninstall-cmd": "rm -f \"$HOME/.local/bin/claude\"",
+     "upgrade-cmd": "claude update",
+     "version-cmd": "claude --version 2>/dev/null",
+     "version-re": "([0-9][0-9.]*)"
     },
-    "name": "node-dotfiles"
-   },
-   "npm\\claude-code": {
-    "driver": "npm",
-    "fields": {
-     "name": "@anthropic-ai/claude-code"
-    },
-    "name": "@anthropic-ai/claude-code"
+    "name": "claude-code"
    }
   },
   "claude-code-dotfiles": {
@@ -36708,6 +36841,13 @@
    }
   },
   "coursier": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
    "apt\\jdk": {
     "driver": "apt",
     "fields": {
@@ -36733,29 +36873,15 @@
     },
     "name": "coursier-dotfiles"
    },
-   "dotfiles\\sdkman-dotfiles": {
-    "driver": "dotfiles",
-    "fields": {
-     "glue": "sdkman"
-    },
-    "name": "sdkman-dotfiles"
-   },
-   "script\\sdkman": {
+   "script\\coursier": {
     "driver": "script",
     "fields": {
-     "install-cmd": "curl -s https://get.sdkman.io | bash",
-     "location": "~/.sdkman",
-     "name": "sdkman",
-     "uninstall-cmd": "rm -rf \"$HOME/.sdkman\"",
-     "version-cmd": "source \"$HOME/.sdkman/bin/sdkman-init.sh\" && sdk version",
-     "version-re": "([0-9]+\\.[0-9]+\\.[0-9]+)"
-    },
-    "name": "sdkman"
-   },
-   "sdkman\\coursier": {
-    "driver": "sdkman",
-    "fields": {
-     "name": "coursier"
+     "install-cmd": "mkdir -p \"$HOME/.local/bin\" && A=\"$(uname -m)\"; case \"$A\" in aarch64|arm64) F=cs-aarch64-pc-linux.gz ;; *) F=cs-x86_64-pc-linux.gz ;; esac; curl -fL \"https://github.com/coursier/coursier/releases/latest/download/$F\" | gzip -d > \"$HOME/.local/bin/cs\" && chmod +x \"$HOME/.local/bin/cs\"",
+     "location": "~/.local/bin/cs",
+     "name": "coursier",
+     "uninstall-cmd": "rm -f \"$HOME/.local/bin/cs\"",
+     "version-cmd": "\"$HOME/.local/bin/cs\" version 2>/dev/null",
+     "version-re": "([0-9][0-9.]*)"
     },
     "name": "coursier"
    }
@@ -37416,10 +37542,10 @@
    "tarball\\dnspeep": {
     "driver": "tarball",
     "fields": {
-     "asset": "dnspeep-linux.tar.gz",
      "installDir": "$CONFIGSYS_APP_DIR/dnspeep",
      "name": "dnspeep",
      "version": {
+      "asset": "dnspeep-linux.tar.gz",
       "github": "jvns/dnspeep",
       "strip-v": "true"
      }
@@ -38008,11 +38134,22 @@
    }
   },
   "fff": {
-   "apt\\fff": {
+   "apt\\curl": {
     "driver": "apt",
     "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "script\\fff": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "mkdir -p \"$HOME/.local/bin\" && curl -fsSL https://raw.githubusercontent.com/dylanaraps/fff/master/fff -o \"$HOME/.local/bin/fff\" && chmod +x \"$HOME/.local/bin/fff\"",
+     "location": "~/.local/bin/fff",
      "name": "fff",
-     "repo-component": "universe"
+     "uninstall-cmd": "rm -f \"$HOME/.local/bin/fff\"",
+     "version-cmd": "\"$HOME/.local/bin/fff\" -v 2>/dev/null",
+     "version-re": "([0-9][0-9.]*)"
     },
     "name": "fff"
    }
@@ -38024,6 +38161,24 @@
      "name": "ffmpeg"
     },
     "name": "ffmpeg"
+   }
+  },
+  "ffmpeg-dev": {
+   "apt\\ffmpeg-dev": {
+    "driver": "apt",
+    "fields": {
+     "name": "ffmpeg-dev",
+     "packages": [
+      "libavutil-dev",
+      "libavformat-dev",
+      "libavcodec-dev",
+      "libavfilter-dev",
+      "libavdevice-dev",
+      "libswscale-dev",
+      "libswresample-dev"
+     ]
+    },
+    "name": "ffmpeg-dev"
    }
   },
   "firefox": {
@@ -41098,6 +41253,15 @@
     "name": "libc++abi-dev"
    }
   },
+  "libdrm-dev": {
+   "apt\\libdrm-dev": {
+    "driver": "apt",
+    "fields": {
+     "name": "libdrm-dev"
+    },
+    "name": "libdrm-dev"
+   }
+  },
   "libfuse2": {
    "apt\\libfuse2": {
     "driver": "apt",
@@ -41859,7 +42023,7 @@
      "name": "mongodb-org",
      "pubkey-path": "/usr/share/keyrings/mongodb-server-8.0.asc",
      "pubkey-url": "https://www.mongodb.org/static/pgp/server-8.0.asc",
-     "source-line": "deb [signed-by=/usr/share/keyrings/mongodb-server-8.0.asc] https://repo.mongodb.org/apt/ubuntu noble/mongodb-org/8.0 multiverse",
+     "source-line": "deb [signed-by=/usr/share/keyrings/mongodb-server-8.0.asc] https://repo.mongodb.org/apt/ubuntu $CODENAME/mongodb-org/8.0 multiverse",
      "source-path": "/etc/apt/sources.list.d/mongodb-org-8.0.list"
     },
     "name": "mongodb-org"
@@ -41872,7 +42036,7 @@
      "name": "mongodb-org",
      "pubkey-path": "/usr/share/keyrings/mongodb-server-8.0.asc",
      "pubkey-url": "https://www.mongodb.org/static/pgp/server-8.0.asc",
-     "source-line": "deb [signed-by=/usr/share/keyrings/mongodb-server-8.0.asc] https://repo.mongodb.org/apt/ubuntu noble/mongodb-org/8.0 multiverse",
+     "source-line": "deb [signed-by=/usr/share/keyrings/mongodb-server-8.0.asc] https://repo.mongodb.org/apt/ubuntu $CODENAME/mongodb-org/8.0 multiverse",
      "source-path": "/etc/apt/sources.list.d/mongodb-org-8.0.list"
     },
     "name": "mongodb-org"
@@ -43106,6 +43270,15 @@
      "name": "pipewire"
     },
     "name": "pipewire"
+   }
+  },
+  "pipewire-dev": {
+   "apt\\pipewire-dev": {
+    "driver": "apt",
+    "fields": {
+     "name": "libpipewire-0.3-dev"
+    },
+    "name": "libpipewire-0.3-dev"
    }
   },
   "pipx": {
@@ -44662,11 +44835,18 @@
    }
   },
   "strawberry": {
+   "apt\\software-properties-common": {
+    "driver": "apt",
+    "fields": {
+     "name": "software-properties-common"
+    },
+    "name": "software-properties-common"
+   },
    "apt\\strawberry": {
     "driver": "apt",
     "fields": {
      "name": "strawberry",
-     "repo-component": "universe"
+     "ppa": "jonaski/strawberry"
     },
     "name": "strawberry"
    }
@@ -45925,6 +46105,20 @@
    }
   },
   "wiremix": {
+   "apt\\pipewire-dev": {
+    "driver": "apt",
+    "fields": {
+     "name": "libpipewire-0.3-dev"
+    },
+    "name": "libpipewire-0.3-dev"
+   },
+   "apt\\pkg-config": {
+    "driver": "apt",
+    "fields": {
+     "name": "pkg-config"
+    },
+    "name": "pkg-config"
+   },
    "apt\\rust": {
     "driver": "apt",
     "fields": {
@@ -45997,6 +46191,36 @@
    }
   },
   "wl-screenrec": {
+   "apt\\ffmpeg-dev": {
+    "driver": "apt",
+    "fields": {
+     "name": "ffmpeg-dev",
+     "packages": [
+      "libavutil-dev",
+      "libavformat-dev",
+      "libavcodec-dev",
+      "libavfilter-dev",
+      "libavdevice-dev",
+      "libswscale-dev",
+      "libswresample-dev"
+     ]
+    },
+    "name": "ffmpeg-dev"
+   },
+   "apt\\libdrm-dev": {
+    "driver": "apt",
+    "fields": {
+     "name": "libdrm-dev"
+    },
+    "name": "libdrm-dev"
+   },
+   "apt\\pkg-config": {
+    "driver": "apt",
+    "fields": {
+     "name": "pkg-config"
+    },
+    "name": "pkg-config"
+   },
    "apt\\rust": {
     "driver": "apt",
     "fields": {
@@ -47930,24 +48154,12 @@
    }
   },
   "claude-code": {
-   "dnf\\node": {
+   "dnf\\curl": {
     "driver": "dnf",
     "fields": {
-     "name": "nodejs",
-     "repo-component": "universe"
+     "name": "curl"
     },
-    "name": "nodejs"
-   },
-   "dotfiles\\bash-dotfiles": {
-    "driver": "dotfiles",
-    "fields": {
-     "aliases": {
-      "absorb-into": "~/.config/bash/conf.d/pre-configsys-aliases.sh",
-      "dst": "~/.bash_aliases",
-      "src": "bash_aliases"
-     }
-    },
-    "name": "bash-dotfiles"
+    "name": "curl"
    },
    "dotfiles\\claude-code-dotfiles": {
     "driver": "dotfiles",
@@ -47959,19 +48171,18 @@
     },
     "name": "claude-code-dotfiles"
    },
-   "dotfiles\\node-dotfiles": {
-    "driver": "dotfiles",
+   "script\\claude-code": {
+    "driver": "script",
     "fields": {
-     "glue": "node"
+     "install-cmd": "curl -fsSL https://claude.ai/install.sh | bash",
+     "location": "~/.local/bin/claude",
+     "name": "claude-code",
+     "uninstall-cmd": "rm -f \"$HOME/.local/bin/claude\"",
+     "upgrade-cmd": "claude update",
+     "version-cmd": "claude --version 2>/dev/null",
+     "version-re": "([0-9][0-9.]*)"
     },
-    "name": "node-dotfiles"
-   },
-   "npm\\claude-code": {
-    "driver": "npm",
-    "fields": {
-     "name": "@anthropic-ai/claude-code"
-    },
-    "name": "@anthropic-ai/claude-code"
+    "name": "claude-code"
    }
   },
   "claude-code-dotfiles": {
@@ -48283,6 +48494,13 @@
    }
   },
   "coursier": {
+   "dnf\\curl": {
+    "driver": "dnf",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
    "dnf\\jdk": {
     "driver": "dnf",
     "fields": {
@@ -48308,29 +48526,15 @@
     },
     "name": "coursier-dotfiles"
    },
-   "dotfiles\\sdkman-dotfiles": {
-    "driver": "dotfiles",
-    "fields": {
-     "glue": "sdkman"
-    },
-    "name": "sdkman-dotfiles"
-   },
-   "script\\sdkman": {
+   "script\\coursier": {
     "driver": "script",
     "fields": {
-     "install-cmd": "curl -s https://get.sdkman.io | bash",
-     "location": "~/.sdkman",
-     "name": "sdkman",
-     "uninstall-cmd": "rm -rf \"$HOME/.sdkman\"",
-     "version-cmd": "source \"$HOME/.sdkman/bin/sdkman-init.sh\" && sdk version",
-     "version-re": "([0-9]+\\.[0-9]+\\.[0-9]+)"
-    },
-    "name": "sdkman"
-   },
-   "sdkman\\coursier": {
-    "driver": "sdkman",
-    "fields": {
-     "name": "coursier"
+     "install-cmd": "mkdir -p \"$HOME/.local/bin\" && A=\"$(uname -m)\"; case \"$A\" in aarch64|arm64) F=cs-aarch64-pc-linux.gz ;; *) F=cs-x86_64-pc-linux.gz ;; esac; curl -fL \"https://github.com/coursier/coursier/releases/latest/download/$F\" | gzip -d > \"$HOME/.local/bin/cs\" && chmod +x \"$HOME/.local/bin/cs\"",
+     "location": "~/.local/bin/cs",
+     "name": "coursier",
+     "uninstall-cmd": "rm -f \"$HOME/.local/bin/cs\"",
+     "version-cmd": "\"$HOME/.local/bin/cs\" version 2>/dev/null",
+     "version-re": "([0-9][0-9.]*)"
     },
     "name": "coursier"
    }
@@ -48954,10 +49158,10 @@
    "tarball\\dnspeep": {
     "driver": "tarball",
     "fields": {
-     "asset": "dnspeep-linux.tar.gz",
      "installDir": "$CONFIGSYS_APP_DIR/dnspeep",
      "name": "dnspeep",
      "version": {
+      "asset": "dnspeep-linux.tar.gz",
       "github": "jvns/dnspeep",
       "strip-v": "true"
      }
@@ -49503,6 +49707,27 @@
     "name": "lua"
    }
   },
+  "fff": {
+   "dnf\\curl": {
+    "driver": "dnf",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "script\\fff": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "mkdir -p \"$HOME/.local/bin\" && curl -fsSL https://raw.githubusercontent.com/dylanaraps/fff/master/fff -o \"$HOME/.local/bin/fff\" && chmod +x \"$HOME/.local/bin/fff\"",
+     "location": "~/.local/bin/fff",
+     "name": "fff",
+     "uninstall-cmd": "rm -f \"$HOME/.local/bin/fff\"",
+     "version-cmd": "\"$HOME/.local/bin/fff\" -v 2>/dev/null",
+     "version-re": "([0-9][0-9.]*)"
+    },
+    "name": "fff"
+   }
+  },
   "ffmpeg": {
    "dnf\\ffmpeg": {
     "driver": "dnf",
@@ -49510,6 +49735,26 @@
      "name": "ffmpeg"
     },
     "name": "ffmpeg"
+   },
+   "dnf\\rpmfusion-free": {
+    "driver": "dnf",
+    "fields": {
+     "name": "rpmfusion-free-release",
+     "pubkey-url": "https://rpmfusion.org/keys?action=AttachFile&do=get&target=RPM-GPG-KEY-rpmfusion-free-fedora-$releasever",
+     "repo-id": "rpmfusion-free",
+     "repo-name": "RPM Fusion Free",
+     "repo-url": "https://download1.rpmfusion.org/free/fedora/releases/$releasever/Everything/$basearch/os/"
+    },
+    "name": "rpmfusion-free-release"
+   }
+  },
+  "ffmpeg-dev": {
+   "dnf\\ffmpeg-dev": {
+    "driver": "dnf",
+    "fields": {
+     "name": "ffmpeg-devel"
+    },
+    "name": "ffmpeg-devel"
    },
    "dnf\\rpmfusion-free": {
     "driver": "dnf",
@@ -52421,6 +52666,15 @@
     "name": "libcxxabi-devel"
    }
   },
+  "libdrm-dev": {
+   "dnf\\libdrm-dev": {
+    "driver": "dnf",
+    "fields": {
+     "name": "libdrm-devel"
+    },
+    "name": "libdrm-devel"
+   }
+  },
   "libfuse2": {
    "dnf\\libfuse2": {
     "driver": "dnf",
@@ -54357,6 +54611,15 @@
     "name": "pipewire"
    }
   },
+  "pipewire-dev": {
+   "dnf\\pipewire-dev": {
+    "driver": "dnf",
+    "fields": {
+     "name": "pipewire-devel"
+    },
+    "name": "pipewire-devel"
+   }
+  },
   "pipx": {
    "dnf\\pipx": {
     "driver": "dnf",
@@ -55876,8 +56139,7 @@
    "dnf\\strawberry": {
     "driver": "dnf",
     "fields": {
-     "name": "strawberry",
-     "repo-component": "universe"
+     "name": "strawberry"
     },
     "name": "strawberry"
    }
@@ -57229,6 +57491,38 @@
      "name": "wl-screenrec"
     },
     "name": "wl-screenrec"
+   },
+   "dnf\\ffmpeg-dev": {
+    "driver": "dnf",
+    "fields": {
+     "name": "ffmpeg-devel"
+    },
+    "name": "ffmpeg-devel"
+   },
+   "dnf\\libdrm-dev": {
+    "driver": "dnf",
+    "fields": {
+     "name": "libdrm-devel"
+    },
+    "name": "libdrm-devel"
+   },
+   "dnf\\pkg-config": {
+    "driver": "dnf",
+    "fields": {
+     "name": "pkgconf-pkg-config"
+    },
+    "name": "pkgconf-pkg-config"
+   },
+   "dnf\\rpmfusion-free": {
+    "driver": "dnf",
+    "fields": {
+     "name": "rpmfusion-free-release",
+     "pubkey-url": "https://rpmfusion.org/keys?action=AttachFile&do=get&target=RPM-GPG-KEY-rpmfusion-free-fedora-$releasever",
+     "repo-id": "rpmfusion-free",
+     "repo-name": "RPM Fusion Free",
+     "repo-url": "https://download1.rpmfusion.org/free/fedora/releases/$releasever/Everything/$basearch/os/"
+    },
+    "name": "rpmfusion-free-release"
    },
    "dnf\\rust": {
     "driver": "dnf",
@@ -59190,24 +59484,12 @@
    }
   },
   "claude-code": {
-   "dnf\\node": {
+   "dnf\\curl": {
     "driver": "dnf",
     "fields": {
-     "name": "nodejs",
-     "repo-component": "universe"
+     "name": "curl"
     },
-    "name": "nodejs"
-   },
-   "dotfiles\\bash-dotfiles": {
-    "driver": "dotfiles",
-    "fields": {
-     "aliases": {
-      "absorb-into": "~/.config/bash/conf.d/pre-configsys-aliases.sh",
-      "dst": "~/.bash_aliases",
-      "src": "bash_aliases"
-     }
-    },
-    "name": "bash-dotfiles"
+    "name": "curl"
    },
    "dotfiles\\claude-code-dotfiles": {
     "driver": "dotfiles",
@@ -59219,19 +59501,18 @@
     },
     "name": "claude-code-dotfiles"
    },
-   "dotfiles\\node-dotfiles": {
-    "driver": "dotfiles",
+   "script\\claude-code": {
+    "driver": "script",
     "fields": {
-     "glue": "node"
+     "install-cmd": "curl -fsSL https://claude.ai/install.sh | bash",
+     "location": "~/.local/bin/claude",
+     "name": "claude-code",
+     "uninstall-cmd": "rm -f \"$HOME/.local/bin/claude\"",
+     "upgrade-cmd": "claude update",
+     "version-cmd": "claude --version 2>/dev/null",
+     "version-re": "([0-9][0-9.]*)"
     },
-    "name": "node-dotfiles"
-   },
-   "npm\\claude-code": {
-    "driver": "npm",
-    "fields": {
-     "name": "@anthropic-ai/claude-code"
-    },
-    "name": "@anthropic-ai/claude-code"
+    "name": "claude-code"
    }
   },
   "claude-code-dotfiles": {
@@ -59543,6 +59824,13 @@
    }
   },
   "coursier": {
+   "dnf\\curl": {
+    "driver": "dnf",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
    "dnf\\jdk": {
     "driver": "dnf",
     "fields": {
@@ -59568,29 +59856,15 @@
     },
     "name": "coursier-dotfiles"
    },
-   "dotfiles\\sdkman-dotfiles": {
-    "driver": "dotfiles",
-    "fields": {
-     "glue": "sdkman"
-    },
-    "name": "sdkman-dotfiles"
-   },
-   "script\\sdkman": {
+   "script\\coursier": {
     "driver": "script",
     "fields": {
-     "install-cmd": "curl -s https://get.sdkman.io | bash",
-     "location": "~/.sdkman",
-     "name": "sdkman",
-     "uninstall-cmd": "rm -rf \"$HOME/.sdkman\"",
-     "version-cmd": "source \"$HOME/.sdkman/bin/sdkman-init.sh\" && sdk version",
-     "version-re": "([0-9]+\\.[0-9]+\\.[0-9]+)"
-    },
-    "name": "sdkman"
-   },
-   "sdkman\\coursier": {
-    "driver": "sdkman",
-    "fields": {
-     "name": "coursier"
+     "install-cmd": "mkdir -p \"$HOME/.local/bin\" && A=\"$(uname -m)\"; case \"$A\" in aarch64|arm64) F=cs-aarch64-pc-linux.gz ;; *) F=cs-x86_64-pc-linux.gz ;; esac; curl -fL \"https://github.com/coursier/coursier/releases/latest/download/$F\" | gzip -d > \"$HOME/.local/bin/cs\" && chmod +x \"$HOME/.local/bin/cs\"",
+     "location": "~/.local/bin/cs",
+     "name": "coursier",
+     "uninstall-cmd": "rm -f \"$HOME/.local/bin/cs\"",
+     "version-cmd": "\"$HOME/.local/bin/cs\" version 2>/dev/null",
+     "version-re": "([0-9][0-9.]*)"
     },
     "name": "coursier"
    }
@@ -60214,10 +60488,10 @@
    "tarball\\dnspeep": {
     "driver": "tarball",
     "fields": {
-     "asset": "dnspeep-linux.tar.gz",
      "installDir": "$CONFIGSYS_APP_DIR/dnspeep",
      "name": "dnspeep",
      "version": {
+      "asset": "dnspeep-linux.tar.gz",
       "github": "jvns/dnspeep",
       "strip-v": "true"
      }
@@ -60763,6 +61037,27 @@
     "name": "lua"
    }
   },
+  "fff": {
+   "dnf\\curl": {
+    "driver": "dnf",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "script\\fff": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "mkdir -p \"$HOME/.local/bin\" && curl -fsSL https://raw.githubusercontent.com/dylanaraps/fff/master/fff -o \"$HOME/.local/bin/fff\" && chmod +x \"$HOME/.local/bin/fff\"",
+     "location": "~/.local/bin/fff",
+     "name": "fff",
+     "uninstall-cmd": "rm -f \"$HOME/.local/bin/fff\"",
+     "version-cmd": "\"$HOME/.local/bin/fff\" -v 2>/dev/null",
+     "version-re": "([0-9][0-9.]*)"
+    },
+    "name": "fff"
+   }
+  },
   "ffmpeg": {
    "dnf\\ffmpeg": {
     "driver": "dnf",
@@ -60770,6 +61065,26 @@
      "name": "ffmpeg"
     },
     "name": "ffmpeg"
+   },
+   "dnf\\rpmfusion-free": {
+    "driver": "dnf",
+    "fields": {
+     "name": "rpmfusion-free-release",
+     "pubkey-url": "https://rpmfusion.org/keys?action=AttachFile&do=get&target=RPM-GPG-KEY-rpmfusion-free-fedora-$releasever",
+     "repo-id": "rpmfusion-free",
+     "repo-name": "RPM Fusion Free",
+     "repo-url": "https://download1.rpmfusion.org/free/fedora/releases/$releasever/Everything/$basearch/os/"
+    },
+    "name": "rpmfusion-free-release"
+   }
+  },
+  "ffmpeg-dev": {
+   "dnf\\ffmpeg-dev": {
+    "driver": "dnf",
+    "fields": {
+     "name": "ffmpeg-devel"
+    },
+    "name": "ffmpeg-devel"
    },
    "dnf\\rpmfusion-free": {
     "driver": "dnf",
@@ -63681,6 +63996,15 @@
     "name": "libcxxabi-devel"
    }
   },
+  "libdrm-dev": {
+   "dnf\\libdrm-dev": {
+    "driver": "dnf",
+    "fields": {
+     "name": "libdrm-devel"
+    },
+    "name": "libdrm-devel"
+   }
+  },
   "libfuse2": {
    "dnf\\libfuse2": {
     "driver": "dnf",
@@ -65617,6 +65941,15 @@
     "name": "pipewire"
    }
   },
+  "pipewire-dev": {
+   "dnf\\pipewire-dev": {
+    "driver": "dnf",
+    "fields": {
+     "name": "pipewire-devel"
+    },
+    "name": "pipewire-devel"
+   }
+  },
   "pipx": {
    "dnf\\pipx": {
     "driver": "dnf",
@@ -67136,8 +67469,7 @@
    "dnf\\strawberry": {
     "driver": "dnf",
     "fields": {
-     "name": "strawberry",
-     "repo-component": "universe"
+     "name": "strawberry"
     },
     "name": "strawberry"
    }
@@ -68489,6 +68821,38 @@
      "name": "wl-screenrec"
     },
     "name": "wl-screenrec"
+   },
+   "dnf\\ffmpeg-dev": {
+    "driver": "dnf",
+    "fields": {
+     "name": "ffmpeg-devel"
+    },
+    "name": "ffmpeg-devel"
+   },
+   "dnf\\libdrm-dev": {
+    "driver": "dnf",
+    "fields": {
+     "name": "libdrm-devel"
+    },
+    "name": "libdrm-devel"
+   },
+   "dnf\\pkg-config": {
+    "driver": "dnf",
+    "fields": {
+     "name": "pkgconf-pkg-config"
+    },
+    "name": "pkgconf-pkg-config"
+   },
+   "dnf\\rpmfusion-free": {
+    "driver": "dnf",
+    "fields": {
+     "name": "rpmfusion-free-release",
+     "pubkey-url": "https://rpmfusion.org/keys?action=AttachFile&do=get&target=RPM-GPG-KEY-rpmfusion-free-fedora-$releasever",
+     "repo-id": "rpmfusion-free",
+     "repo-name": "RPM Fusion Free",
+     "repo-url": "https://download1.rpmfusion.org/free/fedora/releases/$releasever/Everything/$basearch/os/"
+    },
+    "name": "rpmfusion-free-release"
    },
    "dnf\\rust": {
     "driver": "dnf",
@@ -70139,24 +70503,12 @@
    }
   },
   "claude-code": {
-   "brew\\node": {
+   "brew\\curl": {
     "driver": "brew",
     "fields": {
-     "name": "node",
-     "repo-component": "universe"
+     "name": "curl"
     },
-    "name": "node"
-   },
-   "dotfiles\\bash-dotfiles": {
-    "driver": "dotfiles",
-    "fields": {
-     "aliases": {
-      "absorb-into": "~/.config/bash/conf.d/pre-configsys-aliases.sh",
-      "dst": "~/.bash_aliases",
-      "src": "bash_aliases"
-     }
-    },
-    "name": "bash-dotfiles"
+    "name": "curl"
    },
    "dotfiles\\claude-code-dotfiles": {
     "driver": "dotfiles",
@@ -70168,19 +70520,18 @@
     },
     "name": "claude-code-dotfiles"
    },
-   "dotfiles\\node-dotfiles": {
-    "driver": "dotfiles",
+   "script\\claude-code": {
+    "driver": "script",
     "fields": {
-     "glue": "node"
+     "install-cmd": "curl -fsSL https://claude.ai/install.sh | bash",
+     "location": "~/.local/bin/claude",
+     "name": "claude-code",
+     "uninstall-cmd": "rm -f \"$HOME/.local/bin/claude\"",
+     "upgrade-cmd": "claude update",
+     "version-cmd": "claude --version 2>/dev/null",
+     "version-re": "([0-9][0-9.]*)"
     },
-    "name": "node-dotfiles"
-   },
-   "npm\\claude-code": {
-    "driver": "npm",
-    "fields": {
-     "name": "@anthropic-ai/claude-code"
-    },
-    "name": "@anthropic-ai/claude-code"
+    "name": "claude-code"
    }
   },
   "claude-code-dotfiles": {
@@ -70392,6 +70743,13 @@
    }
   },
   "coursier": {
+   "brew\\curl": {
+    "driver": "brew",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
    "brew\\jdk": {
     "driver": "brew",
     "fields": {
@@ -70417,29 +70775,15 @@
     },
     "name": "coursier-dotfiles"
    },
-   "dotfiles\\sdkman-dotfiles": {
-    "driver": "dotfiles",
-    "fields": {
-     "glue": "sdkman"
-    },
-    "name": "sdkman-dotfiles"
-   },
-   "script\\sdkman": {
+   "script\\coursier": {
     "driver": "script",
     "fields": {
-     "install-cmd": "curl -s https://get.sdkman.io | bash",
-     "location": "~/.sdkman",
-     "name": "sdkman",
-     "uninstall-cmd": "rm -rf \"$HOME/.sdkman\"",
-     "version-cmd": "source \"$HOME/.sdkman/bin/sdkman-init.sh\" && sdk version",
-     "version-re": "([0-9]+\\.[0-9]+\\.[0-9]+)"
-    },
-    "name": "sdkman"
-   },
-   "sdkman\\coursier": {
-    "driver": "sdkman",
-    "fields": {
-     "name": "coursier"
+     "install-cmd": "mkdir -p \"$HOME/.local/bin\" && A=\"$(uname -m)\"; case \"$A\" in aarch64|arm64) F=cs-aarch64-pc-linux.gz ;; *) F=cs-x86_64-pc-linux.gz ;; esac; curl -fL \"https://github.com/coursier/coursier/releases/latest/download/$F\" | gzip -d > \"$HOME/.local/bin/cs\" && chmod +x \"$HOME/.local/bin/cs\"",
+     "location": "~/.local/bin/cs",
+     "name": "coursier",
+     "uninstall-cmd": "rm -f \"$HOME/.local/bin/cs\"",
+     "version-cmd": "\"$HOME/.local/bin/cs\" version 2>/dev/null",
+     "version-re": "([0-9][0-9.]*)"
     },
     "name": "coursier"
    }
@@ -70858,10 +71202,10 @@
    "tarball\\dnspeep": {
     "driver": "tarball",
     "fields": {
-     "asset": "dnspeep-linux.tar.gz",
      "installDir": "$CONFIGSYS_APP_DIR/dnspeep",
      "name": "dnspeep",
      "version": {
+      "asset": "dnspeep-linux.tar.gz",
       "github": "jvns/dnspeep",
       "strip-v": "true"
      }
@@ -71295,6 +71639,27 @@
      "repo-component": "universe"
     },
     "name": "lua"
+   }
+  },
+  "fff": {
+   "brew\\curl": {
+    "driver": "brew",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "script\\fff": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "mkdir -p \"$HOME/.local/bin\" && curl -fsSL https://raw.githubusercontent.com/dylanaraps/fff/master/fff -o \"$HOME/.local/bin/fff\" && chmod +x \"$HOME/.local/bin/fff\"",
+     "location": "~/.local/bin/fff",
+     "name": "fff",
+     "uninstall-cmd": "rm -f \"$HOME/.local/bin/fff\"",
+     "version-cmd": "\"$HOME/.local/bin/fff\" -v 2>/dev/null",
+     "version-re": "([0-9][0-9.]*)"
+    },
+    "name": "fff"
    }
   },
   "ffmpeg": {
@@ -77406,41 +77771,6 @@
     "name": "wireguard-tools"
    }
   },
-  "wiremix": {
-   "brew\\rust": {
-    "driver": "brew",
-    "fields": {
-     "name": "rust",
-     "repo-component": "universe"
-    },
-    "name": "rust"
-   },
-   "cargo\\wiremix": {
-    "driver": "cargo",
-    "fields": {
-     "name": "wiremix"
-    },
-    "name": "wiremix"
-   },
-   "dotfiles\\bash-dotfiles": {
-    "driver": "dotfiles",
-    "fields": {
-     "aliases": {
-      "absorb-into": "~/.config/bash/conf.d/pre-configsys-aliases.sh",
-      "dst": "~/.bash_aliases",
-      "src": "bash_aliases"
-     }
-    },
-    "name": "bash-dotfiles"
-   },
-   "dotfiles\\rust-dotfiles": {
-    "driver": "dotfiles",
-    "fields": {
-     "glue": "rust"
-    },
-    "name": "rust-dotfiles"
-   }
-  },
   "wireshark": {
    "flatpak\\wireshark": {
     "driver": "flatpak",
@@ -77476,41 +77806,6 @@
      "repo-component": "universe"
     },
     "name": "wl-clipboard"
-   }
-  },
-  "wl-screenrec": {
-   "brew\\rust": {
-    "driver": "brew",
-    "fields": {
-     "name": "rust",
-     "repo-component": "universe"
-    },
-    "name": "rust"
-   },
-   "cargo\\wl-screenrec": {
-    "driver": "cargo",
-    "fields": {
-     "name": "wl-screenrec"
-    },
-    "name": "wl-screenrec"
-   },
-   "dotfiles\\bash-dotfiles": {
-    "driver": "dotfiles",
-    "fields": {
-     "aliases": {
-      "absorb-into": "~/.config/bash/conf.d/pre-configsys-aliases.sh",
-      "dst": "~/.bash_aliases",
-      "src": "bash_aliases"
-     }
-    },
-    "name": "bash-dotfiles"
-   },
-   "dotfiles\\rust-dotfiles": {
-    "driver": "dotfiles",
-    "fields": {
-     "glue": "rust"
-    },
-    "name": "rust-dotfiles"
    }
   },
   "wxmaxima": {
@@ -79443,24 +79738,12 @@
    }
   },
   "claude-code": {
-   "apt\\node": {
+   "apt\\curl": {
     "driver": "apt",
     "fields": {
-     "name": "npm",
-     "repo-component": "universe"
+     "name": "curl"
     },
-    "name": "npm"
-   },
-   "dotfiles\\bash-dotfiles": {
-    "driver": "dotfiles",
-    "fields": {
-     "aliases": {
-      "absorb-into": "~/.config/bash/conf.d/pre-configsys-aliases.sh",
-      "dst": "~/.bash_aliases",
-      "src": "bash_aliases"
-     }
-    },
-    "name": "bash-dotfiles"
+    "name": "curl"
    },
    "dotfiles\\claude-code-dotfiles": {
     "driver": "dotfiles",
@@ -79472,19 +79755,18 @@
     },
     "name": "claude-code-dotfiles"
    },
-   "dotfiles\\node-dotfiles": {
-    "driver": "dotfiles",
+   "script\\claude-code": {
+    "driver": "script",
     "fields": {
-     "glue": "node"
+     "install-cmd": "curl -fsSL https://claude.ai/install.sh | bash",
+     "location": "~/.local/bin/claude",
+     "name": "claude-code",
+     "uninstall-cmd": "rm -f \"$HOME/.local/bin/claude\"",
+     "upgrade-cmd": "claude update",
+     "version-cmd": "claude --version 2>/dev/null",
+     "version-re": "([0-9][0-9.]*)"
     },
-    "name": "node-dotfiles"
-   },
-   "npm\\claude-code": {
-    "driver": "npm",
-    "fields": {
-     "name": "@anthropic-ai/claude-code"
-    },
-    "name": "@anthropic-ai/claude-code"
+    "name": "claude-code"
    }
   },
   "claude-code-dotfiles": {
@@ -79797,6 +80079,13 @@
    }
   },
   "coursier": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
    "apt\\jdk": {
     "driver": "apt",
     "fields": {
@@ -79822,29 +80111,15 @@
     },
     "name": "coursier-dotfiles"
    },
-   "dotfiles\\sdkman-dotfiles": {
-    "driver": "dotfiles",
-    "fields": {
-     "glue": "sdkman"
-    },
-    "name": "sdkman-dotfiles"
-   },
-   "script\\sdkman": {
+   "script\\coursier": {
     "driver": "script",
     "fields": {
-     "install-cmd": "curl -s https://get.sdkman.io | bash",
-     "location": "~/.sdkman",
-     "name": "sdkman",
-     "uninstall-cmd": "rm -rf \"$HOME/.sdkman\"",
-     "version-cmd": "source \"$HOME/.sdkman/bin/sdkman-init.sh\" && sdk version",
-     "version-re": "([0-9]+\\.[0-9]+\\.[0-9]+)"
-    },
-    "name": "sdkman"
-   },
-   "sdkman\\coursier": {
-    "driver": "sdkman",
-    "fields": {
-     "name": "coursier"
+     "install-cmd": "mkdir -p \"$HOME/.local/bin\" && A=\"$(uname -m)\"; case \"$A\" in aarch64|arm64) F=cs-aarch64-pc-linux.gz ;; *) F=cs-x86_64-pc-linux.gz ;; esac; curl -fL \"https://github.com/coursier/coursier/releases/latest/download/$F\" | gzip -d > \"$HOME/.local/bin/cs\" && chmod +x \"$HOME/.local/bin/cs\"",
+     "location": "~/.local/bin/cs",
+     "name": "coursier",
+     "uninstall-cmd": "rm -f \"$HOME/.local/bin/cs\"",
+     "version-cmd": "\"$HOME/.local/bin/cs\" version 2>/dev/null",
+     "version-re": "([0-9][0-9.]*)"
     },
     "name": "coursier"
    }
@@ -80505,10 +80780,10 @@
    "tarball\\dnspeep": {
     "driver": "tarball",
     "fields": {
-     "asset": "dnspeep-linux.tar.gz",
      "installDir": "$CONFIGSYS_APP_DIR/dnspeep",
      "name": "dnspeep",
      "version": {
+      "asset": "dnspeep-linux.tar.gz",
       "github": "jvns/dnspeep",
       "strip-v": "true"
      }
@@ -81114,11 +81389,22 @@
    }
   },
   "fff": {
-   "apt\\fff": {
+   "apt\\curl": {
     "driver": "apt",
     "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "script\\fff": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "mkdir -p \"$HOME/.local/bin\" && curl -fsSL https://raw.githubusercontent.com/dylanaraps/fff/master/fff -o \"$HOME/.local/bin/fff\" && chmod +x \"$HOME/.local/bin/fff\"",
+     "location": "~/.local/bin/fff",
      "name": "fff",
-     "repo-component": "universe"
+     "uninstall-cmd": "rm -f \"$HOME/.local/bin/fff\"",
+     "version-cmd": "\"$HOME/.local/bin/fff\" -v 2>/dev/null",
+     "version-re": "([0-9][0-9.]*)"
     },
     "name": "fff"
    }
@@ -81130,6 +81416,24 @@
      "name": "ffmpeg"
     },
     "name": "ffmpeg"
+   }
+  },
+  "ffmpeg-dev": {
+   "apt\\ffmpeg-dev": {
+    "driver": "apt",
+    "fields": {
+     "name": "ffmpeg-dev",
+     "packages": [
+      "libavutil-dev",
+      "libavformat-dev",
+      "libavcodec-dev",
+      "libavfilter-dev",
+      "libavdevice-dev",
+      "libswscale-dev",
+      "libswresample-dev"
+     ]
+    },
+    "name": "ffmpeg-dev"
    }
   },
   "firefox": {
@@ -84238,6 +84542,15 @@
     "name": "libc++abi-dev"
    }
   },
+  "libdrm-dev": {
+   "apt\\libdrm-dev": {
+    "driver": "apt",
+    "fields": {
+     "name": "libdrm-dev"
+    },
+    "name": "libdrm-dev"
+   }
+  },
   "libfuse2": {
    "apt\\libfuse2": {
     "driver": "apt",
@@ -85033,7 +85346,7 @@
      "name": "mongodb-org",
      "pubkey-path": "/usr/share/keyrings/mongodb-server-8.0.asc",
      "pubkey-url": "https://www.mongodb.org/static/pgp/server-8.0.asc",
-     "source-line": "deb [signed-by=/usr/share/keyrings/mongodb-server-8.0.asc] https://repo.mongodb.org/apt/ubuntu noble/mongodb-org/8.0 multiverse",
+     "source-line": "deb [signed-by=/usr/share/keyrings/mongodb-server-8.0.asc] https://repo.mongodb.org/apt/ubuntu $CODENAME/mongodb-org/8.0 multiverse",
      "source-path": "/etc/apt/sources.list.d/mongodb-org-8.0.list"
     },
     "name": "mongodb-org"
@@ -85046,7 +85359,7 @@
      "name": "mongodb-org",
      "pubkey-path": "/usr/share/keyrings/mongodb-server-8.0.asc",
      "pubkey-url": "https://www.mongodb.org/static/pgp/server-8.0.asc",
-     "source-line": "deb [signed-by=/usr/share/keyrings/mongodb-server-8.0.asc] https://repo.mongodb.org/apt/ubuntu noble/mongodb-org/8.0 multiverse",
+     "source-line": "deb [signed-by=/usr/share/keyrings/mongodb-server-8.0.asc] https://repo.mongodb.org/apt/ubuntu $CODENAME/mongodb-org/8.0 multiverse",
      "source-path": "/etc/apt/sources.list.d/mongodb-org-8.0.list"
     },
     "name": "mongodb-org"
@@ -86314,6 +86627,15 @@
      "name": "pipewire"
     },
     "name": "pipewire"
+   }
+  },
+  "pipewire-dev": {
+   "apt\\pipewire-dev": {
+    "driver": "apt",
+    "fields": {
+     "name": "libpipewire-0.3-dev"
+    },
+    "name": "libpipewire-0.3-dev"
    }
   },
   "pipx": {
@@ -87914,11 +88236,18 @@
    }
   },
   "strawberry": {
+   "apt\\software-properties-common": {
+    "driver": "apt",
+    "fields": {
+     "name": "software-properties-common"
+    },
+    "name": "software-properties-common"
+   },
    "apt\\strawberry": {
     "driver": "apt",
     "fields": {
      "name": "strawberry",
-     "repo-component": "universe"
+     "ppa": "jonaski/strawberry"
     },
     "name": "strawberry"
    }
@@ -89194,6 +89523,20 @@
    }
   },
   "wiremix": {
+   "apt\\pipewire-dev": {
+    "driver": "apt",
+    "fields": {
+     "name": "libpipewire-0.3-dev"
+    },
+    "name": "libpipewire-0.3-dev"
+   },
+   "apt\\pkg-config": {
+    "driver": "apt",
+    "fields": {
+     "name": "pkg-config"
+    },
+    "name": "pkg-config"
+   },
    "apt\\rust": {
     "driver": "apt",
     "fields": {
@@ -89266,6 +89609,36 @@
    }
   },
   "wl-screenrec": {
+   "apt\\ffmpeg-dev": {
+    "driver": "apt",
+    "fields": {
+     "name": "ffmpeg-dev",
+     "packages": [
+      "libavutil-dev",
+      "libavformat-dev",
+      "libavcodec-dev",
+      "libavfilter-dev",
+      "libavdevice-dev",
+      "libswscale-dev",
+      "libswresample-dev"
+     ]
+    },
+    "name": "ffmpeg-dev"
+   },
+   "apt\\libdrm-dev": {
+    "driver": "apt",
+    "fields": {
+     "name": "libdrm-dev"
+    },
+    "name": "libdrm-dev"
+   },
+   "apt\\pkg-config": {
+    "driver": "apt",
+    "fields": {
+     "name": "pkg-config"
+    },
+    "name": "pkg-config"
+   },
    "apt\\rust": {
     "driver": "apt",
     "fields": {
@@ -91343,24 +91716,12 @@
    }
   },
   "claude-code": {
-   "dnf\\node": {
+   "dnf\\curl": {
     "driver": "dnf",
     "fields": {
-     "name": "nodejs",
-     "repo-component": "universe"
+     "name": "curl"
     },
-    "name": "nodejs"
-   },
-   "dotfiles\\bash-dotfiles": {
-    "driver": "dotfiles",
-    "fields": {
-     "aliases": {
-      "absorb-into": "~/.config/bash/conf.d/pre-configsys-aliases.sh",
-      "dst": "~/.bash_aliases",
-      "src": "bash_aliases"
-     }
-    },
-    "name": "bash-dotfiles"
+    "name": "curl"
    },
    "dotfiles\\claude-code-dotfiles": {
     "driver": "dotfiles",
@@ -91372,19 +91733,18 @@
     },
     "name": "claude-code-dotfiles"
    },
-   "dotfiles\\node-dotfiles": {
-    "driver": "dotfiles",
+   "script\\claude-code": {
+    "driver": "script",
     "fields": {
-     "glue": "node"
+     "install-cmd": "curl -fsSL https://claude.ai/install.sh | bash",
+     "location": "~/.local/bin/claude",
+     "name": "claude-code",
+     "uninstall-cmd": "rm -f \"$HOME/.local/bin/claude\"",
+     "upgrade-cmd": "claude update",
+     "version-cmd": "claude --version 2>/dev/null",
+     "version-re": "([0-9][0-9.]*)"
     },
-    "name": "node-dotfiles"
-   },
-   "npm\\claude-code": {
-    "driver": "npm",
-    "fields": {
-     "name": "@anthropic-ai/claude-code"
-    },
-    "name": "@anthropic-ai/claude-code"
+    "name": "claude-code"
    }
   },
   "claude-code-dotfiles": {
@@ -91725,6 +92085,13 @@
    }
   },
   "coursier": {
+   "dnf\\curl": {
+    "driver": "dnf",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
    "dnf\\jdk": {
     "driver": "dnf",
     "fields": {
@@ -91750,29 +92117,15 @@
     },
     "name": "coursier-dotfiles"
    },
-   "dotfiles\\sdkman-dotfiles": {
-    "driver": "dotfiles",
-    "fields": {
-     "glue": "sdkman"
-    },
-    "name": "sdkman-dotfiles"
-   },
-   "script\\sdkman": {
+   "script\\coursier": {
     "driver": "script",
     "fields": {
-     "install-cmd": "curl -s https://get.sdkman.io | bash",
-     "location": "~/.sdkman",
-     "name": "sdkman",
-     "uninstall-cmd": "rm -rf \"$HOME/.sdkman\"",
-     "version-cmd": "source \"$HOME/.sdkman/bin/sdkman-init.sh\" && sdk version",
-     "version-re": "([0-9]+\\.[0-9]+\\.[0-9]+)"
-    },
-    "name": "sdkman"
-   },
-   "sdkman\\coursier": {
-    "driver": "sdkman",
-    "fields": {
-     "name": "coursier"
+     "install-cmd": "mkdir -p \"$HOME/.local/bin\" && A=\"$(uname -m)\"; case \"$A\" in aarch64|arm64) F=cs-aarch64-pc-linux.gz ;; *) F=cs-x86_64-pc-linux.gz ;; esac; curl -fL \"https://github.com/coursier/coursier/releases/latest/download/$F\" | gzip -d > \"$HOME/.local/bin/cs\" && chmod +x \"$HOME/.local/bin/cs\"",
+     "location": "~/.local/bin/cs",
+     "name": "coursier",
+     "uninstall-cmd": "rm -f \"$HOME/.local/bin/cs\"",
+     "version-cmd": "\"$HOME/.local/bin/cs\" version 2>/dev/null",
+     "version-re": "([0-9][0-9.]*)"
     },
     "name": "coursier"
    }
@@ -92405,10 +92758,10 @@
    "tarball\\dnspeep": {
     "driver": "tarball",
     "fields": {
-     "asset": "dnspeep-linux.tar.gz",
      "installDir": "$CONFIGSYS_APP_DIR/dnspeep",
      "name": "dnspeep",
      "version": {
+      "asset": "dnspeep-linux.tar.gz",
       "github": "jvns/dnspeep",
       "strip-v": "true"
      }
@@ -93044,6 +93397,27 @@
     "name": "fennel"
    }
   },
+  "fff": {
+   "dnf\\curl": {
+    "driver": "dnf",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "script\\fff": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "mkdir -p \"$HOME/.local/bin\" && curl -fsSL https://raw.githubusercontent.com/dylanaraps/fff/master/fff -o \"$HOME/.local/bin/fff\" && chmod +x \"$HOME/.local/bin/fff\"",
+     "location": "~/.local/bin/fff",
+     "name": "fff",
+     "uninstall-cmd": "rm -f \"$HOME/.local/bin/fff\"",
+     "version-cmd": "\"$HOME/.local/bin/fff\" -v 2>/dev/null",
+     "version-re": "([0-9][0-9.]*)"
+    },
+    "name": "fff"
+   }
+  },
   "ffmpeg": {
    "dnf\\epel-release": {
     "driver": "dnf",
@@ -93058,6 +93432,34 @@
      "name": "ffmpeg"
     },
     "name": "ffmpeg"
+   },
+   "dnf\\rpmfusion-free": {
+    "driver": "dnf",
+    "fields": {
+     "enable-repo": "crb",
+     "name": "rpmfusion-free-release",
+     "pubkey-url": "https://rpmfusion.org/keys?action=AttachFile&do=get&target=RPM-GPG-KEY-rpmfusion-free-el-$releasever",
+     "repo-id": "rpmfusion-free",
+     "repo-name": "RPM Fusion for EL - Free",
+     "repo-url": "https://download1.rpmfusion.org/free/el/updates/$releasever/$basearch/"
+    },
+    "name": "rpmfusion-free-release"
+   }
+  },
+  "ffmpeg-dev": {
+   "dnf\\epel-release": {
+    "driver": "dnf",
+    "fields": {
+     "name": "epel-release"
+    },
+    "name": "epel-release"
+   },
+   "dnf\\ffmpeg-dev": {
+    "driver": "dnf",
+    "fields": {
+     "name": "ffmpeg-devel"
+    },
+    "name": "ffmpeg-devel"
    },
    "dnf\\rpmfusion-free": {
     "driver": "dnf",
@@ -95979,6 +96381,15 @@
     "name": "libcxxabi-devel"
    }
   },
+  "libdrm-dev": {
+   "dnf\\libdrm-dev": {
+    "driver": "dnf",
+    "fields": {
+     "name": "libdrm-devel"
+    },
+    "name": "libdrm-devel"
+   }
+  },
   "libfuse2": {
    "dnf\\libfuse2": {
     "driver": "dnf",
@@ -98050,6 +98461,15 @@
      "name": "pipewire"
     },
     "name": "pipewire"
+   }
+  },
+  "pipewire-dev": {
+   "dnf\\pipewire-dev": {
+    "driver": "dnf",
+    "fields": {
+     "name": "pipewire-devel"
+    },
+    "name": "pipewire-devel"
    }
   },
   "pipx": {
@@ -100977,6 +101397,20 @@
     },
     "name": "wiremix"
    },
+   "dnf\\pipewire-dev": {
+    "driver": "dnf",
+    "fields": {
+     "name": "pipewire-devel"
+    },
+    "name": "pipewire-devel"
+   },
+   "dnf\\pkg-config": {
+    "driver": "dnf",
+    "fields": {
+     "name": "pkgconf-pkg-config"
+    },
+    "name": "pkgconf-pkg-config"
+   },
    "dnf\\rust": {
     "driver": "dnf",
     "fields": {
@@ -101054,6 +101488,46 @@
      "name": "wl-screenrec"
     },
     "name": "wl-screenrec"
+   },
+   "dnf\\epel-release": {
+    "driver": "dnf",
+    "fields": {
+     "name": "epel-release"
+    },
+    "name": "epel-release"
+   },
+   "dnf\\ffmpeg-dev": {
+    "driver": "dnf",
+    "fields": {
+     "name": "ffmpeg-devel"
+    },
+    "name": "ffmpeg-devel"
+   },
+   "dnf\\libdrm-dev": {
+    "driver": "dnf",
+    "fields": {
+     "name": "libdrm-devel"
+    },
+    "name": "libdrm-devel"
+   },
+   "dnf\\pkg-config": {
+    "driver": "dnf",
+    "fields": {
+     "name": "pkgconf-pkg-config"
+    },
+    "name": "pkgconf-pkg-config"
+   },
+   "dnf\\rpmfusion-free": {
+    "driver": "dnf",
+    "fields": {
+     "enable-repo": "crb",
+     "name": "rpmfusion-free-release",
+     "pubkey-url": "https://rpmfusion.org/keys?action=AttachFile&do=get&target=RPM-GPG-KEY-rpmfusion-free-el-$releasever",
+     "repo-id": "rpmfusion-free",
+     "repo-name": "RPM Fusion for EL - Free",
+     "repo-url": "https://download1.rpmfusion.org/free/el/updates/$releasever/$basearch/"
+    },
+    "name": "rpmfusion-free-release"
    },
    "dnf\\rust": {
     "driver": "dnf",
@@ -103159,24 +103633,12 @@
    }
   },
   "claude-code": {
-   "apt\\node": {
+   "apt\\curl": {
     "driver": "apt",
     "fields": {
-     "name": "npm",
-     "repo-component": "universe"
+     "name": "curl"
     },
-    "name": "npm"
-   },
-   "dotfiles\\bash-dotfiles": {
-    "driver": "dotfiles",
-    "fields": {
-     "aliases": {
-      "absorb-into": "~/.config/bash/conf.d/pre-configsys-aliases.sh",
-      "dst": "~/.bash_aliases",
-      "src": "bash_aliases"
-     }
-    },
-    "name": "bash-dotfiles"
+    "name": "curl"
    },
    "dotfiles\\claude-code-dotfiles": {
     "driver": "dotfiles",
@@ -103188,19 +103650,18 @@
     },
     "name": "claude-code-dotfiles"
    },
-   "dotfiles\\node-dotfiles": {
-    "driver": "dotfiles",
+   "script\\claude-code": {
+    "driver": "script",
     "fields": {
-     "glue": "node"
+     "install-cmd": "curl -fsSL https://claude.ai/install.sh | bash",
+     "location": "~/.local/bin/claude",
+     "name": "claude-code",
+     "uninstall-cmd": "rm -f \"$HOME/.local/bin/claude\"",
+     "upgrade-cmd": "claude update",
+     "version-cmd": "claude --version 2>/dev/null",
+     "version-re": "([0-9][0-9.]*)"
     },
-    "name": "node-dotfiles"
-   },
-   "npm\\claude-code": {
-    "driver": "npm",
-    "fields": {
-     "name": "@anthropic-ai/claude-code"
-    },
-    "name": "@anthropic-ai/claude-code"
+    "name": "claude-code"
    }
   },
   "claude-code-dotfiles": {
@@ -103504,6 +103965,13 @@
    }
   },
   "coursier": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
    "apt\\jdk": {
     "driver": "apt",
     "fields": {
@@ -103529,29 +103997,15 @@
     },
     "name": "coursier-dotfiles"
    },
-   "dotfiles\\sdkman-dotfiles": {
-    "driver": "dotfiles",
-    "fields": {
-     "glue": "sdkman"
-    },
-    "name": "sdkman-dotfiles"
-   },
-   "script\\sdkman": {
+   "script\\coursier": {
     "driver": "script",
     "fields": {
-     "install-cmd": "curl -s https://get.sdkman.io | bash",
-     "location": "~/.sdkman",
-     "name": "sdkman",
-     "uninstall-cmd": "rm -rf \"$HOME/.sdkman\"",
-     "version-cmd": "source \"$HOME/.sdkman/bin/sdkman-init.sh\" && sdk version",
-     "version-re": "([0-9]+\\.[0-9]+\\.[0-9]+)"
-    },
-    "name": "sdkman"
-   },
-   "sdkman\\coursier": {
-    "driver": "sdkman",
-    "fields": {
-     "name": "coursier"
+     "install-cmd": "mkdir -p \"$HOME/.local/bin\" && A=\"$(uname -m)\"; case \"$A\" in aarch64|arm64) F=cs-aarch64-pc-linux.gz ;; *) F=cs-x86_64-pc-linux.gz ;; esac; curl -fL \"https://github.com/coursier/coursier/releases/latest/download/$F\" | gzip -d > \"$HOME/.local/bin/cs\" && chmod +x \"$HOME/.local/bin/cs\"",
+     "location": "~/.local/bin/cs",
+     "name": "coursier",
+     "uninstall-cmd": "rm -f \"$HOME/.local/bin/cs\"",
+     "version-cmd": "\"$HOME/.local/bin/cs\" version 2>/dev/null",
+     "version-re": "([0-9][0-9.]*)"
     },
     "name": "coursier"
    }
@@ -104212,10 +104666,10 @@
    "tarball\\dnspeep": {
     "driver": "tarball",
     "fields": {
-     "asset": "dnspeep-linux.tar.gz",
      "installDir": "$CONFIGSYS_APP_DIR/dnspeep",
      "name": "dnspeep",
      "version": {
+      "asset": "dnspeep-linux.tar.gz",
       "github": "jvns/dnspeep",
       "strip-v": "true"
      }
@@ -104821,11 +105275,22 @@
    }
   },
   "fff": {
-   "apt\\fff": {
+   "apt\\curl": {
     "driver": "apt",
     "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "script\\fff": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "mkdir -p \"$HOME/.local/bin\" && curl -fsSL https://raw.githubusercontent.com/dylanaraps/fff/master/fff -o \"$HOME/.local/bin/fff\" && chmod +x \"$HOME/.local/bin/fff\"",
+     "location": "~/.local/bin/fff",
      "name": "fff",
-     "repo-component": "universe"
+     "uninstall-cmd": "rm -f \"$HOME/.local/bin/fff\"",
+     "version-cmd": "\"$HOME/.local/bin/fff\" -v 2>/dev/null",
+     "version-re": "([0-9][0-9.]*)"
     },
     "name": "fff"
    }
@@ -104837,6 +105302,24 @@
      "name": "ffmpeg"
     },
     "name": "ffmpeg"
+   }
+  },
+  "ffmpeg-dev": {
+   "apt\\ffmpeg-dev": {
+    "driver": "apt",
+    "fields": {
+     "name": "ffmpeg-dev",
+     "packages": [
+      "libavutil-dev",
+      "libavformat-dev",
+      "libavcodec-dev",
+      "libavfilter-dev",
+      "libavdevice-dev",
+      "libswscale-dev",
+      "libswresample-dev"
+     ]
+    },
+    "name": "ffmpeg-dev"
    }
   },
   "firefox": {
@@ -107945,6 +108428,15 @@
     "name": "libc++abi-dev"
    }
   },
+  "libdrm-dev": {
+   "apt\\libdrm-dev": {
+    "driver": "apt",
+    "fields": {
+     "name": "libdrm-dev"
+    },
+    "name": "libdrm-dev"
+   }
+  },
   "libfuse2": {
    "apt\\libfuse2": {
     "driver": "apt",
@@ -108740,7 +109232,7 @@
      "name": "mongodb-org",
      "pubkey-path": "/usr/share/keyrings/mongodb-server-8.0.asc",
      "pubkey-url": "https://www.mongodb.org/static/pgp/server-8.0.asc",
-     "source-line": "deb [signed-by=/usr/share/keyrings/mongodb-server-8.0.asc] https://repo.mongodb.org/apt/ubuntu noble/mongodb-org/8.0 multiverse",
+     "source-line": "deb [signed-by=/usr/share/keyrings/mongodb-server-8.0.asc] https://repo.mongodb.org/apt/ubuntu $CODENAME/mongodb-org/8.0 multiverse",
      "source-path": "/etc/apt/sources.list.d/mongodb-org-8.0.list"
     },
     "name": "mongodb-org"
@@ -108753,7 +109245,7 @@
      "name": "mongodb-org",
      "pubkey-path": "/usr/share/keyrings/mongodb-server-8.0.asc",
      "pubkey-url": "https://www.mongodb.org/static/pgp/server-8.0.asc",
-     "source-line": "deb [signed-by=/usr/share/keyrings/mongodb-server-8.0.asc] https://repo.mongodb.org/apt/ubuntu noble/mongodb-org/8.0 multiverse",
+     "source-line": "deb [signed-by=/usr/share/keyrings/mongodb-server-8.0.asc] https://repo.mongodb.org/apt/ubuntu $CODENAME/mongodb-org/8.0 multiverse",
      "source-path": "/etc/apt/sources.list.d/mongodb-org-8.0.list"
     },
     "name": "mongodb-org"
@@ -110021,6 +110513,15 @@
      "name": "pipewire"
     },
     "name": "pipewire"
+   }
+  },
+  "pipewire-dev": {
+   "apt\\pipewire-dev": {
+    "driver": "apt",
+    "fields": {
+     "name": "libpipewire-0.3-dev"
+    },
+    "name": "libpipewire-0.3-dev"
    }
   },
   "pipx": {
@@ -111628,11 +112129,18 @@
    }
   },
   "strawberry": {
+   "apt\\software-properties-common": {
+    "driver": "apt",
+    "fields": {
+     "name": "software-properties-common"
+    },
+    "name": "software-properties-common"
+   },
    "apt\\strawberry": {
     "driver": "apt",
     "fields": {
      "name": "strawberry",
-     "repo-component": "universe"
+     "ppa": "jonaski/strawberry"
     },
     "name": "strawberry"
    }
@@ -112908,6 +113416,20 @@
    }
   },
   "wiremix": {
+   "apt\\pipewire-dev": {
+    "driver": "apt",
+    "fields": {
+     "name": "libpipewire-0.3-dev"
+    },
+    "name": "libpipewire-0.3-dev"
+   },
+   "apt\\pkg-config": {
+    "driver": "apt",
+    "fields": {
+     "name": "pkg-config"
+    },
+    "name": "pkg-config"
+   },
    "apt\\rust": {
     "driver": "apt",
     "fields": {
@@ -112980,6 +113502,36 @@
    }
   },
   "wl-screenrec": {
+   "apt\\ffmpeg-dev": {
+    "driver": "apt",
+    "fields": {
+     "name": "ffmpeg-dev",
+     "packages": [
+      "libavutil-dev",
+      "libavformat-dev",
+      "libavcodec-dev",
+      "libavfilter-dev",
+      "libavdevice-dev",
+      "libswscale-dev",
+      "libswresample-dev"
+     ]
+    },
+    "name": "ffmpeg-dev"
+   },
+   "apt\\libdrm-dev": {
+    "driver": "apt",
+    "fields": {
+     "name": "libdrm-dev"
+    },
+    "name": "libdrm-dev"
+   },
+   "apt\\pkg-config": {
+    "driver": "apt",
+    "fields": {
+     "name": "pkg-config"
+    },
+    "name": "pkg-config"
+   },
    "apt\\rust": {
     "driver": "apt",
     "fields": {
@@ -115044,24 +115596,12 @@
    }
   },
   "claude-code": {
-   "apt\\node": {
+   "apt\\curl": {
     "driver": "apt",
     "fields": {
-     "name": "npm",
-     "repo-component": "universe"
+     "name": "curl"
     },
-    "name": "npm"
-   },
-   "dotfiles\\bash-dotfiles": {
-    "driver": "dotfiles",
-    "fields": {
-     "aliases": {
-      "absorb-into": "~/.config/bash/conf.d/pre-configsys-aliases.sh",
-      "dst": "~/.bash_aliases",
-      "src": "bash_aliases"
-     }
-    },
-    "name": "bash-dotfiles"
+    "name": "curl"
    },
    "dotfiles\\claude-code-dotfiles": {
     "driver": "dotfiles",
@@ -115073,19 +115613,18 @@
     },
     "name": "claude-code-dotfiles"
    },
-   "dotfiles\\node-dotfiles": {
-    "driver": "dotfiles",
+   "script\\claude-code": {
+    "driver": "script",
     "fields": {
-     "glue": "node"
+     "install-cmd": "curl -fsSL https://claude.ai/install.sh | bash",
+     "location": "~/.local/bin/claude",
+     "name": "claude-code",
+     "uninstall-cmd": "rm -f \"$HOME/.local/bin/claude\"",
+     "upgrade-cmd": "claude update",
+     "version-cmd": "claude --version 2>/dev/null",
+     "version-re": "([0-9][0-9.]*)"
     },
-    "name": "node-dotfiles"
-   },
-   "npm\\claude-code": {
-    "driver": "npm",
-    "fields": {
-     "name": "@anthropic-ai/claude-code"
-    },
-    "name": "@anthropic-ai/claude-code"
+    "name": "claude-code"
    }
   },
   "claude-code-dotfiles": {
@@ -115372,6 +115911,13 @@
    }
   },
   "coursier": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
    "apt\\jdk": {
     "driver": "apt",
     "fields": {
@@ -115397,29 +115943,15 @@
     },
     "name": "coursier-dotfiles"
    },
-   "dotfiles\\sdkman-dotfiles": {
-    "driver": "dotfiles",
-    "fields": {
-     "glue": "sdkman"
-    },
-    "name": "sdkman-dotfiles"
-   },
-   "script\\sdkman": {
+   "script\\coursier": {
     "driver": "script",
     "fields": {
-     "install-cmd": "curl -s https://get.sdkman.io | bash",
-     "location": "~/.sdkman",
-     "name": "sdkman",
-     "uninstall-cmd": "rm -rf \"$HOME/.sdkman\"",
-     "version-cmd": "source \"$HOME/.sdkman/bin/sdkman-init.sh\" && sdk version",
-     "version-re": "([0-9]+\\.[0-9]+\\.[0-9]+)"
-    },
-    "name": "sdkman"
-   },
-   "sdkman\\coursier": {
-    "driver": "sdkman",
-    "fields": {
-     "name": "coursier"
+     "install-cmd": "mkdir -p \"$HOME/.local/bin\" && A=\"$(uname -m)\"; case \"$A\" in aarch64|arm64) F=cs-aarch64-pc-linux.gz ;; *) F=cs-x86_64-pc-linux.gz ;; esac; curl -fL \"https://github.com/coursier/coursier/releases/latest/download/$F\" | gzip -d > \"$HOME/.local/bin/cs\" && chmod +x \"$HOME/.local/bin/cs\"",
+     "location": "~/.local/bin/cs",
+     "name": "coursier",
+     "uninstall-cmd": "rm -f \"$HOME/.local/bin/cs\"",
+     "version-cmd": "\"$HOME/.local/bin/cs\" version 2>/dev/null",
+     "version-re": "([0-9][0-9.]*)"
     },
     "name": "coursier"
    }
@@ -116080,10 +116612,10 @@
    "tarball\\dnspeep": {
     "driver": "tarball",
     "fields": {
-     "asset": "dnspeep-linux.tar.gz",
      "installDir": "$CONFIGSYS_APP_DIR/dnspeep",
      "name": "dnspeep",
      "version": {
+      "asset": "dnspeep-linux.tar.gz",
       "github": "jvns/dnspeep",
       "strip-v": "true"
      }
@@ -116672,11 +117204,22 @@
    }
   },
   "fff": {
-   "apt\\fff": {
+   "apt\\curl": {
     "driver": "apt",
     "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "script\\fff": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "mkdir -p \"$HOME/.local/bin\" && curl -fsSL https://raw.githubusercontent.com/dylanaraps/fff/master/fff -o \"$HOME/.local/bin/fff\" && chmod +x \"$HOME/.local/bin/fff\"",
+     "location": "~/.local/bin/fff",
      "name": "fff",
-     "repo-component": "universe"
+     "uninstall-cmd": "rm -f \"$HOME/.local/bin/fff\"",
+     "version-cmd": "\"$HOME/.local/bin/fff\" -v 2>/dev/null",
+     "version-re": "([0-9][0-9.]*)"
     },
     "name": "fff"
    }
@@ -116688,6 +117231,24 @@
      "name": "ffmpeg"
     },
     "name": "ffmpeg"
+   }
+  },
+  "ffmpeg-dev": {
+   "apt\\ffmpeg-dev": {
+    "driver": "apt",
+    "fields": {
+     "name": "ffmpeg-dev",
+     "packages": [
+      "libavutil-dev",
+      "libavformat-dev",
+      "libavcodec-dev",
+      "libavfilter-dev",
+      "libavdevice-dev",
+      "libswscale-dev",
+      "libswresample-dev"
+     ]
+    },
+    "name": "ffmpeg-dev"
    }
   },
   "firefox": {
@@ -119736,6 +120297,15 @@
     "name": "libc++abi-dev"
    }
   },
+  "libdrm-dev": {
+   "apt\\libdrm-dev": {
+    "driver": "apt",
+    "fields": {
+     "name": "libdrm-dev"
+    },
+    "name": "libdrm-dev"
+   }
+  },
   "libfuse2": {
    "apt\\libfuse2": {
     "driver": "apt",
@@ -120497,7 +121067,7 @@
      "name": "mongodb-org",
      "pubkey-path": "/usr/share/keyrings/mongodb-server-8.0.asc",
      "pubkey-url": "https://www.mongodb.org/static/pgp/server-8.0.asc",
-     "source-line": "deb [signed-by=/usr/share/keyrings/mongodb-server-8.0.asc] https://repo.mongodb.org/apt/ubuntu noble/mongodb-org/8.0 multiverse",
+     "source-line": "deb [signed-by=/usr/share/keyrings/mongodb-server-8.0.asc] https://repo.mongodb.org/apt/ubuntu $CODENAME/mongodb-org/8.0 multiverse",
      "source-path": "/etc/apt/sources.list.d/mongodb-org-8.0.list"
     },
     "name": "mongodb-org"
@@ -120510,7 +121080,7 @@
      "name": "mongodb-org",
      "pubkey-path": "/usr/share/keyrings/mongodb-server-8.0.asc",
      "pubkey-url": "https://www.mongodb.org/static/pgp/server-8.0.asc",
-     "source-line": "deb [signed-by=/usr/share/keyrings/mongodb-server-8.0.asc] https://repo.mongodb.org/apt/ubuntu noble/mongodb-org/8.0 multiverse",
+     "source-line": "deb [signed-by=/usr/share/keyrings/mongodb-server-8.0.asc] https://repo.mongodb.org/apt/ubuntu $CODENAME/mongodb-org/8.0 multiverse",
      "source-path": "/etc/apt/sources.list.d/mongodb-org-8.0.list"
     },
     "name": "mongodb-org"
@@ -121744,6 +122314,15 @@
      "name": "pipewire"
     },
     "name": "pipewire"
+   }
+  },
+  "pipewire-dev": {
+   "apt\\pipewire-dev": {
+    "driver": "apt",
+    "fields": {
+     "name": "libpipewire-0.3-dev"
+    },
+    "name": "libpipewire-0.3-dev"
    }
   },
   "pipx": {
@@ -123300,11 +123879,18 @@
    }
   },
   "strawberry": {
+   "apt\\software-properties-common": {
+    "driver": "apt",
+    "fields": {
+     "name": "software-properties-common"
+    },
+    "name": "software-properties-common"
+   },
    "apt\\strawberry": {
     "driver": "apt",
     "fields": {
      "name": "strawberry",
-     "repo-component": "universe"
+     "ppa": "jonaski/strawberry"
     },
     "name": "strawberry"
    }
@@ -124563,6 +125149,20 @@
    }
   },
   "wiremix": {
+   "apt\\pipewire-dev": {
+    "driver": "apt",
+    "fields": {
+     "name": "libpipewire-0.3-dev"
+    },
+    "name": "libpipewire-0.3-dev"
+   },
+   "apt\\pkg-config": {
+    "driver": "apt",
+    "fields": {
+     "name": "pkg-config"
+    },
+    "name": "pkg-config"
+   },
    "apt\\rust": {
     "driver": "apt",
     "fields": {
@@ -124635,6 +125235,36 @@
    }
   },
   "wl-screenrec": {
+   "apt\\ffmpeg-dev": {
+    "driver": "apt",
+    "fields": {
+     "name": "ffmpeg-dev",
+     "packages": [
+      "libavutil-dev",
+      "libavformat-dev",
+      "libavcodec-dev",
+      "libavfilter-dev",
+      "libavdevice-dev",
+      "libswscale-dev",
+      "libswresample-dev"
+     ]
+    },
+    "name": "ffmpeg-dev"
+   },
+   "apt\\libdrm-dev": {
+    "driver": "apt",
+    "fields": {
+     "name": "libdrm-dev"
+    },
+    "name": "libdrm-dev"
+   },
+   "apt\\pkg-config": {
+    "driver": "apt",
+    "fields": {
+     "name": "pkg-config"
+    },
+    "name": "pkg-config"
+   },
    "apt\\rust": {
     "driver": "apt",
     "fields": {

@@ -92,12 +92,24 @@ class Apt(Driver):
 
         # `source-line`: an inline `deb ...` line written to source-path (for vendor repos
         # like Microsoft's that ship no downloadable .list — you echo the line yourself).
+        # `$CODENAME` in the line is resolved on the target from /etc/os-release (UBUNTU_CODENAME
+        # first — set on Ubuntu + derivatives like Pop!_OS/Mint — else VERSION_CODENAME), so a
+        # codename-specific vendor repo (e.g. MongoDB's ubuntu/<codename>) works on any release
+        # rather than a single hardcoded suite. Same mechanism the clang/gcc AltDriver uses.
         src_line = f.get('source-line')
         if src_line and src_path:
-            sp, sl = shlex.quote(src_path), shlex.quote(src_line)
-            self.runner.run(
-                f'if [ ! -f {sp} ]; then echo {sl} | sudo tee {sp} >/dev/null '
-                f'&& sudo apt-get update; fi', capture=False)
+            sp = shlex.quote(src_path)
+            if '$CODENAME' in src_line:
+                self.runner.run(
+                    f'if [ ! -f {sp} ]; then '
+                    f'CODENAME="$(. /etc/os-release; echo "${{UBUNTU_CODENAME:-$VERSION_CODENAME}}")"; '
+                    f'echo "{src_line}" | sudo tee {sp} >/dev/null && sudo apt-get update; fi',
+                    capture=False)
+            else:
+                sl = shlex.quote(src_line)
+                self.runner.run(
+                    f'if [ ! -f {sp} ]; then echo {sl} | sudo tee {sp} >/dev/null '
+                    f'&& sudo apt-get update; fi', capture=False)
 
         # `debconf`: preseed install-time debconf answers so a NON-interactive install makes
         # the choice we want instead of the silent default (e.g. wireshark's non-root-capture
