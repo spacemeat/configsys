@@ -356,13 +356,43 @@ class Config:
 
     def profile_removed(self, profile):
         '''Components a `~term` drops anywhere in `profile`'s chain — for the profile editor's `~`
-        marker (a component explicitly removed, so it isn't a member even if an include brought it).'''
+        marker (a component explicitly removed, so it isn't a member even if an include brought it).
+        A `~subprofile` term contributes ALL of that subprofile's expanded members.'''
         out = set()
         for idx, _val, _src in self._chain.get(profile, ()):
             for term in self._own_terms(profile, idx):
                 op, ref = _split_term(term)
-                if op == '~':
+                if op != '~':
+                    continue
+                sub = self._chain.get(ref)
+                if sub and ref != profile:                 # ~subprofile -> all its members
+                    try:
+                        out.update(self._expand(ref, sub[-1][0], sub[-1][1], ()))
+                    except ConfigError:
+                        pass
+                else:                                      # ~component
                     out.add(ref)
+        return out
+
+    def profile_excludes(self, profile):
+        '''Profiles that `profile` drops via a `~subprofile` term across the layer stack (the mirror
+        of profile_includes). For the Profiles editor's excluded-include markers + `check`.'''
+        out = set()
+        for _i, terms, _s in self._chain.get(profile, ()):
+            for t in _leaves(terms):
+                if isinstance(t, str) and t[:1] == '~' and t[1:] in self._chain and t[1:] != profile:
+                    out.add(t[1:])
+        return out
+
+    def profile_removal_terms(self, profile):
+        '''Every `~ref` name a profile declares across its chain (raw, unclassified) — lets `check`
+        flag a removal that matches neither a defined profile nor a known component (likely a typo,
+        since such a `~` silently removes nothing).'''
+        out = []
+        for _i, terms, _s in self._chain.get(profile, ()):
+            for t in _leaves(terms):
+                if isinstance(t, str) and t[:1] == '~' and t[1:]:
+                    out.append(t[1:])
         return out
 
     def _all_components(self):
@@ -404,8 +434,12 @@ class Config:
                 for c in members:
                     if c not in out:
                         out.append(c)
-            elif op == '~':                                # remove a component
-                if ref in out:
+            elif op == '~':                                # remove: a subprofile's members, or one component
+                if ref in self._chain and ref != name:     # a defined profile -> subtract its whole member set
+                    sidx, sval, _ = self._chain[ref][-1]    # (order-sensitive, like ~component: a later add re-adds)
+                    drop = set(self._expand(ref, sidx, sval, stack))
+                    out = [c for c in out if c not in drop]
+                elif ref in out:                           # a component
                     out.remove(ref)
             elif ref not in out:                           # add a component
                 out.append(ref)
@@ -446,8 +480,11 @@ class Config:
                             out.append(item)
                 elif ('include', ref) not in out:          # +other -> a link reference
                     out.append(('include', ref))
-            elif op == '~':                                # ~ drops an OWN component (can't reach
-                if ('component', ref) in out:              # into an unexpanded include)
+            elif op == '~':                                # ~ excludes a subprofile (a removed-include
+                if ref in self._chain and ref != name:     # marker), or drops an OWN component
+                    if ('exclude', ref) not in out:
+                        out.append(('exclude', ref))
+                elif ('component', ref) in out:            # (a ~component can't reach into an unexpanded include)
                     out.remove(('component', ref))
             elif ('component', ref) not in out:
                 out.append(('component', ref))

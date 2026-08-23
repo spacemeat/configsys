@@ -77,13 +77,15 @@ USER_CONFIG_TEMPLATE = '''{
     // }
 
     // Define, amend, or shadow profiles. A profile is an ordered list of terms: a bare `name`
-    // adds a component, `+name` includes another profile's members, `~name` removes one (order
-    // matters). `+<this profile's own name>` amends the same profile from the layer below
-    // (super), instead of replacing it; a bare redefine (no `+self`) still replaces wholesale.
+    // adds a component, `+name` includes another profile's members, `~name` removes — a component
+    // if `name` is one, or (if `name` is a DEFINED profile) that whole subprofile's members (order
+    // matters; a later add re-adds). `+<this profile's own name>` amends the same profile from the
+    // layer below (super), instead of replacing it; a bare redefine (no `+self`) replaces wholesale.
     // profiles: {
-    //     dev:     [ btop, neovim, gcc-15, gdb ]
-    //     desktop: [ +dev, steam, ~gdb ]          // everything in dev, plus steam, minus gdb
-    //     user:    [ +user, apod ]                // the base `user` profile PLUS apod
+    //     dev:      [ btop, neovim, gcc-15, gdb ]
+    //     desktop:  [ +dev, steam, ~gdb ]          // everything in dev, plus steam, minus gdb
+    //     user:     [ +user, apod ]                // the base `user` profile PLUS apod
+    //     ts-langs: [ +languages, ~haskell-lang ]  // all of `languages` EXCEPT the haskell-lang subprofile
     // }
 
     // Override component routes: bindings merge ADDITIVELY — add an install method (or your
@@ -1304,6 +1306,16 @@ def cmd_check(ctx, args):
         except ConfigsysError as e:
             prof_errors.append(str(e))
 
+    # a `~ref` that matches neither a defined profile nor a known component removes nothing — almost
+    # always a typo (e.g. `~haskel-lang`). Warn, don't error: it's a no-op, not a hard failure.
+    removal_warnings = []
+    _prof_names = set(ctx.config.profile_names())
+    for prof in ctx.config.active_profiles:
+        for ref in ctx.config.profile_removal_terms(prof):
+            if ref not in _prof_names and ref not in components:
+                removal_warnings.append(f"profile '{prof}': `~{ref}` removes nothing "
+                                        f"(not a defined profile or known component)")
+
     # pins: value must be a known driver (binding-pin) or a known component (provider-pin)
     from .drivers import supported_names
     valid_via = {'native', 'parts'} | supported_names()
@@ -1386,7 +1398,8 @@ def cmd_check(ctx, args):
     if (not errors and not warnings and not prof_issues and not prof_errors and not pin_issues
             and not include_warnings and not code_warnings and not conflict_warnings
             and not theme_warnings and not pin_conflict_warnings and not py_floor_warnings
-            and not stale_pin_warnings and not resolve_errors and not key_warnings):
+            and not stale_pin_warnings and not resolve_errors and not key_warnings
+            and not removal_warnings):
         print(f'configsys: OK — {len(components)} components, no issues')
         return 0
 
@@ -1418,10 +1431,12 @@ def cmd_check(ctx, args):
         print(f'  warn    {msg}')
     for msg in key_warnings:
         print(f'  warn    {msg}')
+    for msg in removal_warnings:
+        print(f'  warn    {msg}')
     n_err = len(errors) + len(prof_errors) + len(prof_issues) + len(pin_issues) + len(resolve_errors)
     n_warn = (len(warnings) + len(include_warnings) + len(code_warnings) + len(conflict_warnings)
               + len(theme_warnings) + len(pin_conflict_warnings) + len(py_floor_warnings)
-              + len(stale_pin_warnings) + len(key_warnings))
+              + len(stale_pin_warnings) + len(key_warnings) + len(removal_warnings))
     print(f'\nconfigsys: {n_err} error(s), {n_warn} warning(s) '
           f'across {len(components)} components')
     return 1 if n_err else 0
