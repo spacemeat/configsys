@@ -1217,20 +1217,30 @@ def _popup_choose(stdscr, pal, title, options, start=0, shortcuts=None):
     y0 = max(0, (h - box_h) // 2)
     x0 = max(0, (w - box_w) // 2)
     border = pal.get('accent') | curses.A_BOLD
+    vis = max(1, box_h - 4)                  # option rows that fit inside the box (below title, above hint)
     sel = start
+    ptop = 0
     while True:
+        if sel < ptop:                       # keep the selection inside the scroll window
+            ptop = sel
+        elif sel >= ptop + vis:
+            ptop = sel - vis + 1
         _put(stdscr, y0, x0, '┌' + '─' * (box_w - 2) + '┐', border)
         _put(stdscr, y0, x0 + 2, f' {_fit(title, box_w - 4)} ', border)
         for r in range(1, box_h - 1):
             _put(stdscr, y0 + r, x0, '│' + ' ' * (box_w - 2) + '│', border)
         _put(stdscr, y0 + box_h - 1, x0, '└' + '─' * (box_w - 2) + '┘', border)
-        for i, (label, tag) in enumerate(options):
-            row = f'{label}'
+        for r, i in enumerate(range(ptop, min(n, ptop + vis))):
+            label, tag = options[i]
             attr = curses.A_REVERSE if i == sel else curses.A_NORMAL
-            _put(stdscr, y0 + 2 + i, x0 + 2, _fit(row.ljust(box_w - 4), box_w - 4), attr)
+            _put(stdscr, y0 + 2 + r, x0 + 2, _fit(label.ljust(box_w - 4), box_w - 4), attr)
             if tag:
-                _put(stdscr, y0 + 2 + i, x0 + box_w - 2 - len(tag), tag,
+                _put(stdscr, y0 + 2 + r, x0 + box_w - 2 - len(tag), tag,
                      attr | pal.get('dim'))
+        if ptop > 0:                         # more above / below than the window shows
+            _put(stdscr, y0 + 1, x0 + box_w - 3, '↑', border)
+        if ptop + vis < n:
+            _put(stdscr, y0 + box_h - 2, x0 + box_w - 3, '↓', border)
         hint = f' {"/".join(shortcuts)} · j/k · enter · esc ' if shortcuts else ' j/k · enter · esc '
         _put(stdscr, y0 + box_h - 1, x0 + 2, _fit(hint, box_w - 4), border)
         stdscr.refresh()
