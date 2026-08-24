@@ -128,6 +128,25 @@ def set_profile_include(ctx, profile, other, add, *, target=None):
     return True, label
 
 
+def set_subprofile_membership(ctx, profile, sub, member, *, target=None):
+    '''Include (`member=True`) or exclude (`member=False`) subprofile `sub` in `profile` via the term
+    algebra — writes a `+sub`/`~sub` term (or drops the opposing own term) as needed. The Profiles
+    tree's membership toggle. Returns (changed, label); a no-op or invalid returns (False, reason).'''
+    if sub == profile:
+        return False, "a profile can't include or exclude itself"
+    if sub not in ctx.config.profile_names():
+        return False, f'no profile "{sub}"'
+    tfile, label = (target, target) if target else _profile_target(ctx, profile)
+    new_terms = ctx.config.plan_subprofile_edit(profile, sub, member, tfile)
+    if new_terms is None:
+        return False, label
+    profs = plugins.read_profiles(tfile)
+    profs[profile] = new_terms
+    plugins.set_profiles(tfile, profs)
+    ctx.invalidate()
+    return True, label
+
+
 def set_profile_active(ctx, profile, on, *, target=None):
     '''Activate (`on=True`) or deactivate `profile` in the active `configs:` set. Returns
     (changed, target_label).'''

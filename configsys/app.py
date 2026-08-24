@@ -1311,8 +1311,15 @@ def cmd_check(ctx, args):
     removal_warnings = []
     _prof_names = set(ctx.config.profile_names())
     for prof in ctx.config.active_profiles:
+        reach = None
         for ref in ctx.config.profile_removal_terms(prof):
-            if ref not in _prof_names and ref not in components:
+            if ref in _prof_names:                       # a ~subprofile: warn if it isn't even included
+                if reach is None:
+                    reach = ctx.config.reachable_subprofiles(prof)
+                if ref not in reach:
+                    removal_warnings.append(f"profile '{prof}': `~{ref}` removes nothing "
+                                            f"({prof} doesn't include the {ref} subprofile)")
+            elif ref not in components:                  # neither profile nor component -> likely a typo
                 removal_warnings.append(f"profile '{prof}': `~{ref}` removes nothing "
                                         f"(not a defined profile or known component)")
 

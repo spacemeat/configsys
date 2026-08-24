@@ -110,3 +110,65 @@ def test_own_components_unaffected_by_subprofile_exclude():
     # ts OWNS nothing (only include + excludes) -> profile_own_components is empty.
     c = cfg('{ configs: [ ts ]  profiles: { ts: [ +languages  ~ruby-lang ] } }')
     assert c.profile_own_components('ts') == []
+
+
+# -- membership fold + toggle planner (the TUI Profiles membership-toggle) --------------------
+
+UF = 'user.hu'
+
+
+def test_active_subprofiles_is_transitive():
+    c = cfg('{ configs: [ ts ]  profiles: { ts: [ +languages ] } }')
+    assert c.active_subprofiles('ts') == {
+        'languages', 'python-lang', 'ruby-lang', 'go-lang', 'jvm-lang', 'java-lang', 'kotlin-lang'}
+
+
+def test_active_subprofiles_drops_an_excluded_subtree():
+    c = cfg('{ configs: [ ts ]  profiles: { ts: [ +languages  ~jvm-lang ] } }')
+    subs = c.active_subprofiles('ts')
+    assert not ({'jvm-lang', 'java-lang', 'kotlin-lang'} & subs)   # the whole subtree goes
+    assert {'python-lang', 'ruby-lang', 'go-lang'} <= subs
+
+
+def test_toggle_exclude_an_active_subprofile_adds_neg():
+    c = cfg('{ configs: [ ts ]  profiles: { ts: [ +languages ] } }')
+    assert c.plan_subprofile_edit('ts', 'ruby-lang', False, UF) == ['+languages', '~ruby-lang']
+
+
+def test_toggle_reinclude_drops_our_own_neg():
+    c = cfg('{ configs: [ ts ]  profiles: { ts: [ +languages  ~jvm-lang ] } }')
+    # re-including a subprofile we ourselves excluded just removes the ~ term
+    assert c.plan_subprofile_edit('ts', 'jvm-lang', True, UF) == ['+languages']
+
+
+def test_toggle_reinclude_something_a_lower_profile_excluded_adds_plus():
+    # languages (amended) excludes go-lang; ts must ADD +go-lang to bring it back (dropping ~ won't do)
+    c = cfg('{ configs: [ ts ]  profiles: { languages: [ +languages  ~go-lang ]  ts: [ +languages ] } }')
+    assert 'go-lang' not in c.active_subprofiles('ts')
+    assert c.plan_subprofile_edit('ts', 'go-lang', True, UF) == ['+languages', '+go-lang']
+
+
+def test_toggle_exclude_drops_our_own_plus_when_that_suffices():
+    c = cfg('{ configs: [ ts ]  profiles: { languages: [ +languages  ~go-lang ]  ts: [ +languages  +go-lang ] } }')
+    assert 'go-lang' in c.active_subprofiles('ts')
+    # excluding again just drops the +go-lang we added (back to struck-by-languages)
+    assert c.plan_subprofile_edit('ts', 'go-lang', False, UF) == ['+languages']
+
+
+def test_toggle_noops():
+    c = cfg('{ configs: [ ts ]  profiles: { ts: [ +languages  ~jvm-lang ] } }')
+    assert c.plan_subprofile_edit('ts', 'ruby-lang', True, UF) is None    # already a member
+    assert c.plan_subprofile_edit('ts', 'jvm-lang', False, UF) is None    # already excluded
+
+
+def test_toggle_self_is_refused():
+    c = cfg('{ configs: [ ts ]  profiles: { ts: [ +languages ] } }')
+    with pytest.raises(Exception):
+        c.plan_subprofile_edit('ts', 'ts', False, UF)
+
+
+def test_exclude_from_a_profile_only_defined_below_amends_with_selfinc():
+    # base is defined in the repo; excluding go-lang FROM base at the user layer must +self-amend.
+    c = cfg('{ configs: [ base ]  profiles: { } }')
+    terms = c.plan_subprofile_edit('base', 'go-lang', False, UF)
+    assert terms[0] == '+base' and '~go-lang' in terms          # inherit-then-amend

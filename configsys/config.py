@@ -445,6 +445,62 @@ class Config:
                 out.append(ref)
         return out
 
+    def active_subprofiles(self, profile):
+        '''The set of subprofile NAMES a profile net-includes (a `+sub` not overridden by a later
+        `~sub`), transitively — the profile-level mirror of profile_components. Drives the Profiles
+        tree's active/excluded state and the subprofile membership toggle. Undefined/broken -> empty.'''
+        chain = self._chain.get(profile)
+        if not chain:
+            return set()
+        idx, val, _src = chain[-1]
+        try:
+            return self._active_subs(profile, idx, val, ())
+        except ConfigError:
+            return set()
+
+    def _active_subs(self, name, idx, val, stack):
+        '''Fold a profile definition to the set of subprofile names it net-includes (order-sensitive,
+        like _expand but tracking profile membership, not components). `+ref` adds ref + ref's own
+        active subs; `~ref` (a defined profile) drops ref AND its subtree (its members are pruned
+        wholesale, matching _expand's set subtraction); `+self` amends the layer below.'''
+        key = (name, idx)
+        if key in stack:
+            return set()                                 # cycle -> contributes nothing here
+        stack = stack + (key,)
+        on = set()
+        for term in _leaves(val):
+            op, ref = _split_term(term)
+            if op == '+':
+                if ref == name:                          # +self -> inherit the layer below
+                    lower = [e for e in self._chain.get(name, ()) if e[0] < idx]
+                    if lower:
+                        on |= self._active_subs(name, lower[-1][0], lower[-1][1], stack)
+                elif ref in self._chain:                 # include a profile: it + its active subs
+                    on.add(ref)
+                    sidx, sval, _ = self._chain[ref][-1]
+                    on |= self._active_subs(ref, sidx, sval, stack)
+            elif op == '~' and ref in self._chain and ref != name:
+                on.discard(ref)                          # exclude the subprofile + its whole subtree
+                sidx, sval, _ = self._chain[ref][-1]
+                on -= self._active_subs(ref, sidx, sval, stack)
+        return on
+
+    def reachable_subprofiles(self, profile):
+        '''Every subprofile reachable from `profile` via `+`-includes (transitively, IGNORING `~`
+        exclusions) — the universe a `~sub` could actually prune. For check's orphan-`~` warning
+        (a `~sub` for a profile that isn't even included removes nothing).'''
+        seen, stack = set(), [profile]
+        while stack:
+            p = stack.pop()
+            try:
+                for inc in self.profile_includes(p):
+                    if inc not in seen:
+                        seen.add(inc)
+                        stack.append(inc)
+            except ConfigError:
+                pass
+        return seen
+
     def profile_layout(self, profile):
         '''The DIRECT structure of a profile, for the menu's include-as-link view: an ordered,
         deduped list of ('include', other) for each `+other` (KEPT as a reference, NOT expanded)
@@ -590,6 +646,50 @@ class Config:
         if term not in own:
             return None                                       # not an include we own here
         return [t for t in own if t != term]
+
+    def plan_subprofile_edit(self, profile, sub, member, target_file):
+        '''New raw term list for `profile` in `target_file` so subprofile `sub` becomes a MEMBER
+        (`member=True` -> a `+sub` include) or a NON-member (`member=False` -> a `~sub` exclusion) of
+        `profile`'s effective subprofile set, honoring the term algebra. Pure; None for a no-op. This
+        is the membership-toggle behind the Profiles tree: include a struck subprofile, or exclude an
+        active one, writing `+sub`/`~sub` (or dropping the opposing own term) as needed. Mirrors
+        plan_membership_edit, but the member test is profile-level (active_subprofiles).'''
+        if sub == profile:
+            raise ConfigError("a profile can't include or exclude itself")
+        tidx = self.layer_index(target_file)
+        if tidx is None:
+            raise ConfigError(f'{target_file} is not a loaded config layer')
+        chain = self._chain.get(profile, ())
+        own = self._own_terms(profile, tidx)
+        in_target = any(i == tidx for i, _v, _s in chain)
+        defined_below = any(i < tidx for i, _v, _s in chain)
+        plus, neg = '+' + sub, '~' + sub
+        selfinc = '+' + profile
+
+        def active(terms):
+            return sub in self._active_subs(profile, tidx, list(terms), ())
+
+        is_member = sub in self.active_subprofiles(profile)
+
+        if member:
+            if is_member and neg not in own:
+                return None                              # already a member; nothing to write
+            base = [t for t in own if t != neg]          # drop a ~sub that was suppressing it
+            if not in_target and defined_below:
+                base = [selfinc] + base                  # amend the lower def instead of shadowing
+            if not active(base):
+                base = base + [plus]                     # still not a member -> add the include
+            return base
+
+        # exclude
+        if not is_member:
+            return None                                  # already not a member
+        if not in_target:
+            return [selfinc, neg] if defined_below else [neg]   # member only from below -> negate here
+        without = [t for t in own if t != plus]          # drop an own +sub first
+        if not active(without):                          # dropping our own +sub alone excludes it
+            return without
+        return without if neg in without else without + [neg]
 
     def profile_includes(self, profile):
         '''Profiles that `profile` pulls in via `+other` terms across the layer stack (excludes the

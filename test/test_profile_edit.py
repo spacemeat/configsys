@@ -251,17 +251,19 @@ def test_profile_tree_and_star_filter(tmp_path):
     assert any(nd[0] == 'base' and nd[1] == 1 for nd in v)   # base shows indented under mine
     # star `base` -> the catalog filters to base's OWN members
     ps.lcur = next(i for i, nd in enumerate(v) if nd[0] == 'base' and nd[1] == 1)
-    ps.toggle_star()
+    ps.cycle_star()                                          # off -> star base
     assert ps.vcatalog() == ['btop']
-    ps.toggle_star()                                         # unstar -> full catalog again
-    assert len(ps.vcatalog()) == len(ps.catalog)
+    ps.cycle_star()                                          # star -> star + show-removed (base pruned nothing)
+    assert ps.show_removed is True and ps.vcatalog() == ['btop']
+    ps.cycle_star()                                          # -> off: full catalog again
+    assert not ps.starred and len(ps.vcatalog()) == len(ps.catalog)
     # starring `mine` (which +includes base) now stars the whole inheritance chain, so base's OWN
     # members come along — the clone-and-prune view (see the base's members + a derived profile's ~drops)
     ps.lcur = [nd[0] for nd in ps.visible_pnodes()].index('mine')
-    ps.toggle_star()
+    ps.cycle_star()
     assert ps.starred == {'mine', 'base'}                    # * stars the profile AND its includes
     assert ps.vcatalog() == ['btop']                         # base's own member is now visible
-    ps.toggle_star()                                         # unstar `mine` -> the whole chain clears
+    ps.cycle_star(); ps.cycle_star()                         # +show-removed, then off -> the whole chain clears
     assert ps.starred == set() and len(ps.vcatalog()) == len(ps.catalog)
 
 
@@ -312,14 +314,37 @@ def test_profile_star_filter_show_removed(tmp_path):
 
     ps = menu.ProfileScreen(ctx)
     ps.attr_exc = set()                                            # isolate from the attrs filter
-    ps.lcur = [nd[0] for nd in ps.visible_pnodes()].index('mine')
-    ps.toggle_star()                                               # ▸ mine + base (the include closure)
-    assert ps.starred == {'mine', 'base'}
-    assert ps.vcatalog() == ['btop', 'htop']                     # base's htop shows; mine pruned it -> ~
-    # star mine ALONE (unstar the base): only its own member shows, until `~` reveals what it pruned
-    ps.lcur = [nd[0] for nd in ps.visible_pnodes()].index('base')
-    ps.toggle_star()                                              # unstar base
-    assert ps.starred == {'mine'} and ps.vcatalog() == ['btop']
-    ps.show_removed = True                                        # `~` reveal
+    # drive the FILTER directly (the `*` cycle is exercised in test_profile_tree_and_star_filter)
+    ps.starred = {'mine', 'base'}                                 # the include closure
+    assert ps.vcatalog() == ['btop', 'htop']                     # base's htop shows (its own member)
+    ps.starred = {'mine'}                                         # mine ALONE: only its own member
+    assert ps.vcatalog() == ['btop']
+    ps.show_removed = True                                        # reveal what mine pruned via ~htop
     assert ps.vcatalog() == ['btop', 'htop']                     # the pruned htop is shown again
     assert 'htop' in ps._starred_removed()                       # ...and marked as a removal (~)
+
+
+def test_subprofile_membership_toggle_roundtrip(tmp_path):
+    # The Profiles tree's `~` membership toggle: exclude a subprofile from a top-level profile, then
+    # re-include it — driven through the same actions wrapper the TUI calls.
+    from configsys import actions
+    ctx = _rctx(tmp_path)                                         # repo config.hu is the base layer
+    actions.add_profile(ctx, 'ts')
+    actions.set_profile_include(ctx, 'ts', 'languages', True)     # ts: [ +languages ]
+    assert 'ruby-lang' in ctx.config.active_subprofiles('ts')
+    assert 'ruby' in ctx.config.profile_components('ts')
+
+    changed, _ = actions.set_subprofile_membership(ctx, 'ts', 'ruby-lang', False)   # exclude
+    assert changed
+    assert 'ruby-lang' not in ctx.config.active_subprofiles('ts')
+    assert 'ruby-lang' in ctx.config.profile_excludes('ts')      # attribution: ts owns the ~
+    assert 'ruby' not in ctx.config.profile_components('ts')     # its members are gone
+
+    changed, _ = actions.set_subprofile_membership(ctx, 'ts', 'ruby-lang', True)    # re-include
+    assert changed
+    assert 'ruby-lang' in ctx.config.active_subprofiles('ts')
+    assert 'ruby-lang' not in ctx.config.profile_excludes('ts')  # the ~ term is gone again
+
+    assert actions.set_subprofile_membership(ctx, 'ts', 'ruby-lang', True)[0] is False   # no-op
+    assert actions.set_subprofile_membership(ctx, 'ts', 'ts', False)[0] is False         # self refused
+    assert actions.set_subprofile_membership(ctx, 'ts', 'nope-lang', False)[0] is False  # unknown

@@ -786,10 +786,11 @@ _HELP = {
                 "for the selected profile, plus a detail box for the highlighted component. Toggle a "
                 "component's membership with select/confirm in the right pane.",
         'glossary': [
-            ('markers', '● active · ◐ active via +include · ○ inactive · ▸ starred'),
-            ('terms', '+name folds in another profile (union) · ~name removes a component'),
+            ('markers', '● active · ◐ active via +include · ○ inactive · ▸ starred · ~ subprofile excluded'),
+            ('terms', '+name folds in another profile · ~name removes a component OR excludes a subprofile'),
+            ('~ toggle', "on a nested subprofile: include/exclude it in the top-level profile (writes +/~)"),
+            ('~ column', "an exclusion `~` sits under the status glyph of the profile that declares it"),
             ('detail box', 'description · attrs (kind tags) · required-by (reverse deps) · in-profiles'),
-            ('method', "the right-column tag is the component's resolved install driver here"),
         ],
     },
     'plugins': {
@@ -2009,15 +2010,24 @@ class ProfileScreen:
                 pass
         return seen & self._profset                  # real profiles only
 
-    def toggle_star(self):
+    def cycle_star(self):
+        '''Tri-state on the current profile: off -> starred (filter the catalog to its members) ->
+        starred + show-removed (also reveal its ~-pruned components) -> off. (Folds the old
+        reveal-removed toggle in, freeing `~` for the subprofile membership toggle.)'''
         nd = self.cur_node()
-        if nd:
-            clan = self._include_closure(nd[0])      # the profile + everything it inherits
-            if nd[0] in self.starred:
-                self.starred -= clan                 # unstar the whole chain
-            else:
-                self.starred |= clan                 # star the profile AND its inherited profiles
-            self.rcur, self.rcol_left = 0, 0         # catalog membership changed -> reset its cursor
+        if not nd:
+            return
+        clan = self._include_closure(nd[0])          # the profile + everything it inherits
+        if nd[0] not in self.starred:                # off -> starred
+            self.starred |= clan
+            self.show_removed = False
+        elif not self.show_removed:                  # starred -> starred + show-removed
+            self.show_removed = True
+        else:                                        # starred + show-removed -> off
+            self.starred -= clan
+            if not self.starred:
+                self.show_removed = False
+        self.rcur, self.rcol_left = 0, 0             # catalog membership changed -> reset its cursor
 
     def _starred_members(self):
         if not self.starred:
@@ -2204,9 +2214,25 @@ def _draw_profiles(stdscr, pal, ps, ctx, note, screen):
         star = '▸' if name in ps.starred else ' '     # selection is the bar; ▸ now means "starred"
         exp = '▾' if expanded else ('▹' if expandable else ' ')
         act = '●' if name in ps.active else ('◐' if name in ps.active_indirect else '○')
-        row = f'{star}{"  " * depth}{exp}{act} {name}'
+        prefix = list(f'{star}{"  " * depth}{exp}{act}')
+        # Exclusion attribution: for a subprofile a `~`-excluded by an ancestor on its path, paint a
+        # `~` in THAT ancestor's status-glyph column (2 + 2*ancestor_depth), which falls in this row's
+        # blank indent gutter — so the marker sits under the profile that's at fault. Two ancestors
+        # both excluding -> two `~`s. A struck node is dimmed (it's pruned from that top-level profile).
+        struck = False
+        for ai, anc in enumerate(key.split('\x00')[:-1]):     # ancestors; path index == their depth
+            try:
+                if name in ctx.config.profile_excludes(anc):
+                    col = 2 + 2 * ai
+                    if 0 <= col < len(prefix):
+                        prefix[col] = '~'
+                    struck = True
+            except Exception:                                  # noqa: BLE001 — a bad profile marks nothing
+                pass
+        row = f'{"".join(prefix)} {name}'
         _put(stdscr, y, lil, _fit(row, liw),
-             pal.style('profile', y, lil, h, w, selected=foc, bg=(None if low_color else rbg)) | rev)
+             pal.style('profile', y, lil, h, w, selected=foc, bg=(None if low_color else rbg))
+             | rev | (curses.A_DIM if struck and not foc else 0))
     _scrollbar_v(stdscr, pal, lit, lw - 1, lih, ps.ltop, lih, len(vnodes), h, w)
 
     # RIGHT TOP: detail for the highlighted component (names are esoteric) — description + methods
@@ -2356,11 +2382,11 @@ def _draw_profiles(stdscr, pal, ps, ctx, note, screen):
                 f"{g('right')}/{g('left')} expand · {g('switch-pane')}/{g('confirm')} components · "
                 f"{g('find')} find · {g('filter')} filter · {g('attr-filter')} attrs ")
         nav2 = (f" {g('select')} member · {g('method')} method · {g('toggle-active')} active · "
-                f"{g('star')} star · {g('reveal-removed')} removed · {g('include')} include · "
+                f"{g('star')} star · {g('toggle-member')} incl/excl sub · {g('include')} include · "
                 f"{g('new')}/{g('delete')} new/del · {g('quit')} quit ")
     else:
         nav1 = (' j/k move · g/G top/bottom · h/l expand · tab/⏎ components · / find · F filter · A attrs ')
-        nav2 = (' space member · m method · a active · * star · ~ removed · + include · n/d new/del · q quit ')
+        nav2 = (' space member · m method · a active · * star · ~ incl/excl sub · + include · n/d new/del · q quit ')
     _put(stdscr, h - 2, 0, _fit(nav1.ljust(w), w), pal.style('footer', h - 2, 0, h, w))
     _put(stdscr, h - 1, 0, _fit(nav2.ljust(w), w), pal.style('footer', h - 1, 0, h, w))
     stdscr.refresh()
@@ -3550,10 +3576,25 @@ def run(ctx):
                     else:
                         ps.focus = 'left'              # leftmost column -> back to the profiles pane
                 elif pfact == 'star' and ps.focus == 'left':
-                    ps.toggle_star()                   # ▸ this profile -> filter the catalog to its members
-                elif pfact == 'reveal-removed':        # within the star filter, also reveal ~-pruned comps
-                    ps.show_removed = not ps.show_removed
-                    ps.rcur, ps.rcol_left = 0, 0        # catalog membership changed -> reset its cursor
+                    ps.cycle_star()                    # cycle: filter to members -> +show ~-removed -> off
+                elif pfact == 'toggle-member' and ps.focus == 'left':
+                    # include/exclude the selected SUBPROFILE (a nested + child) in the top-level profile
+                    # it hangs under. Membership-toggle: struck -> re-include (+sub); active -> exclude (~sub).
+                    nd = ps.cur_node()
+                    if nd and nd[1] > 0:               # depth>0 -> a subprofile, not a top-level root
+                        sub, path = nd[0], nd[2].split('\x00')
+                        root = path[0]
+                        want_member = sub not in ctx.config.active_subprofiles(root)
+                        try:
+                            changed, msg = actions.set_subprofile_membership(ctx, root, sub, want_member)
+                            ps.reload()
+                            menu_dirty = menu_dirty or changed
+                            note = (f'{sub} {"included in" if want_member else "excluded from"} {root}'
+                                    if changed else (msg or 'no change'))
+                        except Exception as e:  # noqa: BLE001 — surface, don't crash
+                            note = f'edit failed: {e}'
+                    else:
+                        note = 'select a subprofile (a nested +include child) to include/exclude'
                 elif pfact == 'top':
                     setattr(ps, 'lcur' if ps.focus == 'left' else 'rcur', 0)
                 elif pfact == 'bottom':

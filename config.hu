@@ -223,8 +223,8 @@ profiles: {
         // left/right collapse/expand; right pane: grid move); switch-pane toggles panes; confirm opens
         // the components pane (left) or toggles membership (right); select toggles membership (right).
         profiles: {
-            star: "*"               // filter the catalog to a profile's members
-            reveal-removed: "~"     // also show ~-pruned components under the star filter
+            star: "*"               // cycle the selected profile: filter-to-members -> +show ~-removed -> off
+            toggle-member: "~"      // include/exclude the selected subprofile in the top-level profile (writes +/~)
             toggle-active: a        // activate / deactivate the selected profile
             new: n
             delete: d
