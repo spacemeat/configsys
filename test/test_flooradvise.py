@@ -188,6 +188,28 @@ def test_resident_ok_when_installed_meets_floor():
     assert flooradvise.resident_advise(ctx, [_src_unit()], states) == []
 
 
+def test_resident_excluded_version_scoped_provider_does_not_warn():
+    # The reported bug: cudnn-8 needs cuda-toolkit <12, and BOTH cuda-toolkit-11 (11.8) and -12
+    # (12.6.3) are installed. The <12 constraint SELECTS -11 (which satisfies it); -12's declared
+    # version is EXCLUDED by <12, so a resident -12 must not trip a floor warning (it's not this
+    # constraint's provider, and "upgrade -12" would only make it worse).
+    ctx = _Ctx(_cuda_comps())
+    states = {
+        'native\\cuda-toolkit-11': _state('cuda-toolkit-11', 'native', '11.8'),
+        'native\\cuda-toolkit-12': _state('cuda-toolkit-12', 'native', '12.6.3'),
+    }
+    assert flooradvise.resident_advise(ctx, [_cuda_unit()], states) == []
+
+
+def test_resident_no_warn_when_only_the_excluded_provider_is_installed():
+    # Only the too-new -12 is resident; -11 (what <12 selects) is not. -12 is excluded by the
+    # constraint, so there's no resident CANDIDATE -> no resident warning (obtaining -11 is the
+    # method-advisory's job, not upgrading -12).
+    ctx = _Ctx(_cuda_comps())
+    states = {'native\\cuda-toolkit-12': _state('cuda-toolkit-12', 'native', '12.6.3')}
+    assert flooradvise.resident_advise(ctx, [_cuda_unit()], states) == []
+
+
 def test_resident_abstains_on_unknown_or_absent_version():
     ctx = _Ctx(_comps())
     assert flooradvise.resident_advise(ctx, [_src_unit()], {'apt\\rust': _state('rust', 'apt', None)}) == []

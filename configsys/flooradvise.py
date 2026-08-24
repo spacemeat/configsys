@@ -156,13 +156,24 @@ def resident_unmet(ctx, units, states):
             continue
         for cap, floor in active_floors(rc, comp).items():
             provs = set(providers_of(r.components, cap))
+            # Candidate residents = installed providers this constraint could actually SELECT. A
+            # version-scoped provider whose FIXED declared version the floor EXCLUDES (a `<12` require
+            # never selects cuda-toolkit-12) is not a candidate — skip it, exactly as the method-based
+            # check does; otherwise a resident -12 falsely trips the floor for a `<12` consumer even
+            # though the selected -11 is installed and fine (and "upgrade -12" would only worsen it).
+            cands = []
             for pkey, pst in present:
                 if pst.component.comp not in provs:
                     continue
-                if meets(str(pst.installed_version), floor):
+                declared = _declared_version(r.components.get(pst.component.comp), cap)
+                if declared is not None and not meets(str(declared), floor):
                     continue
-                yield rc, cap, floor, pkey, pst
-                break                                     # one provider per (unit, cap) is enough
+                cands.append((pkey, pst))
+            if not cands:
+                continue
+            if any(meets(str(pst.installed_version), floor) for _k, pst in cands):
+                continue                                  # an installed provider already satisfies the floor
+            yield rc, cap, floor, cands[0][0], cands[0][1]   # none do -> flag one offender
 
 
 def resident_advise(ctx, units, states):
@@ -208,6 +219,11 @@ def resident_upgrades_probed(ctx, units):
             for prov in providers_of(r.components, cap):
                 hit = by_comp.get(prov)
                 if hit is None or hit[0] in ups:
+                    continue
+                # a version-scoped provider the floor EXCLUDES isn't this constraint's provider — never
+                # "upgrade" it toward an upper bound (a `<12` require won't be helped by bumping -12).
+                declared = _declared_version(r.components.get(prov), cap)
+                if declared is not None and not meets(str(declared), floor):
                     continue
                 pkey, prc = hit
                 if pkey not in probed:
