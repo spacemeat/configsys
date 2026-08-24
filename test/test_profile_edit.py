@@ -316,8 +316,7 @@ def test_profile_star_filter_show_removed(tmp_path):
     ps.attr_exc = set()                                            # isolate from the attrs filter
     # drive the FILTER directly (the `*` cycle is exercised in test_profile_tree_and_star_filter)
     ps.starred = {'mine', 'base'}                                 # the include closure
-    assert ps.vcatalog() == ['btop', 'htop']                     # base's htop shows (its own member)
-    ps.starred = {'mine'}                                         # mine ALONE: only its own member
+    # plain star = SURVIVORS: htop is hidden even though base owns it, because mine pruned it (~htop)
     assert ps.vcatalog() == ['btop']
     ps.show_removed = True                                        # reveal what mine pruned via ~htop
     assert ps.vcatalog() == ['btop', 'htop']                     # the pruned htop is shown again

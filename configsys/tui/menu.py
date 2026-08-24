@@ -2056,7 +2056,11 @@ class ProfileScreen:
         cat = [c for c in self.catalog if f in c.lower()] if f else self.catalog
         sm = self._starred_members()                 # `*` star filter: starred profiles' OWN members
         if sm is not None:
-            allowed = sm | (self._starred_removed() if self.show_removed else set())
+            rem = self._starred_removed()            # what a starred profile pruned via ~term
+            # plain star = SURVIVORS (hide the pruned, even if a base profile in the starred clan owns
+            # them); the show-removed state adds them back, marked `~`. Otherwise the two states look
+            # identical, since starring the include-closure already surfaces the base's owned copy.
+            allowed = (sm | rem) if self.show_removed else (sm - rem)
             cat = [c for c in cat if c in allowed]
         if self.attr_inc or self.attr_exc:           # `A` attrs filter (faceted include/exclude)
             comps = self.ctx.routes.components
