@@ -140,6 +140,7 @@ class MenuState:
         self.cursor = 0
         self.filter = ''                   # `F` substring filter over the tree (`/` is find)
         self.top = 0                       # first visible row (persistent scroll offset)
+        self.reveal = None                 # id of a just-expanded node -> reveal its subtree next draw
         self.selected = set()              # node ids
         self.staged = {}                   # unit_key -> op
         self.errors = {}                   # unit_key -> message
@@ -275,6 +276,8 @@ class MenuState:
         n = self.cur()
         if n and n.expandable and n.expanded != want:
             n.expanded = want
+            if want:
+                self.reveal = n.id                 # reveal the opened subtree on the next draw
             self._refresh(keep_id=n.id)
 
     def toggle_expand(self):
@@ -300,6 +303,7 @@ class MenuState:
             self._goto(n.link_target)
         elif n.expandable and not n.expanded:
             n.expanded = True
+            self.reveal = n.id                     # reveal the opened subtree on the next draw
             self._refresh(keep_id=n.id)
         elif n.expandable and n.expanded and n.children:
             self._goto(n.children[0].id)
@@ -321,6 +325,8 @@ class MenuState:
         for c in comps:
             c.expanded = want
         keep = self.cur().id if self.cur() else None
+        if want:
+            self.reveal = keep                     # expanding all -> reveal the cursor's subtree
         self._refresh(keep_id=keep)
 
     # -- navigation -------------------------------------------------------
@@ -573,6 +579,16 @@ def _scroll_top(cursor, top, list_h, nrows):
         top = cursor
     elif cursor >= top + list_h:
         top = cursor - list_h + 1
+    return max(0, min(top, max(0, nrows - list_h)))
+
+
+def _scroll_reveal(parent, subtree_end, top, list_h, nrows):
+    '''Scroll to reveal a just-expanded subtree spanning rows [parent .. subtree_end] as fully as
+    possible, ANCHORED on the parent: a no-op if the subtree already fits in the current window;
+    otherwise lift the parent toward the top so as many children as fit show beneath it (instead of
+    the parent sitting at the bottom with its children below the fold). Clamped like _scroll_top.'''
+    if parent < top or subtree_end >= top + list_h:      # above the view, or runs off the bottom
+        top = parent                                     # -> anchor the parent at the top (clamp below)
     return max(0, min(top, max(0, nrows - list_h)))
 
 
@@ -1057,6 +1073,17 @@ def _draw(stdscr, pal, ms, ctx, note, diags=(), show_diag=False, diag_top=0, scr
 
     list_top = 3
     list_h = max(1, h - list_top - 6)  # description + methods + infoblock + status + 2 footers
+    if ms.reveal is not None:                        # a just-expanded node -> reveal its subtree
+        pi = next((i for i, n in enumerate(ms.rows) if n.id == ms.reveal), None)
+        if pi is not None:
+            pd, end = ms.rows[pi].depth, pi
+            for j in range(pi + 1, len(ms.rows)):
+                if ms.rows[j].depth > pd:
+                    end = j
+                else:
+                    break
+            ms.top = _scroll_reveal(pi, end, ms.top, list_h, len(ms.rows))
+        ms.reveal = None
     ms.top = first = _scroll_top(ms.cursor, ms.top, list_h, len(ms.rows))
 
     _KIND_ELEM = {PROFILE: 'profile', LINK: 'link', COMPONENT: 'component', UNIT: 'unit'}
@@ -1938,6 +1965,7 @@ class ProfileScreen:
         self.rrows, self.rncols = 1, 1   # grid dims, set each draw; the key handler moves by column
         self.pfilter = self.cfilter = ''   # substring filters for the profiles / catalog panes
         self.expanded = set()            # node keys of expanded profiles (inline `+include` tree)
+        self.reveal = None               # key of a just-expanded node -> reveal its subtree next draw
         self.starred = set()             # profile NAMES starred (▸) — their OWN members filter the catalog
         self.attr_inc = set()            # `A` faceted attr filter: lowercased tags to INCLUDE
         self.attr_exc = {'dotfiles'}     # ...and to EXCLUDE — hide the -dotfiles companions by default
@@ -1978,6 +2006,7 @@ class ProfileScreen:
         nd = self.cur_node()
         if nd and nd[3] and not nd[4]:               # expandable and collapsed
             self.expanded.add(nd[2])
+            self.reveal = nd[2]                      # reveal the opened subtree on the next draw
             return True
         return False
 
@@ -2202,6 +2231,17 @@ def _draw_profiles(stdscr, pal, ps, ctx, note, screen):
     ltitle = 'profiles' + (f'  filter:{ps.pfilter}' if ps.pfilter else '') + (f'  ▸{len(ps.starred)}' if ps.starred else '')
     lit, lil, lih, liw = _panel(stdscr, pal, top, 0, body_h, lw, ltitle,
                                 ps.focus == 'left', h, w)
+    if ps.reveal is not None:                        # a just-expanded node -> reveal its subtree
+        pi = next((i for i, nd in enumerate(vnodes) if nd[2] == ps.reveal), None)
+        if pi is not None:
+            pd, end = vnodes[pi][1], pi
+            for j in range(pi + 1, len(vnodes)):
+                if vnodes[j][1] > pd:
+                    end = j
+                else:
+                    break
+            ps.ltop = _scroll_reveal(pi, end, ps.ltop, lih, len(vnodes))
+        ps.reveal = None
     ps.ltop = _scroll_top(ps.lcur, ps.ltop, lih, len(vnodes))
     for vis, i in enumerate(range(ps.ltop, min(len(vnodes), ps.ltop + lih))):
         name, depth, key, expandable, expanded = vnodes[i]
