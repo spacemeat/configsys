@@ -83,7 +83,13 @@ is the selected-row bar. The roles:
 `driver` · `scope` · `scope_choice` · `version` · `row_error` · `methods` · `info` · `info_dim` ·
 `status_line` · `footer` · `selection` · `installed` · `outdated` · `partial` · `missing` ·
 `locked` · `unsupported` · `untrusted` · `error` · `op_install…op_unlock` · `op_mixed` ·
-`issue_error` · `issue_warning`
+`issue_error` · `issue_warning` · `orphan_excluded` · `orphan_lurking` · `orphan_forgotten` ·
+`orphan_foreign`
+
+The `orphan_*` roles are the Profiles page's **install-axis overlay** — one per orphan *kind*, so an
+installed-but-`~`-excluded component, a lurking one, a forgotten one, and a recipe-less foreign one
+each get their own color/effect (default: a distinct fg over the `installed` underline). Retheme them
+however you like. See `docs/managed-orphans-plan.md` for what each kind means.
 
 ## `gradient:` — a page's background
 
