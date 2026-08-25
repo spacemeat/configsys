@@ -626,7 +626,7 @@
         rust: { attrs: [ CLI toolchain FOSS permissive ] suggests: rust-dotfiles  description: "The Rust toolchain (cargo, rustc) — safe systems programming."
             provides: cargo
             install: [
-                { via: native  repo-component: universe  name: { apt: rust-all  pacman: rust  brew: rust  default: cargo } }
+                { via: native  repo-component: universe  name: { apt: rust-all  pacman: rust  brew: rust  default: cargo }  installed-name: cargo }   // Ubuntu splits the toolchain: `rust-all` is a meta over cargo/rustc — read state from `cargo`
                 // rustup: the official installer -> the LATEST STABLE toolchain, userland in
                 // ~/.cargo (no sudo, on the standard ~/.cargo/bin PATH). For source builds that
                 // need a newer cargo than the distro ships (the toolchain-floor case). Least-
@@ -1618,7 +1618,7 @@
                        { via: flatpak  hub: flathub  app: org.gimp.GIMP } ]
         }
         krita: { attrs: [ GUI app FOSS copyleft GNU ] description: "Krita — a digital painting studio."
-            install: [ { via: native   when: "alpine" }
+            install: [ { via: native   when: "debian or fedora or arch or opensuse or alpine"  repo-component: universe }
                        { via: flatpak  hub: flathub  app: org.kde.krita } ]
         }
         ardour: { attrs: [ GUI app FOSS copyleft ] description: "Ardour — a professional digital audio workstation (DAW)." install: [ { via: native  when: "debian or arch or opensuse"  repo-component: universe }  { via: flatpak  hub: flathub  app: org.ardour.Ardour } ] }

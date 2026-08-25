@@ -89,9 +89,13 @@ def _native_manager(ctx):
 
 def _unit_keys(rc, drv):
     '''The installed_index key(s) a resolved unit occupies under its OWN driver: its `index_key`,
-    plus any extra package names a unit installs (`fields['packages']` — an apt metapackage, or a
-    clang-N unit whose `packages: [ clang-18 ]` are the real dpkg names).'''
+    plus `installed-name` (a part that's present whenever the unit is — e.g. `cargo` for the
+    `rust-all` metapackage), plus any extra package names a unit installs (`fields['packages']` —
+    an apt metapackage, or a clang-N unit whose `packages: [ clang-18 ]` are the real dpkg names).'''
     keys = {drv.index_key(rc)}
+    inm = rc.fields.get('installed-name')
+    if inm:
+        keys.add(inm)
     for extra in (rc.fields.get('packages') or []):
         keys.add(extra)
     return keys

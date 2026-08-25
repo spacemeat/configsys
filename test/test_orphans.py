@@ -309,6 +309,10 @@ def test_reverse_index_recognizes_native_backed_and_alt_names():
     # both the modern `7zip` name AND the legacy `p7zip-full` map to the one component
     assert ri.get(('apt', '7zip')) == ['p7zip']
     assert ri.get(('apt', 'p7zip-full')) == ['p7zip']
+    # rust: `installed-name: cargo` makes the split-out cargo package recognized (rust-all is a meta)
+    assert ri.get(('apt', 'cargo')) == ['rust']
+    # krita: a real native binding (was flatpak-only off Alpine) -> the apt package is recognized
+    assert ri.get(('apt', 'krita')) == ['krita']
 
 
 def test_apt_explicit_keys_parse():

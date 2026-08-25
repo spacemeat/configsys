@@ -5136,20 +5136,13 @@
    }
   },
   "krita": {
-   "flatpak\\krita": {
-    "driver": "flatpak",
-    "fields": {
-     "hub": "flathub",
-     "name": "org.kde.krita"
-    },
-    "name": "org.kde.krita"
-   },
-   "pacman\\flatpak": {
+   "pacman\\krita": {
     "driver": "pacman",
     "fields": {
-     "name": "flatpak"
+     "name": "krita",
+     "repo-component": "universe"
     },
-    "name": "flatpak"
+    "name": "krita"
    }
   },
   "kubectl": {
@@ -6585,6 +6578,7 @@
    "pacman\\rust": {
     "driver": "pacman",
     "fields": {
+     "installed-name": "cargo",
      "name": "rust",
      "repo-component": "universe"
     },
@@ -8656,6 +8650,7 @@
    "pacman\\rust": {
     "driver": "pacman",
     "fields": {
+     "installed-name": "cargo",
      "name": "rust",
      "repo-component": "universe"
     },
@@ -9694,6 +9689,7 @@
    "pacman\\rust": {
     "driver": "pacman",
     "fields": {
+     "installed-name": "cargo",
      "name": "rust",
      "repo-component": "universe"
     },
@@ -12203,6 +12199,7 @@
    "apt\\rust": {
     "driver": "apt",
     "fields": {
+     "installed-name": "cargo",
      "name": "rust-all",
      "repo-component": "universe"
     },
@@ -12257,6 +12254,7 @@
    "apt\\rust": {
     "driver": "apt",
     "fields": {
+     "installed-name": "cargo",
      "name": "rust-all",
      "repo-component": "universe"
     },
@@ -12582,6 +12580,7 @@
    "apt\\rust": {
     "driver": "apt",
     "fields": {
+     "installed-name": "cargo",
      "name": "rust-all",
      "repo-component": "universe"
     },
@@ -14152,6 +14151,7 @@
    "apt\\rust": {
     "driver": "apt",
     "fields": {
+     "installed-name": "cargo",
      "name": "rust-all",
      "repo-component": "universe"
     },
@@ -15639,6 +15639,7 @@
    "apt\\rust": {
     "driver": "apt",
     "fields": {
+     "installed-name": "cargo",
      "name": "rust-all",
      "repo-component": "universe"
     },
@@ -16386,6 +16387,7 @@
    "apt\\rust": {
     "driver": "apt",
     "fields": {
+     "installed-name": "cargo",
      "name": "rust-all",
      "repo-component": "universe"
     },
@@ -17306,20 +17308,13 @@
    }
   },
   "krita": {
-   "apt\\flatpak": {
+   "apt\\krita": {
     "driver": "apt",
     "fields": {
-     "name": "flatpak"
+     "name": "krita",
+     "repo-component": "universe"
     },
-    "name": "flatpak"
-   },
-   "flatpak\\krita": {
-    "driver": "flatpak",
-    "fields": {
-     "hub": "flathub",
-     "name": "org.kde.krita"
-    },
-    "name": "org.kde.krita"
+    "name": "krita"
    }
   },
   "kubectl": {
@@ -18837,6 +18832,7 @@
    "apt\\rust": {
     "driver": "apt",
     "fields": {
+     "installed-name": "cargo",
      "name": "rust-all",
      "repo-component": "universe"
     },
@@ -19570,6 +19566,7 @@
    "apt\\rust": {
     "driver": "apt",
     "fields": {
+     "installed-name": "cargo",
      "name": "rust-all",
      "repo-component": "universe"
     },
@@ -20752,6 +20749,7 @@
    "apt\\rust": {
     "driver": "apt",
     "fields": {
+     "installed-name": "cargo",
      "name": "rust-all",
      "repo-component": "universe"
     },
@@ -21656,6 +21654,7 @@
    "apt\\rust": {
     "driver": "apt",
     "fields": {
+     "installed-name": "cargo",
      "name": "rust-all",
      "repo-component": "universe"
     },
@@ -22638,6 +22637,7 @@
    "apt\\rust": {
     "driver": "apt",
     "fields": {
+     "installed-name": "cargo",
      "name": "rust-all",
      "repo-component": "universe"
     },
@@ -24084,6 +24084,7 @@
    "apt\\rust": {
     "driver": "apt",
     "fields": {
+     "installed-name": "cargo",
      "name": "rust-all",
      "repo-component": "universe"
     },
@@ -24138,6 +24139,7 @@
    "apt\\rust": {
     "driver": "apt",
     "fields": {
+     "installed-name": "cargo",
      "name": "rust-all",
      "repo-component": "universe"
     },
@@ -24463,6 +24465,7 @@
    "apt\\rust": {
     "driver": "apt",
     "fields": {
+     "installed-name": "cargo",
      "name": "rust-all",
      "repo-component": "universe"
     },
@@ -25999,6 +26002,7 @@
    "apt\\rust": {
     "driver": "apt",
     "fields": {
+     "installed-name": "cargo",
      "name": "rust-all",
      "repo-component": "universe"
     },
@@ -27486,6 +27490,7 @@
    "apt\\rust": {
     "driver": "apt",
     "fields": {
+     "installed-name": "cargo",
      "name": "rust-all",
      "repo-component": "universe"
     },
@@ -28216,6 +28221,7 @@
    "apt\\rust": {
     "driver": "apt",
     "fields": {
+     "installed-name": "cargo",
      "name": "rust-all",
      "repo-component": "universe"
     },
@@ -29119,20 +29125,13 @@
    }
   },
   "krita": {
-   "apt\\flatpak": {
+   "apt\\krita": {
     "driver": "apt",
     "fields": {
-     "name": "flatpak"
+     "name": "krita",
+     "repo-component": "universe"
     },
-    "name": "flatpak"
-   },
-   "flatpak\\krita": {
-    "driver": "flatpak",
-    "fields": {
-     "hub": "flathub",
-     "name": "org.kde.krita"
-    },
-    "name": "org.kde.krita"
+    "name": "krita"
    }
   },
   "kubectl": {
@@ -30599,6 +30598,7 @@
    "apt\\rust": {
     "driver": "apt",
     "fields": {
+     "installed-name": "cargo",
      "name": "rust-all",
      "repo-component": "universe"
     },
@@ -31332,6 +31332,7 @@
    "apt\\rust": {
     "driver": "apt",
     "fields": {
+     "installed-name": "cargo",
      "name": "rust-all",
      "repo-component": "universe"
     },
@@ -32463,6 +32464,7 @@
    "apt\\rust": {
     "driver": "apt",
     "fields": {
+     "installed-name": "cargo",
      "name": "rust-all",
      "repo-component": "universe"
     },
@@ -33350,6 +33352,7 @@
    "apt\\rust": {
     "driver": "apt",
     "fields": {
+     "installed-name": "cargo",
      "name": "rust-all",
      "repo-component": "universe"
     },
@@ -34315,6 +34318,7 @@
    "apt\\rust": {
     "driver": "apt",
     "fields": {
+     "installed-name": "cargo",
      "name": "rust-all",
      "repo-component": "universe"
     },
@@ -35744,6 +35748,7 @@
    "apt\\rust": {
     "driver": "apt",
     "fields": {
+     "installed-name": "cargo",
      "name": "rust-all",
      "repo-component": "universe"
     },
@@ -35798,6 +35803,7 @@
    "apt\\rust": {
     "driver": "apt",
     "fields": {
+     "installed-name": "cargo",
      "name": "rust-all",
      "repo-component": "universe"
     },
@@ -36123,6 +36129,7 @@
    "apt\\rust": {
     "driver": "apt",
     "fields": {
+     "installed-name": "cargo",
      "name": "rust-all",
      "repo-component": "universe"
     },
@@ -37662,6 +37669,7 @@
    "apt\\rust": {
     "driver": "apt",
     "fields": {
+     "installed-name": "cargo",
      "name": "rust-all",
      "repo-component": "universe"
     },
@@ -39149,6 +39157,7 @@
    "apt\\rust": {
     "driver": "apt",
     "fields": {
+     "installed-name": "cargo",
      "name": "rust-all",
      "repo-component": "universe"
     },
@@ -39879,6 +39888,7 @@
    "apt\\rust": {
     "driver": "apt",
     "fields": {
+     "installed-name": "cargo",
      "name": "rust-all",
      "repo-component": "universe"
     },
@@ -40775,20 +40785,13 @@
    }
   },
   "krita": {
-   "apt\\flatpak": {
+   "apt\\krita": {
     "driver": "apt",
     "fields": {
-     "name": "flatpak"
+     "name": "krita",
+     "repo-component": "universe"
     },
-    "name": "flatpak"
-   },
-   "flatpak\\krita": {
-    "driver": "flatpak",
-    "fields": {
-     "hub": "flathub",
-     "name": "org.kde.krita"
-    },
-    "name": "org.kde.krita"
+    "name": "krita"
    }
   },
   "kubectl": {
@@ -42255,6 +42258,7 @@
    "apt\\rust": {
     "driver": "apt",
     "fields": {
+     "installed-name": "cargo",
      "name": "rust-all",
      "repo-component": "universe"
     },
@@ -42988,6 +42992,7 @@
    "apt\\rust": {
     "driver": "apt",
     "fields": {
+     "installed-name": "cargo",
      "name": "rust-all",
      "repo-component": "universe"
     },
@@ -44132,6 +44137,7 @@
    "apt\\rust": {
     "driver": "apt",
     "fields": {
+     "installed-name": "cargo",
      "name": "rust-all",
      "repo-component": "universe"
     },
@@ -45027,6 +45033,7 @@
    "apt\\rust": {
     "driver": "apt",
     "fields": {
+     "installed-name": "cargo",
      "name": "rust-all",
      "repo-component": "universe"
     },
@@ -45992,6 +45999,7 @@
    "apt\\rust": {
     "driver": "apt",
     "fields": {
+     "installed-name": "cargo",
      "name": "rust-all",
      "repo-component": "universe"
     },
@@ -46094,6 +46102,7 @@
    "apt\\rust": {
     "driver": "apt",
     "fields": {
+     "installed-name": "cargo",
      "name": "rust-all",
      "repo-component": "universe"
     },
@@ -47508,6 +47517,7 @@
    "dnf\\rust": {
     "driver": "dnf",
     "fields": {
+     "installed-name": "cargo",
      "name": "cargo",
      "repo-component": "universe"
     },
@@ -47562,6 +47572,7 @@
    "dnf\\rust": {
     "driver": "dnf",
     "fields": {
+     "installed-name": "cargo",
      "name": "cargo",
      "repo-component": "universe"
     },
@@ -47887,6 +47898,7 @@
    "dnf\\rust": {
     "driver": "dnf",
     "fields": {
+     "installed-name": "cargo",
      "name": "cargo",
      "repo-component": "universe"
     },
@@ -49276,6 +49288,7 @@
    "dnf\\rust": {
     "driver": "dnf",
     "fields": {
+     "installed-name": "cargo",
      "name": "cargo",
      "repo-component": "universe"
     },
@@ -50482,6 +50495,7 @@
    "dnf\\rust": {
     "driver": "dnf",
     "fields": {
+     "installed-name": "cargo",
      "name": "cargo",
      "repo-component": "universe"
     },
@@ -51290,6 +51304,7 @@
    "dnf\\rust": {
     "driver": "dnf",
     "fields": {
+     "installed-name": "cargo",
      "name": "cargo",
      "repo-component": "universe"
     },
@@ -52198,20 +52213,13 @@
    }
   },
   "krita": {
-   "dnf\\flatpak": {
+   "dnf\\krita": {
     "driver": "dnf",
     "fields": {
-     "name": "flatpak"
+     "name": "krita",
+     "repo-component": "universe"
     },
-    "name": "flatpak"
-   },
-   "flatpak\\krita": {
-    "driver": "flatpak",
-    "fields": {
-     "hub": "flathub",
-     "name": "org.kde.krita"
-    },
-    "name": "org.kde.krita"
+    "name": "krita"
    }
   },
   "kubectl": {
@@ -53604,6 +53612,7 @@
    "dnf\\rust": {
     "driver": "dnf",
     "fields": {
+     "installed-name": "cargo",
      "name": "cargo",
      "repo-component": "universe"
     },
@@ -54334,6 +54343,7 @@
    "dnf\\rust": {
     "driver": "dnf",
     "fields": {
+     "installed-name": "cargo",
      "name": "cargo",
      "repo-component": "universe"
     },
@@ -55445,6 +55455,7 @@
    "dnf\\rust": {
     "driver": "dnf",
     "fields": {
+     "installed-name": "cargo",
      "name": "cargo",
      "repo-component": "universe"
     },
@@ -56330,6 +56341,7 @@
    "dnf\\rust": {
     "driver": "dnf",
     "fields": {
+     "installed-name": "cargo",
      "name": "cargo",
      "repo-component": "universe"
     },
@@ -57397,6 +57409,7 @@
    "dnf\\rust": {
     "driver": "dnf",
     "fields": {
+     "installed-name": "cargo",
      "name": "cargo",
      "repo-component": "universe"
     },
@@ -58812,6 +58825,7 @@
    "dnf\\rust": {
     "driver": "dnf",
     "fields": {
+     "installed-name": "cargo",
      "name": "cargo",
      "repo-component": "universe"
     },
@@ -58866,6 +58880,7 @@
    "dnf\\rust": {
     "driver": "dnf",
     "fields": {
+     "installed-name": "cargo",
      "name": "cargo",
      "repo-component": "universe"
     },
@@ -59191,6 +59206,7 @@
    "dnf\\rust": {
     "driver": "dnf",
     "fields": {
+     "installed-name": "cargo",
      "name": "cargo",
      "repo-component": "universe"
     },
@@ -60606,6 +60622,7 @@
    "dnf\\rust": {
     "driver": "dnf",
     "fields": {
+     "installed-name": "cargo",
      "name": "cargo",
      "repo-component": "universe"
     },
@@ -61812,6 +61829,7 @@
    "dnf\\rust": {
     "driver": "dnf",
     "fields": {
+     "installed-name": "cargo",
      "name": "cargo",
      "repo-component": "universe"
     },
@@ -62620,6 +62638,7 @@
    "dnf\\rust": {
     "driver": "dnf",
     "fields": {
+     "installed-name": "cargo",
      "name": "cargo",
      "repo-component": "universe"
     },
@@ -63528,20 +63547,13 @@
    }
   },
   "krita": {
-   "dnf\\flatpak": {
+   "dnf\\krita": {
     "driver": "dnf",
     "fields": {
-     "name": "flatpak"
+     "name": "krita",
+     "repo-component": "universe"
     },
-    "name": "flatpak"
-   },
-   "flatpak\\krita": {
-    "driver": "flatpak",
-    "fields": {
-     "hub": "flathub",
-     "name": "org.kde.krita"
-    },
-    "name": "org.kde.krita"
+    "name": "krita"
    }
   },
   "kubectl": {
@@ -64934,6 +64946,7 @@
    "dnf\\rust": {
     "driver": "dnf",
     "fields": {
+     "installed-name": "cargo",
      "name": "cargo",
      "repo-component": "universe"
     },
@@ -65664,6 +65677,7 @@
    "dnf\\rust": {
     "driver": "dnf",
     "fields": {
+     "installed-name": "cargo",
      "name": "cargo",
      "repo-component": "universe"
     },
@@ -66775,6 +66789,7 @@
    "dnf\\rust": {
     "driver": "dnf",
     "fields": {
+     "installed-name": "cargo",
      "name": "cargo",
      "repo-component": "universe"
     },
@@ -67660,6 +67675,7 @@
    "dnf\\rust": {
     "driver": "dnf",
     "fields": {
+     "installed-name": "cargo",
      "name": "cargo",
      "repo-component": "universe"
     },
@@ -68727,6 +68743,7 @@
    "dnf\\rust": {
     "driver": "dnf",
     "fields": {
+     "installed-name": "cargo",
      "name": "cargo",
      "repo-component": "universe"
     },
@@ -69455,6 +69472,7 @@
    "brew\\rust": {
     "driver": "brew",
     "fields": {
+     "installed-name": "cargo",
      "name": "rust",
      "repo-component": "universe"
     },
@@ -70035,6 +70053,7 @@
    "brew\\rust": {
     "driver": "brew",
     "fields": {
+     "installed-name": "cargo",
      "name": "rust",
      "repo-component": "universe"
     },
@@ -72763,6 +72782,7 @@
    "brew\\rust": {
     "driver": "brew",
     "fields": {
+     "installed-name": "cargo",
      "name": "rust",
      "repo-component": "universe"
     },
@@ -74780,6 +74800,7 @@
    "brew\\rust": {
     "driver": "brew",
     "fields": {
+     "installed-name": "cargo",
      "name": "rust",
      "repo-component": "universe"
     },
@@ -76205,6 +76226,7 @@
    "brew\\rust": {
     "driver": "brew",
     "fields": {
+     "installed-name": "cargo",
      "name": "rust",
      "repo-component": "universe"
     },
@@ -76917,6 +76939,7 @@
    "brew\\rust": {
     "driver": "brew",
     "fields": {
+     "installed-name": "cargo",
      "name": "rust",
      "repo-component": "universe"
     },
@@ -78956,6 +78979,7 @@
    "apt\\rust": {
     "driver": "apt",
     "fields": {
+     "installed-name": "cargo",
      "name": "rust-all",
      "repo-component": "universe"
     },
@@ -79010,6 +79034,7 @@
    "apt\\rust": {
     "driver": "apt",
     "fields": {
+     "installed-name": "cargo",
      "name": "rust-all",
      "repo-component": "universe"
     },
@@ -79335,6 +79360,7 @@
    "apt\\rust": {
     "driver": "apt",
     "fields": {
+     "installed-name": "cargo",
      "name": "rust-all",
      "repo-component": "universe"
     },
@@ -80917,6 +80943,7 @@
    "apt\\rust": {
     "driver": "apt",
     "fields": {
+     "installed-name": "cargo",
      "name": "rust-all",
      "repo-component": "universe"
     },
@@ -82404,6 +82431,7 @@
    "apt\\rust": {
     "driver": "apt",
     "fields": {
+     "installed-name": "cargo",
      "name": "rust-all",
      "repo-component": "universe"
     },
@@ -83151,6 +83179,7 @@
    "apt\\rust": {
     "driver": "apt",
     "fields": {
+     "installed-name": "cargo",
      "name": "rust-all",
      "repo-component": "universe"
     },
@@ -84064,20 +84093,13 @@
    }
   },
   "krita": {
-   "apt\\flatpak": {
+   "apt\\krita": {
     "driver": "apt",
     "fields": {
-     "name": "flatpak"
+     "name": "krita",
+     "repo-component": "universe"
     },
-    "name": "flatpak"
-   },
-   "flatpak\\krita": {
-    "driver": "flatpak",
-    "fields": {
-     "hub": "flathub",
-     "name": "org.kde.krita"
-    },
-    "name": "org.kde.krita"
+    "name": "krita"
    }
   },
   "kubectl": {
@@ -85595,6 +85617,7 @@
    "apt\\rust": {
     "driver": "apt",
     "fields": {
+     "installed-name": "cargo",
      "name": "rust-all",
      "repo-component": "universe"
     },
@@ -86328,6 +86351,7 @@
    "apt\\rust": {
     "driver": "apt",
     "fields": {
+     "installed-name": "cargo",
      "name": "rust-all",
      "repo-component": "universe"
     },
@@ -87523,6 +87547,7 @@
    "apt\\rust": {
     "driver": "apt",
     "fields": {
+     "installed-name": "cargo",
      "name": "rust-all",
      "repo-component": "universe"
     },
@@ -88428,6 +88453,7 @@
    "apt\\rust": {
     "driver": "apt",
     "fields": {
+     "installed-name": "cargo",
      "name": "rust-all",
      "repo-component": "universe"
     },
@@ -89410,6 +89436,7 @@
    "apt\\rust": {
     "driver": "apt",
     "fields": {
+     "installed-name": "cargo",
      "name": "rust-all",
      "repo-component": "universe"
     },
@@ -90215,6 +90242,7 @@
    "dnf\\rust": {
     "driver": "dnf",
     "fields": {
+     "installed-name": "cargo",
      "name": "cargo",
      "repo-component": "universe"
     },
@@ -90965,6 +90993,7 @@
    "dnf\\rust": {
     "driver": "dnf",
     "fields": {
+     "installed-name": "cargo",
      "name": "cargo",
      "repo-component": "universe"
     },
@@ -91026,6 +91055,7 @@
    "dnf\\rust": {
     "driver": "dnf",
     "fields": {
+     "installed-name": "cargo",
      "name": "cargo",
      "repo-component": "universe"
     },
@@ -91357,6 +91387,7 @@
    "dnf\\rust": {
     "driver": "dnf",
     "fields": {
+     "installed-name": "cargo",
      "name": "cargo",
      "repo-component": "universe"
     },
@@ -92847,6 +92878,7 @@
    "dnf\\rust": {
     "driver": "dnf",
     "fields": {
+     "installed-name": "cargo",
      "name": "cargo",
      "repo-component": "universe"
     },
@@ -94123,6 +94155,7 @@
    "dnf\\rust": {
     "driver": "dnf",
     "fields": {
+     "installed-name": "cargo",
      "name": "cargo",
      "repo-component": "universe"
     },
@@ -94972,6 +95005,7 @@
    "dnf\\rust": {
     "driver": "dnf",
     "fields": {
+     "installed-name": "cargo",
      "name": "cargo",
      "repo-component": "universe"
     },
@@ -97362,6 +97396,7 @@
    "dnf\\rust": {
     "driver": "dnf",
     "fields": {
+     "installed-name": "cargo",
      "name": "cargo",
      "repo-component": "universe"
     },
@@ -98114,6 +98149,7 @@
    "dnf\\rust": {
     "driver": "dnf",
     "fields": {
+     "installed-name": "cargo",
      "name": "cargo",
      "repo-component": "universe"
     },
@@ -99259,6 +99295,7 @@
    "dnf\\rust": {
     "driver": "dnf",
     "fields": {
+     "installed-name": "cargo",
      "name": "cargo",
      "repo-component": "universe"
     },
@@ -100196,6 +100233,7 @@
    "dnf\\rust": {
     "driver": "dnf",
     "fields": {
+     "installed-name": "cargo",
      "name": "cargo",
      "repo-component": "universe"
     },
@@ -101219,6 +101257,7 @@
    "dnf\\rust": {
     "driver": "dnf",
     "fields": {
+     "installed-name": "cargo",
      "name": "cargo",
      "repo-component": "universe"
     },
@@ -101337,6 +101376,7 @@
    "dnf\\rust": {
     "driver": "dnf",
     "fields": {
+     "installed-name": "cargo",
      "name": "cargo",
      "repo-component": "universe"
     },
@@ -102786,6 +102826,7 @@
    "apt\\rust": {
     "driver": "apt",
     "fields": {
+     "installed-name": "cargo",
      "name": "rust-all",
      "repo-component": "universe"
     },
@@ -102840,6 +102881,7 @@
    "apt\\rust": {
     "driver": "apt",
     "fields": {
+     "installed-name": "cargo",
      "name": "rust-all",
      "repo-component": "universe"
     },
@@ -103165,6 +103207,7 @@
    "apt\\rust": {
     "driver": "apt",
     "fields": {
+     "installed-name": "cargo",
      "name": "rust-all",
      "repo-component": "universe"
     },
@@ -104738,6 +104781,7 @@
    "apt\\rust": {
     "driver": "apt",
     "fields": {
+     "installed-name": "cargo",
      "name": "rust-all",
      "repo-component": "universe"
     },
@@ -106225,6 +106269,7 @@
    "apt\\rust": {
     "driver": "apt",
     "fields": {
+     "installed-name": "cargo",
      "name": "rust-all",
      "repo-component": "universe"
     },
@@ -106972,6 +107017,7 @@
    "apt\\rust": {
     "driver": "apt",
     "fields": {
+     "installed-name": "cargo",
      "name": "rust-all",
      "repo-component": "universe"
     },
@@ -107885,20 +107931,13 @@
    }
   },
   "krita": {
-   "apt\\flatpak": {
+   "apt\\krita": {
     "driver": "apt",
     "fields": {
-     "name": "flatpak"
+     "name": "krita",
+     "repo-component": "universe"
     },
-    "name": "flatpak"
-   },
-   "flatpak\\krita": {
-    "driver": "flatpak",
-    "fields": {
-     "hub": "flathub",
-     "name": "org.kde.krita"
-    },
-    "name": "org.kde.krita"
+    "name": "krita"
    }
   },
   "kubectl": {
@@ -109416,6 +109455,7 @@
    "apt\\rust": {
     "driver": "apt",
     "fields": {
+     "installed-name": "cargo",
      "name": "rust-all",
      "repo-component": "universe"
     },
@@ -110149,6 +110189,7 @@
    "apt\\rust": {
     "driver": "apt",
     "fields": {
+     "installed-name": "cargo",
      "name": "rust-all",
      "repo-component": "universe"
     },
@@ -111344,6 +111385,7 @@
    "apt\\rust": {
     "driver": "apt",
     "fields": {
+     "installed-name": "cargo",
      "name": "rust-all",
      "repo-component": "universe"
     },
@@ -112256,6 +112298,7 @@
    "apt\\rust": {
     "driver": "apt",
     "fields": {
+     "installed-name": "cargo",
      "name": "rust-all",
      "repo-component": "universe"
     },
@@ -113238,6 +113281,7 @@
    "apt\\rust": {
     "driver": "apt",
     "fields": {
+     "installed-name": "cargo",
      "name": "rust-all",
      "repo-component": "universe"
     },
@@ -114684,6 +114728,7 @@
    "apt\\rust": {
     "driver": "apt",
     "fields": {
+     "installed-name": "cargo",
      "name": "rust-all",
      "repo-component": "universe"
     },
@@ -114738,6 +114783,7 @@
    "apt\\rust": {
     "driver": "apt",
     "fields": {
+     "installed-name": "cargo",
      "name": "rust-all",
      "repo-component": "universe"
     },
@@ -115063,6 +115109,7 @@
    "apt\\rust": {
     "driver": "apt",
     "fields": {
+     "installed-name": "cargo",
      "name": "rust-all",
      "repo-component": "universe"
     },
@@ -116602,6 +116649,7 @@
    "apt\\rust": {
     "driver": "apt",
     "fields": {
+     "installed-name": "cargo",
      "name": "rust-all",
      "repo-component": "universe"
     },
@@ -118793,6 +118841,7 @@
    "apt\\rust": {
     "driver": "apt",
     "fields": {
+     "installed-name": "cargo",
      "name": "rust-all",
      "repo-component": "universe"
     },
@@ -119689,20 +119738,13 @@
    }
   },
   "krita": {
-   "apt\\flatpak": {
+   "apt\\krita": {
     "driver": "apt",
     "fields": {
-     "name": "flatpak"
+     "name": "krita",
+     "repo-component": "universe"
     },
-    "name": "flatpak"
-   },
-   "flatpak\\krita": {
-    "driver": "flatpak",
-    "fields": {
-     "hub": "flathub",
-     "name": "org.kde.krita"
-    },
-    "name": "org.kde.krita"
+    "name": "krita"
    }
   },
   "kubectl": {
@@ -121169,6 +121211,7 @@
    "apt\\rust": {
     "driver": "apt",
     "fields": {
+     "installed-name": "cargo",
      "name": "rust-all",
      "repo-component": "universe"
     },
@@ -121902,6 +121945,7 @@
    "apt\\rust": {
     "driver": "apt",
     "fields": {
+     "installed-name": "cargo",
      "name": "rust-all",
      "repo-component": "universe"
     },
@@ -123046,6 +123090,7 @@
    "apt\\rust": {
     "driver": "apt",
     "fields": {
+     "installed-name": "cargo",
      "name": "rust-all",
      "repo-component": "universe"
     },
@@ -123941,6 +123986,7 @@
    "apt\\rust": {
     "driver": "apt",
     "fields": {
+     "installed-name": "cargo",
      "name": "rust-all",
      "repo-component": "universe"
     },
@@ -124906,6 +124952,7 @@
    "apt\\rust": {
     "driver": "apt",
     "fields": {
+     "installed-name": "cargo",
      "name": "rust-all",
      "repo-component": "universe"
     },
@@ -125008,6 +125055,7 @@
    "apt\\rust": {
     "driver": "apt",
     "fields": {
+     "installed-name": "cargo",
      "name": "rust-all",
      "repo-component": "universe"
     },
