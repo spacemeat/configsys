@@ -380,6 +380,20 @@ class Config:
                     out.add(ref)
         return out
 
+    def profile_removed_closure(self, profile):
+        '''Like profile_removed, but across `profile`'s NET-ACTIVE include closure: a component a `~`
+        drops in `profile` itself OR in any subprofile it net-includes (so a `~` buried inside an
+        included meta-profile still counts — the transitive-exclusion case). Walks active_subprofiles
+        (which already honors `~`), so a subprofile that's itself `~`'d out doesn't leak its own
+        internal `~`s back in. Used to tell a transitively-excluded orphan from a merely-lurking one.'''
+        out = set(self.profile_removed(profile))
+        for sub in self.active_subprofiles(profile):
+            try:
+                out |= set(self.profile_removed(sub))
+            except ConfigError:
+                pass
+        return out
+
     def profile_excludes(self, profile):
         '''Profiles that `profile` drops via a `~subprofile` term across the layer stack (the mirror
         of profile_includes). For the Profiles editor's excluded-include markers + `check`.'''

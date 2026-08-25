@@ -198,11 +198,11 @@ after seeing real counts on the user's machine.
   say so in a footer (`scanned: apt, flatpak, snap, cargo, pipx; not: arbitrary ~/ files`).
 - **Reverse-index fidelity**: the `(driver, name)`→component map must honor every per-driver `name:`
   override, or a known package reads as foreign. Test against the name-sweep data.
-- **Transitive exclusion**: an `excluded` orphan may be `~`'d out by a subprofile nested inside an
-  active meta-profile, not by the active profile's own terms. Classifying it as *excluded* (vs
-  *lurking*) needs a closure-aware removal check across the active profiles' full include trees —
-  today's `profile_removed` is direct-`~terms`-only, so extend it or add a closure variant. Get this
-  wrong and an excluded orphan quietly downgrades to lurking (wrong default action).
+- **Transitive exclusion** (handled): an `excluded` orphan may be `~`'d out by a subprofile nested
+  inside an active meta-profile, not by the active profile's own terms. The scan classifies via
+  `Config.profile_removed_closure(profile)` — the union of `~`-removals across the profile's
+  NET-ACTIVE include closure (`active_subprofiles`, so a `~`'d-out subprofile's own internal `~`s
+  don't leak back in) — so such an orphan reads as *excluded*, not *lurking*.
 - **Version-scoped providers**: `python3.11` installed while the active set wants `python3.13` —
   that's a *known* orphan of the version-scoped component, not foreign. The reverse index keys on the
   provider's own name, so this falls out naturally; add a test.

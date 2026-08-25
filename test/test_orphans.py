@@ -62,6 +62,56 @@ def test_forgotten_when_in_no_profile_at_all():
     assert O._classify_known(cfg, 'nowhere-tool', req, act, rem) == 'forgotten'
 
 
+def test_removed_closure_catches_transitive_exclusion():
+    # ripgrep is `~`'d out one level down (inside ext-langs, which with-sub includes) — the direct
+    # profile_removed misses it; the closure catches it.
+    cfg = _cfg('''{
+        configs: [ with-sub ]
+        profiles: {
+            base-langs: [ htop  ripgrep ]
+            ext-langs:  [ +base-langs  ~ripgrep ]
+            with-sub:   [ +ext-langs  ncdu ]
+        }
+    }''')
+    assert cfg.profile_removed('with-sub') == set()               # direct: nothing
+    assert cfg.profile_removed_closure('with-sub') == {'ripgrep'}  # closure: caught
+
+
+def test_removed_closure_does_not_leak_a_tilded_out_subprofiles_internal_removals():
+    # P excludes B wholesale; B's OWN internal `~x` must NOT count as excluded-from-P (B isn't in P).
+    cfg = _cfg('''{
+        configs: [ p ]
+        profiles: {
+            leaf: [ x  y ]
+            b:    [ +leaf  ~x ]
+            a:    [ +b  z ]
+            p:    [ +a  ~b ]
+        }
+    }''')
+    closure = cfg.profile_removed_closure('p')
+    assert 'x' not in closure          # x's only tie to P was via B, which P prunes -> not excluded
+    assert 'y' in closure              # ~b drops b's net members ({y}), which IS an exclusion by P
+
+
+def test_transitive_exclusion_classifies_as_excluded(tmp_path):
+    d = tmp_path / '.config' / 'configsys'
+    d.mkdir(parents=True)
+    (d / 'configsys.hu').write_text('''{
+      configs: [ with-sub ]
+      profiles: {
+        base-langs: [ htop  ripgrep ]
+        ext-langs:  [ +base-langs  ~ripgrep ]
+        with-sub:   [ +ext-langs  ncdu ]
+      }
+    }''')
+    ctx = Context(build_parser().parse_args(['--home', str(tmp_path), '--os', 'pop', 'inspect']))
+    units, rindex, cache = _scan(ctx)
+    cache['apt'] = {_aptkey(rindex, 'ripgrep'): '14.1.0', _aptkey(rindex, 'ncdu'): '1.16'}
+    found = {o.component: o for o in O.scan_orphans(ctx, units, cache=cache)}
+    assert found['ripgrep'].kind == 'excluded'     # was 'lurking' before the closure fix
+    assert 'ncdu' not in found                       # a net member of the active profile
+
+
 def test_excluded_outranks_lurking():
     # a component both `~`'d out of the active profile AND sitting in an inactive one -> excluded wins
     cfg = _cfg('''{

@@ -137,8 +137,8 @@ def scan_orphans(ctx, units, *, cache=None, include_foreign_native=False):
     active_profiles = list(cfg.active_profiles)
     removed_by_active = set()
     for p in active_profiles:
-        try:
-            removed_by_active |= set(cfg.profile_removed(p))
+        try:                                    # closure: catches a `~` buried in an included subprofile
+            removed_by_active |= set(cfg.profile_removed_closure(p))
         except Exception:                       # noqa: BLE001 — a broken active profile removes nothing
             pass
     ignore = _ignore_globs(cfg)
