@@ -22,7 +22,7 @@ from fnmatch import fnmatch
 
 from .adapt import to_resolved_component
 from .drivers import get_driver
-from .resolve import candidate_bindings, unit_for_binding, via_representatives
+from .resolve import candidate_bindings, unit_for_binding
 
 # Drivers whose FOREIGN (no-recipe) installs we still list — deliberate user-app installs, few in
 # number. Native package managers and language module installers are NOT here: they carry hundreds of
@@ -50,17 +50,19 @@ class Orphan:
 
 def build_reverse_index(ctx):
     '''{ (driver, package_key): [component_name, ...] } for THIS machine's context — every package
-    key each component could install under, across its VALID bindings (per-driver `name:` maps
-    applied). This is what tells a `known` key (maps to a real component) from a `foreign` one.'''
+    key each component could install under, across ALL its valid bindings (per-driver `name:` maps
+    applied, and every same-`via:` alternative, so both `p7zip-full` and `7zip` map to one
+    component). This is what tells a `known` key (maps to a real component) from a `foreign` one.'''
     r = ctx.routes
     cx = r.cascade.context(r.block, r.version, r.cpu)
+    native_mgr = _native_manager(ctx)
     index = {}
     for name, comp in r.components.items():
         try:
-            reps = via_representatives(candidate_bindings(comp, r.cascade, cx, None), r.cascade)
+            cands = candidate_bindings(comp, r.cascade, cx, None)   # ALL valid bindings, not one/via
         except Exception:                       # noqa: BLE001 — an unroutable component maps nothing
             continue
-        for b in reps:
+        for b in cands:
             unit = unit_for_binding(comp, b, r.cascade, r.block, r.overrides)
             if unit is None:
                 continue
@@ -68,20 +70,43 @@ def build_reverse_index(ctx):
             drv = get_driver(rc.driver, ctx.runner, ctx.paths)
             if drv is None:
                 continue
-            for key in _unit_keys(rc, drv):
-                index.setdefault((rc.driver, key), [])
-                if name not in index[(rc.driver, key)]:
-                    index[(rc.driver, key)].append(name)
+            for (dn, key) in _index_pairs(rc, drv, native_mgr):
+                index.setdefault((dn, key), [])
+                if name not in index[(dn, key)]:
+                    index[(dn, key)].append(name)
     return index
 
 
+def _native_manager(ctx):
+    '''The OS's native package-manager driver name (apt/dnf/pacman/…), or None — where a
+    native-backed driver's packages actually get enumerated.'''
+    r = ctx.routes
+    try:
+        return r.cascade.native(r.block)
+    except Exception:                           # noqa: BLE001
+        return None
+
+
 def _unit_keys(rc, drv):
-    '''The installed_index key(s) a resolved unit occupies: its own `index_key`, plus any extra
-    package names a metapackage unit installs (`fields['packages']`, e.g. an apt meta unit).'''
+    '''The installed_index key(s) a resolved unit occupies under its OWN driver: its `index_key`,
+    plus any extra package names a unit installs (`fields['packages']` — an apt metapackage, or a
+    clang-N unit whose `packages: [ clang-18 ]` are the real dpkg names).'''
     keys = {drv.index_key(rc)}
     for extra in (rc.fields.get('packages') or []):
         keys.add(extra)
     return keys
+
+
+def _index_pairs(rc, drv, native_mgr):
+    '''All (driver, key) slots a resolved unit occupies in the installed indexes: its own driver's
+    keys, plus — for a native-backed driver (clang/gcc/native-pkg-file/aur) — the same keys under
+    the native manager, where enumeration actually finds them (dpkg lists `clang-18`, not the `clang`
+    driver).'''
+    keys = _unit_keys(rc, drv)
+    pairs = {(rc.driver, k) for k in keys}
+    if native_mgr and getattr(drv, 'native_backed', False):
+        pairs |= {(native_mgr, k) for k in keys}
+    return pairs
 
 
 def _classify_known(cfg, name, requested, active_profiles, removed_by_active):
@@ -159,14 +184,16 @@ def scan_orphans(ctx, units, *, cache=None, explicit=None, origins=None,
         idx = origins[dname]
         return idx.get(key) or idx.get(key.split(':')[0], '')
 
-    # 1. the (driver, key) set we DO manage on this machine — the active resolved units.
+    # 1. the (driver, key) set we DO manage on this machine — the active resolved units. Native-backed
+    # units (clang-N, a .deb, an aur pkg) also occupy a slot under the native manager, so subtract
+    # those too — else an active clang-18 would resurface as an apt orphan.
+    native_mgr = _native_manager(ctx)
     active = set()
     for rc in units.values():
         drv = _drv(rc.driver)
         if drv is None:
             continue
-        for key in _unit_keys(rc, drv):
-            active.add((rc.driver, key))
+        active |= _index_pairs(rc, drv, native_mgr)
 
     # 2. classification inputs from the config's profile graph.
     rindex = build_reverse_index(ctx)

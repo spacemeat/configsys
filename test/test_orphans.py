@@ -279,6 +279,38 @@ def test_apt_origin_index_parse():
         'bash': 'required', 'myapp': 'optional', 'apt': 'important'}
 
 
+def test_index_pairs_cross_indexes_native_backed_under_manager():
+    from types import SimpleNamespace
+
+    class _Drv:
+        def __init__(self, nb): self.native_backed = nb
+        def index_key(self, rc): return rc.name
+
+    # a clang-N unit: its package lands in apt's DB, so it occupies BOTH slots
+    rc = SimpleNamespace(driver='clang', fields={'packages': ['clang-18']}, name='clang-18')
+    assert O._index_pairs(rc, _Drv(True), 'apt') == {('clang', 'clang-18'), ('apt', 'clang-18')}
+    # a plain driver (cargo) occupies only its own slot
+    rc2 = SimpleNamespace(driver='cargo', fields={}, name='ripgrep')
+    assert O._index_pairs(rc2, _Drv(False), 'apt') == {('cargo', 'ripgrep')}
+
+
+def test_reverse_index_recognizes_native_backed_and_alt_names():
+    import os
+    from types import SimpleNamespace
+    from configsys.routes import Resolver
+    from configsys.runner import Runner
+
+    routes = os.path.join(os.path.dirname(__file__), '..', 'routes.hu')
+    r = Resolver(routes, 'pop_os!', '22.04', 'x86_64')   # a versioned context (7zip gate needs it)
+    ctx = SimpleNamespace(routes=r, runner=Runner(pretend=True), paths=None)
+    ri = O.build_reverse_index(ctx)
+    # clang installs clang-18 into apt -> recognized under (apt, clang-18)
+    assert ri.get(('apt', 'clang-18')) == ['clang-18']
+    # both the modern `7zip` name AND the legacy `p7zip-full` map to the one component
+    assert ri.get(('apt', '7zip')) == ['p7zip']
+    assert ri.get(('apt', 'p7zip-full')) == ['p7zip']
+
+
 def test_apt_explicit_keys_parse():
     from configsys.drivers.apt import Apt
 

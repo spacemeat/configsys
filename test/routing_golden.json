@@ -31293,9 +31293,9 @@
    "apt\\p7zip": {
     "driver": "apt",
     "fields": {
-     "name": "p7zip-full"
+     "name": "7zip"
     },
-    "name": "p7zip-full"
+    "name": "7zip"
    }
   },
   "paraview": {
@@ -86289,9 +86289,9 @@
    "apt\\p7zip": {
     "driver": "apt",
     "fields": {
-     "name": "p7zip-full"
+     "name": "7zip"
     },
-    "name": "p7zip-full"
+    "name": "7zip"
    }
   },
   "paraview": {
@@ -110110,9 +110110,9 @@
    "apt\\p7zip": {
     "driver": "apt",
     "fields": {
-     "name": "p7zip-full"
+     "name": "7zip"
     },
-    "name": "p7zip-full"
+    "name": "7zip"
    }
   },
   "paraview": {
@@ -121863,9 +121863,9 @@
    "apt\\p7zip": {
     "driver": "apt",
     "fields": {
-     "name": "p7zip-full"
+     "name": "7zip"
     },
-    "name": "p7zip-full"
+    "name": "7zip"
    }
   },
   "paraview": {

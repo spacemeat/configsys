@@ -1539,7 +1539,7 @@
         // gzip/bzip2/xz are on every base system already; these are the ones worth adding.
         zstd:  { attrs: [ CLI lib FOSS permissive ] description: "Zstandard — fast, high-ratio compression (`zstd`)." install: [ { via: native } ] }
         lz4:   { attrs: [ CLI lib FOSS permissive ] description: "LZ4 — extremely fast compression (`lz4`)." install: [ { via: native } ] }
-        p7zip: { attrs: [ CLI FOSS copyleft ] description: "7-Zip for Unix (`7z`) — high-ratio archiver, many formats." install: [ { via: native  name: { apt: p7zip-full  pacman: 7zip  zypper: 7zip  apk: 7zip  default: p7zip } }  { via: native  when: "fedora_atomic"  name: sevenzip } ] }   // brew's current formula is `sevenzip` (p7zip is the legacy 17.06 fork)
+        p7zip: { attrs: [ CLI FOSS copyleft ] description: "7-Zip for Unix (`7z`/`7zz`) — high-ratio archiver, many formats." install: [ { via: native  name: { apt: p7zip-full  pacman: 7zip  zypper: 7zip  apk: 7zip  default: p7zip } }  { via: native  when: "ubuntu >= 22.04 or debian >= 12"  name: 7zip }  { via: native  when: "fedora_atomic"  name: sevenzip } ] }   // modern Debian/Ubuntu ship the actively-maintained `7zip` (`7zz`); it wins over the legacy p7zip-full by specificity. brew's current formula is `sevenzip` (p7zip is the legacy 17.06 fork)
         // unrar is nonfree (patent-encumbered): apt multiverse, Fedora RPM Fusion, Arch base.
         unrar: { attrs: [ CLI freeware ] description: "Extract RAR archives."
             install: [

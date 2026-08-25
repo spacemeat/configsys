@@ -232,6 +232,12 @@ class Driver:
         scan ignore the thousands of dependency packages nobody chose. None on command failure too.'''
         return None
 
+    # True for a driver that installs into the OS package database (so its packages appear in the
+    # NATIVE manager's installed_index, not under this driver's own name): clang/gcc (apt.llvm.org /
+    # a PPA + the native tool), native-pkg-file (a .deb/.rpm via dpkg/rpm), aur (pacman). The orphan
+    # scan cross-indexes their package keys under the native manager so enumeration matches.
+    native_backed = False
+
     def origin_index(self):
         '''{package_key: origin_tier} classifying how fundamental each installed package is to the OS
         — apt Priority (`required`/`important`/`standard`/`optional`/`extra`), or a comparable

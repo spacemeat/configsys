@@ -37,6 +37,7 @@ _VER_RE = re.compile(r'\d+\.\d+(?:\.\d+)?')
 
 class AltDriver(Driver):
     privileged = True
+    native_backed = True         # clang/gcc install into apt/dnf — packages land in the native index
     default_scope = 'system'
     default_slaves = ()          # subclasses (clang) may provide, routes may override
     default_source = None        # subclasses (clang) may provide the repo (key + deb)

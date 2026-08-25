@@ -23,6 +23,7 @@ _BUILD_ROOT = '/tmp/configsys-aur'
 class Aur(Driver):
     name = 'aur'
     privileged = False   # makepkg must NOT run as root; it sudo's internally
+    native_backed = True   # makepkg installs the built package via pacman — it lands in `pacman -Q`
 
     @staticmethod
     def _pkg(rc):
