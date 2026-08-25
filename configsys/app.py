@@ -1053,9 +1053,20 @@ def cmd_orphans(ctx, args):
         return 1
     units, _errs = ctx.routes.resolve_resilient(requested)
     found = orphans_mod.scan_orphans(ctx, units, include_foreign_native=args.foreign,
-                                     include_auto=args.include_auto)
+                                     include_auto=args.include_auto, include_system=True)
     if args.driver:
         found = [o for o in found if o.driver == args.driver]
+    # hide OS-base foreign (required/important/standard) unless asked — but the tier rode in on every
+    # orphan, so `--system` (or --json) surfaces them; a user can still choose to manage systemd.
+    base_hidden = 0
+    if not args.system:
+        kept = []
+        for o in found:
+            if o.kind == 'foreign' and o.tier in orphans_mod.BASE_TIERS:
+                base_hidden += 1
+            else:
+                kept.append(o)
+        found = kept
     visible = [o for o in found if args.all or not o.ignored]
 
     if args.json:
@@ -1066,7 +1077,12 @@ def cmd_orphans(ctx, args):
     active = ', '.join(cfg.active_profiles) or '(none)'
     known, foreign, ignored = orphans_mod.scanned_summary(visible)
     if not visible:
-        tail = f' ({ignored} ignored — `--all` to show)' if ignored else ''
+        extra = []
+        if ignored:
+            extra.append(f'{ignored} ignored — `--all`')
+        if base_hidden:
+            extra.append(f'{base_hidden} OS-base foreign — `--system`')
+        tail = f' ({"; ".join(extra)})' if extra else ''
         print(f'\nNo orphans: everything installed is in an active profile ({active}).{tail}')
         return 0
 
@@ -1080,7 +1096,7 @@ def cmd_orphans(ctx, args):
         last_driver = o.driver
         head = f'  {col:<10} {o.key:<{kw}}  {o.version:<{vw}}'
         if o.kind == 'foreign':
-            note = '(foreign — no cf recipe)'
+            note = f'(foreign — no cf recipe · {o.tier or "?"})'
         else:
             note = f'→ {o.component:<{cw}}  ({o.kind})'
         flag = '  [ignored]' if o.ignored else ''
@@ -1092,6 +1108,9 @@ def cmd_orphans(ctx, args):
           + f'   ·   {scope}   ·   `configsys orphans --json` for scripting')
     if not args.include_auto:
         print('(auto-installed dependency packages hidden — `--include-auto` to show them)')
+    if base_hidden:
+        print(f'({base_hidden} OS-base foreign package{"s" if base_hidden != 1 else ""} hidden '
+              '[required/important/standard] — `--system` to show them)')
     print('scanned: batch-enumerable managers where present (apt/dnf/pacman/brew, flatpak, snap, '
           'pip/pipx/npm); not scanned: cargo/tarball/appImage/gem/… (no batch enumeration) or '
           'arbitrary files.')
@@ -2349,6 +2368,9 @@ def build_parser():
                      help='also list recipe-less packages from native managers (noisy; off by default)')
     orp.add_argument('--include-auto', action='store_true', dest='include_auto',
                      help='include auto-installed dependency packages (default: only ones you chose)')
+    orp.add_argument('--system', action='store_true',
+                     help='also list OS-base foreign packages (apt priority required/important/'
+                          'standard; default hides them)')
     orp.add_argument('--all', action='store_true', help='include orphans silenced by orphans-ignore')
     orp.add_argument('--json', action='store_true', help='machine-readable output')
 

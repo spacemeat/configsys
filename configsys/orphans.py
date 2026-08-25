@@ -32,6 +32,10 @@ USER_FACING = ('flatpak', 'snap')
 # priority ladder: index 0 is the most actionable, chosen first when a key maps to several kinds.
 KINDS = ('excluded', 'lurking', 'forgotten', 'foreign')
 
+# OS-base priority tiers (apt Priority): the "the distro ships this" set, hidden from the foreign
+# list by default. The tier is still recorded on the orphan — a user CAN opt to manage one.
+BASE_TIERS = ('required', 'important', 'standard')
+
 
 @dataclass
 class Orphan:
@@ -41,6 +45,7 @@ class Orphan:
     component: str                 # mapped component name, or '' for a foreign orphan
     kind: str                      # one of KINDS
     ignored: bool = False
+    tier: str = ''                 # OS-origin tier (apt Priority), '' when the driver has no notion
 
 
 def build_reverse_index(ctx):
@@ -99,8 +104,8 @@ def _rank(kind):
     return KINDS.index(kind)
 
 
-def scan_orphans(ctx, units, *, cache=None, explicit=None, include_foreign_native=False,
-                 include_auto=False):
+def scan_orphans(ctx, units, *, cache=None, explicit=None, origins=None,
+                 include_foreign_native=False, include_auto=False, include_system=False):
     '''[Orphan] — installed items with no active component. `units` is the active resolved set
     ({key: ResolvedComponent}). `cache` is an optional {driver_name: installed_index()-dict|None} to
     reuse detection's enumeration (missing drivers are enumerated on demand); `explicit` likewise
@@ -112,6 +117,7 @@ def scan_orphans(ctx, units, *, cache=None, explicit=None, include_foreign_nativ
     cfg = ctx.config
     cache = dict(cache or {})
     explicit = dict(explicit or {})
+    origins = dict(origins or {})
     drivers = {}                                # name -> Driver instance (memoized)
 
     def _drv(dname):
@@ -140,6 +146,18 @@ def scan_orphans(ctx, units, *, cache=None, explicit=None, include_foreign_nativ
             except Exception:                   # noqa: BLE001 — a flaky query -> don't filter
                 explicit[dname] = None
         return explicit[dname]
+
+    def _tier(dname, key):
+        '''The OS-origin tier for an installed key (apt Priority), '' when unknown. Falls back to the
+        bare name for an arch-qualified key (dpkg reports priority per package, not per arch).'''
+        if dname not in origins:
+            drv = _drv(dname)
+            try:
+                origins[dname] = (drv.origin_index() if drv is not None else None) or {}
+            except Exception:                   # noqa: BLE001 — a flaky query -> no tiers
+                origins[dname] = {}
+        idx = origins[dname]
+        return idx.get(key) or idx.get(key.split(':')[0], '')
 
     # 1. the (driver, key) set we DO manage on this machine — the active resolved units.
     active = set()
@@ -193,8 +211,11 @@ def scan_orphans(ctx, units, *, cache=None, explicit=None, include_foreign_nativ
                 comp, kind = '', 'foreign'
             else:
                 continue                        # unmatched native key -> dependency noise, dropped
+            tier = _tier(dname, key)
+            if kind == 'foreign' and not include_system and tier in BASE_TIERS:
+                continue                        # an OS-base package (required/important/standard)
             out.append(Orphan(driver=dname, key=key, version=version or '', component=comp,
-                              kind=kind, ignored=_is_ignored(ignore, comp, key)))
+                              kind=kind, ignored=_is_ignored(ignore, comp, key), tier=tier))
     out.sort(key=lambda o: (_rank(o.kind), o.driver, o.component or o.key))
     return out
 

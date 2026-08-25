@@ -97,7 +97,13 @@ scan_orphans(ctx, units) -> [Orphan]  # Orphan = {driver, key, version, componen
    a real box that's the difference between ~600 chosen packages and ~4000 total (foreign 7754 → 433).
    `--include-auto` bypasses it. User-facing drivers already self-filter (flatpak lists `--app`, so
    runtimes never appear; pipx/npm-global/pip surface only top-level).
-5. Stamp `ignored` from the ignore list (below) — an ignored orphan keeps its `kind`, it's just
+5. **Tag every foreign orphan with its OS-origin tier** (apt Priority via `origin_index()`:
+   required/important/standard/optional/extra; '' where a driver has no such notion). The tier rides
+   on the orphan (kept as data — `--json` exposes it), but the base tiers (required/important/
+   standard) are hidden from the foreign list by default; `--system` reveals them (a user CAN still
+   choose to manage even systemd). On a real box that's another ~207 foreign that recede, leaving the
+   optional/extra ones — the actual apps-you-added + recipe-gaps worklist.
+6. Stamp `ignored` from the ignore list (below) — an ignored orphan keeps its `kind`, it's just
    filtered out of the default surfaces.
 
 Cost: same batched `installed_index()` calls detection already makes (share the cache), plus one

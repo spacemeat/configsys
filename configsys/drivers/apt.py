@@ -160,6 +160,19 @@ class Apt(Driver):
             return None
         return {ln.strip() for ln in r.stdout.splitlines() if ln.strip()}
 
+    def origin_index(self):
+        '''{package: Priority} — Debian priority (required/important/standard/optional/extra), the
+        "how fundamental is this to the OS" tier. Bare names; a blank priority reads as '' (unknown).'''
+        r = self.runner.run("dpkg-query -W -f='${Package} ${Priority}\\n'")
+        if not r.ok:
+            return None
+        idx = {}
+        for line in r.stdout.splitlines():
+            name, _, prio = line.partition(' ')
+            if name:
+                idx.setdefault(name, prio.strip())     # first row wins (matches installed_index)
+        return idx
+
     @staticmethod
     def _probe_name(rc):
         '''The package to READ install-state / version from — the binding's `installed-name:` when

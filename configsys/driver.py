@@ -232,6 +232,14 @@ class Driver:
         scan ignore the thousands of dependency packages nobody chose. None on command failure too.'''
         return None
 
+    def origin_index(self):
+        '''{package_key: origin_tier} classifying how fundamental each installed package is to the OS
+        — apt Priority (`required`/`important`/`standard`/`optional`/`extra`), or a comparable
+        per-manager notion. None when the driver has no such concept. The orphan scan carries the tier
+        on every foreign orphan (so the data is never lost) and, for now, hides the base tiers
+        (required/important/standard) unless asked — a user CAN still choose to manage even systemd.'''
+        return None
+
     def get_latest(self, rc):
         '''Latest/candidate available version string, or None if unknown.'''
         raise NotImplementedError('get_latest')
