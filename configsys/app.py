@@ -1041,6 +1041,59 @@ def cmd_where(ctx, args):
     return 0
 
 
+def cmd_orphans(ctx, args):
+    '''List installed software that no active profile accounts for, grouped by driver, each tagged
+    with its kind (excluded / lurking / forgotten / foreign). Read-only report — the phase-1 surface.'''
+    from . import orphans as orphans_mod
+    cfg = ctx.config
+    try:
+        requested = list(cfg.requested())
+    except ConfigError as e:
+        print(f'configsys: {e}')
+        return 1
+    units, _errs = ctx.routes.resolve_resilient(requested)
+    found = orphans_mod.scan_orphans(ctx, units, include_foreign_native=args.foreign)
+    if args.driver:
+        found = [o for o in found if o.driver == args.driver]
+    visible = [o for o in found if args.all or not o.ignored]
+
+    if args.json:
+        import json
+        print(json.dumps([vars(o) for o in visible], indent=2))
+        return 0
+
+    active = ', '.join(cfg.active_profiles) or '(none)'
+    known, foreign, ignored = orphans_mod.scanned_summary(visible)
+    if not visible:
+        tail = f' ({ignored} ignored — `--all` to show)' if ignored else ''
+        print(f'\nNo orphans: everything installed is in an active profile ({active}).{tail}')
+        return 0
+
+    print(f'\nInstalled, not in your active profiles ({active}):\n')
+    kw = max(len(o.key) for o in visible)
+    vw = max(len(o.version) for o in visible)
+    cw = max((len(o.component) for o in visible if o.kind != 'foreign'), default=0)
+    last_driver = None
+    for o in visible:
+        col = o.driver if o.driver != last_driver else ''
+        last_driver = o.driver
+        head = f'  {col:<10} {o.key:<{kw}}  {o.version:<{vw}}'
+        if o.kind == 'foreign':
+            note = '(foreign — no cf recipe)'
+        else:
+            note = f'→ {o.component:<{cw}}  ({o.kind})'
+        flag = '  [ignored]' if o.ignored else ''
+        print(f'{head}  {note}{flag}')
+
+    print(f'\n{known} known · {foreign} foreign'
+          + (f' · {ignored} ignored' if ignored else '')
+          + '   ·   `configsys orphans --json` for scripting')
+    print('scanned: batch-enumerable managers where present (apt/dnf/pacman/zypper/apk/brew, '
+          'flatpak, snap, pip/pipx/npm); not scanned: cargo/tarball/appImage/gem/… (no batch '
+          'enumeration) or arbitrary files.')
+    return 0
+
+
 def cmd_location(ctx, args):
     '''Print the absolute install location of a component as it resolves HERE (honoring scope and
     the effective pin) — one path per line. For shell snippets: `export X="$(configsys location
@@ -2285,6 +2338,14 @@ def build_parser():
     rq.add_argument('--print', dest='print_only', action='store_true',
                     help='print the request and exit; never send')
 
+    orp = sub.add_parser('orphans', help='list installed software that no active profile accounts '
+                                         'for — adopt, remove, or ignore candidates')
+    orp.add_argument('--driver', help='only this driver (apt, flatpak, …)')
+    orp.add_argument('--foreign', action='store_true',
+                     help='also list recipe-less packages from native managers (noisy; off by default)')
+    orp.add_argument('--all', action='store_true', help='include orphans silenced by orphans-ignore')
+    orp.add_argument('--json', action='store_true', help='machine-readable output')
+
     dfp = sub.add_parser('dotfiles', help='inspect (status) and adopt (capture) your dotfiles')
     dfsub = dfp.add_subparsers(dest='dotfiles_command')
     dfsub.add_parser('status', help='per-target state of every dotfile in the active profiles: '
@@ -2874,6 +2935,7 @@ _COMMANDS = {
     'set-version': cmd_set_version,
     'fix-scope': cmd_fix_scope,
     'where': cmd_where,
+    'orphans': cmd_orphans,
     'location': cmd_location,
     'versions': cmd_versions,
     'check': cmd_check,

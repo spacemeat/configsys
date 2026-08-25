@@ -129,6 +129,12 @@ class Config:
         errors honestly. Generalizes to "no snaps here" etc.'''
         return _leaves(layers.merge_scalar(self._layers, 'disabled-drivers', _MACHINE_ROLES))
 
+    def orphans_ignore(self):
+        '''Name-or-glob patterns whose matching orphans stay quiet in `configsys orphans` (a machine
+        setting; repo < primary < user). Acknowledged one-offs on THIS box don't nag; a glob matches
+        an orphan's component name OR its installed key.'''
+        return _leaves(layers.merge_scalar(self._layers, 'orphans-ignore', _MACHINE_ROLES))
+
     def pins(self):
         '''The effective pin map, merged PER KEY across repo < primary < user (see
         merge_scalar_map): a machine's top config overrides a primary plugin's pins key-by-key
