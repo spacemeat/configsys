@@ -50,6 +50,13 @@ class Brew(Driver):
     def index_key(self, rc):
         return self._formula(rc)
 
+    def explicit_keys(self):
+        '''`brew leaves --installed-on-request` — formulae the user asked for, not dependency-only.'''
+        r = self.runner.run('brew leaves --installed-on-request')
+        if not r.ok:
+            return None
+        return {ln.strip() for ln in r.stdout.splitlines() if ln.strip()}
+
     def get_version(self, rc):
         f = self._formula(rc)
         r = self.runner.run(f'brew list --versions {shlex.quote(f)}')

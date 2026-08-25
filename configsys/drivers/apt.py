@@ -152,6 +152,14 @@ class Apt(Driver):
             idx.setdefault(f'{name}:{arch}', ver) # arch-qualified — for routes like `steam:i386`
         return idx
 
+    def explicit_keys(self):
+        '''`apt-mark showmanual` — packages the user explicitly installed, as opposed to the ones
+        apt auto-pulled as dependencies. Bare names (no arch); the orphan scan matches on those.'''
+        r = self.runner.run('apt-mark showmanual')
+        if not r.ok:
+            return None
+        return {ln.strip() for ln in r.stdout.splitlines() if ln.strip()}
+
     @staticmethod
     def _probe_name(rc):
         '''The package to READ install-state / version from — the binding's `installed-name:` when

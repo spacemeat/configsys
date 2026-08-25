@@ -1052,7 +1052,8 @@ def cmd_orphans(ctx, args):
         print(f'configsys: {e}')
         return 1
     units, _errs = ctx.routes.resolve_resilient(requested)
-    found = orphans_mod.scan_orphans(ctx, units, include_foreign_native=args.foreign)
+    found = orphans_mod.scan_orphans(ctx, units, include_foreign_native=args.foreign,
+                                     include_auto=args.include_auto)
     if args.driver:
         found = [o for o in found if o.driver == args.driver]
     visible = [o for o in found if args.all or not o.ignored]
@@ -1085,12 +1086,15 @@ def cmd_orphans(ctx, args):
         flag = '  [ignored]' if o.ignored else ''
         print(f'{head}  {note}{flag}')
 
+    scope = 'all installed' if args.include_auto else 'explicitly-installed only'
     print(f'\n{known} known · {foreign} foreign'
           + (f' · {ignored} ignored' if ignored else '')
-          + '   ·   `configsys orphans --json` for scripting')
-    print('scanned: batch-enumerable managers where present (apt/dnf/pacman/zypper/apk/brew, '
-          'flatpak, snap, pip/pipx/npm); not scanned: cargo/tarball/appImage/gem/… (no batch '
-          'enumeration) or arbitrary files.')
+          + f'   ·   {scope}   ·   `configsys orphans --json` for scripting')
+    if not args.include_auto:
+        print('(auto-installed dependency packages hidden — `--include-auto` to show them)')
+    print('scanned: batch-enumerable managers where present (apt/dnf/pacman/brew, flatpak, snap, '
+          'pip/pipx/npm); not scanned: cargo/tarball/appImage/gem/… (no batch enumeration) or '
+          'arbitrary files.')
     return 0
 
 
@@ -2343,6 +2347,8 @@ def build_parser():
     orp.add_argument('--driver', help='only this driver (apt, flatpak, …)')
     orp.add_argument('--foreign', action='store_true',
                      help='also list recipe-less packages from native managers (noisy; off by default)')
+    orp.add_argument('--include-auto', action='store_true', dest='include_auto',
+                     help='include auto-installed dependency packages (default: only ones you chose)')
     orp.add_argument('--all', action='store_true', help='include orphans silenced by orphans-ignore')
     orp.add_argument('--json', action='store_true', help='machine-readable output')
 

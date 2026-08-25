@@ -43,6 +43,13 @@ class Pacman(Driver):
                 idx[cols[0]] = (cols[1] if len(cols) > 1 else '') or 'installed'
         return idx
 
+    def explicit_keys(self):
+        '''`pacman -Qeq` — explicitly-installed packages (names only), not dependency-only ones.'''
+        r = self.runner.run('pacman -Qeq')
+        if not r.ok:
+            return None
+        return {ln.strip() for ln in r.stdout.splitlines() if ln.strip()}
+
     def get_version(self, rc):
         # `pacman -Q btop` -> "btop 1.4.7-1"; nonzero + not-found message if absent
         r = self.runner.run(f'pacman -Q {shlex.quote(rc.name)}')

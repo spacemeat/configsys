@@ -90,12 +90,19 @@ scan_orphans(ctx, units) -> [Orphan]  # Orphan = {driver, key, version, componen
    - matches a component → attach the name, classify as excluded / lurking / forgotten.
    - no match + user-facing driver → `foreign`.
    - no match + native driver → dropped (dependency noise).
-4. Stamp `ignored` from the ignore list (below) — an ignored orphan keeps its `kind`, it's just
+4. **Filter to explicitly-installed by default.** Each driver's `explicit_keys()` (apt-mark
+   showmanual, `pacman -Qeq`, `dnf repoquery --userinstalled`, `brew leaves --installed-on-request`;
+   None when a driver draws no such distinction — then everything counts) names what the user
+   *chose* vs what came in as an auto-pulled dependency. The scan drops the auto-installed ones — on
+   a real box that's the difference between ~600 chosen packages and ~4000 total (foreign 7754 → 433).
+   `--include-auto` bypasses it. User-facing drivers already self-filter (flatpak lists `--app`, so
+   runtimes never appear; pipx/npm-global/pip surface only top-level).
+5. Stamp `ignored` from the ignore list (below) — an ignored orphan keeps its `kind`, it's just
    filtered out of the default surfaces.
-4. Honor an **ignore list** (below) — acknowledged orphans stay quiet.
 
-Cost: same batched `installed_index()` calls detection already makes (share the cache) + pure set
-math. No network, no per-item subprocess.
+Cost: same batched `installed_index()` calls detection already makes (share the cache), plus one
+cheap `explicit_keys()` query per enumerated native driver, + pure set math. No network, no per-item
+subprocess.
 
 ## UX
 

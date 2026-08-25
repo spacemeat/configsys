@@ -105,9 +105,9 @@ def test_transitive_exclusion_classifies_as_excluded(tmp_path):
       }
     }''')
     ctx = Context(build_parser().parse_args(['--home', str(tmp_path), '--os', 'pop', 'inspect']))
-    units, rindex, cache = _scan(ctx)
+    units, rindex, cache, explicit = _scan(ctx)
     cache['apt'] = {_aptkey(rindex, 'ripgrep'): '14.1.0', _aptkey(rindex, 'ncdu'): '1.16'}
-    found = {o.component: o for o in O.scan_orphans(ctx, units, cache=cache)}
+    found = {o.component: o for o in O.scan_orphans(ctx, units, cache=cache, explicit=explicit)}
     assert found['ripgrep'].kind == 'excluded'     # was 'lurking' before the closure fix
     assert 'ncdu' not in found                       # a net member of the active profile
 
@@ -165,18 +165,21 @@ def _ctx(tmp_path):
 
 
 def _scan(ctx, apt=None, flatpak=None):
-    '''Scan with a cache that FULLY covers every driver the scan would touch (all set to None =
-    "nothing installed / not enumerable") except the ones we fabricate — so no real enumeration runs.'''
+    '''Scan inputs with caches that FULLY cover every driver the scan would touch — installed-index
+    all None ("nothing installed / not enumerable") except fabricated ones, and explicit_keys all
+    None ("no manual/auto distinction, list all") so the manual filter never runs a real subprocess.
+    Returns (units, rindex, cache, explicit); tests override the pieces they care about.'''
     units, _ = ctx.routes.resolve_resilient(list(ctx.config.requested()))
     rindex = O.build_reverse_index(ctx)
     scan_drivers = ({rc.driver for rc in units.values()}
                     | {dn for (dn, _k) in rindex} | set(O.USER_FACING))
     cache = {dn: None for dn in scan_drivers}
+    explicit = {dn: None for dn in scan_drivers}
     if apt is not None:
         cache['apt'] = apt
     if flatpak is not None:
         cache['flatpak'] = flatpak
-    return units, rindex, cache
+    return units, rindex, cache, explicit
 
 
 def _aptkey(rindex, comp):
@@ -185,10 +188,10 @@ def _aptkey(rindex, comp):
 
 def test_scan_classifies_real_components(tmp_path):
     ctx = _ctx(tmp_path)
-    units, rindex, cache = _scan(ctx)
+    units, rindex, cache, explicit = _scan(ctx)
     kb, kh, kn = (_aptkey(rindex, c) for c in ('bat', 'htop', 'ncdu'))
     cache['apt'] = {kb: '0.24', kh: '3.0.6', kn: '1.16', 'libdep-noise': '1.0'}
-    found = {o.component: o for o in O.scan_orphans(ctx, units, cache=cache)}
+    found = {o.component: o for o in O.scan_orphans(ctx, units, cache=cache, explicit=explicit)}
     assert found['bat'].kind == 'excluded'
     assert found['ncdu'].kind == 'lurking'
     assert 'htop' not in found                        # active profile wants it -> not an orphan
@@ -197,21 +200,61 @@ def test_scan_classifies_real_components(tmp_path):
 
 def test_native_foreign_dropped_by_default_shown_with_flag(tmp_path):
     ctx = _ctx(tmp_path)
-    units, rindex, cache = _scan(ctx)
+    units, rindex, cache, explicit = _scan(ctx)
     cache['apt'] = {'libdep-noise': '1.0'}            # matches no recipe, native manager
-    default = O.scan_orphans(ctx, units, cache=cache)
+    default = O.scan_orphans(ctx, units, cache=cache, explicit=explicit)
     assert not any(o.key == 'libdep-noise' for o in default)
-    opted = O.scan_orphans(ctx, units, cache=cache, include_foreign_native=True)
+    opted = O.scan_orphans(ctx, units, cache=cache, explicit=explicit, include_foreign_native=True)
     got = next(o for o in opted if o.key == 'libdep-noise')
     assert got.kind == 'foreign' and got.component == ''
 
 
 def test_foreign_flatpak_listed_by_default(tmp_path):
     ctx = _ctx(tmp_path)
-    units, rindex, cache = _scan(ctx, flatpak={'com.example.Unknown': '1.0'})
-    found = O.scan_orphans(ctx, units, cache=cache)
+    units, rindex, cache, explicit = _scan(ctx, flatpak={'com.example.Unknown': '1.0'})
+    found = O.scan_orphans(ctx, units, cache=cache, explicit=explicit)
     got = next(o for o in found if o.key == 'com.example.Unknown')
     assert got.kind == 'foreign' and got.driver == 'flatpak'
+
+
+def test_explicit_filter_hides_auto_installed_packages(tmp_path):
+    ctx = _ctx(tmp_path)
+    units, rindex, cache, explicit = _scan(ctx)
+    kb, kn = _aptkey(rindex, 'bat'), _aptkey(rindex, 'ncdu')
+    cache['apt'] = {kb: '0.24', kn: '1.16', 'libdep': '1.0'}
+    # only bat was user-installed; ncdu + libdep came in as dependencies
+    explicit['apt'] = {kb}
+
+    default = {o.component or o.key: o for o in
+               O.scan_orphans(ctx, units, cache=cache, explicit=explicit)}
+    assert 'bat' in default                          # a chosen package -> kept
+    assert 'ncdu' not in default                     # an auto-installed dep -> hidden
+
+    everything = {o.component or o.key: o for o in
+                  O.scan_orphans(ctx, units, cache=cache, explicit=explicit, include_auto=True)}
+    assert {'bat', 'ncdu'} <= set(everything)        # --include-auto brings the dep back
+
+
+def test_driver_without_manual_distinction_lists_all(tmp_path):
+    ctx = _ctx(tmp_path)
+    units, rindex, cache, explicit = _scan(ctx)
+    cache['apt'] = {_aptkey(rindex, 'ncdu'): '1.16'}
+    # explicit is all-None here -> "no manual/auto notion", nothing is filtered
+    found = O.scan_orphans(ctx, units, cache=cache, explicit=explicit)
+    assert any(o.component == 'ncdu' for o in found)
+
+
+def test_apt_explicit_keys_parse():
+    from configsys.drivers.apt import Apt
+
+    class _R:
+        ok = True
+        stdout = 'htop\nbat\n\n  ripgrep  \n'
+
+    class _Runner:
+        def run(self, *a, **k):
+            return _R()
+    assert Apt(_Runner(), None).explicit_keys() == {'htop', 'bat', 'ripgrep'}
 
 
 IGNORE_CFG = '''{
@@ -228,7 +271,7 @@ def test_ignore_glob_stamps_without_dropping(tmp_path):
     ctx = Context(build_parser().parse_args(['--home', str(tmp_path), '--os', 'pop', 'inspect']))
     assert ctx.config.orphans_ignore() == ['bat']     # the machine-setting reader picks it up
 
-    units, rindex, cache = _scan(ctx)
+    units, rindex, cache, explicit = _scan(ctx)
     cache['apt'] = {_aptkey(rindex, 'bat'): '0.24'}
-    bat = next(o for o in O.scan_orphans(ctx, units, cache=cache) if o.component == 'bat')
+    bat = next(o for o in O.scan_orphans(ctx, units, cache=cache, explicit=explicit) if o.component == 'bat')
     assert bat.ignored is True and bat.kind == 'excluded'   # kept in the list, just flagged

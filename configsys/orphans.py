@@ -99,13 +99,19 @@ def _rank(kind):
     return KINDS.index(kind)
 
 
-def scan_orphans(ctx, units, *, cache=None, include_foreign_native=False):
+def scan_orphans(ctx, units, *, cache=None, explicit=None, include_foreign_native=False,
+                 include_auto=False):
     '''[Orphan] — installed items with no active component. `units` is the active resolved set
     ({key: ResolvedComponent}). `cache` is an optional {driver_name: installed_index()-dict|None} to
-    reuse detection's enumeration (missing drivers are enumerated on demand). `include_foreign_native`
-    opts native package managers into foreign listing (off by default — dependency noise).'''
+    reuse detection's enumeration (missing drivers are enumerated on demand); `explicit` likewise
+    caches {driver_name: explicit_keys()-set|None}. `include_foreign_native` opts native package
+    managers into foreign listing (off by default — dependency noise). `include_auto` keeps
+    auto-installed dependency packages (by default the scan lists only what the user EXPLICITLY
+    installed, per each driver's explicit_keys — so the thousands of dep packages nobody chose
+    don't drown the signal).'''
     cfg = ctx.config
     cache = dict(cache or {})
+    explicit = dict(explicit or {})
     drivers = {}                                # name -> Driver instance (memoized)
 
     def _drv(dname):
@@ -121,6 +127,19 @@ def scan_orphans(ctx, units, *, cache=None, include_foreign_native=False):
             except Exception:                   # noqa: BLE001 — a flaky lister -> treat as unknowable
                 cache[dname] = None
         return cache[dname]
+
+    def _explicit(dname):
+        '''The user-installed key set for a driver (None = it draws no manual/auto distinction, so
+        everything counts as explicit). Bypassed entirely under include_auto.'''
+        if include_auto:
+            return None
+        if dname not in explicit:
+            drv = _drv(dname)
+            try:
+                explicit[dname] = drv.explicit_keys() if drv is not None else None
+            except Exception:                   # noqa: BLE001 — a flaky query -> don't filter
+                explicit[dname] = None
+        return explicit[dname]
 
     # 1. the (driver, key) set we DO manage on this machine — the active resolved units.
     active = set()
@@ -152,9 +171,12 @@ def scan_orphans(ctx, units, *, cache=None, include_foreign_native=False):
         if not idx:                             # None (not enumerable) or empty -> nothing to scan
             continue
         user_facing = dname in USER_FACING
+        manual = _explicit(dname)               # None -> no manual/auto distinction; list all
         for key, version in idx.items():
             if (dname, key) in active:
                 continue                        # managed by an active unit
+            if manual is not None and key not in manual:
+                continue                        # an auto-installed dependency, not a chosen package
             comps = rindex.get((dname, key))
             if comps:                           # KNOWN — pick the most-actionable kind across matches
                 best = None

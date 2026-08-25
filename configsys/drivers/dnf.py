@@ -40,6 +40,13 @@ class Dnf(Driver):
                 idx[name] = ver.strip() or 'installed'
         return idx
 
+    def explicit_keys(self):
+        '''`dnf repoquery --userinstalled` — packages the user requested, not dependency-pulled.'''
+        r = self.runner.run("dnf repoquery --userinstalled --qf '%{name}\\n'")
+        if not r.ok:
+            return None
+        return {ln.strip() for ln in r.stdout.splitlines() if ln.strip()}
+
     def get_version(self, rc):
         pkg = shlex.quote(rc.name)
         r = self.runner.run(f"rpm -q --qf '%{{VERSION}}\\n' {pkg}")
