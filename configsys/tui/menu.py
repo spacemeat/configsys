@@ -290,6 +290,7 @@ class MenuState:
         n = self.cur()
         if n and n.link_target:
             self._goto(n.link_target)
+            self.reveal = n.link_target        # reveal the jumped-to profile's subtree, not just its head
         else:
             self.toggle_expand()
 
@@ -301,6 +302,7 @@ class MenuState:
             return
         if n.link_target:
             self._goto(n.link_target)
+            self.reveal = n.link_target        # reveal the jumped-to profile's subtree, not just its head
         elif n.expandable and not n.expanded:
             n.expanded = True
             self.reveal = n.id                     # reveal the opened subtree on the next draw
