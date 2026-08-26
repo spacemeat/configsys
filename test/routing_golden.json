@@ -1873,6 +1873,15 @@
     "name": "flatpak"
    }
   },
+  "dbus-dev": {
+   "pacman\\dbus-dev": {
+    "driver": "pacman",
+    "fields": {
+     "name": "dbus"
+    },
+    "name": "dbus"
+   }
+  },
   "deno": {
    "dotfiles\\bash-dotfiles": {
     "driver": "dotfiles",
@@ -3368,6 +3377,16 @@
     "name": "gleam-dotfiles"
    }
   },
+  "glew": {
+   "pacman\\glew": {
+    "driver": "pacman",
+    "fields": {
+     "name": "glew",
+     "repo-component": "universe"
+    },
+    "name": "glew"
+   }
+  },
   "glfw": {
    "pacman\\glfw": {
     "driver": "pacman",
@@ -3376,6 +3395,16 @@
      "repo-component": "universe"
     },
     "name": "glfw"
+   }
+  },
+  "glm": {
+   "pacman\\glm": {
+    "driver": "pacman",
+    "fields": {
+     "name": "glm",
+     "repo-component": "universe"
+    },
+    "name": "glm"
    }
   },
   "gnat": {
@@ -5549,6 +5578,16 @@
     "name": "fuse2"
    }
   },
+  "libgit2": {
+   "pacman\\libgit2": {
+    "driver": "pacman",
+    "fields": {
+     "name": "libgit2",
+     "repo-component": "universe"
+    },
+    "name": "libgit2"
+   }
+  },
   "libreoffice": {
    "dotfiles\\libreoffice-dotfiles": {
     "driver": "dotfiles",
@@ -5580,6 +5619,15 @@
      }
     },
     "name": "libreoffice-dotfiles"
+   }
+  },
+  "libsecret": {
+   "pacman\\libsecret": {
+    "driver": "pacman",
+    "fields": {
+     "name": "libsecret"
+    },
+    "name": "libsecret"
    }
   },
   "libstdc++": {
@@ -13786,6 +13834,15 @@
     "name": "dbeaver"
    }
   },
+  "dbus-dev": {
+   "apt\\dbus-dev": {
+    "driver": "apt",
+    "fields": {
+     "name": "libdbus-1-dev"
+    },
+    "name": "libdbus-1-dev"
+   }
+  },
   "deno": {
    "apt\\curl": {
     "driver": "apt",
@@ -15608,6 +15665,16 @@
     "name": "gleam-dotfiles"
    }
   },
+  "glew": {
+   "apt\\glew": {
+    "driver": "apt",
+    "fields": {
+     "name": "libglew-dev",
+     "repo-component": "universe"
+    },
+    "name": "libglew-dev"
+   }
+  },
   "glfw": {
    "apt\\glfw": {
     "driver": "apt",
@@ -15616,6 +15683,16 @@
      "repo-component": "universe"
     },
     "name": "libglfw3-dev"
+   }
+  },
+  "glm": {
+   "apt\\glm": {
+    "driver": "apt",
+    "fields": {
+     "name": "libglm-dev",
+     "repo-component": "universe"
+    },
+    "name": "libglm-dev"
    }
   },
   "gnat": {
@@ -17883,6 +17960,16 @@
     "name": "libfuse2"
    }
   },
+  "libgit2": {
+   "apt\\libgit2": {
+    "driver": "apt",
+    "fields": {
+     "name": "libgit2-dev",
+     "repo-component": "universe"
+    },
+    "name": "libgit2-dev"
+   }
+  },
   "libreoffice": {
    "apt\\libreoffice": {
     "driver": "apt",
@@ -17914,6 +18001,15 @@
      }
     },
     "name": "libreoffice-dotfiles"
+   }
+  },
+  "libsecret": {
+   "apt\\libsecret": {
+    "driver": "apt",
+    "fields": {
+     "name": "libsecret-1-dev"
+    },
+    "name": "libsecret-1-dev"
    }
   },
   "libstdc++": {
@@ -25780,6 +25876,15 @@
     "name": "dbeaver"
    }
   },
+  "dbus-dev": {
+   "apt\\dbus-dev": {
+    "driver": "apt",
+    "fields": {
+     "name": "libdbus-1-dev"
+    },
+    "name": "libdbus-1-dev"
+   }
+  },
   "deno": {
    "apt\\curl": {
     "driver": "apt",
@@ -27585,6 +27690,16 @@
     "name": "gleam-dotfiles"
    }
   },
+  "glew": {
+   "apt\\glew": {
+    "driver": "apt",
+    "fields": {
+     "name": "libglew-dev",
+     "repo-component": "universe"
+    },
+    "name": "libglew-dev"
+   }
+  },
   "glfw": {
    "apt\\glfw": {
     "driver": "apt",
@@ -27593,6 +27708,16 @@
      "repo-component": "universe"
     },
     "name": "libglfw3-dev"
+   }
+  },
+  "glm": {
+   "apt\\glm": {
+    "driver": "apt",
+    "fields": {
+     "name": "libglm-dev",
+     "repo-component": "universe"
+    },
+    "name": "libglm-dev"
    }
   },
   "gnat": {
@@ -29826,6 +29951,16 @@
     "name": "libfuse2"
    }
   },
+  "libgit2": {
+   "apt\\libgit2": {
+    "driver": "apt",
+    "fields": {
+     "name": "libgit2-dev",
+     "repo-component": "universe"
+    },
+    "name": "libgit2-dev"
+   }
+  },
   "libreoffice": {
    "apt\\libreoffice": {
     "driver": "apt",
@@ -29857,6 +29992,15 @@
      }
     },
     "name": "libreoffice-dotfiles"
+   }
+  },
+  "libsecret": {
+   "apt\\libsecret": {
+    "driver": "apt",
+    "fields": {
+     "name": "libsecret-1-dev"
+    },
+    "name": "libsecret-1-dev"
    }
   },
   "libstdc++": {
@@ -37578,6 +37722,15 @@
     "name": "dbeaver"
    }
   },
+  "dbus-dev": {
+   "apt\\dbus-dev": {
+    "driver": "apt",
+    "fields": {
+     "name": "libdbus-1-dev"
+    },
+    "name": "libdbus-1-dev"
+   }
+  },
   "deno": {
    "apt\\curl": {
     "driver": "apt",
@@ -39378,6 +39531,16 @@
     "name": "gleam-dotfiles"
    }
   },
+  "glew": {
+   "apt\\glew": {
+    "driver": "apt",
+    "fields": {
+     "name": "libglew-dev",
+     "repo-component": "universe"
+    },
+    "name": "libglew-dev"
+   }
+  },
   "glfw": {
    "apt\\glfw": {
     "driver": "apt",
@@ -39386,6 +39549,16 @@
      "repo-component": "universe"
     },
     "name": "libglfw3-dev"
+   }
+  },
+  "glm": {
+   "apt\\glm": {
+    "driver": "apt",
+    "fields": {
+     "name": "libglm-dev",
+     "repo-component": "universe"
+    },
+    "name": "libglm-dev"
    }
   },
   "gnat": {
@@ -41612,6 +41785,16 @@
     "name": "libfuse2"
    }
   },
+  "libgit2": {
+   "apt\\libgit2": {
+    "driver": "apt",
+    "fields": {
+     "name": "libgit2-dev",
+     "repo-component": "universe"
+    },
+    "name": "libgit2-dev"
+   }
+  },
   "libreoffice": {
    "apt\\libreoffice": {
     "driver": "apt",
@@ -41643,6 +41826,15 @@
      }
     },
     "name": "libreoffice-dotfiles"
+   }
+  },
+  "libsecret": {
+   "apt\\libsecret": {
+    "driver": "apt",
+    "fields": {
+     "name": "libsecret-1-dev"
+    },
+    "name": "libsecret-1-dev"
    }
   },
   "libstdc++": {
@@ -49325,6 +49517,15 @@
     "name": "dbeaver"
    }
   },
+  "dbus-dev": {
+   "dnf\\dbus-dev": {
+    "driver": "dnf",
+    "fields": {
+     "name": "dbus-devel"
+    },
+    "name": "dbus-devel"
+   }
+  },
   "deno": {
    "dnf\\curl": {
     "driver": "dnf",
@@ -50834,6 +51035,16 @@
     "name": "gleam-dotfiles"
    }
   },
+  "glew": {
+   "dnf\\glew": {
+    "driver": "dnf",
+    "fields": {
+     "name": "glew-devel",
+     "repo-component": "universe"
+    },
+    "name": "glew-devel"
+   }
+  },
   "glfw": {
    "dnf\\glfw": {
     "driver": "dnf",
@@ -50842,6 +51053,16 @@
      "repo-component": "universe"
     },
     "name": "glfw-devel"
+   }
+  },
+  "glm": {
+   "dnf\\glm": {
+    "driver": "dnf",
+    "fields": {
+     "name": "glm-devel",
+     "repo-component": "universe"
+    },
+    "name": "glm-devel"
    }
   },
   "gnat": {
@@ -53156,6 +53377,16 @@
     "name": "fuse-libs"
    }
   },
+  "libgit2": {
+   "dnf\\libgit2": {
+    "driver": "dnf",
+    "fields": {
+     "name": "libgit2-devel",
+     "repo-component": "universe"
+    },
+    "name": "libgit2-devel"
+   }
+  },
   "libreoffice": {
    "dnf\\libreoffice": {
     "driver": "dnf",
@@ -53187,6 +53418,15 @@
      }
     },
     "name": "libreoffice-dotfiles"
+   }
+  },
+  "libsecret": {
+   "dnf\\libsecret": {
+    "driver": "dnf",
+    "fields": {
+     "name": "libsecret-devel"
+    },
+    "name": "libsecret-devel"
    }
   },
   "libstdc++": {
@@ -60785,6 +61025,15 @@
     "name": "dbeaver"
    }
   },
+  "dbus-dev": {
+   "dnf\\dbus-dev": {
+    "driver": "dnf",
+    "fields": {
+     "name": "dbus-devel"
+    },
+    "name": "dbus-devel"
+   }
+  },
   "deno": {
    "dnf\\curl": {
     "driver": "dnf",
@@ -62294,6 +62543,16 @@
     "name": "gleam-dotfiles"
    }
   },
+  "glew": {
+   "dnf\\glew": {
+    "driver": "dnf",
+    "fields": {
+     "name": "glew-devel",
+     "repo-component": "universe"
+    },
+    "name": "glew-devel"
+   }
+  },
   "glfw": {
    "dnf\\glfw": {
     "driver": "dnf",
@@ -62302,6 +62561,16 @@
      "repo-component": "universe"
     },
     "name": "glfw-devel"
+   }
+  },
+  "glm": {
+   "dnf\\glm": {
+    "driver": "dnf",
+    "fields": {
+     "name": "glm-devel",
+     "repo-component": "universe"
+    },
+    "name": "glm-devel"
    }
   },
   "gnat": {
@@ -64616,6 +64885,16 @@
     "name": "fuse-libs"
    }
   },
+  "libgit2": {
+   "dnf\\libgit2": {
+    "driver": "dnf",
+    "fields": {
+     "name": "libgit2-devel",
+     "repo-component": "universe"
+    },
+    "name": "libgit2-devel"
+   }
+  },
   "libreoffice": {
    "dnf\\libreoffice": {
     "driver": "dnf",
@@ -64647,6 +64926,15 @@
      }
     },
     "name": "libreoffice-dotfiles"
+   }
+  },
+  "libsecret": {
+   "dnf\\libsecret": {
+    "driver": "dnf",
+    "fields": {
+     "name": "libsecret-devel"
+    },
+    "name": "libsecret-devel"
    }
   },
   "libstdc++": {
@@ -71636,6 +71924,15 @@
     "name": "io.dbeaver.DBeaverCommunity"
    }
   },
+  "dbus-dev": {
+   "brew\\dbus-dev": {
+    "driver": "brew",
+    "fields": {
+     "name": "dbus"
+    },
+    "name": "dbus"
+   }
+  },
   "deno": {
    "brew\\deno": {
     "driver": "brew",
@@ -72922,6 +73219,16 @@
     "name": "gleam-dotfiles"
    }
   },
+  "glew": {
+   "brew\\glew": {
+    "driver": "brew",
+    "fields": {
+     "name": "glew",
+     "repo-component": "universe"
+    },
+    "name": "glew"
+   }
+  },
   "glfw": {
    "brew\\glfw": {
     "driver": "brew",
@@ -72930,6 +73237,16 @@
      "repo-component": "universe"
     },
     "name": "glfw"
+   }
+  },
+  "glm": {
+   "brew\\glm": {
+    "driver": "brew",
+    "fields": {
+     "name": "glm",
+     "repo-component": "universe"
+    },
+    "name": "glm"
    }
   },
   "gnucobol": {
@@ -74667,6 +74984,16 @@
     "name": "libfuse2"
    }
   },
+  "libgit2": {
+   "brew\\libgit2": {
+    "driver": "brew",
+    "fields": {
+     "name": "libgit2",
+     "repo-component": "universe"
+    },
+    "name": "libgit2"
+   }
+  },
   "libreoffice": {
    "dotfiles\\libreoffice-dotfiles": {
     "driver": "dotfiles",
@@ -74697,6 +75024,15 @@
      }
     },
     "name": "libreoffice-dotfiles"
+   }
+  },
+  "libsecret": {
+   "brew\\libsecret": {
+    "driver": "brew",
+    "fields": {
+     "name": "libsecret"
+    },
+    "name": "libsecret"
    }
   },
   "libstdc++": {
@@ -81312,6 +81648,15 @@
     "name": "dbeaver"
    }
   },
+  "dbus-dev": {
+   "apt\\dbus-dev": {
+    "driver": "apt",
+    "fields": {
+     "name": "libdbus-1-dev"
+    },
+    "name": "libdbus-1-dev"
+   }
+  },
   "deno": {
    "apt\\curl": {
     "driver": "apt",
@@ -83129,6 +83474,16 @@
     "name": "gleam-dotfiles"
    }
   },
+  "glew": {
+   "apt\\glew": {
+    "driver": "apt",
+    "fields": {
+     "name": "libglew-dev",
+     "repo-component": "universe"
+    },
+    "name": "libglew-dev"
+   }
+  },
   "glfw": {
    "apt\\glfw": {
     "driver": "apt",
@@ -83137,6 +83492,16 @@
      "repo-component": "universe"
     },
     "name": "libglfw3-dev"
+   }
+  },
+  "glm": {
+   "apt\\glm": {
+    "driver": "apt",
+    "fields": {
+     "name": "libglm-dev",
+     "repo-component": "universe"
+    },
+    "name": "libglm-dev"
    }
   },
   "gnat": {
@@ -85397,6 +85762,16 @@
     "name": "libfuse2"
    }
   },
+  "libgit2": {
+   "apt\\libgit2": {
+    "driver": "apt",
+    "fields": {
+     "name": "libgit2-dev",
+     "repo-component": "universe"
+    },
+    "name": "libgit2-dev"
+   }
+  },
   "libreoffice": {
    "apt\\libreoffice": {
     "driver": "apt",
@@ -85428,6 +85803,15 @@
      }
     },
     "name": "libreoffice-dotfiles"
+   }
+  },
+  "libsecret": {
+   "apt\\libsecret": {
+    "driver": "apt",
+    "fields": {
+     "name": "libsecret-1-dev"
+    },
+    "name": "libsecret-1-dev"
    }
   },
   "libstdc++": {
@@ -93357,6 +93741,15 @@
     "name": "dbeaver"
    }
   },
+  "dbus-dev": {
+   "dnf\\dbus-dev": {
+    "driver": "dnf",
+    "fields": {
+     "name": "dbus-devel"
+    },
+    "name": "dbus-devel"
+   }
+  },
   "deno": {
    "dnf\\curl": {
     "driver": "dnf",
@@ -95023,6 +95416,16 @@
     "name": "gleam-dotfiles"
    }
   },
+  "glew": {
+   "dnf\\glew": {
+    "driver": "dnf",
+    "fields": {
+     "name": "glew-devel",
+     "repo-component": "universe"
+    },
+    "name": "glew-devel"
+   }
+  },
   "glfw": {
    "dnf\\glfw": {
     "driver": "dnf",
@@ -95031,6 +95434,16 @@
      "repo-component": "universe"
     },
     "name": "glfw-devel"
+   }
+  },
+  "glm": {
+   "dnf\\glm": {
+    "driver": "dnf",
+    "fields": {
+     "name": "glm-devel",
+     "repo-component": "universe"
+    },
+    "name": "glm-devel"
    }
   },
   "gnat": {
@@ -97323,6 +97736,16 @@
     "name": "fuse-libs"
    }
   },
+  "libgit2": {
+   "dnf\\libgit2": {
+    "driver": "dnf",
+    "fields": {
+     "name": "libgit2-devel",
+     "repo-component": "universe"
+    },
+    "name": "libgit2-devel"
+   }
+  },
   "libreoffice": {
    "dnf\\libreoffice": {
     "driver": "dnf",
@@ -97354,6 +97777,15 @@
      }
     },
     "name": "libreoffice-dotfiles"
+   }
+  },
+  "libsecret": {
+   "dnf\\libsecret": {
+    "driver": "dnf",
+    "fields": {
+     "name": "libsecret-devel"
+    },
+    "name": "libsecret-devel"
    }
   },
   "libstdc++": {
@@ -105430,6 +105862,15 @@
     "name": "dbeaver"
    }
   },
+  "dbus-dev": {
+   "apt\\dbus-dev": {
+    "driver": "apt",
+    "fields": {
+     "name": "libdbus-1-dev"
+    },
+    "name": "libdbus-1-dev"
+   }
+  },
   "deno": {
    "apt\\curl": {
     "driver": "apt",
@@ -107247,6 +107688,16 @@
     "name": "gleam-dotfiles"
    }
   },
+  "glew": {
+   "apt\\glew": {
+    "driver": "apt",
+    "fields": {
+     "name": "libglew-dev",
+     "repo-component": "universe"
+    },
+    "name": "libglew-dev"
+   }
+  },
   "glfw": {
    "apt\\glfw": {
     "driver": "apt",
@@ -107255,6 +107706,16 @@
      "repo-component": "universe"
     },
     "name": "libglfw3-dev"
+   }
+  },
+  "glm": {
+   "apt\\glm": {
+    "driver": "apt",
+    "fields": {
+     "name": "libglm-dev",
+     "repo-component": "universe"
+    },
+    "name": "libglm-dev"
    }
   },
   "gnat": {
@@ -109515,6 +109976,16 @@
     "name": "libfuse2"
    }
   },
+  "libgit2": {
+   "apt\\libgit2": {
+    "driver": "apt",
+    "fields": {
+     "name": "libgit2-dev",
+     "repo-component": "universe"
+    },
+    "name": "libgit2-dev"
+   }
+  },
   "libreoffice": {
    "apt\\libreoffice": {
     "driver": "apt",
@@ -109546,6 +110017,15 @@
      }
     },
     "name": "libreoffice-dotfiles"
+   }
+  },
+  "libsecret": {
+   "apt\\libsecret": {
+    "driver": "apt",
+    "fields": {
+     "name": "libsecret-1-dev"
+    },
+    "name": "libsecret-1-dev"
    }
   },
   "libstdc++": {
@@ -117441,6 +117921,15 @@
     "name": "dbeaver"
    }
   },
+  "dbus-dev": {
+   "apt\\dbus-dev": {
+    "driver": "apt",
+    "fields": {
+     "name": "libdbus-1-dev"
+    },
+    "name": "libdbus-1-dev"
+   }
+  },
   "deno": {
    "apt\\curl": {
     "driver": "apt",
@@ -119241,6 +119730,16 @@
     "name": "gleam-dotfiles"
    }
   },
+  "glew": {
+   "apt\\glew": {
+    "driver": "apt",
+    "fields": {
+     "name": "libglew-dev",
+     "repo-component": "universe"
+    },
+    "name": "libglew-dev"
+   }
+  },
   "glfw": {
    "apt\\glfw": {
     "driver": "apt",
@@ -119249,6 +119748,16 @@
      "repo-component": "universe"
     },
     "name": "libglfw3-dev"
+   }
+  },
+  "glm": {
+   "apt\\glm": {
+    "driver": "apt",
+    "fields": {
+     "name": "libglm-dev",
+     "repo-component": "universe"
+    },
+    "name": "libglm-dev"
    }
   },
   "gnat": {
@@ -121448,6 +121957,16 @@
     "name": "libfuse2"
    }
   },
+  "libgit2": {
+   "apt\\libgit2": {
+    "driver": "apt",
+    "fields": {
+     "name": "libgit2-dev",
+     "repo-component": "universe"
+    },
+    "name": "libgit2-dev"
+   }
+  },
   "libreoffice": {
    "apt\\libreoffice": {
     "driver": "apt",
@@ -121479,6 +121998,15 @@
      }
     },
     "name": "libreoffice-dotfiles"
+   }
+  },
+  "libsecret": {
+   "apt\\libsecret": {
+    "driver": "apt",
+    "fields": {
+     "name": "libsecret-1-dev"
+    },
+    "name": "libsecret-1-dev"
    }
   },
   "libstdc++": {

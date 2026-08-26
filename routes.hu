@@ -2798,6 +2798,21 @@
             install: [ { via: native  when: "(debian or redhat or arch or alpine or opensuse or fedora_atomic) and not amzn"  repo-component: universe
                          name: { apt: libglfw3-dev  dnf: glfw-devel  pacman: glfw  apk: glfw-dev  zypper: libglfw-devel  brew: glfw } } ]
         }
+        glew: { attrs: [ lib FOSS permissive ] description: "GLEW — the OpenGL Extension Wrangler library (dev)."
+            install: [ { via: native  when: "(debian or redhat or arch or alpine or opensuse or fedora_atomic) and not amzn"  repo-component: universe
+                         name: { apt: libglew-dev  dnf: glew-devel  pacman: glew  apk: glew-dev  zypper: glew-devel  brew: glew } } ] }
+        glm: { attrs: [ lib FOSS permissive ] description: "GLM — OpenGL Mathematics, a header-only C++ math library (dev)."
+            install: [ { via: native  when: "(debian or redhat or arch or alpine or opensuse or fedora_atomic) and not amzn"  repo-component: universe
+                         name: { apt: libglm-dev  dnf: glm-devel  pacman: glm  apk: glm-dev  zypper: glm-devel  brew: glm } } ] }
+        libsecret: { attrs: [ lib FOSS copyleft ] description: "libsecret — the GNOME secret-service client library (dev)."
+            install: [ { via: native  when: "(debian or redhat or arch or alpine or opensuse or fedora_atomic) and not amzn"
+                         name: { apt: libsecret-1-dev  dnf: libsecret-devel  pacman: libsecret  apk: libsecret-dev  zypper: libsecret-devel  brew: libsecret } } ] }
+        libgit2: { attrs: [ lib FOSS permissive ] description: "libgit2 — a portable C implementation of the Git core methods (dev)."
+            install: [ { via: native  when: "(debian or redhat or arch or alpine or opensuse or fedora_atomic) and not amzn"  repo-component: universe
+                         name: { apt: libgit2-dev  dnf: libgit2-devel  pacman: libgit2  apk: libgit2-dev  zypper: libgit2-devel  brew: libgit2 } } ] }
+        dbus-dev: { attrs: [ lib FOSS ] description: "D-Bus development headers (libdbus-1)."
+            install: [ { via: native  when: "(debian or redhat or arch or alpine or opensuse or fedora_atomic) and not amzn"
+                         name: { apt: libdbus-1-dev  dnf: dbus-devel  pacman: dbus  apk: dbus-dev  zypper: dbus-1-devel  brew: dbus } } ] }
         // SDL2 (the common target). Arch dropped classic `sdl2` → `sdl2-compat` (SDL2 API on SDL3).
         sdl: { attrs: [ lib FOSS permissive ] description: "SDL2 — Simple DirectMedia Layer (video/audio/input), dev headers + libs."
             install: [ { via: native  when: "(debian or redhat or arch or alpine or opensuse or fedora_atomic) and not amzn"  repo-component: universe
