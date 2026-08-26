@@ -20,7 +20,7 @@ from pathlib import Path
 from .. import reportgen
 from .. import shellguard
 from ..drivers import get_driver, scope_meta
-from ..errors import ConfigError
+from ..errors import ConfigError, ConfigsysError
 from ..osversion import clean_version
 from ..planning import expand_plan
 from .screen import curses_screen, suspended
@@ -3656,6 +3656,38 @@ def run(ctx):
                     ps._overlay = None                      # (re)compute on next draw
                     note = ('install overlay ON — installed underlined, orphans coloured'
                             if ps.show_install else 'install overlay off')
+                elif pfact == 'stage' and ps.focus == 'right':
+                    _vc = ps.vcatalog()                    # park the selected component into the staging profile
+                    if _vc:
+                        _c = _vc[ps.rcur]
+                        try:
+                            changed, lbl = actions.stage_adopt(ctx, _c)
+                            ps.reload(); menu_dirty = menu_dirty or changed
+                            note = (f'{_c} staged into "{ctx.config.orphans_adopt_target()}"'
+                                    if changed else f'no change ({lbl})')
+                        except ConfigsysError as e:
+                            note = f'stage failed: {e}'
+                elif pfact == 'stage-uninstall' and ps.focus == 'right':
+                    _vc = ps.vcatalog()                    # toggle the selected component in the !uninstall queue
+                    if _vc:
+                        _c = _vc[ps.rcur]
+                        _on = _c not in ctx.config.uninstall_queue()
+                        try:
+                            changed, lbl = actions.stage_uninstall(ctx, _c, on=_on)
+                            ps.reload(); menu_dirty = menu_dirty or changed
+                            note = f'{_c} {"staged for uninstall (!uninstall)" if _on else "unstaged"}'
+                        except ConfigsysError as e:
+                            note = f'stage-uninstall failed: {e}'
+                elif pfact == 'orphan-ignore' and ps.focus == 'right':
+                    _vc = ps.vcatalog()                    # silence the selected orphan (orphans-ignore)
+                    if _vc:
+                        _c = _vc[ps.rcur]
+                        try:
+                            changed, lbl = actions.ignore_orphan(ctx, _c)
+                            ps.reload()
+                            note = f'{_c} added to orphans-ignore' if changed else f'{_c}: already ignored'
+                        except ConfigsysError as e:
+                            note = f'ignore failed: {e}'
                 elif pfact == 'star' and ps.focus == 'left':
                     ps.cycle_star()                    # cycle: filter to members -> +show ~-removed -> off
                 elif pfact == 'toggle-member' and ps.focus == 'left':

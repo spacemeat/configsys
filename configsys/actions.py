@@ -88,6 +88,15 @@ def stage_adopt(ctx, comp):
     return set_profile_membership(ctx, ctx.config.orphans_adopt_target(), comp, 'add')
 
 
+def ignore_orphan(ctx, pattern):
+    '''Append `pattern` (a name or glob) to the `orphans-ignore` list (idempotent). Returns
+    (changed, label). The TUI `.` action + the `configsys orphans --ignore` verb share this intent.'''
+    cur = list(ctx.config.orphans_ignore())
+    if pattern in cur:
+        return False, 'already ignored'
+    return set_config_setting(ctx, 'orphans-ignore', cur + [pattern])
+
+
 def clear_uninstall(ctx):
     '''Empty the `!uninstall` queue (cancel every pending removal). Returns how many were cleared.'''
     n = len(ctx.config.uninstall_queue())
