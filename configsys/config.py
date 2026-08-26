@@ -338,6 +338,18 @@ class Config:
         idx, val, _src = chain[-1]
         return self._expand(profile, idx, val, (), own_only=True)
 
+    UNINSTALL_PROFILE = '!uninstall'
+
+    def uninstall_queue(self):
+        '''Component names staged for uninstall — the members of the reserved `!uninstall` profile, a
+        machine-local pending-removal queue (`x` in the TUI adds here; TUI::Components executes or
+        clears them). `!`-prefixed profiles are reserved and never resolve for install (they're never
+        active), so this stays inert until a remove op reads it. Empty/undefined -> empty set.'''
+        try:
+            return set(self.profile_own_components(self.UNINSTALL_PROFILE))
+        except ConfigError:
+            return set()
+
     def profiles_containing(self, name):
         '''Profiles that contain `name`, split into `(direct, indirect)`. DIRECT = the profile declares
         it as its own (a bare term or a `+self` amendment). INDIRECT = the profile only pulls it in
@@ -346,6 +358,8 @@ class Config:
         For the Profiles screen's "in profiles: …" detail.'''
         direct, indirect = [], []
         for p in self.profile_names():
+            if p.startswith('!'):                        # reserved (e.g. !uninstall) isn't real membership
+                continue
             try:
                 own = self.profile_own_components(p)
             except ConfigError:

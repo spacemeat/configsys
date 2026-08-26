@@ -1437,6 +1437,25 @@ def cmd_check(ctx, args):
                 removal_warnings.append(f"profile '{prof}': `~{ref}` removes nothing "
                                         f"(not a defined profile or known component)")
 
+    # reserved `!` profiles (e.g. !uninstall) are system-managed and NEVER install-active — flag one
+    # that slipped into `configs:`. And a component staged for uninstall while still WANTED by an
+    # active profile is a contradiction (the next sync reinstalls it) — surface it, don't auto-fix.
+    reserved_active = [f"reserved profile '{p}' cannot be active (remove it from `configs:`)"
+                       for p in ctx.config.active_profiles if p.startswith('!')]
+    uninstall_conflicts = []
+    _queue = ctx.config.uninstall_queue()
+    if _queue:
+        for prof in ctx.config.active_profiles:
+            if prof.startswith('!'):
+                continue
+            try:
+                _mem = set(ctx.config.profile_components(prof))
+            except ConfigsysError:
+                _mem = set()
+            for c in sorted(_queue & _mem):
+                uninstall_conflicts.append(f"'{c}' is staged for uninstall (!uninstall) but still "
+                                           f"wanted by active profile '{prof}' — `~` it there too")
+
     # pins: value must be a known driver (binding-pin) or a known component (provider-pin)
     from .drivers import supported_names
     valid_via = {'native', 'parts'} | supported_names()
@@ -1520,7 +1539,7 @@ def cmd_check(ctx, args):
             and not include_warnings and not code_warnings and not conflict_warnings
             and not theme_warnings and not pin_conflict_warnings and not py_floor_warnings
             and not stale_pin_warnings and not resolve_errors and not key_warnings
-            and not removal_warnings):
+            and not removal_warnings and not reserved_active and not uninstall_conflicts):
         print(f'configsys: OK — {len(components)} components, no issues')
         return 0
 
@@ -1533,6 +1552,8 @@ def cmd_check(ctx, args):
     for msg in pin_issues:
         print(f'  ERROR   {msg}')
     for msg in resolve_errors:
+        print(f'  ERROR   {msg}')
+    for msg in reserved_active:
         print(f'  ERROR   {msg}')
     for i in warnings:
         print(f'  warn    {_issue_loc(i, ctx.paths)}{i.message}')
@@ -1554,10 +1575,14 @@ def cmd_check(ctx, args):
         print(f'  warn    {msg}')
     for msg in removal_warnings:
         print(f'  warn    {msg}')
-    n_err = len(errors) + len(prof_errors) + len(prof_issues) + len(pin_issues) + len(resolve_errors)
+    for msg in uninstall_conflicts:
+        print(f'  warn    {msg}')
+    n_err = (len(errors) + len(prof_errors) + len(prof_issues) + len(pin_issues) + len(resolve_errors)
+             + len(reserved_active))
     n_warn = (len(warnings) + len(include_warnings) + len(code_warnings) + len(conflict_warnings)
               + len(theme_warnings) + len(pin_conflict_warnings) + len(py_floor_warnings)
-              + len(stale_pin_warnings) + len(key_warnings) + len(removal_warnings))
+              + len(stale_pin_warnings) + len(key_warnings) + len(removal_warnings)
+              + len(uninstall_conflicts))
     print(f'\nconfigsys: {n_err} error(s), {n_warn} warning(s) '
           f'across {len(components)} components')
     return 1 if n_err else 0

@@ -70,6 +70,29 @@ def set_profile_membership(ctx, profile, comp, action, *, target=None):
     return True, label
 
 
+UNINSTALL_PROFILE = '!uninstall'
+
+
+def stage_uninstall(ctx, comp, *, on=True):
+    '''Stage (`on`) or unstage (`on=False`) `comp` in the reserved `!uninstall` queue — a
+    machine-local (top-config) pending-removal list. Returns (changed, label). The TUI `x` calls
+    this; the real uninstall runs later from TUI::Components (execute) — or `clear_uninstall` cancels.'''
+    tfile = str(ctx.paths.user_config_file)          # machine-local, like pins — never a plugin
+    return set_profile_membership(ctx, UNINSTALL_PROFILE, comp, 'add' if on else 'remove', target=tfile)
+
+
+def clear_uninstall(ctx):
+    '''Empty the `!uninstall` queue (cancel every pending removal). Returns how many were cleared.'''
+    n = len(ctx.config.uninstall_queue())
+    tfile = str(ctx.paths.user_config_file)
+    profs = plugins.read_profiles(tfile)
+    if UNINSTALL_PROFILE in profs:
+        del profs[UNINSTALL_PROFILE]
+        plugins.set_profiles(tfile, profs)
+        ctx.invalidate()
+    return n
+
+
 def add_profile(ctx, name):
     '''Create a new, empty profile in the portable edit target (primary-if-set, else top config).
     Returns (changed, label); a bad/duplicate name returns (False, reason).'''
@@ -78,6 +101,8 @@ def add_profile(ctx, name):
         return False, 'a profile name is required'
     if name == 'all':
         return False, '"all" is reserved'
+    if name.startswith('!'):
+        return False, '"!"-prefixed profile names are reserved (system profiles like !uninstall)'
     if name in ctx.config.profile_names():
         return False, f'"{name}" already exists'
     tfile, label = edit_target(ctx)
