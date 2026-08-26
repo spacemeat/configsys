@@ -1159,6 +1159,8 @@
         // ===================== network + web-dev tooling =====================
         // iproute2 — `ip`/`ss`/`tc`. Native everywhere; EL's dnf calls the package `iproute`.
         iproute2:   { attrs: [ CLI FOSS copyleft ] description: "iproute2 — modern Linux networking tools (`ip`, `ss`)." install: [ { via: native  name: { dnf: iproute  default: iproute2 } } ] }
+        bridge-utils: { attrs: [ CLI FOSS GNU copyleft legacy ] description: "bridge-utils (`brctl`) — legacy Ethernet-bridge admin (superseded by iproute2's `ip`)." install: [ { via: native  when: "not fedora_atomic" } ] }   // Linux-only; not on brew
+        dosfstools: { attrs: [ CLI FOSS GNU copyleft ] description: "dosfstools — create and check FAT filesystems (`mkfs.fat`, `fsck.fat`)." install: [ { via: native  when: "not fedora_atomic" } ] }   // Linux-only; not on brew
         // Capture & probe — native CLI staples. Name maps only where distros diverge; the
         // rest carry the same package name everywhere.
         wireshark:  { attrs: [ GUI app FOSS copyleft ] description: "Wireshark — a GUI network protocol analyzer." install: [ { via: native  when: "not fedora_atomic"  name: { pacman: wireshark-qt }
@@ -2290,11 +2292,18 @@
         source-highlight: { attrs: [ CLI FOSS GNU copyleft ] description: "GNU Source-highlight — syntax-highlight source to HTML and other formats."
                             install: [ { via: native  when: "not (rhel or amzn)" }
                                        { via: native  when: "rhel"  requires: epel } ] }   // EL via EPEL
+        po4a:      { attrs: [ CLI FOSS GNU copyleft ] description: "po4a — keep doc translations (man/markdown/…) in sync via PO files."
+                     install: [ { via: native  when: "not (rhel or amzn)" }
+                                { via: native  when: "rhel"  requires: epel } ] }   // EL via EPEL
+        asciidoc:  { attrs: [ CLI FOSS GNU copyleft ] description: "AsciiDoc — a plain-text document format rendered to HTML/DocBook/man (`asciidoc`, `a2x`)."
+                     install: [ { via: native  when: "not (rhel or amzn)" }
+                                { via: native  when: "rhel"  requires: epel } ] }   // EL via EPEL
         strace:    { attrs: [ CLI FOSS copyleft ] description: "strace — trace the system calls of a running program." install: [ { via: native } ] }
         ltrace:    { attrs: [ CLI FOSS copyleft ] description: "ltrace — trace the library calls of a running program." install: [ { via: native } ] }
         lldb:      { attrs: [ CLI FOSS permissive ] description: "LLDB — the LLVM project's debugger." install: [ { via: native } ] }
         heaptrack: { attrs: [ CLI GUI app FOSS copyleft ] description: "heaptrack — a heap-memory profiler for C/C++." install: [ { via: native  when: "(debian or redhat or arch or opensuse) and not amzn" } ] }
         clang-tidy: { attrs: [ CLI FOSS permissive ] description: "clang-tidy — C/C++ linter and static analyzer." install: [ { via: native  when: "debian or redhat or arch"  name: { apt: clang-tidy  dnf: clang-tools-extra  pacman: clang } } ] }
+        clangd:    { attrs: [ CLI FOSS permissive ] description: "clangd — the LLVM C/C++ language server (LSP)." install: [ { via: native  when: "debian or redhat or arch"  name: { apt: clangd  dnf: clang-tools-extra  pacman: clang } } ] }
         // perf is kernel-coupled and named per-distro: Ubuntu's linux-tools track, Debian's
         // linux-perf (also Proxmox); plain `perf` on redhat/arch/opensuse/alpine.
         perf: { attrs: [ CLI FOSS copyleft ] description: "Linux `perf` — sampling profiler and performance counters." install: [ { via: native  name: { default: perf } }

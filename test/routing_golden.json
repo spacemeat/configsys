@@ -414,6 +414,15 @@
     "name": "bash-dotfiles"
    }
   },
+  "asciidoc": {
+   "pacman\\asciidoc": {
+    "driver": "pacman",
+    "fields": {
+     "name": "asciidoc"
+    },
+    "name": "asciidoc"
+   }
+  },
   "astroterm": {
    "aur\\astroterm": {
     "driver": "aur",
@@ -886,6 +895,15 @@
     "name": "git"
    }
   },
+  "bridge-utils": {
+   "pacman\\bridge-utils": {
+    "driver": "pacman",
+    "fields": {
+     "name": "bridge-utils"
+    },
+    "name": "bridge-utils"
+   }
+  },
   "bruno": {
    "flatpak\\bruno": {
     "driver": "flatpak",
@@ -1219,6 +1237,15 @@
   },
   "clang-tidy": {
    "pacman\\clang-tidy": {
+    "driver": "pacman",
+    "fields": {
+     "name": "clang"
+    },
+    "name": "clang"
+   }
+  },
+  "clangd": {
+   "pacman\\clangd": {
     "driver": "pacman",
     "fields": {
      "name": "clang"
@@ -2197,6 +2224,15 @@
      "name": "git"
     },
     "name": "git"
+   }
+  },
+  "dosfstools": {
+   "pacman\\dosfstools": {
+    "driver": "pacman",
+    "fields": {
+     "name": "dosfstools"
+    },
+    "name": "dosfstools"
    }
   },
   "dotnet": {
@@ -7640,6 +7676,15 @@
     "name": "npm"
    }
   },
+  "po4a": {
+   "pacman\\po4a": {
+    "driver": "pacman",
+    "fields": {
+     "name": "po4a"
+    },
+    "name": "po4a"
+   }
+  },
   "podman": {
    "dotfiles\\podman-dotfiles": {
     "driver": "dotfiles",
@@ -11928,6 +11973,15 @@
     "name": "bash-dotfiles"
    }
   },
+  "asciidoc": {
+   "apt\\asciidoc": {
+    "driver": "apt",
+    "fields": {
+     "name": "asciidoc"
+    },
+    "name": "asciidoc"
+   }
+  },
   "atop": {
    "apt\\atop": {
     "driver": "apt",
@@ -12400,6 +12454,15 @@
      "source-path": "/etc/apt/sources.list.d/brave-browser-release.list"
     },
     "name": "brave-browser"
+   }
+  },
+  "bridge-utils": {
+   "apt\\bridge-utils": {
+    "driver": "apt",
+    "fields": {
+     "name": "bridge-utils"
+    },
+    "name": "bridge-utils"
    }
   },
   "bruno": {
@@ -12924,6 +12987,15 @@
      "name": "clang-tidy"
     },
     "name": "clang-tidy"
+   }
+  },
+  "clangd": {
+   "apt\\clangd": {
+    "driver": "apt",
+    "fields": {
+     "name": "clangd"
+    },
+    "name": "clangd"
    }
   },
   "claude-code": {
@@ -14069,6 +14141,15 @@
      }
     },
     "name": "doppler"
+   }
+  },
+  "dosfstools": {
+   "apt\\dosfstools": {
+    "driver": "apt",
+    "fields": {
+     "name": "dosfstools"
+    },
+    "name": "dosfstools"
    }
   },
   "dotnet": {
@@ -20020,6 +20101,15 @@
     "name": "pnpm"
    }
   },
+  "po4a": {
+   "apt\\po4a": {
+    "driver": "apt",
+    "fields": {
+     "name": "po4a"
+    },
+    "name": "po4a"
+   }
+  },
   "podman": {
    "apt\\podman": {
     "driver": "apt",
@@ -23911,6 +24001,15 @@
     "name": "bash-dotfiles"
    }
   },
+  "asciidoc": {
+   "apt\\asciidoc": {
+    "driver": "apt",
+    "fields": {
+     "name": "asciidoc"
+    },
+    "name": "asciidoc"
+   }
+  },
   "atop": {
    "apt\\atop": {
     "driver": "apt",
@@ -24366,6 +24465,15 @@
      "source-path": "/etc/apt/sources.list.d/brave-browser-release.list"
     },
     "name": "brave-browser"
+   }
+  },
+  "bridge-utils": {
+   "apt\\bridge-utils": {
+    "driver": "apt",
+    "fields": {
+     "name": "bridge-utils"
+    },
+    "name": "bridge-utils"
    }
   },
   "bruno": {
@@ -24890,6 +24998,15 @@
      "name": "clang-tidy"
     },
     "name": "clang-tidy"
+   }
+  },
+  "clangd": {
+   "apt\\clangd": {
+    "driver": "apt",
+    "fields": {
+     "name": "clangd"
+    },
+    "name": "clangd"
    }
   },
   "claude-code": {
@@ -26018,6 +26135,15 @@
      }
     },
     "name": "doppler"
+   }
+  },
+  "dosfstools": {
+   "apt\\dosfstools": {
+    "driver": "apt",
+    "fields": {
+     "name": "dosfstools"
+    },
+    "name": "dosfstools"
    }
   },
   "dotnet": {
@@ -31833,6 +31959,15 @@
     "name": "pnpm"
    }
   },
+  "po4a": {
+   "apt\\po4a": {
+    "driver": "apt",
+    "fields": {
+     "name": "po4a"
+    },
+    "name": "po4a"
+   }
+  },
   "podman": {
    "apt\\podman": {
     "driver": "apt",
@@ -35656,6 +35791,15 @@
     "name": "bash-dotfiles"
    }
   },
+  "asciidoc": {
+   "apt\\asciidoc": {
+    "driver": "apt",
+    "fields": {
+     "name": "asciidoc"
+    },
+    "name": "asciidoc"
+   }
+  },
   "atop": {
    "apt\\atop": {
     "driver": "apt",
@@ -36111,6 +36255,15 @@
      "source-path": "/etc/apt/sources.list.d/brave-browser-release.list"
     },
     "name": "brave-browser"
+   }
+  },
+  "bridge-utils": {
+   "apt\\bridge-utils": {
+    "driver": "apt",
+    "fields": {
+     "name": "bridge-utils"
+    },
+    "name": "bridge-utils"
    }
   },
   "bruno": {
@@ -36643,6 +36796,15 @@
      "name": "clang-tidy"
     },
     "name": "clang-tidy"
+   }
+  },
+  "clangd": {
+   "apt\\clangd": {
+    "driver": "apt",
+    "fields": {
+     "name": "clangd"
+    },
+    "name": "clangd"
    }
   },
   "claude-code": {
@@ -37771,6 +37933,15 @@
      }
     },
     "name": "doppler"
+   }
+  },
+  "dosfstools": {
+   "apt\\dosfstools": {
+    "driver": "apt",
+    "fields": {
+     "name": "dosfstools"
+    },
+    "name": "dosfstools"
    }
   },
   "dotnet": {
@@ -43587,6 +43758,15 @@
     "name": "pnpm"
    }
   },
+  "po4a": {
+   "apt\\po4a": {
+    "driver": "apt",
+    "fields": {
+     "name": "po4a"
+    },
+    "name": "po4a"
+   }
+  },
   "podman": {
    "apt\\podman": {
     "driver": "apt",
@@ -47491,6 +47671,15 @@
     "name": "bash-dotfiles"
    }
   },
+  "asciidoc": {
+   "dnf\\asciidoc": {
+    "driver": "dnf",
+    "fields": {
+     "name": "asciidoc"
+    },
+    "name": "asciidoc"
+   }
+  },
   "astroterm": {
    "dnf\\astroterm": {
     "driver": "dnf",
@@ -47956,6 +48145,15 @@
     "name": "brave-browser"
    }
   },
+  "bridge-utils": {
+   "dnf\\bridge-utils": {
+    "driver": "dnf",
+    "fields": {
+     "name": "bridge-utils"
+    },
+    "name": "bridge-utils"
+   }
+  },
   "bruno": {
    "native-pkg-file\\bruno": {
     "driver": "native-pkg-file",
@@ -48352,6 +48550,15 @@
   },
   "clang-tidy": {
    "dnf\\clang-tidy": {
+    "driver": "dnf",
+    "fields": {
+     "name": "clang-tools-extra"
+    },
+    "name": "clang-tools-extra"
+   }
+  },
+  "clangd": {
+   "dnf\\clangd": {
     "driver": "dnf",
     "fields": {
      "name": "clang-tools-extra"
@@ -49473,6 +49680,15 @@
      }
     },
     "name": "doppler"
+   }
+  },
+  "dosfstools": {
+   "dnf\\dosfstools": {
+    "driver": "dnf",
+    "fields": {
+     "name": "dosfstools"
+    },
+    "name": "dosfstools"
    }
   },
   "dotnet": {
@@ -55012,6 +55228,15 @@
     "name": "pnpm"
    }
   },
+  "po4a": {
+   "dnf\\po4a": {
+    "driver": "dnf",
+    "fields": {
+     "name": "po4a"
+    },
+    "name": "po4a"
+   }
+  },
   "podman": {
    "dnf\\podman": {
     "driver": "dnf",
@@ -58880,6 +59105,15 @@
     "name": "bash-dotfiles"
    }
   },
+  "asciidoc": {
+   "dnf\\asciidoc": {
+    "driver": "dnf",
+    "fields": {
+     "name": "asciidoc"
+    },
+    "name": "asciidoc"
+   }
+  },
   "astroterm": {
    "dnf\\astroterm": {
     "driver": "dnf",
@@ -59345,6 +59579,15 @@
     "name": "brave-browser"
    }
   },
+  "bridge-utils": {
+   "dnf\\bridge-utils": {
+    "driver": "dnf",
+    "fields": {
+     "name": "bridge-utils"
+    },
+    "name": "bridge-utils"
+   }
+  },
   "bruno": {
    "native-pkg-file\\bruno": {
     "driver": "native-pkg-file",
@@ -59767,6 +60010,15 @@
   },
   "clang-tidy": {
    "dnf\\clang-tidy": {
+    "driver": "dnf",
+    "fields": {
+     "name": "clang-tools-extra"
+    },
+    "name": "clang-tools-extra"
+   }
+  },
+  "clangd": {
+   "dnf\\clangd": {
     "driver": "dnf",
     "fields": {
      "name": "clang-tools-extra"
@@ -60888,6 +61140,15 @@
      }
     },
     "name": "doppler"
+   }
+  },
+  "dosfstools": {
+   "dnf\\dosfstools": {
+    "driver": "dnf",
+    "fields": {
+     "name": "dosfstools"
+    },
+    "name": "dosfstools"
    }
   },
   "dotnet": {
@@ -66427,6 +66688,15 @@
     "name": "pnpm"
    }
   },
+  "po4a": {
+   "dnf\\po4a": {
+    "driver": "dnf",
+    "fields": {
+     "name": "po4a"
+    },
+    "name": "po4a"
+   }
+  },
   "podman": {
    "dnf\\podman": {
     "driver": "dnf",
@@ -70241,6 +70511,15 @@
      }
     },
     "name": "bash-dotfiles"
+   }
+  },
+  "asciidoc": {
+   "brew\\asciidoc": {
+    "driver": "brew",
+    "fields": {
+     "name": "asciidoc"
+    },
+    "name": "asciidoc"
    }
   },
   "astroterm": {
@@ -76130,6 +76409,15 @@
     "name": "pnpm"
    }
   },
+  "po4a": {
+   "brew\\po4a": {
+    "driver": "brew",
+    "fields": {
+     "name": "po4a"
+    },
+    "name": "po4a"
+   }
+  },
   "podman": {
    "brew\\podman": {
     "driver": "brew",
@@ -79194,6 +79482,15 @@
     "name": "bash-dotfiles"
    }
   },
+  "asciidoc": {
+   "apt\\asciidoc": {
+    "driver": "apt",
+    "fields": {
+     "name": "asciidoc"
+    },
+    "name": "asciidoc"
+   }
+  },
   "atop": {
    "apt\\atop": {
     "driver": "apt",
@@ -79666,6 +79963,15 @@
      "source-path": "/etc/apt/sources.list.d/brave-browser-release.list"
     },
     "name": "brave-browser"
+   }
+  },
+  "bridge-utils": {
+   "apt\\bridge-utils": {
+    "driver": "apt",
+    "fields": {
+     "name": "bridge-utils"
+    },
+    "name": "bridge-utils"
    }
   },
   "bruno": {
@@ -80198,6 +80504,15 @@
      "name": "clang-tidy"
     },
     "name": "clang-tidy"
+   }
+  },
+  "clangd": {
+   "apt\\clangd": {
+    "driver": "apt",
+    "fields": {
+     "name": "clangd"
+    },
+    "name": "clangd"
    }
   },
   "claude-code": {
@@ -81352,6 +81667,15 @@
      }
     },
     "name": "doppler"
+   }
+  },
+  "dosfstools": {
+   "apt\\dosfstools": {
+    "driver": "apt",
+    "fields": {
+     "name": "dosfstools"
+    },
+    "name": "dosfstools"
    }
   },
   "dotnet": {
@@ -87304,6 +87628,15 @@
     "name": "pnpm"
    }
   },
+  "po4a": {
+   "apt\\po4a": {
+    "driver": "apt",
+    "fields": {
+     "name": "po4a"
+    },
+    "name": "po4a"
+   }
+  },
   "podman": {
    "apt\\podman": {
     "driver": "apt",
@@ -91236,6 +91569,22 @@
     "name": "bash-dotfiles"
    }
   },
+  "asciidoc": {
+   "dnf\\asciidoc": {
+    "driver": "dnf",
+    "fields": {
+     "name": "asciidoc"
+    },
+    "name": "asciidoc"
+   },
+   "dnf\\epel-release": {
+    "driver": "dnf",
+    "fields": {
+     "name": "epel-release"
+    },
+    "name": "epel-release"
+   }
+  },
   "atop": {
    "dnf\\atop": {
     "driver": "dnf",
@@ -91763,6 +92112,15 @@
     "name": "brave-browser"
    }
   },
+  "bridge-utils": {
+   "dnf\\bridge-utils": {
+    "driver": "dnf",
+    "fields": {
+     "name": "bridge-utils"
+    },
+    "name": "bridge-utils"
+   }
+  },
   "bruno": {
    "native-pkg-file\\bruno": {
     "driver": "native-pkg-file",
@@ -92192,6 +92550,15 @@
   },
   "clang-tidy": {
    "dnf\\clang-tidy": {
+    "driver": "dnf",
+    "fields": {
+     "name": "clang-tools-extra"
+    },
+    "name": "clang-tools-extra"
+   }
+  },
+  "clangd": {
+   "dnf\\clangd": {
     "driver": "dnf",
     "fields": {
      "name": "clang-tools-extra"
@@ -93351,6 +93718,15 @@
      }
     },
     "name": "doppler"
+   }
+  },
+  "dosfstools": {
+   "dnf\\dosfstools": {
+    "driver": "dnf",
+    "fields": {
+     "name": "dosfstools"
+    },
+    "name": "dosfstools"
    }
   },
   "dotnet": {
@@ -99169,6 +99545,22 @@
     "name": "pnpm"
    }
   },
+  "po4a": {
+   "dnf\\epel-release": {
+    "driver": "dnf",
+    "fields": {
+     "name": "epel-release"
+    },
+    "name": "epel-release"
+   },
+   "dnf\\po4a": {
+    "driver": "dnf",
+    "fields": {
+     "name": "po4a"
+    },
+    "name": "po4a"
+   }
+  },
   "podman": {
    "dnf\\podman": {
     "driver": "dnf",
@@ -103217,6 +103609,15 @@
     "name": "bash-dotfiles"
    }
   },
+  "asciidoc": {
+   "apt\\asciidoc": {
+    "driver": "apt",
+    "fields": {
+     "name": "asciidoc"
+    },
+    "name": "asciidoc"
+   }
+  },
   "atop": {
    "apt\\atop": {
     "driver": "apt",
@@ -103689,6 +104090,15 @@
      "source-path": "/etc/apt/sources.list.d/brave-browser-release.list"
     },
     "name": "brave-browser"
+   }
+  },
+  "bridge-utils": {
+   "apt\\bridge-utils": {
+    "driver": "apt",
+    "fields": {
+     "name": "bridge-utils"
+    },
+    "name": "bridge-utils"
    }
   },
   "bruno": {
@@ -104221,6 +104631,15 @@
      "name": "clang-tidy"
     },
     "name": "clang-tidy"
+   }
+  },
+  "clangd": {
+   "apt\\clangd": {
+    "driver": "apt",
+    "fields": {
+     "name": "clangd"
+    },
+    "name": "clangd"
    }
   },
   "claude-code": {
@@ -105366,6 +105785,15 @@
      }
     },
     "name": "doppler"
+   }
+  },
+  "dosfstools": {
+   "apt\\dosfstools": {
+    "driver": "apt",
+    "fields": {
+     "name": "dosfstools"
+    },
+    "name": "dosfstools"
    }
   },
   "dotnet": {
@@ -111318,6 +111746,15 @@
     "name": "pnpm"
    }
   },
+  "po4a": {
+   "apt\\po4a": {
+    "driver": "apt",
+    "fields": {
+     "name": "po4a"
+    },
+    "name": "po4a"
+   }
+  },
   "podman": {
    "apt\\podman": {
     "driver": "apt",
@@ -115217,6 +115654,15 @@
     "name": "bash-dotfiles"
    }
   },
+  "asciidoc": {
+   "apt\\asciidoc": {
+    "driver": "apt",
+    "fields": {
+     "name": "asciidoc"
+    },
+    "name": "asciidoc"
+   }
+  },
   "atop": {
    "apt\\atop": {
     "driver": "apt",
@@ -115672,6 +116118,15 @@
      "source-path": "/etc/apt/sources.list.d/brave-browser-release.list"
     },
     "name": "brave-browser"
+   }
+  },
+  "bridge-utils": {
+   "apt\\bridge-utils": {
+    "driver": "apt",
+    "fields": {
+     "name": "bridge-utils"
+    },
+    "name": "bridge-utils"
    }
   },
   "bruno": {
@@ -116204,6 +116659,15 @@
      "name": "clang-tidy"
     },
     "name": "clang-tidy"
+   }
+  },
+  "clangd": {
+   "apt\\clangd": {
+    "driver": "apt",
+    "fields": {
+     "name": "clangd"
+    },
+    "name": "clangd"
    }
   },
   "claude-code": {
@@ -117332,6 +117796,15 @@
      }
     },
     "name": "doppler"
+   }
+  },
+  "dosfstools": {
+   "apt\\dosfstools": {
+    "driver": "apt",
+    "fields": {
+     "name": "dosfstools"
+    },
+    "name": "dosfstools"
    }
   },
   "dotnet": {
@@ -123119,6 +123592,15 @@
      "name": "pnpm"
     },
     "name": "pnpm"
+   }
+  },
+  "po4a": {
+   "apt\\po4a": {
+    "driver": "apt",
+    "fields": {
+     "name": "po4a"
+    },
+    "name": "po4a"
    }
   },
   "podman": {
