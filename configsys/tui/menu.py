@@ -2459,14 +2459,26 @@ def _draw_profiles(stdscr, pal, ps, ctx, note, screen):
             # the NAME has priority: it keeps its full width; the method gets whatever room is left
             # after it (right-aligned, truncated if long), and is dropped when there's < 3 cols left.
             m_room = cell - len(nm_txt) - 1
+
+            def _draw_name(nw):
+                # draw the whole `▸● name` cell, then re-draw JUST the name (after the 3-char cursor+
+                # marker prefix, sans trailing pad) with the install-axis attrs — so the underline/dim
+                # covers only the component name, not the margin or the state glyphs.
+                drawn = _fit(nm_txt, nw)
+                _put(stdscr, y, cx, drawn, pal.style(elem, y, cx, h, w, selected=foc, bg=tint) | rev)
+                if ov_extra:
+                    namepart = drawn[3:].rstrip()
+                    if namepart:
+                        _put(stdscr, y, cx + 3, namepart,
+                             pal.style(elem, y, cx + 3, h, w, selected=foc, bg=tint) | rev | ov_extra)
+
             if mstr and m_room >= 3:
                 mshow = _fit(mstr, m_room)
-                _put(stdscr, y, cx, _fit(nm_txt, cell - len(mshow) - 1),
-                     pal.style(elem, y, cx, h, w, selected=foc, bg=tint) | rev | ov_extra)
+                _draw_name(cell - len(mshow) - 1)
                 mx = cx + cell - len(mshow)
                 _put(stdscr, y, mx, mshow, pal.style('method_dim', y, mx, h, w, selected=foc, bg=tint) | rev)
             else:                                    # no room for a method column: just the name
-                _put(stdscr, y, cx, _fit(nm_txt, cell), pal.style(elem, y, cx, h, w, selected=foc, bg=tint) | rev | ov_extra)
+                _draw_name(cell)
     # the catalog scrolls horizontally by column; show which columns are in view on the bottom border
     _scrollbar_h(stdscr, pal, ctop + cath - 1, ril, riw, ps.rcol_left, ncols, total_cols, h, w)
 
@@ -3683,7 +3695,9 @@ def run(ctx):
                         ps.focus = 'left'              # leftmost column -> back to the profiles pane
                 elif pfact == 'toggle-install':
                     ps.show_install = (ps.show_install + 1) % 3   # off -> overlay -> +ignored -> off
-                    ps._overlay = None                           # (re)compute on next draw
+                    # NOTE: don't invalidate the overlay cache here — the data is identical across the
+                    # three states (only the rendering differs), so toggling stays instant; a reload
+                    # (any edit) is what recomputes it.
                     note = ('install overlay off', 'install overlay ON — installed underlined, '
                             'orphans coloured', 'install overlay ON + ignored orphans revealed (dimmed)'
                             )[ps.show_install]

@@ -257,28 +257,29 @@ def install_overlay(ctx, units, *, cache=None):
     and `orphans` is `{component: Orphan}` for the unmanaged ones (-> the orphan colour + kind). One
     shared enumeration pass (the passed cache is reused by the orphan scan). Cheap set/graph math on
     top of the same installed_index() calls detection already makes.'''
+    from .installState import _parallel_map
     rindex = build_reverse_index(ctx)
     cache = dict(cache or {})
-    drivers = {}
+    scan_drivers = {d for (d, _k) in rindex} | set(USER_FACING)
 
-    def _idx(dname):
-        if dname not in cache:
-            drv = drivers.get(dname)
-            if drv is None:
-                drv = drivers[dname] = get_driver(dname, ctx.runner, ctx.paths)
-            try:
-                cache[dname] = drv.installed_index() if drv is not None else None
-            except Exception:                       # noqa: BLE001
-                cache[dname] = None
-        return cache[dname]
+    def _enum(dname):                               # one installed_index() call (a subprocess)
+        drv = get_driver(dname, ctx.runner, ctx.paths)
+        try:
+            return dname, (drv.installed_index() if drv is not None else None)
+        except Exception:                           # noqa: BLE001
+            return dname, None
+
+    # enumerate every driver's installed set CONCURRENTLY (apt/flatpak/npm/pip are each a slow spawn;
+    # serial they sum, parallel they collapse to the slowest one). The scan below reuses this cache.
+    for dname, idx in _parallel_map(_enum, [d for d in scan_drivers if d not in cache]):
+        cache[dname] = idx
 
     installed = set()
-    for dname in ({d for (d, _k) in rindex} | set(USER_FACING)):
-        idx = _idx(dname)
-        if not idx:
-            continue
-        for key in idx:
-            installed.update(rindex.get((dname, key), ()))
+    for dname in scan_drivers:
+        idx = cache.get(dname)
+        if idx:
+            for key in idx:
+                installed.update(rindex.get((dname, key), ()))
     orphans = {o.component: o for o in scan_orphans(ctx, units, cache=cache) if o.component}
     return installed, orphans
 
