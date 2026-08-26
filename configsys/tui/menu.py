@@ -519,10 +519,11 @@ def _summary_note(outcomes):
     return f'{n_ok} ok' if n_bad == 0 else f'{n_ok} ok, {n_bad} failed'
 
 
-def _with_uninstall_node(ctx, states, layouts, transitive, reuse=None):
-    '''Fold the reserved `!uninstall` queue into the Components model: inspect any queued components
-    that aren't already in the active set (orphans live outside it), then add a `!uninstall` node
-    listing the PRESENT ones — so their removals can actually be executed here. No-op when empty.'''
+def _with_uninstall_node(ctx, states, layouts, transitive):
+    '''Fold the reserved `!uninstall` queue into the Components model: FRESH-inspect the queued
+    components that aren't in the active set (orphans live outside it — and their install state must
+    be current, not a reused cache, so a re-added leftover shows), then add a `!uninstall` node
+    listing the PRESENT ones so their removals can be executed here. No-op when empty.'''
     try:
         q = list(ctx.config.uninstall_queue())
     except Exception:                               # noqa: BLE001
@@ -533,7 +534,7 @@ def _with_uninstall_node(ctx, states, layouts, transitive, reuse=None):
     missing = [c for c in q if c not in have]
     if missing:
         try:
-            states = {**states, **ctx.inspect_components(missing, reuse=reuse)}
+            states = {**states, **ctx.inspect_components(missing)}   # fresh probe (no reuse) — accuracy
         except Exception:                           # noqa: BLE001 — never let this brick the screen
             pass
     present = sorted(c for c in q
@@ -1223,7 +1224,7 @@ def _reload(ctx, old, dirty):
     Returns (ms, cfg, ledger, states, diags).'''
     cfg, _requested, _units, ledger, states = ctx.load_pipeline(reuse=old.states, dirty=dirty)
     layouts, transitive = _menu_model(cfg)
-    states, layouts, transitive = _with_uninstall_node(ctx, states, layouts, transitive, reuse=old.states)
+    states, layouts, transitive = _with_uninstall_node(ctx, states, layouts, transitive)
     ms = MenuState(states, layouts, transitive)
     ids = {n.id for n in ms._all_nodes()}
     ms.selected = {i for i in old.selected if i in ids}
@@ -3741,14 +3742,17 @@ def run(ctx):
                         except ConfigsysError as e:
                             note = f'stage failed: {e}'
                 elif pfact == 'stage-uninstall' and ps.focus == 'right':
-                    _vc = ps.vcatalog()                    # toggle the selected component in the !uninstall queue
-                    if _vc:
-                        _c = _vc[ps.rcur]
-                        _on = _c not in ctx.config.uninstall_queue()
+                    _vc = ps.vcatalog()                    # stage the selected component for uninstall
+                    if _vc:                                # (idempotent — like Components `x`; clear from
+                        _c = _vc[ps.rcur]                  #  Components to unstage, so a re-press never drops it)
                         try:
-                            changed, lbl = actions.stage_uninstall(ctx, _c, on=_on)
-                            ps.reload(); menu_dirty = menu_dirty or changed
-                            note = f'{_c} {"staged for uninstall (!uninstall)" if _on else "unstaged"}'
+                            if _c in ctx.config.uninstall_queue():
+                                note = f'{_c} already staged for uninstall (clear it from Components)'
+                            else:
+                                changed, lbl = actions.stage_uninstall(ctx, _c, on=True)
+                                ps.reload(); menu_dirty = menu_dirty or changed
+                                note = (f'{_c} staged for uninstall (!uninstall)' if changed
+                                        else f'{_c}: {lbl}')
                         except ConfigsysError as e:
                             note = f'stage-uninstall failed: {e}'
                 elif pfact == 'orphan-ignore' and ps.focus == 'right':
@@ -4470,9 +4474,23 @@ def run(ctx):
             elif act == 'select-all':
                 ms.select_all()
             elif act == 'clear':
+                # also drop the target's components from the persisted !uninstall queue — else the next
+                # reload re-seeds them and the "unstage" doesn't stick. This is how you un-stage a
+                # queued removal (Profiles `x` only ever ADDS; Components clears).
+                _tgt = {ms.states[m.key].component.comp for node in ms._target_nodes()
+                        for m in node.members if m.key in ms.states}
                 ms.unstage()
                 ms.clear_selection()
                 ms.errors.clear()
+                _dropped = _tgt & ctx.config.uninstall_queue()
+                for _c in _dropped:
+                    actions.stage_uninstall(ctx, _c, on=False)
+                if _dropped:
+                    try:
+                        ms, cfg, ledger, states, diags = _reload(ctx, ms, set())
+                        note = f'unstaged {len(_dropped)} from !uninstall'
+                    except Exception as e:  # noqa: BLE001
+                        note = f'reload failed: {e}'
             elif act == 'method':                          # unified: pick an install method OR a provider
                 changed, note, deferred = _pick_choices(stdscr, pal, ms, ctx)
                 if deferred:

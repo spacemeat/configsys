@@ -210,7 +210,11 @@ thin front for `actions.set_profile_membership` / the remove op / `orphans-ignor
   for a `lurking` one, activating its profile. Both are ordinary Profiles edits (`~`/membership keys).
 - **`x` stage-uninstall** → does NOT uninstall on the spot (Profiles is config, not operations). It
   adds the component to the reserved **`!uninstall`** profile — a persisted pending-removal queue —
-  and the actual uninstall is executed from **TUI::Components**, where component operations live.
+  and the actual uninstall is executed from **TUI::Components**, where component operations live. `x`
+  is **idempotent** (always stages; a re-press never unstages — so retrying a failed removal is safe);
+  you un-stage a queued removal by **clearing it in Components** (`c`), which is also where the queue
+  is executed. Components fresh-probes the queued components each build, so the `!uninstall` node
+  always reflects what's actually installed.
 - **`.` ignore** → append the name/key to `orphans-ignore` (silences it; the locale/font/hardware
   bulk is a few globs).
 
