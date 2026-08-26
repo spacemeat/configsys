@@ -519,6 +519,21 @@ def _summary_note(outcomes):
     return f'{n_ok} ok' if n_bad == 0 else f'{n_ok} ok, {n_bad} failed'
 
 
+def _seed_uninstall(ms, ctx):
+    '''Pre-stage a `remove` op for each PRESENT unit whose component is in the persisted `!uninstall`
+    queue — so removals staged from TUI::Profiles (or a prior session) surface here and execute via
+    the normal Components flow. Never overrides an already-staged op; failures are silent.'''
+    try:
+        q = ctx.config.uninstall_queue()
+    except Exception:                               # noqa: BLE001
+        return
+    if not q:
+        return
+    for key, st in ms.states.items():
+        if st.present and st.component.comp in q:
+            ms.staged.setdefault(key, 'remove')
+
+
 def _confirm_and_execute(stdscr, pal, ms, ctx, ledger):
     raw = ms.plan()
     if not raw:
@@ -540,6 +555,15 @@ def _confirm_and_execute(stdscr, pal, ms, ctx, ledger):
             return False, 'cancelled', []
 
         outcomes = execute_plan(ctx, plan, ledger)
+        # drain the persisted !uninstall queue for components we just successfully removed
+        try:
+            from .. import actions as _act
+            for o in outcomes:
+                st = ms.states.get(o.key)
+                if o.op == 'remove' and o.ok and st is not None:
+                    _act.stage_uninstall(ctx, st.component.comp, on=False)
+        except Exception:                           # noqa: BLE001 — draining must never fail the run
+            pass
         n_ok = sum(1 for o in outcomes if o.ok)
         failed = [o for o in outcomes if not o.ok]
         print(f'\nSummary: {n_ok} ok, {len(failed)} failed')
@@ -3506,6 +3530,7 @@ def run(ctx):
         _KEYMAP = keymap = Keymap(ctx.config.keys())   # merged bindings; legends read the same map
         layouts, transitive = _menu_model(cfg)
         ms = MenuState(states, layouts, transitive)
+        _seed_uninstall(ms, ctx)                  # surface the persisted !uninstall queue as staged removes
         ms.descriptions = _describe(ctx)          # {name -> desc}, cached; not touched per frame
         diags = ctx.diagnostics(states)
         note = splash_note or ''

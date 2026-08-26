@@ -64,3 +64,17 @@ def test_check_warns_on_staged_but_still_wanted(tmp_path, capsys):
     cmd_check(ctx, None)
     out = capsys.readouterr().out
     assert "'bat' is staged for uninstall" in out and "active profile 'dev'" in out
+
+
+def test_seed_uninstall_prestages_present_queue_members():
+    from types import SimpleNamespace
+    from configsys.tui.menu import _seed_uninstall
+    ms = SimpleNamespace(staged={}, states={
+        'apt\\bat':  SimpleNamespace(present=True,  component=SimpleNamespace(comp='bat')),
+        'apt\\htop': SimpleNamespace(present=True,  component=SimpleNamespace(comp='htop')),
+        'apt\\ncdu': SimpleNamespace(present=False, component=SimpleNamespace(comp='ncdu')),
+    })
+    ctx = SimpleNamespace(config=SimpleNamespace(uninstall_queue=lambda: {'bat', 'ncdu'}))
+    _seed_uninstall(ms, ctx)
+    # bat is present + queued -> staged remove; ncdu queued but ABSENT; htop present but not queued
+    assert ms.staged == {'apt\\bat': 'remove'}
