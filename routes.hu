@@ -353,6 +353,10 @@
         // chafa: render images/animations in the terminal (ANSI/sixel/kitty). EL via EPEL.
         chafa: { attrs: [ CLI FOSS copyleft ] description: "chafa — display images (and gifs) in the terminal as ANSI/sixel/kitty graphics."
                  install: [ { via: native  when: "rhel"  requires: epel } { via: native  when: "not amzn"  repo-component: universe } ] }
+        // pywal16 — maintained fork of pywal: generate & apply a 16-color scheme from an image. PyPI
+        // only, isolated as a CLI via pipx. The binary is `wal` (not `pywal16`).
+        pywal16: { attrs: [ CLI FOSS permissive ] description: "pywal16 — generate and apply 16-color schemes from an image (the `wal` command; maintained pywal fork)."
+            install: [ { via: pipx  name: pywal16 } ] }
         // fff: minimal Bash file manager. Upstream archived (dylanaraps) -> Debian/Ubuntu ship an old
         // 1.1 and Arch's AUR has 2.2; a `via: source` build (pure Bash `make install`) in the
         // configsys-source plugin covers Fedora/openSUSE/Alpine/EL.
@@ -403,6 +407,11 @@
         atop: { attrs: [ TUI FOSS copyleft ] description: "atop — advanced system and process monitor with logging."
             install: [ { via: native  when: "debian or fedora or arch or opensuse or alpine or amzn" }
                        { via: native  when: "rhel"  requires: epel } ] }   // EPEL on EL
+        // iozone — filesystem I/O benchmark. apt package is `iozone3`; Arch via AUR. Free to use but
+        // not OSI-licensed (source-available). NAMESWEEP PENDING (name varies).
+        iozone: { attrs: [ CLI source-available ] description: "IOzone — filesystem I/O benchmark (sequential/random read & write across sizes)."
+            install: [ { via: native  when: "debian or fedora or opensuse"  name: { apt: iozone3  default: iozone } }
+                       { via: aur  when: "arch"  name: iozone } ] }
         iotop: { attrs: [ TUI FOSS copyleft ] description: "iotop — a per-process disk I/O monitor."
             install: [ { via: native  when: "fedora"  name: iotop-c }   // Fedora dropped the Python `iotop` for the C rewrite `iotop-c`
                        { via: native  when: "debian or rhel or arch or opensuse or alpine or amzn"  name: iotop } ] }
@@ -889,6 +898,15 @@
                          pubkey-url: "https://dl-ssl.google.com/linux/linux_signing_key.pub"  pubkey-path: /usr/share/keyrings/dart.gpg
                          source-line: "deb [signed-by=/usr/share/keyrings/dart.gpg arch=amd64] https://storage.googleapis.com/download.dartlang.org/linux/debian stable main"
                          source-path: /etc/apt/sources.list.d/dart.list } ] }
+        // Flutter SDK — Google's cross-platform UI toolkit. snap (classic) on Ubuntu, AUR on Arch, and
+        // the official Google tarball elsewhere (version tracked via flutter/flutter's git tags; the
+        // tag-re picks stable X.Y.Z and skips the -pre betas). strip:1 lands `flutter` under bin/.
+        flutter: { attrs: [ CLI SDK toolchain FOSS permissive ] description: "Flutter — Google's cross-platform UI SDK (the `flutter` tool)."
+            install: [ { via: snap  when: "ubuntu"  name: flutter  classic: true }
+                       { via: aur  when: "arch"  name: flutter }
+                       { via: tarball  when: "not (ubuntu or arch)"  installDir: "$CONFIGSYS_SDK_DIR/flutter"  strip: 1  requires: [ glibc, curl ]
+                         version: { github: flutter/flutter  tag-re: "([0-9]+[.][0-9]+[.][0-9]+)$" }
+                         url: "https://storage.googleapis.com/flutter_infra_release/releases/stable/linux/flutter_linux_$VERSION-stable.tar.xz" } ] }
         raku: { attrs: [ CLI runtime toolchain FOSS permissive ] description: "Raku (Rakudo) — the Raku language, formerly Perl 6."
             install: [ { via: native  when: "(not arch) and not amzn"  repo-component: universe  name: { brew: rakudo-star  default: rakudo } }
                        { via: aur  when: "arch"  name: rakudo-star } ] }   // AUR-only on Arch
@@ -908,6 +926,17 @@
         // binary. Listed for arch; elsewhere it's an honest unroutable until we model swiftly.
         swift: { attrs: [ toolchain CLI FOSS permissive ] description: "Swift — the Swift language toolchain."
             install: [ { via: aur  when: "arch"  name: swift-bin } ] }
+        // C3 — a modern systems language evolving C (the `c3c` compiler). Prebuilt Linux tarball from
+        // upstream (also AUR); no distro packages yet. The archive holds c3c + its stdlib under c3/.
+        c3: { attrs: [ CLI toolchain FOSS permissive ] description: "C3 — a modern systems language evolving C (the `c3c` compiler)." requires: cc
+            install: [ { via: aur  when: "arch"  name: c3c }
+                       { via: tarball  when: "not arch"  installDir: "$CONFIGSYS_APP_DIR/c3"  requires: glibc
+                         version: { github: c3lang/c3c  strip-v: true  asset: "c3-linux.tar.gz" } } ] }
+        // Roc — a fast, friendly, functional language. PRE-1.0: only nightly builds exist (no stable
+        // release), shipped as a rolling tarball. Binary `roc`.
+        roc: { attrs: [ CLI toolchain FOSS permissive ] description: "Roc — a fast, friendly, functional language (nightly `roc`; pre-release)." requires: cc
+            install: [ { via: tarball  installDir: "$CONFIGSYS_APP_DIR/roc"  requires: glibc  version: { static: nightly }
+                         url: "https://github.com/roc-lang/roc/releases/download/nightly/roc_nightly-linux_x86_64-latest.tar.gz" } ] }
 
         // JVM + Scheme langs. scala/clojure/groovy need a JDK. (No `via: sdkman` driver exists — sdkman
         // is only a component — so these use native / official installer scripts / snap, not sdkman.)
@@ -1191,6 +1220,11 @@
         pulseaudio-utils: { attrs: [ CLI FOSS copyleft ] description: "PulseAudio utilities (`pactl`, `paplay`) — inspect and drive the audio server." install: [ { via: native  when: "not fedora_atomic"  name: { pacman: libpulse  default: pulseaudio-utils } } ] }   // pacman ships pactl in libpulse
         mtr:        { attrs: [ CLI TUI FOSS copyleft ] description: "Live network diagnostic — ping + traceroute in one display."
                       install: [ { via: native } ] }
+        // Mosh — a robust remote shell over UDP that survives roaming and connection drops. One
+        // package ships both the `mosh` client and `mosh-server` (there is no separate server pkg).
+        mosh:       { attrs: [ CLI FOSS GNU copyleft ] description: "Mosh — a remote terminal over UDP that survives roaming and network drops (`mosh` + `mosh-server`)."
+                      install: [ { via: native  when: "rhel"  requires: epel }
+                                 { via: native  when: "not rhel"  repo-component: universe } ] }
         traceroute: { attrs: [ CLI FOSS copyleft ] description: "Trace the network path to a host, hop by hop." install: [ { via: native  when: "not fedora_atomic" } ] }   // no `traceroute` brew formula (Homebrew has mtr/tcptraceroute instead); macOS ships it in base — so decline on brew-native atomic rather than fail
         iperf3:     { attrs: [ CLI FOSS permissive ] description: "iperf3 — measure network throughput between two hosts." install: [ { via: native  name: { zypper: iperf  default: iperf3 } } ] }
         socat:      { attrs: [ CLI FOSS copyleft ] description: "Multipurpose socket relay — bidirectional data between two endpoints." install: [ { via: native } ] }
@@ -1671,6 +1705,32 @@
         scribus:    { attrs: [ GUI app FOSS copyleft ] description: "Scribus — open-source desktop publishing (DTP)." install: [ { via: native  when: "debian or fedora or arch or opensuse"  repo-component: universe }  { via: native  when: "rhel"  requires: epel }  { via: flatpak  hub: flathub  app: net.scribus.Scribus } ] }
         digikam:    { attrs: [ GUI app FOSS copyleft ] description: "digiKam — photo management and RAW editing." install: [ { via: native  when: "debian or fedora or arch or opensuse"  repo-component: universe }  { via: native  when: "rhel"  requires: epel }  { via: flatpak  hub: flathub  app: org.kde.digikam } ] }
 
+        // --- video editors (NLEs): native in the big repos + Flathub (universal / atomic / the gaps) ---
+        kdenlive:   { attrs: [ GUI app FOSS copyleft ] description: "Kdenlive — KDE's multi-track non-linear video editor." install: [ { via: native  when: "debian or fedora or arch or opensuse or alpine"  repo-component: universe }  { via: native  when: "rhel"  requires: epel }  { via: flatpak  hub: flathub  app: org.kde.kdenlive } ] }
+        shotcut:    { attrs: [ GUI app FOSS copyleft ] description: "Shotcut — a cross-platform non-linear video editor." install: [ { via: native  when: "(debian or fedora or arch or opensuse) and not amzn"  repo-component: universe }  { via: flatpak  hub: flathub  app: org.shotcut.Shotcut } ] }
+        openshot:   { attrs: [ GUI app FOSS copyleft ] description: "OpenShot — an easy-to-use non-linear video editor (`openshot-qt`)." install: [ { via: native  when: "debian or fedora or opensuse"  name: { apt: openshot-qt  default: openshot } }  { via: flatpak  hub: flathub  app: org.openshot.OpenShot } ] }
+        flowblade:  { attrs: [ GUI app FOSS copyleft ] description: "Flowblade — a fast, multitrack non-linear video editor." install: [ { via: native  when: "debian or fedora"  repo-component: universe }  { via: flatpak  hub: flathub  app: io.github.jliljebl.Flowblade } ] }
+        olive:      { attrs: [ GUI app FOSS copyleft ] description: "Olive — a non-linear video editor (alpha)." install: [ { via: flatpak  hub: flathub  app: org.olivevideoeditor.Olive }  { via: appImage  name: Olive  scope: user  version: { github: olive-editor/olive  asset: "Olive-*-linux-x86_64.AppImage" }  path: ~/apps/olive.appimage } ] }   // no stable distro packages; flatpak default, AppImage fallback
+
+        // --- citizen-science / a classic game (best-effort — see comments) ---
+        // Folding@home — donate CPU/GPU to protein-folding research; runs a local daemon + web control.
+        // AUR on Arch; upstream .deb/.rpm on debian/redhat. PROVISIONAL: the packages live on F@h's own
+        // download server (git tags exist but releases carry no binary assets) — verify the fetch.
+        foldingathome: { attrs: [ daemon web FOSS GPL ] description: "Folding@home — donate compute to protein-folding research (the `fah-client` daemon + web control)."
+            install: [ { via: aur  when: "arch"  name: foldingathome }
+                       { via: native-pkg-file  when: "debian"  version: { github: FoldingAtHome/fah-client-bastet  strip-v: true }  asset: { deb: { x86_64: "fah-client_*_amd64.deb" } } }
+                       { via: native-pkg-file  when: "redhat or opensuse"  version: { github: FoldingAtHome/fah-client-bastet  strip-v: true }  asset: { rpm: { x86_64: "fah-client-*.x86_64.rpm" } } } ] }
+        // Foldit — the protein-folding puzzle game. Its Linux download sits behind an academic-license
+        // order flow (no unauthenticated URL), so it routes AUR-only on Arch and declines honestly
+        // elsewhere (same shape as `swift`). Needs `freeglut` at runtime.
+        foldit: { attrs: [ GUI game proprietary account ] description: "Foldit — a citizen-science protein-folding puzzle game."
+            install: [ { via: aur  when: "arch"  name: foldit } ] }
+        // Zork — the classic Infocom text adventure. The trilogy is freeware but unpackaged; install the
+        // Frotz Z-machine interpreter and supply the Zork data files yourself (`frotz zork1.z5`).
+        zork: { attrs: [ CLI game ] description: "Zork — the Infocom classic, played via the Frotz Z-machine interpreter (bring your own .z5 data files)."
+            install: [ { via: native  when: "rhel"  requires: epel  name: frotz }
+                       { via: native  when: "not rhel"  repo-component: universe  name: frotz } ] }
+
         // --- media servers (self-hosted; each runs a systemd service — the <name>-service pulls the
         // install AND starts it, like the db-servers) + media players (kodi/stremio, flatpak-first) ---
         // No server ships a Flathub build; the only Jellyfin flatpak is the CLIENT, not the server.
@@ -2026,6 +2086,14 @@
                   version: { github: zyedidia/micro  strip-v: true  asset: "micro-*-linux64.tar.gz" } }
             ]
         }
+        // fresh — a modern, mouse-friendly terminal text editor in Rust (familiar shortcuts, LSP,
+        // built-in file tree + terminal). Not in distro repos: upstream ships a .deb/.rpm and a static
+        // musl binary that runs anywhere (incl. Alpine). Binary `fresh`.
+        fresh: { attrs: [ TUI FOSS permissive ] description: "fresh — a modern, mouse-friendly terminal text editor (`fresh`)."
+            install: [ { via: native-pkg-file  when: "debian"  version: { github: sinelaw/fresh  strip-v: true }  asset: { deb: { x86_64: "fresh-editor_*_amd64.deb" } } }
+                       { via: native-pkg-file  when: "redhat or opensuse"  version: { github: sinelaw/fresh  strip-v: true }  asset: { rpm: { x86_64: "fresh-editor*x86_64.rpm" } } }
+                       { via: tarball  when: "not (debian or redhat or opensuse)"  installDir: "$CONFIGSYS_APP_DIR/fresh"
+                         version: { github: sinelaw/fresh  strip-v: true  asset: "fresh-editor-x86_64-unknown-linux-musl.tar.gz" } } ] }   // musl static -> runs on Alpine too
         // Zed — native on Arch; elsewhere its own install script (installs into ~/.local).
         zed: { attrs: [ GUI app FOSS copyleft tele ] suggests: zed-dotfiles  description: "High-performance, multiplayer code editor from the Atom team."
             install: [
@@ -2385,6 +2453,10 @@
         redis:              { attrs: [ daemon CLI FOSS copyleft source-available ] description: "Redis — in-memory data store and cache." install: [ { via: native  when: "debian or redhat or arch"  name: { apt: redis-server  dnf: valkey  pacman: valkey } }  { via: native  when: "fedora_atomic"  name: redis } ] }   // brew formula `redis` (distro repos lean valkey post-relicense; brew keeps redis)
         redis-service:      { description: "Enable and start the Redis server (systemd)." requires: redis  install: [ { via: service  when: "debian"  unit: redis-server }
                                                           { via: service  when: "redhat or arch"  unit: valkey } ] }
+        // nginx — HTTP server / reverse proxy. In-repo on every distro (EL ships it in AppStream, no
+        // EPEL needed). The -service enables+starts the systemd unit (like the db-servers).
+        nginx:         { attrs: [ daemon web FOSS permissive ] description: "nginx — a high-performance HTTP server and reverse proxy." install: [ { via: native } ] }
+        nginx-service: { description: "Enable and start the nginx web server (systemd)." requires: nginx  install: [ { via: service  unit: nginx } ] }
         // MongoDB: removed from distro repos over its SSPL license, so it installs from MongoDB's
         // OWN vendor repos (apt keyed per family with a hardcoded codename, dnf on EL) + the AUR
         // binary on Arch. MongoDB ships no Fedora/openSUSE/Amazon repo -> those decline. Version-

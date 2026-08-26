@@ -32,7 +32,7 @@ profiles: {
     // NOT in `configs:`, so they stay "lurking": triage them into the real base profiles below, then
     // delete this profile. (NAMESWEEP still pending on several of these.)
     finders: [ fd  fzf  ripgrep ]
-    terminal-emulators: [ alacritty  foot  ghostty  kitty  wezterm ]
+    terminal-emulators: [ alacritty  foot  ghostty  kitty  wezterm  mosh ]
     terminal-utils: [ tmux  xclip  zoxide  bat  xsel  wl-clipboard ]
     system-utils: [ fastfetch  lsblk ]
     system-monitors: [ btop  htop  bottom  atop  bmon  iotop  s-tui  glances  nvtop  wavemon  /*sysdig*/  dstat  lm-sensors ]
@@ -46,13 +46,13 @@ profiles: {
     iso-image-tools: [ caligula  balena-etcher ]
 
     text-editors: [ asciidoc  android-studio  antigravity  emacs  helix  jetbrains-toolbox  micro  neovim  vscode
-        vscodium  zed ]
+        vscodium  zed  fresh ]
 
     desktops-compositors: [ budgie  cosmic  fvwm2  gnome  i3  kde  lxqt  mate  qtile  sway  xfce  xmonad ]
     web-browsers: [ chrome  chromium  firefox  brave  opera  vivaldi  edge  tor-browser  lynx ]
     audio-infra: [ pipewire  jack  wiremix ]
     gaming: [ vulkan-runtime  steam  wine  winetricks  protonup-qt  protontricks ]
-    games: [ ]   // a catalog plugins/your config populate (configsys-source adds xpilot); base ships no games itself
+    games: [ zork ]   // mostly a catalog plugins/your config populate (configsys-source adds xpilot)
 
     virtual-machines: [ qemu  virt-manager  virtualbox  libvirt-clients ]
     containers: [ docker  docker-group  lazydocker  podman  xephyr ]
@@ -91,7 +91,7 @@ profiles: {
     languages: [ +c-cpp-lang  +dotnet-lang  +go-lang  +haskell-lang  +jvm-lang  +lisp-lang  +lua-lang
         +objective-c-lang  +ocaml-lang  +php-lang  +python-lang  +ruby-lang  +rust-lang  +tcl-lang  +web-lang
         elm  erlang  elixir  julia  nim  nasm  octave odin  perl  r  zig  gfortran  gnat  gnucobol  d  crystal
-        dart  raku  v  gleam  fennel  swift  racket  guile ]
+        dart  raku  v  gleam  fennel  swift  racket  guile  c3  deno  roc ]
 
     c-cpp-libs: [ dbus-dev  swig  protobuf-dev ]
     c-cpp-dev-libs: [ pipewire-dev  ffmpeg-dev  libdrm-dev  libgit2  libsecret  nng  opencascade  unixodbc
@@ -112,26 +112,29 @@ profiles: {
     autotools: [ autoconf  automake  libtool  pkg-config  bison  flex ]   // the basic C-dev / GNU build toolchain (make/cmake are their own tools)
     version-control-tools: [ git  lazygit  mercurial  subversion  cvs  perforce  fossil  bazaar  git-lfs  patch ]
     compression-tools: [ zstd  lz4  p7zip  zip  unzip  unrar  rar ]
+    benchmark-tools: [ iozone ]
 
     compute-lang: [ cuda  rocm-hip  intel-oneapi-basekit ]
     deep-learning-lang: [ cudnn-8  cudnn-9  miopen  onednn ]
 
     ai-tools: [ claude-code  codex  llm  aider  ollama  impala ]
 
-    web-tools: [ prettier  httpie  mitmproxy  xh  websocat  postman  insomnia  bruno  jmeter ]
+    web-tools: [ prettier  httpie  mitmproxy  xh  websocat  postman  insomnia  bruno  jmeter  nginx ]
     web-package-managers: [ bun  pnpm  yarn ]
 
     graphics-dev: [ vulkan-dev  gtk  gtkmm  qt  opengl  glfw  sdl  sfml  egl  glew  glm  gtk3  libdecor  libxcursor  libxi  libxrandr  libxxf86vm  wxpython  wxwidgets ]
     game-dev: [ godot  unityhub ]
+    ui-dev: [ flutter ]
 
     web-dev: [ +web-lang  +web-browsers  +web-package-managers  +web-lang  +web-tools ]
 
     electronics-tools: [ arduino  kicad  gnuradio ]
-    graphics-tools: [ blender  chafa  durdraw  krita  gimp  inkscape  darktable  freecad  openscad  scribus  digikam  grim  slurp  pastel  webcamize  wl-screenrec  swaybg  figlet ]
+    graphics-tools: [ blender  chafa  durdraw  krita  gimp  inkscape  darktable  freecad  openscad  scribus  digikam  grim  slurp  pastel  webcamize  wl-screenrec  swaybg  figlet  pywal16 ]
+    video-editors: [ kdenlive  shotcut  openshot  flowblade  olive ]
     audio-tools: [ audacity  espeak  ardour  lmms  tenacity  musescore  hydrogen  carla  sonic-pi  supercollider
         qjackctl  yabridge  pulseaudio-utils ]
 
-    science: [ jupyterlab  gnuplot  paraview  opencv  opencv-python ]
+    science: [ jupyterlab  gnuplot  paraview  opencv  opencv-python  foldit  foldingathome ]
     math: [ texlive  texlive-full  julia  r  octave  maxima  wxmaxima  pari  gap  gnuplot  sagemath  numpy ]
 
     communication: [ discord  discordo  slack  obs-studio ]
@@ -144,7 +147,7 @@ profiles: {
 
     terminal: [ +finders  +terminal-emulators  +terminal-utils  +system-utils  +system-monitors
         +disk-usage-utils  +file-browsers  +shells  +configuration-tools  +password-passkey  +fonts ]
-    backend-tools: [ +containers  +k8s  +cloud-tools  +net-tools  +db-clients  +db-servers ]
+    backend-tools: [ +containers  +k8s  +cloud-tools  +net-tools  +db-clients  +db-servers  tailscale ]
     user: [ +terminal  git  bash-dotfiles  configsys-dotfiles  codecs  firefox  chrome ]
 }
 
