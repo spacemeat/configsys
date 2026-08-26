@@ -216,7 +216,10 @@ def test_apt_key_and_source_prereq_still_supported():
     src_cmd = ('if [ ! -f /etc/apt/sources.list.d/ex.list ]; then '
                'sudo curl -fsSL https://ex.com/ex.list -o /etc/apt/sources.list.d/ex.list '
                '&& sudo apt-get update; fi')
-    assert r.calls == [key_cmd, src_cmd, 'sudo DEBIAN_FRONTEND=noninteractive NEEDRESTART_MODE=a apt-get install -y thing']
+    # the source write now goes through _commit_source (validate-then-commit): a `test -f`
+    # existence probe precedes the write so a NEWLY-created broken source can be rolled back.
+    assert r.calls == [key_cmd, 'test -f /etc/apt/sources.list.d/ex.list', src_cmd,
+                       'sudo DEBIAN_FRONTEND=noninteractive NEEDRESTART_MODE=a apt-get install -y thing']
 
 
 def test_source_line_writes_inline_deb_repo():

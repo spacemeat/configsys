@@ -8,6 +8,8 @@ lock via apt-mark hold/unhold. Mutating ops run under sudo and stream their outp
 import shlex
 
 from ..driver import Driver
+from ..failures import SIGNATURE, classify
+from ..runner import Result
 
 # Keep automated installs from popping interactive TUI dialogs mid-batch — the whiptail/newt screens
 # that paint the whole terminal a solid colour and then linger. DEBIAN_FRONTEND=noninteractive makes
@@ -49,12 +51,40 @@ class Apt(Driver):
             return []
         return v if isinstance(v, list) else [v]
 
+    def _commit_source(self, write_cmd, src_path, key_url=None, key_path=None):
+        '''Write a vendor apt source (write_cmd writes it only if absent AND runs apt-get update),
+        then VALIDATE. On a signature failure with a key configured, re-fetch the key overwriting the
+        stale one and retry once (rotation self-heal). If it STILL fails and we created the source
+        THIS run, roll it back (rm) so a failed setup never leaves a poison pill that breaks every
+        later apt op. Returns None on success, or a classified failing Result. See docs/driver-
+        resilience-plan.md (P2 validate-then-commit).'''
+        sp = shlex.quote(src_path)
+        existed = self.runner.run(f'test -f {sp}', capture=True).ok
+        res = self.runner.run(write_cmd, capture=True)
+        if res.ok:
+            return None
+        cat, rem = classify(res.output)
+        if cat == SIGNATURE and key_url and key_path:
+            kp, ku = shlex.quote(key_path), shlex.quote(key_url)
+            self.runner.run(f'sudo curl -fsSL {ku} -o {kp}', capture=True)   # overwrite (rotation)
+            res = self.runner.run('sudo apt-get update', capture=True)
+            if res.ok:
+                return None
+            cat, rem = classify(res.output)
+        if not existed:                          # roll back OUR just-created source (no poison pill)
+            self.runner.run(f'sudo rm -f {sp}', capture=True)
+        tail = (res.output.splitlines()[-1].strip() if res.output else 'apt-get update failed')
+        return Result.fail(f'vendor repo setup for {src_path} failed: {tail}'
+                           + ('' if existed else ' (source rolled back)'),
+                           category=cat, remediation=rem)
+
     def ensure_prereqs(self, rc):
         '''System setup a component needs before it can install, declared on its
         route: extra CPU architectures to enable (`foreign-arch`, e.g. i386 for
         Steam), archive components (`repo-component`), and third-party signing key +
         source list (`pubkey-*`/`source-*`). Idempotent — each step is skipped when
-        already satisfied.'''
+        already satisfied. Returns None normally, or a classified failing Result if a
+        vendor repo could not be verified (so install/upgrade abort cleanly).'''
         f = rc.fields
 
         for arch in self._as_list(f.get('foreign-arch')):
@@ -86,9 +116,11 @@ class Apt(Driver):
         src_url, src_path = f.get('source-url'), f.get('source-path')
         if src_url and src_path:
             sp, su = shlex.quote(src_path), shlex.quote(src_url)
-            self.runner.run(
+            fail = self._commit_source(
                 f'if [ ! -f {sp} ]; then sudo curl -fsSL {su} -o {sp} '
-                f'&& sudo apt-get update; fi', capture=False)
+                f'&& sudo apt-get update; fi', src_path, key_url, key_path)
+            if fail is not None:
+                return fail
 
         # `source-line`: an inline `deb ...` line written to source-path (for vendor repos
         # like Microsoft's that ship no downloadable .list — you echo the line yourself).
@@ -100,16 +132,17 @@ class Apt(Driver):
         if src_line and src_path:
             sp = shlex.quote(src_path)
             if '$CODENAME' in src_line:
-                self.runner.run(
+                write = (
                     f'if [ ! -f {sp} ]; then '
                     f'CODENAME="$(. /etc/os-release; echo "${{UBUNTU_CODENAME:-$VERSION_CODENAME}}")"; '
-                    f'echo "{src_line}" | sudo tee {sp} >/dev/null && sudo apt-get update; fi',
-                    capture=False)
+                    f'echo "{src_line}" | sudo tee {sp} >/dev/null && sudo apt-get update; fi')
             else:
                 sl = shlex.quote(src_line)
-                self.runner.run(
-                    f'if [ ! -f {sp} ]; then echo {sl} | sudo tee {sp} >/dev/null '
-                    f'&& sudo apt-get update; fi', capture=False)
+                write = (f'if [ ! -f {sp} ]; then echo {sl} | sudo tee {sp} >/dev/null '
+                         f'&& sudo apt-get update; fi')
+            fail = self._commit_source(write, src_path, key_url, key_path)
+            if fail is not None:
+                return fail
 
         # `debconf`: preseed install-time debconf answers so a NON-interactive install makes
         # the choice we want instead of the silent default (e.g. wireshark's non-root-capture
@@ -254,7 +287,9 @@ class Apt(Driver):
         return ' '.join(shlex.quote(p) for p in names)
 
     def install(self, rc):
-        self.ensure_prereqs(rc)
+        pre = self.ensure_prereqs(rc)
+        if pre is not None:                      # a vendor repo failed to verify -> abort cleanly
+            return pre
         return self.runner.run(f'{_APT_ENV} apt-get install -y {self._pkgs(rc)}',
                                sudo=True, capture=False)
 
@@ -263,12 +298,16 @@ class Apt(Driver):
                                sudo=True, capture=False)
 
     def upgrade(self, rc):
-        self.ensure_prereqs(rc)
+        pre = self.ensure_prereqs(rc)
+        if pre is not None:
+            return pre
         return self.runner.run(f'{_APT_ENV} apt-get install --only-upgrade -y {self._pkgs(rc)}',
                                sudo=True, capture=False)
 
     def set_version(self, rc, version):
-        self.ensure_prereqs(rc)
+        pre = self.ensure_prereqs(rc)
+        if pre is not None:
+            return pre
         pkg = shlex.quote(rc.name)
         ver = shlex.quote(version)
         return self.runner.run(
