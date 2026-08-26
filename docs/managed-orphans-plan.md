@@ -208,8 +208,9 @@ thin front for `actions.set_profile_membership` / the remove op / `orphans-ignor
   manual workflow proved out. Bulk-select + `s` parks a batch at once.
 - **un-`~` / activate** → for an `excluded` orphan, the adopt path is re-including it (drop the `~`);
   for a `lurking` one, activating its profile. Both are ordinary Profiles edits (`~`/membership keys).
-- **`x` remove** → uninstall via the owning driver (confirm; the remove op). The other half of the
-  excluded+installed decision.
+- **`x` stage-uninstall** → does NOT uninstall on the spot (Profiles is config, not operations). It
+  adds the component to the reserved **`!uninstall`** profile — a persisted pending-removal queue —
+  and the actual uninstall is executed from **TUI::Components**, where component operations live.
 - **`.` ignore** → append the name/key to `orphans-ignore` (silences it; the locale/font/hardware
   bulk is a few globs).
 
@@ -217,6 +218,30 @@ thin front for `actions.set_profile_membership` / the remove op / `orphans-ignor
 so parked items read as *lurking*, not installed-by-surprise) → the user opens that profile and moves
 names into `dev`/`graphics`/… with normal membership edits → deletes the staging profile when drained.
 The TUI just makes the `orphans` scan the entry point to a loop the Profiles page already supports.
+
+**The `!uninstall` reserved profile (staged removals) — the symmetric other half.** `x` on Profiles
+never uninstalls in place (config page, not ops); it moves the component into a reserved **`!uninstall`**
+profile — a persisted, machine-local pending-removal queue (stored like `pins`). TUI::Components (the
+ops screen) reads that queue: it shows `!uninstall` only when non-empty, and there you **execute** the
+removals (the real remove op) or **clear** them (cancel the intent). Design rules:
+
+- **`!` is a reserved profile namespace.** Any profile named `!…` is system-reserved; the loader +
+  `check` reject a user-defined `!…`. `!uninstall` is the first.
+- **`~` (remove-from-profile) ≠ `!uninstall` (remove-from-system).** This is the distinction the queue
+  exists to capture — dropping a component from a profile just stops managing it; `!uninstall` is the
+  intent to actually take it off the box. An orphan (non-member) `x`'d in is the clean case.
+- **Member + pending-uninstall is a conflict, surfaced not auto-fixed.** `x` on a component still
+  wanted by an active profile leaves it in BOTH `!uninstall` and that profile — a `check`-warnable
+  contradiction ("still wanted by `dev`; also `~` it there?"), reusing the existing conflict path
+  rather than silently editing profiles (no surprises).
+- **Visibility:** `!uninstall` members render struck / `x`-marked **in place** in the Profiles catalog
+  (you see what you've staged), but `!uninstall` is not a browseable tree node on Profiles — its
+  review/execute home is Components. It never installs its members (it's the opposite of a want), and
+  it's ignored by resolution except as the remove-op source.
+
+This makes adopt and uninstall symmetric-but-distinct: **adopt** stages into a *normal* profile (a
+future want), **uninstall** stages into the *special* `!uninstall` (a pending removal) — both mark on
+Profiles, both execute on the screen that owns that kind of action.
 
 A dedicated **Orphans screen** (7th tab) remains the fallback only if per-machine volume ever makes
 the overlay-on-Profiles too noisy.
