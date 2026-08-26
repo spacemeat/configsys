@@ -81,6 +81,13 @@ def stage_uninstall(ctx, comp, *, on=True):
     return set_profile_membership(ctx, UNINSTALL_PROFILE, comp, 'add' if on else 'remove', target=tfile)
 
 
+def stage_adopt(ctx, comp):
+    '''Park `comp` into the configured `orphans-adopt-target` staging profile (the TUI `s` action) —
+    a non-active review profile the user later triages into real base profiles. Returns (changed,
+    label).'''
+    return set_profile_membership(ctx, ctx.config.orphans_adopt_target(), comp, 'add')
+
+
 def clear_uninstall(ctx):
     '''Empty the `!uninstall` queue (cancel every pending removal). Returns how many were cleared.'''
     n = len(ctx.config.uninstall_queue())
@@ -212,6 +219,9 @@ CONFIG_SETTINGS = {
     'orphans-ignore':    ('list',   'Name-or-glob patterns whose matching orphans stay quiet in '
                                     '`configsys orphans` (matches a component name OR installed key).',
                           'configsys(1)'),
+    'orphans-adopt-target': ('scalar', 'Profile the TUI orphan "stage" (s) action parks components '
+                                       'into for later triage (default: orphans-lurking).',
+                          'configsys(1)'),
     # install-layout dirs (the `dirs:` section) — default < config < env (CONFIGSYS_*_DIR)
     'dirs.user':         ('dir',    'Base dir for user-scope installs (default ~). '
                                     'env CONFIGSYS_USERSCOPE_DIR wins.', 'configsys.hu(5)'),
@@ -237,6 +247,7 @@ SETTING_NATURE = {
     'splash':            'uniform',
     'effects':           'machine',           # about THIS terminal/transport (SSH), not shared config
     'orphans-ignore':    'machine',           # acknowledged one-offs on THIS box, not shared config
+    'orphans-adopt-target': 'uniform',        # a workflow preference — the same staging profile name
     'dirs.user':         'machine',
     'dirs.system':       'machine',
     'dirs.app':          'uniform',
@@ -307,6 +318,7 @@ def config_settings(ctx):
         'auto-tighten':      cfg.auto_tighten(),
         'adopt-installed':   cfg.adopt_installed(),
         'orphans-ignore':    cfg.orphans_ignore(),
+        'orphans-adopt-target': cfg.orphans_adopt_target(),
         'splash':            cfg.splash(),
     }
     cfg_dirs = cfg.install_dirs()

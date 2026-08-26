@@ -135,6 +135,13 @@ class Config:
         an orphan's component name OR its installed key.'''
         return _leaves(layers.merge_scalar(self._layers, 'orphans-ignore', _MACHINE_ROLES))
 
+    def orphans_adopt_target(self):
+        '''The profile the TUI's orphan "stage" (`s`) action parks components into for later triage
+        (a machine setting; repo < primary < user). Defaults to `orphans-lurking` — a staging profile
+        you move names out of into the real base profiles.'''
+        v = layers.merge_scalar(self._layers, 'orphans-adopt-target', _MACHINE_ROLES)
+        return v if isinstance(v, str) and v else 'orphans-lurking'
+
     def pins(self):
         '''The effective pin map, merged PER KEY across repo < primary < user (see
         merge_scalar_map): a machine's top config overrides a primary plugin's pins key-by-key
