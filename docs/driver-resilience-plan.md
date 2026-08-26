@@ -1,9 +1,26 @@
 # Driver resilience plan — isolate, diagnose, and self-heal external stumbles
 
-Status: **PLAN — not built.** Captures the design agreed after a real Jenkins repo-key
-rotation broke `configsys refresh` on a live machine (see the `jenkins` route comment in
-`routes.hu` and commit `edfd5f3`). Three themes, one shared substrate, phased so the
-highest-pain / lowest-risk work lands first.
+Status: **Phases 0–2 + the dnf half of Phase 4 BUILT** (commits dd04d9b, eacaac9, 90dd3a8,
+a41fe9b, 8b30745). Phase 3 (manifest) is deliberately DEFERRED per Open-Q2's accepted default
+(introduce it only when reconciliation needs it). The rest of Phase 4 (flatpak/tarball/source
+transactional guards + pre-flight) is not built — the P0 taxonomy already classifies their
+failures; the transactional rollback is done for apt+dnf, the two with a real poison-pill history.
+
+Captures the design agreed after a real Jenkins repo-key rotation broke `configsys refresh` on a
+live machine (see the `jenkins` route comment in `routes.hu` and commit `edfd5f3`). Three themes,
+one shared substrate, phased so the highest-pain / lowest-risk work lands first.
+
+## What shipped
+
+- **P0 (`configsys/failures.py`, `Result.classified()`):** a category + remediation taxonomy;
+  reportgen prints "Likely cause"; the TUI fail-detail appends "[category] — hint".
+- **P1 (`app.diagnose_index_failure`):** the native index refresh is captured + classified;
+  names the culprit source file and, if ours, the owning component. Diagnose-only.
+- **P2 (`app._offer_rekey`, apt `_commit_source`):** refresh PROMPTS to re-fetch a rotated key
+  for a configsys-managed source and retries (self-heals an existing install); the apt driver
+  validate-then-commits a vendor source and rolls back a newly-written one that won't verify.
+- **P4-dnf (dnf `_commit_repo`):** same validate-then-commit/rollback for a newly-written
+  `.repo` (reachability/repomd; GPG-at-install stays dnf's own later check).
 
 ## Motivating incident
 
