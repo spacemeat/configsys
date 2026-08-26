@@ -1230,6 +1230,7 @@ def _reload(ctx, old, dirty):
     ms.selected = {i for i in old.selected if i in ids}
     ms.staged = {k: op for k, op in old.staged.items() if k in states}   # stale keys drop
     _seed_uninstall(ms, ctx)                          # add any newly-queued removes (setdefault)
+    ms._uninstall_q = set(ctx.config.uninstall_queue())   # snapshot -> refresh on switch if it changes
     expanded = {n.id for n in old._all_nodes() if n.expandable and n.expanded}
     for n in ms._all_nodes():
         if n.expandable:
@@ -3577,6 +3578,7 @@ def run(ctx):
         states, layouts, transitive = _with_uninstall_node(ctx, states, layouts, transitive)
         ms = MenuState(states, layouts, transitive)
         _seed_uninstall(ms, ctx)                  # surface the persisted !uninstall queue as staged removes
+        ms._uninstall_q = set(ctx.config.uninstall_queue())
         ms.descriptions = _describe(ctx)          # {name -> desc}, cached; not touched per frame
         diags = ctx.diagnostics(states)
         note = splash_note or ''
@@ -3673,7 +3675,11 @@ def run(ctx):
                     # dotfiles mutated on its page (link/capture/migrate) -> re-probe those units so
                     # Components doesn't show stale 'managed'/'adopted' after they're now linked.
                     df_dirty = ds.dirty if ds is not None else set()
-                    if dest == 'components' and (menu_dirty or df_dirty):
+                    # the !uninstall queue can change from OTHER screens (Profiles `x`) or drain, so
+                    # rebuild whenever it differs from what this view last folded — not just on edits.
+                    q_changed = (set(ctx.config.uninstall_queue())
+                                 != getattr(ms, '_uninstall_q', frozenset()))
+                    if dest == 'components' and (menu_dirty or df_dirty or q_changed):
                         try:
                             # re-resolve + re-probe newly-appearing/changed units (a membership,
                             # driver-preference or scope edit can add units or change how they
@@ -4483,8 +4489,10 @@ def run(ctx):
                 ms.clear_selection()
                 ms.errors.clear()
                 _dropped = _tgt & ctx.config.uninstall_queue()
-                for _c in _dropped:
-                    actions.stage_uninstall(ctx, _c, on=False)
+                if _dropped:
+                    from .. import actions as _act
+                    for _c in _dropped:
+                        _act.stage_uninstall(ctx, _c, on=False)
                 if _dropped:
                     try:
                         ms, cfg, ledger, states, diags = _reload(ctx, ms, set())
