@@ -28,9 +28,12 @@ def test_latest_check_specs_resolve_upstream():
     page = 'download fossil-linux-x64-2.29.tar.gz'
     assert versions.discover({'url': 'x', 'regex': 'x64-([0-9]+[.][0-9]+)[.]tar'}, None,
                              fetch=lambda u: page) == '2.29'
-    gh = json.dumps({'tag_name': 'jdk-25.0.1', 'assets': []})
-    assert versions.discover({'github': 'graalvm/graalvm-ce-builds', 'tag-re': 'jdk-([0-9][0-9.]*)'},
-                             None, fetch=lambda u: gh) == '25.0.1'
+    # github version discovery reads the anonymous atom feed (tag in the /releases/tag/<t> link)
+    repo = 'graalvm/graalvm-ce-builds'
+    feed = (f'<feed><title>Releases</title>'
+            f'<entry><link href="https://github.com/{repo}/releases/tag/jdk-25.0.1"/></entry></feed>')
+    assert versions.discover({'github': repo, 'tag-re': 'jdk-([0-9][0-9.]*)'},
+                             None, fetch=lambda u: feed) == '25.0.1'
 
 
 def test_real_routes_wire_latest_check_onto_static_pins():

@@ -846,8 +846,9 @@ def cmd_refresh(ctx, args):
         drv = get_driver(rc.driver, ctx.runner, ctx.paths)
         if drv is None:
             continue
-        # use the driver's arch-substituted spec so the cache key matches what the
-        # driver looks up at install time (and warms both version + asset url)
+        # use the driver's arch-substituted spec so the cache key matches what the driver looks up
+        # at install time. GitHub versions come from the anonymous atom feed (no API rate limit);
+        # asset urls warm lazily at install (one component -> a couple of API calls, never the limit).
         spec = drv._disco_spec(rc)
         if not isinstance(spec, dict) or 'static' in spec:
             continue
@@ -858,10 +859,9 @@ def cmd_refresh(ctx, args):
         print(f'  {sk:44} -> {seen[sk] or "(unknown)"}')
     if not seen:
         print('  (no discoverable versions in the active profiles)')
-    elif any(v is None for v in seen.values()) and 'CONFIGSYS_GITHUB_TOKEN' not in ctx.env \
-            and 'GITHUB_TOKEN' not in ctx.env:
-        print('\nSome lookups failed (network or GitHub rate limit). Set '
-              'CONFIGSYS_GITHUB_TOKEN or GITHUB_TOKEN to lift the API limit.')
+    elif any(v is None for v in seen.values()):
+        print('\nSome version lookups failed (offline or a transient network error). '
+              'Kept the last cached value for those; try `configsys refresh` again later.')
 
     # MANUAL (`static:`) version pins are skipped by the discovery loop above (no upstream query).
     # A component may add a `latest-check:` version-source naming where the CURRENT upstream version
