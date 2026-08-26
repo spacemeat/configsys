@@ -2837,6 +2837,18 @@
         unixodbc: { attrs: [ lib FOSS copyleft ] description: "unixODBC — the ODBC driver manager for Unix (dev)."
             install: [ { via: native  when: "(debian or redhat or arch or alpine or opensuse or fedora_atomic) and not amzn"
                          name: { apt: unixodbc-dev  dnf: unixODBC-devel  pacman: unixodbc  apk: unixodbc-dev  zypper: unixODBC-devel  brew: unixodbc } } ] }
+        egl: { attrs: [ lib FOSS permissive ] description: "EGL — the native-platform interface between OpenGL/GLES and the window system (dev)."
+            install: [ { via: native  when: "(debian or redhat or arch or alpine or opensuse) and not amzn"
+                         name: { apt: libegl-dev  dnf: mesa-libEGL-devel  pacman: mesa  apk: mesa-dev  zypper: Mesa-libEGL-devel } } ] }   // Linux graphics; not on brew
+        wxwidgets: { attrs: [ lib FOSS FOSSish ] description: "wxWidgets (wxGTK) — a cross-platform C++ GUI toolkit (dev)."
+            install: [ { via: native  when: "(debian or redhat or arch or alpine or opensuse or fedora_atomic) and not amzn"  repo-component: universe
+                         name: { apt: libwxgtk3.2-dev  dnf: wxGTK-devel  pacman: wxwidgets-gtk3  apk: wxwidgets-dev  zypper: "wxWidgets-3_2-devel"  brew: wxwidgets } } ] }   // apt name is release-specific (3.2 on 22.04+; older ships 3.0)
+        opencascade: { attrs: [ lib FOSS copyleft ] description: "Open CASCADE Technology (OCCT) — a 3D CAD/CAM/CAE geometric modeling kernel (dev)."
+            install: [ { via: native  when: "debian"    packages: [ libocct-foundation-dev, libocct-modeling-algorithms-dev, libocct-modeling-data-dev,
+                             libocct-ocaf-dev, libocct-visualization-dev, libocct-data-exchange-dev ]  installed-name: libocct-foundation-dev }
+                       { via: native  when: "fedora"    name: opencascade-devel }
+                       { via: native  when: "arch"      name: opencascade }
+                       { via: native  when: "opensuse"  name: opencascade-devel } ] }   // not in EL base / alpine / brew
         // SDL2 (the common target). Arch dropped classic `sdl2` → `sdl2-compat` (SDL2 API on SDL3).
         sdl: { attrs: [ lib FOSS permissive ] description: "SDL2 — Simple DirectMedia Layer (video/audio/input), dev headers + libs."
             install: [ { via: native  when: "(debian or redhat or arch or alpine or opensuse or fedora_atomic) and not amzn"  repo-component: universe

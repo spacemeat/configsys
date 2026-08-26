@@ -2462,6 +2462,15 @@
     "name": "git"
    }
   },
+  "egl": {
+   "pacman\\egl": {
+    "driver": "pacman",
+    "fields": {
+     "name": "mesa"
+    },
+    "name": "mesa"
+   }
+  },
   "elixir": {
    "pacman\\elixir": {
     "driver": "pacman",
@@ -7276,6 +7285,15 @@
     "name": "opam-dotfiles"
    }
   },
+  "opencascade": {
+   "pacman\\opencascade": {
+    "driver": "pacman",
+    "fields": {
+     "name": "opencascade"
+    },
+    "name": "opencascade"
+   }
+  },
   "opencv": {
    "pacman\\opencv": {
     "driver": "pacman",
@@ -11080,6 +11098,16 @@
     "name": "flatpak"
    }
   },
+  "wxwidgets": {
+   "pacman\\wxwidgets": {
+    "driver": "pacman",
+    "fields": {
+     "name": "wxwidgets-gtk3",
+     "repo-component": "universe"
+    },
+    "name": "wxwidgets-gtk3"
+   }
+  },
   "xcb-util-cursor": {
    "pacman\\xcb-util-cursor": {
     "driver": "pacman",
@@ -14497,6 +14525,15 @@
     "name": "microsoft-edge-stable"
    }
   },
+  "egl": {
+   "apt\\egl": {
+    "driver": "apt",
+    "fields": {
+     "name": "libegl-dev"
+    },
+    "name": "libegl-dev"
+   }
+  },
   "elixir": {
    "apt\\elixir": {
     "driver": "apt",
@@ -19854,6 +19891,24 @@
     "name": "opam-dotfiles"
    }
   },
+  "opencascade": {
+   "apt\\opencascade": {
+    "driver": "apt",
+    "fields": {
+     "installed-name": "libocct-foundation-dev",
+     "name": "opencascade",
+     "packages": [
+      "libocct-foundation-dev",
+      "libocct-modeling-algorithms-dev",
+      "libocct-modeling-data-dev",
+      "libocct-ocaf-dev",
+      "libocct-visualization-dev",
+      "libocct-data-exchange-dev"
+     ]
+    },
+    "name": "opencascade"
+   }
+  },
   "opencv": {
    "apt\\opencv": {
     "driver": "apt",
@@ -23218,6 +23273,16 @@
      "repo-component": "universe"
     },
     "name": "wxmaxima"
+   }
+  },
+  "wxwidgets": {
+   "apt\\wxwidgets": {
+    "driver": "apt",
+    "fields": {
+     "name": "libwxgtk3.2-dev",
+     "repo-component": "universe"
+    },
+    "name": "libwxgtk3.2-dev"
    }
   },
   "xclip": {
@@ -26595,6 +26660,15 @@
     "name": "microsoft-edge-stable"
    }
   },
+  "egl": {
+   "apt\\egl": {
+    "driver": "apt",
+    "fields": {
+     "name": "libegl-dev"
+    },
+    "name": "libegl-dev"
+   }
+  },
   "elixir": {
    "apt\\elixir": {
     "driver": "apt",
@@ -31867,6 +31941,24 @@
     "name": "opam-dotfiles"
    }
   },
+  "opencascade": {
+   "apt\\opencascade": {
+    "driver": "apt",
+    "fields": {
+     "installed-name": "libocct-foundation-dev",
+     "name": "opencascade",
+     "packages": [
+      "libocct-foundation-dev",
+      "libocct-modeling-algorithms-dev",
+      "libocct-modeling-data-dev",
+      "libocct-ocaf-dev",
+      "libocct-visualization-dev",
+      "libocct-data-exchange-dev"
+     ]
+    },
+    "name": "opencascade"
+   }
+  },
   "opencv": {
    "apt\\opencv": {
     "driver": "apt",
@@ -35146,6 +35238,16 @@
      "repo-component": "universe"
     },
     "name": "wxmaxima"
+   }
+  },
+  "wxwidgets": {
+   "apt\\wxwidgets": {
+    "driver": "apt",
+    "fields": {
+     "name": "libwxgtk3.2-dev",
+     "repo-component": "universe"
+    },
+    "name": "libwxgtk3.2-dev"
    }
   },
   "xclip": {
@@ -38507,6 +38609,15 @@
      "source-path": "/etc/apt/sources.list.d/microsoft-edge.list"
     },
     "name": "microsoft-edge-stable"
+   }
+  },
+  "egl": {
+   "apt\\egl": {
+    "driver": "apt",
+    "fields": {
+     "name": "libegl-dev"
+    },
+    "name": "libegl-dev"
    }
   },
   "elixir": {
@@ -43774,6 +43885,24 @@
     "name": "opam-dotfiles"
    }
   },
+  "opencascade": {
+   "apt\\opencascade": {
+    "driver": "apt",
+    "fields": {
+     "installed-name": "libocct-foundation-dev",
+     "name": "opencascade",
+     "packages": [
+      "libocct-foundation-dev",
+      "libocct-modeling-algorithms-dev",
+      "libocct-modeling-data-dev",
+      "libocct-ocaf-dev",
+      "libocct-visualization-dev",
+      "libocct-data-exchange-dev"
+     ]
+    },
+    "name": "opencascade"
+   }
+  },
   "opencv": {
    "apt\\opencv": {
     "driver": "apt",
@@ -47142,6 +47271,16 @@
     "name": "wxmaxima"
    }
   },
+  "wxwidgets": {
+   "apt\\wxwidgets": {
+    "driver": "apt",
+    "fields": {
+     "name": "libwxgtk3.2-dev",
+     "repo-component": "universe"
+    },
+    "name": "libwxgtk3.2-dev"
+   }
+  },
   "xclip": {
    "apt\\xclip": {
     "driver": "apt",
@@ -50366,6 +50505,15 @@
      "repo-url": "https://packages.microsoft.com/yumrepos/edge"
     },
     "name": "microsoft-edge-stable"
+   }
+  },
+  "egl": {
+   "dnf\\egl": {
+    "driver": "dnf",
+    "fields": {
+     "name": "mesa-libEGL-devel"
+    },
+    "name": "mesa-libEGL-devel"
    }
   },
   "elixir": {
@@ -55365,6 +55513,15 @@
     "name": "opam-dotfiles"
    }
   },
+  "opencascade": {
+   "dnf\\opencascade": {
+    "driver": "dnf",
+    "fields": {
+     "name": "opencascade-devel"
+    },
+    "name": "opencascade-devel"
+   }
+  },
   "opencv": {
    "dnf\\opencv": {
     "driver": "dnf",
@@ -58689,6 +58846,16 @@
     "name": "wxmaxima"
    }
   },
+  "wxwidgets": {
+   "dnf\\wxwidgets": {
+    "driver": "dnf",
+    "fields": {
+     "name": "wxGTK-devel",
+     "repo-component": "universe"
+    },
+    "name": "wxGTK-devel"
+   }
+  },
   "xcb-util-cursor-devel": {
    "dnf\\xcb-util-cursor-devel": {
     "driver": "dnf",
@@ -61947,6 +62114,15 @@
      "repo-url": "https://packages.microsoft.com/yumrepos/edge"
     },
     "name": "microsoft-edge-stable"
+   }
+  },
+  "egl": {
+   "dnf\\egl": {
+    "driver": "dnf",
+    "fields": {
+     "name": "mesa-libEGL-devel"
+    },
+    "name": "mesa-libEGL-devel"
    }
   },
   "elixir": {
@@ -66946,6 +67122,15 @@
     "name": "opam-dotfiles"
    }
   },
+  "opencascade": {
+   "dnf\\opencascade": {
+    "driver": "dnf",
+    "fields": {
+     "name": "opencascade-devel"
+    },
+    "name": "opencascade-devel"
+   }
+  },
   "opencv": {
    "dnf\\opencv": {
     "driver": "dnf",
@@ -70268,6 +70453,16 @@
      "repo-component": "universe"
     },
     "name": "wxmaxima"
+   }
+  },
+  "wxwidgets": {
+   "dnf\\wxwidgets": {
+    "driver": "dnf",
+    "fields": {
+     "name": "wxGTK-devel",
+     "repo-component": "universe"
+    },
+    "name": "wxGTK-devel"
    }
   },
   "xcb-util-cursor-devel": {
@@ -79404,6 +79599,16 @@
     "name": "io.github.wxmaxima_developers.wxMaxima"
    }
   },
+  "wxwidgets": {
+   "brew\\wxwidgets": {
+    "driver": "brew",
+    "fields": {
+     "name": "wxwidgets",
+     "repo-component": "universe"
+    },
+    "name": "wxwidgets"
+   }
+  },
   "xclip": {
    "brew\\xclip": {
     "driver": "brew",
@@ -82733,6 +82938,15 @@
      "source-path": "/etc/apt/sources.list.d/microsoft-edge.list"
     },
     "name": "microsoft-edge-stable"
+   }
+  },
+  "egl": {
+   "apt\\egl": {
+    "driver": "apt",
+    "fields": {
+     "name": "libegl-dev"
+    },
+    "name": "libegl-dev"
    }
   },
   "elixir": {
@@ -88085,6 +88299,24 @@
     "name": "opam-dotfiles"
    }
   },
+  "opencascade": {
+   "apt\\opencascade": {
+    "driver": "apt",
+    "fields": {
+     "installed-name": "libocct-foundation-dev",
+     "name": "opencascade",
+     "packages": [
+      "libocct-foundation-dev",
+      "libocct-modeling-algorithms-dev",
+      "libocct-modeling-data-dev",
+      "libocct-ocaf-dev",
+      "libocct-visualization-dev",
+      "libocct-data-exchange-dev"
+     ]
+    },
+    "name": "opencascade"
+   }
+  },
   "opencv": {
    "apt\\opencv": {
     "driver": "apt",
@@ -91463,6 +91695,16 @@
      "repo-component": "universe"
     },
     "name": "wxmaxima"
+   }
+  },
+  "wxwidgets": {
+   "apt\\wxwidgets": {
+    "driver": "apt",
+    "fields": {
+     "name": "libwxgtk3.2-dev",
+     "repo-component": "universe"
+    },
+    "name": "libwxgtk3.2-dev"
    }
   },
   "xclip": {
@@ -94915,6 +95157,15 @@
      "repo-url": "https://packages.microsoft.com/yumrepos/edge"
     },
     "name": "microsoft-edge-stable"
+   }
+  },
+  "egl": {
+   "dnf\\egl": {
+    "driver": "dnf",
+    "fields": {
+     "name": "mesa-libEGL-devel"
+    },
+    "name": "mesa-libEGL-devel"
    }
   },
   "elixir": {
@@ -103626,6 +103877,16 @@
     "name": "wxmaxima"
    }
   },
+  "wxwidgets": {
+   "dnf\\wxwidgets": {
+    "driver": "dnf",
+    "fields": {
+     "name": "wxGTK-devel",
+     "repo-component": "universe"
+    },
+    "name": "wxGTK-devel"
+   }
+  },
   "xcb-util-cursor-devel": {
    "dnf\\xcb-util-cursor-devel": {
     "driver": "dnf",
@@ -107093,6 +107354,15 @@
      "source-path": "/etc/apt/sources.list.d/microsoft-edge.list"
     },
     "name": "microsoft-edge-stable"
+   }
+  },
+  "egl": {
+   "apt\\egl": {
+    "driver": "apt",
+    "fields": {
+     "name": "libegl-dev"
+    },
+    "name": "libegl-dev"
    }
   },
   "elixir": {
@@ -112445,6 +112715,24 @@
     "name": "opam-dotfiles"
    }
   },
+  "opencascade": {
+   "apt\\opencascade": {
+    "driver": "apt",
+    "fields": {
+     "installed-name": "libocct-foundation-dev",
+     "name": "opencascade",
+     "packages": [
+      "libocct-foundation-dev",
+      "libocct-modeling-algorithms-dev",
+      "libocct-modeling-data-dev",
+      "libocct-ocaf-dev",
+      "libocct-visualization-dev",
+      "libocct-data-exchange-dev"
+     ]
+    },
+    "name": "opencascade"
+   }
+  },
   "opencv": {
    "apt\\opencv": {
     "driver": "apt",
@@ -115832,6 +116120,16 @@
     "name": "wxmaxima"
    }
   },
+  "wxwidgets": {
+   "apt\\wxwidgets": {
+    "driver": "apt",
+    "fields": {
+     "name": "libwxgtk3.2-dev",
+     "repo-component": "universe"
+    },
+    "name": "libwxgtk3.2-dev"
+   }
+  },
   "xclip": {
    "apt\\xclip": {
     "driver": "apt",
@@ -119208,6 +119506,15 @@
      "source-path": "/etc/apt/sources.list.d/microsoft-edge.list"
     },
     "name": "microsoft-edge-stable"
+   }
+  },
+  "egl": {
+   "apt\\egl": {
+    "driver": "apt",
+    "fields": {
+     "name": "libegl-dev"
+    },
+    "name": "libegl-dev"
    }
   },
   "elixir": {
@@ -124448,6 +124755,24 @@
     "name": "opam-dotfiles"
    }
   },
+  "opencascade": {
+   "apt\\opencascade": {
+    "driver": "apt",
+    "fields": {
+     "installed-name": "libocct-foundation-dev",
+     "name": "opencascade",
+     "packages": [
+      "libocct-foundation-dev",
+      "libocct-modeling-algorithms-dev",
+      "libocct-modeling-data-dev",
+      "libocct-ocaf-dev",
+      "libocct-visualization-dev",
+      "libocct-data-exchange-dev"
+     ]
+    },
+    "name": "opencascade"
+   }
+  },
   "opencv": {
    "apt\\opencv": {
     "driver": "apt",
@@ -127814,6 +128139,16 @@
      "repo-component": "universe"
     },
     "name": "wxmaxima"
+   }
+  },
+  "wxwidgets": {
+   "apt\\wxwidgets": {
+    "driver": "apt",
+    "fields": {
+     "name": "libwxgtk3.2-dev",
+     "repo-component": "universe"
+    },
+    "name": "libwxgtk3.2-dev"
    }
   },
   "xclip": {
