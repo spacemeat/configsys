@@ -112,7 +112,8 @@ profiles: {
     autotools: [ autoconf  automake  libtool  pkg-config  bison  flex ]   // the basic C-dev / GNU build toolchain (make/cmake are their own tools)
     version-control-tools: [ git  lazygit  mercurial  subversion  cvs  perforce  fossil  bazaar  git-lfs  patch ]
     compression-tools: [ zstd  lz4  p7zip  zip  unzip  unrar  rar ]
-    benchmark-tools: [ iozone  fio  ioping  bonnie++  sysbench  stress-ng  hyperfine  mbw  glmark2  vkmark  phoronix-test-suite ]
+    benchmark-tools: [ iozone  fio  ioping  bonnie++  sysbench  stress-ng  hyperfine  mbw  glmark2  vkmark  phoronix-test-suite
+        k6  hey  wrk  vegeta  geekbench  unigine-superposition  unigine-heaven  unigine-valley ]
 
     compute-lang: [ cuda  rocm-hip  intel-oneapi-basekit ]
     deep-learning-lang: [ cudnn-8  cudnn-9  miopen  onednn ]

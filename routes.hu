@@ -454,6 +454,53 @@
             install: [ { via: native  when: "(debian or fedora or alpine or opensuse) and not amzn" }
                        { via: native  when: "rhel"  requires: epel }
                        { via: aur     when: "arch" } ] }
+        // --- HTTP load / throughput testers (peers of jmeter; grouped here as perf tools) ---
+        // k6 — native on Arch/Alpine + brew; Grafana's own apt/dnf repos on debian/redhat.
+        k6: { attrs: [ CLI FOSS copyleft ] description: "Grafana k6 — a modern load-testing tool scripted in JavaScript (`k6`)."
+            install: [ { via: native  when: "arch" }               // extra: k6
+                       { via: native  when: "alpine" }             // community: k6
+                       { via: native  when: "fedora_atomic" }      // brew formula `k6`
+                       { via: native  when: "debian"  name: k6     // Grafana's official apt repo
+                         pubkey-url: "https://dl.k6.io/key.gpg"  pubkey-path: /usr/share/keyrings/k6.asc
+                         source-line: "deb [signed-by=/usr/share/keyrings/k6.asc] https://dl.k6.io/deb stable main"
+                         source-path: /etc/apt/sources.list.d/k6.list }
+                       { via: native  when: "redhat"  name: k6     // Grafana's official dnf repo (covers Fedora/EL/Amazon)
+                         pubkey-url: "https://dl.k6.io/key.gpg"
+                         repo-id: k6  repo-name: "k6"  repo-url: "https://dl.k6.io/rpm" } ] }
+        hey: { attrs: [ CLI FOSS permissive ] description: "hey — a tiny HTTP load generator (`hey`)."
+            install: [ { via: native  when: "fedora_atomic" }      // brew formula `hey`
+                       { via: aur     when: "arch"  name: hey }
+                       { via: go-install  when: "not (arch or fedora_atomic)"  name: "github.com/rakyll/hey"  requires: go } ] }
+        wrk: { attrs: [ CLI FOSS permissive ] description: "wrk — a modern, multithreaded HTTP benchmarking tool."
+            install: [ { via: native  when: "fedora or alpine or opensuse" }
+                       { via: native  when: "fedora_atomic" }      // brew formula `wrk`
+                       { via: aur     when: "arch"  name: wrk } ] }   // debian/EL: not packaged -> build wg/wrk from source
+        vegeta: { attrs: [ CLI FOSS permissive ] description: "Vegeta — a versatile HTTP load-testing tool driven by a constant request rate (`vegeta`)."
+            install: [ { via: native  when: "fedora_atomic" }      // brew formula `vegeta`
+                       { via: aur     when: "arch"  name: vegeta }
+                       { via: tarball  when: "not (arch or fedora_atomic)"  installDir: "$CONFIGSYS_APP_DIR/vegeta"
+                         version: { github: tsenart/vegeta  strip-v: true  asset: "vegeta_*_linux_amd64.tar.gz" } } ] }
+
+        // --- proprietary cross-platform benchmarks (best-effort) ---
+        // Geekbench 6 — free to run, uploads results to geekbench.com by default. Flathub is the clean
+        // universal method; a CLI tarball (cdn.geekbench.com, version scraped from the download page)
+        // and the AUR package are alternatives. Binary `geekbench6`.
+        geekbench: { attrs: [ CLI GUI proprietary freeware online ] description: "Geekbench 6 — Primate Labs' cross-platform CPU & GPU benchmark (`geekbench6`; uploads results online)."
+            install: [ { via: flatpak  hub: flathub  app: com.geekbench.Geekbench6 }
+                       { via: aur      when: "arch"  name: geekbench }
+                       { via: tarball  when: "not arch"  installDir: "$CONFIGSYS_APP_DIR/geekbench"  requires: [ glibc, curl ]
+                         version: { url: "https://www.geekbench.com/download/linux/"  regex: "Geekbench-([0-9.]+)-Linux" }
+                         url: "https://cdn.geekbench.com/Geekbench-$VERSION-Linux.tar.gz" } ] }
+        // UNIGINE GPU benchmarks — proprietary, ~1.5GB self-extracting .run installers. The only
+        // packaged route is the AUR (known-flaky PKGBUILDs); elsewhere it's a manual download from
+        // unigine.com, so they decline honestly off Arch (the `swift`/`foldit` shape). Superposition is
+        // current; Heaven/Valley are the widely-used classics.
+        unigine-superposition: { attrs: [ GUI game proprietary freeware ] description: "UNIGINE Superposition — a heavy GPU / VRAM stress benchmark (proprietary)."
+            install: [ { via: aur  when: "arch"  name: unigine-superposition } ] }
+        unigine-heaven: { attrs: [ GUI game proprietary freeware ] description: "UNIGINE Heaven — the classic tessellation-heavy GPU benchmark (proprietary)."
+            install: [ { via: aur  when: "arch"  name: unigine-heaven } ] }
+        unigine-valley: { attrs: [ GUI game proprietary freeware ] description: "UNIGINE Valley — the classic forested-valley GPU benchmark (proprietary)."
+            install: [ { via: aur  when: "arch"  name: unigine-valley } ] }
         iotop: { attrs: [ TUI FOSS copyleft ] description: "iotop — a per-process disk I/O monitor."
             install: [ { via: native  when: "fedora"  name: iotop-c }   // Fedora dropped the Python `iotop` for the C rewrite `iotop-c`
                        { via: native  when: "debian or rhel or arch or opensuse or alpine or amzn"  name: iotop } ] }

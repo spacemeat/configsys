@@ -3473,6 +3473,39 @@
     "name": "gdb-dotfiles"
    }
   },
+  "geekbench": {
+   "aur\\geekbench": {
+    "driver": "aur",
+    "fields": {
+     "name": "geekbench"
+    },
+    "name": "geekbench"
+   },
+   "dotfiles\\git-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "~/.gitconfig",
+      "src": "gitconfig"
+     }
+    },
+    "name": "git-dotfiles"
+   },
+   "pacman\\base-devel": {
+    "driver": "pacman",
+    "fields": {
+     "name": "base-devel"
+    },
+    "name": "base-devel"
+   },
+   "pacman\\git": {
+    "driver": "pacman",
+    "fields": {
+     "name": "git"
+    },
+    "name": "git"
+   }
+  },
   "gettext": {
    "pacman\\gettext": {
     "driver": "pacman",
@@ -4458,6 +4491,39 @@
      }
     },
     "name": "helm-dotfiles"
+   }
+  },
+  "hey": {
+   "aur\\hey": {
+    "driver": "aur",
+    "fields": {
+     "name": "hey"
+    },
+    "name": "hey"
+   },
+   "dotfiles\\git-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "~/.gitconfig",
+      "src": "gitconfig"
+     }
+    },
+    "name": "git-dotfiles"
+   },
+   "pacman\\base-devel": {
+    "driver": "pacman",
+    "fields": {
+     "name": "base-devel"
+    },
+    "name": "base-devel"
+   },
+   "pacman\\git": {
+    "driver": "pacman",
+    "fields": {
+     "name": "git"
+    },
+    "name": "git"
    }
   },
   "hlint": {
@@ -5497,6 +5563,15 @@
      "version-re": "(v[0-9]+\\.[0-9]+\\.[0-9]+)"
     },
     "name": "k3s"
+   }
+  },
+  "k6": {
+   "pacman\\k6": {
+    "driver": "pacman",
+    "fields": {
+     "name": "k6"
+    },
+    "name": "k6"
    }
   },
   "k9s": {
@@ -11043,6 +11118,105 @@
     "name": "ueberzugpp"
    }
   },
+  "unigine-heaven": {
+   "aur\\unigine-heaven": {
+    "driver": "aur",
+    "fields": {
+     "name": "unigine-heaven"
+    },
+    "name": "unigine-heaven"
+   },
+   "dotfiles\\git-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "~/.gitconfig",
+      "src": "gitconfig"
+     }
+    },
+    "name": "git-dotfiles"
+   },
+   "pacman\\base-devel": {
+    "driver": "pacman",
+    "fields": {
+     "name": "base-devel"
+    },
+    "name": "base-devel"
+   },
+   "pacman\\git": {
+    "driver": "pacman",
+    "fields": {
+     "name": "git"
+    },
+    "name": "git"
+   }
+  },
+  "unigine-superposition": {
+   "aur\\unigine-superposition": {
+    "driver": "aur",
+    "fields": {
+     "name": "unigine-superposition"
+    },
+    "name": "unigine-superposition"
+   },
+   "dotfiles\\git-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "~/.gitconfig",
+      "src": "gitconfig"
+     }
+    },
+    "name": "git-dotfiles"
+   },
+   "pacman\\base-devel": {
+    "driver": "pacman",
+    "fields": {
+     "name": "base-devel"
+    },
+    "name": "base-devel"
+   },
+   "pacman\\git": {
+    "driver": "pacman",
+    "fields": {
+     "name": "git"
+    },
+    "name": "git"
+   }
+  },
+  "unigine-valley": {
+   "aur\\unigine-valley": {
+    "driver": "aur",
+    "fields": {
+     "name": "unigine-valley"
+    },
+    "name": "unigine-valley"
+   },
+   "dotfiles\\git-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "~/.gitconfig",
+      "src": "gitconfig"
+     }
+    },
+    "name": "git-dotfiles"
+   },
+   "pacman\\base-devel": {
+    "driver": "pacman",
+    "fields": {
+     "name": "base-devel"
+    },
+    "name": "base-devel"
+   },
+   "pacman\\git": {
+    "driver": "pacman",
+    "fields": {
+     "name": "git"
+    },
+    "name": "git"
+   }
+  },
   "unityhub": {
    "dotfiles\\bash-dotfiles": {
     "driver": "dotfiles",
@@ -11378,6 +11552,39 @@
      "glue": "vcpkg"
     },
     "name": "vcpkg-dotfiles"
+   }
+  },
+  "vegeta": {
+   "aur\\vegeta": {
+    "driver": "aur",
+    "fields": {
+     "name": "vegeta"
+    },
+    "name": "vegeta"
+   },
+   "dotfiles\\git-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "~/.gitconfig",
+      "src": "gitconfig"
+     }
+    },
+    "name": "git-dotfiles"
+   },
+   "pacman\\base-devel": {
+    "driver": "pacman",
+    "fields": {
+     "name": "base-devel"
+    },
+    "name": "base-devel"
+   },
+   "pacman\\git": {
+    "driver": "pacman",
+    "fields": {
+     "name": "git"
+    },
+    "name": "git"
    }
   },
   "virt-manager": {
@@ -12143,6 +12350,39 @@
      "repo-component": "universe"
     },
     "name": "wmenu"
+   }
+  },
+  "wrk": {
+   "aur\\wrk": {
+    "driver": "aur",
+    "fields": {
+     "name": "wrk"
+    },
+    "name": "wrk"
+   },
+   "dotfiles\\git-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "~/.gitconfig",
+      "src": "gitconfig"
+     }
+    },
+    "name": "git-dotfiles"
+   },
+   "pacman\\base-devel": {
+    "driver": "pacman",
+    "fields": {
+     "name": "base-devel"
+    },
+    "name": "base-devel"
+   },
+   "pacman\\git": {
+    "driver": "pacman",
+    "fields": {
+     "name": "git"
+    },
+    "name": "git"
    }
   },
   "wxmaxima": {
@@ -16835,6 +17075,28 @@
     "name": "gdb-dotfiles"
    }
   },
+  "geekbench": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "tarball\\geekbench": {
+    "driver": "tarball",
+    "fields": {
+     "installDir": "$CONFIGSYS_APP_DIR/geekbench",
+     "name": "geekbench",
+     "url": "https://cdn.geekbench.com/Geekbench-$VERSION-Linux.tar.gz",
+     "version": {
+      "regex": "Geekbench-([0-9.]+)-Linux",
+      "url": "https://www.geekbench.com/download/linux/"
+     }
+    },
+    "name": "geekbench"
+   }
+  },
   "gettext": {
    "apt\\gettext": {
     "driver": "apt",
@@ -17882,6 +18144,40 @@
     "name": "helm-dotfiles"
    }
   },
+  "hey": {
+   "apt\\go": {
+    "driver": "apt",
+    "fields": {
+     "name": "golang-go"
+    },
+    "name": "golang-go"
+   },
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.config/bash/conf.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\go-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "glue": "go"
+    },
+    "name": "go-dotfiles"
+   },
+   "go-install\\hey": {
+    "driver": "go-install",
+    "fields": {
+     "name": "github.com/rakyll/hey"
+    },
+    "name": "github.com/rakyll/hey"
+   }
+  },
   "hlint": {
    "apt\\cabal": {
     "driver": "apt",
@@ -18874,6 +19170,19 @@
      "version-re": "(v[0-9]+\\.[0-9]+\\.[0-9]+)"
     },
     "name": "k3s"
+   }
+  },
+  "k6": {
+   "apt\\k6": {
+    "driver": "apt",
+    "fields": {
+     "name": "k6",
+     "pubkey-path": "/usr/share/keyrings/k6.asc",
+     "pubkey-url": "https://dl.k6.io/key.gpg",
+     "source-line": "deb [signed-by=/usr/share/keyrings/k6.asc] https://dl.k6.io/deb stable main",
+     "source-path": "/etc/apt/sources.list.d/k6.list"
+    },
+    "name": "k6"
    }
   },
   "k9s": {
@@ -24636,6 +24945,28 @@
     "name": "vcpkg-dotfiles"
    }
   },
+  "vegeta": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "tarball\\vegeta": {
+    "driver": "tarball",
+    "fields": {
+     "installDir": "$CONFIGSYS_APP_DIR/vegeta",
+     "name": "vegeta",
+     "version": {
+      "asset": "vegeta_*_linux_amd64.tar.gz",
+      "github": "tsenart/vegeta",
+      "strip-v": "true"
+     }
+    },
+    "name": "vegeta"
+   }
+  },
   "virt-manager": {
    "apt\\libvirt": {
     "driver": "apt",
@@ -29937,6 +30268,28 @@
     "name": "gdb-dotfiles"
    }
   },
+  "geekbench": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "tarball\\geekbench": {
+    "driver": "tarball",
+    "fields": {
+     "installDir": "$CONFIGSYS_APP_DIR/geekbench",
+     "name": "geekbench",
+     "url": "https://cdn.geekbench.com/Geekbench-$VERSION-Linux.tar.gz",
+     "version": {
+      "regex": "Geekbench-([0-9.]+)-Linux",
+      "url": "https://www.geekbench.com/download/linux/"
+     }
+    },
+    "name": "geekbench"
+   }
+  },
   "gettext": {
    "apt\\gettext": {
     "driver": "apt",
@@ -30984,6 +31337,40 @@
     "name": "helm-dotfiles"
    }
   },
+  "hey": {
+   "apt\\go": {
+    "driver": "apt",
+    "fields": {
+     "name": "golang-go"
+    },
+    "name": "golang-go"
+   },
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.config/bash/conf.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\go-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "glue": "go"
+    },
+    "name": "go-dotfiles"
+   },
+   "go-install\\hey": {
+    "driver": "go-install",
+    "fields": {
+     "name": "github.com/rakyll/hey"
+    },
+    "name": "github.com/rakyll/hey"
+   }
+  },
   "hlint": {
    "apt\\cabal": {
     "driver": "apt",
@@ -31942,6 +32329,19 @@
      "version-re": "(v[0-9]+\\.[0-9]+\\.[0-9]+)"
     },
     "name": "k3s"
+   }
+  },
+  "k6": {
+   "apt\\k6": {
+    "driver": "apt",
+    "fields": {
+     "name": "k6",
+     "pubkey-path": "/usr/share/keyrings/k6.asc",
+     "pubkey-url": "https://dl.k6.io/key.gpg",
+     "source-line": "deb [signed-by=/usr/share/keyrings/k6.asc] https://dl.k6.io/deb stable main",
+     "source-path": "/etc/apt/sources.list.d/k6.list"
+    },
+    "name": "k6"
    }
   },
   "k9s": {
@@ -37551,6 +37951,28 @@
     "name": "vcpkg-dotfiles"
    }
   },
+  "vegeta": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "tarball\\vegeta": {
+    "driver": "tarball",
+    "fields": {
+     "installDir": "$CONFIGSYS_APP_DIR/vegeta",
+     "name": "vegeta",
+     "version": {
+      "asset": "vegeta_*_linux_amd64.tar.gz",
+      "github": "tsenart/vegeta",
+      "strip-v": "true"
+     }
+    },
+    "name": "vegeta"
+   }
+  },
   "virt-manager": {
    "apt\\libvirt": {
     "driver": "apt",
@@ -42852,6 +43274,28 @@
     "name": "gdb-dotfiles"
    }
   },
+  "geekbench": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "tarball\\geekbench": {
+    "driver": "tarball",
+    "fields": {
+     "installDir": "$CONFIGSYS_APP_DIR/geekbench",
+     "name": "geekbench",
+     "url": "https://cdn.geekbench.com/Geekbench-$VERSION-Linux.tar.gz",
+     "version": {
+      "regex": "Geekbench-([0-9.]+)-Linux",
+      "url": "https://www.geekbench.com/download/linux/"
+     }
+    },
+    "name": "geekbench"
+   }
+  },
   "gettext": {
    "apt\\gettext": {
     "driver": "apt",
@@ -43899,6 +44343,40 @@
     "name": "helm-dotfiles"
    }
   },
+  "hey": {
+   "apt\\go": {
+    "driver": "apt",
+    "fields": {
+     "name": "golang-go"
+    },
+    "name": "golang-go"
+   },
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.config/bash/conf.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\go-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "glue": "go"
+    },
+    "name": "go-dotfiles"
+   },
+   "go-install\\hey": {
+    "driver": "go-install",
+    "fields": {
+     "name": "github.com/rakyll/hey"
+    },
+    "name": "github.com/rakyll/hey"
+   }
+  },
   "hlint": {
    "apt\\cabal": {
     "driver": "apt",
@@ -44857,6 +45335,19 @@
      "version-re": "(v[0-9]+\\.[0-9]+\\.[0-9]+)"
     },
     "name": "k3s"
+   }
+  },
+  "k6": {
+   "apt\\k6": {
+    "driver": "apt",
+    "fields": {
+     "name": "k6",
+     "pubkey-path": "/usr/share/keyrings/k6.asc",
+     "pubkey-url": "https://dl.k6.io/key.gpg",
+     "source-line": "deb [signed-by=/usr/share/keyrings/k6.asc] https://dl.k6.io/deb stable main",
+     "source-path": "/etc/apt/sources.list.d/k6.list"
+    },
+    "name": "k6"
    }
   },
   "k9s": {
@@ -50480,6 +50971,28 @@
     "name": "vcpkg-dotfiles"
    }
   },
+  "vegeta": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "tarball\\vegeta": {
+    "driver": "tarball",
+    "fields": {
+     "installDir": "$CONFIGSYS_APP_DIR/vegeta",
+     "name": "vegeta",
+     "version": {
+      "asset": "vegeta_*_linux_amd64.tar.gz",
+      "github": "tsenart/vegeta",
+      "strip-v": "true"
+     }
+    },
+    "name": "vegeta"
+   }
+  },
   "virt-manager": {
    "apt\\libvirt": {
     "driver": "apt",
@@ -55398,6 +55911,28 @@
     "name": "gdb-dotfiles"
    }
   },
+  "geekbench": {
+   "dnf\\curl": {
+    "driver": "dnf",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "tarball\\geekbench": {
+    "driver": "tarball",
+    "fields": {
+     "installDir": "$CONFIGSYS_APP_DIR/geekbench",
+     "name": "geekbench",
+     "url": "https://cdn.geekbench.com/Geekbench-$VERSION-Linux.tar.gz",
+     "version": {
+      "regex": "Geekbench-([0-9.]+)-Linux",
+      "url": "https://www.geekbench.com/download/linux/"
+     }
+    },
+    "name": "geekbench"
+   }
+  },
   "gettext": {
    "dnf\\gettext": {
     "driver": "dnf",
@@ -56481,6 +57016,40 @@
     "name": "helm-dotfiles"
    }
   },
+  "hey": {
+   "dnf\\go": {
+    "driver": "dnf",
+    "fields": {
+     "name": "golang"
+    },
+    "name": "golang"
+   },
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.config/bash/conf.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\go-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "glue": "go"
+    },
+    "name": "go-dotfiles"
+   },
+   "go-install\\hey": {
+    "driver": "go-install",
+    "fields": {
+     "name": "github.com/rakyll/hey"
+    },
+    "name": "github.com/rakyll/hey"
+   }
+  },
   "hlint": {
    "cabal\\hlint": {
     "driver": "cabal",
@@ -57490,6 +58059,19 @@
      "version-re": "(v[0-9]+\\.[0-9]+\\.[0-9]+)"
     },
     "name": "k3s"
+   }
+  },
+  "k6": {
+   "dnf\\k6": {
+    "driver": "dnf",
+    "fields": {
+     "name": "k6",
+     "pubkey-url": "https://dl.k6.io/key.gpg",
+     "repo-id": "k6",
+     "repo-name": "k6",
+     "repo-url": "https://dl.k6.io/rpm"
+    },
+    "name": "k6"
    }
   },
   "k9s": {
@@ -62988,6 +63570,28 @@
     "name": "vcpkg-dotfiles"
    }
   },
+  "vegeta": {
+   "dnf\\curl": {
+    "driver": "dnf",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "tarball\\vegeta": {
+    "driver": "tarball",
+    "fields": {
+     "installDir": "$CONFIGSYS_APP_DIR/vegeta",
+     "name": "vegeta",
+     "version": {
+      "asset": "vegeta_*_linux_amd64.tar.gz",
+      "github": "tsenart/vegeta",
+      "strip-v": "true"
+     }
+    },
+    "name": "vegeta"
+   }
+  },
   "virt-manager": {
    "dnf\\libvirt": {
     "driver": "dnf",
@@ -63691,6 +64295,15 @@
      "repo-component": "universe"
     },
     "name": "wmenu"
+   }
+  },
+  "wrk": {
+   "dnf\\wrk": {
+    "driver": "dnf",
+    "fields": {
+     "name": "wrk"
+    },
+    "name": "wrk"
    }
   },
   "wxmaxima": {
@@ -67918,6 +68531,28 @@
     "name": "gdb-dotfiles"
    }
   },
+  "geekbench": {
+   "dnf\\curl": {
+    "driver": "dnf",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "tarball\\geekbench": {
+    "driver": "tarball",
+    "fields": {
+     "installDir": "$CONFIGSYS_APP_DIR/geekbench",
+     "name": "geekbench",
+     "url": "https://cdn.geekbench.com/Geekbench-$VERSION-Linux.tar.gz",
+     "version": {
+      "regex": "Geekbench-([0-9.]+)-Linux",
+      "url": "https://www.geekbench.com/download/linux/"
+     }
+    },
+    "name": "geekbench"
+   }
+  },
   "gettext": {
    "dnf\\gettext": {
     "driver": "dnf",
@@ -69001,6 +69636,40 @@
     "name": "helm-dotfiles"
    }
   },
+  "hey": {
+   "dnf\\go": {
+    "driver": "dnf",
+    "fields": {
+     "name": "golang"
+    },
+    "name": "golang"
+   },
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.config/bash/conf.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\go-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "glue": "go"
+    },
+    "name": "go-dotfiles"
+   },
+   "go-install\\hey": {
+    "driver": "go-install",
+    "fields": {
+     "name": "github.com/rakyll/hey"
+    },
+    "name": "github.com/rakyll/hey"
+   }
+  },
   "hlint": {
    "cabal\\hlint": {
     "driver": "cabal",
@@ -70010,6 +70679,19 @@
      "version-re": "(v[0-9]+\\.[0-9]+\\.[0-9]+)"
     },
     "name": "k3s"
+   }
+  },
+  "k6": {
+   "dnf\\k6": {
+    "driver": "dnf",
+    "fields": {
+     "name": "k6",
+     "pubkey-url": "https://dl.k6.io/key.gpg",
+     "repo-id": "k6",
+     "repo-name": "k6",
+     "repo-url": "https://dl.k6.io/rpm"
+    },
+    "name": "k6"
    }
   },
   "k9s": {
@@ -75508,6 +76190,28 @@
     "name": "vcpkg-dotfiles"
    }
   },
+  "vegeta": {
+   "dnf\\curl": {
+    "driver": "dnf",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "tarball\\vegeta": {
+    "driver": "tarball",
+    "fields": {
+     "installDir": "$CONFIGSYS_APP_DIR/vegeta",
+     "name": "vegeta",
+     "version": {
+      "asset": "vegeta_*_linux_amd64.tar.gz",
+      "github": "tsenart/vegeta",
+      "strip-v": "true"
+     }
+    },
+    "name": "vegeta"
+   }
+  },
   "virt-manager": {
    "dnf\\libvirt": {
     "driver": "dnf",
@@ -76211,6 +76915,15 @@
      "repo-component": "universe"
     },
     "name": "wmenu"
+   }
+  },
+  "wrk": {
+   "dnf\\wrk": {
+    "driver": "dnf",
+    "fields": {
+     "name": "wrk"
+    },
+    "name": "wrk"
    }
   },
   "wxmaxima": {
@@ -79552,6 +80265,28 @@
     "name": "gdb-dotfiles"
    }
   },
+  "geekbench": {
+   "brew\\curl": {
+    "driver": "brew",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "tarball\\geekbench": {
+    "driver": "tarball",
+    "fields": {
+     "installDir": "$CONFIGSYS_APP_DIR/geekbench",
+     "name": "geekbench",
+     "url": "https://cdn.geekbench.com/Geekbench-$VERSION-Linux.tar.gz",
+     "version": {
+      "regex": "Geekbench-([0-9.]+)-Linux",
+      "url": "https://www.geekbench.com/download/linux/"
+     }
+    },
+    "name": "geekbench"
+   }
+  },
   "gettext": {
    "brew\\gettext": {
     "driver": "brew",
@@ -80376,6 +81111,15 @@
     "name": "helm-dotfiles"
    }
   },
+  "hey": {
+   "brew\\hey": {
+    "driver": "brew",
+    "fields": {
+     "name": "hey"
+    },
+    "name": "hey"
+   }
+  },
   "hlint": {
    "brew\\cabal": {
     "driver": "brew",
@@ -81142,6 +81886,15 @@
      "version-re": "(v[0-9]+\\.[0-9]+\\.[0-9]+)"
     },
     "name": "k3s"
+   }
+  },
+  "k6": {
+   "brew\\k6": {
+    "driver": "brew",
+    "fields": {
+     "name": "k6"
+    },
+    "name": "k6"
    }
   },
   "k9s": {
@@ -85744,6 +86497,15 @@
     "name": "vcpkg-dotfiles"
    }
   },
+  "vegeta": {
+   "brew\\vegeta": {
+    "driver": "brew",
+    "fields": {
+     "name": "vegeta"
+    },
+    "name": "vegeta"
+   }
+  },
   "virt-manager": {
    "brew\\libvirt": {
     "driver": "brew",
@@ -86146,6 +86908,15 @@
      "name": "wlroots"
     },
     "name": "wlroots"
+   }
+  },
+  "wrk": {
+   "brew\\wrk": {
+    "driver": "brew",
+    "fields": {
+     "name": "wrk"
+    },
+    "name": "wrk"
    }
   },
   "wxmaxima": {
@@ -90759,6 +91530,28 @@
     "name": "gdb-dotfiles"
    }
   },
+  "geekbench": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "tarball\\geekbench": {
+    "driver": "tarball",
+    "fields": {
+     "installDir": "$CONFIGSYS_APP_DIR/geekbench",
+     "name": "geekbench",
+     "url": "https://cdn.geekbench.com/Geekbench-$VERSION-Linux.tar.gz",
+     "version": {
+      "regex": "Geekbench-([0-9.]+)-Linux",
+      "url": "https://www.geekbench.com/download/linux/"
+     }
+    },
+    "name": "geekbench"
+   }
+  },
   "gettext": {
    "apt\\gettext": {
     "driver": "apt",
@@ -91806,6 +92599,40 @@
     "name": "helm-dotfiles"
    }
   },
+  "hey": {
+   "apt\\go": {
+    "driver": "apt",
+    "fields": {
+     "name": "golang-go"
+    },
+    "name": "golang-go"
+   },
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.config/bash/conf.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\go-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "glue": "go"
+    },
+    "name": "go-dotfiles"
+   },
+   "go-install\\hey": {
+    "driver": "go-install",
+    "fields": {
+     "name": "github.com/rakyll/hey"
+    },
+    "name": "github.com/rakyll/hey"
+   }
+  },
   "hlint": {
    "apt\\cabal": {
     "driver": "apt",
@@ -92798,6 +93625,19 @@
      "version-re": "(v[0-9]+\\.[0-9]+\\.[0-9]+)"
     },
     "name": "k3s"
+   }
+  },
+  "k6": {
+   "apt\\k6": {
+    "driver": "apt",
+    "fields": {
+     "name": "k6",
+     "pubkey-path": "/usr/share/keyrings/k6.asc",
+     "pubkey-url": "https://dl.k6.io/key.gpg",
+     "source-line": "deb [signed-by=/usr/share/keyrings/k6.asc] https://dl.k6.io/deb stable main",
+     "source-path": "/etc/apt/sources.list.d/k6.list"
+    },
+    "name": "k6"
    }
   },
   "k9s": {
@@ -98567,6 +99407,28 @@
     "name": "vcpkg-dotfiles"
    }
   },
+  "vegeta": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "tarball\\vegeta": {
+    "driver": "tarball",
+    "fields": {
+     "installDir": "$CONFIGSYS_APP_DIR/vegeta",
+     "name": "vegeta",
+     "version": {
+      "asset": "vegeta_*_linux_amd64.tar.gz",
+      "github": "tsenart/vegeta",
+      "strip-v": "true"
+     }
+    },
+    "name": "vegeta"
+   }
+  },
   "virt-manager": {
    "apt\\libvirt": {
     "driver": "apt",
@@ -103750,6 +104612,28 @@
     "name": "gdb-dotfiles"
    }
   },
+  "geekbench": {
+   "dnf\\curl": {
+    "driver": "dnf",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "tarball\\geekbench": {
+    "driver": "tarball",
+    "fields": {
+     "installDir": "$CONFIGSYS_APP_DIR/geekbench",
+     "name": "geekbench",
+     "url": "https://cdn.geekbench.com/Geekbench-$VERSION-Linux.tar.gz",
+     "version": {
+      "regex": "Geekbench-([0-9.]+)-Linux",
+      "url": "https://www.geekbench.com/download/linux/"
+     }
+    },
+    "name": "geekbench"
+   }
+  },
   "gettext": {
    "dnf\\gettext": {
     "driver": "dnf",
@@ -104821,6 +105705,40 @@
     "name": "helm-dotfiles"
    }
   },
+  "hey": {
+   "dnf\\go": {
+    "driver": "dnf",
+    "fields": {
+     "name": "golang"
+    },
+    "name": "golang"
+   },
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.config/bash/conf.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\go-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "glue": "go"
+    },
+    "name": "go-dotfiles"
+   },
+   "go-install\\hey": {
+    "driver": "go-install",
+    "fields": {
+     "name": "github.com/rakyll/hey"
+    },
+    "name": "github.com/rakyll/hey"
+   }
+  },
   "hlint": {
    "cabal\\hlint": {
     "driver": "cabal",
@@ -105853,6 +106771,19 @@
      "version-re": "(v[0-9]+\\.[0-9]+\\.[0-9]+)"
     },
     "name": "k3s"
+   }
+  },
+  "k6": {
+   "dnf\\k6": {
+    "driver": "dnf",
+    "fields": {
+     "name": "k6",
+     "pubkey-url": "https://dl.k6.io/key.gpg",
+     "repo-id": "k6",
+     "repo-name": "k6",
+     "repo-url": "https://dl.k6.io/rpm"
+    },
+    "name": "k6"
    }
   },
   "k9s": {
@@ -111644,6 +112575,28 @@
     "name": "vcpkg-dotfiles"
    }
   },
+  "vegeta": {
+   "dnf\\curl": {
+    "driver": "dnf",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "tarball\\vegeta": {
+    "driver": "tarball",
+    "fields": {
+     "installDir": "$CONFIGSYS_APP_DIR/vegeta",
+     "name": "vegeta",
+     "version": {
+      "asset": "vegeta_*_linux_amd64.tar.gz",
+      "github": "tsenart/vegeta",
+      "strip-v": "true"
+     }
+    },
+    "name": "vegeta"
+   }
+  },
   "virt-manager": {
    "dnf\\libvirt": {
     "driver": "dnf",
@@ -117154,6 +118107,28 @@
     "name": "gdb-dotfiles"
    }
   },
+  "geekbench": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "tarball\\geekbench": {
+    "driver": "tarball",
+    "fields": {
+     "installDir": "$CONFIGSYS_APP_DIR/geekbench",
+     "name": "geekbench",
+     "url": "https://cdn.geekbench.com/Geekbench-$VERSION-Linux.tar.gz",
+     "version": {
+      "regex": "Geekbench-([0-9.]+)-Linux",
+      "url": "https://www.geekbench.com/download/linux/"
+     }
+    },
+    "name": "geekbench"
+   }
+  },
   "gettext": {
    "apt\\gettext": {
     "driver": "apt",
@@ -118201,6 +119176,40 @@
     "name": "helm-dotfiles"
    }
   },
+  "hey": {
+   "apt\\go": {
+    "driver": "apt",
+    "fields": {
+     "name": "golang-go"
+    },
+    "name": "golang-go"
+   },
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.config/bash/conf.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\go-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "glue": "go"
+    },
+    "name": "go-dotfiles"
+   },
+   "go-install\\hey": {
+    "driver": "go-install",
+    "fields": {
+     "name": "github.com/rakyll/hey"
+    },
+    "name": "github.com/rakyll/hey"
+   }
+  },
   "hlint": {
    "apt\\cabal": {
     "driver": "apt",
@@ -119193,6 +120202,19 @@
      "version-re": "(v[0-9]+\\.[0-9]+\\.[0-9]+)"
     },
     "name": "k3s"
+   }
+  },
+  "k6": {
+   "apt\\k6": {
+    "driver": "apt",
+    "fields": {
+     "name": "k6",
+     "pubkey-path": "/usr/share/keyrings/k6.asc",
+     "pubkey-url": "https://dl.k6.io/key.gpg",
+     "source-line": "deb [signed-by=/usr/share/keyrings/k6.asc] https://dl.k6.io/deb stable main",
+     "source-path": "/etc/apt/sources.list.d/k6.list"
+    },
+    "name": "k6"
    }
   },
   "k9s": {
@@ -124967,6 +125989,28 @@
      "glue": "vcpkg"
     },
     "name": "vcpkg-dotfiles"
+   }
+  },
+  "vegeta": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "tarball\\vegeta": {
+    "driver": "tarball",
+    "fields": {
+     "installDir": "$CONFIGSYS_APP_DIR/vegeta",
+     "name": "vegeta",
+     "version": {
+      "asset": "vegeta_*_linux_amd64.tar.gz",
+      "github": "tsenart/vegeta",
+      "strip-v": "true"
+     }
+    },
+    "name": "vegeta"
    }
   },
   "virt-manager": {
@@ -130287,6 +131331,28 @@
     "name": "gdb-dotfiles"
    }
   },
+  "geekbench": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "tarball\\geekbench": {
+    "driver": "tarball",
+    "fields": {
+     "installDir": "$CONFIGSYS_APP_DIR/geekbench",
+     "name": "geekbench",
+     "url": "https://cdn.geekbench.com/Geekbench-$VERSION-Linux.tar.gz",
+     "version": {
+      "regex": "Geekbench-([0-9.]+)-Linux",
+      "url": "https://www.geekbench.com/download/linux/"
+     }
+    },
+    "name": "geekbench"
+   }
+  },
   "gettext": {
    "apt\\gettext": {
     "driver": "apt",
@@ -131307,6 +132373,40 @@
     "name": "helm-dotfiles"
    }
   },
+  "hey": {
+   "apt\\go": {
+    "driver": "apt",
+    "fields": {
+     "name": "golang-go"
+    },
+    "name": "golang-go"
+   },
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.config/bash/conf.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\go-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "glue": "go"
+    },
+    "name": "go-dotfiles"
+   },
+   "go-install\\hey": {
+    "driver": "go-install",
+    "fields": {
+     "name": "github.com/rakyll/hey"
+    },
+    "name": "github.com/rakyll/hey"
+   }
+  },
   "hlint": {
    "apt\\cabal": {
     "driver": "apt",
@@ -132265,6 +133365,19 @@
      "version-re": "(v[0-9]+\\.[0-9]+\\.[0-9]+)"
     },
     "name": "k3s"
+   }
+  },
+  "k6": {
+   "apt\\k6": {
+    "driver": "apt",
+    "fields": {
+     "name": "k6",
+     "pubkey-path": "/usr/share/keyrings/k6.asc",
+     "pubkey-url": "https://dl.k6.io/key.gpg",
+     "source-line": "deb [signed-by=/usr/share/keyrings/k6.asc] https://dl.k6.io/deb stable main",
+     "source-path": "/etc/apt/sources.list.d/k6.list"
+    },
+    "name": "k6"
    }
   },
   "k9s": {
@@ -137886,6 +138999,28 @@
      "glue": "vcpkg"
     },
     "name": "vcpkg-dotfiles"
+   }
+  },
+  "vegeta": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "tarball\\vegeta": {
+    "driver": "tarball",
+    "fields": {
+     "installDir": "$CONFIGSYS_APP_DIR/vegeta",
+     "name": "vegeta",
+     "version": {
+      "asset": "vegeta_*_linux_amd64.tar.gz",
+      "github": "tsenart/vegeta",
+      "strip-v": "true"
+     }
+    },
+    "name": "vegeta"
    }
   },
   "virt-manager": {
