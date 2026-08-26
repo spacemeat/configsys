@@ -1044,8 +1044,46 @@ def cmd_where(ctx, args):
 def cmd_orphans(ctx, args):
     '''List installed software that no active profile accounts for, grouped by driver, each tagged
     with its kind (excluded / lurking / forgotten / foreign). Read-only report — the phase-1 surface.'''
-    from . import orphans as orphans_mod
+    from . import orphans as orphans_mod, actions
     cfg = ctx.config
+
+    # -- action verbs (adopt / remove / ignore) — each returns early; no scan needed --
+    if args.ignore:
+        cur = list(cfg.orphans_ignore())
+        added = [p for p in args.ignore if p not in cur]
+        _changed, label = actions.set_config_setting(ctx, 'orphans-ignore', cur + added)
+        if added:
+            print(f'ignoring {", ".join(added)}  →  orphans-ignore in {label}')
+        else:
+            print(f'already ignored: {", ".join(args.ignore)}')
+        return 0
+    if args.adopt:
+        if not args.profile:
+            print('configsys: --adopt needs --profile P (which profile to add it to)')
+            return 1
+        if args.adopt not in ctx.routes.components:
+            print(f'configsys: unknown component "{args.adopt}" — --adopt takes a known orphan '
+                  f'(a component); a foreign orphan has no recipe to adopt')
+            return 1
+        changed, label = actions.set_profile_membership(ctx, args.profile, args.adopt, 'add')
+        print(f'adopted {args.adopt} into "{args.profile}" ({label})' if changed
+              else f'no change ({label})')
+        return 0
+    if args.remove:
+        if args.remove not in ctx.routes.components:
+            print(f'configsys: "{args.remove}" is not a cf component (a foreign orphan) — remove it '
+                  f'with your package manager')
+            return 1
+        if not args.yes:
+            try:
+                resp = input(f'Uninstall {args.remove}? [y/N] ').strip().lower()
+            except EOFError:
+                resp = ''
+            if resp not in ('y', 'yes'):
+                print('aborted')
+                return 0
+        return _dispatch_op(ctx, [args.remove], 'remove')
+
     try:
         requested = list(cfg.requested())
     except ConfigError as e:
@@ -2373,6 +2411,13 @@ def build_parser():
                           'standard; default hides them)')
     orp.add_argument('--all', action='store_true', help='include orphans silenced by orphans-ignore')
     orp.add_argument('--json', action='store_true', help='machine-readable output')
+    orp.add_argument('--adopt', metavar='NAME',
+                     help='add a known orphan (a component) to a profile — needs --profile')
+    orp.add_argument('--profile', metavar='P', help='target profile for --adopt')
+    orp.add_argument('--remove', metavar='NAME', help='uninstall a known orphan via its driver')
+    orp.add_argument('--ignore', metavar='PATTERN', nargs='+',
+                     help='silence orphans matching these name/key globs (adds to orphans-ignore)')
+    orp.add_argument('--yes', action='store_true', help='skip the confirmation for --remove')
 
     dfp = sub.add_parser('dotfiles', help='inspect (status) and adopt (capture) your dotfiles')
     dfsub = dfp.add_subparsers(dest='dotfiles_command')

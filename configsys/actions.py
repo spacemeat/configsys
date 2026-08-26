@@ -184,6 +184,9 @@ CONFIG_SETTINGS = {
                                     'calmer splash), or none (no gradient or splash). Unset '
                                     'auto-picks reduced over SSH, else full. --effects overrides.',
                           'configsys(1)'),
+    'orphans-ignore':    ('list',   'Name-or-glob patterns whose matching orphans stay quiet in '
+                                    '`configsys orphans` (matches a component name OR installed key).',
+                          'configsys(1)'),
     # install-layout dirs (the `dirs:` section) — default < config < env (CONFIGSYS_*_DIR)
     'dirs.user':         ('dir',    'Base dir for user-scope installs (default ~). '
                                     'env CONFIGSYS_USERSCOPE_DIR wins.', 'configsys.hu(5)'),
@@ -208,6 +211,7 @@ SETTING_NATURE = {
     'adopt-installed':   'uniform',
     'splash':            'uniform',
     'effects':           'machine',           # about THIS terminal/transport (SSH), not shared config
+    'orphans-ignore':    'machine',           # acknowledged one-offs on THIS box, not shared config
     'dirs.user':         'machine',
     'dirs.system':       'machine',
     'dirs.app':          'uniform',
@@ -277,6 +281,7 @@ def config_settings(ctx):
         'driver-preference': cfg.driver_preference(),
         'auto-tighten':      cfg.auto_tighten(),
         'adopt-installed':   cfg.adopt_installed(),
+        'orphans-ignore':    cfg.orphans_ignore(),
         'splash':            cfg.splash(),
     }
     cfg_dirs = cfg.install_dirs()

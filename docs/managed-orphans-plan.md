@@ -224,9 +224,15 @@ after seeing real counts on the user's machine.
 
 ## Phasing
 
-1. Reverse index + `scan_orphans` + tests (pure-ish; mock `installed_index`).
-2. `configsys orphans` report (share detection's index cache).
-3. `--adopt` / `--remove` / `--ignore` + `orphans-ignore:` setting + `check` stale-ignore warning.
+1. Reverse index + `scan_orphans` + tests (pure-ish; mock `installed_index`). **DONE.**
+2. `configsys orphans` report (share detection's index cache). **DONE** — plus the manual/auto
+   filter (explicit_keys), the OS-origin tier tag, native-backed cross-indexing, and cross-distro
+   pip/npm noise-trimming (INSTALLER=pip + `--not-required`; node-bundled exclusion).
+3. `--adopt` / `--remove` / `--ignore` + `orphans-ignore:` setting. **DONE** — `--ignore <glob…>`
+   appends to the machine-nature `orphans-ignore:` (registered in CONFIG_SETTINGS); `--adopt <comp>
+   --profile P` adds a known orphan to a profile; `--remove <comp>` uninstalls a known orphan via its
+   driver (confirm unless `--yes`; foreign keys are declined — no recipe). Still TODO: a `check`
+   stale-ignore warning (ignored pattern that matches nothing installed).
 4. TUI surface — **deferred/undecided** (see the TUI section: likely a membership state on
    TUI::Profiles for the known kinds + a synthetic `foreign` profile, but the Profiles-purpose
    tension is unresolved).

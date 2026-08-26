@@ -367,6 +367,52 @@ IGNORE_CFG = '''{
 }'''
 
 
+def _orphan_args(**over):
+    from types import SimpleNamespace
+    base = dict(driver=None, foreign=False, include_auto=False, system=False, all=False,
+                json=False, adopt=None, profile=None, remove=None, ignore=None, yes=False)
+    base.update(over)
+    return SimpleNamespace(**base)
+
+
+def _reload(tmp_path):   # rebuild a Context from the CURRENT config file (no rewrite)
+    return Context(build_parser().parse_args(['--home', str(tmp_path), '--os', 'pop', 'inspect']))
+
+
+def _fresh_ctx(tmp_path, body='{ configs: [ dev ]  profiles: { dev: [ htop ] } }'):
+    d = tmp_path / '.config' / 'configsys'
+    d.mkdir(parents=True, exist_ok=True)
+    (d / 'configsys.hu').write_text(body)
+    return _reload(tmp_path)
+
+
+def test_ignore_verb_appends_to_setting(tmp_path):
+    from configsys.app import cmd_orphans
+    ctx = _fresh_ctx(tmp_path)
+    assert cmd_orphans(ctx, _orphan_args(ignore=['fonts-*', 'doxygen'])) == 0
+    assert set(_reload(tmp_path).config.orphans_ignore()) == {'fonts-*', 'doxygen'}
+    # idempotent: re-adding an existing pattern doesn't duplicate it
+    cmd_orphans(_reload(tmp_path), _orphan_args(ignore=['doxygen']))
+    assert _reload(tmp_path).config.orphans_ignore().count('doxygen') == 1
+
+
+def test_adopt_verb_adds_component_to_profile(tmp_path):
+    from configsys.app import cmd_orphans
+    ctx = _fresh_ctx(tmp_path)
+    assert cmd_orphans(ctx, _orphan_args(adopt='bat', profile='dev')) == 0
+    assert 'bat' in _reload(tmp_path).config.profile_own_components('dev')
+
+
+def test_adopt_without_profile_errors(tmp_path):
+    from configsys.app import cmd_orphans
+    assert cmd_orphans(_fresh_ctx(tmp_path), _orphan_args(adopt='bat')) == 1
+
+
+def test_remove_foreign_key_declined(tmp_path):
+    from configsys.app import cmd_orphans
+    assert cmd_orphans(_fresh_ctx(tmp_path), _orphan_args(remove='no-such-component-xyz')) == 1
+
+
 def test_ignore_glob_stamps_without_dropping(tmp_path):
     d = tmp_path / '.config' / 'configsys'
     d.mkdir(parents=True)
