@@ -8,6 +8,7 @@ runs fully sandboxable for tests and containers.
 
 import argparse
 import os
+import re
 import sys
 from pathlib import Path
 
@@ -834,6 +835,86 @@ def cmd_set_version(ctx, args):
     return _dispatch_op(ctx, [args.name], 'set-version', version=args.version)
 
 
+def _owned_index_sources(ctx):
+    '''{system source-file path -> owning component} for every route binding that writes a native
+    package source (apt `source-path`, dnf `/etc/yum.repos.d/<repo-id>.repo`). Lets the refresh
+    diagnosis say "this broken source is one configsys wrote, for component X" vs a foreign file.'''
+    owned = {}
+    try:
+        comps = ctx.routes.components
+    except Exception:
+        return owned
+    for name, comp in comps.items():
+        for b in getattr(comp, 'bindings', []) or []:
+            d = getattr(b, 'details', {}) or {}
+            sp = d.get('source-path')
+            if sp:
+                owned[str(sp)] = name
+            rid = d.get('repo-id')
+            if rid:
+                owned[f'/etc/yum.repos.d/{rid}.repo'] = name
+    return owned
+
+
+_INDEX_SRC_DIRS = {
+    'apt': ('/etc/apt/sources.list.d', '/etc/apt/sources.list'),
+    'dnf': ('/etc/yum.repos.d',),
+    'zypper': ('/etc/zypp/repos.d',),
+}
+
+
+def _find_source_files(urls, dirs, exists=os.path.exists, listdir=os.listdir,
+                       read=lambda p: Path(p).read_text(errors='replace')):
+    '''{source-file -> the failing url it contains} by scanning the package-manager source dirs for
+    any of `urls`. Best-effort + fully injectable for tests; unreadable files are skipped.'''
+    found = {}
+    files = []
+    for d in dirs:
+        if not exists(d):
+            continue
+        if os.path.isdir(d):
+            files += [os.path.join(d, n) for n in sorted(listdir(d))]
+        else:
+            files.append(d)
+    for f in files:
+        try:
+            text = read(f)
+        except Exception:
+            continue
+        for u in urls:
+            if u in text:
+                found[f] = u
+                break
+    return found
+
+
+def diagnose_index_failure(output, pm, owned, *, finder=_find_source_files):
+    '''Lines diagnosing a failed native index refresh (Theme 1, diagnose-only): the classified
+    cause + remediation, and the source file(s) mentioning the failing repo url — each flagged as
+    configsys-managed (naming the component) or foreign. `owned` is _owned_index_sources()'s map.
+    Returns [] when nothing is recognised (caller then leaves the raw tool output to speak).'''
+    from . import failures
+    lines = []
+    cat, rem = failures.classify(output)
+    if cat:
+        lines.append(f'Likely cause: {cat}')
+        if rem:
+            lines.append(f'Fix: {rem}')
+    # the repo urls apt/dnf named in the error — trim a trailing "binary/"/"Release"/quote noise
+    urls = sorted({re.sub(r'[)\'">,]+$', '', u) for u in re.findall(r'https?://[^\s\'">]+', output)})
+    culprits = finder(urls, _INDEX_SRC_DIRS.get(pm, ())) if urls else {}
+    for f in sorted(culprits):
+        comp = owned.get(f)
+        if comp:
+            lines.append(f'Source: {f}  — written by configsys for component `{comp}`')
+        else:
+            lines.append(f'Source: {f}  — NOT managed by configsys (a file you or another tool added)')
+    if urls and not culprits:
+        lines.append(f'Affected repo(s): {", ".join(urls[:3])} (source file not located under '
+                     f'{", ".join(_INDEX_SRC_DIRS.get(pm, ())) or "the package sources"})')
+    return lines
+
+
 def cmd_refresh(ctx, args):
     from .versions import discover, source_key
     print('configsys refresh — re-querying version sources and the package index '
@@ -901,7 +982,20 @@ def cmd_refresh(ctx, args):
     ok = True
     if native:
         print(f'\nRefreshing the {pm} package index...')
-        ok = ctx.runner.run(native, sudo=(pm != 'brew'), capture=False).ok
+        # capture (fast command) so a broken third-party source can be diagnosed instead of dumping
+        # a raw NO_PUBKEY/not-signed error. Echo the output so the user still sees what ran.
+        res = ctx.runner.run(native, sudo=(pm != 'brew'), capture=True)
+        ok = res.ok
+        if res.output:
+            print(res.output)
+        if not ok:
+            diag = diagnose_index_failure(res.output, pm, _owned_index_sources(ctx))
+            if diag:
+                print('\n── the package index refresh failed ──')
+                for line in diag:
+                    print(f'  {line}')
+                # Phase 1 is diagnose-only: we name the culprit + fix but never edit sources here.
+                # (Re-keying / removal is Phase 2-3; a foreign source is always the user's to change.)
     elif pm == 'pacman':
         # Arch has no safe index-only refresh: a bare `pacman -Sy` leaves the DB newer than the
         # installed system, so the next single-package install (`pacman -S`, exactly how this driver
