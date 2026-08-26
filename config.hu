@@ -32,7 +32,7 @@ profiles: {
     // NOT in `configs:`, so they stay "lurking": triage them into the real base profiles below, then
     // delete this profile. (NAMESWEEP still pending on several of these.)
     orphans-lurking: [ git-lfs  tree  figlet  gnupg  doxygen  swig  source-highlight  bridge-utils
-        dosfstools  po4a  asciidoc  clangd  clang  ccmake  cmake-gui  android-file-transfer  rust  krita
+        dosfstools  po4a  asciidoc  clangd  clang  ccmake  cmake-gui  android-file-transfer
         glew  glm  libsecret  libgit2  dbus-dev  gtk3  libxi  libxcursor  libxrandr  libxxf86vm  libdecor
         nng  unixodbc  egl  wxwidgets  opencascade  protobuf-dev  openssh-server  patch  debhelper
         libvirt-clients  pulseaudio-utils  python3-dev  numpy  pytest  wxpython ]
