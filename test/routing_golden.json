@@ -164,6 +164,39 @@
     "name": "valgrind"
    }
   },
+  "android-file-transfer": {
+   "aur\\android-file-transfer": {
+    "driver": "aur",
+    "fields": {
+     "name": "android-file-transfer-linux"
+    },
+    "name": "android-file-transfer-linux"
+   },
+   "dotfiles\\git-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "~/.gitconfig",
+      "src": "gitconfig"
+     }
+    },
+    "name": "git-dotfiles"
+   },
+   "pacman\\base-devel": {
+    "driver": "pacman",
+    "fields": {
+     "name": "base-devel"
+    },
+    "name": "base-devel"
+   },
+   "pacman\\git": {
+    "driver": "pacman",
+    "fields": {
+     "name": "git"
+    },
+    "name": "git"
+   }
+  },
   "android-studio": {
    "dotfiles\\android-studio-dotfiles": {
     "driver": "dotfiles",
@@ -1260,6 +1293,15 @@
      "name": "cinnamon"
     },
     "name": "cinnamon"
+   }
+  },
+  "clang": {
+   "pacman\\clang": {
+    "driver": "pacman",
+    "fields": {
+     "name": "clang"
+    },
+    "name": "clang"
    }
   },
   "clang-tidy": {
@@ -12262,6 +12304,15 @@
     "name": "valgrind-dotfiles"
    }
   },
+  "android-file-transfer": {
+   "apt\\android-file-transfer": {
+    "driver": "apt",
+    "fields": {
+     "name": "android-file-transfer"
+    },
+    "name": "android-file-transfer"
+   }
+  },
   "android-studio": {
    "apt\\curl": {
     "driver": "apt",
@@ -13320,6 +13371,15 @@
     "name": "carla"
    }
   },
+  "ccmake": {
+   "apt\\ccmake": {
+    "driver": "apt",
+    "fields": {
+     "name": "cmake-curses-gui"
+    },
+    "name": "cmake-curses-gui"
+   }
+  },
   "chafa": {
    "apt\\chafa": {
     "driver": "apt",
@@ -13359,6 +13419,15 @@
      "name": "cinnamon-desktop-environment"
     },
     "name": "cinnamon-desktop-environment"
+   }
+  },
+  "clang": {
+   "apt\\clang": {
+    "driver": "apt",
+    "fields": {
+     "name": "clang"
+    },
+    "name": "clang"
    }
   },
   "clang-18": {
@@ -13620,6 +13689,15 @@
      "name": "cmake"
     },
     "name": "cmake"
+   }
+  },
+  "cmake-gui": {
+   "apt\\cmake-gui": {
+    "driver": "apt",
+    "fields": {
+     "name": "cmake-qt-gui"
+    },
+    "name": "cmake-qt-gui"
    }
   },
   "cockpit": {
@@ -24853,6 +24931,15 @@
     "name": "valgrind-dotfiles"
    }
   },
+  "android-file-transfer": {
+   "apt\\android-file-transfer": {
+    "driver": "apt",
+    "fields": {
+     "name": "android-file-transfer"
+    },
+    "name": "android-file-transfer"
+   }
+  },
   "android-studio": {
    "apt\\curl": {
     "driver": "apt",
@@ -25894,6 +25981,15 @@
     "name": "carla"
    }
   },
+  "ccmake": {
+   "apt\\ccmake": {
+    "driver": "apt",
+    "fields": {
+     "name": "cmake-curses-gui"
+    },
+    "name": "cmake-curses-gui"
+   }
+  },
   "chafa": {
    "apt\\chafa": {
     "driver": "apt",
@@ -25933,6 +26029,15 @@
      "name": "cinnamon-desktop-environment"
     },
     "name": "cinnamon-desktop-environment"
+   }
+  },
+  "clang": {
+   "apt\\clang": {
+    "driver": "apt",
+    "fields": {
+     "name": "clang"
+    },
+    "name": "clang"
    }
   },
   "clang-18": {
@@ -26194,6 +26299,15 @@
      "name": "cmake"
     },
     "name": "cmake"
+   }
+  },
+  "cmake-gui": {
+   "apt\\cmake-gui": {
+    "driver": "apt",
+    "fields": {
+     "name": "cmake-qt-gui"
+    },
+    "name": "cmake-qt-gui"
    }
   },
   "cockpit": {
@@ -37206,6 +37320,15 @@
     "name": "valgrind-dotfiles"
    }
   },
+  "android-file-transfer": {
+   "apt\\android-file-transfer": {
+    "driver": "apt",
+    "fields": {
+     "name": "android-file-transfer"
+    },
+    "name": "android-file-transfer"
+   }
+  },
   "android-studio": {
    "apt\\curl": {
     "driver": "apt",
@@ -38247,6 +38370,15 @@
     "name": "carla"
    }
   },
+  "ccmake": {
+   "apt\\ccmake": {
+    "driver": "apt",
+    "fields": {
+     "name": "cmake-curses-gui"
+    },
+    "name": "cmake-curses-gui"
+   }
+  },
   "chafa": {
    "apt\\chafa": {
     "driver": "apt",
@@ -38294,6 +38426,15 @@
      "name": "cinnamon-desktop-environment"
     },
     "name": "cinnamon-desktop-environment"
+   }
+  },
+  "clang": {
+   "apt\\clang": {
+    "driver": "apt",
+    "fields": {
+     "name": "clang"
+    },
+    "name": "clang"
    }
   },
   "clang-18": {
@@ -38555,6 +38696,15 @@
      "name": "cmake"
     },
     "name": "cmake"
+   }
+  },
+  "cmake-gui": {
+   "apt\\cmake-gui": {
+    "driver": "apt",
+    "fields": {
+     "name": "cmake-qt-gui"
+    },
+    "name": "cmake-qt-gui"
    }
   },
   "cockpit": {
@@ -49642,6 +49792,15 @@
     "name": "valgrind-dotfiles"
    }
   },
+  "android-file-transfer": {
+   "dnf\\android-file-transfer": {
+    "driver": "dnf",
+    "fields": {
+     "name": "android-file-transfer"
+    },
+    "name": "android-file-transfer"
+   }
+  },
   "android-studio": {
    "dnf\\curl": {
     "driver": "dnf",
@@ -50739,6 +50898,15 @@
     "name": "cinnamon"
    }
   },
+  "clang": {
+   "dnf\\clang": {
+    "driver": "dnf",
+    "fields": {
+     "name": "clang"
+    },
+    "name": "clang"
+   }
+  },
   "clang-18": {
    "clang\\clang-18": {
     "driver": "clang",
@@ -50881,6 +51049,15 @@
      "name": "cmake"
     },
     "name": "cmake"
+   }
+  },
+  "cmake-gui": {
+   "dnf\\cmake-gui": {
+    "driver": "dnf",
+    "fields": {
+     "name": "cmake-gui"
+    },
+    "name": "cmake-gui"
    }
   },
   "cockpit": {
@@ -61621,6 +61798,15 @@
     "name": "valgrind-dotfiles"
    }
   },
+  "android-file-transfer": {
+   "dnf\\android-file-transfer": {
+    "driver": "dnf",
+    "fields": {
+     "name": "android-file-transfer"
+    },
+    "name": "android-file-transfer"
+   }
+  },
   "android-studio": {
    "dnf\\curl": {
     "driver": "dnf",
@@ -62718,6 +62904,15 @@
     "name": "cinnamon"
    }
   },
+  "clang": {
+   "dnf\\clang": {
+    "driver": "dnf",
+    "fields": {
+     "name": "clang"
+    },
+    "name": "clang"
+   }
+  },
   "clang-18": {
    "clang\\clang-18": {
     "driver": "clang",
@@ -62886,6 +63081,15 @@
      "name": "cmake"
     },
     "name": "cmake"
+   }
+  },
+  "cmake-gui": {
+   "dnf\\cmake-gui": {
+    "driver": "dnf",
+    "fields": {
+     "name": "cmake-gui"
+    },
+    "name": "cmake-gui"
    }
   },
   "cockpit": {
@@ -74489,6 +74693,15 @@
     "name": "org.chromium.Chromium"
    }
   },
+  "clang": {
+   "brew\\clang": {
+    "driver": "brew",
+    "fields": {
+     "name": "llvm"
+    },
+    "name": "llvm"
+   }
+  },
   "claude-code": {
    "brew\\curl": {
     "driver": "brew",
@@ -83059,6 +83272,15 @@
     "name": "valgrind-dotfiles"
    }
   },
+  "android-file-transfer": {
+   "apt\\android-file-transfer": {
+    "driver": "apt",
+    "fields": {
+     "name": "android-file-transfer"
+    },
+    "name": "android-file-transfer"
+   }
+  },
   "android-studio": {
    "apt\\curl": {
     "driver": "apt",
@@ -84117,6 +84339,15 @@
     "name": "carla"
    }
   },
+  "ccmake": {
+   "apt\\ccmake": {
+    "driver": "apt",
+    "fields": {
+     "name": "cmake-curses-gui"
+    },
+    "name": "cmake-curses-gui"
+   }
+  },
   "chafa": {
    "apt\\chafa": {
     "driver": "apt",
@@ -84164,6 +84395,15 @@
      "name": "cinnamon-desktop-environment"
     },
     "name": "cinnamon-desktop-environment"
+   }
+  },
+  "clang": {
+   "apt\\clang": {
+    "driver": "apt",
+    "fields": {
+     "name": "clang"
+    },
+    "name": "clang"
    }
   },
   "clang-18": {
@@ -84425,6 +84665,15 @@
      "name": "cmake"
     },
     "name": "cmake"
+   }
+  },
+  "cmake-gui": {
+   "apt\\cmake-gui": {
+    "driver": "apt",
+    "fields": {
+     "name": "cmake-qt-gui"
+    },
+    "name": "cmake-qt-gui"
    }
   },
   "cockpit": {
@@ -96887,6 +97136,15 @@
     "name": "cinnamon"
    }
   },
+  "clang": {
+   "dnf\\clang": {
+    "driver": "dnf",
+    "fields": {
+     "name": "clang"
+    },
+    "name": "clang"
+   }
+  },
   "clang-19": {
    "clang\\clang-19": {
     "driver": "clang",
@@ -97043,6 +97301,15 @@
      "name": "cmake"
     },
     "name": "cmake"
+   }
+  },
+  "cmake-gui": {
+   "dnf\\cmake-gui": {
+    "driver": "dnf",
+    "fields": {
+     "name": "cmake-gui"
+    },
+    "name": "cmake-gui"
    }
   },
   "cockpit": {
@@ -108285,6 +108552,15 @@
     "name": "valgrind-dotfiles"
    }
   },
+  "android-file-transfer": {
+   "apt\\android-file-transfer": {
+    "driver": "apt",
+    "fields": {
+     "name": "android-file-transfer"
+    },
+    "name": "android-file-transfer"
+   }
+  },
   "android-studio": {
    "apt\\curl": {
     "driver": "apt",
@@ -109343,6 +109619,15 @@
     "name": "carla"
    }
   },
+  "ccmake": {
+   "apt\\ccmake": {
+    "driver": "apt",
+    "fields": {
+     "name": "cmake-curses-gui"
+    },
+    "name": "cmake-curses-gui"
+   }
+  },
   "chafa": {
    "apt\\chafa": {
     "driver": "apt",
@@ -109390,6 +109675,15 @@
      "name": "cinnamon-desktop-environment"
     },
     "name": "cinnamon-desktop-environment"
+   }
+  },
+  "clang": {
+   "apt\\clang": {
+    "driver": "apt",
+    "fields": {
+     "name": "clang"
+    },
+    "name": "clang"
    }
   },
   "clang-18": {
@@ -109651,6 +109945,15 @@
      "name": "cmake"
     },
     "name": "cmake"
+   }
+  },
+  "cmake-gui": {
+   "apt\\cmake-gui": {
+    "driver": "apt",
+    "fields": {
+     "name": "cmake-qt-gui"
+    },
+    "name": "cmake-qt-gui"
    }
   },
   "cockpit": {
@@ -120893,6 +121196,15 @@
     "name": "valgrind-dotfiles"
    }
   },
+  "android-file-transfer": {
+   "apt\\android-file-transfer": {
+    "driver": "apt",
+    "fields": {
+     "name": "android-file-transfer"
+    },
+    "name": "android-file-transfer"
+   }
+  },
   "android-studio": {
    "apt\\curl": {
     "driver": "apt",
@@ -121934,6 +122246,15 @@
     "name": "carla"
    }
   },
+  "ccmake": {
+   "apt\\ccmake": {
+    "driver": "apt",
+    "fields": {
+     "name": "cmake-curses-gui"
+    },
+    "name": "cmake-curses-gui"
+   }
+  },
   "chafa": {
    "apt\\chafa": {
     "driver": "apt",
@@ -121981,6 +122302,15 @@
      "name": "cinnamon-desktop-environment"
     },
     "name": "cinnamon-desktop-environment"
+   }
+  },
+  "clang": {
+   "apt\\clang": {
+    "driver": "apt",
+    "fields": {
+     "name": "clang"
+    },
+    "name": "clang"
    }
   },
   "clang-18": {
@@ -122242,6 +122572,15 @@
      "name": "cmake"
     },
     "name": "cmake"
+   }
+  },
+  "cmake-gui": {
+   "apt\\cmake-gui": {
+    "driver": "apt",
+    "fields": {
+     "name": "cmake-qt-gui"
+    },
+    "name": "cmake-qt-gui"
    }
   },
   "cockpit": {

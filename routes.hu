@@ -2088,6 +2088,7 @@
         // directory. Native on the debian + redhat families (apt universe, Fedora); AUR on Arch.
         // NOT in openSUSE/Alpine repos (name sweep confirmed), so the native binding is gated to
         // where it exists. The package pulls its FUSE + libmtp deps transitively (no `requires:`).
+        android-file-transfer: { attrs: [ GUI CLI FOSS permissive ] description: "Android File Transfer for Linux — MTP access to Android devices (`android-file-transfer`, `aft-mtp-cli`)." install: [ { via: native  when: "debian or fedora or opensuse" }  { via: aur  when: "arch"  name: android-file-transfer-linux } ] }   // NAMESWEEP PENDING
         jmtpfs: { attrs: [ CLI FOSS copyleft ] description: "jmtpfs — mount MTP devices (Android phones) via FUSE."
             install: [
                 { via: aur     when: "arch" }
@@ -2227,6 +2228,8 @@
         // --- build systems ---
         make:  { attrs: [ CLI FOSS GNU copyleft ] description: "GNU Make — build automation via Makefiles." install: [ { via: native } ] }
         cmake: { attrs: [ CLI FOSS permissive ] description: "CMake — cross-platform build-system generator." install: [ { via: native } ] }
+        ccmake: { attrs: [ TUI FOSS permissive ] description: "ccmake — the curses (TUI) frontend to CMake." install: [ { via: native  when: "debian"  name: cmake-curses-gui } ] }   // Debian splits it out; other distros bundle ccmake in `cmake`
+        cmake-gui: { attrs: [ GUI FOSS permissive ] description: "cmake-gui — the Qt GUI frontend to CMake." install: [ { via: native  when: "debian or redhat or opensuse"  name: { apt: cmake-qt-gui  dnf: cmake-gui  zypper: cmake-gui } } ] }   // Debian/Fedora/openSUSE split it out; Arch bundles it in `cmake`
         ninja: { attrs: [ CLI FOSS permissive ] description: "Ninja — a small, fast build backend." install: [ { via: native  name: { apt: ninja-build  dnf: ninja-build  apk: samurai  default: ninja } } ] }
         meson: { attrs: [ CLI FOSS permissive ] description: "Meson — a fast, modern build system." install: [ { via: native } ] }
 
@@ -2303,6 +2306,7 @@
         lldb:      { attrs: [ CLI FOSS permissive ] description: "LLDB — the LLVM project's debugger." install: [ { via: native } ] }
         heaptrack: { attrs: [ CLI GUI app FOSS copyleft ] description: "heaptrack — a heap-memory profiler for C/C++." install: [ { via: native  when: "(debian or redhat or arch or opensuse) and not amzn" } ] }
         clang-tidy: { attrs: [ CLI FOSS permissive ] description: "clang-tidy — C/C++ linter and static analyzer." install: [ { via: native  when: "debian or redhat or arch"  name: { apt: clang-tidy  dnf: clang-tools-extra  pacman: clang } } ] }
+        clang: { attrs: [ CLI toolchain FOSS permissive ] description: "Clang/LLVM — the distro's default C/C++/Obj-C compiler (`clang`; the versioned clang-NN are separate components)." install: [ { via: native  name: { brew: llvm  default: clang } } ] }   // distro-default clang; brew ships it in `llvm`
         clangd:    { attrs: [ CLI FOSS permissive ] description: "clangd — the LLVM C/C++ language server (LSP)." install: [ { via: native  when: "debian or redhat or arch"  name: { apt: clangd  dnf: clang-tools-extra  pacman: clang } } ] }
         // perf is kernel-coupled and named per-distro: Ubuntu's linux-tools track, Debian's
         // linux-perf (also Proxmox); plain `perf` on redhat/arch/opensuse/alpine.
