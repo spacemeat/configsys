@@ -86,3 +86,20 @@ def test_check_warns_on_hand_defined_reserved_profile(tmp_path, capsys):
     cmd_check(ctx, None)
     out = capsys.readouterr().out
     assert "`!` namespace is reserved" in out
+
+
+def test_with_uninstall_node_folds_present_queued_orphans():
+    from types import SimpleNamespace
+    from configsys.tui.menu import _with_uninstall_node
+    active = {'apt\\htop': SimpleNamespace(present=True, component=SimpleNamespace(comp='htop'))}
+
+    def inspect(names, reuse=None):   # git present, ncdu absent
+        return {'apt\\git':  SimpleNamespace(present=True,  component=SimpleNamespace(comp='git')),
+                'apt\\ncdu': SimpleNamespace(present=False, component=SimpleNamespace(comp='ncdu'))}
+    ctx = SimpleNamespace(config=SimpleNamespace(uninstall_queue=lambda: {'git', 'ncdu'}),
+                          inspect_components=inspect)
+    states, layouts, transitive = _with_uninstall_node(
+        ctx, dict(active), [('dev', ['htop'])], {'dev': ['htop']})
+    assert 'apt\\git' in states and 'apt\\ncdu' in states        # queued orphans inspected in
+    assert dict(layouts).get('!uninstall') == ['git']            # only the PRESENT one is listed
+    assert transitive['!uninstall'] == ['git']

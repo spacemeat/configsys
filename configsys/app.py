@@ -441,6 +441,20 @@ class Context:
         r.flush_transient()
         return cfg, requested, units, ledger, states
 
+    def inspect_components(self, names, reuse=None):
+        '''Resolve + inspect component `names` that live OUTSIDE the active set — the `!uninstall`
+        queue's orphans — returning {unit_key: ComponentState} so TUI::Components can list and remove
+        them. Same scope/location/inspect path as load_pipeline, minus the reporting. {} if none route.'''
+        from .installState import InstallState
+        from .ledger import Ledger
+        units, _errs = self.routes.resolve_resilient(list(names))
+        if not units:
+            return {}
+        self.apply_scope_default(units)
+        self.apply_locations(units)
+        return InstallState(self.runner, Ledger.load(self.paths), self.paths,
+                            pending_vias=self.plugin_pending_vias).inspect(units, reuse=reuse)
+
     def _inspect_progress(self, i, total, key, st, ms):
         '''Per-unit callback from InstallState.inspect: a transient counter at DEFAULT
         (so long state-checks show motion), a scrollable per-unit line at VERBOSE+.'''

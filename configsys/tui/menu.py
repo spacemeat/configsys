@@ -519,6 +519,31 @@ def _summary_note(outcomes):
     return f'{n_ok} ok' if n_bad == 0 else f'{n_ok} ok, {n_bad} failed'
 
 
+def _with_uninstall_node(ctx, states, layouts, transitive, reuse=None):
+    '''Fold the reserved `!uninstall` queue into the Components model: inspect any queued components
+    that aren't already in the active set (orphans live outside it), then add a `!uninstall` node
+    listing the PRESENT ones — so their removals can actually be executed here. No-op when empty.'''
+    try:
+        q = list(ctx.config.uninstall_queue())
+    except Exception:                               # noqa: BLE001
+        return states, layouts, transitive
+    if not q:
+        return states, layouts, transitive
+    have = {st.component.comp for st in states.values()}
+    missing = [c for c in q if c not in have]
+    if missing:
+        try:
+            states = {**states, **ctx.inspect_components(missing, reuse=reuse)}
+        except Exception:                           # noqa: BLE001 — never let this brick the screen
+            pass
+    present = sorted(c for c in q
+                     if any(st.component.comp == c and st.present for st in states.values()))
+    if present:
+        layouts = list(layouts) + [('!uninstall', present)]
+        transitive = {**transitive, '!uninstall': present}
+    return states, layouts, transitive
+
+
 def _seed_uninstall(ms, ctx):
     '''Pre-stage a `remove` op for each PRESENT unit whose component is in the persisted `!uninstall`
     queue — so removals staged from TUI::Profiles (or a prior session) surface here and execute via
@@ -1198,10 +1223,12 @@ def _reload(ctx, old, dirty):
     Returns (ms, cfg, ledger, states, diags).'''
     cfg, _requested, _units, ledger, states = ctx.load_pipeline(reuse=old.states, dirty=dirty)
     layouts, transitive = _menu_model(cfg)
+    states, layouts, transitive = _with_uninstall_node(ctx, states, layouts, transitive, reuse=old.states)
     ms = MenuState(states, layouts, transitive)
     ids = {n.id for n in ms._all_nodes()}
     ms.selected = {i for i in old.selected if i in ids}
     ms.staged = {k: op for k, op in old.staged.items() if k in states}   # stale keys drop
+    _seed_uninstall(ms, ctx)                          # add any newly-queued removes (setdefault)
     expanded = {n.id for n in old._all_nodes() if n.expandable and n.expanded}
     for n in ms._all_nodes():
         if n.expandable:
@@ -3546,6 +3573,7 @@ def run(ctx):
         global _KEYMAP
         _KEYMAP = keymap = Keymap(ctx.config.keys())   # merged bindings; legends read the same map
         layouts, transitive = _menu_model(cfg)
+        states, layouts, transitive = _with_uninstall_node(ctx, states, layouts, transitive)
         ms = MenuState(states, layouts, transitive)
         _seed_uninstall(ms, ctx)                  # surface the persisted !uninstall queue as staged removes
         ms.descriptions = _describe(ctx)          # {name -> desc}, cached; not touched per frame
