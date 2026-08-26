@@ -3943,6 +3943,16 @@
     "name": "gtk4"
    }
   },
+  "gtk3": {
+   "pacman\\gtk3": {
+    "driver": "pacman",
+    "fields": {
+     "name": "gtk3",
+     "repo-component": "universe"
+    },
+    "name": "gtk3"
+   }
+  },
   "gtkmm": {
    "pacman\\gtk": {
     "driver": "pacman",
@@ -5559,6 +5569,15 @@
     "name": "libc++abi"
    }
   },
+  "libdecor": {
+   "pacman\\libdecor": {
+    "driver": "pacman",
+    "fields": {
+     "name": "libdecor"
+    },
+    "name": "libdecor"
+   }
+  },
   "libdrm-dev": {
    "pacman\\libdrm-dev": {
     "driver": "pacman",
@@ -5681,6 +5700,42 @@
      "name": "libxcb"
     },
     "name": "libxcb"
+   }
+  },
+  "libxcursor": {
+   "pacman\\libxcursor": {
+    "driver": "pacman",
+    "fields": {
+     "name": "libxcursor"
+    },
+    "name": "libxcursor"
+   }
+  },
+  "libxi": {
+   "pacman\\libxi": {
+    "driver": "pacman",
+    "fields": {
+     "name": "libxi"
+    },
+    "name": "libxi"
+   }
+  },
+  "libxrandr": {
+   "pacman\\libxrandr": {
+    "driver": "pacman",
+    "fields": {
+     "name": "libxrandr"
+    },
+    "name": "libxrandr"
+   }
+  },
+  "libxxf86vm": {
+   "pacman\\libxxf86vm": {
+    "driver": "pacman",
+    "fields": {
+     "name": "libxxf86vm"
+    },
+    "name": "libxxf86vm"
    }
   },
   "liquibase": {
@@ -6898,6 +6953,15 @@
      "name": "nmap"
     },
     "name": "nmap"
+   }
+  },
+  "nng": {
+   "pacman\\nng": {
+    "driver": "pacman",
+    "fields": {
+     "name": "nng"
+    },
+    "name": "nng"
    }
   },
   "node": {
@@ -9996,6 +10060,15 @@
      "glue": "unityhub"
     },
     "name": "unityhub-dotfiles"
+   }
+  },
+  "unixodbc": {
+   "pacman\\unixodbc": {
+    "driver": "pacman",
+    "fields": {
+     "name": "unixodbc"
+    },
+    "name": "unixodbc"
    }
   },
   "unrar": {
@@ -16243,6 +16316,16 @@
     "name": "libgtk-4-dev"
    }
   },
+  "gtk3": {
+   "apt\\gtk3": {
+    "driver": "apt",
+    "fields": {
+     "name": "libgtk-3-dev",
+     "repo-component": "universe"
+    },
+    "name": "libgtk-3-dev"
+   }
+  },
   "gtkmm": {
    "apt\\gtk": {
     "driver": "apt",
@@ -17941,6 +18024,15 @@
     "name": "libc++abi-dev"
    }
   },
+  "libdecor": {
+   "apt\\libdecor": {
+    "driver": "apt",
+    "fields": {
+     "name": "libdecor-0-dev"
+    },
+    "name": "libdecor-0-dev"
+   }
+  },
   "libdrm-dev": {
    "apt\\libdrm-dev": {
     "driver": "apt",
@@ -18093,6 +18185,42 @@
      "repo-component": "universe"
     },
     "name": "libxcb-xinput0"
+   }
+  },
+  "libxcursor": {
+   "apt\\libxcursor": {
+    "driver": "apt",
+    "fields": {
+     "name": "libxcursor-dev"
+    },
+    "name": "libxcursor-dev"
+   }
+  },
+  "libxi": {
+   "apt\\libxi": {
+    "driver": "apt",
+    "fields": {
+     "name": "libxi-dev"
+    },
+    "name": "libxi-dev"
+   }
+  },
+  "libxrandr": {
+   "apt\\libxrandr": {
+    "driver": "apt",
+    "fields": {
+     "name": "libxrandr-dev"
+    },
+    "name": "libxrandr-dev"
+   }
+  },
+  "libxxf86vm": {
+   "apt\\libxxf86vm": {
+    "driver": "apt",
+    "fields": {
+     "name": "libxxf86vm-dev"
+    },
+    "name": "libxxf86vm-dev"
    }
   },
   "liquibase": {
@@ -19370,6 +19498,15 @@
      "name": "nmap"
     },
     "name": "nmap"
+   }
+  },
+  "nng": {
+   "apt\\nng": {
+    "driver": "apt",
+    "fields": {
+     "name": "libnng-dev"
+    },
+    "name": "libnng-dev"
    }
   },
   "node": {
@@ -22157,6 +22294,15 @@
      "glue": "unityhub"
     },
     "name": "unityhub-dotfiles"
+   }
+  },
+  "unixodbc": {
+   "apt\\unixodbc": {
+    "driver": "apt",
+    "fields": {
+     "name": "unixodbc-dev"
+    },
+    "name": "unixodbc-dev"
    }
   },
   "unrar": {
@@ -28268,6 +28414,16 @@
     "name": "libgtk-4-dev"
    }
   },
+  "gtk3": {
+   "apt\\gtk3": {
+    "driver": "apt",
+    "fields": {
+     "name": "libgtk-3-dev",
+     "repo-component": "universe"
+    },
+    "name": "libgtk-3-dev"
+   }
+  },
   "gtkmm": {
    "apt\\gtk": {
     "driver": "apt",
@@ -29932,6 +30088,15 @@
     "name": "libc++abi-dev"
    }
   },
+  "libdecor": {
+   "apt\\libdecor": {
+    "driver": "apt",
+    "fields": {
+     "name": "libdecor-0-dev"
+    },
+    "name": "libdecor-0-dev"
+   }
+  },
   "libdrm-dev": {
    "apt\\libdrm-dev": {
     "driver": "apt",
@@ -30084,6 +30249,42 @@
      "repo-component": "universe"
     },
     "name": "libxcb-xinput0"
+   }
+  },
+  "libxcursor": {
+   "apt\\libxcursor": {
+    "driver": "apt",
+    "fields": {
+     "name": "libxcursor-dev"
+    },
+    "name": "libxcursor-dev"
+   }
+  },
+  "libxi": {
+   "apt\\libxi": {
+    "driver": "apt",
+    "fields": {
+     "name": "libxi-dev"
+    },
+    "name": "libxi-dev"
+   }
+  },
+  "libxrandr": {
+   "apt\\libxrandr": {
+    "driver": "apt",
+    "fields": {
+     "name": "libxrandr-dev"
+    },
+    "name": "libxrandr-dev"
+   }
+  },
+  "libxxf86vm": {
+   "apt\\libxxf86vm": {
+    "driver": "apt",
+    "fields": {
+     "name": "libxxf86vm-dev"
+    },
+    "name": "libxxf86vm-dev"
    }
   },
   "liquibase": {
@@ -31310,6 +31511,15 @@
      "name": "nmap"
     },
     "name": "nmap"
+   }
+  },
+  "nng": {
+   "apt\\nng": {
+    "driver": "apt",
+    "fields": {
+     "name": "libnng-dev"
+    },
+    "name": "libnng-dev"
    }
   },
   "node": {
@@ -34029,6 +34239,15 @@
      "glue": "unityhub"
     },
     "name": "unityhub-dotfiles"
+   }
+  },
+  "unixodbc": {
+   "apt\\unixodbc": {
+    "driver": "apt",
+    "fields": {
+     "name": "unixodbc-dev"
+    },
+    "name": "unixodbc-dev"
    }
   },
   "unrar": {
@@ -40109,6 +40328,16 @@
     "name": "libgtk-4-dev"
    }
   },
+  "gtk3": {
+   "apt\\gtk3": {
+    "driver": "apt",
+    "fields": {
+     "name": "libgtk-3-dev",
+     "repo-component": "universe"
+    },
+    "name": "libgtk-3-dev"
+   }
+  },
   "gtkmm": {
    "apt\\gtk": {
     "driver": "apt",
@@ -41766,6 +41995,15 @@
     "name": "libc++abi-dev"
    }
   },
+  "libdecor": {
+   "apt\\libdecor": {
+    "driver": "apt",
+    "fields": {
+     "name": "libdecor-0-dev"
+    },
+    "name": "libdecor-0-dev"
+   }
+  },
   "libdrm-dev": {
    "apt\\libdrm-dev": {
     "driver": "apt",
@@ -41918,6 +42156,42 @@
      "repo-component": "universe"
     },
     "name": "libxcb-xinput0"
+   }
+  },
+  "libxcursor": {
+   "apt\\libxcursor": {
+    "driver": "apt",
+    "fields": {
+     "name": "libxcursor-dev"
+    },
+    "name": "libxcursor-dev"
+   }
+  },
+  "libxi": {
+   "apt\\libxi": {
+    "driver": "apt",
+    "fields": {
+     "name": "libxi-dev"
+    },
+    "name": "libxi-dev"
+   }
+  },
+  "libxrandr": {
+   "apt\\libxrandr": {
+    "driver": "apt",
+    "fields": {
+     "name": "libxrandr-dev"
+    },
+    "name": "libxrandr-dev"
+   }
+  },
+  "libxxf86vm": {
+   "apt\\libxxf86vm": {
+    "driver": "apt",
+    "fields": {
+     "name": "libxxf86vm-dev"
+    },
+    "name": "libxxf86vm-dev"
    }
   },
   "liquibase": {
@@ -43144,6 +43418,15 @@
      "name": "nmap"
     },
     "name": "nmap"
+   }
+  },
+  "nng": {
+   "apt\\nng": {
+    "driver": "apt",
+    "fields": {
+     "name": "libnng-dev"
+    },
+    "name": "libnng-dev"
    }
   },
   "node": {
@@ -45884,6 +46167,15 @@
      "glue": "unityhub"
     },
     "name": "unityhub-dotfiles"
+   }
+  },
+  "unixodbc": {
+   "apt\\unixodbc": {
+    "driver": "apt",
+    "fields": {
+     "name": "unixodbc-dev"
+    },
+    "name": "unixodbc-dev"
    }
   },
   "unrar": {
@@ -51664,6 +51956,16 @@
     "name": "gtk4-devel"
    }
   },
+  "gtk3": {
+   "dnf\\gtk3": {
+    "driver": "dnf",
+    "fields": {
+     "name": "gtk3-devel",
+     "repo-component": "universe"
+    },
+    "name": "gtk3-devel"
+   }
+  },
   "gtkmm": {
    "dnf\\gtk": {
     "driver": "dnf",
@@ -53358,6 +53660,15 @@
     "name": "libcxxabi-devel"
    }
   },
+  "libdecor": {
+   "dnf\\libdecor": {
+    "driver": "dnf",
+    "fields": {
+     "name": "libdecor-devel"
+    },
+    "name": "libdecor-devel"
+   }
+  },
   "libdrm-dev": {
    "dnf\\libdrm-dev": {
     "driver": "dnf",
@@ -53480,6 +53791,42 @@
      "name": "libxcb-devel"
     },
     "name": "libxcb-devel"
+   }
+  },
+  "libxcursor": {
+   "dnf\\libxcursor": {
+    "driver": "dnf",
+    "fields": {
+     "name": "libXcursor-devel"
+    },
+    "name": "libXcursor-devel"
+   }
+  },
+  "libxi": {
+   "dnf\\libxi": {
+    "driver": "dnf",
+    "fields": {
+     "name": "libXi-devel"
+    },
+    "name": "libXi-devel"
+   }
+  },
+  "libxrandr": {
+   "dnf\\libxrandr": {
+    "driver": "dnf",
+    "fields": {
+     "name": "libXrandr-devel"
+    },
+    "name": "libXrandr-devel"
+   }
+  },
+  "libxxf86vm": {
+   "dnf\\libxxf86vm": {
+    "driver": "dnf",
+    "fields": {
+     "name": "libXxf86vm-devel"
+    },
+    "name": "libXxf86vm-devel"
    }
   },
   "liquibase": {
@@ -54662,6 +55009,15 @@
      "name": "nmap"
     },
     "name": "nmap"
+   }
+  },
+  "nng": {
+   "dnf\\nng": {
+    "driver": "dnf",
+    "fields": {
+     "name": "nng-devel"
+    },
+    "name": "nng-devel"
    }
   },
   "node": {
@@ -57360,6 +57716,15 @@
      "glue": "unityhub"
     },
     "name": "unityhub-dotfiles"
+   }
+  },
+  "unixodbc": {
+   "dnf\\unixodbc": {
+    "driver": "dnf",
+    "fields": {
+     "name": "unixODBC-devel"
+    },
+    "name": "unixODBC-devel"
    }
   },
   "unrar": {
@@ -63172,6 +63537,16 @@
     "name": "gtk4-devel"
    }
   },
+  "gtk3": {
+   "dnf\\gtk3": {
+    "driver": "dnf",
+    "fields": {
+     "name": "gtk3-devel",
+     "repo-component": "universe"
+    },
+    "name": "gtk3-devel"
+   }
+  },
   "gtkmm": {
    "dnf\\gtk": {
     "driver": "dnf",
@@ -64866,6 +65241,15 @@
     "name": "libcxxabi-devel"
    }
   },
+  "libdecor": {
+   "dnf\\libdecor": {
+    "driver": "dnf",
+    "fields": {
+     "name": "libdecor-devel"
+    },
+    "name": "libdecor-devel"
+   }
+  },
   "libdrm-dev": {
    "dnf\\libdrm-dev": {
     "driver": "dnf",
@@ -64988,6 +65372,42 @@
      "name": "libxcb-devel"
     },
     "name": "libxcb-devel"
+   }
+  },
+  "libxcursor": {
+   "dnf\\libxcursor": {
+    "driver": "dnf",
+    "fields": {
+     "name": "libXcursor-devel"
+    },
+    "name": "libXcursor-devel"
+   }
+  },
+  "libxi": {
+   "dnf\\libxi": {
+    "driver": "dnf",
+    "fields": {
+     "name": "libXi-devel"
+    },
+    "name": "libXi-devel"
+   }
+  },
+  "libxrandr": {
+   "dnf\\libxrandr": {
+    "driver": "dnf",
+    "fields": {
+     "name": "libXrandr-devel"
+    },
+    "name": "libXrandr-devel"
+   }
+  },
+  "libxxf86vm": {
+   "dnf\\libxxf86vm": {
+    "driver": "dnf",
+    "fields": {
+     "name": "libXxf86vm-devel"
+    },
+    "name": "libXxf86vm-devel"
    }
   },
   "liquibase": {
@@ -66170,6 +66590,15 @@
      "name": "nmap"
     },
     "name": "nmap"
+   }
+  },
+  "nng": {
+   "dnf\\nng": {
+    "driver": "dnf",
+    "fields": {
+     "name": "nng-devel"
+    },
+    "name": "nng-devel"
    }
   },
   "node": {
@@ -68868,6 +69297,15 @@
      "glue": "unityhub"
     },
     "name": "unityhub-dotfiles"
+   }
+  },
+  "unixodbc": {
+   "dnf\\unixodbc": {
+    "driver": "dnf",
+    "fields": {
+     "name": "unixODBC-devel"
+    },
+    "name": "unixODBC-devel"
    }
   },
   "unrar": {
@@ -73616,6 +74054,16 @@
     "name": "grpcurl-dotfiles"
    }
   },
+  "gtk3": {
+   "brew\\gtk3": {
+    "driver": "brew",
+    "fields": {
+     "name": "gtk+3",
+     "repo-component": "universe"
+    },
+    "name": "gtk+3"
+   }
+  },
   "guile": {
    "brew\\guile": {
     "driver": "brew",
@@ -75079,6 +75527,42 @@
     "name": "libvirt-service"
    }
   },
+  "libxcursor": {
+   "brew\\libxcursor": {
+    "driver": "brew",
+    "fields": {
+     "name": "libxcursor"
+    },
+    "name": "libxcursor"
+   }
+  },
+  "libxi": {
+   "brew\\libxi": {
+    "driver": "brew",
+    "fields": {
+     "name": "libxi"
+    },
+    "name": "libxi"
+   }
+  },
+  "libxrandr": {
+   "brew\\libxrandr": {
+    "driver": "brew",
+    "fields": {
+     "name": "libxrandr"
+    },
+    "name": "libxrandr"
+   }
+  },
+  "libxxf86vm": {
+   "brew\\libxxf86vm": {
+    "driver": "brew",
+    "fields": {
+     "name": "libxxf86vm"
+    },
+    "name": "libxxf86vm"
+   }
+  },
   "liquibase": {
    "brew\\jdk": {
     "driver": "brew",
@@ -76132,6 +76616,15 @@
      "name": "nmap"
     },
     "name": "nmap"
+   }
+  },
+  "nng": {
+   "brew\\nng": {
+    "driver": "brew",
+    "fields": {
+     "name": "nng"
+    },
+    "name": "nng"
    }
   },
   "node": {
@@ -78282,6 +78775,15 @@
      "glue": "unityhub"
     },
     "name": "unityhub-dotfiles"
+   }
+  },
+  "unixodbc": {
+   "brew\\unixodbc": {
+    "driver": "brew",
+    "fields": {
+     "name": "unixodbc"
+    },
+    "name": "unixodbc"
    }
   },
   "unzip": {
@@ -84052,6 +84554,16 @@
     "name": "libgtk-4-dev"
    }
   },
+  "gtk3": {
+   "apt\\gtk3": {
+    "driver": "apt",
+    "fields": {
+     "name": "libgtk-3-dev",
+     "repo-component": "universe"
+    },
+    "name": "libgtk-3-dev"
+   }
+  },
   "gtkmm": {
    "apt\\gtk": {
     "driver": "apt",
@@ -85743,6 +86255,15 @@
     "name": "libc++abi-dev"
    }
   },
+  "libdecor": {
+   "apt\\libdecor": {
+    "driver": "apt",
+    "fields": {
+     "name": "libdecor-0-dev"
+    },
+    "name": "libdecor-0-dev"
+   }
+  },
   "libdrm-dev": {
    "apt\\libdrm-dev": {
     "driver": "apt",
@@ -85895,6 +86416,42 @@
      "repo-component": "universe"
     },
     "name": "libxcb-xinput0"
+   }
+  },
+  "libxcursor": {
+   "apt\\libxcursor": {
+    "driver": "apt",
+    "fields": {
+     "name": "libxcursor-dev"
+    },
+    "name": "libxcursor-dev"
+   }
+  },
+  "libxi": {
+   "apt\\libxi": {
+    "driver": "apt",
+    "fields": {
+     "name": "libxi-dev"
+    },
+    "name": "libxi-dev"
+   }
+  },
+  "libxrandr": {
+   "apt\\libxrandr": {
+    "driver": "apt",
+    "fields": {
+     "name": "libxrandr-dev"
+    },
+    "name": "libxrandr-dev"
+   }
+  },
+  "libxxf86vm": {
+   "apt\\libxxf86vm": {
+    "driver": "apt",
+    "fields": {
+     "name": "libxxf86vm-dev"
+    },
+    "name": "libxxf86vm-dev"
    }
   },
   "liquibase": {
@@ -87172,6 +87729,15 @@
      "name": "nmap"
     },
     "name": "nmap"
+   }
+  },
+  "nng": {
+   "apt\\nng": {
+    "driver": "apt",
+    "fields": {
+     "name": "libnng-dev"
+    },
+    "name": "libnng-dev"
    }
   },
   "node": {
@@ -89973,6 +90539,15 @@
      "glue": "unityhub"
     },
     "name": "unityhub-dotfiles"
+   }
+  },
+  "unixodbc": {
+   "apt\\unixodbc": {
+    "driver": "apt",
+    "fields": {
+     "name": "unixodbc-dev"
+    },
+    "name": "unixodbc-dev"
    }
   },
   "unrar": {
@@ -96013,6 +96588,16 @@
     "name": "gtk4-devel"
    }
   },
+  "gtk3": {
+   "dnf\\gtk3": {
+    "driver": "dnf",
+    "fields": {
+     "name": "gtk3-devel",
+     "repo-component": "universe"
+    },
+    "name": "gtk3-devel"
+   }
+  },
   "gtkmm": {
    "dnf\\gtk": {
     "driver": "dnf",
@@ -97717,6 +98302,15 @@
     "name": "libcxxabi-devel"
    }
   },
+  "libdecor": {
+   "dnf\\libdecor": {
+    "driver": "dnf",
+    "fields": {
+     "name": "libdecor-devel"
+    },
+    "name": "libdecor-devel"
+   }
+  },
   "libdrm-dev": {
    "dnf\\libdrm-dev": {
     "driver": "dnf",
@@ -97839,6 +98433,42 @@
      "name": "libxcb-devel"
     },
     "name": "libxcb-devel"
+   }
+  },
+  "libxcursor": {
+   "dnf\\libxcursor": {
+    "driver": "dnf",
+    "fields": {
+     "name": "libXcursor-devel"
+    },
+    "name": "libXcursor-devel"
+   }
+  },
+  "libxi": {
+   "dnf\\libxi": {
+    "driver": "dnf",
+    "fields": {
+     "name": "libXi-devel"
+    },
+    "name": "libXi-devel"
+   }
+  },
+  "libxrandr": {
+   "dnf\\libxrandr": {
+    "driver": "dnf",
+    "fields": {
+     "name": "libXrandr-devel"
+    },
+    "name": "libXrandr-devel"
+   }
+  },
+  "libxxf86vm": {
+   "dnf\\libxxf86vm": {
+    "driver": "dnf",
+    "fields": {
+     "name": "libXxf86vm-devel"
+    },
+    "name": "libXxf86vm-devel"
    }
   },
   "liquibase": {
@@ -99143,6 +99773,15 @@
      "name": "nmap"
     },
     "name": "nmap"
+   }
+  },
+  "nng": {
+   "dnf\\nng": {
+    "driver": "dnf",
+    "fields": {
+     "name": "nng-devel"
+    },
+    "name": "nng-devel"
    }
   },
   "node": {
@@ -101949,6 +102588,15 @@
      "glue": "unityhub"
     },
     "name": "unityhub-dotfiles"
+   }
+  },
+  "unixodbc": {
+   "dnf\\unixodbc": {
+    "driver": "dnf",
+    "fields": {
+     "name": "unixODBC-devel"
+    },
+    "name": "unixODBC-devel"
    }
   },
   "unrar": {
@@ -108266,6 +108914,16 @@
     "name": "libgtk-4-dev"
    }
   },
+  "gtk3": {
+   "apt\\gtk3": {
+    "driver": "apt",
+    "fields": {
+     "name": "libgtk-3-dev",
+     "repo-component": "universe"
+    },
+    "name": "libgtk-3-dev"
+   }
+  },
   "gtkmm": {
    "apt\\gtk": {
     "driver": "apt",
@@ -109957,6 +110615,15 @@
     "name": "libc++abi-dev"
    }
   },
+  "libdecor": {
+   "apt\\libdecor": {
+    "driver": "apt",
+    "fields": {
+     "name": "libdecor-0-dev"
+    },
+    "name": "libdecor-0-dev"
+   }
+  },
   "libdrm-dev": {
    "apt\\libdrm-dev": {
     "driver": "apt",
@@ -110109,6 +110776,42 @@
      "repo-component": "universe"
     },
     "name": "libxcb-xinput0"
+   }
+  },
+  "libxcursor": {
+   "apt\\libxcursor": {
+    "driver": "apt",
+    "fields": {
+     "name": "libxcursor-dev"
+    },
+    "name": "libxcursor-dev"
+   }
+  },
+  "libxi": {
+   "apt\\libxi": {
+    "driver": "apt",
+    "fields": {
+     "name": "libxi-dev"
+    },
+    "name": "libxi-dev"
+   }
+  },
+  "libxrandr": {
+   "apt\\libxrandr": {
+    "driver": "apt",
+    "fields": {
+     "name": "libxrandr-dev"
+    },
+    "name": "libxrandr-dev"
+   }
+  },
+  "libxxf86vm": {
+   "apt\\libxxf86vm": {
+    "driver": "apt",
+    "fields": {
+     "name": "libxxf86vm-dev"
+    },
+    "name": "libxxf86vm-dev"
    }
   },
   "liquibase": {
@@ -111386,6 +112089,15 @@
      "name": "nmap"
     },
     "name": "nmap"
+   }
+  },
+  "nng": {
+   "apt\\nng": {
+    "driver": "apt",
+    "fields": {
+     "name": "libnng-dev"
+    },
+    "name": "libnng-dev"
    }
   },
   "node": {
@@ -114194,6 +114906,15 @@
      "glue": "unityhub"
     },
     "name": "unityhub-dotfiles"
+   }
+  },
+  "unixodbc": {
+   "apt\\unixodbc": {
+    "driver": "apt",
+    "fields": {
+     "name": "unixodbc-dev"
+    },
+    "name": "unixodbc-dev"
    }
   },
   "unrar": {
@@ -120281,6 +121002,16 @@
     "name": "libgtk-4-dev"
    }
   },
+  "gtk3": {
+   "apt\\gtk3": {
+    "driver": "apt",
+    "fields": {
+     "name": "libgtk-3-dev",
+     "repo-component": "universe"
+    },
+    "name": "libgtk-3-dev"
+   }
+  },
   "gtkmm": {
    "apt\\gtk": {
     "driver": "apt",
@@ -121938,6 +122669,15 @@
     "name": "libc++abi-dev"
    }
   },
+  "libdecor": {
+   "apt\\libdecor": {
+    "driver": "apt",
+    "fields": {
+     "name": "libdecor-0-dev"
+    },
+    "name": "libdecor-0-dev"
+   }
+  },
   "libdrm-dev": {
    "apt\\libdrm-dev": {
     "driver": "apt",
@@ -122090,6 +122830,42 @@
      "repo-component": "universe"
     },
     "name": "libxcb-xinput0"
+   }
+  },
+  "libxcursor": {
+   "apt\\libxcursor": {
+    "driver": "apt",
+    "fields": {
+     "name": "libxcursor-dev"
+    },
+    "name": "libxcursor-dev"
+   }
+  },
+  "libxi": {
+   "apt\\libxi": {
+    "driver": "apt",
+    "fields": {
+     "name": "libxi-dev"
+    },
+    "name": "libxi-dev"
+   }
+  },
+  "libxrandr": {
+   "apt\\libxrandr": {
+    "driver": "apt",
+    "fields": {
+     "name": "libxrandr-dev"
+    },
+    "name": "libxrandr-dev"
+   }
+  },
+  "libxxf86vm": {
+   "apt\\libxxf86vm": {
+    "driver": "apt",
+    "fields": {
+     "name": "libxxf86vm-dev"
+    },
+    "name": "libxxf86vm-dev"
    }
   },
   "liquibase": {
@@ -123316,6 +124092,15 @@
      "name": "nmap"
     },
     "name": "nmap"
+   }
+  },
+  "nng": {
+   "apt\\nng": {
+    "driver": "apt",
+    "fields": {
+     "name": "libnng-dev"
+    },
+    "name": "libnng-dev"
    }
   },
   "node": {
@@ -126056,6 +126841,15 @@
      "glue": "unityhub"
     },
     "name": "unityhub-dotfiles"
+   }
+  },
+  "unixodbc": {
+   "apt\\unixodbc": {
+    "driver": "apt",
+    "fields": {
+     "name": "unixodbc-dev"
+    },
+    "name": "unixodbc-dev"
    }
   },
   "unrar": {

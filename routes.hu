@@ -2813,6 +2813,30 @@
         dbus-dev: { attrs: [ lib FOSS ] description: "D-Bus development headers (libdbus-1)."
             install: [ { via: native  when: "(debian or redhat or arch or alpine or opensuse or fedora_atomic) and not amzn"
                          name: { apt: libdbus-1-dev  dnf: dbus-devel  pacman: dbus  apk: dbus-dev  zypper: dbus-1-devel  brew: dbus } } ] }
+        gtk3: { attrs: [ lib FOSS copyleft ] description: "GTK 3 — the GTK 3 GUI toolkit (dev; distinct from `gtk`, which is GTK 4)."
+            install: [ { via: native  when: "(debian or redhat or arch or alpine or opensuse or fedora_atomic) and not amzn"  repo-component: universe
+                         name: { apt: libgtk-3-dev  dnf: gtk3-devel  pacman: gtk3  apk: "gtk+3.0-dev"  zypper: gtk3-devel  brew: "gtk+3" } } ] }
+        libxi: { attrs: [ lib FOSS permissive ] description: "libXi — X11 Input-extension client library (dev)."
+            install: [ { via: native  when: "(debian or redhat or arch or alpine or opensuse or fedora_atomic) and not amzn"
+                         name: { apt: libxi-dev  dnf: libXi-devel  pacman: libxi  apk: libxi-dev  zypper: libXi-devel  brew: libxi } } ] }
+        libxcursor: { attrs: [ lib FOSS permissive ] description: "libXcursor — X11 cursor-management library (dev)."
+            install: [ { via: native  when: "(debian or redhat or arch or alpine or opensuse or fedora_atomic) and not amzn"
+                         name: { apt: libxcursor-dev  dnf: libXcursor-devel  pacman: libxcursor  apk: libxcursor-dev  zypper: libXcursor-devel  brew: libxcursor } } ] }
+        libxrandr: { attrs: [ lib FOSS permissive ] description: "libXrandr — X11 RandR (resize/rotate) client library (dev)."
+            install: [ { via: native  when: "(debian or redhat or arch or alpine or opensuse or fedora_atomic) and not amzn"
+                         name: { apt: libxrandr-dev  dnf: libXrandr-devel  pacman: libxrandr  apk: libxrandr-dev  zypper: libXrandr-devel  brew: libxrandr } } ] }
+        libxxf86vm: { attrs: [ lib FOSS permissive ] description: "libXxf86vm — X11 XFree86-VidMode extension library (dev)."
+            install: [ { via: native  when: "(debian or redhat or arch or alpine or opensuse or fedora_atomic) and not amzn"
+                         name: { apt: libxxf86vm-dev  dnf: libXxf86vm-devel  pacman: libxxf86vm  apk: libxxf86vm-dev  zypper: libXxf86vm-devel  brew: libxxf86vm } } ] }
+        libdecor: { attrs: [ lib FOSS permissive ] description: "libdecor — client-side window decorations for Wayland (dev)."
+            install: [ { via: native  when: "(debian or redhat or arch or alpine or opensuse) and not amzn"
+                         name: { apt: libdecor-0-dev  dnf: libdecor-devel  pacman: libdecor  apk: libdecor-dev  zypper: libdecor-devel } } ] }   // Wayland/Linux; not on brew
+        nng: { attrs: [ lib FOSS permissive ] description: "nng — the nanomsg-next-gen lightweight messaging library (dev)."
+            install: [ { via: native  when: "(debian or redhat or arch or alpine or opensuse or fedora_atomic) and not amzn"
+                         name: { apt: libnng-dev  dnf: nng-devel  pacman: nng  apk: nng-dev  zypper: libnng-devel  brew: nng } } ] }
+        unixodbc: { attrs: [ lib FOSS copyleft ] description: "unixODBC — the ODBC driver manager for Unix (dev)."
+            install: [ { via: native  when: "(debian or redhat or arch or alpine or opensuse or fedora_atomic) and not amzn"
+                         name: { apt: unixodbc-dev  dnf: unixODBC-devel  pacman: unixodbc  apk: unixodbc-dev  zypper: unixODBC-devel  brew: unixodbc } } ] }
         // SDL2 (the common target). Arch dropped classic `sdl2` → `sdl2-compat` (SDL2 API on SDL3).
         sdl: { attrs: [ lib FOSS permissive ] description: "SDL2 — Simple DirectMedia Layer (video/audio/input), dev headers + libs."
             install: [ { via: native  when: "(debian or redhat or arch or alpine or opensuse or fedora_atomic) and not amzn"  repo-component: universe
