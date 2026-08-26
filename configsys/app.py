@@ -915,6 +915,65 @@ def diagnose_index_failure(output, pm, owned, *, finder=_find_source_files):
     return lines
 
 
+def _source_key_fields(ctx, component, src_path):
+    '''(pubkey-url, pubkey-path) for the route binding of `component` that writes `src_path` (or the
+    dnf `/etc/yum.repos.d/<repo-id>.repo`), else (None, None). Lets refresh re-fetch a rotated key.'''
+    try:
+        comp = ctx.routes.components.get(component)
+    except Exception:
+        comp = None
+    for b in getattr(comp, 'bindings', []) or []:
+        d = getattr(b, 'details', {}) or {}
+        rid = d.get('repo-id')
+        if str(d.get('source-path') or '') == src_path or (rid and f'/etc/yum.repos.d/{rid}.repo' == src_path):
+            return d.get('pubkey-url'), d.get('pubkey-path')
+    return None, None
+
+
+def _rekey_candidates(ctx, output, pm, owned, *, finder=None):
+    '''For a SIGNATURE-class index failure, the configsys-managed culprits we could re-key:
+    [(source-file, component, key-url, key-path)]. Foreign sources and ones with no route key are
+    excluded (never touched). Pure — the caller owns the prompt + fetch. `owned` = {file: component}.'''
+    from . import failures
+    finder = finder or _find_source_files          # resolved at call time (test-injectable)
+    if failures.classify(output)[0] != failures.SIGNATURE:
+        return []
+    urls = sorted({re.sub(r'[)\'">,]+$', '', u) for u in re.findall(r'https?://[^\s\'">]+', output)})
+    out = []
+    for f in sorted(finder(urls, _INDEX_SRC_DIRS.get(pm, ())) if urls else {}):
+        comp = owned.get(f)
+        if not comp:
+            continue                                         # foreign -> never touch (plan default Q4)
+        ku, kp = _source_key_fields(ctx, comp, f)
+        if ku and kp:
+            out.append((f, comp, ku, kp))
+    return out
+
+
+def _offer_rekey(ctx, pm, output, owned, native_cmd, *, ask=None):
+    '''Rotation self-heal (plan Theme 2): on a SIGNATURE failure for a configsys-managed source with
+    a route key url, PROMPT (plan default Q1) to re-fetch the key (overwriting the stale one) and
+    retry the index refresh. Returns True iff a retry then succeeded. `ask(prompt)->bool` is
+    injectable for tests; defaults to a y/N terminal prompt.'''
+    import shlex
+    if ask is None:
+        def ask(prompt):
+            try:
+                return input(prompt).strip().lower() == 'y'
+            except EOFError:
+                return False
+    for src, comp, key_url, key_path in _rekey_candidates(ctx, output, pm, owned):
+        if not ask(f'\nRe-fetch the signing key for `{comp}` (rotated?) into {key_path} and retry? [y/N] '):
+            continue
+        ctx.runner.run(f'sudo curl -fsSL {shlex.quote(key_url)} -o {shlex.quote(key_path)}', capture=True)
+        retry = ctx.runner.run(native_cmd, sudo=(pm != 'brew'), capture=True)
+        if retry.ok:
+            print(f'  re-keyed `{comp}` — the index refresh is clean now.')
+            return True
+        print(f'  still failing for `{comp}` after re-keying — the route key itself may be stale.')
+    return False
+
+
 def cmd_refresh(ctx, args):
     from .versions import discover, source_key
     print('configsys refresh — re-querying version sources and the package index '
@@ -989,13 +1048,16 @@ def cmd_refresh(ctx, args):
         if res.output:
             print(res.output)
         if not ok:
-            diag = diagnose_index_failure(res.output, pm, _owned_index_sources(ctx))
+            owned = _owned_index_sources(ctx)
+            diag = diagnose_index_failure(res.output, pm, owned)
             if diag:
                 print('\n── the package index refresh failed ──')
                 for line in diag:
                     print(f'  {line}')
-                # Phase 1 is diagnose-only: we name the culprit + fix but never edit sources here.
-                # (Re-keying / removal is Phase 2-3; a foreign source is always the user's to change.)
+                # P2: rotation self-heal — offer (prompt) to re-fetch a rotated key for a
+                # configsys-managed source and retry. Foreign sources are never touched.
+                if _offer_rekey(ctx, pm, res.output, owned, native):
+                    ok = True
     elif pm == 'pacman':
         # Arch has no safe index-only refresh: a bare `pacman -Sy` leaves the DB newer than the
         # installed system, so the next single-package install (`pacman -S`, exactly how this driver
