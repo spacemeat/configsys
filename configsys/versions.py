@@ -101,6 +101,7 @@ def _github_atom_tags(fetch, repo):
     limit). releases.atom carries release tags in `/releases/tag/<TAG>` links; tags.atom is the
     fallback for repos that tag without cutting GitHub "releases" (tag in the entry <title>).'''
     import html as _html
+    from urllib.parse import unquote
     for tmpl in (GITHUB_RELEASES_ATOM, GITHUB_TAGS_ATOM):
         try:
             xml = fetch(tmpl.format(repo=repo))
@@ -111,7 +112,10 @@ def _github_atom_tags(fetch, repo):
             titles = _ATOM_TITLE_RE.findall(xml)
             tags = titles[1:] if len(titles) > 1 else []
         if tags:
-            return [_html.unescape(t.strip()) for t in tags]
+            # a tag from a /releases/tag/<TAG> link is URL-ENCODED — a monorepo scope tag like
+            # `core@13.2.0` arrives as `core%4013.2.0`, and the `%40` would feed a stray `40` into a
+            # numeric tag-re (-> 4013.2.0). Percent-decode before anything reads it.
+            return [_html.unescape(unquote(t.strip())) for t in tags]
     return []
 
 

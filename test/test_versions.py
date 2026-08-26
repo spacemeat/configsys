@@ -162,6 +162,17 @@ def test_tag_re_extracts_version_from_scoped_tag():
     assert versions.discover(spec, fetch=f) == '13.1.0'
 
 
+def test_atom_tag_is_url_decoded():
+    # GitHub's atom feed URL-ENCODES the tag: a monorepo scope tag `core@13.2.0` arrives as
+    # `core%4013.2.0`. Without percent-decoding, the `%40` feeds a stray 40 into a numeric tag-re
+    # -> `4013.2.0` (always "newer" than reality, so the tool reads perpetually outdated). Regression.
+    feed = ('<?xml version="1.0"?><feed><title>Releases</title>'
+            f'<entry><link href="https://github.com/{INS}/releases/tag/core%4013.2.0"/></entry>'
+            f'<entry><link href="https://github.com/{INS}/releases/tag/core%4013.1.0"/></entry></feed>')
+    f = fetcher({atom_url(INS): feed})
+    assert versions.discover({'github': INS, 'tag-re': '([0-9][0-9.]*)'}, fetch=f) == '13.2.0'
+
+
 def test_no_release_list_fetch_when_latest_matches():
     # perf guard: when the latest release already carries the asset, the list endpoint is NOT hit.
     f = fetcher({GH: RELEASE_JSON})
