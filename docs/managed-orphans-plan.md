@@ -136,14 +136,17 @@ Flags: `--driver X` (one driver), `--foreign` (include foreign for native too, o
 - `configsys orphans --remove <name>` → uninstall via the owning driver (confirm; reuses the remove op).
 - `configsys orphans --ignore <name|glob>` → append to the ignore list so it stops surfacing.
 
-### TUI (phase 2, deferred — the shape is still open)
+### TUI (phase 4 — the design)
 
-The scan is CLI-first and TUI integration is **not decided**. Recording the thinking so far, not a
-plan:
+**Decided: the known kinds live on TUI::Profiles; foreign gets a read-only node in the same tree.**
+The catalog scan + CLI verbs (phases 1–3) ship. This is the finalized TUI design.
 
-- The three `known` kinds (**excluded / lurking / forgotten**) are all fundamentally
-  **profile-relative** — their whole definition is about profile membership, and their actions
-  (adopt, activate, un-`~`) are profile edits. That points at **TUI::Profiles** as their natural home.
+- The three `known` kinds (**excluded / lurking / forgotten**) are fundamentally **profile-relative**
+  — their whole definition is membership, and their actions (adopt, activate, un-`~`) are profile
+  edits. The **staging-profile workflow settled the Profiles-vs-dedicated-screen question**: in
+  practice you triage orphans by parking them in a non-active staging profile (e.g. `orphans-lurking`)
+  and moving names into the real base profiles — which *is* Profiles-page editing. So **Profiles is
+  the home**; a dedicated Orphans screen stays only as a fallback if the volume ever explodes.
 - **Orphan-ness is a separate axis, not a fourth membership marker.** The catalog's existing markers
   are all one axis; "installed" is another, and a component holds a value on *each* at once:
     - **Membership axis** (config, relative to the *selected* profile): `●`/`↳` member · `~` excluded
@@ -189,15 +192,34 @@ plan:
   for an inactive selected profile — a member of an inactive profile reading as an orphan is itself
   informative ("this profile isn't active, so its installed members are unmanaged"). The toggle is the
   cleaner control than blanking the axis per-profile.
-- **Foreign** is the odd kind out — no recipe, no profile home, so it doesn't belong in the
-  profile-membership UI at all. Leaning: sweep foreign items into a synthetic **`foreign` profile**
-  purely so the user can *see and identify* them in one place (not to manage installs from there).
-- **Future hook:** a foreign item with no recipe is exactly a component-request candidate — eventually
-  a TUI action could file that request through **configsys-issues** (out of scope here; noted so the
-  `foreign` grouping is designed with it in mind).
+- **Foreign** is the odd kind out — no recipe, no profile home. It surfaces as a **synthetic,
+  read-only `foreign` node** in the profiles tree (a sibling of the real profiles), tier-tagged
+  (base tiers folded away by default, `--system`-style reveal), purely to *see and identify* recipe-
+  less installs — never to adopt (there's nothing to adopt). Its only actions are ignore and (future)
+  file a component-request through **configsys-issues**.
 
-If the volume ever warrants it, a dedicated **Orphans screen** (7th tab) is the fallback — decide
-after seeing real counts on the user's machine.
+**Actions (keys on the catalog row / the left tree).** All reuse the phase-3 verbs, so the TUI is a
+thin front for `actions.set_profile_membership` / the remove op / `orphans-ignore`:
+
+- **`A` adopt** → add the (known) orphan to the **selected** profile. On a foreign row it's inert
+  (nothing to adopt).
+- **`s` stage** → adopt into the configurable **staging profile** (an `orphans-adopt-target` machine
+  setting, default a review profile like `orphans-lurking`) — the "park it for later triage" move the
+  manual workflow proved out. Bulk-select + `s` parks a batch at once.
+- **un-`~` / activate** → for an `excluded` orphan, the adopt path is re-including it (drop the `~`);
+  for a `lurking` one, activating its profile. Both are ordinary Profiles edits (`~`/membership keys).
+- **`x` remove** → uninstall via the owning driver (confirm; the remove op). The other half of the
+  excluded+installed decision.
+- **`.` ignore** → append the name/key to `orphans-ignore` (silences it; the locale/font/hardware
+  bulk is a few globs).
+
+**The staging-profile loop, first-class.** `s` → park in the staging profile (kept out of `configs:`,
+so parked items read as *lurking*, not installed-by-surprise) → the user opens that profile and moves
+names into `dev`/`graphics`/… with normal membership edits → deletes the staging profile when drained.
+The TUI just makes the `orphans` scan the entry point to a loop the Profiles page already supports.
+
+A dedicated **Orphans screen** (7th tab) remains the fallback only if per-machine volume ever makes
+the overlay-on-Profiles too noisy.
 
 ## Config
 
@@ -233,9 +255,11 @@ after seeing real counts on the user's machine.
    --profile P` adds a known orphan to a profile; `--remove <comp>` uninstalls a known orphan via its
    driver (confirm unless `--yes`; foreign keys are declined — no recipe). Still TODO: a `check`
    stale-ignore warning (ignored pattern that matches nothing installed).
-4. TUI surface — **deferred/undecided** (see the TUI section: likely a membership state on
-   TUI::Profiles for the known kinds + a synthetic `foreign` profile, but the Profiles-purpose
-   tension is unresolved).
+4. TUI surface — **designed, not built** (see the TUI section). Decided: the install axis overlays
+   TUI::Profiles (themed `installed`/`orphan_*` roles, toggle), foreign is a read-only tree node, and
+   the actions (`A` adopt / `s` stage / `x` remove / `.` ignore / un-`~`) are thin fronts over the
+   phase-3 verbs, with a configurable `orphans-adopt-target` staging profile. Build items: the
+   overlay rendering + role plumbing, the `s`/adopt-target setting, and the synthetic `foreign` node.
 
 ## Open questions (for the user)
 
