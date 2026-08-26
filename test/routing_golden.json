@@ -423,6 +423,15 @@
     "name": "asciidoc"
    }
   },
+  "asio": {
+   "pacman\\asio": {
+    "driver": "pacman",
+    "fields": {
+     "name": "asio"
+    },
+    "name": "asio"
+   }
+  },
   "astroterm": {
    "aur\\astroterm": {
     "driver": "aur",
@@ -1155,6 +1164,15 @@
     "name": "cabal-dotfiles"
    }
   },
+  "cairo": {
+   "pacman\\cairo": {
+    "driver": "pacman",
+    "fields": {
+     "name": "cairo"
+    },
+    "name": "cairo"
+   }
+  },
   "caligula": {
    "pacman\\caligula": {
     "driver": "pacman",
@@ -1735,6 +1753,15 @@
     "name": "curl"
    }
   },
+  "curl-dev": {
+   "pacman\\curl-dev": {
+    "driver": "pacman",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   }
+  },
   "cvs": {
    "dotfiles\\cvs-dotfiles": {
     "driver": "dotfiles",
@@ -2291,6 +2318,15 @@
     "name": "dotnet-dotfiles"
    }
   },
+  "double-conversion": {
+   "pacman\\double-conversion": {
+    "driver": "pacman",
+    "fields": {
+     "name": "double-conversion"
+    },
+    "name": "double-conversion"
+   }
+  },
   "doxygen": {
    "pacman\\doxygen": {
     "driver": "pacman",
@@ -2629,6 +2665,15 @@
     "name": "ethtool"
    }
   },
+  "expat": {
+   "pacman\\expat": {
+    "driver": "pacman",
+    "fields": {
+     "name": "expat"
+    },
+    "name": "expat"
+   }
+  },
   "fastfetch": {
    "dotfiles\\fastfetch-dotfiles": {
     "driver": "dotfiles",
@@ -2858,6 +2903,15 @@
      "name": "flex"
     },
     "name": "flex"
+   }
+  },
+  "fmt": {
+   "pacman\\fmt": {
+    "driver": "pacman",
+    "fields": {
+     "name": "fmt"
+    },
+    "name": "fmt"
    }
   },
   "folly": {
@@ -3148,6 +3202,15 @@
     "name": "gdb-dotfiles"
    }
   },
+  "gflags": {
+   "pacman\\gflags": {
+    "driver": "pacman",
+    "fields": {
+     "name": "gflags"
+    },
+    "name": "gflags"
+   }
+  },
   "gfortran": {
    "pacman\\gfortran": {
     "driver": "pacman",
@@ -3414,6 +3477,15 @@
      "repo-component": "universe"
     },
     "name": "glm"
+   }
+  },
+  "glog": {
+   "pacman\\glog": {
+    "driver": "pacman",
+    "fields": {
+     "name": "google-glog"
+    },
+    "name": "google-glog"
    }
   },
   "gnat": {
@@ -5594,6 +5666,15 @@
      "name": "libdrm"
     },
     "name": "libdrm"
+   }
+  },
+  "libevent": {
+   "pacman\\libevent": {
+    "driver": "pacman",
+    "fields": {
+     "name": "libevent"
+    },
+    "name": "libevent"
    }
   },
   "libfuse2": {
@@ -7963,6 +8044,15 @@
     "name": "protobuf"
    }
   },
+  "protobuf-dev": {
+   "pacman\\protobuf-dev": {
+    "driver": "pacman",
+    "fields": {
+     "name": "protobuf"
+    },
+    "name": "protobuf"
+   }
+  },
   "protobuf-dotfiles": {
    "dotfiles\\bash-dotfiles": {
     "driver": "dotfiles",
@@ -9216,6 +9306,24 @@
     "name": "sdl2-compat"
    }
   },
+  "sdl2-image": {
+   "pacman\\sdl2-image": {
+    "driver": "pacman",
+    "fields": {
+     "name": "sdl2_image"
+    },
+    "name": "sdl2_image"
+   }
+  },
+  "sdl2-ttf": {
+   "pacman\\sdl2-ttf": {
+    "driver": "pacman",
+    "fields": {
+     "name": "sdl2_ttf"
+    },
+    "name": "sdl2_ttf"
+   }
+  },
   "sfml": {
    "pacman\\sfml": {
     "driver": "pacman",
@@ -9386,6 +9494,15 @@
      "unit": "snapd.socket"
     },
     "name": "snapd-socket"
+   }
+  },
+  "snappy": {
+   "pacman\\snappy": {
+    "driver": "pacman",
+    "fields": {
+     "name": "snappy"
+    },
+    "name": "snappy"
    }
   },
   "socat": {
@@ -9804,6 +9921,15 @@
      "name": "texlive-meta"
     },
     "name": "texlive-meta"
+   }
+  },
+  "tinyxml2": {
+   "pacman\\tinyxml2": {
+    "driver": "pacman",
+    "fields": {
+     "name": "tinyxml2"
+    },
+    "name": "tinyxml2"
    }
   },
   "tk": {
@@ -10823,6 +10949,15 @@
     "name": "wavemon"
    }
   },
+  "wayland": {
+   "pacman\\wayland": {
+    "driver": "pacman",
+    "fields": {
+     "name": "wayland"
+    },
+    "name": "wayland"
+   }
+  },
   "webcamize": {
    "aur\\webcamize": {
     "driver": "aur",
@@ -11108,6 +11243,15 @@
     "name": "wxwidgets-gtk3"
    }
   },
+  "x11": {
+   "pacman\\x11": {
+    "driver": "pacman",
+    "fields": {
+     "name": "libx11"
+    },
+    "name": "libx11"
+   }
+  },
   "xcb-util-cursor": {
    "pacman\\xcb-util-cursor": {
     "driver": "pacman",
@@ -11241,6 +11385,24 @@
      "glue": "xh"
     },
     "name": "xh-dotfiles"
+   }
+  },
+  "xinerama": {
+   "pacman\\xinerama": {
+    "driver": "pacman",
+    "fields": {
+     "name": "libxinerama"
+    },
+    "name": "libxinerama"
+   }
+  },
+  "xkbcommon": {
+   "pacman\\xkbcommon": {
+    "driver": "pacman",
+    "fields": {
+     "name": "libxkbcommon"
+    },
+    "name": "libxkbcommon"
    }
   },
   "xmonad": {
@@ -12131,6 +12293,15 @@
     "name": "asciidoc"
    }
   },
+  "asio": {
+   "apt\\asio": {
+    "driver": "apt",
+    "fields": {
+     "name": "libasio-dev"
+    },
+    "name": "libasio-dev"
+   }
+  },
   "atop": {
    "apt\\atop": {
     "driver": "apt",
@@ -12867,6 +13038,15 @@
      "glue": "cabal"
     },
     "name": "cabal-dotfiles"
+   }
+  },
+  "cairo": {
+   "apt\\cairo": {
+    "driver": "apt",
+    "fields": {
+     "name": "libcairo2-dev"
+    },
+    "name": "libcairo2-dev"
    }
   },
   "caligula": {
@@ -13790,6 +13970,15 @@
     "name": "curl"
    }
   },
+  "curl-dev": {
+   "apt\\curl-dev": {
+    "driver": "apt",
+    "fields": {
+     "name": "libcurl4-openssl-dev"
+    },
+    "name": "libcurl4-openssl-dev"
+   }
+  },
   "cvs": {
    "apt\\cvs": {
     "driver": "apt",
@@ -14362,6 +14551,15 @@
     "name": "dotnet-dotfiles"
    }
   },
+  "double-conversion": {
+   "apt\\double-conversion": {
+    "driver": "apt",
+    "fields": {
+     "name": "libdouble-conversion-dev"
+    },
+    "name": "libdouble-conversion-dev"
+   }
+  },
   "doxygen": {
    "apt\\doxygen": {
     "driver": "apt",
@@ -14702,6 +14900,15 @@
     "name": "ethtool"
    }
   },
+  "expat": {
+   "apt\\expat": {
+    "driver": "apt",
+    "fields": {
+     "name": "libexpat1-dev"
+    },
+    "name": "libexpat1-dev"
+   }
+  },
   "fastfetch": {
    "dotfiles\\fastfetch-dotfiles": {
     "driver": "dotfiles",
@@ -14961,6 +15168,15 @@
      "name": "flex"
     },
     "name": "flex"
+   }
+  },
+  "fmt": {
+   "apt\\fmt": {
+    "driver": "apt",
+    "fields": {
+     "name": "libfmt-dev"
+    },
+    "name": "libfmt-dev"
    }
   },
   "fontconfig": {
@@ -15509,6 +15725,15 @@
     "name": "gdb-dotfiles"
    }
   },
+  "gflags": {
+   "apt\\gflags": {
+    "driver": "apt",
+    "fields": {
+     "name": "libgflags-dev"
+    },
+    "name": "libgflags-dev"
+   }
+  },
   "gfortran": {
    "apt\\gfortran": {
     "driver": "apt",
@@ -15803,6 +16028,15 @@
      "repo-component": "universe"
     },
     "name": "libglm-dev"
+   }
+  },
+  "glog": {
+   "apt\\glog": {
+    "driver": "apt",
+    "fields": {
+     "name": "libgoogle-glog-dev"
+    },
+    "name": "libgoogle-glog-dev"
    }
   },
   "gnat": {
@@ -18079,6 +18313,15 @@
     "name": "libdrm-dev"
    }
   },
+  "libevent": {
+   "apt\\libevent": {
+    "driver": "apt",
+    "fields": {
+     "name": "libevent-dev"
+    },
+    "name": "libevent-dev"
+   }
+  },
   "libfuse2": {
    "apt\\libfuse2": {
     "driver": "apt",
@@ -18487,9 +18730,9 @@
    "apt\\lz4": {
     "driver": "apt",
     "fields": {
-     "name": "lz4"
+     "name": "liblz4-dev"
     },
-    "name": "lz4"
+    "name": "liblz4-dev"
    }
   },
   "make": {
@@ -19815,9 +20058,9 @@
    "apt\\zstd": {
     "driver": "apt",
     "fields": {
-     "name": "zstd"
+     "name": "libzstd-dev"
     },
-    "name": "zstd"
+    "name": "libzstd-dev"
    },
    "tarball\\ollama": {
     "driver": "tarball",
@@ -20546,6 +20789,15 @@
     "name": "protobuf-dotfiles"
    }
   },
+  "protobuf-dev": {
+   "apt\\protobuf-dev": {
+    "driver": "apt",
+    "fields": {
+     "name": "libprotobuf-dev"
+    },
+    "name": "libprotobuf-dev"
+   }
+  },
   "protobuf-dotfiles": {
    "dotfiles\\bash-dotfiles": {
     "driver": "dotfiles",
@@ -21634,6 +21886,24 @@
     "name": "libsdl2-dev"
    }
   },
+  "sdl2-image": {
+   "apt\\sdl2-image": {
+    "driver": "apt",
+    "fields": {
+     "name": "libsdl2-image-dev"
+    },
+    "name": "libsdl2-image-dev"
+   }
+  },
+  "sdl2-ttf": {
+   "apt\\sdl2-ttf": {
+    "driver": "apt",
+    "fields": {
+     "name": "libsdl2-ttf-dev"
+    },
+    "name": "libsdl2-ttf-dev"
+   }
+  },
   "sfml": {
    "apt\\sfml": {
     "driver": "apt",
@@ -21712,6 +21982,15 @@
      "unit": "snapd.socket"
     },
     "name": "snapd-socket"
+   }
+  },
+  "snappy": {
+   "apt\\snappy": {
+    "driver": "apt",
+    "fields": {
+     "name": "libsnappy-dev"
+    },
+    "name": "libsnappy-dev"
    }
   },
   "socat": {
@@ -22111,6 +22390,15 @@
      "name": "texlive-full"
     },
     "name": "texlive-full"
+   }
+  },
+  "tinyxml2": {
+   "apt\\tinyxml2": {
+    "driver": "apt",
+    "fields": {
+     "name": "libtinyxml2-dev"
+    },
+    "name": "libtinyxml2-dev"
    }
   },
   "tk": {
@@ -23022,6 +23310,15 @@
     "name": "wavemon"
    }
   },
+  "wayland": {
+   "apt\\wayland": {
+    "driver": "apt",
+    "fields": {
+     "name": "libwayland-dev"
+    },
+    "name": "libwayland-dev"
+   }
+  },
   "websocat": {
    "apt\\curl": {
     "driver": "apt",
@@ -23285,6 +23582,15 @@
     "name": "libwxgtk3.2-dev"
    }
   },
+  "x11": {
+   "apt\\x11": {
+    "driver": "apt",
+    "fields": {
+     "name": "libx11-dev"
+    },
+    "name": "libx11-dev"
+   }
+  },
   "xclip": {
    "apt\\xclip": {
     "driver": "apt",
@@ -23409,6 +23715,24 @@
      "glue": "xh"
     },
     "name": "xh-dotfiles"
+   }
+  },
+  "xinerama": {
+   "apt\\xinerama": {
+    "driver": "apt",
+    "fields": {
+     "name": "libxinerama-dev"
+    },
+    "name": "libxinerama-dev"
+   }
+  },
+  "xkbcommon": {
+   "apt\\xkbcommon": {
+    "driver": "apt",
+    "fields": {
+     "name": "libxkbcommon-dev"
+    },
+    "name": "libxkbcommon-dev"
    }
   },
   "xmonad": {
@@ -23886,9 +24210,9 @@
    "apt\\zstd": {
     "driver": "apt",
     "fields": {
-     "name": "zstd"
+     "name": "libzstd-dev"
     },
-    "name": "zstd"
+    "name": "libzstd-dev"
    }
   }
  },
@@ -24315,6 +24639,15 @@
      "name": "asciidoc"
     },
     "name": "asciidoc"
+   }
+  },
+  "asio": {
+   "apt\\asio": {
+    "driver": "apt",
+    "fields": {
+     "name": "libasio-dev"
+    },
+    "name": "libasio-dev"
    }
   },
   "atop": {
@@ -25036,6 +25369,15 @@
      "glue": "cabal"
     },
     "name": "cabal-dotfiles"
+   }
+  },
+  "cairo": {
+   "apt\\cairo": {
+    "driver": "apt",
+    "fields": {
+     "name": "libcairo2-dev"
+    },
+    "name": "libcairo2-dev"
    }
   },
   "caligula": {
@@ -25942,6 +26284,15 @@
     "name": "curl"
    }
   },
+  "curl-dev": {
+   "apt\\curl-dev": {
+    "driver": "apt",
+    "fields": {
+     "name": "libcurl4-openssl-dev"
+    },
+    "name": "libcurl4-openssl-dev"
+   }
+  },
   "cvs": {
    "apt\\cvs": {
     "driver": "apt",
@@ -26514,6 +26865,15 @@
     "name": "dotnet-dotfiles"
    }
   },
+  "double-conversion": {
+   "apt\\double-conversion": {
+    "driver": "apt",
+    "fields": {
+     "name": "libdouble-conversion-dev"
+    },
+    "name": "libdouble-conversion-dev"
+   }
+  },
   "doxygen": {
    "apt\\doxygen": {
     "driver": "apt",
@@ -26837,6 +27197,15 @@
     "name": "ethtool"
    }
   },
+  "expat": {
+   "apt\\expat": {
+    "driver": "apt",
+    "fields": {
+     "name": "libexpat1-dev"
+    },
+    "name": "libexpat1-dev"
+   }
+  },
   "fastfetch": {
    "dotfiles\\fastfetch-dotfiles": {
     "driver": "dotfiles",
@@ -27096,6 +27465,15 @@
      "name": "flex"
     },
     "name": "flex"
+   }
+  },
+  "fmt": {
+   "apt\\fmt": {
+    "driver": "apt",
+    "fields": {
+     "name": "libfmt-dev"
+    },
+    "name": "libfmt-dev"
    }
   },
   "fontconfig": {
@@ -27644,6 +28022,15 @@
     "name": "gdb-dotfiles"
    }
   },
+  "gflags": {
+   "apt\\gflags": {
+    "driver": "apt",
+    "fields": {
+     "name": "libgflags-dev"
+    },
+    "name": "libgflags-dev"
+   }
+  },
   "gfortran": {
    "apt\\gfortran": {
     "driver": "apt",
@@ -27938,6 +28325,15 @@
      "repo-component": "universe"
     },
     "name": "libglm-dev"
+   }
+  },
+  "glog": {
+   "apt\\glog": {
+    "driver": "apt",
+    "fields": {
+     "name": "libgoogle-glog-dev"
+    },
+    "name": "libgoogle-glog-dev"
    }
   },
   "gnat": {
@@ -30180,6 +30576,15 @@
     "name": "libdrm-dev"
    }
   },
+  "libevent": {
+   "apt\\libevent": {
+    "driver": "apt",
+    "fields": {
+     "name": "libevent-dev"
+    },
+    "name": "libevent-dev"
+   }
+  },
   "libfuse2": {
    "apt\\libfuse2": {
     "driver": "apt",
@@ -30571,9 +30976,9 @@
    "apt\\lz4": {
     "driver": "apt",
     "fields": {
-     "name": "lz4"
+     "name": "liblz4-dev"
     },
-    "name": "lz4"
+    "name": "liblz4-dev"
    }
   },
   "make": {
@@ -31865,9 +32270,9 @@
    "apt\\zstd": {
     "driver": "apt",
     "fields": {
-     "name": "zstd"
+     "name": "libzstd-dev"
     },
-    "name": "zstd"
+    "name": "libzstd-dev"
    },
    "tarball\\ollama": {
     "driver": "tarball",
@@ -32560,6 +32965,15 @@
      "glue": "protobuf"
     },
     "name": "protobuf-dotfiles"
+   }
+  },
+  "protobuf-dev": {
+   "apt\\protobuf-dev": {
+    "driver": "apt",
+    "fields": {
+     "name": "libprotobuf-dev"
+    },
+    "name": "libprotobuf-dev"
    }
   },
   "protobuf-dotfiles": {
@@ -33616,6 +34030,24 @@
     "name": "libsdl2-dev"
    }
   },
+  "sdl2-image": {
+   "apt\\sdl2-image": {
+    "driver": "apt",
+    "fields": {
+     "name": "libsdl2-image-dev"
+    },
+    "name": "libsdl2-image-dev"
+   }
+  },
+  "sdl2-ttf": {
+   "apt\\sdl2-ttf": {
+    "driver": "apt",
+    "fields": {
+     "name": "libsdl2-ttf-dev"
+    },
+    "name": "libsdl2-ttf-dev"
+   }
+  },
   "sfml": {
    "apt\\sfml": {
     "driver": "apt",
@@ -33694,6 +34126,15 @@
      "unit": "snapd.socket"
     },
     "name": "snapd-socket"
+   }
+  },
+  "snappy": {
+   "apt\\snappy": {
+    "driver": "apt",
+    "fields": {
+     "name": "libsnappy-dev"
+    },
+    "name": "libsnappy-dev"
    }
   },
   "socat": {
@@ -34093,6 +34534,15 @@
      "name": "texlive-full"
     },
     "name": "texlive-full"
+   }
+  },
+  "tinyxml2": {
+   "apt\\tinyxml2": {
+    "driver": "apt",
+    "fields": {
+     "name": "libtinyxml2-dev"
+    },
+    "name": "libtinyxml2-dev"
    }
   },
   "tk": {
@@ -34987,6 +35437,15 @@
     "name": "wavemon"
    }
   },
+  "wayland": {
+   "apt\\wayland": {
+    "driver": "apt",
+    "fields": {
+     "name": "libwayland-dev"
+    },
+    "name": "libwayland-dev"
+   }
+  },
   "websocat": {
    "apt\\curl": {
     "driver": "apt",
@@ -35250,6 +35709,15 @@
     "name": "libwxgtk3.2-dev"
    }
   },
+  "x11": {
+   "apt\\x11": {
+    "driver": "apt",
+    "fields": {
+     "name": "libx11-dev"
+    },
+    "name": "libx11-dev"
+   }
+  },
   "xclip": {
    "apt\\xclip": {
     "driver": "apt",
@@ -35374,6 +35842,24 @@
      "glue": "xh"
     },
     "name": "xh-dotfiles"
+   }
+  },
+  "xinerama": {
+   "apt\\xinerama": {
+    "driver": "apt",
+    "fields": {
+     "name": "libxinerama-dev"
+    },
+    "name": "libxinerama-dev"
+   }
+  },
+  "xkbcommon": {
+   "apt\\xkbcommon": {
+    "driver": "apt",
+    "fields": {
+     "name": "libxkbcommon-dev"
+    },
+    "name": "libxkbcommon-dev"
    }
   },
   "xmonad": {
@@ -35834,9 +36320,9 @@
    "apt\\zstd": {
     "driver": "apt",
     "fields": {
-     "name": "zstd"
+     "name": "libzstd-dev"
     },
-    "name": "zstd"
+    "name": "libzstd-dev"
    }
   }
  },
@@ -36263,6 +36749,15 @@
      "name": "asciidoc"
     },
     "name": "asciidoc"
+   }
+  },
+  "asio": {
+   "apt\\asio": {
+    "driver": "apt",
+    "fields": {
+     "name": "libasio-dev"
+    },
+    "name": "libasio-dev"
    }
   },
   "atop": {
@@ -36984,6 +37479,15 @@
      "glue": "cabal"
     },
     "name": "cabal-dotfiles"
+   }
+  },
+  "cairo": {
+   "apt\\cairo": {
+    "driver": "apt",
+    "fields": {
+     "name": "libcairo2-dev"
+    },
+    "name": "libcairo2-dev"
    }
   },
   "caligula": {
@@ -37898,6 +38402,15 @@
     "name": "curl"
    }
   },
+  "curl-dev": {
+   "apt\\curl-dev": {
+    "driver": "apt",
+    "fields": {
+     "name": "libcurl4-openssl-dev"
+    },
+    "name": "libcurl4-openssl-dev"
+   }
+  },
   "cvs": {
    "apt\\cvs": {
     "driver": "apt",
@@ -38465,6 +38978,15 @@
     "name": "dotnet-dotfiles"
    }
   },
+  "double-conversion": {
+   "apt\\double-conversion": {
+    "driver": "apt",
+    "fields": {
+     "name": "libdouble-conversion-dev"
+    },
+    "name": "libdouble-conversion-dev"
+   }
+  },
   "doxygen": {
    "apt\\doxygen": {
     "driver": "apt",
@@ -38788,6 +39310,15 @@
     "name": "ethtool"
    }
   },
+  "expat": {
+   "apt\\expat": {
+    "driver": "apt",
+    "fields": {
+     "name": "libexpat1-dev"
+    },
+    "name": "libexpat1-dev"
+   }
+  },
   "fastfetch": {
    "dotfiles\\fastfetch-dotfiles": {
     "driver": "dotfiles",
@@ -39047,6 +39578,15 @@
      "name": "flex"
     },
     "name": "flex"
+   }
+  },
+  "fmt": {
+   "apt\\fmt": {
+    "driver": "apt",
+    "fields": {
+     "name": "libfmt-dev"
+    },
+    "name": "libfmt-dev"
    }
   },
   "fontconfig": {
@@ -39595,6 +40135,15 @@
     "name": "gdb-dotfiles"
    }
   },
+  "gflags": {
+   "apt\\gflags": {
+    "driver": "apt",
+    "fields": {
+     "name": "libgflags-dev"
+    },
+    "name": "libgflags-dev"
+   }
+  },
   "gfortran": {
    "apt\\gfortran": {
     "driver": "apt",
@@ -39889,6 +40438,15 @@
      "repo-component": "universe"
     },
     "name": "libglm-dev"
+   }
+  },
+  "glog": {
+   "apt\\glog": {
+    "driver": "apt",
+    "fields": {
+     "name": "libgoogle-glog-dev"
+    },
+    "name": "libgoogle-glog-dev"
    }
   },
   "gnat": {
@@ -42124,6 +42682,15 @@
     "name": "libdrm-dev"
    }
   },
+  "libevent": {
+   "apt\\libevent": {
+    "driver": "apt",
+    "fields": {
+     "name": "libevent-dev"
+    },
+    "name": "libevent-dev"
+   }
+  },
   "libfuse2": {
    "apt\\libfuse2": {
     "driver": "apt",
@@ -42515,9 +43082,9 @@
    "apt\\lz4": {
     "driver": "apt",
     "fields": {
-     "name": "lz4"
+     "name": "liblz4-dev"
     },
-    "name": "lz4"
+    "name": "liblz4-dev"
    }
   },
   "make": {
@@ -43809,9 +44376,9 @@
    "apt\\zstd": {
     "driver": "apt",
     "fields": {
-     "name": "zstd"
+     "name": "libzstd-dev"
     },
-    "name": "zstd"
+    "name": "libzstd-dev"
    },
    "tarball\\ollama": {
     "driver": "tarball",
@@ -44517,6 +45084,15 @@
      "glue": "protobuf"
     },
     "name": "protobuf-dotfiles"
+   }
+  },
+  "protobuf-dev": {
+   "apt\\protobuf-dev": {
+    "driver": "apt",
+    "fields": {
+     "name": "libprotobuf-dev"
+    },
+    "name": "libprotobuf-dev"
    }
   },
   "protobuf-dotfiles": {
@@ -45573,6 +46149,24 @@
     "name": "libsdl2-dev"
    }
   },
+  "sdl2-image": {
+   "apt\\sdl2-image": {
+    "driver": "apt",
+    "fields": {
+     "name": "libsdl2-image-dev"
+    },
+    "name": "libsdl2-image-dev"
+   }
+  },
+  "sdl2-ttf": {
+   "apt\\sdl2-ttf": {
+    "driver": "apt",
+    "fields": {
+     "name": "libsdl2-ttf-dev"
+    },
+    "name": "libsdl2-ttf-dev"
+   }
+  },
   "sfml": {
    "apt\\sfml": {
     "driver": "apt",
@@ -45651,6 +46245,15 @@
      "unit": "snapd.socket"
     },
     "name": "snapd-socket"
+   }
+  },
+  "snappy": {
+   "apt\\snappy": {
+    "driver": "apt",
+    "fields": {
+     "name": "libsnappy-dev"
+    },
+    "name": "libsnappy-dev"
    }
   },
   "socat": {
@@ -46058,6 +46661,15 @@
      "name": "texlive-full"
     },
     "name": "texlive-full"
+   }
+  },
+  "tinyxml2": {
+   "apt\\tinyxml2": {
+    "driver": "apt",
+    "fields": {
+     "name": "libtinyxml2-dev"
+    },
+    "name": "libtinyxml2-dev"
    }
   },
   "tk": {
@@ -46952,6 +47564,15 @@
     "name": "wavemon"
    }
   },
+  "wayland": {
+   "apt\\wayland": {
+    "driver": "apt",
+    "fields": {
+     "name": "libwayland-dev"
+    },
+    "name": "libwayland-dev"
+   }
+  },
   "websocat": {
    "apt\\curl": {
     "driver": "apt",
@@ -47281,6 +47902,15 @@
     "name": "libwxgtk3.2-dev"
    }
   },
+  "x11": {
+   "apt\\x11": {
+    "driver": "apt",
+    "fields": {
+     "name": "libx11-dev"
+    },
+    "name": "libx11-dev"
+   }
+  },
   "xclip": {
    "apt\\xclip": {
     "driver": "apt",
@@ -47405,6 +48035,24 @@
      "glue": "xh"
     },
     "name": "xh-dotfiles"
+   }
+  },
+  "xinerama": {
+   "apt\\xinerama": {
+    "driver": "apt",
+    "fields": {
+     "name": "libxinerama-dev"
+    },
+    "name": "libxinerama-dev"
+   }
+  },
+  "xkbcommon": {
+   "apt\\xkbcommon": {
+    "driver": "apt",
+    "fields": {
+     "name": "libxkbcommon-dev"
+    },
+    "name": "libxkbcommon-dev"
    }
   },
   "xmonad": {
@@ -47865,9 +48513,9 @@
    "apt\\zstd": {
     "driver": "apt",
     "fields": {
-     "name": "zstd"
+     "name": "libzstd-dev"
     },
-    "name": "zstd"
+    "name": "libzstd-dev"
    }
   }
  },
@@ -48301,6 +48949,15 @@
      "name": "asciidoc"
     },
     "name": "asciidoc"
+   }
+  },
+  "asio": {
+   "dnf\\asio": {
+    "driver": "dnf",
+    "fields": {
+     "name": "asio-devel"
+    },
+    "name": "asio-devel"
    }
   },
   "astroterm": {
@@ -49030,6 +49687,15 @@
      "glue": "cabal"
     },
     "name": "cabal-dotfiles"
+   }
+  },
+  "cairo": {
+   "dnf\\cairo": {
+    "driver": "dnf",
+    "fields": {
+     "name": "cairo-devel"
+    },
+    "name": "cairo-devel"
    }
   },
   "caligula": {
@@ -49834,6 +50500,15 @@
     "name": "curl"
    }
   },
+  "curl-dev": {
+   "dnf\\curl-dev": {
+    "driver": "dnf",
+    "fields": {
+     "name": "libcurl-devel"
+    },
+    "name": "libcurl-devel"
+   }
+  },
   "cvs": {
    "dnf\\cvs": {
     "driver": "dnf",
@@ -50370,6 +51045,15 @@
     "name": "dotnet-dotfiles"
    }
   },
+  "double-conversion": {
+   "dnf\\double-conversion": {
+    "driver": "dnf",
+    "fields": {
+     "name": "double-conversion-devel"
+    },
+    "name": "double-conversion-devel"
+   }
+  },
   "doxygen": {
    "dnf\\doxygen": {
     "driver": "dnf",
@@ -50684,6 +51368,15 @@
     "name": "ethtool"
    }
   },
+  "expat": {
+   "dnf\\expat": {
+    "driver": "dnf",
+    "fields": {
+     "name": "expat-devel"
+    },
+    "name": "expat-devel"
+   }
+  },
   "fastfetch": {
    "dnf\\fastfetch": {
     "driver": "dnf",
@@ -50923,6 +51616,15 @@
      "name": "flex"
     },
     "name": "flex"
+   }
+  },
+  "fmt": {
+   "dnf\\fmt": {
+    "driver": "dnf",
+    "fields": {
+     "name": "fmt-devel"
+    },
+    "name": "fmt-devel"
    }
   },
   "folly": {
@@ -51207,6 +51909,15 @@
      "src": "gdbinit"
     },
     "name": "gdb-dotfiles"
+   }
+  },
+  "gflags": {
+   "dnf\\gflags": {
+    "driver": "dnf",
+    "fields": {
+     "name": "gflags-devel"
+    },
+    "name": "gflags-devel"
    }
   },
   "gfortran": {
@@ -51503,6 +52214,15 @@
      "repo-component": "universe"
     },
     "name": "glm-devel"
+   }
+  },
+  "glog": {
+   "dnf\\glog": {
+    "driver": "dnf",
+    "fields": {
+     "name": "glog-devel"
+    },
+    "name": "glog-devel"
    }
   },
   "gnat": {
@@ -53826,6 +54546,15 @@
     "name": "libdrm-devel"
    }
   },
+  "libevent": {
+   "dnf\\libevent": {
+    "driver": "dnf",
+    "fields": {
+     "name": "libevent-devel"
+    },
+    "name": "libevent-devel"
+   }
+  },
   "libfuse2": {
    "dnf\\libfuse2": {
     "driver": "dnf",
@@ -54187,9 +54916,9 @@
    "dnf\\lz4": {
     "driver": "dnf",
     "fields": {
-     "name": "lz4"
+     "name": "lz4-devel"
     },
-    "name": "lz4"
+    "name": "lz4-devel"
    }
   },
   "make": {
@@ -55437,9 +56166,9 @@
    "dnf\\zstd": {
     "driver": "dnf",
     "fields": {
-     "name": "zstd"
+     "name": "libzstd-devel"
     },
-    "name": "zstd"
+    "name": "libzstd-devel"
    },
    "tarball\\ollama": {
     "driver": "tarball",
@@ -56148,6 +56877,15 @@
      "glue": "protobuf"
     },
     "name": "protobuf-dotfiles"
+   }
+  },
+  "protobuf-dev": {
+   "dnf\\protobuf-dev": {
+    "driver": "dnf",
+    "fields": {
+     "name": "protobuf-devel"
+    },
+    "name": "protobuf-devel"
    }
   },
   "protobuf-dotfiles": {
@@ -57156,6 +57894,24 @@
     "name": "SDL2-devel"
    }
   },
+  "sdl2-image": {
+   "dnf\\sdl2-image": {
+    "driver": "dnf",
+    "fields": {
+     "name": "SDL2_image-devel"
+    },
+    "name": "SDL2_image-devel"
+   }
+  },
+  "sdl2-ttf": {
+   "dnf\\sdl2-ttf": {
+    "driver": "dnf",
+    "fields": {
+     "name": "SDL2_ttf-devel"
+    },
+    "name": "SDL2_ttf-devel"
+   }
+  },
   "sfml": {
    "dnf\\sfml": {
     "driver": "dnf",
@@ -57234,6 +57990,15 @@
      "unit": "snapd.socket"
     },
     "name": "snapd-socket"
+   }
+  },
+  "snappy": {
+   "dnf\\snappy": {
+    "driver": "dnf",
+    "fields": {
+     "name": "snappy-devel"
+    },
+    "name": "snappy-devel"
    }
   },
   "socat": {
@@ -57631,6 +58396,15 @@
      "name": "texlive-scheme-full"
     },
     "name": "texlive-scheme-full"
+   }
+  },
+  "tinyxml2": {
+   "dnf\\tinyxml2": {
+    "driver": "dnf",
+    "fields": {
+     "name": "tinyxml2-devel"
+    },
+    "name": "tinyxml2-devel"
    }
   },
   "tk": {
@@ -58568,6 +59342,15 @@
     "name": "wavemon"
    }
   },
+  "wayland": {
+   "dnf\\wayland": {
+    "driver": "dnf",
+    "fields": {
+     "name": "wayland-devel"
+    },
+    "name": "wayland-devel"
+   }
+  },
   "websocat": {
    "dnf\\curl": {
     "driver": "dnf",
@@ -58856,6 +59639,15 @@
     "name": "wxGTK-devel"
    }
   },
+  "x11": {
+   "dnf\\x11": {
+    "driver": "dnf",
+    "fields": {
+     "name": "libX11-devel"
+    },
+    "name": "libX11-devel"
+   }
+  },
   "xcb-util-cursor-devel": {
    "dnf\\xcb-util-cursor-devel": {
     "driver": "dnf",
@@ -58989,6 +59781,24 @@
      "glue": "xh"
     },
     "name": "xh-dotfiles"
+   }
+  },
+  "xinerama": {
+   "dnf\\xinerama": {
+    "driver": "dnf",
+    "fields": {
+     "name": "libXinerama-devel"
+    },
+    "name": "libXinerama-devel"
+   }
+  },
+  "xkbcommon": {
+   "dnf\\xkbcommon": {
+    "driver": "dnf",
+    "fields": {
+     "name": "libxkbcommon-devel"
+    },
+    "name": "libxkbcommon-devel"
    }
   },
   "xmonad": {
@@ -59448,9 +60258,9 @@
    "dnf\\zstd": {
     "driver": "dnf",
     "fields": {
-     "name": "zstd"
+     "name": "libzstd-devel"
     },
-    "name": "zstd"
+    "name": "libzstd-devel"
    }
   }
  },
@@ -59884,6 +60694,15 @@
      "name": "asciidoc"
     },
     "name": "asciidoc"
+   }
+  },
+  "asio": {
+   "dnf\\asio": {
+    "driver": "dnf",
+    "fields": {
+     "name": "asio-devel"
+    },
+    "name": "asio-devel"
    }
   },
   "astroterm": {
@@ -60613,6 +61432,15 @@
      "glue": "cabal"
     },
     "name": "cabal-dotfiles"
+   }
+  },
+  "cairo": {
+   "dnf\\cairo": {
+    "driver": "dnf",
+    "fields": {
+     "name": "cairo-devel"
+    },
+    "name": "cairo-devel"
    }
   },
   "caligula": {
@@ -61443,6 +62271,15 @@
     "name": "curl"
    }
   },
+  "curl-dev": {
+   "dnf\\curl-dev": {
+    "driver": "dnf",
+    "fields": {
+     "name": "libcurl-devel"
+    },
+    "name": "libcurl-devel"
+   }
+  },
   "cvs": {
    "dnf\\cvs": {
     "driver": "dnf",
@@ -61979,6 +62816,15 @@
     "name": "dotnet-dotfiles"
    }
   },
+  "double-conversion": {
+   "dnf\\double-conversion": {
+    "driver": "dnf",
+    "fields": {
+     "name": "double-conversion-devel"
+    },
+    "name": "double-conversion-devel"
+   }
+  },
   "doxygen": {
    "dnf\\doxygen": {
     "driver": "dnf",
@@ -62293,6 +63139,15 @@
     "name": "ethtool"
    }
   },
+  "expat": {
+   "dnf\\expat": {
+    "driver": "dnf",
+    "fields": {
+     "name": "expat-devel"
+    },
+    "name": "expat-devel"
+   }
+  },
   "fastfetch": {
    "dnf\\fastfetch": {
     "driver": "dnf",
@@ -62532,6 +63387,15 @@
      "name": "flex"
     },
     "name": "flex"
+   }
+  },
+  "fmt": {
+   "dnf\\fmt": {
+    "driver": "dnf",
+    "fields": {
+     "name": "fmt-devel"
+    },
+    "name": "fmt-devel"
    }
   },
   "folly": {
@@ -62816,6 +63680,15 @@
      "src": "gdbinit"
     },
     "name": "gdb-dotfiles"
+   }
+  },
+  "gflags": {
+   "dnf\\gflags": {
+    "driver": "dnf",
+    "fields": {
+     "name": "gflags-devel"
+    },
+    "name": "gflags-devel"
    }
   },
   "gfortran": {
@@ -63112,6 +63985,15 @@
      "repo-component": "universe"
     },
     "name": "glm-devel"
+   }
+  },
+  "glog": {
+   "dnf\\glog": {
+    "driver": "dnf",
+    "fields": {
+     "name": "glog-devel"
+    },
+    "name": "glog-devel"
    }
   },
   "gnat": {
@@ -65435,6 +66317,15 @@
     "name": "libdrm-devel"
    }
   },
+  "libevent": {
+   "dnf\\libevent": {
+    "driver": "dnf",
+    "fields": {
+     "name": "libevent-devel"
+    },
+    "name": "libevent-devel"
+   }
+  },
   "libfuse2": {
    "dnf\\libfuse2": {
     "driver": "dnf",
@@ -65796,9 +66687,9 @@
    "dnf\\lz4": {
     "driver": "dnf",
     "fields": {
-     "name": "lz4"
+     "name": "lz4-devel"
     },
-    "name": "lz4"
+    "name": "lz4-devel"
    }
   },
   "make": {
@@ -67046,9 +67937,9 @@
    "dnf\\zstd": {
     "driver": "dnf",
     "fields": {
-     "name": "zstd"
+     "name": "libzstd-devel"
     },
-    "name": "zstd"
+    "name": "libzstd-devel"
    },
    "tarball\\ollama": {
     "driver": "tarball",
@@ -67757,6 +68648,15 @@
      "glue": "protobuf"
     },
     "name": "protobuf-dotfiles"
+   }
+  },
+  "protobuf-dev": {
+   "dnf\\protobuf-dev": {
+    "driver": "dnf",
+    "fields": {
+     "name": "protobuf-devel"
+    },
+    "name": "protobuf-devel"
    }
   },
   "protobuf-dotfiles": {
@@ -68765,6 +69665,24 @@
     "name": "SDL2-devel"
    }
   },
+  "sdl2-image": {
+   "dnf\\sdl2-image": {
+    "driver": "dnf",
+    "fields": {
+     "name": "SDL2_image-devel"
+    },
+    "name": "SDL2_image-devel"
+   }
+  },
+  "sdl2-ttf": {
+   "dnf\\sdl2-ttf": {
+    "driver": "dnf",
+    "fields": {
+     "name": "SDL2_ttf-devel"
+    },
+    "name": "SDL2_ttf-devel"
+   }
+  },
   "sfml": {
    "dnf\\sfml": {
     "driver": "dnf",
@@ -68843,6 +69761,15 @@
      "unit": "snapd.socket"
     },
     "name": "snapd-socket"
+   }
+  },
+  "snappy": {
+   "dnf\\snappy": {
+    "driver": "dnf",
+    "fields": {
+     "name": "snappy-devel"
+    },
+    "name": "snappy-devel"
    }
   },
   "socat": {
@@ -69240,6 +70167,15 @@
      "name": "texlive-scheme-full"
     },
     "name": "texlive-scheme-full"
+   }
+  },
+  "tinyxml2": {
+   "dnf\\tinyxml2": {
+    "driver": "dnf",
+    "fields": {
+     "name": "tinyxml2-devel"
+    },
+    "name": "tinyxml2-devel"
    }
   },
   "tk": {
@@ -70177,6 +71113,15 @@
     "name": "wavemon"
    }
   },
+  "wayland": {
+   "dnf\\wayland": {
+    "driver": "dnf",
+    "fields": {
+     "name": "wayland-devel"
+    },
+    "name": "wayland-devel"
+   }
+  },
   "websocat": {
    "dnf\\curl": {
     "driver": "dnf",
@@ -70465,6 +71410,15 @@
     "name": "wxGTK-devel"
    }
   },
+  "x11": {
+   "dnf\\x11": {
+    "driver": "dnf",
+    "fields": {
+     "name": "libX11-devel"
+    },
+    "name": "libX11-devel"
+   }
+  },
   "xcb-util-cursor-devel": {
    "dnf\\xcb-util-cursor-devel": {
     "driver": "dnf",
@@ -70598,6 +71552,24 @@
      "glue": "xh"
     },
     "name": "xh-dotfiles"
+   }
+  },
+  "xinerama": {
+   "dnf\\xinerama": {
+    "driver": "dnf",
+    "fields": {
+     "name": "libXinerama-devel"
+    },
+    "name": "libXinerama-devel"
+   }
+  },
+  "xkbcommon": {
+   "dnf\\xkbcommon": {
+    "driver": "dnf",
+    "fields": {
+     "name": "libxkbcommon-devel"
+    },
+    "name": "libxkbcommon-devel"
    }
   },
   "xmonad": {
@@ -71057,9 +72029,9 @@
    "dnf\\zstd": {
     "driver": "dnf",
     "fields": {
-     "name": "zstd"
+     "name": "libzstd-devel"
     },
-    "name": "zstd"
+    "name": "libzstd-devel"
    }
   }
  },
@@ -71441,6 +72413,15 @@
      "name": "asciidoc"
     },
     "name": "asciidoc"
+   }
+  },
+  "asio": {
+   "brew\\asio": {
+    "driver": "brew",
+    "fields": {
+     "name": "asio"
+    },
+    "name": "asio"
    }
   },
   "astroterm": {
@@ -72028,6 +73009,15 @@
     "name": "cabal-dotfiles"
    }
   },
+  "cairo": {
+   "brew\\cairo": {
+    "driver": "brew",
+    "fields": {
+     "name": "cairo"
+    },
+    "name": "cairo"
+   }
+  },
   "caligula": {
    "brew\\caligula": {
     "driver": "brew",
@@ -72419,6 +73409,15 @@
   },
   "curl": {
    "brew\\curl": {
+    "driver": "brew",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   }
+  },
+  "curl-dev": {
+   "brew\\curl-dev": {
     "driver": "brew",
     "fields": {
      "name": "curl"
@@ -72900,6 +73899,15 @@
     "name": "dotnet-dotfiles"
    }
   },
+  "double-conversion": {
+   "brew\\double-conversion": {
+    "driver": "brew",
+    "fields": {
+     "name": "double-conversion"
+    },
+    "name": "double-conversion"
+   }
+  },
   "doxygen": {
    "brew\\doxygen": {
     "driver": "brew",
@@ -73138,6 +74146,15 @@
     "name": "ethtool"
    }
   },
+  "expat": {
+   "brew\\expat": {
+    "driver": "brew",
+    "fields": {
+     "name": "expat"
+    },
+    "name": "expat"
+   }
+  },
   "fastfetch": {
    "brew\\fastfetch": {
     "driver": "brew",
@@ -73346,6 +74363,15 @@
      "name": "flex"
     },
     "name": "flex"
+   }
+  },
+  "fmt": {
+   "brew\\fmt": {
+    "driver": "brew",
+    "fields": {
+     "name": "fmt"
+    },
+    "name": "fmt"
    }
   },
   "fontconfig": {
@@ -73580,6 +74606,15 @@
      "src": "gdbinit"
     },
     "name": "gdb-dotfiles"
+   }
+  },
+  "gflags": {
+   "brew\\gflags": {
+    "driver": "brew",
+    "fields": {
+     "name": "gflags"
+    },
+    "name": "gflags"
    }
   },
   "gfortran": {
@@ -73880,6 +74915,15 @@
      "repo-component": "universe"
     },
     "name": "glm"
+   }
+  },
+  "glog": {
+   "brew\\glog": {
+    "driver": "brew",
+    "fields": {
+     "name": "glog"
+    },
+    "name": "glog"
    }
   },
   "gnucobol": {
@@ -75615,6 +76659,15 @@
      "name": "libc++abi"
     },
     "name": "libc++abi"
+   }
+  },
+  "libevent": {
+   "brew\\libevent": {
+    "driver": "brew",
+    "fields": {
+     "name": "libevent"
+    },
+    "name": "libevent"
    }
   },
   "libfuse2": {
@@ -77569,6 +78622,15 @@
     "name": "protobuf-dotfiles"
    }
   },
+  "protobuf-dev": {
+   "brew\\protobuf-dev": {
+    "driver": "brew",
+    "fields": {
+     "name": "protobuf"
+    },
+    "name": "protobuf"
+   }
+  },
   "protobuf-dotfiles": {
    "dotfiles\\bash-dotfiles": {
     "driver": "dotfiles",
@@ -78448,6 +79510,24 @@
     "name": "sdl2"
    }
   },
+  "sdl2-image": {
+   "brew\\sdl2-image": {
+    "driver": "brew",
+    "fields": {
+     "name": "sdl2_image"
+    },
+    "name": "sdl2_image"
+   }
+  },
+  "sdl2-ttf": {
+   "brew\\sdl2-ttf": {
+    "driver": "brew",
+    "fields": {
+     "name": "sdl2_ttf"
+    },
+    "name": "sdl2_ttf"
+   }
+  },
   "sfml": {
    "brew\\sfml": {
     "driver": "brew",
@@ -78466,6 +79546,15 @@
      "name": "com.slack.Slack"
     },
     "name": "com.slack.Slack"
+   }
+  },
+  "snappy": {
+   "brew\\snappy": {
+    "driver": "brew",
+    "fields": {
+     "name": "snappy"
+    },
+    "name": "snappy"
    }
   },
   "socat": {
@@ -78744,6 +79833,15 @@
      "name": "texlive"
     },
     "name": "texlive"
+   }
+  },
+  "tinyxml2": {
+   "brew\\tinyxml2": {
+    "driver": "brew",
+    "fields": {
+     "name": "tinyxml2"
+    },
+    "name": "tinyxml2"
    }
   },
   "tk": {
@@ -79609,6 +80707,15 @@
     "name": "wxwidgets"
    }
   },
+  "x11": {
+   "brew\\x11": {
+    "driver": "brew",
+    "fields": {
+     "name": "libx11"
+    },
+    "name": "libx11"
+   }
+  },
   "xclip": {
    "brew\\xclip": {
     "driver": "brew",
@@ -79714,6 +80821,24 @@
      "glue": "xh"
     },
     "name": "xh-dotfiles"
+   }
+  },
+  "xinerama": {
+   "brew\\xinerama": {
+    "driver": "brew",
+    "fields": {
+     "name": "libxinerama"
+    },
+    "name": "libxinerama"
+   }
+  },
+  "xkbcommon": {
+   "brew\\xkbcommon": {
+    "driver": "brew",
+    "fields": {
+     "name": "libxkbcommon"
+    },
+    "name": "libxkbcommon"
    }
   },
   "xmonad-dotfiles": {
@@ -80534,6 +81659,15 @@
     "name": "asciidoc"
    }
   },
+  "asio": {
+   "apt\\asio": {
+    "driver": "apt",
+    "fields": {
+     "name": "libasio-dev"
+    },
+    "name": "libasio-dev"
+   }
+  },
   "atop": {
    "apt\\atop": {
     "driver": "apt",
@@ -81270,6 +82404,15 @@
      "glue": "cabal"
     },
     "name": "cabal-dotfiles"
+   }
+  },
+  "cairo": {
+   "apt\\cairo": {
+    "driver": "apt",
+    "fields": {
+     "name": "libcairo2-dev"
+    },
+    "name": "libcairo2-dev"
    }
   },
   "caligula": {
@@ -82210,6 +83353,15 @@
     "name": "curl"
    }
   },
+  "curl-dev": {
+   "apt\\curl-dev": {
+    "driver": "apt",
+    "fields": {
+     "name": "libcurl4-openssl-dev"
+    },
+    "name": "libcurl4-openssl-dev"
+   }
+  },
   "cvs": {
    "apt\\cvs": {
     "driver": "apt",
@@ -82777,6 +83929,15 @@
     "name": "dotnet-dotfiles"
    }
   },
+  "double-conversion": {
+   "apt\\double-conversion": {
+    "driver": "apt",
+    "fields": {
+     "name": "libdouble-conversion-dev"
+    },
+    "name": "libdouble-conversion-dev"
+   }
+  },
   "doxygen": {
    "apt\\doxygen": {
     "driver": "apt",
@@ -83117,6 +84278,15 @@
     "name": "ethtool"
    }
   },
+  "expat": {
+   "apt\\expat": {
+    "driver": "apt",
+    "fields": {
+     "name": "libexpat1-dev"
+    },
+    "name": "libexpat1-dev"
+   }
+  },
   "fastfetch": {
    "dotfiles\\fastfetch-dotfiles": {
     "driver": "dotfiles",
@@ -83376,6 +84546,15 @@
      "name": "flex"
     },
     "name": "flex"
+   }
+  },
+  "fmt": {
+   "apt\\fmt": {
+    "driver": "apt",
+    "fields": {
+     "name": "libfmt-dev"
+    },
+    "name": "libfmt-dev"
    }
   },
   "fontconfig": {
@@ -83924,6 +85103,15 @@
     "name": "gdb-dotfiles"
    }
   },
+  "gflags": {
+   "apt\\gflags": {
+    "driver": "apt",
+    "fields": {
+     "name": "libgflags-dev"
+    },
+    "name": "libgflags-dev"
+   }
+  },
   "gfortran": {
    "apt\\gfortran": {
     "driver": "apt",
@@ -84218,6 +85406,15 @@
      "repo-component": "universe"
     },
     "name": "libglm-dev"
+   }
+  },
+  "glog": {
+   "apt\\glog": {
+    "driver": "apt",
+    "fields": {
+     "name": "libgoogle-glog-dev"
+    },
+    "name": "libgoogle-glog-dev"
    }
   },
   "gnat": {
@@ -86487,6 +87684,15 @@
     "name": "libdrm-dev"
    }
   },
+  "libevent": {
+   "apt\\libevent": {
+    "driver": "apt",
+    "fields": {
+     "name": "libevent-dev"
+    },
+    "name": "libevent-dev"
+   }
+  },
   "libfuse2": {
    "apt\\libfuse2": {
     "driver": "apt",
@@ -86895,9 +88101,9 @@
    "apt\\lz4": {
     "driver": "apt",
     "fields": {
-     "name": "lz4"
+     "name": "liblz4-dev"
     },
-    "name": "lz4"
+    "name": "liblz4-dev"
    }
   },
   "make": {
@@ -88223,9 +89429,9 @@
    "apt\\zstd": {
     "driver": "apt",
     "fields": {
-     "name": "zstd"
+     "name": "libzstd-dev"
     },
-    "name": "zstd"
+    "name": "libzstd-dev"
    },
    "tarball\\ollama": {
     "driver": "tarball",
@@ -88965,6 +90171,15 @@
      "glue": "protobuf"
     },
     "name": "protobuf-dotfiles"
+   }
+  },
+  "protobuf-dev": {
+   "apt\\protobuf-dev": {
+    "driver": "apt",
+    "fields": {
+     "name": "libprotobuf-dev"
+    },
+    "name": "libprotobuf-dev"
    }
   },
   "protobuf-dotfiles": {
@@ -90055,6 +91270,24 @@
     "name": "libsdl2-dev"
    }
   },
+  "sdl2-image": {
+   "apt\\sdl2-image": {
+    "driver": "apt",
+    "fields": {
+     "name": "libsdl2-image-dev"
+    },
+    "name": "libsdl2-image-dev"
+   }
+  },
+  "sdl2-ttf": {
+   "apt\\sdl2-ttf": {
+    "driver": "apt",
+    "fields": {
+     "name": "libsdl2-ttf-dev"
+    },
+    "name": "libsdl2-ttf-dev"
+   }
+  },
   "sfml": {
    "apt\\sfml": {
     "driver": "apt",
@@ -90133,6 +91366,15 @@
      "unit": "snapd.socket"
     },
     "name": "snapd-socket"
+   }
+  },
+  "snappy": {
+   "apt\\snappy": {
+    "driver": "apt",
+    "fields": {
+     "name": "libsnappy-dev"
+    },
+    "name": "libsnappy-dev"
    }
   },
   "socat": {
@@ -90533,6 +91775,15 @@
      "name": "texlive-full"
     },
     "name": "texlive-full"
+   }
+  },
+  "tinyxml2": {
+   "apt\\tinyxml2": {
+    "driver": "apt",
+    "fields": {
+     "name": "libtinyxml2-dev"
+    },
+    "name": "libtinyxml2-dev"
    }
   },
   "tk": {
@@ -91444,6 +92695,15 @@
     "name": "wavemon"
    }
   },
+  "wayland": {
+   "apt\\wayland": {
+    "driver": "apt",
+    "fields": {
+     "name": "libwayland-dev"
+    },
+    "name": "libwayland-dev"
+   }
+  },
   "websocat": {
    "apt\\curl": {
     "driver": "apt",
@@ -91707,6 +92967,15 @@
     "name": "libwxgtk3.2-dev"
    }
   },
+  "x11": {
+   "apt\\x11": {
+    "driver": "apt",
+    "fields": {
+     "name": "libx11-dev"
+    },
+    "name": "libx11-dev"
+   }
+  },
   "xclip": {
    "apt\\xclip": {
     "driver": "apt",
@@ -91831,6 +93100,24 @@
      "glue": "xh"
     },
     "name": "xh-dotfiles"
+   }
+  },
+  "xinerama": {
+   "apt\\xinerama": {
+    "driver": "apt",
+    "fields": {
+     "name": "libxinerama-dev"
+    },
+    "name": "libxinerama-dev"
+   }
+  },
+  "xkbcommon": {
+   "apt\\xkbcommon": {
+    "driver": "apt",
+    "fields": {
+     "name": "libxkbcommon-dev"
+    },
+    "name": "libxkbcommon-dev"
    }
   },
   "xmonad": {
@@ -92308,9 +93595,9 @@
    "apt\\zstd": {
     "driver": "apt",
     "fields": {
-     "name": "zstd"
+     "name": "libzstd-dev"
     },
-    "name": "zstd"
+    "name": "libzstd-dev"
    }
   }
  },
@@ -92784,6 +94071,15 @@
      "name": "epel-release"
     },
     "name": "epel-release"
+   }
+  },
+  "asio": {
+   "dnf\\asio": {
+    "driver": "dnf",
+    "fields": {
+     "name": "asio-devel"
+    },
+    "name": "asio-devel"
    }
   },
   "atop": {
@@ -93581,6 +94877,15 @@
      "glue": "cabal"
     },
     "name": "cabal-dotfiles"
+   }
+  },
+  "cairo": {
+   "dnf\\cairo": {
+    "driver": "dnf",
+    "fields": {
+     "name": "cairo-devel"
+    },
+    "name": "cairo-devel"
    }
   },
   "caligula": {
@@ -94441,6 +95746,15 @@
     "name": "curl"
    }
   },
+  "curl-dev": {
+   "dnf\\curl-dev": {
+    "driver": "dnf",
+    "fields": {
+     "name": "libcurl-devel"
+    },
+    "name": "libcurl-devel"
+   }
+  },
   "cvs": {
    "dnf\\cvs": {
     "driver": "dnf",
@@ -94991,6 +96305,15 @@
     "name": "dotnet-dotfiles"
    }
   },
+  "double-conversion": {
+   "dnf\\double-conversion": {
+    "driver": "dnf",
+    "fields": {
+     "name": "double-conversion-devel"
+    },
+    "name": "double-conversion-devel"
+   }
+  },
   "doxygen": {
    "dnf\\doxygen": {
     "driver": "dnf",
@@ -95351,6 +96674,15 @@
     "name": "ethtool"
    }
   },
+  "expat": {
+   "dnf\\expat": {
+    "driver": "dnf",
+    "fields": {
+     "name": "expat-devel"
+    },
+    "name": "expat-devel"
+   }
+  },
   "fastfetch": {
    "dnf\\epel-release": {
     "driver": "dnf",
@@ -95652,6 +96984,15 @@
      "name": "flex"
     },
     "name": "flex"
+   }
+  },
+  "fmt": {
+   "dnf\\fmt": {
+    "driver": "dnf",
+    "fields": {
+     "name": "fmt-devel"
+    },
+    "name": "fmt-devel"
    }
   },
   "fontconfig": {
@@ -95962,6 +97303,15 @@
     "name": "gdb-dotfiles"
    }
   },
+  "gflags": {
+   "dnf\\gflags": {
+    "driver": "dnf",
+    "fields": {
+     "name": "gflags-devel"
+    },
+    "name": "gflags-devel"
+   }
+  },
   "gfortran": {
    "dnf\\gfortran": {
     "driver": "dnf",
@@ -96270,6 +97620,15 @@
      "repo-component": "universe"
     },
     "name": "glm-devel"
+   }
+  },
+  "glog": {
+   "dnf\\glog": {
+    "driver": "dnf",
+    "fields": {
+     "name": "glog-devel"
+    },
+    "name": "glog-devel"
    }
   },
   "gnat": {
@@ -98571,6 +99930,15 @@
     "name": "libdrm-devel"
    }
   },
+  "libevent": {
+   "dnf\\libevent": {
+    "driver": "dnf",
+    "fields": {
+     "name": "libevent-devel"
+    },
+    "name": "libevent-devel"
+   }
+  },
   "libfuse2": {
    "dnf\\libfuse2": {
     "driver": "dnf",
@@ -98952,9 +100320,9 @@
    "dnf\\lz4": {
     "driver": "dnf",
     "fields": {
-     "name": "lz4"
+     "name": "lz4-devel"
     },
-    "name": "lz4"
+    "name": "lz4-devel"
    }
   },
   "make": {
@@ -100310,9 +101678,9 @@
    "dnf\\zstd": {
     "driver": "dnf",
     "fields": {
-     "name": "zstd"
+     "name": "libzstd-devel"
     },
-    "name": "zstd"
+    "name": "libzstd-devel"
    },
    "tarball\\ollama": {
     "driver": "tarball",
@@ -101041,6 +102409,15 @@
      "glue": "protobuf"
     },
     "name": "protobuf-dotfiles"
+   }
+  },
+  "protobuf-dev": {
+   "dnf\\protobuf-dev": {
+    "driver": "dnf",
+    "fields": {
+     "name": "protobuf-devel"
+    },
+    "name": "protobuf-devel"
    }
   },
   "protobuf-dotfiles": {
@@ -102108,6 +103485,24 @@
     "name": "SDL2-devel"
    }
   },
+  "sdl2-image": {
+   "dnf\\sdl2-image": {
+    "driver": "dnf",
+    "fields": {
+     "name": "SDL2_image-devel"
+    },
+    "name": "SDL2_image-devel"
+   }
+  },
+  "sdl2-ttf": {
+   "dnf\\sdl2-ttf": {
+    "driver": "dnf",
+    "fields": {
+     "name": "SDL2_ttf-devel"
+    },
+    "name": "SDL2_ttf-devel"
+   }
+  },
   "sfml": {
    "dnf\\sfml": {
     "driver": "dnf",
@@ -102176,6 +103571,15 @@
      "unit": "snapd.socket"
     },
     "name": "snapd-socket"
+   }
+  },
+  "snappy": {
+   "dnf\\snappy": {
+    "driver": "dnf",
+    "fields": {
+     "name": "snappy-devel"
+    },
+    "name": "snappy-devel"
    }
   },
   "socat": {
@@ -102590,6 +103994,15 @@
      "name": "texlive-scheme-full"
     },
     "name": "texlive-scheme-full"
+   }
+  },
+  "tinyxml2": {
+   "dnf\\tinyxml2": {
+    "driver": "dnf",
+    "fields": {
+     "name": "tinyxml2-devel"
+    },
+    "name": "tinyxml2-devel"
    }
   },
   "tk": {
@@ -103541,6 +104954,15 @@
     "name": "vulkan-sdk-dotfiles"
    }
   },
+  "wayland": {
+   "dnf\\wayland": {
+    "driver": "dnf",
+    "fields": {
+     "name": "wayland-devel"
+    },
+    "name": "wayland-devel"
+   }
+  },
   "websocat": {
    "dnf\\curl": {
     "driver": "dnf",
@@ -103887,6 +105309,15 @@
     "name": "wxGTK-devel"
    }
   },
+  "x11": {
+   "dnf\\x11": {
+    "driver": "dnf",
+    "fields": {
+     "name": "libX11-devel"
+    },
+    "name": "libX11-devel"
+   }
+  },
   "xcb-util-cursor-devel": {
    "dnf\\xcb-util-cursor-devel": {
     "driver": "dnf",
@@ -104026,6 +105457,24 @@
      "glue": "xh"
     },
     "name": "xh-dotfiles"
+   }
+  },
+  "xinerama": {
+   "dnf\\xinerama": {
+    "driver": "dnf",
+    "fields": {
+     "name": "libXinerama-devel"
+    },
+    "name": "libXinerama-devel"
+   }
+  },
+  "xkbcommon": {
+   "dnf\\xkbcommon": {
+    "driver": "dnf",
+    "fields": {
+     "name": "libxkbcommon-devel"
+    },
+    "name": "libxkbcommon-devel"
    }
   },
   "xmonad": {
@@ -104511,9 +105960,9 @@
    "dnf\\zstd": {
     "driver": "dnf",
     "fields": {
-     "name": "zstd"
+     "name": "libzstd-devel"
     },
-    "name": "zstd"
+    "name": "libzstd-devel"
    }
   }
  },
@@ -104957,6 +106406,15 @@
      "name": "asciidoc"
     },
     "name": "asciidoc"
+   }
+  },
+  "asio": {
+   "apt\\asio": {
+    "driver": "apt",
+    "fields": {
+     "name": "libasio-dev"
+    },
+    "name": "libasio-dev"
    }
   },
   "atop": {
@@ -105695,6 +107153,15 @@
      "glue": "cabal"
     },
     "name": "cabal-dotfiles"
+   }
+  },
+  "cairo": {
+   "apt\\cairo": {
+    "driver": "apt",
+    "fields": {
+     "name": "libcairo2-dev"
+    },
+    "name": "libcairo2-dev"
    }
   },
   "caligula": {
@@ -106626,6 +108093,15 @@
     "name": "curl"
    }
   },
+  "curl-dev": {
+   "apt\\curl-dev": {
+    "driver": "apt",
+    "fields": {
+     "name": "libcurl4-openssl-dev"
+    },
+    "name": "libcurl4-openssl-dev"
+   }
+  },
   "cvs": {
    "apt\\cvs": {
     "driver": "apt",
@@ -107193,6 +108669,15 @@
     "name": "dotnet-dotfiles"
    }
   },
+  "double-conversion": {
+   "apt\\double-conversion": {
+    "driver": "apt",
+    "fields": {
+     "name": "libdouble-conversion-dev"
+    },
+    "name": "libdouble-conversion-dev"
+   }
+  },
   "doxygen": {
    "apt\\doxygen": {
     "driver": "apt",
@@ -107533,6 +109018,15 @@
     "name": "ethtool"
    }
   },
+  "expat": {
+   "apt\\expat": {
+    "driver": "apt",
+    "fields": {
+     "name": "libexpat1-dev"
+    },
+    "name": "libexpat1-dev"
+   }
+  },
   "fastfetch": {
    "dotfiles\\fastfetch-dotfiles": {
     "driver": "dotfiles",
@@ -107792,6 +109286,15 @@
      "name": "flex"
     },
     "name": "flex"
+   }
+  },
+  "fmt": {
+   "apt\\fmt": {
+    "driver": "apt",
+    "fields": {
+     "name": "libfmt-dev"
+    },
+    "name": "libfmt-dev"
    }
   },
   "fontconfig": {
@@ -108340,6 +109843,15 @@
     "name": "gdb-dotfiles"
    }
   },
+  "gflags": {
+   "apt\\gflags": {
+    "driver": "apt",
+    "fields": {
+     "name": "libgflags-dev"
+    },
+    "name": "libgflags-dev"
+   }
+  },
   "gfortran": {
    "apt\\gfortran": {
     "driver": "apt",
@@ -108634,6 +110146,15 @@
      "repo-component": "universe"
     },
     "name": "libglm-dev"
+   }
+  },
+  "glog": {
+   "apt\\glog": {
+    "driver": "apt",
+    "fields": {
+     "name": "libgoogle-glog-dev"
+    },
+    "name": "libgoogle-glog-dev"
    }
   },
   "gnat": {
@@ -110903,6 +112424,15 @@
     "name": "libdrm-dev"
    }
   },
+  "libevent": {
+   "apt\\libevent": {
+    "driver": "apt",
+    "fields": {
+     "name": "libevent-dev"
+    },
+    "name": "libevent-dev"
+   }
+  },
   "libfuse2": {
    "apt\\libfuse2": {
     "driver": "apt",
@@ -111311,9 +112841,9 @@
    "apt\\lz4": {
     "driver": "apt",
     "fields": {
-     "name": "lz4"
+     "name": "liblz4-dev"
     },
-    "name": "lz4"
+    "name": "liblz4-dev"
    }
   },
   "make": {
@@ -112639,9 +114169,9 @@
    "apt\\zstd": {
     "driver": "apt",
     "fields": {
-     "name": "zstd"
+     "name": "libzstd-dev"
     },
-    "name": "zstd"
+    "name": "libzstd-dev"
    },
    "tarball\\ollama": {
     "driver": "tarball",
@@ -113381,6 +114911,15 @@
      "glue": "protobuf"
     },
     "name": "protobuf-dotfiles"
+   }
+  },
+  "protobuf-dev": {
+   "apt\\protobuf-dev": {
+    "driver": "apt",
+    "fields": {
+     "name": "libprotobuf-dev"
+    },
+    "name": "libprotobuf-dev"
    }
   },
   "protobuf-dotfiles": {
@@ -114471,6 +116010,24 @@
     "name": "libsdl2-dev"
    }
   },
+  "sdl2-image": {
+   "apt\\sdl2-image": {
+    "driver": "apt",
+    "fields": {
+     "name": "libsdl2-image-dev"
+    },
+    "name": "libsdl2-image-dev"
+   }
+  },
+  "sdl2-ttf": {
+   "apt\\sdl2-ttf": {
+    "driver": "apt",
+    "fields": {
+     "name": "libsdl2-ttf-dev"
+    },
+    "name": "libsdl2-ttf-dev"
+   }
+  },
   "sfml": {
    "apt\\sfml": {
     "driver": "apt",
@@ -114549,6 +116106,15 @@
      "unit": "snapd.socket"
     },
     "name": "snapd-socket"
+   }
+  },
+  "snappy": {
+   "apt\\snappy": {
+    "driver": "apt",
+    "fields": {
+     "name": "libsnappy-dev"
+    },
+    "name": "libsnappy-dev"
    }
   },
   "socat": {
@@ -114956,6 +116522,15 @@
      "name": "texlive-full"
     },
     "name": "texlive-full"
+   }
+  },
+  "tinyxml2": {
+   "apt\\tinyxml2": {
+    "driver": "apt",
+    "fields": {
+     "name": "libtinyxml2-dev"
+    },
+    "name": "libtinyxml2-dev"
    }
   },
   "tk": {
@@ -115867,6 +117442,15 @@
     "name": "wavemon"
    }
   },
+  "wayland": {
+   "apt\\wayland": {
+    "driver": "apt",
+    "fields": {
+     "name": "libwayland-dev"
+    },
+    "name": "libwayland-dev"
+   }
+  },
   "websocat": {
    "apt\\curl": {
     "driver": "apt",
@@ -116130,6 +117714,15 @@
     "name": "libwxgtk3.2-dev"
    }
   },
+  "x11": {
+   "apt\\x11": {
+    "driver": "apt",
+    "fields": {
+     "name": "libx11-dev"
+    },
+    "name": "libx11-dev"
+   }
+  },
   "xclip": {
    "apt\\xclip": {
     "driver": "apt",
@@ -116254,6 +117847,24 @@
      "glue": "xh"
     },
     "name": "xh-dotfiles"
+   }
+  },
+  "xinerama": {
+   "apt\\xinerama": {
+    "driver": "apt",
+    "fields": {
+     "name": "libxinerama-dev"
+    },
+    "name": "libxinerama-dev"
+   }
+  },
+  "xkbcommon": {
+   "apt\\xkbcommon": {
+    "driver": "apt",
+    "fields": {
+     "name": "libxkbcommon-dev"
+    },
+    "name": "libxkbcommon-dev"
    }
   },
   "xmonad": {
@@ -116731,9 +118342,9 @@
    "apt\\zstd": {
     "driver": "apt",
     "fields": {
-     "name": "zstd"
+     "name": "libzstd-dev"
     },
-    "name": "zstd"
+    "name": "libzstd-dev"
    }
   }
  },
@@ -117160,6 +118771,15 @@
      "name": "asciidoc"
     },
     "name": "asciidoc"
+   }
+  },
+  "asio": {
+   "apt\\asio": {
+    "driver": "apt",
+    "fields": {
+     "name": "libasio-dev"
+    },
+    "name": "libasio-dev"
    }
   },
   "atop": {
@@ -117881,6 +119501,15 @@
      "glue": "cabal"
     },
     "name": "cabal-dotfiles"
+   }
+  },
+  "cairo": {
+   "apt\\cairo": {
+    "driver": "apt",
+    "fields": {
+     "name": "libcairo2-dev"
+    },
+    "name": "libcairo2-dev"
    }
   },
   "caligula": {
@@ -118795,6 +120424,15 @@
     "name": "curl"
    }
   },
+  "curl-dev": {
+   "apt\\curl-dev": {
+    "driver": "apt",
+    "fields": {
+     "name": "libcurl4-openssl-dev"
+    },
+    "name": "libcurl4-openssl-dev"
+   }
+  },
   "cvs": {
    "apt\\cvs": {
     "driver": "apt",
@@ -119362,6 +121000,15 @@
     "name": "dotnet-dotfiles"
    }
   },
+  "double-conversion": {
+   "apt\\double-conversion": {
+    "driver": "apt",
+    "fields": {
+     "name": "libdouble-conversion-dev"
+    },
+    "name": "libdouble-conversion-dev"
+   }
+  },
   "doxygen": {
    "apt\\doxygen": {
     "driver": "apt",
@@ -119685,6 +121332,15 @@
     "name": "ethtool"
    }
   },
+  "expat": {
+   "apt\\expat": {
+    "driver": "apt",
+    "fields": {
+     "name": "libexpat1-dev"
+    },
+    "name": "libexpat1-dev"
+   }
+  },
   "fastfetch": {
    "dotfiles\\fastfetch-dotfiles": {
     "driver": "dotfiles",
@@ -119944,6 +121600,15 @@
      "name": "flex"
     },
     "name": "flex"
+   }
+  },
+  "fmt": {
+   "apt\\fmt": {
+    "driver": "apt",
+    "fields": {
+     "name": "libfmt-dev"
+    },
+    "name": "libfmt-dev"
    }
   },
   "fontconfig": {
@@ -120492,6 +122157,15 @@
     "name": "gdb-dotfiles"
    }
   },
+  "gflags": {
+   "apt\\gflags": {
+    "driver": "apt",
+    "fields": {
+     "name": "libgflags-dev"
+    },
+    "name": "libgflags-dev"
+   }
+  },
   "gfortran": {
    "apt\\gfortran": {
     "driver": "apt",
@@ -120786,6 +122460,15 @@
      "repo-component": "universe"
     },
     "name": "libglm-dev"
+   }
+  },
+  "glog": {
+   "apt\\glog": {
+    "driver": "apt",
+    "fields": {
+     "name": "libgoogle-glog-dev"
+    },
+    "name": "libgoogle-glog-dev"
    }
   },
   "gnat": {
@@ -122994,6 +124677,15 @@
     "name": "libdrm-dev"
    }
   },
+  "libevent": {
+   "apt\\libevent": {
+    "driver": "apt",
+    "fields": {
+     "name": "libevent-dev"
+    },
+    "name": "libevent-dev"
+   }
+  },
   "libfuse2": {
    "apt\\libfuse2": {
     "driver": "apt",
@@ -123385,9 +125077,9 @@
    "apt\\lz4": {
     "driver": "apt",
     "fields": {
-     "name": "lz4"
+     "name": "liblz4-dev"
     },
-    "name": "lz4"
+    "name": "liblz4-dev"
    }
   },
   "make": {
@@ -124679,9 +126371,9 @@
    "apt\\zstd": {
     "driver": "apt",
     "fields": {
-     "name": "zstd"
+     "name": "libzstd-dev"
     },
-    "name": "zstd"
+    "name": "libzstd-dev"
    },
    "tarball\\ollama": {
     "driver": "tarball",
@@ -125387,6 +127079,15 @@
      "glue": "protobuf"
     },
     "name": "protobuf-dotfiles"
+   }
+  },
+  "protobuf-dev": {
+   "apt\\protobuf-dev": {
+    "driver": "apt",
+    "fields": {
+     "name": "libprotobuf-dev"
+    },
+    "name": "libprotobuf-dev"
    }
   },
   "protobuf-dotfiles": {
@@ -126443,6 +128144,24 @@
     "name": "libsdl2-dev"
    }
   },
+  "sdl2-image": {
+   "apt\\sdl2-image": {
+    "driver": "apt",
+    "fields": {
+     "name": "libsdl2-image-dev"
+    },
+    "name": "libsdl2-image-dev"
+   }
+  },
+  "sdl2-ttf": {
+   "apt\\sdl2-ttf": {
+    "driver": "apt",
+    "fields": {
+     "name": "libsdl2-ttf-dev"
+    },
+    "name": "libsdl2-ttf-dev"
+   }
+  },
   "sfml": {
    "apt\\sfml": {
     "driver": "apt",
@@ -126521,6 +128240,15 @@
      "unit": "snapd.socket"
     },
     "name": "snapd-socket"
+   }
+  },
+  "snappy": {
+   "apt\\snappy": {
+    "driver": "apt",
+    "fields": {
+     "name": "libsnappy-dev"
+    },
+    "name": "libsnappy-dev"
    }
   },
   "socat": {
@@ -126928,6 +128656,15 @@
      "name": "texlive-full"
     },
     "name": "texlive-full"
+   }
+  },
+  "tinyxml2": {
+   "apt\\tinyxml2": {
+    "driver": "apt",
+    "fields": {
+     "name": "libtinyxml2-dev"
+    },
+    "name": "libtinyxml2-dev"
    }
   },
   "tk": {
@@ -127822,6 +129559,15 @@
     "name": "wavemon"
    }
   },
+  "wayland": {
+   "apt\\wayland": {
+    "driver": "apt",
+    "fields": {
+     "name": "libwayland-dev"
+    },
+    "name": "libwayland-dev"
+   }
+  },
   "websocat": {
    "apt\\curl": {
     "driver": "apt",
@@ -128151,6 +129897,15 @@
     "name": "libwxgtk3.2-dev"
    }
   },
+  "x11": {
+   "apt\\x11": {
+    "driver": "apt",
+    "fields": {
+     "name": "libx11-dev"
+    },
+    "name": "libx11-dev"
+   }
+  },
   "xclip": {
    "apt\\xclip": {
     "driver": "apt",
@@ -128275,6 +130030,24 @@
      "glue": "xh"
     },
     "name": "xh-dotfiles"
+   }
+  },
+  "xinerama": {
+   "apt\\xinerama": {
+    "driver": "apt",
+    "fields": {
+     "name": "libxinerama-dev"
+    },
+    "name": "libxinerama-dev"
+   }
+  },
+  "xkbcommon": {
+   "apt\\xkbcommon": {
+    "driver": "apt",
+    "fields": {
+     "name": "libxkbcommon-dev"
+    },
+    "name": "libxkbcommon-dev"
    }
   },
   "xmonad": {
@@ -128723,9 +130496,9 @@
    "apt\\zstd": {
     "driver": "apt",
     "fields": {
-     "name": "zstd"
+     "name": "libzstd-dev"
     },
-    "name": "zstd"
+    "name": "libzstd-dev"
    }
   }
  }

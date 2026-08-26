@@ -2849,6 +2849,67 @@
                        { via: native  when: "fedora"    name: opencascade-devel }
                        { via: native  when: "arch"      name: opencascade }
                        { via: native  when: "opensuse"  name: opencascade-devel } ] }   // not in EL base / alpine / brew
+        // --- more common -dev build libraries (compact name-map form; NAMESWEEP PENDING) ---
+        x11: { attrs: [ lib FOSS permissive ] description: "libX11 — the core X11 client library (dev)."
+            install: [ { via: native  when: "(debian or redhat or arch or alpine or opensuse or fedora_atomic) and not amzn"
+                         name: { apt: libx11-dev  dnf: libX11-devel  pacman: libx11  apk: libx11-dev  zypper: libX11-devel  brew: libx11 } } ] }
+        xinerama: { attrs: [ lib FOSS permissive ] description: "libXinerama — X11 multi-monitor (Xinerama) extension library (dev)."
+            install: [ { via: native  when: "(debian or redhat or arch or alpine or opensuse or fedora_atomic) and not amzn"
+                         name: { apt: libxinerama-dev  dnf: libXinerama-devel  pacman: libxinerama  apk: libxinerama-dev  zypper: libXinerama-devel  brew: libxinerama } } ] }
+        xkbcommon: { attrs: [ lib FOSS permissive ] description: "libxkbcommon — keyboard-keymap handling for X11/Wayland (dev)."
+            install: [ { via: native  when: "(debian or redhat or arch or alpine or opensuse or fedora_atomic) and not amzn"
+                         name: { apt: libxkbcommon-dev  dnf: libxkbcommon-devel  pacman: libxkbcommon  apk: libxkbcommon-dev  zypper: libxkbcommon-devel  brew: libxkbcommon } } ] }
+        wayland: { attrs: [ lib FOSS permissive ] description: "Wayland — the display-server protocol libraries (`wayland-scanner`, libwayland; dev)."
+            install: [ { via: native  when: "(debian or redhat or arch or alpine or opensuse) and not amzn"
+                         name: { apt: libwayland-dev  dnf: wayland-devel  pacman: wayland  apk: wayland-dev  zypper: wayland-devel } } ] }   // Linux-only; not on brew
+        curl-dev: { attrs: [ lib FOSS permissive ] description: "libcurl development headers (client-side URL transfers)."
+            install: [ { via: native  when: "(debian or redhat or arch or alpine or opensuse or fedora_atomic) and not amzn"
+                         name: { apt: libcurl4-openssl-dev  dnf: libcurl-devel  pacman: curl  apk: curl-dev  zypper: libcurl-devel  brew: curl } } ] }
+        cairo: { attrs: [ lib FOSS copyleft ] description: "Cairo — 2D vector graphics library (dev)."
+            install: [ { via: native  when: "(debian or redhat or arch or alpine or opensuse or fedora_atomic) and not amzn"
+                         name: { apt: libcairo2-dev  dnf: cairo-devel  pacman: cairo  apk: cairo-dev  zypper: cairo-devel  brew: cairo } } ] }
+        expat: { attrs: [ lib FOSS permissive ] description: "Expat — a stream-oriented XML parser library (dev)."
+            install: [ { via: native  when: "(debian or redhat or arch or alpine or opensuse or fedora_atomic) and not amzn"
+                         name: { apt: libexpat1-dev  dnf: expat-devel  pacman: expat  apk: expat-dev  zypper: libexpat-devel  brew: expat } } ] }
+        libevent: { attrs: [ lib FOSS permissive ] description: "libevent — an event-notification library (dev)."
+            install: [ { via: native  when: "(debian or redhat or arch or alpine or opensuse or fedora_atomic) and not amzn"
+                         name: { apt: libevent-dev  dnf: libevent-devel  pacman: libevent  apk: libevent-dev  zypper: libevent-devel  brew: libevent } } ] }
+        fmt: { attrs: [ lib FOSS permissive ] description: "{fmt} — a modern C++ formatting library (dev)."
+            install: [ { via: native  when: "(debian or redhat or arch or alpine or opensuse or fedora_atomic) and not amzn"
+                         name: { apt: libfmt-dev  dnf: fmt-devel  pacman: fmt  apk: fmt-dev  zypper: fmt-devel  brew: fmt } } ] }
+        tinyxml2: { attrs: [ lib FOSS permissive ] description: "TinyXML-2 — a small, efficient C++ XML parser (dev)."
+            install: [ { via: native  when: "(debian or redhat or arch or alpine or opensuse or fedora_atomic) and not amzn"
+                         name: { apt: libtinyxml2-dev  dnf: tinyxml2-devel  pacman: tinyxml2  apk: tinyxml2-dev  zypper: tinyxml2-devel  brew: tinyxml2 } } ] }
+        asio: { attrs: [ lib FOSS permissive ] description: "Asio — a cross-platform C++ networking/async library (header-only; dev)."
+            install: [ { via: native  when: "(debian or redhat or arch or alpine or opensuse or fedora_atomic) and not amzn"
+                         name: { apt: libasio-dev  dnf: asio-devel  pacman: asio  apk: asio-dev  zypper: asio-devel  brew: asio } } ] }
+        zstd: { attrs: [ lib FOSS permissive ] description: "Zstandard (zstd) — fast real-time compression library (dev)."
+            install: [ { via: native  when: "(debian or redhat or arch or alpine or opensuse or fedora_atomic) and not amzn"
+                         name: { apt: libzstd-dev  dnf: libzstd-devel  pacman: zstd  apk: zstd-dev  zypper: libzstd-devel  brew: zstd } } ] }
+        lz4: { attrs: [ lib FOSS permissive ] description: "LZ4 — extremely fast compression library (dev)."
+            install: [ { via: native  when: "(debian or redhat or arch or alpine or opensuse or fedora_atomic) and not amzn"
+                         name: { apt: liblz4-dev  dnf: lz4-devel  pacman: lz4  apk: lz4-dev  zypper: liblz4-devel  brew: lz4 } } ] }
+        protobuf-dev: { attrs: [ lib FOSS permissive ] description: "Protocol Buffers C++ runtime + headers (libprotobuf; distinct from the `protobuf` compiler)."
+            install: [ { via: native  when: "(debian or redhat or arch or alpine or opensuse or fedora_atomic) and not amzn"
+                         name: { apt: libprotobuf-dev  dnf: protobuf-devel  pacman: protobuf  apk: protobuf-dev  zypper: protobuf-devel  brew: protobuf } } ] }
+        double-conversion: { attrs: [ lib FOSS permissive ] description: "double-conversion — binary↔decimal conversion routines (dev)."
+            install: [ { via: native  when: "(debian or redhat or arch or alpine or opensuse or fedora_atomic) and not amzn"
+                         name: { apt: libdouble-conversion-dev  dnf: double-conversion-devel  pacman: double-conversion  apk: double-conversion-dev  zypper: double-conversion-devel  brew: double-conversion } } ] }
+        gflags: { attrs: [ lib FOSS permissive ] description: "gflags — Google's commandline-flags library (dev)."
+            install: [ { via: native  when: "(debian or redhat or arch or alpine or opensuse or fedora_atomic) and not amzn"
+                         name: { apt: libgflags-dev  dnf: gflags-devel  pacman: gflags  apk: gflags-dev  zypper: gflags-devel  brew: gflags } } ] }
+        glog: { attrs: [ lib FOSS permissive ] description: "glog — Google's application-logging library (dev)."
+            install: [ { via: native  when: "(debian or redhat or arch or alpine or opensuse or fedora_atomic) and not amzn"
+                         name: { apt: libgoogle-glog-dev  dnf: glog-devel  pacman: google-glog  apk: glog-dev  zypper: glog-devel  brew: glog } } ] }
+        snappy: { attrs: [ lib FOSS permissive ] description: "Snappy — Google's fast compression/decompression library (dev)."
+            install: [ { via: native  when: "(debian or redhat or arch or alpine or opensuse or fedora_atomic) and not amzn"
+                         name: { apt: libsnappy-dev  dnf: snappy-devel  pacman: snappy  apk: snappy-dev  zypper: snappy-devel  brew: snappy } } ] }
+        sdl2-image: { attrs: [ lib FOSS permissive ] description: "SDL2_image — image-file loading for SDL2 (dev)."
+            install: [ { via: native  when: "(debian or redhat or arch or alpine or opensuse or fedora_atomic) and not amzn"
+                         name: { apt: libsdl2-image-dev  dnf: SDL2_image-devel  pacman: sdl2_image  apk: sdl2_image-dev  zypper: libSDL2_image-devel  brew: sdl2_image } } ] }
+        sdl2-ttf: { attrs: [ lib FOSS permissive ] description: "SDL2_ttf — TrueType-font rendering for SDL2 (dev)."
+            install: [ { via: native  when: "(debian or redhat or arch or alpine or opensuse or fedora_atomic) and not amzn"
+                         name: { apt: libsdl2-ttf-dev  dnf: SDL2_ttf-devel  pacman: sdl2_ttf  apk: sdl2_ttf-dev  zypper: libSDL2_ttf-devel  brew: sdl2_ttf } } ] }
         // SDL2 (the common target). Arch dropped classic `sdl2` → `sdl2-compat` (SDL2 API on SDL3).
         sdl: { attrs: [ lib FOSS permissive ] description: "SDL2 — Simple DirectMedia Layer (video/audio/input), dev headers + libs."
             install: [ { via: native  when: "(debian or redhat or arch or alpine or opensuse or fedora_atomic) and not amzn"  repo-component: universe
