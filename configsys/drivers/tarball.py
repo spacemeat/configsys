@@ -69,40 +69,43 @@ class Tarball(Driver):
             return Result.fail(reason)
         d = self._install_dir(rc)
 
+        # Build into a SIBLING staging dir, then atomically swap into place (rm old && mv stage) —
+        # so a failed download/extract (or a failed upgrade) leaves the EXISTING install untouched
+        # instead of a partial/bricked dir. See docs/driver-resilience-plan.md (P4 transactional).
+        stage = str(d) + MARKER_PREFIX + 'stage'
         dq = shlex.quote(str(d))
+        sq = shlex.quote(stage)
         uq = shlex.quote(url)
-        marker = shlex.quote(str(self._marker(rc)))
+        marker = shlex.quote(f'{stage}/{self._marker(rc).name}')   # written INTO the stage
         verq = shlex.quote(version)
 
         archive = str(rc.fields.get('archive') or '').lower()
         if archive == 'none':
             # bare executable (bazelisk, kubectl, ...): no archive to unpack — download straight
-            # to installDir/<binary> and make it executable. `binary:` overrides the file name.
-            binpath = shlex.quote(str(d / (rc.fields.get('binary') or rc.comp)))
-            cmd = (f'mkdir -p {dq} && '
-                   f'curl -fSL {uq} -o {binpath} && chmod +x {binpath} && '
-                   f'printf %s {verq} > {marker}')
+            # to <stage>/<binary> and make it executable. `binary:` overrides the file name.
+            binpath = shlex.quote(f'{stage}/{rc.fields.get("binary") or rc.comp}')
+            build = f'curl -fSL {uq} -o {binpath} && chmod +x {binpath}'
         elif archive in ('gz', 'gzip'):
             # a SINGLE gzip-compressed binary (e.g. tree-sitter's `tree-sitter-linux-x64.gz`) — NOT
             # a `.tar.gz` (those are tar streams, handled by the tar branch below, which auto-detects
             # gzip/xz/bz2/zst). There is no archive to walk; gunzip the stream straight to
-            # installDir/<binary> and make it executable. `binary:` overrides the file name.
-            binpath = shlex.quote(str(d / (rc.fields.get('binary') or rc.comp)))
-            tmp = shlex.quote(str(d / '.configsys-download.gz'))
-            cmd = (f'mkdir -p {dq} && curl -fSL {uq} -o {tmp} && '
-                   f'gunzip -c {tmp} > {binpath} && chmod +x {binpath} && rm -f {tmp} && '
-                   f'printf %s {verq} > {marker}')
+            # <stage>/<binary> and make it executable. `binary:` overrides the file name.
+            binpath = shlex.quote(f'{stage}/{rc.fields.get("binary") or rc.comp}')
+            tmp = shlex.quote(f'{stage}/.configsys-download.gz')
+            build = (f'curl -fSL {uq} -o {tmp} && '
+                     f'gunzip -c {tmp} > {binpath} && chmod +x {binpath} && rm -f {tmp}')
         else:
             # download + unpack via the shared acquire (same fragment the source driver builds on).
             # `strip:` drops N leading tar path components — e.g. the Go tarball's `go/` wrapper so
             # its bin/pkg/src land directly in installDir; default None = extract as-is (unchanged).
-            cmd = (f'{self._fetch_and_extract(url, d, rc.fields.get("archive"), rc.fields.get("strip"))} && '
-                   f'printf %s {verq} > {marker}')
+            build = self._fetch_and_extract(url, stage, rc.fields.get("archive"), rc.fields.get("strip"))
+        cmd = (f'rm -rf {sq} && mkdir -p {sq} && {build} && printf %s {verq} > {marker} && '
+               f'rm -rf {dq} && mv {sq} {dq}')
         return self.runner.run(cmd, sudo=self.sudo(rc), capture=False)
 
     def upgrade(self, rc):
-        # tarball upgrade = clean reinstall of the declared version
-        self.uninstall(rc)
+        # tarball upgrade = reinstall the declared version. The install stages + atomically swaps,
+        # so we do NOT uninstall first — a failed upgrade leaves the OLD version working, not a hole.
         return self.install(rc)
 
     def set_version(self, rc, version):

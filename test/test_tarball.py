@@ -1,3 +1,4 @@
+import shlex
 import shutil
 import tarfile
 
@@ -60,7 +61,10 @@ def test_install_bare_binary_no_extract(tmp_path):
     r = Runner(pretend=True)
     Tarball(r, paths=None).install(rc)
     cmd = r.calls[0]
-    assert f'-o {d / "bazelisk"}' in cmd and f'chmod +x {d / "bazelisk"}' in cmd
+    # built into a sibling stage dir, then atomically swapped into installDir (P4 transactional)
+    stage = f'{d}.configsys-stage'
+    assert f'-o {stage}/bazelisk' in cmd and f'chmod +x {stage}/bazelisk' in cmd
+    assert f'rm -rf {d} && mv {stage} {d}' in cmd
     assert 'tar -xf' not in cmd and 'unzip' not in cmd
 
 
@@ -70,7 +74,7 @@ def test_install_bare_binary_custom_name(tmp_path):
     rc.fields.update({'archive': 'none', 'binary': 'kubectl'})
     r = Runner(pretend=True)
     Tarball(r, paths=None).install(rc)
-    assert f'chmod +x {d / "kubectl"}' in r.calls[0]
+    assert f'chmod +x {d}.configsys-stage/kubectl' in r.calls[0]
 
 
 def test_install_gz_single_binary(tmp_path):
@@ -82,8 +86,10 @@ def test_install_gz_single_binary(tmp_path):
     r = Runner(pretend=True)
     Tarball(r, paths=None).install(rc)
     cmd = r.calls[0]
+    stage = f'{d}.configsys-stage'
     assert 'curl -fSL' in cmd and 'gunzip -c' in cmd
-    assert f'> {d / "tree-sitter"}' in cmd and f'chmod +x {d / "tree-sitter"}' in cmd
+    assert f'> {stage}/tree-sitter' in cmd and f'chmod +x {stage}/tree-sitter' in cmd
+    assert f'rm -rf {d} && mv {stage} {d}' in cmd            # atomic swap into place
     assert 'tar -xf' not in cmd and 'unzip -o' not in cmd   # not tar, not the zip path (gunzip != unzip)
     assert 'printf %s 1.2.3' in cmd
 
@@ -207,3 +213,18 @@ def test_real_download_extract_and_uninstall(tmp_path):
 
     tb.uninstall(rc)
     assert not inst.exists()
+
+
+def test_upgrade_is_atomic_no_uninstall_first(tmp_path):
+    # a tarball upgrade stages + swaps (install), and must NOT remove the old install up front —
+    # a failed upgrade leaves the OLD version working, not a hole (P4 transactional).
+    d = tmp_path / 'inst'
+    rc = tb_unit(d, url='https://x/tool-1.2.3-linux.tar.gz', comp='tool')
+    r = Runner(pretend=True)
+    Tarball(r, paths=None).upgrade(rc)
+    stage = f'{d}.configsys-stage'
+    joined = ' ;; '.join(r.calls)
+    assert f'rm -rf {d} && mv {stage} {d}' in joined          # swaps into place
+    # the ONLY removal of the live dir is the swap's `rm -rf {d} && mv` — never a standalone
+    # uninstall of {d} before the new version is staged
+    assert f'rm -rf {shlex.quote(str(d))}; fi' not in joined  # (uninstall's guarded rm) not run

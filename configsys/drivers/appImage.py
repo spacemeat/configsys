@@ -77,7 +77,10 @@ class AppImage(Driver):
         tq, dq = shlex.quote(str(t)), shlex.quote(str(t.parent))
         uq, mq, vq = shlex.quote(url), shlex.quote(str(self._marker(rc))), shlex.quote(version)
 
-        cmd = (f'mkdir -p {dq} && curl -fSL {uq} -o {tq} && chmod +x {tq} && '
+        # download to a temp file, then atomically mv into place — a failed/partial download (or a
+        # failed upgrade) leaves the EXISTING AppImage intact, not a truncated/broken one (P4).
+        tmp = shlex.quote(str(t) + '.configsys-download')
+        cmd = (f'mkdir -p {dq} && curl -fSL {uq} -o {tmp} && chmod +x {tmp} && mv -f {tmp} {tq} && '
                f'printf %s {vq} > {mq}')
         res = self.runner.run(cmd, sudo=self.sudo(rc), capture=False)
         if res.ok:

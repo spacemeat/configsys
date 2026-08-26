@@ -27,8 +27,11 @@ def test_install_command_construction(tmp_path):
     AppImage(r, paths=None).install(ai_unit(target))
     main = r.calls[0]
     assert f'mkdir -p {target.parent}' in main
-    assert 'curl -fSL' in main and f'-o {target}' in main
-    assert f'chmod +x {target}' in main
+    # download to a temp, chmod, then atomically mv into place (P4 transactional): a partial
+    # download can't clobber the existing AppImage
+    tmp = f'{target}.configsys-download'
+    assert 'curl -fSL' in main and f'-o {tmp}' in main
+    assert f'chmod +x {tmp}' in main and f'mv -f {tmp} {target}' in main
     assert 'printf %s 1.0' in main
     # a .desktop entry is written as a second, separate call
     assert any('applications' in c and '.desktop' in c for c in r.calls)
