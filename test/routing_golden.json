@@ -6014,6 +6014,15 @@
     "name": "libinput"
    }
   },
+  "libjpeg": {
+   "pacman\\libjpeg": {
+    "driver": "pacman",
+    "fields": {
+     "name": "libjpeg-turbo"
+    },
+    "name": "libjpeg-turbo"
+   }
+  },
   "liblz4": {
    "pacman\\liblz4": {
     "driver": "pacman",
@@ -6048,6 +6057,15 @@
      "name": "libpcap"
     },
     "name": "libpcap"
+   }
+  },
+  "libpng": {
+   "pacman\\libpng": {
+    "driver": "pacman",
+    "fields": {
+     "name": "libpng"
+    },
+    "name": "libpng"
    }
   },
   "libreoffice": {
@@ -6208,6 +6226,15 @@
     "name": "libxcursor"
    }
   },
+  "libxext": {
+   "pacman\\libxext": {
+    "driver": "pacman",
+    "fields": {
+     "name": "libxext"
+    },
+    "name": "libxext"
+   }
+  },
   "libxft": {
    "pacman\\libxft": {
     "driver": "pacman",
@@ -6251,6 +6278,24 @@
      "name": "libxrandr"
     },
     "name": "libxrandr"
+   }
+  },
+  "libxss": {
+   "pacman\\libxss": {
+    "driver": "pacman",
+    "fields": {
+     "name": "libxss"
+    },
+    "name": "libxss"
+   }
+  },
+  "libxtst": {
+   "pacman\\libxtst": {
+    "driver": "pacman",
+    "fields": {
+     "name": "libxtst"
+    },
+    "name": "libxtst"
    }
   },
   "libxxf86vm": {
@@ -11682,6 +11727,16 @@
      "name": "git"
     },
     "name": "git"
+   }
+  },
+  "webkit2gtk": {
+   "pacman\\webkit2gtk": {
+    "driver": "pacman",
+    "fields": {
+     "name": "webkit2gtk-4.1",
+     "repo-component": "universe"
+    },
+    "name": "webkit2gtk-4.1"
    }
   },
   "websocat": {
@@ -19290,6 +19345,15 @@
     "name": "libinput-dev"
    }
   },
+  "libjpeg": {
+   "apt\\libjpeg": {
+    "driver": "apt",
+    "fields": {
+     "name": "libjpeg-dev"
+    },
+    "name": "libjpeg-dev"
+   }
+  },
   "liblz4": {
    "apt\\liblz4": {
     "driver": "apt",
@@ -19324,6 +19388,15 @@
      "name": "libpcap-dev"
     },
     "name": "libpcap-dev"
+   }
+  },
+  "libpng": {
+   "apt\\libpng": {
+    "driver": "apt",
+    "fields": {
+     "name": "libpng-dev"
+    },
+    "name": "libpng-dev"
    }
   },
   "libreoffice": {
@@ -19523,6 +19596,15 @@
     "name": "libxcursor-dev"
    }
   },
+  "libxext": {
+   "apt\\libxext": {
+    "driver": "apt",
+    "fields": {
+     "name": "libxext-dev"
+    },
+    "name": "libxext-dev"
+   }
+  },
   "libxft": {
    "apt\\libxft": {
     "driver": "apt",
@@ -19566,6 +19648,24 @@
      "name": "libxrandr-dev"
     },
     "name": "libxrandr-dev"
+   }
+  },
+  "libxss": {
+   "apt\\libxss": {
+    "driver": "apt",
+    "fields": {
+     "name": "libxss-dev"
+    },
+    "name": "libxss-dev"
+   }
+  },
+  "libxtst": {
+   "apt\\libxtst": {
+    "driver": "apt",
+    "fields": {
+     "name": "libxtst-dev"
+    },
+    "name": "libxtst-dev"
    }
   },
   "libxxf86vm": {
@@ -24660,6 +24760,16 @@
      "name": "wayland-protocols"
     },
     "name": "wayland-protocols"
+   }
+  },
+  "webkit2gtk": {
+   "apt\\webkit2gtk": {
+    "driver": "apt",
+    "fields": {
+     "name": "libwebkit2gtk-4.1-dev",
+     "repo-component": "universe"
+    },
+    "name": "libwebkit2gtk-4.1-dev"
    }
   },
   "websocat": {
@@ -32203,6 +32313,15 @@
     "name": "libinput-dev"
    }
   },
+  "libjpeg": {
+   "apt\\libjpeg": {
+    "driver": "apt",
+    "fields": {
+     "name": "libjpeg-dev"
+    },
+    "name": "libjpeg-dev"
+   }
+  },
   "liblz4": {
    "apt\\liblz4": {
     "driver": "apt",
@@ -32237,6 +32356,15 @@
      "name": "libpcap-dev"
     },
     "name": "libpcap-dev"
+   }
+  },
+  "libpng": {
+   "apt\\libpng": {
+    "driver": "apt",
+    "fields": {
+     "name": "libpng-dev"
+    },
+    "name": "libpng-dev"
    }
   },
   "libreoffice": {
@@ -32436,6 +32564,15 @@
     "name": "libxcursor-dev"
    }
   },
+  "libxext": {
+   "apt\\libxext": {
+    "driver": "apt",
+    "fields": {
+     "name": "libxext-dev"
+    },
+    "name": "libxext-dev"
+   }
+  },
   "libxft": {
    "apt\\libxft": {
     "driver": "apt",
@@ -32479,6 +32616,24 @@
      "name": "libxrandr-dev"
     },
     "name": "libxrandr-dev"
+   }
+  },
+  "libxss": {
+   "apt\\libxss": {
+    "driver": "apt",
+    "fields": {
+     "name": "libxss-dev"
+    },
+    "name": "libxss-dev"
+   }
+  },
+  "libxtst": {
+   "apt\\libxtst": {
+    "driver": "apt",
+    "fields": {
+     "name": "libxtst-dev"
+    },
+    "name": "libxtst-dev"
    }
   },
   "libxxf86vm": {
@@ -37420,6 +37575,16 @@
      "name": "wayland-protocols"
     },
     "name": "wayland-protocols"
+   }
+  },
+  "webkit2gtk": {
+   "apt\\webkit2gtk": {
+    "driver": "apt",
+    "fields": {
+     "name": "libwebkit2gtk-4.1-dev",
+     "repo-component": "universe"
+    },
+    "name": "libwebkit2gtk-4.1-dev"
    }
   },
   "websocat": {
@@ -44956,6 +45121,15 @@
     "name": "libinput-dev"
    }
   },
+  "libjpeg": {
+   "apt\\libjpeg": {
+    "driver": "apt",
+    "fields": {
+     "name": "libjpeg-dev"
+    },
+    "name": "libjpeg-dev"
+   }
+  },
   "liblz4": {
    "apt\\liblz4": {
     "driver": "apt",
@@ -44990,6 +45164,15 @@
      "name": "libpcap-dev"
     },
     "name": "libpcap-dev"
+   }
+  },
+  "libpng": {
+   "apt\\libpng": {
+    "driver": "apt",
+    "fields": {
+     "name": "libpng-dev"
+    },
+    "name": "libpng-dev"
    }
   },
   "libreoffice": {
@@ -45189,6 +45372,15 @@
     "name": "libxcursor-dev"
    }
   },
+  "libxext": {
+   "apt\\libxext": {
+    "driver": "apt",
+    "fields": {
+     "name": "libxext-dev"
+    },
+    "name": "libxext-dev"
+   }
+  },
   "libxft": {
    "apt\\libxft": {
     "driver": "apt",
@@ -45232,6 +45424,24 @@
      "name": "libxrandr-dev"
     },
     "name": "libxrandr-dev"
+   }
+  },
+  "libxss": {
+   "apt\\libxss": {
+    "driver": "apt",
+    "fields": {
+     "name": "libxss-dev"
+    },
+    "name": "libxss-dev"
+   }
+  },
+  "libxtst": {
+   "apt\\libxtst": {
+    "driver": "apt",
+    "fields": {
+     "name": "libxtst-dev"
+    },
+    "name": "libxtst-dev"
    }
   },
   "libxxf86vm": {
@@ -50194,6 +50404,16 @@
      "name": "wayland-protocols"
     },
     "name": "wayland-protocols"
+   }
+  },
+  "webkit2gtk": {
+   "apt\\webkit2gtk": {
+    "driver": "apt",
+    "fields": {
+     "name": "libwebkit2gtk-4.1-dev",
+     "repo-component": "universe"
+    },
+    "name": "libwebkit2gtk-4.1-dev"
    }
   },
   "websocat": {
@@ -57425,6 +57645,15 @@
     "name": "libinput-devel"
    }
   },
+  "libjpeg": {
+   "dnf\\libjpeg": {
+    "driver": "dnf",
+    "fields": {
+     "name": "libjpeg-turbo-devel"
+    },
+    "name": "libjpeg-turbo-devel"
+   }
+  },
   "liblz4": {
    "dnf\\liblz4": {
     "driver": "dnf",
@@ -57459,6 +57688,15 @@
      "name": "libpcap-devel"
     },
     "name": "libpcap-devel"
+   }
+  },
+  "libpng": {
+   "dnf\\libpng": {
+    "driver": "dnf",
+    "fields": {
+     "name": "libpng-devel"
+    },
+    "name": "libpng-devel"
    }
   },
   "libreoffice": {
@@ -57628,6 +57866,15 @@
     "name": "libXcursor-devel"
    }
   },
+  "libxext": {
+   "dnf\\libxext": {
+    "driver": "dnf",
+    "fields": {
+     "name": "libXext-devel"
+    },
+    "name": "libXext-devel"
+   }
+  },
   "libxft": {
    "dnf\\libxft": {
     "driver": "dnf",
@@ -57671,6 +57918,24 @@
      "name": "libXrandr-devel"
     },
     "name": "libXrandr-devel"
+   }
+  },
+  "libxss": {
+   "dnf\\libxss": {
+    "driver": "dnf",
+    "fields": {
+     "name": "libXScrnSaver-devel"
+    },
+    "name": "libXScrnSaver-devel"
+   }
+  },
+  "libxtst": {
+   "dnf\\libxtst": {
+    "driver": "dnf",
+    "fields": {
+     "name": "libXtst-devel"
+    },
+    "name": "libXtst-devel"
    }
   },
   "libxxf86vm": {
@@ -62576,6 +62841,16 @@
      "name": "wayland-protocols-devel"
     },
     "name": "wayland-protocols-devel"
+   }
+  },
+  "webkit2gtk": {
+   "dnf\\webkit2gtk": {
+    "driver": "dnf",
+    "fields": {
+     "name": "webkit2gtk4.1-devel",
+     "repo-component": "universe"
+    },
+    "name": "webkit2gtk4.1-devel"
    }
   },
   "websocat": {
@@ -69799,6 +70074,15 @@
     "name": "libinput-devel"
    }
   },
+  "libjpeg": {
+   "dnf\\libjpeg": {
+    "driver": "dnf",
+    "fields": {
+     "name": "libjpeg-turbo-devel"
+    },
+    "name": "libjpeg-turbo-devel"
+   }
+  },
   "liblz4": {
    "dnf\\liblz4": {
     "driver": "dnf",
@@ -69833,6 +70117,15 @@
      "name": "libpcap-devel"
     },
     "name": "libpcap-devel"
+   }
+  },
+  "libpng": {
+   "dnf\\libpng": {
+    "driver": "dnf",
+    "fields": {
+     "name": "libpng-devel"
+    },
+    "name": "libpng-devel"
    }
   },
   "libreoffice": {
@@ -70002,6 +70295,15 @@
     "name": "libXcursor-devel"
    }
   },
+  "libxext": {
+   "dnf\\libxext": {
+    "driver": "dnf",
+    "fields": {
+     "name": "libXext-devel"
+    },
+    "name": "libXext-devel"
+   }
+  },
   "libxft": {
    "dnf\\libxft": {
     "driver": "dnf",
@@ -70045,6 +70347,24 @@
      "name": "libXrandr-devel"
     },
     "name": "libXrandr-devel"
+   }
+  },
+  "libxss": {
+   "dnf\\libxss": {
+    "driver": "dnf",
+    "fields": {
+     "name": "libXScrnSaver-devel"
+    },
+    "name": "libXScrnSaver-devel"
+   }
+  },
+  "libxtst": {
+   "dnf\\libxtst": {
+    "driver": "dnf",
+    "fields": {
+     "name": "libXtst-devel"
+    },
+    "name": "libXtst-devel"
    }
   },
   "libxxf86vm": {
@@ -74950,6 +75270,16 @@
      "name": "wayland-protocols-devel"
     },
     "name": "wayland-protocols-devel"
+   }
+  },
+  "webkit2gtk": {
+   "dnf\\webkit2gtk": {
+    "driver": "dnf",
+    "fields": {
+     "name": "webkit2gtk4.1-devel",
+     "repo-component": "universe"
+    },
+    "name": "webkit2gtk4.1-devel"
    }
   },
   "websocat": {
@@ -80696,6 +81026,15 @@
     "name": "libinput"
    }
   },
+  "libjpeg": {
+   "brew\\libjpeg": {
+    "driver": "brew",
+    "fields": {
+     "name": "libjpeg-turbo"
+    },
+    "name": "libjpeg-turbo"
+   }
+  },
   "liblz4": {
    "brew\\liblz4": {
     "driver": "brew",
@@ -80730,6 +81069,15 @@
      "name": "libpcap"
     },
     "name": "libpcap"
+   }
+  },
+  "libpng": {
+   "brew\\libpng": {
+    "driver": "brew",
+    "fields": {
+     "name": "libpng"
+    },
+    "name": "libpng"
    }
   },
   "libreoffice": {
@@ -80880,6 +81228,15 @@
     "name": "libxcursor"
    }
   },
+  "libxext": {
+   "brew\\libxext": {
+    "driver": "brew",
+    "fields": {
+     "name": "libxext"
+    },
+    "name": "libxext"
+   }
+  },
   "libxft": {
    "brew\\libxft": {
     "driver": "brew",
@@ -80923,6 +81280,24 @@
      "name": "libxrandr"
     },
     "name": "libxrandr"
+   }
+  },
+  "libxss": {
+   "brew\\libxss": {
+    "driver": "brew",
+    "fields": {
+     "name": "libxss"
+    },
+    "name": "libxss"
+   }
+  },
+  "libxtst": {
+   "brew\\libxtst": {
+    "driver": "brew",
+    "fields": {
+     "name": "libxtst"
+    },
+    "name": "libxtst"
    }
   },
   "libxxf86vm": {
@@ -92341,6 +92716,15 @@
     "name": "libinput-dev"
    }
   },
+  "libjpeg": {
+   "apt\\libjpeg": {
+    "driver": "apt",
+    "fields": {
+     "name": "libjpeg-dev"
+    },
+    "name": "libjpeg-dev"
+   }
+  },
   "liblz4": {
    "apt\\liblz4": {
     "driver": "apt",
@@ -92375,6 +92759,15 @@
      "name": "libpcap-dev"
     },
     "name": "libpcap-dev"
+   }
+  },
+  "libpng": {
+   "apt\\libpng": {
+    "driver": "apt",
+    "fields": {
+     "name": "libpng-dev"
+    },
+    "name": "libpng-dev"
    }
   },
   "libreoffice": {
@@ -92574,6 +92967,15 @@
     "name": "libxcursor-dev"
    }
   },
+  "libxext": {
+   "apt\\libxext": {
+    "driver": "apt",
+    "fields": {
+     "name": "libxext-dev"
+    },
+    "name": "libxext-dev"
+   }
+  },
   "libxft": {
    "apt\\libxft": {
     "driver": "apt",
@@ -92617,6 +93019,24 @@
      "name": "libxrandr-dev"
     },
     "name": "libxrandr-dev"
+   }
+  },
+  "libxss": {
+   "apt\\libxss": {
+    "driver": "apt",
+    "fields": {
+     "name": "libxss-dev"
+    },
+    "name": "libxss-dev"
+   }
+  },
+  "libxtst": {
+   "apt\\libxtst": {
+    "driver": "apt",
+    "fields": {
+     "name": "libxtst-dev"
+    },
+    "name": "libxtst-dev"
    }
   },
   "libxxf86vm": {
@@ -97725,6 +98145,16 @@
      "name": "wayland-protocols"
     },
     "name": "wayland-protocols"
+   }
+  },
+  "webkit2gtk": {
+   "apt\\webkit2gtk": {
+    "driver": "apt",
+    "fields": {
+     "name": "libwebkit2gtk-4.1-dev",
+     "repo-component": "universe"
+    },
+    "name": "libwebkit2gtk-4.1-dev"
    }
   },
   "websocat": {
@@ -105203,6 +105633,15 @@
     "name": "libinput-devel"
    }
   },
+  "libjpeg": {
+   "dnf\\libjpeg": {
+    "driver": "dnf",
+    "fields": {
+     "name": "libjpeg-turbo-devel"
+    },
+    "name": "libjpeg-turbo-devel"
+   }
+  },
   "liblz4": {
    "dnf\\liblz4": {
     "driver": "dnf",
@@ -105237,6 +105676,15 @@
      "name": "libpcap-devel"
     },
     "name": "libpcap-devel"
+   }
+  },
+  "libpng": {
+   "dnf\\libpng": {
+    "driver": "dnf",
+    "fields": {
+     "name": "libpng-devel"
+    },
+    "name": "libpng-devel"
    }
   },
   "libreoffice": {
@@ -105406,6 +105854,15 @@
     "name": "libXcursor-devel"
    }
   },
+  "libxext": {
+   "dnf\\libxext": {
+    "driver": "dnf",
+    "fields": {
+     "name": "libXext-devel"
+    },
+    "name": "libXext-devel"
+   }
+  },
   "libxft": {
    "dnf\\libxft": {
     "driver": "dnf",
@@ -105449,6 +105906,24 @@
      "name": "libXrandr-devel"
     },
     "name": "libXrandr-devel"
+   }
+  },
+  "libxss": {
+   "dnf\\libxss": {
+    "driver": "dnf",
+    "fields": {
+     "name": "libXScrnSaver-devel"
+    },
+    "name": "libXScrnSaver-devel"
+   }
+  },
+  "libxtst": {
+   "dnf\\libxtst": {
+    "driver": "dnf",
+    "fields": {
+     "name": "libXtst-devel"
+    },
+    "name": "libXtst-devel"
    }
   },
   "libxxf86vm": {
@@ -110610,6 +111085,16 @@
      "name": "wayland-protocols-devel"
     },
     "name": "wayland-protocols-devel"
+   }
+  },
+  "webkit2gtk": {
+   "dnf\\webkit2gtk": {
+    "driver": "dnf",
+    "fields": {
+     "name": "webkit2gtk4.1-devel",
+     "repo-component": "universe"
+    },
+    "name": "webkit2gtk4.1-devel"
    }
   },
   "websocat": {
@@ -118377,6 +118862,15 @@
     "name": "libinput-dev"
    }
   },
+  "libjpeg": {
+   "apt\\libjpeg": {
+    "driver": "apt",
+    "fields": {
+     "name": "libjpeg-dev"
+    },
+    "name": "libjpeg-dev"
+   }
+  },
   "liblz4": {
    "apt\\liblz4": {
     "driver": "apt",
@@ -118411,6 +118905,15 @@
      "name": "libpcap-dev"
     },
     "name": "libpcap-dev"
+   }
+  },
+  "libpng": {
+   "apt\\libpng": {
+    "driver": "apt",
+    "fields": {
+     "name": "libpng-dev"
+    },
+    "name": "libpng-dev"
    }
   },
   "libreoffice": {
@@ -118610,6 +119113,15 @@
     "name": "libxcursor-dev"
    }
   },
+  "libxext": {
+   "apt\\libxext": {
+    "driver": "apt",
+    "fields": {
+     "name": "libxext-dev"
+    },
+    "name": "libxext-dev"
+   }
+  },
   "libxft": {
    "apt\\libxft": {
     "driver": "apt",
@@ -118653,6 +119165,24 @@
      "name": "libxrandr-dev"
     },
     "name": "libxrandr-dev"
+   }
+  },
+  "libxss": {
+   "apt\\libxss": {
+    "driver": "apt",
+    "fields": {
+     "name": "libxss-dev"
+    },
+    "name": "libxss-dev"
+   }
+  },
+  "libxtst": {
+   "apt\\libxtst": {
+    "driver": "apt",
+    "fields": {
+     "name": "libxtst-dev"
+    },
+    "name": "libxtst-dev"
    }
   },
   "libxxf86vm": {
@@ -123768,6 +124298,16 @@
      "name": "wayland-protocols"
     },
     "name": "wayland-protocols"
+   }
+  },
+  "webkit2gtk": {
+   "apt\\webkit2gtk": {
+    "driver": "apt",
+    "fields": {
+     "name": "libwebkit2gtk-4.1-dev",
+     "repo-component": "universe"
+    },
+    "name": "libwebkit2gtk-4.1-dev"
    }
   },
   "websocat": {
@@ -131294,6 +131834,15 @@
     "name": "libinput-dev"
    }
   },
+  "libjpeg": {
+   "apt\\libjpeg": {
+    "driver": "apt",
+    "fields": {
+     "name": "libjpeg-dev"
+    },
+    "name": "libjpeg-dev"
+   }
+  },
   "liblz4": {
    "apt\\liblz4": {
     "driver": "apt",
@@ -131328,6 +131877,15 @@
      "name": "libpcap-dev"
     },
     "name": "libpcap-dev"
+   }
+  },
+  "libpng": {
+   "apt\\libpng": {
+    "driver": "apt",
+    "fields": {
+     "name": "libpng-dev"
+    },
+    "name": "libpng-dev"
    }
   },
   "libreoffice": {
@@ -131527,6 +132085,15 @@
     "name": "libxcursor-dev"
    }
   },
+  "libxext": {
+   "apt\\libxext": {
+    "driver": "apt",
+    "fields": {
+     "name": "libxext-dev"
+    },
+    "name": "libxext-dev"
+   }
+  },
   "libxft": {
    "apt\\libxft": {
     "driver": "apt",
@@ -131570,6 +132137,24 @@
      "name": "libxrandr-dev"
     },
     "name": "libxrandr-dev"
+   }
+  },
+  "libxss": {
+   "apt\\libxss": {
+    "driver": "apt",
+    "fields": {
+     "name": "libxss-dev"
+    },
+    "name": "libxss-dev"
+   }
+  },
+  "libxtst": {
+   "apt\\libxtst": {
+    "driver": "apt",
+    "fields": {
+     "name": "libxtst-dev"
+    },
+    "name": "libxtst-dev"
    }
   },
   "libxxf86vm": {
@@ -136532,6 +137117,16 @@
      "name": "wayland-protocols"
     },
     "name": "wayland-protocols"
+   }
+  },
+  "webkit2gtk": {
+   "apt\\webkit2gtk": {
+    "driver": "apt",
+    "fields": {
+     "name": "libwebkit2gtk-4.1-dev",
+     "repo-component": "universe"
+    },
+    "name": "libwebkit2gtk-4.1-dev"
    }
   },
   "websocat": {

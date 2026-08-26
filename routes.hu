@@ -2916,6 +2916,12 @@
         gtk3: { attrs: [ lib FOSS copyleft ] description: "GTK 3 — the GTK 3 GUI toolkit (dev; distinct from `gtk`, which is GTK 4)."
             install: [ { via: native  when: "(debian or redhat or arch or alpine or opensuse or fedora_atomic) and not amzn"  repo-component: universe
                          name: { apt: libgtk-3-dev  dnf: gtk3-devel  pacman: gtk3  apk: "gtk+3.0-dev"  zypper: gtk3-devel  brew: "gtk+3" } } ] }
+        // webkit2gtk (GTK3 / 4.1-soup3 generation) — the browser engine `surf` links against. Package
+        // names drift hard across distros AND across ABI (4.0 vs 4.1); this targets the current 4.1.
+        // NAMESWEEP PENDING.
+        webkit2gtk: { attrs: [ lib FOSS copyleft ] description: "WebKitGTK — the GTK web-content engine (dev headers + libs; the surf/tabbed engine)."
+            install: [ { via: native  when: "(debian or redhat or arch or alpine or opensuse) and not amzn"  repo-component: universe
+                         name: { apt: libwebkit2gtk-4.1-dev  dnf: webkit2gtk4.1-devel  pacman: webkit2gtk-4.1  apk: webkit2gtk-dev  zypper: webkit2gtk3-devel  default: webkit2gtk } } ] }
         libxi: { attrs: [ lib FOSS permissive ] description: "libXi — X11 Input-extension client library (dev)."
             install: [ { via: native  when: "(debian or redhat or arch or alpine or opensuse or fedora_atomic) and not amzn"
                          name: { apt: libxi-dev  dnf: libXi-devel  pacman: libxi  apk: libxi-dev  zypper: libXi-devel  brew: libxi } } ] }
@@ -3023,6 +3029,16 @@
                        install: [ { via: native  name: { apt: libxinerama-dev  dnf: libXinerama-devel  apk: libxinerama-dev  zypper: libXinerama-devel  default: libxinerama } } ] }
         libxft:      { attrs: [ lib FOSS permissive ] description: "libXft — the X11 FreeType font-rendering library (dev headers + libs)."
                        install: [ { via: native  name: { apt: libxft-dev  dnf: libXft-devel  apk: libxft-dev  zypper: libXft-devel  default: libxft } } ] }
+        libxext:     { attrs: [ lib FOSS permissive ] description: "libXext — the X11 common extensions library (dev headers + libs)."
+                       install: [ { via: native  name: { apt: libxext-dev  dnf: libXext-devel  apk: libxext-dev  zypper: libXext-devel  default: libxext } } ] }
+        libxtst:     { attrs: [ lib FOSS permissive ] description: "libXtst — the X11 Test/Record extension library (dev headers + libs)."
+                       install: [ { via: native  name: { apt: libxtst-dev  dnf: libXtst-devel  apk: libxtst-dev  zypper: libXtst-devel  default: libxtst } } ] }
+        libxss:      { attrs: [ lib FOSS permissive ] description: "libXScrnSaver — the X11 screen-saver extension library (dev headers + libs)."
+                       install: [ { via: native  name: { apt: libxss-dev  dnf: libXScrnSaver-devel  apk: libxscrnsaver-dev  zypper: libXScrnSaver-devel  pacman: libxss  default: libxss } } ] }
+        libpng:      { attrs: [ lib FOSS permissive ] description: "libpng — the reference PNG image library (dev headers + libs)."
+                       install: [ { via: native  name: { apt: libpng-dev  dnf: libpng-devel  apk: libpng-dev  zypper: libpng16-devel  default: libpng } } ] }
+        libjpeg:     { attrs: [ lib FOSS permissive ] description: "libjpeg-turbo — the JPEG image codec library (dev headers + libs)."
+                       install: [ { via: native  name: { apt: libjpeg-dev  dnf: libjpeg-turbo-devel  apk: libjpeg-turbo-dev  zypper: libjpeg8-devel  pacman: libjpeg-turbo  default: libjpeg-turbo } } ] }
         wayland:           { attrs: [ lib FOSS permissive ] description: "Wayland — the core Wayland client/server library + scanner (dev headers + libs)."
                              install: [ { via: native  name: { apt: libwayland-dev  dnf: wayland-devel  apk: wayland-dev  zypper: wayland-devel  default: wayland } } ] }
         wayland-protocols: { attrs: [ lib FOSS permissive ] description: "wayland-protocols — the standard Wayland protocol XML definitions."
