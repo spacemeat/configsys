@@ -32,6 +32,11 @@
         pikaos:    { using: debian    scale-root: true }            // Debian-based gaming distro; own date numbering (26.MM.DD) so it's its own scale-root
         mx:        { using: debian    scale-root: true }            // MX Linux (ID=mx, ID_LIKE=debian); own numbering (MX-19/21/23/25 tracking Debian)
         avlinux:   { using: mx }                                    // AV Linux MX Edition — MX-based multimedia distro; tracks MX (if it keeps ID=mx the `mx` block already covers it)
+        // Raspberry Pi OS. Bookworm+ rebranded os-release to ID=debian (indistinguishable from plain
+        // Debian by ID alone), so it's detected by the /etc/rpi-issue marker every Pi image carries
+        // (refine()). Legacy Raspbian (Bullseye-, ID=raspbian) aliases straight here in osdetect. Same
+        // distro, renamed — one identity. Tracks Debian's version numbering, so no scale-root of its own.
+        pios:      { using: debian  detect: { id: debian  marker: /etc/rpi-issue } }
 
         // RHEL family (dnf). The EL rebuilds share rhel's routes + version line; distinct
         // blocks (vs. one aliased `rhel`) buy them identity — `when: "rocky"`, correct display.

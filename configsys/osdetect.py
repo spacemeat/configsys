@@ -29,6 +29,9 @@ _ALIASES = {
     'steamos': 'arch',
     'opensuse-leap': 'opensuse_leap',
     'opensuse-tumbleweed': 'opensuse_tumbleweed',
+    # Legacy Raspbian (Bullseye-, ID=raspbian) is the same distro as Raspberry Pi OS, renamed.
+    # Bookworm+ reports ID=debian and is caught by the `pios` block's /etc/rpi-issue detect marker.
+    'raspbian': 'pios',
 }
 
 # Fedora Atomic desktops report ID=fedora with the variant in VARIANT_ID. uBlue images
