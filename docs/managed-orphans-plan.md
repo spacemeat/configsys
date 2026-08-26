@@ -302,9 +302,10 @@ the overlay-on-Profiles too noisy.
    foreign orphans are raw package keys with no component — so a `!orphans-foreign` node needs a
    bespoke non-component list, high-effort for a kind you can't adopt anyway; foreign discovery stays
    in the CLI (`orphans --foreign`). Ignored orphans fit better as a **"reveal ignored" overlay
-   sub-mode** (dimmed known-orphans in the catalog, `.` toggles) than a synthetic node.
-   **Deferred:** the reveal-ignored sub-mode, and routing Components `x` to *write* the queue (it's
-   primarily Profiles-fed; a correct bidirectional sync needs more care).
+   sub-mode** — BUILT: `O` is tri-state (off · overlay · overlay+ignored), `.` toggles ignore/un-ignore.
+   **Deferred (only):** routing Components `x` to *write* the queue (it's primarily Profiles-fed; a
+   correct bidirectional sync needs more care). The synthetic `foreign` node is intentionally NOT
+   built (keys aren't components; foreign discovery stays in the CLI).
 
 ## Open questions (for the user)
 
