@@ -9,6 +9,8 @@ stream their output (capture=False) so the user sees progress and sudo can promp
 import shlex
 
 from ..driver import Driver
+from ..failures import classify
+from ..runner import Result
 
 # `dnf versionlock` lives in a plugin that isn't installed by default; lock/unlock
 # ensure it first. This dnf4-named package also wires up the dnf5 subcommand.
@@ -107,15 +109,38 @@ class Dnf(Driver):
             name = f.get('repo-name', repo_id)
             content = (f'[{repo_id}]\nname={name}\nbaseurl={repo_url}\n'
                        f'enabled=1\ngpgcheck=1\ngpgkey={key}\n')
-            path = shlex.quote(f'/etc/yum.repos.d/{repo_id}.repo')
-            self.runner.run(
-                f'[ -f {path} ] || printf %s {shlex.quote(content)} | sudo tee {path} >/dev/null',
-                capture=False)
+            return self._commit_repo(content, repo_id)
+
+    def _commit_repo(self, content, repo_id):
+        '''Write a third-party .repo (only if absent), then — for a NEWLY-created one — validate it
+        by refreshing ONLY that repo. If the refresh fails (unreachable baseurl, bad repomd), roll
+        the .repo back so it can't poison every later dnf op. Returns None on success, or a
+        classified failing Result. (GPG-at-install verification is dnf's own, later — see docs/
+        driver-resilience-plan.md P2/P4.)'''
+        path = f'/etc/yum.repos.d/{repo_id}.repo'
+        p = shlex.quote(path)
+        rid = shlex.quote(repo_id)
+        existed = self.runner.run(f'test -f {p}', capture=True).ok
+        self.runner.run(
+            f'[ -f {p} ] || printf %s {shlex.quote(content)} | sudo tee {p} >/dev/null', capture=True)
+        if existed:
+            return None                          # already present (worked before) — don't re-validate
+        res = self.runner.run(f"dnf -q --disablerepo='*' --enablerepo={rid} makecache",
+                              sudo=True, capture=True)
+        if res.ok:
+            return None
+        self.runner.run(f'sudo rm -f {p}', capture=True)   # roll back OUR just-created repo
+        cat, rem = classify(res.output)
+        tail = res.output.splitlines()[-1].strip() if res.output else 'dnf makecache failed'
+        return Result.fail(f'vendor repo setup for {repo_id} failed: {tail} (repo rolled back)',
+                           category=cat, remediation=rem)
 
     # -- mutate -----------------------------------------------------------
 
     def install(self, rc):
-        self.ensure_prereqs(rc)
+        pre = self.ensure_prereqs(rc)
+        if pre is not None:                      # a vendor repo failed to verify -> abort cleanly
+            return pre
         pkg = shlex.quote(rc.name)
         return self.runner.run(f'dnf install -y {pkg}', sudo=True, capture=False)
 
@@ -124,12 +149,16 @@ class Dnf(Driver):
         return self.runner.run(f'dnf remove -y {pkg}', sudo=True, capture=False)
 
     def upgrade(self, rc):
-        self.ensure_prereqs(rc)
+        pre = self.ensure_prereqs(rc)
+        if pre is not None:
+            return pre
         pkg = shlex.quote(rc.name)
         return self.runner.run(f'dnf upgrade -y {pkg}', sudo=True, capture=False)
 
     def set_version(self, rc, version):
-        self.ensure_prereqs(rc)
+        pre = self.ensure_prereqs(rc)
+        if pre is not None:
+            return pre
         spec = shlex.quote(f'{rc.name}-{version}')
         # install covers same-or-upgrade; a lower target needs the downgrade verb
         return self.runner.run(f'dnf install -y {spec} || dnf downgrade -y {spec}',

@@ -53,7 +53,7 @@ def test_vendor_repo_prereqs_before_install():
     Dnf(r).install(comp)
     assert r.calls[0] == 'sudo rpm --import https://packages.microsoft.com/keys/microsoft.asc'
     assert r.calls[-1] == 'sudo dnf install -y code'
-    repo_write = next(c for c in r.calls if '/etc/yum.repos.d/code.repo' in c)
+    repo_write = next(c for c in r.calls if 'baseurl=' in c)  # the write, not the `test -f` probe
     assert 'baseurl=https://packages.microsoft.com/yumrepos/vscode' in repo_write
     assert '[code]' in repo_write and 'gpgcheck=1' in repo_write
 
@@ -71,7 +71,7 @@ def test_templated_gpgkey_is_left_for_dnf_not_imported_eagerly():
     r = Runner(pretend=True)
     Dnf(r).install(comp)
     assert not any('rpm --import' in c for c in r.calls)      # templated key: not eager
-    repo_write = next(c for c in r.calls if '/etc/yum.repos.d/rpmfusion-free.repo' in c)
+    repo_write = next(c for c in r.calls if 'baseurl=' in c)  # the write, not the `test -f` probe
     assert 'gpgkey=https://rpmfusion.org/keys?target=' in repo_write   # left for dnf
     assert '$releasever' in repo_write and '$basearch' in repo_write
     assert r.calls[-1] == 'sudo dnf install -y rpmfusion-free-release'
