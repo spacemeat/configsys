@@ -5103,6 +5103,46 @@
     "name": "jellyfin-service"
    }
   },
+  "jenkins": {
+   "aur\\jenkins": {
+    "driver": "aur",
+    "fields": {
+     "name": "jenkins"
+    },
+    "name": "jenkins"
+   },
+   "dotfiles\\git-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "~/.gitconfig",
+      "src": "gitconfig"
+     }
+    },
+    "name": "git-dotfiles"
+   },
+   "pacman\\base-devel": {
+    "driver": "pacman",
+    "fields": {
+     "name": "base-devel"
+    },
+    "name": "base-devel"
+   },
+   "pacman\\git": {
+    "driver": "pacman",
+    "fields": {
+     "name": "git"
+    },
+    "name": "git"
+   },
+   "pacman\\jdk": {
+    "driver": "pacman",
+    "fields": {
+     "name": "jdk21-openjdk"
+    },
+    "name": "jdk21-openjdk"
+   }
+  },
   "jetbrains-toolbox": {
    "dotfiles\\bash-dotfiles": {
     "driver": "dotfiles",
@@ -18671,6 +18711,26 @@
     "name": "jellyfin-service"
    }
   },
+  "jenkins": {
+   "apt\\jdk": {
+    "driver": "apt",
+    "fields": {
+     "name": "openjdk-21-jdk"
+    },
+    "name": "openjdk-21-jdk"
+   },
+   "apt\\jenkins": {
+    "driver": "apt",
+    "fields": {
+     "name": "jenkins",
+     "pubkey-path": "/usr/share/keyrings/jenkins-keyring.asc",
+     "pubkey-url": "https://keyserver.ubuntu.com/pks/lookup?op=get&options=mr&search=0x5E386EADB55F01504CAE8BCF7198F4B714ABFC68",
+     "source-line": "deb [signed-by=/usr/share/keyrings/jenkins-keyring.asc] https://pkg.jenkins.io/debian-stable binary/",
+     "source-path": "/etc/apt/sources.list.d/jenkins.list"
+    },
+    "name": "jenkins"
+   }
+  },
   "jetbrains-toolbox": {
    "apt\\curl": {
     "driver": "apt",
@@ -31827,6 +31887,26 @@
     "name": "jellyfin-service"
    }
   },
+  "jenkins": {
+   "apt\\jdk": {
+    "driver": "apt",
+    "fields": {
+     "name": "openjdk-21-jdk"
+    },
+    "name": "openjdk-21-jdk"
+   },
+   "apt\\jenkins": {
+    "driver": "apt",
+    "fields": {
+     "name": "jenkins",
+     "pubkey-path": "/usr/share/keyrings/jenkins-keyring.asc",
+     "pubkey-url": "https://keyserver.ubuntu.com/pks/lookup?op=get&options=mr&search=0x5E386EADB55F01504CAE8BCF7198F4B714ABFC68",
+     "source-line": "deb [signed-by=/usr/share/keyrings/jenkins-keyring.asc] https://pkg.jenkins.io/debian-stable binary/",
+     "source-path": "/etc/apt/sources.list.d/jenkins.list"
+    },
+    "name": "jenkins"
+   }
+  },
   "jetbrains-toolbox": {
    "apt\\curl": {
     "driver": "apt",
@@ -44813,6 +44893,26 @@
     "name": "jellyfin-service"
    }
   },
+  "jenkins": {
+   "apt\\jdk": {
+    "driver": "apt",
+    "fields": {
+     "name": "openjdk-21-jdk"
+    },
+    "name": "openjdk-21-jdk"
+   },
+   "apt\\jenkins": {
+    "driver": "apt",
+    "fields": {
+     "name": "jenkins",
+     "pubkey-path": "/usr/share/keyrings/jenkins-keyring.asc",
+     "pubkey-url": "https://keyserver.ubuntu.com/pks/lookup?op=get&options=mr&search=0x5E386EADB55F01504CAE8BCF7198F4B714ABFC68",
+     "source-line": "deb [signed-by=/usr/share/keyrings/jenkins-keyring.asc] https://pkg.jenkins.io/debian-stable binary/",
+     "source-path": "/etc/apt/sources.list.d/jenkins.list"
+    },
+    "name": "jenkins"
+   }
+  },
   "jetbrains-toolbox": {
    "apt\\curl": {
     "driver": "apt",
@@ -57530,6 +57630,26 @@
     "name": "jellyfin-service"
    }
   },
+  "jenkins": {
+   "dnf\\jdk": {
+    "driver": "dnf",
+    "fields": {
+     "name": "java-21-openjdk-devel"
+    },
+    "name": "java-21-openjdk-devel"
+   },
+   "dnf\\jenkins": {
+    "driver": "dnf",
+    "fields": {
+     "name": "jenkins",
+     "pubkey-url": "https://keyserver.ubuntu.com/pks/lookup?op=get&options=mr&search=0x5E386EADB55F01504CAE8BCF7198F4B714ABFC68",
+     "repo-id": "jenkins",
+     "repo-name": "Jenkins",
+     "repo-url": "https://pkg.jenkins.io/redhat-stable/"
+    },
+    "name": "jenkins"
+   }
+  },
   "jetbrains-toolbox": {
    "dnf\\curl": {
     "driver": "dnf",
@@ -70128,6 +70248,26 @@
      "unit": "jellyfin"
     },
     "name": "jellyfin-service"
+   }
+  },
+  "jenkins": {
+   "dnf\\jdk": {
+    "driver": "dnf",
+    "fields": {
+     "name": "java-21-openjdk-devel"
+    },
+    "name": "java-21-openjdk-devel"
+   },
+   "dnf\\jenkins": {
+    "driver": "dnf",
+    "fields": {
+     "name": "jenkins",
+     "pubkey-url": "https://keyserver.ubuntu.com/pks/lookup?op=get&options=mr&search=0x5E386EADB55F01504CAE8BCF7198F4B714ABFC68",
+     "repo-id": "jenkins",
+     "repo-name": "Jenkins",
+     "repo-url": "https://pkg.jenkins.io/redhat-stable/"
+    },
+    "name": "jenkins"
    }
   },
   "jetbrains-toolbox": {
@@ -93026,6 +93166,26 @@
     "name": "jellyfin-service"
    }
   },
+  "jenkins": {
+   "apt\\jdk": {
+    "driver": "apt",
+    "fields": {
+     "name": "openjdk-21-jdk"
+    },
+    "name": "openjdk-21-jdk"
+   },
+   "apt\\jenkins": {
+    "driver": "apt",
+    "fields": {
+     "name": "jenkins",
+     "pubkey-path": "/usr/share/keyrings/jenkins-keyring.asc",
+     "pubkey-url": "https://keyserver.ubuntu.com/pks/lookup?op=get&options=mr&search=0x5E386EADB55F01504CAE8BCF7198F4B714ABFC68",
+     "source-line": "deb [signed-by=/usr/share/keyrings/jenkins-keyring.asc] https://pkg.jenkins.io/debian-stable binary/",
+     "source-path": "/etc/apt/sources.list.d/jenkins.list"
+    },
+    "name": "jenkins"
+   }
+  },
   "jetbrains-toolbox": {
    "apt\\curl": {
     "driver": "apt",
@@ -106173,6 +106333,26 @@
      "name": "java-25-openjdk-devel"
     },
     "name": "java-25-openjdk-devel"
+   }
+  },
+  "jenkins": {
+   "dnf\\jdk": {
+    "driver": "dnf",
+    "fields": {
+     "name": "java-21-openjdk-devel"
+    },
+    "name": "java-21-openjdk-devel"
+   },
+   "dnf\\jenkins": {
+    "driver": "dnf",
+    "fields": {
+     "name": "jenkins",
+     "pubkey-url": "https://keyserver.ubuntu.com/pks/lookup?op=get&options=mr&search=0x5E386EADB55F01504CAE8BCF7198F4B714ABFC68",
+     "repo-id": "jenkins",
+     "repo-name": "Jenkins",
+     "repo-url": "https://pkg.jenkins.io/redhat-stable/"
+    },
+    "name": "jenkins"
    }
   },
   "jetbrains-toolbox": {
@@ -119563,6 +119743,26 @@
     "name": "jellyfin-service"
    }
   },
+  "jenkins": {
+   "apt\\jdk": {
+    "driver": "apt",
+    "fields": {
+     "name": "openjdk-21-jdk"
+    },
+    "name": "openjdk-21-jdk"
+   },
+   "apt\\jenkins": {
+    "driver": "apt",
+    "fields": {
+     "name": "jenkins",
+     "pubkey-path": "/usr/share/keyrings/jenkins-keyring.asc",
+     "pubkey-url": "https://keyserver.ubuntu.com/pks/lookup?op=get&options=mr&search=0x5E386EADB55F01504CAE8BCF7198F4B714ABFC68",
+     "source-line": "deb [signed-by=/usr/share/keyrings/jenkins-keyring.asc] https://pkg.jenkins.io/debian-stable binary/",
+     "source-path": "/etc/apt/sources.list.d/jenkins.list"
+    },
+    "name": "jenkins"
+   }
+  },
   "jetbrains-toolbox": {
    "apt\\curl": {
     "driver": "apt",
@@ -132721,6 +132921,26 @@
      "unit": "jellyfin"
     },
     "name": "jellyfin-service"
+   }
+  },
+  "jenkins": {
+   "apt\\jdk": {
+    "driver": "apt",
+    "fields": {
+     "name": "openjdk-21-jdk"
+    },
+    "name": "openjdk-21-jdk"
+   },
+   "apt\\jenkins": {
+    "driver": "apt",
+    "fields": {
+     "name": "jenkins",
+     "pubkey-path": "/usr/share/keyrings/jenkins-keyring.asc",
+     "pubkey-url": "https://keyserver.ubuntu.com/pks/lookup?op=get&options=mr&search=0x5E386EADB55F01504CAE8BCF7198F4B714ABFC68",
+     "source-line": "deb [signed-by=/usr/share/keyrings/jenkins-keyring.asc] https://pkg.jenkins.io/debian-stable binary/",
+     "source-path": "/etc/apt/sources.list.d/jenkins.list"
+    },
+    "name": "jenkins"
    }
   },
   "jetbrains-toolbox": {

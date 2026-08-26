@@ -82,7 +82,8 @@ def load_failure(paths):
 
 def failure_from_result(unit_key, driver, op, res):
     '''Build a persistable record from a failed driver Result.'''
-    return {
+    cat, rem = res.classified() if hasattr(res, 'classified') else (None, None)
+    rec = {
         'component': unit_key.split('\\', 1)[-1],
         'unit': unit_key,
         'driver': driver,
@@ -92,6 +93,11 @@ def failure_from_result(unit_key, driver, op, res):
         'output': res.output,                             # captured tail or stdout/stderr
         'at': time.strftime('%Y-%m-%d %H:%M:%S'),
     }
+    if cat:                                               # failure taxonomy (advisory) — see failures.py
+        rec['category'] = cat
+        if rem:
+            rec['remediation'] = rem
+    return rec
 
 
 # -- scrubbing ------------------------------------------------------------
@@ -228,6 +234,10 @@ def _render_failure(L, fail, sc):
     L.append(f"- **op:** {fail.get('op')}  ·  **unit:** `{fail.get('unit')}`  "
              f"·  **driver:** `{fail.get('driver')}`  ·  **exit:** {fail.get('exit')}"
              f"{('  ·  ' + fail['at']) if fail.get('at') else ''}{warn}")
+    if fail.get('category'):                              # failure taxonomy (advisory) — see failures.py
+        L.append('')
+        L.append(f"**Likely cause:** {fail['category']}"
+                 + (f" — {sc(str(fail['remediation']))}" if fail.get('remediation') else ''))
     if fail.get('command'):
         L.append('')
         L.append('**Command**')

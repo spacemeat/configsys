@@ -161,7 +161,7 @@ class Result:
     '''Uniform command result (mirrors the bits of CompletedProcess we use).'''
 
     def __init__(self, cmd, returncode, stdout='', stderr='', pretended=False, captured='',
-                 advisory=False):
+                 advisory=False, category=None, remediation=None):
         self.cmd = cmd
         self.returncode = returncode
         self.stdout = stdout or ''
@@ -171,6 +171,11 @@ class Result:
         # advisory: a non-ok result that is EXPECTED and user-actionable (e.g. dotfiles refusing to
         # overwrite un-adopted config), NOT a bug — the app explains it instead of offering `report`.
         self.advisory = advisory
+        # failure taxonomy (failures.py): a driver may set these explicitly (it knows best); else
+        # they're inferred lazily from the output by `classified()`. Advisory only — see docs/
+        # driver-resilience-plan.md.
+        self.category = category
+        self.remediation = remediation
 
     @property
     def ok(self):
@@ -181,13 +186,22 @@ class Result:
         '''The best available command output: captured stdout/stderr, else the tee'd tail.'''
         return (self.stdout + self.stderr).strip() or self.captured.strip()
 
+    def classified(self):
+        '''(category, remediation) for this result: the driver's explicit tag if set, else a
+        best-effort classification of the output via failures.classify. (None, None) = unrecognised
+        (rendered verbatim, as before).'''
+        if self.category:
+            return self.category, self.remediation
+        from .failures import classify
+        return classify(self.output)
+
     @classmethod
-    def fail(cls, reason, returncode=1):
+    def fail(cls, reason, returncode=1, category=None, remediation=None):
         '''A pre-flight failure with NO command run: the reason rides in stderr so it flows to
         the TUI summary (_fail_detail) and the report's Driver output — instead of being stuffed
         into `cmd`, where neither looks. `cmd` stays empty so the report shows no spurious
-        Command block.'''
-        return cls('', returncode, stderr=reason)
+        Command block. A driver that knows the failure kind can tag it (category/remediation).'''
+        return cls('', returncode, stderr=reason, category=category, remediation=remediation)
 
 
 def _can_tee():

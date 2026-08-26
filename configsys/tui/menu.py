@@ -456,7 +456,11 @@ def _fail_detail(res):
         return 'no result'
     text = (res.stderr or res.captured or res.stdout or '').strip()
     last = text.splitlines()[-1].strip() if text else ''
-    return f'exit {res.returncode}: {last}' if last else f'exit {res.returncode}'
+    base = f'exit {res.returncode}: {last}' if last else f'exit {res.returncode}'
+    cat, rem = res.classified()                          # failure taxonomy (advisory) — see failures.py
+    if cat:
+        base += f'  [{cat}]' + (f' — {rem}' if rem else '')
+    return base
 
 
 def execute_plan(ctx, plan, ledger):

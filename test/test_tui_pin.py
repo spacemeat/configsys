@@ -136,9 +136,11 @@ def test_fail_detail_surfaces_the_reason():
     from configsys.runner import Result
     r = Result('cmd', 1, stderr='E: could not get lock\nsome trailing line')
     assert menu._fail_detail(r) == 'exit 1: some trailing line'
-    # falls back to the tee'd tail of streamed output when there is no stderr
+    # falls back to the tee'd tail of streamed output when there is no stderr; a recognised failure
+    # (a 404) also gets the taxonomy suffix appended (failures.py)
     r2 = Result('cmd', 2, captured='downloading...\ncurl: (22) 404')
-    assert menu._fail_detail(r2) == 'exit 2: curl: (22) 404'
+    fd = menu._fail_detail(r2)
+    assert fd.startswith('exit 2: curl: (22) 404') and '[not-found/moved]' in fd
     # bare exit code when there is no output at all
     assert menu._fail_detail(Result('cmd', 1)) == 'exit 1'
     assert menu._fail_detail(None) == 'no result'
