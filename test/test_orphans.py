@@ -315,6 +315,27 @@ def test_reverse_index_recognizes_native_backed_and_alt_names():
     assert ri.get(('apt', 'krita')) == ['krita']
 
 
+def test_pip_explicit_keys_keeps_only_installer_pip():
+    from types import SimpleNamespace
+    from configsys.drivers.pip import Pip
+
+    # mirror pip's fixed-width `pip list -v` layout: columns padded to a common width, so the
+    # Installer field starts at the same index in the header and every row.
+    cols = ['Package', 'Version', 'Location', 'Installer']
+    rows = [['numpy', '1.21.5', '/usr/lib/python3/dist-packages', ''],        # distro -> no installer
+            ['Rich', '13.7.1', '/home/u/.local/lib/python3.10/site-packages', 'pip'],
+            ['pip', '25.1.1', '/home/u/.local/lib/python3.10/site-packages', 'pip']]
+    w = [max(len(x) for x in [c] + [r[i] for r in rows]) for i, c in enumerate(cols)]
+    fmt = lambda vals: ' '.join(s.ljust(wi) for s, wi in zip(vals, w)).rstrip()
+    stdout = '\n'.join([fmt(cols), ' '.join('-' * wi for wi in w)] + [fmt(r) for r in rows]) + '\n'
+
+    class _Runner:
+        def run(self, *a, **k): return SimpleNamespace(ok=True, stdout=stdout)
+
+    # numpy (distro-managed) dropped; the two INSTALLER=pip dists kept, PEP-503-normalized
+    assert Pip(_Runner(), None).explicit_keys() == {'rich', 'pip'}
+
+
 def test_apt_explicit_keys_parse():
     from configsys.drivers.apt import Apt
 

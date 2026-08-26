@@ -53,6 +53,31 @@ class Pip(Driver):
     def index_key(self, rc):
         return _norm(self._dist(rc))                  # match installed_index's normalized keys
 
+    def explicit_keys(self):
+        '''Cross-distro: keep only the dists PIP ITSELF installed (INSTALLER=pip), dropping the
+        OS-packaged Python modules that `pip list` also enumerates — apt `python3-*`, dnf/pacman/
+        zypper/apk equivalents all land in the interpreter's site and would otherwise flood the
+        orphan scan. pip records `INSTALLER=pip` in each dist it installs; no distro package manager
+        writes that, so it's the same "the user chose it" signal apt-mark gives for native packages.
+        Read from `pip list -v`'s Installer column (present since pip ~19). Names PEP-503-normalized
+        to match installed_index. None on failure / no Installer column -> no filtering (list all).'''
+        r = self.runner.run(f'{_PIP} list -v')
+        if not r.ok or not r.stdout:
+            return None
+        lines = r.stdout.splitlines()
+        hdr = next((i for i, ln in enumerate(lines) if 'Installer' in ln and 'Package' in ln), None)
+        if hdr is None or hdr + 2 > len(lines):
+            return None                               # no Installer column (ancient pip) -> don't filter
+        col = lines[hdr].index('Installer')           # columns are padded to a fixed width: same start
+        out = set()                                   #   index in the header and every data row
+        for ln in lines[hdr + 2:]:                    # skip the header and its `---` separator row
+            if not ln.strip():
+                continue
+            installer = ln[col:].strip() if len(ln) > col else ''
+            if installer == 'pip':
+                out.add(_norm(ln.split(' ', 1)[0]))
+        return out
+
     def batch_index(self, rcs):
         return self.installed_index() or {}
 
