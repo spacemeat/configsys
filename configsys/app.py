@@ -863,11 +863,9 @@ _INDEX_SRC_DIRS = {
 }
 
 
-def _find_source_files(urls, dirs, exists=os.path.exists, listdir=os.listdir,
-                       read=lambda p: Path(p).read_text(errors='replace')):
-    '''{source-file -> the failing url it contains} by scanning the package-manager source dirs for
-    any of `urls`. Best-effort + fully injectable for tests; unreadable files are skipped.'''
-    found = {}
+def _list_source_files(dirs, exists=os.path.exists, listdir=os.listdir):
+    '''Every file under the given package-manager source dirs (a dir is enumerated, a bare file
+    included as-is). Best-effort + injectable for tests.'''
     files = []
     for d in dirs:
         if not exists(d):
@@ -876,7 +874,15 @@ def _find_source_files(urls, dirs, exists=os.path.exists, listdir=os.listdir,
             files += [os.path.join(d, n) for n in sorted(listdir(d))]
         else:
             files.append(d)
-    for f in files:
+    return files
+
+
+def _find_source_files(urls, dirs, exists=os.path.exists, listdir=os.listdir,
+                       read=lambda p: Path(p).read_text(errors='replace')):
+    '''{source-file -> the failing url it contains} by scanning the package-manager source dirs for
+    any of `urls`. Best-effort + fully injectable for tests; unreadable files are skipped.'''
+    found = {}
+    for f in _list_source_files(dirs, exists, listdir):
         try:
             text = read(f)
         except Exception:
@@ -974,6 +980,44 @@ def _offer_rekey(ctx, pm, output, owned, native_cmd, *, ask=None):
     return False
 
 
+def _orphaned_managed_sources(ctx, wanted, disk_files):
+    '''[(source-file, component)] for configsys-managed sources on disk whose OWNING component is not
+    in `wanted` (the resolved/active set) — a source left behind by a component you removed from your
+    config (its stale .list/.repo still breaks the package manager). Pure. Foreign files (not in any
+    route's source-path) are never included.'''
+    owned = _owned_index_sources(ctx)                    # {path: component}, all routes
+    return sorted((f, owned[f]) for f in disk_files if f in owned and owned[f] not in wanted)
+
+
+def _reconcile_managed_sources(ctx, pm, wanted, *, ask=None, lister=None):
+    '''Phase 3 reconciliation (advisory, component-scoped): offer (prompt, plan Q1) to remove
+    configsys-managed apt/dnf sources whose owning component is no longer in the active config — the
+    stale-source cleanup that closes the loop on "I removed the component but its broken source keeps
+    breaking apt". Returns the number removed. Never touches a foreign source (plan Q4). `ask`/
+    `lister` are injectable for tests.'''
+    dirs = _INDEX_SRC_DIRS.get(pm, ())
+    if not dirs:
+        return 0
+    lister = lister or (lambda: _list_source_files(dirs))
+    orphans = _orphaned_managed_sources(ctx, wanted, lister())
+    if not orphans:
+        return 0
+    if ask is None:
+        def ask(prompt):
+            try:
+                return input(prompt).strip().lower() == 'y'
+            except EOFError:
+                return False
+    import shlex
+    removed = 0
+    print('\n── stale managed package sources (owning component no longer in your config) ──')
+    for f, comp in orphans:
+        if ask(f'  remove {f} — configsys wrote it for `{comp}`, which you no longer use? [y/N] '):
+            ctx.runner.run(f'sudo rm -f {shlex.quote(f)}', capture=True)
+            removed += 1
+    return removed
+
+
 def cmd_refresh(ctx, args):
     from .versions import discover, source_key
     print('configsys refresh — re-querying version sources and the package index '
@@ -1058,6 +1102,16 @@ def cmd_refresh(ctx, args):
                 # configsys-managed source and retry. Foreign sources are never touched.
                 if _offer_rekey(ctx, pm, res.output, owned, native):
                     ok = True
+        # P3 reconciliation: offer to remove stale managed sources whose owning component is no
+        # longer in your config. If an orphan like that was WHY the refresh failed, cleaning it up
+        # fixes it — so re-run the index once after a removal.
+        wanted = {units[k].comp for k in units}
+        if _reconcile_managed_sources(ctx, pm, wanted) and not ok:
+            print(f'\nRe-running the {pm} index refresh after cleanup...')
+            res = ctx.runner.run(native, sudo=(pm != 'brew'), capture=True)
+            ok = res.ok
+            if res.output and not ok:
+                print(res.output)
     elif pm == 'pacman':
         # Arch has no safe index-only refresh: a bare `pacman -Sy` leaves the DB newer than the
         # installed system, so the next single-package install (`pacman -S`, exactly how this driver
