@@ -269,7 +269,7 @@
             standing: never-auto
             install: [
                 { via: native  when: "debian"  packages: [ build-essential, libssl-dev, zlib1g-dev, libbz2-dev,
-                    libreadline-dev, libsqlite3-dev, libncursesw5-dev, xz-utils, tk-dev, libffi-dev, liblzma-dev ] }
+                    libreadline-dev, libsqlite3-dev, libncursesw5-dev, xz-utils, tk-dev, libffi-dev, liblzma-dev ]  installed-name: build-essential }
                 { via: native  when: "(fedora or redhat) and not amzn"  packages: [ gcc, make, zlib-devel, bzip2-devel,
                     readline-devel, sqlite-devel, openssl-devel, tk-devel, libffi-devel, xz-devel ] }
                 { via: native  when: "arch"  packages: [ base-devel, openssl, zlib, xz, tk ] }   // pyenv's documented Arch build env (Arch bundles headers, no -dev split). Keep `base-devel` — it's a META-package now (not a group, since 2023-02), so `pacman -Q` detects it exactly AND it tracks new build-tool members on upgrade; expanding it to concrete members would silently miss future additions.
@@ -864,7 +864,7 @@
         gnustep: { attrs: [ lib FOSS GNU copyleft ] suggests: gnustep-dotfiles  requires: objective-c
             description: "GNUstep — open-source Cocoa/OpenStep framework for Objective-C (Foundation + AppKit)."
             install: [
-                { via: native  when: "debian"    packages: [ gnustep-devel ] }                        // dev meta: make + base + gui + back
+                { via: native  when: "debian"    packages: [ gnustep-devel ]  installed-name: gnustep-devel }   // dev meta: make + base + gui + back; read state from it (the meta name isn't a package)
                 { via: native  when: "fedora"    packages: [ gnustep-make, gnustep-base-devel ] }      // Foundation + build system (no AppKit in Fedora repos)
                 { via: native  when: "arch"      packages: [ gnustep-make, gnustep-base ] }            // official base (gnustep-gui is AUR-only)
                 { via: native  when: "opensuse"  packages: [ gnustep-make, gnustep-base-devel ] } ]
@@ -1872,7 +1872,7 @@
         // Fusion; Arch bundles headers in the main ffmpeg package.
         ffmpeg-dev: { attrs: [ lib FOSS copyleft patent ] description: "FFmpeg development headers (libavutil/libavformat/libavcodec/…)."
             install: [ { via: native  when: "debian"  packages: [ libavutil-dev, libavformat-dev, libavcodec-dev,
-                             libavfilter-dev, libavdevice-dev, libswscale-dev, libswresample-dev ] }
+                             libavfilter-dev, libavdevice-dev, libswscale-dev, libswresample-dev ]  installed-name: libavutil-dev }
                        { via: native  when: "redhat"  requires: rpmfusion  name: ffmpeg-devel }
                        { via: native  when: "alpine"  name: ffmpeg-dev }
                        { via: native  when: "arch"  name: ffmpeg } ] }

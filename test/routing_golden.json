@@ -15456,6 +15456,7 @@
    "apt\\ffmpeg-dev": {
     "driver": "apt",
     "fields": {
+     "installed-name": "libavutil-dev",
      "name": "ffmpeg-dev",
      "packages": [
       "libavutil-dev",
@@ -16522,6 +16523,7 @@
    "apt\\gnustep": {
     "driver": "apt",
     "fields": {
+     "installed-name": "gnustep-devel",
      "name": "gnustep",
      "packages": [
       "gnustep-devel"
@@ -21620,6 +21622,7 @@
    "apt\\python-build-deps": {
     "driver": "apt",
     "fields": {
+     "installed-name": "build-essential",
      "name": "python-build-deps",
      "packages": [
       "build-essential",
@@ -28122,6 +28125,7 @@
    "apt\\ffmpeg-dev": {
     "driver": "apt",
     "fields": {
+     "installed-name": "libavutil-dev",
      "name": "ffmpeg-dev",
      "packages": [
       "libavutil-dev",
@@ -29188,6 +29192,7 @@
    "apt\\gnustep": {
     "driver": "apt",
     "fields": {
+     "installed-name": "gnustep-devel",
      "name": "gnustep",
      "packages": [
       "gnustep-devel"
@@ -34167,6 +34172,7 @@
    "apt\\python-build-deps": {
     "driver": "apt",
     "fields": {
+     "installed-name": "build-essential",
      "name": "python-build-deps",
      "packages": [
       "build-essential",
@@ -40604,6 +40610,7 @@
    "apt\\ffmpeg-dev": {
     "driver": "apt",
     "fields": {
+     "installed-name": "libavutil-dev",
      "name": "ffmpeg-dev",
      "packages": [
       "libavutil-dev",
@@ -41670,6 +41677,7 @@
    "apt\\gnustep": {
     "driver": "apt",
     "fields": {
+     "installed-name": "gnustep-devel",
      "name": "gnustep",
      "packages": [
       "gnustep-devel"
@@ -46655,6 +46663,7 @@
    "apt\\python-build-deps": {
     "driver": "apt",
     "fields": {
+     "installed-name": "build-essential",
      "name": "python-build-deps",
      "packages": [
       "build-essential",
@@ -49247,6 +49256,7 @@
    "apt\\ffmpeg-dev": {
     "driver": "apt",
     "fields": {
+     "installed-name": "libavutil-dev",
      "name": "ffmpeg-dev",
      "packages": [
       "libavutil-dev",
@@ -86922,6 +86932,7 @@
    "apt\\ffmpeg-dev": {
     "driver": "apt",
     "fields": {
+     "installed-name": "libavutil-dev",
      "name": "ffmpeg-dev",
      "packages": [
       "libavutil-dev",
@@ -87988,6 +87999,7 @@
    "apt\\gnustep": {
     "driver": "apt",
     "fields": {
+     "installed-name": "gnustep-devel",
      "name": "gnustep",
      "packages": [
       "gnustep-devel"
@@ -93092,6 +93104,7 @@
    "apt\\python-build-deps": {
     "driver": "apt",
     "fields": {
+     "installed-name": "build-essential",
      "name": "python-build-deps",
      "packages": [
       "build-essential",
@@ -112364,6 +112377,7 @@
    "apt\\ffmpeg-dev": {
     "driver": "apt",
     "fields": {
+     "installed-name": "libavutil-dev",
      "name": "ffmpeg-dev",
      "packages": [
       "libavutil-dev",
@@ -113430,6 +113444,7 @@
    "apt\\gnustep": {
     "driver": "apt",
     "fields": {
+     "installed-name": "gnustep-devel",
      "name": "gnustep",
      "packages": [
       "gnustep-devel"
@@ -118534,6 +118549,7 @@
    "apt\\python-build-deps": {
     "driver": "apt",
     "fields": {
+     "installed-name": "build-essential",
      "name": "python-build-deps",
      "packages": [
       "build-essential",
@@ -125047,6 +125063,7 @@
    "apt\\ffmpeg-dev": {
     "driver": "apt",
     "fields": {
+     "installed-name": "libavutil-dev",
      "name": "ffmpeg-dev",
      "packages": [
       "libavutil-dev",
@@ -126113,6 +126130,7 @@
    "apt\\gnustep": {
     "driver": "apt",
     "fields": {
+     "installed-name": "gnustep-devel",
      "name": "gnustep",
      "packages": [
       "gnustep-devel"
@@ -131071,6 +131089,7 @@
    "apt\\python-build-deps": {
     "driver": "apt",
     "fields": {
+     "installed-name": "build-essential",
      "name": "python-build-deps",
      "packages": [
       "build-essential",
@@ -133663,6 +133682,7 @@
    "apt\\ffmpeg-dev": {
     "driver": "apt",
     "fields": {
+     "installed-name": "libavutil-dev",
      "name": "ffmpeg-dev",
      "packages": [
       "libavutil-dev",
