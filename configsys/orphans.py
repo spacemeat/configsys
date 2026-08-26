@@ -251,6 +251,38 @@ def scan_orphans(ctx, units, *, cache=None, explicit=None, origins=None,
     return out
 
 
+def install_overlay(ctx, units, *, cache=None):
+    '''For the TUI::Profiles install-axis overlay: `(installed, orphans)` where `installed` is the set
+    of component names with ANY installed slot on disk (members + orphans -> the "installed" underline)
+    and `orphans` is `{component: Orphan}` for the unmanaged ones (-> the orphan colour + kind). One
+    shared enumeration pass (the passed cache is reused by the orphan scan). Cheap set/graph math on
+    top of the same installed_index() calls detection already makes.'''
+    rindex = build_reverse_index(ctx)
+    cache = dict(cache or {})
+    drivers = {}
+
+    def _idx(dname):
+        if dname not in cache:
+            drv = drivers.get(dname)
+            if drv is None:
+                drv = drivers[dname] = get_driver(dname, ctx.runner, ctx.paths)
+            try:
+                cache[dname] = drv.installed_index() if drv is not None else None
+            except Exception:                       # noqa: BLE001
+                cache[dname] = None
+        return cache[dname]
+
+    installed = set()
+    for dname in ({d for (d, _k) in rindex} | set(USER_FACING)):
+        idx = _idx(dname)
+        if not idx:
+            continue
+        for key in idx:
+            installed.update(rindex.get((dname, key), ()))
+    orphans = {o.component: o for o in scan_orphans(ctx, units, cache=cache) if o.component}
+    return installed, orphans
+
+
 def _ignore_globs(cfg):
     getter = getattr(cfg, 'orphans_ignore', None)
     try:

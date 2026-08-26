@@ -1974,7 +1974,24 @@ class ProfileScreen:
         self.show_removed = False        # `~`: within the star-filter, also reveal a starred profile's
                                          #      ~-pruned components (marked `~`) — the clone-and-prune view
         self._res = {}                   # component -> (available, via, pinned); survives reloads
+        self.show_install = False        # `O`: overlay the install axis (installed underline + orphan
+        self._overlay = None             #      colour); lazily computed (subprocess enumeration)
         self.reload()
+
+    def overlay(self):
+        '''The install-axis overlay data when `show_install` is on: (installed set, {comp: Orphan},
+        uninstall-queue set). Computed once (installed_index enumeration) and cached until reload.'''
+        if not self.show_install:
+            return (frozenset(), {}, frozenset())
+        if self._overlay is None:
+            from .. import orphans as _orph
+            try:
+                units, _e = self.ctx.routes.resolve_resilient(list(self.ctx.config.requested()))
+                inst, orph = _orph.install_overlay(self.ctx, units)
+                self._overlay = (inst, orph, set(self.ctx.config.uninstall_queue()))
+            except Exception:            # noqa: BLE001 — the overlay must never brick the screen
+                self._overlay = (frozenset(), {}, frozenset())
+        return self._overlay
 
     # -- profiles tree (top-level profiles + inline `+include` children) --
     def visible_pnodes(self):
@@ -2118,6 +2135,7 @@ class ProfileScreen:
 
     def reload(self):
         cfg = self.ctx.config
+        self._overlay = None                         # recompute the install overlay after any edit
         self.profiles = cfg.profile_names()
         self._profset = set(self.profiles)
         self.starred &= self._profset                # drop stars for profiles that no longer exist
@@ -2219,6 +2237,7 @@ def _draw_profiles(stdscr, pal, ps, ctx, note, screen):
     removed = ps.removed_members(prof)               # ~term drops (~) for the selected profile
     if ps.show_removed:                              # ...plus the starred profiles' drops the filter reveals
         removed = removed | ps._starred_removed()
+    ov_inst, ov_orph, ov_uninst = ps.overlay()       # install-axis overlay data (empty unless `O` on)
     # row-tint backgrounds derived from the theme's selection colour: a dimmer bar marks the current
     # row of the UNFOCUSED pane (so the profile stays visible while you navigate components), and a
     # subtle tint marks the components that are members of the selected profile.
@@ -2372,6 +2391,17 @@ def _draw_profiles(stdscr, pal, ps, ctx, note, screen):
             foc = cur and ps.focus == 'right'
             avail, via, pinned = ps._resolve(name)
             elem = 'component' if avail else 'info_dim'
+            # install-axis overlay (`O`): installed -> underline; an orphan -> its `orphan_<kind>`
+            # colour; staged for uninstall (!uninstall) -> dimmed/struck. Composes with the row tint.
+            ov_extra = 0
+            if ps.show_install:
+                _o = ov_orph.get(name)
+                if _o is not None and not foc:
+                    elem = f'orphan_{_o.kind}'
+                if name in ov_inst:
+                    ov_extra |= curses.A_UNDERLINE
+                if name in ov_uninst:
+                    ov_extra |= curses.A_DIM
             cell = col_w - 1
             # background: focused cursor (bright, wins) > current-but-unfocused (residual) > member
             if foc:
@@ -2403,11 +2433,11 @@ def _draw_profiles(stdscr, pal, ps, ctx, note, screen):
             if mstr and m_room >= 3:
                 mshow = _fit(mstr, m_room)
                 _put(stdscr, y, cx, _fit(nm_txt, cell - len(mshow) - 1),
-                     pal.style(elem, y, cx, h, w, selected=foc, bg=tint) | rev)
+                     pal.style(elem, y, cx, h, w, selected=foc, bg=tint) | rev | ov_extra)
                 mx = cx + cell - len(mshow)
                 _put(stdscr, y, mx, mshow, pal.style('method_dim', y, mx, h, w, selected=foc, bg=tint) | rev)
             else:                                    # no room for a method column: just the name
-                _put(stdscr, y, cx, _fit(nm_txt, cell), pal.style(elem, y, cx, h, w, selected=foc, bg=tint) | rev)
+                _put(stdscr, y, cx, _fit(nm_txt, cell), pal.style(elem, y, cx, h, w, selected=foc, bg=tint) | rev | ov_extra)
     # the catalog scrolls horizontally by column; show which columns are in view on the bottom border
     _scrollbar_h(stdscr, pal, ctop + cath - 1, ril, riw, ps.rcol_left, ncols, total_cols, h, w)
 
@@ -3621,6 +3651,11 @@ def run(ctx):
                         ps.rcur -= ps.rrows            # previous column
                     else:
                         ps.focus = 'left'              # leftmost column -> back to the profiles pane
+                elif pfact == 'toggle-install':
+                    ps.show_install = not ps.show_install   # overlay the install axis (installed/orphan)
+                    ps._overlay = None                      # (re)compute on next draw
+                    note = ('install overlay ON — installed underlined, orphans coloured'
+                            if ps.show_install else 'install overlay off')
                 elif pfact == 'star' and ps.focus == 'left':
                     ps.cycle_star()                    # cycle: filter to members -> +show ~-removed -> off
                 elif pfact == 'toggle-member' and ps.focus == 'left':

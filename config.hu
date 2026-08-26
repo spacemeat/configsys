@@ -239,6 +239,10 @@ profiles: {
             include: "+"            // fold another profile in (+other)
             method: m               // pin the selected component's install method
             attr-filter: A          // faceted kind filter over the catalog
+            toggle-install: O       // overlay the install axis (installed underline · orphan colour)
+            stage: s                // stage the selected orphan into the adopt-target profile
+            stage-uninstall: x      // stage the selected component for uninstall (-> !uninstall)
+            orphan-ignore: "."      // add the selected orphan to orphans-ignore
         }
 
         // Theme editor. Nav (down/up/left/right/top/bottom, switch-pane) from `global`; confirm/select
