@@ -78,3 +78,11 @@ def test_seed_uninstall_prestages_present_queue_members():
     _seed_uninstall(ms, ctx)
     # bat is present + queued -> staged remove; ncdu queued but ABSENT; htop present but not queued
     assert ms.staged == {'apt\\bat': 'remove'}
+
+
+def test_check_warns_on_hand_defined_reserved_profile(tmp_path, capsys):
+    from configsys.app import cmd_check
+    ctx = _ctx(tmp_path, '{ configs: [ dev ]  profiles: { dev: [ htop ]  "!orphans-foreign": [ bat ] } }')
+    cmd_check(ctx, None)
+    out = capsys.readouterr().out
+    assert "`!` namespace is reserved" in out
