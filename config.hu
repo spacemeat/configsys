@@ -37,15 +37,15 @@ profiles: {
     system-utils: [ fastfetch  lsblk ]
     system-monitors: [ btop  htop  bottom  atop  bmon  iotop  s-tui  glances  nvtop  wavemon  /*sysdig*/  dstat  lm-sensors ]
     disk-usage-utils: [ ncdu  duf  dysk ]
-    file-browsers: [ mc  yazi  superfile  fff ]
+    file-browsers: [ mc  yazi  superfile  fff  tree ]
     shells: [ fish  nushell  zsh ]
     configuration-tools: [ ansible  stow ]
-    password-passkey: [ bitwarden  vaultwarden  doppler  pass ]
+    password-passkey: [ bitwarden  vaultwarden  doppler  pass  gnupg  openssh-server ]
     fonts: [ mononoki-nerd ]
 
     iso-image-tools: [ caligula  balena-etcher ]
 
-    text-editors: [ android-studio  antigravity  emacs  helix  jetbrains-toolbox  micro  neovim  vscode
+    text-editors: [ asciidoc  android-studio  antigravity  emacs  helix  jetbrains-toolbox  micro  neovim  vscode
         vscodium  zed ]
 
     desktops-compositors: [ budgie  cosmic  fvwm2  gnome  i3  kde  lxqt  mate  qtile  sway  xfce  xmonad ]
@@ -54,7 +54,7 @@ profiles: {
     gaming: [ vulkan-runtime  steam  wine  winetricks  protonup-qt  protontricks ]
     games: [ ]   // a catalog plugins/your config populate (configsys-source adds xpilot); base ships no games itself
 
-    virtual-machines: [ qemu  virt-manager  virtualbox ]
+    virtual-machines: [ qemu  virt-manager  virtualbox  libvirt-clients ]
     containers: [ docker  docker-group  lazydocker  podman  xephyr ]
     k8s: [ kubectl  helm  k9s  k3s ]
 
@@ -62,11 +62,13 @@ profiles: {
     db-servers: [ postgresql-service  mariadb-service  redis-service  mongodb  mongodb-service ]
 
     net-tools: [ iproute2  impala  bluetui  curl  wireshark  wireshark-group  tshark  tcpdump  nmap  mtr  gping  traceroute  iperf3
-        socat  ethtool  whois  netcat  dig  iftop  nethogs  nload  rsync  vnstat  dnspeep ]
+        socat  ethtool  whois  netcat  dig  iftop  nethogs  nload  rsync  vnstat  dnspeep  bridge-utils ]
     cloud-tools: [ awscli  gcloud  azure-cli  opentofu  grpcurl ]
 
+    android-tools: [ jmtpfs  android-file-transfer ]
+
     c-cpp-lang: [ bazelisk  cpp-toolchain  gcc-10 gcc-11 gcc-12 gcc-13  gcc-14  gcc-15  clang-18  clang-19
-        clang-20  gdb  make  analysis  cmake  ninja  meson ]
+        clang-20  gdb  make  analysis  cmake  ninja  meson  clang  cmake-gui  doxygen  ccmake  clangd ]
     dotnet-lang: [ dotnet ]
     go-lang: [ go  goimports ]
     haskell-lang: [ haskell  cabal  hlint ]
@@ -81,7 +83,7 @@ profiles: {
     tcl-lang: [ tcl  tk ]
     ocaml-lang: [ ocaml  opam  dune ]
     php-lang: [ php  composer ]
-    python-lang: [ python3.11  python3.12  python3.13  python3.14  cython  pyenv  uv  jupyterlab ]
+    python-lang: [ python3.11  python3.12  python3.13  python3.14  cython  pyenv  uv  jupyterlab  pytest  python3-dev ]
     ruby-lang: [ ruby  bundler ]
     rust-lang: [ rust  miniforge ]
     web-lang: [ node  typescript  sass ]
@@ -91,17 +93,24 @@ profiles: {
         elm  erlang  elixir  julia  nim  nasm  octave odin  perl  r  zig  gfortran  gnat  gnucobol  d  crystal
         dart  raku  v  gleam  fennel  swift  racket  guile ]
 
-    c-cpp-libs: [ ]
-    c-cpp-dev-libs: [ pipewire-dev  ffmpeg-dev  libdrm-dev ]
+    c-cpp-libs: [ dbus-dev  swig  protobuf-dev ]
+    c-cpp-dev-libs: [ pipewire-dev  ffmpeg-dev  libdrm-dev  libgit2  libsecret  nng  opencascade  unixodbc
+        // consolidated from the configsys-source plugin into base routes (build deps useful in their own right):
+        ncurses  libevent  openssl  zlib  asio  tinyxml2  snappy  bzip2  libzstd  liblz4  libsodium  liburing
+        libaio  libunwind  libdwarf  libiberty  libcurl  expat  sdl2-ttf  sdl2-image  libpcap  sqlite  libmtp
+        fuse  libusb  libmagic  libidn2
+        // X11 / Wayland-wlroots / XCB stacks:
+        libx11  libxinerama  libxft  wayland  wayland-protocols  wlroots  libinput  libxkbcommon  pixman
+        cairo  pango  libxcb  xcb-util ]
 
     jvm-tools: [ mvnd  maven  gradle  sdkman  ant  jbang  coursier  springboot  quarkus  micronaut
         jreleaser  visualvm  jmc ]
 
     jvm-dev: [ +jvm-lang  +jvm-tools ]
 
-    dev-tools: [ gh  git  lazygit  jq  just  protobuf  yq  liquibase  perf  jenkins ]
+    dev-tools: [ gh  git  lazygit  jq  just  protobuf  yq  liquibase  perf  jenkins  po4a  source-highlight ]
     autotools: [ autoconf  automake  libtool  pkg-config  bison  flex ]   // the basic C-dev / GNU build toolchain (make/cmake are their own tools)
-    version-control-tools: [ git  lazygit  mercurial  subversion  cvs  perforce  fossil  bazaar ]
+    version-control-tools: [ git  lazygit  mercurial  subversion  cvs  perforce  fossil  bazaar  git-lfs  patch ]
     compression-tools: [ zstd  lz4  p7zip  zip  unzip  unrar  rar ]
 
     compute-lang: [ cuda  rocm-hip  intel-oneapi-basekit ]
@@ -112,18 +121,18 @@ profiles: {
     web-tools: [ prettier  httpie  mitmproxy  xh  websocat  postman  insomnia  bruno  jmeter ]
     web-package-managers: [ bun  pnpm  yarn ]
 
-    graphics-dev: [ vulkan-dev  gtk  gtkmm  qt  opengl  glfw  sdl  sfml ]
+    graphics-dev: [ vulkan-dev  gtk  gtkmm  qt  opengl  glfw  sdl  sfml  egl  glew  glm  gtk3  libdecor  libxcursor  libxi  libxrandr  libxxf86vm  wxpython  wxwidgets ]
     game-dev: [ godot  unityhub ]
 
     web-dev: [ +web-lang  +web-browsers  +web-package-managers  +web-lang  +web-tools ]
 
     electronics-tools: [ arduino  kicad  gnuradio ]
-    graphics-tools: [ blender  chafa  durdraw  krita  gimp  inkscape  darktable  freecad  openscad  scribus  digikam  grim  slurp  pastel  webcamize  wl-screenrec  swaybg ]
+    graphics-tools: [ blender  chafa  durdraw  krita  gimp  inkscape  darktable  freecad  openscad  scribus  digikam  grim  slurp  pastel  webcamize  wl-screenrec  swaybg  figlet ]
     audio-tools: [ audacity  espeak  ardour  lmms  tenacity  musescore  hydrogen  carla  sonic-pi  supercollider
-        qjackctl  yabridge ]
+        qjackctl  yabridge  pulseaudio-utils ]
 
     science: [ jupyterlab  gnuplot  paraview  opencv  opencv-python ]
-    math: [ texlive  texlive-full  julia  r  octave  maxima  wxmaxima  pari  gap  gnuplot  sagemath ]
+    math: [ texlive  texlive-full  julia  r  octave  maxima  wxmaxima  pari  gap  gnuplot  sagemath  numpy ]
 
     communication: [ discord  discordo  slack  obs-studio ]
     creative-tools: [ +electronics-tools  +graphics-tools  +audio-tools  libreoffice ]
