@@ -2883,10 +2883,10 @@
         asio: { attrs: [ lib FOSS permissive ] description: "Asio — a cross-platform C++ networking/async library (header-only; dev)."
             install: [ { via: native  when: "(debian or redhat or arch or alpine or opensuse or fedora_atomic) and not amzn"
                          name: { apt: libasio-dev  dnf: asio-devel  pacman: asio  apk: asio-dev  zypper: asio-devel  brew: asio } } ] }
-        zstd: { attrs: [ lib FOSS permissive ] description: "Zstandard (zstd) — fast real-time compression library (dev)."
+        zstd-dev: { attrs: [ lib FOSS permissive ] description: "Zstandard development headers (libzstd; the `zstd` CLI is its own component)."
             install: [ { via: native  when: "(debian or redhat or arch or alpine or opensuse or fedora_atomic) and not amzn"
                          name: { apt: libzstd-dev  dnf: libzstd-devel  pacman: zstd  apk: zstd-dev  zypper: libzstd-devel  brew: zstd } } ] }
-        lz4: { attrs: [ lib FOSS permissive ] description: "LZ4 — extremely fast compression library (dev)."
+        lz4-dev: { attrs: [ lib FOSS permissive ] description: "LZ4 development headers (liblz4; the `lz4` CLI is its own component)."
             install: [ { via: native  when: "(debian or redhat or arch or alpine or opensuse or fedora_atomic) and not amzn"
                          name: { apt: liblz4-dev  dnf: lz4-devel  pacman: lz4  apk: lz4-dev  zypper: liblz4-devel  brew: lz4 } } ] }
         protobuf-dev: { attrs: [ lib FOSS permissive ] description: "Protocol Buffers C++ runtime + headers (libprotobuf; distinct from the `protobuf` compiler)."

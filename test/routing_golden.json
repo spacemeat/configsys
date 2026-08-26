@@ -6043,6 +6043,15 @@
     "name": "lz4"
    }
   },
+  "lz4-dev": {
+   "pacman\\lz4-dev": {
+    "driver": "pacman",
+    "fields": {
+     "name": "lz4"
+    },
+    "name": "lz4"
+   }
+  },
   "make": {
    "pacman\\make": {
     "driver": "pacman",
@@ -11843,6 +11852,15 @@
   },
   "zstd": {
    "pacman\\zstd": {
+    "driver": "pacman",
+    "fields": {
+     "name": "zstd"
+    },
+    "name": "zstd"
+   }
+  },
+  "zstd-dev": {
+   "pacman\\zstd-dev": {
     "driver": "pacman",
     "fields": {
      "name": "zstd"
@@ -18730,6 +18748,15 @@
    "apt\\lz4": {
     "driver": "apt",
     "fields": {
+     "name": "lz4"
+    },
+    "name": "lz4"
+   }
+  },
+  "lz4-dev": {
+   "apt\\lz4-dev": {
+    "driver": "apt",
+    "fields": {
      "name": "liblz4-dev"
     },
     "name": "liblz4-dev"
@@ -20058,9 +20085,9 @@
    "apt\\zstd": {
     "driver": "apt",
     "fields": {
-     "name": "libzstd-dev"
+     "name": "zstd"
     },
-    "name": "libzstd-dev"
+    "name": "zstd"
    },
    "tarball\\ollama": {
     "driver": "tarball",
@@ -24208,6 +24235,15 @@
   },
   "zstd": {
    "apt\\zstd": {
+    "driver": "apt",
+    "fields": {
+     "name": "zstd"
+    },
+    "name": "zstd"
+   }
+  },
+  "zstd-dev": {
+   "apt\\zstd-dev": {
     "driver": "apt",
     "fields": {
      "name": "libzstd-dev"
@@ -30976,6 +31012,15 @@
    "apt\\lz4": {
     "driver": "apt",
     "fields": {
+     "name": "lz4"
+    },
+    "name": "lz4"
+   }
+  },
+  "lz4-dev": {
+   "apt\\lz4-dev": {
+    "driver": "apt",
+    "fields": {
      "name": "liblz4-dev"
     },
     "name": "liblz4-dev"
@@ -32270,9 +32315,9 @@
    "apt\\zstd": {
     "driver": "apt",
     "fields": {
-     "name": "libzstd-dev"
+     "name": "zstd"
     },
-    "name": "libzstd-dev"
+    "name": "zstd"
    },
    "tarball\\ollama": {
     "driver": "tarball",
@@ -36318,6 +36363,15 @@
   },
   "zstd": {
    "apt\\zstd": {
+    "driver": "apt",
+    "fields": {
+     "name": "zstd"
+    },
+    "name": "zstd"
+   }
+  },
+  "zstd-dev": {
+   "apt\\zstd-dev": {
     "driver": "apt",
     "fields": {
      "name": "libzstd-dev"
@@ -43082,6 +43136,15 @@
    "apt\\lz4": {
     "driver": "apt",
     "fields": {
+     "name": "lz4"
+    },
+    "name": "lz4"
+   }
+  },
+  "lz4-dev": {
+   "apt\\lz4-dev": {
+    "driver": "apt",
+    "fields": {
      "name": "liblz4-dev"
     },
     "name": "liblz4-dev"
@@ -44376,9 +44439,9 @@
    "apt\\zstd": {
     "driver": "apt",
     "fields": {
-     "name": "libzstd-dev"
+     "name": "zstd"
     },
-    "name": "libzstd-dev"
+    "name": "zstd"
    },
    "tarball\\ollama": {
     "driver": "tarball",
@@ -48511,6 +48574,15 @@
   },
   "zstd": {
    "apt\\zstd": {
+    "driver": "apt",
+    "fields": {
+     "name": "zstd"
+    },
+    "name": "zstd"
+   }
+  },
+  "zstd-dev": {
+   "apt\\zstd-dev": {
     "driver": "apt",
     "fields": {
      "name": "libzstd-dev"
@@ -54916,6 +54988,15 @@
    "dnf\\lz4": {
     "driver": "dnf",
     "fields": {
+     "name": "lz4"
+    },
+    "name": "lz4"
+   }
+  },
+  "lz4-dev": {
+   "dnf\\lz4-dev": {
+    "driver": "dnf",
+    "fields": {
      "name": "lz4-devel"
     },
     "name": "lz4-devel"
@@ -56166,9 +56247,9 @@
    "dnf\\zstd": {
     "driver": "dnf",
     "fields": {
-     "name": "libzstd-devel"
+     "name": "zstd"
     },
-    "name": "libzstd-devel"
+    "name": "zstd"
    },
    "tarball\\ollama": {
     "driver": "tarball",
@@ -60256,6 +60337,15 @@
   },
   "zstd": {
    "dnf\\zstd": {
+    "driver": "dnf",
+    "fields": {
+     "name": "zstd"
+    },
+    "name": "zstd"
+   }
+  },
+  "zstd-dev": {
+   "dnf\\zstd-dev": {
     "driver": "dnf",
     "fields": {
      "name": "libzstd-devel"
@@ -66687,6 +66777,15 @@
    "dnf\\lz4": {
     "driver": "dnf",
     "fields": {
+     "name": "lz4"
+    },
+    "name": "lz4"
+   }
+  },
+  "lz4-dev": {
+   "dnf\\lz4-dev": {
+    "driver": "dnf",
+    "fields": {
      "name": "lz4-devel"
     },
     "name": "lz4-devel"
@@ -67937,9 +68036,9 @@
    "dnf\\zstd": {
     "driver": "dnf",
     "fields": {
-     "name": "libzstd-devel"
+     "name": "zstd"
     },
-    "name": "libzstd-devel"
+    "name": "zstd"
    },
    "tarball\\ollama": {
     "driver": "tarball",
@@ -72027,6 +72126,15 @@
   },
   "zstd": {
    "dnf\\zstd": {
+    "driver": "dnf",
+    "fields": {
+     "name": "zstd"
+    },
+    "name": "zstd"
+   }
+  },
+  "zstd-dev": {
+   "dnf\\zstd-dev": {
     "driver": "dnf",
     "fields": {
      "name": "libzstd-devel"
@@ -77008,6 +77116,15 @@
     "name": "lz4"
    }
   },
+  "lz4-dev": {
+   "brew\\lz4-dev": {
+    "driver": "brew",
+    "fields": {
+     "name": "lz4"
+    },
+    "name": "lz4"
+   }
+  },
   "make": {
    "brew\\make": {
     "driver": "brew",
@@ -81209,6 +81326,15 @@
   },
   "zstd": {
    "brew\\zstd": {
+    "driver": "brew",
+    "fields": {
+     "name": "zstd"
+    },
+    "name": "zstd"
+   }
+  },
+  "zstd-dev": {
+   "brew\\zstd-dev": {
     "driver": "brew",
     "fields": {
      "name": "zstd"
@@ -88101,6 +88227,15 @@
    "apt\\lz4": {
     "driver": "apt",
     "fields": {
+     "name": "lz4"
+    },
+    "name": "lz4"
+   }
+  },
+  "lz4-dev": {
+   "apt\\lz4-dev": {
+    "driver": "apt",
+    "fields": {
      "name": "liblz4-dev"
     },
     "name": "liblz4-dev"
@@ -89429,9 +89564,9 @@
    "apt\\zstd": {
     "driver": "apt",
     "fields": {
-     "name": "libzstd-dev"
+     "name": "zstd"
     },
-    "name": "libzstd-dev"
+    "name": "zstd"
    },
    "tarball\\ollama": {
     "driver": "tarball",
@@ -93593,6 +93728,15 @@
   },
   "zstd": {
    "apt\\zstd": {
+    "driver": "apt",
+    "fields": {
+     "name": "zstd"
+    },
+    "name": "zstd"
+   }
+  },
+  "zstd-dev": {
+   "apt\\zstd-dev": {
     "driver": "apt",
     "fields": {
      "name": "libzstd-dev"
@@ -100320,6 +100464,15 @@
    "dnf\\lz4": {
     "driver": "dnf",
     "fields": {
+     "name": "lz4"
+    },
+    "name": "lz4"
+   }
+  },
+  "lz4-dev": {
+   "dnf\\lz4-dev": {
+    "driver": "dnf",
+    "fields": {
      "name": "lz4-devel"
     },
     "name": "lz4-devel"
@@ -101678,9 +101831,9 @@
    "dnf\\zstd": {
     "driver": "dnf",
     "fields": {
-     "name": "libzstd-devel"
+     "name": "zstd"
     },
-    "name": "libzstd-devel"
+    "name": "zstd"
    },
    "tarball\\ollama": {
     "driver": "tarball",
@@ -105958,6 +106111,15 @@
   },
   "zstd": {
    "dnf\\zstd": {
+    "driver": "dnf",
+    "fields": {
+     "name": "zstd"
+    },
+    "name": "zstd"
+   }
+  },
+  "zstd-dev": {
+   "dnf\\zstd-dev": {
     "driver": "dnf",
     "fields": {
      "name": "libzstd-devel"
@@ -112841,6 +113003,15 @@
    "apt\\lz4": {
     "driver": "apt",
     "fields": {
+     "name": "lz4"
+    },
+    "name": "lz4"
+   }
+  },
+  "lz4-dev": {
+   "apt\\lz4-dev": {
+    "driver": "apt",
+    "fields": {
      "name": "liblz4-dev"
     },
     "name": "liblz4-dev"
@@ -114169,9 +114340,9 @@
    "apt\\zstd": {
     "driver": "apt",
     "fields": {
-     "name": "libzstd-dev"
+     "name": "zstd"
     },
-    "name": "libzstd-dev"
+    "name": "zstd"
    },
    "tarball\\ollama": {
     "driver": "tarball",
@@ -118340,6 +118511,15 @@
   },
   "zstd": {
    "apt\\zstd": {
+    "driver": "apt",
+    "fields": {
+     "name": "zstd"
+    },
+    "name": "zstd"
+   }
+  },
+  "zstd-dev": {
+   "apt\\zstd-dev": {
     "driver": "apt",
     "fields": {
      "name": "libzstd-dev"
@@ -125077,6 +125257,15 @@
    "apt\\lz4": {
     "driver": "apt",
     "fields": {
+     "name": "lz4"
+    },
+    "name": "lz4"
+   }
+  },
+  "lz4-dev": {
+   "apt\\lz4-dev": {
+    "driver": "apt",
+    "fields": {
      "name": "liblz4-dev"
     },
     "name": "liblz4-dev"
@@ -126371,9 +126560,9 @@
    "apt\\zstd": {
     "driver": "apt",
     "fields": {
-     "name": "libzstd-dev"
+     "name": "zstd"
     },
-    "name": "libzstd-dev"
+    "name": "zstd"
    },
    "tarball\\ollama": {
     "driver": "tarball",
@@ -130494,6 +130683,15 @@
   },
   "zstd": {
    "apt\\zstd": {
+    "driver": "apt",
+    "fields": {
+     "name": "zstd"
+    },
+    "name": "zstd"
+   }
+  },
+  "zstd-dev": {
+   "apt\\zstd-dev": {
     "driver": "apt",
     "fields": {
      "name": "libzstd-dev"
