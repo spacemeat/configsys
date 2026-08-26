@@ -130,6 +130,7 @@
         zip:        { attrs: [ CLI FOSS permissive ] description: "Create and update ZIP archives." install: [ { via: native } ] }
         curl:       { attrs: [ CLI FOSS permissive ] description: "Transfer data over HTTP(S) and more — the ubiquitous `curl`." install: [ { via: native } ] }
         git:        { attrs: [ CLI FOSS copyleft ] suggests: git-dotfiles  description: "Distributed version control — the `git` you already know." install: [ { via: native } ] }
+        git-lfs:    { attrs: [ CLI FOSS permissive ] requires: git  description: "Git Large File Storage (`git lfs`) — version large files via lightweight pointers." install: [ { via: native } ] }   // `git-lfs` on every family
         // Other version-control systems (git is above). Package name == component name except:
         // subversion's CLI is `svn`; bazaar is now Breezy (`brz`); perforce ships `helix-cli` (`p4`).
         mercurial: { attrs: [ CLI FOSS copyleft ] suggests: mercurial-dotfiles  description: "Mercurial — a fast distributed version control system (`hg`)."
@@ -305,12 +306,17 @@
                 install: [ { via: native  repo-component: universe  when: "not (rhel or amzn)" }
                            { via: native  when: "rhel"  requires: epel } ] }   // EL: EPEL-only; Alpine: community repo
         rsync: { attrs: [ CLI FOSS copyleft ] description: "rsync — fast incremental file transfer and synchronization." install: [ { via: native } ] }   // core package on every family
+        tree:  { attrs: [ CLI FOSS GNU copyleft ] description: "tree — list a directory as an indented tree." install: [ { via: native } ] }   // `tree` on every family
+        figlet: { attrs: [ CLI FOSS permissive ] description: "FIGlet — render text as large ASCII-art banners (`figlet`)."
+                  install: [ { via: native  when: "not (rhel or amzn)" }
+                             { via: native  when: "rhel"  requires: epel } ] }   // EL via EPEL
         lynx:  { attrs: [ CLI app FOSS copyleft ] description: "Lynx — the classic text-mode web browser."
                  install: [ { via: native  repo-component: universe  when: "not (rhel or amzn)" }
                             { via: native  when: "rhel"  requires: epel } ] }   // EL: EPEL
         pass:  { attrs: [ CLI FOSS copyleft ] description: "pass — the standard unix password manager (a GPG-encrypted store, `pass`)."
                  install: [ { via: native  repo-component: universe  when: "not (rhel or amzn)"  name: { zypper: password-store  default: pass } }
                             { via: native  when: "rhel"  requires: epel } ] }   // openSUSE pkg is `password-store` (binary still `pass`); EL via EPEL
+        gnupg: { attrs: [ CLI FOSS GNU copyleft ] description: "GnuPG (`gpg`) — OpenPGP encryption and signing." install: [ { via: native  name: { dnf: gnupg2  zypper: gpg2  default: gnupg } } ] }   // dnf=gnupg2, zypper=gpg2, else gnupg; binary `gpg`
         gh:    { attrs: [ CLI FOSS permissive account cloud ] description: "GitHub CLI — drive GitHub from the terminal (`gh`)."
                  install: [ { via: native  repo-component: universe  when: "not (rhel or opensuse or amzn)"  name: { pacman: github-cli  apk: github-cli  default: gh } }
                             { via: native-pkg-file  when: "rhel or opensuse or amzn"  version: { github: cli/cli }  asset: { rpm: { x86_64: "gh_*_linux_amd64.rpm" } } } ] }   // in-repo on debian/ubuntu(universe)/fedora/arch(github-cli)/alpine(github-cli)/brew; upstream .rpm for EL/openSUSE
@@ -2279,6 +2285,11 @@
         // not packages — nothing to install for those). ---
         valgrind:  { attrs: [ CLI FOSS copyleft ] suggests: valgrind-dotfiles  description: "Valgrind — memory-error and leak detector." install: [ { via: native } ] }
         cppcheck:  { attrs: [ CLI FOSS copyleft ] description: "Cppcheck — static analysis for C/C++." install: [ { via: native } ] }
+        doxygen:   { attrs: [ CLI FOSS GNU copyleft ] description: "Doxygen — generate API docs from annotated C/C++/… source." install: [ { via: native } ] }
+        swig:      { attrs: [ CLI FOSS permissive ] description: "SWIG — generate scripting-language bindings for C/C++ (`swig`)." install: [ { via: native  installed-name: swig4.0 } ] }   // apt `swig` is a meta over swig4.0
+        source-highlight: { attrs: [ CLI FOSS GNU copyleft ] description: "GNU Source-highlight — syntax-highlight source to HTML and other formats."
+                            install: [ { via: native  when: "not (rhel or amzn)" }
+                                       { via: native  when: "rhel"  requires: epel } ] }   // EL via EPEL
         strace:    { attrs: [ CLI FOSS copyleft ] description: "strace — trace the system calls of a running program." install: [ { via: native } ] }
         ltrace:    { attrs: [ CLI FOSS copyleft ] description: "ltrace — trace the library calls of a running program." install: [ { via: native } ] }
         lldb:      { attrs: [ CLI FOSS permissive ] description: "LLDB — the LLVM project's debugger." install: [ { via: native } ] }

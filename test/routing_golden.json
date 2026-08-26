@@ -2246,6 +2246,15 @@
     "name": "dotnet-dotfiles"
    }
   },
+  "doxygen": {
+   "pacman\\doxygen": {
+    "driver": "pacman",
+    "fields": {
+     "name": "doxygen"
+    },
+    "name": "doxygen"
+   }
+  },
   "dstat": {
    "pacman\\dstat": {
     "driver": "pacman",
@@ -2711,6 +2720,15 @@
      "name": "ffmpeg"
     },
     "name": "ffmpeg"
+   }
+  },
+  "figlet": {
+   "pacman\\figlet": {
+    "driver": "pacman",
+    "fields": {
+     "name": "figlet"
+    },
+    "name": "figlet"
    }
   },
   "firefox": {
@@ -3202,6 +3220,32 @@
     "name": "git-dotfiles"
    }
   },
+  "git-lfs": {
+   "dotfiles\\git-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "~/.gitconfig",
+      "src": "gitconfig"
+     }
+    },
+    "name": "git-dotfiles"
+   },
+   "pacman\\git": {
+    "driver": "pacman",
+    "fields": {
+     "name": "git"
+    },
+    "name": "git"
+   },
+   "pacman\\git-lfs": {
+    "driver": "pacman",
+    "fields": {
+     "name": "git-lfs"
+    },
+    "name": "git-lfs"
+   }
+  },
   "glances": {
    "dotfiles\\glances-dotfiles": {
     "driver": "dotfiles",
@@ -3347,6 +3391,15 @@
      "name": "git"
     },
     "name": "git"
+   }
+  },
+  "gnupg": {
+   "pacman\\gnupg": {
+    "driver": "pacman",
+    "fields": {
+     "name": "gnupg"
+    },
+    "name": "gnupg"
    }
   },
   "gnuplot": {
@@ -9186,6 +9239,15 @@
     "name": "flatpak"
    }
   },
+  "source-highlight": {
+   "pacman\\source-highlight": {
+    "driver": "pacman",
+    "fields": {
+     "name": "source-highlight"
+    },
+    "name": "source-highlight"
+   }
+  },
   "spotify": {
    "flatpak\\spotify": {
     "driver": "flatpak",
@@ -9478,6 +9540,16 @@
     "name": "git"
    }
   },
+  "swig": {
+   "pacman\\swig": {
+    "driver": "pacman",
+    "fields": {
+     "installed-name": "swig4.0",
+     "name": "swig"
+    },
+    "name": "swig"
+   }
+  },
   "syncthing": {
    "pacman\\syncthing": {
     "driver": "pacman",
@@ -9648,6 +9720,15 @@
      "name": "traceroute"
     },
     "name": "traceroute"
+   }
+  },
+  "tree": {
+   "pacman\\tree": {
+    "driver": "pacman",
+    "fields": {
+     "name": "tree"
+    },
+    "name": "tree"
    }
   },
   "tree-sitter-cli": {
@@ -14042,6 +14123,15 @@
     "name": "dotnet-dotfiles"
    }
   },
+  "doxygen": {
+   "apt\\doxygen": {
+    "driver": "apt",
+    "fields": {
+     "name": "doxygen"
+    },
+    "name": "doxygen"
+   }
+  },
   "dstat": {
    "apt\\dstat": {
     "driver": "apt",
@@ -14539,6 +14629,15 @@
      ]
     },
     "name": "ffmpeg-dev"
+   }
+  },
+  "figlet": {
+   "apt\\figlet": {
+    "driver": "apt",
+    "fields": {
+     "name": "figlet"
+    },
+    "name": "figlet"
    }
   },
   "firefox": {
@@ -15303,6 +15402,32 @@
     "name": "git-dotfiles"
    }
   },
+  "git-lfs": {
+   "apt\\git": {
+    "driver": "apt",
+    "fields": {
+     "name": "git"
+    },
+    "name": "git"
+   },
+   "apt\\git-lfs": {
+    "driver": "apt",
+    "fields": {
+     "name": "git-lfs"
+    },
+    "name": "git-lfs"
+   },
+   "dotfiles\\git-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "~/.gitconfig",
+      "src": "gitconfig"
+     }
+    },
+    "name": "git-dotfiles"
+   }
+  },
   "glances": {
    "apt\\glances": {
     "driver": "apt",
@@ -15437,6 +15562,15 @@
      "name": "gnucobol"
     },
     "name": "gnucobol"
+   }
+  },
+  "gnupg": {
+   "apt\\gnupg": {
+    "driver": "apt",
+    "fields": {
+     "name": "gnupg"
+    },
+    "name": "gnupg"
    }
   },
   "gnuplot": {
@@ -21230,6 +21364,15 @@
     "name": "sonic-pi"
    }
   },
+  "source-highlight": {
+   "apt\\source-highlight": {
+    "driver": "apt",
+    "fields": {
+     "name": "source-highlight"
+    },
+    "name": "source-highlight"
+   }
+  },
   "spotify": {
    "apt\\flatpak": {
     "driver": "apt",
@@ -21485,6 +21628,16 @@
     "name": "swaybg"
    }
   },
+  "swig": {
+   "apt\\swig": {
+    "driver": "apt",
+    "fields": {
+     "installed-name": "swig4.0",
+     "name": "swig"
+    },
+    "name": "swig"
+   }
+  },
   "syncthing": {
    "apt\\syncthing": {
     "driver": "apt",
@@ -21648,6 +21801,15 @@
      "name": "traceroute"
     },
     "name": "traceroute"
+   }
+  },
+  "tree": {
+   "apt\\tree": {
+    "driver": "apt",
+    "fields": {
+     "name": "tree"
+    },
+    "name": "tree"
    }
   },
   "tree-sitter-cli": {
@@ -25910,6 +26072,15 @@
     "name": "dotnet-dotfiles"
    }
   },
+  "doxygen": {
+   "apt\\doxygen": {
+    "driver": "apt",
+    "fields": {
+     "name": "doxygen"
+    },
+    "name": "doxygen"
+   }
+  },
   "dstat": {
    "apt\\dstat": {
     "driver": "apt",
@@ -26390,6 +26561,15 @@
      ]
     },
     "name": "ffmpeg-dev"
+   }
+  },
+  "figlet": {
+   "apt\\figlet": {
+    "driver": "apt",
+    "fields": {
+     "name": "figlet"
+    },
+    "name": "figlet"
    }
   },
   "firefox": {
@@ -27154,6 +27334,32 @@
     "name": "git-dotfiles"
    }
   },
+  "git-lfs": {
+   "apt\\git": {
+    "driver": "apt",
+    "fields": {
+     "name": "git"
+    },
+    "name": "git"
+   },
+   "apt\\git-lfs": {
+    "driver": "apt",
+    "fields": {
+     "name": "git-lfs"
+    },
+    "name": "git-lfs"
+   },
+   "dotfiles\\git-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "~/.gitconfig",
+      "src": "gitconfig"
+     }
+    },
+    "name": "git-dotfiles"
+   }
+  },
   "glances": {
    "apt\\glances": {
     "driver": "apt",
@@ -27288,6 +27494,15 @@
      "name": "gnucobol"
     },
     "name": "gnucobol"
+   }
+  },
+  "gnupg": {
+   "apt\\gnupg": {
+    "driver": "apt",
+    "fields": {
+     "name": "gnupg"
+    },
+    "name": "gnupg"
    }
   },
   "gnuplot": {
@@ -32928,6 +33143,15 @@
     "name": "sonic-pi"
    }
   },
+  "source-highlight": {
+   "apt\\source-highlight": {
+    "driver": "apt",
+    "fields": {
+     "name": "source-highlight"
+    },
+    "name": "source-highlight"
+   }
+  },
   "spotify": {
    "apt\\flatpak": {
     "driver": "apt",
@@ -33183,6 +33407,16 @@
     "name": "swaybg"
    }
   },
+  "swig": {
+   "apt\\swig": {
+    "driver": "apt",
+    "fields": {
+     "installed-name": "swig4.0",
+     "name": "swig"
+    },
+    "name": "swig"
+   }
+  },
   "syncthing": {
    "apt\\syncthing": {
     "driver": "apt",
@@ -33346,6 +33580,15 @@
      "name": "traceroute"
     },
     "name": "traceroute"
+   }
+  },
+  "tree": {
+   "apt\\tree": {
+    "driver": "apt",
+    "fields": {
+     "name": "tree"
+    },
+    "name": "tree"
    }
   },
   "tree-sitter-cli": {
@@ -37577,6 +37820,15 @@
     "name": "dotnet-dotfiles"
    }
   },
+  "doxygen": {
+   "apt\\doxygen": {
+    "driver": "apt",
+    "fields": {
+     "name": "doxygen"
+    },
+    "name": "doxygen"
+   }
+  },
   "dstat": {
    "apt\\dstat": {
     "driver": "apt",
@@ -38057,6 +38309,15 @@
      ]
     },
     "name": "ffmpeg-dev"
+   }
+  },
+  "figlet": {
+   "apt\\figlet": {
+    "driver": "apt",
+    "fields": {
+     "name": "figlet"
+    },
+    "name": "figlet"
    }
   },
   "firefox": {
@@ -38821,6 +39082,32 @@
     "name": "git-dotfiles"
    }
   },
+  "git-lfs": {
+   "apt\\git": {
+    "driver": "apt",
+    "fields": {
+     "name": "git"
+    },
+    "name": "git"
+   },
+   "apt\\git-lfs": {
+    "driver": "apt",
+    "fields": {
+     "name": "git-lfs"
+    },
+    "name": "git-lfs"
+   },
+   "dotfiles\\git-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "~/.gitconfig",
+      "src": "gitconfig"
+     }
+    },
+    "name": "git-dotfiles"
+   }
+  },
   "glances": {
    "apt\\glances": {
     "driver": "apt",
@@ -38955,6 +39242,15 @@
      "name": "gnucobol"
     },
     "name": "gnucobol"
+   }
+  },
+  "gnupg": {
+   "apt\\gnupg": {
+    "driver": "apt",
+    "fields": {
+     "name": "gnupg"
+    },
+    "name": "gnupg"
    }
   },
   "gnuplot": {
@@ -44601,6 +44897,15 @@
     "name": "sonic-pi"
    }
   },
+  "source-highlight": {
+   "apt\\source-highlight": {
+    "driver": "apt",
+    "fields": {
+     "name": "source-highlight"
+    },
+    "name": "source-highlight"
+   }
+  },
   "spotify": {
    "apt\\flatpak": {
     "driver": "apt",
@@ -44864,6 +45169,16 @@
     "name": "swaybg"
    }
   },
+  "swig": {
+   "apt\\swig": {
+    "driver": "apt",
+    "fields": {
+     "installed-name": "swig4.0",
+     "name": "swig"
+    },
+    "name": "swig"
+   }
+  },
   "syncthing": {
    "apt\\syncthing": {
     "driver": "apt",
@@ -45027,6 +45342,15 @@
      "name": "traceroute"
     },
     "name": "traceroute"
+   }
+  },
+  "tree": {
+   "apt\\tree": {
+    "driver": "apt",
+    "fields": {
+     "name": "tree"
+    },
+    "name": "tree"
    }
   },
   "tree-sitter-cli": {
@@ -49198,6 +49522,15 @@
     "name": "dotnet-dotfiles"
    }
   },
+  "doxygen": {
+   "dnf\\doxygen": {
+    "driver": "dnf",
+    "fields": {
+     "name": "doxygen"
+    },
+    "name": "doxygen"
+   }
+  },
   "duf": {
    "dnf\\duf": {
     "driver": "dnf",
@@ -49649,6 +49982,15 @@
      "repo-url": "https://download1.rpmfusion.org/free/fedora/releases/$releasever/Everything/$basearch/os/"
     },
     "name": "rpmfusion-free-release"
+   }
+  },
+  "figlet": {
+   "dnf\\figlet": {
+    "driver": "dnf",
+    "fields": {
+     "name": "figlet"
+    },
+    "name": "figlet"
    }
   },
   "firefox": {
@@ -50151,6 +50493,32 @@
     "name": "git-dotfiles"
    }
   },
+  "git-lfs": {
+   "dnf\\git": {
+    "driver": "dnf",
+    "fields": {
+     "name": "git"
+    },
+    "name": "git"
+   },
+   "dnf\\git-lfs": {
+    "driver": "dnf",
+    "fields": {
+     "name": "git-lfs"
+    },
+    "name": "git-lfs"
+   },
+   "dotfiles\\git-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "~/.gitconfig",
+      "src": "gitconfig"
+     }
+    },
+    "name": "git-dotfiles"
+   }
+  },
   "glances": {
    "dnf\\glances": {
     "driver": "dnf",
@@ -50285,6 +50653,15 @@
      "name": "gnucobol"
     },
     "name": "gnucobol"
+   }
+  },
+  "gnupg": {
+   "dnf\\gnupg": {
+    "driver": "dnf",
+    "fields": {
+     "name": "gnupg2"
+    },
+    "name": "gnupg2"
    }
   },
   "gnuplot": {
@@ -55907,6 +56284,15 @@
     "name": "net.sonic_pi.SonicPi"
    }
   },
+  "source-highlight": {
+   "dnf\\source-highlight": {
+    "driver": "dnf",
+    "fields": {
+     "name": "source-highlight"
+    },
+    "name": "source-highlight"
+   }
+  },
   "spotify": {
    "dnf\\flatpak": {
     "driver": "dnf",
@@ -56162,6 +56548,16 @@
     "name": "swaybg"
    }
   },
+  "swig": {
+   "dnf\\swig": {
+    "driver": "dnf",
+    "fields": {
+     "installed-name": "swig4.0",
+     "name": "swig"
+    },
+    "name": "swig"
+   }
+  },
   "syncthing": {
    "dnf\\syncthing": {
     "driver": "dnf",
@@ -56325,6 +56721,15 @@
      "name": "traceroute"
     },
     "name": "traceroute"
+   }
+  },
+  "tree": {
+   "dnf\\tree": {
+    "driver": "dnf",
+    "fields": {
+     "name": "tree"
+    },
+    "name": "tree"
    }
   },
   "tree-sitter-cli": {
@@ -60532,6 +60937,15 @@
     "name": "dotnet-dotfiles"
    }
   },
+  "doxygen": {
+   "dnf\\doxygen": {
+    "driver": "dnf",
+    "fields": {
+     "name": "doxygen"
+    },
+    "name": "doxygen"
+   }
+  },
   "duf": {
    "dnf\\duf": {
     "driver": "dnf",
@@ -60983,6 +61397,15 @@
      "repo-url": "https://download1.rpmfusion.org/free/fedora/releases/$releasever/Everything/$basearch/os/"
     },
     "name": "rpmfusion-free-release"
+   }
+  },
+  "figlet": {
+   "dnf\\figlet": {
+    "driver": "dnf",
+    "fields": {
+     "name": "figlet"
+    },
+    "name": "figlet"
    }
   },
   "firefox": {
@@ -61485,6 +61908,32 @@
     "name": "git-dotfiles"
    }
   },
+  "git-lfs": {
+   "dnf\\git": {
+    "driver": "dnf",
+    "fields": {
+     "name": "git"
+    },
+    "name": "git"
+   },
+   "dnf\\git-lfs": {
+    "driver": "dnf",
+    "fields": {
+     "name": "git-lfs"
+    },
+    "name": "git-lfs"
+   },
+   "dotfiles\\git-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "~/.gitconfig",
+      "src": "gitconfig"
+     }
+    },
+    "name": "git-dotfiles"
+   }
+  },
   "glances": {
    "dnf\\glances": {
     "driver": "dnf",
@@ -61619,6 +62068,15 @@
      "name": "gnucobol"
     },
     "name": "gnucobol"
+   }
+  },
+  "gnupg": {
+   "dnf\\gnupg": {
+    "driver": "dnf",
+    "fields": {
+     "name": "gnupg2"
+    },
+    "name": "gnupg2"
    }
   },
   "gnuplot": {
@@ -67241,6 +67699,15 @@
     "name": "net.sonic_pi.SonicPi"
    }
   },
+  "source-highlight": {
+   "dnf\\source-highlight": {
+    "driver": "dnf",
+    "fields": {
+     "name": "source-highlight"
+    },
+    "name": "source-highlight"
+   }
+  },
   "spotify": {
    "dnf\\flatpak": {
     "driver": "dnf",
@@ -67496,6 +67963,16 @@
     "name": "swaybg"
    }
   },
+  "swig": {
+   "dnf\\swig": {
+    "driver": "dnf",
+    "fields": {
+     "installed-name": "swig4.0",
+     "name": "swig"
+    },
+    "name": "swig"
+   }
+  },
   "syncthing": {
    "dnf\\syncthing": {
     "driver": "dnf",
@@ -67659,6 +68136,15 @@
      "name": "traceroute"
     },
     "name": "traceroute"
+   }
+  },
+  "tree": {
+   "dnf\\tree": {
+    "driver": "dnf",
+    "fields": {
+     "name": "tree"
+    },
+    "name": "tree"
    }
   },
   "tree-sitter-cli": {
@@ -71205,6 +71691,15 @@
     "name": "dotnet-dotfiles"
    }
   },
+  "doxygen": {
+   "brew\\doxygen": {
+    "driver": "brew",
+    "fields": {
+     "name": "doxygen"
+    },
+    "name": "doxygen"
+   }
+  },
   "duf": {
    "brew\\duf": {
     "driver": "brew",
@@ -71558,6 +72053,15 @@
      "name": "ffmpeg"
     },
     "name": "ffmpeg"
+   }
+  },
+  "figlet": {
+   "brew\\figlet": {
+    "driver": "brew",
+    "fields": {
+     "name": "figlet"
+    },
+    "name": "figlet"
    }
   },
   "firefox": {
@@ -72003,6 +72507,32 @@
     "name": "git-dotfiles"
    }
   },
+  "git-lfs": {
+   "brew\\git": {
+    "driver": "brew",
+    "fields": {
+     "name": "git"
+    },
+    "name": "git"
+   },
+   "brew\\git-lfs": {
+    "driver": "brew",
+    "fields": {
+     "name": "git-lfs"
+    },
+    "name": "git-lfs"
+   },
+   "dotfiles\\git-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "~/.gitconfig",
+      "src": "gitconfig"
+     }
+    },
+    "name": "git-dotfiles"
+   }
+  },
   "glances": {
    "brew\\pipx": {
     "driver": "brew",
@@ -72130,6 +72660,15 @@
      "name": "gnucobol"
     },
     "name": "gnucobol"
+   }
+  },
+  "gnupg": {
+   "brew\\gnupg": {
+    "driver": "brew",
+    "fields": {
+     "name": "gnupg"
+    },
+    "name": "gnupg"
    }
   },
   "gnuplot": {
@@ -76636,6 +77175,15 @@
     "name": "net.sonic_pi.SonicPi"
    }
   },
+  "source-highlight": {
+   "brew\\source-highlight": {
+    "driver": "brew",
+    "fields": {
+     "name": "source-highlight"
+    },
+    "name": "source-highlight"
+   }
+  },
   "spotify": {
    "flatpak\\spotify": {
     "driver": "flatpak",
@@ -76829,6 +77377,16 @@
     "name": "sway-dotfiles"
    }
   },
+  "swig": {
+   "brew\\swig": {
+    "driver": "brew",
+    "fields": {
+     "installed-name": "swig4.0",
+     "name": "swig"
+    },
+    "name": "swig"
+   }
+  },
   "syncthing": {
    "brew\\syncthing": {
     "driver": "brew",
@@ -76933,6 +77491,15 @@
      "name": "org.torproject.torbrowser-launcher"
     },
     "name": "org.torproject.torbrowser-launcher"
+   }
+  },
+  "tree": {
+   "brew\\tree": {
+    "driver": "brew",
+    "fields": {
+     "name": "tree"
+    },
+    "name": "tree"
    }
   },
   "tree-sitter-cli": {
@@ -80834,6 +81401,15 @@
     "name": "dotnet-dotfiles"
    }
   },
+  "doxygen": {
+   "apt\\doxygen": {
+    "driver": "apt",
+    "fields": {
+     "name": "doxygen"
+    },
+    "name": "doxygen"
+   }
+  },
   "dstat": {
    "apt\\dstat": {
     "driver": "apt",
@@ -81331,6 +81907,15 @@
      ]
     },
     "name": "ffmpeg-dev"
+   }
+  },
+  "figlet": {
+   "apt\\figlet": {
+    "driver": "apt",
+    "fields": {
+     "name": "figlet"
+    },
+    "name": "figlet"
    }
   },
   "firefox": {
@@ -82095,6 +82680,32 @@
     "name": "git-dotfiles"
    }
   },
+  "git-lfs": {
+   "apt\\git": {
+    "driver": "apt",
+    "fields": {
+     "name": "git"
+    },
+    "name": "git"
+   },
+   "apt\\git-lfs": {
+    "driver": "apt",
+    "fields": {
+     "name": "git-lfs"
+    },
+    "name": "git-lfs"
+   },
+   "dotfiles\\git-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "~/.gitconfig",
+      "src": "gitconfig"
+     }
+    },
+    "name": "git-dotfiles"
+   }
+  },
   "glances": {
    "apt\\glances": {
     "driver": "apt",
@@ -82229,6 +82840,15 @@
      "name": "gnucobol"
     },
     "name": "gnucobol"
+   }
+  },
+  "gnupg": {
+   "apt\\gnupg": {
+    "driver": "apt",
+    "fields": {
+     "name": "gnupg"
+    },
+    "name": "gnupg"
    }
   },
   "gnuplot": {
@@ -88028,6 +88648,15 @@
     "name": "sonic-pi"
    }
   },
+  "source-highlight": {
+   "apt\\source-highlight": {
+    "driver": "apt",
+    "fields": {
+     "name": "source-highlight"
+    },
+    "name": "source-highlight"
+   }
+  },
   "spotify": {
    "apt\\flatpak": {
     "driver": "apt",
@@ -88284,6 +88913,16 @@
     "name": "swaybg"
    }
   },
+  "swig": {
+   "apt\\swig": {
+    "driver": "apt",
+    "fields": {
+     "installed-name": "swig4.0",
+     "name": "swig"
+    },
+    "name": "swig"
+   }
+  },
   "syncthing": {
    "apt\\syncthing": {
     "driver": "apt",
@@ -88447,6 +89086,15 @@
      "name": "traceroute"
     },
     "name": "traceroute"
+   }
+  },
+  "tree": {
+   "apt\\tree": {
+    "driver": "apt",
+    "fields": {
+     "name": "tree"
+    },
+    "name": "tree"
    }
   },
   "tree-sitter-cli": {
@@ -92757,6 +93405,15 @@
     "name": "dotnet-dotfiles"
    }
   },
+  "doxygen": {
+   "dnf\\doxygen": {
+    "driver": "dnf",
+    "fields": {
+     "name": "doxygen"
+    },
+    "name": "doxygen"
+   }
+  },
   "duf": {
    "dnf\\go": {
     "driver": "dnf",
@@ -93311,6 +93968,22 @@
     "name": "rpmfusion-free-release"
    }
   },
+  "figlet": {
+   "dnf\\epel-release": {
+    "driver": "dnf",
+    "fields": {
+     "name": "epel-release"
+    },
+    "name": "epel-release"
+   },
+   "dnf\\figlet": {
+    "driver": "dnf",
+    "fields": {
+     "name": "figlet"
+    },
+    "name": "figlet"
+   }
+  },
   "firefox": {
    "dnf\\firefox": {
     "driver": "dnf",
@@ -93842,6 +94515,32 @@
     "name": "git-dotfiles"
    }
   },
+  "git-lfs": {
+   "dnf\\git": {
+    "driver": "dnf",
+    "fields": {
+     "name": "git"
+    },
+    "name": "git"
+   },
+   "dnf\\git-lfs": {
+    "driver": "dnf",
+    "fields": {
+     "name": "git-lfs"
+    },
+    "name": "git-lfs"
+   },
+   "dotfiles\\git-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "~/.gitconfig",
+      "src": "gitconfig"
+     }
+    },
+    "name": "git-dotfiles"
+   }
+  },
   "glances": {
    "dnf\\epel-release": {
     "driver": "dnf",
@@ -93983,6 +94682,15 @@
      "name": "gnucobol"
     },
     "name": "gnucobol"
+   }
+  },
+  "gnupg": {
+   "dnf\\gnupg": {
+    "driver": "dnf",
+    "fields": {
+     "name": "gnupg2"
+    },
+    "name": "gnupg2"
    }
   },
   "gnuplot": {
@@ -99782,6 +100490,22 @@
     "name": "net.sonic_pi.SonicPi"
    }
   },
+  "source-highlight": {
+   "dnf\\epel-release": {
+    "driver": "dnf",
+    "fields": {
+     "name": "epel-release"
+    },
+    "name": "epel-release"
+   },
+   "dnf\\source-highlight": {
+    "driver": "dnf",
+    "fields": {
+     "name": "source-highlight"
+    },
+    "name": "source-highlight"
+   }
+  },
   "spotify": {
    "dnf\\flatpak": {
     "driver": "dnf",
@@ -100047,6 +100771,16 @@
     "name": "sway-dotfiles"
    }
   },
+  "swig": {
+   "dnf\\swig": {
+    "driver": "dnf",
+    "fields": {
+     "installed-name": "swig4.0",
+     "name": "swig"
+    },
+    "name": "swig"
+   }
+  },
   "syncthing": {
    "dnf\\syncthing": {
     "driver": "dnf",
@@ -100217,6 +100951,15 @@
      "name": "traceroute"
     },
     "name": "traceroute"
+   }
+  },
+  "tree": {
+   "dnf\\tree": {
+    "driver": "dnf",
+    "fields": {
+     "name": "tree"
+    },
+    "name": "tree"
    }
   },
   "tree-sitter-cli": {
@@ -104672,6 +105415,15 @@
     "name": "dotnet-dotfiles"
    }
   },
+  "doxygen": {
+   "apt\\doxygen": {
+    "driver": "apt",
+    "fields": {
+     "name": "doxygen"
+    },
+    "name": "doxygen"
+   }
+  },
   "dstat": {
    "apt\\dstat": {
     "driver": "apt",
@@ -105169,6 +105921,15 @@
      ]
     },
     "name": "ffmpeg-dev"
+   }
+  },
+  "figlet": {
+   "apt\\figlet": {
+    "driver": "apt",
+    "fields": {
+     "name": "figlet"
+    },
+    "name": "figlet"
    }
   },
   "firefox": {
@@ -105933,6 +106694,32 @@
     "name": "git-dotfiles"
    }
   },
+  "git-lfs": {
+   "apt\\git": {
+    "driver": "apt",
+    "fields": {
+     "name": "git"
+    },
+    "name": "git"
+   },
+   "apt\\git-lfs": {
+    "driver": "apt",
+    "fields": {
+     "name": "git-lfs"
+    },
+    "name": "git-lfs"
+   },
+   "dotfiles\\git-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "~/.gitconfig",
+      "src": "gitconfig"
+     }
+    },
+    "name": "git-dotfiles"
+   }
+  },
   "glances": {
    "apt\\glances": {
     "driver": "apt",
@@ -106067,6 +106854,15 @@
      "name": "gnucobol"
     },
     "name": "gnucobol"
+   }
+  },
+  "gnupg": {
+   "apt\\gnupg": {
+    "driver": "apt",
+    "fields": {
+     "name": "gnupg"
+    },
+    "name": "gnupg"
    }
   },
   "gnuplot": {
@@ -111866,6 +112662,15 @@
     "name": "sonic-pi"
    }
   },
+  "source-highlight": {
+   "apt\\source-highlight": {
+    "driver": "apt",
+    "fields": {
+     "name": "source-highlight"
+    },
+    "name": "source-highlight"
+   }
+  },
   "spotify": {
    "apt\\flatpak": {
     "driver": "apt",
@@ -112129,6 +112934,16 @@
     "name": "swaybg"
    }
   },
+  "swig": {
+   "apt\\swig": {
+    "driver": "apt",
+    "fields": {
+     "installed-name": "swig4.0",
+     "name": "swig"
+    },
+    "name": "swig"
+   }
+  },
   "syncthing": {
    "apt\\syncthing": {
     "driver": "apt",
@@ -112292,6 +113107,15 @@
      "name": "traceroute"
     },
     "name": "traceroute"
+   }
+  },
+  "tree": {
+   "apt\\tree": {
+    "driver": "apt",
+    "fields": {
+     "name": "tree"
+    },
+    "name": "tree"
    }
   },
   "tree-sitter-cli": {
@@ -116557,6 +117381,15 @@
     "name": "dotnet-dotfiles"
    }
   },
+  "doxygen": {
+   "apt\\doxygen": {
+    "driver": "apt",
+    "fields": {
+     "name": "doxygen"
+    },
+    "name": "doxygen"
+   }
+  },
   "dstat": {
    "apt\\dstat": {
     "driver": "apt",
@@ -117037,6 +117870,15 @@
      ]
     },
     "name": "ffmpeg-dev"
+   }
+  },
+  "figlet": {
+   "apt\\figlet": {
+    "driver": "apt",
+    "fields": {
+     "name": "figlet"
+    },
+    "name": "figlet"
    }
   },
   "firefox": {
@@ -117801,6 +118643,32 @@
     "name": "git-dotfiles"
    }
   },
+  "git-lfs": {
+   "apt\\git": {
+    "driver": "apt",
+    "fields": {
+     "name": "git"
+    },
+    "name": "git"
+   },
+   "apt\\git-lfs": {
+    "driver": "apt",
+    "fields": {
+     "name": "git-lfs"
+    },
+    "name": "git-lfs"
+   },
+   "dotfiles\\git-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "~/.gitconfig",
+      "src": "gitconfig"
+     }
+    },
+    "name": "git-dotfiles"
+   }
+  },
   "glances": {
    "apt\\glances": {
     "driver": "apt",
@@ -117935,6 +118803,15 @@
      "name": "gnucobol"
     },
     "name": "gnucobol"
+   }
+  },
+  "gnupg": {
+   "apt\\gnupg": {
+    "driver": "apt",
+    "fields": {
+     "name": "gnupg"
+    },
+    "name": "gnupg"
    }
   },
   "gnuplot": {
@@ -123554,6 +124431,15 @@
     "name": "sonic-pi"
    }
   },
+  "source-highlight": {
+   "apt\\source-highlight": {
+    "driver": "apt",
+    "fields": {
+     "name": "source-highlight"
+    },
+    "name": "source-highlight"
+   }
+  },
   "spotify": {
    "apt\\flatpak": {
     "driver": "apt",
@@ -123817,6 +124703,16 @@
     "name": "swaybg"
    }
   },
+  "swig": {
+   "apt\\swig": {
+    "driver": "apt",
+    "fields": {
+     "installed-name": "swig4.0",
+     "name": "swig"
+    },
+    "name": "swig"
+   }
+  },
   "syncthing": {
    "apt\\syncthing": {
     "driver": "apt",
@@ -123980,6 +124876,15 @@
      "name": "traceroute"
     },
     "name": "traceroute"
+   }
+  },
+  "tree": {
+   "apt\\tree": {
+    "driver": "apt",
+    "fields": {
+     "name": "tree"
+    },
+    "name": "tree"
    }
   },
   "tree-sitter-cli": {
