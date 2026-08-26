@@ -288,11 +288,13 @@ the overlay-on-Profiles too noisy.
    --profile P` adds a known orphan to a profile; `--remove <comp>` uninstalls a known orphan via its
    driver (confirm unless `--yes`; foreign keys are declined — no recipe). Still TODO: a `check`
    stale-ignore warning (ignored pattern that matches nothing installed).
-4. TUI surface — **designed, not built** (see the TUI section). Decided: the install axis overlays
-   TUI::Profiles (themed `installed`/`orphan_*` roles, toggle), foreign is a read-only tree node, and
-   the actions (`A` adopt / `s` stage / `x` remove / `.` ignore / un-`~`) are thin fronts over the
-   phase-3 verbs, with a configurable `orphans-adopt-target` staging profile. Build items: the
-   overlay rendering + role plumbing, the `s`/adopt-target setting, and the synthetic `foreign` node.
+4. TUI surface — **BUILT** (slices A–E). Shipped: the `!uninstall` reserved queue + `!` namespace
+   (config/actions/check); the `orphans-adopt-target` setting + `stage_adopt`; the TUI::Profiles
+   install-axis overlay (`O` toggle, themed `installed` underline + `orphan_*` roles) with the verb
+   keys (`s` stage · `x` stage-uninstall · `.` ignore; adopt = the existing membership toggle); and
+   Components seeding + draining the `!uninstall` queue through the normal execute flow.
+   **Deferred:** the synthetic read-only `foreign` tree node, and routing Components `x` to *write*
+   the queue (it's primarily Profiles-fed; a correct bidirectional sync needs more care).
 
 ## Open questions (for the user)
 
