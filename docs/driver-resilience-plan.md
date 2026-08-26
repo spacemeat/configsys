@@ -1,10 +1,10 @@
 # Driver resilience plan — isolate, diagnose, and self-heal external stumbles
 
-Status: **Phases 0–2 + the dnf half of Phase 4 BUILT** (commits dd04d9b, eacaac9, 90dd3a8,
-a41fe9b, 8b30745). Phase 3 (manifest) is deliberately DEFERRED per Open-Q2's accepted default
-(introduce it only when reconciliation needs it). The rest of Phase 4 (flatpak/tarball/source
-transactional guards + pre-flight) is not built — the P0 taxonomy already classifies their
-failures; the transactional rollback is done for apt+dnf, the two with a real poison-pill history.
+Status: **ALL PHASES BUILT** (commits dd04d9b, eacaac9, 90dd3a8, a41fe9b, 8b30745, 6d8cdaf,
+269817d). Phase 3 shipped as ROUTE-DERIVED reconciliation, NOT a persisted manifest — honoring
+Q2 (the routes already record what's ours, so no new state file earns its keep yet). Phase 4's
+transactional guards cover apt/dnf (rollback) + tarball/appImage (atomic swap); flatpak is atomic
++ idempotent and source/script failures surface via the P0 taxonomy, so they need no new guard.
 
 Captures the design agreed after a real Jenkins repo-key rotation broke `configsys refresh` on a
 live machine (see the `jenkins` route comment in `routes.hu` and commit `edfd5f3`). Three themes,
@@ -21,6 +21,13 @@ one shared substrate, phased so the highest-pain / lowest-risk work lands first.
   validate-then-commits a vendor source and rolls back a newly-written one that won't verify.
 - **P4-dnf (dnf `_commit_repo`):** same validate-then-commit/rollback for a newly-written
   `.repo` (reachability/repomd; GPG-at-install stays dnf's own later check).
+- **P4-path (tarball, appImage):** tarball builds into a sibling staging dir and atomically swaps
+  into `installDir` (upgrade is install-based, no uninstall-first); appImage downloads to a temp
+  and `mv -f`s into place — a failed download/extract/upgrade leaves the OLD version working.
+- **P3 (`app._reconcile_managed_sources`, `_orphaned_managed_sources`):** at refresh, PROMPT to
+  remove a configsys-managed apt/dnf source whose owning component is no longer in the active
+  config; if such an orphan was why the refresh failed, removing it fixes it (index re-run once).
+  Route-derived (no manifest file); advisory + component-scoped, never a hard gate.
 
 ## Motivating incident
 
