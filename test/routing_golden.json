@@ -863,6 +863,39 @@
     "name": "bmon"
    }
   },
+  "bonnie++": {
+   "aur\\bonnie++": {
+    "driver": "aur",
+    "fields": {
+     "name": "bonnie++"
+    },
+    "name": "bonnie++"
+   },
+   "dotfiles\\git-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "~/.gitconfig",
+      "src": "gitconfig"
+     }
+    },
+    "name": "git-dotfiles"
+   },
+   "pacman\\base-devel": {
+    "driver": "pacman",
+    "fields": {
+     "name": "base-devel"
+    },
+    "name": "base-devel"
+   },
+   "pacman\\git": {
+    "driver": "pacman",
+    "fields": {
+     "name": "git"
+    },
+    "name": "git"
+   }
+  },
   "boost": {
    "pacman\\boost": {
     "driver": "pacman",
@@ -2912,6 +2945,15 @@
     "name": "figlet"
    }
   },
+  "fio": {
+   "pacman\\fio": {
+    "driver": "pacman",
+    "fields": {
+     "name": "fio"
+    },
+    "name": "fio"
+   }
+  },
   "firefox": {
    "pacman\\firefox": {
     "driver": "pacman",
@@ -3715,6 +3757,16 @@
      "repo-component": "universe"
     },
     "name": "glm"
+   }
+  },
+  "glmark2": {
+   "pacman\\glmark2": {
+    "driver": "pacman",
+    "fields": {
+     "name": "glmark2",
+     "repo-component": "universe"
+    },
+    "name": "glmark2"
    }
   },
   "glog": {
@@ -4665,6 +4717,16 @@
     "name": "hydrogen"
    }
   },
+  "hyperfine": {
+   "pacman\\hyperfine": {
+    "driver": "pacman",
+    "fields": {
+     "name": "hyperfine",
+     "repo-component": "universe"
+    },
+    "name": "hyperfine"
+   }
+  },
   "hyprland": {
    "dotfiles\\hyprland-dotfiles": {
     "driver": "dotfiles",
@@ -4779,6 +4841,15 @@
      "name": "intel-oneapi-basekit"
     },
     "name": "intel-oneapi-basekit"
+   }
+  },
+  "ioping": {
+   "pacman\\ioping": {
+    "driver": "pacman",
+    "fields": {
+     "name": "ioping"
+    },
+    "name": "ioping"
    }
   },
   "iotop": {
@@ -6645,6 +6716,39 @@
     "name": "maxima-dotfiles"
    }
   },
+  "mbw": {
+   "aur\\mbw": {
+    "driver": "aur",
+    "fields": {
+     "name": "mbw"
+    },
+    "name": "mbw"
+   },
+   "dotfiles\\git-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "~/.gitconfig",
+      "src": "gitconfig"
+     }
+    },
+    "name": "git-dotfiles"
+   },
+   "pacman\\base-devel": {
+    "driver": "pacman",
+    "fields": {
+     "name": "base-devel"
+    },
+    "name": "base-devel"
+   },
+   "pacman\\git": {
+    "driver": "pacman",
+    "fields": {
+     "name": "git"
+    },
+    "name": "git"
+   }
+  },
   "mc": {
    "pacman\\mc": {
     "driver": "pacman",
@@ -8280,6 +8384,47 @@
      }
     },
     "name": "pgcli-dotfiles"
+   }
+  },
+  "phoronix-test-suite": {
+   "aur\\phoronix-test-suite": {
+    "driver": "aur",
+    "fields": {
+     "name": "phoronix-test-suite"
+    },
+    "name": "phoronix-test-suite"
+   },
+   "dotfiles\\git-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "~/.gitconfig",
+      "src": "gitconfig"
+     }
+    },
+    "name": "git-dotfiles"
+   },
+   "pacman\\base-devel": {
+    "driver": "pacman",
+    "fields": {
+     "name": "base-devel"
+    },
+    "name": "base-devel"
+   },
+   "pacman\\git": {
+    "driver": "pacman",
+    "fields": {
+     "name": "git"
+    },
+    "name": "git"
+   },
+   "pacman\\php": {
+    "driver": "pacman",
+    "fields": {
+     "name": "php",
+     "repo-component": "universe"
+    },
+    "name": "php"
    }
   },
   "php": {
@@ -10420,6 +10565,15 @@
     "name": "git"
    }
   },
+  "stress-ng": {
+   "pacman\\stress-ng": {
+    "driver": "pacman",
+    "fields": {
+     "name": "stress-ng"
+    },
+    "name": "stress-ng"
+   }
+  },
   "subversion": {
    "pacman\\subversion": {
     "driver": "pacman",
@@ -10578,6 +10732,15 @@
      "name": "syncthing"
     },
     "name": "syncthing"
+   }
+  },
+  "sysbench": {
+   "pacman\\sysbench": {
+    "driver": "pacman",
+    "fields": {
+     "name": "sysbench"
+    },
+    "name": "sysbench"
    }
   },
   "tailscale": {
@@ -11311,6 +11474,15 @@
      "name": "vivaldi"
     },
     "name": "vivaldi"
+   }
+  },
+  "vkmark": {
+   "pacman\\vkmark": {
+    "driver": "pacman",
+    "fields": {
+     "name": "vkmark"
+    },
+    "name": "vkmark"
    }
   },
   "vlc": {
@@ -13471,6 +13643,15 @@
     "name": "bmon"
    }
   },
+  "bonnie++": {
+   "apt\\bonnie++": {
+    "driver": "apt",
+    "fields": {
+     "name": "bonnie++"
+    },
+    "name": "bonnie++"
+   }
+  },
   "boost": {
    "apt\\boost": {
     "driver": "apt",
@@ -15937,6 +16118,15 @@
     "name": "figlet"
    }
   },
+  "fio": {
+   "apt\\fio": {
+    "driver": "apt",
+    "fields": {
+     "name": "fio"
+    },
+    "name": "fio"
+   }
+  },
   "firefox": {
    "apt\\firefox": {
     "driver": "apt",
@@ -16959,6 +17149,16 @@
     "name": "libglm-dev"
    }
   },
+  "glmark2": {
+   "apt\\glmark2": {
+    "driver": "apt",
+    "fields": {
+     "name": "glmark2",
+     "repo-component": "universe"
+    },
+    "name": "glmark2"
+   }
+  },
   "glog": {
    "apt\\glog": {
     "driver": "apt",
@@ -17907,6 +18107,16 @@
     "name": "hydrogen"
    }
   },
+  "hyperfine": {
+   "apt\\hyperfine": {
+    "driver": "apt",
+    "fields": {
+     "name": "hyperfine",
+     "repo-component": "universe"
+    },
+    "name": "hyperfine"
+   }
+  },
   "hyprland-dotfiles": {
    "dotfiles\\hyprland-dotfiles": {
     "driver": "dotfiles",
@@ -18033,6 +18243,15 @@
      "name": "intel-basekit"
     },
     "name": "intel-basekit"
+   }
+  },
+  "ioping": {
+   "apt\\ioping": {
+    "driver": "apt",
+    "fields": {
+     "name": "ioping"
+    },
+    "name": "ioping"
    }
   },
   "iotop": {
@@ -20032,6 +20251,15 @@
     "name": "maxima-dotfiles"
    }
   },
+  "mbw": {
+   "apt\\mbw": {
+    "driver": "apt",
+    "fields": {
+     "name": "mbw"
+    },
+    "name": "mbw"
+   }
+  },
   "mc": {
    "apt\\mc": {
     "driver": "apt",
@@ -21735,6 +21963,23 @@
      }
     },
     "name": "pgcli-dotfiles"
+   }
+  },
+  "phoronix-test-suite": {
+   "apt\\phoronix-test-suite": {
+    "driver": "apt",
+    "fields": {
+     "name": "phoronix-test-suite"
+    },
+    "name": "phoronix-test-suite"
+   },
+   "apt\\php": {
+    "driver": "apt",
+    "fields": {
+     "name": "php-cli",
+     "repo-component": "universe"
+    },
+    "name": "php-cli"
    }
   },
   "php": {
@@ -23599,6 +23844,15 @@
     "name": "com.stremio.Stremio"
    }
   },
+  "stress-ng": {
+   "apt\\stress-ng": {
+    "driver": "apt",
+    "fields": {
+     "name": "stress-ng"
+    },
+    "name": "stress-ng"
+   }
+  },
   "subversion": {
    "apt\\subversion": {
     "driver": "apt",
@@ -23736,6 +23990,15 @@
      "name": "syncthing"
     },
     "name": "syncthing"
+   }
+  },
+  "sysbench": {
+   "apt\\sysbench": {
+    "driver": "apt",
+    "fields": {
+     "name": "sysbench"
+    },
+    "name": "sysbench"
    }
   },
   "tailscale": {
@@ -24471,6 +24734,15 @@
      "source-path": "/etc/apt/sources.list.d/vivaldi.list"
     },
     "name": "vivaldi-stable"
+   }
+  },
+  "vkmark": {
+   "apt\\vkmark": {
+    "driver": "apt",
+    "fields": {
+     "name": "vkmark"
+    },
+    "name": "vkmark"
    }
   },
   "vlc": {
@@ -26507,6 +26779,15 @@
     "name": "bmon"
    }
   },
+  "bonnie++": {
+   "apt\\bonnie++": {
+    "driver": "apt",
+    "fields": {
+     "name": "bonnie++"
+    },
+    "name": "bonnie++"
+   }
+  },
   "boost": {
    "apt\\boost": {
     "driver": "apt",
@@ -28939,6 +29220,15 @@
     "name": "figlet"
    }
   },
+  "fio": {
+   "apt\\fio": {
+    "driver": "apt",
+    "fields": {
+     "name": "fio"
+    },
+    "name": "fio"
+   }
+  },
   "firefox": {
    "apt\\firefox": {
     "driver": "apt",
@@ -29961,6 +30251,16 @@
     "name": "libglm-dev"
    }
   },
+  "glmark2": {
+   "apt\\glmark2": {
+    "driver": "apt",
+    "fields": {
+     "name": "glmark2",
+     "repo-component": "universe"
+    },
+    "name": "glmark2"
+   }
+  },
   "glog": {
    "apt\\glog": {
     "driver": "apt",
@@ -30892,6 +31192,16 @@
     "name": "hydrogen"
    }
   },
+  "hyperfine": {
+   "apt\\hyperfine": {
+    "driver": "apt",
+    "fields": {
+     "name": "hyperfine",
+     "repo-component": "universe"
+    },
+    "name": "hyperfine"
+   }
+  },
   "hyprland-dotfiles": {
    "dotfiles\\hyprland-dotfiles": {
     "driver": "dotfiles",
@@ -31018,6 +31328,15 @@
      "name": "intel-basekit"
     },
     "name": "intel-basekit"
+   }
+  },
+  "ioping": {
+   "apt\\ioping": {
+    "driver": "apt",
+    "fields": {
+     "name": "ioping"
+    },
+    "name": "ioping"
    }
   },
   "iotop": {
@@ -32983,6 +33302,15 @@
     "name": "maxima-dotfiles"
    }
   },
+  "mbw": {
+   "apt\\mbw": {
+    "driver": "apt",
+    "fields": {
+     "name": "mbw"
+    },
+    "name": "mbw"
+   }
+  },
   "mc": {
    "apt\\mc": {
     "driver": "apt",
@@ -34635,6 +34963,23 @@
      }
     },
     "name": "pgcli-dotfiles"
+   }
+  },
+  "phoronix-test-suite": {
+   "apt\\phoronix-test-suite": {
+    "driver": "apt",
+    "fields": {
+     "name": "phoronix-test-suite"
+    },
+    "name": "phoronix-test-suite"
+   },
+   "apt\\php": {
+    "driver": "apt",
+    "fields": {
+     "name": "php-cli",
+     "repo-component": "universe"
+    },
+    "name": "php-cli"
    }
   },
   "php": {
@@ -36431,6 +36776,15 @@
     "name": "com.stremio.Stremio"
    }
   },
+  "stress-ng": {
+   "apt\\stress-ng": {
+    "driver": "apt",
+    "fields": {
+     "name": "stress-ng"
+    },
+    "name": "stress-ng"
+   }
+  },
   "subversion": {
    "apt\\subversion": {
     "driver": "apt",
@@ -36568,6 +36922,15 @@
      "name": "syncthing"
     },
     "name": "syncthing"
+   }
+  },
+  "sysbench": {
+   "apt\\sysbench": {
+    "driver": "apt",
+    "fields": {
+     "name": "sysbench"
+    },
+    "name": "sysbench"
    }
   },
   "tailscale": {
@@ -37286,6 +37649,15 @@
      "source-path": "/etc/apt/sources.list.d/vivaldi.list"
     },
     "name": "vivaldi-stable"
+   }
+  },
+  "vkmark": {
+   "apt\\vkmark": {
+    "driver": "apt",
+    "fields": {
+     "name": "vkmark"
+    },
+    "name": "vkmark"
    }
   },
   "vlc": {
@@ -39303,6 +39675,15 @@
      "name": "bmon"
     },
     "name": "bmon"
+   }
+  },
+  "bonnie++": {
+   "apt\\bonnie++": {
+    "driver": "apt",
+    "fields": {
+     "name": "bonnie++"
+    },
+    "name": "bonnie++"
    }
   },
   "boost": {
@@ -41740,6 +42121,15 @@
     "name": "figlet"
    }
   },
+  "fio": {
+   "apt\\fio": {
+    "driver": "apt",
+    "fields": {
+     "name": "fio"
+    },
+    "name": "fio"
+   }
+  },
   "firefox": {
    "apt\\firefox": {
     "driver": "apt",
@@ -42776,6 +43166,16 @@
     "name": "libglm-dev"
    }
   },
+  "glmark2": {
+   "apt\\glmark2": {
+    "driver": "apt",
+    "fields": {
+     "name": "glmark2",
+     "repo-component": "universe"
+    },
+    "name": "glmark2"
+   }
+  },
   "glog": {
    "apt\\glog": {
     "driver": "apt",
@@ -43707,6 +44107,16 @@
     "name": "hydrogen"
    }
   },
+  "hyperfine": {
+   "apt\\hyperfine": {
+    "driver": "apt",
+    "fields": {
+     "name": "hyperfine",
+     "repo-component": "universe"
+    },
+    "name": "hyperfine"
+   }
+  },
   "hyprland-dotfiles": {
    "dotfiles\\hyprland-dotfiles": {
     "driver": "dotfiles",
@@ -43833,6 +44243,15 @@
      "name": "intel-basekit"
     },
     "name": "intel-basekit"
+   }
+  },
+  "ioping": {
+   "apt\\ioping": {
+    "driver": "apt",
+    "fields": {
+     "name": "ioping"
+    },
+    "name": "ioping"
    }
   },
   "iotop": {
@@ -45791,6 +46210,15 @@
     "name": "maxima-dotfiles"
    }
   },
+  "mbw": {
+   "apt\\mbw": {
+    "driver": "apt",
+    "fields": {
+     "name": "mbw"
+    },
+    "name": "mbw"
+   }
+  },
   "mc": {
    "apt\\mc": {
     "driver": "apt",
@@ -47456,6 +47884,23 @@
      }
     },
     "name": "pgcli-dotfiles"
+   }
+  },
+  "phoronix-test-suite": {
+   "apt\\phoronix-test-suite": {
+    "driver": "apt",
+    "fields": {
+     "name": "phoronix-test-suite"
+    },
+    "name": "phoronix-test-suite"
+   },
+   "apt\\php": {
+    "driver": "apt",
+    "fields": {
+     "name": "php-cli",
+     "repo-component": "universe"
+    },
+    "name": "php-cli"
    }
   },
   "php": {
@@ -49260,6 +49705,15 @@
     "name": "com.stremio.Stremio"
    }
   },
+  "stress-ng": {
+   "apt\\stress-ng": {
+    "driver": "apt",
+    "fields": {
+     "name": "stress-ng"
+    },
+    "name": "stress-ng"
+   }
+  },
   "subversion": {
    "apt\\subversion": {
     "driver": "apt",
@@ -49397,6 +49851,15 @@
      "name": "syncthing"
     },
     "name": "syncthing"
+   }
+  },
+  "sysbench": {
+   "apt\\sysbench": {
+    "driver": "apt",
+    "fields": {
+     "name": "sysbench"
+    },
+    "name": "sysbench"
    }
   },
   "tailscale": {
@@ -50115,6 +50578,15 @@
      "source-path": "/etc/apt/sources.list.d/vivaldi.list"
     },
     "name": "vivaldi-stable"
+   }
+  },
+  "vkmark": {
+   "apt\\vkmark": {
+    "driver": "apt",
+    "fields": {
+     "name": "vkmark"
+    },
+    "name": "vkmark"
    }
   },
   "vlc": {
@@ -52214,6 +52686,15 @@
      "name": "bmon"
     },
     "name": "bmon"
+   }
+  },
+  "bonnie++": {
+   "dnf\\bonnie++": {
+    "driver": "dnf",
+    "fields": {
+     "name": "bonnie++"
+    },
+    "name": "bonnie++"
    }
   },
   "boost": {
@@ -54462,6 +54943,15 @@
     "name": "figlet"
    }
   },
+  "fio": {
+   "dnf\\fio": {
+    "driver": "dnf",
+    "fields": {
+     "name": "fio"
+    },
+    "name": "fio"
+   }
+  },
   "firefox": {
    "dnf\\firefox": {
     "driver": "dnf",
@@ -55220,6 +55710,16 @@
      "repo-component": "universe"
     },
     "name": "glm-devel"
+   }
+  },
+  "glmark2": {
+   "dnf\\glmark2": {
+    "driver": "dnf",
+    "fields": {
+     "name": "glmark2",
+     "repo-component": "universe"
+    },
+    "name": "glmark2"
    }
   },
   "glog": {
@@ -56212,6 +56712,16 @@
     "name": "hydrogen"
    }
   },
+  "hyperfine": {
+   "dnf\\hyperfine": {
+    "driver": "dnf",
+    "fields": {
+     "name": "hyperfine",
+     "repo-component": "universe"
+    },
+    "name": "hyperfine"
+   }
+  },
   "hyprland": {
    "dnf\\hyprland": {
     "driver": "dnf",
@@ -56357,6 +56867,15 @@
      "name": "intel-basekit"
     },
     "name": "intel-basekit"
+   }
+  },
+  "ioping": {
+   "dnf\\ioping": {
+    "driver": "dnf",
+    "fields": {
+     "name": "ioping"
+    },
+    "name": "ioping"
    }
   },
   "iotop": {
@@ -59899,6 +60418,23 @@
     "name": "pgcli-dotfiles"
    }
   },
+  "phoronix-test-suite": {
+   "dnf\\phoronix-test-suite": {
+    "driver": "dnf",
+    "fields": {
+     "name": "phoronix-test-suite"
+    },
+    "name": "phoronix-test-suite"
+   },
+   "dnf\\php": {
+    "driver": "dnf",
+    "fields": {
+     "name": "php-cli",
+     "repo-component": "universe"
+    },
+    "name": "php-cli"
+   }
+  },
   "php": {
    "dnf\\php": {
     "driver": "dnf",
@@ -61654,6 +62190,15 @@
     "name": "com.stremio.Stremio"
    }
   },
+  "stress-ng": {
+   "dnf\\stress-ng": {
+    "driver": "dnf",
+    "fields": {
+     "name": "stress-ng"
+    },
+    "name": "stress-ng"
+   }
+  },
   "subversion": {
    "dnf\\subversion": {
     "driver": "dnf",
@@ -61791,6 +62336,15 @@
      "name": "syncthing"
     },
     "name": "syncthing"
+   }
+  },
+  "sysbench": {
+   "dnf\\sysbench": {
+    "driver": "dnf",
+    "fields": {
+     "name": "sysbench"
+    },
+    "name": "sysbench"
    }
   },
   "tailscale": {
@@ -62542,6 +63096,15 @@
      "repo-url": "https://repo.vivaldi.com/archive/rpm/x86_64"
     },
     "name": "vivaldi-stable"
+   }
+  },
+  "vkmark": {
+   "dnf\\vkmark": {
+    "driver": "dnf",
+    "fields": {
+     "name": "vkmark"
+    },
+    "name": "vkmark"
    }
   },
   "vlc": {
@@ -64617,6 +65180,15 @@
      "name": "bmon"
     },
     "name": "bmon"
+   }
+  },
+  "bonnie++": {
+   "dnf\\bonnie++": {
+    "driver": "dnf",
+    "fields": {
+     "name": "bonnie++"
+    },
+    "name": "bonnie++"
    }
   },
   "boost": {
@@ -66891,6 +67463,15 @@
     "name": "figlet"
    }
   },
+  "fio": {
+   "dnf\\fio": {
+    "driver": "dnf",
+    "fields": {
+     "name": "fio"
+    },
+    "name": "fio"
+   }
+  },
   "firefox": {
    "dnf\\firefox": {
     "driver": "dnf",
@@ -67649,6 +68230,16 @@
      "repo-component": "universe"
     },
     "name": "glm-devel"
+   }
+  },
+  "glmark2": {
+   "dnf\\glmark2": {
+    "driver": "dnf",
+    "fields": {
+     "name": "glmark2",
+     "repo-component": "universe"
+    },
+    "name": "glmark2"
    }
   },
   "glog": {
@@ -68641,6 +69232,16 @@
     "name": "hydrogen"
    }
   },
+  "hyperfine": {
+   "dnf\\hyperfine": {
+    "driver": "dnf",
+    "fields": {
+     "name": "hyperfine",
+     "repo-component": "universe"
+    },
+    "name": "hyperfine"
+   }
+  },
   "hyprland": {
    "dnf\\hyprland": {
     "driver": "dnf",
@@ -68786,6 +69387,15 @@
      "name": "intel-basekit"
     },
     "name": "intel-basekit"
+   }
+  },
+  "ioping": {
+   "dnf\\ioping": {
+    "driver": "dnf",
+    "fields": {
+     "name": "ioping"
+    },
+    "name": "ioping"
    }
   },
   "iotop": {
@@ -72328,6 +72938,23 @@
     "name": "pgcli-dotfiles"
    }
   },
+  "phoronix-test-suite": {
+   "dnf\\phoronix-test-suite": {
+    "driver": "dnf",
+    "fields": {
+     "name": "phoronix-test-suite"
+    },
+    "name": "phoronix-test-suite"
+   },
+   "dnf\\php": {
+    "driver": "dnf",
+    "fields": {
+     "name": "php-cli",
+     "repo-component": "universe"
+    },
+    "name": "php-cli"
+   }
+  },
   "php": {
    "dnf\\php": {
     "driver": "dnf",
@@ -74083,6 +74710,15 @@
     "name": "com.stremio.Stremio"
    }
   },
+  "stress-ng": {
+   "dnf\\stress-ng": {
+    "driver": "dnf",
+    "fields": {
+     "name": "stress-ng"
+    },
+    "name": "stress-ng"
+   }
+  },
   "subversion": {
    "dnf\\subversion": {
     "driver": "dnf",
@@ -74220,6 +74856,15 @@
      "name": "syncthing"
     },
     "name": "syncthing"
+   }
+  },
+  "sysbench": {
+   "dnf\\sysbench": {
+    "driver": "dnf",
+    "fields": {
+     "name": "sysbench"
+    },
+    "name": "sysbench"
    }
   },
   "tailscale": {
@@ -74971,6 +75616,15 @@
      "repo-url": "https://repo.vivaldi.com/archive/rpm/x86_64"
     },
     "name": "vivaldi-stable"
+   }
+  },
+  "vkmark": {
+   "dnf\\vkmark": {
+    "driver": "dnf",
+    "fields": {
+     "name": "vkmark"
+    },
+    "name": "vkmark"
    }
   },
   "vlc": {
@@ -78507,6 +79161,15 @@
     "name": "figlet"
    }
   },
+  "fio": {
+   "brew\\fio": {
+    "driver": "brew",
+    "fields": {
+     "name": "fio"
+    },
+    "name": "fio"
+   }
+  },
   "firefox": {
    "flatpak\\firefox": {
     "driver": "flatpak",
@@ -79207,6 +79870,16 @@
     "name": "glm"
    }
   },
+  "glmark2": {
+   "brew\\glmark2": {
+    "driver": "brew",
+    "fields": {
+     "name": "glmark2",
+     "repo-component": "universe"
+    },
+    "name": "glmark2"
+   }
+  },
   "glog": {
    "brew\\glog": {
     "driver": "brew",
@@ -79857,6 +80530,15 @@
     "name": "org.hydrogenmusic.Hydrogen"
    }
   },
+  "hyperfine": {
+   "brew\\hyperfine": {
+    "driver": "brew",
+    "fields": {
+     "name": "hyperfine"
+    },
+    "name": "hyperfine"
+   }
+  },
   "hyprland-dotfiles": {
    "dotfiles\\hyprland-dotfiles": {
     "driver": "dotfiles",
@@ -79953,6 +80635,15 @@
      "name": "intel-oneapi-basekit"
     },
     "name": "intel-oneapi-basekit"
+   }
+  },
+  "ioping": {
+   "brew\\ioping": {
+    "driver": "brew",
+    "fields": {
+     "name": "ioping"
+    },
+    "name": "ioping"
    }
   },
   "iperf3": {
@@ -81617,6 +82308,15 @@
      }
     },
     "name": "maxima-dotfiles"
+   }
+  },
+  "mbw": {
+   "brew\\mbw": {
+    "driver": "brew",
+    "fields": {
+     "name": "mbw"
+    },
+    "name": "mbw"
    }
   },
   "mc": {
@@ -84416,6 +85116,15 @@
     "name": "com.stremio.Stremio"
    }
   },
+  "stress-ng": {
+   "brew\\stress-ng": {
+    "driver": "brew",
+    "fields": {
+     "name": "stress-ng"
+    },
+    "name": "stress-ng"
+   }
+  },
   "subversion": {
    "brew\\subversion": {
     "driver": "brew",
@@ -84511,6 +85220,15 @@
      "name": "syncthing"
     },
     "name": "syncthing"
+   }
+  },
+  "sysbench": {
+   "brew\\sysbench": {
+    "driver": "brew",
+    "fields": {
+     "name": "sysbench"
+    },
+    "name": "sysbench"
    }
   },
   "tcl": {
@@ -86821,6 +87539,15 @@
      "name": "bmon"
     },
     "name": "bmon"
+   }
+  },
+  "bonnie++": {
+   "apt\\bonnie++": {
+    "driver": "apt",
+    "fields": {
+     "name": "bonnie++"
+    },
+    "name": "bonnie++"
    }
   },
   "boost": {
@@ -89301,6 +90028,15 @@
     "name": "figlet"
    }
   },
+  "fio": {
+   "apt\\fio": {
+    "driver": "apt",
+    "fields": {
+     "name": "fio"
+    },
+    "name": "fio"
+   }
+  },
   "firefox": {
    "apt\\firefox": {
     "driver": "apt",
@@ -90337,6 +91073,16 @@
     "name": "libglm-dev"
    }
   },
+  "glmark2": {
+   "apt\\glmark2": {
+    "driver": "apt",
+    "fields": {
+     "name": "glmark2",
+     "repo-component": "universe"
+    },
+    "name": "glmark2"
+   }
+  },
   "glog": {
    "apt\\glog": {
     "driver": "apt",
@@ -91285,6 +92031,16 @@
     "name": "hydrogen"
    }
   },
+  "hyperfine": {
+   "apt\\hyperfine": {
+    "driver": "apt",
+    "fields": {
+     "name": "hyperfine",
+     "repo-component": "universe"
+    },
+    "name": "hyperfine"
+   }
+  },
   "hyprland-dotfiles": {
    "dotfiles\\hyprland-dotfiles": {
     "driver": "dotfiles",
@@ -91411,6 +92167,15 @@
      "name": "intel-basekit"
     },
     "name": "intel-basekit"
+   }
+  },
+  "ioping": {
+   "apt\\ioping": {
+    "driver": "apt",
+    "fields": {
+     "name": "ioping"
+    },
+    "name": "ioping"
    }
   },
   "iotop": {
@@ -93403,6 +94168,15 @@
     "name": "maxima-dotfiles"
    }
   },
+  "mbw": {
+   "apt\\mbw": {
+    "driver": "apt",
+    "fields": {
+     "name": "mbw"
+    },
+    "name": "mbw"
+   }
+  },
   "mc": {
    "apt\\mc": {
     "driver": "apt",
@@ -95119,6 +95893,23 @@
      }
     },
     "name": "pgcli-dotfiles"
+   }
+  },
+  "phoronix-test-suite": {
+   "apt\\phoronix-test-suite": {
+    "driver": "apt",
+    "fields": {
+     "name": "phoronix-test-suite"
+    },
+    "name": "phoronix-test-suite"
+   },
+   "apt\\php": {
+    "driver": "apt",
+    "fields": {
+     "name": "php-cli",
+     "repo-component": "universe"
+    },
+    "name": "php-cli"
    }
   },
   "php": {
@@ -96984,6 +97775,15 @@
     "name": "com.stremio.Stremio"
    }
   },
+  "stress-ng": {
+   "apt\\stress-ng": {
+    "driver": "apt",
+    "fields": {
+     "name": "stress-ng"
+    },
+    "name": "stress-ng"
+   }
+  },
   "subversion": {
    "apt\\subversion": {
     "driver": "apt",
@@ -97121,6 +97921,15 @@
      "name": "syncthing"
     },
     "name": "syncthing"
+   }
+  },
+  "sysbench": {
+   "apt\\sysbench": {
+    "driver": "apt",
+    "fields": {
+     "name": "sysbench"
+    },
+    "name": "sysbench"
    }
   },
   "tailscale": {
@@ -97856,6 +98665,15 @@
      "source-path": "/etc/apt/sources.list.d/vivaldi.list"
     },
     "name": "vivaldi-stable"
+   }
+  },
+  "vkmark": {
+   "apt\\vkmark": {
+    "driver": "apt",
+    "fields": {
+     "name": "vkmark"
+    },
+    "name": "vkmark"
    }
   },
   "vlc": {
@@ -99991,6 +100809,22 @@
      "name": "bmon"
     },
     "name": "bmon"
+   },
+   "dnf\\epel-release": {
+    "driver": "dnf",
+    "fields": {
+     "name": "epel-release"
+    },
+    "name": "epel-release"
+   }
+  },
+  "bonnie++": {
+   "dnf\\bonnie++": {
+    "driver": "dnf",
+    "fields": {
+     "name": "bonnie++"
+    },
+    "name": "bonnie++"
    },
    "dnf\\epel-release": {
     "driver": "dnf",
@@ -102430,6 +103264,15 @@
     "name": "figlet"
    }
   },
+  "fio": {
+   "dnf\\fio": {
+    "driver": "dnf",
+    "fields": {
+     "name": "fio"
+    },
+    "name": "fio"
+   }
+  },
   "firefox": {
    "dnf\\firefox": {
     "driver": "dnf",
@@ -103233,6 +104076,22 @@
      "repo-component": "universe"
     },
     "name": "glm-devel"
+   }
+  },
+  "glmark2": {
+   "dnf\\epel-release": {
+    "driver": "dnf",
+    "fields": {
+     "name": "epel-release"
+    },
+    "name": "epel-release"
+   },
+   "dnf\\glmark2": {
+    "driver": "dnf",
+    "fields": {
+     "name": "glmark2"
+    },
+    "name": "glmark2"
    }
   },
   "glog": {
@@ -104221,6 +105080,42 @@
     "name": "org.hydrogenmusic.Hydrogen"
    }
   },
+  "hyperfine": {
+   "cargo\\hyperfine": {
+    "driver": "cargo",
+    "fields": {
+     "name": "hyperfine"
+    },
+    "name": "hyperfine"
+   },
+   "dnf\\rust": {
+    "driver": "dnf",
+    "fields": {
+     "installed-name": "cargo",
+     "name": "cargo",
+     "repo-component": "universe"
+    },
+    "name": "cargo"
+   },
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.config/bash/conf.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\rust-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "glue": "rust"
+    },
+    "name": "rust-dotfiles"
+   }
+  },
   "hyprland": {
    "dnf\\hyprland": {
     "driver": "dnf",
@@ -104379,6 +105274,22 @@
      "name": "intel-basekit"
     },
     "name": "intel-basekit"
+   }
+  },
+  "ioping": {
+   "dnf\\epel-release": {
+    "driver": "dnf",
+    "fields": {
+     "name": "epel-release"
+    },
+    "name": "epel-release"
+   },
+   "dnf\\ioping": {
+    "driver": "dnf",
+    "fields": {
+     "name": "ioping"
+    },
+    "name": "ioping"
    }
   },
   "iotop": {
@@ -108029,6 +108940,30 @@
     "name": "pgcli-dotfiles"
    }
   },
+  "phoronix-test-suite": {
+   "dnf\\epel-release": {
+    "driver": "dnf",
+    "fields": {
+     "name": "epel-release"
+    },
+    "name": "epel-release"
+   },
+   "dnf\\phoronix-test-suite": {
+    "driver": "dnf",
+    "fields": {
+     "name": "phoronix-test-suite"
+    },
+    "name": "phoronix-test-suite"
+   },
+   "dnf\\php": {
+    "driver": "dnf",
+    "fields": {
+     "name": "php-cli",
+     "repo-component": "universe"
+    },
+    "name": "php-cli"
+   }
+  },
   "php": {
    "dnf\\php": {
     "driver": "dnf",
@@ -109894,6 +110829,22 @@
     "name": "com.stremio.Stremio"
    }
   },
+  "stress-ng": {
+   "dnf\\epel-release": {
+    "driver": "dnf",
+    "fields": {
+     "name": "epel-release"
+    },
+    "name": "epel-release"
+   },
+   "dnf\\stress-ng": {
+    "driver": "dnf",
+    "fields": {
+     "name": "stress-ng"
+    },
+    "name": "stress-ng"
+   }
+  },
   "subversion": {
    "dnf\\subversion": {
     "driver": "dnf",
@@ -110021,6 +110972,22 @@
      "name": "syncthing"
     },
     "name": "syncthing"
+   }
+  },
+  "sysbench": {
+   "dnf\\epel-release": {
+    "driver": "dnf",
+    "fields": {
+     "name": "epel-release"
+    },
+    "name": "epel-release"
+   },
+   "dnf\\sysbench": {
+    "driver": "dnf",
+    "fields": {
+     "name": "sysbench"
+    },
+    "name": "sysbench"
    }
   },
   "tailscale": {
@@ -112978,6 +113945,15 @@
     "name": "bmon"
    }
   },
+  "bonnie++": {
+   "apt\\bonnie++": {
+    "driver": "apt",
+    "fields": {
+     "name": "bonnie++"
+    },
+    "name": "bonnie++"
+   }
+  },
   "boost": {
    "apt\\boost": {
     "driver": "apt",
@@ -115447,6 +116423,15 @@
     "name": "figlet"
    }
   },
+  "fio": {
+   "apt\\fio": {
+    "driver": "apt",
+    "fields": {
+     "name": "fio"
+    },
+    "name": "fio"
+   }
+  },
   "firefox": {
    "apt\\firefox": {
     "driver": "apt",
@@ -116483,6 +117468,16 @@
     "name": "libglm-dev"
    }
   },
+  "glmark2": {
+   "apt\\glmark2": {
+    "driver": "apt",
+    "fields": {
+     "name": "glmark2",
+     "repo-component": "universe"
+    },
+    "name": "glmark2"
+   }
+  },
   "glog": {
    "apt\\glog": {
     "driver": "apt",
@@ -117431,6 +118426,16 @@
     "name": "hydrogen"
    }
   },
+  "hyperfine": {
+   "apt\\hyperfine": {
+    "driver": "apt",
+    "fields": {
+     "name": "hyperfine",
+     "repo-component": "universe"
+    },
+    "name": "hyperfine"
+   }
+  },
   "hyprland-dotfiles": {
    "dotfiles\\hyprland-dotfiles": {
     "driver": "dotfiles",
@@ -117557,6 +118562,15 @@
      "name": "intel-basekit"
     },
     "name": "intel-basekit"
+   }
+  },
+  "ioping": {
+   "apt\\ioping": {
+    "driver": "apt",
+    "fields": {
+     "name": "ioping"
+    },
+    "name": "ioping"
    }
   },
   "iotop": {
@@ -119549,6 +120563,15 @@
     "name": "maxima-dotfiles"
    }
   },
+  "mbw": {
+   "apt\\mbw": {
+    "driver": "apt",
+    "fields": {
+     "name": "mbw"
+    },
+    "name": "mbw"
+   }
+  },
   "mc": {
    "apt\\mc": {
     "driver": "apt",
@@ -121265,6 +122288,23 @@
      }
     },
     "name": "pgcli-dotfiles"
+   }
+  },
+  "phoronix-test-suite": {
+   "apt\\phoronix-test-suite": {
+    "driver": "apt",
+    "fields": {
+     "name": "phoronix-test-suite"
+    },
+    "name": "phoronix-test-suite"
+   },
+   "apt\\php": {
+    "driver": "apt",
+    "fields": {
+     "name": "php-cli",
+     "repo-component": "universe"
+    },
+    "name": "php-cli"
    }
   },
   "php": {
@@ -123137,6 +124177,15 @@
     "name": "com.stremio.Stremio"
    }
   },
+  "stress-ng": {
+   "apt\\stress-ng": {
+    "driver": "apt",
+    "fields": {
+     "name": "stress-ng"
+    },
+    "name": "stress-ng"
+   }
+  },
   "subversion": {
    "apt\\subversion": {
     "driver": "apt",
@@ -123274,6 +124323,15 @@
      "name": "syncthing"
     },
     "name": "syncthing"
+   }
+  },
+  "sysbench": {
+   "apt\\sysbench": {
+    "driver": "apt",
+    "fields": {
+     "name": "sysbench"
+    },
+    "name": "sysbench"
    }
   },
   "tailscale": {
@@ -124009,6 +125067,15 @@
      "source-path": "/etc/apt/sources.list.d/vivaldi.list"
     },
     "name": "vivaldi-stable"
+   }
+  },
+  "vkmark": {
+   "apt\\vkmark": {
+    "driver": "apt",
+    "fields": {
+     "name": "vkmark"
+    },
+    "name": "vkmark"
    }
   },
   "vlc": {
@@ -126045,6 +127112,15 @@
     "name": "bmon"
    }
   },
+  "bonnie++": {
+   "apt\\bonnie++": {
+    "driver": "apt",
+    "fields": {
+     "name": "bonnie++"
+    },
+    "name": "bonnie++"
+   }
+  },
   "boost": {
    "apt\\boost": {
     "driver": "apt",
@@ -128480,6 +129556,15 @@
     "name": "figlet"
    }
   },
+  "fio": {
+   "apt\\fio": {
+    "driver": "apt",
+    "fields": {
+     "name": "fio"
+    },
+    "name": "fio"
+   }
+  },
   "firefox": {
    "apt\\firefox": {
     "driver": "apt",
@@ -129516,6 +130601,16 @@
     "name": "libglm-dev"
    }
   },
+  "glmark2": {
+   "apt\\glmark2": {
+    "driver": "apt",
+    "fields": {
+     "name": "glmark2",
+     "repo-component": "universe"
+    },
+    "name": "glmark2"
+   }
+  },
   "glog": {
    "apt\\glog": {
     "driver": "apt",
@@ -130420,6 +131515,16 @@
     "name": "hydrogen"
    }
   },
+  "hyperfine": {
+   "apt\\hyperfine": {
+    "driver": "apt",
+    "fields": {
+     "name": "hyperfine",
+     "repo-component": "universe"
+    },
+    "name": "hyperfine"
+   }
+  },
   "hyprland-dotfiles": {
    "dotfiles\\hyprland-dotfiles": {
     "driver": "dotfiles",
@@ -130546,6 +131651,15 @@
      "name": "intel-basekit"
     },
     "name": "intel-basekit"
+   }
+  },
+  "ioping": {
+   "apt\\ioping": {
+    "driver": "apt",
+    "fields": {
+     "name": "ioping"
+    },
+    "name": "ioping"
    }
   },
   "iotop": {
@@ -132504,6 +133618,15 @@
     "name": "maxima-dotfiles"
    }
   },
+  "mbw": {
+   "apt\\mbw": {
+    "driver": "apt",
+    "fields": {
+     "name": "mbw"
+    },
+    "name": "mbw"
+   }
+  },
   "mc": {
    "apt\\mc": {
     "driver": "apt",
@@ -134169,6 +135292,23 @@
      }
     },
     "name": "pgcli-dotfiles"
+   }
+  },
+  "phoronix-test-suite": {
+   "apt\\phoronix-test-suite": {
+    "driver": "apt",
+    "fields": {
+     "name": "phoronix-test-suite"
+    },
+    "name": "phoronix-test-suite"
+   },
+   "apt\\php": {
+    "driver": "apt",
+    "fields": {
+     "name": "php-cli",
+     "repo-component": "universe"
+    },
+    "name": "php-cli"
    }
   },
   "php": {
@@ -135973,6 +137113,15 @@
     "name": "com.stremio.Stremio"
    }
   },
+  "stress-ng": {
+   "apt\\stress-ng": {
+    "driver": "apt",
+    "fields": {
+     "name": "stress-ng"
+    },
+    "name": "stress-ng"
+   }
+  },
   "subversion": {
    "apt\\subversion": {
     "driver": "apt",
@@ -136110,6 +137259,15 @@
      "name": "syncthing"
     },
     "name": "syncthing"
+   }
+  },
+  "sysbench": {
+   "apt\\sysbench": {
+    "driver": "apt",
+    "fields": {
+     "name": "sysbench"
+    },
+    "name": "sysbench"
    }
   },
   "tailscale": {
@@ -136828,6 +137986,15 @@
      "source-path": "/etc/apt/sources.list.d/vivaldi.list"
     },
     "name": "vivaldi-stable"
+   }
+  },
+  "vkmark": {
+   "apt\\vkmark": {
+    "driver": "apt",
+    "fields": {
+     "name": "vkmark"
+    },
+    "name": "vkmark"
    }
   },
   "vlc": {

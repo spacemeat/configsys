@@ -417,6 +417,43 @@
         iozone: { attrs: [ CLI source-available ] description: "IOzone — filesystem I/O benchmark (sequential/random read & write across sizes)."
             install: [ { via: native  when: "debian or fedora or opensuse"  name: { apt: iozone3  default: iozone } }
                        { via: aur  when: "arch"  name: iozone } ] }
+        // --- benchmarks (disk / CPU / memory / GPU + a suite). Most are in-repo everywhere (EL via
+        // EPEL); the graphics ones need a working GL/Vulkan stack at runtime. ---
+        fio: { attrs: [ CLI FOSS GNU copyleft ] description: "fio — the Flexible I/O tester: the standard storage benchmark (Jens Axboe)."
+            install: [ { via: native } ] }
+        ioping: { attrs: [ CLI FOSS copyleft ] description: "ioping — measure disk I/O latency (like `ping`, for storage)."
+            install: [ { via: native  when: "rhel"  requires: epel }
+                       { via: native  when: "not rhel" } ] }
+        bonnie++: { attrs: [ CLI FOSS GNU copyleft ] description: "bonnie++ — a classic hard-drive and filesystem throughput benchmark."
+            install: [ { via: native  when: "debian or fedora or opensuse" }
+                       { via: native  when: "rhel"  requires: epel }
+                       { via: aur     when: "arch" } ] }   // pacman: AUR only
+        sysbench: { attrs: [ CLI FOSS GNU copyleft ] description: "sysbench — a scriptable multi-threaded CPU / memory / threads / DB benchmark."
+            install: [ { via: native  when: "rhel"  requires: epel }
+                       { via: native  when: "not rhel" } ] }
+        stress-ng: { attrs: [ CLI FOSS GNU copyleft ] description: "stress-ng — stress-test a system many ways and report per-stressor metrics (successor to `stress`)."
+            install: [ { via: native  when: "rhel"  requires: epel }
+                       { via: native  when: "not rhel" } ] }
+        // hyperfine — Rust; native in the newer repos, cargo covers EL/openSUSE/Amazon.
+        hyperfine: { attrs: [ CLI FOSS permissive ] description: "hyperfine — a command-line benchmarking tool with statistics and warmup (`hyperfine`)."
+            install: [ { via: native  when: "(debian or fedora or arch or alpine) and not amzn"  repo-component: universe }
+                       { via: native  when: "fedora_atomic" }        // brew formula `hyperfine`
+                       { via: cargo   when: "(rhel or opensuse or amzn)"  name: hyperfine  requires: cargo } ] }
+        mbw: { attrs: [ CLI FOSS permissive ] description: "mbw — a simple memory-bandwidth (memcpy) benchmark."
+            install: [ { via: native  when: "debian" }
+                       { via: native  when: "fedora_atomic" }        // brew formula `mbw`
+                       { via: aur     when: "arch" } ] }   // niche: Debian/brew/AUR; declines elsewhere
+        glmark2: { attrs: [ GUI FOSS GNU copyleft ] description: "glmark2 — an OpenGL (ES) 2.0 rendering benchmark."
+            install: [ { via: native  when: "rhel"  requires: epel }
+                       { via: native  when: "not rhel"  repo-component: universe } ] }
+        vkmark: { attrs: [ GUI FOSS GNU copyleft ] description: "vkmark — an extensible Vulkan benchmark with configurable scenes."
+            install: [ { via: native  when: "debian or fedora or arch or opensuse" } ] }   // needs a Vulkan driver at runtime; not packaged on alpine/atomic/amzn
+        // Phoronix Test Suite — the big automated benchmark orchestrator. Only hard dep is PHP (CLI +
+        // DOM). In-repo on most distros (EL via EPEL, Arch via AUR); Amazon/atomic decline.
+        phoronix-test-suite: { attrs: [ CLI app FOSS GNU copyleft ] description: "Phoronix Test Suite — automated cross-platform benchmarking/orchestration (`phoronix-test-suite`)." requires: php
+            install: [ { via: native  when: "(debian or fedora or alpine or opensuse) and not amzn" }
+                       { via: native  when: "rhel"  requires: epel }
+                       { via: aur     when: "arch" } ] }
         iotop: { attrs: [ TUI FOSS copyleft ] description: "iotop — a per-process disk I/O monitor."
             install: [ { via: native  when: "fedora"  name: iotop-c }   // Fedora dropped the Python `iotop` for the C rewrite `iotop-c`
                        { via: native  when: "debian or rhel or arch or opensuse or alpine or amzn"  name: iotop } ] }
