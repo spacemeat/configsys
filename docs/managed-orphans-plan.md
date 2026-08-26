@@ -293,8 +293,18 @@ the overlay-on-Profiles too noisy.
    install-axis overlay (`O` toggle, themed `installed` underline + `orphan_*` roles) with the verb
    keys (`s` stage · `x` stage-uninstall · `.` ignore; adopt = the existing membership toggle); and
    Components seeding + draining the `!uninstall` queue through the normal execute flow.
-   **Deferred:** the synthetic read-only `foreign` tree node, and routing Components `x` to *write*
-   the queue (it's primarily Profiles-fed; a correct bidirectional sync needs more care).
+   **The `!` namespace (decided):** `!`-profiles are system/workflow — never install-active, hidden
+   from the normal tree, surfaced only in the overlay, and NOT counted as real membership (so the
+   orphan *kind* keeps reflecting only real profiles). `!uninstall` is the stored one; a hand-defined
+   `!…` warns in `check`. The adopt-target stays a NORMAL, editable, visible profile (`orphans-lurking`)
+   — reserving it would fight the "members read *lurking*" semantics its name implies.
+   **Foreign + ignored surfacing (constraint found):** the Profiles catalog is component-centric, but
+   foreign orphans are raw package keys with no component — so a `!orphans-foreign` node needs a
+   bespoke non-component list, high-effort for a kind you can't adopt anyway; foreign discovery stays
+   in the CLI (`orphans --foreign`). Ignored orphans fit better as a **"reveal ignored" overlay
+   sub-mode** (dimmed known-orphans in the catalog, `.` toggles) than a synthetic node.
+   **Deferred:** the reveal-ignored sub-mode, and routing Components `x` to *write* the queue (it's
+   primarily Profiles-fed; a correct bidirectional sync needs more care).
 
 ## Open questions (for the user)
 
