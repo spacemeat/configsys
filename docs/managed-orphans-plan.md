@@ -243,6 +243,14 @@ This makes adopt and uninstall symmetric-but-distinct: **adopt** stages into a *
 future want), **uninstall** stages into the *special* `!uninstall` (a pending removal) — both mark on
 Profiles, both execute on the screen that owns that kind of action.
 
+**`x` is uniform across screens.** Components `x` routes through `!uninstall` too — so staged-removal
+is one mechanism everywhere (mark from Profiles OR Components; the queue is the single source of
+pending removals; execute/clear on Components). Not an orphans-only feature.
+
+> **Design status: complete.** Phases 1–3 shipped (scan + tiers + native-backed + cross-distro
+> noise-trimming + adopt/remove/ignore verbs). Phase 4 (the TUI overlay + `!uninstall` staged-removal)
+> is fully designed above and confirmed — ready to build when picked up.
+
 A dedicated **Orphans screen** (7th tab) remains the fallback only if per-machine volume ever makes
 the overlay-on-Profiles too noisy.
 
