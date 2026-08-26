@@ -2459,7 +2459,7 @@
         libxcb-cursor-dev:     { attrs: [ lib FOSS permissive ] description: "libxcb-cursor development headers." install: [ { via: native  when: "debian"  repo-component: universe } ] }
         libxcb-devel:          { attrs: [ lib FOSS permissive ] description: "libxcb development headers." install: [ { via: native  when: "redhat" } ] }   // fedora + EL
         xcb-util-cursor-devel: { attrs: [ lib FOSS permissive ] description: "xcb-util-cursor development headers." install: [ { via: native  when: "redhat" } ] }   // fedora + EL
-        libxcb:                { attrs: [ lib FOSS permissive ] description: "libxcb — the X protocol C-language binding." install: [ { via: native  when: "arch" } ] }   // arch
+        libxcb:                { attrs: [ lib FOSS permissive ] description: "libxcb — the X protocol C-language Binding (XCB) library (dev headers + libs)." install: [ { via: native  name: { apt: libxcb1-dev  dnf: libxcb-devel  apk: libxcb-dev  zypper: libxcb-devel  default: libxcb } } ] }
         xcb-util-cursor:       { attrs: [ lib FOSS permissive ] description: "xcb-util-cursor — XCB cursor management library." install: [ { via: native  when: "arch" } ] }   // arch
         // vulkan-dev: a parts bundle composing the X libs, build tools, the SDK tarball,
         // and the vulkan runtime (itself a parts aggregator). One binding per OS family;
@@ -2849,67 +2849,98 @@
                        { via: native  when: "fedora"    name: opencascade-devel }
                        { via: native  when: "arch"      name: opencascade }
                        { via: native  when: "opensuse"  name: opencascade-devel } ] }   // not in EL base / alpine / brew
-        // --- more common -dev build libraries (compact name-map form; NAMESWEEP PENDING) ---
-        x11: { attrs: [ lib FOSS permissive ] description: "libX11 — the core X11 client library (dev)."
-            install: [ { via: native  when: "(debian or redhat or arch or alpine or opensuse or fedora_atomic) and not amzn"
-                         name: { apt: libx11-dev  dnf: libX11-devel  pacman: libx11  apk: libx11-dev  zypper: libX11-devel  brew: libx11 } } ] }
-        xinerama: { attrs: [ lib FOSS permissive ] description: "libXinerama — X11 multi-monitor (Xinerama) extension library (dev)."
-            install: [ { via: native  when: "(debian or redhat or arch or alpine or opensuse or fedora_atomic) and not amzn"
-                         name: { apt: libxinerama-dev  dnf: libXinerama-devel  pacman: libxinerama  apk: libxinerama-dev  zypper: libXinerama-devel  brew: libxinerama } } ] }
-        xkbcommon: { attrs: [ lib FOSS permissive ] description: "libxkbcommon — keyboard-keymap handling for X11/Wayland (dev)."
-            install: [ { via: native  when: "(debian or redhat or arch or alpine or opensuse or fedora_atomic) and not amzn"
-                         name: { apt: libxkbcommon-dev  dnf: libxkbcommon-devel  pacman: libxkbcommon  apk: libxkbcommon-dev  zypper: libxkbcommon-devel  brew: libxkbcommon } } ] }
-        wayland: { attrs: [ lib FOSS permissive ] description: "Wayland — the display-server protocol libraries (`wayland-scanner`, libwayland; dev)."
-            install: [ { via: native  when: "(debian or redhat or arch or alpine or opensuse) and not amzn"
-                         name: { apt: libwayland-dev  dnf: wayland-devel  pacman: wayland  apk: wayland-dev  zypper: wayland-devel } } ] }   // Linux-only; not on brew
-        curl-dev: { attrs: [ lib FOSS permissive ] description: "libcurl development headers (client-side URL transfers)."
-            install: [ { via: native  when: "(debian or redhat or arch or alpine or opensuse or fedora_atomic) and not amzn"
-                         name: { apt: libcurl4-openssl-dev  dnf: libcurl-devel  pacman: curl  apk: curl-dev  zypper: libcurl-devel  brew: curl } } ] }
-        cairo: { attrs: [ lib FOSS copyleft ] description: "Cairo — 2D vector graphics library (dev)."
-            install: [ { via: native  when: "(debian or redhat or arch or alpine or opensuse or fedora_atomic) and not amzn"
-                         name: { apt: libcairo2-dev  dnf: cairo-devel  pacman: cairo  apk: cairo-dev  zypper: cairo-devel  brew: cairo } } ] }
-        expat: { attrs: [ lib FOSS permissive ] description: "Expat — a stream-oriented XML parser library (dev)."
-            install: [ { via: native  when: "(debian or redhat or arch or alpine or opensuse or fedora_atomic) and not amzn"
-                         name: { apt: libexpat1-dev  dnf: expat-devel  pacman: expat  apk: expat-dev  zypper: libexpat-devel  brew: expat } } ] }
-        libevent: { attrs: [ lib FOSS permissive ] description: "libevent — an event-notification library (dev)."
-            install: [ { via: native  when: "(debian or redhat or arch or alpine or opensuse or fedora_atomic) and not amzn"
-                         name: { apt: libevent-dev  dnf: libevent-devel  pacman: libevent  apk: libevent-dev  zypper: libevent-devel  brew: libevent } } ] }
-        fmt: { attrs: [ lib FOSS permissive ] description: "{fmt} — a modern C++ formatting library (dev)."
-            install: [ { via: native  when: "(debian or redhat or arch or alpine or opensuse or fedora_atomic) and not amzn"
-                         name: { apt: libfmt-dev  dnf: fmt-devel  pacman: fmt  apk: fmt-dev  zypper: fmt-devel  brew: fmt } } ] }
-        tinyxml2: { attrs: [ lib FOSS permissive ] description: "TinyXML-2 — a small, efficient C++ XML parser (dev)."
-            install: [ { via: native  when: "(debian or redhat or arch or alpine or opensuse or fedora_atomic) and not amzn"
-                         name: { apt: libtinyxml2-dev  dnf: tinyxml2-devel  pacman: tinyxml2  apk: tinyxml2-dev  zypper: tinyxml2-devel  brew: tinyxml2 } } ] }
-        asio: { attrs: [ lib FOSS permissive ] description: "Asio — a cross-platform C++ networking/async library (header-only; dev)."
-            install: [ { via: native  when: "(debian or redhat or arch or alpine or opensuse or fedora_atomic) and not amzn"
-                         name: { apt: libasio-dev  dnf: asio-devel  pacman: asio  apk: asio-dev  zypper: asio-devel  brew: asio } } ] }
-        zstd-dev: { attrs: [ lib FOSS permissive ] description: "Zstandard development headers (libzstd; the `zstd` CLI is its own component)."
-            install: [ { via: native  when: "(debian or redhat or arch or alpine or opensuse or fedora_atomic) and not amzn"
-                         name: { apt: libzstd-dev  dnf: libzstd-devel  pacman: zstd  apk: zstd-dev  zypper: libzstd-devel  brew: zstd } } ] }
-        lz4-dev: { attrs: [ lib FOSS permissive ] description: "LZ4 development headers (liblz4; the `lz4` CLI is its own component)."
-            install: [ { via: native  when: "(debian or redhat or arch or alpine or opensuse or fedora_atomic) and not amzn"
-                         name: { apt: liblz4-dev  dnf: lz4-devel  pacman: lz4  apk: lz4-dev  zypper: liblz4-devel  brew: lz4 } } ] }
-        protobuf-dev: { attrs: [ lib FOSS permissive ] description: "Protocol Buffers C++ runtime + headers (libprotobuf; distinct from the `protobuf` compiler)."
-            install: [ { via: native  when: "(debian or redhat or arch or alpine or opensuse or fedora_atomic) and not amzn"
-                         name: { apt: libprotobuf-dev  dnf: protobuf-devel  pacman: protobuf  apk: protobuf-dev  zypper: protobuf-devel  brew: protobuf } } ] }
-        double-conversion: { attrs: [ lib FOSS permissive ] description: "double-conversion — binary↔decimal conversion routines (dev)."
-            install: [ { via: native  when: "(debian or redhat or arch or alpine or opensuse or fedora_atomic) and not amzn"
-                         name: { apt: libdouble-conversion-dev  dnf: double-conversion-devel  pacman: double-conversion  apk: double-conversion-dev  zypper: double-conversion-devel  brew: double-conversion } } ] }
-        gflags: { attrs: [ lib FOSS permissive ] description: "gflags — Google's commandline-flags library (dev)."
-            install: [ { via: native  when: "(debian or redhat or arch or alpine or opensuse or fedora_atomic) and not amzn"
-                         name: { apt: libgflags-dev  dnf: gflags-devel  pacman: gflags  apk: gflags-dev  zypper: gflags-devel  brew: gflags } } ] }
-        glog: { attrs: [ lib FOSS permissive ] description: "glog — Google's application-logging library (dev)."
-            install: [ { via: native  when: "(debian or redhat or arch or alpine or opensuse or fedora_atomic) and not amzn"
-                         name: { apt: libgoogle-glog-dev  dnf: glog-devel  pacman: google-glog  apk: glog-dev  zypper: glog-devel  brew: glog } } ] }
-        snappy: { attrs: [ lib FOSS permissive ] description: "Snappy — Google's fast compression/decompression library (dev)."
-            install: [ { via: native  when: "(debian or redhat or arch or alpine or opensuse or fedora_atomic) and not amzn"
-                         name: { apt: libsnappy-dev  dnf: snappy-devel  pacman: snappy  apk: snappy-dev  zypper: snappy-devel  brew: snappy } } ] }
-        sdl2-image: { attrs: [ lib FOSS permissive ] description: "SDL2_image — image-file loading for SDL2 (dev)."
-            install: [ { via: native  when: "(debian or redhat or arch or alpine or opensuse or fedora_atomic) and not amzn"
-                         name: { apt: libsdl2-image-dev  dnf: SDL2_image-devel  pacman: sdl2_image  apk: sdl2_image-dev  zypper: libSDL2_image-devel  brew: sdl2_image } } ] }
-        sdl2-ttf: { attrs: [ lib FOSS permissive ] description: "SDL2_ttf — TrueType-font rendering for SDL2 (dev)."
-            install: [ { via: native  when: "(debian or redhat or arch or alpine or opensuse or fedora_atomic) and not amzn"
-                         name: { apt: libsdl2-ttf-dev  dnf: SDL2_ttf-devel  pacman: sdl2_ttf  apk: sdl2_ttf-dev  zypper: libSDL2_ttf-devel  brew: sdl2_ttf } } ] }
+        // --- shared build-dep dev libraries (consolidated from the configsys-source plugin: source
+        // recipes `requires:` these by name, so they live in core where any component can reach them).
+        // Debian/Fedora/openSUSE split a -dev/-devel package; Arch (and the component-name `default:`)
+        // don't split, so the base name carries headers. NAMESWEEP PENDING as repos roll. ---
+        ncurses:  { attrs: [ lib FOSS permissive ] description: "ncurses — terminal text-UI / window library (dev headers + libs)."
+                    install: [ { via: native  name: { apt: libncurses-dev  dnf: ncurses-devel   apk: ncurses-dev   zypper: ncurses-devel } } ] }
+        libevent: { attrs: [ lib FOSS permissive ] description: "libevent — asynchronous event-notification library (dev headers + libs)."
+                    install: [ { via: native  name: { apt: libevent-dev    dnf: libevent-devel  apk: libevent-dev  zypper: libevent-devel } } ] }
+        openssl:  { attrs: [ lib FOSS permissive ] description: "OpenSSL — TLS and cryptography library (dev headers + libs)."
+                    install: [ { via: native  name: { apt: libssl-dev      dnf: openssl-devel   apk: openssl-dev   zypper: libopenssl-devel } } ] }
+        zlib:     { attrs: [ lib FOSS permissive ] description: "zlib — the DEFLATE compression library (dev headers + libs)."
+                    install: [ { via: native  name: { apt: zlib1g-dev      dnf: zlib-devel      apk: zlib-dev      zypper: zlib-devel } } ] }
+        asio:     { attrs: [ lib FOSS permissive ] description: "Asio — cross-platform C++ async I/O + networking library (header library; dev package)."
+                    install: [ { via: native  name: { apt: libasio-dev     dnf: asio-devel      apk: asio-dev      zypper: asio-devel } } ] }
+        tinyxml2: { attrs: [ lib FOSS permissive ] description: "TinyXML-2 — a small, efficient C++ XML parser (dev headers + lib)."
+                    install: [ { via: native  name: { apt: libtinyxml2-dev dnf: tinyxml2-devel  apk: tinyxml2-dev  zypper: libtinyxml2-devel } } ] }
+        fmt:      { attrs: [ lib FOSS permissive ] description: "{fmt} — modern, safe C++ text-formatting library (dev headers + libs)."
+                    install: [ { via: native  name: { apt: libfmt-dev      dnf: fmt-devel       apk: fmt-dev       zypper: fmt-devel } } ] }
+        gflags:   { attrs: [ lib FOSS permissive ] description: "gflags — Google's C++ command-line flags library (dev headers + libs)."
+                    install: [ { via: native  name: { apt: libgflags-dev   dnf: gflags-devel    apk: gflags-dev    zypper: gflags-devel } } ] }
+        glog:     { attrs: [ lib FOSS permissive ] description: "glog — Google's C++ application-logging library (dev headers + libs)."
+                    install: [ { via: native  name: { apt: libgoogle-glog-dev  dnf: glog-devel  pacman: google-glog  apk: glog-dev  zypper: glog-devel } } ] }
+        double-conversion: { attrs: [ lib FOSS permissive ] description: "double-conversion — Google's fast, correct binary<->decimal float conversion library."
+                    install: [ { via: native  name: { apt: libdouble-conversion-dev  dnf: double-conversion-devel  apk: double-conversion-dev  zypper: double-conversion-devel } } ] }
+        snappy:   { attrs: [ lib FOSS permissive ] description: "Snappy — Google's fast (not maximal-ratio) compression library (dev headers + libs)."
+                    install: [ { via: native  name: { apt: libsnappy-dev   dnf: snappy-devel    apk: snappy-dev    zypper: snappy-devel } } ] }
+        bzip2:    { attrs: [ lib FOSS permissive ] description: "bzip2 — the Burrows-Wheeler block-sorting compression library (dev headers + libs)."
+                    install: [ { via: native  name: { apt: libbz2-dev      dnf: bzip2-devel     apk: bzip2-dev     zypper: libbz2-devel } } ] }
+        libzstd:  { attrs: [ lib FOSS permissive ] description: "libzstd — the Zstandard compression DEV library (headers + libs; distinct from the `zstd` CLI)."
+                    install: [ { via: native  name: { apt: libzstd-dev     dnf: libzstd-devel   pacman: zstd  apk: zstd-dev  zypper: libzstd-devel } } ] }
+        liblz4:   { attrs: [ lib FOSS permissive ] description: "liblz4 — the LZ4 fast-compression DEV library (headers + libs; distinct from the `lz4` CLI)."
+                    install: [ { via: native  name: { apt: liblz4-dev      dnf: lz4-devel       pacman: lz4   apk: lz4-dev   zypper: liblz4-devel } } ] }
+        libsodium: { attrs: [ lib FOSS permissive ] description: "libsodium — modern, misuse-resistant cryptography library (dev headers + libs)."
+                     install: [ { via: native  name: { apt: libsodium-dev  dnf: libsodium-devel  apk: libsodium-dev  zypper: libsodium-devel } } ] }
+        liburing:  { attrs: [ lib FOSS permissive ] description: "liburing — the io_uring asynchronous-I/O interface library (dev headers + libs)."
+                     install: [ { via: native  name: { apt: liburing-dev   dnf: liburing-devel   apk: liburing-dev   zypper: liburing-devel } } ] }
+        libaio:    { attrs: [ lib FOSS copyleft ] description: "libaio — the Linux kernel asynchronous-I/O (KAIO) library (dev headers + libs)."
+                     install: [ { via: native  name: { apt: libaio-dev     dnf: libaio-devel     apk: libaio-dev     zypper: libaio-devel } } ] }
+        libunwind: { attrs: [ lib FOSS permissive ] description: "libunwind — call-chain unwinding for stack backtraces (dev headers + libs)."
+                     install: [ { via: native  name: { apt: libunwind-dev  dnf: libunwind-devel  apk: libunwind-dev  zypper: libunwind-devel } } ] }
+        libdwarf:  { attrs: [ lib FOSS copyleft ] description: "libdwarf — read/write DWARF debug info, for symbolized stack traces (dev headers + libs)."
+                     install: [ { via: native  when: "debian or redhat or opensuse"  name: { apt: libdwarf-dev  dnf: libdwarf-devel  zypper: libdwarf-devel } } ] }
+        libiberty: { attrs: [ lib FOSS GNU copyleft ] description: "libiberty — GNU utility routines (C++ symbol demangling, etc.) used for symbolization."
+                     install: [ { via: native  when: "debian"  name: libiberty-dev } ] }
+        libcurl:  { attrs: [ lib FOSS permissive ] description: "libcurl — the multi-protocol URL-transfer DEV library (headers + libs)."
+                    install: [ { via: native  name: { apt: libcurl4-openssl-dev  dnf: libcurl-devel  pacman: curl  apk: curl-dev  zypper: libcurl-devel } } ] }
+        expat:    { attrs: [ lib FOSS permissive ] description: "Expat — a fast stream-oriented XML parser library (dev headers + libs)."
+                    install: [ { via: native  name: { apt: libexpat1-dev   dnf: expat-devel     pacman: expat  apk: expat-dev    zypper: libexpat-devel } } ] }
+        sdl2-ttf:   { attrs: [ lib FOSS permissive ] description: "SDL2_ttf — TrueType font rendering for SDL2 (dev headers + libs)."
+                      install: [ { via: native  name: { apt: libsdl2-ttf-dev    dnf: SDL2_ttf-devel    pacman: sdl2_ttf    apk: sdl2_ttf-dev    zypper: libSDL2_ttf-devel } } ] }
+        sdl2-image: { attrs: [ lib FOSS permissive ] description: "SDL2_image — image-file loading for SDL2 (dev headers + libs)."
+                      install: [ { via: native  name: { apt: libsdl2-image-dev  dnf: SDL2_image-devel  pacman: sdl2_image  apk: sdl2_image-dev  zypper: libSDL2_image-devel } } ] }
+        gettext:  { attrs: [ CLI FOSS GNU copyleft ] description: "GNU gettext — internationalization message tools (msgfmt) and the libintl runtime."
+                    install: [ { via: native  name: { apk: gettext-dev     zypper: gettext-tools } } ] }
+        libpcap:  { attrs: [ lib FOSS permissive ] description: "libpcap — the packet-capture library (nethogs needs it)."
+                    install: [ { via: native  name: { apt: libpcap-dev     dnf: libpcap-devel   apk: libpcap-dev  zypper: libpcap-devel } } ] }
+        sqlite:   { attrs: [ lib FOSS permissive ] description: "SQLite — the embedded SQL database engine DEV library (headers + libs)."
+                    install: [ { via: native  name: { apt: libsqlite3-dev  dnf: sqlite-devel    pacman: sqlite  apk: sqlite-dev  zypper: sqlite3-devel } } ] }
+        libmtp:   { attrs: [ lib FOSS copyleft ] description: "libMTP — Media Transfer Protocol library for phones/players (jmtpfs needs it)."
+                    install: [ { via: native  name: { apt: libmtp-dev      dnf: libmtp-devel    apk: libmtp-dev   zypper: libmtp-devel } } ] }
+        fuse:     { attrs: [ lib FOSS copyleft ] description: "FUSE 2 — Filesystem-in-Userspace library (jmtpfs needs it)."
+                    install: [ { via: native  name: { apt: libfuse-dev     dnf: fuse-devel      pacman: fuse2   apk: fuse-dev    zypper: fuse-devel } } ] }
+        libusb:   { attrs: [ lib FOSS copyleft ] description: "libusb — cross-platform userspace USB device-access library (dev headers + libs)."
+                    install: [ { via: native  name: { apt: libusb-1.0-0-dev  dnf: libusb1-devel  pacman: libusb  apk: libusb-dev  zypper: libusb-1_0-devel } } ] }
+        libmagic: { attrs: [ lib FOSS permissive ] description: "libmagic — the file-type detection library behind `file` (jmtpfs needs it)."
+                    install: [ { via: native  name: { apt: libmagic-dev    dnf: file-devel      pacman: file    apk: file-dev    zypper: file-devel } } ] }
+        libidn2:  { attrs: [ lib FOSS GNU copyleft ] description: "libidn2 — Internationalized Domain Names (IDNA2008) library (whois needs it)."
+                    install: [ { via: native  name: { apt: libidn2-dev     dnf: libidn2-devel   apk: libidn2-dev  zypper: libidn2-devel } } ] }
+        libx11:      { attrs: [ lib FOSS permissive ] description: "libX11 — the core X11 client library (dev headers + libs)."
+                       install: [ { via: native  name: { apt: libx11-dev  dnf: libX11-devel  apk: libx11-dev  zypper: libX11-devel  default: libx11 } } ] }
+        libxinerama: { attrs: [ lib FOSS permissive ] description: "libXinerama — the X11 multi-monitor (Xinerama) extension library (dev headers + libs)."
+                       install: [ { via: native  name: { apt: libxinerama-dev  dnf: libXinerama-devel  apk: libxinerama-dev  zypper: libXinerama-devel  default: libxinerama } } ] }
+        libxft:      { attrs: [ lib FOSS permissive ] description: "libXft — the X11 FreeType font-rendering library (dev headers + libs)."
+                       install: [ { via: native  name: { apt: libxft-dev  dnf: libXft-devel  apk: libxft-dev  zypper: libXft-devel  default: libxft } } ] }
+        wayland:           { attrs: [ lib FOSS permissive ] description: "Wayland — the core Wayland client/server library + scanner (dev headers + libs)."
+                             install: [ { via: native  name: { apt: libwayland-dev  dnf: wayland-devel  apk: wayland-dev  zypper: wayland-devel  default: wayland } } ] }
+        wayland-protocols: { attrs: [ lib FOSS permissive ] description: "wayland-protocols — the standard Wayland protocol XML definitions."
+                             install: [ { via: native  name: { apt: wayland-protocols  dnf: wayland-protocols-devel  apk: wayland-protocols  zypper: wayland-protocols-devel  default: wayland-protocols } } ] }
+        wlroots:           { attrs: [ lib FOSS permissive ] description: "wlroots — the modular Wayland compositor library (dev headers + libs)."
+                             install: [ { via: native  name: { apt: libwlroots-dev  dnf: wlroots-devel  apk: wlroots-dev  zypper: wlroots-devel  pacman: wlroots0.20 } } ] }
+        libinput:          { attrs: [ lib FOSS permissive ] description: "libinput — the input-device handling library for Wayland/X (dev headers + libs)."
+                             install: [ { via: native  name: { apt: libinput-dev  dnf: libinput-devel  apk: libinput-dev  zypper: libinput-devel  default: libinput } } ] }
+        libxkbcommon:      { attrs: [ lib FOSS permissive ] description: "libxkbcommon — the keyboard keymap handling library (dev headers + libs)."
+                             install: [ { via: native  name: { apt: libxkbcommon-dev  dnf: libxkbcommon-devel  apk: libxkbcommon-dev  zypper: libxkbcommon-devel  default: libxkbcommon } } ] }
+        pixman:            { attrs: [ lib FOSS permissive ] description: "pixman — the low-level pixel-manipulation library (dev headers + libs)."
+                             install: [ { via: native  name: { apt: libpixman-1-dev  dnf: pixman-devel  apk: pixman-dev  zypper: libpixman-1-0-devel  default: pixman } } ] }
+        cairo:             { attrs: [ lib FOSS copyleft ] description: "cairo — the 2D vector-graphics rendering library (dev headers + libs)."
+                             install: [ { via: native  name: { apt: libcairo2-dev  dnf: cairo-devel  apk: cairo-dev  zypper: cairo-devel  default: cairo } } ] }
+        pango:             { attrs: [ lib FOSS copyleft ] description: "Pango — the text-layout and font-rendering library (dev headers + libs)."
+                             install: [ { via: native  name: { apt: libpango1.0-dev  dnf: pango-devel  apk: pango-dev  zypper: pango-devel  default: pango } } ] }
+        xcb-util:          { attrs: [ lib FOSS permissive ] description: "xcb-util — XCB utility libraries (atom/aux/event helpers; dev headers + libs)."
+                             install: [ { via: native  name: { apt: libxcb-util-dev  dnf: xcb-util-devel  apk: xcb-util-dev  zypper: xcb-util-devel  default: xcb-util } } ] }
         // SDL2 (the common target). Arch dropped classic `sdl2` → `sdl2-compat` (SDL2 API on SDL3).
         sdl: { attrs: [ lib FOSS permissive ] description: "SDL2 — Simple DirectMedia Layer (video/audio/input), dev headers + libs."
             install: [ { via: native  when: "(debian or redhat or arch or alpine or opensuse or fedora_atomic) and not amzn"  repo-component: universe

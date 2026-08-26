@@ -1099,6 +1099,15 @@
     "name": "ruby"
    }
   },
+  "bzip2": {
+   "pacman\\bzip2": {
+    "driver": "pacman",
+    "fields": {
+     "name": "bzip2"
+    },
+    "name": "bzip2"
+   }
+  },
   "c-toolchain": {
    "pacman\\c-toolchain": {
     "driver": "pacman",
@@ -1746,15 +1755,6 @@
   },
   "curl": {
    "pacman\\curl": {
-    "driver": "pacman",
-    "fields": {
-     "name": "curl"
-    },
-    "name": "curl"
-   }
-  },
-  "curl-dev": {
-   "pacman\\curl-dev": {
     "driver": "pacman",
     "fields": {
      "name": "curl"
@@ -3046,6 +3046,15 @@
     "name": "freecad"
    }
   },
+  "fuse": {
+   "pacman\\fuse": {
+    "driver": "pacman",
+    "fields": {
+     "name": "fuse2"
+    },
+    "name": "fuse2"
+   }
+  },
   "fvwm2-dotfiles": {
    "dotfiles\\fvwm2-dotfiles": {
     "driver": "dotfiles",
@@ -3200,6 +3209,15 @@
      "src": "gdbinit"
     },
     "name": "gdb-dotfiles"
+   }
+  },
+  "gettext": {
+   "pacman\\gettext": {
+    "driver": "pacman",
+    "fields": {
+     "name": "gettext"
+    },
+    "name": "gettext"
    }
   },
   "gflags": {
@@ -5625,6 +5643,15 @@
     "name": "leiningen"
    }
   },
+  "libaio": {
+   "pacman\\libaio": {
+    "driver": "pacman",
+    "fields": {
+     "name": "libaio"
+    },
+    "name": "libaio"
+   }
+  },
   "libc++": {
    "pacman\\libc++": {
     "driver": "pacman",
@@ -5648,6 +5675,15 @@
      "name": "libc++abi"
     },
     "name": "libc++abi"
+   }
+  },
+  "libcurl": {
+   "pacman\\libcurl": {
+    "driver": "pacman",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
    }
   },
   "libdecor": {
@@ -5697,6 +5733,60 @@
     "name": "libgit2"
    }
   },
+  "libidn2": {
+   "pacman\\libidn2": {
+    "driver": "pacman",
+    "fields": {
+     "name": "libidn2"
+    },
+    "name": "libidn2"
+   }
+  },
+  "libinput": {
+   "pacman\\libinput": {
+    "driver": "pacman",
+    "fields": {
+     "name": "libinput"
+    },
+    "name": "libinput"
+   }
+  },
+  "liblz4": {
+   "pacman\\liblz4": {
+    "driver": "pacman",
+    "fields": {
+     "name": "lz4"
+    },
+    "name": "lz4"
+   }
+  },
+  "libmagic": {
+   "pacman\\libmagic": {
+    "driver": "pacman",
+    "fields": {
+     "name": "file"
+    },
+    "name": "file"
+   }
+  },
+  "libmtp": {
+   "pacman\\libmtp": {
+    "driver": "pacman",
+    "fields": {
+     "name": "libmtp"
+    },
+    "name": "libmtp"
+   }
+  },
+  "libpcap": {
+   "pacman\\libpcap": {
+    "driver": "pacman",
+    "fields": {
+     "name": "libpcap"
+    },
+    "name": "libpcap"
+   }
+  },
   "libreoffice": {
    "dotfiles\\libreoffice-dotfiles": {
     "driver": "dotfiles",
@@ -5739,6 +5829,15 @@
     "name": "libsecret"
    }
   },
+  "libsodium": {
+   "pacman\\libsodium": {
+    "driver": "pacman",
+    "fields": {
+     "name": "libsodium"
+    },
+    "name": "libsodium"
+   }
+  },
   "libstdc++": {
    "pacman\\libstdc++": {
     "driver": "pacman",
@@ -5755,6 +5854,33 @@
      "name": "libtool"
     },
     "name": "libtool"
+   }
+  },
+  "libunwind": {
+   "pacman\\libunwind": {
+    "driver": "pacman",
+    "fields": {
+     "name": "libunwind"
+    },
+    "name": "libunwind"
+   }
+  },
+  "liburing": {
+   "pacman\\liburing": {
+    "driver": "pacman",
+    "fields": {
+     "name": "liburing"
+    },
+    "name": "liburing"
+   }
+  },
+  "libusb": {
+   "pacman\\libusb": {
+    "driver": "pacman",
+    "fields": {
+     "name": "libusb"
+    },
+    "name": "libusb"
    }
   },
   "libvirt": {
@@ -5783,6 +5909,15 @@
     "name": "libvirt-service"
    }
   },
+  "libx11": {
+   "pacman\\libx11": {
+    "driver": "pacman",
+    "fields": {
+     "name": "libx11"
+    },
+    "name": "libx11"
+   }
+  },
   "libxcb": {
    "pacman\\libxcb": {
     "driver": "pacman",
@@ -5801,6 +5936,15 @@
     "name": "libxcursor"
    }
   },
+  "libxft": {
+   "pacman\\libxft": {
+    "driver": "pacman",
+    "fields": {
+     "name": "libxft"
+    },
+    "name": "libxft"
+   }
+  },
   "libxi": {
    "pacman\\libxi": {
     "driver": "pacman",
@@ -5808,6 +5952,24 @@
      "name": "libxi"
     },
     "name": "libxi"
+   }
+  },
+  "libxinerama": {
+   "pacman\\libxinerama": {
+    "driver": "pacman",
+    "fields": {
+     "name": "libxinerama"
+    },
+    "name": "libxinerama"
+   }
+  },
+  "libxkbcommon": {
+   "pacman\\libxkbcommon": {
+    "driver": "pacman",
+    "fields": {
+     "name": "libxkbcommon"
+    },
+    "name": "libxkbcommon"
    }
   },
   "libxrandr": {
@@ -5826,6 +5988,15 @@
      "name": "libxxf86vm"
     },
     "name": "libxxf86vm"
+   }
+  },
+  "libzstd": {
+   "pacman\\libzstd": {
+    "driver": "pacman",
+    "fields": {
+     "name": "zstd"
+    },
+    "name": "zstd"
    }
   },
   "liquibase": {
@@ -6036,15 +6207,6 @@
   },
   "lz4": {
    "pacman\\lz4": {
-    "driver": "pacman",
-    "fields": {
-     "name": "lz4"
-    },
-    "name": "lz4"
-   }
-  },
-  "lz4-dev": {
-   "pacman\\lz4-dev": {
     "driver": "pacman",
     "fields": {
      "name": "lz4"
@@ -6780,6 +6942,15 @@
     "name": "ncdu"
    }
   },
+  "ncurses": {
+   "pacman\\ncurses": {
+    "driver": "pacman",
+    "fields": {
+     "name": "ncurses"
+    },
+    "name": "ncurses"
+   }
+  },
   "neovim": {
    "appImage\\neovim": {
     "driver": "appImage",
@@ -7428,6 +7599,15 @@
     "name": "openscad"
    }
   },
+  "openssl": {
+   "pacman\\openssl": {
+    "driver": "pacman",
+    "fields": {
+     "name": "openssl"
+    },
+    "name": "openssl"
+   }
+  },
   "opentofu": {
    "dotfiles\\bash-dotfiles": {
     "driver": "dotfiles",
@@ -7528,6 +7708,15 @@
      "name": "7zip"
     },
     "name": "7zip"
+   }
+  },
+  "pango": {
+   "pacman\\pango": {
+    "driver": "pacman",
+    "fields": {
+     "name": "pango"
+    },
+    "name": "pango"
    }
   },
   "paraview": {
@@ -7766,6 +7955,15 @@
      "glue": "pipx"
     },
     "name": "pipx-dotfiles"
+   }
+  },
+  "pixman": {
+   "pacman\\pixman": {
+    "driver": "pacman",
+    "fields": {
+     "name": "pixman"
+    },
+    "name": "pixman"
    }
   },
   "pkg-config": {
@@ -8049,15 +8247,6 @@
     "fields": {
      "name": "protobuf",
      "repo-component": "universe"
-    },
-    "name": "protobuf"
-   }
-  },
-  "protobuf-dev": {
-   "pacman\\protobuf-dev": {
-    "driver": "pacman",
-    "fields": {
-     "name": "protobuf"
     },
     "name": "protobuf"
    }
@@ -9612,6 +9801,15 @@
     "name": "springboot"
    }
   },
+  "sqlite": {
+   "pacman\\sqlite": {
+    "driver": "pacman",
+    "fields": {
+     "name": "sqlite"
+    },
+    "name": "sqlite"
+   }
+  },
   "sqlitebrowser": {
    "pacman\\sqlitebrowser": {
     "driver": "pacman",
@@ -10967,6 +11165,15 @@
     "name": "wayland"
    }
   },
+  "wayland-protocols": {
+   "pacman\\wayland-protocols": {
+    "driver": "pacman",
+    "fields": {
+     "name": "wayland-protocols"
+    },
+    "name": "wayland-protocols"
+   }
+  },
   "webcamize": {
    "aur\\webcamize": {
     "driver": "aur",
@@ -11215,6 +11422,15 @@
     "name": "git"
    }
   },
+  "wlroots": {
+   "pacman\\wlroots": {
+    "driver": "pacman",
+    "fields": {
+     "name": "wlroots0.20"
+    },
+    "name": "wlroots0.20"
+   }
+  },
   "wmenu": {
    "pacman\\wmenu": {
     "driver": "pacman",
@@ -11252,13 +11468,13 @@
     "name": "wxwidgets-gtk3"
    }
   },
-  "x11": {
-   "pacman\\x11": {
+  "xcb-util": {
+   "pacman\\xcb-util": {
     "driver": "pacman",
     "fields": {
-     "name": "libx11"
+     "name": "xcb-util"
     },
-    "name": "libx11"
+    "name": "xcb-util"
    }
   },
   "xcb-util-cursor": {
@@ -11394,24 +11610,6 @@
      "glue": "xh"
     },
     "name": "xh-dotfiles"
-   }
-  },
-  "xinerama": {
-   "pacman\\xinerama": {
-    "driver": "pacman",
-    "fields": {
-     "name": "libxinerama"
-    },
-    "name": "libxinerama"
-   }
-  },
-  "xkbcommon": {
-   "pacman\\xkbcommon": {
-    "driver": "pacman",
-    "fields": {
-     "name": "libxkbcommon"
-    },
-    "name": "libxkbcommon"
    }
   },
   "xmonad": {
@@ -11755,6 +11953,15 @@
     "name": "zip"
    }
   },
+  "zlib": {
+   "pacman\\zlib": {
+    "driver": "pacman",
+    "fields": {
+     "name": "zlib"
+    },
+    "name": "zlib"
+   }
+  },
   "zoxide": {
    "dotfiles\\bash-dotfiles": {
     "driver": "dotfiles",
@@ -11852,15 +12059,6 @@
   },
   "zstd": {
    "pacman\\zstd": {
-    "driver": "pacman",
-    "fields": {
-     "name": "zstd"
-    },
-    "name": "zstd"
-   }
-  },
-  "zstd-dev": {
-   "pacman\\zstd-dev": {
     "driver": "pacman",
     "fields": {
      "name": "zstd"
@@ -12993,6 +13191,15 @@
     "name": "bundler"
    }
   },
+  "bzip2": {
+   "apt\\bzip2": {
+    "driver": "apt",
+    "fields": {
+     "name": "libbz2-dev"
+    },
+    "name": "libbz2-dev"
+   }
+  },
   "c-toolchain": {
    "apt\\c-toolchain": {
     "driver": "apt",
@@ -13986,15 +14193,6 @@
      "name": "curl"
     },
     "name": "curl"
-   }
-  },
-  "curl-dev": {
-   "apt\\curl-dev": {
-    "driver": "apt",
-    "fields": {
-     "name": "libcurl4-openssl-dev"
-    },
-    "name": "libcurl4-openssl-dev"
    }
   },
   "cvs": {
@@ -15296,6 +15494,15 @@
     "name": "freecad"
    }
   },
+  "fuse": {
+   "apt\\fuse": {
+    "driver": "apt",
+    "fields": {
+     "name": "libfuse-dev"
+    },
+    "name": "libfuse-dev"
+   }
+  },
   "fvwm2": {
    "apt\\fvwm2": {
     "driver": "apt",
@@ -15741,6 +15948,15 @@
      "src": "gdbinit"
     },
     "name": "gdb-dotfiles"
+   }
+  },
+  "gettext": {
+   "apt\\gettext": {
+    "driver": "apt",
+    "fields": {
+     "name": "gettext"
+    },
+    "name": "gettext"
    }
   },
   "gflags": {
@@ -18278,6 +18494,15 @@
     "name": "leiningen"
    }
   },
+  "libaio": {
+   "apt\\libaio": {
+    "driver": "apt",
+    "fields": {
+     "name": "libaio-dev"
+    },
+    "name": "libaio-dev"
+   }
+  },
   "libavcodec-extra": {
    "apt\\libavcodec-extra": {
     "driver": "apt",
@@ -18313,6 +18538,15 @@
     "name": "libc++abi-dev"
    }
   },
+  "libcurl": {
+   "apt\\libcurl": {
+    "driver": "apt",
+    "fields": {
+     "name": "libcurl4-openssl-dev"
+    },
+    "name": "libcurl4-openssl-dev"
+   }
+  },
   "libdecor": {
    "apt\\libdecor": {
     "driver": "apt",
@@ -18329,6 +18563,15 @@
      "name": "libdrm-dev"
     },
     "name": "libdrm-dev"
+   }
+  },
+  "libdwarf": {
+   "apt\\libdwarf": {
+    "driver": "apt",
+    "fields": {
+     "name": "libdwarf-dev"
+    },
+    "name": "libdwarf-dev"
    }
   },
   "libevent": {
@@ -18358,6 +18601,69 @@
      "repo-component": "universe"
     },
     "name": "libgit2-dev"
+   }
+  },
+  "libiberty": {
+   "apt\\libiberty": {
+    "driver": "apt",
+    "fields": {
+     "name": "libiberty-dev"
+    },
+    "name": "libiberty-dev"
+   }
+  },
+  "libidn2": {
+   "apt\\libidn2": {
+    "driver": "apt",
+    "fields": {
+     "name": "libidn2-dev"
+    },
+    "name": "libidn2-dev"
+   }
+  },
+  "libinput": {
+   "apt\\libinput": {
+    "driver": "apt",
+    "fields": {
+     "name": "libinput-dev"
+    },
+    "name": "libinput-dev"
+   }
+  },
+  "liblz4": {
+   "apt\\liblz4": {
+    "driver": "apt",
+    "fields": {
+     "name": "liblz4-dev"
+    },
+    "name": "liblz4-dev"
+   }
+  },
+  "libmagic": {
+   "apt\\libmagic": {
+    "driver": "apt",
+    "fields": {
+     "name": "libmagic-dev"
+    },
+    "name": "libmagic-dev"
+   }
+  },
+  "libmtp": {
+   "apt\\libmtp": {
+    "driver": "apt",
+    "fields": {
+     "name": "libmtp-dev"
+    },
+    "name": "libmtp-dev"
+   }
+  },
+  "libpcap": {
+   "apt\\libpcap": {
+    "driver": "apt",
+    "fields": {
+     "name": "libpcap-dev"
+    },
+    "name": "libpcap-dev"
    }
   },
   "libreoffice": {
@@ -18402,6 +18708,15 @@
     "name": "libsecret-1-dev"
    }
   },
+  "libsodium": {
+   "apt\\libsodium": {
+    "driver": "apt",
+    "fields": {
+     "name": "libsodium-dev"
+    },
+    "name": "libsodium-dev"
+   }
+  },
   "libstdc++": {
    "apt\\libstdc++": {
     "driver": "apt",
@@ -18418,6 +18733,33 @@
      "name": "libtool"
     },
     "name": "libtool"
+   }
+  },
+  "libunwind": {
+   "apt\\libunwind": {
+    "driver": "apt",
+    "fields": {
+     "name": "libunwind-dev"
+    },
+    "name": "libunwind-dev"
+   }
+  },
+  "liburing": {
+   "apt\\liburing": {
+    "driver": "apt",
+    "fields": {
+     "name": "liburing-dev"
+    },
+    "name": "liburing-dev"
+   }
+  },
+  "libusb": {
+   "apt\\libusb": {
+    "driver": "apt",
+    "fields": {
+     "name": "libusb-1.0-0-dev"
+    },
+    "name": "libusb-1.0-0-dev"
    }
   },
   "libvirt": {
@@ -18453,6 +18795,24 @@
      "name": "libvulkan1"
     },
     "name": "libvulkan1"
+   }
+  },
+  "libx11": {
+   "apt\\libx11": {
+    "driver": "apt",
+    "fields": {
+     "name": "libx11-dev"
+    },
+    "name": "libx11-dev"
+   }
+  },
+  "libxcb": {
+   "apt\\libxcb": {
+    "driver": "apt",
+    "fields": {
+     "name": "libxcb1-dev"
+    },
+    "name": "libxcb1-dev"
    }
   },
   "libxcb-cursor-dev": {
@@ -18494,6 +18854,15 @@
     "name": "libxcursor-dev"
    }
   },
+  "libxft": {
+   "apt\\libxft": {
+    "driver": "apt",
+    "fields": {
+     "name": "libxft-dev"
+    },
+    "name": "libxft-dev"
+   }
+  },
   "libxi": {
    "apt\\libxi": {
     "driver": "apt",
@@ -18501,6 +18870,24 @@
      "name": "libxi-dev"
     },
     "name": "libxi-dev"
+   }
+  },
+  "libxinerama": {
+   "apt\\libxinerama": {
+    "driver": "apt",
+    "fields": {
+     "name": "libxinerama-dev"
+    },
+    "name": "libxinerama-dev"
+   }
+  },
+  "libxkbcommon": {
+   "apt\\libxkbcommon": {
+    "driver": "apt",
+    "fields": {
+     "name": "libxkbcommon-dev"
+    },
+    "name": "libxkbcommon-dev"
    }
   },
   "libxrandr": {
@@ -18519,6 +18906,15 @@
      "name": "libxxf86vm-dev"
     },
     "name": "libxxf86vm-dev"
+   }
+  },
+  "libzstd": {
+   "apt\\libzstd": {
+    "driver": "apt",
+    "fields": {
+     "name": "libzstd-dev"
+    },
+    "name": "libzstd-dev"
    }
   },
   "liquibase": {
@@ -18751,15 +19147,6 @@
      "name": "lz4"
     },
     "name": "lz4"
-   }
-  },
-  "lz4-dev": {
-   "apt\\lz4-dev": {
-    "driver": "apt",
-    "fields": {
-     "name": "liblz4-dev"
-    },
-    "name": "liblz4-dev"
    }
   },
   "make": {
@@ -19544,6 +19931,15 @@
     "name": "ncdu"
    }
   },
+  "ncurses": {
+   "apt\\ncurses": {
+    "driver": "apt",
+    "fields": {
+     "name": "libncurses-dev"
+    },
+    "name": "libncurses-dev"
+   }
+  },
   "neovim": {
    "appImage\\neovim": {
     "driver": "appImage",
@@ -20223,6 +20619,15 @@
     "name": "openscad"
    }
   },
+  "openssl": {
+   "apt\\openssl": {
+    "driver": "apt",
+    "fields": {
+     "name": "libssl-dev"
+    },
+    "name": "libssl-dev"
+   }
+  },
   "opentofu": {
    "apt\\curl": {
     "driver": "apt",
@@ -20303,6 +20708,15 @@
      "name": "p7zip-full"
     },
     "name": "p7zip-full"
+   }
+  },
+  "pango": {
+   "apt\\pango": {
+    "driver": "apt",
+    "fields": {
+     "name": "libpango1.0-dev"
+    },
+    "name": "libpango1.0-dev"
    }
   },
   "paraview": {
@@ -20571,6 +20985,15 @@
     "name": "pipx-dotfiles"
    }
   },
+  "pixman": {
+   "apt\\pixman": {
+    "driver": "apt",
+    "fields": {
+     "name": "libpixman-1-dev"
+    },
+    "name": "libpixman-1-dev"
+   }
+  },
   "pkg-config": {
    "apt\\pkg-config": {
     "driver": "apt",
@@ -20814,15 +21237,6 @@
      "glue": "protobuf"
     },
     "name": "protobuf-dotfiles"
-   }
-  },
-  "protobuf-dev": {
-   "apt\\protobuf-dev": {
-    "driver": "apt",
-    "fields": {
-     "name": "libprotobuf-dev"
-    },
-    "name": "libprotobuf-dev"
    }
   },
   "protobuf-dotfiles": {
@@ -22120,6 +22534,15 @@
     "name": "springboot"
    }
   },
+  "sqlite": {
+   "apt\\sqlite": {
+    "driver": "apt",
+    "fields": {
+     "name": "libsqlite3-dev"
+    },
+    "name": "libsqlite3-dev"
+   }
+  },
   "sqlitebrowser": {
    "apt\\sqlitebrowser": {
     "driver": "apt",
@@ -23346,6 +23769,15 @@
     "name": "libwayland-dev"
    }
   },
+  "wayland-protocols": {
+   "apt\\wayland-protocols": {
+    "driver": "apt",
+    "fields": {
+     "name": "wayland-protocols"
+    },
+    "name": "wayland-protocols"
+   }
+  },
   "websocat": {
    "apt\\curl": {
     "driver": "apt",
@@ -23579,6 +24011,15 @@
     "name": "wl-clipboard"
    }
   },
+  "wlroots": {
+   "apt\\wlroots": {
+    "driver": "apt",
+    "fields": {
+     "name": "libwlroots-dev"
+    },
+    "name": "libwlroots-dev"
+   }
+  },
   "wmenu": {
    "apt\\wmenu": {
     "driver": "apt",
@@ -23609,13 +24050,13 @@
     "name": "libwxgtk3.2-dev"
    }
   },
-  "x11": {
-   "apt\\x11": {
+  "xcb-util": {
+   "apt\\xcb-util": {
     "driver": "apt",
     "fields": {
-     "name": "libx11-dev"
+     "name": "libxcb-util-dev"
     },
-    "name": "libx11-dev"
+    "name": "libxcb-util-dev"
    }
   },
   "xclip": {
@@ -23742,24 +24183,6 @@
      "glue": "xh"
     },
     "name": "xh-dotfiles"
-   }
-  },
-  "xinerama": {
-   "apt\\xinerama": {
-    "driver": "apt",
-    "fields": {
-     "name": "libxinerama-dev"
-    },
-    "name": "libxinerama-dev"
-   }
-  },
-  "xkbcommon": {
-   "apt\\xkbcommon": {
-    "driver": "apt",
-    "fields": {
-     "name": "libxkbcommon-dev"
-    },
-    "name": "libxkbcommon-dev"
    }
   },
   "xmonad": {
@@ -24138,6 +24561,15 @@
     "name": "zip"
    }
   },
+  "zlib": {
+   "apt\\zlib": {
+    "driver": "apt",
+    "fields": {
+     "name": "zlib1g-dev"
+    },
+    "name": "zlib1g-dev"
+   }
+  },
   "zoxide": {
    "apt\\zoxide": {
     "driver": "apt",
@@ -24240,15 +24672,6 @@
      "name": "zstd"
     },
     "name": "zstd"
-   }
-  },
-  "zstd-dev": {
-   "apt\\zstd-dev": {
-    "driver": "apt",
-    "fields": {
-     "name": "libzstd-dev"
-    },
-    "name": "libzstd-dev"
    }
   }
  },
@@ -25342,6 +25765,15 @@
     "name": "bundler"
    }
   },
+  "bzip2": {
+   "apt\\bzip2": {
+    "driver": "apt",
+    "fields": {
+     "name": "libbz2-dev"
+    },
+    "name": "libbz2-dev"
+   }
+  },
   "c-toolchain": {
    "apt\\c-toolchain": {
     "driver": "apt",
@@ -26318,15 +26750,6 @@
      "name": "curl"
     },
     "name": "curl"
-   }
-  },
-  "curl-dev": {
-   "apt\\curl-dev": {
-    "driver": "apt",
-    "fields": {
-     "name": "libcurl4-openssl-dev"
-    },
-    "name": "libcurl4-openssl-dev"
    }
   },
   "cvs": {
@@ -27611,6 +28034,15 @@
     "name": "freecad"
    }
   },
+  "fuse": {
+   "apt\\fuse": {
+    "driver": "apt",
+    "fields": {
+     "name": "libfuse-dev"
+    },
+    "name": "libfuse-dev"
+   }
+  },
   "fvwm2": {
    "apt\\fvwm2": {
     "driver": "apt",
@@ -28056,6 +28488,15 @@
      "src": "gdbinit"
     },
     "name": "gdb-dotfiles"
+   }
+  },
+  "gettext": {
+   "apt\\gettext": {
+    "driver": "apt",
+    "fields": {
+     "name": "gettext"
+    },
+    "name": "gettext"
    }
   },
   "gflags": {
@@ -30559,6 +31000,15 @@
     "name": "leiningen"
    }
   },
+  "libaio": {
+   "apt\\libaio": {
+    "driver": "apt",
+    "fields": {
+     "name": "libaio-dev"
+    },
+    "name": "libaio-dev"
+   }
+  },
   "libavcodec-extra": {
    "apt\\libavcodec-extra": {
     "driver": "apt",
@@ -30594,6 +31044,15 @@
     "name": "libc++abi-dev"
    }
   },
+  "libcurl": {
+   "apt\\libcurl": {
+    "driver": "apt",
+    "fields": {
+     "name": "libcurl4-openssl-dev"
+    },
+    "name": "libcurl4-openssl-dev"
+   }
+  },
   "libdecor": {
    "apt\\libdecor": {
     "driver": "apt",
@@ -30610,6 +31069,15 @@
      "name": "libdrm-dev"
     },
     "name": "libdrm-dev"
+   }
+  },
+  "libdwarf": {
+   "apt\\libdwarf": {
+    "driver": "apt",
+    "fields": {
+     "name": "libdwarf-dev"
+    },
+    "name": "libdwarf-dev"
    }
   },
   "libevent": {
@@ -30639,6 +31107,69 @@
      "repo-component": "universe"
     },
     "name": "libgit2-dev"
+   }
+  },
+  "libiberty": {
+   "apt\\libiberty": {
+    "driver": "apt",
+    "fields": {
+     "name": "libiberty-dev"
+    },
+    "name": "libiberty-dev"
+   }
+  },
+  "libidn2": {
+   "apt\\libidn2": {
+    "driver": "apt",
+    "fields": {
+     "name": "libidn2-dev"
+    },
+    "name": "libidn2-dev"
+   }
+  },
+  "libinput": {
+   "apt\\libinput": {
+    "driver": "apt",
+    "fields": {
+     "name": "libinput-dev"
+    },
+    "name": "libinput-dev"
+   }
+  },
+  "liblz4": {
+   "apt\\liblz4": {
+    "driver": "apt",
+    "fields": {
+     "name": "liblz4-dev"
+    },
+    "name": "liblz4-dev"
+   }
+  },
+  "libmagic": {
+   "apt\\libmagic": {
+    "driver": "apt",
+    "fields": {
+     "name": "libmagic-dev"
+    },
+    "name": "libmagic-dev"
+   }
+  },
+  "libmtp": {
+   "apt\\libmtp": {
+    "driver": "apt",
+    "fields": {
+     "name": "libmtp-dev"
+    },
+    "name": "libmtp-dev"
+   }
+  },
+  "libpcap": {
+   "apt\\libpcap": {
+    "driver": "apt",
+    "fields": {
+     "name": "libpcap-dev"
+    },
+    "name": "libpcap-dev"
    }
   },
   "libreoffice": {
@@ -30683,6 +31214,15 @@
     "name": "libsecret-1-dev"
    }
   },
+  "libsodium": {
+   "apt\\libsodium": {
+    "driver": "apt",
+    "fields": {
+     "name": "libsodium-dev"
+    },
+    "name": "libsodium-dev"
+   }
+  },
   "libstdc++": {
    "apt\\libstdc++": {
     "driver": "apt",
@@ -30699,6 +31239,33 @@
      "name": "libtool"
     },
     "name": "libtool"
+   }
+  },
+  "libunwind": {
+   "apt\\libunwind": {
+    "driver": "apt",
+    "fields": {
+     "name": "libunwind-dev"
+    },
+    "name": "libunwind-dev"
+   }
+  },
+  "liburing": {
+   "apt\\liburing": {
+    "driver": "apt",
+    "fields": {
+     "name": "liburing-dev"
+    },
+    "name": "liburing-dev"
+   }
+  },
+  "libusb": {
+   "apt\\libusb": {
+    "driver": "apt",
+    "fields": {
+     "name": "libusb-1.0-0-dev"
+    },
+    "name": "libusb-1.0-0-dev"
    }
   },
   "libvirt": {
@@ -30734,6 +31301,24 @@
      "name": "libvulkan1"
     },
     "name": "libvulkan1"
+   }
+  },
+  "libx11": {
+   "apt\\libx11": {
+    "driver": "apt",
+    "fields": {
+     "name": "libx11-dev"
+    },
+    "name": "libx11-dev"
+   }
+  },
+  "libxcb": {
+   "apt\\libxcb": {
+    "driver": "apt",
+    "fields": {
+     "name": "libxcb1-dev"
+    },
+    "name": "libxcb1-dev"
    }
   },
   "libxcb-cursor-dev": {
@@ -30775,6 +31360,15 @@
     "name": "libxcursor-dev"
    }
   },
+  "libxft": {
+   "apt\\libxft": {
+    "driver": "apt",
+    "fields": {
+     "name": "libxft-dev"
+    },
+    "name": "libxft-dev"
+   }
+  },
   "libxi": {
    "apt\\libxi": {
     "driver": "apt",
@@ -30782,6 +31376,24 @@
      "name": "libxi-dev"
     },
     "name": "libxi-dev"
+   }
+  },
+  "libxinerama": {
+   "apt\\libxinerama": {
+    "driver": "apt",
+    "fields": {
+     "name": "libxinerama-dev"
+    },
+    "name": "libxinerama-dev"
+   }
+  },
+  "libxkbcommon": {
+   "apt\\libxkbcommon": {
+    "driver": "apt",
+    "fields": {
+     "name": "libxkbcommon-dev"
+    },
+    "name": "libxkbcommon-dev"
    }
   },
   "libxrandr": {
@@ -30800,6 +31412,15 @@
      "name": "libxxf86vm-dev"
     },
     "name": "libxxf86vm-dev"
+   }
+  },
+  "libzstd": {
+   "apt\\libzstd": {
+    "driver": "apt",
+    "fields": {
+     "name": "libzstd-dev"
+    },
+    "name": "libzstd-dev"
    }
   },
   "liquibase": {
@@ -31015,15 +31636,6 @@
      "name": "lz4"
     },
     "name": "lz4"
-   }
-  },
-  "lz4-dev": {
-   "apt\\lz4-dev": {
-    "driver": "apt",
-    "fields": {
-     "name": "liblz4-dev"
-    },
-    "name": "liblz4-dev"
    }
   },
   "make": {
@@ -31774,6 +32386,15 @@
     "name": "ncdu"
    }
   },
+  "ncurses": {
+   "apt\\ncurses": {
+    "driver": "apt",
+    "fields": {
+     "name": "libncurses-dev"
+    },
+    "name": "libncurses-dev"
+   }
+  },
   "neovim": {
    "appImage\\neovim": {
     "driver": "appImage",
@@ -32453,6 +33074,15 @@
     "name": "openscad"
    }
   },
+  "openssl": {
+   "apt\\openssl": {
+    "driver": "apt",
+    "fields": {
+     "name": "libssl-dev"
+    },
+    "name": "libssl-dev"
+   }
+  },
   "opentofu": {
    "apt\\curl": {
     "driver": "apt",
@@ -32533,6 +33163,15 @@
      "name": "7zip"
     },
     "name": "7zip"
+   }
+  },
+  "pango": {
+   "apt\\pango": {
+    "driver": "apt",
+    "fields": {
+     "name": "libpango1.0-dev"
+    },
+    "name": "libpango1.0-dev"
    }
   },
   "paraview": {
@@ -32765,6 +33404,15 @@
      "glue": "pipx"
     },
     "name": "pipx-dotfiles"
+   }
+  },
+  "pixman": {
+   "apt\\pixman": {
+    "driver": "apt",
+    "fields": {
+     "name": "libpixman-1-dev"
+    },
+    "name": "libpixman-1-dev"
    }
   },
   "pkg-config": {
@@ -33010,15 +33658,6 @@
      "glue": "protobuf"
     },
     "name": "protobuf-dotfiles"
-   }
-  },
-  "protobuf-dev": {
-   "apt\\protobuf-dev": {
-    "driver": "apt",
-    "fields": {
-     "name": "libprotobuf-dev"
-    },
-    "name": "libprotobuf-dev"
    }
   },
   "protobuf-dotfiles": {
@@ -34282,6 +34921,15 @@
     "name": "springboot"
    }
   },
+  "sqlite": {
+   "apt\\sqlite": {
+    "driver": "apt",
+    "fields": {
+     "name": "libsqlite3-dev"
+    },
+    "name": "libsqlite3-dev"
+   }
+  },
   "sqlitebrowser": {
    "apt\\sqlitebrowser": {
     "driver": "apt",
@@ -35491,6 +36139,15 @@
     "name": "libwayland-dev"
    }
   },
+  "wayland-protocols": {
+   "apt\\wayland-protocols": {
+    "driver": "apt",
+    "fields": {
+     "name": "wayland-protocols"
+    },
+    "name": "wayland-protocols"
+   }
+  },
   "websocat": {
    "apt\\curl": {
     "driver": "apt",
@@ -35724,6 +36381,15 @@
     "name": "wl-clipboard"
    }
   },
+  "wlroots": {
+   "apt\\wlroots": {
+    "driver": "apt",
+    "fields": {
+     "name": "libwlroots-dev"
+    },
+    "name": "libwlroots-dev"
+   }
+  },
   "wmenu": {
    "apt\\wmenu": {
     "driver": "apt",
@@ -35754,13 +36420,13 @@
     "name": "libwxgtk3.2-dev"
    }
   },
-  "x11": {
-   "apt\\x11": {
+  "xcb-util": {
+   "apt\\xcb-util": {
     "driver": "apt",
     "fields": {
-     "name": "libx11-dev"
+     "name": "libxcb-util-dev"
     },
-    "name": "libx11-dev"
+    "name": "libxcb-util-dev"
    }
   },
   "xclip": {
@@ -35887,24 +36553,6 @@
      "glue": "xh"
     },
     "name": "xh-dotfiles"
-   }
-  },
-  "xinerama": {
-   "apt\\xinerama": {
-    "driver": "apt",
-    "fields": {
-     "name": "libxinerama-dev"
-    },
-    "name": "libxinerama-dev"
-   }
-  },
-  "xkbcommon": {
-   "apt\\xkbcommon": {
-    "driver": "apt",
-    "fields": {
-     "name": "libxkbcommon-dev"
-    },
-    "name": "libxkbcommon-dev"
    }
   },
   "xmonad": {
@@ -36266,6 +36914,15 @@
     "name": "zip"
    }
   },
+  "zlib": {
+   "apt\\zlib": {
+    "driver": "apt",
+    "fields": {
+     "name": "zlib1g-dev"
+    },
+    "name": "zlib1g-dev"
+   }
+  },
   "zoxide": {
    "apt\\zoxide": {
     "driver": "apt",
@@ -36368,15 +37025,6 @@
      "name": "zstd"
     },
     "name": "zstd"
-   }
-  },
-  "zstd-dev": {
-   "apt\\zstd-dev": {
-    "driver": "apt",
-    "fields": {
-     "name": "libzstd-dev"
-    },
-    "name": "libzstd-dev"
    }
   }
  },
@@ -37470,6 +38118,15 @@
     "name": "bundler"
    }
   },
+  "bzip2": {
+   "apt\\bzip2": {
+    "driver": "apt",
+    "fields": {
+     "name": "libbz2-dev"
+    },
+    "name": "libbz2-dev"
+   }
+  },
   "c-toolchain": {
    "apt\\c-toolchain": {
     "driver": "apt",
@@ -38454,15 +39111,6 @@
      "name": "curl"
     },
     "name": "curl"
-   }
-  },
-  "curl-dev": {
-   "apt\\curl-dev": {
-    "driver": "apt",
-    "fields": {
-     "name": "libcurl4-openssl-dev"
-    },
-    "name": "libcurl4-openssl-dev"
    }
   },
   "cvs": {
@@ -39742,6 +40390,15 @@
     "name": "freecad"
    }
   },
+  "fuse": {
+   "apt\\fuse": {
+    "driver": "apt",
+    "fields": {
+     "name": "libfuse-dev"
+    },
+    "name": "libfuse-dev"
+   }
+  },
   "fvwm2": {
    "apt\\fvwm2": {
     "driver": "apt",
@@ -40187,6 +40844,15 @@
      "src": "gdbinit"
     },
     "name": "gdb-dotfiles"
+   }
+  },
+  "gettext": {
+   "apt\\gettext": {
+    "driver": "apt",
+    "fields": {
+     "name": "gettext"
+    },
+    "name": "gettext"
    }
   },
   "gflags": {
@@ -42683,6 +43349,15 @@
     "name": "leiningen"
    }
   },
+  "libaio": {
+   "apt\\libaio": {
+    "driver": "apt",
+    "fields": {
+     "name": "libaio-dev"
+    },
+    "name": "libaio-dev"
+   }
+  },
   "libavcodec-extra": {
    "apt\\libavcodec-extra": {
     "driver": "apt",
@@ -42718,6 +43393,15 @@
     "name": "libc++abi-dev"
    }
   },
+  "libcurl": {
+   "apt\\libcurl": {
+    "driver": "apt",
+    "fields": {
+     "name": "libcurl4-openssl-dev"
+    },
+    "name": "libcurl4-openssl-dev"
+   }
+  },
   "libdecor": {
    "apt\\libdecor": {
     "driver": "apt",
@@ -42734,6 +43418,15 @@
      "name": "libdrm-dev"
     },
     "name": "libdrm-dev"
+   }
+  },
+  "libdwarf": {
+   "apt\\libdwarf": {
+    "driver": "apt",
+    "fields": {
+     "name": "libdwarf-dev"
+    },
+    "name": "libdwarf-dev"
    }
   },
   "libevent": {
@@ -42763,6 +43456,69 @@
      "repo-component": "universe"
     },
     "name": "libgit2-dev"
+   }
+  },
+  "libiberty": {
+   "apt\\libiberty": {
+    "driver": "apt",
+    "fields": {
+     "name": "libiberty-dev"
+    },
+    "name": "libiberty-dev"
+   }
+  },
+  "libidn2": {
+   "apt\\libidn2": {
+    "driver": "apt",
+    "fields": {
+     "name": "libidn2-dev"
+    },
+    "name": "libidn2-dev"
+   }
+  },
+  "libinput": {
+   "apt\\libinput": {
+    "driver": "apt",
+    "fields": {
+     "name": "libinput-dev"
+    },
+    "name": "libinput-dev"
+   }
+  },
+  "liblz4": {
+   "apt\\liblz4": {
+    "driver": "apt",
+    "fields": {
+     "name": "liblz4-dev"
+    },
+    "name": "liblz4-dev"
+   }
+  },
+  "libmagic": {
+   "apt\\libmagic": {
+    "driver": "apt",
+    "fields": {
+     "name": "libmagic-dev"
+    },
+    "name": "libmagic-dev"
+   }
+  },
+  "libmtp": {
+   "apt\\libmtp": {
+    "driver": "apt",
+    "fields": {
+     "name": "libmtp-dev"
+    },
+    "name": "libmtp-dev"
+   }
+  },
+  "libpcap": {
+   "apt\\libpcap": {
+    "driver": "apt",
+    "fields": {
+     "name": "libpcap-dev"
+    },
+    "name": "libpcap-dev"
    }
   },
   "libreoffice": {
@@ -42807,6 +43563,15 @@
     "name": "libsecret-1-dev"
    }
   },
+  "libsodium": {
+   "apt\\libsodium": {
+    "driver": "apt",
+    "fields": {
+     "name": "libsodium-dev"
+    },
+    "name": "libsodium-dev"
+   }
+  },
   "libstdc++": {
    "apt\\libstdc++": {
     "driver": "apt",
@@ -42823,6 +43588,33 @@
      "name": "libtool"
     },
     "name": "libtool"
+   }
+  },
+  "libunwind": {
+   "apt\\libunwind": {
+    "driver": "apt",
+    "fields": {
+     "name": "libunwind-dev"
+    },
+    "name": "libunwind-dev"
+   }
+  },
+  "liburing": {
+   "apt\\liburing": {
+    "driver": "apt",
+    "fields": {
+     "name": "liburing-dev"
+    },
+    "name": "liburing-dev"
+   }
+  },
+  "libusb": {
+   "apt\\libusb": {
+    "driver": "apt",
+    "fields": {
+     "name": "libusb-1.0-0-dev"
+    },
+    "name": "libusb-1.0-0-dev"
    }
   },
   "libvirt": {
@@ -42858,6 +43650,24 @@
      "name": "libvulkan1"
     },
     "name": "libvulkan1"
+   }
+  },
+  "libx11": {
+   "apt\\libx11": {
+    "driver": "apt",
+    "fields": {
+     "name": "libx11-dev"
+    },
+    "name": "libx11-dev"
+   }
+  },
+  "libxcb": {
+   "apt\\libxcb": {
+    "driver": "apt",
+    "fields": {
+     "name": "libxcb1-dev"
+    },
+    "name": "libxcb1-dev"
    }
   },
   "libxcb-cursor-dev": {
@@ -42899,6 +43709,15 @@
     "name": "libxcursor-dev"
    }
   },
+  "libxft": {
+   "apt\\libxft": {
+    "driver": "apt",
+    "fields": {
+     "name": "libxft-dev"
+    },
+    "name": "libxft-dev"
+   }
+  },
   "libxi": {
    "apt\\libxi": {
     "driver": "apt",
@@ -42906,6 +43725,24 @@
      "name": "libxi-dev"
     },
     "name": "libxi-dev"
+   }
+  },
+  "libxinerama": {
+   "apt\\libxinerama": {
+    "driver": "apt",
+    "fields": {
+     "name": "libxinerama-dev"
+    },
+    "name": "libxinerama-dev"
+   }
+  },
+  "libxkbcommon": {
+   "apt\\libxkbcommon": {
+    "driver": "apt",
+    "fields": {
+     "name": "libxkbcommon-dev"
+    },
+    "name": "libxkbcommon-dev"
    }
   },
   "libxrandr": {
@@ -42924,6 +43761,15 @@
      "name": "libxxf86vm-dev"
     },
     "name": "libxxf86vm-dev"
+   }
+  },
+  "libzstd": {
+   "apt\\libzstd": {
+    "driver": "apt",
+    "fields": {
+     "name": "libzstd-dev"
+    },
+    "name": "libzstd-dev"
    }
   },
   "liquibase": {
@@ -43139,15 +43985,6 @@
      "name": "lz4"
     },
     "name": "lz4"
-   }
-  },
-  "lz4-dev": {
-   "apt\\lz4-dev": {
-    "driver": "apt",
-    "fields": {
-     "name": "liblz4-dev"
-    },
-    "name": "liblz4-dev"
    }
   },
   "make": {
@@ -43898,6 +44735,15 @@
     "name": "ncdu"
    }
   },
+  "ncurses": {
+   "apt\\ncurses": {
+    "driver": "apt",
+    "fields": {
+     "name": "libncurses-dev"
+    },
+    "name": "libncurses-dev"
+   }
+  },
   "neovim": {
    "appImage\\neovim": {
     "driver": "appImage",
@@ -44577,6 +45423,15 @@
     "name": "openscad"
    }
   },
+  "openssl": {
+   "apt\\openssl": {
+    "driver": "apt",
+    "fields": {
+     "name": "libssl-dev"
+    },
+    "name": "libssl-dev"
+   }
+  },
   "opentofu": {
    "apt\\curl": {
     "driver": "apt",
@@ -44657,6 +45512,15 @@
      "name": "p7zip-full"
     },
     "name": "p7zip-full"
+   }
+  },
+  "pango": {
+   "apt\\pango": {
+    "driver": "apt",
+    "fields": {
+     "name": "libpango1.0-dev"
+    },
+    "name": "libpango1.0-dev"
    }
   },
   "paraview": {
@@ -44904,6 +45768,15 @@
     "name": "pipx-dotfiles"
    }
   },
+  "pixman": {
+   "apt\\pixman": {
+    "driver": "apt",
+    "fields": {
+     "name": "libpixman-1-dev"
+    },
+    "name": "libpixman-1-dev"
+   }
+  },
   "pkg-config": {
    "apt\\pkg-config": {
     "driver": "apt",
@@ -45147,15 +46020,6 @@
      "glue": "protobuf"
     },
     "name": "protobuf-dotfiles"
-   }
-  },
-  "protobuf-dev": {
-   "apt\\protobuf-dev": {
-    "driver": "apt",
-    "fields": {
-     "name": "libprotobuf-dev"
-    },
-    "name": "libprotobuf-dev"
    }
   },
   "protobuf-dotfiles": {
@@ -46419,6 +47283,15 @@
     "name": "springboot"
    }
   },
+  "sqlite": {
+   "apt\\sqlite": {
+    "driver": "apt",
+    "fields": {
+     "name": "libsqlite3-dev"
+    },
+    "name": "libsqlite3-dev"
+   }
+  },
   "sqlitebrowser": {
    "apt\\sqlitebrowser": {
     "driver": "apt",
@@ -47636,6 +48509,15 @@
     "name": "libwayland-dev"
    }
   },
+  "wayland-protocols": {
+   "apt\\wayland-protocols": {
+    "driver": "apt",
+    "fields": {
+     "name": "wayland-protocols"
+    },
+    "name": "wayland-protocols"
+   }
+  },
   "websocat": {
    "apt\\curl": {
     "driver": "apt",
@@ -47935,6 +48817,15 @@
     "name": "rust-dotfiles"
    }
   },
+  "wlroots": {
+   "apt\\wlroots": {
+    "driver": "apt",
+    "fields": {
+     "name": "libwlroots-dev"
+    },
+    "name": "libwlroots-dev"
+   }
+  },
   "wmenu": {
    "apt\\wmenu": {
     "driver": "apt",
@@ -47965,13 +48856,13 @@
     "name": "libwxgtk3.2-dev"
    }
   },
-  "x11": {
-   "apt\\x11": {
+  "xcb-util": {
+   "apt\\xcb-util": {
     "driver": "apt",
     "fields": {
-     "name": "libx11-dev"
+     "name": "libxcb-util-dev"
     },
-    "name": "libx11-dev"
+    "name": "libxcb-util-dev"
    }
   },
   "xclip": {
@@ -48098,24 +48989,6 @@
      "glue": "xh"
     },
     "name": "xh-dotfiles"
-   }
-  },
-  "xinerama": {
-   "apt\\xinerama": {
-    "driver": "apt",
-    "fields": {
-     "name": "libxinerama-dev"
-    },
-    "name": "libxinerama-dev"
-   }
-  },
-  "xkbcommon": {
-   "apt\\xkbcommon": {
-    "driver": "apt",
-    "fields": {
-     "name": "libxkbcommon-dev"
-    },
-    "name": "libxkbcommon-dev"
    }
   },
   "xmonad": {
@@ -48477,6 +49350,15 @@
     "name": "zip"
    }
   },
+  "zlib": {
+   "apt\\zlib": {
+    "driver": "apt",
+    "fields": {
+     "name": "zlib1g-dev"
+    },
+    "name": "zlib1g-dev"
+   }
+  },
   "zoxide": {
    "apt\\zoxide": {
     "driver": "apt",
@@ -48579,15 +49461,6 @@
      "name": "zstd"
     },
     "name": "zstd"
-   }
-  },
-  "zstd-dev": {
-   "apt\\zstd-dev": {
-    "driver": "apt",
-    "fields": {
-     "name": "libzstd-dev"
-    },
-    "name": "libzstd-dev"
    }
   }
  },
@@ -49696,6 +50569,15 @@
     "name": "bundler"
    }
   },
+  "bzip2": {
+   "dnf\\bzip2": {
+    "driver": "dnf",
+    "fields": {
+     "name": "bzip2-devel"
+    },
+    "name": "bzip2-devel"
+   }
+  },
   "c-toolchain": {
    "dnf\\c-toolchain": {
     "driver": "dnf",
@@ -50570,15 +51452,6 @@
      "name": "curl"
     },
     "name": "curl"
-   }
-  },
-  "curl-dev": {
-   "dnf\\curl-dev": {
-    "driver": "dnf",
-    "fields": {
-     "name": "libcurl-devel"
-    },
-    "name": "libcurl-devel"
    }
   },
   "cvs": {
@@ -51814,6 +52687,15 @@
     "name": "org.freecad.FreeCAD"
    }
   },
+  "fuse": {
+   "dnf\\fuse": {
+    "driver": "dnf",
+    "fields": {
+     "name": "fuse-devel"
+    },
+    "name": "fuse-devel"
+   }
+  },
   "fvwm2-dotfiles": {
    "dotfiles\\fvwm2-dotfiles": {
     "driver": "dotfiles",
@@ -51981,6 +52863,15 @@
      "src": "gdbinit"
     },
     "name": "gdb-dotfiles"
+   }
+  },
+  "gettext": {
+   "dnf\\gettext": {
+    "driver": "dnf",
+    "fields": {
+     "name": "gettext"
+    },
+    "name": "gettext"
    }
   },
   "gflags": {
@@ -54575,6 +55466,15 @@
     "name": "leiningen"
    }
   },
+  "libaio": {
+   "dnf\\libaio": {
+    "driver": "dnf",
+    "fields": {
+     "name": "libaio-devel"
+    },
+    "name": "libaio-devel"
+   }
+  },
   "libc++": {
    "dnf\\libc++": {
     "driver": "dnf",
@@ -54600,6 +55500,15 @@
     "name": "libcxxabi-devel"
    }
   },
+  "libcurl": {
+   "dnf\\libcurl": {
+    "driver": "dnf",
+    "fields": {
+     "name": "libcurl-devel"
+    },
+    "name": "libcurl-devel"
+   }
+  },
   "libdecor": {
    "dnf\\libdecor": {
     "driver": "dnf",
@@ -54616,6 +55525,15 @@
      "name": "libdrm-devel"
     },
     "name": "libdrm-devel"
+   }
+  },
+  "libdwarf": {
+   "dnf\\libdwarf": {
+    "driver": "dnf",
+    "fields": {
+     "name": "libdwarf-devel"
+    },
+    "name": "libdwarf-devel"
    }
   },
   "libevent": {
@@ -54645,6 +55563,60 @@
      "repo-component": "universe"
     },
     "name": "libgit2-devel"
+   }
+  },
+  "libidn2": {
+   "dnf\\libidn2": {
+    "driver": "dnf",
+    "fields": {
+     "name": "libidn2-devel"
+    },
+    "name": "libidn2-devel"
+   }
+  },
+  "libinput": {
+   "dnf\\libinput": {
+    "driver": "dnf",
+    "fields": {
+     "name": "libinput-devel"
+    },
+    "name": "libinput-devel"
+   }
+  },
+  "liblz4": {
+   "dnf\\liblz4": {
+    "driver": "dnf",
+    "fields": {
+     "name": "lz4-devel"
+    },
+    "name": "lz4-devel"
+   }
+  },
+  "libmagic": {
+   "dnf\\libmagic": {
+    "driver": "dnf",
+    "fields": {
+     "name": "file-devel"
+    },
+    "name": "file-devel"
+   }
+  },
+  "libmtp": {
+   "dnf\\libmtp": {
+    "driver": "dnf",
+    "fields": {
+     "name": "libmtp-devel"
+    },
+    "name": "libmtp-devel"
+   }
+  },
+  "libpcap": {
+   "dnf\\libpcap": {
+    "driver": "dnf",
+    "fields": {
+     "name": "libpcap-devel"
+    },
+    "name": "libpcap-devel"
    }
   },
   "libreoffice": {
@@ -54689,6 +55661,15 @@
     "name": "libsecret-devel"
    }
   },
+  "libsodium": {
+   "dnf\\libsodium": {
+    "driver": "dnf",
+    "fields": {
+     "name": "libsodium-devel"
+    },
+    "name": "libsodium-devel"
+   }
+  },
   "libstdc++": {
    "dnf\\libstdc++": {
     "driver": "dnf",
@@ -54705,6 +55686,33 @@
      "name": "libtool"
     },
     "name": "libtool"
+   }
+  },
+  "libunwind": {
+   "dnf\\libunwind": {
+    "driver": "dnf",
+    "fields": {
+     "name": "libunwind-devel"
+    },
+    "name": "libunwind-devel"
+   }
+  },
+  "liburing": {
+   "dnf\\liburing": {
+    "driver": "dnf",
+    "fields": {
+     "name": "liburing-devel"
+    },
+    "name": "liburing-devel"
+   }
+  },
+  "libusb": {
+   "dnf\\libusb": {
+    "driver": "dnf",
+    "fields": {
+     "name": "libusb1-devel"
+    },
+    "name": "libusb1-devel"
    }
   },
   "libvirt": {
@@ -54733,6 +55741,24 @@
     "name": "libvirt-service"
    }
   },
+  "libx11": {
+   "dnf\\libx11": {
+    "driver": "dnf",
+    "fields": {
+     "name": "libX11-devel"
+    },
+    "name": "libX11-devel"
+   }
+  },
+  "libxcb": {
+   "dnf\\libxcb": {
+    "driver": "dnf",
+    "fields": {
+     "name": "libxcb-devel"
+    },
+    "name": "libxcb-devel"
+   }
+  },
   "libxcb-devel": {
    "dnf\\libxcb-devel": {
     "driver": "dnf",
@@ -54751,6 +55777,15 @@
     "name": "libXcursor-devel"
    }
   },
+  "libxft": {
+   "dnf\\libxft": {
+    "driver": "dnf",
+    "fields": {
+     "name": "libXft-devel"
+    },
+    "name": "libXft-devel"
+   }
+  },
   "libxi": {
    "dnf\\libxi": {
     "driver": "dnf",
@@ -54758,6 +55793,24 @@
      "name": "libXi-devel"
     },
     "name": "libXi-devel"
+   }
+  },
+  "libxinerama": {
+   "dnf\\libxinerama": {
+    "driver": "dnf",
+    "fields": {
+     "name": "libXinerama-devel"
+    },
+    "name": "libXinerama-devel"
+   }
+  },
+  "libxkbcommon": {
+   "dnf\\libxkbcommon": {
+    "driver": "dnf",
+    "fields": {
+     "name": "libxkbcommon-devel"
+    },
+    "name": "libxkbcommon-devel"
    }
   },
   "libxrandr": {
@@ -54776,6 +55829,15 @@
      "name": "libXxf86vm-devel"
     },
     "name": "libXxf86vm-devel"
+   }
+  },
+  "libzstd": {
+   "dnf\\libzstd": {
+    "driver": "dnf",
+    "fields": {
+     "name": "libzstd-devel"
+    },
+    "name": "libzstd-devel"
    }
   },
   "liquibase": {
@@ -54991,15 +56053,6 @@
      "name": "lz4"
     },
     "name": "lz4"
-   }
-  },
-  "lz4-dev": {
-   "dnf\\lz4-dev": {
-    "driver": "dnf",
-    "fields": {
-     "name": "lz4-devel"
-    },
-    "name": "lz4-devel"
    }
   },
   "make": {
@@ -55706,6 +56759,15 @@
     "name": "ncdu"
    }
   },
+  "ncurses": {
+   "dnf\\ncurses": {
+    "driver": "dnf",
+    "fields": {
+     "name": "ncurses-devel"
+    },
+    "name": "ncurses-devel"
+   }
+  },
   "neovim": {
    "appImage\\neovim": {
     "driver": "appImage",
@@ -56376,6 +57438,15 @@
     "name": "openscad"
    }
   },
+  "openssl": {
+   "dnf\\openssl": {
+    "driver": "dnf",
+    "fields": {
+     "name": "openssl-devel"
+    },
+    "name": "openssl-devel"
+   }
+  },
   "opentofu": {
    "dnf\\curl": {
     "driver": "dnf",
@@ -56456,6 +57527,15 @@
      "name": "p7zip"
     },
     "name": "p7zip"
+   }
+  },
+  "pango": {
+   "dnf\\pango": {
+    "driver": "dnf",
+    "fields": {
+     "name": "pango-devel"
+    },
+    "name": "pango-devel"
    }
   },
   "paraview": {
@@ -56701,6 +57781,15 @@
      "glue": "pipx"
     },
     "name": "pipx-dotfiles"
+   }
+  },
+  "pixman": {
+   "dnf\\pixman": {
+    "driver": "dnf",
+    "fields": {
+     "name": "pixman-devel"
+    },
+    "name": "pixman-devel"
    }
   },
   "pkg-config": {
@@ -56958,15 +58047,6 @@
      "glue": "protobuf"
     },
     "name": "protobuf-dotfiles"
-   }
-  },
-  "protobuf-dev": {
-   "dnf\\protobuf-dev": {
-    "driver": "dnf",
-    "fields": {
-     "name": "protobuf-devel"
-    },
-    "name": "protobuf-devel"
    }
   },
   "protobuf-dotfiles": {
@@ -58178,6 +59258,15 @@
      "name": "springboot"
     },
     "name": "springboot"
+   }
+  },
+  "sqlite": {
+   "dnf\\sqlite": {
+    "driver": "dnf",
+    "fields": {
+     "name": "sqlite-devel"
+    },
+    "name": "sqlite-devel"
    }
   },
   "sqlitebrowser": {
@@ -59432,6 +60521,15 @@
     "name": "wayland-devel"
    }
   },
+  "wayland-protocols": {
+   "dnf\\wayland-protocols": {
+    "driver": "dnf",
+    "fields": {
+     "name": "wayland-protocols-devel"
+    },
+    "name": "wayland-protocols-devel"
+   }
+  },
   "websocat": {
    "dnf\\curl": {
     "driver": "dnf",
@@ -59690,6 +60788,15 @@
     "name": "rust-dotfiles"
    }
   },
+  "wlroots": {
+   "dnf\\wlroots": {
+    "driver": "dnf",
+    "fields": {
+     "name": "wlroots-devel"
+    },
+    "name": "wlroots-devel"
+   }
+  },
   "wmenu": {
    "dnf\\wmenu": {
     "driver": "dnf",
@@ -59720,13 +60827,13 @@
     "name": "wxGTK-devel"
    }
   },
-  "x11": {
-   "dnf\\x11": {
+  "xcb-util": {
+   "dnf\\xcb-util": {
     "driver": "dnf",
     "fields": {
-     "name": "libX11-devel"
+     "name": "xcb-util-devel"
     },
-    "name": "libX11-devel"
+    "name": "xcb-util-devel"
    }
   },
   "xcb-util-cursor-devel": {
@@ -59862,24 +60969,6 @@
      "glue": "xh"
     },
     "name": "xh-dotfiles"
-   }
-  },
-  "xinerama": {
-   "dnf\\xinerama": {
-    "driver": "dnf",
-    "fields": {
-     "name": "libXinerama-devel"
-    },
-    "name": "libXinerama-devel"
-   }
-  },
-  "xkbcommon": {
-   "dnf\\xkbcommon": {
-    "driver": "dnf",
-    "fields": {
-     "name": "libxkbcommon-devel"
-    },
-    "name": "libxkbcommon-devel"
    }
   },
   "xmonad": {
@@ -60240,6 +61329,15 @@
     "name": "zip"
    }
   },
+  "zlib": {
+   "dnf\\zlib": {
+    "driver": "dnf",
+    "fields": {
+     "name": "zlib-devel"
+    },
+    "name": "zlib-devel"
+   }
+  },
   "zoxide": {
    "dnf\\zoxide": {
     "driver": "dnf",
@@ -60342,15 +61440,6 @@
      "name": "zstd"
     },
     "name": "zstd"
-   }
-  },
-  "zstd-dev": {
-   "dnf\\zstd-dev": {
-    "driver": "dnf",
-    "fields": {
-     "name": "libzstd-devel"
-    },
-    "name": "libzstd-devel"
    }
   }
  },
@@ -61459,6 +62548,15 @@
     "name": "bundler"
    }
   },
+  "bzip2": {
+   "dnf\\bzip2": {
+    "driver": "dnf",
+    "fields": {
+     "name": "bzip2-devel"
+    },
+    "name": "bzip2-devel"
+   }
+  },
   "c-toolchain": {
    "dnf\\c-toolchain": {
     "driver": "dnf",
@@ -62359,15 +63457,6 @@
      "name": "curl"
     },
     "name": "curl"
-   }
-  },
-  "curl-dev": {
-   "dnf\\curl-dev": {
-    "driver": "dnf",
-    "fields": {
-     "name": "libcurl-devel"
-    },
-    "name": "libcurl-devel"
    }
   },
   "cvs": {
@@ -63603,6 +64692,15 @@
     "name": "org.freecad.FreeCAD"
    }
   },
+  "fuse": {
+   "dnf\\fuse": {
+    "driver": "dnf",
+    "fields": {
+     "name": "fuse-devel"
+    },
+    "name": "fuse-devel"
+   }
+  },
   "fvwm2-dotfiles": {
    "dotfiles\\fvwm2-dotfiles": {
     "driver": "dotfiles",
@@ -63770,6 +64868,15 @@
      "src": "gdbinit"
     },
     "name": "gdb-dotfiles"
+   }
+  },
+  "gettext": {
+   "dnf\\gettext": {
+    "driver": "dnf",
+    "fields": {
+     "name": "gettext"
+    },
+    "name": "gettext"
    }
   },
   "gflags": {
@@ -66364,6 +67471,15 @@
     "name": "leiningen"
    }
   },
+  "libaio": {
+   "dnf\\libaio": {
+    "driver": "dnf",
+    "fields": {
+     "name": "libaio-devel"
+    },
+    "name": "libaio-devel"
+   }
+  },
   "libc++": {
    "dnf\\libc++": {
     "driver": "dnf",
@@ -66389,6 +67505,15 @@
     "name": "libcxxabi-devel"
    }
   },
+  "libcurl": {
+   "dnf\\libcurl": {
+    "driver": "dnf",
+    "fields": {
+     "name": "libcurl-devel"
+    },
+    "name": "libcurl-devel"
+   }
+  },
   "libdecor": {
    "dnf\\libdecor": {
     "driver": "dnf",
@@ -66405,6 +67530,15 @@
      "name": "libdrm-devel"
     },
     "name": "libdrm-devel"
+   }
+  },
+  "libdwarf": {
+   "dnf\\libdwarf": {
+    "driver": "dnf",
+    "fields": {
+     "name": "libdwarf-devel"
+    },
+    "name": "libdwarf-devel"
    }
   },
   "libevent": {
@@ -66434,6 +67568,60 @@
      "repo-component": "universe"
     },
     "name": "libgit2-devel"
+   }
+  },
+  "libidn2": {
+   "dnf\\libidn2": {
+    "driver": "dnf",
+    "fields": {
+     "name": "libidn2-devel"
+    },
+    "name": "libidn2-devel"
+   }
+  },
+  "libinput": {
+   "dnf\\libinput": {
+    "driver": "dnf",
+    "fields": {
+     "name": "libinput-devel"
+    },
+    "name": "libinput-devel"
+   }
+  },
+  "liblz4": {
+   "dnf\\liblz4": {
+    "driver": "dnf",
+    "fields": {
+     "name": "lz4-devel"
+    },
+    "name": "lz4-devel"
+   }
+  },
+  "libmagic": {
+   "dnf\\libmagic": {
+    "driver": "dnf",
+    "fields": {
+     "name": "file-devel"
+    },
+    "name": "file-devel"
+   }
+  },
+  "libmtp": {
+   "dnf\\libmtp": {
+    "driver": "dnf",
+    "fields": {
+     "name": "libmtp-devel"
+    },
+    "name": "libmtp-devel"
+   }
+  },
+  "libpcap": {
+   "dnf\\libpcap": {
+    "driver": "dnf",
+    "fields": {
+     "name": "libpcap-devel"
+    },
+    "name": "libpcap-devel"
    }
   },
   "libreoffice": {
@@ -66478,6 +67666,15 @@
     "name": "libsecret-devel"
    }
   },
+  "libsodium": {
+   "dnf\\libsodium": {
+    "driver": "dnf",
+    "fields": {
+     "name": "libsodium-devel"
+    },
+    "name": "libsodium-devel"
+   }
+  },
   "libstdc++": {
    "dnf\\libstdc++": {
     "driver": "dnf",
@@ -66494,6 +67691,33 @@
      "name": "libtool"
     },
     "name": "libtool"
+   }
+  },
+  "libunwind": {
+   "dnf\\libunwind": {
+    "driver": "dnf",
+    "fields": {
+     "name": "libunwind-devel"
+    },
+    "name": "libunwind-devel"
+   }
+  },
+  "liburing": {
+   "dnf\\liburing": {
+    "driver": "dnf",
+    "fields": {
+     "name": "liburing-devel"
+    },
+    "name": "liburing-devel"
+   }
+  },
+  "libusb": {
+   "dnf\\libusb": {
+    "driver": "dnf",
+    "fields": {
+     "name": "libusb1-devel"
+    },
+    "name": "libusb1-devel"
    }
   },
   "libvirt": {
@@ -66522,6 +67746,24 @@
     "name": "libvirt-service"
    }
   },
+  "libx11": {
+   "dnf\\libx11": {
+    "driver": "dnf",
+    "fields": {
+     "name": "libX11-devel"
+    },
+    "name": "libX11-devel"
+   }
+  },
+  "libxcb": {
+   "dnf\\libxcb": {
+    "driver": "dnf",
+    "fields": {
+     "name": "libxcb-devel"
+    },
+    "name": "libxcb-devel"
+   }
+  },
   "libxcb-devel": {
    "dnf\\libxcb-devel": {
     "driver": "dnf",
@@ -66540,6 +67782,15 @@
     "name": "libXcursor-devel"
    }
   },
+  "libxft": {
+   "dnf\\libxft": {
+    "driver": "dnf",
+    "fields": {
+     "name": "libXft-devel"
+    },
+    "name": "libXft-devel"
+   }
+  },
   "libxi": {
    "dnf\\libxi": {
     "driver": "dnf",
@@ -66547,6 +67798,24 @@
      "name": "libXi-devel"
     },
     "name": "libXi-devel"
+   }
+  },
+  "libxinerama": {
+   "dnf\\libxinerama": {
+    "driver": "dnf",
+    "fields": {
+     "name": "libXinerama-devel"
+    },
+    "name": "libXinerama-devel"
+   }
+  },
+  "libxkbcommon": {
+   "dnf\\libxkbcommon": {
+    "driver": "dnf",
+    "fields": {
+     "name": "libxkbcommon-devel"
+    },
+    "name": "libxkbcommon-devel"
    }
   },
   "libxrandr": {
@@ -66565,6 +67834,15 @@
      "name": "libXxf86vm-devel"
     },
     "name": "libXxf86vm-devel"
+   }
+  },
+  "libzstd": {
+   "dnf\\libzstd": {
+    "driver": "dnf",
+    "fields": {
+     "name": "libzstd-devel"
+    },
+    "name": "libzstd-devel"
    }
   },
   "liquibase": {
@@ -66780,15 +68058,6 @@
      "name": "lz4"
     },
     "name": "lz4"
-   }
-  },
-  "lz4-dev": {
-   "dnf\\lz4-dev": {
-    "driver": "dnf",
-    "fields": {
-     "name": "lz4-devel"
-    },
-    "name": "lz4-devel"
    }
   },
   "make": {
@@ -67495,6 +68764,15 @@
     "name": "ncdu"
    }
   },
+  "ncurses": {
+   "dnf\\ncurses": {
+    "driver": "dnf",
+    "fields": {
+     "name": "ncurses-devel"
+    },
+    "name": "ncurses-devel"
+   }
+  },
   "neovim": {
    "appImage\\neovim": {
     "driver": "appImage",
@@ -68165,6 +69443,15 @@
     "name": "openscad"
    }
   },
+  "openssl": {
+   "dnf\\openssl": {
+    "driver": "dnf",
+    "fields": {
+     "name": "openssl-devel"
+    },
+    "name": "openssl-devel"
+   }
+  },
   "opentofu": {
    "dnf\\curl": {
     "driver": "dnf",
@@ -68245,6 +69532,15 @@
      "name": "p7zip"
     },
     "name": "p7zip"
+   }
+  },
+  "pango": {
+   "dnf\\pango": {
+    "driver": "dnf",
+    "fields": {
+     "name": "pango-devel"
+    },
+    "name": "pango-devel"
    }
   },
   "paraview": {
@@ -68490,6 +69786,15 @@
      "glue": "pipx"
     },
     "name": "pipx-dotfiles"
+   }
+  },
+  "pixman": {
+   "dnf\\pixman": {
+    "driver": "dnf",
+    "fields": {
+     "name": "pixman-devel"
+    },
+    "name": "pixman-devel"
    }
   },
   "pkg-config": {
@@ -68747,15 +70052,6 @@
      "glue": "protobuf"
     },
     "name": "protobuf-dotfiles"
-   }
-  },
-  "protobuf-dev": {
-   "dnf\\protobuf-dev": {
-    "driver": "dnf",
-    "fields": {
-     "name": "protobuf-devel"
-    },
-    "name": "protobuf-devel"
    }
   },
   "protobuf-dotfiles": {
@@ -69967,6 +71263,15 @@
      "name": "springboot"
     },
     "name": "springboot"
+   }
+  },
+  "sqlite": {
+   "dnf\\sqlite": {
+    "driver": "dnf",
+    "fields": {
+     "name": "sqlite-devel"
+    },
+    "name": "sqlite-devel"
    }
   },
   "sqlitebrowser": {
@@ -71221,6 +72526,15 @@
     "name": "wayland-devel"
    }
   },
+  "wayland-protocols": {
+   "dnf\\wayland-protocols": {
+    "driver": "dnf",
+    "fields": {
+     "name": "wayland-protocols-devel"
+    },
+    "name": "wayland-protocols-devel"
+   }
+  },
   "websocat": {
    "dnf\\curl": {
     "driver": "dnf",
@@ -71479,6 +72793,15 @@
     "name": "rust-dotfiles"
    }
   },
+  "wlroots": {
+   "dnf\\wlroots": {
+    "driver": "dnf",
+    "fields": {
+     "name": "wlroots-devel"
+    },
+    "name": "wlroots-devel"
+   }
+  },
   "wmenu": {
    "dnf\\wmenu": {
     "driver": "dnf",
@@ -71509,13 +72832,13 @@
     "name": "wxGTK-devel"
    }
   },
-  "x11": {
-   "dnf\\x11": {
+  "xcb-util": {
+   "dnf\\xcb-util": {
     "driver": "dnf",
     "fields": {
-     "name": "libX11-devel"
+     "name": "xcb-util-devel"
     },
-    "name": "libX11-devel"
+    "name": "xcb-util-devel"
    }
   },
   "xcb-util-cursor-devel": {
@@ -71651,24 +72974,6 @@
      "glue": "xh"
     },
     "name": "xh-dotfiles"
-   }
-  },
-  "xinerama": {
-   "dnf\\xinerama": {
-    "driver": "dnf",
-    "fields": {
-     "name": "libXinerama-devel"
-    },
-    "name": "libXinerama-devel"
-   }
-  },
-  "xkbcommon": {
-   "dnf\\xkbcommon": {
-    "driver": "dnf",
-    "fields": {
-     "name": "libxkbcommon-devel"
-    },
-    "name": "libxkbcommon-devel"
    }
   },
   "xmonad": {
@@ -72029,6 +73334,15 @@
     "name": "zip"
    }
   },
+  "zlib": {
+   "dnf\\zlib": {
+    "driver": "dnf",
+    "fields": {
+     "name": "zlib-devel"
+    },
+    "name": "zlib-devel"
+   }
+  },
   "zoxide": {
    "dnf\\zoxide": {
     "driver": "dnf",
@@ -72131,15 +73445,6 @@
      "name": "zstd"
     },
     "name": "zstd"
-   }
-  },
-  "zstd-dev": {
-   "dnf\\zstd-dev": {
-    "driver": "dnf",
-    "fields": {
-     "name": "libzstd-devel"
-    },
-    "name": "libzstd-devel"
    }
   }
  },
@@ -73052,6 +74357,15 @@
     "name": "bundler"
    }
   },
+  "bzip2": {
+   "brew\\bzip2": {
+    "driver": "brew",
+    "fields": {
+     "name": "bzip2"
+    },
+    "name": "bzip2"
+   }
+  },
   "c-toolchain": {
    "brew\\c-toolchain": {
     "driver": "brew",
@@ -73517,15 +74831,6 @@
   },
   "curl": {
    "brew\\curl": {
-    "driver": "brew",
-    "fields": {
-     "name": "curl"
-    },
-    "name": "curl"
-   }
-  },
-  "curl-dev": {
-   "brew\\curl-dev": {
     "driver": "brew",
     "fields": {
      "name": "curl"
@@ -74561,6 +75866,15 @@
     "name": "org.freecad.FreeCAD"
    }
   },
+  "fuse": {
+   "brew\\fuse": {
+    "driver": "brew",
+    "fields": {
+     "name": "fuse"
+    },
+    "name": "fuse"
+   }
+  },
   "fvwm2-dotfiles": {
    "dotfiles\\fvwm2-dotfiles": {
     "driver": "dotfiles",
@@ -74714,6 +76028,15 @@
      "src": "gdbinit"
     },
     "name": "gdb-dotfiles"
+   }
+  },
+  "gettext": {
+   "brew\\gettext": {
+    "driver": "brew",
+    "fields": {
+     "name": "gettext"
+    },
+    "name": "gettext"
    }
   },
   "gflags": {
@@ -76744,6 +78067,15 @@
     "name": "leiningen"
    }
   },
+  "libaio": {
+   "brew\\libaio": {
+    "driver": "brew",
+    "fields": {
+     "name": "libaio"
+    },
+    "name": "libaio"
+   }
+  },
   "libc++": {
    "brew\\libc++": {
     "driver": "brew",
@@ -76767,6 +78099,15 @@
      "name": "libc++abi"
     },
     "name": "libc++abi"
+   }
+  },
+  "libcurl": {
+   "brew\\libcurl": {
+    "driver": "brew",
+    "fields": {
+     "name": "libcurl"
+    },
+    "name": "libcurl"
    }
   },
   "libevent": {
@@ -76796,6 +78137,60 @@
      "repo-component": "universe"
     },
     "name": "libgit2"
+   }
+  },
+  "libidn2": {
+   "brew\\libidn2": {
+    "driver": "brew",
+    "fields": {
+     "name": "libidn2"
+    },
+    "name": "libidn2"
+   }
+  },
+  "libinput": {
+   "brew\\libinput": {
+    "driver": "brew",
+    "fields": {
+     "name": "libinput"
+    },
+    "name": "libinput"
+   }
+  },
+  "liblz4": {
+   "brew\\liblz4": {
+    "driver": "brew",
+    "fields": {
+     "name": "liblz4"
+    },
+    "name": "liblz4"
+   }
+  },
+  "libmagic": {
+   "brew\\libmagic": {
+    "driver": "brew",
+    "fields": {
+     "name": "libmagic"
+    },
+    "name": "libmagic"
+   }
+  },
+  "libmtp": {
+   "brew\\libmtp": {
+    "driver": "brew",
+    "fields": {
+     "name": "libmtp"
+    },
+    "name": "libmtp"
+   }
+  },
+  "libpcap": {
+   "brew\\libpcap": {
+    "driver": "brew",
+    "fields": {
+     "name": "libpcap"
+    },
+    "name": "libpcap"
    }
   },
   "libreoffice": {
@@ -76839,6 +78234,15 @@
     "name": "libsecret"
    }
   },
+  "libsodium": {
+   "brew\\libsodium": {
+    "driver": "brew",
+    "fields": {
+     "name": "libsodium"
+    },
+    "name": "libsodium"
+   }
+  },
   "libstdc++": {
    "brew\\libstdc++": {
     "driver": "brew",
@@ -76855,6 +78259,33 @@
      "name": "libtool"
     },
     "name": "libtool"
+   }
+  },
+  "libunwind": {
+   "brew\\libunwind": {
+    "driver": "brew",
+    "fields": {
+     "name": "libunwind"
+    },
+    "name": "libunwind"
+   }
+  },
+  "liburing": {
+   "brew\\liburing": {
+    "driver": "brew",
+    "fields": {
+     "name": "liburing"
+    },
+    "name": "liburing"
+   }
+  },
+  "libusb": {
+   "brew\\libusb": {
+    "driver": "brew",
+    "fields": {
+     "name": "libusb"
+    },
+    "name": "libusb"
    }
   },
   "libvirt": {
@@ -76883,6 +78314,24 @@
     "name": "libvirt-service"
    }
   },
+  "libx11": {
+   "brew\\libx11": {
+    "driver": "brew",
+    "fields": {
+     "name": "libx11"
+    },
+    "name": "libx11"
+   }
+  },
+  "libxcb": {
+   "brew\\libxcb": {
+    "driver": "brew",
+    "fields": {
+     "name": "libxcb"
+    },
+    "name": "libxcb"
+   }
+  },
   "libxcursor": {
    "brew\\libxcursor": {
     "driver": "brew",
@@ -76892,6 +78341,15 @@
     "name": "libxcursor"
    }
   },
+  "libxft": {
+   "brew\\libxft": {
+    "driver": "brew",
+    "fields": {
+     "name": "libxft"
+    },
+    "name": "libxft"
+   }
+  },
   "libxi": {
    "brew\\libxi": {
     "driver": "brew",
@@ -76899,6 +78357,24 @@
      "name": "libxi"
     },
     "name": "libxi"
+   }
+  },
+  "libxinerama": {
+   "brew\\libxinerama": {
+    "driver": "brew",
+    "fields": {
+     "name": "libxinerama"
+    },
+    "name": "libxinerama"
+   }
+  },
+  "libxkbcommon": {
+   "brew\\libxkbcommon": {
+    "driver": "brew",
+    "fields": {
+     "name": "libxkbcommon"
+    },
+    "name": "libxkbcommon"
    }
   },
   "libxrandr": {
@@ -76917,6 +78393,15 @@
      "name": "libxxf86vm"
     },
     "name": "libxxf86vm"
+   }
+  },
+  "libzstd": {
+   "brew\\libzstd": {
+    "driver": "brew",
+    "fields": {
+     "name": "libzstd"
+    },
+    "name": "libzstd"
    }
   },
   "liquibase": {
@@ -77109,15 +78594,6 @@
   },
   "lz4": {
    "brew\\lz4": {
-    "driver": "brew",
-    "fields": {
-     "name": "lz4"
-    },
-    "name": "lz4"
-   }
-  },
-  "lz4-dev": {
-   "brew\\lz4-dev": {
     "driver": "brew",
     "fields": {
      "name": "lz4"
@@ -77784,6 +79260,15 @@
     "name": "ncdu"
    }
   },
+  "ncurses": {
+   "brew\\ncurses": {
+    "driver": "brew",
+    "fields": {
+     "name": "ncurses"
+    },
+    "name": "ncurses"
+   }
+  },
   "neovim": {
    "brew\\neovim": {
     "driver": "brew",
@@ -78274,6 +79759,15 @@
     "name": "org.openscad.OpenSCAD"
    }
   },
+  "openssl": {
+   "brew\\openssl": {
+    "driver": "brew",
+    "fields": {
+     "name": "openssl"
+    },
+    "name": "openssl"
+   }
+  },
   "opentofu": {
    "brew\\curl": {
     "driver": "brew",
@@ -78351,6 +79845,15 @@
      "name": "sevenzip"
     },
     "name": "sevenzip"
+   }
+  },
+  "pango": {
+   "brew\\pango": {
+    "driver": "brew",
+    "fields": {
+     "name": "pango"
+    },
+    "name": "pango"
    }
   },
   "paraview": {
@@ -78549,6 +80052,15 @@
     "name": "pipx-dotfiles"
    }
   },
+  "pixman": {
+   "brew\\pixman": {
+    "driver": "brew",
+    "fields": {
+     "name": "pixman"
+    },
+    "name": "pixman"
+   }
+  },
   "pkg-config": {
    "brew\\pkg-config": {
     "driver": "brew",
@@ -78737,15 +80249,6 @@
      "glue": "protobuf"
     },
     "name": "protobuf-dotfiles"
-   }
-  },
-  "protobuf-dev": {
-   "brew\\protobuf-dev": {
-    "driver": "brew",
-    "fields": {
-     "name": "protobuf"
-    },
-    "name": "protobuf"
    }
   },
   "protobuf-dotfiles": {
@@ -79631,18 +81134,18 @@
    "brew\\sdl2-image": {
     "driver": "brew",
     "fields": {
-     "name": "sdl2_image"
+     "name": "sdl2-image"
     },
-    "name": "sdl2_image"
+    "name": "sdl2-image"
    }
   },
   "sdl2-ttf": {
    "brew\\sdl2-ttf": {
     "driver": "brew",
     "fields": {
-     "name": "sdl2_ttf"
+     "name": "sdl2-ttf"
     },
-    "name": "sdl2_ttf"
+    "name": "sdl2-ttf"
    }
   },
   "sfml": {
@@ -79756,6 +81259,15 @@
      "name": "springboot"
     },
     "name": "springboot"
+   }
+  },
+  "sqlite": {
+   "brew\\sqlite": {
+    "driver": "brew",
+    "fields": {
+     "name": "sqlite"
+    },
+    "name": "sqlite"
    }
   },
   "sqlitebrowser": {
@@ -80656,6 +82168,24 @@
     "name": "vulkan-sdk-dotfiles"
    }
   },
+  "wayland": {
+   "brew\\wayland": {
+    "driver": "brew",
+    "fields": {
+     "name": "wayland"
+    },
+    "name": "wayland"
+   }
+  },
+  "wayland-protocols": {
+   "brew\\wayland-protocols": {
+    "driver": "brew",
+    "fields": {
+     "name": "wayland-protocols"
+    },
+    "name": "wayland-protocols"
+   }
+  },
   "websocat": {
    "brew\\curl": {
     "driver": "brew",
@@ -80804,6 +82334,15 @@
     "name": "wl-clipboard"
    }
   },
+  "wlroots": {
+   "brew\\wlroots": {
+    "driver": "brew",
+    "fields": {
+     "name": "wlroots"
+    },
+    "name": "wlroots"
+   }
+  },
   "wxmaxima": {
    "flatpak\\wxmaxima": {
     "driver": "flatpak",
@@ -80824,13 +82363,13 @@
     "name": "wxwidgets"
    }
   },
-  "x11": {
-   "brew\\x11": {
+  "xcb-util": {
+   "brew\\xcb-util": {
     "driver": "brew",
     "fields": {
-     "name": "libx11"
+     "name": "xcb-util"
     },
-    "name": "libx11"
+    "name": "xcb-util"
    }
   },
   "xclip": {
@@ -80938,24 +82477,6 @@
      "glue": "xh"
     },
     "name": "xh-dotfiles"
-   }
-  },
-  "xinerama": {
-   "brew\\xinerama": {
-    "driver": "brew",
-    "fields": {
-     "name": "libxinerama"
-    },
-    "name": "libxinerama"
-   }
-  },
-  "xkbcommon": {
-   "brew\\xkbcommon": {
-    "driver": "brew",
-    "fields": {
-     "name": "libxkbcommon"
-    },
-    "name": "libxkbcommon"
    }
   },
   "xmonad-dotfiles": {
@@ -81229,6 +82750,15 @@
     "name": "zip"
    }
   },
+  "zlib": {
+   "brew\\zlib": {
+    "driver": "brew",
+    "fields": {
+     "name": "zlib"
+    },
+    "name": "zlib"
+   }
+  },
   "zoxide": {
    "brew\\zoxide": {
     "driver": "brew",
@@ -81326,15 +82856,6 @@
   },
   "zstd": {
    "brew\\zstd": {
-    "driver": "brew",
-    "fields": {
-     "name": "zstd"
-    },
-    "name": "zstd"
-   }
-  },
-  "zstd-dev": {
-   "brew\\zstd-dev": {
     "driver": "brew",
     "fields": {
      "name": "zstd"
@@ -82467,6 +83988,15 @@
     "name": "bundler"
    }
   },
+  "bzip2": {
+   "apt\\bzip2": {
+    "driver": "apt",
+    "fields": {
+     "name": "libbz2-dev"
+    },
+    "name": "libbz2-dev"
+   }
+  },
   "c-toolchain": {
    "apt\\c-toolchain": {
     "driver": "apt",
@@ -83477,15 +85007,6 @@
      "name": "curl"
     },
     "name": "curl"
-   }
-  },
-  "curl-dev": {
-   "apt\\curl-dev": {
-    "driver": "apt",
-    "fields": {
-     "name": "libcurl4-openssl-dev"
-    },
-    "name": "libcurl4-openssl-dev"
    }
   },
   "cvs": {
@@ -84782,6 +86303,15 @@
     "name": "freecad"
    }
   },
+  "fuse": {
+   "apt\\fuse": {
+    "driver": "apt",
+    "fields": {
+     "name": "libfuse-dev"
+    },
+    "name": "libfuse-dev"
+   }
+  },
   "fvwm2": {
    "apt\\fvwm2": {
     "driver": "apt",
@@ -85227,6 +86757,15 @@
      "src": "gdbinit"
     },
     "name": "gdb-dotfiles"
+   }
+  },
+  "gettext": {
+   "apt\\gettext": {
+    "driver": "apt",
+    "fields": {
+     "name": "gettext"
+    },
+    "name": "gettext"
    }
   },
   "gflags": {
@@ -87757,6 +89296,15 @@
     "name": "leiningen"
    }
   },
+  "libaio": {
+   "apt\\libaio": {
+    "driver": "apt",
+    "fields": {
+     "name": "libaio-dev"
+    },
+    "name": "libaio-dev"
+   }
+  },
   "libavcodec-extra": {
    "apt\\libavcodec-extra": {
     "driver": "apt",
@@ -87792,6 +89340,15 @@
     "name": "libc++abi-dev"
    }
   },
+  "libcurl": {
+   "apt\\libcurl": {
+    "driver": "apt",
+    "fields": {
+     "name": "libcurl4-openssl-dev"
+    },
+    "name": "libcurl4-openssl-dev"
+   }
+  },
   "libdecor": {
    "apt\\libdecor": {
     "driver": "apt",
@@ -87808,6 +89365,15 @@
      "name": "libdrm-dev"
     },
     "name": "libdrm-dev"
+   }
+  },
+  "libdwarf": {
+   "apt\\libdwarf": {
+    "driver": "apt",
+    "fields": {
+     "name": "libdwarf-dev"
+    },
+    "name": "libdwarf-dev"
    }
   },
   "libevent": {
@@ -87837,6 +89403,69 @@
      "repo-component": "universe"
     },
     "name": "libgit2-dev"
+   }
+  },
+  "libiberty": {
+   "apt\\libiberty": {
+    "driver": "apt",
+    "fields": {
+     "name": "libiberty-dev"
+    },
+    "name": "libiberty-dev"
+   }
+  },
+  "libidn2": {
+   "apt\\libidn2": {
+    "driver": "apt",
+    "fields": {
+     "name": "libidn2-dev"
+    },
+    "name": "libidn2-dev"
+   }
+  },
+  "libinput": {
+   "apt\\libinput": {
+    "driver": "apt",
+    "fields": {
+     "name": "libinput-dev"
+    },
+    "name": "libinput-dev"
+   }
+  },
+  "liblz4": {
+   "apt\\liblz4": {
+    "driver": "apt",
+    "fields": {
+     "name": "liblz4-dev"
+    },
+    "name": "liblz4-dev"
+   }
+  },
+  "libmagic": {
+   "apt\\libmagic": {
+    "driver": "apt",
+    "fields": {
+     "name": "libmagic-dev"
+    },
+    "name": "libmagic-dev"
+   }
+  },
+  "libmtp": {
+   "apt\\libmtp": {
+    "driver": "apt",
+    "fields": {
+     "name": "libmtp-dev"
+    },
+    "name": "libmtp-dev"
+   }
+  },
+  "libpcap": {
+   "apt\\libpcap": {
+    "driver": "apt",
+    "fields": {
+     "name": "libpcap-dev"
+    },
+    "name": "libpcap-dev"
    }
   },
   "libreoffice": {
@@ -87881,6 +89510,15 @@
     "name": "libsecret-1-dev"
    }
   },
+  "libsodium": {
+   "apt\\libsodium": {
+    "driver": "apt",
+    "fields": {
+     "name": "libsodium-dev"
+    },
+    "name": "libsodium-dev"
+   }
+  },
   "libstdc++": {
    "apt\\libstdc++": {
     "driver": "apt",
@@ -87897,6 +89535,33 @@
      "name": "libtool"
     },
     "name": "libtool"
+   }
+  },
+  "libunwind": {
+   "apt\\libunwind": {
+    "driver": "apt",
+    "fields": {
+     "name": "libunwind-dev"
+    },
+    "name": "libunwind-dev"
+   }
+  },
+  "liburing": {
+   "apt\\liburing": {
+    "driver": "apt",
+    "fields": {
+     "name": "liburing-dev"
+    },
+    "name": "liburing-dev"
+   }
+  },
+  "libusb": {
+   "apt\\libusb": {
+    "driver": "apt",
+    "fields": {
+     "name": "libusb-1.0-0-dev"
+    },
+    "name": "libusb-1.0-0-dev"
    }
   },
   "libvirt": {
@@ -87932,6 +89597,24 @@
      "name": "libvulkan1"
     },
     "name": "libvulkan1"
+   }
+  },
+  "libx11": {
+   "apt\\libx11": {
+    "driver": "apt",
+    "fields": {
+     "name": "libx11-dev"
+    },
+    "name": "libx11-dev"
+   }
+  },
+  "libxcb": {
+   "apt\\libxcb": {
+    "driver": "apt",
+    "fields": {
+     "name": "libxcb1-dev"
+    },
+    "name": "libxcb1-dev"
    }
   },
   "libxcb-cursor-dev": {
@@ -87973,6 +89656,15 @@
     "name": "libxcursor-dev"
    }
   },
+  "libxft": {
+   "apt\\libxft": {
+    "driver": "apt",
+    "fields": {
+     "name": "libxft-dev"
+    },
+    "name": "libxft-dev"
+   }
+  },
   "libxi": {
    "apt\\libxi": {
     "driver": "apt",
@@ -87980,6 +89672,24 @@
      "name": "libxi-dev"
     },
     "name": "libxi-dev"
+   }
+  },
+  "libxinerama": {
+   "apt\\libxinerama": {
+    "driver": "apt",
+    "fields": {
+     "name": "libxinerama-dev"
+    },
+    "name": "libxinerama-dev"
+   }
+  },
+  "libxkbcommon": {
+   "apt\\libxkbcommon": {
+    "driver": "apt",
+    "fields": {
+     "name": "libxkbcommon-dev"
+    },
+    "name": "libxkbcommon-dev"
    }
   },
   "libxrandr": {
@@ -87998,6 +89708,15 @@
      "name": "libxxf86vm-dev"
     },
     "name": "libxxf86vm-dev"
+   }
+  },
+  "libzstd": {
+   "apt\\libzstd": {
+    "driver": "apt",
+    "fields": {
+     "name": "libzstd-dev"
+    },
+    "name": "libzstd-dev"
    }
   },
   "liquibase": {
@@ -88230,15 +89949,6 @@
      "name": "lz4"
     },
     "name": "lz4"
-   }
-  },
-  "lz4-dev": {
-   "apt\\lz4-dev": {
-    "driver": "apt",
-    "fields": {
-     "name": "liblz4-dev"
-    },
-    "name": "liblz4-dev"
    }
   },
   "make": {
@@ -89023,6 +90733,15 @@
     "name": "ncdu"
    }
   },
+  "ncurses": {
+   "apt\\ncurses": {
+    "driver": "apt",
+    "fields": {
+     "name": "libncurses-dev"
+    },
+    "name": "libncurses-dev"
+   }
+  },
   "neovim": {
    "appImage\\neovim": {
     "driver": "appImage",
@@ -89702,6 +91421,15 @@
     "name": "openscad"
    }
   },
+  "openssl": {
+   "apt\\openssl": {
+    "driver": "apt",
+    "fields": {
+     "name": "libssl-dev"
+    },
+    "name": "libssl-dev"
+   }
+  },
   "opentofu": {
    "apt\\curl": {
     "driver": "apt",
@@ -89782,6 +91510,15 @@
      "name": "7zip"
     },
     "name": "7zip"
+   }
+  },
+  "pango": {
+   "apt\\pango": {
+    "driver": "apt",
+    "fields": {
+     "name": "libpango1.0-dev"
+    },
+    "name": "libpango1.0-dev"
    }
   },
   "paraview": {
@@ -90063,6 +91800,15 @@
     "name": "pipx-dotfiles"
    }
   },
+  "pixman": {
+   "apt\\pixman": {
+    "driver": "apt",
+    "fields": {
+     "name": "libpixman-1-dev"
+    },
+    "name": "libpixman-1-dev"
+   }
+  },
   "pkg-config": {
    "apt\\pkg-config": {
     "driver": "apt",
@@ -90306,15 +92052,6 @@
      "glue": "protobuf"
     },
     "name": "protobuf-dotfiles"
-   }
-  },
-  "protobuf-dev": {
-   "apt\\protobuf-dev": {
-    "driver": "apt",
-    "fields": {
-     "name": "libprotobuf-dev"
-    },
-    "name": "libprotobuf-dev"
    }
   },
   "protobuf-dotfiles": {
@@ -91612,6 +93349,15 @@
     "name": "springboot"
    }
   },
+  "sqlite": {
+   "apt\\sqlite": {
+    "driver": "apt",
+    "fields": {
+     "name": "libsqlite3-dev"
+    },
+    "name": "libsqlite3-dev"
+   }
+  },
   "sqlitebrowser": {
    "apt\\sqlitebrowser": {
     "driver": "apt",
@@ -92839,6 +94585,15 @@
     "name": "libwayland-dev"
    }
   },
+  "wayland-protocols": {
+   "apt\\wayland-protocols": {
+    "driver": "apt",
+    "fields": {
+     "name": "wayland-protocols"
+    },
+    "name": "wayland-protocols"
+   }
+  },
   "websocat": {
    "apt\\curl": {
     "driver": "apt",
@@ -93072,6 +94827,15 @@
     "name": "wl-clipboard"
    }
   },
+  "wlroots": {
+   "apt\\wlroots": {
+    "driver": "apt",
+    "fields": {
+     "name": "libwlroots-dev"
+    },
+    "name": "libwlroots-dev"
+   }
+  },
   "wmenu": {
    "apt\\wmenu": {
     "driver": "apt",
@@ -93102,13 +94866,13 @@
     "name": "libwxgtk3.2-dev"
    }
   },
-  "x11": {
-   "apt\\x11": {
+  "xcb-util": {
+   "apt\\xcb-util": {
     "driver": "apt",
     "fields": {
-     "name": "libx11-dev"
+     "name": "libxcb-util-dev"
     },
-    "name": "libx11-dev"
+    "name": "libxcb-util-dev"
    }
   },
   "xclip": {
@@ -93235,24 +94999,6 @@
      "glue": "xh"
     },
     "name": "xh-dotfiles"
-   }
-  },
-  "xinerama": {
-   "apt\\xinerama": {
-    "driver": "apt",
-    "fields": {
-     "name": "libxinerama-dev"
-    },
-    "name": "libxinerama-dev"
-   }
-  },
-  "xkbcommon": {
-   "apt\\xkbcommon": {
-    "driver": "apt",
-    "fields": {
-     "name": "libxkbcommon-dev"
-    },
-    "name": "libxkbcommon-dev"
    }
   },
   "xmonad": {
@@ -93631,6 +95377,15 @@
     "name": "zip"
    }
   },
+  "zlib": {
+   "apt\\zlib": {
+    "driver": "apt",
+    "fields": {
+     "name": "zlib1g-dev"
+    },
+    "name": "zlib1g-dev"
+   }
+  },
   "zoxide": {
    "apt\\zoxide": {
     "driver": "apt",
@@ -93733,15 +95488,6 @@
      "name": "zstd"
     },
     "name": "zstd"
-   }
-  },
-  "zstd-dev": {
-   "apt\\zstd-dev": {
-    "driver": "apt",
-    "fields": {
-     "name": "libzstd-dev"
-    },
-    "name": "libzstd-dev"
    }
   }
  },
@@ -94958,6 +96704,15 @@
     "name": "bundler"
    }
   },
+  "bzip2": {
+   "dnf\\bzip2": {
+    "driver": "dnf",
+    "fields": {
+     "name": "bzip2-devel"
+    },
+    "name": "bzip2-devel"
+   }
+  },
   "c-toolchain": {
    "dnf\\c-toolchain": {
     "driver": "dnf",
@@ -95888,15 +97643,6 @@
      "name": "curl"
     },
     "name": "curl"
-   }
-  },
-  "curl-dev": {
-   "dnf\\curl-dev": {
-    "driver": "dnf",
-    "fields": {
-     "name": "libcurl-devel"
-    },
-    "name": "libcurl-devel"
    }
   },
   "cvs": {
@@ -97231,6 +98977,15 @@
     "name": "org.freecad.FreeCAD"
    }
   },
+  "fuse": {
+   "dnf\\fuse": {
+    "driver": "dnf",
+    "fields": {
+     "name": "fuse-devel"
+    },
+    "name": "fuse-devel"
+   }
+  },
   "fvwm2-dotfiles": {
    "dotfiles\\fvwm2-dotfiles": {
     "driver": "dotfiles",
@@ -97445,6 +99200,15 @@
      "src": "gdbinit"
     },
     "name": "gdb-dotfiles"
+   }
+  },
+  "gettext": {
+   "dnf\\gettext": {
+    "driver": "dnf",
+    "fields": {
+     "name": "gettext"
+    },
+    "name": "gettext"
    }
   },
   "gflags": {
@@ -100031,6 +101795,15 @@
     "name": "leiningen"
    }
   },
+  "libaio": {
+   "dnf\\libaio": {
+    "driver": "dnf",
+    "fields": {
+     "name": "libaio-devel"
+    },
+    "name": "libaio-devel"
+   }
+  },
   "libc++": {
    "dnf\\libc++": {
     "driver": "dnf",
@@ -100056,6 +101829,15 @@
     "name": "libcxxabi-devel"
    }
   },
+  "libcurl": {
+   "dnf\\libcurl": {
+    "driver": "dnf",
+    "fields": {
+     "name": "libcurl-devel"
+    },
+    "name": "libcurl-devel"
+   }
+  },
   "libdecor": {
    "dnf\\libdecor": {
     "driver": "dnf",
@@ -100072,6 +101854,15 @@
      "name": "libdrm-devel"
     },
     "name": "libdrm-devel"
+   }
+  },
+  "libdwarf": {
+   "dnf\\libdwarf": {
+    "driver": "dnf",
+    "fields": {
+     "name": "libdwarf-devel"
+    },
+    "name": "libdwarf-devel"
    }
   },
   "libevent": {
@@ -100101,6 +101892,60 @@
      "repo-component": "universe"
     },
     "name": "libgit2-devel"
+   }
+  },
+  "libidn2": {
+   "dnf\\libidn2": {
+    "driver": "dnf",
+    "fields": {
+     "name": "libidn2-devel"
+    },
+    "name": "libidn2-devel"
+   }
+  },
+  "libinput": {
+   "dnf\\libinput": {
+    "driver": "dnf",
+    "fields": {
+     "name": "libinput-devel"
+    },
+    "name": "libinput-devel"
+   }
+  },
+  "liblz4": {
+   "dnf\\liblz4": {
+    "driver": "dnf",
+    "fields": {
+     "name": "lz4-devel"
+    },
+    "name": "lz4-devel"
+   }
+  },
+  "libmagic": {
+   "dnf\\libmagic": {
+    "driver": "dnf",
+    "fields": {
+     "name": "file-devel"
+    },
+    "name": "file-devel"
+   }
+  },
+  "libmtp": {
+   "dnf\\libmtp": {
+    "driver": "dnf",
+    "fields": {
+     "name": "libmtp-devel"
+    },
+    "name": "libmtp-devel"
+   }
+  },
+  "libpcap": {
+   "dnf\\libpcap": {
+    "driver": "dnf",
+    "fields": {
+     "name": "libpcap-devel"
+    },
+    "name": "libpcap-devel"
    }
   },
   "libreoffice": {
@@ -100145,6 +101990,15 @@
     "name": "libsecret-devel"
    }
   },
+  "libsodium": {
+   "dnf\\libsodium": {
+    "driver": "dnf",
+    "fields": {
+     "name": "libsodium-devel"
+    },
+    "name": "libsodium-devel"
+   }
+  },
   "libstdc++": {
    "dnf\\libstdc++": {
     "driver": "dnf",
@@ -100161,6 +102015,33 @@
      "name": "libtool"
     },
     "name": "libtool"
+   }
+  },
+  "libunwind": {
+   "dnf\\libunwind": {
+    "driver": "dnf",
+    "fields": {
+     "name": "libunwind-devel"
+    },
+    "name": "libunwind-devel"
+   }
+  },
+  "liburing": {
+   "dnf\\liburing": {
+    "driver": "dnf",
+    "fields": {
+     "name": "liburing-devel"
+    },
+    "name": "liburing-devel"
+   }
+  },
+  "libusb": {
+   "dnf\\libusb": {
+    "driver": "dnf",
+    "fields": {
+     "name": "libusb1-devel"
+    },
+    "name": "libusb1-devel"
    }
   },
   "libvirt": {
@@ -100189,6 +102070,24 @@
     "name": "libvirt-service"
    }
   },
+  "libx11": {
+   "dnf\\libx11": {
+    "driver": "dnf",
+    "fields": {
+     "name": "libX11-devel"
+    },
+    "name": "libX11-devel"
+   }
+  },
+  "libxcb": {
+   "dnf\\libxcb": {
+    "driver": "dnf",
+    "fields": {
+     "name": "libxcb-devel"
+    },
+    "name": "libxcb-devel"
+   }
+  },
   "libxcb-devel": {
    "dnf\\libxcb-devel": {
     "driver": "dnf",
@@ -100207,6 +102106,15 @@
     "name": "libXcursor-devel"
    }
   },
+  "libxft": {
+   "dnf\\libxft": {
+    "driver": "dnf",
+    "fields": {
+     "name": "libXft-devel"
+    },
+    "name": "libXft-devel"
+   }
+  },
   "libxi": {
    "dnf\\libxi": {
     "driver": "dnf",
@@ -100214,6 +102122,24 @@
      "name": "libXi-devel"
     },
     "name": "libXi-devel"
+   }
+  },
+  "libxinerama": {
+   "dnf\\libxinerama": {
+    "driver": "dnf",
+    "fields": {
+     "name": "libXinerama-devel"
+    },
+    "name": "libXinerama-devel"
+   }
+  },
+  "libxkbcommon": {
+   "dnf\\libxkbcommon": {
+    "driver": "dnf",
+    "fields": {
+     "name": "libxkbcommon-devel"
+    },
+    "name": "libxkbcommon-devel"
    }
   },
   "libxrandr": {
@@ -100232,6 +102158,15 @@
      "name": "libXxf86vm-devel"
     },
     "name": "libXxf86vm-devel"
+   }
+  },
+  "libzstd": {
+   "dnf\\libzstd": {
+    "driver": "dnf",
+    "fields": {
+     "name": "libzstd-devel"
+    },
+    "name": "libzstd-devel"
    }
   },
   "liquibase": {
@@ -100467,15 +102402,6 @@
      "name": "lz4"
     },
     "name": "lz4"
-   }
-  },
-  "lz4-dev": {
-   "dnf\\lz4-dev": {
-    "driver": "dnf",
-    "fields": {
-     "name": "lz4-devel"
-    },
-    "name": "lz4-devel"
    }
   },
   "make": {
@@ -101264,6 +103190,15 @@
     "name": "ncdu"
    }
   },
+  "ncurses": {
+   "dnf\\ncurses": {
+    "driver": "dnf",
+    "fields": {
+     "name": "ncurses-devel"
+    },
+    "name": "ncurses-devel"
+   }
+  },
   "neovim": {
    "appImage\\neovim": {
     "driver": "appImage",
@@ -101947,6 +103882,15 @@
     "name": "openscad"
    }
   },
+  "openssl": {
+   "dnf\\openssl": {
+    "driver": "dnf",
+    "fields": {
+     "name": "openssl-devel"
+    },
+    "name": "openssl-devel"
+   }
+  },
   "opentofu": {
    "dnf\\curl": {
     "driver": "dnf",
@@ -102027,6 +103971,15 @@
      "name": "p7zip"
     },
     "name": "p7zip"
+   }
+  },
+  "pango": {
+   "dnf\\pango": {
+    "driver": "dnf",
+    "fields": {
+     "name": "pango-devel"
+    },
+    "name": "pango-devel"
    }
   },
   "paraview": {
@@ -102292,6 +104245,15 @@
      "glue": "pipx"
     },
     "name": "pipx-dotfiles"
+   }
+  },
+  "pixman": {
+   "dnf\\pixman": {
+    "driver": "dnf",
+    "fields": {
+     "name": "pixman-devel"
+    },
+    "name": "pixman-devel"
    }
   },
   "pkg-config": {
@@ -102562,15 +104524,6 @@
      "glue": "protobuf"
     },
     "name": "protobuf-dotfiles"
-   }
-  },
-  "protobuf-dev": {
-   "dnf\\protobuf-dev": {
-    "driver": "dnf",
-    "fields": {
-     "name": "protobuf-devel"
-    },
-    "name": "protobuf-devel"
    }
   },
   "protobuf-dotfiles": {
@@ -103838,6 +105791,15 @@
      "name": "springboot"
     },
     "name": "springboot"
+   }
+  },
+  "sqlite": {
+   "dnf\\sqlite": {
+    "driver": "dnf",
+    "fields": {
+     "name": "sqlite-devel"
+    },
+    "name": "sqlite-devel"
    }
   },
   "sqlitebrowser": {
@@ -105116,6 +107078,15 @@
     "name": "wayland-devel"
    }
   },
+  "wayland-protocols": {
+   "dnf\\wayland-protocols": {
+    "driver": "dnf",
+    "fields": {
+     "name": "wayland-protocols-devel"
+    },
+    "name": "wayland-protocols-devel"
+   }
+  },
   "websocat": {
    "dnf\\curl": {
     "driver": "dnf",
@@ -105442,6 +107413,15 @@
     "name": "rust-dotfiles"
    }
   },
+  "wlroots": {
+   "dnf\\wlroots": {
+    "driver": "dnf",
+    "fields": {
+     "name": "wlroots-devel"
+    },
+    "name": "wlroots-devel"
+   }
+  },
   "wxmaxima": {
    "dnf\\wxmaxima": {
     "driver": "dnf",
@@ -105462,13 +107442,13 @@
     "name": "wxGTK-devel"
    }
   },
-  "x11": {
-   "dnf\\x11": {
+  "xcb-util": {
+   "dnf\\xcb-util": {
     "driver": "dnf",
     "fields": {
-     "name": "libX11-devel"
+     "name": "xcb-util-devel"
     },
-    "name": "libX11-devel"
+    "name": "xcb-util-devel"
    }
   },
   "xcb-util-cursor-devel": {
@@ -105610,24 +107590,6 @@
      "glue": "xh"
     },
     "name": "xh-dotfiles"
-   }
-  },
-  "xinerama": {
-   "dnf\\xinerama": {
-    "driver": "dnf",
-    "fields": {
-     "name": "libXinerama-devel"
-    },
-    "name": "libXinerama-devel"
-   }
-  },
-  "xkbcommon": {
-   "dnf\\xkbcommon": {
-    "driver": "dnf",
-    "fields": {
-     "name": "libxkbcommon-devel"
-    },
-    "name": "libxkbcommon-devel"
    }
   },
   "xmonad": {
@@ -106008,6 +107970,15 @@
     "name": "zip"
    }
   },
+  "zlib": {
+   "dnf\\zlib": {
+    "driver": "dnf",
+    "fields": {
+     "name": "zlib-devel"
+    },
+    "name": "zlib-devel"
+   }
+  },
   "zoxide": {
    "dnf\\epel-release": {
     "driver": "dnf",
@@ -106116,15 +108087,6 @@
      "name": "zstd"
     },
     "name": "zstd"
-   }
-  },
-  "zstd-dev": {
-   "dnf\\zstd-dev": {
-    "driver": "dnf",
-    "fields": {
-     "name": "libzstd-devel"
-    },
-    "name": "libzstd-devel"
    }
   }
  },
@@ -107252,6 +109214,15 @@
     "name": "bundler"
    }
   },
+  "bzip2": {
+   "apt\\bzip2": {
+    "driver": "apt",
+    "fields": {
+     "name": "libbz2-dev"
+    },
+    "name": "libbz2-dev"
+   }
+  },
   "c-toolchain": {
    "apt\\c-toolchain": {
     "driver": "apt",
@@ -108253,15 +110224,6 @@
      "name": "curl"
     },
     "name": "curl"
-   }
-  },
-  "curl-dev": {
-   "apt\\curl-dev": {
-    "driver": "apt",
-    "fields": {
-     "name": "libcurl4-openssl-dev"
-    },
-    "name": "libcurl4-openssl-dev"
    }
   },
   "cvs": {
@@ -109558,6 +111520,15 @@
     "name": "freecad"
    }
   },
+  "fuse": {
+   "apt\\fuse": {
+    "driver": "apt",
+    "fields": {
+     "name": "libfuse-dev"
+    },
+    "name": "libfuse-dev"
+   }
+  },
   "fvwm2": {
    "apt\\fvwm2": {
     "driver": "apt",
@@ -110003,6 +111974,15 @@
      "src": "gdbinit"
     },
     "name": "gdb-dotfiles"
+   }
+  },
+  "gettext": {
+   "apt\\gettext": {
+    "driver": "apt",
+    "fields": {
+     "name": "gettext"
+    },
+    "name": "gettext"
    }
   },
   "gflags": {
@@ -112533,6 +114513,15 @@
     "name": "leiningen"
    }
   },
+  "libaio": {
+   "apt\\libaio": {
+    "driver": "apt",
+    "fields": {
+     "name": "libaio-dev"
+    },
+    "name": "libaio-dev"
+   }
+  },
   "libavcodec-extra": {
    "apt\\libavcodec-extra": {
     "driver": "apt",
@@ -112568,6 +114557,15 @@
     "name": "libc++abi-dev"
    }
   },
+  "libcurl": {
+   "apt\\libcurl": {
+    "driver": "apt",
+    "fields": {
+     "name": "libcurl4-openssl-dev"
+    },
+    "name": "libcurl4-openssl-dev"
+   }
+  },
   "libdecor": {
    "apt\\libdecor": {
     "driver": "apt",
@@ -112584,6 +114582,15 @@
      "name": "libdrm-dev"
     },
     "name": "libdrm-dev"
+   }
+  },
+  "libdwarf": {
+   "apt\\libdwarf": {
+    "driver": "apt",
+    "fields": {
+     "name": "libdwarf-dev"
+    },
+    "name": "libdwarf-dev"
    }
   },
   "libevent": {
@@ -112613,6 +114620,69 @@
      "repo-component": "universe"
     },
     "name": "libgit2-dev"
+   }
+  },
+  "libiberty": {
+   "apt\\libiberty": {
+    "driver": "apt",
+    "fields": {
+     "name": "libiberty-dev"
+    },
+    "name": "libiberty-dev"
+   }
+  },
+  "libidn2": {
+   "apt\\libidn2": {
+    "driver": "apt",
+    "fields": {
+     "name": "libidn2-dev"
+    },
+    "name": "libidn2-dev"
+   }
+  },
+  "libinput": {
+   "apt\\libinput": {
+    "driver": "apt",
+    "fields": {
+     "name": "libinput-dev"
+    },
+    "name": "libinput-dev"
+   }
+  },
+  "liblz4": {
+   "apt\\liblz4": {
+    "driver": "apt",
+    "fields": {
+     "name": "liblz4-dev"
+    },
+    "name": "liblz4-dev"
+   }
+  },
+  "libmagic": {
+   "apt\\libmagic": {
+    "driver": "apt",
+    "fields": {
+     "name": "libmagic-dev"
+    },
+    "name": "libmagic-dev"
+   }
+  },
+  "libmtp": {
+   "apt\\libmtp": {
+    "driver": "apt",
+    "fields": {
+     "name": "libmtp-dev"
+    },
+    "name": "libmtp-dev"
+   }
+  },
+  "libpcap": {
+   "apt\\libpcap": {
+    "driver": "apt",
+    "fields": {
+     "name": "libpcap-dev"
+    },
+    "name": "libpcap-dev"
    }
   },
   "libreoffice": {
@@ -112657,6 +114727,15 @@
     "name": "libsecret-1-dev"
    }
   },
+  "libsodium": {
+   "apt\\libsodium": {
+    "driver": "apt",
+    "fields": {
+     "name": "libsodium-dev"
+    },
+    "name": "libsodium-dev"
+   }
+  },
   "libstdc++": {
    "apt\\libstdc++": {
     "driver": "apt",
@@ -112673,6 +114752,33 @@
      "name": "libtool"
     },
     "name": "libtool"
+   }
+  },
+  "libunwind": {
+   "apt\\libunwind": {
+    "driver": "apt",
+    "fields": {
+     "name": "libunwind-dev"
+    },
+    "name": "libunwind-dev"
+   }
+  },
+  "liburing": {
+   "apt\\liburing": {
+    "driver": "apt",
+    "fields": {
+     "name": "liburing-dev"
+    },
+    "name": "liburing-dev"
+   }
+  },
+  "libusb": {
+   "apt\\libusb": {
+    "driver": "apt",
+    "fields": {
+     "name": "libusb-1.0-0-dev"
+    },
+    "name": "libusb-1.0-0-dev"
    }
   },
   "libvirt": {
@@ -112708,6 +114814,24 @@
      "name": "libvulkan1"
     },
     "name": "libvulkan1"
+   }
+  },
+  "libx11": {
+   "apt\\libx11": {
+    "driver": "apt",
+    "fields": {
+     "name": "libx11-dev"
+    },
+    "name": "libx11-dev"
+   }
+  },
+  "libxcb": {
+   "apt\\libxcb": {
+    "driver": "apt",
+    "fields": {
+     "name": "libxcb1-dev"
+    },
+    "name": "libxcb1-dev"
    }
   },
   "libxcb-cursor-dev": {
@@ -112749,6 +114873,15 @@
     "name": "libxcursor-dev"
    }
   },
+  "libxft": {
+   "apt\\libxft": {
+    "driver": "apt",
+    "fields": {
+     "name": "libxft-dev"
+    },
+    "name": "libxft-dev"
+   }
+  },
   "libxi": {
    "apt\\libxi": {
     "driver": "apt",
@@ -112756,6 +114889,24 @@
      "name": "libxi-dev"
     },
     "name": "libxi-dev"
+   }
+  },
+  "libxinerama": {
+   "apt\\libxinerama": {
+    "driver": "apt",
+    "fields": {
+     "name": "libxinerama-dev"
+    },
+    "name": "libxinerama-dev"
+   }
+  },
+  "libxkbcommon": {
+   "apt\\libxkbcommon": {
+    "driver": "apt",
+    "fields": {
+     "name": "libxkbcommon-dev"
+    },
+    "name": "libxkbcommon-dev"
    }
   },
   "libxrandr": {
@@ -112774,6 +114925,15 @@
      "name": "libxxf86vm-dev"
     },
     "name": "libxxf86vm-dev"
+   }
+  },
+  "libzstd": {
+   "apt\\libzstd": {
+    "driver": "apt",
+    "fields": {
+     "name": "libzstd-dev"
+    },
+    "name": "libzstd-dev"
    }
   },
   "liquibase": {
@@ -113006,15 +115166,6 @@
      "name": "lz4"
     },
     "name": "lz4"
-   }
-  },
-  "lz4-dev": {
-   "apt\\lz4-dev": {
-    "driver": "apt",
-    "fields": {
-     "name": "liblz4-dev"
-    },
-    "name": "liblz4-dev"
    }
   },
   "make": {
@@ -113799,6 +115950,15 @@
     "name": "ncdu"
    }
   },
+  "ncurses": {
+   "apt\\ncurses": {
+    "driver": "apt",
+    "fields": {
+     "name": "libncurses-dev"
+    },
+    "name": "libncurses-dev"
+   }
+  },
   "neovim": {
    "appImage\\neovim": {
     "driver": "appImage",
@@ -114478,6 +116638,15 @@
     "name": "openscad"
    }
   },
+  "openssl": {
+   "apt\\openssl": {
+    "driver": "apt",
+    "fields": {
+     "name": "libssl-dev"
+    },
+    "name": "libssl-dev"
+   }
+  },
   "opentofu": {
    "apt\\curl": {
     "driver": "apt",
@@ -114558,6 +116727,15 @@
      "name": "7zip"
     },
     "name": "7zip"
+   }
+  },
+  "pango": {
+   "apt\\pango": {
+    "driver": "apt",
+    "fields": {
+     "name": "libpango1.0-dev"
+    },
+    "name": "libpango1.0-dev"
    }
   },
   "paraview": {
@@ -114839,6 +117017,15 @@
     "name": "pipx-dotfiles"
    }
   },
+  "pixman": {
+   "apt\\pixman": {
+    "driver": "apt",
+    "fields": {
+     "name": "libpixman-1-dev"
+    },
+    "name": "libpixman-1-dev"
+   }
+  },
   "pkg-config": {
    "apt\\pkg-config": {
     "driver": "apt",
@@ -115082,15 +117269,6 @@
      "glue": "protobuf"
     },
     "name": "protobuf-dotfiles"
-   }
-  },
-  "protobuf-dev": {
-   "apt\\protobuf-dev": {
-    "driver": "apt",
-    "fields": {
-     "name": "libprotobuf-dev"
-    },
-    "name": "libprotobuf-dev"
    }
   },
   "protobuf-dotfiles": {
@@ -116388,6 +118566,15 @@
     "name": "springboot"
    }
   },
+  "sqlite": {
+   "apt\\sqlite": {
+    "driver": "apt",
+    "fields": {
+     "name": "libsqlite3-dev"
+    },
+    "name": "libsqlite3-dev"
+   }
+  },
   "sqlitebrowser": {
    "apt\\sqlitebrowser": {
     "driver": "apt",
@@ -117622,6 +119809,15 @@
     "name": "libwayland-dev"
    }
   },
+  "wayland-protocols": {
+   "apt\\wayland-protocols": {
+    "driver": "apt",
+    "fields": {
+     "name": "wayland-protocols"
+    },
+    "name": "wayland-protocols"
+   }
+  },
   "websocat": {
    "apt\\curl": {
     "driver": "apt",
@@ -117855,6 +120051,15 @@
     "name": "wl-clipboard"
    }
   },
+  "wlroots": {
+   "apt\\wlroots": {
+    "driver": "apt",
+    "fields": {
+     "name": "libwlroots-dev"
+    },
+    "name": "libwlroots-dev"
+   }
+  },
   "wmenu": {
    "apt\\wmenu": {
     "driver": "apt",
@@ -117885,13 +120090,13 @@
     "name": "libwxgtk3.2-dev"
    }
   },
-  "x11": {
-   "apt\\x11": {
+  "xcb-util": {
+   "apt\\xcb-util": {
     "driver": "apt",
     "fields": {
-     "name": "libx11-dev"
+     "name": "libxcb-util-dev"
     },
-    "name": "libx11-dev"
+    "name": "libxcb-util-dev"
    }
   },
   "xclip": {
@@ -118018,24 +120223,6 @@
      "glue": "xh"
     },
     "name": "xh-dotfiles"
-   }
-  },
-  "xinerama": {
-   "apt\\xinerama": {
-    "driver": "apt",
-    "fields": {
-     "name": "libxinerama-dev"
-    },
-    "name": "libxinerama-dev"
-   }
-  },
-  "xkbcommon": {
-   "apt\\xkbcommon": {
-    "driver": "apt",
-    "fields": {
-     "name": "libxkbcommon-dev"
-    },
-    "name": "libxkbcommon-dev"
    }
   },
   "xmonad": {
@@ -118414,6 +120601,15 @@
     "name": "zip"
    }
   },
+  "zlib": {
+   "apt\\zlib": {
+    "driver": "apt",
+    "fields": {
+     "name": "zlib1g-dev"
+    },
+    "name": "zlib1g-dev"
+   }
+  },
   "zoxide": {
    "apt\\zoxide": {
     "driver": "apt",
@@ -118516,15 +120712,6 @@
      "name": "zstd"
     },
     "name": "zstd"
-   }
-  },
-  "zstd-dev": {
-   "apt\\zstd-dev": {
-    "driver": "apt",
-    "fields": {
-     "name": "libzstd-dev"
-    },
-    "name": "libzstd-dev"
    }
   }
  },
@@ -119618,6 +121805,15 @@
     "name": "bundler"
    }
   },
+  "bzip2": {
+   "apt\\bzip2": {
+    "driver": "apt",
+    "fields": {
+     "name": "libbz2-dev"
+    },
+    "name": "libbz2-dev"
+   }
+  },
   "c-toolchain": {
    "apt\\c-toolchain": {
     "driver": "apt",
@@ -120602,15 +122798,6 @@
      "name": "curl"
     },
     "name": "curl"
-   }
-  },
-  "curl-dev": {
-   "apt\\curl-dev": {
-    "driver": "apt",
-    "fields": {
-     "name": "libcurl4-openssl-dev"
-    },
-    "name": "libcurl4-openssl-dev"
    }
   },
   "cvs": {
@@ -121890,6 +124077,15 @@
     "name": "freecad"
    }
   },
+  "fuse": {
+   "apt\\fuse": {
+    "driver": "apt",
+    "fields": {
+     "name": "libfuse-dev"
+    },
+    "name": "libfuse-dev"
+   }
+  },
   "fvwm2": {
    "apt\\fvwm2": {
     "driver": "apt",
@@ -122335,6 +124531,15 @@
      "src": "gdbinit"
     },
     "name": "gdb-dotfiles"
+   }
+  },
+  "gettext": {
+   "apt\\gettext": {
+    "driver": "apt",
+    "fields": {
+     "name": "gettext"
+    },
+    "name": "gettext"
    }
   },
   "gflags": {
@@ -124804,6 +127009,15 @@
     "name": "leiningen"
    }
   },
+  "libaio": {
+   "apt\\libaio": {
+    "driver": "apt",
+    "fields": {
+     "name": "libaio-dev"
+    },
+    "name": "libaio-dev"
+   }
+  },
   "libavcodec-extra": {
    "apt\\libavcodec-extra": {
     "driver": "apt",
@@ -124839,6 +127053,15 @@
     "name": "libc++abi-dev"
    }
   },
+  "libcurl": {
+   "apt\\libcurl": {
+    "driver": "apt",
+    "fields": {
+     "name": "libcurl4-openssl-dev"
+    },
+    "name": "libcurl4-openssl-dev"
+   }
+  },
   "libdecor": {
    "apt\\libdecor": {
     "driver": "apt",
@@ -124855,6 +127078,15 @@
      "name": "libdrm-dev"
     },
     "name": "libdrm-dev"
+   }
+  },
+  "libdwarf": {
+   "apt\\libdwarf": {
+    "driver": "apt",
+    "fields": {
+     "name": "libdwarf-dev"
+    },
+    "name": "libdwarf-dev"
    }
   },
   "libevent": {
@@ -124884,6 +127116,69 @@
      "repo-component": "universe"
     },
     "name": "libgit2-dev"
+   }
+  },
+  "libiberty": {
+   "apt\\libiberty": {
+    "driver": "apt",
+    "fields": {
+     "name": "libiberty-dev"
+    },
+    "name": "libiberty-dev"
+   }
+  },
+  "libidn2": {
+   "apt\\libidn2": {
+    "driver": "apt",
+    "fields": {
+     "name": "libidn2-dev"
+    },
+    "name": "libidn2-dev"
+   }
+  },
+  "libinput": {
+   "apt\\libinput": {
+    "driver": "apt",
+    "fields": {
+     "name": "libinput-dev"
+    },
+    "name": "libinput-dev"
+   }
+  },
+  "liblz4": {
+   "apt\\liblz4": {
+    "driver": "apt",
+    "fields": {
+     "name": "liblz4-dev"
+    },
+    "name": "liblz4-dev"
+   }
+  },
+  "libmagic": {
+   "apt\\libmagic": {
+    "driver": "apt",
+    "fields": {
+     "name": "libmagic-dev"
+    },
+    "name": "libmagic-dev"
+   }
+  },
+  "libmtp": {
+   "apt\\libmtp": {
+    "driver": "apt",
+    "fields": {
+     "name": "libmtp-dev"
+    },
+    "name": "libmtp-dev"
+   }
+  },
+  "libpcap": {
+   "apt\\libpcap": {
+    "driver": "apt",
+    "fields": {
+     "name": "libpcap-dev"
+    },
+    "name": "libpcap-dev"
    }
   },
   "libreoffice": {
@@ -124928,6 +127223,15 @@
     "name": "libsecret-1-dev"
    }
   },
+  "libsodium": {
+   "apt\\libsodium": {
+    "driver": "apt",
+    "fields": {
+     "name": "libsodium-dev"
+    },
+    "name": "libsodium-dev"
+   }
+  },
   "libstdc++": {
    "apt\\libstdc++": {
     "driver": "apt",
@@ -124944,6 +127248,33 @@
      "name": "libtool"
     },
     "name": "libtool"
+   }
+  },
+  "libunwind": {
+   "apt\\libunwind": {
+    "driver": "apt",
+    "fields": {
+     "name": "libunwind-dev"
+    },
+    "name": "libunwind-dev"
+   }
+  },
+  "liburing": {
+   "apt\\liburing": {
+    "driver": "apt",
+    "fields": {
+     "name": "liburing-dev"
+    },
+    "name": "liburing-dev"
+   }
+  },
+  "libusb": {
+   "apt\\libusb": {
+    "driver": "apt",
+    "fields": {
+     "name": "libusb-1.0-0-dev"
+    },
+    "name": "libusb-1.0-0-dev"
    }
   },
   "libvirt": {
@@ -124979,6 +127310,24 @@
      "name": "libvulkan1"
     },
     "name": "libvulkan1"
+   }
+  },
+  "libx11": {
+   "apt\\libx11": {
+    "driver": "apt",
+    "fields": {
+     "name": "libx11-dev"
+    },
+    "name": "libx11-dev"
+   }
+  },
+  "libxcb": {
+   "apt\\libxcb": {
+    "driver": "apt",
+    "fields": {
+     "name": "libxcb1-dev"
+    },
+    "name": "libxcb1-dev"
    }
   },
   "libxcb-cursor-dev": {
@@ -125020,6 +127369,15 @@
     "name": "libxcursor-dev"
    }
   },
+  "libxft": {
+   "apt\\libxft": {
+    "driver": "apt",
+    "fields": {
+     "name": "libxft-dev"
+    },
+    "name": "libxft-dev"
+   }
+  },
   "libxi": {
    "apt\\libxi": {
     "driver": "apt",
@@ -125027,6 +127385,24 @@
      "name": "libxi-dev"
     },
     "name": "libxi-dev"
+   }
+  },
+  "libxinerama": {
+   "apt\\libxinerama": {
+    "driver": "apt",
+    "fields": {
+     "name": "libxinerama-dev"
+    },
+    "name": "libxinerama-dev"
+   }
+  },
+  "libxkbcommon": {
+   "apt\\libxkbcommon": {
+    "driver": "apt",
+    "fields": {
+     "name": "libxkbcommon-dev"
+    },
+    "name": "libxkbcommon-dev"
    }
   },
   "libxrandr": {
@@ -125045,6 +127421,15 @@
      "name": "libxxf86vm-dev"
     },
     "name": "libxxf86vm-dev"
+   }
+  },
+  "libzstd": {
+   "apt\\libzstd": {
+    "driver": "apt",
+    "fields": {
+     "name": "libzstd-dev"
+    },
+    "name": "libzstd-dev"
    }
   },
   "liquibase": {
@@ -125260,15 +127645,6 @@
      "name": "lz4"
     },
     "name": "lz4"
-   }
-  },
-  "lz4-dev": {
-   "apt\\lz4-dev": {
-    "driver": "apt",
-    "fields": {
-     "name": "liblz4-dev"
-    },
-    "name": "liblz4-dev"
    }
   },
   "make": {
@@ -126019,6 +128395,15 @@
     "name": "ncdu"
    }
   },
+  "ncurses": {
+   "apt\\ncurses": {
+    "driver": "apt",
+    "fields": {
+     "name": "libncurses-dev"
+    },
+    "name": "libncurses-dev"
+   }
+  },
   "neovim": {
    "appImage\\neovim": {
     "driver": "appImage",
@@ -126698,6 +129083,15 @@
     "name": "openscad"
    }
   },
+  "openssl": {
+   "apt\\openssl": {
+    "driver": "apt",
+    "fields": {
+     "name": "libssl-dev"
+    },
+    "name": "libssl-dev"
+   }
+  },
   "opentofu": {
    "apt\\curl": {
     "driver": "apt",
@@ -126778,6 +129172,15 @@
      "name": "7zip"
     },
     "name": "7zip"
+   }
+  },
+  "pango": {
+   "apt\\pango": {
+    "driver": "apt",
+    "fields": {
+     "name": "libpango1.0-dev"
+    },
+    "name": "libpango1.0-dev"
    }
   },
   "paraview": {
@@ -127025,6 +129428,15 @@
     "name": "pipx-dotfiles"
    }
   },
+  "pixman": {
+   "apt\\pixman": {
+    "driver": "apt",
+    "fields": {
+     "name": "libpixman-1-dev"
+    },
+    "name": "libpixman-1-dev"
+   }
+  },
   "pkg-config": {
    "apt\\pkg-config": {
     "driver": "apt",
@@ -127268,15 +129680,6 @@
      "glue": "protobuf"
     },
     "name": "protobuf-dotfiles"
-   }
-  },
-  "protobuf-dev": {
-   "apt\\protobuf-dev": {
-    "driver": "apt",
-    "fields": {
-     "name": "libprotobuf-dev"
-    },
-    "name": "libprotobuf-dev"
    }
   },
   "protobuf-dotfiles": {
@@ -128540,6 +130943,15 @@
     "name": "springboot"
    }
   },
+  "sqlite": {
+   "apt\\sqlite": {
+    "driver": "apt",
+    "fields": {
+     "name": "libsqlite3-dev"
+    },
+    "name": "libsqlite3-dev"
+   }
+  },
   "sqlitebrowser": {
    "apt\\sqlitebrowser": {
     "driver": "apt",
@@ -129757,6 +132169,15 @@
     "name": "libwayland-dev"
    }
   },
+  "wayland-protocols": {
+   "apt\\wayland-protocols": {
+    "driver": "apt",
+    "fields": {
+     "name": "wayland-protocols"
+    },
+    "name": "wayland-protocols"
+   }
+  },
   "websocat": {
    "apt\\curl": {
     "driver": "apt",
@@ -130056,6 +132477,15 @@
     "name": "rust-dotfiles"
    }
   },
+  "wlroots": {
+   "apt\\wlroots": {
+    "driver": "apt",
+    "fields": {
+     "name": "libwlroots-dev"
+    },
+    "name": "libwlroots-dev"
+   }
+  },
   "wmenu": {
    "apt\\wmenu": {
     "driver": "apt",
@@ -130086,13 +132516,13 @@
     "name": "libwxgtk3.2-dev"
    }
   },
-  "x11": {
-   "apt\\x11": {
+  "xcb-util": {
+   "apt\\xcb-util": {
     "driver": "apt",
     "fields": {
-     "name": "libx11-dev"
+     "name": "libxcb-util-dev"
     },
-    "name": "libx11-dev"
+    "name": "libxcb-util-dev"
    }
   },
   "xclip": {
@@ -130219,24 +132649,6 @@
      "glue": "xh"
     },
     "name": "xh-dotfiles"
-   }
-  },
-  "xinerama": {
-   "apt\\xinerama": {
-    "driver": "apt",
-    "fields": {
-     "name": "libxinerama-dev"
-    },
-    "name": "libxinerama-dev"
-   }
-  },
-  "xkbcommon": {
-   "apt\\xkbcommon": {
-    "driver": "apt",
-    "fields": {
-     "name": "libxkbcommon-dev"
-    },
-    "name": "libxkbcommon-dev"
    }
   },
   "xmonad": {
@@ -130586,6 +132998,15 @@
     "name": "zip"
    }
   },
+  "zlib": {
+   "apt\\zlib": {
+    "driver": "apt",
+    "fields": {
+     "name": "zlib1g-dev"
+    },
+    "name": "zlib1g-dev"
+   }
+  },
   "zoxide": {
    "apt\\zoxide": {
     "driver": "apt",
@@ -130688,15 +133109,6 @@
      "name": "zstd"
     },
     "name": "zstd"
-   }
-  },
-  "zstd-dev": {
-   "apt\\zstd-dev": {
-    "driver": "apt",
-    "fields": {
-     "name": "libzstd-dev"
-    },
-    "name": "libzstd-dev"
    }
   }
  }
