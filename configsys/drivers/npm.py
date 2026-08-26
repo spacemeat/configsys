@@ -19,11 +19,23 @@ from ..driver import Driver
 from ..runner import Result
 
 
+_NODE_BUNDLED = {'npm', 'corepack'}   # ship INSIDE the node package on every distro, not user-installed
+
+
 class Npm(Driver):
     name = 'npm'
     privileged = False
     default_scope = 'user'
     honors_scope = True
+
+    def explicit_keys(self):
+        '''The global packages the user actually installed — every global minus the ones bundled with
+        node itself (npm, corepack), which appear in `npm ls -g` on every platform but nobody chose.
+        None if nothing enumerates -> no filtering.'''
+        idx = self.installed_index()
+        if idx is None:
+            return None
+        return set(idx) - _NODE_BUNDLED
 
     @staticmethod
     def _pkg(rc):

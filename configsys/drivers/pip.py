@@ -59,9 +59,11 @@ class Pip(Driver):
         zypper/apk equivalents all land in the interpreter's site and would otherwise flood the
         orphan scan. pip records `INSTALLER=pip` in each dist it installs; no distro package manager
         writes that, so it's the same "the user chose it" signal apt-mark gives for native packages.
-        Read from `pip list -v`'s Installer column (present since pip ~19). Names PEP-503-normalized
-        to match installed_index. None on failure / no Installer column -> no filtering (list all).'''
-        r = self.runner.run(f'{_PIP} list -v')
+        `--not-required` further drops pip-pulled DEPENDENCIES (the pip analog of apt's manual-not-
+        auto), leaving the top-level dists the user actually asked for. Read from `pip list -v`'s
+        Installer column (present since pip ~19). Names PEP-503-normalized to match installed_index.
+        None on failure / no Installer column -> no filtering (list all).'''
+        r = self.runner.run(f'{_PIP} list --not-required -v')
         if not r.ok or not r.stdout:
             return None
         lines = r.stdout.splitlines()

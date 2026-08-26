@@ -336,6 +336,17 @@ def test_pip_explicit_keys_keeps_only_installer_pip():
     assert Pip(_Runner(), None).explicit_keys() == {'rich', 'pip'}
 
 
+def test_npm_explicit_keys_excludes_node_bundled():
+    from configsys.drivers.npm import Npm
+
+    class _N(Npm):
+        def installed_index(self):
+            return {'npm': '11', 'corepack': '0.3', 'n': '10', 'neovim': '5'}
+
+    # the node-bundled npm/corepack are dropped; the user's real globals stay
+    assert _N(None, None).explicit_keys() == {'n', 'neovim'}
+
+
 def test_apt_explicit_keys_parse():
     from configsys.drivers.apt import Apt
 
