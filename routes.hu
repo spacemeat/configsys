@@ -2443,21 +2443,32 @@
         gradle: { attrs: [ CLI FOSS permissive ] suggests: gradle-dotfiles  description: "Gradle — JVM build automation." requires: jdk
                   install: [ { via: native  when: "debian or arch or fedora_atomic" }   // native where packaged
                              { via: sdkman  when: "not debian and not arch and not fedora_atomic" } ] }   // SDKMAN elsewhere (fedora/alpine/opensuse) + any pinned version
+        /*
         // Jenkins — CI/CD automation server (web UI on :8080). Official apt/dnf vendor repos (stable
         // LTS) + AUR on Arch; needs a JDK. No brew/atomic/alpine binding (use the war or a container).
+        // Jenkins signs both its apt and dnf repos with a rotating "Jenkins Project" key. Since
+        // 2025-12 the repos are signed by a NEW key (fpr 5E38 6EAD B55F 0150 4CAE 8BCF 7198 F4B7 14AB
+        // FC68) that Jenkins has NOT published at a jenkins.io-<year>.key URL yet — their
+        // jenkins.io-2023.key still ships only the OLD key, so fetching THAT leaves apt/dnf with
+        // `NO_PUBKEY …7198…` and a repo that won't verify (breaking every `apt-get update`). So pin
+        // the CURRENT key by full fingerprint from the Ubuntu keyserver (HTTPS + fingerprint = not
+        // spoofable). REVERT to Jenkins' own keyfile once they publish it (jenkins.io-2025.key).
+        // NOTE: the key is fetched only if the keyring file is ABSENT — a machine with a stale
+        // jenkins-keyring.asc must delete it first for the new key to be pulled.
         jenkins: { attrs: [ web daemon FOSS permissive ] description: "Jenkins — an automation server for CI/CD (web UI on :8080)." requires: jdk
             install: [
                 { via: native  when: "debian"  name: jenkins   // Jenkins' official apt repo (stable/LTS)
-                  pubkey-url: "https://pkg.jenkins.io/debian-stable/jenkins.io-2023.key"
+                  pubkey-url: "https://keyserver.ubuntu.com/pks/lookup?op=get&options=mr&search=0x5E386EADB55F01504CAE8BCF7198F4B714ABFC68"
                   pubkey-path: /usr/share/keyrings/jenkins-keyring.asc
                   source-line: "deb [signed-by=/usr/share/keyrings/jenkins-keyring.asc] https://pkg.jenkins.io/debian-stable binary/"
                   source-path: /etc/apt/sources.list.d/jenkins.list }
-                { via: native  when: "redhat"  name: jenkins   // Jenkins' official dnf repo (stable/LTS)
-                  pubkey-url: "https://pkg.jenkins.io/redhat-stable/jenkins.io-2023.key"
+                { via: native  when: "redhat"  name: jenkins   // Jenkins' official dnf repo (stable/LTS); same rotated key
+                  pubkey-url: "https://keyserver.ubuntu.com/pks/lookup?op=get&options=mr&search=0x5E386EADB55F01504CAE8BCF7198F4B714ABFC68"
                   repo-id: jenkins  repo-name: "Jenkins"
                   repo-url: "https://pkg.jenkins.io/redhat-stable/" }
                 { via: aur  when: "arch"  name: jenkins } ]
         }
+        */
 
         // --- debugging / static analysis / profiling (NB: ASan/UBSan/TSan are gcc/clang FLAGS,
         // not packages — nothing to install for those). ---
