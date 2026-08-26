@@ -5934,6 +5934,15 @@
     "name": "libvirt"
    }
   },
+  "libvirt-clients": {
+   "pacman\\libvirt-clients": {
+    "driver": "pacman",
+    "fields": {
+     "name": "libvirt"
+    },
+    "name": "libvirt"
+   }
+  },
   "libvirt-service": {
    "pacman\\libvirt": {
     "driver": "pacman",
@@ -7324,6 +7333,15 @@
     "name": "node-dotfiles"
    }
   },
+  "numpy": {
+   "pacman\\numpy": {
+    "driver": "pacman",
+    "fields": {
+     "name": "python-numpy"
+    },
+    "name": "python-numpy"
+   }
+  },
   "nushell": {
    "dotfiles\\bash-dotfiles": {
     "driver": "dotfiles",
@@ -7641,6 +7659,15 @@
     "name": "openscad"
    }
   },
+  "openssh-server": {
+   "pacman\\openssh-server": {
+    "driver": "pacman",
+    "fields": {
+     "name": "openssh"
+    },
+    "name": "openssh"
+   }
+  },
   "openssl": {
    "pacman\\openssl": {
     "driver": "pacman",
@@ -7798,6 +7825,15 @@
      "name": "pastel"
     },
     "name": "pastel"
+   }
+  },
+  "patch": {
+   "pacman\\patch": {
+    "driver": "pacman",
+    "fields": {
+     "name": "patch"
+    },
+    "name": "patch"
    }
   },
   "perf": {
@@ -8293,6 +8329,15 @@
     "name": "protobuf"
    }
   },
+  "protobuf-dev": {
+   "pacman\\protobuf-dev": {
+    "driver": "pacman",
+    "fields": {
+     "name": "protobuf"
+    },
+    "name": "protobuf"
+   }
+  },
   "protobuf-dotfiles": {
    "dotfiles\\bash-dotfiles": {
     "driver": "dotfiles",
@@ -8377,6 +8422,15 @@
      "name": "git"
     },
     "name": "git"
+   }
+  },
+  "pulseaudio-utils": {
+   "pacman\\pulseaudio-utils": {
+    "driver": "pacman",
+    "fields": {
+     "name": "libpulse"
+    },
+    "name": "libpulse"
    }
   },
   "puppet": {
@@ -8471,6 +8525,15 @@
     "name": "pyenv-dotfiles"
    }
   },
+  "pytest": {
+   "pacman\\pytest": {
+    "driver": "pacman",
+    "fields": {
+     "name": "python-pytest"
+    },
+    "name": "python-pytest"
+   }
+  },
   "python-build-deps": {
    "pacman\\python-build-deps": {
     "driver": "pacman",
@@ -8485,6 +8548,15 @@
      ]
     },
     "name": "python-build-deps"
+   }
+  },
+  "python3-dev": {
+   "pacman\\python3-dev": {
+    "driver": "pacman",
+    "fields": {
+     "name": "python"
+    },
+    "name": "python"
    }
   },
   "python3-pip": {
@@ -11500,6 +11572,15 @@
     "name": "flatpak"
    }
   },
+  "wxpython": {
+   "pacman\\wxpython": {
+    "driver": "pacman",
+    "fields": {
+     "name": "python-wxpython"
+    },
+    "name": "python-wxpython"
+   }
+  },
   "wxwidgets": {
    "pacman\\wxwidgets": {
     "driver": "pacman",
@@ -14427,6 +14508,15 @@
     "name": "libdbus-1-dev"
    }
   },
+  "debhelper": {
+   "apt\\debhelper": {
+    "driver": "apt",
+    "fields": {
+     "name": "debhelper"
+    },
+    "name": "debhelper"
+   }
+  },
   "deno": {
    "apt\\curl": {
     "driver": "apt",
@@ -18849,6 +18939,15 @@
     "name": "libvirt-daemon-system"
    }
   },
+  "libvirt-clients": {
+   "apt\\libvirt-clients": {
+    "driver": "apt",
+    "fields": {
+     "name": "libvirt-clients"
+    },
+    "name": "libvirt-clients"
+   }
+  },
   "libvirt-service": {
    "apt\\libvirt": {
     "driver": "apt",
@@ -20338,6 +20437,15 @@
     "name": "node-dotfiles"
    }
   },
+  "numpy": {
+   "apt\\numpy": {
+    "driver": "apt",
+    "fields": {
+     "name": "python3-numpy"
+    },
+    "name": "python3-numpy"
+   }
+  },
   "nushell": {
    "apt\\curl": {
     "driver": "apt",
@@ -20697,6 +20805,15 @@
     "name": "openscad"
    }
   },
+  "openssh-server": {
+   "apt\\openssh-server": {
+    "driver": "apt",
+    "fields": {
+     "name": "openssh-server"
+    },
+    "name": "openssh-server"
+   }
+  },
   "openssl": {
    "apt\\openssl": {
     "driver": "apt",
@@ -20861,6 +20978,15 @@
      "glue": "rust"
     },
     "name": "rust-dotfiles"
+   }
+  },
+  "patch": {
+   "apt\\patch": {
+    "driver": "apt",
+    "fields": {
+     "name": "patch"
+    },
+    "name": "patch"
    }
   },
   "perf": {
@@ -21317,6 +21443,15 @@
     "name": "protobuf-dotfiles"
    }
   },
+  "protobuf-dev": {
+   "apt\\protobuf-dev": {
+    "driver": "apt",
+    "fields": {
+     "name": "libprotobuf-dev"
+    },
+    "name": "libprotobuf-dev"
+   }
+  },
   "protobuf-dotfiles": {
    "dotfiles\\bash-dotfiles": {
     "driver": "dotfiles",
@@ -21369,6 +21504,15 @@
      "name": "net.davidotek.pupgui2"
     },
     "name": "net.davidotek.pupgui2"
+   }
+  },
+  "pulseaudio-utils": {
+   "apt\\pulseaudio-utils": {
+    "driver": "apt",
+    "fields": {
+     "name": "pulseaudio-utils"
+    },
+    "name": "pulseaudio-utils"
    }
   },
   "puppet": {
@@ -21463,6 +21607,15 @@
     "name": "pyenv-dotfiles"
    }
   },
+  "pytest": {
+   "apt\\pytest": {
+    "driver": "apt",
+    "fields": {
+     "name": "python3-pytest"
+    },
+    "name": "python3-pytest"
+   }
+  },
   "python-build-deps": {
    "apt\\python-build-deps": {
     "driver": "apt",
@@ -21483,6 +21636,15 @@
      ]
     },
     "name": "python-build-deps"
+   }
+  },
+  "python3-dev": {
+   "apt\\python3-dev": {
+    "driver": "apt",
+    "fields": {
+     "name": "python3-dev"
+    },
+    "name": "python3-dev"
    }
   },
   "python3-pip": {
@@ -24116,6 +24278,15 @@
      "repo-component": "universe"
     },
     "name": "wxmaxima"
+   }
+  },
+  "wxpython": {
+   "apt\\wxpython": {
+    "driver": "apt",
+    "fields": {
+     "name": "python3-wxgtk4.0"
+    },
+    "name": "python3-wxgtk4.0"
    }
   },
   "wxwidgets": {
@@ -27020,6 +27191,15 @@
     "name": "libdbus-1-dev"
    }
   },
+  "debhelper": {
+   "apt\\debhelper": {
+    "driver": "apt",
+    "fields": {
+     "name": "debhelper"
+    },
+    "name": "debhelper"
+   }
+  },
   "deno": {
    "apt\\curl": {
     "driver": "apt",
@@ -31391,6 +31571,15 @@
     "name": "libvirt-daemon-system"
    }
   },
+  "libvirt-clients": {
+   "apt\\libvirt-clients": {
+    "driver": "apt",
+    "fields": {
+     "name": "libvirt-clients"
+    },
+    "name": "libvirt-clients"
+   }
+  },
   "libvirt-service": {
    "apt\\libvirt": {
     "driver": "apt",
@@ -32829,6 +33018,15 @@
     "name": "node-dotfiles"
    }
   },
+  "numpy": {
+   "apt\\numpy": {
+    "driver": "apt",
+    "fields": {
+     "name": "python3-numpy"
+    },
+    "name": "python3-numpy"
+   }
+  },
   "nushell": {
    "apt\\curl": {
     "driver": "apt",
@@ -33188,6 +33386,15 @@
     "name": "openscad"
    }
   },
+  "openssh-server": {
+   "apt\\openssh-server": {
+    "driver": "apt",
+    "fields": {
+     "name": "openssh-server"
+    },
+    "name": "openssh-server"
+   }
+  },
   "openssl": {
    "apt\\openssl": {
     "driver": "apt",
@@ -33352,6 +33559,15 @@
      "glue": "rust"
     },
     "name": "rust-dotfiles"
+   }
+  },
+  "patch": {
+   "apt\\patch": {
+    "driver": "apt",
+    "fields": {
+     "name": "patch"
+    },
+    "name": "patch"
    }
   },
   "perf": {
@@ -33774,6 +33990,15 @@
     "name": "protobuf-dotfiles"
    }
   },
+  "protobuf-dev": {
+   "apt\\protobuf-dev": {
+    "driver": "apt",
+    "fields": {
+     "name": "libprotobuf-dev"
+    },
+    "name": "libprotobuf-dev"
+   }
+  },
   "protobuf-dotfiles": {
    "dotfiles\\bash-dotfiles": {
     "driver": "dotfiles",
@@ -33826,6 +34051,15 @@
      "name": "net.davidotek.pupgui2"
     },
     "name": "net.davidotek.pupgui2"
+   }
+  },
+  "pulseaudio-utils": {
+   "apt\\pulseaudio-utils": {
+    "driver": "apt",
+    "fields": {
+     "name": "pulseaudio-utils"
+    },
+    "name": "pulseaudio-utils"
    }
   },
   "puppet": {
@@ -33920,6 +34154,15 @@
     "name": "pyenv-dotfiles"
    }
   },
+  "pytest": {
+   "apt\\pytest": {
+    "driver": "apt",
+    "fields": {
+     "name": "python3-pytest"
+    },
+    "name": "python3-pytest"
+   }
+  },
   "python-build-deps": {
    "apt\\python-build-deps": {
     "driver": "apt",
@@ -33940,6 +34183,15 @@
      ]
     },
     "name": "python-build-deps"
+   }
+  },
+  "python3-dev": {
+   "apt\\python3-dev": {
+    "driver": "apt",
+    "fields": {
+     "name": "python3-dev"
+    },
+    "name": "python3-dev"
    }
   },
   "python3-pip": {
@@ -36522,6 +36774,15 @@
      "repo-component": "universe"
     },
     "name": "wxmaxima"
+   }
+  },
+  "wxpython": {
+   "apt\\wxpython": {
+    "driver": "apt",
+    "fields": {
+     "name": "python3-wxgtk4.0"
+    },
+    "name": "python3-wxgtk4.0"
    }
   },
   "wxwidgets": {
@@ -39415,6 +39676,15 @@
      "name": "libdbus-1-dev"
     },
     "name": "libdbus-1-dev"
+   }
+  },
+  "debhelper": {
+   "apt\\debhelper": {
+    "driver": "apt",
+    "fields": {
+     "name": "debhelper"
+    },
+    "name": "debhelper"
    }
   },
   "deno": {
@@ -43776,6 +44046,15 @@
     "name": "libvirt-daemon-system"
    }
   },
+  "libvirt-clients": {
+   "apt\\libvirt-clients": {
+    "driver": "apt",
+    "fields": {
+     "name": "libvirt-clients"
+    },
+    "name": "libvirt-clients"
+   }
+  },
   "libvirt-service": {
    "apt\\libvirt": {
     "driver": "apt",
@@ -45214,6 +45493,15 @@
     "name": "node-dotfiles"
    }
   },
+  "numpy": {
+   "apt\\numpy": {
+    "driver": "apt",
+    "fields": {
+     "name": "python3-numpy"
+    },
+    "name": "python3-numpy"
+   }
+  },
   "nushell": {
    "apt\\curl": {
     "driver": "apt",
@@ -45573,6 +45861,15 @@
     "name": "openscad"
    }
   },
+  "openssh-server": {
+   "apt\\openssh-server": {
+    "driver": "apt",
+    "fields": {
+     "name": "openssh-server"
+    },
+    "name": "openssh-server"
+   }
+  },
   "openssl": {
    "apt\\openssl": {
     "driver": "apt",
@@ -45737,6 +46034,15 @@
      "glue": "rust"
     },
     "name": "rust-dotfiles"
+   }
+  },
+  "patch": {
+   "apt\\patch": {
+    "driver": "apt",
+    "fields": {
+     "name": "patch"
+    },
+    "name": "patch"
    }
   },
   "perf": {
@@ -46172,6 +46478,15 @@
     "name": "protobuf-dotfiles"
    }
   },
+  "protobuf-dev": {
+   "apt\\protobuf-dev": {
+    "driver": "apt",
+    "fields": {
+     "name": "libprotobuf-dev"
+    },
+    "name": "libprotobuf-dev"
+   }
+  },
   "protobuf-dotfiles": {
    "dotfiles\\bash-dotfiles": {
     "driver": "dotfiles",
@@ -46224,6 +46539,15 @@
      "name": "net.davidotek.pupgui2"
     },
     "name": "net.davidotek.pupgui2"
+   }
+  },
+  "pulseaudio-utils": {
+   "apt\\pulseaudio-utils": {
+    "driver": "apt",
+    "fields": {
+     "name": "pulseaudio-utils"
+    },
+    "name": "pulseaudio-utils"
    }
   },
   "puppet": {
@@ -46318,6 +46642,15 @@
     "name": "pyenv-dotfiles"
    }
   },
+  "pytest": {
+   "apt\\pytest": {
+    "driver": "apt",
+    "fields": {
+     "name": "python3-pytest"
+    },
+    "name": "python3-pytest"
+   }
+  },
   "python-build-deps": {
    "apt\\python-build-deps": {
     "driver": "apt",
@@ -46338,6 +46671,15 @@
      ]
     },
     "name": "python-build-deps"
+   }
+  },
+  "python3-dev": {
+   "apt\\python3-dev": {
+    "driver": "apt",
+    "fields": {
+     "name": "python3-dev"
+    },
+    "name": "python3-dev"
    }
   },
   "python3-pip": {
@@ -48994,6 +49336,15 @@
      "repo-component": "universe"
     },
     "name": "wxmaxima"
+   }
+  },
+  "wxpython": {
+   "apt\\wxpython": {
+    "driver": "apt",
+    "fields": {
+     "name": "python3-wxgtk4.0"
+    },
+    "name": "python3-wxgtk4.0"
    }
   },
   "wxwidgets": {
@@ -55901,6 +56252,15 @@
     "name": "libvirt"
    }
   },
+  "libvirt-clients": {
+   "dnf\\libvirt-clients": {
+    "driver": "dnf",
+    "fields": {
+     "name": "libvirt-client"
+    },
+    "name": "libvirt-client"
+   }
+  },
   "libvirt-service": {
    "dnf\\libvirt": {
     "driver": "dnf",
@@ -57265,6 +57625,15 @@
     "name": "node-dotfiles"
    }
   },
+  "numpy": {
+   "dnf\\numpy": {
+    "driver": "dnf",
+    "fields": {
+     "name": "python3-numpy"
+    },
+    "name": "python3-numpy"
+   }
+  },
   "nushell": {
    "dnf\\curl": {
     "driver": "dnf",
@@ -57615,6 +57984,15 @@
     "name": "openscad"
    }
   },
+  "openssh-server": {
+   "dnf\\openssh-server": {
+    "driver": "dnf",
+    "fields": {
+     "name": "openssh-server"
+    },
+    "name": "openssh-server"
+   }
+  },
   "openssl": {
    "dnf\\openssl": {
     "driver": "dnf",
@@ -57779,6 +58157,15 @@
      "glue": "rust"
     },
     "name": "rust-dotfiles"
+   }
+  },
+  "patch": {
+   "dnf\\patch": {
+    "driver": "dnf",
+    "fields": {
+     "name": "patch"
+    },
+    "name": "patch"
    }
   },
   "perf": {
@@ -58226,6 +58613,15 @@
     "name": "protobuf-dotfiles"
    }
   },
+  "protobuf-dev": {
+   "dnf\\protobuf-dev": {
+    "driver": "dnf",
+    "fields": {
+     "name": "protobuf-devel"
+    },
+    "name": "protobuf-devel"
+   }
+  },
   "protobuf-dotfiles": {
    "dotfiles\\bash-dotfiles": {
     "driver": "dotfiles",
@@ -58278,6 +58674,15 @@
      "name": "net.davidotek.pupgui2"
     },
     "name": "net.davidotek.pupgui2"
+   }
+  },
+  "pulseaudio-utils": {
+   "dnf\\pulseaudio-utils": {
+    "driver": "dnf",
+    "fields": {
+     "name": "pulseaudio-utils"
+    },
+    "name": "pulseaudio-utils"
    }
   },
   "puppet": {
@@ -58372,6 +58777,15 @@
     "name": "pyenv-dotfiles"
    }
   },
+  "pytest": {
+   "dnf\\pytest": {
+    "driver": "dnf",
+    "fields": {
+     "name": "python3-pytest"
+    },
+    "name": "python3-pytest"
+   }
+  },
   "python-build-deps": {
    "dnf\\python-build-deps": {
     "driver": "dnf",
@@ -58391,6 +58805,15 @@
      ]
     },
     "name": "python-build-deps"
+   }
+  },
+  "python3-dev": {
+   "dnf\\python3-dev": {
+    "driver": "dnf",
+    "fields": {
+     "name": "python3-devel"
+    },
+    "name": "python3-devel"
    }
   },
   "python3-pip": {
@@ -60992,6 +61415,15 @@
      "repo-component": "universe"
     },
     "name": "wxmaxima"
+   }
+  },
+  "wxpython": {
+   "dnf\\wxpython": {
+    "driver": "dnf",
+    "fields": {
+     "name": "python3-wxpython4"
+    },
+    "name": "python3-wxpython4"
    }
   },
   "wxwidgets": {
@@ -67933,6 +68365,15 @@
     "name": "libvirt"
    }
   },
+  "libvirt-clients": {
+   "dnf\\libvirt-clients": {
+    "driver": "dnf",
+    "fields": {
+     "name": "libvirt-client"
+    },
+    "name": "libvirt-client"
+   }
+  },
   "libvirt-service": {
    "dnf\\libvirt": {
     "driver": "dnf",
@@ -69297,6 +69738,15 @@
     "name": "node-dotfiles"
    }
   },
+  "numpy": {
+   "dnf\\numpy": {
+    "driver": "dnf",
+    "fields": {
+     "name": "python3-numpy"
+    },
+    "name": "python3-numpy"
+   }
+  },
   "nushell": {
    "dnf\\curl": {
     "driver": "dnf",
@@ -69647,6 +70097,15 @@
     "name": "openscad"
    }
   },
+  "openssh-server": {
+   "dnf\\openssh-server": {
+    "driver": "dnf",
+    "fields": {
+     "name": "openssh-server"
+    },
+    "name": "openssh-server"
+   }
+  },
   "openssl": {
    "dnf\\openssl": {
     "driver": "dnf",
@@ -69811,6 +70270,15 @@
      "glue": "rust"
     },
     "name": "rust-dotfiles"
+   }
+  },
+  "patch": {
+   "dnf\\patch": {
+    "driver": "dnf",
+    "fields": {
+     "name": "patch"
+    },
+    "name": "patch"
    }
   },
   "perf": {
@@ -70258,6 +70726,15 @@
     "name": "protobuf-dotfiles"
    }
   },
+  "protobuf-dev": {
+   "dnf\\protobuf-dev": {
+    "driver": "dnf",
+    "fields": {
+     "name": "protobuf-devel"
+    },
+    "name": "protobuf-devel"
+   }
+  },
   "protobuf-dotfiles": {
    "dotfiles\\bash-dotfiles": {
     "driver": "dotfiles",
@@ -70310,6 +70787,15 @@
      "name": "net.davidotek.pupgui2"
     },
     "name": "net.davidotek.pupgui2"
+   }
+  },
+  "pulseaudio-utils": {
+   "dnf\\pulseaudio-utils": {
+    "driver": "dnf",
+    "fields": {
+     "name": "pulseaudio-utils"
+    },
+    "name": "pulseaudio-utils"
    }
   },
   "puppet": {
@@ -70404,6 +70890,15 @@
     "name": "pyenv-dotfiles"
    }
   },
+  "pytest": {
+   "dnf\\pytest": {
+    "driver": "dnf",
+    "fields": {
+     "name": "python3-pytest"
+    },
+    "name": "python3-pytest"
+   }
+  },
   "python-build-deps": {
    "dnf\\python-build-deps": {
     "driver": "dnf",
@@ -70423,6 +70918,15 @@
      ]
     },
     "name": "python-build-deps"
+   }
+  },
+  "python3-dev": {
+   "dnf\\python3-dev": {
+    "driver": "dnf",
+    "fields": {
+     "name": "python3-devel"
+    },
+    "name": "python3-devel"
    }
   },
   "python3-pip": {
@@ -73024,6 +73528,15 @@
      "repo-component": "universe"
     },
     "name": "wxmaxima"
+   }
+  },
+  "wxpython": {
+   "dnf\\wxpython": {
+    "driver": "dnf",
+    "fields": {
+     "name": "python3-wxpython4"
+    },
+    "name": "python3-wxpython4"
    }
   },
   "wxwidgets": {
@@ -79738,6 +80251,15 @@
     "name": "node-dotfiles"
    }
   },
+  "numpy": {
+   "brew\\numpy": {
+    "driver": "brew",
+    "fields": {
+     "name": "numpy"
+    },
+    "name": "numpy"
+   }
+  },
   "nushell": {
    "brew\\nushell": {
     "driver": "brew",
@@ -80108,6 +80630,15 @@
     "name": "pastel"
    }
   },
+  "patch": {
+   "brew\\patch": {
+    "driver": "brew",
+    "fields": {
+     "name": "gpatch"
+    },
+    "name": "gpatch"
+   }
+  },
   "perf": {
    "brew\\perf": {
     "driver": "brew",
@@ -80464,6 +80995,15 @@
     "name": "protobuf-dotfiles"
    }
   },
+  "protobuf-dev": {
+   "brew\\protobuf-dev": {
+    "driver": "brew",
+    "fields": {
+     "name": "protobuf"
+    },
+    "name": "protobuf"
+   }
+  },
   "protobuf-dotfiles": {
    "dotfiles\\bash-dotfiles": {
     "driver": "dotfiles",
@@ -80594,6 +81134,24 @@
      "glue": "pyenv"
     },
     "name": "pyenv-dotfiles"
+   }
+  },
+  "pytest": {
+   "brew\\pytest": {
+    "driver": "brew",
+    "fields": {
+     "name": "pytest"
+    },
+    "name": "pytest"
+   }
+  },
+  "python3-dev": {
+   "brew\\python3-dev": {
+    "driver": "brew",
+    "fields": {
+     "name": "python"
+    },
+    "name": "python"
    }
   },
   "python3-pip": {
@@ -82564,6 +83122,15 @@
      "name": "io.github.wxmaxima_developers.wxMaxima"
     },
     "name": "io.github.wxmaxima_developers.wxMaxima"
+   }
+  },
+  "wxpython": {
+   "brew\\wxpython": {
+    "driver": "brew",
+    "fields": {
+     "name": "wxpython"
+    },
+    "name": "wxpython"
    }
   },
   "wxwidgets": {
@@ -85410,6 +85977,15 @@
      "name": "libdbus-1-dev"
     },
     "name": "libdbus-1-dev"
+   }
+  },
+  "debhelper": {
+   "apt\\debhelper": {
+    "driver": "apt",
+    "fields": {
+     "name": "debhelper"
+    },
+    "name": "debhelper"
    }
   },
   "deno": {
@@ -89822,6 +90398,15 @@
     "name": "libvirt-daemon-system"
    }
   },
+  "libvirt-clients": {
+   "apt\\libvirt-clients": {
+    "driver": "apt",
+    "fields": {
+     "name": "libvirt-clients"
+    },
+    "name": "libvirt-clients"
+   }
+  },
   "libvirt-service": {
    "apt\\libvirt": {
     "driver": "apt",
@@ -91311,6 +91896,15 @@
     "name": "node-dotfiles"
    }
   },
+  "numpy": {
+   "apt\\numpy": {
+    "driver": "apt",
+    "fields": {
+     "name": "python3-numpy"
+    },
+    "name": "python3-numpy"
+   }
+  },
   "nushell": {
    "apt\\curl": {
     "driver": "apt",
@@ -91670,6 +92264,15 @@
     "name": "openscad"
    }
   },
+  "openssh-server": {
+   "apt\\openssh-server": {
+    "driver": "apt",
+    "fields": {
+     "name": "openssh-server"
+    },
+    "name": "openssh-server"
+   }
+  },
   "openssl": {
    "apt\\openssl": {
     "driver": "apt",
@@ -91834,6 +92437,15 @@
      "glue": "rust"
     },
     "name": "rust-dotfiles"
+   }
+  },
+  "patch": {
+   "apt\\patch": {
+    "driver": "apt",
+    "fields": {
+     "name": "patch"
+    },
+    "name": "patch"
    }
   },
   "perf": {
@@ -92303,6 +92915,15 @@
     "name": "protobuf-dotfiles"
    }
   },
+  "protobuf-dev": {
+   "apt\\protobuf-dev": {
+    "driver": "apt",
+    "fields": {
+     "name": "libprotobuf-dev"
+    },
+    "name": "libprotobuf-dev"
+   }
+  },
   "protobuf-dotfiles": {
    "dotfiles\\bash-dotfiles": {
     "driver": "dotfiles",
@@ -92355,6 +92976,15 @@
      "name": "net.davidotek.pupgui2"
     },
     "name": "net.davidotek.pupgui2"
+   }
+  },
+  "pulseaudio-utils": {
+   "apt\\pulseaudio-utils": {
+    "driver": "apt",
+    "fields": {
+     "name": "pulseaudio-utils"
+    },
+    "name": "pulseaudio-utils"
    }
   },
   "puppet": {
@@ -92449,6 +93079,15 @@
     "name": "pyenv-dotfiles"
    }
   },
+  "pytest": {
+   "apt\\pytest": {
+    "driver": "apt",
+    "fields": {
+     "name": "python3-pytest"
+    },
+    "name": "python3-pytest"
+   }
+  },
   "python-build-deps": {
    "apt\\python-build-deps": {
     "driver": "apt",
@@ -92469,6 +93108,15 @@
      ]
     },
     "name": "python-build-deps"
+   }
+  },
+  "python3-dev": {
+   "apt\\python3-dev": {
+    "driver": "apt",
+    "fields": {
+     "name": "python3-dev"
+    },
+    "name": "python3-dev"
    }
   },
   "python3-pip": {
@@ -95103,6 +95751,15 @@
      "repo-component": "universe"
     },
     "name": "wxmaxima"
+   }
+  },
+  "wxpython": {
+   "apt\\wxpython": {
+    "driver": "apt",
+    "fields": {
+     "name": "python3-wxgtk4.0"
+    },
+    "name": "python3-wxgtk4.0"
    }
   },
   "wxwidgets": {
@@ -102320,6 +102977,15 @@
     "name": "libvirt"
    }
   },
+  "libvirt-clients": {
+   "dnf\\libvirt-clients": {
+    "driver": "dnf",
+    "fields": {
+     "name": "libvirt-client"
+    },
+    "name": "libvirt-client"
+   }
+  },
   "libvirt-service": {
    "dnf\\libvirt": {
     "driver": "dnf",
@@ -103806,6 +104472,15 @@
     "name": "node-dotfiles"
    }
   },
+  "numpy": {
+   "dnf\\numpy": {
+    "driver": "dnf",
+    "fields": {
+     "name": "python3-numpy"
+    },
+    "name": "python3-numpy"
+   }
+  },
   "nushell": {
    "dnf\\curl": {
     "driver": "dnf",
@@ -104149,6 +104824,15 @@
     "name": "openscad"
    }
   },
+  "openssh-server": {
+   "dnf\\openssh-server": {
+    "driver": "dnf",
+    "fields": {
+     "name": "openssh-server"
+    },
+    "name": "openssh-server"
+   }
+  },
   "openssl": {
    "dnf\\openssl": {
     "driver": "dnf",
@@ -104319,6 +105003,15 @@
      "glue": "rust"
     },
     "name": "rust-dotfiles"
+   }
+  },
+  "patch": {
+   "dnf\\patch": {
+    "driver": "dnf",
+    "fields": {
+     "name": "patch"
+    },
+    "name": "patch"
    }
   },
   "perf": {
@@ -104793,6 +105486,15 @@
     "name": "protobuf-dotfiles"
    }
   },
+  "protobuf-dev": {
+   "dnf\\protobuf-dev": {
+    "driver": "dnf",
+    "fields": {
+     "name": "protobuf-devel"
+    },
+    "name": "protobuf-devel"
+   }
+  },
   "protobuf-dotfiles": {
    "dotfiles\\bash-dotfiles": {
     "driver": "dotfiles",
@@ -104845,6 +105547,15 @@
      "name": "net.davidotek.pupgui2"
     },
     "name": "net.davidotek.pupgui2"
+   }
+  },
+  "pulseaudio-utils": {
+   "dnf\\pulseaudio-utils": {
+    "driver": "dnf",
+    "fields": {
+     "name": "pulseaudio-utils"
+    },
+    "name": "pulseaudio-utils"
    }
   },
   "puppet": {
@@ -104939,6 +105650,15 @@
     "name": "pyenv-dotfiles"
    }
   },
+  "pytest": {
+   "dnf\\pytest": {
+    "driver": "dnf",
+    "fields": {
+     "name": "python3-pytest"
+    },
+    "name": "python3-pytest"
+   }
+  },
   "python-build-deps": {
    "dnf\\python-build-deps": {
     "driver": "dnf",
@@ -104958,6 +105678,15 @@
      ]
     },
     "name": "python-build-deps"
+   }
+  },
+  "python3-dev": {
+   "dnf\\python3-dev": {
+    "driver": "dnf",
+    "fields": {
+     "name": "python3-devel"
+    },
+    "name": "python3-devel"
    }
   },
   "python3-pip": {
@@ -107697,6 +108426,15 @@
      "repo-component": "universe"
     },
     "name": "wxmaxima"
+   }
+  },
+  "wxpython": {
+   "dnf\\wxpython": {
+    "driver": "dnf",
+    "fields": {
+     "name": "python3-wxpython4"
+    },
+    "name": "python3-wxpython4"
    }
   },
   "wxwidgets": {
@@ -110681,6 +111419,15 @@
      "name": "libdbus-1-dev"
     },
     "name": "libdbus-1-dev"
+   }
+  },
+  "debhelper": {
+   "apt\\debhelper": {
+    "driver": "apt",
+    "fields": {
+     "name": "debhelper"
+    },
+    "name": "debhelper"
    }
   },
   "deno": {
@@ -115093,6 +115840,15 @@
     "name": "libvirt-daemon-system"
    }
   },
+  "libvirt-clients": {
+   "apt\\libvirt-clients": {
+    "driver": "apt",
+    "fields": {
+     "name": "libvirt-clients"
+    },
+    "name": "libvirt-clients"
+   }
+  },
   "libvirt-service": {
    "apt\\libvirt": {
     "driver": "apt",
@@ -116582,6 +117338,15 @@
     "name": "node-dotfiles"
    }
   },
+  "numpy": {
+   "apt\\numpy": {
+    "driver": "apt",
+    "fields": {
+     "name": "python3-numpy"
+    },
+    "name": "python3-numpy"
+   }
+  },
   "nushell": {
    "apt\\curl": {
     "driver": "apt",
@@ -116941,6 +117706,15 @@
     "name": "openscad"
    }
   },
+  "openssh-server": {
+   "apt\\openssh-server": {
+    "driver": "apt",
+    "fields": {
+     "name": "openssh-server"
+    },
+    "name": "openssh-server"
+   }
+  },
   "openssl": {
    "apt\\openssl": {
     "driver": "apt",
@@ -117105,6 +117879,15 @@
      "glue": "rust"
     },
     "name": "rust-dotfiles"
+   }
+  },
+  "patch": {
+   "apt\\patch": {
+    "driver": "apt",
+    "fields": {
+     "name": "patch"
+    },
+    "name": "patch"
    }
   },
   "perf": {
@@ -117574,6 +118357,15 @@
     "name": "protobuf-dotfiles"
    }
   },
+  "protobuf-dev": {
+   "apt\\protobuf-dev": {
+    "driver": "apt",
+    "fields": {
+     "name": "libprotobuf-dev"
+    },
+    "name": "libprotobuf-dev"
+   }
+  },
   "protobuf-dotfiles": {
    "dotfiles\\bash-dotfiles": {
     "driver": "dotfiles",
@@ -117626,6 +118418,15 @@
      "name": "net.davidotek.pupgui2"
     },
     "name": "net.davidotek.pupgui2"
+   }
+  },
+  "pulseaudio-utils": {
+   "apt\\pulseaudio-utils": {
+    "driver": "apt",
+    "fields": {
+     "name": "pulseaudio-utils"
+    },
+    "name": "pulseaudio-utils"
    }
   },
   "puppet": {
@@ -117720,6 +118521,15 @@
     "name": "pyenv-dotfiles"
    }
   },
+  "pytest": {
+   "apt\\pytest": {
+    "driver": "apt",
+    "fields": {
+     "name": "python3-pytest"
+    },
+    "name": "python3-pytest"
+   }
+  },
   "python-build-deps": {
    "apt\\python-build-deps": {
     "driver": "apt",
@@ -117740,6 +118550,15 @@
      ]
     },
     "name": "python-build-deps"
+   }
+  },
+  "python3-dev": {
+   "apt\\python3-dev": {
+    "driver": "apt",
+    "fields": {
+     "name": "python3-dev"
+    },
+    "name": "python3-dev"
    }
   },
   "python3-pip": {
@@ -120381,6 +121200,15 @@
      "repo-component": "universe"
     },
     "name": "wxmaxima"
+   }
+  },
+  "wxpython": {
+   "apt\\wxpython": {
+    "driver": "apt",
+    "fields": {
+     "name": "python3-wxgtk4.0"
+    },
+    "name": "python3-wxgtk4.0"
    }
   },
   "wxwidgets": {
@@ -123291,6 +124119,15 @@
      "name": "libdbus-1-dev"
     },
     "name": "libdbus-1-dev"
+   }
+  },
+  "debhelper": {
+   "apt\\debhelper": {
+    "driver": "apt",
+    "fields": {
+     "name": "debhelper"
+    },
+    "name": "debhelper"
    }
   },
   "deno": {
@@ -127625,6 +128462,15 @@
     "name": "libvirt-daemon-system"
    }
   },
+  "libvirt-clients": {
+   "apt\\libvirt-clients": {
+    "driver": "apt",
+    "fields": {
+     "name": "libvirt-clients"
+    },
+    "name": "libvirt-clients"
+   }
+  },
   "libvirt-service": {
    "apt\\libvirt": {
     "driver": "apt",
@@ -129063,6 +129909,15 @@
     "name": "node-dotfiles"
    }
   },
+  "numpy": {
+   "apt\\numpy": {
+    "driver": "apt",
+    "fields": {
+     "name": "python3-numpy"
+    },
+    "name": "python3-numpy"
+   }
+  },
   "nushell": {
    "apt\\curl": {
     "driver": "apt",
@@ -129422,6 +130277,15 @@
     "name": "openscad"
    }
   },
+  "openssh-server": {
+   "apt\\openssh-server": {
+    "driver": "apt",
+    "fields": {
+     "name": "openssh-server"
+    },
+    "name": "openssh-server"
+   }
+  },
   "openssl": {
    "apt\\openssl": {
     "driver": "apt",
@@ -129586,6 +130450,15 @@
      "glue": "rust"
     },
     "name": "rust-dotfiles"
+   }
+  },
+  "patch": {
+   "apt\\patch": {
+    "driver": "apt",
+    "fields": {
+     "name": "patch"
+    },
+    "name": "patch"
    }
   },
   "perf": {
@@ -130021,6 +130894,15 @@
     "name": "protobuf-dotfiles"
    }
   },
+  "protobuf-dev": {
+   "apt\\protobuf-dev": {
+    "driver": "apt",
+    "fields": {
+     "name": "libprotobuf-dev"
+    },
+    "name": "libprotobuf-dev"
+   }
+  },
   "protobuf-dotfiles": {
    "dotfiles\\bash-dotfiles": {
     "driver": "dotfiles",
@@ -130073,6 +130955,15 @@
      "name": "net.davidotek.pupgui2"
     },
     "name": "net.davidotek.pupgui2"
+   }
+  },
+  "pulseaudio-utils": {
+   "apt\\pulseaudio-utils": {
+    "driver": "apt",
+    "fields": {
+     "name": "pulseaudio-utils"
+    },
+    "name": "pulseaudio-utils"
    }
   },
   "puppet": {
@@ -130167,6 +131058,15 @@
     "name": "pyenv-dotfiles"
    }
   },
+  "pytest": {
+   "apt\\pytest": {
+    "driver": "apt",
+    "fields": {
+     "name": "python3-pytest"
+    },
+    "name": "python3-pytest"
+   }
+  },
   "python-build-deps": {
    "apt\\python-build-deps": {
     "driver": "apt",
@@ -130187,6 +131087,15 @@
      ]
     },
     "name": "python-build-deps"
+   }
+  },
+  "python3-dev": {
+   "apt\\python3-dev": {
+    "driver": "apt",
+    "fields": {
+     "name": "python3-dev"
+    },
+    "name": "python3-dev"
    }
   },
   "python3-pip": {
@@ -132843,6 +133752,15 @@
      "repo-component": "universe"
     },
     "name": "wxmaxima"
+   }
+  },
+  "wxpython": {
+   "apt\\wxpython": {
+    "driver": "apt",
+    "fields": {
+     "name": "python3-wxgtk4.0"
+    },
+    "name": "python3-wxgtk4.0"
    }
   },
   "wxwidgets": {

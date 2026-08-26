@@ -233,6 +233,17 @@
         cython: { attrs: [ CLI toolchain FOSS permissive ] description: "Cython — compile Python-like code to C extension modules."
             requires: [ python3, cpp-toolchain ]
             install: [ { via: native  name: { apt: cython3  dnf: python3-Cython  pacman: cython  zypper: python313-Cython  apk: cython } } ] }
+        python3-dev: { attrs: [ lib FOSS permissive ] description: "CPython development headers (`Python.h`) for building C extension modules."
+            install: [ { via: native  name: { apt: python3-dev  dnf: python3-devel  pacman: python  apk: python3-dev  zypper: python3-devel  brew: python } } ] }
+        numpy: { attrs: [ lib FOSS permissive ] description: "NumPy — the fundamental array-computing package for Python."
+            install: [ { via: native  name: { apt: python3-numpy  dnf: python3-numpy  pacman: python-numpy  apk: py3-numpy  zypper: python3-numpy } }
+                       { via: pip  name: numpy } ] }   // NAMESWEEP PENDING
+        pytest: { attrs: [ CLI FOSS permissive ] description: "pytest — the Python testing framework (`pytest`)."
+            install: [ { via: native  name: { apt: python3-pytest  dnf: python3-pytest  pacman: python-pytest  apk: py3-pytest  zypper: python3-pytest } }
+                       { via: pip  name: pytest } ] }   // NAMESWEEP PENDING
+        wxpython: { attrs: [ lib GUI FOSS FOSSish ] description: "wxPython (Phoenix) — Python bindings for the wxWidgets GUI toolkit."
+            install: [ { via: native  name: { apt: python3-wxgtk4.0  dnf: python3-wxpython4  pacman: python-wxpython  zypper: python3-wxWidgets } }
+                       { via: pip  name: wxpython } ] }   // NAMESWEEP PENDING
 
         // pyenv itself + the C libraries it needs to COMPILE CPython — the `via: pyenv` method's deps
         // (see drivers.pyenv). pyenv installs user-scope under ~/.pyenv via its official installer.
@@ -1173,6 +1184,11 @@
         tshark:     { attrs: [ CLI FOSS copyleft ] description: "TShark — Wireshark's command-line capture/analysis." install: [ { via: native  name: { dnf: wireshark-cli  pacman: wireshark-cli  zypper: wireshark } } ] }   // CLI capture; ships as wireshark-cli on dnf/pacman, tshark on apt
         tcpdump:    { attrs: [ CLI FOSS permissive ] description: "tcpdump — command-line packet capture and analysis." install: [ { via: native } ] }
         nmap:       { attrs: [ CLI FOSS copyleft ] description: "Nmap — a network scanner and security probe." install: [ { via: native } ] }
+        openssh-server: { attrs: [ daemon FOSS permissive ] description: "OpenSSH server (`sshd`) — the remote-login daemon." install: [ { via: native  when: "not fedora_atomic"  name: { pacman: openssh  zypper: openssh  default: openssh-server } } ] }   // pacman/zypper ship server+client in `openssh`
+        patch:      { attrs: [ CLI FOSS GNU copyleft ] description: "GNU patch — apply a diff/patch file to source." install: [ { via: native  name: { brew: gpatch  default: patch } } ] }
+        debhelper:  { attrs: [ CLI FOSS copyleft ] description: "debhelper — the Debian package build-helper tools (`dh`)." install: [ { via: native  when: "debian" } ] }   // Debian packaging tooling; Debian-only
+        libvirt-clients: { attrs: [ CLI FOSS copyleft ] description: "libvirt client tools (`virsh`) — manage virtualization hosts and guests." install: [ { via: native  when: "not fedora_atomic"  name: { apt: libvirt-clients  dnf: libvirt-client  pacman: libvirt  apk: libvirt-client  zypper: libvirt-client } } ] }
+        pulseaudio-utils: { attrs: [ CLI FOSS copyleft ] description: "PulseAudio utilities (`pactl`, `paplay`) — inspect and drive the audio server." install: [ { via: native  when: "not fedora_atomic"  name: { pacman: libpulse  default: pulseaudio-utils } } ] }   // pacman ships pactl in libpulse
         mtr:        { attrs: [ CLI TUI FOSS copyleft ] description: "Live network diagnostic — ping + traceroute in one display."
                       install: [ { via: native } ] }
         traceroute: { attrs: [ CLI FOSS copyleft ] description: "Trace the network path to a host, hop by hop." install: [ { via: native  when: "not fedora_atomic" } ] }   // no `traceroute` brew formula (Homebrew has mtr/tcptraceroute instead); macOS ships it in base — so decline on brew-native atomic rather than fail
@@ -2351,6 +2367,9 @@
         opentofu: { attrs: [ CLI app FOSS permissive ] suggests: opentofu-dotfiles  description: "OpenTofu — open-source, Terraform-compatible infrastructure as code." install: [ { via: tarball  installDir: "$CONFIGSYS_APP_DIR/opentofu"  version: { github: opentofu/opentofu  strip-v: true  asset: "tofu_*_linux_amd64.tar.gz" } } ] }
         grpcurl:  { attrs: [ CLI FOSS permissive ] suggests: grpcurl-dotfiles  description: "curl for gRPC — call and inspect gRPC services from the shell." install: [ { via: tarball  installDir: "$CONFIGSYS_APP_DIR/grpcurl"   version: { github: fullstorydev/grpcurl  strip-v: true  asset: "grpcurl_*_linux_x86_64.tar.gz" } } ] }
         protobuf: { attrs: [ CLI toolchain FOSS permissive ] suggests: protobuf-dotfiles  description: "Protocol Buffers compiler (`protoc`)." install: [ { via: native  repo-component: universe  name: { apt: protobuf-compiler  dnf: protobuf-compiler  zypper: protobuf-devel  default: protobuf } }  { via: tarball  installDir: "$CONFIGSYS_APP_DIR/protobuf"  requires: unzip  version: { github: protocolbuffers/protobuf  strip-v: true  asset: "protoc-*-linux-x86_64.zip" } } ] }   // prebuilt protoc + well-known-types include/
+        protobuf-dev: { attrs: [ lib FOSS permissive ] description: "Protocol Buffers C++ runtime + headers (libprotobuf; distinct from the `protobuf` compiler)."
+            install: [ { via: native  when: "(debian or redhat or arch or alpine or opensuse or fedora_atomic) and not amzn"
+                         name: { apt: libprotobuf-dev  dnf: protobuf-devel  pacman: protobuf  apk: protobuf-dev  zypper: protobuf-devel  brew: protobuf } } ] }
         // DB clients: dbeaver (GUI, Flathub), pgcli/mycli (pipx), sqlitebrowser (Flathub).
         dbeaver:       { attrs: [ GUI app FOSS permissive ] description: "Universal database GUI — browse and query many DB engines." install: [ { via: flatpak  hub: flathub  app: io.dbeaver.DBeaverCommunity }  { via: native-pkg-file  when: "debian or redhat"  version: { github: dbeaver/dbeaver }  asset: { deb: { x86_64: "dbeaver-ce-*-linux-x86_64.deb" }  rpm: { x86_64: "dbeaver-ce-*-linux-x86_64.rpm" } } } ] }   // upstream .deb/.rpm (CE)
         pgcli:         { attrs: [ CLI FOSS permissive ] suggests: pgcli-dotfiles  description: "Postgres CLI with autocompletion and syntax highlighting." install: [ { via: pipx  name: pgcli  version: { pypi: pgcli } } ] }
