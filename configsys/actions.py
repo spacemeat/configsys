@@ -84,8 +84,12 @@ def stage_uninstall(ctx, comp, *, on=True):
 def stage_adopt(ctx, comp):
     '''Park `comp` into the configured `orphans-adopt-target` staging profile (the TUI `s` action) —
     a non-active review profile the user later triages into real base profiles. Returns (changed,
-    label).'''
-    return set_profile_membership(ctx, ctx.config.orphans_adopt_target(), comp, 'add')
+    label). Written machine-local (top config), like `!uninstall`/pins: orphan triage is per-machine
+    state, so it must NOT land in the primary plugin (which travels to every machine) — and a
+    same-layer edit stays a plain list edit, so removing an entry later is a clean delete, never a
+    `+self ~name` amend leaving residual exclusions.'''
+    tfile = str(ctx.paths.user_config_file)
+    return set_profile_membership(ctx, ctx.config.orphans_adopt_target(), comp, 'add', target=tfile)
 
 
 def ignore_orphan(ctx, pattern):
