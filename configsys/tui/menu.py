@@ -1998,8 +1998,8 @@ class ProfileScreen:
         self.show_removed = False        # `~`: within the star-filter, also reveal a starred profile's
                                          #      ~-pruned components (marked `~`) — the clone-and-prune view
         self._res = {}                   # component -> (available, via, pinned); survives reloads
-        self.show_install = False        # `O`: overlay the install axis (installed underline + orphan
-        self._overlay = None             #      colour); lazily computed (subprocess enumeration)
+        self.show_install = 0            # `O` cycles: 0 off · 1 overlay (installed underline + orphan
+        self._overlay = None             #   colour) · 2 overlay + reveal ignored orphans (dimmed)
         self.reload()
 
     def overlay(self):
@@ -2421,7 +2421,12 @@ def _draw_profiles(stdscr, pal, ps, ctx, note, screen):
             if ps.show_install:
                 _o = ov_orph.get(name)
                 if _o is not None and not foc:
-                    elem = f'orphan_{_o.kind}'
+                    if not _o.ignored:               # a live orphan -> its kind colour
+                        elem = f'orphan_{_o.kind}'
+                    elif ps.show_install == 2:       # state 2: reveal ignored orphans, dimmed
+                        elem = f'orphan_{_o.kind}'
+                        ov_extra |= curses.A_DIM
+                    # else (state 1, ignored): looks like a normal installed component (silenced)
                 if name in ov_inst:
                     ov_extra |= curses.A_UNDERLINE
                 if name in ov_uninst:
@@ -3677,10 +3682,11 @@ def run(ctx):
                     else:
                         ps.focus = 'left'              # leftmost column -> back to the profiles pane
                 elif pfact == 'toggle-install':
-                    ps.show_install = not ps.show_install   # overlay the install axis (installed/orphan)
-                    ps._overlay = None                      # (re)compute on next draw
-                    note = ('install overlay ON — installed underlined, orphans coloured'
-                            if ps.show_install else 'install overlay off')
+                    ps.show_install = (ps.show_install + 1) % 3   # off -> overlay -> +ignored -> off
+                    ps._overlay = None                           # (re)compute on next draw
+                    note = ('install overlay off', 'install overlay ON — installed underlined, '
+                            'orphans coloured', 'install overlay ON + ignored orphans revealed (dimmed)'
+                            )[ps.show_install]
                 elif pfact == 'stage' and ps.focus == 'right':
                     _vc = ps.vcatalog()                    # park the selected component into the staging profile
                     if _vc:
@@ -3704,13 +3710,17 @@ def run(ctx):
                         except ConfigsysError as e:
                             note = f'stage-uninstall failed: {e}'
                 elif pfact == 'orphan-ignore' and ps.focus == 'right':
-                    _vc = ps.vcatalog()                    # silence the selected orphan (orphans-ignore)
+                    _vc = ps.vcatalog()                    # toggle the selected orphan's ignore state
                     if _vc:
                         _c = _vc[ps.rcur]
                         try:
-                            changed, lbl = actions.ignore_orphan(ctx, _c)
+                            if _c in ctx.config.orphans_ignore():
+                                changed, lbl = actions.unignore_orphan(ctx, _c)
+                                note = f'{_c} un-ignored' if changed else f'{_c}: {lbl}'
+                            else:
+                                changed, lbl = actions.ignore_orphan(ctx, _c)
+                                note = f'{_c} added to orphans-ignore' if changed else f'{_c}: {lbl}'
                             ps.reload()
-                            note = f'{_c} added to orphans-ignore' if changed else f'{_c}: already ignored'
                         except ConfigsysError as e:
                             note = f'ignore failed: {e}'
                 elif pfact == 'star' and ps.focus == 'left':

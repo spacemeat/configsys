@@ -97,6 +97,17 @@ def ignore_orphan(ctx, pattern):
     return set_config_setting(ctx, 'orphans-ignore', cur + [pattern])
 
 
+def unignore_orphan(ctx, pattern):
+    '''Remove the LITERAL `pattern` from orphans-ignore (the un-ignore half of the `.` toggle). A
+    glob-ignored orphan whose exact name isn't listed can't be un-ignored here (edit the glob).
+    Returns (changed, label).'''
+    cur = list(ctx.config.orphans_ignore())
+    if pattern not in cur:
+        return False, 'not literally ignored (glob?)'
+    cur.remove(pattern)
+    return set_config_setting(ctx, 'orphans-ignore', cur)
+
+
 def clear_uninstall(ctx):
     '''Empty the `!uninstall` queue (cancel every pending removal). Returns how many were cleared.'''
     n = len(ctx.config.uninstall_queue())
