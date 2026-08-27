@@ -778,3 +778,31 @@ def test_materialize_to_replaces_a_looping_symlink(tmp_path):
     assert a.is_file() and not a.is_symlink()  # now a real file, loop broken
     assert a.read_text() == '# glue\n'
     assert os.stat(a).st_mode & 0o111          # executable bit set (glue)
+
+
+def test_glue_confd_symlinked_to_store_makes_no_self_loop(tmp_path):
+    # regression: if ~/.config/<shell>/conf.d is itself a symlink to the store's conf.d dir, the
+    # deploy target RESOLVES to the store file, so a naive `ln -sfn store/x conf.d/x` becomes a
+    # symlink pointing at ITSELF (ELOOP on the next install). The install must notice the target
+    # already resolves to the store copy and skip the self-link, leaving a REAL store file.
+    p = paths_for(tmp_path)
+    (p.dotfiles_dir / 'shell' / 'bash').mkdir(parents=True)
+    (p.dotfiles_dir / 'shell' / 'bash' / 'btop.sh').write_text('# glue\n')
+    store_confd = p.user_dotfiles_dir / 'bash' / 'conf.d'
+    store_confd.mkdir(parents=True)
+    confd = p.home / '.config' / 'bash' / 'conf.d'
+    confd.parent.mkdir(parents=True)
+    confd.symlink_to(store_confd)                      # the dir is a symlink to the store
+
+    df = DotFiles(Runner(pretend=False), paths=p)
+    rc = df_unit(specs={'glue': 'btop'}, comp='btop-dotfiles')
+    assert df.install(rc).ok
+
+    store_file = store_confd / 'btop.sh'
+    assert store_file.is_file() and not store_file.is_symlink()   # real file, NOT a self-symlink
+    assert store_file.read_text() == '# glue\n'
+    assert os.path.realpath(confd / 'btop.sh') == os.path.realpath(store_file)
+
+    # a second install is idempotent and must not crash or re-create the loop
+    assert df.install(rc).ok
+    assert store_file.is_file() and not store_file.is_symlink()

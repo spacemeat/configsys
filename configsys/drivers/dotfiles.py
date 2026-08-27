@@ -771,6 +771,16 @@ class DotFiles(Driver):
                 self._materialize(_srcpath, src)
         lines = ['set -e']
         for _srcpath, _tier, src, link_src, tgt, absorb, _kind in pairs:
+            # If the deploy target already RESOLVES to the store copy — e.g. ~/.config/<shell>/conf.d
+            # is itself a symlink to the store dir — then the store file IS the deployed file, and
+            # `ln -sfn store/x  conf.d/x` would resolve through the dir-link to `ln store/x store/x`,
+            # a symlink pointing at ITSELF (ELOOP). Skip the link/backup: materialize already placed
+            # the content, and the dir-link deploys it.
+            try:
+                if link_src != tgt and os.path.realpath(str(link_src)) == os.path.realpath(str(tgt)):
+                    continue
+            except OSError:
+                pass
             s, t = shlex.quote(str(link_src)), shlex.quote(str(tgt))
             # UNPOPULATED is not an error: a component may declare src/dst with no content shipped
             # (a personal dotfile awaiting capture). If the source is absent, skip that spec with a
