@@ -305,7 +305,11 @@
         zoxide: { attrs: [ CLI FOSS permissive ] suggests: zoxide-dotfiles  description: "zoxide — a smarter `cd` that jumps by frecency to your most-used dirs (`z`)."
                   install: [ { via: native  repo-component: universe  when: "not (rhel or amzn)" }
                              { via: native  when: "rhel"  requires: epel }
-                             { via: cargo   when: "amzn"  name: zoxide } ] }   // ubiquitous native (incl. brew); EL via EPEL; Amazon (no EPEL) via cargo
+                             // cargo everywhere (crate `zoxide`): the sole method on Amazon (no EPEL),
+                             // and a pinnable path to a CURRENT zoxide on an old-distro apt — Ubuntu/Pop
+                             // 22.04 ships 0.4.3, whose PROMPT_COMMAND hook returns 0 unconditionally
+                             // (clobbers $? for a status-in-prompt); modern zoxide preserves $?.
+                             { via: cargo   name: zoxide } ] }   // native (incl. brew) is the default; pin `zoxide cargo` for a newer build
         zoxide-dotfiles: { description: "zoxide shell init (adds the `z`/`zi` commands), linked into place." install: [ { via: dotfiles  requires: bash-dotfiles  glue: zoxide } ] }
         fd: { attrs: [ CLI FOSS permissive ] suggests: fd-dotfiles  description: "fd — a fast, friendly `find` alternative (`fd`; Debian/Ubuntu install it as `fdfind`)."
               install: [ { via: native  repo-component: universe  when: "not (rhel or amzn)"  name: { apt: fd-find  dnf: fd-find  default: fd } }
