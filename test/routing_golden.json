@@ -456,6 +456,49 @@
     "name": "asciidoc"
    }
   },
+  "asciinema": {
+   "pacman\\asciinema": {
+    "driver": "pacman",
+    "fields": {
+     "name": "asciinema",
+     "repo-component": "universe"
+    },
+    "name": "asciinema"
+   }
+  },
+  "asciiquarium": {
+   "aur\\asciiquarium": {
+    "driver": "aur",
+    "fields": {
+     "name": "asciiquarium"
+    },
+    "name": "asciiquarium"
+   },
+   "dotfiles\\git-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "~/.gitconfig",
+      "src": "gitconfig"
+     }
+    },
+    "name": "git-dotfiles"
+   },
+   "pacman\\base-devel": {
+    "driver": "pacman",
+    "fields": {
+     "name": "base-devel"
+    },
+    "name": "base-devel"
+   },
+   "pacman\\git": {
+    "driver": "pacman",
+    "fields": {
+     "name": "git"
+    },
+    "name": "git"
+   }
+  },
   "asio": {
    "pacman\\asio": {
     "driver": "pacman",
@@ -1298,6 +1341,15 @@
     "name": "carla"
    }
   },
+  "cbonsai": {
+   "pacman\\cbonsai": {
+    "driver": "pacman",
+    "fields": {
+     "name": "cbonsai"
+    },
+    "name": "cbonsai"
+   }
+  },
   "chafa": {
    "pacman\\chafa": {
     "driver": "pacman",
@@ -1454,6 +1506,15 @@
      "name": "cmake"
     },
     "name": "cmake"
+   }
+  },
+  "cmatrix": {
+   "pacman\\cmatrix": {
+    "driver": "pacman",
+    "fields": {
+     "name": "cmatrix"
+    },
+    "name": "cmatrix"
    }
   },
   "cockpit": {
@@ -1789,6 +1850,15 @@
      "name": "cppcheck"
     },
     "name": "cppcheck"
+   }
+  },
+  "croc": {
+   "pacman\\croc": {
+    "driver": "pacman",
+    "fields": {
+     "name": "croc"
+    },
+    "name": "croc"
    }
   },
   "crystal": {
@@ -2780,6 +2850,40 @@
     "name": "expat"
    }
   },
+  "faker": {
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.config/bash/conf.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\pipx-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "glue": "pipx"
+    },
+    "name": "pipx-dotfiles"
+   },
+   "pacman\\pipx": {
+    "driver": "pacman",
+    "fields": {
+     "name": "python-pipx"
+    },
+    "name": "python-pipx"
+   },
+   "pipx\\faker": {
+    "driver": "pipx",
+    "fields": {
+     "name": "Faker"
+    },
+    "name": "Faker"
+   }
+  },
   "fastfetch": {
    "dotfiles\\fastfetch-dotfiles": {
     "driver": "dotfiles",
@@ -3534,6 +3638,15 @@
     "name": "github-cli"
    }
   },
+  "ghidra": {
+   "pacman\\ghidra": {
+    "driver": "pacman",
+    "fields": {
+     "name": "ghidra"
+    },
+    "name": "ghidra"
+   }
+  },
   "ghostty": {
    "dotfiles\\bash-dotfiles": {
     "driver": "dotfiles",
@@ -4240,6 +4353,28 @@
      "unit": "grafana-server"
     },
     "name": "grafana-service"
+   }
+  },
+  "grex": {
+   "pacman\\curl": {
+    "driver": "pacman",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "tarball\\grex": {
+    "driver": "tarball",
+    "fields": {
+     "installDir": "$CONFIGSYS_APP_DIR/grex",
+     "name": "grex",
+     "version": {
+      "asset": "grex-*-$ARCH-unknown-linux-musl.tar.gz",
+      "github": "pemistahl/grex",
+      "strip-v": "true"
+     }
+    },
+    "name": "grex"
    }
   },
   "grim": {
@@ -5477,6 +5612,62 @@
     "name": "jreleaser"
    }
   },
+  "jrnl": {
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.config/bash/conf.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\jrnl-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/jrnl",
+      "src": "jrnl"
+     }
+    },
+    "name": "jrnl-dotfiles"
+   },
+   "dotfiles\\pipx-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "glue": "pipx"
+    },
+    "name": "pipx-dotfiles"
+   },
+   "pacman\\pipx": {
+    "driver": "pacman",
+    "fields": {
+     "name": "python-pipx"
+    },
+    "name": "python-pipx"
+   },
+   "pipx\\jrnl": {
+    "driver": "pipx",
+    "fields": {
+     "name": "jrnl"
+    },
+    "name": "jrnl"
+   }
+  },
+  "jrnl-dotfiles": {
+   "dotfiles\\jrnl-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/jrnl",
+      "src": "jrnl"
+     }
+    },
+    "name": "jrnl-dotfiles"
+   }
+  },
   "julia": {
    "dotfiles\\bash-dotfiles": {
     "driver": "dotfiles",
@@ -6654,6 +6845,16 @@
     "name": "lmms"
    }
   },
+  "lolcat": {
+   "pacman\\lolcat": {
+    "driver": "pacman",
+    "fields": {
+     "name": "lolcat",
+     "repo-component": "universe"
+    },
+    "name": "lolcat"
+   }
+  },
   "lsblk": {
    "pacman\\lsblk": {
     "driver": "pacman",
@@ -7678,6 +7879,38 @@
     "name": "nethogs"
    }
   },
+  "newsboat": {
+   "dotfiles\\newsboat-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/newsboat",
+      "src": "newsboat"
+     }
+    },
+    "name": "newsboat-dotfiles"
+   },
+   "pacman\\newsboat": {
+    "driver": "pacman",
+    "fields": {
+     "name": "newsboat",
+     "repo-component": "universe"
+    },
+    "name": "newsboat"
+   }
+  },
+  "newsboat-dotfiles": {
+   "dotfiles\\newsboat-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/newsboat",
+      "src": "newsboat"
+     }
+    },
+    "name": "newsboat-dotfiles"
+   }
+  },
   "nextcloud": {
    "aur\\snapd": {
     "driver": "aur",
@@ -7997,6 +8230,39 @@
      "name": "flatpak"
     },
     "name": "flatpak"
+   }
+  },
+  "obsidian": {
+   "aur\\obsidian": {
+    "driver": "aur",
+    "fields": {
+     "name": "obsidian-bin"
+    },
+    "name": "obsidian-bin"
+   },
+   "dotfiles\\git-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "~/.gitconfig",
+      "src": "gitconfig"
+     }
+    },
+    "name": "git-dotfiles"
+   },
+   "pacman\\base-devel": {
+    "driver": "pacman",
+    "fields": {
+     "name": "base-devel"
+    },
+    "name": "base-devel"
+   },
+   "pacman\\git": {
+    "driver": "pacman",
+    "fields": {
+     "name": "git"
+    },
+    "name": "git"
    }
   },
   "ocaml": {
@@ -8605,6 +8871,39 @@
      "version-re": "v?([0-9][0-9.]*)"
     },
     "name": "pi-hole"
+   }
+  },
+  "pipes": {
+   "aur\\pipes": {
+    "driver": "aur",
+    "fields": {
+     "name": "pipes.sh"
+    },
+    "name": "pipes.sh"
+   },
+   "dotfiles\\git-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "~/.gitconfig",
+      "src": "gitconfig"
+     }
+    },
+    "name": "git-dotfiles"
+   },
+   "pacman\\base-devel": {
+    "driver": "pacman",
+    "fields": {
+     "name": "base-devel"
+    },
+    "name": "base-devel"
+   },
+   "pacman\\git": {
+    "driver": "pacman",
+    "fields": {
+     "name": "git"
+    },
+    "name": "git"
    }
   },
   "pipewire": {
@@ -9686,6 +9985,16 @@
     "name": "racket"
    }
   },
+  "radare2": {
+   "pacman\\radare2": {
+    "driver": "pacman",
+    "fields": {
+     "name": "radare2",
+     "repo-component": "universe"
+    },
+    "name": "radare2"
+   }
+  },
   "raku": {
    "aur\\raku": {
     "driver": "aur",
@@ -10243,6 +10552,23 @@
      "name": "scalacli"
     },
     "name": "scalacli"
+   }
+  },
+  "scratch": {
+   "flatpak\\scratch": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "edu.mit.Scratch"
+    },
+    "name": "edu.mit.Scratch"
+   },
+   "pacman\\flatpak": {
+    "driver": "pacman",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
    }
   },
   "scribus": {
@@ -11153,6 +11479,16 @@
      "name": "wireshark-cli"
     },
     "name": "wireshark-cli"
+   }
+  },
+  "ttyd": {
+   "pacman\\ttyd": {
+    "driver": "pacman",
+    "fields": {
+     "name": "ttyd",
+     "repo-component": "universe"
+    },
+    "name": "ttyd"
    }
   },
   "typescript": {
@@ -12433,6 +12769,16 @@
     "name": "wmenu"
    }
   },
+  "wormhole": {
+   "pacman\\wormhole": {
+    "driver": "pacman",
+    "fields": {
+     "name": "magic-wormhole",
+     "repo-component": "universe"
+    },
+    "name": "magic-wormhole"
+   }
+  },
   "wrk": {
    "aur\\wrk": {
     "driver": "aur",
@@ -13583,6 +13929,26 @@
      "name": "asciidoc"
     },
     "name": "asciidoc"
+   }
+  },
+  "asciinema": {
+   "apt\\asciinema": {
+    "driver": "apt",
+    "fields": {
+     "name": "asciinema",
+     "repo-component": "universe"
+    },
+    "name": "asciinema"
+   }
+  },
+  "asciiquarium": {
+   "apt\\asciiquarium": {
+    "driver": "apt",
+    "fields": {
+     "name": "asciiquarium",
+     "repo-component": "universe"
+    },
+    "name": "asciiquarium"
    }
   },
   "asio": {
@@ -14763,6 +15129,15 @@
     "name": "cmake-qt-gui"
    }
   },
+  "cmatrix": {
+   "apt\\cmatrix": {
+    "driver": "apt",
+    "fields": {
+     "name": "cmatrix"
+    },
+    "name": "cmatrix"
+   }
+  },
   "cockpit": {
    "apt\\cockpit": {
     "driver": "apt",
@@ -15114,6 +15489,28 @@
      "name": "cppcheck"
     },
     "name": "cppcheck"
+   }
+  },
+  "croc": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "tarball\\croc": {
+    "driver": "tarball",
+    "fields": {
+     "installDir": "$CONFIGSYS_APP_DIR/croc",
+     "name": "croc",
+     "version": {
+      "asset": "croc_v*_Linux-64bit.tar.gz",
+      "github": "schollz/croc",
+      "strip-v": "true"
+     }
+    },
+    "name": "croc"
    }
   },
   "crystal": {
@@ -16275,6 +16672,57 @@
     "name": "libexpat1-dev"
    }
   },
+  "faker": {
+   "apt\\python3-pip": {
+    "driver": "apt",
+    "fields": {
+     "name": "python3-pip"
+    },
+    "name": "python3-pip"
+   },
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.config/bash/conf.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\pipx-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "glue": "pipx"
+    },
+    "name": "pipx-dotfiles"
+   },
+   "dotfiles\\python3-pip-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "glue": "python3-pip"
+    },
+    "name": "python3-pip-dotfiles"
+   },
+   "pip\\pipx": {
+    "driver": "pip",
+    "fields": {
+     "name": "pipx",
+     "version": {
+      "pypi": "pipx"
+     }
+    },
+    "name": "pipx"
+   },
+   "pipx\\faker": {
+    "driver": "pipx",
+    "fields": {
+     "name": "Faker"
+    },
+    "name": "Faker"
+   }
+  },
   "fastfetch": {
    "dotfiles\\fastfetch-dotfiles": {
     "driver": "dotfiles",
@@ -17234,6 +17682,23 @@
     "name": "gh"
    }
   },
+  "ghidra": {
+   "apt\\flatpak": {
+    "driver": "apt",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\ghidra": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "org.ghidra_sre.Ghidra"
+    },
+    "name": "org.ghidra_sre.Ghidra"
+   }
+  },
   "ghostty": {
    "appImage\\ghostty": {
     "driver": "appImage",
@@ -17947,6 +18412,28 @@
      "unit": "grafana-server"
     },
     "name": "grafana-service"
+   }
+  },
+  "grex": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "tarball\\grex": {
+    "driver": "tarball",
+    "fields": {
+     "installDir": "$CONFIGSYS_APP_DIR/grex",
+     "name": "grex",
+     "version": {
+      "asset": "grex-*-$ARCH-unknown-linux-musl.tar.gz",
+      "github": "pemistahl/grex",
+      "strip-v": "true"
+     }
+    },
+    "name": "grex"
    }
   },
   "grim": {
@@ -19117,6 +19604,79 @@
      "name": "jreleaser"
     },
     "name": "jreleaser"
+   }
+  },
+  "jrnl": {
+   "apt\\python3-pip": {
+    "driver": "apt",
+    "fields": {
+     "name": "python3-pip"
+    },
+    "name": "python3-pip"
+   },
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.config/bash/conf.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\jrnl-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/jrnl",
+      "src": "jrnl"
+     }
+    },
+    "name": "jrnl-dotfiles"
+   },
+   "dotfiles\\pipx-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "glue": "pipx"
+    },
+    "name": "pipx-dotfiles"
+   },
+   "dotfiles\\python3-pip-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "glue": "python3-pip"
+    },
+    "name": "python3-pip-dotfiles"
+   },
+   "pip\\pipx": {
+    "driver": "pip",
+    "fields": {
+     "name": "pipx",
+     "version": {
+      "pypi": "pipx"
+     }
+    },
+    "name": "pipx"
+   },
+   "pipx\\jrnl": {
+    "driver": "pipx",
+    "fields": {
+     "name": "jrnl"
+    },
+    "name": "jrnl"
+   }
+  },
+  "jrnl-dotfiles": {
+   "dotfiles\\jrnl-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/jrnl",
+      "src": "jrnl"
+     }
+    },
+    "name": "jrnl-dotfiles"
    }
   },
   "julia": {
@@ -20476,6 +21036,16 @@
     "name": "lmms"
    }
   },
+  "lolcat": {
+   "apt\\lolcat": {
+    "driver": "apt",
+    "fields": {
+     "name": "lolcat",
+     "repo-component": "universe"
+    },
+    "name": "lolcat"
+   }
+  },
   "lsblk": {
    "apt\\lsblk": {
     "driver": "apt",
@@ -21530,6 +22100,38 @@
     "name": "nethogs"
    }
   },
+  "newsboat": {
+   "apt\\newsboat": {
+    "driver": "apt",
+    "fields": {
+     "name": "newsboat",
+     "repo-component": "universe"
+    },
+    "name": "newsboat"
+   },
+   "dotfiles\\newsboat-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/newsboat",
+      "src": "newsboat"
+     }
+    },
+    "name": "newsboat-dotfiles"
+   }
+  },
+  "newsboat-dotfiles": {
+   "dotfiles\\newsboat-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/newsboat",
+      "src": "newsboat"
+     }
+    },
+    "name": "newsboat-dotfiles"
+   }
+  },
   "nextcloud": {
    "apt\\snapd": {
     "driver": "apt",
@@ -21851,6 +22453,23 @@
      "name": "com.obsproject.Studio"
     },
     "name": "com.obsproject.Studio"
+   }
+  },
+  "obsidian": {
+   "apt\\flatpak": {
+    "driver": "apt",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\obsidian": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "md.obsidian.Obsidian"
+    },
+    "name": "md.obsidian.Obsidian"
    }
   },
   "ocaml": {
@@ -23370,6 +23989,16 @@
     "name": "racket"
    }
   },
+  "radare2": {
+   "apt\\radare2": {
+    "driver": "apt",
+    "fields": {
+     "name": "radare2",
+     "repo-component": "universe"
+    },
+    "name": "radare2"
+   }
+  },
   "raku": {
    "apt\\raku": {
     "driver": "apt",
@@ -23898,6 +24527,23 @@
      "name": "scalacli"
     },
     "name": "scalacli"
+   }
+  },
+  "scratch": {
+   "apt\\flatpak": {
+    "driver": "apt",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\scratch": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "edu.mit.Scratch"
+    },
+    "name": "edu.mit.Scratch"
    }
   },
   "scribus": {
@@ -24674,6 +25320,16 @@
      "name": "tshark"
     },
     "name": "tshark"
+   }
+  },
+  "ttyd": {
+   "apt\\ttyd": {
+    "driver": "apt",
+    "fields": {
+     "name": "ttyd",
+     "repo-component": "universe"
+    },
+    "name": "ttyd"
    }
   },
   "typescript": {
@@ -25742,6 +26398,16 @@
      "repo-component": "universe"
     },
     "name": "wmenu"
+   }
+  },
+  "wormhole": {
+   "apt\\wormhole": {
+    "driver": "apt",
+    "fields": {
+     "name": "magic-wormhole",
+     "repo-component": "universe"
+    },
+    "name": "magic-wormhole"
    }
   },
   "wxmaxima": {
@@ -26840,6 +27506,26 @@
      "name": "asciidoc"
     },
     "name": "asciidoc"
+   }
+  },
+  "asciinema": {
+   "apt\\asciinema": {
+    "driver": "apt",
+    "fields": {
+     "name": "asciinema",
+     "repo-component": "universe"
+    },
+    "name": "asciinema"
+   }
+  },
+  "asciiquarium": {
+   "apt\\asciiquarium": {
+    "driver": "apt",
+    "fields": {
+     "name": "asciiquarium",
+     "repo-component": "universe"
+    },
+    "name": "asciiquarium"
    }
   },
   "asio": {
@@ -28003,6 +28689,15 @@
     "name": "cmake-qt-gui"
    }
   },
+  "cmatrix": {
+   "apt\\cmatrix": {
+    "driver": "apt",
+    "fields": {
+     "name": "cmatrix"
+    },
+    "name": "cmatrix"
+   }
+  },
   "cockpit": {
    "apt\\cockpit": {
     "driver": "apt",
@@ -28337,6 +29032,28 @@
      "name": "cppcheck"
     },
     "name": "cppcheck"
+   }
+  },
+  "croc": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "tarball\\croc": {
+    "driver": "tarball",
+    "fields": {
+     "installDir": "$CONFIGSYS_APP_DIR/croc",
+     "name": "croc",
+     "version": {
+      "asset": "croc_v*_Linux-64bit.tar.gz",
+      "github": "schollz/croc",
+      "strip-v": "true"
+     }
+    },
+    "name": "croc"
    }
   },
   "crystal": {
@@ -29481,6 +30198,40 @@
     "name": "libexpat1-dev"
    }
   },
+  "faker": {
+   "apt\\pipx": {
+    "driver": "apt",
+    "fields": {
+     "name": "pipx"
+    },
+    "name": "pipx"
+   },
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.config/bash/conf.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\pipx-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "glue": "pipx"
+    },
+    "name": "pipx-dotfiles"
+   },
+   "pipx\\faker": {
+    "driver": "pipx",
+    "fields": {
+     "name": "Faker"
+    },
+    "name": "Faker"
+   }
+  },
   "fastfetch": {
    "dotfiles\\fastfetch-dotfiles": {
     "driver": "dotfiles",
@@ -30440,6 +31191,23 @@
     "name": "gh"
    }
   },
+  "ghidra": {
+   "apt\\flatpak": {
+    "driver": "apt",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\ghidra": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "org.ghidra_sre.Ghidra"
+    },
+    "name": "org.ghidra_sre.Ghidra"
+   }
+  },
   "ghostty": {
    "appImage\\ghostty": {
     "driver": "appImage",
@@ -31153,6 +31921,28 @@
      "unit": "grafana-server"
     },
     "name": "grafana-service"
+   }
+  },
+  "grex": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "tarball\\grex": {
+    "driver": "tarball",
+    "fields": {
+     "installDir": "$CONFIGSYS_APP_DIR/grex",
+     "name": "grex",
+     "version": {
+      "asset": "grex-*-$ARCH-unknown-linux-musl.tar.gz",
+      "github": "pemistahl/grex",
+      "strip-v": "true"
+     }
+    },
+    "name": "grex"
    }
   },
   "grim": {
@@ -32306,6 +33096,62 @@
      "name": "jreleaser"
     },
     "name": "jreleaser"
+   }
+  },
+  "jrnl": {
+   "apt\\pipx": {
+    "driver": "apt",
+    "fields": {
+     "name": "pipx"
+    },
+    "name": "pipx"
+   },
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.config/bash/conf.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\jrnl-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/jrnl",
+      "src": "jrnl"
+     }
+    },
+    "name": "jrnl-dotfiles"
+   },
+   "dotfiles\\pipx-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "glue": "pipx"
+    },
+    "name": "pipx-dotfiles"
+   },
+   "pipx\\jrnl": {
+    "driver": "pipx",
+    "fields": {
+     "name": "jrnl"
+    },
+    "name": "jrnl"
+   }
+  },
+  "jrnl-dotfiles": {
+   "dotfiles\\jrnl-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/jrnl",
+      "src": "jrnl"
+     }
+    },
+    "name": "jrnl-dotfiles"
    }
   },
   "julia": {
@@ -33631,6 +34477,16 @@
     "name": "lmms"
    }
   },
+  "lolcat": {
+   "apt\\lolcat": {
+    "driver": "apt",
+    "fields": {
+     "name": "lolcat",
+     "repo-component": "universe"
+    },
+    "name": "lolcat"
+   }
+  },
   "lsblk": {
    "apt\\lsblk": {
     "driver": "apt",
@@ -34651,6 +35507,38 @@
     "name": "nethogs"
    }
   },
+  "newsboat": {
+   "apt\\newsboat": {
+    "driver": "apt",
+    "fields": {
+     "name": "newsboat",
+     "repo-component": "universe"
+    },
+    "name": "newsboat"
+   },
+   "dotfiles\\newsboat-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/newsboat",
+      "src": "newsboat"
+     }
+    },
+    "name": "newsboat-dotfiles"
+   }
+  },
+  "newsboat-dotfiles": {
+   "dotfiles\\newsboat-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/newsboat",
+      "src": "newsboat"
+     }
+    },
+    "name": "newsboat-dotfiles"
+   }
+  },
   "nextcloud": {
    "apt\\snapd": {
     "driver": "apt",
@@ -34972,6 +35860,23 @@
      "name": "com.obsproject.Studio"
     },
     "name": "com.obsproject.Studio"
+   }
+  },
+  "obsidian": {
+   "apt\\flatpak": {
+    "driver": "apt",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\obsidian": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "md.obsidian.Obsidian"
+    },
+    "name": "md.obsidian.Obsidian"
    }
   },
   "ocaml": {
@@ -36423,6 +37328,16 @@
     "name": "racket"
    }
   },
+  "radare2": {
+   "apt\\radare2": {
+    "driver": "apt",
+    "fields": {
+     "name": "radare2",
+     "repo-component": "universe"
+    },
+    "name": "radare2"
+   }
+  },
   "raku": {
    "apt\\raku": {
     "driver": "apt",
@@ -36934,6 +37849,23 @@
      "name": "scalacli"
     },
     "name": "scalacli"
+   }
+  },
+  "scratch": {
+   "apt\\flatpak": {
+    "driver": "apt",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\scratch": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "edu.mit.Scratch"
+    },
+    "name": "edu.mit.Scratch"
    }
   },
   "scribus": {
@@ -37710,6 +38642,16 @@
      "name": "tshark"
     },
     "name": "tshark"
+   }
+  },
+  "ttyd": {
+   "apt\\ttyd": {
+    "driver": "apt",
+    "fields": {
+     "name": "ttyd",
+     "repo-component": "universe"
+    },
+    "name": "ttyd"
    }
   },
   "typescript": {
@@ -38761,6 +39703,16 @@
      "repo-component": "universe"
     },
     "name": "wmenu"
+   }
+  },
+  "wormhole": {
+   "apt\\wormhole": {
+    "driver": "apt",
+    "fields": {
+     "name": "magic-wormhole",
+     "repo-component": "universe"
+    },
+    "name": "magic-wormhole"
    }
   },
   "wxmaxima": {
@@ -39842,6 +40794,26 @@
      "name": "asciidoc"
     },
     "name": "asciidoc"
+   }
+  },
+  "asciinema": {
+   "apt\\asciinema": {
+    "driver": "apt",
+    "fields": {
+     "name": "asciinema",
+     "repo-component": "universe"
+    },
+    "name": "asciinema"
+   }
+  },
+  "asciiquarium": {
+   "apt\\asciiquarium": {
+    "driver": "apt",
+    "fields": {
+     "name": "asciiquarium",
+     "repo-component": "universe"
+    },
+    "name": "asciiquarium"
    }
   },
   "asio": {
@@ -41013,6 +41985,15 @@
     "name": "cmake-qt-gui"
    }
   },
+  "cmatrix": {
+   "apt\\cmatrix": {
+    "driver": "apt",
+    "fields": {
+     "name": "cmatrix"
+    },
+    "name": "cmatrix"
+   }
+  },
   "cockpit": {
    "apt\\cockpit": {
     "driver": "apt",
@@ -41347,6 +42328,28 @@
      "name": "cppcheck"
     },
     "name": "cppcheck"
+   }
+  },
+  "croc": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "tarball\\croc": {
+    "driver": "tarball",
+    "fields": {
+     "installDir": "$CONFIGSYS_APP_DIR/croc",
+     "name": "croc",
+     "version": {
+      "asset": "croc_v*_Linux-64bit.tar.gz",
+      "github": "schollz/croc",
+      "strip-v": "true"
+     }
+    },
+    "name": "croc"
    }
   },
   "crystal": {
@@ -42486,6 +43489,40 @@
     "name": "libexpat1-dev"
    }
   },
+  "faker": {
+   "apt\\pipx": {
+    "driver": "apt",
+    "fields": {
+     "name": "pipx"
+    },
+    "name": "pipx"
+   },
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.config/bash/conf.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\pipx-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "glue": "pipx"
+    },
+    "name": "pipx-dotfiles"
+   },
+   "pipx\\faker": {
+    "driver": "pipx",
+    "fields": {
+     "name": "Faker"
+    },
+    "name": "Faker"
+   }
+  },
   "fastfetch": {
    "dotfiles\\fastfetch-dotfiles": {
     "driver": "dotfiles",
@@ -43459,6 +44496,23 @@
     "name": "gh"
    }
   },
+  "ghidra": {
+   "apt\\flatpak": {
+    "driver": "apt",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\ghidra": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "org.ghidra_sre.Ghidra"
+    },
+    "name": "org.ghidra_sre.Ghidra"
+   }
+  },
   "ghostty": {
    "appImage\\ghostty": {
     "driver": "appImage",
@@ -44172,6 +45226,28 @@
      "unit": "grafana-server"
     },
     "name": "grafana-service"
+   }
+  },
+  "grex": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "tarball\\grex": {
+    "driver": "tarball",
+    "fields": {
+     "installDir": "$CONFIGSYS_APP_DIR/grex",
+     "name": "grex",
+     "version": {
+      "asset": "grex-*-$ARCH-unknown-linux-musl.tar.gz",
+      "github": "pemistahl/grex",
+      "strip-v": "true"
+     }
+    },
+    "name": "grex"
    }
   },
   "grim": {
@@ -45327,6 +46403,62 @@
     "name": "jreleaser"
    }
   },
+  "jrnl": {
+   "apt\\pipx": {
+    "driver": "apt",
+    "fields": {
+     "name": "pipx"
+    },
+    "name": "pipx"
+   },
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.config/bash/conf.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\jrnl-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/jrnl",
+      "src": "jrnl"
+     }
+    },
+    "name": "jrnl-dotfiles"
+   },
+   "dotfiles\\pipx-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "glue": "pipx"
+    },
+    "name": "pipx-dotfiles"
+   },
+   "pipx\\jrnl": {
+    "driver": "pipx",
+    "fields": {
+     "name": "jrnl"
+    },
+    "name": "jrnl"
+   }
+  },
+  "jrnl-dotfiles": {
+   "dotfiles\\jrnl-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/jrnl",
+      "src": "jrnl"
+     }
+    },
+    "name": "jrnl-dotfiles"
+   }
+  },
   "julia": {
    "apt\\curl": {
     "driver": "apt",
@@ -46643,6 +47775,16 @@
     "name": "lmms"
    }
   },
+  "lolcat": {
+   "apt\\lolcat": {
+    "driver": "apt",
+    "fields": {
+     "name": "lolcat",
+     "repo-component": "universe"
+    },
+    "name": "lolcat"
+   }
+  },
   "lsblk": {
    "apt\\lsblk": {
     "driver": "apt",
@@ -47663,6 +48805,38 @@
     "name": "nethogs"
    }
   },
+  "newsboat": {
+   "apt\\newsboat": {
+    "driver": "apt",
+    "fields": {
+     "name": "newsboat",
+     "repo-component": "universe"
+    },
+    "name": "newsboat"
+   },
+   "dotfiles\\newsboat-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/newsboat",
+      "src": "newsboat"
+     }
+    },
+    "name": "newsboat-dotfiles"
+   }
+  },
+  "newsboat-dotfiles": {
+   "dotfiles\\newsboat-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/newsboat",
+      "src": "newsboat"
+     }
+    },
+    "name": "newsboat-dotfiles"
+   }
+  },
   "nextcloud": {
    "apt\\snapd": {
     "driver": "apt",
@@ -47984,6 +49158,23 @@
      "name": "com.obsproject.Studio"
     },
     "name": "com.obsproject.Studio"
+   }
+  },
+  "obsidian": {
+   "apt\\flatpak": {
+    "driver": "apt",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\obsidian": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "md.obsidian.Obsidian"
+    },
+    "name": "md.obsidian.Obsidian"
    }
   },
   "ocaml": {
@@ -49448,6 +50639,16 @@
     "name": "racket"
    }
   },
+  "radare2": {
+   "apt\\radare2": {
+    "driver": "apt",
+    "fields": {
+     "name": "radare2",
+     "repo-component": "universe"
+    },
+    "name": "radare2"
+   }
+  },
   "raku": {
    "apt\\raku": {
     "driver": "apt",
@@ -49959,6 +51160,23 @@
      "name": "scalacli"
     },
     "name": "scalacli"
+   }
+  },
+  "scratch": {
+   "apt\\flatpak": {
+    "driver": "apt",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\scratch": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "edu.mit.Scratch"
+    },
+    "name": "edu.mit.Scratch"
    }
   },
   "scribus": {
@@ -50743,6 +51961,16 @@
      "name": "tshark"
     },
     "name": "tshark"
+   }
+  },
+  "ttyd": {
+   "apt\\ttyd": {
+    "driver": "apt",
+    "fields": {
+     "name": "ttyd",
+     "repo-component": "universe"
+    },
+    "name": "ttyd"
    }
   },
   "typescript": {
@@ -51863,6 +53091,16 @@
     "name": "wmenu"
    }
   },
+  "wormhole": {
+   "apt\\wormhole": {
+    "driver": "apt",
+    "fields": {
+     "name": "magic-wormhole",
+     "repo-component": "universe"
+    },
+    "name": "magic-wormhole"
+   }
+  },
   "wxmaxima": {
    "apt\\wxmaxima": {
     "driver": "apt",
@@ -52951,6 +54189,26 @@
     "name": "asciidoc"
    }
   },
+  "asciinema": {
+   "dnf\\asciinema": {
+    "driver": "dnf",
+    "fields": {
+     "name": "asciinema",
+     "repo-component": "universe"
+    },
+    "name": "asciinema"
+   }
+  },
+  "asciiquarium": {
+   "dnf\\asciiquarium": {
+    "driver": "dnf",
+    "fields": {
+     "name": "asciiquarium",
+     "repo-component": "universe"
+    },
+    "name": "asciiquarium"
+   }
+  },
   "asio": {
    "dnf\\asio": {
     "driver": "dnf",
@@ -53791,6 +55049,15 @@
     "name": "carla"
    }
   },
+  "cbonsai": {
+   "dnf\\cbonsai": {
+    "driver": "dnf",
+    "fields": {
+     "name": "cbonsai"
+    },
+    "name": "cbonsai"
+   }
+  },
   "chafa": {
    "dnf\\chafa": {
     "driver": "dnf",
@@ -53992,6 +55259,15 @@
      "name": "cmake-gui"
     },
     "name": "cmake-gui"
+   }
+  },
+  "cmatrix": {
+   "dnf\\cmatrix": {
+    "driver": "dnf",
+    "fields": {
+     "name": "cmatrix"
+    },
+    "name": "cmatrix"
    }
   },
   "cockpit": {
@@ -54349,6 +55625,28 @@
      "name": "cppcheck"
     },
     "name": "cppcheck"
+   }
+  },
+  "croc": {
+   "dnf\\curl": {
+    "driver": "dnf",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "tarball\\croc": {
+    "driver": "tarball",
+    "fields": {
+     "installDir": "$CONFIGSYS_APP_DIR/croc",
+     "name": "croc",
+     "version": {
+      "asset": "croc_v*_Linux-64bit.tar.gz",
+      "github": "schollz/croc",
+      "strip-v": "true"
+     }
+    },
+    "name": "croc"
    }
   },
   "crystal": {
@@ -55433,6 +56731,40 @@
     "name": "expat-devel"
    }
   },
+  "faker": {
+   "dnf\\pipx": {
+    "driver": "dnf",
+    "fields": {
+     "name": "pipx"
+    },
+    "name": "pipx"
+   },
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.config/bash/conf.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\pipx-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "glue": "pipx"
+    },
+    "name": "pipx-dotfiles"
+   },
+   "pipx\\faker": {
+    "driver": "pipx",
+    "fields": {
+     "name": "Faker"
+    },
+    "name": "Faker"
+   }
+  },
   "fastfetch": {
    "dnf\\fastfetch": {
     "driver": "dnf",
@@ -56093,6 +57425,23 @@
      "repo-component": "universe"
     },
     "name": "gh"
+   }
+  },
+  "ghidra": {
+   "dnf\\flatpak": {
+    "driver": "dnf",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\ghidra": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "org.ghidra_sre.Ghidra"
+    },
+    "name": "org.ghidra_sre.Ghidra"
    }
   },
   "ghostty": {
@@ -56838,6 +58187,28 @@
      "unit": "grafana-server"
     },
     "name": "grafana-service"
+   }
+  },
+  "grex": {
+   "dnf\\curl": {
+    "driver": "dnf",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "tarball\\grex": {
+    "driver": "tarball",
+    "fields": {
+     "installDir": "$CONFIGSYS_APP_DIR/grex",
+     "name": "grex",
+     "version": {
+      "asset": "grex-*-$ARCH-unknown-linux-musl.tar.gz",
+      "github": "pemistahl/grex",
+      "strip-v": "true"
+     }
+    },
+    "name": "grex"
    }
   },
   "grim": {
@@ -58061,6 +59432,62 @@
      "name": "jreleaser"
     },
     "name": "jreleaser"
+   }
+  },
+  "jrnl": {
+   "dnf\\pipx": {
+    "driver": "dnf",
+    "fields": {
+     "name": "pipx"
+    },
+    "name": "pipx"
+   },
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.config/bash/conf.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\jrnl-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/jrnl",
+      "src": "jrnl"
+     }
+    },
+    "name": "jrnl-dotfiles"
+   },
+   "dotfiles\\pipx-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "glue": "pipx"
+    },
+    "name": "pipx-dotfiles"
+   },
+   "pipx\\jrnl": {
+    "driver": "pipx",
+    "fields": {
+     "name": "jrnl"
+    },
+    "name": "jrnl"
+   }
+  },
+  "jrnl-dotfiles": {
+   "dotfiles\\jrnl-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/jrnl",
+      "src": "jrnl"
+     }
+    },
+    "name": "jrnl-dotfiles"
    }
   },
   "julia": {
@@ -59327,6 +60754,16 @@
     "name": "lmms"
    }
   },
+  "lolcat": {
+   "dnf\\lolcat": {
+    "driver": "dnf",
+    "fields": {
+     "name": "lolcat",
+     "repo-component": "universe"
+    },
+    "name": "lolcat"
+   }
+  },
   "lsblk": {
    "dnf\\lsblk": {
     "driver": "dnf",
@@ -60294,6 +61731,38 @@
     "name": "nethogs"
    }
   },
+  "newsboat": {
+   "dnf\\newsboat": {
+    "driver": "dnf",
+    "fields": {
+     "name": "newsboat",
+     "repo-component": "universe"
+    },
+    "name": "newsboat"
+   },
+   "dotfiles\\newsboat-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/newsboat",
+      "src": "newsboat"
+     }
+    },
+    "name": "newsboat-dotfiles"
+   }
+  },
+  "newsboat-dotfiles": {
+   "dotfiles\\newsboat-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/newsboat",
+      "src": "newsboat"
+     }
+    },
+    "name": "newsboat-dotfiles"
+   }
+  },
   "nextcloud": {
    "dnf\\snapd": {
     "driver": "dnf",
@@ -60615,6 +62084,23 @@
      "name": "com.obsproject.Studio"
     },
     "name": "com.obsproject.Studio"
+   }
+  },
+  "obsidian": {
+   "dnf\\flatpak": {
+    "driver": "dnf",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\obsidian": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "md.obsidian.Obsidian"
+    },
+    "name": "md.obsidian.Obsidian"
    }
   },
   "ocaml": {
@@ -61198,6 +62684,15 @@
      "version-re": "v?([0-9][0-9.]*)"
     },
     "name": "pi-hole"
+   }
+  },
+  "pipes": {
+   "dnf\\pipes": {
+    "driver": "dnf",
+    "fields": {
+     "name": "pipes.sh"
+    },
+    "name": "pipes.sh"
    }
   },
   "pipewire": {
@@ -62032,6 +63527,16 @@
     "name": "racket"
    }
   },
+  "radare2": {
+   "dnf\\radare2": {
+    "driver": "dnf",
+    "fields": {
+     "name": "radare2",
+     "repo-component": "universe"
+    },
+    "name": "radare2"
+   }
+  },
   "raku": {
    "dnf\\raku": {
     "driver": "dnf",
@@ -62561,6 +64066,23 @@
      "name": "scalacli"
     },
     "name": "scalacli"
+   }
+  },
+  "scratch": {
+   "dnf\\flatpak": {
+    "driver": "dnf",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\scratch": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "edu.mit.Scratch"
+    },
+    "name": "edu.mit.Scratch"
    }
   },
   "scribus": {
@@ -63335,6 +64857,16 @@
      "name": "wireshark-cli"
     },
     "name": "wireshark-cli"
+   }
+  },
+  "ttyd": {
+   "dnf\\ttyd": {
+    "driver": "dnf",
+    "fields": {
+     "name": "ttyd",
+     "repo-component": "universe"
+    },
+    "name": "ttyd"
    }
   },
   "typescript": {
@@ -64454,6 +65986,16 @@
      "repo-component": "universe"
     },
     "name": "wmenu"
+   }
+  },
+  "wormhole": {
+   "dnf\\wormhole": {
+    "driver": "dnf",
+    "fields": {
+     "name": "magic-wormhole",
+     "repo-component": "universe"
+    },
+    "name": "magic-wormhole"
    }
   },
   "wxmaxima": {
@@ -65552,6 +67094,26 @@
     "name": "asciidoc"
    }
   },
+  "asciinema": {
+   "dnf\\asciinema": {
+    "driver": "dnf",
+    "fields": {
+     "name": "asciinema",
+     "repo-component": "universe"
+    },
+    "name": "asciinema"
+   }
+  },
+  "asciiquarium": {
+   "dnf\\asciiquarium": {
+    "driver": "dnf",
+    "fields": {
+     "name": "asciiquarium",
+     "repo-component": "universe"
+    },
+    "name": "asciiquarium"
+   }
+  },
   "asio": {
    "dnf\\asio": {
     "driver": "dnf",
@@ -66392,6 +67954,15 @@
     "name": "carla"
    }
   },
+  "cbonsai": {
+   "dnf\\cbonsai": {
+    "driver": "dnf",
+    "fields": {
+     "name": "cbonsai"
+    },
+    "name": "cbonsai"
+   }
+  },
   "chafa": {
    "dnf\\chafa": {
     "driver": "dnf",
@@ -66619,6 +68190,15 @@
      "name": "cmake-gui"
     },
     "name": "cmake-gui"
+   }
+  },
+  "cmatrix": {
+   "dnf\\cmatrix": {
+    "driver": "dnf",
+    "fields": {
+     "name": "cmatrix"
+    },
+    "name": "cmatrix"
    }
   },
   "cockpit": {
@@ -66976,6 +68556,28 @@
      "name": "cppcheck"
     },
     "name": "cppcheck"
+   }
+  },
+  "croc": {
+   "dnf\\curl": {
+    "driver": "dnf",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "tarball\\croc": {
+    "driver": "tarball",
+    "fields": {
+     "installDir": "$CONFIGSYS_APP_DIR/croc",
+     "name": "croc",
+     "version": {
+      "asset": "croc_v*_Linux-64bit.tar.gz",
+      "github": "schollz/croc",
+      "strip-v": "true"
+     }
+    },
+    "name": "croc"
    }
   },
   "crystal": {
@@ -68060,6 +69662,40 @@
     "name": "expat-devel"
    }
   },
+  "faker": {
+   "dnf\\pipx": {
+    "driver": "dnf",
+    "fields": {
+     "name": "pipx"
+    },
+    "name": "pipx"
+   },
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.config/bash/conf.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\pipx-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "glue": "pipx"
+    },
+    "name": "pipx-dotfiles"
+   },
+   "pipx\\faker": {
+    "driver": "pipx",
+    "fields": {
+     "name": "Faker"
+    },
+    "name": "Faker"
+   }
+  },
   "fastfetch": {
    "dnf\\fastfetch": {
     "driver": "dnf",
@@ -68720,6 +70356,23 @@
      "repo-component": "universe"
     },
     "name": "gh"
+   }
+  },
+  "ghidra": {
+   "dnf\\flatpak": {
+    "driver": "dnf",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\ghidra": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "org.ghidra_sre.Ghidra"
+    },
+    "name": "org.ghidra_sre.Ghidra"
    }
   },
   "ghostty": {
@@ -69465,6 +71118,28 @@
      "unit": "grafana-server"
     },
     "name": "grafana-service"
+   }
+  },
+  "grex": {
+   "dnf\\curl": {
+    "driver": "dnf",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "tarball\\grex": {
+    "driver": "tarball",
+    "fields": {
+     "installDir": "$CONFIGSYS_APP_DIR/grex",
+     "name": "grex",
+     "version": {
+      "asset": "grex-*-$ARCH-unknown-linux-musl.tar.gz",
+      "github": "pemistahl/grex",
+      "strip-v": "true"
+     }
+    },
+    "name": "grex"
    }
   },
   "grim": {
@@ -70688,6 +72363,62 @@
      "name": "jreleaser"
     },
     "name": "jreleaser"
+   }
+  },
+  "jrnl": {
+   "dnf\\pipx": {
+    "driver": "dnf",
+    "fields": {
+     "name": "pipx"
+    },
+    "name": "pipx"
+   },
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.config/bash/conf.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\jrnl-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/jrnl",
+      "src": "jrnl"
+     }
+    },
+    "name": "jrnl-dotfiles"
+   },
+   "dotfiles\\pipx-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "glue": "pipx"
+    },
+    "name": "pipx-dotfiles"
+   },
+   "pipx\\jrnl": {
+    "driver": "pipx",
+    "fields": {
+     "name": "jrnl"
+    },
+    "name": "jrnl"
+   }
+  },
+  "jrnl-dotfiles": {
+   "dotfiles\\jrnl-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/jrnl",
+      "src": "jrnl"
+     }
+    },
+    "name": "jrnl-dotfiles"
    }
   },
   "julia": {
@@ -71954,6 +73685,16 @@
     "name": "lmms"
    }
   },
+  "lolcat": {
+   "dnf\\lolcat": {
+    "driver": "dnf",
+    "fields": {
+     "name": "lolcat",
+     "repo-component": "universe"
+    },
+    "name": "lolcat"
+   }
+  },
   "lsblk": {
    "dnf\\lsblk": {
     "driver": "dnf",
@@ -72921,6 +74662,38 @@
     "name": "nethogs"
    }
   },
+  "newsboat": {
+   "dnf\\newsboat": {
+    "driver": "dnf",
+    "fields": {
+     "name": "newsboat",
+     "repo-component": "universe"
+    },
+    "name": "newsboat"
+   },
+   "dotfiles\\newsboat-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/newsboat",
+      "src": "newsboat"
+     }
+    },
+    "name": "newsboat-dotfiles"
+   }
+  },
+  "newsboat-dotfiles": {
+   "dotfiles\\newsboat-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/newsboat",
+      "src": "newsboat"
+     }
+    },
+    "name": "newsboat-dotfiles"
+   }
+  },
   "nextcloud": {
    "dnf\\snapd": {
     "driver": "dnf",
@@ -73242,6 +75015,23 @@
      "name": "com.obsproject.Studio"
     },
     "name": "com.obsproject.Studio"
+   }
+  },
+  "obsidian": {
+   "dnf\\flatpak": {
+    "driver": "dnf",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\obsidian": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "md.obsidian.Obsidian"
+    },
+    "name": "md.obsidian.Obsidian"
    }
   },
   "ocaml": {
@@ -73825,6 +75615,15 @@
      "version-re": "v?([0-9][0-9.]*)"
     },
     "name": "pi-hole"
+   }
+  },
+  "pipes": {
+   "dnf\\pipes": {
+    "driver": "dnf",
+    "fields": {
+     "name": "pipes.sh"
+    },
+    "name": "pipes.sh"
    }
   },
   "pipewire": {
@@ -74659,6 +76458,16 @@
     "name": "racket"
    }
   },
+  "radare2": {
+   "dnf\\radare2": {
+    "driver": "dnf",
+    "fields": {
+     "name": "radare2",
+     "repo-component": "universe"
+    },
+    "name": "radare2"
+   }
+  },
   "raku": {
    "dnf\\raku": {
     "driver": "dnf",
@@ -75188,6 +76997,23 @@
      "name": "scalacli"
     },
     "name": "scalacli"
+   }
+  },
+  "scratch": {
+   "dnf\\flatpak": {
+    "driver": "dnf",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\scratch": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "edu.mit.Scratch"
+    },
+    "name": "edu.mit.Scratch"
    }
   },
   "scribus": {
@@ -75962,6 +77788,16 @@
      "name": "wireshark-cli"
     },
     "name": "wireshark-cli"
+   }
+  },
+  "ttyd": {
+   "dnf\\ttyd": {
+    "driver": "dnf",
+    "fields": {
+     "name": "ttyd",
+     "repo-component": "universe"
+    },
+    "name": "ttyd"
    }
   },
   "typescript": {
@@ -77083,6 +78919,16 @@
     "name": "wmenu"
    }
   },
+  "wormhole": {
+   "dnf\\wormhole": {
+    "driver": "dnf",
+    "fields": {
+     "name": "magic-wormhole",
+     "repo-component": "universe"
+    },
+    "name": "magic-wormhole"
+   }
+  },
   "wxmaxima": {
    "dnf\\wxmaxima": {
     "driver": "dnf",
@@ -78118,6 +79964,25 @@
     "name": "asciidoc"
    }
   },
+  "asciinema": {
+   "brew\\asciinema": {
+    "driver": "brew",
+    "fields": {
+     "name": "asciinema",
+     "repo-component": "universe"
+    },
+    "name": "asciinema"
+   }
+  },
+  "asciiquarium": {
+   "brew\\asciiquarium": {
+    "driver": "brew",
+    "fields": {
+     "name": "asciiquarium"
+    },
+    "name": "asciiquarium"
+   }
+  },
   "asio": {
    "brew\\asio": {
     "driver": "brew",
@@ -78778,6 +80643,15 @@
     "name": "studio.kx.carla"
    }
   },
+  "cbonsai": {
+   "brew\\cbonsai": {
+    "driver": "brew",
+    "fields": {
+     "name": "cbonsai"
+    },
+    "name": "cbonsai"
+   }
+  },
   "chafa": {
    "brew\\chafa": {
     "driver": "brew",
@@ -78885,6 +80759,15 @@
      "name": "cmake"
     },
     "name": "cmake"
+   }
+  },
+  "cmatrix": {
+   "brew\\cmatrix": {
+    "driver": "brew",
+    "fields": {
+     "name": "cmatrix"
+    },
+    "name": "cmatrix"
    }
   },
   "codex": {
@@ -79146,6 +81029,15 @@
      "name": "cppcheck"
     },
     "name": "cppcheck"
+   }
+  },
+  "croc": {
+   "brew\\croc": {
+    "driver": "brew",
+    "fields": {
+     "name": "croc"
+    },
+    "name": "croc"
    }
   },
   "crystal": {
@@ -79896,6 +81788,40 @@
     "name": "expat"
    }
   },
+  "faker": {
+   "brew\\pipx": {
+    "driver": "brew",
+    "fields": {
+     "name": "pipx"
+    },
+    "name": "pipx"
+   },
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.config/bash/conf.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\pipx-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "glue": "pipx"
+    },
+    "name": "pipx-dotfiles"
+   },
+   "pipx\\faker": {
+    "driver": "pipx",
+    "fields": {
+     "name": "Faker"
+    },
+    "name": "Faker"
+   }
+  },
   "fastfetch": {
    "brew\\fastfetch": {
     "driver": "brew",
@@ -80481,6 +82407,16 @@
     "name": "gh"
    }
   },
+  "ghidra": {
+   "flatpak\\ghidra": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "org.ghidra_sre.Ghidra"
+    },
+    "name": "org.ghidra_sre.Ghidra"
+   }
+  },
   "ghostty": {
    "appImage\\ghostty": {
     "driver": "appImage",
@@ -81060,6 +82996,15 @@
      }
     },
     "name": "gradle-dotfiles"
+   }
+  },
+  "grex": {
+   "brew\\grex": {
+    "driver": "brew",
+    "fields": {
+     "name": "grex"
+    },
+    "name": "grex"
    }
   },
   "groovy": {
@@ -81918,6 +83863,37 @@
      "name": "jreleaser"
     },
     "name": "jreleaser"
+   }
+  },
+  "jrnl": {
+   "brew\\jrnl": {
+    "driver": "brew",
+    "fields": {
+     "name": "jrnl"
+    },
+    "name": "jrnl"
+   },
+   "dotfiles\\jrnl-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/jrnl",
+      "src": "jrnl"
+     }
+    },
+    "name": "jrnl-dotfiles"
+   }
+  },
+  "jrnl-dotfiles": {
+   "dotfiles\\jrnl-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/jrnl",
+      "src": "jrnl"
+     }
+    },
+    "name": "jrnl-dotfiles"
    }
   },
   "julia": {
@@ -83041,6 +85017,40 @@
     "name": "io.lmms.LMMS"
    }
   },
+  "lolcat": {
+   "brew\\ruby": {
+    "driver": "brew",
+    "fields": {
+     "name": "ruby"
+    },
+    "name": "ruby"
+   },
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.config/bash/conf.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\ruby-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "glue": "ruby"
+    },
+    "name": "ruby-dotfiles"
+   },
+   "gem\\lolcat": {
+    "driver": "gem",
+    "fields": {
+     "name": "lolcat"
+    },
+    "name": "lolcat"
+   }
+  },
   "lsblk": {
    "brew\\lsblk": {
     "driver": "brew",
@@ -83948,6 +85958,38 @@
     "name": "nethogs"
    }
   },
+  "newsboat": {
+   "brew\\newsboat": {
+    "driver": "brew",
+    "fields": {
+     "name": "newsboat",
+     "repo-component": "universe"
+    },
+    "name": "newsboat"
+   },
+   "dotfiles\\newsboat-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/newsboat",
+      "src": "newsboat"
+     }
+    },
+    "name": "newsboat-dotfiles"
+   }
+  },
+  "newsboat-dotfiles": {
+   "dotfiles\\newsboat-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/newsboat",
+      "src": "newsboat"
+     }
+    },
+    "name": "newsboat-dotfiles"
+   }
+  },
   "nginx": {
    "brew\\nginx": {
     "driver": "brew",
@@ -84181,6 +86223,16 @@
      "name": "com.obsproject.Studio"
     },
     "name": "com.obsproject.Studio"
+   }
+  },
+  "obsidian": {
+   "flatpak\\obsidian": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "md.obsidian.Obsidian"
+    },
+    "name": "md.obsidian.Obsidian"
    }
   },
   "ocaml": {
@@ -85283,6 +87335,15 @@
     "name": "r-dotfiles"
    }
   },
+  "radare2": {
+   "brew\\radare2": {
+    "driver": "brew",
+    "fields": {
+     "name": "radare2"
+    },
+    "name": "radare2"
+   }
+  },
   "raku": {
    "brew\\raku": {
     "driver": "brew",
@@ -85807,6 +87868,16 @@
      "name": "scalacli"
     },
     "name": "scalacli"
+   }
+  },
+  "scratch": {
+   "flatpak\\scratch": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "edu.mit.Scratch"
+    },
+    "name": "edu.mit.Scratch"
    }
   },
   "scribus": {
@@ -86393,6 +88464,15 @@
      "name": "tshark"
     },
     "name": "tshark"
+   }
+  },
+  "ttyd": {
+   "brew\\ttyd": {
+    "driver": "brew",
+    "fields": {
+     "name": "ttyd"
+    },
+    "name": "ttyd"
    }
   },
   "typescript": {
@@ -87129,6 +89209,16 @@
      "name": "wlroots"
     },
     "name": "wlroots"
+   }
+  },
+  "wormhole": {
+   "brew\\wormhole": {
+    "driver": "brew",
+    "fields": {
+     "name": "magic-wormhole",
+     "repo-component": "universe"
+    },
+    "name": "magic-wormhole"
    }
   },
   "wrk": {
@@ -88129,6 +90219,26 @@
      "name": "asciidoc"
     },
     "name": "asciidoc"
+   }
+  },
+  "asciinema": {
+   "apt\\asciinema": {
+    "driver": "apt",
+    "fields": {
+     "name": "asciinema",
+     "repo-component": "universe"
+    },
+    "name": "asciinema"
+   }
+  },
+  "asciiquarium": {
+   "apt\\asciiquarium": {
+    "driver": "apt",
+    "fields": {
+     "name": "asciiquarium",
+     "repo-component": "universe"
+    },
+    "name": "asciiquarium"
    }
   },
   "asio": {
@@ -89317,6 +91427,15 @@
     "name": "cmake-qt-gui"
    }
   },
+  "cmatrix": {
+   "apt\\cmatrix": {
+    "driver": "apt",
+    "fields": {
+     "name": "cmatrix"
+    },
+    "name": "cmatrix"
+   }
+  },
   "cockpit": {
    "apt\\cockpit": {
     "driver": "apt",
@@ -89677,6 +91796,28 @@
      "name": "cppcheck"
     },
     "name": "cppcheck"
+   }
+  },
+  "croc": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "tarball\\croc": {
+    "driver": "tarball",
+    "fields": {
+     "installDir": "$CONFIGSYS_APP_DIR/croc",
+     "name": "croc",
+     "version": {
+      "asset": "croc_v*_Linux-64bit.tar.gz",
+      "github": "schollz/croc",
+      "strip-v": "true"
+     }
+    },
+    "name": "croc"
    }
   },
   "crystal": {
@@ -90833,6 +92974,57 @@
     "name": "libexpat1-dev"
    }
   },
+  "faker": {
+   "apt\\python3-pip": {
+    "driver": "apt",
+    "fields": {
+     "name": "python3-pip"
+    },
+    "name": "python3-pip"
+   },
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.config/bash/conf.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\pipx-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "glue": "pipx"
+    },
+    "name": "pipx-dotfiles"
+   },
+   "dotfiles\\python3-pip-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "glue": "python3-pip"
+    },
+    "name": "python3-pip-dotfiles"
+   },
+   "pip\\pipx": {
+    "driver": "pip",
+    "fields": {
+     "name": "pipx",
+     "version": {
+      "pypi": "pipx"
+     }
+    },
+    "name": "pipx"
+   },
+   "pipx\\faker": {
+    "driver": "pipx",
+    "fields": {
+     "name": "Faker"
+    },
+    "name": "Faker"
+   }
+  },
   "fastfetch": {
    "dotfiles\\fastfetch-dotfiles": {
     "driver": "dotfiles",
@@ -91806,6 +93998,23 @@
     "name": "gh"
    }
   },
+  "ghidra": {
+   "apt\\flatpak": {
+    "driver": "apt",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\ghidra": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "org.ghidra_sre.Ghidra"
+    },
+    "name": "org.ghidra_sre.Ghidra"
+   }
+  },
   "ghostty": {
    "appImage\\ghostty": {
     "driver": "appImage",
@@ -92519,6 +94728,28 @@
      "unit": "grafana-server"
     },
     "name": "grafana-service"
+   }
+  },
+  "grex": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "tarball\\grex": {
+    "driver": "tarball",
+    "fields": {
+     "installDir": "$CONFIGSYS_APP_DIR/grex",
+     "name": "grex",
+     "version": {
+      "asset": "grex-*-$ARCH-unknown-linux-musl.tar.gz",
+      "github": "pemistahl/grex",
+      "strip-v": "true"
+     }
+    },
+    "name": "grex"
    }
   },
   "grim": {
@@ -93689,6 +95920,79 @@
      "name": "jreleaser"
     },
     "name": "jreleaser"
+   }
+  },
+  "jrnl": {
+   "apt\\python3-pip": {
+    "driver": "apt",
+    "fields": {
+     "name": "python3-pip"
+    },
+    "name": "python3-pip"
+   },
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.config/bash/conf.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\jrnl-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/jrnl",
+      "src": "jrnl"
+     }
+    },
+    "name": "jrnl-dotfiles"
+   },
+   "dotfiles\\pipx-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "glue": "pipx"
+    },
+    "name": "pipx-dotfiles"
+   },
+   "dotfiles\\python3-pip-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "glue": "python3-pip"
+    },
+    "name": "python3-pip-dotfiles"
+   },
+   "pip\\pipx": {
+    "driver": "pip",
+    "fields": {
+     "name": "pipx",
+     "version": {
+      "pypi": "pipx"
+     }
+    },
+    "name": "pipx"
+   },
+   "pipx\\jrnl": {
+    "driver": "pipx",
+    "fields": {
+     "name": "jrnl"
+    },
+    "name": "jrnl"
+   }
+  },
+  "jrnl-dotfiles": {
+   "dotfiles\\jrnl-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/jrnl",
+      "src": "jrnl"
+     }
+    },
+    "name": "jrnl-dotfiles"
    }
   },
   "julia": {
@@ -95041,6 +97345,16 @@
     "name": "lmms"
    }
   },
+  "lolcat": {
+   "apt\\lolcat": {
+    "driver": "apt",
+    "fields": {
+     "name": "lolcat",
+     "repo-component": "universe"
+    },
+    "name": "lolcat"
+   }
+  },
   "lsblk": {
    "apt\\lsblk": {
     "driver": "apt",
@@ -96095,6 +98409,38 @@
     "name": "nethogs"
    }
   },
+  "newsboat": {
+   "apt\\newsboat": {
+    "driver": "apt",
+    "fields": {
+     "name": "newsboat",
+     "repo-component": "universe"
+    },
+    "name": "newsboat"
+   },
+   "dotfiles\\newsboat-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/newsboat",
+      "src": "newsboat"
+     }
+    },
+    "name": "newsboat-dotfiles"
+   }
+  },
+  "newsboat-dotfiles": {
+   "dotfiles\\newsboat-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/newsboat",
+      "src": "newsboat"
+     }
+    },
+    "name": "newsboat-dotfiles"
+   }
+  },
   "nextcloud": {
    "apt\\snapd": {
     "driver": "apt",
@@ -96416,6 +98762,23 @@
      "name": "com.obsproject.Studio"
     },
     "name": "com.obsproject.Studio"
+   }
+  },
+  "obsidian": {
+   "apt\\flatpak": {
+    "driver": "apt",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\obsidian": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "md.obsidian.Obsidian"
+    },
+    "name": "md.obsidian.Obsidian"
    }
   },
   "ocaml": {
@@ -97948,6 +100311,16 @@
     "name": "racket"
    }
   },
+  "radare2": {
+   "apt\\radare2": {
+    "driver": "apt",
+    "fields": {
+     "name": "radare2",
+     "repo-component": "universe"
+    },
+    "name": "radare2"
+   }
+  },
   "raku": {
    "apt\\raku": {
     "driver": "apt",
@@ -98476,6 +100849,23 @@
      "name": "scalacli"
     },
     "name": "scalacli"
+   }
+  },
+  "scratch": {
+   "apt\\flatpak": {
+    "driver": "apt",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\scratch": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "edu.mit.Scratch"
+    },
+    "name": "edu.mit.Scratch"
    }
   },
   "scribus": {
@@ -99253,6 +101643,16 @@
      "name": "tshark"
     },
     "name": "tshark"
+   }
+  },
+  "ttyd": {
+   "apt\\ttyd": {
+    "driver": "apt",
+    "fields": {
+     "name": "ttyd",
+     "repo-component": "universe"
+    },
+    "name": "ttyd"
    }
   },
   "typescript": {
@@ -100321,6 +102721,16 @@
      "repo-component": "universe"
     },
     "name": "wmenu"
+   }
+  },
+  "wormhole": {
+   "apt\\wormhole": {
+    "driver": "apt",
+    "fields": {
+     "name": "magic-wormhole",
+     "repo-component": "universe"
+    },
+    "name": "magic-wormhole"
    }
   },
   "wxmaxima": {
@@ -101450,6 +103860,32 @@
      "name": "asciidoc"
     },
     "name": "asciidoc"
+   },
+   "dnf\\epel-release": {
+    "driver": "dnf",
+    "fields": {
+     "name": "epel-release"
+    },
+    "name": "epel-release"
+   }
+  },
+  "asciinema": {
+   "dnf\\asciinema": {
+    "driver": "dnf",
+    "fields": {
+     "name": "asciinema",
+     "repo-component": "universe"
+    },
+    "name": "asciinema"
+   }
+  },
+  "asciiquarium": {
+   "dnf\\asciiquarium": {
+    "driver": "dnf",
+    "fields": {
+     "name": "asciiquarium"
+    },
+    "name": "asciiquarium"
    },
    "dnf\\epel-release": {
     "driver": "dnf",
@@ -102604,6 +105040,15 @@
     "name": "cmake-gui"
    }
   },
+  "cmatrix": {
+   "dnf\\cmatrix": {
+    "driver": "dnf",
+    "fields": {
+     "name": "cmatrix"
+    },
+    "name": "cmatrix"
+   }
+  },
   "cockpit": {
    "dnf\\cockpit": {
     "driver": "dnf",
@@ -102988,6 +105433,28 @@
      "name": "cppcheck"
     },
     "name": "cppcheck"
+   }
+  },
+  "croc": {
+   "dnf\\curl": {
+    "driver": "dnf",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "tarball\\croc": {
+    "driver": "tarball",
+    "fields": {
+     "installDir": "$CONFIGSYS_APP_DIR/croc",
+     "name": "croc",
+     "version": {
+      "asset": "croc_v*_Linux-64bit.tar.gz",
+      "github": "schollz/croc",
+      "strip-v": "true"
+     }
+    },
+    "name": "croc"
    }
   },
   "crystal": {
@@ -104132,6 +106599,47 @@
     "name": "expat-devel"
    }
   },
+  "faker": {
+   "dnf\\epel-release": {
+    "driver": "dnf",
+    "fields": {
+     "name": "epel-release"
+    },
+    "name": "epel-release"
+   },
+   "dnf\\pipx": {
+    "driver": "dnf",
+    "fields": {
+     "name": "pipx"
+    },
+    "name": "pipx"
+   },
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.config/bash/conf.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\pipx-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "glue": "pipx"
+    },
+    "name": "pipx-dotfiles"
+   },
+   "pipx\\faker": {
+    "driver": "pipx",
+    "fields": {
+     "name": "Faker"
+    },
+    "name": "Faker"
+   }
+  },
   "fastfetch": {
    "dnf\\epel-release": {
     "driver": "dnf",
@@ -104894,6 +107402,23 @@
     "name": "gh"
    }
   },
+  "ghidra": {
+   "dnf\\flatpak": {
+    "driver": "dnf",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\ghidra": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "org.ghidra_sre.Ghidra"
+    },
+    "name": "org.ghidra_sre.Ghidra"
+   }
+  },
   "ghostty": {
    "appImage\\ghostty": {
     "driver": "appImage",
@@ -105612,6 +108137,28 @@
      "unit": "grafana-server"
     },
     "name": "grafana-service"
+   }
+  },
+  "grex": {
+   "dnf\\curl": {
+    "driver": "dnf",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "tarball\\grex": {
+    "driver": "tarball",
+    "fields": {
+     "installDir": "$CONFIGSYS_APP_DIR/grex",
+     "name": "grex",
+     "version": {
+      "asset": "grex-*-$ARCH-unknown-linux-musl.tar.gz",
+      "github": "pemistahl/grex",
+      "strip-v": "true"
+     }
+    },
+    "name": "grex"
    }
   },
   "groovy": {
@@ -106857,6 +109404,69 @@
      "name": "jreleaser"
     },
     "name": "jreleaser"
+   }
+  },
+  "jrnl": {
+   "dnf\\epel-release": {
+    "driver": "dnf",
+    "fields": {
+     "name": "epel-release"
+    },
+    "name": "epel-release"
+   },
+   "dnf\\pipx": {
+    "driver": "dnf",
+    "fields": {
+     "name": "pipx"
+    },
+    "name": "pipx"
+   },
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.config/bash/conf.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\jrnl-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/jrnl",
+      "src": "jrnl"
+     }
+    },
+    "name": "jrnl-dotfiles"
+   },
+   "dotfiles\\pipx-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "glue": "pipx"
+    },
+    "name": "pipx-dotfiles"
+   },
+   "pipx\\jrnl": {
+    "driver": "pipx",
+    "fields": {
+     "name": "jrnl"
+    },
+    "name": "jrnl"
+   }
+  },
+  "jrnl-dotfiles": {
+   "dotfiles\\jrnl-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/jrnl",
+      "src": "jrnl"
+     }
+    },
+    "name": "jrnl-dotfiles"
    }
   },
   "julia": {
@@ -108161,6 +110771,40 @@
     "name": "io.lmms.LMMS"
    }
   },
+  "lolcat": {
+   "dnf\\ruby": {
+    "driver": "dnf",
+    "fields": {
+     "name": "ruby"
+    },
+    "name": "ruby"
+   },
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.config/bash/conf.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\ruby-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "glue": "ruby"
+    },
+    "name": "ruby-dotfiles"
+   },
+   "gem\\lolcat": {
+    "driver": "gem",
+    "fields": {
+     "name": "lolcat"
+    },
+    "name": "lolcat"
+   }
+  },
   "lsblk": {
    "dnf\\lsblk": {
     "driver": "dnf",
@@ -109235,6 +111879,38 @@
     "name": "nethogs"
    }
   },
+  "newsboat": {
+   "dnf\\newsboat": {
+    "driver": "dnf",
+    "fields": {
+     "name": "newsboat",
+     "repo-component": "universe"
+    },
+    "name": "newsboat"
+   },
+   "dotfiles\\newsboat-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/newsboat",
+      "src": "newsboat"
+     }
+    },
+    "name": "newsboat-dotfiles"
+   }
+  },
+  "newsboat-dotfiles": {
+   "dotfiles\\newsboat-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/newsboat",
+      "src": "newsboat"
+     }
+    },
+    "name": "newsboat-dotfiles"
+   }
+  },
   "nextcloud": {
    "dnf\\snapd": {
     "driver": "dnf",
@@ -109569,6 +112245,23 @@
      "name": "com.obsproject.Studio"
     },
     "name": "com.obsproject.Studio"
+   }
+  },
+  "obsidian": {
+   "dnf\\flatpak": {
+    "driver": "dnf",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\obsidian": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "md.obsidian.Obsidian"
+    },
+    "name": "md.obsidian.Obsidian"
    }
   },
   "ocaml": {
@@ -111028,6 +113721,16 @@
     "name": "racket"
    }
   },
+  "radare2": {
+   "dnf\\radare2": {
+    "driver": "dnf",
+    "fields": {
+     "name": "radare2",
+     "repo-component": "universe"
+    },
+    "name": "radare2"
+   }
+  },
   "raku": {
    "dnf\\raku": {
     "driver": "dnf",
@@ -111610,6 +114313,23 @@
      "name": "scalacli"
     },
     "name": "scalacli"
+   }
+  },
+  "scratch": {
+   "dnf\\flatpak": {
+    "driver": "dnf",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\scratch": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "edu.mit.Scratch"
+    },
+    "name": "edu.mit.Scratch"
    }
   },
   "scribus": {
@@ -112425,6 +115145,16 @@
      "name": "wireshark-cli"
     },
     "name": "wireshark-cli"
+   }
+  },
+  "ttyd": {
+   "dnf\\ttyd": {
+    "driver": "dnf",
+    "fields": {
+     "name": "ttyd",
+     "repo-component": "universe"
+    },
+    "name": "ttyd"
    }
   },
   "typescript": {
@@ -113602,6 +116332,16 @@
     "name": "wlroots-devel"
    }
   },
+  "wormhole": {
+   "dnf\\wormhole": {
+    "driver": "dnf",
+    "fields": {
+     "name": "magic-wormhole",
+     "repo-component": "universe"
+    },
+    "name": "magic-wormhole"
+   }
+  },
   "wxmaxima": {
    "dnf\\wxmaxima": {
     "driver": "dnf",
@@ -114744,6 +117484,26 @@
      "name": "asciidoc"
     },
     "name": "asciidoc"
+   }
+  },
+  "asciinema": {
+   "apt\\asciinema": {
+    "driver": "apt",
+    "fields": {
+     "name": "asciinema",
+     "repo-component": "universe"
+    },
+    "name": "asciinema"
+   }
+  },
+  "asciiquarium": {
+   "apt\\asciiquarium": {
+    "driver": "apt",
+    "fields": {
+     "name": "asciiquarium",
+     "repo-component": "universe"
+    },
+    "name": "asciiquarium"
    }
   },
   "asio": {
@@ -115932,6 +118692,15 @@
     "name": "cmake-qt-gui"
    }
   },
+  "cmatrix": {
+   "apt\\cmatrix": {
+    "driver": "apt",
+    "fields": {
+     "name": "cmatrix"
+    },
+    "name": "cmatrix"
+   }
+  },
   "cockpit": {
    "apt\\cockpit": {
     "driver": "apt",
@@ -116283,6 +119052,28 @@
      "name": "cppcheck"
     },
     "name": "cppcheck"
+   }
+  },
+  "croc": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "tarball\\croc": {
+    "driver": "tarball",
+    "fields": {
+     "installDir": "$CONFIGSYS_APP_DIR/croc",
+     "name": "croc",
+     "version": {
+      "asset": "croc_v*_Linux-64bit.tar.gz",
+      "github": "schollz/croc",
+      "strip-v": "true"
+     }
+    },
+    "name": "croc"
    }
   },
   "crystal": {
@@ -117439,6 +120230,57 @@
     "name": "libexpat1-dev"
    }
   },
+  "faker": {
+   "apt\\python3-pip": {
+    "driver": "apt",
+    "fields": {
+     "name": "python3-pip"
+    },
+    "name": "python3-pip"
+   },
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.config/bash/conf.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\pipx-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "glue": "pipx"
+    },
+    "name": "pipx-dotfiles"
+   },
+   "dotfiles\\python3-pip-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "glue": "python3-pip"
+    },
+    "name": "python3-pip-dotfiles"
+   },
+   "pip\\pipx": {
+    "driver": "pip",
+    "fields": {
+     "name": "pipx",
+     "version": {
+      "pypi": "pipx"
+     }
+    },
+    "name": "pipx"
+   },
+   "pipx\\faker": {
+    "driver": "pipx",
+    "fields": {
+     "name": "Faker"
+    },
+    "name": "Faker"
+   }
+  },
   "fastfetch": {
    "dotfiles\\fastfetch-dotfiles": {
     "driver": "dotfiles",
@@ -118412,6 +121254,23 @@
     "name": "gh"
    }
   },
+  "ghidra": {
+   "apt\\flatpak": {
+    "driver": "apt",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\ghidra": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "org.ghidra_sre.Ghidra"
+    },
+    "name": "org.ghidra_sre.Ghidra"
+   }
+  },
   "ghostty": {
    "appImage\\ghostty": {
     "driver": "appImage",
@@ -119125,6 +121984,28 @@
      "unit": "grafana-server"
     },
     "name": "grafana-service"
+   }
+  },
+  "grex": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "tarball\\grex": {
+    "driver": "tarball",
+    "fields": {
+     "installDir": "$CONFIGSYS_APP_DIR/grex",
+     "name": "grex",
+     "version": {
+      "asset": "grex-*-$ARCH-unknown-linux-musl.tar.gz",
+      "github": "pemistahl/grex",
+      "strip-v": "true"
+     }
+    },
+    "name": "grex"
    }
   },
   "grim": {
@@ -120297,6 +123178,79 @@
     "name": "jreleaser"
    }
   },
+  "jrnl": {
+   "apt\\python3-pip": {
+    "driver": "apt",
+    "fields": {
+     "name": "python3-pip"
+    },
+    "name": "python3-pip"
+   },
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.config/bash/conf.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\jrnl-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/jrnl",
+      "src": "jrnl"
+     }
+    },
+    "name": "jrnl-dotfiles"
+   },
+   "dotfiles\\pipx-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "glue": "pipx"
+    },
+    "name": "pipx-dotfiles"
+   },
+   "dotfiles\\python3-pip-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "glue": "python3-pip"
+    },
+    "name": "python3-pip-dotfiles"
+   },
+   "pip\\pipx": {
+    "driver": "pip",
+    "fields": {
+     "name": "pipx",
+     "version": {
+      "pypi": "pipx"
+     }
+    },
+    "name": "pipx"
+   },
+   "pipx\\jrnl": {
+    "driver": "pipx",
+    "fields": {
+     "name": "jrnl"
+    },
+    "name": "jrnl"
+   }
+  },
+  "jrnl-dotfiles": {
+   "dotfiles\\jrnl-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/jrnl",
+      "src": "jrnl"
+     }
+    },
+    "name": "jrnl-dotfiles"
+   }
+  },
   "julia": {
    "apt\\curl": {
     "driver": "apt",
@@ -121647,6 +124601,16 @@
     "name": "lmms"
    }
   },
+  "lolcat": {
+   "apt\\lolcat": {
+    "driver": "apt",
+    "fields": {
+     "name": "lolcat",
+     "repo-component": "universe"
+    },
+    "name": "lolcat"
+   }
+  },
   "lsblk": {
    "apt\\lsblk": {
     "driver": "apt",
@@ -122701,6 +125665,38 @@
     "name": "nethogs"
    }
   },
+  "newsboat": {
+   "apt\\newsboat": {
+    "driver": "apt",
+    "fields": {
+     "name": "newsboat",
+     "repo-component": "universe"
+    },
+    "name": "newsboat"
+   },
+   "dotfiles\\newsboat-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/newsboat",
+      "src": "newsboat"
+     }
+    },
+    "name": "newsboat-dotfiles"
+   }
+  },
+  "newsboat-dotfiles": {
+   "dotfiles\\newsboat-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/newsboat",
+      "src": "newsboat"
+     }
+    },
+    "name": "newsboat-dotfiles"
+   }
+  },
   "nextcloud": {
    "apt\\snapd": {
     "driver": "apt",
@@ -123022,6 +126018,23 @@
      "name": "com.obsproject.Studio"
     },
     "name": "com.obsproject.Studio"
+   }
+  },
+  "obsidian": {
+   "apt\\flatpak": {
+    "driver": "apt",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\obsidian": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "md.obsidian.Obsidian"
+    },
+    "name": "md.obsidian.Obsidian"
    }
   },
   "ocaml": {
@@ -124554,6 +127567,16 @@
     "name": "racket"
    }
   },
+  "radare2": {
+   "apt\\radare2": {
+    "driver": "apt",
+    "fields": {
+     "name": "radare2",
+     "repo-component": "universe"
+    },
+    "name": "radare2"
+   }
+  },
   "raku": {
    "apt\\raku": {
     "driver": "apt",
@@ -125082,6 +128105,23 @@
      "name": "scalacli"
     },
     "name": "scalacli"
+   }
+  },
+  "scratch": {
+   "apt\\flatpak": {
+    "driver": "apt",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\scratch": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "edu.mit.Scratch"
+    },
+    "name": "edu.mit.Scratch"
    }
   },
   "scribus": {
@@ -125866,6 +128906,16 @@
      "name": "tshark"
     },
     "name": "tshark"
+   }
+  },
+  "ttyd": {
+   "apt\\ttyd": {
+    "driver": "apt",
+    "fields": {
+     "name": "ttyd",
+     "repo-component": "universe"
+    },
+    "name": "ttyd"
    }
   },
   "typescript": {
@@ -126934,6 +129984,16 @@
      "repo-component": "universe"
     },
     "name": "wmenu"
+   }
+  },
+  "wormhole": {
+   "apt\\wormhole": {
+    "driver": "apt",
+    "fields": {
+     "name": "magic-wormhole",
+     "repo-component": "universe"
+    },
+    "name": "magic-wormhole"
    }
   },
   "wxmaxima": {
@@ -128032,6 +131092,26 @@
      "name": "asciidoc"
     },
     "name": "asciidoc"
+   }
+  },
+  "asciinema": {
+   "apt\\asciinema": {
+    "driver": "apt",
+    "fields": {
+     "name": "asciinema",
+     "repo-component": "universe"
+    },
+    "name": "asciinema"
+   }
+  },
+  "asciiquarium": {
+   "apt\\asciiquarium": {
+    "driver": "apt",
+    "fields": {
+     "name": "asciiquarium",
+     "repo-component": "universe"
+    },
+    "name": "asciiquarium"
    }
   },
   "asio": {
@@ -129203,6 +132283,15 @@
     "name": "cmake-qt-gui"
    }
   },
+  "cmatrix": {
+   "apt\\cmatrix": {
+    "driver": "apt",
+    "fields": {
+     "name": "cmatrix"
+    },
+    "name": "cmatrix"
+   }
+  },
   "cockpit": {
    "apt\\cockpit": {
     "driver": "apt",
@@ -129537,6 +132626,28 @@
      "name": "cppcheck"
     },
     "name": "cppcheck"
+   }
+  },
+  "croc": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "tarball\\croc": {
+    "driver": "tarball",
+    "fields": {
+     "installDir": "$CONFIGSYS_APP_DIR/croc",
+     "name": "croc",
+     "version": {
+      "asset": "croc_v*_Linux-64bit.tar.gz",
+      "github": "schollz/croc",
+      "strip-v": "true"
+     }
+    },
+    "name": "croc"
    }
   },
   "crystal": {
@@ -130676,6 +133787,40 @@
     "name": "libexpat1-dev"
    }
   },
+  "faker": {
+   "apt\\pipx": {
+    "driver": "apt",
+    "fields": {
+     "name": "pipx"
+    },
+    "name": "pipx"
+   },
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.config/bash/conf.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\pipx-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "glue": "pipx"
+    },
+    "name": "pipx-dotfiles"
+   },
+   "pipx\\faker": {
+    "driver": "pipx",
+    "fields": {
+     "name": "Faker"
+    },
+    "name": "Faker"
+   }
+  },
   "fastfetch": {
    "dotfiles\\fastfetch-dotfiles": {
     "driver": "dotfiles",
@@ -131649,6 +134794,23 @@
     "name": "gh"
    }
   },
+  "ghidra": {
+   "apt\\flatpak": {
+    "driver": "apt",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\ghidra": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "org.ghidra_sre.Ghidra"
+    },
+    "name": "org.ghidra_sre.Ghidra"
+   }
+  },
   "ghostty": {
    "appImage\\ghostty": {
     "driver": "appImage",
@@ -132335,6 +135497,28 @@
      "unit": "grafana-server"
     },
     "name": "grafana-service"
+   }
+  },
+  "grex": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "tarball\\grex": {
+    "driver": "tarball",
+    "fields": {
+     "installDir": "$CONFIGSYS_APP_DIR/grex",
+     "name": "grex",
+     "version": {
+      "asset": "grex-*-$ARCH-unknown-linux-musl.tar.gz",
+      "github": "pemistahl/grex",
+      "strip-v": "true"
+     }
+    },
+    "name": "grex"
    }
   },
   "grim": {
@@ -133488,6 +136672,62 @@
      "name": "jreleaser"
     },
     "name": "jreleaser"
+   }
+  },
+  "jrnl": {
+   "apt\\pipx": {
+    "driver": "apt",
+    "fields": {
+     "name": "pipx"
+    },
+    "name": "pipx"
+   },
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.config/bash/conf.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\jrnl-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/jrnl",
+      "src": "jrnl"
+     }
+    },
+    "name": "jrnl-dotfiles"
+   },
+   "dotfiles\\pipx-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "glue": "pipx"
+    },
+    "name": "pipx-dotfiles"
+   },
+   "pipx\\jrnl": {
+    "driver": "pipx",
+    "fields": {
+     "name": "jrnl"
+    },
+    "name": "jrnl"
+   }
+  },
+  "jrnl-dotfiles": {
+   "dotfiles\\jrnl-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/jrnl",
+      "src": "jrnl"
+     }
+    },
+    "name": "jrnl-dotfiles"
    }
   },
   "julia": {
@@ -134806,6 +138046,16 @@
     "name": "lmms"
    }
   },
+  "lolcat": {
+   "apt\\lolcat": {
+    "driver": "apt",
+    "fields": {
+     "name": "lolcat",
+     "repo-component": "universe"
+    },
+    "name": "lolcat"
+   }
+  },
   "lsblk": {
    "apt\\lsblk": {
     "driver": "apt",
@@ -135826,6 +139076,38 @@
     "name": "nethogs"
    }
   },
+  "newsboat": {
+   "apt\\newsboat": {
+    "driver": "apt",
+    "fields": {
+     "name": "newsboat",
+     "repo-component": "universe"
+    },
+    "name": "newsboat"
+   },
+   "dotfiles\\newsboat-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/newsboat",
+      "src": "newsboat"
+     }
+    },
+    "name": "newsboat-dotfiles"
+   }
+  },
+  "newsboat-dotfiles": {
+   "dotfiles\\newsboat-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/newsboat",
+      "src": "newsboat"
+     }
+    },
+    "name": "newsboat-dotfiles"
+   }
+  },
   "nextcloud": {
    "apt\\snapd": {
     "driver": "apt",
@@ -136147,6 +139429,23 @@
      "name": "com.obsproject.Studio"
     },
     "name": "com.obsproject.Studio"
+   }
+  },
+  "obsidian": {
+   "apt\\flatpak": {
+    "driver": "apt",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\obsidian": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "md.obsidian.Obsidian"
+    },
+    "name": "md.obsidian.Obsidian"
    }
   },
   "ocaml": {
@@ -137611,6 +140910,16 @@
     "name": "racket"
    }
   },
+  "radare2": {
+   "apt\\radare2": {
+    "driver": "apt",
+    "fields": {
+     "name": "radare2",
+     "repo-component": "universe"
+    },
+    "name": "radare2"
+   }
+  },
   "raku": {
    "apt\\raku": {
     "driver": "apt",
@@ -138122,6 +141431,23 @@
      "name": "scalacli"
     },
     "name": "scalacli"
+   }
+  },
+  "scratch": {
+   "apt\\flatpak": {
+    "driver": "apt",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\scratch": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "edu.mit.Scratch"
+    },
+    "name": "edu.mit.Scratch"
    }
   },
   "scribus": {
@@ -138906,6 +142232,16 @@
      "name": "tshark"
     },
     "name": "tshark"
+   }
+  },
+  "ttyd": {
+   "apt\\ttyd": {
+    "driver": "apt",
+    "fields": {
+     "name": "ttyd",
+     "repo-component": "universe"
+    },
+    "name": "ttyd"
    }
   },
   "typescript": {
@@ -140024,6 +143360,16 @@
      "repo-component": "universe"
     },
     "name": "wmenu"
+   }
+  },
+  "wormhole": {
+   "apt\\wormhole": {
+    "driver": "apt",
+    "fields": {
+     "name": "magic-wormhole",
+     "repo-component": "universe"
+    },
+    "name": "magic-wormhole"
    }
   },
   "wxmaxima": {

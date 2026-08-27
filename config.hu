@@ -46,7 +46,7 @@ profiles: {
     iso-image-tools: [ caligula  balena-etcher ]
 
     text-editors: [ asciidoc  android-studio  antigravity  emacs  helix  jetbrains-toolbox  micro  neovim  vscode
-        vscodium  zed  fresh ]
+        vscodium  zed  fresh  jrnl ]
 
     desktops-compositors: [ budgie  cosmic  fvwm2  gnome  i3  kde  lxqt  mate  qtile  sway  xfce  xmonad ]
     web-browsers: [ chrome  chromium  firefox  brave  opera  vivaldi  edge  tor-browser  lynx ]
@@ -62,7 +62,7 @@ profiles: {
     db-servers: [ postgresql-service  mariadb-service  redis-service  mongodb  mongodb-service ]
 
     net-tools: [ iproute2  impala  bluetui  curl  wireshark  wireshark-group  tshark  tcpdump  nmap  mtr  gping  traceroute  iperf3
-        socat  ethtool  whois  netcat  dig  iftop  nethogs  nload  rsync  vnstat  dnspeep  bridge-utils ]
+        socat  ethtool  whois  netcat  dig  iftop  nethogs  nload  rsync  vnstat  dnspeep  bridge-utils  croc  wormhole  ttyd ]
     cloud-tools: [ awscli  gcloud  azure-cli  opentofu  grpcurl ]
 
     android-tools: [ jmtpfs  android-file-transfer ]
@@ -105,7 +105,7 @@ profiles: {
 
     jvm-dev: [ +jvm-lang  +jvm-tools ]
 
-    dev-tools: [ gh  git  lazygit  jq  just  protobuf  yq  liquibase  perf  jenkins  po4a  source-highlight ]
+    dev-tools: [ gh  git  lazygit  jq  just  protobuf  yq  liquibase  perf  jenkins  po4a  source-highlight  obsidian  ghidra  radare2  faker  grex ]
     autotools: [ autoconf  automake  libtool  pkg-config  bison  flex ]   // the basic C-dev / GNU build toolchain (make/cmake are their own tools)
     version-control-tools: [ git  lazygit  mercurial  subversion  cvs  perforce  fossil  bazaar  git-lfs  patch ]
     compression-tools: [ zstd  lz4  p7zip  zip  unzip  unrar  rar ]
@@ -117,18 +117,19 @@ profiles: {
 
     ai-tools: [ claude-code  codex  llm  aider  ollama  impala ]
 
-    web-tools: [ prettier  httpie  mitmproxy  xh  websocat  postman  insomnia  bruno  jmeter  nginx ]
+    web-tools: [ prettier  httpie  mitmproxy  xh  websocat  postman  insomnia  bruno  jmeter  nginx  newsboat ]
     web-package-managers: [ bun  pnpm  yarn ]
 
     graphics-dev: [ vulkan-dev  opengl  glfw  sdl  sfml  egl  glew  glm  libdecor ]
     game-dev: [ godot  godots  godl  unityhub ]
+    scratch-lang: [ scratch ]
     ui-dev: [ flutter  gtk  gtk3  gtkmm  cairo  libinput  pixman  libdecor  libx11  libxcb  xcb-util  libxcursor  libxft  libxi  libxinerama  libxkbcommon  libxrandr  libxxf86vm  ncurses  pango  qt  wayland  wayland-protocols  wlroots  wxpython  wxwidgets ]
 
     web-dev: [ +web-lang  +web-browsers  +web-package-managers  +web-lang  +web-tools ]
 
     electronics-tools: [ arduino  kicad  gnuradio ]
-    graphics-tools: [ blender  chafa  durdraw  krita  gimp  inkscape  darktable  freecad  openscad  scribus  digikam  grim  slurp  pastel  webcamize  wl-screenrec  swaybg  figlet  pywal16 ]
-    video-editors: [ kdenlive  shotcut  openshot  flowblade  olive ]
+    graphics-tools: [ blender  chafa  durdraw  krita  gimp  inkscape  darktable  freecad  openscad  scribus  digikam  grim  slurp  pastel  webcamize  wl-screenrec  swaybg  figlet  pywal16  cbonsai  cmatrix  pipes  asciiquarium  lolcat ]
+    video-editors: [ kdenlive  shotcut  openshot  flowblade  olive  asciinema ]
     audio-tools: [ audacity  espeak  ardour  lmms  tenacity  musescore  hydrogen  carla  sonic-pi  supercollider
         qjackctl  yabridge  pulseaudio-utils ]
 
