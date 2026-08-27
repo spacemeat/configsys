@@ -37,7 +37,7 @@ profiles: {
     system-utils: [ fastfetch  lsblk ]
     system-monitors: [ btop  htop  bottom  atop  bmon  iotop  s-tui  glances  nvtop  wavemon  /*sysdig*/  dstat  lm-sensors ]
     disk-usage-utils: [ ncdu  duf  dysk ]
-    file-browsers: [ mc  yazi  superfile  fff  tree ]
+    file-browsers: [ mc  yazi  superfile  fff  tree  eza ]
     shells: [ fish  nushell  zsh ]
     configuration-tools: [ ansible  stow ]
     password-passkey: [ bitwarden  vaultwarden  doppler  pass  gnupg  openssh-server ]
@@ -86,10 +86,11 @@ profiles: {
     python-lang: [ python3.11  python3.12  python3.13  python3.14  cython  pyenv  uv  jupyterlab  pytest  python3-dev ]
     ruby-lang: [ ruby  bundler ]
     rust-lang: [ rust  miniforge ]
+    scratch-lang: [ scratch ]
     web-lang: [ node  typescript  sass ]
     jvm-lang: [ +java-lang  +kotlin-lang  +scala-lang  +clojure-lang  +groovy-lang ]
     languages: [ +c-cpp-lang  +dotnet-lang  +go-lang  +haskell-lang  +jvm-lang  +lisp-lang  +lua-lang
-        +objective-c-lang  +ocaml-lang  +php-lang  +python-lang  +ruby-lang  +rust-lang  +tcl-lang  +web-lang
+        +objective-c-lang  +ocaml-lang  +php-lang  +python-lang  +ruby-lang  +rust-lang  +scratch-lang  +tcl-lang  +web-lang
         elm  erlang  elixir  julia  nim  nasm  octave odin  perl  r  zig  gfortran  gnat  gnucobol  d  crystal
         dart  raku  v  gleam  fennel  swift  racket  guile  c3  deno  roc ]
 
@@ -122,7 +123,6 @@ profiles: {
 
     graphics-dev: [ vulkan-dev  opengl  glfw  sdl  sfml  egl  glew  glm  libdecor ]
     game-dev: [ godot  godots  godl  unityhub ]
-    scratch-lang: [ scratch ]
     ui-dev: [ flutter  gtk  gtk3  gtkmm  cairo  libinput  pixman  libdecor  libx11  libxcb  xcb-util  libxcursor  libxft  libxi  libxinerama  libxkbcommon  libxrandr  libxxf86vm  ncurses  pango  qt  wayland  wayland-protocols  wlroots  wxpython  wxwidgets ]
 
     web-dev: [ +web-lang  +web-browsers  +web-package-managers  +web-lang  +web-tools ]

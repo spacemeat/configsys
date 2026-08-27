@@ -2850,6 +2850,37 @@
     "name": "expat"
    }
   },
+  "eza": {
+   "dotfiles\\eza-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/eza",
+      "src": "eza"
+     }
+    },
+    "name": "eza-dotfiles"
+   },
+   "pacman\\eza": {
+    "driver": "pacman",
+    "fields": {
+     "name": "eza"
+    },
+    "name": "eza"
+   }
+  },
+  "eza-dotfiles": {
+   "dotfiles\\eza-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/eza",
+      "src": "eza"
+     }
+    },
+    "name": "eza-dotfiles"
+   }
+  },
   "faker": {
    "dotfiles\\bash-dotfiles": {
     "driver": "dotfiles",
@@ -16672,6 +16703,50 @@
     "name": "libexpat1-dev"
    }
   },
+  "eza": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "dotfiles\\eza-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/eza",
+      "src": "eza"
+     }
+    },
+    "name": "eza-dotfiles"
+   },
+   "tarball\\eza": {
+    "driver": "tarball",
+    "fields": {
+     "installDir": "$CONFIGSYS_APP_DIR/eza",
+     "name": "eza",
+     "version": {
+      "asset": "eza_$ARCH-unknown-linux-gnu.tar.gz",
+      "github": "eza-community/eza",
+      "strip-v": "true"
+     }
+    },
+    "name": "eza"
+   }
+  },
+  "eza-dotfiles": {
+   "dotfiles\\eza-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/eza",
+      "src": "eza"
+     }
+    },
+    "name": "eza-dotfiles"
+   }
+  },
   "faker": {
    "apt\\python3-pip": {
     "driver": "apt",
@@ -30198,6 +30273,50 @@
     "name": "libexpat1-dev"
    }
   },
+  "eza": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "dotfiles\\eza-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/eza",
+      "src": "eza"
+     }
+    },
+    "name": "eza-dotfiles"
+   },
+   "tarball\\eza": {
+    "driver": "tarball",
+    "fields": {
+     "installDir": "$CONFIGSYS_APP_DIR/eza",
+     "name": "eza",
+     "version": {
+      "asset": "eza_$ARCH-unknown-linux-gnu.tar.gz",
+      "github": "eza-community/eza",
+      "strip-v": "true"
+     }
+    },
+    "name": "eza"
+   }
+  },
+  "eza-dotfiles": {
+   "dotfiles\\eza-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/eza",
+      "src": "eza"
+     }
+    },
+    "name": "eza-dotfiles"
+   }
+  },
   "faker": {
    "apt\\pipx": {
     "driver": "apt",
@@ -43489,6 +43608,50 @@
     "name": "libexpat1-dev"
    }
   },
+  "eza": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "dotfiles\\eza-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/eza",
+      "src": "eza"
+     }
+    },
+    "name": "eza-dotfiles"
+   },
+   "tarball\\eza": {
+    "driver": "tarball",
+    "fields": {
+     "installDir": "$CONFIGSYS_APP_DIR/eza",
+     "name": "eza",
+     "version": {
+      "asset": "eza_$ARCH-unknown-linux-gnu.tar.gz",
+      "github": "eza-community/eza",
+      "strip-v": "true"
+     }
+    },
+    "name": "eza"
+   }
+  },
+  "eza-dotfiles": {
+   "dotfiles\\eza-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/eza",
+      "src": "eza"
+     }
+    },
+    "name": "eza-dotfiles"
+   }
+  },
   "faker": {
    "apt\\pipx": {
     "driver": "apt",
@@ -56731,6 +56894,37 @@
     "name": "expat-devel"
    }
   },
+  "eza": {
+   "dnf\\eza": {
+    "driver": "dnf",
+    "fields": {
+     "name": "eza"
+    },
+    "name": "eza"
+   },
+   "dotfiles\\eza-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/eza",
+      "src": "eza"
+     }
+    },
+    "name": "eza-dotfiles"
+   }
+  },
+  "eza-dotfiles": {
+   "dotfiles\\eza-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/eza",
+      "src": "eza"
+     }
+    },
+    "name": "eza-dotfiles"
+   }
+  },
   "faker": {
    "dnf\\pipx": {
     "driver": "dnf",
@@ -69662,6 +69856,37 @@
     "name": "expat-devel"
    }
   },
+  "eza": {
+   "dnf\\eza": {
+    "driver": "dnf",
+    "fields": {
+     "name": "eza"
+    },
+    "name": "eza"
+   },
+   "dotfiles\\eza-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/eza",
+      "src": "eza"
+     }
+    },
+    "name": "eza-dotfiles"
+   }
+  },
+  "eza-dotfiles": {
+   "dotfiles\\eza-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/eza",
+      "src": "eza"
+     }
+    },
+    "name": "eza-dotfiles"
+   }
+  },
   "faker": {
    "dnf\\pipx": {
     "driver": "dnf",
@@ -81788,6 +82013,37 @@
     "name": "expat"
    }
   },
+  "eza": {
+   "brew\\eza": {
+    "driver": "brew",
+    "fields": {
+     "name": "eza"
+    },
+    "name": "eza"
+   },
+   "dotfiles\\eza-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/eza",
+      "src": "eza"
+     }
+    },
+    "name": "eza-dotfiles"
+   }
+  },
+  "eza-dotfiles": {
+   "dotfiles\\eza-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/eza",
+      "src": "eza"
+     }
+    },
+    "name": "eza-dotfiles"
+   }
+  },
   "faker": {
    "brew\\pipx": {
     "driver": "brew",
@@ -92972,6 +93228,50 @@
      "name": "libexpat1-dev"
     },
     "name": "libexpat1-dev"
+   }
+  },
+  "eza": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "dotfiles\\eza-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/eza",
+      "src": "eza"
+     }
+    },
+    "name": "eza-dotfiles"
+   },
+   "tarball\\eza": {
+    "driver": "tarball",
+    "fields": {
+     "installDir": "$CONFIGSYS_APP_DIR/eza",
+     "name": "eza",
+     "version": {
+      "asset": "eza_$ARCH-unknown-linux-gnu.tar.gz",
+      "github": "eza-community/eza",
+      "strip-v": "true"
+     }
+    },
+    "name": "eza"
+   }
+  },
+  "eza-dotfiles": {
+   "dotfiles\\eza-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/eza",
+      "src": "eza"
+     }
+    },
+    "name": "eza-dotfiles"
    }
   },
   "faker": {
@@ -106597,6 +106897,50 @@
      "name": "expat-devel"
     },
     "name": "expat-devel"
+   }
+  },
+  "eza": {
+   "dnf\\curl": {
+    "driver": "dnf",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "dotfiles\\eza-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/eza",
+      "src": "eza"
+     }
+    },
+    "name": "eza-dotfiles"
+   },
+   "tarball\\eza": {
+    "driver": "tarball",
+    "fields": {
+     "installDir": "$CONFIGSYS_APP_DIR/eza",
+     "name": "eza",
+     "version": {
+      "asset": "eza_$ARCH-unknown-linux-gnu.tar.gz",
+      "github": "eza-community/eza",
+      "strip-v": "true"
+     }
+    },
+    "name": "eza"
+   }
+  },
+  "eza-dotfiles": {
+   "dotfiles\\eza-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/eza",
+      "src": "eza"
+     }
+    },
+    "name": "eza-dotfiles"
    }
   },
   "faker": {
@@ -120230,6 +120574,50 @@
     "name": "libexpat1-dev"
    }
   },
+  "eza": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "dotfiles\\eza-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/eza",
+      "src": "eza"
+     }
+    },
+    "name": "eza-dotfiles"
+   },
+   "tarball\\eza": {
+    "driver": "tarball",
+    "fields": {
+     "installDir": "$CONFIGSYS_APP_DIR/eza",
+     "name": "eza",
+     "version": {
+      "asset": "eza_$ARCH-unknown-linux-gnu.tar.gz",
+      "github": "eza-community/eza",
+      "strip-v": "true"
+     }
+    },
+    "name": "eza"
+   }
+  },
+  "eza-dotfiles": {
+   "dotfiles\\eza-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/eza",
+      "src": "eza"
+     }
+    },
+    "name": "eza-dotfiles"
+   }
+  },
   "faker": {
    "apt\\python3-pip": {
     "driver": "apt",
@@ -133785,6 +134173,38 @@
      "name": "libexpat1-dev"
     },
     "name": "libexpat1-dev"
+   }
+  },
+  "eza": {
+   "apt\\eza": {
+    "driver": "apt",
+    "fields": {
+     "name": "eza",
+     "repo-component": "universe"
+    },
+    "name": "eza"
+   },
+   "dotfiles\\eza-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/eza",
+      "src": "eza"
+     }
+    },
+    "name": "eza-dotfiles"
+   }
+  },
+  "eza-dotfiles": {
+   "dotfiles\\eza-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/eza",
+      "src": "eza"
+     }
+    },
+    "name": "eza-dotfiles"
    }
   },
   "faker": {

@@ -330,6 +330,13 @@
                            { via: native  when: "rhel"  requires: epel } ] }   // EL: EPEL-only; Alpine: community repo
         rsync: { attrs: [ CLI FOSS copyleft ] description: "rsync — fast incremental file transfer and synchronization." install: [ { via: native } ] }   // core package on every family
         tree:  { attrs: [ CLI FOSS GNU copyleft ] description: "tree — list a directory as an indented tree." install: [ { via: native } ] }   // `tree` on every family
+        eza:   { attrs: [ CLI FOSS copyleft ] suggests: eza-dotfiles  description: "eza — a modern, colorful `ls` replacement (the maintained fork of exa)."
+                 install: [ { via: native  when: "(fedora or arch or opensuse or alpine or fedora_atomic) and not amzn" }
+                            { via: native  when: "(ubuntu >= 24.04) or (debian >= 13)"  repo-component: universe }   // only newer Debian/Ubuntu carry eza
+                            { via: tarball  when: "not alpine"  installDir: "$CONFIGSYS_APP_DIR/eza"  requires: glibc
+                              version: { github: eza-community/eza  strip-v: true  asset: "eza_$ARCH-unknown-linux-gnu.tar.gz" } }   // EUPL; older Debian/Ubuntu + EL/amzn -> tarball
+                            { via: cargo  name: eza } ] }   // cargo as the universal build / pinnable alt
+        eza-dotfiles: { description: "eza theme/config, linked into place." install: [ { via: dotfiles  config: { src: eza  dst: $XDG_CONFIG_HOME/eza } } ] }
         figlet: { attrs: [ CLI FOSS permissive ] description: "FIGlet — render text as large ASCII-art banners (`figlet`)."
                   install: [ { via: native  when: "not (rhel or amzn)" }
                              { via: native  when: "rhel"  requires: epel } ] }   // EL via EPEL
