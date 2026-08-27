@@ -617,7 +617,7 @@ def _shell_glue_root(ctx):
     return getattr(ctx.paths, 'primary_dotfiles_dir', None) or ctx.paths.user_dotfiles_dir
 
 
-def _dispatch_op(ctx, names, op, *, ledger=None, version=None):
+def _dispatch_op(ctx, names, op, *, ledger=None, version=None, no_deps=False):
     names = _expand_profile_args(ctx, names)
     if names is None:
         return 1
@@ -629,14 +629,20 @@ def _dispatch_op(ctx, names, op, *, ledger=None, version=None):
     # Apply the requested op to the *named* units; expand_plan folds in dependency
     # installs (e.g. apt\flatpak before flatpak\firefox) and orders the whole thing.
     base_plan = [(op, key, units[key]) for key in sorted(roots)]
-    # `auto-tighten`: if a consumer being installed floors a toolchain above its INSTALLED version
-    # (e.g. goimports needs go>=1.21 but resident go is 1.18), schedule the provider's upgrade too.
-    # Dependency order already sequences a provider before its consumer, so the upgrade lands first.
-    if op in ('install', 'upgrade', 'set-version') and ctx.config.auto_tighten():
-        from . import flooradvise
-        for pkey, prc in flooradvise.resident_upgrades_probed(ctx, units).items():
-            base_plan.append(('upgrade', pkey, prc))
-    plan = expand_plan(base_plan, units)
+    if no_deps:
+        # targeted rebuild: run the op on ONLY the named unit(s) — no dependency folding, no
+        # auto-tighten. A source component installs unconditionally, so this force-REBUILDS it
+        # (e.g. to pick up a recipe change at an unchanged version) without rebuilding its deps.
+        plan = base_plan
+    else:
+        # `auto-tighten`: if a consumer being installed floors a toolchain above its INSTALLED version
+        # (e.g. goimports needs go>=1.21 but resident go is 1.18), schedule the provider's upgrade too.
+        # Dependency order already sequences a provider before its consumer, so the upgrade lands first.
+        if op in ('install', 'upgrade', 'set-version') and ctx.config.auto_tighten():
+            from . import flooradvise
+            for pkey, prc in flooradvise.resident_upgrades_probed(ctx, units).items():
+                base_plan.append(('upgrade', pkey, prc))
+        plan = expand_plan(base_plan, units)
 
     rc_code = 0
     failures = []            # every problem record (some fatal, some installed-with-a-warning)
@@ -811,7 +817,7 @@ def cmd_fix_scope(ctx, args):
 
 def cmd_install(ctx, args):
     ctx.paths.dotfiles_force = getattr(args, 'force', False)   # read by the dotfiles driver
-    return _dispatch_op(ctx, args.names, 'install')
+    return _dispatch_op(ctx, args.names, 'install', no_deps=getattr(args, 'no_deps', False))
 
 
 def cmd_remove(ctx, args):
@@ -820,7 +826,7 @@ def cmd_remove(ctx, args):
 
 def cmd_upgrade(ctx, args):
     ctx.paths.dotfiles_force = getattr(args, 'force', False)
-    return _dispatch_op(ctx, args.names, 'upgrade')
+    return _dispatch_op(ctx, args.names, 'upgrade', no_deps=getattr(args, 'no_deps', False))
 
 
 def cmd_lock(ctx, args):
@@ -2483,6 +2489,11 @@ def build_parser():
             sp.add_argument('--force', action='store_true',
                             help='dotfiles: overwrite an un-adopted on-system file (backed up to '
                                  '.pre-configsys). Prefer `configsys dotfiles capture` first.')
+            sp.add_argument('--no-deps', action='store_true',
+                            help='run the op on ONLY the named component(s) — skip dependency '
+                                 'installs. A source component rebuilds unconditionally, so this '
+                                 'force-rebuilds just it (e.g. to pick up a recipe change) without '
+                                 'rebuilding its already-built deps.')
 
     fs = sub.add_parser('fix-scope', help='reconcile installed units whose actual scope differs '
                                           'from the declared scope (moves the install, not config)')
