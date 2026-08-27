@@ -74,7 +74,14 @@ def clean_version(s):
     t = _EPOCH.sub('', str(s).strip())
     if t[:1] in ('v', 'V') and t[1:2].isdigit():
         t = t[1:]
-    t = re.sub(r'~.*$', '', t)          # packaging suffix (~0ubuntu2)
+    # A `~` usually separates a real dotted upstream version from a packaging/pre-release suffix
+    # (1.2.3~0ubuntu2 -> 1.2.3). But a `0~<snapshot>` scheme (e.g. abseil's 0~20210324.2, where a
+    # date is packaged below a future 1.0) has NOTHING meaningful before the `~` — stripping it would
+    # collapse the whole version to a bare "0". So only drop the `~`-suffix when the part before it is
+    # a real dotted version; otherwise keep the snapshot.
+    head = t.split('~', 1)[0]
+    if '~' in t and '.' in head:
+        t = head
     t = re.sub(r'-\d[^-]*$', '', t)     # Debian revision (-1, -1ubuntu1.12): it starts with a digit,
                                         # so a `-rc1` pre-release (starts with a letter) is kept
     return t if t[:1].isdigit() else s

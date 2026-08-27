@@ -64,3 +64,13 @@ def test_clean_version_strips_debian_revision():
     assert clean_version('15.2.0-rc1') == '15.2.0-rc1'         # pre-release KEPT (starts with letter)
     assert clean_version('1.7.0-beta2') == '1.7.0-beta2'
     assert clean_version('14.1.0') == '14.1.0'                 # already clean
+
+
+def test_clean_version_keeps_snapshot_after_bare_zero_tilde():
+    # abseil et al. package a date snapshot as `0~<date>` (sorts below a future 1.0). The part
+    # BEFORE `~` is a meaningless placeholder, so stripping the `~`-suffix would collapse it to "0" —
+    # keep the snapshot instead. A real dotted version before `~` still drops the suffix.
+    from configsys.osversion import clean_version
+    assert clean_version('0~20210324.2-2ubuntu0.3') == '0~20210324.2'   # snapshot kept (not "0")
+    assert clean_version('1.2.3~0ubuntu2') == '1.2.3'                   # real version -> suffix dropped
+    assert clean_version('1.2.3~rc1') == '1.2.3'
