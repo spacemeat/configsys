@@ -802,6 +802,7 @@ def test_glue_confd_symlinked_to_store_makes_no_self_loop(tmp_path):
     assert store_file.is_file() and not store_file.is_symlink()   # real file, NOT a self-symlink
     assert store_file.read_text() == '# glue\n'
     assert os.path.realpath(confd / 'btop.sh') == os.path.realpath(store_file)
+    assert df.get_version(rc) == 'linked'   # detected installed despite the dir-symlink (real file, not a per-file link)
 
     # a second install is idempotent and must not crash or re-create the loop
     assert df.install(rc).ok

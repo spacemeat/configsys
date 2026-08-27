@@ -526,8 +526,9 @@ class DotFiles(Driver):
         for name, src, dst, _absorb, kind in self._specs(rc):
             srcpath, tier, root = self._resolve(src, rc, kind)
             tgt = self._expand(dst)
-            if tgt.is_symlink() and os.path.realpath(tgt) == os.path.realpath(srcpath):
-                state = 'linked'
+            if srcpath.exists() and os.path.realpath(str(tgt)) == os.path.realpath(str(srcpath)):
+                state = 'linked'                          # our link, or a store copy reached via a
+                                                          # dir-symlinked conf.d (realpath identity)
             elif tgt.is_symlink() or tgt.exists():        # a real file/dir, or a foreign symlink
                 state = ('adopted' if tier == 'user'
                          else 'managed' if kind == 'config' and marker else 'unmanaged')
@@ -664,8 +665,12 @@ class DotFiles(Driver):
         for _name, src, _dst, absorb, kind in specs:
             srcpath, _tier, _root = self._resolve(src, rc, kind)
             tgt = self._expand(_dst)
-            if not (tgt.is_symlink() and srcpath.exists()
-                    and os.path.realpath(tgt) == os.path.realpath(srcpath)):
+            # "linked" = the deploy target RESOLVES to the managed store copy. That holds for our
+            # per-file symlink AND when ~/.config/<shell>/conf.d is itself a dir-symlink to the store
+            # (the target is then a real file that IS the store copy) — realpath identity covers both;
+            # requiring tgt.is_symlink() would wrongly report the dir-link case as uninstalled.
+            if not (srcpath.exists()
+                    and os.path.realpath(str(tgt)) == os.path.realpath(str(srcpath))):
                 all_linked = False
                 break
         if all_linked:
