@@ -93,15 +93,12 @@ profiles: {
         elm  erlang  elixir  julia  nim  nasm  octave odin  perl  r  zig  gfortran  gnat  gnucobol  d  crystal
         dart  raku  v  gleam  fennel  swift  racket  guile  c3  deno  roc ]
 
-    c-cpp-libs: [ dbus-dev  swig  protobuf-dev ]
+    c-cpp-libs: [ abseil dbus-dev  swig  protobuf-dev ]
     c-cpp-dev-libs: [ pipewire-dev  ffmpeg-dev  libdrm-dev  libgit2  libsecret  nng  opencascade  unixodbc
         // consolidated from the configsys-source plugin into base routes (build deps useful in their own right):
         ncurses  libevent  openssl  zlib  asio  tinyxml2  snappy  bzip2  libzstd  liblz4  libsodium  liburing
         libaio  libunwind  libdwarf  libiberty  libcurl  expat  sdl2-ttf  sdl2-image  libpcap  sqlite  libmtp
-        fuse  libusb  libmagic  libidn2
-        // X11 / Wayland-wlroots / XCB stacks:
-        libx11  libxinerama  libxft  wayland  wayland-protocols  wlroots  libinput  libxkbcommon  pixman
-        cairo  pango  libxcb  xcb-util ]
+        fuse  libusb  libmagic  libidn2 ]
 
     jvm-tools: [ mvnd  maven  gradle  sdkman  ant  jbang  coursier  springboot  quarkus  micronaut
         jreleaser  visualvm  jmc ]
@@ -123,9 +120,9 @@ profiles: {
     web-tools: [ prettier  httpie  mitmproxy  xh  websocat  postman  insomnia  bruno  jmeter  nginx ]
     web-package-managers: [ bun  pnpm  yarn ]
 
-    graphics-dev: [ vulkan-dev  gtk  gtkmm  qt  opengl  glfw  sdl  sfml  egl  glew  glm  gtk3  libdecor  libxcursor  libxi  libxrandr  libxxf86vm  wxpython  wxwidgets ]
+    graphics-dev: [ vulkan-dev  opengl  glfw  sdl  sfml  egl  glew  glm  libdecor ]
     game-dev: [ godot  unityhub ]
-    ui-dev: [ flutter ]
+    ui-dev: [ flutter  gtk  gtk3  gtkmm  cairo  libinput  pixman  libdecor  libx11  libxcb  xcb-util  libxcursor  libxft  libxi  libxinerama  libxkbcommon  libxrandr  libxxf86vm  ncurses  pango  qt  wayland  wayland-protocols  wlroots  wxpython  wxwidgets ]
 
     web-dev: [ +web-lang  +web-browsers  +web-package-managers  +web-lang  +web-tools ]
 
