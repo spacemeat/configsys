@@ -124,7 +124,7 @@ class Source(Driver):
             marker_name = f'{MARKER_PREFIX}{rc.comp}.version'
             acquire = (f'{{ [ -d {srcq}/.git ] || git clone {shlex.quote(repo)} {srcq}; }} && '
                        f'git -C {srcq} fetch --tags --force && '
-                       f'git -C {srcq} checkout {shlex.quote(ref)} && '
+                       f'git -C {srcq} checkout -f {shlex.quote(ref)} && '     # -f resets tracked files (a build may patch one)
                        f'git -C {srcq} clean -xfd -e {shlex.quote(marker_name)}')
             stamp = version or ref
         else:                                       # archive acquisition: download + extract

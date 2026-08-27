@@ -36,7 +36,7 @@ def test_install_command_construction(tmp_path):
     Source(r, paths=None).install(src_unit(tmp_path, ref='v1.2.3'))
     cmd = r.calls[0]
     assert f'git clone https://example.com/x/mytool.git {src}' in cmd
-    assert f'git -C {src} checkout v1.2.3' in cmd
+    assert f'git -C {src} checkout -f v1.2.3' in cmd
     assert 'git -C' in cmd and 'fetch --tags' in cmd
     # after checkout, scrub the tree pristine so a reused checkout's stale build/ (cached
     # CMakeCache etc.) can't survive — preserving only our version marker
@@ -69,7 +69,7 @@ def test_version_static_forms_the_tag(tmp_path):
     # a static version + tag-prefix -> checkout the v-prefixed tag, no network
     Source(r, paths=None).install(
         src_unit(tmp_path, version={'static': '2.0.0'}, **{'tag-prefix': 'v'}))
-    assert 'checkout v2.0.0' in r.calls[0] and 'printf %s 2.0.0' in r.calls[0]
+    assert 'checkout -f v2.0.0' in r.calls[0] and 'printf %s 2.0.0' in r.calls[0]
 
 
 def test_build_accepts_a_list_of_steps(tmp_path):
