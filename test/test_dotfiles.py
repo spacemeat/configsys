@@ -757,3 +757,24 @@ def test_absorb_falls_back_to_backup_if_target_taken(tmp_path):
     assert (p.home / '.bash_aliases').is_symlink()
     assert taken.read_text() == 'someone-elses\n'                     # not clobbered
     assert (p.home / '.bash_aliases.pre-configsys').read_text() == 'mine\n'   # backed up instead
+
+
+def test_materialize_to_replaces_a_looping_symlink(tmp_path):
+    # regression: the store path had become a symlink into a cycle (store <-> conf.d). `dest.exists()`
+    # returns False for a looping link (its stat raises ELOOP), so the old code tried copy2 THROUGH
+    # the loop and crashed with "Too many levels of symbolic links". _materialize_to must clear the
+    # symlink and write a real file.
+    src = tmp_path / 'src.fish'
+    src.write_text('# glue\n')
+    a = tmp_path / 'store.fish'
+    b = tmp_path / 'confd.fish'
+    a.symlink_to(b)                       # store -> conf.d
+    b.symlink_to(a)                       # conf.d -> store  (a 2-cycle)
+    assert a.is_symlink() and not a.exists()   # looping link: present but exists()==False
+
+    df = DotFiles(Runner(pretend=False), paths=None)
+    out = df._materialize_to(src, a, executable=True)
+    assert out == a
+    assert a.is_file() and not a.is_symlink()  # now a real file, loop broken
+    assert a.read_text() == '# glue\n'
+    assert os.stat(a).st_mode & 0o111          # executable bit set (glue)

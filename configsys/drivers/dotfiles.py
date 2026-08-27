@@ -379,6 +379,12 @@ class DotFiles(Driver):
         (or srcpath if there's nothing to copy / no dest).'''
         if dest is None or not srcpath.exists():
             return srcpath
+        # The store must hold a REAL, user-owned file — a symlink at `dest` is never valid here. It
+        # also breaks the `dest.exists()` check: a LOOPING/broken link makes exists() falsely report
+        # "absent" (its stat raises), so copy2 would then open THROUGH the loop -> ELOOP crash. Clear
+        # any symlink (is_symlink() lstats, so it sees a looping link) before copying real content.
+        if dest.is_symlink():
+            dest.unlink()
         if not dest.exists():
             dest.parent.mkdir(parents=True, exist_ok=True)
             if srcpath.is_dir():
