@@ -115,9 +115,17 @@ class Source(Driver):
         repo = rc.fields.get('repo')
         if repo:                                    # git acquisition: clone-or-fetch, checkout ref
             ref = self._ref(rc, version)
+            # After checkout, scrub the tree PRISTINE (`git clean -xfd`): a reused checkout keeps
+            # git-ignored build artifacts — an out-of-source `build/` with a cached CMakeCache.txt,
+            # autotools' generated files — so a rebuild reuses the STALE configuration and a recipe
+            # change (or a failed partial build) never takes effect. Exclude our version marker so a
+            # failed rebuild doesn't wrongly read as uninstalled (the artifacts install into $PREFIX,
+            # which the clean never touches). See docs/driver-resilience-plan.md (transactional builds).
+            marker_name = f'{MARKER_PREFIX}{rc.comp}.version'
             acquire = (f'{{ [ -d {srcq}/.git ] || git clone {shlex.quote(repo)} {srcq}; }} && '
                        f'git -C {srcq} fetch --tags --force && '
-                       f'git -C {srcq} checkout {shlex.quote(ref)}')
+                       f'git -C {srcq} checkout {shlex.quote(ref)} && '
+                       f'git -C {srcq} clean -xfd -e {shlex.quote(marker_name)}')
             stamp = version or ref
         else:                                       # archive acquisition: download + extract
             url = self.download_url(rc, version)

@@ -38,6 +38,9 @@ def test_install_command_construction(tmp_path):
     assert f'git clone https://example.com/x/mytool.git {src}' in cmd
     assert f'git -C {src} checkout v1.2.3' in cmd
     assert 'git -C' in cmd and 'fetch --tags' in cmd
+    # after checkout, scrub the tree pristine so a reused checkout's stale build/ (cached
+    # CMakeCache etc.) can't survive — preserving only our version marker
+    assert f'git -C {src} clean -xfd -e .configsys-mytool.version' in cmd
     assert (f'( cd {src} && export PATH="$HOME/.cargo/bin:$HOME/sdks/go/bin:$HOME/go/bin:$PATH" && '
             f'./configure --prefix={prefix} && make && make install )') in cmd
     assert f'mkdir -p {src.parent} {prefix}' in cmd
