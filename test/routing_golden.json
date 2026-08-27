@@ -970,15 +970,6 @@
     "name": "git"
    }
   },
-  "bridge-utils": {
-   "pacman\\bridge-utils": {
-    "driver": "pacman",
-    "fields": {
-     "name": "bridge-utils"
-    },
-    "name": "bridge-utils"
-   }
-  },
   "bruno": {
    "flatpak\\bruno": {
     "driver": "flatpak",
@@ -5566,12 +5557,36 @@
    }
   },
   "k6": {
-   "pacman\\k6": {
-    "driver": "pacman",
+   "aur\\k6": {
+    "driver": "aur",
     "fields": {
      "name": "k6"
     },
     "name": "k6"
+   },
+   "dotfiles\\git-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "~/.gitconfig",
+      "src": "gitconfig"
+     }
+    },
+    "name": "git-dotfiles"
+   },
+   "pacman\\base-devel": {
+    "driver": "pacman",
+    "fields": {
+     "name": "base-devel"
+    },
+    "name": "base-devel"
+   },
+   "pacman\\git": {
+    "driver": "pacman",
+    "fields": {
+     "name": "git"
+    },
+    "name": "git"
    }
   },
   "k9s": {
@@ -12916,13 +12931,36 @@
    }
   },
   "zork": {
-   "pacman\\zork": {
-    "driver": "pacman",
+   "aur\\zork": {
+    "driver": "aur",
     "fields": {
-     "name": "frotz",
-     "repo-component": "universe"
+     "name": "frotz"
     },
     "name": "frotz"
+   },
+   "dotfiles\\git-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "~/.gitconfig",
+      "src": "gitconfig"
+     }
+    },
+    "name": "git-dotfiles"
+   },
+   "pacman\\base-devel": {
+    "driver": "pacman",
+    "fields": {
+     "name": "base-devel"
+    },
+    "name": "base-devel"
+   },
+   "pacman\\git": {
+    "driver": "pacman",
+    "fields": {
+     "name": "git"
+    },
+    "name": "git"
    }
   },
   "zoxide": {
@@ -22268,23 +22306,6 @@
      }
     },
     "name": "pgcli-dotfiles"
-   }
-  },
-  "phoronix-test-suite": {
-   "apt\\phoronix-test-suite": {
-    "driver": "apt",
-    "fields": {
-     "name": "phoronix-test-suite"
-    },
-    "name": "phoronix-test-suite"
-   },
-   "apt\\php": {
-    "driver": "apt",
-    "fields": {
-     "name": "php-cli",
-     "repo-component": "universe"
-    },
-    "name": "php-cli"
    }
   },
   "php": {
@@ -35357,23 +35378,6 @@
     "name": "pgcli-dotfiles"
    }
   },
-  "phoronix-test-suite": {
-   "apt\\phoronix-test-suite": {
-    "driver": "apt",
-    "fields": {
-     "name": "phoronix-test-suite"
-    },
-    "name": "phoronix-test-suite"
-   },
-   "apt\\php": {
-    "driver": "apt",
-    "fields": {
-     "name": "php-cli",
-     "repo-component": "universe"
-    },
-    "name": "php-cli"
-   }
-  },
   "php": {
    "apt\\php": {
     "driver": "apt",
@@ -48363,23 +48367,6 @@
      }
     },
     "name": "pgcli-dotfiles"
-   }
-  },
-  "phoronix-test-suite": {
-   "apt\\phoronix-test-suite": {
-    "driver": "apt",
-    "fields": {
-     "name": "phoronix-test-suite"
-    },
-    "name": "phoronix-test-suite"
-   },
-   "apt\\php": {
-    "driver": "apt",
-    "fields": {
-     "name": "php-cli",
-     "repo-component": "universe"
-    },
-    "name": "php-cli"
    }
   },
   "php": {
@@ -64267,15 +64254,6 @@
     "name": "wmenu"
    }
   },
-  "wrk": {
-   "dnf\\wrk": {
-    "driver": "dnf",
-    "fields": {
-     "name": "wrk"
-    },
-    "name": "wrk"
-   }
-  },
   "wxmaxima": {
    "dnf\\wxmaxima": {
     "driver": "dnf",
@@ -76867,15 +76845,6 @@
      "repo-component": "universe"
     },
     "name": "wmenu"
-   }
-  },
-  "wrk": {
-   "dnf\\wrk": {
-    "driver": "dnf",
-    "fields": {
-     "name": "wrk"
-    },
-    "name": "wrk"
    }
   },
   "wxmaxima": {
@@ -96681,23 +96650,6 @@
      }
     },
     "name": "pgcli-dotfiles"
-   }
-  },
-  "phoronix-test-suite": {
-   "apt\\phoronix-test-suite": {
-    "driver": "apt",
-    "fields": {
-     "name": "phoronix-test-suite"
-    },
-    "name": "phoronix-test-suite"
-   },
-   "apt\\php": {
-    "driver": "apt",
-    "fields": {
-     "name": "php-cli",
-     "repo-component": "universe"
-    },
-    "name": "php-cli"
    }
   },
   "php": {
@@ -123238,23 +123190,6 @@
     "name": "pgcli-dotfiles"
    }
   },
-  "phoronix-test-suite": {
-   "apt\\phoronix-test-suite": {
-    "driver": "apt",
-    "fields": {
-     "name": "phoronix-test-suite"
-    },
-    "name": "phoronix-test-suite"
-   },
-   "apt\\php": {
-    "driver": "apt",
-    "fields": {
-     "name": "php-cli",
-     "repo-component": "universe"
-    },
-    "name": "php-cli"
-   }
-  },
   "php": {
    "apt\\php": {
     "driver": "apt",
@@ -136327,23 +136262,6 @@
      }
     },
     "name": "pgcli-dotfiles"
-   }
-  },
-  "phoronix-test-suite": {
-   "apt\\phoronix-test-suite": {
-    "driver": "apt",
-    "fields": {
-     "name": "phoronix-test-suite"
-    },
-    "name": "phoronix-test-suite"
-   },
-   "apt\\php": {
-    "driver": "apt",
-    "fields": {
-     "name": "php-cli",
-     "repo-component": "universe"
-    },
-    "name": "php-cli"
    }
   },
   "php": {

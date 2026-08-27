@@ -239,16 +239,16 @@
             requires: [ python3, cpp-toolchain ]
             install: [ { via: native  name: { apt: cython3  dnf: python3-Cython  pacman: cython  zypper: python313-Cython  apk: cython } } ] }
         python3-dev: { attrs: [ lib FOSS permissive ] description: "CPython development headers (`Python.h`) for building C extension modules."
-            install: [ { via: native  name: { apt: python3-dev  dnf: python3-devel  pacman: python  apk: python3-dev  zypper: python3-devel  brew: python } } ] }
+            install: [ { via: native  name: { apt: python3-dev  dnf: python3-devel  pacman: python  apk: python3-dev  zypper: python313-devel  brew: python } } ] }   // zypper: openSUSE ships version-scoped python devel (no bare python3-devel); bump on the distro's default-python move
         numpy: { attrs: [ lib FOSS permissive ] description: "NumPy — the fundamental array-computing package for Python."
-            install: [ { via: native  name: { apt: python3-numpy  dnf: python3-numpy  pacman: python-numpy  apk: py3-numpy  zypper: python3-numpy } }
-                       { via: pip  name: numpy } ] }   // NAMESWEEP PENDING
+            install: [ { via: native  when: "not opensuse"  name: { apt: python3-numpy  dnf: python3-numpy  pacman: python-numpy  apk: py3-numpy } }
+                       { via: pip  name: numpy } ] }   // openSUSE ships only version-scoped python3XY-numpy (churns) — let pip cover it
         pytest: { attrs: [ CLI FOSS permissive ] description: "pytest — the Python testing framework (`pytest`)."
-            install: [ { via: native  name: { apt: python3-pytest  dnf: python3-pytest  pacman: python-pytest  apk: py3-pytest  zypper: python3-pytest } }
-                       { via: pip  name: pytest } ] }   // NAMESWEEP PENDING
+            install: [ { via: native  when: "not opensuse"  name: { apt: python3-pytest  dnf: python3-pytest  pacman: python-pytest  apk: py3-pytest } }
+                       { via: pip  name: pytest } ] }   // openSUSE ships only version-scoped python3XY-pytest (churns) — let pip cover it
         wxpython: { attrs: [ lib GUI FOSS FOSSish ] description: "wxPython (Phoenix) — Python bindings for the wxWidgets GUI toolkit."
-            install: [ { via: native  name: { apt: python3-wxgtk4.0  dnf: python3-wxpython4  pacman: python-wxpython  zypper: python3-wxWidgets } }
-                       { via: pip  name: wxpython } ] }   // NAMESWEEP PENDING
+            install: [ { via: native  when: "not opensuse"  name: { apt: python3-wxgtk4.0  dnf: python3-wxpython4  pacman: python-wxpython  apk: py3-wxpython } }
+                       { via: pip  name: wxpython } ] }   // openSUSE ships only version-scoped python3XY-wxPython (churns) — let pip cover it
 
         // pyenv itself + the C libraries it needs to COMPILE CPython — the `via: pyenv` method's deps
         // (see drivers.pyenv). pyenv installs user-scope under ~/.pyenv via its official installer.
@@ -419,8 +419,8 @@
         // iozone — filesystem I/O benchmark. apt package is `iozone3`; Arch via AUR. Free to use but
         // not OSI-licensed (source-available). NAMESWEEP PENDING (name varies).
         iozone: { attrs: [ CLI source-available ] description: "IOzone — filesystem I/O benchmark (sequential/random read & write across sizes)."
-            install: [ { via: native  when: "debian or fedora or opensuse"  name: { apt: iozone3  default: iozone } }
-                       { via: aur  when: "arch"  name: iozone } ] }
+            install: [ { via: native  when: "debian or fedora"  name: { apt: iozone3  default: iozone } }
+                       { via: aur  when: "arch"  name: iozone } ] }   // not in openSUSE repos
         // --- benchmarks (disk / CPU / memory / GPU + a suite). Most are in-repo everywhere (EL via
         // EPEL); the graphics ones need a working GL/Vulkan stack at runtime. ---
         fio: { attrs: [ CLI FOSS GNU copyleft ] description: "fio — the Flexible I/O tester: the standard storage benchmark (Jens Axboe)."
@@ -449,20 +449,19 @@
                        { via: aur     when: "arch" } ] }   // niche: Debian/brew/AUR; declines elsewhere
         glmark2: { attrs: [ GUI FOSS GNU copyleft ] description: "glmark2 — an OpenGL (ES) 2.0 rendering benchmark."
             install: [ { via: native  when: "rhel"  requires: epel }
-                       { via: native  when: "not rhel"  repo-component: universe } ] }
+                       { via: native  when: "not rhel and not alpine"  repo-component: universe } ] }   // not packaged on alpine
         vkmark: { attrs: [ GUI FOSS GNU copyleft ] description: "vkmark — an extensible Vulkan benchmark with configurable scenes."
             install: [ { via: native  when: "debian or fedora or arch or opensuse" } ] }   // needs a Vulkan driver at runtime; not packaged on alpine/atomic/amzn
         // Phoronix Test Suite — the big automated benchmark orchestrator. Only hard dep is PHP (CLI +
         // DOM). In-repo on most distros (EL via EPEL, Arch via AUR); Amazon/atomic decline.
         phoronix-test-suite: { attrs: [ CLI app FOSS GNU copyleft ] description: "Phoronix Test Suite — automated cross-platform benchmarking/orchestration (`phoronix-test-suite`)." requires: php
-            install: [ { via: native  when: "(debian or fedora or alpine or opensuse) and not amzn" }
+            install: [ { via: native  when: "(fedora or opensuse) and not amzn" }   // absent from Ubuntu 24.04 & Alpine repos; Debian-family/alpine build from upstream instead
                        { via: native  when: "rhel"  requires: epel }
                        { via: aur     when: "arch" } ] }
         // --- HTTP load / throughput testers (peers of jmeter; grouped here as perf tools) ---
         // k6 — native on Arch/Alpine + brew; Grafana's own apt/dnf repos on debian/redhat.
         k6: { attrs: [ CLI FOSS copyleft ] description: "Grafana k6 — a modern load-testing tool scripted in JavaScript (`k6`)."
-            install: [ { via: native  when: "arch" }               // extra: k6
-                       { via: native  when: "alpine" }             // community: k6
+            install: [ { via: aur     when: "arch"  name: k6 }     // not in extra/community anymore; AUR: k6
                        { via: native  when: "fedora_atomic" }      // brew formula `k6`
                        { via: native  when: "debian"  name: k6     // Grafana's official apt repo
                          pubkey-url: "https://dl.k6.io/key.gpg"  pubkey-path: /usr/share/keyrings/k6.asc
@@ -476,9 +475,9 @@
                        { via: aur     when: "arch"  name: hey }
                        { via: go-install  when: "not (arch or fedora_atomic)"  name: "github.com/rakyll/hey"  requires: go } ] }
         wrk: { attrs: [ CLI FOSS permissive ] description: "wrk — a modern, multithreaded HTTP benchmarking tool."
-            install: [ { via: native  when: "fedora or alpine or opensuse" }
+            install: [ { via: native  when: "alpine or opensuse" }
                        { via: native  when: "fedora_atomic" }      // brew formula `wrk`
-                       { via: aur     when: "arch"  name: wrk } ] }   // debian/EL: not packaged -> build wg/wrk from source
+                       { via: aur     when: "arch"  name: wrk } ] }   // debian/EL/Fedora: not packaged -> build wg/wrk from source
         vegeta: { attrs: [ CLI FOSS permissive ] description: "Vegeta — a versatile HTTP load-testing tool driven by a constant request rate (`vegeta`)."
             install: [ { via: native  when: "fedora_atomic" }      // brew formula `vegeta`
                        { via: aur     when: "arch"  name: vegeta }
@@ -1292,7 +1291,7 @@
         // ===================== network + web-dev tooling =====================
         // iproute2 — `ip`/`ss`/`tc`. Native everywhere; EL's dnf calls the package `iproute`.
         iproute2:   { attrs: [ CLI FOSS copyleft ] description: "iproute2 — modern Linux networking tools (`ip`, `ss`)." install: [ { via: native  name: { dnf: iproute  default: iproute2 } } ] }
-        bridge-utils: { attrs: [ CLI FOSS GNU copyleft legacy ] description: "bridge-utils (`brctl`) — legacy Ethernet-bridge admin (superseded by iproute2's `ip`)." install: [ { via: native  when: "not fedora_atomic" } ] }   // Linux-only; not on brew
+        bridge-utils: { attrs: [ CLI FOSS GNU copyleft legacy ] description: "bridge-utils (`brctl`) — legacy Ethernet-bridge admin (superseded by iproute2's `ip`)." install: [ { via: native  when: "not fedora_atomic and not arch" } ] }   // Linux-only; not on brew; dropped from Arch repos (iproute2 replaces it)
         dosfstools: { attrs: [ CLI FOSS GNU copyleft ] description: "dosfstools — create and check FAT filesystems (`mkfs.fat`, `fsck.fat`)." install: [ { via: native  when: "not fedora_atomic" } ] }   // Linux-only; not on brew
         // Capture & probe — native CLI staples. Name maps only where distros diverge; the
         // rest carry the same package name everywhere.
@@ -1801,7 +1800,7 @@
         // --- video editors (NLEs): native in the big repos + Flathub (universal / atomic / the gaps) ---
         kdenlive:   { attrs: [ GUI app FOSS copyleft ] description: "Kdenlive — KDE's multi-track non-linear video editor." install: [ { via: native  when: "debian or fedora or arch or opensuse or alpine"  repo-component: universe }  { via: native  when: "rhel"  requires: epel }  { via: flatpak  hub: flathub  app: org.kde.kdenlive } ] }
         shotcut:    { attrs: [ GUI app FOSS copyleft ] description: "Shotcut — a cross-platform non-linear video editor." install: [ { via: native  when: "(debian or fedora or arch or opensuse) and not amzn"  repo-component: universe }  { via: flatpak  hub: flathub  app: org.shotcut.Shotcut } ] }
-        openshot:   { attrs: [ GUI app FOSS copyleft ] description: "OpenShot — an easy-to-use non-linear video editor (`openshot-qt`)." install: [ { via: native  when: "debian or fedora or opensuse"  name: { apt: openshot-qt  default: openshot } }  { via: flatpak  hub: flathub  app: org.openshot.OpenShot } ] }
+        openshot:   { attrs: [ GUI app FOSS copyleft ] description: "OpenShot — an easy-to-use non-linear video editor (`openshot-qt`)." install: [ { via: native  when: "debian or fedora or opensuse"  name: { apt: openshot-qt  zypper: openshot-qt  default: openshot } }  { via: flatpak  hub: flathub  app: org.openshot.OpenShot } ] }
         flowblade:  { attrs: [ GUI app FOSS copyleft ] description: "Flowblade — a fast, multitrack non-linear video editor." install: [ { via: native  when: "debian or fedora"  repo-component: universe }  { via: flatpak  hub: flathub  app: io.github.jliljebl.Flowblade } ] }
         olive:      { attrs: [ GUI app FOSS copyleft ] description: "Olive — a non-linear video editor (alpha)." install: [ { via: flatpak  hub: flathub  app: org.olivevideoeditor.Olive }  { via: appImage  name: Olive  scope: user  version: { github: olive-editor/olive  asset: "Olive-*-linux-x86_64.AppImage" }  path: ~/apps/olive.appimage } ] }   // no stable distro packages; flatpak default, AppImage fallback
 
@@ -1826,7 +1825,8 @@
         // Frotz Z-machine interpreter and supply the Zork data files yourself (`frotz zork1.z5`).
         zork: { attrs: [ CLI game ] description: "Zork — the Infocom classic, played via the Frotz Z-machine interpreter (bring your own .z5 data files)."
             install: [ { via: native  when: "rhel"  requires: epel  name: frotz }
-                       { via: native  when: "not rhel"  repo-component: universe  name: frotz } ] }
+                       { via: native  when: "not rhel and not arch and not opensuse"  repo-component: universe  name: frotz }
+                       { via: aur     when: "arch"  name: frotz } ] }   // frotz: not in Arch/openSUSE repos (Arch via AUR)
 
         // --- media servers (self-hosted; each runs a systemd service — the <name>-service pulls the
         // install AND starts it, like the db-servers) + media players (kodi/stremio, flatpak-first) ---
@@ -2269,7 +2269,7 @@
         // directory. Native on the debian + redhat families (apt universe, Fedora); AUR on Arch.
         // NOT in openSUSE/Alpine repos (name sweep confirmed), so the native binding is gated to
         // where it exists. The package pulls its FUSE + libmtp deps transitively (no `requires:`).
-        android-file-transfer: { attrs: [ GUI CLI FOSS permissive ] description: "Android File Transfer for Linux — MTP access to Android devices (`android-file-transfer`, `aft-mtp-cli`)." install: [ { via: native  when: "debian or fedora or opensuse" }  { via: aur  when: "arch"  name: android-file-transfer-linux } ] }   // NAMESWEEP PENDING
+        android-file-transfer: { attrs: [ GUI CLI FOSS permissive ] description: "Android File Transfer for Linux — MTP access to Android devices (`android-file-transfer`, `aft-mtp-cli`)." install: [ { via: native  when: "debian or fedora or opensuse"  name: { zypper: android-file-transfer-linux  default: android-file-transfer } }  { via: aur  when: "arch"  name: android-file-transfer-linux } ] }
         jmtpfs: { attrs: [ CLI FOSS copyleft ] description: "jmtpfs — mount MTP devices (Android phones) via FUSE."
             install: [
                 { via: aur     when: "arch" }
@@ -2418,7 +2418,7 @@
         // profile). Same package name on every manager except pkg-config. Source plugins/recipes
         // `requires:` these by name and resolve them from here. ---
         pkg-config: { attrs: [ CLI FOSS copyleft ] description: "pkg-config — query installed libraries' compile and link flags at build time."
-                      install: [ { via: native  name: { dnf: pkgconf-pkg-config  pacman: pkgconf  apk: pkgconf } } ] }
+                      install: [ { via: native  name: { dnf: pkgconf-pkg-config  pacman: pkgconf  apk: pkgconf  zypper: pkgconf-pkg-config } } ] }
         autoconf: { attrs: [ CLI toolchain FOSS GNU copyleft ] description: "GNU Autoconf — generate a package's `configure` script from autotools macros." install: [ { via: native } ] }
         automake: { attrs: [ CLI toolchain FOSS GNU copyleft ] description: "GNU Automake — generate a portable Makefile.in from Makefile.am (autotools)." install: [ { via: native } ] }
         libtool:  { attrs: [ CLI lib FOSS GNU copyleft ] description: "GNU Libtool — a portable shared-library build/link wrapper (autotools)." install: [ { via: native } ] }
@@ -2496,7 +2496,7 @@
         lldb:      { attrs: [ CLI FOSS permissive ] description: "LLDB — the LLVM project's debugger." install: [ { via: native } ] }
         heaptrack: { attrs: [ CLI GUI app FOSS copyleft ] description: "heaptrack — a heap-memory profiler for C/C++." install: [ { via: native  when: "(debian or redhat or arch or opensuse) and not amzn" } ] }
         clang-tidy: { attrs: [ CLI FOSS permissive ] description: "clang-tidy — C/C++ linter and static analyzer." install: [ { via: native  when: "debian or redhat or arch"  name: { apt: clang-tidy  dnf: clang-tools-extra  pacman: clang } } ] }
-        clang: { attrs: [ CLI toolchain FOSS permissive ] description: "Clang/LLVM — the distro's default C/C++/Obj-C compiler (`clang`; the versioned clang-NN are separate components)." install: [ { via: native  name: { brew: llvm  default: clang } } ] }   // distro-default clang; brew ships it in `llvm`
+        clang: { attrs: [ CLI toolchain FOSS permissive ] description: "Clang/LLVM — the distro's default C/C++/Obj-C compiler (`clang`; the versioned clang-NN are separate components)." install: [ { via: native  when: "not alpine"  name: { brew: llvm  default: clang } } ] }   // distro-default clang; brew ships it in `llvm`; Alpine has only version-scoped clangNN (use the clang-N components)
         clangd:    { attrs: [ CLI FOSS permissive ] description: "clangd — the LLVM C/C++ language server (LSP)." install: [ { via: native  when: "debian or redhat or arch"  name: { apt: clangd  dnf: clang-tools-extra  pacman: clang } } ] }
         // perf is kernel-coupled and named per-distro: Ubuntu's linux-tools track, Debian's
         // linux-perf (also Proxmox); plain `perf` on redhat/arch/opensuse/alpine.
@@ -3022,7 +3022,7 @@
         // NAMESWEEP PENDING.
         webkit2gtk: { attrs: [ lib FOSS copyleft ] description: "WebKitGTK — the GTK web-content engine (dev headers + libs; the surf/tabbed engine)."
             install: [ { via: native  when: "(debian or redhat or arch or alpine or opensuse) and not amzn"  repo-component: universe
-                         name: { apt: libwebkit2gtk-4.1-dev  dnf: webkit2gtk4.1-devel  pacman: webkit2gtk-4.1  apk: webkit2gtk-dev  zypper: webkit2gtk3-devel  default: webkit2gtk } } ] }
+                         name: { apt: libwebkit2gtk-4.1-dev  dnf: webkit2gtk4.1-devel  pacman: webkit2gtk-4.1  apk: webkit2gtk-4.1-dev  zypper: webkitgtk4-devel  default: webkit2gtk } } ] }
         libxi: { attrs: [ lib FOSS permissive ] description: "libXi — X11 Input-extension client library (dev)."
             install: [ { via: native  when: "(debian or redhat or arch or alpine or opensuse or fedora_atomic) and not amzn"
                          name: { apt: libxi-dev  dnf: libXi-devel  pacman: libxi  apk: libxi-dev  zypper: libXi-devel  brew: libxi } } ] }
@@ -3040,7 +3040,7 @@
                          name: { apt: libdecor-0-dev  dnf: libdecor-devel  pacman: libdecor  apk: libdecor-dev  zypper: libdecor-devel } } ] }   // Wayland/Linux; not on brew
         nng: { attrs: [ lib FOSS permissive ] description: "nng — the nanomsg-next-gen lightweight messaging library (dev)."
             install: [ { via: native  when: "(debian or redhat or arch or alpine or opensuse or fedora_atomic) and not amzn"
-                         name: { apt: libnng-dev  dnf: nng-devel  pacman: nng  apk: nng-dev  zypper: libnng-devel  brew: nng } } ] }
+                         name: { apt: libnng-dev  dnf: nng-devel  pacman: nng  apk: nng-dev  zypper: nng-devel  brew: nng } } ] }
         unixodbc: { attrs: [ lib FOSS copyleft ] description: "unixODBC — the ODBC driver manager for Unix (dev)."
             install: [ { via: native  when: "(debian or redhat or arch or alpine or opensuse or fedora_atomic) and not amzn"
                          name: { apt: unixodbc-dev  dnf: unixODBC-devel  pacman: unixodbc  apk: unixodbc-dev  zypper: unixODBC-devel  brew: unixodbc } } ] }
@@ -3055,7 +3055,7 @@
                              libocct-ocaf-dev, libocct-visualization-dev, libocct-data-exchange-dev ]  installed-name: libocct-foundation-dev }
                        { via: native  when: "fedora"    name: opencascade-devel }
                        { via: native  when: "arch"      name: opencascade }
-                       { via: native  when: "opensuse"  name: opencascade-devel } ] }   // not in EL base / alpine / brew
+                       { via: native  when: "opensuse"  name: occt-devel } ] }   // not in EL base / alpine / brew
         // --- shared build-dep dev libraries (consolidated from the configsys-source plugin: source
         // recipes `requires:` these by name, so they live in core where any component can reach them).
         // Debian/Fedora/openSUSE split a -dev/-devel package; Arch (and the component-name `default:`)
@@ -3071,7 +3071,7 @@
         asio:     { attrs: [ lib FOSS permissive ] description: "Asio — cross-platform C++ async I/O + networking library (header library; dev package)."
                     install: [ { via: native  name: { apt: libasio-dev     dnf: asio-devel      apk: asio-dev      zypper: asio-devel } } ] }
         tinyxml2: { attrs: [ lib FOSS permissive ] description: "TinyXML-2 — a small, efficient C++ XML parser (dev headers + lib)."
-                    install: [ { via: native  name: { apt: libtinyxml2-dev dnf: tinyxml2-devel  apk: tinyxml2-dev  zypper: libtinyxml2-devel } } ] }
+                    install: [ { via: native  name: { apt: libtinyxml2-dev dnf: tinyxml2-devel  apk: tinyxml2-dev  zypper: tinyxml2-devel } } ] }
         fmt:      { attrs: [ lib FOSS permissive ] description: "{fmt} — modern, safe C++ text-formatting library (dev headers + libs)."
                     install: [ { via: native  name: { apt: libfmt-dev      dnf: fmt-devel       apk: fmt-dev       zypper: fmt-devel } } ] }
         gflags:   { attrs: [ lib FOSS permissive ] description: "gflags — Google's C++ command-line flags library (dev headers + libs)."
@@ -3105,9 +3105,9 @@
         expat:    { attrs: [ lib FOSS permissive ] description: "Expat — a fast stream-oriented XML parser library (dev headers + libs)."
                     install: [ { via: native  name: { apt: libexpat1-dev   dnf: expat-devel     pacman: expat  apk: expat-dev    zypper: libexpat-devel } } ] }
         sdl2-ttf:   { attrs: [ lib FOSS permissive ] description: "SDL2_ttf — TrueType font rendering for SDL2 (dev headers + libs)."
-                      install: [ { via: native  name: { apt: libsdl2-ttf-dev    dnf: SDL2_ttf-devel    pacman: sdl2_ttf    apk: sdl2_ttf-dev    zypper: libSDL2_ttf-devel } } ] }
+                      install: [ { via: native  name: { apt: libsdl2-ttf-dev    dnf: SDL2_ttf-devel    pacman: sdl2_ttf    apk: sdl2_ttf-dev    zypper: SDL2_ttf-devel } } ] }
         sdl2-image: { attrs: [ lib FOSS permissive ] description: "SDL2_image — image-file loading for SDL2 (dev headers + libs)."
-                      install: [ { via: native  name: { apt: libsdl2-image-dev  dnf: SDL2_image-devel  pacman: sdl2_image  apk: sdl2_image-dev  zypper: libSDL2_image-devel } } ] }
+                      install: [ { via: native  name: { apt: libsdl2-image-dev  dnf: SDL2_image-devel  pacman: sdl2_image  apk: sdl2_image-dev  zypper: SDL2_image-devel } } ] }
         gettext:  { attrs: [ CLI FOSS GNU copyleft ] description: "GNU gettext — internationalization message tools (msgfmt) and the libintl runtime."
                     install: [ { via: native  name: { apk: gettext-dev     zypper: gettext-tools } } ] }
         libpcap:  { attrs: [ lib FOSS permissive ] description: "libpcap — the packet-capture library (nethogs needs it)."
@@ -3135,7 +3135,7 @@
         libxtst:     { attrs: [ lib FOSS permissive ] description: "libXtst — the X11 Test/Record extension library (dev headers + libs)."
                        install: [ { via: native  name: { apt: libxtst-dev  dnf: libXtst-devel  apk: libxtst-dev  zypper: libXtst-devel  default: libxtst } } ] }
         libxss:      { attrs: [ lib FOSS permissive ] description: "libXScrnSaver — the X11 screen-saver extension library (dev headers + libs)."
-                       install: [ { via: native  name: { apt: libxss-dev  dnf: libXScrnSaver-devel  apk: libxscrnsaver-dev  zypper: libXScrnSaver-devel  pacman: libxss  default: libxss } } ] }
+                       install: [ { via: native  name: { apt: libxss-dev  dnf: libXScrnSaver-devel  apk: libxscrnsaver-dev  zypper: libXss-devel  pacman: libxss  default: libxss } } ] }
         libpng:      { attrs: [ lib FOSS permissive ] description: "libpng — the reference PNG image library (dev headers + libs)."
                        install: [ { via: native  name: { apt: libpng-dev  dnf: libpng-devel  apk: libpng-dev  zypper: libpng16-devel  default: libpng } } ] }
         libjpeg:     { attrs: [ lib FOSS permissive ] description: "libjpeg-turbo — the JPEG image codec library (dev headers + libs)."
@@ -3145,7 +3145,7 @@
         wayland-protocols: { attrs: [ lib FOSS permissive ] description: "wayland-protocols — the standard Wayland protocol XML definitions."
                              install: [ { via: native  name: { apt: wayland-protocols  dnf: wayland-protocols-devel  apk: wayland-protocols  zypper: wayland-protocols-devel  default: wayland-protocols } } ] }
         wlroots:           { attrs: [ lib FOSS permissive ] description: "wlroots — the modular Wayland compositor library (dev headers + libs)."
-                             install: [ { via: native  name: { apt: libwlroots-dev  dnf: wlroots-devel  apk: wlroots-dev  zypper: wlroots-devel  pacman: wlroots0.20 } } ] }
+                             install: [ { via: native  name: { apt: libwlroots-dev  dnf: wlroots-devel  apk: wlroots0.19-dev  zypper: wlroots-devel  pacman: wlroots0.20 } } ] }   // apk/pacman names are soname-versioned — bump when the distro moves wlroots
         libinput:          { attrs: [ lib FOSS permissive ] description: "libinput — the input-device handling library for Wayland/X (dev headers + libs)."
                              install: [ { via: native  name: { apt: libinput-dev  dnf: libinput-devel  apk: libinput-dev  zypper: libinput-devel  default: libinput } } ] }
         libxkbcommon:      { attrs: [ lib FOSS permissive ] description: "libxkbcommon — the keyboard keymap handling library (dev headers + libs)."
