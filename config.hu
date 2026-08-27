@@ -121,7 +121,7 @@ profiles: {
     web-package-managers: [ bun  pnpm  yarn ]
 
     graphics-dev: [ vulkan-dev  opengl  glfw  sdl  sfml  egl  glew  glm  libdecor ]
-    game-dev: [ godot  unityhub ]
+    game-dev: [ godot  godots  godl  unityhub ]
     ui-dev: [ flutter  gtk  gtk3  gtkmm  cairo  libinput  pixman  libdecor  libx11  libxcb  xcb-util  libxcursor  libxft  libxi  libxinerama  libxkbcommon  libxrandr  libxxf86vm  ncurses  pango  qt  wayland  wayland-protocols  wlroots  wxpython  wxwidgets ]
 
     web-dev: [ +web-lang  +web-browsers  +web-package-managers  +web-lang  +web-tools ]

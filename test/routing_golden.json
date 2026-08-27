@@ -4008,6 +4008,39 @@
     "name": "go-dotfiles"
    }
   },
+  "godl": {
+   "aur\\godl": {
+    "driver": "aur",
+    "fields": {
+     "name": "godl"
+    },
+    "name": "godl"
+   },
+   "dotfiles\\git-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "~/.gitconfig",
+      "src": "gitconfig"
+     }
+    },
+    "name": "git-dotfiles"
+   },
+   "pacman\\base-devel": {
+    "driver": "pacman",
+    "fields": {
+     "name": "base-devel"
+    },
+    "name": "base-devel"
+   },
+   "pacman\\git": {
+    "driver": "pacman",
+    "fields": {
+     "name": "git"
+    },
+    "name": "git"
+   }
+  },
   "godot": {
    "flatpak\\godot": {
     "driver": "flatpak",
@@ -4023,6 +4056,39 @@
      "name": "flatpak"
     },
     "name": "flatpak"
+   }
+  },
+  "godots": {
+   "aur\\godots": {
+    "driver": "aur",
+    "fields": {
+     "name": "godots-bin"
+    },
+    "name": "godots-bin"
+   },
+   "dotfiles\\git-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "~/.gitconfig",
+      "src": "gitconfig"
+     }
+    },
+    "name": "git-dotfiles"
+   },
+   "pacman\\base-devel": {
+    "driver": "pacman",
+    "fields": {
+     "name": "base-devel"
+    },
+    "name": "base-devel"
+   },
+   "pacman\\git": {
+    "driver": "pacman",
+    "fields": {
+     "name": "git"
+    },
+    "name": "git"
    }
   },
   "goimports": {
@@ -17646,6 +17712,23 @@
     "name": "go-dotfiles"
    }
   },
+  "godl": {
+   "apt\\flatpak": {
+    "driver": "apt",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\godl": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "io.github.sockeye_d.godl"
+    },
+    "name": "io.github.sockeye_d.godl"
+   }
+  },
   "godot": {
    "apt\\flatpak": {
     "driver": "apt",
@@ -17661,6 +17744,23 @@
      "name": "org.godotengine.Godot"
     },
     "name": "org.godotengine.Godot"
+   }
+  },
+  "godots": {
+   "apt\\flatpak": {
+    "driver": "apt",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\godots": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "io.github.MakovWait.Godots"
+    },
+    "name": "io.github.MakovWait.Godots"
    }
   },
   "goimports": {
@@ -30818,6 +30918,23 @@
     "name": "go-dotfiles"
    }
   },
+  "godl": {
+   "apt\\flatpak": {
+    "driver": "apt",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\godl": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "io.github.sockeye_d.godl"
+    },
+    "name": "io.github.sockeye_d.godl"
+   }
+  },
   "godot": {
    "apt\\flatpak": {
     "driver": "apt",
@@ -30833,6 +30950,23 @@
      "name": "org.godotengine.Godot"
     },
     "name": "org.godotengine.Godot"
+   }
+  },
+  "godots": {
+   "apt\\flatpak": {
+    "driver": "apt",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\godots": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "io.github.MakovWait.Godots"
+    },
+    "name": "io.github.MakovWait.Godots"
    }
   },
   "goimports": {
@@ -43803,6 +43937,23 @@
     "name": "go-dotfiles"
    }
   },
+  "godl": {
+   "apt\\flatpak": {
+    "driver": "apt",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\godl": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "io.github.sockeye_d.godl"
+    },
+    "name": "io.github.sockeye_d.godl"
+   }
+  },
   "godot": {
    "apt\\flatpak": {
     "driver": "apt",
@@ -43818,6 +43969,23 @@
      "name": "org.godotengine.Godot"
     },
     "name": "org.godotengine.Godot"
+   }
+  },
+  "godots": {
+   "apt\\flatpak": {
+    "driver": "apt",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\godots": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "io.github.MakovWait.Godots"
+    },
+    "name": "io.github.MakovWait.Godots"
    }
   },
   "goimports": {
@@ -56405,6 +56573,23 @@
     "name": "go-dotfiles"
    }
   },
+  "godl": {
+   "dnf\\flatpak": {
+    "driver": "dnf",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\godl": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "io.github.sockeye_d.godl"
+    },
+    "name": "io.github.sockeye_d.godl"
+   }
+  },
   "godot": {
    "dnf\\flatpak": {
     "driver": "dnf",
@@ -56420,6 +56605,23 @@
      "name": "org.godotengine.Godot"
     },
     "name": "org.godotengine.Godot"
+   }
+  },
+  "godots": {
+   "dnf\\flatpak": {
+    "driver": "dnf",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\godots": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "io.github.MakovWait.Godots"
+    },
+    "name": "io.github.MakovWait.Godots"
    }
   },
   "goimports": {
@@ -68998,6 +69200,23 @@
     "name": "go-dotfiles"
    }
   },
+  "godl": {
+   "dnf\\flatpak": {
+    "driver": "dnf",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\godl": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "io.github.sockeye_d.godl"
+    },
+    "name": "io.github.sockeye_d.godl"
+   }
+  },
   "godot": {
    "dnf\\flatpak": {
     "driver": "dnf",
@@ -69013,6 +69232,23 @@
      "name": "org.godotengine.Godot"
     },
     "name": "org.godotengine.Godot"
+   }
+  },
+  "godots": {
+   "dnf\\flatpak": {
+    "driver": "dnf",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\godots": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "io.github.MakovWait.Godots"
+    },
+    "name": "io.github.MakovWait.Godots"
    }
   },
   "goimports": {
@@ -80671,6 +80907,16 @@
     "name": "go-dotfiles"
    }
   },
+  "godl": {
+   "flatpak\\godl": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "io.github.sockeye_d.godl"
+    },
+    "name": "io.github.sockeye_d.godl"
+   }
+  },
   "godot": {
    "flatpak\\godot": {
     "driver": "flatpak",
@@ -80679,6 +80925,16 @@
      "name": "org.godotengine.Godot"
     },
     "name": "org.godotengine.Godot"
+   }
+  },
+  "godots": {
+   "flatpak\\godots": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "io.github.MakovWait.Godots"
+    },
+    "name": "io.github.MakovWait.Godots"
    }
   },
   "goimports": {
@@ -92028,6 +92284,23 @@
     "name": "go-dotfiles"
    }
   },
+  "godl": {
+   "apt\\flatpak": {
+    "driver": "apt",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\godl": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "io.github.sockeye_d.godl"
+    },
+    "name": "io.github.sockeye_d.godl"
+   }
+  },
   "godot": {
    "apt\\flatpak": {
     "driver": "apt",
@@ -92043,6 +92316,23 @@
      "name": "org.godotengine.Godot"
     },
     "name": "org.godotengine.Godot"
+   }
+  },
+  "godots": {
+   "apt\\flatpak": {
+    "driver": "apt",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\godots": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "io.github.MakovWait.Godots"
+    },
+    "name": "io.github.MakovWait.Godots"
    }
   },
   "goimports": {
@@ -105057,6 +105347,23 @@
     "name": "go-dotfiles"
    }
   },
+  "godl": {
+   "dnf\\flatpak": {
+    "driver": "dnf",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\godl": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "io.github.sockeye_d.godl"
+    },
+    "name": "io.github.sockeye_d.godl"
+   }
+  },
   "godot": {
    "dnf\\flatpak": {
     "driver": "dnf",
@@ -105072,6 +105379,23 @@
      "name": "org.godotengine.Godot"
     },
     "name": "org.godotengine.Godot"
+   }
+  },
+  "godots": {
+   "dnf\\flatpak": {
+    "driver": "dnf",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\godots": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "io.github.MakovWait.Godots"
+    },
+    "name": "io.github.MakovWait.Godots"
    }
   },
   "goimports": {
@@ -118566,6 +118890,23 @@
     "name": "go-dotfiles"
    }
   },
+  "godl": {
+   "apt\\flatpak": {
+    "driver": "apt",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\godl": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "io.github.sockeye_d.godl"
+    },
+    "name": "io.github.sockeye_d.godl"
+   }
+  },
   "godot": {
    "apt\\flatpak": {
     "driver": "apt",
@@ -118581,6 +118922,23 @@
      "name": "org.godotengine.Godot"
     },
     "name": "org.godotengine.Godot"
+   }
+  },
+  "godots": {
+   "apt\\flatpak": {
+    "driver": "apt",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\godots": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "io.github.MakovWait.Godots"
+    },
+    "name": "io.github.MakovWait.Godots"
    }
   },
   "goimports": {
@@ -131769,6 +132127,23 @@
     "name": "go-dotfiles"
    }
   },
+  "godl": {
+   "apt\\flatpak": {
+    "driver": "apt",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\godl": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "io.github.sockeye_d.godl"
+    },
+    "name": "io.github.sockeye_d.godl"
+   }
+  },
   "godot": {
    "apt\\flatpak": {
     "driver": "apt",
@@ -131784,6 +132159,23 @@
      "name": "org.godotengine.Godot"
     },
     "name": "org.godotengine.Godot"
+   }
+  },
+  "godots": {
+   "apt\\flatpak": {
+    "driver": "apt",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\godots": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "io.github.MakovWait.Godots"
+    },
+    "name": "io.github.MakovWait.Godots"
    }
   },
   "goimports": {

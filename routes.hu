@@ -1798,6 +1798,17 @@
         freecad:    { attrs: [ GUI app FOSS copyleft ] description: "FreeCAD — a parametric 3D CAD modeler." install: [ { via: native  when: "debian or arch or opensuse"  repo-component: universe }  { via: flatpak  hub: flathub  app: org.freecad.FreeCAD }  { via: appImage  name: FreeCAD  scope: user  version: { github: FreeCAD/FreeCAD  asset: "FreeCAD_*-Linux-x86_64-*.AppImage" }  path: ~/apps/freecad.appimage } ] }   // native on debian/arch/opensuse; Fedora/EL lack it -> flatpak/appImage. asset glob absorbs the bundled-python (pyXYZ) token
         openscad:   { attrs: [ GUI app FOSS copyleft ] description: "OpenSCAD — the programmer's solid 3D CAD modeller." install: [ { via: native  when: "debian or fedora or arch or opensuse"  repo-component: universe }  { via: native  when: "rhel"  requires: epel }  { via: flatpak  hub: flathub  app: org.openscad.OpenSCAD } ] }
         godot:      { attrs: [ GUI app FOSS permissive ] description: "Godot — an open-source 2D/3D game engine." install: [ { via: flatpak  hub: flathub  app: org.godotengine.Godot }  { via: tarball  installDir: "$CONFIGSYS_APP_DIR/godot"  requires: unzip  version: { github: godotengine/godot  tag-re: "([0-9][0-9.]*)"  asset: "Godot_v*-stable_linux.x86_64.zip" } } ] }   // flatpak stays default; the zip holds a single `Godot_v<ver>_linux.x86_64` exe (no clean rename for zip)
+        // Godot editor version/project MANAGERS (the FOSS counterpart to Unity Hub) — each downloads and
+        // manages its OWN editor builds in its own store, so they complement the direct `godot` component
+        // (which configsys installs/versions/locks) rather than replacing it; they don't adopt it.
+        godots:     { attrs: [ GUI CLI app FOSS permissive online ] description: "Godots — a Godot editor version & project manager (UI mirrors Godot's own project manager; also scriptable via CLI)."
+            install: [ { via: flatpak  hub: flathub  app: io.github.MakovWait.Godots }
+                       { via: aur      when: "arch"  name: godots-bin }
+                       { via: tarball  installDir: "$CONFIGSYS_APP_DIR/godots"  requires: unzip
+                         version: { github: MakovWait/godots  tag-re: "([0-9][0-9.]*)"  asset: "LinuxX11.zip" } } ] }   // flatpak default; the zip is a self-contained Godot export (`Godots.x86_64`, no clean rename)
+        godl:       { attrs: [ GUI CLI app FOSS permissive online ] description: "godl — a Qt-based Godot editor version manager (rich CLI; bindings that travel with a project in VCS)."
+            install: [ { via: flatpak  hub: flathub  app: io.github.sockeye_d.godl }
+                       { via: aur      when: "arch"  name: godl } ] }   // Qt/.NET app -> flatpak bundles the runtime (the bare linux zip needs Qt6/.NET present); AUR builds it on Arch
         scribus:    { attrs: [ GUI app FOSS copyleft ] description: "Scribus — open-source desktop publishing (DTP)." install: [ { via: native  when: "debian or fedora or arch or opensuse"  repo-component: universe }  { via: native  when: "rhel"  requires: epel }  { via: flatpak  hub: flathub  app: net.scribus.Scribus } ] }
         digikam:    { attrs: [ GUI app FOSS copyleft ] description: "digiKam — photo management and RAW editing." install: [ { via: native  when: "debian or fedora or arch or opensuse"  repo-component: universe }  { via: native  when: "rhel"  requires: epel }  { via: flatpak  hub: flathub  app: org.kde.digikam } ] }
 
