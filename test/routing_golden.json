@@ -16488,18 +16488,14 @@
    "native-pkg-file\\foldingathome": {
     "driver": "native-pkg-file",
     "fields": {
-     "asset": {
-      "deb": {
-       "x86_64": "fah-client_*_amd64.deb"
-      }
-     },
-     "name": "foldingathome",
+     "name": "fah-client",
+     "url": "https://download.foldingathome.org/releases/public/fah-client/debian-stable-64bit/release/fah-client_$VERSION_amd64.deb",
      "version": {
-      "github": "FoldingAtHome/fah-client-bastet",
-      "strip-v": "true"
+      "regex": "fah-client_([0-9.]+)_amd64[.]deb",
+      "url": "https://download.foldingathome.org/releases/public/fah-client/debian-stable-64bit/release/"
      }
     },
-    "name": "foldingathome"
+    "name": "fah-client"
    }
   },
   "fontconfig": {
@@ -29681,18 +29677,14 @@
    "native-pkg-file\\foldingathome": {
     "driver": "native-pkg-file",
     "fields": {
-     "asset": {
-      "deb": {
-       "x86_64": "fah-client_*_amd64.deb"
-      }
-     },
-     "name": "foldingathome",
+     "name": "fah-client",
+     "url": "https://download.foldingathome.org/releases/public/fah-client/debian-stable-64bit/release/fah-client_$VERSION_amd64.deb",
      "version": {
-      "github": "FoldingAtHome/fah-client-bastet",
-      "strip-v": "true"
+      "regex": "fah-client_([0-9.]+)_amd64[.]deb",
+      "url": "https://download.foldingathome.org/releases/public/fah-client/debian-stable-64bit/release/"
      }
     },
-    "name": "foldingathome"
+    "name": "fah-client"
    }
   },
   "fontconfig": {
@@ -42687,18 +42679,14 @@
    "native-pkg-file\\foldingathome": {
     "driver": "native-pkg-file",
     "fields": {
-     "asset": {
-      "deb": {
-       "x86_64": "fah-client_*_amd64.deb"
-      }
-     },
-     "name": "foldingathome",
+     "name": "fah-client",
+     "url": "https://download.foldingathome.org/releases/public/fah-client/debian-stable-64bit/release/fah-client_$VERSION_amd64.deb",
      "version": {
-      "github": "FoldingAtHome/fah-client-bastet",
-      "strip-v": "true"
+      "regex": "fah-client_([0-9.]+)_amd64[.]deb",
+      "url": "https://download.foldingathome.org/releases/public/fah-client/debian-stable-64bit/release/"
      }
     },
-    "name": "foldingathome"
+    "name": "fah-client"
    }
   },
   "fontconfig": {
@@ -55582,24 +55570,6 @@
     "name": "fmt-devel"
    }
   },
-  "foldingathome": {
-   "native-pkg-file\\foldingathome": {
-    "driver": "native-pkg-file",
-    "fields": {
-     "asset": {
-      "rpm": {
-       "x86_64": "fah-client-*.x86_64.rpm"
-      }
-     },
-     "name": "foldingathome",
-     "version": {
-      "github": "FoldingAtHome/fah-client-bastet",
-      "strip-v": "true"
-     }
-    },
-    "name": "foldingathome"
-   }
-  },
   "folly": {
    "dnf\\folly": {
     "driver": "dnf",
@@ -68200,24 +68170,6 @@
      "name": "fmt-devel"
     },
     "name": "fmt-devel"
-   }
-  },
-  "foldingathome": {
-   "native-pkg-file\\foldingathome": {
-    "driver": "native-pkg-file",
-    "fields": {
-     "asset": {
-      "rpm": {
-       "x86_64": "fah-client-*.x86_64.rpm"
-      }
-     },
-     "name": "foldingathome",
-     "version": {
-      "github": "FoldingAtHome/fah-client-bastet",
-      "strip-v": "true"
-     }
-    },
-    "name": "foldingathome"
    }
   },
   "folly": {
@@ -90943,18 +90895,14 @@
    "native-pkg-file\\foldingathome": {
     "driver": "native-pkg-file",
     "fields": {
-     "asset": {
-      "deb": {
-       "x86_64": "fah-client_*_amd64.deb"
-      }
-     },
-     "name": "foldingathome",
+     "name": "fah-client",
+     "url": "https://download.foldingathome.org/releases/public/fah-client/debian-stable-64bit/release/fah-client_$VERSION_amd64.deb",
      "version": {
-      "github": "FoldingAtHome/fah-client-bastet",
-      "strip-v": "true"
+      "regex": "fah-client_([0-9.]+)_amd64[.]deb",
+      "url": "https://download.foldingathome.org/releases/public/fah-client/debian-stable-64bit/release/"
      }
     },
-    "name": "foldingathome"
+    "name": "fah-client"
    }
   },
   "fontconfig": {
@@ -104259,24 +104207,6 @@
     "name": "fmt-devel"
    }
   },
-  "foldingathome": {
-   "native-pkg-file\\foldingathome": {
-    "driver": "native-pkg-file",
-    "fields": {
-     "asset": {
-      "rpm": {
-       "x86_64": "fah-client-*.x86_64.rpm"
-      }
-     },
-     "name": "foldingathome",
-     "version": {
-      "github": "FoldingAtHome/fah-client-bastet",
-      "strip-v": "true"
-     }
-    },
-    "name": "foldingathome"
-   }
-  },
   "fontconfig": {
    "dnf\\fontconfig": {
     "driver": "dnf",
@@ -117520,18 +117450,14 @@
    "native-pkg-file\\foldingathome": {
     "driver": "native-pkg-file",
     "fields": {
-     "asset": {
-      "deb": {
-       "x86_64": "fah-client_*_amd64.deb"
-      }
-     },
-     "name": "foldingathome",
+     "name": "fah-client",
+     "url": "https://download.foldingathome.org/releases/public/fah-client/debian-stable-64bit/release/fah-client_$VERSION_amd64.deb",
      "version": {
-      "github": "FoldingAtHome/fah-client-bastet",
-      "strip-v": "true"
+      "regex": "fah-client_([0-9.]+)_amd64[.]deb",
+      "url": "https://download.foldingathome.org/releases/public/fah-client/debian-stable-64bit/release/"
      }
     },
-    "name": "foldingathome"
+    "name": "fah-client"
    }
   },
   "fontconfig": {
@@ -130744,18 +130670,14 @@
    "native-pkg-file\\foldingathome": {
     "driver": "native-pkg-file",
     "fields": {
-     "asset": {
-      "deb": {
-       "x86_64": "fah-client_*_amd64.deb"
-      }
-     },
-     "name": "foldingathome",
+     "name": "fah-client",
+     "url": "https://download.foldingathome.org/releases/public/fah-client/debian-stable-64bit/release/fah-client_$VERSION_amd64.deb",
      "version": {
-      "github": "FoldingAtHome/fah-client-bastet",
-      "strip-v": "true"
+      "regex": "fah-client_([0-9.]+)_amd64[.]deb",
+      "url": "https://download.foldingathome.org/releases/public/fah-client/debian-stable-64bit/release/"
      }
     },
-    "name": "foldingathome"
+    "name": "fah-client"
    }
   },
   "fontconfig": {

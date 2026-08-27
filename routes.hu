@@ -1803,12 +1803,16 @@
 
         // --- citizen-science / a classic game (best-effort — see comments) ---
         // Folding@home — donate CPU/GPU to protein-folding research; runs a local daemon + web control.
-        // AUR on Arch; upstream .deb/.rpm on debian/redhat. PROVISIONAL: the packages live on F@h's own
-        // download server (git tags exist but releases carry no binary assets) — verify the fetch.
+        // The .deb lives on F@h's OWN download server, NOT as a GitHub release asset (the fah-client
+        // github repo carries only git tags, whose version line — 8.5.x — also differs from the
+        // packaged stable .deb — 8.1.x). So the version is SCRAPED from the server's directory
+        // listing and the `url:` templated from it. RedHat/openSUSE: no equivalently-locatable rpm
+        // path, so they decline (rather than fail). Arch via AUR.
         foldingathome: { attrs: [ daemon web FOSS GPL ] description: "Folding@home — donate compute to protein-folding research (the `fah-client` daemon + web control)."
             install: [ { via: aur  when: "arch"  name: foldingathome }
-                       { via: native-pkg-file  when: "debian"  version: { github: FoldingAtHome/fah-client-bastet  strip-v: true }  asset: { deb: { x86_64: "fah-client_*_amd64.deb" } } }
-                       { via: native-pkg-file  when: "redhat or opensuse"  version: { github: FoldingAtHome/fah-client-bastet  strip-v: true }  asset: { rpm: { x86_64: "fah-client-*.x86_64.rpm" } } } ] }
+                       { via: native-pkg-file  when: "debian"  name: fah-client
+                         version: { url: "https://download.foldingathome.org/releases/public/fah-client/debian-stable-64bit/release/"  regex: "fah-client_([0-9.]+)_amd64[.]deb" }
+                         url: "https://download.foldingathome.org/releases/public/fah-client/debian-stable-64bit/release/fah-client_$VERSION_amd64.deb" } ] }
         // Foldit — the protein-folding puzzle game. Its Linux download sits behind an academic-license
         // order flow (no unauthenticated URL), so it routes AUR-only on Arch and declines honestly
         // elsewhere (same shape as `swift`). Needs `freeglut` at runtime.
@@ -2443,7 +2447,6 @@
         gradle: { attrs: [ CLI FOSS permissive ] suggests: gradle-dotfiles  description: "Gradle — JVM build automation." requires: jdk
                   install: [ { via: native  when: "debian or arch or fedora_atomic" }   // native where packaged
                              { via: sdkman  when: "not debian and not arch and not fedora_atomic" } ] }   // SDKMAN elsewhere (fedora/alpine/opensuse) + any pinned version
-        /*
         // Jenkins — CI/CD automation server (web UI on :8080). Official apt/dnf vendor repos (stable
         // LTS) + AUR on Arch; needs a JDK. No brew/atomic/alpine binding (use the war or a container).
         // Jenkins signs both its apt and dnf repos with a rotating "Jenkins Project" key. Since
@@ -2468,7 +2471,6 @@
                   repo-url: "https://pkg.jenkins.io/redhat-stable/" }
                 { via: aur  when: "arch"  name: jenkins } ]
         }
-        */
 
         // --- debugging / static analysis / profiling (NB: ASan/UBSan/TSan are gcc/clang FLAGS,
         // not packages — nothing to install for those). ---
