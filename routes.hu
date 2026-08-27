@@ -268,7 +268,9 @@
                 { via: native   when: "fedora_atomic" }            // brew formula `uv`
                 { via: pipx     name: uv }                         // universal (prebuilt wheels)
                 { via: tarball  installDir: "$CONFIGSYS_APP_DIR/uv"  requires: glibc  standing: never-auto
-                  version: { github: astral-sh/uv  strip-v: true  asset: "uv-x86_64-unknown-linux-gnu.tar.gz" } } ]
+                  version: { github: astral-sh/uv  strip-v: true  asset: "uv-x86_64-unknown-linux-gnu.tar.gz" } }
+                { via: cargo    name: uv  standing: never-auto }   // `cargo install uv`; never-auto so it's offered/pinnable but doesn't tie with pipx
+            ]
         }
         python-build-deps: { attrs: [ lib FOSS ] description: "System libraries pyenv needs to compile CPython (ssl/zlib/ffi/…)."
             standing: never-auto
@@ -283,7 +285,8 @@
         // `repo-component: universe` is the apt archive area (read only by apt; ignored on dnf/pacman).
         ripgrep: { suggests: ripgrep-dotfiles  attrs: [ CLI  FOSS  permissive ]  description: "Fast recursive regex search (`rg`) — grep, but much quicker."
                    install: [ { via: native  when: "rhel"  requires: epel } { via: native  when: "not amzn"   repo-component: universe }
-                              { via: tarball  installDir: "$CONFIGSYS_APP_DIR/ripgrep"  version: { github: BurntSushi/ripgrep  asset: "ripgrep-*-x86_64-unknown-linux-musl.tar.gz" } } ] }   // prebuilt musl binary (rg in a versioned subdir)
+                              { via: tarball  installDir: "$CONFIGSYS_APP_DIR/ripgrep"  version: { github: BurntSushi/ripgrep  asset: "ripgrep-*-x86_64-unknown-linux-musl.tar.gz" } }
+                              { via: cargo  name: ripgrep } ] }   // prebuilt musl binary (rg in a versioned subdir); `cargo install ripgrep` as a pinnable alt
         fzf:     { attrs: [ CLI FOSS permissive ] suggests: fzf-dotfiles  description: "Fuzzy finder — interactive filtering for files, history, anything piped in."
                    install: [ { via: native  when: "rhel"  requires: epel } { via: native  when: "not amzn"   repo-component: universe }
                               { via: tarball  installDir: "$CONFIGSYS_APP_DIR/fzf"  version: { github: junegunn/fzf  strip-v: true  asset: "fzf-*-linux_amd64.tar.gz" } } ] }
@@ -575,6 +578,7 @@
                   version: { github: nushell/nushell  strip-v: true  asset: "nu-*-x86_64-unknown-linux-gnu.tar.gz" } }
                 { via: tarball  when: "alpine"  installDir: "$CONFIGSYS_APP_DIR/nushell"   // musl build for Alpine (the gnu one needs glibc)
                   version: { github: nushell/nushell  strip-v: true  asset: "nu-*-x86_64-unknown-linux-musl.tar.gz" } }
+                { via: cargo  name: nu }                            // `cargo install nu` (the crate is `nu`)
             ]
         }
 
@@ -2435,7 +2439,8 @@
             install: [
                 { via: native  when: "(redhat or arch or opensuse or fedora_atomic) and not amzn" }
                 { via: tarball  installDir: "$CONFIGSYS_APP_DIR/just"
-                  version: { github: casey/just  strip-v: true  asset: "just-*-x86_64-unknown-linux-musl.tar.gz" } } ]
+                  version: { github: casey/just  strip-v: true  asset: "just-*-x86_64-unknown-linux-musl.tar.gz" } }
+                { via: cargo  name: just } ]                        // `cargo install just` as a pinnable alt
         }
         // Bazelisk (the official launcher that manages bazel versions) — a bare static binary.
         bazelisk: { attrs: [ CLI FOSS permissive ] suggests: bazelisk-dotfiles  description: "Bazelisk — a launcher that manages Bazel versions."

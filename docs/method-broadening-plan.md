@@ -136,6 +136,45 @@ they simply don't list yet. Per component, check the registry and add if present
 3. **A registry-existence sweep tool** (parallel to `tools/namesweep.py`) so P2 additions are verified,
    not guessed — this is the durable piece that makes "offer every method" maintainable.
 
+## Phase 2 — results (the registry-existence sweep)
+
+Built `tools/regsweep.py` (the durable piece, item 3 above) and ran it. It checks crates.io / PyPI /
+npm / Flathub for methods a component could add, and — the key idea — only marks a candidate
+**confirmed** when the registry entry's upstream **repository matches the component's own declared
+GitHub upstream** (from a tarball/native-pkg-file/source `version: { github: … }`). That
+identity-confirmation kills name-collision risk: it correctly refused `btop`'s unrelated `btop`
+crate, `doppler`'s Go tool, `jq`/`godot`/`syncthing`/`prometheus`' same-named-but-different
+packages, and every window-manager/DE that can't be a flatpak. Run it with
+`PYTHONPATH=. CONFIGSYS_NO_DISCOVER=1 .venv/bin/python tools/regsweep.py --emit report.json`
+(`--only cargo,pipx,flatpak` to scope). It buckets **confirmed / probable / rejected** with reasons.
+
+**Applied (commit):** 4 identity-confirmed cargo methods, each a canonical `cargo install` target:
+`ripgrep` (ripgrep), `nushell` (crate `nu`), `just` (just) — plain (they become pinnable alts where
+native/tarball already win); `uv` (uv) with **`standing: never-auto`** because uv already has pipx,
+so a bare cargo would be a two-not-listed-via tie. Golden UNCHANGED (no default moved); check 0
+errors across 8 OSes; suite green.
+
+**routecheck fix (shipped with it):** the method-tie lint didn't skip `never-auto` bindings, so uv's
+pipx + never-auto-cargo read as a false ambiguity even though resolution excludes never-auto from the
+default pool. `_method_tie_warnings` now filters never-auto bindings before pairing (mirrors resolve).
+Regression test added (`test_validate_no_method_tie_when_one_is_never_auto`).
+
+**pipx confirmations DROPPED on purpose:** `ripgrep`/`websocat` have PyPI entries that link the
+upstream repo, but they're third-party binary-wrapper wheels, not proper Python apps —
+pipx-installing a wrapped Rust binary is fragile. Only add pipx for genuine Python applications.
+
+### Phase 2b backlog — human-verify then add (regsweep put these in `probable`)
+Real candidates the tool couldn't auto-confirm (no GitHub upstream recorded, or crate/app-id name
+differs). **Flatpak app-ids need a human's eyes — a wrong id fails silently.** Likely-correct ids to
+confirm on Flathub, then add `{ via: flatpak hub: flathub app: <id> }` (flatpak is in the preference
+list, so no tie, native stays default): `foot`→`page.codeberg.dnkl.foot`, `jmeter`→`org.apache.jmeter`,
+`racket`→`org.racket_lang.Racket`, `wine`→`org.winehq.Wine`, `godot`→`org.godotengine.Godot`,
+`olive`→`org.olivevideoeditor.Olive`, `musescore`→`org.musescore.MuseScore`. (Terminals `kitty`/
+`ghostty`/`alacritty` have **no** official flatpak — leave them.) Cargo tools NOT added because they
+aren't a single `cargo install <crate>`: `helix`/`zed` (build-from-source only), `yazi` (multi-crate
+`yazi-fm`+`yazi-cli`), `neovim`/`micro` (not Rust). Extend `KNOWN_CRATE` in regsweep.py for any
+crate-name-differs tool before re-running.
+
 ## Open questions (for when we build it)
 - Default `never-auto` for cargo/go-install everywhere, so they're *always* offered but *never* auto
   the default even in a native gap? (Today the gap has no native, so the module method is the sole

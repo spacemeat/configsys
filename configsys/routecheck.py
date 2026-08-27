@@ -40,13 +40,18 @@ def _method_tie_warnings(name, component, cascade):
     '''Cross-method (different via) bindings that overlap AND would tie under the built-in
     driver-preference (nothing separates them) — resolution errors on such a machine, so flag it
     at check time. Best-effort: a machine's own `driver-preference`/OS override can still fix it.'''
-    from .resolve import _prefer_rank, DEFAULT_DRIVER_PREFERENCE as order
+    from .resolve import _prefer_rank, _binding_candidate_only, DEFAULT_DRIVER_PREFERENCE as order
 
     def rank(b):
         return (-_prefer_rank(b), order.index(b.via) if b.via in order else len(order))
 
+    # a `standing: never-auto` binding is never eligible to be the auto-default, so it can never
+    # TIE for it — resolution excludes it from the default pool. Mirror that here (else an opt-in
+    # never-auto method overlapping an ordinary one reads as a false ambiguity).
+    eligible = [(i, b) for i, b in enumerate(component.bindings) if not _binding_candidate_only(b)]
+
     out = []
-    for (i, a), (j, b) in combinations(enumerate(component.bindings), 2):
+    for (i, a), (j, b) in combinations(eligible, 2):
         if a.via == b.via or rank(a) != rank(b):
             continue
         if not predicate.overlap(a.pred, b.pred, cascade):

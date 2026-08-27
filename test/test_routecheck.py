@@ -267,3 +267,12 @@ def test_validate_no_method_tie_when_preference_decides(cascade):
     issues = _validate(cascade, {'x': _comp('x', {'install': [
         {'via': 'native'}, {'via': 'flatpak', 'app': 'org.x.B'}]})})
     assert 'method-tie' not in _kinds(issues, 'x')
+
+
+def test_validate_no_method_tie_when_one_is_never_auto(cascade):
+    # two not-listed vias (pipx + cargo) overlap, which WOULD tie — but cargo is `never-auto`, so it
+    # can never be the auto-default and resolution excludes it from the pool. validate() must mirror
+    # that and NOT warn (this is exactly uv's pipx + never-auto cargo shape).
+    issues = _validate(cascade, {'x': _comp('x', {'install': [
+        {'via': 'pipx', 'name': 'x'}, {'via': 'cargo', 'name': 'x', 'standing': 'never-auto'}]})})
+    assert 'method-tie' not in _kinds(issues, 'x')
