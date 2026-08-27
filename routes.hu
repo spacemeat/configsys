@@ -166,7 +166,7 @@
         bazaar: { attrs: [ CLI FOSS copyleft ] description: "Breezy — the maintained fork of GNU Bazaar (the `brz` CLI); reads Bazaar & Git."
             install: [ { via: native  when: "debian"  name: brz  repo-component: universe }   // `bzr` is a transitional dummy -> brz
                        { via: native  when: "fedora or arch or alpine or fedora_atomic"  name: breezy }
-                       { via: pipx  when: "rhel or opensuse"  name: breezy } ] }   // no breezy in EL/EPEL or openSUSE
+                       { via: pipx  name: breezy } ] }   // no breezy in EL/EPEL or openSUSE -> pipx there; pinnable anywhere else too
         // FUSE2 runtime — the appImage driver requires it; native, name differs by manager.
         libfuse2: { attrs: [ lib FOSS copyleft ] description: "libfuse2 — the FUSE runtime many AppImages need."
             install: [ { via: native  repo-component: universe  name: { dnf: fuse-libs  pacman: fuse2  apk: fuse  default: libfuse2 } } ]
@@ -314,14 +314,14 @@
         fd: { attrs: [ CLI FOSS permissive ] suggests: fd-dotfiles  description: "fd — a fast, friendly `find` alternative (`fd`; Debian/Ubuntu install it as `fdfind`)."
               install: [ { via: native  repo-component: universe  when: "not (rhel or amzn)"  name: { apt: fd-find  dnf: fd-find  default: fd } }
                          { via: native  when: "rhel"  requires: epel  name: fd-find }
-                         { via: cargo   when: "amzn"  name: fd-find } ] }   // cargo crate is `fd-find`; the Debian/Ubuntu pkg installs `fdfind` -> the glue aliases it to `fd`
+                         { via: cargo   name: fd-find } ] }   // cargo crate is `fd-find` (pinnable anywhere native isn't preferred); the Debian/Ubuntu pkg installs `fdfind` -> the glue aliases it to `fd`
         fd-dotfiles: { description: "fd alias (fdfind->fd on Debian/Ubuntu), linked into place." install: [ { via: dotfiles  requires: bash-dotfiles  glue: fd } ] }
         pastel: { attrs: [ CLI FOSS permissive ] description: "pastel — generate, analyze, convert and manipulate colors from the command line."
                   install: [ { via: native  when: "arch or alpine or opensuse or fedora_atomic" }
-                             { via: cargo   when: "not (arch or alpine or opensuse or fedora_atomic)"  name: pastel } ] }   // only arch/alpine/openSUSE(+brew) carry it in-repo (Debian/Fedora are sid/rawhide-only); cargo elsewhere
+                             { via: cargo   name: pastel } ] }   // only arch/alpine/openSUSE(+brew) carry it in-repo (Debian/Fedora are sid/rawhide-only); cargo elsewhere
         dysk: { attrs: [ CLI FOSS permissive ] description: "dysk — a `df` alternative: mounted filesystems + usage in a clear table (formerly `lfs`)."
                 install: [ { via: native  when: "arch or alpine or opensuse or fedora_atomic" }
-                           { via: cargo   when: "not (arch or alpine or opensuse or fedora_atomic)"  name: dysk } ] }   // Debian only has it in sid, Fedora/EL not at all -> cargo there
+                           { via: cargo   name: dysk } ] }   // Debian only has it in sid, Fedora/EL not at all -> cargo there
         stow: { attrs: [ CLI FOSS GNU copyleft ] description: "GNU Stow — a symlink farm manager for keeping dotfiles/packages tidy (`stow`)."
                 install: [ { via: native  repo-component: universe  when: "not (rhel or amzn)" }
                            { via: native  when: "rhel"  requires: epel } ] }   // EL: EPEL-only; Alpine: community repo
@@ -349,7 +349,7 @@
         bat: { attrs: [ CLI FOSS permissive ] suggests: bat-dotfiles  description: "bat — a `cat` clone with syntax highlighting and git integration (Debian/Ubuntu install it as `batcat`)."
                install: [ { via: native  repo-component: universe  when: "not (rhel or amzn)" }
                           { via: native  when: "rhel"  requires: epel }
-                          { via: cargo   when: "amzn"  name: bat } ] }
+                          { via: cargo   name: bat } ] }
         bat-dotfiles: { description: "bat alias (batcat->bat on Debian/Ubuntu), linked into place." install: [ { via: dotfiles  requires: bash-dotfiles  glue: bat } ] }
         // lm-sensors: hardware health (temps/voltages/fans). Package name drifts three ways; the binary
         // is always `sensors` (+ `sensors-detect`). In EL/Fedora base (no EPEL needed).
@@ -442,7 +442,7 @@
         hyperfine: { attrs: [ CLI FOSS permissive ] description: "hyperfine — a command-line benchmarking tool with statistics and warmup (`hyperfine`)."
             install: [ { via: native  when: "(debian or fedora or arch or alpine) and not amzn"  repo-component: universe }
                        { via: native  when: "fedora_atomic" }        // brew formula `hyperfine`
-                       { via: cargo   when: "(rhel or opensuse or amzn)"  name: hyperfine  requires: cargo } ] }
+                       { via: cargo   name: hyperfine  requires: cargo } ] }
         mbw: { attrs: [ CLI FOSS permissive ] description: "mbw — a simple memory-bandwidth (memcpy) benchmark."
             install: [ { via: native  when: "debian" }
                        { via: native  when: "fedora_atomic" }        // brew formula `mbw`
@@ -473,7 +473,7 @@
         hey: { attrs: [ CLI FOSS permissive ] description: "hey — a tiny HTTP load generator (`hey`)."
             install: [ { via: native  when: "fedora_atomic" }      // brew formula `hey`
                        { via: aur     when: "arch"  name: hey }
-                       { via: go-install  when: "not (arch or fedora_atomic)"  name: "github.com/rakyll/hey"  requires: go } ] }
+                       { via: go-install  name: "github.com/rakyll/hey"  requires: go } ] }
         wrk: { attrs: [ CLI FOSS permissive ] description: "wrk — a modern, multithreaded HTTP benchmarking tool."
             install: [ { via: native  when: "alpine or opensuse" }
                        { via: native  when: "fedora_atomic" }      // brew formula `wrk`
@@ -604,7 +604,7 @@
         alacritty: { attrs: [ GUI app FOSS permissive ] suggests: alacritty-dotfiles  description: "Alacritty — a fast, GPU-accelerated terminal emulator."
             install: [
                 { via: native  when: "debian or fedora or arch or opensuse"  repo-component: universe }
-                { via: cargo   when: "not (debian or fedora or arch or opensuse)"  name: alacritty } ]
+                { via: cargo   name: alacritty } ]
         }
         alacritty-dotfiles: { description: "alacritty config, linked into place." install: [ { via: dotfiles  config: { src: alacritty  dst: $XDG_CONFIG_HOME/alacritty } } ] }
         // wezterm: GPU terminal + multiplexer. Official native on Arch + openSUSE; everywhere else
@@ -644,7 +644,7 @@
                            // (Ubuntu/Pop < 24.04 = 4.4, Debian < 13 = 5.1) rather than attempt a build that
                            // fails on missing symbols. openSUSE Leap's ffmpeg dev libs come from Packman (not
                            // modeled) -> decline there too; Tumbleweed/Arch are covered natively/AUR above.
-                           { via: cargo  when: "not (arch or opensuse or fedora_atomic) and not ((ubuntu < 24.04) or (debian < 13))"  name: wl-screenrec  requires: [ cargo, ffmpeg-dev, libdrm-dev, pkg-config ] } ] }
+                           { via: cargo  when: "not ((ubuntu < 24.04) or (debian < 13))"  name: wl-screenrec  requires: [ cargo, ffmpeg-dev, libdrm-dev, pkg-config ] } ] }   // FFmpeg>=6 API floor is real; the dev-lib requires: naturally decline cargo where the headers can't be had (e.g. atomic)
         // yazi: Rust TUI file manager. Native on Arch + Homebrew; upstream ships a real .deb, so on
         // Debian/Ubuntu (not in-repo) install that via the OS package tool — clean and on PATH.
         // Elsewhere (Fedora is COPR-only; openSUSE/Alpine/EL absent) the release zip lands under
@@ -1013,7 +1013,7 @@
                          version: { github: gleam-lang/gleam  strip-v: true  asset: "gleam-*-x86_64-unknown-linux-musl.tar.gz" } } ] }   // single static binary
         fennel: { attrs: [ CLI toolchain FOSS permissive ] description: "Fennel — a Lisp that compiles to Lua." requires: lua
             install: [ { via: native  when: "fedora or arch or alpine or fedora_atomic" }   // dnf/pacman/apk/brew fennel
-                       { via: luarocks  when: "not fedora and not arch and not alpine and not fedora_atomic"  name: fennel } ] }
+                       { via: luarocks  name: fennel } ] }
         // swift: no distro-native package (Linux install is swiftly/tarball, manual); Arch has an AUR
         // binary. Listed for arch; elsewhere it's an honest unroutable until we model swiftly.
         swift: { attrs: [ toolchain CLI FOSS permissive ] description: "Swift — the Swift language toolchain."
@@ -1343,15 +1343,15 @@
         // for wiremix); cargo builds them everywhere else.
         impala:  { attrs: [ TUI FOSS copyleft ] description: "impala — a TUI to manage Wi‑Fi networks (uses the `iwd` daemon)."
                    install: [ { via: native  when: "arch or alpine or opensuse" }
-                              { via: cargo   when: "not (arch or alpine or opensuse)"  name: impala } ] }
+                              { via: cargo   name: impala } ] }
         bluetui: { attrs: [ TUI app FOSS permissive ] description: "bluetui — a TUI to manage Bluetooth devices (uses BlueZ)."
                    install: [ { via: native  when: "arch or opensuse" }
-                              { via: cargo   when: "not (arch or opensuse)"  name: bluetui } ] }   // not in Alpine's repos -> cargo there (impala IS in Alpine, bluetui isn't)
+                              { via: cargo   name: bluetui } ] }   // native on arch/opensuse/alpine(impala only); cargo covers the rest and is pinnable anywhere
         wiremix: { attrs: [ TUI app FOSS permissive ] description: "wiremix — a TUI audio mixer for PipeWire."
                    install: [ { via: native  when: "fedora or arch or opensuse" }
                               // cargo builds libspa-sys from source -> needs the PipeWire dev headers + pkg-config
                               // (absent on immutable atomic, so decline there rather than source-build on it)
-                              { via: cargo   when: "not (fedora or arch or opensuse or fedora_atomic)"  name: wiremix  requires: [ cargo, pipewire-dev, pkg-config ] } ] }   // Debian/Alpine don't carry it in-repo -> cargo there
+                              { via: cargo   name: wiremix  requires: [ cargo, pipewire-dev, pkg-config ] } ] }   // pipewire-dev requires: naturally declines cargo where the headers are absent (e.g. atomic)   // Debian/Alpine don't carry it in-repo -> cargo there
         // dnspeep: watch the DNS queries your machine makes. Not distro-packaged nor on crates.io —
         // upstream's glibc release tarball is a single `dnspeep` binary (dnspeep-dotfiles PATHs it);
         // declines on musl Alpine. Runs as root (libpcap).
@@ -1786,7 +1786,7 @@
         // Arch (extra) + Alpine (community); a Go build elsewhere. (Ships a systemd user service.)
         mpd-mpris: { attrs: [ CLI daemon FOSS permissive ] description: "mpd-mpris — bridge MPD to the MPRIS2 D-Bus interface (control MPD with `playerctl`)."
             install: [ { via: native  when: "arch or alpine" }
-                       { via: go-install  when: "not (arch or alpine)"  name: "github.com/natsukagami/mpd-mpris/cmd/mpd-mpris"  requires: go } ] }
+                       { via: go-install  name: "github.com/natsukagami/mpd-mpris/cmd/mpd-mpris"  requires: go } ] }
 
         // --- digital-art tools (Flathub, matching gimp/krita/ardour above — uniform across distros) ---
         inkscape:   { attrs: [ GUI app FOSS copyleft ] description: "Inkscape — a vector graphics editor (SVG)." install: [ { via: native  when: "debian or fedora or arch or opensuse"  repo-component: universe }  { via: native  when: "rhel"  requires: epel }  { via: flatpak  hub: flathub  app: org.inkscape.Inkscape } ] }
@@ -1912,7 +1912,7 @@
                   pubkey-url: "https://repo.homebridge.io/KEY.gpg"  pubkey-path: /usr/share/keyrings/homebridge.gpg
                   source-line: "deb [signed-by=/usr/share/keyrings/homebridge.gpg] https://repo.homebridge.io stable main"
                   source-path: /etc/apt/sources.list.d/homebridge.list }
-                { via: npm  when: "not debian"  name: homebridge } ]   // needs node; then `hb-service install`
+                { via: npm  name: homebridge } ]   // needs node (the npm driver pulls it); then `hb-service install`
         }
         mosquitto: { attrs: [ daemon FOSS copyleft ] description: "Eclipse Mosquitto — a lightweight MQTT broker (the common Home Assistant companion)." install: [ { via: native  when: "not amzn"  } ] }
         mosquitto-service: { description: "Enable and start the Mosquitto MQTT broker (systemd)." requires: mosquitto  install: [ { via: service  unit: mosquitto } ] }
@@ -2103,7 +2103,7 @@
         // Window managers (X11/Wayland tilers + a classic). Gated to the families that package them.
         i3:       { attrs: [ GUI FOSS permissive ] suggests: i3-dotfiles  description: "i3 — a keyboard-driven tiling window manager (X11)." install: [ { via: native  when: "(debian or redhat or arch or opensuse or alpine) and not amzn"  name: { pacman: i3-wm  apk: i3wm  default: i3 } } ] }
         qtile:    { attrs: [ GUI app FOSS permissive ] suggests: qtile-dotfiles  description: "Qtile — a tiling window manager written and configured in Python." install: [ { via: native  when: "(redhat or arch) and not amzn" }   // `qtile` on dnf/pacman; NOT packaged in Debian/Ubuntu
-                                { via: pipx  when: "debian"  name: qtile } ] }   // Debian/Ubuntu: install the Python WM with pipx
+                                { via: pipx  name: qtile } ] }   // the Python WM via pipx wherever native doesn't carry it (pinnable anywhere)
         xmonad:   { attrs: [ GUI FOSS permissive ] suggests: xmonad-dotfiles  description: "xmonad — a tiling window manager written and configured in Haskell." install: [ { via: native  when: "(debian or redhat or arch or opensuse) and not amzn"  name: { default: xmonad } } ] }
         fvwm2:    { attrs: [ GUI FOSS copyleft ] suggests: fvwm2-dotfiles  description: "FVWM2 — the classic, highly configurable X11 window manager." install: [ { via: native  when: "debian"  name: fvwm } ] }   // the classic 2.x `fvwm` is Debian-only now; Arch ships only the 3.x line (`fvwm3`, a distinct component/AUR), so decline there rather than route to it
 
@@ -2329,10 +2329,10 @@
         // TUI clients + creative/misc terminal apps.
         discordo: { attrs: [ TUI app FOSS permissive account cloud online ] description: "Discordo — a lightweight terminal (TUI) Discord client."
                     install: [ { via: aur  when: "arch"  name: discordo-git }
-                               { via: go-install  when: "not arch"  name: "github.com/ayn2op/discordo"  requires: [ { go: ">=1.26" } ] } ] }   // no releases (rolling master); AUR on arch, `go install` elsewhere (a modern Go toolchain floor advises the go tarball)
+                               { via: go-install  name: "github.com/ayn2op/discordo"  requires: [ { go: ">=1.26" } ] } ] }   // no releases (rolling master); AUR on arch, `go install` elsewhere (a modern Go toolchain floor advises the go tarball)
         caligula: { attrs: [ TUI FOSS copyleft ] description: "Caligula — a user-friendly TUI disk imager / ISO burner."
                     install: [ { via: native  when: "arch or fedora_atomic" }
-                               { via: cargo   when: "not (arch or fedora_atomic)"  name: caligula } ] }   // pacman / brew where packaged; cargo everywhere else
+                               { via: cargo   name: caligula } ] }   // pacman / brew where packaged; cargo everywhere else (and pinnable anywhere)
         // balenaEtcher (Electron GUI imager). No distro repo pkg, no Flathub, and 2.x dropped the
         // AppImage — so it's the upstream .deb/.rpm (native-pkg-file) + AUR only. Declines on
         // Alpine (musl/Electron) and atomic.

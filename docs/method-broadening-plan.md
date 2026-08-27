@@ -1,6 +1,12 @@
 # Offer every working method — a `when:`-is-validity audit
 
-Status: **PLAN / NOTES — nothing changed yet** (user is running the podman name-sweep; hold edits).
+Status: **PHASE 1 DONE** (commit follows this doc). Phase 2 (add *missing* universal methods per a
+registry-existence sweep) is still pending. Phase-1 result: the 18 gap-gated bindings below were
+broadened to universal validity — golden moved by exactly ONE new resolution (`qtile` now resolves on
+`fedora_atomic` via pipx, a newly-covered gap); NO existing default moved; 0 check errors / no ties
+across pop/fedora/arch/alpine/opensuse/rhel/fedora_atomic/amzn; full suite green. The real wins live
+off the golden's context set (cargo now offered/pinnable on amzn+atomic for dysk/pastel/fd/bat/…,
+which previously declined there entirely).
 Goal: stop artificially restricting install methods. If a method *works* on a machine, it should be
 *offered* there (listed + pinnable) — even when it isn't the default. The user keeps control by
 pinning. Scope: every non-source method (cargo, flatpak, pipx, npm, go-install, gem, snap, …).

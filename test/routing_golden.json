@@ -84872,6 +84872,50 @@
     "name": "qjackctl"
    }
   },
+  "qtile": {
+   "brew\\pipx": {
+    "driver": "brew",
+    "fields": {
+     "name": "pipx"
+    },
+    "name": "pipx"
+   },
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.config/bash/conf.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\pipx-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "glue": "pipx"
+    },
+    "name": "pipx-dotfiles"
+   },
+   "dotfiles\\qtile-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/qtile",
+      "src": "qtile"
+     }
+    },
+    "name": "qtile-dotfiles"
+   },
+   "pipx\\qtile": {
+    "driver": "pipx",
+    "fields": {
+     "name": "qtile"
+    },
+    "name": "qtile"
+   }
+  },
   "qtile-dotfiles": {
    "dotfiles\\qtile-dotfiles": {
     "driver": "dotfiles",
