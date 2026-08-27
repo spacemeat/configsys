@@ -34,6 +34,15 @@ Route fields (on the binding):
 Userland by default (no auto-sudo — building as root is wrong; put `sudo` in the build/install
 step for a system prefix). The built version is recorded in a marker file in the source tree, so
 inspection is stateless (the tarball driver's model). No native lock — intent lives in the ledger.
+
+REBUILD SEMANTICS: install/upgrade REBUILD unconditionally from a PRISTINE tree — after fetch we
+force-checkout the ref (`git checkout -f`, resetting tracked files a build step may patch) and
+`git clean -xfd` (removing git-ignored build artifacts, e.g. a cached CMakeCache.txt) so a recipe
+change or a failed partial build can't be masked by stale state. There is no "already built, skip":
+`configsys install <comp>` re-runs the whole build (use `install --no-deps <comp>` to rebuild just
+this component without re-running its dependency installs). The version marker is the only thing
+preserved across the clean, so a failed rebuild still reads as installed (the artifacts live under
+$PREFIX, which the clean never touches).
 '''
 
 import shlex

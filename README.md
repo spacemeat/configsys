@@ -199,9 +199,9 @@ Run `configsys <command> -h` for per-command help.
 ```
 configsys                          # interactive TUI (default)
 configsys inspect                  # install-state table for the active profiles
-configsys install  <name>...       # install (pulls dependencies first, ordered) [--force]
+configsys install  <name>...       # install (pulls dependencies first, ordered) [--force] [--no-deps]
 configsys remove   <name>...       # uninstall
-configsys upgrade  <name>...       # upgrade to latest [--force]
+configsys upgrade  <name>...       # upgrade to latest [--force] [--no-deps]
 configsys lock|unlock <name>...    # version-lock / unlock
 configsys set-version <name> <ver> # pin to a specific version
 configsys fix-scope [<name>...]    # reconcile user/system scope mismatches (moves the install)
@@ -220,6 +220,15 @@ configsys manpages <install|check> # install/check the man pages (configsys(1), 
 
 `install`/`upgrade` take **`--force`** — for dotfiles, overwrite an un-adopted on-system file
 (backing it up to `<name>.pre-configsys`) instead of refusing. Prefer `dotfiles capture` first.
+
+**Rebuilding a component.** `install <name>` is not skipped when the component is already
+present — package-manager drivers re-run their install (a no-op if it's current), and a
+**`via: source` component always REBUILDS from a pristine checkout** (fetch → force-checkout the
+ref → `git clean` → build). So to pick up a recipe change *at an unchanged version* (or recover a
+half-finished build), just `install` it again — no separate "reinstall" verb. **`--no-deps`** runs
+the op on **only the named component(s)**, skipping the dependency-install fan-out (and
+auto-tighten) — so you rebuild just that one thing instead of dragging its whole (already-built)
+dependency tree along: e.g. `configsys install --no-deps folly`.
 
 Any `<name>` may be **`profile:<name>`**, which expands to that profile's components — e.g.
 `configsys install profile:dev blender`. The `profile:` prefix disambiguates from a component of

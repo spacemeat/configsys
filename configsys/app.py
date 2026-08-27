@@ -2475,14 +2475,24 @@ def build_parser():
     sub = p.add_subparsers(dest='command')
     sub.add_parser('inspect', help='show install state of the active profiles')
 
+    # install/upgrade carry an extra sentence on rebuild semantics + --no-deps (surfaced in the
+    # generated man page, which uses each command's description).
+    _rebuild_note = (' Not skipped when already present: package drivers re-run (a no-op if current) '
+                     'and a via:source component REBUILDS from a pristine checkout, so re-running '
+                     'install picks up a recipe change even at an unchanged version. --no-deps runs '
+                     'the op on only the named component(s), skipping the dependency-install fan-out '
+                     '(rebuild one thing, not its whole dependency tree). --force lets a dotfiles '
+                     'install overwrite an un-adopted on-system file (backed up to .pre-configsys).')
     for name, help_ in (('install', 'install components'),
                         ('remove', 'uninstall components'),
                         ('upgrade', 'upgrade components to latest'),
                         ('lock', 'version-lock components'),
                         ('unlock', 'remove version lock')):
-        sp = sub.add_parser(name, help=help_,
-                            description=f'{help_.capitalize()}. A name is a component; '
-                                        'profile:<name> expands to that profile\'s components.')
+        desc = (f'{help_.capitalize()}. A name is a component; '
+                'profile:<name> expands to that profile\'s components.')
+        if name in ('install', 'upgrade'):
+            desc += _rebuild_note
+        sp = sub.add_parser(name, help=help_, description=desc)
         sp.add_argument('names', nargs='+',
                         help='component names, and/or profile:<name> to expand a whole profile')
         if name in ('install', 'upgrade'):

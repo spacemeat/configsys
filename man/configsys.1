@@ -49,13 +49,13 @@ no console output during load at all — only the TUI ! page
 show install state of the active profiles
 .TP
 \fBinstall\fR
-Install components. A name is a component; profile:<name> expands to that profile's components.
+Install components. A name is a component; profile:<name> expands to that profile's components. Not skipped when already present: package drivers re-run (a no-op if current) and a via:source component REBUILDS from a pristine checkout, so re-running install picks up a recipe change even at an unchanged version. --no-deps runs the op on only the named component(s), skipping the dependency-install fan-out (rebuild one thing, not its whole dependency tree). --force lets a dotfiles install overwrite an un-adopted on-system file (backed up to .pre-configsys).
 .TP
 \fBremove\fR
 Uninstall components. A name is a component; profile:<name> expands to that profile's components.
 .TP
 \fBupgrade\fR
-Upgrade components to latest. A name is a component; profile:<name> expands to that profile's components.
+Upgrade components to latest. A name is a component; profile:<name> expands to that profile's components. Not skipped when already present: package drivers re-run (a no-op if current) and a via:source component REBUILDS from a pristine checkout, so re-running install picks up a recipe change even at an unchanged version. --no-deps runs the op on only the named component(s), skipping the dependency-install fan-out (rebuild one thing, not its whole dependency tree). --force lets a dotfiles install overwrite an un-adopted on-system file (backed up to .pre-configsys).
 .TP
 \fBlock\fR
 Version-lock components. A name is a component; profile:<name> expands to that profile's components.
