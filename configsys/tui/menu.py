@@ -161,6 +161,10 @@ class MenuState:
 
     def _build_tree(self):
         roots = []
+        # profiles reached via a `+include` (so `p:<ref>` is a link target) — used to drop an
+        # excluded subprofile's now-empty top-level node without hiding a user's own active profile.
+        include_targets = {ref for _p, items in self.layouts
+                           for kind, ref in items if kind == 'include'}
         for profile, items in self.layouts:
             pnode = Node(PROFILE, f'p:{profile}', profile, 0, [],
                          expandable=True, expanded=True)
@@ -168,6 +172,10 @@ class MenuState:
                 if kind == 'include':          # a link to the top-level p:<name> node
                     members = [self.states[k] for k in self._profile_units.get(name, [])
                                if k in self.states]
+                    if not members:
+                        continue               # an EXCLUDED subprofile contributes no units here ->
+                                               # don't show it at all (vs an OS-unsupported subprofile,
+                                               # whose units ARE present, just unsupported)
                     lnode = Node(LINK, f'l:{profile}:{name}', name, 1, members,
                                  link_target=f'p:{name}')
                     lnode.parent = pnode
@@ -193,6 +201,11 @@ class MenuState:
                 pnode.children.append(cnode)
             pnode.members = [self.states[k] for k in self._profile_units.get(profile, [])
                              if k in self.states]
+            # a subprofile pulled in only via +include, now contributing nothing (fully excluded),
+            # would render as an empty 'unsupported' top-level node — drop it. (Emptiness is computed
+            # the same way as its links above, so no surviving link points at a dropped node.)
+            if not pnode.members and profile in include_targets:
+                continue
             roots.append(pnode)
         return roots
 
@@ -1567,6 +1580,12 @@ def _menu_model(cfg):
             lay = cfg.profile_layout(p)
         except ConfigError:
             lay = []
+        # An excluded subprofile (`~name`) must not appear in Components at all: drop the exclude
+        # markers AND the `+include` they cancel, so a struck subprofile doesn't linger as an empty
+        # 'unsupported' link. (The Profiles page keeps the markers, to paint the exclusion there.)
+        excluded = {ref for kind, ref in lay if kind == 'exclude'}
+        lay = [(kind, ref) for kind, ref in lay
+               if kind != 'exclude' and not (kind == 'include' and ref in excluded)]
         layouts[p] = lay
         for kind, ref in lay:
             if kind == 'include' and ref not in seen:
