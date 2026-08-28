@@ -879,12 +879,12 @@ _HELP = {
     },
     'dotfiles': {
         'desc': "Link state for via:dotfiles components. Each row: the component, its link state, the "
-                "~/ location, and the managed source it points at. Link, capture, or migrate from here.",
+                "~/ location, and the managed source it points at. Link or capture from here.",
         'glossary': [
-            ('state', "linked · adopted (captured, not yet linked) · managed (marker only) · unmanaged "
-                      "(a real file we don't manage) · template · empty · loader-on/off (shell glue)"),
+            ('config state', "empty · unmanaged (a real file we don't manage) · managed (marker, "
+                             "no content) · adopted (captured, not yet linked) · linked"),
+            ('glue state', "loader-on/off (a shell's conf.d hookup) · template/linked (a shipped snippet)"),
             ('capture', 'adopts on-system content into your store so it can be linked (and travel)'),
-            ('migrate', 're-points legacy repo-links, moves glue into conf.d, clears dead links'),
             ('safety', 'linking backs up any pre-existing real file to <dst>.pre-configsys'),
         ],
     },
@@ -3396,7 +3396,7 @@ _DF_CAPTURE_STATES = ('managed', 'unmanaged')          # rows a capture would ad
 
 class DotfilesScreen:
     '''Link-state table over the via:dotfiles units — a skin over the dotfiles driver
-    (spec_states / install / uninstall / capture, plus the per-shell glue loaders and `migrate`).'''
+    (spec_states / install / uninstall / capture, plus the per-shell glue loaders).'''
     def __init__(self, ctx):
         self.ctx = ctx
         self.cur = 0
@@ -3507,10 +3507,10 @@ def _draw_dotfiles(stdscr, pal, ds, ctx, note, screen):
     if _KEYMAP is not None:
         g = lambda a: _KEYMAP.glyph('dotfiles', a)
         navf = (f" {g('down')}/{g('up')} · {g('left')}/{g('right')} scroll · {g('confirm')} link · "
-                f"{g('capture')} capture · {g('migrate')} migrate · {g('unlink')} unlink · "
-                f"{g('capture-all')}/{g('link-all')}/{g('migrate-all')} = all · {g('quit')} ")
+                f"{g('capture')} capture · {g('unlink')} unlink · "
+                f"{g('capture-all')}/{g('link-all')} = all · {g('quit')} ")
     else:
-        navf = ' j/k · h/l scroll · ↵ link · c capture · m migrate · x unlink · C/L/M = all · q '
+        navf = ' j/k · h/l scroll · ↵ link · c capture · x unlink · C/L = all · q '
     _put(stdscr, h - 2, 0, _fit(status, w), pal.style('status_line', h - 2, 0, h, w))
     _put(stdscr, h - 1, 0, _fit(navf.ljust(w), w), pal.style('footer', h - 1, 0, h, w))
     stdscr.refresh()
@@ -3676,7 +3676,7 @@ def run(ctx):
             dest = keymap.screen_for(ch)
             if dest is not None:
                 if dest in IMPLEMENTED:
-                    # dotfiles mutated on its page (link/capture/migrate) -> re-probe those units so
+                    # dotfiles mutated on its page (link/capture) -> re-probe those units so
                     # Components doesn't show stale 'managed'/'adopted' after they're now linked.
                     df_dirty = ds.dirty if ds is not None else set()
                     # the !uninstall queue can change from OTHER screens (Profiles `x`) or drain, so
@@ -3961,20 +3961,6 @@ def run(ctx):
                         ds.reload()
                         note = (f'linked {len(pend)} captured dotfile(s)'
                                 if pend else 'nothing captured-but-unlinked')
-                    elif dact in ('migrate', 'migrate-all'):  # migrate: re-point repo-links, move glue
-                        import types as _types                # to conf.d, clear dead links (preview+confirm).
-                        from .. import app as _app            # migrate = this row's component; -all = all
-                        only = ({row[0].comp} if dact == 'migrate' and row else None)
-                        with suspended(stdscr):
-                            _app.cmd_dotfiles_migrate(ctx, _types.SimpleNamespace(yes=False, only=only))
-                            try:
-                                input('\n(press Enter to return) ')
-                            except EOFError:
-                                pass
-                        ds.dirty.update(r[0].key for r in ds.rows
-                                        if only is None or r[0].comp in only)
-                        ds.reload()
-                        note = f'migrate {row[0].comp if only else "(all)"}: done'
                 except Exception as e:  # noqa: BLE001 — surface, don't crash
                     note = f'error: {e}'
                 continue

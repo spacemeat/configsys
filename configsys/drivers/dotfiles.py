@@ -289,53 +289,6 @@ class DotFiles(Driver):
         man = self._read_manifest(self._cfs_dir(rc) / MANIFEST_NAME)
         return man.get(name, {}).get('exclude', [])
 
-    def cfs_migrations(self, rc):
-        '''[(name, src, legacy_path, cfs_path)] for config specs whose content still lives at the
-        PRE-.cfs bare path (`<root>/<src>`) in a USER root — i.e. captured before the `.cfs` layout
-        and relocatable into `<comp>.cfs/`. Empty for glue, for already-.cfs content, and for
-        unpopulated/template specs.'''
-        out = []
-        for name, src, _dst, _absorb, kind in self._specs(rc):
-            if kind != 'config':
-                continue
-            # a shell-glue snippet declared the LEGACY way (inline src/dst under bash.d/ or shell/,
-            # not `glue:`) reads as a config spec but is glue — it belongs in the shell layout, not
-            # .cfs, so never relocate it.
-            if src.startswith('bash.d/') or src.startswith('shell/'):
-                continue
-            srcpath, tier, root = self._resolve(src, rc, kind)
-            if tier != 'user' or not srcpath.exists():
-                continue
-            if srcpath == root / src:                     # resolved to the bare path, not <comp>.cfs/
-                out.append((name, src, srcpath, self._cfs_dir(rc, root) / src))
-        return out
-
-    def migrate_to_cfs(self, rc):
-        '''Relocate this component's legacy bare config content into the `<comp>.cfs/` marker layout:
-        move each bare content path into `.cfs/`, (re)write the manifest — auto-suggesting secret
-        excludes from the relocated content — then re-link the dst at the new path. Returns
-        [(src, legacy_path, cfs_path)] moved; [] if nothing was legacy. The move is a plain rename in
-        the same (user) root, so git records it as a rename on the next commit.'''
-        migs = self.cfs_migrations(rc)
-        if not migs:
-            return []
-        cfs_dir = migs[0][3].parent                       # all specs share one <comp>.cfs dir
-        existing = self._read_manifest(cfs_dir / MANIFEST_NAME)
-        moved, new_ex = [], {}
-        for name, src, legacy, cfs in migs:
-            cfs.parent.mkdir(parents=True, exist_ok=True)
-            shutil.move(str(legacy), str(cfs))
-            new_ex[name] = sorted(set(existing.get(name, {}).get('exclude', []))
-                                  | set(self._suggest_secrets(cfs)))
-            moved.append((src, legacy, cfs))
-        specs_map = {}
-        for name, src, dst, _absorb in self._config_specs(rc):
-            specs_map[name] = {'src': src, 'dst': dst,
-                               'exclude': new_ex.get(name, existing.get(name, {}).get('exclude', []))}
-        self._write_manifest_at(cfs_dir, specs_map)
-        self.install(rc)                                  # re-point the dst symlink at the .cfs content
-        return moved
-
     def _is_excluded(self, rel, globs):
         '''True if a relative path (POSIX) matches any exclude glob — matched against the full path
         AND its basename, so `.env`/`id_*` hit at any depth and `secrets/` hits the dir.'''
@@ -683,7 +636,7 @@ class DotFiles(Driver):
         '''[(tag, text)] warn-only startup checks (design #2/#5/#4), never mutate:
           * capture   — a config `.cfs` marked-managed whose dst holds a real, un-captured file
                         (you have config configsys should adopt before it can manage it);
-          * invariant — a managed link that STILL points into the repo (#4 breach; migrate fixes).
+          * invariant — a managed link that STILL points into the repo (#4 breach; re-link to fix).
         Cheap and side-effect-free — safe to run on every load.'''
         out = []
         repo = os.path.realpath(self.paths.dotfiles_dir) if self.paths is not None else None
@@ -698,7 +651,7 @@ class DotFiles(Driver):
                        else os.path.normpath(os.path.join(os.path.dirname(str(tgt)), raw))))
                 if rp == repo or rp.startswith(repo + os.sep):
                     out.append(('dotfiles', f'{rc.comp}: {self.display_path(tgt)} still links into '
-                                f'the repo — run `configsys dotfiles migrate` to point it at your store'))
+                                f'the repo — unlink and re-link it to point it at your store'))
             elif kind == 'config' and not srcpath.exists() and tgt.exists():
                 if managed is None:
                     managed = self._marker_present(rc)
@@ -749,7 +702,7 @@ class DotFiles(Driver):
             # shell skips it and leaves any real file alone (startup warns to capture); an
             # `absorb-into` spec has its own relocation. So only an un-adopted TEMPLATE over a real dst
             # is blocked. A symlink WE made (store copy OR legacy repo template) is ours — safe to
-            # re-point, not a clobber (powers `migrate`).
+            # re-point, not a clobber (so re-installing a stale repo link re-points it at the store).
             ours = tgt.is_symlink() and os.path.realpath(tgt) in (
                 os.path.realpath(link_src), os.path.realpath(srcpath))
             if (not force and tier == 'template' and ab is None

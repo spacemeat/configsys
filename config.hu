@@ -211,10 +211,8 @@ profiles: {
         dotfiles: {
             unlink: x
             capture: c
-            migrate: m              // this row's component
             capture-all: C
             link-all: L
-            migrate-all: M
         }
 
         // Plugins screen. Focus-aware nav (down/up/left/right/top/bottom) + switch-pane (table⇄diff)

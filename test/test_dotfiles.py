@@ -48,128 +48,6 @@ def test_template_materializes_to_store_and_link_survives_repo_removal(tmp_path)
     assert df.get_version(rc) == 'linked'
 
 
-def test_dotfiles_migrate_repoints_repo_links_to_store(tmp_path, monkeypatch):
-    # migrate re-points a link that references the repo at the machine-local store (idempotent apply
-    # = re-install), leaving orphan plain files untouched.
-    import types
-    from configsys import app
-    p = paths_for(tmp_path)
-    (p.dotfiles_dir / 'bash.d').mkdir(parents=True)
-    (p.dotfiles_dir / 'bash.d' / 'btop.sh').write_text('# glue\n')
-    (p.home / '.bash.d').mkdir(parents=True)
-    df = DotFiles(Runner(pretend=False), paths=p)
-    rc = df_unit(specs={'src': 'bash.d/btop.sh', 'dst': '~/.bash.d/btop.sh'}, comp='btop')
-
-    link = p.home / '.bash.d' / 'btop.sh'            # OLD broken state: a link straight into the repo
-    link.symlink_to(p.dotfiles_dir / 'bash.d' / 'btop.sh')
-    (p.home / '.bash.d' / 'mine.sh').write_text('# my own orphan\n')   # a non-symlink orphan
-    assert os.path.realpath(link).startswith(str(p.dotfiles_dir))
-
-    monkeypatch.setattr(app, '_active_dotfiles', lambda c: (df, [rc]))
-    ctx = types.SimpleNamespace(paths=p, os_info=types.SimpleNamespace(block='x'))
-    assert app.cmd_dotfiles_migrate(ctx, types.SimpleNamespace(yes=True)) == 0
-
-    store_copy = p.user_dotfiles_dir / 'bash.d' / 'btop.sh'
-    assert os.path.realpath(link) == os.path.realpath(store_copy)          # now the store, not the repo
-    assert not os.path.realpath(link).startswith(str(p.dotfiles_dir))
-    assert (p.home / '.bash.d' / 'mine.sh').read_text() == '# my own orphan\n'   # orphan untouched
-
-
-def test_dotfiles_migrate_moves_glue_link_from_bashd_to_confd(tmp_path, monkeypatch):
-    # Phase 1b: a glue component now targets ~/.config/bash/conf.d/. migrate installs the conf.d link
-    # (materialized from the store) and removes the now-superseded ~/.bash.d link.
-    import types
-    from configsys import app
-    p = paths_for(tmp_path)
-    (p.dotfiles_dir / 'shell' / 'bash').mkdir(parents=True)
-    (p.dotfiles_dir / 'shell' / 'bash' / 'btop.sh').write_text('# glue\n')
-    # pre-existing Phase-1a state: a managed store-link at the OLD ~/.bash.d location.
-    store_old = p.user_dotfiles_dir / 'bash.d' / 'btop.sh'
-    store_old.parent.mkdir(parents=True)
-    store_old.write_text('# glue\n')
-    (p.home / '.bash.d').mkdir(parents=True)
-    old_link = p.home / '.bash.d' / 'btop.sh'
-    old_link.symlink_to(store_old)
-
-    df = DotFiles(Runner(pretend=False), paths=p)
-    rc = df_unit(specs={'glue': 'btop'}, comp='btop-dotfiles')
-    monkeypatch.setattr(app, '_active_dotfiles', lambda c: (df, [rc]))
-    ctx = types.SimpleNamespace(paths=p, os_info=types.SimpleNamespace(block='x'))
-    assert app.cmd_dotfiles_migrate(ctx, types.SimpleNamespace(yes=True)) == 0
-
-    confd = p.home / '.config' / 'bash' / 'conf.d' / 'btop.sh'
-    assert confd.is_symlink() and confd.resolve().read_text() == '# glue\n'
-    assert not old_link.exists() and not old_link.is_symlink()             # old bash.d link removed
-
-
-def test_dotfiles_migrate_removes_dead_repo_link(tmp_path, monkeypatch):
-    # A ~/.bash.d symlink into the repo's now-gone bash.d/ is dead cruft (loader skips it) — migrate
-    # clears it even though no active component references it.
-    import types
-    from configsys import app
-    p = paths_for(tmp_path)
-    p.dotfiles_dir.mkdir(parents=True)                                     # repo exists; bash.d/ does NOT
-    (p.home / '.bash.d').mkdir(parents=True)
-    dead = p.home / '.bash.d' / 'clang.sh'
-    dead.symlink_to(p.dotfiles_dir / 'bash.d' / 'clang.sh')               # dangling into the repo
-    assert dead.is_symlink() and not dead.exists()
-
-    df = DotFiles(Runner(pretend=False), paths=p)
-    monkeypatch.setattr(app, '_active_dotfiles', lambda c: (df, []))
-    ctx = types.SimpleNamespace(paths=p, os_info=types.SimpleNamespace(block='x'))
-    assert app.cmd_dotfiles_migrate(ctx, types.SimpleNamespace(yes=True)) == 0
-    assert not dead.is_symlink()                                          # dead link cleared
-
-
-def test_dotfiles_migrate_removes_dangling_config_repo_link(tmp_path, monkeypatch):
-    # a config dst symlinked into the repo at content that ISN'T there (a stale link, e.g. htop
-    # config configsys never shipped) can't be re-pointed — migrate removes it as dead, rather than
-    # claiming a re-point that didn't happen.
-    import types
-    from configsys import app
-    p = paths_for(tmp_path)
-    p.dotfiles_dir.mkdir(parents=True)                                    # repo exists; no htop content
-    tgt = p.home / '.config' / 'htop'
-    tgt.parent.mkdir(parents=True)
-    tgt.symlink_to(p.dotfiles_dir / 'htop')                               # dangling repo-link
-    assert tgt.is_symlink() and not tgt.exists()
-    rc = df_unit(specs={'config': {'src': 'htop', 'dst': '$XDG_CONFIG_HOME/htop'}}, comp='htop-dotfiles')
-
-    df = DotFiles(Runner(pretend=False), paths=p)
-    monkeypatch.setattr(app, '_active_dotfiles', lambda c: (df, [rc]))
-    ctx = types.SimpleNamespace(paths=p, os_info=types.SimpleNamespace(block='x'))
-    assert app.cmd_dotfiles_migrate(ctx, types.SimpleNamespace(yes=True)) == 0
-    assert not tgt.is_symlink()                                           # dead config link removed
-
-
-def test_dotfiles_migrate_only_scopes_to_named_components(tmp_path, monkeypatch):
-    # `only={comp}` migrates just that component (TUI lowercase m); the other's dead link is left.
-    import types
-    from configsys import app
-    p = paths_for(tmp_path)
-    p.dotfiles_dir.mkdir(parents=True)
-    (p.home / '.config').mkdir(parents=True)
-    links = {}
-    units = []
-    for comp, dst in (('htop-dotfiles', 'htop'), ('mc-dotfiles', 'mc')):
-        t = p.home / '.config' / dst
-        t.symlink_to(p.dotfiles_dir / dst)                                # dangling repo-link
-        links[comp] = t
-        units.append(df_unit(specs={'config': {'src': dst, 'dst': f'$XDG_CONFIG_HOME/{dst}'}},
-                             comp=comp))
-    df = DotFiles(Runner(pretend=False), paths=p)
-    monkeypatch.setattr(app, '_active_dotfiles', lambda c: (df, units))
-    ctx = types.SimpleNamespace(paths=p, os_info=types.SimpleNamespace(block='x'))
-
-    app.cmd_dotfiles_migrate(ctx, types.SimpleNamespace(yes=True, only={'htop-dotfiles'}))
-    assert not links['htop-dotfiles'].is_symlink()                        # scoped one migrated
-    assert links['mc-dotfiles'].is_symlink()                              # the other untouched
-    app.cmd_dotfiles_migrate(ctx, types.SimpleNamespace(yes=True, only=None))
-    assert not links['mc-dotfiles'].is_symlink()                          # migrate-all gets it too
-
-
-# -- content root follows the layer that defined the component -------------
-
 def test_src_anchors_at_the_defining_layers_dotfiles_dir(tmp_path):
     # a component defined in /somewhere/routes.hu sources from /somewhere/dotfiles/
     df = DotFiles(Runner(pretend=True), paths=paths_for(tmp_path))
@@ -634,30 +512,6 @@ def test_capture_respects_a_preexisting_manifest_exclude(tmp_path):
     assert not (store / 'big.log').exists() and not (store / 'cache').exists()
 
 
-def test_migrate_to_cfs_relocates_legacy_bare_config(tmp_path):
-    # a config captured BEFORE the .cfs layout lives at the bare <root>/<src> path with a link to it;
-    # migrate_to_cfs moves it into <comp>.cfs/, writes the manifest, and re-points the link.
-    p = paths_for(tmp_path)
-    (p.user_dotfiles_dir / 'neovim').mkdir(parents=True)          # legacy bare content
-    (p.user_dotfiles_dir / 'neovim' / 'init.lua').write_text('-- cfg')
-    (p.home / '.config').mkdir(parents=True, exist_ok=True)
-    link = p.home / '.config' / 'nvim'
-    link.symlink_to(p.user_dotfiles_dir / 'neovim')              # pre-.cfs link to the bare path
-    df = DotFiles(Runner(pretend=False), paths=p)
-    rc = df_unit()                                               # comp=neovim, src=neovim -> ~/.config/nvim
-
-    assert df.cfs_migrations(rc)                                 # detected as legacy-bare
-    moved = df.migrate_to_cfs(rc)
-    assert len(moved) == 1
-    cfs = p.user_dotfiles_dir / 'neovim.cfs' / 'neovim'
-    assert (cfs / 'init.lua').read_text() == '-- cfg'           # content relocated into .cfs
-    assert not (p.user_dotfiles_dir / 'neovim').exists()        # bare path gone
-    assert (p.user_dotfiles_dir / 'neovim.cfs' / 'manifest.hu').exists()
-    assert os.path.realpath(link) == os.path.realpath(cfs)     # link re-pointed at the .cfs content
-    assert df.get_version(rc) == 'linked'
-    assert not df.cfs_migrations(rc)                            # idempotent — nothing left to migrate
-
-
 def test_capture_then_install_links_from_cfs(tmp_path):
     p = paths_for(tmp_path)
     cfg = p.home / '.config' / 'nvim'
@@ -674,14 +528,14 @@ def test_capture_then_install_links_from_cfs(tmp_path):
 
 
 def test_warns_on_link_that_still_points_into_repo(tmp_path):
-    # a legacy link straight into the repo trips the #4 invariant warning (migrate fixes it).
+    # a legacy link straight into the repo trips the #4 invariant warning (re-link to fix).
     p = paths_for(tmp_path)
     (p.dotfiles_dir / 'neovim.cfs' / 'neovim').mkdir(parents=True)
     tgt = p.home / '.config' / 'nvim'
     tgt.parent.mkdir(parents=True)
     tgt.symlink_to(p.dotfiles_dir / 'neovim.cfs' / 'neovim')
     df = DotFiles(Runner(pretend=False), paths=p)
-    assert any('migrate' in t for _tag, t in df.warnings(df_unit()))
+    assert any('links into' in t and 're-link' in t for _tag, t in df.warnings(df_unit()))
 
 
 # -- absorb-into: relocate a pre-existing file into the loader dir --------
