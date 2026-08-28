@@ -35,6 +35,7 @@ class MethodVersion:
     is_pinned: bool = False      # a binding-pin selects this method
     meets_min: bool = None       # vs a floor (None = no floor asked, or unparseable)
     lags_tip: bool = False       # latest < tip (the newest across methods here)
+    note: str = None             # optional one-line advisory (e.g. pipx: python caps the version)
 
 
 @dataclass
@@ -164,11 +165,13 @@ def report(ctx, name, *, min_version=None, refresh=False, now=None):
             continue
         rc = to_resolved_component(unit)
         drv = get_driver(rc.driver, ctx.runner, ctx.paths)
+        adv = getattr(drv, 'version_advisory', None) if drv is not None else None
         methods.append(MethodVersion(
             via=b.via, driver=rc.driver, package=rc.name or comp.name,
             latest=_cached_latest(cache, rc, drv, refresh, now),
             installed=_safe(drv.get_version, rc) if drv is not None else None,
-            is_default=(b is default_binding), is_pinned=(pin == b.via)))
+            is_default=(b is default_binding), is_pinned=(pin == b.via),
+            note=(_safe(adv, rc) if adv is not None else None)))
     cache.save(ctx.paths)
 
     tip = _max_version([m.latest for m in methods])

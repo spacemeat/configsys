@@ -121,6 +121,42 @@ class Pipx(Driver):
             spec['python'] = py
         return versions.discover(spec, self.paths, offline=self._offline())
 
+    def _suggest_pin(self, requires_python):
+        '''The lowest `python3.NN` we ship a component for that satisfies `requires_python`
+        (e.g. ">=3.11" -> "python3.11"), so the advisory can name a concrete, installable pin.'''
+        from packaging.specifiers import SpecifierSet, InvalidSpecifier
+        try:
+            spec = SpecifierSet(requires_python)
+        except (InvalidSpecifier, TypeError):
+            return None
+        return next((f'python3.{n}' for n in (11, 12, 13) if f'3.{n}.0' in spec), None)
+
+    def version_advisory(self, rc):
+        '''`configsys versions` heads-up: ONE line when this venv's python CAPS the installable
+        version below PyPI's absolute latest — naming the gating python and the pin that lifts it.
+        None when uncapped or unknowable. Interactive-only (does its own PyPI read; never the inspect
+        hot path). This is the "soft max-ceiling" surfacing — not a hard floor.'''
+        if self.resolve_version(rc) is not None:    # an explicit version: spec -> not python-scoped
+            return None
+        py = self._target_python(rc)
+        if not py:
+            return None
+        from .. import versions
+        try:
+            data = json.loads(versions.http_fetch(versions.PYPI_LATEST.format(dist=self._dist(rc))))
+        except Exception:                           # noqa: BLE001 — advisory must never break the report
+            return None
+        absolute = (data.get('info') or {}).get('version')
+        scoped = versions._pypi_latest_for_python(data, py)
+        if not absolute or not scoped or absolute == scoped:
+            return None                             # uncapped (the pinned/venv python reaches latest)
+        files = (data.get('releases') or {}).get(absolute) or []
+        need = files[0].get('requires_python') if files else None
+        pin = self._suggest_pin(need) if need else None
+        need_txt = f'python {need}' if need else 'a newer python'
+        tail = f' — pin `python: {pin}`' if pin else ''
+        return f'python {py} caps this at {scoped}; {absolute} needs {need_txt}{tail}'
+
     def is_locked(self, rc):
         return False
 

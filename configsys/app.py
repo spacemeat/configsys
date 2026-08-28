@@ -1465,6 +1465,8 @@ def cmd_versions(ctx, args):
             tags.append(f'below ≥{rep.min_version}')
         suffix = f'   [{", ".join(tags)}]' if tags else ''
         print(f'  {label:<{width}}  {ver}{suffix}')
+        if getattr(m, 'note', None):
+            print(f'  {"":<{width}}  ⚠ {m.note}')
 
     # --min guidance: if the default can't meet the floor but another method can, name the pin.
     if rep.min_version is not None and rep.default_meets_min is False:

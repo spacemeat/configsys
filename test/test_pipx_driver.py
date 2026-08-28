@@ -220,3 +220,29 @@ def test_get_latest_pin_overrides_an_older_installed_venv(monkeypatch):
     r = FakeRunner(responses=[('pipx list --json', 0, listing)])
     got = Pipx(r).get_latest(dist(comp='pywal16', name='pywal16', python='/usr/bin/python3.13'))
     assert got == '3.8.15' and seen['spec'] == {'pypi': 'pywal16', 'python': '3.13'}
+
+
+def test_version_advisory_flags_python_capped(monkeypatch):
+    # installed on py3.10; PyPI's absolute latest needs >=3.11 -> advisory names the cap + a pin.
+    import configsys.versions as vmod
+    pypi = json.dumps({'info': {'version': '3.8.15'},
+                       'releases': {'3.8.10': [{'requires_python': '>=3.5'}],
+                                    '3.8.15': [{'requires_python': '>=3.11'}]}})
+    monkeypatch.setattr(vmod, 'http_fetch', lambda url, **kw: pypi)
+    listing = json.dumps({'venvs': {'pywal16': {'metadata': {
+        'main_package': {'package_version': '3.8.10'}, 'python_version': 'Python 3.10.12'}}}})
+    note = Pipx(FakeRunner(responses=[('pipx list --json', 0, listing)])).version_advisory(
+        dist(comp='pywal16', name='pywal16'))
+    assert note is not None
+    assert 'python 3.10.12 caps this at 3.8.10' in note and '3.8.15 needs python >=3.11' in note
+    assert 'python3.11' in note
+
+
+def test_version_advisory_silent_when_pin_reaches_latest(monkeypatch):
+    # pinned py3.13 -> the scoped latest IS the absolute latest -> no advisory.
+    import configsys.versions as vmod
+    pypi = json.dumps({'info': {'version': '3.8.15'},
+                       'releases': {'3.8.15': [{'requires_python': '>=3.11'}]}})
+    monkeypatch.setattr(vmod, 'http_fetch', lambda url, **kw: pypi)
+    r = FakeRunner(responses=[('pipx list --json', 0, json.dumps({'venvs': {}}))])
+    assert Pipx(r).version_advisory(dist(comp='pywal16', name='pywal16', python='python3.13')) is None
