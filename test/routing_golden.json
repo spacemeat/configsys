@@ -23810,6 +23810,26 @@
     },
     "name": "python3-pip"
    },
+   "apt\\python3.13": {
+    "driver": "apt",
+    "fields": {
+     "name": "python3.13",
+     "packages": [
+      "python3.13",
+      "python3.13-venv",
+      "python3.13-dev"
+     ],
+     "ppa": "deadsnakes/ppa"
+    },
+    "name": "python3.13"
+   },
+   "apt\\software-properties-common": {
+    "driver": "apt",
+    "fields": {
+     "name": "software-properties-common"
+    },
+    "name": "software-properties-common"
+   },
    "dotfiles\\bash-dotfiles": {
     "driver": "dotfiles",
     "fields": {
@@ -23848,7 +23868,8 @@
    "pipx\\pywal16": {
     "driver": "pipx",
     "fields": {
-     "name": "pywal16"
+     "name": "pywal16",
+     "python": "/usr/bin/python3.13"
     },
     "name": "pywal16"
    }
@@ -37227,6 +37248,26 @@
     },
     "name": "pipx"
    },
+   "apt\\python3.13": {
+    "driver": "apt",
+    "fields": {
+     "name": "python3.13",
+     "packages": [
+      "python3.13",
+      "python3.13-venv",
+      "python3.13-dev"
+     ],
+     "ppa": "deadsnakes/ppa"
+    },
+    "name": "python3.13"
+   },
+   "apt\\software-properties-common": {
+    "driver": "apt",
+    "fields": {
+     "name": "software-properties-common"
+    },
+    "name": "software-properties-common"
+   },
    "dotfiles\\bash-dotfiles": {
     "driver": "dotfiles",
     "fields": {
@@ -37248,7 +37289,8 @@
    "pipx\\pywal16": {
     "driver": "pipx",
     "fields": {
-     "name": "pywal16"
+     "name": "pywal16",
+     "python": "/usr/bin/python3.13"
     },
     "name": "pywal16"
    }
@@ -50582,6 +50624,26 @@
     },
     "name": "pipx"
    },
+   "apt\\python3.13": {
+    "driver": "apt",
+    "fields": {
+     "name": "python3.13",
+     "packages": [
+      "python3.13",
+      "python3.13-venv",
+      "python3.13-dev"
+     ],
+     "ppa": "deadsnakes/ppa"
+    },
+    "name": "python3.13"
+   },
+   "apt\\software-properties-common": {
+    "driver": "apt",
+    "fields": {
+     "name": "software-properties-common"
+    },
+    "name": "software-properties-common"
+   },
    "dotfiles\\bash-dotfiles": {
     "driver": "dotfiles",
     "fields": {
@@ -50603,7 +50665,8 @@
    "pipx\\pywal16": {
     "driver": "pipx",
     "fields": {
-     "name": "pywal16"
+     "name": "pywal16",
+     "python": "/usr/bin/python3.13"
     },
     "name": "pywal16"
    }
@@ -100357,6 +100420,26 @@
     },
     "name": "python3-pip"
    },
+   "apt\\python3.13": {
+    "driver": "apt",
+    "fields": {
+     "name": "python3.13",
+     "packages": [
+      "python3.13",
+      "python3.13-venv",
+      "python3.13-dev"
+     ],
+     "ppa": "deadsnakes/ppa"
+    },
+    "name": "python3.13"
+   },
+   "apt\\software-properties-common": {
+    "driver": "apt",
+    "fields": {
+     "name": "software-properties-common"
+    },
+    "name": "software-properties-common"
+   },
    "dotfiles\\bash-dotfiles": {
     "driver": "dotfiles",
     "fields": {
@@ -100395,7 +100478,8 @@
    "pipx\\pywal16": {
     "driver": "pipx",
     "fields": {
-     "name": "pywal16"
+     "name": "pywal16",
+     "python": "/usr/bin/python3.13"
     },
     "name": "pywal16"
    }
@@ -127701,6 +127785,26 @@
     },
     "name": "python3-pip"
    },
+   "apt\\python3.13": {
+    "driver": "apt",
+    "fields": {
+     "name": "python3.13",
+     "packages": [
+      "python3.13",
+      "python3.13-venv",
+      "python3.13-dev"
+     ],
+     "ppa": "deadsnakes/ppa"
+    },
+    "name": "python3.13"
+   },
+   "apt\\software-properties-common": {
+    "driver": "apt",
+    "fields": {
+     "name": "software-properties-common"
+    },
+    "name": "software-properties-common"
+   },
    "dotfiles\\bash-dotfiles": {
     "driver": "dotfiles",
     "fields": {
@@ -127739,7 +127843,8 @@
    "pipx\\pywal16": {
     "driver": "pipx",
     "fields": {
-     "name": "pywal16"
+     "name": "pywal16",
+     "python": "/usr/bin/python3.13"
     },
     "name": "pywal16"
    }
@@ -141110,6 +141215,26 @@
     },
     "name": "pipx"
    },
+   "apt\\python3.13": {
+    "driver": "apt",
+    "fields": {
+     "name": "python3.13",
+     "packages": [
+      "python3.13",
+      "python3.13-venv",
+      "python3.13-dev"
+     ],
+     "ppa": "deadsnakes/ppa"
+    },
+    "name": "python3.13"
+   },
+   "apt\\software-properties-common": {
+    "driver": "apt",
+    "fields": {
+     "name": "software-properties-common"
+    },
+    "name": "software-properties-common"
+   },
    "dotfiles\\bash-dotfiles": {
     "driver": "dotfiles",
     "fields": {
@@ -141131,7 +141256,8 @@
    "pipx\\pywal16": {
     "driver": "pipx",
     "fields": {
-     "name": "pywal16"
+     "name": "pywal16",
+     "python": "/usr/bin/python3.13"
     },
     "name": "pywal16"
    }

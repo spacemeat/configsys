@@ -92,17 +92,19 @@ class Pipx(Driver):
         return self._pyver_cache
 
     def _target_python(self, rc):
-        '''The interpreter get_latest should judge requires_python against: the INSTALLED venv's
-        python (an upgrade reuses it — a newer release that dropped that python is unreachable), else
-        a `python:` route pin (a fresh install will build the venv with it), else None (absolute
-        latest — a fresh unpinned install uses pipx's default interpreter).'''
-        pv = self._venv_pythons().get(self._norm(self._dist(rc)))
-        m = re.search(r'(\d+\.\d+(?:\.\d+)?)', pv) if pv else None
-        if m:
-            return m.group(1)                              # "Python 3.10.12" -> "3.10.12"
+        '''The interpreter get_latest should judge requires_python against. A `python:` route pin is
+        the INTENT — scope to it even when the current venv is on an older interpreter, so a pin that
+        would reach a newer release reads as an available upgrade (the `pipx reinstall --python` path
+        then rebuilds the venv and applies it). No pin -> the installed venv's python (reality — a
+        release that dropped it is unreachable). Neither -> None (absolute latest; a fresh unpinned
+        install uses pipx's default interpreter).'''
         pin = rc.fields.get('python')
         m = re.search(r'(\d+\.\d+)', str(pin)) if pin else None
-        return m.group(1) if m else None                  # "python3.12" / a path -> "3.12"
+        if m:
+            return m.group(1)                              # "python3.12" / "/usr/bin/python3.13" -> "3.12"
+        pv = self._venv_pythons().get(self._norm(self._dist(rc)))
+        m = re.search(r'(\d+\.\d+(?:\.\d+)?)', pv) if pv else None
+        return m.group(1) if m else None                  # "Python 3.10.12" -> "3.10.12"
 
     def get_latest(self, rc):
         v = self.resolve_version(rc)                       # an explicit `version:` spec wins if present

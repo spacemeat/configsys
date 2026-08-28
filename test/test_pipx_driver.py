@@ -202,3 +202,21 @@ def test_get_latest_uses_python_pin_when_not_installed(monkeypatch):
     r = FakeRunner(responses=[('pipx list --json', 0, json.dumps({'venvs': {}}))])
     Pipx(r).get_latest(dist(comp='qtile', name='qtile', python='python3.12'))
     assert seen['spec'] == {'pypi': 'qtile', 'python': '3.12'}
+
+
+def test_get_latest_pin_overrides_an_older_installed_venv(monkeypatch):
+    # venv is on py3.10 but the route PINS py3.13 -> scope to the pin (intent), so a newer release the
+    # pin can reach reads as an available upgrade (the `pipx reinstall --python` path then applies it).
+    import configsys.versions as vmod
+    seen = {}
+
+    def fake_discover(spec, paths=None, **kw):
+        seen['spec'] = spec
+        return '3.8.15'
+
+    monkeypatch.setattr(vmod, 'discover', fake_discover)
+    listing = json.dumps({'venvs': {'pywal16': {'metadata': {
+        'main_package': {'package_version': '3.8.10'}, 'python_version': 'Python 3.10.12'}}}})
+    r = FakeRunner(responses=[('pipx list --json', 0, listing)])
+    got = Pipx(r).get_latest(dist(comp='pywal16', name='pywal16', python='/usr/bin/python3.13'))
+    assert got == '3.8.15' and seen['spec'] == {'pypi': 'pywal16', 'python': '3.13'}

@@ -384,7 +384,11 @@
         // pywal16 — maintained fork of pywal: generate & apply a 16-color scheme from an image. PyPI
         // only, isolated as a CLI via pipx. The binary is `wal` (not `pywal16`).
         pywal16: { attrs: [ CLI FOSS permissive ] description: "pywal16 — generate and apply 16-color schemes from an image (the `wal` command; maintained pywal fork)."
-            install: [ { via: pipx  name: pywal16 } ] }
+            // pywal16 >= 3.8.15 needs python >= 3.11; Debian-family ships an older system python, so
+            // pin the venv to python3.13 there (pulled in as a dep) to reach current. Other families
+            // default to a new-enough python already. (Same shape as mitmproxy.)
+            install: [ { via: pipx  when: "debian"  name: pywal16  python: "/usr/bin/python3.13"  requires: python3.13 }
+                       { via: pipx  when: "not debian"  name: pywal16 } ] }
         // fff: minimal Bash file manager. Upstream archived (dylanaraps) -> Debian/Ubuntu ship an old
         // 1.1 and Arch's AUR has 2.2; a `via: source` build (pure Bash `make install`) in the
         // configsys-source plugin covers Fedora/openSUSE/Alpine/EL.
