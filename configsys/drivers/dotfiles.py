@@ -458,7 +458,9 @@ class DotFiles(Driver):
                 for _n, src, dst, absorb, kind in self._specs(rc)]
 
     def spec_states(self, rc):
-        '''[(name, target_display, state, src_root, src_rel, here)] for `dotfiles status`.
+        '''[(name, target_display, state, src_root, src_rel, here, kind)] for `dotfiles status`.
+        `kind` is 'config' (content you own) or 'glue' (a shipped shell-integration snippet) — the
+        two belong to different state machines (see the TUI legend).
         state is one of:
           linked    — our symlink is in place (managed & active)
           adopted   — your content exists in a user root; not linked yet (capture done)
@@ -502,7 +504,7 @@ class DotFiles(Driver):
             else:                                         # managed/unmanaged/empty -> capture dest
                 src_root, here = capture_root, False      # a config lands under <comp>.cfs/<src>
                 rel = f'{rc.comp}{CFS_SUFFIX}/{src}' if kind == 'config' else src
-            out.append((name, self.display_path(tgt), state, src_root, rel, here))
+            out.append((name, self.display_path(tgt), state, src_root, rel, here, kind))
         return out
 
     def capture_plan(self, rc, force=False):

@@ -2843,7 +2843,7 @@ def cmd_dotfiles_status(ctx, args):
     df, units = _active_dotfiles(ctx)
     rows = []   # (state, target, component, src_root, src_rel, here)
     for rc in units:
-        for _name, tgt, state, src_root, src_rel, here in df.spec_states(rc):
+        for _name, tgt, state, src_root, src_rel, here, _kind in df.spec_states(rc):
             rows.append((state, tgt, rc.comp, Path(src_root), src_rel, here))
     print(f'OS: {ctx.os_info.block}   profiles: {_profiles_label(ctx.config.active_profiles)}')
     if not rows:

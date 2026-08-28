@@ -881,9 +881,11 @@ _HELP = {
         'desc': "Link state for via:dotfiles components. Each row: the component, its link state, the "
                 "~/ location, and the managed source it points at. Link or capture from here.",
         'glossary': [
-            ('config state', "empty · unmanaged (a real file we don't manage) · managed (marker, "
-                             "no content) · adopted (captured, not yet linked) · linked"),
-            ('glue state', "loader-on/off (a shell's conf.d hookup) · template/linked (a shipped snippet)"),
+            ('config states', "empty → unmanaged (a real file we don't manage) / managed (marker, "
+                              "no content) → adopted (your capture, not yet linked) → linked; "
+                              "template = a shipped default (see SOURCE)"),
+            ('glue states', "active · available · inactive — a ship→activate toggle (shipped snippets "
+                            "+ the per-shell conf.d loaders); never captured"),
             ('capture', 'adopts on-system content into your store so it can be linked (and travel)'),
             ('safety', 'linking backs up any pre-existing real file to <dst>.pre-configsys'),
         ],
@@ -3420,21 +3422,35 @@ class DotfilesScreen:
     def reload(self):
         from .. import actions
         self.df, self.units = actions.dotfiles_units(self.ctx)
-        self.rows = []                                       # (rc, name, tgt, state, source, cap)
+        cfg, glue = [], []                                   # (rc, name, tgt, state, source, cap, group)
         for rc in self.units:
             loader = self.df._loader_shell(rc)
             if loader:                                      # a per-shell glue loader (zsh-glue/fish-glue)
                 on = self.df.get_version(rc) is not None
                 state = 'loader-on' if on else 'loader-off'
                 src = 'rc hookup' if on else 'not hooked up'
-                self.rows.append((rc, f'{loader} loader', self.df.location(rc) or '', state, src, False))
+                glue.append((rc, f'{loader} loader', self.df.location(rc) or '', state, src, False, 'glue'))
                 continue
             # which specs have a real on-system file to adopt (a `managed`/`unmanaged` row is only
             # capture-ACTIONABLE if something is actually there) — capture_plan tells us per spec.
             cap = {name: (action == 'copy') for name, _d, _de, action in self.df.capture_plan(rc)}
-            for name, tgt, state, src_root, src_rel, _here in self.df.spec_states(rc):
+            for name, tgt, state, src_root, src_rel, _here, kind in self.df.spec_states(rc):
                 source = f'{self._root_label(src_root)}/{src_rel}'
-                self.rows.append((rc, name, tgt, state, source, cap.get(name, False)))
+                (cfg if kind == 'config' else glue).append(
+                    (rc, name, tgt, state, source, cap.get(name, False), kind))
+        # CONFIG (content you own) and GLUE (shipped shell integration) are two different state
+        # machines — keep them as separate, ordered groups. `display` interleaves a header BEFORE
+        # each group's rows, but ONLY when both groups are present (nothing to separate otherwise);
+        # navigation still indexes `rows` (headers live only in the draw layer).
+        self.rows = cfg + glue
+        self.display, both, base = [], bool(cfg) and bool(glue), 0
+        for label, grp in (('config', cfg), ('glue — shell integration', glue)):
+            if not grp:
+                continue
+            if both:
+                self.display.append(('hdr', label))
+            self.display.extend(('row', base + k) for k in range(len(grp)))
+            base += len(grp)
         self.cur = min(self.cur, max(0, len(self.rows) - 1))
 
     def cur_row(self):
@@ -3446,12 +3462,20 @@ class DotfilesScreen:
 _DF_HEADERS = ['component', 'state', 'link', 'source']
 
 
+# GLUE speaks a binary vocabulary (active / available / inactive), never config's capture-lifecycle
+# words — so its rows read as the ship→activate toggle they are.
+_GLUE_STATE_LABEL = {'linked': 'active', 'loader-on': 'active',
+                     'template': 'available', 'loader-off': 'inactive'}
+
+
 def _df_cells(row):
     '''The four column strings for a dotfiles row. `!` = a real on-system file we don't manage;
-    `+` = a marked config with on-disk content ready to capture.'''
-    rc, _name, tgt, state, source, cap = row
+    `+` = a marked config with on-disk content ready to capture. Glue rows relabel their state to
+    the active/available/inactive vocabulary (the underlying state is unchanged, for theming).'''
+    rc, _name, tgt, state, source, cap, group = row
+    shown = _GLUE_STATE_LABEL.get(state, state) if group == 'glue' else state
     mark = '!' if state == 'unmanaged' else '+' if (state == 'managed' and cap) else ' '
-    return [rc.comp, f'{mark} {state}', str(tgt), source]
+    return [rc.comp, f'{mark} {shown}', str(tgt), source]
 
 
 def _draw_dotfiles(stdscr, pal, ds, ctx, note, screen):
@@ -3482,16 +3506,26 @@ def _draw_dotfiles(stdscr, pal, ds, ctx, note, screen):
         ds.hscroll = max(0, min(ds.hscroll, max(0, virt_w - iw)))   # clamp: no scrolling past the end
         for hdr, vx0 in zip(_DF_HEADERS, xs):    # sticky header, scrolls horizontally with the rows
             _put_hscroll(stdscr, it, il, iw, vx0, ds.hscroll, hdr, pal.style('menu_header', it, il, h, w))
-        ds.top = _scroll_top(ds.cur, ds.top, rows_h, len(ds.rows))
-        for vis, i in enumerate(range(ds.top, min(len(ds.rows), ds.top + rows_h))):
-            y, sel = it + 1 + vis, i == ds.cur
+        # scroll over the DISPLAY list (group headers + rows); the cursor tracks the actionable row.
+        disp = ds.display
+        cur_disp = next((d for d, e in enumerate(disp) if e == ('row', ds.cur)), 0)
+        ds.top = _scroll_top(cur_disp, ds.top, rows_h, len(disp))
+        for vis, d in enumerate(range(ds.top, min(len(disp), ds.top + rows_h))):
+            y = it + 1 + vis
+            etype, val = disp[d]
+            if etype == 'hdr':                   # a group divider (drawn inline, non-selectable)
+                rule = f'{val} '
+                rule += '─' * max(0, iw - len(rule))
+                _put(stdscr, y, il, _fit(rule, iw), pal.style('menu_header', y, il, h, w))
+                continue
+            i, sel = val, val == ds.cur
             if sel:
                 _put(stdscr, y, il, ' ' * iw, pal.fill(y, il, h, w, selected=True))
             elem = 'label' if sel else _DF_STATE_ELEM.get(ds.rows[i][3], 'component')
             style = pal.style(elem, y, il, h, w, selected=sel)
             for cell, wd, vx0 in zip(cells_by_row[i], widths, xs):
                 _put_hscroll(stdscr, y, il, iw, vx0, ds.hscroll, cell.ljust(wd), style)
-        _scrollbar_v(stdscr, pal, it + 1, il + iw, rows_h, ds.top, rows_h, len(ds.rows), h, w)
+        _scrollbar_v(stdscr, pal, it + 1, il + iw, rows_h, ds.top, rows_h, len(disp), h, w)
         if has_hbar:
             _scrollbar_h(stdscr, pal, it + ih - 1, il, iw, ds.hscroll, iw, virt_w, h, w)
 
