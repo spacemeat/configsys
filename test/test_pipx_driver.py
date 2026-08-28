@@ -172,3 +172,33 @@ def test_get_latest_prefers_an_explicit_version_spec(monkeypatch):
     monkeypatch.setattr(vmod, 'discover', lambda spec, paths=None, **kw: '9.9.9')
     got = Pipx(FakeRunner()).get_latest(dist(name='Faker', version_spec={'pypi': 'Faker'}))
     assert got == '9.9.9'
+
+
+def test_get_latest_scopes_to_the_venv_python(monkeypatch):
+    # an installed venv on py3.10 -> get_latest queries PyPI SCOPED to that interpreter, so a newer
+    # release that dropped py3.10 isn't falsely reported as an available upgrade (the pywal16 bug).
+    import configsys.versions as vmod
+    seen = {}
+
+    def fake_discover(spec, paths=None, **kw):
+        seen['spec'] = spec
+        return '3.8.10'
+
+    monkeypatch.setattr(vmod, 'discover', fake_discover)
+    listing = json.dumps({'venvs': {'pywal16': {'metadata': {
+        'main_package': {'package': 'pywal16', 'package_version': '3.8.10'},
+        'python_version': 'Python 3.10.12'}}}})
+    r = FakeRunner(responses=[('pipx list --json', 0, listing)])
+    assert Pipx(r).get_latest(dist(comp='pywal16', name='pywal16')) == '3.8.10'
+    assert seen['spec'] == {'pypi': 'pywal16', 'python': '3.10.12'}
+
+
+def test_get_latest_uses_python_pin_when_not_installed(monkeypatch):
+    # not installed, but a `python:` pin means the fresh venv will use it -> scope to the pin.
+    import configsys.versions as vmod
+    seen = {}
+    monkeypatch.setattr(vmod, 'discover',
+                        lambda spec, paths=None, **kw: seen.setdefault('spec', spec) and None or '1.0')
+    r = FakeRunner(responses=[('pipx list --json', 0, json.dumps({'venvs': {}}))])
+    Pipx(r).get_latest(dist(comp='qtile', name='qtile', python='python3.12'))
+    assert seen['spec'] == {'pypi': 'qtile', 'python': '3.12'}

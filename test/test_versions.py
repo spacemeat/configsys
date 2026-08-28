@@ -277,3 +277,24 @@ def test_offline_falls_back_to_stale_cache(tmp_path):
         raise OSError('offline')
     # TTL expired + fetch fails -> last known value
     assert versions.discover(spec, paths, fetch=boom, now=versions.DEFAULT_TTL + 5) == 'v1'
+
+
+def test_pypi_latest_for_python_respects_requires_python():
+    from configsys import versions
+    data = {'info': {'version': '3.8.15'},
+            'releases': {
+                '3.8.10': [{'requires_python': '>=3.5'}],
+                '3.8.15': [{'requires_python': '>=3.11'}],
+                '3.9.0':  [{'requires_python': '>=3.12'}],
+                '3.9.1':  [],                     # registered-only (no artifacts) -> skipped
+            }}
+    assert versions._pypi_latest_for_python(data, 'Python 3.10.12') == '3.8.10'   # 3.15/3.9 need newer
+    assert versions._pypi_latest_for_python(data, '3.11.0') == '3.8.15'           # 3.9.0 needs >=3.12
+    assert versions._pypi_latest_for_python(data, '3.12.0') == '3.9.0'
+    assert versions._pypi_latest_for_python(data, 'nonsense') == '3.8.15'         # unjudgeable -> absolute
+
+
+def test_source_key_is_python_scoped_for_pypi():
+    from configsys.versions import source_key
+    assert source_key({'pypi': 'pywal16'}) == 'pypi:pywal16'
+    assert source_key({'pypi': 'pywal16', 'python': '3.10.12'}) == 'pypi:pywal16@py3.10.12'

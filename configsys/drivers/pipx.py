@@ -48,7 +48,8 @@ class Pipx(Driver):
 
     def installed_index(self):
         '''ONE `pipx list --json` -> {dist: version}. Feeds BOTH the inspect batch and the
-        coexistence detector, so N pipx units cost one call, not one per unit. None on failure.'''
+        coexistence detector, so N pipx units cost one call, not one per unit. None on failure.
+        As a side effect it caches each venv's interpreter (for python-aware get_latest).'''
         r = self.runner.run(f'{_PIPX} list --json')
         if not r.ok or not r.stdout:
             return None
@@ -56,11 +57,16 @@ class Pipx(Driver):
             data = json.loads(r.stdout)
         except ValueError:
             return None
-        idx = {}
+        idx, pys = {}, {}
         for dist, venv in (data.get('venvs') or {}).items():
-            ver = ((venv.get('metadata') or {}).get('main_package') or {}).get('package_version')
+            meta = venv.get('metadata') or {}
+            ver = (meta.get('main_package') or {}).get('package_version')
             if ver:
                 idx[dist] = ver
+            pv = meta.get('python_version')                # e.g. "Python 3.10.12"
+            if pv:
+                pys[self._norm(dist)] = pv
+        self._pyver_cache = pys
         return idx
 
     def batch_index(self, rcs):
@@ -76,14 +82,42 @@ class Pipx(Driver):
         want = self._norm(want)                            # else match PEP 503-normalized (Faker->faker)
         return next((v for d, v in idx.items() if self._norm(d) == want), None)
 
+    def _venv_pythons(self):
+        '''{norm_dist: "Python X.Y.Z"} — the interpreter each installed venv runs. Populated as a
+        side effect of the batch's installed_index; parsed on demand for a single-component call.'''
+        if getattr(self, '_pyver_cache', None) is None:
+            self.installed_index()
+            if getattr(self, '_pyver_cache', None) is None:
+                self._pyver_cache = {}                     # probe failed -> don't retry per component
+        return self._pyver_cache
+
+    def _target_python(self, rc):
+        '''The interpreter get_latest should judge requires_python against: the INSTALLED venv's
+        python (an upgrade reuses it — a newer release that dropped that python is unreachable), else
+        a `python:` route pin (a fresh install will build the venv with it), else None (absolute
+        latest — a fresh unpinned install uses pipx's default interpreter).'''
+        pv = self._venv_pythons().get(self._norm(self._dist(rc)))
+        m = re.search(r'(\d+\.\d+(?:\.\d+)?)', pv) if pv else None
+        if m:
+            return m.group(1)                              # "Python 3.10.12" -> "3.10.12"
+        pin = rc.fields.get('python')
+        m = re.search(r'(\d+\.\d+)', str(pin)) if pin else None
+        return m.group(1) if m else None                  # "python3.12" / a path -> "3.12"
+
     def get_latest(self, rc):
         v = self.resolve_version(rc)                       # an explicit `version:` spec wins if present
         if v is not None:
             return v
-        # otherwise the pipx `name` IS a PyPI distribution -> query PyPI directly (case-insensitive),
-        # so a plain `{ via: pipx name: Faker }` still reports a latest version.
+        # otherwise the pipx `name` IS a PyPI distribution -> query PyPI. Scope it to the venv's
+        # interpreter so we report the newest release pipx could actually UPGRADE to (a package can
+        # publish a newer version that drops old pythons — pywal16 3.8.15 needs >=3.11 but a 3.10 venv
+        # caps at 3.8.10; reporting 3.8.15 there would read outdated with no way to move).
         from .. import versions
-        return versions.discover({'pypi': self._dist(rc)}, self.paths, offline=self._offline())
+        spec = {'pypi': self._dist(rc)}
+        py = self._target_python(rc)
+        if py:
+            spec['python'] = py
+        return versions.discover(spec, self.paths, offline=self._offline())
 
     def is_locked(self, rc):
         return False

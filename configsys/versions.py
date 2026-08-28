@@ -74,6 +74,9 @@ def source_key(spec):
     if 'github' in spec:
         base = f'github:{spec["github"]}'
         return f'{base}:asset={spec["asset"]}' if spec.get('asset') else base
+    if 'pypi' in spec:
+        base = f'pypi:{spec["pypi"]}'
+        return f'{base}@py{spec["python"]}' if spec.get('python') else base   # python-scoped latest
     for kind in (*_BUILTIN_KINDS, *_SOURCES):
         if kind in spec:
             return f'{kind}:{spec[kind]}'
@@ -177,6 +180,37 @@ def _github_asset_url_live(spec, fetch):
     return _tag_transform(tag, spec), url
 
 
+def _pypi_latest_for_python(data, pyver):
+    '''The newest stable PyPI release of a dist whose `requires_python` ADMITS the interpreter
+    `pyver` (e.g. "3.10.12" or "Python 3.10.12"). This is what pipx would actually be able to
+    upgrade a venv to — a package can publish a newer release that drops old pythons (pywal16 3.8.15
+    needs >=3.11), and reporting THAT as "latest" for a 3.10 venv makes it read outdated when it
+    can't move. Falls back to the absolute latest when nothing is judgeable.'''
+    from packaging.version import Version, InvalidVersion
+    from packaging.specifiers import SpecifierSet, InvalidSpecifier
+    m = re.search(r'(\d+)\.(\d+)(?:\.(\d+))?', str(pyver))
+    absolute = data.get('info', {}).get('version')
+    if not m:
+        return absolute
+    py = f'{m.group(1)}.{m.group(2)}.{m.group(3) or 0}'
+    best = None
+    for ver, files in (data.get('releases') or {}).items():
+        if not files:
+            continue                          # no artifacts (yanked/registered-only) -> skip
+        rp = files[0].get('requires_python')  # PyPI sets requires_python per release (files agree)
+        try:
+            if rp and py not in SpecifierSet(rp):
+                continue
+            v = Version(ver)
+        except (InvalidSpecifier, InvalidVersion):
+            continue
+        if v.is_prerelease:
+            continue                          # match info.version's stable-only semantics
+        if best is None or v > best[0]:
+            best = (v, ver)
+    return best[1] if best else absolute
+
+
 def _discover_live(spec, fetch):
     '''Return (version, download_url). download_url is only set when a github
     `asset` glob matches a release asset (authoritative URL from the API).'''
@@ -195,6 +229,8 @@ def _discover_live(spec, fetch):
         return v, None
     if 'pypi' in spec:
         data = json.loads(fetch(PYPI_LATEST.format(dist=spec['pypi'])))
+        if spec.get('python'):               # latest RELEASE whose requires_python admits this python
+            return _pypi_latest_for_python(data, spec['python']), None
         return data.get('info', {}).get('version'), None
     if 'aur' in spec:
         data = json.loads(fetch(AUR_INFO.format(pkg=spec['aur'])))
