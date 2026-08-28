@@ -142,3 +142,33 @@ def test_upgrade_without_pin_stays_a_plain_upgrade():
     r = Runner(pretend=True)
     Pipx(r).upgrade(dist(name='black'))
     assert r.calls == ['python3 -m pipx upgrade black']    # no interpreter probe, no --force
+
+
+def test_get_version_matches_pep503_normalized_name():
+    # route `name: Faker`, but pipx stores the venv under the PEP 503 name `faker` -> presence must
+    # still match (else configsys thinks it's uninstalled and re-stages an install every time).
+    r = FakeRunner(responses=[('pipx list --json', 0, _pipx_list(name='faker', version='40.37.0'))])
+    assert Pipx(r).get_version(dist(comp='faker', name='Faker')) == '40.37.0'
+
+
+def test_get_latest_falls_back_to_pypi_for_a_bare_pipx_binding(monkeypatch):
+    # no `version:` spec on the route -> get_latest still reports a latest by querying PyPI for the
+    # dist name (the pipx `name` IS a PyPI distribution).
+    import configsys.versions as vmod
+    seen = {}
+
+    def fake_discover(spec, paths=None, **kw):
+        seen['spec'] = spec
+        return '40.37.0'
+
+    monkeypatch.setattr(vmod, 'discover', fake_discover)
+    assert Pipx(FakeRunner()).get_latest(dist(comp='faker', name='Faker')) == '40.37.0'
+    assert seen['spec'] == {'pypi': 'Faker'}
+
+
+def test_get_latest_prefers_an_explicit_version_spec(monkeypatch):
+    # an explicit `version: { pypi: ... }` still wins over the bare-name fallback.
+    import configsys.versions as vmod
+    monkeypatch.setattr(vmod, 'discover', lambda spec, paths=None, **kw: '9.9.9')
+    got = Pipx(FakeRunner()).get_latest(dist(name='Faker', version_spec={'pypi': 'Faker'}))
+    assert got == '9.9.9'

@@ -11,6 +11,7 @@ get_latest resolves from pypi.org only when the route carries a
 '''
 
 import json
+import re
 import shlex
 
 from ..driver import Driver
@@ -36,6 +37,13 @@ class Pipx(Driver):
     def _dist(rc):
         return rc.name  # route `name` field is the PyPI distribution (== the command)
 
+    @staticmethod
+    def _norm(dist):
+        '''PEP 503 normalized project name: lowercase, runs of -_. collapsed to one -. pipx keys its
+        `list` venvs by this (e.g. route `Faker` -> venv `faker`), so presence lookups must match on
+        the normalized form, not the raw route name.'''
+        return re.sub(r'[-_.]+', '-', str(dist)).strip().lower()
+
     # -- read -------------------------------------------------------------
 
     def installed_index(self):
@@ -60,10 +68,22 @@ class Pipx(Driver):
 
     def get_version(self, rc):
         idx = self._batch if self._batch is not None else self.installed_index()
-        return idx.get(self._dist(rc)) if idx else None
+        if not idx:
+            return None
+        want = self._dist(rc)
+        if want in idx:                                    # exact hit (already-normalized route name)
+            return idx[want]
+        want = self._norm(want)                            # else match PEP 503-normalized (Faker->faker)
+        return next((v for d, v in idx.items() if self._norm(d) == want), None)
 
     def get_latest(self, rc):
-        return self.resolve_version(rc)
+        v = self.resolve_version(rc)                       # an explicit `version:` spec wins if present
+        if v is not None:
+            return v
+        # otherwise the pipx `name` IS a PyPI distribution -> query PyPI directly (case-insensitive),
+        # so a plain `{ via: pipx name: Faker }` still reports a latest version.
+        from .. import versions
+        return versions.discover({'pypi': self._dist(rc)}, self.paths, offline=self._offline())
 
     def is_locked(self, rc):
         return False
