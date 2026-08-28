@@ -2733,6 +2733,7 @@ def build_parser():
 
 
 _DOTFILES_STATE_ORDER = ['unmanaged', 'managed', 'template', 'adopted', 'linked', 'empty']
+_GLUE_ORDER = ['loader-on', 'linked', 'template', 'loader-off']   # glue's underlying states, active-first
 _DOTFILES_STATE_NOTE = {
     'unmanaged': 'real on-system file, not captured — configsys is NOT managing it',
     'managed':   'managed (.cfs marker) but no content captured yet — capture to link it',
@@ -2837,39 +2838,74 @@ def _dotfiles_root_label(ctx, root):
 
 
 def cmd_dotfiles_status(ctx, args):
-    '''Show every via:dotfiles target in the active profiles: its state, its component, and where
-    its MANAGED content lives (or `→` where capture will put it). Content roots are labeled once up
-    top so the SRC column stays short.'''
+    '''Show every via:dotfiles target in the active profiles, split into the two state machines:
+    CONFIG (content you own — a capture→link lifecycle) and GLUE (shipped shell integration — a
+    ship→activate toggle: snippets + the per-shell conf.d loaders). Each row: state, target,
+    component, and where its MANAGED content lives (or `→` where capture will put it). Content roots
+    are labeled once up top so the SRC column stays short.'''
+    from .drivers.dotfiles import GLUE_STATE_LABEL
     df, units = _active_dotfiles(ctx)
-    rows = []   # (state, target, component, src_root, src_rel, here)
+    cfg, glue = [], []   # (state, target, component, src_root|None, src_rel, here)
     for rc in units:
-        for _name, tgt, state, src_root, src_rel, here, _kind in df.spec_states(rc):
-            rows.append((state, tgt, rc.comp, Path(src_root), src_rel, here))
+        loader = df._loader_shell(rc)
+        if loader:                               # a per-shell glue loader (zsh-glue/fish-glue)
+            on = df.get_version(rc) is not None
+            glue.append(('loader-on' if on else 'loader-off', df.location(rc) or '', rc.comp,
+                         None, 'rc hookup' if on else 'not hooked up', True))
+            continue
+        for _name, tgt, state, src_root, src_rel, here, kind in df.spec_states(rc):
+            (cfg if kind == 'config' else glue).append(
+                (state, tgt, rc.comp, Path(src_root), src_rel, here))
     print(f'OS: {ctx.os_info.block}   profiles: {_profiles_label(ctx.config.active_profiles)}')
-    if not rows:
+    if not cfg and not glue:
         print('\n(no dotfiles components in the active profiles)')
         return 0
     roots = {}                                   # distinct src roots -> label, listed once
-    for r in rows:
-        roots.setdefault(r[3], _dotfiles_root_label(ctx, r[3]))
+    for r in cfg + glue:
+        if isinstance(r[3], Path):
+            roots.setdefault(r[3], _dotfiles_root_label(ctx, r[3]))
     print()
     for root, label in sorted(roots.items(), key=lambda kv: kv[1]):
         print(f'  {label:9} {df.display_path(root)}')
-    rows.sort(key=lambda r: (_DOTFILES_STATE_ORDER.index(r[0])
-                             if r[0] in _DOTFILES_STATE_ORDER else 99, r[1]))
-    print()
-    print(f'  {"":1} {"STATE":10} {"TARGET":26} {"COMPONENT":20} SRC  (→ = on capture)')
-    print('  ' + '-' * 78)
-    counts = {}
-    for state, tgt, comp, src_root, src_rel, here in rows:
-        counts[state] = counts.get(state, 0) + 1
-        mark = '!' if state == 'unmanaged' else ' '
-        arrow = '' if here else '→ '
-        print(f'  {mark} {state:10} {tgt:26} {comp:20} {arrow}{roots[src_root]}/{src_rel}')
-    summary = ', '.join(f'{counts[s]} {s}' for s in _DOTFILES_STATE_ORDER if s in counts)
-    print(f'\n{summary}')
-    if counts.get('unmanaged'):
-        print(f'  ! {counts["unmanaged"]} unmanaged: {_DOTFILES_STATE_NOTE["unmanaged"]}.')
+
+    def _section(title, rows, order, relabel, src_note):
+        '''Print one group's table (columns sized to the group's content); return its
+        underlying-state counts.'''
+        if not rows:
+            return {}
+        rows = sorted(rows, key=lambda r: (order.index(r[0]) if r[0] in order else 99, str(r[1])))
+        shown_of = lambda s: (relabel.get(s, s) if relabel else s)   # noqa: E731
+        sw = max(len('STATE'), *(len(shown_of(r[0])) for r in rows))
+        tw = max(len('TARGET'), *(len(str(r[1])) for r in rows))
+        cw = max(len('COMPONENT'), *(len(r[2]) for r in rows))
+        head = f'  {"":1} {"STATE":{sw}} {"TARGET":{tw}} {"COMPONENT":{cw}} SRC{src_note}'
+        print(f'\n  {title}')
+        print(head)
+        print('  ' + '-' * (len(head) - 2))
+        counts = {}
+        for state, tgt, comp, src_root, src_rel, here in rows:
+            counts[state] = counts.get(state, 0) + 1
+            mark = '!' if state == 'unmanaged' else ' '
+            src = (f'{"" if here else "→ "}{roots[src_root]}/{src_rel}'
+                   if isinstance(src_root, Path) else src_rel)
+            print(f'  {mark} {shown_of(state):{sw}} {str(tgt):{tw}} {comp:{cw}} {src}')
+        return counts
+
+    ccounts = _section('config  (content you own)', cfg, _DOTFILES_STATE_ORDER, None,
+                       '  (→ = on capture)')
+    gcounts = _section('glue — shell integration  (shipped; never captured)', glue,
+                       _GLUE_ORDER, GLUE_STATE_LABEL, '')
+    gbuckets = {}
+    for state, n in gcounts.items():
+        lbl = GLUE_STATE_LABEL.get(state, state)
+        gbuckets[lbl] = gbuckets.get(lbl, 0) + n
+    csum = ', '.join(f'{ccounts[s]} {s}' for s in _DOTFILES_STATE_ORDER if s in ccounts)
+    gsum = ', '.join(f'{gbuckets[l]} {l}' for l in ('active', 'available', 'inactive') if l in gbuckets)
+    parts = [p for p in (f'config: {csum}' if csum else '', f'glue: {gsum}' if gsum else '') if p]
+    if parts:
+        print('\n' + '   '.join(parts))
+    if ccounts.get('unmanaged'):
+        print(f'  ! {ccounts["unmanaged"]} unmanaged: {_DOTFILES_STATE_NOTE["unmanaged"]}.')
     return 0
 
 

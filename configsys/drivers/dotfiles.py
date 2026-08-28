@@ -54,6 +54,13 @@ _SECRET_GLOBS = ['.env', '*.env', 'id_*', '*_history', '*.pem', '*.key',
 _RC_BEGIN = '# >>> configsys glue >>>'
 _RC_END = '# <<< configsys glue <<<'
 _SHELL_RC = {'zsh': '~/.zshrc'}
+
+# GLUE and CONFIG are two different state machines. Glue speaks a binary vocabulary
+# (active/available/inactive) — a ship→activate toggle — never config's capture-lifecycle words;
+# this maps the underlying spec/loader states to the glue labels (identity for anything unlisted).
+# Shared by the TUI dotfiles screen and the `dotfiles status` CLI so they never diverge.
+GLUE_STATE_LABEL = {'linked': 'active', 'loader-on': 'active',
+                    'template': 'available', 'loader-off': 'inactive'}
 # how each rc-driven shell sources its conf.d dir (empty-glob-safe).
 _RC_SOURCE = {
     'zsh': ('setopt local_options null_glob\n'

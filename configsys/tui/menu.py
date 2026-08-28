@@ -3462,10 +3462,7 @@ class DotfilesScreen:
 _DF_HEADERS = ['component', 'state', 'link', 'source']
 
 
-# GLUE speaks a binary vocabulary (active / available / inactive), never config's capture-lifecycle
-# words — so its rows read as the ship→activate toggle they are.
-_GLUE_STATE_LABEL = {'linked': 'active', 'loader-on': 'active',
-                     'template': 'available', 'loader-off': 'inactive'}
+from ..drivers.dotfiles import GLUE_STATE_LABEL as _GLUE_STATE_LABEL   # glue's active/available/inactive
 
 
 def _df_cells(row):
