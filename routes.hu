@@ -290,6 +290,14 @@
         fzf:     { attrs: [ CLI FOSS permissive ] suggests: fzf-dotfiles  description: "Fuzzy finder — interactive filtering for files, history, anything piped in."
                    install: [ { via: native  when: "rhel"  requires: epel } { via: native  when: "not amzn"   repo-component: universe }
                               { via: tarball  installDir: "$CONFIGSYS_APP_DIR/fzf"  version: { github: junegunn/fzf  strip-v: true  asset: "fzf-*-linux_amd64.tar.gz" } } ] }
+        // television: a Rust fuzzy finder; the binary is `tv`. In Arch's official extra repo and a
+        // brew formula (atomic); not in Debian/Fedora/openSUSE base repos -> cargo crate `television`
+        // (installs `tv`) is the universal fallback everywhere else.
+        television: { attrs: [ CLI TUI FOSS permissive ] suggests: television-dotfiles
+                      description: "Television (`tv`) — a very fast, portable, hackable fuzzy finder TUI (Rust)."
+                      install: [ { via: native  when: "arch or fedora_atomic" }
+                                 { via: cargo  name: television } ] }
+        television-dotfiles: { description: "Television config + cable channels, linked into place." install: [ { via: dotfiles  config: { src: television  dst: $XDG_CONFIG_HOME/television } } ] }
         xclip:   { attrs: [ CLI FOSS copyleft ] description: "xclip — command-line access to the X clipboard." suggests: xclip-dotfiles
                    install: [ { via: native  when: "rhel"  requires: epel } { via: native  when: "not amzn"   repo-component: universe } ] }
         xclip-dotfiles: { description: "xclip helper config, linked into place." install: [ { via: dotfiles  requires: bash-dotfiles  glue: xclip } ] }
@@ -585,6 +593,30 @@
                 install: [ { via: native } ] }
         tmux-dotfiles: { description: "tmux config, linked into place."
                 install: [ { via: dotfiles  config: { src: tmux  dst: $XDG_CONFIG_HOME/tmux } } ] }
+        // sesh: a smart tmux session manager (Go). AUR `sesh-bin` on Arch, brew on atomic; a static
+        // Go release tarball runs everywhere else (incl. musl/Alpine) — not in the distro base repos.
+        sesh: { attrs: [ CLI FOSS permissive ] suggests: sesh-dotfiles
+                description: "sesh — a smart tmux session manager: fuzzy-pick, create and switch sessions by zoxide frecency / git repo."
+                install: [ { via: aur  when: "arch"  name: sesh-bin }
+                           { via: native  when: "fedora_atomic" }
+                           { via: tarball  installDir: "$CONFIGSYS_APP_DIR/sesh"
+                             version: { github: joshmedeski/sesh  strip-v: true  asset: "sesh_*_Linux_x86_64.tar.gz" } } ] }
+        sesh-dotfiles: { description: "sesh config (sesh.toml), linked into place." install: [ { via: dotfiles  config: { src: sesh  dst: $XDG_CONFIG_HOME/sesh } } ] }
+        // gum: Charm's toolkit for glamorous shell scripts (Go). Native in Fedora, Arch, Alpine (and
+        // EL via EPEL), brew on atomic; Charm's official apt repo on Debian/Ubuntu; a static Go
+        // release tarball covers the rest (openSUSE, Amazon Linux).
+        gum: { attrs: [ CLI TUI FOSS permissive ]
+               description: "gum — Charm's toolkit for glamorous shell scripts (interactive prompts, spinners, filtering, styling)."
+               install: [ { via: native  when: "fedora or arch or alpine" }
+                          { via: native  when: "rhel"  requires: epel }
+                          { via: native  when: "fedora_atomic" }
+                          { via: native  when: "debian"  name: gum   // Charm's official apt repo
+                            pubkey-url: "https://repo.charm.sh/apt/gpg.key"
+                            pubkey-path: /usr/share/keyrings/charm.gpg
+                            source-line: "deb [signed-by=/usr/share/keyrings/charm.gpg] https://repo.charm.sh/apt/ * *"
+                            source-path: /etc/apt/sources.list.d/charm.list }
+                          { via: tarball  installDir: "$CONFIGSYS_APP_DIR/gum"
+                            version: { github: charmbracelet/gum  strip-v: true  asset: "gum_*_Linux_x86_64.tar.gz" } } ] }
         zsh:  { attrs: [ CLI FOSS permissive ] suggests: [ zsh-dotfiles, zsh-glue ]  description: "Z shell — a powerful interactive shell." install: [ { via: native } ] }
         fish: { attrs: [ CLI FOSS copyleft ] suggests: [ fish-dotfiles, fish-glue ]  description: "Friendly interactive shell — smart autosuggestions out of the box." install: [ { via: native  when: "not amzn"  } ] }
         // nushell isn't in Debian/Ubuntu/Fedora base repos; native where it is (Arch, Homebrew),
@@ -1219,6 +1251,23 @@
         firefox: { attrs: [ GUI web app FOSS copyleft tele ] description: "Mozilla Firefox — the open-source web browser." install: [ { via: flatpak  hub: flathub  app: org.mozilla.firefox }
                               { via: native  when: "not fedora_atomic"  repo-component: universe  name: { zypper: MozillaFirefox  default: firefox } }
                               { via: snap  name: firefox } ] }
+        // LibreWolf — a privacy-hardened Firefox fork (no telemetry). Its own apt repo (Debian/Ubuntu,
+        // suite by $CODENAME) and rpm repo (Fedora + EL, distro-agnostic baseurl); AUR `librewolf-bin`
+        // on Arch; Flathub everywhere (default on openSUSE/atomic, a candidate everywhere else).
+        librewolf: { attrs: [ GUI web app FOSS copyleft ] description: "LibreWolf — a privacy-hardened fork of Firefox (telemetry stripped, sane defaults)."
+            install: [
+                { via: native  when: "debian"  name: librewolf   // LibreWolf's official apt repo
+                  pubkey-url: "https://deb.librewolf.net/keyring.gpg"
+                  pubkey-path: /usr/share/keyrings/librewolf.asc
+                  source-line: "deb [arch=amd64 signed-by=/usr/share/keyrings/librewolf.asc] https://deb.librewolf.net $CODENAME main"
+                  source-path: /etc/apt/sources.list.d/librewolf.list }
+                { via: native  when: "redhat"  name: librewolf   // LibreWolf's official rpm repo (Fedora + EL)
+                  pubkey-url: "https://rpm.librewolf.net/pubkey.gpg"
+                  repo-id: librewolf  repo-name: "LibreWolf Software Repository"
+                  repo-url: "https://rpm.librewolf.net" }
+                { via: aur  when: "arch"  name: librewolf-bin }
+                { via: flatpak  hub: flathub  app: io.gitlab.librewolf-community } ]
+        }
         chromium: { attrs: [ GUI app FOSS permissive ] description: "Chromium — the open-source browser upstream of Chrome." install: [ { via: native  when: "((debian or redhat or arch or opensuse) and not ubuntu) and not amzn"  name: { default: chromium } }  { via: snap  name: chromium }  { via: flatpak  hub: flathub  app: org.chromium.Chromium } ] }   // Ubuntu ships chromium ONLY as the (Canonical-official) snap — its apt `chromium-browser` is a snap shim; ubuntu excluded from native so the snap is the sole real method there. Flathub flatpak offered everywhere (+ the only method on atomic).
         chrome:  { attrs: [ GUI app proprietary freeware tele patent ] description: "Google Chrome — Google's web browser."
             install: [

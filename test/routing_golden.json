@@ -4607,6 +4607,15 @@
     "name": "guile"
    }
   },
+  "gum": {
+   "pacman\\gum": {
+    "driver": "pacman",
+    "fields": {
+     "name": "gum"
+    },
+    "name": "gum"
+   }
+  },
   "haskell": {
    "pacman\\haskell": {
     "driver": "pacman",
@@ -6548,6 +6557,39 @@
      }
     },
     "name": "libreoffice-dotfiles"
+   }
+  },
+  "librewolf": {
+   "aur\\librewolf": {
+    "driver": "aur",
+    "fields": {
+     "name": "librewolf-bin"
+    },
+    "name": "librewolf-bin"
+   },
+   "dotfiles\\git-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "~/.gitconfig",
+      "src": "gitconfig"
+     }
+    },
+    "name": "git-dotfiles"
+   },
+   "pacman\\base-devel": {
+    "driver": "pacman",
+    "fields": {
+     "name": "base-devel"
+    },
+    "name": "base-devel"
+   },
+   "pacman\\git": {
+    "driver": "pacman",
+    "fields": {
+     "name": "git"
+    },
+    "name": "git"
    }
   },
   "libsecret": {
@@ -10692,6 +10734,61 @@
     "name": "sdl2_ttf"
    }
   },
+  "sesh": {
+   "aur\\sesh": {
+    "driver": "aur",
+    "fields": {
+     "name": "sesh-bin"
+    },
+    "name": "sesh-bin"
+   },
+   "dotfiles\\git-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "~/.gitconfig",
+      "src": "gitconfig"
+     }
+    },
+    "name": "git-dotfiles"
+   },
+   "dotfiles\\sesh-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/sesh",
+      "src": "sesh"
+     }
+    },
+    "name": "sesh-dotfiles"
+   },
+   "pacman\\base-devel": {
+    "driver": "pacman",
+    "fields": {
+     "name": "base-devel"
+    },
+    "name": "base-devel"
+   },
+   "pacman\\git": {
+    "driver": "pacman",
+    "fields": {
+     "name": "git"
+    },
+    "name": "git"
+   }
+  },
+  "sesh-dotfiles": {
+   "dotfiles\\sesh-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/sesh",
+      "src": "sesh"
+     }
+    },
+    "name": "sesh-dotfiles"
+   }
+  },
   "sfml": {
    "pacman\\sfml": {
     "driver": "pacman",
@@ -11299,6 +11396,37 @@
      "name": "tcpdump"
     },
     "name": "tcpdump"
+   }
+  },
+  "television": {
+   "dotfiles\\television-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/television",
+      "src": "television"
+     }
+    },
+    "name": "television-dotfiles"
+   },
+   "pacman\\television": {
+    "driver": "pacman",
+    "fields": {
+     "name": "television"
+    },
+    "name": "television"
+   }
+  },
+  "television-dotfiles": {
+   "dotfiles\\television-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/television",
+      "src": "television"
+     }
+    },
+    "name": "television-dotfiles"
    }
   },
   "tenacity": {
@@ -18713,6 +18841,19 @@
     "name": "guile-3.0"
    }
   },
+  "gum": {
+   "apt\\gum": {
+    "driver": "apt",
+    "fields": {
+     "name": "gum",
+     "pubkey-path": "/usr/share/keyrings/charm.gpg",
+     "pubkey-url": "https://repo.charm.sh/apt/gpg.key",
+     "source-line": "deb [signed-by=/usr/share/keyrings/charm.gpg] https://repo.charm.sh/apt/ * *",
+     "source-path": "/etc/apt/sources.list.d/charm.list"
+    },
+    "name": "gum"
+   }
+  },
   "haskell": {
    "apt\\haskell": {
     "driver": "apt",
@@ -20727,6 +20868,19 @@
      }
     },
     "name": "libreoffice-dotfiles"
+   }
+  },
+  "librewolf": {
+   "apt\\librewolf": {
+    "driver": "apt",
+    "fields": {
+     "name": "librewolf",
+     "pubkey-path": "/usr/share/keyrings/librewolf.asc",
+     "pubkey-url": "https://deb.librewolf.net/keyring.gpg",
+     "source-line": "deb [arch=amd64 signed-by=/usr/share/keyrings/librewolf.asc] https://deb.librewolf.net $CODENAME main",
+     "source-path": "/etc/apt/sources.list.d/librewolf.list"
+    },
+    "name": "librewolf"
    }
   },
   "libsecret": {
@@ -24732,6 +24886,50 @@
     "name": "libsdl2-ttf-dev"
    }
   },
+  "sesh": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "dotfiles\\sesh-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/sesh",
+      "src": "sesh"
+     }
+    },
+    "name": "sesh-dotfiles"
+   },
+   "tarball\\sesh": {
+    "driver": "tarball",
+    "fields": {
+     "installDir": "$CONFIGSYS_APP_DIR/sesh",
+     "name": "sesh",
+     "version": {
+      "asset": "sesh_*_Linux_x86_64.tar.gz",
+      "github": "joshmedeski/sesh",
+      "strip-v": "true"
+     }
+    },
+    "name": "sesh"
+   }
+  },
+  "sesh-dotfiles": {
+   "dotfiles\\sesh-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/sesh",
+      "src": "sesh"
+     }
+    },
+    "name": "sesh-dotfiles"
+   }
+  },
   "sfml": {
    "apt\\sfml": {
     "driver": "apt",
@@ -25220,6 +25418,64 @@
      "name": "tcpdump"
     },
     "name": "tcpdump"
+   }
+  },
+  "television": {
+   "apt\\rust": {
+    "driver": "apt",
+    "fields": {
+     "installed-name": "cargo",
+     "name": "rust-all",
+     "repo-component": "universe"
+    },
+    "name": "rust-all"
+   },
+   "cargo\\television": {
+    "driver": "cargo",
+    "fields": {
+     "name": "television"
+    },
+    "name": "television"
+   },
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.config/bash/conf.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\rust-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "glue": "rust"
+    },
+    "name": "rust-dotfiles"
+   },
+   "dotfiles\\television-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/television",
+      "src": "television"
+     }
+    },
+    "name": "television-dotfiles"
+   }
+  },
+  "television-dotfiles": {
+   "dotfiles\\television-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/television",
+      "src": "television"
+     }
+    },
+    "name": "television-dotfiles"
    }
   },
   "tenacity": {
@@ -32287,6 +32543,19 @@
     "name": "guile-3.0"
    }
   },
+  "gum": {
+   "apt\\gum": {
+    "driver": "apt",
+    "fields": {
+     "name": "gum",
+     "pubkey-path": "/usr/share/keyrings/charm.gpg",
+     "pubkey-url": "https://repo.charm.sh/apt/gpg.key",
+     "source-line": "deb [signed-by=/usr/share/keyrings/charm.gpg] https://repo.charm.sh/apt/ * *",
+     "source-path": "/etc/apt/sources.list.d/charm.list"
+    },
+    "name": "gum"
+   }
+  },
   "haskell": {
    "apt\\haskell": {
     "driver": "apt",
@@ -34250,6 +34519,19 @@
      }
     },
     "name": "libreoffice-dotfiles"
+   }
+  },
+  "librewolf": {
+   "apt\\librewolf": {
+    "driver": "apt",
+    "fields": {
+     "name": "librewolf",
+     "pubkey-path": "/usr/share/keyrings/librewolf.asc",
+     "pubkey-url": "https://deb.librewolf.net/keyring.gpg",
+     "source-line": "deb [arch=amd64 signed-by=/usr/share/keyrings/librewolf.asc] https://deb.librewolf.net $CODENAME main",
+     "source-path": "/etc/apt/sources.list.d/librewolf.list"
+    },
+    "name": "librewolf"
    }
   },
   "libsecret": {
@@ -38119,6 +38401,50 @@
     "name": "libsdl2-ttf-dev"
    }
   },
+  "sesh": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "dotfiles\\sesh-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/sesh",
+      "src": "sesh"
+     }
+    },
+    "name": "sesh-dotfiles"
+   },
+   "tarball\\sesh": {
+    "driver": "tarball",
+    "fields": {
+     "installDir": "$CONFIGSYS_APP_DIR/sesh",
+     "name": "sesh",
+     "version": {
+      "asset": "sesh_*_Linux_x86_64.tar.gz",
+      "github": "joshmedeski/sesh",
+      "strip-v": "true"
+     }
+    },
+    "name": "sesh"
+   }
+  },
+  "sesh-dotfiles": {
+   "dotfiles\\sesh-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/sesh",
+      "src": "sesh"
+     }
+    },
+    "name": "sesh-dotfiles"
+   }
+  },
   "sfml": {
    "apt\\sfml": {
     "driver": "apt",
@@ -38607,6 +38933,64 @@
      "name": "tcpdump"
     },
     "name": "tcpdump"
+   }
+  },
+  "television": {
+   "apt\\rust": {
+    "driver": "apt",
+    "fields": {
+     "installed-name": "cargo",
+     "name": "rust-all",
+     "repo-component": "universe"
+    },
+    "name": "rust-all"
+   },
+   "cargo\\television": {
+    "driver": "cargo",
+    "fields": {
+     "name": "television"
+    },
+    "name": "television"
+   },
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.config/bash/conf.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\rust-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "glue": "rust"
+    },
+    "name": "rust-dotfiles"
+   },
+   "dotfiles\\television-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/television",
+      "src": "television"
+     }
+    },
+    "name": "television-dotfiles"
+   }
+  },
+  "television-dotfiles": {
+   "dotfiles\\television-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/television",
+      "src": "television"
+     }
+    },
+    "name": "television-dotfiles"
    }
   },
   "tenacity": {
@@ -45657,6 +46041,19 @@
     "name": "guile-3.0"
    }
   },
+  "gum": {
+   "apt\\gum": {
+    "driver": "apt",
+    "fields": {
+     "name": "gum",
+     "pubkey-path": "/usr/share/keyrings/charm.gpg",
+     "pubkey-url": "https://repo.charm.sh/apt/gpg.key",
+     "source-line": "deb [signed-by=/usr/share/keyrings/charm.gpg] https://repo.charm.sh/apt/ * *",
+     "source-path": "/etc/apt/sources.list.d/charm.list"
+    },
+    "name": "gum"
+   }
+  },
   "haskell": {
    "apt\\haskell": {
     "driver": "apt",
@@ -47613,6 +48010,19 @@
      }
     },
     "name": "libreoffice-dotfiles"
+   }
+  },
+  "librewolf": {
+   "apt\\librewolf": {
+    "driver": "apt",
+    "fields": {
+     "name": "librewolf",
+     "pubkey-path": "/usr/share/keyrings/librewolf.asc",
+     "pubkey-url": "https://deb.librewolf.net/keyring.gpg",
+     "source-line": "deb [arch=amd64 signed-by=/usr/share/keyrings/librewolf.asc] https://deb.librewolf.net $CODENAME main",
+     "source-path": "/etc/apt/sources.list.d/librewolf.list"
+    },
+    "name": "librewolf"
    }
   },
   "libsecret": {
@@ -51495,6 +51905,50 @@
     "name": "libsdl2-ttf-dev"
    }
   },
+  "sesh": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "dotfiles\\sesh-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/sesh",
+      "src": "sesh"
+     }
+    },
+    "name": "sesh-dotfiles"
+   },
+   "tarball\\sesh": {
+    "driver": "tarball",
+    "fields": {
+     "installDir": "$CONFIGSYS_APP_DIR/sesh",
+     "name": "sesh",
+     "version": {
+      "asset": "sesh_*_Linux_x86_64.tar.gz",
+      "github": "joshmedeski/sesh",
+      "strip-v": "true"
+     }
+    },
+    "name": "sesh"
+   }
+  },
+  "sesh-dotfiles": {
+   "dotfiles\\sesh-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/sesh",
+      "src": "sesh"
+     }
+    },
+    "name": "sesh-dotfiles"
+   }
+  },
   "sfml": {
    "apt\\sfml": {
     "driver": "apt",
@@ -51991,6 +52445,64 @@
      "name": "tcpdump"
     },
     "name": "tcpdump"
+   }
+  },
+  "television": {
+   "apt\\rust": {
+    "driver": "apt",
+    "fields": {
+     "installed-name": "cargo",
+     "name": "rust-all",
+     "repo-component": "universe"
+    },
+    "name": "rust-all"
+   },
+   "cargo\\television": {
+    "driver": "cargo",
+    "fields": {
+     "name": "television"
+    },
+    "name": "television"
+   },
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.config/bash/conf.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\rust-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "glue": "rust"
+    },
+    "name": "rust-dotfiles"
+   },
+   "dotfiles\\television-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/television",
+      "src": "television"
+     }
+    },
+    "name": "television-dotfiles"
+   }
+  },
+  "television-dotfiles": {
+   "dotfiles\\television-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/television",
+      "src": "television"
+     }
+    },
+    "name": "television-dotfiles"
    }
   },
   "tenacity": {
@@ -58689,6 +59201,15 @@
     "name": "guile30"
    }
   },
+  "gum": {
+   "dnf\\gum": {
+    "driver": "dnf",
+    "fields": {
+     "name": "gum"
+    },
+    "name": "gum"
+   }
+  },
   "haskell": {
    "dnf\\haskell": {
     "driver": "dnf",
@@ -60674,6 +61195,19 @@
      }
     },
     "name": "libreoffice-dotfiles"
+   }
+  },
+  "librewolf": {
+   "dnf\\librewolf": {
+    "driver": "dnf",
+    "fields": {
+     "name": "librewolf",
+     "pubkey-url": "https://rpm.librewolf.net/pubkey.gpg",
+     "repo-id": "librewolf",
+     "repo-name": "LibreWolf Software Repository",
+     "repo-url": "https://rpm.librewolf.net"
+    },
+    "name": "librewolf"
    }
   },
   "libsecret": {
@@ -64432,6 +64966,50 @@
     "name": "SDL2_ttf-devel"
    }
   },
+  "sesh": {
+   "dnf\\curl": {
+    "driver": "dnf",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "dotfiles\\sesh-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/sesh",
+      "src": "sesh"
+     }
+    },
+    "name": "sesh-dotfiles"
+   },
+   "tarball\\sesh": {
+    "driver": "tarball",
+    "fields": {
+     "installDir": "$CONFIGSYS_APP_DIR/sesh",
+     "name": "sesh",
+     "version": {
+      "asset": "sesh_*_Linux_x86_64.tar.gz",
+      "github": "joshmedeski/sesh",
+      "strip-v": "true"
+     }
+    },
+    "name": "sesh"
+   }
+  },
+  "sesh-dotfiles": {
+   "dotfiles\\sesh-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/sesh",
+      "src": "sesh"
+     }
+    },
+    "name": "sesh-dotfiles"
+   }
+  },
   "sfml": {
    "dnf\\sfml": {
     "driver": "dnf",
@@ -64918,6 +65496,64 @@
      "name": "tcpdump"
     },
     "name": "tcpdump"
+   }
+  },
+  "television": {
+   "cargo\\television": {
+    "driver": "cargo",
+    "fields": {
+     "name": "television"
+    },
+    "name": "television"
+   },
+   "dnf\\rust": {
+    "driver": "dnf",
+    "fields": {
+     "installed-name": "cargo",
+     "name": "cargo",
+     "repo-component": "universe"
+    },
+    "name": "cargo"
+   },
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.config/bash/conf.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\rust-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "glue": "rust"
+    },
+    "name": "rust-dotfiles"
+   },
+   "dotfiles\\television-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/television",
+      "src": "television"
+     }
+    },
+    "name": "television-dotfiles"
+   }
+  },
+  "television-dotfiles": {
+   "dotfiles\\television-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/television",
+      "src": "television"
+     }
+    },
+    "name": "television-dotfiles"
    }
   },
   "tenacity": {
@@ -71651,6 +72287,15 @@
     "name": "guile30"
    }
   },
+  "gum": {
+   "dnf\\gum": {
+    "driver": "dnf",
+    "fields": {
+     "name": "gum"
+    },
+    "name": "gum"
+   }
+  },
   "haskell": {
    "dnf\\haskell": {
     "driver": "dnf",
@@ -73636,6 +74281,19 @@
      }
     },
     "name": "libreoffice-dotfiles"
+   }
+  },
+  "librewolf": {
+   "dnf\\librewolf": {
+    "driver": "dnf",
+    "fields": {
+     "name": "librewolf",
+     "pubkey-url": "https://rpm.librewolf.net/pubkey.gpg",
+     "repo-id": "librewolf",
+     "repo-name": "LibreWolf Software Repository",
+     "repo-url": "https://rpm.librewolf.net"
+    },
+    "name": "librewolf"
    }
   },
   "libsecret": {
@@ -77394,6 +78052,50 @@
     "name": "SDL2_ttf-devel"
    }
   },
+  "sesh": {
+   "dnf\\curl": {
+    "driver": "dnf",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "dotfiles\\sesh-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/sesh",
+      "src": "sesh"
+     }
+    },
+    "name": "sesh-dotfiles"
+   },
+   "tarball\\sesh": {
+    "driver": "tarball",
+    "fields": {
+     "installDir": "$CONFIGSYS_APP_DIR/sesh",
+     "name": "sesh",
+     "version": {
+      "asset": "sesh_*_Linux_x86_64.tar.gz",
+      "github": "joshmedeski/sesh",
+      "strip-v": "true"
+     }
+    },
+    "name": "sesh"
+   }
+  },
+  "sesh-dotfiles": {
+   "dotfiles\\sesh-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/sesh",
+      "src": "sesh"
+     }
+    },
+    "name": "sesh-dotfiles"
+   }
+  },
   "sfml": {
    "dnf\\sfml": {
     "driver": "dnf",
@@ -77880,6 +78582,64 @@
      "name": "tcpdump"
     },
     "name": "tcpdump"
+   }
+  },
+  "television": {
+   "cargo\\television": {
+    "driver": "cargo",
+    "fields": {
+     "name": "television"
+    },
+    "name": "television"
+   },
+   "dnf\\rust": {
+    "driver": "dnf",
+    "fields": {
+     "installed-name": "cargo",
+     "name": "cargo",
+     "repo-component": "universe"
+    },
+    "name": "cargo"
+   },
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.config/bash/conf.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\rust-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "glue": "rust"
+    },
+    "name": "rust-dotfiles"
+   },
+   "dotfiles\\television-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/television",
+      "src": "television"
+     }
+    },
+    "name": "television-dotfiles"
+   }
+  },
+  "television-dotfiles": {
+   "dotfiles\\television-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/television",
+      "src": "television"
+     }
+    },
+    "name": "television-dotfiles"
    }
   },
   "tenacity": {
@@ -83452,6 +84212,15 @@
     "name": "guile"
    }
   },
+  "gum": {
+   "brew\\gum": {
+    "driver": "brew",
+    "fields": {
+     "name": "gum"
+    },
+    "name": "gum"
+   }
+  },
   "haskell": {
    "brew\\haskell": {
     "driver": "brew",
@@ -85026,6 +85795,16 @@
      }
     },
     "name": "libreoffice-dotfiles"
+   }
+  },
+  "librewolf": {
+   "flatpak\\librewolf": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "io.gitlab.librewolf-community"
+    },
+    "name": "io.gitlab.librewolf-community"
    }
   },
   "libsecret": {
@@ -88289,6 +89068,37 @@
     "name": "sdl2-ttf"
    }
   },
+  "sesh": {
+   "brew\\sesh": {
+    "driver": "brew",
+    "fields": {
+     "name": "sesh"
+    },
+    "name": "sesh"
+   },
+   "dotfiles\\sesh-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/sesh",
+      "src": "sesh"
+     }
+    },
+    "name": "sesh-dotfiles"
+   }
+  },
+  "sesh-dotfiles": {
+   "dotfiles\\sesh-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/sesh",
+      "src": "sesh"
+     }
+    },
+    "name": "sesh-dotfiles"
+   }
+  },
   "sfml": {
    "brew\\sfml": {
     "driver": "brew",
@@ -88612,6 +89422,37 @@
      "name": "tcpdump"
     },
     "name": "tcpdump"
+   }
+  },
+  "television": {
+   "brew\\television": {
+    "driver": "brew",
+    "fields": {
+     "name": "television"
+    },
+    "name": "television"
+   },
+   "dotfiles\\television-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/television",
+      "src": "television"
+     }
+    },
+    "name": "television-dotfiles"
+   }
+  },
+  "television-dotfiles": {
+   "dotfiles\\television-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/television",
+      "src": "television"
+     }
+    },
+    "name": "television-dotfiles"
    }
   },
   "tenacity": {
@@ -95317,6 +96158,19 @@
     "name": "guile-3.0"
    }
   },
+  "gum": {
+   "apt\\gum": {
+    "driver": "apt",
+    "fields": {
+     "name": "gum",
+     "pubkey-path": "/usr/share/keyrings/charm.gpg",
+     "pubkey-url": "https://repo.charm.sh/apt/gpg.key",
+     "source-line": "deb [signed-by=/usr/share/keyrings/charm.gpg] https://repo.charm.sh/apt/ * *",
+     "source-path": "/etc/apt/sources.list.d/charm.list"
+    },
+    "name": "gum"
+   }
+  },
   "haskell": {
    "apt\\haskell": {
     "driver": "apt",
@@ -97324,6 +98178,19 @@
      }
     },
     "name": "libreoffice-dotfiles"
+   }
+  },
+  "librewolf": {
+   "apt\\librewolf": {
+    "driver": "apt",
+    "fields": {
+     "name": "librewolf",
+     "pubkey-path": "/usr/share/keyrings/librewolf.asc",
+     "pubkey-url": "https://deb.librewolf.net/keyring.gpg",
+     "source-line": "deb [arch=amd64 signed-by=/usr/share/keyrings/librewolf.asc] https://deb.librewolf.net $CODENAME main",
+     "source-path": "/etc/apt/sources.list.d/librewolf.list"
+    },
+    "name": "librewolf"
    }
   },
   "libsecret": {
@@ -101342,6 +102209,50 @@
     "name": "libsdl2-ttf-dev"
    }
   },
+  "sesh": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "dotfiles\\sesh-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/sesh",
+      "src": "sesh"
+     }
+    },
+    "name": "sesh-dotfiles"
+   },
+   "tarball\\sesh": {
+    "driver": "tarball",
+    "fields": {
+     "installDir": "$CONFIGSYS_APP_DIR/sesh",
+     "name": "sesh",
+     "version": {
+      "asset": "sesh_*_Linux_x86_64.tar.gz",
+      "github": "joshmedeski/sesh",
+      "strip-v": "true"
+     }
+    },
+    "name": "sesh"
+   }
+  },
+  "sesh-dotfiles": {
+   "dotfiles\\sesh-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/sesh",
+      "src": "sesh"
+     }
+    },
+    "name": "sesh-dotfiles"
+   }
+  },
   "sfml": {
    "apt\\sfml": {
     "driver": "apt",
@@ -101831,6 +102742,64 @@
      "name": "tcpdump"
     },
     "name": "tcpdump"
+   }
+  },
+  "television": {
+   "apt\\rust": {
+    "driver": "apt",
+    "fields": {
+     "installed-name": "cargo",
+     "name": "rust-all",
+     "repo-component": "universe"
+    },
+    "name": "rust-all"
+   },
+   "cargo\\television": {
+    "driver": "cargo",
+    "fields": {
+     "name": "television"
+    },
+    "name": "television"
+   },
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.config/bash/conf.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\rust-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "glue": "rust"
+    },
+    "name": "rust-dotfiles"
+   },
+   "dotfiles\\television-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/television",
+      "src": "television"
+     }
+    },
+    "name": "television-dotfiles"
+   }
+  },
+  "television-dotfiles": {
+   "dotfiles\\television-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/television",
+      "src": "television"
+     }
+    },
+    "name": "television-dotfiles"
    }
   },
   "tenacity": {
@@ -108816,6 +109785,22 @@
     "name": "guile30"
    }
   },
+  "gum": {
+   "dnf\\epel-release": {
+    "driver": "dnf",
+    "fields": {
+     "name": "epel-release"
+    },
+    "name": "epel-release"
+   },
+   "dnf\\gum": {
+    "driver": "dnf",
+    "fields": {
+     "name": "gum"
+    },
+    "name": "gum"
+   }
+  },
   "haskell": {
    "dnf\\haskell": {
     "driver": "dnf",
@@ -110848,6 +111833,19 @@
      }
     },
     "name": "libreoffice-dotfiles"
+   }
+  },
+  "librewolf": {
+   "dnf\\librewolf": {
+    "driver": "dnf",
+    "fields": {
+     "name": "librewolf",
+     "pubkey-url": "https://rpm.librewolf.net/pubkey.gpg",
+     "repo-id": "librewolf",
+     "repo-name": "LibreWolf Software Repository",
+     "repo-url": "https://rpm.librewolf.net"
+    },
+    "name": "librewolf"
    }
   },
   "libsecret": {
@@ -114856,6 +115854,50 @@
     "name": "SDL2_ttf-devel"
    }
   },
+  "sesh": {
+   "dnf\\curl": {
+    "driver": "dnf",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "dotfiles\\sesh-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/sesh",
+      "src": "sesh"
+     }
+    },
+    "name": "sesh-dotfiles"
+   },
+   "tarball\\sesh": {
+    "driver": "tarball",
+    "fields": {
+     "installDir": "$CONFIGSYS_APP_DIR/sesh",
+     "name": "sesh",
+     "version": {
+      "asset": "sesh_*_Linux_x86_64.tar.gz",
+      "github": "joshmedeski/sesh",
+      "strip-v": "true"
+     }
+    },
+    "name": "sesh"
+   }
+  },
+  "sesh-dotfiles": {
+   "dotfiles\\sesh-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/sesh",
+      "src": "sesh"
+     }
+    },
+    "name": "sesh-dotfiles"
+   }
+  },
   "sfml": {
    "dnf\\sfml": {
     "driver": "dnf",
@@ -115370,6 +116412,64 @@
      "name": "tcpdump"
     },
     "name": "tcpdump"
+   }
+  },
+  "television": {
+   "cargo\\television": {
+    "driver": "cargo",
+    "fields": {
+     "name": "television"
+    },
+    "name": "television"
+   },
+   "dnf\\rust": {
+    "driver": "dnf",
+    "fields": {
+     "installed-name": "cargo",
+     "name": "cargo",
+     "repo-component": "universe"
+    },
+    "name": "cargo"
+   },
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.config/bash/conf.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\rust-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "glue": "rust"
+    },
+    "name": "rust-dotfiles"
+   },
+   "dotfiles\\television-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/television",
+      "src": "television"
+     }
+    },
+    "name": "television-dotfiles"
+   }
+  },
+  "television-dotfiles": {
+   "dotfiles\\television-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/television",
+      "src": "television"
+     }
+    },
+    "name": "television-dotfiles"
    }
   },
   "tenacity": {
@@ -122682,6 +123782,19 @@
     "name": "guile-3.0"
    }
   },
+  "gum": {
+   "apt\\gum": {
+    "driver": "apt",
+    "fields": {
+     "name": "gum",
+     "pubkey-path": "/usr/share/keyrings/charm.gpg",
+     "pubkey-url": "https://repo.charm.sh/apt/gpg.key",
+     "source-line": "deb [signed-by=/usr/share/keyrings/charm.gpg] https://repo.charm.sh/apt/ * *",
+     "source-path": "/etc/apt/sources.list.d/charm.list"
+    },
+    "name": "gum"
+   }
+  },
   "haskell": {
    "apt\\haskell": {
     "driver": "apt",
@@ -124689,6 +125802,19 @@
      }
     },
     "name": "libreoffice-dotfiles"
+   }
+  },
+  "librewolf": {
+   "apt\\librewolf": {
+    "driver": "apt",
+    "fields": {
+     "name": "librewolf",
+     "pubkey-path": "/usr/share/keyrings/librewolf.asc",
+     "pubkey-url": "https://deb.librewolf.net/keyring.gpg",
+     "source-line": "deb [arch=amd64 signed-by=/usr/share/keyrings/librewolf.asc] https://deb.librewolf.net $CODENAME main",
+     "source-path": "/etc/apt/sources.list.d/librewolf.list"
+    },
+    "name": "librewolf"
    }
   },
   "libsecret": {
@@ -128707,6 +129833,50 @@
     "name": "libsdl2-ttf-dev"
    }
   },
+  "sesh": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "dotfiles\\sesh-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/sesh",
+      "src": "sesh"
+     }
+    },
+    "name": "sesh-dotfiles"
+   },
+   "tarball\\sesh": {
+    "driver": "tarball",
+    "fields": {
+     "installDir": "$CONFIGSYS_APP_DIR/sesh",
+     "name": "sesh",
+     "version": {
+      "asset": "sesh_*_Linux_x86_64.tar.gz",
+      "github": "joshmedeski/sesh",
+      "strip-v": "true"
+     }
+    },
+    "name": "sesh"
+   }
+  },
+  "sesh-dotfiles": {
+   "dotfiles\\sesh-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/sesh",
+      "src": "sesh"
+     }
+    },
+    "name": "sesh-dotfiles"
+   }
+  },
   "sfml": {
    "apt\\sfml": {
     "driver": "apt",
@@ -129203,6 +130373,64 @@
      "name": "tcpdump"
     },
     "name": "tcpdump"
+   }
+  },
+  "television": {
+   "apt\\rust": {
+    "driver": "apt",
+    "fields": {
+     "installed-name": "cargo",
+     "name": "rust-all",
+     "repo-component": "universe"
+    },
+    "name": "rust-all"
+   },
+   "cargo\\television": {
+    "driver": "cargo",
+    "fields": {
+     "name": "television"
+    },
+    "name": "television"
+   },
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.config/bash/conf.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\rust-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "glue": "rust"
+    },
+    "name": "rust-dotfiles"
+   },
+   "dotfiles\\television-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/television",
+      "src": "television"
+     }
+    },
+    "name": "television-dotfiles"
+   }
+  },
+  "television-dotfiles": {
+   "dotfiles\\television-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/television",
+      "src": "television"
+     }
+    },
+    "name": "television-dotfiles"
    }
   },
   "tenacity": {
@@ -136248,6 +137476,19 @@
     "name": "guile-3.0"
    }
   },
+  "gum": {
+   "apt\\gum": {
+    "driver": "apt",
+    "fields": {
+     "name": "gum",
+     "pubkey-path": "/usr/share/keyrings/charm.gpg",
+     "pubkey-url": "https://repo.charm.sh/apt/gpg.key",
+     "source-line": "deb [signed-by=/usr/share/keyrings/charm.gpg] https://repo.charm.sh/apt/ * *",
+     "source-path": "/etc/apt/sources.list.d/charm.list"
+    },
+    "name": "gum"
+   }
+  },
   "haskell": {
    "apt\\haskell": {
     "driver": "apt",
@@ -138204,6 +139445,19 @@
      }
     },
     "name": "libreoffice-dotfiles"
+   }
+  },
+  "librewolf": {
+   "apt\\librewolf": {
+    "driver": "apt",
+    "fields": {
+     "name": "librewolf",
+     "pubkey-path": "/usr/share/keyrings/librewolf.asc",
+     "pubkey-url": "https://deb.librewolf.net/keyring.gpg",
+     "source-line": "deb [arch=amd64 signed-by=/usr/share/keyrings/librewolf.asc] https://deb.librewolf.net $CODENAME main",
+     "source-path": "/etc/apt/sources.list.d/librewolf.list"
+    },
+    "name": "librewolf"
    }
   },
   "libsecret": {
@@ -142086,6 +143340,50 @@
     "name": "libsdl2-ttf-dev"
    }
   },
+  "sesh": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "dotfiles\\sesh-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/sesh",
+      "src": "sesh"
+     }
+    },
+    "name": "sesh-dotfiles"
+   },
+   "tarball\\sesh": {
+    "driver": "tarball",
+    "fields": {
+     "installDir": "$CONFIGSYS_APP_DIR/sesh",
+     "name": "sesh",
+     "version": {
+      "asset": "sesh_*_Linux_x86_64.tar.gz",
+      "github": "joshmedeski/sesh",
+      "strip-v": "true"
+     }
+    },
+    "name": "sesh"
+   }
+  },
+  "sesh-dotfiles": {
+   "dotfiles\\sesh-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/sesh",
+      "src": "sesh"
+     }
+    },
+    "name": "sesh-dotfiles"
+   }
+  },
   "sfml": {
    "apt\\sfml": {
     "driver": "apt",
@@ -142582,6 +143880,64 @@
      "name": "tcpdump"
     },
     "name": "tcpdump"
+   }
+  },
+  "television": {
+   "apt\\rust": {
+    "driver": "apt",
+    "fields": {
+     "installed-name": "cargo",
+     "name": "rust-all",
+     "repo-component": "universe"
+    },
+    "name": "rust-all"
+   },
+   "cargo\\television": {
+    "driver": "cargo",
+    "fields": {
+     "name": "television"
+    },
+    "name": "television"
+   },
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.config/bash/conf.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\rust-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "glue": "rust"
+    },
+    "name": "rust-dotfiles"
+   },
+   "dotfiles\\television-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/television",
+      "src": "television"
+     }
+    },
+    "name": "television-dotfiles"
+   }
+  },
+  "television-dotfiles": {
+   "dotfiles\\television-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/television",
+      "src": "television"
+     }
+    },
+    "name": "television-dotfiles"
    }
   },
   "tenacity": {

@@ -31,9 +31,9 @@ profiles: {
     // STAGING — components configsys just gained routes for (they were foreign orphans on this box).
     // NOT in `configs:`, so they stay "lurking": triage them into the real base profiles below, then
     // delete this profile. (NAMESWEEP still pending on several of these.)
-    finders: [ fd  fzf  ripgrep ]
+    finders: [ fd  fzf  ripgrep  television ]
     terminal-emulators: [ alacritty  foot  ghostty  kitty  wezterm  mosh ]
-    terminal-utils: [ tmux  xclip  zoxide  bat  xsel  wl-clipboard ]
+    terminal-utils: [ tmux  xclip  zoxide  bat  xsel  wl-clipboard  sesh  gum ]
     system-utils: [ fastfetch  lsblk ]
     system-monitors: [ btop  htop  bottom  atop  bmon  iotop  s-tui  glances  nvtop  wavemon  /*sysdig*/  dstat  lm-sensors ]
     disk-usage-utils: [ ncdu  duf  dysk ]
@@ -49,7 +49,7 @@ profiles: {
         vscodium  zed  fresh  jrnl ]
 
     desktops-compositors: [ budgie  cosmic  fvwm2  gnome  i3  kde  lxqt  mate  qtile  sway  xfce  xmonad ]
-    web-browsers: [ chrome  chromium  firefox  brave  opera  vivaldi  edge  tor-browser  lynx ]
+    web-browsers: [ chrome  chromium  firefox  librewolf  brave  opera  vivaldi  edge  tor-browser  lynx ]
     audio-infra: [ pipewire  jack  wiremix ]
     gaming: [ vulkan-runtime  steam  wine  winetricks  protonup-qt  protontricks ]
     games: [ zork ]   // mostly a catalog plugins/your config populate (configsys-source adds xpilot)
