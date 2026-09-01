@@ -61,11 +61,13 @@ def test_same_identity_override_replaces_just_that_binding(tmp_path):
 
 
 def test_drop_marker_retracts_an_inherited_binding(tmp_path):
-    # to reroute by config (not a pin), DROP the inherited native binding by its (via, when)
-    # identity — then only flatpak is valid on Pop and it becomes the resolved default
+    # to reroute by config (not a pin), DROP the inherited native binding(s) by their (via, when)
+    # identity — steam is native on Pop via BOTH its `pop_os!` and (inherited) `ubuntu` bindings,
+    # so retract both; then only flatpak is valid on Pop and it becomes the resolved default
     r = _resolver(tmp_path, '''{
         components: {
-            steam: { install: [ { via: native  when: "pop_os!"  drop: true } ] }
+            steam: { install: [ { via: native  when: "pop_os!"  drop: true }
+                                { via: native  when: "ubuntu"  drop: true } ] }
         }
     }''')
     units = r.resolve_names(['steam'])

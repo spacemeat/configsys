@@ -11122,20 +11122,12 @@
    }
   },
   "steam": {
-   "flatpak\\steam": {
-    "driver": "flatpak",
-    "fields": {
-     "hub": "flathub",
-     "name": "com.valvesoftware.Steam"
-    },
-    "name": "com.valvesoftware.Steam"
-   },
-   "pacman\\flatpak": {
+   "pacman\\steam": {
     "driver": "pacman",
     "fields": {
-     "name": "flatpak"
+     "name": "steam"
     },
-    "name": "flatpak"
+    "name": "steam"
    }
   },
   "stow": {
@@ -25205,20 +25197,14 @@
    }
   },
   "steam": {
-   "apt\\flatpak": {
+   "apt\\steam": {
     "driver": "apt",
     "fields": {
-     "name": "flatpak"
+     "foreign-arch": "i386",
+     "name": "steam-installer",
+     "repo-component": "non-free"
     },
-    "name": "flatpak"
-   },
-   "flatpak\\steam": {
-    "driver": "flatpak",
-    "fields": {
-     "hub": "flathub",
-     "name": "com.valvesoftware.Steam"
-    },
-    "name": "com.valvesoftware.Steam"
+    "name": "steam-installer"
    }
   },
   "stow": {
@@ -38752,20 +38738,14 @@
    }
   },
   "steam": {
-   "apt\\flatpak": {
+   "apt\\steam": {
     "driver": "apt",
     "fields": {
-     "name": "flatpak"
+     "foreign-arch": "i386",
+     "name": "steam-installer",
+     "repo-component": "non-free"
     },
-    "name": "flatpak"
-   },
-   "flatpak\\steam": {
-    "driver": "flatpak",
-    "fields": {
-     "hub": "flathub",
-     "name": "com.valvesoftware.Steam"
-    },
-    "name": "com.valvesoftware.Steam"
+    "name": "steam-installer"
    }
   },
   "stow": {
@@ -52288,20 +52268,14 @@
    }
   },
   "steam": {
-   "apt\\flatpak": {
+   "apt\\steam": {
     "driver": "apt",
     "fields": {
-     "name": "flatpak"
+     "foreign-arch": "i386",
+     "name": "steam-installer",
+     "repo-component": "multiverse"
     },
-    "name": "flatpak"
-   },
-   "flatpak\\steam": {
-    "driver": "flatpak",
-    "fields": {
-     "hub": "flathub",
-     "name": "com.valvesoftware.Steam"
-    },
-    "name": "com.valvesoftware.Steam"
+    "name": "steam-installer"
    }
   },
   "stow": {
@@ -64677,6 +64651,30 @@
     "name": "rpmfusion-free-release"
    }
   },
+  "rpmfusion-nonfree": {
+   "dnf\\rpmfusion-free": {
+    "driver": "dnf",
+    "fields": {
+     "name": "rpmfusion-free-release",
+     "pubkey-url": "https://rpmfusion.org/keys?action=AttachFile&do=get&target=RPM-GPG-KEY-rpmfusion-free-fedora-$releasever",
+     "repo-id": "rpmfusion-free",
+     "repo-name": "RPM Fusion Free",
+     "repo-url": "https://download1.rpmfusion.org/free/fedora/releases/$releasever/Everything/$basearch/os/"
+    },
+    "name": "rpmfusion-free-release"
+   },
+   "dnf\\rpmfusion-nonfree": {
+    "driver": "dnf",
+    "fields": {
+     "name": "rpmfusion-nonfree-release",
+     "pubkey-url": "https://rpmfusion.org/keys?action=AttachFile&do=get&target=RPM-GPG-KEY-rpmfusion-nonfree-fedora-$releasever",
+     "repo-id": "rpmfusion-nonfree",
+     "repo-name": "RPM Fusion Nonfree",
+     "repo-url": "https://download1.rpmfusion.org/nonfree/fedora/releases/$releasever/Everything/$basearch/os/"
+    },
+    "name": "rpmfusion-nonfree-release"
+   }
+  },
   "rsync": {
    "dnf\\rsync": {
     "driver": "dnf",
@@ -65379,20 +65377,34 @@
    }
   },
   "steam": {
-   "dnf\\flatpak": {
+   "dnf\\rpmfusion-free": {
     "driver": "dnf",
     "fields": {
-     "name": "flatpak"
+     "name": "rpmfusion-free-release",
+     "pubkey-url": "https://rpmfusion.org/keys?action=AttachFile&do=get&target=RPM-GPG-KEY-rpmfusion-free-fedora-$releasever",
+     "repo-id": "rpmfusion-free",
+     "repo-name": "RPM Fusion Free",
+     "repo-url": "https://download1.rpmfusion.org/free/fedora/releases/$releasever/Everything/$basearch/os/"
     },
-    "name": "flatpak"
+    "name": "rpmfusion-free-release"
    },
-   "flatpak\\steam": {
-    "driver": "flatpak",
+   "dnf\\rpmfusion-nonfree": {
+    "driver": "dnf",
     "fields": {
-     "hub": "flathub",
-     "name": "com.valvesoftware.Steam"
+     "name": "rpmfusion-nonfree-release",
+     "pubkey-url": "https://rpmfusion.org/keys?action=AttachFile&do=get&target=RPM-GPG-KEY-rpmfusion-nonfree-fedora-$releasever",
+     "repo-id": "rpmfusion-nonfree",
+     "repo-name": "RPM Fusion Nonfree",
+     "repo-url": "https://download1.rpmfusion.org/nonfree/fedora/releases/$releasever/Everything/$basearch/os/"
     },
-    "name": "com.valvesoftware.Steam"
+    "name": "rpmfusion-nonfree-release"
+   },
+   "dnf\\steam": {
+    "driver": "dnf",
+    "fields": {
+     "name": "steam"
+    },
+    "name": "steam"
    }
   },
   "stow": {
@@ -77819,6 +77831,30 @@
     "name": "rpmfusion-free-release"
    }
   },
+  "rpmfusion-nonfree": {
+   "dnf\\rpmfusion-free": {
+    "driver": "dnf",
+    "fields": {
+     "name": "rpmfusion-free-release",
+     "pubkey-url": "https://rpmfusion.org/keys?action=AttachFile&do=get&target=RPM-GPG-KEY-rpmfusion-free-fedora-$releasever",
+     "repo-id": "rpmfusion-free",
+     "repo-name": "RPM Fusion Free",
+     "repo-url": "https://download1.rpmfusion.org/free/fedora/releases/$releasever/Everything/$basearch/os/"
+    },
+    "name": "rpmfusion-free-release"
+   },
+   "dnf\\rpmfusion-nonfree": {
+    "driver": "dnf",
+    "fields": {
+     "name": "rpmfusion-nonfree-release",
+     "pubkey-url": "https://rpmfusion.org/keys?action=AttachFile&do=get&target=RPM-GPG-KEY-rpmfusion-nonfree-fedora-$releasever",
+     "repo-id": "rpmfusion-nonfree",
+     "repo-name": "RPM Fusion Nonfree",
+     "repo-url": "https://download1.rpmfusion.org/nonfree/fedora/releases/$releasever/Everything/$basearch/os/"
+    },
+    "name": "rpmfusion-nonfree-release"
+   }
+  },
   "rsync": {
    "dnf\\rsync": {
     "driver": "dnf",
@@ -78521,20 +78557,34 @@
    }
   },
   "steam": {
-   "dnf\\flatpak": {
+   "dnf\\rpmfusion-free": {
     "driver": "dnf",
     "fields": {
-     "name": "flatpak"
+     "name": "rpmfusion-free-release",
+     "pubkey-url": "https://rpmfusion.org/keys?action=AttachFile&do=get&target=RPM-GPG-KEY-rpmfusion-free-fedora-$releasever",
+     "repo-id": "rpmfusion-free",
+     "repo-name": "RPM Fusion Free",
+     "repo-url": "https://download1.rpmfusion.org/free/fedora/releases/$releasever/Everything/$basearch/os/"
     },
-    "name": "flatpak"
+    "name": "rpmfusion-free-release"
    },
-   "flatpak\\steam": {
-    "driver": "flatpak",
+   "dnf\\rpmfusion-nonfree": {
+    "driver": "dnf",
     "fields": {
-     "hub": "flathub",
-     "name": "com.valvesoftware.Steam"
+     "name": "rpmfusion-nonfree-release",
+     "pubkey-url": "https://rpmfusion.org/keys?action=AttachFile&do=get&target=RPM-GPG-KEY-rpmfusion-nonfree-fedora-$releasever",
+     "repo-id": "rpmfusion-nonfree",
+     "repo-name": "RPM Fusion Nonfree",
+     "repo-url": "https://download1.rpmfusion.org/nonfree/fedora/releases/$releasever/Everything/$basearch/os/"
     },
-    "name": "com.valvesoftware.Steam"
+    "name": "rpmfusion-nonfree-release"
+   },
+   "dnf\\steam": {
+    "driver": "dnf",
+    "fields": {
+     "name": "steam"
+    },
+    "name": "steam"
    }
   },
   "stow": {
@@ -115716,6 +115766,39 @@
     "name": "rpmfusion-free-release"
    }
   },
+  "rpmfusion-nonfree": {
+   "dnf\\epel-release": {
+    "driver": "dnf",
+    "fields": {
+     "name": "epel-release"
+    },
+    "name": "epel-release"
+   },
+   "dnf\\rpmfusion-free": {
+    "driver": "dnf",
+    "fields": {
+     "enable-repo": "crb",
+     "name": "rpmfusion-free-release",
+     "pubkey-url": "https://rpmfusion.org/keys?action=AttachFile&do=get&target=RPM-GPG-KEY-rpmfusion-free-el-$releasever",
+     "repo-id": "rpmfusion-free",
+     "repo-name": "RPM Fusion for EL - Free",
+     "repo-url": "https://download1.rpmfusion.org/free/el/updates/$releasever/$basearch/"
+    },
+    "name": "rpmfusion-free-release"
+   },
+   "dnf\\rpmfusion-nonfree": {
+    "driver": "dnf",
+    "fields": {
+     "enable-repo": "crb",
+     "name": "rpmfusion-nonfree-release",
+     "pubkey-url": "https://rpmfusion.org/keys?action=AttachFile&do=get&target=RPM-GPG-KEY-rpmfusion-nonfree-el-$releasever",
+     "repo-id": "rpmfusion-nonfree",
+     "repo-name": "RPM Fusion for EL - Nonfree",
+     "repo-url": "https://download1.rpmfusion.org/nonfree/el/updates/$releasever/$basearch/"
+    },
+    "name": "rpmfusion-nonfree-release"
+   }
+  },
   "rsync": {
    "dnf\\rsync": {
     "driver": "dnf",
@@ -130507,20 +130590,14 @@
    }
   },
   "steam": {
-   "apt\\flatpak": {
+   "apt\\steam": {
     "driver": "apt",
     "fields": {
-     "name": "flatpak"
+     "foreign-arch": "i386",
+     "name": "steam-installer",
+     "repo-component": "multiverse"
     },
-    "name": "flatpak"
-   },
-   "flatpak\\steam": {
-    "driver": "flatpak",
-    "fields": {
-     "hub": "flathub",
-     "name": "com.valvesoftware.Steam"
-    },
-    "name": "com.valvesoftware.Steam"
+    "name": "steam-installer"
    }
   },
   "stow": {
@@ -144046,20 +144123,14 @@
    }
   },
   "steam": {
-   "apt\\flatpak": {
+   "apt\\steam": {
     "driver": "apt",
     "fields": {
-     "name": "flatpak"
+     "foreign-arch": "i386",
+     "name": "steam-installer",
+     "repo-component": "multiverse"
     },
-    "name": "flatpak"
-   },
-   "flatpak\\steam": {
-    "driver": "flatpak",
-    "fields": {
-     "hub": "flathub",
-     "name": "com.valvesoftware.Steam"
-    },
-    "name": "com.valvesoftware.Steam"
+    "name": "steam-installer"
    }
   },
   "stow": {

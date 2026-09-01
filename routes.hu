@@ -1482,9 +1482,18 @@
         }
 
         // when:-varying: native on Pop (the NVIDIA rig), flatpak elsewhere
+        // Steam — native wherever it's packaged (needs 32-bit: apt i386 multiarch via foreign-arch,
+        // Arch multilib enabled once by the user, Fedora RPM Fusion nonfree); Flathub is the universal
+        // fallback (the only method on Alpine[musl]/atomic/EL). Pop keeps its known-good `steam:i386`
+        // binding (wins over the general ubuntu one by specificity).
         steam: { attrs: [ GUI app proprietary account cloud online ] description: "Steam — Valve's game store and launcher."
             install: [
                 { via: native   when: "pop_os!"  name: "steam:i386"  foreign-arch: i386 }
+                { via: native   when: "ubuntu"  name: steam-installer  repo-component: multiverse  foreign-arch: i386 }
+                { via: native   when: "debian and not ubuntu"  name: steam-installer  repo-component: non-free  foreign-arch: i386 }
+                { via: native   when: "arch"  name: steam }                      // multilib (user enables it once)
+                { via: native   when: "fedora"  name: steam  requires: rpmfusion-nonfree }   // RPM Fusion nonfree; EL/alpine/atomic -> flatpak
+                { via: native   when: "opensuse"  name: steam }
                 { via: flatpak  hub: flathub  app: com.valvesoftware.Steam }
             ]
         }
@@ -2166,6 +2175,24 @@
                   repo-id: rpmfusion-free  repo-name: "RPM Fusion Free"
                   repo-url: "https://download1.rpmfusion.org/free/fedora/releases/$releasever/Everything/$basearch/os/"
                   pubkey-url: "https://rpmfusion.org/keys?action=AttachFile&do=get&target=RPM-GPG-KEY-rpmfusion-free-fedora-$releasever" }
+            ]
+        }
+        // RPM Fusion (nonfree) — the patent/nonfree Fedora/RHEL repo (e.g. Steam, some codecs).
+        // Depends on the free repo being present (requires: rpmfusion), mirroring the standard
+        // "enable both" gaming/multimedia setup. Same per-distro release-pkg pattern as -free.
+        rpmfusion-nonfree: { attrs: [ plugin proprietary patent ] description: "RPM Fusion (nonfree) — an extra Fedora/RHEL packages repo (patent/nonfree)."
+            provides: rpmfusion-nonfree
+            requires: rpmfusion
+            install: [
+                { via: native  when: "rhel"  requires: epel  name: rpmfusion-nonfree-release
+                  enable-repo: crb
+                  repo-id: rpmfusion-nonfree  repo-name: "RPM Fusion for EL - Nonfree"
+                  repo-url: "https://download1.rpmfusion.org/nonfree/el/updates/$releasever/$basearch/"
+                  pubkey-url: "https://rpmfusion.org/keys?action=AttachFile&do=get&target=RPM-GPG-KEY-rpmfusion-nonfree-el-$releasever" }
+                { via: native  when: "fedora"  name: rpmfusion-nonfree-release
+                  repo-id: rpmfusion-nonfree  repo-name: "RPM Fusion Nonfree"
+                  repo-url: "https://download1.rpmfusion.org/nonfree/fedora/releases/$releasever/Everything/$basearch/os/"
+                  pubkey-url: "https://rpmfusion.org/keys?action=AttachFile&do=get&target=RPM-GPG-KEY-rpmfusion-nonfree-fedora-$releasever" }
             ]
         }
 

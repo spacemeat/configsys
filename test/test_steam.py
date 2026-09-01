@@ -1,10 +1,9 @@
-'''Steam: hybrid install method — native apt on Pop!_OS (the NVIDIA rig), flatpak
-everywhere else — via the \\app method-selection mechanism, plus the apt driver's
-i386 multiarch prereq.'''
+'''Steam: native wherever it's packaged — apt with i386 multiarch (Pop keeps its known-good
+`steam:i386`; other Debian/Ubuntu use `steam-installer` from multiverse/non-free), Arch multilib,
+Fedora RPM Fusion nonfree, openSUSE — with Flathub as the universal fallback where native can't
+work (Alpine[musl] / atomic / EL). Plus the apt driver's i386 multiarch prereq.'''
 
 import os
-
-import humon
 
 from configsys.componentObj import ResolvedComponent
 from configsys.drivers.apt import Apt
@@ -14,7 +13,7 @@ from configsys.runner import Runner
 ROUTES = os.path.join(os.path.dirname(__file__), '..', 'routes.hu')
 
 
-def _resolve(block, ver, name='steam'):
+def _resolve(block, ver=None, name='steam'):
     return Resolver(ROUTES, block, ver).resolve_names([name])
 
 
@@ -25,18 +24,36 @@ def test_steam_native_apt_on_pop():
     assert rc.fields['foreign-arch'] == 'i386'
 
 
-def test_steam_flatpak_everywhere_else():
-    for block, ver in [('ubuntu', '24.04'), ('fedora', '41'), ('arch', '20260712')]:
+def test_steam_native_where_packaged():
+    # native is the default wherever steam is in-repo; flatpak is only the fallback (not resolved).
+    for block, ver, drv in [('ubuntu', '24.04', 'apt'), ('debian', '12', 'apt'),
+                            ('fedora', '41', 'dnf'), ('arch', '20260712', 'pacman'),
+                            ('opensuse', None, 'zypper')]:
         units = _resolve(block, ver)
-        assert 'apt\\steam' not in units
-        rc = units['flatpak\\steam']
+        assert f'{drv}\\steam' in units
+        assert 'flatpak\\steam' not in units
+
+
+def test_steam_ubuntu_uses_installer_i386_multiverse():
+    rc = _resolve('ubuntu', '24.04')['apt\\steam']
+    assert rc.fields['name'] == 'steam-installer'      # the modern multiverse metapackage
+    assert rc.fields['foreign-arch'] == 'i386'
+    assert rc.fields['repo-component'] == 'multiverse'
+
+
+def test_steam_fedora_pulls_rpmfusion_nonfree():
+    units = _resolve('fedora', '41')
+    assert 'dnf\\steam' in units
+    assert any('rpmfusion-nonfree' in k for k in units)   # nonfree repo pulled as a hard require
+
+
+def test_steam_flatpak_fallback_where_native_absent():
+    # Alpine (musl, no 32-bit glibc) and EL have no native steam -> Flathub, which pulls the
+    # flatpak tool for that distro.
+    for block, ver, drv in [('alpine', None, 'apk'), ('rhel', '9.8', 'dnf')]:
+        rc = _resolve(block, ver)['flatpak\\steam']
         assert rc.fields['name'] == 'com.valvesoftware.Steam'
-
-
-def test_steam_flatpak_pulls_the_flatpak_tool_per_distro():
-    assert 'apt\\flatpak' in _resolve('ubuntu', '24.04')['flatpak\\steam'].deps
-    assert 'dnf\\flatpak' in _resolve('fedora', '41')['flatpak\\steam'].deps
-    assert 'pacman\\flatpak' in _resolve('arch', '20260712')['flatpak\\steam'].deps
+        assert f'{drv}\\flatpak' in rc.deps
 
 
 def test_apt_foreign_arch_prereq_enables_i386_idempotently():
