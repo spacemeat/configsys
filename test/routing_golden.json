@@ -23294,6 +23294,48 @@
     "name": "pi-hole"
    }
   },
+  "pipes": {
+   "apt\\git": {
+    "driver": "apt",
+    "fields": {
+     "name": "git"
+    },
+    "name": "git"
+   },
+   "apt\\make": {
+    "driver": "apt",
+    "fields": {
+     "name": "make"
+    },
+    "name": "make"
+   },
+   "dotfiles\\git-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "~/.gitconfig",
+      "src": "gitconfig"
+     }
+    },
+    "name": "git-dotfiles"
+   },
+   "script\\pipes": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "tmp=$(mktemp -d) && git clone --depth 1 https://github.com/pipeseroni/pipes.sh \"$tmp\" && make -C \"$tmp\" install PREFIX=\"$HOME/.local\" && rm -rf \"$tmp\"",
+     "location": "~/.local/bin/pipes.sh",
+     "name": "pipes",
+     "uninstall-cmd": "rm -f \"$HOME/.local/bin/pipes.sh\" \"$HOME/.local/share/man/man6/pipes.sh.6\"",
+     "version": {
+      "github": "pipeseroni/pipes.sh",
+      "strip-v": "true"
+     },
+     "version-cmd": "pipes.sh -v 2>/dev/null",
+     "version-re": "([0-9][0-9.]*)"
+    },
+    "name": "pipes"
+   }
+  },
   "pipewire": {
    "apt\\pipewire": {
     "driver": "apt",
@@ -36867,6 +36909,48 @@
     "name": "pi-hole"
    }
   },
+  "pipes": {
+   "apt\\git": {
+    "driver": "apt",
+    "fields": {
+     "name": "git"
+    },
+    "name": "git"
+   },
+   "apt\\make": {
+    "driver": "apt",
+    "fields": {
+     "name": "make"
+    },
+    "name": "make"
+   },
+   "dotfiles\\git-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "~/.gitconfig",
+      "src": "gitconfig"
+     }
+    },
+    "name": "git-dotfiles"
+   },
+   "script\\pipes": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "tmp=$(mktemp -d) && git clone --depth 1 https://github.com/pipeseroni/pipes.sh \"$tmp\" && make -C \"$tmp\" install PREFIX=\"$HOME/.local\" && rm -rf \"$tmp\"",
+     "location": "~/.local/bin/pipes.sh",
+     "name": "pipes",
+     "uninstall-cmd": "rm -f \"$HOME/.local/bin/pipes.sh\" \"$HOME/.local/share/man/man6/pipes.sh.6\"",
+     "version": {
+      "github": "pipeseroni/pipes.sh",
+      "strip-v": "true"
+     },
+     "version-cmd": "pipes.sh -v 2>/dev/null",
+     "version-re": "([0-9][0-9.]*)"
+    },
+    "name": "pipes"
+   }
+  },
   "pipewire": {
    "apt\\pipewire": {
     "driver": "apt",
@@ -50361,6 +50445,48 @@
     "name": "pi-hole"
    }
   },
+  "pipes": {
+   "apt\\git": {
+    "driver": "apt",
+    "fields": {
+     "name": "git"
+    },
+    "name": "git"
+   },
+   "apt\\make": {
+    "driver": "apt",
+    "fields": {
+     "name": "make"
+    },
+    "name": "make"
+   },
+   "dotfiles\\git-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "~/.gitconfig",
+      "src": "gitconfig"
+     }
+    },
+    "name": "git-dotfiles"
+   },
+   "script\\pipes": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "tmp=$(mktemp -d) && git clone --depth 1 https://github.com/pipeseroni/pipes.sh \"$tmp\" && make -C \"$tmp\" install PREFIX=\"$HOME/.local\" && rm -rf \"$tmp\"",
+     "location": "~/.local/bin/pipes.sh",
+     "name": "pipes",
+     "uninstall-cmd": "rm -f \"$HOME/.local/bin/pipes.sh\" \"$HOME/.local/share/man/man6/pipes.sh.6\"",
+     "version": {
+      "github": "pipeseroni/pipes.sh",
+      "strip-v": "true"
+     },
+     "version-cmd": "pipes.sh -v 2>/dev/null",
+     "version-re": "([0-9][0-9.]*)"
+    },
+    "name": "pipes"
+   }
+  },
   "pipewire": {
    "apt\\pipewire": {
     "driver": "apt",
@@ -63470,6 +63596,48 @@
     "name": "pi-hole"
    }
   },
+  "pipes": {
+   "dnf\\git": {
+    "driver": "dnf",
+    "fields": {
+     "name": "git"
+    },
+    "name": "git"
+   },
+   "dnf\\make": {
+    "driver": "dnf",
+    "fields": {
+     "name": "make"
+    },
+    "name": "make"
+   },
+   "dotfiles\\git-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "~/.gitconfig",
+      "src": "gitconfig"
+     }
+    },
+    "name": "git-dotfiles"
+   },
+   "script\\pipes": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "tmp=$(mktemp -d) && git clone --depth 1 https://github.com/pipeseroni/pipes.sh \"$tmp\" && make -C \"$tmp\" install PREFIX=\"$HOME/.local\" && rm -rf \"$tmp\"",
+     "location": "~/.local/bin/pipes.sh",
+     "name": "pipes",
+     "uninstall-cmd": "rm -f \"$HOME/.local/bin/pipes.sh\" \"$HOME/.local/share/man/man6/pipes.sh.6\"",
+     "version": {
+      "github": "pipeseroni/pipes.sh",
+      "strip-v": "true"
+     },
+     "version-cmd": "pipes.sh -v 2>/dev/null",
+     "version-re": "([0-9][0-9.]*)"
+    },
+    "name": "pipes"
+   }
+  },
   "pipewire": {
    "dnf\\pipewire": {
     "driver": "dnf",
@@ -76570,6 +76738,48 @@
     "name": "pi-hole"
    }
   },
+  "pipes": {
+   "dnf\\git": {
+    "driver": "dnf",
+    "fields": {
+     "name": "git"
+    },
+    "name": "git"
+   },
+   "dnf\\make": {
+    "driver": "dnf",
+    "fields": {
+     "name": "make"
+    },
+    "name": "make"
+   },
+   "dotfiles\\git-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "~/.gitconfig",
+      "src": "gitconfig"
+     }
+    },
+    "name": "git-dotfiles"
+   },
+   "script\\pipes": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "tmp=$(mktemp -d) && git clone --depth 1 https://github.com/pipeseroni/pipes.sh \"$tmp\" && make -C \"$tmp\" install PREFIX=\"$HOME/.local\" && rm -rf \"$tmp\"",
+     "location": "~/.local/bin/pipes.sh",
+     "name": "pipes",
+     "uninstall-cmd": "rm -f \"$HOME/.local/bin/pipes.sh\" \"$HOME/.local/share/man/man6/pipes.sh.6\"",
+     "version": {
+      "github": "pipeseroni/pipes.sh",
+      "strip-v": "true"
+     },
+     "version-cmd": "pipes.sh -v 2>/dev/null",
+     "version-re": "([0-9][0-9.]*)"
+    },
+    "name": "pipes"
+   }
+  },
   "pipewire": {
    "dnf\\pipewire": {
     "driver": "dnf",
@@ -87784,6 +87994,48 @@
      "version-re": "v?([0-9][0-9.]*)"
     },
     "name": "pi-hole"
+   }
+  },
+  "pipes": {
+   "brew\\git": {
+    "driver": "brew",
+    "fields": {
+     "name": "git"
+    },
+    "name": "git"
+   },
+   "brew\\make": {
+    "driver": "brew",
+    "fields": {
+     "name": "make"
+    },
+    "name": "make"
+   },
+   "dotfiles\\git-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "~/.gitconfig",
+      "src": "gitconfig"
+     }
+    },
+    "name": "git-dotfiles"
+   },
+   "script\\pipes": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "tmp=$(mktemp -d) && git clone --depth 1 https://github.com/pipeseroni/pipes.sh \"$tmp\" && make -C \"$tmp\" install PREFIX=\"$HOME/.local\" && rm -rf \"$tmp\"",
+     "location": "~/.local/bin/pipes.sh",
+     "name": "pipes",
+     "uninstall-cmd": "rm -f \"$HOME/.local/bin/pipes.sh\" \"$HOME/.local/share/man/man6/pipes.sh.6\"",
+     "version": {
+      "github": "pipeseroni/pipes.sh",
+      "strip-v": "true"
+     },
+     "version-cmd": "pipes.sh -v 2>/dev/null",
+     "version-re": "([0-9][0-9.]*)"
+    },
+    "name": "pipes"
    }
   },
   "pipewire": {
@@ -100613,6 +100865,48 @@
      "version-re": "v?([0-9][0-9.]*)"
     },
     "name": "pi-hole"
+   }
+  },
+  "pipes": {
+   "apt\\git": {
+    "driver": "apt",
+    "fields": {
+     "name": "git"
+    },
+    "name": "git"
+   },
+   "apt\\make": {
+    "driver": "apt",
+    "fields": {
+     "name": "make"
+    },
+    "name": "make"
+   },
+   "dotfiles\\git-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "~/.gitconfig",
+      "src": "gitconfig"
+     }
+    },
+    "name": "git-dotfiles"
+   },
+   "script\\pipes": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "tmp=$(mktemp -d) && git clone --depth 1 https://github.com/pipeseroni/pipes.sh \"$tmp\" && make -C \"$tmp\" install PREFIX=\"$HOME/.local\" && rm -rf \"$tmp\"",
+     "location": "~/.local/bin/pipes.sh",
+     "name": "pipes",
+     "uninstall-cmd": "rm -f \"$HOME/.local/bin/pipes.sh\" \"$HOME/.local/share/man/man6/pipes.sh.6\"",
+     "version": {
+      "github": "pipeseroni/pipes.sh",
+      "strip-v": "true"
+     },
+     "version-cmd": "pipes.sh -v 2>/dev/null",
+     "version-re": "([0-9][0-9.]*)"
+    },
+    "name": "pipes"
    }
   },
   "pipewire": {
@@ -114298,6 +114592,48 @@
      "version-re": "v?([0-9][0-9.]*)"
     },
     "name": "pi-hole"
+   }
+  },
+  "pipes": {
+   "dnf\\git": {
+    "driver": "dnf",
+    "fields": {
+     "name": "git"
+    },
+    "name": "git"
+   },
+   "dnf\\make": {
+    "driver": "dnf",
+    "fields": {
+     "name": "make"
+    },
+    "name": "make"
+   },
+   "dotfiles\\git-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "~/.gitconfig",
+      "src": "gitconfig"
+     }
+    },
+    "name": "git-dotfiles"
+   },
+   "script\\pipes": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "tmp=$(mktemp -d) && git clone --depth 1 https://github.com/pipeseroni/pipes.sh \"$tmp\" && make -C \"$tmp\" install PREFIX=\"$HOME/.local\" && rm -rf \"$tmp\"",
+     "location": "~/.local/bin/pipes.sh",
+     "name": "pipes",
+     "uninstall-cmd": "rm -f \"$HOME/.local/bin/pipes.sh\" \"$HOME/.local/share/man/man6/pipes.sh.6\"",
+     "version": {
+      "github": "pipeseroni/pipes.sh",
+      "strip-v": "true"
+     },
+     "version-cmd": "pipes.sh -v 2>/dev/null",
+     "version-re": "([0-9][0-9.]*)"
+    },
+    "name": "pipes"
    }
   },
   "pipewire": {
@@ -128260,6 +128596,48 @@
     "name": "pi-hole"
    }
   },
+  "pipes": {
+   "apt\\git": {
+    "driver": "apt",
+    "fields": {
+     "name": "git"
+    },
+    "name": "git"
+   },
+   "apt\\make": {
+    "driver": "apt",
+    "fields": {
+     "name": "make"
+    },
+    "name": "make"
+   },
+   "dotfiles\\git-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "~/.gitconfig",
+      "src": "gitconfig"
+     }
+    },
+    "name": "git-dotfiles"
+   },
+   "script\\pipes": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "tmp=$(mktemp -d) && git clone --depth 1 https://github.com/pipeseroni/pipes.sh \"$tmp\" && make -C \"$tmp\" install PREFIX=\"$HOME/.local\" && rm -rf \"$tmp\"",
+     "location": "~/.local/bin/pipes.sh",
+     "name": "pipes",
+     "uninstall-cmd": "rm -f \"$HOME/.local/bin/pipes.sh\" \"$HOME/.local/share/man/man6/pipes.sh.6\"",
+     "version": {
+      "github": "pipeseroni/pipes.sh",
+      "strip-v": "true"
+     },
+     "version-cmd": "pipes.sh -v 2>/dev/null",
+     "version-re": "([0-9][0-9.]*)"
+    },
+    "name": "pipes"
+   }
+  },
   "pipewire": {
    "apt\\pipewire": {
     "driver": "apt",
@@ -141823,6 +142201,48 @@
      "version-re": "v?([0-9][0-9.]*)"
     },
     "name": "pi-hole"
+   }
+  },
+  "pipes": {
+   "apt\\git": {
+    "driver": "apt",
+    "fields": {
+     "name": "git"
+    },
+    "name": "git"
+   },
+   "apt\\make": {
+    "driver": "apt",
+    "fields": {
+     "name": "make"
+    },
+    "name": "make"
+   },
+   "dotfiles\\git-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "~/.gitconfig",
+      "src": "gitconfig"
+     }
+    },
+    "name": "git-dotfiles"
+   },
+   "script\\pipes": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "tmp=$(mktemp -d) && git clone --depth 1 https://github.com/pipeseroni/pipes.sh \"$tmp\" && make -C \"$tmp\" install PREFIX=\"$HOME/.local\" && rm -rf \"$tmp\"",
+     "location": "~/.local/bin/pipes.sh",
+     "name": "pipes",
+     "uninstall-cmd": "rm -f \"$HOME/.local/bin/pipes.sh\" \"$HOME/.local/share/man/man6/pipes.sh.6\"",
+     "version": {
+      "github": "pipeseroni/pipes.sh",
+      "strip-v": "true"
+     },
+     "version-cmd": "pipes.sh -v 2>/dev/null",
+     "version-re": "([0-9][0-9.]*)"
+    },
+    "name": "pipes"
    }
   },
   "pipewire": {

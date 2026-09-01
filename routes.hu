@@ -351,7 +351,18 @@
         // --- terminal eye-candy / toys + a couple of terminal CLIs ---
         cbonsai:    { attrs: [ CLI FOSS GNU copyleft ] description: "cbonsai — a random bonsai-tree generator that draws in your terminal." install: [ { via: native  when: "fedora or alpine or opensuse or fedora_atomic" }  { via: aur  when: "arch"  name: cbonsai } ] }   // GPL; Arch has it only in the AUR; not in Debian/EL repos -> declines there
         cmatrix:    { attrs: [ CLI FOSS GNU copyleft ] description: "cmatrix — the Matrix digital-rain screen effect for the terminal." install: [ { via: native } ] }   // packaged on every family
-        pipes:      { attrs: [ CLI FOSS permissive ] description: "pipes.sh — the animated terminal pipes screensaver (`pipes.sh`)." install: [ { via: aur  when: "arch"  name: pipes.sh } ] }   // packaged only in the AUR (absent from Fedora/openSUSE/Alpine/Debian/EL repos) -> declines everywhere else
+        // pipes.sh: a self-contained bash script. Packaged only in the AUR; everywhere else install it
+        // the upstream way (`make install`) into ~/.local — a single script + its manpage, no build.
+        // The AUR binding wins on Arch by specificity; the unconditional script covers every other OS.
+        pipes:      { attrs: [ CLI FOSS permissive ] description: "pipes.sh — the animated terminal pipes screensaver (`pipes.sh`)."
+            install: [ { via: aur  when: "arch"  name: pipes.sh }
+                       { via: script  requires: [ git, make ]
+                         install-cmd:   'tmp=$(mktemp -d) && git clone --depth 1 https://github.com/pipeseroni/pipes.sh "$tmp" && make -C "$tmp" install PREFIX="$HOME/.local" && rm -rf "$tmp"'
+                         version-cmd:   'pipes.sh -v 2>/dev/null'
+                         version-re:    '([0-9][0-9.]*)'
+                         version:       { github: pipeseroni/pipes.sh  strip-v: true }
+                         uninstall-cmd: 'rm -f "$HOME/.local/bin/pipes.sh" "$HOME/.local/share/man/man6/pipes.sh.6"'
+                         location:      "~/.local/bin/pipes.sh" } ] }
         asciiquarium: { attrs: [ CLI FOSS GNU copyleft ] description: "Asciiquarium — an animated ASCII-art aquarium for the terminal." install: [ { via: native  when: "fedora and not amzn" }  { via: native  when: "rhel"  requires: epel }  { via: aur  when: "arch"  name: asciiquarium }  { via: native  when: "fedora_atomic" } ] }   // dropped from Debian/Ubuntu repos; Fedora native, EL via EPEL, AUR on Arch, brew on atomic (pulls perl Term::Animation, absent from Alpine/openSUSE)
         lolcat:     { attrs: [ CLI FOSS permissive ] description: "lolcat — rainbow-colorize any piped output (`lolcat`)." install: [ { via: native  when: "(debian or fedora or arch) and not amzn"  repo-component: universe }  { via: gem  name: lolcat } ] }   // the original is a Ruby gem -> gem covers openSUSE/Alpine/atomic + is pinnable anywhere
         asciinema:  { attrs: [ CLI FOSS GNU copyleft ] description: "asciinema — record and replay terminal sessions as lightweight casts (`asciinema rec`)." install: [ { via: native  repo-component: universe }  { via: pipx  name: asciinema } ] }   // native everywhere; pipx is the universal fallback + pinnable alt
