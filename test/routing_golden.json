@@ -1342,12 +1342,36 @@
    }
   },
   "cbonsai": {
-   "pacman\\cbonsai": {
-    "driver": "pacman",
+   "aur\\cbonsai": {
+    "driver": "aur",
     "fields": {
      "name": "cbonsai"
     },
     "name": "cbonsai"
+   },
+   "dotfiles\\git-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "~/.gitconfig",
+      "src": "gitconfig"
+     }
+    },
+    "name": "git-dotfiles"
+   },
+   "pacman\\base-devel": {
+    "driver": "pacman",
+    "fields": {
+     "name": "base-devel"
+    },
+    "name": "base-devel"
+   },
+   "pacman\\git": {
+    "driver": "pacman",
+    "fields": {
+     "name": "git"
+    },
+    "name": "git"
    }
   },
   "chafa": {
@@ -14098,16 +14122,6 @@
      "repo-component": "universe"
     },
     "name": "asciinema"
-   }
-  },
-  "asciiquarium": {
-   "apt\\asciiquarium": {
-    "driver": "apt",
-    "fields": {
-     "name": "asciiquarium",
-     "repo-component": "universe"
-    },
-    "name": "asciiquarium"
    }
   },
   "asio": {
@@ -27870,16 +27884,6 @@
     "name": "asciinema"
    }
   },
-  "asciiquarium": {
-   "apt\\asciiquarium": {
-    "driver": "apt",
-    "fields": {
-     "name": "asciiquarium",
-     "repo-component": "universe"
-    },
-    "name": "asciiquarium"
-   }
-  },
   "asio": {
    "apt\\asio": {
     "driver": "apt",
@@ -41349,16 +41353,6 @@
      "repo-component": "universe"
     },
     "name": "asciinema"
-   }
-  },
-  "asciiquarium": {
-   "apt\\asciiquarium": {
-    "driver": "apt",
-    "fields": {
-     "name": "asciiquarium",
-     "repo-component": "universe"
-    },
-    "name": "asciiquarium"
    }
   },
   "asio": {
@@ -54941,8 +54935,7 @@
    "dnf\\asciiquarium": {
     "driver": "dnf",
     "fields": {
-     "name": "asciiquarium",
-     "repo-component": "universe"
+     "name": "asciiquarium"
     },
     "name": "asciiquarium"
    }
@@ -63477,15 +63470,6 @@
     "name": "pi-hole"
    }
   },
-  "pipes": {
-   "dnf\\pipes": {
-    "driver": "dnf",
-    "fields": {
-     "name": "pipes.sh"
-    },
-    "name": "pipes.sh"
-   }
-  },
   "pipewire": {
    "dnf\\pipewire": {
     "driver": "dnf",
@@ -66882,11 +66866,35 @@
    }
   },
   "wormhole": {
-   "dnf\\wormhole": {
+   "dnf\\pipx": {
     "driver": "dnf",
     "fields": {
-     "name": "magic-wormhole",
-     "repo-component": "universe"
+     "name": "pipx"
+    },
+    "name": "pipx"
+   },
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.config/bash/conf.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\pipx-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "glue": "pipx"
+    },
+    "name": "pipx-dotfiles"
+   },
+   "pipx\\wormhole": {
+    "driver": "pipx",
+    "fields": {
+     "name": "magic-wormhole"
     },
     "name": "magic-wormhole"
    }
@@ -68001,8 +68009,7 @@
    "dnf\\asciiquarium": {
     "driver": "dnf",
     "fields": {
-     "name": "asciiquarium",
-     "repo-component": "universe"
+     "name": "asciiquarium"
     },
     "name": "asciiquarium"
    }
@@ -76563,15 +76570,6 @@
     "name": "pi-hole"
    }
   },
-  "pipes": {
-   "dnf\\pipes": {
-    "driver": "dnf",
-    "fields": {
-     "name": "pipes.sh"
-    },
-    "name": "pipes.sh"
-   }
-  },
   "pipewire": {
    "dnf\\pipewire": {
     "driver": "dnf",
@@ -79968,11 +79966,35 @@
    }
   },
   "wormhole": {
-   "dnf\\wormhole": {
+   "dnf\\pipx": {
     "driver": "dnf",
     "fields": {
-     "name": "magic-wormhole",
-     "repo-component": "universe"
+     "name": "pipx"
+    },
+    "name": "pipx"
+   },
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.config/bash/conf.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\pipx-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "glue": "pipx"
+    },
+    "name": "pipx-dotfiles"
+   },
+   "pipx\\wormhole": {
+    "driver": "pipx",
+    "fields": {
+     "name": "magic-wormhole"
     },
     "name": "magic-wormhole"
    }
@@ -91389,16 +91411,6 @@
      "repo-component": "universe"
     },
     "name": "asciinema"
-   }
-  },
-  "asciiquarium": {
-   "apt\\asciiquarium": {
-    "driver": "apt",
-    "fields": {
-     "name": "asciiquarium",
-     "repo-component": "universe"
-    },
-    "name": "asciiquarium"
    }
   },
   "asio": {
@@ -117861,11 +117873,42 @@
    }
   },
   "wormhole": {
-   "dnf\\wormhole": {
+   "dnf\\epel-release": {
     "driver": "dnf",
     "fields": {
-     "name": "magic-wormhole",
-     "repo-component": "universe"
+     "name": "epel-release"
+    },
+    "name": "epel-release"
+   },
+   "dnf\\pipx": {
+    "driver": "dnf",
+    "fields": {
+     "name": "pipx"
+    },
+    "name": "pipx"
+   },
+   "dotfiles\\bash-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "aliases": {
+      "absorb-into": "~/.config/bash/conf.d/pre-configsys-aliases.sh",
+      "dst": "~/.bash_aliases",
+      "src": "bash_aliases"
+     }
+    },
+    "name": "bash-dotfiles"
+   },
+   "dotfiles\\pipx-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "glue": "pipx"
+    },
+    "name": "pipx-dotfiles"
+   },
+   "pipx\\wormhole": {
+    "driver": "pipx",
+    "fields": {
+     "name": "magic-wormhole"
     },
     "name": "magic-wormhole"
    }
@@ -119022,16 +119065,6 @@
      "repo-component": "universe"
     },
     "name": "asciinema"
-   }
-  },
-  "asciiquarium": {
-   "apt\\asciiquarium": {
-    "driver": "apt",
-    "fields": {
-     "name": "asciiquarium",
-     "repo-component": "universe"
-    },
-    "name": "asciiquarium"
    }
   },
   "asio": {
@@ -132823,16 +132856,6 @@
      "repo-component": "universe"
     },
     "name": "asciinema"
-   }
-  },
-  "asciiquarium": {
-   "apt\\asciiquarium": {
-    "driver": "apt",
-    "fields": {
-     "name": "asciiquarium",
-     "repo-component": "universe"
-    },
-    "name": "asciiquarium"
    }
   },
   "asio": {
