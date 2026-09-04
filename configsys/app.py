@@ -1103,8 +1103,11 @@ def cmd_refresh(ctx, args):
     if native:
         print(f'\nRefreshing the {pm} package index...')
         # capture (fast command) so a broken third-party source can be diagnosed instead of dumping
-        # a raw NO_PUBKEY/not-signed error. Echo the output so the user still sees what ran.
-        res = ctx.runner.run(native, sudo=(pm != 'brew'), capture=True)
+        # a raw NO_PUBKEY/not-signed error. Echo the output so the user still sees what ran. Retry a
+        # TRANSIENT stumble (a network blip, or a concurrent apt run's "could not read sources") a few
+        # times first — so a momentary hiccup self-heals instead of surfacing the whole failure flow.
+        from .failures import retry_transient
+        res = retry_transient(lambda: ctx.runner.run(native, sudo=(pm != 'brew'), capture=True))
         ok = res.ok
         if res.output:
             print(res.output)

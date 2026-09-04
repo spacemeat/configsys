@@ -1,11 +1,19 @@
 from pathlib import Path
 
+import pytest
+
 from configsys.componentObj import ResolvedComponent
 from configsys.drivers import get_driver, is_supported
+import configsys.drivers.apt as apt_mod
 from configsys.drivers.apt import Apt
 from configsys.routes import Resolver
 from configsys.runner import Result, Runner
 from configsys.troveio import load
+
+
+@pytest.fixture(autouse=True)
+def _fast_update_retry(monkeypatch):
+    monkeypatch.setattr(apt_mod, '_UPDATE_BACKOFF', 0)   # no real sleeps in the transient-retry loop
 
 
 def rc(name='btop'):

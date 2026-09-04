@@ -9,6 +9,7 @@ shown verbatim, exactly as before. Add rows as real-world stumbles teach us thei
 '''
 
 import re
+import time
 
 # Stable category identifiers (recorded in failure records + shown in rendering).
 NETWORK = 'network-unreachable'
@@ -68,3 +69,25 @@ def classify(text):
             except (IndexError, KeyError):
                 return cat, hint
     return None, None
+
+
+# A failure whose category is DEFINITIVE won't change on a retry — it names a specific repo/package
+# (a rotated key, a 404'd URL, a permission wall, an unresolved name). Everything else — a network
+# blip, or an unrecognised stumble like apt's "E: The list of sources could not be read" from a
+# concurrent package-manager run — is treated as possibly TRANSIENT and worth a retry.
+DEFINITIVE = (SIGNATURE, NOT_FOUND, AUTH, DEPENDENCY)
+
+
+def retry_transient(run, *, tries=3, backoff=1.5, sleep=time.sleep):
+    '''Call `run()` (which returns a Result), retrying while the failure looks TRANSIENT — up to
+    `tries` attempts with `backoff` seconds between. A DEFINITIVE failure returns on the first try (a
+    retry can't help). So a momentary package-manager hiccup self-heals instead of surfacing as a
+    scary failure, while a real problem still reports promptly. Returns the final Result. `sleep` is
+    injectable for tests.'''
+    res = run()
+    for _ in range(1, max(1, tries)):
+        if res.ok or classify(res.output)[0] in DEFINITIVE:
+            return res
+        sleep(backoff)
+        res = run()
+    return res

@@ -1,6 +1,15 @@
+import pytest
+
 from configsys import failures
+import configsys.drivers.apt as apt_mod
 from configsys.drivers.apt import Apt
 from configsys.runner import Result
+
+
+@pytest.fixture(autouse=True)
+def _fast_update_retry(monkeypatch):
+    monkeypatch.setattr(apt_mod, '_UPDATE_BACKOFF', 0)   # no real sleeps in the transient-retry loop
+
 
 XPATH = '/etc/apt/sources.list.d/x.list'
 WRITE = f'if [ ! -f {XPATH} ]; then echo deb | sudo tee {XPATH} && sudo apt-get update; fi'
@@ -14,12 +23,15 @@ class Runner:
     `apt-get update` fails only because of OUR source (unhealed key) — so removing it lets update
     recover, which is how _commit_source confirms ours was the culprit. `preexisting_break` instead
     models an UNRELATED broken source: update fails regardless of ours.'''
-    def __init__(self, key_heals=True, preexisting_break=False):
+    def __init__(self, key_heals=True, preexisting_break=False, transient=0, sig_ok=False):
         self.calls = []
         self.keyed = False
         self.key_heals = key_heals
         self.preexisting_break = preexisting_break
+        self.transient = transient          # first N `apt-get update`s fail with a TRANSIENT blip
+        self.sig_ok = sig_ok                # our source's signature is already fine (no key dance)
         self.present = False
+        self._updates = 0
 
     def run(self, cmd, *, sudo=False, capture=True):
         self.calls.append(cmd)
@@ -34,9 +46,12 @@ class Runner:
         if 'tee' in cmd or 'echo deb' in cmd:           # the write_cmd creates our source
             self.present = True
         if 'apt-get update' in cmd:
+            self._updates += 1
+            if self._updates <= self.transient:         # a momentary blip that clears on retry
+                return Result(cmd, 1, stderr='E: The list of sources could not be read.')
             if self.preexisting_break:                  # unrelated broken source: never recovers
                 return Result(cmd, 1, stderr='E: The list of sources could not be read.')
-            broken = self.present and not (self.keyed and self.key_heals)   # only OUR source, unhealed
+            broken = (not self.sig_ok) and self.present and not (self.keyed and self.key_heals)
             return Result(cmd, 0 if not broken else 1, stderr='' if not broken else SIG)
         return Result(cmd, 0)
 
@@ -56,6 +71,16 @@ def test_rollback_on_persistent_signature_failure():
     assert res.category == failures.SIGNATURE
     assert any(c == f'sudo rm -f {XPATH}' for c in r.calls)   # our just-written source rolled back
     assert 'rolled back' in (res.stderr or '')
+
+
+def test_transient_update_failure_retries_then_commits():
+    # apt-get update fails once (a momentary "could not be read" blip), then succeeds on retry — the
+    # source commits cleanly: no rollback, no misleading verdict. THIS is the confidence fix.
+    r = Runner(transient=2, sig_ok=True)                # first two updates blip, then recover
+    res = Apt(r)._commit_source(WRITE, XPATH, KEY_URL, KEY_PATH)
+    assert res is None                                  # committed
+    assert not any('rm -f' in c for c in r.calls)       # never rolled back
+    assert r.present is True                            # source left in place
 
 
 def test_preexisting_broken_source_restores_and_reports():

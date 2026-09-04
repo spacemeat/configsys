@@ -54,3 +54,37 @@ def test_result_explicit_category_wins_over_inference():
 
 def test_result_clean_output_is_unclassified():
     assert Result('x', 1, stderr='exit 1').classified() == (None, None)
+
+
+# -- retry_transient -----------------------------------------------------------------------------
+
+def _seq(results):
+    '''A run() that returns each Result in turn (last repeats).'''
+    box = {'i': 0}
+    def run():
+        i = min(box['i'], len(results) - 1)
+        box['i'] += 1
+        return results[i]
+    run.count = lambda: box['i']
+    return run
+
+
+def test_retry_transient_recovers_from_a_blip():
+    # a transient "could not be read" on the first try, then success -> returns ok, no scary failure
+    run = _seq([Result('u', 1, stderr='E: The list of sources could not be read.'),
+                Result('u', 0)])
+    res = failures.retry_transient(run, tries=3, sleep=lambda s: None)
+    assert res.ok and run.count() == 2
+
+
+def test_retry_transient_gives_up_after_tries():
+    run = _seq([Result('u', 1, stderr='E: The list of sources could not be read.')])  # never recovers
+    res = failures.retry_transient(run, tries=3, sleep=lambda s: None)
+    assert not res.ok and run.count() == 3          # exhausted all attempts
+
+
+def test_retry_transient_does_not_retry_a_definitive_failure():
+    # a signature error names a repo/key — retrying can't change it, so return on the first try
+    run = _seq([Result('u', 1, stderr='NO_PUBKEY 7198F4B714ABFC68')])
+    res = failures.retry_transient(run, tries=5, sleep=lambda s: None)
+    assert not res.ok and run.count() == 1

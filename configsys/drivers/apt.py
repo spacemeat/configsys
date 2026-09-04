@@ -8,8 +8,15 @@ lock via apt-mark hold/unhold. Mutating ops run under sudo and stream their outp
 import shlex
 
 from ..driver import Driver
-from ..failures import SIGNATURE, classify
+from ..failures import SIGNATURE, classify, retry_transient
 from ..runner import Result
+
+# apt-get update transient-retry (see failures.retry_transient): a momentary stumble — a network
+# blip, or "E: The list of sources could not be read" from a concurrent apt run (unattended-upgrades,
+# packagekit) touching sources.list.d mid-read — clears on a retry, while a definitive failure is
+# returned at once. `_UPDATE_TRIES` total attempts, `_UPDATE_BACKOFF` seconds between (0 in tests).
+_UPDATE_TRIES = 3
+_UPDATE_BACKOFF = 1.5
 
 # Keep automated installs from popping interactive TUI dialogs mid-batch — the whiptail/newt screens
 # that paint the whole terminal a solid colour and then linger. DEBIAN_FRONTEND=noninteractive makes
@@ -51,6 +58,12 @@ class Apt(Driver):
             return []
         return v if isinstance(v, list) else [v]
 
+    def _apt_update(self):
+        '''`apt-get update`, retrying a TRANSIENT stumble a few times with a short backoff — so a
+        momentary hiccup never gets misread as a broken repo (see failures.retry_transient).'''
+        return retry_transient(lambda: self.runner.run('sudo apt-get update', capture=True),
+                               tries=_UPDATE_TRIES, backoff=_UPDATE_BACKOFF)
+
     def _commit_source(self, write_cmd, src_path, key_url=None, key_path=None):
         '''Write a vendor apt source (write_cmd writes it only if absent AND runs apt-get update),
         then VALIDATE. On a signature failure with a key configured, re-fetch the key overwriting the
@@ -66,18 +79,24 @@ class Apt(Driver):
         res = self.runner.run(write_cmd, capture=True)
         if res.ok:
             return None
+        # the write_cmd's embedded `apt-get update` failed but the source is now written — retry a
+        # standalone update (transient-resilient) before treating this as a real failure. A momentary
+        # blip clears here and the source commits cleanly, no rollback, no misleading verdict.
+        res = self._apt_update()
+        if res.ok:
+            return None
         cat, rem = classify(res.output)
         if cat == SIGNATURE and key_url and key_path:
             kp, ku = shlex.quote(key_path), shlex.quote(key_url)
             self.runner.run(f'sudo curl -fsSL {ku} -o {kp}', capture=True)   # overwrite (rotation)
-            res = self.runner.run('sudo apt-get update', capture=True)
+            res = self._apt_update()
             if res.ok:
                 return None
             cat, rem = classify(res.output)
         if not existed:
             # Disable OUR just-created source and re-run update: does apt recover without it?
             self.runner.run(f'sudo rm -f {sp}', capture=True)
-            recheck = self.runner.run('sudo apt-get update', capture=True)
+            recheck = self._apt_update()
             if not recheck.ok:
                 # STILL failing without our source -> the breakage is pre-existing and unrelated.
                 # Restore our valid source (don't strand a working repo) and report the real problem.
