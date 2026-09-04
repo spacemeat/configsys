@@ -449,10 +449,17 @@ class Context:
     def inspect_components(self, names, reuse=None):
         '''Resolve + inspect component `names` that live OUTSIDE the active set — the `!uninstall`
         queue's orphans — returning {unit_key: ComponentState} so TUI::Components can list and remove
-        them. Same scope/location/inspect path as load_pipeline, minus the reporting. {} if none route.'''
+        them. Same scope/location/inspect path as load_pipeline, minus the reporting. {} if none route.
+
+        Only the units that ARE the named components are returned, NOT the requires-closure they pull
+        in: uninstalling `conan` means removing the conan unit (pipx\\conan), never its shared deps
+        (pipx, bash-dotfiles, …) — surfacing those would let a "mark all" nuke infrastructure other
+        components still need.'''
         from .installState import InstallState
         from .ledger import Ledger
         units, _errs = self.routes.resolve_resilient(list(names))
+        wanted = set(names)
+        units = {k: rc for k, rc in units.items() if rc.comp in wanted}
         if not units:
             return {}
         self.apply_scope_default(units)

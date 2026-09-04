@@ -88,6 +88,21 @@ def test_check_warns_on_hand_defined_reserved_profile(tmp_path, capsys):
     assert "`!` namespace is reserved" in out
 
 
+def test_inspect_components_excludes_the_requires_closure(tmp_path, monkeypatch):
+    # staging `conan` for uninstall must surface ONLY conan's own unit (pipx\conan), NOT its
+    # requires-closure (pipx, bash-dotfiles, …) — else a "mark all" in Components would remove shared
+    # infrastructure other components still need. conan resolves to a 4-unit closure; keep just conan.
+    import configsys.installState as IS
+    ctx = _ctx(tmp_path)
+    monkeypatch.setattr(IS.InstallState, 'inspect',
+                        lambda self, units, **kw: dict(units))     # echo units, no real probe
+    got = ctx.inspect_components(['conan'])
+    assert got                                                     # conan routes on pop
+    assert all(rc.comp == 'conan' for rc in got.values())         # ONLY conan's unit(s)
+    assert all('pipx' not in k or rc.comp == 'conan' for k, rc in got.items())
+    assert not any(rc.comp in ('pipx', 'bash-dotfiles', 'pipx-dotfiles') for rc in got.values())
+
+
 def test_with_uninstall_node_folds_present_queued_orphans():
     from types import SimpleNamespace
     from configsys.tui.menu import _with_uninstall_node
