@@ -703,3 +703,34 @@ def test_plugin_add_same_name_needs_replace(tmp_path, capsys):
 
     # re-adding the SAME source is a re-pin, not a collision
     assert main(home + ['plugin', 'add', str(b), '--ref', 'v1']) == 0
+
+
+@pytest.mark.skipif(shutil.which('git') is None, reason='git not available')
+def test_plugin_retarget_to_a_bad_source_leaves_the_old_plugin_intact(tmp_path, capsys):
+    '''A retarget (--replace) whose NEW source can't sync must not remove the old plugin — the decl
+    AND its synced dir stay put. Regression: the old code dropped the old first, then failed the sync,
+    leaving nothing.'''
+    from configsys.app import main
+    good = tmp_path / 'good' / 'srcplug'
+    good.mkdir(parents=True)
+    (good / 'plugin.hu').write_text('{ name: srcplug  requires-abi: 1  data: [ r.hu ] }')
+    (good / 'r.hu').write_text('{ components: { sp: { install: [ { via: native } ] } } }')
+    for cmd in (['init', '-q'], ['config', 'user.email', 't@t'], ['config', 'user.name', 't'],
+                ['add', '-A'], ['commit', '-qm', 'i'], ['tag', 'v1']):
+        subprocess.run(['git', *cmd], cwd=good, check=True)
+    home = ['--home', str(tmp_path), '--os', 'pop']
+    uc = tmp_path / '.config' / 'configsys' / 'configsys.hu'
+    synced = tmp_path / '.config' / 'configsys' / 'plugins' / 'srcplug'
+
+    assert main(home + ['plugin', 'add', str(good), '--ref', 'v1']) == 0
+    capsys.readouterr()
+    assert synced.exists() and [d['source'] for d in plugins.declared(str(uc))] == [str(good)]
+
+    # retarget to a same-dir-name source that CANNOT sync (a nonexistent local path)
+    bad = tmp_path / 'nope' / 'srcplug'                     # shares dir-name "srcplug"; never created
+    assert main(home + ['plugin', 'add', str(bad), '--ref', 'v1', '--replace']) == 1
+    out = capsys.readouterr().out
+    assert 'nothing changed' in out
+    # the OLD plugin survived: decl unchanged, dir still present with its content
+    assert [d['source'] for d in plugins.declared(str(uc))] == [str(good)]
+    assert synced.exists() and (synced / 'r.hu').exists()

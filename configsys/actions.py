@@ -629,6 +629,7 @@ def plugin_add(ctx, source, ref=None, *, local=False, pin=False, replace=False):
     declared from a DIFFERENT source, refuse unless `replace=True` (then drop the old one first — the
     easy way to swap an in-development local copy for its published version). Returns (ok, message,
     sync_results).'''
+    import shutil
     ctx.ensure_user_config()
     # a local-path source is saved ABSOLUTE (resolved from the CWD now), so the decl doesn't silently
     # point elsewhere when configsys is later run from another directory. Remote sources pass through.
@@ -642,9 +643,37 @@ def plugin_add(ctx, source, ref=None, *, local=False, pin=False, replace=False):
         others = ', '.join(sorted({d['source'] for d in clashes}))
         return (False, f"a plugin named '{new_dn}' is already declared from {others}; "
                        f"re-run with --replace to swap it for {source}", [])
-    if clashes and replace:
-        for old in {d['source'] for d in clashes}:       # drop each old decl (wherever it's declared)
-            plugin_remove(ctx, old)
+
+    # A retarget REUSES the synced dir (a clash shares dir_name), and the git transport only clones a
+    # fresh source into an EMPTY dir — so move the old dir aside, then sync. Crucially, DON'T drop the
+    # old declaration until the new source actually syncs: a failed retarget must never leave you with
+    # the old plugin gone and nothing added (the bug this guards against).
+    retargeting = bool(clashes and replace)
+    pdir = ctx.paths.plugins_dir / new_dn
+    backup = pdir.with_name(pdir.name + '.configsys-retarget-bak')
+    moved = False
+    if retargeting and pdir.exists() and not ctx.runner.pretend:
+        if backup.exists():
+            shutil.rmtree(backup)
+        pdir.rename(backup)                              # clear the dir so the new source clones clean
+        moved = True
+
+    results = plugin_sync(ctx, [{'source': source, 'ref': ref}])
+    if not results or 'failed' in results[0][1].lower():
+        if moved:                                        # restore the old synced dir; decls untouched
+            if pdir.exists():
+                shutil.rmtree(pdir)
+            backup.rename(pdir)
+        return False, f'could not sync {source} — nothing changed {plugins.source_hint(source)}', results
+    if moved and backup.exists():                        # new source synced OK -> discard the backup
+        shutil.rmtree(backup)
+
+    # sync confirmed: NOW drop the old clashing decl(s) — keep_dir, since the synced dir is the new
+    # content, not the old one to delete.
+    if retargeting:
+        for old in {d['source'] for d in clashes}:
+            plugin_remove(ctx, old, keep_dir=True)
+
     decls = plugins.declared(ctx.paths.user_config_file)
     primary = plugins.primary_name(decls)
     primary_dir = ctx.paths.plugins_dir / primary if primary else None
@@ -660,9 +689,6 @@ def plugin_add(ctx, source, ref=None, *, local=False, pin=False, replace=False):
                            (plugins.read_manifest(primary_dir).get('plugins') or [])) if d]
     else:
         cfg_file, cur = ctx.paths.user_config_file, decls
-    results = plugin_sync(ctx, [{'source': source, 'ref': ref}])
-    if not results or 'failed' in results[0][1].lower():
-        return False, f'could not sync {source} — nothing added {plugins.source_hint(source)}', results
     target, existing = plugins.upsert_decl(cur, source, ref)
     plugins.set_declared(cfg_file, cur)
     pin_msg = ''
@@ -684,15 +710,17 @@ def plugin_add(ctx, source, ref=None, *, local=False, pin=False, replace=False):
     return True, lead + msg + pin_msg, results
 
 
-def plugin_remove(ctx, ident):
-    '''Undeclare a plugin (wherever it's declared) + delete its synced dir. Returns (ok, message).'''
+def plugin_remove(ctx, ident, *, keep_dir=False):
+    '''Undeclare a plugin (wherever it's declared) + delete its synced dir. `keep_dir` drops only the
+    declaration and leaves the synced dir — used by a retarget, where the new source has just re-synced
+    into that same dir (dir_name is shared). Returns (ok, message).'''
     import shutil
     cfg_file, cur, target = _locate_decl(ctx, ident)
     if target is None:
         return False, f'no declared plugin matches {ident!r}'
     plugins.set_declared(cfg_file, [d for d in cur if d is not target])
     pdir = ctx.paths.plugins_dir / plugins.dir_name(target['source'])
-    if pdir.exists() and not ctx.runner.pretend:
+    if pdir.exists() and not ctx.runner.pretend and not keep_dir:
         shutil.rmtree(pdir)
     ctx.invalidate()
     where = ('' if str(cfg_file) == str(ctx.paths.user_config_file)
