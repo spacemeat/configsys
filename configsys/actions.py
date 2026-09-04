@@ -630,6 +630,9 @@ def plugin_add(ctx, source, ref=None, *, local=False, pin=False, replace=False):
     easy way to swap an in-development local copy for its published version). Returns (ok, message,
     sync_results).'''
     ctx.ensure_user_config()
+    # a local-path source is saved ABSOLUTE (resolved from the CWD now), so the decl doesn't silently
+    # point elsewhere when configsys is later run from another directory. Remote sources pass through.
+    source = plugins.abs_local_source(source)
     # collision: another declared plugin lands in the same synced dir (same name) from a different
     # source. They'd clobber each other, so require an explicit --replace.
     new_dn = plugins.dir_name(source)

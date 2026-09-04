@@ -1972,13 +1972,14 @@ def cmd_plugin_set_source(ctx, args, decls):
     if not match:
         print(f'configsys: no plugin named "{args.name}" in your config')
         return 1
+    new_source = plugins.abs_local_source(args.source)   # a local path -> absolute (stable decl)
     if ctx.runner.pretend:
-        print(f'configsys: [pretend] would set {args.name} source -> {args.source}')
+        print(f'configsys: [pretend] would set {args.name} source -> {new_source}')
         return 0
     for d in match:
-        d['source'] = args.source
+        d['source'] = new_source
     plugins.set_declared(ctx.paths.user_config_file, decls)
-    print(f'configsys: {args.name} source -> {args.source}  (run `configsys plugin sync` to fetch)')
+    print(f'configsys: {args.name} source -> {new_source}  (run `configsys plugin sync` to fetch)')
     return 0
 
 

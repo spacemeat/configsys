@@ -1067,6 +1067,22 @@ def _local_source_path(source):
     return Path(source).expanduser()
 
 
+def abs_local_source(source):
+    '''For a LOCAL PATH source (`./x`, `../x`, `~/x`, a bare or absolute path), its absolute form —
+    resolved from the CWD at add-time — so the decl saved to the config is stable no matter where
+    `configsys` is later run from (a relative path would silently point elsewhere). Remote sources
+    (github:/gitlab:/a URL/ssh) and explicit `file:` sources pass through unchanged.'''
+    if source and source.startswith('file:'):
+        return source                                # explicit scheme: leave the user's form intact
+    lp = _local_source_path(source)
+    if lp is None:
+        return source                                # remote -> unchanged
+    try:
+        return str(lp.resolve())
+    except OSError:
+        return str(lp.absolute())
+
+
 def is_local_authored(source, dest):
     '''True when `source` is a local path equal to its own plugin dir `dest` — authored in place,
     nothing to clone/fetch (it IS the repo you later push).'''

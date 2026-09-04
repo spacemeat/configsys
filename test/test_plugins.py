@@ -573,6 +573,34 @@ def test_cli_plugin_add_uses_top_config_without_a_primary(tmp_path, capsys):
     assert 'np' in (tmp_path / '.config' / 'configsys' / 'configsys.hu').read_text()
 
 
+def test_abs_local_source_absolutizes_only_local_paths(tmp_path, monkeypatch):
+    monkeypatch.chdir(tmp_path)
+    assert plugins.abs_local_source('np') == str((tmp_path / 'np').resolve())        # bare relative
+    assert plugins.abs_local_source('./a/b') == str((tmp_path / 'a' / 'b').resolve())
+    assert plugins.abs_local_source('../x') == str((tmp_path.parent / 'x').resolve())
+    # remotes + explicit file: pass through untouched
+    for s in ('github:a/b', 'https://h/r.git', 'git@github.com:a/b.git', 'file:../rel'):
+        assert plugins.abs_local_source(s) == s
+
+
+@pytest.mark.skipif(shutil.which('git') is None, reason='git not available')
+def test_cli_plugin_add_saves_a_relative_local_path_absolute(tmp_path, capsys, monkeypatch):
+    # a plugin added by a RELATIVE local path is stored ABSOLUTE, so the decl keeps resolving when
+    # configsys is later run from a different directory.
+    from configsys.app import main
+    src = tmp_path / 'np'
+    src.mkdir()
+    (src / 'plugin.hu').write_text('{ name: np  requires-abi: 1  data: [ r.hu ] }')
+    (src / 'r.hu').write_text('{ components: { npc: { install: [ { via: native } ] } } }')
+    for cmd in (['init', '-q'], ['config', 'user.email', 't@t'], ['config', 'user.name', 't'],
+                ['add', '-A'], ['commit', '-qm', 'i']):
+        subprocess.run(['git', *cmd], cwd=src, check=True)
+    monkeypatch.chdir(tmp_path)                                 # run from here; add by relative path
+    assert main(['--home', str(tmp_path), '--os', 'pop', 'plugin', 'add', 'np']) == 0
+    decls = plugins.declared(str(tmp_path / '.config' / 'configsys' / 'configsys.hu'))
+    assert decls and decls[0]['source'] == str(src.resolve())  # saved ABSOLUTE, not the bare 'np'
+
+
 def test_set_declared_round_trips_primary(tmp_path):
     p = tmp_path / 'configsys.hu'
     p.write_text('{\n    plugins: [ { source: "github:a/b" } ]\n}\n')
