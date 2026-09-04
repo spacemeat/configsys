@@ -254,6 +254,86 @@ def test_source_line_writes_inline_deb_repo():
     assert src_cmd in r.calls
 
 
+class SeqRunner:
+    '''Runner whose responses depend on prior calls — for the validate-then-commit flow, where the
+    same `apt-get update` is issued more than once and must answer differently each time.'''
+
+    def __init__(self, handler):
+        self.handler = handler
+        self.calls = []
+
+    def run(self, cmd, *, sudo=False, capture=True, **kw):
+        full = f'sudo {cmd}' if sudo else cmd
+        self.calls.append(full)
+        code, out = self.handler(cmd, self)
+        return Result(full, code, stdout=out)
+
+    def echo(self, msg):
+        pass
+
+
+def _vendor_comp():
+    return ResolvedComponent(key='apt\\unityhub', driver='apt', comp='unityhub', fields={
+        'name': 'unityhub',
+        'source-line': 'deb [signed-by=/x.asc] https://hub.unity3d.com/linux/repos/deb stable main',
+        'source-path': '/etc/apt/sources.list.d/unityhub.list'})
+
+
+def test_commit_source_restores_when_a_preexisting_source_is_the_culprit():
+    # apt-get update fails, but NOT because of our source (a pre-existing broken source elsewhere —
+    # "E: The list of sources could not be read" names nothing). _commit_source re-checks with ours
+    # disabled, sees it STILL fail, restores our valid source, and reports the pre-existing breakage.
+    def handler(cmd, r):
+        if cmd.startswith('test -f'):
+            return 1, ''                                       # not existed -> we created it this run
+        if 'rm -f' in cmd:
+            return 0, ''
+        if 'apt-get update' in cmd:
+            return 100, 'E: The list of sources could not be read.'   # ALWAYS fails (unrelated)
+        return 0, ''                                           # tee/write succeeds
+    r = SeqRunner(handler)
+    res = Apt(r).ensure_prereqs(_vendor_comp())
+    assert res is not None and not res.ok
+    assert 'pre-existing apt source' in res.output
+    assert 'not on /etc/apt/sources.list.d/unityhub.list' in res.output
+    assert 'source rolled back' not in res.output               # ours was NOT blamed
+    # our source was RESTORED: a tee to the source path runs AFTER the rm
+    seen_rm = restored = False
+    for c in r.calls:
+        if 'rm -f' in c:
+            seen_rm = True
+        elif seen_rm and 'tee /etc/apt/sources.list.d/unityhub.list' in c:
+            restored = True
+    assert restored
+
+
+def test_commit_source_rolls_back_when_our_source_is_the_culprit():
+    # apt-get update fails, and re-checking WITHOUT our source SUCCEEDS -> ours was the poison pill.
+    state = {'removed': False}
+
+    def handler(cmd, r):
+        if cmd.startswith('test -f'):
+            return 1, ''
+        if 'rm -f' in cmd:
+            state['removed'] = True
+            return 0, ''
+        if 'apt-get update' in cmd:
+            return (0, '') if state['removed'] else (100, 'E: repository malformed (our repo)')
+        return 0, ''
+    r = SeqRunner(handler)
+    res = Apt(r).ensure_prereqs(_vendor_comp())
+    assert res is not None and not res.ok
+    assert 'source rolled back' in res.output                   # ours WAS the culprit
+    assert 'pre-existing' not in res.output
+    # and it stayed removed — no tee to the source path after the rm
+    seen_rm = False
+    for c in r.calls:
+        if 'rm -f' in c:
+            seen_rm = True
+        elif seen_rm:
+            assert 'tee /etc/apt/sources.list.d/unityhub.list' not in c
+
+
 def test_no_prereqs_when_none_declared():
     r = Runner(pretend=True)
     Apt(r).install(rc('build-essential'))  # main package, no repo-component

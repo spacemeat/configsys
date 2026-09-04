@@ -56,8 +56,11 @@ class Apt(Driver):
         then VALIDATE. On a signature failure with a key configured, re-fetch the key overwriting the
         stale one and retry once (rotation self-heal). If it STILL fails and we created the source
         THIS run, roll it back (rm) so a failed setup never leaves a poison pill that breaks every
-        later apt op. Returns None on success, or a classified failing Result. See docs/driver-
-        resilience-plan.md (P2 validate-then-commit).'''
+        later apt op — BUT only after confirming OUR source is the culprit (apt-get update can fail on
+        a PRE-EXISTING, unrelated broken source, whose "E: The list of sources could not be read"
+        names nothing): re-check with our source disabled, and if it still fails, restore our valid
+        source and report the real, pre-existing breakage instead. Returns None on success, or a
+        classified failing Result. See docs/driver-resilience-plan.md (P2 validate-then-commit).'''
         sp = shlex.quote(src_path)
         existed = self.runner.run(f'test -f {sp}', capture=True).ok
         res = self.runner.run(write_cmd, capture=True)
@@ -71,8 +74,22 @@ class Apt(Driver):
             if res.ok:
                 return None
             cat, rem = classify(res.output)
-        if not existed:                          # roll back OUR just-created source (no poison pill)
+        if not existed:
+            # Disable OUR just-created source and re-run update: does apt recover without it?
             self.runner.run(f'sudo rm -f {sp}', capture=True)
+            recheck = self.runner.run('sudo apt-get update', capture=True)
+            if not recheck.ok:
+                # STILL failing without our source -> the breakage is pre-existing and unrelated.
+                # Restore our valid source (don't strand a working repo) and report the real problem.
+                self.runner.run(write_cmd, capture=True)     # file is now absent -> re-creates it
+                tail = (recheck.output.splitlines()[-1].strip()
+                        if recheck.output else 'apt-get update failed')
+                cat, rem = classify(recheck.output)
+                return Result.fail(
+                    f'apt-get update is failing on a pre-existing apt source, not on {src_path} '
+                    f'(removing it did not help): {tail}. Fix the broken source under '
+                    f'/etc/apt/sources.list.d/, then retry.', category=cat, remediation=rem)
+            # apt recovered without our source -> ours WAS the culprit; keep it rolled back and report.
         tail = (res.output.splitlines()[-1].strip() if res.output else 'apt-get update failed')
         return Result.fail(f'vendor repo setup for {src_path} failed: {tail}'
                            + ('' if existed else ' (source rolled back)'),
