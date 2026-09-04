@@ -200,6 +200,22 @@ def test_scan_classifies_real_components(tmp_path):
     assert found['bat'].version == '0.24'
 
 
+def test_install_overlay_reuses_caches_across_calls(tmp_path):
+    # the TUI overlay retains the per-driver enumeration so a repeat (after a membership edit) does
+    # NO re-enumeration — only the cheap classification re-runs. Prove reuse: seed the bundle, then
+    # SWAP the cached apt listing and confirm a 2nd call reflects the cache, not a fresh probe.
+    ctx = _ctx(tmp_path)
+    units, rindex, cache, explicit, origins = _scan(ctx)
+    cache['apt'] = {_aptkey(rindex, 'bat'): '0.24'}
+    caches = {'inst': cache, 'expl': explicit, 'orig': origins}
+    inst1, _orph1, back = O.install_overlay(ctx, units, caches=caches)
+    assert back is caches                              # threaded through, not copied
+    assert 'bat' in inst1                              # apt-installed bat -> the "installed" underline
+    caches['inst']['apt'] = {_aptkey(rindex, 'htop'): '3.0'}   # swap the cached reality
+    inst2, _orph2, _ = O.install_overlay(ctx, units, caches=caches)
+    assert 'htop' in inst2 and 'bat' not in inst2      # used the cached listing, didn't re-enumerate
+
+
 def test_native_foreign_dropped_by_default_shown_with_flag(tmp_path):
     ctx = _ctx(tmp_path)
     units, rindex, cache, explicit, origins = _scan(ctx)

@@ -2054,22 +2054,38 @@ class ProfileScreen:
         self._res = {}                   # component -> (available, via, pinned); survives reloads
         self.show_install = 0            # `O` cycles: 0 off · 1 overlay (installed underline + orphan
         self._overlay = None             #   colour) · 2 overlay + reveal ignored orphans (dimmed)
+        self._scan_caches = None         # retained per-driver enumeration (installed/explicit/origin);
+                                         # survives membership edits (reality is stable on this page) —
+                                         # dropped only on an install/uninstall execute (invalidate_overlay)
         self.reload()
 
     def overlay(self):
         '''The install-axis overlay data when `show_install` is on: (installed set, {comp: Orphan},
-        uninstall-queue set). Computed once (installed_index enumeration) and cached until reload.'''
+        uninstall-queue set). The per-driver enumeration is done ONCE and retained in `_scan_caches`
+        (installed reality is stable while on this page — no install happens here); a repeat after a
+        membership edit only re-runs the cheap set/graph classification over the cached listings, so the
+        overlay stays cheap enough to leave permanently on. `invalidate_overlay()` drops the caches
+        after an execute changes what's on disk.'''
         if not self.show_install:
             return (frozenset(), {}, frozenset())
         if self._overlay is None:
             from .. import orphans as _orph
             try:
                 units, _e = self.ctx.routes.resolve_resilient(list(self.ctx.config.requested()))
-                inst, orph = _orph.install_overlay(self.ctx, units)
+                if self._scan_caches is None:
+                    self._scan_caches = {}
+                inst, orph, self._scan_caches = _orph.install_overlay(
+                    self.ctx, units, caches=self._scan_caches)
                 self._overlay = (inst, orph, set(self.ctx.config.uninstall_queue()))
             except Exception:            # noqa: BLE001 — the overlay must never brick the screen
                 self._overlay = (frozenset(), {}, frozenset())
         return self._overlay
+
+    def invalidate_overlay(self):
+        '''Drop BOTH the classification and the retained per-driver enumeration — call after an
+        install/uninstall execute, when what's actually on disk may have changed.'''
+        self._overlay = None
+        self._scan_caches = None
 
     # -- profiles tree (top-level profiles + inline `+include` children) --
     def visible_pnodes(self):
@@ -2211,7 +2227,8 @@ class ProfileScreen:
 
     def reload(self):
         cfg = self.ctx.config
-        self._overlay = None                         # recompute the install overlay after any edit
+        self._overlay = None                         # recompute the overlay CLASSIFICATION after an edit
+                                                     # (keeps _scan_caches — reality is unchanged here)
         self.profiles = cfg.profile_names()
         self._profset = set(self.profiles)
         self.starred &= self._profset                # drop stars for profiles that no longer exist
@@ -4570,6 +4587,8 @@ def run(ctx):
                         note = f'reload failed: {e}'
                     ms.staged.clear()          # the staged ops just ran; don't leave them badged
                     ms.errors = failed
+                    if ps is not None:
+                        ps.invalidate_overlay()   # installs changed disk reality -> re-enumerate on next `O`
                     curses.flushinp()  # ...and any typed during the re-inspect
             elif act == 'refresh':             # refresh version caches + the native package index
                 with suspended(stdscr):

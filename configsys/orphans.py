@@ -144,9 +144,11 @@ def scan_orphans(ctx, units, *, cache=None, explicit=None, origins=None,
     installed, per each driver's explicit_keys — so the thousands of dep packages nobody chose
     don't drown the signal).'''
     cfg = ctx.config
-    cache = dict(cache or {})
-    explicit = dict(explicit or {})
-    origins = dict(origins or {})
+    # fill-through (mutate the caller's dicts in place, don't copy) so a caller — e.g. the TUI
+    # install overlay — can RETAIN the filled enumeration across calls and skip the re-spawn.
+    cache = {} if cache is None else cache
+    explicit = {} if explicit is None else explicit
+    origins = {} if origins is None else origins
     drivers = {}                                # name -> Driver instance (memoized)
 
     def _drv(dname):
@@ -251,15 +253,18 @@ def scan_orphans(ctx, units, *, cache=None, explicit=None, origins=None,
     return out
 
 
-def install_overlay(ctx, units, *, cache=None):
-    '''For the TUI::Profiles install-axis overlay: `(installed, orphans)` where `installed` is the set
-    of component names with ANY installed slot on disk (members + orphans -> the "installed" underline)
-    and `orphans` is `{component: Orphan}` for the unmanaged ones (-> the orphan colour + kind). One
-    shared enumeration pass (the passed cache is reused by the orphan scan). Cheap set/graph math on
-    top of the same installed_index() calls detection already makes.'''
+def install_overlay(ctx, units, *, caches=None):
+    '''For the TUI::Profiles install-axis overlay: `(installed, orphans, caches)` where `installed` is
+    the set of component names with ANY installed slot on disk (members + orphans -> the "installed"
+    underline) and `orphans` is `{component: Orphan}` for the unmanaged ones (-> the orphan colour +
+    kind). `caches` is a reusable `{'inst','expl','orig'}` bundle of the per-driver enumerations: pass
+    a prior bundle back in and the (slow, subprocess-bound) driver listings are reused — only the cheap
+    set/graph classification re-runs. Installed reality changes only on an actual install/uninstall, so
+    a caller can hold the bundle across membership edits and drop it after an execute/refresh.'''
     from .installState import _parallel_map
     rindex = build_reverse_index(ctx)
-    cache = dict(cache or {})
+    caches = caches if caches is not None else {}
+    inst = caches.setdefault('inst', {})            # driver -> installed_index() dict|None (retained)
     scan_drivers = {d for (d, _k) in rindex} | set(USER_FACING)
 
     def _enum(dname):                               # one installed_index() call (a subprocess)
@@ -270,18 +275,21 @@ def install_overlay(ctx, units, *, cache=None):
             return dname, None
 
     # enumerate every driver's installed set CONCURRENTLY (apt/flatpak/npm/pip are each a slow spawn;
-    # serial they sum, parallel they collapse to the slowest one). The scan below reuses this cache.
-    for dname, idx in _parallel_map(_enum, [d for d in scan_drivers if d not in cache]):
-        cache[dname] = idx
+    # serial they sum, parallel they collapse to the slowest one) — but only drivers not already
+    # cached, so a repeat call after a membership edit spawns nothing. The scan below reuses the cache.
+    for dname, idx in _parallel_map(_enum, [d for d in scan_drivers if d not in inst]):
+        inst[dname] = idx
 
     installed = set()
     for dname in scan_drivers:
-        idx = cache.get(dname)
+        idx = inst.get(dname)
         if idx:
             for key in idx:
                 installed.update(rindex.get((dname, key), ()))
-    orphans = {o.component: o for o in scan_orphans(ctx, units, cache=cache) if o.component}
-    return installed, orphans
+    orphans = {o.component: o for o in scan_orphans(
+        ctx, units, cache=inst, explicit=caches.setdefault('expl', {}),
+        origins=caches.setdefault('orig', {})) if o.component}
+    return installed, orphans, caches
 
 
 def _ignore_globs(cfg):
