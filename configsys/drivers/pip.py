@@ -83,6 +83,9 @@ class Pip(Driver):
     def batch_index(self, rcs):
         return self.installed_index() or {}
 
+    def batch_installed_index(self, batch):
+        return batch if isinstance(batch, dict) else None   # the batch IS the installed index
+
     @staticmethod
     def _pip(rc):
         # interpreter-pin: `python: python3.12` on the binding installs into THAT python's user site;

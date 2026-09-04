@@ -73,6 +73,15 @@ class Npm(Driver):
             out[scope] = m
         return out
 
+    def batch_installed_index(self, batch):
+        if not isinstance(batch, dict):
+            return None
+        flat = {}                                   # union the per-scope maps -> {pkg: version}
+        for m in batch.values():
+            if isinstance(m, dict):
+                flat.update(m)
+        return flat
+
     def installed_index(self):
         '''Flat {pkg: version} across BOTH scope prefixes (union) — for the coexistence detector's
         membership test, so N npm units cost two `npm ls` calls, not one per unit. inspect uses the

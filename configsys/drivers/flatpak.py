@@ -115,6 +115,12 @@ class Flatpak(Driver):
                     break
         return {'installed': installed, 'masked': masked, 'candidate': candidate}
 
+    def batch_installed_index(self, batch):
+        inst = batch.get('installed') if isinstance(batch, dict) else None
+        if not isinstance(inst, dict):
+            return None
+        return {app: (v[0] if isinstance(v, tuple) else v) for app, v in inst.items()}   # drop the scope
+
     def get_version(self, rc):
         if self._batch is not None:                    # batched: from the one `flatpak list`
             v = self._batch['installed'].get(self._appid(rc))

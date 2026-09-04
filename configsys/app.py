@@ -427,10 +427,14 @@ class Context:
         self.apply_scope_default(units)
         self.apply_locations(units)
         ledger = Ledger.load(self.paths)
-        states = InstallState(self.runner, ledger, self.paths,
-                              pending_vias=self.plugin_pending_vias).inspect(
+        inspector = InstallState(self.runner, ledger, self.paths,
+                                 pending_vias=self.plugin_pending_vias)
+        states = inspector.inspect(
             units, progress=(progress or self._inspect_progress), reuse=reuse, dirty=dirty,
             batch_progress=batch_progress)
+        # hand the batched drivers' installed enumeration to later consumers (the TUI install
+        # overlay seeds its per-driver cache from this, so the first `O` doesn't re-list).
+        self.startup_enum = getattr(inspector, 'enum', {})
         if cfg.detect_coexisting():
             from .installState import detect_coexisting     # "also present (unmanaged)" per component
             detect_coexisting(self, states)

@@ -35,17 +35,21 @@ def test_installed_index_keys_bare_and_arch_qualified():
     # A foreign-arch package (Steam's steam:i386) is reported by dpkg with ${Package} BARE
     # ('steam'), but a route may name it 'steam:i386'. The batched index must carry BOTH keys, or
     # the startup scan reports an installed multiarch package as "missing".
-    dpkg_out = ('curl amd64 8.5.0-2\n'
-                'steam i386 1:1.0.0.78\n'
-                'steam-installer amd64 1:1.0.0.78\n'
-                'libvulkan1 amd64 1.3.0\n'
-                'libvulkan1 i386 1.3.0\n')
+    # rows are `${db:Status-Status} ${Package} ${Architecture} ${Version}`; a `config-files` row is a
+    # removed-but-not-purged package (conffiles remain) — it must NOT count as installed.
+    dpkg_out = ('installed curl amd64 8.5.0-2\n'
+                'installed steam i386 1:1.0.0.78\n'
+                'installed steam-installer amd64 1:1.0.0.78\n'
+                'installed libvulkan1 amd64 1.3.0\n'
+                'installed libvulkan1 i386 1.3.0\n'
+                'config-files nano amd64 7.2-1\n')
     apt = Apt(FakeRunner([("dpkg-query -W", 0, dpkg_out)]))
     idx = apt.installed_index()
     assert idx.get('steam') == '1:1.0.0.78'          # bare name (dpkg's ${Package})
     assert idx.get('steam:i386') == '1:1.0.0.78'     # arch-qualified — the route's name
     assert idx.get('curl') == '8.5.0-2' and idx.get('curl:amd64') == '8.5.0-2'
     assert idx.get('libvulkan1:i386') == '1.3.0'     # both multiarch instances addressable
+    assert 'nano' not in idx and 'nano:amd64' not in idx   # removed (config-files) -> not installed
 
 
 def test_installed_name_probes_a_different_package_than_install():
@@ -55,7 +59,7 @@ def test_installed_name_probes_a_different_package_than_install():
     lo = ResolvedComponent(key='apt\\libreoffice', driver='apt', comp='libreoffice',
                            fields={'name': 'libreoffice', 'installed-name': 'libreoffice-core'})
     fr = FakeRunner([
-        ('dpkg-query', 0, 'libreoffice-core amd64 1:7.3.7\nlibreoffice-calc amd64 1:7.3.7\n'),  # NO bare `libreoffice`
+        ('dpkg-query', 0, 'installed libreoffice-core amd64 1:7.3.7\ninstalled libreoffice-calc amd64 1:7.3.7\n'),  # NO bare `libreoffice`
         ('apt-cache policy', 0, 'libreoffice-core:\n  Installed: 1:7.3.7\n  Candidate: 1:7.3.7\n'),
         ('apt-mark showhold', 0, ''),
     ])
@@ -116,7 +120,7 @@ def test_uses_family_name_field_not_comp():
 # -- output parsing (via FakeRunner) -------------------------------------
 
 def test_get_version_installed():
-    fr = FakeRunner([('dpkg-query', 0, '1.2.13-1\n')])
+    fr = FakeRunner([('dpkg-query', 0, 'installed 1.2.13-1\n')])
     assert Apt(fr).get_version(rc()) == '1.2.13-1'
 
 
@@ -125,11 +129,18 @@ def test_get_version_not_installed():
     assert Apt(fr).get_version(rc()) is None
 
 
+def test_get_version_ignores_removed_config_files_state():
+    # `apt-get remove` (not purge) leaves a `config-files` row that dpkg-query still answers with a
+    # version — it must read as NOT installed, not as the stale removed version.
+    fr = FakeRunner([('dpkg-query', 0, 'config-files 1.2.13-1\n')])
+    assert Apt(fr).get_version(rc()) is None
+
+
 def test_get_version_multiarch_takes_one_row():
     # a multiarch package (amd64 + i386, once i386 is enabled for Steam) prints one row
     # per instance; without this we'd concatenate them into a doubled, never-matching
     # version and the component would show as perpetually "outdated".
-    fr = FakeRunner([('dpkg-query', 0, '1.3.280.0-1\n1.3.280.0-1\n')])
+    fr = FakeRunner([('dpkg-query', 0, 'installed 1.3.280.0-1\ninstalled 1.3.280.0-1\n')])
     assert Apt(fr).get_version(rc()) == '1.3.280.0-1'
 
 

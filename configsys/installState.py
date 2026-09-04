@@ -111,6 +111,14 @@ class InstallState:
         # batch_index simply don't participate and fall back to per-unit probes.
         to_probe = {k: rc for k, rc in units.items() if k not in reuse or k in dirty}
         batch = self._build_batch(to_probe, progress=batch_progress)
+        # expose the batched drivers' full installed maps ({driver: {index_key: version}}) so callers
+        # (the TUI install overlay) can reuse this already-paid enumeration instead of re-listing.
+        self.enum = {}
+        for dname, ctx in batch.items():
+            drv = get_driver(dname, self.runner, self.paths)
+            idx = drv.batch_installed_index(ctx) if drv is not None else None
+            if idx:
+                self.enum[dname] = idx
         out, total = {}, len(units)
         for key, rc in units.items():             # reused units keep their cached probe, no work
             if key in reuse and key not in dirty:

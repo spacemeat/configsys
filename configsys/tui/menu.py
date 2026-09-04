@@ -2073,7 +2073,11 @@ class ProfileScreen:
             try:
                 units, _e = self.ctx.routes.resolve_resilient(list(self.ctx.config.requested()))
                 if self._scan_caches is None:
-                    self._scan_caches = {}
+                    # seed the per-driver installed cache from the startup inspection's already-paid
+                    # enumeration (a COPY — install_overlay fills missing drivers, only spawning for the
+                    # few not batched at load). Post-reload (e.g. after an uninstall) it's refreshed.
+                    seed = dict(getattr(self.ctx, 'startup_enum', None) or {})
+                    self._scan_caches = {'inst': seed} if seed else {}
                 inst, orph, self._scan_caches = _orph.install_overlay(
                     self.ctx, units, caches=self._scan_caches)
                 self._overlay = (inst, orph, set(self.ctx.config.uninstall_queue()))

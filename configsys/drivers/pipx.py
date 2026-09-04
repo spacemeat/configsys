@@ -72,6 +72,9 @@ class Pipx(Driver):
     def batch_index(self, rcs):
         return self.installed_index() or {}
 
+    def batch_installed_index(self, batch):
+        return batch if isinstance(batch, dict) else None   # the batch IS the installed index
+
     def get_version(self, rc):
         idx = self._batch if self._batch is not None else self.installed_index()
         if not idx:

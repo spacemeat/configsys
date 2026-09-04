@@ -32,7 +32,7 @@ def unsupported_unit():
 
 def test_installed_up_to_date():
     fr = FakeRunner([
-        ('dpkg-query', 0, '1.2.13-1'),
+        ('dpkg-query', 0, 'installed 1.2.13-1'),
         ('apt-cache policy', 0, '  Candidate: 1.2.13-1\n'),
         ('apt-mark showhold', 0, ''),
     ])
@@ -46,7 +46,7 @@ def test_installed_up_to_date():
 
 def test_outdated():
     fr = FakeRunner([
-        ('dpkg-query', 0, '1.0.0'),
+        ('dpkg-query', 0, 'installed 1.0.0'),
         ('apt-cache policy', 0, '  Candidate: 2.0.0\n'),
         ('apt-mark showhold', 0, ''),
     ])
@@ -97,7 +97,7 @@ def test_missing():
 
 def test_native_lock():
     fr = FakeRunner([
-        ('dpkg-query', 0, '1.0.0'),
+        ('dpkg-query', 0, 'installed 1.0.0'),
         ('apt-cache policy', 0, '  Candidate: 1.0.0\n'),
         ('apt-mark showhold', 0, 'btop\n'),
     ])
@@ -107,7 +107,7 @@ def test_native_lock():
 
 def test_ledger_lock_only():
     fr = FakeRunner([
-        ('dpkg-query', 0, '1.0.0'),
+        ('dpkg-query', 0, 'installed 1.0.0'),
         ('apt-cache policy', 0, '  Candidate: 1.0.0\n'),
         ('apt-mark showhold', 0, ''),
     ])
@@ -119,7 +119,7 @@ def test_ledger_lock_only():
 
 def test_both_lock_sources():
     fr = FakeRunner([
-        ('dpkg-query', 0, '1.0.0'),
+        ('dpkg-query', 0, 'installed 1.0.0'),
         ('apt-cache policy', 0, '  Candidate: 1.0.0\n'),
         ('apt-mark showhold', 0, 'btop\n'),
     ])
@@ -146,7 +146,7 @@ def test_inspect_many():
     # inspect() runs the batch prepass, so apt is probed via `dpkg-query -W` (Package Version rows),
     # one `apt-cache policy` (column-0 `name:` blocks), and `apt-mark showhold` — not per-unit.
     fr = FakeRunner([
-        ('dpkg-query', 0, 'btop amd64 1.0.0\n'),
+        ('dpkg-query', 0, 'installed btop amd64 1.0.0\n'),
         ('apt-cache policy', 0, 'btop:\n  Installed: 1.0.0\n  Candidate: 1.0.0\n'),
         ('apt-mark showhold', 0, ''),
     ])
@@ -156,11 +156,27 @@ def test_inspect_many():
     assert states['nosuchvia\\foo'].status == 'unsupported'
 
 
+def test_inspect_exposes_batched_installed_enum():
+    # the batched drivers' full installed maps are surfaced as .enum, so the TUI install overlay can
+    # seed its per-driver cache from this already-paid enumeration instead of re-listing on first `O`.
+    fr = FakeRunner([
+        ('dpkg-query', 0, 'installed btop amd64 1.0.0\ninstalled fd amd64 2.0.0\n'),
+        ('apt-cache policy', 0, 'btop:\n  Candidate: 1.0.0\n'),
+        ('apt-mark showhold', 0, ''),
+    ])
+    insp = InstallState(fr)
+    insp.inspect({'apt\\btop': apt_unit('btop')})
+    # apt's index carries both bare and arch-qualified keys; the whole machine's apt state, not just
+    # the probed unit — that's what makes it a usable overlay seed.
+    assert insp.enum['apt'] == {'btop': '1.0.0', 'btop:amd64': '1.0.0',
+                                'fd': '2.0.0', 'fd:amd64': '2.0.0'}
+
+
 def test_inspect_batches_apt_probes_across_units():
     # THE optimization: N apt units cost a FIXED few spawns (one dpkg-query -W, one apt-cache policy,
     # one apt-mark showhold), not 3 per unit. Regression guard for the startup-perf Phase A work.
     fr = FakeRunner([
-        ('dpkg-query', 0, 'btop amd64 1.0.0\nfd amd64 2.0.0\n'),                    # one index, all packages
+        ('dpkg-query', 0, 'installed btop amd64 1.0.0\ninstalled fd amd64 2.0.0\n'),                    # one index, all packages
         ('apt-cache policy', 0, 'btop:\n  Candidate: 1.1.0\n'
                                 'fd:\n  Candidate: 2.0.0\n'),           # one policy, all packages
         ('apt-mark showhold', 0, 'fd\n'),                              # one hold list

@@ -224,6 +224,14 @@ class Driver:
         identity isn't rc.name (flatpak app id, snap name) override.'''
         return rc.name
 
+    def batch_installed_index(self, batch):
+        '''Extract a plain `{index_key: version}` installed map from THIS driver's batch context (the
+        opaque value its `batch_index` returned) — so the startup inspection's already-paid enumeration
+        can seed the TUI install overlay instead of it re-spawning every lister. None when the driver
+        has no batch (its batch context isn't an installed map). Batched drivers whose context isn't
+        already `{key: version}` override.'''
+        return None
+
     def explicit_keys(self):
         '''The set of installed_index keys the user EXPLICITLY installed (manual / on-request), as
         opposed to those pulled in automatically as dependencies — or None when this driver draws no

@@ -171,16 +171,21 @@ class Apt(Driver):
         # package (e.g. Steam's `steam:i386`), but dpkg reports ${Package} BARE, so without the
         # qualified key the batched lookup would miss an installed multiarch package (reporting it
         # "missing" though it's installed).
-        r = self.runner.run("dpkg-query -W -f='${Package} ${Architecture} ${Version}\\n'")
+        # Prefix each row with the install status: `apt-get remove` (configsys's uninstall) leaves a
+        # package in the `config-files` state (its conffiles under /etc survive), and dpkg-query -W
+        # STILL lists it with a version — so without this filter a removed component keeps reporting as
+        # installed (stale "installed" underline / version). Keep only genuinely-installed packages.
+        r = self.runner.run(
+            "dpkg-query -W -f='${db:Status-Status} ${Package} ${Architecture} ${Version}\\n'")
         if not r.ok:
             return None
         idx = {}
         for line in r.stdout.splitlines():
-            parts = line.split(' ', 2)
-            if len(parts) < 2 or not parts[0]:
-                continue
-            name, arch = parts[0], parts[1]
-            ver = (parts[2].strip() if len(parts) > 2 else '') or 'installed'
+            parts = line.split(' ', 3)
+            if len(parts) < 3 or parts[0] != 'installed' or not parts[1]:
+                continue                          # skip config-files (rc), not-installed, half-* states
+            name, arch = parts[1], parts[2]
+            ver = (parts[3].strip() if len(parts) > 3 else '') or 'installed'
             idx.setdefault(name, ver)             # bare name — first row wins (matches get_version)
             idx.setdefault(f'{name}:{arch}', ver) # arch-qualified — for routes like `steam:i386`
         return idx
@@ -235,6 +240,9 @@ class Apt(Driver):
                 candidate = _parse_policy(r.stdout, set(names))
         return {'installed': installed, 'held': held, 'candidate': candidate}
 
+    def batch_installed_index(self, batch):
+        return batch.get('installed') if isinstance(batch, dict) else None
+
     def get_version(self, rc):
         if self._batch is not None:               # batched: answer from the one dpkg-query index
             return self._batch['installed'].get(self._probe_name(rc))
@@ -243,9 +251,14 @@ class Apt(Driver):
         # once i386 is enabled for Steam) prints one row per installed instance. Without a
         # separator the two versions concatenate into a doubled string that never matches
         # the apt candidate -> perpetually "outdated". Take the first row (arches match).
-        r = self.runner.run(f"dpkg-query -W -f='${{Version}}\\n' {pkg}")
+        # status-guarded (see installed_index): a `config-files` (removed-but-conffiles) package still
+        # answers dpkg-query with a version — take the first genuinely-INSTALLED row, else not installed.
+        r = self.runner.run(f"dpkg-query -W -f='${{db:Status-Status}} ${{Version}}\\n' {pkg}")
         if r.ok and r.stdout.strip():
-            return r.stdout.strip().splitlines()[0].strip()
+            for ln in r.stdout.splitlines():
+                st, _, ver = ln.strip().partition(' ')
+                if st == 'installed' and ver.strip():
+                    return ver.strip()
         return None
 
     # -- read: available version ------------------------------------------
