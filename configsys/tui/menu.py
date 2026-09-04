@@ -2049,8 +2049,8 @@ class ProfileScreen:
         self.starred = set()             # profile NAMES starred (▸) — their OWN members filter the catalog
         self.attr_inc = set()            # `A` faceted attr filter: lowercased tags to INCLUDE
         self.attr_exc = {'dotfiles'}     # ...and to EXCLUDE — hide the -dotfiles companions by default
-        self.show_removed = False        # `~`: within the star-filter, also reveal a starred profile's
-                                         #      ~-pruned components (marked `~`) — the clone-and-prune view
+        self.show_removed = False        # tracks the star filter: True whenever `starred` is non-empty, so
+                                         # the filter always reveals a starred profile's ~-pruned drops (`~`)
         self._res = {}                   # component -> (available, via, pinned); survives reloads
         self.show_install = 0            # `O` cycles: 0 off · 1 overlay (installed underline + orphan
         self._overlay = None             #   colour) · 2 overlay + reveal ignored orphans (dimmed)
@@ -2137,19 +2137,17 @@ class ProfileScreen:
         return seen & self._profset                  # real profiles only
 
     def cycle_star(self):
-        '''Tri-state on the current profile: off -> starred (filter the catalog to its members) ->
-        starred + show-removed (also reveal its ~-pruned components) -> off. (Folds the old
-        reveal-removed toggle in, freeing `~` for the subprofile membership toggle.)'''
+        '''Toggle on the current profile: off -> starred (filter the catalog to its OWN + subprofile
+        members AND reveal its ~-pruned drops, marked `~`) -> off. The filter always includes removals
+        — there's no members-only intermediate state.'''
         nd = self.cur_node()
         if not nd:
             return
         clan = self._include_closure(nd[0])          # the profile + everything it inherits
-        if nd[0] not in self.starred:                # off -> starred
+        if nd[0] not in self.starred:                # off -> starred (+ removed, always)
             self.starred |= clan
-            self.show_removed = False
-        elif not self.show_removed:                  # starred -> starred + show-removed
             self.show_removed = True
-        else:                                        # starred + show-removed -> off
+        else:                                        # starred -> off
             self.starred -= clan
             if not self.starred:
                 self.show_removed = False
@@ -2436,7 +2434,7 @@ def _draw_profiles(stdscr, pal, ps, ctx, note, screen):
     ctitle = ((f'components — in "{prof}"' if prof else 'components')
               + (f'  filter:{ps.cfilter}' if ps.cfilter else '')
               + (f'  ▸{",".join(sorted(ps.starred))}' if ps.starred else '')
-              + ('  +~removed' if ps.show_removed and ps.starred else '')
+              + ('  +~removed' if ps.starred else '')   # star filter always reveals ~-removed drops
               + ps.attr_summary())
     rit, ril, rih, riw = _panel(stdscr, pal, ctop, rleft, cath, rw, ctitle, ps.focus == 'right', h, w)
     n = len(vcat)
@@ -3830,7 +3828,7 @@ def run(ctx):
                         except ConfigsysError as e:
                             note = f'ignore failed: {e}'
                 elif pfact == 'star' and ps.focus == 'left':
-                    ps.cycle_star()                    # cycle: filter to members -> +show ~-removed -> off
+                    ps.cycle_star()                    # toggle: filter to members + ~-removed -> off
                 elif pfact == 'toggle-member' and ps.focus == 'left':
                     # include/exclude the selected SUBPROFILE (a nested + child) in the top-level profile
                     # it hangs under. Membership-toggle: struck -> re-include (+sub); active -> exclude (~sub).

@@ -251,19 +251,18 @@ def test_profile_tree_and_star_filter(tmp_path):
     assert any(nd[0] == 'base' and nd[1] == 1 for nd in v)   # base shows indented under mine
     # star `base` -> the catalog filters to base's OWN members
     ps.lcur = next(i for i, nd in enumerate(v) if nd[0] == 'base' and nd[1] == 1)
-    ps.cycle_star()                                          # off -> star base
-    assert ps.vcatalog() == ['btop']
-    ps.cycle_star()                                          # star -> star + show-removed (base pruned nothing)
-    assert ps.show_removed is True and ps.vcatalog() == ['btop']
+    ps.cycle_star()                                          # off -> star base (filter + always show-removed)
+    assert ps.show_removed is True and ps.vcatalog() == ['btop']   # base pruned nothing -> just its member
     ps.cycle_star()                                          # -> off: full catalog again
-    assert not ps.starred and len(ps.vcatalog()) == len(ps.catalog)
+    assert not ps.starred and not ps.show_removed and len(ps.vcatalog()) == len(ps.catalog)
     # starring `mine` (which +includes base) now stars the whole inheritance chain, so base's OWN
     # members come along — the clone-and-prune view (see the base's members + a derived profile's ~drops)
     ps.lcur = [nd[0] for nd in ps.visible_pnodes()].index('mine')
     ps.cycle_star()
     assert ps.starred == {'mine', 'base'}                    # * stars the profile AND its includes
+    assert ps.show_removed is True                           # filter always reveals removals (no members-only state)
     assert ps.vcatalog() == ['btop']                         # base's own member is now visible
-    ps.cycle_star(); ps.cycle_star()                         # +show-removed, then off -> the whole chain clears
+    ps.cycle_star()                                          # -> off: the whole chain clears
     assert ps.starred == set() and len(ps.vcatalog()) == len(ps.catalog)
 
 

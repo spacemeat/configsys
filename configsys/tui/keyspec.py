@@ -186,7 +186,7 @@ ACTION_LABELS = {
     'add': 'add a plugin', 'remove': 'remove plugin', 'sync': 'sync plugin', 'sync-all': 'sync all',
     'bless': 'bless (trust content)', 'unbless': 'unbless', 'update': 'update plugin', 'update-all': 'update all',
     'trust': 'trust code plugin', 'trust-all': 'trust all code', 'set-ref': 'set git ref',
-    'star': 'star (cycle: filter · +removed · off)', 'toggle-member': 'include / exclude subprofile', 'toggle-active': 'activate / deactivate',
+    'star': 'star (toggle: members + removals · off)', 'toggle-member': 'include / exclude subprofile', 'toggle-active': 'activate / deactivate',
     'new': 'new', 'delete': 'delete', 'include': 'include another profile (+)', 'attr-filter': 'filter by attrs',
     'toggle-install': 'overlay install (cycle: on · +ignored · off)',
     'stage': 'stage orphan for triage', 'stage-uninstall': 'stage uninstall (→ !uninstall)',
