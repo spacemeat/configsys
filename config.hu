@@ -68,7 +68,7 @@ profiles: {
     android-tools: [ jmtpfs  android-file-transfer ]
 
     c-cpp-lang: [ bazelisk  cpp-toolchain  gcc-10 gcc-11 gcc-12 gcc-13  gcc-14  gcc-15  clang-18  clang-19
-        clang-20  gdb  make  analysis  cmake  ninja  meson  clang  cmake-gui  doxygen  ccmake  clangd ]
+        clang-20  gdb  make  analysis  cmake  ninja  meson  clang  cmake-gui  doxygen  ccmake  clangd  conan  gettext  heaptrack  vcpkg ]
     dotnet-lang: [ dotnet ]
     go-lang: [ go  goimports ]
     haskell-lang: [ haskell  cabal  hlint ]
@@ -79,11 +79,11 @@ profiles: {
     groovy-lang: [ groovy ]
     lisp-lang: [ sbcl  quicklisp ]
     lua-lang: [ lua  luarocks  dkjson ]
-    objective-c-lang: [ gnustep ]
+    objective-c-lang: [ gnustep  objective-c ]
     tcl-lang: [ tcl  tk ]
     ocaml-lang: [ ocaml  opam  dune ]
     php-lang: [ php  composer ]
-    python-lang: [ python3.11  python3.12  python3.13  python3.14  cython  pyenv  uv  jupyterlab  pytest  python3-dev ]
+    python-lang: [ python3.11  python3.12  python3.13  python3.14  cython  pyenv  python-build-deps  uv  jupyterlab  pytest  python3-dev ]
     ruby-lang: [ ruby  bundler ]
     rust-lang: [ rust  miniforge ]
     scratch-lang: [ scratch ]
@@ -140,7 +140,7 @@ profiles: {
     creative-tools: [ +electronics-tools  +graphics-tools  +audio-tools  libreoffice ]
 
     media-servers: [ jellyfin-service  plex-service  emby-service  navidrome  mpd ]
-    media-players: [ codecs  ffmpeg  vlc  spotify  kodi  stremio  mpc  strawberry  mpd-mpris  playerctl ]
+    media-players: [ codecs  gst-libav  ffmpeg  vlc  spotify  kodi  stremio  mpc  strawberry  mpd-mpris  playerctl ]
     home-server: [ home-assistant  pi-hole  adguardhome  homebridge  mosquitto-service  syncthing
         tailscale-service  grafana-service  prometheus  cockpit-service  wireguard  nextcloud ]
 
