@@ -3729,6 +3729,8 @@ def run(ctx):
 
             # -- global keys (every screen), resolved through the keymap --
             gact = keymap.action_for('global', ch)
+            if gact == 'quit-force':                     # leave immediately, no confirm (harder to hit)
+                break
             if gact == 'quit':                          # confirm before leaving; esc no longer quits
                 if _popup_choose(stdscr, pal, 'Really quit?',
                                  [('Yes, quit', ''), ('No, keep working', '')], start=1,

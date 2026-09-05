@@ -72,7 +72,7 @@ def key_name(code):
 # A minimal safety net if config.hu's `keys:` section is missing/broken — NOT the real defaults (those
 # are the humon file). Just enough that quit and screen-switch always work.
 _FALLBACK = {
-    'global': {'quit': 'q', 'issues': '!'},
+    'global': {'quit': 'q', 'quit-force': 'Q', 'issues': '!'},
     'screens': {'components': '1', 'profiles': '2', 'plugins': '3', 'dotfiles': '4',
                 'config': '5', 'theme': '6'},
 }
@@ -125,7 +125,7 @@ class Keymap:
         '''[(keys, label)] for the `?` overlay: the shared global keys first, then this page's own
         actions. page-1..page-6 collapse to one row; up to two alternate keys are shown per action.'''
         order = ['down', 'up', 'left', 'right', 'top', 'bottom', 'select', 'confirm', 'switch-pane',
-                 'switch-pane-back', 'find', 'filter', 'issues', 'help', 'quit']
+                 'switch-pane-back', 'find', 'filter', 'issues', 'help', 'quit', 'quit-force']
         rows, seen_page = [], False
 
         def keyglyph(sc, action):
@@ -151,7 +151,7 @@ class Keymap:
 # user's `keys:` against. A page scope may ALSO bind any `global` action (to rebind nav on that page),
 # so a page's valid set is its own actions ∪ global's. `screens` binds screen ids, not actions.
 _GLOBAL_ACTIONS = {'down', 'up', 'left', 'right', 'top', 'bottom', 'select', 'confirm', 'switch-pane',
-                   'switch-pane-back', 'find', 'filter', 'issues', 'help', 'quit'}
+                   'switch-pane-back', 'find', 'filter', 'issues', 'help', 'quit', 'quit-force'}
 SCREEN_IDS = {'components', 'profiles', 'plugins', 'dotfiles', 'config', 'theme'}
 KNOWN_ACTIONS = {
     'global': _GLOBAL_ACTIONS,
@@ -175,7 +175,8 @@ ACTION_LABELS = {
     'down': 'move down', 'up': 'move up', 'left': 'left / collapse', 'right': 'right / expand',
     'top': 'jump to top', 'bottom': 'jump to bottom', 'select': 'select / mark', 'confirm': 'activate / open',
     'switch-pane': 'switch pane', 'switch-pane-back': 'switch pane (back)', 'find': 'find (jump cursor)',
-    'filter': 'filter (narrow the list)', 'issues': 'show issues (!)', 'help': 'this help', 'quit': 'quit',
+    'filter': 'filter (narrow the list)', 'issues': 'show issues (!)', 'help': 'this help',
+    'quit': 'quit (asks to confirm)', 'quit-force': 'quit now (no prompt)',
     'where': 'explain component (where)', 'lock': 'lock / unlock version', 'expand-all': 'expand / collapse all',
     'select-all': 'select all', 'clear': 'clear selection + staged', 'method': 'pick install method / provider',
     'op-install': 'stage install', 'op-upgrade': 'stage upgrade', 'op-remove': 'stage remove',

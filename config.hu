@@ -181,6 +181,7 @@ profiles: {
             issues: "!"             // open the diagnostics (issues) overlay
             help: "?"               // this page's help (keys + description + glossary)
             quit: q                 // leave the TUI (asks to confirm)
+            quit-force: Q           // leave immediately, no confirm prompt
         }
 
         // Components screen. down/up/left(collapse)/right(expand)/top/bottom/find/filter/select
