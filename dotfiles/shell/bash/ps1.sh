@@ -30,6 +30,11 @@ ps1_prompt() {
 }
 
 ps1_git() {
+    GIT_PS1_SHOWDIRTYSTATE=1
+    GIT_PS1_SHOWSTASHSTATE=1
+    GIT_PS1_SHOWUNTRACKEDFILES=1
+    GIT_PS1_SHOWUPSTREAM="auto verbose"
+
     repo=$(__git_ps1 "%s")
     [ -n "$repo" ] && echo "\[\033[38;2;0;63;127m\]git:\[\033[38;2;0;127;255m\]$repo\[\033[00m\] "
 }
@@ -50,5 +55,4 @@ ps1_build_prompt() {
     PS1="$(ps1_hist): $(ps1_dch)$(ps1_uh) $(ps1_cwd) $(ps1_git)$(ps1_venv)$(ps1_lastr $last_stat) \$ "
 }
 
-GIT_PS1_SHOWDIRTYSTATE=1
 PROMPT_COMMAND=ps1_build_prompt
