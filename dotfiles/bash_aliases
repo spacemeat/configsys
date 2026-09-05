@@ -6,16 +6,15 @@ fi
 
 # Source configsys's shell glue in lexical order (bash sorts glob expansion), so a snippet can
 # order itself with an NN- prefix — 00-configsys.sh runs first and exports the CONFIGSYS_*_DIR
-# layout vars, which later snippets can then use. New home is ~/.config/bash/conf.d (managed glue
-# links there); ~/.bash.d is still sourced for any snippets you kept there before the move, so
-# nothing silently stops loading during the transition.
-for _cfsdir in ~/.config/bash/conf.d ~/.bash.d; do
-    if [ -d "$_cfsdir" ]; then
-        for shfile in "$_cfsdir"/*.sh; do
-            [ -x "$shfile" ] && source "$shfile"
-        done
-    fi
-done
-unset _cfsdir shfile
+# layout vars, which later snippets can then use. Managed glue links into ~/.config/bash/conf.d.
+# Gate on -r (readable), NOT -x (executable): a snippet must load whether or not its file carries
+# the exec bit — a recapture/relink can drop it, and a glue that then silently stops sourcing (e.g.
+# ps1.sh) drops you onto a stale prompt (that's the "always-green exit status" regression).
+if [ -d ~/.config/bash/conf.d ]; then
+    for shfile in ~/.config/bash/conf.d/*.sh; do
+        [ -r "$shfile" ] && . "$shfile"
+    done
+    unset shfile
+fi
 
 alias x="xdg-open"
