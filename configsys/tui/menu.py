@@ -2326,7 +2326,7 @@ def _draw_profiles(stdscr, pal, ps, ctx, note, screen):
     _draw_nav(stdscr, pal, screen, h, w)
 
     top, body_h = 1, h - 4                           # status + legend row, then TWO nav rows below
-    lw = max(16, w // 6)                             # profiles pane: narrow, leaving the grid room
+    lw = max(16, w // 6) + 6                          # profiles pane: narrow, leaving the grid room (+6 cols)
     rleft, rw = lw + 1, w - lw - 1
     prof = ps.cur_profile()
     members = ps.members(prof)
