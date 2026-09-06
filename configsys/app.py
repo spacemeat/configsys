@@ -1323,7 +1323,54 @@ def where_report(ctx, name):
     return out
 
 
+def where_profile_report(ctx, name):
+    '''`configsys where -p <profile>` — provenance for a PROFILE: each layer's raw definition
+    (low → high), the relation the top layer takes to lower same-name defs (pinned/tracked/shadowed/
+    base), and the effective members/menu/declined/new counts. None if the profile is unknown. Shared
+    by the CLI and the TUI Profiles infobox.'''
+    cfg = ctx.config
+    defs = cfg.profile_layer_defs(name)
+    if not defs and name not in cfg.profile_names():
+        return None
+
+    def label(src):
+        if src in (str(ctx.paths.config_file), ctx.paths.config_file):
+            return 'config.hu (repo)'
+        s, home = str(src), str(ctx.paths.home)
+        return '~' + s[len(home):] if home and s.startswith(home) else s
+
+    active = name in set(cfg.active_profiles)
+    out = [name, f'  status      {"active" if active else "inactive"}   '
+                 f'relation: {cfg.profile_relation(name)}']
+    out.append('  layers (low → high)')
+    for d in defs:
+        out.append(f'    {label(d["source"])}  [{d["role"]}]')
+        out.append(f'      terms: [ {"  ".join(d["terms"])} ]' if d['terms'] else '      terms: []')
+    try:
+        members = sorted(cfg.profile_components(name))
+    except ConfigError:
+        members = []
+    menu, declined, new = (sorted(cfg.profile_menu(name)), sorted(cfg.profile_removed(name)),
+                           sorted(cfg.profile_new(name)))
+    out.append('')
+    out.append(f'  members {len(members)}   menu {len(menu)}   '
+               f'declined {len(declined)}   new {len(new)}')
+    if cfg.is_derived(name):                        # a ballot: spell out what's offered / declined
+        if new:
+            out.append(f'    new (offered): {", ".join(new)}')
+        if declined:
+            out.append(f'    declined: {", ".join(declined)}')
+    return out
+
+
 def cmd_where(ctx, args):
+    if getattr(args, 'profile', False):
+        lines = where_profile_report(ctx, args.name)
+        if lines is None:
+            print(f'configsys: unknown profile "{args.name}"')
+            return 1
+        print('\n' + '\n'.join(lines))
+        return 0
     lines = where_report(ctx, args.name)
     if lines is None:
         print(f'configsys: unknown component "{args.name}" '
@@ -2613,7 +2660,10 @@ def build_parser():
 
     wh = sub.add_parser('where', help='explain a component: source layer, bindings, and how '
                                       'it resolves on this machine')
-    wh.add_argument('name', help='component name')
+    wh.add_argument('name', help='component name (or a profile name with -p)')
+    wh.add_argument('-p', '--profile', action='store_true',
+                    help='treat NAME as a profile: show its per-layer definition, pin/track '
+                         'relation, and member/menu/declined/new counts')
 
     lo = sub.add_parser('location', help="print a component's absolute install location "
                                          '(honoring scope + pin), for shell snippets')

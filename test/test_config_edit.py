@@ -91,7 +91,7 @@ def test_config_settings_view_has_desc_and_man(tmp_path):
     s = actions.config_settings(ctx)
     assert set(s) == {'scope', 'driver-preference', 'auto-tighten', 'adopt-installed',
                       'refresh-before-execute', 'install-overlay', 'splash', 'effects',
-                      'orphans-ignore', 'orphans-adopt-target',
+                      'orphans-ignore', 'orphans-adopt-target', 'profile-edit-mode',
                       'dirs.user', 'dirs.system', 'dirs.app', 'dirs.sdk', 'dirs.src'}
     assert s['scope']['value'] == 'user' and s['scope']['desc'] and s['scope']['man']
     assert s['auto-tighten']['kind'] == 'bool'

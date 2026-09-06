@@ -117,6 +117,50 @@ def test_clear_when_nothing_owned_is_a_noop():
     assert plan(c, 'm', 'ollama', 'clear', target='config.hu') is None       # ollama is unballoted
 
 
+# -- PIN vs TRACK (synth of a first amend of a lower-layer-only profile) ----
+
+def test_synth_track_amends_via_self():
+    # dev is defined only in repo; TRACK (default) writes +self then the edit — the live amend.
+    c = cfg(REPO, '{ }')
+    assert plan(c, 'dev', 'ripgrep', 'add') == ['+dev', 'ripgrep']              # track = current behavior
+
+
+def test_synth_pin_snapshots_members_and_adds():
+    # PIN writes ^self + the current members as picks, then the added comp — upstream growth becomes NEW.
+    c = cfg(REPO, '{ }')
+    got = c.plan_membership_edit('dev', 'ripgrep', 'add', 'user.hu', synth='pin')
+    assert got[0] == '^dev' and set(got[1:]) == {'btop', 'fzf', 'ripgrep'}
+
+
+def test_synth_pin_remove_declines_the_component():
+    # PIN remove snapshots members minus the comp AND declines it (quiet, not re-offered as NEW).
+    c = cfg(REPO, '{ }')
+    got = c.plan_membership_edit('dev', 'fzf', 'remove', 'user.hu', synth='pin')
+    assert got[0] == '^dev' and 'btop' in got and '~fzf' in got and 'fzf' not in got[1:]
+
+
+def test_synth_ignored_once_in_target():
+    # synth only matters at the FIRST amend; once the profile is in the target layer, pin == track.
+    c = cfg(REPO, '{ profiles: { dev: [ +dev ] } }')
+    assert (plan(c, 'dev', 'ripgrep', 'add')
+            == c.plan_membership_edit('dev', 'ripgrep', 'add', 'user.hu', synth='pin')
+            == ['+dev', 'ripgrep'])
+
+
+def test_profile_amends_lower_predicate():
+    c = cfg(REPO, '{ profiles: { mine: [ btop ] } }')
+    assert c.profile_amends_lower('dev', 'user.hu') is True        # dev only in repo -> first amend
+    assert c.profile_amends_lower('mine', 'user.hu') is False      # already in the target layer
+    assert c.profile_amends_lower('nope', 'user.hu') is False      # undefined -> nothing to amend
+
+
+def test_profile_relation_pinned_tracked_shadowed_base():
+    assert cfg(REPO).profile_relation('dev') == 'base'                                  # single (repo) def
+    assert cfg(REPO, '{ profiles: { dev: [ +dev  x ] } }').profile_relation('dev') == 'tracked'
+    assert cfg(REPO, '{ profiles: { dev: [ "^dev"  btop ] } }').profile_relation('dev') == 'pinned'
+    assert cfg(REPO, '{ profiles: { dev: [ x  y ] } }').profile_relation('dev') == 'shadowed'
+
+
 def test_ballot_roundtrips_through_membership_and_menu():
     # pick an offered item, then decline it, then clear it — membership/new track each step.
     text = '{ profiles: { ai: [ a  b  cc ]  m: [ "^ai"  a ] } }'
@@ -414,6 +458,44 @@ def test_profile_ballot_view_and_edits(tmp_path):
     actions.set_profile_membership(ctx, 'm', 'ollama', 'clear')
     ps3 = menu.ProfileScreen(ctx)
     assert 'ollama' in ps3.new_members('m') and 'ollama' not in ps3.removed_members('m')
+
+
+def test_pin_edit_over_a_repo_profile_roundtrip(tmp_path):
+    # Editing a repo-only profile with synth='pin' writes a ^self derivation seeded with the current
+    # members, so effective membership is unchanged today; the repo def becomes an offered MENU.
+    from configsys import actions, plugins
+    ctx = _rctx(tmp_path)
+    before = set(ctx.config.profile_components('finders'))         # repo catalog profile
+    assert 'ripgrep' not in before or before                      # sanity: it has members
+    changed, _lbl = actions.set_profile_membership(ctx, 'finders', 'bat', 'add', synth='pin')
+    assert changed
+    terms = plugins.read_profiles(str(ctx.paths.user_config_file))['finders']
+    assert terms[0] == '^finders' and 'bat' in terms             # pinned + the new pick
+    assert ctx.config.profile_relation('finders') == 'pinned'
+    assert set(ctx.config.profile_components('finders')) == before | {'bat'}   # same today + the add
+    assert before <= ctx.config.profile_menu('finders')          # repo members are now the menu
+
+
+def test_profile_edit_mode_setting(tmp_path):
+    from configsys import actions
+    ctx = _rctx(tmp_path)
+    assert ctx.config.profile_edit_mode() == 'ask'                # default
+    actions.set_config_setting(ctx, 'profile-edit-mode', ['pin'])
+    assert ctx.config.profile_edit_mode() == 'pin'
+    actions.set_config_setting(ctx, 'profile-edit-mode', ['bogus'])
+    assert ctx.config.profile_edit_mode() == 'ask'               # unknown -> default
+
+
+def test_where_profile_report(tmp_path):
+    from configsys import actions, plugins
+    from configsys.app import where_profile_report
+    ctx = _rctx(tmp_path)
+    assert where_profile_report(ctx, 'no-such-profile') is None
+    # pin a repo profile, then the report names the relation + the layers
+    actions.set_profile_membership(ctx, 'finders', 'bat', 'add', synth='pin')
+    txt = '\n'.join(where_profile_report(ctx, 'finders'))
+    assert 'relation: pinned' in txt and 'config.hu (repo)' in txt and '[user]' in txt
+    assert 'menu' in txt and 'new' in txt
 
 
 def test_subprofile_membership_toggle_roundtrip(tmp_path):

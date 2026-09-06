@@ -310,6 +310,15 @@ class Config:
         v = v.strip().lower() if isinstance(v, str) and v.strip() else None
         return v if v in ('full', 'reduced', 'none') else None
 
+    def profile_edit_mode(self):
+        '''How a membership edit resolves the FIRST amend of a profile defined only in a lower
+        (non-editable) layer: 'track' (`+self` — repo/plugin changes apply, future additions install),
+        'pin' (`^self` — you pick; upstream changes are OFFERED as NEW, never applied), or 'ask'
+        (default — the TUI interposes the pin-or-track modal). A machine setting (repo<primary<user).'''
+        v = layers.merge_scalar(self._layers, 'profile-edit-mode', _MACHINE_ROLES)
+        v = v.strip().lower() if isinstance(v, str) and v.strip() else None
+        return v if v in ('track', 'pin', 'ask') else 'ask'
+
     def layer_pins(self, role):
         '''The raw scalar pins from the single layer of this role (repo/primary/user) — for
         editing that one layer's pins and for provenance, distinct from the merged pins().'''
@@ -476,6 +485,48 @@ class Config:
     def is_derived(self, profile):
         '''True if `profile` has any `^derive` term (its catalog is a ballot over an offered menu).'''
         return bool(self.profile_derive_terms(profile))
+
+    def profile_relation(self, profile):
+        '''How the TOP (highest-precedence) definition of `profile` relates to any lower-layer
+        definition of the SAME name — the provenance the pane badge / `where -p` show:
+          'pinned'   — a `^self` (`^<profile>`) term: your layer PINS the lower def as a menu.
+          'tracked'  — a `+self` (`+<profile>`) term: your layer AMENDS the live lower def.
+          'shadowed' — a redefinition with neither self-ref while a lower def exists (it hides it).
+          'base'     — a single definition (the lowest / your own fresh profile).'''
+        chain = self._chain.get(profile)
+        if not chain:
+            return 'base'
+        _idx, val, _src = chain[-1]
+        terms = [t for t in _leaves(val) if isinstance(t, str)]
+        if any(_split_term(t) == ('^', profile) for t in terms):
+            return 'pinned'
+        if any(_split_term(t) == ('+', profile) for t in terms):
+            return 'tracked'
+        return 'shadowed' if len(chain) > 1 else 'base'
+
+    def profile_layer_defs(self, profile):
+        '''Per-layer definitions of `profile`, LOW→HIGH precedence: a list of
+        {role, source, terms} — the raw (unexpanded) term list each layer declares. Drives the
+        `where -p` provenance report. Empty for an unknown profile.'''
+        out = []
+        for i, val, src in self._chain.get(profile, ()):
+            role = self._layers[i].role if 0 <= i < len(self._layers) else '?'
+            out.append({'role': role, 'source': str(src),
+                        'terms': [str(t) for t in _leaves(val)]})
+        return out
+
+    def profile_amends_lower(self, profile, target_file):
+        '''True if a membership edit to `profile` written to `target_file` would be the FIRST amend of
+        a definition that lives only in a LOWER layer (typically non-editable) — i.e. the writer must
+        synthesize a self-reference (`+self` track / `^self` pin). This is the moment the pin-or-track
+        modal fires. False once the profile already has a definition in the target layer.'''
+        tidx = self.layer_index(target_file)
+        if tidx is None:
+            return False
+        chain = self._chain.get(profile, ())
+        in_target = any(i == tidx for i, _v, _s in chain)
+        defined_below = any(i < tidx for i, _v, _s in chain)
+        return (not in_target) and defined_below
 
     def _compute_menu(self, profile):
         '''⋃ members(q) over the TOP definition's `^q` terms. `^self` (`^ownname`) offers the next-
@@ -723,7 +774,7 @@ class Config:
             return []
         return self.profile_components(profile)
 
-    def plan_membership_edit(self, profile, comp, action, target_file):
+    def plan_membership_edit(self, profile, comp, action, target_file, synth='track'):
         '''Compute the new raw term list for `profile` in `target_file` so `comp` reaches `action`'s
         state, honoring the term algebra. `action`: `'add'` (a member) / `'remove'` (a non-member) of
         the EFFECTIVE set; plus the derived-profile ballot pair `'decline'` (write an explicit `~comp`
@@ -732,7 +783,12 @@ class Config:
         no-op (already in the wanted state, and the target layer need not define the profile).
         `target_file` is the edit layer (usually the highest-precedence one — your primary or top
         config); reuses `_expand` to decide whether a component still arrives via `+self`/`+other`
-        after dropping a bare term.'''
+        after dropping a bare term.
+
+        `synth` picks how the FIRST amend of a profile defined only in a LOWER layer is materialized
+        (add/remove only): `'track'` (default, the historical behavior) amends the live lower def via
+        `+self`; `'pin'` writes a `^self` derivation seeded with the current effective members as picks
+        (so behavior is identical today and upstream growth is later OFFERED as NEW, never applied).'''
         tidx = self.layer_index(target_file)
         if tidx is None:
             raise ConfigError(f'{target_file} is not a loaded config layer')
@@ -742,6 +798,8 @@ class Config:
         defined_below = any(i < tidx for i, _v, _s in chain)
         neg = '~' + comp
         selfinc = '+' + profile          # `+self` is spelled as the profile's OWN name (super/amend)
+        pinself = '^' + profile          # `^self` pins the lower def as a menu (seed picks below)
+        synthesizing = (not in_target) and defined_below and synth == 'pin'
 
         def expand(terms):
             return self._expand(profile, tidx, list(terms), ())
@@ -749,9 +807,11 @@ class Config:
         if action == 'add':
             if comp in self._members_safe(profile) and neg not in own:
                 return None                                  # already a member; nothing to write
+            if synthesizing:                                 # PIN: snapshot members as picks, then add
+                return [pinself] + list(self._members_safe(profile)) + [comp]
             base = [t for t in own if t != neg]              # drop a ~comp that was suppressing it
             if not in_target and defined_below:
-                base = [selfinc] + base                       # inherit the lower def, then amend
+                base = [selfinc] + base                       # inherit the lower def, then amend (track)
             if comp not in expand(base):
                 base = base + [comp]
             return base
@@ -777,8 +837,10 @@ class Config:
         # remove
         if comp not in self._members_safe(profile):
             return None                                      # already absent
+        if synthesizing:                                     # PIN: snapshot members minus comp, decline it
+            return [pinself] + [c for c in self._members_safe(profile) if c != comp] + [neg]
         if not in_target:
-            return [selfinc, neg] if defined_below else [neg]  # member only from below -> negate here
+            return [selfinc, neg] if defined_below else [neg]  # member only from below -> negate here (track)
         without = [t for t in own if t != comp]              # drop a bare own term if present
         if comp in expand(without):                          # still arrives via +self/+other include
             return without if neg in without else without + [neg]

@@ -243,6 +243,7 @@ profiles: {
             delete: d
             include: "+"            // fold another profile in (+other)
             method: m               // pin the selected component's install method
+            where: w                // provenance for the selected profile (layers · pin/track · counts)
             attr-filter: A          // faceted kind filter over the catalog
             toggle-install: O       // overlay the install axis (installed underline · orphan colour)
             stage: s                // stage the selected orphan into the adopt-target profile

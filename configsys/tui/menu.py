@@ -874,9 +874,14 @@ _HELP = {
                 "component's membership with select/confirm in the right pane.",
         'glossary': [
             ('markers', '● active · ◐ active via +include · ○ inactive · ▸ starred · ~ subprofile excluded'),
-            ('terms', '+name folds in another profile · ~name removes a component OR excludes a subprofile'),
+            ('provenance', '^ pinned (^self) · + tracked (+self) · ⊘ shadowed · ⁺N offered (NEW) in subtree'),
+            ('catalog', '● pick · ↳ member via include · ~ declined · ? offered (NEW, in a derive ballot)'),
+            ('terms', '+name folds in another profile · ~name removes a component OR excludes a subprofile · '
+                      '"^name" derives (opt-in menu)'),
             ('~ toggle', "on a nested subprofile: include/exclude it in the top-level profile (writes +/~)"),
-            ('~ column', "an exclusion `~` sits under the status glyph of the profile that declares it"),
+            ('pin-or-track', "first edit of a lower-layer profile asks: track (+self) or pin (^self); "
+                             "profile-edit-mode setting decides silently"),
+            ('where (w)', "provenance for the selected profile: layers · pin/track relation · counts"),
             ('detail box', 'description · attrs (kind tags) · required-by (reverse deps) · in-profiles'),
         ],
     },
@@ -1361,6 +1366,72 @@ def _popup_choose(stdscr, pal, title, options, start=0, shortcuts=None):
             sel = max(0, sel - 1)
         elif ch in (ord('\n'), curses.KEY_ENTER, curses.KEY_RIGHT):
             return sel
+
+
+def _pin_or_track_modal(stdscr, pal, profile, target_label, previews, start=0):
+    '''The pin-or-track modal (Problem-1 fix): the FIRST edit to a profile defined only in a lower,
+    non-editable layer asks how to amend it, SHOWING the exact term list each choice writes.
+    `previews` is {'track': [terms], 'pin': [terms]} (raw term lists). Returns 'track' | 'pin' |
+    None (cancel). t/p jump-select; j/k move; enter confirms; esc/q cancels.'''
+    opts = [
+        ('track', 'TRACK', f'+{profile}',
+         'upstream changes apply; future additions WILL install.'),
+        ('pin', 'PIN', f'^{profile}',
+         'you pick; upstream changes are OFFERED as NEW, never applied.'),
+    ]
+
+    def preview_line(key):
+        terms = previews.get(key) or []
+        return f'writes: {profile}: [ ' + '  '.join(str(t) for t in terms) + ' ]'
+
+    title = f'"{profile}" is defined in a lower layer — how should your edit amend it?'
+    sub = f'Your edit saves to {target_label}.'
+    sel = start
+    h, w = stdscr.getmaxyx()
+    # width from the widest content line (title / sub / option lines / both previews), capped to term
+    widest = max([len(title), len(sub)]
+                 + [len(f'  {lbl} ({sig})  {desc}') for _k, lbl, sig, desc in opts]
+                 + [len(preview_line('track')), len(preview_line('pin'))])
+    box_w = min(widest + 4, max(28, w - 2))
+    body_rows = 1 + 1 + len(opts) + 1 + 1        # sub, blank, options, blank, preview
+    box_h = min(body_rows + 3, max(8, h - 2))    # + top border(title), a spare, bottom border(hint)
+    y0, x0 = max(0, (h - box_h) // 2), max(0, (w - box_w) // 2)
+    border = pal.get('accent') | curses.A_BOLD
+    while True:
+        _put(stdscr, y0, x0, '┌' + '─' * (box_w - 2) + '┐', border)
+        _put(stdscr, y0, x0 + 2, f' {_fit(title, box_w - 4)} ', border)
+        for r in range(1, box_h - 1):
+            _put(stdscr, y0 + r, x0, '│' + ' ' * (box_w - 2) + '│', border)
+        _put(stdscr, y0 + box_h - 1, x0, '└' + '─' * (box_w - 2) + '┘', border)
+        y = y0 + 1
+        _put(stdscr, y, x0 + 2, _fit(sub, box_w - 4), pal.get('dim'))
+        y += 2
+        for i, (_k, lbl, sig, desc) in enumerate(opts):
+            attr = curses.A_REVERSE if i == sel else curses.A_NORMAL
+            mark = '▸' if i == sel else ' '
+            _put(stdscr, y, x0 + 2, _fit(f'{mark} {lbl} ({sig})  {desc}', box_w - 4), attr)
+            y += 1
+        y += 1
+        _put(stdscr, y, x0 + 2, _fit(preview_line(opts[sel][0]), box_w - 4),
+             pal.get('installed'))
+        hint = ' t/p · j/k · enter · esc '
+        _put(stdscr, y0 + box_h - 1, x0 + 2, _fit(hint, box_w - 4), border)
+        stdscr.refresh()
+        ch = stdscr.getch()
+        if 0 <= ch < 256:
+            c = chr(ch).lower()
+            if c == 't':
+                return 'track'
+            if c == 'p':
+                return 'pin'
+        if ch in (27, ord('q')):
+            return None
+        if ch in (ord('j'), curses.KEY_DOWN):
+            sel = min(len(opts) - 1, sel + 1)
+        elif ch in (ord('k'), curses.KEY_UP):
+            sel = max(0, sel - 1)
+        elif ch in (ord('\n'), curses.KEY_ENTER, curses.KEY_RIGHT):
+            return opts[sel][0]
 
 
 def _apply_method_pin(ctx, name, via, already_pinned):
@@ -2372,6 +2443,14 @@ class ProfileScreen:
             m |= self.new_members(p)
         return m
 
+    def relation(self, profile):
+        '''Provenance of the profile's top definition vs any lower same-name def: 'pinned' (`^self`),
+        'tracked' (`+self`), 'shadowed', or 'base' — drives the pane's provenance badge glyph.'''
+        try:
+            return self.ctx.config.profile_relation(profile) if profile else 'base'
+        except Exception:                                # noqa: BLE001
+            return 'base'
+
     def subtree_new(self, profile):
         '''Union of NEW (offered-not-chosen) items across `profile` and every profile it transitively
         `+include`s — so a derived profile's own offerings AND a plain parent that includes a derived
@@ -2480,16 +2559,14 @@ def _draw_profiles(stdscr, pal, ps, ctx, note, screen):
                     struck = True
             except Exception:                                  # noqa: BLE001 — a bad profile marks nothing
                 pass
-        # provenance + ballot badge: a derived profile shows `^` (it's a ballot); a `⁺N` counts the
-        # OFFERED (NEW) items in its subtree — its own, or a derived subprofile's bubbled up a parent.
-        deriv = ps.is_derived(name)
+        # provenance + ballot badge: a glyph names how your layer relates to a lower same-name def
+        # (^ pinned · + tracked · ⊘ shadowed · blank base/untouched); a `⁺N` counts the OFFERED (NEW)
+        # items in the subtree — its own, or a derived subprofile's bubbled up a `+include` parent.
+        prov = {'pinned': '^', 'tracked': '+', 'shadowed': '⊘'}.get(ps.relation(name), '')
         nnew = len(ps.subtree_new(name))
-        if deriv:
-            tag = '  ^' + (f'⁺{nnew}' if nnew else '')
-        elif nnew:
-            tag = f'  ⁺{nnew}'
-        else:
-            tag = ''
+        tag = ('  ' + prov if prov else '') + (f'⁺{nnew}' if nnew else '')
+        if tag and not tag.startswith('  '):             # `⁺N` with no provenance glyph -> pad the gap
+            tag = '  ' + tag
         row = f'{"".join(prefix)} {name}{tag}'
         _put(stdscr, y, lil, _fit(row, liw),
              pal.style('profile', y, lil, h, w, selected=foc, bg=(None if low_color else rbg))
@@ -2673,7 +2750,7 @@ def _draw_profiles(stdscr, pal, ps, ctx, note, screen):
     # marker legend for the profiles pane — right-aligned on the status bar so the keys get two
     # full rows below. ● directly active (in configs:), ◐ active only via a +include, ○ inactive,
     # ▸ star-filtered.
-    legend = '● active  ◐ inherited  ○ inactive  ▸ starred '
+    legend = '● active  ◐ inherited  ○ inactive  ▸ starred  ^ pin  + track  ⊘ shadow '
     lg_x = max(0, w - len(legend))
     _put(stdscr, h - 3, 0, _fit(status, max(1, lg_x - 1)), pal.style('status_line', h - 3, 0, h, w))
     _put(stdscr, h - 3, lg_x, _fit(legend, w - lg_x), pal.style('status_line', h - 3, lg_x, h, w))
@@ -2682,12 +2759,12 @@ def _draw_profiles(stdscr, pal, ps, ctx, note, screen):
         nav1 = (f" {g('down')}/{g('up')} move · {g('top')}/{g('bottom')} top/bottom · "
                 f"{g('right')}/{g('left')} expand · {g('switch-pane')}/{g('confirm')} components · "
                 f"{g('find')} find · {g('filter')} filter · {g('attr-filter')} attrs ")
-        nav2 = (f" {g('select')} member · {g('method')} method · {g('toggle-active')} active · "
-                f"{g('star')} star · {g('toggle-member')} incl/excl sub · {g('include')} include · "
-                f"{g('new')}/{g('delete')} new/del · {g('quit')} quit ")
+        nav2 = (f" {g('select')} member · {g('method')} method · {g('where')} where · "
+                f"{g('toggle-active')} active · {g('star')} star · {g('toggle-member')} incl/excl sub · "
+                f"{g('include')} include · {g('new')}/{g('delete')} new/del · {g('quit')} quit ")
     else:
         nav1 = (' j/k move · g/G top/bottom · h/l expand · tab/⏎ components · / find · F filter · A attrs ')
-        nav2 = (' space member · m method · a active · * star · ~ incl/excl sub · + include · n/d new/del · q quit ')
+        nav2 = (' space member · m method · w where · a active · * star · ~ incl/excl sub · + include · n/d new/del · q quit ')
     _put(stdscr, h - 2, 0, _fit(nav1.ljust(w), w), pal.style('footer', h - 2, 0, h, w))
     _put(stdscr, h - 1, 0, _fit(nav2.ljust(w), w), pal.style('footer', h - 1, 0, h, w))
     stdscr.refresh()
@@ -4084,6 +4161,12 @@ def run(ctx):
                             ps._res.pop(name, None)        # its resolution changed -> drop the stale entry
                             ps.reload()
                             menu_dirty = True
+                elif pfact == 'where':                     # full-page provenance for the current profile
+                    _wp = ps.cur_profile()
+                    if _wp:
+                        from ..app import where_profile_report
+                        where_lines = where_profile_report(ctx, _wp) or [f'{_wp}: nothing to show']
+                        where_subject, where_top, show_where = _wp, 0, True
                 elif pfact in ('select', 'confirm') and ps.focus == 'right':
                     prof = ps.cur_profile()
                     vcat = ps.vcatalog()
@@ -4104,10 +4187,35 @@ def run(ctx):
                             memb = 'remove' if in_prof else 'add'
                             verb = 'removed' if in_prof else 'added'
                         try:
-                            changed, lbl = actions.set_profile_membership(ctx, prof, name, memb)
-                            ps.reload()
-                            menu_dirty = menu_dirty or changed
-                            note = (f'{name} {verb}' if changed else (lbl or 'no change'))
+                            # pin-or-track: the FIRST amend of a profile defined only in a lower,
+                            # non-editable layer asks how to save it (or the profile-edit-mode setting
+                            # decides). PIN (^self) snapshots picks + offers upstream growth as NEW;
+                            # TRACK (+self) amends the live def. Ballot decline/clear never synth.
+                            synth, proceed = 'track', True
+                            tfile, tlabel = actions._profile_target(ctx, prof)
+                            if memb in ('add', 'remove') and ctx.config.profile_amends_lower(prof, tfile):
+                                mode = ctx.config.profile_edit_mode()
+                                if mode in ('track', 'pin'):
+                                    synth = mode
+                                else:                       # 'ask' -> interpose the modal with previews
+                                    prev = {}
+                                    for s in ('track', 'pin'):
+                                        try:
+                                            prev[s] = ctx.config.plan_membership_edit(
+                                                prof, name, memb, tfile, synth=s)
+                                        except Exception:   # noqa: BLE001
+                                            prev[s] = []
+                                    choice = _pin_or_track_modal(stdscr, pal, prof, tlabel, prev)
+                                    if choice is None:
+                                        proceed, note = False, 'cancelled'
+                                    else:
+                                        synth = choice
+                            if proceed:
+                                changed, lbl = actions.set_profile_membership(
+                                    ctx, prof, name, memb, synth=synth)
+                                ps.reload()
+                                menu_dirty = menu_dirty or changed
+                                note = (f'{name} {verb}' if changed else (lbl or 'no change'))
                         except Exception as e:  # noqa: BLE001 — surface, don't crash
                             note = f'edit failed: {e}'
                 continue

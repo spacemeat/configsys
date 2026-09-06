@@ -279,7 +279,19 @@ Steps 1–3 dissolve all three stated problems; 4–6 are polish.
    `+include` parent). Catalog title reads `ballot "<p>"  ⁺N offered`. `_emit_profiles` quotes `^`
    terms so writes round-trip. Tests: test/test_profile_edit.py (ballot writers + ProfileScreen view
    + quoting round-trip) and a derived-ballot render smoke in test/test_tui_smoke.py.
-3. Pin-or-track modal + `writes:` previews + `where` for profiles + `profile-edit-mode` setting.
+3. **DONE.** Pin-or-track modal + `writes:` previews + `where` for profiles + `profile-edit-mode`
+   setting. `plan_membership_edit` gained a `synth='track'|'pin'` arg: on the FIRST amend of a
+   lower-layer-only profile, TRACK writes `+self` (historical), PIN writes `^self` seeded with the
+   current effective members as picks (add appends the pick; remove snapshots-minus + `~decline`) so
+   behavior is identical today and upstream growth is later OFFERED as NEW. `Config.profile_relation`
+   (pinned/tracked/shadowed/base), `profile_amends_lower` (the synth predicate), `profile_layer_defs`,
+   and `profile_edit_mode()` added. The TUI space handler interposes `_pin_or_track_modal` (naming
+   both choices + the exact `writes: <p>: [...]` term list per selection) when the setting is `ask`;
+   `track`/`pin` skip it. Profiles pane badge is now provenance (`^`pin/`+`track/`⊘`shadow) + `⁺N`
+   offered; `w` opens a full-page profile-`where` (layers, relation, member/menu/declined/new counts),
+   also `configsys where -p <profile>`. `profile-edit-mode: track|pin|ask` machine setting (uniform,
+   default ask). Tests: planner synth + relation + amends-lower + edit-mode + where in
+   test_profile_edit.py; a pin-or-track/where render smoke in test_tui_smoke.py.
 4. Reconcile overlay + sync-time member-delta report + execute-confirmation "(new via repo X)" tagging.
 5. Layer-grouped pane + a `configsys profile pin <name>` converter (clone-and-cull → pinned derivation). The converter does not need to be in repo code though; that's a run-once on user's primary, and user is still the only user of configsys.
 6. `machines:` section.

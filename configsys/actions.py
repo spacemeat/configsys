@@ -63,14 +63,15 @@ def _membership_effect_ok(cfg, profile, comp, action):
             'decline': (not mem) and rem, 'clear': (not mem) and (not rem)}[action]
 
 
-def set_profile_membership(ctx, profile, comp, action, *, target=None):
+def set_profile_membership(ctx, profile, comp, action, *, target=None, synth='track'):
     '''Write the term-algebra edit so `comp` reaches `action`'s state in `profile`
     (`action` = 'add'|'remove'|'decline'|'clear'; the last two are the derived-profile ballot's
     explicit NO / back-to-offered), via Config.plan_membership_edit, to `target` or the effective
-    target. Returns (changed, label); a no-op returns (False, label); a shadowed target that took no
-    effect returns (False, warning).'''
+    target. `synth` ('track'|'pin') decides how a first amend of a lower-layer-only profile is
+    materialized (see plan_membership_edit / the pin-or-track modal). Returns (changed, label); a
+    no-op returns (False, label); a shadowed target that took no effect returns (False, warning).'''
     tfile, label = (target, target) if target else _profile_target(ctx, profile)
-    new_terms = ctx.config.plan_membership_edit(profile, comp, action, tfile)
+    new_terms = ctx.config.plan_membership_edit(profile, comp, action, tfile, synth=synth)
     if new_terms is None:
         return False, label
     profs = plugins.read_profiles(tfile)
@@ -264,6 +265,10 @@ CONFIG_SETTINGS = {
     'orphans-adopt-target': ('scalar', 'Profile the TUI orphan "stage" (s) action parks components '
                                        'into for later triage (default: orphans-lurking).',
                           'configsys(1)'),
+    'profile-edit-mode': ('scalar', 'First edit of a profile defined only in a lower (non-editable) '
+                                    "layer: 'track' (+self, upstream changes apply), 'pin' (^self, "
+                                    "upstream changes offered as NEW), or 'ask' (default, the TUI "
+                                    'prompts pin-or-track).', 'configsys(1)'),
     # install-layout dirs (the `dirs:` section) — default < config < env (CONFIGSYS_*_DIR)
     'dirs.user':         ('dir',    'Base dir for user-scope installs (default ~). '
                                     'env CONFIGSYS_USERSCOPE_DIR wins.', 'configsys.hu(5)'),
@@ -292,6 +297,7 @@ SETTING_NATURE = {
     'effects':           'machine',           # about THIS terminal/transport (SSH), not shared config
     'orphans-ignore':    'machine',           # acknowledged one-offs on THIS box, not shared config
     'orphans-adopt-target': 'uniform',        # a workflow preference — the same staging profile name
+    'profile-edit-mode': 'uniform',           # how you like to amend defaults — travels with you
     'dirs.user':         'machine',
     'dirs.system':       'machine',
     'dirs.app':          'uniform',
@@ -364,6 +370,7 @@ def config_settings(ctx):
         'orphans-ignore':    cfg.orphans_ignore(),
         'orphans-adopt-target': cfg.orphans_adopt_target(),
         'splash':            cfg.splash(),
+        'profile-edit-mode': cfg.profile_edit_mode(),
     }
     cfg_dirs = cfg.install_dirs()
     env_map = getattr(ctx.paths, 'env', {}) or {}

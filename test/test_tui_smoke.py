@@ -133,3 +133,48 @@ def test_tui_renders_a_derived_profile_ballot(tmp_path):
     os.close(master)
     assert proc.returncode == 0
     assert first, 'TUI produced no terminal output'
+
+
+def test_tui_pin_or_track_modal_and_profile_where(tmp_path):
+    '''Drive the Profiles page into the pin-or-track modal (editing a repo-only profile) and the
+    `w` profile-where overlay — the step-3 render paths — then quit, all without crashing.'''
+    try:
+        master, slave = pty.openpty()
+    except OSError:
+        pytest.skip('no PTY available')
+
+    cfg = tmp_path / '.config' / 'configsys' / 'configsys.hu'
+    cfg.parent.mkdir(parents=True, exist_ok=True)
+    # activate a repo catalog profile; it's defined only in config.hu, so a membership edit synthesizes
+    # a first amend -> the pin-or-track modal fires (profile-edit-mode defaults to ask).
+    cfg.write_text('{ configs: [ finders ] }\n')
+
+    env = dict(os.environ)
+    env.update({'TERM': 'xterm-256color', 'CONFIGSYS_HOME': str(tmp_path),
+                'CONFIGSYS_OS': 'pop', 'PYTHONPATH': str(REPO)})
+    proc = subprocess.Popen(
+        [sys.executable, '-m', 'configsys', '--pretend', 'tui'],
+        stdin=slave, stdout=slave, stderr=slave, env=env, cwd=str(REPO), close_fds=True)
+    os.close(slave)
+
+    deadline = time.monotonic() + 10
+    first = _drain(master, min(deadline, time.monotonic() + 3))
+    # 2 -> Profiles; w -> profile-where overlay; esc closes it; tab -> catalog; space -> edit a
+    # repo-only profile's membership -> pin-or-track modal; p -> choose PIN; then quit.
+    for keys in (b'2', b'w', b'\x1b', b'\t', b' ', b'p', b'q', b'k', b'\n'):
+        try:
+            os.write(master, keys)
+        except OSError:
+            break
+        _drain(master, time.monotonic() + 0.2)
+
+    try:
+        proc.wait(timeout=8)
+    except subprocess.TimeoutExpired:
+        proc.kill()
+        proc.wait()
+        os.close(master)
+        pytest.fail('TUI did not exit after q')
+    os.close(master)
+    assert proc.returncode == 0
+    assert first, 'TUI produced no terminal output'
