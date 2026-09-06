@@ -18852,9 +18852,9 @@
     "driver": "apt",
     "fields": {
      "name": "gum",
-     "pubkey-path": "/usr/share/keyrings/charm.gpg",
+     "pubkey-path": "/usr/share/keyrings/charm.asc",
      "pubkey-url": "https://repo.charm.sh/apt/gpg.key",
-     "source-line": "deb [signed-by=/usr/share/keyrings/charm.gpg] https://repo.charm.sh/apt/ * *",
+     "source-line": "deb [signed-by=/usr/share/keyrings/charm.asc] https://repo.charm.sh/apt/ * *",
      "source-path": "/etc/apt/sources.list.d/charm.list"
     },
     "name": "gum"
@@ -24958,7 +24958,7 @@
      "installDir": "$CONFIGSYS_APP_DIR/sesh",
      "name": "sesh",
      "version": {
-      "asset": "sesh_*_Linux_x86_64.tar.gz",
+      "asset": "sesh_Linux_x86_64.tar.gz",
       "github": "joshmedeski/sesh",
       "strip-v": "true"
      }
@@ -32580,9 +32580,9 @@
     "driver": "apt",
     "fields": {
      "name": "gum",
-     "pubkey-path": "/usr/share/keyrings/charm.gpg",
+     "pubkey-path": "/usr/share/keyrings/charm.asc",
      "pubkey-url": "https://repo.charm.sh/apt/gpg.key",
-     "source-line": "deb [signed-by=/usr/share/keyrings/charm.gpg] https://repo.charm.sh/apt/ * *",
+     "source-line": "deb [signed-by=/usr/share/keyrings/charm.asc] https://repo.charm.sh/apt/ * *",
      "source-path": "/etc/apt/sources.list.d/charm.list"
     },
     "name": "gum"
@@ -38499,7 +38499,7 @@
      "installDir": "$CONFIGSYS_APP_DIR/sesh",
      "name": "sesh",
      "version": {
-      "asset": "sesh_*_Linux_x86_64.tar.gz",
+      "asset": "sesh_Linux_x86_64.tar.gz",
       "github": "joshmedeski/sesh",
       "strip-v": "true"
      }
@@ -46104,9 +46104,9 @@
     "driver": "apt",
     "fields": {
      "name": "gum",
-     "pubkey-path": "/usr/share/keyrings/charm.gpg",
+     "pubkey-path": "/usr/share/keyrings/charm.asc",
      "pubkey-url": "https://repo.charm.sh/apt/gpg.key",
-     "source-line": "deb [signed-by=/usr/share/keyrings/charm.gpg] https://repo.charm.sh/apt/ * *",
+     "source-line": "deb [signed-by=/usr/share/keyrings/charm.asc] https://repo.charm.sh/apt/ * *",
      "source-path": "/etc/apt/sources.list.d/charm.list"
     },
     "name": "gum"
@@ -52029,7 +52029,7 @@
      "installDir": "$CONFIGSYS_APP_DIR/sesh",
      "name": "sesh",
      "version": {
-      "asset": "sesh_*_Linux_x86_64.tar.gz",
+      "asset": "sesh_Linux_x86_64.tar.gz",
       "github": "joshmedeski/sesh",
       "strip-v": "true"
      }
@@ -65140,7 +65140,7 @@
      "installDir": "$CONFIGSYS_APP_DIR/sesh",
      "name": "sesh",
      "version": {
-      "asset": "sesh_*_Linux_x86_64.tar.gz",
+      "asset": "sesh_Linux_x86_64.tar.gz",
       "github": "joshmedeski/sesh",
       "strip-v": "true"
      }
@@ -78320,7 +78320,7 @@
      "installDir": "$CONFIGSYS_APP_DIR/sesh",
      "name": "sesh",
      "version": {
-      "asset": "sesh_*_Linux_x86_64.tar.gz",
+      "asset": "sesh_Linux_x86_64.tar.gz",
       "github": "joshmedeski/sesh",
       "strip-v": "true"
      }
@@ -96477,9 +96477,9 @@
     "driver": "apt",
     "fields": {
      "name": "gum",
-     "pubkey-path": "/usr/share/keyrings/charm.gpg",
+     "pubkey-path": "/usr/share/keyrings/charm.asc",
      "pubkey-url": "https://repo.charm.sh/apt/gpg.key",
-     "source-line": "deb [signed-by=/usr/share/keyrings/charm.gpg] https://repo.charm.sh/apt/ * *",
+     "source-line": "deb [signed-by=/usr/share/keyrings/charm.asc] https://repo.charm.sh/apt/ * *",
      "source-path": "/etc/apt/sources.list.d/charm.list"
     },
     "name": "gum"
@@ -102589,7 +102589,7 @@
      "installDir": "$CONFIGSYS_APP_DIR/sesh",
      "name": "sesh",
      "version": {
-      "asset": "sesh_*_Linux_x86_64.tar.gz",
+      "asset": "sesh_Linux_x86_64.tar.gz",
       "github": "joshmedeski/sesh",
       "strip-v": "true"
      }
@@ -116309,7 +116309,7 @@
      "installDir": "$CONFIGSYS_APP_DIR/sesh",
      "name": "sesh",
      "version": {
-      "asset": "sesh_*_Linux_x86_64.tar.gz",
+      "asset": "sesh_Linux_x86_64.tar.gz",
       "github": "joshmedeski/sesh",
       "strip-v": "true"
      }
@@ -124239,9 +124239,9 @@
     "driver": "apt",
     "fields": {
      "name": "gum",
-     "pubkey-path": "/usr/share/keyrings/charm.gpg",
+     "pubkey-path": "/usr/share/keyrings/charm.asc",
      "pubkey-url": "https://repo.charm.sh/apt/gpg.key",
-     "source-line": "deb [signed-by=/usr/share/keyrings/charm.gpg] https://repo.charm.sh/apt/ * *",
+     "source-line": "deb [signed-by=/usr/share/keyrings/charm.asc] https://repo.charm.sh/apt/ * *",
      "source-path": "/etc/apt/sources.list.d/charm.list"
     },
     "name": "gum"
@@ -130351,7 +130351,7 @@
      "installDir": "$CONFIGSYS_APP_DIR/sesh",
      "name": "sesh",
      "version": {
-      "asset": "sesh_*_Linux_x86_64.tar.gz",
+      "asset": "sesh_Linux_x86_64.tar.gz",
       "github": "joshmedeski/sesh",
       "strip-v": "true"
      }
@@ -137959,9 +137959,9 @@
     "driver": "apt",
     "fields": {
      "name": "gum",
-     "pubkey-path": "/usr/share/keyrings/charm.gpg",
+     "pubkey-path": "/usr/share/keyrings/charm.asc",
      "pubkey-url": "https://repo.charm.sh/apt/gpg.key",
-     "source-line": "deb [signed-by=/usr/share/keyrings/charm.gpg] https://repo.charm.sh/apt/ * *",
+     "source-line": "deb [signed-by=/usr/share/keyrings/charm.asc] https://repo.charm.sh/apt/ * *",
      "source-path": "/etc/apt/sources.list.d/charm.list"
     },
     "name": "gum"
@@ -143884,7 +143884,7 @@
      "installDir": "$CONFIGSYS_APP_DIR/sesh",
      "name": "sesh",
      "version": {
-      "asset": "sesh_*_Linux_x86_64.tar.gz",
+      "asset": "sesh_Linux_x86_64.tar.gz",
       "github": "joshmedeski/sesh",
       "strip-v": "true"
      }

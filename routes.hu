@@ -611,7 +611,7 @@
                 install: [ { via: aur  when: "arch"  name: sesh-bin }
                            { via: native  when: "fedora_atomic" }
                            { via: tarball  installDir: "$CONFIGSYS_APP_DIR/sesh"
-                             version: { github: joshmedeski/sesh  strip-v: true  asset: "sesh_*_Linux_x86_64.tar.gz" } } ] }
+                             version: { github: joshmedeski/sesh  strip-v: true  asset: "sesh_Linux_x86_64.tar.gz" } } ] }
         sesh-dotfiles: { description: "sesh config (sesh.toml), linked into place." install: [ { via: dotfiles  config: { src: sesh  dst: $XDG_CONFIG_HOME/sesh } } ] }
         // gum: Charm's toolkit for glamorous shell scripts (Go). Native in Fedora, Arch, Alpine (and
         // EL via EPEL), brew on atomic; Charm's official apt repo on Debian/Ubuntu; a static Go
@@ -623,8 +623,8 @@
                           { via: native  when: "fedora_atomic" }
                           { via: native  when: "debian"  name: gum   // Charm's official apt repo
                             pubkey-url: "https://repo.charm.sh/apt/gpg.key"
-                            pubkey-path: /usr/share/keyrings/charm.gpg
-                            source-line: "deb [signed-by=/usr/share/keyrings/charm.gpg] https://repo.charm.sh/apt/ * *"
+                            pubkey-path: /usr/share/keyrings/charm.asc   // Charm ships an ARMORED key -> .asc (apt reads armored via signed-by; a .gpg-named armored file fails "not signed")
+                            source-line: "deb [signed-by=/usr/share/keyrings/charm.asc] https://repo.charm.sh/apt/ * *"
                             source-path: /etc/apt/sources.list.d/charm.list }
                           { via: tarball  installDir: "$CONFIGSYS_APP_DIR/gum"
                             version: { github: charmbracelet/gum  strip-v: true  asset: "gum_*_Linux_x86_64.tar.gz" } } ] }
