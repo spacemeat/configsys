@@ -58,6 +58,16 @@ class Apt(Driver):
             return []
         return v if isinstance(v, list) else [v]
 
+    @staticmethod
+    def _repo_uri(src_line):
+        '''The base repo URI from a `deb [..] <URI> <suite> <comp>` line — for detecting a duplicate
+        already declared elsewhere. Truncated before a `$CODENAME` segment (and trailing `/`) so a
+        codename-in-URI repo still matches on its stable prefix.'''
+        for tok in src_line.split():
+            if tok.startswith(('http://', 'https://')):
+                return tok.split('$CODENAME', 1)[0].rstrip('/')
+        return None
+
     def _apt_update(self):
         '''`apt-get update`, retrying a TRANSIENT stumble a few times with a short backoff — so a
         momentary hiccup never gets misread as a broken repo (see failures.retry_transient).'''
@@ -167,14 +177,22 @@ class Apt(Driver):
         src_line = f.get('source-line')
         if src_line and src_path:
             sp = shlex.quote(src_path)
+            # Don't add our source if this repo is ALREADY declared by another sources file (e.g. the
+            # vendor's own installer wrote a deb822 .sources with a different Signed-By keyring): apt
+            # rejects the SAME repo declared twice with conflicting Signed-By ("Conflicting values set
+            # for option Signed-By" -> "E: The list of sources could not be read"), which then breaks
+            # EVERY apt op. The existing source already provides the packages, so we skip + no-op.
+            uri = self._repo_uri(src_line)
+            dupe_guard = (f' && ! grep -rqsF {shlex.quote(uri)} /etc/apt/sources.list '
+                          f'/etc/apt/sources.list.d/ 2>/dev/null') if uri else ''
             if '$CODENAME' in src_line:
                 write = (
-                    f'if [ ! -f {sp} ]; then '
+                    f'if [ ! -f {sp} ]{dupe_guard}; then '
                     f'CODENAME="$(. /etc/os-release; echo "${{UBUNTU_CODENAME:-$VERSION_CODENAME}}")"; '
                     f'echo "{src_line}" | sudo tee {sp} >/dev/null && sudo apt-get update; fi')
             else:
                 sl = shlex.quote(src_line)
-                write = (f'if [ ! -f {sp} ]; then echo {sl} | sudo tee {sp} >/dev/null '
+                write = (f'if [ ! -f {sp} ]{dupe_guard}; then echo {sl} | sudo tee {sp} >/dev/null '
                          f'&& sudo apt-get update; fi')
             fail = self._commit_source(write, src_path, key_url, key_path)
             if fail is not None:

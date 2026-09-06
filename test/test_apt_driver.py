@@ -254,7 +254,9 @@ def test_source_line_writes_inline_deb_repo():
     r = Runner(pretend=True)
     Apt(r).install(comp)
     assert r.calls[-1] == 'sudo DEBIAN_FRONTEND=noninteractive NEEDRESTART_MODE=a apt-get install -y code'
-    src_cmd = ("if [ ! -f /etc/apt/sources.list.d/vscode.list ]; then echo 'deb "
+    src_cmd = ("if [ ! -f /etc/apt/sources.list.d/vscode.list ] "
+               '&& ! grep -rqsF https://packages.microsoft.com/repos/code '
+               '/etc/apt/sources.list /etc/apt/sources.list.d/ 2>/dev/null; then echo \'deb '
                '[signed-by=/usr/share/keyrings/packages.microsoft.asc] '
                "https://packages.microsoft.com/repos/code stable main' "
                '| sudo tee /etc/apt/sources.list.d/vscode.list >/dev/null '
@@ -340,6 +342,25 @@ def test_commit_source_rolls_back_when_our_source_is_the_culprit():
             seen_rm = True
         elif seen_rm:
             assert 'tee /etc/apt/sources.list.d/unityhub.list' not in c
+
+
+def test_source_line_skips_a_repo_already_declared_elsewhere():
+    # unityhub bug: the vendor's own installer may already declare the same repo (a deb822 .sources
+    # with a different Signed-By). Adding our duplicate makes apt reject BOTH ("Conflicting values
+    # set for option Signed-By" -> "the list of sources could not be read"). The write must be guarded
+    # by a grep for the repo URI so it no-ops when the repo is already present.
+    assert Apt._repo_uri('deb [signed-by=/x.asc] https://hub.unity3d.com/linux/repos/deb stable main') \
+        == 'https://hub.unity3d.com/linux/repos/deb'
+    comp = ResolvedComponent(key='apt\\unityhub', driver='apt', comp='unityhub', fields={
+        'name': 'unityhub',
+        'source-line': 'deb [signed-by=/usr/share/keyrings/unityhub.asc] '
+                       'https://hub.unity3d.com/linux/repos/deb stable main',
+        'source-path': '/etc/apt/sources.list.d/unityhub.list'})
+    r = Runner(pretend=True)
+    Apt(r).install(comp)
+    write = next(c for c in r.calls if 'tee /etc/apt/sources.list.d/unityhub.list' in c)
+    assert ('! grep -rqsF https://hub.unity3d.com/linux/repos/deb '
+            '/etc/apt/sources.list /etc/apt/sources.list.d/') in write
 
 
 def test_no_prereqs_when_none_declared():
