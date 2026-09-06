@@ -1711,6 +1711,7 @@ def cmd_check(ctx, args):
             for cname in ctx.config.profile_components(prof):
                 if cname not in components:
                     prof_issues.append((prof, cname))
+            ctx.config.check_derives(prof)               # a `^derive` of an undefined profile -> error
         except ConfigsysError as e:
             prof_errors.append(str(e))
 
@@ -1720,16 +1721,48 @@ def cmd_check(ctx, args):
     _prof_names = set(ctx.config.profile_names())
     for prof in ctx.config.active_profiles:
         reach = None
+        menu = ctx.config.profile_menu(prof)             # non-empty only for a `^derive` profile
         for ref in ctx.config.profile_removal_terms(prof):
             if ref in _prof_names:                       # a ~subprofile: warn if it isn't even included
                 if reach is None:
                     reach = ctx.config.reachable_subprofiles(prof)
                 if ref not in reach:
-                    removal_warnings.append(f"profile '{prof}': `~{ref}` removes nothing "
-                                            f"({prof} doesn't include the {ref} subprofile)")
+                    # under a `^derive`, `~sub` is a valid DECLINE when sub's members are in the menu
+                    try:
+                        submem = set(ctx.config.profile_components(ref))
+                    except ConfigsysError:
+                        submem = set()
+                    if not (menu & submem):
+                        removal_warnings.append(f"profile '{prof}': `~{ref}` removes nothing "
+                                                f"({prof} doesn't include or derive the {ref} subprofile)")
             elif ref not in components:                  # neither profile nor component -> likely a typo
                 removal_warnings.append(f"profile '{prof}': `~{ref}` removes nothing "
                                         f"(not a defined profile or known component)")
+
+    # `^derive` lints (all defined profiles): a `^p` alongside `+p` is redundant — the include already
+    # brings p's members LIVE, so the derive-menu adds nothing; and a `^q` whose menu is already offered
+    # by another of the profile's `^` terms is subsumed. Both are harmless but confusing, so warn.
+    for prof in ctx.config.profile_names():
+        derives = ctx.config.profile_derive_terms(prof)
+        if not derives:
+            continue
+        includes = set(ctx.config.profile_includes(prof))
+        for p in sorted(set(derives) & includes):
+            removal_warnings.append(f"profile '{prof}': `^{p}` alongside `+{p}` — the include already "
+                                    f"brings {p}'s members (live); the derive is redundant")
+        uniq = list(dict.fromkeys(derives))
+        if len(uniq) > 1:
+            mem = {}
+            for r in uniq:
+                try:
+                    mem[r] = set(ctx.config.profile_components(r)) if r != prof else set()
+                except ConfigsysError:
+                    mem[r] = set()
+            for r in uniq:
+                others = set().union(set(), *(mem[o] for o in uniq if o != r))
+                if mem[r] and mem[r] <= others:
+                    removal_warnings.append(f"profile '{prof}': `^{r}` is subsumed by another derive "
+                                            f"(its menu is already offered)")
 
     # reserved `!` profiles (e.g. !uninstall) are system-managed and NEVER install-active — flag one
     # that slipped into `configs:`. And a component staged for uninstall while still WANTED by an

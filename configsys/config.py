@@ -30,12 +30,16 @@ def _leaves(v):
 
 
 def _split_term(term):
-    '''A profile-list entry -> (op, name). `+foo` includes profile foo; `~foo` removes
-    component foo; a bare name adds a component. (`@` is humon's annotation sigil, so `+` marks
-    an include.)'''
+    '''A profile-list entry -> (op, name). `+foo` includes profile foo (opt-out: its members join,
+    live); `^foo` DERIVES from foo (opt-in: foo's members become an offered MENU, contributing NO
+    members of their own — you pick from them with bare names); `~foo` removes/declines; a bare name
+    adds a component. `^` collides with humon's heredoc syntax, so a derive term is authored quoted
+    (`"^foo"`) — the quotes are gone by the time it reaches here, leaving the literal `^foo`.'''
     t = str(term)
     if t[:1] == '+':
         return '+', t[1:]
+    if t[:1] == '^':
+        return '^', t[1:]
     if t[:1] == '~':
         return '~', t[1:]
     return '', t
@@ -453,6 +457,79 @@ class Config:
                     out.append(t[1:])
         return out
 
+    # -- derive (`^`) : the opt-in dual of `+include` — menu + NEW ------------------------------
+    # A `^q` term offers q's members as a MENU without contributing members; your bare names are the
+    # PICKS from that menu, `~name` a DECLINE, and a menu item that is neither is NEW (offered, never
+    # installed). menu(^p) = members(p) — what p IS (recursive: a plain profile's full expansion, a
+    # derived profile's picks). NEW = menu − members − declines. All derivable from the .hu text.
+
+    def profile_derive_terms(self, profile):
+        '''Every `^ref` name a profile declares across its chain (raw) — its derive-menu references.
+        For `check` (undefined/subsumed/paired-with-include) and the TUI menu view.'''
+        out = []
+        for _i, terms, _s in self._chain.get(profile, ()):
+            for t in _leaves(terms):
+                if isinstance(t, str) and t[:1] == '^' and t[1:]:
+                    out.append(t[1:])
+        return out
+
+    def is_derived(self, profile):
+        '''True if `profile` has any `^derive` term (its catalog is a ballot over an offered menu).'''
+        return bool(self.profile_derive_terms(profile))
+
+    def _compute_menu(self, profile):
+        '''⋃ members(q) over the TOP definition's `^q` terms. `^self` (`^ownname`) offers the next-
+        lower layer's members (mirrors `+self`). Raises ConfigError on an undefined `^ref` or a
+        `^self` with no lower layer — `check` surfaces those; the public wrappers swallow them.'''
+        chain = self._chain.get(profile)
+        if not chain:
+            return set()
+        idx, val, _src = chain[-1]
+        out = set()
+        for term in _leaves(val):
+            op, ref = _split_term(term)
+            if op != '^':
+                continue
+            if ref == profile:                             # ^self -> the next-lower layer's members
+                lower = [e for e in chain if e[0] < idx]
+                if not lower:
+                    raise ConfigError(f'profile "{profile}": `^{profile}` has no lower-layer '
+                                      f'definition to derive from')
+                out |= set(self._expand(profile, lower[-1][0], lower[-1][1], ()))
+            else:
+                sub = self._chain.get(ref)
+                if not sub:
+                    raise ConfigError(f'profile "{profile}": `^{ref}` derives from an undefined '
+                                      f'profile "{ref}"')
+                out |= set(self._expand(ref, sub[-1][0], sub[-1][1], ()))
+        return out
+
+    def check_derives(self, profile):
+        '''Raise ConfigError if any `^derive` term is undefined / has no lower layer — for `check`.'''
+        self._compute_menu(profile)
+
+    def profile_menu(self, profile):
+        '''The MENU a derived profile offers — ⋃ members(q) over its `^q` terms — or the empty set for
+        a plain (`^`-free) profile or a broken definition. What the ballot renders against.'''
+        try:
+            return self._compute_menu(profile)
+        except ConfigError:
+            return set()
+
+    def profile_new(self, profile):
+        '''Unballoted menu items: offered by a `^derive` but neither PICKED (a member) nor DECLINED
+        (a `~`). NEW = menu − members − declines; empty for a plain profile. A `~subprofile` decline is
+        transitive AND "open" (profile_removed recomputes its members, so a subprofile that GROWS
+        stays declined, not resurfaced as NEW).'''
+        menu = self.profile_menu(profile)
+        if not menu:
+            return set()
+        try:
+            members = set(self.profile_components(profile))
+        except ConfigError:
+            members = set()
+        return menu - members - self.profile_removed(profile)
+
     def _all_components(self):
         '''Every defined component name (the built-in `all` profile), or [] before the app has
         supplied the universe. Sorted for a stable menu order.'''
@@ -492,6 +569,8 @@ class Config:
                 for c in members:
                     if c not in out:
                         out.append(c)
+            elif op == '^':                                # derive: MENU-only, contributes NO members
+                continue                                   # (see profile_menu / profile_new)
             elif op == '~':                                # remove: a subprofile's members, or one component
                 if ref in self._chain and ref != name:     # a defined profile -> subtract its whole member set
                     sidx, sval, _ = self._chain[ref][-1]    # (order-sensitive, like ~component: a later add re-adds)
@@ -594,6 +673,9 @@ class Config:
                             out.append(item)
                 elif ('include', ref) not in out:          # +other -> a link reference
                     out.append(('include', ref))
+            elif op == '^':                                # ^derive -> a MENU reference (like include,
+                if ('derive', ref) not in out:             # but opt-in; contributes no members here)
+                    out.append(('derive', ref))
             elif op == '~':                                # ~ excludes a subprofile (a removed-include
                 if ref in self._chain and ref != name:     # marker), or drops an OWN component
                     if ('exclude', ref) not in out:

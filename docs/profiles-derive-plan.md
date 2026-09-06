@@ -262,12 +262,17 @@ Do NOT invent name-based namespacing (`machine/foo` keys, prefix parsing) — pr
 
 Steps 1–3 dissolve all three stated problems; 4–6 are polish.
 
-1. `^` semantics + `menu`/`NEW` computation + `check` lints (`"^undefined"` error; `"^p"` alongside
-   `+p` warning; menu-`~` exemption from the "~ removes nothing" lint; subsumed-`^` lint).
+1. **DONE.** `^` semantics + `menu`/`NEW` computation + `check` lints. `_split_term` recognizes `^`;
+   `_expand` skips it (zero members); `_layout` emits `('derive', ref)`. New `Config` API:
+   `profile_menu` (⋃ members(^q); `^self` → next-lower layer), `profile_new` (menu − members −
+   declines; open declines via `profile_removed`), `profile_derive_terms`, `is_derived`,
+   `check_derives`. `check`: undefined-`^` error, `^p`-alongside-`+p` warning, subsumed-`^` warning,
+   and menu-`~` exemption from "removes nothing". Sigil authored quoted (`"^p"`). Tests in
+   test/test_profile_derive.py (15). No behavior change to existing (`^`-free) profiles.
 2. Ballot rendering + tri-state key in the starred view; NEW badges + `⁺N` bubbling; provenance badges.
 3. Pin-or-track modal + `writes:` previews + `where` for profiles + `profile-edit-mode` setting.
 4. Reconcile overlay + sync-time member-delta report + execute-confirmation "(new via repo X)" tagging.
-5. Layer-grouped pane + a `configsys profile pin <name>` converter (clone-and-cull → pinned derivation).
+5. Layer-grouped pane + a `configsys profile pin <name>` converter (clone-and-cull → pinned derivation). The converter does not need to be in repo code though; that's a run-once on user's primary, and user is still the only user of configsys.
 6. `machines:` section.
 
 If only ONE thing ships: **`^self` + the pin-or-track modal** — it converts the #1 daily friction
