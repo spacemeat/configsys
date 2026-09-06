@@ -53,10 +53,22 @@ def _configs_target(ctx):
     return edit_target(ctx)
 
 
+def _membership_effect_ok(cfg, profile, comp, action):
+    '''Did the write achieve `action`'s intended post-state? `add`/`remove` toggle membership;
+    `decline` (a derived-profile ballot NO) wants comp a non-member AND explicitly `~`-removed;
+    `clear` wants it neither picked nor declined (back to a NEW/offered menu item).'''
+    mem = comp in cfg._members_safe(profile)
+    rem = comp in cfg.profile_removed(profile)
+    return {'add': mem, 'remove': not mem,
+            'decline': (not mem) and rem, 'clear': (not mem) and (not rem)}[action]
+
+
 def set_profile_membership(ctx, profile, comp, action, *, target=None):
-    '''Add or remove `comp` in `profile` (`action` = 'add'|'remove'), writing the term-algebra edit
-    (via Config.plan_membership_edit) to `target` or the effective target. Returns (changed, label);
-    a no-op returns (False, label); a shadowed target that took no effect returns (False, warning).'''
+    '''Write the term-algebra edit so `comp` reaches `action`'s state in `profile`
+    (`action` = 'add'|'remove'|'decline'|'clear'; the last two are the derived-profile ballot's
+    explicit NO / back-to-offered), via Config.plan_membership_edit, to `target` or the effective
+    target. Returns (changed, label); a no-op returns (False, label); a shadowed target that took no
+    effect returns (False, warning).'''
     tfile, label = (target, target) if target else _profile_target(ctx, profile)
     new_terms = ctx.config.plan_membership_edit(profile, comp, action, tfile)
     if new_terms is None:
@@ -65,7 +77,7 @@ def set_profile_membership(ctx, profile, comp, action, *, target=None):
     profs[profile] = new_terms
     plugins.set_profiles(tfile, profs)
     ctx.invalidate()
-    if (comp in ctx.config._members_safe(profile)) != (action == 'add'):   # shadowed -> no effect
+    if not _membership_effect_ok(ctx.config, profile, comp, action):    # shadowed -> no effect
         return False, f'{label}: "{profile}" is overridden by a higher-precedence layer (no effect)'
     return True, label
 

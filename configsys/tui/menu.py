@@ -2238,10 +2238,11 @@ class ProfileScreen:
         sm = self._starred_members()                 # `*` star filter: starred profiles' OWN members
         if sm is not None:
             rem = self._starred_removed()            # what a starred profile pruned via ~term
+            menu = self._starred_menu()              # a derived profile's OFFERED (NEW/declined) items
             # plain star = SURVIVORS (hide the pruned, even if a base profile in the starred clan owns
-            # them); the show-removed state adds them back, marked `~`. Otherwise the two states look
-            # identical, since starring the include-closure already surfaces the base's owned copy.
-            allowed = (sm | rem) if self.show_removed else (sm - rem)
+            # them); the show-removed state adds them back, marked `~`. A derived profile's menu items
+            # ride along so its NEW (offered) rows show — declined ones only in the show-removed state.
+            allowed = (sm | rem | menu) if self.show_removed else ((sm | menu) - rem)
             cat = [c for c in cat if c in allowed]
         if self.attr_inc or self.attr_exc:           # `A` attrs filter (faceted include/exclude)
             comps = self.ctx.routes.components
@@ -2334,6 +2335,52 @@ class ProfileScreen:
         '''Components a `~term` removes from the profile (for the `~` marker).'''
         return self.ctx.config.profile_removed(profile) if profile else set()
 
+    def is_derived(self, profile):
+        '''True if the profile carries a `^derive` term — it's a ballot (menu + picks + declines).'''
+        try:
+            return bool(profile) and self.ctx.config.is_derived(profile)
+        except Exception:                                # noqa: BLE001 — a bad profile is not a ballot
+            return False
+
+    def menu(self, profile):
+        '''The derived profile's MENU (⋃ members of its `^parents`) — offered components. Empty for a
+        plain profile.'''
+        try:
+            return set(self.ctx.config.profile_menu(profile)) if profile else set()
+        except Exception:                                # noqa: BLE001
+            return set()
+
+    def new_members(self, profile):
+        '''The ballot's NEW set: menu items neither picked nor declined (offered, never installed).'''
+        try:
+            return set(self.ctx.config.profile_new(profile)) if profile else set()
+        except Exception:                                # noqa: BLE001
+            return set()
+
+    def _starred_menu(self):
+        '''Union of the starred profiles' derive MENUS — so a derived profile's OFFERED items surface
+        in the `*` catalog filter (not just its picks/declines).'''
+        m = set()
+        for p in self.starred:
+            m |= self.menu(p)
+        return m
+
+    def _starred_new(self):
+        '''Union of the starred profiles' NEW sets (offered-not-chosen) — for the `?` catalog marker.'''
+        m = set()
+        for p in self.starred:
+            m |= self.new_members(p)
+        return m
+
+    def subtree_new(self, profile):
+        '''Union of NEW (offered-not-chosen) items across `profile` and every profile it transitively
+        `+include`s — so a derived profile's own offerings AND a plain parent that includes a derived
+        subprofile both surface a `⁺N` badge (the count bubbles up the tree).'''
+        m = set()
+        for p in self._include_closure(profile):
+            m |= self.new_members(p)
+        return m
+
     def _resolve(self, name):
         '''(available, resolved_via, pinned) for a component — cached. The resolved via is the
         method it installs with now (the pin, else the preference-picked default); `pinned` is set
@@ -2371,6 +2418,9 @@ def _draw_profiles(stdscr, pal, ps, ctx, note, screen):
     members = ps.members(prof)
     own = ps.own_members(prof)                       # direct (●) vs via-include (↳)
     removed = ps.removed_members(prof)               # ~term drops (~) for the selected profile
+    new_set = ps.new_members(prof)                   # a derived profile's OFFERED (NEW, `?`) menu items
+    if ps.starred:                                   # ...plus any starred profiles' offered items
+        new_set = new_set | ps._starred_new()
     if ps.show_removed:                              # ...plus the starred profiles' drops the filter reveals
         removed = removed | ps._starred_removed()
     ov_inst, ov_orph, ov_uninst = ps.overlay()       # install-axis overlay data (empty unless `O` on)
@@ -2430,10 +2480,27 @@ def _draw_profiles(stdscr, pal, ps, ctx, note, screen):
                     struck = True
             except Exception:                                  # noqa: BLE001 — a bad profile marks nothing
                 pass
-        row = f'{"".join(prefix)} {name}'
+        # provenance + ballot badge: a derived profile shows `^` (it's a ballot); a `⁺N` counts the
+        # OFFERED (NEW) items in its subtree — its own, or a derived subprofile's bubbled up a parent.
+        deriv = ps.is_derived(name)
+        nnew = len(ps.subtree_new(name))
+        if deriv:
+            tag = '  ^' + (f'⁺{nnew}' if nnew else '')
+        elif nnew:
+            tag = f'  ⁺{nnew}'
+        else:
+            tag = ''
+        row = f'{"".join(prefix)} {name}{tag}'
         _put(stdscr, y, lil, _fit(row, liw),
              pal.style('profile', y, lil, h, w, selected=foc, bg=(None if low_color else rbg))
              | rev | (curses.A_DIM if struck and not foc else 0))
+        if tag and nnew and not foc:                     # tint just the `⁺N` count in the menu_new hue
+            bstr = f'⁺{nnew}'
+            bx = lil + len(f'{"".join(prefix)} {name}{tag}') - len(bstr)
+            if 0 <= bx - lil < liw:
+                _put(stdscr, y, bx, _fit(bstr, liw - (bx - lil)),
+                     pal.style('menu_new', y, bx, h, w, bg=(None if low_color else rbg))
+                     | rev | (curses.A_DIM if struck else 0))
     _scrollbar_v(stdscr, pal, lit, lw - 1, lih, ps.ltop, lih, len(vnodes), h, w)
 
     # RIGHT TOP: detail for the highlighted component (names are esoteric) — description + methods
@@ -2491,7 +2558,11 @@ def _draw_profiles(stdscr, pal, ps, ctx, note, screen):
 
     # RIGHT BOTTOM: the component catalog (filtered), as a COLUMN-MAJOR grid filling the pane width
     ctop, cath = top + desc_h, body_h - desc_h
-    ctitle = ((f'components — in "{prof}"' if prof else 'components')
+    _deriv = ps.is_derived(prof)
+    _prof_new = ps.new_members(prof) if _deriv else set()   # this profile's own offerings (not starred)
+    ctitle = ((f'components — ballot "{prof}"' if _deriv else
+               (f'components — in "{prof}"' if prof else 'components'))
+              + (f'  ⁺{len(_prof_new)} offered' if _prof_new else '')
               + (f'  filter:{ps.cfilter}' if ps.cfilter else '')
               + (f'  ▸{",".join(sorted(ps.starred))}' if ps.starred else '')
               + ('  +~removed' if ps.starred else '')   # star filter always reveals ~-removed drops
@@ -2526,7 +2597,9 @@ def _draw_profiles(stdscr, pal, ps, ctx, note, screen):
             cur = i == ps.rcur
             foc = cur and ps.focus == 'right'
             avail, via, pinned = ps._resolve(name)
-            elem = 'component' if avail else 'info_dim'
+            is_new = name in new_set                  # offered by a derive, not yet picked/declined
+            elem = ('menu_new' if avail else 'info_dim') if is_new else \
+                   ('component' if avail else 'info_dim')
             # install-axis overlay (`O`): installed -> underline; an orphan -> its `orphan_<kind>`
             # colour; staged for uninstall (!uninstall) -> dimmed/struck. Composes with the row tint.
             ov_extra = 0
@@ -2561,7 +2634,9 @@ def _draw_profiles(stdscr, pal, ps, ctx, note, screen):
             elif tint is not None:
                 _put(stdscr, y, cx, ' ' * cell, pal.fill(y, cx, h, w, bg=tint))
             cm = '▸' if cur else ' '
-            mk = ('●' if name in own else '↳') if name in members else ('~' if name in removed else ' ')
+            # ballot markers: ● own pick · ↳ inherited member · ~ declined/pruned · ? offered (NEW)
+            mk = ('●' if name in own else '↳') if name in members else \
+                 ('~' if name in removed else ('?' if is_new else ' '))
             # the resolved method trails the name, in the muted method colour; a pin is marked `[via]`
             mstr = (f'[{via}]' if pinned else via) if via else ''
             nm_txt = f'{cm}{mk} {name}'
@@ -4014,13 +4089,25 @@ def run(ctx):
                     vcat = ps.vcatalog()
                     if prof and vcat:
                         name = vcat[ps.rcur]
-                        memb = 'remove' if name in ps.members(prof) else 'add'
+                        # A derived profile is a 3-state BALLOT: for a menu item, space cycles
+                        # NEW(?) -> pick(●) -> decline(~) -> NEW. A plain profile stays a 2-state
+                        # add/remove toggle. (A non-menu component in a derive still 2-state toggles.)
+                        if ps.is_derived(prof) and name in ps.menu(prof):
+                            if name in ps.members(prof):
+                                memb, verb = 'decline', 'declined'
+                            elif name in ps.removed_members(prof):
+                                memb, verb = 'clear', 'offered'
+                            else:
+                                memb, verb = 'add', 'picked'
+                        else:
+                            in_prof = name in ps.members(prof)
+                            memb = 'remove' if in_prof else 'add'
+                            verb = 'removed' if in_prof else 'added'
                         try:
-                            changed, _lbl = actions.set_profile_membership(ctx, prof, name, memb)
+                            changed, lbl = actions.set_profile_membership(ctx, prof, name, memb)
                             ps.reload()
                             menu_dirty = menu_dirty or changed
-                            note = (f'{name} {"added" if memb == "add" else "removed"}'
-                                    if changed else 'no change')
+                            note = (f'{name} {verb}' if changed else (lbl or 'no change'))
                         except Exception as e:  # noqa: BLE001 — surface, don't crash
                             note = f'edit failed: {e}'
                 continue

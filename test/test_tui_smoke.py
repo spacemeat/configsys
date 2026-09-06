@@ -89,3 +89,47 @@ def test_tui_launches_navigates_and_quits(tmp_path, extra):
     assert proc.returncode == 0
     # curses drew something (alt-screen or SGR); at minimum it produced output.
     assert first, 'TUI produced no terminal output'
+
+
+def test_tui_renders_a_derived_profile_ballot(tmp_path):
+    '''Render the Profiles page with a `^derive` profile selected + the catalog focused, so the ballot
+    draw path (menu_new `?`/color, `^⁺N` badge, ballot title) runs without crashing in real curses.'''
+    try:
+        master, slave = pty.openpty()
+    except OSError:
+        pytest.skip('no PTY available')
+
+    cfg = tmp_path / '.config' / 'configsys' / 'configsys.hu'
+    cfg.parent.mkdir(parents=True, exist_ok=True)
+    # `m` derives from `ai`: picks htop, offers bat (NEW `?`) — a real ballot to render.
+    cfg.write_text('{ configs: [ m ]  profiles: { ai: [ htop  bat ]  m: [ "^ai"  htop ] } }\n')
+
+    env = dict(os.environ)
+    env.update({'TERM': 'xterm-256color', 'CONFIGSYS_HOME': str(tmp_path),
+                'CONFIGSYS_OS': 'pop', 'PYTHONPATH': str(REPO)})
+    proc = subprocess.Popen(
+        [sys.executable, '-m', 'configsys', '--pretend', 'tui'],
+        stdin=slave, stdout=slave, stderr=slave, env=env, cwd=str(REPO), close_fds=True)
+    os.close(slave)
+
+    deadline = time.monotonic() + 8
+    first = _drain(master, min(deadline, time.monotonic() + 3))
+    # 2 -> Profiles page; G -> bottom profile (m, the derive); tab -> focus catalog (ballot markers);
+    # j -> move a catalog cell; then quit (q -> modal, k -> "Yes, quit", ⏎).
+    for keys in (b'2', b'G', b'\t', b'j', b'j', b'q', b'k', b'\n'):
+        try:
+            os.write(master, keys)
+        except OSError:
+            break
+        _drain(master, time.monotonic() + 0.15)
+
+    try:
+        proc.wait(timeout=8)
+    except subprocess.TimeoutExpired:
+        proc.kill()
+        proc.wait()
+        os.close(master)
+        pytest.fail('TUI did not exit after q')
+    os.close(master)
+    assert proc.returncode == 0
+    assert first, 'TUI produced no terminal output'

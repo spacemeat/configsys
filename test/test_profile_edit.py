@@ -81,6 +81,57 @@ def test_remove_when_absent_is_a_noop():
     assert plan(c, 'dev', 'nope', 'remove') is None
 
 
+# -- BALLOT (derived-profile decline / clear) -----------------------------
+
+BALLOT = '{ profiles: { ai: [ claude-code  ollama  aider ]  m: [ "^ai"  claude-code ] } }'
+
+
+def test_decline_a_new_menu_item_writes_negation():
+    # ollama/aider are offered (NEW) by ^ai but not picked; declining writes ~aider
+    c = cfg(BALLOT)
+    assert plan(c, 'm', 'aider', 'decline', target='config.hu') == ['^ai', 'claude-code', '~aider']
+
+
+def test_decline_a_pick_drops_the_pick_and_negates():
+    c = cfg(BALLOT)
+    assert plan(c, 'm', 'claude-code', 'decline', target='config.hu') == ['^ai', '~claude-code']
+
+
+def test_clear_a_pick_returns_to_offered():
+    c = cfg(BALLOT)
+    assert plan(c, 'm', 'claude-code', 'clear', target='config.hu') == ['^ai']
+
+
+def test_clear_a_decline_returns_to_offered():
+    c = cfg('{ profiles: { ai: [ claude-code  ollama ]  m: [ "^ai"  ~ollama ] } }')
+    assert plan(c, 'm', 'ollama', 'clear', target='config.hu') == ['^ai']
+
+
+def test_decline_already_declined_is_a_noop():
+    c = cfg('{ profiles: { ai: [ claude-code  ollama ]  m: [ "^ai"  ~ollama ] } }')
+    assert plan(c, 'm', 'ollama', 'decline', target='config.hu') is None
+
+
+def test_clear_when_nothing_owned_is_a_noop():
+    c = cfg(BALLOT)
+    assert plan(c, 'm', 'ollama', 'clear', target='config.hu') is None       # ollama is unballoted
+
+
+def test_ballot_roundtrips_through_membership_and_menu():
+    # pick an offered item, then decline it, then clear it — membership/new track each step.
+    text = '{ profiles: { ai: [ a  b  cc ]  m: [ "^ai"  a ] } }'
+    def eff(terms):
+        c = Config([layers.Layer('config.hu', 'repo',
+                                 layers.materialize_string(text.replace('"^ai"  a', ' '.join(terms))))])
+        return set(c.profile_components('m')), c.profile_new('m'), c.profile_removed('m')
+    m, new, rem = eff(['"^ai"', 'a', 'b'])                     # pick b
+    assert 'b' in m and 'b' not in new
+    m, new, rem = eff(['"^ai"', 'a', '~b'])                    # decline b
+    assert 'b' not in m and 'b' not in new and 'b' in rem
+    m, new, rem = eff(['"^ai"', 'a'])                          # clear b -> offered again
+    assert 'b' not in m and 'b' in new
+
+
 # -- round-trip: the planned terms actually produce the intended membership -------
 
 def _roundtrip(repo_text, user_terms, profile, comp, action):
@@ -116,6 +167,16 @@ def test_profiles_writer_roundtrip_and_preserves_outside_comments(tmp_path):
     assert plugins.read_profiles(str(f)) == {'dev': ['btop', 'fzf', 'ripgrep']}
     assert '// keep me' in f.read_text()          # comment outside the edited node survives
     assert 'configs: [ dev ]' in f.read_text()    # sibling section untouched
+
+
+def test_profiles_writer_quotes_derive_terms(tmp_path):
+    # a `^derive` term MUST be re-emitted QUOTED — `^` is humon's heredoc sigil, so a bare `^ai`
+    # would misparse. Round-trip proves the written file still reads back the same term list.
+    f = tmp_path / 'u.hu'
+    f.write_text('{ profiles: {} }\n', encoding='utf-8')
+    plugins.set_profiles(str(f), {'m': ['^ai', 'claude-code', '~aider']})
+    assert '"^ai"' in f.read_text()                          # quoted in the file
+    assert plugins.read_profiles(str(f)) == {'m': ['^ai', 'claude-code', '~aider']}
 
 
 def test_configs_writer_roundtrip(tmp_path):
@@ -320,6 +381,39 @@ def test_profile_star_filter_show_removed(tmp_path):
     ps.show_removed = True                                        # reveal what mine pruned via ~htop
     assert ps.vcatalog() == ['btop', 'htop']                     # the pruned htop is shown again
     assert 'htop' in ps._starred_removed()                       # ...and marked as a removal (~)
+
+
+def test_profile_ballot_view_and_edits(tmp_path):
+    # A derived profile is a ballot: the ProfileScreen surfaces menu/new/subtree helpers, and the
+    # decline/clear writers cycle a menu item NEW -> pick -> decline -> NEW through the real config.
+    from configsys import actions, plugins
+    from configsys.tui import menu
+    ctx = _rctx(tmp_path)
+    actions.add_profile(ctx, 'ai')
+    for comp in ('claude-code', 'ollama', 'aider'):
+        actions.set_profile_membership(ctx, 'ai', comp, 'add')
+    uf = str(ctx.paths.user_config_file)
+    profs = plugins.read_profiles(uf)
+    profs['m'] = ['^ai', 'claude-code']                      # derive from ai; pick claude-code
+    plugins.set_profiles(uf, profs)
+    ctx.invalidate()
+
+    ps = menu.ProfileScreen(ctx)
+    assert ps.is_derived('m') and not ps.is_derived('ai')
+    assert ps.menu('m') == {'claude-code', 'ollama', 'aider'}
+    assert ps.members('m') == {'claude-code'}
+    assert ps.new_members('m') == {'ollama', 'aider'}
+    assert ps.subtree_new('m') == {'ollama', 'aider'} and ps.subtree_new('ai') == set()
+
+    # pick an offered item, then decline it, then clear it back to offered
+    actions.set_profile_membership(ctx, 'm', 'ollama', 'add')
+    assert 'ollama' in menu.ProfileScreen(ctx).members('m')
+    actions.set_profile_membership(ctx, 'm', 'ollama', 'decline')
+    ps2 = menu.ProfileScreen(ctx)
+    assert 'ollama' not in ps2.members('m') and 'ollama' in ps2.removed_members('m')
+    actions.set_profile_membership(ctx, 'm', 'ollama', 'clear')
+    ps3 = menu.ProfileScreen(ctx)
+    assert 'ollama' in ps3.new_members('m') and 'ollama' not in ps3.removed_members('m')
 
 
 def test_subprofile_membership_toggle_roundtrip(tmp_path):

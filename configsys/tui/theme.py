@@ -36,6 +36,7 @@ COLOR_MAP = {
     'row_desc': (108, 112, 128),                         # faded inline component descriptions
     'method_dim': (124, 150, 176),                       # muted slate-blue for the method label
     'dep_dim': (192, 158, 108),                          # muted amber for the "required by" line
+    'menu_new': (150, 205, 165),                          # a derived profile's OFFERED (NEW, `?`) items
 }
 
 # --- low-color (8/16) hand-tuning ---------------------------------------------------------------
@@ -57,6 +58,7 @@ BASIC_MAP = {
     'op_lock': 'blue', 'op_unlock': 'cyan',
     'sel_bg': 'magenta',                                 # the selection-bar background in 8/16-color
     'row_desc': 'bright-black', 'method_dim': 'bright-black', 'dep_dim': 'yellow',
+    'menu_new': 'green',                                  # non-bright green: offered, not the installed set
 }
 
 
@@ -157,6 +159,7 @@ ROLE_DEFAULTS = {
     'methods': _r('header'),
     'method_dim': _r('method_dim'),                      # muted method label (Profiles detail pane)
     'dependents': _r('dep_dim'),                         # "required by" reverse-deps (Profiles detail)
+    'menu_new': _r('menu_new', bold=True),               # a derived profile's OFFERED (NEW) ballot rows
     'row_desc': _r('row_desc'),                          # faded description trailing the row name
     'info': _r('accent'),
     'info_dim': _r('dim'),
@@ -192,9 +195,9 @@ PAGE_ROLES = {
                    'version', 'scope', 'scope_choice', 'installed', 'outdated', 'partial', 'missing',
                    'locked', 'op_install', 'op_upgrade', 'op_remove', 'op_lock', 'row_error',
                    'row_desc', 'methods', 'info', 'info_dim', 'status_line', 'footer', 'selection'],
-    'profiles':  ['label', 'os', 'menu_header', 'profile', 'link', 'component', 'info', 'info_dim',
-                  'dependents', 'method_dim', 'orphan_excluded', 'orphan_lurking', 'orphan_forgotten',
-                  'orphan_foreign', 'status_line', 'footer', 'selection'],
+    'profiles':  ['label', 'os', 'menu_header', 'profile', 'link', 'component', 'menu_new', 'info',
+                  'info_dim', 'dependents', 'method_dim', 'orphan_excluded', 'orphan_lurking',
+                  'orphan_forgotten', 'orphan_foreign', 'status_line', 'footer', 'selection'],
     'plugins':   ['label', 'os', 'menu_header', 'component', 'unit', 'installed', 'outdated',
                   'missing', 'untrusted', 'accent', 'diff_add', 'diff_del', 'diff_hunk', 'diff_meta',
                   'info', 'info_dim', 'status_line', 'footer', 'selection'],

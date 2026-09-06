@@ -269,7 +269,16 @@ Steps 1–3 dissolve all three stated problems; 4–6 are polish.
    `check_derives`. `check`: undefined-`^` error, `^p`-alongside-`+p` warning, subsumed-`^` warning,
    and menu-`~` exemption from "removes nothing". Sigil authored quoted (`"^p"`). Tests in
    test/test_profile_derive.py (15). No behavior change to existing (`^`-free) profiles.
-2. Ballot rendering + tri-state key in the starred view; NEW badges + `⁺N` bubbling; provenance badges.
+2. **DONE.** Ballot rendering + tri-state key + NEW badges + provenance. Catalog: a derived
+   profile's OFFERED items render in a `menu_new` theme role marked `?` (● pick / ↳ inherited / ~
+   decline stay); the `*` star filter surfaces the derive's menu (`_starred_menu`/`_starred_new`,
+   `vcatalog.allowed` unions the menu). Space is a 3-state ballot on a derived profile's menu item —
+   NEW→pick→decline→NEW (new `plan_membership_edit` actions `decline`/`clear`; `set_profile_membership`
+   effect-check generalized) — a plain profile stays 2-state add/remove. Profiles pane: a `^` badge
+   marks a ballot, `⁺N` counts offered items (`subtree_new` bubbles a derived subprofile's count up a
+   `+include` parent). Catalog title reads `ballot "<p>"  ⁺N offered`. `_emit_profiles` quotes `^`
+   terms so writes round-trip. Tests: test/test_profile_edit.py (ballot writers + ProfileScreen view
+   + quoting round-trip) and a derived-ballot render smoke in test/test_tui_smoke.py.
 3. Pin-or-track modal + `writes:` previews + `where` for profiles + `profile-edit-mode` setting.
 4. Reconcile overlay + sync-time member-delta report + execute-confirmation "(new via repo X)" tagging.
 5. Layer-grouped pane + a `configsys profile pin <name>` converter (clone-and-cull → pinned derivation). The converter does not need to be in repo code though; that's a run-once on user's primary, and user is still the only user of configsys.

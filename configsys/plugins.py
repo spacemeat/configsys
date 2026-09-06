@@ -713,13 +713,21 @@ def read_profiles(config_file):
     return {name: _flat(val) for name, val in profs.items()}
 
 
+def _emit_term(t):
+    '''One profile term, quoted when humon can't take it bare. A `^derive` term MUST be quoted — `^`
+    is humon's heredoc-name sigil (see docs/profiles-derive-plan.md); `+other`/`~name`/bare are safe
+    unquoted, so `_scalar` passes them through.'''
+    s = str(t)
+    return f'"{s}"' if s[:1] == '^' else _scalar(s)
+
+
 def _emit_profiles(profiles, indent):
     pad, inner = ' ' * indent, ' ' * (indent + 4)
     if not profiles:
         return 'profiles: {}'
     lines = ['profiles: {']
     for name, terms in profiles.items():
-        lines.append(f'{inner}{name}: [ {"  ".join(str(t) for t in terms)} ]' if terms
+        lines.append(f'{inner}{name}: [ {"  ".join(_emit_term(t) for t in terms)} ]' if terms
                      else f'{inner}{name}: []')
     return '\n'.join(lines + [pad + '}'])
 

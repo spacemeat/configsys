@@ -724,12 +724,15 @@ class Config:
         return self.profile_components(profile)
 
     def plan_membership_edit(self, profile, comp, action, target_file):
-        '''Compute the new raw term list for `profile` in `target_file` so `comp` becomes a member
-        (`action='add'`) or a non-member (`'remove'`) of the profile's EFFECTIVE set, honoring the
-        term algebra. Pure: returns the new term list to write, or None for a no-op (already in the
-        wanted state, and the target layer need not define the profile). `target_file` is the edit
-        layer (usually the highest-precedence one — your primary or top config); reuses `_expand`
-        to decide whether a component still arrives via `+self`/`+other` after dropping a bare term.'''
+        '''Compute the new raw term list for `profile` in `target_file` so `comp` reaches `action`'s
+        state, honoring the term algebra. `action`: `'add'` (a member) / `'remove'` (a non-member) of
+        the EFFECTIVE set; plus the derived-profile ballot pair `'decline'` (write an explicit `~comp`
+        — an intentional NO on a menu offering) and `'clear'` (drop an OWNED pick or `~`-decline, so a
+        menu item returns to unballoted/NEW). Pure: returns the new term list to write, or None for a
+        no-op (already in the wanted state, and the target layer need not define the profile).
+        `target_file` is the edit layer (usually the highest-precedence one — your primary or top
+        config); reuses `_expand` to decide whether a component still arrives via `+self`/`+other`
+        after dropping a bare term.'''
         tidx = self.layer_index(target_file)
         if tidx is None:
             raise ConfigError(f'{target_file} is not a loaded config layer')
@@ -752,6 +755,24 @@ class Config:
             if comp not in expand(base):
                 base = base + [comp]
             return base
+
+        if action == 'decline':
+            # ballot DECLINE (a derived profile): write an explicit `~comp` (and drop any bare pick)
+            # so a menu offering reads as an intentional NO, not merely un-picked (NEW).
+            if not in_target:
+                if comp in self.profile_removed(profile):
+                    return None                              # already declined in a lower layer
+                return [selfinc, neg] if defined_below else [neg]
+            base = [t for t in own if t not in (comp, neg)] + [neg]
+            return None if base == own else base
+
+        if action == 'clear':
+            # ballot CLEAR (a derived profile): drop a bare pick AND a `~` decline OWNED here, so the
+            # menu item returns to unballoted (NEW / offered). Only clears terms in the target layer.
+            if not in_target:
+                return None
+            base = [t for t in own if t not in (comp, neg)]
+            return None if base == own else base
 
         # remove
         if comp not in self._members_safe(profile):
