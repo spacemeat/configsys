@@ -882,6 +882,7 @@ _HELP = {
             ('pin-or-track', "first edit of a lower-layer profile asks: track (+self) or pin (^self); "
                              "profile-edit-mode setting decides silently"),
             ('where (w)', "provenance for the selected profile: layers · pin/track relation · counts"),
+            ('reconcile (N)', "triage OFFERED (NEW) items across active profiles: pick / decline / later"),
             ('detail box', 'description · attrs (kind tags) · required-by (reverse deps) · in-profiles'),
         ],
     },
@@ -1058,6 +1059,102 @@ def _draw_where(stdscr, pal, lines, top, subject):
     _put(stdscr, h - 1, 0, _fit(foot.ljust(w), w), pal.get('dim') | curses.A_REVERSE)
     stdscr.refresh()
     return top
+
+
+def _run_reconcile(stdscr, pal, ctx):
+    '''The reconcile overlay (N): triage OFFERED (NEW) items across active derived profiles — pick
+    (space/⏎), decline (d/~), or leave for later (l/.) — plus a collapsible auto-declined section
+    whose items can be re-offered (space). Runs its own key loop over the current screen; returns True
+    if any edit was written (so the caller rebuilds its trees). q/esc exits.'''
+    from .. import actions
+    from ..app import reconcile_data
+    cur, ptop, show_declined, changed, note = 0, 0, False, False, ''
+
+    def build():
+        # Flat row model: ('header',prof,relation) · ('item',prof,comp,via) · ('dtoggle',n) ·
+        # ('ditem',prof,comp). Only item/dtoggle/ditem are selectable.
+        data = reconcile_data(ctx)
+        rows = []
+        for g in data['groups']:
+            rows.append(('header', g['profile'], g['relation'], ''))
+            for c in g['new']:
+                try:
+                    cands = ctx.routes.candidates(c)
+                    via = next((x['via'] for x in cands if x['default']), '') or ''
+                except Exception:                      # noqa: BLE001 — unroutable NEW item still lists
+                    via = ''
+                rows.append(('item', g['profile'], c, via))
+        ndec = sum(len(x['items']) for x in data['declined'])
+        rows.append(('dtoggle', '', ndec, ''))
+        if show_declined:
+            for x in data['declined']:
+                for c in x['items']:
+                    rows.append(('ditem', x['profile'], c, ''))
+        return rows, len(data['groups']), sum(len(g['new']) for g in data['groups'])
+
+    while True:
+        rows, ngroups, ntotal = build()
+        sel = [i for i, r in enumerate(rows) if r[0] in ('item', 'dtoggle', 'ditem')]
+        cur = max(0, min(cur, len(sel) - 1)) if sel else 0
+        stdscr.erase()
+        h, w = stdscr.getmaxyx()
+        head = (f' reconcile — {ntotal} offered across {ngroups} profile(s) '
+                if ntotal else ' reconcile — nothing offered ')
+        _put(stdscr, 0, 0, _fit(head, w), pal.get('title') | curses.A_BOLD | curses.A_REVERSE)
+        body_h = max(1, h - 3)
+        cy = sel[cur] if sel else 0                    # keep the cursor row in the scroll window
+        ptop = max(min(ptop, cy), cy - body_h + 1, 0)
+        for r, i in enumerate(range(ptop, min(len(rows), ptop + body_h))):
+            kind, a, b, c = (rows[i] + ('', '', ''))[:4]
+            oncur = sel and i == sel[cur]
+            mk = '▸' if oncur else ' '
+            if kind == 'header':
+                text, elem = f'  {a}  ({b})', 'label'
+            elif kind == 'item':
+                text, elem = f'{mk} ? {b}' + (f'   {c}' if c else ''), 'menu_new'
+            elif kind == 'dtoggle':
+                text = f'{mk} {"▾" if show_declined else "▹"} auto-declined ({b})'
+                elem = 'info_dim'
+            else:                                      # ditem
+                text, elem = f'{mk}   ~ {b}   ({a})', 'info_dim'
+            attr = pal.get(elem) | (curses.A_REVERSE if oncur else 0)
+            _put(stdscr, 2 + r, 0, _fit(text, w), attr)
+        foot = (f' {note}   ' if note else ' ') + \
+            'space pick/toggle · d decline · l later · x re-offer · j/k · q back '
+        _put(stdscr, h - 1, 0, _fit(foot.ljust(w), w), pal.get('dim') | curses.A_REVERSE)
+        stdscr.refresh()
+        note = ''
+        ch = stdscr.getch()
+        if ch in (27, ord('q')):
+            return changed
+        if ch in (ord('j'), curses.KEY_DOWN):
+            cur = min(len(sel) - 1, cur + 1) if sel else 0
+        elif ch in (ord('k'), curses.KEY_UP):
+            cur = max(0, cur - 1)
+        elif ch in (ord('g'), curses.KEY_HOME):
+            cur = 0
+        elif ch in (ord('G'), curses.KEY_END):
+            cur = max(0, len(sel) - 1)
+        elif ch in (ord('l'), ord('.')):              # later: skip to the next item, no write
+            cur = min(len(sel) - 1, cur + 1) if sel else 0
+        elif sel and ch in (ord(' '), ord('\n'), curses.KEY_ENTER, ord('d'), ord('~'), ord('x')):
+            kind, prof, comp, _via = (rows[sel[cur]] + ('', '', ''))[:4]
+            if kind == 'dtoggle':
+                show_declined = not show_declined
+                continue
+            act = None
+            if kind == 'item':
+                act = 'decline' if ch in (ord('d'), ord('~')) else 'add'
+            elif kind == 'ditem':                     # in the declined list: x/space re-offers
+                act = 'clear' if ch in (ord(' '), ord('\n'), curses.KEY_ENTER, ord('x')) else None
+            if act:
+                try:
+                    ok, lbl = actions.set_profile_membership(ctx, prof, comp, act)
+                    changed = changed or ok
+                    verb = {'add': 'picked', 'decline': 'declined', 'clear': 're-offered'}[act]
+                    note = f'{comp} {verb}' if ok else (lbl or 'no change')
+                except Exception as e:                # noqa: BLE001 — surface, don't crash
+                    note = f'edit failed: {e}'
 
 
 def _fill_bg(stdscr, pal, h, w):
@@ -3936,6 +4033,12 @@ def run(ctx):
             if gact == 'issues':
                 if diags:
                     show_diag, diag_top = True, 0
+                continue
+            if gact == 'review':                        # reconcile overlay: triage NEW across profiles
+                if _run_reconcile(stdscr, pal, ctx):
+                    menu_dirty = True                   # edits landed -> Components rebuilds on entry
+                    if ps is not None:
+                        ps.reload()                     # and the Profiles ballot reflects them
                 continue
             if gact == 'help':
                 _help_modal(stdscr, pal, screen)

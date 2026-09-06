@@ -292,7 +292,17 @@ Steps 1–3 dissolve all three stated problems; 4–6 are polish.
    also `configsys where -p <profile>`. `profile-edit-mode: track|pin|ask` machine setting (uniform,
    default ask). Tests: planner synth + relation + amends-lower + edit-mode + where in
    test_profile_edit.py; a pin-or-track/where render smoke in test_tui_smoke.py.
-4. Reconcile overlay + sync-time member-delta report + execute-confirmation "(new via repo X)" tagging.
+4. **DONE.** Reconcile overlay + sync-time member-delta report. `configsys reconcile` (CLI) +
+   the TUI `N`/`review` global overlay (`_run_reconcile`) triage OFFERED (NEW) items across the
+   ACTIVE derived profiles (active + their `+include` closure), grouped by profile, each pickable
+   (space)/declinable (d)/later (l), with a collapsible auto-declined section whose items re-offer
+   (x). Shared data via `app.reconcile_data`/`reconcile_report`/`active_closure`. Plugin `sync`/
+   `update` now print a member-delta (`app.active_snapshot`/`print_sync_delta`): TRACKED growth shows
+   as `+/-` in the active set, PINNED growth as an "N new offering(s) — run reconcile" nudge (this is
+   the no-baseline substitute for execute "(new via X)" tagging — the delta is reported at the moment
+   of change). CLI gained `profile decline`/`offer` verbs and `--pin`/`--track` on `add`/`rm` (else
+   the profile-edit-mode setting decides). Tests: test/test_reconcile.py + a reconcile-overlay render
+   smoke in test_tui_smoke.py.
 5. Layer-grouped pane + a `configsys profile pin <name>` converter (clone-and-cull → pinned derivation). The converter does not need to be in repo code though; that's a run-once on user's primary, and user is still the only user of configsys.
 6. `machines:` section.
 

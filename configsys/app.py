@@ -1363,6 +1363,103 @@ def where_profile_report(ctx, name):
     return out
 
 
+def active_closure(cfg):
+    '''The active profile set plus every profile they transitively `+include` (cycle-guarded) — the
+    profiles whose members this machine actually installs. Order not significant (a set).'''
+    seen, stack = set(cfg.active_profiles), list(cfg.active_profiles)
+    while stack:
+        try:
+            incs = cfg.profile_includes(stack.pop())
+        except Exception:                              # noqa: BLE001 — a broken profile includes nothing
+            incs = ()
+        for inc in incs:
+            if inc not in seen:
+                seen.add(inc)
+                stack.append(inc)
+    return seen
+
+
+def reconcile_data(ctx):
+    '''Triage data for `configsys reconcile` / the TUI `N` overlay: across every ACTIVE derived
+    profile (active or reached via `+include`), its OFFERED (NEW) items and its declines.
+    Returns {'groups': [{profile, relation, new:[comp,...]}], 'declined': [{profile, items:[...]}]}
+    — groups only where NEW is non-empty, sorted by profile name. Pure over ctx.config.'''
+    cfg = ctx.config
+    groups, declined = [], []
+    for p in sorted(active_closure(cfg)):
+        if not cfg.is_derived(p):
+            continue
+        new = sorted(cfg.profile_new(p))
+        dec = sorted(cfg.profile_removed(p))
+        if new:
+            groups.append({'profile': p, 'relation': cfg.profile_relation(p), 'new': new})
+        if dec:
+            declined.append({'profile': p, 'items': dec})
+    return {'groups': groups, 'declined': declined}
+
+
+def reconcile_report(ctx):
+    '''Text lines for `configsys reconcile` — shared shape with the TUI overlay's data.'''
+    d = reconcile_data(ctx)
+    if not d['groups'] and not d['declined']:
+        return ['Nothing to reconcile — no active derived profile has offered (NEW) items.']
+    out = []
+    total = sum(len(g['new']) for g in d['groups'])
+    if total:
+        out.append(f'{total} offered (NEW) item(s) across {len(d["groups"])} profile(s):')
+        for g in d['groups']:
+            out.append(f'  {g["profile"]}  ({g["relation"]})')
+            for c in g['new']:
+                out.append(f'    ? {c}')
+    if d['declined']:
+        nd = sum(len(x['items']) for x in d['declined'])
+        out.append(f'auto-declined: {nd} across {len(d["declined"])} profile(s)')
+        for x in d['declined']:
+            out.append(f'    ~ {x["profile"]}: {", ".join(x["items"])}')
+    if total:
+        out += ['', 'Pick:    configsys profile add <profile> <comp>',
+                'Decline: configsys profile decline <profile> <comp>',
+                '(or triage interactively: N on the TUI Profiles screen)']
+    return out
+
+
+def cmd_reconcile(ctx, args):
+    for line in reconcile_report(ctx):
+        print(line)
+    return 0
+
+
+def active_snapshot(cfg):
+    '''(requested_set, offered_total) for the current active config — the installable component set
+    plus the total OFFERED (NEW) count across active derived profiles. Taken before/after a plugin
+    sync to report what changed: tracked profiles move the requested set (their members grow), pinned
+    profiles move only the offered count (upstream growth arrives as NEW, never auto-installed).'''
+    try:
+        req = set(cfg.requested())
+    except Exception:                                  # noqa: BLE001 — a broken config snapshots empty
+        req = set()
+    new = sum(len(cfg.profile_new(p)) for p in active_closure(cfg) if cfg.is_derived(p))
+    return req, new
+
+
+def print_sync_delta(before, cfg):
+    '''After a sync/update, print how the active set moved vs the `before` snapshot: added/removed
+    installable components (tracked growth) and any gain in offered (NEW) items (pinned growth).'''
+    before_req, before_new = before
+    after_req, after_new = active_snapshot(cfg)
+    added, removed = sorted(after_req - before_req), sorted(before_req - after_req)
+    if added or removed:
+        print('configsys: active set changed (tracked profiles):')
+        for c in added:
+            print(f'  + {c}')
+        for c in removed:
+            print(f'  - {c}')
+        print('  review with `configsys inspect`, then install/upgrade to apply')
+    if after_new - before_new > 0:
+        print(f'configsys: {after_new - before_new} new offering(s) in pinned profiles — '
+              f'run `configsys reconcile`')
+
+
 def cmd_where(ctx, args):
     if getattr(args, 'profile', False):
         lines = where_profile_report(ctx, args.name)
@@ -2122,8 +2219,10 @@ def cmd_plugin(ctx, args):
         if not decls:
             print('configsys: no plugins declared (add one: `configsys plugin add <source>`)')
             return 0
+        before = active_snapshot(ctx.config)
         for name, action in actions.plugin_sync(ctx, decls):
             print(f'  {action:8} {name}')
+        print_sync_delta(before, ctx.config)           # what tracked/pinned growth the sync brought
         return 0
 
     if sub == 'init':
@@ -2171,6 +2270,7 @@ def cmd_plugin(ctx, args):
         return 0
 
     if sub == 'update':
+        before = active_snapshot(ctx.config)           # report tracked/pinned growth the update brings
         # No name means every plugin (like `sync`); --all is an explicit alias for the same.
         if getattr(args, 'all', False) or not args.name:
             if args.name:
@@ -2189,6 +2289,7 @@ def cmd_plugin(ctx, args):
             failed = [s for s, ok, _m in rows if not ok]
             print(f'configsys: updated {len(rows) - len(failed)}/{len(rows)} plugins'
                   + (f' ({len(failed)} failed)' if failed else ''))
+            print_sync_delta(before, ctx.config)
             return 1 if failed else 0
         ok, msg, results = actions.plugin_update(ctx, args.name, args.ref,
                                                  pin=getattr(args, 'pin', False),
@@ -2199,6 +2300,7 @@ def cmd_plugin(ctx, args):
         for name, action in results:
             print(f'  {action:8} {name}')
         print(f'configsys: {msg}')
+        print_sync_delta(before, ctx.config)
         return 0
 
     if sub == 'trust':
@@ -2658,6 +2760,9 @@ def build_parser():
     sv.add_argument('name')
     sv.add_argument('version')
 
+    sub.add_parser('reconcile', help='triage OFFERED (NEW) items across active derived profiles — '
+                                     'the items a pinned profile offers but has not installed')
+
     wh = sub.add_parser('where', help='explain a component: source layer, bindings, and how '
                                       'it resolves on this machine')
     wh.add_argument('name', help='component name (or a profile name with -p)')
@@ -2700,13 +2805,21 @@ def build_parser():
     prsub.add_parser('list', help='profiles, their components, and which are active (default)')
     prs = prsub.add_parser('show', help="one profile's structure and where it is defined")
     prs.add_argument('profile')
-    for name, helptext in (('add', 'add a component to a profile'),
-                           ('rm', 'remove a component from a profile')):
+    for name, helptext in (('add', 'add a component to a profile (pick, in a ballot)'),
+                           ('rm', 'remove a component from a profile'),
+                           ('decline', 'decline an OFFERED (NEW) menu item in a derived profile'),
+                           ('offer', 'clear a pick/decline back to OFFERED (NEW)')):
         sp = prsub.add_parser(name, help=helptext)
         sp.add_argument('profile')
         sp.add_argument('component')
         sp.add_argument('--local', action='store_true',
                         help="write to this machine's top config, not the primary plugin")
+        if name in ('add', 'rm'):                    # how to amend a lower-layer-only profile
+            g = sp.add_mutually_exclusive_group()
+            g.add_argument('--pin', action='store_const', const='pin', dest='synth',
+                           help='pin (^self): snapshot picks, offer upstream growth as NEW')
+            g.add_argument('--track', action='store_const', const='track', dest='synth',
+                           help='track (+self): amend the live def; upstream growth installs')
     for name, helptext in (('activate', 'mark a profile active (add it to configs)'),
                            ('deactivate', 'mark a profile inactive (remove it from configs)')):
         sp = prsub.add_parser(name, help=helptext)
@@ -3149,20 +3262,24 @@ def cmd_profile(ctx, args):
     ctx.ensure_user_config()                     # the edit target must exist
     target = str(ctx.paths.user_config_file) if getattr(args, 'local', False) else None
 
-    if sub in ('add', 'rm'):
-        action = 'add' if sub == 'add' else 'remove'
+    if sub in ('add', 'rm', 'decline', 'offer'):
+        action = {'add': 'add', 'rm': 'remove', 'decline': 'decline', 'offer': 'clear'}[sub]
+        # add/rm amend a lower-layer-only profile via +self (track) or ^self (pin): an explicit
+        # --pin/--track wins, else the profile-edit-mode setting (ask -> track on the CLI, no modal).
+        mode = ctx.config.profile_edit_mode()
+        synth = getattr(args, 'synth', None) or (mode if mode in ('track', 'pin') else 'track')
         try:
             changed, label = actions.set_profile_membership(
-                ctx, args.profile, args.component, action, target=target)
+                ctx, args.profile, args.component, action, target=target, synth=synth)
         except ConfigError as e:
             print(f'configsys: {e}', file=sys.stderr)
             return 1
-        if changed:
-            verb = 'added to' if action == 'add' else 'removed from'
-            print(f'configsys: {args.component} {verb} profile {args.profile}  (in {label})')
-        else:
-            state = 'already in' if action == 'add' else 'not in'
-            print(f'configsys: no change — {args.component} is {state} {args.profile}')
+        verbs = {'add': ('added to', 'already in'), 'remove': ('removed from', 'not in'),
+                 'decline': ('declined in', 'already declined in'),
+                 'clear': ('cleared (offered) in', 'not ballotable in')}
+        done, noop = verbs[action]
+        print(f'configsys: {args.component} {done} profile {args.profile}  (in {label})' if changed
+              else f'configsys: no change — {args.component} is {noop} {args.profile}')
         return 0
 
     if sub in ('activate', 'deactivate'):
@@ -3320,6 +3437,7 @@ _COMMANDS = {
     'set-version': cmd_set_version,
     'fix-scope': cmd_fix_scope,
     'where': cmd_where,
+    'reconcile': cmd_reconcile,
     'orphans': cmd_orphans,
     'location': cmd_location,
     'versions': cmd_versions,

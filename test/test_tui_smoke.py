@@ -135,6 +135,50 @@ def test_tui_renders_a_derived_profile_ballot(tmp_path):
     assert first, 'TUI produced no terminal output'
 
 
+def test_tui_reconcile_overlay(tmp_path):
+    '''Open the reconcile overlay (N) on an active derived profile with NEW items, pick one, toggle
+    the auto-declined section, and close — the step-4 render + action path — then quit.'''
+    try:
+        master, slave = pty.openpty()
+    except OSError:
+        pytest.skip('no PTY available')
+
+    cfg = tmp_path / '.config' / 'configsys' / 'configsys.hu'
+    cfg.parent.mkdir(parents=True, exist_ok=True)
+    # mine derives from ai and picks only htop -> bat/fd are OFFERED (NEW) -> the reconcile has content.
+    cfg.write_text('{ configs: [ mine ]  profiles: { ai: [ htop  bat  fd ]  '
+                   'mine: [ "^ai"  htop ] } }\n')
+
+    env = dict(os.environ)
+    env.update({'TERM': 'xterm-256color', 'CONFIGSYS_HOME': str(tmp_path),
+                'CONFIGSYS_OS': 'pop', 'PYTHONPATH': str(REPO)})
+    proc = subprocess.Popen(
+        [sys.executable, '-m', 'configsys', '--pretend', 'tui'],
+        stdin=slave, stdout=slave, stderr=slave, env=env, cwd=str(REPO), close_fds=True)
+    os.close(slave)
+
+    deadline = time.monotonic() + 10
+    first = _drain(master, min(deadline, time.monotonic() + 3))
+    # N -> reconcile overlay; space -> pick the first NEW; d -> decline the next; q -> close; then quit.
+    for keys in (b'N', b' ', b'd', b'q', b'q', b'k', b'\n'):
+        try:
+            os.write(master, keys)
+        except OSError:
+            break
+        _drain(master, time.monotonic() + 0.2)
+
+    try:
+        proc.wait(timeout=8)
+    except subprocess.TimeoutExpired:
+        proc.kill()
+        proc.wait()
+        os.close(master)
+        pytest.fail('TUI did not exit after q')
+    os.close(master)
+    assert proc.returncode == 0
+    assert first, 'TUI produced no terminal output'
+
+
 def test_tui_pin_or_track_modal_and_profile_where(tmp_path):
     '''Drive the Profiles page into the pin-or-track modal (editing a repo-only profile) and the
     `w` profile-where overlay — the step-3 render paths — then quit, all without crashing.'''
