@@ -378,6 +378,8 @@ def test_overlay_paints_installed_fast_then_folds_orphans_async(tmp_path, monkey
 
 def test_overlay_off_is_empty_and_not_busy(tmp_path):
     from configsys.tui import menu
-    ps = menu.ProfileScreen(_rctx(tmp_path))            # show_install defaults to 0 (off)
+    ps = menu.ProfileScreen(_rctx(tmp_path))
+    assert ps.show_install == 1                          # default ON
+    ps.show_install = 0                                  # turn it off
     assert ps.overlay() == (frozenset(), {}, frozenset())
     assert not ps.overlay_busy()

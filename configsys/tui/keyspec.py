@@ -189,7 +189,7 @@ ACTION_LABELS = {
     'trust': 'trust code plugin', 'trust-all': 'trust all code', 'set-ref': 'set git ref',
     'star': 'star (toggle: members + removals · off)', 'toggle-member': 'include / exclude subprofile', 'toggle-active': 'activate / deactivate',
     'new': 'new', 'delete': 'delete', 'include': 'include another profile (+)', 'attr-filter': 'filter by attrs',
-    'toggle-install': 'overlay install (cycle: on · +ignored · off)',
+    'toggle-install': 'install overlay on/off (default on)',
     'stage': 'stage orphan for triage', 'stage-uninstall': 'stage uninstall (→ !uninstall)',
     'orphan-ignore': 'ignore / un-ignore this orphan',
     'reset': 'reset to default', 'edit-bg': 'edit background', 'effect-bold': 'toggle bold',
