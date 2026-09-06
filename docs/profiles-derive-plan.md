@@ -303,7 +303,15 @@ Steps 1–3 dissolve all three stated problems; 4–6 are polish.
    of change). CLI gained `profile decline`/`offer` verbs and `--pin`/`--track` on `add`/`rm` (else
    the profile-edit-mode setting decides). Tests: test/test_reconcile.py + a reconcile-overlay render
    smoke in test_tui_smoke.py.
-5. Layer-grouped pane + a `configsys profile pin <name>` converter (clone-and-cull → pinned derivation). The converter does not need to be in repo code though; that's a run-once on user's primary, and user is still the only user of configsys.
+5. **5a DONE; 5b skipped (by decision).** Layer-grouped pane: the profiles pane now partitions roots
+   by their top-definition layer into `this machine` / `your primary` / `plugins` / `repo catalog`
+   (collapsed by default — the noise), each a fold header (enter/h/l), with `L` toggling back to the
+   flat A-Z sort; a live filter forces all groups open. ProfileScreen gains `grouped`/
+   `collapsed_groups`/`_profile_group`/`toggle_grouping`/`is_group_header`; `visible_pnodes` emits
+   `_GKEY`-prefixed header rows; `cur_profile` returns None on a header. New `group: L` profiles
+   keybinding. The `configsys profile pin` converter is NOT built as repo code — per the decision it's
+   a run-once on the user's primary (hand-rolled when the `ts-*` pile is actually collapsed). Tests in
+   test_profile_edit.py + smoke coverage (L toggle, repo-group unfold) in test_tui_smoke.py.
 6. `machines:` section.
 
 If only ONE thing ships: **`^self` + the pin-or-track modal** — it converts the #1 daily friction

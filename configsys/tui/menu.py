@@ -875,6 +875,8 @@ _HELP = {
         'glossary': [
             ('markers', '● active · ◐ active via +include · ○ inactive · ▸ starred · ~ subprofile excluded'),
             ('provenance', '^ pinned (^self) · + tracked (+self) · ⊘ shadowed · ⁺N offered (NEW) in subtree'),
+            ('grouping (L)', 'group the pane by defining layer (this machine · your primary · plugins · '
+                             'repo catalog, collapsed) ↔ flat A-Z; enter/h/l folds a group'),
             ('catalog', '● pick · ↳ member via include · ~ declined · ? offered (NEW, in a derive ballot)'),
             ('terms', '+name folds in another profile · ~name removes a component OR excludes a subprofile · '
                       '"^name" derives (opt-in menu)'),
@@ -2204,6 +2206,15 @@ def _attr_filter_modal(stdscr, pal, inc, exc):
                 inc.add(t)
 
 
+# Layer-grouped profiles pane: a group header is a pnode whose key starts with _GKEY. Groups are
+# keyed by the top-definition layer's ROLE, shown in this order with these labels; repo last (biggest,
+# collapsed by default). Any non-repo/user/primary layer (a data plugin) folds into 'plugin'.
+_GKEY = '\x00#grp:'
+_GROUP_ORDER = ['user', 'primary', 'plugin', 'repo']
+_GROUP_LABEL = {'user': 'this machine', 'primary': 'your primary', 'plugin': 'plugins',
+                'repo': 'repo catalog'}
+
+
 class ProfileScreen:
     '''Two-panel profile editor: profiles (left) + the full component catalog (right). A skin over
     configsys.actions — space toggles membership, `a` toggles a profile active.'''
@@ -2216,6 +2227,8 @@ class ProfileScreen:
         self.pfilter = self.cfilter = ''   # substring filters for the profiles / catalog panes
         self.expanded = set()            # node keys of expanded profiles (inline `+include` tree)
         self.reveal = None               # key of a just-expanded node -> reveal its subtree next draw
+        self.grouped = True              # group the pane by defining layer (this machine/primary/…);
+        self.collapsed_groups = {'repo'}  # `L` toggles flat. Repo catalog collapses by default (noise).
         self.starred = set()             # profile NAMES starred (▸) — their OWN members filter the catalog
         self.attr_inc = set()            # `A` faceted attr filter: lowercased tags to INCLUDE
         self.attr_exc = {'dotfiles'}     # ...and to EXCLUDE — hide the -dotfiles companions by default
@@ -2297,13 +2310,24 @@ class ProfileScreen:
         self._ov_gen += 1                # abandon any in-flight scan's result
 
     # -- profiles tree (top-level profiles + inline `+include` children) --
+    def _profile_group(self, name):
+        '''Which pane group a profile belongs to — the ROLE of its top (highest-precedence)
+        definition layer, folded to one of _GROUP_ORDER. Drives the layer-grouped pane.'''
+        try:
+            defs = self.ctx.config.profile_layer_defs(name)
+            role = defs[-1]['role'] if defs else 'repo'
+        except Exception:                            # noqa: BLE001 — a broken profile falls to repo
+            role = 'repo'
+        return role if role in ('user', 'primary', 'repo') else 'plugin'
+
     def visible_pnodes(self):
         '''Flattened visible tree: [(name, depth, key, expandable, expanded)]. Top-level profiles
         (filtered by pfilter) with each expanded profile's `+includes` shown indented beneath it
         (cycle-guarded). `key` is the ancestor path, so the same profile expands independently under
-        different parents.'''
+        different parents. When `grouped`, layer-group HEADER rows (key starts with _GKEY) partition
+        the roots — a collapsed group hides its members.'''
         f = self.pfilter.lower()
-        roots = [p for p in self.profiles if f in p.lower()] if f else self.profiles
+        roots = [p for p in self.profiles if f in p.lower()] if f else list(self.profiles)
         out = []
 
         def walk(name, depth, path):
@@ -2316,16 +2340,43 @@ class ProfileScreen:
             if expanded:
                 for c in kids:
                     walk(c, depth + 1, path + [name])
+
+        if not self.grouped:
+            for r in roots:
+                walk(r, 0, [])
+            return out
+        buckets = {}
         for r in roots:
-            walk(r, 0, [])
+            buckets.setdefault(self._profile_group(r), []).append(r)
+        for gid in _GROUP_ORDER:
+            grp = buckets.get(gid)
+            if not grp:
+                continue
+            collapsed = (gid in self.collapsed_groups) and not f   # a live filter forces groups open
+            out.append((_GROUP_LABEL[gid], 0, _GKEY + gid, True, not collapsed))
+            if not collapsed:
+                for r in grp:                        # members stay at depth 0 (header is a full-width bar)
+                    walk(r, 0, [])
         return out
+
+    def is_group_header(self, nd):
+        return bool(nd) and isinstance(nd[2], str) and nd[2].startswith(_GKEY)
 
     def cur_node(self):
         v = self.visible_pnodes()
         return v[self.lcur] if 0 <= self.lcur < len(v) else None
 
+    def toggle_grouping(self):
+        '''`L`: flip between the layer-grouped pane and a flat alphabetical sort.'''
+        self.grouped = not self.grouped
+        self.lcur, self.ltop = 0, 0
+
     def expand_cur(self):
         nd = self.cur_node()
+        if self.is_group_header(nd):                  # a group header -> uncollapse the group
+            self.collapsed_groups.discard(nd[2][len(_GKEY):])
+            self.reveal = nd[2]
+            return True
         if nd and nd[3] and not nd[4]:               # expandable and collapsed
             self.expanded.add(nd[2])
             self.reveal = nd[2]                      # reveal the opened subtree on the next draw
@@ -2336,7 +2387,12 @@ class ProfileScreen:
         v = self.visible_pnodes()
         if not (0 <= self.lcur < len(v)):
             return
-        name, depth, key, expandable, expanded = v[self.lcur]
+        nd = v[self.lcur]
+        if self.is_group_header(nd):                  # a group header -> collapse the group
+            if nd[4]:                                 # currently expanded
+                self.collapsed_groups.add(nd[2][len(_GKEY):])
+            return
+        name, depth, key, expandable, expanded = nd
         if expanded:
             self.expanded.discard(key)
         elif depth > 0:                              # a child -> jump to its parent row
@@ -2484,7 +2540,7 @@ class ProfileScreen:
 
     def cur_profile(self):
         nd = self.cur_node()
-        return nd[0] if nd else None
+        return None if (nd is None or self.is_group_header(nd)) else nd[0]
 
     def members(self, profile):
         try:
@@ -2626,6 +2682,12 @@ def _draw_profiles(stdscr, pal, ps, ctx, note, screen):
             ps.ltop = _scroll_reveal(pi, end, ps.ltop, lih, len(vnodes))
         ps.reveal = None
     ps.ltop = _scroll_top(ps.lcur, ps.ltop, lih, len(vnodes))
+    group_counts = {}                                # per-group root count for the header badges
+    if ps.grouped:
+        _pf = ps.pfilter.lower()
+        for _p in (ps.profiles if not _pf else [x for x in ps.profiles if _pf in x.lower()]):
+            g = ps._profile_group(_p)
+            group_counts[g] = group_counts.get(g, 0) + 1
     for vis, i in enumerate(range(ps.ltop, min(len(vnodes), ps.ltop + lih))):
         name, depth, key, expandable, expanded = vnodes[i]
         y = lit + vis
@@ -2638,6 +2700,13 @@ def _draw_profiles(stdscr, pal, ps, ctx, note, screen):
         elif rbg is not None:
             _put(stdscr, y, lil, ' ' * liw,
                  curses.A_REVERSE if low_color else pal.fill(y, lil, h, w, bg=rbg))
+        if key.startswith(_GKEY):                     # a layer-group header row (▾/▹ LABEL (count))
+            gid = key[len(_GKEY):]
+            hdr = f'{"▾" if expanded else "▹"} {name} ({group_counts.get(gid, 0)})'
+            _put(stdscr, y, lil, _fit(hdr.upper(), liw),
+                 pal.style('menu_header', y, lil, h, w, selected=foc, bg=(None if low_color else rbg))
+                 | rev)
+            continue
         star = '▸' if name in ps.starred else ' '     # selection is the bar; ▸ now means "starred"
         exp = '▾' if expanded else ('▹' if expandable else ' ')
         act = '●' if name in ps.active else ('◐' if name in ps.active_indirect else '○')
@@ -2855,12 +2924,12 @@ def _draw_profiles(stdscr, pal, ps, ctx, note, screen):
         g = lambda a: _KEYMAP.glyph('profiles', a)
         nav1 = (f" {g('down')}/{g('up')} move · {g('top')}/{g('bottom')} top/bottom · "
                 f"{g('right')}/{g('left')} expand · {g('switch-pane')}/{g('confirm')} components · "
-                f"{g('find')} find · {g('filter')} filter · {g('attr-filter')} attrs ")
+                f"{g('find')} find · {g('filter')} filter · {g('group')} group · {g('attr-filter')} attrs ")
         nav2 = (f" {g('select')} member · {g('method')} method · {g('where')} where · "
                 f"{g('toggle-active')} active · {g('star')} star · {g('toggle-member')} incl/excl sub · "
                 f"{g('include')} include · {g('new')}/{g('delete')} new/del · {g('quit')} quit ")
     else:
-        nav1 = (' j/k move · g/G top/bottom · h/l expand · tab/⏎ components · / find · F filter · A attrs ')
+        nav1 = (' j/k move · g/G top/bottom · h/l expand · tab/⏎ components · / find · F filter · L group · A attrs ')
         nav2 = (' space member · m method · w where · a active · * star · ~ incl/excl sub · + include · n/d new/del · q quit ')
     _put(stdscr, h - 2, 0, _fit(nav1.ljust(w), w), pal.style('footer', h - 2, 0, h, w))
     _put(stdscr, h - 1, 0, _fit(nav2.ljust(w), w), pal.style('footer', h - 1, 0, h, w))
@@ -4089,7 +4158,10 @@ def run(ctx):
                 elif pfact in ('switch-pane', 'switch-pane-back'):
                     ps.focus = 'right' if ps.focus == 'left' else 'left'   # tab / shift-tab toggle
                 elif pfact == 'confirm' and ps.focus == 'left':
-                    ps.focus = 'right'                 # a profile: open the components pane for it
+                    if ps.is_group_header(ps.cur_node()):   # a group header: fold/unfold it
+                        (ps.collapse_cur if ps.cur_node()[4] else ps.expand_cur)()
+                    else:
+                        ps.focus = 'right'             # a profile: open the components pane for it
                 elif pfact == 'right':
                     if ps.focus == 'left':
                         ps.expand_cur()                # h/l now expand/collapse the include tree
@@ -4264,6 +4336,8 @@ def run(ctx):
                             ps._res.pop(name, None)        # its resolution changed -> drop the stale entry
                             ps.reload()
                             menu_dirty = True
+                elif pfact == 'group' and ps.focus == 'left':   # toggle grouped-by-layer <-> flat
+                    ps.toggle_grouping()
                 elif pfact == 'where':                     # full-page provenance for the current profile
                     _wp = ps.cur_profile()
                     if _wp:

@@ -460,6 +460,40 @@ def test_profile_ballot_view_and_edits(tmp_path):
     assert 'ollama' in ps3.new_members('m') and 'ollama' not in ps3.removed_members('m')
 
 
+def test_profile_pane_layer_grouping(tmp_path):
+    # The pane groups profiles by defining layer: your new profiles under 'this machine', the repo
+    # catalog under a collapsed 'repo catalog' header; `L` flips to a flat list.
+    from configsys import actions
+    from configsys.tui import menu
+    ctx = _rctx(tmp_path)
+    actions.add_profile(ctx, 'zmine')                          # a user-layer (top config) profile
+    ps = menu.ProfileScreen(ctx)
+    assert ps._profile_group('zmine') == 'user'
+    assert ps._profile_group('finders') == 'repo'             # a repo catalog profile
+
+    v = ps.visible_pnodes()
+    keys = [nd[2] for nd in v]
+    assert menu._GKEY + 'user' in keys and menu._GKEY + 'repo' in keys   # group headers present
+    names = [nd[0] for nd in v]
+    assert 'zmine' in names                                    # user profile shown (its group open)
+    assert 'finders' not in names                              # repo catalog collapsed by default
+
+    # the repo header is a header row, its cur_profile is None (not editable as a profile)
+    ri = keys.index(menu._GKEY + 'repo')
+    ps.lcur = ri
+    assert ps.is_group_header(ps.cur_node()) and ps.cur_profile() is None
+    ps.expand_cur()                                            # uncollapse the repo catalog
+    assert 'finders' in [nd[0] for nd in ps.visible_pnodes()]
+    ps.lcur = ri
+    ps.collapse_cur()
+    assert 'finders' not in [nd[0] for nd in ps.visible_pnodes()]
+
+    ps.toggle_grouping()                                       # `L` -> flat: no headers, all profiles
+    v2 = ps.visible_pnodes()
+    assert not any(nd[2].startswith(menu._GKEY) for nd in v2)
+    assert {'zmine', 'finders'} <= {nd[0] for nd in v2}
+
+
 def test_pin_edit_over_a_repo_profile_roundtrip(tmp_path):
     # Editing a repo-only profile with synth='pin' writes a ^self derivation seeded with the current
     # members, so effective membership is unchanged today; the repo def becomes an offered MENU.

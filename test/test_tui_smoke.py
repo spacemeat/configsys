@@ -114,9 +114,10 @@ def test_tui_renders_a_derived_profile_ballot(tmp_path):
 
     deadline = time.monotonic() + 8
     first = _drain(master, min(deadline, time.monotonic() + 3))
-    # 2 -> Profiles page; G -> bottom profile (m, the derive); tab -> focus catalog (ballot markers);
-    # j -> move a catalog cell; then quit (q -> modal, k -> "Yes, quit", ⏎).
-    for keys in (b'2', b'G', b'\t', b'j', b'j', b'q', b'k', b'\n'):
+    # 2 -> Profiles page; L,L exercises the flat<->grouped pane render then restores grouped (lcur
+    # resets to 0); ai/m are user-layer profiles under the open 'this machine' group, so j,j lands on
+    # m (the derive); tab -> focus catalog (ballot markers); j -> a cell; then quit.
+    for keys in (b'2', b'L', b'L', b'j', b'j', b'\t', b'j', b'j', b'q', b'k', b'\n'):
         try:
             os.write(master, keys)
         except OSError:
@@ -203,9 +204,10 @@ def test_tui_pin_or_track_modal_and_profile_where(tmp_path):
 
     deadline = time.monotonic() + 10
     first = _drain(master, min(deadline, time.monotonic() + 3))
-    # 2 -> Profiles; w -> profile-where overlay; esc closes it; tab -> catalog; space -> edit a
-    # repo-only profile's membership -> pin-or-track modal; p -> choose PIN; then quit.
-    for keys in (b'2', b'w', b'\x1b', b'\t', b' ', b'p', b'q', b'k', b'\n'):
+    # 2 -> Profiles; the pane groups by layer with the repo catalog collapsed, so l unfolds it, j
+    # lands on the first repo profile; w -> profile-where overlay, esc closes it; tab -> catalog;
+    # space -> edit that repo-only profile -> pin-or-track modal; p -> choose PIN; then quit.
+    for keys in (b'2', b'l', b'j', b'w', b'\x1b', b'\t', b' ', b'p', b'q', b'k', b'\n'):
         try:
             os.write(master, keys)
         except OSError:

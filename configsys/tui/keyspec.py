@@ -163,7 +163,7 @@ KNOWN_ACTIONS = {
     'plugins': {'add', 'remove', 'sync', 'sync-all', 'bless', 'unbless', 'update', 'update-all',
                 'trust', 'trust-all', 'set-ref'},
     'profiles': {'star', 'toggle-member', 'toggle-active', 'new', 'delete', 'include', 'method',
-                 'where', 'attr-filter', 'toggle-install', 'stage', 'stage-uninstall',
+                 'where', 'group', 'attr-filter', 'toggle-install', 'stage', 'stage-uninstall',
                  'orphan-ignore'},
     'theme': {'new', 'reset', 'edit-bg', 'effect-bold', 'effect-underline', 'effect-reverse',
               'gradient-toggle', 'copy-page', 'save', 'load',
