@@ -2059,39 +2059,73 @@ class ProfileScreen:
         self._scan_caches = None         # retained per-driver enumeration (installed/explicit/origin);
                                          # survives membership edits (reality is stable on this page) —
                                          # dropped only on an install/uninstall execute (invalidate_overlay)
+        self._async_overlay = None       # (installed, orphans) delivered by the background orphan scan
+        self._ov_gen = 0                 # generation guard: a stale async result (pre-reload) is dropped
         self.reload()
 
     def overlay(self):
         '''The install-axis overlay data when `show_install` is on: (installed set, {comp: Orphan},
-        uninstall-queue set). The per-driver enumeration is done ONCE and retained in `_scan_caches`
-        (installed reality is stable while on this page — no install happens here); a repeat after a
-        membership edit only re-runs the cheap set/graph classification over the cached listings, so the
-        overlay stays cheap enough to leave permanently on. `invalidate_overlay()` drops the caches
-        after an execute changes what's on disk.'''
+        uninstall-queue set). ASYNC: the installed underlines paint IMMEDIATELY from the startup-seeded
+        index (a pure dict map, no spawns), while the full scan — completing the installed set for
+        non-seeded drivers PLUS the orphan classification (explicit_keys, ~1s) — runs on a daemon
+        thread and folds in on a later redraw. So `O` never blocks the UI (the aim: leave it on by
+        default). `invalidate_overlay()` drops the caches after an execute changes what's on disk.'''
         if not self.show_install:
             return (frozenset(), {}, frozenset())
+        # fold a completed async result (for the CURRENT generation) into the shown overlay
+        if self._async_overlay is not None:
+            inst, orph = self._async_overlay
+            self._async_overlay = None
+            self._overlay = (inst, orph, set(self.ctx.config.uninstall_queue()))
         if self._overlay is None:
             from .. import orphans as _orph
             try:
-                units, _e = self.ctx.routes.resolve_resilient(list(self.ctx.config.requested()))
                 if self._scan_caches is None:
                     # seed the per-driver installed cache from the startup inspection's already-paid
-                    # enumeration (a COPY — install_overlay fills missing drivers, only spawning for the
-                    # few not batched at load). Post-reload (e.g. after an uninstall) it's refreshed.
+                    # enumeration (a COPY). Post-reload (e.g. after an uninstall) it's refreshed.
                     seed = dict(getattr(self.ctx, 'startup_enum', None) or {})
                     self._scan_caches = {'inst': seed} if seed else {}
-                inst, orph, self._scan_caches = _orph.install_overlay(
-                    self.ctx, units, caches=self._scan_caches)
-                self._overlay = (inst, orph, set(self.ctx.config.uninstall_queue()))
+                installed = _orph.installed_overlay(self.ctx, self._scan_caches)   # instant (seed only)
+                self._overlay = (installed, {}, set(self.ctx.config.uninstall_queue()))
+                self._start_overlay_scan()                                         # orphans + full set async
             except Exception:            # noqa: BLE001 — the overlay must never brick the screen
                 self._overlay = (frozenset(), {}, frozenset())
         return self._overlay
+
+    def _start_overlay_scan(self):
+        '''Run the full install_overlay (resolve + enumeration + orphan classification) on a daemon
+        thread; deliver its result to `_async_overlay` iff no reload/invalidate has bumped the
+        generation. The menu loop times out its getch while this is pending (overlay_busy) so the
+        result paints on its own, without needing a keypress. resolve_resilient runs in the thread too
+        — the fast paint needs only the seed + reverse index.'''
+        from .. import orphans as _orph
+        self._ov_gen += 1
+        gen, caches = self._ov_gen, self._scan_caches
+
+        def run():
+            try:
+                units, _e = self.ctx.routes.resolve_resilient(list(self.ctx.config.requested()))
+                inst, orph, _c = _orph.install_overlay(self.ctx, units, caches=caches)
+            except Exception:            # noqa: BLE001 — a scan failure just leaves the seed underlines
+                return
+            if self._ov_gen == gen:
+                self._async_overlay = (inst, orph)
+        self._ov_thread = threading.Thread(target=run, daemon=True)
+        self._ov_thread.start()
+
+    def overlay_busy(self):
+        '''True while the background orphan scan is still running (its result not yet folded) — the
+        menu loop uses this to poll for the async paint.'''
+        return (self.show_install and self._async_overlay is None
+                and getattr(self, '_ov_thread', None) is not None and self._ov_thread.is_alive())
 
     def invalidate_overlay(self):
         '''Drop BOTH the classification and the retained per-driver enumeration — call after an
         install/uninstall execute, when what's actually on disk may have changed.'''
         self._overlay = None
         self._scan_caches = None
+        self._async_overlay = None
+        self._ov_gen += 1                # abandon any in-flight scan's result
 
     # -- profiles tree (top-level profiles + inline `+include` children) --
     def visible_pnodes(self):
@@ -2235,6 +2269,8 @@ class ProfileScreen:
         cfg = self.ctx.config
         self._overlay = None                         # recompute the overlay CLASSIFICATION after an edit
                                                      # (keeps _scan_caches — reality is unchanged here)
+        self._async_overlay = None                   # abandon any in-flight scan; the recompute restarts it
+        self._ov_gen = getattr(self, '_ov_gen', 0) + 1
         self.profiles = cfg.profile_names()
         self._profset = set(self.profiles)
         self.starred &= self._profset                # drop stars for profiles that no longer exist
@@ -3700,7 +3736,15 @@ def run(ctx):
             else:
                 diag_top = _draw(stdscr, pal, ms, ctx, note, diags, False, diag_top, screen)
             note = ''
+            # While the Profiles install-overlay's background orphan scan is running, poll (timed
+            # getch) so its result paints on its own; otherwise block. Restore blocking immediately
+            # after so the modal getch loops are unaffected.
+            stdscr.timeout(120 if (screen == 'profiles' and ps is not None and ps.overlay_busy())
+                           else -1)
             ch = stdscr.getch()
+            stdscr.timeout(-1)
+            if ch == -1:                                 # timed out with no key -> just redraw
+                continue
 
             oact = keymap.action_for('components', ch)   # overlays scroll via the same nav actions
             if show_where:                              # where overlay: scroll or exit

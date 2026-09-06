@@ -346,3 +346,38 @@ def test_subprofile_membership_toggle_roundtrip(tmp_path):
     assert actions.set_subprofile_membership(ctx, 'ts', 'ruby-lang', True)[0] is False   # no-op
     assert actions.set_subprofile_membership(ctx, 'ts', 'ts', False)[0] is False         # self refused
     assert actions.set_subprofile_membership(ctx, 'ts', 'nope-lang', False)[0] is False  # unknown
+
+
+def test_overlay_paints_installed_fast_then_folds_orphans_async(tmp_path, monkeypatch):
+    # `O` must never block: the installed underlines paint immediately from the seed, and the orphan
+    # scan (the ~1s part) runs on a daemon thread and folds in on a later redraw. Stub the two orphans
+    # entry points so the split + fold is deterministic (real scans spawn apt/flatpak).
+    import threading
+    from configsys.tui import menu
+    from configsys import orphans as O
+    ctx = _rctx(tmp_path)
+    monkeypatch.setattr(O, 'installed_overlay', lambda ctx, caches: {'htop'})   # instant fast path
+    gate = threading.Event()
+
+    def fake_full(ctx, units, caches=None):
+        gate.wait(5)                                    # let the test control when the scan "finishes"
+        return {'htop', 'btop'}, {'ncdu': object()}, (caches if caches is not None else {})
+    monkeypatch.setattr(O, 'install_overlay', fake_full)
+
+    ps = menu.ProfileScreen(ctx)
+    ps.show_install = 1
+    inst, orph, _uq = ps.overlay()                      # first paint
+    assert inst == {'htop'} and orph == {}             # underlines now, orphans not yet
+    assert ps.overlay_busy()                            # background scan in flight
+    gate.set()
+    ps._ov_thread.join(timeout=5)
+    inst2, orph2, _uq2 = ps.overlay()                   # fold the async result
+    assert inst2 == {'htop', 'btop'} and set(orph2) == {'ncdu'}
+    assert not ps.overlay_busy()
+
+
+def test_overlay_off_is_empty_and_not_busy(tmp_path):
+    from configsys.tui import menu
+    ps = menu.ProfileScreen(_rctx(tmp_path))            # show_install defaults to 0 (off)
+    assert ps.overlay() == (frozenset(), {}, frozenset())
+    assert not ps.overlay_busy()

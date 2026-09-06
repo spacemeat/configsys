@@ -200,6 +200,17 @@ def test_scan_classifies_real_components(tmp_path):
     assert found['bat'].version == '0.24'
 
 
+def test_installed_overlay_maps_seed_without_spawning(tmp_path):
+    # the async overlay's FAST path: map the already-cached installed indices to component names, no
+    # enumeration. A bat install (apt) -> the `bat` component underlined; an empty cache -> empty set.
+    ctx = _ctx(tmp_path)
+    rindex = O.build_reverse_index(ctx)
+    caches = {'inst': {'apt': {_aptkey(rindex, 'bat'): '0.24'}}}
+    assert 'bat' in O.installed_overlay(ctx, caches)
+    assert O.installed_overlay(ctx, {}) == set()
+    assert O.installed_overlay(ctx, {'inst': {}}) == set()
+
+
 def test_install_overlay_reuses_caches_across_calls(tmp_path):
     # the TUI overlay retains the per-driver enumeration so a repeat (after a membership edit) does
     # NO re-enumeration — only the cheap classification re-runs. Prove reuse: seed the bundle, then

@@ -253,6 +253,22 @@ def scan_orphans(ctx, units, *, cache=None, explicit=None, origins=None,
     return out
 
 
+def installed_overlay(ctx, caches):
+    '''The 'installed' underline set from the ALREADY-cached installed indices (caches['inst'], seeded
+    from the startup inspection) — NO new enumeration, so it's instant. Drivers not yet in the cache
+    (e.g. pip/snap with no active unit at startup) simply don't contribute yet; the full
+    install_overlay, run asynchronously, fills them in along with the orphans. So the first `O` paints
+    underlines immediately and the rest arrives a beat later.'''
+    rindex = build_reverse_index(ctx)
+    inst = (caches or {}).get('inst') or {}
+    installed = set()
+    for dname, idx in inst.items():
+        if idx:
+            for key in idx:
+                installed.update(rindex.get((dname, key), ()))
+    return installed
+
+
 def install_overlay(ctx, units, *, caches=None):
     '''For the TUI::Profiles install-axis overlay: `(installed, orphans, caches)` where `installed` is
     the set of component names with ANY installed slot on disk (members + orphans -> the "installed"
