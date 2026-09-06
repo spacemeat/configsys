@@ -281,6 +281,13 @@ class Config:
         v = str(v).strip().lower() if v is not None else 'auto'
         return v if v in ('auto', 'always', 'never') else 'auto'
 
+    def install_overlay_default(self):
+        '''Whether TUI::Profiles opens with the install-state overlay ON (installed underlined, orphans
+        coloured, ignored orphans dimmed) — `O` toggles it either way. `install-overlay: false` starts
+        it off. On by default. Machine setting (repo<primary<user).'''
+        v = layers.merge_scalar(self._layers, 'install-overlay', _MACHINE_ROLES)
+        return str(v).strip().lower() not in ('false', 'no', 'off', '0') if v is not None else True
+
     def splash(self):
         '''The chosen startup splash: a registered provider NAME, a disable token (false/off/no),
         or None when unset (use the built-in default). A machine setting (repo < primary < user).

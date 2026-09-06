@@ -2054,8 +2054,9 @@ class ProfileScreen:
         self.show_removed = False        # tracks the star filter: True whenever `starred` is non-empty, so
                                          # the filter always reveals a starred profile's ~-pruned drops (`~`)
         self._res = {}                   # component -> (available, via, pinned); survives reloads
-        self.show_install = 1            # `O` toggles the install overlay off/on (default ON): installed
-        self._overlay = None             #   underlined, orphans coloured, ignored orphans revealed dimmed
+        self.show_install = 1 if ctx.config.install_overlay_default() else 0   # `O` toggles the install
+        self._overlay = None             # overlay off/on (default from `install-overlay`, on unless set):
+                                         # installed underlined, orphans coloured, ignored orphans dimmed
         self._scan_caches = None         # retained per-driver enumeration (installed/explicit/origin);
                                          # survives membership edits (reality is stable on this page) —
                                          # dropped only on an install/uninstall execute (invalidate_overlay)
