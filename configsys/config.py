@@ -271,6 +271,16 @@ class Config:
         v = layers.merge_scalar(self._layers, 'adopt-installed', _MACHINE_ROLES)
         return str(v).strip().lower() not in ('false', 'no', 'off', '0') if v is not None else True
 
+    def refresh_before_execute(self):
+        '''Refresh the OS package index ONCE before an execute batch — so upgrades see current
+        candidates, and a broken vendor source is caught up front instead of failing per-package (a
+        stale index silently upgrades to an old candidate; a per-package `apt-get update` lets one
+        bad repo cascade into unrelated packages). 'auto' (default): refresh when the batch has a
+        native install/upgrade. 'always'/'never' force it. Machine setting (repo<primary<user).'''
+        v = layers.merge_scalar(self._layers, 'refresh-before-execute', _MACHINE_ROLES)
+        v = str(v).strip().lower() if v is not None else 'auto'
+        return v if v in ('auto', 'always', 'never') else 'auto'
+
     def splash(self):
         '''The chosen startup splash: a registered provider NAME, a disable token (false/off/no),
         or None when unset (use the built-in default). A machine setting (repo < primary < user).

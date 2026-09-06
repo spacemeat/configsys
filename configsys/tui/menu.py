@@ -477,6 +477,8 @@ def _fail_detail(res):
 
 
 def execute_plan(ctx, plan, ledger):
+    from ..app import maybe_refresh_before_plan           # lazy import: app imports this module
+    maybe_refresh_before_plan(ctx, plan)
     outcomes = []
     last_failure = None
     for op, key, rc in plan:

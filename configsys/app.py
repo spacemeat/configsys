@@ -655,6 +655,7 @@ def _dispatch_op(ctx, names, op, *, ledger=None, version=None, no_deps=False):
                 base_plan.append(('upgrade', pkey, prc))
         plan = expand_plan(base_plan, units)
 
+    maybe_refresh_before_plan(ctx, plan)     # refresh the OS index once up front (see the setting)
     rc_code = 0
     failures = []            # every problem record (some fatal, some installed-with-a-warning)
     n_fatal = 0
@@ -1033,6 +1034,53 @@ def _reconcile_managed_sources(ctx, pm, wanted, *, ask=None, lister=None):
             ctx.runner.run(f'sudo rm -f {shlex.quote(f)}', capture=True)
             removed += 1
     return removed
+
+
+# OS package-manager index-refresh command per native driver. pacman is absent on purpose: a bare
+# `pacman -Sy` leaves a partial-sync state that breaks the next single-package install, so the only
+# safe refresh there is a full `-Syu` (cmd_refresh does that interactively, not the auto path).
+_NATIVE_REFRESH = {'apt': 'apt-get update', 'dnf': 'dnf -q makecache',
+                   'zypper': 'zypper --non-interactive refresh', 'apk': 'apk update',
+                   'brew': 'brew update'}
+
+
+def refresh_native_index(ctx):
+    '''Refresh the OS package index ONCE, resiliently (retry a transient stumble) and NON-fatally —
+    a failure is reported by the caller, never blocks the batch. Returns (ran, ok): ran=False when
+    there's nothing safe to do (pacman/unknown pm). Used before an execute batch so upgrades see
+    current candidates and a broken vendor source is caught up front, not per-package.'''
+    pm = ctx.routes.cascade.native(ctx.os_info.block)
+    cmd = _NATIVE_REFRESH.get(pm)
+    if not cmd:
+        return False, True
+    from .failures import retry_transient
+    res = retry_transient(lambda: ctx.runner.run(cmd, sudo=(pm != 'brew'), capture=True))
+    return True, res.ok
+
+
+_NATIVE_PMS = {'apt', 'dnf', 'zypper', 'apk', 'brew'}   # index benefits from a pre-batch refresh (not pacman)
+
+
+def maybe_refresh_before_plan(ctx, plan):
+    '''Per the `refresh-before-execute` setting, refresh the OS package index ONCE before running
+    `plan` — so upgrades see current candidates and a broken vendor source is caught up front instead
+    of failing per-package. 'auto' (default) refreshes only when the plan has a native install/
+    upgrade; 'always'/'never' force it. Non-fatal: a failed refresh proceeds on the cached index.'''
+    cfg = getattr(ctx, 'config', None)
+    mode = cfg.refresh_before_execute() if hasattr(cfg, 'refresh_before_execute') else 'auto'
+    if mode == 'never':
+        return
+    if getattr(ctx, 'routes', None) is None or getattr(ctx, 'os_info', None) is None:
+        return                               # not enough context to refresh (e.g. a bare test stub)
+    has_native = any(op in ('install', 'upgrade') and rc.driver in _NATIVE_PMS for op, _k, rc in plan)
+    if mode == 'auto' and not has_native:
+        return
+    print('\nRefreshing the package index before the batch…', flush=True)
+    ran, ok = refresh_native_index(ctx)
+    if ran:
+        print('  ✓ index refreshed' if ok else
+              '  ⚠ index refresh hit a problem — proceeding on the cached index '
+              '(run `configsys refresh` to diagnose)')
 
 
 def cmd_refresh(ctx, args):
