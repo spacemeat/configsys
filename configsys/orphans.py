@@ -265,20 +265,38 @@ def install_overlay(ctx, units, *, caches=None):
     rindex = build_reverse_index(ctx)
     caches = caches if caches is not None else {}
     inst = caches.setdefault('inst', {})            # driver -> installed_index() dict|None (retained)
+    expl = caches.setdefault('expl', {})            # driver -> explicit_keys() set|None (retained)
     scan_drivers = {d for (d, _k) in rindex} | set(USER_FACING)
 
-    def _enum(dname):                               # one installed_index() call (a subprocess)
-        drv = get_driver(dname, ctx.runner, ctx.paths)
-        try:
-            return dname, (drv.installed_index() if drv is not None else None)
-        except Exception:                           # noqa: BLE001
-            return dname, None
+    # Enumerate every driver's installed set AND its explicit (user-installed) keys in ONE concurrent
+    # pass — both are subprocess-bound (dpkg-query, apt-mark showmanual, npm ls -g, pip list…) and were
+    # the bulk of the first-`O` delay when run serially (installed_index seeded from startup, but
+    # explicit_keys was queried per-driver inside the serial orphan scan). Per driver: fetch its
+    # installed_index if not already cached (startup seeds apt/flatpak/npm/pipx), then its
+    # explicit_keys only when it HAS installs (an empty driver's manual/auto split is moot). Tasks run
+    # in parallel, so the wall collapses to the slowest single driver instead of the sum.
+    _MISS = object()
 
-    # enumerate every driver's installed set CONCURRENTLY (apt/flatpak/npm/pip are each a slow spawn;
-    # serial they sum, parallel they collapse to the slowest one) — but only drivers not already
-    # cached, so a repeat call after a membership edit spawns nothing. The scan below reuses the cache.
-    for dname, idx in _parallel_map(_enum, [d for d in scan_drivers if d not in inst]):
+    def _probe(dname):
+        drv = get_driver(dname, ctx.runner, ctx.paths)
+        idx = inst.get(dname, _MISS)
+        if idx is _MISS:
+            try:
+                idx = drv.installed_index() if drv is not None else None
+            except Exception:                       # noqa: BLE001
+                idx = None
+        ek = expl.get(dname, _MISS)
+        if ek is _MISS:
+            try:
+                ek = drv.explicit_keys() if (drv is not None and idx) else None
+            except Exception:                       # noqa: BLE001
+                ek = None
+        return dname, idx, ek
+
+    todo = [d for d in scan_drivers if d not in inst or d not in expl]
+    for dname, idx, ek in _parallel_map(_probe, todo):
         inst[dname] = idx
+        expl[dname] = ek
 
     installed = set()
     for dname in scan_drivers:
@@ -286,8 +304,9 @@ def install_overlay(ctx, units, *, caches=None):
         if idx:
             for key in idx:
                 installed.update(rindex.get((dname, key), ()))
+
     orphans = {o.component: o for o in scan_orphans(
-        ctx, units, cache=inst, explicit=caches.setdefault('expl', {}),
+        ctx, units, cache=inst, explicit=expl,
         origins=caches.setdefault('orig', {})) if o.component}
     return installed, orphans, caches
 
