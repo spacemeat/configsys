@@ -46,13 +46,15 @@ def _selected_machine(layer_list):
     return v.strip() if isinstance(v, str) and v.strip() else None
 
 
-def _inject_machine_layer(layer_list):
-    '''If a `machine:` is selected and defined in `machines:`, splice that machine's `profiles:`/
-    `configs:` in as its OWN layer — a `machine`-role rung that overlays the shared primary/plugin/repo
-    profiles by name (so `^self`/`+self` and provenance flow) yet sits BELOW the local top config (which
-    still overrides). A machine is a composing layer, not a container: shared profiles live at the
-    primary's top level and a machine inherits/derives/amends them. Unknown/absent selection -> no-op.'''
-    sel = _selected_machine(layer_list)
+def _inject_machine_layer(layer_list, override=None):
+    '''If a `machine:` is selected (or `override` names one) and defined in `machines:`, splice that
+    machine's `profiles:`/`configs:` in as its OWN layer — a `machine`-role rung that overlays the
+    shared primary/plugin/repo profiles by name (so `^self`/`+self` and provenance flow) yet sits BELOW
+    the local top config (which still overrides). A machine is a composing layer, not a container:
+    shared profiles live at the primary's top level and a machine inherits/derives/amends them.
+    `override` is the working-target selector (`--machine`). Unknown/absent selection -> no-op.'''
+    sel = (override.strip() if isinstance(override, str) and override.strip()
+           else _selected_machine(layer_list))
     if not sel:
         return layer_list
     got = _machine_entry(layer_list, sel)
@@ -65,6 +67,7 @@ def _inject_machine_layer(layer_list):
     if entry.get('configs') is not None:
         data['configs'] = entry['configs']
     mlayer = layers.Layer(src, 'machine', data)
+    mlayer.machine = sel                     # the machine name this rung carries (writer + provenance)
     # insert just below the TOP user config (the last `user` layer) so the box's own file still wins
     at = max((i for i, l in enumerate(layer_list) if l.role == 'user'), default=len(layer_list))
     return layer_list[:at] + [mlayer] + layer_list[at:]
@@ -108,13 +111,14 @@ class Config:
     ALL_PROFILE = 'all'
 
     @classmethod
-    def load(cls, paths, plugin_files=()):
+    def load(cls, paths, plugin_files=(), machine=None):
         roots = [(paths.config_file, 'repo')]
         roots += [p if isinstance(p, (tuple, list)) else (p, 'plugin')   # (path, role)
                   for p in plugin_files]
         roots.append((paths.user_config_file, 'user'))
         layer_list, warns = layers.expand_tolerant(roots, {'plugin', 'primary'})
-        layer_list = _inject_machine_layer(layer_list)   # the selected `machine:`'s profiles/configs
+        # `machine` overrides the box's own `machine:` selection (the working-target selector).
+        layer_list = _inject_machine_layer(layer_list, override=machine)
         cfg = cls(layer_list)
         cfg.load_warnings = warns     # a malformed primary/plugin layer skipped, not fatal
         return cfg
@@ -353,9 +357,17 @@ class Config:
         return v if v in ('full', 'reduced', 'none') else None
 
     def selected_machine(self):
-        '''The active machine name (`machine:` setting, repo<primary<user), or None. Its `machines:`
-        entry has been spliced in as a `machine`-role layer (see _inject_machine_layer).'''
+        '''The active/target machine name: the spliced `machine`-role layer's name if one is present
+        (honors a `--machine` override), else the `machine:` setting, else None.'''
+        for layer in self._layers:
+            if layer.role == 'machine':
+                return getattr(layer, 'machine', None) or _selected_machine(self._layers)
         return _selected_machine(self._layers)
+
+    def machine_layer_index(self):
+        '''Index of the injected `machine`-role layer (the edit target for a machine-scoped profile
+        write), or None. Distinguishes it from the primary layer they share a path.'''
+        return next((i for i, l in enumerate(self._layers) if l.role == 'machine'), None)
 
     def machines(self):
         '''All defined machine names -> their `{configs?, profiles?}` entry, highest-precedence layer
@@ -834,7 +846,7 @@ class Config:
             return []
         return self.profile_components(profile)
 
-    def plan_membership_edit(self, profile, comp, action, target_file, synth='track'):
+    def plan_membership_edit(self, profile, comp, action, target_file, synth='track', layer_idx=None):
         '''Compute the new raw term list for `profile` in `target_file` so `comp` reaches `action`'s
         state, honoring the term algebra. `action`: `'add'` (a member) / `'remove'` (a non-member) of
         the EFFECTIVE set; plus the derived-profile ballot pair `'decline'` (write an explicit `~comp`
@@ -848,8 +860,10 @@ class Config:
         `synth` picks how the FIRST amend of a profile defined only in a LOWER layer is materialized
         (add/remove only): `'track'` (default, the historical behavior) amends the live lower def via
         `+self`; `'pin'` writes a `^self` derivation seeded with the current effective members as picks
-        (so behavior is identical today and upstream growth is later OFFERED as NEW, never applied).'''
-        tidx = self.layer_index(target_file)
+        (so behavior is identical today and upstream growth is later OFFERED as NEW, never applied).
+        `layer_idx` addresses the edit layer directly (for a machine-role rung that shares a path with
+        the primary — `layer_index` can't disambiguate); default resolves `target_file` by path.'''
+        tidx = layer_idx if layer_idx is not None else self.layer_index(target_file)
         if tidx is None:
             raise ConfigError(f'{target_file} is not a loaded config layer')
         chain = self._chain.get(profile, ())

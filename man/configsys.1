@@ -20,6 +20,9 @@ override detected OS routes block (e.g. pop_os!)
 \fB--home\fR
 override HOME base for all paths (sandboxing)
 .TP
+\fB--machine\fR \fINAME\fR
+curate/plan a specific machine's set (overrides this box's \fBmachine:\fR for the run); install/execute still act on the local machine only
+.TP
 \fB--config\fR
 override the per-machine selector file path
 .TP
@@ -71,6 +74,13 @@ pin a component to a specific version
 .TP
 \fBreconcile\fR
 triage OFFERED (NEW) items across active derived profiles — the items a pinned profile offers but has not installed
+.TP
+\fBmachine\fR
+view or edit \fBmachines:\fR — named profile-sets that overlay the shared profiles (a composing layer per machine)
+.RS
+.PP
+Subcommands: \fBlist\fR, \fBshow\fR, \fBadd\fR, \fBrm\fR, \fBuse\fR.
+.RE
 .TP
 \fBwhere\fR
 explain a component: source layer, bindings, and how it resolves on this machine

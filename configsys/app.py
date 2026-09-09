@@ -138,6 +138,9 @@ class Context:
         self.plugin_code_conflicts = []  # code-level registration collisions (version-source/transport)
         self.plugin_pending_vias = set()  # via names those gated-out plugins would provide
         self.resolve_errors = {}      # {requested_name: message} from the last resilient resolve
+        # working-TARGET machine: `--machine X` curates/plans machine X's set from any box (overrides
+        # the local `machine:` setting for this run). None -> use the box's own `machine:` selection.
+        self.machine_override = getattr(args, 'machine', None) or None
         self._migrate_user_config()
 
     @property
@@ -307,7 +310,7 @@ class Context:
     @property
     def config(self):
         if self._config is None:
-            self._config = Config.load(self.paths, self.plugin_files)
+            self._config = Config.load(self.paths, self.plugin_files, machine=self.machine_override)
             # back the built-in `all` profile with the loaded component set (lazy: routes carry it)
             self._config._universe_provider = lambda: set(self.routes.components)
             self.paths.set_config_dirs(self._config.install_dirs())   # env still overrides these
@@ -2702,6 +2705,9 @@ def build_parser():
                    help='print commands instead of executing them (dry run)')
     p.add_argument('--os', help='override detected OS routes block (e.g. pop_os!)')
     p.add_argument('--home', help='override HOME base for all paths (sandboxing)')
+    p.add_argument('--machine', metavar='NAME',
+                   help='curate/plan a specific machine\'s set (overrides this box\'s `machine:` for '
+                        'the run); install/execute still act on the local machine only')
     p.add_argument('--config', help='override the per-machine selector file path')
     p.add_argument('--color', choices=['auto', '24bit', '256', '16', '8', 'none'], default=None,
                    help='cap the TUI color depth (clamps DOWN only) — for testing degradation or a '
@@ -2769,6 +2775,19 @@ def build_parser():
 
     sub.add_parser('reconcile', help='triage OFFERED (NEW) items across active derived profiles — '
                                      'the items a pinned profile offers but has not installed')
+
+    mp = sub.add_parser('machine', help='view or edit `machines:` — named profile-sets that overlay '
+                                        'the shared profiles (a composing layer per machine)')
+    mpsub = mp.add_subparsers(dest='machine_command')
+    mpsub.add_parser('list', help='defined machines + which one this box is (default)')
+    mps = mpsub.add_parser('show', help="one machine's configs + profiles (as they resolve)")
+    mps.add_argument('name')
+    for _n, _h in (('add', 'create a new, empty machine entry'),
+                   ('rm', 'delete a machine entry')):
+        _sp = mpsub.add_parser(_n, help=_h)
+        _sp.add_argument('name')
+    mpu = mpsub.add_parser('use', help="set THIS box's machine (the `machine:` setting); no name clears it")
+    mpu.add_argument('name', nargs='?')
 
     wh = sub.add_parser('where', help='explain a component: source layer, bindings, and how '
                                       'it resolves on this machine')
@@ -3224,6 +3243,68 @@ def cmd_dotfiles_capture(ctx, args):
     return 0
 
 
+def cmd_machine(ctx, args):
+    '''View or edit `machines:` — each a composing layer whose profiles overlay the shared ones.'''
+    from . import actions
+    cfg = ctx.config
+    sub = getattr(args, 'machine_command', None) or 'list'
+
+    if sub == 'list':
+        machines = cfg.machines()
+        here = cfg.selected_machine()
+        if not machines:
+            print('configsys: no machines defined (create one: `configsys machine add <name>`)')
+            if here:
+                print(f'  note: `machine: {here}` is selected but undefined')
+            return 0
+        for name in sorted(machines):
+            mark = '*' if name == here else ' '
+            cfgs = machines[name].get('configs') or []
+            profs = machines[name].get('profiles') or {}
+            print(f' {mark} {name}   configs: {", ".join(cfgs) or "(none)"}   '
+                  f'profiles: {len(profs)}')
+        print('\n  * = this box (`machine:`). Curate another with `--machine <name>`; edit with '
+              '`configsys machine add|rm|use`.')
+        return 0
+
+    if sub == 'show':
+        machines = cfg.machines()
+        if args.name not in machines:
+            print(f'configsys: machine "{args.name}" is not defined', file=sys.stderr)
+            return 1
+        entry = machines[args.name]
+        print(f'machine {args.name}' + ('   [this box]' if args.name == cfg.selected_machine() else ''))
+        print(f'  configs   {", ".join(entry.get("configs") or []) or "(none)"}')
+        profs = entry.get('profiles') or {}
+        print(f'  profiles  ({len(profs)})' if profs else '  profiles  (none)')
+        for pn, terms in profs.items():
+            print(f'    {pn}: [ {"  ".join(str(t) for t in terms)} ]')
+        if args.name != cfg.selected_machine():
+            print(f'\n  (resolve it fully with: configsys --machine {args.name} profile list)')
+        return 0
+
+    ctx.ensure_user_config()
+    if sub == 'add':
+        changed, label = actions.add_machine(ctx, args.name)
+        print(f'configsys: machine "{args.name}" created (in {label})' if changed
+              else f'configsys: {label}')
+        return 0 if changed else 1
+    if sub == 'rm':
+        changed, label = actions.remove_machine(ctx, args.name)
+        print(f'configsys: {label}')
+        return 0 if changed else 1
+    if sub == 'use':
+        changed, label = actions.set_machine_active(ctx, args.name)
+        if args.name:
+            print(f'configsys: this box is now machine "{args.name}"  (in {label})' if changed
+                  else f'configsys: already machine "{args.name}"')
+        else:
+            print(f'configsys: machine selection cleared  (in {label})' if changed
+                  else 'configsys: no machine was selected')
+        return 0
+    return 0
+
+
 def cmd_profile(ctx, args):
     '''View or edit profiles (component membership + the active `configs:` set). A skin over
     configsys.actions — the same functions the TUI Profiles screen will call.'''
@@ -3275,9 +3356,12 @@ def cmd_profile(ctx, args):
         # --pin/--track wins, else the profile-edit-mode setting (ask -> track on the CLI, no modal).
         mode = ctx.config.profile_edit_mode()
         synth = getattr(args, 'synth', None) or (mode if mode in ('track', 'pin') else 'track')
+        # `--machine X` scopes the edit into machine X's namespace (machines:[X].profiles).
+        mtarget = ctx.machine_override
         try:
             changed, label = actions.set_profile_membership(
-                ctx, args.profile, args.component, action, target=target, synth=synth)
+                ctx, args.profile, args.component, action, target=target, synth=synth,
+                machine=mtarget)
         except ConfigError as e:
             print(f'configsys: {e}', file=sys.stderr)
             return 1
@@ -3445,6 +3529,7 @@ _COMMANDS = {
     'fix-scope': cmd_fix_scope,
     'where': cmd_where,
     'reconcile': cmd_reconcile,
+    'machine': cmd_machine,
     'orphans': cmd_orphans,
     'location': cmd_location,
     'versions': cmd_versions,

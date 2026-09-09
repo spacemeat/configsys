@@ -51,6 +51,60 @@ def test_unknown_machine_selection_does_not_brick():
     assert set(c.profile_components('tools')) == {'gimp', 'inkscape', 'krita'}   # no layer -> shared
 
 
+def _rctx(tmp_path, machine=None):
+    from configsys.app import Context, build_parser
+    argv = ['--home', str(tmp_path), '--os', 'pop']
+    if machine:
+        argv += ['--machine', machine]
+    ctx = Context(build_parser().parse_args(argv + ['inspect']))
+    ctx.ensure_user_config()
+    return ctx
+
+
+def test_machines_writer_roundtrip(tmp_path):
+    from configsys import plugins
+    f = tmp_path / 'u.hu'
+    f.write_text('{ // keep\n  scope: user }\n', encoding='utf-8')
+    data = {'lap': {'configs': ['a', 'b'], 'profiles': {'x': ['^x', 'c', '~d']}},
+            'desk': {'profiles': {'x': ['^x']}}}
+    plugins.set_machines(str(f), data)
+    assert plugins.read_machines(str(f)) == data
+    assert '// keep' in f.read_text() and 'scope: user' in f.read_text()   # comment + sibling survive
+    assert '"^x"' in f.read_text()                                          # ^ term quoted
+
+
+def test_machine_lifecycle_and_scoped_edit(tmp_path):
+    from configsys import actions
+    ctx = _rctx(tmp_path)
+    assert actions.add_machine(ctx, 'laptop')[0] and actions.add_machine(ctx, 'desktop')[0]
+    assert actions.add_machine(ctx, 'laptop')[0] is False              # duplicate
+    assert set(ctx.config.machines()) == {'laptop', 'desktop'}
+    actions.set_machine_active(ctx, 'laptop')
+    assert ctx.config.selected_machine() == 'laptop'
+
+    # on-box scoped edit: machine: laptop is active, so the laptop rung is loaded
+    changed, label = actions.set_profile_membership(ctx, 'finders', 'bat', 'add',
+                                                    synth='pin', machine='laptop')
+    assert changed and label == 'machine laptop'
+    assert 'bat' in ctx.config.profile_components('finders')           # resolves via the machine layer
+    terms = ctx.config.machines()['laptop']['profiles']['finders']
+    assert terms[0] == '^finders' and 'bat' in terms                  # pinned into the namespace
+
+    # off-box scoped edit needs --machine (the override loads THAT machine's rung)
+    assert actions.set_profile_membership(ctx, 'finders', 'bat', 'add', machine='desktop')[0] is False
+    ctx.machine_override = 'desktop'
+    ctx.invalidate()
+    changed, label = actions.set_profile_membership(ctx, 'finders', 'eza', 'add',   # eza ∉ finders
+                                                    synth='pin', machine='desktop')
+    assert changed and label == 'machine desktop'
+    assert ctx.config.machines()['desktop']['profiles']['finders'][0] == '^finders'
+    # laptop's edit is untouched by desktop's
+    assert 'bat' in ctx.config.machines()['laptop']['profiles']['finders']
+
+    assert actions.remove_machine(ctx, 'laptop')[0]
+    assert 'laptop' not in ctx.config.machines()
+
+
 def test_machine_inherits_a_shared_primary_profile():
     # the headline want: a shared profile lives at the primary's TOP LEVEL (travels) and a machine
     # derives it. The machine layer sits above primary, below the local top config.

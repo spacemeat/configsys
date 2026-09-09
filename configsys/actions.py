@@ -63,13 +63,16 @@ def _membership_effect_ok(cfg, profile, comp, action):
             'decline': (not mem) and rem, 'clear': (not mem) and (not rem)}[action]
 
 
-def set_profile_membership(ctx, profile, comp, action, *, target=None, synth='track'):
+def set_profile_membership(ctx, profile, comp, action, *, target=None, synth='track', machine=None):
     '''Write the term-algebra edit so `comp` reaches `action`'s state in `profile`
     (`action` = 'add'|'remove'|'decline'|'clear'; the last two are the derived-profile ballot's
     explicit NO / back-to-offered), via Config.plan_membership_edit, to `target` or the effective
     target. `synth` ('track'|'pin') decides how a first amend of a lower-layer-only profile is
-    materialized (see plan_membership_edit / the pin-or-track modal). Returns (changed, label); a
-    no-op returns (False, label); a shadowed target that took no effect returns (False, warning).'''
+    materialized (see plan_membership_edit / the pin-or-track modal). `machine` scopes the edit into a
+    `machines:[<machine>].profiles` namespace (that machine's rung must be loaded — pass `--machine`).
+    Returns (changed, label); a no-op returns (False, label); a shadowed target -> (False, warning).'''
+    if machine is not None:
+        return _set_machine_membership(ctx, machine, profile, comp, action, synth=synth)
     tfile, label = (target, target) if target else _profile_target(ctx, profile)
     new_terms = ctx.config.plan_membership_edit(profile, comp, action, tfile, synth=synth)
     if new_terms is None:
@@ -81,6 +84,29 @@ def set_profile_membership(ctx, profile, comp, action, *, target=None, synth='tr
     if not _membership_effect_ok(ctx.config, profile, comp, action):    # shadowed -> no effect
         return False, f'{label}: "{profile}" is overridden by a higher-precedence layer (no effect)'
     return True, label
+
+
+def _set_machine_membership(ctx, machine, profile, comp, action, *, synth='track'):
+    '''Machine-scoped membership write: the edit lands in `machines:[machine].profiles.<profile>` in
+    the file that defines that machine, planned against the injected machine-role rung (so `^self`
+    derives the shared/repo def below it). The machine's layer MUST be loaded (run with `--machine
+    <machine>`, or be on that box). Returns (changed, label).'''
+    if ctx.config.selected_machine() != machine or ctx.config.machine_layer_index() is None:
+        return False, (f'machine "{machine}" is not the loaded target — re-run with `--machine {machine}`'
+                       f' (or define it in `machines:` first)')
+    tidx = ctx.config.machine_layer_index()
+    tfile = str(ctx.config._layers[tidx].path)           # the file holding machines:[machine]
+    new_terms = ctx.config.plan_membership_edit(profile, comp, action, tfile, synth=synth, layer_idx=tidx)
+    if new_terms is None:
+        return False, f'machine {machine}'
+    machines = plugins.read_machines(tfile)
+    entry = machines.setdefault(machine, {})
+    entry.setdefault('profiles', {})[profile] = new_terms
+    plugins.set_machines(tfile, machines)
+    ctx.invalidate()
+    if not _membership_effect_ok(ctx.config, profile, comp, action):
+        return False, f'machine {machine}: "{profile}" is overridden by a higher-precedence layer (no effect)'
+    return True, f'machine {machine}'
 
 
 UNINSTALL_PROFILE = '!uninstall'
@@ -177,6 +203,41 @@ def remove_profile(ctx, name):
     if name in ctx.config.profile_names():           # a lower layer still defines it
         return True, f'removed "{name}" from {label} (still defined by a lower layer)'
     return True, f'removed "{name}" (from {label})'
+
+
+def add_machine(ctx, name):
+    '''Create a new, empty machine entry in `machines:` (portable edit target — primary if set). A
+    machine is a composing layer: its `profiles:` overlay the shared ones by name. Returns
+    (changed, label); a bad/duplicate name returns (False, reason).'''
+    name = (name or '').strip()
+    if not name:
+        return False, 'a machine name is required'
+    if name in ctx.config.machines():
+        return False, f'machine "{name}" already exists'
+    tfile, label = edit_target(ctx)
+    machines = plugins.read_machines(tfile)
+    machines[name] = {}
+    plugins.set_machines(tfile, machines)
+    ctx.invalidate()
+    return True, label
+
+
+def remove_machine(ctx, name):
+    '''Delete a machine entry from the portable edit target. Returns (changed, label/reason).'''
+    tfile, label = edit_target(ctx)
+    machines = plugins.read_machines(tfile)
+    if name not in machines:
+        return False, f'machine "{name}" is not defined in {label}'
+    del machines[name]
+    plugins.set_machines(tfile, machines)
+    ctx.invalidate()
+    return True, label
+
+
+def set_machine_active(ctx, name):
+    '''Set THIS box's `machine:` selection (local top config, machine-nature) — an empty name clears
+    it. Returns (changed, label).'''
+    return set_config_setting(ctx, 'machine', [name] if name else [])
 
 
 def set_profile_include(ctx, profile, other, add, *, target=None):
