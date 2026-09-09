@@ -312,7 +312,9 @@ Steps 1–3 dissolve all three stated problems; 4–6 are polish.
    keybinding. The `configsys profile pin` converter is NOT built as repo code — per the decision it's
    a run-once on the user's primary (hand-rolled when the `ts-*` pile is actually collapsed). Tests in
    test_profile_edit.py + smoke coverage (L toggle, repo-group unfold) in test_tui_smoke.py.
-6. `machines:` section.
+6. `machines:` section — now with a **working-target selector** (curate/plan ANY declared machine from
+   any box; execute stays local-only). See the curation-model "Multi-machine authoring" note. No longer
+   just per-box activation.
 
 If only ONE thing ships: **`^self` + the pin-or-track modal** — it converts the #1 daily friction
 (editing defaults; fear of corruption; surprise-on-update) into an explicit, visible act.
@@ -383,3 +385,18 @@ A-hierarchical (where the `^`-menu IS the navigable structure). Surface the `^` 
 part of the profile view — dim `^name` rows in the pane tree and/or a "watching:" line in the detail
 box — so the ballot's provenance ("these are the menus I'm curating") reads at a glance. `where -p`
 already lists them in text; the pane does not.
+
+**Multi-machine authoring (reshapes `machines:`, part 6).** A user curates SEVERAL machines' profile
+sets, not just the box they're on, and needs to pick which one they're "jamming on". This turns
+`machines:` from an activation registry into a multi-target authoring surface, and forces a split:
+- **Active machine** — the physical box (`machine:` setting). Drives inspect/install/reconcile-that-run,
+  and EXECUTE is local-only (you can't install on a box you're not sitting at; remote exec is out of scope).
+- **Working / target machine** — which machine's curation you're editing, ANY declared one, independent
+  of the box. Selecting a non-local target = a curate + PLAN/preview mode (edit its derivations + its
+  active set, see what it WOULD install/what's NEW for it) — writes land in the primary (shared), so
+  authoring ts-desktop from ts-laptop just works; only execute stays gated to the active machine.
+Fits Model A cleanly — derivations already live shared in the primary; the selector only moves the
+EDITING FOCUS. Consequence for the layer-grouped pane: the `this machine` group generalizes to
+`target machine`, and a machine-picker (TUI selector + a `--machine <name>` CLI scope) gates which set
+the Profiles/reconcile views act on. So `machines:` when built is NOT just per-box activation — the
+working-target selector is core to it.
