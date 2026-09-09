@@ -359,19 +359,25 @@ flat-aggregate menu were updated to structural; no on-disk `^aggregate` exists, 
 changed; the flat expansion is still reachable by deriving leaves (`pin_profile --structured`). Tests:
 test/test_profile_derive.py (structural menu, recursion, new-sub detection, mention-removes-from-NEW).
 
-**Q2 + Q3 BUILT (TUI fast-follow).** `enter` on a derived profile opens `_run_ballot` — a drill-down
-overlay. **Q2 (tristate):** a sub-profile cycles `NEW → derive(^sub) → exclude(~sub) → NEW` (space);
-`+` includes it WHOLE (a deliberate secondary key, not a cycle stop); a component cycles
-NEW→pick→decline. **Q3 (drill-down):** a sub-unit row shows `^`/`+`/`~`/`?` state + a `▸` + `⁺N`
-(its offered children); `enter`/`l` drills in (read-only), breadcrumb `profile › languages › jvm-lang`;
-`h`/esc pops up / exits. Any edit first ensures the drilled path is `^`-derived (`ensure_path`), so
-picking inside a sub commits its ancestors. Edits scope to the machine target when active. New algebra:
-`Config.profile_children` (a sub's direct structure to drill into), `subprofile_state`
-(derive/whole/exclude/new), `plan_subprofile_state_edit`; `actions.set_subprofile_state`. Tests:
-test/test_profile_edit.py (state machine over the repo `languages`) + a TUI drill-down smoke.
-Open (user flagged UI state/continuity to revisit): breadcrumb jump-to-level; whether drilling should
-auto-derive vs the current edit-time ensure; an expand-to-NEW jump; integrating the ballot into the
-main catalog vs the current dedicated overlay.
+**Q2 + Q3 BUILT — then RESHAPED to an INLINE TREE (user feedback).** The first cut was a `_run_ballot`
+drill-down OVERLAY; the user tried it and rejected it ("switching to a whole separate screen … hard to
+rationalize; seeing this all at once is valuable"). Decision: **fold the `^`-derive hierarchy into the
+LEFT profiles pane**, exactly like `+include` children are already tree'd. Fork A chosen: sub-profile
+UNITS tree out in the pane (structure); their COMPONENTS stay in the right catalog. The overlay is
+removed. Now:
+- `visible_pnodes` emits 6-tuples `(name, depth, key, expandable, expanded, KIND)` — kind ∈ profile /
+  include / derive / group. A derived profile's children are its `+includes` (kind include, shown
+  `+name`) AND its `^`-menu sub-units (kind derive); a derive unit recurses into its own sub-profiles.
+- A derive-unit row shows its ballot state vs the ROOT (`^`/`+`/`~`/`?` + `⁺N` offered children).
+  `space` cycles `?→^derive→~exclude→?` in place; `+` (include) toggles WHOLE; `⏎`/`l` expands the tree.
+- The RIGHT catalog re-scopes: standing on a derive unit, it shows THAT sub's components as the ballot,
+  and picks write to the curated ROOT profile (`cur_curate`), first `^`-deriving the drilled path
+  (`cur_derive_path`). `cur_scope` filters the catalog to the sub's components.
+- New algebra/writers (kept from the overlay build): `Config.profile_children`, `subprofile_state`,
+  `plan_subprofile_state_edit`, `actions.set_subprofile_state`. Q2 tristate + `+`-whole preserved; Q3
+  drill is now tree expand/collapse (no separate screen), and the watching box names the `^`-sources.
+Tests: test/test_profile_edit.py (state machine) + an inline-tree TUI smoke. Remaining continuity ideas
+(parked): expand-to-NEW jump; whether expanding a sub should auto-derive vs the current edit-time ensure.
 
 ## Open questions
 - **Ballot verbosity** on wide flat parents (pick 3 of 40 ⇒ many `~`, or many lingering NEW). Is the

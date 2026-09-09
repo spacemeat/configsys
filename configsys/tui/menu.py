@@ -887,8 +887,10 @@ _HELP = {
                              "profile-edit-mode setting decides silently"),
             ('where (w)', "provenance for the selected profile: layers · pin/track relation · counts"),
             ('reconcile (N)', "triage OFFERED (NEW) items across active profiles: pick / decline / later"),
-            ('ballot (⏎)', "on a derived profile: open its hierarchical ballot — drill into sub-profile "
-                           "UNITS (⏎/l), cycle NEW→^derive→~exclude (space), + include whole"),
+            ('derive tree', "a derived profile trees its ^-menu sub-units inline (⏎/l expands): ^ derived · "
+                            "~ excluded · ? offered · + whole; a live +include child is shown +name"),
+            ('ballot keys', "on a sub-unit (left): space cycles ?→^→~ · + whole. Its components curate in "
+                            "the right catalog (picks write to the derived profile you're standing in)"),
             ('detail box', 'description · attrs (kind tags) · required-by (reverse deps) · in-profiles'),
         ],
     },
@@ -1172,116 +1174,6 @@ def _ballot_new_count(ctx, profile, sub):
     n = sum(1 for r in ch['subprofiles'] if ctx.config.subprofile_state(profile, r) == 'new')
     n += sum(1 for c in ch['components'] if c not in members and c not in removed)
     return n
-
-
-def _run_ballot(stdscr, pal, ctx, profile):
-    '''The hierarchical drill-down ballot for a derived `profile`. Each level is that level's menu —
-    the profile's `^`-menu at the top, a sub-profile's DIRECT children once you drill in. A sub-unit
-    cycles NEW→derive(^)→exclude(~)→NEW (space); `+` includes it whole (track); enter/l drills IN
-    (read-only until you act); h/esc pop up / exit. A component cycles NEW→pick→decline→NEW. Any edit
-    first ensures the drilled path is `^`-derived, so picking inside a sub commits its ancestors.
-    Edits scope to the machine target when one is active. Returns True if anything was written.'''
-    from .. import actions
-    drill, cur, changed, note = [], 0, False, ''
-    mtarget = getattr(ctx, 'machine_override', None) or None
-
-    def level_items():
-        if not drill:
-            it = ctx.config.profile_menu_items(profile)
-        else:
-            it = ctx.config.profile_children(drill[-1])
-        rows = [('sub', r) for r in sorted(it['subprofiles'])] + \
-               [('comp', c) for c in sorted(it['components'])]
-        return rows
-
-    def ensure_path():                                   # commit the drilled path as ^-derived
-        nonlocal changed
-        for s in drill:
-            if ctx.config.subprofile_state(profile, s) != 'derive':
-                ok, _l = actions.set_subprofile_state(ctx, profile, s, 'derive', machine=mtarget)
-                changed = changed or ok
-
-    while True:
-        rows = level_items()
-        cur = max(0, min(cur, len(rows) - 1)) if rows else 0
-        members = set(ctx.config.profile_components(profile))
-        removed = ctx.config.profile_removed(profile)
-        stdscr.erase()
-        h, w = stdscr.getmaxyx()
-        crumb = ' › '.join([profile] + drill)
-        _put(stdscr, 0, 0, _fit(f' ballot — {crumb} ', w),
-             pal.get('title') | curses.A_BOLD | curses.A_REVERSE)
-        body_h = max(1, h - 3)
-        top = max(0, cur - body_h + 1)
-        for r, i in enumerate(range(top, min(len(rows), top + body_h))):
-            kind, name = rows[i]
-            oncur = i == cur
-            mk = '▸' if oncur else ' '
-            if kind == 'sub':
-                st = ctx.config.subprofile_state(profile, name)
-                glyph = {'derive': '^', 'whole': '+', 'exclude': '~', 'new': '?'}[st]
-                nn = _ballot_new_count(ctx, profile, name) if st == 'derive' else 0
-                tail = f'   ⁺{nn}' if nn else ''
-                text = f'{mk} {glyph} ▸ {name}{tail}'
-                elem = {'derive': 'link', 'whole': 'component', 'exclude': 'info_dim',
-                        'new': 'menu_new'}[st]
-            else:
-                st = 'pick' if name in members else ('decline' if name in removed else 'new')
-                glyph = {'pick': '●', 'decline': '~', 'new': '?'}[st]
-                text = f'{mk} {glyph}   {name}'
-                elem = {'pick': 'component', 'decline': 'info_dim', 'new': 'menu_new'}[st]
-            attr = pal.get(elem) | (curses.A_REVERSE if oncur else 0)
-            _put(stdscr, 2 + r, 0, _fit(text, w), attr)
-        foot = (f' {note}   ' if note else ' ') + \
-            'space cycle · + whole · ⏎/l drill in · h/esc up/exit · j/k · q done '
-        _put(stdscr, h - 1, 0, _fit(foot.ljust(w), w), pal.get('dim') | curses.A_REVERSE)
-        stdscr.refresh()
-        note = ''
-        ch = stdscr.getch()
-        if ch in (ord('q'),) or (ch == 27 and not drill):
-            return changed
-        if ch == 27:                                     # esc with a drill -> pop one level
-            drill.pop()
-            cur = 0
-            continue
-        if ch in (ord('j'), curses.KEY_DOWN):
-            cur = min(len(rows) - 1, cur + 1) if rows else 0
-        elif ch in (ord('k'), curses.KEY_UP):
-            cur = max(0, cur - 1)
-        elif ch in (ord('g'), curses.KEY_HOME):
-            cur = 0
-        elif ch in (ord('G'), curses.KEY_END):
-            cur = max(0, len(rows) - 1)
-        elif ch in (ord('h'), curses.KEY_LEFT, curses.KEY_BACKSPACE, 127, 8):
-            if drill:
-                drill.pop()
-                cur = 0
-        elif rows and ch in (ord('l'), curses.KEY_RIGHT, ord('\n'), curses.KEY_ENTER):
-            kind, name = rows[cur]
-            if kind == 'sub':                            # drill into the sub (read-only)
-                drill.append(name)
-                cur = 0
-        elif rows and ch in (ord(' '), ord('+'), ord('~'), ord('d')):
-            kind, name = rows[cur]
-            try:
-                ensure_path()                            # picking inside commits the ^-path
-                if kind == 'sub':
-                    st = ctx.config.subprofile_state(profile, name)
-                    if ch == ord('+'):
-                        nxt = 'whole'
-                    else:                                # space cycle: new -> derive -> exclude -> new
-                        nxt = {'new': 'derive', 'derive': 'exclude', 'exclude': 'new',
-                               'whole': 'exclude'}[st]
-                    ok, lbl = actions.set_subprofile_state(ctx, profile, name, nxt, machine=mtarget)
-                    note = f'{name} → {nxt}' if ok else (lbl or 'no change')
-                else:
-                    st = 'pick' if name in members else ('decline' if name in removed else 'new')
-                    act = {'new': 'add', 'pick': 'decline', 'decline': 'clear'}[st]
-                    ok, lbl = actions.set_profile_membership(ctx, profile, name, act, machine=mtarget)
-                    note = f'{name} {act}' if ok else (lbl or 'no change')
-                changed = changed or ok
-            except Exception as e:                       # noqa: BLE001 — surface, don't crash
-                note = f'edit failed: {e}'
 
 
 def _fill_bg(stdscr, pal, h, w):
@@ -2446,29 +2338,40 @@ class ProfileScreen:
         return role if role in ('machine', 'user', 'primary', 'repo') else 'plugin'
 
     def visible_pnodes(self):
-        '''Flattened visible tree: [(name, depth, key, expandable, expanded)]. Top-level profiles
-        (filtered by pfilter) with each expanded profile's `+includes` shown indented beneath it
-        (cycle-guarded). `key` is the ancestor path, so the same profile expands independently under
-        different parents. When `grouped`, layer-group HEADER rows (key starts with _GKEY) partition
-        the roots — a collapsed group hides its members.'''
+        '''Flattened visible tree: [(name, depth, key, expandable, expanded, kind)]. `kind` is
+        'profile' (a top-level profile), 'include' (a `+other` child — a live include), 'derive' (a
+        sub-profile UNIT offered by a derived profile's `^`-menu — its ballot state is shown/edited in
+        place), or 'group' (a layer-group header, key starts _GKEY). A root profile's children are its
+        `+includes` AND (if derived) its `^`-menu sub-units; a derive child recurses into ITS
+        sub-profiles. `key` is the ancestor path (root = key.split('\\x00')[0] = the curated profile).'''
         f = self.pfilter.lower()
         roots = [p for p in self.profiles if f in p.lower()] if f else list(self.profiles)
         out = []
 
-        def walk(name, depth, path):
+        def walk(name, depth, path, kind):
             key = '\x00'.join(path + [name])
-            kids = [c for c in sorted(self.ctx.config.profile_includes(name))
-                    if c not in path and c != name and c in self._profset]
+            kids = []                                    # [(childname, childkind)]
+            if kind in ('profile', 'include'):           # live `+other` includes (the existing tree)
+                kids += [(c, 'include') for c in sorted(self.ctx.config.profile_includes(name))
+                         if c not in path and c != name and c in self._profset]
+            if kind == 'profile':                        # a derived profile also trees its ^-menu units
+                kids += [(s, 'derive') for s in
+                         sorted(self.ctx.config.profile_menu_items(name)['subprofiles'])
+                         if s not in path]
+            elif kind == 'derive':                       # a derive unit recurses into ITS sub-profiles
+                kids += [(s, 'derive') for s in
+                         sorted(self.ctx.config.profile_children(name)['subprofiles'])
+                         if s not in path]
             expandable = bool(kids)
             expanded = expandable and key in self.expanded
-            out.append((name, depth, key, expandable, expanded))
+            out.append((name, depth, key, expandable, expanded, kind))
             if expanded:
-                for c in kids:
-                    walk(c, depth + 1, path + [name])
+                for c, ck in kids:
+                    walk(c, depth + 1, path + [name], ck)
 
         if not self.grouped:
             for r in roots:
-                walk(r, 0, [])
+                walk(r, 0, [], 'profile')
             return out
         buckets = {}
         for r in roots:
@@ -2482,14 +2385,17 @@ class ProfileScreen:
             if gid == 'machine':                     # name the selected machine in its header
                 mn = self.ctx.config.selected_machine()
                 label = f'machine: {mn}' if mn else 'machine'
-            out.append((label, 0, _GKEY + gid, True, not collapsed))
+            out.append((label, 0, _GKEY + gid, True, not collapsed, 'group'))
             if not collapsed:
                 for r in grp:                        # members stay at depth 0 (header is a full-width bar)
-                    walk(r, 0, [])
+                    walk(r, 0, [], 'profile')
         return out
 
     def is_group_header(self, nd):
         return bool(nd) and isinstance(nd[2], str) and nd[2].startswith(_GKEY)
+
+    def node_kind(self, nd):
+        return nd[5] if nd and len(nd) > 5 else 'profile'
 
     def cur_node(self):
         v = self.visible_pnodes()
@@ -2521,7 +2427,7 @@ class ProfileScreen:
             if nd[4]:                                 # currently expanded
                 self.collapsed_groups.add(nd[2][len(_GKEY):])
             return
-        name, depth, key, expandable, expanded = nd
+        name, depth, key, expandable, expanded = nd[:5]
         if expanded:
             self.expanded.discard(key)
         elif depth > 0:                              # a child -> jump to its parent row
@@ -2601,6 +2507,9 @@ class ProfileScreen:
             comps = self.ctx.routes.components
             cat = [c for c in cat if _attr_pass(
                 {a.lower() for a in getattr(comps.get(c), 'attrs', [])}, self.attr_inc, self.attr_exc)]
+        scope = self.cur_scope()                      # a `derive` sub-unit selected -> only ITS components
+        if scope is not None:
+            cat = [c for c in cat if c in scope]
         return cat
 
     def attr_summary(self):
@@ -2670,6 +2579,31 @@ class ProfileScreen:
     def cur_profile(self):
         nd = self.cur_node()
         return None if (nd is None or self.is_group_header(nd)) else nd[0]
+
+    def cur_curate(self):
+        '''The profile the RIGHT catalog edits reflect: for a `derive` sub-unit node, the ROOT profile
+        it hangs under (path[0]); otherwise the current node's own profile. So picking a component
+        while standing on a sub-unit writes to the derived profile being curated.'''
+        nd = self.cur_node()
+        if nd is None or self.is_group_header(nd):
+            return None
+        return nd[2].split('\x00')[0] if self.node_kind(nd) == 'derive' else nd[0]
+
+    def cur_scope(self):
+        '''When a `derive` sub-unit is selected, its OWN direct components — the catalog scopes to
+        them (curate this sub's leaf components). None otherwise (the full catalog).'''
+        nd = self.cur_node()
+        if nd and self.node_kind(nd) == 'derive':
+            return self.ctx.config.profile_children(nd[0])['components']
+        return None
+
+    def cur_derive_path(self):
+        '''For a `derive` node, the sub-profiles from the root down to AND INCLUDING it — the chain to
+        `^`-derive when picking a component inside (so its ancestors are committed). [] otherwise.'''
+        nd = self.cur_node()
+        if nd and self.node_kind(nd) == 'derive':
+            return nd[2].split('\x00')[1:]
+        return []
 
     def members(self, profile):
         try:
@@ -2775,7 +2709,7 @@ def _draw_profiles(stdscr, pal, ps, ctx, note, screen):
     top, body_h = 1, h - 4                           # status + legend row, then TWO nav rows below
     lw = max(16, w // 6) + 6                          # profiles pane: narrow, leaving the grid room (+6 cols)
     rleft, rw = lw + 1, w - lw - 1
-    prof = ps.cur_profile()
+    prof = ps.cur_curate()                           # the curated root (a derive node -> its root profile)
     members = ps.members(prof)
     own = ps.own_members(prof)                       # direct (●) vs via-include (↳)
     removed = ps.removed_members(prof)               # ~term drops (~) for the selected profile
@@ -2818,7 +2752,7 @@ def _draw_profiles(stdscr, pal, ps, ctx, note, screen):
             g = ps._profile_group(_p)
             group_counts[g] = group_counts.get(g, 0) + 1
     for vis, i in enumerate(range(ps.ltop, min(len(vnodes), ps.ltop + lih))):
-        name, depth, key, expandable, expanded = vnodes[i]
+        name, depth, key, expandable, expanded, kind = vnodes[i]
         y = lit + vis
         cur = i == ps.lcur
         foc = cur and ps.focus == 'left'
@@ -2829,15 +2763,27 @@ def _draw_profiles(stdscr, pal, ps, ctx, note, screen):
         elif rbg is not None:
             _put(stdscr, y, lil, ' ' * liw,
                  curses.A_REVERSE if low_color else pal.fill(y, lil, h, w, bg=rbg))
-        if key.startswith(_GKEY):                     # a layer-group header row (▾/▹ LABEL (count))
+        if kind == 'group':                           # a layer-group header row (▾/▹ LABEL (count))
             gid = key[len(_GKEY):]
             hdr = f'{"▾" if expanded else "▹"} {name} ({group_counts.get(gid, 0)})'
             _put(stdscr, y, lil, _fit(hdr.upper(), liw),
                  pal.style('menu_header', y, lil, h, w, selected=foc, bg=(None if low_color else rbg))
                  | rev)
             continue
-        star = '▸' if name in ps.starred else ' '     # selection is the bar; ▸ now means "starred"
         exp = '▾' if expanded else ('▹' if expandable else ' ')
+        if kind == 'derive':                          # a ^-menu sub-profile UNIT: show its ballot state
+            root = key.split('\x00')[0]               # the curated (root) profile the state is against
+            st = ps.ctx.config.subprofile_state(root, name)
+            gl = {'derive': '^', 'whole': '+', 'exclude': '~', 'new': '?'}[st]
+            nn = _ballot_new_count(ps.ctx, root, name) if st == 'derive' else 0
+            tail = f'  ⁺{nn}' if nn else ''
+            row = f' {"  " * depth}{exp}{gl} {name}{tail}'
+            elem = {'derive': 'link', 'whole': 'component', 'exclude': 'info_dim', 'new': 'menu_new'}[st]
+            _put(stdscr, y, lil, _fit(row, liw),
+                 pal.style(elem, y, lil, h, w, selected=foc, bg=(None if low_color else rbg))
+                 | rev | (curses.A_DIM if st == 'exclude' and not foc else 0))
+            continue
+        star = '▸' if name in ps.starred else ' '     # selection is the bar; ▸ now means "starred"
         act = '●' if name in ps.active else ('◐' if name in ps.active_indirect else '○')
         prefix = list(f'{star}{"  " * depth}{exp}{act}')
         # Exclusion attribution: for a subprofile a `~`-excluded by an ancestor on its path, paint a
@@ -2862,13 +2808,14 @@ def _draw_profiles(stdscr, pal, ps, ctx, note, screen):
         tag = ('  ' + prov if prov else '') + (f'⁺{nnew}' if nnew else '')
         if tag and not tag.startswith('  '):             # `⁺N` with no provenance glyph -> pad the gap
             tag = '  ' + tag
-        row = f'{"".join(prefix)} {name}{tag}'
+        disp = f'+{name}' if kind == 'include' else name  # `+`-mark a live include child (vs a derive)
+        row = f'{"".join(prefix)} {disp}{tag}'
         _put(stdscr, y, lil, _fit(row, liw),
              pal.style('profile', y, lil, h, w, selected=foc, bg=(None if low_color else rbg))
              | rev | (curses.A_DIM if struck and not foc else 0))
         if tag and nnew and not foc:                     # tint just the `⁺N` count in the menu_new hue
             bstr = f'⁺{nnew}'
-            bx = lil + len(f'{"".join(prefix)} {name}{tag}') - len(bstr)
+            bx = lil + len(f'{"".join(prefix)} {disp}{tag}') - len(bstr)
             if 0 <= bx - lil < liw:
                 _put(stdscr, y, bx, _fit(bstr, liw - (bx - lil)),
                      pal.style('menu_new', y, bx, h, w, bg=(None if low_color else rbg))
@@ -4308,15 +4255,32 @@ def run(ctx):
                 elif pfact in ('switch-pane', 'switch-pane-back'):
                     ps.focus = 'right' if ps.focus == 'left' else 'left'   # tab / shift-tab toggle
                 elif pfact == 'confirm' and ps.focus == 'left':
-                    _cp = ps.cur_profile()
-                    if ps.is_group_header(ps.cur_node()):   # a group header: fold/unfold it
-                        (ps.collapse_cur if ps.cur_node()[4] else ps.expand_cur)()
-                    elif _cp and ps.is_derived(_cp):        # a derived profile: open its hierarchical ballot
-                        if _run_ballot(stdscr, pal, ctx, _cp):
-                            ps.reload()
-                            menu_dirty = True
+                    _nd = ps.cur_node()
+                    if ps.is_group_header(_nd):        # a group header: fold/unfold it
+                        (ps.collapse_cur if _nd[4] else ps.expand_cur)()
+                    elif _nd and _nd[3]:               # expandable -> drill the tree in place (reveal subs)
+                        (ps.collapse_cur if _nd[4] else ps.expand_cur)()
                     else:
-                        ps.focus = 'right'             # a plain profile: open the components pane for it
+                        ps.focus = 'right'             # a leaf profile: open the components pane for it
+                elif pfact == 'select' and ps.focus == 'left' and ps.node_kind(ps.cur_node()) == 'derive':
+                    # a ^-menu sub-unit: cycle its ballot state in place — NEW → derive → exclude → NEW
+                    _nd = ps.cur_node()
+                    root = _nd[2].split('\x00')[0]     # the curated (root) profile
+                    anc = _nd[2].split('\x00')[1:-1]   # ancestor subs to commit as ^-derived first
+                    sub = _nd[0]
+                    mtarget = getattr(ctx, 'machine_override', None) or None
+                    st = ctx.config.subprofile_state(root, sub)
+                    nxt = {'new': 'derive', 'derive': 'exclude', 'exclude': 'new', 'whole': 'exclude'}[st]
+                    try:
+                        for a in anc:
+                            if ctx.config.subprofile_state(root, a) != 'derive':
+                                actions.set_subprofile_state(ctx, root, a, 'derive', machine=mtarget)
+                        changed, lbl = actions.set_subprofile_state(ctx, root, sub, nxt, machine=mtarget)
+                        ps.reload()
+                        menu_dirty = menu_dirty or changed
+                        note = f'{sub} → {nxt}' if changed else (lbl or 'no change')
+                    except Exception as e:  # noqa: BLE001 — surface, don't crash
+                        note = f'edit failed: {e}'
                 elif pfact == 'right':
                     if ps.focus == 'left':
                         ps.expand_cur()                # h/l now expand/collapse the include tree
@@ -4463,6 +4427,22 @@ def run(ctx):
                                 menu_dirty = menu_dirty or changed
                             except Exception as e:  # noqa: BLE001 — surface, don't crash
                                 note = f'remove failed: {e}'
+                elif pfact == 'include' and ps.focus == 'left' \
+                        and ps.node_kind(ps.cur_node()) == 'derive':
+                    # `+` on a ^-menu sub-unit: include it WHOLE (+sub, track-live) — the secondary
+                    # "take everything, growth auto-installs" choice, vs space's derive/exclude cycle.
+                    _nd = ps.cur_node()
+                    root, sub = _nd[2].split('\x00')[0], _nd[0]
+                    mtarget = getattr(ctx, 'machine_override', None) or None
+                    st = ctx.config.subprofile_state(root, sub)
+                    nxt = 'new' if st == 'whole' else 'whole'   # toggle whole on/off
+                    try:
+                        changed, lbl = actions.set_subprofile_state(ctx, root, sub, nxt, machine=mtarget)
+                        ps.reload()
+                        menu_dirty = menu_dirty or changed
+                        note = f'{sub} → {nxt}' if changed else (lbl or 'no change')
+                    except Exception as e:  # noqa: BLE001 — surface, don't crash
+                        note = f'include failed: {e}'
                 elif pfact == 'include' and ps.focus == 'left':  # include another profile (+other)
                     prof = ps.cur_profile()
                     others = [p for p in ps.profiles if p != prof]
@@ -4517,7 +4497,8 @@ def run(ctx):
                         where_lines = where_profile_report(ctx, _wp) or [f'{_wp}: nothing to show']
                         where_subject, where_top, show_where = _wp, 0, True
                 elif pfact in ('select', 'confirm') and ps.focus == 'right':
-                    prof = ps.cur_profile()
+                    prof = ps.cur_curate()             # a derive sub-unit -> its ROOT profile
+                    dpath = ps.cur_derive_path()       # subs to ^-derive so the pick's ancestors commit
                     vcat = ps.vcatalog()
                     if prof and vcat:
                         name = vcat[ps.rcur]
@@ -4570,8 +4551,15 @@ def run(ctx):
                                     else:
                                         synth = choice
                             if proceed:
-                                changed, lbl = actions.set_profile_membership(
+                                changed = False
+                                for _sub in dpath:     # commit the drilled path as ^-derived first
+                                    if ctx.config.subprofile_state(prof, _sub) != 'derive':
+                                        _c, _l = actions.set_subprofile_state(
+                                            ctx, prof, _sub, 'derive', machine=mtarget)
+                                        changed = changed or _c
+                                _c, lbl = actions.set_profile_membership(
                                     ctx, prof, name, memb, synth=synth, machine=mtarget)
+                                changed = changed or _c
                                 ps.reload()
                                 menu_dirty = menu_dirty or changed
                                 note = (f'{name} {verb}' if changed else (lbl or 'no change'))

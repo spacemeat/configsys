@@ -91,9 +91,9 @@ def test_tui_launches_navigates_and_quits(tmp_path, extra):
     assert first, 'TUI produced no terminal output'
 
 
-def test_tui_hierarchical_ballot_drilldown(tmp_path):
-    '''Open the hierarchical drill-down ballot (enter on a derived aggregate profile), cycle a
-    sub-unit, drill into it, edit a child, pop up, and exit — the A-hierarchical TUI path.'''
+def test_tui_hierarchical_ballot_inline_tree(tmp_path):
+    '''The inline hierarchical tree: expand a derived aggregate profile in the LEFT pane to reveal its
+    ^-menu sub-units, cycle a sub-unit's state (space), expand it further, then exit — no overlay.'''
     try:
         master, slave = pty.openpty()
     except OSError:
@@ -101,7 +101,7 @@ def test_tui_hierarchical_ballot_drilldown(tmp_path):
 
     cfg = tmp_path / '.config' / 'configsys' / 'configsys.hu'
     cfg.parent.mkdir(parents=True, exist_ok=True)
-    # tl derives the repo `languages` aggregate -> its menu is sub-profile UNITS (drillable).
+    # tl derives the repo `languages` aggregate -> its menu sub-units tree out under it in the pane.
     cfg.write_text('{ configs: [ tl ]  profiles: { tl: [ "^languages" ] } }\n')
 
     env = dict(os.environ)
@@ -114,9 +114,9 @@ def test_tui_hierarchical_ballot_drilldown(tmp_path):
 
     deadline = time.monotonic() + 10
     first = _drain(master, min(deadline, time.monotonic() + 3))
-    # 2 -> Profiles; j -> the tl profile (under 'this machine'); ⏎ -> its ballot; space -> derive the
-    # first sub-unit; l -> drill in; space -> pick a child; h -> up; q -> close ballot; then quit.
-    for keys in (b'2', b'j', b'\n', b' ', b'l', b' ', b'h', b'q', b'q', b'k', b'\n'):
+    # 2 -> Profiles; j -> tl (under 'this machine'); l -> expand tl (its ^-menu sub-units appear);
+    # j -> a sub-unit; space -> cycle it (?→^derive); j -> next; space -> cycle; l -> expand; then quit.
+    for keys in (b'2', b'j', b'l', b'j', b' ', b'j', b' ', b'l', b'q', b'k', b'\n'):
         try:
             os.write(master, keys)
         except OSError:
