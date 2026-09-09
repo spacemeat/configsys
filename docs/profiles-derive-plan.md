@@ -324,9 +324,15 @@ Steps 1–3 dissolve all three stated problems; 4–6 are polish.
      machine layer); `Config.selected_machine()`/`machines()`; `machine` added to `_MACHINE_ROLES` so a
      machine's `configs:` drives the active set (local `configs:` still overrides). Pane gains a `machine:
      <name>` group; `check` warns on a selected-but-undefined machine. Tests: test/test_machines.py.
-   - **Fast follow (NOT built):** the working-target SELECTOR — a TUI picker + `--machine <name>` CLI
-     scope to curate/plan a NON-local machine (writes to the shared primary; execute stays local). Plus
-     `machines:` writers (TUI/CLI add/edit a machine entry). And later: cloning one machine's set to seed another.
+   - **FAST-FOLLOW DONE.** The working-target selector + writers. `--machine <name>` global flag
+     (Config.load override) curates/plans ANY machine from any box; `machines:` surgical writers
+     (plugins.read_machines/set_machines); `configsys machine list|show|add|rm|use`; machine-scoped
+     profile edits (`--machine X profile add|rm|decline|offer`) write into `machines:[X].profiles`
+     (actions._set_machine_membership, planned against the machine rung via plan_membership_edit's
+     `layer_idx`). TUI: `M` (`machine-target`) picks the target machine (rebuilds against its rung),
+     edits scope to its namespace, status shows `edits → machine <name>`; pin-or-track flows through
+     (`profile_amends_lower`/plan gained `layer_idx`). Tests: test/test_machines.py + a TUI selector
+     smoke. Execute stays local-only. **Still deferred:** cloning one machine's set to seed another.
 
 If only ONE thing ships: **`^self` + the pin-or-track modal** — it converts the #1 daily friction
 (editing defaults; fear of corruption; surprise-on-update) into an explicit, visible act.

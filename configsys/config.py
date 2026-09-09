@@ -587,12 +587,13 @@ class Config:
                         'terms': [str(t) for t in _leaves(val)]})
         return out
 
-    def profile_amends_lower(self, profile, target_file):
+    def profile_amends_lower(self, profile, target_file, layer_idx=None):
         '''True if a membership edit to `profile` written to `target_file` would be the FIRST amend of
         a definition that lives only in a LOWER layer (typically non-editable) — i.e. the writer must
         synthesize a self-reference (`+self` track / `^self` pin). This is the moment the pin-or-track
-        modal fires. False once the profile already has a definition in the target layer.'''
-        tidx = self.layer_index(target_file)
+        modal fires. False once the profile already has a definition in the target layer. `layer_idx`
+        addresses the edit layer directly (a machine rung shares its path with the primary).'''
+        tidx = layer_idx if layer_idx is not None else self.layer_index(target_file)
         if tidx is None:
             return False
         chain = self._chain.get(profile, ())

@@ -877,6 +877,8 @@ _HELP = {
             ('provenance', '^ pinned (^self) · + tracked (+self) · ⊘ shadowed · ⁺N offered (NEW) in subtree'),
             ('grouping (L)', 'group the pane by defining layer (this machine · your primary · plugins · '
                              'repo catalog, collapsed) ↔ flat A-Z; enter/h/l folds a group'),
+            ('machine (M)', 'pick the working-TARGET machine to curate; edits then land in its '
+                            'machines:[name] namespace (execute stays local)'),
             ('catalog', '● pick · ↳ member via include · ~ declined · ? offered (NEW, in a derive ballot)'),
             ('terms', '+name folds in another profile · ~name removes a component OR excludes a subprofile · '
                       '"^name" derives (opt-in menu)'),
@@ -2914,7 +2916,9 @@ def _draw_profiles(stdscr, pal, ps, ctx, note, screen):
     _scrollbar_h(stdscr, pal, ctop + cath - 1, ril, riw, ps.rcol_left, ncols, total_cols, h, w)
 
     from .. import actions
-    status = f' profile: {prof or "—"}    edits → {actions.edit_target(ctx)[1]}'
+    _mt = getattr(ctx, 'machine_override', None)
+    _edit_to = f'machine {_mt}' if _mt else actions.edit_target(ctx)[1]
+    status = f' profile: {prof or "—"}    edits → {_edit_to}'
     if note:
         status += f'    {note}'
     # marker legend for the profiles pane — right-aligned on the status bar so the keys get two
@@ -2928,7 +2932,8 @@ def _draw_profiles(stdscr, pal, ps, ctx, note, screen):
         g = lambda a: _KEYMAP.glyph('profiles', a)
         nav1 = (f" {g('down')}/{g('up')} move · {g('top')}/{g('bottom')} top/bottom · "
                 f"{g('right')}/{g('left')} expand · {g('switch-pane')}/{g('confirm')} components · "
-                f"{g('find')} find · {g('filter')} filter · {g('group')} group · {g('attr-filter')} attrs ")
+                f"{g('find')} find · {g('filter')} filter · {g('group')} group · "
+                f"{g('machine-target')} machine · {g('attr-filter')} attrs ")
         nav2 = (f" {g('select')} member · {g('method')} method · {g('where')} where · "
                 f"{g('toggle-active')} active · {g('star')} star · {g('toggle-member')} incl/excl sub · "
                 f"{g('include')} include · {g('new')}/{g('delete')} new/del · {g('quit')} quit ")
@@ -4342,6 +4347,23 @@ def run(ctx):
                             menu_dirty = True
                 elif pfact == 'group' and ps.focus == 'left':   # toggle grouped-by-layer <-> flat
                     ps.toggle_grouping()
+                elif pfact == 'machine-target':          # pick the working-target machine to curate
+                    machs = sorted(ctx.config.machines())
+                    cur_t = getattr(ctx, 'machine_override', None)
+                    opts = [('(shared / this box)', 'off' if not cur_t else '')]
+                    opts += [(m, 'target' if m == cur_t else '') for m in machs]
+                    if not machs:
+                        note = 'no machines defined (configsys machine add <name>)'
+                    else:
+                        start = next((i for i, (m, _t) in enumerate(opts) if m == cur_t), 0)
+                        pick = _popup_choose(stdscr, pal, 'Curate which machine?', opts, start=start)
+                        if pick is not None:
+                            ctx.machine_override = None if pick == 0 else opts[pick][0]
+                            ctx.invalidate()             # reload with that machine's rung spliced in
+                            ps = ProfileScreen(ctx)      # rebuild the screen against the new target
+                            menu_dirty = True
+                            note = (f'curating machine "{ctx.machine_override}"' if ctx.machine_override
+                                    else 'curating shared / this box')
                 elif pfact == 'where':                     # full-page provenance for the current profile
                     _wp = ps.cur_profile()
                     if _wp:
@@ -4372,9 +4394,19 @@ def run(ctx):
                             # non-editable layer asks how to save it (or the profile-edit-mode setting
                             # decides). PIN (^self) snapshots picks + offers upstream growth as NEW;
                             # TRACK (+self) amends the live def. Ballot decline/clear never synth.
+                            # When a machine target is active, the edit + synth-detection scope to that
+                            # machine's rung (machines:[X].profiles); else the shared/local target.
                             synth, proceed = 'track', True
-                            tfile, tlabel = actions._profile_target(ctx, prof)
-                            if memb in ('add', 'remove') and ctx.config.profile_amends_lower(prof, tfile):
+                            mtarget = getattr(ctx, 'machine_override', None) or None
+                            if mtarget:
+                                _mi = ctx.config.machine_layer_index()
+                                tfile = str(ctx.config._layers[_mi].path) if _mi is not None else ''
+                                tlabel, tidx = f'machine {mtarget}', _mi
+                            else:
+                                tfile, tlabel = actions._profile_target(ctx, prof)
+                                tidx = None
+                            if memb in ('add', 'remove') and ctx.config.profile_amends_lower(
+                                    prof, tfile, layer_idx=tidx):
                                 mode = ctx.config.profile_edit_mode()
                                 if mode in ('track', 'pin'):
                                     synth = mode
@@ -4383,7 +4415,7 @@ def run(ctx):
                                     for s in ('track', 'pin'):
                                         try:
                                             prev[s] = ctx.config.plan_membership_edit(
-                                                prof, name, memb, tfile, synth=s)
+                                                prof, name, memb, tfile, synth=s, layer_idx=tidx)
                                         except Exception:   # noqa: BLE001
                                             prev[s] = []
                                     choice = _pin_or_track_modal(stdscr, pal, prof, tlabel, prev)
@@ -4393,7 +4425,7 @@ def run(ctx):
                                         synth = choice
                             if proceed:
                                 changed, lbl = actions.set_profile_membership(
-                                    ctx, prof, name, memb, synth=synth)
+                                    ctx, prof, name, memb, synth=synth, machine=mtarget)
                                 ps.reload()
                                 menu_dirty = menu_dirty or changed
                                 note = (f'{name} {verb}' if changed else (lbl or 'no change'))
