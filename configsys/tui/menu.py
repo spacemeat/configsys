@@ -887,10 +887,11 @@ _HELP = {
                              "profile-edit-mode setting decides silently"),
             ('where (w)', "provenance for the selected profile: layers · pin/track relation · counts"),
             ('reconcile (N)', "triage OFFERED (NEW) items across active profiles: pick / decline / later"),
-            ('derive tree', "a derived profile trees its ^-menu sub-units inline (⏎/l expands): ^ derived · "
+            ('derive tree', "a derived profile trees its ^-menu sub-units inline (⏎/l expands): ^ curated · "
                             "~ excluded · ? offered · + whole; a live +include child is shown +name"),
-            ('ballot keys', "on a sub-unit (left): space cycles ?→^→~ · + whole. Its components curate in "
-                            "the right catalog (picks write to the derived profile you're standing in)"),
+            ('ballot keys', "space on a sub-unit PINS it as its own shared profile (curate its kids one "
+                            "level down) → exclude → offered; + takes it whole (base). Pins land in your "
+                            "primary, or the selected machine (M) for that box only"),
             ('detail box', 'description · attrs (kind tags) · required-by (reverse deps) · in-profiles'),
         ],
     },
@@ -1165,13 +1166,26 @@ def _run_reconcile(stdscr, pal, ctx):
                     note = f'edit failed: {e}'
 
 
-def _ballot_new_count(ctx, profile, sub):
-    '''How many of sub-profile `sub`'s DIRECT children are still NEW w.r.t. `profile` — the `⁺N` a
-    derived sub-unit shows (offered but not engaged one level down).'''
+def _ensure_path_engaged(ctx, path, machine):
+    '''Ensure every ancestor in `path` (root → … ) is PINNED and engaged by its parent — so curating
+    a deep sub-unit commits the whole chain (root +includes a, a is pinned + includes b, …). The root
+    (path[0]) is the user's own profile, engaged by no one; only its descendants are pinned/engaged.'''
+    from .. import actions
+    for i in range(1, len(path)):
+        parent, child = path[i - 1], path[i]
+        if ctx.config.profile_relation(child) != 'pinned':
+            actions.pin_profile(ctx, child, machine=machine)
+        if ctx.config.sub_engagement(parent, child) not in ('whole', 'derive'):
+            actions.set_subprofile_state(ctx, parent, child, 'whole', machine=machine)
+
+
+def _ballot_new_count(ctx, sub):
+    '''How many of a CURATED sub-profile `sub`'s own children are still NEW (offered, not engaged) —
+    the `⁺N` a derived unit shows: un-engaged sub-profiles + un-picked direct components.'''
     ch = ctx.config.profile_children(sub)
-    members = set(ctx.config.profile_components(profile))
-    removed = ctx.config.profile_removed(profile)
-    n = sum(1 for r in ch['subprofiles'] if ctx.config.subprofile_state(profile, r) == 'new')
+    members = set(ctx.config.profile_components(sub))
+    removed = ctx.config.profile_removed(sub)
+    n = sum(1 for r in ctx.config.hierarchy_children(sub) if ctx.config.sub_engagement(sub, r) == 'new')
     n += sum(1 for c in ch['components'] if c not in members and c not in removed)
     return n
 
@@ -2349,19 +2363,21 @@ class ProfileScreen:
         out = []
 
         def walk(name, depth, path, kind):
+            cfg = self.ctx.config
             key = '\x00'.join(path + [name])
             kids = []                                    # [(childname, childkind)]
-            if kind in ('profile', 'include'):           # live `+other` includes (the existing tree)
-                kids += [(c, 'include') for c in sorted(self.ctx.config.profile_includes(name))
+            # A BALLOT context is a derived/pinned profile (kind 'derive', or a derived top profile):
+            # its sub-profiles tree out as DERIVE units (state read via sub_engagement, curated by
+            # pinning). A plain profile / include child keeps the live `+include` tree (existing).
+            if kind == 'derive' or (kind == 'profile' and cfg.is_derived(name)):
+                menu = sorted(cfg.hierarchy_children(name))
+                kids += [(s, 'derive') for s in menu if s not in path]
+                mset = set(menu)                          # a +include OUTSIDE the ^-menu is a live child
+                kids += [(c, 'include') for c in sorted(cfg.profile_includes(name))
+                         if c not in mset and c not in path and c != name and c in self._profset]
+            else:
+                kids += [(c, 'include') for c in sorted(cfg.profile_includes(name))
                          if c not in path and c != name and c in self._profset]
-            if kind == 'profile':                        # a derived profile also trees its ^-menu units
-                kids += [(s, 'derive') for s in
-                         sorted(self.ctx.config.profile_menu_items(name)['subprofiles'])
-                         if s not in path]
-            elif kind == 'derive':                       # a derive unit recurses into ITS sub-profiles
-                kids += [(s, 'derive') for s in
-                         sorted(self.ctx.config.profile_children(name)['subprofiles'])
-                         if s not in path]
             expandable = bool(kids)
             expanded = expandable and key in self.expanded
             out.append((name, depth, key, expandable, expanded, kind))
@@ -2581,13 +2597,12 @@ class ProfileScreen:
         return None if (nd is None or self.is_group_header(nd)) else nd[0]
 
     def cur_curate(self):
-        '''The profile the RIGHT catalog edits reflect: for a `derive` sub-unit node, the ROOT profile
-        it hangs under (path[0]); otherwise the current node's own profile. So picking a component
-        while standing on a sub-unit writes to the derived profile being curated.'''
+        '''The profile the RIGHT catalog edits reflect: for a `derive` sub-unit node, the SUB ITSELF
+        (its components live in its own pinned profile); otherwise the current node's own profile.'''
         nd = self.cur_node()
         if nd is None or self.is_group_header(nd):
             return None
-        return nd[2].split('\x00')[0] if self.node_kind(nd) == 'derive' else nd[0]
+        return nd[0]
 
     def cur_scope(self):
         '''When a `derive` sub-unit is selected, its OWN direct components — the catalog scopes to
@@ -2598,11 +2613,11 @@ class ProfileScreen:
         return None
 
     def cur_derive_path(self):
-        '''For a `derive` node, the sub-profiles from the root down to AND INCLUDING it — the chain to
-        `^`-derive when picking a component inside (so its ancestors are committed). [] otherwise.'''
+        '''For a `derive` node, the profile chain root → … → this sub — pinned + engaged before a
+        component pick inside commits (so the sub is curatable and its ancestors take it). [] otherwise.'''
         nd = self.cur_node()
         if nd and self.node_kind(nd) == 'derive':
-            return nd[2].split('\x00')[1:]
+            return nd[2].split('\x00')
         return []
 
     def members(self, profile):
@@ -2772,10 +2787,10 @@ def _draw_profiles(stdscr, pal, ps, ctx, note, screen):
             continue
         exp = '▾' if expanded else ('▹' if expandable else ' ')
         if kind == 'derive':                          # a ^-menu sub-profile UNIT: show its ballot state
-            root = key.split('\x00')[0]               # the curated (root) profile the state is against
-            st = ps.ctx.config.subprofile_state(root, name)
+            parent = key.split('\x00')[-2]            # the profile whose def engages this unit
+            st = ps.ctx.config.sub_engagement(parent, name)
             gl = {'derive': '^', 'whole': '+', 'exclude': '~', 'new': '?'}[st]
-            nn = _ballot_new_count(ps.ctx, root, name) if st == 'derive' else 0
+            nn = _ballot_new_count(ps.ctx, name) if st == 'derive' else 0
             tail = f'  ⁺{nn}' if nn else ''
             row = f' {"  " * depth}{exp}{gl} {name}{tail}'
             elem = {'derive': 'link', 'whole': 'component', 'exclude': 'info_dim', 'new': 'menu_new'}[st]
@@ -4263,19 +4278,24 @@ def run(ctx):
                     else:
                         ps.focus = 'right'             # a leaf profile: open the components pane for it
                 elif pfact == 'select' and ps.focus == 'left' and ps.node_kind(ps.cur_node()) == 'derive':
-                    # a ^-menu sub-unit: cycle its ballot state in place — NEW → derive → exclude → NEW
-                    _nd = ps.cur_node()
-                    root = _nd[2].split('\x00')[0]     # the curated (root) profile
-                    anc = _nd[2].split('\x00')[1:-1]   # ancestor subs to commit as ^-derived first
-                    sub = _nd[0]
+                    # a ^-menu sub-unit: cycle its engagement in place. NEW → derive → exclude → NEW.
+                    # 'derive' = PIN the sub (its own shared profile) + its parent +includes it, so it's
+                    # curatable one level down; 'exclude' = parent ~s it (pin kept); 'new' = clear.
+                    _p = ps.cur_node()[2].split('\x00')
+                    parent, sub = _p[-2], _p[-1]
                     mtarget = getattr(ctx, 'machine_override', None) or None
-                    st = ctx.config.subprofile_state(root, sub)
+                    st = ctx.config.sub_engagement(parent, sub)
                     nxt = {'new': 'derive', 'derive': 'exclude', 'exclude': 'new', 'whole': 'exclude'}[st]
                     try:
-                        for a in anc:
-                            if ctx.config.subprofile_state(root, a) != 'derive':
-                                actions.set_subprofile_state(ctx, root, a, 'derive', machine=mtarget)
-                        changed, lbl = actions.set_subprofile_state(ctx, root, sub, nxt, machine=mtarget)
+                        changed = False
+                        if nxt == 'derive':
+                            _ensure_path_engaged(ctx, _p[:-1], mtarget)   # ancestors pinned + engaged
+                            _c, _l = actions.pin_profile(ctx, sub, machine=mtarget)  # curate this sub
+                            changed = changed or _c
+                            _c, lbl = actions.set_subprofile_state(ctx, parent, sub, 'whole', machine=mtarget)
+                        else:
+                            _c, lbl = actions.set_subprofile_state(ctx, parent, sub, nxt, machine=mtarget)
+                        changed = changed or _c
                         ps.reload()
                         menu_dirty = menu_dirty or changed
                         note = f'{sub} → {nxt}' if changed else (lbl or 'no change')
@@ -4429,15 +4449,17 @@ def run(ctx):
                                 note = f'remove failed: {e}'
                 elif pfact == 'include' and ps.focus == 'left' \
                         and ps.node_kind(ps.cur_node()) == 'derive':
-                    # `+` on a ^-menu sub-unit: include it WHOLE (+sub, track-live) — the secondary
-                    # "take everything, growth auto-installs" choice, vs space's derive/exclude cycle.
-                    _nd = ps.cur_node()
-                    root, sub = _nd[2].split('\x00')[0], _nd[0]
+                    # `+` on a ^-menu sub-unit: include it WHOLE (+sub, live base — no pin/curation) —
+                    # the secondary "take everything, growth auto-installs" choice, vs space's cycle.
+                    _p = ps.cur_node()[2].split('\x00')
+                    parent, sub = _p[-2], _p[-1]
                     mtarget = getattr(ctx, 'machine_override', None) or None
-                    st = ctx.config.subprofile_state(root, sub)
+                    st = ctx.config.sub_engagement(parent, sub)
                     nxt = 'new' if st == 'whole' else 'whole'   # toggle whole on/off
                     try:
-                        changed, lbl = actions.set_subprofile_state(ctx, root, sub, nxt, machine=mtarget)
+                        if nxt == 'whole':
+                            _ensure_path_engaged(ctx, _p[:-1], mtarget)
+                        changed, lbl = actions.set_subprofile_state(ctx, parent, sub, nxt, machine=mtarget)
                         ps.reload()
                         menu_dirty = menu_dirty or changed
                         note = f'{sub} → {nxt}' if changed else (lbl or 'no change')
@@ -4497,14 +4519,26 @@ def run(ctx):
                         where_lines = where_profile_report(ctx, _wp) or [f'{_wp}: nothing to show']
                         where_subject, where_top, show_where = _wp, 0, True
                 elif pfact in ('select', 'confirm') and ps.focus == 'right':
-                    prof = ps.cur_curate()             # a derive sub-unit -> its ROOT profile
-                    dpath = ps.cur_derive_path()       # subs to ^-derive so the pick's ancestors commit
+                    prof = ps.cur_curate()             # a derive sub-unit -> the SUB itself (its own pin)
+                    dpath = ps.cur_derive_path()       # the profile chain to pin + engage first
                     vcat = ps.vcatalog()
                     if prof and vcat:
                         name = vcat[ps.rcur]
-                        # A derived profile is a 3-state BALLOT: for a menu item, space cycles
-                        # NEW(?) -> pick(●) -> decline(~) -> NEW. A plain profile stays a 2-state
-                        # add/remove toggle. (A non-menu component in a derive still 2-state toggles.)
+                        mtarget = getattr(ctx, 'machine_override', None) or None
+                        if dpath:                       # curating a sub's leaf components: pin it + engage
+                            try:                        # the chain FIRST, so its ballot is well-defined
+                                _ensure_path_engaged(ctx, dpath[:-1], mtarget)
+                                _pc, _ = actions.pin_profile(ctx, prof, machine=mtarget)
+                                if ctx.config.sub_engagement(dpath[-2], prof) not in ('whole', 'derive'):
+                                    actions.set_subprofile_state(ctx, dpath[-2], prof, 'whole',
+                                                                 machine=mtarget)
+                                if _pc:
+                                    ps.reload()          # config changed -> recompute the ballot below
+                                    menu_dirty = True
+                            except Exception as e:      # noqa: BLE001
+                                note = f'edit failed: {e}'
+                        # A derived profile is a 3-state BALLOT: space cycles NEW(?) -> pick(●) ->
+                        # decline(~) -> NEW. A plain profile stays a 2-state add/remove toggle.
                         if ps.is_derived(prof) and name in ps.menu(prof):
                             if name in ps.members(prof):
                                 memb, verb = 'decline', 'declined'
@@ -4524,7 +4558,6 @@ def run(ctx):
                             # When a machine target is active, the edit + synth-detection scope to that
                             # machine's rung (machines:[X].profiles); else the shared/local target.
                             synth, proceed = 'track', True
-                            mtarget = getattr(ctx, 'machine_override', None) or None
                             if mtarget:
                                 _mi = ctx.config.machine_layer_index()
                                 tfile = str(ctx.config._layers[_mi].path) if _mi is not None else ''
@@ -4532,7 +4565,7 @@ def run(ctx):
                             else:
                                 tfile, tlabel = actions._profile_target(ctx, prof)
                                 tidx = None
-                            if memb in ('add', 'remove') and ctx.config.profile_amends_lower(
+                            if (not dpath) and memb in ('add', 'remove') and ctx.config.profile_amends_lower(
                                     prof, tfile, layer_idx=tidx):
                                 mode = ctx.config.profile_edit_mode()
                                 if mode in ('track', 'pin'):
@@ -4550,16 +4583,9 @@ def run(ctx):
                                         proceed, note = False, 'cancelled'
                                     else:
                                         synth = choice
-                            if proceed:
-                                changed = False
-                                for _sub in dpath:     # commit the drilled path as ^-derived first
-                                    if ctx.config.subprofile_state(prof, _sub) != 'derive':
-                                        _c, _l = actions.set_subprofile_state(
-                                            ctx, prof, _sub, 'derive', machine=mtarget)
-                                        changed = changed or _c
-                                _c, lbl = actions.set_profile_membership(
+                            if proceed:                # the sub (if any) was pinned+engaged above
+                                changed, lbl = actions.set_profile_membership(
                                     ctx, prof, name, memb, synth=synth, machine=mtarget)
-                                changed = changed or _c
                                 ps.reload()
                                 menu_dirty = menu_dirty or changed
                                 note = (f'{name} {verb}' if changed else (lbl or 'no change'))

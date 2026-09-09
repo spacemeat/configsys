@@ -1033,6 +1033,33 @@ class Config:
             return without
         return without if neg in without else without + [neg]
 
+    def sub_engagement(self, parent, sub):
+        '''How `parent` engages sub-profile `sub` in the hierarchical (shared-pin) model — the tree
+        marker: 'exclude' (parent `~`s it), 'derive' (parent `+`includes it AND `sub` is PINNED —
+        curated as its own `^self` profile), 'whole' (parent includes it, sub not pinned = base live),
+        or 'new' (offered, parent doesn't engage it). Curating a sub = pinning it (shared), so a node's
+        'derive' state is global to `sub`, while include/exclude is `parent`-specific.'''
+        try:
+            layout = self.profile_layout(parent)          # the TOP def's structure (respects the ^self
+        except ConfigError:                               # shadow — a pin does NOT inherit base +includes)
+            return 'new'
+        incl = {r for k, r in layout if k == 'include'}
+        excl = {r for k, r in layout if k == 'exclude'}
+        if sub in excl:
+            return 'exclude'
+        if sub in incl:
+            return 'derive' if self.profile_relation(sub) == 'pinned' else 'whole'
+        return 'new'
+
+    def hierarchy_children(self, name):
+        '''Sub-profile children of `name` for the tree: its `^`-menu units if it is derived/pinned
+        (`profile_menu_items`), else its base `+sub` structure (`profile_children`). Both yield the
+        same base sub-profiles for a pinned aggregate (via `^self`) — so expanding a curated node shows
+        what it can offer, with each child's engagement read via `sub_engagement`.'''
+        if self.is_derived(name):
+            return self.profile_menu_items(name)['subprofiles']
+        return self.profile_children(name)['subprofiles']
+
     def subprofile_state(self, profile, sub):
         '''How `profile` currently engages sub-profile `sub` in its OWN terms (across its chain):
         'derive' (`^sub`), 'whole' (`+sub`), 'exclude' (`~sub`), or 'new' (unmentioned/offered). The

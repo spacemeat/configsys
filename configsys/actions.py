@@ -137,6 +137,44 @@ def set_subprofile_state(ctx, profile, sub, state, *, target=None, machine=None)
     return True, label
 
 
+def pin_profile(ctx, name, *, machine=None):
+    '''Pin profile `name` as its OWN `^self` derivation (`name: [ "^name" ]`) in the edit target — the
+    primary (shared across machines) or, when `machine` is set, that machine's namespace (visible only
+    there). Makes `name` independently CURATABLE + shared: it derives its base, offering its children
+    as NEW. Preserves any existing picks (prepends `^name`); no-op if already pinned there. Returns
+    (changed, label). The hierarchical tree's "curate this sub-profile" write.'''
+    term = '^' + name
+
+    def _apply(existing):
+        if existing[:1] == [term]:
+            return None                                  # already pinned
+        return [term] + [t for t in existing if t != term]
+
+    if machine is not None:
+        tidx = ctx.config.machine_layer_index()
+        if ctx.config.selected_machine() != machine or tidx is None:
+            return False, f'machine "{machine}" is not the loaded target — re-run with `--machine {machine}`'
+        tfile = str(ctx.config._layers[tidx].path)
+        machines = plugins.read_machines(tfile)
+        profs = machines.setdefault(machine, {}).setdefault('profiles', {})
+        new = _apply(profs.get(name, []))
+        if new is None:
+            return False, f'machine {machine}'
+        profs[name] = new
+        plugins.set_machines(tfile, machines)
+        ctx.invalidate()
+        return True, f'machine {machine}'
+    tfile, label = edit_target(ctx)
+    profs = plugins.read_profiles(tfile)
+    new = _apply(profs.get(name, []))
+    if new is None:
+        return False, label
+    profs[name] = new
+    plugins.set_profiles(tfile, profs)
+    ctx.invalidate()
+    return True, label
+
+
 UNINSTALL_PROFILE = '!uninstall'
 
 

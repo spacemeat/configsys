@@ -376,8 +376,24 @@ removed. Now:
 - New algebra/writers (kept from the overlay build): `Config.profile_children`, `subprofile_state`,
   `plan_subprofile_state_edit`, `actions.set_subprofile_state`. Q2 tristate + `+`-whole preserved; Q3
   drill is now tree expand/collapse (no separate screen), and the watching box names the `^`-sources.
-Tests: test/test_profile_edit.py (state machine) + an inline-tree TUI smoke. Remaining continuity ideas
-(parked): expand-to-NEW jump; whether expanding a sub should auto-derive vs the current edit-time ensure.
+Tests: test/test_profile_edit.py (state machine) + an inline-tree TUI smoke.
+
+**Then RE-ANCHORED to the SHARED-PIN model (user feedback + realignment).** The inline tree's first cut
+crammed `^sub` into the PARENT's terms (`tl: [^languages ^jvm-lang …]`), which FLATTENED jvm-lang's kids
+up to tl's level and didn't SHARE. Realigned to the model we'd actually built (Model-A layer composition
++ pins): **curating a sub-unit PINS it as its OWN `^self` profile** in the edit target — the primary
+(shared across machines) or the selected `machines:[m]` (that box only, the user's visibility point) —
+and the parent just `+includes` it. So `tl: [^languages +jvm-lang]`, and `jvm-lang: [^jvm-lang]` holds
+jvm-lang's own curation; its kids nest UNDER it (never flood tl), reachable by expanding, recursive and
+shared. Config: `sub_engagement(parent, sub)` (exclude/derive[pinned+included]/whole/new via the TOP
+def's layout, respecting the `^self` shadow), `hierarchy_children` (a node's sub-profiles: its `^`-menu
+if pinned, else base). Actions: `pin_profile(ctx, name, machine=)` (writes `name: [^name]`, shared or
+machine-scoped). TUI: `space` on a sub-unit pins+engages (`_ensure_path_engaged` commits the ancestor
+chain) → exclude → new; `+` = whole; the right catalog curates a sub's components into the sub's own
+pin. Verified: deriving jvm-lang no longer floods tl; java-lang nests under jvm-lang, offered, curate
+down; the flat-`^`-in-parent representation and the `_run_ballot`/`subprofile_state`-flat approach are
+gone. Tests: test_hierarchical_pin_engage_no_flood. Parked: expand-to-NEW jump; leaf-component curation
+polish (pin-on-first-edit); shared vs per-machine curation is the primary-vs-machine target choice.
 
 ## Open questions
 - **Ballot verbosity** on wide flat parents (pick 3 of 40 ⇒ many `~`, or many lingering NEW). Is the

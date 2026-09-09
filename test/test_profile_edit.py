@@ -494,6 +494,35 @@ def test_profile_pane_layer_grouping(tmp_path):
     assert {'zmine', 'finders'} <= {nd[0] for nd in v2}
 
 
+def test_hierarchical_pin_engage_no_flood(tmp_path):
+    # The shared-pin model: curating jvm-lang pins it as its OWN profile + tl +includes it, so its
+    # children nest UNDER it (never flood up to tl), and its curation lives in the jvm-lang profile.
+    from configsys import actions, plugins
+    ctx = _rctx(tmp_path)
+    uf = str(ctx.paths.user_config_file)
+    profs = plugins.read_profiles(uf)
+    profs['tl'] = ['^languages']
+    plugins.set_profiles(uf, profs)
+    ctx.invalidate()
+    assert 'jvm-lang' in ctx.config.hierarchy_children('tl')          # a family unit under tl
+    assert 'java-lang' not in ctx.config.hierarchy_children('tl')     # its kids not flooded
+
+    actions.pin_profile(ctx, 'jvm-lang')                             # curate jvm-lang (shared pin)
+    actions.set_subprofile_state(ctx, 'tl', 'jvm-lang', 'whole')     # tl engages it (+jvm-lang)
+    assert ctx.config.sub_engagement('tl', 'jvm-lang') == 'derive'   # curated + engaged
+    assert 'java-lang' not in ctx.config.hierarchy_children('tl')    # STILL no flood
+    assert 'java-lang' in ctx.config.hierarchy_children('jvm-lang')  # nested under jvm-lang
+    assert ctx.config.sub_engagement('jvm-lang', 'java-lang') == 'new'   # offered, curate down
+    assert plugins.read_profiles(uf)['jvm-lang'] == ['^jvm-lang']    # curation lives in jvm-lang
+    assert '+jvm-lang' in plugins.read_profiles(uf)['tl']            # tl only references it
+
+    actions.pin_profile(ctx, 'java-lang')                           # recurse: curate java-lang
+    actions.set_subprofile_state(ctx, 'jvm-lang', 'java-lang', 'whole')
+    assert ctx.config.sub_engagement('jvm-lang', 'java-lang') == 'derive'
+    assert plugins.read_profiles(uf)['java-lang'] == ['^java-lang']
+    assert actions.pin_profile(ctx, 'jvm-lang')[0] is False          # already pinned -> no-op
+
+
 def test_hierarchical_subprofile_state_edits(tmp_path):
     # The hierarchical ballot's sub-profile writer: derive/whole/exclude/new a sub-UNIT of a derived
     # aggregate. Uses the repo `languages` (an aggregate of +sub language profiles).
