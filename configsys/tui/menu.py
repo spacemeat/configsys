@@ -892,7 +892,8 @@ _HELP = {
             ('ballot keys', "space on a sub-unit PINS it as its own shared profile (curate its kids one "
                             "level down) → exclude → offered; + takes it whole (base). Pins land in your "
                             "primary, or the selected machine (M) for that box only"),
-            ('detail box', 'description · attrs (kind tags) · required-by (reverse deps) · in-profiles'),
+            ('detail box', "on a profile (left focus): its raw .hu definition [top layer]. On a "
+                           "component (catalog focus): description · attrs · required-by · in-profiles"),
         ],
     },
     'plugins': {
@@ -2843,24 +2844,23 @@ def _draw_profiles(stdscr, pal, ps, ctx, note, screen):
     # the component NAME rides the panel title, so the box is short (2 desc lines + a "required by"
     # line + an "in profiles" line) and the catalog grid below gets the reclaimed rows.
     desc_h = 7 if body_h >= 12 else 0
-    # When the PROFILE pane is focused on a derived profile, the detail box shows what it's WATCHING
-    # (its `^`-menu sources + counts) instead of the highlighted component — the ballot's provenance.
-    watch_box = desc_h and ps.focus == 'left' and prof and ps.is_derived(prof)
-    if watch_box:
-        dit, dil, dih, diw = _panel(stdscr, pal, top, rleft, desc_h, rw, f'profile: {prof}', False, h, w)
-        srcs = ctx.config.profile_derive_terms(prof)          # the `^q` sources
-        items = ctx.config.profile_menu_items(prof)
-        wtext = 'watching: ' + (' '.join('^' + s for s in srcs) if srcs else '(none)')
-        for k, line in enumerate(_wrap(wtext, diw)[:dih - 2]):
-            _put(stdscr, dit + k, dil, _fit(line, diw), pal.style('link', dit + k, dil, h, w))
-        nnew = len(ps.new_members(prof))
-        counts = (f'{ps.relation(prof)}  ·  members {len(ps.members(prof))}  ·  '
-                  f'menu {len(items["subprofiles"])} sub + {len(items["components"])} comp  ·  '
-                  f'⁺{nnew} offered')
-        _put(stdscr, dit + dih - 1, dil, _fit(counts, diw),
-             pal.style('method_dim', dit + dih - 1, dil, h, w))
-        _put(stdscr, dit + dih - 2, dil, _fit('⏎ opens the ballot', diw),
-             pal.style('info_dim', dit + dih - 2, dil, h, w))
+    # When the PROFILE pane is focused on a profile, the detail box shows that profile's RAW .hu
+    # DEFINITION — its top (highest-precedence) layer's authored term list, e.g. `[ "^languages"
+    # +jvm-lang ]` — so you see what the profile IS while navigating; a note names lower layers.
+    _defs = ctx.config.profile_layer_defs(prof) if (desc_h and ps.focus == 'left' and prof) else []
+    if _defs:
+        top_def = _defs[-1]                                   # the highest-precedence layer's def
+        dit, dil, dih, diw = _panel(stdscr, pal, top, rleft, desc_h, rw,
+                                    f'profile: {prof}  [{top_def["role"]}]', False, h, w)
+        # render terms AS AUTHORED: `^`-terms are quoted in the .hu (`^` is humon's heredoc sigil)
+        shown = [f'"{t}"' if str(t).startswith('^') else str(t) for t in top_def['terms']]
+        body = '[ ' + '  '.join(shown) + ' ]' if shown else '[ ]'
+        for k, line in enumerate(_wordwrap(body, diw)[:dih - 1]):
+            _put(stdscr, dit + k, dil, _fit(line, diw), pal.style('info', dit + k, dil, h, w))
+        if len(_defs) > 1:                                    # note the lower layers that also define it
+            note = '(also in: ' + ', '.join(d['role'] for d in _defs[:-1]) + ')'
+            _put(stdscr, dit + dih - 1, dil, _fit(note, diw),
+                 pal.style('method_dim', dit + dih - 1, dil, h, w))
     elif desc_h:
         dit, dil, dih, diw = _panel(stdscr, pal, top, rleft, desc_h, rw, cur or 'component', False, h, w)
         if cur:
