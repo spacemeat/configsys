@@ -323,3 +323,63 @@ If only ONE thing ships: **`^self` + the pin-or-track modal** — it converts th
   offering future" bulk action helps but edges toward opt-out — design carefully.
 - **Sigil** stays quoted `"^…"` until/unless humon frees `^`.
 - **`machines:`** — worth the second selection channel? Defer and decide from real use.
+
+---
+
+## Curation model — "the profile IS the lockfile" (Model A)  [design, 2026-09-08]
+
+Deep design pass (with the user, who authors the base profiles). Committed to **Model A**: a machine's
+curation lives ENUMERATED in its own profile text — no companion lockfile, no hidden per-machine state.
+Captured here so the reasoning survives; drives the remaining build (A-hierarchical + seeding).
+
+**The one hard constraint.** To flag anything as NEW you need a stored baseline of what's "known", and
+the algebra has exactly two honest places to keep it: (a) IN THE PROFILE TEXT (enumerated picks), or
+(b) in a COMMITTED, diffable lockfile. Model A picks (a) — literally "the profile is the lockfile".
+Everything else (a `=` snapshot sigil, concision) is ergonomics that only pays off under (b), which is
+why a `=`-style term implies the `machines:`/lockfile world (part 6). We are NOT going there yet.
+
+**Verb semantics — and where `^` lives.**
+- `+profile` = a **definition** you inherit wholesale (tracks upstream growth; it auto-installs).
+- `^profile` = a **menu of suggestions** you ballot against (opt-in; growth surfaces as NEW).
+- So making `^` the norm RESTORES profiles to their original *suggestion* role — it is `+`, not `^`,
+  that reifies a profile into a hard definition. **Decision: `^` is a CONSUMER / machine-layer verb and
+  never appears in a shipped repo/base definition.** A base profile stays a concrete, usable bundle so
+  `+` and composition keep working; the choice to treat it as a menu belongs to the machine that
+  derives it. (Baking `^` into `languages` was tried and reverted — it zeroed the base's members and
+  broke every `+languages` consumer.)
+
+**Two kinds of NEW — this is what makes both user classes first-class.**
+- **Profile-NEW** — a profile you `^`-track gained a member. INHERENTLY OPT-IN: you only get promotions
+  for menus you chose to watch. The ballot / `reconcile` surface (built).
+- **Catalog-NEW** — routes.hu gained a *component* (or a whole new profile appeared). Universe-relative,
+  matters to everyone. The `orphans`/`request`/attrs surface — profile-INDEPENDENT.
+- Class 1 (happy to curate the base profiles) lives on Profile-NEW. Class 2 (rejects the bases, builds
+  crosscutting profiles) is served by Catalog-NEW and simply opts out of Profile-NEW by not deriving —
+  correct, not a gap. You never "promote base membership" to a base-ignorer; you promote *catalog*
+  additions through the profile-independent axis.
+
+**The three onboarding workflows are three SEEDING strategies for a derivation's pick-set** — after
+seeding, all three are the same steady-state ballot:
+- new machine / new user → seed EMPTY, pick from the menu.
+- old machine / new user (lots already installed) → seed FROM INSTALLED REALITY ("you have gcc/clang/
+  cmake → pre-pick those; the rest of c-cpp-lang is NEW"). **This is the one missing primitive** — an
+  adopt/orphans flow pointed at a `^`-derivation instead of a flat profile (call it *seed-from-installed*).
+- established machine, repo just grew → derivations exist; `reconcile` shows Profile-NEW per menu (built).
+
+**Sub-profile tristate ⇒ A-hierarchical (a GO).** `^`-inherited sub-profiles should be tristate
+(include / exclude / NEW) exactly like components — because the base profiles are genuinely nested
+(`languages → jvm-lang → java-lang`). Staging:
+- **A-flat** (available today): derive at the LEAF profiles (`^c-cpp-lang`, `^java-lang`, …), skipping
+  the aggregates. Full tristate on components now, no algebra change. The `pin_profile.py --structured`
+  run-once already emits this shape.
+- **A-hierarchical** (wanted): `^p` on an aggregate offers p's DIRECT children — sub-profiles as
+  tristate *units* + bare components — instead of the flattened member set; picking a sub-profile unit
+  offers include-whole (`+`) vs derive-and-recurse (`^`); recursion handles depth. A-flat is a strict
+  subset, so nothing built for A-flat is wasted. This is the next real build.
+
+**TUI gap to carry into A-hierarchical: a derived profile's `^`-menu sources are invisible.** They add
+no members, so nothing in the pane/catalog shows *what a profile is watching*. Fine today, wrong for
+A-hierarchical (where the `^`-menu IS the navigable structure). Surface the `^` parents as a first-class
+part of the profile view — dim `^name` rows in the pane tree and/or a "watching:" line in the detail
+box — so the ballot's provenance ("these are the menus I'm curating") reads at a glance. `where -p`
+already lists them in text; the pane does not.
