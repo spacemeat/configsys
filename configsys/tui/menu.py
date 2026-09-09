@@ -887,6 +887,8 @@ _HELP = {
                              "profile-edit-mode setting decides silently"),
             ('where (w)', "provenance for the selected profile: layers · pin/track relation · counts"),
             ('reconcile (N)', "triage OFFERED (NEW) items across active profiles: pick / decline / later"),
+            ('ballot (⏎)', "on a derived profile: open its hierarchical ballot — drill into sub-profile "
+                           "UNITS (⏎/l), cycle NEW→^derive→~exclude (space), + include whole"),
             ('detail box', 'description · attrs (kind tags) · required-by (reverse deps) · in-profiles'),
         ],
     },
@@ -1159,6 +1161,127 @@ def _run_reconcile(stdscr, pal, ctx):
                     note = f'{comp} {verb}' if ok else (lbl or 'no change')
                 except Exception as e:                # noqa: BLE001 — surface, don't crash
                     note = f'edit failed: {e}'
+
+
+def _ballot_new_count(ctx, profile, sub):
+    '''How many of sub-profile `sub`'s DIRECT children are still NEW w.r.t. `profile` — the `⁺N` a
+    derived sub-unit shows (offered but not engaged one level down).'''
+    ch = ctx.config.profile_children(sub)
+    members = set(ctx.config.profile_components(profile))
+    removed = ctx.config.profile_removed(profile)
+    n = sum(1 for r in ch['subprofiles'] if ctx.config.subprofile_state(profile, r) == 'new')
+    n += sum(1 for c in ch['components'] if c not in members and c not in removed)
+    return n
+
+
+def _run_ballot(stdscr, pal, ctx, profile):
+    '''The hierarchical drill-down ballot for a derived `profile`. Each level is that level's menu —
+    the profile's `^`-menu at the top, a sub-profile's DIRECT children once you drill in. A sub-unit
+    cycles NEW→derive(^)→exclude(~)→NEW (space); `+` includes it whole (track); enter/l drills IN
+    (read-only until you act); h/esc pop up / exit. A component cycles NEW→pick→decline→NEW. Any edit
+    first ensures the drilled path is `^`-derived, so picking inside a sub commits its ancestors.
+    Edits scope to the machine target when one is active. Returns True if anything was written.'''
+    from .. import actions
+    drill, cur, changed, note = [], 0, False, ''
+    mtarget = getattr(ctx, 'machine_override', None) or None
+
+    def level_items():
+        if not drill:
+            it = ctx.config.profile_menu_items(profile)
+        else:
+            it = ctx.config.profile_children(drill[-1])
+        rows = [('sub', r) for r in sorted(it['subprofiles'])] + \
+               [('comp', c) for c in sorted(it['components'])]
+        return rows
+
+    def ensure_path():                                   # commit the drilled path as ^-derived
+        nonlocal changed
+        for s in drill:
+            if ctx.config.subprofile_state(profile, s) != 'derive':
+                ok, _l = actions.set_subprofile_state(ctx, profile, s, 'derive', machine=mtarget)
+                changed = changed or ok
+
+    while True:
+        rows = level_items()
+        cur = max(0, min(cur, len(rows) - 1)) if rows else 0
+        members = set(ctx.config.profile_components(profile))
+        removed = ctx.config.profile_removed(profile)
+        stdscr.erase()
+        h, w = stdscr.getmaxyx()
+        crumb = ' › '.join([profile] + drill)
+        _put(stdscr, 0, 0, _fit(f' ballot — {crumb} ', w),
+             pal.get('title') | curses.A_BOLD | curses.A_REVERSE)
+        body_h = max(1, h - 3)
+        top = max(0, cur - body_h + 1)
+        for r, i in enumerate(range(top, min(len(rows), top + body_h))):
+            kind, name = rows[i]
+            oncur = i == cur
+            mk = '▸' if oncur else ' '
+            if kind == 'sub':
+                st = ctx.config.subprofile_state(profile, name)
+                glyph = {'derive': '^', 'whole': '+', 'exclude': '~', 'new': '?'}[st]
+                nn = _ballot_new_count(ctx, profile, name) if st == 'derive' else 0
+                tail = f'   ⁺{nn}' if nn else ''
+                text = f'{mk} {glyph} ▸ {name}{tail}'
+                elem = {'derive': 'link', 'whole': 'component', 'exclude': 'info_dim',
+                        'new': 'menu_new'}[st]
+            else:
+                st = 'pick' if name in members else ('decline' if name in removed else 'new')
+                glyph = {'pick': '●', 'decline': '~', 'new': '?'}[st]
+                text = f'{mk} {glyph}   {name}'
+                elem = {'pick': 'component', 'decline': 'info_dim', 'new': 'menu_new'}[st]
+            attr = pal.get(elem) | (curses.A_REVERSE if oncur else 0)
+            _put(stdscr, 2 + r, 0, _fit(text, w), attr)
+        foot = (f' {note}   ' if note else ' ') + \
+            'space cycle · + whole · ⏎/l drill in · h/esc up/exit · j/k · q done '
+        _put(stdscr, h - 1, 0, _fit(foot.ljust(w), w), pal.get('dim') | curses.A_REVERSE)
+        stdscr.refresh()
+        note = ''
+        ch = stdscr.getch()
+        if ch in (ord('q'),) or (ch == 27 and not drill):
+            return changed
+        if ch == 27:                                     # esc with a drill -> pop one level
+            drill.pop()
+            cur = 0
+            continue
+        if ch in (ord('j'), curses.KEY_DOWN):
+            cur = min(len(rows) - 1, cur + 1) if rows else 0
+        elif ch in (ord('k'), curses.KEY_UP):
+            cur = max(0, cur - 1)
+        elif ch in (ord('g'), curses.KEY_HOME):
+            cur = 0
+        elif ch in (ord('G'), curses.KEY_END):
+            cur = max(0, len(rows) - 1)
+        elif ch in (ord('h'), curses.KEY_LEFT, curses.KEY_BACKSPACE, 127, 8):
+            if drill:
+                drill.pop()
+                cur = 0
+        elif rows and ch in (ord('l'), curses.KEY_RIGHT, ord('\n'), curses.KEY_ENTER):
+            kind, name = rows[cur]
+            if kind == 'sub':                            # drill into the sub (read-only)
+                drill.append(name)
+                cur = 0
+        elif rows and ch in (ord(' '), ord('+'), ord('~'), ord('d')):
+            kind, name = rows[cur]
+            try:
+                ensure_path()                            # picking inside commits the ^-path
+                if kind == 'sub':
+                    st = ctx.config.subprofile_state(profile, name)
+                    if ch == ord('+'):
+                        nxt = 'whole'
+                    else:                                # space cycle: new -> derive -> exclude -> new
+                        nxt = {'new': 'derive', 'derive': 'exclude', 'exclude': 'new',
+                               'whole': 'exclude'}[st]
+                    ok, lbl = actions.set_subprofile_state(ctx, profile, name, nxt, machine=mtarget)
+                    note = f'{name} → {nxt}' if ok else (lbl or 'no change')
+                else:
+                    st = 'pick' if name in members else ('decline' if name in removed else 'new')
+                    act = {'new': 'add', 'pick': 'decline', 'decline': 'clear'}[st]
+                    ok, lbl = actions.set_profile_membership(ctx, profile, name, act, machine=mtarget)
+                    note = f'{name} {act}' if ok else (lbl or 'no change')
+                changed = changed or ok
+            except Exception as e:                       # noqa: BLE001 — surface, don't crash
+                note = f'edit failed: {e}'
 
 
 def _fill_bg(stdscr, pal, h, w):
@@ -4167,10 +4290,15 @@ def run(ctx):
                 elif pfact in ('switch-pane', 'switch-pane-back'):
                     ps.focus = 'right' if ps.focus == 'left' else 'left'   # tab / shift-tab toggle
                 elif pfact == 'confirm' and ps.focus == 'left':
+                    _cp = ps.cur_profile()
                     if ps.is_group_header(ps.cur_node()):   # a group header: fold/unfold it
                         (ps.collapse_cur if ps.cur_node()[4] else ps.expand_cur)()
+                    elif _cp and ps.is_derived(_cp):        # a derived profile: open its hierarchical ballot
+                        if _run_ballot(stdscr, pal, ctx, _cp):
+                            ps.reload()
+                            menu_dirty = True
                     else:
-                        ps.focus = 'right'             # a profile: open the components pane for it
+                        ps.focus = 'right'             # a plain profile: open the components pane for it
                 elif pfact == 'right':
                     if ps.focus == 'left':
                         ps.expand_cur()                # h/l now expand/collapse the include tree

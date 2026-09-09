@@ -109,6 +109,34 @@ def _set_machine_membership(ctx, machine, profile, comp, action, *, synth='track
     return True, f'machine {machine}'
 
 
+def set_subprofile_state(ctx, profile, sub, state, *, target=None, machine=None):
+    '''Write so sub-profile `sub` reaches `state` ('derive' ^sub / 'whole' +sub / 'exclude' ~sub /
+    'new' unengaged) in `profile` — the hierarchical ballot's sub-profile edit. `machine` scopes into
+    machines:[machine].profiles. Returns (changed, label); a no-op returns (False, label).'''
+    if machine is not None:
+        tidx = ctx.config.machine_layer_index()
+        if ctx.config.selected_machine() != machine or tidx is None:
+            return False, f'machine "{machine}" is not the loaded target — re-run with `--machine {machine}`'
+        tfile = str(ctx.config._layers[tidx].path)
+        new_terms = ctx.config.plan_subprofile_state_edit(profile, sub, state, tfile, layer_idx=tidx)
+        if new_terms is None:
+            return False, f'machine {machine}'
+        machines = plugins.read_machines(tfile)
+        machines.setdefault(machine, {}).setdefault('profiles', {})[profile] = new_terms
+        plugins.set_machines(tfile, machines)
+        ctx.invalidate()
+        return True, f'machine {machine}'
+    tfile, label = (target, target) if target else _profile_target(ctx, profile)
+    new_terms = ctx.config.plan_subprofile_state_edit(profile, sub, state, tfile)
+    if new_terms is None:
+        return False, label
+    profs = plugins.read_profiles(tfile)
+    profs[profile] = new_terms
+    plugins.set_profiles(tfile, profs)
+    ctx.invalidate()
+    return True, label
+
+
 UNINSTALL_PROFILE = '!uninstall'
 
 

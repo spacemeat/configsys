@@ -808,6 +808,18 @@ class Config:
         idx, val, _src = chain[-1]
         return self._layout(profile, idx, val, ())
 
+    def profile_children(self, profile):
+        '''A profile's DIRECT children as `{subprofiles, components}` — its `+sub` includes as
+        sub-profiles + its own bare components (its structural layout). For DRILLING INTO a
+        sub-profile in the hierarchical ballot (contrast profile_menu_items, which is over a derived
+        profile's `^q` terms). Empty for an unknown/broken profile.'''
+        try:
+            layout = self.profile_layout(profile)
+        except ConfigError:
+            return {'subprofiles': set(), 'components': set()}
+        return {'subprofiles': {r for k, r in layout if k == 'include'},
+                'components': {r for k, r in layout if k == 'component'}}
+
     def _layout(self, name, idx, val, stack):
         key = (name, idx)
         if key in stack:
@@ -1020,6 +1032,41 @@ class Config:
         if not active(without):                          # dropping our own +sub alone excludes it
             return without
         return without if neg in without else without + [neg]
+
+    def subprofile_state(self, profile, sub):
+        '''How `profile` currently engages sub-profile `sub` in its OWN terms (across its chain):
+        'derive' (`^sub`), 'whole' (`+sub`), 'exclude' (`~sub`), or 'new' (unmentioned/offered). The
+        hierarchical ballot's per-sub state.'''
+        if sub in set(self.profile_derive_terms(profile)):
+            return 'derive'
+        if sub in self.profile_includes(profile):
+            return 'whole'
+        if sub in self.profile_excludes(profile):
+            return 'exclude'
+        return 'new'
+
+    def plan_subprofile_state_edit(self, profile, sub, state, target_file, layer_idx=None):
+        '''New raw term list so sub-profile `sub` reaches `state` in `profile`: 'derive' (`^sub`),
+        'whole' (`+sub`), 'exclude' (`~sub`), or 'new' (no term — unengaged/offered). Drops any
+        existing `^sub`/`+sub`/`~sub` first. Pure; None for a no-op. `layer_idx` addresses a machine
+        rung directly (shared path). The hierarchical ballot's sub-profile writer.'''
+        if sub == profile:
+            raise ConfigError("a profile can't engage itself")
+        tidx = layer_idx if layer_idx is not None else self.layer_index(target_file)
+        if tidx is None:
+            raise ConfigError(f'{target_file} is not a loaded config layer')
+        chain = self._chain.get(profile, ())
+        own = self._own_terms(profile, tidx)
+        in_target = any(i == tidx for i, _v, _s in chain)
+        defined_below = any(i < tidx for i, _v, _s in chain)
+        term = {'derive': '^' + sub, 'whole': '+' + sub, 'exclude': '~' + sub, 'new': None}[state]
+        drop = {'^' + sub, '+' + sub, '~' + sub}
+        base = [t for t in own if str(t) not in drop]
+        if not in_target and defined_below and (term is not None or base != list(own)):
+            base = ['+' + profile] + base                # amend the lower def (track) rather than shadow
+        if term is not None:
+            base = base + [term]
+        return None if (in_target and base == list(own)) else base
 
     def profile_includes(self, profile):
         '''Profiles that `profile` pulls in via `+other` terms across the layer stack (excludes the

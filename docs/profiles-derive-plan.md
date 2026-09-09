@@ -359,16 +359,19 @@ flat-aggregate menu were updated to structural; no on-disk `^aggregate` exists, 
 changed; the flat expansion is still reachable by deriving leaves (`pin_profile --structured`). Tests:
 test/test_profile_derive.py (structural menu, recursion, new-sub detection, mention-removes-from-NEW).
 
-**Q2 (parked, lean TRISTATE).** In the ballot, a sub-profile cycles `NEW → derive(^sub) → exclude(~sub)
-→ NEW` — same gesture as a component (pick=derive). Include-WHOLE (`+sub`, track-live) is a deliberate
-SECONDARY key, not a cycle stop (it's the opposite of the ballot's purpose and a one-keypress footgun).
-Rationale: one mental model, `+` needs intent, fewer keys for the common decline. Lock at TUI-build.
-
-**Q3 (parked, lean DRILL-DOWN).** A sub-unit row is distinct (`▸`/folder glyph + `⁺N`); enter/`l`
-drills in (catalog becomes that sub's ballot, breadcrumb `languages › jvm-lang`); `h`/esc pops up.
-Drilling into a NEW sub and picking inside auto-adds `^sub` ("explore then commit"). Left profile pane
-unchanged; drill-down lives in the right catalog. Open (user flagged UI state/continuity to revisit):
-breadcrumb jump-to-level; reconcile as an indented path vs a flat path column; an expand-to-NEW jump.
+**Q2 + Q3 BUILT (TUI fast-follow).** `enter` on a derived profile opens `_run_ballot` — a drill-down
+overlay. **Q2 (tristate):** a sub-profile cycles `NEW → derive(^sub) → exclude(~sub) → NEW` (space);
+`+` includes it WHOLE (a deliberate secondary key, not a cycle stop); a component cycles
+NEW→pick→decline. **Q3 (drill-down):** a sub-unit row shows `^`/`+`/`~`/`?` state + a `▸` + `⁺N`
+(its offered children); `enter`/`l` drills in (read-only), breadcrumb `profile › languages › jvm-lang`;
+`h`/esc pops up / exits. Any edit first ensures the drilled path is `^`-derived (`ensure_path`), so
+picking inside a sub commits its ancestors. Edits scope to the machine target when active. New algebra:
+`Config.profile_children` (a sub's direct structure to drill into), `subprofile_state`
+(derive/whole/exclude/new), `plan_subprofile_state_edit`; `actions.set_subprofile_state`. Tests:
+test/test_profile_edit.py (state machine over the repo `languages`) + a TUI drill-down smoke.
+Open (user flagged UI state/continuity to revisit): breadcrumb jump-to-level; whether drilling should
+auto-derive vs the current edit-time ensure; an expand-to-NEW jump; integrating the ballot into the
+main catalog vs the current dedicated overlay.
 
 ## Open questions
 - **Ballot verbosity** on wide flat parents (pick 3 of 40 ⇒ many `~`, or many lingering NEW). Is the

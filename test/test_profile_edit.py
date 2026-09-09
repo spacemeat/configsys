@@ -494,6 +494,37 @@ def test_profile_pane_layer_grouping(tmp_path):
     assert {'zmine', 'finders'} <= {nd[0] for nd in v2}
 
 
+def test_hierarchical_subprofile_state_edits(tmp_path):
+    # The hierarchical ballot's sub-profile writer: derive/whole/exclude/new a sub-UNIT of a derived
+    # aggregate. Uses the repo `languages` (an aggregate of +sub language profiles).
+    from configsys import actions, plugins
+    ctx = _rctx(tmp_path)
+    uf = str(ctx.paths.user_config_file)
+    profs = plugins.read_profiles(uf)
+    profs['tl'] = ['^languages']                                 # derive the aggregate
+    plugins.set_profiles(uf, profs)
+    ctx.invalidate()
+    assert 'jvm-lang' in ctx.config.profile_menu_items('tl')['subprofiles']
+    assert ctx.config.subprofile_state('tl', 'jvm-lang') == 'new'
+
+    changed, _ = actions.set_subprofile_state(ctx, 'tl', 'jvm-lang', 'derive')
+    assert changed and ctx.config.subprofile_state('tl', 'jvm-lang') == 'derive'
+    assert 'java-lang' in ctx.config.profile_new('tl')          # recursion: jvm-lang's child offered
+    assert 'jvm-lang' not in ctx.config.profile_new('tl')       # ...and jvm-lang itself is engaged
+
+    actions.set_subprofile_state(ctx, 'tl', 'jvm-lang', 'whole')
+    assert ctx.config.subprofile_state('tl', 'jvm-lang') == 'whole'
+    assert 'jdk' in ctx.config.profile_components('tl')         # whole -> its members install
+
+    actions.set_subprofile_state(ctx, 'tl', 'jvm-lang', 'exclude')
+    assert ctx.config.subprofile_state('tl', 'jvm-lang') == 'exclude'
+    assert 'jdk' not in ctx.config.profile_components('tl')
+
+    changed, _ = actions.set_subprofile_state(ctx, 'tl', 'jvm-lang', 'new')
+    assert changed and ctx.config.subprofile_state('tl', 'jvm-lang') == 'new'
+    assert actions.set_subprofile_state(ctx, 'tl', 'jvm-lang', 'new')[0] is False   # no-op
+
+
 def test_pin_edit_over_a_repo_profile_roundtrip(tmp_path):
     # Editing a repo-only profile with synth='pin' writes a ^self derivation seeded with the current
     # members, so effective membership is unchanged today; the repo def becomes an offered MENU.
