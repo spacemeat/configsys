@@ -2208,11 +2208,11 @@ def _attr_filter_modal(stdscr, pal, inc, exc):
 
 # Layer-grouped profiles pane: a group header is a pnode whose key starts with _GKEY. Groups are
 # keyed by the top-definition layer's ROLE, shown in this order with these labels; repo last (biggest,
-# collapsed by default). Any non-repo/user/primary layer (a data plugin) folds into 'plugin'.
+# collapsed by default). Any non-repo/user/primary/machine layer (a data plugin) folds into 'plugin'.
 _GKEY = '\x00#grp:'
-_GROUP_ORDER = ['user', 'primary', 'plugin', 'repo']
-_GROUP_LABEL = {'user': 'this machine', 'primary': 'your primary', 'plugin': 'plugins',
-                'repo': 'repo catalog'}
+_GROUP_ORDER = ['machine', 'user', 'primary', 'plugin', 'repo']
+_GROUP_LABEL = {'machine': 'machine', 'user': 'this machine', 'primary': 'your primary',
+                'plugin': 'plugins', 'repo': 'repo catalog'}
 
 
 class ProfileScreen:
@@ -2318,7 +2318,7 @@ class ProfileScreen:
             role = defs[-1]['role'] if defs else 'repo'
         except Exception:                            # noqa: BLE001 — a broken profile falls to repo
             role = 'repo'
-        return role if role in ('user', 'primary', 'repo') else 'plugin'
+        return role if role in ('machine', 'user', 'primary', 'repo') else 'plugin'
 
     def visible_pnodes(self):
         '''Flattened visible tree: [(name, depth, key, expandable, expanded)]. Top-level profiles
@@ -2353,7 +2353,11 @@ class ProfileScreen:
             if not grp:
                 continue
             collapsed = (gid in self.collapsed_groups) and not f   # a live filter forces groups open
-            out.append((_GROUP_LABEL[gid], 0, _GKEY + gid, True, not collapsed))
+            label = _GROUP_LABEL[gid]
+            if gid == 'machine':                     # name the selected machine in its header
+                mn = self.ctx.config.selected_machine()
+                label = f'machine: {mn}' if mn else 'machine'
+            out.append((label, 0, _GKEY + gid, True, not collapsed))
             if not collapsed:
                 for r in grp:                        # members stay at depth 0 (header is a full-width bar)
                     walk(r, 0, [])

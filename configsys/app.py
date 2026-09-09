@@ -1908,6 +1908,13 @@ def cmd_check(ctx, args):
                     removal_warnings.append(f"profile '{prof}': `^{r}` is subsumed by another derive "
                                             f"(its menu is already offered)")
 
+    # a `machine:` selection that names no `machines:` entry silently resolves to nothing (shared +
+    # local only) — almost always a typo or an unsynced primary. Warn so it isn't a silent no-op.
+    _sel_machine = ctx.config.selected_machine()
+    if _sel_machine and _sel_machine not in ctx.config.machines():
+        removal_warnings.append(f"machine '{_sel_machine}' is selected but not defined in any "
+                                f"`machines:` block — this box resolves shared + local profiles only")
+
     # reserved `!` profiles (e.g. !uninstall) are system-managed and NEVER install-active — flag one
     # that slipped into `configs:`. And a component staged for uninstall while still WANTED by an
     # active profile is a contradiction (the next sync reinstalls it) — surface it, don't auto-fix.

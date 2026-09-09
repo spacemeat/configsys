@@ -315,6 +315,18 @@ Steps 1–3 dissolve all three stated problems; 4–6 are polish.
 6. `machines:` section — now with a **working-target selector** (curate/plan ANY declared machine from
    any box; execute stays local-only). See the curation-model "Multi-machine authoring" note. No longer
    just per-box activation.
+   - **v1 FOUNDATION DONE.** A machine is a COMPOSING LAYER, not a container: shared profiles live at the
+     primary's top level (travel) and a `machines: { <name>: { configs?, profiles? } }` entry overlays
+     them by name. `_inject_machine_layer` (config.py) splices the selected machine's profiles/configs in
+     as a `machine`-role rung — above primary/plugins/repo, below the local top config — so `^self`/
+     `+self`, `where -p`, reconcile and layer-grouping all flow through unchanged (`^graphics-tools` in a
+     machine == `^self` over the shared one). `machine:` is a machine-nature setting (local; unset = no
+     machine layer); `Config.selected_machine()`/`machines()`; `machine` added to `_MACHINE_ROLES` so a
+     machine's `configs:` drives the active set (local `configs:` still overrides). Pane gains a `machine:
+     <name>` group; `check` warns on a selected-but-undefined machine. Tests: test/test_machines.py.
+   - **Fast follow (NOT built):** the working-target SELECTOR — a TUI picker + `--machine <name>` CLI
+     scope to curate/plan a NON-local machine (writes to the shared primary; execute stays local). Plus
+     `machines:` writers (TUI/CLI add/edit a machine entry). And later: cloning one machine's set to seed another.
 
 If only ONE thing ships: **`^self` + the pin-or-track modal** — it converts the #1 daily friction
 (editing defaults; fear of corruption; surprise-on-update) into an explicit, visible act.

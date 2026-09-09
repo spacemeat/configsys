@@ -17,7 +17,7 @@ from .errors import ConfigError
 # portable personal defaults), then this machine's top user config (which overrides). Ordinary
 # `plugin`/`include` layers are excluded — a shared plugin can't seize machine control
 # unless the local top config explicitly grants it `primary`.
-_MACHINE_ROLES = ('repo', 'primary', 'user')
+_MACHINE_ROLES = ('repo', 'primary', 'machine', 'user')
 
 
 def _leaves(v):
@@ -27,6 +27,47 @@ def _leaves(v):
     if isinstance(v, dict):
         return [leaf for x in v.values() for leaf in _leaves(x)]
     return [] if v is None else [v]
+
+
+def _machine_entry(layer_list, name):
+    '''The selected machine's `{configs?, profiles?}` entry from `machines:`, highest-precedence
+    layer wins (among machine-setting roles). None if unknown.'''
+    entry = None
+    for layer in layer_list:
+        if layer.role in _MACHINE_ROLES:
+            m = layer.data.get('machines')
+            if isinstance(m, dict) and isinstance(m.get(name), dict):
+                entry = (m[name], layer.path)
+    return entry
+
+
+def _selected_machine(layer_list):
+    v = layers.merge_scalar(layer_list, 'machine', _MACHINE_ROLES)
+    return v.strip() if isinstance(v, str) and v.strip() else None
+
+
+def _inject_machine_layer(layer_list):
+    '''If a `machine:` is selected and defined in `machines:`, splice that machine's `profiles:`/
+    `configs:` in as its OWN layer — a `machine`-role rung that overlays the shared primary/plugin/repo
+    profiles by name (so `^self`/`+self` and provenance flow) yet sits BELOW the local top config (which
+    still overrides). A machine is a composing layer, not a container: shared profiles live at the
+    primary's top level and a machine inherits/derives/amends them. Unknown/absent selection -> no-op.'''
+    sel = _selected_machine(layer_list)
+    if not sel:
+        return layer_list
+    got = _machine_entry(layer_list, sel)
+    if got is None:
+        return layer_list                    # selected machine not defined; surfaced by check
+    entry, src = got
+    data = {}
+    if isinstance(entry.get('profiles'), dict):
+        data['profiles'] = entry['profiles']
+    if entry.get('configs') is not None:
+        data['configs'] = entry['configs']
+    mlayer = layers.Layer(src, 'machine', data)
+    # insert just below the TOP user config (the last `user` layer) so the box's own file still wins
+    at = max((i for i, l in enumerate(layer_list) if l.role == 'user'), default=len(layer_list))
+    return layer_list[:at] + [mlayer] + layer_list[at:]
 
 
 def _split_term(term):
@@ -73,6 +114,7 @@ class Config:
                   for p in plugin_files]
         roots.append((paths.user_config_file, 'user'))
         layer_list, warns = layers.expand_tolerant(roots, {'plugin', 'primary'})
+        layer_list = _inject_machine_layer(layer_list)   # the selected `machine:`'s profiles/configs
         cfg = cls(layer_list)
         cfg.load_warnings = warns     # a malformed primary/plugin layer skipped, not fatal
         return cfg
@@ -309,6 +351,24 @@ class Config:
         v = layers.merge_scalar(self._layers, 'effects', _MACHINE_ROLES)
         v = v.strip().lower() if isinstance(v, str) and v.strip() else None
         return v if v in ('full', 'reduced', 'none') else None
+
+    def selected_machine(self):
+        '''The active machine name (`machine:` setting, repo<primary<user), or None. Its `machines:`
+        entry has been spliced in as a `machine`-role layer (see _inject_machine_layer).'''
+        return _selected_machine(self._layers)
+
+    def machines(self):
+        '''All defined machine names -> their `{configs?, profiles?}` entry, highest-precedence layer
+        winning per name (among machine-setting roles). For listing / the working-target selector.'''
+        out = {}
+        for layer in self._layers:
+            if layer.role in _MACHINE_ROLES:
+                m = layer.data.get('machines')
+                if isinstance(m, dict):
+                    for name, entry in m.items():
+                        if isinstance(entry, dict):
+                            out[name] = entry
+        return out
 
     def profile_edit_mode(self):
         '''How a membership edit resolves the FIRST amend of a profile defined only in a lower

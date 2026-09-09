@@ -269,6 +269,9 @@ CONFIG_SETTINGS = {
                                     "layer: 'track' (+self, upstream changes apply), 'pin' (^self, "
                                     "upstream changes offered as NEW), or 'ask' (default, the TUI "
                                     'prompts pin-or-track).', 'configsys(1)'),
+    'machine': ('scalar', 'This box\'s machine name — selects a `machines:` entry from your primary '
+                          '(its profiles/configs overlay the shared ones). Unset = shared + local only.',
+                'configsys(1)'),
     # install-layout dirs (the `dirs:` section) — default < config < env (CONFIGSYS_*_DIR)
     'dirs.user':         ('dir',    'Base dir for user-scope installs (default ~). '
                                     'env CONFIGSYS_USERSCOPE_DIR wins.', 'configsys.hu(5)'),
@@ -298,6 +301,7 @@ SETTING_NATURE = {
     'orphans-ignore':    'machine',           # acknowledged one-offs on THIS box, not shared config
     'orphans-adopt-target': 'uniform',        # a workflow preference — the same staging profile name
     'profile-edit-mode': 'uniform',           # how you like to amend defaults — travels with you
+    'machine':           'machine',           # which machine THIS box is — inherently per-box (local)
     'dirs.user':         'machine',
     'dirs.system':       'machine',
     'dirs.app':          'uniform',
@@ -371,6 +375,7 @@ def config_settings(ctx):
         'orphans-adopt-target': cfg.orphans_adopt_target(),
         'splash':            cfg.splash(),
         'profile-edit-mode': cfg.profile_edit_mode(),
+        'machine':           cfg.selected_machine(),
     }
     cfg_dirs = cfg.install_dirs()
     env_map = getattr(ctx.paths, 'env', {}) or {}
