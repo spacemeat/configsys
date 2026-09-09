@@ -2881,7 +2881,25 @@ def _draw_profiles(stdscr, pal, ps, ctx, note, screen):
     # the component NAME rides the panel title, so the box is short (2 desc lines + a "required by"
     # line + an "in profiles" line) and the catalog grid below gets the reclaimed rows.
     desc_h = 7 if body_h >= 12 else 0
-    if desc_h:
+    # When the PROFILE pane is focused on a derived profile, the detail box shows what it's WATCHING
+    # (its `^`-menu sources + counts) instead of the highlighted component — the ballot's provenance.
+    watch_box = desc_h and ps.focus == 'left' and prof and ps.is_derived(prof)
+    if watch_box:
+        dit, dil, dih, diw = _panel(stdscr, pal, top, rleft, desc_h, rw, f'profile: {prof}', False, h, w)
+        srcs = ctx.config.profile_derive_terms(prof)          # the `^q` sources
+        items = ctx.config.profile_menu_items(prof)
+        wtext = 'watching: ' + (' '.join('^' + s for s in srcs) if srcs else '(none)')
+        for k, line in enumerate(_wrap(wtext, diw)[:dih - 2]):
+            _put(stdscr, dit + k, dil, _fit(line, diw), pal.style('link', dit + k, dil, h, w))
+        nnew = len(ps.new_members(prof))
+        counts = (f'{ps.relation(prof)}  ·  members {len(ps.members(prof))}  ·  '
+                  f'menu {len(items["subprofiles"])} sub + {len(items["components"])} comp  ·  '
+                  f'⁺{nnew} offered')
+        _put(stdscr, dit + dih - 1, dil, _fit(counts, diw),
+             pal.style('method_dim', dit + dih - 1, dil, h, w))
+        _put(stdscr, dit + dih - 2, dil, _fit('⏎ opens the ballot', diw),
+             pal.style('info_dim', dit + dih - 2, dil, h, w))
+    elif desc_h:
         dit, dil, dih, diw = _panel(stdscr, pal, top, rleft, desc_h, rw, cur or 'component', False, h, w)
         if cur:
             comp = ctx.routes.components.get(cur)
