@@ -51,10 +51,62 @@ def test_multi_parent_menu_is_a_union():
     assert c.profile_new('laptop') == {'ocaml', 'pip'}
 
 
-def test_derive_from_an_include_profile_offers_its_full_expansion():
+def test_derive_from_an_aggregate_offers_its_sub_profiles_as_units():
+    # A-hierarchical: `^langs` where langs = [+python-lang +ocaml-lang] offers those SUB-PROFILES as
+    # UNITS (structural), not the flattened components. Deriving a sub-unit recurses into it.
     c = _cfg(BASE.replace('}\n}', '  ts-langs: [ "^langs"  python3 ]\n  }\n}'))
-    assert sorted(c.profile_menu('ts-langs')) == ['dune', 'ocaml', 'pip', 'python3']   # langs expanded
-    assert c.profile_new('ts-langs') == {'dune', 'ocaml', 'pip'}
+    assert sorted(c.profile_menu('ts-langs')) == ['ocaml-lang', 'python-lang']   # sub-units, not comps
+    assert c.profile_menu_items('ts-langs') == {'subprofiles': {'python-lang', 'ocaml-lang'},
+                                                'components': set()}
+    assert c.profile_new('ts-langs') == {'python-lang', 'ocaml-lang'}            # both offered as units
+
+
+NESTED = '''{
+  profiles: {
+    java-lang:   [ jdk ]
+    kotlin-lang: [ kotlin ]
+    jvm-lang:    [ +java-lang  +kotlin-lang ]
+    py-lang:     [ python3  pip ]
+    langs:       [ +jvm-lang  +py-lang  perl ]
+  }
+}'''
+
+
+def test_structural_menu_mixes_sub_units_and_components():
+    c = _cfg(NESTED.replace('}\n}', '  ts: [ "^langs" ]\n  }\n}'))
+    items = c.profile_menu_items('ts')
+    assert items == {'subprofiles': {'jvm-lang', 'py-lang'}, 'components': {'perl'}}
+    assert c.profile_new('ts') == {'jvm-lang', 'py-lang', 'perl'}     # all offered, nothing engaged
+    assert c.profile_components('ts') == []                            # ^ contributes no members
+
+
+def test_deriving_a_sub_unit_recurses_and_resolves_it():
+    # `^jvm-lang` drops jvm-lang out of NEW and offers ITS children (java-lang, kotlin-lang) as NEW.
+    c = _cfg(NESTED.replace('}\n}', '  ts: [ "^langs"  "^jvm-lang" ]\n  }\n}'))
+    items = c.profile_menu_items('ts')
+    assert items['subprofiles'] == {'jvm-lang', 'py-lang', 'java-lang', 'kotlin-lang'}
+    assert c.profile_new('ts') == {'py-lang', 'perl', 'java-lang', 'kotlin-lang'}   # jvm-lang engaged
+    assert 'jvm-lang' not in c.profile_new('ts')
+
+
+def test_new_sub_profile_upstream_shows_as_a_unit():
+    # ts derives langs and has engaged every current child; when langs gains a NEW sub-profile
+    # upstream, it surfaces as a NEW unit (not auto-installed) — the headline A-hierarchical win.
+    settled = NESTED.replace('}\n}',
+                             '  ts: [ "^langs"  ~jvm-lang  ~py-lang  ~perl ]\n  }\n}')
+    assert _cfg(settled).profile_new('ts') == set()                   # all current children engaged
+    grown = (NESTED.replace('py-lang:     [ python3  pip ]',
+                            'py-lang:     [ python3  pip ]\n    go-lang:     [ go ]')
+                   .replace('+jvm-lang  +py-lang  perl', '+jvm-lang  +py-lang  +go-lang  perl')
+                   .replace('}\n}', '  ts: [ "^langs"  ~jvm-lang  ~py-lang  ~perl ]\n  }\n}'))
+    assert _cfg(grown).profile_new('ts') == {'go-lang'}               # the new sub-profile, offered
+
+
+def test_mention_removes_a_sub_from_new():
+    base = NESTED.replace('}\n}', '  ts: [ "^langs"  {X} ]\n  }\n}')
+    assert 'jvm-lang' not in _cfg(base.replace('{X}', '~jvm-lang')).profile_new('ts')   # excluded
+    assert 'jvm-lang' not in _cfg(base.replace('{X}', '+jvm-lang')).profile_new('ts')   # included whole
+    assert 'jvm-lang' not in _cfg(base.replace('{X}', '"^jvm-lang"')).profile_new('ts')  # derived
 
 
 def test_derivation_of_a_derivation_narrows():

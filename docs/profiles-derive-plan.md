@@ -337,6 +337,39 @@ Steps 1–3 dissolve all three stated problems; 4–6 are polish.
 If only ONE thing ships: **`^self` + the pin-or-track modal** — it converts the #1 daily friction
 (editing defaults; fear of corruption; surprise-on-update) into an explicit, visible act.
 
+## A-hierarchical — `^aggregate` offers sub-profiles as tristate units  [grill 2026-09-08]
+
+Grilled + LOCKED: **Q1 uniform structural `^`** and **Q4 algebra+CLI first**. Q2 (sub pick gesture)
+and Q3 (TUI navigation) are TUI concerns, parked for the fast-follow with leanings recorded.
+
+**Locked — the semantics change.** `profile_menu(^q)` becomes q's DIRECT CHILDREN: its `+sub` includes
+as sub-profile UNITS + its bare components — NOT the flattened member set. A leaf `^p` (no sub-profiles)
+still menus its components, so leaf derives are UNCHANGED. Recursion is emergent: deriving a sub-unit
+(`^sub`) adds `sub`'s children to the menu in turn (verified: `^languages ^jvm-lang` → java-lang/
+kotlin-lang/scala-lang appear as NEW sub-units). A `^`-derive inside the SOURCE is skipped (its own
+curation), so deriving a derived profile still NARROWS to its structure. NEW is per-kind: a sub-unit is
+NEW unless MENTIONED (`+sub`/`^sub`/`~sub`); a direct component is NEW unless a member (picked) or
+`~`-declined — so a brand-new sub-profile upstream surfaces as a NEW unit, attributed to its level.
+
+**v1 BUILT (algebra + CLI).** `Config._menu_structural` (subs, comps), `profile_menu_items`
+(`{subprofiles, components}`), rewritten `profile_new` (new_subs = menu_subs − mentioned; new_comps =
+menu_comps − members − declined). `reconcile`/`where -p` flag sub-units (`‹sub-profile — derive to
+curate›` / `‹sub›`, menu count split subs+comps). Compat: two derive tests that asserted the old
+flat-aggregate menu were updated to structural; no on-disk `^aggregate` exists, so nothing live
+changed; the flat expansion is still reachable by deriving leaves (`pin_profile --structured`). Tests:
+test/test_profile_derive.py (structural menu, recursion, new-sub detection, mention-removes-from-NEW).
+
+**Q2 (parked, lean TRISTATE).** In the ballot, a sub-profile cycles `NEW → derive(^sub) → exclude(~sub)
+→ NEW` — same gesture as a component (pick=derive). Include-WHOLE (`+sub`, track-live) is a deliberate
+SECONDARY key, not a cycle stop (it's the opposite of the ballot's purpose and a one-keypress footgun).
+Rationale: one mental model, `+` needs intent, fewer keys for the common decline. Lock at TUI-build.
+
+**Q3 (parked, lean DRILL-DOWN).** A sub-unit row is distinct (`▸`/folder glyph + `⁺N`); enter/`l`
+drills in (catalog becomes that sub's ballot, breadcrumb `languages › jvm-lang`); `h`/esc pops up.
+Drilling into a NEW sub and picking inside auto-adds `^sub` ("explore then commit"). Left profile pane
+unchanged; drill-down lives in the right catalog. Open (user flagged UI state/continuity to revisit):
+breadcrumb jump-to-level; reconcile as an indented path vs a flat path column; an expand-to-NEW jump.
+
 ## Open questions
 - **Ballot verbosity** on wide flat parents (pick 3 of 40 ⇒ many `~`, or many lingering NEW). Is the
   steady NEW-triage trickle welcome curation or friction? A per-profile "decline all current, keep

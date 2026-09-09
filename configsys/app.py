@@ -1353,14 +1353,18 @@ def where_profile_report(ctx, name):
         members = sorted(cfg.profile_components(name))
     except ConfigError:
         members = []
+    items = cfg.profile_menu_items(name)             # split the structural menu into subs vs comps
     menu, declined, new = (sorted(cfg.profile_menu(name)), sorted(cfg.profile_removed(name)),
                            sorted(cfg.profile_new(name)))
     out.append('')
-    out.append(f'  members {len(members)}   menu {len(menu)}   '
+    out.append(f'  members {len(members)}   menu {len(menu)} '
+               f'({len(items["subprofiles"])} sub-profiles + {len(items["components"])} components)   '
                f'declined {len(declined)}   new {len(new)}')
     if cfg.is_derived(name):                        # a ballot: spell out what's offered / declined
+        _subs = items['subprofiles']
         if new:
-            out.append(f'    new (offered): {", ".join(new)}')
+            out.append('    new (offered): '
+                       + ', '.join(f'{n} ‹sub›' if n in _subs else n for n in new))
         if declined:
             out.append(f'    declined: {", ".join(declined)}')
     return out
@@ -1393,9 +1397,11 @@ def reconcile_data(ctx):
         if not cfg.is_derived(p):
             continue
         new = sorted(cfg.profile_new(p))
+        subs = cfg.profile_menu_items(p)['subprofiles']       # which NEW items are sub-profile UNITS
         dec = sorted(cfg.profile_removed(p))
         if new:
-            groups.append({'profile': p, 'relation': cfg.profile_relation(p), 'new': new})
+            groups.append({'profile': p, 'relation': cfg.profile_relation(p), 'new': new,
+                           'new_subs': sorted(s for s in new if s in subs)})
         if dec:
             declined.append({'profile': p, 'items': dec})
     return {'groups': groups, 'declined': declined}
@@ -1412,8 +1418,10 @@ def reconcile_report(ctx):
         out.append(f'{total} offered (NEW) item(s) across {len(d["groups"])} profile(s):')
         for g in d['groups']:
             out.append(f'  {g["profile"]}  ({g["relation"]})')
+            _subs = set(g.get('new_subs') or ())
             for c in g['new']:
-                out.append(f'    ? {c}')
+                out.append(f'    ? {c}   ‹sub-profile — derive to curate›' if c in _subs
+                           else f'    ? {c}')
     if d['declined']:
         nd = sum(len(x['items']) for x in d['declined'])
         out.append(f'auto-declined: {nd} across {len(d["declined"])} profile(s)')

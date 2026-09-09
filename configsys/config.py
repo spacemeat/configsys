@@ -601,58 +601,90 @@ class Config:
         defined_below = any(i < tidx for i, _v, _s in chain)
         return (not in_target) and defined_below
 
-    def _compute_menu(self, profile):
-        '''⋃ members(q) over the TOP definition's `^q` terms. `^self` (`^ownname`) offers the next-
-        lower layer's members (mirrors `+self`). Raises ConfigError on an undefined `^ref` or a
-        `^self` with no lower layer — `check` surfaces those; the public wrappers swallow them.'''
+    def _menu_structural(self, profile):
+        '''STRUCTURAL menu: over the TOP def's `^q` terms, offer q's DIRECT CHILDREN — its `+sub`
+        includes (and any `^`) as sub-profile UNITS, and its bare components — NOT the flattened member
+        set. Returns (subprofiles, components). `^self` (`^ownname`) uses the next-lower def (mirrors
+        `+self`). Recursion is emergent: deriving a sub-unit (`^sub`) offers ITS children in turn. A
+        leaf `^p` (no sub-profiles) still menus its components, so leaf derives are unchanged. Raises
+        ConfigError on an undefined `^ref` / a `^self` with no lower layer.'''
         chain = self._chain.get(profile)
+        subs, comps = set(), set()
         if not chain:
-            return set()
+            return subs, comps
         idx, val, _src = chain[-1]
-        out = set()
         for term in _leaves(val):
             op, ref = _split_term(term)
             if op != '^':
                 continue
-            if ref == profile:                             # ^self -> the next-lower layer's members
+            if ref == profile:                             # ^self -> the next-lower def's structure
                 lower = [e for e in chain if e[0] < idx]
                 if not lower:
                     raise ConfigError(f'profile "{profile}": `^{profile}` has no lower-layer '
                                       f'definition to derive from')
-                out |= set(self._expand(profile, lower[-1][0], lower[-1][1], ()))
+                layout = self._layout(profile, lower[-1][0], lower[-1][1], ())
             else:
                 sub = self._chain.get(ref)
                 if not sub:
                     raise ConfigError(f'profile "{profile}": `^{ref}` derives from an undefined '
                                       f'profile "{ref}"')
-                out |= set(self._expand(ref, sub[-1][0], sub[-1][1], ()))
-        return out
+                layout = self._layout(ref, sub[-1][0], sub[-1][1], ())
+            for kind, r in layout:
+                if kind == 'include':                      # a `+sub` -> a sub-profile UNIT
+                    subs.add(r)
+                elif kind == 'component':
+                    comps.add(r)
+                # 'derive'/'exclude' in the SOURCE are its own curation, not offered here (so
+                # deriving a derived profile still NARROWS to its structure — picks + includes)
+        return subs, comps
+
+    def _compute_menu(self, profile):
+        '''The menu as a flat NAME set (sub-profile units ∪ direct components) — for check_derives and
+        the flat-name `profile_menu`. Raises like _menu_structural.'''
+        subs, comps = self._menu_structural(profile)
+        return subs | comps
 
     def check_derives(self, profile):
         '''Raise ConfigError if any `^derive` term is undefined / has no lower layer — for `check`.'''
         self._compute_menu(profile)
 
     def profile_menu(self, profile):
-        '''The MENU a derived profile offers — ⋃ members(q) over its `^q` terms — or the empty set for
-        a plain (`^`-free) profile or a broken definition. What the ballot renders against.'''
+        '''The MENU a derived profile offers, as a flat set of NAMES (sub-profile units + components),
+        or the empty set for a plain (`^`-free) / broken profile. Use `profile_menu_items` to tell a
+        sub-profile unit from a component.'''
         try:
             return self._compute_menu(profile)
         except ConfigError:
             return set()
 
+    def profile_menu_items(self, profile):
+        '''The structural menu split by kind: {'subprofiles': set, 'components': set}. Empty on a plain
+        or broken profile. Drives the hierarchical ballot (a sub-unit drills in; a component is a pick).'''
+        try:
+            subs, comps = self._menu_structural(profile)
+        except ConfigError:
+            subs, comps = set(), set()
+        return {'subprofiles': subs, 'components': comps}
+
     def profile_new(self, profile):
-        '''Unballoted menu items: offered by a `^derive` but neither PICKED (a member) nor DECLINED
-        (a `~`). NEW = menu − members − declines; empty for a plain profile. A `~subprofile` decline is
-        transitive AND "open" (profile_removed recomputes its members, so a subprofile that GROWS
-        stays declined, not resurfaced as NEW).'''
-        menu = self.profile_menu(profile)
-        if not menu:
+        '''Unballoted menu items — offered by a `^derive` but not yet acted on. For a sub-profile UNIT:
+        NEW unless MENTIONED (`+sub`/`^sub`/`~sub`). For a direct COMPONENT: NEW unless a member
+        (picked) or `~`-declined. So a brand-new sub-profile upstream shows as NEW (a unit), and a new
+        direct component shows as NEW — each attributed to the level it appears at. Empty for a plain
+        profile. `~subprofile` declines stay "open" (a growing declined sub is not resurfaced).'''
+        subs, comps = (lambda d: (d['subprofiles'], d['components']))(self.profile_menu_items(profile))
+        if not subs and not comps:
             return set()
         try:
             members = set(self.profile_components(profile))
         except ConfigError:
             members = set()
-        return menu - members - self.profile_removed(profile)
+        removed = self.profile_removed(profile)
+        mentioned = (set(self.profile_includes(profile)) | set(self.profile_derive_terms(profile))
+                     | set(self.profile_excludes(profile)))
+        new_subs = subs - mentioned                        # a sub-unit not yet +/^/~ engaged
+        new_comps = comps - members - removed              # a direct component not picked/declined
+        return new_subs | new_comps
 
     def _all_components(self):
         '''Every defined component name (the built-in `all` profile), or [] before the app has

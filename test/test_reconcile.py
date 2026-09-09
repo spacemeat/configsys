@@ -22,7 +22,7 @@ BODY = ('{ configs: [ mine ]  profiles: { '
 
 def test_reconcile_data_groups_new_and_declined(tmp_path):
     d = reconcile_data(_ctx(tmp_path, BODY))
-    assert d['groups'] == [{'profile': 'mine', 'relation': 'base', 'new': ['bat']}]   # fd declined
+    assert d['groups'] == [{'profile': 'mine', 'relation': 'base', 'new': ['bat'], 'new_subs': []}]   # fd declined
     assert d['declined'] == [{'profile': 'mine', 'items': ['fd']}]
 
 
@@ -39,7 +39,7 @@ def test_reconcile_data_follows_includes(tmp_path):
     body = ('{ configs: [ top ]  profiles: { '
             'ai: [ htop  bat ]  sub: [ "^ai"  htop ]  top: [ +sub ] } }')
     d = reconcile_data(_ctx(tmp_path, body))
-    assert d['groups'] == [{'profile': 'sub', 'relation': 'base', 'new': ['bat']}]
+    assert d['groups'] == [{'profile': 'sub', 'relation': 'base', 'new': ['bat'], 'new_subs': []}]
 
 
 def test_reconcile_report_text(tmp_path):
