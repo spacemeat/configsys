@@ -1,6 +1,6 @@
 '''`machines:` as a composing LAYER (part 6 v1 foundation). A selected `machine:`'s profiles/configs
-splice in as a `machine`-role rung that overlays the shared primary/repo profiles by name (so `^self`
-and provenance flow) but sits below the local top config. See docs/profiles-derive-plan.md.'''
+splice in as a `machine`-role rung that overlays the shared primary/repo profiles by name (so `+self`
+and provenance flow) but sits below the local top config.'''
 
 from configsys import layers
 from configsys.config import Config, _inject_machine_layer
@@ -14,16 +14,15 @@ def _cfg(*specs):
 
 REPO = '{ profiles: { tools: [ gimp  inkscape  krita ] } }'
 LAPTOP = ('{ machine: laptop  machines: { laptop: { configs: [ tools ] '
-          '  profiles: { tools: [ "^tools"  gimp  krita ] } } } }')
+          '  profiles: { tools: [ "+tools"  wacom ] } } } }')
 
 
-def test_machine_profile_overlays_shared_by_name_via_self_derive():
+def test_machine_profile_overlays_shared_by_name_via_self_track():
     c = _cfg(('repo', REPO), ('user', LAPTOP))
     assert c.selected_machine() == 'laptop' and set(c.machines()) == {'laptop'}
-    # the machine's `tools` derives the SHARED tools (^self -> next-lower = repo) and picks 2 of 3
-    assert set(c.profile_components('tools')) == {'gimp', 'krita'}
-    assert set(c.profile_menu('tools')) == {'gimp', 'inkscape', 'krita'}
-    assert c.profile_new('tools') == {'inkscape'}                 # offered, not installed
+    # the machine's `tools` tracks the SHARED tools (+self -> next-lower = repo) and adds one
+    assert set(c.profile_components('tools')) == {'gimp', 'inkscape', 'krita', 'wacom'}
+    assert c.profile_relation('tools') == 'tracked'
     # provenance: the profile now has a repo def AND a machine def
     roles = [d['role'] for d in c.profile_layer_defs('tools')]
     assert roles == ['repo', 'machine']
@@ -65,12 +64,12 @@ def test_machines_writer_roundtrip(tmp_path):
     from configsys import plugins
     f = tmp_path / 'u.hu'
     f.write_text('{ // keep\n  scope: user }\n', encoding='utf-8')
-    data = {'lap': {'configs': ['a', 'b'], 'profiles': {'x': ['^x', 'c', '~d']}},
-            'desk': {'profiles': {'x': ['^x']}}}
+    data = {'lap': {'configs': ['a', 'b'], 'profiles': {'x': ['+x', 'c', '~d']}},
+            'desk': {'profiles': {'x': ['+y']}}}
     plugins.set_machines(str(f), data)
     assert plugins.read_machines(str(f)) == data
     assert '// keep' in f.read_text() and 'scope: user' in f.read_text()   # comment + sibling survive
-    assert '"^x"' in f.read_text()                                          # ^ term quoted
+    assert '~d' in f.read_text()                                            # terms round-trip
 
 
 def test_machine_lifecycle_and_scoped_edit(tmp_path):
@@ -84,20 +83,20 @@ def test_machine_lifecycle_and_scoped_edit(tmp_path):
 
     # on-box scoped edit: machine: laptop is active, so the laptop rung is loaded
     changed, label = actions.set_profile_membership(ctx, 'finders', 'bat', 'add',
-                                                    synth='pin', machine='laptop')
+                                                    machine='laptop')
     assert changed and label == 'machine laptop'
     assert 'bat' in ctx.config.profile_components('finders')           # resolves via the machine layer
     terms = ctx.config.machines()['laptop']['profiles']['finders']
-    assert terms[0] == '^finders' and 'bat' in terms                  # pinned into the namespace
+    assert terms[0] == '+finders' and 'bat' in terms                  # tracked into the namespace
 
     # off-box scoped edit needs --machine (the override loads THAT machine's rung)
     assert actions.set_profile_membership(ctx, 'finders', 'bat', 'add', machine='desktop')[0] is False
     ctx.machine_override = 'desktop'
     ctx.invalidate()
     changed, label = actions.set_profile_membership(ctx, 'finders', 'eza', 'add',   # eza ∉ finders
-                                                    synth='pin', machine='desktop')
+                                                    machine='desktop')
     assert changed and label == 'machine desktop'
-    assert ctx.config.machines()['desktop']['profiles']['finders'][0] == '^finders'
+    assert ctx.config.machines()['desktop']['profiles']['finders'][0] == '+finders'
     # laptop's edit is untouched by desktop's
     assert 'bat' in ctx.config.machines()['laptop']['profiles']['finders']
 
@@ -110,8 +109,8 @@ def test_machine_inherits_a_shared_primary_profile():
     # derives it. The machine layer sits above primary, below the local top config.
     primary = '{ profiles: { dev: [ gh  git  lazygit ] } }'
     user = ('{ machine: laptop  machines: { laptop: { configs: [ dev ] '
-            '  profiles: { dev: [ "^dev"  gh  git ] } } } }')
+            '  profiles: { dev: [ "+dev"  delta ] } } } }')
     c = _cfg(('repo', '{ }'), ('primary', primary), ('user', user))
-    assert set(c.profile_components('dev')) == {'gh', 'git'}      # machine picks 2 of the shared 3
-    assert c.profile_new('dev') == {'lazygit'}                    # the shared profile's 3rd -> offered
+    assert set(c.profile_components('dev')) == {'gh', 'git', 'lazygit', 'delta'}   # tracks shared 3 + 1
+    assert c.profile_relation('dev') == 'tracked'
     assert [d['role'] for d in c.profile_layer_defs('dev')] == ['primary', 'machine']

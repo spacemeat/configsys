@@ -74,16 +74,11 @@ def _inject_machine_layer(layer_list, override=None):
 
 
 def _split_term(term):
-    '''A profile-list entry -> (op, name). `+foo` includes profile foo (opt-out: its members join,
-    live); `^foo` DERIVES from foo (opt-in: foo's members become an offered MENU, contributing NO
-    members of their own — you pick from them with bare names); `~foo` removes/declines; a bare name
-    adds a component. `^` collides with humon's heredoc syntax, so a derive term is authored quoted
-    (`"^foo"`) — the quotes are gone by the time it reaches here, leaving the literal `^foo`.'''
+    '''A profile-list entry -> (op, name). `+foo` includes profile foo (its members join, live);
+    `~foo` removes a component or excludes a subprofile; a bare name adds a component.'''
     t = str(term)
     if t[:1] == '+':
         return '+', t[1:]
-    if t[:1] == '^':
-        return '^', t[1:]
     if t[:1] == '~':
         return '~', t[1:]
     return '', t
@@ -382,15 +377,6 @@ class Config:
                             out[name] = entry
         return out
 
-    def profile_edit_mode(self):
-        '''How a membership edit resolves the FIRST amend of a profile defined only in a lower
-        (non-editable) layer: 'track' (`+self` — repo/plugin changes apply, future additions install),
-        'pin' (`^self` — you pick; upstream changes are OFFERED as NEW, never applied), or 'ask'
-        (default — the TUI interposes the pin-or-track modal). A machine setting (repo<primary<user).'''
-        v = layers.merge_scalar(self._layers, 'profile-edit-mode', _MACHINE_ROLES)
-        v = v.strip().lower() if isinstance(v, str) and v.strip() else None
-        return v if v in ('track', 'pin', 'ask') else 'ask'
-
     def layer_pins(self, role):
         '''The raw scalar pins from the single layer of this role (repo/primary/user) — for
         editing that one layer's pins and for provenance, distinct from the merged pins().'''
@@ -538,40 +524,17 @@ class Config:
                     out.append(t[1:])
         return out
 
-    # -- derive (`^`) : the opt-in dual of `+include` — menu + NEW ------------------------------
-    # A `^q` term offers q's members as a MENU without contributing members; your bare names are the
-    # PICKS from that menu, `~name` a DECLINE, and a menu item that is neither is NEW (offered, never
-    # installed). menu(^p) = members(p) — what p IS (recursive: a plain profile's full expansion, a
-    # derived profile's picks). NEW = menu − members − declines. All derivable from the .hu text.
-
-    def profile_derive_terms(self, profile):
-        '''Every `^ref` name a profile declares across its chain (raw) — its derive-menu references.
-        For `check` (undefined/subsumed/paired-with-include) and the TUI menu view.'''
-        out = []
-        for _i, terms, _s in self._chain.get(profile, ()):
-            for t in _leaves(terms):
-                if isinstance(t, str) and t[:1] == '^' and t[1:]:
-                    out.append(t[1:])
-        return out
-
-    def is_derived(self, profile):
-        '''True if `profile` has any `^derive` term (its catalog is a ballot over an offered menu).'''
-        return bool(self.profile_derive_terms(profile))
-
     def profile_relation(self, profile):
         '''How the TOP (highest-precedence) definition of `profile` relates to any lower-layer
         definition of the SAME name — the provenance the pane badge / `where -p` show:
-          'pinned'   — a `^self` (`^<profile>`) term: your layer PINS the lower def as a menu.
           'tracked'  — a `+self` (`+<profile>`) term: your layer AMENDS the live lower def.
-          'shadowed' — a redefinition with neither self-ref while a lower def exists (it hides it).
+          'shadowed' — a redefinition with no self-ref while a lower def exists (it hides it).
           'base'     — a single definition (the lowest / your own fresh profile).'''
         chain = self._chain.get(profile)
         if not chain:
             return 'base'
         _idx, val, _src = chain[-1]
         terms = [t for t in _leaves(val) if isinstance(t, str)]
-        if any(_split_term(t) == ('^', profile) for t in terms):
-            return 'pinned'
         if any(_split_term(t) == ('+', profile) for t in terms):
             return 'tracked'
         return 'shadowed' if len(chain) > 1 else 'base'
@@ -586,105 +549,6 @@ class Config:
             out.append({'role': role, 'source': str(src),
                         'terms': [str(t) for t in _leaves(val)]})
         return out
-
-    def profile_amends_lower(self, profile, target_file, layer_idx=None):
-        '''True if a membership edit to `profile` written to `target_file` would be the FIRST amend of
-        a definition that lives only in a LOWER layer (typically non-editable) — i.e. the writer must
-        synthesize a self-reference (`+self` track / `^self` pin). This is the moment the pin-or-track
-        modal fires. False once the profile already has a definition in the target layer. `layer_idx`
-        addresses the edit layer directly (a machine rung shares its path with the primary).'''
-        tidx = layer_idx if layer_idx is not None else self.layer_index(target_file)
-        if tidx is None:
-            return False
-        chain = self._chain.get(profile, ())
-        in_target = any(i == tidx for i, _v, _s in chain)
-        defined_below = any(i < tidx for i, _v, _s in chain)
-        return (not in_target) and defined_below
-
-    def _menu_structural(self, profile):
-        '''STRUCTURAL menu: over the TOP def's `^q` terms, offer q's DIRECT CHILDREN — its `+sub`
-        includes (and any `^`) as sub-profile UNITS, and its bare components — NOT the flattened member
-        set. Returns (subprofiles, components). `^self` (`^ownname`) uses the next-lower def (mirrors
-        `+self`). Recursion is emergent: deriving a sub-unit (`^sub`) offers ITS children in turn. A
-        leaf `^p` (no sub-profiles) still menus its components, so leaf derives are unchanged. Raises
-        ConfigError on an undefined `^ref` / a `^self` with no lower layer.'''
-        chain = self._chain.get(profile)
-        subs, comps = set(), set()
-        if not chain:
-            return subs, comps
-        idx, val, _src = chain[-1]
-        for term in _leaves(val):
-            op, ref = _split_term(term)
-            if op != '^':
-                continue
-            if ref == profile:                             # ^self -> the next-lower def's structure
-                lower = [e for e in chain if e[0] < idx]
-                if not lower:
-                    raise ConfigError(f'profile "{profile}": `^{profile}` has no lower-layer '
-                                      f'definition to derive from')
-                layout = self._layout(profile, lower[-1][0], lower[-1][1], ())
-            else:
-                sub = self._chain.get(ref)
-                if not sub:
-                    raise ConfigError(f'profile "{profile}": `^{ref}` derives from an undefined '
-                                      f'profile "{ref}"')
-                layout = self._layout(ref, sub[-1][0], sub[-1][1], ())
-            for kind, r in layout:
-                if kind == 'include':                      # a `+sub` -> a sub-profile UNIT
-                    subs.add(r)
-                elif kind == 'component':
-                    comps.add(r)
-                # 'derive'/'exclude' in the SOURCE are its own curation, not offered here (so
-                # deriving a derived profile still NARROWS to its structure — picks + includes)
-        return subs, comps
-
-    def _compute_menu(self, profile):
-        '''The menu as a flat NAME set (sub-profile units ∪ direct components) — for check_derives and
-        the flat-name `profile_menu`. Raises like _menu_structural.'''
-        subs, comps = self._menu_structural(profile)
-        return subs | comps
-
-    def check_derives(self, profile):
-        '''Raise ConfigError if any `^derive` term is undefined / has no lower layer — for `check`.'''
-        self._compute_menu(profile)
-
-    def profile_menu(self, profile):
-        '''The MENU a derived profile offers, as a flat set of NAMES (sub-profile units + components),
-        or the empty set for a plain (`^`-free) / broken profile. Use `profile_menu_items` to tell a
-        sub-profile unit from a component.'''
-        try:
-            return self._compute_menu(profile)
-        except ConfigError:
-            return set()
-
-    def profile_menu_items(self, profile):
-        '''The structural menu split by kind: {'subprofiles': set, 'components': set}. Empty on a plain
-        or broken profile. Drives the hierarchical ballot (a sub-unit drills in; a component is a pick).'''
-        try:
-            subs, comps = self._menu_structural(profile)
-        except ConfigError:
-            subs, comps = set(), set()
-        return {'subprofiles': subs, 'components': comps}
-
-    def profile_new(self, profile):
-        '''Unballoted menu items — offered by a `^derive` but not yet acted on. For a sub-profile UNIT:
-        NEW unless MENTIONED (`+sub`/`^sub`/`~sub`). For a direct COMPONENT: NEW unless a member
-        (picked) or `~`-declined. So a brand-new sub-profile upstream shows as NEW (a unit), and a new
-        direct component shows as NEW — each attributed to the level it appears at. Empty for a plain
-        profile. `~subprofile` declines stay "open" (a growing declined sub is not resurfaced).'''
-        subs, comps = (lambda d: (d['subprofiles'], d['components']))(self.profile_menu_items(profile))
-        if not subs and not comps:
-            return set()
-        try:
-            members = set(self.profile_components(profile))
-        except ConfigError:
-            members = set()
-        removed = self.profile_removed(profile)
-        mentioned = (set(self.profile_includes(profile)) | set(self.profile_derive_terms(profile))
-                     | set(self.profile_excludes(profile)))
-        new_subs = subs - mentioned                        # a sub-unit not yet +/^/~ engaged
-        new_comps = comps - members - removed              # a direct component not picked/declined
-        return new_subs | new_comps
 
     def _all_components(self):
         '''Every defined component name (the built-in `all` profile), or [] before the app has
@@ -725,8 +589,6 @@ class Config:
                 for c in members:
                     if c not in out:
                         out.append(c)
-            elif op == '^':                                # derive: MENU-only, contributes NO members
-                continue                                   # (see profile_menu / profile_new)
             elif op == '~':                                # remove: a subprofile's members, or one component
                 if ref in self._chain and ref != name:     # a defined profile -> subtract its whole member set
                     sidx, sval, _ = self._chain[ref][-1]    # (order-sensitive, like ~component: a later add re-adds)
@@ -810,9 +672,8 @@ class Config:
 
     def profile_children(self, profile):
         '''A profile's DIRECT children as `{subprofiles, components}` — its `+sub` includes as
-        sub-profiles + its own bare components (its structural layout). For DRILLING INTO a
-        sub-profile in the hierarchical ballot (contrast profile_menu_items, which is over a derived
-        profile's `^q` terms). Empty for an unknown/broken profile.'''
+        sub-profiles + its own bare components (its structural layout). Empty for an unknown/broken
+        profile.'''
         try:
             layout = self.profile_layout(profile)
         except ConfigError:
@@ -841,9 +702,6 @@ class Config:
                             out.append(item)
                 elif ('include', ref) not in out:          # +other -> a link reference
                     out.append(('include', ref))
-            elif op == '^':                                # ^derive -> a MENU reference (like include,
-                if ('derive', ref) not in out:             # but opt-in; contributes no members here)
-                    out.append(('derive', ref))
             elif op == '~':                                # ~ excludes a subprofile (a removed-include
                 if ref in self._chain and ref != name:     # marker), or drops an OWN component
                     if ('exclude', ref) not in out:
@@ -891,23 +749,14 @@ class Config:
             return []
         return self.profile_components(profile)
 
-    def plan_membership_edit(self, profile, comp, action, target_file, synth='track', layer_idx=None):
-        '''Compute the new raw term list for `profile` in `target_file` so `comp` reaches `action`'s
-        state, honoring the term algebra. `action`: `'add'` (a member) / `'remove'` (a non-member) of
-        the EFFECTIVE set; plus the derived-profile ballot pair `'decline'` (write an explicit `~comp`
-        — an intentional NO on a menu offering) and `'clear'` (drop an OWNED pick or `~`-decline, so a
-        menu item returns to unballoted/NEW). Pure: returns the new term list to write, or None for a
-        no-op (already in the wanted state, and the target layer need not define the profile).
-        `target_file` is the edit layer (usually the highest-precedence one — your primary or top
-        config); reuses `_expand` to decide whether a component still arrives via `+self`/`+other`
-        after dropping a bare term.
-
-        `synth` picks how the FIRST amend of a profile defined only in a LOWER layer is materialized
-        (add/remove only): `'track'` (default, the historical behavior) amends the live lower def via
-        `+self`; `'pin'` writes a `^self` derivation seeded with the current effective members as picks
-        (so behavior is identical today and upstream growth is later OFFERED as NEW, never applied).
-        `layer_idx` addresses the edit layer directly (for a machine-role rung that shares a path with
-        the primary — `layer_index` can't disambiguate); default resolves `target_file` by path.'''
+    def plan_membership_edit(self, profile, comp, action, target_file, layer_idx=None):
+        '''Compute the new raw term list for `profile` in `target_file` so `comp` becomes a member
+        (`action='add'`) or a non-member (`'remove'`) of the EFFECTIVE set, honoring the term algebra.
+        The first amend of a profile defined only in a LOWER layer amends the live lower def via
+        `+self`. Pure: returns the new term list to write, or None for a no-op. `target_file` is the
+        edit layer; reuses `_expand` to decide whether a component still arrives via `+self`/`+other`
+        after dropping a bare term. `layer_idx` addresses the edit layer directly (a machine-role rung
+        shares a path with the primary — `layer_index` can't disambiguate); default resolves by path.'''
         tidx = layer_idx if layer_idx is not None else self.layer_index(target_file)
         if tidx is None:
             raise ConfigError(f'{target_file} is not a loaded config layer')
@@ -917,8 +766,6 @@ class Config:
         defined_below = any(i < tidx for i, _v, _s in chain)
         neg = '~' + comp
         selfinc = '+' + profile          # `+self` is spelled as the profile's OWN name (super/amend)
-        pinself = '^' + profile          # `^self` pins the lower def as a menu (seed picks below)
-        synthesizing = (not in_target) and defined_below and synth == 'pin'
 
         def expand(terms):
             return self._expand(profile, tidx, list(terms), ())
@@ -926,40 +773,18 @@ class Config:
         if action == 'add':
             if comp in self._members_safe(profile) and neg not in own:
                 return None                                  # already a member; nothing to write
-            if synthesizing:                                 # PIN: snapshot members as picks, then add
-                return [pinself] + list(self._members_safe(profile)) + [comp]
             base = [t for t in own if t != neg]              # drop a ~comp that was suppressing it
             if not in_target and defined_below:
-                base = [selfinc] + base                       # inherit the lower def, then amend (track)
+                base = [selfinc] + base                       # inherit the lower def, then amend
             if comp not in expand(base):
                 base = base + [comp]
             return base
 
-        if action == 'decline':
-            # ballot DECLINE (a derived profile): write an explicit `~comp` (and drop any bare pick)
-            # so a menu offering reads as an intentional NO, not merely un-picked (NEW).
-            if not in_target:
-                if comp in self.profile_removed(profile):
-                    return None                              # already declined in a lower layer
-                return [selfinc, neg] if defined_below else [neg]
-            base = [t for t in own if t not in (comp, neg)] + [neg]
-            return None if base == own else base
-
-        if action == 'clear':
-            # ballot CLEAR (a derived profile): drop a bare pick AND a `~` decline OWNED here, so the
-            # menu item returns to unballoted (NEW / offered). Only clears terms in the target layer.
-            if not in_target:
-                return None
-            base = [t for t in own if t not in (comp, neg)]
-            return None if base == own else base
-
         # remove
         if comp not in self._members_safe(profile):
             return None                                      # already absent
-        if synthesizing:                                     # PIN: snapshot members minus comp, decline it
-            return [pinself] + [c for c in self._members_safe(profile) if c != comp] + [neg]
         if not in_target:
-            return [selfinc, neg] if defined_below else [neg]  # member only from below -> negate here (track)
+            return [selfinc, neg] if defined_below else [neg]  # member only from below -> negate here
         without = [t for t in own if t != comp]              # drop a bare own term if present
         if comp in expand(without):                          # still arrives via +self/+other include
             return without if neg in without else without + [neg]
@@ -1032,68 +857,6 @@ class Config:
         if not active(without):                          # dropping our own +sub alone excludes it
             return without
         return without if neg in without else without + [neg]
-
-    def sub_engagement(self, parent, sub):
-        '''How `parent` engages sub-profile `sub` in the hierarchical (shared-pin) model — the tree
-        marker: 'exclude' (parent `~`s it), 'derive' (parent `+`includes it AND `sub` is PINNED —
-        curated as its own `^self` profile), 'whole' (parent includes it, sub not pinned = base live),
-        or 'new' (offered, parent doesn't engage it). Curating a sub = pinning it (shared), so a node's
-        'derive' state is global to `sub`, while include/exclude is `parent`-specific.'''
-        try:
-            layout = self.profile_layout(parent)          # the TOP def's structure (respects the ^self
-        except ConfigError:                               # shadow — a pin does NOT inherit base +includes)
-            return 'new'
-        incl = {r for k, r in layout if k == 'include'}
-        excl = {r for k, r in layout if k == 'exclude'}
-        if sub in excl:
-            return 'exclude'
-        if sub in incl:
-            return 'derive' if self.profile_relation(sub) == 'pinned' else 'whole'
-        return 'new'
-
-    def hierarchy_children(self, name):
-        '''Sub-profile children of `name` for the tree: its `^`-menu units if it is derived/pinned
-        (`profile_menu_items`), else its base `+sub` structure (`profile_children`). Both yield the
-        same base sub-profiles for a pinned aggregate (via `^self`) — so expanding a curated node shows
-        what it can offer, with each child's engagement read via `sub_engagement`.'''
-        if self.is_derived(name):
-            return self.profile_menu_items(name)['subprofiles']
-        return self.profile_children(name)['subprofiles']
-
-    def subprofile_state(self, profile, sub):
-        '''How `profile` currently engages sub-profile `sub` in its OWN terms (across its chain):
-        'derive' (`^sub`), 'whole' (`+sub`), 'exclude' (`~sub`), or 'new' (unmentioned/offered). The
-        hierarchical ballot's per-sub state.'''
-        if sub in set(self.profile_derive_terms(profile)):
-            return 'derive'
-        if sub in self.profile_includes(profile):
-            return 'whole'
-        if sub in self.profile_excludes(profile):
-            return 'exclude'
-        return 'new'
-
-    def plan_subprofile_state_edit(self, profile, sub, state, target_file, layer_idx=None):
-        '''New raw term list so sub-profile `sub` reaches `state` in `profile`: 'derive' (`^sub`),
-        'whole' (`+sub`), 'exclude' (`~sub`), or 'new' (no term — unengaged/offered). Drops any
-        existing `^sub`/`+sub`/`~sub` first. Pure; None for a no-op. `layer_idx` addresses a machine
-        rung directly (shared path). The hierarchical ballot's sub-profile writer.'''
-        if sub == profile:
-            raise ConfigError("a profile can't engage itself")
-        tidx = layer_idx if layer_idx is not None else self.layer_index(target_file)
-        if tidx is None:
-            raise ConfigError(f'{target_file} is not a loaded config layer')
-        chain = self._chain.get(profile, ())
-        own = self._own_terms(profile, tidx)
-        in_target = any(i == tidx for i, _v, _s in chain)
-        defined_below = any(i < tidx for i, _v, _s in chain)
-        term = {'derive': '^' + sub, 'whole': '+' + sub, 'exclude': '~' + sub, 'new': None}[state]
-        drop = {'^' + sub, '+' + sub, '~' + sub}
-        base = [t for t in own if str(t) not in drop]
-        if not in_target and defined_below and (term is not None or base != list(own)):
-            base = ['+' + profile] + base                # amend the lower def (track) rather than shadow
-        if term is not None:
-            base = base + [term]
-        return None if (in_target and base == list(own)) else base
 
     def profile_includes(self, profile):
         '''Profiles that `profile` pulls in via `+other` terms across the layer stack (excludes the

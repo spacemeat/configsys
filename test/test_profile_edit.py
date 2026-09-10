@@ -81,99 +81,18 @@ def test_remove_when_absent_is_a_noop():
     assert plan(c, 'dev', 'nope', 'remove') is None
 
 
-# -- BALLOT (derived-profile decline / clear) -----------------------------
+# -- self-amend of a lower-layer-only profile ------------------------------
 
-BALLOT = '{ profiles: { ai: [ claude-code  ollama  aider ]  m: [ "^ai"  claude-code ] } }'
-
-
-def test_decline_a_new_menu_item_writes_negation():
-    # ollama/aider are offered (NEW) by ^ai but not picked; declining writes ~aider
-    c = cfg(BALLOT)
-    assert plan(c, 'm', 'aider', 'decline', target='config.hu') == ['^ai', 'claude-code', '~aider']
-
-
-def test_decline_a_pick_drops_the_pick_and_negates():
-    c = cfg(BALLOT)
-    assert plan(c, 'm', 'claude-code', 'decline', target='config.hu') == ['^ai', '~claude-code']
-
-
-def test_clear_a_pick_returns_to_offered():
-    c = cfg(BALLOT)
-    assert plan(c, 'm', 'claude-code', 'clear', target='config.hu') == ['^ai']
-
-
-def test_clear_a_decline_returns_to_offered():
-    c = cfg('{ profiles: { ai: [ claude-code  ollama ]  m: [ "^ai"  ~ollama ] } }')
-    assert plan(c, 'm', 'ollama', 'clear', target='config.hu') == ['^ai']
-
-
-def test_decline_already_declined_is_a_noop():
-    c = cfg('{ profiles: { ai: [ claude-code  ollama ]  m: [ "^ai"  ~ollama ] } }')
-    assert plan(c, 'm', 'ollama', 'decline', target='config.hu') is None
-
-
-def test_clear_when_nothing_owned_is_a_noop():
-    c = cfg(BALLOT)
-    assert plan(c, 'm', 'ollama', 'clear', target='config.hu') is None       # ollama is unballoted
-
-
-# -- PIN vs TRACK (synth of a first amend of a lower-layer-only profile) ----
-
-def test_synth_track_amends_via_self():
-    # dev is defined only in repo; TRACK (default) writes +self then the edit — the live amend.
+def test_add_to_lower_only_profile_writes_self_then_edit():
+    # dev is defined only in repo; the first amend writes +self then the edit — the live amend.
     c = cfg(REPO, '{ }')
-    assert plan(c, 'dev', 'ripgrep', 'add') == ['+dev', 'ripgrep']              # track = current behavior
+    assert plan(c, 'dev', 'ripgrep', 'add') == ['+dev', 'ripgrep']
 
 
-def test_synth_pin_snapshots_members_and_adds():
-    # PIN writes ^self + the current members as picks, then the added comp — upstream growth becomes NEW.
-    c = cfg(REPO, '{ }')
-    got = c.plan_membership_edit('dev', 'ripgrep', 'add', 'user.hu', synth='pin')
-    assert got[0] == '^dev' and set(got[1:]) == {'btop', 'fzf', 'ripgrep'}
-
-
-def test_synth_pin_remove_declines_the_component():
-    # PIN remove snapshots members minus the comp AND declines it (quiet, not re-offered as NEW).
-    c = cfg(REPO, '{ }')
-    got = c.plan_membership_edit('dev', 'fzf', 'remove', 'user.hu', synth='pin')
-    assert got[0] == '^dev' and 'btop' in got and '~fzf' in got and 'fzf' not in got[1:]
-
-
-def test_synth_ignored_once_in_target():
-    # synth only matters at the FIRST amend; once the profile is in the target layer, pin == track.
-    c = cfg(REPO, '{ profiles: { dev: [ +dev ] } }')
-    assert (plan(c, 'dev', 'ripgrep', 'add')
-            == c.plan_membership_edit('dev', 'ripgrep', 'add', 'user.hu', synth='pin')
-            == ['+dev', 'ripgrep'])
-
-
-def test_profile_amends_lower_predicate():
-    c = cfg(REPO, '{ profiles: { mine: [ btop ] } }')
-    assert c.profile_amends_lower('dev', 'user.hu') is True        # dev only in repo -> first amend
-    assert c.profile_amends_lower('mine', 'user.hu') is False      # already in the target layer
-    assert c.profile_amends_lower('nope', 'user.hu') is False      # undefined -> nothing to amend
-
-
-def test_profile_relation_pinned_tracked_shadowed_base():
+def test_profile_relation_tracked_shadowed_base():
     assert cfg(REPO).profile_relation('dev') == 'base'                                  # single (repo) def
     assert cfg(REPO, '{ profiles: { dev: [ +dev  x ] } }').profile_relation('dev') == 'tracked'
-    assert cfg(REPO, '{ profiles: { dev: [ "^dev"  btop ] } }').profile_relation('dev') == 'pinned'
     assert cfg(REPO, '{ profiles: { dev: [ x  y ] } }').profile_relation('dev') == 'shadowed'
-
-
-def test_ballot_roundtrips_through_membership_and_menu():
-    # pick an offered item, then decline it, then clear it — membership/new track each step.
-    text = '{ profiles: { ai: [ a  b  cc ]  m: [ "^ai"  a ] } }'
-    def eff(terms):
-        c = Config([layers.Layer('config.hu', 'repo',
-                                 layers.materialize_string(text.replace('"^ai"  a', ' '.join(terms))))])
-        return set(c.profile_components('m')), c.profile_new('m'), c.profile_removed('m')
-    m, new, rem = eff(['"^ai"', 'a', 'b'])                     # pick b
-    assert 'b' in m and 'b' not in new
-    m, new, rem = eff(['"^ai"', 'a', '~b'])                    # decline b
-    assert 'b' not in m and 'b' not in new and 'b' in rem
-    m, new, rem = eff(['"^ai"', 'a'])                          # clear b -> offered again
-    assert 'b' not in m and 'b' in new
 
 
 # -- round-trip: the planned terms actually produce the intended membership -------
@@ -213,9 +132,9 @@ def test_profiles_writer_roundtrip_and_preserves_outside_comments(tmp_path):
     assert 'configs: [ dev ]' in f.read_text()    # sibling section untouched
 
 
-def test_profiles_writer_quotes_derive_terms(tmp_path):
-    # a `^derive` term MUST be re-emitted QUOTED — `^` is humon's heredoc sigil, so a bare `^ai`
-    # would misparse. Round-trip proves the written file still reads back the same term list.
+def test_profiles_writer_quotes_caret_terms(tmp_path):
+    # a `^`-leading term MUST be re-emitted QUOTED — `^` is humon's heredoc sigil, so a bare `^ai`
+    # would misparse. Round-trip proves the writer stays humon-safe (the algebra no longer USES `^`).
     f = tmp_path / 'u.hu'
     f.write_text('{ profiles: {} }\n', encoding='utf-8')
     plugins.set_profiles(str(f), {'m': ['^ai', 'claude-code', '~aider']})
@@ -427,39 +346,6 @@ def test_profile_star_filter_show_removed(tmp_path):
     assert 'htop' in ps._starred_removed()                       # ...and marked as a removal (~)
 
 
-def test_profile_ballot_view_and_edits(tmp_path):
-    # A derived profile is a ballot: the ProfileScreen surfaces menu/new/subtree helpers, and the
-    # decline/clear writers cycle a menu item NEW -> pick -> decline -> NEW through the real config.
-    from configsys import actions, plugins
-    from configsys.tui import menu
-    ctx = _rctx(tmp_path)
-    actions.add_profile(ctx, 'ai')
-    for comp in ('claude-code', 'ollama', 'aider'):
-        actions.set_profile_membership(ctx, 'ai', comp, 'add')
-    uf = str(ctx.paths.user_config_file)
-    profs = plugins.read_profiles(uf)
-    profs['m'] = ['^ai', 'claude-code']                      # derive from ai; pick claude-code
-    plugins.set_profiles(uf, profs)
-    ctx.invalidate()
-
-    ps = menu.ProfileScreen(ctx)
-    assert ps.is_derived('m') and not ps.is_derived('ai')
-    assert ps.menu('m') == {'claude-code', 'ollama', 'aider'}
-    assert ps.members('m') == {'claude-code'}
-    assert ps.new_members('m') == {'ollama', 'aider'}
-    assert ps.subtree_new('m') == {'ollama', 'aider'} and ps.subtree_new('ai') == set()
-
-    # pick an offered item, then decline it, then clear it back to offered
-    actions.set_profile_membership(ctx, 'm', 'ollama', 'add')
-    assert 'ollama' in menu.ProfileScreen(ctx).members('m')
-    actions.set_profile_membership(ctx, 'm', 'ollama', 'decline')
-    ps2 = menu.ProfileScreen(ctx)
-    assert 'ollama' not in ps2.members('m') and 'ollama' in ps2.removed_members('m')
-    actions.set_profile_membership(ctx, 'm', 'ollama', 'clear')
-    ps3 = menu.ProfileScreen(ctx)
-    assert 'ollama' in ps3.new_members('m') and 'ollama' not in ps3.removed_members('m')
-
-
 def test_profile_pane_layer_grouping(tmp_path):
     # The pane groups profiles by defining layer: your new profiles under 'this machine', the repo
     # catalog under a collapsed 'repo catalog' header; `L` flips to a flat list.
@@ -494,102 +380,16 @@ def test_profile_pane_layer_grouping(tmp_path):
     assert {'zmine', 'finders'} <= {nd[0] for nd in v2}
 
 
-def test_hierarchical_pin_engage_no_flood(tmp_path):
-    # The shared-pin model: curating jvm-lang pins it as its OWN profile + tl +includes it, so its
-    # children nest UNDER it (never flood up to tl), and its curation lives in the jvm-lang profile.
-    from configsys import actions, plugins
-    ctx = _rctx(tmp_path)
-    uf = str(ctx.paths.user_config_file)
-    profs = plugins.read_profiles(uf)
-    profs['tl'] = ['^languages']
-    plugins.set_profiles(uf, profs)
-    ctx.invalidate()
-    assert 'jvm-lang' in ctx.config.hierarchy_children('tl')          # a family unit under tl
-    assert 'java-lang' not in ctx.config.hierarchy_children('tl')     # its kids not flooded
-
-    actions.pin_profile(ctx, 'jvm-lang')                             # curate jvm-lang (shared pin)
-    actions.set_subprofile_state(ctx, 'tl', 'jvm-lang', 'whole')     # tl engages it (+jvm-lang)
-    assert ctx.config.sub_engagement('tl', 'jvm-lang') == 'derive'   # curated + engaged
-    assert 'java-lang' not in ctx.config.hierarchy_children('tl')    # STILL no flood
-    assert 'java-lang' in ctx.config.hierarchy_children('jvm-lang')  # nested under jvm-lang
-    assert ctx.config.sub_engagement('jvm-lang', 'java-lang') == 'new'   # offered, curate down
-    assert plugins.read_profiles(uf)['jvm-lang'] == ['^jvm-lang']    # curation lives in jvm-lang
-    assert '+jvm-lang' in plugins.read_profiles(uf)['tl']            # tl only references it
-
-    actions.pin_profile(ctx, 'java-lang')                           # recurse: curate java-lang
-    actions.set_subprofile_state(ctx, 'jvm-lang', 'java-lang', 'whole')
-    assert ctx.config.sub_engagement('jvm-lang', 'java-lang') == 'derive'
-    assert plugins.read_profiles(uf)['java-lang'] == ['^java-lang']
-    assert actions.pin_profile(ctx, 'jvm-lang')[0] is False          # already pinned -> no-op
-
-
-def test_hierarchical_subprofile_state_edits(tmp_path):
-    # The hierarchical ballot's sub-profile writer: derive/whole/exclude/new a sub-UNIT of a derived
-    # aggregate. Uses the repo `languages` (an aggregate of +sub language profiles).
-    from configsys import actions, plugins
-    ctx = _rctx(tmp_path)
-    uf = str(ctx.paths.user_config_file)
-    profs = plugins.read_profiles(uf)
-    profs['tl'] = ['^languages']                                 # derive the aggregate
-    plugins.set_profiles(uf, profs)
-    ctx.invalidate()
-    assert 'jvm-lang' in ctx.config.profile_menu_items('tl')['subprofiles']
-    assert ctx.config.subprofile_state('tl', 'jvm-lang') == 'new'
-
-    changed, _ = actions.set_subprofile_state(ctx, 'tl', 'jvm-lang', 'derive')
-    assert changed and ctx.config.subprofile_state('tl', 'jvm-lang') == 'derive'
-    assert 'java-lang' in ctx.config.profile_new('tl')          # recursion: jvm-lang's child offered
-    assert 'jvm-lang' not in ctx.config.profile_new('tl')       # ...and jvm-lang itself is engaged
-
-    actions.set_subprofile_state(ctx, 'tl', 'jvm-lang', 'whole')
-    assert ctx.config.subprofile_state('tl', 'jvm-lang') == 'whole'
-    assert 'jdk' in ctx.config.profile_components('tl')         # whole -> its members install
-
-    actions.set_subprofile_state(ctx, 'tl', 'jvm-lang', 'exclude')
-    assert ctx.config.subprofile_state('tl', 'jvm-lang') == 'exclude'
-    assert 'jdk' not in ctx.config.profile_components('tl')
-
-    changed, _ = actions.set_subprofile_state(ctx, 'tl', 'jvm-lang', 'new')
-    assert changed and ctx.config.subprofile_state('tl', 'jvm-lang') == 'new'
-    assert actions.set_subprofile_state(ctx, 'tl', 'jvm-lang', 'new')[0] is False   # no-op
-
-
-def test_pin_edit_over_a_repo_profile_roundtrip(tmp_path):
-    # Editing a repo-only profile with synth='pin' writes a ^self derivation seeded with the current
-    # members, so effective membership is unchanged today; the repo def becomes an offered MENU.
-    from configsys import actions, plugins
-    ctx = _rctx(tmp_path)
-    before = set(ctx.config.profile_components('finders'))         # repo catalog profile
-    assert 'ripgrep' not in before or before                      # sanity: it has members
-    changed, _lbl = actions.set_profile_membership(ctx, 'finders', 'bat', 'add', synth='pin')
-    assert changed
-    terms = plugins.read_profiles(str(ctx.paths.user_config_file))['finders']
-    assert terms[0] == '^finders' and 'bat' in terms             # pinned + the new pick
-    assert ctx.config.profile_relation('finders') == 'pinned'
-    assert set(ctx.config.profile_components('finders')) == before | {'bat'}   # same today + the add
-    assert before <= ctx.config.profile_menu('finders')          # repo members are now the menu
-
-
-def test_profile_edit_mode_setting(tmp_path):
-    from configsys import actions
-    ctx = _rctx(tmp_path)
-    assert ctx.config.profile_edit_mode() == 'ask'                # default
-    actions.set_config_setting(ctx, 'profile-edit-mode', ['pin'])
-    assert ctx.config.profile_edit_mode() == 'pin'
-    actions.set_config_setting(ctx, 'profile-edit-mode', ['bogus'])
-    assert ctx.config.profile_edit_mode() == 'ask'               # unknown -> default
-
-
 def test_where_profile_report(tmp_path):
-    from configsys import actions, plugins
+    from configsys import actions
     from configsys.app import where_profile_report
     ctx = _rctx(tmp_path)
     assert where_profile_report(ctx, 'no-such-profile') is None
-    # pin a repo profile, then the report names the relation + the layers
-    actions.set_profile_membership(ctx, 'finders', 'bat', 'add', synth='pin')
+    # amend a repo profile from the top config, then the report names the relation + the layers
+    actions.set_profile_membership(ctx, 'finders', 'bat', 'add')
     txt = '\n'.join(where_profile_report(ctx, 'finders'))
-    assert 'relation: pinned' in txt and 'config.hu (repo)' in txt and '[user]' in txt
-    assert 'menu' in txt and 'new' in txt
+    assert 'relation: tracked' in txt and 'config.hu (repo)' in txt and '[user]' in txt
+    assert 'members' in txt
 
 
 def test_subprofile_membership_toggle_roundtrip(tmp_path):

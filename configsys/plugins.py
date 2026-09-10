@@ -714,9 +714,9 @@ def read_profiles(config_file):
 
 
 def _emit_term(t):
-    '''One profile term, quoted when humon can't take it bare. A `^derive` term MUST be quoted — `^`
-    is humon's heredoc-name sigil (see docs/profiles-derive-plan.md); `+other`/`~name`/bare are safe
-    unquoted, so `_scalar` passes them through.'''
+    '''One profile term, quoted when humon can't take it bare. A `^`-leading term MUST be quoted — `^`
+    is humon's heredoc-name sigil; `+other`/`~name`/bare are safe unquoted, so `_scalar` passes them
+    through. (The term algebra no longer uses `^`; this quoting just keeps the writer humon-safe.)'''
     s = str(t)
     return f'"{s}"' if s[:1] == '^' else _scalar(s)
 

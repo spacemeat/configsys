@@ -54,27 +54,21 @@ def _configs_target(ctx):
 
 
 def _membership_effect_ok(cfg, profile, comp, action):
-    '''Did the write achieve `action`'s intended post-state? `add`/`remove` toggle membership;
-    `decline` (a derived-profile ballot NO) wants comp a non-member AND explicitly `~`-removed;
-    `clear` wants it neither picked nor declined (back to a NEW/offered menu item).'''
+    '''Did the write achieve `action`'s intended post-state? `add`/`remove` toggle membership.'''
     mem = comp in cfg._members_safe(profile)
-    rem = comp in cfg.profile_removed(profile)
-    return {'add': mem, 'remove': not mem,
-            'decline': (not mem) and rem, 'clear': (not mem) and (not rem)}[action]
+    return {'add': mem, 'remove': not mem}[action]
 
 
-def set_profile_membership(ctx, profile, comp, action, *, target=None, synth='track', machine=None):
-    '''Write the term-algebra edit so `comp` reaches `action`'s state in `profile`
-    (`action` = 'add'|'remove'|'decline'|'clear'; the last two are the derived-profile ballot's
-    explicit NO / back-to-offered), via Config.plan_membership_edit, to `target` or the effective
-    target. `synth` ('track'|'pin') decides how a first amend of a lower-layer-only profile is
-    materialized (see plan_membership_edit / the pin-or-track modal). `machine` scopes the edit into a
-    `machines:[<machine>].profiles` namespace (that machine's rung must be loaded — pass `--machine`).
-    Returns (changed, label); a no-op returns (False, label); a shadowed target -> (False, warning).'''
+def set_profile_membership(ctx, profile, comp, action, *, target=None, machine=None):
+    '''Write the term-algebra edit so `comp` becomes a member (`action='add'`) or a non-member
+    (`'remove'`) of `profile`, via Config.plan_membership_edit, to `target` or the effective target.
+    `machine` scopes the edit into a `machines:[<machine>].profiles` namespace (that machine's rung
+    must be loaded — pass `--machine`). Returns (changed, label); a no-op returns (False, label); a
+    shadowed target -> (False, warning).'''
     if machine is not None:
-        return _set_machine_membership(ctx, machine, profile, comp, action, synth=synth)
+        return _set_machine_membership(ctx, machine, profile, comp, action)
     tfile, label = (target, target) if target else _profile_target(ctx, profile)
-    new_terms = ctx.config.plan_membership_edit(profile, comp, action, tfile, synth=synth)
+    new_terms = ctx.config.plan_membership_edit(profile, comp, action, tfile)
     if new_terms is None:
         return False, label
     profs = plugins.read_profiles(tfile)
@@ -86,17 +80,16 @@ def set_profile_membership(ctx, profile, comp, action, *, target=None, synth='tr
     return True, label
 
 
-def _set_machine_membership(ctx, machine, profile, comp, action, *, synth='track'):
+def _set_machine_membership(ctx, machine, profile, comp, action):
     '''Machine-scoped membership write: the edit lands in `machines:[machine].profiles.<profile>` in
-    the file that defines that machine, planned against the injected machine-role rung (so `^self`
-    derives the shared/repo def below it). The machine's layer MUST be loaded (run with `--machine
-    <machine>`, or be on that box). Returns (changed, label).'''
+    the file that defines that machine, planned against the injected machine-role rung. The machine's
+    layer MUST be loaded (run with `--machine <machine>`, or be on that box). Returns (changed, label).'''
     if ctx.config.selected_machine() != machine or ctx.config.machine_layer_index() is None:
         return False, (f'machine "{machine}" is not the loaded target — re-run with `--machine {machine}`'
                        f' (or define it in `machines:` first)')
     tidx = ctx.config.machine_layer_index()
     tfile = str(ctx.config._layers[tidx].path)           # the file holding machines:[machine]
-    new_terms = ctx.config.plan_membership_edit(profile, comp, action, tfile, synth=synth, layer_idx=tidx)
+    new_terms = ctx.config.plan_membership_edit(profile, comp, action, tfile, layer_idx=tidx)
     if new_terms is None:
         return False, f'machine {machine}'
     machines = plugins.read_machines(tfile)
@@ -107,72 +100,6 @@ def _set_machine_membership(ctx, machine, profile, comp, action, *, synth='track
     if not _membership_effect_ok(ctx.config, profile, comp, action):
         return False, f'machine {machine}: "{profile}" is overridden by a higher-precedence layer (no effect)'
     return True, f'machine {machine}'
-
-
-def set_subprofile_state(ctx, profile, sub, state, *, target=None, machine=None):
-    '''Write so sub-profile `sub` reaches `state` ('derive' ^sub / 'whole' +sub / 'exclude' ~sub /
-    'new' unengaged) in `profile` — the hierarchical ballot's sub-profile edit. `machine` scopes into
-    machines:[machine].profiles. Returns (changed, label); a no-op returns (False, label).'''
-    if machine is not None:
-        tidx = ctx.config.machine_layer_index()
-        if ctx.config.selected_machine() != machine or tidx is None:
-            return False, f'machine "{machine}" is not the loaded target — re-run with `--machine {machine}`'
-        tfile = str(ctx.config._layers[tidx].path)
-        new_terms = ctx.config.plan_subprofile_state_edit(profile, sub, state, tfile, layer_idx=tidx)
-        if new_terms is None:
-            return False, f'machine {machine}'
-        machines = plugins.read_machines(tfile)
-        machines.setdefault(machine, {}).setdefault('profiles', {})[profile] = new_terms
-        plugins.set_machines(tfile, machines)
-        ctx.invalidate()
-        return True, f'machine {machine}'
-    tfile, label = (target, target) if target else _profile_target(ctx, profile)
-    new_terms = ctx.config.plan_subprofile_state_edit(profile, sub, state, tfile)
-    if new_terms is None:
-        return False, label
-    profs = plugins.read_profiles(tfile)
-    profs[profile] = new_terms
-    plugins.set_profiles(tfile, profs)
-    ctx.invalidate()
-    return True, label
-
-
-def pin_profile(ctx, name, *, machine=None):
-    '''Pin profile `name` as its OWN `^self` derivation (`name: [ "^name" ]`) in the edit target — the
-    primary (shared across machines) or, when `machine` is set, that machine's namespace (visible only
-    there). Makes `name` independently CURATABLE + shared: it derives its base, offering its children
-    as NEW. Preserves any existing picks (prepends `^name`); no-op if already pinned there. Returns
-    (changed, label). The hierarchical tree's "curate this sub-profile" write.'''
-    term = '^' + name
-
-    def _apply(existing):
-        if existing[:1] == [term]:
-            return None                                  # already pinned
-        return [term] + [t for t in existing if t != term]
-
-    if machine is not None:
-        tidx = ctx.config.machine_layer_index()
-        if ctx.config.selected_machine() != machine or tidx is None:
-            return False, f'machine "{machine}" is not the loaded target — re-run with `--machine {machine}`'
-        tfile = str(ctx.config._layers[tidx].path)
-        machines = plugins.read_machines(tfile)
-        profs = machines.setdefault(machine, {}).setdefault('profiles', {})
-        new = _apply(profs.get(name, []))
-        if new is None:
-            return False, f'machine {machine}'
-        profs[name] = new
-        plugins.set_machines(tfile, machines)
-        ctx.invalidate()
-        return True, f'machine {machine}'
-    tfile, label = edit_target(ctx)
-    profs = plugins.read_profiles(tfile)
-    new = _apply(profs.get(name, []))
-    if new is None:
-        return False, label
-    profs[name] = new
-    plugins.set_profiles(tfile, profs)
-    ctx.invalidate()
-    return True, label
 
 
 UNINSTALL_PROFILE = '!uninstall'
@@ -392,10 +319,6 @@ CONFIG_SETTINGS = {
     'orphans-adopt-target': ('scalar', 'Profile the TUI orphan "stage" (s) action parks components '
                                        'into for later triage (default: orphans-lurking).',
                           'configsys(1)'),
-    'profile-edit-mode': ('scalar', 'First edit of a profile defined only in a lower (non-editable) '
-                                    "layer: 'track' (+self, upstream changes apply), 'pin' (^self, "
-                                    "upstream changes offered as NEW), or 'ask' (default, the TUI "
-                                    'prompts pin-or-track).', 'configsys(1)'),
     'machine': ('scalar', 'This box\'s machine name — selects a `machines:` entry from your primary '
                           '(its profiles/configs overlay the shared ones). Unset = shared + local only.',
                 'configsys(1)'),
@@ -427,7 +350,6 @@ SETTING_NATURE = {
     'effects':           'machine',           # about THIS terminal/transport (SSH), not shared config
     'orphans-ignore':    'machine',           # acknowledged one-offs on THIS box, not shared config
     'orphans-adopt-target': 'uniform',        # a workflow preference — the same staging profile name
-    'profile-edit-mode': 'uniform',           # how you like to amend defaults — travels with you
     'machine':           'machine',           # which machine THIS box is — inherently per-box (local)
     'dirs.user':         'machine',
     'dirs.system':       'machine',
@@ -501,7 +423,6 @@ def config_settings(ctx):
         'orphans-ignore':    cfg.orphans_ignore(),
         'orphans-adopt-target': cfg.orphans_adopt_target(),
         'splash':            cfg.splash(),
-        'profile-edit-mode': cfg.profile_edit_mode(),
         'machine':           cfg.selected_machine(),
     }
     cfg_dirs = cfg.install_dirs()

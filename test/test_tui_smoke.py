@@ -91,50 +91,6 @@ def test_tui_launches_navigates_and_quits(tmp_path, extra):
     assert first, 'TUI produced no terminal output'
 
 
-def test_tui_hierarchical_ballot_inline_tree(tmp_path):
-    '''The inline hierarchical tree: expand a derived aggregate profile in the LEFT pane to reveal its
-    ^-menu sub-units, cycle a sub-unit's state (space), expand it further, then exit — no overlay.'''
-    try:
-        master, slave = pty.openpty()
-    except OSError:
-        pytest.skip('no PTY available')
-
-    cfg = tmp_path / '.config' / 'configsys' / 'configsys.hu'
-    cfg.parent.mkdir(parents=True, exist_ok=True)
-    # tl derives the repo `languages` aggregate -> its menu sub-units tree out under it in the pane.
-    cfg.write_text('{ configs: [ tl ]  profiles: { tl: [ "^languages" ] } }\n')
-
-    env = dict(os.environ)
-    env.update({'TERM': 'xterm-256color', 'CONFIGSYS_HOME': str(tmp_path),
-                'CONFIGSYS_OS': 'pop', 'PYTHONPATH': str(REPO)})
-    proc = subprocess.Popen(
-        [sys.executable, '-m', 'configsys', '--pretend', 'tui'],
-        stdin=slave, stdout=slave, stderr=slave, env=env, cwd=str(REPO), close_fds=True)
-    os.close(slave)
-
-    deadline = time.monotonic() + 10
-    first = _drain(master, min(deadline, time.monotonic() + 3))
-    # 2 -> Profiles; j -> tl (under 'this machine'); l -> expand tl (its ^-menu sub-units appear);
-    # j -> a sub-unit; space -> cycle it (?→^derive); j -> next; space -> cycle; l -> expand; then quit.
-    for keys in (b'2', b'j', b'l', b'j', b' ', b'j', b' ', b'l', b'q', b'k', b'\n'):
-        try:
-            os.write(master, keys)
-        except OSError:
-            break
-        _drain(master, time.monotonic() + 0.2)
-
-    try:
-        proc.wait(timeout=8)
-    except subprocess.TimeoutExpired:
-        proc.kill()
-        proc.wait()
-        os.close(master)
-        pytest.fail('TUI did not exit')
-    os.close(master)
-    assert proc.returncode == 0
-    assert first, 'TUI produced no terminal output'
-
-
 def test_tui_machine_target_selector(tmp_path):
     '''Open the working-target machine picker (M) on the Profiles page, switch target to a defined
     machine (rebuilds against its rung + `machine:` group), edit into its namespace, then quit.'''
@@ -147,7 +103,7 @@ def test_tui_machine_target_selector(tmp_path):
     cfg.parent.mkdir(parents=True, exist_ok=True)
     cfg.write_text('{ machine: laptop  configs: [ finders ]  '
                    'machines: { laptop: { configs: [ finders ]  '
-                   'profiles: { finders: [ "^finders"  fd ] } } } }\n')
+                   'profiles: { finders: [ "+finders"  fd ] } } } }\n')
 
     env = dict(os.environ)
     env.update({'TERM': 'xterm-256color', 'CONFIGSYS_HOME': str(tmp_path),
@@ -180,9 +136,9 @@ def test_tui_machine_target_selector(tmp_path):
     assert first, 'TUI produced no terminal output'
 
 
-def test_tui_renders_a_derived_profile_ballot(tmp_path):
-    '''Render the Profiles page with a `^derive` profile selected + the catalog focused, so the ballot
-    draw path (menu_new `?`/color, `^⁺N` badge, ballot title) runs without crashing in real curses.'''
+def test_tui_profile_edit_and_where(tmp_path):
+    '''Drive the Profiles page: a plain membership edit of a repo-only profile (self-amend) and the
+    `w` profile-where overlay — the render paths — then quit, all without crashing.'''
     try:
         master, slave = pty.openpty()
     except OSError:
@@ -190,97 +146,8 @@ def test_tui_renders_a_derived_profile_ballot(tmp_path):
 
     cfg = tmp_path / '.config' / 'configsys' / 'configsys.hu'
     cfg.parent.mkdir(parents=True, exist_ok=True)
-    # `m` derives from `ai`: picks htop, offers bat (NEW `?`) — a real ballot to render.
-    cfg.write_text('{ configs: [ m ]  profiles: { ai: [ htop  bat ]  m: [ "^ai"  htop ] } }\n')
-
-    env = dict(os.environ)
-    env.update({'TERM': 'xterm-256color', 'CONFIGSYS_HOME': str(tmp_path),
-                'CONFIGSYS_OS': 'pop', 'PYTHONPATH': str(REPO)})
-    proc = subprocess.Popen(
-        [sys.executable, '-m', 'configsys', '--pretend', 'tui'],
-        stdin=slave, stdout=slave, stderr=slave, env=env, cwd=str(REPO), close_fds=True)
-    os.close(slave)
-
-    deadline = time.monotonic() + 8
-    first = _drain(master, min(deadline, time.monotonic() + 3))
-    # 2 -> Profiles page; L,L exercises the flat<->grouped pane render then restores grouped (lcur
-    # resets to 0); ai/m are user-layer profiles under the open 'this machine' group, so j,j lands on
-    # m (the derive); tab -> focus catalog (ballot markers); j -> a cell; then quit.
-    for keys in (b'2', b'L', b'L', b'j', b'j', b'\t', b'j', b'j', b'q', b'k', b'\n'):
-        try:
-            os.write(master, keys)
-        except OSError:
-            break
-        _drain(master, time.monotonic() + 0.15)
-
-    try:
-        proc.wait(timeout=8)
-    except subprocess.TimeoutExpired:
-        proc.kill()
-        proc.wait()
-        os.close(master)
-        pytest.fail('TUI did not exit after q')
-    os.close(master)
-    assert proc.returncode == 0
-    assert first, 'TUI produced no terminal output'
-
-
-def test_tui_reconcile_overlay(tmp_path):
-    '''Open the reconcile overlay (N) on an active derived profile with NEW items, pick one, toggle
-    the auto-declined section, and close — the step-4 render + action path — then quit.'''
-    try:
-        master, slave = pty.openpty()
-    except OSError:
-        pytest.skip('no PTY available')
-
-    cfg = tmp_path / '.config' / 'configsys' / 'configsys.hu'
-    cfg.parent.mkdir(parents=True, exist_ok=True)
-    # mine derives from ai and picks only htop -> bat/fd are OFFERED (NEW) -> the reconcile has content.
-    cfg.write_text('{ configs: [ mine ]  profiles: { ai: [ htop  bat  fd ]  '
-                   'mine: [ "^ai"  htop ] } }\n')
-
-    env = dict(os.environ)
-    env.update({'TERM': 'xterm-256color', 'CONFIGSYS_HOME': str(tmp_path),
-                'CONFIGSYS_OS': 'pop', 'PYTHONPATH': str(REPO)})
-    proc = subprocess.Popen(
-        [sys.executable, '-m', 'configsys', '--pretend', 'tui'],
-        stdin=slave, stdout=slave, stderr=slave, env=env, cwd=str(REPO), close_fds=True)
-    os.close(slave)
-
-    deadline = time.monotonic() + 10
-    first = _drain(master, min(deadline, time.monotonic() + 3))
-    # N -> reconcile overlay; space -> pick the first NEW; d -> decline the next; q -> close; then quit.
-    for keys in (b'N', b' ', b'd', b'q', b'q', b'k', b'\n'):
-        try:
-            os.write(master, keys)
-        except OSError:
-            break
-        _drain(master, time.monotonic() + 0.2)
-
-    try:
-        proc.wait(timeout=8)
-    except subprocess.TimeoutExpired:
-        proc.kill()
-        proc.wait()
-        os.close(master)
-        pytest.fail('TUI did not exit after q')
-    os.close(master)
-    assert proc.returncode == 0
-    assert first, 'TUI produced no terminal output'
-
-
-def test_tui_pin_or_track_modal_and_profile_where(tmp_path):
-    '''Drive the Profiles page into the pin-or-track modal (editing a repo-only profile) and the
-    `w` profile-where overlay — the step-3 render paths — then quit, all without crashing.'''
-    try:
-        master, slave = pty.openpty()
-    except OSError:
-        pytest.skip('no PTY available')
-
-    cfg = tmp_path / '.config' / 'configsys' / 'configsys.hu'
-    cfg.parent.mkdir(parents=True, exist_ok=True)
-    # activate a repo catalog profile; it's defined only in config.hu, so a membership edit synthesizes
-    # a first amend -> the pin-or-track modal fires (profile-edit-mode defaults to ask).
+    # activate a repo catalog profile; it's defined only in config.hu, so a membership edit amends it
+    # from the top config via +self.
     cfg.write_text('{ configs: [ finders ] }\n')
 
     env = dict(os.environ)
@@ -295,8 +162,8 @@ def test_tui_pin_or_track_modal_and_profile_where(tmp_path):
     first = _drain(master, min(deadline, time.monotonic() + 3))
     # 2 -> Profiles; the pane groups by layer with the repo catalog collapsed, so l unfolds it, j
     # lands on the first repo profile; w -> profile-where overlay, esc closes it; tab -> catalog;
-    # space -> edit that repo-only profile -> pin-or-track modal; p -> choose PIN; then quit.
-    for keys in (b'2', b'l', b'j', b'w', b'\x1b', b'\t', b' ', b'p', b'q', b'k', b'\n'):
+    # space -> toggle membership of that repo-only profile (self-amend); then quit.
+    for keys in (b'2', b'l', b'j', b'w', b'\x1b', b'\t', b' ', b'q', b'k', b'\n'):
         try:
             os.write(master, keys)
         except OSError:

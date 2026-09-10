@@ -151,7 +151,7 @@ class Keymap:
 # user's `keys:` against. A page scope may ALSO bind any `global` action (to rebind nav on that page),
 # so a page's valid set is its own actions ∪ global's. `screens` binds screen ids, not actions.
 _GLOBAL_ACTIONS = {'down', 'up', 'left', 'right', 'top', 'bottom', 'select', 'confirm', 'switch-pane',
-                   'switch-pane-back', 'find', 'filter', 'issues', 'review', 'help', 'quit',
+                   'switch-pane-back', 'find', 'filter', 'issues', 'help', 'quit',
                    'quit-force'}
 SCREEN_IDS = {'components', 'profiles', 'plugins', 'dotfiles', 'config', 'theme'}
 KNOWN_ACTIONS = {

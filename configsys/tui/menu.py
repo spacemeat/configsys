@@ -874,24 +874,15 @@ _HELP = {
                 "component's membership with select/confirm in the right pane.",
         'glossary': [
             ('markers', '● active · ◐ active via +include · ○ inactive · ▸ starred · ~ subprofile excluded'),
-            ('provenance', '^ pinned (^self) · + tracked (+self) · ⊘ shadowed · ⁺N offered (NEW) in subtree'),
+            ('provenance', '+ tracked (+self) · ⊘ shadowed · blank base/untouched'),
             ('grouping (L)', 'group the pane by defining layer (this machine · your primary · plugins · '
                              'repo catalog, collapsed) ↔ flat A-Z; enter/h/l folds a group'),
             ('machine (M)', 'pick the working-TARGET machine to curate; edits then land in its '
                             'machines:[name] namespace (execute stays local)'),
-            ('catalog', '● pick · ↳ member via include · ~ declined · ? offered (NEW, in a derive ballot)'),
-            ('terms', '+name folds in another profile · ~name removes a component OR excludes a subprofile · '
-                      '"^name" derives (opt-in menu)'),
+            ('catalog', '● member · ↳ member via include · ~ excluded'),
+            ('terms', '+name folds in another profile · ~name removes a component OR excludes a subprofile'),
             ('~ toggle', "on a nested subprofile: include/exclude it in the top-level profile (writes +/~)"),
-            ('pin-or-track', "first edit of a lower-layer profile asks: track (+self) or pin (^self); "
-                             "profile-edit-mode setting decides silently"),
-            ('where (w)', "provenance for the selected profile: layers · pin/track relation · counts"),
-            ('reconcile (N)', "triage OFFERED (NEW) items across active profiles: pick / decline / later"),
-            ('derive tree', "a derived profile trees its ^-menu sub-units inline (⏎/l expands): ^ curated · "
-                            "~ excluded · ? offered · + whole; a live +include child is shown +name"),
-            ('ballot keys', "space on a sub-unit PINS it as its own shared profile (curate its kids one "
-                            "level down) → exclude → offered; + takes it whole (base). Pins land in your "
-                            "primary, or the selected machine (M) for that box only"),
+            ('where (w)', "provenance for the selected profile: layers · relation · counts"),
             ('detail box', "on a profile (left focus): its raw .hu definition [top layer]. On a "
                            "component (catalog focus): description · attrs · required-by · in-profiles"),
         ],
@@ -1069,126 +1060,6 @@ def _draw_where(stdscr, pal, lines, top, subject):
     _put(stdscr, h - 1, 0, _fit(foot.ljust(w), w), pal.get('dim') | curses.A_REVERSE)
     stdscr.refresh()
     return top
-
-
-def _run_reconcile(stdscr, pal, ctx):
-    '''The reconcile overlay (N): triage OFFERED (NEW) items across active derived profiles — pick
-    (space/⏎), decline (d/~), or leave for later (l/.) — plus a collapsible auto-declined section
-    whose items can be re-offered (space). Runs its own key loop over the current screen; returns True
-    if any edit was written (so the caller rebuilds its trees). q/esc exits.'''
-    from .. import actions
-    from ..app import reconcile_data
-    cur, ptop, show_declined, changed, note = 0, 0, False, False, ''
-
-    def build():
-        # Flat row model: ('header',prof,relation) · ('item',prof,comp,via) · ('dtoggle',n) ·
-        # ('ditem',prof,comp). Only item/dtoggle/ditem are selectable.
-        data = reconcile_data(ctx)
-        rows = []
-        for g in data['groups']:
-            rows.append(('header', g['profile'], g['relation'], ''))
-            for c in g['new']:
-                try:
-                    cands = ctx.routes.candidates(c)
-                    via = next((x['via'] for x in cands if x['default']), '') or ''
-                except Exception:                      # noqa: BLE001 — unroutable NEW item still lists
-                    via = ''
-                rows.append(('item', g['profile'], c, via))
-        ndec = sum(len(x['items']) for x in data['declined'])
-        rows.append(('dtoggle', '', ndec, ''))
-        if show_declined:
-            for x in data['declined']:
-                for c in x['items']:
-                    rows.append(('ditem', x['profile'], c, ''))
-        return rows, len(data['groups']), sum(len(g['new']) for g in data['groups'])
-
-    while True:
-        rows, ngroups, ntotal = build()
-        sel = [i for i, r in enumerate(rows) if r[0] in ('item', 'dtoggle', 'ditem')]
-        cur = max(0, min(cur, len(sel) - 1)) if sel else 0
-        stdscr.erase()
-        h, w = stdscr.getmaxyx()
-        head = (f' reconcile — {ntotal} offered across {ngroups} profile(s) '
-                if ntotal else ' reconcile — nothing offered ')
-        _put(stdscr, 0, 0, _fit(head, w), pal.get('title') | curses.A_BOLD | curses.A_REVERSE)
-        body_h = max(1, h - 3)
-        cy = sel[cur] if sel else 0                    # keep the cursor row in the scroll window
-        ptop = max(min(ptop, cy), cy - body_h + 1, 0)
-        for r, i in enumerate(range(ptop, min(len(rows), ptop + body_h))):
-            kind, a, b, c = (rows[i] + ('', '', ''))[:4]
-            oncur = sel and i == sel[cur]
-            mk = '▸' if oncur else ' '
-            if kind == 'header':
-                text, elem = f'  {a}  ({b})', 'label'
-            elif kind == 'item':
-                text, elem = f'{mk} ? {b}' + (f'   {c}' if c else ''), 'menu_new'
-            elif kind == 'dtoggle':
-                text = f'{mk} {"▾" if show_declined else "▹"} auto-declined ({b})'
-                elem = 'info_dim'
-            else:                                      # ditem
-                text, elem = f'{mk}   ~ {b}   ({a})', 'info_dim'
-            attr = pal.get(elem) | (curses.A_REVERSE if oncur else 0)
-            _put(stdscr, 2 + r, 0, _fit(text, w), attr)
-        foot = (f' {note}   ' if note else ' ') + \
-            'space pick/toggle · d decline · l later · x re-offer · j/k · q back '
-        _put(stdscr, h - 1, 0, _fit(foot.ljust(w), w), pal.get('dim') | curses.A_REVERSE)
-        stdscr.refresh()
-        note = ''
-        ch = stdscr.getch()
-        if ch in (27, ord('q')):
-            return changed
-        if ch in (ord('j'), curses.KEY_DOWN):
-            cur = min(len(sel) - 1, cur + 1) if sel else 0
-        elif ch in (ord('k'), curses.KEY_UP):
-            cur = max(0, cur - 1)
-        elif ch in (ord('g'), curses.KEY_HOME):
-            cur = 0
-        elif ch in (ord('G'), curses.KEY_END):
-            cur = max(0, len(sel) - 1)
-        elif ch in (ord('l'), ord('.')):              # later: skip to the next item, no write
-            cur = min(len(sel) - 1, cur + 1) if sel else 0
-        elif sel and ch in (ord(' '), ord('\n'), curses.KEY_ENTER, ord('d'), ord('~'), ord('x')):
-            kind, prof, comp, _via = (rows[sel[cur]] + ('', '', ''))[:4]
-            if kind == 'dtoggle':
-                show_declined = not show_declined
-                continue
-            act = None
-            if kind == 'item':
-                act = 'decline' if ch in (ord('d'), ord('~')) else 'add'
-            elif kind == 'ditem':                     # in the declined list: x/space re-offers
-                act = 'clear' if ch in (ord(' '), ord('\n'), curses.KEY_ENTER, ord('x')) else None
-            if act:
-                try:
-                    ok, lbl = actions.set_profile_membership(ctx, prof, comp, act)
-                    changed = changed or ok
-                    verb = {'add': 'picked', 'decline': 'declined', 'clear': 're-offered'}[act]
-                    note = f'{comp} {verb}' if ok else (lbl or 'no change')
-                except Exception as e:                # noqa: BLE001 — surface, don't crash
-                    note = f'edit failed: {e}'
-
-
-def _ensure_path_engaged(ctx, path, machine):
-    '''Ensure every ancestor in `path` (root → … ) is PINNED and engaged by its parent — so curating
-    a deep sub-unit commits the whole chain (root +includes a, a is pinned + includes b, …). The root
-    (path[0]) is the user's own profile, engaged by no one; only its descendants are pinned/engaged.'''
-    from .. import actions
-    for i in range(1, len(path)):
-        parent, child = path[i - 1], path[i]
-        if ctx.config.profile_relation(child) != 'pinned':
-            actions.pin_profile(ctx, child, machine=machine)
-        if ctx.config.sub_engagement(parent, child) not in ('whole', 'derive'):
-            actions.set_subprofile_state(ctx, parent, child, 'whole', machine=machine)
-
-
-def _ballot_new_count(ctx, sub):
-    '''How many of a CURATED sub-profile `sub`'s own children are still NEW (offered, not engaged) —
-    the `⁺N` a derived unit shows: un-engaged sub-profiles + un-picked direct components.'''
-    ch = ctx.config.profile_children(sub)
-    members = set(ctx.config.profile_components(sub))
-    removed = ctx.config.profile_removed(sub)
-    n = sum(1 for r in ctx.config.hierarchy_children(sub) if ctx.config.sub_engagement(sub, r) == 'new')
-    n += sum(1 for c in ch['components'] if c not in members and c not in removed)
-    return n
 
 
 def _fill_bg(stdscr, pal, h, w):
@@ -1497,72 +1368,6 @@ def _popup_choose(stdscr, pal, title, options, start=0, shortcuts=None):
             sel = max(0, sel - 1)
         elif ch in (ord('\n'), curses.KEY_ENTER, curses.KEY_RIGHT):
             return sel
-
-
-def _pin_or_track_modal(stdscr, pal, profile, target_label, previews, start=0):
-    '''The pin-or-track modal (Problem-1 fix): the FIRST edit to a profile defined only in a lower,
-    non-editable layer asks how to amend it, SHOWING the exact term list each choice writes.
-    `previews` is {'track': [terms], 'pin': [terms]} (raw term lists). Returns 'track' | 'pin' |
-    None (cancel). t/p jump-select; j/k move; enter confirms; esc/q cancels.'''
-    opts = [
-        ('track', 'TRACK', f'+{profile}',
-         'upstream changes apply; future additions WILL install.'),
-        ('pin', 'PIN', f'^{profile}',
-         'you pick; upstream changes are OFFERED as NEW, never applied.'),
-    ]
-
-    def preview_line(key):
-        terms = previews.get(key) or []
-        return f'writes: {profile}: [ ' + '  '.join(str(t) for t in terms) + ' ]'
-
-    title = f'"{profile}" is defined in a lower layer — how should your edit amend it?'
-    sub = f'Your edit saves to {target_label}.'
-    sel = start
-    h, w = stdscr.getmaxyx()
-    # width from the widest content line (title / sub / option lines / both previews), capped to term
-    widest = max([len(title), len(sub)]
-                 + [len(f'  {lbl} ({sig})  {desc}') for _k, lbl, sig, desc in opts]
-                 + [len(preview_line('track')), len(preview_line('pin'))])
-    box_w = min(widest + 4, max(28, w - 2))
-    body_rows = 1 + 1 + len(opts) + 1 + 1        # sub, blank, options, blank, preview
-    box_h = min(body_rows + 3, max(8, h - 2))    # + top border(title), a spare, bottom border(hint)
-    y0, x0 = max(0, (h - box_h) // 2), max(0, (w - box_w) // 2)
-    border = pal.get('accent') | curses.A_BOLD
-    while True:
-        _put(stdscr, y0, x0, '┌' + '─' * (box_w - 2) + '┐', border)
-        _put(stdscr, y0, x0 + 2, f' {_fit(title, box_w - 4)} ', border)
-        for r in range(1, box_h - 1):
-            _put(stdscr, y0 + r, x0, '│' + ' ' * (box_w - 2) + '│', border)
-        _put(stdscr, y0 + box_h - 1, x0, '└' + '─' * (box_w - 2) + '┘', border)
-        y = y0 + 1
-        _put(stdscr, y, x0 + 2, _fit(sub, box_w - 4), pal.get('dim'))
-        y += 2
-        for i, (_k, lbl, sig, desc) in enumerate(opts):
-            attr = curses.A_REVERSE if i == sel else curses.A_NORMAL
-            mark = '▸' if i == sel else ' '
-            _put(stdscr, y, x0 + 2, _fit(f'{mark} {lbl} ({sig})  {desc}', box_w - 4), attr)
-            y += 1
-        y += 1
-        _put(stdscr, y, x0 + 2, _fit(preview_line(opts[sel][0]), box_w - 4),
-             pal.get('installed'))
-        hint = ' t/p · j/k · enter · esc '
-        _put(stdscr, y0 + box_h - 1, x0 + 2, _fit(hint, box_w - 4), border)
-        stdscr.refresh()
-        ch = stdscr.getch()
-        if 0 <= ch < 256:
-            c = chr(ch).lower()
-            if c == 't':
-                return 'track'
-            if c == 'p':
-                return 'pin'
-        if ch in (27, ord('q')):
-            return None
-        if ch in (ord('j'), curses.KEY_DOWN):
-            sel = min(len(opts) - 1, sel + 1)
-        elif ch in (ord('k'), curses.KEY_UP):
-            sel = max(0, sel - 1)
-        elif ch in (ord('\n'), curses.KEY_ENTER, curses.KEY_RIGHT):
-            return opts[sel][0]
 
 
 def _apply_method_pin(ctx, name, via, already_pinned):
@@ -2354,11 +2159,9 @@ class ProfileScreen:
 
     def visible_pnodes(self):
         '''Flattened visible tree: [(name, depth, key, expandable, expanded, kind)]. `kind` is
-        'profile' (a top-level profile), 'include' (a `+other` child — a live include), 'derive' (a
-        sub-profile UNIT offered by a derived profile's `^`-menu — its ballot state is shown/edited in
-        place), or 'group' (a layer-group header, key starts _GKEY). A root profile's children are its
-        `+includes` AND (if derived) its `^`-menu sub-units; a derive child recurses into ITS
-        sub-profiles. `key` is the ancestor path (root = key.split('\\x00')[0] = the curated profile).'''
+        'profile' (a top-level profile), 'include' (a `+other` child — a live include), or 'group'
+        (a layer-group header, key starts _GKEY). A root profile's children are its `+includes`.
+        `key` is the ancestor path (root = key.split('\\x00')[0] = the curated profile).'''
         f = self.pfilter.lower()
         roots = [p for p in self.profiles if f in p.lower()] if f else list(self.profiles)
         out = []
@@ -2366,19 +2169,8 @@ class ProfileScreen:
         def walk(name, depth, path, kind):
             cfg = self.ctx.config
             key = '\x00'.join(path + [name])
-            kids = []                                    # [(childname, childkind)]
-            # A BALLOT context is a derived/pinned profile (kind 'derive', or a derived top profile):
-            # its sub-profiles tree out as DERIVE units (state read via sub_engagement, curated by
-            # pinning). A plain profile / include child keeps the live `+include` tree (existing).
-            if kind == 'derive' or (kind == 'profile' and cfg.is_derived(name)):
-                menu = sorted(cfg.hierarchy_children(name))
-                kids += [(s, 'derive') for s in menu if s not in path]
-                mset = set(menu)                          # a +include OUTSIDE the ^-menu is a live child
-                kids += [(c, 'include') for c in sorted(cfg.profile_includes(name))
-                         if c not in mset and c not in path and c != name and c in self._profset]
-            else:
-                kids += [(c, 'include') for c in sorted(cfg.profile_includes(name))
-                         if c not in path and c != name and c in self._profset]
+            kids = [(c, 'include') for c in sorted(cfg.profile_includes(name))
+                    if c not in path and c != name and c in self._profset]
             expandable = bool(kids)
             expanded = expandable and key in self.expanded
             out.append((name, depth, key, expandable, expanded, kind))
@@ -2455,7 +2247,7 @@ class ProfileScreen:
 
     def _include_closure(self, name):
         '''A profile plus every profile it transitively `+include`s (cycle-guarded). Starring the
-        whole chain makes the base's members visible, and a derived profile's `~`-pruned components
+        whole chain makes the base's members visible, and a profile's `~`-pruned components
         (which the base still lists) then render with the `~` marker — the clone-and-prune view.'''
         seen, stack = set(), [name]
         while stack:
@@ -2514,19 +2306,14 @@ class ProfileScreen:
         sm = self._starred_members()                 # `*` star filter: starred profiles' OWN members
         if sm is not None:
             rem = self._starred_removed()            # what a starred profile pruned via ~term
-            menu = self._starred_menu()              # a derived profile's OFFERED (NEW/declined) items
             # plain star = SURVIVORS (hide the pruned, even if a base profile in the starred clan owns
-            # them); the show-removed state adds them back, marked `~`. A derived profile's menu items
-            # ride along so its NEW (offered) rows show — declined ones only in the show-removed state.
-            allowed = (sm | rem | menu) if self.show_removed else ((sm | menu) - rem)
+            # them); the show-removed state adds them back, marked `~`.
+            allowed = (sm | rem) if self.show_removed else (sm - rem)
             cat = [c for c in cat if c in allowed]
         if self.attr_inc or self.attr_exc:           # `A` attrs filter (faceted include/exclude)
             comps = self.ctx.routes.components
             cat = [c for c in cat if _attr_pass(
                 {a.lower() for a in getattr(comps.get(c), 'attrs', [])}, self.attr_inc, self.attr_exc)]
-        scope = self.cur_scope()                      # a `derive` sub-unit selected -> only ITS components
-        if scope is not None:
-            cat = [c for c in cat if c in scope]
         return cat
 
     def attr_summary(self):
@@ -2598,28 +2385,11 @@ class ProfileScreen:
         return None if (nd is None or self.is_group_header(nd)) else nd[0]
 
     def cur_curate(self):
-        '''The profile the RIGHT catalog edits reflect: for a `derive` sub-unit node, the SUB ITSELF
-        (its components live in its own pinned profile); otherwise the current node's own profile.'''
+        '''The profile the RIGHT catalog edits reflect: the current node's own profile.'''
         nd = self.cur_node()
         if nd is None or self.is_group_header(nd):
             return None
         return nd[0]
-
-    def cur_scope(self):
-        '''When a `derive` sub-unit is selected, its OWN direct components — the catalog scopes to
-        them (curate this sub's leaf components). None otherwise (the full catalog).'''
-        nd = self.cur_node()
-        if nd and self.node_kind(nd) == 'derive':
-            return self.ctx.config.profile_children(nd[0])['components']
-        return None
-
-    def cur_derive_path(self):
-        '''For a `derive` node, the profile chain root → … → this sub — pinned + engaged before a
-        component pick inside commits (so the sub is curatable and its ancestors take it). [] otherwise.'''
-        nd = self.cur_node()
-        if nd and self.node_kind(nd) == 'derive':
-            return nd[2].split('\x00')
-        return []
 
     def members(self, profile):
         try:
@@ -2638,59 +2408,13 @@ class ProfileScreen:
         '''Components a `~term` removes from the profile (for the `~` marker).'''
         return self.ctx.config.profile_removed(profile) if profile else set()
 
-    def is_derived(self, profile):
-        '''True if the profile carries a `^derive` term — it's a ballot (menu + picks + declines).'''
-        try:
-            return bool(profile) and self.ctx.config.is_derived(profile)
-        except Exception:                                # noqa: BLE001 — a bad profile is not a ballot
-            return False
-
-    def menu(self, profile):
-        '''The derived profile's MENU (⋃ members of its `^parents`) — offered components. Empty for a
-        plain profile.'''
-        try:
-            return set(self.ctx.config.profile_menu(profile)) if profile else set()
-        except Exception:                                # noqa: BLE001
-            return set()
-
-    def new_members(self, profile):
-        '''The ballot's NEW set: menu items neither picked nor declined (offered, never installed).'''
-        try:
-            return set(self.ctx.config.profile_new(profile)) if profile else set()
-        except Exception:                                # noqa: BLE001
-            return set()
-
-    def _starred_menu(self):
-        '''Union of the starred profiles' derive MENUS — so a derived profile's OFFERED items surface
-        in the `*` catalog filter (not just its picks/declines).'''
-        m = set()
-        for p in self.starred:
-            m |= self.menu(p)
-        return m
-
-    def _starred_new(self):
-        '''Union of the starred profiles' NEW sets (offered-not-chosen) — for the `?` catalog marker.'''
-        m = set()
-        for p in self.starred:
-            m |= self.new_members(p)
-        return m
-
     def relation(self, profile):
-        '''Provenance of the profile's top definition vs any lower same-name def: 'pinned' (`^self`),
-        'tracked' (`+self`), 'shadowed', or 'base' — drives the pane's provenance badge glyph.'''
+        '''Provenance of the profile's top definition vs any lower same-name def: 'tracked' (`+self`),
+        'shadowed', or 'base' — drives the pane's provenance badge glyph.'''
         try:
             return self.ctx.config.profile_relation(profile) if profile else 'base'
         except Exception:                                # noqa: BLE001
             return 'base'
-
-    def subtree_new(self, profile):
-        '''Union of NEW (offered-not-chosen) items across `profile` and every profile it transitively
-        `+include`s — so a derived profile's own offerings AND a plain parent that includes a derived
-        subprofile both surface a `⁺N` badge (the count bubbles up the tree).'''
-        m = set()
-        for p in self._include_closure(profile):
-            m |= self.new_members(p)
-        return m
 
     def _resolve(self, name):
         '''(available, resolved_via, pinned) for a component — cached. The resolved via is the
@@ -2725,13 +2449,10 @@ def _draw_profiles(stdscr, pal, ps, ctx, note, screen):
     top, body_h = 1, h - 4                           # status + legend row, then TWO nav rows below
     lw = max(16, w // 6) + 6                          # profiles pane: narrow, leaving the grid room (+6 cols)
     rleft, rw = lw + 1, w - lw - 1
-    prof = ps.cur_curate()                           # the curated root (a derive node -> its root profile)
+    prof = ps.cur_curate()                           # the selected profile
     members = ps.members(prof)
     own = ps.own_members(prof)                       # direct (●) vs via-include (↳)
     removed = ps.removed_members(prof)               # ~term drops (~) for the selected profile
-    new_set = ps.new_members(prof)                   # a derived profile's OFFERED (NEW, `?`) menu items
-    if ps.starred:                                   # ...plus any starred profiles' offered items
-        new_set = new_set | ps._starred_new()
     if ps.show_removed:                              # ...plus the starred profiles' drops the filter reveals
         removed = removed | ps._starred_removed()
     ov_inst, ov_orph, ov_uninst = ps.overlay()       # install-axis overlay data (empty unless `O` on)
@@ -2787,18 +2508,6 @@ def _draw_profiles(stdscr, pal, ps, ctx, note, screen):
                  | rev)
             continue
         exp = '▾' if expanded else ('▹' if expandable else ' ')
-        if kind == 'derive':                          # a ^-menu sub-profile UNIT: show its ballot state
-            parent = key.split('\x00')[-2]            # the profile whose def engages this unit
-            st = ps.ctx.config.sub_engagement(parent, name)
-            gl = {'derive': '^', 'whole': '+', 'exclude': '~', 'new': '?'}[st]
-            nn = _ballot_new_count(ps.ctx, name) if st == 'derive' else 0
-            tail = f'  ⁺{nn}' if nn else ''
-            row = f' {"  " * depth}{exp}{gl} {name}{tail}'
-            elem = {'derive': 'link', 'whole': 'component', 'exclude': 'info_dim', 'new': 'menu_new'}[st]
-            _put(stdscr, y, lil, _fit(row, liw),
-                 pal.style(elem, y, lil, h, w, selected=foc, bg=(None if low_color else rbg))
-                 | rev | (curses.A_DIM if st == 'exclude' and not foc else 0))
-            continue
         star = '▸' if name in ps.starred else ' '     # selection is the bar; ▸ now means "starred"
         act = '●' if name in ps.active else ('◐' if name in ps.active_indirect else '○')
         prefix = list(f'{star}{"  " * depth}{exp}{act}')
@@ -2816,26 +2525,15 @@ def _draw_profiles(stdscr, pal, ps, ctx, note, screen):
                     struck = True
             except Exception:                                  # noqa: BLE001 — a bad profile marks nothing
                 pass
-        # provenance + ballot badge: a glyph names how your layer relates to a lower same-name def
-        # (^ pinned · + tracked · ⊘ shadowed · blank base/untouched); a `⁺N` counts the OFFERED (NEW)
-        # items in the subtree — its own, or a derived subprofile's bubbled up a `+include` parent.
-        prov = {'pinned': '^', 'tracked': '+', 'shadowed': '⊘'}.get(ps.relation(name), '')
-        nnew = len(ps.subtree_new(name))
-        tag = ('  ' + prov if prov else '') + (f'⁺{nnew}' if nnew else '')
-        if tag and not tag.startswith('  '):             # `⁺N` with no provenance glyph -> pad the gap
-            tag = '  ' + tag
-        disp = f'+{name}' if kind == 'include' else name  # `+`-mark a live include child (vs a derive)
+        # provenance badge: a glyph names how your layer relates to a lower same-name def
+        # (+ tracked · ⊘ shadowed · blank base/untouched).
+        prov = {'tracked': '+', 'shadowed': '⊘'}.get(ps.relation(name), '')
+        tag = ('  ' + prov if prov else '')
+        disp = f'+{name}' if kind == 'include' else name  # `+`-mark a live include child
         row = f'{"".join(prefix)} {disp}{tag}'
         _put(stdscr, y, lil, _fit(row, liw),
              pal.style('profile', y, lil, h, w, selected=foc, bg=(None if low_color else rbg))
              | rev | (curses.A_DIM if struck and not foc else 0))
-        if tag and nnew and not foc:                     # tint just the `⁺N` count in the menu_new hue
-            bstr = f'⁺{nnew}'
-            bx = lil + len(f'{"".join(prefix)} {disp}{tag}') - len(bstr)
-            if 0 <= bx - lil < liw:
-                _put(stdscr, y, bx, _fit(bstr, liw - (bx - lil)),
-                     pal.style('menu_new', y, bx, h, w, bg=(None if low_color else rbg))
-                     | rev | (curses.A_DIM if struck else 0))
     _scrollbar_v(stdscr, pal, lit, lw - 1, lih, ps.ltop, lih, len(vnodes), h, w)
 
     # RIGHT TOP: detail for the highlighted component (names are esoteric) — description + methods
@@ -2910,11 +2608,7 @@ def _draw_profiles(stdscr, pal, ps, ctx, note, screen):
 
     # RIGHT BOTTOM: the component catalog (filtered), as a COLUMN-MAJOR grid filling the pane width
     ctop, cath = top + desc_h, body_h - desc_h
-    _deriv = ps.is_derived(prof)
-    _prof_new = ps.new_members(prof) if _deriv else set()   # this profile's own offerings (not starred)
-    ctitle = ((f'components — ballot "{prof}"' if _deriv else
-               (f'components — in "{prof}"' if prof else 'components'))
-              + (f'  ⁺{len(_prof_new)} offered' if _prof_new else '')
+    ctitle = ((f'components — in "{prof}"' if prof else 'components')
               + (f'  filter:{ps.cfilter}' if ps.cfilter else '')
               + (f'  ▸{",".join(sorted(ps.starred))}' if ps.starred else '')
               + ('  +~removed' if ps.starred else '')   # star filter always reveals ~-removed drops
@@ -2949,9 +2643,7 @@ def _draw_profiles(stdscr, pal, ps, ctx, note, screen):
             cur = i == ps.rcur
             foc = cur and ps.focus == 'right'
             avail, via, pinned = ps._resolve(name)
-            is_new = name in new_set                  # offered by a derive, not yet picked/declined
-            elem = ('menu_new' if avail else 'info_dim') if is_new else \
-                   ('component' if avail else 'info_dim')
+            elem = 'component' if avail else 'info_dim'
             # install-axis overlay (`O`): installed -> underline; an orphan -> its `orphan_<kind>`
             # colour; staged for uninstall (!uninstall) -> dimmed/struck. Composes with the row tint.
             ov_extra = 0
@@ -2986,9 +2678,9 @@ def _draw_profiles(stdscr, pal, ps, ctx, note, screen):
             elif tint is not None:
                 _put(stdscr, y, cx, ' ' * cell, pal.fill(y, cx, h, w, bg=tint))
             cm = '▸' if cur else ' '
-            # ballot markers: ● own pick · ↳ inherited member · ~ declined/pruned · ? offered (NEW)
+            # markers: ● own member · ↳ inherited member · ~ excluded/pruned
             mk = ('●' if name in own else '↳') if name in members else \
-                 ('~' if name in removed else ('?' if is_new else ' '))
+                 ('~' if name in removed else ' ')
             # the resolved method trails the name, in the muted method colour; a pin is marked `[via]`
             mstr = (f'[{via}]' if pinned else via) if via else ''
             nm_txt = f'{cm}{mk} {name}'
@@ -4215,12 +3907,6 @@ def run(ctx):
                 if diags:
                     show_diag, diag_top = True, 0
                 continue
-            if gact == 'review':                        # reconcile overlay: triage NEW across profiles
-                if _run_reconcile(stdscr, pal, ctx):
-                    menu_dirty = True                   # edits landed -> Components rebuilds on entry
-                    if ps is not None:
-                        ps.reload()                     # and the Profiles ballot reflects them
-                continue
             if gact == 'help':
                 _help_modal(stdscr, pal, screen)
                 continue
@@ -4277,30 +3963,6 @@ def run(ctx):
                         (ps.collapse_cur if _nd[4] else ps.expand_cur)()
                     else:
                         ps.focus = 'right'             # a leaf profile: open the components pane for it
-                elif pfact == 'select' and ps.focus == 'left' and ps.node_kind(ps.cur_node()) == 'derive':
-                    # a ^-menu sub-unit: cycle its engagement in place. NEW → derive → exclude → NEW.
-                    # 'derive' = PIN the sub (its own shared profile) + its parent +includes it, so it's
-                    # curatable one level down; 'exclude' = parent ~s it (pin kept); 'new' = clear.
-                    _p = ps.cur_node()[2].split('\x00')
-                    parent, sub = _p[-2], _p[-1]
-                    mtarget = getattr(ctx, 'machine_override', None) or None
-                    st = ctx.config.sub_engagement(parent, sub)
-                    nxt = {'new': 'derive', 'derive': 'exclude', 'exclude': 'new', 'whole': 'exclude'}[st]
-                    try:
-                        changed = False
-                        if nxt == 'derive':
-                            _ensure_path_engaged(ctx, _p[:-1], mtarget)   # ancestors pinned + engaged
-                            _c, _l = actions.pin_profile(ctx, sub, machine=mtarget)  # curate this sub
-                            changed = changed or _c
-                            _c, lbl = actions.set_subprofile_state(ctx, parent, sub, 'whole', machine=mtarget)
-                        else:
-                            _c, lbl = actions.set_subprofile_state(ctx, parent, sub, nxt, machine=mtarget)
-                        changed = changed or _c
-                        ps.reload()
-                        menu_dirty = menu_dirty or changed
-                        note = f'{sub} → {nxt}' if changed else (lbl or 'no change')
-                    except Exception as e:  # noqa: BLE001 — surface, don't crash
-                        note = f'edit failed: {e}'
                 elif pfact == 'right':
                     if ps.focus == 'left':
                         ps.expand_cur()                # h/l now expand/collapse the include tree
@@ -4447,24 +4109,6 @@ def run(ctx):
                                 menu_dirty = menu_dirty or changed
                             except Exception as e:  # noqa: BLE001 — surface, don't crash
                                 note = f'remove failed: {e}'
-                elif pfact == 'include' and ps.focus == 'left' \
-                        and ps.node_kind(ps.cur_node()) == 'derive':
-                    # `+` on a ^-menu sub-unit: include it WHOLE (+sub, live base — no pin/curation) —
-                    # the secondary "take everything, growth auto-installs" choice, vs space's cycle.
-                    _p = ps.cur_node()[2].split('\x00')
-                    parent, sub = _p[-2], _p[-1]
-                    mtarget = getattr(ctx, 'machine_override', None) or None
-                    st = ctx.config.sub_engagement(parent, sub)
-                    nxt = 'new' if st == 'whole' else 'whole'   # toggle whole on/off
-                    try:
-                        if nxt == 'whole':
-                            _ensure_path_engaged(ctx, _p[:-1], mtarget)
-                        changed, lbl = actions.set_subprofile_state(ctx, parent, sub, nxt, machine=mtarget)
-                        ps.reload()
-                        menu_dirty = menu_dirty or changed
-                        note = f'{sub} → {nxt}' if changed else (lbl or 'no change')
-                    except Exception as e:  # noqa: BLE001 — surface, don't crash
-                        note = f'include failed: {e}'
                 elif pfact == 'include' and ps.focus == 'left':  # include another profile (+other)
                     prof = ps.cur_profile()
                     others = [p for p in ps.profiles if p != prof]
@@ -4519,76 +4163,21 @@ def run(ctx):
                         where_lines = where_profile_report(ctx, _wp) or [f'{_wp}: nothing to show']
                         where_subject, where_top, show_where = _wp, 0, True
                 elif pfact in ('select', 'confirm') and ps.focus == 'right':
-                    prof = ps.cur_curate()             # a derive sub-unit -> the SUB itself (its own pin)
-                    dpath = ps.cur_derive_path()       # the profile chain to pin + engage first
+                    prof = ps.cur_curate()             # the selected profile
                     vcat = ps.vcatalog()
                     if prof and vcat:
                         name = vcat[ps.rcur]
                         mtarget = getattr(ctx, 'machine_override', None) or None
-                        if dpath:                       # curating a sub's leaf components: pin it + engage
-                            try:                        # the chain FIRST, so its ballot is well-defined
-                                _ensure_path_engaged(ctx, dpath[:-1], mtarget)
-                                _pc, _ = actions.pin_profile(ctx, prof, machine=mtarget)
-                                if ctx.config.sub_engagement(dpath[-2], prof) not in ('whole', 'derive'):
-                                    actions.set_subprofile_state(ctx, dpath[-2], prof, 'whole',
-                                                                 machine=mtarget)
-                                if _pc:
-                                    ps.reload()          # config changed -> recompute the ballot below
-                                    menu_dirty = True
-                            except Exception as e:      # noqa: BLE001
-                                note = f'edit failed: {e}'
-                        # A derived profile is a 3-state BALLOT: space cycles NEW(?) -> pick(●) ->
-                        # decline(~) -> NEW. A plain profile stays a 2-state add/remove toggle.
-                        if ps.is_derived(prof) and name in ps.menu(prof):
-                            if name in ps.members(prof):
-                                memb, verb = 'decline', 'declined'
-                            elif name in ps.removed_members(prof):
-                                memb, verb = 'clear', 'offered'
-                            else:
-                                memb, verb = 'add', 'picked'
-                        else:
-                            in_prof = name in ps.members(prof)
-                            memb = 'remove' if in_prof else 'add'
-                            verb = 'removed' if in_prof else 'added'
+                        # a plain 2-state add/remove toggle of the component's membership.
+                        in_prof = name in ps.members(prof)
+                        memb = 'remove' if in_prof else 'add'
+                        verb = 'removed' if in_prof else 'added'
                         try:
-                            # pin-or-track: the FIRST amend of a profile defined only in a lower,
-                            # non-editable layer asks how to save it (or the profile-edit-mode setting
-                            # decides). PIN (^self) snapshots picks + offers upstream growth as NEW;
-                            # TRACK (+self) amends the live def. Ballot decline/clear never synth.
-                            # When a machine target is active, the edit + synth-detection scope to that
-                            # machine's rung (machines:[X].profiles); else the shared/local target.
-                            synth, proceed = 'track', True
-                            if mtarget:
-                                _mi = ctx.config.machine_layer_index()
-                                tfile = str(ctx.config._layers[_mi].path) if _mi is not None else ''
-                                tlabel, tidx = f'machine {mtarget}', _mi
-                            else:
-                                tfile, tlabel = actions._profile_target(ctx, prof)
-                                tidx = None
-                            if (not dpath) and memb in ('add', 'remove') and ctx.config.profile_amends_lower(
-                                    prof, tfile, layer_idx=tidx):
-                                mode = ctx.config.profile_edit_mode()
-                                if mode in ('track', 'pin'):
-                                    synth = mode
-                                else:                       # 'ask' -> interpose the modal with previews
-                                    prev = {}
-                                    for s in ('track', 'pin'):
-                                        try:
-                                            prev[s] = ctx.config.plan_membership_edit(
-                                                prof, name, memb, tfile, synth=s, layer_idx=tidx)
-                                        except Exception:   # noqa: BLE001
-                                            prev[s] = []
-                                    choice = _pin_or_track_modal(stdscr, pal, prof, tlabel, prev)
-                                    if choice is None:
-                                        proceed, note = False, 'cancelled'
-                                    else:
-                                        synth = choice
-                            if proceed:                # the sub (if any) was pinned+engaged above
-                                changed, lbl = actions.set_profile_membership(
-                                    ctx, prof, name, memb, synth=synth, machine=mtarget)
-                                ps.reload()
-                                menu_dirty = menu_dirty or changed
-                                note = (f'{name} {verb}' if changed else (lbl or 'no change'))
+                            changed, lbl = actions.set_profile_membership(
+                                ctx, prof, name, memb, machine=mtarget)
+                            ps.reload()
+                            menu_dirty = menu_dirty or changed
+                            note = (f'{name} {verb}' if changed else (lbl or 'no change'))
                         except Exception as e:  # noqa: BLE001 — surface, don't crash
                             note = f'edit failed: {e}'
                 continue
