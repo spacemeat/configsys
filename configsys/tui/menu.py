@@ -880,13 +880,14 @@ _HELP = {
             ('spaces', 'repo/plugin groups are BROWSE-ONLY system profiles (read-only); machine/'
                        'primary/user groups are yours to edit · ⧉ = your clone of a system profile '
                        '(the pristine original still shows under repo/plugin)'),
-            ('⁺N (new)', 'count of NEW (undispositioned) components in a profile’s members — or, on a '
-                         'group header, distinct NEW across the whole group; triage them with A/I/S/X'),
+            ('⁺N / ☆N', '⁺N = NEW (undispositioned) members of a profile; ☆N = INTERESTING (bookmarked) '
+                        'members — on a group header, distinct across the whole group; triage with A/I/S/X'),
             ('grouping (L)', 'group the pane by defining layer (this machine · your primary · plugins · '
                              'repo catalog, collapsed) ↔ flat A-Z; enter/h/l folds a group'),
             ('machine (M)', 'pick the working-TARGET machine to curate; edits then land in its '
                             'machines:[name] namespace (execute stays local)'),
-            ('catalog', '● member · ↳ member via include · ~ excluded · ☆ interesting · · seen · ? new'),
+            ('catalog', 'TWO columns per row — membership (● own · ↳ via-include · ~ excluded · blank) '
+                        'then disposition (☆ interesting · · seen · ? new · blank)'),
             ('disposition', 'I marks the component INTERESTING (bookmarked) · S marks it SEEN · '
                             'NEW (?) = an upstream component you have not yet triaged (press again to clear)'),
             ('multi-select', 'space (✔) toggles a component into a batch set; A/I/S/X then act on the '
@@ -2316,34 +2317,48 @@ class ProfileScreen:
         ceiling (same set the ● markers use, so scope and marks always agree).'''
         return self.members(self.cur_curate(), self.cur_ceiling())
 
-    def profile_new_count(self, name, ceiling=None):
-        '''How many of `name`'s members (read at `ceiling`) are NEW — undispositioned upstream
-        components you haven't triaged. Drives the `⁺N` badge on a profile row; a user profile reads
-        0 (its members are, by definition, in a user profile). Memoized until the next reload.'''
+    def _profile_counts(self, name, ceiling):
+        '''(#NEW, #interesting) among `name`'s members read at `ceiling`, in one pass. NEW =
+        undispositioned & untriaged (is_new); interesting = bookmarked (disposition). Memoized.'''
         key = (name, ceiling)
         cache = self._new_count_cache
         if key not in cache:
+            cfg = self.ctx.config
             try:
-                cache[key] = sum(1 for c in self.members(name, ceiling) if self.ctx.config.is_new(c))
+                mem = self.members(name, ceiling)
+                nnew = sum(1 for c in mem if cfg.is_new(c))
+                nint = sum(1 for c in mem if cfg.disposition(c) == 'interesting')
+                cache[key] = (nnew, nint)
             except Exception:                            # noqa: BLE001 — a bad profile counts nothing
-                cache[key] = 0
+                cache[key] = (0, 0)
         return cache[key]
 
+    def profile_new_count(self, name, ceiling=None):
+        '''#NEW members of `name` (the `⁺N` badge). Memoized until the next reload.'''
+        return self._profile_counts(name, ceiling)[0]
+
+    def profile_interesting_count(self, name, ceiling=None):
+        '''#INTERESTING (bookmarked) members of `name` (the `☆N` badge). Memoized until reload.'''
+        return self._profile_counts(name, ceiling)[1]
+
     def group_new_count(self, gid):
-        '''Distinct NEW components across all profiles in pane-group `gid` (read at the group's
-        ceiling) — the `⁺N` on a group header, so a collapsed "repo catalog" still advertises how
-        much is waiting to be triaged. Memoized until the next reload.'''
+        '''(#NEW, #interesting) distinct across all profiles in pane-group `gid`, read at the group's
+        ceiling — the `⁺N`/`☆N` on a group header, so a collapsed "repo catalog" still advertises the
+        triage/bookmark work inside it. Memoized until the next reload.'''
         if gid in self._group_new_cache:
             return self._group_new_cache[gid]
+        cfg = self.ctx.config
         ceil = self.group_ceiling(gid)
-        seen = set()
+        new_set, int_set = set(), set()
         for p in self.profiles:
             if gid in self._profile_groups(p):
                 try:
-                    seen |= {c for c in self.members(p, ceil) if self.ctx.config.is_new(c)}
+                    mem = self.members(p, ceil)
                 except Exception:                        # noqa: BLE001
-                    pass
-        self._group_new_cache[gid] = len(seen)
+                    continue
+                new_set |= {c for c in mem if cfg.is_new(c)}
+                int_set |= {c for c in mem if cfg.disposition(c) == 'interesting'}
+        self._group_new_cache[gid] = (len(new_set), len(int_set))
         return self._group_new_cache[gid]
 
     def action_targets(self):
@@ -2554,11 +2569,11 @@ def _draw_profiles(stdscr, pal, ps, ctx, note, screen):
         elif rbg is not None:
             _put(stdscr, y, lil, ' ' * liw,
                  curses.A_REVERSE if low_color else pal.fill(y, lil, h, w, bg=rbg))
-        if kind == 'group':                           # a layer-group header row (▾/▹ LABEL (count) ⁺new)
+        if kind == 'group':                           # a layer-group header row (▾/▹ LABEL (count) ⁺new ☆int)
             gid = key[len(_GKEY):]
-            _gnew = ps.group_new_count(gid)
+            _gnew, _gint = ps.group_new_count(gid)
             hdr = (f'{"▾" if expanded else "▹"} {name} ({group_counts.get(gid, 0)})'
-                   + (f'  ⁺{_gnew}' if _gnew else ''))
+                   + (f'  ⁺{_gnew}' if _gnew else '') + (f'  ☆{_gint}' if _gint else ''))
             _put(stdscr, y, lil, _fit(hdr.upper(), liw),
                  pal.style('menu_header', y, lil, h, w, selected=foc, bg=(None if low_color else rbg))
                  | rev)
@@ -2590,21 +2605,28 @@ def _draw_profiles(stdscr, pal, ps, ctx, note, screen):
         # the system originals carry no badge — the group placement already says which space they're in.
         is_clone = (node_group not in ps._SYSTEM_GROUPS and kind == 'profile'
                     and ps._profile_groups(name) & set(ps._SYSTEM_GROUPS))
-        # `⁺N` counts the NEW (undispositioned) components among this profile's members at its layer —
-        # so a browse profile advertises how much it holds that you haven't triaged yet.
-        nnew = ps.profile_new_count(name, ps.group_ceiling(node_group))
-        tag = ('  ⧉' if is_clone else '') + (f'  ⁺{nnew}' if nnew else '')
+        # `⁺N` counts NEW (untriaged) members; `☆N` counts INTERESTING (bookmarked) members — so a
+        # profile advertises both what you haven't triaged and what you've flagged inside it.
+        _ceil_r = ps.group_ceiling(node_group)
+        nnew = ps.profile_new_count(name, _ceil_r)
+        nint = ps.profile_interesting_count(name, _ceil_r)
+        newtag = f'  ⁺{nnew}' if nnew else ''
+        inttag = f'  ☆{nint}' if nint else ''
+        tag = ('  ⧉' if is_clone else '') + newtag + inttag
         disp = f'+{name}' if kind == 'include' else name  # `+`-mark a live include child
         row = f'{"".join(prefix)} {disp}{tag}'
         _put(stdscr, y, lil, _fit(row, liw),
              pal.style('profile', y, lil, h, w, selected=foc, bg=(None if low_color else rbg))
              | rev | (curses.A_DIM if struck and not foc else 0))
-        if nnew and not foc and len(row) <= liw:          # tint just the `⁺N` count in the menu_new hue
-            bstr = f'⁺{nnew}'                             # (only when the row isn't truncated)
-            bx = lil + len(row) - len(bstr)
-            if 0 <= bx - lil < liw:
-                _put(stdscr, y, bx, bstr,
-                     pal.style('menu_new', y, bx, h, w, bg=(None if low_color else rbg)) | rev)
+        # tint the count badges in their own hues (menu_new for ⁺N, link for ☆N), when not truncated
+        if not foc and len(row) <= liw:
+            for _bstr, _hue in ((f'⁺{nnew}' if nnew else '', 'menu_new'),
+                                (f'☆{nint}' if nint else '', 'link')):
+                if _bstr:
+                    bx = lil + row.rindex(_bstr)
+                    if 0 <= bx - lil < liw:
+                        _put(stdscr, y, bx, _bstr,
+                             pal.style(_hue, y, bx, h, w, bg=(None if low_color else rbg)) | rev)
     _scrollbar_v(stdscr, pal, lit, lw - 1, lih, ps.ltop, lih, len(vnodes), h, w)
 
     # RIGHT TOP: detail for the highlighted component (names are esoteric) — description + methods
@@ -2693,7 +2715,7 @@ def _draw_profiles(stdscr, pal, ps, ctx, note, screen):
     # size columns from the FULL catalog's longest NAME (stable) so a filter that narrows to short
     # names doesn't shrink the columns; the draw keeps the name readable and truncates a long method.
     longest = max((len(nm) for nm in ps.catalog), default=12)
-    col_w = max(1, min(riw, max(20, min(34, longest + 10))))  # `▸● name  method`
+    col_w = max(1, min(riw, max(20, min(34, longest + 11))))  # `▸●? name  method`
     ncols = max(1, riw // col_w) if riw > 0 else 1
     col_w = riw // ncols if ncols else riw           # redistribute to fill the width exactly
     total_cols = (n + rows - 1) // rows
@@ -2753,40 +2775,55 @@ def _draw_profiles(stdscr, pal, ps, ctx, note, screen):
                 _put(stdscr, y, cx, ' ' * cell, pal.fill(y, cx, h, w, bg=tint))
             # ✔ = in the multi-select set (A/I/S/X batch); else ▸ marks the cursor row
             cm = '✔' if name in ps.selected_comps else ('▸' if cur else ' ')
-            # markers: membership of the CURRENT profile (● own · ↳ via-include · ~ excluded), else the
-            # component's GLOBAL disposition (☆ interesting · · seen · ? new · blank = included elsewhere).
+            # TWO independent glyph columns so both axes show at once:
+            #  memb — membership of the SELECTED profile: ● own · ↳ via-include · ~ excluded · blank
+            #  dmk  — GLOBAL disposition: ☆ interesting · · seen · ? new · blank (triaged/included)
             if name in members:
-                mk, delem = ('●' if name in own else '↳'), 'component'
+                memb = '●' if name in own else '↳'
             elif name in removed:
-                mk, delem = '~', 'info_dim'
-            elif _disp.get(name) == 'interesting':
-                mk, delem = '☆', 'link'
-            elif _disp.get(name) == 'seen':
-                mk, delem = '·', 'info_dim'
-            elif ctx.config.is_new(name):
-                mk, delem = '?', 'menu_new'
+                memb = '~'
             else:
-                mk, delem = ' ', 'component'
+                memb = ' '
+            _d = _disp.get(name)
+            if _d == 'interesting':
+                dmk = '☆'
+            elif _d == 'seen':
+                dmk = '·'
+            elif ctx.config.is_new(name):
+                dmk = '?'
+            else:
+                dmk = ' '
+            # row tint: bookmarks/new pop; excluded & seen dim; members and the rest plain
+            if _d == 'interesting':
+                delem = 'link'
+            elif dmk == '?':
+                delem = 'menu_new'
+            elif name in removed:
+                delem = 'info_dim'
+            elif _d == 'seen':
+                delem = 'info_dim'
+            else:
+                delem = 'component'
             if avail:
-                elem = delem                          # tint the row by its disposition (grey-out wins if unavail)
+                elem = delem                          # tint the row by its state (grey-out wins if unavail)
             # the resolved method trails the name, in the muted method colour; a pin is marked `[via]`
             mstr = (f'[{via}]' if pinned else via) if via else ''
-            nm_txt = f'{cm}{mk} {name}'
+            nm_txt = f'{cm}{memb}{dmk} {name}'
             # the NAME has priority: it keeps its full width; the method gets whatever room is left
             # after it (right-aligned, truncated if long), and is dropped when there's < 3 cols left.
             m_room = cell - len(nm_txt) - 1
 
             def _draw_name(nw):
-                # draw the whole `▸● name` cell, then re-draw JUST the name (after the 3-char cursor+
-                # marker prefix, sans trailing pad) with the install-axis attrs — so the underline/dim
-                # covers only the component name, not the margin or the state glyphs.
+                # draw the whole `▸●? name` cell, then re-draw JUST the name (after the 4-char cursor+
+                # membership+disposition prefix, sans trailing pad) with the install-axis attrs — so the
+                # underline/dim covers only the component name, not the margin or the state glyphs.
                 drawn = _fit(nm_txt, nw)
                 _put(stdscr, y, cx, drawn, pal.style(elem, y, cx, h, w, selected=foc, bg=tint) | rev)
                 if ov_extra:
-                    namepart = drawn[3:].rstrip()
+                    namepart = drawn[4:].rstrip()
                     if namepart:
-                        _put(stdscr, y, cx + 3, namepart,
-                             pal.style(elem, y, cx + 3, h, w, selected=foc, bg=tint) | rev | ov_extra)
+                        _put(stdscr, y, cx + 4, namepart,
+                             pal.style(elem, y, cx + 4, h, w, selected=foc, bg=tint) | rev | ov_extra)
 
             if mstr and m_room >= 3:
                 mshow = _fit(mstr, m_room)
@@ -2807,7 +2844,7 @@ def _draw_profiles(stdscr, pal, ps, ctx, note, screen):
     # marker legend for the profiles pane — right-aligned on the status bar so the keys get two
     # full rows below. ● directly active (in configs:), ◐ active only via a +include, ○ inactive,
     # ▸ star-filtered.
-    legend = '● active  ◐ inherited  ○ inactive  ▸ scoped  ⧉ clone  ⁺N new '
+    legend = '● active  ◐ inherited  ○ inactive  ▸ scoped  ⧉ clone  ⁺N new  ☆N int '
     lg_x = max(0, w - len(legend))
     _put(stdscr, h - 3, 0, _fit(status, max(1, lg_x - 1)), pal.style('status_line', h - 3, 0, h, w))
     _put(stdscr, h - 3, lg_x, _fit(legend, w - lg_x), pal.style('status_line', h - 3, lg_x, h, w))

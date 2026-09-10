@@ -337,11 +337,13 @@ def test_profile_new_count_badge(tmp_path):
     ceil = ps.group_ceiling('repo')
     before = ps.profile_new_count('shells', ceil)
     assert before == len(ps.members('shells', ceil))         # a fresh home: every member is NEW
-    assert ps.group_new_count('repo') > 0                    # the repo group advertises NEW work
+    assert ps.group_new_count('repo')[0] > 0                 # (NEW, interesting); the repo group has NEW work
 
-    actions.set_disposition(ctx, sorted(ps.members('shells', ceil))[0], 'seen')   # triage one
+    one = sorted(ps.members('shells', ceil))[0]
+    actions.set_disposition(ctx, one, 'interesting')         # triage one -> interesting
     ps = menu.ProfileScreen(ctx)                             # reload -> caches rebuild
     assert ps.profile_new_count('shells', ceil) == before - 1
+    assert ps.profile_interesting_count('shells', ceil) == 1   # ☆N tracks bookmarks
 
 
 def test_profile_multiselect_batch_targets(tmp_path):
