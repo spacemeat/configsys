@@ -38,6 +38,21 @@ def test_clone_refusals(tmp_path):
     assert ok is False and 'already an editable user profile' in why
 
 
+def test_per_layer_read_keeps_system_pristine(tmp_path):
+    # the two-spaces view: after cloning + curating, reading a profile AT the repo ceiling still
+    # shows the pristine upstream members, while the merged/top read reflects the user's curation.
+    ctx = _ctx(tmp_path)
+    rc = ctx.config.role_ceilings()
+    repo_ceil = rc['repo']
+    before = sorted(ctx.config.profile_components('shells', repo_ceil))
+    assert before                                                # a real repo profile
+    actions.clone_profile(ctx, 'shells')
+    actions.set_profile_membership(ctx, 'shells', before[0], 'remove')   # curate the user clone
+    assert sorted(ctx.config.profile_components('shells', repo_ceil)) == before   # system pristine
+    assert before[0] not in ctx.config.profile_components('shells')      # user view curated
+    assert repo_ceil < rc['user']                                # repo sits below the user layer
+
+
 def test_clone_lockfile_new_upstream_member(tmp_path):
     # a system profile defined in a layer BELOW the user config; clone it, then a lower layer gains a
     # member -> the clone (which shadows) does NOT gain it, so is_new() sees it as NEW.

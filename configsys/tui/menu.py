@@ -2154,15 +2154,33 @@ class ProfileScreen:
         self._ov_gen += 1                # abandon any in-flight scan's result
 
     # -- profiles tree (top-level profiles + inline `+include` children) --
+    @staticmethod
+    def _fold_role(role):
+        return role if role in ('machine', 'user', 'primary', 'repo') else 'plugin'
+
     def _profile_group(self, name):
         '''Which pane group a profile belongs to — the ROLE of its top (highest-precedence)
-        definition layer, folded to one of _GROUP_ORDER. Drives the layer-grouped pane.'''
+        definition layer, folded to one of _GROUP_ORDER. Drives the flat/legacy grouping + the
+        per-group header counts.'''
         try:
             defs = self.ctx.config.profile_layer_defs(name)
             role = defs[-1]['role'] if defs else 'repo'
         except Exception:                            # noqa: BLE001 — a broken profile falls to repo
             role = 'repo'
-        return role if role in ('machine', 'user', 'primary', 'repo') else 'plugin'
+        return self._fold_role(role)
+
+    def _profile_groups(self, name):
+        '''EVERY pane group `name` has a definition in (folded roles), so a same-name clone shows
+        under YOUR group while the pristine system original still shows under repo/plugin — the
+        two-spaces view. Falls back to its top group.'''
+        try:
+            defs = self.ctx.config.profile_layer_defs(name)
+            gs = {self._fold_role(d['role']) for d in defs}
+        except Exception:                            # noqa: BLE001
+            gs = set()
+        return gs or {self._profile_group(name)}
+
+    _SYSTEM_GROUPS = ('repo', 'plugin')              # browse-only spaces: rows here are read-only
 
     def visible_pnodes(self):
         '''Flattened visible tree: [(name, depth, key, expandable, expanded, kind)]. `kind` is
@@ -2173,25 +2191,26 @@ class ProfileScreen:
         roots = [p for p in self.profiles if f in p.lower()] if f else list(self.profiles)
         out = []
 
-        def walk(name, depth, path, kind):
+        def walk(name, depth, path, kind, group):
             cfg = self.ctx.config
-            key = '\x00'.join(path + [name])
+            key = ((group + '\x00') if group else '') + '\x00'.join(path + [name])
             kids = [(c, 'include') for c in sorted(cfg.profile_includes(name))
                     if c not in path and c != name and c in self._profset]
             expandable = bool(kids)
             expanded = expandable and key in self.expanded
-            out.append((name, depth, key, expandable, expanded, kind))
+            out.append((name, depth, key, expandable, expanded, kind, group))
             if expanded:
                 for c, ck in kids:
-                    walk(c, depth + 1, path + [name], ck)
+                    walk(c, depth + 1, path + [name], ck, group)
 
         if not self.grouped:
             for r in roots:
-                walk(r, 0, [], 'profile')
+                walk(r, 0, [], 'profile', None)      # flat view: merged/top read (group None)
             return out
         buckets = {}
         for r in roots:
-            buckets.setdefault(self._profile_group(r), []).append(r)
+            for gid in self._profile_groups(r):      # a profile appears under EVERY group it defines in
+                buckets.setdefault(gid, []).append(r)
         for gid in _GROUP_ORDER:
             grp = buckets.get(gid)
             if not grp:
@@ -2201,10 +2220,10 @@ class ProfileScreen:
             if gid == 'machine':                     # name the selected machine in its header
                 mn = self.ctx.config.selected_machine()
                 label = f'machine: {mn}' if mn else 'machine'
-            out.append((label, 0, _GKEY + gid, True, not collapsed, 'group'))
+            out.append((label, 0, _GKEY + gid, True, not collapsed, 'group', gid))
             if not collapsed:
                 for r in grp:                        # members stay at depth 0 (header is a full-width bar)
-                    walk(r, 0, [], 'profile')
+                    walk(r, 0, [], 'profile', gid)
         return out
 
     def is_group_header(self, nd):
@@ -2212,6 +2231,28 @@ class ProfileScreen:
 
     def node_kind(self, nd):
         return nd[5] if nd and len(nd) > 5 else 'profile'
+
+    def node_group(self, nd):
+        '''The pane group a node was emitted under (repo/plugin/primary/user/machine), or None in
+        the flat view. Drives the per-layer read ceiling + the read-only marker on system rows.'''
+        return nd[6] if nd and len(nd) > 6 else None
+
+    def group_ceiling(self, group):
+        '''The layer index to READ a profile at when it is shown under `group` — so a repo/plugin
+        (system) row renders pristine upstream members even when a user clone shadows it. None (the
+        merged/top read) for the flat view or an unknown group.'''
+        return self.ctx.config.role_ceilings().get(group) if group else None
+
+    def cur_group(self):
+        return self.node_group(self.cur_node())
+
+    def cur_ceiling(self):
+        return self.group_ceiling(self.cur_group())
+
+    def cur_readonly(self):
+        '''The current LEFT node is a browse-only SYSTEM row (repo/plugin group) — its definition
+        can't be edited in place; edits must go through `clone` (c).'''
+        return self.cur_group() in self._SYSTEM_GROUPS
 
     def cur_node(self):
         v = self.visible_pnodes()
@@ -2398,22 +2439,22 @@ class ProfileScreen:
             return None
         return nd[0]
 
-    def members(self, profile):
+    def members(self, profile, ceiling=None):
         try:
-            return set(self.ctx.config.profile_components(profile)) if profile else set()
+            return set(self.ctx.config.profile_components(profile, ceiling)) if profile else set()
         except ConfigError:
             return set()
 
-    def own_members(self, profile):
+    def own_members(self, profile, ceiling=None):
         '''Components the profile declares as its OWN (direct/self-amend, not via a +other include).'''
         try:
-            return set(self.ctx.config.profile_own_components(profile)) if profile else set()
+            return set(self.ctx.config.profile_own_components(profile, ceiling)) if profile else set()
         except ConfigError:
             return set()
 
-    def removed_members(self, profile):
+    def removed_members(self, profile, ceiling=None):
         '''Components a `~term` removes from the profile (for the `~` marker).'''
-        return self.ctx.config.profile_removed(profile) if profile else set()
+        return self.ctx.config.profile_removed(profile, ceiling) if profile else set()
 
     def relation(self, profile):
         '''Provenance of the profile's top definition vs any lower same-name def: 'tracked' (`+self`),
@@ -2457,9 +2498,10 @@ def _draw_profiles(stdscr, pal, ps, ctx, note, screen):
     lw = max(16, w // 6) + 6                          # profiles pane: narrow, leaving the grid room (+6 cols)
     rleft, rw = lw + 1, w - lw - 1
     prof = ps.cur_curate()                           # the selected profile
-    members = ps.members(prof)
-    own = ps.own_members(prof)                       # direct (●) vs via-include (↳)
-    removed = ps.removed_members(prof)               # ~term drops (~) for the selected profile
+    _ceil = ps.cur_ceiling()                          # per-layer read: a system row shows pristine members
+    members = ps.members(prof, _ceil)
+    own = ps.own_members(prof, _ceil)                # direct (●) vs via-include (↳)
+    removed = ps.removed_members(prof, _ceil)        # ~term drops (~) for the selected profile
     _disp = ctx.config.dispositions()                # {comp: seen|interesting} for the catalog markers
     if ps.show_removed:                              # ...plus the starred profiles' drops the filter reveals
         removed = removed | ps._starred_removed()
@@ -2494,10 +2536,11 @@ def _draw_profiles(stdscr, pal, ps, ctx, note, screen):
     if ps.grouped:
         _pf = ps.pfilter.lower()
         for _p in (ps.profiles if not _pf else [x for x in ps.profiles if _pf in x.lower()]):
-            g = ps._profile_group(_p)
-            group_counts[g] = group_counts.get(g, 0) + 1
+            for g in ps._profile_groups(_p):         # a profile counts under every group it defines in
+                group_counts[g] = group_counts.get(g, 0) + 1
     for vis, i in enumerate(range(ps.ltop, min(len(vnodes), ps.ltop + lih))):
-        name, depth, key, expandable, expanded, kind = vnodes[i]
+        name, depth, key, expandable, expanded, kind = vnodes[i][:6]
+        node_group = vnodes[i][6] if len(vnodes[i]) > 6 else None
         y = lit + vis
         cur = i == ps.lcur
         foc = cur and ps.focus == 'left'
@@ -2524,7 +2567,10 @@ def _draw_profiles(stdscr, pal, ps, ctx, note, screen):
         # blank indent gutter — so the marker sits under the profile that's at fault. Two ancestors
         # both excluding -> two `~`s. A struck node is dimmed (it's pruned from that top-level profile).
         struck = False
-        for ai, anc in enumerate(key.split('\x00')[:-1]):     # ancestors; path index == their depth
+        _parts = key.split('\x00')
+        if node_group:                                        # a grouped key is group-prefixed
+            _parts = _parts[1:]
+        for ai, anc in enumerate(_parts[:-1]):                # ancestors; path index == their depth
             try:
                 if name in ctx.config.profile_excludes(anc):
                     col = 2 + 2 * ai
@@ -2555,9 +2601,13 @@ def _draw_profiles(stdscr, pal, ps, ctx, note, screen):
     # +jvm-lang ]` — so you see what the profile IS while navigating; a note names lower layers.
     _defs = ctx.config.profile_layer_defs(prof) if (desc_h and ps.focus == 'left' and prof) else []
     if _defs:
-        top_def = _defs[-1]                                   # the highest-precedence layer's def
+        # per-layer pane: read the def AT the row's group, and title it browse-only for a system row
+        _grp = ps.cur_group()
+        _rowdef = next((d for d in _defs if ps._fold_role(d['role']) == _grp), _defs[-1]) if _grp else _defs[-1]
+        _ro = ' · browse-only' if ps.cur_readonly() else ''
         dit, dil, dih, diw = _panel(stdscr, pal, top, rleft, desc_h, rw,
-                                    f'profile: {prof}  [{top_def["role"]}]', False, h, w)
+                                    f'profile: {prof}  [{_rowdef["role"]}{_ro}]', False, h, w)
+        top_def = _rowdef                                     # show THIS layer's authored terms
         # render terms AS AUTHORED: `^`-terms are quoted in the .hu (`^` is humon's heredoc sigil)
         shown = [f'"{t}"' if str(t).startswith('^') else str(t) for t in top_def['terms']]
         body = '[ ' + '  '.join(shown) + ' ]' if shown else '[ ]'
@@ -4095,8 +4145,13 @@ def run(ctx):
                     # include/exclude the selected SUBPROFILE (a nested + child) in the top-level profile
                     # it hangs under. Membership-toggle: struck -> re-include (+sub); active -> exclude (~sub).
                     nd = ps.cur_node()
-                    if nd and nd[1] > 0:               # depth>0 -> a subprofile, not a top-level root
-                        sub, path = nd[0], nd[2].split('\x00')
+                    if ps.cur_readonly():
+                        note = 'read-only system profile — press c to clone it, then edit the copy'
+                    elif nd and nd[1] > 0:             # depth>0 -> a subprofile, not a top-level root
+                        sub = nd[0]
+                        path = nd[2].split('\x00')
+                        if ps.node_group(nd):          # a grouped key is group-prefixed -> drop the prefix
+                            path = path[1:]
                         root = path[0]
                         want_member = sub not in ctx.config.active_subprofiles(root)
                         try:
@@ -4165,7 +4220,9 @@ def run(ctx):
                             note = f'add failed: {e}'
                 elif pfact == 'delete' and ps.focus == 'left':  # delete the selected profile (confirm)
                     prof = ps.cur_profile()
-                    if prof:
+                    if ps.cur_readonly():
+                        note = 'read-only system profile — it lives upstream and cannot be deleted here'
+                    elif prof:
                         idx = _popup_choose(stdscr, pal, f'delete profile "{prof}"?',
                                             [('cancel', ''), ('delete', '')], 0)
                         if idx == 1:
@@ -4179,7 +4236,9 @@ def run(ctx):
                 elif pfact == 'include' and ps.focus == 'left':  # include another profile (+other)
                     prof = ps.cur_profile()
                     others = [p for p in ps.profiles if p != prof]
-                    if prof and others:
+                    if ps.cur_readonly():
+                        note = 'read-only system profile — press c to clone it, then edit the copy'
+                    elif prof and others:
                         inc = ctx.config.profile_includes(prof)
                         opts = [(p, '[included]' if p in inc else '') for p in others]
                         idx = _popup_choose(stdscr, pal, f'include in "{prof}" (toggle +profile)', opts, 0)
@@ -4195,14 +4254,26 @@ def run(ctx):
                 elif pfact == 'clone' and ps.focus == 'left':   # clone a system profile -> editable copy
                     prof = ps.cur_profile()
                     if prof:
-                        try:
-                            changed, lbl = actions.clone_profile(ctx, prof)
-                            ps.reload()
-                            menu_dirty = menu_dirty or changed
-                            note = (f'cloned "{prof}" -> editable copy ({lbl})' if changed
-                                    else f'{prof}: {lbl}')
-                        except ConfigsysError as e:
-                            note = f'clone failed: {e}'
+                        target, abort = None, False
+                        et_file, et_label = actions.edit_target(ctx)
+                        local_file = str(ctx.paths.user_config_file)
+                        if str(et_file) != local_file:       # a primary is set -> let the user pick a home
+                            opts = [(f'your primary ({et_label})', 'portable, travels to other machines'),
+                                    ('this machine (top config)', 'local to this box')]
+                            pick = _popup_choose(stdscr, pal, f'clone "{prof}" into…', opts, 0)
+                            if pick is None:
+                                abort = True
+                            else:
+                                target = None if pick == 0 else local_file
+                        if not abort:
+                            try:
+                                changed, lbl = actions.clone_profile(ctx, prof, target=target)
+                                ps.reload()
+                                menu_dirty = menu_dirty or changed
+                                note = (f'cloned "{prof}" -> editable copy ({lbl})' if changed
+                                        else f'{prof}: {lbl}')
+                            except ConfigsysError as e:
+                                note = f'clone failed: {e}'
                 elif pfact == 'method' and ps.focus == 'right':
                     vcat = ps.vcatalog()
                     if vcat:                               # pin the selected component's install method
