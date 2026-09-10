@@ -315,6 +315,22 @@ def test_profile_active_direct_vs_indirect(tmp_path):
     assert ps.active_indirect == {'sub', 'leaf'}               # ◐ pulled in transitively via +include
 
 
+def test_profile_new_count_badge(tmp_path):
+    # ⁺N badge: NEW (undispositioned, not in a user profile) members of a profile; drops as you triage.
+    from configsys import actions
+    from configsys.tui import menu
+    ctx = _rctx(tmp_path)
+    ps = menu.ProfileScreen(ctx)
+    ceil = ps.group_ceiling('repo')
+    before = ps.profile_new_count('shells', ceil)
+    assert before == len(ps.members('shells', ceil))         # a fresh home: every member is NEW
+    assert ps.group_new_count('repo') > 0                    # the repo group advertises NEW work
+
+    actions.set_disposition(ctx, sorted(ps.members('shells', ceil))[0], 'seen')   # triage one
+    ps = menu.ProfileScreen(ctx)                             # reload -> caches rebuild
+    assert ps.profile_new_count('shells', ceil) == before - 1
+
+
 def test_profile_multiselect_batch_targets(tmp_path):
     # `space` builds a multi-select set that A/I/S/X act on as a batch (spanning the current scope);
     # with no selection the actions target just the cursor component.

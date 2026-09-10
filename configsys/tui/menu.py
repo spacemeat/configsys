@@ -880,6 +880,8 @@ _HELP = {
             ('spaces', 'repo/plugin groups are BROWSE-ONLY system profiles (read-only); machine/'
                        'primary/user groups are yours to edit · ⧉ = your clone of a system profile '
                        '(the pristine original still shows under repo/plugin)'),
+            ('⁺N (new)', 'count of NEW (undispositioned) components in a profile’s members — or, on a '
+                         'group header, distinct NEW across the whole group; triage them with A/I/S/X'),
             ('grouping (L)', 'group the pane by defining layer (this machine · your primary · plugins · '
                              'repo catalog, collapsed) ↔ flat A-Z; enter/h/l folds a group'),
             ('machine (M)', 'pick the working-TARGET machine to curate; edits then land in its '
@@ -2084,6 +2086,8 @@ class ProfileScreen:
         self.scope_mode = True           # `*`: scope the catalog to the SELECTED profile's members (follows
                                          # the cursor); off = the full catalog. On by default.
         self.selected_comps = set()      # `space` multi-select: component names A/I/S/X act on as a batch
+        self._new_count_cache = {}       # (profile, ceiling) -> #NEW members; (re)built lazily per reload
+        self._group_new_cache = {}       # group -> #distinct NEW members; the `⁺N` header/row badges
         self.attr_inc = set()            # `A` faceted attr filter: lowercased tags to INCLUDE
         self.attr_exc = {'dotfiles'}     # ...and to EXCLUDE — hide the -dotfiles companions by default
         self._res = {}                   # component -> (available, via, pinned); survives reloads
@@ -2312,6 +2316,36 @@ class ProfileScreen:
         ceiling (same set the ● markers use, so scope and marks always agree).'''
         return self.members(self.cur_curate(), self.cur_ceiling())
 
+    def profile_new_count(self, name, ceiling=None):
+        '''How many of `name`'s members (read at `ceiling`) are NEW — undispositioned upstream
+        components you haven't triaged. Drives the `⁺N` badge on a profile row; a user profile reads
+        0 (its members are, by definition, in a user profile). Memoized until the next reload.'''
+        key = (name, ceiling)
+        cache = self._new_count_cache
+        if key not in cache:
+            try:
+                cache[key] = sum(1 for c in self.members(name, ceiling) if self.ctx.config.is_new(c))
+            except Exception:                            # noqa: BLE001 — a bad profile counts nothing
+                cache[key] = 0
+        return cache[key]
+
+    def group_new_count(self, gid):
+        '''Distinct NEW components across all profiles in pane-group `gid` (read at the group's
+        ceiling) — the `⁺N` on a group header, so a collapsed "repo catalog" still advertises how
+        much is waiting to be triaged. Memoized until the next reload.'''
+        if gid in self._group_new_cache:
+            return self._group_new_cache[gid]
+        ceil = self.group_ceiling(gid)
+        seen = set()
+        for p in self.profiles:
+            if gid in self._profile_groups(p):
+                try:
+                    seen |= {c for c in self.members(p, ceil) if self.ctx.config.is_new(c)}
+                except Exception:                        # noqa: BLE001
+                    pass
+        self._group_new_cache[gid] = len(seen)
+        return self._group_new_cache[gid]
+
     def action_targets(self):
         '''The components an A/I/S/X action applies to: the whole `space` multi-select set (explicit,
         so it spans profiles regardless of the current scope view) if any, else just the cursor
@@ -2358,6 +2392,8 @@ class ProfileScreen:
         self._ov_gen = getattr(self, '_ov_gen', 0) + 1
         self.profiles = cfg.profile_names()
         self._profset = set(self.profiles)
+        self._new_count_cache = {}                    # NEW badges recompute after any edit
+        self._group_new_cache = {}
         self.selected_comps &= set(self.ctx.routes.components)   # drop selections for gone components
         self.active = set(cfg.active_profiles)
         # profiles reached transitively via `+include` from an active one, but not themselves in
@@ -2518,9 +2554,11 @@ def _draw_profiles(stdscr, pal, ps, ctx, note, screen):
         elif rbg is not None:
             _put(stdscr, y, lil, ' ' * liw,
                  curses.A_REVERSE if low_color else pal.fill(y, lil, h, w, bg=rbg))
-        if kind == 'group':                           # a layer-group header row (▾/▹ LABEL (count))
+        if kind == 'group':                           # a layer-group header row (▾/▹ LABEL (count) ⁺new)
             gid = key[len(_GKEY):]
-            hdr = f'{"▾" if expanded else "▹"} {name} ({group_counts.get(gid, 0)})'
+            _gnew = ps.group_new_count(gid)
+            hdr = (f'{"▾" if expanded else "▹"} {name} ({group_counts.get(gid, 0)})'
+                   + (f'  ⁺{_gnew}' if _gnew else ''))
             _put(stdscr, y, lil, _fit(hdr.upper(), liw),
                  pal.style('menu_header', y, lil, h, w, selected=foc, bg=(None if low_color else rbg))
                  | rev)
@@ -2552,12 +2590,21 @@ def _draw_profiles(stdscr, pal, ps, ctx, note, screen):
         # the system originals carry no badge — the group placement already says which space they're in.
         is_clone = (node_group not in ps._SYSTEM_GROUPS and kind == 'profile'
                     and ps._profile_groups(name) & set(ps._SYSTEM_GROUPS))
-        tag = '  ⧉' if is_clone else ''
+        # `⁺N` counts the NEW (undispositioned) components among this profile's members at its layer —
+        # so a browse profile advertises how much it holds that you haven't triaged yet.
+        nnew = ps.profile_new_count(name, ps.group_ceiling(node_group))
+        tag = ('  ⧉' if is_clone else '') + (f'  ⁺{nnew}' if nnew else '')
         disp = f'+{name}' if kind == 'include' else name  # `+`-mark a live include child
         row = f'{"".join(prefix)} {disp}{tag}'
         _put(stdscr, y, lil, _fit(row, liw),
              pal.style('profile', y, lil, h, w, selected=foc, bg=(None if low_color else rbg))
              | rev | (curses.A_DIM if struck and not foc else 0))
+        if nnew and not foc and len(row) <= liw:          # tint just the `⁺N` count in the menu_new hue
+            bstr = f'⁺{nnew}'                             # (only when the row isn't truncated)
+            bx = lil + len(row) - len(bstr)
+            if 0 <= bx - lil < liw:
+                _put(stdscr, y, bx, bstr,
+                     pal.style('menu_new', y, bx, h, w, bg=(None if low_color else rbg)) | rev)
     _scrollbar_v(stdscr, pal, lit, lw - 1, lih, ps.ltop, lih, len(vnodes), h, w)
 
     # RIGHT TOP: detail for the highlighted component (names are esoteric) — description + methods
@@ -2760,7 +2807,7 @@ def _draw_profiles(stdscr, pal, ps, ctx, note, screen):
     # marker legend for the profiles pane — right-aligned on the status bar so the keys get two
     # full rows below. ● directly active (in configs:), ◐ active only via a +include, ○ inactive,
     # ▸ star-filtered.
-    legend = '● active  ◐ inherited  ○ inactive  ▸ scoped  ⧉ clone '
+    legend = '● active  ◐ inherited  ○ inactive  ▸ scoped  ⧉ clone  ⁺N new '
     lg_x = max(0, w - len(legend))
     _put(stdscr, h - 3, 0, _fit(status, max(1, lg_x - 1)), pal.style('status_line', h - 3, 0, h, w))
     _put(stdscr, h - 3, lg_x, _fit(legend, w - lg_x), pal.style('status_line', h - 3, lg_x, h, w))
