@@ -193,6 +193,44 @@ class Config:
         rather than replacing the whole block, so portable pins survive a single local override.'''
         return layers.merge_scalar_map(self._layers, 'pins', _MACHINE_ROLES)
 
+    # -- dispositions (the disposition model's side-store: seen / interesting) -----------------
+    def dispositions(self):
+        '''The effective `dispositions:` map (component -> 'seen'|'interesting'), merged PER KEY
+        across repo < primary < machine < user like pins(). A component's bookkeeping disposition;
+        include/exclude live in the profiles themselves, and NEW is the (unstored) default. Authored
+        to the local top config (per-machine triage) but layerable, so a plugin may ship defaults.'''
+        return layers.merge_scalar_map(self._layers, 'dispositions', _MACHINE_ROLES)
+
+    def disposition(self, comp):
+        '''`comp`'s raw side-store disposition ('seen' | 'interesting') or None. NEW/include/exclude
+        are NOT here (NEW = undispositioned; include/exclude are profile membership).'''
+        v = self.dispositions().get(comp)
+        return v if v in ('seen', 'interesting') else None
+
+    def user_layer_components(self):
+        '''Every component that is a member of a profile YOU authored — one with a definition in a
+        user/primary/machine layer (i.e. "included"). Purely-system (repo/plugin-only) profiles don't
+        count; their members stay NEW-eligible. Memoized for the life of this Config.'''
+        if getattr(self, '_user_comps', None) is None:
+            editable = {'user', 'primary', 'machine'}
+            out = set()
+            for name, chain in self._chain.items():
+                if any(0 <= i < len(self._layers) and self._layers[i].role in editable
+                       for i, _v, _s in chain):
+                    try:
+                        out |= set(self.profile_components(name))
+                    except ConfigError:
+                        pass
+            self._user_comps = out
+        return self._user_comps
+
+    def is_new(self, comp):
+        '''True if `comp` is UNDISPOSITIONED — the model's NEW: not seen/interesting, not a member of
+        any profile you authored, not staged for uninstall. NEW is the default; nothing stores it.'''
+        return (self.disposition(comp) is None
+                and comp not in self.uninstall_queue()
+                and comp not in self.user_layer_components())
+
     def locations(self):
         '''The effective per-component install-location map (component -> absolute path), merged
         PER KEY across repo < primary < user like pins(). A machine setting: "this component's

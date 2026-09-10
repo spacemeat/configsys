@@ -124,6 +124,23 @@ def stage_adopt(ctx, comp):
     return set_profile_membership(ctx, ctx.config.orphans_adopt_target(), comp, 'add', target=tfile)
 
 
+def set_disposition(ctx, comp, state):
+    '''Set component `comp`'s disposition — 'seen' | 'interesting', or clear it (state None/'new') —
+    in the LOCAL dispositions store (this box's triage, like !uninstall). Returns (changed, label).'''
+    tfile = str(ctx.paths.user_config_file)
+    disp = plugins.read_dispositions(tfile)
+    want = None if state in (None, 'new') else state
+    if disp.get(comp) == want:
+        return False, 'no change'
+    if want is None:
+        disp.pop(comp, None)
+    else:
+        disp[comp] = want
+    plugins.set_dispositions(tfile, disp)
+    ctx.invalidate()
+    return True, 'top config'
+
+
 def ignore_orphan(ctx, pattern):
     '''Append `pattern` (a name or glob) to the `orphans-ignore` list (idempotent). Returns
     (changed, label). The TUI `.` action + the `configsys orphans --ignore` verb share this intent.'''

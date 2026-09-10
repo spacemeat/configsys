@@ -667,6 +667,32 @@ def set_pins(config_file, pins):
     set_section(config_file, 'pins', lambda indent: _emit_pins(pins, indent))
 
 
+def read_dispositions(config_file):
+    '''The scalar `dispositions:` map (component -> `seen`|`interesting`) from ONE .hu file, or {} —
+    the disposition-model side-store (config.dispositions() gives the MERGED view). Same shape as
+    pins: a flat name->scalar map.'''
+    p = Path(config_file)
+    if not p.exists():
+        return {}
+    data = layers.materialize_string(p.read_text(encoding='utf-8'))
+    d = data.get('dispositions') if isinstance(data, dict) else None
+    if not isinstance(d, dict):
+        return {}
+    return {k: v for k, v in d.items() if not isinstance(v, (dict, list))}
+
+
+def set_dispositions(config_file, disp):
+    '''Rewrite the `dispositions:` node in place (comments/siblings preserved), or remove it when
+    empty. `disp` is `{component: 'seen'|'interesting'}`.'''
+    if not disp:
+        remove_sections(config_file, ['dispositions'])
+        return
+    set_section(config_file, 'dispositions',
+                lambda indent: '\n'.join(
+                    ['dispositions: {'] + [f'{" " * (indent + 4)}{k}: {_scalar(v)}' for k, v in disp.items()]
+                    + [' ' * indent + '}']))
+
+
 def read_dirs(config_file):
     '''The install-layout `dirs:` map (user/system/app/sdk/src -> path) from ONE .hu file, or {}.
     For editing a single layer's own dirs in place (config.install_dirs() gives the MERGED view).'''

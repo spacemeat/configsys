@@ -1417,6 +1417,53 @@ def cmd_where(ctx, args):
     return 0
 
 
+def cmd_disp(ctx, args):
+    '''Component dispositions (v2 triage): seen / interesting / new. include/exclude are profile
+    membership; NEW is the undispositioned default. Local (per-machine) side-store.'''
+    from . import actions
+    cfg = ctx.config
+    sub = getattr(args, 'disp_command', None) or 'list'
+    universe = set(ctx.routes.components)
+
+    if sub == 'list':
+        new = sorted(c for c in universe if cfg.is_new(c))
+        if getattr(args, 'new', False):
+            for c in new:
+                print(f'  ? {c}')
+            print(f'\n{len(new)} NEW (undispositioned) component(s)')
+            return 0
+        disp = cfg.dispositions()
+        inter = sorted(c for c, s in disp.items() if s == 'interesting')
+        seen = sorted(c for c, s in disp.items() if s == 'seen')
+        if inter:
+            print(f'interesting ({len(inter)}): {", ".join(inter)}')
+        if seen:
+            print(f'seen ({len(seen)}): {", ".join(seen)}')
+        if not inter and not seen:
+            print('no dispositions set')
+        print(f'NEW (undispositioned): {len(new)}   (list them: configsys disp list --new)')
+        return 0
+
+    if sub == 'get':
+        c = args.name
+        if c in cfg.user_layer_components():
+            state = 'include (in one of your profiles)'
+        elif c in cfg.uninstall_queue():
+            state = 'uninstall (!uninstall)'
+        else:
+            state = cfg.disposition(c) or 'new'
+        print(f'{c}: {state}')
+        return 0
+
+    if sub == 'set':
+        ctx.ensure_user_config()
+        changed, label = actions.set_disposition(ctx, args.name, args.state)
+        print(f'configsys: {args.name} → {args.state}  (in {label})' if changed
+              else f'configsys: no change — {args.name} is already {args.state}')
+        return 0
+    return 0
+
+
 def cmd_orphans(ctx, args):
     '''List installed software that no active profile accounts for, grouped by driver, each tagged
     with its kind (excluded / lurking / forgotten / foreign). Read-only report — the phase-1 surface.'''
@@ -2690,6 +2737,18 @@ def build_parser():
     mpu = mpsub.add_parser('use', help="set THIS box's machine (the `machine:` setting); no name clears it")
     mpu.add_argument('name', nargs='?')
 
+    dp = sub.add_parser('disp', help='component dispositions (the v2 triage state): seen / '
+                                     'interesting / new; include/exclude live in your profiles')
+    dpsub = dp.add_subparsers(dest='disp_command')
+    dpl = dpsub.add_parser('list', help='dispositioned components + a NEW count (default); '
+                                        '--new lists every NEW (undispositioned) component')
+    dpl.add_argument('--new', action='store_true', help='list all NEW components')
+    dpg = dpsub.add_parser('get', help="a component's effective disposition")
+    dpg.add_argument('name')
+    dps = dpsub.add_parser('set', help='set a disposition')
+    dps.add_argument('name')
+    dps.add_argument('state', choices=['seen', 'interesting', 'new'], help="'new' clears it")
+
     wh = sub.add_parser('where', help='explain a component: source layer, bindings, and how '
                                       'it resolves on this machine')
     wh.add_argument('name', help='component name (or a profile name with -p)')
@@ -3416,6 +3475,7 @@ _COMMANDS = {
     'where': cmd_where,
     'machine': cmd_machine,
     'orphans': cmd_orphans,
+    'disp': cmd_disp,
     'location': cmd_location,
     'versions': cmd_versions,
     'check': cmd_check,
