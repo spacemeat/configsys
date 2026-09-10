@@ -215,6 +215,53 @@ def remove_profile(ctx, name):
     return True, f'removed "{name}" (from {label})'
 
 
+def clone_profile(ctx, name, *, target=None):
+    '''Deep-clone SYSTEM profile `name` (repo/plugin) into an editable user-layer copy you can curate
+    (the disposition model's core move). The clone keeps the SAME NAME, so — since `_expand` only
+    inherits a lower layer on an explicit `+self` — the copy SHADOWS the system definition rather than
+    amending it: any component the system later adds to the profile surfaces as NEW instead of leaking
+    into your clone ("the profile is the lockfile"). Structure is preserved, not flattened: each
+    `+other` include is cloned as its OWN same-name unit (recursively) and kept as a `+other` ref, so
+    the hierarchy travels intact; leaf components are materialized. Writes to the portable edit target
+    (primary-if-set, else top config), or `target`. Returns (changed, label/reason).'''
+    cfg = ctx.config
+    if name not in cfg.profile_names():
+        return False, f'"{name}" is not defined'
+    if name == cfg.ALL_PROFILE or name.startswith('!'):
+        return False, f'"{name}" is reserved and cannot be cloned'
+    tfile, label = (target, target) if target else edit_target(ctx)
+    editable = {str(ctx.paths.user_config_file), str(edit_target(ctx)[0])}
+    src = cfg.profile_source(name)
+    if src is not None and str(src) in editable:
+        return False, f'"{name}" is already an editable user profile here (nothing to clone)'
+
+    # BFS the include-closure; clone every SYSTEM profile reached, skip ones already user-editable
+    # (their +ref resolves to the existing copy) and reserved names.
+    order, seen, stack = [], set(), [name]
+    while stack:
+        q = stack.pop(0)
+        if q in seen or q not in cfg.profile_names():
+            continue
+        seen.add(q)
+        qsrc = cfg.profile_source(q)
+        if q != name and (qsrc is None or str(qsrc) in editable):
+            continue                                     # already-editable include: leave it, use as-is
+        order.append(q)
+        for inc in sorted(cfg.profile_includes(q)):
+            if inc not in seen and not inc.startswith('!') and inc != cfg.ALL_PROFILE:
+                stack.append(inc)
+
+    profs = plugins.read_profiles(tfile)
+    for q in order:
+        incs = sorted(i for i in cfg.profile_includes(q) if not i.startswith('!') and i != cfg.ALL_PROFILE)
+        own = sorted(cfg.profile_own_components(q))      # materialized leaves (post-`+self`, no amend term)
+        profs[q] = [f'+{i}' for i in incs] + own         # includes as refs, leaves inline; no `+self` = shadow
+    plugins.set_profiles(tfile, profs)
+    ctx.invalidate()
+    extra = f' (+{len(order) - 1} included)' if len(order) > 1 else ''
+    return True, f'{label}{extra}'
+
+
 def add_machine(ctx, name):
     '''Create a new, empty machine entry in `machines:` (portable edit target — primary if set). A
     machine is a composing layer: its `profiles:` overlay the shared ones by name. Returns
