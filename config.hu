@@ -246,7 +246,9 @@ profiles: {
             where: w                // provenance for the selected profile (layers · pin/track · counts)
             group: L                // toggle the pane: grouped by layer <-> flat alphabetical
             machine-target: M       // pick the working-target machine to curate (edits scope to it)
-            attr-filter: A          // faceted kind filter over the catalog
+            attr-filter: f          // faceted kind filter over the catalog (F = live substring filter)
+            add-to-profile: A       // add the selected catalog component to a user profile (modal)
+            clone: c                // clone the selected system profile into an editable user copy
             toggle-install: O       // overlay the install axis (installed underline · orphan colour)
             stage: s                // stage the selected orphan into the adopt-target profile
             stage-uninstall: x      // stage the selected component for uninstall (-> !uninstall)

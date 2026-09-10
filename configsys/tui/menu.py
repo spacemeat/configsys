@@ -882,6 +882,11 @@ _HELP = {
             ('catalog', '● member · ↳ member via include · ~ excluded · ☆ interesting · · seen · ? new'),
             ('disposition', 'I marks the component INTERESTING (bookmarked) · S marks it SEEN · '
                             'NEW (?) = an upstream component you have not yet triaged (press again to clear)'),
+            ('add (A)', 'add the selected catalog component to a user profile (pick from a modal, '
+                        'or create a new profile)'),
+            ('clone (c)', 'deep-clone the selected SYSTEM profile into an editable same-name copy — '
+                          'hierarchy + components; new upstream members then show as NEW, not auto-added'),
+            ('attr-filter (f)', 'faceted kind filter over the catalog (F = live substring filter)'),
             ('terms', '+name folds in another profile · ~name removes a component OR excludes a subprofile'),
             ('~ toggle', "on a nested subprofile: include/exclude it in the top-level profile (writes +/~)"),
             ('where (w)', "provenance for the selected profile: layers · relation · counts"),
@@ -4037,6 +4042,39 @@ def run(ctx):
                                     if changed else f'{_c}: {lbl}')
                         except ConfigsysError as e:
                             note = f'disposition failed: {e}'
+                elif pfact == 'add-to-profile' and ps.focus == 'right':
+                    _vc = ps.vcatalog()                    # add the selected component to a user profile
+                    if _vc:
+                        _c = _vc[ps.rcur]
+                        editable = {str(ctx.paths.user_config_file), str(actions.edit_target(ctx)[0])}
+                        upfs = [p for p in ps.profiles     # editable (user-layer) profiles are the targets
+                                if p != ctx.config.ALL_PROFILE and not p.startswith('!')
+                                and (ctx.config.profile_source(p) is not None
+                                     and str(ctx.config.profile_source(p)) in editable)]
+                        opts = [(p, '[member]' if _c in ps.members(p) else '') for p in upfs]
+                        opts.append(('+ new profile…', ''))
+                        lp = ps.cur_curate()               # smart default: the left-highlighted profile if editable
+                        start = upfs.index(lp) if lp in upfs else 0
+                        pick = _popup_choose(stdscr, pal, f'add "{_c}" to profile', opts, start=start)
+                        if pick is not None:
+                            try:
+                                if pick == len(upfs):      # + new profile
+                                    nm = (_input_box(stdscr, pal, 'new profile name') or '').strip()
+                                    if nm:
+                                        ac, albl = actions.add_profile(ctx, nm)
+                                        if ac or nm in ctx.config.profile_names():
+                                            mc, _l = actions.set_profile_membership(ctx, nm, _c, 'add')
+                                            ps.reload(); menu_dirty = menu_dirty or ac or mc
+                                            note = f'{_c} added to new "{nm}"'
+                                        else:
+                                            note = albl
+                                else:
+                                    tgt = upfs[pick]
+                                    mc, mlbl = actions.set_profile_membership(ctx, tgt, _c, 'add')
+                                    ps.reload(); menu_dirty = menu_dirty or mc
+                                    note = (f'{_c} added to "{tgt}" ({mlbl})' if mc else f'{_c}: {mlbl}')
+                            except ConfigsysError as e:
+                                note = f'add failed: {e}'
                 elif pfact == 'orphan-ignore' and ps.focus == 'right':
                     _vc = ps.vcatalog()                    # toggle the selected orphan's ignore state
                     if _vc:
@@ -4154,6 +4192,17 @@ def run(ctx):
                                 menu_dirty = menu_dirty or changed
                             except Exception as e:  # noqa: BLE001 — surface, don't crash
                                 note = f'include failed: {e}'
+                elif pfact == 'clone' and ps.focus == 'left':   # clone a system profile -> editable copy
+                    prof = ps.cur_profile()
+                    if prof:
+                        try:
+                            changed, lbl = actions.clone_profile(ctx, prof)
+                            ps.reload()
+                            menu_dirty = menu_dirty or changed
+                            note = (f'cloned "{prof}" -> editable copy ({lbl})' if changed
+                                    else f'{prof}: {lbl}')
+                        except ConfigsysError as e:
+                            note = f'clone failed: {e}'
                 elif pfact == 'method' and ps.focus == 'right':
                     vcat = ps.vcatalog()
                     if vcat:                               # pin the selected component's install method
