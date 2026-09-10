@@ -873,7 +873,10 @@ _HELP = {
                 "for the selected profile, plus a detail box for the highlighted component. Toggle a "
                 "component's membership with select/confirm in the right pane.",
         'glossary': [
-            ('markers', '● active · ◐ active via +include · ○ inactive · ▸ starred · ~ subprofile excluded'),
+            ('markers', '● active · ◐ active via +include · ○ inactive · ▸ scoped (catalog follows it) · '
+                        '~ subprofile excluded'),
+            ('scope (*)', 'toggle: scope the catalog to the selected profile’s members (▸, on by '
+                          'default) <-> the full catalog'),
             ('spaces', 'repo/plugin groups are BROWSE-ONLY system profiles (read-only); machine/'
                        'primary/user groups are yours to edit · ⧉ = your clone of a system profile '
                        '(the pristine original still shows under repo/plugin)'),
@@ -884,7 +887,9 @@ _HELP = {
             ('catalog', '● member · ↳ member via include · ~ excluded · ☆ interesting · · seen · ? new'),
             ('disposition', 'I marks the component INTERESTING (bookmarked) · S marks it SEEN · '
                             'NEW (?) = an upstream component you have not yet triaged (press again to clear)'),
-            ('add (A)', 'add the selected catalog component to a user profile (pick from a modal, '
+            ('multi-select', 'space (✔) toggles a component into a batch set; A/I/S/X then act on the '
+                             'whole set at once (spans profiles, cleared after) — else they act on the cursor'),
+            ('add (A)', 'add the selected catalog component(s) to a user profile (pick from a modal, '
                         'or create a new profile)'),
             ('clone (c)', 'deep-clone the selected SYSTEM profile into an editable same-name copy — '
                           'hierarchy + components; a modal emplaces it as a +member of a user profile '
@@ -2076,11 +2081,11 @@ class ProfileScreen:
         self.reveal = None               # key of a just-expanded node -> reveal its subtree next draw
         self.grouped = True              # group the pane by defining layer (this machine/primary/…);
         self.collapsed_groups = {'repo'}  # `L` toggles flat. Repo catalog collapses by default (noise).
-        self.starred = set()             # profile NAMES starred (▸) — their OWN members filter the catalog
+        self.scope_mode = True           # `*`: scope the catalog to the SELECTED profile's members (follows
+                                         # the cursor); off = the full catalog. On by default.
+        self.selected_comps = set()      # `space` multi-select: component names A/I/S/X act on as a batch
         self.attr_inc = set()            # `A` faceted attr filter: lowercased tags to INCLUDE
         self.attr_exc = {'dotfiles'}     # ...and to EXCLUDE — hide the -dotfiles companions by default
-        self.show_removed = False        # tracks the star filter: True whenever `starred` is non-empty, so
-                                         # the filter always reveals a starred profile's ~-pruned drops (`~`)
         self._res = {}                   # component -> (available, via, pinned); survives reloads
         self.show_install = 1 if ctx.config.install_overlay_default() else 0   # `O` toggles the install
         self._overlay = None             # overlay off/on (default from `install-overlay`, on unless set):
@@ -2296,71 +2301,32 @@ class ProfileScreen:
                     self.lcur = j
                     break
 
-    def _include_closure(self, name):
-        '''A profile plus every profile it transitively `+include`s (cycle-guarded). Starring the
-        whole chain makes the base's members visible, and a profile's `~`-pruned components
-        (which the base still lists) then render with the `~` marker — the clone-and-prune view.'''
-        seen, stack = set(), [name]
-        while stack:
-            p = stack.pop()
-            if p in seen:
-                continue
-            seen.add(p)
-            try:
-                stack.extend(self.ctx.config.profile_includes(p))
-            except Exception:                        # noqa: BLE001 — a bad include contributes nothing
-                pass
-        return seen & self._profset                  # real profiles only
+    def toggle_scope(self):
+        '''`*`: flip the follow-the-profile scope MODE — the catalog scoped to the selected profile's
+        members (per-layer, so a system row shows its pristine set) <-> the full catalog.'''
+        self.scope_mode = not self.scope_mode
+        self.rcur, self.rcol_left = 0, 0             # the visible catalog changed -> reset its cursor
 
-    def cycle_star(self):
-        '''Toggle on the current profile: off -> starred (filter the catalog to its OWN + subprofile
-        members AND reveal its ~-pruned drops, marked `~`) -> off. The filter always includes removals
-        — there's no members-only intermediate state.'''
-        nd = self.cur_node()
-        if not nd:
-            return
-        clan = self._include_closure(nd[0])          # the profile + everything it inherits
-        if nd[0] not in self.starred:                # off -> starred (+ removed, always)
-            self.starred |= clan
-            self.show_removed = True
-        else:                                        # starred -> off
-            self.starred -= clan
-            if not self.starred:
-                self.show_removed = False
-        self.rcur, self.rcol_left = 0, 0             # catalog membership changed -> reset its cursor
+    def scoped_members(self):
+        '''The member set `*` scope mode shows — the CURRENT profile's members read at its per-layer
+        ceiling (same set the ● markers use, so scope and marks always agree).'''
+        return self.members(self.cur_curate(), self.cur_ceiling())
 
-    def _starred_members(self):
-        if not self.starred:
-            return None
-        m = set()
-        for p in self.starred:
-            try:                                     # a starred profile's OWN (directly-declared)
-                m |= set(self.ctx.config.profile_own_components(p))   # members — NOT its +include'd ones
-            except Exception:                        # noqa: BLE001 — a bad profile just contributes nothing
-                pass
-        return m
-
-    def _starred_removed(self):
-        '''Union of ~-pruned components across the starred profiles — what a `~term` dropped, so it
-        isn't a member. Revealed (marked `~`) inside the star filter when `show_removed` is on.'''
-        m = set()
-        for p in self.starred:
-            try:
-                m |= set(self.ctx.config.profile_removed(p))
-            except Exception:                        # noqa: BLE001 — a bad profile contributes nothing
-                pass
-        return m
+    def action_targets(self):
+        '''The components an A/I/S/X action applies to: the whole `space` multi-select set (explicit,
+        so it spans profiles regardless of the current scope view) if any, else just the cursor
+        component. Does NOT clear the set — the caller clears on success.'''
+        if self.selected_comps:
+            return sorted(self.selected_comps)
+        vc = self.vcatalog()
+        return [vc[self.rcur]] if vc and 0 <= self.rcur < len(vc) else []
 
     def vcatalog(self):
         f = self.cfilter.lower()
         cat = [c for c in self.catalog if f in c.lower()] if f else self.catalog
-        sm = self._starred_members()                 # `*` star filter: starred profiles' OWN members
-        if sm is not None:
-            rem = self._starred_removed()            # what a starred profile pruned via ~term
-            # plain star = SURVIVORS (hide the pruned, even if a base profile in the starred clan owns
-            # them); the show-removed state adds them back, marked `~`.
-            allowed = (sm | rem) if self.show_removed else (sm - rem)
-            cat = [c for c in cat if c in allowed]
+        if self.scope_mode:                          # `*` scope: only the selected profile's members
+            sm = self.scoped_members()
+            cat = [c for c in cat if c in sm]
         if self.attr_inc or self.attr_exc:           # `A` attrs filter (faceted include/exclude)
             comps = self.ctx.routes.components
             cat = [c for c in cat if _attr_pass(
@@ -2392,7 +2358,7 @@ class ProfileScreen:
         self._ov_gen = getattr(self, '_ov_gen', 0) + 1
         self.profiles = cfg.profile_names()
         self._profset = set(self.profiles)
-        self.starred &= self._profset                # drop stars for profiles that no longer exist
+        self.selected_comps &= set(self.ctx.routes.components)   # drop selections for gone components
         self.active = set(cfg.active_profiles)
         # profiles reached transitively via `+include` from an active one, but not themselves in
         # `configs:` — marked ◐ (indirectly active) vs ● (directly active) vs ○ (inactive).
@@ -2506,8 +2472,6 @@ def _draw_profiles(stdscr, pal, ps, ctx, note, screen):
     own = ps.own_members(prof, _ceil)                # direct (●) vs via-include (↳)
     removed = ps.removed_members(prof, _ceil)        # ~term drops (~) for the selected profile
     _disp = ctx.config.dispositions()                # {comp: seen|interesting} for the catalog markers
-    if ps.show_removed:                              # ...plus the starred profiles' drops the filter reveals
-        removed = removed | ps._starred_removed()
     ov_inst, ov_orph, ov_uninst = ps.overlay()       # install-axis overlay data (empty unless `O` on)
     # row-tint backgrounds derived from the theme's selection colour: a dimmer bar marks the current
     # row of the UNFOCUSED pane (so the profile stays visible while you navigate components), and a
@@ -2518,9 +2482,9 @@ def _draw_profiles(stdscr, pal, ps, ctx, note, screen):
     low_color = not pal.have256    # 8/16-colour has no room for a dim tint -> those quantize to black
                                    # (invisible); reverse-video the unfocused-current row instead.
 
-    # LEFT: profiles as a tree — top-level + inline `+include` children; ▸ marks a starred profile
+    # LEFT: profiles as a tree — top-level + inline `+include` children
     vnodes = ps.visible_pnodes()
-    ltitle = 'profiles' + (f'  filter:{ps.pfilter}' if ps.pfilter else '') + (f'  ▸{len(ps.starred)}' if ps.starred else '')
+    ltitle = 'profiles' + (f'  filter:{ps.pfilter}' if ps.pfilter else '')
     lit, lil, lih, liw = _panel(stdscr, pal, top, 0, body_h, lw, ltitle,
                                 ps.focus == 'left', h, w)
     if ps.reveal is not None:                        # a just-expanded node -> reveal its subtree
@@ -2562,9 +2526,10 @@ def _draw_profiles(stdscr, pal, ps, ctx, note, screen):
                  | rev)
             continue
         exp = '▾' if expanded else ('▹' if expandable else ' ')
-        star = '▸' if name in ps.starred else ' '     # selection is the bar; ▸ now means "starred"
+        # scope marker: ▸ on the row the catalog is currently scoped to (the selected one, `*` mode on)
+        scope = '▸' if (ps.scope_mode and i == ps.lcur) else ' '
         act = '●' if name in ps.active else ('◐' if name in ps.active_indirect else '○')
-        prefix = list(f'{star}{"  " * depth}{exp}{act}')
+        prefix = list(f'{scope}{"  " * depth}{exp}{act}')
         # Exclusion attribution: for a subprofile a `~`-excluded by an ancestor on its path, paint a
         # `~` in THAT ancestor's status-glyph column (2 + 2*ancestor_depth), which falls in this row's
         # blank indent gutter — so the marker sits under the profile that's at fault. Two ancestors
@@ -2671,10 +2636,9 @@ def _draw_profiles(stdscr, pal, ps, ctx, note, screen):
 
     # RIGHT BOTTOM: the component catalog (filtered), as a COLUMN-MAJOR grid filling the pane width
     ctop, cath = top + desc_h, body_h - desc_h
-    ctitle = ((f'components — in "{prof}"' if prof else 'components')
+    ctitle = ((f'components — in "{prof}"' if (ps.scope_mode and prof) else 'components — all')
               + (f'  filter:{ps.cfilter}' if ps.cfilter else '')
-              + (f'  ▸{",".join(sorted(ps.starred))}' if ps.starred else '')
-              + ('  +~removed' if ps.starred else '')   # star filter always reveals ~-removed drops
+              + ('  ✔sel:' + str(len(ps.selected_comps)) if ps.selected_comps else '')
               + ps.attr_summary())
     rit, ril, rih, riw = _panel(stdscr, pal, ctop, rleft, cath, rw, ctitle, ps.focus == 'right', h, w)
     n = len(vcat)
@@ -2740,7 +2704,8 @@ def _draw_profiles(stdscr, pal, ps, ctx, note, screen):
                 _put(stdscr, y, cx, ' ' * cell, curses.A_REVERSE)
             elif tint is not None:
                 _put(stdscr, y, cx, ' ' * cell, pal.fill(y, cx, h, w, bg=tint))
-            cm = '▸' if cur else ' '
+            # ✔ = in the multi-select set (A/I/S/X batch); else ▸ marks the cursor row
+            cm = '✔' if name in ps.selected_comps else ('▸' if cur else ' ')
             # markers: membership of the CURRENT profile (● own · ↳ via-include · ~ excluded), else the
             # component's GLOBAL disposition (☆ interesting · · seen · ? new · blank = included elsewhere).
             if name in members:
@@ -2795,7 +2760,7 @@ def _draw_profiles(stdscr, pal, ps, ctx, note, screen):
     # marker legend for the profiles pane — right-aligned on the status bar so the keys get two
     # full rows below. ● directly active (in configs:), ◐ active only via a +include, ○ inactive,
     # ▸ star-filtered.
-    legend = '● active  ◐ inherited  ○ inactive  ▸ starred  ⧉ clone '
+    legend = '● active  ◐ inherited  ○ inactive  ▸ scoped  ⧉ clone '
     lg_x = max(0, w - len(legend))
     _put(stdscr, h - 3, 0, _fit(status, max(1, lg_x - 1)), pal.style('status_line', h - 3, 0, h, w))
     _put(stdscr, h - 3, lg_x, _fit(legend, w - lg_x), pal.style('status_line', h - 3, lg_x, h, w))
@@ -2805,12 +2770,12 @@ def _draw_profiles(stdscr, pal, ps, ctx, note, screen):
                 f"{g('right')}/{g('left')} expand · {g('switch-pane')}/{g('confirm')} components · "
                 f"{g('find')} find · {g('filter')} filter · {g('group')} group · "
                 f"{g('machine-target')} machine · {g('attr-filter')} attrs ")
-        nav2 = (f" {g('select')} member · {g('method')} method · {g('where')} where · "
-                f"{g('toggle-active')} active · {g('star')} star · {g('toggle-member')} incl/excl sub · "
+        nav2 = (f" {g('select')} sel · {g('add-to-profile')} add · {g('clone')} clone · "
+                f"{g('toggle-active')} active · {g('scope')} scope · {g('toggle-member')} incl/excl sub · "
                 f"{g('include')} include · {g('new')}/{g('delete')} new/del · {g('quit')} quit ")
     else:
-        nav1 = (' j/k move · g/G top/bottom · h/l expand · tab/⏎ components · / find · F filter · L group · A attrs ')
-        nav2 = (' space member · m method · w where · a active · * star · ~ incl/excl sub · + include · n/d new/del · q quit ')
+        nav1 = (' j/k move · g/G top/bottom · h/l expand · tab/⏎ components · / find · F filter · L group · f attrs ')
+        nav2 = (' space sel · A add · c clone · a active · * scope · ~ incl/excl sub · + include · n/d new/del · q quit ')
     _put(stdscr, h - 2, 0, _fit(nav1.ljust(w), w), pal.style('footer', h - 2, 0, h, w))
     _put(stdscr, h - 1, 0, _fit(nav2.ljust(w), w), pal.style('footer', h - 1, 0, h, w))
     stdscr.refresh()
@@ -4071,63 +4036,74 @@ def run(ctx):
                         except ConfigsysError as e:
                             note = f'stage failed: {e}'
                 elif pfact == 'stage-uninstall' and ps.focus == 'right':
-                    _vc = ps.vcatalog()                    # stage the selected component for uninstall
-                    if _vc:                                # (idempotent — like Components `x`; clear from
-                        _c = _vc[ps.rcur]                  #  Components to unstage, so a re-press never drops it)
+                    _targets = ps.action_targets()         # stage the set (else the cursor) for uninstall
+                    if _targets:                           # (idempotent — like Components `x`; unstage there)
+                        nch = 0
                         try:
-                            if _c in ctx.config.uninstall_queue():
-                                note = f'{_c} already staged for uninstall (clear it from Components)'
-                            else:
-                                changed, lbl = actions.stage_uninstall(ctx, _c, on=True)
-                                ps.reload(); menu_dirty = menu_dirty or changed
-                                note = (f'{_c} staged for uninstall (!uninstall)' if changed
-                                        else f'{_c}: {lbl}')
+                            for _c in _targets:
+                                if _c in ctx.config.uninstall_queue():
+                                    continue
+                                changed, _lbl = actions.stage_uninstall(ctx, _c, on=True)
+                                nch += 1 if changed else 0
+                            ps.selected_comps.clear()
+                            ps.reload(); menu_dirty = menu_dirty or nch > 0
+                            note = (f'{nch} staged for uninstall (!uninstall)' if nch
+                                    else 'no change (already staged?)')
                         except ConfigsysError as e:
                             note = f'stage-uninstall failed: {e}'
                 elif pfact in ('disp-interesting', 'disp-seen') and ps.focus == 'right':
-                    _vc = ps.vcatalog()                    # toggle the selected component's disposition
-                    if _vc:                                # (press again on the same state -> back to NEW)
-                        _c = _vc[ps.rcur]
+                    _targets = ps.action_targets()         # the multi-select set, else the cursor
+                    if _targets:                           # single: toggle (press again -> NEW); batch: set
                         _want = 'interesting' if pfact == 'disp-interesting' else 'seen'
-                        _state = 'new' if ctx.config.disposition(_c) == _want else _want
+                        _single = len(_targets) == 1
+                        nch = 0
                         try:
-                            changed, lbl = actions.set_disposition(ctx, _c, _state)
-                            ps.reload(); menu_dirty = menu_dirty or changed
-                            note = (f'{_c}: {_state.upper() if _state != "new" else "NEW"}'
-                                    if changed else f'{_c}: {lbl}')
+                            for _c in _targets:
+                                _state = ('new' if (_single and ctx.config.disposition(_c) == _want)
+                                          else _want)
+                                changed, _lbl = actions.set_disposition(ctx, _c, _state)
+                                nch += 1 if changed else 0
+                            ps.selected_comps.clear()
+                            ps.reload(); menu_dirty = menu_dirty or nch > 0
+                            note = (f'{nch} -> {_want.upper()}' if not _single
+                                    else f'{_targets[0]}: '
+                                         f'{"NEW" if ctx.config.disposition(_targets[0]) is None else _want.upper()}')
                         except ConfigsysError as e:
                             note = f'disposition failed: {e}'
                 elif pfact == 'add-to-profile' and ps.focus == 'right':
-                    _vc = ps.vcatalog()                    # add the selected component to a user profile
-                    if _vc:
-                        _c = _vc[ps.rcur]
+                    _targets = ps.action_targets()         # add the set (else the cursor) to a user profile
+                    if _targets:
+                        _lbl = _targets[0] if len(_targets) == 1 else f'{len(_targets)} components'
                         editable = {str(ctx.paths.user_config_file), str(actions.edit_target(ctx)[0])}
                         upfs = [p for p in ps.profiles     # editable (user-layer) profiles are the targets
                                 if p != ctx.config.ALL_PROFILE and not p.startswith('!')
                                 and (ctx.config.profile_source(p) is not None
                                      and str(ctx.config.profile_source(p)) in editable)]
-                        opts = [(p, '[member]' if _c in ps.members(p) else '') for p in upfs]
+                        opts = [(p, '') for p in upfs]
                         opts.append(('+ new profile…', ''))
                         lp = ps.cur_curate()               # smart default: the left-highlighted profile if editable
                         start = upfs.index(lp) if lp in upfs else 0
-                        pick = _popup_choose(stdscr, pal, f'add "{_c}" to profile', opts, start=start)
+                        pick = _popup_choose(stdscr, pal, f'add {_lbl} to profile', opts, start=start)
                         if pick is not None:
                             try:
+                                tgt = None
                                 if pick == len(upfs):      # + new profile
                                     nm = (_input_box(stdscr, pal, 'new profile name') or '').strip()
                                     if nm:
                                         ac, albl = actions.add_profile(ctx, nm)
-                                        if ac or nm in ctx.config.profile_names():
-                                            mc, _l = actions.set_profile_membership(ctx, nm, _c, 'add')
-                                            ps.reload(); menu_dirty = menu_dirty or ac or mc
-                                            note = f'{_c} added to new "{nm}"'
-                                        else:
+                                        tgt = nm if (ac or nm in ctx.config.profile_names()) else None
+                                        if tgt is None:
                                             note = albl
                                 else:
                                     tgt = upfs[pick]
-                                    mc, mlbl = actions.set_profile_membership(ctx, tgt, _c, 'add')
-                                    ps.reload(); menu_dirty = menu_dirty or mc
-                                    note = (f'{_c} added to "{tgt}" ({mlbl})' if mc else f'{_c}: {mlbl}')
+                                if tgt is not None:
+                                    nch = 0
+                                    for _c in _targets:
+                                        mc, _l = actions.set_profile_membership(ctx, tgt, _c, 'add')
+                                        nch += 1 if mc else 0
+                                    ps.selected_comps.clear()
+                                    ps.reload(); menu_dirty = menu_dirty or nch > 0
+                                    note = f'{_lbl} added to "{tgt}" ({nch} new)'
                             except ConfigsysError as e:
                                 note = f'add failed: {e}'
                 elif pfact == 'orphan-ignore' and ps.focus == 'right':
@@ -4144,8 +4120,8 @@ def run(ctx):
                             ps.reload()
                         except ConfigsysError as e:
                             note = f'ignore failed: {e}'
-                elif pfact == 'star' and ps.focus == 'left':
-                    ps.cycle_star()                    # toggle: filter to members + ~-removed -> off
+                elif pfact == 'scope':
+                    ps.toggle_scope()                  # `*`: scope the catalog to the selected profile <-> all
                 elif pfact == 'toggle-member' and ps.focus == 'left':
                     # include/exclude the selected SUBPROFILE (a nested + child) in the top-level profile
                     # it hangs under. Membership-toggle: struck -> re-include (+sub); active -> exclude (~sub).
@@ -4316,13 +4292,21 @@ def run(ctx):
                         from ..app import where_profile_report
                         where_lines = where_profile_report(ctx, _wp) or [f'{_wp}: nothing to show']
                         where_subject, where_top, show_where = _wp, 0, True
-                elif pfact in ('select', 'confirm') and ps.focus == 'right':
-                    prof = ps.cur_curate()             # the selected profile
+                elif pfact == 'select' and ps.focus == 'right':
+                    vcat = ps.vcatalog()               # `space`: build the multi-select set (A/I/S/X batch)
+                    if vcat:
+                        nm = vcat[ps.rcur]
+                        ps.selected_comps ^= {nm}
+                        note = (f'{len(ps.selected_comps)} selected' if ps.selected_comps
+                                else 'selection cleared')
+                elif pfact == 'confirm' and ps.focus == 'right':
+                    prof = ps.cur_curate()             # `enter`: toggle the cursor's membership here
                     vcat = ps.vcatalog()
-                    if prof and vcat:
+                    if ps.cur_readonly():
+                        note = 'read-only system profile — press c to clone, then edit the copy'
+                    elif prof and vcat:
                         name = vcat[ps.rcur]
                         mtarget = getattr(ctx, 'machine_override', None) or None
-                        # a plain 2-state add/remove toggle of the component's membership.
                         in_prof = name in ps.members(prof)
                         memb = 'remove' if in_prof else 'add'
                         verb = 'removed' if in_prof else 'added'

@@ -96,7 +96,7 @@ def test_repo_every_screen_scope_matches_the_wired_actions():
         'plugins': {'a': 'add', 'x': 'remove', 's': 'sync', 'S': 'sync-all', 'b': 'bless',
                     'B': 'unbless', 'u': 'update', 'U': 'update-all', 't': 'trust', 'T': 'trust-all',
                     'v': 'set-ref'},
-        'profiles': {'*': 'star', '~': 'toggle-member', 'a': 'toggle-active', 'n': 'new', 'd': 'delete',
+        'profiles': {'*': 'scope', '~': 'toggle-member', 'a': 'toggle-active', 'n': 'new', 'd': 'delete',
                      '+': 'include', 'm': 'method', 'f': 'attr-filter', 'A': 'add-to-profile',
                      'c': 'clone', 'I': 'disp-interesting', 'S': 'disp-seen'},
         'theme': {'n': 'new', 'r': 'reset', 'x': 'reset', 'B': 'edit-bg', 'o': 'effect-bold',

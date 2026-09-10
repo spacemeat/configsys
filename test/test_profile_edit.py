@@ -255,7 +255,7 @@ def test_include_and_uninclude_profile(tmp_path):
     assert ctx.config.profile_includes('a') == set()
 
 
-def test_profile_tree_and_star_filter(tmp_path):
+def test_profile_tree_and_scope_mode(tmp_path):
     from configsys import actions
     from configsys.tui import menu
     ctx = _rctx(tmp_path)
@@ -265,29 +265,23 @@ def test_profile_tree_and_star_filter(tmp_path):
     actions.set_profile_include(ctx, 'mine', 'base', True)   # mine includes base
 
     ps = menu.ProfileScreen(ctx)
-    ps.attr_exc = set()                                      # isolate star filtering from the attrs
-    names = [nd[0] for nd in ps.visible_pnodes()]            # filter's default `-dotfiles` hide
+    ps.attr_exc = set()                                      # isolate scope from the attrs filter's
+    names = [nd[0] for nd in ps.visible_pnodes()]            # default `-dotfiles` hide
     assert 'mine' in names and 'base' in names
     ps.lcur = names.index('mine')
     assert ps.cur_node()[3] is True                          # mine is expandable (has an include)
     ps.expand_cur()
     v = ps.visible_pnodes()
     assert any(nd[0] == 'base' and nd[1] == 1 for nd in v)   # base shows indented under mine
-    # star `base` -> the catalog filters to base's OWN members
-    ps.lcur = next(i for i, nd in enumerate(v) if nd[0] == 'base' and nd[1] == 1)
-    ps.cycle_star()                                          # off -> star base (filter + always show-removed)
-    assert ps.show_removed is True and ps.vcatalog() == ['btop']   # base pruned nothing -> just its member
-    ps.cycle_star()                                          # -> off: full catalog again
-    assert not ps.starred and not ps.show_removed and len(ps.vcatalog()) == len(ps.catalog)
-    # starring `mine` (which +includes base) now stars the whole inheritance chain, so base's OWN
-    # members come along — the clone-and-prune view (see the base's members + a derived profile's ~drops)
+    # `*` scope mode is ON by default: the catalog is scoped to the SELECTED profile's members
+    assert ps.scope_mode is True
     ps.lcur = [nd[0] for nd in ps.visible_pnodes()].index('mine')
-    ps.cycle_star()
-    assert ps.starred == {'mine', 'base'}                    # * stars the profile AND its includes
-    assert ps.show_removed is True                           # filter always reveals removals (no members-only state)
-    assert ps.vcatalog() == ['btop']                         # base's own member is now visible
-    ps.cycle_star()                                          # -> off: the whole chain clears
-    assert ps.starred == set() and len(ps.vcatalog()) == len(ps.catalog)
+    assert ps.vcatalog() == ['btop']                         # mine's members (btop, via +base)
+    ps.toggle_scope()                                        # off -> the full catalog
+    assert ps.scope_mode is False and len(ps.vcatalog()) == len(ps.catalog)
+    ps.toggle_scope()                                        # on again, following the selection
+    ps.lcur = [nd[0] for nd in ps.visible_pnodes()].index('base')
+    assert ps.vcatalog() == ['btop']                         # now scoped to base
 
 
 def test_find_next_steps_through_siblings():
@@ -321,29 +315,29 @@ def test_profile_active_direct_vs_indirect(tmp_path):
     assert ps.active_indirect == {'sub', 'leaf'}               # ◐ pulled in transitively via +include
 
 
-def test_profile_star_filter_show_removed(tmp_path):
-    # The clone-and-prune view: star a profile, then `~` also reveals the components it dropped via
-    # `~term` (marked `~`), so you can see what you pruned — not just what survived.
+def test_profile_multiselect_batch_targets(tmp_path):
+    # `space` builds a multi-select set that A/I/S/X act on as a batch (spanning the current scope);
+    # with no selection the actions target just the cursor component.
     from configsys import actions
     from configsys.tui import menu
     ctx = _rctx(tmp_path)
-    actions.add_profile(ctx, 'base')
-    actions.set_profile_membership(ctx, 'base', 'htop', 'add')
     actions.add_profile(ctx, 'mine')
-    actions.set_profile_membership(ctx, 'mine', 'btop', 'add')      # an OWN member
-    actions.set_profile_include(ctx, 'mine', 'base', True)          # +base brings htop
-    actions.set_profile_membership(ctx, 'mine', 'htop', 'remove')   # prune it -> ~htop
-    assert ctx.config.profile_removed('mine') == {'htop'}
+    actions.set_profile_membership(ctx, 'mine', 'btop', 'add')
+    actions.set_profile_membership(ctx, 'mine', 'htop', 'add')
 
     ps = menu.ProfileScreen(ctx)
-    ps.attr_exc = set()                                            # isolate from the attrs filter
-    # drive the FILTER directly (the `*` cycle is exercised in test_profile_tree_and_star_filter)
-    ps.starred = {'mine', 'base'}                                 # the include closure
-    # plain star = SURVIVORS: htop is hidden even though base owns it, because mine pruned it (~htop)
-    assert ps.vcatalog() == ['btop']
-    ps.show_removed = True                                        # reveal what mine pruned via ~htop
-    assert ps.vcatalog() == ['btop', 'htop']                     # the pruned htop is shown again
-    assert 'htop' in ps._starred_removed()                       # ...and marked as a removal (~)
+    ps.attr_exc = set()
+    ps.scope_mode = False                                        # full catalog so the cursor is stable
+    ps.rcur = 0
+    cursor = ps.vcatalog()[0]
+    assert ps.action_targets() == [cursor]                       # no selection -> the cursor
+    ps.selected_comps = {'btop', 'htop'}                         # `space` set
+    assert ps.action_targets() == ['btop', 'htop']               # selection -> the whole set (sorted)
+    # a disposition batch clears the set and applies to all
+    for c in ps.action_targets():
+        actions.set_disposition(ctx, c, 'interesting')
+    assert ctx.config.disposition('btop') == 'interesting'
+    assert ctx.config.disposition('htop') == 'interesting'
 
 
 def test_profile_pane_layer_grouping(tmp_path):
