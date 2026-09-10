@@ -2794,8 +2794,12 @@ def build_parser():
     pcl = prsub.add_parser('clone', help='deep-clone a system profile into an editable user copy '
                                          '(same name, shadows the original; new upstream members show as NEW)')
     pcl.add_argument('profile')
+    pcl.add_argument('--into', metavar='PARENT',
+                     help='emplace the clone as a +member of this user profile (keeps cross-cutting '
+                          'structure); default is a standalone top-level clone')
     pcl.add_argument('--local', action='store_true',
-                     help="write to this machine's top config, not the primary plugin")
+                     help="write to this machine's top config, not the primary plugin "
+                          '(standalone clones only; --into follows the parent)')
     for name, helptext in (('add', 'add a component to a profile'),
                            ('rm', 'remove a component from a profile')):
         sp = prsub.add_parser(name, help=helptext)
@@ -3308,7 +3312,11 @@ def cmd_profile(ctx, args):
     target = str(ctx.paths.user_config_file) if getattr(args, 'local', False) else None
 
     if sub == 'clone':
-        changed, label = actions.clone_profile(ctx, args.profile, target=target)
+        into = getattr(args, 'into', None)
+        if into is not None:
+            changed, label = actions.clone_profile_into(ctx, args.profile, into)
+        else:
+            changed, label = actions.clone_profile(ctx, args.profile, target=target)
         print(f'configsys: cloned "{args.profile}" into an editable copy  ({label})' if changed
               else f'configsys: no clone — {label}')
         return 0 if changed else 1

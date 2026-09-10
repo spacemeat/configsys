@@ -874,7 +874,9 @@ _HELP = {
                 "component's membership with select/confirm in the right pane.",
         'glossary': [
             ('markers', '● active · ◐ active via +include · ○ inactive · ▸ starred · ~ subprofile excluded'),
-            ('provenance', '+ tracked (+self) · ⊘ shadowed · blank base/untouched'),
+            ('spaces', 'repo/plugin groups are BROWSE-ONLY system profiles (read-only); machine/'
+                       'primary/user groups are yours to edit · ⧉ = your clone of a system profile '
+                       '(the pristine original still shows under repo/plugin)'),
             ('grouping (L)', 'group the pane by defining layer (this machine · your primary · plugins · '
                              'repo catalog, collapsed) ↔ flat A-Z; enter/h/l folds a group'),
             ('machine (M)', 'pick the working-TARGET machine to curate; edits then land in its '
@@ -885,7 +887,8 @@ _HELP = {
             ('add (A)', 'add the selected catalog component to a user profile (pick from a modal, '
                         'or create a new profile)'),
             ('clone (c)', 'deep-clone the selected SYSTEM profile into an editable same-name copy — '
-                          'hierarchy + components; new upstream members then show as NEW, not auto-added'),
+                          'hierarchy + components; a modal emplaces it as a +member of a user profile '
+                          '(or top-level); new upstream members then show as NEW, not auto-added'),
             ('attr-filter (f)', 'faceted kind filter over the catalog (F = live substring filter)'),
             ('terms', '+name folds in another profile · ~name removes a component OR excludes a subprofile'),
             ('~ toggle', "on a nested subprofile: include/exclude it in the top-level profile (writes +/~)"),
@@ -2579,10 +2582,12 @@ def _draw_profiles(stdscr, pal, ps, ctx, note, screen):
                     struck = True
             except Exception:                                  # noqa: BLE001 — a bad profile marks nothing
                 pass
-        # provenance badge: a glyph names how your layer relates to a lower same-name def
-        # (+ tracked · ⊘ shadowed · blank base/untouched).
-        prov = {'tracked': '+', 'shadowed': '⊘'}.get(ps.relation(name), '')
-        tag = ('  ' + prov if prov else '')
+        # a user-group row that has a same-name system def BELOW it is a clone/override of a browse
+        # profile; ⧉ names it (the pristine original still lives under repo/plugin). Own profiles and
+        # the system originals carry no badge — the group placement already says which space they're in.
+        is_clone = (node_group not in ps._SYSTEM_GROUPS and kind == 'profile'
+                    and ps._profile_groups(name) & set(ps._SYSTEM_GROUPS))
+        tag = '  ⧉' if is_clone else ''
         disp = f'+{name}' if kind == 'include' else name  # `+`-mark a live include child
         row = f'{"".join(prefix)} {disp}{tag}'
         _put(stdscr, y, lil, _fit(row, liw),
@@ -2790,7 +2795,7 @@ def _draw_profiles(stdscr, pal, ps, ctx, note, screen):
     # marker legend for the profiles pane — right-aligned on the status bar so the keys get two
     # full rows below. ● directly active (in configs:), ◐ active only via a +include, ○ inactive,
     # ▸ star-filtered.
-    legend = '● active  ◐ inherited  ○ inactive  ▸ starred  ^ pin  + track  ⊘ shadow '
+    legend = '● active  ◐ inherited  ○ inactive  ▸ starred  ⧉ clone '
     lg_x = max(0, w - len(legend))
     _put(stdscr, h - 3, 0, _fit(status, max(1, lg_x - 1)), pal.style('status_line', h - 3, 0, h, w))
     _put(stdscr, h - 3, lg_x, _fit(legend, w - lg_x), pal.style('status_line', h - 3, lg_x, h, w))
@@ -4253,25 +4258,25 @@ def run(ctx):
                                 note = f'include failed: {e}'
                 elif pfact == 'clone' and ps.focus == 'left':   # clone a system profile -> editable copy
                     prof = ps.cur_profile()
-                    if prof:
-                        target, abort = None, False
-                        et_file, et_label = actions.edit_target(ctx)
-                        local_file = str(ctx.paths.user_config_file)
-                        if str(et_file) != local_file:       # a primary is set -> let the user pick a home
-                            opts = [(f'your primary ({et_label})', 'portable, travels to other machines'),
-                                    ('this machine (top config)', 'local to this box')]
-                            pick = _popup_choose(stdscr, pal, f'clone "{prof}" into…', opts, 0)
-                            if pick is None:
-                                abort = True
-                            else:
-                                target = None if pick == 0 else local_file
-                        if not abort:
+                    if prof and not ps.cur_readonly():
+                        note = f'"{prof}" is already an editable profile (clone browse-only ones)'
+                    elif prof:
+                        # delta: pick a user profile to emplace the clone into (+member), or top-level
+                        editable = {str(ctx.paths.user_config_file), str(actions.edit_target(ctx)[0])}
+                        parents = [p for p in ps.profiles if p != prof and not p.startswith('!')
+                                   and p != ctx.config.ALL_PROFILE
+                                   and (ctx.config.profile_source(p) is not None
+                                        and str(ctx.config.profile_source(p)) in editable)]
+                        opts = [('(top-level — standalone)', 'no parent')]
+                        opts += [(f'into {p}', '+member') for p in parents]
+                        pick = _popup_choose(stdscr, pal, f'clone "{prof}" — place it where?', opts, 0)
+                        if pick is not None:
+                            into = None if pick == 0 else parents[pick - 1]
                             try:
-                                changed, lbl = actions.clone_profile(ctx, prof, target=target)
+                                changed, lbl = actions.clone_profile_into(ctx, prof, into)
                                 ps.reload()
                                 menu_dirty = menu_dirty or changed
-                                note = (f'cloned "{prof}" -> editable copy ({lbl})' if changed
-                                        else f'{prof}: {lbl}')
+                                note = (f'cloned "{prof}" ({lbl})' if changed else f'{prof}: {lbl}')
                             except ConfigsysError as e:
                                 note = f'clone failed: {e}'
                 elif pfact == 'method' and ps.focus == 'right':

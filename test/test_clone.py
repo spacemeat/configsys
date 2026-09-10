@@ -29,6 +29,19 @@ def test_clone_preserves_hierarchy_and_shadows(tmp_path):
     assert sorted(ctx.config.profile_components('jvm-lang')) == before
 
 
+def test_clone_into_emplaces_as_member(tmp_path):
+    # delta: cloning a system profile can emplace it as a +member of a user profile, keeping structure
+    ctx = _ctx(tmp_path, '{ configs: [ dev ]  profiles: { mykit: [ btop ] } }')
+    changed, label = actions.clone_profile_into(ctx, 'shells', 'mykit')
+    assert changed and '+shells in "mykit"' in label
+    profs = plugins.read_profiles(str(ctx.paths.user_config_file))
+    assert 'shells' in profs and '+shells' in profs['mykit']        # cloned + attached
+    members = ctx.config.profile_components('mykit')
+    assert 'btop' in members and {'fish', 'nushell', 'zsh'} <= set(members)   # structure folds in
+    # a non-editable / missing parent is refused
+    assert actions.clone_profile_into(ctx, 'finders', 'nope')[0] is False
+
+
 def test_clone_refusals(tmp_path):
     ctx = _ctx(tmp_path)
     assert actions.clone_profile(ctx, 'nope')[0] is False         # undefined

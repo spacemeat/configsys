@@ -229,7 +229,7 @@ def clone_profile(ctx, name, *, target=None):
         return False, f'"{name}" is not defined'
     if name == cfg.ALL_PROFILE or name.startswith('!'):
         return False, f'"{name}" is reserved and cannot be cloned'
-    tfile, label = (target, target) if target else edit_target(ctx)
+    tfile, label = (target, _dir_label(ctx, target)) if target else edit_target(ctx)
     editable = {str(ctx.paths.user_config_file), str(edit_target(ctx)[0])}
     src = cfg.profile_source(name)
     if src is not None and str(src) in editable:
@@ -260,6 +260,32 @@ def clone_profile(ctx, name, *, target=None):
     ctx.invalidate()
     extra = f' (+{len(order) - 1} included)' if len(order) > 1 else ''
     return True, f'{label}{extra}'
+
+
+def clone_profile_into(ctx, name, into=None):
+    '''Clone system profile `name` (via clone_profile) and — the delta placement step — emplace it as
+    a `+member` of the user profile `into`, so a cloned sub-profile keeps its cross-cutting structure
+    under a profile you own. `into=None` clones it standalone (top-level). The clone lands in the same
+    editable layer as `into` (so the `+name` reference resolves), else the portable edit target.
+    Returns (changed, label/reason).'''
+    if into is not None:
+        if into not in ctx.config.profile_names():
+            return False, f'no profile "{into}" to emplace the clone into'
+        src = ctx.config.profile_source(into)
+        editable = {str(ctx.paths.user_config_file), str(edit_target(ctx)[0])}
+        if src is None or str(src) not in editable:
+            return False, f'"{into}" is not an editable user profile (clone or create it first)'
+        target = str(src)
+    else:
+        target = None
+    changed, label = clone_profile(ctx, name, target=target)
+    if not changed:
+        return changed, label
+    if into is not None:
+        inc_changed, _l = set_profile_include(ctx, into, name, True)   # attach +name to the parent
+        if inc_changed:
+            label = f'{label}, +{name} in "{into}"'
+    return True, label
 
 
 def add_machine(ctx, name):
