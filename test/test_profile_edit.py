@@ -346,6 +346,32 @@ def test_profile_new_count_badge(tmp_path):
     assert ps.profile_interesting_count('shells', ceil) == 1   # ☆N tracks bookmarks
 
 
+def test_install_probe_underlines_nonenumerable(tmp_path):
+    # the install-underline probe: a tarball/script component (no batch installed_index) that's on
+    # disk is detected by an individual get_version probe, so it underlines like a native package.
+    import time
+    from configsys.drivers import get_driver
+    from configsys.tui import menu
+    ctx = _rctx(tmp_path)
+    units, _ = ctx.routes.resolve_resilient(['ollama'])          # ollama installs via tarball
+    u = next(v for v in units.values() if v.name == 'ollama')
+    assert u.driver == 'tarball'
+    drv = get_driver(u.driver, ctx.runner, ctx.paths)
+    d = drv._install_dir(u); d.mkdir(parents=True, exist_ok=True)
+    drv._marker(u).write_text('9.9.9')                           # simulate an install
+
+    ps = menu.ProfileScreen(ctx)
+    ps.show_install = 1
+    ps._overlay = (frozenset(), {}, frozenset())                 # batch overlay ran; ollama not in it
+    ps.ensure_probes(['ollama', 'fzf'])                          # fzf is native -> enumerable -> skipped
+    for _ in range(50):
+        if not ps.probe_busy():
+            break
+        time.sleep(0.1)
+    assert ps._probe_installed.get('ollama') is True             # probe found it -> will underline
+    assert 'fzf' not in ps._probe_installed                      # enumerable driver, not probed
+
+
 def test_profile_multiselect_batch_targets(tmp_path):
     # `space` builds a multi-select set that A/I/S/X act on as a batch (spanning the current scope);
     # with no selection the actions target just the cursor component.

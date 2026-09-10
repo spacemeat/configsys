@@ -2100,6 +2100,14 @@ class ProfileScreen:
                                          # dropped only on an install/uninstall execute (invalidate_overlay)
         self._async_overlay = None       # (installed, orphans) delivered by the background orphan scan
         self._ov_gen = 0                 # generation guard: a stale async result (pre-reload) is dropped
+        # per-component installed probe for NON-enumerable drivers (tarball/script/appImage/… — no
+        # batch installed_index, so the overlay's `installed` set misses them). The draw queues the
+        # visible catalog rows; a daemon thread checks get_version and folds results into the underline.
+        self._probe_installed = {}       # name -> True (found installed on disk by an individual probe)
+        self._probe_seen = set()         # names already queued/probed (never re-probe)
+        self._probe_queue = []           # pending names for the probe thread
+        self._probe_thread = None
+        self._probe_dirty = False        # a new probe result arrived -> the menu loop repaints
         self.reload()
 
     def overlay(self):
@@ -2165,6 +2173,61 @@ class ProfileScreen:
         self._scan_caches = None
         self._async_overlay = None
         self._ov_gen += 1                # abandon any in-flight scan's result
+        self._probe_installed = {}       # on-disk reality changed -> re-probe the non-enumerable ones
+        self._probe_seen = set()
+        self._probe_queue = []
+
+    def ensure_probes(self, names):
+        '''Queue on-screen catalog rows NOT covered by the batch installed index for an individual
+        installed check, so an installed browse component on a non-enumerable driver (tarball/script/
+        appImage/source/cargo/…) still gets the underline. A name already in the overlay's `installed`
+        set, or already probed, is skipped. Runs on a daemon thread; results fold into
+        `_probe_installed` and the menu loop repaints (probe_busy).'''
+        if not self.show_install:
+            return
+        ov = self._overlay[0] if self._overlay else frozenset()
+        todo = [n for n in names if n not in ov and n not in self._probe_seen]
+        if not todo:
+            return
+        self._probe_seen.update(todo)
+        self._probe_queue.extend(todo)
+        if self._probe_thread is None or not self._probe_thread.is_alive():
+            self._start_probe()
+
+    def _start_probe(self):
+        from ..driver import Driver
+        from ..drivers import get_driver
+
+        def run():
+            while self._probe_queue:
+                name = self._probe_queue.pop()
+                try:
+                    units, _e = self.ctx.routes.resolve_resilient([name])
+                    for _k, u in units.items():
+                        if u.name != name:
+                            continue
+                        drv = get_driver(u.driver, self.ctx.runner, self.ctx.paths)
+                        if drv is None or type(drv).installed_index is not Driver.installed_index:
+                            continue                 # enumerable driver -> already covered by the batch set
+                        try:
+                            if drv.get_version(u) is not None:
+                                self._probe_installed[name] = True
+                                self._probe_dirty = True
+                                break
+                        except Exception:            # noqa: BLE001 — a probe failure just leaves it un-underlined
+                            pass
+                except Exception:                    # noqa: BLE001
+                    pass
+        self._probe_thread = threading.Thread(target=run, daemon=True)
+        self._probe_thread.start()
+
+    def probe_busy(self):
+        '''True while the per-component probe has pending work OR a fresh result to paint — the menu
+        loop polls this (like overlay_busy) so underlines appear without a keypress.'''
+        if self._probe_dirty:
+            return True
+        return bool(self._probe_queue) or (self._probe_thread is not None
+                                           and self._probe_thread.is_alive())
 
     # -- profiles tree (top-level profiles + inline `+include` children) --
     @staticmethod
@@ -2726,6 +2789,8 @@ def _draw_profiles(stdscr, pal, ps, ctx, note, screen):
     elif cur_col >= ps.rcol_left + ncols:
         ps.rcol_left = cur_col - ncols + 1
     ps.rcol_left = max(0, min(ps.rcol_left, max(0, total_cols - ncols)))
+    ps._probe_dirty = False                          # consumed: this draw reflects any folded-in probes
+    _shown = []                                      # on-screen names -> queue non-enumerable ones to probe
     for vc in range(ncols if riw > 0 else 0):
         col = ps.rcol_left + vc
         if col >= total_cols:
@@ -2736,6 +2801,7 @@ def _draw_profiles(stdscr, pal, ps, ctx, note, screen):
             if i >= n:
                 break
             name, y = vcat[i], rit + rr
+            _shown.append(name)
             cur = i == ps.rcur
             foc = cur and ps.focus == 'right'
             avail, via, pinned = ps._resolve(name)
@@ -2749,8 +2815,8 @@ def _draw_profiles(stdscr, pal, ps, ctx, note, screen):
                     elem = f'orphan_{_o.kind}'       # a live orphan -> its kind colour
                     if _o.ignored:                   # an ignored orphan -> revealed, dimmed
                         ov_extra |= curses.A_DIM
-                if name in ov_inst:
-                    ov_extra |= curses.A_UNDERLINE
+                if name in ov_inst or ps._probe_installed.get(name):
+                    ov_extra |= curses.A_UNDERLINE   # batch index OR an individual probe found it on disk
                 if name in ov_uninst:
                     ov_extra |= curses.A_DIM
             cell = col_w - 1
@@ -2832,6 +2898,8 @@ def _draw_profiles(stdscr, pal, ps, ctx, note, screen):
                 _put(stdscr, y, mx, mshow, pal.style('method_dim', y, mx, h, w, selected=foc, bg=tint) | rev)
             else:                                    # no room for a method column: just the name
                 _draw_name(cell)
+    if ps.show_install:                              # probe the just-drawn rows on non-enumerable drivers
+        ps.ensure_probes(_shown)
     # the catalog scrolls horizontally by column; show which columns are in view on the bottom border
     _scrollbar_h(stdscr, pal, ctop + cath - 1, ril, riw, ps.rcol_left, ncols, total_cols, h, w)
 
@@ -3984,8 +4052,8 @@ def run(ctx):
             # While the Profiles install-overlay's background orphan scan is running, poll (timed
             # getch) so its result paints on its own; otherwise block. Restore blocking immediately
             # after so the modal getch loops are unaffected.
-            stdscr.timeout(120 if (screen == 'profiles' and ps is not None and ps.overlay_busy())
-                           else -1)
+            stdscr.timeout(120 if (screen == 'profiles' and ps is not None
+                                   and (ps.overlay_busy() or ps.probe_busy())) else -1)
             ch = stdscr.getch()
             stdscr.timeout(-1)
             if ch == -1:                                 # timed out with no key -> just redraw
