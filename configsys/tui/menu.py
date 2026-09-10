@@ -4128,18 +4128,26 @@ def run(ctx):
                                      and str(ctx.config.profile_source(p)) in editable)]
                         opts = [(p, '') for p in upfs]
                         opts.append(('+ new profile…', ''))
-                        lp = ps.cur_curate()               # smart default: the left-highlighted profile if editable
-                        start = upfs.index(lp) if lp in upfs else 0
+                        lp = ps.cur_curate()               # the browse profile you're adding FROM
+                        if lp in upfs:                     # a same-name editable profile -> default to it
+                            start = upfs.index(lp)
+                        elif ps.cur_readonly():            # browsing a system profile -> default to "new"
+                            start = len(upfs)
+                        else:
+                            start = 0
                         pick = _popup_choose(stdscr, pal, f'add {_lbl} to profile', opts, start=start)
                         if pick is not None:
                             try:
                                 tgt = None
-                                if pick == len(upfs):      # + new profile
-                                    nm = (_input_box(stdscr, pal, 'new profile name') or '').strip()
+                                if pick == len(upfs):      # + new profile (default the NAME to the browse profile)
+                                    nm = (_input_box(stdscr, pal, 'new profile name',
+                                                     initial=(lp or '')) or '').strip()
                                     if nm:
                                         ac, albl = actions.add_profile(ctx, nm)
-                                        tgt = nm if (ac or nm in ctx.config.profile_names()) else None
-                                        if tgt is None:
+                                        src = ctx.config.profile_source(nm)   # invalidated inside add_profile
+                                        if ac or (src is not None and str(src) in editable):
+                                            tgt = nm       # created, or an existing editable profile
+                                        else:
                                             note = albl
                                 else:
                                     tgt = upfs[pick]
@@ -4148,9 +4156,11 @@ def run(ctx):
                                     for _c in _targets:
                                         mc, _l = actions.set_profile_membership(ctx, tgt, _c, 'add')
                                         nch += 1 if mc else 0
+                                    act_c, _al = actions.set_profile_active(ctx, tgt, True)  # take effect
                                     ps.selected_comps.clear()
-                                    ps.reload(); menu_dirty = menu_dirty or nch > 0
-                                    note = f'{_lbl} added to "{tgt}" ({nch} new)'
+                                    ps.reload(); menu_dirty = menu_dirty or nch > 0 or act_c
+                                    note = (f'{_lbl} → "{tgt}" ({nch} added'
+                                            + (', activated' if act_c else '') + ')')
                             except ConfigsysError as e:
                                 note = f'add failed: {e}'
                 elif pfact == 'orphan-ignore' and ps.focus == 'right':

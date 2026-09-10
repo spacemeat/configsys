@@ -315,6 +315,19 @@ def test_profile_active_direct_vs_indirect(tmp_path):
     assert ps.active_indirect == {'sub', 'leaf'}               # ◐ pulled in transitively via +include
 
 
+def test_add_profile_allows_same_name_as_system(tmp_path):
+    # a new user profile may reuse a SYSTEM profile's name (it shadows the browse original — the
+    # disposition model's clone); only a second EDITABLE profile of that name is refused.
+    from configsys import actions
+    ctx = _rctx(tmp_path)
+    assert 'ai-tools' in ctx.config.profile_names()               # a repo (system) profile
+    ok, _lbl = actions.add_profile(ctx, 'ai-tools')               # same name -> allowed now
+    assert ok
+    assert str(ctx.config.profile_source('ai-tools')) == str(ctx.paths.user_config_file)
+    ok2, why = actions.add_profile(ctx, 'ai-tools')               # now an editable one exists -> refused
+    assert ok2 is False and 'already exists' in why
+
+
 def test_profile_new_count_badge(tmp_path):
     # ⁺N badge: NEW (undispositioned, not in a user profile) members of a profile; drops as you triage.
     from configsys import actions

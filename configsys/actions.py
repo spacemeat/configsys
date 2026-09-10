@@ -183,7 +183,12 @@ def add_profile(ctx, name):
         return False, '"all" is reserved'
     if name.startswith('!'):
         return False, '"!"-prefixed profile names are reserved (system profiles like !uninstall)'
-    if name in ctx.config.profile_names():
+    # A same-name copy of a SYSTEM (repo/plugin) profile is allowed — it becomes an editable user
+    # profile that shadows the browse original (the disposition model's clone). Refuse only when an
+    # EDITABLE profile of that name already exists (you can't have two of your own).
+    src = ctx.config.profile_source(name)
+    editable = {str(ctx.paths.user_config_file), str(edit_target(ctx)[0])}
+    if src is not None and str(src) in editable:
         return False, f'"{name}" already exists'
     tfile, label = edit_target(ctx)
     profs = plugins.read_profiles(tfile)
