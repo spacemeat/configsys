@@ -250,6 +250,8 @@ profiles: {
             toggle-install: O       // overlay the install axis (installed underline · orphan colour)
             stage: s                // stage the selected orphan into the adopt-target profile
             stage-uninstall: x      // stage the selected component for uninstall (-> !uninstall)
+            disp-interesting: I     // toggle the selected component INTERESTING (bookmarked, not new)
+            disp-seen: S            // toggle the selected component SEEN (acknowledged, no longer new)
             orphan-ignore: "."      // add the selected orphan to orphans-ignore
         }
 

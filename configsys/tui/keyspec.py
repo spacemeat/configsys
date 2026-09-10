@@ -164,7 +164,7 @@ KNOWN_ACTIONS = {
                 'trust', 'trust-all', 'set-ref'},
     'profiles': {'star', 'toggle-member', 'toggle-active', 'new', 'delete', 'include', 'method',
                  'where', 'group', 'machine-target', 'attr-filter', 'toggle-install', 'stage',
-                 'stage-uninstall', 'orphan-ignore'},
+                 'stage-uninstall', 'disp-interesting', 'disp-seen', 'orphan-ignore'},
     'theme': {'new', 'reset', 'edit-bg', 'effect-bold', 'effect-underline', 'effect-reverse',
               'gradient-toggle', 'copy-page', 'save', 'load',
               'page-1', 'page-2', 'page-3', 'page-4', 'page-5', 'page-6'},

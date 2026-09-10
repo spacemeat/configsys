@@ -879,7 +879,9 @@ _HELP = {
                              'repo catalog, collapsed) ↔ flat A-Z; enter/h/l folds a group'),
             ('machine (M)', 'pick the working-TARGET machine to curate; edits then land in its '
                             'machines:[name] namespace (execute stays local)'),
-            ('catalog', '● member · ↳ member via include · ~ excluded'),
+            ('catalog', '● member · ↳ member via include · ~ excluded · ☆ interesting · · seen · ? new'),
+            ('disposition', 'I marks the component INTERESTING (bookmarked) · S marks it SEEN · '
+                            'NEW (?) = an upstream component you have not yet triaged (press again to clear)'),
             ('terms', '+name folds in another profile · ~name removes a component OR excludes a subprofile'),
             ('~ toggle', "on a nested subprofile: include/exclude it in the top-level profile (writes +/~)"),
             ('where (w)', "provenance for the selected profile: layers · relation · counts"),
@@ -2453,6 +2455,7 @@ def _draw_profiles(stdscr, pal, ps, ctx, note, screen):
     members = ps.members(prof)
     own = ps.own_members(prof)                       # direct (●) vs via-include (↳)
     removed = ps.removed_members(prof)               # ~term drops (~) for the selected profile
+    _disp = ctx.config.dispositions()                # {comp: seen|interesting} for the catalog markers
     if ps.show_removed:                              # ...plus the starred profiles' drops the filter reveals
         removed = removed | ps._starred_removed()
     ov_inst, ov_orph, ov_uninst = ps.overlay()       # install-axis overlay data (empty unless `O` on)
@@ -2678,9 +2681,22 @@ def _draw_profiles(stdscr, pal, ps, ctx, note, screen):
             elif tint is not None:
                 _put(stdscr, y, cx, ' ' * cell, pal.fill(y, cx, h, w, bg=tint))
             cm = '▸' if cur else ' '
-            # markers: ● own member · ↳ inherited member · ~ excluded/pruned
-            mk = ('●' if name in own else '↳') if name in members else \
-                 ('~' if name in removed else ' ')
+            # markers: membership of the CURRENT profile (● own · ↳ via-include · ~ excluded), else the
+            # component's GLOBAL disposition (☆ interesting · · seen · ? new · blank = included elsewhere).
+            if name in members:
+                mk, delem = ('●' if name in own else '↳'), 'component'
+            elif name in removed:
+                mk, delem = '~', 'info_dim'
+            elif _disp.get(name) == 'interesting':
+                mk, delem = '☆', 'link'
+            elif _disp.get(name) == 'seen':
+                mk, delem = '·', 'info_dim'
+            elif ctx.config.is_new(name):
+                mk, delem = '?', 'menu_new'
+            else:
+                mk, delem = ' ', 'component'
+            if avail:
+                elem = delem                          # tint the row by its disposition (grey-out wins if unavail)
             # the resolved method trails the name, in the muted method colour; a pin is marked `[via]`
             mstr = (f'[{via}]' if pinned else via) if via else ''
             nm_txt = f'{cm}{mk} {name}'
@@ -4008,6 +4024,19 @@ def run(ctx):
                                         else f'{_c}: {lbl}')
                         except ConfigsysError as e:
                             note = f'stage-uninstall failed: {e}'
+                elif pfact in ('disp-interesting', 'disp-seen') and ps.focus == 'right':
+                    _vc = ps.vcatalog()                    # toggle the selected component's disposition
+                    if _vc:                                # (press again on the same state -> back to NEW)
+                        _c = _vc[ps.rcur]
+                        _want = 'interesting' if pfact == 'disp-interesting' else 'seen'
+                        _state = 'new' if ctx.config.disposition(_c) == _want else _want
+                        try:
+                            changed, lbl = actions.set_disposition(ctx, _c, _state)
+                            ps.reload(); menu_dirty = menu_dirty or changed
+                            note = (f'{_c}: {_state.upper() if _state != "new" else "NEW"}'
+                                    if changed else f'{_c}: {lbl}')
+                        except ConfigsysError as e:
+                            note = f'disposition failed: {e}'
                 elif pfact == 'orphan-ignore' and ps.focus == 'right':
                     _vc = ps.vcatalog()                    # toggle the selected orphan's ignore state
                     if _vc:
