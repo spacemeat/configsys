@@ -2070,6 +2070,7 @@ def _machines_modal(stdscr, pal, ctx, targets):
         cur = ctx.config.current_machine()
         return [cur] + [m for m in ms if m != cur]
 
+    dim = pal.get('dim')
     while True:
         rows = machs()
         this = ctx.config.current_machine()
@@ -2077,9 +2078,10 @@ def _machines_modal(stdscr, pal, ctx, targets):
             tg = {this}
         sel = max(0, min(sel, len(rows) - 1))
         h, w = stdscr.getmaxyx()
-        box_w = min(52, max(34, w - 4))
-        vis = max(3, min(len(rows), h - 6))
-        box_h = vis + 4
+        stdscr.erase()                              # clear each frame so a dismissed sub-dialog (rename/
+        box_w = min(52, max(34, w - 4))             # remove) never lingers behind this modal
+        vis = max(3, min(len(rows), h - 7))
+        box_h = vis + 5                             # borders + rows + a 2-line legend
         y0, x0 = max(0, (h - box_h) // 2), max(0, (w - box_w) // 2)
         top = min(sel, top) if sel < top else (sel - vis + 1 if sel >= top + vis else top)
         _put(stdscr, y0, x0, '┌' + '─' * (box_w - 2) + '┐', border)
@@ -2087,8 +2089,6 @@ def _machines_modal(stdscr, pal, ctx, targets):
         for r in range(1, box_h - 1):
             _put(stdscr, y0 + r, x0, '│' + ' ' * (box_w - 2) + '│', border)
         _put(stdscr, y0 + box_h - 1, x0, '└' + '─' * (box_w - 2) + '┘', border)
-        _put(stdscr, y0 + box_h - 1, x0 + 2,
-             ' space:target · m:current · a:add · r:rename · x:remove · esc ', border)
         for k in range(vis):
             idx = top + k
             if idx >= len(rows):
@@ -2099,6 +2099,9 @@ def _machines_modal(stdscr, pal, ctx, targets):
             attr = curses.A_REVERSE if idx == sel else curses.A_NORMAL
             _put(stdscr, y0 + 1 + k, x0 + 2,
                  _fit(f'  [{mark}] {m}{tag}'.ljust(box_w - 4), box_w - 4), attr)
+        # legend, stacked on two lines just above the bottom border (fits the box width)
+        _put(stdscr, y0 + box_h - 3, x0 + 2, _fit('space:target · m:current · a:add', box_w - 4), dim)
+        _put(stdscr, y0 + box_h - 2, x0 + 2, _fit('r:rename · x:remove · enter/esc:close', box_w - 4), dim)
         stdscr.refresh()
         ch = stdscr.getch()
         if ch in (27, ord('q'), ord('\n'), curses.KEY_ENTER):
