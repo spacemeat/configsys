@@ -163,6 +163,18 @@ def set_included(ctx, comp, machines, on):
     return changed, 'picks'
 
 
+def set_included_clear_machine(ctx, machine):
+    '''Drop a machine's entire `picks:` entry (when the machine is removed). Returns (changed, label).'''
+    tfile = str(ctx.paths.user_config_file)
+    picks = plugins.read_picks(tfile)
+    if machine not in picks:
+        return False, 'picks'
+    picks.pop(machine, None)
+    plugins.set_picks(tfile, picks)
+    ctx.invalidate()
+    return True, 'picks'
+
+
 def migrate_picks(ctx):
     '''v3 migration: seed the current machine's `picks:` from today's active-profile membership, so
     switching to the matrix workflow (empty `configs:`) preserves the install set. Idempotent —

@@ -92,8 +92,8 @@ def test_tui_launches_navigates_and_quits(tmp_path, extra):
 
 
 def test_tui_machine_target_selector(tmp_path):
-    '''Open the working-target machine picker (M) on the Profiles page, switch target to a defined
-    machine (rebuilds against its rung + `machine:` group), edit into its namespace, then quit.'''
+    '''Open the plural machine-target picker (M) on the Profiles page, close it, Include a component
+    (writes the matrix picks), then quit — the v3 matrix render/edit paths, no crash.'''
     try:
         master, slave = pty.openpty()
     except OSError:
@@ -115,9 +115,9 @@ def test_tui_machine_target_selector(tmp_path):
 
     deadline = time.monotonic() + 10
     first = _drain(master, min(deadline, time.monotonic() + 3))
-    # 2 -> Profiles; M -> machine picker; j,⏎ -> target 'laptop'; j -> the finders row (under the
-    # machine group); tab -> catalog; space -> edit into laptop's namespace; then quit.
-    for keys in (b'2', b'M', b'j', b'\n', b'j', b'\t', b' ', b'q', b'k', b'\n'):
+    # 2 -> Profiles; M -> machine picker; esc -> close it; tab -> catalog; A -> Include the cursor
+    # component on the target machine (writes picks); then quit.
+    for keys in (b'2', b'M', b'\x1b', b'\t', b'A', b'q', b'k', b'\n'):
         try:
             os.write(master, keys)
         except OSError:

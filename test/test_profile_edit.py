@@ -256,32 +256,21 @@ def test_include_and_uninclude_profile(tmp_path):
 
 
 def test_profile_tree_and_scope_mode(tmp_path):
-    from configsys import actions
+    # v3: the left pane is a flat BROWSE list of repo/plugin profiles; scope mode pages the catalog
+    # through the selected browse profile's members.
     from configsys.tui import menu
     ctx = _rctx(tmp_path)
-    actions.add_profile(ctx, 'base')
-    actions.set_profile_membership(ctx, 'base', 'btop', 'add')
-    actions.add_profile(ctx, 'mine')
-    actions.set_profile_include(ctx, 'mine', 'base', True)   # mine includes base
-
     ps = menu.ProfileScreen(ctx)
-    ps.attr_exc = set()                                      # isolate scope from the attrs filter's
-    names = [nd[0] for nd in ps.visible_pnodes()]            # default `-dotfiles` hide
-    assert 'mine' in names and 'base' in names
-    ps.lcur = names.index('mine')
-    assert ps.cur_node()[3] is True                          # mine is expandable (has an include)
-    ps.expand_cur()
-    v = ps.visible_pnodes()
-    assert any(nd[0] == 'base' and nd[1] == 1 for nd in v)   # base shows indented under mine
-    # `*` scope mode is ON by default: the catalog is scoped to the SELECTED profile's members
+    ps.attr_exc = set()
+    names = [nd[0] for nd in ps.visible_pnodes()]
+    assert 'finders' in names and 'languages' in names        # repo browse profiles
+    assert not any(ps.is_group_header(nd) for nd in ps.visible_pnodes())   # flat, no layer groups
+    # scope mode ON by default -> catalog = the selected profile's members
     assert ps.scope_mode is True
-    ps.lcur = [nd[0] for nd in ps.visible_pnodes()].index('mine')
-    assert ps.vcatalog() == ['btop']                         # mine's members (btop, via +base)
-    ps.toggle_scope()                                        # off -> the full catalog
+    ps.lcur = names.index('finders')
+    assert set(ps.vcatalog()) == set(ctx.config.profile_components('finders'))
+    ps.toggle_scope()                                          # off -> the full catalog
     assert ps.scope_mode is False and len(ps.vcatalog()) == len(ps.catalog)
-    ps.toggle_scope()                                        # on again, following the selection
-    ps.lcur = [nd[0] for nd in ps.visible_pnodes()].index('base')
-    assert ps.vcatalog() == ['btop']                         # now scoped to base
 
 
 def test_find_next_steps_through_siblings():
@@ -397,38 +386,20 @@ def test_profile_multiselect_batch_targets(tmp_path):
     assert ctx.config.disposition('htop') == 'interesting'
 
 
-def test_profile_pane_layer_grouping(tmp_path):
-    # The pane groups profiles by defining layer: your new profiles under 'this machine', the repo
-    # catalog under a collapsed 'repo catalog' header; `L` flips to a flat list.
+def test_profile_pane_is_flat_browse_only(tmp_path):
+    # v3: the left pane is a FLAT browse list of repo/plugin profiles — no layer group headers, and
+    # authored user-layer profiles are NOT shown (irrelevant in the matrix model).
     from configsys import actions
     from configsys.tui import menu
     ctx = _rctx(tmp_path)
-    actions.add_profile(ctx, 'zmine')                          # a user-layer (top config) profile
+    actions.add_profile(ctx, 'zmine')                          # a user-layer profile
     ps = menu.ProfileScreen(ctx)
-    assert ps._profile_group('zmine') == 'user'
-    assert ps._profile_group('finders') == 'repo'             # a repo catalog profile
-
     v = ps.visible_pnodes()
-    keys = [nd[2] for nd in v]
-    assert menu._GKEY + 'user' in keys and menu._GKEY + 'repo' in keys   # group headers present
-    names = [nd[0] for nd in v]
-    assert 'zmine' in names                                    # user profile shown (its group open)
-    assert 'finders' not in names                              # repo catalog collapsed by default
-
-    # the repo header is a header row, its cur_profile is None (not editable as a profile)
-    ri = keys.index(menu._GKEY + 'repo')
-    ps.lcur = ri
-    assert ps.is_group_header(ps.cur_node()) and ps.cur_profile() is None
-    ps.expand_cur()                                            # uncollapse the repo catalog
-    assert 'finders' in [nd[0] for nd in ps.visible_pnodes()]
-    ps.lcur = ri
-    ps.collapse_cur()
-    assert 'finders' not in [nd[0] for nd in ps.visible_pnodes()]
-
-    ps.toggle_grouping()                                       # `L` -> flat: no headers, all profiles
-    v2 = ps.visible_pnodes()
-    assert not any(nd[2].startswith(menu._GKEY) for nd in v2)
-    assert {'zmine', 'finders'} <= {nd[0] for nd in v2}
+    assert not any(ps.is_group_header(nd) for nd in v)         # no group headers (flat)
+    names = {nd[0] for nd in v}
+    assert 'finders' in names                                  # repo browse profiles present
+    assert 'zmine' not in names                                # user-authored profile hidden
+    assert '!uninstall' not in names and 'all' not in names    # reserved names excluded
 
 
 def test_where_profile_report(tmp_path):

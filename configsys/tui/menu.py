@@ -873,9 +873,9 @@ _HELP = {
                 "through them to discover components. Right: a table of the components, with a column "
                 "per machine. Mark what you want per machine; each machine installs exactly its picks.",
         'glossary': [
-            ('columns', 'per catalog row: # multi-selected · then state cols i (installed here) · '
-                        't (Included on the target machines: + all · ~ some) · n (? NEW) · '
-                        'd (* interesting · = seen) · then one Included cell per machine (+ picked)'),
+            ('columns', 'per row: # multi-selected · name · from (origin: repo / plugin / local) · '
+                        'inst ● installed-here · want ● all / ◐ some (Included on target machines) · '
+                        'new ◆ · flag ☆ interesting / · seen · then one cell per machine (● picked / ○ not)'),
             ('Include / Exclude', 'A = Include (pick) the selected component(s); D = Exclude (unpick). '
                                   'Both fan out to every TARGET machine (see M). enter toggles the cursor.'),
             ('machines (M)', 'choose the TARGET machines (plural) A/D act on — toggle each in the modal. '
@@ -2074,8 +2074,8 @@ class ProfileScreen:
         self.pfilter = self.cfilter = ''   # substring filters for the profiles / catalog panes
         self.expanded = set()            # node keys of expanded profiles (inline `+include` tree)
         self.reveal = None               # key of a just-expanded node -> reveal its subtree next draw
-        self.grouped = True              # group the pane by defining layer (this machine/primary/…);
-        self.collapsed_groups = {'repo'}  # `L` toggles flat. Repo catalog collapses by default (noise).
+        self.grouped = False             # v3: a flat browse list (repo+plugin consolidated); `L` -> layer
+        self.collapsed_groups = set()    # groups. Origin is a catalog column, so no default split.
         self.scope_mode = True           # `*`: scope the catalog to the SELECTED profile's members (follows
                                          # the cursor); off = the full catalog. On by default.
         self.selected_comps = set()      # `space` multi-select: component names A/D/I/S act on as a batch
@@ -2277,7 +2277,12 @@ class ProfileScreen:
         (a layer-group header, key starts _GKEY). A root profile's children are its `+includes`.
         `key` is the ancestor path (root = key.split('\\x00')[0] = the curated profile).'''
         f = self.pfilter.lower()
-        roots = [p for p in self.profiles if f in p.lower()] if f else list(self.profiles)
+        # BROWSE LENS: only repo/plugin profiles (system, shipped). Authored user profiles (machine/
+        # primary/user) and reserved names (!uninstall, all, @picks) are irrelevant in the matrix model.
+        browse = [p for p in self.profiles
+                  if not p.startswith(('!', '@')) and p != self.ctx.config.ALL_PROFILE
+                  and (self._profile_groups(p) & {'repo', 'plugin'})]
+        roots = [p for p in browse if f in p.lower()] if f else browse
         out = []
 
         def walk(name, depth, path, kind, group):
@@ -2436,6 +2441,23 @@ class ProfileScreen:
                 int_set |= {c for c in mem if cfg.disposition(c) == 'interesting'}
         self._group_new_cache[gid] = (len(new_set), len(int_set))
         return self._group_new_cache[gid]
+
+    def origin(self, name):
+        '''Where a component is DEFINED — 'repo' · a plugin's name · 'local' — for the catalog's
+        origin column (so repo + plugins read as one consolidated browse list).'''
+        comp = self.ctx.routes.components.get(name)
+        src = str(getattr(comp, 'source', '') or '')
+        if not src:
+            return 'repo'
+        paths = self.ctx.paths
+        if src in (str(paths.routes_file), str(getattr(paths, 'config_file', ''))):
+            return 'repo'
+        if src == str(paths.user_config_file):
+            return 'local'
+        pdir = str(paths.plugins_dir)
+        if src.startswith(pdir):
+            return (src[len(pdir):].lstrip('/').split('/') or ['plugin'])[0] or 'plugin'
+        return 'repo'
 
     # -- v3 matrix: machines (columns) + Included (picks) state --
     def machines_list(self):
@@ -2804,8 +2826,8 @@ def _draw_profiles(stdscr, pal, ps, ctx, note, screen):
                  pal.style('method_dim', dit + dih - 1, dil, h, w))
 
     # RIGHT BOTTOM: the component catalog as a single vertical TABLE (the v3 matrix) — one row per
-    # component, with state columns (i installed · t included-on-target · n new · d disposition) and
-    # one Included cell PER machine. A/D toggle Included on the selected TARGET machines.
+    # component: name · origin · state columns (installed · included-on-target · new · flag) · one
+    # Included cell PER machine. A/D toggle Included on the selected TARGET machines.
     ctop, cath = top + desc_h, body_h - desc_h
     machines = ps.machines_list()
     tgset = ps.targets()
@@ -2819,39 +2841,42 @@ def _draw_profiles(stdscr, pal, ps, ctx, note, screen):
     body_rows = max(1, rih - 1)                       # one row reserved for the column header
     ps.rcur = min(ps.rcur, max(0, n - 1))
     ps.rtop = _scroll_top(ps.rcur, ps.rtop, body_rows, n)
-    # layout: sel(1) gap name(name_w) gap [i t n d](2 each) gap machine-cols(each mcw, gap)
-    STATE_X = {'i': 0, 't': 2, 'n': 4, 'd': 6}       # offsets within the 4-col state block
-    state_block = 8                                   # 4 state cols + trailing gap
-    mcw = [max(3, min(12, len(m))) for m in machines]
-    name_w = max(10, min(30, riw - 2 - state_block - 2 - (sum(mcw) + len(mcw))))
+    # column layout (offsets from ril). state columns are word-headed + hold a wide glyph + a gap.
+    CW = 5                                            # state column width (header word + wide glyph fit)
+    STATE = [('inst', 'i'), ('want', 't'), ('new', 'n'), ('flag', 'd')]
+    org_w = 9
     x_name = 2
-    x_state = x_name + name_w + 1
-    x_mach0 = x_state + state_block + 1
-    # horizontal machine scroll (rcol_left = first visible machine) when they overflow the pane
-    vis_m, mx, acc = [], x_mach0, 0
+    mach_w = [max(5, min(12, len(m) + 1)) for m in machines]
+    mach_block = sum(mach_w) + len(mach_w)
+    x_org = x_name + 1                                # placeholder; recompute name_w first
+    name_w = max(12, min(30, riw - 2 - (org_w + 1) - (CW * len(STATE)) - 1 - mach_block))
+    x_org = x_name + name_w + 1
+    x_state = x_org + org_w + 1
+    x_mach0 = x_state + CW * len(STATE) + 1
+    # horizontal machine scroll (rcol_left = first visible machine) when columns overflow the pane
+    vis_m, used = [], 0
     for mi in range(ps.rcol_left, len(machines)):
-        wneed = mcw[mi] + (1 if vis_m else 0)
-        if mx + acc + wneed > riw - 1 and vis_m:
+        need = mach_w[mi]
+        if x_mach0 + used + need > riw and vis_m:
             break
-        vis_m.append(mi); acc += wneed
-    mstart = ps.rcol_left
+        vis_m.append(mi); used += need
 
     def _col(y, xoff, text, attr):
         if 0 <= xoff < riw:
             _put(stdscr, y, ril + xoff, _fit(text, riw - xoff), attr)
 
     # header row
-    hdr_style = pal.style('menu_header', rit, ril, h, w)
-    _col(rit, x_name, _fit('COMPONENT', name_w), hdr_style)
-    for lbl, off in (('i', STATE_X['i']), ('t', STATE_X['t']), ('n', STATE_X['n']), ('d', STATE_X['d'])):
-        _col(rit, x_state + off, lbl, hdr_style)
+    hs = pal.style('menu_header', rit, ril, h, w)
+    _col(rit, x_name, _fit('COMPONENT', name_w), hs)
+    _col(rit, x_org, _fit('from', org_w), hs)
+    for j, (word, _k) in enumerate(STATE):
+        _col(rit, x_state + j * CW, _fit(word, CW), hs)
     mx = x_mach0
-    for j, mi in enumerate(vis_m):
-        m = machines[mi]
-        is_tg = m in tgset
-        _col(rit, mx, _fit(m, mcw[mi]),
+    for mi in vis_m:
+        m, is_tg = machines[mi], machines[mi] in tgset
+        _col(rit, mx, _fit(m, mach_w[mi]),
              pal.style('link' if is_tg else 'method_dim', rit, ril + mx, h, w) | (curses.A_BOLD if is_tg else 0))
-        mx += mcw[mi] + 1
+        mx += mach_w[mi]
 
     ps._probe_dirty = False                          # consumed: this draw reflects any folded-in probes
     _shown = []
@@ -2868,39 +2893,39 @@ def _draw_profiles(stdscr, pal, ps, ctx, note, screen):
         _d = _disp.get(name)
         is_new = ctx.config.is_new(name)
         tstate = ps.target_state(name)
-        # row background: focused cursor bar > unfocused-current residual
         rbg = None if foc else (residual_bg if cur else None)
         rev = curses.A_REVERSE if (low_color and cur and not foc) else 0
-        tint = None if low_color else rbg
         if foc:
             _put(stdscr, y, ril, ' ' * riw, pal.fill(y, ril, h, w, selected=True))
         elif rev:
             _put(stdscr, y, ril, ' ' * riw, curses.A_REVERSE)
-        # name tint: interesting/new pop; seen dim; unavailable greyed
         nelem = ('info_dim' if not avail else 'link' if _d == 'interesting'
                  else 'menu_new' if is_new else 'info_dim' if _d == 'seen' else 'component')
-        sel = '#' if name in ps.selected_comps else ' '
-        _col(y, 0, sel, pal.style('component', y, ril, h, w, selected=foc) | rev)
-        nm_attr = pal.style(nelem, y, ril + x_name, h, w, selected=foc) | rev | (curses.A_UNDERLINE if installed else 0)
-        _col(y, x_name, _fit(name, name_w), nm_attr)
-        # state cells
-        cells = [(STATE_X['i'], '+' if installed else ' ', 'installed'),
-                 (STATE_X['t'], {'all': '+', 'some': '~', 'none': ' '}[tstate], 'component'),
-                 (STATE_X['n'], '?' if is_new else ' ', 'menu_new'),
-                 (STATE_X['d'], '*' if _d == 'interesting' else '=' if _d == 'seen' else ' ',
+        _col(y, 0, '#' if name in ps.selected_comps else ' ',
+             pal.style('component', y, ril, h, w, selected=foc) | rev)
+        _col(y, x_name, _fit(name, name_w),
+             pal.style(nelem, y, ril + x_name, h, w, selected=foc) | rev | (curses.A_UNDERLINE if installed else 0))
+        _col(y, x_org, _fit(ps.origin(name), org_w),
+             pal.style('method_dim', y, ril + x_org, h, w, selected=foc) | rev)
+        # state cells — wide glyphs (each sits at the column start with a trailing gap so it renders)
+        want_g = {'all': '●', 'some': '◐', 'none': ' '}[tstate]
+        cells = [('●' if installed else ' ', 'installed'),
+                 (want_g, 'component' if tstate != 'none' else 'info_dim'),
+                 ('◆' if is_new else ' ', 'menu_new'),
+                 ('☆' if _d == 'interesting' else '·' if _d == 'seen' else ' ',
                   'link' if _d == 'interesting' else 'info_dim')]
-        for off, glyph, role in cells:
-            _col(y, x_state + off, glyph, pal.style(role, y, ril + x_state + off, h, w, selected=foc) | rev)
-        # per-machine Included cells
+        for j, (glyph, role) in enumerate(cells):
+            _col(y, x_state + j * CW, glyph,
+                 pal.style(role, y, ril + x_state + j * CW, h, w, selected=foc) | rev)
+        # per-machine Included cells (● picked · ○ not) — a picked target machine is bold
         mx = x_mach0
         for mi in vis_m:
             m = machines[mi]
             picked = name in picks_map.get(m, ())
-            g = '+' if picked else '·'
-            role = 'installed' if picked else 'info_dim'
-            _col(y, mx, _fit(g.ljust(mcw[mi]), mcw[mi]),
-                 pal.style(role, y, ril + mx, h, w, selected=foc) | rev | (curses.A_BOLD if (picked and m in tgset) else 0))
-            mx += mcw[mi] + 1
+            _col(y, mx, '●' if picked else '○',
+                 pal.style('installed' if picked else 'info_dim', y, ril + mx, h, w, selected=foc)
+                 | rev | (curses.A_BOLD if (picked and m in tgset) else 0))
+            mx += mach_w[mi]
     if ps.show_install:                              # probe the just-drawn rows on non-enumerable drivers
         ps.ensure_probes(_shown)
     _scrollbar_v(stdscr, pal, rit + 1, rleft + rw - 1, body_rows, ps.rtop, body_rows, n, h, w)
@@ -2911,7 +2936,7 @@ def _draw_profiles(stdscr, pal, ps, ctx, note, screen):
     if note:
         status += f'    {note}'
     # column legend for the matrix table (right-aligned on the status bar).
-    legend = 'cols i inst · t on-target · n new · d seen/int   machine: + picked '
+    legend = 'inst ● · want ●/◐ · new ◆ · flag ☆int/·seen · machine ●picked/○not '
     lg_x = max(0, w - len(legend))
     _put(stdscr, h - 3, 0, _fit(status, max(1, lg_x - 1)), pal.style('status_line', h - 3, 0, h, w))
     _put(stdscr, h - 3, lg_x, _fit(legend, w - lg_x), pal.style('status_line', h - 3, lg_x, h, w))
@@ -4327,23 +4352,52 @@ def run(ctx):
                             menu_dirty = True
                 elif pfact == 'group' and ps.focus == 'left':   # toggle grouped-by-layer <-> flat
                     ps.toggle_grouping()
-                elif pfact == 'machine-target':          # choose the TARGET machines (plural); A/D fan out
-                    machs = ps.machines_list()
+                elif pfact == 'machine-target':          # choose TARGET machines (plural) + add/remove
                     cur = set(ps.targets())
                     while True:
+                        machs = ps.machines_list()
+                        this = ctx.config.current_machine()
                         opts = [(('[*] ' if m in cur else '[ ] ') + m,
-                                 'this box' if m == ctx.config.current_machine() else '') for m in machs]
+                                 'this box' if m == this else '') for m in machs]
+                        opts.append(('＋ add machine…', ''))
+                        opts.append(('－ remove a machine…', ''))
                         opts.append(('(done)', ''))
                         pick = _popup_choose(stdscr, pal, 'Target machines — toggle (A/D fan out to all)',
                                              opts, 0)
-                        if pick is None or pick == len(machs):
+                        if pick is None or pick == len(machs) + 2:
                             break
-                        cur ^= {machs[pick]}
-                        if not cur:                      # never empty -> fall back to this box
-                            cur = {ctx.config.current_machine()}
+                        if pick == len(machs):           # add
+                            nm = (_input_box(stdscr, pal, 'new machine name') or '').strip()
+                            if nm:
+                                ch, lbl = actions.add_machine(ctx, nm)
+                                ctx.invalidate()
+                                note = f'machine "{nm}" added ({lbl})' if ch else lbl
+                                if ch:
+                                    cur.add(nm)
+                            continue
+                        if pick == len(machs) + 1:       # remove
+                            rmable = [m for m in machs if m != this]
+                            if not rmable:
+                                note = 'no other machine to remove'
+                                continue
+                            ri = _popup_choose(stdscr, pal, 'Remove which machine? (its picks are dropped)',
+                                               [(m, '') for m in rmable], 0)
+                            if ri is not None:
+                                rm = rmable[ri]
+                                actions.remove_machine(ctx, rm)
+                                actions.set_included_clear_machine(ctx, rm)   # drop its picks too
+                                ctx.invalidate()
+                                cur.discard(rm)
+                                note = f'machine "{rm}" removed'
+                            continue
+                        cur ^= {machs[pick]}             # toggle a target
+                        if not cur:
+                            cur = {this}
+                    ps.target_machines = cur
+                    ps = ProfileScreen(ctx)              # rebuild against any machine add/remove
                     ps.target_machines = cur
                     menu_dirty = True
-                    note = f'targets: {", ".join(sorted(cur))}'
+                    note = note or f'targets: {", ".join(sorted(cur))}'
                 elif pfact == 'where':                     # full-page provenance for the current profile
                     _wp = ps.cur_profile()
                     if _wp:
