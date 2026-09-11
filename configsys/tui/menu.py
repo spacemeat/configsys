@@ -873,26 +873,27 @@ _HELP = {
                 "through them to discover components. Right: a table of the components, with a column "
                 "per machine. Mark what you want per machine; each machine installs exactly its picks.",
         'glossary': [
-            ('columns', 'per row: # multi-selected · name · from (origin: repo / plugin / local) · '
-                        'inst ● installed-here · want ● all / ◐ some (Included on target machines) · '
-                        'new ◆ · flag ☆ interesting / · seen · then one cell per machine (● picked / ○ not)'),
+            ('columns', 'per row: # multi-selected · name · via (resolved install method; [pinned]) · '
+                        'from (origin: repo / plugin / local) · inst ● installed-here · '
+                        'want ● all / ◐ some (Included on target machines) · new ◆ · '
+                        'flag ☆ interesting / · seen · then one cell per machine (● picked / ○ not)'),
             ('Include / Exclude', 'A = Include (pick) the selected component(s); D = Exclude (unpick). '
                                   'Both fan out to every TARGET machine (see M). enter toggles the cursor.'),
-            ('machines (M)', 'choose the TARGET machines (plural) A/D act on — toggle each in the modal. '
-                             'Their column headers are highlighted. Defaults to this box.'),
+            ('machines (M)', 'choose the TARGET machines (plural) A/D act on — toggle each; the modal also '
+                             'adds / renames / removes machines. Target headers are highlighted.'),
             ('multi-select', 'space toggles a component into the set (#); a (select-all) takes every row '
                              'in view; then A/D/I/S act on the whole set at once (else on the cursor).'),
-            ('interesting / seen', 'I bookmarks a component INTERESTING (not installing it, just flagged); '
-                                   'S marks it SEEN; NEW (?) = not yet triaged (press again to clear). Global.'),
+            ('interesting / seen', 'I bookmarks a component INTERESTING (☆, just flagged, not installed); '
+                                   'S marks it SEEN (·) — and never clears an INTERESTING flag; NEW (◆) = '
+                                   'not yet triaged. Global (all machines).'),
             ('scope (*)', 'toggle: scope the table to the browsed profile’s members (▸, on by default) '
                           '↔ the whole catalog'),
             ('⁺N / *N', 'on a browse profile (left): ⁺N = NEW members · *N = INTERESTING members — how '
                         'much of that profile is still worth a look'),
             ('row colours', 'the name is tinted by state: NEW in the new-accent colour · INTERESTING in '
                             'the link colour · SEEN dimmed · unavailable-here greyed · installed UNDERLINED'),
-            ('grouping (L)', 'group the browse pane by layer (repo catalog · plugins) ↔ flat A-Z'),
             ('attr-filter (f)', 'faceted kind filter over the catalog (F = live substring filter)'),
-            ('method (m)', 'pin the selected component’s install method · x stages it for uninstall'),
+            ('via (v)', 'pin the selected component’s install method · x stages it for uninstall'),
             ('detail box', 'on a browse profile (left): its raw .hu definition. On a component '
                            '(right): description · attrs · required-by · in-profiles'),
         ],
@@ -2841,42 +2842,48 @@ def _draw_profiles(stdscr, pal, ps, ctx, note, screen):
     body_rows = max(1, rih - 1)                       # one row reserved for the column header
     ps.rcur = min(ps.rcur, max(0, n - 1))
     ps.rtop = _scroll_top(ps.rcur, ps.rtop, body_rows, n)
-    # column layout (offsets from ril). state columns are word-headed + hold a wide glyph + a gap.
-    CW = 5                                            # state column width (header word + wide glyph fit)
+    # column layout (offsets from ril): name · via · from · state cols (word-headed + wide glyph) · machines
+    CW = 5                                            # state column width
     STATE = [('inst', 'i'), ('want', 't'), ('new', 'n'), ('flag', 'd')]
-    org_w = 9
+    via_w, org_w = 10, 8
+    MGAP = 3                                          # gap between machine columns (room to breathe)
+    mach_w = [max(6, min(14, len(m))) + MGAP for m in machines]   # column + its trailing gap
+    mach_block = sum(mach_w)
     x_name = 2
-    mach_w = [max(5, min(12, len(m) + 1)) for m in machines]
-    mach_block = sum(mach_w) + len(mach_w)
-    x_org = x_name + 1                                # placeholder; recompute name_w first
-    name_w = max(12, min(30, riw - 2 - (org_w + 1) - (CW * len(STATE)) - 1 - mach_block))
-    x_org = x_name + name_w + 1
+    name_w = max(12, min(26, riw - 2 - (via_w + 1) - (org_w + 1) - (CW * len(STATE)) - 1 - mach_block))
+    x_via = x_name + name_w + 1
+    x_org = x_via + via_w + 1
     x_state = x_org + org_w + 1
     x_mach0 = x_state + CW * len(STATE) + 1
     # horizontal machine scroll (rcol_left = first visible machine) when columns overflow the pane
     vis_m, used = [], 0
     for mi in range(ps.rcol_left, len(machines)):
-        need = mach_w[mi]
-        if x_mach0 + used + need > riw and vis_m:
+        if x_mach0 + used + mach_w[mi] > riw and vis_m:
             break
-        vis_m.append(mi); used += need
+        vis_m.append(mi); used += mach_w[mi]
 
     def _col(y, xoff, text, attr):
         if 0 <= xoff < riw:
             _put(stdscr, y, ril + xoff, _fit(text, riw - xoff), attr)
 
+    def _mach_base(mi):                              # left edge of a machine column's content area
+        return x_mach0 + sum(mach_w[k] for k in vis_m[:vis_m.index(mi)])
+
+    def _mach_glyph_x(mi):                           # centered glyph position within the column
+        return _mach_base(mi) + max(0, (mach_w[mi] - MGAP - 1)) // 2
+
     # header row
     hs = pal.style('menu_header', rit, ril, h, w)
     _col(rit, x_name, _fit('COMPONENT', name_w), hs)
+    _col(rit, x_via, _fit('via', via_w), hs)
     _col(rit, x_org, _fit('from', org_w), hs)
     for j, (word, _k) in enumerate(STATE):
         _col(rit, x_state + j * CW, _fit(word, CW), hs)
-    mx = x_mach0
     for mi in vis_m:
         m, is_tg = machines[mi], machines[mi] in tgset
-        _col(rit, mx, _fit(m, mach_w[mi]),
-             pal.style('link' if is_tg else 'method_dim', rit, ril + mx, h, w) | (curses.A_BOLD if is_tg else 0))
-        mx += mach_w[mi]
+        _col(rit, _mach_base(mi), _fit(m, mach_w[mi] - MGAP),
+             pal.style('link' if is_tg else 'method_dim', rit, ril + _mach_base(mi), h, w)
+             | (curses.A_BOLD if is_tg else 0))
 
     ps._probe_dirty = False                          # consumed: this draw reflects any folded-in probes
     _shown = []
@@ -2888,7 +2895,7 @@ def _draw_profiles(stdscr, pal, ps, ctx, note, screen):
         _shown.append(name)
         cur = i == ps.rcur
         foc = cur and ps.focus == 'right'
-        avail, _via, _pinned = ps._resolve(name)
+        avail, via, pinned = ps._resolve(name)
         installed = ps.show_install and (name in ov_inst or ps._probe_installed.get(name))
         _d = _disp.get(name)
         is_new = ctx.config.is_new(name)
@@ -2905,6 +2912,9 @@ def _draw_profiles(stdscr, pal, ps, ctx, note, screen):
              pal.style('component', y, ril, h, w, selected=foc) | rev)
         _col(y, x_name, _fit(name, name_w),
              pal.style(nelem, y, ril + x_name, h, w, selected=foc) | rev | (curses.A_UNDERLINE if installed else 0))
+        via_txt = (f'[{via}]' if pinned else via) if via else ('—' if not avail else '')
+        _col(y, x_via, _fit(via_txt, via_w),
+             pal.style('method_dim', y, ril + x_via, h, w, selected=foc) | rev)
         _col(y, x_org, _fit(ps.origin(name), org_w),
              pal.style('method_dim', y, ril + x_org, h, w, selected=foc) | rev)
         # state cells — wide glyphs (each sits at the column start with a trailing gap so it renders)
@@ -2917,15 +2927,14 @@ def _draw_profiles(stdscr, pal, ps, ctx, note, screen):
         for j, (glyph, role) in enumerate(cells):
             _col(y, x_state + j * CW, glyph,
                  pal.style(role, y, ril + x_state + j * CW, h, w, selected=foc) | rev)
-        # per-machine Included cells (● picked · ○ not) — a picked target machine is bold
-        mx = x_mach0
+        # per-machine Included cells (● picked · ○ not, centered) — a picked target machine is bold
         for mi in vis_m:
             m = machines[mi]
             picked = name in picks_map.get(m, ())
-            _col(y, mx, '●' if picked else '○',
-                 pal.style('installed' if picked else 'info_dim', y, ril + mx, h, w, selected=foc)
+            gx = _mach_glyph_x(mi)
+            _col(y, gx, '●' if picked else '○',
+                 pal.style('installed' if picked else 'info_dim', y, ril + gx, h, w, selected=foc)
                  | rev | (curses.A_BOLD if (picked and m in tgset) else 0))
-            mx += mach_w[mi]
     if ps.show_install:                              # probe the just-drawn rows on non-enumerable drivers
         ps.ensure_probes(_shown)
     _scrollbar_v(stdscr, pal, rit + 1, rleft + rw - 1, body_rows, ps.rtop, body_rows, n, h, w)
@@ -2944,13 +2953,13 @@ def _draw_profiles(stdscr, pal, ps, ctx, note, screen):
         g = lambda a: _KEYMAP.glyph('profiles', a)
         nav1 = (f" {g('down')}/{g('up')} move · {g('right')}/{g('left')} scroll/expand · "
                 f"{g('switch-pane')} panes · {g('find')} find · {g('filter')} filter · "
-                f"{g('group')} group · {g('attr-filter')} attrs · {g('machine-target')} machines ")
+                f"{g('attr-filter')} attrs · {g('machine-target')} machines ")
         nav2 = (f" {g('include')} Include · {g('exclude')} Exclude · {g('select')} sel · "
                 f"{g('select-all')} all · {g('disp-interesting')} int · {g('disp-seen')} seen · "
-                f"{g('scope')} scope · {g('method')} method · {g('stage-uninstall')} uninst · {g('quit')} quit ")
+                f"{g('scope')} scope · {g('method')} via · {g('stage-uninstall')} uninst · {g('quit')} quit ")
     else:
-        nav1 = (' j/k move · h/l scroll/expand · tab panes · / find · F filter · L group · f attrs · M machines ')
-        nav2 = (' A Include · D Exclude · space sel · a all · I int · S seen · * scope · m method · x uninst · q quit ')
+        nav1 = (' j/k move · h/l scroll/expand · tab panes · / find · F filter · f attrs · M machines ')
+        nav2 = (' A Include · D Exclude · space sel · a all · I int · S seen · * scope · v via · x uninst · q quit ')
     _put(stdscr, h - 2, 0, _fit(nav1.ljust(w), w), pal.style('footer', h - 2, 0, h, w))
     _put(stdscr, h - 1, 0, _fit(nav2.ljust(w), w), pal.style('footer', h - 1, 0, h, w))
     stdscr.refresh()
@@ -4234,6 +4243,10 @@ def run(ctx):
                         nch = 0
                         try:
                             for _c in _targets:
+                                # SEEN must not clobber INTERESTING (the flag is the stronger state);
+                                # skip an interesting component when marking seen.
+                                if _want == 'seen' and ctx.config.disposition(_c) == 'interesting':
+                                    continue
                                 _state = ('new' if (_single and ctx.config.disposition(_c) == _want)
                                           else _want)
                                 changed, _lbl = actions.set_disposition(ctx, _c, _state)
@@ -4350,8 +4363,6 @@ def run(ctx):
                             ps._res.pop(name, None)        # its resolution changed -> drop the stale entry
                             ps.reload()
                             menu_dirty = True
-                elif pfact == 'group' and ps.focus == 'left':   # toggle grouped-by-layer <-> flat
-                    ps.toggle_grouping()
                 elif pfact == 'machine-target':          # choose TARGET machines (plural) + add/remove
                     cur = set(ps.targets())
                     while True:
@@ -4360,13 +4371,15 @@ def run(ctx):
                         opts = [(('[*] ' if m in cur else '[ ] ') + m,
                                  'this box' if m == this else '') for m in machs]
                         opts.append(('＋ add machine…', ''))
+                        opts.append(('✎ rename a machine…', ''))
                         opts.append(('－ remove a machine…', ''))
                         opts.append(('(done)', ''))
+                        i_add, i_ren, i_rm, i_done = len(machs), len(machs) + 1, len(machs) + 2, len(machs) + 3
                         pick = _popup_choose(stdscr, pal, 'Target machines — toggle (A/D fan out to all)',
                                              opts, 0)
-                        if pick is None or pick == len(machs) + 2:
+                        if pick is None or pick == i_done:
                             break
-                        if pick == len(machs):           # add
+                        if pick == i_add:                # add
                             nm = (_input_box(stdscr, pal, 'new machine name') or '').strip()
                             if nm:
                                 ch, lbl = actions.add_machine(ctx, nm)
@@ -4375,7 +4388,19 @@ def run(ctx):
                                 if ch:
                                     cur.add(nm)
                             continue
-                        if pick == len(machs) + 1:       # remove
+                        if pick == i_ren:                # rename
+                            ri = _popup_choose(stdscr, pal, 'Rename which machine?',
+                                               [(m, '') for m in machs], 0)
+                            if ri is not None:
+                                old = machs[ri]
+                                nm = (_input_box(stdscr, pal, f'rename "{old}" to', initial=old) or '').strip()
+                                ch, why = actions.rename_machine(ctx, old, nm)
+                                ctx.invalidate()
+                                if ch and old in cur:
+                                    cur.discard(old); cur.add(nm)
+                                note = f'renamed "{old}" -> "{nm}"' if ch else why
+                            continue
+                        if pick == i_rm:                 # remove
                             rmable = [m for m in machs if m != this]
                             if not rmable:
                                 note = 'no other machine to remove'

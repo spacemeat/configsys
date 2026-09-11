@@ -162,7 +162,7 @@ KNOWN_ACTIONS = {
     'dotfiles': {'unlink', 'capture', 'capture-all', 'link-all'},
     'plugins': {'add', 'remove', 'sync', 'sync-all', 'bless', 'unbless', 'update', 'update-all',
                 'trust', 'trust-all', 'set-ref'},
-    'profiles': {'scope', 'include', 'exclude', 'select-all', 'method', 'group', 'machine-target',
+    'profiles': {'scope', 'include', 'exclude', 'select-all', 'method', 'machine-target',
                  'attr-filter', 'toggle-install', 'stage-uninstall', 'disp-interesting', 'disp-seen',
                  'orphan-ignore'},
     'theme': {'new', 'reset', 'edit-bg', 'effect-bold', 'effect-underline', 'effect-reverse',

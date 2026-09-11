@@ -63,6 +63,22 @@ def test_requested_includes_picks(tmp_path):
     assert ctx.config.requested().get('btop') == ['picks']
 
 
+def test_rename_machine_carries_picks(tmp_path):
+    from configsys.app import Context, build_parser
+    d = tmp_path / '.config' / 'configsys'
+    d.mkdir(parents=True, exist_ok=True)
+    (d / 'configsys.hu').write_text(
+        '{\n  machine: ts-desktop\n  machines: { ts-desktop: {} }\n'
+        '  picks: { ts-desktop: [ btop  fd ] }\n}\n')
+    ctx = Context(build_parser().parse_args(['--home', str(tmp_path), '--os', 'pop', 'inspect']))
+    ok, new = actions.rename_machine(ctx, 'ts-desktop', 'ts-laptop')
+    assert ok and new == 'ts-laptop'
+    assert 'ts-laptop' in ctx.config.machines() and 'ts-desktop' not in ctx.config.machines()
+    assert ctx.config.included('ts-laptop') == {'btop', 'fd'}          # picks carried over
+    assert ctx.config.current_machine() == 'ts-laptop'                 # selection re-pointed
+    assert actions.rename_machine(ctx, 'ts-laptop', 'ts-laptop')[0] is False   # same name -> no-op
+
+
 def test_migrate_picks_from_active_profiles(tmp_path):
     import io
     from contextlib import redirect_stdout

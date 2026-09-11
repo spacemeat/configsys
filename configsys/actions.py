@@ -375,6 +375,33 @@ def remove_machine(ctx, name):
     return True, label
 
 
+def rename_machine(ctx, old, new):
+    '''Rename a machine: move its `machines:` entry AND its `picks:` set to `new`, and re-point the
+    `machine:` selection if it named `old`. Returns (changed, reason).'''
+    new = (new or '').strip()
+    if not new:
+        return False, 'a new name is required'
+    if new == old:
+        return False, 'same name'
+    if new in ctx.config.machines():
+        return False, f'machine "{new}" already exists'
+    tfile, _label = edit_target(ctx)
+    machines = plugins.read_machines(tfile)
+    if old in machines:
+        machines[new] = machines.pop(old)
+        plugins.set_machines(tfile, machines)
+    # carry the (local) picks entry across
+    ptile = str(ctx.paths.user_config_file)
+    picks = plugins.read_picks(ptile)
+    if old in picks:
+        picks[new] = picks.pop(old)
+        plugins.set_picks(ptile, picks)
+    ctx.invalidate()
+    if ctx.config.selected_machine() == old:               # re-point this box's selection
+        set_config_setting(ctx, 'machine', [new])
+    return True, new
+
+
 def set_machine_active(ctx, name):
     '''Set THIS box's `machine:` selection (local top config, machine-nature) — an empty name clears
     it. Returns (changed, label).'''
