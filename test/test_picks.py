@@ -79,6 +79,23 @@ def test_rename_machine_carries_picks(tmp_path):
     assert actions.rename_machine(ctx, 'ts-laptop', 'ts-laptop')[0] is False   # same name -> no-op
 
 
+def test_rename_materializes_synthetic_current(tmp_path):
+    # renaming the un-named default 'this-machine' materializes it into machines: and re-points the
+    # machine: selection (the sync bug fix) — nothing was in machines: before.
+    from configsys.app import Context, build_parser
+    d = tmp_path / '.config' / 'configsys'
+    d.mkdir(parents=True, exist_ok=True)
+    (d / 'configsys.hu').write_text('{\n  configs: []\n}\n')
+    ctx = Context(build_parser().parse_args(['--home', str(tmp_path), '--os', 'pop', 'inspect']))
+    assert ctx.config.current_machine() == 'this-machine' and ctx.config.machines() == {}
+    actions.set_included(ctx, 'btop', ['this-machine'], True)
+    ok, new = actions.rename_machine(ctx, 'this-machine', 'desktop')
+    assert ok and new == 'desktop'
+    assert 'desktop' in ctx.config.machines()                 # materialized
+    assert ctx.config.current_machine() == 'desktop'          # selection re-pointed
+    assert ctx.config.included('desktop') == {'btop'}         # picks carried
+
+
 def test_migrate_picks_from_active_profiles(tmp_path):
     import io
     from contextlib import redirect_stdout

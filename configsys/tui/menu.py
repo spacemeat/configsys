@@ -2087,7 +2087,8 @@ def _machines_modal(stdscr, pal, ctx, targets):
         for r in range(1, box_h - 1):
             _put(stdscr, y0 + r, x0, '│' + ' ' * (box_w - 2) + '│', border)
         _put(stdscr, y0 + box_h - 1, x0, '└' + '─' * (box_w - 2) + '┘', border)
-        _put(stdscr, y0 + box_h - 1, x0 + 2, ' space:target · a:add · r:rename · x:remove · esc ', border)
+        _put(stdscr, y0 + box_h - 1, x0 + 2,
+             ' space:target · m:current · a:add · r:rename · x:remove · esc ', border)
         for k in range(vis):
             idx = top + k
             if idx >= len(rows):
@@ -2110,6 +2111,12 @@ def _machines_modal(stdscr, pal, ctx, targets):
             tg ^= {rows[sel]}
             if not tg:
                 tg = {this}
+        elif ch == ord('m'):                            # make the selected machine THIS box's current
+            if rows[sel] != this:
+                actions.set_machine_active(ctx, rows[sel])
+                ctx.invalidate()
+                note = f'current → "{rows[sel]}"'
+                sel = 0                                 # current sorts first
         elif ch == ord('a'):
             nm = (_input_box(stdscr, pal, 'new machine name') or '').strip()
             if nm:
@@ -2129,8 +2136,10 @@ def _machines_modal(stdscr, pal, ctx, targets):
             note = f'renamed "{old}" → "{nm}"' if ok else why
         elif ch == ord('x'):
             rm = rows[sel]
-            if _popup_choose(stdscr, pal, f'remove machine "{rm}"? (its picks are dropped)',
-                             [('cancel', ''), ('remove', '')], 0) == 1:
+            if rm == this:
+                note = 'can’t remove the current machine (switch with m first)'
+            elif _popup_choose(stdscr, pal, f'remove machine "{rm}"? (its picks are dropped)',
+                               [('cancel', ''), ('remove', '')], 0) == 1:
                 actions.remove_machine(ctx, rm)
                 actions.set_included_clear_machine(ctx, rm)
                 ctx.invalidate()

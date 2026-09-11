@@ -385,11 +385,16 @@ def rename_machine(ctx, old, new):
         return False, 'same name'
     if new in ctx.config.machines():
         return False, f'machine "{new}" already exists'
+    was_current = old == ctx.config.current_machine()
     tfile, _label = edit_target(ctx)
     machines = plugins.read_machines(tfile)
     if old in machines:
         machines[new] = machines.pop(old)
-        plugins.set_machines(tfile, machines)
+    elif was_current:
+        machines[new] = {}                                 # materialize the synthetic default under its
+    else:                                                  # new name (the un-named "this-machine")
+        return False, f'no machine "{old}"'
+    plugins.set_machines(tfile, machines)
     # carry the (local) picks entry across
     ptile = str(ctx.paths.user_config_file)
     picks = plugins.read_picks(ptile)
@@ -397,7 +402,7 @@ def rename_machine(ctx, old, new):
         picks[new] = picks.pop(old)
         plugins.set_picks(ptile, picks)
     ctx.invalidate()
-    if ctx.config.selected_machine() == old:               # re-point this box's selection
+    if was_current or ctx.config.selected_machine() == old:   # re-point this box's selection
         set_config_setting(ctx, 'machine', [new])
     return True, new
 
