@@ -869,43 +869,32 @@ _HELP = {
         ],
     },
     'profiles': {
-        'desc': "Compose and activate profiles. Left: the profile tree. Right: the component catalog "
-                "for the selected profile, plus a detail box for the highlighted component. Toggle a "
-                "component's membership with select/confirm in the right pane.",
+        'desc': "The component × machine matrix. Left: repo/plugin profiles as a BROWSE LENS — page "
+                "through them to discover components. Right: a table of the components, with a column "
+                "per machine. Mark what you want per machine; each machine installs exactly its picks.",
         'glossary': [
-            ('markers', '● active · ◐ active via +include · ○ inactive · ▸ scoped (catalog follows it) · '
-                        '~ subprofile excluded'),
-            ('scope (*)', 'toggle: scope the catalog to the selected profile’s members (▸, on by '
-                          'default) <-> the full catalog'),
-            ('spaces', 'repo/plugin groups are BROWSE-ONLY system profiles (read-only); machine/'
-                       'primary/user groups are yours to edit · ⧉ = your clone of a system profile '
-                       '(the pristine original still shows under repo/plugin)'),
-            ('⁺N / *N', '⁺N = NEW (undispositioned) members of a profile; *N = INTERESTING (bookmarked) '
-                        'members — on a group header, distinct across the whole group; triage with A/I/S/X'),
-            ('grouping (L)', 'group the pane by defining layer (this machine · your primary · plugins · '
-                             'repo catalog, collapsed) ↔ flat A-Z; enter/h/l folds a group'),
-            ('machine (M)', 'pick the working-TARGET machine to curate; edits then land in its '
-                            'machines:[name] namespace (execute stays local)'),
-            ('catalog', 'TWO columns per row — membership (+ own · > via-include · - excluded · blank) '
-                        'then disposition (* interesting · = seen · ? new · blank); # = multi-selected'),
-            ('row colours', 'the component name is tinted by state: NEW in the new-accent colour · '
-                            'INTERESTING in the link/accent colour · SEEN and EXCLUDED dimmed · '
-                            'unavailable-here greyed · installed UNDERLINED · an orphan in its kind colour'),
-            ('disposition', 'I marks the component INTERESTING (bookmarked) · S marks it SEEN · '
-                            'NEW (?) = an upstream component you have not yet triaged (press again to clear)'),
-            ('multi-select', 'space (✔) toggles a component into a batch set; A/I/S/X then act on the '
-                             'whole set at once (spans profiles, cleared after) — else they act on the cursor'),
-            ('add (A)', 'add the selected catalog component(s) to a user profile (pick from a modal, '
-                        'or create a new profile)'),
-            ('clone (c)', 'deep-clone the selected SYSTEM profile into an editable same-name copy — '
-                          'hierarchy + components; a modal emplaces it as a +member of a user profile '
-                          '(or top-level); new upstream members then show as NEW, not auto-added'),
+            ('columns', 'per catalog row: # multi-selected · then state cols i (installed here) · '
+                        't (Included on the target machines: + all · ~ some) · n (? NEW) · '
+                        'd (* interesting · = seen) · then one Included cell per machine (+ picked)'),
+            ('Include / Exclude', 'A = Include (pick) the selected component(s); D = Exclude (unpick). '
+                                  'Both fan out to every TARGET machine (see M). enter toggles the cursor.'),
+            ('machines (M)', 'choose the TARGET machines (plural) A/D act on — toggle each in the modal. '
+                             'Their column headers are highlighted. Defaults to this box.'),
+            ('multi-select', 'space toggles a component into the set (#); a (select-all) takes every row '
+                             'in view; then A/D/I/S act on the whole set at once (else on the cursor).'),
+            ('interesting / seen', 'I bookmarks a component INTERESTING (not installing it, just flagged); '
+                                   'S marks it SEEN; NEW (?) = not yet triaged (press again to clear). Global.'),
+            ('scope (*)', 'toggle: scope the table to the browsed profile’s members (▸, on by default) '
+                          '↔ the whole catalog'),
+            ('⁺N / *N', 'on a browse profile (left): ⁺N = NEW members · *N = INTERESTING members — how '
+                        'much of that profile is still worth a look'),
+            ('row colours', 'the name is tinted by state: NEW in the new-accent colour · INTERESTING in '
+                            'the link colour · SEEN dimmed · unavailable-here greyed · installed UNDERLINED'),
+            ('grouping (L)', 'group the browse pane by layer (repo catalog · plugins) ↔ flat A-Z'),
             ('attr-filter (f)', 'faceted kind filter over the catalog (F = live substring filter)'),
-            ('terms', '+name folds in another profile · ~name removes a component OR excludes a subprofile'),
-            ('~ toggle', "on a nested subprofile: include/exclude it in the top-level profile (writes +/~)"),
-            ('where (w)', "provenance for the selected profile: layers · relation · counts"),
-            ('detail box', "on a profile (left focus): its raw .hu definition [top layer]. On a "
-                           "component (catalog focus): description · attrs · required-by · in-profiles"),
+            ('method (m)', 'pin the selected component’s install method · x stages it for uninstall'),
+            ('detail box', 'on a browse profile (left): its raw .hu definition. On a component '
+                           '(right): description · attrs · required-by · in-profiles'),
         ],
     },
     'plugins': {
@@ -2089,7 +2078,8 @@ class ProfileScreen:
         self.collapsed_groups = {'repo'}  # `L` toggles flat. Repo catalog collapses by default (noise).
         self.scope_mode = True           # `*`: scope the catalog to the SELECTED profile's members (follows
                                          # the cursor); off = the full catalog. On by default.
-        self.selected_comps = set()      # `space` multi-select: component names A/I/S/X act on as a batch
+        self.selected_comps = set()      # `space` multi-select: component names A/D/I/S act on as a batch
+        self.target_machines = None      # v3 matrix: the selected edit-target machines (set); None -> {current}
         self._new_count_cache = {}       # (profile, ceiling) -> #NEW members; (re)built lazily per reload
         self._group_new_cache = {}       # group -> #distinct NEW members; the `⁺N` header/row badges
         self.attr_inc = set()            # `A` faceted attr filter: lowercased tags to INCLUDE
@@ -2447,6 +2437,30 @@ class ProfileScreen:
         self._group_new_cache[gid] = (len(new_set), len(int_set))
         return self._group_new_cache[gid]
 
+    # -- v3 matrix: machines (columns) + Included (picks) state --
+    def machines_list(self):
+        '''Every machine to show a column for: the defined `machines:` names, else just the current
+        machine (a one-machine user never has to name it). Sorted, current machine first.'''
+        ms = sorted(self.ctx.config.machines().keys())
+        cur = self.ctx.config.current_machine()
+        if cur not in ms:
+            ms = [cur] + ms
+        else:
+            ms = [cur] + [m for m in ms if m != cur]
+        return ms
+
+    def targets(self):
+        '''The edit-target machines A/D fan out to — the selected set, or {current} by default.'''
+        return self.target_machines if self.target_machines else {self.ctx.config.current_machine()}
+
+    def target_state(self, comp):
+        '''Whether `comp` is picked across the TARGET machines: "all" · "some" · "none" — the
+        actionable Included summary (what A/D toggles).'''
+        picks = self.ctx.config.picks()
+        tg = self.targets()
+        hits = sum(1 for m in tg if comp in picks.get(m, ()))
+        return 'all' if hits == len(tg) else ('some' if hits else 'none')
+
     def action_targets(self):
         '''The components an A/I/S/X action applies to: the whole `space` multi-select set (explicit,
         so it spans profiles regardless of the current scope view) if any, else just the cursor
@@ -2789,169 +2803,129 @@ def _draw_profiles(stdscr, pal, ps, ctx, note, screen):
             _put(stdscr, dit + dih - 1, dil, _fit(ptext, diw),
                  pal.style('method_dim', dit + dih - 1, dil, h, w))
 
-    # RIGHT BOTTOM: the component catalog (filtered), as a COLUMN-MAJOR grid filling the pane width
+    # RIGHT BOTTOM: the component catalog as a single vertical TABLE (the v3 matrix) — one row per
+    # component, with state columns (i installed · t included-on-target · n new · d disposition) and
+    # one Included cell PER machine. A/D toggle Included on the selected TARGET machines.
     ctop, cath = top + desc_h, body_h - desc_h
+    machines = ps.machines_list()
+    tgset = ps.targets()
+    picks_map = ctx.config.picks()
     ctitle = ((f'components — in "{prof}"' if (ps.scope_mode and prof) else 'components — all')
               + (f'  filter:{ps.cfilter}' if ps.cfilter else '')
-              + ('  ✔sel:' + str(len(ps.selected_comps)) if ps.selected_comps else '')
+              + ('  #sel:' + str(len(ps.selected_comps)) if ps.selected_comps else '')
               + ps.attr_summary())
     rit, ril, rih, riw = _panel(stdscr, pal, ctop, rleft, cath, rw, ctitle, ps.focus == 'right', h, w)
     n = len(vcat)
-    rows = max(1, rih)                               # each column is as tall as the pane
-    # size columns from the FULL catalog's longest NAME (stable) so a filter that narrows to short
-    # names doesn't shrink the columns; the draw keeps the name readable and truncates a long method.
-    longest = max((len(nm) for nm in ps.catalog), default=12)
-    col_w = max(1, min(riw, max(20, min(34, longest + 11))))  # `▸●? name  method`
-    ncols = max(1, riw // col_w) if riw > 0 else 1
-    col_w = riw // ncols if ncols else riw           # redistribute to fill the width exactly
-    total_cols = (n + rows - 1) // rows
-    ps.rrows, ps.rncols = rows, ncols                # let the key handler move by column
-    cur_col = ps.rcur // rows
-    if cur_col < ps.rcol_left:                       # keep the cursor's column in view
-        ps.rcol_left = cur_col
-    elif cur_col >= ps.rcol_left + ncols:
-        ps.rcol_left = cur_col - ncols + 1
-    ps.rcol_left = max(0, min(ps.rcol_left, max(0, total_cols - ncols)))
-    ps._probe_dirty = False                          # consumed: this draw reflects any folded-in probes
-    _shown = []                                      # on-screen names -> queue non-enumerable ones to probe
-    for vc in range(ncols if riw > 0 else 0):
-        col = ps.rcol_left + vc
-        if col >= total_cols:
+    body_rows = max(1, rih - 1)                       # one row reserved for the column header
+    ps.rcur = min(ps.rcur, max(0, n - 1))
+    ps.rtop = _scroll_top(ps.rcur, ps.rtop, body_rows, n)
+    # layout: sel(1) gap name(name_w) gap [i t n d](2 each) gap machine-cols(each mcw, gap)
+    STATE_X = {'i': 0, 't': 2, 'n': 4, 'd': 6}       # offsets within the 4-col state block
+    state_block = 8                                   # 4 state cols + trailing gap
+    mcw = [max(3, min(12, len(m))) for m in machines]
+    name_w = max(10, min(30, riw - 2 - state_block - 2 - (sum(mcw) + len(mcw))))
+    x_name = 2
+    x_state = x_name + name_w + 1
+    x_mach0 = x_state + state_block + 1
+    # horizontal machine scroll (rcol_left = first visible machine) when they overflow the pane
+    vis_m, mx, acc = [], x_mach0, 0
+    for mi in range(ps.rcol_left, len(machines)):
+        wneed = mcw[mi] + (1 if vis_m else 0)
+        if mx + acc + wneed > riw - 1 and vis_m:
             break
-        cx = ril + vc * col_w
-        for rr in range(rows):
-            i = col * rows + rr
-            if i >= n:
-                break
-            name, y = vcat[i], rit + rr
-            _shown.append(name)
-            cur = i == ps.rcur
-            foc = cur and ps.focus == 'right'
-            avail, via, pinned = ps._resolve(name)
-            elem = 'component' if avail else 'info_dim'
-            # install-axis overlay (`O`): installed -> underline; an orphan -> its `orphan_<kind>`
-            # colour; staged for uninstall (!uninstall) -> dimmed/struck. Composes with the row tint.
-            ov_extra = 0
-            if ps.show_install:
-                _o = ov_orph.get(name)
-                if _o is not None and not foc:
-                    elem = f'orphan_{_o.kind}'       # a live orphan -> its kind colour
-                    if _o.ignored:                   # an ignored orphan -> revealed, dimmed
-                        ov_extra |= curses.A_DIM
-                if name in ov_inst or ps._probe_installed.get(name):
-                    ov_extra |= curses.A_UNDERLINE   # batch index OR an individual probe found it on disk
-                if name in ov_uninst:
-                    ov_extra |= curses.A_DIM
-            cell = col_w - 1
-            # background: focused cursor (bright, wins) > current-but-unfocused (residual) > member
-            if foc:
-                rbg = None                           # the selection bar overrides the member tint
-            elif cur:
-                rbg = residual_bg
-            elif name in members:
-                rbg = member_bg
-            else:
-                rbg = None
-            # 8/16-colour: the dim tints vanish -> reverse the unfocused-current row so it stays
-            # visible; a member's subtle tint just drops (it's secondary to the cursor).
-            rev = curses.A_REVERSE if (low_color and cur and not foc) else 0
-            tint = None if low_color else rbg
-            if foc:
-                _put(stdscr, y, cx, ' ' * cell, pal.fill(y, cx, h, w, selected=True))
-            elif rev:
-                _put(stdscr, y, cx, ' ' * cell, curses.A_REVERSE)
-            elif tint is not None:
-                _put(stdscr, y, cx, ' ' * cell, pal.fill(y, cx, h, w, bg=tint))
-            # # = in the multi-select set (A/I/S/X batch); the cursor row is shown by its highlight bar
-            cm = '#' if name in ps.selected_comps else ' '
-            # TWO adjacent glyph columns so both axes show at once — NARROW (single-cell) glyphs so a
-            # wide-glyph font doesn't clip them when they sit side by side (no trailing space):
-            #  memb — membership of the SELECTED profile: + own · > via-include · - excluded · blank
-            #  dmk  — GLOBAL disposition: * interesting · = seen · ? new · blank (triaged/included)
-            if name in members:
-                memb = '+' if name in own else '>'
-            elif name in removed:
-                memb = '-'
-            else:
-                memb = ' '
-            _d = _disp.get(name)
-            if _d == 'interesting':
-                dmk = '*'
-            elif _d == 'seen':
-                dmk = '='
-            elif ctx.config.is_new(name):
-                dmk = '?'
-            else:
-                dmk = ' '
-            # row tint: bookmarks/new pop; excluded & seen dim; members and the rest plain
-            if _d == 'interesting':
-                delem = 'link'
-            elif dmk == '?':
-                delem = 'menu_new'
-            elif name in removed:
-                delem = 'info_dim'
-            elif _d == 'seen':
-                delem = 'info_dim'
-            else:
-                delem = 'component'
-            if avail:
-                elem = delem                          # tint the row by its state (grey-out wins if unavail)
-            # the resolved method trails the name, in the muted method colour; a pin is marked `[via]`
-            mstr = (f'[{via}]' if pinned else via) if via else ''
-            nm_txt = f'{cm}{memb}{dmk} {name}'
-            # the NAME has priority: it keeps its full width; the method gets whatever room is left
-            # after it (right-aligned, truncated if long), and is dropped when there's < 3 cols left.
-            m_room = cell - len(nm_txt) - 1
+        vis_m.append(mi); acc += wneed
+    mstart = ps.rcol_left
 
-            def _draw_name(nw):
-                # draw the whole `▸●? name` cell, then re-draw JUST the name (after the 4-char cursor+
-                # membership+disposition prefix, sans trailing pad) with the install-axis attrs — so the
-                # underline/dim covers only the component name, not the margin or the state glyphs.
-                drawn = _fit(nm_txt, nw)
-                _put(stdscr, y, cx, drawn, pal.style(elem, y, cx, h, w, selected=foc, bg=tint) | rev)
-                if ov_extra:
-                    namepart = drawn[4:].rstrip()
-                    if namepart:
-                        _put(stdscr, y, cx + 4, namepart,
-                             pal.style(elem, y, cx + 4, h, w, selected=foc, bg=tint) | rev | ov_extra)
+    def _col(y, xoff, text, attr):
+        if 0 <= xoff < riw:
+            _put(stdscr, y, ril + xoff, _fit(text, riw - xoff), attr)
 
-            if mstr and m_room >= 3:
-                mshow = _fit(mstr, m_room)
-                _draw_name(cell - len(mshow) - 1)
-                mx = cx + cell - len(mshow)
-                _put(stdscr, y, mx, mshow, pal.style('method_dim', y, mx, h, w, selected=foc, bg=tint) | rev)
-            else:                                    # no room for a method column: just the name
-                _draw_name(cell)
+    # header row
+    hdr_style = pal.style('menu_header', rit, ril, h, w)
+    _col(rit, x_name, _fit('COMPONENT', name_w), hdr_style)
+    for lbl, off in (('i', STATE_X['i']), ('t', STATE_X['t']), ('n', STATE_X['n']), ('d', STATE_X['d'])):
+        _col(rit, x_state + off, lbl, hdr_style)
+    mx = x_mach0
+    for j, mi in enumerate(vis_m):
+        m = machines[mi]
+        is_tg = m in tgset
+        _col(rit, mx, _fit(m, mcw[mi]),
+             pal.style('link' if is_tg else 'method_dim', rit, ril + mx, h, w) | (curses.A_BOLD if is_tg else 0))
+        mx += mcw[mi] + 1
+
+    ps._probe_dirty = False                          # consumed: this draw reflects any folded-in probes
+    _shown = []
+    for r in range(body_rows):
+        i = ps.rtop + r
+        if i >= n:
+            break
+        name, y = vcat[i], rit + 1 + r
+        _shown.append(name)
+        cur = i == ps.rcur
+        foc = cur and ps.focus == 'right'
+        avail, _via, _pinned = ps._resolve(name)
+        installed = ps.show_install and (name in ov_inst or ps._probe_installed.get(name))
+        _d = _disp.get(name)
+        is_new = ctx.config.is_new(name)
+        tstate = ps.target_state(name)
+        # row background: focused cursor bar > unfocused-current residual
+        rbg = None if foc else (residual_bg if cur else None)
+        rev = curses.A_REVERSE if (low_color and cur and not foc) else 0
+        tint = None if low_color else rbg
+        if foc:
+            _put(stdscr, y, ril, ' ' * riw, pal.fill(y, ril, h, w, selected=True))
+        elif rev:
+            _put(stdscr, y, ril, ' ' * riw, curses.A_REVERSE)
+        # name tint: interesting/new pop; seen dim; unavailable greyed
+        nelem = ('info_dim' if not avail else 'link' if _d == 'interesting'
+                 else 'menu_new' if is_new else 'info_dim' if _d == 'seen' else 'component')
+        sel = '#' if name in ps.selected_comps else ' '
+        _col(y, 0, sel, pal.style('component', y, ril, h, w, selected=foc) | rev)
+        nm_attr = pal.style(nelem, y, ril + x_name, h, w, selected=foc) | rev | (curses.A_UNDERLINE if installed else 0)
+        _col(y, x_name, _fit(name, name_w), nm_attr)
+        # state cells
+        cells = [(STATE_X['i'], '+' if installed else ' ', 'installed'),
+                 (STATE_X['t'], {'all': '+', 'some': '~', 'none': ' '}[tstate], 'component'),
+                 (STATE_X['n'], '?' if is_new else ' ', 'menu_new'),
+                 (STATE_X['d'], '*' if _d == 'interesting' else '=' if _d == 'seen' else ' ',
+                  'link' if _d == 'interesting' else 'info_dim')]
+        for off, glyph, role in cells:
+            _col(y, x_state + off, glyph, pal.style(role, y, ril + x_state + off, h, w, selected=foc) | rev)
+        # per-machine Included cells
+        mx = x_mach0
+        for mi in vis_m:
+            m = machines[mi]
+            picked = name in picks_map.get(m, ())
+            g = '+' if picked else '·'
+            role = 'installed' if picked else 'info_dim'
+            _col(y, mx, _fit(g.ljust(mcw[mi]), mcw[mi]),
+                 pal.style(role, y, ril + mx, h, w, selected=foc) | rev | (curses.A_BOLD if (picked and m in tgset) else 0))
+            mx += mcw[mi] + 1
     if ps.show_install:                              # probe the just-drawn rows on non-enumerable drivers
         ps.ensure_probes(_shown)
-    # the catalog scrolls horizontally by column; show which columns are in view on the bottom border
-    _scrollbar_h(stdscr, pal, ctop + cath - 1, ril, riw, ps.rcol_left, ncols, total_cols, h, w)
+    _scrollbar_v(stdscr, pal, rit + 1, rleft + rw - 1, body_rows, ps.rtop, body_rows, n, h, w)
 
-    from .. import actions
-    _mt = getattr(ctx, 'machine_override', None)
-    _edit_to = f'machine {_mt}' if _mt else actions.edit_target(ctx)[1]
-    status = f' profile: {prof or "—"}    edits → {_edit_to}'
+    _tg = sorted(ps.targets())
+    status = (f' browse: {prof or "—"}    this box: {ctx.config.current_machine()}'
+              f'    targets: {", ".join(_tg)}')
     if note:
         status += f'    {note}'
-    # marker legend for the profiles pane — right-aligned on the status bar so the keys get two
-    # full rows below. ● directly active (in configs:), ◐ active only via a +include, ○ inactive,
-    # ▸ star-filtered.
-    legend = '● active  ◐ inherited  ○ inactive  ▸ scoped  ⧉ clone  ⁺N new  *N int '
+    # column legend for the matrix table (right-aligned on the status bar).
+    legend = 'cols i inst · t on-target · n new · d seen/int   machine: + picked '
     lg_x = max(0, w - len(legend))
     _put(stdscr, h - 3, 0, _fit(status, max(1, lg_x - 1)), pal.style('status_line', h - 3, 0, h, w))
     _put(stdscr, h - 3, lg_x, _fit(legend, w - lg_x), pal.style('status_line', h - 3, lg_x, h, w))
     if _KEYMAP is not None:
         g = lambda a: _KEYMAP.glyph('profiles', a)
-        nav1 = (f" {g('down')}/{g('up')} move · {g('top')}/{g('bottom')} top/bottom · "
-                f"{g('right')}/{g('left')} expand · {g('switch-pane')}/{g('confirm')} components · "
-                f"{g('find')} find · {g('filter')} filter · {g('group')} group · "
-                f"{g('machine-target')} machine · {g('attr-filter')} attrs ")
-        nav2 = (f" {g('select')} sel · {g('add-to-profile')} add · {g('clone')} clone · "
-                f"{g('toggle-active')} active · {g('scope')} scope · {g('toggle-member')} incl/excl sub · "
-                f"{g('include')} include · {g('new')}/{g('delete')} new/del · {g('quit')} quit ")
+        nav1 = (f" {g('down')}/{g('up')} move · {g('right')}/{g('left')} scroll/expand · "
+                f"{g('switch-pane')} panes · {g('find')} find · {g('filter')} filter · "
+                f"{g('group')} group · {g('attr-filter')} attrs · {g('machine-target')} machines ")
+        nav2 = (f" {g('include')} Include · {g('exclude')} Exclude · {g('select')} sel · "
+                f"{g('select-all')} all · {g('disp-interesting')} int · {g('disp-seen')} seen · "
+                f"{g('scope')} scope · {g('method')} method · {g('stage-uninstall')} uninst · {g('quit')} quit ")
     else:
-        nav1 = (' j/k move · g/G top/bottom · h/l expand · tab/⏎ components · / find · F filter · L group · f attrs ')
-        nav2 = (' space sel · A add · c clone · a active · * scope · ~ incl/excl sub · + include · n/d new/del · q quit ')
+        nav1 = (' j/k move · h/l scroll/expand · tab panes · / find · F filter · L group · f attrs · M machines ')
+        nav2 = (' A Include · D Exclude · space sel · a all · I int · S seen · * scope · m method · x uninst · q quit ')
     _put(stdscr, h - 2, 0, _fit(nav1.ljust(w), w), pal.style('footer', h - 2, 0, h, w))
     _put(stdscr, h - 1, 0, _fit(nav2.ljust(w), w), pal.style('footer', h - 1, 0, h, w))
     stdscr.refresh()
@@ -4182,16 +4156,16 @@ def run(ctx):
                         ps.focus = 'right'             # a leaf profile: open the components pane for it
                 elif pfact == 'right':
                     if ps.focus == 'left':
-                        ps.expand_cur()                # h/l now expand/collapse the include tree
-                    else:                              # next column, same row (clamped)
-                        ps.rcur = min(len(ps.vcatalog()) - 1, ps.rcur + ps.rrows)
+                        ps.expand_cur()                # h/l expand/collapse the browse tree
+                    else:                              # scroll the machine columns right (matrix)
+                        ps.rcol_left = min(max(0, len(ps.machines_list()) - 1), ps.rcol_left + 1)
                 elif pfact == 'left':
                     if ps.focus == 'left':
                         ps.collapse_cur()              # collapse, or step to the parent profile
-                    elif ps.rcur >= ps.rrows:
-                        ps.rcur -= ps.rrows            # previous column
+                    elif ps.rcol_left > 0:
+                        ps.rcol_left -= 1              # scroll the machine columns left
                     else:
-                        ps.focus = 'left'              # leftmost column -> back to the profiles pane
+                        ps.focus = 'left'              # at the first machine column -> back to profiles
                 elif pfact == 'toggle-install':
                     ps.show_install = 0 if ps.show_install else 1   # off <-> on (installed underlined,
                     # orphans coloured, ignored orphans revealed dimmed). NOTE: don't invalidate the
@@ -4246,52 +4220,23 @@ def run(ctx):
                                          f'{"NEW" if ctx.config.disposition(_targets[0]) is None else _want.upper()}')
                         except ConfigsysError as e:
                             note = f'disposition failed: {e}'
-                elif pfact == 'add-to-profile' and ps.focus == 'right':
-                    _targets = ps.action_targets()         # add the set (else the cursor) to a user profile
+                elif pfact in ('include', 'exclude') and ps.focus == 'right':
+                    _targets = ps.action_targets()         # the multi-select set, else the cursor component
+                    on = pfact == 'include'
                     if _targets:
-                        _lbl = _targets[0] if len(_targets) == 1 else f'{len(_targets)} components'
-                        editable = {str(ctx.paths.user_config_file), str(actions.edit_target(ctx)[0])}
-                        upfs = [p for p in ps.profiles     # editable (user-layer) profiles are the targets
-                                if p != ctx.config.ALL_PROFILE and not p.startswith('!')
-                                and (ctx.config.profile_source(p) is not None
-                                     and str(ctx.config.profile_source(p)) in editable)]
-                        opts = [(p, '') for p in upfs]
-                        opts.append(('+ new profile…', ''))
-                        lp = ps.cur_curate()               # the browse profile you're adding FROM
-                        if lp in upfs:                     # a same-name editable profile -> default to it
-                            start = upfs.index(lp)
-                        elif ps.cur_readonly():            # browsing a system profile -> default to "new"
-                            start = len(upfs)
-                        else:
-                            start = 0
-                        pick = _popup_choose(stdscr, pal, f'add {_lbl} to profile', opts, start=start)
-                        if pick is not None:
-                            try:
-                                tgt = None
-                                if pick == len(upfs):      # + new profile (default the NAME to the browse profile)
-                                    nm = (_input_box(stdscr, pal, 'new profile name',
-                                                     initial=(lp or '')) or '').strip()
-                                    if nm:
-                                        ac, albl = actions.add_profile(ctx, nm)
-                                        src = ctx.config.profile_source(nm)   # invalidated inside add_profile
-                                        if ac or (src is not None and str(src) in editable):
-                                            tgt = nm       # created, or an existing editable profile
-                                        else:
-                                            note = albl
-                                else:
-                                    tgt = upfs[pick]
-                                if tgt is not None:
-                                    nch = 0
-                                    for _c in _targets:
-                                        mc, _l = actions.set_profile_membership(ctx, tgt, _c, 'add')
-                                        nch += 1 if mc else 0
-                                    act_c, _al = actions.set_profile_active(ctx, tgt, True)  # take effect
-                                    ps.selected_comps.clear()
-                                    ps.reload(); menu_dirty = menu_dirty or nch > 0 or act_c
-                                    note = (f'{_lbl} → "{tgt}" ({nch} added'
-                                            + (', activated' if act_c else '') + ')')
-                            except ConfigsysError as e:
-                                note = f'add failed: {e}'
+                        tg = sorted(ps.targets())          # the selected target machines (fan-out)
+                        nch = 0
+                        try:
+                            for _c in _targets:
+                                cn, _l = actions.set_included(ctx, _c, tg, on)
+                                nch += cn
+                            ps.selected_comps.clear()
+                            ps.reload(); menu_dirty = menu_dirty or nch > 0
+                            _lbl = _targets[0] if len(_targets) == 1 else f'{len(_targets)} components'
+                            note = (f'{_lbl} {"included on" if on else "excluded from"} {", ".join(tg)}'
+                                    if nch else 'no change')
+                        except ConfigsysError as e:
+                            note = f'{pfact} failed: {e}'
                 elif pfact == 'orphan-ignore' and ps.focus == 'right':
                     _vc = ps.vcatalog()                    # toggle the selected orphan's ignore state
                     if _vc:
@@ -4358,89 +4303,16 @@ def run(ctx):
                     else:
                         _find_edit(stdscr, list(ps.vcatalog()), ps.rcur,
                                    lambda i: setattr(ps, 'rcur', i), rdraw)
-                elif pfact == 'toggle-active' and ps.focus == 'left':
-                    prof = ps.cur_profile()
-                    if prof:
-                        try:
-                            changed, _lbl = actions.set_profile_active(ctx, prof,
-                                                                       prof not in ps.active)
-                            ps.reload()
-                            menu_dirty = menu_dirty or changed
-                            note = (f'{prof} {"activated" if prof in ps.active else "deactivated"}'
-                                    if changed else 'no change')
-                        except Exception as e:  # noqa: BLE001 — surface, don't crash
-                            note = f'edit failed: {e}'
-                elif pfact == 'new':                       # new profile (any focus)
-                    nm = _input_box(stdscr, pal, 'new profile name')
-                    if nm and nm.strip():
-                        try:
-                            changed, lbl = actions.add_profile(ctx, nm.strip())
-                            if changed:
-                                ps.pfilter = ''        # clear any filter so the new profile is visible
-                            ps.reload()
-                            names = [nd[0] for nd in ps.visible_pnodes()]
-                            if changed and nm.strip() in names:
-                                ps.lcur, ps.focus = names.index(nm.strip()), 'left'
-                            menu_dirty = menu_dirty or changed
-                            note = f'created "{nm.strip()}" ({lbl})' if changed else lbl
-                        except Exception as e:  # noqa: BLE001 — surface, don't crash
-                            note = f'add failed: {e}'
-                elif pfact == 'delete' and ps.focus == 'left':  # delete the selected profile (confirm)
-                    prof = ps.cur_profile()
-                    if ps.cur_readonly():
-                        note = 'read-only system profile — it lives upstream and cannot be deleted here'
-                    elif prof:
-                        idx = _popup_choose(stdscr, pal, f'delete profile "{prof}"?',
-                                            [('cancel', ''), ('delete', '')], 0)
-                        if idx == 1:
-                            try:
-                                changed, note = actions.remove_profile(ctx, prof)
-                                ps.reload()
-                                ps.lcur = min(ps.lcur, max(0, len(ps.visible_pnodes()) - 1))
-                                menu_dirty = menu_dirty or changed
-                            except Exception as e:  # noqa: BLE001 — surface, don't crash
-                                note = f'remove failed: {e}'
-                elif pfact == 'include' and ps.focus == 'left':  # include another profile (+other)
-                    prof = ps.cur_profile()
-                    others = [p for p in ps.profiles if p != prof]
-                    if ps.cur_readonly():
-                        note = 'read-only system profile — press c to clone it, then edit the copy'
-                    elif prof and others:
-                        inc = ctx.config.profile_includes(prof)
-                        opts = [(p, '[included]' if p in inc else '') for p in others]
-                        idx = _popup_choose(stdscr, pal, f'include in "{prof}" (toggle +profile)', opts, 0)
-                        if idx is not None:
-                            other = others[idx]
-                            try:
-                                changed, note = actions.set_profile_include(ctx, prof, other,
-                                                                            other not in inc)
-                                ps.reload()
-                                menu_dirty = menu_dirty or changed
-                            except Exception as e:  # noqa: BLE001 — surface, don't crash
-                                note = f'include failed: {e}'
-                elif pfact == 'clone' and ps.focus == 'left':   # clone a system profile -> editable copy
-                    prof = ps.cur_profile()
-                    if prof and not ps.cur_readonly():
-                        note = f'"{prof}" is already an editable profile (clone browse-only ones)'
-                    elif prof:
-                        # delta: pick a user profile to emplace the clone into (+member), or top-level
-                        editable = {str(ctx.paths.user_config_file), str(actions.edit_target(ctx)[0])}
-                        parents = [p for p in ps.profiles if p != prof and not p.startswith('!')
-                                   and p != ctx.config.ALL_PROFILE
-                                   and (ctx.config.profile_source(p) is not None
-                                        and str(ctx.config.profile_source(p)) in editable)]
-                        opts = [('(top-level — standalone)', 'no parent')]
-                        opts += [(f'into {p}', '+member') for p in parents]
-                        pick = _popup_choose(stdscr, pal, f'clone "{prof}" — place it where?', opts, 0)
-                        if pick is not None:
-                            into = None if pick == 0 else parents[pick - 1]
-                            try:
-                                changed, lbl = actions.clone_profile_into(ctx, prof, into)
-                                ps.reload()
-                                menu_dirty = menu_dirty or changed
-                                note = (f'cloned "{prof}" ({lbl})' if changed else f'{prof}: {lbl}')
-                            except ConfigsysError as e:
-                                note = f'clone failed: {e}'
+                elif pfact == 'select-all' and ps.focus == 'right':
+                    vcat = ps.vcatalog()               # `a`: (de)select every component currently in view
+                    if vcat:
+                        allvis = set(vcat)
+                        if allvis <= ps.selected_comps:
+                            ps.selected_comps -= allvis
+                        else:
+                            ps.selected_comps |= allvis
+                        note = (f'{len(ps.selected_comps)} selected' if ps.selected_comps
+                                else 'selection cleared')
                 elif pfact == 'method' and ps.focus == 'right':
                     vcat = ps.vcatalog()
                     if vcat:                               # pin the selected component's install method
@@ -4455,23 +4327,23 @@ def run(ctx):
                             menu_dirty = True
                 elif pfact == 'group' and ps.focus == 'left':   # toggle grouped-by-layer <-> flat
                     ps.toggle_grouping()
-                elif pfact == 'machine-target':          # pick the working-target machine to curate
-                    machs = sorted(ctx.config.machines())
-                    cur_t = getattr(ctx, 'machine_override', None)
-                    opts = [('(shared / this box)', 'off' if not cur_t else '')]
-                    opts += [(m, 'target' if m == cur_t else '') for m in machs]
-                    if not machs:
-                        note = 'no machines defined (configsys machine add <name>)'
-                    else:
-                        start = next((i for i, (m, _t) in enumerate(opts) if m == cur_t), 0)
-                        pick = _popup_choose(stdscr, pal, 'Curate which machine?', opts, start=start)
-                        if pick is not None:
-                            ctx.machine_override = None if pick == 0 else opts[pick][0]
-                            ctx.invalidate()             # reload with that machine's rung spliced in
-                            ps = ProfileScreen(ctx)      # rebuild the screen against the new target
-                            menu_dirty = True
-                            note = (f'curating machine "{ctx.machine_override}"' if ctx.machine_override
-                                    else 'curating shared / this box')
+                elif pfact == 'machine-target':          # choose the TARGET machines (plural); A/D fan out
+                    machs = ps.machines_list()
+                    cur = set(ps.targets())
+                    while True:
+                        opts = [(('[*] ' if m in cur else '[ ] ') + m,
+                                 'this box' if m == ctx.config.current_machine() else '') for m in machs]
+                        opts.append(('(done)', ''))
+                        pick = _popup_choose(stdscr, pal, 'Target machines — toggle (A/D fan out to all)',
+                                             opts, 0)
+                        if pick is None or pick == len(machs):
+                            break
+                        cur ^= {machs[pick]}
+                        if not cur:                      # never empty -> fall back to this box
+                            cur = {ctx.config.current_machine()}
+                    ps.target_machines = cur
+                    menu_dirty = True
+                    note = f'targets: {", ".join(sorted(cur))}'
                 elif pfact == 'where':                     # full-page provenance for the current profile
                     _wp = ps.cur_profile()
                     if _wp:
@@ -4486,23 +4358,18 @@ def run(ctx):
                         note = (f'{len(ps.selected_comps)} selected' if ps.selected_comps
                                 else 'selection cleared')
                 elif pfact == 'confirm' and ps.focus == 'right':
-                    prof = ps.cur_curate()             # `enter`: toggle the cursor's membership here
-                    vcat = ps.vcatalog()
-                    if ps.cur_readonly():
-                        note = 'read-only system profile — press c to clone, then edit the copy'
-                    elif prof and vcat:
+                    vcat = ps.vcatalog()               # `enter`: toggle Included for the cursor on targets
+                    if vcat:
                         name = vcat[ps.rcur]
-                        mtarget = getattr(ctx, 'machine_override', None) or None
-                        in_prof = name in ps.members(prof)
-                        memb = 'remove' if in_prof else 'add'
-                        verb = 'removed' if in_prof else 'added'
+                        tg = sorted(ps.targets())
+                        on = ps.target_state(name) != 'all'   # not fully on -> include; else exclude
                         try:
-                            changed, lbl = actions.set_profile_membership(
-                                ctx, prof, name, memb, machine=mtarget)
+                            nch, _l = actions.set_included(ctx, name, tg, on)
                             ps.reload()
-                            menu_dirty = menu_dirty or changed
-                            note = (f'{name} {verb}' if changed else (lbl or 'no change'))
-                        except Exception as e:  # noqa: BLE001 — surface, don't crash
+                            menu_dirty = menu_dirty or nch > 0
+                            note = (f'{name} {"included on" if on else "excluded from"} {", ".join(tg)}'
+                                    if nch else 'no change')
+                        except ConfigsysError as e:
                             note = f'edit failed: {e}'
                 continue
 

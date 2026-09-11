@@ -236,21 +236,15 @@ profiles: {
         // left/right collapse/expand; right pane: grid move); switch-pane toggles panes; confirm opens
         // the components pane (left) or toggles membership (right); select toggles membership (right).
         profiles: {
-            scope: "*"              // toggle: scope the catalog to the selected profile's members <-> full catalog
-            toggle-member: "~"      // include/exclude the selected subprofile in the top-level profile (writes +/~)
-            toggle-active: a        // activate / deactivate the selected profile
-            new: n
-            delete: d
-            include: "+"            // fold another profile in (+other)
+            scope: "*"              // toggle: scope the catalog to the browsed profile's members <-> full catalog
+            include: A              // Include (pick) the selected component on the target machine(s)
+            exclude: D              // Exclude (unpick) the selected component on the target machine(s)
+            select-all: a           // select every component currently in view (multi-select set)
             method: m               // pin the selected component's install method
-            where: w                // provenance for the selected profile (layers · pin/track · counts)
-            group: L                // toggle the pane: grouped by layer <-> flat alphabetical
-            machine-target: M       // pick the working-target machine to curate (edits scope to it)
+            group: L                // toggle the browse pane: grouped by layer <-> flat alphabetical
+            machine-target: M       // choose the target machines to edit (plural; A/D fan out to them)
             attr-filter: f          // faceted kind filter over the catalog (F = live substring filter)
-            add-to-profile: A       // add the selected catalog component to a user profile (modal)
-            clone: c                // clone the selected system profile into an editable user copy
             toggle-install: O       // overlay the install axis (installed underline · orphan colour)
-            stage: s                // stage the selected orphan into the adopt-target profile
             stage-uninstall: x      // stage the selected component for uninstall (-> !uninstall)
             disp-interesting: I     // toggle the selected component INTERESTING (bookmarked, not new)
             disp-seen: S            // toggle the selected component SEEN (acknowledged, no longer new)
