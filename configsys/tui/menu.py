@@ -880,14 +880,17 @@ _HELP = {
             ('spaces', 'repo/plugin groups are BROWSE-ONLY system profiles (read-only); machine/'
                        'primary/user groups are yours to edit · ⧉ = your clone of a system profile '
                        '(the pristine original still shows under repo/plugin)'),
-            ('⁺N / ☆N', '⁺N = NEW (undispositioned) members of a profile; ☆N = INTERESTING (bookmarked) '
+            ('⁺N / *N', '⁺N = NEW (undispositioned) members of a profile; *N = INTERESTING (bookmarked) '
                         'members — on a group header, distinct across the whole group; triage with A/I/S/X'),
             ('grouping (L)', 'group the pane by defining layer (this machine · your primary · plugins · '
                              'repo catalog, collapsed) ↔ flat A-Z; enter/h/l folds a group'),
             ('machine (M)', 'pick the working-TARGET machine to curate; edits then land in its '
                             'machines:[name] namespace (execute stays local)'),
-            ('catalog', 'TWO columns per row — membership (● own · ↳ via-include · ~ excluded · blank) '
-                        'then disposition (☆ interesting · · seen · ? new · blank)'),
+            ('catalog', 'TWO columns per row — membership (+ own · > via-include · - excluded · blank) '
+                        'then disposition (* interesting · = seen · ? new · blank); # = multi-selected'),
+            ('row colours', 'the component name is tinted by state: NEW in the new-accent colour · '
+                            'INTERESTING in the link/accent colour · SEEN and EXCLUDED dimmed · '
+                            'unavailable-here greyed · installed UNDERLINED · an orphan in its kind colour'),
             ('disposition', 'I marks the component INTERESTING (bookmarked) · S marks it SEEN · '
                             'NEW (?) = an upstream component you have not yet triaged (press again to clear)'),
             ('multi-select', 'space (✔) toggles a component into a batch set; A/I/S/X then act on the '
@@ -2195,27 +2198,47 @@ class ProfileScreen:
             self._start_probe()
 
     def _start_probe(self):
+        # Check EVERY candidate binding of the component (like installState.detect_coexisting), not
+        # just the resolved one — a tool is often installed via a NON-default method (e.g. ollama's
+        # `script`/PATH install while `tarball` is the preference-picked default). Enumerable drivers
+        # are skipped (the batch overlay set already covers them); non-enumerable ones use get_version.
         from ..driver import Driver
         from ..drivers import get_driver
+        from ..adapt import to_resolved_component
+        from ..resolve import candidate_bindings, unit_for_binding, via_representatives
+        r = self.ctx.routes
+        cx = r.cascade.context(r.block, r.version, r.cpu)
+
+        def installed_any(name):
+            comp = r.components.get(name)
+            if comp is None or not comp.bindings:
+                return False
+            try:
+                reps = via_representatives(candidate_bindings(comp, r.cascade, cx, None), r.cascade)
+            except Exception:                        # noqa: BLE001
+                return False
+            for b in reps:
+                unit = unit_for_binding(comp, b, r.cascade, r.block, r.overrides)
+                if unit is None:
+                    continue
+                rc = to_resolved_component(unit)
+                drv = get_driver(rc.driver, self.ctx.runner, self.ctx.paths)
+                if drv is None or type(drv).installed_index is not Driver.installed_index:
+                    continue                         # enumerable -> already in the batch set; skip
+                try:
+                    if drv.get_version(rc) is not None:
+                        return True
+                except Exception:                    # noqa: BLE001 — a flaky probe just leaves it un-underlined
+                    pass
+            return False
 
         def run():
             while self._probe_queue:
                 name = self._probe_queue.pop()
                 try:
-                    units, _e = self.ctx.routes.resolve_resilient([name])
-                    for _k, u in units.items():
-                        if u.name != name:
-                            continue
-                        drv = get_driver(u.driver, self.ctx.runner, self.ctx.paths)
-                        if drv is None or type(drv).installed_index is not Driver.installed_index:
-                            continue                 # enumerable driver -> already covered by the batch set
-                        try:
-                            if drv.get_version(u) is not None:
-                                self._probe_installed[name] = True
-                                self._probe_dirty = True
-                                break
-                        except Exception:            # noqa: BLE001 — a probe failure just leaves it un-underlined
-                            pass
+                    if installed_any(name):
+                        self._probe_installed[name] = True
+                        self._probe_dirty = True
                 except Exception:                    # noqa: BLE001
                     pass
         self._probe_thread = threading.Thread(target=run, daemon=True)
@@ -2636,7 +2659,7 @@ def _draw_profiles(stdscr, pal, ps, ctx, note, screen):
             gid = key[len(_GKEY):]
             _gnew, _gint = ps.group_new_count(gid)
             hdr = (f'{"▾" if expanded else "▹"} {name} ({group_counts.get(gid, 0)})'
-                   + (f'  ⁺{_gnew}' if _gnew else '') + (f'  ☆{_gint}' if _gint else ''))
+                   + (f'  ⁺{_gnew}' if _gnew else '') + (f'  *{_gint}' if _gint else ''))
             _put(stdscr, y, lil, _fit(hdr.upper(), liw),
                  pal.style('menu_header', y, lil, h, w, selected=foc, bg=(None if low_color else rbg))
                  | rev)
@@ -2674,7 +2697,7 @@ def _draw_profiles(stdscr, pal, ps, ctx, note, screen):
         nnew = ps.profile_new_count(name, _ceil_r)
         nint = ps.profile_interesting_count(name, _ceil_r)
         newtag = f'  ⁺{nnew}' if nnew else ''
-        inttag = f'  ☆{nint}' if nint else ''
+        inttag = f'  *{nint}' if nint else ''
         tag = ('  ⧉' if is_clone else '') + newtag + inttag
         disp = f'+{name}' if kind == 'include' else name  # `+`-mark a live include child
         row = f'{"".join(prefix)} {disp}{tag}'
@@ -2684,7 +2707,7 @@ def _draw_profiles(stdscr, pal, ps, ctx, note, screen):
         # tint the count badges in their own hues (menu_new for ⁺N, link for ☆N), when not truncated
         if not foc and len(row) <= liw:
             for _bstr, _hue in ((f'⁺{nnew}' if nnew else '', 'menu_new'),
-                                (f'☆{nint}' if nint else '', 'link')):
+                                (f'*{nint}' if nint else '', 'link')):
                 if _bstr:
                     bx = lil + row.rindex(_bstr)
                     if 0 <= bx - lil < liw:
@@ -2839,22 +2862,23 @@ def _draw_profiles(stdscr, pal, ps, ctx, note, screen):
                 _put(stdscr, y, cx, ' ' * cell, curses.A_REVERSE)
             elif tint is not None:
                 _put(stdscr, y, cx, ' ' * cell, pal.fill(y, cx, h, w, bg=tint))
-            # ✔ = in the multi-select set (A/I/S/X batch); else ▸ marks the cursor row
-            cm = '✔' if name in ps.selected_comps else ('▸' if cur else ' ')
-            # TWO independent glyph columns so both axes show at once:
-            #  memb — membership of the SELECTED profile: ● own · ↳ via-include · ~ excluded · blank
-            #  dmk  — GLOBAL disposition: ☆ interesting · · seen · ? new · blank (triaged/included)
+            # # = in the multi-select set (A/I/S/X batch); the cursor row is shown by its highlight bar
+            cm = '#' if name in ps.selected_comps else ' '
+            # TWO adjacent glyph columns so both axes show at once — NARROW (single-cell) glyphs so a
+            # wide-glyph font doesn't clip them when they sit side by side (no trailing space):
+            #  memb — membership of the SELECTED profile: + own · > via-include · - excluded · blank
+            #  dmk  — GLOBAL disposition: * interesting · = seen · ? new · blank (triaged/included)
             if name in members:
-                memb = '●' if name in own else '↳'
+                memb = '+' if name in own else '>'
             elif name in removed:
-                memb = '~'
+                memb = '-'
             else:
                 memb = ' '
             _d = _disp.get(name)
             if _d == 'interesting':
-                dmk = '☆'
+                dmk = '*'
             elif _d == 'seen':
-                dmk = '·'
+                dmk = '='
             elif ctx.config.is_new(name):
                 dmk = '?'
             else:
@@ -2912,7 +2936,7 @@ def _draw_profiles(stdscr, pal, ps, ctx, note, screen):
     # marker legend for the profiles pane — right-aligned on the status bar so the keys get two
     # full rows below. ● directly active (in configs:), ◐ active only via a +include, ○ inactive,
     # ▸ star-filtered.
-    legend = '● active  ◐ inherited  ○ inactive  ▸ scoped  ⧉ clone  ⁺N new  ☆N int '
+    legend = '● active  ◐ inherited  ○ inactive  ▸ scoped  ⧉ clone  ⁺N new  *N int '
     lg_x = max(0, w - len(legend))
     _put(stdscr, h - 3, 0, _fit(status, max(1, lg_x - 1)), pal.style('status_line', h - 3, 0, h, w))
     _put(stdscr, h - 3, lg_x, _fit(legend, w - lg_x), pal.style('status_line', h - 3, lg_x, h, w))
