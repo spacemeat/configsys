@@ -2054,6 +2054,90 @@ def _attr_filter_modal(stdscr, pal, inc, exc):
                 inc.add(t)
 
 
+def _machines_modal(stdscr, pal, ctx, targets):
+    '''Manage machines AND pick the edit-TARGET set — styled like the attr-filter modal. space toggles
+    a machine as a target (A/D fan out to targets); a adds a machine; r renames the selected one; x
+    removes it (with confirmation, dropping its picks); enter/esc closes. Returns (target_set, note).
+    Mutates config via actions.'''
+    from .. import actions
+    tg = set(targets)
+    note = ''
+    sel, top = 0, 0
+    border = pal.get('accent') | curses.A_BOLD
+
+    def machs():
+        ms = sorted(ctx.config.machines())
+        cur = ctx.config.current_machine()
+        return [cur] + [m for m in ms if m != cur]
+
+    while True:
+        rows = machs()
+        this = ctx.config.current_machine()
+        if not tg:
+            tg = {this}
+        sel = max(0, min(sel, len(rows) - 1))
+        h, w = stdscr.getmaxyx()
+        box_w = min(52, max(34, w - 4))
+        vis = max(3, min(len(rows), h - 6))
+        box_h = vis + 4
+        y0, x0 = max(0, (h - box_h) // 2), max(0, (w - box_w) // 2)
+        top = min(sel, top) if sel < top else (sel - vis + 1 if sel >= top + vis else top)
+        _put(stdscr, y0, x0, '┌' + '─' * (box_w - 2) + '┐', border)
+        _put(stdscr, y0, x0 + 2, ' target machines (A/D fan out to ✓) ', border)
+        for r in range(1, box_h - 1):
+            _put(stdscr, y0 + r, x0, '│' + ' ' * (box_w - 2) + '│', border)
+        _put(stdscr, y0 + box_h - 1, x0, '└' + '─' * (box_w - 2) + '┘', border)
+        _put(stdscr, y0 + box_h - 1, x0 + 2, ' space:target · a:add · r:rename · x:remove · esc ', border)
+        for k in range(vis):
+            idx = top + k
+            if idx >= len(rows):
+                break
+            m = rows[idx]
+            mark = '✓' if m in tg else '·'
+            tag = '  (this box)' if m == this else ''
+            attr = curses.A_REVERSE if idx == sel else curses.A_NORMAL
+            _put(stdscr, y0 + 1 + k, x0 + 2,
+                 _fit(f'  [{mark}] {m}{tag}'.ljust(box_w - 4), box_w - 4), attr)
+        stdscr.refresh()
+        ch = stdscr.getch()
+        if ch in (27, ord('q'), ord('\n'), curses.KEY_ENTER):
+            return tg, note
+        if ch in (ord('j'), curses.KEY_DOWN):
+            sel = min(len(rows) - 1, sel + 1)
+        elif ch in (ord('k'), curses.KEY_UP):
+            sel = max(0, sel - 1)
+        elif ch == ord(' '):
+            tg ^= {rows[sel]}
+            if not tg:
+                tg = {this}
+        elif ch == ord('a'):
+            nm = (_input_box(stdscr, pal, 'new machine name') or '').strip()
+            if nm:
+                ok, why = actions.add_machine(ctx, nm)
+                ctx.invalidate()
+                note = f'added "{nm}"' if ok else why
+                if ok:
+                    tg.add(nm)
+        elif ch == ord('r'):
+            old = rows[sel]
+            nm = (_input_box(stdscr, pal, f'rename "{old}" to', initial=old) or '').strip()
+            ok, why = actions.rename_machine(ctx, old, nm)
+            ctx.invalidate()
+            if ok and old in tg:
+                tg.discard(old)
+                tg.add(nm)
+            note = f'renamed "{old}" → "{nm}"' if ok else why
+        elif ch == ord('x'):
+            rm = rows[sel]
+            if _popup_choose(stdscr, pal, f'remove machine "{rm}"? (its picks are dropped)',
+                             [('cancel', ''), ('remove', '')], 0) == 1:
+                actions.remove_machine(ctx, rm)
+                actions.set_included_clear_machine(ctx, rm)
+                ctx.invalidate()
+                tg.discard(rm)
+                note = f'removed "{rm}"'
+
+
 # Layer-grouped profiles pane: a group header is a pnode whose key starts with _GKEY. Groups are
 # keyed by the top-definition layer's ROLE, shown in this order with these labels; repo last (biggest,
 # collapsed by default). Any non-repo/user/primary/machine layer (a data plugin) folds into 'plugin'.
@@ -4363,66 +4447,12 @@ def run(ctx):
                             ps._res.pop(name, None)        # its resolution changed -> drop the stale entry
                             ps.reload()
                             menu_dirty = True
-                elif pfact == 'machine-target':          # choose TARGET machines (plural) + add/remove
-                    cur = set(ps.targets())
-                    while True:
-                        machs = ps.machines_list()
-                        this = ctx.config.current_machine()
-                        opts = [(('[*] ' if m in cur else '[ ] ') + m,
-                                 'this box' if m == this else '') for m in machs]
-                        opts.append(('＋ add machine…', ''))
-                        opts.append(('✎ rename a machine…', ''))
-                        opts.append(('－ remove a machine…', ''))
-                        opts.append(('(done)', ''))
-                        i_add, i_ren, i_rm, i_done = len(machs), len(machs) + 1, len(machs) + 2, len(machs) + 3
-                        pick = _popup_choose(stdscr, pal, 'Target machines — toggle (A/D fan out to all)',
-                                             opts, 0)
-                        if pick is None or pick == i_done:
-                            break
-                        if pick == i_add:                # add
-                            nm = (_input_box(stdscr, pal, 'new machine name') or '').strip()
-                            if nm:
-                                ch, lbl = actions.add_machine(ctx, nm)
-                                ctx.invalidate()
-                                note = f'machine "{nm}" added ({lbl})' if ch else lbl
-                                if ch:
-                                    cur.add(nm)
-                            continue
-                        if pick == i_ren:                # rename
-                            ri = _popup_choose(stdscr, pal, 'Rename which machine?',
-                                               [(m, '') for m in machs], 0)
-                            if ri is not None:
-                                old = machs[ri]
-                                nm = (_input_box(stdscr, pal, f'rename "{old}" to', initial=old) or '').strip()
-                                ch, why = actions.rename_machine(ctx, old, nm)
-                                ctx.invalidate()
-                                if ch and old in cur:
-                                    cur.discard(old); cur.add(nm)
-                                note = f'renamed "{old}" -> "{nm}"' if ch else why
-                            continue
-                        if pick == i_rm:                 # remove
-                            rmable = [m for m in machs if m != this]
-                            if not rmable:
-                                note = 'no other machine to remove'
-                                continue
-                            ri = _popup_choose(stdscr, pal, 'Remove which machine? (its picks are dropped)',
-                                               [(m, '') for m in rmable], 0)
-                            if ri is not None:
-                                rm = rmable[ri]
-                                actions.remove_machine(ctx, rm)
-                                actions.set_included_clear_machine(ctx, rm)   # drop its picks too
-                                ctx.invalidate()
-                                cur.discard(rm)
-                                note = f'machine "{rm}" removed'
-                            continue
-                        cur ^= {machs[pick]}             # toggle a target
-                        if not cur:
-                            cur = {this}
-                    ps.target_machines = cur
-                    ps = ProfileScreen(ctx)              # rebuild against any machine add/remove
+                elif pfact == 'machine-target':          # target machines + add/rename/remove (modal)
+                    cur, mnote = _machines_modal(stdscr, pal, ctx, ps.targets())
+                    ps = ProfileScreen(ctx)              # rebuild against any machine add/rename/remove
                     ps.target_machines = cur
                     menu_dirty = True
-                    note = note or f'targets: {", ".join(sorted(cur))}'
+                    note = mnote or f'targets: {", ".join(sorted(cur))}'
                 elif pfact == 'where':                     # full-page provenance for the current profile
                     _wp = ps.cur_profile()
                     if _wp:
