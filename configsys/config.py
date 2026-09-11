@@ -415,6 +415,33 @@ class Config:
                             out[name] = entry
         return out
 
+    PICKS_PROFILE = '@picks'          # reserved: the current machine's Included set (v3 matrix model)
+
+    def picks(self):
+        '''Merged per-machine Included sets `{machine: [component, ...]}` across the machine-role
+        layers (repo < primary < machine < user; a later layer replaces a machine's list). The v3
+        matrix model's install source — a machine installs exactly the components picked for it.'''
+        out = {}
+        for role in _MACHINE_ROLES:
+            for layer in self._layers:
+                if layer.role != role:
+                    continue
+                pk = layer.data.get('picks')
+                if isinstance(pk, dict):
+                    for m, v in pk.items():
+                        if isinstance(v, (list, tuple)):
+                            out[m] = [str(c) for c in _leaves(v)]
+        return out
+
+    def current_machine(self):
+        '''The machine key whose picks drive installs on THIS box: the selected machine, else the
+        default `this-machine` key (a one-machine user never has to name it).'''
+        return self.selected_machine() or 'this-machine'
+
+    def included(self, machine=None):
+        '''The set of components Included for `machine` (default: the current machine).'''
+        return set(self.picks().get(machine or self.current_machine(), ()))
+
     def layer_pins(self, role):
         '''The raw scalar pins from the single layer of this role (repo/primary/user) — for
         editing that one layer's pins and for provenance, distinct from the merged pins().'''

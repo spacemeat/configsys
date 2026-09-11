@@ -693,6 +693,39 @@ def set_dispositions(config_file, disp):
                     + [' ' * indent + '}']))
 
 
+def read_picks(config_file):
+    '''`{machine: [component, ...]}` from ONE .hu file's `picks:` node, or {} — the v3 matrix model's
+    per-machine Included sets (a machine installs exactly the components picked for it). Same shape as
+    `profiles:` (name -> list), but values are plain component names.'''
+    p = Path(config_file)
+    if not p.exists():
+        return {}
+    data = layers.materialize_string(p.read_text(encoding='utf-8'))
+    pk = data.get('picks') if isinstance(data, dict) else None
+    if not isinstance(pk, dict):
+        return {}
+    return {m: _flat(v) for m, v in pk.items() if isinstance(v, (list, tuple))}
+
+
+def _emit_picks(picks, indent):
+    pad, inner = ' ' * indent, ' ' * (indent + 4)
+    lines = ['picks: {']
+    for m, comps in picks.items():
+        lines.append(f'{inner}{m}: [ {"  ".join(_scalar(c) for c in comps)} ]' if comps
+                     else f'{inner}{m}: []')
+    return '\n'.join(lines + [pad + '}'])
+
+
+def set_picks(config_file, picks):
+    '''Rewrite the `picks:` node in place (comments/siblings preserved), or remove it when empty.
+    `picks` is `{machine: [component, ...]}`. A machine whose list is empty is dropped.'''
+    picks = {m: comps for m, comps in picks.items() if comps}
+    if not picks:
+        remove_sections(config_file, ['picks'])
+        return
+    set_section(config_file, 'picks', lambda indent: _emit_picks(picks, indent))
+
+
 def read_dirs(config_file):
     '''The install-layout `dirs:` map (user/system/app/sdk/src -> path) from ONE .hu file, or {}.
     For editing a single layer's own dirs in place (config.install_dirs() gives the MERGED view).'''

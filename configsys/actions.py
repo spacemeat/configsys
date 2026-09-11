@@ -141,6 +141,28 @@ def set_disposition(ctx, comp, state):
     return True, 'top config'
 
 
+def set_included(ctx, comp, machines, on):
+    '''v3 matrix A/D: mark `comp` Included (`on=True`) or not, on EACH machine in `machines` (plural =
+    fan-out). Writes the local per-machine `picks:` store (this box). Returns (changed_count, label).'''
+    tfile = str(ctx.paths.user_config_file)          # machine-local, like pins/dispositions
+    picks = plugins.read_picks(tfile)
+    changed = 0
+    for m in machines:
+        cur = list(picks.get(m, []))
+        has = comp in cur
+        if on and not has:
+            cur.append(comp)
+            changed += 1
+        elif not on and has:
+            cur = [c for c in cur if c != comp]
+            changed += 1
+        picks[m] = cur
+    if changed:
+        plugins.set_picks(tfile, picks)
+        ctx.invalidate()
+    return changed, 'picks'
+
+
 def ignore_orphan(ctx, pattern):
     '''Append `pattern` (a name or glob) to the `orphans-ignore` list (idempotent). Returns
     (changed, label). The TUI `.` action + the `configsys orphans --ignore` verb share this intent.'''
