@@ -972,11 +972,18 @@ class Config:
         return out
 
     def requested(self):
-        '''Ordered {component_name: [profiles that requested it]} across active profiles.'''
+        '''Ordered {component_name: [sources that requested it]} — the install set. Any active
+        `configs:` profile's members (the classic path) PLUS this machine's v3 `picks:` (the matrix
+        model's Included set, sourced as `picks`). Additive, so the two models coexist: a v3 user
+        simply keeps `configs:` empty and their picks drive everything; a classic user has no picks.'''
         out = {}
         for prof in self.active_profiles:
             for name in self.profile_components(prof):
                 out.setdefault(name, [])
                 if prof not in out[name]:
                     out[name].append(prof)
+        for name in self.included():                 # v3 matrix: this machine's Included set
+            out.setdefault(name, [])
+            if 'picks' not in out[name]:
+                out[name].append('picks')
         return out

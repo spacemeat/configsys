@@ -163,6 +163,25 @@ def set_included(ctx, comp, machines, on):
     return changed, 'picks'
 
 
+def migrate_picks(ctx):
+    '''v3 migration: seed the current machine's `picks:` from today's active-profile membership, so
+    switching to the matrix workflow (empty `configs:`) preserves the install set. Idempotent —
+    already-picked components are skipped. Returns (added_count, machine).'''
+    machine = ctx.config.current_machine()
+    members = sorted(n for n, srcs in ctx.config.requested().items()
+                     if any(s != 'picks' for s in srcs))     # active-profile members (not picks-only)
+    tfile = str(ctx.paths.user_config_file)
+    picks = plugins.read_picks(tfile)
+    cur = picks.get(machine, [])
+    added = [m for m in members if m not in cur]
+    if not added:
+        return 0, machine
+    picks[machine] = list(cur) + added
+    plugins.set_picks(tfile, picks)
+    ctx.invalidate()
+    return len(added), machine
+
+
 def ignore_orphan(ctx, pattern):
     '''Append `pattern` (a name or glob) to the `orphans-ignore` list (idempotent). Returns
     (changed, label). The TUI `.` action + the `configsys orphans --ignore` verb share this intent.'''

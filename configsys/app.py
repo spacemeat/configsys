@@ -1464,6 +1464,42 @@ def cmd_disp(ctx, args):
     return 0
 
 
+def cmd_picks(ctx, args):
+    '''The v3 matrix Included set: the components a machine installs. A skin over
+    actions.set_included / migrate_picks — the same the TUI Profiles (matrix) screen calls.'''
+    from . import actions
+    cfg = ctx.config
+    sub = getattr(args, 'picks_command', None) or 'list'
+
+    if sub == 'list':
+        m = getattr(args, 'machine', None) or cfg.current_machine()
+        comps = sorted(cfg.included(m))
+        print(f'picks for {m} ({len(comps)}):')
+        for c in comps:
+            print(f'  + {c}')
+        if not comps:
+            print('  (none — pick components in the TUI, or `configsys picks add <name>`)')
+        return 0
+
+    ctx.ensure_user_config()
+    machines = getattr(args, 'machines', None) or [cfg.current_machine()]
+
+    if sub in ('add', 'rm'):
+        n, _label = actions.set_included(ctx, args.component, machines, sub == 'add')
+        verb = 'picked' if sub == 'add' else 'unpicked'
+        print(f'configsys: {args.component} {verb} on {", ".join(machines)}' if n
+              else f'configsys: no change — {args.component} already '
+                   f'{"picked" if sub == "add" else "unpicked"} there')
+        return 0
+
+    if sub == 'migrate':
+        n, machine = actions.migrate_picks(ctx)
+        print(f'configsys: seeded {n} component(s) into {machine}\'s picks from your active profiles'
+              if n else f'configsys: nothing to migrate ({machine} already has all active members)')
+        return 0
+    return 0
+
+
 def cmd_orphans(ctx, args):
     '''List installed software that no active profile accounts for, grouped by driver, each tagged
     with its kind (excluded / lurking / forgotten / foreign). Read-only report — the phase-1 surface.'''
@@ -2749,6 +2785,19 @@ def build_parser():
     dps.add_argument('name')
     dps.add_argument('state', choices=['seen', 'interesting', 'new'], help="'new' clears it")
 
+    pk = sub.add_parser('picks', help='the v3 matrix Included set: components picked for a machine '
+                                      '(what it installs). Edit here or in the TUI Profiles screen')
+    pksub = pk.add_subparsers(dest='picks_command')
+    pkl = pksub.add_parser('list', help="a machine's picked components (default: this machine)")
+    pkl.add_argument('--machine', help='which machine (default: the current one)')
+    for _n, _h in (('add', 'pick a component (Include it)'), ('rm', 'unpick a component (Exclude it)')):
+        _sp = pksub.add_parser(_n, help=_h)
+        _sp.add_argument('component')
+        _sp.add_argument('--machine', action='append', dest='machines',
+                         help='target machine (repeat for several; default: the current one)')
+    pksub.add_parser('migrate', help='seed this machine\'s picks from your active profiles (preserves '
+                                     'the install set when moving to the matrix workflow)')
+
     wh = sub.add_parser('where', help='explain a component: source layer, bindings, and how '
                                       'it resolves on this machine')
     wh.add_argument('name', help='component name (or a profile name with -p)')
@@ -3495,6 +3544,7 @@ _COMMANDS = {
     'machine': cmd_machine,
     'orphans': cmd_orphans,
     'disp': cmd_disp,
+    'picks': cmd_picks,
     'location': cmd_location,
     'versions': cmd_versions,
     'check': cmd_check,
