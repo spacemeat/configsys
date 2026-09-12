@@ -1276,6 +1276,7 @@ def _reload(ctx, old, dirty):
             n.expanded = n.id in expanded
     ms._refresh(keep_id=(old.cur().id if old.cur() else None))
     ms.descriptions = _describe(ctx)             # cache once; never hit ctx.routes per frame
+    ms._req_sig = frozenset(_requested)          # the install set this tree was built for (matrix picks)
     return ms, cfg, ledger, states, ctx.diagnostics(states)
 
 
@@ -4161,6 +4162,7 @@ def run(ctx):
         layouts, transitive = _menu_model(cfg)
         states, layouts, transitive = _with_uninstall_node(ctx, states, layouts, transitive)
         ms = MenuState(states, layouts, transitive)
+        ms._req_sig = frozenset(_requested)       # the install set this tree was built for (matrix picks)
         _seed_uninstall(ms, ctx)                  # surface the persisted !uninstall queue as staged removes
         ms._uninstall_q = set(ctx.config.uninstall_queue())
         ms.descriptions = _describe(ctx)          # {name -> desc}, cached; not touched per frame
@@ -4273,7 +4275,13 @@ def run(ctx):
                     # rebuild whenever it differs from what this view last folded — not just on edits.
                     q_changed = (set(ctx.config.uninstall_queue())
                                  != getattr(ms, '_uninstall_q', frozenset()))
-                    if dest == 'components' and (menu_dirty or df_dirty or q_changed):
+                    # the matrix's picks (and the current-machine switch) change the install set; rebuild
+                    # Components whenever the requested set no longer matches what its tree was built for.
+                    try:
+                        req_changed = frozenset(ctx.config.requested()) != getattr(ms, '_req_sig', frozenset())
+                    except Exception:                     # noqa: BLE001 — a bad config shouldn't block a switch
+                        req_changed = True
+                    if dest == 'components' and (menu_dirty or df_dirty or q_changed or req_changed):
                         try:
                             # re-resolve + re-probe newly-appearing/changed units (a membership,
                             # driver-preference or scope edit can add units or change how they

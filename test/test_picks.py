@@ -79,6 +79,31 @@ def test_rename_machine_carries_picks(tmp_path):
     assert actions.rename_machine(ctx, 'ts-laptop', 'ts-laptop')[0] is False   # same name -> no-op
 
 
+def test_requested_signature_tracks_picks_and_machine(tmp_path):
+    # the TUI rebuilds Components when frozenset(requested()) changes — verify it moves on a pick edit
+    # AND on a current-machine switch (the two triggers the user asked to honor).
+    from configsys.app import Context, build_parser
+    d = tmp_path / '.config' / 'configsys'
+    d.mkdir(parents=True, exist_ok=True)
+    (d / 'configsys.hu').write_text(
+        '{\n  configs: []\n  machine: alpha\n  machines: { alpha: {}  beta: {} }\n'
+        '  picks: { alpha: [ btop ]  beta: [ fzf ] }\n}\n')
+
+    def ctx():
+        return Context(build_parser().parse_args(['--home', str(tmp_path), '--os', 'pop', 'inspect']))
+
+    c = ctx()
+    sig = frozenset(c.config.requested())
+    assert 'btop' in sig and 'fzf' not in sig                 # alpha's set drives it
+    actions.set_included(c, 'fd', ['alpha'], True)            # a local-machine pick change
+    assert frozenset(c.config.requested()) != sig            # -> Components must rebuild
+    c = ctx()
+    actions.set_machine_active(c, 'beta')                     # the local machine ITSELF changes
+    c = ctx()
+    beta_sig = frozenset(c.config.requested())
+    assert 'fzf' in beta_sig and 'btop' not in beta_sig      # -> different install set, rebuild
+
+
 def test_rename_materializes_synthetic_current(tmp_path):
     # renaming the un-named default 'this-machine' materializes it into machines: and re-points the
     # machine: selection (the sync bug fix) — nothing was in machines: before.
