@@ -38,15 +38,21 @@ class Cargo(Driver):
     # -- read -------------------------------------------------------------
 
     def get_version(self, rc):
+        idx = self.installed_index()
+        return idx.get(self._crate(rc)) if idx is not None else None
+
+    def installed_index(self):
+        '''{crate: version} of everything `cargo install --list` reports — one enumeration, so the
+        coexistence/claim/overlay scans check every cargo component without a call each.'''
         r = self._cargo('install --list')
         if not r.ok:
             return None
-        crate = self._crate(rc)
+        out = {}
         for line in r.stdout.splitlines():
             m = _LIST_RE.match(line)
-            if m and m.group(1) == crate:
-                return m.group(2)
-        return None
+            if m:
+                out[m.group(1)] = m.group(2)
+        return out
 
     def get_latest(self, rc):
         # a `version: { crates: <name> }` route discovers the latest from crates.io

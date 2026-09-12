@@ -1336,6 +1336,16 @@ def _describe(ctx):
         return {}
 
 
+def _busy(stdscr, pal, msg):
+    '''Flash a centered "working…" indicator + refresh, before a synchronous freeze (e.g. the claim
+    scan). No input; the next full redraw paints over it.'''
+    h, w = stdscr.getmaxyx()
+    s = f'  {msg}  '
+    _put(stdscr, h // 2, max(0, (w - len(s)) // 2), s,
+         pal.get('accent') | curses.A_BOLD | curses.A_REVERSE)
+    stdscr.refresh()
+
+
 def _popup_choose(stdscr, pal, title, options, start=0, shortcuts=None):
     '''A modal chooser drawn OVER the current screen (no drop to the terminal). `options` is a
     list of (label, tag-string). j/k or arrows move, enter selects, esc/q cancels. Returns the
@@ -2619,6 +2629,58 @@ class ProfileScreen:
             return all(self.is_installed(p, _stack + (name,), force=force) for p in parts)
         ov = self._overlay[0] if self._overlay else frozenset()
         return name in ov or bool(self._probe_installed.get(name))
+
+    def installed_scan(self):
+        '''Full-catalog installed detection for `C` (claim): the enumerable-driver batch set
+        (catalog-wide) PLUS a per-component get_version across every NON-enumerable candidate binding
+        (so tarball/script/appImage installs are caught, not just the on-screen probed ones) PLUS
+        parts aggregators whose parts are all present. Synchronous — the caller flashes a busy note.'''
+        from .. import orphans as _orph
+        from ..driver import Driver
+        from ..drivers import get_driver
+        from ..adapt import to_resolved_component
+        from ..resolve import candidate_bindings, unit_for_binding, via_representatives
+        ctx, r = self.ctx, self.ctx.routes
+        cx = r.cascade.context(r.block, r.version, r.cpu)
+        try:
+            units, _e = r.resolve_resilient(list(ctx.config.requested()))
+            inst, _o, _c = _orph.install_overlay(ctx, units, caches=self._scan_caches)
+        except Exception:                            # noqa: BLE001
+            inst = self._overlay[0] if self._overlay else frozenset()
+        hits = set(inst)
+
+        def leaf_installed(name):
+            comp = r.components.get(name)
+            if comp is None or not comp.bindings:
+                return False
+            try:
+                reps = via_representatives(candidate_bindings(comp, r.cascade, cx, None), r.cascade)
+            except Exception:                        # noqa: BLE001
+                return False
+            for b in reps:
+                unit = unit_for_binding(comp, b, r.cascade, r.block, r.overrides)
+                if unit is None:
+                    continue
+                rc = to_resolved_component(unit)
+                drv = get_driver(rc.driver, ctx.runner, ctx.paths)
+                if drv is None or type(drv).installed_index is not Driver.installed_index:
+                    continue                         # enumerable driver -> already covered by `inst`
+                try:
+                    if drv.get_version(rc) is not None:
+                        return True
+                except Exception:                    # noqa: BLE001
+                    pass
+            return False
+
+        cat = list(self.catalog)
+        for c in cat:
+            if c not in hits and not self._parts(c) and leaf_installed(c):
+                hits.add(c)
+        for c in cat:                                # a parts aggregator installed iff all its parts are
+            p = self._parts(c)
+            if p and all(x in hits for x in p):
+                hits.add(c)
+        return sorted(hits & set(cat))
 
     def origin(self, name):
         '''Where a component is DEFINED — 'repo' · a plugin's name · 'local' — for the catalog's
@@ -4508,19 +4570,8 @@ def run(ctx):
                         ps.reload()
                         note = f'{nch} marked seen'
                 elif pfact == 'claim':                 # `C`: track everything already INSTALLED (adopt a box)
-                    from .. import orphans as _orph
-                    try:                               # full enumerable-driver installed set, catalog-wide
-                        _u, _e = ctx.routes.resolve_resilient(list(ctx.config.requested()))
-                        _inst, _o, _c = _orph.install_overlay(ctx, _u, caches=ps._scan_caches)
-                    except Exception:                  # noqa: BLE001 — fall back to what the overlay has
-                        _inst = ps._overlay[0] if ps._overlay else frozenset()
-                    _cat = set(ps.catalog)
-                    _hits = set(_inst) | {c for c, v in ps._probe_installed.items() if v}
-                    for _c in _cat:                    # a parts aggregator counts when all its parts are in
-                        _p = ps._parts(_c)
-                        if _p and all(x in _hits for x in _p):
-                            _hits.add(_c)
-                    _claim = sorted(_hits & _cat)
+                    _busy(stdscr, pal, 'scanning installed…')   # a full scan; give feedback before the freeze
+                    _claim = ps.installed_scan()       # full catalog: batch indices + per-component get_version
                     tg = sorted(ps.targets())
                     if not _claim:
                         note = 'nothing installed to claim'
