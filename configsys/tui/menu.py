@@ -873,16 +873,20 @@ _HELP = {
                 "through them to discover components. Right: a table of the components, with a column "
                 "per machine. Mark what you want per machine; each machine installs exactly its picks.",
         'glossary': [
-            ('columns', 'per row: # multi-selected · name · via (resolved install method; [pinned]) · '
-                        'from (origin: repo / plugin / local) · inst ● installed-here · '
-                        'want ● all / ◐ some (Included on target machines) · new ◆ · '
+            ('columns', "per row: # multi-selected · name · via (resolved install method; [pinned]) · "
+                        "from (origin: repo / plugin / local) · inst'd ● installed-here · "
+                        'tracked ● all / ◐ some (Included on target machines) · new ◆ · '
                         'flag ☆ interesting / · seen · then one cell per machine (● picked / ○ not)'),
-            ('Include / Exclude', 'A = Include (pick) the selected component(s); D = Exclude (unpick). '
-                                  'Both fan out to every TARGET machine (see M). enter toggles the cursor.'),
+            ('Include / Exclude', 'A = Include (pick) · D = Exclude (unpick). Both fan out to every '
+                                  'TARGET machine (see M). Act on the multi-select set, else — with the '
+                                  'BROWSE pane focused — the whole selected profile, else the cursor.'),
             ('machines (M)', 'choose the TARGET machines (plural) A/D act on — toggle each; the modal also '
                              'adds / renames / removes machines. Target headers are highlighted.'),
             ('multi-select', 'space toggles a component into the set (#); a (select-all) takes every row '
-                             'in view; then A/D/I/S act on the whole set at once (else on the cursor).'),
+                             'in view — or, in the browse pane, the whole profile’s members. A/D/I/S act '
+                             'on the set (from either pane), else the profile / cursor.'),
+            ('scroll', '↑/↓ move · ←/→ scroll the pane horizontally when it overflows (a thumb shows on '
+                       'the bottom border); in the browse pane ←/→ first fold/unfold the include tree.'),
             ('interesting / seen', 'I bookmarks a component INTERESTING (☆, just flagged, not installed); '
                                    'S marks it SEEN (·) — and never clears an INTERESTING flag; NEW (◆) = '
                                    'not yet triaged. Global (all machines).'),
@@ -2205,7 +2209,8 @@ class ProfileScreen:
         self.ctx = ctx
         self.focus = 'left'          # 'left' = profiles, 'right' = catalog
         self.lcur = self.rcur = self.ltop = self.rtop = 0
-        self.rcol_left = 0           # leftmost visible catalog column (grid horizontal scroll)
+        self.rcol_left = 0           # matrix table horizontal CHAR offset (←/→ scroll; rhmax set at draw)
+        self.lhoff = 0               # browse pane horizontal CHAR offset (for long names; lhmax at draw)
         self.rrows, self.rncols = 1, 1   # grid dims, set each draw; the key handler moves by column
         self.pfilter = self.cfilter = ''   # substring filters for the profiles / catalog panes
         self.expanded = set()            # node keys of expanded profiles (inline `+include` tree)
@@ -2620,11 +2625,14 @@ class ProfileScreen:
         return 'all' if hits == len(tg) else ('some' if hits else 'none')
 
     def action_targets(self):
-        '''The components an A/I/S/X action applies to: the whole `space` multi-select set (explicit,
-        so it spans profiles regardless of the current scope view) if any, else just the cursor
-        component. Does NOT clear the set — the caller clears on success.'''
+        '''The components an A/D/I/S action applies to: the whole `space` multi-select set (explicit,
+        spans profiles) if any; else, when the BROWSE pane is focused, ALL members of the selected
+        profile; else the catalog cursor. Does NOT clear the set — the caller clears on success.'''
         if self.selected_comps:
             return sorted(self.selected_comps)
+        if self.focus == 'left':                     # a profile is selected -> act on all its members
+            prof = self.cur_curate()
+            return sorted(self.members(prof, self.cur_ceiling())) if prof else []
         vc = self.vcatalog()
         return [vc[self.rcur]] if vc and 0 <= self.rcur < len(vc) else []
 
@@ -2808,6 +2816,8 @@ def _draw_profiles(stdscr, pal, ps, ctx, note, screen):
             ps.ltop = _scroll_reveal(pi, end, ps.ltop, lih, len(vnodes))
         ps.reveal = None
     ps.ltop = _scroll_top(ps.lcur, ps.ltop, lih, len(vnodes))
+    _lho = getattr(ps, 'lhoff', 0)                   # browse-pane horizontal char offset
+    _lmax = 0                                        # widest visible row -> sets ps.lhmax below
     group_counts = {}                                # per-group root count for the header badges
     if ps.grouped:
         _pf = ps.pfilter.lower()
@@ -2832,7 +2842,8 @@ def _draw_profiles(stdscr, pal, ps, ctx, note, screen):
             _gnew, _gint = ps.group_new_count(gid)
             hdr = (f'{"▾" if expanded else "▹"} {name} ({group_counts.get(gid, 0)})'
                    + (f'  ⁺{_gnew}' if _gnew else '') + (f'  ☆ {_gint}' if _gint else ''))
-            _put(stdscr, y, lil, _fit(hdr.upper(), liw),
+            _lmax = max(_lmax, len(hdr))
+            _put(stdscr, y, lil, _fit(hdr.upper()[_lho:], liw),
                  pal.style('menu_header', y, lil, h, w, selected=foc, bg=(None if low_color else rbg))
                  | rev)
             continue
@@ -2867,19 +2878,24 @@ def _draw_profiles(stdscr, pal, ps, ctx, note, screen):
         tag = newtag + inttag
         disp = f'+{name}' if kind == 'include' else name  # `+`-mark a live include child
         row = f'{"".join(prefix)} {disp}{tag}'
-        _put(stdscr, y, lil, _fit(row, liw),
+        _lmax = max(_lmax, len(row))
+        _put(stdscr, y, lil, _fit(row[_lho:], liw),
              pal.style('profile', y, lil, h, w, selected=foc, bg=(None if low_color else rbg))
              | rev | (curses.A_DIM if struck and not foc else 0))
-        # tint the count badges in their own hues (menu_new for ⁺N, link for ☆N), when not truncated
-        if not foc and len(row) <= liw:
+        # tint the count badges in their own hues (menu_new for ⁺N, link for ☆N) when fully visible
+        if not foc:
             for _bstr, _hue in ((f'⁺{nnew}' if nnew else '', 'menu_new'),
                                 (f'☆ {nint}' if nint else '', 'link')):
                 if _bstr:
-                    bx = lil + row.rindex(_bstr)
-                    if 0 <= bx - lil < liw:
-                        _put(stdscr, y, bx, _bstr,
-                             pal.style(_hue, y, bx, h, w, bg=(None if low_color else rbg)) | rev)
+                    vx = row.rindex(_bstr) - _lho
+                    if 0 <= vx and vx + len(_bstr) <= liw:
+                        _put(stdscr, y, lil + vx, _bstr,
+                             pal.style(_hue, y, lil + vx, h, w, bg=(None if low_color else rbg)) | rev)
+    ps.lhmax = max(0, _lmax - liw)                   # clamp target for ←/→ (nav reads this next frame)
+    ps.lhoff = min(_lho, ps.lhmax)
     _scrollbar_v(stdscr, pal, lit, lw - 1, lih, ps.ltop, lih, len(vnodes), h, w)
+    if ps.lhmax:                                     # horizontal thumb on the browse pane's bottom border
+        _scrollbar_h(stdscr, pal, top + body_h - 1, lil, liw, ps.lhoff, liw, _lmax, h, w)
 
     # RIGHT TOP: detail for the highlighted component (names are esoteric) — description + methods
     vcat = ps.vcatalog()
@@ -2971,48 +2987,50 @@ def _draw_profiles(stdscr, pal, ps, ctx, note, screen):
     body_rows = max(1, rih - 1)                       # one row reserved for the column header
     ps.rcur = min(ps.rcur, max(0, n - 1))
     ps.rtop = _scroll_top(ps.rcur, ps.rtop, body_rows, n)
-    # column layout (offsets from ril): name · via · from · state cols (word-headed + wide glyph) · machines
-    CW = 5                                            # state column width
-    STATE = [('inst', 'i'), ('want', 't'), ('new', 'n'), ('flag', 'd')]
-    via_w, org_w = 10, 8
-    MGAP = 3                                          # gap between machine columns (room to breathe)
-    mach_w = [max(6, min(14, len(m))) + MGAP for m in machines]   # column + its trailing gap
+    # column layout (fixed offsets from ril): sel · name · via · from · state cols · machine cols.
+    # The whole table scrolls horizontally (rhoff, driven by ←/→) when it's wider than the pane;
+    # each wide-glyph state column is word-headed and holds its glyph at the column's left edge.
+    STATE = [("inst'd", 7), ('tracked', 8), ('new', 4), ('flag', 5)]
+    state_w = sum(cw for _hd, cw in STATE)
+    via_w, org_w = 10, 14                             # `from` (origin) roomier — plugin names are long
+    MGAP = 3
+    mach_w = [max(6, min(14, len(m))) + MGAP for m in machines]
     mach_block = sum(mach_w)
+    fixed = 2 + (via_w + 1) + (org_w + 1) + (1 + state_w) + 1     # all but name + machines
     x_name = 2
-    name_w = max(12, min(26, riw - 2 - (via_w + 1) - (org_w + 1) - (CW * len(STATE)) - 1 - mach_block))
+    name_w = max(16, min(30, riw - fixed - mach_block))
     x_via = x_name + name_w + 1
     x_org = x_via + via_w + 1
     x_state = x_org + org_w + 1
-    x_mach0 = x_state + CW * len(STATE) + 1
-    # horizontal machine scroll (rcol_left = first visible machine) when columns overflow the pane
-    vis_m, used = [], 0
-    for mi in range(ps.rcol_left, len(machines)):
-        if x_mach0 + used + mach_w[mi] > riw and vis_m:
-            break
-        vis_m.append(mi); used += mach_w[mi]
+    st_x = [x_state + sum(cw for _hd, cw in STATE[:j]) for j in range(len(STATE))]
+    x_mach0 = x_state + state_w + 1
+    m_base = [x_mach0 + sum(mach_w[:k]) for k in range(len(machines))]
+    total_w = x_mach0 + mach_block
+    ps.rcol_left = max(0, min(getattr(ps, 'rcol_left', 0), max(0, total_w - riw)))
+    rhoff, hbar = ps.rcol_left, total_w > riw
+    ps.rhmax = max(0, total_w - riw)                 # the key handler clamps ←/→ against this
 
-    def _col(y, xoff, text, attr):
-        if 0 <= xoff < riw:
-            _put(stdscr, y, ril + xoff, _fit(text, riw - xoff), attr)
-
-    def _mach_base(mi):                              # left edge of a machine column's content area
-        return x_mach0 + sum(mach_w[k] for k in vis_m[:vis_m.index(mi)])
-
-    def _mach_glyph_x(mi):                           # centered glyph position within the column
-        return _mach_base(mi) + max(0, (mach_w[mi] - MGAP - 1)) // 2
+    def _hput(y, xoff, text, attr):                 # draw at xoff-rhoff, clipping both edges
+        ax = xoff - rhoff
+        if ax >= riw:
+            return
+        if ax < 0:
+            text = text[-ax:]
+            ax = 0
+        if text:
+            _put(stdscr, y, ril + ax, _fit(text, riw - ax), attr)
 
     # header row
     hs = pal.style('menu_header', rit, ril, h, w)
-    _col(rit, x_name, _fit('COMPONENT', name_w), hs)
-    _col(rit, x_via, _fit('via', via_w), hs)
-    _col(rit, x_org, _fit('from', org_w), hs)
-    for j, (word, _k) in enumerate(STATE):
-        _col(rit, x_state + j * CW, _fit(word, CW), hs)
-    for mi in vis_m:
-        m, is_tg = machines[mi], machines[mi] in tgset
-        _col(rit, _mach_base(mi), _fit(m, mach_w[mi] - MGAP),
-             pal.style('link' if is_tg else 'method_dim', rit, ril + _mach_base(mi), h, w)
-             | (curses.A_BOLD if is_tg else 0))
+    _hput(rit, x_name, _fit('COMPONENT', name_w), hs)
+    _hput(rit, x_via, _fit('via', via_w), hs)
+    _hput(rit, x_org, _fit('from', org_w), hs)
+    for (word, cw), sx in zip(STATE, st_x):
+        _hput(rit, sx, _fit(word, cw), hs)
+    for mi, m in enumerate(machines):
+        is_tg = m in tgset
+        _hput(rit, m_base[mi], _fit(m, mach_w[mi] - MGAP),
+              pal.style('link' if is_tg else 'method_dim', rit, ril, h, w) | (curses.A_BOLD if is_tg else 0))
 
     ps._probe_dirty = False                          # consumed: this draw reflects any folded-in probes
     _shown = []
@@ -3029,7 +3047,6 @@ def _draw_profiles(stdscr, pal, ps, ctx, note, screen):
         _d = _disp.get(name)
         is_new = ctx.config.is_new(name)
         tstate = ps.target_state(name)
-        rbg = None if foc else (residual_bg if cur else None)
         rev = curses.A_REVERSE if (low_color and cur and not foc) else 0
         if foc:
             _put(stdscr, y, ril, ' ' * riw, pal.fill(y, ril, h, w, selected=True))
@@ -3037,36 +3054,36 @@ def _draw_profiles(stdscr, pal, ps, ctx, note, screen):
             _put(stdscr, y, ril, ' ' * riw, curses.A_REVERSE)
         nelem = ('info_dim' if not avail else 'link' if _d == 'interesting'
                  else 'menu_new' if is_new else 'info_dim' if _d == 'seen' else 'component')
-        _col(y, 0, '#' if name in ps.selected_comps else ' ',
-             pal.style('component', y, ril, h, w, selected=foc) | rev)
-        _col(y, x_name, _fit(name, name_w),
-             pal.style(nelem, y, ril + x_name, h, w, selected=foc) | rev | (curses.A_UNDERLINE if installed else 0))
+        _hput(y, 0, '#' if name in ps.selected_comps else ' ',
+              pal.style('component', y, ril, h, w, selected=foc) | rev)
+        _hput(y, x_name, _fit(name, name_w),
+              pal.style(nelem, y, ril + x_name, h, w, selected=foc) | rev | (curses.A_UNDERLINE if installed else 0))
         via_txt = (f'[{via}]' if pinned else via) if via else ('—' if not avail else '')
-        _col(y, x_via, _fit(via_txt, via_w),
-             pal.style('method_dim', y, ril + x_via, h, w, selected=foc) | rev)
-        _col(y, x_org, _fit(ps.origin(name), org_w),
-             pal.style('method_dim', y, ril + x_org, h, w, selected=foc) | rev)
-        # state cells — wide glyphs (each sits at the column start with a trailing gap so it renders)
+        _hput(y, x_via, _fit(via_txt, via_w),
+              pal.style('method_dim', y, ril + x_via, h, w, selected=foc) | rev)
+        _hput(y, x_org, _fit(ps.origin(name), org_w),
+              pal.style('method_dim', y, ril + x_org, h, w, selected=foc) | rev)
+        # state cells — wide glyphs (each at the column's left edge, with a trailing gap so it renders)
         want_g = {'all': '●', 'some': '◐', 'none': ' '}[tstate]
         cells = [('●' if installed else ' ', 'installed'),
                  (want_g, 'component' if tstate != 'none' else 'info_dim'),
                  ('◆' if is_new else ' ', 'menu_new'),
                  ('☆' if _d == 'interesting' else '·' if _d == 'seen' else ' ',
                   'link' if _d == 'interesting' else 'info_dim')]
-        for j, (glyph, role) in enumerate(cells):
-            _col(y, x_state + j * CW, glyph,
-                 pal.style(role, y, ril + x_state + j * CW, h, w, selected=foc) | rev)
+        for (glyph, role), sx in zip(cells, st_x):
+            _hput(y, sx, glyph, pal.style(role, y, ril + sx, h, w, selected=foc) | rev)
         # per-machine Included cells (● picked · ○ not, centered) — a picked target machine is bold
-        for mi in vis_m:
-            m = machines[mi]
+        for mi, m in enumerate(machines):
             picked = name in picks_map.get(m, ())
-            gx = _mach_glyph_x(mi)
-            _col(y, gx, '●' if picked else '○',
-                 pal.style('installed' if picked else 'info_dim', y, ril + gx, h, w, selected=foc)
-                 | rev | (curses.A_BOLD if (picked and m in tgset) else 0))
+            gx = m_base[mi] + max(0, (mach_w[mi] - MGAP - 1)) // 2
+            _hput(y, gx, '●' if picked else '○',
+                  pal.style('installed' if picked else 'info_dim', y, ril + gx, h, w, selected=foc)
+                  | rev | (curses.A_BOLD if (picked and m in tgset) else 0))
     if ps.show_install:                              # probe the just-drawn rows on non-enumerable drivers
         ps.ensure_probes(_shown)
     _scrollbar_v(stdscr, pal, rit + 1, rleft + rw - 1, body_rows, ps.rtop, body_rows, n, h, w)
+    if hbar:                                          # horizontal thumb on the bottom border
+        _scrollbar_h(stdscr, pal, ctop + cath - 1, ril, riw, rhoff, riw, total_w, h, w)
 
     _tg = sorted(ps.targets())
     status = (f' browse: {prof or "—"}    this box: {ctx.config.current_machine()}'
@@ -3074,7 +3091,7 @@ def _draw_profiles(stdscr, pal, ps, ctx, note, screen):
     if note:
         status += f'    {note}'
     # column legend for the matrix table (right-aligned on the status bar).
-    legend = 'inst ● · want ●/◐ · new ◆ · flag ☆int/·seen · machine ●picked/○not '
+    legend = "inst'd ● · tracked ●/◐ · new ◆ · flag ☆int/·seen · machine ●picked/○not "
     lg_x = max(0, w - len(legend))
     _put(stdscr, h - 3, 0, _fit(status, max(1, lg_x - 1)), pal.style('status_line', h - 3, 0, h, w))
     _put(stdscr, h - 3, lg_x, _fit(legend, w - lg_x), pal.style('status_line', h - 3, lg_x, h, w))
@@ -4326,16 +4343,22 @@ def run(ctx):
                         ps.focus = 'right'             # a leaf profile: open the components pane for it
                 elif pfact == 'right':
                     if ps.focus == 'left':
-                        ps.expand_cur()                # h/l expand/collapse the browse tree
-                    else:                              # scroll the machine columns right (matrix)
-                        ps.rcol_left = min(max(0, len(ps.machines_list()) - 1), ps.rcol_left + 1)
+                        if ps.cur_node() and ps.cur_node()[3]:   # expandable -> open the include tree
+                            ps.expand_cur()
+                        else:                          # else scroll the (overflowing) left pane right
+                            ps.lhoff = min(getattr(ps, 'lhmax', 0), getattr(ps, 'lhoff', 0) + 4)
+                    else:                              # scroll the matrix table right
+                        ps.rcol_left = min(getattr(ps, 'rhmax', 0), ps.rcol_left + 6)
                 elif pfact == 'left':
                     if ps.focus == 'left':
-                        ps.collapse_cur()              # collapse, or step to the parent profile
+                        if getattr(ps, 'lhoff', 0) > 0:   # scroll back first, then collapse/parent
+                            ps.lhoff = max(0, ps.lhoff - 4)
+                        else:
+                            ps.collapse_cur()
                     elif ps.rcol_left > 0:
-                        ps.rcol_left -= 1              # scroll the machine columns left
+                        ps.rcol_left = max(0, ps.rcol_left - 6)   # scroll the matrix table left
                     else:
-                        ps.focus = 'left'              # at the first machine column -> back to profiles
+                        ps.focus = 'left'              # at the left edge -> back to the browse pane
                 elif pfact == 'toggle-install':
                     ps.show_install = 0 if ps.show_install else 1   # off <-> on (installed underlined,
                     # orphans coloured, ignored orphans revealed dimmed). NOTE: don't invalidate the
@@ -4371,8 +4394,8 @@ def run(ctx):
                                     else 'no change (already staged?)')
                         except ConfigsysError as e:
                             note = f'stage-uninstall failed: {e}'
-                elif pfact in ('disp-interesting', 'disp-seen') and ps.focus == 'right':
-                    _targets = ps.action_targets()         # the multi-select set, else the cursor
+                elif pfact in ('disp-interesting', 'disp-seen'):
+                    _targets = ps.action_targets()         # multi-select · else browse-profile members · else cursor
                     if _targets:                           # single: toggle (press again -> NEW); batch: set
                         _want = 'interesting' if pfact == 'disp-interesting' else 'seen'
                         _single = len(_targets) == 1
@@ -4394,8 +4417,8 @@ def run(ctx):
                                          f'{"NEW" if ctx.config.disposition(_targets[0]) is None else _want.upper()}')
                         except ConfigsysError as e:
                             note = f'disposition failed: {e}'
-                elif pfact in ('include', 'exclude') and ps.focus == 'right':
-                    _targets = ps.action_targets()         # the multi-select set, else the cursor component
+                elif pfact in ('include', 'exclude'):
+                    _targets = ps.action_targets()         # multi-select · else browse-profile members · else cursor
                     on = pfact == 'include'
                     if _targets:
                         tg = sorted(ps.targets())          # the selected target machines (fan-out)
@@ -4454,10 +4477,15 @@ def run(ctx):
                     else:
                         _find_edit(stdscr, list(ps.vcatalog()), ps.rcur,
                                    lambda i: setattr(ps, 'rcur', i), rdraw)
-                elif pfact == 'select-all' and ps.focus == 'right':
-                    vcat = ps.vcatalog()               # `a`: (de)select every component currently in view
-                    if vcat:
-                        allvis = set(vcat)
+                elif pfact == 'select-all':
+                    # `a`: (de)select every component in view — the browsed profile's members when the
+                    # left pane is focused, else the catalog rows currently shown.
+                    if ps.focus == 'left':
+                        prof = ps.cur_curate()
+                        allvis = ps.members(prof, ps.cur_ceiling()) if prof else set()
+                    else:
+                        allvis = set(ps.vcatalog())
+                    if allvis:
                         if allvis <= ps.selected_comps:
                             ps.selected_comps -= allvis
                         else:

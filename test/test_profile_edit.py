@@ -375,9 +375,14 @@ def test_profile_multiselect_batch_targets(tmp_path):
     ps.attr_exc = set()
     ps.scope_mode = False                                        # full catalog so the cursor is stable
     ps.rcur = 0
+    ps.focus = 'right'
     cursor = ps.vcatalog()[0]
-    assert ps.action_targets() == [cursor]                       # no selection -> the cursor
-    ps.selected_comps = {'btop', 'htop'}                         # `space` set
+    assert ps.action_targets() == [cursor]                       # right pane, no selection -> the cursor
+    # browse pane focused, no selection -> the whole selected profile's members
+    ps.focus = 'left'
+    ps.lcur = [nd[0] for nd in ps.visible_pnodes()].index('finders')
+    assert set(ps.action_targets()) == set(ctx.config.profile_components('finders'))
+    ps.selected_comps = {'btop', 'htop'}                         # `space` set (spans, either pane)
     assert ps.action_targets() == ['btop', 'htop']               # selection -> the whole set (sorted)
     # a disposition batch clears the set and applies to all
     for c in ps.action_targets():
