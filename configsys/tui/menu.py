@@ -2830,7 +2830,7 @@ def _draw_profiles(stdscr, pal, ps, ctx, note, screen):
             gid = key[len(_GKEY):]
             _gnew, _gint = ps.group_new_count(gid)
             hdr = (f'{"▾" if expanded else "▹"} {name} ({group_counts.get(gid, 0)})'
-                   + (f'  ⁺{_gnew}' if _gnew else '') + (f'  ☆{_gint}' if _gint else ''))
+                   + (f'  ⁺{_gnew}' if _gnew else '') + (f'  ☆ {_gint}' if _gint else ''))
             _put(stdscr, y, lil, _fit(hdr.upper(), liw),
                  pal.style('menu_header', y, lil, h, w, selected=foc, bg=(None if low_color else rbg))
                  | rev)
@@ -2862,7 +2862,7 @@ def _draw_profiles(stdscr, pal, ps, ctx, note, screen):
         nnew = ps.profile_new_count(name, _ceil_r)
         nint = ps.profile_interesting_count(name, _ceil_r)
         newtag = f'  ⁺{nnew}' if nnew else ''
-        inttag = f'  ☆{nint}' if nint else ''
+        inttag = f'  ☆ {nint}' if nint else ''
         tag = newtag + inttag
         disp = f'+{name}' if kind == 'include' else name  # `+`-mark a live include child
         row = f'{"".join(prefix)} {disp}{tag}'
@@ -2872,7 +2872,7 @@ def _draw_profiles(stdscr, pal, ps, ctx, note, screen):
         # tint the count badges in their own hues (menu_new for ⁺N, link for ☆N), when not truncated
         if not foc and len(row) <= liw:
             for _bstr, _hue in ((f'⁺{nnew}' if nnew else '', 'menu_new'),
-                                (f'☆{nint}' if nint else '', 'link')):
+                                (f'☆ {nint}' if nint else '', 'link')):
                 if _bstr:
                     bx = lil + row.rindex(_bstr)
                     if 0 <= bx - lil < liw:
