@@ -893,6 +893,8 @@ _HELP = {
                                    'marks seen. Global (all machines).'),
             ('mark all seen (E)', 'acknowledge every remaining NEW component at once (confirms first) — '
                                   'clears the ◆s after a triage pass; leaves seen/interesting flags alone'),
+            ('claim (C)', 'track every component already INSTALLED on this box onto the target machine(s) '
+                          '— adopt an existing system into a fresh configsys (confirms first)'),
             ('scope (*)', 'toggle: scope the table to the browsed profile’s members (▸, on by default) '
                           '↔ the whole catalog'),
             ('⁺N / ☆N', 'on a browse profile (left): ⁺N = NEW members · ☆N = INTERESTING members — how '
@@ -2606,14 +2608,15 @@ class ProfileScreen:
                 uniq.append(p)
         return uniq
 
-    def is_installed(self, name, _stack=()):
+    def is_installed(self, name, _stack=(), force=False):
         '''Is `name` installed on THIS box? A `parts` aggregator (no unit of its own) counts as
-        installed iff ALL its parts are; a leaf reads the overlay's batch set OR an individual probe.'''
-        if not self.show_install or name in _stack:
+        installed iff ALL its parts are; a leaf reads the overlay's batch set OR an individual probe.
+        `force` ignores the `O` display toggle (for the C claim, which reads reality regardless).'''
+        if (not self.show_install and not force) or name in _stack:
             return False
         parts = self._parts(name)
         if parts:
-            return all(self.is_installed(p, _stack + (name,)) for p in parts)
+            return all(self.is_installed(p, _stack + (name,), force=force) for p in parts)
         ov = self._overlay[0] if self._overlay else frozenset()
         return name in ov or bool(self._probe_installed.get(name))
 
@@ -4504,6 +4507,34 @@ def run(ctx):
                         nch = actions.mark_all_seen(ctx, _new)
                         ps.reload()
                         note = f'{nch} marked seen'
+                elif pfact == 'claim':                 # `C`: track everything already INSTALLED (adopt a box)
+                    from .. import orphans as _orph
+                    try:                               # full enumerable-driver installed set, catalog-wide
+                        _u, _e = ctx.routes.resolve_resilient(list(ctx.config.requested()))
+                        _inst, _o, _c = _orph.install_overlay(ctx, _u, caches=ps._scan_caches)
+                    except Exception:                  # noqa: BLE001 — fall back to what the overlay has
+                        _inst = ps._overlay[0] if ps._overlay else frozenset()
+                    _cat = set(ps.catalog)
+                    _hits = set(_inst) | {c for c, v in ps._probe_installed.items() if v}
+                    for _c in _cat:                    # a parts aggregator counts when all its parts are in
+                        _p = ps._parts(_c)
+                        if _p and all(x in _hits for x in _p):
+                            _hits.add(_c)
+                    _claim = sorted(_hits & _cat)
+                    tg = sorted(ps.targets())
+                    if not _claim:
+                        note = 'nothing installed to claim'
+                    elif _popup_choose(stdscr, pal,
+                                       f'track {len(_claim)} installed components on {", ".join(tg)}?',
+                                       [('cancel', ''), ('claim', '')], 0) == 1:
+                        nch = 0
+                        for _cc in _claim:
+                            for _m in tg:
+                                cn, _l = actions.set_included(ctx, _cc, [_m], True)
+                                nch += cn
+                        actions.mark_all_seen(ctx, _claim)   # tracked implies seen
+                        ps.reload(); menu_dirty = True
+                        note = f'claimed {len(_claim)} installed → tracked on {", ".join(tg)}'
                 elif pfact == 'scope':
                     ps.toggle_scope()                  # `*`: scope the catalog to the selected profile <-> all
                 elif pfact == 'top':

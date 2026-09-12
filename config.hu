@@ -250,6 +250,7 @@ profiles: {
             toggle-install: O       // overlay the install axis (installed underline · orphan colour)
             stage-uninstall: x      // stage the selected component for uninstall (-> !uninstall)
             mark-all-seen: E        // mark every NEW component SEEN at once (confirms first)
+            claim: C                // track every INSTALLED component (adopt an existing system; confirms)
             orphan-ignore: "."      // add the selected orphan to orphans-ignore
         }
 

@@ -99,7 +99,7 @@ def test_repo_every_screen_scope_matches_the_wired_actions():
         'profiles': {'*': 'scope', 'T': 'track-all', 't': 'track-one', 'a': 'select-all', 'v': 'method',
                      'M': 'machine-target', 'f': 'attr-filter', 'i': 'disp-interesting',
                      's': 'disp-seen', 'I': 'disp-interesting-all', 'S': 'disp-seen-all',
-                     'E': 'mark-all-seen', 'x': 'stage-uninstall'},
+                     'E': 'mark-all-seen', 'C': 'claim', 'x': 'stage-uninstall'},
         'theme': {'n': 'new', 'r': 'reset', 'x': 'reset', 'B': 'edit-bg', 'o': 'effect-bold',
                   'u': 'effect-underline', 'v': 'effect-reverse', 'p': 'gradient-toggle',
                   'D': 'copy-page', 's': 'save', 'L': 'load'},
