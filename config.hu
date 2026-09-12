@@ -237,16 +237,16 @@ profiles: {
         // the components pane (left) or toggles membership (right); select toggles membership (right).
         profiles: {
             scope: "*"              // toggle: scope the catalog to the browsed profile's members <-> full catalog
-            include: A              // Include (pick) the selected component on the target machine(s)
-            exclude: D              // Exclude (unpick) the selected component on the target machine(s)
+            track-all: T            // toggle TRACKING of the multi-select set / all in the selected profile
+            track-one: t            // toggle TRACKING of just the highlighted component
+            disp-seen: s            // toggle NEW <-> seen on the highlighted component
+            disp-interesting: i     // toggle INTERESTING on the highlighted component
             select-all: a           // select every component currently in view (multi-select set)
             method: v               // pin the selected component's install method (via)
-            machine-target: M       // choose the target machines to edit (plural; A/D fan out to them)
+            machine-target: M       // choose the target machines to edit (plural; T/t fan out to them)
             attr-filter: f          // faceted kind filter over the catalog (F = live substring filter)
             toggle-install: O       // overlay the install axis (installed underline · orphan colour)
             stage-uninstall: x      // stage the selected component for uninstall (-> !uninstall)
-            disp-interesting: I     // toggle the selected component INTERESTING (bookmarked, not new)
-            disp-seen: S            // toggle the selected component SEEN (acknowledged, no longer new)
             mark-all-seen: E        // mark every NEW component SEEN at once (confirms first)
             orphan-ignore: "."      // add the selected orphan to orphans-ignore
         }

@@ -877,19 +877,19 @@ _HELP = {
                         "from (origin: repo / plugin / local) · inst'd ● installed-here · "
                         'tracked ● all / ◐ some (Included on target machines) · new ◆ · '
                         'flag ☆ interesting / · seen · then one cell per machine (● picked / ○ not)'),
-            ('Include / Exclude', 'A = Include (pick) · D = Exclude (unpick). Both fan out to every '
-                                  'TARGET machine (see M). Act on the multi-select set, else — with the '
-                                  'BROWSE pane focused — the whole selected profile, else the cursor.'),
-            ('machines (M)', 'choose the TARGET machines (plural) A/D act on — toggle each; the modal also '
-                             'adds / renames / removes machines. Target headers are highlighted.'),
+            ('track (T / t)', 'T toggles TRACKING of the multi-select set / the whole selected profile; '
+                              't toggles just the HIGHLIGHTED component. Tracking = Included on the TARGET '
+                              'machines (see M), and also marks the component seen.'),
+            ('machines (M)', 'choose the TARGET machines (plural) T/t fan out to — toggle each; the modal '
+                             'also adds / renames / removes machines. Target headers are highlighted.'),
             ('multi-select', 'space toggles a component into the set (#); a (select-all) takes every row '
-                             'in view — or, in the browse pane, the whole profile’s members. A/D/I/S act '
-                             'on the set (from either pane), else the profile / cursor.'),
+                             'in view — or, in the browse pane, the whole profile’s members. T then tracks '
+                             'the whole set.'),
             ('scroll', '↑/↓ move · ←/→ scroll the pane horizontally when it overflows (a thumb shows on '
                        'the bottom border); in the browse pane ←/→ first fold/unfold the include tree.'),
-            ('interesting / seen', 'I bookmarks a component INTERESTING (☆, just flagged, not installed); '
-                                   'S marks it SEEN (·) — and never clears an INTERESTING flag; NEW (◆) = '
-                                   'not yet triaged. Including (A) a component also marks it seen. Global.'),
+            ('interesting / seen', 'i toggles INTERESTING (☆, flagged, not installed) on the highlighted '
+                                   'component; s toggles NEW ↔ SEEN (·) — and never clears a flag. Tracking '
+                                   '(T/t) also marks seen. Global (all machines).'),
             ('mark all seen (E)', 'acknowledge every remaining NEW component at once (confirms first) — '
                                   'clears the ◆s after a triage pass; leaves seen/interesting flags alone'),
             ('scope (*)', 'toggle: scope the table to the browsed profile’s members (▸, on by default) '
@@ -2626,17 +2626,20 @@ class ProfileScreen:
         hits = sum(1 for m in tg if comp in picks.get(m, ()))
         return 'all' if hits == len(tg) else ('some' if hits else 'none')
 
-    def action_targets(self):
-        '''The components an A/D/I/S action applies to: the whole `space` multi-select set (explicit,
-        spans profiles) if any; else, when the BROWSE pane is focused, ALL members of the selected
-        profile; else the catalog cursor. Does NOT clear the set — the caller clears on success.'''
-        if self.selected_comps:
-            return sorted(self.selected_comps)
-        if self.focus == 'left':                     # a profile is selected -> act on all its members
+    def cursor_targets(self):
+        '''The HIGHLIGHTED item's components (ignoring the multi-select set): the catalog cursor when
+        the right pane is focused, else ALL members of the selected browse profile (the left pane's
+        highlighted item). Drives `t`/`s`/`i`.'''
+        if self.focus == 'left':
             prof = self.cur_curate()
             return sorted(self.members(prof, self.cur_ceiling())) if prof else []
         vc = self.vcatalog()
         return [vc[self.rcur]] if vc and 0 <= self.rcur < len(vc) else []
+
+    def action_targets(self):
+        '''The batch a `T` action applies to: the `space` multi-select set (explicit, spans profiles)
+        if any, else the highlighted item (cursor_targets). Does NOT clear the set.'''
+        return sorted(self.selected_comps) if self.selected_comps else self.cursor_targets()
 
     def vcatalog(self):
         f = self.cfilter.lower()
@@ -3102,12 +3105,12 @@ def _draw_profiles(stdscr, pal, ps, ctx, note, screen):
         nav1 = (f" {g('down')}/{g('up')} move · {g('right')}/{g('left')} scroll/expand · "
                 f"{g('switch-pane')} panes · {g('find')} find · {g('filter')} filter · "
                 f"{g('attr-filter')} attrs · {g('machine-target')} machines ")
-        nav2 = (f" {g('include')} Include · {g('exclude')} Exclude · {g('select')} sel · "
-                f"{g('select-all')} all · {g('disp-interesting')} int · {g('disp-seen')} seen · "
-                f"{g('scope')} scope · {g('method')} via · {g('stage-uninstall')} uninst · {g('quit')} quit ")
+        nav2 = (f" {g('track-all')} track-set · {g('track-one')} track-one · {g('disp-interesting')} int · "
+                f"{g('disp-seen')} seen · {g('select')} sel · {g('select-all')} all · {g('scope')} scope · "
+                f"{g('method')} via · {g('stage-uninstall')} uninst · {g('quit')} quit ")
     else:
         nav1 = (' j/k move · h/l scroll/expand · tab panes · / find · F filter · f attrs · M machines ')
-        nav2 = (' A Include · D Exclude · space sel · a all · I int · S seen · * scope · v via · x uninst · q quit ')
+        nav2 = (' T track-set · t track-one · i int · s seen · space sel · a all · * scope · v via · x uninst · q quit ')
     _put(stdscr, h - 2, 0, _fit(nav1.ljust(w), w), pal.style('footer', h - 2, 0, h, w))
     _put(stdscr, h - 1, 0, _fit(nav2.ljust(w), w), pal.style('footer', h - 1, 0, h, w))
     stdscr.refresh()
@@ -4397,7 +4400,7 @@ def run(ctx):
                         except ConfigsysError as e:
                             note = f'stage-uninstall failed: {e}'
                 elif pfact in ('disp-interesting', 'disp-seen'):
-                    _targets = ps.action_targets()         # multi-select · else browse-profile members · else cursor
+                    _targets = ps.cursor_targets()         # s/i act on the HIGHLIGHTED item (cursor / profile)
                     if _targets:                           # single: toggle (press again -> NEW); batch: set
                         _want = 'interesting' if pfact == 'disp-interesting' else 'seen'
                         _single = len(_targets) == 1
@@ -4412,18 +4415,19 @@ def run(ctx):
                                           else _want)
                                 changed, _lbl = actions.set_disposition(ctx, _c, _state)
                                 nch += 1 if changed else 0
-                            ps.selected_comps.clear()
                             ps.reload(); menu_dirty = menu_dirty or nch > 0
                             note = (f'{nch} -> {_want.upper()}' if not _single
                                     else f'{_targets[0]}: '
                                          f'{"NEW" if ctx.config.disposition(_targets[0]) is None else _want.upper()}')
                         except ConfigsysError as e:
                             note = f'disposition failed: {e}'
-                elif pfact in ('include', 'exclude'):
-                    _targets = ps.action_targets()         # multi-select · else browse-profile members · else cursor
-                    on = pfact == 'include'
+                elif pfact in ('track-all', 'track-one'):
+                    # T = the multi-select set / whole selected profile; t = just the highlighted item.
+                    _targets = ps.action_targets() if pfact == 'track-all' else ps.cursor_targets()
                     if _targets:
                         tg = sorted(ps.targets())          # the selected target machines (fan-out)
+                        # toggle: if ALL targets are already fully tracked here, UNtrack; else track.
+                        on = not all(ps.target_state(c) == 'all' for c in _targets)
                         nch = 0
                         try:
                             for _c in _targets:
@@ -4431,10 +4435,11 @@ def run(ctx):
                                 nch += cn
                             if on:                         # tracked implies seen (undispositioned -> seen)
                                 actions.mark_all_seen(ctx, _targets)
-                            ps.selected_comps.clear()
+                            if pfact == 'track-all':
+                                ps.selected_comps.clear()
                             ps.reload(); menu_dirty = menu_dirty or nch > 0
                             _lbl = _targets[0] if len(_targets) == 1 else f'{len(_targets)} components'
-                            note = (f'{_lbl} {"included on" if on else "excluded from"} {", ".join(tg)}'
+                            note = (f'{_lbl} {"tracked on" if on else "untracked from"} {", ".join(tg)}'
                                     if nch else 'no change')
                         except ConfigsysError as e:
                             note = f'{pfact} failed: {e}'
