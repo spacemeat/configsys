@@ -2838,8 +2838,7 @@ def _draw_profiles(stdscr, pal, ps, ctx, note, screen):
         exp = '▾' if expanded else ('▹' if expandable else ' ')
         # scope marker: ▸ on the row the catalog is currently scoped to (the selected one, `*` mode on)
         scope = '▸' if (ps.scope_mode and i == ps.lcur) else ' '
-        act = '●' if name in ps.active else ('◐' if name in ps.active_indirect else '○')
-        prefix = list(f'{scope}{"  " * depth}{exp}{act}')
+        prefix = list(f'{scope}{"  " * depth}{exp}')
         # Exclusion attribution: for a subprofile a `~`-excluded by an ancestor on its path, paint a
         # `~` in THAT ancestor's status-glyph column (2 + 2*ancestor_depth), which falls in this row's
         # blank indent gutter — so the marker sits under the profile that's at fault. Two ancestors
@@ -2857,19 +2856,14 @@ def _draw_profiles(stdscr, pal, ps, ctx, note, screen):
                     struck = True
             except Exception:                                  # noqa: BLE001 — a bad profile marks nothing
                 pass
-        # a user-group row that has a same-name system def BELOW it is a clone/override of a browse
-        # profile; ⧉ names it (the pristine original still lives under repo/plugin). Own profiles and
-        # the system originals carry no badge — the group placement already says which space they're in.
-        is_clone = (node_group not in ps._SYSTEM_GROUPS and kind == 'profile'
-                    and ps._profile_groups(name) & set(ps._SYSTEM_GROUPS))
-        # `⁺N` counts NEW (untriaged) members; `☆N` counts INTERESTING (bookmarked) members — so a
-        # profile advertises both what you haven't triaged and what you've flagged inside it.
+        # `⁺N` counts NEW (untriaged) members; `*N` counts INTERESTING (bookmarked) members — a
+        # profile's whole worth-a-look signal (there is no active/clone state in the matrix model).
         _ceil_r = ps.group_ceiling(node_group)
         nnew = ps.profile_new_count(name, _ceil_r)
         nint = ps.profile_interesting_count(name, _ceil_r)
         newtag = f'  ⁺{nnew}' if nnew else ''
         inttag = f'  *{nint}' if nint else ''
-        tag = ('  ⧉' if is_clone else '') + newtag + inttag
+        tag = newtag + inttag
         disp = f'+{name}' if kind == 'include' else name  # `+`-mark a live include child
         row = f'{"".join(prefix)} {disp}{tag}'
         _put(stdscr, y, lil, _fit(row, liw),
@@ -4425,29 +4419,6 @@ def run(ctx):
                             note = f'ignore failed: {e}'
                 elif pfact == 'scope':
                     ps.toggle_scope()                  # `*`: scope the catalog to the selected profile <-> all
-                elif pfact == 'toggle-member' and ps.focus == 'left':
-                    # include/exclude the selected SUBPROFILE (a nested + child) in the top-level profile
-                    # it hangs under. Membership-toggle: struck -> re-include (+sub); active -> exclude (~sub).
-                    nd = ps.cur_node()
-                    if ps.cur_readonly():
-                        note = 'read-only system profile — press c to clone it, then edit the copy'
-                    elif nd and nd[1] > 0:             # depth>0 -> a subprofile, not a top-level root
-                        sub = nd[0]
-                        path = nd[2].split('\x00')
-                        if ps.node_group(nd):          # a grouped key is group-prefixed -> drop the prefix
-                            path = path[1:]
-                        root = path[0]
-                        want_member = sub not in ctx.config.active_subprofiles(root)
-                        try:
-                            changed, msg = actions.set_subprofile_membership(ctx, root, sub, want_member)
-                            ps.reload()
-                            menu_dirty = menu_dirty or changed
-                            note = (f'{sub} {"included in" if want_member else "excluded from"} {root}'
-                                    if changed else (msg or 'no change'))
-                        except Exception as e:  # noqa: BLE001 — surface, don't crash
-                            note = f'edit failed: {e}'
-                    else:
-                        note = 'select a subprofile (a nested +include child) to include/exclude'
                 elif pfact == 'top':
                     setattr(ps, 'lcur' if ps.focus == 'left' else 'rcur', 0)
                 elif pfact == 'bottom':
