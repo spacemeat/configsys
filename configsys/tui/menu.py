@@ -2055,35 +2055,38 @@ def _attr_filter_modal(stdscr, pal, inc, exc):
 
 
 def _machines_modal(stdscr, pal, ctx, targets):
-    '''Manage machines AND pick the edit-TARGET set — styled like the attr-filter modal. space toggles
-    a machine as a target (A/D fan out to targets); a adds a machine; r renames the selected one; x
-    removes it (with confirmation, dropping its picks); enter/esc closes. Returns (target_set, note).
-    Mutates config via actions.'''
+    '''Manage machines AND pick the edit-TARGET set — styled like the attr-filter modal, drawn OVER
+    the screen. All editing is IN-PLACE (no sub-dialogs to linger): space toggles a target; m sets the
+    current box; a adds (types a new row inline); r renames the selected row inline; x removes it
+    (inline y/n; refuses the current machine). enter/esc closes. Returns (target_set, note).'''
     from .. import actions
     tg = set(targets)
     note = ''
-    sel, top = 0, 0
+    sel, top, held_h = 0, 0, 0
+    mode, buf = None, ''                              # mode: None | 'rename' | 'add' | 'confirm'
     border = pal.get('accent') | curses.A_BOLD
+    dim = pal.get('dim')
 
     def machs():
         ms = sorted(ctx.config.machines())
         cur = ctx.config.current_machine()
         return [cur] + [m for m in ms if m != cur]
 
-    dim = pal.get('dim')
     while True:
         rows = machs()
         this = ctx.config.current_machine()
         if not tg:
             tg = {this}
         sel = max(0, min(sel, len(rows) - 1))
+        nshow = len(rows) + (1 if mode == 'add' else 0)
         h, w = stdscr.getmaxyx()
-        stdscr.erase()                              # clear each frame so a dismissed sub-dialog (rename/
-        box_w = min(52, max(34, w - 4))             # remove) never lingers behind this modal
-        vis = max(3, min(len(rows), h - 7))
-        box_h = vis + 5                             # borders + rows + a 2-line legend
+        box_w = min(52, max(36, w - 4))
+        vis = max(3, min(nshow, h - 7))
+        held_h = max(held_h, vis + 5)                # never shrink mid-session -> no leftover rows
+        box_h = min(held_h, h - 2)
         y0, x0 = max(0, (h - box_h) // 2), max(0, (w - box_w) // 2)
-        top = min(sel, top) if sel < top else (sel - vis + 1 if sel >= top + vis else top)
+        cursor_at = nshow - 1 if mode == 'add' else sel
+        top = min(cursor_at, top) if cursor_at < top else (cursor_at - vis + 1 if cursor_at >= top + vis else top)
         _put(stdscr, y0, x0, '┌' + '─' * (box_w - 2) + '┐', border)
         _put(stdscr, y0, x0 + 2, ' target machines (A/D fan out to ✓) ', border)
         for r in range(1, box_h - 1):
@@ -2091,19 +2094,73 @@ def _machines_modal(stdscr, pal, ctx, targets):
         _put(stdscr, y0 + box_h - 1, x0, '└' + '─' * (box_w - 2) + '┘', border)
         for k in range(vis):
             idx = top + k
-            if idx >= len(rows):
+            if idx > nshow - 1:
                 break
+            yy = y0 + 1 + k
+            if mode == 'add' and idx == len(rows):   # the inline new-machine row
+                _put(stdscr, yy, x0 + 2, _fit(f'  [ ] {buf}▏'.ljust(box_w - 4), box_w - 4),
+                     curses.A_REVERSE)
+                continue
             m = rows[idx]
-            mark = '✓' if m in tg else '·'
-            tag = '  (this box)' if m == this else ''
-            attr = curses.A_REVERSE if idx == sel else curses.A_NORMAL
-            _put(stdscr, y0 + 1 + k, x0 + 2,
-                 _fit(f'  [{mark}] {m}{tag}'.ljust(box_w - 4), box_w - 4), attr)
-        # legend, stacked on two lines just above the bottom border (fits the box width)
-        _put(stdscr, y0 + box_h - 3, x0 + 2, _fit('space:target · m:current · a:add', box_w - 4), dim)
-        _put(stdscr, y0 + box_h - 2, x0 + 2, _fit('r:rename · x:remove · enter/esc:close', box_w - 4), dim)
+            is_sel = idx == sel
+            if mode == 'rename' and is_sel:          # inline rename edit on the selected row
+                _put(stdscr, yy, x0 + 2, _fit(f'  [{"✓" if m in tg else "·"}] {buf}▏'.ljust(box_w - 4),
+                                              box_w - 4), curses.A_REVERSE)
+            elif mode == 'confirm' and is_sel:       # inline remove confirmation
+                _put(stdscr, yy, x0 + 2, _fit(f'  remove "{m}"?  y / n'.ljust(box_w - 4), box_w - 4),
+                     pal.get('error') | curses.A_BOLD)
+            else:
+                mark = '✓' if m in tg else '·'
+                tag = '  (this box)' if m == this else ''
+                _put(stdscr, yy, x0 + 2, _fit(f'  [{mark}] {m}{tag}'.ljust(box_w - 4), box_w - 4),
+                     curses.A_REVERSE if is_sel else curses.A_NORMAL)
+        # legend (two lines), context-sensitive
+        if mode in ('rename', 'add'):
+            l1, l2 = 'type a name', 'enter:save · esc:cancel'
+        elif mode == 'confirm':
+            l1, l2 = 'y: remove (drops its picks)', 'n / esc: cancel'
+        else:
+            l1, l2 = 'space:target · m:current · a:add', 'r:rename · x:remove · enter/esc:close'
+        _put(stdscr, y0 + box_h - 3, x0 + 2, _fit(l1, box_w - 4), dim)
+        _put(stdscr, y0 + box_h - 2, x0 + 2, _fit(l2, box_w - 4), dim)
         stdscr.refresh()
         ch = stdscr.getch()
+
+        if mode in ('rename', 'add'):                # inline text entry
+            if ch == 27:
+                mode, buf = None, ''
+            elif ch in (ord('\n'), curses.KEY_ENTER):
+                nm = buf.strip()
+                if mode == 'rename':
+                    old = rows[sel]
+                    ok, why = actions.rename_machine(ctx, old, nm)
+                    ctx.invalidate()
+                    if ok and old in tg:
+                        tg.discard(old); tg.add(nm)
+                    note = f'renamed "{old}" → "{nm}"' if ok else why
+                elif nm:
+                    ok, why = actions.add_machine(ctx, nm)
+                    ctx.invalidate()
+                    note = f'added "{nm}"' if ok else why
+                    if ok:
+                        tg.add(nm)
+                mode, buf = None, ''
+            elif ch in (curses.KEY_BACKSPACE, 127, 8):
+                buf = buf[:-1]
+            elif 32 <= ch < 127:
+                buf += chr(ch)
+            continue
+        if mode == 'confirm':
+            if ch in (ord('y'), ord('Y')):
+                rm = rows[sel]
+                actions.remove_machine(ctx, rm)
+                actions.set_included_clear_machine(ctx, rm)
+                ctx.invalidate()
+                tg.discard(rm)
+                note = f'removed "{rm}"'
+            mode = None
+            continue
+
         if ch in (27, ord('q'), ord('\n'), curses.KEY_ENTER):
             return tg, note
         if ch in (ord('j'), curses.KEY_DOWN):
@@ -2114,40 +2171,21 @@ def _machines_modal(stdscr, pal, ctx, targets):
             tg ^= {rows[sel]}
             if not tg:
                 tg = {this}
-        elif ch == ord('m'):                            # make the selected machine THIS box's current
+        elif ch == ord('m'):                         # make the selected machine THIS box's current
             if rows[sel] != this:
                 actions.set_machine_active(ctx, rows[sel])
                 ctx.invalidate()
                 note = f'current → "{rows[sel]}"'
-                sel = 0                                 # current sorts first
+                sel = 0                              # current sorts first
         elif ch == ord('a'):
-            nm = (_input_box(stdscr, pal, 'new machine name') or '').strip()
-            if nm:
-                ok, why = actions.add_machine(ctx, nm)
-                ctx.invalidate()
-                note = f'added "{nm}"' if ok else why
-                if ok:
-                    tg.add(nm)
+            mode, buf = 'add', ''
         elif ch == ord('r'):
-            old = rows[sel]
-            nm = (_input_box(stdscr, pal, f'rename "{old}" to', initial=old) or '').strip()
-            ok, why = actions.rename_machine(ctx, old, nm)
-            ctx.invalidate()
-            if ok and old in tg:
-                tg.discard(old)
-                tg.add(nm)
-            note = f'renamed "{old}" → "{nm}"' if ok else why
+            mode, buf = 'rename', rows[sel]
         elif ch == ord('x'):
-            rm = rows[sel]
-            if rm == this:
+            if rows[sel] == this:
                 note = 'can’t remove the current machine (switch with m first)'
-            elif _popup_choose(stdscr, pal, f'remove machine "{rm}"? (its picks are dropped)',
-                               [('cancel', ''), ('remove', '')], 0) == 1:
-                actions.remove_machine(ctx, rm)
-                actions.set_included_clear_machine(ctx, rm)
-                ctx.invalidate()
-                tg.discard(rm)
-                note = f'removed "{rm}"'
+            else:
+                mode = 'confirm'
 
 
 # Layer-grouped profiles pane: a group header is a pnode whose key starts with _GKEY. Groups are
