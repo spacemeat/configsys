@@ -241,6 +241,8 @@ profiles: {
             track-one: t            // toggle TRACKING of just the highlighted component
             disp-seen: s            // toggle NEW <-> seen on the highlighted component
             disp-interesting: i     // toggle INTERESTING on the highlighted component
+            disp-seen-all: S        // mark SEEN across the multi-select set / whole selected profile
+            disp-interesting-all: I // mark INTERESTING across the set / whole selected profile
             select-all: a           // select every component currently in view (multi-select set)
             method: v               // pin the selected component's install method (via)
             machine-target: M       // choose the target machines to edit (plural; T/t fan out to them)

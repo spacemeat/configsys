@@ -888,8 +888,9 @@ _HELP = {
             ('scroll', '↑/↓ move · ←/→ scroll the pane horizontally when it overflows (a thumb shows on '
                        'the bottom border); in the browse pane ←/→ first fold/unfold the include tree.'),
             ('interesting / seen', 'i toggles INTERESTING (☆, flagged, not installed) on the highlighted '
-                                   'component; s toggles NEW ↔ SEEN (·) — and never clears a flag. Tracking '
-                                   '(T/t) also marks seen. Global (all machines).'),
+                                   'component; s toggles NEW ↔ SEEN (·) — never clears a flag. I / S do the '
+                                   'same across the multi-select set / whole profile. Tracking (T/t) also '
+                                   'marks seen. Global (all machines).'),
             ('mark all seen (E)', 'acknowledge every remaining NEW component at once (confirms first) — '
                                   'clears the ◆s after a triage pass; leaves seen/interesting flags alone'),
             ('scope (*)', 'toggle: scope the table to the browsed profile’s members (▸, on by default) '
@@ -4433,11 +4434,12 @@ def run(ctx):
                                     else 'no change (already staged?)')
                         except ConfigsysError as e:
                             note = f'stage-uninstall failed: {e}'
-                elif pfact in ('disp-interesting', 'disp-seen'):
-                    _targets = ps.cursor_targets()         # s/i act on the HIGHLIGHTED item (cursor / profile)
-                    if _targets:                           # single: toggle (press again -> NEW); batch: set
-                        _want = 'interesting' if pfact == 'disp-interesting' else 'seen'
-                        _single = len(_targets) == 1
+                elif pfact in ('disp-interesting', 'disp-seen', 'disp-interesting-all', 'disp-seen-all'):
+                    _batch = pfact.endswith('-all')        # S/I: the set / whole profile · s/i: the cursor
+                    _targets = ps.action_targets() if _batch else ps.cursor_targets()
+                    if _targets:                           # cursor: toggle (press again -> NEW); batch: set
+                        _want = 'interesting' if 'interesting' in pfact else 'seen'
+                        _single = len(_targets) == 1 and not _batch
                         nch = 0
                         try:
                             for _c in _targets:
@@ -4449,6 +4451,8 @@ def run(ctx):
                                           else _want)
                                 changed, _lbl = actions.set_disposition(ctx, _c, _state)
                                 nch += 1 if changed else 0
+                            if _batch:
+                                ps.selected_comps.clear()
                             ps.reload(); menu_dirty = menu_dirty or nch > 0
                             note = (f'{nch} -> {_want.upper()}' if not _single
                                     else f'{_targets[0]}: '
