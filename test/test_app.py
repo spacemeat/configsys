@@ -439,16 +439,16 @@ def test_all_builtin_profile_expands_to_universe():
     from configsys.config import Config
     cfg = Config([])                                   # no user-defined profiles
     cfg._universe_provider = lambda: {'btop', 'git', 'rust'}
-    assert cfg.profile_components('all') == ['btop', 'git', 'rust']       # sorted universe
-    assert cfg.profile_own_components('all') == ['btop', 'git', 'rust']
-    assert Config([]).profile_components('all') == []                     # no provider -> empty, not error
+    assert cfg.profile_components('!all') == ['btop', 'git', 'rust']      # sorted universe
+    assert cfg.profile_own_components('!all') == ['btop', 'git', 'rust']
+    assert Config([]).profile_components('!all') == []                    # no provider -> empty, not error
 
 
 def test_profiles_label_hides_all_as_a_note():
     from configsys.app import _profiles_label
     assert _profiles_label(['user', 'dev']) == 'user, dev'
-    assert _profiles_label(['user', 'all']) == 'user  +all (full menu)'
-    assert _profiles_label(['all']) == '+all (full menu)'
+    assert _profiles_label(['user', '!all']) == 'user  +all (full menu)'
+    assert _profiles_label(['!all']) == '+all (full menu)'
     assert _profiles_label([]) == '(none)'
 
 

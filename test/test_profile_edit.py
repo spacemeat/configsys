@@ -255,22 +255,21 @@ def test_include_and_uninclude_profile(tmp_path):
     assert ctx.config.profile_includes('a') == set()
 
 
-def test_profile_tree_and_scope_mode(tmp_path):
-    # v3: the left pane is a flat BROWSE list of repo/plugin profiles; scope mode pages the catalog
-    # through the selected browse profile's members.
+def test_profile_tree_and_browse(tmp_path):
+    # v3: flat BROWSE list — `!all` first (the whole catalog), then repo/plugin profiles; the catalog
+    # is always scoped to the selected profile's members (no `*` toggle).
     from configsys.tui import menu
     ctx = _rctx(tmp_path)
     ps = menu.ProfileScreen(ctx)
     ps.attr_exc = set()
     names = [nd[0] for nd in ps.visible_pnodes()]
+    assert names[0] == '!all'                                  # the browse-everything lens, first
     assert 'finders' in names and 'languages' in names        # repo browse profiles
     assert not any(ps.is_group_header(nd) for nd in ps.visible_pnodes())   # flat, no layer groups
-    # scope mode ON by default -> catalog = the selected profile's members
-    assert ps.scope_mode is True
-    ps.lcur = names.index('finders')
+    ps.lcur = 0                                                # !all -> the whole catalog
+    assert len(ps.vcatalog()) == len(ps.catalog)
+    ps.lcur = names.index('finders')                          # a profile -> its members only
     assert set(ps.vcatalog()) == set(ctx.config.profile_components('finders'))
-    ps.toggle_scope()                                          # off -> the full catalog
-    assert ps.scope_mode is False and len(ps.vcatalog()) == len(ps.catalog)
 
 
 def test_find_next_steps_through_siblings():
@@ -389,7 +388,7 @@ def test_profile_multiselect_batch_targets(tmp_path):
 
     ps = menu.ProfileScreen(ctx)
     ps.attr_exc = set()
-    ps.scope_mode = False                                        # full catalog so the cursor is stable
+    ps.lcur = 0                                                  # !all -> the full catalog is in view
     ps.rcur = 0
     ps.focus = 'right'
     cursor = ps.vcatalog()[0]

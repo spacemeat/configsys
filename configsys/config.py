@@ -103,7 +103,7 @@ class Config:
         # routes (not config), so it's supplied lazily by the app; None until then.
         self._universe_provider = None
 
-    ALL_PROFILE = 'all'
+    ALL_PROFILE = '!all'          # the built-in browse-everything profile (keyword-namespaced, like !uninstall)
 
     @classmethod
     def load(cls, paths, plugin_files=(), machine=None):

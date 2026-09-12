@@ -588,9 +588,9 @@ def cmd_inspect(ctx, args):
 def _profiles_label(profiles):
     '''Display string for the active profiles. The built-in `all` isn't listed as a named
     profile — it's shown as a `+all` note so the full menu is visible without cluttering the list.'''
-    shown = [p for p in profiles if p != 'all']
+    shown = [p for p in profiles if p != Config.ALL_PROFILE]
     label = ', '.join(shown)
-    if 'all' in profiles:
+    if Config.ALL_PROFILE in profiles:
         label = f'{label}  +all (full menu)' if label else '+all (full menu)'
     return label or '(none)'
 

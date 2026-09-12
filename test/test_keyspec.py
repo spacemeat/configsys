@@ -96,7 +96,7 @@ def test_repo_every_screen_scope_matches_the_wired_actions():
         'plugins': {'a': 'add', 'x': 'remove', 's': 'sync', 'S': 'sync-all', 'b': 'bless',
                     'B': 'unbless', 'u': 'update', 'U': 'update-all', 't': 'trust', 'T': 'trust-all',
                     'v': 'set-ref'},
-        'profiles': {'*': 'scope', 'T': 'track-all', 't': 'track-one', 'a': 'select-all', 'v': 'method',
+        'profiles': {'T': 'track-all', 't': 'track-one', 'a': 'select-all', 'v': 'method',
                      'M': 'machine-target', 'f': 'attr-filter', 'i': 'disp-interesting',
                      's': 'disp-seen', 'I': 'disp-interesting-all', 'S': 'disp-seen-all',
                      'E': 'mark-all-seen', 'C': 'claim', 'x': 'stage-uninstall'},

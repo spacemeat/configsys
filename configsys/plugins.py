@@ -681,16 +681,31 @@ def read_dispositions(config_file):
     return {k: v for k, v in d.items() if not isinstance(v, (dict, list))}
 
 
+def _emit_map_packed(section, m, indent, width=96):
+    '''A scalar map serialized with several `key: value` pairs PER LINE (wrapped to `width`), instead
+    of one per line — humon treats the separators as whitespace, so this stays valid and compact even
+    for a big `dispositions:`/`pins:` after a triage pass.'''
+    inner = ' ' * (indent + 4)
+    lines, cur = [], ''
+    for k, v in m.items():
+        tok = f'{k}: {_scalar(v)}'
+        if cur and len(inner) + len(cur) + 2 + len(tok) > width:
+            lines.append(inner + cur)
+            cur = tok
+        else:
+            cur = f'{cur}  {tok}' if cur else tok
+    if cur:
+        lines.append(inner + cur)
+    return '\n'.join([f'{section}: {{'] + lines + [' ' * indent + '}'])
+
+
 def set_dispositions(config_file, disp):
     '''Rewrite the `dispositions:` node in place (comments/siblings preserved), or remove it when
-    empty. `disp` is `{component: 'seen'|'interesting'}`.'''
+    empty. `disp` is `{component: 'seen'|'interesting'}`, packed several per line.'''
     if not disp:
         remove_sections(config_file, ['dispositions'])
         return
-    set_section(config_file, 'dispositions',
-                lambda indent: '\n'.join(
-                    ['dispositions: {'] + [f'{" " * (indent + 4)}{k}: {_scalar(v)}' for k, v in disp.items()]
-                    + [' ' * indent + '}']))
+    set_section(config_file, 'dispositions', lambda indent: _emit_map_packed('dispositions', disp, indent))
 
 
 def read_picks(config_file):

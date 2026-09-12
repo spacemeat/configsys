@@ -236,7 +236,6 @@ profiles: {
         // left/right collapse/expand; right pane: grid move); switch-pane toggles panes; confirm opens
         // the components pane (left) or toggles membership (right); select toggles membership (right).
         profiles: {
-            scope: "*"              // toggle: scope the catalog to the browsed profile's members <-> full catalog
             track-all: T            // toggle TRACKING of the multi-select set / all in the selected profile
             track-one: t            // toggle TRACKING of just the highlighted component
             disp-seen: s            // toggle NEW <-> seen on the highlighted component

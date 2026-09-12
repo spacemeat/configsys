@@ -895,8 +895,8 @@ _HELP = {
                                   'clears the ◆s after a triage pass; leaves seen/interesting flags alone'),
             ('claim (C)', 'track every component already INSTALLED on this box onto the target machine(s) '
                           '— adopt an existing system into a fresh configsys (confirms first)'),
-            ('scope (*)', 'toggle: scope the table to the browsed profile’s members (▸, on by default) '
-                          '↔ the whole catalog'),
+            ('!all', 'the top browse profile lists EVERY component — rummage the whole catalog there; '
+                     'any other profile scopes the table to its own members (▸ marks the shown one)'),
             ('⁺N / ☆N', 'on a browse profile (left): ⁺N = NEW members · ☆N = INTERESTING members — how '
                         'much of that profile is still worth a look'),
             ('row colours', 'the name is tinted by state: NEW in the new-accent colour · INTERESTING in '
@@ -2232,9 +2232,7 @@ class ProfileScreen:
         self.reveal = None               # key of a just-expanded node -> reveal its subtree next draw
         self.grouped = False             # v3: a flat browse list (repo+plugin consolidated); `L` -> layer
         self.collapsed_groups = set()    # groups. Origin is a catalog column, so no default split.
-        self.scope_mode = True           # `*`: scope the catalog to the SELECTED profile's members (follows
-                                         # the cursor); off = the full catalog. On by default.
-        self.selected_comps = set()      # `space` multi-select: component names A/D/I/S act on as a batch
+        self.selected_comps = set()      # `space` multi-select: component names T/S/I act on as a batch
         self.target_machines = None      # v3 matrix: the selected edit-target machines (set); None -> {current}
         self._new_count_cache = {}       # (profile, ceiling) -> #NEW members; (re)built lazily per reload
         self._group_new_cache = {}       # group -> #distinct NEW members; the `⁺N` header/row badges
@@ -2435,9 +2433,10 @@ class ProfileScreen:
         f = self.pfilter.lower()
         # BROWSE LENS: only repo/plugin profiles (system, shipped). Authored user profiles (machine/
         # primary/user) and reserved names (!uninstall, all, @picks) are irrelevant in the matrix model.
-        browse = [p for p in self.profiles
-                  if not p.startswith(('!', '@')) and p != self.ctx.config.ALL_PROFILE
-                  and (self._profile_groups(p) & {'repo', 'plugin'})]
+        browse = [self.ctx.config.ALL_PROFILE] + [   # `!all` first: the browse-everything lens
+            p for p in self.profiles
+            if not p.startswith(('!', '@'))
+            and (self._profile_groups(p) & {'repo', 'plugin'})]
         roots = [p for p in browse if f in p.lower()] if f else browse
         out = []
 
@@ -2543,15 +2542,9 @@ class ProfileScreen:
                     self.lcur = j
                     break
 
-    def toggle_scope(self):
-        '''`*`: flip the follow-the-profile scope MODE — the catalog scoped to the selected profile's
-        members (per-layer, so a system row shows its pristine set) <-> the full catalog.'''
-        self.scope_mode = not self.scope_mode
-        self.rcur, self.rcol_left = 0, 0             # the visible catalog changed -> reset its cursor
-
     def scoped_members(self):
-        '''The member set `*` scope mode shows — the CURRENT profile's members read at its per-layer
-        ceiling (same set the ● markers use, so scope and marks always agree).'''
+        '''The catalog is ALWAYS scoped to the selected browse profile's members (read at its per-layer
+        ceiling) — the `!all` profile is the browse-everything lens, so no separate scope toggle.'''
         return self.members(self.cur_curate(), self.cur_ceiling())
 
     def _profile_counts(self, name, ceiling):
@@ -2741,9 +2734,8 @@ class ProfileScreen:
     def vcatalog(self):
         f = self.cfilter.lower()
         cat = [c for c in self.catalog if f in c.lower()] if f else self.catalog
-        if self.scope_mode:                          # `*` scope: only the selected profile's members
-            sm = self.scoped_members()
-            cat = [c for c in cat if c in sm]
+        sm = self.scoped_members()                   # always the selected browse profile's members
+        cat = [c for c in cat if c in sm]
         if self.attr_inc or self.attr_exc:           # `A` attrs filter (faceted include/exclude)
             comps = self.ctx.routes.components
             cat = [c for c in cat if _attr_pass(
@@ -2951,7 +2943,7 @@ def _draw_profiles(stdscr, pal, ps, ctx, note, screen):
             continue
         exp = '▾' if expanded else ('▹' if expandable else ' ')
         # scope marker: ▸ on the row the catalog is currently scoped to (the selected one, `*` mode on)
-        scope = '▸' if (ps.scope_mode and i == ps.lcur) else ' '
+        scope = '▸' if i == ps.lcur else ' '         # marks the profile the catalog is showing
         prefix = list(f'{scope}{"  " * depth}{exp}')
         # Exclusion attribution: for a subprofile a `~`-excluded by an ancestor on its path, paint a
         # `~` in THAT ancestor's status-glyph column (2 + 2*ancestor_depth), which falls in this row's
@@ -3080,7 +3072,7 @@ def _draw_profiles(stdscr, pal, ps, ctx, note, screen):
     machines = ps.machines_list()
     tgset = ps.targets()
     picks_map = ctx.config.picks()
-    ctitle = ((f'components — in "{prof}"' if (ps.scope_mode and prof) else 'components — all')
+    ctitle = ((f'components — in "{prof}"' if prof else 'components')
               + (f'  filter:{ps.cfilter}' if ps.cfilter else '')
               + ('  #sel:' + str(len(ps.selected_comps)) if ps.selected_comps else '')
               + ps.attr_summary())
@@ -3206,11 +3198,11 @@ def _draw_profiles(stdscr, pal, ps, ctx, note, screen):
                 f"{g('switch-pane')} panes · {g('find')} find · {g('filter')} filter · "
                 f"{g('attr-filter')} attrs · {g('machine-target')} machines ")
         nav2 = (f" {g('track-all')} track-set · {g('track-one')} track-one · {g('disp-interesting')} int · "
-                f"{g('disp-seen')} seen · {g('select')} sel · {g('select-all')} all · {g('scope')} scope · "
+                f"{g('disp-seen')} seen · {g('select')} sel · {g('select-all')} all · "
                 f"{g('method')} via · {g('stage-uninstall')} uninst · {g('quit')} quit ")
     else:
         nav1 = (' j/k move · h/l scroll/expand · tab panes · / find · F filter · f attrs · M machines ')
-        nav2 = (' T track-set · t track-one · i int · s seen · space sel · a all · * scope · v via · x uninst · q quit ')
+        nav2 = (' T track-set · t track-one · i int · s seen · space sel · a all · v via · x uninst · q quit ')
     _put(stdscr, h - 2, 0, _fit(nav1.ljust(w), w), pal.style('footer', h - 2, 0, h, w))
     _put(stdscr, h - 1, 0, _fit(nav2.ljust(w), w), pal.style('footer', h - 1, 0, h, w))
     stdscr.refresh()
@@ -4586,8 +4578,6 @@ def run(ctx):
                         actions.mark_all_seen(ctx, _claim)   # tracked implies seen
                         ps.reload(); menu_dirty = True
                         note = f'claimed {len(_claim)} installed → tracked on {", ".join(tg)}'
-                elif pfact == 'scope':
-                    ps.toggle_scope()                  # `*`: scope the catalog to the selected profile <-> all
                 elif pfact == 'top':
                     setattr(ps, 'lcur' if ps.focus == 'left' else 'rcur', 0)
                 elif pfact == 'bottom':
