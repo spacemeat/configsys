@@ -247,6 +247,7 @@ profiles: {
             stage-uninstall: x      // stage the selected component for uninstall (-> !uninstall)
             disp-interesting: I     // toggle the selected component INTERESTING (bookmarked, not new)
             disp-seen: S            // toggle the selected component SEEN (acknowledged, no longer new)
+            mark-all-seen: E        // mark every NEW component SEEN at once (confirms first)
             orphan-ignore: "."      // add the selected orphan to orphans-ignore
         }
 

@@ -98,7 +98,7 @@ def test_repo_every_screen_scope_matches_the_wired_actions():
                     'v': 'set-ref'},
         'profiles': {'*': 'scope', 'A': 'include', 'D': 'exclude', 'a': 'select-all', 'v': 'method',
                      'M': 'machine-target', 'f': 'attr-filter', 'I': 'disp-interesting',
-                     'S': 'disp-seen', 'x': 'stage-uninstall'},
+                     'S': 'disp-seen', 'E': 'mark-all-seen', 'x': 'stage-uninstall'},
         'theme': {'n': 'new', 'r': 'reset', 'x': 'reset', 'B': 'edit-bg', 'o': 'effect-bold',
                   'u': 'effect-underline', 'v': 'effect-reverse', 'p': 'gradient-toggle',
                   'D': 'copy-page', 's': 'save', 'L': 'load'},

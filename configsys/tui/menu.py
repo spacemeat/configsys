@@ -889,7 +889,9 @@ _HELP = {
                        'the bottom border); in the browse pane ←/→ first fold/unfold the include tree.'),
             ('interesting / seen', 'I bookmarks a component INTERESTING (☆, just flagged, not installed); '
                                    'S marks it SEEN (·) — and never clears an INTERESTING flag; NEW (◆) = '
-                                   'not yet triaged. Global (all machines).'),
+                                   'not yet triaged. Including (A) a component also marks it seen. Global.'),
+            ('mark all seen (E)', 'acknowledge every remaining NEW component at once (confirms first) — '
+                                  'clears the ◆s after a triage pass; leaves seen/interesting flags alone'),
             ('scope (*)', 'toggle: scope the table to the browsed profile’s members (▸, on by default) '
                           '↔ the whole catalog'),
             ('⁺N / ☆N', 'on a browse profile (left): ⁺N = NEW members · ☆N = INTERESTING members — how '
@@ -4427,6 +4429,8 @@ def run(ctx):
                             for _c in _targets:
                                 cn, _l = actions.set_included(ctx, _c, tg, on)
                                 nch += cn
+                            if on:                         # tracked implies seen (undispositioned -> seen)
+                                actions.mark_all_seen(ctx, _targets)
                             ps.selected_comps.clear()
                             ps.reload(); menu_dirty = menu_dirty or nch > 0
                             _lbl = _targets[0] if len(_targets) == 1 else f'{len(_targets)} components'
@@ -4448,6 +4452,15 @@ def run(ctx):
                             ps.reload()
                         except ConfigsysError as e:
                             note = f'ignore failed: {e}'
+                elif pfact == 'mark-all-seen':         # `E`: acknowledge every NEW component at once
+                    _new = [c for c in ps.catalog if ctx.config.is_new(c)]
+                    if not _new:
+                        note = 'nothing NEW to mark seen'
+                    elif _popup_choose(stdscr, pal, f'mark all {len(_new)} NEW components as seen?',
+                                       [('cancel', ''), ('mark seen', '')], 0) == 1:
+                        nch = actions.mark_all_seen(ctx, _new)
+                        ps.reload()
+                        note = f'{nch} marked seen'
                 elif pfact == 'scope':
                     ps.toggle_scope()                  # `*`: scope the catalog to the selected profile <-> all
                 elif pfact == 'top':
@@ -4531,6 +4544,8 @@ def run(ctx):
                         on = ps.target_state(name) != 'all'   # not fully on -> include; else exclude
                         try:
                             nch, _l = actions.set_included(ctx, name, tg, on)
+                            if on:                            # tracked implies seen
+                                actions.mark_all_seen(ctx, [name])
                             ps.reload()
                             menu_dirty = menu_dirty or nch > 0
                             note = (f'{name} {"included on" if on else "excluded from"} {", ".join(tg)}'

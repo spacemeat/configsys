@@ -194,6 +194,23 @@ def migrate_picks(ctx):
     return len(added), machine
 
 
+def mark_all_seen(ctx, names):
+    '''Mark every UNDISPOSITIONED (NEW) component in `names` as `seen`, in ONE write — leaving any
+    existing seen/interesting flag alone (SEEN never clobbers a flag). Returns the count newly seen.
+    Used by the `E` mass-acknowledge and by Include (tracked implies seen).'''
+    tfile = str(ctx.paths.user_config_file)
+    disp = plugins.read_dispositions(tfile)
+    added = 0
+    for n in names:
+        if n not in disp:                            # undispositioned -> seen; seen/interesting kept
+            disp[n] = 'seen'
+            added += 1
+    if added:
+        plugins.set_dispositions(tfile, disp)
+        ctx.invalidate()
+    return added
+
+
 def ignore_orphan(ctx, pattern):
     '''Append `pattern` (a name or glob) to the `orphans-ignore` list (idempotent). Returns
     (changed, label). The TUI `.` action + the `configsys orphans --ignore` verb share this intent.'''
