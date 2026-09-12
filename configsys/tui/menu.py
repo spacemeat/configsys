@@ -2585,6 +2585,37 @@ class ProfileScreen:
         self._group_new_cache[gid] = (len(new_set), len(int_set))
         return self._group_new_cache[gid]
 
+    def _parts(self, name):
+        '''The parts a `via: parts` aggregator is the union of — component-level `parts:` plus any
+        binding's `parts:` details. Empty for an ordinary component.'''
+        comp = self.ctx.routes.components.get(name)
+        if comp is None:
+            return []
+        out = list(getattr(comp, 'parts', []) or [])
+        for b in comp.bindings:
+            p = b.details.get('parts')
+            if isinstance(p, str):
+                out.append(p)
+            elif isinstance(p, (list, tuple)):
+                out.extend(str(x) for x in p)
+        seen, uniq = set(), []
+        for p in out:
+            if p not in seen:
+                seen.add(p)
+                uniq.append(p)
+        return uniq
+
+    def is_installed(self, name, _stack=()):
+        '''Is `name` installed on THIS box? A `parts` aggregator (no unit of its own) counts as
+        installed iff ALL its parts are; a leaf reads the overlay's batch set OR an individual probe.'''
+        if not self.show_install or name in _stack:
+            return False
+        parts = self._parts(name)
+        if parts:
+            return all(self.is_installed(p, _stack + (name,)) for p in parts)
+        ov = self._overlay[0] if self._overlay else frozenset()
+        return name in ov or bool(self._probe_installed.get(name))
+
     def origin(self, name):
         '''Where a component is DEFINED — 'repo' · a plugin's name · 'local' — for the catalog's
         origin column (so repo + plugins read as one consolidated browse list).'''
@@ -3045,10 +3076,13 @@ def _draw_profiles(stdscr, pal, ps, ctx, note, screen):
             break
         name, y = vcat[i], rit + 1 + r
         _shown.append(name)
+        _parts = ps._parts(name)
+        if _parts:
+            _shown.extend(_parts)                    # probe a parts-aggregator's members so it can read installed
         cur = i == ps.rcur
         foc = cur and ps.focus == 'right'
         avail, via, pinned = ps._resolve(name)
-        installed = ps.show_install and (name in ov_inst or ps._probe_installed.get(name))
+        installed = ps.is_installed(name)            # a `parts` component: installed iff ALL its parts are
         _d = _disp.get(name)
         is_new = ctx.config.is_new(name)
         tstate = ps.target_state(name)

@@ -335,6 +335,22 @@ def test_profile_new_count_badge(tmp_path):
     assert ps.profile_interesting_count('shells', ceil) == 1   # ☆N tracks bookmarks
 
 
+def test_parts_component_installed_iff_all_parts(tmp_path):
+    # a `via: parts` aggregator (docker) has no unit of its own -> it reads installed only when ALL
+    # its parts are installed (batch set or probe).
+    from configsys.tui import menu
+    ctx = _rctx(tmp_path)
+    ps = menu.ProfileScreen(ctx)
+    ps.show_install = 1
+    assert ps._parts('docker') == ['docker-engine', 'docker-service']
+    ps._overlay = (frozenset(), {}, frozenset()); ps._probe_installed = {}
+    assert ps.is_installed('docker') is False                 # none installed
+    ps._overlay = (frozenset({'docker-engine'}), {}, frozenset())
+    assert ps.is_installed('docker') is False                 # only one part
+    ps._probe_installed = {'docker-service': True}            # the other part via probe
+    assert ps.is_installed('docker') is True                  # all parts -> installed
+
+
 def test_install_probe_underlines_nonenumerable(tmp_path):
     # the install-underline probe: a tarball/script component (no batch installed_index) that's on
     # disk is detected by an individual get_version probe, so it underlines like a native package.
