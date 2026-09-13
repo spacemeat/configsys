@@ -203,6 +203,8 @@ class Context:
             add('error', 'skipped', unskip(w))           # a dropped routes layer or component
         for w in self.config.ignored_section_warnings():
             add('warn', 'ignored', w)
+        for w in self.config.unknown_section_warnings():
+            add('warn', 'unknown-key', w)
         for w in self.plugin_code_warnings:
             add('warn', 'code', w)
         decls = plugins.effective_declared(self.paths.user_config_file, self.paths.plugins_dir)
@@ -1854,7 +1856,8 @@ def cmd_check(ctx, args):
 
     issues = routecheck.validate(components, cascade, drivers,
                                  pending_vias=ctx.plugin_pending_vias)
-    include_warnings = layers.ignored_section_warnings(layer_list)
+    include_warnings = (layers.ignored_section_warnings(layer_list)
+                        + layers.unknown_section_warnings(layer_list))
 
     # the theme model is `colors:` (a shared map) + `pages.<page>.<role>`; a leftover
     # palette/elements block or a top-level gradient is ignored, so flag it rather than let a stale

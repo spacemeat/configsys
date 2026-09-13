@@ -875,8 +875,8 @@ _HELP = {
         'glossary': [
             ('columns', "per row: # multi-selected · name · via (resolved install method; [pinned]) · "
                         "from (origin: repo / plugin / local) · inst'd ● all / ◐ some parts / ○ none · "
-                        'tracked ● all / ◐ some (Included on target machines) · new ◆ · '
-                        'flag ☆ interesting / · seen · then one cell per machine (● picked / ○ not)'),
+                        'new ◆ · flag ☆ interesting / · seen · then one Included cell per machine '
+                        '(● tracked / ○ not)'),
             ('track (T / t)', 'T toggles TRACKING of the multi-select set / the whole selected profile; '
                               't toggles just the HIGHLIGHTED component. Tracking = Included on the TARGET '
                               'machines (see M), and also marks the component seen.'),
@@ -3168,7 +3168,7 @@ def _draw_profiles(stdscr, pal, ps, ctx, note, screen):
     # column layout (fixed offsets from ril): sel · name · via · from · state cols · machine cols.
     # The whole table scrolls horizontally (rhoff, driven by ←/→) when it's wider than the pane;
     # each wide-glyph state column is word-headed and holds its glyph at the column's left edge.
-    STATE = [("inst'd", 7), ('tracked', 8), ('new', 4), ('flag', 5)]
+    STATE = [("inst'd", 7), ('new', 4), ('flag', 5)]   # tracked is the per-machine cells (below), not a col
     state_w = sum(cw for _hd, cw in STATE)
     via_w, org_w = 10, 14                             # `from` (origin) roomier — plugin names are long
     MGAP = 3
@@ -3228,7 +3228,6 @@ def _draw_profiles(stdscr, pal, ps, ctx, note, screen):
         installed = istate == 'all'
         _d = _disp.get(name)
         is_new = ctx.config.is_new(name)
-        tstate = ps.target_state(name)
         rev = curses.A_REVERSE if (low_color and cur and not foc) else 0
         if foc:
             _put(stdscr, y, ril, ' ' * riw, pal.fill(y, ril, h, w, selected=True))
@@ -3246,10 +3245,8 @@ def _draw_profiles(stdscr, pal, ps, ctx, note, screen):
         _hput(y, x_org, _fit(ps.origin(name), org_w),
               pal.style('method_dim', y, ril + x_org, h, w, selected=foc) | rev)
         # state cells — wide glyphs (each at the column's left edge, with a trailing gap so it renders)
-        want_g = {'all': '●', 'some': '◐', 'none': ' '}[tstate]
         inst_g = {'all': '●', 'some': '◐', 'none': '○'}[istate]
         cells = [(inst_g, 'installed' if istate != 'none' else 'info_dim'),
-                 (want_g, 'component' if tstate != 'none' else 'info_dim'),
                  ('◆' if is_new else ' ', 'menu_new'),
                  ('☆' if _d == 'interesting' else '·' if _d == 'seen' else ' ',
                   'link' if _d == 'interesting' else 'info_dim')]
@@ -3274,7 +3271,7 @@ def _draw_profiles(stdscr, pal, ps, ctx, note, screen):
     if note:
         status += f'    {note}'
     # column legend for the matrix table (right-aligned on the status bar).
-    legend = "inst'd ●/◐/○ · tracked ●/◐ · new ◆ · flag ☆int/·seen · machine ●/○ · tree ⊙N unclaimed "
+    legend = "inst'd ●/◐/○ · new ◆ · flag ☆int/·seen · machine ●tracked/○not · tree ⊙N unclaimed "
     lg_x = max(0, w - len(legend))
     _put(stdscr, h - 3, 0, _fit(status, max(1, lg_x - 1)), pal.style('status_line', h - 3, 0, h, w))
     _put(stdscr, h - 3, lg_x, _fit(legend, w - lg_x), pal.style('status_line', h - 3, lg_x, h, w))

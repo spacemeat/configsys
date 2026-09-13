@@ -19,9 +19,10 @@ def test_inspect_generates_user_config_and_exits_zero(tmp_path, capsys):
     assert (tmp_path / '.config' / 'configsys' / 'configsys.hu').exists()   # XDG location
     out = capsys.readouterr().out
     assert 'OS: pop_os!' in out
-    # the generated template leaves `configs:` commented, so the active set defaults to the
-    # repo config.hu's configs (a `primary` plugin or this file can override it).
-    assert 'profiles:' in out and 'dev' in out
+    # the matrix model installs from `picks:`, not active profiles — a fresh config has no picks,
+    # so inspect just prints the header (no active-profile members). The point here is that the
+    # user config gets generated and the run exits 0.
+    assert 'STATUS' in out
 
 
 def test_legacy_user_config_is_migrated(tmp_path, capsys):
@@ -154,8 +155,7 @@ def test_check_does_not_escalate_os_unavailability(tmp_path, capsys, monkeypatch
     # per-machine concern, not a config lint). Guards the resolve-pass filter.
     monkeypatch.setattr('configsys.app.sys.version_info', (3, 12, 0))
     (tmp_path / 'configsys.hu').write_text('''{
-        configs: [ mine ]
-        profiles: { mine: [ arch-only ] }
+        picks: { this-machine: [ arch-only ] }
         components: { arch-only: { install: [ { via: native  when: "arch" } ] } }
     }''')
     rc = main(base_args(tmp_path) + ['check'])       # base_args is --os pop, so arch-only can't route
@@ -215,7 +215,7 @@ def test_inspect_is_resilient_to_a_bad_active_component(tmp_path, capsys):
 
 
 def test_no_diagnostics_footer_when_clean(tmp_path, capsys):
-    (tmp_path / 'configsys.hu').write_text('{ configs: [ mine ]  profiles: { mine: [ btop ] } }')
+    (tmp_path / 'configsys.hu').write_text('{ picks: { this-machine: [ btop ] } }')
     assert main(base_args(tmp_path) + ['inspect']) == 0
     assert 'issue(s)' not in capsys.readouterr().out
 
@@ -262,6 +262,7 @@ def test_verbose_shows_layer_stack(tmp_path, capsys):
 
 
 def test_debug_shows_winning_binding_verbose_does_not(tmp_path, capsys):
+    (tmp_path / 'configsys.hu').write_text('{ picks: { this-machine: [ btop ] } }')
     rc = main(base_args(tmp_path) + ['-vv', 'inspect'])
     assert rc == 0
     err = capsys.readouterr().err

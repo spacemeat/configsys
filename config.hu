@@ -1,7 +1,7 @@
 {
     // Shared, git-synced profile definitions. Per-machine selection + overrides live in
     // ~/configsys.hu, which overlays this file section-by-section (see docs/routing-model.md).
-    configs: [ user, gaming, dev-tools, electronics-tools, graphics-tools ]
+    // configs: [ user, gaming, dev-tools, electronics-tools, graphics-tools ]
 
     // OPTIONAL machine-wide install scope for scope-honoring drivers (appImage/flatpak/tarball/
     // font). Left UNSET by default: each such driver uses its own default (user-space by

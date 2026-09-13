@@ -258,3 +258,41 @@ def ignored_section_warnings(layers):
                 warns.append(f'{layer.path}: `{sec}:` is ignored here (not permitted from a '
                              f'{layer.role} layer)')
     return warns
+
+
+# Every top-level key configsys understands in a config/data .hu LAYER (plugin *manifests* are read
+# separately, so their keys aren't checked here). An unknown key is a typo or a retired construct.
+_KNOWN_TOP_KEYS = frozenset({
+    # definitions + structure
+    'os', 'drivers', 'components', 'profiles', 'component-names', 'include', 'plugins', 'facets',
+    # machine settings / local state
+    'scope', 'pins', 'dispositions', 'picks', 'uninstall', 'machine', 'machines', 'dirs',
+    'effects', 'splash', 'theme', 'keys', 'adopt-installed', 'auto-tighten', 'driver-preference',
+    'install-overlay', 'refresh-before-execute', 'orphans-ignore', 'orphans-adopt-target',
+    'detect-coexisting', 'disabled-drivers', 'installer-shell-writes', 'installer-shell-writes-allow',
+    'version-floors', 'last-refresh',
+})
+# Understood historically, now dropped -> always warn.
+_RETIRED_TOP_KEYS = {
+    'configs': 'retired — the matrix model installs from picks:, not active profiles',
+}
+_PROFILE_AUTHORING_ROLES = ('user', 'primary', 'machine')   # `profiles:` is browse-only (repo/plugins)
+
+
+def unknown_section_warnings(layers):
+    '''Non-fatal warnings for top-level keys configsys no longer understands — a typo, or a RETIRED
+    construct (`configs:`, or a user-level `profiles:`). Definitions (`profiles:`/`os:`/`components:`…)
+    stay valid in the repo + plugins; only a user/primary/machine config is warned for `profiles:`.'''
+    warns = []
+    for layer in layers:
+        if not isinstance(layer.data, dict):
+            continue
+        for key in layer.data:
+            if key in _RETIRED_TOP_KEYS:
+                warns.append(f'{layer.path}: `{key}:` {_RETIRED_TOP_KEYS[key]}')
+            elif key == 'profiles' and layer.role in _PROFILE_AUTHORING_ROLES:
+                warns.append(f'{layer.path}: `profiles:` is retired in a user config — the matrix '
+                             f'browses the shipped catalog and installs from picks:')
+            elif key not in _KNOWN_TOP_KEYS:
+                warns.append(f'{layer.path}: unrecognized top-level key `{key}:` (typo, or retired?)')
+    return warns

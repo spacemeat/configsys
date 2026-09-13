@@ -123,6 +123,11 @@ class Config:
         non-primary plugin. Surfaced via diagnostics.'''
         return layers.ignored_section_warnings(self._layers)
 
+    def unknown_section_warnings(self):
+        '''Top-level keys configsys no longer understands (typos / retired constructs like `configs:`
+        or a user-level `profiles:`) — non-fatal, surfaced via diagnostics + `check`.'''
+        return layers.unknown_section_warnings(self._layers)
+
     @property
     def active_profiles(self):
         '''The active profile set: `configs:`, a machine setting read from repo < a designated
