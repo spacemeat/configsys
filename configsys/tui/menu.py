@@ -874,7 +874,7 @@ _HELP = {
                 "per machine. Mark what you want per machine; each machine installs exactly its picks.",
         'glossary': [
             ('columns', "per row: # multi-selected · name · via (resolved install method; [pinned]) · "
-                        "from (origin: repo / plugin / local) · inst'd ● installed-here · "
+                        "from (origin: repo / plugin / local) · inst'd ● all / ◐ some parts / ○ none · "
                         'tracked ● all / ◐ some (Included on target machines) · new ◆ · '
                         'flag ☆ interesting / · seen · then one cell per machine (● picked / ○ not)'),
             ('track (T / t)', 'T toggles TRACKING of the multi-select set / the whole selected profile; '
@@ -897,12 +897,14 @@ _HELP = {
                           '— adopt an existing system into a fresh configsys (confirms first)'),
             ('!all', 'the top browse profile lists EVERY component — rummage the whole catalog there; '
                      'any other profile scopes the table to its own members (▸ marks the shown one)'),
-            ('⁺N / ☆N', 'on a browse profile (left): ⁺N = NEW members · ☆N = INTERESTING members — how '
-                        'much of that profile is still worth a look'),
+            ('⁺N / ☆N / ⊙N', 'on a browse profile (left): ⁺N = NEW members · ☆N = INTERESTING members · '
+                             '⊙N = installed-here-but-UNTRACKED members (claimable) — the profile’s triage signal'),
             ('row colours', 'the name is tinted by state: NEW in the new-accent colour · INTERESTING in '
                             'the link colour · SEEN dimmed · unavailable-here greyed · installed UNDERLINED'),
             ('attr-filter (f)', 'faceted kind filter over the catalog (F = live substring filter)'),
-            ('via (v)', 'pin the selected component’s install method · x stages it for uninstall'),
+            ('via (v) / machines (m)', 'v pins the selected component’s install method; m opens a '
+                                       'machines dialog for JUST the cursor component (toggle its '
+                                       'tracking per machine) · x stages it for uninstall'),
             ('detail box', 'on a browse profile (left): its raw .hu definition. On a component '
                            '(right): description · attrs · required-by · in-profiles'),
         ],
@@ -2074,6 +2076,66 @@ def _attr_filter_modal(stdscr, pal, inc, exc):
                 inc.add(t)
 
 
+def _component_machines_modal(stdscr, pal, ctx, comp):
+    '''Toggle which machines TRACK a single component (space), styled like the machines modal. Returns
+    a status note. Mutates picks via actions; tracking a component also marks it seen.'''
+    from .. import actions
+    sel, top = 0, 0
+    border = pal.get('accent') | curses.A_BOLD
+    dim = pal.get('dim')
+
+    def machs():
+        ms = sorted(ctx.config.machines())
+        cur = ctx.config.current_machine()
+        return [cur] + [m for m in ms if m != cur]
+
+    note = ''
+    while True:
+        rows = machs()
+        this = ctx.config.current_machine()
+        picks = ctx.config.picks()
+        sel = max(0, min(sel, len(rows) - 1))
+        h, w = stdscr.getmaxyx()
+        box_w = min(52, max(36, w - 4))
+        vis = max(3, min(len(rows), h - 7))
+        box_h = vis + 5
+        y0, x0 = max(0, (h - box_h) // 2), max(0, (w - box_w) // 2)
+        top = min(sel, top) if sel < top else (sel - vis + 1 if sel >= top + vis else top)
+        _put(stdscr, y0, x0, '┌' + '─' * (box_w - 2) + '┐', border)
+        _put(stdscr, y0, x0 + 2, _fit(f' track "{comp}" on… ', box_w - 4), border)
+        for r in range(1, box_h - 1):
+            _put(stdscr, y0 + r, x0, '│' + ' ' * (box_w - 2) + '│', border)
+        _put(stdscr, y0 + box_h - 1, x0, '└' + '─' * (box_w - 2) + '┘', border)
+        for k in range(vis):
+            idx = top + k
+            if idx >= len(rows):
+                break
+            m = rows[idx]
+            on = comp in picks.get(m, ())
+            tag = '  (this box)' if m == this else ''
+            _put(stdscr, y0 + 1 + k, x0 + 2,
+                 _fit(f'  [{"✓" if on else "·"}] {m}{tag}'.ljust(box_w - 4), box_w - 4),
+                 curses.A_REVERSE if idx == sel else curses.A_NORMAL)
+        _put(stdscr, y0 + box_h - 3, x0 + 2, _fit('space: toggle tracking on this machine', box_w - 4), dim)
+        _put(stdscr, y0 + box_h - 2, x0 + 2, _fit('enter / esc: close', box_w - 4), dim)
+        stdscr.refresh()
+        ch = stdscr.getch()
+        if ch in (27, ord('q'), ord('\n'), curses.KEY_ENTER):
+            return note
+        if ch in (ord('j'), curses.KEY_DOWN):
+            sel = min(len(rows) - 1, sel + 1)
+        elif ch in (ord('k'), curses.KEY_UP):
+            sel = max(0, sel - 1)
+        elif ch == ord(' '):
+            m = rows[sel]
+            on = comp in picks.get(m, ())
+            actions.set_included(ctx, comp, [m], not on)
+            if not on:
+                actions.mark_all_seen(ctx, [comp])       # tracking implies seen
+            ctx.invalidate()
+            note = f'{comp}: {"untracked from" if on else "tracked on"} {m}'
+
+
 def _machines_modal(stdscr, pal, ctx, targets):
     '''Manage machines AND pick the edit-TARGET set — styled like the attr-filter modal, drawn OVER
     the screen. All editing is IN-PLACE (no sub-dialogs to linger): space toggles a target; m sets the
@@ -2433,10 +2495,11 @@ class ProfileScreen:
         f = self.pfilter.lower()
         # BROWSE LENS: only repo/plugin profiles (system, shipped). Authored user profiles (machine/
         # primary/user) and reserved names (!uninstall, all, @picks) are irrelevant in the matrix model.
-        browse = [self.ctx.config.ALL_PROFILE] + [   # `!all` first: the browse-everything lens
-            p for p in self.profiles
-            if not p.startswith(('!', '@'))
-            and (self._profile_groups(p) & {'repo', 'plugin'})]
+        browse = ([self.ctx.config.ALL_PROFILE]      # `!all` first: the browse-everything lens
+                  + [p for p in self.profiles
+                     if not p.startswith(('!', '@'))
+                     and (self._profile_groups(p) & {'repo', 'plugin'})]
+                  + [self.ctx.config.UNINSTALL_PROFILE])   # `!uninstall`: the staged-removal queue, last
         roots = [p for p in browse if f in p.lower()] if f else browse
         out = []
 
@@ -2571,6 +2634,16 @@ class ProfileScreen:
         '''#INTERESTING (bookmarked) members of `name` (the `☆N` badge). Memoized until reload.'''
         return self._profile_counts(name, ceiling)[1]
 
+    def profile_untracked_count(self, name, ceiling=None):
+        '''#members of `name` that are INSTALLED on this box but NOT tracked on the current machine
+        (the `⊙N` badge — claimable). Live (reads the install overlay/probe), not cached.'''
+        tracked = self.ctx.config.included()
+        try:
+            mem = self.members(name, ceiling)
+        except Exception:                            # noqa: BLE001
+            return 0
+        return sum(1 for c in mem if c not in tracked and self.install_state(c, force=True) != 'none')
+
     def group_new_count(self, gid):
         '''(#NEW, #interesting) distinct across all profiles in pane-group `gid`, read at the group's
         ceiling — the `⁺N`/`☆N` on a group header, so a collapsed "repo catalog" still advertises the
@@ -2611,17 +2684,25 @@ class ProfileScreen:
                 uniq.append(p)
         return uniq
 
-    def is_installed(self, name, _stack=(), force=False):
-        '''Is `name` installed on THIS box? A `parts` aggregator (no unit of its own) counts as
-        installed iff ALL its parts are; a leaf reads the overlay's batch set OR an individual probe.
-        `force` ignores the `O` display toggle (for the C claim, which reads reality regardless).'''
+    def install_state(self, name, _stack=(), force=False):
+        '''Tri-state install status for the `inst'd` column: 'all' (fully on disk), 'some' (a parts
+        aggregator with only SOME parts installed — like Components' `partial`), or 'none'. `force`
+        ignores the `O` display toggle (for the C claim, which reads reality regardless).'''
         if (not self.show_install and not force) or name in _stack:
-            return False
+            return 'none'
         parts = self._parts(name)
         if parts:
-            return all(self.is_installed(p, _stack + (name,), force=force) for p in parts)
+            sub = [self.install_state(p, _stack + (name,), force=True) for p in parts]
+            if sub and all(s == 'all' for s in sub):
+                return 'all'
+            return 'some' if any(s != 'none' for s in sub) else 'none'
         ov = self._overlay[0] if self._overlay else frozenset()
-        return name in ov or bool(self._probe_installed.get(name))
+        return 'all' if (name in ov or bool(self._probe_installed.get(name))) else 'none'
+
+    def is_installed(self, name, force=False):
+        '''True iff `name` is FULLY installed (a parts aggregator: all parts). For the name underline
+        and the C claim.'''
+        return self.install_state(name, force=force) == 'all'
 
     def installed_scan(self):
         '''Full-catalog installed detection for `C` (claim): the enumerable-driver batch set
@@ -2967,19 +3048,22 @@ def _draw_profiles(stdscr, pal, ps, ctx, note, screen):
         _ceil_r = ps.group_ceiling(node_group)
         nnew = ps.profile_new_count(name, _ceil_r)
         nint = ps.profile_interesting_count(name, _ceil_r)
+        nunt = ps.profile_untracked_count(name, _ceil_r)   # installed here but not tracked (claimable)
         newtag = f'  ⁺{nnew}' if nnew else ''
         inttag = f'  ☆ {nint}' if nint else ''
-        tag = newtag + inttag
+        unttag = f'  ⊙ {nunt}' if nunt else ''
+        tag = newtag + inttag + unttag
         disp = f'+{name}' if kind == 'include' else name  # `+`-mark a live include child
         row = f'{"".join(prefix)} {disp}{tag}'
         _lmax = max(_lmax, len(row))
         _put(stdscr, y, lil, _fit(row[_lho:], liw),
              pal.style('profile', y, lil, h, w, selected=foc, bg=(None if low_color else rbg))
              | rev | (curses.A_DIM if struck and not foc else 0))
-        # tint the count badges in their own hues (menu_new for ⁺N, link for ☆N) when fully visible
+        # tint the count badges in their own hues (⁺N new · ☆N interesting · ⊙N installed-untracked)
         if not foc:
             for _bstr, _hue in ((f'⁺{nnew}' if nnew else '', 'menu_new'),
-                                (f'☆ {nint}' if nint else '', 'link')):
+                                (f'☆ {nint}' if nint else '', 'link'),
+                                (f'⊙ {nunt}' if nunt else '', 'installed')):
                 if _bstr:
                     vx = row.rindex(_bstr) - _lho
                     if 0 <= vx and vx + len(_bstr) <= liw:
@@ -3140,7 +3224,8 @@ def _draw_profiles(stdscr, pal, ps, ctx, note, screen):
         cur = i == ps.rcur
         foc = cur and ps.focus == 'right'
         avail, via, pinned = ps._resolve(name)
-        installed = ps.is_installed(name)            # a `parts` component: installed iff ALL its parts are
+        istate = ps.install_state(name)             # 'all' · 'some' (parts partial) · 'none'
+        installed = istate == 'all'
         _d = _disp.get(name)
         is_new = ctx.config.is_new(name)
         tstate = ps.target_state(name)
@@ -3162,7 +3247,8 @@ def _draw_profiles(stdscr, pal, ps, ctx, note, screen):
               pal.style('method_dim', y, ril + x_org, h, w, selected=foc) | rev)
         # state cells — wide glyphs (each at the column's left edge, with a trailing gap so it renders)
         want_g = {'all': '●', 'some': '◐', 'none': ' '}[tstate]
-        cells = [('●' if installed else ' ', 'installed'),
+        inst_g = {'all': '●', 'some': '◐', 'none': '○'}[istate]
+        cells = [(inst_g, 'installed' if istate != 'none' else 'info_dim'),
                  (want_g, 'component' if tstate != 'none' else 'info_dim'),
                  ('◆' if is_new else ' ', 'menu_new'),
                  ('☆' if _d == 'interesting' else '·' if _d == 'seen' else ' ',
@@ -3188,7 +3274,7 @@ def _draw_profiles(stdscr, pal, ps, ctx, note, screen):
     if note:
         status += f'    {note}'
     # column legend for the matrix table (right-aligned on the status bar).
-    legend = "inst'd ● · tracked ●/◐ · new ◆ · flag ☆int/·seen · machine ●picked/○not "
+    legend = "inst'd ●/◐/○ · tracked ●/◐ · new ◆ · flag ☆int/·seen · machine ●/○ · tree ⊙N unclaimed "
     lg_x = max(0, w - len(legend))
     _put(stdscr, h - 3, 0, _fit(status, max(1, lg_x - 1)), pal.style('status_line', h - 3, 0, h, w))
     _put(stdscr, h - 3, lg_x, _fit(legend, w - lg_x), pal.style('status_line', h - 3, lg_x, h, w))
@@ -4632,9 +4718,20 @@ def run(ctx):
                             ps._res.pop(name, None)        # its resolution changed -> drop the stale entry
                             ps.reload()
                             menu_dirty = True
+                elif pfact == 'comp-machines' and ps.focus == 'right':
+                    vcat = ps.vcatalog()                   # toggle THIS component's tracking per machine
+                    if vcat:
+                        _c = vcat[ps.rcur]
+                        mnote = _component_machines_modal(stdscr, pal, ctx, _c)
+                        ps.reload(); menu_dirty = True
+                        note = mnote or f'{_c} machines'
                 elif pfact == 'machine-target':          # target machines + add/rename/remove (modal)
                     cur, mnote = _machines_modal(stdscr, pal, ctx, ps.targets())
+                    _keep = (ps.lcur, ps.ltop, ps.rcur, ps.rtop, ps.focus, ps.pfilter, ps.cfilter,
+                             set(ps.selected_comps))
                     ps = ProfileScreen(ctx)              # rebuild against any machine add/rename/remove
+                    (ps.lcur, ps.ltop, ps.rcur, ps.rtop, ps.focus, ps.pfilter, ps.cfilter,
+                     ps.selected_comps) = _keep          # ...but keep the user where they were
                     ps.target_machines = cur
                     menu_dirty = True
                     note = mnote or f'targets: {", ".join(sorted(cur))}'

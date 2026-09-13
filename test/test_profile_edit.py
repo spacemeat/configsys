@@ -419,7 +419,7 @@ def test_profile_pane_is_flat_browse_only(tmp_path):
     names = {nd[0] for nd in v}
     assert 'finders' in names                                  # repo browse profiles present
     assert 'zmine' not in names                                # user-authored profile hidden
-    assert '!uninstall' not in names and 'all' not in names    # reserved names excluded
+    assert '!all' in names and '!uninstall' in names          # the two keyword browse lenses show
 
 
 def test_where_profile_report(tmp_path):

@@ -97,6 +97,7 @@ def test_repo_every_screen_scope_matches_the_wired_actions():
                     'B': 'unbless', 'u': 'update', 'U': 'update-all', 't': 'trust', 'T': 'trust-all',
                     'v': 'set-ref'},
         'profiles': {'T': 'track-all', 't': 'track-one', 'a': 'select-all', 'v': 'method',
+                     'm': 'comp-machines',
                      'M': 'machine-target', 'f': 'attr-filter', 'i': 'disp-interesting',
                      's': 'disp-seen', 'I': 'disp-interesting-all', 'S': 'disp-seen-all',
                      'E': 'mark-all-seen', 'C': 'claim', 'x': 'stage-uninstall'},

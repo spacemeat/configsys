@@ -244,6 +244,7 @@ profiles: {
             disp-interesting-all: I // mark INTERESTING across the set / whole selected profile
             select-all: a           // select every component currently in view (multi-select set)
             method: v               // pin the selected component's install method (via)
+            comp-machines: m        // machines dialog for JUST the cursor component (toggle its tracking)
             machine-target: M       // choose the target machines to edit (plural; T/t fan out to them)
             attr-filter: f          // faceted kind filter over the catalog (F = live substring filter)
             toggle-install: O       // overlay the install axis (installed underline · orphan colour)
