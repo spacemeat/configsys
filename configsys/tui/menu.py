@@ -1151,7 +1151,7 @@ def _draw(stdscr, pal, ms, ctx, note, diags=(), show_diag=False, diag_top=0, scr
     if ctx.runner.pretend:
         sub += '   [PRETEND]'
     if screen == 'components':                        # which view MODE the tree is showing (M cycles)
-        sub += f'   view: {getattr(ms, "mode", "tracked")}'
+        sub += f'   view: {getattr(ms, "mode", "to-do")}'
     _put(stdscr, 1, len(title), _fit(sub, max(1, w - len(title))), pal.style('os', 1, len(title), h, w))
     rend = len(title) + len(sub)
     if screen == 'components':                       # package-index staleness, right of the OS tag
@@ -1280,10 +1280,11 @@ def _reload(ctx, old, dirty):
     expansion, selection, and still-valid staged ops across the rebuild so the view stays put.
     Returns (ms, cfg, ledger, states, diags).'''
     cfg, _requested, _units, ledger, states = ctx.load_pipeline(reuse=old.states, dirty=dirty)
-    mode = getattr(old, 'mode', 'tracked')
-    states, layouts, transitive = _components_model(ctx, cfg, states, mode)
+    mode = getattr(old, 'mode', 'to-do')
+    states, layouts, transitive = _components_model(ctx, cfg, states, mode)   # fresh overlay: disk changed
     ms = MenuState(states, layouts, transitive)
     ms.mode = mode
+    ms._overlay_caches = {}                            # installed reality changed -> re-enumerate on next switch
     ms._req_sig = frozenset(_requested)
     ids = {n.id for n in ms._all_nodes()}
     ms.selected = {i for i in old.selected if i in ids}
@@ -1647,7 +1648,7 @@ def _menu_model(cfg):
 COMPONENT_MODES = ('to-do', 'tracked', 'installed+tracked')   # the Components view MODE cycle
 
 
-def _components_model(ctx, cfg, states, mode):
+def _components_model(ctx, cfg, states, mode, caches=None):
     '''Build (states, layouts, transitive) for the Components tree in `mode`:
       'tracked'            — this machine's picked set (requested()).
       'installed+tracked'  — the picked set PLUS installed-but-untracked components (mapped to
@@ -1671,9 +1672,9 @@ def _components_model(ctx, cfg, states, mode):
 
     if mode == 'installed+tracked':
         from .. import orphans as _orph
-        try:
-            installed, _orphans, _caches = _orph.install_overlay(
-                ctx, {k: st.component for k, st in states.items()})
+        try:                                           # `caches` is reused across switches -> the (slow,
+            installed, _orphans, _caches = _orph.install_overlay(   # subprocess-bound) driver enumerations
+                ctx, {k: st.component for k, st in states.items()}, caches=caches)   # aren't re-run each time
         except Exception:                              # noqa: BLE001
             installed = set()
         extra = (installed & set(ctx.routes.components)) - tracked
@@ -1693,6 +1694,28 @@ def _components_model(ctx, cfg, states, mode):
 
     layouts, transitive = _group_by_owner(cfg, scope)
     return states, layouts, transitive
+
+
+def _rebuild_menu(old, states, layouts, transitive, mode):
+    '''Rebuild a MenuState for a NEW tree (a mode switch) while preserving cursor / expansion /
+    selection / staged ops / errors / descriptions from `old` — WITHOUT re-running the pipeline
+    (install state is unchanged; only WHICH components are shown). The cheap counterpart to _reload.'''
+    ms = MenuState(states, layouts, transitive)
+    ms.mode = mode
+    ms._req_sig = getattr(old, '_req_sig', frozenset())
+    ms._uninstall_q = getattr(old, '_uninstall_q', frozenset())
+    ms._overlay_caches = getattr(old, '_overlay_caches', {})
+    ids = {n.id for n in ms._all_nodes()}
+    ms.selected = {i for i in old.selected if i in ids}
+    ms.staged = {k: op for k, op in old.staged.items() if k in states}
+    ms.errors = {k: e for k, e in old.errors.items() if k in states}
+    expanded = {n.id for n in old._all_nodes() if n.expandable and n.expanded}
+    for n in ms._all_nodes():
+        if n.expandable:
+            n.expanded = n.id in expanded
+    ms._refresh(keep_id=(old.cur().id if old.cur() else None))
+    ms.descriptions = old.descriptions               # routes didn't change -> reuse
+    return ms
 
 
 SPLASH_THRESHOLD = 0.25    # only show the liquid fill if inspection is still going after this
@@ -4513,10 +4536,12 @@ def run(ctx):
         from .keyspec import Keymap
         global _KEYMAP
         _KEYMAP = keymap = Keymap(ctx.config.keys())   # merged bindings; legends read the same map
-        comp_mode = 'tracked'                     # Components view MODE: to-do | tracked | installed+tracked
-        states, layouts, transitive = _components_model(ctx, cfg, states, comp_mode)
+        comp_mode = 'to-do'                       # Components view MODE: to-do | tracked | installed+tracked
+        _mode_caches = {}                         # overlay-enumeration bundle, reused across mode switches
+        states, layouts, transitive = _components_model(ctx, cfg, states, comp_mode, caches=_mode_caches)
         ms = MenuState(states, layouts, transitive)
         ms.mode = comp_mode
+        ms._overlay_caches = _mode_caches
         ms._req_sig = frozenset(_requested)       # the install set this tree was built for (matrix picks)
         _seed_uninstall(ms, ctx)                  # surface the persisted !uninstall queue as staged removes
         ms._uninstall_q = set(ctx.config.uninstall_queue())
@@ -5539,13 +5564,16 @@ def run(ctx):
                         ps.invalidate_overlay()   # installs changed disk reality -> re-enumerate on next `O`
                     curses.flushinp()  # ...and any typed during the re-inspect
             elif act == 'mode':                # cycle the view: to-do -> tracked -> installed+tracked
-                nxt = COMPONENT_MODES[(COMPONENT_MODES.index(getattr(ms, 'mode', 'tracked')) + 1)
+                nxt = COMPONENT_MODES[(COMPONENT_MODES.index(getattr(ms, 'mode', 'to-do')) + 1)
                                       % len(COMPONENT_MODES)]
-                ms.mode = nxt
                 try:
-                    ms, cfg, ledger, states, diags = _reload(ctx, ms, set())
+                    # a mode switch only re-GROUPS the already-probed states (+ inspects the extras a
+                    # mode needs, reusing the overlay caches) — no pipeline / describe / diagnostics.
+                    states, layouts, transitive = _components_model(
+                        ctx, cfg, dict(ms.states), nxt, caches=ms._overlay_caches)
+                    ms = _rebuild_menu(ms, states, layouts, transitive, nxt)
                 except Exception as e:  # noqa: BLE001 — surface, don't crash
-                    note = f'reload failed: {e}'
+                    note = f'mode switch failed: {e}'
                 else:
                     note = f'view: {nxt}'
             elif act == 'refresh':             # refresh version caches + the native package index
