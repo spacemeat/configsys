@@ -199,6 +199,7 @@ profiles: {
             op-remove: x            // stage: remove
             execute: X              // run the staged ops (asks to confirm)
             refresh: R              // re-query version sources + the native package index
+            mode: M                 // cycle the view: to-do / tracked / installed+tracked
         }
 
         // Config screen. down/up/top/bottom from `global`; confirm OR select edits the setting.

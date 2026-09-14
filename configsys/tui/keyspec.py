@@ -157,7 +157,7 @@ SCREEN_IDS = {'components', 'profiles', 'plugins', 'dotfiles', 'config', 'theme'
 KNOWN_ACTIONS = {
     'global': _GLOBAL_ACTIONS,
     'components': {'where', 'lock', 'expand-all', 'select-all', 'clear', 'method', 'op-install',
-                   'op-upgrade', 'op-remove', 'execute', 'refresh'},
+                   'op-upgrade', 'op-remove', 'execute', 'refresh', 'mode'},
     'config': {'theme', 'move'},
     'dotfiles': {'unlink', 'capture', 'capture-all', 'link-all'},
     'plugins': {'add', 'remove', 'sync', 'sync-all', 'bless', 'unbless', 'update', 'update-all',
@@ -183,6 +183,7 @@ ACTION_LABELS = {
     'select-all': 'select all', 'clear': 'clear selection + staged', 'method': 'pick install method / provider',
     'op-install': 'stage install', 'op-upgrade': 'stage upgrade', 'op-remove': 'stage remove',
     'execute': 'run staged ops', 'refresh': 'refresh versions + package index',
+    'mode': 'cycle view: to-do / tracked / installed+tracked',
     'theme': 'open the theme editor', 'move': 'move setting: local ⇄ primary',
     'unlink': 'unlink', 'capture': 'capture on-system config',
     'capture-all': 'capture all', 'link-all': 'link all captured',

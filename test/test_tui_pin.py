@@ -44,6 +44,36 @@ def _menu_on(ctx, component):
     return ms
 
 
+def _shown(layouts):
+    return {name for _p, items in layouts for _kind, name in items}
+
+
+def test_components_model_mode_scopes(tmp_path):
+    # the Components view MODE: tracked = exactly the picks; to-do = only actionable (missing/outdated
+    # picks + present staged-uninstall), fully-green omitted. installed+tracked is exercised elsewhere.
+    from types import SimpleNamespace
+    d = tmp_path / '.config' / 'configsys'
+    d.mkdir(parents=True)
+    (d / 'configsys.hu').write_text(
+        '{ picks: { this-machine: [ btop, htop ] }  uninstall: [ ncdu ] }')
+    ctx = _ctx(tmp_path)
+    cfg = ctx.config
+
+    def _st(comp, present, status):
+        return SimpleNamespace(component=SimpleNamespace(comp=comp), present=present, status=status)
+    states = {
+        'apt\\btop': _st('btop', True, 'installed'),    # green -> omitted from to-do
+        'apt\\htop': _st('htop', False, 'missing'),     # needs install
+        'apt\\ncdu': _st('ncdu', True, 'installed'),    # staged-uninstall + present -> needs uninstall
+    }
+
+    _s, tracked_lay, _t = menu._components_model(ctx, cfg, states, 'tracked')
+    assert _shown(tracked_lay) == {'btop', 'htop'}      # exactly the picks, regardless of status
+
+    _s, todo_lay, _t = menu._components_model(ctx, cfg, states, 'to-do')
+    assert _shown(todo_lay) == {'htop', 'ncdu'}         # actionable only; green btop dropped
+
+
 def _steam_home(tmp_path):
     d = tmp_path / '.config' / 'configsys'
     d.mkdir(parents=True)

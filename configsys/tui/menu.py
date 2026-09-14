@@ -874,7 +874,8 @@ _HELP = {
                 "per machine. Mark what you want per machine; each machine installs exactly its picks.",
         'glossary': [
             ('columns', "per row: # multi-selected · name · via (resolved install method; [pinned]) · "
-                        "from (origin: repo / plugin / local) · inst'd ● all / ◐ some parts / ○ none · "
+                        "from (origin: repo / plugin / local) · inst'd (● installed+tracked / "
+                        '⊙ installed+untracked / ◐ some parts / ○ none / ⮾ staged for uninstall) · '
                         'new ◆ · flag ☆ interesting / · seen · then one Included cell per machine '
                         '(● tracked / ○ not)'),
             ('track (T / t)', 'T toggles TRACKING of the multi-select set / the whole selected profile; '
@@ -1145,6 +1146,8 @@ def _draw(stdscr, pal, ms, ctx, note, diags=(), show_diag=False, diag_top=0, scr
     sub = f'  {ctx.os_info.block}'
     if ctx.runner.pretend:
         sub += '   [PRETEND]'
+    if screen == 'components':                        # which view MODE the tree is showing (M cycles)
+        sub += f'   view: {getattr(ms, "mode", "tracked")}'
     _put(stdscr, 1, len(title), _fit(sub, max(1, w - len(title))), pal.style('os', 1, len(title), h, w))
     rend = len(title) + len(sub)
     if screen == 'components':                       # package-index staleness, right of the OS tag
@@ -1273,9 +1276,11 @@ def _reload(ctx, old, dirty):
     expansion, selection, and still-valid staged ops across the rebuild so the view stays put.
     Returns (ms, cfg, ledger, states, diags).'''
     cfg, _requested, _units, ledger, states = ctx.load_pipeline(reuse=old.states, dirty=dirty)
-    layouts, transitive = _menu_model(cfg)
-    states, layouts, transitive = _with_uninstall_node(ctx, states, layouts, transitive)
+    mode = getattr(old, 'mode', 'tracked')
+    states, layouts, transitive = _components_model(ctx, cfg, states, mode)
     ms = MenuState(states, layouts, transitive)
+    ms.mode = mode
+    ms._req_sig = frozenset(_requested)
     ids = {n.id for n in ms._all_nodes()}
     ms.selected = {i for i in old.selected if i in ids}
     ms.staged = {k: op for k, op in old.staged.items() if k in states}   # stale keys drop
@@ -1605,31 +1610,85 @@ def _pick_choices(stdscr, pal, ms, ctx):
     return _pick_provider_cap(stdscr, pal, ctx, name, cap, provs)
 
 
-def _menu_model(cfg):
-    '''(layouts, transitive) for the Components tree. Matrix model: the tree is this machine's
-    install set — the tracked (picked) components, `requested()` — grouped under the system profiles
-    (browse lenses) that contain them. Each tracked component is placed under the first system
-    profile that lists it (deduped, deterministic); anything tracked but in no profile falls under a
-    synthetic `(other)` group. `!uninstall` is folded in separately (see _with_uninstall_node).'''
-    tracked = set(cfg.requested())
+def _group_by_owner(cfg, scope):
+    '''(layouts, transitive) for a set of component names, grouped under each component's OWNING
+    system profile (profile_own_components — the DECLARING profile, not one that merely +includes it),
+    deterministic + deduped; anything in no system profile falls under a synthetic `(other)` group.'''
+    scope = set(scope)
     layouts, transitive, placed = [], {}, set()
     for p in sorted(cfg.profile_names()):
         if p.startswith('!'):                          # skip the synthetic !all / !uninstall lenses
             continue
-        try:                                           # own-components: attribute to the DECLARING
-            mem = [c for c in cfg.profile_own_components(p)   # profile, not one that merely +includes it
-                   if c in tracked and c not in placed]
+        try:
+            mem = [c for c in cfg.profile_own_components(p) if c in scope and c not in placed]
         except ConfigError:
             mem = []
         if mem:
             layouts.append((p, [('component', c) for c in mem]))
             transitive[p] = mem
             placed.update(mem)
-    orphan = sorted(tracked - placed)                  # tracked but in no system profile
+    orphan = sorted(scope - placed)                    # in no system profile
     if orphan:
         layouts.append(('(other)', [('component', c) for c in orphan]))
         transitive['(other)'] = orphan
     return layouts, transitive
+
+
+def _menu_model(cfg):
+    '''(layouts, transitive) for the Components tree in the default 'tracked' mode: this machine's
+    install set (the picked components, `requested()`) grouped by owning profile.'''
+    return _group_by_owner(cfg, set(cfg.requested()))
+
+
+COMPONENT_MODES = ('to-do', 'tracked', 'installed+tracked')   # the Components view MODE cycle
+
+
+def _components_model(ctx, cfg, states, mode):
+    '''Build (states, layouts, transitive) for the Components tree in `mode`:
+      'tracked'            — this machine's picked set (requested()).
+      'installed+tracked'  — the picked set PLUS installed-but-untracked components (mapped to
+                             recipes); the extras are resolved + inspected and folded into `states`.
+      'to-do'              — ONLY components needing action for full green: a tracked component that
+                             is missing or outdated, or a staged-for-uninstall component still
+                             present. Fully-green components (and thus now-empty profiles) are omitted.
+    Returns the (possibly extended) states plus the grouped layouts/transitive.'''
+    tracked = set(cfg.requested())
+    queue = set(cfg.uninstall_queue())
+
+    def _ensure(names):                                # inspect any names not already in `states`
+        nonlocal states
+        have = {st.component.comp for st in states.values()}
+        missing = [n for n in names if n not in have]
+        if missing:
+            try:
+                states = {**states, **ctx.inspect_components(missing)}
+            except Exception:                          # noqa: BLE001 — never let a probe brick the view
+                pass
+
+    if mode == 'installed+tracked':
+        from .. import orphans as _orph
+        try:
+            installed, _orphans, _caches = _orph.install_overlay(
+                ctx, {k: st.component for k, st in states.items()})
+        except Exception:                              # noqa: BLE001
+            installed = set()
+        extra = (installed & set(ctx.routes.components)) - tracked
+        _ensure(extra)
+        scope = tracked | extra
+    elif mode == 'to-do':
+        _ensure(queue)                                 # need install state of staged-uninstall comps
+        actionable, present = {}, {}                   # per component: needs install/update? present?
+        for st in states.values():
+            c = st.component.comp
+            actionable[c] = actionable.get(c, False) or (st.status in ('missing', 'outdated'))
+            present[c] = present.get(c, False) or st.present
+        scope = {c for c in tracked if actionable.get(c)}          # tracked but not green
+        scope |= {c for c in queue if present.get(c)}              # staged-uninstall, still installed
+    else:                                              # 'tracked' (default)
+        scope = tracked
+
+    layouts, transitive = _group_by_owner(cfg, scope)
+    return states, layouts, transitive
 
 
 SPLASH_THRESHOLD = 0.25    # only show the liquid fill if inspection is still going after this
@@ -3136,6 +3195,8 @@ def _draw_profiles(stdscr, pal, ps, ctx, note, screen):
     machines = ps.machines_list()
     tgset = ps.targets()
     picks_map = ctx.config.picks()
+    _uq = ctx.config.uninstall_queue()               # staged-for-uninstall -> ⮾ in the inst'd column
+    _cur_track = ctx.config.included()               # tracked on THIS box -> ● vs ⊙ (installed-untracked)
     ctitle = ((f'components — in "{prof}"' if prof else 'components')
               + (f'  filter:{ps.cfilter}' if ps.cfilter else '')
               + ('  #sel:' + str(len(ps.selected_comps)) if ps.selected_comps else '')
@@ -3224,9 +3285,18 @@ def _draw_profiles(stdscr, pal, ps, ctx, note, screen):
               pal.style('method_dim', y, ril + x_via, h, w, selected=foc) | rev)
         _hput(y, x_org, _fit(ps.origin(name), org_w),
               pal.style('method_dim', y, ril + x_org, h, w, selected=foc) | rev)
-        # state cells — wide glyphs (each at the column's left edge, with a trailing gap so it renders)
-        inst_g = {'all': '●', 'some': '◐', 'none': '○'}[istate]
-        cells = [(inst_g, 'installed' if istate != 'none' else 'info_dim'),
+        # state cells — wide glyphs (each at the column's left edge, with a trailing gap so it renders).
+        # inst'd: ⮾ staged-for-uninstall · ● installed+tracked · ⊙ installed+untracked · ◐ partial · ○ none
+        if name in _uq:
+            inst_g, inst_role = '⮾', 'orphan_lurking'
+        elif istate == 'all':
+            inst_g = '●' if name in _cur_track else '⊙'
+            inst_role = 'installed' if name in _cur_track else 'orphan_lurking'
+        elif istate == 'some':
+            inst_g, inst_role = '◐', 'installed'
+        else:
+            inst_g, inst_role = '○', 'info_dim'
+        cells = [(inst_g, inst_role),
                  ('◆' if is_new else ' ', 'menu_new'),
                  ('☆' if _d == 'interesting' else '·' if _d == 'seen' else ' ',
                   'link' if _d == 'interesting' else 'info_dim')]
@@ -3251,7 +3321,8 @@ def _draw_profiles(stdscr, pal, ps, ctx, note, screen):
     if note:
         status += f'    {note}'
     # column legend for the matrix table (right-aligned on the status bar).
-    legend = "inst'd ●/◐/○ · new ◆ · flag ☆int/·seen · machine ●tracked/○not · tree ⊙N unclaimed "
+    legend = ("inst'd ●trk/⊙untrk/◐part/○no/⮾uninst · new ◆ · flag ☆int/·seen · "
+              "machine ●tracked/○not · tree ⊙N unclaimed ")
     lg_x = max(0, w - len(legend))
     _put(stdscr, h - 3, 0, _fit(status, max(1, lg_x - 1)), pal.style('status_line', h - 3, 0, h, w))
     _put(stdscr, h - 3, lg_x, _fit(legend, w - lg_x), pal.style('status_line', h - 3, lg_x, h, w))
@@ -4336,9 +4407,10 @@ def run(ctx):
         from .keyspec import Keymap
         global _KEYMAP
         _KEYMAP = keymap = Keymap(ctx.config.keys())   # merged bindings; legends read the same map
-        layouts, transitive = _menu_model(cfg)
-        states, layouts, transitive = _with_uninstall_node(ctx, states, layouts, transitive)
+        comp_mode = 'tracked'                     # Components view MODE: to-do | tracked | installed+tracked
+        states, layouts, transitive = _components_model(ctx, cfg, states, comp_mode)
         ms = MenuState(states, layouts, transitive)
+        ms.mode = comp_mode
         ms._req_sig = frozenset(_requested)       # the install set this tree was built for (matrix picks)
         _seed_uninstall(ms, ctx)                  # surface the persisted !uninstall queue as staged removes
         ms._uninstall_q = set(ctx.config.uninstall_queue())
@@ -5358,6 +5430,16 @@ def run(ctx):
                     if ps is not None:
                         ps.invalidate_overlay()   # installs changed disk reality -> re-enumerate on next `O`
                     curses.flushinp()  # ...and any typed during the re-inspect
+            elif act == 'mode':                # cycle the view: to-do -> tracked -> installed+tracked
+                nxt = COMPONENT_MODES[(COMPONENT_MODES.index(getattr(ms, 'mode', 'tracked')) + 1)
+                                      % len(COMPONENT_MODES)]
+                ms.mode = nxt
+                try:
+                    ms, cfg, ledger, states, diags = _reload(ctx, ms, set())
+                except Exception as e:  # noqa: BLE001 — surface, don't crash
+                    note = f'reload failed: {e}'
+                else:
+                    note = f'view: {nxt}'
             elif act == 'refresh':             # refresh version caches + the native package index
                 with suspended(stdscr):
                     print('Refreshing the package view — re-querying version sources and running the\n'
