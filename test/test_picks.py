@@ -17,9 +17,10 @@ def test_picks_writer_roundtrip_and_clear(tmp_path):
     plugins.set_picks(str(f), {'ts-desktop': ['btop', 'neovim'], 'ts-laptop': ['fish']})
     assert plugins.read_picks(str(f)) == {'ts-desktop': ['btop', 'neovim'], 'ts-laptop': ['fish']}
     assert '// keep' in f.read_text() and 'configs: [ dev ]' in f.read_text()   # comment + sibling survive
-    plugins.set_picks(str(f), {'ts-desktop': []})                              # empty machine dropped
-    assert plugins.read_picks(str(f)) == {}                                    # -> whole node removed
-    assert 'picks' not in f.read_text()
+    plugins.set_picks(str(f), {'ts-desktop': []})                              # empty machine KEPT (a column)
+    assert plugins.read_picks(str(f)) == {'ts-desktop': []}                     # picks: IS the registry
+    plugins.set_picks(str(f), {})                                              # no machines at all
+    assert plugins.read_picks(str(f)) == {} and 'picks' not in f.read_text()   # -> whole node removed
 
 
 def test_config_picks_included_and_current_machine():
@@ -68,12 +69,11 @@ def test_rename_machine_carries_picks(tmp_path):
     d = tmp_path / '.config' / 'configsys'
     d.mkdir(parents=True, exist_ok=True)
     (d / 'configsys.hu').write_text(
-        '{\n  machine: ts-desktop\n  machines: { ts-desktop: {} }\n'
-        '  picks: { ts-desktop: [ btop  fd ] }\n}\n')
+        '{\n  machine: ts-desktop\n  picks: { ts-desktop: [ btop  fd ] }\n}\n')
     ctx = Context(build_parser().parse_args(['--home', str(tmp_path), '--os', 'pop', 'inspect']))
     ok, new = actions.rename_machine(ctx, 'ts-desktop', 'ts-laptop')
     assert ok and new == 'ts-laptop'
-    assert 'ts-laptop' in ctx.config.machines() and 'ts-desktop' not in ctx.config.machines()
+    assert 'ts-laptop' in ctx.config.machine_names() and 'ts-desktop' not in ctx.config.machine_names()
     assert ctx.config.included('ts-laptop') == {'btop', 'fd'}          # picks carried over
     assert ctx.config.current_machine() == 'ts-laptop'                 # selection re-pointed
     assert actions.rename_machine(ctx, 'ts-laptop', 'ts-laptop')[0] is False   # same name -> no-op
@@ -86,8 +86,7 @@ def test_requested_signature_tracks_picks_and_machine(tmp_path):
     d = tmp_path / '.config' / 'configsys'
     d.mkdir(parents=True, exist_ok=True)
     (d / 'configsys.hu').write_text(
-        '{\n  configs: []\n  machine: alpha\n  machines: { alpha: {}  beta: {} }\n'
-        '  picks: { alpha: [ btop ]  beta: [ fzf ] }\n}\n')
+        '{\n  machine: alpha\n  picks: { alpha: [ btop ]  beta: [ fzf ] }\n}\n')
 
     def ctx():
         return Context(build_parser().parse_args(['--home', str(tmp_path), '--os', 'pop', 'inspect']))
@@ -105,20 +104,36 @@ def test_requested_signature_tracks_picks_and_machine(tmp_path):
 
 
 def test_rename_materializes_synthetic_current(tmp_path):
-    # renaming the un-named default 'this-machine' materializes it into machines: and re-points the
-    # machine: selection (the sync bug fix) — nothing was in machines: before.
+    # renaming the un-named default 'this-machine' renames its picks key and re-points the machine:
+    # selection — nothing was named before.
     from configsys.app import Context, build_parser
     d = tmp_path / '.config' / 'configsys'
     d.mkdir(parents=True, exist_ok=True)
-    (d / 'configsys.hu').write_text('{\n  configs: []\n}\n')
+    (d / 'configsys.hu').write_text('{ scope: user }')
     ctx = Context(build_parser().parse_args(['--home', str(tmp_path), '--os', 'pop', 'inspect']))
-    assert ctx.config.current_machine() == 'this-machine' and ctx.config.machines() == {}
+    assert ctx.config.current_machine() == 'this-machine' and ctx.config.machine_names() == []
     actions.set_included(ctx, 'btop', ['this-machine'], True)
     ok, new = actions.rename_machine(ctx, 'this-machine', 'desktop')
     assert ok and new == 'desktop'
-    assert 'desktop' in ctx.config.machines()                 # materialized
+    assert 'desktop' in ctx.config.machine_names()            # picks key renamed
     assert ctx.config.current_machine() == 'desktop'          # selection re-pointed
     assert ctx.config.included('desktop') == {'btop'}         # picks carried
+
+
+def test_add_machine_creates_empty_column(tmp_path):
+    # add_machine registers an empty picks entry — the column exists before any pick, and survives.
+    from configsys.app import Context, build_parser
+    d = tmp_path / '.config' / 'configsys'
+    d.mkdir(parents=True, exist_ok=True)
+    (d / 'configsys.hu').write_text('{ scope: user }')
+    ctx = Context(build_parser().parse_args(['--home', str(tmp_path), '--os', 'pop', 'inspect']))
+    ok, _ = actions.add_machine(ctx, 'laptop')
+    assert ok and 'laptop' in ctx.config.machine_names()      # empty column exists
+    assert ctx.config.included('laptop') == set()             # ...with no picks yet
+    assert actions.add_machine(ctx, 'laptop')[0] is False     # duplicate refused
+    # removing it drops the column
+    ch, _ = actions.remove_machine(ctx, 'laptop')
+    assert ch and 'laptop' not in ctx.config.machine_names()
 
 
 def test_set_included_fans_out_across_machines(tmp_path):

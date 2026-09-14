@@ -2138,7 +2138,7 @@ def _component_machines_modal(stdscr, pal, ctx, comp):
     dim = pal.get('dim')
 
     def machs():
-        ms = sorted(ctx.config.machines())
+        ms = ctx.config.machine_names()
         cur = ctx.config.current_machine()
         return [cur] + [m for m in ms if m != cur]
 
@@ -2203,7 +2203,7 @@ def _machines_modal(stdscr, pal, ctx, targets):
     dim = pal.get('dim')
 
     def machs():
-        ms = sorted(ctx.config.machines())
+        ms = ctx.config.machine_names()
         cur = ctx.config.current_machine()
         return [cur] + [m for m in ms if m != cur]
 
@@ -2869,7 +2869,7 @@ class ProfileScreen:
     def machines_list(self):
         '''Every machine to show a column for: the defined `machines:` names, else just the current
         machine (a one-machine user never has to name it). Sorted, current machine first.'''
-        ms = sorted(self.ctx.config.machines().keys())
+        ms = self.ctx.config.machine_names()
         cur = self.ctx.config.current_machine()
         if cur not in ms:
             ms = [cur] + ms

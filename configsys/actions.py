@@ -78,14 +78,10 @@ def _membership_effect_ok(cfg, profile, comp, action):
     return {'add': mem, 'remove': not mem}[action]
 
 
-def set_profile_membership(ctx, profile, comp, action, *, target=None, machine=None):
+def set_profile_membership(ctx, profile, comp, action, *, target=None):
     '''Write the term-algebra edit so `comp` becomes a member (`action='add'`) or a non-member
     (`'remove'`) of `profile`, via Config.plan_membership_edit, to `target` or the effective target.
-    `machine` scopes the edit into a `machines:[<machine>].profiles` namespace (that machine's rung
-    must be loaded — pass `--machine`). Returns (changed, label); a no-op returns (False, label); a
-    shadowed target -> (False, warning).'''
-    if machine is not None:
-        return _set_machine_membership(ctx, machine, profile, comp, action)
+    Returns (changed, label); a no-op returns (False, label); a shadowed target -> (False, warning).'''
     tfile, label = (target, target) if target else _profile_target(ctx, profile)
     new_terms = ctx.config.plan_membership_edit(profile, comp, action, tfile)
     if new_terms is None:
@@ -97,28 +93,6 @@ def set_profile_membership(ctx, profile, comp, action, *, target=None, machine=N
     if not _membership_effect_ok(ctx.config, profile, comp, action):    # shadowed -> no effect
         return False, f'{label}: "{profile}" is overridden by a higher-precedence layer (no effect)'
     return True, label
-
-
-def _set_machine_membership(ctx, machine, profile, comp, action):
-    '''Machine-scoped membership write: the edit lands in `machines:[machine].profiles.<profile>` in
-    the file that defines that machine, planned against the injected machine-role rung. The machine's
-    layer MUST be loaded (run with `--machine <machine>`, or be on that box). Returns (changed, label).'''
-    if ctx.config.selected_machine() != machine or ctx.config.machine_layer_index() is None:
-        return False, (f'machine "{machine}" is not the loaded target — re-run with `--machine {machine}`'
-                       f' (or define it in `machines:` first)')
-    tidx = ctx.config.machine_layer_index()
-    tfile = str(ctx.config._layers[tidx].path)           # the file holding machines:[machine]
-    new_terms = ctx.config.plan_membership_edit(profile, comp, action, tfile, layer_idx=tidx)
-    if new_terms is None:
-        return False, f'machine {machine}'
-    machines = plugins.read_machines(tfile)
-    entry = machines.setdefault(machine, {})
-    entry.setdefault('profiles', {})[profile] = new_terms
-    plugins.set_machines(tfile, machines)
-    ctx.invalidate()
-    if not _membership_effect_ok(ctx.config, profile, comp, action):
-        return False, f'machine {machine}: "{profile}" is overridden by a higher-precedence layer (no effect)'
-    return True, f'machine {machine}'
 
 
 UNINSTALL_PROFILE = '!uninstall'
@@ -411,60 +385,56 @@ def clone_profile_into(ctx, name, into=None):
 
 
 def add_machine(ctx, name):
-    '''Create a new, empty machine entry in `machines:` (portable edit target — primary if set). A
-    machine is a composing layer: its `profiles:` overlay the shared ones by name. Returns
+    '''Register a new machine as an empty column — an empty `picks:` entry (picks: IS the machine
+    registry). Written to the portable pick target (primary if blessed, see _picks_target). Returns
     (changed, label); a bad/duplicate name returns (False, reason).'''
     name = (name or '').strip()
     if not name:
         return False, 'a machine name is required'
-    if name in ctx.config.machines():
+    if name in ctx.config.machine_names():
         return False, f'machine "{name}" already exists'
-    tfile, label = edit_target(ctx)
-    machines = plugins.read_machines(tfile)
-    machines[name] = {}
-    plugins.set_machines(tfile, machines)
+    tfile, label = _picks_target(ctx, name)
+    picks = plugins.read_picks(tfile)
+    picks[name] = picks.get(name, [])                      # an empty column
+    plugins.set_picks(tfile, picks)
     ctx.invalidate()
     return True, label
 
 
 def remove_machine(ctx, name):
-    '''Delete a machine entry from the portable edit target. Returns (changed, label/reason).'''
-    tfile, label = edit_target(ctx)
-    machines = plugins.read_machines(tfile)
-    if name not in machines:
-        return False, f'machine "{name}" is not defined in {label}'
-    del machines[name]
-    plugins.set_machines(tfile, machines)
-    ctx.invalidate()
-    return True, label
+    '''Delete a machine — drop its `picks:` entry from both layers. Returns (changed, label/reason).'''
+    if name not in ctx.config.machine_names():
+        return False, f'machine "{name}" is not defined'
+    return set_included_clear_machine(ctx, name)
 
 
 def rename_machine(ctx, old, new):
-    '''Rename a machine: move its `machines:` entry AND its `picks:` set to `new`, and re-point the
-    `machine:` selection if it named `old`. Returns (changed, reason).'''
+    '''Rename a machine: move its `picks:` entry (in whichever layer holds it) to `new`, and re-point
+    the `machine:` selection if it named `old`. Returns (changed, reason).'''
     new = (new or '').strip()
     if not new:
         return False, 'a new name is required'
     if new == old:
         return False, 'same name'
-    if new in ctx.config.machines():
+    if new in ctx.config.machine_names():
         return False, f'machine "{new}" already exists'
     was_current = old == ctx.config.current_machine()
-    tfile, _label = edit_target(ctx)
-    machines = plugins.read_machines(tfile)
-    if old in machines:
-        machines[new] = machines.pop(old)
-    elif was_current:
-        machines[new] = {}                                 # materialize the synthetic default under its
-    else:                                                  # new name (the un-named "this-machine")
+    if old not in ctx.config.machine_names() and not was_current:
         return False, f'no machine "{old}"'
-    plugins.set_machines(tfile, machines)
-    # carry the (local) picks entry across
-    ptile = str(ctx.paths.user_config_file)
-    picks = plugins.read_picks(ptile)
-    if old in picks:
-        picks[new] = picks.pop(old)
-        plugins.set_picks(ptile, picks)
+    pfile, _pn = _primary_data_file(ctx)
+    files = {str(ctx.paths.user_config_file)} | ({str(pfile)} if pfile else set())
+    moved = False
+    for f in files:
+        picks = plugins.read_picks(f)
+        if old in picks:
+            picks[new] = picks.pop(old)
+            plugins.set_picks(f, picks)
+            moved = True
+    if not moved:                                          # synthetic 'this-machine' with no picks yet
+        tfile, _l = _picks_target(ctx, new)
+        picks = plugins.read_picks(tfile)
+        picks[new] = []
+        plugins.set_picks(tfile, picks)
     ctx.invalidate()
     if was_current or ctx.config.selected_machine() == old:   # re-point this box's selection
         set_config_setting(ctx, 'machine', [new])

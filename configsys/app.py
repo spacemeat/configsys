@@ -1890,7 +1890,7 @@ def cmd_check(ctx, args):
     # a `machine:` selection that names no `machines:` entry silently resolves to nothing (shared +
     # local only) — almost always a typo or an unsynced primary. Warn so it isn't a silent no-op.
     _sel_machine = ctx.config.selected_machine()
-    if _sel_machine and _sel_machine not in ctx.config.machines():
+    if _sel_machine and _sel_machine not in ctx.config.machine_names():
         removal_warnings.append(f"machine '{_sel_machine}' is selected but not defined in any "
                                 f"`machines:` block — this box resolves shared + local profiles only")
 
@@ -3209,21 +3209,21 @@ def cmd_dotfiles_capture(ctx, args):
 
 
 def cmd_machine(ctx, args):
-    '''View or edit `machines:` — each a composing layer whose profiles overlay the shared ones.'''
+    '''View or edit machines — the columns of the matrix, i.e. the keys of `picks:`.'''
     from . import actions
     cfg = ctx.config
     sub = getattr(args, 'machine_command', None) or 'list'
 
     if sub == 'list':
-        machines = cfg.machines()
+        names = cfg.machine_names()
         here = cfg.selected_machine()
-        if not machines:
+        if not names:
             print('configsys: no machines defined (create one: `configsys machine add <name>`)')
             if here:
                 print(f'  note: `machine: {here}` is selected but undefined')
             return 0
         picks = cfg.picks()
-        for name in sorted(machines):
+        for name in names:
             mark = '*' if name == here else ' '
             print(f' {mark} {name}   tracked: {len(picks.get(name, []))}')
         print('\n  * = this box (`machine:`). Curate another with `--machine <name>`; edit with '
@@ -3231,8 +3231,7 @@ def cmd_machine(ctx, args):
         return 0
 
     if sub == 'show':
-        machines = cfg.machines()
-        if args.name not in machines:
+        if args.name not in cfg.machine_names():
             print(f'configsys: machine "{args.name}" is not defined', file=sys.stderr)
             return 1
         print(f'machine {args.name}' + ('   [this box]' if args.name == cfg.selected_machine() else ''))

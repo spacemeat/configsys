@@ -732,9 +732,9 @@ def _emit_picks(picks, indent):
 
 
 def set_picks(config_file, picks):
-    '''Rewrite the `picks:` node in place (comments/siblings preserved), or remove it when empty.
-    `picks` is `{machine: [component, ...]}`. A machine whose list is empty is dropped.'''
-    picks = {m: comps for m, comps in picks.items() if comps}
+    '''Rewrite the `picks:` node in place (comments/siblings preserved), or remove it when there are
+    NO machines at all. `picks` is `{machine: [component, ...]}`. A machine with an EMPTY list is KEPT
+    (`name: []`) — picks: is the machine registry, so an empty machine is a valid (empty) column.'''
     if not picks:
         remove_sections(config_file, ['picks'])
         return
@@ -816,56 +816,6 @@ def set_profiles(config_file, profiles):
     set_section(config_file, 'profiles', lambda indent: _emit_profiles(profiles, indent))
 
 
-def read_machines(config_file):
-    '''`{machine: {configs: [...], profiles: {name: [terms]}}}` from ONE .hu file's `machines:` node,
-    or {}. Only the two known sub-keys are surfaced; term lists are flattened.'''
-    p = Path(config_file)
-    if not p.exists():
-        return {}
-    data = layers.materialize_string(p.read_text(encoding='utf-8'))
-    ms = data.get('machines') if isinstance(data, dict) else None
-    if not isinstance(ms, dict):
-        return {}
-    out = {}
-    for name, entry in ms.items():
-        if not isinstance(entry, dict):
-            continue
-        e = {}
-        if entry.get('configs') is not None:
-            e['configs'] = _flat(entry['configs'])
-        if isinstance(entry.get('profiles'), dict):
-            e['profiles'] = {n: _flat(v) for n, v in entry['profiles'].items()}
-        out[name] = e
-    return out
-
-
-def _emit_machines(machines, indent):
-    pad, inner, body = ' ' * indent, ' ' * (indent + 4), ' ' * (indent + 8)
-    if not machines:
-        return 'machines: {}'
-    lines = ['machines: {']
-    for name, entry in machines.items():
-        lines.append(f'{inner}{name}: {{')
-        cfgs = _flat(entry.get('configs')) if entry.get('configs') is not None else None
-        if cfgs is not None:
-            lines.append(f'{body}configs: [ {"  ".join(_scalar(c) for c in cfgs)} ]' if cfgs
-                         else f'{body}configs: []')
-        profs = entry.get('profiles')
-        if isinstance(profs, dict) and profs:
-            plines = _emit_profiles(profs, indent + 8).split('\n')
-            lines.append(body + plines[0])                # 'profiles: {' carries no indent of its own
-            lines.extend(plines[1:])
-        lines.append(f'{inner}}}')
-    return '\n'.join(lines + [pad + '}'])
-
-
-def set_machines(config_file, machines):
-    '''Rewrite the `machines:` node in place (comments outside preserved), or remove it when empty.
-    `machines` is `{name: {configs?: [...], profiles?: {name: [terms]}}}`.'''
-    if not machines:
-        remove_sections(config_file, ['machines'])
-        return
-    set_section(config_file, 'machines', lambda indent: _emit_machines(machines, indent))
 
 
 def read_scalar_section(config_file, key):

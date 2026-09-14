@@ -266,7 +266,7 @@ _KNOWN_TOP_KEYS = frozenset({
     # definitions + structure
     'os', 'drivers', 'components', 'profiles', 'component-names', 'include', 'plugins', 'facets',
     # machine settings / local state
-    'scope', 'pins', 'dispositions', 'picks', 'uninstall', 'machine', 'machines', 'dirs',
+    'scope', 'pins', 'dispositions', 'picks', 'uninstall', 'machine', 'dirs',
     'effects', 'splash', 'theme', 'keys', 'adopt-installed', 'auto-tighten', 'driver-preference',
     'install-overlay', 'refresh-before-execute', 'orphans-ignore', 'orphans-adopt-target',
     'detect-coexisting', 'disabled-drivers', 'installer-shell-writes', 'installer-shell-writes-allow',
@@ -275,6 +275,7 @@ _KNOWN_TOP_KEYS = frozenset({
 # Understood historically, now dropped -> always warn.
 _RETIRED_TOP_KEYS = {
     'configs': 'retired — the matrix model installs from picks:, not active profiles',
+    'machines': 'retired — picks: is now the machine registry (each picks: key is a machine/column)',
 }
 _PROFILE_AUTHORING_ROLES = ('user', 'primary', 'machine')   # `profiles:` is browse-only (repo/plugins)
 

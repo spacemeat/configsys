@@ -29,46 +29,9 @@ def _leaves(v):
     return [] if v is None else [v]
 
 
-def _machine_entry(layer_list, name):
-    '''The selected machine's `{configs?, profiles?}` entry from `machines:`, highest-precedence
-    layer wins (among machine-setting roles). None if unknown.'''
-    entry = None
-    for layer in layer_list:
-        if layer.role in _MACHINE_ROLES:
-            m = layer.data.get('machines')
-            if isinstance(m, dict) and isinstance(m.get(name), dict):
-                entry = (m[name], layer.path)
-    return entry
-
-
 def _selected_machine(layer_list):
     v = layers.merge_scalar(layer_list, 'machine', _MACHINE_ROLES)
     return v.strip() if isinstance(v, str) and v.strip() else None
-
-
-def _inject_machine_layer(layer_list, override=None):
-    '''If a `machine:` is selected (or `override` names one) and defined in `machines:`, splice that
-    machine's `profiles:`/`configs:` in as its OWN layer — a `machine`-role rung that overlays the
-    shared primary/plugin/repo profiles by name (so `^self`/`+self` and provenance flow) yet sits BELOW
-    the local top config (which still overrides). A machine is a composing layer, not a container:
-    shared profiles live at the primary's top level and a machine inherits/derives/amends them.
-    `override` is the working-target selector (`--machine`). Unknown/absent selection -> no-op.'''
-    sel = (override.strip() if isinstance(override, str) and override.strip()
-           else _selected_machine(layer_list))
-    if not sel:
-        return layer_list
-    got = _machine_entry(layer_list, sel)
-    if got is None:
-        return layer_list                    # selected machine not defined; surfaced by check
-    entry, src = got
-    data = {}
-    if isinstance(entry.get('profiles'), dict):
-        data['profiles'] = entry['profiles']
-    mlayer = layers.Layer(src, 'machine', data)
-    mlayer.machine = sel                     # the machine name this rung carries (writer + provenance)
-    # insert just below the TOP user config (the last `user` layer) so the box's own file still wins
-    at = max((i for i, l in enumerate(layer_list) if l.role == 'user'), default=len(layer_list))
-    return layer_list[:at] + [mlayer] + layer_list[at:]
 
 
 def _split_term(term):
@@ -85,6 +48,7 @@ def _split_term(term):
 class Config:
     def __init__(self, layer_list):
         self._layers = layer_list
+        self._machine_override = None  # `--machine` working-target selector (set by load())
         self.load_warnings = []       # files SKIPPED while loading (set by load()); see diagnostics
         self._profiles = layers.merge_named(layer_list, 'profiles')   # name -> (val, src, shadows)
         # Per-name chain of same-named definitions across layers, ascending precedence:
@@ -110,9 +74,8 @@ class Config:
                   for p in plugin_files]
         roots.append((paths.user_config_file, 'user'))
         layer_list, warns = layers.expand_tolerant(roots, {'plugin', 'primary'})
-        # `machine` overrides the box's own `machine:` selection (the working-target selector).
-        layer_list = _inject_machine_layer(layer_list, override=machine)
         cfg = cls(layer_list)
+        cfg._machine_override = machine.strip() if isinstance(machine, str) and machine.strip() else None
         cfg.load_warnings = warns     # a malformed primary/plugin layer skipped, not fatal
         return cfg
 
@@ -390,30 +353,14 @@ class Config:
         return v if v in ('full', 'reduced', 'none') else None
 
     def selected_machine(self):
-        '''The active/target machine name: the spliced `machine`-role layer's name if one is present
-        (honors a `--machine` override), else the `machine:` setting, else None.'''
-        for layer in self._layers:
-            if layer.role == 'machine':
-                return getattr(layer, 'machine', None) or _selected_machine(self._layers)
-        return _selected_machine(self._layers)
+        '''The active/target machine name: a `--machine` working-target override if given, else the
+        `machine:` setting, else None.'''
+        return getattr(self, '_machine_override', None) or _selected_machine(self._layers)
 
-    def machine_layer_index(self):
-        '''Index of the injected `machine`-role layer (the edit target for a machine-scoped profile
-        write), or None. Distinguishes it from the primary layer they share a path.'''
-        return next((i for i, l in enumerate(self._layers) if l.role == 'machine'), None)
-
-    def machines(self):
-        '''All defined machine names -> their `{configs?, profiles?}` entry, highest-precedence layer
-        winning per name (among machine-setting roles). For listing / the working-target selector.'''
-        out = {}
-        for layer in self._layers:
-            if layer.role in _MACHINE_ROLES:
-                m = layer.data.get('machines')
-                if isinstance(m, dict):
-                    for name, entry in m.items():
-                        if isinstance(entry, dict):
-                            out[name] = entry
-        return out
+    def machine_names(self):
+        '''Every machine that exists — the keys of `picks:` (each machine, even one with an empty pick
+        list, is a column), merged across the machine-role layers. picks: IS the machine registry.'''
+        return sorted(self.picks().keys())
 
     PICKS_PROFILE = '@picks'          # reserved: the current machine's Included set (v3 matrix model)
 

@@ -101,9 +101,7 @@ def test_tui_machine_target_selector(tmp_path):
 
     cfg = tmp_path / '.config' / 'configsys' / 'configsys.hu'
     cfg.parent.mkdir(parents=True, exist_ok=True)
-    cfg.write_text('{ machine: laptop  configs: [ finders ]  '
-                   'machines: { laptop: { configs: [ finders ]  '
-                   'profiles: { finders: [ "+finders"  fd ] } } } }\n')
+    cfg.write_text('{ machine: laptop  picks: { laptop: [ fd ] } }\n')
 
     env = dict(os.environ)
     env.update({'TERM': 'xterm-256color', 'CONFIGSYS_HOME': str(tmp_path),
