@@ -56,6 +56,24 @@ def test_uninstall_and_upgrade():
     assert r.calls == ['gem uninstall -x bundler', 'gem update bundler']
 
 
+def test_uninstall_default_gem_is_a_benign_noop():
+    # a "default gem" (bundler ships with Ruby) can't be removed by `gem uninstall` — it exits
+    # non-zero with that message. The driver must treat it as a benign no-op (ok + advisory), not a
+    # failure that nags for a bug report.
+    fr = FakeRunner([('gem uninstall', 1,
+                      'Gem bundler-2.2.22 cannot be uninstalled because it is a default gem')])
+    res = Gem(fr).uninstall(gem())
+    assert res.ok and res.advisory
+    assert 'default gem' in res.output.lower()
+
+
+def test_uninstall_real_failure_still_fails():
+    # a genuine uninstall error is NOT swallowed
+    fr = FakeRunner([('gem uninstall', 1, 'ERROR: while executing gem ... permission denied')])
+    res = Gem(fr).uninstall(gem())
+    assert not res.ok
+
+
 def test_get_version_parses_list():
     fr = FakeRunner([('gem list -e', 0, 'bundler (2.5.9, 2.4.1)\n')])
     assert Gem(fr).get_version(gem()) == '2.5.9'

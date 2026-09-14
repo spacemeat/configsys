@@ -60,8 +60,16 @@ class Gem(Driver):
             sudo=self.sudo(rc), capture=False)
 
     def uninstall(self, rc):
-        return self.runner.run(f'gem uninstall -x {shlex.quote(self._gem(rc))}',
-                               sudo=self.sudo(rc), capture=False)
+        r = self.runner.run(f'gem uninstall -x {shlex.quote(self._gem(rc))}',
+                            sudo=self.sudo(rc), capture=False)
+        # "default gems" (bundler, etc.) ship WITH Ruby and CANNOT be removed by `gem uninstall` —
+        # it exits non-zero with "cannot be uninstalled because it is a default gem". That's not a
+        # broken op to report: the message already streamed, so treat it as a benign no-op (advisory)
+        # instead of a failure that would nag for a bug report.
+        if not r.ok and 'default gem' in r.output.lower():
+            return Result(r.cmd, 0, stdout=(r.output or f'{self._gem(rc)}: default gem, kept'),
+                          advisory=True)
+        return r
 
     def upgrade(self, rc):
         return self.runner.run(f'gem update {shlex.quote(self._gem(rc))}',

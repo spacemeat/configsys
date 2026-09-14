@@ -2350,6 +2350,7 @@ class ProfileScreen:
         self.attr_inc = set()            # `A` faceted attr filter: lowercased tags to INCLUDE
         self.attr_exc = {'dotfiles'}     # ...and to EXCLUDE — hide the -dotfiles companions by default
         self._res = {}                   # component -> (available, via, pinned); survives reloads
+        self._hard_dep_cache = {}        # component -> frozenset of its transitive hard component-requires
         self.show_install = 1 if ctx.config.install_overlay_default() else 0   # `O` toggles the install
         self._overlay = None             # overlay off/on (default from `install-overlay`, on unless set):
                                          # installed underlined, orphans coloured, ignored orphans dimmed
@@ -2714,13 +2715,23 @@ class ProfileScreen:
         return self._group_new_cache[gid]
 
     def _parts(self, name):
-        '''The parts a `via: parts` aggregator is the union of — component-level `parts:` plus any
-        binding's `parts:` details. Empty for an ordinary component.'''
+        '''The parts of `name`'s CONTEXT-VALID `via: parts` binding — component-level `parts:` plus the
+        parts of the binding(s) whose `when:` applies on THIS machine. Empty for an ordinary component.
+        Filtering by `when:` is essential: a component like vulkan-runtime lists DIFFERENT parts per OS,
+        so unioning across all bindings would count another distro's packages as missing parts and
+        falsely read the aggregate as partially installed (◐).'''
         comp = self.ctx.routes.components.get(name)
         if comp is None:
             return []
         out = list(getattr(comp, 'parts', []) or [])
-        for b in comp.bindings:
+        r = self.ctx.routes
+        try:
+            from ..resolve import candidate_bindings
+            cx = r.cascade.context(r.block, r.version, r.cpu)
+            binds = candidate_bindings(comp, r.cascade, cx, self.ctx.config.pins())
+        except Exception:                            # noqa: BLE001 — fall back to all bindings
+            binds = comp.bindings
+        for b in binds:
             p = b.details.get('parts')
             if isinstance(p, str):
                 out.append(p)
@@ -2733,10 +2744,31 @@ class ProfileScreen:
                 uniq.append(p)
         return uniq
 
+    def _hard_deps(self, name, _stack=()):
+        '''`name`'s transitive HARD requires that are themselves COMPONENTS — the deliberate
+        component-to-component dependencies (the `virt-manager -> libvirt-service` service-companion
+        shape). Deliberately EXCLUDES capability requires (fuzzy — satisfied by any provider) and
+        `suggests:` soft-deps (the -dotfiles/-select/-glue companions), so this never flags the
+        incidental "optional companion not materialized" partial. Cached per reload.'''
+        if name in self._hard_dep_cache:
+            return self._hard_dep_cache[name]
+        comps = self.ctx.routes.components
+        comp = comps.get(name)
+        out = set()
+        if comp is not None and name not in _stack:
+            for dep in (getattr(comp, 'requires', None) or []):
+                if isinstance(dep, str) and dep in comps and dep not in _stack:
+                    out.add(dep)
+                    out |= self._hard_deps(dep, _stack + (name,))
+        self._hard_dep_cache[name] = frozenset(out)
+        return self._hard_dep_cache[name]
+
     def install_state(self, name, _stack=(), force=False):
-        '''Tri-state install status for the `inst'd` column: 'all' (fully on disk), 'some' (a parts
-        aggregator with only SOME parts installed — like Components' `partial`), or 'none'. `force`
-        ignores the `O` display toggle (for the C claim, which reads reality regardless).'''
+        '''Tri-state install status for the `inst'd` column: 'all' (fully on disk), 'some' (partial),
+        or 'none'. Partial (◐) means either a `via: parts` aggregator with only SOME parts installed,
+        OR an installed component whose hard component-requires aren't all present (e.g. an app
+        installed without its required service). `force` ignores the `O` display toggle (for the C
+        claim, which reads reality regardless).'''
         if (not self.show_install and not force) or name in _stack:
             return 'none'
         parts = self._parts(name)
@@ -2746,7 +2778,13 @@ class ProfileScreen:
                 return 'all'
             return 'some' if any(s != 'none' for s in sub) else 'none'
         ov = self._overlay[0] if self._overlay else frozenset()
-        return 'all' if (name in ov or bool(self._probe_installed.get(name))) else 'none'
+        if not (name in ov or bool(self._probe_installed.get(name))):
+            return 'none'
+        # installed — but is its hard component-requires closure fully present too?
+        deps = self._hard_deps(name)
+        if any(d not in ov and not self._probe_installed.get(d) for d in deps):
+            return 'some'
+        return 'all'
 
     def is_installed(self, name, force=False):
         '''True iff `name` is FULLY installed (a parts aggregator: all parts). For the name underline

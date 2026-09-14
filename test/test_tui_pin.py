@@ -74,6 +74,28 @@ def test_components_model_mode_scopes(tmp_path):
     assert _shown(todo_lay) == {'htop', 'ncdu'}         # actionable only; green btop dropped
 
 
+def test_parts_are_context_filtered(tmp_path):
+    # _parts must return only the CONTEXT-VALID binding's parts, not the union across every OS —
+    # else another distro's packages read as missing parts and the aggregate falsely shows ◐.
+    ps = menu.ProfileScreen(_ctx(tmp_path))                       # pop (debian)
+    assert ps._parts('vulkan-runtime') == ['libvulkan1', 'mesa-vulkan-drivers']
+    ps2 = menu.ProfileScreen(_ctx(tmp_path, '--os', 'arch'))
+    assert ps2._parts('vulkan-runtime') == ['vulkan-icd-loader', 'vulkan-swrast']
+
+
+def test_install_state_partial_on_unmet_hard_component_require(tmp_path):
+    # 8F: an installed component whose hard COMPONENT-requires aren't all present reads ◐. Capability
+    # requires and suggests (-dotfiles/-select) are excluded, so an ordinary tool never false-flags.
+    ps = menu.ProfileScreen(_ctx(tmp_path))
+    ps.show_install = 1
+    assert set(ps._hard_deps('virt-manager')) == {'qemu', 'libvirt', 'libvirt-service'}
+    ps._overlay = (frozenset({'virt-manager', 'qemu', 'libvirt', 'btop'}), {}, frozenset())
+    assert ps.install_state('virt-manager') == 'some'            # libvirt-service missing -> ◐
+    assert ps.install_state('btop') == 'all'                     # no hard deps -> ●
+    ps._overlay = (frozenset({'virt-manager', 'qemu', 'libvirt', 'libvirt-service'}), {}, frozenset())
+    assert ps.install_state('virt-manager') == 'all'            # whole closure present -> ●
+
+
 def _steam_home(tmp_path):
     d = tmp_path / '.config' / 'configsys'
     d.mkdir(parents=True)
