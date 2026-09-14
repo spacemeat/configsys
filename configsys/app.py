@@ -1462,12 +1462,24 @@ def cmd_picks(ctx, args):
         return 0
 
     ctx.ensure_user_config()
+
+    if sub == 'to-primary':
+        n, label = actions.move_picks_to_primary(ctx)
+        if label == 'no primary':
+            print('configsys: no primary plugin — picks already live in your top config '
+                  '(bless a primary with `configsys plugin bless` to make them portable)')
+        elif n:
+            print(f'configsys: moved {n} pick(s) into "{label}" — they now travel to your other machines')
+        else:
+            print(f'configsys: nothing to move — no local picks (they already live in "{label}")')
+        return 0
+
     machines = getattr(args, 'machines', None) or [cfg.current_machine()]
 
     if sub in ('add', 'rm'):
-        n, _label = actions.set_included(ctx, args.component, machines, sub == 'add')
+        n, label = actions.set_included(ctx, args.component, machines, sub == 'add')
         verb = 'picked' if sub == 'add' else 'unpicked'
-        print(f'configsys: {args.component} {verb} on {", ".join(machines)}' if n
+        print(f'configsys: {args.component} {verb} on {", ".join(machines)}  (in {label})' if n
               else f'configsys: no change — {args.component} already '
                    f'{"picked" if sub == "add" else "unpicked"} there')
         return 0
@@ -2760,6 +2772,8 @@ def build_parser():
         _sp.add_argument('component')
         _sp.add_argument('--machine', action='append', dest='machines',
                          help='target machine (repeat for several; default: the current one)')
+    pksub.add_parser('to-primary', help="move this box's local picks into the primary plugin so they "
+                                        'travel to your other machines (dispositions stay local)')
 
     wh = sub.add_parser('where', help='explain a component: source layer, bindings, and how '
                                       'it resolves on this machine')

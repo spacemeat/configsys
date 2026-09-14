@@ -150,38 +150,82 @@ def set_disposition(ctx, comp, state):
     return True, 'top config'
 
 
+def _picks_target(ctx, machine):
+    '''(file, label) for a picks edit on `machine`. PORTABLE by default — the primary plugin when one
+    is blessed+synced (via edit_target), so picks travel to your other machines — UNLESS this box's
+    top config already carries a local override for that machine (a local per-machine list SHADOWS the
+    primary's, so the edit must land there to be effective). Mirrors _configs_target/_profile_target.
+    Dispositions, by contrast, stay local (they're per-box triage).'''
+    if machine in plugins.read_picks(str(ctx.paths.user_config_file)):
+        return str(ctx.paths.user_config_file), 'top config'
+    return edit_target(ctx)
+
+
 def set_included(ctx, comp, machines, on):
     '''v3 matrix A/D: mark `comp` Included (`on=True`) or not, on EACH machine in `machines` (plural =
-    fan-out). Writes the local per-machine `picks:` store (this box). Returns (changed_count, label).'''
-    tfile = str(ctx.paths.user_config_file)          # machine-local, like pins/dispositions
-    picks = plugins.read_picks(tfile)
-    changed = 0
+    fan-out). Each machine's picks write to its PORTABLE target — the primary plugin by default, else
+    this box's top config, and always the top config when it already overrides that machine (see
+    _picks_target). Returns (changed_count, label naming where it landed).'''
+    by_target = {}                                   # (file, label) -> [machines] (usually one target)
     for m in machines:
-        cur = list(picks.get(m, []))
-        has = comp in cur
-        if on and not has:
-            cur.append(comp)
-            changed += 1
-        elif not on and has:
-            cur = [c for c in cur if c != comp]
-            changed += 1
-        picks[m] = cur
+        by_target.setdefault(_picks_target(ctx, m), []).append(m)
+    changed, labels = 0, set()
+    for (tfile, label), ms in by_target.items():
+        picks = plugins.read_picks(tfile)
+        touched = False
+        for m in ms:
+            cur = list(picks.get(m, []))
+            has = comp in cur
+            if on and not has:
+                cur.append(comp)
+                changed += 1
+                touched = True
+            elif not on and has:
+                cur = [c for c in cur if c != comp]
+                changed += 1
+                touched = True
+            picks[m] = cur
+        if touched:
+            plugins.set_picks(tfile, picks)
+            labels.add(label)
     if changed:
-        plugins.set_picks(tfile, picks)
+        ctx.invalidate()
+    return changed, ' + '.join(sorted(labels)) if labels else 'picks'
+
+
+def set_included_clear_machine(ctx, machine):
+    '''Drop a machine's entire `picks:` entry (when the machine is removed) — from BOTH the local top
+    config and the primary plugin, since its picks may live in either. Returns (changed, label).'''
+    changed = False
+    files = {str(ctx.paths.user_config_file), edit_target(ctx)[0]}
+    for tfile in files:
+        picks = plugins.read_picks(tfile)
+        if machine in picks:
+            picks.pop(machine, None)
+            plugins.set_picks(tfile, picks)
+            changed = True
+    if changed:
         ctx.invalidate()
     return changed, 'picks'
 
 
-def set_included_clear_machine(ctx, machine):
-    '''Drop a machine's entire `picks:` entry (when the machine is removed). Returns (changed, label).'''
-    tfile = str(ctx.paths.user_config_file)
-    picks = plugins.read_picks(tfile)
-    if machine not in picks:
-        return False, 'picks'
-    picks.pop(machine, None)
-    plugins.set_picks(tfile, picks)
+def move_picks_to_primary(ctx):
+    '''Consolidate this box's LOCAL `picks:` into the primary plugin, so they travel to your other
+    machines. Writes the current EFFECTIVE picks (the merged, local-wins view) to the primary and
+    clears the local `picks:` node. No-op when there's no blessed+synced primary, or no local picks.
+    Returns (moved_component_count, label). Dispositions are deliberately left local.'''
+    prim_file, label = edit_target(ctx)
+    local_file = str(ctx.paths.user_config_file)
+    if str(prim_file) == local_file:                 # edit_target fell back to local -> no primary
+        return 0, 'no primary'
+    local = plugins.read_picks(local_file)
+    if not local:
+        return 0, label
+    effective = ctx.config.picks()                   # merged truth (a local list already wins per machine)
+    plugins.set_picks(prim_file, effective)          # primary now carries the full effective set
+    plugins.set_picks(local_file, {})                # ...and drop the local shadow
     ctx.invalidate()
-    return True, 'picks'
+    return sum(len(v) for v in local.values()), label
 
 
 def mark_all_seen(ctx, names):
