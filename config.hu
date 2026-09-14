@@ -67,8 +67,10 @@ profiles: {
 
     android-tools: [ jmtpfs  android-file-transfer ]
 
+    // Debug/analysis kit (was a parts-component): curate the tools you want; each installs where it routes.
+    analysis: [ valgrind  cppcheck  clang-tidy  lldb  strace  ltrace ]
     c-cpp-lang: [ bazelisk  cpp-toolchain  gcc-10 gcc-11 gcc-12 gcc-13  gcc-14  gcc-15  clang-18  clang-19
-        clang-20  gdb  make  analysis  cmake  ninja  meson  clang  cmake-gui  doxygen  ccmake  clangd  conan  gettext  heaptrack  vcpkg ]
+        clang-20  gdb  make  +analysis  cmake  ninja  meson  clang  cmake-gui  doxygen  ccmake  clangd  conan  gettext  heaptrack  vcpkg ]
     dotnet-lang: [ dotnet ]
     go-lang: [ go  goimports ]
     haskell-lang: [ haskell  cabal  hlint ]
@@ -139,15 +141,20 @@ profiles: {
     communication: [ discord  discordo  slack  obs-studio ]
     creative-tools: [ +electronics-tools  +graphics-tools  +audio-tools  libreoffice ]
 
+    // Codec bundles (were parts-components): pick the pieces you want. codecs = license-clean;
+    // codecs-restricted = patent-encumbered nonfree, opt-in. Members install wherever they route.
+    codecs: [ ffmpeg  gst-good  gst-bad ]
+    codecs-restricted: [ gst-ugly  gst-libav  libavcodec-extra ]
+
     media-servers: [ jellyfin-service  plex-service  emby-service  navidrome  mpd ]
-    media-players: [ codecs  gst-libav  ffmpeg  vlc  spotify  kodi  stremio  mpc  strawberry  mpd-mpris  playerctl ]
+    media-players: [ +codecs  gst-libav  ffmpeg  vlc  spotify  kodi  stremio  mpc  strawberry  mpd-mpris  playerctl ]
     home-server: [ home-assistant  pi-hole  adguardhome  homebridge  mosquitto-service  syncthing
         tailscale-service  grafana-service  prometheus  cockpit-service  wireguard  nextcloud ]
 
     terminal: [ +finders  +terminal-emulators  +terminal-utils  +system-utils  +system-monitors
         +disk-usage-utils  +file-browsers  +shells  +configuration-tools  +password-passkey  +fonts ]
     backend-tools: [ +containers  +k8s  +cloud-tools  +net-tools  +db-clients  +db-servers  tailscale ]
-    user: [ +terminal  git  bash-dotfiles  configsys-dotfiles  codecs  firefox  chrome ]
+    user: [ +terminal  git  bash-dotfiles  configsys-dotfiles  +codecs  firefox  chrome ]
 }
 
     // TUI keybindings. Merged section-by-section up the layer stack (this repo base < plugins <

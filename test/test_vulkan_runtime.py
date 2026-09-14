@@ -22,9 +22,11 @@ def test_vulkan_runtime_per_distro():
         ['dnf\\mesa-vulkan-drivers', 'dnf\\vulkan-loader']
     assert _names('rhel', '9.8', 'vulkan-runtime') == \
         ['dnf\\mesa-vulkan-drivers', 'dnf\\vulkan-loader']   # inherited from fedora, AppStream
+    # Arch splits the Mesa ICDs into per-GPU packages (alternatives, not an all-of union), so
+    # vulkan-runtime pulls only the loader + the GPU-agnostic software ICD (lavapipe); the hardware
+    # drivers vulkan-radeon / vulkan-intel are standalone components you track for your GPU.
     assert set(_names('arch', '20260712', 'vulkan-runtime')) == {
-        'pacman\\vulkan-icd-loader', 'pacman\\vulkan-radeon',
-        'pacman\\vulkan-intel', 'pacman\\vulkan-swrast'}
+        'pacman\\vulkan-icd-loader', 'pacman\\vulkan-swrast'}
 
 
 def test_vulkan_dev_pulls_the_runtime():

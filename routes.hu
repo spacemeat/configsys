@@ -1815,11 +1815,12 @@
         // e.g. unrar on musl/atomic, is skipped rather than failing the whole set. See config.hu.)
 
         // --- audio/video codecs (gstreamer names verified across all five families) ---
-        // Free bundle: ffmpeg (already a component) + gstreamer good/bad plugins. The patent-
-        // encumbered "ugly"/libav set is a SEPARATE opt-in (codecs-restricted), off by default.
+        // The `codecs` / `codecs-restricted` BUNDLES are user-facing profiles (in config.hu), not
+        // parts-components — their pieces (ffmpeg, the gstreamer plugin sets) are ordinary components
+        // you can track, pin, and version individually. The patent-encumbered "ugly"/libav set is the
+        // separate `codecs-restricted` profile, off by default.
         gst-good: { attrs: [ lib plugin FOSS copyleft ] description: "GStreamer good plugins — well-supported, license-clean codecs." install: [ { via: native  when: "debian or redhat or arch or opensuse or alpine"  name: { apt: gstreamer1.0-plugins-good  dnf: gstreamer1-plugins-good      pacman: gst-plugins-good  zypper: gstreamer-plugins-good  apk: gst-plugins-good } } ] }
         gst-bad:  { attrs: [ lib plugin FOSS copyleft ] description: "GStreamer bad plugins — less-mature but useful codecs." install: [ { via: native  when: "debian or redhat or arch or opensuse or alpine"  name: { apt: gstreamer1.0-plugins-bad   dnf: gstreamer1-plugins-bad-free  pacman: gst-plugins-bad   zypper: gstreamer-plugins-bad   apk: gst-plugins-bad } } ] }
-        codecs:   { attrs: [ lib FOSS copyleft ] description: "Free multimedia codecs bundle — ffmpeg + gstreamer good/bad plugins." install: [ { via: parts  when: "debian or redhat or arch or opensuse or alpine"  parts: [ ffmpeg, gst-good, gst-bad ] } ] }
         // Restricted/nonfree codecs — patent-encumbered, opt-in. Fedora needs RPM Fusion; openSUSE's
         // full ugly/libav codecs come from Packman (the name resolves in OSS; Packman isn't modeled).
         gst-ugly:  { attrs: [ lib plugin FOSS copyleft patent ] description: "GStreamer ugly plugins — good code, patent-encumbered codecs." install: [
@@ -1831,9 +1832,6 @@
                        { via: native  when: "debian"  repo-component: universe  name: gstreamer1.0-libav }
                        { via: native  when: "arch or opensuse or alpine"  name: { pacman: gst-libav  zypper: gstreamer-plugins-libav  apk: gst-libav } } ] }
         libavcodec-extra: { attrs: [ lib FOSS copyleft patent ] description: "Extra (nonfree) FFmpeg codecs." install: [ { via: native  when: "debian"  repo-component: universe } ] }
-        codecs-restricted: { attrs: [ lib FOSS patent ] description: "Restricted/patented codecs — opt-in nonfree multimedia support." install: [
-                               { via: parts  when: "debian"  parts: [ gst-ugly, gst-libav, libavcodec-extra ] }
-                               { via: parts  when: "redhat or arch or opensuse or alpine"  parts: [ gst-ugly, gst-libav ] } ] }
 
         // discord / slack: flatpak everywhere (no uniform native path — Fedora has none), and
         // their config is sandboxed under ~/.var/app and holds auth tokens, so no dotfiles.
@@ -2637,9 +2635,9 @@
         perf: { attrs: [ CLI FOSS copyleft ] description: "Linux `perf` — sampling profiler and performance counters." install: [ { via: native  name: { default: perf } }
                            { via: native  when: debian  name: { apt: linux-perf } }
                            { via: native  when: ubuntu  name: { apt: linux-tools-generic } } ] }
-        // A one-shot bundle of the core analysis kit. This one IS a parts aggregator (not a profile)
-        // because it's OS-conditional — the `when:` gates the whole kit out where some parts are absent.
-        analysis: { attrs: [ CLI FOSS copyleft permissive ] description: "Debug & analysis kit — valgrind, cppcheck, clang-tidy, lldb, strace, ltrace." install: [ { via: parts  when: "debian or redhat or arch"  parts: [ valgrind, cppcheck, clang-tidy, lldb, strace, ltrace ] } ] }
+        // The `analysis` debug/analysis kit (valgrind, cppcheck, clang-tidy, lldb, strace, ltrace) is a
+        // user-facing profile (in config.hu), not a parts-component — you curate/pin the tools you want,
+        // and each installs wherever it routes rather than an all-or-nothing per-OS gate.
 
         // --- configuration management ---
         // ansible is native everywhere (robust, CLI on PATH — pipx would hide it, since the
@@ -2766,11 +2764,19 @@
         vulkan-intel:          { attrs: [ driver FOSS permissive ] description: "Mesa Vulkan driver for Intel GPUs (ANV)." install: [ { via: native  when: "arch" } ] }
         vulkan-swrast:         { attrs: [ driver FOSS permissive ] description: "Mesa software (CPU) Vulkan rasterizer (lavapipe)." install: [ { via: native  when: "arch" } ] }
         mesa-vulkan-drivers:   { attrs: [ driver FOSS permissive ] description: "Mesa Vulkan drivers — open-source Vulkan for Intel/AMD." install: [ { via: native  when: "debian or redhat" } ] }
+        // vulkan-runtime = the loader + a GPU-agnostic driver, an ALL-OF set that reaches full green
+        // on every family. On Debian/Fedora `mesa-vulkan-drivers` is ONE package bundling every Mesa
+        // ICD (Intel+AMD+lavapipe), so it's a genuine all-of. On Arch those ICDs are SEPARATE packages
+        // and are ALTERNATIVES (one per GPU) — listing them all here made vulkan-runtime permanently
+        // "partly installed" on every real box (you only ever have your GPU's driver). So Arch pulls
+        // only the loader + `vulkan-swrast` (lavapipe, the software ICD that works on any hardware);
+        // the hardware drivers `vulkan-radeon` / `vulkan-intel` are standalone components you track
+        // for your GPU. (An all-of union can't express "one-of" — that's the tell it was mismodeled.)
         vulkan-runtime: { attrs: [ lib runtime FOSS permissive ] description: "Vulkan runtime libraries."
             install: [
                 { via: parts  when: "debian"  parts: [ libvulkan1, mesa-vulkan-drivers ] }
                 { via: parts  when: "redhat"  parts: [ vulkan-loader, mesa-vulkan-drivers ] }  // fedora + EL
-                { via: parts  when: "arch"    parts: [ vulkan-icd-loader, vulkan-radeon, vulkan-intel, vulkan-swrast ] }
+                { via: parts  when: "arch"    parts: [ vulkan-icd-loader, vulkan-swrast ] }    // + vulkan-radeon/intel per GPU
             ]
         }
 

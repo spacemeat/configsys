@@ -110,60 +110,6 @@
     "name": "alacritty-dotfiles"
    }
   },
-  "analysis": {
-   "dotfiles\\valgrind-dotfiles": {
-    "driver": "dotfiles",
-    "fields": {
-     "config": {
-      "dst": "~/.valgrindrc",
-      "src": "valgrindrc"
-     }
-    },
-    "name": "valgrind-dotfiles"
-   },
-   "pacman\\clang-tidy": {
-    "driver": "pacman",
-    "fields": {
-     "name": "clang"
-    },
-    "name": "clang"
-   },
-   "pacman\\cppcheck": {
-    "driver": "pacman",
-    "fields": {
-     "name": "cppcheck"
-    },
-    "name": "cppcheck"
-   },
-   "pacman\\lldb": {
-    "driver": "pacman",
-    "fields": {
-     "name": "lldb"
-    },
-    "name": "lldb"
-   },
-   "pacman\\ltrace": {
-    "driver": "pacman",
-    "fields": {
-     "name": "ltrace"
-    },
-    "name": "ltrace"
-   },
-   "pacman\\strace": {
-    "driver": "pacman",
-    "fields": {
-     "name": "strace"
-    },
-    "name": "strace"
-   },
-   "pacman\\valgrind": {
-    "driver": "pacman",
-    "fields": {
-     "name": "valgrind"
-    },
-    "name": "valgrind"
-   }
-  },
   "android-file-transfer": {
    "aur\\android-file-transfer": {
     "driver": "aur",
@@ -1565,45 +1511,6 @@
      "unit": "cockpit.socket"
     },
     "name": "cockpit-service"
-   }
-  },
-  "codecs": {
-   "pacman\\ffmpeg": {
-    "driver": "pacman",
-    "fields": {
-     "name": "ffmpeg"
-    },
-    "name": "ffmpeg"
-   },
-   "pacman\\gst-bad": {
-    "driver": "pacman",
-    "fields": {
-     "name": "gst-plugins-bad"
-    },
-    "name": "gst-plugins-bad"
-   },
-   "pacman\\gst-good": {
-    "driver": "pacman",
-    "fields": {
-     "name": "gst-plugins-good"
-    },
-    "name": "gst-plugins-good"
-   }
-  },
-  "codecs-restricted": {
-   "pacman\\gst-libav": {
-    "driver": "pacman",
-    "fields": {
-     "name": "gst-libav"
-    },
-    "name": "gst-libav"
-   },
-   "pacman\\gst-ugly": {
-    "driver": "pacman",
-    "fields": {
-     "name": "gst-plugins-ugly"
-    },
-    "name": "gst-plugins-ugly"
    }
   },
   "codex": {
@@ -12473,20 +12380,6 @@
     },
     "name": "vulkan-icd-loader"
    },
-   "pacman\\vulkan-intel": {
-    "driver": "pacman",
-    "fields": {
-     "name": "vulkan-intel"
-    },
-    "name": "vulkan-intel"
-   },
-   "pacman\\vulkan-radeon": {
-    "driver": "pacman",
-    "fields": {
-     "name": "vulkan-radeon"
-    },
-    "name": "vulkan-radeon"
-   },
    "pacman\\vulkan-swrast": {
     "driver": "pacman",
     "fields": {
@@ -12548,20 +12441,6 @@
      "name": "vulkan-icd-loader"
     },
     "name": "vulkan-icd-loader"
-   },
-   "pacman\\vulkan-intel": {
-    "driver": "pacman",
-    "fields": {
-     "name": "vulkan-intel"
-    },
-    "name": "vulkan-intel"
-   },
-   "pacman\\vulkan-radeon": {
-    "driver": "pacman",
-    "fields": {
-     "name": "vulkan-radeon"
-    },
-    "name": "vulkan-radeon"
    },
    "pacman\\vulkan-swrast": {
     "driver": "pacman",
@@ -13794,60 +13673,6 @@
      }
     },
     "name": "alacritty-dotfiles"
-   }
-  },
-  "analysis": {
-   "apt\\clang-tidy": {
-    "driver": "apt",
-    "fields": {
-     "name": "clang-tidy"
-    },
-    "name": "clang-tidy"
-   },
-   "apt\\cppcheck": {
-    "driver": "apt",
-    "fields": {
-     "name": "cppcheck"
-    },
-    "name": "cppcheck"
-   },
-   "apt\\lldb": {
-    "driver": "apt",
-    "fields": {
-     "name": "lldb"
-    },
-    "name": "lldb"
-   },
-   "apt\\ltrace": {
-    "driver": "apt",
-    "fields": {
-     "name": "ltrace"
-    },
-    "name": "ltrace"
-   },
-   "apt\\strace": {
-    "driver": "apt",
-    "fields": {
-     "name": "strace"
-    },
-    "name": "strace"
-   },
-   "apt\\valgrind": {
-    "driver": "apt",
-    "fields": {
-     "name": "valgrind"
-    },
-    "name": "valgrind"
-   },
-   "dotfiles\\valgrind-dotfiles": {
-    "driver": "dotfiles",
-    "fields": {
-     "config": {
-      "dst": "~/.valgrindrc",
-      "src": "valgrindrc"
-     }
-    },
-    "name": "valgrind-dotfiles"
    }
   },
   "android-file-transfer": {
@@ -15327,55 +15152,6 @@
      "unit": "cockpit.socket"
     },
     "name": "cockpit-service"
-   }
-  },
-  "codecs": {
-   "apt\\ffmpeg": {
-    "driver": "apt",
-    "fields": {
-     "name": "ffmpeg"
-    },
-    "name": "ffmpeg"
-   },
-   "apt\\gst-bad": {
-    "driver": "apt",
-    "fields": {
-     "name": "gstreamer1.0-plugins-bad"
-    },
-    "name": "gstreamer1.0-plugins-bad"
-   },
-   "apt\\gst-good": {
-    "driver": "apt",
-    "fields": {
-     "name": "gstreamer1.0-plugins-good"
-    },
-    "name": "gstreamer1.0-plugins-good"
-   }
-  },
-  "codecs-restricted": {
-   "apt\\gst-libav": {
-    "driver": "apt",
-    "fields": {
-     "name": "gstreamer1.0-libav",
-     "repo-component": "universe"
-    },
-    "name": "gstreamer1.0-libav"
-   },
-   "apt\\gst-ugly": {
-    "driver": "apt",
-    "fields": {
-     "name": "gstreamer1.0-plugins-ugly",
-     "repo-component": "multiverse"
-    },
-    "name": "gstreamer1.0-plugins-ugly"
-   },
-   "apt\\libavcodec-extra": {
-    "driver": "apt",
-    "fields": {
-     "name": "libavcodec-extra",
-     "repo-component": "universe"
-    },
-    "name": "libavcodec-extra"
    }
   },
   "codex": {
@@ -27592,60 +27368,6 @@
     "name": "alacritty-dotfiles"
    }
   },
-  "analysis": {
-   "apt\\clang-tidy": {
-    "driver": "apt",
-    "fields": {
-     "name": "clang-tidy"
-    },
-    "name": "clang-tidy"
-   },
-   "apt\\cppcheck": {
-    "driver": "apt",
-    "fields": {
-     "name": "cppcheck"
-    },
-    "name": "cppcheck"
-   },
-   "apt\\lldb": {
-    "driver": "apt",
-    "fields": {
-     "name": "lldb"
-    },
-    "name": "lldb"
-   },
-   "apt\\ltrace": {
-    "driver": "apt",
-    "fields": {
-     "name": "ltrace"
-    },
-    "name": "ltrace"
-   },
-   "apt\\strace": {
-    "driver": "apt",
-    "fields": {
-     "name": "strace"
-    },
-    "name": "strace"
-   },
-   "apt\\valgrind": {
-    "driver": "apt",
-    "fields": {
-     "name": "valgrind"
-    },
-    "name": "valgrind"
-   },
-   "dotfiles\\valgrind-dotfiles": {
-    "driver": "dotfiles",
-    "fields": {
-     "config": {
-      "dst": "~/.valgrindrc",
-      "src": "valgrindrc"
-     }
-    },
-    "name": "valgrind-dotfiles"
-   }
-  },
   "android-file-transfer": {
    "apt\\android-file-transfer": {
     "driver": "apt",
@@ -29106,55 +28828,6 @@
      "unit": "cockpit.socket"
     },
     "name": "cockpit-service"
-   }
-  },
-  "codecs": {
-   "apt\\ffmpeg": {
-    "driver": "apt",
-    "fields": {
-     "name": "ffmpeg"
-    },
-    "name": "ffmpeg"
-   },
-   "apt\\gst-bad": {
-    "driver": "apt",
-    "fields": {
-     "name": "gstreamer1.0-plugins-bad"
-    },
-    "name": "gstreamer1.0-plugins-bad"
-   },
-   "apt\\gst-good": {
-    "driver": "apt",
-    "fields": {
-     "name": "gstreamer1.0-plugins-good"
-    },
-    "name": "gstreamer1.0-plugins-good"
-   }
-  },
-  "codecs-restricted": {
-   "apt\\gst-libav": {
-    "driver": "apt",
-    "fields": {
-     "name": "gstreamer1.0-libav",
-     "repo-component": "universe"
-    },
-    "name": "gstreamer1.0-libav"
-   },
-   "apt\\gst-ugly": {
-    "driver": "apt",
-    "fields": {
-     "name": "gstreamer1.0-plugins-ugly",
-     "repo-component": "multiverse"
-    },
-    "name": "gstreamer1.0-plugins-ugly"
-   },
-   "apt\\libavcodec-extra": {
-    "driver": "apt",
-    "fields": {
-     "name": "libavcodec-extra",
-     "repo-component": "universe"
-    },
-    "name": "libavcodec-extra"
    }
   },
   "codex": {
@@ -41099,60 +40772,6 @@
     "name": "alacritty-dotfiles"
    }
   },
-  "analysis": {
-   "apt\\clang-tidy": {
-    "driver": "apt",
-    "fields": {
-     "name": "clang-tidy"
-    },
-    "name": "clang-tidy"
-   },
-   "apt\\cppcheck": {
-    "driver": "apt",
-    "fields": {
-     "name": "cppcheck"
-    },
-    "name": "cppcheck"
-   },
-   "apt\\lldb": {
-    "driver": "apt",
-    "fields": {
-     "name": "lldb"
-    },
-    "name": "lldb"
-   },
-   "apt\\ltrace": {
-    "driver": "apt",
-    "fields": {
-     "name": "ltrace"
-    },
-    "name": "ltrace"
-   },
-   "apt\\strace": {
-    "driver": "apt",
-    "fields": {
-     "name": "strace"
-    },
-    "name": "strace"
-   },
-   "apt\\valgrind": {
-    "driver": "apt",
-    "fields": {
-     "name": "valgrind"
-    },
-    "name": "valgrind"
-   },
-   "dotfiles\\valgrind-dotfiles": {
-    "driver": "dotfiles",
-    "fields": {
-     "config": {
-      "dst": "~/.valgrindrc",
-      "src": "valgrindrc"
-     }
-    },
-    "name": "valgrind-dotfiles"
-   }
-  },
   "android-file-transfer": {
    "apt\\android-file-transfer": {
     "driver": "apt",
@@ -42621,55 +42240,6 @@
      "unit": "cockpit.socket"
     },
     "name": "cockpit-service"
-   }
-  },
-  "codecs": {
-   "apt\\ffmpeg": {
-    "driver": "apt",
-    "fields": {
-     "name": "ffmpeg"
-    },
-    "name": "ffmpeg"
-   },
-   "apt\\gst-bad": {
-    "driver": "apt",
-    "fields": {
-     "name": "gstreamer1.0-plugins-bad"
-    },
-    "name": "gstreamer1.0-plugins-bad"
-   },
-   "apt\\gst-good": {
-    "driver": "apt",
-    "fields": {
-     "name": "gstreamer1.0-plugins-good"
-    },
-    "name": "gstreamer1.0-plugins-good"
-   }
-  },
-  "codecs-restricted": {
-   "apt\\gst-libav": {
-    "driver": "apt",
-    "fields": {
-     "name": "gstreamer1.0-libav",
-     "repo-component": "universe"
-    },
-    "name": "gstreamer1.0-libav"
-   },
-   "apt\\gst-ugly": {
-    "driver": "apt",
-    "fields": {
-     "name": "gstreamer1.0-plugins-ugly",
-     "repo-component": "multiverse"
-    },
-    "name": "gstreamer1.0-plugins-ugly"
-   },
-   "apt\\libavcodec-extra": {
-    "driver": "apt",
-    "fields": {
-     "name": "libavcodec-extra",
-     "repo-component": "universe"
-    },
-    "name": "libavcodec-extra"
    }
   },
   "codex": {
@@ -54704,60 +54274,6 @@
     "name": "alacritty-dotfiles"
    }
   },
-  "analysis": {
-   "dnf\\clang-tidy": {
-    "driver": "dnf",
-    "fields": {
-     "name": "clang-tools-extra"
-    },
-    "name": "clang-tools-extra"
-   },
-   "dnf\\cppcheck": {
-    "driver": "dnf",
-    "fields": {
-     "name": "cppcheck"
-    },
-    "name": "cppcheck"
-   },
-   "dnf\\lldb": {
-    "driver": "dnf",
-    "fields": {
-     "name": "lldb"
-    },
-    "name": "lldb"
-   },
-   "dnf\\ltrace": {
-    "driver": "dnf",
-    "fields": {
-     "name": "ltrace"
-    },
-    "name": "ltrace"
-   },
-   "dnf\\strace": {
-    "driver": "dnf",
-    "fields": {
-     "name": "strace"
-    },
-    "name": "strace"
-   },
-   "dnf\\valgrind": {
-    "driver": "dnf",
-    "fields": {
-     "name": "valgrind"
-    },
-    "name": "valgrind"
-   },
-   "dotfiles\\valgrind-dotfiles": {
-    "driver": "dotfiles",
-    "fields": {
-     "config": {
-      "dst": "~/.valgrindrc",
-      "src": "valgrindrc"
-     }
-    },
-    "name": "valgrind-dotfiles"
-   }
-  },
   "android-file-transfer": {
    "dnf\\android-file-transfer": {
     "driver": "dnf",
@@ -56125,67 +55641,6 @@
      "unit": "cockpit.socket"
     },
     "name": "cockpit-service"
-   }
-  },
-  "codecs": {
-   "dnf\\ffmpeg": {
-    "driver": "dnf",
-    "fields": {
-     "name": "ffmpeg"
-    },
-    "name": "ffmpeg"
-   },
-   "dnf\\gst-bad": {
-    "driver": "dnf",
-    "fields": {
-     "name": "gstreamer1-plugins-bad-free"
-    },
-    "name": "gstreamer1-plugins-bad-free"
-   },
-   "dnf\\gst-good": {
-    "driver": "dnf",
-    "fields": {
-     "name": "gstreamer1-plugins-good"
-    },
-    "name": "gstreamer1-plugins-good"
-   },
-   "dnf\\rpmfusion-free": {
-    "driver": "dnf",
-    "fields": {
-     "name": "rpmfusion-free-release",
-     "pubkey-url": "https://rpmfusion.org/keys?action=AttachFile&do=get&target=RPM-GPG-KEY-rpmfusion-free-fedora-$releasever",
-     "repo-id": "rpmfusion-free",
-     "repo-name": "RPM Fusion Free",
-     "repo-url": "https://download1.rpmfusion.org/free/fedora/releases/$releasever/Everything/$basearch/os/"
-    },
-    "name": "rpmfusion-free-release"
-   }
-  },
-  "codecs-restricted": {
-   "dnf\\gst-libav": {
-    "driver": "dnf",
-    "fields": {
-     "name": "gstreamer1-plugin-libav"
-    },
-    "name": "gstreamer1-plugin-libav"
-   },
-   "dnf\\gst-ugly": {
-    "driver": "dnf",
-    "fields": {
-     "name": "gstreamer1-plugins-ugly"
-    },
-    "name": "gstreamer1-plugins-ugly"
-   },
-   "dnf\\rpmfusion-free": {
-    "driver": "dnf",
-    "fields": {
-     "name": "rpmfusion-free-release",
-     "pubkey-url": "https://rpmfusion.org/keys?action=AttachFile&do=get&target=RPM-GPG-KEY-rpmfusion-free-fedora-$releasever",
-     "repo-id": "rpmfusion-free",
-     "repo-name": "RPM Fusion Free",
-     "repo-url": "https://download1.rpmfusion.org/free/fedora/releases/$releasever/Everything/$basearch/os/"
-    },
-    "name": "rpmfusion-free-release"
    }
   },
   "codex": {
@@ -67858,60 +67313,6 @@
     "name": "alacritty-dotfiles"
    }
   },
-  "analysis": {
-   "dnf\\clang-tidy": {
-    "driver": "dnf",
-    "fields": {
-     "name": "clang-tools-extra"
-    },
-    "name": "clang-tools-extra"
-   },
-   "dnf\\cppcheck": {
-    "driver": "dnf",
-    "fields": {
-     "name": "cppcheck"
-    },
-    "name": "cppcheck"
-   },
-   "dnf\\lldb": {
-    "driver": "dnf",
-    "fields": {
-     "name": "lldb"
-    },
-    "name": "lldb"
-   },
-   "dnf\\ltrace": {
-    "driver": "dnf",
-    "fields": {
-     "name": "ltrace"
-    },
-    "name": "ltrace"
-   },
-   "dnf\\strace": {
-    "driver": "dnf",
-    "fields": {
-     "name": "strace"
-    },
-    "name": "strace"
-   },
-   "dnf\\valgrind": {
-    "driver": "dnf",
-    "fields": {
-     "name": "valgrind"
-    },
-    "name": "valgrind"
-   },
-   "dotfiles\\valgrind-dotfiles": {
-    "driver": "dotfiles",
-    "fields": {
-     "config": {
-      "dst": "~/.valgrindrc",
-      "src": "valgrindrc"
-     }
-    },
-    "name": "valgrind-dotfiles"
-   }
-  },
   "android-file-transfer": {
    "dnf\\android-file-transfer": {
     "driver": "dnf",
@@ -69305,67 +68706,6 @@
      "unit": "cockpit.socket"
     },
     "name": "cockpit-service"
-   }
-  },
-  "codecs": {
-   "dnf\\ffmpeg": {
-    "driver": "dnf",
-    "fields": {
-     "name": "ffmpeg"
-    },
-    "name": "ffmpeg"
-   },
-   "dnf\\gst-bad": {
-    "driver": "dnf",
-    "fields": {
-     "name": "gstreamer1-plugins-bad-free"
-    },
-    "name": "gstreamer1-plugins-bad-free"
-   },
-   "dnf\\gst-good": {
-    "driver": "dnf",
-    "fields": {
-     "name": "gstreamer1-plugins-good"
-    },
-    "name": "gstreamer1-plugins-good"
-   },
-   "dnf\\rpmfusion-free": {
-    "driver": "dnf",
-    "fields": {
-     "name": "rpmfusion-free-release",
-     "pubkey-url": "https://rpmfusion.org/keys?action=AttachFile&do=get&target=RPM-GPG-KEY-rpmfusion-free-fedora-$releasever",
-     "repo-id": "rpmfusion-free",
-     "repo-name": "RPM Fusion Free",
-     "repo-url": "https://download1.rpmfusion.org/free/fedora/releases/$releasever/Everything/$basearch/os/"
-    },
-    "name": "rpmfusion-free-release"
-   }
-  },
-  "codecs-restricted": {
-   "dnf\\gst-libav": {
-    "driver": "dnf",
-    "fields": {
-     "name": "gstreamer1-plugin-libav"
-    },
-    "name": "gstreamer1-plugin-libav"
-   },
-   "dnf\\gst-ugly": {
-    "driver": "dnf",
-    "fields": {
-     "name": "gstreamer1-plugins-ugly"
-    },
-    "name": "gstreamer1-plugins-ugly"
-   },
-   "dnf\\rpmfusion-free": {
-    "driver": "dnf",
-    "fields": {
-     "name": "rpmfusion-free-release",
-     "pubkey-url": "https://rpmfusion.org/keys?action=AttachFile&do=get&target=RPM-GPG-KEY-rpmfusion-free-fedora-$releasever",
-     "repo-id": "rpmfusion-free",
-     "repo-name": "RPM Fusion Free",
-     "repo-url": "https://download1.rpmfusion.org/free/fedora/releases/$releasever/Everything/$basearch/os/"
-    },
-    "name": "rpmfusion-free-release"
    }
   },
   "codex": {
@@ -91395,60 +90735,6 @@
     "name": "alacritty-dotfiles"
    }
   },
-  "analysis": {
-   "apt\\clang-tidy": {
-    "driver": "apt",
-    "fields": {
-     "name": "clang-tidy"
-    },
-    "name": "clang-tidy"
-   },
-   "apt\\cppcheck": {
-    "driver": "apt",
-    "fields": {
-     "name": "cppcheck"
-    },
-    "name": "cppcheck"
-   },
-   "apt\\lldb": {
-    "driver": "apt",
-    "fields": {
-     "name": "lldb"
-    },
-    "name": "lldb"
-   },
-   "apt\\ltrace": {
-    "driver": "apt",
-    "fields": {
-     "name": "ltrace"
-    },
-    "name": "ltrace"
-   },
-   "apt\\strace": {
-    "driver": "apt",
-    "fields": {
-     "name": "strace"
-    },
-    "name": "strace"
-   },
-   "apt\\valgrind": {
-    "driver": "apt",
-    "fields": {
-     "name": "valgrind"
-    },
-    "name": "valgrind"
-   },
-   "dotfiles\\valgrind-dotfiles": {
-    "driver": "dotfiles",
-    "fields": {
-     "config": {
-      "dst": "~/.valgrindrc",
-      "src": "valgrindrc"
-     }
-    },
-    "name": "valgrind-dotfiles"
-   }
-  },
   "android-file-transfer": {
    "apt\\android-file-transfer": {
     "driver": "apt",
@@ -92934,55 +92220,6 @@
      "unit": "cockpit.socket"
     },
     "name": "cockpit-service"
-   }
-  },
-  "codecs": {
-   "apt\\ffmpeg": {
-    "driver": "apt",
-    "fields": {
-     "name": "ffmpeg"
-    },
-    "name": "ffmpeg"
-   },
-   "apt\\gst-bad": {
-    "driver": "apt",
-    "fields": {
-     "name": "gstreamer1.0-plugins-bad"
-    },
-    "name": "gstreamer1.0-plugins-bad"
-   },
-   "apt\\gst-good": {
-    "driver": "apt",
-    "fields": {
-     "name": "gstreamer1.0-plugins-good"
-    },
-    "name": "gstreamer1.0-plugins-good"
-   }
-  },
-  "codecs-restricted": {
-   "apt\\gst-libav": {
-    "driver": "apt",
-    "fields": {
-     "name": "gstreamer1.0-libav",
-     "repo-component": "universe"
-    },
-    "name": "gstreamer1.0-libav"
-   },
-   "apt\\gst-ugly": {
-    "driver": "apt",
-    "fields": {
-     "name": "gstreamer1.0-plugins-ugly",
-     "repo-component": "multiverse"
-    },
-    "name": "gstreamer1.0-plugins-ugly"
-   },
-   "apt\\libavcodec-extra": {
-    "driver": "apt",
-    "fields": {
-     "name": "libavcodec-extra",
-     "repo-component": "universe"
-    },
-    "name": "libavcodec-extra"
    }
   },
   "codex": {
@@ -105263,60 +104500,6 @@
     "name": "alacritty-dotfiles"
    }
   },
-  "analysis": {
-   "dnf\\clang-tidy": {
-    "driver": "dnf",
-    "fields": {
-     "name": "clang-tools-extra"
-    },
-    "name": "clang-tools-extra"
-   },
-   "dnf\\cppcheck": {
-    "driver": "dnf",
-    "fields": {
-     "name": "cppcheck"
-    },
-    "name": "cppcheck"
-   },
-   "dnf\\lldb": {
-    "driver": "dnf",
-    "fields": {
-     "name": "lldb"
-    },
-    "name": "lldb"
-   },
-   "dnf\\ltrace": {
-    "driver": "dnf",
-    "fields": {
-     "name": "ltrace"
-    },
-    "name": "ltrace"
-   },
-   "dnf\\strace": {
-    "driver": "dnf",
-    "fields": {
-     "name": "strace"
-    },
-    "name": "strace"
-   },
-   "dnf\\valgrind": {
-    "driver": "dnf",
-    "fields": {
-     "name": "valgrind"
-    },
-    "name": "valgrind"
-   },
-   "dotfiles\\valgrind-dotfiles": {
-    "driver": "dotfiles",
-    "fields": {
-     "config": {
-      "dst": "~/.valgrindrc",
-      "src": "valgrindrc"
-     }
-    },
-    "name": "valgrind-dotfiles"
-   }
-  },
   "android-studio": {
    "dnf\\curl": {
     "driver": "dnf",
@@ -106782,83 +105965,6 @@
      "unit": "cockpit.socket"
     },
     "name": "cockpit-service"
-   }
-  },
-  "codecs": {
-   "dnf\\epel-release": {
-    "driver": "dnf",
-    "fields": {
-     "name": "epel-release"
-    },
-    "name": "epel-release"
-   },
-   "dnf\\ffmpeg": {
-    "driver": "dnf",
-    "fields": {
-     "name": "ffmpeg"
-    },
-    "name": "ffmpeg"
-   },
-   "dnf\\gst-bad": {
-    "driver": "dnf",
-    "fields": {
-     "name": "gstreamer1-plugins-bad-free"
-    },
-    "name": "gstreamer1-plugins-bad-free"
-   },
-   "dnf\\gst-good": {
-    "driver": "dnf",
-    "fields": {
-     "name": "gstreamer1-plugins-good"
-    },
-    "name": "gstreamer1-plugins-good"
-   },
-   "dnf\\rpmfusion-free": {
-    "driver": "dnf",
-    "fields": {
-     "enable-repo": "crb",
-     "name": "rpmfusion-free-release",
-     "pubkey-url": "https://rpmfusion.org/keys?action=AttachFile&do=get&target=RPM-GPG-KEY-rpmfusion-free-el-$releasever",
-     "repo-id": "rpmfusion-free",
-     "repo-name": "RPM Fusion for EL - Free",
-     "repo-url": "https://download1.rpmfusion.org/free/el/updates/$releasever/$basearch/"
-    },
-    "name": "rpmfusion-free-release"
-   }
-  },
-  "codecs-restricted": {
-   "dnf\\epel-release": {
-    "driver": "dnf",
-    "fields": {
-     "name": "epel-release"
-    },
-    "name": "epel-release"
-   },
-   "dnf\\gst-libav": {
-    "driver": "dnf",
-    "fields": {
-     "name": "gstreamer1-plugin-libav"
-    },
-    "name": "gstreamer1-plugin-libav"
-   },
-   "dnf\\gst-ugly": {
-    "driver": "dnf",
-    "fields": {
-     "name": "gstreamer1-plugins-ugly"
-    },
-    "name": "gstreamer1-plugins-ugly"
-   },
-   "dnf\\rpmfusion-free": {
-    "driver": "dnf",
-    "fields": {
-     "enable-repo": "crb",
-     "name": "rpmfusion-free-release",
-     "pubkey-url": "https://rpmfusion.org/keys?action=AttachFile&do=get&target=RPM-GPG-KEY-rpmfusion-free-el-$releasever",
-     "repo-id": "rpmfusion-free",
-     "repo-name": "RPM Fusion for EL - Free",
-     "repo-url": "https://download1.rpmfusion.org/free/el/updates/$releasever/$basearch/"
-    },
-    "name": "rpmfusion-free-release"
    }
   },
   "codex": {
@@ -119166,60 +118272,6 @@
     "name": "alacritty-dotfiles"
    }
   },
-  "analysis": {
-   "apt\\clang-tidy": {
-    "driver": "apt",
-    "fields": {
-     "name": "clang-tidy"
-    },
-    "name": "clang-tidy"
-   },
-   "apt\\cppcheck": {
-    "driver": "apt",
-    "fields": {
-     "name": "cppcheck"
-    },
-    "name": "cppcheck"
-   },
-   "apt\\lldb": {
-    "driver": "apt",
-    "fields": {
-     "name": "lldb"
-    },
-    "name": "lldb"
-   },
-   "apt\\ltrace": {
-    "driver": "apt",
-    "fields": {
-     "name": "ltrace"
-    },
-    "name": "ltrace"
-   },
-   "apt\\strace": {
-    "driver": "apt",
-    "fields": {
-     "name": "strace"
-    },
-    "name": "strace"
-   },
-   "apt\\valgrind": {
-    "driver": "apt",
-    "fields": {
-     "name": "valgrind"
-    },
-    "name": "valgrind"
-   },
-   "dotfiles\\valgrind-dotfiles": {
-    "driver": "dotfiles",
-    "fields": {
-     "config": {
-      "dst": "~/.valgrindrc",
-      "src": "valgrindrc"
-     }
-    },
-    "name": "valgrind-dotfiles"
-   }
-  },
   "android-file-transfer": {
    "apt\\android-file-transfer": {
     "driver": "apt",
@@ -120705,55 +119757,6 @@
      "unit": "cockpit.socket"
     },
     "name": "cockpit-service"
-   }
-  },
-  "codecs": {
-   "apt\\ffmpeg": {
-    "driver": "apt",
-    "fields": {
-     "name": "ffmpeg"
-    },
-    "name": "ffmpeg"
-   },
-   "apt\\gst-bad": {
-    "driver": "apt",
-    "fields": {
-     "name": "gstreamer1.0-plugins-bad"
-    },
-    "name": "gstreamer1.0-plugins-bad"
-   },
-   "apt\\gst-good": {
-    "driver": "apt",
-    "fields": {
-     "name": "gstreamer1.0-plugins-good"
-    },
-    "name": "gstreamer1.0-plugins-good"
-   }
-  },
-  "codecs-restricted": {
-   "apt\\gst-libav": {
-    "driver": "apt",
-    "fields": {
-     "name": "gstreamer1.0-libav",
-     "repo-component": "universe"
-    },
-    "name": "gstreamer1.0-libav"
-   },
-   "apt\\gst-ugly": {
-    "driver": "apt",
-    "fields": {
-     "name": "gstreamer1.0-plugins-ugly",
-     "repo-component": "multiverse"
-    },
-    "name": "gstreamer1.0-plugins-ugly"
-   },
-   "apt\\libavcodec-extra": {
-    "driver": "apt",
-    "fields": {
-     "name": "libavcodec-extra",
-     "repo-component": "universe"
-    },
-    "name": "libavcodec-extra"
    }
   },
   "codex": {
@@ -132993,60 +131996,6 @@
     "name": "alacritty-dotfiles"
    }
   },
-  "analysis": {
-   "apt\\clang-tidy": {
-    "driver": "apt",
-    "fields": {
-     "name": "clang-tidy"
-    },
-    "name": "clang-tidy"
-   },
-   "apt\\cppcheck": {
-    "driver": "apt",
-    "fields": {
-     "name": "cppcheck"
-    },
-    "name": "cppcheck"
-   },
-   "apt\\lldb": {
-    "driver": "apt",
-    "fields": {
-     "name": "lldb"
-    },
-    "name": "lldb"
-   },
-   "apt\\ltrace": {
-    "driver": "apt",
-    "fields": {
-     "name": "ltrace"
-    },
-    "name": "ltrace"
-   },
-   "apt\\strace": {
-    "driver": "apt",
-    "fields": {
-     "name": "strace"
-    },
-    "name": "strace"
-   },
-   "apt\\valgrind": {
-    "driver": "apt",
-    "fields": {
-     "name": "valgrind"
-    },
-    "name": "valgrind"
-   },
-   "dotfiles\\valgrind-dotfiles": {
-    "driver": "dotfiles",
-    "fields": {
-     "config": {
-      "dst": "~/.valgrindrc",
-      "src": "valgrindrc"
-     }
-    },
-    "name": "valgrind-dotfiles"
-   }
-  },
   "android-file-transfer": {
    "apt\\android-file-transfer": {
     "driver": "apt",
@@ -134515,55 +133464,6 @@
      "unit": "cockpit.socket"
     },
     "name": "cockpit-service"
-   }
-  },
-  "codecs": {
-   "apt\\ffmpeg": {
-    "driver": "apt",
-    "fields": {
-     "name": "ffmpeg"
-    },
-    "name": "ffmpeg"
-   },
-   "apt\\gst-bad": {
-    "driver": "apt",
-    "fields": {
-     "name": "gstreamer1.0-plugins-bad"
-    },
-    "name": "gstreamer1.0-plugins-bad"
-   },
-   "apt\\gst-good": {
-    "driver": "apt",
-    "fields": {
-     "name": "gstreamer1.0-plugins-good"
-    },
-    "name": "gstreamer1.0-plugins-good"
-   }
-  },
-  "codecs-restricted": {
-   "apt\\gst-libav": {
-    "driver": "apt",
-    "fields": {
-     "name": "gstreamer1.0-libav",
-     "repo-component": "universe"
-    },
-    "name": "gstreamer1.0-libav"
-   },
-   "apt\\gst-ugly": {
-    "driver": "apt",
-    "fields": {
-     "name": "gstreamer1.0-plugins-ugly",
-     "repo-component": "multiverse"
-    },
-    "name": "gstreamer1.0-plugins-ugly"
-   },
-   "apt\\libavcodec-extra": {
-    "driver": "apt",
-    "fields": {
-     "name": "libavcodec-extra",
-     "repo-component": "universe"
-    },
-    "name": "libavcodec-extra"
    }
   },
   "codex": {
