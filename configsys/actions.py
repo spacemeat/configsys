@@ -26,10 +26,6 @@ def edit_target(ctx):
     return str(ctx.paths.user_config_file), 'top config'
 
 
-def _dir_label(ctx, f):
-    return 'top config' if str(f) == str(ctx.paths.user_config_file) else Path(f).parent.name
-
-
 def _nature_target(ctx, key, lives_in):
     '''(file, label) where an edit to `key` should land — the ONE policy scalars, picks, and
     dispositions all share, driven by SETTING_NATURE (declared config, not incidental file content).
@@ -47,52 +43,6 @@ def _nature_target(ctx, key, lives_in):
     if SETTING_NATURE.get(key) == 'uniform' and pfile:
         return pfile, pname
     return local, 'top config'
-
-
-def _profile_target(ctx, profile):
-    '''Where a membership edit is EFFECTIVE **and writable**: the profile's highest-precedence
-    definition layer when that layer is one we may edit — this machine's top config or the primary
-    plugin (editing a lower layer would be shadowed by that definition) — else the portable default
-    (primary-if-set, then top config). NEVER the repo baseline or a data plugin: when a profile is
-    defined only in a non-editable lower layer (e.g. the shipped `dev` in the repo's config.hu), the
-    term-algebra writer AMENDS it from the editable layer via `+self`, so the template stays
-    untouched. Mirrors remove_profile's `editable` set.'''
-    src = ctx.config.profile_source(profile)
-    editable = {str(ctx.paths.user_config_file), str(edit_target(ctx)[0])}
-    if src is not None and str(src) in editable:
-        return str(src), _dir_label(ctx, src)
-    return edit_target(ctx)
-
-
-def _configs_target(ctx):
-    '''Where a `configs:` edit is EFFECTIVE: the top config if it already has a `configs:` (it
-    shadows lower layers whole-list), else the portable default.'''
-    if plugins.read_configs(ctx.paths.user_config_file):
-        return str(ctx.paths.user_config_file), 'top config'
-    return edit_target(ctx)
-
-
-def _membership_effect_ok(cfg, profile, comp, action):
-    '''Did the write achieve `action`'s intended post-state? `add`/`remove` toggle membership.'''
-    mem = comp in cfg._members_safe(profile)
-    return {'add': mem, 'remove': not mem}[action]
-
-
-def set_profile_membership(ctx, profile, comp, action, *, target=None):
-    '''Write the term-algebra edit so `comp` becomes a member (`action='add'`) or a non-member
-    (`'remove'`) of `profile`, via Config.plan_membership_edit, to `target` or the effective target.
-    Returns (changed, label); a no-op returns (False, label); a shadowed target -> (False, warning).'''
-    tfile, label = (target, target) if target else _profile_target(ctx, profile)
-    new_terms = ctx.config.plan_membership_edit(profile, comp, action, tfile)
-    if new_terms is None:
-        return False, label
-    profs = plugins.read_profiles(tfile)
-    profs[profile] = new_terms
-    plugins.set_profiles(tfile, profs)
-    ctx.invalidate()
-    if not _membership_effect_ok(ctx.config, profile, comp, action):    # shadowed -> no effect
-        return False, f'{label}: "{profile}" is overridden by a higher-precedence layer (no effect)'
-    return True, label
 
 
 UNINSTALL_PROFILE = '!uninstall'
@@ -115,15 +65,16 @@ def stage_uninstall(ctx, comp, *, on=True):
     return True, Path(tfile).name
 
 
-def stage_adopt(ctx, comp):
-    '''Park `comp` into the configured `orphans-adopt-target` staging profile (the TUI `s` action) —
-    a non-active review profile the user later triages into real base profiles. Returns (changed,
-    label). Written machine-local (top config), like `!uninstall`/pins: orphan triage is per-machine
-    state, so it must NOT land in the primary plugin (which travels to every machine) — and a
-    same-layer edit stays a plain list edit, so removing an entry later is a clean delete, never a
-    `+self ~name` amend leaving residual exclusions.'''
-    tfile = str(ctx.paths.user_config_file)
-    return set_profile_membership(ctx, ctx.config.orphans_adopt_target(), comp, 'add', target=tfile)
+def stage_adopt(ctx, comp, machines=None):
+    '''Adopt an orphan = start managing it: TRACK it (add to `picks:`) on `machines` (default: this
+    box's current machine). The matrix equivalent of the old "park it in a staging profile" — an
+    installed-but-untracked thing becomes a pick, and thus part of the install set. Tracking marks it
+    seen. Returns (changed_count, label).'''
+    machines = machines or [ctx.config.current_machine()]
+    n, label = set_included(ctx, comp, machines, True)
+    if n:
+        mark_all_seen(ctx, [comp])
+    return n, label
 
 
 def set_disposition(ctx, comp, state):
@@ -264,126 +215,6 @@ def clear_uninstall(ctx):
     return n
 
 
-def add_profile(ctx, name):
-    '''Create a new, empty profile in the portable edit target (primary-if-set, else top config).
-    Returns (changed, label); a bad/duplicate name returns (False, reason).'''
-    name = (name or '').strip()
-    if not name:
-        return False, 'a profile name is required'
-    if name == 'all':
-        return False, '"all" is reserved'
-    if name.startswith('!'):
-        return False, '"!"-prefixed profile names are reserved (system profiles like !uninstall)'
-    # A same-name copy of a SYSTEM (repo/plugin) profile is allowed — it becomes an editable user
-    # profile that shadows the browse original (the disposition model's clone). Refuse only when an
-    # EDITABLE profile of that name already exists (you can't have two of your own).
-    src = ctx.config.profile_source(name)
-    editable = {str(ctx.paths.user_config_file), str(edit_target(ctx)[0])}
-    if src is not None and str(src) in editable:
-        return False, f'"{name}" already exists'
-    tfile, label = edit_target(ctx)
-    profs = plugins.read_profiles(tfile)
-    profs[name] = []                                 # a fresh profile with no members yet
-    plugins.set_profiles(tfile, profs)
-    ctx.invalidate()
-    return True, label
-
-
-def remove_profile(ctx, name):
-    '''Delete a profile from the editable layer that defines it (top config or the primary plugin),
-    first dropping it from the active `configs:` set. Refuses a profile defined only in a
-    non-editable layer (the repo or a data plugin). Returns (changed, label/reason).'''
-    src = ctx.config.profile_source(name)
-    if src is None:
-        return False, f'"{name}" is not defined'
-    editable = {str(ctx.paths.user_config_file), str(edit_target(ctx)[0])}
-    if str(src) not in editable:
-        return False, f'cannot remove "{name}" (defined in {_dir_label(ctx, src)}, not editable here)'
-    if name in set(ctx.config.active_profiles):      # drop the active reference first
-        set_profile_active(ctx, name, False)
-    profs = plugins.read_profiles(str(src))
-    profs.pop(name, None)
-    plugins.set_profiles(str(src), profs)
-    ctx.invalidate()
-    label = _dir_label(ctx, src)
-    if name in ctx.config.profile_names():           # a lower layer still defines it
-        return True, f'removed "{name}" from {label} (still defined by a lower layer)'
-    return True, f'removed "{name}" (from {label})'
-
-
-def clone_profile(ctx, name, *, target=None):
-    '''Deep-clone SYSTEM profile `name` (repo/plugin) into an editable user-layer copy you can curate
-    (the disposition model's core move). The clone keeps the SAME NAME, so — since `_expand` only
-    inherits a lower layer on an explicit `+self` — the copy SHADOWS the system definition rather than
-    amending it: any component the system later adds to the profile surfaces as NEW instead of leaking
-    into your clone ("the profile is the lockfile"). Structure is preserved, not flattened: each
-    `+other` include is cloned as its OWN same-name unit (recursively) and kept as a `+other` ref, so
-    the hierarchy travels intact; leaf components are materialized. Writes to the portable edit target
-    (primary-if-set, else top config), or `target`. Returns (changed, label/reason).'''
-    cfg = ctx.config
-    if name not in cfg.profile_names():
-        return False, f'"{name}" is not defined'
-    if name == cfg.ALL_PROFILE or name.startswith('!'):
-        return False, f'"{name}" is reserved and cannot be cloned'
-    tfile, label = (target, _dir_label(ctx, target)) if target else edit_target(ctx)
-    editable = {str(ctx.paths.user_config_file), str(edit_target(ctx)[0])}
-    src = cfg.profile_source(name)
-    if src is not None and str(src) in editable:
-        return False, f'"{name}" is already an editable user profile here (nothing to clone)'
-
-    # BFS the include-closure; clone every SYSTEM profile reached, skip ones already user-editable
-    # (their +ref resolves to the existing copy) and reserved names.
-    order, seen, stack = [], set(), [name]
-    while stack:
-        q = stack.pop(0)
-        if q in seen or q not in cfg.profile_names():
-            continue
-        seen.add(q)
-        qsrc = cfg.profile_source(q)
-        if q != name and (qsrc is None or str(qsrc) in editable):
-            continue                                     # already-editable include: leave it, use as-is
-        order.append(q)
-        for inc in sorted(cfg.profile_includes(q)):
-            if inc not in seen and not inc.startswith('!') and inc != cfg.ALL_PROFILE:
-                stack.append(inc)
-
-    profs = plugins.read_profiles(tfile)
-    for q in order:
-        incs = sorted(i for i in cfg.profile_includes(q) if not i.startswith('!') and i != cfg.ALL_PROFILE)
-        own = sorted(cfg.profile_own_components(q))      # materialized leaves (post-`+self`, no amend term)
-        profs[q] = [f'+{i}' for i in incs] + own         # includes as refs, leaves inline; no `+self` = shadow
-    plugins.set_profiles(tfile, profs)
-    ctx.invalidate()
-    extra = f' (+{len(order) - 1} included)' if len(order) > 1 else ''
-    return True, f'{label}{extra}'
-
-
-def clone_profile_into(ctx, name, into=None):
-    '''Clone system profile `name` (via clone_profile) and — the delta placement step — emplace it as
-    a `+member` of the user profile `into`, so a cloned sub-profile keeps its cross-cutting structure
-    under a profile you own. `into=None` clones it standalone (top-level). The clone lands in the same
-    editable layer as `into` (so the `+name` reference resolves), else the portable edit target.
-    Returns (changed, label/reason).'''
-    if into is not None:
-        if into not in ctx.config.profile_names():
-            return False, f'no profile "{into}" to emplace the clone into'
-        src = ctx.config.profile_source(into)
-        editable = {str(ctx.paths.user_config_file), str(edit_target(ctx)[0])}
-        if src is None or str(src) not in editable:
-            return False, f'"{into}" is not an editable user profile (clone or create it first)'
-        target = str(src)
-    else:
-        target = None
-    changed, label = clone_profile(ctx, name, target=target)
-    if not changed:
-        return changed, label
-    if into is not None:
-        inc_changed, _l = set_profile_include(ctx, into, name, True)   # attach +name to the parent
-        if inc_changed:
-            label = f'{label}, +{name} in "{into}"'
-    return True, label
-
-
 def add_machine(ctx, name):
     '''Register a new machine as an empty column — an empty `picks:` entry (picks: IS the machine
     registry). Written to the portable pick target (primary if blessed, see _picks_target). Returns
@@ -447,59 +278,6 @@ def set_machine_active(ctx, name):
     return set_config_setting(ctx, 'machine', [name] if name else [])
 
 
-def set_profile_include(ctx, profile, other, add, *, target=None):
-    '''Add (`add=True`) or remove a `+other` include term in `profile` — include another profile's
-    members. Returns (changed, label); a no-op or invalid include returns (False, reason).'''
-    if other == profile:
-        return False, "a profile can't include itself"
-    if other not in ctx.config.profile_names():
-        return False, f'no profile "{other}"'
-    tfile, label = (target, target) if target else _profile_target(ctx, profile)
-    new_terms = ctx.config.plan_include_edit(profile, other, add, tfile)
-    if new_terms is None:
-        return False, label
-    profs = plugins.read_profiles(tfile)
-    profs[profile] = new_terms
-    plugins.set_profiles(tfile, profs)
-    ctx.invalidate()
-    return True, label
-
-
-def set_subprofile_membership(ctx, profile, sub, member, *, target=None):
-    '''Include (`member=True`) or exclude (`member=False`) subprofile `sub` in `profile` via the term
-    algebra — writes a `+sub`/`~sub` term (or drops the opposing own term) as needed. The Profiles
-    tree's membership toggle. Returns (changed, label); a no-op or invalid returns (False, reason).'''
-    if sub == profile:
-        return False, "a profile can't include or exclude itself"
-    if sub not in ctx.config.profile_names():
-        return False, f'no profile "{sub}"'
-    tfile, label = (target, target) if target else _profile_target(ctx, profile)
-    new_terms = ctx.config.plan_subprofile_edit(profile, sub, member, tfile)
-    if new_terms is None:
-        return False, label
-    profs = plugins.read_profiles(tfile)
-    profs[profile] = new_terms
-    plugins.set_profiles(tfile, profs)
-    ctx.invalidate()
-    return True, label
-
-
-def set_profile_active(ctx, profile, on, *, target=None):
-    '''Activate (`on=True`) or deactivate `profile` in the active `configs:` set. Returns
-    (changed, target_label).'''
-    tfile, label = (target, target) if target else _configs_target(ctx)
-    names = plugins.read_configs(tfile)
-    present = profile in names
-    if on and not present:
-        names = names + [profile]
-    elif not on and present:
-        names = [n for n in names if n != profile]
-    else:
-        return False, label
-    plugins.set_configs(tfile, names)
-    ctx.invalidate()
-    return True, label
-
 
 # -- machine settings (`configsys config` + the TUI Config screen) --------------------------------
 # key -> (kind, one-line descriptor, man page). The single source of truth the CLI and the TUI
@@ -530,11 +308,8 @@ CONFIG_SETTINGS = {
     'orphans-ignore':    ('list',   'Name-or-glob patterns whose matching orphans stay quiet in '
                                     '`configsys orphans` (matches a component name OR installed key).',
                           'configsys(1)'),
-    'orphans-adopt-target': ('scalar', 'Profile the TUI orphan "stage" (s) action parks components '
-                                       'into for later triage (default: orphans-lurking).',
-                          'configsys(1)'),
-    'machine': ('scalar', 'This box\'s machine name — selects a `machines:` entry from your primary '
-                          '(its profiles/configs overlay the shared ones). Unset = shared + local only.',
+    'machine': ('scalar', 'This box\'s machine name — which `picks:` column is "this machine". Unset '
+                          'defaults to `this-machine`.',
                 'configsys(1)'),
     # install-layout dirs (the `dirs:` section) — default < config < env (CONFIGSYS_*_DIR)
     'dirs.user':         ('dir',    'Base dir for user-scope installs (default ~). '
@@ -563,7 +338,6 @@ SETTING_NATURE = {
     'splash':            'uniform',
     'effects':           'machine',           # about THIS terminal/transport (SSH), not shared config
     'orphans-ignore':    'machine',           # acknowledged one-offs on THIS box, not shared config
-    'orphans-adopt-target': 'uniform',        # a workflow preference — the same staging profile name
     'machine':           'machine',           # which machine THIS box is — inherently per-box (local)
     'dirs.user':         'machine',
     'dirs.system':       'machine',
@@ -614,7 +388,7 @@ def _setting_target(ctx, key):
     '''(file, label) where an edit to machine setting `key` is EFFECTIVE: the writable layer it
     already lives in (editing a lower one would be shadowed), else its nature default — the primary
     plugin for a 'uniform' setting when one is blessed+synced, this machine's top config for a
-    'machine' setting (or when no primary exists). The counterpart to _profile_target for scalars.'''
+    'machine' setting (or when no primary exists). Delegates to the shared _nature_target.'''
     return _nature_target(ctx, key, lambda f: _read_setting(f, key) is not None)
 
 
@@ -629,7 +403,6 @@ def config_settings(ctx):
         'auto-tighten':      cfg.auto_tighten(),
         'adopt-installed':   cfg.adopt_installed(),
         'orphans-ignore':    cfg.orphans_ignore(),
-        'orphans-adopt-target': cfg.orphans_adopt_target(),
         'splash':            cfg.splash(),
         'machine':           cfg.selected_machine(),
     }

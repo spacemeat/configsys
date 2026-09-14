@@ -37,12 +37,6 @@ def test_stage_and_clear_roundtrip(tmp_path):
     assert _reload(tmp_path).config.uninstall_queue() == set()
 
 
-def test_add_profile_rejects_reserved_bang_name(tmp_path):
-    ctx = _ctx(tmp_path)
-    changed, msg = actions.add_profile(ctx, '!uninstall')
-    assert changed is False and 'reserved' in msg
-
-
 def test_uninstall_section_is_not_profile_membership():
     # a component in the `uninstall:` queue is NOT "in a profile" (the orphan scan reads it forgotten)
     cfg = _cfg('{ profiles: { dev: [ htop ] }  uninstall: [ ncdu ] }')

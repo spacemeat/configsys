@@ -1503,16 +1503,14 @@ def cmd_orphans(ctx, args):
             print(f'already ignored: {", ".join(args.ignore)}')
         return 0
     if args.adopt:
-        if not args.profile:
-            print('configsys: --adopt needs --profile P (which profile to add it to)')
-            return 1
         if args.adopt not in ctx.routes.components:
             print(f'configsys: unknown component "{args.adopt}" — --adopt takes a known orphan '
                   f'(a component); a foreign orphan has no recipe to adopt')
             return 1
-        changed, label = actions.set_profile_membership(ctx, args.profile, args.adopt, 'add')
-        print(f'adopted {args.adopt} into "{args.profile}" ({label})' if changed
-              else f'no change ({label})')
+        machines = getattr(args, 'machines', None) or [ctx.config.current_machine()]
+        n, label = actions.stage_adopt(ctx, args.adopt, machines)
+        print(f'adopted (tracked) {args.adopt} on {", ".join(machines)}  (in {label})' if n
+              else f'no change — {args.adopt} already tracked on {", ".join(machines)}')
         return 0
     if args.remove:
         if args.remove not in ctx.routes.components:
@@ -2938,8 +2936,10 @@ def build_parser():
     orp.add_argument('--all', action='store_true', help='include orphans silenced by orphans-ignore')
     orp.add_argument('--json', action='store_true', help='machine-readable output')
     orp.add_argument('--adopt', metavar='NAME',
-                     help='add a known orphan (a component) to a profile — needs --profile')
-    orp.add_argument('--profile', metavar='P', help='target profile for --adopt')
+                     help='adopt a known orphan (a component): track it in picks: on the target '
+                          'machine(s) so it becomes managed')
+    orp.add_argument('--machine', action='append', dest='machines',
+                     help='machine(s) to adopt onto (repeat for several; default: the current one)')
     orp.add_argument('--remove', metavar='NAME', help='uninstall a known orphan via its driver')
     orp.add_argument('--ignore', metavar='PATTERN', nargs='+',
                      help='silence orphans matching these name/key globs (adds to orphans-ignore)')

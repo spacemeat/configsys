@@ -53,37 +53,6 @@ def test_forgotten_when_in_no_profile_at_all():
     assert O._classify_known(cfg, 'nowhere-tool', req) == 'forgotten'
 
 
-def test_removed_closure_catches_transitive_exclusion():
-    # ripgrep is `~`'d out one level down (inside ext-langs, which with-sub includes) — the direct
-    # profile_removed misses it; the closure catches it.
-    cfg = _cfg('''{
-        configs: [ with-sub ]
-        profiles: {
-            base-langs: [ htop  ripgrep ]
-            ext-langs:  [ +base-langs  ~ripgrep ]
-            with-sub:   [ +ext-langs  ncdu ]
-        }
-    }''')
-    assert cfg.profile_removed('with-sub') == set()               # direct: nothing
-    assert cfg.profile_removed_closure('with-sub') == {'ripgrep'}  # closure: caught
-
-
-def test_removed_closure_does_not_leak_a_tilded_out_subprofiles_internal_removals():
-    # P excludes B wholesale; B's OWN internal `~x` must NOT count as excluded-from-P (B isn't in P).
-    cfg = _cfg('''{
-        configs: [ p ]
-        profiles: {
-            leaf: [ x  y ]
-            b:    [ +leaf  ~x ]
-            a:    [ +b  z ]
-            p:    [ +a  ~b ]
-        }
-    }''')
-    closure = cfg.profile_removed_closure('p')
-    assert 'x' not in closure          # x's only tie to P was via B, which P prunes -> not excluded
-    assert 'y' in closure              # ~b drops b's net members ({y}), which IS an exclusion by P
-
-
 # ---- ignore + summary helpers --------------------------------------------------------------------
 
 def test_is_ignored_matches_component_or_key():
@@ -354,7 +323,7 @@ IGNORE_CFG = '''{
 def _orphan_args(**over):
     from types import SimpleNamespace
     base = dict(driver=None, foreign=False, include_auto=False, system=False, all=False,
-                json=False, adopt=None, profile=None, remove=None, ignore=None, yes=False)
+                json=False, adopt=None, machines=None, remove=None, ignore=None, yes=False)
     base.update(over)
     return SimpleNamespace(**base)
 
@@ -380,16 +349,25 @@ def test_ignore_verb_appends_to_setting(tmp_path):
     assert _reload(tmp_path).config.orphans_ignore().count('doxygen') == 1
 
 
-def test_adopt_verb_adds_component_to_profile(tmp_path):
+def test_adopt_tracks_the_component(tmp_path):
+    # adopt = start managing an orphan: track it (pick it) on the current machine, not add-to-profile
     from configsys.app import cmd_orphans
     ctx = _fresh_ctx(tmp_path)
-    assert cmd_orphans(ctx, _orphan_args(adopt='bat', profile='dev')) == 0
-    assert 'bat' in _reload(tmp_path).config.profile_own_components('dev')
+    assert cmd_orphans(ctx, _orphan_args(adopt='bat')) == 0
+    assert 'bat' in _reload(tmp_path).config.included()        # now picked on this machine
 
 
-def test_adopt_without_profile_errors(tmp_path):
+def test_adopt_onto_named_machines(tmp_path):
     from configsys.app import cmd_orphans
-    assert cmd_orphans(_fresh_ctx(tmp_path), _orphan_args(adopt='bat')) == 1
+    ctx = _fresh_ctx(tmp_path)
+    assert cmd_orphans(ctx, _orphan_args(adopt='bat', machines=['boxA', 'boxB'])) == 0
+    r = _reload(tmp_path).config
+    assert 'bat' in r.included('boxA') and 'bat' in r.included('boxB')
+
+
+def test_adopt_unknown_component_errors(tmp_path):
+    from configsys.app import cmd_orphans
+    assert cmd_orphans(_fresh_ctx(tmp_path), _orphan_args(adopt='no-such-xyz')) == 1
 
 
 def test_remove_foreign_key_declined(tmp_path):

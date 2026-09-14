@@ -405,35 +405,35 @@ def test_set_section_inserts_and_replaces_arbitrary_section(tmp_path):
     assert '// keep me' in text and 'scope: user' in text
 
 
-def test_set_profiles_preserves_c_block_comments(tmp_path):
-    '''Regression: a plugin with a C-style block comment (`/* */`) and profiles got CORRUPTED on a
-    TUI profile edit — the old span-locator trusted humon's node.source_text, whose comment binding
+def test_set_section_preserves_c_block_comments(tmp_path):
+    '''Regression: a file with a C-style block comment (`/* */`) around a section got CORRUPTED on a
+    section edit — the old span-locator trusted humon's node.source_text, whose comment binding
     mis-reported the span (a trailing `/* */` before `}` made it return only that tail), so the
     splice duplicated the section and dropped a brace. The comment-aware span scan must replace only
-    the `profiles: {...}` span, leaving VALID humon with every outside comment intact.'''
+    the target section's span, leaving VALID humon with every outside comment intact. Exercised via
+    set_picks (the shared set_section machinery that every section writer uses).'''
     import humon
     p = tmp_path / 'plugin.hu'
     p.write_text('{\n'
                  '    plugins: [ ]\n\n'
-                 '    /* A big C-style block comment documenting the profiles below.\n'
+                 '    /* A big C-style block comment documenting the picks below.\n'
                  '       It spans several lines and even has braces { } inside it. */\n'
-                 '    profiles: {\n'
-                 '        dev: [ git  ripgrep ]\n'
-                 '        web: [ +dev  node ]\n'
+                 '    picks: {\n'
+                 '        boxA: [ git  ripgrep ]\n'
                  '        /* a trailing block comment right before the close */\n'
                  '    }\n\n'
                  '    pins: { }\n'
                  '}\n')
-    profs = plugins.read_profiles(str(p))
-    profs['games'] = ['steam']                                   # a TUI edit adds a profile
-    plugins.set_profiles(str(p), profs)
+    picks = plugins.read_picks(str(p))
+    picks['boxB'] = ['steam']                                    # an edit adds a machine's picks
+    plugins.set_picks(str(p), picks)
     out = p.read_text()
     humon.from_string(out)                                       # MUST still parse (raises if corrupt)
     assert 'A big C-style block comment documenting' in out      # the outside block comment survives
-    assert out.count('profiles:') == 1                           # not duplicated
-    assert '        profiles: {' not in out                      # indentation preserved (4, not 0/8)
-    assert plugins.read_profiles(str(p)) == {
-        'dev': ['git', 'ripgrep'], 'web': ['+dev', 'node'], 'games': ['steam']}
+    assert out.count('picks:') == 1                              # not duplicated
+    assert '        picks: {' not in out                         # indentation preserved (4, not 0/8)
+    assert plugins.read_picks(str(p)) == {
+        'boxA': ['git', 'ripgrep'], 'boxB': ['steam']}
 
 
 def test_locate_section_span_ignores_braces_in_comments_and_strings(tmp_path):

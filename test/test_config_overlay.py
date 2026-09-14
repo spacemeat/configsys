@@ -21,10 +21,9 @@ REPO = '''{
 }'''
 
 
-def test_active_profiles_retired_and_requested_is_picks_only():
+def test_requested_is_picks_only_and_browse_still_works():
     c = cfg(REPO)
-    assert c.active_profiles == []                                     # retired: no active set
-    assert c.requested() == {}                                         # nothing picked
+    assert c.requested() == {}                                         # nothing picked -> empty install set
     assert c.profile_components('dev') == ['btop', 'fzf', 'ripgrep']   # browse lens still works
 
 

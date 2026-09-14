@@ -773,50 +773,6 @@ def _flat(v):
     return [] if v is None else [str(v)]
 
 
-def read_profiles(config_file):
-    '''`{profile: [term, ...]}` from ONE .hu file's own top-level `profiles:` (raw term lists,
-    unexpanded), or {}. For editing a single layer's profiles in place — Config.profile_components
-    gives the MERGED/expanded view instead.'''
-    p = Path(config_file)
-    if not p.exists():
-        return {}
-    data = layers.materialize_string(p.read_text(encoding='utf-8'))
-    profs = data.get('profiles') if isinstance(data, dict) else None
-    if not isinstance(profs, dict):
-        return {}
-    return {name: _flat(val) for name, val in profs.items()}
-
-
-def _emit_term(t):
-    '''One profile term, quoted when humon can't take it bare. A `^`-leading term MUST be quoted — `^`
-    is humon's heredoc-name sigil; `+other`/`~name`/bare are safe unquoted, so `_scalar` passes them
-    through. (The term algebra no longer uses `^`; this quoting just keeps the writer humon-safe.)'''
-    s = str(t)
-    return f'"{s}"' if s[:1] == '^' else _scalar(s)
-
-
-def _emit_profiles(profiles, indent):
-    pad, inner = ' ' * indent, ' ' * (indent + 4)
-    if not profiles:
-        return 'profiles: {}'
-    lines = ['profiles: {']
-    for name, terms in profiles.items():
-        lines.append(f'{inner}{name}: [ {"  ".join(_emit_term(t) for t in terms)} ]' if terms
-                     else f'{inner}{name}: []')
-    return '\n'.join(lines + [pad + '}'])
-
-
-def set_profiles(config_file, profiles):
-    '''Rewrite the `profiles:` node of a config/plugin .hu in place (comments OUTSIDE it preserved;
-    inline comments WITHIN the section are re-serialized away, like the pins writer), or remove it
-    when empty. Values are raw term lists.'''
-    if not profiles:
-        remove_sections(config_file, ['profiles'])
-        return
-    set_section(config_file, 'profiles', lambda indent: _emit_profiles(profiles, indent))
-
-
-
 
 def read_scalar_section(config_file, key):
     '''The scalar value of a top-level `<key>:` from ONE .hu file (not a list/dict), or None.'''
@@ -852,11 +808,6 @@ def set_list_section(config_file, key, items):
         return
     set_section(config_file, key,
                 lambda indent: f'{key}: [ {"  ".join(str(i) for i in items)} ]')
-
-
-def read_configs(config_file):
-    '''The active-profile name list from ONE .hu file's top-level `configs:` (scalar or list), or [].'''
-    return read_list_section(config_file, 'configs')
 
 
 def _emit_kv(key, value, indent):
@@ -896,11 +847,6 @@ def set_theme(config_file, theme):
         body = [_emit_kv(k, v, indent + 4) for k, v in theme.items()]
         return '\n'.join(['theme: {'] + body + [pad + '}'])
     set_section(config_file, 'theme', emit)
-
-
-def set_configs(config_file, names):
-    '''Rewrite the `configs:` node in place (or remove it when empty).'''
-    set_list_section(config_file, 'configs', names)
 
 
 def config_sections_text(user_config_file, keys):

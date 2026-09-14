@@ -89,14 +89,6 @@ class Config:
         or a user-level `profiles:`) — non-fatal, surfaced via diagnostics + `check`.'''
         return layers.unknown_section_warnings(self._layers)
 
-    @property
-    def active_profiles(self):
-        '''RETIRED — always empty. The matrix model has no "active profile set": the install set is
-        this machine's `picks:` (see requested()), and `profiles:` are read-only BROWSE lenses. A
-        leftover `configs:` key is inert and draws a retirement warning (see
-        layers.unknown_section_warnings). Kept as an empty seam so the remaining callers degrade to
-        "nothing active" rather than needing per-call guards.'''
-        return []
 
     def default_scope(self):
         v = layers.merge_scalar(self._layers, 'scope', _MACHINE_ROLES)
@@ -142,13 +134,6 @@ class Config:
         setting; repo < primary < user). Acknowledged one-offs on THIS box don't nag; a glob matches
         an orphan's component name OR its installed key.'''
         return _leaves(layers.merge_scalar(self._layers, 'orphans-ignore', _MACHINE_ROLES))
-
-    def orphans_adopt_target(self):
-        '''The profile the TUI's orphan "stage" (`s`) action parks components into for later triage
-        (a machine setting; repo < primary < user). Defaults to `orphans-lurking` — a staging profile
-        you move names out of into the real base profiles.'''
-        v = layers.merge_scalar(self._layers, 'orphans-adopt-target', _MACHINE_ROLES)
-        return v if isinstance(v, str) and v else 'orphans-lurking'
 
     def pins(self):
         '''The effective pin map, merged PER KEY across repo < primary < user (see
@@ -525,20 +510,6 @@ class Config:
                     out.add(ref)
         return out
 
-    def profile_removed_closure(self, profile):
-        '''Like profile_removed, but across `profile`'s NET-ACTIVE include closure: a component a `~`
-        drops in `profile` itself OR in any subprofile it net-includes (so a `~` buried inside an
-        included meta-profile still counts — the transitive-exclusion case). Walks active_subprofiles
-        (which already honors `~`), so a subprofile that's itself `~`'d out doesn't leak its own
-        internal `~`s back in. Used to tell a transitively-excluded orphan from a merely-lurking one.'''
-        out = set(self.profile_removed(profile))
-        for sub in self.active_subprofiles(profile):
-            try:
-                out |= set(self.profile_removed(sub))
-            except ConfigError:
-                pass
-        return out
-
     def profile_excludes(self, profile):
         '''Profiles that `profile` drops via a `~subprofile` term across the layer stack (the mirror
         of profile_includes). For the Profiles editor's excluded-include markers + `check`.'''
@@ -652,46 +623,6 @@ class Config:
                 out.append(ref)
         return out
 
-    def active_subprofiles(self, profile):
-        '''The set of subprofile NAMES a profile net-includes (a `+sub` not overridden by a later
-        `~sub`), transitively — the profile-level mirror of profile_components. Drives the Profiles
-        tree's active/excluded state and the subprofile membership toggle. Undefined/broken -> empty.'''
-        chain = self._chain.get(profile)
-        if not chain:
-            return set()
-        idx, val, _src = chain[-1]
-        try:
-            return self._active_subs(profile, idx, val, ())
-        except ConfigError:
-            return set()
-
-    def _active_subs(self, name, idx, val, stack):
-        '''Fold a profile definition to the set of subprofile names it net-includes (order-sensitive,
-        like _expand but tracking profile membership, not components). `+ref` adds ref + ref's own
-        active subs; `~ref` (a defined profile) drops ref AND its subtree (its members are pruned
-        wholesale, matching _expand's set subtraction); `+self` amends the layer below.'''
-        key = (name, idx)
-        if key in stack:
-            return set()                                 # cycle -> contributes nothing here
-        stack = stack + (key,)
-        on = set()
-        for term in _leaves(val):
-            op, ref = _split_term(term)
-            if op == '+':
-                if ref == name:                          # +self -> inherit the layer below
-                    lower = [e for e in self._chain.get(name, ()) if e[0] < idx]
-                    if lower:
-                        on |= self._active_subs(name, lower[-1][0], lower[-1][1], stack)
-                elif ref in self._chain:                 # include a profile: it + its active subs
-                    on.add(ref)
-                    sidx, sval, _ = self._chain[ref][-1]
-                    on |= self._active_subs(ref, sidx, sval, stack)
-            elif op == '~' and ref in self._chain and ref != name:
-                on.discard(ref)                          # exclude the subprofile + its whole subtree
-                sidx, sval, _ = self._chain[ref][-1]
-                on -= self._active_subs(ref, sidx, sval, stack)
-        return on
-
     def reachable_subprofiles(self, profile):
         '''Every subprofile reachable from `profile` via `+`-includes (transitively, IGNORING `~`
         exclusions) — the universe a `~sub` could actually prune. For check's orphan-`~` warning
@@ -721,17 +652,6 @@ class Config:
             raise ConfigError(f'profile "{profile}" is not defined')
         idx, val, _src = chain[-1]
         return self._layout(profile, idx, val, ())
-
-    def profile_children(self, profile):
-        '''A profile's DIRECT children as `{subprofiles, components}` — its `+sub` includes as
-        sub-profiles + its own bare components (its structural layout). Empty for an unknown/broken
-        profile.'''
-        try:
-            layout = self.profile_layout(profile)
-        except ConfigError:
-            return {'subprofiles': set(), 'components': set()}
-        return {'subprofiles': {r for k, r in layout if k == 'include'},
-                'components': {r for k, r in layout if k == 'component'}}
 
     def _layout(self, name, idx, val, stack):
         key = (name, idx)
@@ -775,16 +695,6 @@ class Config:
         chain = self._chain.get(profile)
         return chain[-1][2] if chain else None
 
-    # -- profile EDITING (term-algebra writer support; see plan_membership_edit) --------------
-
-    def layer_index(self, path):
-        '''Index of the loaded layer whose file is `path`, or None. Lets a writer address one
-        layer of the merged stack (the edit target) by its file.'''
-        for i, layer in enumerate(self._layers):
-            if str(layer.path) == str(path):
-                return i
-        return None
-
     def _own_terms(self, profile, idx):
         '''The LITERAL term list `profile` declares in the layer at `idx` (raw, that file's own
         definition — `+self`/`+other`/`~`/bare, unexpanded), or [] if that layer doesn't define it.'''
@@ -792,123 +702,6 @@ class Config:
             if i == idx:
                 return list(_leaves(val))
         return []
-
-    def _members_safe(self, profile):
-        '''Effective members, treating an UNDEFINED profile as empty (so `add` may create it) but
-        letting a DEFINED-but-broken profile (bad include / cycle / `+self` with nothing below)
-        RAISE — so an edit surfaces the error instead of silently no-oping on the remove path.'''
-        if profile != self.ALL_PROFILE and profile not in self._chain:
-            return []
-        return self.profile_components(profile)
-
-    def plan_membership_edit(self, profile, comp, action, target_file, layer_idx=None):
-        '''Compute the new raw term list for `profile` in `target_file` so `comp` becomes a member
-        (`action='add'`) or a non-member (`'remove'`) of the EFFECTIVE set, honoring the term algebra.
-        The first amend of a profile defined only in a LOWER layer amends the live lower def via
-        `+self`. Pure: returns the new term list to write, or None for a no-op. `target_file` is the
-        edit layer; reuses `_expand` to decide whether a component still arrives via `+self`/`+other`
-        after dropping a bare term. `layer_idx` addresses the edit layer directly (a machine-role rung
-        shares a path with the primary — `layer_index` can't disambiguate); default resolves by path.'''
-        tidx = layer_idx if layer_idx is not None else self.layer_index(target_file)
-        if tidx is None:
-            raise ConfigError(f'{target_file} is not a loaded config layer')
-        chain = self._chain.get(profile, ())
-        own = self._own_terms(profile, tidx)
-        in_target = any(i == tidx for i, _v, _s in chain)
-        defined_below = any(i < tidx for i, _v, _s in chain)
-        neg = '~' + comp
-        selfinc = '+' + profile          # `+self` is spelled as the profile's OWN name (super/amend)
-
-        def expand(terms):
-            return self._expand(profile, tidx, list(terms), ())
-
-        if action == 'add':
-            if comp in self._members_safe(profile) and neg not in own:
-                return None                                  # already a member; nothing to write
-            base = [t for t in own if t != neg]              # drop a ~comp that was suppressing it
-            if not in_target and defined_below:
-                base = [selfinc] + base                       # inherit the lower def, then amend
-            if comp not in expand(base):
-                base = base + [comp]
-            return base
-
-        # remove
-        if comp not in self._members_safe(profile):
-            return None                                      # already absent
-        if not in_target:
-            return [selfinc, neg] if defined_below else [neg]  # member only from below -> negate here
-        without = [t for t in own if t != comp]              # drop a bare own term if present
-        if comp in expand(without):                          # still arrives via +self/+other include
-            return without if neg in without else without + [neg]
-        return without
-
-    def plan_include_edit(self, profile, other, add, target_file):
-        '''New raw term list for `profile` in `target_file` so it INCLUDES (`add=True`) or drops the
-        include of `other` (a `+other` term = pull in another profile's members). Pure; None for a
-        no-op. Removing only drops an include OWNED in the target layer.'''
-        tidx = self.layer_index(target_file)
-        if tidx is None:
-            raise ConfigError(f'{target_file} is not a loaded config layer')
-        chain = self._chain.get(profile, ())
-        own = self._own_terms(profile, tidx)
-        in_target = any(i == tidx for i, _v, _s in chain)
-        defined_below = any(i < tidx for i, _v, _s in chain)
-        term = '+' + other
-        selfinc = '+' + profile
-        if add:
-            if term in own:
-                return None
-            base = list(own)
-            if not in_target and defined_below:
-                base = [selfinc] + base                       # amend the lower def instead of shadowing
-            return base + [term]
-        if term not in own:
-            return None                                       # not an include we own here
-        return [t for t in own if t != term]
-
-    def plan_subprofile_edit(self, profile, sub, member, target_file):
-        '''New raw term list for `profile` in `target_file` so subprofile `sub` becomes a MEMBER
-        (`member=True` -> a `+sub` include) or a NON-member (`member=False` -> a `~sub` exclusion) of
-        `profile`'s effective subprofile set, honoring the term algebra. Pure; None for a no-op. This
-        is the membership-toggle behind the Profiles tree: include a struck subprofile, or exclude an
-        active one, writing `+sub`/`~sub` (or dropping the opposing own term) as needed. Mirrors
-        plan_membership_edit, but the member test is profile-level (active_subprofiles).'''
-        if sub == profile:
-            raise ConfigError("a profile can't include or exclude itself")
-        tidx = self.layer_index(target_file)
-        if tidx is None:
-            raise ConfigError(f'{target_file} is not a loaded config layer')
-        chain = self._chain.get(profile, ())
-        own = self._own_terms(profile, tidx)
-        in_target = any(i == tidx for i, _v, _s in chain)
-        defined_below = any(i < tidx for i, _v, _s in chain)
-        plus, neg = '+' + sub, '~' + sub
-        selfinc = '+' + profile
-
-        def active(terms):
-            return sub in self._active_subs(profile, tidx, list(terms), ())
-
-        is_member = sub in self.active_subprofiles(profile)
-
-        if member:
-            if is_member and neg not in own:
-                return None                              # already a member; nothing to write
-            base = [t for t in own if t != neg]          # drop a ~sub that was suppressing it
-            if not in_target and defined_below:
-                base = [selfinc] + base                  # amend the lower def instead of shadowing
-            if not active(base):
-                base = base + [plus]                     # still not a member -> add the include
-            return base
-
-        # exclude
-        if not is_member:
-            return None                                  # already not a member
-        if not in_target:
-            return [selfinc, neg] if defined_below else [neg]   # member only from below -> negate here
-        without = [t for t in own if t != plus]          # drop an own +sub first
-        if not active(without):                          # dropping our own +sub alone excludes it
-            return without
-        return without if neg in without else without + [neg]
 
     def profile_includes(self, profile):
         '''Profiles that `profile` pulls in via `+other` terms across the layer stack (excludes the

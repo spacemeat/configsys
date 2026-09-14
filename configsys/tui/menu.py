@@ -4715,17 +4715,6 @@ def run(ctx):
                     note = ('install overlay off',
                             'install overlay ON — installed underlined, orphans coloured '
                             '(ignored dimmed)')[ps.show_install]
-                elif pfact == 'stage' and ps.focus == 'right':
-                    _vc = ps.vcatalog()                    # park the selected component into the staging profile
-                    if _vc:
-                        _c = _vc[ps.rcur]
-                        try:
-                            changed, lbl = actions.stage_adopt(ctx, _c)
-                            ps.reload(); menu_dirty = menu_dirty or changed
-                            note = (f'{_c} staged into "{ctx.config.orphans_adopt_target()}"'
-                                    if changed else f'no change ({lbl})')
-                        except ConfigsysError as e:
-                            note = f'stage failed: {e}'
                 elif pfact == 'stage-uninstall' and ps.focus == 'right':
                     _targets = ps.action_targets()         # stage the set (else the cursor) for uninstall
                     if _targets:                           # (idempotent — like Components `x`; unstage there)

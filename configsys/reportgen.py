@@ -191,7 +191,7 @@ def collect(ctx, component=None, failure=None, failures=None):
             'platform': {'kernel': platform.platform(), 'arch': platform.machine(),
                          'python': platform.python_version()},
             'configsys': {'revision': _git_rev(ctx.paths.repo), 'abi': plugins.ABI_VERSION},
-            'profiles': list(ctx.config.active_profiles),
+            'machine': ctx.config.current_machine(),  'tracked': sorted(ctx.config.included()),
             'pins': dict(ctx.config.pins() or {}),
             'routes': {f.get('component'): _route(ctx, f.get('component'))
                        for f in failures if f.get('component')},
@@ -213,7 +213,7 @@ def collect(ctx, component=None, failure=None, failures=None):
             'python': platform.python_version(),
         },
         'configsys': {'revision': _git_rev(ctx.paths.repo), 'abi': plugins.ABI_VERSION},
-        'profiles': list(ctx.config.active_profiles),
+        'machine': ctx.config.current_machine(),  'tracked': sorted(ctx.config.included()),
         'pins': dict(ctx.config.pins() or {}),
         'route': _route(ctx, name) if name else None,
         'failure': failure or None,
@@ -270,8 +270,8 @@ def render(payload, *, home=None, secrets=()):
              f"{(' ' + os_['version']) if os_['version'] else ''}{atomic}")
     L.append(f"- **Platform:** {sc(pl['kernel'])} · {pl['arch']} · Python {pl['python']}")
     L.append(f"- **configsys:** `{cs['revision']}` (plugin ABI {cs['abi']})")
-    if payload['profiles']:
-        L.append(f"- **Active profiles:** {', '.join(payload['profiles'])}")
+    L.append(f"- **Machine:** {payload.get('machine', '?')}"
+             + (f" · tracked: {', '.join(payload['tracked'])}" if payload.get('tracked') else ''))
     if payload['pins']:
         pins = ', '.join(f'{k}→{v}' for k, v in sorted(payload['pins'].items()))
         L.append(f"- **Pins:** {pins}")

@@ -268,7 +268,7 @@ _KNOWN_TOP_KEYS = frozenset({
     # machine settings / local state
     'scope', 'pins', 'dispositions', 'picks', 'uninstall', 'machine', 'dirs',
     'effects', 'splash', 'theme', 'keys', 'adopt-installed', 'auto-tighten', 'driver-preference',
-    'install-overlay', 'refresh-before-execute', 'orphans-ignore', 'orphans-adopt-target',
+    'install-overlay', 'refresh-before-execute', 'orphans-ignore',
     'detect-coexisting', 'disabled-drivers', 'installer-shell-writes', 'installer-shell-writes-allow',
     'version-floors', 'last-refresh',
 })
@@ -276,8 +276,9 @@ _KNOWN_TOP_KEYS = frozenset({
 _RETIRED_TOP_KEYS = {
     'configs': 'retired — the matrix model installs from picks:, not active profiles',
     'machines': 'retired — picks: is now the machine registry (each picks: key is a machine/column)',
+    'orphans-adopt-target': 'retired — orphan adopt now tracks (picks) the component, not a staging profile',
 }
-_PROFILE_AUTHORING_ROLES = ('user', 'primary', 'machine')   # `profiles:` is browse-only (repo/plugins)
+_PROFILE_AUTHORING_ROLES = ('user', 'primary')   # `profiles:` is browse-only (repo/plugins)
 
 
 def unknown_section_warnings(layers):
