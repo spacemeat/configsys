@@ -43,7 +43,15 @@ class Gem(Driver):
         for line in r.stdout.splitlines():
             m = _LIST_RE.match(line)
             if m and m.group(1) == self._gem(rc):
-                return m.group(2).strip()
+                ver = m.group(2).strip()
+                # A "default gem" (bundler, rdoc, …) ships INSIDE Ruby (rubygems-integration), not as
+                # a chosen `gem install` — it can't be uninstalled or version-managed independently, so
+                # it's not a managed install: report it absent. `gem list` marks a default-only gem as
+                # "(default: X)"; a real install lists its version FIRST ("(2.6.1, default: 2.2.22)"),
+                # and _LIST_RE captures that leading real version — which we DO report.
+                if ver.startswith('default:'):
+                    return None
+                return ver
         return None
 
     def get_latest(self, rc):

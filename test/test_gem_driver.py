@@ -84,6 +84,17 @@ def test_get_version_not_installed():
     assert Gem(fr).get_version(gem()) is None
 
 
+def test_get_version_default_gem_reads_as_absent():
+    # a "default gem" ships inside Ruby (bundler etc.), not as a managed install — `gem list` marks
+    # it "(default: X)". It can't be uninstalled/version-managed on its own, so report it absent
+    # (no more installed-but-untracked standout for a gem you never chose).
+    fr = FakeRunner([('gem list -e', 0, 'bundler (default: 2.2.22)\n')])
+    assert Gem(fr).get_version(gem()) is None
+    # ...but a REAL install (listed before the default) IS reported
+    fr2 = FakeRunner([('gem list -e', 0, 'bundler (2.6.1, default: 2.2.22)\n')])
+    assert Gem(fr2).get_version(gem()) == '2.6.1'
+
+
 def test_get_latest_none_without_spec_and_no_lock():
     d = Gem(Runner(pretend=True))
     assert d.get_latest(gem()) is None
