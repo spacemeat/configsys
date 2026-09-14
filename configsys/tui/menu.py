@@ -3064,7 +3064,7 @@ def _draw_profiles(stdscr, pal, ps, ctx, note, screen):
         _fill_bg(stdscr, pal, h, w)
     _draw_nav(stdscr, pal, screen, h, w)
 
-    top, body_h = 1, h - 4                           # status + legend row, then TWO nav rows below
+    top, body_h = 1, max(1, h - 5)                   # TWO status/legend rows, then TWO nav rows below
     lw = max(16, w // 6) + 6                          # profiles pane: narrow, leaving the grid room (+6 cols)
     rleft, rw = lw + 1, w - lw - 1
     prof = ps.cur_curate()                           # the selected profile
@@ -3370,15 +3370,19 @@ def _draw_profiles(stdscr, pal, ps, ctx, note, screen):
                  else 'menu_new' if is_new else 'info_dim' if _d == 'seen' else 'component')
         _hput(y, 0, '#' if name in ps.selected_comps else ' ',
               pal.style('component', y, ril, h, w, selected=foc) | rev)
-        # expandable `via: parts` rows get a ▸/▾ twisty; drilled-in parts are indented under them
+        # expandable `via: parts` rows get a ▸/▾ twisty; drilled-in parts are indented under them.
+        # The twisty/indent is drawn WITHOUT the installed-underline so the underline hugs the name.
         if depth:
-            disp = '  ↳ ' + name
+            prefix = '  ↳ '
         elif ps.is_expandable(name):
-            disp = ('▾ ' if name in ps.expanded_parts else '▸ ') + name
+            prefix = '▾ ' if name in ps.expanded_parts else '▸ '
         else:
-            disp = '  ' + name                       # align leaves with the twisty column
-        _hput(y, x_name, _fit(disp, name_w),
-              pal.style(nelem, y, ril + x_name, h, w, selected=foc) | rev | (curses.A_UNDERLINE if installed else 0))
+            prefix = '  '                            # align leaves with the twisty column
+        pw = len(prefix)
+        _hput(y, x_name, prefix, pal.style(nelem, y, ril + x_name, h, w, selected=foc) | rev)
+        _hput(y, x_name + pw, _fit(name, max(0, name_w - pw)),
+              pal.style(nelem, y, ril + x_name + pw, h, w, selected=foc)
+              | rev | (curses.A_UNDERLINE if installed else 0))
         via_txt = (f'[{via}]' if pinned else via) if via else ('—' if not avail else '')
         _hput(y, x_via, _fit(via_txt, via_w),
               pal.style('method_dim', y, ril + x_via, h, w, selected=foc) | rev)
@@ -3419,12 +3423,15 @@ def _draw_profiles(stdscr, pal, ps, ctx, note, screen):
               f'    targets: {", ".join(_tg)}')
     if note:
         status += f'    {note}'
-    # column legend for the matrix table (right-aligned on the status bar).
-    legend = ("inst'd ●trk/⊙untrk/◐part/○no/⮾uninst · new ◆ · flag ☆int/·seen · "
-              "machine ●tracked/○not · tree ⊙N unclaimed ")
-    lg_x = max(0, w - len(legend))
-    _put(stdscr, h - 3, 0, _fit(status, max(1, lg_x - 1)), pal.style('status_line', h - 3, 0, h, w))
-    _put(stdscr, h - 3, lg_x, _fit(legend, w - lg_x), pal.style('status_line', h - 3, lg_x, h, w))
+    # column legend for the matrix table — two right-aligned rows (status shares the first row's left).
+    legend1 = "inst'd  ● trk  ⊙ untrk  ◐ part  ○ no  ⮾ uninst "
+    legend2 = "flag  ☆ int  · seen    new  ◆    machine  ● tracked  ○ not    tree  ⊙ N "
+    _sty = lambda row, x: pal.style('status_line', row, x, h, w)
+    lg1_x = max(0, w - len(legend1))
+    lg2_x = max(0, w - len(legend2))
+    _put(stdscr, h - 4, 0, _fit(status, max(1, lg1_x - 1)), _sty(h - 4, 0))
+    _put(stdscr, h - 4, lg1_x, _fit(legend1, w - lg1_x), _sty(h - 4, lg1_x))
+    _put(stdscr, h - 3, lg2_x, _fit(legend2, w - lg2_x), _sty(h - 3, lg2_x))
     if _KEYMAP is not None:
         g = lambda a: _KEYMAP.glyph('profiles', a)
         nav1 = (f" {g('down')}/{g('up')} move · {g('right')}/{g('left')} scroll/expand · "
@@ -4678,18 +4685,28 @@ def run(ctx):
                             ps.expand_cur()
                         else:                          # else scroll the (overflowing) left pane right
                             ps.lhoff = min(getattr(ps, 'lhmax', 0), getattr(ps, 'lhoff', 0) + 4)
-                    else:                              # scroll the matrix table right
-                        ps.rcol_left = min(getattr(ps, 'rhmax', 0), ps.rcol_left + 6)
+                    else:
+                        _vc = ps.vcatalog()            # a collapsed parts comp -> drill it open (twisty)
+                        _nm = _vc[ps.rcur] if 0 <= ps.rcur < len(_vc) else None
+                        if _nm and ps.is_expandable(_nm) and _nm not in ps.expanded_parts:
+                            ps.expanded_parts.add(_nm)
+                        else:                          # else scroll the matrix table right
+                            ps.rcol_left = min(getattr(ps, 'rhmax', 0), ps.rcol_left + 6)
                 elif pfact == 'left':
                     if ps.focus == 'left':
                         if getattr(ps, 'lhoff', 0) > 0:   # scroll back first, then collapse/parent
                             ps.lhoff = max(0, ps.lhoff - 4)
                         else:
                             ps.collapse_cur()
-                    elif ps.rcol_left > 0:
-                        ps.rcol_left = max(0, ps.rcol_left - 6)   # scroll the matrix table left
                     else:
-                        ps.focus = 'left'              # at the left edge -> back to the browse pane
+                        _vc = ps.vcatalog()            # an expanded parts comp -> collapse the twisty
+                        _nm = _vc[ps.rcur] if 0 <= ps.rcur < len(_vc) else None
+                        if _nm and _nm in ps.expanded_parts:
+                            ps.expanded_parts.discard(_nm)
+                        elif ps.rcol_left > 0:
+                            ps.rcol_left = max(0, ps.rcol_left - 6)   # scroll the matrix table left
+                        else:
+                            ps.focus = 'left'          # at the left edge -> back to the browse pane
                 elif pfact == 'toggle-install':
                     ps.show_install = 0 if ps.show_install else 1   # off <-> on (installed underlined,
                     # orphans coloured, ignored orphans revealed dimmed). NOTE: don't invalidate the
