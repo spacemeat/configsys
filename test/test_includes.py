@@ -40,10 +40,9 @@ def test_include_adds_a_component_with_provenance(tmp_path):
 
 def test_include_adds_a_profile(tmp_path):
     _w(tmp_path / 'proj.hu', '{ profiles: { pj: [ btop, ripgrep ] } }')
-    up = _w(tmp_path / 'user.hu', '{ include: [ ./proj.hu ]  configs: [ pj ] }')
+    up = _w(tmp_path / 'user.hu', '{ include: [ ./proj.hu ] }')
     c = _config(up)
-    assert c.active_profiles == ['pj']
-    assert c.profile_components('pj') == ['btop', 'ripgrep']
+    assert c.profile_components('pj') == ['btop', 'ripgrep']   # the included profile merges in
     assert c.profile_source('pj').endswith('proj.hu')
 
 
@@ -113,11 +112,11 @@ def test_diamond_include_dedups(tmp_path):
 # -- definitions-only -----------------------------------------------------
 
 def test_included_settings_are_ignored_with_a_warning(tmp_path):
-    _w(tmp_path / 'proj.hu', '{ configs: [ ignored ]  scope: system  profiles: { pj: [ btop ] } }')
-    up = _w(tmp_path / 'user.hu', '{ include: [ ./proj.hu ]  configs: [ pj ] }')
+    _w(tmp_path / 'proj.hu', '{ scope: system  pins: { steam: flatpak }  profiles: { pj: [ btop ] } }')
+    up = _w(tmp_path / 'user.hu', '{ include: [ ./proj.hu ]  scope: user }')
     ls = layers.expand([(up, 'user')])
     c = Config(ls)
-    assert c.active_profiles == ['pj']                       # include's `configs:` ignored
-    assert c.default_scope() is None                         # include's `scope:` ignored
+    assert c.default_scope() == 'user'                       # includer's own scope, not the include's
+    assert c.pins() == {}                                    # include's `pins:` ignored
     warns = layers.ignored_section_warnings(ls)
-    assert any('configs' in w for w in warns) and any('scope' in w for w in warns)
+    assert any('scope' in w for w in warns) and any('pins' in w for w in warns)

@@ -1,7 +1,7 @@
-'''Managed-orphans scan: classify installed software no active profile accounts for into
-excluded / lurking / forgotten / foreign (see docs/managed-orphans-plan.md). The classification is
-unit-tested against a hand-built Config; the full scan is exercised against a real routes context
-with a fabricated installed-index cache (so it's deterministic — no real subprocess enumeration).'''
+'''Managed-orphans scan: classify installed software this machine doesn't track into
+lurking / forgotten / foreign (see docs/managed-orphans-plan.md). The classification is unit-tested
+against a hand-built Config; the full scan is exercised against a real routes context with a
+fabricated installed-index cache (so it's deterministic — no real subprocess enumeration).'''
 
 import pytest
 
@@ -12,11 +12,12 @@ from configsys.app import Context, build_parser
 
 # ---- pure classification -------------------------------------------------------------------------
 
+# matrix model: the install set is per-machine `picks:`; profiles are read-only browse lenses. A
+# component is managed iff it's picked here; in a lens-but-unpicked -> lurking; in no lens -> forgotten.
 REPO = '''{
-    configs: [ dev ]
+    picks: { this-machine: [ htop ] }
     profiles: {
         base:  [ htop  bat ]
-        dev:   [ +base  ~bat ]
         media: [ ncdu ]
     }
 }'''
@@ -27,39 +28,29 @@ def _cfg(text=REPO):
 
 
 def _inputs(cfg):
-    requested = set(cfg.requested())
-    active = list(cfg.active_profiles)
-    removed = set()
-    for p in active:
-        removed |= set(cfg.profile_removed(p))
-    return requested, active, removed
+    return set(cfg.requested())
 
 
 def test_requested_component_is_not_an_orphan():
     cfg = _cfg()
-    req, act, rem = _inputs(cfg)
-    # htop is pulled by the active dev profile (via +base) -> managed, not an orphan
-    assert O._classify_known(cfg, 'htop', req, act, rem) is None
+    req = _inputs(cfg)
+    # htop is tracked (picked) on this machine -> managed, not an orphan
+    assert O._classify_known(cfg, 'htop', req) is None
 
 
-def test_excluded_when_actively_tilde_removed():
+def test_lurking_when_in_a_profile_but_untracked():
     cfg = _cfg()
-    req, act, rem = _inputs(cfg)
-    # bat is in dev's closure but dev `~bat`s it -> the loudest kind
-    assert O._classify_known(cfg, 'bat', req, act, rem) == 'excluded'
-
-
-def test_lurking_when_in_an_inactive_profile():
-    cfg = _cfg()
-    req, act, rem = _inputs(cfg)
-    # ncdu lives in `media`, which isn't active
-    assert O._classify_known(cfg, 'ncdu', req, act, rem) == 'lurking'
+    req = _inputs(cfg)
+    # bat lives in the `base` browse lens but isn't picked here -> lurking
+    assert O._classify_known(cfg, 'bat', req) == 'lurking'
+    # ncdu lives in `media`, likewise untracked
+    assert O._classify_known(cfg, 'ncdu', req) == 'lurking'
 
 
 def test_forgotten_when_in_no_profile_at_all():
     cfg = _cfg()
-    req, act, rem = _inputs(cfg)
-    assert O._classify_known(cfg, 'nowhere-tool', req, act, rem) == 'forgotten'
+    req = _inputs(cfg)
+    assert O._classify_known(cfg, 'nowhere-tool', req) == 'forgotten'
 
 
 def test_removed_closure_catches_transitive_exclusion():
@@ -93,39 +84,6 @@ def test_removed_closure_does_not_leak_a_tilded_out_subprofiles_internal_removal
     assert 'y' in closure              # ~b drops b's net members ({y}), which IS an exclusion by P
 
 
-def test_transitive_exclusion_classifies_as_excluded(tmp_path):
-    d = tmp_path / '.config' / 'configsys'
-    d.mkdir(parents=True)
-    (d / 'configsys.hu').write_text('''{
-      configs: [ with-sub ]
-      profiles: {
-        base-langs: [ htop  ripgrep ]
-        ext-langs:  [ +base-langs  ~ripgrep ]
-        with-sub:   [ +ext-langs  ncdu ]
-      }
-    }''')
-    ctx = Context(build_parser().parse_args(['--home', str(tmp_path), '--os', 'pop', 'inspect']))
-    units, rindex, cache, explicit, origins = _scan(ctx)
-    cache['apt'] = {_aptkey(rindex, 'ripgrep'): '14.1.0', _aptkey(rindex, 'ncdu'): '1.16'}
-    found = {o.component: o for o in O.scan_orphans(ctx, units, cache=cache, explicit=explicit, origins=origins)}
-    assert found['ripgrep'].kind == 'excluded'     # was 'lurking' before the closure fix
-    assert 'ncdu' not in found                       # a net member of the active profile
-
-
-def test_excluded_outranks_lurking():
-    # a component both `~`'d out of the active profile AND sitting in an inactive one -> excluded wins
-    cfg = _cfg('''{
-        configs: [ dev ]
-        profiles: {
-            base:  [ htop  bat ]
-            dev:   [ +base  ~bat ]
-            shelf: [ bat ]
-        }
-    }''')
-    req, act, rem = _inputs(cfg)
-    assert O._classify_known(cfg, 'bat', req, act, rem) == 'excluded'
-
-
 # ---- ignore + summary helpers --------------------------------------------------------------------
 
 def test_is_ignored_matches_component_or_key():
@@ -137,7 +95,7 @@ def test_is_ignored_matches_component_or_key():
 
 def test_scanned_summary_counts_by_axis():
     orphans = [
-        O.Orphan('apt', 'bat', '1', 'bat', 'excluded'),
+        O.Orphan('apt', 'bat', '1', 'bat', 'lurking'),
         O.Orphan('apt', 'ncdu', '1', 'ncdu', 'lurking'),
         O.Orphan('flatpak', 'com.x.Y', '1', '', 'foreign'),
         O.Orphan('apt', 'q', '1', 'q', 'forgotten', ignored=True),
@@ -148,10 +106,9 @@ def test_scanned_summary_counts_by_axis():
 # ---- full scan against a real routes context, deterministic cache --------------------------------
 
 USER_CFG = '''{
-  configs: [ dev ]
+  picks: { this-machine: [ htop ] }
   profiles: {
     base:  [ htop  bat ]
-    dev:   [ +base  ~bat ]
     media: [ ncdu ]
   }
 }'''
@@ -194,9 +151,9 @@ def test_scan_classifies_real_components(tmp_path):
     kb, kh, kn = (_aptkey(rindex, c) for c in ('bat', 'htop', 'ncdu'))
     cache['apt'] = {kb: '0.24', kh: '3.0.6', kn: '1.16', 'libdep-noise': '1.0'}
     found = {o.component: o for o in O.scan_orphans(ctx, units, cache=cache, explicit=explicit, origins=origins)}
-    assert found['bat'].kind == 'excluded'
+    assert found['bat'].kind == 'lurking'             # in the `base` lens but not tracked here
     assert found['ncdu'].kind == 'lurking'
-    assert 'htop' not in found                        # active profile wants it -> not an orphan
+    assert 'htop' not in found                        # tracked on this machine -> not an orphan
     assert found['bat'].version == '0.24'
 
 
@@ -388,9 +345,9 @@ def test_apt_explicit_keys_parse():
 
 
 IGNORE_CFG = '''{
-  configs: [ dev ]
+  picks: { this-machine: [ htop ] }
   orphans-ignore: [ bat ]
-  profiles: { base: [ htop  bat ]  dev: [ +base  ~bat ]  media: [ ncdu ] }
+  profiles: { base: [ htop  bat ]  media: [ ncdu ] }
 }'''
 
 
@@ -450,4 +407,4 @@ def test_ignore_glob_stamps_without_dropping(tmp_path):
     units, rindex, cache, explicit, origins = _scan(ctx)
     cache['apt'] = {_aptkey(rindex, 'bat'): '0.24'}
     bat = next(o for o in O.scan_orphans(ctx, units, cache=cache, explicit=explicit, origins=origins) if o.component == 'bat')
-    assert bat.ignored is True and bat.kind == 'excluded'   # kept in the list, just flagged
+    assert bat.ignored is True and bat.kind == 'lurking'    # kept in the list, just flagged

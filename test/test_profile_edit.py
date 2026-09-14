@@ -180,12 +180,10 @@ def test_add_and_remove_profile_roundtrip(tmp_path):
     assert actions.add_profile(ctx, 'all')[0] is False           # reserved
     assert actions.add_profile(ctx, '   ')[0] is False           # empty
     actions.set_profile_membership(ctx, 'demo', 'btop', 'add')
-    actions.set_profile_active(ctx, 'demo', True)
-    assert 'demo' in set(ctx.config.active_profiles)
+    assert ctx.config.profile_components('demo') == ['btop']
     changed, _msg = actions.remove_profile(ctx, 'demo')
     assert changed
     assert 'demo' not in ctx.config.profile_names()
-    assert 'demo' not in set(ctx.config.active_profiles)         # deactivated on the way out
 
 
 def test_remove_profile_refuses_a_non_editable_layer(tmp_path):
@@ -282,25 +280,6 @@ def test_find_next_steps_through_siblings():
     assert _find_next(labels, 'gcc', 3) == 1          # gcc-12 -> wraps back to gcc-10
     assert _find_next(labels, 'nope', 0) is None      # nothing matches
     assert _find_next(['xgcc', 'gcc'], 'gcc', 1) == 1  # a boundary/exact match still beats a weaker one
-
-
-def test_profile_active_direct_vs_indirect(tmp_path):
-    # `configs:` profiles are DIRECTLY active (● in the pane); profiles reached via +include from an
-    # active one are INDIRECTLY active (◐); the rest inactive (○).
-    from configsys import actions
-    from configsys.tui import menu
-    ctx = _rctx(tmp_path)
-    actions.add_profile(ctx, 'leaf')
-    actions.set_profile_membership(ctx, 'leaf', 'btop', 'add')
-    actions.add_profile(ctx, 'sub')
-    actions.set_profile_include(ctx, 'sub', 'leaf', True)
-    actions.add_profile(ctx, 'top')
-    actions.set_profile_include(ctx, 'top', 'sub', True)
-    actions.set_profile_active(ctx, 'top', True)                # only `top` is in configs
-
-    ps = menu.ProfileScreen(ctx)
-    assert ps.active == {'top'}                                 # ● directly active
-    assert ps.active_indirect == {'sub', 'leaf'}               # ◐ pulled in transitively via +include
 
 
 def test_add_profile_allows_same_name_as_system(tmp_path):

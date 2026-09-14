@@ -64,8 +64,6 @@ def _inject_machine_layer(layer_list, override=None):
     data = {}
     if isinstance(entry.get('profiles'), dict):
         data['profiles'] = entry['profiles']
-    if entry.get('configs') is not None:
-        data['configs'] = entry['configs']
     mlayer = layers.Layer(src, 'machine', data)
     mlayer.machine = sel                     # the machine name this rung carries (writer + provenance)
     # insert just below the TOP user config (the last `user` layer) so the box's own file still wins
@@ -130,15 +128,12 @@ class Config:
 
     @property
     def active_profiles(self):
-        '''The active profile set: `configs:`, a machine setting read from repo < a designated
-        `primary` plugin < the top user config (see _MACHINE_ROLES) — so your personal plugin can
-        set the default active set, and this machine's top config overrides it. Deduped, in order.'''
-        seen, out = set(), []
-        for name in _leaves(layers.merge_scalar(self._layers, 'configs', _MACHINE_ROLES)):
-            if name not in seen:
-                seen.add(name)
-                out.append(name)
-        return out
+        '''RETIRED — always empty. The matrix model has no "active profile set": the install set is
+        this machine's `picks:` (see requested()), and `profiles:` are read-only BROWSE lenses. A
+        leftover `configs:` key is inert and draws a retirement warning (see
+        layers.unknown_section_warnings). Kept as an empty seam so the remaining callers degrade to
+        "nothing active" rather than needing per-call guards.'''
+        return []
 
     def default_scope(self):
         v = layers.merge_scalar(self._layers, 'scope', _MACHINE_ROLES)
@@ -979,17 +974,11 @@ class Config:
         return out
 
     def requested(self):
-        '''Ordered {component_name: [sources that requested it]} — the install set. Any active
-        `configs:` profile's members (the classic path) PLUS this machine's v3 `picks:` (the matrix
-        model's Included set, sourced as `picks`). Additive, so the two models coexist: a v3 user
-        simply keeps `configs:` empty and their picks drive everything; a classic user has no picks.'''
+        '''Ordered {component_name: [sources that requested it]} — the install set. In the matrix
+        model this is exactly this machine's `picks:` (the Included set, sourced as `picks`).
+        `configs:`/active profiles are retired and no longer contribute.'''
         out = {}
-        for prof in self.active_profiles:
-            for name in self.profile_components(prof):
-                out.setdefault(name, [])
-                if prof not in out[name]:
-                    out[name].append(prof)
-        for name in self.included():                 # v3 matrix: this machine's Included set
+        for name in self.included():                 # this machine's Included (picked) set
             out.setdefault(name, [])
             if 'picks' not in out[name]:
                 out[name].append('picks')

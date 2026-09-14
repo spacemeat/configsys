@@ -121,20 +121,6 @@ def test_rename_materializes_synthetic_current(tmp_path):
     assert ctx.config.included('desktop') == {'btop'}         # picks carried
 
 
-def test_migrate_picks_from_active_profiles(tmp_path):
-    import io
-    from contextlib import redirect_stdout
-    from configsys.app import Context, build_parser
-    d = tmp_path / '.config' / 'configsys'
-    d.mkdir(parents=True, exist_ok=True)
-    (d / 'configsys.hu').write_text('{ configs: [ finders ] }')     # a real repo profile
-    ctx = Context(build_parser().parse_args(['--home', str(tmp_path), '--os', 'pop', 'inspect']))
-    n, machine = actions.migrate_picks(ctx)
-    assert n >= 3 and machine == 'this-machine'                     # finders' members seeded
-    assert {'fd', 'fzf', 'ripgrep'} <= ctx.config.included()
-    assert actions.migrate_picks(ctx)[0] == 0                       # idempotent
-
-
 def test_set_included_fans_out_across_machines(tmp_path):
     ctx = _ctx(tmp_path)
     n, label = actions.set_included(ctx, 'btop', ['ts-desktop', 'ts-laptop'], True)

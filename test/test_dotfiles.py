@@ -422,10 +422,11 @@ def test_cli_capture_copies_and_leaves_system_untouched(tmp_path, monkeypatch):
     from configsys.app import main
     home = tmp_path / 'home'
     (home / '.config' / 'configsys').mkdir(parents=True)
-    (home / '.config' / 'configsys' / 'configsys.hu').write_text('{ configs: [ user ] }')
+    (home / '.config' / 'configsys' / 'configsys.hu').write_text(
+        '{ picks: { this-machine: [ htop ] } }')
     real = home / '.config' / 'htop'
     real.mkdir(parents=True)
-    (real / 'htoprc').write_text('mine')                     # htop-dotfiles rides in via `user`
+    (real / 'htoprc').write_text('mine')                     # htop-dotfiles rides in (htop suggests it)
     base = ['--home', str(home), '--os', 'pop', 'dotfiles', 'capture']
 
     assert main(base + ['--dry-run']) == 0                    # dry run writes nothing

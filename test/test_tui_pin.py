@@ -48,7 +48,7 @@ def _steam_home(tmp_path):
     d = tmp_path / '.config' / 'configsys'
     d.mkdir(parents=True)
     (d / 'configsys.hu').write_text(
-        '{ configs: [ games ]  profiles: { games: [ steam, btop, zsh ] } }')
+        '{ picks: { this-machine: [ steam, btop, zsh ] } }')
     return d
 
 
@@ -152,7 +152,7 @@ def test_row_error_not_smeared_onto_profiles(tmp_path):
     cfgdir = tmp_path / '.config' / 'configsys'
     cfgdir.mkdir(parents=True)
     (cfgdir / 'configsys.hu').write_text(
-        '{ configs: [ a, b ]  profiles: { a: [ lazygit ]  b: [ nushell ] } }')
+        '{ picks: { this-machine: [ lazygit, nushell ] } }')
     ctx = _ctx(tmp_path)
     cfg, _r, _u, _l, states = ctx.load_pipeline()
     layouts, transitive = menu._menu_model(cfg)

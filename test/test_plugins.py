@@ -615,21 +615,21 @@ def test_cli_plugin_bless_and_unbless(tmp_path, capsys):
     src = tmp_path / 'src'
     src.mkdir()
     (src / 'plugin.hu').write_text('{ name: mine  requires-abi: 1  data: [ d.hu ] }')
-    (src / 'd.hu').write_text('{ configs: [ solo ]  profiles: { solo: [ btop ] } }')
+    (src / 'd.hu').write_text('{ picks: { this-machine: [ btop ] }  profiles: { solo: [ btop ] } }')
     for cmd in (['init', '-q'], ['config', 'user.email', 't@t'], ['config', 'user.name', 't'],
                 ['add', '-A'], ['commit', '-qm', 'i'], ['tag', 'v1']):
         subprocess.run(['git', *cmd], cwd=src, check=True)
     home = ['--home', str(tmp_path), '--os', 'pop']
 
-    # bless finds + syncs + marks primary; its machine settings (configs: [solo]) then apply
+    # bless finds + syncs + marks primary; its machine settings (picks) then apply
     assert main(home + ['plugin', 'bless', str(src)]) == 0
     assert 'blessed' in capsys.readouterr().out
     cfg = (tmp_path / '.config' / 'configsys' / 'configsys.hu').read_text()
     assert 'primary: true' in cfg
     assert main(home + ['inspect']) == 0
-    assert 'solo' in capsys.readouterr().out                 # primary's configs activated
+    assert 'btop' in capsys.readouterr().out                 # primary's picks tracked
 
-    # unbless clears it -> the primary's configs no longer apply
+    # unbless clears it -> the primary's picks no longer apply
     assert main(home + ['plugin', 'unbless']) == 0
     assert 'cleared' in capsys.readouterr().out
     assert 'primary: true' not in (tmp_path / '.config' / 'configsys' / 'configsys.hu').read_text()

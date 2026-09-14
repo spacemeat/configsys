@@ -51,14 +51,6 @@ def test_uninstall_section_is_not_profile_membership():
     assert cfg.uninstall_queue() == {'ncdu'}
 
 
-def test_check_errors_on_active_reserved_profile(tmp_path, capsys):
-    from configsys.app import cmd_check
-    ctx = _ctx(tmp_path, '{ configs: [ dev, "!uninstall" ]  profiles: { dev: [ htop ]  "!uninstall": [ bat ] } }')
-    rc = cmd_check(ctx, None)
-    out = capsys.readouterr().out
-    assert rc == 1 and 'reserved profile' in out and 'cannot be active' in out
-
-
 def test_check_warns_on_staged_but_still_wanted(tmp_path, capsys):
     from configsys.app import cmd_check
     ctx = _ctx(tmp_path, '{ picks: { this-machine: [ htop  bat ] }  uninstall: [ bat ] }')

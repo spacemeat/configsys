@@ -43,10 +43,10 @@ USER_CONFIG_TEMPLATE = '''{
     // github:/gitlab: source has a colon so it must be quoted.
     // plugins: [ { source: "github:someone/configsys-opensuse"  ref: v1.2.0 } ]
 
-    // Which profiles (from the repo's config.hu, your `profiles:`, a `primary` plugin, or an
-    // include) apply here. Left commented so a `primary` plugin's `configs:` provides the
-    // default; uncomment to set or override it on THIS machine.
-    // configs: [ dev ]
+    // The install set is per-machine `picks:` — the components tracked on this box. Browse the
+    // shipped profile catalog in the TUI (or `configsys profile list`) and track what you want;
+    // edits land here. A one-machine user can omit the machine key (defaults to `this-machine`).
+    // picks: { this-machine: [ btop  ripgrep  neovim ] }
 
     // Machine-wide default install scope for scope-honoring drivers (user | system).
     // scope: system
@@ -392,8 +392,7 @@ class Context:
         r = self.reporter
         self.ensure_user_config(offer_primary=True)
         cfg = self.config
-        r.event(report.VERBOSE, f'  config: {len(cfg.active_profiles)} profile(s) active '
-                                f'({_profiles_label(cfg.active_profiles)})')
+        r.event(report.VERBOSE, f'  config: install set — {_install_scope_label(cfg)}')
         for w in getattr(cfg, 'load_warnings', []):     # dropped config layers, streamed as found
             r.error(_unskip(w))
         routes = self.routes                            # one Resolver — reused for reporting below
@@ -545,7 +544,7 @@ class Context:
             return
         ver = f' {self.os_info.version}' if self.os_info.version else ''
         r.event(report.VERBOSE, f'  session summary — {self.os_info.block}{ver}   '
-                                f'profiles: {_profiles_label(cfg.active_profiles)}')
+                                f'install set: {_install_scope_label(cfg)}')
         tally = {}
         for st in states.values():
             tally[st.status] = tally.get(st.status, 0) + 1
@@ -563,7 +562,7 @@ class Context:
 
 def cmd_inspect(ctx, args):
     _cfg, requested, units, _ledger, states = ctx.load_pipeline()
-    print(f'OS: {ctx.os_info.block}   profiles: {_profiles_label(_cfg.active_profiles)}   '
+    print(f'OS: {ctx.os_info.block}   install set: {_install_scope_label(_cfg)}   '
           f'units: {len(units)}')
     print()
     print(f'{"UNIT":30} {"STATUS":12} {"INSTALLED":20} {"LATEST"}')
@@ -587,14 +586,11 @@ def cmd_inspect(ctx, args):
     return 0
 
 
-def _profiles_label(profiles):
-    '''Display string for the active profiles. The built-in `all` isn't listed as a named
-    profile — it's shown as a `+all` note so the full menu is visible without cluttering the list.'''
-    shown = [p for p in profiles if p != Config.ALL_PROFILE]
-    label = ', '.join(shown)
-    if Config.ALL_PROFILE in profiles:
-        label = f'{label}  +all (full menu)' if label else '+all (full menu)'
-    return label or '(none)'
+def _install_scope_label(cfg):
+    '''Display string for the install set: this machine + how many components it tracks (picks).
+    Replaces the retired active-profiles label — the matrix installs from picks:, not profiles.'''
+    n = len(cfg.included())
+    return f'{cfg.current_machine()} ({n} tracked)'
 
 
 def _expand_profile_args(ctx, names):
@@ -1344,9 +1340,7 @@ def where_profile_report(ctx, name):
         s, home = str(src), str(ctx.paths.home)
         return '~' + s[len(home):] if home and s.startswith(home) else s
 
-    active = name in set(cfg.active_profiles)
-    out = [name, f'  status      {"active" if active else "inactive"}   '
-                 f'relation: {cfg.profile_relation(name)}']
+    out = [name, f'  browse lens   relation: {cfg.profile_relation(name)}']
     out.append('  layers (low → high)')
     for d in defs:
         out.append(f'    {label(d["source"])}  [{d["role"]}]')
@@ -1363,25 +1357,9 @@ def where_profile_report(ctx, name):
     return out
 
 
-def active_closure(cfg):
-    '''The active profile set plus every profile they transitively `+include` (cycle-guarded) — the
-    profiles whose members this machine actually installs. Order not significant (a set).'''
-    seen, stack = set(cfg.active_profiles), list(cfg.active_profiles)
-    while stack:
-        try:
-            incs = cfg.profile_includes(stack.pop())
-        except Exception:                              # noqa: BLE001 — a broken profile includes nothing
-            incs = ()
-        for inc in incs:
-            if inc not in seen:
-                seen.add(inc)
-                stack.append(inc)
-    return seen
-
-
 def active_snapshot(cfg):
-    '''The installable component set (`requested()`) for the current active config — taken before/after
-    a plugin sync to report what the sync moved (a profile whose members grow shifts this set).'''
+    '''The installable component set (`requested()` = this machine's picks) — taken before/after a
+    plugin sync to report what the sync moved (a picked component whose recipe grows shifts this set).'''
     try:
         return set(cfg.requested())
     except Exception:                                  # noqa: BLE001 — a broken config snapshots empty
@@ -1467,8 +1445,8 @@ def cmd_disp(ctx, args):
 
 
 def cmd_picks(ctx, args):
-    '''The v3 matrix Included set: the components a machine installs. A skin over
-    actions.set_included / migrate_picks — the same the TUI Profiles (matrix) screen calls.'''
+    '''The matrix Included set: the components a machine installs. A skin over
+    actions.set_included — the same the TUI Profiles (matrix) screen calls.'''
     from . import actions
     cfg = ctx.config
     sub = getattr(args, 'picks_command', None) or 'list'
@@ -1493,18 +1471,12 @@ def cmd_picks(ctx, args):
               else f'configsys: no change — {args.component} already '
                    f'{"picked" if sub == "add" else "unpicked"} there')
         return 0
-
-    if sub == 'migrate':
-        n, machine = actions.migrate_picks(ctx)
-        print(f'configsys: seeded {n} component(s) into {machine}\'s picks from your active profiles'
-              if n else f'configsys: nothing to migrate ({machine} already has all active members)')
-        return 0
     return 0
 
 
 def cmd_orphans(ctx, args):
-    '''List installed software that no active profile accounts for, grouped by driver, each tagged
-    with its kind (excluded / lurking / forgotten / foreign). Read-only report — the phase-1 surface.'''
+    '''List installed software this machine doesn't track, grouped by driver, each tagged with its
+    kind (lurking / forgotten / foreign). Read-only report — the phase-1 surface.'''
     from . import orphans as orphans_mod, actions
     cfg = ctx.config
 
@@ -1573,7 +1545,7 @@ def cmd_orphans(ctx, args):
         print(json.dumps([vars(o) for o in visible], indent=2))
         return 0
 
-    active = ', '.join(cfg.active_profiles) or '(none)'
+    active = _install_scope_label(cfg)
     known, foreign, ignored = orphans_mod.scanned_summary(visible)
     if not visible:
         extra = []
@@ -1582,10 +1554,10 @@ def cmd_orphans(ctx, args):
         if base_hidden:
             extra.append(f'{base_hidden} OS-base foreign — `--system`')
         tail = f' ({"; ".join(extra)})' if extra else ''
-        print(f'\nNo orphans: everything installed is in an active profile ({active}).{tail}')
+        print(f'\nNo orphans: everything installed is tracked on this machine ({active}).{tail}')
         return 0
 
-    print(f'\nInstalled, not in your active profiles ({active}):\n')
+    print(f'\nInstalled, not tracked on this machine ({active}):\n')
     kw = max(len(o.key) for o in visible)
     vw = max(len(o.version) for o in visible)
     cw = max((len(o.component) for o in visible if o.kind != 'foreign'), default=0)
@@ -1874,9 +1846,11 @@ def cmd_check(ctx, args):
 
     # profile references: a selected profile naming a component that doesn't exist, plus
     # structural errors from expansion (undefined `+include`, include cycle).
+    # profiles are read-only BROWSE lenses now, so lint them ALL (not just an active subset — there
+    # is none): a lens naming a component that isn't defined is an authoring error worth surfacing.
     prof_issues = []
     prof_errors = []
-    for prof in ctx.config.active_profiles:
+    for prof in ctx.config.profile_names():
         try:
             for cname in ctx.config.profile_components(prof):
                 if cname not in components:
@@ -1888,7 +1862,7 @@ def cmd_check(ctx, args):
     # always a typo (e.g. `~haskel-lang`). Warn, don't error: it's a no-op, not a hard failure.
     removal_warnings = []
     _prof_names = set(ctx.config.profile_names())
-    for prof in ctx.config.active_profiles:
+    for prof in ctx.config.profile_names():
         reach = None
         for ref in ctx.config.profile_removal_terms(prof):
             if ref in _prof_names:                       # a ~subprofile: warn if it isn't even included
@@ -1908,11 +1882,6 @@ def cmd_check(ctx, args):
         removal_warnings.append(f"machine '{_sel_machine}' is selected but not defined in any "
                                 f"`machines:` block — this box resolves shared + local profiles only")
 
-    # reserved `!` profiles (e.g. !uninstall) are system-managed and NEVER install-active — flag one
-    # that slipped into `configs:`. And a component staged for uninstall while still WANTED by an
-    # active profile is a contradiction (the next sync reinstalls it) — surface it, don't auto-fix.
-    reserved_active = [f"reserved profile '{p}' cannot be active (remove it from `configs:`)"
-                       for p in ctx.config.active_profiles if p.startswith('!')]
     # the `!` namespace is reserved for system workflow lenses (the synthetic !uninstall / !all
     # browse lenses). A hand-defined `!…` profile collides — warn (the UI blocks creating one).
     removal_warnings += [f"profile '{p}': the `!` namespace is reserved for system lenses (rename it)"
@@ -2009,7 +1978,7 @@ def cmd_check(ctx, args):
             and not include_warnings and not code_warnings and not conflict_warnings
             and not theme_warnings and not pin_conflict_warnings and not py_floor_warnings
             and not stale_pin_warnings and not resolve_errors and not key_warnings
-            and not removal_warnings and not reserved_active and not uninstall_conflicts):
+            and not removal_warnings and not uninstall_conflicts):
         print(f'configsys: OK — {len(components)} components, no issues')
         return 0
 
@@ -2022,8 +1991,6 @@ def cmd_check(ctx, args):
     for msg in pin_issues:
         print(f'  ERROR   {msg}')
     for msg in resolve_errors:
-        print(f'  ERROR   {msg}')
-    for msg in reserved_active:
         print(f'  ERROR   {msg}')
     for i in warnings:
         print(f'  warn    {_issue_loc(i, ctx.paths)}{i.message}')
@@ -2047,8 +2014,8 @@ def cmd_check(ctx, args):
         print(f'  warn    {msg}')
     for msg in uninstall_conflicts:
         print(f'  warn    {msg}')
-    n_err = (len(errors) + len(prof_errors) + len(prof_issues) + len(pin_issues) + len(resolve_errors)
-             + len(reserved_active))
+    n_err = (len(errors) + len(prof_errors) + len(prof_issues) + len(pin_issues)
+             + len(resolve_errors))
     n_warn = (len(warnings) + len(include_warnings) + len(code_warnings) + len(conflict_warnings)
               + len(theme_warnings) + len(pin_conflict_warnings) + len(py_floor_warnings)
               + len(stale_pin_warnings) + len(key_warnings) + len(removal_warnings)
@@ -2762,7 +2729,7 @@ def build_parser():
                                         'the shared profiles (a composing layer per machine)')
     mpsub = mp.add_subparsers(dest='machine_command')
     mpsub.add_parser('list', help='defined machines + which one this box is (default)')
-    mps = mpsub.add_parser('show', help="one machine's configs + profiles (as they resolve)")
+    mps = mpsub.add_parser('show', help="one machine's tracked components (its picks)")
     mps.add_argument('name')
     for _n, _h in (('add', 'create a new, empty machine entry'),
                    ('rm', 'delete a machine entry')):
@@ -2783,7 +2750,7 @@ def build_parser():
     dps.add_argument('name')
     dps.add_argument('state', choices=['seen', 'interesting', 'new'], help="'new' clears it")
 
-    pk = sub.add_parser('picks', help='the v3 matrix Included set: components picked for a machine '
+    pk = sub.add_parser('picks', help='the matrix Included set: components picked for a machine '
                                       '(what it installs). Edit here or in the TUI Profiles screen')
     pksub = pk.add_subparsers(dest='picks_command')
     pkl = pksub.add_parser('list', help="a machine's picked components (default: this machine)")
@@ -2793,8 +2760,6 @@ def build_parser():
         _sp.add_argument('component')
         _sp.add_argument('--machine', action='append', dest='machines',
                          help='target machine (repeat for several; default: the current one)')
-    pksub.add_parser('migrate', help='seed this machine\'s picks from your active profiles (preserves '
-                                     'the install set when moving to the matrix workflow)')
 
     wh = sub.add_parser('where', help='explain a component: source layer, bindings, and how '
                                       'it resolves on this machine')
@@ -2832,34 +2797,12 @@ def build_parser():
                                            '(portable to your other machines)')
     pnp.add_argument('component')
 
-    pr = sub.add_parser('profile', help='view or edit profiles: a component\'s membership and '
-                                        'which profiles are active (local, or portable via a primary)')
+    pr = sub.add_parser('profile', help='browse the shipped profile catalog (read-only lenses over '
+                                        'the repo/plugin components; install from picks:)')
     prsub = pr.add_subparsers(dest='profile_command')
-    prsub.add_parser('list', help='profiles, their components, and which are active (default)')
+    prsub.add_parser('list', help='every profile and its components (default)')
     prs = prsub.add_parser('show', help="one profile's structure and where it is defined")
     prs.add_argument('profile')
-    pcl = prsub.add_parser('clone', help='deep-clone a system profile into an editable user copy '
-                                         '(same name, shadows the original; new upstream members show as NEW)')
-    pcl.add_argument('profile')
-    pcl.add_argument('--into', metavar='PARENT',
-                     help='emplace the clone as a +member of this user profile (keeps cross-cutting '
-                          'structure); default is a standalone top-level clone')
-    pcl.add_argument('--local', action='store_true',
-                     help="write to this machine's top config, not the primary plugin "
-                          '(standalone clones only; --into follows the parent)')
-    for name, helptext in (('add', 'add a component to a profile'),
-                           ('rm', 'remove a component from a profile')):
-        sp = prsub.add_parser(name, help=helptext)
-        sp.add_argument('profile')
-        sp.add_argument('component')
-        sp.add_argument('--local', action='store_true',
-                        help="write to this machine's top config, not the primary plugin")
-    for name, helptext in (('activate', 'mark a profile active (add it to configs)'),
-                           ('deactivate', 'mark a profile inactive (remove it from configs)')):
-        sp = prsub.add_parser(name, help=helptext)
-        sp.add_argument('profile')
-        sp.add_argument('--local', action='store_true',
-                        help="write to this machine's top config, not the primary plugin")
 
     cfp = sub.add_parser('config', help='view or edit machine settings (scope, driver-preference, '
                                         'auto-tighten)')
@@ -3151,9 +3094,9 @@ def cmd_dotfiles_status(ctx, args):
         for _name, tgt, state, src_root, src_rel, here, kind in df.spec_states(rc):
             (cfg if kind == 'config' else glue).append(
                 (state, tgt, rc.comp, Path(src_root), src_rel, here))
-    print(f'OS: {ctx.os_info.block}   profiles: {_profiles_label(ctx.config.active_profiles)}')
+    print(f'OS: {ctx.os_info.block}   install set: {_install_scope_label(ctx.config)}')
     if not cfg and not glue:
-        print('\n(no dotfiles components in the active profiles)')
+        print('\n(no dotfiles components in the install set)')
         return 0
     roots = {}                                   # distinct src roots -> label, listed once
     for r in cfg + glue:
@@ -3265,12 +3208,10 @@ def cmd_machine(ctx, args):
             if here:
                 print(f'  note: `machine: {here}` is selected but undefined')
             return 0
+        picks = cfg.picks()
         for name in sorted(machines):
             mark = '*' if name == here else ' '
-            cfgs = machines[name].get('configs') or []
-            profs = machines[name].get('profiles') or {}
-            print(f' {mark} {name}   configs: {", ".join(cfgs) or "(none)"}   '
-                  f'profiles: {len(profs)}')
+            print(f' {mark} {name}   tracked: {len(picks.get(name, []))}')
         print('\n  * = this box (`machine:`). Curate another with `--machine <name>`; edit with '
               '`configsys machine add|rm|use`.')
         return 0
@@ -3280,15 +3221,9 @@ def cmd_machine(ctx, args):
         if args.name not in machines:
             print(f'configsys: machine "{args.name}" is not defined', file=sys.stderr)
             return 1
-        entry = machines[args.name]
         print(f'machine {args.name}' + ('   [this box]' if args.name == cfg.selected_machine() else ''))
-        print(f'  configs   {", ".join(entry.get("configs") or []) or "(none)"}')
-        profs = entry.get('profiles') or {}
-        print(f'  profiles  ({len(profs)})' if profs else '  profiles  (none)')
-        for pn, terms in profs.items():
-            print(f'    {pn}: [ {"  ".join(str(t) for t in terms)} ]')
-        if args.name != cfg.selected_machine():
-            print(f'\n  (resolve it fully with: configsys --machine {args.name} profile list)')
+        tracked = sorted(cfg.picks().get(args.name, []))
+        print(f'  tracked ({len(tracked)}): {", ".join(tracked) if tracked else "(none)"}')
         return 0
 
     ctx.ensure_user_config()
@@ -3314,14 +3249,13 @@ def cmd_machine(ctx, args):
 
 
 def cmd_profile(ctx, args):
-    '''View or edit profiles (component membership + the active `configs:` set). A skin over
-    configsys.actions — the same functions the TUI Profiles screen will call.'''
-    from . import actions
+    '''Browse the shipped profile catalog (read-only). Profiles are BROWSE lenses over the
+    repo/plugin catalog — the matrix model installs from `picks:` (see `configsys picks`), so there
+    is no profile authoring or active set to edit here.'''
     sub = getattr(args, 'profile_command', None) or 'list'
 
+    cfg = ctx.config
     if sub == 'list':
-        cfg = ctx.config
-        active = set(cfg.active_profiles)
         names = cfg.profile_names()
         if not names:
             print('configsys: no profiles defined')
@@ -3332,18 +3266,17 @@ def cmd_profile(ctx, args):
                 body = ', '.join(members) if members else '(empty)'
             except ConfigError as e:
                 body = f'(error: {e})'
-            print(f' {"*" if name in active else " "} {name}\n      {body}')
-        print('\n  * = active. Edit with: configsys profile add|rm|activate|deactivate')
+            print(f'  {name}\n      {body}')
+        print('\n  Profiles are read-only browse lenses. Track components with '
+              '`configsys picks add <machine> <component>`.')
         return 0
 
     if sub == 'show':
-        cfg = ctx.config
         if args.profile not in cfg.profile_names():
             print(f'configsys: profile {args.profile!r} is not defined', file=sys.stderr)
             return 1
-        active = args.profile in set(cfg.active_profiles)
         src = cfg.profile_source(args.profile)
-        print(f'profile {args.profile}   [{"active" if active else "inactive"}]')
+        print(f'profile {args.profile}   [browse lens]')
         print(f'  defined in  {_layer_label(src, ctx.paths) if src else "?"}')
         try:
             for kind, ref in cfg.profile_layout(args.profile):
@@ -3353,46 +3286,6 @@ def cmd_profile(ctx, args):
         except ConfigError as e:
             print(f'  error: {e}', file=sys.stderr)
             return 1
-        return 0
-
-    ctx.ensure_user_config()                     # the edit target must exist
-    target = str(ctx.paths.user_config_file) if getattr(args, 'local', False) else None
-
-    if sub == 'clone':
-        into = getattr(args, 'into', None)
-        if into is not None:
-            changed, label = actions.clone_profile_into(ctx, args.profile, into)
-        else:
-            changed, label = actions.clone_profile(ctx, args.profile, target=target)
-        print(f'configsys: cloned "{args.profile}" into an editable copy  ({label})' if changed
-              else f'configsys: no clone — {label}')
-        return 0 if changed else 1
-
-    if sub in ('add', 'rm'):
-        action = {'add': 'add', 'rm': 'remove'}[sub]
-        # `--machine X` scopes the edit into machine X's namespace (machines:[X].profiles).
-        mtarget = ctx.machine_override
-        try:
-            changed, label = actions.set_profile_membership(
-                ctx, args.profile, args.component, action, target=target, machine=mtarget)
-        except ConfigError as e:
-            print(f'configsys: {e}', file=sys.stderr)
-            return 1
-        verbs = {'add': ('added to', 'already in'), 'remove': ('removed from', 'not in')}
-        done, noop = verbs[action]
-        print(f'configsys: {args.component} {done} profile {args.profile}  (in {label})' if changed
-              else f'configsys: no change — {args.component} is {noop} {args.profile}')
-        return 0
-
-    if sub in ('activate', 'deactivate'):
-        on = sub == 'activate'
-        changed, label = actions.set_profile_active(ctx, args.profile, on, target=target)
-        if changed:
-            print(f'configsys: profile {args.profile} '
-                  f'{"activated" if on else "deactivated"}  (in {label})')
-        else:
-            print(f'configsys: no change — {args.profile} is already '
-                  f'{"active" if on else "inactive"}')
         return 0
     return 0
 

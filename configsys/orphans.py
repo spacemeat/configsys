@@ -1,13 +1,12 @@
-'''orphans.py — find installed things configsys COULD manage but that aren't in your active profiles.
+'''orphans.py — find installed things configsys COULD manage but that this machine doesn't track.
 
 The complement of the detection tier: detection asks "what's installed that I should ADOPT as the
-method for a component I'm resolving?"; this asks "what's installed that NO active profile accounts
-for at all?" — so the user can adopt it into a profile, remove it, or dismiss it.
+method for a component I'm resolving?"; this asks "what's installed that this machine's picks don't
+account for at all?" — so the user can track it, remove it, or dismiss it.
 
 An orphan has two orthogonal fields (see docs/managed-orphans-plan.md):
   * kind   — WHAT it is, one of KINDS, chosen by a priority ladder (most-actionable first):
-               excluded  — installed, but an active profile `~`-removed it (you said "not here").
-               lurking   — installed, has a recipe, lives in some profile, but none active selects it.
+               lurking   — installed, has a recipe, lives in some profile, but isn't tracked here.
                forgotten — installed, has a recipe, but sits in no profile at all.
                foreign   — installed, but NO cf recipe matches the key (user-facing drivers only).
   * ignored — a STATUS overlay (the `orphans-ignore:` list), orthogonal to kind; an ignored orphan
@@ -30,7 +29,7 @@ from .resolve import candidate_bindings, unit_for_binding
 USER_FACING = ('flatpak', 'snap')
 
 # priority ladder: index 0 is the most actionable, chosen first when a key maps to several kinds.
-KINDS = ('excluded', 'lurking', 'forgotten', 'foreign')
+KINDS = ('lurking', 'forgotten', 'foreign')
 
 # OS-base priority tiers (apt Priority): the "the distro ships this" set, hidden from the foreign
 # list by default. The tier is still recorded on the orphan — a user CAN opt to manage one.
@@ -113,18 +112,16 @@ def _index_pairs(rc, drv, native_mgr):
     return pairs
 
 
-def _classify_known(cfg, name, requested, active_profiles, removed_by_active):
+def _classify_known(cfg, name, requested):
     '''The kind of a KNOWN orphan (maps to component `name`), or None if it's not actually an orphan
-    (the active config wants it — net-active, member-wins). Priority: excluded > lurking > forgotten.'''
-    if name in requested:                       # an active profile asks for it -> managed, not orphan
+    (this machine tracks it — it's in the install set). Priority: lurking > forgotten.'''
+    if name in requested:                       # tracked (picked) on this machine -> managed
         return None
-    if name in removed_by_active:               # an active profile `~`-removed it -> excluded
-        return 'excluded'
     try:
         direct, indirect = cfg.profiles_containing(name)
     except Exception:                           # noqa: BLE001 — a broken profile graph -> treat as none
         direct, indirect = [], []
-    if direct or indirect:                      # in SOME profile, just none active -> lurking
+    if direct or indirect:                      # in SOME browse profile, just not tracked -> lurking
         return 'lurking'
     return 'forgotten'                          # in no profile at all
 
@@ -201,16 +198,9 @@ def scan_orphans(ctx, units, *, cache=None, explicit=None, origins=None,
             continue
         active |= _index_pairs(rc, drv, native_mgr)
 
-    # 2. classification inputs from the config's profile graph.
+    # 2. classification inputs: this machine's install set (picks).
     rindex = build_reverse_index(ctx)
-    requested = set(cfg.requested())            # components any ACTIVE profile asks for (post-`~`)
-    active_profiles = list(cfg.active_profiles)
-    removed_by_active = set()
-    for p in active_profiles:
-        try:                                    # closure: catches a `~` buried in an included subprofile
-            removed_by_active |= set(cfg.profile_removed_closure(p))
-        except Exception:                       # noqa: BLE001 — a broken active profile removes nothing
-            pass
+    requested = set(cfg.requested())            # components tracked (picked) on this machine
     ignore = _ignore_globs(cfg)
 
     # 3. walk every enumerable driver's installed set, subtract what we manage, classify the rest.
@@ -232,7 +222,7 @@ def scan_orphans(ctx, units, *, cache=None, explicit=None, origins=None,
             if comps:                           # KNOWN — pick the most-actionable kind across matches
                 best = None
                 for name in comps:
-                    kind = _classify_known(cfg, name, requested, active_profiles, removed_by_active)
+                    kind = _classify_known(cfg, name, requested)
                     if kind is not None and (best is None or _rank(kind) < _rank(best[1])):
                         best = (name, kind)
                 if best is None:

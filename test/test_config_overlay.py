@@ -21,18 +21,16 @@ REPO = '''{
 }'''
 
 
-def test_active_profiles_from_repo_when_no_user():
+def test_active_profiles_retired_and_requested_is_picks_only():
     c = cfg(REPO)
-    assert c.active_profiles == ['dev']
-    assert c.profile_components('dev') == ['btop', 'fzf', 'ripgrep']
+    assert c.active_profiles == []                                     # retired: no active set
+    assert c.requested() == {}                                         # nothing picked
+    assert c.profile_components('dev') == ['btop', 'fzf', 'ripgrep']   # browse lens still works
 
 
-def test_user_overrides_configs_selection():
-    c = cfg(REPO, '{ configs: [ dev, games ] }')
-    assert c.active_profiles == ['dev', 'games']
-    assert c.requested() == {
-        'btop': ['dev'], 'fzf': ['dev'], 'ripgrep': ['dev'], 'steam': ['games'],
-    }
+def test_picks_drive_requested():
+    c = cfg(REPO, '{ picks: { this-machine: [ btop, steam ] } }')
+    assert c.requested() == {'btop': ['picks'], 'steam': ['picks']}
 
 
 def test_user_redefines_a_profile():
@@ -51,11 +49,6 @@ def test_user_profiles_section_shadows_per_name_not_wholesale():
 def test_user_can_add_a_new_profile():
     c = cfg(REPO, '{ configs: [ mine ]  profiles: { mine: [ btop, neovim ] } }')
     assert c.profile_components('mine') == ['btop', 'neovim']
-
-
-def test_single_value_configs():
-    c = cfg('{ configs: dev  profiles: { dev: [ btop ] } }')
-    assert c.active_profiles == ['dev']
 
 
 def test_nested_profile_flattened_to_leaves():
@@ -109,14 +102,6 @@ def test_transitive_include_dedupes():
         c: [ +a, +b, z ]
     } }''')
     assert c.profile_components('c') == ['x', 'y', 'z']
-
-
-def test_requested_uses_expanded_components():
-    c = cfg(COMPOSE)
-    req = c.requested()
-    assert 'gdb' not in req                     # removed in desktop
-    assert req['neovim'] == ['desktop']         # via +dev -> +base
-    assert req['steam'] == ['desktop']
 
 
 def test_include_cycle_raises():
@@ -185,25 +170,25 @@ def test_own_components_includes_self_amendment():
     assert c.profile_own_components('user') == ['a', 'b', 'c']
 
 
-def test_menu_model_renders_includes_as_links():
+def test_menu_model_groups_picked_components_by_owning_profile():
+    # matrix Components tree: the picked (tracked) components, grouped under the system profile that
+    # DECLARES each (own-components) — a component reached only via +include lands under its owner,
+    # not the includer, so it's shown once.
     from configsys.tui.menu import _menu_model
-    layouts, _transitive = _menu_model(cfg(OWN))
-    lay = dict(layouts)
-    assert lay['user'] == [('component', 'a'), ('component', 'b')]  # base profile's own components
-    assert lay['sculpture'] == [('include', 'user'), ('component', 'blender')]  # +user -> a LINK
+    c = cfg(OWN, '{ picks: { this-machine: [ a, b, blender ] } }')
+    lay = dict(_menu_model(c)[0])
+    assert lay['user'] == [('component', 'a'), ('component', 'b')]   # user owns a, b
+    assert lay['sculpture'] == [('component', 'blender')]            # sculpture owns just blender
 
 
-def test_menu_model_shows_included_profile_even_when_inactive():
-    # sculpture active, user NOT: user is still shown as a top-level node (the link's target), so
-    # a/b appear ONCE under `user` and sculpture just links to it — no repetition, no orphan.
-    c = cfg('{ profiles: { user: [ a, b ]  sculpture: [ +user, blender ] } }',
-            '{ configs: [ sculpture ] }')
+def test_menu_model_orphans_untracked_and_unprofiled():
+    # a picked component in no system profile falls under the synthetic (other) group; unpicked
+    # components don't appear at all.
     from configsys.tui.menu import _menu_model
-    layouts, _transitive = _menu_model(c)
-    lay = dict(layouts)
-    assert lay['sculpture'] == [('include', 'user'), ('component', 'blender')]
-    assert lay['user'] == [('component', 'a'), ('component', 'b')]        # pulled in as link target
-    assert [p for p, _ in layouts] == ['sculpture', 'user']              # active first, then include
+    c = cfg(OWN, '{ picks: { this-machine: [ a, loner ] } }')
+    lay = dict(_menu_model(c)[0])
+    assert lay['user'] == [('component', 'a')]           # b is not picked -> absent
+    assert lay['(other)'] == [('component', 'loner')]    # picked but in no profile
 
 
 def test_profile_and_component_names_may_collide():
@@ -222,32 +207,29 @@ def _layers(*specs):
     return [layers.Layer(f'{role}.hu', role, layers.materialize_string(text)) for role, text in specs]
 
 
-def test_primary_plugin_sets_configs_scope_pins():
+def test_primary_plugin_sets_scope_pins():
     c = Config(_layers(
-        ('repo', '{ configs: [ base ]  profiles: { base: [ a ]  sculpt: [ b ] } }'),
-        ('primary', '{ configs: [ base, sculpt ]  scope: system  pins: { steam: flatpak } }'),
+        ('repo', '{ profiles: { base: [ a ]  sculpt: [ b ] } }'),
+        ('primary', '{ scope: system  pins: { steam: flatpak } }'),
         ('user', '{ }')))
-    assert c.active_profiles == ['base', 'sculpt']     # primary's configs applied
-    assert c.default_scope() == 'system'
+    assert c.default_scope() == 'system'               # primary's machine settings applied
     assert c.pins() == {'steam': 'flatpak'}
 
 
 def test_top_config_overrides_primary():
     c = Config(_layers(
-        ('repo', '{ profiles: { base: [ a ]  sculpt: [ b ] } }'),
-        ('primary', '{ configs: [ base, sculpt ]  scope: system }'),
-        ('user', '{ configs: [ base ]  scope: user }')))
-    assert c.active_profiles == ['base']               # top config wins
-    assert c.default_scope() == 'user'
+        ('repo', '{ profiles: { base: [ a ] } }'),
+        ('primary', '{ scope: system }'),
+        ('user', '{ scope: user }')))
+    assert c.default_scope() == 'user'                 # top config wins
 
 
 def test_ordinary_plugin_role_cannot_set_machine_settings():
     c = Config(_layers(
-        ('repo', '{ configs: [ base ]  profiles: { base: [ a ]  sculpt: [ b ] } }'),
-        ('plugin', '{ configs: [ base, sculpt ]  scope: system }'),   # ignored (not primary)
+        ('repo', '{ profiles: { base: [ a ] } }'),
+        ('plugin', '{ scope: system }'),               # ignored (not primary)
         ('user', '{ }')))
-    assert c.active_profiles == ['base']               # plugin configs ignored
-    assert c.default_scope() is None
+    assert c.default_scope() is None                   # plugin machine settings ignored
 
 
 def test_default_scope_absent_is_none():
@@ -255,15 +237,8 @@ def test_default_scope_absent_is_none():
 
 
 def test_default_scope_from_user_config():
-    c = cfg(REPO, '{ configs: [ dev ]  scope: system }')
+    c = cfg(REPO, '{ scope: system }')
     assert c.default_scope() == 'system'
-
-
-def test_overlap_across_profiles_tracks_all_requesters():
-    c = cfg('{ configs: [ a, b ]  profiles: { a: [ ripgrep ]  b: [ ripgrep, btop ] } }')
-    req = c.requested()
-    assert req['ripgrep'] == ['a', 'b']
-    assert req['btop'] == ['b']
 
 
 def test_theme_merges_across_all_layers_including_plugins():

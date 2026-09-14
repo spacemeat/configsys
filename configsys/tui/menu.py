@@ -1606,40 +1606,30 @@ def _pick_choices(stdscr, pal, ms, ctx):
 
 
 def _menu_model(cfg):
-    '''(layouts, transitive) for the include-as-link menu. A `+other` include renders as a single
-    LINK node (its own components live under the `other` profile, shown ONCE); expanding the link
-    jumps to that profile. layouts covers every active profile AND every profile transitively
-    referenced via +include (so each link has a top-level target). transitive gives each shown
-    profile's full component set, for aggregating a profile/link's units.'''
-    order = list(cfg.active_profiles)
-    seen = set(order)
-    layouts = {}
-    i = 0
-    while i < len(order):
-        p = order[i]
-        i += 1
-        try:
-            lay = cfg.profile_layout(p)
+    '''(layouts, transitive) for the Components tree. Matrix model: the tree is this machine's
+    install set — the tracked (picked) components, `requested()` — grouped under the system profiles
+    (browse lenses) that contain them. Each tracked component is placed under the first system
+    profile that lists it (deduped, deterministic); anything tracked but in no profile falls under a
+    synthetic `(other)` group. `!uninstall` is folded in separately (see _with_uninstall_node).'''
+    tracked = set(cfg.requested())
+    layouts, transitive, placed = [], {}, set()
+    for p in sorted(cfg.profile_names()):
+        if p.startswith('!'):                          # skip the synthetic !all / !uninstall lenses
+            continue
+        try:                                           # own-components: attribute to the DECLARING
+            mem = [c for c in cfg.profile_own_components(p)   # profile, not one that merely +includes it
+                   if c in tracked and c not in placed]
         except ConfigError:
-            lay = []
-        # An excluded subprofile (`~name`) must not appear in Components at all: drop the exclude
-        # markers AND the `+include` they cancel, so a struck subprofile doesn't linger as an empty
-        # 'unsupported' link. (The Profiles page keeps the markers, to paint the exclusion there.)
-        excluded = {ref for kind, ref in lay if kind == 'exclude'}
-        lay = [(kind, ref) for kind, ref in lay
-               if kind != 'exclude' and not (kind == 'include' and ref in excluded)]
-        layouts[p] = lay
-        for kind, ref in lay:
-            if kind == 'include' and ref not in seen:
-                seen.add(ref)
-                order.append(ref)
-    transitive = {}
-    for p in order:
-        try:
-            transitive[p] = cfg.profile_components(p)
-        except ConfigError:
-            transitive[p] = []
-    return [(p, layouts[p]) for p in order], transitive
+            mem = []
+        if mem:
+            layouts.append((p, [('component', c) for c in mem]))
+            transitive[p] = mem
+            placed.update(mem)
+    orphan = sorted(tracked - placed)                  # tracked but in no system profile
+    if orphan:
+        layouts.append(('(other)', [('component', c) for c in orphan]))
+        transitive['(other)'] = orphan
+    return layouts, transitive
 
 
 SPLASH_THRESHOLD = 0.25    # only show the liquid fill if inspection is still going after this
@@ -2851,16 +2841,6 @@ class ProfileScreen:
         self._new_count_cache = {}                    # NEW badges recompute after any edit
         self._group_new_cache = {}
         self.selected_comps &= set(self.ctx.routes.components)   # drop selections for gone components
-        self.active = set(cfg.active_profiles)
-        # profiles reached transitively via `+include` from an active one, but not themselves in
-        # `configs:` — marked ◐ (indirectly active) vs ● (directly active) vs ○ (inactive).
-        ind, stack = set(), list(self.active)
-        while stack:
-            for inc in cfg.profile_includes(stack.pop()):
-                if inc not in self.active and inc not in ind:
-                    ind.add(inc)
-                    stack.append(inc)
-        self.active_indirect = ind
         self.catalog = sorted(self.ctx.routes.components)
         # KEEP self._res: a membership / profile edit doesn't change how a component RESOLVES (its
         # via), so re-resolving the whole visible set (~17ms each) on every toggle was the ~1.5s lag.

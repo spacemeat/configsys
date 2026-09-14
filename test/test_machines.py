@@ -28,15 +28,6 @@ def test_machine_profile_overlays_shared_by_name_via_self_track():
     assert roles == ['repo', 'machine']
 
 
-def test_machine_configs_drives_active_set_local_overrides():
-    c = _cfg(('repo', REPO), ('user', LAPTOP))
-    assert c.active_profiles == ['tools']                         # from the machine's configs:
-    # a LOCAL top-config configs: still wins (the box overrides the machine)
-    local = LAPTOP[:-2] + '  configs: [ ] }'                      # add an (empty) local configs:
-    c2 = _cfg(('repo', REPO), ('user', local))
-    assert c2.active_profiles == []                              # local empty configs: shadows machine
-
-
 def test_unset_machine_is_a_noop():
     c = _cfg(('repo', REPO), ('user', '{ }'))
     assert c.selected_machine() is None

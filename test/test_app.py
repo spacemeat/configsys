@@ -28,13 +28,13 @@ def test_inspect_generates_user_config_and_exits_zero(tmp_path, capsys):
 def test_legacy_user_config_is_migrated(tmp_path, capsys):
     # an old ~/configsys.hu is moved to ~/.config/configsys/configsys.hu on first run
     legacy = tmp_path / 'configsys.hu'
-    legacy.write_text('{ configs: [ mine ]  profiles: { mine: [ btop ] } }')
+    legacy.write_text('{ picks: { this-machine: [ btop ] } }')
     rc = main(base_args(tmp_path) + ['inspect'])
     assert rc == 0
     new = tmp_path / '.config' / 'configsys' / 'configsys.hu'
     assert new.exists() and not legacy.exists()          # moved
     out = capsys.readouterr().out
-    assert 'moved' in out and 'profiles: mine' in out     # migrated + its config in effect
+    assert 'moved' in out and 'this-machine (1 tracked)' in out   # migrated + its picks in effect
 
 
 def test_pretend_install_emits_apt_command_without_executing(tmp_path, capsys):
@@ -134,8 +134,7 @@ def test_check_surfaces_a_pin_that_blocks_an_active_component(tmp_path, capsys):
     # TIME error `check` used to only warn about — it now resolves the active set and reports it as an
     # error (parity with the `!` page / inspect). Pure OS-availability is NOT escalated (see below).
     (tmp_path / 'configsys.hu').write_text('''{
-        configs: [ mine ]
-        profiles: { mine: [ needs-v2 ] }
+        picks: { this-machine: [ needs-v2 ] }
         pins: { cap: prov-v1 }
         components: {
             prov-v1:  { provides: { cap: 1 }      install: [ { via: native } ] }
@@ -203,10 +202,10 @@ def test_check_flags_bogus_pin(tmp_path, capsys):
 
 
 def test_inspect_is_resilient_to_a_bad_active_component(tmp_path, capsys):
-    # an active profile with an unroutable component -> that one shows as an error,
+    # a picked (tracked) unroutable component -> that one shows as an error,
     # the rest still inspect, exit 0 (you can always get past it)
     (tmp_path / 'configsys.hu').write_text(
-        '{ configs: [ mine ]  profiles: { mine: [ btop, ghost-tool ] } }')
+        '{ picks: { this-machine: [ btop, ghost-tool ] } }')
     rc = main(base_args(tmp_path) + ['inspect'])
     assert rc == 0
     out = capsys.readouterr().out
@@ -445,12 +444,11 @@ def test_all_builtin_profile_expands_to_universe():
     assert Config([]).profile_components('!all') == []                    # no provider -> empty, not error
 
 
-def test_profiles_label_hides_all_as_a_note():
-    from configsys.app import _profiles_label
-    assert _profiles_label(['user', 'dev']) == 'user, dev'
-    assert _profiles_label(['user', '!all']) == 'user  +all (full menu)'
-    assert _profiles_label(['!all']) == '+all (full menu)'
-    assert _profiles_label([]) == '(none)'
+def test_install_scope_label_names_machine_and_tracked_count(tmp_path):
+    from configsys.app import _install_scope_label
+    (tmp_path / 'configsys.hu').write_text('{ picks: { this-machine: [ btop  htop ] } }')
+    ctx = Context(build_parser().parse_args(base_args(tmp_path) + ['inspect']))
+    assert _install_scope_label(ctx.config) == 'this-machine (2 tracked)'
 
 
 # -- `show`: print/locate the shipped base data files (installed-not-cloned ergonomics) --
