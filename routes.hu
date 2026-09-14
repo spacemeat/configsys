@@ -906,7 +906,10 @@
         // Ruby toolchain (ships gem + irb). Auto-provides `ruby` for the gem driver. apt
         // `ruby-full` bundles the dev headers gems' native extensions need; else `ruby`.
         ruby: { attrs: [ CLI runtime toolchain FOSS permissive ] suggests: ruby-dotfiles  description: "The Ruby programming language."
-            install: [ { via: native  name: { apt: ruby-full  default: ruby } } ]
+            // apt installs the `ruby-full` meta (interpreter + dev + ri + tk), but the base `ruby`
+            // package (pulled in as a dependency of other tools) provides a working interpreter WITHOUT
+            // ruby-full — so read install-state from `ruby`, else a resident base Ruby reads uninstalled.
+            install: [ { via: native  name: { apt: ruby-full  default: ruby }  installed-name: ruby } ]
         }
         // Sample gem (userland by default; see the gem driver).
         bundler: { attrs: [ CLI FOSS permissive ] description: "Bundler — manage Ruby gem dependencies (`bundle`)." install: [ { via: gem  name: bundler } ] }

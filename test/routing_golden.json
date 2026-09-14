@@ -1140,6 +1140,7 @@
    "pacman\\ruby": {
     "driver": "pacman",
     "fields": {
+     "installed-name": "ruby",
      "name": "ruby"
     },
     "name": "ruby"
@@ -9402,6 +9403,7 @@
    "pacman\\ruby": {
     "driver": "pacman",
     "fields": {
+     "installed-name": "ruby",
      "name": "ruby"
     },
     "name": "ruby"
@@ -10245,6 +10247,7 @@
    "pacman\\ruby": {
     "driver": "pacman",
     "fields": {
+     "installed-name": "ruby",
      "name": "ruby"
     },
     "name": "ruby"
@@ -14602,6 +14605,7 @@
    "apt\\ruby": {
     "driver": "apt",
     "fields": {
+     "installed-name": "ruby",
      "name": "ruby-full"
     },
     "name": "ruby-full"
@@ -23516,6 +23520,7 @@
    "apt\\ruby": {
     "driver": "apt",
     "fields": {
+     "installed-name": "ruby",
      "name": "ruby-full"
     },
     "name": "ruby-full"
@@ -24255,6 +24260,7 @@
    "apt\\ruby": {
     "driver": "apt",
     "fields": {
+     "installed-name": "ruby",
      "name": "ruby-full"
     },
     "name": "ruby-full"
@@ -28278,6 +28284,7 @@
    "apt\\ruby": {
     "driver": "apt",
     "fields": {
+     "installed-name": "ruby",
      "name": "ruby-full"
     },
     "name": "ruby-full"
@@ -37005,6 +37012,7 @@
    "apt\\ruby": {
     "driver": "apt",
     "fields": {
+     "installed-name": "ruby",
      "name": "ruby-full"
     },
     "name": "ruby-full"
@@ -37710,6 +37718,7 @@
    "apt\\ruby": {
     "driver": "apt",
     "fields": {
+     "installed-name": "ruby",
      "name": "ruby-full"
     },
     "name": "ruby-full"
@@ -41682,6 +41691,7 @@
    "apt\\ruby": {
     "driver": "apt",
     "fields": {
+     "installed-name": "ruby",
      "name": "ruby-full"
     },
     "name": "ruby-full"
@@ -50432,6 +50442,7 @@
    "apt\\ruby": {
     "driver": "apt",
     "fields": {
+     "installed-name": "ruby",
      "name": "ruby-full"
     },
     "name": "ruby-full"
@@ -51137,6 +51148,7 @@
    "apt\\ruby": {
     "driver": "apt",
     "fields": {
+     "installed-name": "ruby",
      "name": "ruby-full"
     },
     "name": "ruby-full"
@@ -55208,6 +55220,7 @@
    "dnf\\ruby": {
     "driver": "dnf",
     "fields": {
+     "installed-name": "ruby",
      "name": "ruby"
     },
     "name": "ruby"
@@ -63474,6 +63487,7 @@
    "dnf\\ruby": {
     "driver": "dnf",
     "fields": {
+     "installed-name": "ruby",
      "name": "ruby"
     },
     "name": "ruby"
@@ -64143,6 +64157,7 @@
    "dnf\\ruby": {
     "driver": "dnf",
     "fields": {
+     "installed-name": "ruby",
      "name": "ruby"
     },
     "name": "ruby"
@@ -68247,6 +68262,7 @@
    "dnf\\ruby": {
     "driver": "dnf",
     "fields": {
+     "installed-name": "ruby",
      "name": "ruby"
     },
     "name": "ruby"
@@ -76539,6 +76555,7 @@
    "dnf\\ruby": {
     "driver": "dnf",
     "fields": {
+     "installed-name": "ruby",
      "name": "ruby"
     },
     "name": "ruby"
@@ -77208,6 +77225,7 @@
    "dnf\\ruby": {
     "driver": "dnf",
     "fields": {
+     "installed-name": "ruby",
      "name": "ruby"
     },
     "name": "ruby"
@@ -81152,6 +81170,7 @@
    "brew\\ruby": {
     "driver": "brew",
     "fields": {
+     "installed-name": "ruby",
      "name": "ruby"
     },
     "name": "ruby"
@@ -85741,6 +85760,7 @@
    "brew\\ruby": {
     "driver": "brew",
     "fields": {
+     "installed-name": "ruby",
      "name": "ruby"
     },
     "name": "ruby"
@@ -87736,6 +87756,7 @@
    "brew\\ruby": {
     "driver": "brew",
     "fields": {
+     "installed-name": "ruby",
      "name": "ruby"
     },
     "name": "ruby"
@@ -88286,6 +88307,7 @@
    "brew\\ruby": {
     "driver": "brew",
     "fields": {
+     "installed-name": "ruby",
      "name": "ruby"
     },
     "name": "ruby"
@@ -91662,6 +91684,7 @@
    "apt\\ruby": {
     "driver": "apt",
     "fields": {
+     "installed-name": "ruby",
      "name": "ruby-full"
     },
     "name": "ruby-full"
@@ -100608,6 +100631,7 @@
    "apt\\ruby": {
     "driver": "apt",
     "fields": {
+     "installed-name": "ruby",
      "name": "ruby-full"
     },
     "name": "ruby-full"
@@ -101347,6 +101371,7 @@
    "apt\\ruby": {
     "driver": "apt",
     "fields": {
+     "installed-name": "ruby",
      "name": "ruby-full"
     },
     "name": "ruby-full"
@@ -105514,6 +105539,7 @@
    "dnf\\ruby": {
     "driver": "dnf",
     "fields": {
+     "installed-name": "ruby",
      "name": "ruby"
     },
     "name": "ruby"
@@ -111663,6 +111689,7 @@
    "dnf\\ruby": {
     "driver": "dnf",
     "fields": {
+     "installed-name": "ruby",
      "name": "ruby"
     },
     "name": "ruby"
@@ -114219,6 +114246,7 @@
    "dnf\\ruby": {
     "driver": "dnf",
     "fields": {
+     "installed-name": "ruby",
      "name": "ruby"
     },
     "name": "ruby"
@@ -114918,6 +114946,7 @@
    "dnf\\ruby": {
     "driver": "dnf",
     "fields": {
+     "installed-name": "ruby",
      "name": "ruby"
     },
     "name": "ruby"
@@ -119199,6 +119228,7 @@
    "apt\\ruby": {
     "driver": "apt",
     "fields": {
+     "installed-name": "ruby",
      "name": "ruby-full"
     },
     "name": "ruby-full"
@@ -128136,6 +128166,7 @@
    "apt\\ruby": {
     "driver": "apt",
     "fields": {
+     "installed-name": "ruby",
      "name": "ruby-full"
     },
     "name": "ruby-full"
@@ -128875,6 +128906,7 @@
    "apt\\ruby": {
     "driver": "apt",
     "fields": {
+     "installed-name": "ruby",
      "name": "ruby-full"
     },
     "name": "ruby-full"
@@ -132906,6 +132938,7 @@
    "apt\\ruby": {
     "driver": "apt",
     "fields": {
+     "installed-name": "ruby",
      "name": "ruby-full"
     },
     "name": "ruby-full"
@@ -141617,6 +141650,7 @@
    "apt\\ruby": {
     "driver": "apt",
     "fields": {
+     "installed-name": "ruby",
      "name": "ruby-full"
     },
     "name": "ruby-full"
@@ -142322,6 +142356,7 @@
    "apt\\ruby": {
     "driver": "apt",
     "fields": {
+     "installed-name": "ruby",
      "name": "ruby-full"
     },
     "name": "ruby-full"
