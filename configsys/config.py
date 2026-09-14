@@ -491,6 +491,8 @@ class Config:
         ConfigError.'''
         if profile == self.ALL_PROFILE:                  # built-in: every defined component
             return self._all_components()
+        if profile == self.UNINSTALL_PROFILE:            # synthetic lens over the `uninstall:` queue
+            return sorted(self.uninstall_queue())
         chain = self._chain.get(profile)
         if not chain:
             raise ConfigError(
@@ -512,6 +514,8 @@ class Config:
         `ceiling` reads the profile as of that layer (per-layer pane); None = the top def.'''
         if profile == self.ALL_PROFILE:
             return self._all_components()
+        if profile == self.UNINSTALL_PROFILE:            # synthetic lens over the `uninstall:` queue
+            return sorted(self.uninstall_queue())
         chain = self._chain.get(profile)
         if not chain:
             raise ConfigError(f'profile "{profile}" is not defined')
@@ -524,14 +528,12 @@ class Config:
     UNINSTALL_PROFILE = '!uninstall'
 
     def uninstall_queue(self):
-        '''Component names staged for uninstall — the members of the reserved `!uninstall` profile, a
-        machine-local pending-removal queue (`x` in the TUI adds here; TUI::Components executes or
-        clears them). `!`-prefixed profiles are reserved and never resolve for install (they're never
-        active), so this stays inert until a remove op reads it. Empty/undefined -> empty set.'''
-        try:
-            return set(self.profile_own_components(self.UNINSTALL_PROFILE))
-        except ConfigError:
-            return set()
+        '''Component names staged for uninstall — the top-level `uninstall:` list, a machine-local
+        (top-config) pending-removal queue (`x` in the TUI adds here; TUI::Components executes or
+        clears them). It's a plain machine setting, not a profile, so it never resolves for install
+        and needs no `!` reservation. Read like other machine settings (repo < primary < top config,
+        highest wins). Empty/undefined -> empty set.'''
+        return set(_leaves(layers.merge_scalar(self._layers, 'uninstall', _MACHINE_ROLES)))
 
     def profiles_containing(self, name):
         '''Profiles that contain `name`, split into `(direct, indirect)`. DIRECT = the profile declares

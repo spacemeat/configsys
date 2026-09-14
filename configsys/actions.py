@@ -106,11 +106,20 @@ UNINSTALL_PROFILE = '!uninstall'
 
 
 def stage_uninstall(ctx, comp, *, on=True):
-    '''Stage (`on`) or unstage (`on=False`) `comp` in the reserved `!uninstall` queue — a
+    '''Stage (`on`) or unstage (`on=False`) `comp` in the top-level `uninstall:` queue — a
     machine-local (top-config) pending-removal list. Returns (changed, label). The TUI `x` calls
     this; the real uninstall runs later from TUI::Components (execute) — or `clear_uninstall` cancels.'''
     tfile = str(ctx.paths.user_config_file)          # machine-local, like pins — never a plugin
-    return set_profile_membership(ctx, UNINSTALL_PROFILE, comp, 'add' if on else 'remove', target=tfile)
+    cur = plugins.read_list_section(tfile, 'uninstall')
+    if on and comp not in cur:
+        cur.append(comp)
+    elif not on and comp in cur:
+        cur.remove(comp)
+    else:
+        return False, ('already staged' if on else 'not staged')
+    plugins.set_list_section(tfile, 'uninstall', cur)
+    ctx.invalidate()
+    return True, Path(tfile).name
 
 
 def stage_adopt(ctx, comp):
@@ -232,13 +241,10 @@ def unignore_orphan(ctx, pattern):
 
 
 def clear_uninstall(ctx):
-    '''Empty the `!uninstall` queue (cancel every pending removal). Returns how many were cleared.'''
+    '''Empty the `uninstall:` queue (cancel every pending removal). Returns how many were cleared.'''
     n = len(ctx.config.uninstall_queue())
-    tfile = str(ctx.paths.user_config_file)
-    profs = plugins.read_profiles(tfile)
-    if UNINSTALL_PROFILE in profs:
-        del profs[UNINSTALL_PROFILE]
-        plugins.set_profiles(tfile, profs)
+    if n:
+        plugins.set_list_section(str(ctx.paths.user_config_file), 'uninstall', [])
         ctx.invalidate()
     return n
 

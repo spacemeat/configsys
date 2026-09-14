@@ -1913,23 +1913,18 @@ def cmd_check(ctx, args):
     # active profile is a contradiction (the next sync reinstalls it) — surface it, don't auto-fix.
     reserved_active = [f"reserved profile '{p}' cannot be active (remove it from `configs:`)"
                        for p in ctx.config.active_profiles if p.startswith('!')]
-    # the `!` namespace is reserved for system workflow profiles (!uninstall is cf-managed; the rest
-    # are computed). A hand-defined `!…` collides — warn (the UI already blocks creating one).
-    removal_warnings += [f"profile '{p}': the `!` namespace is reserved for system profiles (rename it)"
-                         for p in ctx.config.profile_names() if p.startswith('!') and p != '!uninstall']
+    # the `!` namespace is reserved for system workflow lenses (the synthetic !uninstall / !all
+    # browse lenses). A hand-defined `!…` profile collides — warn (the UI blocks creating one).
+    removal_warnings += [f"profile '{p}': the `!` namespace is reserved for system lenses (rename it)"
+                         for p in ctx.config.profile_names() if p.startswith('!')]
+    # a component staged for uninstall while still tracked/picked on this machine is a contradiction
+    # (the next sync reinstalls it) — surface it, don't auto-fix.
     uninstall_conflicts = []
     _queue = ctx.config.uninstall_queue()
     if _queue:
-        for prof in ctx.config.active_profiles:
-            if prof.startswith('!'):
-                continue
-            try:
-                _mem = set(ctx.config.profile_components(prof))
-            except ConfigsysError:
-                _mem = set()
-            for c in sorted(_queue & _mem):
-                uninstall_conflicts.append(f"'{c}' is staged for uninstall (!uninstall) but still "
-                                           f"wanted by active profile '{prof}' — `~` it there too")
+        for c in sorted(_queue & set(ctx.config.requested())):
+            uninstall_conflicts.append(f"'{c}' is staged for uninstall but still tracked/picked on "
+                                       f"this machine — untrack it or unstage the uninstall")
 
     # pins: value must be a known driver (binding-pin) or a known component (provider-pin)
     from .drivers import supported_names

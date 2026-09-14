@@ -52,7 +52,7 @@ def test_dispositions_layered_local_overrides_lower():
 
 def test_uninstall_is_not_new():
     c = _cfg(('repo', '{ profiles: { finders: [ fd ] } }'),
-             ('user', '{ profiles: { "!uninstall": [ fd ] } }'))
+             ('user', '{ uninstall: [ fd ] }'))
     assert not c.is_new('fd')                                 # staged for uninstall -> dispositioned
 
 

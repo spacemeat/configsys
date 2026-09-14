@@ -1,6 +1,7 @@
-'''The reserved `!uninstall` staged-removal queue (phase 4): `x` on the TUI stages a component here
-(machine-local), TUI::Components executes or clears it. `!`-prefixed profiles are reserved — never
-active, not counted as real membership, and rejected from user profile creation.'''
+'''The top-level `uninstall:` staged-removal queue: `x` on the TUI stages a component here
+(machine-local, top config), TUI::Components executes or clears it. It's a plain machine setting,
+not a profile — the `!uninstall` browse lens is synthesized from it. `!`-prefixed profile NAMES stay
+reserved (the synthetic browse lenses) and are rejected from user profile creation.'''
 
 from configsys import layers, actions
 from configsys.config import Config
@@ -42,9 +43,9 @@ def test_add_profile_rejects_reserved_bang_name(tmp_path):
     assert changed is False and 'reserved' in msg
 
 
-def test_reserved_profile_not_counted_as_membership():
-    # a component only in !uninstall is NOT "in a profile" (so the orphan scan reads it forgotten)
-    cfg = _cfg('{ configs: [ dev ]  profiles: { dev: [ htop ]  "!uninstall": [ ncdu ] } }')
+def test_uninstall_section_is_not_profile_membership():
+    # a component in the `uninstall:` queue is NOT "in a profile" (the orphan scan reads it forgotten)
+    cfg = _cfg('{ profiles: { dev: [ htop ] }  uninstall: [ ncdu ] }')
     direct, indirect = cfg.profiles_containing('ncdu')
     assert direct == [] and indirect == []
     assert cfg.uninstall_queue() == {'ncdu'}
@@ -60,10 +61,10 @@ def test_check_errors_on_active_reserved_profile(tmp_path, capsys):
 
 def test_check_warns_on_staged_but_still_wanted(tmp_path, capsys):
     from configsys.app import cmd_check
-    ctx = _ctx(tmp_path, '{ configs: [ dev ]  profiles: { dev: [ htop  bat ]  "!uninstall": [ bat ] } }')
+    ctx = _ctx(tmp_path, '{ picks: { this-machine: [ htop  bat ] }  uninstall: [ bat ] }')
     cmd_check(ctx, None)
     out = capsys.readouterr().out
-    assert "'bat' is staged for uninstall" in out and "active profile 'dev'" in out
+    assert "'bat' is staged for uninstall" in out and "tracked/picked" in out
 
 
 def test_seed_uninstall_prestages_present_queue_members():
