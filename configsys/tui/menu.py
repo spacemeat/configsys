@@ -886,6 +886,10 @@ _HELP = {
             ('multi-select', 'space toggles a component into the set (#); a (select-all) takes every row '
                              'in view — or, in the browse pane, the whole profile’s members. T then tracks '
                              'the whole set.'),
+            ('parts (▸ / ▾)', 'a `via: parts` aggregator (docker, vulkan-runtime) shows a ▸ twisty — ⏎ drills '
+                              'it open to its pieces (indented ↳), each an ordinary component you can track '
+                              '(t) or pin a method for (v). The infobox lists them (and a component’s '
+                              'requires:) with each’s resolved method, so you see the composition first.'),
             ('scroll', '↑/↓ move · ←/→ scroll the pane horizontally when it overflows (a thumb shows on '
                        'the bottom border); in the browse pane ←/→ first fold/unfold the include tree.'),
             ('interesting / seen', 'i toggles INTERESTING (☆, flagged, not installed) on the highlighted '
@@ -2338,6 +2342,7 @@ class ProfileScreen:
         self.rcol_left = 0           # matrix table horizontal CHAR offset (←/→ scroll; rhmax set at draw)
         self.lhoff = 0               # browse pane horizontal CHAR offset (for long names; lhmax at draw)
         self.rrows, self.rncols = 1, 1   # grid dims, set each draw; the key handler moves by column
+        self.expanded_parts = set()      # catalog: `via: parts` comps drilled open -> parts as child rows
         self.pfilter = self.cfilter = ''   # substring filters for the profiles / catalog panes
         self.expanded = set()            # node keys of expanded profiles (inline `+include` tree)
         self.reveal = None               # key of a just-expanded node -> reveal its subtree next draw
@@ -2899,7 +2904,9 @@ class ProfileScreen:
         if any, else the highlighted item (cursor_targets). Does NOT clear the set.'''
         return sorted(self.selected_comps) if self.selected_comps else self.cursor_targets()
 
-    def vcatalog(self):
+    def _base_catalog(self):
+        '''The filtered TOP-LEVEL catalog names (cfilter + scoped-profile membership + attr filter),
+        before any expanded `via: parts` children are interleaved.'''
         f = self.cfilter.lower()
         cat = [c for c in self.catalog if f in c.lower()] if f else self.catalog
         sm = self.scoped_members()                   # always the selected browse profile's members
@@ -2909,6 +2916,31 @@ class ProfileScreen:
             cat = [c for c in cat if _attr_pass(
                 {a.lower() for a in getattr(comps.get(c), 'attrs', [])}, self.attr_inc, self.attr_exc)]
         return cat
+
+    def is_expandable(self, name):
+        '''True if `name` is a `via: parts` aggregator (has drill-in pieces on this machine).'''
+        return bool(self._parts(name))
+
+    def toggle_expand_part(self, name):
+        if name in self.expanded_parts:
+            self.expanded_parts.discard(name)
+        elif self.is_expandable(name):
+            self.expanded_parts.add(name)
+
+    def _catalog_rows(self):
+        '''The catalog as `[(name, depth)]`: each top-level component at depth 0, and — for an
+        EXPANDED `via: parts` aggregator — its context-valid parts as depth-1 child rows right below.
+        A part is an ordinary component, so its child row tracks / pins / reads state by name.'''
+        rows = []
+        for name in self._base_catalog():
+            rows.append((name, 0))
+            if name in self.expanded_parts:
+                for p in self._parts(name):
+                    rows.append((p, 1))
+        return rows
+
+    def vcatalog(self):
+        return [name for name, _depth in self._catalog_rows()]
 
     def attr_summary(self):
         '''Short `✓a ✗b` chip for the catalog title, or '' at the pristine default (only the
@@ -3153,11 +3185,12 @@ def _draw_profiles(stdscr, pal, ps, ctx, note, screen):
         _scrollbar_h(stdscr, pal, top + body_h - 1, lil, liw, ps.lhoff, liw, _lmax, h, w)
 
     # RIGHT TOP: detail for the highlighted component (names are esoteric) — description + methods
-    vcat = ps.vcatalog()
+    crows = ps._catalog_rows()                        # [(name, depth)] — parts children interleaved
+    vcat = [nm for nm, _dep in crows]
     cur = vcat[ps.rcur] if vcat and 0 <= ps.rcur < len(vcat) else None
     # the component NAME rides the panel title, so the box is short (2 desc lines + a "required by"
     # line + an "in profiles" line) and the catalog grid below gets the reclaimed rows.
-    desc_h = 7 if body_h >= 12 else 0
+    desc_h = 8 if body_h >= 13 else 0    # one extra inner row for the parts/requires ("needs") line
     # When the PROFILE pane is focused on a profile, the detail box shows that profile's RAW .hu
     # DEFINITION — its top (highest-precedence) layer's authored term list, e.g. `[ "^languages"
     # +jvm-lang ]` — so you see what the profile IS while navigating; a note names lower layers.
@@ -3184,8 +3217,28 @@ def _draw_profiles(stdscr, pal, ps, ctx, note, screen):
         if cur:
             comp = ctx.routes.components.get(cur)
             desc = (comp.description if comp else '') or '(no description yet)'
-            for k, line in enumerate(_wrap(desc, diw)[:dih - 3]):
+            for k, line in enumerate(_wrap(desc, diw)[:dih - 4]):
                 _put(stdscr, dit + k, dil, _fit(line, diw), pal.style('info', dit + k, dil, h, w))
+            # What this component PULLS IN — the pieces of a `via: parts` aggregator, else its
+            # `requires:` deps — each annotated with the method it resolves to ([*via] = pinned), so
+            # you can see the composition without tracking it (and, expanded in the catalog, pin a
+            # piece's driver). Capabilities (non-component requires) show plain.
+            _parts_here = ps._parts(cur)
+            if _parts_here:
+                _nlabel, _deps = 'parts', _parts_here
+            else:
+                _nlabel = 'requires'
+                _deps = [str(d) for d in (getattr(comp, 'requires', None) or [])]
+
+            def _annot(d):
+                if d in ctx.routes.components:
+                    _av, _via, _pin = ps._resolve(d)
+                    return f'{d}[{"*" if _pin else ""}{_via or "—"}]'
+                return d                              # a capability, not an installable component
+            _ntext = (f'{_nlabel}: ' + '  '.join(_annot(d) for d in _deps)) if _deps \
+                else f'{_nlabel}: (none)'
+            _put(stdscr, dit + dih - 4, dil, _fit(_ntext, diw),
+                 pal.style('dependents', dit + dih - 4, dil, h, w))
             # attribute tags (kind filter, orthogonal to profiles): a tag active in the `A` filter
             # is marked ✓ (included) / ✗ (excluded) so you can see why a component shows or hides.
             atags = getattr(comp, 'attrs', []) if comp else []
@@ -3295,7 +3348,8 @@ def _draw_profiles(stdscr, pal, ps, ctx, note, screen):
         i = ps.rtop + r
         if i >= n:
             break
-        name, y = vcat[i], rit + 1 + r
+        name, depth = crows[i]
+        y = rit + 1 + r
         _shown.append(name)
         _parts = ps._parts(name)
         if _parts:
@@ -3316,7 +3370,14 @@ def _draw_profiles(stdscr, pal, ps, ctx, note, screen):
                  else 'menu_new' if is_new else 'info_dim' if _d == 'seen' else 'component')
         _hput(y, 0, '#' if name in ps.selected_comps else ' ',
               pal.style('component', y, ril, h, w, selected=foc) | rev)
-        _hput(y, x_name, _fit(name, name_w),
+        # expandable `via: parts` rows get a ▸/▾ twisty; drilled-in parts are indented under them
+        if depth:
+            disp = '  ↳ ' + name
+        elif ps.is_expandable(name):
+            disp = ('▾ ' if name in ps.expanded_parts else '▸ ') + name
+        else:
+            disp = '  ' + name                       # align leaves with the twisty column
+        _hput(y, x_name, _fit(disp, name_w),
               pal.style(nelem, y, ril + x_name, h, w, selected=foc) | rev | (curses.A_UNDERLINE if installed else 0))
         via_txt = (f'[{via}]' if pinned else via) if via else ('—' if not avail else '')
         _hput(y, x_via, _fit(via_txt, via_w),
@@ -4836,21 +4897,24 @@ def run(ctx):
                         note = (f'{len(ps.selected_comps)} selected' if ps.selected_comps
                                 else 'selection cleared')
                 elif pfact == 'confirm' and ps.focus == 'right':
-                    vcat = ps.vcatalog()               # `enter`: toggle Included for the cursor on targets
-                    if vcat:
+                    vcat = ps.vcatalog()               # `enter`: drill a parts comp open/closed, else
+                    if vcat:                           #         toggle Included for the cursor on targets
                         name = vcat[ps.rcur]
-                        tg = sorted(ps.targets())
-                        on = ps.target_state(name) != 'all'   # not fully on -> include; else exclude
-                        try:
-                            nch, _l = actions.set_included(ctx, name, tg, on)
-                            if on:                            # tracked implies seen
-                                actions.mark_all_seen(ctx, [name])
-                            ps.reload()
-                            menu_dirty = menu_dirty or nch > 0
-                            note = (f'{name} {"included on" if on else "excluded from"} {", ".join(tg)}'
-                                    if nch else 'no change')
-                        except ConfigsysError as e:
-                            note = f'edit failed: {e}'
+                        if ps.is_expandable(name):     # a `via: parts` aggregator -> reveal/hide its pieces
+                            ps.toggle_expand_part(name)
+                        else:
+                            tg = sorted(ps.targets())
+                            on = ps.target_state(name) != 'all'   # not fully on -> include; else exclude
+                            try:
+                                nch, _l = actions.set_included(ctx, name, tg, on)
+                                if on:                            # tracked implies seen
+                                    actions.mark_all_seen(ctx, [name])
+                                ps.reload()
+                                menu_dirty = menu_dirty or nch > 0
+                                note = (f'{name} {"included on" if on else "excluded from"} {", ".join(tg)}'
+                                        if nch else 'no change')
+                            except ConfigsysError as e:
+                                note = f'edit failed: {e}'
                 continue
 
             # -- Dotfiles screen --

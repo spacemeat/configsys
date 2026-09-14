@@ -83,6 +83,23 @@ def test_parts_are_context_filtered(tmp_path):
     assert ps2._parts('vulkan-runtime') == ['vulkan-icd-loader', 'vulkan-swrast']
 
 
+def test_catalog_expands_parts_pieces(tmp_path):
+    # a `via: parts` aggregator drills open in the catalog to its context-valid pieces (each an
+    # ordinary component, tracked/pinned by name); a leaf can't expand.
+    ps = menu.ProfileScreen(_ctx(tmp_path))                       # pop
+    ps.cfilter = 'vulkan-runtime'
+    assert ps.is_expandable('vulkan-runtime') and not ps.is_expandable('btop')
+    assert ps.vcatalog() == ['vulkan-runtime']                   # collapsed: no children shown
+    ps.toggle_expand_part('vulkan-runtime')
+    assert ps._catalog_rows() == [('vulkan-runtime', 0),
+                                  ('libvulkan1', 1), ('mesa-vulkan-drivers', 1)]
+    assert ps.vcatalog() == ['vulkan-runtime', 'libvulkan1', 'mesa-vulkan-drivers']
+    ps.toggle_expand_part('vulkan-runtime')                      # collapse
+    assert ps.vcatalog() == ['vulkan-runtime']
+    ps.toggle_expand_part('btop')                                # a leaf never expands
+    assert ps.expanded_parts == set()
+
+
 def test_install_state_partial_on_unmet_hard_component_require(tmp_path):
     # 8F: an installed component whose hard COMPONENT-requires aren't all present reads ◐. Capability
     # requires and suggests (-dotfiles/-select) are excluded, so an ordinary tool never false-flags.
