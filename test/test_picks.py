@@ -143,7 +143,7 @@ def test_set_included_targets_primary_by_default(tmp_path, monkeypatch):
     ctx = _ctx(tmp_path)
     primary = tmp_path / 'primary.hu'
     primary.write_text('{ }\n')
-    monkeypatch.setattr(actions, 'edit_target', lambda c: (str(primary), 'my-primary'))
+    monkeypatch.setattr(actions, '_primary_data_file', lambda c: (str(primary), 'my-primary'))
     n, label = actions.set_included(ctx, 'btop', ['boxA'], True)
     assert n == 1 and label == 'my-primary'
     assert plugins.read_picks(str(primary)) == {'boxA': ['btop']}
@@ -157,7 +157,7 @@ def test_set_included_respects_a_local_override(tmp_path, monkeypatch):
     plugins.set_picks(str(_local_file(tmp_path)), {'boxA': ['htop']})
     primary = tmp_path / 'primary.hu'
     primary.write_text('{ }\n')
-    monkeypatch.setattr(actions, 'edit_target', lambda c: (str(primary), 'my-primary'))
+    monkeypatch.setattr(actions, '_primary_data_file', lambda c: (str(primary), 'my-primary'))
     ctx.invalidate()
     n, label = actions.set_included(ctx, 'btop', ['boxA'], True)
     assert n == 1 and label == 'top config'                       # stayed local (the override lives there)
@@ -170,7 +170,7 @@ def test_move_picks_to_primary(tmp_path, monkeypatch):
     plugins.set_picks(str(_local_file(tmp_path)), {'a': ['btop', 'fd'], 'b': ['fish']})
     primary = tmp_path / 'primary.hu'
     primary.write_text('{ }\n')
-    monkeypatch.setattr(actions, 'edit_target', lambda c: (str(primary), 'my-primary'))
+    monkeypatch.setattr(actions, '_primary_data_file', lambda c: (str(primary), 'my-primary'))
     ctx.invalidate()
     n, label = actions.move_picks_to_primary(ctx)
     assert n == 3 and label == 'my-primary'
@@ -193,7 +193,7 @@ def test_clear_machine_clears_both_layers(tmp_path, monkeypatch):
     primary.write_text('{ }\n')
     plugins.set_picks(str(_local_file(tmp_path)), {'m': ['a']})
     plugins.set_picks(str(primary), {'m': ['b'], 'other': ['c']})
-    monkeypatch.setattr(actions, 'edit_target', lambda c: (str(primary), 'my-primary'))
+    monkeypatch.setattr(actions, '_primary_data_file', lambda c: (str(primary), 'my-primary'))
     ctx.invalidate()
     changed, _ = actions.set_included_clear_machine(ctx, 'm')
     assert changed

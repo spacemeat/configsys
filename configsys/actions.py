@@ -30,6 +30,25 @@ def _dir_label(ctx, f):
     return 'top config' if str(f) == str(ctx.paths.user_config_file) else Path(f).parent.name
 
 
+def _nature_target(ctx, key, lives_in):
+    '''(file, label) where an edit to `key` should land — the ONE policy scalars, picks, and
+    dispositions all share, driven by SETTING_NATURE (declared config, not incidental file content).
+    `lives_in(file) -> bool` says whether the edit's slice already exists in that file. Preference:
+    the writable layer it already lives in (the local top config shadows the primary, so editing a
+    lower layer would be ineffective), else the nature DEFAULT — the primary plugin for a 'uniform'
+    key when one is blessed+synced (portable), else this box's top config (a 'machine' key, or no
+    primary).'''
+    local = str(ctx.paths.user_config_file)
+    pfile, pname = _primary_data_file(ctx)
+    if lives_in(local):
+        return local, 'top config'
+    if pfile and lives_in(pfile):
+        return pfile, pname
+    if SETTING_NATURE.get(key) == 'uniform' and pfile:
+        return pfile, pname
+    return local, 'top config'
+
+
 def _profile_target(ctx, profile):
     '''Where a membership edit is EFFECTIVE **and writable**: the profile's highest-precedence
     definition layer when that layer is one we may edit — this machine's top config or the primary
@@ -134,9 +153,10 @@ def stage_adopt(ctx, comp):
 
 
 def set_disposition(ctx, comp, state):
-    '''Set component `comp`'s disposition — 'seen' | 'interesting', or clear it (state None/'new') —
-    in the LOCAL dispositions store (this box's triage, like !uninstall). Returns (changed, label).'''
-    tfile = str(ctx.paths.user_config_file)
+    '''Set component `comp`'s disposition — 'seen' | 'interesting', or clear it (state None/'new').
+    dispositions are `machine`-nature (SETTING_NATURE) -> the LOCAL top config by default (this box's
+    triage), but honor an existing home if you've moved them. Returns (changed, label).'''
+    tfile, label = _nature_target(ctx, 'dispositions', lambda f: bool(plugins.read_dispositions(f)))
     disp = plugins.read_dispositions(tfile)
     want = None if state in (None, 'new') else state
     if disp.get(comp) == want:
@@ -147,18 +167,13 @@ def set_disposition(ctx, comp, state):
         disp[comp] = want
     plugins.set_dispositions(tfile, disp)
     ctx.invalidate()
-    return True, 'top config'
+    return True, label
 
 
 def _picks_target(ctx, machine):
-    '''(file, label) for a picks edit on `machine`. PORTABLE by default — the primary plugin when one
-    is blessed+synced (via edit_target), so picks travel to your other machines — UNLESS this box's
-    top config already carries a local override for that machine (a local per-machine list SHADOWS the
-    primary's, so the edit must land there to be effective). Mirrors _configs_target/_profile_target.
-    Dispositions, by contrast, stay local (they're per-box triage).'''
-    if machine in plugins.read_picks(str(ctx.paths.user_config_file)):
-        return str(ctx.paths.user_config_file), 'top config'
-    return edit_target(ctx)
+    '''(file, label) for a picks edit on `machine`. picks are `uniform` (SETTING_NATURE) -> the
+    portable primary plugin by default; a per-machine local list still overrides (shadow-guard).'''
+    return _nature_target(ctx, 'picks', lambda f: machine in plugins.read_picks(f))
 
 
 def set_included(ctx, comp, machines, on):
@@ -197,7 +212,8 @@ def set_included_clear_machine(ctx, machine):
     '''Drop a machine's entire `picks:` entry (when the machine is removed) — from BOTH the local top
     config and the primary plugin, since its picks may live in either. Returns (changed, label).'''
     changed = False
-    files = {str(ctx.paths.user_config_file), edit_target(ctx)[0]}
+    pfile, _pn = _primary_data_file(ctx)
+    files = {str(ctx.paths.user_config_file)} | ({str(pfile)} if pfile else set())
     for tfile in files:
         picks = plugins.read_picks(tfile)
         if machine in picks:
@@ -214,10 +230,10 @@ def move_picks_to_primary(ctx):
     machines. Writes the current EFFECTIVE picks (the merged, local-wins view) to the primary and
     clears the local `picks:` node. No-op when there's no blessed+synced primary, or no local picks.
     Returns (moved_component_count, label). Dispositions are deliberately left local.'''
-    prim_file, label = edit_target(ctx)
-    local_file = str(ctx.paths.user_config_file)
-    if str(prim_file) == local_file:                 # edit_target fell back to local -> no primary
+    prim_file, label = _primary_data_file(ctx)
+    if not prim_file:                                # no blessed+synced primary -> nowhere portable
         return 0, 'no primary'
+    local_file = str(ctx.paths.user_config_file)
     local = plugins.read_picks(local_file)
     if not local:
         return 0, label
@@ -584,6 +600,9 @@ SETTING_NATURE = {
     'dirs.app':          'uniform',
     'dirs.sdk':          'uniform',
     'dirs.src':          'uniform',
+    # the matrix sections (not scalar settings — routed via _nature_target, not `config` edits):
+    'picks':             'uniform',           # the install set is meant to travel between machines
+    'dispositions':      'machine',           # NEW/interesting triage is per-box, stays local
 }
 
 
@@ -626,16 +645,7 @@ def _setting_target(ctx, key):
     already lives in (editing a lower one would be shadowed), else its nature default — the primary
     plugin for a 'uniform' setting when one is blessed+synced, this machine's top config for a
     'machine' setting (or when no primary exists). The counterpart to _profile_target for scalars.'''
-    where, _who = _setting_home(ctx, key)
-    local = str(ctx.paths.user_config_file)
-    if where == 'local':
-        return local, 'top config'
-    pfile, pname = _primary_data_file(ctx)
-    if where == 'primary':
-        return pfile, pname
-    if SETTING_NATURE.get(key) == 'uniform' and pfile:       # unset -> nature default
-        return pfile, pname
-    return local, 'top config'
+    return _nature_target(ctx, key, lambda f: _read_setting(f, key) is not None)
 
 
 def config_settings(ctx):
