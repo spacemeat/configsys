@@ -875,7 +875,8 @@ _HELP = {
         'glossary': [
             ('columns', "per row: # multi-selected · name · via (resolved install method; [pinned]) · "
                         "from (origin: repo / plugin / local) · inst'd (● installed+tracked / "
-                        '⊙ installed+untracked / ◐ some parts / ○ none / ⮾ staged for uninstall) · '
+                        '⊙ installed+untracked / ◐ some parts / ○ none / ⮾ staged for uninstall / '
+                        '⊘ no install method on this OS) · '
                         'new ◆ · flag ☆ interesting / · seen · then one Included cell per machine '
                         '(● tracked / ○ not)'),
             ('track (T / t)', 'T toggles TRACKING of the multi-select set / the whole selected profile; '
@@ -2376,6 +2377,7 @@ class ProfileScreen:
         self.attr_exc = {'dotfiles'}     # ...and to EXCLUDE — hide the -dotfiles companions by default
         self._res = {}                   # component -> (available, via, pinned); survives reloads
         self._hard_dep_cache = {}        # component -> frozenset of its transitive hard component-requires
+        self._avail_os_cache = {}        # component -> [platform labels where it routes] (lazy, for the infobox)
         self.show_install = 1 if ctx.config.install_overlay_default() else 0   # `O` toggles the install
         self._overlay = None             # overlay off/on (default from `install-overlay`, on unless set):
                                          # installed underlined, orphans coloured, ignored orphans dimmed
@@ -3076,6 +3078,18 @@ class ProfileScreen:
     def available(self, name):
         return self._resolve(name)[0]
 
+    def available_oses(self, name):
+        '''Representative OS-family labels where `name` DOES resolve (the coverage matrix) — for the
+        infobox hint on a component with no install method on THIS box. Lazy + cached (7 resolves).'''
+        if name not in self._avail_os_cache:
+            try:
+                from .. import reportgen
+                self._avail_os_cache[name] = [r['label'] for r in reportgen.coverage(self.ctx, name)
+                                              if r.get('ok')]
+            except Exception:                        # noqa: BLE001 — never let it break the detail box
+                self._avail_os_cache[name] = []
+        return self._avail_os_cache[name]
+
     def method(self, name):
         '''(resolved_via, pinned) for the row's method label.'''
         _avail, via, pinned = self._resolve(name)
@@ -3249,22 +3263,34 @@ def _draw_profiles(stdscr, pal, ps, ctx, note, screen):
             # `requires:` deps — each annotated with the method it resolves to ([*via] = pinned), so
             # you can see the composition without tracking it (and, expanded in the catalog, pin a
             # piece's driver). Capabilities (non-component requires) show plain.
-            _parts_here = ps._parts(cur)
-            if _parts_here:
-                _nlabel, _deps = 'parts', _parts_here
+            # A component with NO install method on THIS OS: say so + name where it DOES route (the
+            # coverage matrix), instead of the (moot) deps line.
+            if not ps.available(cur):
+                _oses = ps.available_oses(cur)
+                _ntext = (f'⊘ no install method on {ctx.os_info.block} · available on: {", ".join(_oses)}'
+                          if _oses else f'⊘ no install method on {ctx.os_info.block} (declines on every '
+                          'modeled OS)')
+                _nrole = 'issue_warning'
             else:
-                _nlabel = 'requires'
-                _deps = [str(d) for d in (getattr(comp, 'requires', None) or [])]
+                # else: what this component PULLS IN — the pieces of a `via: parts` aggregator, else its
+                # `requires:` deps — each annotated with the method it resolves to ([*via] = pinned).
+                _parts_here = ps._parts(cur)
+                if _parts_here:
+                    _nlabel, _deps = 'parts', _parts_here
+                else:
+                    _nlabel = 'requires'
+                    _deps = [str(d) for d in (getattr(comp, 'requires', None) or [])]
 
-            def _annot(d):
-                if d in ctx.routes.components:
-                    _av, _via, _pin = ps._resolve(d)
-                    return f'{d}[{"*" if _pin else ""}{_via or "—"}]'
-                return d                              # a capability, not an installable component
-            _ntext = (f'{_nlabel}: ' + '  '.join(_annot(d) for d in _deps)) if _deps \
-                else f'{_nlabel}: (none)'
+                def _annot(d):
+                    if d in ctx.routes.components:
+                        _av, _via, _pin = ps._resolve(d)
+                        return f'{d}[{"*" if _pin else ""}{_via or "—"}]'
+                    return d                          # a capability, not an installable component
+                _ntext = (f'{_nlabel}: ' + '  '.join(_annot(d) for d in _deps)) if _deps \
+                    else f'{_nlabel}: (none)'
+                _nrole = 'dependents'
             _put(stdscr, dit + dih - 4, dil, _fit(_ntext, diw),
-                 pal.style('dependents', dit + dih - 4, dil, h, w))
+                 pal.style(_nrole, dit + dih - 4, dil, h, w))
             # attribute tags (kind filter, orthogonal to profiles): a tag active in the `A` filter
             # is marked ✓ (included) / ✗ (excluded) so you can see why a component shows or hides.
             atags = getattr(comp, 'attrs', []) if comp else []
@@ -3423,6 +3449,8 @@ def _draw_profiles(stdscr, pal, ps, ctx, note, screen):
             inst_role = 'installed' if name in _cur_track else 'orphan_lurking'
         elif istate == 'some':
             inst_g, inst_role = '◐', 'installed'
+        elif not avail:                              # no install method on THIS OS -> can't install here
+            inst_g, inst_role = '⊘', 'info_dim'
         else:
             inst_g, inst_role = '○', 'info_dim'
         cells = [(inst_g, inst_role),
@@ -3450,7 +3478,7 @@ def _draw_profiles(stdscr, pal, ps, ctx, note, screen):
     if note:
         status += f'    {note}'
     # column legend for the matrix table — two right-aligned rows (status shares the first row's left).
-    legend1 = "inst'd  ● trk  ⊙ untrk  ◐ part  ○ no  ⮾ uninst "
+    legend1 = "inst'd  ● trk  ⊙ untrk  ◐ part  ○ no  ⮾ uninst  ⊘ n/a-here "
     legend2 = "flag  ☆ int  · seen    new  ◆    machine  ● tracked  ○ not    tree  ⊙ N "
     _sty = lambda row, x: pal.style('status_line', row, x, h, w)
     lg1_x = max(0, w - len(legend1))
