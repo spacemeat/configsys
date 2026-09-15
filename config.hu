@@ -33,13 +33,14 @@ profiles: {
     // delete this profile. (NAMESWEEP still pending on several of these.)
     finders: [ fd  fzf  ripgrep  television ]
     terminal-emulators: [ alacritty  foot  ghostty  kitty  wezterm  mosh ]
-    terminal-utils: [ tmux  xclip  zoxide  bat  xsel  wl-clipboard  sesh  gum ]
-    system-utils: [ fastfetch  lsblk ]
+    terminal-utils: [ tmux  xclip  zoxide  bat  xsel  wl-clipboard  sesh  gum  9base  uberzugpp ]
+    system-utils: [ doas  dosfstools  fastfetch  gcompat  lsblk ]
+    native-package-tools: [ epel-release  rpmfusion-free  rpmfusion-nonfree  snapd  snapd-snap-link  snapd-socket  yay ]
     system-monitors: [ btop  htop  bottom  atop  bmon  iotop  s-tui  glances  nvtop  wavemon  /*sysdig*/  dstat  lm-sensors ]
     disk-usage-utils: [ ncdu  duf  dysk ]
     file-browsers: [ mc  yazi  superfile  fff  tree  eza ]
     shells: [ fish  nushell  zsh ]
-    configuration-tools: [ ansible  stow ]
+    configuration-tools: [ puppet  ansible  salt  stow ]
     password-passkey: [ bitwarden  vaultwarden  doppler  pass  gnupg  openssh-server ]
     fonts: [ mononoki-nerd ]
 
@@ -48,10 +49,11 @@ profiles: {
     text-editors: [ asciidoc  android-studio  antigravity  emacs  helix  jetbrains-toolbox  micro  neovim  vscode
         vscodium  zed  fresh  jrnl ]
 
-    desktops-compositors: [ budgie  cosmic  fvwm2  gnome  i3  kde  lxqt  mate  qtile  sway  xfce  xmonad ]
+    desktops-compositors: [ budgie  cinnamon  cosmic  fvwm2  gnome  hyprland  i3  kde  lxqt  mate  qtile  sway  xfce  xmonad ]
+    desktop-tools: [ wmenu ]
     web-browsers: [ chrome  chromium  firefox  librewolf  brave  opera  vivaldi  edge  tor-browser  lynx ]
     audio-infra: [ pipewire  jack  wiremix ]
-    gaming: [ vulkan-runtime  steam  wine  winetricks  protonup-qt  protontricks ]
+    gaming: [ vulkan-icd-loader  vulkan-intel  vulkan-loader  vulkan-radeon  vulkan-runtime  steam  wine  winetricks  protonup-qt  protontricks ]
     games: [ zork ]   // mostly a catalog plugins/your config populate (configsys-source adds xpilot)
 
     virtual-machines: [ qemu  virt-manager  virtualbox  libvirt-clients ]
@@ -59,7 +61,7 @@ profiles: {
     k8s: [ kubectl  helm  k9s  k3s ]
 
     db-clients: [ pgcli  mycli  dbeaver  sqlitebrowser  lazysql ]
-    db-servers: [ postgresql-service  mariadb-service  redis-service  mongodb  mongodb-service ]
+    db-servers: [ postgresql  postgresql-service  maria  mariadb-service  redis-service  mongodb  mongodb-service ]
 
     net-tools: [ iproute2  impala  bluetui  curl  wireshark  wireshark-group  tshark  tcpdump  nmap  mtr  gping  traceroute  iperf3
         socat  ethtool  whois  netcat  dig  iftop  nethogs  nload  rsync  vnstat  dnspeep  bridge-utils  croc  wormhole  ttyd ]
@@ -70,11 +72,11 @@ profiles: {
     // Debug/analysis kit (was a parts-component): curate the tools you want; each installs where it routes.
     analysis: [ valgrind  cppcheck  clang-tidy  lldb  strace  ltrace ]
     c-cpp-lang: [ bazelisk  cpp-toolchain  gcc-10 gcc-11 gcc-12 gcc-13  gcc-14  gcc-15  clang-18  clang-19
-        clang-20  gdb  make  +analysis  cmake  ninja  meson  clang  cmake-gui  doxygen  ccmake  clangd  conan  gettext  heaptrack  vcpkg ]
+        clang-20  gdb  make  +analysis  libc++  libc++abi  cmake  ninja  meson  clang  cmake-gui  doxygen  ccmake  clangd  conan  gettext  heaptrack  vcpkg ]
     dotnet-lang: [ dotnet ]
     go-lang: [ go  goimports ]
     haskell-lang: [ haskell  cabal  hlint ]
-    java-lang: [ jdk ]
+    java-lang: [ jdk  jdk-17  jdk-21  jdk-25 ]
     kotlin-lang: [ detekt  kotlin ]
     scala-lang: [ scala  sbt  scalacli ]
     clojure-lang: [ clojure  leiningen ]
@@ -96,19 +98,19 @@ profiles: {
         elm  erlang  elixir  julia  nim  nasm  octave odin  perl  r  zig  gfortran  gnat  gnucobol  d  crystal
         dart  raku  v  gleam  fennel  swift  racket  guile  c3  deno  roc ]
 
-    c-cpp-libs: [ abseil dbus-dev  swig  protobuf-dev ]
+    c-cpp-libs: [ abseil  dbus-dev  swig  protobuf-dev ]
     c-cpp-dev-libs: [ pipewire-dev  ffmpeg-dev  libdrm-dev  libgit2  libsecret  nng  opencascade  unixodbc
         // consolidated from the configsys-source plugin into base routes (build deps useful in their own right):
         ncurses  libevent  openssl  zlib  asio  tinyxml2  snappy  bzip2  libzstd  liblz4  libsodium  liburing
-        libaio  libunwind  libdwarf  libiberty  libcurl  expat  sdl2-ttf  sdl2-image  libpcap  sqlite  libmtp
+        libaio  libunwind  libdwarf  libiberty  libcurl  libpng  expat  sdl2-ttf  sdl2-image  libpcap  sqlite  libmtp
         fuse  libusb  libmagic  libidn2 ]
 
-    jvm-tools: [ mvnd  maven  gradle  sdkman  ant  jbang  coursier  springboot  quarkus  micronaut
+    jvm-tools: [ mvnd  maven  graalvm  gradle  sdkman  ant  jbang  coursier  springboot  quarkus  micronaut
         jreleaser  visualvm  jmc ]
 
     jvm-dev: [ +jvm-lang  +jvm-tools ]
 
-    dev-tools: [ gh  git  lazygit  jq  just  protobuf  yq  liquibase  perf  jenkins  po4a  source-highlight  obsidian  ghidra  radare2  faker  grex ]
+    dev-tools: [ dh  gh  git  lazygit  jq  just  protobuf  yq  liquibase  perf  jenkins  po4a  source-highlight  obsidian  ghidra  radare2  faker  grex ]
     autotools: [ autoconf  automake  libtool  pkg-config  bison  flex ]   // the basic C-dev / GNU build toolchain (make/cmake are their own tools)
     version-control-tools: [ git  lazygit  mercurial  subversion  cvs  perforce  fossil  bazaar  git-lfs  patch ]
     compression-tools: [ zstd  lz4  p7zip  zip  unzip  unrar  rar ]
@@ -120,12 +122,12 @@ profiles: {
 
     ai-tools: [ claude-code  codex  llm  aider  ollama  impala ]
 
-    web-tools: [ prettier  httpie  mitmproxy  xh  websocat  postman  insomnia  bruno  jmeter  nginx  newsboat ]
+    web-tools: [ cockpit  prettier  httpie  mitmproxy  xh  websocat  postman  insomnia  bruno  jmeter  nginx  nginx-service  newsboat ]
     web-package-managers: [ bun  pnpm  yarn ]
 
     graphics-dev: [ vulkan-dev  opengl  glfw  sdl  sfml  egl  glew  glm  libdecor ]
     game-dev: [ godot  godots  godl  unityhub ]
-    ui-dev: [ flutter  gtk  gtk3  gtkmm  cairo  libinput  pixman  libdecor  libx11  libxcb  xcb-util  libxcursor  libxft  libxi  libxinerama  libxkbcommon  libxrandr  libxxf86vm  ncurses  pango  qt  wayland  wayland-protocols  wlroots  wxpython  wxwidgets ]
+    ui-dev: [ flutter  gtk  gtk3  gtkmm  cairo  libinput  pixman  libdecor  libx11  libxcb  libxcb-cursor-dev  libxcb-devel libxcb-xinerama0  libxcb-xinput0  libxext  libxss  libxtst  libxcursor  libxft  libxi  libxinerama  libxkbcommon  libxrandr  libxxf86vm  ncurses  pango  qt  wayland  wayland-protocols  webkit2gtk  wlroots  wxpython  wxwidgets  xcb-util  xcb-util-cursor  xcb-util-cursor-devel ]
 
     web-dev: [ +web-lang  +web-browsers  +web-package-managers  +web-lang  +web-tools ]
 
@@ -135,7 +137,7 @@ profiles: {
     audio-tools: [ audacity  espeak  ardour  lmms  tenacity  musescore  hydrogen  carla  sonic-pi  supercollider
         qjackctl  yabridge  pulseaudio-utils ]
 
-    science: [ jupyterlab  gnuplot  paraview  opencv  opencv-python  foldit  foldingathome ]
+    science: [ astroterm  jupyterlab  gnuplot  paraview  opencv  opencv-python  foldit  foldingathome ]
     math: [ texlive  texlive-full  julia  r  octave  maxima  wxmaxima  pari  gap  gnuplot  sagemath  numpy ]
 
     communication: [ discord  discordo  slack  obs-studio ]
@@ -146,10 +148,10 @@ profiles: {
     codecs: [ ffmpeg  gst-good  gst-bad ]
     codecs-restricted: [ gst-ugly  gst-libav  libavcodec-extra ]
 
-    media-servers: [ jellyfin-service  plex-service  emby-service  navidrome  mpd ]
+    media-servers: [ emby  emby-service  jellyfin  jellyfin-service  plex  plex-service  navidrome  mpd ]
     media-players: [ +codecs  gst-libav  ffmpeg  vlc  spotify  kodi  stremio  mpc  strawberry  mpd-mpris  playerctl ]
-    home-server: [ home-assistant  pi-hole  adguardhome  homebridge  mosquitto-service  syncthing
-        tailscale-service  grafana-service  prometheus  cockpit-service  wireguard  nextcloud ]
+    home-server: [ home-assistant  pi-hole  adguardhome  homebridge  mosquitto  mosquitto-service  syncthing
+        tailscale-service  grafant  grafana-service  prometheus  cockpit-service  wireguard  nextcloud ]
 
     terminal: [ +finders  +terminal-emulators  +terminal-utils  +system-utils  +system-monitors
         +disk-usage-utils  +file-browsers  +shells  +configuration-tools  +password-passkey  +fonts ]
