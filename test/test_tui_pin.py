@@ -36,6 +36,22 @@ def _ctx(tmp_path, *extra):
     return Context(args)
 
 
+def test_target_machines_can_exclude_the_current(tmp_path):
+    # `M` lets you retarget tracking onto OTHER machines: target_machines None -> current (default);
+    # an explicit set is used verbatim (may omit the current box, or be empty -> A/D no-op).
+    from configsys.tui.menu import ProfileScreen
+    d = tmp_path / '.config' / 'configsys'
+    d.mkdir(parents=True)
+    (d / 'configsys.hu').write_text('{ machine: box1  picks: { box1: [ btop ]  box2: [ ] } }')
+    ps = ProfileScreen(_ctx(tmp_path))
+    assert ps.targets() == {'box1'}                            # default -> this box
+    ps.target_machines = {'box2'}                              # target ONLY the other machine
+    assert ps.targets() == {'box2'}
+    assert ps.target_state('btop') == 'none'                   # btop isn't picked on box2
+    ps.target_machines = set()                                 # explicitly no targets
+    assert ps.targets() == set() and ps.target_state('btop') == 'none'   # not a false 'all'
+
+
 def _menu_on(ctx, component):
     cfg, _r, _u, _l, states = ctx.load_pipeline()
     layouts, transitive = menu._menu_model(cfg)

@@ -2233,8 +2233,6 @@ def _machines_modal(stdscr, pal, ctx, targets):
     while True:
         rows = machs()
         this = ctx.config.current_machine()
-        if not tg:
-            tg = {this}
         sel = max(0, min(sel, len(rows) - 1))
         nshow = len(rows) + (1 if mode == 'add' else 0)
         h, w = stdscr.getmaxyx()
@@ -2326,9 +2324,8 @@ def _machines_modal(stdscr, pal, ctx, targets):
         elif ch in (ord('k'), curses.KEY_UP):
             sel = max(0, sel - 1)
         elif ch == ord(' '):
-            tg ^= {rows[sel]}
-            if not tg:
-                tg = {this}
+            tg ^= {rows[sel]}                         # toggle freely — the current machine included; an
+                                                     # empty set is allowed (A/D then simply no-op)
         elif ch == ord('m'):                         # make the selected machine THIS box's current
             if rows[sel] != this:
                 actions.set_machine_active(ctx, rows[sel])
@@ -2901,14 +2898,20 @@ class ProfileScreen:
         return ms
 
     def targets(self):
-        '''The edit-target machines A/D fan out to — the selected set, or {current} by default.'''
-        return self.target_machines if self.target_machines else {self.ctx.config.current_machine()}
+        '''The edit-target machines T/t/enter fan out to. `target_machines` is None by DEFAULT (the
+        modal was never opened) -> this box's current machine; once you edit the target set it's used
+        verbatim — so you CAN target only OTHER machines (edit their picks from here), or none at all
+        (then tracking simply no-ops).'''
+        tm = self.target_machines
+        return set(tm) if tm is not None else {self.ctx.config.current_machine()}
 
     def target_state(self, comp):
         '''Whether `comp` is picked across the TARGET machines: "all" · "some" · "none" — the
         actionable Included summary (what A/D toggles).'''
         picks = self.ctx.config.picks()
         tg = self.targets()
+        if not tg:                                   # no targets selected -> nothing to be tracked on
+            return 'none'
         hits = sum(1 for m in tg if comp in picks.get(m, ()))
         return 'all' if hits == len(tg) else ('some' if hits else 'none')
 
@@ -3443,7 +3446,7 @@ def _draw_profiles(stdscr, pal, ps, ctx, note, screen):
 
     _tg = sorted(ps.targets())
     status = (f' browse: {prof or "—"}    this box: {ctx.config.current_machine()}'
-              f'    targets: {", ".join(_tg)}')
+              f'    targets: {", ".join(_tg) or "(none)"}')
     if note:
         status += f'    {note}'
     # column legend for the matrix table — two right-aligned rows (status shares the first row's left).
@@ -4913,7 +4916,7 @@ def run(ctx):
                      ps.selected_comps) = _keep          # ...but keep the user where they were
                     ps.target_machines = cur
                     menu_dirty = True
-                    note = mnote or f'targets: {", ".join(sorted(cur))}'
+                    note = mnote or f'targets: {", ".join(sorted(cur)) or "(none)"}'
                 elif pfact == 'where':                     # full-page provenance for the current profile
                     _wp = ps.cur_profile()
                     if _wp:
