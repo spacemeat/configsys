@@ -15953,6 +15953,15 @@
     "name": "detekt"
    }
   },
+  "dh-make": {
+   "apt\\dh-make": {
+    "driver": "apt",
+    "fields": {
+     "name": "dh-make"
+    },
+    "name": "dh-make"
+   }
+  },
   "dig": {
    "apt\\dig": {
     "driver": "apt",
@@ -29615,6 +29624,15 @@
     "name": "detekt"
    }
   },
+  "dh-make": {
+   "apt\\dh-make": {
+    "driver": "apt",
+    "fields": {
+     "name": "dh-make"
+    },
+    "name": "dh-make"
+   }
+  },
   "dig": {
    "apt\\dig": {
     "driver": "apt",
@@ -43028,6 +43046,15 @@
      "name": "detekt"
     },
     "name": "detekt"
+   }
+  },
+  "dh-make": {
+   "apt\\dh-make": {
+    "driver": "apt",
+    "fields": {
+     "name": "dh-make"
+    },
+    "name": "dh-make"
    }
   },
   "dig": {
@@ -93049,6 +93076,15 @@
     "name": "detekt"
    }
   },
+  "dh-make": {
+   "apt\\dh-make": {
+    "driver": "apt",
+    "fields": {
+     "name": "dh-make"
+    },
+    "name": "dh-make"
+   }
+  },
   "dig": {
    "apt\\dig": {
     "driver": "apt",
@@ -120584,6 +120620,15 @@
     "name": "detekt"
    }
   },
+  "dh-make": {
+   "apt\\dh-make": {
+    "driver": "apt",
+    "fields": {
+     "name": "dh-make"
+    },
+    "name": "dh-make"
+   }
+  },
   "dig": {
    "apt\\dig": {
     "driver": "apt",
@@ -134275,6 +134320,15 @@
      "name": "detekt"
     },
     "name": "detekt"
+   }
+  },
+  "dh-make": {
+   "apt\\dh-make": {
+    "driver": "apt",
+    "fields": {
+     "name": "dh-make"
+    },
+    "name": "dh-make"
    }
   },
   "dig": {

@@ -33,7 +33,7 @@ profiles: {
     // delete this profile. (NAMESWEEP still pending on several of these.)
     finders: [ fd  fzf  ripgrep  television ]
     terminal-emulators: [ alacritty  foot  ghostty  kitty  wezterm  mosh ]
-    terminal-utils: [ tmux  xclip  zoxide  bat  xsel  wl-clipboard  sesh  gum  9base  uberzugpp ]
+    terminal-utils: [ tmux  xclip  zoxide  bat  xsel  wl-clipboard  sesh  gum  ueberzugpp ]
     system-utils: [ doas  dosfstools  fastfetch  gcompat  lsblk ]
     native-package-tools: [ epel-release  rpmfusion-free  rpmfusion-nonfree  snapd  snapd-snap-link  snapd-socket  yay ]
     system-monitors: [ btop  htop  bottom  atop  bmon  iotop  s-tui  glances  nvtop  wavemon  /*sysdig*/  dstat  lm-sensors ]
@@ -61,7 +61,7 @@ profiles: {
     k8s: [ kubectl  helm  k9s  k3s ]
 
     db-clients: [ pgcli  mycli  dbeaver  sqlitebrowser  lazysql ]
-    db-servers: [ postgresql  postgresql-service  maria  mariadb-service  redis-service  mongodb  mongodb-service ]
+    db-servers: [ postgresql  postgresql-service  mariadb  mariadb-service  redis-service  mongodb  mongodb-service ]
 
     net-tools: [ iproute2  impala  bluetui  curl  wireshark  wireshark-group  tshark  tcpdump  nmap  mtr  gping  traceroute  iperf3
         socat  ethtool  whois  netcat  dig  iftop  nethogs  nload  rsync  vnstat  dnspeep  bridge-utils  croc  wormhole  ttyd ]
@@ -110,7 +110,7 @@ profiles: {
 
     jvm-dev: [ +jvm-lang  +jvm-tools ]
 
-    dev-tools: [ dh  gh  git  lazygit  jq  just  protobuf  yq  liquibase  perf  jenkins  po4a  source-highlight  obsidian  ghidra  radare2  faker  grex ]
+    dev-tools: [ debhelper  dh-make  gh  git  lazygit  jq  just  protobuf  yq  liquibase  perf  jenkins  po4a  source-highlight  obsidian  ghidra  radare2  faker  grex ]
     autotools: [ autoconf  automake  libtool  pkg-config  bison  flex ]   // the basic C-dev / GNU build toolchain (make/cmake are their own tools)
     version-control-tools: [ git  lazygit  mercurial  subversion  cvs  perforce  fossil  bazaar  git-lfs  patch ]
     compression-tools: [ zstd  lz4  p7zip  zip  unzip  unrar  rar ]
@@ -151,7 +151,7 @@ profiles: {
     media-servers: [ emby  emby-service  jellyfin  jellyfin-service  plex  plex-service  navidrome  mpd ]
     media-players: [ +codecs  gst-libav  ffmpeg  vlc  spotify  kodi  stremio  mpc  strawberry  mpd-mpris  playerctl ]
     home-server: [ home-assistant  pi-hole  adguardhome  homebridge  mosquitto  mosquitto-service  syncthing
-        tailscale-service  grafant  grafana-service  prometheus  cockpit-service  wireguard  nextcloud ]
+        tailscale-service  grafana  grafana-service  prometheus  cockpit-service  wireguard  nextcloud ]
 
     terminal: [ +finders  +terminal-emulators  +terminal-utils  +system-utils  +system-monitors
         +disk-usage-utils  +file-browsers  +shells  +configuration-tools  +password-passkey  +fonts ]

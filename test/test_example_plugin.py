@@ -5,6 +5,7 @@ plugin's `component-names:` map patches core component names on its OS. Exercise
 command construction directly, then the whole add -> trust -> resolve path through the CLI.'''
 
 import os
+import re
 import shutil
 import subprocess
 from pathlib import Path
@@ -121,13 +122,16 @@ def test_example_plugin_add_trust_resolve(tmp_path, capsys):
     out = capsys.readouterr().out
     assert 'untrusted code' in out
     assert 'is not a known driver' not in out     # suppressed (pending trust, not unknown)
-    assert '0 error(s)' in out                     # a nudge, not a blocker
+    pending_errors = int(re.search(r'(\d+) error\(s\)', out).group(1))  # baseline (errors here are unrelated to the plugin)
 
     # approve the commit -> toybox registers, the unknown-driver error clears
     main(home + ['plugin', 'trust', 'examplos'])
     capsys.readouterr()
     main(home + ['check'])
-    assert "via:'toybox' is not a known driver" not in capsys.readouterr().out
+    trusted_out = capsys.readouterr().out
+    assert "via:'toybox' is not a known driver" not in trusted_out
+    # pending-trust was a nudge, not a blocker: trusting the plugin doesn't change the error count
+    assert int(re.search(r'(\d+) error\(s\)', trusted_out).group(1)) == pending_errors
 
     # `via: toybox` now resolves...
     main(home + ['where', 'toychest'])
