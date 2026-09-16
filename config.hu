@@ -169,7 +169,7 @@ profiles: {
     //     keys: { global: { quit: [ q  ctrl-c ] }  screens: { theme: t } }
     keys: {
         // The number-key screen switcher (the chip bar). One key each.
-        screens: { components: "1"  profiles: "2"  plugins: "3"  dotfiles: "4"  config: "5"  theme: "6" }
+        screens: { components: "1"  profiles: "2"  plugins: "3"  glue: "4"  dotfiles: "5"  config: "6"  theme: "7" }
 
         // Actions shared by every screen. A per-page section (added as each screen is wired to the
         // keymap) overrides these for the same key on that page. Generic navigation is declared here

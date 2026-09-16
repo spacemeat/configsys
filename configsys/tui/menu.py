@@ -957,7 +957,7 @@ _HELP = {
         'glossary': [
             ('map', 'shared colors; a role references one by name, or uses a literal #rrggbb'),
             ('fx', 'per-role bold / underline / reverse'),
-            ('sample', 'F1-F6 cycle which page the sample previews'),
+            ('sample', 'F1-F7 cycle which page the sample previews'),
             ('gradient', "each page's diagonal background; toggle per page"),
         ],
     },
@@ -1110,9 +1110,9 @@ def _fill_bg(stdscr, pal, h, w):
 
 # -- screen router / nav bar ----------------------------------------------
 SCREENS = [('1', 'components', 'Components'), ('2', 'profiles', 'Profiles'),
-           ('3', 'plugins', 'Plugins'), ('4', 'dotfiles', 'Dotfiles'), ('5', 'config', 'Config'),
-           ('6', 'theme', 'Theme')]
-IMPLEMENTED = {'components', 'profiles', 'plugins', 'dotfiles', 'config', 'theme'}
+           ('3', 'plugins', 'Plugins'), ('4', 'glue', 'Glue'), ('5', 'dotfiles', 'Dotfiles'),
+           ('6', 'config', 'Config'), ('7', 'theme', 'Theme')]
+IMPLEMENTED = {'components', 'profiles', 'plugins', 'glue', 'dotfiles', 'config', 'theme'}
 KEY_TO_SCREEN = {ord(k): sid for k, sid, _name in SCREENS}
 
 
@@ -2374,7 +2374,8 @@ class ProfileScreen:
         self._new_count_cache = {}       # (profile, ceiling) -> #NEW members; (re)built lazily per reload
         self._group_new_cache = {}       # group -> #distinct NEW members; the `⁺N` header/row badges
         self.attr_inc = set()            # `A` faceted attr filter: lowercased tags to INCLUDE
-        self.attr_exc = {'dotfiles'}     # ...and to EXCLUDE — hide the -dotfiles companions by default
+        self.attr_exc = {'dotfiles', 'glue'}   # ...and to EXCLUDE — hide the -dotfiles/-glue companions
+                                               # by default (each has its own page)
         self._res = {}                   # component -> (available, via, pinned); survives reloads
         self._hard_dep_cache = {}        # component -> frozenset of its transitive hard component-requires
         self._avail_os_cache = {}        # component -> [platform labels where it routes] (lazy, for the infobox)
@@ -2696,7 +2697,7 @@ class ProfileScreen:
             cfg = self.ctx.config
             try:
                 mem = self.members(name, ceiling)
-                nnew = sum(1 for c in mem if cfg.is_new(c))
+                nnew = sum(1 for c in mem if cfg.is_new(c) and not self._is_companion(c))
                 nint = sum(1 for c in mem if cfg.disposition(c) == 'interesting')
                 cache[key] = (nnew, nint)
             except Exception:                            # noqa: BLE001 — a bad profile counts nothing
@@ -2736,7 +2737,7 @@ class ProfileScreen:
                     mem = self.members(p, ceil)
                 except Exception:                        # noqa: BLE001
                     continue
-                new_set |= {c for c in mem if cfg.is_new(c)}
+                new_set |= {c for c in mem if cfg.is_new(c) and not self._is_companion(c)}
                 int_set |= {c for c in mem if cfg.disposition(c) == 'interesting'}
         self._group_new_cache[gid] = (len(new_set), len(int_set))
         return self._group_new_cache[gid]
@@ -2972,11 +2973,19 @@ class ProfileScreen:
 
     def attr_summary(self):
         '''Short `✓a ✗b` chip for the catalog title, or '' at the pristine default (only the
-        implicit `-dotfiles` hide, which the nav hint already advertises).'''
+        implicit `-dotfiles`/`-glue` companion hide, which the nav hint already advertises).'''
         parts = ['✓' + t for t in sorted(self.attr_inc)] + ['✗' + t for t in sorted(self.attr_exc)]
-        if parts == ['✗dotfiles']:
+        if parts == ['✗dotfiles', '✗glue']:
             return ''
         return '  ' + ' '.join(parts) if parts else ''
+
+    def _is_companion(self, comp):
+        '''True if `comp` is a -dotfiles / -glue companion — it lives on the Dotfiles/Glue page, not
+        the Components catalog, so it's excluded from the catalog's NEW/interesting badges.'''
+        o = self.ctx.routes.components.get(comp)
+        if o is None:
+            return False
+        return bool({a.lower() for a in getattr(o, 'attrs', [])} & {'dotfiles', 'glue'})
 
     def set_pfilter(self, text):
         self.pfilter = text
@@ -3841,6 +3850,8 @@ class ThemeScreen:
                     ('ctx', '    suggests: ripgrep-dotfiles')]}]
                 pl.dfile, pl.diff_note = 0, None
                 return pl
+            if page == 'glue':
+                return GlueScreen(ctx)
             if page == 'dotfiles':
                 return DotfilesScreen(ctx)
             if page == 'config':
@@ -3965,6 +3976,8 @@ def _sample_real_page(stdscr, pal, ctx, ts, page, y0, x0, hh, ww, ms):
             _draw_profiles(sub, pal, state, ctx, '', 'profiles')
         elif page == 'plugins':
             _draw_plugins(sub, pal, state, ctx, '', 'plugins')
+        elif page == 'glue':
+            _draw_glue(sub, pal, state, ctx, '', 'glue')
         elif page == 'dotfiles':
             _draw_dotfiles(sub, pal, state, ctx, '', 'dotfiles')
         elif page == 'config':
@@ -4034,7 +4047,7 @@ def _draw_theme(stdscr, pal, ts, ctx, note, screen, ms=None, sample=True):
     roles = ts.role_list()
     ts.role_cur = min(ts.role_cur, max(0, len(roles) - 1))
     r_it, r_il, r_ih, r_iw = _panel(stdscr, pal, 1 + map_h, 0, body_h - map_h, lw,
-                                    _fit(f'page roles — {page}  (F1-6)', lw - 4), ts.focus == 'roles',
+                                    _fit(f'page roles — {page}  (F1-7)', lw - 4), ts.focus == 'roles',
                                     h, w)
     ts.role_top = _scroll_top(ts.role_cur, ts.role_top, r_ih, len(roles))
     for vis, i in enumerate(range(ts.role_top, min(len(roles), ts.role_top + r_ih))):
@@ -4081,18 +4094,18 @@ def _draw_theme(stdscr, pal, ts, ctx, note, screen, ms=None, sample=True):
         g = lambda a: _KEYMAP.glyph('theme', a)
         if ts.focus == 'map':
             navf = (f" {g('switch-pane')}→roles · {g('left')}/{g('right')}/{g('down')}/{g('up')} · "
-                    f"F1-6 page · {g('confirm')} set #rrggbb · {g('new')} new · {g('reset')} remove · "
+                    f"F1-7 page · {g('confirm')} set #rrggbb · {g('new')} new · {g('reset')} remove · "
                     f"{g('save')} save · {g('load')} load · {g('quit')} ")
         else:
-            navf = (f" {g('switch-pane')}→map · {g('down')}/{g('up')} · F1-6 page · {g('confirm')} fg · "
+            navf = (f" {g('switch-pane')}→map · {g('down')}/{g('up')} · F1-7 page · {g('confirm')} fg · "
                     f"{g('edit-bg')} bg · {g('effect-bold')}/{g('effect-underline')}/{g('effect-reverse')} fx · "
                     f"{g('reset')} reset · {g('gradient-toggle')} grad · {g('copy-page')} copy-page · "
                     f"{g('save')} save · {g('load')} load · {g('quit')} ")
     elif ts.focus == 'map':
-        navf = (' tab→roles · h/l/j/k · F1-6 page · ↵ set #rrggbb · n new · x/r remove · '
+        navf = (' tab→roles · h/l/j/k · F1-7 page · ↵ set #rrggbb · n new · x/r remove · '
                 's save · L load · q ')
     else:
-        navf = (' tab→map · j/k · F1-6 page · ↵ fg · B bg · o/u/v fx · r reset · p grad on/off · '
+        navf = (' tab→map · j/k · F1-7 page · ↵ fg · B bg · o/u/v fx · r reset · p grad on/off · '
                 'D copy-page · s save · L load · q ')
     _put(stdscr, h - 2, 0, _fit(status, w), pal.style('status_line', h - 2, 0, h, w))
     _put(stdscr, h - 1, 0, _fit(navf.ljust(w), w), pal.style('footer', h - 1, 0, h, w))
@@ -4354,17 +4367,7 @@ _DF_STATE_ELEM = {'linked': 'installed', 'adopted': 'unit', 'managed': 'outdated
 _DF_CAPTURE_STATES = ('managed', 'unmanaged')          # rows a capture would adopt
 
 
-class DotfilesScreen:
-    '''Link-state table over the via:dotfiles units — a skin over the dotfiles driver
-    (spec_states / install / uninstall / capture, plus the per-shell glue loaders).'''
-    def __init__(self, ctx):
-        self.ctx = ctx
-        self.cur = 0
-        self.top = 0
-        self.hscroll = 0                 # horizontal scroll across the columns (h/l)
-        self.dirty = set()               # unit keys mutated here -> requeried on return to Components
-        self.reload()
-
+class _ContentRootLabelMixin:
     def _root_label(self, root):
         '''Short label for a content root: <plugin> / <local> / <repo>, else the dir name — so
         SOURCE says WHERE the content lives, not just an ambiguous "dotfiles/".'''
@@ -4377,66 +4380,177 @@ class DotfilesScreen:
             return '<repo>'
         return rp.name
 
+
+class DotfilesScreen(_ContentRootLabelMixin):
+    '''Link-state table over the via:dotfiles (CONFIG) units — a skin over the dotfiles driver
+    (spec_states / install / uninstall / capture). Glue lives on its own page (GlueScreen).'''
+    def __init__(self, ctx):
+        self.ctx = ctx
+        self.cur = 0
+        self.top = 0
+        self.hscroll = 0                 # horizontal scroll across the columns (h/l)
+        self.dirty = set()               # unit keys mutated here -> requeried on return to Components
+        self.reload()
+
     def reload(self):
         from .. import actions
         from ..drivers import get_driver
-        # CONFIG lives on the dotfiles driver, GLUE (snippets + the shell-glue loader) on the glue
-        # driver; dispatch per unit to its own driver. (Phase 2 splits this into two pages.)
-        self.df, self.units = actions.dotfiles_units(self.ctx)
-        self._drv = {}                                       # rc.key -> the unit's driver
-        cfg, glue = [], []                                   # (rc, name, tgt, state, source, cap, group)
+        _df, units = actions.dotfiles_units(self.ctx)
+        self.units = [rc for rc in units if rc.driver == 'dotfiles']
+        self.df = get_driver('dotfiles', self.ctx.runner, self.ctx.paths)
+        cfg = []                                             # (rc, name, tgt, state, source, cap)
         for rc in self.units:
-            drv = get_driver(rc.driver, self.ctx.runner, self.ctx.paths)
-            self._drv[rc.key] = drv
-            # which specs have a real on-system file to adopt (a `managed`/`unmanaged` row is only
-            # capture-ACTIONABLE if something is actually there) — capture_plan tells us per spec.
-            # Glue has no capture (it's shipped content), so its driver exposes no capture_plan.
-            cap = ({name: (action == 'copy') for name, _d, _de, action in drv.capture_plan(rc)}
-                   if hasattr(drv, 'capture_plan') else {})
-            for name, tgt, state, src_root, src_rel, here, kind in drv.spec_states(rc):
-                source = (f'{self._root_label(src_root)}/{src_rel}' if src_root is not None
-                          else ('rc hookup' if here else 'not hooked up'))   # a loader row has no src root
-                (cfg if kind == 'config' else glue).append(
-                    (rc, name, tgt, state, source, cap.get(name, False), kind))
-        # CONFIG (content you own) and GLUE (shipped shell integration) are two different state
-        # machines — keep them as separate, ordered groups. `display` interleaves a header BEFORE
-        # each group's rows, but ONLY when both groups are present (nothing to separate otherwise);
-        # navigation still indexes `rows` (headers live only in the draw layer).
-        self.rows = cfg + glue
-        self.display, both, base = [], bool(cfg) and bool(glue), 0
-        for label, grp in (('config', cfg), ('glue — shell integration', glue)):
-            if not grp:
-                continue
-            if both:
-                self.display.append(('hdr', label))
-            self.display.extend(('row', base + k) for k in range(len(grp)))
-            base += len(grp)
+            # a `managed`/`unmanaged` row is capture-ACTIONABLE only when a real file is actually
+            # there — capture_plan tells us per spec.
+            cap = {name: (action == 'copy') for name, _d, _de, action in self.df.capture_plan(rc)}
+            for name, tgt, state, src_root, src_rel, _here, _kind in self.df.spec_states(rc):
+                source = f'{self._root_label(src_root)}/{src_rel}' if src_root is not None else src_rel
+                cfg.append((rc, name, tgt, state, source, cap.get(name, False)))
+        self.rows = cfg
+        self.display = [('row', k) for k in range(len(cfg))]   # single group -> no dividers
         self.cur = min(self.cur, max(0, len(self.rows) - 1))
 
     def cur_row(self):
         return self.rows[self.cur] if 0 <= self.cur < len(self.rows) else None
 
-    def driver_for(self, rc):
-        '''The driver that installs `rc` — dotfiles for config, glue for glue/loader units.'''
-        return self._drv.get(rc.key)
+    def driver_for(self, _rc):
+        return self.df
+
+
+class GlueScreen(_ContentRootLabelMixin):
+    '''Shell-integration view over via:glue units — snippets GROUPED under each installed shell,
+    with the shell-glue loader status as the section header. Ship->activate toggle (no capture): a
+    snippet (e.g. fzf-glue) appears under every shell it ships a variant for; acting on any of its
+    rows activates/deactivates the whole component (glue is whole-component by design).'''
+    def __init__(self, ctx):
+        self.ctx = ctx
+        self.cur = 0
+        self.top = 0
+        self.hscroll = 0
+        self.dirty = set()
+        self.reload()
+
+    def reload(self):
+        from .. import actions
+        from ..drivers import get_driver
+        _df, units = actions.dotfiles_units(self.ctx)
+        self.units = [rc for rc in units if rc.driver == 'glue']
+        self.gd = get_driver('glue', self.ctx.runner, self.ctx.paths)
+        shells = self.gd._installed_shells()                 # section order
+        by_shell = {s: [] for s in shells}                   # shell -> [(rc, comp, tgt, state, src)]
+        loader = {}                                          # shell -> loader-on|loader-off
+        for rc in self.units:
+            for name, tgt, state, src_root, src_rel, _here, _kind in self.gd.spec_states(rc):
+                if name.endswith(' loader'):                 # the shell-glue substrate (loader: all)
+                    loader[name.split()[0]] = state
+                    continue
+                sh = name.rsplit('@', 1)[1] if '@' in name else None   # a snippet row 'glue@shell'
+                if sh in by_shell:
+                    src = f'{self._root_label(src_root)}/{src_rel}' if src_root is not None else src_rel
+                    by_shell[sh].append((rc, rc.comp, tgt, state, src))
+        self.loader = loader
+        self.rows = []                                       # (rc, comp, tgt, state, src, shell)
+        self.display = []                                    # ('hdr', shell, loader_state) | ('row', idx)
+        for sh in shells:
+            self.display.append(('hdr', sh, loader.get(sh)))
+            for rc, comp, tgt, state, src in sorted(by_shell[sh], key=lambda r: r[1]):
+                self.rows.append((rc, comp, tgt, state, src, sh))
+                self.display.append(('row', len(self.rows) - 1))
+        self.cur = min(self.cur, max(0, len(self.rows) - 1))
+
+    def cur_row(self):
+        return self.rows[self.cur] if 0 <= self.cur < len(self.rows) else None
+
+    def driver_for(self, _rc):
+        return self.gd
 
 
 # Columns: COMPONENT, STATE, LINK (the ~/… symlink location on your system), SOURCE (the managed
-# content it points at — the store/.cfs, or the shell rc hookup for a loader).
+# content it points at — the store/.cfs).
 _DF_HEADERS = ['component', 'state', 'link', 'source']
+_GLUE_HEADERS = ['component', 'state', 'conf.d', 'source']
 
 
 from ..drivers.glue import GLUE_STATE_LABEL as _GLUE_STATE_LABEL   # glue's active/available/inactive
 
 
 def _df_cells(row):
-    '''The four column strings for a dotfiles row. `!` = a real on-system file we don't manage;
-    `+` = a marked config with on-disk content ready to capture. Glue rows relabel their state to
-    the active/available/inactive vocabulary (the underlying state is unchanged, for theming).'''
-    rc, _name, tgt, state, source, cap, group = row
-    shown = _GLUE_STATE_LABEL.get(state, state) if group == 'glue' else state
+    '''The four column strings for a dotfiles (config) row. `!` = a real on-system file we don't
+    manage; `+` = a marked config with on-disk content ready to capture.'''
+    rc, _name, tgt, state, source, cap = row
     mark = '!' if state == 'unmanaged' else '+' if (state == 'managed' and cap) else ' '
-    return [rc.comp, f'{mark} {shown}', str(tgt), source]
+    return [rc.comp, f'{mark} {state}', str(tgt), source]
+
+
+def _glue_cells(row):
+    '''The four column strings for a glue row — state in the active/available/inactive vocabulary.'''
+    _rc, comp, tgt, state, src, _shell = row
+    return [comp, _GLUE_STATE_LABEL.get(state, state), str(tgt), src]
+
+
+def _draw_glue(stdscr, pal, gs, ctx, note, screen):
+    stdscr.erase()
+    h, w = stdscr.getmaxyx()
+    pal.use_page(screen)
+    if pal.gradient:
+        _fill_bg(stdscr, pal, h, w)
+    _draw_nav(stdscr, pal, screen, h, w)
+    it, il, ih, iw = _panel(stdscr, pal, 1, 0, h - 3, w, 'glue (shell integration)', True, h, w)
+    if not gs.display:
+        _put(stdscr, it, il, _fit('   '.join(_GLUE_HEADERS), iw), pal.style('menu_header', it, il, h, w))
+        _put(stdscr, it + 1, il, _fit('(no installed shells / no glue in the install set)', iw),
+             pal.style('info_dim', it + 1, il, h, w))
+    else:
+        cells_by_row = [_glue_cells(r) for r in gs.rows]
+        widths = [max(len(_GLUE_HEADERS[c]), max((len(cs[c]) for cs in cells_by_row), default=0))
+                  for c in range(len(_GLUE_HEADERS))]
+        xs, vx = [], 0
+        for wd in widths:
+            xs.append(vx)
+            vx += wd + 2
+        virt_w = vx - 2
+        has_hbar = virt_w > iw
+        rows_h = ih - 1 - (1 if has_hbar else 0)
+        gs.hscroll = max(0, min(gs.hscroll, max(0, virt_w - iw)))
+        for hdr, vx0 in zip(_GLUE_HEADERS, xs):
+            _put_hscroll(stdscr, it, il, iw, vx0, gs.hscroll, hdr, pal.style('menu_header', it, il, h, w))
+        disp = gs.display
+        cur_disp = next((d for d, e in enumerate(disp) if e == ('row', gs.cur)), 0)
+        gs.top = _scroll_top(cur_disp, gs.top, rows_h, len(disp))
+        for vis, d in enumerate(range(gs.top, min(len(disp), gs.top + rows_h))):
+            y = it + 1 + vis
+            entry = disp[d]
+            if entry[0] == 'hdr':                # a per-shell section header + its loader status
+                _, shell, lstate = entry
+                lbl = (_GLUE_STATE_LABEL.get(lstate, lstate) if lstate else 'not wired')
+                rule = f'{shell}  loader: {lbl} '
+                rule += '─' * max(0, iw - len(rule))
+                _put(stdscr, y, il, _fit(rule, iw), pal.style('menu_header', y, il, h, w))
+                continue
+            i, sel = entry[1], entry[1] == gs.cur
+            if sel:
+                _put(stdscr, y, il, ' ' * iw, pal.fill(y, il, h, w, selected=True))
+            elem = 'label' if sel else _DF_STATE_ELEM.get(gs.rows[i][3], 'component')
+            style = pal.style(elem, y, il, h, w, selected=sel)
+            for cell, wd, vx0 in zip(cells_by_row[i], widths, xs):
+                _put_hscroll(stdscr, y, il, iw, vx0, gs.hscroll, cell.ljust(wd), style)
+        _scrollbar_v(stdscr, pal, it + 1, il + iw, rows_h, gs.top, rows_h, len(disp), h, w)
+        if has_hbar:
+            _scrollbar_h(stdscr, pal, it + ih - 1, il, iw, gs.hscroll, iw, virt_w, h, w)
+
+    n_active = sum(1 for r in gs.rows if r[3] in ('linked', 'loader-on'))
+    status = f' {len(gs.rows)} glue snippet(s)   {n_active} active   {len(gs.rows) - n_active} inactive'
+    if note:
+        status += f'    {note}'
+    if _KEYMAP is not None:
+        g = lambda a: _KEYMAP.glyph('glue', a)
+        navf = (f" {g('down')}/{g('up')} · {g('left')}/{g('right')} scroll · {g('confirm')} activate · "
+                f"{g('unlink')} deactivate · {g('quit')} ")
+    else:
+        navf = ' j/k · h/l scroll · ↵ activate · x deactivate · q '
+    _put(stdscr, h - 2, 0, _fit(status, w), pal.style('status_line', h - 2, 0, h, w))
+    _put(stdscr, h - 1, 0, _fit(navf.ljust(w), w), pal.style('footer', h - 1, 0, h, w))
+    stdscr.refresh()
 
 
 def _draw_dotfiles(stdscr, pal, ds, ctx, note, screen):
@@ -4595,6 +4709,7 @@ def run(ctx):
         ts = None                                 # ThemeScreen (sub-screen of Config)
         pl = None                                 # PluginScreen, built lazily on first visit
         ds = None                                 # DotfilesScreen, built lazily on first visit
+        gs = None                                 # GlueScreen, built lazily on first visit
         menu_dirty = False                        # a profile/config edit -> rebuild the Components tree
         pending_report = None                     # a component whose op failed this session
         pending_notes = []                         # messages saved for after the TUI exits
@@ -4613,6 +4728,10 @@ def run(ctx):
                 if pl is None:
                     pl = PluginScreen(ctx)
                 _draw_plugins(stdscr, pal, pl, ctx, note, screen)
+            elif screen == 'glue':
+                if gs is None:
+                    gs = GlueScreen(ctx)
+                _draw_glue(stdscr, pal, gs, ctx, note, screen)
             elif screen == 'dotfiles':
                 if ds is None:
                     ds = DotfilesScreen(ctx)
@@ -4685,9 +4804,9 @@ def run(ctx):
             dest = keymap.screen_for(ch)
             if dest is not None:
                 if dest in IMPLEMENTED:
-                    # dotfiles mutated on its page (link/capture) -> re-probe those units so
+                    # dotfiles/glue mutated on their pages (link/activate) -> re-probe those units so
                     # Components doesn't show stale 'managed'/'adopted' after they're now linked.
-                    df_dirty = ds.dirty if ds is not None else set()
+                    df_dirty = (ds.dirty if ds is not None else set()) | (gs.dirty if gs is not None else set())
                     # the !uninstall queue can change from OTHER screens (Profiles `x`) or drain, so
                     # rebuild whenever it differs from what this view last folded — not just on edits.
                     q_changed = (set(ctx.config.uninstall_queue())
@@ -4710,8 +4829,12 @@ def run(ctx):
                         menu_dirty = False
                         if ds is not None:
                             ds.dirty = set()
+                        if gs is not None:
+                            gs.dirty = set()
                     if dest == 'dotfiles' and ds is not None:  # re-read link state on entry — an
                         ds.reload()                            # install/capture elsewhere may have changed it
+                    if dest == 'glue' and gs is not None:      # re-read glue state on entry likewise
+                        gs.reload()
                     screen = dest
                 else:
                     note = f'the {dest} screen is not built yet'
@@ -4855,7 +4978,7 @@ def run(ctx):
                         except ConfigsysError as e:
                             note = f'ignore failed: {e}'
                 elif pfact == 'mark-all-seen':         # `E`: acknowledge every NEW component at once
-                    _new = [c for c in ps.catalog if ctx.config.is_new(c)]
+                    _new = [c for c in ps.catalog if ctx.config.is_new(c) and not ps._is_companion(c)]
                     if not _new:
                         note = 'nothing NEW to mark seen'
                     elif _popup_choose(stdscr, pal, f'mark all {len(_new)} NEW components as seen?',
@@ -5038,6 +5161,49 @@ def run(ctx):
                         ds.reload()
                         note = (f'linked {len(pend)} captured dotfile(s)'
                                 if pend else 'nothing captured-but-unlinked')
+                except Exception as e:  # noqa: BLE001 — surface, don't crash
+                    note = f'error: {e}'
+                continue
+
+            # -- Glue screen (ship->activate toggle; no capture — glue is shipped content) --
+            if screen == 'glue':
+                row = gs.cur_row()          # (rc, comp, tgt, state, src, shell)
+                gact = keymap.action_for('glue', ch)
+                try:
+                    if gact == 'down':
+                        gs.cur = min(len(gs.rows) - 1, gs.cur + 1)
+                    elif gact == 'up':
+                        gs.cur = max(0, gs.cur - 1)
+                    elif gact == 'left':                      # horizontal scroll across the columns
+                        gs.hscroll = max(0, gs.hscroll - 4)
+                    elif gact == 'right':
+                        gs.hscroll += 4
+                    elif gact == 'top':
+                        gs.cur = 0
+                    elif gact == 'bottom':
+                        gs.cur = max(0, len(gs.rows) - 1)
+                    elif gact == 'confirm' and row:         # activate (links the snippet for all its shells)
+                        with suspended(stdscr):
+                            res = gs.gd.install(row[0])
+                        gs.dirty.add(row[0].key)
+                        gs.reload()
+                        note = (f'{row[0].comp}: {res.output().strip()}'
+                                if res is not None and not res.ok else f'activated {row[0].comp}')
+                    elif gact == 'unlink' and row:          # deactivate (unlink; leaves conf.d + content)
+                        with suspended(stdscr):
+                            gs.gd.uninstall(row[0])
+                        gs.dirty.add(row[0].key)
+                        gs.reload()
+                        note = f'deactivated {row[0].comp}'
+                    elif gact == 'link-all':                # activate every inactive snippet
+                        pend = {r[0].key: r[0] for r in gs.rows if r[3] not in ('linked', 'loader-on')}
+                        with suspended(stdscr):
+                            for rc in pend.values():
+                                gs.gd.install(rc)
+                        gs.dirty.update(pend)
+                        gs.reload()
+                        note = (f'activated {len(pend)} glue snippet(s)'
+                                if pend else 'nothing inactive to activate')
                 except Exception as e:  # noqa: BLE001 — surface, don't crash
                     note = f'error: {e}'
                 continue
@@ -5315,7 +5481,7 @@ def run(ctx):
                         else:
                             ts.focus = 'roles' if ts.focus == 'map' else 'map'   # else cross panels
                     elif tact and tact.startswith('page-'):
-                        ts.page = min(len(ALL_PAGES) - 1, int(tact[5:]) - 1)  # F1-F6 select the sample page
+                        ts.page = min(len(ALL_PAGES) - 1, int(tact[5:]) - 1)  # F1-F7 select the sample page
                     elif tact == 'down':
                         if ts.focus == 'map':
                             ts.map_cur = min(len(ts.map_names) - 1, ts.map_cur + 1)

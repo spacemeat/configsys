@@ -73,8 +73,8 @@ def key_name(code):
 # are the humon file). Just enough that quit and screen-switch always work.
 _FALLBACK = {
     'global': {'quit': 'q', 'quit-force': 'Q', 'issues': '!'},
-    'screens': {'components': '1', 'profiles': '2', 'plugins': '3', 'dotfiles': '4',
-                'config': '5', 'theme': '6'},
+    'screens': {'components': '1', 'profiles': '2', 'plugins': '3', 'glue': '4',
+                'dotfiles': '5', 'config': '6', 'theme': '7'},
 }
 
 
@@ -153,7 +153,7 @@ class Keymap:
 _GLOBAL_ACTIONS = {'down', 'up', 'left', 'right', 'top', 'bottom', 'select', 'confirm', 'switch-pane',
                    'switch-pane-back', 'find', 'filter', 'issues', 'help', 'quit',
                    'quit-force'}
-SCREEN_IDS = {'components', 'profiles', 'plugins', 'dotfiles', 'config', 'theme'}
+SCREEN_IDS = {'components', 'profiles', 'plugins', 'glue', 'dotfiles', 'config', 'theme'}
 KNOWN_ACTIONS = {
     'global': _GLOBAL_ACTIONS,
     'components': {'where', 'lock', 'expand-all', 'select-all', 'clear', 'method', 'op-install',

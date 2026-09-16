@@ -68,7 +68,7 @@ def test_tui_launches_navigates_and_quits(tmp_path, extra):
     # drive: down, open diagnostics page, scroll, close it, select, then quit — `q` opens a
     # "Really quit?" modal (default No), so `k` moves to "Yes, quit" and Enter confirms. Runs in
     # three color modes (auto / --nocolor / --color 16) so a low-color render crash can't slip in.
-    for keys in (b'j', b'!', b'j', b'!', b'?', b'j', b'q', b' ', b'q', b'k', b'\n'):
+    for keys in (b'j', b'!', b'j', b'!', b'?', b'j', b'4', b'5', b'q', b' ', b'q', b'k', b'\n'):
         try:
             os.write(master, keys)
         except OSError:

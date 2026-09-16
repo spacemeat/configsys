@@ -155,7 +155,25 @@ desired: exclude `glue`+`dotfiles` attrs from the NEW count.
   renamed across laptop/desktop (`bash-dotfiles→shell-glue`, dropped `zsh-glue`/`fish-glue`/
   `best-ps1`, glue `X-dotfiles→X-glue`; config `X-dotfiles` untouched). All 3 machines check clean.
 
-**Phase 1 is COMPLETE** (main repo committed; configsys-user awaits the user's review+commit).
+**Phase 1 is COMPLETE** (main repo committed; configsys-user committed by the user).
+
+## Status (Phase 2 — TUI page split) — DONE
+
+- New **Glue page at F4** (before Dotfiles: `Components/Profiles/Plugins/Glue/Dotfiles/Config/Theme`
+  = F1–F7; keyspec/SCREENS/config.hu/theme sampler renumbered). `GlueScreen` is a **shell-grouped**
+  view: snippets grouped under each installed shell with the `shell-glue` loader status as the
+  section header; ship→activate toggle (⏎ activate / deactivate / activate-all) — no capture.
+- `DotfilesScreen` trimmed to **config-only** (the capture→link lifecycle); the two screens share a
+  `_ContentRootLabelMixin` and dispatch to their own driver. Theme sampler + gradients + `PAGE_ROLES`
+  gained a `glue` entry.
+- **The "NEW you can't see" wart is obviated:** the Components catalog default-hides both `dotfiles`
+  AND `glue` companions (each has its own page), and the Profiles NEW/interesting badges + mark-all-
+  seen exclude companion-attr components (`_is_companion`). On the real config the `!all` NEW badge
+  went 95→0, consistent with the catalog.
+- Verified: 1291 green, check 0 errors, headless PTY render of the populated glue page (shell
+  headers + snippet rows, clean exit).
+
+**Phase 2 COMPLETE.** Remaining: Phase 3 (orphan real homes + purify the bash loader).
 
 ## Suggested commits
 

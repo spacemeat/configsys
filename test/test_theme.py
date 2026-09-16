@@ -236,8 +236,8 @@ def test_config_theme_deep_merge_across_layers():
     assert pages['components']['roles']['component']['fg'] == (17, 17, 17)
 
 
-def test_demo_pages_are_the_five_content_screens():
-    assert DEMO_PAGES == ['components', 'profiles', 'plugins', 'dotfiles', 'config']
+def test_demo_pages_are_the_content_screens():
+    assert DEMO_PAGES == ['components', 'profiles', 'plugins', 'glue', 'dotfiles', 'config']
     assert 'theme' in ALL_PAGES and 'theme' not in DEMO_PAGES
 
 

@@ -74,7 +74,8 @@ def test_repo_config_hu_defines_a_full_global_keymap():
     km = Keymap(c.keys())
     for a in ('quit', 'issues', 'down', 'up', 'find'):
         assert km.keys_for('global', a), f'{a} unbound in the repo base keymap'
-    assert km.screen_for(ord('6')) == 'theme'
+    assert km.screen_for(ord('4')) == 'glue'
+    assert km.screen_for(ord('7')) == 'theme'
 
 
 def _repo_keymap():

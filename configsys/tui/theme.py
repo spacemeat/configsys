@@ -185,7 +185,7 @@ ROLE_DEFAULTS = {
 EDITABLE_ROLES = [r for r in ROLE_DEFAULTS if r not in ('accent', 'dim', 'title', 'header')]
 
 # The five content screens (the Theme editor previews all of them); 'theme' is the editor's own.
-DEMO_PAGES = ['components', 'profiles', 'plugins', 'dotfiles', 'config']
+DEMO_PAGES = ['components', 'profiles', 'plugins', 'glue', 'dotfiles', 'config']
 ALL_PAGES = DEMO_PAGES + ['theme']
 
 # The roles each SCREEN actually uses — drives both the editor's per-page list (list 2) and its
@@ -201,6 +201,8 @@ PAGE_ROLES = {
     'plugins':   ['label', 'os', 'menu_header', 'component', 'unit', 'installed', 'outdated',
                   'missing', 'untrusted', 'accent', 'diff_add', 'diff_del', 'diff_hunk', 'diff_meta',
                   'info', 'info_dim', 'status_line', 'footer', 'selection'],
+    'glue':      ['label', 'os', 'menu_header', 'component', 'unit', 'installed', 'outdated',
+                  'missing', 'info_dim', 'status_line', 'footer', 'selection'],
     'dotfiles':  ['label', 'os', 'menu_header', 'component', 'unit', 'installed', 'outdated',
                   'missing', 'info_dim', 'status_line', 'footer', 'selection'],
     'config':    ['label', 'os', 'menu_header', 'component', 'scope', 'scope_choice', 'installed',
@@ -214,6 +216,7 @@ BUILTIN_GRADIENTS = {
     'components': ((20, 10, 30), (5, 2, 10)),      # purple
     'profiles':   ((7, 24, 20), (2, 8, 6)),        # teal
     'plugins':    ((8, 18, 34), (2, 5, 12)),       # blue
+    'glue':       ((10, 26, 14), (3, 8, 4)),       # green
     'dotfiles':   ((28, 20, 8), (8, 6, 2)),        # amber
     'config':     ((16, 17, 34), (4, 4, 12)),      # indigo/slate
     'theme':      ((32, 11, 24), (9, 3, 7)),       # rose
