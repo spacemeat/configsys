@@ -20,6 +20,7 @@ from .font import Font
 from .dnf import Dnf
 from .dotfiles import DotFiles
 from .flatpak import Flatpak
+from .glue import Glue
 from .snap import Snap
 from .gcc import Gcc
 from .gem import Gem
@@ -56,6 +57,7 @@ _REGISTRY = {
     Snap.name: Snap,
     AppImage.name: AppImage,
     DotFiles.name: DotFiles,
+    Glue.name: Glue,
     Font.name: Font,
     Cargo.name: Cargo,
     Npm.name: Npm,

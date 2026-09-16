@@ -263,8 +263,8 @@ def _package(binding, driver, component):
         return name or component.name
     if binding.via == 'flatpak':
         return binding.details.get('app')
-    if binding.via == 'dotfiles':
-        return None                     # a dotfile has no package
+    if binding.via in ('dotfiles', 'glue'):
+        return None                     # a dotfile / glue snippet has no package
     # appImage / deb / tarball / crate / font: the display/dist name
     return binding.details.get('name') or component.name
 
