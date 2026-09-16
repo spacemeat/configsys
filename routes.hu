@@ -147,7 +147,7 @@
         cvs: { attrs: [ CLI FOSS GNU copyleft ] suggests: cvs-dotfiles  description: "CVS — the classic Concurrent Versions System."
             install: [ { via: native  when: "debian or fedora or arch or fedora_atomic"  repo-component: universe }
                        { via: native  when: "rhel"  requires: epel } ] }              // gone from stable-Alpine + openSUSE
-        fossil: { attrs: [ CLI web FOSS permissive ] suggests: fossil-dotfiles  description: "Fossil — a self-contained distributed SCM (wiki, tickets, web UI in one binary)."
+        fossil: { attrs: [ CLI web FOSS permissive ] suggests: fossil-glue  description: "Fossil — a self-contained distributed SCM (wiki, tickets, web UI in one binary)."
             install: [ { via: native  when: "(not opensuse and not rhel) and not amzn"  repo-component: universe }
                        { via: native  when: "rhel"  requires: epel }
                        { via: tarball  when: "opensuse"  installDir: "$CONFIGSYS_APP_DIR/fossil"  requires: glibc  // no openSUSE package; upstream static binary
@@ -186,7 +186,7 @@
             standing: never-auto
             install: [ { via: apk  when: "alpine" } ]
         }
-        python3-pip: { attrs: [ CLI FOSS permissive ] suggests: python3-pip-dotfiles  description: "pip — the Python package installer." install: [ { via: native  name: { pacman: python-pip  zypper: python313-pip  apk: py3-pip } } ] }
+        python3-pip: { attrs: [ CLI FOSS permissive ] suggests: python3-pip-glue  description: "pip — the Python package installer." install: [ { via: native  name: { pacman: python-pip  zypper: python313-pip  apk: py3-pip } } ] }
 
         // Python interpreters as VERSION-SCOPED providers of the `python3` capability. Install specific
         // versions side-by-side — each is a distinct `/usr/bin/python3.X` (or a pyenv build), so they
@@ -252,7 +252,7 @@
 
         // pyenv itself + the C libraries it needs to COMPILE CPython — the `via: pyenv` method's deps
         // (see drivers.pyenv). pyenv installs user-scope under ~/.pyenv via its official installer.
-        pyenv: { attrs: [ CLI FOSS permissive ] suggests: pyenv-dotfiles  description: "pyenv — build & switch Python versions from source, user-scope."
+        pyenv: { attrs: [ CLI FOSS permissive ] suggests: pyenv-glue  description: "pyenv — build & switch Python versions from source, user-scope."
             requires: curl
             install: [ { via: script
                 install-cmd:   'curl -fsSL https://pyenv.run | bash'
@@ -262,7 +262,7 @@
         // uv — Astral's very fast Python package/project manager (a single Rust binary). Native
         // where packaged (arch; brew on atomic); pipx is the universal default elsewhere; the github
         // tarball and cargo are pinnable alternates. NOT in the debian/ubuntu repos.
-        uv: { attrs: [ CLI FOSS permissive ] suggests: uv-dotfiles  description: "uv — Astral's very fast Python package & project manager (Rust)."
+        uv: { attrs: [ CLI FOSS permissive ] suggests: uv-glue  description: "uv — Astral's very fast Python package & project manager (Rust)."
             install: [
                 { via: native   when: "arch" }                     // pacman: uv
                 { via: native   when: "fedora_atomic" }            // brew formula `uv`
@@ -283,11 +283,11 @@
             ] }
         // EL keeps these in EPEL, base repos everywhere else — same two-binding shape as btop.
         // `repo-component: universe` is the apt archive area (read only by apt; ignored on dnf/pacman).
-        ripgrep: { suggests: ripgrep-dotfiles  attrs: [ CLI  FOSS  permissive ]  description: "Fast recursive regex search (`rg`) — grep, but much quicker."
+        ripgrep: { suggests: ripgrep-glue  attrs: [ CLI  FOSS  permissive ]  description: "Fast recursive regex search (`rg`) — grep, but much quicker."
                    install: [ { via: native  when: "rhel"  requires: epel } { via: native  when: "not amzn"   repo-component: universe }
                               { via: tarball  installDir: "$CONFIGSYS_APP_DIR/ripgrep"  version: { github: BurntSushi/ripgrep  asset: "ripgrep-*-x86_64-unknown-linux-musl.tar.gz" } }
                               { via: cargo  name: ripgrep } ] }   // prebuilt musl binary (rg in a versioned subdir); `cargo install ripgrep` as a pinnable alt
-        fzf:     { attrs: [ CLI FOSS permissive ] suggests: fzf-dotfiles  description: "Fuzzy finder — interactive filtering for files, history, anything piped in."
+        fzf:     { attrs: [ CLI FOSS permissive ] suggests: fzf-glue  description: "Fuzzy finder — interactive filtering for files, history, anything piped in."
                    install: [ { via: native  when: "rhel"  requires: epel } { via: native  when: "not amzn"   repo-component: universe }
                               { via: tarball  installDir: "$CONFIGSYS_APP_DIR/fzf"  version: { github: junegunn/fzf  strip-v: true  asset: "fzf-*-linux_amd64.tar.gz" } } ] }
         // television: a Rust fuzzy finder; the binary is `tv`. In Arch's official extra repo and a
@@ -298,9 +298,9 @@
                       install: [ { via: native  when: "arch or fedora_atomic" }
                                  { via: cargo  name: television } ] }
         television-dotfiles: { description: "Television config + cable channels, linked into place." install: [ { via: dotfiles  config: { src: television  dst: $XDG_CONFIG_HOME/television } } ] }
-        xclip:   { attrs: [ CLI FOSS copyleft ] description: "xclip — command-line access to the X clipboard." suggests: xclip-dotfiles
+        xclip:   { attrs: [ CLI FOSS copyleft ] description: "xclip — command-line access to the X clipboard." suggests: xclip-glue
                    install: [ { via: native  when: "rhel"  requires: epel } { via: native  when: "not amzn"   repo-component: universe } ] }
-        xclip-dotfiles: { description: "xclip helper config, linked into place." install: [ { via: dotfiles  requires: bash-dotfiles  glue: xclip } ] }
+        xclip-glue: { description: "xclip helper config, linked into place." install: [ { via: glue  requires: shell-glue  glue: xclip } ] }
         xsel:    { attrs: [ CLI FOSS permissive ] description: "xsel — command-line access to the X11 clipboard/PRIMARY selection."
                    install: [ { via: native  when: "rhel"  requires: epel } { via: native  when: "not amzn"  repo-component: universe } ] }   // EL via EPEL
         // wl-clipboard: Wayland clipboard; the binaries are `wl-copy`/`wl-paste` (no `wl-clipboard`).
@@ -313,7 +313,7 @@
                               name: { apt: xserver-xephyr  dnf: xorg-x11-server-Xephyr  pacman: xorg-server-xephyr  apk: xorg-server-xephyr  zypper: xorg-x11-server-extra } } ] }
 
         // --- more CLI utilities (modern + classic) ---
-        zoxide: { attrs: [ CLI FOSS permissive ] suggests: zoxide-dotfiles  description: "zoxide — a smarter `cd` that jumps by frecency to your most-used dirs (`z`)."
+        zoxide: { attrs: [ CLI FOSS permissive ] suggests: zoxide-glue  description: "zoxide — a smarter `cd` that jumps by frecency to your most-used dirs (`z`)."
                   install: [ { via: native  repo-component: universe  when: "not (rhel or amzn)" }
                              { via: native  when: "rhel"  requires: epel }
                              // cargo everywhere (crate `zoxide`): the sole method on Amazon (no EPEL),
@@ -321,12 +321,12 @@
                              // 22.04 ships 0.4.3, whose PROMPT_COMMAND hook returns 0 unconditionally
                              // (clobbers $? for a status-in-prompt); modern zoxide preserves $?.
                              { via: cargo   name: zoxide } ] }   // native (incl. brew) is the default; pin `zoxide cargo` for a newer build
-        zoxide-dotfiles: { description: "zoxide shell init (adds the `z`/`zi` commands), linked into place." install: [ { via: dotfiles  requires: bash-dotfiles  glue: zoxide } ] }
-        fd: { attrs: [ CLI FOSS permissive ] suggests: fd-dotfiles  description: "fd — a fast, friendly `find` alternative (`fd`; Debian/Ubuntu install it as `fdfind`)."
+        zoxide-glue: { description: "zoxide shell init (adds the `z`/`zi` commands), linked into place." install: [ { via: glue  requires: shell-glue  glue: zoxide } ] }
+        fd: { attrs: [ CLI FOSS permissive ] suggests: fd-glue  description: "fd — a fast, friendly `find` alternative (`fd`; Debian/Ubuntu install it as `fdfind`)."
               install: [ { via: native  repo-component: universe  when: "not (rhel or amzn)"  name: { apt: fd-find  dnf: fd-find  default: fd } }
                          { via: native  when: "rhel"  requires: epel  name: fd-find }
                          { via: cargo   name: fd-find } ] }   // cargo crate is `fd-find` (pinnable anywhere native isn't preferred); the Debian/Ubuntu pkg installs `fdfind` -> the glue aliases it to `fd`
-        fd-dotfiles: { description: "fd alias (fdfind->fd on Debian/Ubuntu), linked into place." install: [ { via: dotfiles  requires: bash-dotfiles  glue: fd } ] }
+        fd-glue: { description: "fd alias (fdfind->fd on Debian/Ubuntu), linked into place." install: [ { via: glue  requires: shell-glue  glue: fd } ] }
         pastel: { attrs: [ CLI FOSS permissive ] description: "pastel — generate, analyze, convert and manipulate colors from the command line."
                   install: [ { via: native  when: "arch or alpine or opensuse or fedora_atomic" }
                              { via: cargo   name: pastel } ] }   // only arch/alpine/openSUSE(+brew) carry it in-repo (Debian/Fedora are sid/rawhide-only); cargo elsewhere
@@ -384,11 +384,11 @@
                               { via: aur  when: "arch"  name: doppler-cli-bin } ] }   // not in distro repos; upstream ships .deb/.rpm; AUR pkg is `doppler-cli-bin`
         // bat: `cat` clone w/ highlighting. Debian/Ubuntu install the binary as `batcat` (name clash) ->
         // the glue aliases it to `bat`. EL via EPEL; amzn has neither -> cargo (crate is `bat`).
-        bat: { attrs: [ CLI FOSS permissive ] suggests: bat-dotfiles  description: "bat — a `cat` clone with syntax highlighting and git integration (Debian/Ubuntu install it as `batcat`)."
+        bat: { attrs: [ CLI FOSS permissive ] suggests: bat-glue  description: "bat — a `cat` clone with syntax highlighting and git integration (Debian/Ubuntu install it as `batcat`)."
                install: [ { via: native  repo-component: universe  when: "not (rhel or amzn)" }
                           { via: native  when: "rhel"  requires: epel }
                           { via: cargo   name: bat } ] }
-        bat-dotfiles: { description: "bat alias (batcat->bat on Debian/Ubuntu), linked into place." install: [ { via: dotfiles  requires: bash-dotfiles  glue: bat } ] }
+        bat-glue: { description: "bat alias (batcat->bat on Debian/Ubuntu), linked into place." install: [ { via: glue  requires: shell-glue  glue: bat } ] }
         // lm-sensors: hardware health (temps/voltages/fans). Package name drifts three ways; the binary
         // is always `sensors` (+ `sensors-detect`). In EL/Fedora base (no EPEL needed).
         lm-sensors: { attrs: [ CLI FOSS copyleft ] description: "lm-sensors — read hardware health sensors: temps, voltages, fans (`sensors`, `sensors-detect`)."
@@ -424,7 +424,7 @@
 
         // btop lives in EPEL on EL (needs epel enabled), base repos everywhere else.
         // Two native bindings: the EL one adds `requires: epel`; both are dnf\btop.
-        btop: { attrs: [ TUI app FOSS permissive ] suggests: btop-dotfiles 
+        btop: { attrs: [ TUI app FOSS permissive ] suggests: [ btop-dotfiles  btop-glue ] 
             description: "System-resource monitor — CPU/mem/net/disk in a colorful TUI."
             install: [
                 { via: native  when: "rhel"  requires: epel }
@@ -589,11 +589,11 @@
             ]
         }
 
-        configsys-dotfiles: { description: "configsys's own shell integration, linked into place."
+        configsys-glue: { description: "configsys's own shell integration, linked into place."
             install: [
                 // 00- prefix: the ~/.bash.d loader sources files in lexical order, so this runs
                 // FIRST and its CONFIGSYS_*_DIR exports are available to every other snippet.
-                { via: dotfiles  requires: bash-dotfiles  glue: 00-configsys }
+                { via: glue  requires: shell-glue  glue: 00-configsys }
             ]
         }
 
@@ -628,11 +628,11 @@
                             source-path: /etc/apt/sources.list.d/charm.list }
                           { via: tarball  installDir: "$CONFIGSYS_APP_DIR/gum"
                             version: { github: charmbracelet/gum  strip-v: true  asset: "gum_*_Linux_x86_64.tar.gz" } } ] }
-        zsh:  { attrs: [ CLI FOSS permissive ] suggests: [ zsh-dotfiles, zsh-glue ]  description: "Z shell — a powerful interactive shell." install: [ { via: native } ] }
-        fish: { attrs: [ CLI FOSS copyleft ] suggests: [ fish-dotfiles, fish-glue ]  description: "Friendly interactive shell — smart autosuggestions out of the box." install: [ { via: native  when: "not amzn"  } ] }
+        zsh:  { attrs: [ CLI FOSS permissive ] suggests: [ zsh-dotfiles, shell-glue ]  description: "Z shell — a powerful interactive shell." install: [ { via: native } ] }
+        fish: { attrs: [ CLI FOSS copyleft ] suggests: [ fish-dotfiles, shell-glue ]  description: "Friendly interactive shell — smart autosuggestions out of the box." install: [ { via: native  when: "not amzn"  } ] }
         // nushell isn't in Debian/Ubuntu/Fedora base repos; native where it is (Arch, Homebrew),
         // else the upstream glibc release tarball (ships `nu` + its plugins).
-        nushell: { attrs: [ CLI FOSS permissive ] suggests: nushell-dotfiles 
+        nushell: { attrs: [ CLI FOSS permissive ] suggests: [ nushell-dotfiles  nushell-glue ] 
             description: "A shell whose pipelines carry structured data, not just text (`nu`)."
             install: [
                 { via: native  when: "arch" }
@@ -656,7 +656,7 @@
         // AppImage (pkgforge-dev; glibc/fuse2, unpacked under ~/apps). Musl-only boxes (Alpine)
         // have no verified method, so ghostty simply declines there. The `asset` glob discovers the
         // real download URL from the GitHub API (no hand-templated url).
-        ghostty: { attrs: [ GUI FOSS permissive ] suggests: ghostty-dotfiles  description: "Fast, native GPU-accelerated terminal emulator."
+        ghostty: { attrs: [ GUI FOSS permissive ] suggests: [ ghostty-dotfiles  ghostty-glue ]  description: "Fast, native GPU-accelerated terminal emulator."
             install: [
                 { via: native  when: "arch" }
                 { via: appImage  name: Ghostty  scope: user
@@ -718,7 +718,7 @@
         // ~/apps and its companion snippet aliases `yazi`.
         yazi: { attrs: [ TUI app FOSS permissive ]
             description: "Blazing-fast terminal file manager with image previews."
-            suggests: yazi-dotfiles
+            suggests: yazi-glue
             install: [
                 { via: native  when: "arch" }
                 { via: native  when: "fedora_atomic" }              // brew formula `yazi`
@@ -734,15 +734,15 @@
                   version: { github: sxyazi/yazi  asset: "yazi-$ARCH-unknown-linux-musl.zip" } }
             ]
         }
-        yazi-dotfiles: { description: "yazi config, linked into place."
-            install: [ { via: dotfiles  requires: bash-dotfiles  glue: yazi } ]
+        yazi-glue: { description: "yazi config, linked into place."
+            install: [ { via: glue  requires: shell-glue  glue: yazi } ]
         }
         // superfile (`spf`): Go TUI file manager. Native on Arch + Homebrew; elsewhere the GitHub
         // release tarball (its official install.sh sudo-installs and edits shell rc files — the
         // surprises configsys avoids — so we unpack userland under ~/apps and alias `spf`).
         superfile: { attrs: [ TUI app FOSS permissive ]
             description: "Modern terminal file manager (`spf`) with a pretty TUI."
-            suggests: superfile-dotfiles
+            suggests: superfile-glue
             install: [
                 { via: native  when: "arch" }
                 { via: native  when: "fedora_atomic" }              // brew formula `superfile`
@@ -750,8 +750,8 @@
                   version: { github: yorukot/superfile  asset: "superfile-linux-*-amd64.tar.gz" } }
             ]
         }
-        superfile-dotfiles: { description: "superfile config, linked into place."
-            install: [ { via: dotfiles  requires: bash-dotfiles  glue: superfile } ]
+        superfile-glue: { description: "superfile config, linked into place."
+            install: [ { via: glue  requires: shell-glue  glue: superfile } ]
         }
         // ueberzugpp — draws images in the terminal (X11/Wayland/Sixel) so file managers like yazi
         // can show image previews. The maintained C++ fork of the archived Python `ueberzug`;
@@ -795,7 +795,7 @@
         // pipx: the version-variant collapse. Native package where the repos have it;
         // a pip --user bootstrap on old Ubuntu/Debian; +EPEL on EL. Was a \pip family +
         // apt/dnf/pacman entries + two @version blocks + a rhel override — now three bindings.
-        pipx: { attrs: [ CLI FOSS permissive ] suggests: pipx-dotfiles  description: "Install and run Python CLI apps in isolated environments."
+        pipx: { attrs: [ CLI FOSS permissive ] suggests: pipx-glue  description: "Install and run Python CLI apps in isolated environments."
             install: [
                 { via: pip     when: "(ubuntu < 23.04) or (debian < 12) or amzn"  name: pipx  version: { pypi: pipx } }
                 { via: native  when: "rhel"  requires: epel  name: { pacman: python-pipx } }
@@ -808,7 +808,7 @@
         // installing rust — there is no separate `cargo` component. Package names bring the WHOLE
         // toolchain: apt `rust-all` (metapkg: rustc+cargo+gdb+doc), Arch/Homebrew `rust` (bundles
         // cargo), and elsewhere `cargo` transitively pulls rustc (dnf/apk/zypper).
-        rust: { attrs: [ CLI toolchain FOSS permissive ] suggests: rust-dotfiles  description: "The Rust toolchain (cargo, rustc) — safe systems programming."
+        rust: { attrs: [ CLI toolchain FOSS permissive ] suggests: rust-glue  description: "The Rust toolchain (cargo, rustc) — safe systems programming."
             provides: cargo
             install: [
                 { via: native  repo-component: universe  name: { apt: rust-all  pacman: rust  brew: rust  default: cargo }  installed-name: cargo }   // Ubuntu splits the toolchain: `rust-all` is a meta over cargo/rustc — read state from `cargo`
@@ -838,7 +838,7 @@
         // DRIVER's `requires: npm` is met by installing node. One native binding brings both:
         // apt/Arch/Alpine `npm` transitively pulls nodejs; Fedora/openSUSE `nodejs` and
         // Homebrew `node` bundle npm.
-        node: { attrs: [ runtime FOSS permissive ] suggests: node-dotfiles  description: "Node.js — JavaScript runtime built on V8."
+        node: { attrs: [ runtime FOSS permissive ] suggests: node-glue  description: "Node.js — JavaScript runtime built on V8."
             provides: npm
             install: [ { via: native  repo-component: universe  name: { apt: npm  pacman: npm  apk: npm  brew: node  zypper: nodejs-default  default: nodejs } }
                        { via: snap  name: node  classic: true } ]   // OpenJS-official snap (candidate-only)
@@ -854,25 +854,25 @@
         yarn:       { attrs: [ CLI FOSS permissive ] description: "Yarn — a Node package manager." install: [ { via: npm  name: yarn } ] }
         sass:       { attrs: [ CLI FOSS permissive ] description: "Sass — CSS with superpowers (the `sass` compiler)." install: [ { via: npm  name: sass } ] }
         // elm: no distro packages it — the official prebuilt binary from elm/compiler releases is a
-        // single gzipped glibc executable (archive: gz). Off-PATH under the app dir, so elm-dotfiles
+        // single gzipped glibc executable (archive: gz). Off-PATH under the app dir, so elm-glue
         // aliases it; declines on musl Alpine.
-        elm: { attrs: [ CLI toolchain FOSS permissive ] suggests: elm-dotfiles  description: "Elm — a functional language for reliable web frontends (compiles to JS)."
+        elm: { attrs: [ CLI toolchain FOSS permissive ] suggests: elm-glue  description: "Elm — a functional language for reliable web frontends (compiles to JS)."
             install: [ { via: tarball  when: "not alpine"  installDir: "$CONFIGSYS_APP_DIR/elm"  requires: glibc  archive: gz  binary: elm
                          version: { github: elm/compiler  asset: "elm-*-linux-x64.gz" } } ] }
-        elm-dotfiles: { description: "elm shell setup, linked into place." install: [ { via: dotfiles  requires: bash-dotfiles  glue: elm } ] }
+        elm-glue: { description: "elm shell setup, linked into place." install: [ { via: glue  requires: shell-glue  glue: elm } ] }
 
         // Deno & Bun — alternative JS/TS runtimes. Native on Arch/Homebrew where packaged; else
         // the upstream github release ZIP (glibc-linked; the tarball driver unzips it). Both have
         // STABLE asset names (no version in the filename), so they use github's API-free
         // `releases/latest/download` URL — robust even when api.github.com is unreachable.
-        deno: { attrs: [ CLI runtime FOSS permissive ] suggests: deno-dotfiles  description: "Deno — secure JavaScript/TypeScript runtime with built-in tooling."
+        deno: { attrs: [ CLI runtime FOSS permissive ] suggests: deno-glue  description: "Deno — secure JavaScript/TypeScript runtime with built-in tooling."
             install: [
                 { via: native  when: "arch" }
                 { via: native  when: "fedora_atomic" }             // brew formula `deno`
                 { via: tarball  installDir: "$CONFIGSYS_APP_DIR/deno"  requires: [ glibc, unzip ]  version: { static: latest }
                   url: "https://github.com/denoland/deno/releases/latest/download/deno-x86_64-unknown-linux-gnu.zip" } ]
         }
-        bun: { attrs: [ CLI runtime toolchain FOSS permissive ] suggests: bun-dotfiles  description: "Bun — fast all-in-one JavaScript runtime, bundler, and package manager."
+        bun: { attrs: [ CLI runtime toolchain FOSS permissive ] suggests: bun-glue  description: "Bun — fast all-in-one JavaScript runtime, bundler, and package manager."
             install: [
                 { via: native  when: "fedora_atomic" }             // brew formula `bun`
                 { via: tarball  installDir: "$CONFIGSYS_APP_DIR/bun"  requires: [ glibc, unzip ]  version: { static: latest }
@@ -881,7 +881,7 @@
 
         // Go toolchain, directly usable. Auto-provides the `go` capability the go-install
         // driver requires. Package names: apt `golang-go`, dnf `golang`, else `go`.
-        go: { attrs: [ CLI toolchain FOSS permissive ] suggests: go-dotfiles  description: "The Go programming language toolchain."
+        go: { attrs: [ CLI toolchain FOSS permissive ] suggests: go-glue  description: "The Go programming language toolchain."
             install: [
                 { via: native  name: { apt: golang-go  dnf: golang  default: go } }
                 // the official Go toolchain tarball — latest stable, userland under
@@ -905,7 +905,7 @@
 
         // Ruby toolchain (ships gem + irb). Auto-provides `ruby` for the gem driver. apt
         // `ruby-full` bundles the dev headers gems' native extensions need; else `ruby`.
-        ruby: { attrs: [ CLI runtime toolchain FOSS permissive ] suggests: ruby-dotfiles  description: "The Ruby programming language."
+        ruby: { attrs: [ CLI runtime toolchain FOSS permissive ] suggests: ruby-glue  description: "The Ruby programming language."
             // apt installs the `ruby-full` meta (interpreter + dev + ri + tk), but the base `ruby`
             // package (pulled in as a dependency of other tools) provides a working interpreter WITHOUT
             // ruby-full — so read install-state from `ruby`, else a resident base Ruby reads uninstalled.
@@ -923,7 +923,7 @@
             install: [ { via: native  repo-component: universe
                          name: { apt: php-cli  dnf: php-cli  pacman: php  apk: php84  zypper: php8-cli  brew: php } } ]
         }
-        composer: { attrs: [ CLI FOSS permissive ] suggests: composer-dotfiles  description: "Composer — PHP's per-project dependency manager." requires: php
+        composer: { attrs: [ CLI FOSS permissive ] suggests: composer-glue  description: "Composer — PHP's per-project dependency manager." requires: php
             install: [ { via: native  when: "not rhel"  repo-component: universe  name: { zypper: php-composer2  default: composer } }
                        { via: native  when: "rhel"  requires: epel  name: composer } ]
         }
@@ -933,7 +933,7 @@
         // upstream dotnet-install.sh lands a per-user SDK under ~/.dotnet (add it to PATH yourself);
         // the Canonical snap (classic) is a pinnable all-distro alternate. Distro packages are
         // per-major (8.0 = current LTS) — bump the channel/pkg as newer LTS lines land.
-        dotnet: { attrs: [ CLI SDK toolchain FOSS permissive tele ] suggests: dotnet-dotfiles  description: ".NET SDK — build & run .NET (C#/F#) apps (`dotnet`)."
+        dotnet: { attrs: [ CLI SDK toolchain FOSS permissive tele ] suggests: dotnet-glue  description: ".NET SDK — build & run .NET (C#/F#) apps (`dotnet`)."
             install: [
                 { via: native  when: "arch"    name: dotnet-sdk }              // rolling latest
                 { via: native  when: "ubuntu"  name: dotnet-sdk-8.0 }          // Canonical feed (22.04+)
@@ -981,7 +981,7 @@
         // `script` driver: lifecycle commands declared as data, incl. a clean uninstall). `sdk`
         // is a shell function, so version-cmd sources the init script in the same shell.
         sdkman: { attrs: [ CLI FOSS permissive ] description: "SDKMAN! — manage parallel versions of JVM SDKs and tools."
-            suggests: sdkman-dotfiles
+            suggests: sdkman-glue
             install: [ { via: script
                          install-cmd: 'curl -s https://get.sdkman.io | bash'
                          version-cmd: 'source "$HOME/.sdkman/bin/sdkman-init.sh" && sdk version'
@@ -989,12 +989,12 @@
                          uninstall-cmd: 'rm -rf "$HOME/.sdkman"'
                          location: '~/.sdkman' } ]
         }
-        sdkman-dotfiles: { description: "SDKMAN shell init — sources sdkman-init.sh from ~/.bash.d so `sdk` + the selected SDKs are on PATH."
-            install: [ { via: dotfiles  requires: bash-dotfiles  glue: sdkman } ] }
+        sdkman-glue: { description: "SDKMAN shell init — sources sdkman-init.sh from ~/.bash.d so `sdk` + the selected SDKs are on PATH."
+            install: [ { via: glue  requires: shell-glue  glue: sdkman } ] }
 
         // Kotlin compiler — native on Arch/Homebrew; else the github release ZIP. Needs a JVM to
         // run (requires jdk) and unzip to unpack. (SDKMAN is the other path — via the script driver.)
-        kotlin: { attrs: [ toolchain FOSS permissive ] suggests: kotlin-dotfiles  description: "Kotlin — modern JVM language, Android's default."
+        kotlin: { attrs: [ toolchain FOSS permissive ] suggests: kotlin-glue  description: "Kotlin — modern JVM language, Android's default."
             install: [
                 { via: native  when: "arch" }                      // pacman: kotlin
                 { via: native  when: "fedora_atomic" }             // brew formula `kotlin`
@@ -1030,9 +1030,9 @@
         // GNUstep: the open-source Cocoa/OpenStep framework for Objective-C — needs the ObjC
         // compiler, so requires: objective-c. Debian/Ubuntu ship the full dev meta (gnustep-devel =
         // make+base+gui+back); Fedora/Arch/openSUSE package only Foundation + the build system (no
-        // AppKit GUI in their base repos — that's AUR on Arch). gnustep-dotfiles sources the build
+        // AppKit GUI in their base repos — that's AUR on Arch). gnustep-glue sources the build
         // environment. Declines where objective-c does (Alpine/Amazon/atomic).
-        gnustep: { attrs: [ lib FOSS GNU copyleft ] suggests: gnustep-dotfiles  requires: objective-c
+        gnustep: { attrs: [ lib FOSS GNU copyleft ] suggests: gnustep-glue  requires: objective-c
             description: "GNUstep — open-source Cocoa/OpenStep framework for Objective-C (Foundation + AppKit)."
             install: [
                 { via: native  when: "debian"    packages: [ gnustep-devel ]  installed-name: gnustep-devel }   // dev meta: make + base + gui + back; read state from it (the meta name isn't a package)
@@ -1040,7 +1040,7 @@
                 { via: native  when: "arch"      packages: [ gnustep-make, gnustep-base ] }            // official base (gnustep-gui is AUR-only)
                 { via: native  when: "opensuse"  packages: [ gnustep-make, gnustep-base-devel ] } ]
         }
-        gnustep-dotfiles: { description: "gnustep shell setup, linked into place." install: [ { via: dotfiles  requires: bash-dotfiles  glue: gnustep } ] }
+        gnustep-glue: { description: "gnustep shell setup, linked into place." install: [ { via: glue  requires: shell-glue  glue: gnustep } ] }
         d: { attrs: [ CLI toolchain FOSS permissive ] description: "The D programming language (a D compiler — LDC / GDC / DMD per distro)."
             install: [ { via: native  when: "fedora or arch or alpine or fedora_atomic"  name: ldc }   // LLVM D compiler
                        { via: native  when: "debian"  name: gdc }        // GCC D front-end (ldc is sid-only on debian)
@@ -1053,7 +1053,7 @@
                          version-re:    '([0-9][0-9.]*)'
                          uninstall-cmd: 'sudo apt-get remove -y crystal 2>/dev/null || sudo dnf remove -y crystal 2>/dev/null'
                          location:      'crystal (dist.crystal-lang.org repo)' } ] }
-        dart: { attrs: [ CLI toolchain SDK FOSS permissive ] suggests: dart-dotfiles  description: "Dart — Google's language & SDK for apps and Flutter."
+        dart: { attrs: [ CLI toolchain SDK FOSS permissive ] suggests: dart-glue  description: "Dart — Google's language & SDK for apps and Flutter."
             install: [ { via: native  when: "arch" }                     // pacman: dart (extra)
                        { via: native  when: "fedora_atomic"  name: dart-sdk }   // brew dart-sdk
                        { via: native  when: "debian"  name: dart          // Google's official apt repo (single `stable` suite — codename-independent)
@@ -1072,12 +1072,12 @@
         raku: { attrs: [ CLI runtime toolchain FOSS permissive ] description: "Raku (Rakudo) — the Raku language, formerly Perl 6."
             install: [ { via: native  when: "(not arch) and not amzn"  repo-component: universe  name: { brew: rakudo-star  default: rakudo } }
                        { via: aur  when: "arch"  name: rakudo-star } ] }   // AUR-only on Arch
-        v: { attrs: [ CLI toolchain FOSS permissive ] suggests: v-dotfiles  description: "V — a simple, fast-compiling language (the `v` compiler)." requires: cc
+        v: { attrs: [ CLI toolchain FOSS permissive ] suggests: v-glue  description: "V — a simple, fast-compiling language (the `v` compiler)." requires: cc
             install: [ { via: native  when: "fedora_atomic"  name: vlang }   // brew vlang
                        { via: aur  when: "arch"  name: vlang-bin }
                        { via: tarball  when: "not arch and not fedora_atomic"  installDir: "$CONFIGSYS_APP_DIR/v"  requires: [ glibc, unzip ]  version: { static: latest }
                          url: "https://github.com/vlang/v/releases/latest/download/v_linux.zip" } ] }   // prebuilt zip
-        gleam: { attrs: [ CLI toolchain FOSS permissive ] suggests: gleam-dotfiles  description: "Gleam — a friendly, statically-typed language for the Erlang VM." requires: erlang
+        gleam: { attrs: [ CLI toolchain FOSS permissive ] suggests: gleam-glue  description: "Gleam — a friendly, statically-typed language for the Erlang VM." requires: erlang
             install: [ { via: native  when: "arch or alpine or fedora_atomic" }   // pacman/apk/brew gleam
                        { via: tarball  when: "not arch and not alpine and not fedora_atomic"  installDir: "$CONFIGSYS_APP_DIR/gleam"  requires: glibc
                          version: { github: gleam-lang/gleam  strip-v: true  asset: "gleam-*-x86_64-unknown-linux-musl.tar.gz" } } ] }   // single static binary
@@ -1133,7 +1133,7 @@
         scalacli:   { attrs: [ CLI toolchain FOSS permissive ] description: "Scala CLI — the modern all-in-one Scala runner and tooling." requires: jdk  install: [ { via: sdkman } ] }
         // coursier isn't an SDKMAN candidate; upstream ships the `cs` launcher as a gzipped native
         // binary on GitHub (per-arch) — fetch + decompress it to ~/.local/bin (on PATH).
-        coursier:   { attrs: [ CLI FOSS permissive ] suggests: coursier-dotfiles  description: "Coursier (`cs`) — the JVM artifact fetcher and application installer." requires: jdk
+        coursier:   { attrs: [ CLI FOSS permissive ] suggests: coursier-glue  description: "Coursier (`cs`) — the JVM artifact fetcher and application installer." requires: jdk
             install: [ { via: script  requires: [ curl, jdk ]
                          install-cmd:   'mkdir -p "$HOME/.local/bin" && A="$(uname -m)"; case "$A" in aarch64|arm64) F=cs-aarch64-pc-linux.gz ;; *) F=cs-x86_64-pc-linux.gz ;; esac; curl -fL "https://github.com/coursier/coursier/releases/latest/download/$F" | gzip -d > "$HOME/.local/bin/cs" && chmod +x "$HOME/.local/bin/cs"'
                          version-cmd:   '"$HOME/.local/bin/cs" version 2>/dev/null'
@@ -1176,7 +1176,7 @@
         erlang: { attrs: [ CLI runtime toolchain FOSS permissive ] description: "Erlang/OTP — battle-tested concurrent, fault-tolerant runtime." install: [ { via: native  when: "(debian or redhat or arch or opensuse) and not amzn"  repo-component: universe }  { via: native  when: "fedora_atomic" } ] }   // brew formula `erlang`
         elixir: { attrs: [ CLI toolchain runtime FOSS permissive ] description: "Elixir — functional, concurrent language on the Erlang VM." install: [ { via: native  when: "not amzn"   repo-component: universe } ] }
         // Nim compiler (nimble ships alongside).
-        nim:   { attrs: [ toolchain FOSS permissive ] suggests: nim-dotfiles  description: "Nim — expressive, statically-typed compiled systems language."
+        nim:   { attrs: [ toolchain FOSS permissive ] suggests: nim-glue  description: "Nim — expressive, statically-typed compiled systems language."
             // packaged on arch/opensuse/alpine (alpine = musl build) and brew; NOT in the ubuntu/
             // debian/fedora repos, so those pull the official nim-lang.org prebuilt (glibc x64).
             install: [ { via: native  when: "arch or opensuse or alpine" }
@@ -1204,14 +1204,14 @@
         // opam (OCaml package manager). NOTE: `opam install` needs a one-time `opam init` on a
         // fresh system — the opam driver is validated against opam 2.1.5's CLI, but first use on
         // an uninitialized machine may need `opam init` (tracked; see docs/expansion-plan.md).
-        opam:  { attrs: [ CLI FOSS copyleft ] suggests: opam-dotfiles  description: "opam — the OCaml package manager." install: [ { via: native  when: "not amzn"  repo-component: universe } ] }
+        opam:  { attrs: [ CLI FOSS copyleft ] suggests: opam-glue  description: "opam — the OCaml package manager." install: [ { via: native  when: "not amzn"  repo-component: universe } ] }
         dune:  { attrs: [ CLI FOSS permissive ] description: "Dune — the build system for OCaml projects." install: [ { via: opam  name: dune } ] }
         // luarocks (Lua package manager; the native package pulls lua) + a sample rock
         // (dkjson is pure-Lua with no C deps, so it installs without lua headers).
-        luarocks: { attrs: [ CLI FOSS permissive ] suggests: luarocks-dotfiles  description: "LuaRocks — package manager for Lua modules." install: [ { via: native  when: "not amzn"  repo-component: universe  name: { zypper: lua54-luarocks  default: luarocks } } ] }
+        luarocks: { attrs: [ CLI FOSS permissive ] suggests: luarocks-glue  description: "LuaRocks — package manager for Lua modules." install: [ { via: native  when: "not amzn"  repo-component: universe  name: { zypper: lua54-luarocks  default: luarocks } } ] }
         dkjson:   { attrs: [ lib FOSS permissive ] description: "dkjson — a pure-Lua JSON encode/decode library." install: [ { via: luarocks  name: dkjson } ] }
         // cabal (Haskell build tool; needs ghc to build) + a sample executable.
-        cabal: { attrs: [ CLI FOSS permissive ] suggests: cabal-dotfiles  description: "Cabal — Haskell's build system and package manager." requires: haskell
+        cabal: { attrs: [ CLI FOSS permissive ] suggests: cabal-glue  description: "Cabal — Haskell's build system and package manager." requires: haskell
                  install: [ { via: native  when: "not amzn"   repo-component: universe  name: { apk: cabal  default: cabal-install } } ] }
         // hlint's recent releases need a modern GHC to build from Hackage; the distro ghc is often
         // too old. The `haskell >= 9.4` floor advises pinning haskell -> ghcup (auto under
@@ -1223,7 +1223,7 @@
         // statically linked (runs on glibc AND musl), so no glibc requirement. Its prebuilt
         // binaries live on ziglang.org (not github assets), so github supplies only the VERSION
         // and a url template builds the download.
-        zig: { attrs: [ CLI toolchain FOSS permissive ] suggests: zig-dotfiles  description: "Zig — simple, fast systems language and C/C++ toolchain."
+        zig: { attrs: [ CLI toolchain FOSS permissive ] suggests: zig-glue  description: "Zig — simple, fast systems language and C/C++ toolchain."
             install: [
                 { via: native  when: "arch" }
                 { via: native  when: "fedora_atomic" }             // brew formula `zig`
@@ -1236,7 +1236,7 @@
         // Julia — official binaries live on the julialang S3 (not github releases), so a pinned
         // version + the S3 tarball URL (glibc build; path carries both the X.Y dir and full
         // version, so bump both on update). Native on Arch/Homebrew where packaged.
-        julia: { attrs: [ CLI toolchain runtime FOSS permissive ] suggests: julia-dotfiles  description: "Julia — high-performance language for scientific computing."
+        julia: { attrs: [ CLI toolchain runtime FOSS permissive ] suggests: julia-glue  description: "Julia — high-performance language for scientific computing."
             install: [
                 { via: native  when: "arch" }                      // pacman: julia
                 { via: native  when: "fedora_atomic" }             // brew formula `julia`
@@ -1244,7 +1244,7 @@
                   url: "https://julialang-s3.julialang.org/bin/linux/x64/1.12/julia-1.12.6-linux-x86_64.tar.gz" } ]
         }
         // Odin — upstream github release tarball (glibc-linked, so it declines on musl).
-        odin: { attrs: [ CLI toolchain FOSS permissive ] suggests: odin-dotfiles  description: "Odin — data-oriented systems programming language."
+        odin: { attrs: [ CLI toolchain FOSS permissive ] suggests: odin-glue  description: "Odin — data-oriented systems programming language."
             install: [
                 { via: native  when: "fedora_atomic" }             // brew formula `odin`
                 { via: tarball  installDir: "$CONFIGSYS_APP_DIR/odin"  requires: glibc
@@ -1445,17 +1445,17 @@
                               // (absent on immutable atomic, so decline there rather than source-build on it)
                               { via: cargo   name: wiremix  requires: [ cargo, pipewire-dev, pkg-config ] } ] }   // pipewire-dev requires: naturally declines cargo where the headers are absent (e.g. atomic)   // Debian/Alpine don't carry it in-repo -> cargo there
         // dnspeep: watch the DNS queries your machine makes. Not distro-packaged nor on crates.io —
-        // upstream's glibc release tarball is a single `dnspeep` binary (dnspeep-dotfiles PATHs it);
+        // upstream's glibc release tarball is a single `dnspeep` binary (dnspeep-glue PATHs it);
         // declines on musl Alpine. Runs as root (libpcap).
-        dnspeep: { attrs: [ CLI FOSS permissive ] suggests: dnspeep-dotfiles  description: "dnspeep — spy on the DNS queries your computer makes (needs root)."
+        dnspeep: { attrs: [ CLI FOSS permissive ] suggests: dnspeep-glue  description: "dnspeep — spy on the DNS queries your computer makes (needs root)."
             install: [ { via: tarball  when: "not alpine"  installDir: "$CONFIGSYS_APP_DIR/dnspeep"  requires: glibc
                          version: { github: jvns/dnspeep  strip-v: true  asset: "dnspeep-linux.tar.gz" } } ] }   // asset lives INSIDE version: (the tarball driver reads version.asset)
-        dnspeep-dotfiles: { description: "dnspeep shell setup, linked into place." install: [ { via: dotfiles  requires: bash-dotfiles  glue: dnspeep } ] }
+        dnspeep-glue: { description: "dnspeep shell setup, linked into place." install: [ { via: glue  requires: shell-glue  glue: dnspeep } ] }
 
         // Web/HTTP dev — httpie + jq native (httpie via EPEL on EL); yq/mitmproxy isolated via
         // pipx; xh/websocat are Rust crates.
         httpie:    { attrs: [ CLI FOSS permissive ] suggests: httpie-dotfiles  description: "Human-friendly HTTP client (`http`) — a nicer curl for APIs." install: [ { via: native  when: "rhel"  requires: epel } { via: native  when: "not amzn"  } ] }   // the `http`/`https` CLI
-        jq:        { attrs: [ CLI FOSS permissive ] suggests: jq-dotfiles  description: "Command-line JSON processor — query and transform JSON."
+        jq:        { attrs: [ CLI FOSS permissive ] suggests: jq-glue  description: "Command-line JSON processor — query and transform JSON."
                      install: [ { via: native }
                                 { via: tarball  archive: none  binary: jq  installDir: "$CONFIGSYS_APP_DIR/jq"  version: { github: jqlang/jq  asset: "jq-linux-amd64" } } ] }   // upstream ships a raw static binary
         yq:        { attrs: [ CLI FOSS permissive ] description: "YAML/JSON/XML processor — jq, but for YAML." requires: jq                                                                    // the jq-family yq (yq/xq/tomlq) — shells out to jq at runtime; NOT mikefarah's Go yq
@@ -1468,14 +1468,14 @@
         // plain pipx uses the system python (and python3.13 doesn't even resolve on atomic — pyenv
         // needs build deps absent there).
         mitmproxy: { attrs: [ CLI TUI FOSS permissive ] description: "Interactive HTTPS proxy — intercept, inspect, and replay traffic." install: [ { via: pipx  when: "debian"  name: mitmproxy  standing: 1  python: "/usr/bin/python3.13"  requires: python3.13  version: { pypi: mitmproxy } }  { via: pipx  when: "not debian"  name: mitmproxy  standing: 1  version: { pypi: mitmproxy } }  { via: flatpak  hub: flathub  app: org.mitmproxy.mitmproxy } ] }   // pipx (official PyPI) stays the default; the Flathub build is an offered option
-        xh:        { attrs: [ CLI FOSS permissive ] suggests: xh-dotfiles  description: "Fast HTTPie-compatible HTTP client (`xh`), written in Rust." install: [ { via: cargo  name: xh  version: { crates: xh } }  { via: tarball  installDir: "$CONFIGSYS_APP_DIR/xh"  version: { github: ducaale/xh  asset: "xh-*-x86_64-unknown-linux-musl.tar.gz" } } ] }                // prebuilt musl binary is the default over building from source
-        websocat:  { attrs: [ CLI FOSS permissive ] suggests: websocat-dotfiles  description: "netcat for WebSockets — connect, pipe, and script ws:// endpoints." install: [ { via: cargo  name: websocat  version: { crates: websocat } }  { via: tarball  archive: none  binary: websocat  installDir: "$CONFIGSYS_APP_DIR/websocat"  version: { github: vi/websocat  asset: "websocat.x86_64-unknown-linux-musl" } } ] }   // prebuilt musl binary default
+        xh:        { attrs: [ CLI FOSS permissive ] suggests: xh-glue  description: "Fast HTTPie-compatible HTTP client (`xh`), written in Rust." install: [ { via: cargo  name: xh  version: { crates: xh } }  { via: tarball  installDir: "$CONFIGSYS_APP_DIR/xh"  version: { github: ducaale/xh  asset: "xh-*-x86_64-unknown-linux-musl.tar.gz" } } ] }                // prebuilt musl binary is the default over building from source
+        websocat:  { attrs: [ CLI FOSS permissive ] suggests: websocat-glue  description: "netcat for WebSockets — connect, pipe, and script ws:// endpoints." install: [ { via: cargo  name: websocat  version: { crates: websocat } }  { via: tarball  archive: none  binary: websocat  installDir: "$CONFIGSYS_APP_DIR/websocat"  version: { github: vi/websocat  asset: "websocat.x86_64-unknown-linux-musl" } } ] }   // prebuilt musl binary default
 
         // GUI API clients — Flatpak from Flathub, like chrome (all community-maintained, current).
         postman:  { attrs: [ GUI app electron proprietary account cloud freemium ] description: "Postman — a GUI for building and testing APIs." install: [ { via: flatpak  hub: flathub  app: com.getpostman.Postman }  { via: snap  name: postman } ] }
         insomnia: { attrs: [ GUI app FOSS permissive electron account ] description: "Insomnia — an open-source API client and design tool." install: [ { via: flatpak  hub: flathub  app: rest.insomnia.Insomnia }  { via: native-pkg-file  when: "debian or redhat"  version: { github: Kong/insomnia  tag-re: "([0-9][0-9.]*)" }  asset: { deb: { x86_64: "Insomnia.Core-*.deb" }  rpm: { x86_64: "Insomnia.Core-*.rpm" } } } ] }   // monorepo `core@` tags: the release scan finds the Core release; tag-re -> clean version
         bruno:    { attrs: [ GUI app electron FOSS permissive freemium ] description: "Bruno — a fast, git-friendly, offline-first API client." install: [ { via: flatpak  hub: flathub  app: com.usebruno.Bruno }  { via: native-pkg-file  when: "debian or redhat"  version: { github: usebruno/bruno  strip-v: true }  asset: { deb: { x86_64: "bruno_*_amd64_linux.deb" }  rpm: { x86_64: "bruno_*_x86_64_linux.rpm" } } } ] }   // upstream .deb (amd64)/.rpm (x86_64 token differs)
-        tree-sitter-cli: { attrs: [ CLI FOSS permissive ] suggests: tree-sitter-cli-dotfiles  description: "tree-sitter CLI — build and test tree-sitter grammars."
+        tree-sitter-cli: { attrs: [ CLI FOSS permissive ] suggests: tree-sitter-cli-glue  description: "tree-sitter CLI — build and test tree-sitter grammars."
             install: [ { via: cargo  name: tree-sitter-cli  standing: 1  version: { crates: tree-sitter-cli } }   // kept the default (some want it built from source, without the prebuilt-binary apparatus)
                        { via: tarball  archive: gz  binary: tree-sitter  installDir: "$CONFIGSYS_APP_DIR/tree-sitter"  version: { github: tree-sitter/tree-sitter  asset: "tree-sitter-linux-x64.gz" } } ]   // upstream ships a plain-gzipped single binary
         }
@@ -1802,9 +1802,9 @@
         // RPM Fusion or openSUSE main, and Arch carries it only in the AUR — so it's native only
         // on Debian (multiverse), AUR on Arch, and the official rarlab tarball everywhere else
         // (glibc; the tar unpacks a rar/ dir holding the rar + unrar binaries). Declines on musl
-        // Alpine. suggests rar-dotfiles to put the tarball binary on PATH.
+        // Alpine. suggests rar-glue to put the tarball binary on PATH.
         rar: { attrs: [ CLI proprietary paid ] description: "Create and extract RAR archives (proprietary RARLAB `rar`)."
-            suggests: rar-dotfiles
+            suggests: rar-glue
             install: [
                 { via: native  when: "debian"  repo-component: multiverse }
                 { via: aur     when: "arch" }
@@ -1813,7 +1813,7 @@
                   latest-check: { url: "https://www.rarlab.com/download.htm"  regex: "rarlinux-x64-([0-9]+)[.]tar" } }
             ]
         }
-        rar-dotfiles: { description: "rar shell setup, linked into place." install: [ { via: dotfiles  requires: bash-dotfiles  glue: rar } ] }
+        rar-glue: { description: "rar shell setup, linked into place." install: [ { via: glue  requires: shell-glue  glue: rar } ] }
         // (The `compression` grouping is a PROFILE, not a parts component: nothing depends on it and
         // it's not OS-conditional, so the profile degrades gracefully — a part that's unroutable here,
         // e.g. unrar on musl/atomic, is skipped rather than failing the whole set. See config.hu.)
@@ -2201,7 +2201,7 @@
         // unityhub: the Unity Hub AppImage. Unity Editor(s) are installed THROUGH the Hub at
         // runtime — there's no `unity3d` package to route. Config in ~/.config/UnityHub (deferred).
         unityhub: { attrs: [ GUI app proprietary account freemium electron ] description: "Unity Hub — manage Unity game-engine installs and projects."
-            suggests: unityhub-dotfiles
+            suggests: unityhub-glue
             // Unity retired the public AppImage (URL 404s); the official Linux channel is now their
             // apt repo. ASCII key -> a `.asc` keyring + signed-by (same pattern as chrome/vivaldi).
             install: [ { via: native  when: "debian"  name: unityhub  standing: 1
@@ -2240,40 +2240,34 @@
         // aliases `lazygit` to that binary when present (a no-op where it's native on PATH).
         lazygit: { attrs: [ TUI FOSS permissive ]
             description: "Terminal UI for git — stage, commit, branch, rebase visually."
-            suggests: lazygit-dotfiles
+            suggests: lazygit-glue
             install: [
                 { via: native  when: "arch" }                        // not in Fedora repos -> tarball there
                 { via: tarball  installDir: "$CONFIGSYS_APP_DIR/lazygit"
                   version: { github: jesseduffield/lazygit  strip-v: true  asset: "lazygit_*_Linux_x86_64.tar.gz" } }
             ]
         }
-        lazygit-dotfiles: { description: "lazygit config, linked into place."
-            install: [ { via: dotfiles  requires: bash-dotfiles  glue: lazygit } ]
+        lazygit-glue: { description: "lazygit config, linked into place."
+            install: [ { via: glue  requires: shell-glue  glue: lazygit } ]
         }
 
         // --- dotfiles ---
-        bash-dotfiles: { description: "Bash config (.bashrc + ~/.bash.d), linked into place."
-            // absorb-into: a pre-existing ~/.bash_aliases is MOVED into the ~/.bash.d loader
-            // dir (and made executable) instead of just backed up, so the user's own aliases
-            // keep running — the new ~/.bash_aliases sources every ~/.bash.d/*.sh.
-            install: [ { via: dotfiles  aliases: { src: bash_aliases  dst: ~/.bash_aliases
-                         absorb-into: ~/.config/bash/conf.d/pre-configsys-aliases.sh } } ]
-        }
-        // Per-shell GLUE LOADERS (distinct from the shells' own *-dotfiles config). Glue snippets
-        // link into the uniform ~/.config/<shell>/conf.d/ and the driver activates a shell's variant
-        // only when that shell's binary is on PATH. fish auto-sources its conf.d natively — fish-glue
-        // just ensures the dir. zsh needs one configsys-owned marker block in ~/.zshrc (added on
-        // install, removed on uninstall) sourcing ~/.config/zsh/conf.d/*.zsh — skipped if ~/.zshrc is
-        // a configsys-managed symlink (your captured config owns the source line then).
-        zsh-glue:  { attrs: [ CLI FOSS permissive ] description: "Zsh glue loader — sources ~/.config/zsh/conf.d/*.zsh from ~/.zshrc."
-            install: [ { via: dotfiles  loader: zsh } ] }
-        fish-glue: { attrs: [ CLI FOSS ] description: "Fish glue loader — ensures ~/.config/fish/conf.d/ (fish auto-sources it)."
-            install: [ { via: dotfiles  loader: fish } ] }
+        // shell-glue — the generic glue SUBSTRATE every `via: glue` snippet requires. Its install
+        // wires up conf.d loading for EVERY installed shell (design: per-installed-shell, not $SHELL):
+        //   * bash — links ~/.bash_aliases to the shipped `bash_aliases` loader (which sources
+        //            ~/.config/bash/conf.d/*.sh), absorbing any pre-existing real ~/.bash_aliases
+        //            into conf.d/pre-configsys-aliases.sh so the user's own aliases keep running;
+        //   * zsh  — one configsys-owned, marker-delimited block in ~/.zshrc sourcing conf.d/*.zsh
+        //            (skipped if ~/.zshrc is a configsys-managed symlink — the capture owns it then);
+        //   * fish — native conf.d auto-source, so just ensure the dir; nu is punted (dir only).
+        // (This replaces the old per-shell bash-dotfiles / zsh-glue / fish-glue loader components.)
+        shell-glue: { attrs: [ CLI FOSS permissive ] description: "Shell glue substrate — wires ~/.config/<shell>/conf.d/ loading for every installed shell (bash/zsh/fish)."
+            install: [ { via: glue  loader: all } ] }
 
         // --- editors / IDEs ---
         neovim: { attrs: [ TUI app FOSS permissive ] description: "Hyperextensible Vim-based editor (`nvim`)."
             requires: [ ripgrep, tree-sitter-cli ]
-            suggests: neovim-dotfiles
+            suggests: [ neovim-dotfiles  neovim-glue ]
             install: [ { via: native  when: fedora_atomic }   // atomic: brew has neovim directly — cleaner than an AppImage needing fuse2
                        { via: appImage  name: Neovim  scope: user   // -> requires libfuse2; keep it in ~/apps
                          version: { github: neovim/neovim  asset: "nvim-linux-$ARCH.appimage" }
@@ -2281,20 +2275,20 @@
                          path: ~/apps/nvim.appimage } ]
         }
         neovim-dotfiles: { description: "Neovim config, linked into place."
-            install: [ { via: dotfiles  requires: bash-dotfiles
+            install: [ { via: dotfiles
                          // configsys ships NO neovim config — it's a deeply personal thing. This
                          // only declares WHERE it lives, so `configsys dotfiles capture` can adopt
                          // your existing ~/.config/nvim into your config (your plugin, else the
                          // local store) and manage/sync it from there. Until you capture, this
                          // spec is unpopulated and install leaves ~/.config/nvim untouched.
-                         config:  { src: neovim  dst: $XDG_CONFIG_HOME/nvim }
-                         aliases: { glue: neovim } } ]
+                         config:  { src: neovim  dst: $XDG_CONFIG_HOME/nvim } } ]
         }
+        neovim-glue: { description: "neovim shell setup, linked into place." install: [ { via: glue  requires: shell-glue  glue: neovim } ] }
         // Emacs — native under `emacs` in every family.
         emacs: { attrs: [ GUI TUI app FOSS GNU copyleft ] suggests: emacs-dotfiles  description: "The extensible, self-documenting text editor." install: [ { via: native  repo-component: universe }  { via: flatpak  hub: flathub  app: org.gnu.emacs } ] }
         // Helix — native on dnf/pacman/zypper/apk/brew; NOT in the Ubuntu base repos, so the github
         // release tarball on the Debian family (ships `hx` alongside its runtime/ dir).
-        helix: { attrs: [ TUI app FOSS permissive ] suggests: helix-dotfiles  description: "Post-modern modal editor (`hx`) — batteries included."
+        helix: { attrs: [ TUI app FOSS permissive ] suggests: [ helix-dotfiles  helix-glue ]  description: "Post-modern modal editor (`hx`) — batteries included."
             install: [
                 { via: native  when: "(redhat or arch or opensuse or alpine or fedora_atomic) and not amzn" }
                 { via: tarball  when: "not alpine"  installDir: "$CONFIGSYS_APP_DIR/helix"  requires: glibc
@@ -2303,7 +2297,7 @@
         // micro (`micro`): Go terminal editor. Native on Debian/Ubuntu universe, Fedora, Arch,
         // Alpine, Homebrew; NOT in openSUSE's repos (name-sweep confirmed) and no EL package, so the
         // upstream release tarball (ships `micro`) covers openSUSE + EL + anything missed.
-        micro: { attrs: [ TUI app FOSS permissive ] suggests: micro-dotfiles 
+        micro: { attrs: [ TUI app FOSS permissive ] suggests: [ micro-dotfiles  micro-glue ] 
             description: "Modern, intuitive terminal text editor (`micro`)."
             install: [
                 { via: native  when: "(not (rhel or opensuse)) and not amzn"  repo-component: universe }
@@ -2320,7 +2314,7 @@
                        { via: tarball  when: "not (debian or redhat or opensuse)"  installDir: "$CONFIGSYS_APP_DIR/fresh"
                          version: { github: sinelaw/fresh  strip-v: true  asset: "fresh-editor-x86_64-unknown-linux-musl.tar.gz" } } ] }   // musl static -> runs on Alpine too
         // Zed — native on Arch; elsewhere its own install script (installs into ~/.local).
-        zed: { attrs: [ GUI app FOSS copyleft tele ] suggests: zed-dotfiles  description: "High-performance, multiplayer code editor from the Atom team."
+        zed: { attrs: [ GUI app FOSS copyleft tele ] suggests: [ zed-dotfiles  zed-glue ]  description: "High-performance, multiplayer code editor from the Atom team."
             install: [
                 { via: native  when: "arch" }
                 { via: flatpak  hub: flathub  app: dev.zed.Zed }
@@ -2378,7 +2372,7 @@
         // couldn't pin, so those are a TODO (a good target for a refresh version/preview hook). Here:
         // Arch AUR, and the upstream tarball elsewhere (a manual VERSION pin — bump the url; the app
         // self-updates after first launch, so a stale pin only affects the initial install).
-        antigravity: { attrs: [ GUI app electron proprietary freeware account cloud tele beta ] suggests: antigravity-dotfiles  description: "Google Antigravity — Google's agent-first AI IDE (a VS Code fork; Gemini/Claude/GPT-OSS)."
+        antigravity: { attrs: [ GUI app electron proprietary freeware account cloud tele beta ] suggests: antigravity-glue  description: "Google Antigravity — Google's agent-first AI IDE (a VS Code fork; Gemini/Claude/GPT-OSS)."
             install: [
                 { via: aur  when: "arch"  name: antigravity-bin }
                 { via: tarball  when: "not arch"  installDir: "$CONFIGSYS_APP_DIR/antigravity"  requires: glibc  version: { static: "1.23.2" }
@@ -2388,7 +2382,7 @@
         // for user, /opt/android-studio for system). No clean version API, so the version is a
         // manual pin — bump it from developer.android.com/studio. Fat IDE config deferred.
         android-studio: { attrs: [ GUI app FOSS permissive tele-optin ] description: "Android Studio — the official Android IDE."
-            suggests: android-studio-dotfiles
+            suggests: android-studio-glue
             install: [ { via: tarball  version: { static: 2024.2.1.11 }  standing: 1  requires: glibc   // Google's official tarball stays the default (glibc-linked JVM/launchers). No plain version endpoint for a `latest-check:` (the studio page is JS) — bump from developer.android.com/studio.
                          url: "https://redirector.gvt1.com/edgedl/android/studio/ide-zips/$VERSION/android-studio-$VERSION-linux.tar.gz" }
                        { via: flatpak  hub: flathub  app: com.google.AndroidStudio } ]   // community Flathub build offered as an alternative
@@ -2407,7 +2401,7 @@
         // JetBrains Toolbox — the launcher that installs/updates IDEA, CLion, PyCharm, etc.
         // (cleaner than one-off IDE components). The version-less URL 302-redirects to the
         // latest tarball, which `curl -fSL` follows — so `static: latest`, no version to chase.
-        jetbrains-toolbox: { attrs: [ GUI app proprietary freeware ] suggests: jetbrains-toolbox-dotfiles  description: "JetBrains Toolbox — install and manage JetBrains IDEs."
+        jetbrains-toolbox: { attrs: [ GUI app proprietary freeware ] suggests: jetbrains-toolbox-glue  description: "JetBrains Toolbox — install and manage JetBrains IDEs."
             install: [ { via: tarball  installDir: "$CONFIGSYS_APP_DIR/jetbrains-toolbox"  requires: glibc   // glibc-linked launcher
                          version: { static: latest }
                          url: "https://download.jetbrains.com/product?code=TBA&latest&distribution=linux" } ]
@@ -2449,7 +2443,7 @@
         // --- container / k8s / dev TUIs & C++ package managers ---
         // lazydocker's asset embeds the version (github asset discovery, like lazygit); lazysql
         // and k9s have stable asset names, so they use github's API-free latest/download URL.
-        lazydocker: { attrs: [ TUI FOSS permissive ] suggests: lazydocker-dotfiles 
+        lazydocker: { attrs: [ TUI FOSS permissive ] suggests: [ lazydocker-dotfiles  lazydocker-glue ] 
             description: "Terminal UI for Docker/Compose — containers, logs, stats."
             install: [ { via: tarball  installDir: "$CONFIGSYS_APP_DIR/lazydocker"  requires: glibc
                          version: { github: jesseduffield/lazydocker  strip-v: true  asset: "lazydocker_*_Linux_x86_64.tar.gz" } } ]
@@ -2476,11 +2470,11 @@
                                 { via: aur     when: "arch"  name: astroterm } ] }   // dnf on Fedora (F40+), brew on atomic, AUR on arch; declines elsewhere
         webcamize: { attrs: [ CLI FOSS copyleft ] description: "webcamize — use a DSLR/mirrorless/other camera as a Linux webcam (via v4l2loopback)."
                      install: [ { via: aur  when: "arch"  name: webcamize } ] }   // AUR-only (build-from-source elsewhere); needs v4l2loopback + libgphoto2 at runtime
-        lazysql: { attrs: [ TUI FOSS permissive ] suggests: lazysql-dotfiles  description: "Terminal UI for SQL databases (`lazysql`)."
+        lazysql: { attrs: [ TUI FOSS permissive ] suggests: lazysql-glue  description: "Terminal UI for SQL databases (`lazysql`)."
             install: [ { via: tarball  installDir: "$CONFIGSYS_APP_DIR/lazysql"  requires: glibc  version: { static: latest }
                          url: "https://github.com/jorgerojas26/lazysql/releases/latest/download/lazysql_Linux_x86_64.tar.gz" } ]
         }
-        k9s: { attrs: [ TUI FOSS permissive ] suggests: k9s-dotfiles 
+        k9s: { attrs: [ TUI FOSS permissive ] suggests: [ k9s-dotfiles  k9s-glue ] 
             description: "Terminal UI to navigate and manage Kubernetes clusters."
             install: [
                 { via: native  when: "arch" }
@@ -2491,7 +2485,7 @@
         // kubectl isn't in the Debian/Fedora base repos; native on Arch/Homebrew, else the upstream
         // static binary from dl.k8s.io (bare-binary tarball mode; `stable.txt` gives the version).
         // The Go binary runs anywhere, so no glibc gate.
-        kubectl: { attrs: [ CLI FOSS permissive ] suggests: kubectl-dotfiles  description: "kubectl — the Kubernetes command-line client."
+        kubectl: { attrs: [ CLI FOSS permissive ] suggests: kubectl-glue  description: "kubectl — the Kubernetes command-line client."
             install: [
                 { via: native  when: "arch" }
                 { via: native  when: "fedora_atomic" }
@@ -2524,7 +2518,7 @@
         }
         // conan is a Python CLI (pipx). vcpkg is a git clone + bootstrap (script driver; needs git).
         conan: { attrs: [ CLI FOSS permissive ] description: "Conan — a C/C++ package manager." install: [ { via: pipx  name: conan  version: { pypi: conan } } ] }
-        vcpkg: { attrs: [ CLI FOSS permissive ] suggests: vcpkg-dotfiles  description: "vcpkg — Microsoft's C/C++ library manager."
+        vcpkg: { attrs: [ CLI FOSS permissive ] suggests: vcpkg-glue  description: "vcpkg — Microsoft's C/C++ library manager."
             requires: [ git, curl, zip, unzip ]     // bootstrap-vcpkg fetches + unpacks its tool
             install: [ { via: script
                          install-cmd:   'git clone https://github.com/microsoft/vcpkg "$HOME/.vcpkg" && "$HOME/.vcpkg/bootstrap-vcpkg.sh" -disableMetrics'
@@ -2559,7 +2553,7 @@
         // runs anywhere) is offered as a uniform option everywhere — it's the default on the Debian
         // family (no repo package; works on older apt too, e.g. Ubuntu/Pop 22.04) and a candidate
         // elsewhere (native stays the default where the distro packages it).
-        just: { attrs: [ CLI FOSS permissive ] suggests: just-dotfiles  description: "just — a handy command runner (Makefile-like `justfile`)."
+        just: { attrs: [ CLI FOSS permissive ] suggests: just-glue  description: "just — a handy command runner (Makefile-like `justfile`)."
             install: [
                 { via: native  when: "(redhat or arch or opensuse or fedora_atomic) and not amzn" }
                 { via: tarball  installDir: "$CONFIGSYS_APP_DIR/just"
@@ -2567,7 +2561,7 @@
                 { via: cargo  name: just } ]                        // `cargo install just` as a pinnable alt
         }
         // Bazelisk (the official launcher that manages bazel versions) — a bare static binary.
-        bazelisk: { attrs: [ CLI FOSS permissive ] suggests: bazelisk-dotfiles  description: "Bazelisk — a launcher that manages Bazel versions."
+        bazelisk: { attrs: [ CLI FOSS permissive ] suggests: bazelisk-glue  description: "Bazelisk — a launcher that manages Bazel versions."
             install: [
                 { via: native  when: "fedora_atomic" }             // brew formula `bazelisk`
                 { via: tarball  installDir: "$CONFIGSYS_APP_DIR/bazelisk"  archive: none  binary: bazelisk  version: { static: latest }
@@ -2663,7 +2657,7 @@
                          uninstall-cmd: 'rm -rf "$HOME/.local/aws-cli" "$HOME/.local/bin/aws" "$HOME/.local/bin/aws_completer"'
                          location:      '~/.local/bin/aws' } ]
         }
-        gcloud: { attrs: [ CLI proprietary freeware account cloud ] suggests: gcloud-dotfiles  description: "Google Cloud CLI (`gcloud`) — manage GCP resources."
+        gcloud: { attrs: [ CLI proprietary freeware account cloud ] suggests: gcloud-glue  description: "Google Cloud CLI (`gcloud`) — manage GCP resources."
             requires: curl
             install: [ { via: script
                          install-cmd:   'curl -fsSL https://sdk.cloud.google.com | bash -s -- --disable-prompts --install-dir="$HOME"'
@@ -2674,9 +2668,9 @@
         }
         azure-cli: { attrs: [ CLI FOSS permissive account cloud ] description: "Azure CLI (`az`) — manage Microsoft Azure resources." install: [ { via: pipx  name: azure-cli  version: { pypi: azure-cli } } ] }
         // IaC + gRPC — Go static binaries from github release tarballs.
-        opentofu: { attrs: [ CLI app FOSS permissive ] suggests: opentofu-dotfiles  description: "OpenTofu — open-source, Terraform-compatible infrastructure as code." install: [ { via: tarball  installDir: "$CONFIGSYS_APP_DIR/opentofu"  version: { github: opentofu/opentofu  strip-v: true  asset: "tofu_*_linux_amd64.tar.gz" } } ] }
-        grpcurl:  { attrs: [ CLI FOSS permissive ] suggests: grpcurl-dotfiles  description: "curl for gRPC — call and inspect gRPC services from the shell." install: [ { via: tarball  installDir: "$CONFIGSYS_APP_DIR/grpcurl"   version: { github: fullstorydev/grpcurl  strip-v: true  asset: "grpcurl_*_linux_x86_64.tar.gz" } } ] }
-        protobuf: { attrs: [ CLI toolchain FOSS permissive ] suggests: protobuf-dotfiles  description: "Protocol Buffers compiler (`protoc`)." install: [ { via: native  repo-component: universe  name: { apt: protobuf-compiler  dnf: protobuf-compiler  zypper: protobuf-devel  default: protobuf } }  { via: tarball  installDir: "$CONFIGSYS_APP_DIR/protobuf"  requires: unzip  version: { github: protocolbuffers/protobuf  strip-v: true  asset: "protoc-*-linux-x86_64.zip" } } ] }   // prebuilt protoc + well-known-types include/
+        opentofu: { attrs: [ CLI app FOSS permissive ] suggests: opentofu-glue  description: "OpenTofu — open-source, Terraform-compatible infrastructure as code." install: [ { via: tarball  installDir: "$CONFIGSYS_APP_DIR/opentofu"  version: { github: opentofu/opentofu  strip-v: true  asset: "tofu_*_linux_amd64.tar.gz" } } ] }
+        grpcurl:  { attrs: [ CLI FOSS permissive ] suggests: grpcurl-glue  description: "curl for gRPC — call and inspect gRPC services from the shell." install: [ { via: tarball  installDir: "$CONFIGSYS_APP_DIR/grpcurl"   version: { github: fullstorydev/grpcurl  strip-v: true  asset: "grpcurl_*_linux_x86_64.tar.gz" } } ] }
+        protobuf: { attrs: [ CLI toolchain FOSS permissive ] suggests: protobuf-glue  description: "Protocol Buffers compiler (`protoc`)." install: [ { via: native  repo-component: universe  name: { apt: protobuf-compiler  dnf: protobuf-compiler  zypper: protobuf-devel  default: protobuf } }  { via: tarball  installDir: "$CONFIGSYS_APP_DIR/protobuf"  requires: unzip  version: { github: protocolbuffers/protobuf  strip-v: true  asset: "protoc-*-linux-x86_64.zip" } } ] }   // prebuilt protoc + well-known-types include/
         protobuf-dev: { attrs: [ lib FOSS permissive ] description: "Protocol Buffers C++ runtime + headers (libprotobuf; distinct from the `protobuf` compiler)."
             install: [ { via: native  when: "(debian or redhat or arch or alpine or opensuse or fedora_atomic) and not amzn"
                          name: { apt: libprotobuf-dev  dnf: protobuf-devel  pacman: protobuf  apk: protobuf-dev  zypper: protobuf-devel  brew: protobuf } } ] }
@@ -2736,7 +2730,7 @@
         texlive-full: { attrs: [ CLI FOSS permissive ] description: "TeX Live (full) — the complete TeX/LaTeX distribution." install: [ { via: native  when: "debian or redhat or arch"  name: { apt: texlive-full  dnf: texlive-scheme-full  pacman: texlive-meta } } ] }
 
         // Miniforge — a conda env manager (the right home for the numpy/scipy/pandas stack).
-        miniforge: { attrs: [ CLI FOSS permissive ] suggests: miniforge-dotfiles  description: "Miniforge — a minimal conda installer (conda-forge default)."
+        miniforge: { attrs: [ CLI FOSS permissive ] suggests: miniforge-glue  description: "Miniforge — a minimal conda installer (conda-forge default)."
             requires: curl
             install: [ { via: script
                          install-cmd:   'curl -fsSL "https://github.com/conda-forge/miniforge/releases/latest/download/Miniforge3-Linux-x86_64.sh" -o /tmp/mf.sh && bash /tmp/mf.sh -b -p "$HOME/miniforge3" && rm -f /tmp/mf.sh'
@@ -2747,15 +2741,15 @@
         }
 
         arduino: { attrs: [ GUI app electron FOSS copyleft ] description: "Arduino IDE — program Arduino microcontrollers."
-            suggests: arduino-dotfiles
+            suggests: arduino-glue
             install: [ { via: appImage  name: "Arduino IDE"
                          version: { github: arduino/arduino-ide  asset: "arduino-ide_*_Linux_64bit.AppImage" }
                          url: "https://github.com/arduino/arduino-ide/releases/download/$VERSION/arduino-ide_$VERSION_Linux_64bit.AppImage"
                          path: ~/apps/arduino-ide.appimage }
                        { via: flatpak  hub: flathub  app: cc.arduino.IDE2 } ]
         }
-        arduino-dotfiles: { description: "Arduino config, linked into place."
-            install: [ { via: dotfiles  requires: bash-dotfiles  glue: arduino } ]
+        arduino-glue: { description: "Arduino config, linked into place."
+            install: [ { via: glue  requires: shell-glue  glue: arduino } ]
         }
 
         // --- parts: composition (a component that IS several others, no unit of its own) ---
@@ -2789,12 +2783,12 @@
         // dotfile (dotfiles\vulkan-sdk), keyed by the component; the tarball driver
         // pulls curl. (Old: a [tarball\vulkan-sdk, dotfiles\vulkan-sdk] list bundle.)
         vulkan-sdk: { attrs: [ SDK FOSS permissive ] description: "Vulkan SDK — headers, tools, and validation layers."
-            suggests: vulkan-sdk-dotfiles
+            suggests: vulkan-sdk-glue
             install: [ { via: tarball  version: { static: 1.4.350.1 }  installDir: "$CONFIGSYS_SDK_DIR/vulkan"  requires: glibc   // glibc-linked SDK
                          url: "https://sdk.lunarg.com/sdk/download/$VERSION/linux/vulkansdk-linux-$ARCH-$VERSION.tar.xz" } ]
         }
-        vulkan-sdk-dotfiles: { description: "Vulkan SDK env config, linked into place."
-            install: [ { via: dotfiles  requires: bash-dotfiles
+        vulkan-sdk-glue: { description: "Vulkan SDK env config, linked into place."
+            install: [ { via: glue  requires: shell-glue
                          glue: vulkan-sdk } ]
         }
         // vulkan-dev X libs, per OS: Debian ships three; Fedora's libxcb-devel bundles
@@ -2945,12 +2939,12 @@
             install: [ { via: aur  when: "arch"  name: yay-bin  version: { aur: yay-bin } } ]
         }
 
-        // gcc-select: the `update-alternatives --config gcc` alias dotfile (Debian only) —
+        // gcc-glue: the `update-alternatives --config gcc` alias dotfile (Debian only) —
         // required by the versioned gcc-NN toolchains so `gcc` points at the chosen one. (The plain
         // C/C++ compiler is now `c-toolchain`/`cpp-toolchain` above, which supersede the old `gcc`
         // and `gcc-cpp` components that only existed to feed `build-essential`.)
-        gcc-select: { attrs: [ CLI FOSS ] description: "Shell alias to switch the default gcc version (update-alternatives)."
-            install: [ { via: dotfiles  when: "debian"  requires: bash-dotfiles
+        gcc-glue: { attrs: [ CLI FOSS ] description: "Shell alias to switch the default gcc version (update-alternatives)."
+            install: [ { via: glue  when: "debian"  requires: shell-glue
                          glue: gcc } ]
         }
 
@@ -2983,7 +2977,7 @@
             standing: never-auto
             install: [
                 { via: gcc  when: "debian"  packages: [ gcc-10, g++-10 ]  slaves: [ g++ ]  ppa: ubuntu-toolchain-r/test
-                  requires: [ cxx, software-properties-common ]  suggests: gcc-select }
+                  requires: [ cxx, software-properties-common ]  suggests: gcc-glue }
                 { via: gcc-toolset  when: "rhel" }
             ]
         }
@@ -2992,7 +2986,7 @@
             standing: never-auto
             install: [
                 { via: gcc  when: "debian"  packages: [ gcc-11, g++-11 ]  slaves: [ g++ ]  ppa: ubuntu-toolchain-r/test
-                  requires: [ cxx, software-properties-common ]  suggests: gcc-select }
+                  requires: [ cxx, software-properties-common ]  suggests: gcc-glue }
                 { via: gcc-toolset  when: "rhel" }
             ]
         }
@@ -3001,7 +2995,7 @@
             standing: never-auto
             install: [
                 { via: gcc  when: "debian"  packages: [ gcc-12, g++-12 ]  slaves: [ g++ ]  ppa: ubuntu-toolchain-r/test
-                  requires: [ cxx, software-properties-common ]  suggests: gcc-select }
+                  requires: [ cxx, software-properties-common ]  suggests: gcc-glue }
                 { via: gcc-toolset  when: "rhel" }
             ]
         }
@@ -3010,7 +3004,7 @@
             standing: never-auto
             install: [
                 { via: gcc  when: "debian"  packages: [ gcc-13, g++-13 ]  slaves: [ g++ ]  ppa: ubuntu-toolchain-r/test
-                  requires: [ cxx, software-properties-common ]  suggests: gcc-select }
+                  requires: [ cxx, software-properties-common ]  suggests: gcc-glue }
                 { via: gcc  when: "fedora = 41"  packages: [ gcc13, gcc13-c++ ] }
                 { via: gcc-toolset  when: "rhel" }
             ]
@@ -3020,7 +3014,7 @@
             standing: never-auto
             install: [
                 { via: gcc  when: "debian"  packages: [ gcc-14, g++-14 ]  slaves: [ g++ ]  ppa: ubuntu-toolchain-r/test
-                  requires: [ cxx, software-properties-common ]  suggests: gcc-select }
+                  requires: [ cxx, software-properties-common ]  suggests: gcc-glue }
                 { via: gcc  when: "fedora = 42"  packages: [ gcc14, gcc14-c++ ] }
                 { via: gcc-toolset  when: "rhel" }
             ]
@@ -3030,7 +3024,7 @@
             standing: never-auto
             install: [
                 { via: gcc  when: "debian"  packages: [ gcc-15, g++-15 ]  slaves: [ g++ ]  ppa: ubuntu-toolchain-r/test
-                  requires: [ cxx, software-properties-common ]  suggests: gcc-select }
+                  requires: [ cxx, software-properties-common ]  suggests: gcc-glue }
                 { via: gcc-toolset  when: "rhel" }
             ]
         }
@@ -3039,9 +3033,9 @@
         //   debian -> apt.llvm.org + alternatives (curl for the key; + the alias)
         //   fedora -> dnf compat clangNN (per-release; the system clang covers the newest)
         //   EL     -> dnf compat clangNN from EPEL (requires epel)
-        clang-select: { attrs: [ CLI FOSS ] description: "Shell alias to switch the default clang version (update-alternatives)."             // the `update-alternatives --config clang` alias dotfile
-            requires: bash-dotfiles
-            install: [ { via: dotfiles  when: "debian"  glue: clang } ]
+        clang-glue: { attrs: [ CLI FOSS ] description: "Shell alias to switch the default clang version (update-alternatives)."             // the `update-alternatives --config clang` alias dotfile
+            requires: shell-glue
+            install: [ { via: glue  when: "debian"  glue: clang } ]
         }
         // clang ships no C++ stdlib and, on Linux, no C runtime of its own: it uses GCC's crt*.o +
         // libgcc (hence `requires: c-toolchain` — the gcc toolchain COMPONENT, not the g++ compiler)
@@ -3056,7 +3050,7 @@
             requires: [ c-toolchain, cxx-stdlib ]
             install: [
                 { via: clang  when: "debian"  packages: [ clang-18 ]
-                  requires: curl  suggests: clang-select }
+                  requires: curl  suggests: clang-glue }
                 { via: clang  when: "fedora"  packages: [ clang18 ] }
             ]
         }
@@ -3066,7 +3060,7 @@
             requires: [ c-toolchain, cxx-stdlib ]
             install: [
                 { via: clang  when: "debian"  packages: [ clang-19 ]
-                  requires: curl  suggests: clang-select }
+                  requires: curl  suggests: clang-glue }
                 { via: clang  when: "fedora = 41"  packages: [ clang ] }      // system clang -> /usr/bin/clang-19
                 { via: clang  when: "fedora = 42"  packages: [ clang19 ] }
                 { via: clang  when: "rhel"  packages: [ clang19 ]  requires: epel }
@@ -3078,7 +3072,7 @@
             requires: [ c-toolchain, cxx-stdlib ]
             install: [
                 { via: clang  when: "debian"  packages: [ clang-20 ]
-                  requires: curl  suggests: clang-select }
+                  requires: curl  suggests: clang-glue }
                 { via: clang  when: "fedora = 42"  packages: [ clang ] }      // system clang -> /usr/bin/clang-20
                 { via: clang  when: "rhel"  packages: [ clang20 ]  requires: epel }
             ]
@@ -3320,94 +3314,102 @@
         // `configsys dotfiles capture <name>` adopts an existing one) and shell-setup snippets
         // (PATH/alias/env for off-PATH installs). Each is soft-`suggests:`ed by its parent.
         aider-dotfiles: { description: "aider config, linked into place." install: [ { via: dotfiles  config: { src: aider.conf.yml  dst: ~/.aider.conf.yml } } ] }
-        android-studio-dotfiles: { description: "android-studio shell setup, linked into place." install: [ { via: dotfiles  requires: bash-dotfiles  glue: android-studio } ] }
-        antigravity-dotfiles: { description: "antigravity shell setup, linked into place." install: [ { via: dotfiles  requires: bash-dotfiles  glue: antigravity } ] }
+        android-studio-glue: { description: "android-studio shell setup, linked into place." install: [ { via: glue  requires: shell-glue  glue: android-studio } ] }
+        antigravity-glue: { description: "antigravity shell setup, linked into place." install: [ { via: glue  requires: shell-glue  glue: antigravity } ] }
         awscli-dotfiles: { description: "awscli config, linked into place." install: [ { via: dotfiles  config: { src: aws-config  dst: ~/.aws/config } } ] }
-        bazelisk-dotfiles: { description: "bazelisk shell setup, linked into place." install: [ { via: dotfiles  requires: bash-dotfiles  glue: bazelisk } ] }
+        bazelisk-glue: { description: "bazelisk shell setup, linked into place." install: [ { via: glue  requires: shell-glue  glue: bazelisk } ] }
         blender-dotfiles: { description: "blender config, linked into place." install: [ { via: dotfiles  config: { src: blender  dst: $XDG_CONFIG_HOME/blender } } ] }
         bottom-dotfiles: { description: "bottom config, linked into place." install: [ { via: dotfiles  config: { src: bottom  dst: $XDG_CONFIG_HOME/bottom } } ] }
-        btop-dotfiles: { description: "btop config + shell setup, linked into place." install: [ { via: dotfiles  requires: bash-dotfiles  config: { src: btop  dst: $XDG_CONFIG_HOME/btop }  aliases: { glue: btop } } ] }
-        bun-dotfiles: { description: "bun shell setup, linked into place." install: [ { via: dotfiles  requires: bash-dotfiles  glue: bun } ] }
-        cabal-dotfiles: { description: "cabal shell setup, linked into place." install: [ { via: dotfiles  requires: bash-dotfiles  glue: cabal } ] }
+        btop-dotfiles: { description: "btop config, linked into place." install: [ { via: dotfiles  config: { src: btop  dst: $XDG_CONFIG_HOME/btop } } ] }
+        btop-glue: { description: "btop shell setup, linked into place." install: [ { via: glue  requires: shell-glue  glue: btop } ] }
+        bun-glue: { description: "bun shell setup, linked into place." install: [ { via: glue  requires: shell-glue  glue: bun } ] }
+        cabal-glue: { description: "cabal shell setup, linked into place." install: [ { via: glue  requires: shell-glue  glue: cabal } ] }
         claude-code-dotfiles: { description: "claude-code config, linked into place." install: [ { via: dotfiles  config: { src: claude-settings.json  dst: ~/.claude/settings.json } } ] }
         codex-dotfiles: { description: "codex config, linked into place." install: [ { via: dotfiles  config: { src: codex-config.toml  dst: ~/.codex/config.toml } } ] }
-        composer-dotfiles: { description: "composer shell setup, linked into place." install: [ { via: dotfiles  requires: bash-dotfiles  glue: composer } ] }
-        coursier-dotfiles: { description: "coursier shell setup, linked into place." install: [ { via: dotfiles  requires: bash-dotfiles  glue: coursier } ] }
+        composer-glue: { description: "composer shell setup, linked into place." install: [ { via: glue  requires: shell-glue  glue: composer } ] }
+        coursier-glue: { description: "coursier shell setup, linked into place." install: [ { via: glue  requires: shell-glue  glue: coursier } ] }
         cvs-dotfiles: { description: "cvs config, linked into place." install: [ { via: dotfiles  config: { src: cvsrc  dst: ~/.cvsrc } } ] }
-        dart-dotfiles: { description: "dart shell setup, linked into place." install: [ { via: dotfiles  requires: bash-dotfiles  glue: dart } ] }
-        deno-dotfiles: { description: "deno shell setup, linked into place." install: [ { via: dotfiles  requires: bash-dotfiles  glue: deno } ] }
-        dotnet-dotfiles: { description: "dotnet shell setup, linked into place." install: [ { via: dotfiles  requires: bash-dotfiles  glue: dotnet } ] }
+        dart-glue: { description: "dart shell setup, linked into place." install: [ { via: glue  requires: shell-glue  glue: dart } ] }
+        deno-glue: { description: "deno shell setup, linked into place." install: [ { via: glue  requires: shell-glue  glue: deno } ] }
+        dotnet-glue: { description: "dotnet shell setup, linked into place." install: [ { via: glue  requires: shell-glue  glue: dotnet } ] }
         emacs-dotfiles: { description: "emacs config, linked into place." install: [ { via: dotfiles  config: { src: emacs.d  dst: ~/.emacs.d } } ] }
         fastfetch-dotfiles: { description: "fastfetch config, linked into place." install: [ { via: dotfiles  config: { src: fastfetch  dst: $XDG_CONFIG_HOME/fastfetch } } ] }
         fish-dotfiles: { description: "fish config, linked into place." install: [ { via: dotfiles  config: { src: fish  dst: $XDG_CONFIG_HOME/fish } } ] }
-        fossil-dotfiles: { description: "fossil shell setup, linked into place." install: [ { via: dotfiles  requires: bash-dotfiles  glue: fossil } ] }
+        fossil-glue: { description: "fossil shell setup, linked into place." install: [ { via: glue  requires: shell-glue  glue: fossil } ] }
         fvwm2-dotfiles: { description: "fvwm2 config, linked into place." install: [ { via: dotfiles  config: { src: fvwm  dst: ~/.fvwm } } ] }
-        fzf-dotfiles: { description: "fzf shell setup, linked into place." install: [ { via: dotfiles  requires: bash-dotfiles  glue: fzf } ] }
-        gcloud-dotfiles: { description: "gcloud shell setup, linked into place." install: [ { via: dotfiles  requires: bash-dotfiles  glue: gcloud } ] }
-        ghostty-dotfiles: { description: "ghostty config + shell setup, linked into place." install: [ { via: dotfiles  requires: bash-dotfiles  config: { src: ghostty  dst: $XDG_CONFIG_HOME/ghostty }  aliases: { glue: ghostty } } ] }
+        fzf-glue: { description: "fzf shell setup, linked into place." install: [ { via: glue  requires: shell-glue  glue: fzf } ] }
+        gcloud-glue: { description: "gcloud shell setup, linked into place." install: [ { via: glue  requires: shell-glue  glue: gcloud } ] }
+        ghostty-dotfiles: { description: "ghostty config, linked into place." install: [ { via: dotfiles  config: { src: ghostty  dst: $XDG_CONFIG_HOME/ghostty } } ] }
+        ghostty-glue: { description: "ghostty shell setup, linked into place." install: [ { via: glue  requires: shell-glue  glue: ghostty } ] }
         git-dotfiles: { description: "git config, linked into place." install: [ { via: dotfiles  config: { src: gitconfig  dst: ~/.gitconfig } } ] }
-        gleam-dotfiles: { description: "gleam shell setup, linked into place." install: [ { via: dotfiles  requires: bash-dotfiles  glue: gleam } ] }
+        gleam-glue: { description: "gleam shell setup, linked into place." install: [ { via: glue  requires: shell-glue  glue: gleam } ] }
         gnuplot-dotfiles: { description: "gnuplot config, linked into place." install: [ { via: dotfiles  config: { src: gnuplot  dst: ~/.gnuplot } } ] }
-        go-dotfiles: { description: "go shell setup, linked into place." install: [ { via: dotfiles  requires: bash-dotfiles  glue: go } ] }
+        go-glue: { description: "go shell setup, linked into place." install: [ { via: glue  requires: shell-glue  glue: go } ] }
         gradle-dotfiles: { description: "gradle config, linked into place." install: [ { via: dotfiles  config: { src: gradle.properties  dst: ~/.gradle/gradle.properties } } ] }
-        grpcurl-dotfiles: { description: "grpcurl shell setup, linked into place." install: [ { via: dotfiles  requires: bash-dotfiles  glue: grpcurl } ] }
-        helix-dotfiles: { description: "helix config + shell setup, linked into place." install: [ { via: dotfiles  requires: bash-dotfiles  config: { src: helix  dst: $XDG_CONFIG_HOME/helix }  aliases: { glue: helix } } ] }
+        grpcurl-glue: { description: "grpcurl shell setup, linked into place." install: [ { via: glue  requires: shell-glue  glue: grpcurl } ] }
+        helix-dotfiles: { description: "helix config, linked into place." install: [ { via: dotfiles  config: { src: helix  dst: $XDG_CONFIG_HOME/helix } } ] }
+        helix-glue: { description: "helix shell setup, linked into place." install: [ { via: glue  requires: shell-glue  glue: helix } ] }
         helm-dotfiles: { description: "helm config, linked into place." install: [ { via: dotfiles  config: { src: helm-repositories.yaml  dst: $XDG_CONFIG_HOME/helm/repositories.yaml } } ] }
         httpie-dotfiles: { description: "httpie config, linked into place." install: [ { via: dotfiles  config: { src: httpie-config.json  dst: $XDG_CONFIG_HOME/httpie/config.json } } ] }
         hyprland-dotfiles: { description: "hyprland config, linked into place." install: [ { via: dotfiles  config: { src: hypr  dst: $XDG_CONFIG_HOME/hypr } } ] }
         i3-dotfiles: { description: "i3 config, linked into place." install: [ { via: dotfiles  config: { src: i3  dst: $XDG_CONFIG_HOME/i3 } } ] }
-        jetbrains-toolbox-dotfiles: { description: "jetbrains-toolbox shell setup, linked into place." install: [ { via: dotfiles  requires: bash-dotfiles  glue: jetbrains-toolbox } ] }
-        jq-dotfiles: { description: "jq shell setup, linked into place." install: [ { via: dotfiles  requires: bash-dotfiles  glue: jq } ] }
-        julia-dotfiles: { description: "julia shell setup, linked into place." install: [ { via: dotfiles  requires: bash-dotfiles  glue: julia } ] }
-        just-dotfiles: { description: "just shell setup, linked into place." install: [ { via: dotfiles  requires: bash-dotfiles  glue: just } ] }
-        k9s-dotfiles: { description: "k9s config + shell setup, linked into place." install: [ { via: dotfiles  requires: bash-dotfiles  config: { src: k9s  dst: $XDG_CONFIG_HOME/k9s }  aliases: { glue: k9s } } ] }
+        jetbrains-toolbox-glue: { description: "jetbrains-toolbox shell setup, linked into place." install: [ { via: glue  requires: shell-glue  glue: jetbrains-toolbox } ] }
+        jq-glue: { description: "jq shell setup, linked into place." install: [ { via: glue  requires: shell-glue  glue: jq } ] }
+        julia-glue: { description: "julia shell setup, linked into place." install: [ { via: glue  requires: shell-glue  glue: julia } ] }
+        just-glue: { description: "just shell setup, linked into place." install: [ { via: glue  requires: shell-glue  glue: just } ] }
+        k9s-dotfiles: { description: "k9s config, linked into place." install: [ { via: dotfiles  config: { src: k9s  dst: $XDG_CONFIG_HOME/k9s } } ] }
+        k9s-glue: { description: "k9s shell setup, linked into place." install: [ { via: glue  requires: shell-glue  glue: k9s } ] }
         kicad-dotfiles: { description: "kicad config, linked into place." install: [ { via: dotfiles  config: { src: kicad  dst: $XDG_CONFIG_HOME/kicad } } ] }
         kitty-dotfiles: { description: "kitty config, linked into place." install: [ { via: dotfiles  config: { src: kitty  dst: $XDG_CONFIG_HOME/kitty } } ] }
-        kotlin-dotfiles: { description: "kotlin shell setup, linked into place." install: [ { via: dotfiles  requires: bash-dotfiles  glue: kotlin } ] }
-        kubectl-dotfiles: { description: "kubectl shell setup, linked into place." install: [ { via: dotfiles  requires: bash-dotfiles  glue: kubectl } ] }
-        lazydocker-dotfiles: { description: "lazydocker config + shell setup, linked into place." install: [ { via: dotfiles  requires: bash-dotfiles  config: { src: lazydocker  dst: $XDG_CONFIG_HOME/lazydocker }  aliases: { glue: lazydocker } } ] }
-        lazysql-dotfiles: { description: "lazysql shell setup, linked into place." install: [ { via: dotfiles  requires: bash-dotfiles  glue: lazysql } ] }
+        kotlin-glue: { description: "kotlin shell setup, linked into place." install: [ { via: glue  requires: shell-glue  glue: kotlin } ] }
+        kubectl-glue: { description: "kubectl shell setup, linked into place." install: [ { via: glue  requires: shell-glue  glue: kubectl } ] }
+        lazydocker-dotfiles: { description: "lazydocker config, linked into place." install: [ { via: dotfiles  config: { src: lazydocker  dst: $XDG_CONFIG_HOME/lazydocker } } ] }
+        lazydocker-glue: { description: "lazydocker shell setup, linked into place." install: [ { via: glue  requires: shell-glue  glue: lazydocker } ] }
+        lazysql-glue: { description: "lazysql shell setup, linked into place." install: [ { via: glue  requires: shell-glue  glue: lazysql } ] }
         libreoffice-dotfiles: { description: "libreoffice config, linked into place." install: [ { via: dotfiles  config: { src: libreoffice  dst: $XDG_CONFIG_HOME/libreoffice } } ] }
-        luarocks-dotfiles: { description: "luarocks shell setup, linked into place." install: [ { via: dotfiles  requires: bash-dotfiles  glue: luarocks } ] }
+        luarocks-glue: { description: "luarocks shell setup, linked into place." install: [ { via: glue  requires: shell-glue  glue: luarocks } ] }
         maven-dotfiles: { description: "maven config, linked into place." install: [ { via: dotfiles  config: { src: maven-settings.xml  dst: ~/.m2/settings.xml } } ] }
         maxima-dotfiles: { description: "maxima config, linked into place." install: [ { via: dotfiles  config: { src: maxima  dst: ~/.maxima } } ] }
         mercurial-dotfiles: { description: "mercurial config, linked into place." install: [ { via: dotfiles  config: { src: hgrc  dst: ~/.hgrc } } ] }
-        micro-dotfiles: { description: "micro config + shell setup, linked into place." install: [ { via: dotfiles  requires: bash-dotfiles  config: { src: micro  dst: $XDG_CONFIG_HOME/micro }  aliases: { glue: micro } } ] }
-        miniforge-dotfiles: { description: "miniforge shell setup, linked into place." install: [ { via: dotfiles  requires: bash-dotfiles  glue: miniforge } ] }
+        micro-dotfiles: { description: "micro config, linked into place." install: [ { via: dotfiles  config: { src: micro  dst: $XDG_CONFIG_HOME/micro } } ] }
+        micro-glue: { description: "micro shell setup, linked into place." install: [ { via: glue  requires: shell-glue  glue: micro } ] }
+        miniforge-glue: { description: "miniforge shell setup, linked into place." install: [ { via: glue  requires: shell-glue  glue: miniforge } ] }
         mycli-dotfiles: { description: "mycli config, linked into place." install: [ { via: dotfiles  config: { src: myclirc  dst: ~/.myclirc } } ] }
-        nim-dotfiles: { description: "nim shell setup, linked into place." install: [ { via: dotfiles  requires: bash-dotfiles  glue: nim } ] }
-        node-dotfiles: { description: "node shell setup, linked into place." install: [ { via: dotfiles  requires: bash-dotfiles  glue: node } ] }
-        nushell-dotfiles: { description: "nushell config + shell setup, linked into place." install: [ { via: dotfiles  requires: bash-dotfiles  config: { src: nushell  dst: $XDG_CONFIG_HOME/nushell }  aliases: { glue: nushell } } ] }
+        nim-glue: { description: "nim shell setup, linked into place." install: [ { via: glue  requires: shell-glue  glue: nim } ] }
+        node-glue: { description: "node shell setup, linked into place." install: [ { via: glue  requires: shell-glue  glue: node } ] }
+        nushell-dotfiles: { description: "nushell config, linked into place." install: [ { via: dotfiles  config: { src: nushell  dst: $XDG_CONFIG_HOME/nushell } } ] }
+        nushell-glue: { description: "nushell shell setup, linked into place." install: [ { via: glue  requires: shell-glue  glue: nushell } ] }
         octave-dotfiles: { description: "octave config, linked into place." install: [ { via: dotfiles  config: { src: octaverc  dst: ~/.octaverc } } ] }
-        odin-dotfiles: { description: "odin shell setup, linked into place." install: [ { via: dotfiles  requires: bash-dotfiles  glue: odin } ] }
-        opam-dotfiles: { description: "opam shell setup, linked into place." install: [ { via: dotfiles  requires: bash-dotfiles  glue: opam } ] }
-        opentofu-dotfiles: { description: "opentofu shell setup, linked into place." install: [ { via: dotfiles  requires: bash-dotfiles  glue: opentofu } ] }
+        odin-glue: { description: "odin shell setup, linked into place." install: [ { via: glue  requires: shell-glue  glue: odin } ] }
+        opam-glue: { description: "opam shell setup, linked into place." install: [ { via: glue  requires: shell-glue  glue: opam } ] }
+        opentofu-glue: { description: "opentofu shell setup, linked into place." install: [ { via: glue  requires: shell-glue  glue: opentofu } ] }
         pgcli-dotfiles: { description: "pgcli config, linked into place." install: [ { via: dotfiles  config: { src: pgcli-config  dst: $XDG_CONFIG_HOME/pgcli/config } } ] }
-        pipx-dotfiles: { description: "pipx shell setup, linked into place." install: [ { via: dotfiles  requires: bash-dotfiles  glue: pipx } ] }
-        protobuf-dotfiles: { description: "protobuf shell setup, linked into place." install: [ { via: dotfiles  requires: bash-dotfiles  glue: protobuf } ] }
-        pyenv-dotfiles: { description: "pyenv shell setup, linked into place." install: [ { via: dotfiles  requires: bash-dotfiles  glue: pyenv } ] }
-        python3-pip-dotfiles: { description: "python3-pip shell setup, linked into place." install: [ { via: dotfiles  requires: bash-dotfiles  glue: python3-pip } ] }
+        pipx-glue: { description: "pipx shell setup, linked into place." install: [ { via: glue  requires: shell-glue  glue: pipx } ] }
+        protobuf-glue: { description: "protobuf shell setup, linked into place." install: [ { via: glue  requires: shell-glue  glue: protobuf } ] }
+        pyenv-glue: { description: "pyenv shell setup, linked into place." install: [ { via: glue  requires: shell-glue  glue: pyenv } ] }
+        python3-pip-glue: { description: "python3-pip shell setup, linked into place." install: [ { via: glue  requires: shell-glue  glue: python3-pip } ] }
         qtile-dotfiles: { description: "qtile config, linked into place." install: [ { via: dotfiles  config: { src: qtile  dst: $XDG_CONFIG_HOME/qtile } } ] }
         r-dotfiles: { description: "r config, linked into place." install: [ { via: dotfiles  config: { src: Rprofile  dst: ~/.Rprofile } } ] }
-        ripgrep-dotfiles: { description: "ripgrep shell setup, linked into place." install: [ { via: dotfiles  requires: bash-dotfiles  glue: ripgrep } ] }
-        ruby-dotfiles: { description: "ruby shell setup, linked into place." install: [ { via: dotfiles  requires: bash-dotfiles  glue: ruby } ] }
-        rust-dotfiles: { description: "rust shell setup, linked into place." install: [ { via: dotfiles  requires: bash-dotfiles  glue: rust } ] }
+        ripgrep-glue: { description: "ripgrep shell setup, linked into place." install: [ { via: glue  requires: shell-glue  glue: ripgrep } ] }
+        ruby-glue: { description: "ruby shell setup, linked into place." install: [ { via: glue  requires: shell-glue  glue: ruby } ] }
+        rust-glue: { description: "rust shell setup, linked into place." install: [ { via: glue  requires: shell-glue  glue: rust } ] }
         sway-dotfiles: { description: "sway config, linked into place." install: [ { via: dotfiles  config: { src: sway  dst: $XDG_CONFIG_HOME/sway } } ] }
-        tree-sitter-cli-dotfiles: { description: "tree-sitter-cli shell setup, linked into place." install: [ { via: dotfiles  requires: bash-dotfiles  glue: tree-sitter-cli } ] }
-        unityhub-dotfiles: { description: "unityhub shell setup, linked into place." install: [ { via: dotfiles  requires: bash-dotfiles  glue: unityhub } ] }
-        uv-dotfiles: { description: "uv shell setup, linked into place." install: [ { via: dotfiles  requires: bash-dotfiles  glue: uv } ] }
-        v-dotfiles: { description: "v shell setup, linked into place." install: [ { via: dotfiles  requires: bash-dotfiles  glue: v } ] }
+        tree-sitter-cli-glue: { description: "tree-sitter-cli shell setup, linked into place." install: [ { via: glue  requires: shell-glue  glue: tree-sitter-cli } ] }
+        unityhub-glue: { description: "unityhub shell setup, linked into place." install: [ { via: glue  requires: shell-glue  glue: unityhub } ] }
+        uv-glue: { description: "uv shell setup, linked into place." install: [ { via: glue  requires: shell-glue  glue: uv } ] }
+        v-glue: { description: "v shell setup, linked into place." install: [ { via: glue  requires: shell-glue  glue: v } ] }
         valgrind-dotfiles: { description: "valgrind config, linked into place." install: [ { via: dotfiles  config: { src: valgrindrc  dst: ~/.valgrindrc } } ] }
         jrnl-dotfiles: { description: "jrnl config (journal locations, formats), linked into place." install: [ { via: dotfiles  config: { src: jrnl  dst: $XDG_CONFIG_HOME/jrnl } } ] }
         newsboat-dotfiles: { description: "Newsboat config (urls + config), linked into place." install: [ { via: dotfiles  config: { src: newsboat  dst: $XDG_CONFIG_HOME/newsboat } } ] }
-        vcpkg-dotfiles: { description: "vcpkg shell setup, linked into place." install: [ { via: dotfiles  requires: bash-dotfiles  glue: vcpkg } ] }
+        vcpkg-glue: { description: "vcpkg shell setup, linked into place." install: [ { via: glue  requires: shell-glue  glue: vcpkg } ] }
         vscode-dotfiles: { description: "vscode config, linked into place." install: [ { via: dotfiles  config: { src: vscode-user  dst: ~/.config/Code/User } } ] }
         vscodium-dotfiles: { description: "vscodium config, linked into place." install: [ { via: dotfiles  config: { src: vscodium-user  dst: ~/.config/VSCodium/User } } ] }
-        websocat-dotfiles: { description: "websocat shell setup, linked into place." install: [ { via: dotfiles  requires: bash-dotfiles  glue: websocat } ] }
-        xh-dotfiles: { description: "xh shell setup, linked into place." install: [ { via: dotfiles  requires: bash-dotfiles  glue: xh } ] }
+        websocat-glue: { description: "websocat shell setup, linked into place." install: [ { via: glue  requires: shell-glue  glue: websocat } ] }
+        xh-glue: { description: "xh shell setup, linked into place." install: [ { via: glue  requires: shell-glue  glue: xh } ] }
         xmonad-dotfiles: { description: "xmonad config, linked into place." install: [ { via: dotfiles  config: { src: xmonad  dst: ~/.xmonad } } ] }
-        zed-dotfiles: { description: "zed config + shell setup, linked into place." install: [ { via: dotfiles  requires: bash-dotfiles  config: { src: zed  dst: $XDG_CONFIG_HOME/zed }  aliases: { glue: zed } } ] }
-        zig-dotfiles: { description: "zig shell setup, linked into place." install: [ { via: dotfiles  requires: bash-dotfiles  glue: zig } ] }
+        zed-dotfiles: { description: "zed config, linked into place." install: [ { via: dotfiles  config: { src: zed  dst: $XDG_CONFIG_HOME/zed } } ] }
+        zed-glue: { description: "zed shell setup, linked into place." install: [ { via: glue  requires: shell-glue  glue: zed } ] }
+        zig-glue: { description: "zig shell setup, linked into place." install: [ { via: glue  requires: shell-glue  glue: zig } ] }
         zsh-dotfiles: { description: "zsh config, linked into place." install: [ { via: dotfiles  config: { src: zshrc  dst: ~/.zshrc } } ] }
     }
 }

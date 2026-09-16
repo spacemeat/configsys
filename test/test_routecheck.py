@@ -169,13 +169,13 @@ def test_component_rejects_unknown_top_level_key():
     Component('ok', {'provides': 'cap', 'requires': 'x', 'parts': [], 'install': []})
 
 
-def test_package_pulls_its_dotfiles_component():
-    # regression: vulkan-sdk (tarball) must still bring its config, now as a required
-    # `-dotfiles` component (guards against the inline-node -> requires refactor dropping it).
+def test_package_pulls_its_glue_component():
+    # regression: vulkan-sdk (tarball) must still bring its shell glue, as a `-glue` component
+    # (guards against the inline-node -> requires refactor dropping it).
     r = routes.Resolver(os.path.join(os.path.dirname(__file__), '..', 'routes.hu'),
                         'pop_os!', '22.04', 'x86_64')
     keys = set(r.resolve_names(['vulkan-sdk']))
-    assert 'dotfiles\\vulkan-sdk-dotfiles' in keys
+    assert 'glue\\vulkan-sdk-glue' in keys
     assert 'tarball\\vulkan-sdk' in keys
 
 

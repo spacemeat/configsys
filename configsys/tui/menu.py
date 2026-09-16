@@ -4379,21 +4379,23 @@ class DotfilesScreen:
 
     def reload(self):
         from .. import actions
+        from ..drivers import get_driver
+        # CONFIG lives on the dotfiles driver, GLUE (snippets + the shell-glue loader) on the glue
+        # driver; dispatch per unit to its own driver. (Phase 2 splits this into two pages.)
         self.df, self.units = actions.dotfiles_units(self.ctx)
+        self._drv = {}                                       # rc.key -> the unit's driver
         cfg, glue = [], []                                   # (rc, name, tgt, state, source, cap, group)
         for rc in self.units:
-            loader = self.df._loader_shell(rc)
-            if loader:                                      # a per-shell glue loader (zsh-glue/fish-glue)
-                on = self.df.get_version(rc) is not None
-                state = 'loader-on' if on else 'loader-off'
-                src = 'rc hookup' if on else 'not hooked up'
-                glue.append((rc, f'{loader} loader', self.df.location(rc) or '', state, src, False, 'glue'))
-                continue
+            drv = get_driver(rc.driver, self.ctx.runner, self.ctx.paths)
+            self._drv[rc.key] = drv
             # which specs have a real on-system file to adopt (a `managed`/`unmanaged` row is only
             # capture-ACTIONABLE if something is actually there) — capture_plan tells us per spec.
-            cap = {name: (action == 'copy') for name, _d, _de, action in self.df.capture_plan(rc)}
-            for name, tgt, state, src_root, src_rel, _here, kind in self.df.spec_states(rc):
-                source = f'{self._root_label(src_root)}/{src_rel}'
+            # Glue has no capture (it's shipped content), so its driver exposes no capture_plan.
+            cap = ({name: (action == 'copy') for name, _d, _de, action in drv.capture_plan(rc)}
+                   if hasattr(drv, 'capture_plan') else {})
+            for name, tgt, state, src_root, src_rel, here, kind in drv.spec_states(rc):
+                source = (f'{self._root_label(src_root)}/{src_rel}' if src_root is not None
+                          else ('rc hookup' if here else 'not hooked up'))   # a loader row has no src root
                 (cfg if kind == 'config' else glue).append(
                     (rc, name, tgt, state, source, cap.get(name, False), kind))
         # CONFIG (content you own) and GLUE (shipped shell integration) are two different state
@@ -4413,6 +4415,10 @@ class DotfilesScreen:
 
     def cur_row(self):
         return self.rows[self.cur] if 0 <= self.cur < len(self.rows) else None
+
+    def driver_for(self, rc):
+        '''The driver that installs `rc` — dotfiles for config, glue for glue/loader units.'''
+        return self._drv.get(rc.key)
 
 
 # Columns: COMPONENT, STATE, LINK (the ~/… symlink location on your system), SOURCE (the managed
@@ -4998,25 +5004,27 @@ def run(ctx):
                         ds.cur = max(0, len(ds.rows) - 1)
                     elif dact == 'confirm' and row:         # link (clobber-proof;
                         with suspended(stdscr):              # refuses over a real file)
-                            res = ds.df.install(row[0])
+                            res = ds.driver_for(row[0]).install(row[0])
                         ds.dirty.add(row[0].key)
                         ds.reload()
                         note = (f'{row[0].comp}: {res.output().strip()}'
                                 if res is not None and not res.ok else f'linked {row[0].comp}')
                     elif dact == 'unlink' and row:          # unlink (restores any backup)
                         with suspended(stdscr):
-                            ds.df.uninstall(row[0])
+                            ds.driver_for(row[0]).uninstall(row[0])
                         ds.dirty.add(row[0].key)
                         ds.reload()
                         note = f'unlinked {row[0].comp}'
                     elif dact == 'capture' and row:         # capture: adopt this row's on-system content
-                        done = ds.df.capture(row[0], force=False)
+                        drv = ds.driver_for(row[0])         # glue has nothing to capture (shipped)
+                        done = drv.capture(row[0], force=False) if hasattr(drv, 'capture') else []
                         ds.dirty.add(row[0].key)
                         ds.reload()
                         note = (f'captured {len(done)} target(s) for {row[0].comp}'
                                 if done else f'nothing to capture for {row[0].comp}')
                     elif dact == 'capture-all':             # capture ALL with on-disk config to adopt
-                        total = sum(len(ds.df.capture(rc, force=False)) for rc in ds.units)
+                        total = sum(len(ds.driver_for(rc).capture(rc, force=False))
+                                    for rc in ds.units if hasattr(ds.driver_for(rc), 'capture'))
                         ds.dirty.update(rc.key for rc in ds.units)
                         ds.reload()
                         note = (f'captured {total} target(s) across all dotfiles'
@@ -5025,7 +5033,7 @@ def run(ctx):
                         pend = {r[0].key: r[0] for r in ds.rows if r[3] == 'adopted'}
                         with suspended(stdscr):
                             for rc in pend.values():
-                                ds.df.install(rc)
+                                ds.driver_for(rc).install(rc)
                         ds.dirty.update(pend)
                         ds.reload()
                         note = (f'linked {len(pend)} captured dotfile(s)'

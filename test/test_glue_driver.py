@@ -84,18 +84,42 @@ def test_zsh_loader_adds_idempotent_rc_block_and_uninstall_removes_it(tmp_path):
 def test_shell_glue_loader_all_hooks_every_installed_shell(tmp_path):
     # the shell-glue substrate: `loader: all` wires conf.d loading for EVERY installed shell.
     p = paths_for(tmp_path, shells='bash,zsh,fish')
+    p.dotfiles_dir.mkdir(parents=True)
+    (p.dotfiles_dir / 'bash_aliases').write_text('# source conf.d\n')   # bash's loader file
     p.home.mkdir(parents=True)
     g = Glue(Runner(pretend=False), paths=p)
     rc = _loader_unit('all')
     assert g.get_version(rc) is None
     assert g.install(rc).ok
     assert (p.home / '.config' / 'bash' / 'conf.d').is_dir()
+    assert (p.home / '.bash_aliases').is_symlink()                    # bash rides ~/.bash_aliases
     assert (p.home / '.config' / 'fish' / 'conf.d').is_dir()          # fish auto-sources natively
     assert '# >>> configsys glue >>>' in (p.home / '.zshrc').read_text()   # zsh needs the rc block
     assert g.get_version(rc) == 'linked'
     g.uninstall(rc)
     assert '# >>> configsys glue >>>' not in (p.home / '.zshrc').read_text()
-    assert g.get_version(rc) is None                                 # zsh loader gone
+    assert not (p.home / '.bash_aliases').is_symlink()               # bash link removed
+    assert g.get_version(rc) is None                                 # loaders gone
+
+
+def test_shell_glue_bash_absorbs_preexisting_bash_aliases(tmp_path):
+    # a pre-existing real ~/.bash_aliases is MOVED into conf.d (kept running), then ~/.bash_aliases
+    # becomes our link; uninstall restores the user's original file.
+    p = paths_for(tmp_path, shells='bash')
+    p.dotfiles_dir.mkdir(parents=True)
+    (p.dotfiles_dir / 'bash_aliases').write_text('# source conf.d\n')
+    p.home.mkdir(parents=True)
+    (p.home / '.bash_aliases').write_text('alias mine="echo hi"\n')   # the user's own aliases
+    g = Glue(Runner(pretend=False), paths=p)
+    rc = _loader_unit('all')
+    assert g.install(rc).ok
+    link = p.home / '.bash_aliases'
+    absorbed = p.home / '.config' / 'bash' / 'conf.d' / 'pre-configsys-aliases.sh'
+    assert link.is_symlink()
+    assert absorbed.read_text() == 'alias mine="echo hi"\n'          # user aliases preserved in conf.d
+    assert os.access(absorbed, os.X_OK)
+    g.uninstall(rc)
+    assert not link.is_symlink() and link.read_text() == 'alias mine="echo hi"\n'   # restored
 
 
 def test_spec_states_reports_glue_kind(tmp_path):

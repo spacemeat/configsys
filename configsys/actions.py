@@ -949,4 +949,6 @@ def dotfiles_units(ctx):
     from .drivers import get_driver
     units, _errs = ctx.routes.resolve_resilient(list(ctx.config.requested()))
     df = get_driver('dotfiles', ctx.runner, ctx.paths)
-    return df, [units[k] for k in sorted(units) if units[k].driver == 'dotfiles']
+    # both the config (dotfiles) and glue (glue) units — the screen dispatches per-unit to the
+    # right driver. (Phase 2 splits these into separate glue/dotfiles pages.)
+    return df, [units[k] for k in sorted(units) if units[k].driver in ('dotfiles', 'glue')]

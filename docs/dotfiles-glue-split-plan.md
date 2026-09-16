@@ -128,6 +128,14 @@ desired: exclude `glue`+`dotfiles` attrs from the NEW count.
 - Real smoke on this box: a glue install still lands `~/.config/bash/conf.d/<name>.sh` and the loader
   still hooks; a config-dotfiles link + capture still works.
 
+## Deferred follow-ups
+
+- **Purify the bash loader** (agreed, later): today `shell-glue`'s bash loader ships
+  `dotfiles/bash_aliases` verbatim, which mixes the real loader job (source `conf.d/*.sh`) with
+  stray user config (`alias x="xdg-open"`, a `PYTHONPATH` export). Split those concerns: the loader
+  file becomes just the conf.d shim; the aliases/env move to a small glue snippet (or drop). Kept
+  as-is in Phase 1 to stay behavior-preserving.
+
 ## Suggested commits
 
 1. glue driver + `_VIA_ATTR`/resolve/`get_driver` wiring (+ driver tests).

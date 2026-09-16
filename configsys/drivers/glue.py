@@ -31,6 +31,12 @@ from ..driver import Driver
 from ..runner import Result
 
 _VAR = re.compile(r'\$[A-Za-z_][A-Za-z0-9_]*')
+BACKUP_SUFFIX = '.pre-configsys'
+# bash has no native conf.d — it rides the distro `~/.bash_aliases` convention: shell-glue links
+# ~/.bash_aliases to the shipped `bash_aliases` loader file (which sources conf.d/*.sh), absorbing
+# any pre-existing real ~/.bash_aliases into conf.d so the user's own aliases keep running.
+_BASH_ALIASES_SRC = 'bash_aliases'
+_BASH_ABSORB = '~/.config/bash/conf.d/pre-configsys-aliases.sh'
 
 # snippets, keyed by shell. `_SHELL_EXT` = the file extension per shell; `_SHELL_CONFD` = the active
 # loader dir (uniform ~/.config/<shell>/conf.d/, mirroring fish's native one). Repo ships bash
@@ -254,14 +260,17 @@ class Glue(Driver):
         except (FileNotFoundError, OSError):
             return False
 
-    def _ensure_shell_loader(self, shell):
-        '''Idempotent hookup for a shell's conf.d loader. Always ensures the dir; for a shell that
-        needs an rc line (zsh) inserts/refreshes ONE configsys-owned marker block in its rc file.
-        fish (native auto-source), nu (punted) and bash (rides ~/.bash_aliases) get the dir only.
+    def _ensure_shell_loader(self, shell, rc=None):
+        '''Idempotent hookup for a shell's conf.d loader. Always ensures the dir; bash also gets its
+        ~/.bash_aliases link (see _link_bash_aliases); zsh inserts/refreshes ONE configsys-owned
+        marker block in its rc file; fish (native auto-source) and nu (punted) get the dir only.
         Returns True if a hookup is in place for this shell.'''
         self._ensure_confd(shell)
+        if shell == 'bash':                                # bash rides ~/.bash_aliases
+            self._link_bash_aliases(rc)
+            return True
         rc_rel = _SHELL_RC.get(shell)
-        if rc_rel is None:                                 # fish / nu / bash: dir is the whole job
+        if rc_rel is None:                                 # fish / nu: dir is the whole job
             return True
         rc_path = self._expand(rc_rel)
         if rc_path.is_symlink():                            # a captured/managed rc owns its source line
@@ -278,8 +287,52 @@ class Glue(Driver):
         rc_path.write_text(new)
         return True
 
+    def _link_bash_aliases(self, rc):
+        '''Link ~/.bash_aliases to the shipped `bash_aliases` loader (materialized into the store, so
+        the link never points at the repo), absorbing any pre-existing real ~/.bash_aliases into
+        conf.d/pre-configsys-aliases.sh (made a+x so the loader keeps sourcing it); a plain
+        `.pre-configsys` backup if that absorb target is already taken. No-op if no bash_aliases is
+        shipped in any content root (nothing to link).'''
+        if rc is None:
+            return
+        srcpath, _tier, _root = self._resolve(_BASH_ALIASES_SRC, rc)
+        if not srcpath.exists():
+            return
+        store = self._store_path(_BASH_ALIASES_SRC)
+        link_src = self._materialize_to(srcpath, store) if store is not None else srcpath
+        dst = self._home() / '.bash_aliases'
+        if dst.is_symlink():                               # our (or a foreign) link -> replace
+            dst.unlink()
+        elif dst.exists():                                 # a real file -> absorb it, don't zap
+            absorb = self._expand(_BASH_ABSORB)
+            if absorb.exists():
+                dst.rename(dst.with_name(dst.name + BACKUP_SUFFIX))
+            else:
+                absorb.parent.mkdir(parents=True, exist_ok=True)
+                dst.rename(absorb)
+                os.chmod(absorb, os.stat(absorb).st_mode | 0o111)
+        dst.parent.mkdir(parents=True, exist_ok=True)
+        dst.symlink_to(link_src)
+
+    def _remove_bash_aliases(self):
+        '''Remove our ~/.bash_aliases symlink and restore what we displaced (the absorbed file, else
+        a `.pre-configsys` backup). Leaves the conf.d dir + snippet content alone.'''
+        dst = self._home() / '.bash_aliases'
+        if dst.is_symlink():
+            dst.unlink()
+        absorb = self._expand(_BASH_ABSORB)
+        backup = dst.with_name(dst.name + BACKUP_SUFFIX)
+        if absorb.exists():
+            absorb.rename(dst)
+        elif backup.exists():
+            backup.rename(dst)
+
     def _remove_shell_loader(self, shell):
-        '''Remove our rc block for a shell (leaves the conf.d dir + any content alone).'''
+        '''Remove our hookup for a shell: bash's ~/.bash_aliases link, or zsh's rc block. Leaves the
+        conf.d dir + any snippet content alone.'''
+        if shell == 'bash':
+            self._remove_bash_aliases()
+            return
         rc_rel = _SHELL_RC.get(shell)
         if rc_rel is None:
             return
@@ -294,9 +347,12 @@ class Glue(Driver):
         rc_path.write_text(new)
 
     def _loader_ok(self, shell):
-        '''True if `shell`'s loader is fully hooked (dir present, and rc block present for rc-shells).'''
+        '''True if `shell`'s loader is fully hooked: dir present, plus bash's ~/.bash_aliases link /
+        zsh's rc block where those apply (fish/nu need only the dir).'''
         if not self._confd(shell).is_dir():
             return False
+        if shell == 'bash':
+            return (self._home() / '.bash_aliases').is_symlink()
         rc_rel = _SHELL_RC.get(shell)
         if rc_rel is not None and not self._rc_has_block(self._expand(rc_rel)):
             return False
@@ -366,7 +422,7 @@ class Glue(Driver):
         loaders = self._loader_shells(rc)
         if loaders:                                        # a loader component (loader: zsh | all)
             for shell in loaders:
-                self._ensure_shell_loader(shell)
+                self._ensure_shell_loader(shell, rc)
             return Result(f'glue: conf.d loader hooked up ({", ".join(loaders)})', 0)
         specs = self._specs(rc)
         if not specs:

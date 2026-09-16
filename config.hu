@@ -156,7 +156,7 @@ profiles: {
     terminal: [ +finders  +terminal-emulators  +terminal-utils  +system-utils  +system-monitors
         +disk-usage-utils  +file-browsers  +shells  +configuration-tools  +password-passkey  +fonts ]
     backend-tools: [ +containers  +k8s  +cloud-tools  +net-tools  +db-clients  +db-servers  tailscale ]
-    user: [ +terminal  git  bash-dotfiles  configsys-dotfiles  +codecs  firefox  chrome ]
+    user: [ +terminal  git  shell-glue  configsys-glue  +codecs  firefox  chrome ]
 }
 
     // TUI keybindings. Merged section-by-section up the layer stack (this repo base < plugins <

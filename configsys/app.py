@@ -3009,9 +3009,10 @@ def _dotfiles_diagnostics(ctx):
     must never break the diagnostics pass.'''
     out = []
     try:
-        df, units = _active_dotfiles(ctx)
-        for rc in units:
-            out.extend(df.warnings(rc))
+        from .drivers import get_driver
+        _df, units = _active_dotfiles(ctx)
+        for rc in units:                         # glue.warnings is empty; config warns live on dotfiles
+            out.extend(get_driver(rc.driver, ctx.runner, ctx.paths).warnings(rc))
     except Exception:
         pass
     return out
@@ -3096,18 +3097,15 @@ def cmd_dotfiles_status(ctx, args):
     component, and where its MANAGED content lives (or `→` where capture will put it). Content roots
     are labeled once up top so the SRC column stays short.'''
     from .drivers.dotfiles import GLUE_STATE_LABEL
+    from .drivers import get_driver
     df, units = _active_dotfiles(ctx)
     cfg, glue = [], []   # (state, target, component, src_root|None, src_rel, here)
-    for rc in units:
-        loader = df._loader_shell(rc)
-        if loader:                               # a per-shell glue loader (zsh-glue/fish-glue)
-            on = df.get_version(rc) is not None
-            glue.append(('loader-on' if on else 'loader-off', df.location(rc) or '', rc.comp,
-                         None, 'rc hookup' if on else 'not hooked up', True))
-            continue
-        for _name, tgt, state, src_root, src_rel, here, kind in df.spec_states(rc):
+    for rc in units:                             # dispatch per unit: config->dotfiles, glue->glue
+        drv = get_driver(rc.driver, ctx.runner, ctx.paths)
+        for _name, tgt, state, src_root, src_rel, here, kind in drv.spec_states(rc):
+            src_rel = src_rel if src_root is not None else ('rc hookup' if here else 'not hooked up')
             (cfg if kind == 'config' else glue).append(
-                (state, tgt, rc.comp, Path(src_root), src_rel, here))
+                (state, tgt, rc.comp, (Path(src_root) if src_root is not None else None), src_rel, here))
     print(f'OS: {ctx.os_info.block}   install set: {_install_scope_label(ctx.config)}')
     if not cfg and not glue:
         print('\n(no dotfiles components in the install set)')
@@ -3173,6 +3171,8 @@ def cmd_dotfiles_capture(ctx, args):
                  and Path(store) == Path(ctx.paths.primary_dotfiles_dir))
     plan, skips = [], []
     for rc in units:
+        if rc.driver != 'dotfiles':              # capture is config-only; glue is shipped content
+            continue
         if want and rc.comp not in want:
             continue
         for _name, dst, dest, action in df.capture_plan(rc, force=args.force):
@@ -3201,6 +3201,8 @@ def cmd_dotfiles_capture(ctx, args):
             return 1
     captured = 0
     for rc in units:
+        if rc.driver != 'dotfiles':              # config-only
+            continue
         if want and rc.comp not in want:
             continue
         captured += len(df.capture(rc, force=args.force))

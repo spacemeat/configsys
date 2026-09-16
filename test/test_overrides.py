@@ -88,10 +88,10 @@ def test_empty_override_removes_a_component(tmp_path):
 
 
 def test_removed_component_still_required_errors(tmp_path):
-    # remove bash-dotfiles, which xclip-dotfiles requires -> a clear "nothing provides" error
-    r = _resolver(tmp_path, '{ components: { bash-dotfiles: {} } }')
-    with pytest.raises(ResolveError, match='bash-dotfiles'):
-        r.resolve_names(['xclip-dotfiles'])
+    # remove shell-glue, which xclip-glue requires -> a clear "nothing provides" error
+    r = _resolver(tmp_path, '{ components: { shell-glue: {} } }')
+    with pytest.raises(ResolveError, match='shell-glue'):
+        r.resolve_names(['xclip-glue'])
 
 
 def test_override_is_per_name_others_untouched(tmp_path):
@@ -153,8 +153,8 @@ def test_resolve_resilient_reports_unknown_component():
 
 def test_resolve_resilient_reports_unsatisfiable_requirement(tmp_path):
     p = tmp_path / 'configsys.hu'
-    p.write_text('{ components: { bash-dotfiles: {} } }')      # remove a required component
+    p.write_text('{ components: { shell-glue: {} } }')         # remove a required component
     r = Resolver(ROUTES, 'pop_os!', '22.04', 'x86_64', overrides_path=str(p))
-    units, errors = r.resolve_resilient(['btop', 'xclip-dotfiles'])
+    units, errors = r.resolve_resilient(['btop', 'xclip-glue'])
     assert 'apt\\btop' in units                               # unrelated component fine
-    assert 'xclip-dotfiles' in errors and 'bash-dotfiles' in errors['xclip-dotfiles']
+    assert 'xclip-glue' in errors and 'shell-glue' in errors['xclip-glue']
