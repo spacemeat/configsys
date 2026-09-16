@@ -160,6 +160,7 @@ KNOWN_ACTIONS = {
                    'op-upgrade', 'op-remove', 'execute', 'refresh', 'mode'},
     'config': {'theme', 'move'},
     'dotfiles': {'unlink', 'capture', 'capture-all', 'link-all'},
+    'glue': {'activate', 'activate-group', 'deactivate'},
     'plugins': {'add', 'remove', 'sync', 'sync-all', 'bless', 'unbless', 'update', 'update-all',
                 'trust', 'trust-all', 'set-ref'},
     'profiles': {'track-all', 'track-one', 'select-all', 'method', 'comp-machines', 'machine-target',

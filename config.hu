@@ -87,7 +87,7 @@ profiles: {
     tcl-lang: [ tcl  tk ]
     ocaml-lang: [ ocaml  opam  dune ]
     php-lang: [ php  composer ]
-    python-lang: [ python3.11  python3.12  python3.13  python3.14  cython  pyenv  python-build-deps  uv  jupyterlab  pytest  python3-dev ]
+    python-lang: [ python3.11  python3.12  python3.13  python3.14  cython  pyenv  python-build-deps  uv  jupyterlab  pipx  pytest  python3-dev ]
     ruby-lang: [ ruby  bundler ]
     rust-lang: [ rust  miniforge ]
     scratch-lang: [ scratch ]
@@ -224,6 +224,15 @@ profiles: {
             capture: c
             capture-all: C
             link-all: L
+        }
+
+        // Glue screen (snippets grouped per installed shell). down/up/top/bottom + left/right
+        // (column scroll) from `global`. Ship->activate toggle — no capture; activation re-checks the
+        // authoritative source (updates a stale store copy) and ensures the shell loader is wired.
+        glue: {
+            activate: a             // activate the current snippet (link it for all its installed shells)
+            activate-group: A       // activate every inactive snippet IN THE CURSOR'S shell group
+            deactivate: x           // deactivate the current snippet (unlink; leaves conf.d + content)
         }
 
         // Plugins screen. Focus-aware nav (down/up/left/right/top/bottom) + switch-pane (table⇄diff)

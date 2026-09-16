@@ -105,28 +105,37 @@ class Glue(Driver):
         return found or ['bash']
 
     def _glue_variants(self, glue, rc):
-        '''(shell, ext, src) for each INSTALLED shell that HAS a snippet for this glue name.
-        Precedence: the highest content root that carries one wins (so YOUR plugin/store copy beats
-        the repo template), and within a root the new `shell/<shell>/<name>.<ext>` path beats the
-        pre-move `bash.d/<name>.sh` fallback (bash only).'''
+        '''(shell, ext, src) for each INSTALLED shell that has a snippet for this glue name. The
+        SOURCE is the AUTHORITATIVE shipped copy — the highest content root (your plugin > the repo
+        template) carrying the `shell/<shell>/<name>.<ext>` (or legacy `bash.d/<name>.sh`) authoring
+        layout — NOT the machine-local store DEPLOY mirror (`<shell>/conf.d/`). That's deliberate:
+        the store is a cache, so resolving to the authoritative source lets install re-materialize
+        over a STALE cached copy when the repo/plugin snippet has changed. Only when no authoritative
+        source exists anywhere (its source was removed) do we fall back to an already-deployed store
+        mirror, so the snippet still reads as active instead of vanishing.'''
         out = []
         installed = self._installed_shells()
         for shell in _GLUE_SHELLS:
             if shell not in installed:                     # activate only where the shell is present
                 continue
             ext = _SHELL_EXT[shell]
-            srcs = [f'{shell}/conf.d/{glue}.{ext}',        # store deployed-mirror (materialized copies)
-                    f'shell/{shell}/{glue}.{ext}']         # repo/plugin authoring layout
+            auth = [f'shell/{shell}/{glue}.{ext}']         # repo/plugin authoring layout (authoritative)
             if shell == 'bash':
-                srcs.append(f'bash.d/{glue}.sh')           # legacy plugin/store layout
+                auth.append(f'bash.d/{glue}.sh')           # legacy authoring layout (authoritative)
             chosen = None
             for root, _tier in self._content_roots(rc):    # store, primary plugin, then repo template
-                for src in srcs:
+                for src in auth:
                     if (root / src).exists():
                         chosen = src
                         break
                 if chosen:
                     break
+            if chosen is None:                             # fallback: an existing store deploy mirror
+                mirror = f'{shell}/conf.d/{glue}.{ext}'
+                for root, _tier in self._content_roots(rc):
+                    if (root / mirror).exists():
+                        chosen = mirror
+                        break
             if chosen:
                 out.append((shell, ext, chosen))
         return out
@@ -175,16 +184,28 @@ class Glue(Driver):
         store = getattr(self.paths, 'user_dotfiles_dir', None) if self.paths is not None else None
         return (Path(store) / src) if store is not None else None
 
-    def _materialize_to(self, srcpath, dest, executable=False):
-        '''Copy `srcpath` to `dest` (idempotent — only when `dest` is absent); with `executable`, set
-        a+x on the result (the loader sources only executable files). Returns dest (or srcpath if
-        there's nothing to copy / no dest).'''
+    def _materialize_to(self, srcpath, dest, executable=False, refresh=False):
+        '''Copy `srcpath` to `dest` (idempotent — only when `dest` is absent, or `refresh` and the
+        content differs; glue is SHIPPED content, so refreshing the store cache from an updated
+        source is safe and desired). With `executable`, set a+x on the result (the loader sources
+        only executable files). Returns dest (or srcpath if there's nothing to copy / no dest).'''
         if dest is None or not srcpath.exists():
             return srcpath
         if dest.is_symlink():                              # never leave a symlink in the store
             dest.unlink()
-        if not dest.exists():
+        need = not dest.exists()
+        if not need and refresh and dest.is_file() and srcpath.is_file():
+            try:
+                need = dest.read_bytes() != srcpath.read_bytes()   # source changed -> re-cache it
+            except OSError:
+                need = True
+        if need:
             dest.parent.mkdir(parents=True, exist_ok=True)
+            if dest.exists() or dest.is_symlink():
+                if dest.is_dir() and not dest.is_symlink():
+                    shutil.rmtree(dest)
+                else:
+                    dest.unlink()
             if srcpath.is_dir():
                 shutil.copytree(srcpath, dest)
             else:
@@ -364,6 +385,16 @@ class Glue(Driver):
 
     # -- read -------------------------------------------------------------
 
+    def _deployed(self, dst, src, rc):
+        '''The file a snippet's dst should resolve to when active — the machine-local store DEPLOY
+        copy if present, else the resolved source (covers the dir-symlinked-conf.d / no-store cases).
+        The `src` (authoritative source) and the deployed store copy live at different paths, so the
+        "linked" check compares dst against THIS, not the source.'''
+        store = self._glue_store(dst)
+        if store is not None and store.exists():
+            return store
+        return self._resolve(src, rc)[0]
+
     def get_version(self, rc):
         '''"linked" when every snippet's dst resolves to the managed store copy (or, for a loader
         component, every hooked shell's loader is in place); else None (not active).'''
@@ -374,10 +405,10 @@ class Glue(Driver):
         if not specs:
             return None
         for _name, src, dst in specs:
-            srcpath, _tier, _root = self._resolve(src, rc)
+            ref = self._deployed(dst, src, rc)
             tgt = self._expand(dst)
-            if not (srcpath.exists()
-                    and os.path.realpath(str(tgt)) == os.path.realpath(str(srcpath))):
+            if not (ref.exists()
+                    and os.path.realpath(str(tgt)) == os.path.realpath(str(ref))):
                 return None
         return 'linked'
 
@@ -390,14 +421,13 @@ class Glue(Driver):
             out.append((f'{shell} loader', self.display_path(self._confd(shell)), state,
                         None, '', state == 'loader-on', 'glue'))
         for name, src, dst in self._specs(rc):
-            srcpath, tier, root = self._resolve(src, rc)
+            srcpath, tier, root = self._resolve(src, rc)   # authoritative source (the SRC column)
             tgt = self._expand(dst)
-            if srcpath.exists() and os.path.realpath(str(tgt)) == os.path.realpath(str(srcpath)):
-                state, src_root, here = 'linked', root, True
-            elif tier == 'user':
-                state, src_root, here = 'linked', root, True
-            elif tier == 'template':
-                state, src_root, here = 'template', root, True
+            ref = self._deployed(dst, src, rc)
+            if ref.exists() and os.path.realpath(str(tgt)) == os.path.realpath(str(ref)):
+                state, src_root, here = 'linked', root, True     # active: dst -> deployed copy
+            elif tier in ('user', 'template'):
+                state, src_root, here = 'template', root, True   # source shipped but not linked -> available
             else:
                 state, src_root, here = 'empty', self._defining_root(rc), False
             try:
@@ -428,13 +458,23 @@ class Glue(Driver):
         if not specs:
             return Result(f'glue: {rc.comp} has no snippet for any installed shell', 0, advisory=True)
         # Deploy each snippet into the machine-local store MIRROR (<store>/<shell>/conf.d/),
-        # executable, so the loader sources it and a link never references the repo.
-        pairs = []
-        for _name, src, dst in specs:
+        # executable, so the loader sources it and a link never references the repo. `refresh=True`
+        # re-caches a store copy that has drifted from its (updated) authoritative source.
+        pairs, shells, updated = [], set(), 0
+        for name, src, dst in specs:
             srcpath, _tier, _root = self._resolve(src, rc)
-            link_src = self._glue_store(dst) or srcpath
-            self._materialize_to(srcpath, link_src, executable=True)
-            pairs.append((srcpath, src, link_src, self._expand(dst)))
+            store = self._glue_store(dst) or srcpath
+            if store != srcpath and store.is_file() and srcpath.is_file():   # drift check vs source
+                try:
+                    if store.read_bytes() != srcpath.read_bytes():
+                        updated += 1
+                except OSError:
+                    pass
+            self._materialize_to(srcpath, store, executable=True, refresh=True)
+            sh = name.rsplit('@', 1)[1] if '@' in name else None
+            if sh:
+                shells.add(sh)
+            pairs.append((srcpath, src, store, self._expand(dst)))
         lines = ['set -e']
         for _srcpath, src, link_src, tgt in pairs:
             # If conf.d is itself a dir-symlink to the store, the store file IS the deployed file;
@@ -449,7 +489,18 @@ class Glue(Driver):
             lines.append(f'  mkdir -p {shlex.quote(str(tgt.parent))}')
             lines.append(f'  ln -sfn {s} {t}')
             lines.append(f'else echo "glue: {rc.comp} not populated ({src} absent)" >&2; fi')
-        return self.runner.run('\n'.join(lines), capture=False)
+        res = self.runner.run('\n'.join(lines), capture=False)
+        if res is not None and not res.ok:
+            return res
+        # Ensure the conf.d LOADER is wired for each shell this snippet deploys to, so it actually
+        # sources — checked on every install AND update (upgrade == install). The snippet's own
+        # `requires: shell-glue` covers the CLI pipeline, but a direct activate (TUI) bypasses it.
+        for shell in shells:
+            self._ensure_shell_loader(shell, rc)
+        msg = f'activated {rc.comp}'
+        if updated:
+            msg += f' ({updated} snippet(s) refreshed from source)'
+        return Result(f'glue install {rc.comp}', 0, stdout=msg)   # msg rides in stdout -> res.output
 
     def upgrade(self, rc):
         return self.install(rc)                             # idempotent re-link

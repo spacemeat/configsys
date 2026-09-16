@@ -94,6 +94,7 @@ def test_repo_every_screen_scope_matches_the_wired_actions():
                        'c': 'clear', '\t': 'expand-all'},
         'config': {'t': 'theme', 'm': 'move'},
         'dotfiles': {'x': 'unlink', 'c': 'capture', 'C': 'capture-all', 'L': 'link-all'},
+        'glue': {'a': 'activate', 'A': 'activate-group', 'x': 'deactivate'},
         'plugins': {'a': 'add', 'x': 'remove', 's': 'sync', 'S': 'sync-all', 'b': 'bless',
                     'B': 'unbless', 'u': 'update', 'U': 'update-all', 't': 'trust', 'T': 'trust-all',
                     'v': 'set-ref'},

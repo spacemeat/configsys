@@ -56,6 +56,37 @@ def test_snippet_materializes_to_store_confd_mirror_executable(tmp_path):
     assert g.get_version(rc) is None
 
 
+def test_activate_refreshes_a_stale_store_copy_from_source(tmp_path):
+    # the store is a deploy CACHE — when the authoritative source changes, a re-activate must
+    # re-materialize over the stale cached copy (glue is shipped content).
+    p = paths_for(tmp_path)
+    (p.dotfiles_dir / 'shell' / 'bash').mkdir(parents=True)
+    auth = p.dotfiles_dir / 'shell' / 'bash' / 'btop.sh'
+    auth.write_text('# v1\n')
+    p.home.mkdir(parents=True)
+    g = Glue(Runner(pretend=False), paths=p)
+    rc = _glue_unit()
+    assert g.install(rc).ok
+    store = p.user_dotfiles_dir / 'bash' / 'conf.d' / 'btop.sh'
+    assert store.read_text() == '# v1\n'
+    auth.write_text('# v2 updated\n')                    # source changes upstream
+    res = g.install(rc)
+    assert res.ok and store.read_text() == '# v2 updated\n'   # stale cache refreshed
+    assert 'refreshed from source' in res.output
+
+
+def test_activate_ensures_the_shell_loader(tmp_path):
+    # a direct activate bypasses the snippet's `requires: shell-glue`, so the snippet driver wires
+    # the shell loader itself — else the linked conf.d file would never be sourced.
+    p = paths_for(tmp_path, shells='zsh')
+    (p.dotfiles_dir / 'shell' / 'zsh').mkdir(parents=True)
+    (p.dotfiles_dir / 'shell' / 'zsh' / 'btop.zsh').write_text('# glue\n')
+    p.home.mkdir(parents=True)
+    g = Glue(Runner(pretend=False), paths=p)
+    assert g.install(_glue_unit()).ok
+    assert '# >>> configsys glue >>>' in (p.home / '.zshrc').read_text()   # zsh loader wired
+
+
 def test_zsh_loader_adds_idempotent_rc_block_and_uninstall_removes_it(tmp_path):
     p = paths_for(tmp_path, shells='zsh')
     p.home.mkdir(parents=True)

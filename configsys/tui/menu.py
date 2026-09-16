@@ -4544,10 +4544,10 @@ def _draw_glue(stdscr, pal, gs, ctx, note, screen):
         status += f'    {note}'
     if _KEYMAP is not None:
         g = lambda a: _KEYMAP.glyph('glue', a)
-        navf = (f" {g('down')}/{g('up')} · {g('left')}/{g('right')} scroll · {g('confirm')} activate · "
-                f"{g('unlink')} deactivate · {g('quit')} ")
+        navf = (f" {g('down')}/{g('up')} · {g('left')}/{g('right')} scroll · {g('activate')} activate · "
+                f"{g('activate-group')} activate group · {g('deactivate')} deactivate · {g('quit')} ")
     else:
-        navf = ' j/k · h/l scroll · ↵ activate · x deactivate · q '
+        navf = ' j/k · h/l scroll · a activate · A activate group · x deactivate · q '
     _put(stdscr, h - 2, 0, _fit(status, w), pal.style('status_line', h - 2, 0, h, w))
     _put(stdscr, h - 1, 0, _fit(navf.ljust(w), w), pal.style('footer', h - 1, 0, h, w))
     stdscr.refresh()
@@ -5182,28 +5182,31 @@ def run(ctx):
                         gs.cur = 0
                     elif gact == 'bottom':
                         gs.cur = max(0, len(gs.rows) - 1)
-                    elif gact == 'confirm' and row:         # activate (links the snippet for all its shells)
+                    elif gact == 'activate' and row:        # activate (links the snippet for all its shells)
                         with suspended(stdscr):
                             res = gs.gd.install(row[0])
                         gs.dirty.add(row[0].key)
                         gs.reload()
-                        note = (f'{row[0].comp}: {res.output().strip()}'
-                                if res is not None and not res.ok else f'activated {row[0].comp}')
-                    elif gact == 'unlink' and row:          # deactivate (unlink; leaves conf.d + content)
+                        note = (f'{row[0].comp}: {res.output.strip()}' if res is not None and not res.ok
+                                else ((res.output.strip() if res is not None and res.output else None)
+                                      or f'activated {row[0].comp}'))
+                    elif gact == 'deactivate' and row:      # deactivate (unlink; leaves conf.d + content)
                         with suspended(stdscr):
                             gs.gd.uninstall(row[0])
                         gs.dirty.add(row[0].key)
                         gs.reload()
                         note = f'deactivated {row[0].comp}'
-                    elif gact == 'link-all':                # activate every inactive snippet
-                        pend = {r[0].key: r[0] for r in gs.rows if r[3] not in ('linked', 'loader-on')}
+                    elif gact == 'activate-group' and row:  # activate every inactive snippet in THIS shell's group
+                        shell = row[5]
+                        pend = {r[0].key: r[0] for r in gs.rows
+                                if r[5] == shell and r[3] not in ('linked', 'loader-on')}
                         with suspended(stdscr):
                             for rc in pend.values():
                                 gs.gd.install(rc)
                         gs.dirty.update(pend)
                         gs.reload()
-                        note = (f'activated {len(pend)} glue snippet(s)'
-                                if pend else 'nothing inactive to activate')
+                        note = (f'activated {len(pend)} snippet(s) in the {shell} group'
+                                if pend else f'nothing inactive in the {shell} group')
                 except Exception as e:  # noqa: BLE001 — surface, don't crash
                     note = f'error: {e}'
                 continue
