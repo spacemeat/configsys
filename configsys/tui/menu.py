@@ -4426,7 +4426,7 @@ class DotfilesScreen:
 _DF_HEADERS = ['component', 'state', 'link', 'source']
 
 
-from ..drivers.dotfiles import GLUE_STATE_LABEL as _GLUE_STATE_LABEL   # glue's active/available/inactive
+from ..drivers.glue import GLUE_STATE_LABEL as _GLUE_STATE_LABEL   # glue's active/available/inactive
 
 
 def _df_cells(row):

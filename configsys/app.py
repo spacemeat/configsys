@@ -3096,7 +3096,7 @@ def cmd_dotfiles_status(ctx, args):
     ship→activate toggle: snippets + the per-shell conf.d loaders). Each row: state, target,
     component, and where its MANAGED content lives (or `→` where capture will put it). Content roots
     are labeled once up top so the SRC column stays short.'''
-    from .drivers.dotfiles import GLUE_STATE_LABEL
+    from .drivers.glue import GLUE_STATE_LABEL
     from .drivers import get_driver
     df, units = _active_dotfiles(ctx)
     cfg, glue = [], []   # (state, target, component, src_root|None, src_rel, here)

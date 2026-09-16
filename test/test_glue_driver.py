@@ -122,6 +122,42 @@ def test_shell_glue_bash_absorbs_preexisting_bash_aliases(tmp_path):
     assert not link.is_symlink() and link.read_text() == 'alias mine="echo hi"\n'   # restored
 
 
+def test_snippet_activates_only_installed_shells(tmp_path):
+    # a snippet deploys to conf.d for each INSTALLED shell that ships a variant (CONFIGSYS_GLUE_SHELLS
+    # pins the set); a shell that isn't "installed" gets nothing.
+    p = paths_for(tmp_path, shells='bash,fish')
+    for sh, ext in (('bash', 'sh'), ('fish', 'fish'), ('zsh', 'zsh')):
+        (p.dotfiles_dir / 'shell' / sh).mkdir(parents=True)
+        (p.dotfiles_dir / 'shell' / sh / f'btop.{ext}').write_text('# glue\n')
+    p.home.mkdir(parents=True)
+    g = Glue(Runner(pretend=False), paths=p)
+    assert g.install(_glue_unit()).ok
+    assert (p.home / '.config' / 'bash' / 'conf.d' / 'btop.sh').is_symlink()
+    assert (p.home / '.config' / 'fish' / 'conf.d' / 'btop.fish').is_symlink()
+    assert not (p.home / '.config' / 'zsh' / 'conf.d' / 'btop.zsh').exists()   # zsh not installed
+
+
+def test_confd_symlinked_to_store_makes_no_self_loop(tmp_path):
+    # if ~/.config/<shell>/conf.d is itself a symlink to the store's conf.d dir, the store file IS the
+    # deployed file — a naive `ln -sfn store/x conf.d/x` would resolve to a self-link (ELOOP). Install
+    # must detect the realpath coincidence and skip the link, leaving a real file.
+    p = paths_for(tmp_path)
+    (p.dotfiles_dir / 'shell' / 'bash').mkdir(parents=True)
+    (p.dotfiles_dir / 'shell' / 'bash' / 'btop.sh').write_text('# glue\n')
+    store_confd = p.user_dotfiles_dir / 'bash' / 'conf.d'
+    store_confd.mkdir(parents=True)
+    confd = p.home / '.config' / 'bash' / 'conf.d'
+    confd.parent.mkdir(parents=True)
+    confd.symlink_to(store_confd)                          # the dir is a symlink to the store
+    g = Glue(Runner(pretend=False), paths=p)
+    rc = _glue_unit()
+    assert g.install(rc).ok
+    store_file = store_confd / 'btop.sh'
+    assert store_file.is_file() and not store_file.is_symlink()
+    assert g.get_version(rc) == 'linked'
+    assert g.install(rc).ok                                # idempotent — no crash, no re-created loop
+
+
 def test_spec_states_reports_glue_kind(tmp_path):
     p = paths_for(tmp_path)
     (p.dotfiles_dir / 'shell' / 'bash').mkdir(parents=True)

@@ -90,111 +90,7 @@ def test_single_inline_spec():
     rc = ResolvedComponent(key='dotfiles\\arduino', driver='dotfiles', comp='arduino',
                            fields={'src': 'bash.d/arduino.sh', 'dst': '~/.bash.d/arduino.sh'})
     assert DotFiles(Runner(pretend=True))._specs(rc) == [
-        ('arduino', 'bash.d/arduino.sh', '~/.bash.d/arduino.sh', None, 'config')]
-
-
-def test_glue_expands_to_conf_d_per_shell(tmp_path):
-    # `glue: btop` -> a spec per shell that has a snippet; bash today: src shell/bash/btop.sh,
-    # dst ~/.config/bash/conf.d/btop.sh. The repo template is enough to light up bash.
-    p = paths_for(tmp_path)
-    (p.dotfiles_dir / 'shell' / 'bash').mkdir(parents=True)
-    (p.dotfiles_dir / 'shell' / 'bash' / 'btop.sh').write_text('# glue\n')
-    df = DotFiles(Runner(pretend=True), paths=p)
-    rc = ResolvedComponent(key='dotfiles\\btop-dotfiles', driver='dotfiles', comp='btop-dotfiles',
-                           fields={'glue': 'btop', 'requires': 'bash-dotfiles'})
-    assert df._specs(rc) == [
-        ('btop@bash', 'shell/bash/btop.sh', '~/.config/bash/conf.d/btop.sh', None, 'glue')]
-
-    # a user copy at the pre-move bash.d/ path (e.g. an un-migrated plugin) still resolves + WINS.
-    (p.user_dotfiles_dir / 'bash.d').mkdir(parents=True)
-    (p.user_dotfiles_dir / 'bash.d' / 'btop.sh').write_text('# my btop\n')
-    assert df._specs(rc)[0][1] == 'bash.d/btop.sh'          # user store (bash.d) beats repo shell/bash
-
-
-def test_glue_activates_only_installed_shells(tmp_path):
-    # a fish variant exists in the repo, but glue activates it ONLY when fish is among the installed
-    # shells (design: per-installed-shell, not $SHELL). CONFIGSYS_GLUE_SHELLS pins the set.
-    p = paths_for(tmp_path, shells='bash')
-    for sh, ext in (('bash', 'sh'), ('fish', 'fish')):
-        (p.dotfiles_dir / 'shell' / sh).mkdir(parents=True)
-        (p.dotfiles_dir / 'shell' / sh / f'btop.{ext}').write_text(f'# {sh} glue\n')
-    rc = ResolvedComponent(key='dotfiles\\btop-dotfiles', driver='dotfiles', comp='btop-dotfiles',
-                           fields={'glue': 'btop'})
-    df = DotFiles(Runner(pretend=True), paths=p)
-    assert [s[0] for s in df._specs(rc)] == ['btop@bash']            # bash only
-
-    p2 = paths_for(tmp_path, shells='bash,fish')
-    df2 = DotFiles(Runner(pretend=True), paths=p2)
-    names = [s[0] for s in df2._specs(rc)]
-    assert names == ['btop@bash', 'btop@fish']                       # fish now activates too
-    fish_spec = [s for s in df2._specs(rc) if s[0] == 'btop@fish'][0]
-    assert fish_spec[2] == '~/.config/fish/conf.d/btop.fish' and fish_spec[4] == 'glue'
-
-
-def _loader_unit(shell):
-    return ResolvedComponent(key=f'dotfiles\\{shell}-dotfiles', driver='dotfiles',
-                             comp=f'{shell}-dotfiles', fields={'loader': shell})
-
-
-def test_zsh_loader_adds_idempotent_rc_block_and_uninstall_removes_it(tmp_path):
-    p = paths_for(tmp_path)
-    (p.home).mkdir(parents=True)
-    (p.home / '.zshrc').write_text('# my zshrc\nexport FOO=1\n')      # a pre-existing rc
-    df = DotFiles(Runner(pretend=False), paths=p)
-    rc = _loader_unit('zsh')
-    assert df.get_version(rc) is None
-
-    assert df.install(rc).ok
-    confd = p.home / '.config' / 'zsh' / 'conf.d'
-    assert confd.is_dir()
-    zshrc = (p.home / '.zshrc').read_text()
-    assert '# >>> configsys glue >>>' in zshrc
-    assert 'my zshrc' in zshrc and 'export FOO=1' in zshrc            # user content preserved
-    assert str(confd) in zshrc
-    assert df.get_version(rc) == 'linked'
-
-    df.install(rc)                                                    # idempotent — no second block
-    assert (p.home / '.zshrc').read_text().count('# >>> configsys glue >>>') == 1
-
-    df.uninstall(rc)
-    after = (p.home / '.zshrc').read_text()
-    assert '# >>> configsys glue >>>' not in after
-    assert 'export FOO=1' in after                                   # user content still intact
-    assert confd.is_dir()                                            # dir left alone
-    assert df.get_version(rc) is None
-
-
-def test_fish_loader_ensures_confd_and_needs_no_rc_edit(tmp_path):
-    p = paths_for(tmp_path)
-    (p.home).mkdir(parents=True)
-    df = DotFiles(Runner(pretend=False), paths=p)
-    rc = _loader_unit('fish')
-    assert df.install(rc).ok
-    assert (p.home / '.config' / 'fish' / 'conf.d').is_dir()         # fish auto-sources this natively
-    assert not (p.home / '.zshrc').exists()                          # no rc file touched
-    assert df.get_version(rc) == 'linked'
-    assert df.location(rc) == '~/.config/fish/conf.d'
-
-
-def test_glue_materializes_to_store_confd_mirror_executable(tmp_path):
-    # a glue snippet deploys to <store>/<shell>/conf.d/<name>.<ext> — the store mirrors the deployed
-    # ~/.config/<shell>/conf.d/ layout — made a+x so the loader (which sources only executable files)
-    # picks it up; the link points at the store copy, never the repo.
-    p = paths_for(tmp_path)
-    (p.dotfiles_dir / 'shell' / 'bash').mkdir(parents=True)
-    (p.dotfiles_dir / 'shell' / 'bash' / 'btop.sh').write_text('# btop glue\n')   # repo-authored, -x
-    p.home.mkdir(parents=True)
-    df = DotFiles(Runner(pretend=False), paths=p)
-    rc = ResolvedComponent(key='dotfiles\\btop-dotfiles', driver='dotfiles', comp='btop-dotfiles',
-                           fields={'glue': 'btop'})
-    assert df.install(rc).ok
-    link = p.home / '.config' / 'bash' / 'conf.d' / 'btop.sh'
-    store = p.user_dotfiles_dir / 'bash' / 'conf.d' / 'btop.sh'
-    assert link.is_symlink() and os.path.realpath(link) == os.path.realpath(store)
-    assert store.read_text() == '# btop glue\n'
-    assert os.access(store, os.X_OK)                                 # executable
-    assert os.path.realpath(link) != os.path.realpath(p.dotfiles_dir / 'shell' / 'bash' / 'btop.sh')
-    assert df.get_version(rc) == 'linked'
+        ('arduino', 'bash.d/arduino.sh', '~/.bash.d/arduino.sh', None)]
 
 
 def test_dst_env_expansion_defaults_xdg(tmp_path):
@@ -628,37 +524,8 @@ def test_materialize_to_replaces_a_looping_symlink(tmp_path):
     assert a.is_symlink() and not a.exists()   # looping link: present but exists()==False
 
     df = DotFiles(Runner(pretend=False), paths=None)
-    out = df._materialize_to(src, a, executable=True)
+    out = df._materialize_to(src, a)
     assert out == a
     assert a.is_file() and not a.is_symlink()  # now a real file, loop broken
     assert a.read_text() == '# glue\n'
-    assert os.stat(a).st_mode & 0o111          # executable bit set (glue)
 
-
-def test_glue_confd_symlinked_to_store_makes_no_self_loop(tmp_path):
-    # regression: if ~/.config/<shell>/conf.d is itself a symlink to the store's conf.d dir, the
-    # deploy target RESOLVES to the store file, so a naive `ln -sfn store/x conf.d/x` becomes a
-    # symlink pointing at ITSELF (ELOOP on the next install). The install must notice the target
-    # already resolves to the store copy and skip the self-link, leaving a REAL store file.
-    p = paths_for(tmp_path)
-    (p.dotfiles_dir / 'shell' / 'bash').mkdir(parents=True)
-    (p.dotfiles_dir / 'shell' / 'bash' / 'btop.sh').write_text('# glue\n')
-    store_confd = p.user_dotfiles_dir / 'bash' / 'conf.d'
-    store_confd.mkdir(parents=True)
-    confd = p.home / '.config' / 'bash' / 'conf.d'
-    confd.parent.mkdir(parents=True)
-    confd.symlink_to(store_confd)                      # the dir is a symlink to the store
-
-    df = DotFiles(Runner(pretend=False), paths=p)
-    rc = df_unit(specs={'glue': 'btop'}, comp='btop-dotfiles')
-    assert df.install(rc).ok
-
-    store_file = store_confd / 'btop.sh'
-    assert store_file.is_file() and not store_file.is_symlink()   # real file, NOT a self-symlink
-    assert store_file.read_text() == '# glue\n'
-    assert os.path.realpath(confd / 'btop.sh') == os.path.realpath(store_file)
-    assert df.get_version(rc) == 'linked'   # detected installed despite the dir-symlink (real file, not a per-file link)
-
-    # a second install is idempotent and must not crash or re-create the loop
-    assert df.install(rc).ok
-    assert store_file.is_file() and not store_file.is_symlink()

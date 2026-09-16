@@ -145,16 +145,17 @@ desired: exclude `glue`+`dotfiles` attrs from the NEW count.
   ~118 `suggests:` rewired, `config.hu` `user:` → `shell-glue`, TUI/CLI dispatch per-driver, golden
   regen (verified NO real install unit changed), tests fixed, manpages. 1295 green.
 - **DONE — configsys-bigdata (`6b2d8a6`, its repo):** 4 glue comps → `-glue`/`shell-glue`.
-- **TODO — commit 3:** trim `dotfiles.py` to config-only (remove the now-dead glue/loader code) and
-  migrate `test_dotfiles.py`'s glue tests into `test_glue_driver.py`. Move `GLUE_STATE_LABEL`
-  imports (app.py, menu.py) from `.drivers.dotfiles` → `.drivers.glue`.
-- **PENDING USER — configsys-user (Part C + E):** the local `~/src/configsys-user` is behind
-  origin (`a558dee`, picks-migrated). The user updates it themselves; then apply IN-PLACE (a) the
-  picks rename across laptop/desktop/homelab (`bash-dotfiles→shell-glue`, drop `zsh-glue`/
-  `fish-glue`, `clang/gcc-select→-glue`, each glue `X-dotfiles→X-glue`; config `X-dotfiles` stay),
-  and (b) park the orphans (`apod` hook, `best-ps1`) into `dotfiles/bash_aliases` (sourced there,
-  temporary). NOTE: in the current version `apod-dotfiles` is a mixed `config+glue: apod` and
-  `best-ps1` is `glue: ps1` — reshape accordingly when the source is current.
+- **DONE — commit 3:** trimmed `dotfiles.py` to config-only (812→605 lines; all glue/loader code
+  gone), moved `GLUE_STATE_LABEL` imports (app.py, menu.py) to `.drivers.glue`, removed the 6 glue
+  tests from `test_dotfiles.py` (fixed 2 signature tests) and added the only-installed-shells +
+  conf.d-dir-symlink preservation tests to `test_glue_driver.py`. 1291 green.
+- **DONE — configsys-user (Part C + E, its repo, UNCOMMITTED for user review):** `apod-dotfiles` →
+  config-only (kept the APOD image-cache config), `best-ps1` removed (+ stale `.cfs`), both orphan
+  hooks parked into `dotfiles/bash_aliases` (sourcing `bash.d/ps1.sh`+`apod.sh`), and the picks
+  renamed across laptop/desktop (`bash-dotfiles→shell-glue`, dropped `zsh-glue`/`fish-glue`/
+  `best-ps1`, glue `X-dotfiles→X-glue`; config `X-dotfiles` untouched). All 3 machines check clean.
+
+**Phase 1 is COMPLETE** (main repo committed; configsys-user awaits the user's review+commit).
 
 ## Suggested commits
 
