@@ -136,6 +136,26 @@ desired: exclude `glue`+`dotfiles` attrs from the NEW count.
   file becomes just the conf.d shim; the aliases/env move to a small glue snippet (or drop). Kept
   as-is in Phase 1 to stay behavior-preserving.
 
+## Status (Phase 1)
+
+- **DONE — commit 1 (`06db74e`):** `via: glue` driver added (additive), wired (`_VIA_ATTR`,
+  resolve, registry) + driver tests.
+- **DONE — commit 2 (`39b3f28`):** core `routes.hu` cutover — 62 glue-only → `-glue`, 9 mixed
+  split, loaders collapsed into `shell-glue` (bash `~/.bash_aliases` folded into its bash branch),
+  ~118 `suggests:` rewired, `config.hu` `user:` → `shell-glue`, TUI/CLI dispatch per-driver, golden
+  regen (verified NO real install unit changed), tests fixed, manpages. 1295 green.
+- **DONE — configsys-bigdata (`6b2d8a6`, its repo):** 4 glue comps → `-glue`/`shell-glue`.
+- **TODO — commit 3:** trim `dotfiles.py` to config-only (remove the now-dead glue/loader code) and
+  migrate `test_dotfiles.py`'s glue tests into `test_glue_driver.py`. Move `GLUE_STATE_LABEL`
+  imports (app.py, menu.py) from `.drivers.dotfiles` → `.drivers.glue`.
+- **PENDING USER — configsys-user (Part C + E):** the local `~/src/configsys-user` is behind
+  origin (`a558dee`, picks-migrated). The user updates it themselves; then apply IN-PLACE (a) the
+  picks rename across laptop/desktop/homelab (`bash-dotfiles→shell-glue`, drop `zsh-glue`/
+  `fish-glue`, `clang/gcc-select→-glue`, each glue `X-dotfiles→X-glue`; config `X-dotfiles` stay),
+  and (b) park the orphans (`apod` hook, `best-ps1`) into `dotfiles/bash_aliases` (sourced there,
+  temporary). NOTE: in the current version `apod-dotfiles` is a mixed `config+glue: apod` and
+  `best-ps1` is `glue: ps1` — reshape accordingly when the source is current.
+
 ## Suggested commits
 
 1. glue driver + `_VIA_ATTR`/resolve/`get_driver` wiring (+ driver tests).
