@@ -162,6 +162,22 @@ def test_tag_re_extracts_version_from_scoped_tag():
     assert versions.discover(spec, fetch=f) == '13.1.0'
 
 
+def test_tag_re_skips_prerelease_core_beta():
+    # the real insomnia trap: the newest core@ tag is a BETA (core@13.3.0-beta.0). get_latest must
+    # report the newest STABLE core@ tag (13.2.0) — the version the install path (latest STABLE
+    # release .deb) actually fetches — else it reads perpetually outdated and the upgrade is a no-op.
+    f = fetcher({atom_url(INS): atom(INS, ['core@13.3.0-beta.0', 'core@13.2.0', 'core@13.1.0'])})
+    spec = {'github': INS, 'asset': 'Insomnia.Core-*.deb', 'tag-re': r'core@([0-9][0-9.]*)'}
+    assert versions.discover(spec, fetch=f) == '13.2.0'
+
+
+def test_only_prerelease_tags_still_resolve():
+    # if EVERY matching tag is a prerelease, fall back to the newest so it resolves to something.
+    f = fetcher({atom_url(INS): atom(INS, ['core@14.0.0-beta.1', 'core@14.0.0-beta.0'])})
+    spec = {'github': INS, 'tag-re': r'core@([0-9][0-9.]*)'}
+    assert versions.discover(spec, fetch=f) == '14.0.0'
+
+
 def test_atom_tag_is_url_decoded():
     # GitHub's atom feed URL-ENCODES the tag: a monorepo scope tag `core@13.2.0` arrives as
     # `core%4013.2.0`. Without percent-decoding, the `%40` feeds a stray 40 into a numeric tag-re

@@ -137,18 +137,40 @@ def _tag_transform(tag, spec):
     return tag
 
 
+_PRERELEASE_MARKER = re.compile(r'(?i)(alpha|beta|\brc[0-9.]|preview|nightly|snapshot|canary|-pre\b|\bdev\b)')
+
+
+def _tag_is_prerelease(raw):
+    '''True if a raw tag names a prerelease (beta/rc/alpha/dev…). Judged on the RAW tag because a
+    `tag-re:` STRIPS the suffix (`core@13.3.0-beta.0` -> `13.3.0`), losing the marker. This mirrors
+    the stable-only semantics the pypi (is_prerelease) and crates (max_stable_version) paths already
+    use, so get_latest never advertises a beta the install path (which fetches the latest STABLE
+    release) won't actually install — the "perpetually outdated, upgrade is a no-op" trap.'''
+    ver = raw.split('@', 1)[-1]                    # drop a monorepo scope (core@…)
+    ver = ver[1:] if ver[:1] in 'vV' else ver      # and a leading v
+    try:
+        from packaging.version import Version, InvalidVersion
+        return Version(ver).is_prerelease
+    except InvalidVersion:
+        return bool(_PRERELEASE_MARKER.search(raw))
+    except Exception:                              # packaging missing -> marker heuristic
+        return bool(_PRERELEASE_MARKER.search(raw))
+
+
 def _select_github_tag(tags, spec):
-    '''Pick the version from an atom feed's newest-first tag list. With `tag-re:`, prefer the newest
-    RAW tag that matches it (a monorepo that interleaves several components' tags), else the newest.'''
-    chosen = None
+    '''Pick the version from an atom feed's newest-first tag list. Skip PRERELEASE tags (stable-only,
+    matching the install path's /releases/latest); with `tag-re:`, prefer the newest RAW tag that
+    matches it (a monorepo that interleaves several components' tags). If nothing stable/matching is
+    found, fall back to the newest matching tag (else the newest) so a prerelease-only project still
+    resolves to something.'''
     tre = spec.get('tag-re')
-    if tre:
-        for t in tags:
-            if re.search(tre, t):
-                chosen = t
-                break
-    if chosen is None and tags:
-        chosen = tags[0]
+
+    def _matches(t):
+        return (not tre) or re.search(tre, t)
+
+    chosen = next((t for t in tags if _matches(t) and not _tag_is_prerelease(t)), None)
+    if chosen is None:                             # no stable match -> newest matching, else newest
+        chosen = next((t for t in tags if _matches(t)), None) or (tags[0] if tags else None)
     return _tag_transform(chosen, spec) if chosen else None
 
 

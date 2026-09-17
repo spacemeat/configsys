@@ -18617,7 +18617,7 @@
      "name": "insomnia",
      "version": {
       "github": "Kong/insomnia",
-      "tag-re": "([0-9][0-9.]*)"
+      "tag-re": "core@([0-9][0-9.]*)"
      }
     },
     "name": "insomnia"
@@ -31872,7 +31872,7 @@
      "name": "insomnia",
      "version": {
       "github": "Kong/insomnia",
-      "tag-re": "([0-9][0-9.]*)"
+      "tag-re": "core@([0-9][0-9.]*)"
      }
     },
     "name": "insomnia"
@@ -44923,7 +44923,7 @@
      "name": "insomnia",
      "version": {
       "github": "Kong/insomnia",
-      "tag-re": "([0-9][0-9.]*)"
+      "tag-re": "core@([0-9][0-9.]*)"
      }
     },
     "name": "insomnia"
@@ -57673,7 +57673,7 @@
      "name": "insomnia",
      "version": {
       "github": "Kong/insomnia",
-      "tag-re": "([0-9][0-9.]*)"
+      "tag-re": "core@([0-9][0-9.]*)"
      }
     },
     "name": "insomnia"
@@ -70368,7 +70368,7 @@
      "name": "insomnia",
      "version": {
       "github": "Kong/insomnia",
-      "tag-re": "([0-9][0-9.]*)"
+      "tag-re": "core@([0-9][0-9.]*)"
      }
     },
     "name": "insomnia"
@@ -93503,7 +93503,7 @@
      "name": "insomnia",
      "version": {
       "github": "Kong/insomnia",
-      "tag-re": "([0-9][0-9.]*)"
+      "tag-re": "core@([0-9][0-9.]*)"
      }
     },
     "name": "insomnia"
@@ -106802,7 +106802,7 @@
      "name": "insomnia",
      "version": {
       "github": "Kong/insomnia",
-      "tag-re": "([0-9][0-9.]*)"
+      "tag-re": "core@([0-9][0-9.]*)"
      }
     },
     "name": "insomnia"
@@ -120317,7 +120317,7 @@
      "name": "insomnia",
      "version": {
       "github": "Kong/insomnia",
-      "tag-re": "([0-9][0-9.]*)"
+      "tag-re": "core@([0-9][0-9.]*)"
      }
     },
     "name": "insomnia"
@@ -133568,7 +133568,7 @@
      "name": "insomnia",
      "version": {
       "github": "Kong/insomnia",
-      "tag-re": "([0-9][0-9.]*)"
+      "tag-re": "core@([0-9][0-9.]*)"
      }
     },
     "name": "insomnia"
