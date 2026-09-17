@@ -36,19 +36,19 @@ def test_snippet_materializes_to_store_confd_mirror_executable(tmp_path):
     # a glue snippet deploys to <store>/<shell>/conf.d/<name>.<ext> (the store mirrors the deployed
     # ~/.config/<shell>/conf.d/ layout), made a+x; the link points at the store copy, never the repo.
     p = paths_for(tmp_path)
-    (p.dotfiles_dir / 'shell' / 'bash').mkdir(parents=True)
-    (p.dotfiles_dir / 'shell' / 'bash' / 'btop.sh').write_text('# btop glue\n')   # repo-authored, -x
+    (p.glue_dir / 'shell' / 'bash').mkdir(parents=True)
+    (p.glue_dir / 'shell' / 'bash' / 'btop.sh').write_text('# btop glue\n')   # repo-authored, -x
     p.home.mkdir(parents=True)
     g = Glue(Runner(pretend=False), paths=p)
     rc = _glue_unit()
     assert g.get_version(rc) is None
     assert g.install(rc).ok
     link = p.home / '.config' / 'bash' / 'conf.d' / 'btop.sh'
-    store = p.user_dotfiles_dir / 'bash' / 'conf.d' / 'btop.sh'
+    store = p.user_glue_dir / 'bash' / 'conf.d' / 'btop.sh'
     assert link.is_symlink() and os.path.realpath(link) == os.path.realpath(store)
     assert store.read_text() == '# btop glue\n'
     assert os.access(store, os.X_OK)                                  # executable
-    assert os.path.realpath(link) != os.path.realpath(p.dotfiles_dir / 'shell' / 'bash' / 'btop.sh')
+    assert os.path.realpath(link) != os.path.realpath(p.glue_dir / 'shell' / 'bash' / 'btop.sh')
     assert g.get_version(rc) == 'linked'
     # uninstall removes only our symlink
     assert g.uninstall(rc).ok
@@ -60,14 +60,14 @@ def test_activate_refreshes_a_stale_store_copy_from_source(tmp_path):
     # the store is a deploy CACHE — when the authoritative source changes, a re-activate must
     # re-materialize over the stale cached copy (glue is shipped content).
     p = paths_for(tmp_path)
-    (p.dotfiles_dir / 'shell' / 'bash').mkdir(parents=True)
-    auth = p.dotfiles_dir / 'shell' / 'bash' / 'btop.sh'
+    (p.glue_dir / 'shell' / 'bash').mkdir(parents=True)
+    auth = p.glue_dir / 'shell' / 'bash' / 'btop.sh'
     auth.write_text('# v1\n')
     p.home.mkdir(parents=True)
     g = Glue(Runner(pretend=False), paths=p)
     rc = _glue_unit()
     assert g.install(rc).ok
-    store = p.user_dotfiles_dir / 'bash' / 'conf.d' / 'btop.sh'
+    store = p.user_glue_dir / 'bash' / 'conf.d' / 'btop.sh'
     assert store.read_text() == '# v1\n'
     auth.write_text('# v2 updated\n')                    # source changes upstream
     res = g.install(rc)
@@ -79,8 +79,8 @@ def test_activate_ensures_the_shell_loader(tmp_path):
     # a direct activate bypasses the snippet's `requires: shell-glue`, so the snippet driver wires
     # the shell loader itself — else the linked conf.d file would never be sourced.
     p = paths_for(tmp_path, shells='zsh')
-    (p.dotfiles_dir / 'shell' / 'zsh').mkdir(parents=True)
-    (p.dotfiles_dir / 'shell' / 'zsh' / 'btop.zsh').write_text('# glue\n')
+    (p.glue_dir / 'shell' / 'zsh').mkdir(parents=True)
+    (p.glue_dir / 'shell' / 'zsh' / 'btop.zsh').write_text('# glue\n')
     p.home.mkdir(parents=True)
     g = Glue(Runner(pretend=False), paths=p)
     assert g.install(_glue_unit()).ok
@@ -117,8 +117,8 @@ def test_elvish_loader_writes_rc_marker_block_and_snippet_activates(tmp_path):
     # marker block into ~/.config/elvish/rc.elv sourcing conf.d/*.elv (empty-glob-safe), and a
     # snippet deploys to <store>/elvish/conf.d/<name>.elv and links into ~/.config/elvish/conf.d/.
     p = paths_for(tmp_path, shells='elvish')
-    (p.dotfiles_dir / 'shell' / 'elvish').mkdir(parents=True)
-    (p.dotfiles_dir / 'shell' / 'elvish' / '00-configsys.elv').write_text('# elvish glue\n')
+    (p.glue_dir / 'shell' / 'elvish').mkdir(parents=True)
+    (p.glue_dir / 'shell' / 'elvish' / '00-configsys.elv').write_text('# elvish glue\n')
     p.home.mkdir(parents=True)
     g = Glue(Runner(pretend=False), paths=p)
 
@@ -132,7 +132,7 @@ def test_elvish_loader_writes_rc_marker_block_and_snippet_activates(tmp_path):
     snip = _glue_unit(comp='configsys-glue', glue='00-configsys')    # a snippet on elvish
     assert g.install(snip).ok
     link = p.home / '.config' / 'elvish' / 'conf.d' / '00-configsys.elv'
-    store = p.user_dotfiles_dir / 'elvish' / 'conf.d' / '00-configsys.elv'
+    store = p.user_glue_dir / 'elvish' / 'conf.d' / '00-configsys.elv'
     assert link.is_symlink() and os.path.realpath(link) == os.path.realpath(store)
     assert g.get_version(snip) == 'linked'
 
@@ -144,8 +144,8 @@ def test_elvish_loader_writes_rc_marker_block_and_snippet_activates(tmp_path):
 def test_shell_glue_loader_all_hooks_every_installed_shell(tmp_path):
     # the shell-glue substrate: `loader: all` wires conf.d loading for EVERY installed shell.
     p = paths_for(tmp_path, shells='bash,zsh,fish')
-    p.dotfiles_dir.mkdir(parents=True)
-    (p.dotfiles_dir / 'bash_aliases').write_text('# source conf.d\n')   # bash's loader file
+    p.glue_dir.mkdir(parents=True)
+    (p.glue_dir / 'bash_aliases').write_text('# source conf.d\n')   # bash's loader file
     p.home.mkdir(parents=True)
     g = Glue(Runner(pretend=False), paths=p)
     rc = _loader_unit('all')
@@ -166,8 +166,8 @@ def test_shell_glue_bash_absorbs_preexisting_bash_aliases(tmp_path):
     # a pre-existing real ~/.bash_aliases is MOVED into conf.d (kept running), then ~/.bash_aliases
     # becomes our link; uninstall restores the user's original file.
     p = paths_for(tmp_path, shells='bash')
-    p.dotfiles_dir.mkdir(parents=True)
-    (p.dotfiles_dir / 'bash_aliases').write_text('# source conf.d\n')
+    p.glue_dir.mkdir(parents=True)
+    (p.glue_dir / 'bash_aliases').write_text('# source conf.d\n')
     p.home.mkdir(parents=True)
     (p.home / '.bash_aliases').write_text('alias mine="echo hi"\n')   # the user's own aliases
     g = Glue(Runner(pretend=False), paths=p)
@@ -187,8 +187,8 @@ def test_snippet_activates_only_installed_shells(tmp_path):
     # pins the set); a shell that isn't "installed" gets nothing.
     p = paths_for(tmp_path, shells='bash,fish')
     for sh, ext in (('bash', 'sh'), ('fish', 'fish'), ('zsh', 'zsh')):
-        (p.dotfiles_dir / 'shell' / sh).mkdir(parents=True)
-        (p.dotfiles_dir / 'shell' / sh / f'btop.{ext}').write_text('# glue\n')
+        (p.glue_dir / 'shell' / sh).mkdir(parents=True)
+        (p.glue_dir / 'shell' / sh / f'btop.{ext}').write_text('# glue\n')
     p.home.mkdir(parents=True)
     g = Glue(Runner(pretend=False), paths=p)
     assert g.install(_glue_unit()).ok
@@ -202,9 +202,9 @@ def test_confd_symlinked_to_store_makes_no_self_loop(tmp_path):
     # deployed file — a naive `ln -sfn store/x conf.d/x` would resolve to a self-link (ELOOP). Install
     # must detect the realpath coincidence and skip the link, leaving a real file.
     p = paths_for(tmp_path)
-    (p.dotfiles_dir / 'shell' / 'bash').mkdir(parents=True)
-    (p.dotfiles_dir / 'shell' / 'bash' / 'btop.sh').write_text('# glue\n')
-    store_confd = p.user_dotfiles_dir / 'bash' / 'conf.d'
+    (p.glue_dir / 'shell' / 'bash').mkdir(parents=True)
+    (p.glue_dir / 'shell' / 'bash' / 'btop.sh').write_text('# glue\n')
+    store_confd = p.user_glue_dir / 'bash' / 'conf.d'
     store_confd.mkdir(parents=True)
     confd = p.home / '.config' / 'bash' / 'conf.d'
     confd.parent.mkdir(parents=True)
@@ -220,8 +220,8 @@ def test_confd_symlinked_to_store_makes_no_self_loop(tmp_path):
 
 def test_spec_states_reports_glue_kind(tmp_path):
     p = paths_for(tmp_path)
-    (p.dotfiles_dir / 'shell' / 'bash').mkdir(parents=True)
-    (p.dotfiles_dir / 'shell' / 'bash' / 'btop.sh').write_text('# btop glue\n')
+    (p.glue_dir / 'shell' / 'bash').mkdir(parents=True)
+    (p.glue_dir / 'shell' / 'bash' / 'btop.sh').write_text('# btop glue\n')
     p.home.mkdir(parents=True)
     g = Glue(Runner(pretend=False), paths=p)
     rc = _glue_unit()

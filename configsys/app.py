@@ -261,6 +261,8 @@ class Context:
         prim = plugins.primary_name(decls)
         pdir = self.paths.plugins_dir / prim / 'dotfiles' if prim else None
         self.paths.primary_dotfiles_dir = pdir if (pdir is not None and pdir.exists()) else None
+        gdir = self.paths.plugins_dir / prim / 'glue' if prim else None
+        self.paths.primary_glue_dir = gdir if (gdir is not None and gdir.exists()) else None
         code_conflicts = []
         _loaded, skipped = plugins.load_code(self.paths.plugins_dir, self.paths.plugin_trust_file,
                                              decls, register_driver, conflicts=code_conflicts)

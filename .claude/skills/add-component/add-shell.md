@@ -54,13 +54,13 @@ up automatically — `_loader_shells('all')` == `_installed_shells()`. No edit t
    (or a single rc file as its `dst`, like `zsh-dotfiles` → `~/.zshrc`). Content isn't shipped — it's
    captured into the user's layer later. This is the DOTFILES driver, separate from glue.
 3. **Port the glue snippets** into the shell's language. A `glue: <name>` snippet lights up on `<sh>`
-   the moment `dotfiles/shell/<sh>/<name>.<ext>` exists — the driver's `_glue_variants` discovers it,
+   the moment `glue/shell/<sh>/<name>.<ext>` exists — the driver's `_glue_variants` discovers it,
    **zero component edits**. So authoring content is the whole job:
-   - **Start with the substrate**: `dotfiles/shell/<sh>/00-configsys.<ext>` — the `CONFIGSYS_*_DIR`
+   - **Start with the substrate**: `glue/shell/<sh>/00-configsys.<ext>` — the `CONFIGSYS_*_DIR`
      exports that must run first (the `00-` prefix orders it first in the conf.d sweep), translated
      to `<sh>` syntax. Plus, for loader class (2), whatever the `_RC_SOURCE` block sources.
    - Then port the specific snippets you want on `<sh>` (aliases/env/init) from their
-     `dotfiles/shell/bash/<name>.sh` originals — only the ones that make sense there.
+     `glue/shell/bash/<name>.sh` originals — only the ones that make sense there.
    - Snippets you don't port simply don't attach on `<sh>` (a glue component with no `<sh>` variant
      yields no spec for that shell — a clean no-op, not an error).
 

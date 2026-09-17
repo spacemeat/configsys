@@ -16,9 +16,10 @@ A `via: glue` binding is one of:
 
 User-space only (no sudo); no version — glue is "active" or not.
 
-NOTE: the path/content-root/materialize helpers here mirror the dotfiles driver during the
-split transition; they will be lifted into a shared base when dotfiles.py is trimmed to
-config-only (Phase 1, commit 3).
+Storage is SEGREGATED from the dotfiles driver: glue authoring lives at `glue/shell/<shell>/
+<name>.<ext>` (repo/plugin), materializes into the machine-local glue store `<state>/glue/<shell>/
+conf.d/<name>.<ext>`, and links into `~/.config/<shell>/conf.d/`. The dotfiles driver's `dotfiles/`
+tree (config `*.cfs/` captures) and this `glue/` tree never share a directory.
 '''
 
 import os
@@ -155,21 +156,21 @@ class Glue(Driver):
         return self.paths.env if self.paths is not None else dict(os.environ)
 
     def _defining_root(self, rc):
-        '''The `dotfiles/` dir NEXT TO the .hu file that defined the component (`rc.source`) — a
-        plugin / user layer ships content alongside its definitions. Falls back to the base repo's
-        dotfiles dir when the component carries no source (a hand-built rc in tests).'''
+        '''The `glue/` dir NEXT TO the .hu file that defined the component (`rc.source`) — a
+        plugin / user layer ships glue alongside its definitions. Falls back to the base repo's
+        glue dir when the component carries no source (a hand-built rc in tests).'''
         src_file = getattr(rc, 'source', '') or ''
         if src_file:
-            return Path(src_file).parent / 'dotfiles'
-        return self.paths.dotfiles_dir if self.paths is not None else Path('dotfiles')
+            return Path(src_file).parent / 'glue'
+        return self.paths.glue_dir if self.paths is not None else Path('glue')
 
     def _content_roots(self, rc):
         '''Ordered (root, tier) content roots for resolving `src`, highest precedence first:
-        the machine-local store, then the primary plugin's dotfiles/, then the defining layer.'''
+        the machine-local glue store, then the primary plugin's glue/, then the defining layer.'''
         roots = []
         p = self.paths
         if p is not None:
-            for attr in ('user_dotfiles_dir', 'primary_dotfiles_dir'):
+            for attr in ('user_glue_dir', 'primary_glue_dir'):
                 d = getattr(p, attr, None)
                 if d is not None:
                     roots.append((Path(d), 'user'))
@@ -188,8 +189,8 @@ class Glue(Driver):
         return dr / src, None, dr
 
     def _store_path(self, src):
-        '''Where a SHIPPED TEMPLATE materializes: the machine-local store, at the same relative src.'''
-        store = getattr(self.paths, 'user_dotfiles_dir', None) if self.paths is not None else None
+        '''Where a SHIPPED TEMPLATE materializes: the machine-local glue store, at the same relative src.'''
+        store = getattr(self.paths, 'user_glue_dir', None) if self.paths is not None else None
         return (Path(store) / src) if store is not None else None
 
     def _materialize_to(self, srcpath, dest, executable=False, refresh=False):
@@ -223,10 +224,10 @@ class Glue(Driver):
         return dest
 
     def _glue_store(self, dst):
-        '''The machine-local store MIRROR of a snippet dst: ~/.config/<shell>/conf.d/<x> maps to
-        <store>/<shell>/conf.d/<x>, so the store lines up with the deployed layout (and links are
+        '''The machine-local glue-store MIRROR of a snippet dst: ~/.config/<shell>/conf.d/<x> maps to
+        <glue-store>/<shell>/conf.d/<x>, so the store lines up with the deployed layout (and links are
         uniform, never the repo). None if there's no store or the dst isn't under ~/.config.'''
-        store = getattr(self.paths, 'user_dotfiles_dir', None) if self.paths is not None else None
+        store = getattr(self.paths, 'user_glue_dir', None) if self.paths is not None else None
         if store is None:
             return None
         try:

@@ -65,6 +65,7 @@ class Paths:
         self.routes_file = self.repo / 'routes.hu'
         self.config_file = self.repo / 'config.hu'
         self.dotfiles_dir = self.repo / 'dotfiles'   # content root for the dotfiles driver
+        self.glue_dir = self.repo / 'glue'           # content root for the glue driver (shell snippets)
 
         # state dir (holds the ledger, the version cache, AND the user config). XDG by
         # default; CONFIGSYS_HOME wins over XDG so `--home` fully sandboxes everything.
@@ -99,6 +100,11 @@ class Paths:
         # plugin is known (Context.ensure_plugin_code); None otherwise.
         self.user_dotfiles_dir = self.state_dir / 'dotfiles'
         self.primary_dotfiles_dir = None
+        # glue store: the machine-local mirror the glue driver materializes snippets into (segregated
+        # from dotfiles/ so config captures and shell glue never share a tree). `primary_glue_dir` is
+        # filled in by the app once the primary plugin is known; None otherwise.
+        self.user_glue_dir = self.state_dir / 'glue'
+        self.primary_glue_dir = None
 
     def _locate_data_root(self) -> Path:
         '''Where routes.hu / config.hu / dotfiles/ live, resolved in precedence order:

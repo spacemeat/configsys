@@ -133,13 +133,13 @@ give it a `<name>-dotfiles` companion and add `suggests: <name>-dotfiles` to the
 
 - **Shell glue** — the tool needs PATH/aliases/env to work (a `~/apps` install that isn't on PATH,
   like yazi/superfile aliasing `yazi`/`spf`; a completions or env line). **You author and ship it**
-  in the base repo at `dotfiles/shell/bash/<glue>.sh`, then declare a `glue:` NAME (the driver
+  in the base repo at `glue/shell/bash/<glue>.sh`, then declare a `glue:` NAME (the driver
   expands it to a per-shell spec — `shell/<shell>/<glue>.<ext>` → `~/.config/<shell>/conf.d/
   <glue>.<ext>` — for every shell that ships a variant; bash today):
   ```
   <name>-dotfiles: { install: [ { via: dotfiles  requires: bash-dotfiles  glue: <name> } ] }
   ```
-  Add a `dotfiles/shell/fish/<glue>.fish` later and fish users light up with ZERO component edits.
+  Add a `glue/shell/fish/<glue>.fish` later and fish users light up with ZERO component edits.
   (Onboarding a WHOLE NEW shell — its `conf.d` loader + driver wiring, not just one variant file —
   is its own playbook: **`add-shell.md`**.)
   For a tool that needs BOTH a config dir AND glue, mix them — the config as a named spec, the glue
