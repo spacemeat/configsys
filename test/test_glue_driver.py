@@ -197,6 +197,29 @@ def test_snippet_activates_only_installed_shells(tmp_path):
     assert not (p.home / '.config' / 'zsh' / 'conf.d' / 'btop.zsh').exists()   # zsh not installed
 
 
+def test_install_only_shells_scopes_activation_to_one_shell(tmp_path):
+    # the TUI Glue group action passes only_shells so activating a snippet in ONE shell group doesn't
+    # light up the component's other shells (the A-activates-everything bug). Each per-shell row is
+    # independently activatable; only_shells=None (the CLI path) still does all shells.
+    p = paths_for(tmp_path, shells='bash,zsh,fish')
+    for sh, ext in (('bash', 'sh'), ('zsh', 'zsh'), ('fish', 'fish')):
+        (p.glue_dir / 'shell' / sh).mkdir(parents=True)
+        (p.glue_dir / 'shell' / sh / f'btop.{ext}').write_text('# glue\n')
+    p.home.mkdir(parents=True)
+    g = Glue(Runner(pretend=False), paths=p)
+    rc = _glue_unit()
+    bash = p.home / '.config' / 'bash' / 'conf.d' / 'btop.sh'
+    zsh = p.home / '.config' / 'zsh' / 'conf.d' / 'btop.zsh'
+    fish = p.home / '.config' / 'fish' / 'conf.d' / 'btop.fish'
+
+    g.install(rc, only_shells=['bash'])                      # activate ONLY bash
+    assert bash.is_symlink() and not zsh.exists() and not fish.exists()
+    g.install(rc, only_shells=['zsh'])                       # add zsh; fish still untouched
+    assert bash.is_symlink() and zsh.is_symlink() and not fish.exists()
+    g.uninstall(rc, only_shells=['bash'])                    # deactivate ONLY bash
+    assert not bash.exists() and zsh.is_symlink()
+
+
 def test_confd_symlinked_to_store_makes_no_self_loop(tmp_path):
     # if ~/.config/<shell>/conf.d is itself a symlink to the store's conf.d dir, the store file IS the
     # deployed file — a naive `ln -sfn store/x conf.d/x` would resolve to a self-link (ELOOP). Install

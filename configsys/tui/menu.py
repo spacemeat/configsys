@@ -975,9 +975,10 @@ _HELP = {
             ('shell groups', 'each installed shell heads a group; the header says whether its conf.d '
                              'loader is wired (bash rides ~/.bash_aliases, zsh an ~/.zshrc block, fish '
                              'sources conf.d natively).'),
-            ('activate (a / A)', "a enables the current snippet for all its shells; A enables every "
-                                 "inactive snippet in the cursor's shell group. Activating also refreshes "
-                                 "a stale copy from source and wires the loader. x deactivates."),
+            ('activate (a / A)', "a enables the current snippet for ITS shell (the group it's under); A "
+                                 "enables every inactive snippet in the cursor's shell group. Activating "
+                                 "also refreshes a stale copy from source and wires the loader. x "
+                                 "deactivates this shell's link."),
         ],
     },
     'dotfiles': {
@@ -4503,8 +4504,9 @@ class DotfilesScreen(_ContentRootLabelMixin):
 class GlueScreen(_ContentRootLabelMixin):
     '''Shell-integration view over via:glue units — snippets GROUPED under each installed shell,
     with the shell-glue loader status as the section header. Ship->activate toggle (no capture): a
-    snippet (e.g. fzf-glue) appears under every shell it ships a variant for; acting on any of its
-    rows activates/deactivates the whole component (glue is whole-component by design).'''
+    snippet (e.g. fzf-glue) appears under every shell it ships a variant for, and each per-shell row
+    is INDEPENDENTLY activatable — acting on a row activates/deactivates that snippet for ITS shell
+    only (so activating fzf under bash doesn't light up fzf under fish).'''
     def __init__(self, ctx):
         self.ctx = ctx
         self.cur = 0
@@ -5338,27 +5340,26 @@ def run(ctx):
                         gs.cur = 0
                     elif gact == 'bottom':
                         gs.cur = max(0, len(gs.rows) - 1)
-                    elif gact == 'activate' and row:        # activate (links the snippet for all its shells)
+                    elif gact == 'activate' and row:        # activate the current snippet for ITS shell only
                         with suspended(stdscr):
-                            res = gs.gd.install(row[0])
+                            res = gs.gd.install(row[0], only_shells=[row[5]])
                         gs.dirty.add(row[0].key)
                         gs.reload()
                         note = (f'{row[0].comp}: {res.output.strip()}' if res is not None and not res.ok
-                                else ((res.output.strip() if res is not None and res.output else None)
-                                      or f'activated {row[0].comp}'))
-                    elif gact == 'deactivate' and row:      # deactivate (unlink; leaves conf.d + content)
+                                else f'activated {row[0].comp} ({row[5]})')
+                    elif gact == 'deactivate' and row:      # deactivate this shell's link (leaves conf.d + content)
                         with suspended(stdscr):
-                            gs.gd.uninstall(row[0])
+                            gs.gd.uninstall(row[0], only_shells=[row[5]])
                         gs.dirty.add(row[0].key)
                         gs.reload()
-                        note = f'deactivated {row[0].comp}'
+                        note = f'deactivated {row[0].comp} ({row[5]})'
                     elif gact == 'activate-group' and row:  # activate every inactive snippet in THIS shell's group
                         shell = row[5]
                         pend = {r[0].key: r[0] for r in gs.rows
                                 if r[5] == shell and r[3] not in ('linked', 'loader-on')}
                         with suspended(stdscr):
                             for rc in pend.values():
-                                gs.gd.install(rc)
+                                gs.gd.install(rc, only_shells=[shell])   # scope to THIS shell, not the component's others
                         gs.dirty.update(pend)
                         gs.reload()
                         note = (f'activated {len(pend)} snippet(s) in the {shell} group'

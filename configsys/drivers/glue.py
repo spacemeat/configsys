@@ -457,13 +457,26 @@ class Glue(Driver):
 
     # -- mutate -----------------------------------------------------------
 
-    def install(self, rc):
+    @staticmethod
+    def _shell_of(spec_name):
+        '''The shell a snippet spec belongs to (its `glue@<shell>` suffix), or None.'''
+        return spec_name.rsplit('@', 1)[1] if '@' in spec_name else None
+
+    def install(self, rc, only_shells=None):
+        '''Activate `rc`'s glue. `only_shells` (a set/list of shell names) scopes the op to just those
+        shells — the TUI passes it so activating a snippet in one shell group doesn't light up the
+        component's OTHER shells (each per-shell row is independently activatable). None = all shells
+        (the CLI install path).'''
         loaders = self._loader_shells(rc)
+        if only_shells is not None:
+            loaders = [l for l in loaders if l in only_shells]
         if loaders:                                        # a loader component (loader: zsh | all)
             for shell in loaders:
                 self._ensure_shell_loader(shell, rc)
             return Result(f'glue: conf.d loader hooked up ({", ".join(loaders)})', 0)
         specs = self._specs(rc)
+        if only_shells is not None:
+            specs = [s for s in specs if self._shell_of(s[0]) in only_shells]
         if not specs:
             return Result(f'glue: {rc.comp} has no snippet for any installed shell', 0, advisory=True)
         # Deploy each snippet into the machine-local store MIRROR (<store>/<shell>/conf.d/),
@@ -517,18 +530,24 @@ class Glue(Driver):
     def set_version(self, rc, version):
         return self.install(rc)
 
-    def uninstall(self, rc):
+    def uninstall(self, rc, only_shells=None):
+        '''Deactivate `rc`'s glue. `only_shells` scopes it to those shells (the TUI deactivates one
+        shell group's row without touching the component's other shells); None = all shells.'''
         loaders = self._loader_shells(rc)
+        if only_shells is not None:
+            loaders = [l for l in loaders if l in only_shells]
         if loaders:
             for shell in loaders:
                 self._remove_shell_loader(shell)           # drop the rc block; leave conf.d + content
             return Result(f'glue: conf.d loader removed ({", ".join(loaders)})', 0)
-        pairs = self._pairs(rc)
-        if not pairs:
+        specs = self._specs(rc)
+        if only_shells is not None:
+            specs = [s for s in specs if self._shell_of(s[0]) in only_shells]
+        if not specs:
             return Result(f'glue: {rc.comp} has no snippet to remove', 0, advisory=True)
         lines = []
-        for _src, tgt in pairs:
-            t = shlex.quote(str(tgt))
+        for _name, _src, dst in specs:
+            t = shlex.quote(str(self._expand(dst)))
             lines.append(f'if [ -L {t} ]; then rm -f {t}; fi')  # only our own symlink
         return self.runner.run('\n'.join(lines), capture=False)
 
