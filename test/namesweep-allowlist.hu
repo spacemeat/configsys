@@ -11,7 +11,8 @@
               intel-basekit ]     // Intel oneAPI apt repo
     dnf:    [ cuda                // NVIDIA CUDA dnf repo
               intel-basekit ]     // Intel oneAPI dnf repo
-    pacman: [ intel-oneapi-basekit ]   // AUR
+    pacman: [ intel-oneapi-basekit    // AUR
+              steam ]                  // Arch multilib (opt-in repo the sweep doesn't enable; user enables multilib once)
     zypper: [ cuda-toolkit  intel-oneapi-basekit ]           // NVIDIA / Intel vendor repos
     apk:    [ cuda-toolkit  intel-oneapi-basekit  rocm-hip ] // vendor repos (no GPU SDKs in Alpine)
 }

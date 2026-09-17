@@ -650,8 +650,8 @@
         elvish: { attrs: [ CLI FOSS permissive ] suggests: [ elvish-dotfiles, shell-glue ]
             description: "Elvish — an expressive programming language and a versatile interactive shell (`elvish`)."
             install: [
-                { via: native  when: "not (rhel or amzn)" }
-                { via: tarball  installDir: "$CONFIGSYS_APP_DIR/elvish"   // static Go build -> also runs on musl/EL
+                { via: native  when: "not (rhel or amzn or opensuse)" }   // not in openSUSE (zypper) -> tarball
+                { via: tarball  installDir: "$CONFIGSYS_APP_DIR/elvish"   // static Go build -> also runs on musl/EL/openSUSE
                   version: { github: elves/elvish  strip-v: true  asset: "elvish-*-linux-amd64.tar.gz" } }
             ] }
         elvish-dotfiles: { description: "Elvish config, linked into place."
@@ -663,7 +663,7 @@
         zellij: { attrs: [ CLI TUI FOSS permissive ] suggests: zellij-dotfiles
             description: "Zellij — a terminal workspace & multiplexer with batteries included."
             install: [
-                { via: native  when: "arch or fedora" }
+                { via: native  when: "arch" }                        // Fedora is COPR-only -> tarball covers it
                 { via: native  when: "fedora_atomic" }               // brew formula `zellij`
                 { via: tarball  installDir: "$CONFIGSYS_APP_DIR/zellij"   // musl static -> covers everything else, incl. Alpine
                   version: { github: zellij-org/zellij  strip-v: true  asset: "zellij-x86_64-unknown-linux-musl.tar.gz" } }
@@ -717,12 +717,12 @@
                 { via: cargo   name: lazyrsync }                      // build-from-crate; covers the rest
             ] }
 
-        // kew: an immersive terminal music player (C). Native on Debian/Arch/openSUSE (and Fedora)
-        // plus brew; upstream ships no Linux release binary, so it declines on EL/Alpine (no method).
-        // (name-sweep to confirm the fedora package.)
+        // kew: an immersive terminal music player (C). Native on Debian/Arch/openSUSE + brew; NOT in
+        // Fedora dnf (name-sweep confirmed) and upstream ships no Linux release binary, so it declines
+        // on Fedora/EL/Alpine (no method there).
         kew: { attrs: [ TUI app FOSS GPL ]  suggests: kew-dotfiles
             description: "kew — a fast, immersive terminal music player (`kew`)."
-            install: [ { via: native  when: "debian or arch or opensuse or fedora" }
+            install: [ { via: native  when: "debian or arch or opensuse" }   // not in Fedora dnf; no Linux release binary -> declines on Fedora/EL/Alpine
                        { via: native  when: "fedora_atomic" } ] }    // brew formula `kew` (Linux)
         kew-dotfiles: { description: "kew config, linked into place."
             install: [ { via: dotfiles  config: { src: kew  dst: $XDG_CONFIG_HOME/kew } } ] }

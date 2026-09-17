@@ -58416,25 +58416,6 @@
     "name": "kdenlive"
    }
   },
-  "kew": {
-   "dnf\\kew": {
-    "driver": "dnf",
-    "fields": {
-     "name": "kew"
-    },
-    "name": "kew"
-   },
-   "dotfiles\\kew-dotfiles": {
-    "driver": "dotfiles",
-    "fields": {
-     "config": {
-      "dst": "$XDG_CONFIG_HOME/kew",
-      "src": "kew"
-     }
-    },
-    "name": "kew-dotfiles"
-   }
-  },
   "kew-dotfiles": {
    "dotfiles\\kew-dotfiles": {
     "driver": "dotfiles",
@@ -65207,12 +65188,12 @@
    }
   },
   "zellij": {
-   "dnf\\zellij": {
+   "dnf\\curl": {
     "driver": "dnf",
     "fields": {
-     "name": "zellij"
+     "name": "curl"
     },
-    "name": "zellij"
+    "name": "curl"
    },
    "dotfiles\\zellij-dotfiles": {
     "driver": "dotfiles",
@@ -65223,6 +65204,19 @@
      }
     },
     "name": "zellij-dotfiles"
+   },
+   "tarball\\zellij": {
+    "driver": "tarball",
+    "fields": {
+     "installDir": "$CONFIGSYS_APP_DIR/zellij",
+     "name": "zellij",
+     "version": {
+      "asset": "zellij-x86_64-unknown-linux-musl.tar.gz",
+      "github": "zellij-org/zellij",
+      "strip-v": "true"
+     }
+    },
+    "name": "zellij"
    }
   },
   "zellij-dotfiles": {
@@ -71117,25 +71111,6 @@
     "name": "kdenlive"
    }
   },
-  "kew": {
-   "dnf\\kew": {
-    "driver": "dnf",
-    "fields": {
-     "name": "kew"
-    },
-    "name": "kew"
-   },
-   "dotfiles\\kew-dotfiles": {
-    "driver": "dotfiles",
-    "fields": {
-     "config": {
-      "dst": "$XDG_CONFIG_HOME/kew",
-      "src": "kew"
-     }
-    },
-    "name": "kew-dotfiles"
-   }
-  },
   "kew-dotfiles": {
    "dotfiles\\kew-dotfiles": {
     "driver": "dotfiles",
@@ -77908,12 +77883,12 @@
    }
   },
   "zellij": {
-   "dnf\\zellij": {
+   "dnf\\curl": {
     "driver": "dnf",
     "fields": {
-     "name": "zellij"
+     "name": "curl"
     },
-    "name": "zellij"
+    "name": "curl"
    },
    "dotfiles\\zellij-dotfiles": {
     "driver": "dotfiles",
@@ -77924,6 +77899,19 @@
      }
     },
     "name": "zellij-dotfiles"
+   },
+   "tarball\\zellij": {
+    "driver": "tarball",
+    "fields": {
+     "installDir": "$CONFIGSYS_APP_DIR/zellij",
+     "name": "zellij",
+     "version": {
+      "asset": "zellij-x86_64-unknown-linux-musl.tar.gz",
+      "github": "zellij-org/zellij",
+      "strip-v": "true"
+     }
+    },
+    "name": "zellij"
    }
   },
   "zellij-dotfiles": {
