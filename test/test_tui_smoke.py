@@ -68,7 +68,7 @@ def test_tui_launches_navigates_and_quits(tmp_path, extra):
     # drive: down, open diagnostics page, scroll, close it, select, then quit — `q` opens a
     # "Really quit?" modal (default No), so `k` moves to "Yes, quit" and Enter confirms. Runs in
     # three color modes (auto / --nocolor / --color 16) so a low-color render crash can't slip in.
-    for keys in (b'j', b'!', b'j', b'!', b'?', b'j', b'4', b'5', b'q', b' ', b'q', b'k', b'\n'):
+    for keys in (b'j', b'!', b'j', b'!', b'?', b'j', b'4', b'5', b'q', b' ', b'q', b'k', b'\r'):
         try:
             os.write(master, keys)
         except OSError:
@@ -115,7 +115,7 @@ def test_tui_machine_target_selector(tmp_path):
     first = _drain(master, min(deadline, time.monotonic() + 3))
     # 2 -> Profiles; M -> machine picker; esc -> close it; tab -> catalog; A -> Include the cursor
     # component on the target machine (writes picks); then quit.
-    for keys in (b'2', b'M', b'\x1b', b'\t', b'A', b'q', b'k', b'\n'):
+    for keys in (b'2', b'M', b'\x1b', b'\t', b'A', b'q', b'k', b'\r'):
         try:
             os.write(master, keys)
         except OSError:
@@ -161,7 +161,7 @@ def test_tui_profile_edit_and_where(tmp_path):
     # 2 -> Profiles; the pane groups by layer with the repo catalog collapsed, so l unfolds it, j
     # lands on the first repo profile; w -> profile-where overlay, esc closes it; tab -> catalog;
     # space -> toggle membership of that repo-only profile (self-amend); then quit.
-    for keys in (b'2', b'l', b'j', b'w', b'\x1b', b'\t', b' ', b'q', b'k', b'\n'):
+    for keys in (b'2', b'l', b'j', b'w', b'\x1b', b'\t', b' ', b'q', b'k', b'\r'):
         try:
             os.write(master, keys)
         except OSError:

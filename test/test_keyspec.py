@@ -11,10 +11,12 @@ from configsys.tui.keyspec import Keymap, key_name, parse_key
 def test_parse_key_forms():
     assert parse_key('g') == ord('g') and parse_key('G') == ord('G')      # case-SENSITIVE
     assert parse_key('1') == ord('1')                                     # a digit is its char
-    assert parse_key('enter') == ord('\n') and parse_key('tab') == ord('\t')
+    assert parse_key('enter') == ord('\r') and parse_key('tab') == ord('\t')   # Return is CR, not LF
+    assert parse_key('kpenter') == curses.KEY_ENTER
     assert parse_key('up') == curses.KEY_UP and parse_key('PgDn') == curses.KEY_NPAGE
     assert parse_key('shift-tab') == curses.KEY_BTAB
     assert parse_key('ctrl-c') == 3 and parse_key('^c') == 3 and parse_key('c-a') == 1
+    assert parse_key('ctrl-j') == 10 and parse_key('ctrl-k') == 11    # page-down/up chords, != enter (13)
     assert parse_key('f5') == curses.KEY_F0 + 5
     assert parse_key('nope') is None and parse_key('') is None and parse_key(None) is None
 

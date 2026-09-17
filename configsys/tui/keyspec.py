@@ -12,7 +12,10 @@ import curses
 
 # name -> code, for keys that aren't a single literal character. Case-insensitive.
 _NAMED = {
-    'enter': ord('\n'), 'return': ord('\n'), 'ret': ord('\n'), 'cr': ord('\n'),
+    # Return is CR (13), NOT LF (10) — we run with CR->NL folding OFF (see screen.py), so the Return
+    # key and Ctrl-J (LF, 10) are distinct. `kpenter` is the keypad Enter (KEY_ENTER).
+    'enter': ord('\r'), 'return': ord('\r'), 'ret': ord('\r'), 'cr': ord('\r'),
+    'kpenter': curses.KEY_ENTER, 'kp-enter': curses.KEY_ENTER,
     'tab': ord('\t'), 'esc': 27, 'escape': 27, 'space': ord(' '), 'spc': ord(' '),
     'up': curses.KEY_UP, 'down': curses.KEY_DOWN, 'left': curses.KEY_LEFT, 'right': curses.KEY_RIGHT,
     'pgup': curses.KEY_PPAGE, 'pageup': curses.KEY_PPAGE, 'pgdn': curses.KEY_NPAGE,
@@ -24,7 +27,8 @@ _NAMED = {
 
 # code -> a compact glyph for legends (prefer a symbol where it reads well).
 _GLYPH = {
-    ord('\n'): '⏎', ord('\t'): 'tab', 27: 'esc', ord(' '): 'space',
+    ord('\r'): '⏎', curses.KEY_ENTER: '⏎', ord('\t'): 'tab', 27: 'esc', ord(' '): 'space',
+    10: 'ctrl-j', 11: 'ctrl-k',
     curses.KEY_UP: '↑', curses.KEY_DOWN: '↓', curses.KEY_LEFT: '←', curses.KEY_RIGHT: '→',
     curses.KEY_PPAGE: 'pgup', curses.KEY_NPAGE: 'pgdn', curses.KEY_HOME: 'home', curses.KEY_END: 'end',
     curses.KEY_BACKSPACE: '⌫', curses.KEY_DC: 'del', curses.KEY_IC: 'ins', curses.KEY_BTAB: 'shift-tab',
@@ -150,9 +154,9 @@ class Keymap:
 # The canonical actions each scope's dispatch understands — the contract `configsys check` lints a
 # user's `keys:` against. A page scope may ALSO bind any `global` action (to rebind nav on that page),
 # so a page's valid set is its own actions ∪ global's. `screens` binds screen ids, not actions.
-_GLOBAL_ACTIONS = {'down', 'up', 'left', 'right', 'top', 'bottom', 'select', 'confirm', 'switch-pane',
-                   'switch-pane-back', 'find', 'filter', 'issues', 'help', 'quit',
-                   'quit-force'}
+_GLOBAL_ACTIONS = {'down', 'up', 'left', 'right', 'top', 'bottom', 'page-down', 'page-up', 'select',
+                   'confirm', 'switch-pane', 'switch-pane-back', 'find', 'filter', 'issues', 'help',
+                   'quit', 'quit-force'}
 SCREEN_IDS = {'components', 'profiles', 'plugins', 'glue', 'dotfiles', 'config', 'theme'}
 KNOWN_ACTIONS = {
     'global': _GLOBAL_ACTIONS,

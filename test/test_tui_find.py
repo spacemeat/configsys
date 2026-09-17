@@ -27,7 +27,7 @@ def _keys(s):
 
 
 LABELS = ['ripgrep', 'git', 'gnuradio', 'gnome', 'neovim', 'gimp']
-ENTER, ESC, BKSP = 10, 27, 127
+ENTER, ESC, BKSP = 13, 27, 127
 
 
 def _run(keys, restore=0):

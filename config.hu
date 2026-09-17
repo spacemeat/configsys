@@ -181,8 +181,10 @@ profiles: {
             right: [ l  right ]
             top: g
             bottom: G
+            page-down: [ pgdn  ctrl-j ]   // move the cursor down a page (all panes + modals)
+            page-up: [ pgup  ctrl-k ]     // move the cursor up a page
             select: space           // toggle / mark the current row
-            confirm: enter          // activate / open / apply
+            confirm: [ enter  kpenter ]   // activate / open / apply (Return / keypad Enter — NOT ctrl-j)
             switch-pane: tab        // move focus between panes (screens with two panes)
             switch-pane-back: shift-tab
             find: "/"               // fuzzy-jump the cursor

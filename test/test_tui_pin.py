@@ -192,7 +192,7 @@ def test_pick_method_popup_selects_and_writes(tmp_path):
     cfgdir = _steam_home(tmp_path)
     ctx = _ctx(tmp_path)
     ms = _menu_on(ctx, 'steam')                      # candidates: native (default) + flatpak
-    scr = _Scr([ord('j'), ord('\n')])               # move down to flatpak, enter
+    scr = _Scr([ord('j'), ord('\r')])               # move down to flatpak, enter
     changed, note, deferred = menu._pick_method(scr, _Pal(), ms, ctx)
     assert changed and 'flatpak' in note and 'promote' in deferred
     assert plugins.read_pins(str(cfgdir / 'configsys.hu')).get('steam') == 'flatpak'

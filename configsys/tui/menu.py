@@ -40,6 +40,16 @@ KEY_TO_OP = {
 }
 _COMP_OPS = {'op-install': 'install', 'op-upgrade': 'upgrade', 'op-remove': 'remove'}   # action -> op
 
+# page-up / page-down raw codes, for the modals that read getch directly (panes use the `page-up` /
+# `page-down` keymap ACTIONS instead). PgDn + Ctrl-J (LF, 10) scroll down; PgUp + Ctrl-K (11) up.
+_PGDN_KEYS = (curses.KEY_NPAGE, 10)
+_PGUP_KEYS = (curses.KEY_PPAGE, 11)
+
+
+def _page_rows(stdscr):
+    '''One screenful of the content area — how far page-up/page-down jump the cursor.'''
+    return max(1, stdscr.getmaxyx()[0] - 5)
+
 _KEYMAP = None       # the active tui.keyspec.Keymap (set in run(); read by the draw fns for legends)
 
 _REFRESH_WARN_DAYS = 30   # a package index older than this shows in warn-color on the Components header
@@ -1076,9 +1086,9 @@ def _help_modal(stdscr, pal, screen):
             top = 0
         elif act == 'bottom':
             top = len(rows)
-        elif ch == curses.KEY_NPAGE:
+        elif act == 'page-down':
             top += vis
-        elif ch == curses.KEY_PPAGE:
+        elif act == 'page-up':
             top -= vis
 
 
@@ -1458,7 +1468,11 @@ def _popup_choose(stdscr, pal, title, options, start=0, shortcuts=None):
             sel = min(n - 1, sel + 1)
         elif ch in (ord('k'), curses.KEY_UP):
             sel = max(0, sel - 1)
-        elif ch in (ord('\n'), curses.KEY_ENTER, curses.KEY_RIGHT):
+        elif ch in _PGDN_KEYS:
+            sel = min(n - 1, sel + vis)
+        elif ch in _PGUP_KEYS:
+            sel = max(0, sel - vis)
+        elif ch in (ord('\r'), curses.KEY_ENTER, curses.KEY_RIGHT):
             return sel
 
 
@@ -2052,7 +2066,7 @@ def _filter_edit(stdscr, initial, apply_fn, redraw):
         _put(stdscr, h - 1, 0, _fit(f' filter:{buf}▏', w).ljust(w), curses.A_REVERSE)
         stdscr.refresh()
         ch = stdscr.getch()
-        if ch in (10, 13, curses.KEY_ENTER):
+        if ch in (13, curses.KEY_ENTER):
             return buf                                 # commit (empty -> cleared)
         if ch == 27:                                   # Esc -> revert to the pre-filter state
             apply_fn(initial)
@@ -2098,7 +2112,7 @@ def _find_edit(stdscr, labels, restore, set_cursor, redraw):
         _put(stdscr, h - 1, 0, _fit(f' /{buf}▏', w).ljust(w), curses.A_REVERSE)
         stdscr.refresh()
         ch = stdscr.getch()
-        if ch in (10, 13, curses.KEY_ENTER):
+        if ch in (13, curses.KEY_ENTER):
             return                                     # commit — leave the cursor at the match
         if ch == 27:                                   # Esc -> restore the pre-find cursor
             set_cursor(restore)
@@ -2181,7 +2195,7 @@ def _attr_filter_modal(stdscr, pal, inc, exc):
         ch = stdscr.getch()
         if ch in (27, ord('q')):
             return None
-        if ch in (ord('\n'), curses.KEY_ENTER):
+        if ch in (ord('\r'), curses.KEY_ENTER):
             return inc, exc
         if ch in (ord('j'), curses.KEY_DOWN):               # land only on tag rows (skip axis headers)
             sel = next((i for i in range(sel + 1, len(rows)) if rows[i][0] == 'tag'), sel)
@@ -2245,7 +2259,7 @@ def _component_machines_modal(stdscr, pal, ctx, comp):
         _put(stdscr, y0 + box_h - 2, x0 + 2, _fit('enter / esc: close', box_w - 4), dim)
         stdscr.refresh()
         ch = stdscr.getch()
-        if ch in (27, ord('q'), ord('\n'), curses.KEY_ENTER):
+        if ch in (27, ord('q'), ord('\r'), curses.KEY_ENTER):
             return note
         if ch in (ord('j'), curses.KEY_DOWN):
             sel = min(len(rows) - 1, sel + 1)
@@ -2334,7 +2348,7 @@ def _machines_modal(stdscr, pal, ctx, targets):
         if mode in ('rename', 'add'):                # inline text entry
             if ch == 27:
                 mode, buf = None, ''
-            elif ch in (ord('\n'), curses.KEY_ENTER):
+            elif ch in (ord('\r'), curses.KEY_ENTER):
                 nm = buf.strip()
                 if mode == 'rename':
                     old = rows[sel]
@@ -2366,7 +2380,7 @@ def _machines_modal(stdscr, pal, ctx, targets):
             mode = None
             continue
 
-        if ch in (27, ord('q'), ord('\n'), curses.KEY_ENTER):
+        if ch in (27, ord('q'), ord('\r'), curses.KEY_ENTER):
             return tg, note
         if ch in (ord('j'), curses.KEY_DOWN):
             sel = min(len(rows) - 1, sel + 1)
@@ -3611,7 +3625,7 @@ def _input_box(stdscr, pal, title, initial='', complete=None, toggle=None):
             ch = stdscr.getch()
             if ch == 27:
                 return _ret(None)
-            if ch in (ord('\n'), curses.KEY_ENTER):
+            if ch in (ord('\r'), curses.KEY_ENTER):
                 return _ret(''.join(buf))
             if ch == ord('\t'):
                 if m:
@@ -3667,7 +3681,7 @@ def _order_list(stdscr, pal, title, items, label=None):
         ch = stdscr.getch()
         if ch == 27:
             return None
-        if ch in (ord('\n'), curses.KEY_ENTER):
+        if ch in (ord('\r'), curses.KEY_ENTER):
             return items
         if ch == ord(' '):
             grabbed = not grabbed
@@ -4819,6 +4833,10 @@ def run(ctx):
                     where_top += 1
                 elif oact == 'up':
                     where_top = max(0, where_top - 1)
+                elif oact == 'page-down':
+                    where_top += _page_rows(stdscr)
+                elif oact == 'page-up':
+                    where_top = max(0, where_top - _page_rows(stdscr))
                 elif oact == 'top':
                     where_top = 0
                 elif oact == 'bottom':
@@ -4832,6 +4850,10 @@ def run(ctx):
                     diag_top += 1
                 elif oact == 'up':
                     diag_top = max(0, diag_top - 1)
+                elif oact == 'page-down':
+                    diag_top += _page_rows(stdscr)
+                elif oact == 'page-up':
+                    diag_top = max(0, diag_top - _page_rows(stdscr))
                 elif oact == 'top':
                     diag_top = 0
                 elif oact == 'bottom':
@@ -4908,6 +4930,16 @@ def run(ctx):
                         ps.lcur = max(0, ps.lcur - 1)
                     else:
                         ps.rcur = max(0, ps.rcur - 1)
+                elif pfact == 'page-down':
+                    if ps.focus == 'left':
+                        ps.lcur = min(len(ps.visible_pnodes()) - 1, ps.lcur + _page_rows(stdscr))
+                    else:
+                        ps.rcur = min(len(ps.vcatalog()) - 1, ps.rcur + _page_rows(stdscr))
+                elif pfact == 'page-up':
+                    if ps.focus == 'left':
+                        ps.lcur = max(0, ps.lcur - _page_rows(stdscr))
+                    else:
+                        ps.rcur = max(0, ps.rcur - _page_rows(stdscr))
                 elif pfact in ('switch-pane', 'switch-pane-back'):
                     ps.focus = 'right' if ps.focus == 'left' else 'left'   # tab / shift-tab toggle
                 elif pfact == 'confirm' and ps.focus == 'left':
@@ -5171,6 +5203,10 @@ def run(ctx):
                         ds.cur = min(len(ds.rows) - 1, ds.cur + 1)
                     elif dact == 'up':
                         ds.cur = max(0, ds.cur - 1)
+                    elif dact == 'page-down':
+                        ds.cur = min(len(ds.rows) - 1, ds.cur + _page_rows(stdscr))
+                    elif dact == 'page-up':
+                        ds.cur = max(0, ds.cur - _page_rows(stdscr))
                     elif dact == 'left':                      # horizontal scroll across the columns
                         ds.hscroll = max(0, ds.hscroll - 4)
                     elif dact == 'right':
@@ -5269,6 +5305,10 @@ def run(ctx):
                         gs.cur = min(len(gs.rows) - 1, gs.cur + 1)
                     elif gact == 'up':
                         gs.cur = max(0, gs.cur - 1)
+                    elif gact == 'page-down':
+                        gs.cur = min(len(gs.rows) - 1, gs.cur + _page_rows(stdscr))
+                    elif gact == 'page-up':
+                        gs.cur = max(0, gs.cur - _page_rows(stdscr))
                     elif gact == 'left':                      # horizontal scroll across the columns
                         gs.hscroll = max(0, gs.hscroll - 4)
                     elif gact == 'right':
@@ -5342,6 +5382,16 @@ def run(ctx):
                             pl.dtop = max(0, pl.dtop - 1)
                         else:
                             pl.cur = max(0, pl.cur - 1); pl._invalidate_diff()
+                    elif pact == 'page-down':
+                        if pl.focus == 'diff':
+                            pl.dtop += _page_rows(stdscr)
+                        else:
+                            pl.cur = min(len(pl.rows) - 1, pl.cur + _page_rows(stdscr)); pl._invalidate_diff()
+                    elif pact == 'page-up':
+                        if pl.focus == 'diff':
+                            pl.dtop = max(0, pl.dtop - _page_rows(stdscr))
+                        else:
+                            pl.cur = max(0, pl.cur - _page_rows(stdscr)); pl._invalidate_diff()
                     elif pact == 'right':
                         if pl.focus == 'diff':
                             pl.dhscroll += 4
@@ -5446,6 +5496,10 @@ def run(ctx):
                     cs.cur = min(len(cs.keys) - 1, cs.cur + 1)
                 elif cact == 'up':
                     cs.cur = max(0, cs.cur - 1)
+                elif cact == 'page-down':
+                    cs.cur = min(len(cs.keys) - 1, cs.cur + _page_rows(stdscr))
+                elif cact == 'page-up':
+                    cs.cur = max(0, cs.cur - _page_rows(stdscr))
                 elif cact == 'top':
                     cs.cur = 0
                 elif cact == 'bottom':
@@ -5578,7 +5632,7 @@ def run(ctx):
                                           else min(len(ts.map_names) - 1, ts.map_cur + step))
                         else:
                             ts.focus = 'roles' if ts.focus == 'map' else 'map'   # else cross panels
-                    elif tact and tact.startswith('page-'):
+                    elif tact and tact.startswith('page-') and tact[5:].isdigit():
                         ts.page = min(len(ALL_PAGES) - 1, int(tact[5:]) - 1)  # F1-F7 select the sample page
                     elif tact == 'down':
                         if ts.focus == 'map':
@@ -5590,6 +5644,16 @@ def run(ctx):
                             ts.map_cur = max(0, ts.map_cur - 1)
                         else:
                             ts.role_cur = max(0, ts.role_cur - 1)
+                    elif tact == 'page-down':
+                        if ts.focus == 'map':
+                            ts.map_cur = min(len(ts.map_names) - 1, ts.map_cur + _page_rows(stdscr))
+                        else:
+                            ts.role_cur = min(len(ts.role_list()) - 1, ts.role_cur + _page_rows(stdscr))
+                    elif tact == 'page-up':
+                        if ts.focus == 'map':
+                            ts.map_cur = max(0, ts.map_cur - _page_rows(stdscr))
+                        else:
+                            ts.role_cur = max(0, ts.role_cur - _page_rows(stdscr))
                     elif tact == 'top':
                         setattr(ts, 'map_cur' if ts.focus == 'map' else 'role_cur', 0)
                     elif tact == 'bottom':
@@ -5778,6 +5842,10 @@ def run(ctx):
                 ms.move(1)
             elif act == 'up':
                 ms.move(-1)
+            elif act == 'page-down':
+                ms.move(_page_rows(stdscr))
+            elif act == 'page-up':
+                ms.move(-_page_rows(stdscr))
             elif act == 'top':
                 ms.go_top()
             elif act == 'bottom':

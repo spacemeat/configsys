@@ -57,7 +57,7 @@ def test_providers_and_capability_choices(tmp_path):
 
 def test_pick_provider_writes_a_capability_pin(tmp_path):
     ctx = _ctx(tmp_path)
-    ENTER = 10
+    ENTER = 13
     # single capability -> straight to the provider list; start sits on the default (cuda-toolkit-12,
     # index 1). 'k' moves up to cuda-toolkit-11 (index 0), enter selects.
     scr = _Scr([ord('k'), ENTER])
@@ -71,7 +71,7 @@ def test_pick_provider_writes_a_capability_pin(tmp_path):
 
 def test_pick_provider_noop_when_choosing_current(tmp_path):
     ctx = _ctx(tmp_path)
-    ENTER = 10
+    ENTER = 13
     scr = _Scr([ENTER])                                          # start is already the current default
     changed, note, _d = menu._pick_provider(scr, _Pal(), _row('cuda-toolkit-12'), ctx)
     assert not changed and 'already provided by' in note
@@ -88,7 +88,7 @@ def test_pick_provider_declines_a_row_without_alternatives(tmp_path):
 
 def test_choices_single_method_axis_opens_the_method_picker(tmp_path):
     ctx = _ctx(tmp_path)
-    ENTER = 10
+    ENTER = 13
     # steam: 2 methods, no multi-provider cap -> a single (method) axis -> straight to the method popup
     changed, note, _d = menu._pick_choices(_Scr([ord('j'), ENTER]), _Pal(), _row('steam'), ctx)
     assert changed and 'flatpak' in note
@@ -98,7 +98,7 @@ def test_choices_single_method_axis_opens_the_method_picker(tmp_path):
 
 def test_choices_single_provider_axis_opens_the_provider_picker(tmp_path):
     ctx = _ctx(tmp_path)
-    ENTER = 10
+    ENTER = 13
     # cuda-toolkit-12: 1 method but provides a 2-provider cap -> a single (provider) axis
     changed, note, _d = menu._pick_choices(_Scr([ord('k'), ENTER]), _Pal(), _row('cuda-toolkit-12'), ctx)
     assert changed and 'cuda-toolkit-11' in note
@@ -127,7 +127,7 @@ def test_choices_with_no_axis_is_a_noop(tmp_path):
 
 def test_choices_multi_axis_asks_which_to_change_then_dispatches(tmp_path, monkeypatch):
     ctx = _ctx(tmp_path)
-    ENTER = 10
+    ENTER = 13
     # give steam a second (provider) axis so the chooser must first ask WHICH axis to change
     monkeypatch.setattr(menu, '_capability_choices',
                         lambda routes, name: [('cuda-toolkit', ['cuda-toolkit-11', 'cuda-toolkit-12'])])
