@@ -159,7 +159,7 @@ KNOWN_ACTIONS = {
     'components': {'where', 'lock', 'expand-all', 'select-all', 'clear', 'method', 'op-install',
                    'op-upgrade', 'op-remove', 'execute', 'refresh', 'mode'},
     'config': {'theme', 'move'},
-    'dotfiles': {'manage', 'manage-all', 'unmanage', 'unmanage-all'},
+    'dotfiles': {'manage', 'manage-all', 'unmanage', 'unmanage-all', 'move-store', 'move-store-all'},
     'glue': {'activate', 'activate-group', 'deactivate'},
     'plugins': {'add', 'remove', 'sync', 'sync-all', 'bless', 'unbless', 'update', 'update-all',
                 'trust', 'trust-all', 'set-ref'},

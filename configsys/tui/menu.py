@@ -964,6 +964,11 @@ _HELP = {
             ('unmanage (u / U)', "remove configsys's symlink and restore any backup — your content "
                                  "stays in your store. u unmanages the current row, U every managed "
                                  "one; both ask to confirm first."),
+            ('source', "where the managed content lives: <plugin> travels to your machines (in your "
+                       "primary plugin), <local> is this box only, <repo> is a shipped default."),
+            ('move store (s / S)', "move a config between stores: s toggles the current one "
+                                   "<local>↔<plugin> (and normalizes any legacy layout); S opens a "
+                                   "chooser to move ALL configs to the plugin or local."),
         ],
     },
     'config': {
@@ -4648,11 +4653,10 @@ def _draw_dotfiles(stdscr, pal, ds, ctx, note, screen):
         status += f'    {note}'
     if _KEYMAP is not None:
         g = lambda a: _KEYMAP.glyph('dotfiles', a)
-        navf = (f" {g('down')}/{g('up')} · {g('left')}/{g('right')} scroll · {g('manage')} manage · "
-                f"{g('manage-all')} manage all · {g('unmanage')} unmanage · {g('unmanage-all')} unmanage all · "
-                f"{g('quit')} ")
+        navf = (f" {g('manage')}/{g('manage-all')} manage · {g('unmanage')}/{g('unmanage-all')} unmanage · "
+                f"{g('move-store')}/{g('move-store-all')} move store · {g('quit')} ")
     else:
-        navf = ' j/k · h/l scroll · m manage · M manage all · u unmanage · U unmanage all · q '
+        navf = ' m/M manage · u/U unmanage · s/S move store · h/l scroll · q '
     _put(stdscr, h - 2, 0, _fit(status, w), pal.style('status_line', h - 2, 0, h, w))
     _put(stdscr, h - 1, 0, _fit(navf.ljust(w), w), pal.style('footer', h - 1, 0, h, w))
     stdscr.refresh()
@@ -5203,6 +5207,38 @@ def run(ctx):
                             ds.dirty.update(managed)
                             ds.reload()
                             note = f'unmanaged {len(managed)} config(s)'
+                    elif dact == 'move-store' and row:      # move this config to the OTHER store
+                        plug = ctx.paths.primary_dotfiles_dir
+                        if plug is None:
+                            note = 'no primary plugin configured — nothing to move between'
+                        else:
+                            to_plugin = not str(row[4]).startswith('<plugin>')   # source col shows where it lives
+                            target = Path(plug) if to_plugin else ctx.paths.user_dotfiles_dir
+                            with suspended(stdscr):
+                                moved = ds.driver_for(row[0]).relocate(row[0], target)
+                            ds.dirty.add(row[0].key)
+                            ds.reload()
+                            where = 'plugin (travels)' if to_plugin else 'local (this box)'
+                            note = (f'moved {row[0].comp} to {where}' if moved
+                                    else f'nothing to move for {row[0].comp}')
+                    elif dact == 'move-store-all':          # chooser: move ALL configs to a store
+                        plug = ctx.paths.primary_dotfiles_dir
+                        if plug is None:
+                            note = 'no primary plugin configured — nothing to move between'
+                        else:
+                            ch = _popup_choose(stdscr, pal, 'move ALL configs to which store?',
+                                               [('primary plugin (travels to your machines)', ''),
+                                                ('local (this box only)', ''), ('cancel', '')], 0)
+                            if ch in (0, 1):
+                                target = Path(plug) if ch == 0 else ctx.paths.user_dotfiles_dir
+                                n = 0
+                                with suspended(stdscr):
+                                    for rc in ds.units:
+                                        if ds.driver_for(rc).relocate(rc, target):
+                                            n += 1
+                                ds.dirty.update(rc.key for rc in ds.units)
+                                ds.reload()
+                                note = f'moved {n} config(s) to {"plugin" if ch == 0 else "local"}'
                 except Exception as e:  # noqa: BLE001 — surface, don't crash
                     note = f'error: {e}'
                 continue

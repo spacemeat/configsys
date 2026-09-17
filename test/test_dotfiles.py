@@ -93,6 +93,31 @@ def test_single_inline_spec():
         ('arduino', 'bash.d/arduino.sh', '~/.bash.d/arduino.sh', None)]
 
 
+def test_relocate_moves_config_content_normalizes_cfs_and_relinks(tmp_path):
+    # a legacy BARE capture in the local store, linked -> relocate to a 'plugin' root moves the
+    # content into <comp>.cfs/, re-points the live symlink, and drops the old local copy.
+    p = paths_for(tmp_path)
+    store = p.user_dotfiles_dir
+    (store / 'foo').mkdir(parents=True)                    # bare legacy content (pre-.cfs)
+    (store / 'foo' / 'cfg.txt').write_text('hi\n')
+    p.home.mkdir(parents=True, exist_ok=True)
+    dst = p.home / '.config' / 'foo'
+    dst.parent.mkdir(parents=True, exist_ok=True)
+    dst.symlink_to(store / 'foo')                          # linked to the local bare content
+    df = DotFiles(Runner(pretend=False), paths=p)
+    rc = ResolvedComponent(key='dotfiles\\foo', driver='dotfiles', comp='foo',
+                           fields={'config': {'src': 'foo', 'dst': '$XDG_CONFIG_HOME/foo'}})
+    plugin = tmp_path / 'plugin_dotfiles'
+    moved = df.relocate(rc, plugin)
+    newpath = plugin / 'foo.cfs' / 'foo'
+    assert moved and newpath.is_dir() and (newpath / 'cfg.txt').read_text() == 'hi\n'   # in .cfs now
+    assert os.path.realpath(dst) == os.path.realpath(newpath)                 # symlink re-pointed
+    assert not (store / 'foo').exists()                                       # old local copy gone
+    assert (plugin / 'foo.cfs' / 'manifest.hu').exists()                      # marker/manifest stamped
+    # idempotent: relocating to the SAME root again is a no-op
+    assert df.relocate(rc, plugin) == []
+
+
 def test_dst_env_expansion_defaults_xdg(tmp_path):
     p = paths_for(tmp_path)
     df = DotFiles(Runner(pretend=True), paths=p)

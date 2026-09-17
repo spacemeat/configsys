@@ -449,6 +449,52 @@ class DotFiles(Driver):
             self._write_manifest(rc, specs_map)
         return done
 
+    def relocate(self, rc, target):
+        '''Move this component's captured CONFIG content to the `target` content root (a Path — the
+        machine-local store, or the primary plugin's dotfiles/ so it travels), normalizing any legacy
+        bare layout into `<comp>.cfs/<src>` and re-pointing the live symlink. A no-op for specs with
+        no user-captured content (templates / uncaptured). Returns [(name, new_path)] relocated.'''
+        target = Path(target)
+        target_cfs = target / f'{rc.comp}{CFS_SUFFIX}'
+        prev = self._read_manifest(self._cfs_dir(rc) / MANIFEST_NAME)   # keep any exclude: lists
+        moved, specs_map = [], {}
+        for name, src, dst, _absorb in self._config_specs(rc):
+            srcpath, tier, root = self._resolve(src, rc)
+            newpath = target_cfs / src
+            specs_map[name] = {'src': src, 'dst': dst, 'exclude': prev.get(name, {}).get('exclude', [])}
+            if tier != 'user' or not srcpath.exists():
+                continue                                   # nothing user-captured here to move
+            if os.path.realpath(srcpath) == os.path.realpath(newpath):
+                continue                                   # already at the target
+            newpath.parent.mkdir(parents=True, exist_ok=True)
+            if newpath.is_symlink() or newpath.is_file():
+                newpath.unlink()
+            elif newpath.is_dir():
+                shutil.rmtree(newpath)
+            if srcpath.is_dir():
+                shutil.copytree(srcpath, newpath)
+            else:
+                shutil.copy2(srcpath, newpath)
+            tgt = self._expand(dst)                         # re-point the live symlink at the new home
+            if tgt.is_symlink():
+                tgt.unlink()
+                tgt.symlink_to(newpath)
+            if srcpath.is_dir() and not srcpath.is_symlink():   # drop the old content
+                shutil.rmtree(srcpath)
+            elif srcpath.exists() or srcpath.is_symlink():
+                srcpath.unlink()
+            old_cfs = root / f'{rc.comp}{CFS_SUFFIX}'      # prune an emptied source .cfs (manifest/.gitignore)
+            if old_cfs != target_cfs and old_cfs.is_dir():
+                for leftover in list(old_cfs.iterdir()):
+                    if leftover.name in (MANIFEST_NAME, '.gitignore'):
+                        leftover.unlink()
+                if not any(old_cfs.iterdir()):
+                    old_cfs.rmdir()
+            moved.append((name, newpath))
+        if specs_map:                                      # stamp the marker + manifest at the new home
+            self._write_manifest_at(target_cfs, specs_map)
+        return moved
+
     # -- read -------------------------------------------------------------
 
     def get_version(self, rc):

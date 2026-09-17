@@ -224,6 +224,8 @@ profiles: {
             manage-all: M           // manage every UNMANAGED config at once
             unmanage: u             // unmanage the current row (unlink; confirms first)
             unmanage-all: U         // unmanage every MANAGED config at once (confirms first)
+            move-store: s           // move this config between stores: local <-> primary plugin
+            move-store-all: S       // move ALL configs to a store (chooser: plugin / local)
         }
 
         // Glue screen (snippets grouped per installed shell). down/up/top/bottom + left/right
