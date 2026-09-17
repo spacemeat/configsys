@@ -464,6 +464,45 @@
     "name": "atop"
    }
   },
+  "atuin": {
+   "glue\\atuin-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "atuin"
+    },
+    "name": "atuin-glue"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   },
+   "pacman\\atuin": {
+    "driver": "pacman",
+    "fields": {
+     "name": "atuin"
+    },
+    "name": "atuin"
+   }
+  },
+  "atuin-glue": {
+   "glue\\atuin-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "atuin"
+    },
+    "name": "atuin-glue"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   }
+  },
   "audacity": {
    "pacman\\audacity": {
     "driver": "pacman",
@@ -2523,6 +2562,44 @@
     "name": "shell-glue"
    }
   },
+  "elvish": {
+   "dotfiles\\elvish-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/elvish",
+      "src": "elvish"
+     }
+    },
+    "name": "elvish-dotfiles"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   },
+   "pacman\\elvish": {
+    "driver": "pacman",
+    "fields": {
+     "name": "elvish"
+    },
+    "name": "elvish"
+   }
+  },
+  "elvish-dotfiles": {
+   "dotfiles\\elvish-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/elvish",
+      "src": "elvish"
+     }
+    },
+    "name": "elvish-dotfiles"
+   }
+  },
   "emacs": {
    "dotfiles\\emacs-dotfiles": {
     "driver": "dotfiles",
@@ -3391,6 +3468,38 @@
      "repo-component": "universe"
     },
     "name": "github-cli"
+   }
+  },
+  "ghgrab": {
+   "cargo\\ghgrab": {
+    "driver": "cargo",
+    "fields": {
+     "name": "ghgrab"
+    },
+    "name": "ghgrab"
+   },
+   "glue\\rust-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "rust"
+    },
+    "name": "rust-glue"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   },
+   "pacman\\rust": {
+    "driver": "pacman",
+    "fields": {
+     "installed-name": "cargo",
+     "name": "rust",
+     "repo-component": "universe"
+    },
+    "name": "rust"
    }
   },
   "ghidra": {
@@ -5582,6 +5691,37 @@
     "name": "kdenlive"
    }
   },
+  "kew": {
+   "dotfiles\\kew-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/kew",
+      "src": "kew"
+     }
+    },
+    "name": "kew-dotfiles"
+   },
+   "pacman\\kew": {
+    "driver": "pacman",
+    "fields": {
+     "name": "kew"
+    },
+    "name": "kew"
+   }
+  },
+  "kew-dotfiles": {
+   "dotfiles\\kew-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/kew",
+      "src": "kew"
+     }
+    },
+    "name": "kew-dotfiles"
+   }
+  },
   "kicad": {
    "dotfiles\\kicad-dotfiles": {
     "driver": "dotfiles",
@@ -5855,6 +5995,46 @@
     "name": "shell-glue"
    }
   },
+  "lazyrsync": {
+   "aur\\lazyrsync": {
+    "driver": "aur",
+    "fields": {
+     "name": "lazyrsync"
+    },
+    "name": "lazyrsync"
+   },
+   "dotfiles\\git-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "~/.gitconfig",
+      "src": "gitconfig"
+     }
+    },
+    "name": "git-dotfiles"
+   },
+   "pacman\\base-devel": {
+    "driver": "pacman",
+    "fields": {
+     "name": "base-devel"
+    },
+    "name": "base-devel"
+   },
+   "pacman\\git": {
+    "driver": "pacman",
+    "fields": {
+     "name": "git"
+    },
+    "name": "git"
+   },
+   "pacman\\rsync": {
+    "driver": "pacman",
+    "fields": {
+     "name": "rsync"
+    },
+    "name": "rsync"
+   }
+  },
   "lazysql": {
    "glue\\lazysql-glue": {
     "driver": "glue",
@@ -5897,6 +6077,88 @@
      "glue": "lazysql"
     },
     "name": "lazysql-glue"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   }
+  },
+  "leaf": {
+   "cargo\\leaf": {
+    "driver": "cargo",
+    "fields": {
+     "name": "leaf-markdown-viewer"
+    },
+    "name": "leaf-markdown-viewer"
+   },
+   "glue\\rust-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "rust"
+    },
+    "name": "rust-glue"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   },
+   "pacman\\rust": {
+    "driver": "pacman",
+    "fields": {
+     "installed-name": "cargo",
+     "name": "rust",
+     "repo-component": "universe"
+    },
+    "name": "rust"
+   }
+  },
+  "lean": {
+   "glue\\lean-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "lean"
+    },
+    "name": "lean-glue"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   },
+   "pacman\\curl": {
+    "driver": "pacman",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "script\\lean": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "curl -fsSL https://raw.githubusercontent.com/leanprover/elan/master/elan-init.sh | sh -s -- -y",
+     "name": "lean",
+     "uninstall-cmd": "\"$HOME/.elan/bin/elan\" self uninstall -y 2>/dev/null || rm -rf \"$HOME/.elan\"",
+     "version-cmd": "\"$HOME/.elan/bin/lean\" --version 2>/dev/null",
+     "version-re": "([0-9][0-9.]*)"
+    },
+    "name": "lean"
+   }
+  },
+  "lean-glue": {
+   "glue\\lean-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "lean"
+    },
+    "name": "lean-glue"
    },
    "glue\\shell-glue": {
     "driver": "glue",
@@ -7000,6 +7262,36 @@
      }
     },
     "name": "mitmproxy"
+   }
+  },
+  "mojo": {
+   "glue\\pipx-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "pipx"
+    },
+    "name": "pipx-glue"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   },
+   "pacman\\pipx": {
+    "driver": "pacman",
+    "fields": {
+     "name": "python-pipx"
+    },
+    "name": "python-pipx"
+   },
+   "pipx\\mojo": {
+    "driver": "pipx",
+    "fields": {
+     "name": "mojo"
+    },
+    "name": "mojo"
    }
   },
   "mongodb": {
@@ -9603,6 +9895,15 @@
     "name": "shell-glue"
    }
   },
+  "rclone": {
+   "pacman\\rclone": {
+    "driver": "pacman",
+    "fields": {
+     "name": "rclone"
+    },
+    "name": "rclone"
+   }
+  },
   "redis": {
    "pacman\\redis": {
     "driver": "pacman",
@@ -11009,6 +11310,28 @@
      "repo-component": "universe"
     },
     "name": "ttyd"
+   }
+  },
+  "tuxedo": {
+   "pacman\\curl": {
+    "driver": "pacman",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "tarball\\tuxedo": {
+    "driver": "tarball",
+    "fields": {
+     "installDir": "$CONFIGSYS_APP_DIR/tuxedo",
+     "name": "tuxedo",
+     "version": {
+      "asset": "tuxedo-*-$ARCH-unknown-linux-gnu.tar.gz",
+      "github": "webstonehq/tuxedo",
+      "strip-v": "true"
+     }
+    },
+    "name": "tuxedo"
    }
   },
   "typescript": {
@@ -12679,6 +13002,37 @@
     "name": "zed-glue"
    }
   },
+  "zellij": {
+   "dotfiles\\zellij-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/zellij",
+      "src": "zellij"
+     }
+    },
+    "name": "zellij-dotfiles"
+   },
+   "pacman\\zellij": {
+    "driver": "pacman",
+    "fields": {
+     "name": "zellij"
+    },
+    "name": "zellij"
+   }
+  },
+  "zellij-dotfiles": {
+   "dotfiles\\zellij-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/zellij",
+      "src": "zellij"
+     }
+    },
+    "name": "zellij-dotfiles"
+   }
+  },
   "zig": {
    "glue\\shell-glue": {
     "driver": "glue",
@@ -13248,6 +13602,61 @@
      "name": "atop"
     },
     "name": "atop"
+   }
+  },
+  "atuin": {
+   "apt\\rust": {
+    "driver": "apt",
+    "fields": {
+     "installed-name": "cargo",
+     "name": "rust-all",
+     "repo-component": "universe"
+    },
+    "name": "rust-all"
+   },
+   "cargo\\atuin": {
+    "driver": "cargo",
+    "fields": {
+     "name": "atuin"
+    },
+    "name": "atuin"
+   },
+   "glue\\atuin-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "atuin"
+    },
+    "name": "atuin-glue"
+   },
+   "glue\\rust-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "rust"
+    },
+    "name": "rust-glue"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   }
+  },
+  "atuin-glue": {
+   "glue\\atuin-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "atuin"
+    },
+    "name": "atuin-glue"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
    }
   },
   "audacity": {
@@ -15637,6 +16046,44 @@
     "name": "shell-glue"
    }
   },
+  "elvish": {
+   "apt\\elvish": {
+    "driver": "apt",
+    "fields": {
+     "name": "elvish"
+    },
+    "name": "elvish"
+   },
+   "dotfiles\\elvish-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/elvish",
+      "src": "elvish"
+     }
+    },
+    "name": "elvish-dotfiles"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   }
+  },
+  "elvish-dotfiles": {
+   "dotfiles\\elvish-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/elvish",
+      "src": "elvish"
+     }
+    },
+    "name": "elvish-dotfiles"
+   }
+  },
   "emacs": {
    "apt\\emacs": {
     "driver": "apt",
@@ -16718,6 +17165,38 @@
      "repo-component": "universe"
     },
     "name": "gh"
+   }
+  },
+  "ghgrab": {
+   "apt\\rust": {
+    "driver": "apt",
+    "fields": {
+     "installed-name": "cargo",
+     "name": "rust-all",
+     "repo-component": "universe"
+    },
+    "name": "rust-all"
+   },
+   "cargo\\ghgrab": {
+    "driver": "cargo",
+    "fields": {
+     "name": "ghgrab"
+    },
+    "name": "ghgrab"
+   },
+   "glue\\rust-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "rust"
+    },
+    "name": "rust-glue"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
    }
   },
   "ghidra": {
@@ -18906,6 +19385,37 @@
     "name": "kdenlive"
    }
   },
+  "kew": {
+   "apt\\kew": {
+    "driver": "apt",
+    "fields": {
+     "name": "kew"
+    },
+    "name": "kew"
+   },
+   "dotfiles\\kew-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/kew",
+      "src": "kew"
+     }
+    },
+    "name": "kew-dotfiles"
+   }
+  },
+  "kew-dotfiles": {
+   "dotfiles\\kew-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/kew",
+      "src": "kew"
+     }
+    },
+    "name": "kew-dotfiles"
+   }
+  },
   "kicad": {
    "apt\\kicad": {
     "driver": "apt",
@@ -19241,6 +19751,45 @@
     "name": "shell-glue"
    }
   },
+  "lazyrsync": {
+   "apt\\rsync": {
+    "driver": "apt",
+    "fields": {
+     "name": "rsync"
+    },
+    "name": "rsync"
+   },
+   "apt\\rust": {
+    "driver": "apt",
+    "fields": {
+     "installed-name": "cargo",
+     "name": "rust-all",
+     "repo-component": "universe"
+    },
+    "name": "rust-all"
+   },
+   "cargo\\lazyrsync": {
+    "driver": "cargo",
+    "fields": {
+     "name": "lazyrsync"
+    },
+    "name": "lazyrsync"
+   },
+   "glue\\rust-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "rust"
+    },
+    "name": "rust-glue"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   }
+  },
   "lazysql": {
    "apt\\curl": {
     "driver": "apt",
@@ -19283,6 +19832,88 @@
      "glue": "lazysql"
     },
     "name": "lazysql-glue"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   }
+  },
+  "leaf": {
+   "apt\\rust": {
+    "driver": "apt",
+    "fields": {
+     "installed-name": "cargo",
+     "name": "rust-all",
+     "repo-component": "universe"
+    },
+    "name": "rust-all"
+   },
+   "cargo\\leaf": {
+    "driver": "cargo",
+    "fields": {
+     "name": "leaf-markdown-viewer"
+    },
+    "name": "leaf-markdown-viewer"
+   },
+   "glue\\rust-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "rust"
+    },
+    "name": "rust-glue"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   }
+  },
+  "lean": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "glue\\lean-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "lean"
+    },
+    "name": "lean-glue"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   },
+   "script\\lean": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "curl -fsSL https://raw.githubusercontent.com/leanprover/elan/master/elan-init.sh | sh -s -- -y",
+     "name": "lean",
+     "uninstall-cmd": "\"$HOME/.elan/bin/elan\" self uninstall -y 2>/dev/null || rm -rf \"$HOME/.elan\"",
+     "version-cmd": "\"$HOME/.elan/bin/lean\" --version 2>/dev/null",
+     "version-re": "([0-9][0-9.]*)"
+    },
+    "name": "lean"
+   }
+  },
+  "lean-glue": {
+   "glue\\lean-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "lean"
+    },
+    "name": "lean-glue"
    },
    "glue\\shell-glue": {
     "driver": "glue",
@@ -20473,6 +21104,53 @@
      }
     },
     "name": "mitmproxy"
+   }
+  },
+  "mojo": {
+   "apt\\python3-pip": {
+    "driver": "apt",
+    "fields": {
+     "name": "python3-pip"
+    },
+    "name": "python3-pip"
+   },
+   "glue\\pipx-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "pipx"
+    },
+    "name": "pipx-glue"
+   },
+   "glue\\python3-pip-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "python3-pip"
+    },
+    "name": "python3-pip-glue"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   },
+   "pip\\pipx": {
+    "driver": "pip",
+    "fields": {
+     "name": "pipx",
+     "version": {
+      "pypi": "pipx"
+     }
+    },
+    "name": "pipx"
+   },
+   "pipx\\mojo": {
+    "driver": "pipx",
+    "fields": {
+     "name": "mojo"
+    },
+    "name": "mojo"
    }
   },
   "mongodb": {
@@ -22887,6 +23565,15 @@
     "name": "shell-glue"
    }
   },
+  "rclone": {
+   "apt\\rclone": {
+    "driver": "apt",
+    "fields": {
+     "name": "rclone"
+    },
+    "name": "rclone"
+   }
+  },
   "redis": {
    "apt\\redis": {
     "driver": "apt",
@@ -24190,6 +24877,28 @@
      "repo-component": "universe"
     },
     "name": "ttyd"
+   }
+  },
+  "tuxedo": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "tarball\\tuxedo": {
+    "driver": "tarball",
+    "fields": {
+     "installDir": "$CONFIGSYS_APP_DIR/tuxedo",
+     "name": "tuxedo",
+     "version": {
+      "asset": "tuxedo-*-$ARCH-unknown-linux-gnu.tar.gz",
+      "github": "webstonehq/tuxedo",
+      "strip-v": "true"
+     }
+    },
+    "name": "tuxedo"
    }
   },
   "typescript": {
@@ -25647,6 +26356,50 @@
     "name": "zed-glue"
    }
   },
+  "zellij": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "dotfiles\\zellij-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/zellij",
+      "src": "zellij"
+     }
+    },
+    "name": "zellij-dotfiles"
+   },
+   "tarball\\zellij": {
+    "driver": "tarball",
+    "fields": {
+     "installDir": "$CONFIGSYS_APP_DIR/zellij",
+     "name": "zellij",
+     "version": {
+      "asset": "zellij-x86_64-unknown-linux-musl.tar.gz",
+      "github": "zellij-org/zellij",
+      "strip-v": "true"
+     }
+    },
+    "name": "zellij"
+   }
+  },
+  "zellij-dotfiles": {
+   "dotfiles\\zellij-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/zellij",
+      "src": "zellij"
+     }
+    },
+    "name": "zellij-dotfiles"
+   }
+  },
   "zig": {
    "apt\\curl": {
     "driver": "apt",
@@ -26189,6 +26942,61 @@
      "name": "atop"
     },
     "name": "atop"
+   }
+  },
+  "atuin": {
+   "apt\\rust": {
+    "driver": "apt",
+    "fields": {
+     "installed-name": "cargo",
+     "name": "rust-all",
+     "repo-component": "universe"
+    },
+    "name": "rust-all"
+   },
+   "cargo\\atuin": {
+    "driver": "cargo",
+    "fields": {
+     "name": "atuin"
+    },
+    "name": "atuin"
+   },
+   "glue\\atuin-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "atuin"
+    },
+    "name": "atuin-glue"
+   },
+   "glue\\rust-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "rust"
+    },
+    "name": "rust-glue"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   }
+  },
+  "atuin-glue": {
+   "glue\\atuin-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "atuin"
+    },
+    "name": "atuin-glue"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
    }
   },
   "audacity": {
@@ -28527,6 +29335,44 @@
     "name": "shell-glue"
    }
   },
+  "elvish": {
+   "apt\\elvish": {
+    "driver": "apt",
+    "fields": {
+     "name": "elvish"
+    },
+    "name": "elvish"
+   },
+   "dotfiles\\elvish-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/elvish",
+      "src": "elvish"
+     }
+    },
+    "name": "elvish-dotfiles"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   }
+  },
+  "elvish-dotfiles": {
+   "dotfiles\\elvish-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/elvish",
+      "src": "elvish"
+     }
+    },
+    "name": "elvish-dotfiles"
+   }
+  },
   "emacs": {
    "apt\\emacs": {
     "driver": "apt",
@@ -29591,6 +30437,38 @@
      "repo-component": "universe"
     },
     "name": "gh"
+   }
+  },
+  "ghgrab": {
+   "apt\\rust": {
+    "driver": "apt",
+    "fields": {
+     "installed-name": "cargo",
+     "name": "rust-all",
+     "repo-component": "universe"
+    },
+    "name": "rust-all"
+   },
+   "cargo\\ghgrab": {
+    "driver": "cargo",
+    "fields": {
+     "name": "ghgrab"
+    },
+    "name": "ghgrab"
+   },
+   "glue\\rust-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "rust"
+    },
+    "name": "rust-glue"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
    }
   },
   "ghidra": {
@@ -31728,6 +32606,37 @@
     "name": "kdenlive"
    }
   },
+  "kew": {
+   "apt\\kew": {
+    "driver": "apt",
+    "fields": {
+     "name": "kew"
+    },
+    "name": "kew"
+   },
+   "dotfiles\\kew-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/kew",
+      "src": "kew"
+     }
+    },
+    "name": "kew-dotfiles"
+   }
+  },
+  "kew-dotfiles": {
+   "dotfiles\\kew-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/kew",
+      "src": "kew"
+     }
+    },
+    "name": "kew-dotfiles"
+   }
+  },
   "kicad": {
    "apt\\kicad": {
     "driver": "apt",
@@ -32063,6 +32972,45 @@
     "name": "shell-glue"
    }
   },
+  "lazyrsync": {
+   "apt\\rsync": {
+    "driver": "apt",
+    "fields": {
+     "name": "rsync"
+    },
+    "name": "rsync"
+   },
+   "apt\\rust": {
+    "driver": "apt",
+    "fields": {
+     "installed-name": "cargo",
+     "name": "rust-all",
+     "repo-component": "universe"
+    },
+    "name": "rust-all"
+   },
+   "cargo\\lazyrsync": {
+    "driver": "cargo",
+    "fields": {
+     "name": "lazyrsync"
+    },
+    "name": "lazyrsync"
+   },
+   "glue\\rust-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "rust"
+    },
+    "name": "rust-glue"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   }
+  },
   "lazysql": {
    "apt\\curl": {
     "driver": "apt",
@@ -32105,6 +33053,88 @@
      "glue": "lazysql"
     },
     "name": "lazysql-glue"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   }
+  },
+  "leaf": {
+   "apt\\rust": {
+    "driver": "apt",
+    "fields": {
+     "installed-name": "cargo",
+     "name": "rust-all",
+     "repo-component": "universe"
+    },
+    "name": "rust-all"
+   },
+   "cargo\\leaf": {
+    "driver": "cargo",
+    "fields": {
+     "name": "leaf-markdown-viewer"
+    },
+    "name": "leaf-markdown-viewer"
+   },
+   "glue\\rust-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "rust"
+    },
+    "name": "rust-glue"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   }
+  },
+  "lean": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "glue\\lean-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "lean"
+    },
+    "name": "lean-glue"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   },
+   "script\\lean": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "curl -fsSL https://raw.githubusercontent.com/leanprover/elan/master/elan-init.sh | sh -s -- -y",
+     "name": "lean",
+     "uninstall-cmd": "\"$HOME/.elan/bin/elan\" self uninstall -y 2>/dev/null || rm -rf \"$HOME/.elan\"",
+     "version-cmd": "\"$HOME/.elan/bin/lean\" --version 2>/dev/null",
+     "version-re": "([0-9][0-9.]*)"
+    },
+    "name": "lean"
+   }
+  },
+  "lean-glue": {
+   "glue\\lean-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "lean"
+    },
+    "name": "lean-glue"
    },
    "glue\\shell-glue": {
     "driver": "glue",
@@ -33261,6 +34291,36 @@
      }
     },
     "name": "mitmproxy"
+   }
+  },
+  "mojo": {
+   "apt\\pipx": {
+    "driver": "apt",
+    "fields": {
+     "name": "pipx"
+    },
+    "name": "pipx"
+   },
+   "glue\\pipx-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "pipx"
+    },
+    "name": "pipx-glue"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   },
+   "pipx\\mojo": {
+    "driver": "pipx",
+    "fields": {
+     "name": "mojo"
+    },
+    "name": "mojo"
    }
   },
   "mongodb": {
@@ -35590,6 +36650,15 @@
     "name": "shell-glue"
    }
   },
+  "rclone": {
+   "apt\\rclone": {
+    "driver": "apt",
+    "fields": {
+     "name": "rclone"
+    },
+    "name": "rclone"
+   }
+  },
   "redis": {
    "apt\\redis": {
     "driver": "apt",
@@ -36876,6 +37945,28 @@
      "repo-component": "universe"
     },
     "name": "ttyd"
+   }
+  },
+  "tuxedo": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "tarball\\tuxedo": {
+    "driver": "tarball",
+    "fields": {
+     "installDir": "$CONFIGSYS_APP_DIR/tuxedo",
+     "name": "tuxedo",
+     "version": {
+      "asset": "tuxedo-*-$ARCH-unknown-linux-gnu.tar.gz",
+      "github": "webstonehq/tuxedo",
+      "strip-v": "true"
+     }
+    },
+    "name": "tuxedo"
    }
   },
   "typescript": {
@@ -38299,6 +39390,50 @@
     "name": "zed-glue"
    }
   },
+  "zellij": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "dotfiles\\zellij-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/zellij",
+      "src": "zellij"
+     }
+    },
+    "name": "zellij-dotfiles"
+   },
+   "tarball\\zellij": {
+    "driver": "tarball",
+    "fields": {
+     "installDir": "$CONFIGSYS_APP_DIR/zellij",
+     "name": "zellij",
+     "version": {
+      "asset": "zellij-x86_64-unknown-linux-musl.tar.gz",
+      "github": "zellij-org/zellij",
+      "strip-v": "true"
+     }
+    },
+    "name": "zellij"
+   }
+  },
+  "zellij-dotfiles": {
+   "dotfiles\\zellij-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/zellij",
+      "src": "zellij"
+     }
+    },
+    "name": "zellij-dotfiles"
+   }
+  },
   "zig": {
    "apt\\curl": {
     "driver": "apt",
@@ -38841,6 +39976,61 @@
      "name": "atop"
     },
     "name": "atop"
+   }
+  },
+  "atuin": {
+   "apt\\rust": {
+    "driver": "apt",
+    "fields": {
+     "installed-name": "cargo",
+     "name": "rust-all",
+     "repo-component": "universe"
+    },
+    "name": "rust-all"
+   },
+   "cargo\\atuin": {
+    "driver": "cargo",
+    "fields": {
+     "name": "atuin"
+    },
+    "name": "atuin"
+   },
+   "glue\\atuin-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "atuin"
+    },
+    "name": "atuin-glue"
+   },
+   "glue\\rust-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "rust"
+    },
+    "name": "rust-glue"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   }
+  },
+  "atuin-glue": {
+   "glue\\atuin-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "atuin"
+    },
+    "name": "atuin-glue"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
    }
   },
   "audacity": {
@@ -41182,6 +42372,44 @@
     "name": "shell-glue"
    }
   },
+  "elvish": {
+   "apt\\elvish": {
+    "driver": "apt",
+    "fields": {
+     "name": "elvish"
+    },
+    "name": "elvish"
+   },
+   "dotfiles\\elvish-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/elvish",
+      "src": "elvish"
+     }
+    },
+    "name": "elvish-dotfiles"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   }
+  },
+  "elvish-dotfiles": {
+   "dotfiles\\elvish-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/elvish",
+      "src": "elvish"
+     }
+    },
+    "name": "elvish-dotfiles"
+   }
+  },
   "emacs": {
    "apt\\emacs": {
     "driver": "apt",
@@ -42260,6 +43488,38 @@
      "repo-component": "universe"
     },
     "name": "gh"
+   }
+  },
+  "ghgrab": {
+   "apt\\rust": {
+    "driver": "apt",
+    "fields": {
+     "installed-name": "cargo",
+     "name": "rust-all",
+     "repo-component": "universe"
+    },
+    "name": "rust-all"
+   },
+   "cargo\\ghgrab": {
+    "driver": "cargo",
+    "fields": {
+     "name": "ghgrab"
+    },
+    "name": "ghgrab"
+   },
+   "glue\\rust-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "rust"
+    },
+    "name": "rust-glue"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
    }
   },
   "ghidra": {
@@ -44397,6 +45657,37 @@
     "name": "kdenlive"
    }
   },
+  "kew": {
+   "apt\\kew": {
+    "driver": "apt",
+    "fields": {
+     "name": "kew"
+    },
+    "name": "kew"
+   },
+   "dotfiles\\kew-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/kew",
+      "src": "kew"
+     }
+    },
+    "name": "kew-dotfiles"
+   }
+  },
+  "kew-dotfiles": {
+   "dotfiles\\kew-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/kew",
+      "src": "kew"
+     }
+    },
+    "name": "kew-dotfiles"
+   }
+  },
   "kicad": {
    "apt\\kicad": {
     "driver": "apt",
@@ -44725,6 +46016,45 @@
     "name": "shell-glue"
    }
   },
+  "lazyrsync": {
+   "apt\\rsync": {
+    "driver": "apt",
+    "fields": {
+     "name": "rsync"
+    },
+    "name": "rsync"
+   },
+   "apt\\rust": {
+    "driver": "apt",
+    "fields": {
+     "installed-name": "cargo",
+     "name": "rust-all",
+     "repo-component": "universe"
+    },
+    "name": "rust-all"
+   },
+   "cargo\\lazyrsync": {
+    "driver": "cargo",
+    "fields": {
+     "name": "lazyrsync"
+    },
+    "name": "lazyrsync"
+   },
+   "glue\\rust-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "rust"
+    },
+    "name": "rust-glue"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   }
+  },
   "lazysql": {
    "apt\\curl": {
     "driver": "apt",
@@ -44767,6 +46097,88 @@
      "glue": "lazysql"
     },
     "name": "lazysql-glue"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   }
+  },
+  "leaf": {
+   "apt\\rust": {
+    "driver": "apt",
+    "fields": {
+     "installed-name": "cargo",
+     "name": "rust-all",
+     "repo-component": "universe"
+    },
+    "name": "rust-all"
+   },
+   "cargo\\leaf": {
+    "driver": "cargo",
+    "fields": {
+     "name": "leaf-markdown-viewer"
+    },
+    "name": "leaf-markdown-viewer"
+   },
+   "glue\\rust-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "rust"
+    },
+    "name": "rust-glue"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   }
+  },
+  "lean": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "glue\\lean-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "lean"
+    },
+    "name": "lean-glue"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   },
+   "script\\lean": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "curl -fsSL https://raw.githubusercontent.com/leanprover/elan/master/elan-init.sh | sh -s -- -y",
+     "name": "lean",
+     "uninstall-cmd": "\"$HOME/.elan/bin/elan\" self uninstall -y 2>/dev/null || rm -rf \"$HOME/.elan\"",
+     "version-cmd": "\"$HOME/.elan/bin/lean\" --version 2>/dev/null",
+     "version-re": "([0-9][0-9.]*)"
+    },
+    "name": "lean"
+   }
+  },
+  "lean-glue": {
+   "glue\\lean-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "lean"
+    },
+    "name": "lean-glue"
    },
    "glue\\shell-glue": {
     "driver": "glue",
@@ -45923,6 +47335,36 @@
      }
     },
     "name": "mitmproxy"
+   }
+  },
+  "mojo": {
+   "apt\\pipx": {
+    "driver": "apt",
+    "fields": {
+     "name": "pipx"
+    },
+    "name": "pipx"
+   },
+   "glue\\pipx-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "pipx"
+    },
+    "name": "pipx-glue"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   },
+   "pipx\\mojo": {
+    "driver": "pipx",
+    "fields": {
+     "name": "mojo"
+    },
+    "name": "mojo"
    }
   },
   "mongodb": {
@@ -48265,6 +49707,15 @@
     "name": "shell-glue"
    }
   },
+  "rclone": {
+   "apt\\rclone": {
+    "driver": "apt",
+    "fields": {
+     "name": "rclone"
+    },
+    "name": "rclone"
+   }
+  },
   "redis": {
    "apt\\redis": {
     "driver": "apt",
@@ -49559,6 +51010,28 @@
      "repo-component": "universe"
     },
     "name": "ttyd"
+   }
+  },
+  "tuxedo": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "tarball\\tuxedo": {
+    "driver": "tarball",
+    "fields": {
+     "installDir": "$CONFIGSYS_APP_DIR/tuxedo",
+     "name": "tuxedo",
+     "version": {
+      "asset": "tuxedo-*-$ARCH-unknown-linux-gnu.tar.gz",
+      "github": "webstonehq/tuxedo",
+      "strip-v": "true"
+     }
+    },
+    "name": "tuxedo"
    }
   },
   "typescript": {
@@ -51045,6 +52518,50 @@
     "name": "zed-glue"
    }
   },
+  "zellij": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "dotfiles\\zellij-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/zellij",
+      "src": "zellij"
+     }
+    },
+    "name": "zellij-dotfiles"
+   },
+   "tarball\\zellij": {
+    "driver": "tarball",
+    "fields": {
+     "installDir": "$CONFIGSYS_APP_DIR/zellij",
+     "name": "zellij",
+     "version": {
+      "asset": "zellij-x86_64-unknown-linux-musl.tar.gz",
+      "github": "zellij-org/zellij",
+      "strip-v": "true"
+     }
+    },
+    "name": "zellij"
+   }
+  },
+  "zellij-dotfiles": {
+   "dotfiles\\zellij-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/zellij",
+      "src": "zellij"
+     }
+    },
+    "name": "zellij-dotfiles"
+   }
+  },
   "zig": {
    "apt\\curl": {
     "driver": "apt",
@@ -51612,6 +53129,45 @@
      "name": "atop"
     },
     "name": "atop"
+   }
+  },
+  "atuin": {
+   "dnf\\atuin": {
+    "driver": "dnf",
+    "fields": {
+     "name": "atuin"
+    },
+    "name": "atuin"
+   },
+   "glue\\atuin-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "atuin"
+    },
+    "name": "atuin-glue"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   }
+  },
+  "atuin-glue": {
+   "glue\\atuin-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "atuin"
+    },
+    "name": "atuin-glue"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
    }
   },
   "audacity": {
@@ -53792,6 +55348,44 @@
     "name": "shell-glue"
    }
   },
+  "elvish": {
+   "dnf\\elvish": {
+    "driver": "dnf",
+    "fields": {
+     "name": "elvish"
+    },
+    "name": "elvish"
+   },
+   "dotfiles\\elvish-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/elvish",
+      "src": "elvish"
+     }
+    },
+    "name": "elvish-dotfiles"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   }
+  },
+  "elvish-dotfiles": {
+   "dotfiles\\elvish-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/elvish",
+      "src": "elvish"
+     }
+    },
+    "name": "elvish-dotfiles"
+   }
+  },
   "emacs": {
    "dnf\\emacs": {
     "driver": "dnf",
@@ -54578,6 +56172,38 @@
      "repo-component": "universe"
     },
     "name": "gh"
+   }
+  },
+  "ghgrab": {
+   "cargo\\ghgrab": {
+    "driver": "cargo",
+    "fields": {
+     "name": "ghgrab"
+    },
+    "name": "ghgrab"
+   },
+   "dnf\\rust": {
+    "driver": "dnf",
+    "fields": {
+     "installed-name": "cargo",
+     "name": "cargo",
+     "repo-component": "universe"
+    },
+    "name": "cargo"
+   },
+   "glue\\rust-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "rust"
+    },
+    "name": "rust-glue"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
    }
   },
   "ghidra": {
@@ -56790,6 +58416,37 @@
     "name": "kdenlive"
    }
   },
+  "kew": {
+   "dnf\\kew": {
+    "driver": "dnf",
+    "fields": {
+     "name": "kew"
+    },
+    "name": "kew"
+   },
+   "dotfiles\\kew-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/kew",
+      "src": "kew"
+     }
+    },
+    "name": "kew-dotfiles"
+   }
+  },
+  "kew-dotfiles": {
+   "dotfiles\\kew-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/kew",
+      "src": "kew"
+     }
+    },
+    "name": "kew-dotfiles"
+   }
+  },
   "kicad": {
    "dnf\\kicad": {
     "driver": "dnf",
@@ -57128,6 +58785,45 @@
     "name": "shell-glue"
    }
   },
+  "lazyrsync": {
+   "cargo\\lazyrsync": {
+    "driver": "cargo",
+    "fields": {
+     "name": "lazyrsync"
+    },
+    "name": "lazyrsync"
+   },
+   "dnf\\rsync": {
+    "driver": "dnf",
+    "fields": {
+     "name": "rsync"
+    },
+    "name": "rsync"
+   },
+   "dnf\\rust": {
+    "driver": "dnf",
+    "fields": {
+     "installed-name": "cargo",
+     "name": "cargo",
+     "repo-component": "universe"
+    },
+    "name": "cargo"
+   },
+   "glue\\rust-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "rust"
+    },
+    "name": "rust-glue"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   }
+  },
   "lazysql": {
    "dnf\\curl": {
     "driver": "dnf",
@@ -57170,6 +58866,88 @@
      "glue": "lazysql"
     },
     "name": "lazysql-glue"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   }
+  },
+  "leaf": {
+   "cargo\\leaf": {
+    "driver": "cargo",
+    "fields": {
+     "name": "leaf-markdown-viewer"
+    },
+    "name": "leaf-markdown-viewer"
+   },
+   "dnf\\rust": {
+    "driver": "dnf",
+    "fields": {
+     "installed-name": "cargo",
+     "name": "cargo",
+     "repo-component": "universe"
+    },
+    "name": "cargo"
+   },
+   "glue\\rust-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "rust"
+    },
+    "name": "rust-glue"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   }
+  },
+  "lean": {
+   "dnf\\curl": {
+    "driver": "dnf",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "glue\\lean-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "lean"
+    },
+    "name": "lean-glue"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   },
+   "script\\lean": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "curl -fsSL https://raw.githubusercontent.com/leanprover/elan/master/elan-init.sh | sh -s -- -y",
+     "name": "lean",
+     "uninstall-cmd": "\"$HOME/.elan/bin/elan\" self uninstall -y 2>/dev/null || rm -rf \"$HOME/.elan\"",
+     "version-cmd": "\"$HOME/.elan/bin/lean\" --version 2>/dev/null",
+     "version-re": "([0-9][0-9.]*)"
+    },
+    "name": "lean"
+   }
+  },
+  "lean-glue": {
+   "glue\\lean-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "lean"
+    },
+    "name": "lean-glue"
    },
    "glue\\shell-glue": {
     "driver": "glue",
@@ -58247,6 +60025,36 @@
      }
     },
     "name": "mitmproxy"
+   }
+  },
+  "mojo": {
+   "dnf\\pipx": {
+    "driver": "dnf",
+    "fields": {
+     "name": "pipx"
+    },
+    "name": "pipx"
+   },
+   "glue\\pipx-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "pipx"
+    },
+    "name": "pipx-glue"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   },
+   "pipx\\mojo": {
+    "driver": "pipx",
+    "fields": {
+     "name": "mojo"
+    },
+    "name": "mojo"
    }
   },
   "mononoki-nerd": {
@@ -60517,6 +62325,15 @@
     "name": "shell-glue"
    }
   },
+  "rclone": {
+   "dnf\\rclone": {
+    "driver": "dnf",
+    "fields": {
+     "name": "rclone"
+    },
+    "name": "rclone"
+   }
+  },
   "redis": {
    "dnf\\redis": {
     "driver": "dnf",
@@ -61848,6 +63665,28 @@
      "repo-component": "universe"
     },
     "name": "ttyd"
+   }
+  },
+  "tuxedo": {
+   "dnf\\curl": {
+    "driver": "dnf",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "tarball\\tuxedo": {
+    "driver": "tarball",
+    "fields": {
+     "installDir": "$CONFIGSYS_APP_DIR/tuxedo",
+     "name": "tuxedo",
+     "version": {
+      "asset": "tuxedo-*-$ARCH-unknown-linux-gnu.tar.gz",
+      "github": "webstonehq/tuxedo",
+      "strip-v": "true"
+     }
+    },
+    "name": "tuxedo"
    }
   },
   "typescript": {
@@ -63367,6 +65206,37 @@
     "name": "zed-glue"
    }
   },
+  "zellij": {
+   "dnf\\zellij": {
+    "driver": "dnf",
+    "fields": {
+     "name": "zellij"
+    },
+    "name": "zellij"
+   },
+   "dotfiles\\zellij-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/zellij",
+      "src": "zellij"
+     }
+    },
+    "name": "zellij-dotfiles"
+   }
+  },
+  "zellij-dotfiles": {
+   "dotfiles\\zellij-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/zellij",
+      "src": "zellij"
+     }
+    },
+    "name": "zellij-dotfiles"
+   }
+  },
   "zig": {
    "dnf\\curl": {
     "driver": "dnf",
@@ -63934,6 +65804,45 @@
      "name": "atop"
     },
     "name": "atop"
+   }
+  },
+  "atuin": {
+   "dnf\\atuin": {
+    "driver": "dnf",
+    "fields": {
+     "name": "atuin"
+    },
+    "name": "atuin"
+   },
+   "glue\\atuin-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "atuin"
+    },
+    "name": "atuin-glue"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   }
+  },
+  "atuin-glue": {
+   "glue\\atuin-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "atuin"
+    },
+    "name": "atuin-glue"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
    }
   },
   "audacity": {
@@ -66140,6 +68049,44 @@
     "name": "shell-glue"
    }
   },
+  "elvish": {
+   "dnf\\elvish": {
+    "driver": "dnf",
+    "fields": {
+     "name": "elvish"
+    },
+    "name": "elvish"
+   },
+   "dotfiles\\elvish-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/elvish",
+      "src": "elvish"
+     }
+    },
+    "name": "elvish-dotfiles"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   }
+  },
+  "elvish-dotfiles": {
+   "dotfiles\\elvish-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/elvish",
+      "src": "elvish"
+     }
+    },
+    "name": "elvish-dotfiles"
+   }
+  },
   "emacs": {
    "dnf\\emacs": {
     "driver": "dnf",
@@ -66926,6 +68873,38 @@
      "repo-component": "universe"
     },
     "name": "gh"
+   }
+  },
+  "ghgrab": {
+   "cargo\\ghgrab": {
+    "driver": "cargo",
+    "fields": {
+     "name": "ghgrab"
+    },
+    "name": "ghgrab"
+   },
+   "dnf\\rust": {
+    "driver": "dnf",
+    "fields": {
+     "installed-name": "cargo",
+     "name": "cargo",
+     "repo-component": "universe"
+    },
+    "name": "cargo"
+   },
+   "glue\\rust-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "rust"
+    },
+    "name": "rust-glue"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
    }
   },
   "ghidra": {
@@ -69138,6 +71117,37 @@
     "name": "kdenlive"
    }
   },
+  "kew": {
+   "dnf\\kew": {
+    "driver": "dnf",
+    "fields": {
+     "name": "kew"
+    },
+    "name": "kew"
+   },
+   "dotfiles\\kew-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/kew",
+      "src": "kew"
+     }
+    },
+    "name": "kew-dotfiles"
+   }
+  },
+  "kew-dotfiles": {
+   "dotfiles\\kew-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/kew",
+      "src": "kew"
+     }
+    },
+    "name": "kew-dotfiles"
+   }
+  },
   "kicad": {
    "dnf\\kicad": {
     "driver": "dnf",
@@ -69476,6 +71486,45 @@
     "name": "shell-glue"
    }
   },
+  "lazyrsync": {
+   "cargo\\lazyrsync": {
+    "driver": "cargo",
+    "fields": {
+     "name": "lazyrsync"
+    },
+    "name": "lazyrsync"
+   },
+   "dnf\\rsync": {
+    "driver": "dnf",
+    "fields": {
+     "name": "rsync"
+    },
+    "name": "rsync"
+   },
+   "dnf\\rust": {
+    "driver": "dnf",
+    "fields": {
+     "installed-name": "cargo",
+     "name": "cargo",
+     "repo-component": "universe"
+    },
+    "name": "cargo"
+   },
+   "glue\\rust-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "rust"
+    },
+    "name": "rust-glue"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   }
+  },
   "lazysql": {
    "dnf\\curl": {
     "driver": "dnf",
@@ -69518,6 +71567,88 @@
      "glue": "lazysql"
     },
     "name": "lazysql-glue"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   }
+  },
+  "leaf": {
+   "cargo\\leaf": {
+    "driver": "cargo",
+    "fields": {
+     "name": "leaf-markdown-viewer"
+    },
+    "name": "leaf-markdown-viewer"
+   },
+   "dnf\\rust": {
+    "driver": "dnf",
+    "fields": {
+     "installed-name": "cargo",
+     "name": "cargo",
+     "repo-component": "universe"
+    },
+    "name": "cargo"
+   },
+   "glue\\rust-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "rust"
+    },
+    "name": "rust-glue"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   }
+  },
+  "lean": {
+   "dnf\\curl": {
+    "driver": "dnf",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "glue\\lean-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "lean"
+    },
+    "name": "lean-glue"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   },
+   "script\\lean": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "curl -fsSL https://raw.githubusercontent.com/leanprover/elan/master/elan-init.sh | sh -s -- -y",
+     "name": "lean",
+     "uninstall-cmd": "\"$HOME/.elan/bin/elan\" self uninstall -y 2>/dev/null || rm -rf \"$HOME/.elan\"",
+     "version-cmd": "\"$HOME/.elan/bin/lean\" --version 2>/dev/null",
+     "version-re": "([0-9][0-9.]*)"
+    },
+    "name": "lean"
+   }
+  },
+  "lean-glue": {
+   "glue\\lean-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "lean"
+    },
+    "name": "lean-glue"
    },
    "glue\\shell-glue": {
     "driver": "glue",
@@ -70595,6 +72726,36 @@
      }
     },
     "name": "mitmproxy"
+   }
+  },
+  "mojo": {
+   "dnf\\pipx": {
+    "driver": "dnf",
+    "fields": {
+     "name": "pipx"
+    },
+    "name": "pipx"
+   },
+   "glue\\pipx-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "pipx"
+    },
+    "name": "pipx-glue"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   },
+   "pipx\\mojo": {
+    "driver": "pipx",
+    "fields": {
+     "name": "mojo"
+    },
+    "name": "mojo"
    }
   },
   "mononoki-nerd": {
@@ -72865,6 +75026,15 @@
     "name": "shell-glue"
    }
   },
+  "rclone": {
+   "dnf\\rclone": {
+    "driver": "dnf",
+    "fields": {
+     "name": "rclone"
+    },
+    "name": "rclone"
+   }
+  },
   "redis": {
    "dnf\\redis": {
     "driver": "dnf",
@@ -74196,6 +76366,28 @@
      "repo-component": "universe"
     },
     "name": "ttyd"
+   }
+  },
+  "tuxedo": {
+   "dnf\\curl": {
+    "driver": "dnf",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "tarball\\tuxedo": {
+    "driver": "tarball",
+    "fields": {
+     "installDir": "$CONFIGSYS_APP_DIR/tuxedo",
+     "name": "tuxedo",
+     "version": {
+      "asset": "tuxedo-*-$ARCH-unknown-linux-gnu.tar.gz",
+      "github": "webstonehq/tuxedo",
+      "strip-v": "true"
+     }
+    },
+    "name": "tuxedo"
    }
   },
   "typescript": {
@@ -75715,6 +77907,37 @@
     "name": "zed-glue"
    }
   },
+  "zellij": {
+   "dnf\\zellij": {
+    "driver": "dnf",
+    "fields": {
+     "name": "zellij"
+    },
+    "name": "zellij"
+   },
+   "dotfiles\\zellij-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/zellij",
+      "src": "zellij"
+     }
+    },
+    "name": "zellij-dotfiles"
+   }
+  },
+  "zellij-dotfiles": {
+   "dotfiles\\zellij-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/zellij",
+      "src": "zellij"
+     }
+    },
+    "name": "zellij-dotfiles"
+   }
+  },
   "zig": {
    "dnf\\curl": {
     "driver": "dnf",
@@ -76262,6 +78485,45 @@
      "name": "astroterm"
     },
     "name": "astroterm"
+   }
+  },
+  "atuin": {
+   "brew\\atuin": {
+    "driver": "brew",
+    "fields": {
+     "name": "atuin"
+    },
+    "name": "atuin"
+   },
+   "glue\\atuin-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "atuin"
+    },
+    "name": "atuin-glue"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   }
+  },
+  "atuin-glue": {
+   "glue\\atuin-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "atuin"
+    },
+    "name": "atuin-glue"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
    }
   },
   "audacity": {
@@ -77844,6 +80106,44 @@
     "name": "shell-glue"
    }
   },
+  "elvish": {
+   "brew\\elvish": {
+    "driver": "brew",
+    "fields": {
+     "name": "elvish"
+    },
+    "name": "elvish"
+   },
+   "dotfiles\\elvish-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/elvish",
+      "src": "elvish"
+     }
+    },
+    "name": "elvish-dotfiles"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   }
+  },
+  "elvish-dotfiles": {
+   "dotfiles\\elvish-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/elvish",
+      "src": "elvish"
+     }
+    },
+    "name": "elvish-dotfiles"
+   }
+  },
   "emacs": {
    "brew\\emacs": {
     "driver": "brew",
@@ -78516,6 +80816,38 @@
      "repo-component": "universe"
     },
     "name": "gh"
+   }
+  },
+  "ghgrab": {
+   "brew\\rust": {
+    "driver": "brew",
+    "fields": {
+     "installed-name": "cargo",
+     "name": "rust",
+     "repo-component": "universe"
+    },
+    "name": "rust"
+   },
+   "cargo\\ghgrab": {
+    "driver": "cargo",
+    "fields": {
+     "name": "ghgrab"
+    },
+    "name": "ghgrab"
+   },
+   "glue\\rust-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "rust"
+    },
+    "name": "rust-glue"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
    }
   },
   "ghidra": {
@@ -80137,6 +82469,37 @@
     "name": "org.kde.kdenlive"
    }
   },
+  "kew": {
+   "brew\\kew": {
+    "driver": "brew",
+    "fields": {
+     "name": "kew"
+    },
+    "name": "kew"
+   },
+   "dotfiles\\kew-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/kew",
+      "src": "kew"
+     }
+    },
+    "name": "kew-dotfiles"
+   }
+  },
+  "kew-dotfiles": {
+   "dotfiles\\kew-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/kew",
+      "src": "kew"
+     }
+    },
+    "name": "kew-dotfiles"
+   }
+  },
   "kicad": {
    "dotfiles\\kicad-dotfiles": {
     "driver": "dotfiles",
@@ -80424,6 +82787,22 @@
     "name": "shell-glue"
    }
   },
+  "lazyrsync": {
+   "brew\\lazyrsync": {
+    "driver": "brew",
+    "fields": {
+     "name": "lazyrsync"
+    },
+    "name": "lazyrsync"
+   },
+   "brew\\rsync": {
+    "driver": "brew",
+    "fields": {
+     "name": "rsync"
+    },
+    "name": "rsync"
+   }
+  },
   "lazysql": {
    "brew\\curl": {
     "driver": "brew",
@@ -80466,6 +82845,88 @@
      "glue": "lazysql"
     },
     "name": "lazysql-glue"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   }
+  },
+  "leaf": {
+   "brew\\rust": {
+    "driver": "brew",
+    "fields": {
+     "installed-name": "cargo",
+     "name": "rust",
+     "repo-component": "universe"
+    },
+    "name": "rust"
+   },
+   "cargo\\leaf": {
+    "driver": "cargo",
+    "fields": {
+     "name": "leaf-markdown-viewer"
+    },
+    "name": "leaf-markdown-viewer"
+   },
+   "glue\\rust-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "rust"
+    },
+    "name": "rust-glue"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   }
+  },
+  "lean": {
+   "brew\\curl": {
+    "driver": "brew",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "glue\\lean-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "lean"
+    },
+    "name": "lean-glue"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   },
+   "script\\lean": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "curl -fsSL https://raw.githubusercontent.com/leanprover/elan/master/elan-init.sh | sh -s -- -y",
+     "name": "lean",
+     "uninstall-cmd": "\"$HOME/.elan/bin/elan\" self uninstall -y 2>/dev/null || rm -rf \"$HOME/.elan\"",
+     "version-cmd": "\"$HOME/.elan/bin/lean\" --version 2>/dev/null",
+     "version-re": "([0-9][0-9.]*)"
+    },
+    "name": "lean"
+   }
+  },
+  "lean-glue": {
+   "glue\\lean-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "lean"
+    },
+    "name": "lean-glue"
    },
    "glue\\shell-glue": {
     "driver": "glue",
@@ -81471,6 +83932,36 @@
      }
     },
     "name": "mitmproxy"
+   }
+  },
+  "mojo": {
+   "brew\\pipx": {
+    "driver": "brew",
+    "fields": {
+     "name": "pipx"
+    },
+    "name": "pipx"
+   },
+   "glue\\pipx-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "pipx"
+    },
+    "name": "pipx-glue"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   },
+   "pipx\\mojo": {
+    "driver": "pipx",
+    "fields": {
+     "name": "mojo"
+    },
+    "name": "mojo"
    }
   },
   "mononoki-nerd": {
@@ -83305,6 +85796,15 @@
     "name": "shell-glue"
    }
   },
+  "rclone": {
+   "brew\\rclone": {
+    "driver": "brew",
+    "fields": {
+     "name": "rclone"
+    },
+    "name": "rclone"
+   }
+  },
   "redis": {
    "brew\\redis": {
     "driver": "brew",
@@ -84359,6 +86859,15 @@
     "name": "ttyd"
    }
   },
+  "tuxedo": {
+   "brew\\tuxedo": {
+    "driver": "brew",
+    "fields": {
+     "name": "tuxedo"
+    },
+    "name": "tuxedo"
+   }
+  },
   "typescript": {
    "brew\\node": {
     "driver": "brew",
@@ -85388,6 +87897,37 @@
     "name": "zed-glue"
    }
   },
+  "zellij": {
+   "brew\\zellij": {
+    "driver": "brew",
+    "fields": {
+     "name": "zellij"
+    },
+    "name": "zellij"
+   },
+   "dotfiles\\zellij-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/zellij",
+      "src": "zellij"
+     }
+    },
+    "name": "zellij-dotfiles"
+   }
+  },
+  "zellij-dotfiles": {
+   "dotfiles\\zellij-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/zellij",
+      "src": "zellij"
+     }
+    },
+    "name": "zellij-dotfiles"
+   }
+  },
   "zig": {
    "brew\\zig": {
     "driver": "brew",
@@ -85934,6 +88474,61 @@
      "name": "atop"
     },
     "name": "atop"
+   }
+  },
+  "atuin": {
+   "apt\\rust": {
+    "driver": "apt",
+    "fields": {
+     "installed-name": "cargo",
+     "name": "rust-all",
+     "repo-component": "universe"
+    },
+    "name": "rust-all"
+   },
+   "cargo\\atuin": {
+    "driver": "cargo",
+    "fields": {
+     "name": "atuin"
+    },
+    "name": "atuin"
+   },
+   "glue\\atuin-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "atuin"
+    },
+    "name": "atuin-glue"
+   },
+   "glue\\rust-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "rust"
+    },
+    "name": "rust-glue"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   }
+  },
+  "atuin-glue": {
+   "glue\\atuin-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "atuin"
+    },
+    "name": "atuin-glue"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
    }
   },
   "audacity": {
@@ -88335,6 +90930,44 @@
     "name": "shell-glue"
    }
   },
+  "elvish": {
+   "apt\\elvish": {
+    "driver": "apt",
+    "fields": {
+     "name": "elvish"
+    },
+    "name": "elvish"
+   },
+   "dotfiles\\elvish-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/elvish",
+      "src": "elvish"
+     }
+    },
+    "name": "elvish-dotfiles"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   }
+  },
+  "elvish-dotfiles": {
+   "dotfiles\\elvish-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/elvish",
+      "src": "elvish"
+     }
+    },
+    "name": "elvish-dotfiles"
+   }
+  },
   "emacs": {
    "apt\\emacs": {
     "driver": "apt",
@@ -89430,6 +92063,38 @@
      "repo-component": "universe"
     },
     "name": "gh"
+   }
+  },
+  "ghgrab": {
+   "apt\\rust": {
+    "driver": "apt",
+    "fields": {
+     "installed-name": "cargo",
+     "name": "rust-all",
+     "repo-component": "universe"
+    },
+    "name": "rust-all"
+   },
+   "cargo\\ghgrab": {
+    "driver": "cargo",
+    "fields": {
+     "name": "ghgrab"
+    },
+    "name": "ghgrab"
+   },
+   "glue\\rust-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "rust"
+    },
+    "name": "rust-glue"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
    }
   },
   "ghidra": {
@@ -91618,6 +94283,37 @@
     "name": "kdenlive"
    }
   },
+  "kew": {
+   "apt\\kew": {
+    "driver": "apt",
+    "fields": {
+     "name": "kew"
+    },
+    "name": "kew"
+   },
+   "dotfiles\\kew-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/kew",
+      "src": "kew"
+     }
+    },
+    "name": "kew-dotfiles"
+   }
+  },
+  "kew-dotfiles": {
+   "dotfiles\\kew-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/kew",
+      "src": "kew"
+     }
+    },
+    "name": "kew-dotfiles"
+   }
+  },
   "kicad": {
    "apt\\kicad": {
     "driver": "apt",
@@ -91946,6 +94642,45 @@
     "name": "shell-glue"
    }
   },
+  "lazyrsync": {
+   "apt\\rsync": {
+    "driver": "apt",
+    "fields": {
+     "name": "rsync"
+    },
+    "name": "rsync"
+   },
+   "apt\\rust": {
+    "driver": "apt",
+    "fields": {
+     "installed-name": "cargo",
+     "name": "rust-all",
+     "repo-component": "universe"
+    },
+    "name": "rust-all"
+   },
+   "cargo\\lazyrsync": {
+    "driver": "cargo",
+    "fields": {
+     "name": "lazyrsync"
+    },
+    "name": "lazyrsync"
+   },
+   "glue\\rust-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "rust"
+    },
+    "name": "rust-glue"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   }
+  },
   "lazysql": {
    "apt\\curl": {
     "driver": "apt",
@@ -91988,6 +94723,88 @@
      "glue": "lazysql"
     },
     "name": "lazysql-glue"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   }
+  },
+  "leaf": {
+   "apt\\rust": {
+    "driver": "apt",
+    "fields": {
+     "installed-name": "cargo",
+     "name": "rust-all",
+     "repo-component": "universe"
+    },
+    "name": "rust-all"
+   },
+   "cargo\\leaf": {
+    "driver": "cargo",
+    "fields": {
+     "name": "leaf-markdown-viewer"
+    },
+    "name": "leaf-markdown-viewer"
+   },
+   "glue\\rust-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "rust"
+    },
+    "name": "rust-glue"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   }
+  },
+  "lean": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "glue\\lean-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "lean"
+    },
+    "name": "lean-glue"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   },
+   "script\\lean": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "curl -fsSL https://raw.githubusercontent.com/leanprover/elan/master/elan-init.sh | sh -s -- -y",
+     "name": "lean",
+     "uninstall-cmd": "\"$HOME/.elan/bin/elan\" self uninstall -y 2>/dev/null || rm -rf \"$HOME/.elan\"",
+     "version-cmd": "\"$HOME/.elan/bin/lean\" --version 2>/dev/null",
+     "version-re": "([0-9][0-9.]*)"
+    },
+    "name": "lean"
+   }
+  },
+  "lean-glue": {
+   "glue\\lean-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "lean"
+    },
+    "name": "lean-glue"
    },
    "glue\\shell-glue": {
     "driver": "glue",
@@ -93178,6 +95995,53 @@
      }
     },
     "name": "mitmproxy"
+   }
+  },
+  "mojo": {
+   "apt\\python3-pip": {
+    "driver": "apt",
+    "fields": {
+     "name": "python3-pip"
+    },
+    "name": "python3-pip"
+   },
+   "glue\\pipx-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "pipx"
+    },
+    "name": "pipx-glue"
+   },
+   "glue\\python3-pip-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "python3-pip"
+    },
+    "name": "python3-pip-glue"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   },
+   "pip\\pipx": {
+    "driver": "pip",
+    "fields": {
+     "name": "pipx",
+     "version": {
+      "pypi": "pipx"
+     }
+    },
+    "name": "pipx"
+   },
+   "pipx\\mojo": {
+    "driver": "pipx",
+    "fields": {
+     "name": "mojo"
+    },
+    "name": "mojo"
    }
   },
   "mongodb": {
@@ -95605,6 +98469,15 @@
     "name": "shell-glue"
    }
   },
+  "rclone": {
+   "apt\\rclone": {
+    "driver": "apt",
+    "fields": {
+     "name": "rclone"
+    },
+    "name": "rclone"
+   }
+  },
   "redis": {
    "apt\\redis": {
     "driver": "apt",
@@ -96915,6 +99788,28 @@
      "repo-component": "universe"
     },
     "name": "ttyd"
+   }
+  },
+  "tuxedo": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "tarball\\tuxedo": {
+    "driver": "tarball",
+    "fields": {
+     "installDir": "$CONFIGSYS_APP_DIR/tuxedo",
+     "name": "tuxedo",
+     "version": {
+      "asset": "tuxedo-*-$ARCH-unknown-linux-gnu.tar.gz",
+      "github": "webstonehq/tuxedo",
+      "strip-v": "true"
+     }
+    },
+    "name": "tuxedo"
    }
   },
   "typescript": {
@@ -98372,6 +101267,50 @@
     "name": "zed-glue"
    }
   },
+  "zellij": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "dotfiles\\zellij-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/zellij",
+      "src": "zellij"
+     }
+    },
+    "name": "zellij-dotfiles"
+   },
+   "tarball\\zellij": {
+    "driver": "tarball",
+    "fields": {
+     "installDir": "$CONFIGSYS_APP_DIR/zellij",
+     "name": "zellij",
+     "version": {
+      "asset": "zellij-x86_64-unknown-linux-musl.tar.gz",
+      "github": "zellij-org/zellij",
+      "strip-v": "true"
+     }
+    },
+    "name": "zellij"
+   }
+  },
+  "zellij-dotfiles": {
+   "dotfiles\\zellij-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/zellij",
+      "src": "zellij"
+     }
+    },
+    "name": "zellij-dotfiles"
+   }
+  },
   "zig": {
    "apt\\curl": {
     "driver": "apt",
@@ -98971,6 +101910,61 @@
      "name": "epel-release"
     },
     "name": "epel-release"
+   }
+  },
+  "atuin": {
+   "cargo\\atuin": {
+    "driver": "cargo",
+    "fields": {
+     "name": "atuin"
+    },
+    "name": "atuin"
+   },
+   "dnf\\rust": {
+    "driver": "dnf",
+    "fields": {
+     "installed-name": "cargo",
+     "name": "cargo",
+     "repo-component": "universe"
+    },
+    "name": "cargo"
+   },
+   "glue\\atuin-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "atuin"
+    },
+    "name": "atuin-glue"
+   },
+   "glue\\rust-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "rust"
+    },
+    "name": "rust-glue"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   }
+  },
+  "atuin-glue": {
+   "glue\\atuin-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "atuin"
+    },
+    "name": "atuin-glue"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
    }
   },
   "audacity": {
@@ -101296,6 +104290,57 @@
     "name": "shell-glue"
    }
   },
+  "elvish": {
+   "dnf\\curl": {
+    "driver": "dnf",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "dotfiles\\elvish-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/elvish",
+      "src": "elvish"
+     }
+    },
+    "name": "elvish-dotfiles"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   },
+   "tarball\\elvish": {
+    "driver": "tarball",
+    "fields": {
+     "installDir": "$CONFIGSYS_APP_DIR/elvish",
+     "name": "elvish",
+     "version": {
+      "asset": "elvish-*-linux-amd64.tar.gz",
+      "github": "elves/elvish",
+      "strip-v": "true"
+     }
+    },
+    "name": "elvish"
+   }
+  },
+  "elvish-dotfiles": {
+   "dotfiles\\elvish-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/elvish",
+      "src": "elvish"
+     }
+    },
+    "name": "elvish-dotfiles"
+   }
+  },
   "emacs": {
    "dnf\\emacs": {
     "driver": "dnf",
@@ -102213,6 +105258,38 @@
      }
     },
     "name": "gh"
+   }
+  },
+  "ghgrab": {
+   "cargo\\ghgrab": {
+    "driver": "cargo",
+    "fields": {
+     "name": "ghgrab"
+    },
+    "name": "ghgrab"
+   },
+   "dnf\\rust": {
+    "driver": "dnf",
+    "fields": {
+     "installed-name": "cargo",
+     "name": "cargo",
+     "repo-component": "universe"
+    },
+    "name": "cargo"
+   },
+   "glue\\rust-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "rust"
+    },
+    "name": "rust-glue"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
    }
   },
   "ghidra": {
@@ -104449,6 +107526,18 @@
     "name": "kdenlive"
    }
   },
+  "kew-dotfiles": {
+   "dotfiles\\kew-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/kew",
+      "src": "kew"
+     }
+    },
+    "name": "kew-dotfiles"
+   }
+  },
   "kicad": {
    "dnf\\flatpak": {
     "driver": "dnf",
@@ -104798,6 +107887,45 @@
     "name": "shell-glue"
    }
   },
+  "lazyrsync": {
+   "cargo\\lazyrsync": {
+    "driver": "cargo",
+    "fields": {
+     "name": "lazyrsync"
+    },
+    "name": "lazyrsync"
+   },
+   "dnf\\rsync": {
+    "driver": "dnf",
+    "fields": {
+     "name": "rsync"
+    },
+    "name": "rsync"
+   },
+   "dnf\\rust": {
+    "driver": "dnf",
+    "fields": {
+     "installed-name": "cargo",
+     "name": "cargo",
+     "repo-component": "universe"
+    },
+    "name": "cargo"
+   },
+   "glue\\rust-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "rust"
+    },
+    "name": "rust-glue"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   }
+  },
   "lazysql": {
    "dnf\\curl": {
     "driver": "dnf",
@@ -104840,6 +107968,88 @@
      "glue": "lazysql"
     },
     "name": "lazysql-glue"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   }
+  },
+  "leaf": {
+   "cargo\\leaf": {
+    "driver": "cargo",
+    "fields": {
+     "name": "leaf-markdown-viewer"
+    },
+    "name": "leaf-markdown-viewer"
+   },
+   "dnf\\rust": {
+    "driver": "dnf",
+    "fields": {
+     "installed-name": "cargo",
+     "name": "cargo",
+     "repo-component": "universe"
+    },
+    "name": "cargo"
+   },
+   "glue\\rust-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "rust"
+    },
+    "name": "rust-glue"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   }
+  },
+  "lean": {
+   "dnf\\curl": {
+    "driver": "dnf",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "glue\\lean-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "lean"
+    },
+    "name": "lean-glue"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   },
+   "script\\lean": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "curl -fsSL https://raw.githubusercontent.com/leanprover/elan/master/elan-init.sh | sh -s -- -y",
+     "name": "lean",
+     "uninstall-cmd": "\"$HOME/.elan/bin/elan\" self uninstall -y 2>/dev/null || rm -rf \"$HOME/.elan\"",
+     "version-cmd": "\"$HOME/.elan/bin/lean\" --version 2>/dev/null",
+     "version-re": "([0-9][0-9.]*)"
+    },
+    "name": "lean"
+   }
+  },
+  "lean-glue": {
+   "glue\\lean-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "lean"
+    },
+    "name": "lean-glue"
    },
    "glue\\shell-glue": {
     "driver": "glue",
@@ -105973,6 +109183,43 @@
      }
     },
     "name": "mitmproxy"
+   }
+  },
+  "mojo": {
+   "dnf\\epel-release": {
+    "driver": "dnf",
+    "fields": {
+     "name": "epel-release"
+    },
+    "name": "epel-release"
+   },
+   "dnf\\pipx": {
+    "driver": "dnf",
+    "fields": {
+     "name": "pipx"
+    },
+    "name": "pipx"
+   },
+   "glue\\pipx-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "pipx"
+    },
+    "name": "pipx-glue"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   },
+   "pipx\\mojo": {
+    "driver": "pipx",
+    "fields": {
+     "name": "mojo"
+    },
+    "name": "mojo"
    }
   },
   "mongodb": {
@@ -108384,6 +111631,15 @@
     "name": "shell-glue"
    }
   },
+  "rclone": {
+   "dnf\\rclone": {
+    "driver": "dnf",
+    "fields": {
+     "name": "rclone"
+    },
+    "name": "rclone"
+   }
+  },
   "redis": {
    "dnf\\redis": {
     "driver": "dnf",
@@ -109800,6 +113056,28 @@
      "repo-component": "universe"
     },
     "name": "ttyd"
+   }
+  },
+  "tuxedo": {
+   "dnf\\curl": {
+    "driver": "dnf",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "tarball\\tuxedo": {
+    "driver": "tarball",
+    "fields": {
+     "installDir": "$CONFIGSYS_APP_DIR/tuxedo",
+     "name": "tuxedo",
+     "version": {
+      "asset": "tuxedo-*-$ARCH-unknown-linux-gnu.tar.gz",
+      "github": "webstonehq/tuxedo",
+      "strip-v": "true"
+     }
+    },
+    "name": "tuxedo"
    }
   },
   "typescript": {
@@ -111404,6 +114682,50 @@
     "name": "zed-glue"
    }
   },
+  "zellij": {
+   "dnf\\curl": {
+    "driver": "dnf",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "dotfiles\\zellij-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/zellij",
+      "src": "zellij"
+     }
+    },
+    "name": "zellij-dotfiles"
+   },
+   "tarball\\zellij": {
+    "driver": "tarball",
+    "fields": {
+     "installDir": "$CONFIGSYS_APP_DIR/zellij",
+     "name": "zellij",
+     "version": {
+      "asset": "zellij-x86_64-unknown-linux-musl.tar.gz",
+      "github": "zellij-org/zellij",
+      "strip-v": "true"
+     }
+    },
+    "name": "zellij"
+   }
+  },
+  "zellij-dotfiles": {
+   "dotfiles\\zellij-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/zellij",
+      "src": "zellij"
+     }
+    },
+    "name": "zellij-dotfiles"
+   }
+  },
   "zig": {
    "dnf\\curl": {
     "driver": "dnf",
@@ -111975,6 +115297,61 @@
      "name": "atop"
     },
     "name": "atop"
+   }
+  },
+  "atuin": {
+   "apt\\rust": {
+    "driver": "apt",
+    "fields": {
+     "installed-name": "cargo",
+     "name": "rust-all",
+     "repo-component": "universe"
+    },
+    "name": "rust-all"
+   },
+   "cargo\\atuin": {
+    "driver": "cargo",
+    "fields": {
+     "name": "atuin"
+    },
+    "name": "atuin"
+   },
+   "glue\\atuin-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "atuin"
+    },
+    "name": "atuin-glue"
+   },
+   "glue\\rust-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "rust"
+    },
+    "name": "rust-glue"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   }
+  },
+  "atuin-glue": {
+   "glue\\atuin-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "atuin"
+    },
+    "name": "atuin-glue"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
    }
   },
   "audacity": {
@@ -114367,6 +117744,44 @@
     "name": "shell-glue"
    }
   },
+  "elvish": {
+   "apt\\elvish": {
+    "driver": "apt",
+    "fields": {
+     "name": "elvish"
+    },
+    "name": "elvish"
+   },
+   "dotfiles\\elvish-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/elvish",
+      "src": "elvish"
+     }
+    },
+    "name": "elvish-dotfiles"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   }
+  },
+  "elvish-dotfiles": {
+   "dotfiles\\elvish-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/elvish",
+      "src": "elvish"
+     }
+    },
+    "name": "elvish-dotfiles"
+   }
+  },
   "emacs": {
    "apt\\emacs": {
     "driver": "apt",
@@ -115462,6 +118877,38 @@
      "repo-component": "universe"
     },
     "name": "gh"
+   }
+  },
+  "ghgrab": {
+   "apt\\rust": {
+    "driver": "apt",
+    "fields": {
+     "installed-name": "cargo",
+     "name": "rust-all",
+     "repo-component": "universe"
+    },
+    "name": "rust-all"
+   },
+   "cargo\\ghgrab": {
+    "driver": "cargo",
+    "fields": {
+     "name": "ghgrab"
+    },
+    "name": "ghgrab"
+   },
+   "glue\\rust-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "rust"
+    },
+    "name": "rust-glue"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
    }
   },
   "ghidra": {
@@ -117650,6 +121097,37 @@
     "name": "kdenlive"
    }
   },
+  "kew": {
+   "apt\\kew": {
+    "driver": "apt",
+    "fields": {
+     "name": "kew"
+    },
+    "name": "kew"
+   },
+   "dotfiles\\kew-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/kew",
+      "src": "kew"
+     }
+    },
+    "name": "kew-dotfiles"
+   }
+  },
+  "kew-dotfiles": {
+   "dotfiles\\kew-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/kew",
+      "src": "kew"
+     }
+    },
+    "name": "kew-dotfiles"
+   }
+  },
   "kicad": {
    "apt\\kicad": {
     "driver": "apt",
@@ -117978,6 +121456,45 @@
     "name": "shell-glue"
    }
   },
+  "lazyrsync": {
+   "apt\\rsync": {
+    "driver": "apt",
+    "fields": {
+     "name": "rsync"
+    },
+    "name": "rsync"
+   },
+   "apt\\rust": {
+    "driver": "apt",
+    "fields": {
+     "installed-name": "cargo",
+     "name": "rust-all",
+     "repo-component": "universe"
+    },
+    "name": "rust-all"
+   },
+   "cargo\\lazyrsync": {
+    "driver": "cargo",
+    "fields": {
+     "name": "lazyrsync"
+    },
+    "name": "lazyrsync"
+   },
+   "glue\\rust-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "rust"
+    },
+    "name": "rust-glue"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   }
+  },
   "lazysql": {
    "apt\\curl": {
     "driver": "apt",
@@ -118020,6 +121537,88 @@
      "glue": "lazysql"
     },
     "name": "lazysql-glue"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   }
+  },
+  "leaf": {
+   "apt\\rust": {
+    "driver": "apt",
+    "fields": {
+     "installed-name": "cargo",
+     "name": "rust-all",
+     "repo-component": "universe"
+    },
+    "name": "rust-all"
+   },
+   "cargo\\leaf": {
+    "driver": "cargo",
+    "fields": {
+     "name": "leaf-markdown-viewer"
+    },
+    "name": "leaf-markdown-viewer"
+   },
+   "glue\\rust-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "rust"
+    },
+    "name": "rust-glue"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   }
+  },
+  "lean": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "glue\\lean-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "lean"
+    },
+    "name": "lean-glue"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   },
+   "script\\lean": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "curl -fsSL https://raw.githubusercontent.com/leanprover/elan/master/elan-init.sh | sh -s -- -y",
+     "name": "lean",
+     "uninstall-cmd": "\"$HOME/.elan/bin/elan\" self uninstall -y 2>/dev/null || rm -rf \"$HOME/.elan\"",
+     "version-cmd": "\"$HOME/.elan/bin/lean\" --version 2>/dev/null",
+     "version-re": "([0-9][0-9.]*)"
+    },
+    "name": "lean"
+   }
+  },
+  "lean-glue": {
+   "glue\\lean-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "lean"
+    },
+    "name": "lean-glue"
    },
    "glue\\shell-glue": {
     "driver": "glue",
@@ -119210,6 +122809,53 @@
      }
     },
     "name": "mitmproxy"
+   }
+  },
+  "mojo": {
+   "apt\\python3-pip": {
+    "driver": "apt",
+    "fields": {
+     "name": "python3-pip"
+    },
+    "name": "python3-pip"
+   },
+   "glue\\pipx-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "pipx"
+    },
+    "name": "pipx-glue"
+   },
+   "glue\\python3-pip-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "python3-pip"
+    },
+    "name": "python3-pip-glue"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   },
+   "pip\\pipx": {
+    "driver": "pip",
+    "fields": {
+     "name": "pipx",
+     "version": {
+      "pypi": "pipx"
+     }
+    },
+    "name": "pipx"
+   },
+   "pipx\\mojo": {
+    "driver": "pipx",
+    "fields": {
+     "name": "mojo"
+    },
+    "name": "mojo"
    }
   },
   "mongodb": {
@@ -121637,6 +125283,15 @@
     "name": "shell-glue"
    }
   },
+  "rclone": {
+   "apt\\rclone": {
+    "driver": "apt",
+    "fields": {
+     "name": "rclone"
+    },
+    "name": "rclone"
+   }
+  },
   "redis": {
    "apt\\redis": {
     "driver": "apt",
@@ -122948,6 +126603,28 @@
      "repo-component": "universe"
     },
     "name": "ttyd"
+   }
+  },
+  "tuxedo": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "tarball\\tuxedo": {
+    "driver": "tarball",
+    "fields": {
+     "installDir": "$CONFIGSYS_APP_DIR/tuxedo",
+     "name": "tuxedo",
+     "version": {
+      "asset": "tuxedo-*-$ARCH-unknown-linux-gnu.tar.gz",
+      "github": "webstonehq/tuxedo",
+      "strip-v": "true"
+     }
+    },
+    "name": "tuxedo"
    }
   },
   "typescript": {
@@ -124405,6 +128082,50 @@
     "name": "zed-glue"
    }
   },
+  "zellij": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "dotfiles\\zellij-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/zellij",
+      "src": "zellij"
+     }
+    },
+    "name": "zellij-dotfiles"
+   },
+   "tarball\\zellij": {
+    "driver": "tarball",
+    "fields": {
+     "installDir": "$CONFIGSYS_APP_DIR/zellij",
+     "name": "zellij",
+     "version": {
+      "asset": "zellij-x86_64-unknown-linux-musl.tar.gz",
+      "github": "zellij-org/zellij",
+      "strip-v": "true"
+     }
+    },
+    "name": "zellij"
+   }
+  },
+  "zellij-dotfiles": {
+   "dotfiles\\zellij-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/zellij",
+      "src": "zellij"
+     }
+    },
+    "name": "zellij-dotfiles"
+   }
+  },
   "zig": {
    "apt\\curl": {
     "driver": "apt",
@@ -124947,6 +128668,61 @@
      "name": "atop"
     },
     "name": "atop"
+   }
+  },
+  "atuin": {
+   "apt\\rust": {
+    "driver": "apt",
+    "fields": {
+     "installed-name": "cargo",
+     "name": "rust-all",
+     "repo-component": "universe"
+    },
+    "name": "rust-all"
+   },
+   "cargo\\atuin": {
+    "driver": "cargo",
+    "fields": {
+     "name": "atuin"
+    },
+    "name": "atuin"
+   },
+   "glue\\atuin-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "atuin"
+    },
+    "name": "atuin-glue"
+   },
+   "glue\\rust-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "rust"
+    },
+    "name": "rust-glue"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   }
+  },
+  "atuin-glue": {
+   "glue\\atuin-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "atuin"
+    },
+    "name": "atuin-glue"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
    }
   },
   "audacity": {
@@ -127288,6 +131064,44 @@
     "name": "shell-glue"
    }
   },
+  "elvish": {
+   "apt\\elvish": {
+    "driver": "apt",
+    "fields": {
+     "name": "elvish"
+    },
+    "name": "elvish"
+   },
+   "dotfiles\\elvish-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/elvish",
+      "src": "elvish"
+     }
+    },
+    "name": "elvish-dotfiles"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   }
+  },
+  "elvish-dotfiles": {
+   "dotfiles\\elvish-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/elvish",
+      "src": "elvish"
+     }
+    },
+    "name": "elvish-dotfiles"
+   }
+  },
   "emacs": {
    "apt\\emacs": {
     "driver": "apt",
@@ -128354,6 +132168,38 @@
      "repo-component": "universe"
     },
     "name": "gh"
+   }
+  },
+  "ghgrab": {
+   "apt\\rust": {
+    "driver": "apt",
+    "fields": {
+     "installed-name": "cargo",
+     "name": "rust-all",
+     "repo-component": "universe"
+    },
+    "name": "rust-all"
+   },
+   "cargo\\ghgrab": {
+    "driver": "cargo",
+    "fields": {
+     "name": "ghgrab"
+    },
+    "name": "ghgrab"
+   },
+   "glue\\rust-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "rust"
+    },
+    "name": "rust-glue"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
    }
   },
   "ghidra": {
@@ -130468,6 +134314,37 @@
     "name": "kdenlive"
    }
   },
+  "kew": {
+   "apt\\kew": {
+    "driver": "apt",
+    "fields": {
+     "name": "kew"
+    },
+    "name": "kew"
+   },
+   "dotfiles\\kew-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/kew",
+      "src": "kew"
+     }
+    },
+    "name": "kew-dotfiles"
+   }
+  },
+  "kew-dotfiles": {
+   "dotfiles\\kew-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/kew",
+      "src": "kew"
+     }
+    },
+    "name": "kew-dotfiles"
+   }
+  },
   "kicad": {
    "apt\\kicad": {
     "driver": "apt",
@@ -130796,6 +134673,45 @@
     "name": "shell-glue"
    }
   },
+  "lazyrsync": {
+   "apt\\rsync": {
+    "driver": "apt",
+    "fields": {
+     "name": "rsync"
+    },
+    "name": "rsync"
+   },
+   "apt\\rust": {
+    "driver": "apt",
+    "fields": {
+     "installed-name": "cargo",
+     "name": "rust-all",
+     "repo-component": "universe"
+    },
+    "name": "rust-all"
+   },
+   "cargo\\lazyrsync": {
+    "driver": "cargo",
+    "fields": {
+     "name": "lazyrsync"
+    },
+    "name": "lazyrsync"
+   },
+   "glue\\rust-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "rust"
+    },
+    "name": "rust-glue"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   }
+  },
   "lazysql": {
    "apt\\curl": {
     "driver": "apt",
@@ -130838,6 +134754,88 @@
      "glue": "lazysql"
     },
     "name": "lazysql-glue"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   }
+  },
+  "leaf": {
+   "apt\\rust": {
+    "driver": "apt",
+    "fields": {
+     "installed-name": "cargo",
+     "name": "rust-all",
+     "repo-component": "universe"
+    },
+    "name": "rust-all"
+   },
+   "cargo\\leaf": {
+    "driver": "cargo",
+    "fields": {
+     "name": "leaf-markdown-viewer"
+    },
+    "name": "leaf-markdown-viewer"
+   },
+   "glue\\rust-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "rust"
+    },
+    "name": "rust-glue"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   }
+  },
+  "lean": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "glue\\lean-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "lean"
+    },
+    "name": "lean-glue"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   },
+   "script\\lean": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "curl -fsSL https://raw.githubusercontent.com/leanprover/elan/master/elan-init.sh | sh -s -- -y",
+     "name": "lean",
+     "uninstall-cmd": "\"$HOME/.elan/bin/elan\" self uninstall -y 2>/dev/null || rm -rf \"$HOME/.elan\"",
+     "version-cmd": "\"$HOME/.elan/bin/lean\" --version 2>/dev/null",
+     "version-re": "([0-9][0-9.]*)"
+    },
+    "name": "lean"
+   }
+  },
+  "lean-glue": {
+   "glue\\lean-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "lean"
+    },
+    "name": "lean-glue"
    },
    "glue\\shell-glue": {
     "driver": "glue",
@@ -131994,6 +135992,36 @@
      }
     },
     "name": "mitmproxy"
+   }
+  },
+  "mojo": {
+   "apt\\pipx": {
+    "driver": "apt",
+    "fields": {
+     "name": "pipx"
+    },
+    "name": "pipx"
+   },
+   "glue\\pipx-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "pipx"
+    },
+    "name": "pipx-glue"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   },
+   "pipx\\mojo": {
+    "driver": "pipx",
+    "fields": {
+     "name": "mojo"
+    },
+    "name": "mojo"
    }
   },
   "mongodb": {
@@ -134336,6 +138364,15 @@
     "name": "shell-glue"
    }
   },
+  "rclone": {
+   "apt\\rclone": {
+    "driver": "apt",
+    "fields": {
+     "name": "rclone"
+    },
+    "name": "rclone"
+   }
+  },
   "redis": {
    "apt\\redis": {
     "driver": "apt",
@@ -135630,6 +139667,28 @@
      "repo-component": "universe"
     },
     "name": "ttyd"
+   }
+  },
+  "tuxedo": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "tarball\\tuxedo": {
+    "driver": "tarball",
+    "fields": {
+     "installDir": "$CONFIGSYS_APP_DIR/tuxedo",
+     "name": "tuxedo",
+     "version": {
+      "asset": "tuxedo-*-$ARCH-unknown-linux-gnu.tar.gz",
+      "github": "webstonehq/tuxedo",
+      "strip-v": "true"
+     }
+    },
+    "name": "tuxedo"
    }
   },
   "typescript": {
@@ -137102,6 +141161,50 @@
      "glue": "zed"
     },
     "name": "zed-glue"
+   }
+  },
+  "zellij": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "dotfiles\\zellij-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/zellij",
+      "src": "zellij"
+     }
+    },
+    "name": "zellij-dotfiles"
+   },
+   "tarball\\zellij": {
+    "driver": "tarball",
+    "fields": {
+     "installDir": "$CONFIGSYS_APP_DIR/zellij",
+     "name": "zellij",
+     "version": {
+      "asset": "zellij-x86_64-unknown-linux-musl.tar.gz",
+      "github": "zellij-org/zellij",
+      "strip-v": "true"
+     }
+    },
+    "name": "zellij"
+   }
+  },
+  "zellij-dotfiles": {
+   "dotfiles\\zellij-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/zellij",
+      "src": "zellij"
+     }
+    },
+    "name": "zellij-dotfiles"
    }
   },
   "zig": {

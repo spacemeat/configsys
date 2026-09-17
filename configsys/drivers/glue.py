@@ -41,10 +41,11 @@ _BASH_ABSORB = '~/.config/bash/conf.d/pre-configsys-aliases.sh'
 # snippets, keyed by shell. `_SHELL_EXT` = the file extension per shell; `_SHELL_CONFD` = the active
 # loader dir (uniform ~/.config/<shell>/conf.d/, mirroring fish's native one). Repo ships bash
 # variants today; other shells activate the moment their variant exists.
-_SHELL_EXT = {'bash': 'sh', 'zsh': 'zsh', 'fish': 'fish', 'nu': 'nu'}
+_SHELL_EXT = {'bash': 'sh', 'zsh': 'zsh', 'fish': 'fish', 'nu': 'nu', 'elvish': 'elv'}
 _SHELL_CONFD = {'bash': '~/.config/bash/conf.d', 'zsh': '~/.config/zsh/conf.d',
-                'fish': '~/.config/fish/conf.d', 'nu': '~/.config/nushell/conf.d'}
-_GLUE_SHELLS = ('bash', 'zsh', 'fish', 'nu')
+                'fish': '~/.config/fish/conf.d', 'nu': '~/.config/nushell/conf.d',
+                'elvish': '~/.config/elvish/conf.d'}
+_GLUE_SHELLS = ('bash', 'zsh', 'fish', 'nu', 'elvish')
 
 # loaders (`loader: <shell>`): hook a shell up to source its ~/.config/<shell>/conf.d/*.
 # fish auto-sources conf.d natively (no rc edit); bash rides the distro ~/.bash_aliases convention;
@@ -52,7 +53,9 @@ _GLUE_SHELLS = ('bash', 'zsh', 'fish', 'nu')
 # the block idempotent + cleanly removable.
 _RC_BEGIN = '# >>> configsys glue >>>'
 _RC_END = '# <<< configsys glue <<<'
-_SHELL_RC = {'zsh': '~/.zshrc'}
+# Elvish has no native conf.d auto-source, so (like zsh) shell-glue writes ONE marker block into
+# its rc file (~/.config/elvish/rc.elv) that sources ~/.config/elvish/conf.d/*.elv.
+_SHELL_RC = {'zsh': '~/.zshrc', 'elvish': '~/.config/elvish/rc.elv'}
 
 # GLUE speaks a binary vocabulary (active/available/inactive) — a ship->activate toggle. This maps
 # the underlying spec/loader states to those labels (identity for anything unlisted). Shared by the
@@ -64,6 +67,11 @@ _RC_SOURCE = {
     'zsh': ('setopt local_options null_glob\n'
             'for _f in {confd}/*.zsh; do source "$_f"; done\n'
             'unset _f'),
+    # Elvish: [nomatch-ok] (attached to the * wildcard) so an empty conf.d doesn't error; the list
+    # brackets make the glob a single iterable; `eval (slurp < $f)` sources each file.
+    'elvish': ('for _f [{confd}/*[nomatch-ok].elv] {{\n'
+               '  eval (slurp < $_f)\n'
+               '}}'),
 }
 
 

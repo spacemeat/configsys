@@ -112,6 +112,35 @@ def test_zsh_loader_adds_idempotent_rc_block_and_uninstall_removes_it(tmp_path):
     assert g.get_version(rc) is None
 
 
+def test_elvish_loader_writes_rc_marker_block_and_snippet_activates(tmp_path):
+    # elvish is onboarded as a glue shell: no native conf.d auto-source, so shell-glue writes ONE
+    # marker block into ~/.config/elvish/rc.elv sourcing conf.d/*.elv (empty-glob-safe), and a
+    # snippet deploys to <store>/elvish/conf.d/<name>.elv and links into ~/.config/elvish/conf.d/.
+    p = paths_for(tmp_path, shells='elvish')
+    (p.dotfiles_dir / 'shell' / 'elvish').mkdir(parents=True)
+    (p.dotfiles_dir / 'shell' / 'elvish' / '00-configsys.elv').write_text('# elvish glue\n')
+    p.home.mkdir(parents=True)
+    g = Glue(Runner(pretend=False), paths=p)
+
+    loader = _loader_unit('all')                                     # loader: all -> every installed shell (elvish)
+    assert g.install(loader).ok
+    rc_elv = p.home / '.config' / 'elvish' / 'rc.elv'
+    assert '# >>> configsys glue >>>' in rc_elv.read_text()
+    assert '[nomatch-ok]' in rc_elv.read_text()                      # empty-glob-safe source line
+    assert g.get_version(loader) == 'linked'
+
+    snip = _glue_unit(comp='configsys-glue', glue='00-configsys')    # a snippet on elvish
+    assert g.install(snip).ok
+    link = p.home / '.config' / 'elvish' / 'conf.d' / '00-configsys.elv'
+    store = p.user_dotfiles_dir / 'elvish' / 'conf.d' / '00-configsys.elv'
+    assert link.is_symlink() and os.path.realpath(link) == os.path.realpath(store)
+    assert g.get_version(snip) == 'linked'
+
+    assert g.uninstall(loader).ok                                    # drop the rc block, leave conf.d + content
+    assert '# >>> configsys glue >>>' not in rc_elv.read_text()
+    assert g.get_version(loader) is None
+
+
 def test_shell_glue_loader_all_hooks_every_installed_shell(tmp_path):
     # the shell-glue substrate: `loader: all` wires conf.d loading for EVERY installed shell.
     p = paths_for(tmp_path, shells='bash,zsh,fish')

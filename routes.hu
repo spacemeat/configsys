@@ -644,6 +644,95 @@
                 { via: cargo  name: nu }                            // `cargo install nu` (the crate is `nu`)
             ]
         }
+        // elvish: an expressive language + interactive shell (Go, static binary). Native in
+        // Debian/Fedora/Arch/Alpine/openSUSE and brew; the upstream static release tarball covers
+        // EL/Amazon (and runs on musl too). Onboarded as a first-class glue shell (see the glue driver).
+        elvish: { attrs: [ CLI FOSS permissive ] suggests: [ elvish-dotfiles, shell-glue ]
+            description: "Elvish — an expressive programming language and a versatile interactive shell (`elvish`)."
+            install: [
+                { via: native  when: "not (rhel or amzn)" }
+                { via: tarball  installDir: "$CONFIGSYS_APP_DIR/elvish"   // static Go build -> also runs on musl/EL
+                  version: { github: elves/elvish  strip-v: true  asset: "elvish-*-linux-amd64.tar.gz" } }
+            ] }
+        elvish-dotfiles: { description: "Elvish config, linked into place."
+            install: [ { via: dotfiles  config: { src: elvish  dst: $XDG_CONFIG_HOME/elvish } } ] }
+
+        // zellij: Rust terminal workspace/multiplexer. Native on Arch/Fedora + brew; the upstream
+        // musl static tarball covers Debian/Ubuntu/openSUSE/EL/Alpine (one binary, runs everywhere);
+        // cargo is a pinnable build-from-crate alternate. (native on more distros -> broaden after a name-sweep.)
+        zellij: { attrs: [ CLI TUI FOSS permissive ] suggests: zellij-dotfiles
+            description: "Zellij — a terminal workspace & multiplexer with batteries included."
+            install: [
+                { via: native  when: "arch or fedora" }
+                { via: native  when: "fedora_atomic" }               // brew formula `zellij`
+                { via: tarball  installDir: "$CONFIGSYS_APP_DIR/zellij"   // musl static -> covers everything else, incl. Alpine
+                  version: { github: zellij-org/zellij  strip-v: true  asset: "zellij-x86_64-unknown-linux-musl.tar.gz" } }
+                { via: cargo  name: zellij  standing: never-auto }
+            ] }
+        zellij-dotfiles: { description: "Zellij config, linked into place."
+            install: [ { via: dotfiles  config: { src: zellij  dst: $XDG_CONFIG_HOME/zellij } } ] }
+
+        // atuin: magical shell history (Rust). Native on Arch/Fedora + brew; cargo is the reliable
+        // universal fallback everywhere else (openSUSE/EL/Alpine/Debian-older). Shell integration
+        // (Up-arrow / Ctrl-R) is enabled via its glue snippet. (broaden native after a name-sweep.)
+        atuin: { attrs: [ CLI FOSS permissive ] suggests: [ atuin-glue ]
+            description: "Atuin — magical shell history: SQLite-backed, searchable, syncable (`atuin`)."
+            install: [
+                { via: native  when: "arch or fedora" }
+                { via: native  when: "fedora_atomic" }               // brew formula `atuin`
+                { via: cargo   name: atuin }                          // build-from-crate; covers the rest
+            ] }
+        atuin-glue: { description: "atuin shell init (Up-arrow / Ctrl-R history search), linked into place."
+            install: [ { via: glue  requires: shell-glue  glue: atuin } ] }
+
+        // tuxedo: a fast todo.txt TUI (Rust). NOT on crates.io (so no `cargo install`); brew on
+        // atomic, and the upstream x86_64 gnu release tarball everywhere else (glibc -> declines on Alpine).
+        tuxedo: { attrs: [ CLI TUI FOSS permissive ]
+            description: "tuxedo — a fast, keyboard-driven terminal UI for todo.txt (`tuxedo`)."
+            install: [
+                { via: native  when: "fedora_atomic" }               // brew formula `tuxedo`
+                { via: tarball  when: "not alpine"  installDir: "$CONFIGSYS_APP_DIR/tuxedo"  requires: glibc
+                  version: { github: webstonehq/tuxedo  strip-v: true  asset: "tuxedo-*-$ARCH-unknown-linux-gnu.tar.gz" } }
+            ] }
+
+        // leaf: a terminal Markdown previewer with a GUI-like experience (Rust). Not in distro repos;
+        // the crate is `leaf-markdown-viewer` (the binary is `leaf`), so cargo covers every OS.
+        leaf: { attrs: [ CLI TUI FOSS permissive ]
+            description: "leaf — a terminal Markdown previewer with a GUI-like experience (`leaf`)."
+            install: [ { via: cargo  name: leaf-markdown-viewer } ] }
+
+        // ghgrab: a TUI to browse & cherry-pick files/release-assets from GitHub/GitLab/Codeberg/
+        // Gitea/Forgejo without cloning (Rust). Not in distro repos -> cargo everywhere (crate `ghgrab`).
+        ghgrab: { attrs: [ CLI TUI FOSS permissive ]
+            description: "ghgrab — download individual files, folders or release assets from git forges without cloning (`ghgrab`)."
+            install: [ { via: cargo  name: ghgrab } ] }
+
+        // lazyrsync: a friendly TUI for rsync — reusable profiles, dry-run diffs, live progress (Rust).
+        // Drives the real rsync (hard requires it). AUR on Arch, brew on atomic, cargo elsewhere.
+        lazyrsync: { attrs: [ CLI TUI FOSS permissive ]  requires: rsync
+            description: "lazyrsync — a friendly terminal UI for rsync: profiles, dry-run diffs, live progress, even over SSH (`lazyrsync`)."
+            install: [
+                { via: aur     when: "arch"  name: lazyrsync }
+                { via: native  when: "fedora_atomic" }               // brew formula `lazyrsync`
+                { via: cargo   name: lazyrsync }                      // build-from-crate; covers the rest
+            ] }
+
+        // kew: an immersive terminal music player (C). Native on Debian/Arch/openSUSE (and Fedora)
+        // plus brew; upstream ships no Linux release binary, so it declines on EL/Alpine (no method).
+        // (name-sweep to confirm the fedora package.)
+        kew: { attrs: [ TUI app FOSS GPL ]  suggests: kew-dotfiles
+            description: "kew — a fast, immersive terminal music player (`kew`)."
+            install: [ { via: native  when: "debian or arch or opensuse or fedora" }
+                       { via: native  when: "fedora_atomic" } ] }    // brew formula `kew` (Linux)
+        kew-dotfiles: { description: "kew config, linked into place."
+            install: [ { via: dotfiles  config: { src: kew  dst: $XDG_CONFIG_HOME/kew } } ] }
+
+        // rclone: sync/manage files across 70+ cloud storage providers. Packaged natively in every
+        // base repo (apt/dnf/pacman/zypper/apk) and brew — no fallback needed. Its config holds
+        // credentials, so no -dotfiles companion (never reposit secrets).
+        rclone: { attrs: [ CLI FOSS permissive online ]
+            description: "rclone — rsync for cloud storage: sync & manage files across 70+ providers (`rclone`)."
+            install: [ { via: native } ] }
 
         // --- terminal emulators & TUI file managers ---
         // kitty: GPU-accelerated terminal emulator, packaged natively across every base repo
@@ -833,6 +922,26 @@
                   location:      "~/.cargo/bin" }
             ]
         }
+
+        // Lean 4 — functional language + interactive theorem prover. Installed through elan (the
+        // rustup-style userland version manager): elan-init puts `lean`/`lake` under ~/.elan (no
+        // sudo, no distro package needed anywhere). The glue snippet puts ~/.elan/bin on PATH.
+        lean: { attrs: [ CLI toolchain FOSS permissive ]  suggests: lean-glue  requires: curl
+            description: "Lean 4 — a functional language & interactive theorem prover (`lean`, `lake`), managed by elan."
+            install: [ { via: script
+                install-cmd:   'curl -fsSL https://raw.githubusercontent.com/leanprover/elan/master/elan-init.sh | sh -s -- -y'
+                version-cmd:   '"$HOME/.elan/bin/lean" --version 2>/dev/null'
+                version-re:    '([0-9][0-9.]*)'
+                uninstall-cmd: '"$HOME/.elan/bin/elan" self uninstall -y 2>/dev/null || rm -rf "$HOME/.elan"' } ] }
+        lean-glue: { description: "Lean/elan PATH setup (~/.elan/bin), linked into place."
+            install: [ { via: glue  requires: shell-glue  glue: lean } ] }
+
+        // Mojo — Modular's Python-superset systems language for AI/HPC. Upstream ships it through
+        // pixi/conda (no configsys pixi driver) or PyPI; the `mojo` wheel bundles the compiler + LSP
+        // + debugger, so pipx installs a working `mojo` CLI universally. The compiler is proprietary.
+        mojo: { attrs: [ CLI toolchain proprietary ]
+            description: "Mojo — Modular's Python-superset systems language for AI & high-performance computing (`mojo`)."
+            install: [ { via: pipx  name: mojo } ] }
 
         // Node.js toolchain (node + npm), directly usable. It `provides: npm`, so the npm
         // DRIVER's `requires: npm` is met by installing node. One native binding brings both:

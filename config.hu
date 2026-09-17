@@ -33,13 +33,13 @@ profiles: {
     // delete this profile. (NAMESWEEP still pending on several of these.)
     finders: [ fd  fzf  ripgrep  television ]
     terminal-emulators: [ alacritty  foot  ghostty  kitty  wezterm  mosh ]
-    terminal-utils: [ tmux  xclip  zoxide  bat  xsel  wl-clipboard  sesh  gum  ueberzugpp ]
+    terminal-utils: [ tmux  xclip  zoxide  bat  xsel  wl-clipboard  sesh  gum  ueberzugpp  atuin  zellij  tuxedo  leaf ]
     system-utils: [ doas  dosfstools  fastfetch  gcompat  lsblk ]
     native-package-tools: [ epel-release  rpmfusion-free  rpmfusion-nonfree  snapd  snapd-snap-link  snapd-socket  yay ]
     system-monitors: [ btop  htop  bottom  atop  bmon  iotop  s-tui  glances  nvtop  wavemon  /*sysdig*/  dstat  lm-sensors ]
     disk-usage-utils: [ ncdu  duf  dysk ]
-    file-browsers: [ mc  yazi  superfile  fff  tree  eza ]
-    shells: [ fish  nushell  zsh ]
+    file-browsers: [ mc  yazi  superfile  fff  tree  eza  rclone ]
+    shells: [ fish  nushell  zsh  elvish ]
     configuration-tools: [ puppet  ansible  salt  stow ]
     password-passkey: [ bitwarden  vaultwarden  doppler  pass  gnupg  openssh-server ]
     fonts: [ mononoki-nerd ]
@@ -64,7 +64,8 @@ profiles: {
     db-servers: [ postgresql  postgresql-service  mariadb  mariadb-service  redis-service  mongodb  mongodb-service ]
 
     net-tools: [ iproute2  impala  bluetui  curl  wireshark  wireshark-group  tshark  tcpdump  nmap  mtr  gping  traceroute  iperf3
-        socat  ethtool  whois  netcat  dig  iftop  nethogs  nload  rsync  vnstat  dnspeep  bridge-utils  croc  wormhole  ttyd ]
+        socat  ethtool  whois  netcat  dig  iftop  nethogs  nload  rsync  vnstat  dnspeep  bridge-utils  croc  wormhole  ttyd
+        ghgrab  lazyrsync ]
     cloud-tools: [ awscli  gcloud  azure-cli  opentofu  grpcurl ]
 
     android-tools: [ jmtpfs  android-file-transfer ]
@@ -92,9 +93,11 @@ profiles: {
     rust-lang: [ rust  miniforge ]
     scratch-lang: [ scratch ]
     web-lang: [ node  typescript  sass ]
+    mojo-lang: [ mojo ]
+    lean-lang: [ lean ]
     jvm-lang: [ +java-lang  +kotlin-lang  +scala-lang  +clojure-lang  +groovy-lang ]
     languages: [ +c-cpp-lang  +dotnet-lang  +go-lang  +haskell-lang  +jvm-lang  +lisp-lang  +lua-lang
-        +objective-c-lang  +ocaml-lang  +php-lang  +python-lang  +ruby-lang  +rust-lang  +scratch-lang  +tcl-lang  +web-lang
+        +objective-c-lang  +ocaml-lang  +php-lang  +python-lang  +ruby-lang  +rust-lang  +scratch-lang  +tcl-lang  +web-lang  +mojo-lang  +lean-lang
         elm  erlang  elixir  julia  nim  nasm  octave odin  perl  r  zig  gfortran  gnat  gnucobol  d  crystal
         dart  raku  v  gleam  fennel  swift  racket  guile  c3  deno  roc ]
 
@@ -135,7 +138,7 @@ profiles: {
     graphics-tools: [ blender  chafa  durdraw  krita  gimp  inkscape  darktable  freecad  openscad  scribus  digikam  grim  slurp  pastel  webcamize  wl-screenrec  swaybg  figlet  pywal16  cbonsai  cmatrix  pipes  asciiquarium  lolcat ]
     video-editors: [ kdenlive  shotcut  openshot  flowblade  olive  asciinema ]
     audio-tools: [ audacity  espeak  ardour  lmms  tenacity  musescore  hydrogen  carla  sonic-pi  supercollider
-        qjackctl  yabridge  pulseaudio-utils ]
+        qjackctl  yabridge  pulseaudio-utils  kew ]
 
     science: [ astroterm  jupyterlab  gnuplot  paraview  opencv  opencv-python  foldit  foldingathome ]
     math: [ texlive  texlive-full  julia  r  octave  maxima  wxmaxima  pari  gap  gnuplot  sagemath  numpy ]
