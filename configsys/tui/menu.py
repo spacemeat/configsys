@@ -955,12 +955,14 @@ _HELP = {
                           'which — a store/repo path is ready to link; a → path is where a capture lands.'),
             ('no config', "nothing here yet — no stored content and no on-system file (a personal "
                           "dotfile you haven't made or adopted). Capture your config once you have one."),
-            ('! at risk', 'a real on-system file configsys does NOT manage — linking REFUSES to '
-                          'overwrite it, so capture (c) it first (or link --force to back it up).'),
-            ('capture (c / C)', 'adopt an on-system config into your store so configsys can manage + '
-                                'sync it; C captures every unmanaged file at once.'),
-            ('link (⏎ / L)', 'symlink your stored config into place (L links every ready one); a '
-                             'pre-existing real file is backed up to <dst>.pre-configsys.'),
+            ('! at risk', 'a real on-system file configsys does NOT manage yet (e.g. your existing '
+                          '~/.config/nvim). Managing it adopts + backs it up; until then a plain link '
+                          'would refuse to overwrite it.'),
+            ('manage (⏎)', 'adopt any on-system config into your store AND symlink it into place — one '
+                           'step. A pre-existing real file is first backed up to <dst>.pre-configsys.'),
+            ('manage all (A)', 'manage every unmanaged config at once.'),
+            ('unmanage (x)', "remove configsys's symlink and restore any backup — your content stays "
+                             "in your store."),
         ],
     },
     'config': {
@@ -4645,11 +4647,10 @@ def _draw_dotfiles(stdscr, pal, ds, ctx, note, screen):
         status += f'    {note}'
     if _KEYMAP is not None:
         g = lambda a: _KEYMAP.glyph('dotfiles', a)
-        navf = (f" {g('down')}/{g('up')} · {g('left')}/{g('right')} scroll · {g('confirm')} link · "
-                f"{g('capture')} capture · {g('unlink')} unlink · "
-                f"{g('capture-all')}/{g('link-all')} = all · {g('quit')} ")
+        navf = (f" {g('down')}/{g('up')} · {g('left')}/{g('right')} scroll · {g('confirm')} manage · "
+                f"{g('manage-all')} manage all · {g('unlink')} unmanage · {g('quit')} ")
     else:
-        navf = ' j/k · h/l scroll · ↵ link · c capture · x unlink · C/L = all · q '
+        navf = ' j/k · h/l scroll · ↵ manage · A manage all · x unmanage · q '
     _put(stdscr, h - 2, 0, _fit(status, w), pal.style('status_line', h - 2, 0, h, w))
     _put(stdscr, h - 1, 0, _fit(navf.ljust(w), w), pal.style('footer', h - 1, 0, h, w))
     stdscr.refresh()
@@ -5155,42 +5156,33 @@ def run(ctx):
                         ds.cur = 0
                     elif dact == 'bottom':
                         ds.cur = max(0, len(ds.rows) - 1)
-                    elif dact == 'confirm' and row:         # link (clobber-proof;
-                        with suspended(stdscr):              # refuses over a real file)
-                            res = ds.driver_for(row[0]).install(row[0])
+                    elif dact == 'confirm' and row:         # MANAGE: adopt any on-system file, then link
+                        drv = ds.driver_for(row[0])         # (capture + link are ONE step)
+                        with suspended(stdscr):
+                            drv.capture(row[0], force=False)   # no-op if nothing on-system to adopt
+                            res = drv.install(row[0])          # links; backs up a pre-existing real file
                         ds.dirty.add(row[0].key)
                         ds.reload()
-                        note = (f'{row[0].comp}: {res.output().strip()}'
-                                if res is not None and not res.ok else f'linked {row[0].comp}')
-                    elif dact == 'unlink' and row:          # unlink (restores any backup)
+                        note = (f'{row[0].comp}: {res.output.strip()}'
+                                if res is not None and not res.ok else f'managing {row[0].comp}')
+                    elif dact == 'unlink' and row:          # UNMANAGE: unlink (restores any backup)
                         with suspended(stdscr):
                             ds.driver_for(row[0]).uninstall(row[0])
                         ds.dirty.add(row[0].key)
                         ds.reload()
-                        note = f'unlinked {row[0].comp}'
-                    elif dact == 'capture' and row:         # capture: adopt this row's on-system content
-                        drv = ds.driver_for(row[0])         # glue has nothing to capture (shipped)
-                        done = drv.capture(row[0], force=False) if hasattr(drv, 'capture') else []
-                        ds.dirty.add(row[0].key)
-                        ds.reload()
-                        note = (f'captured {len(done)} target(s) for {row[0].comp}'
-                                if done else f'nothing to capture for {row[0].comp}')
-                    elif dact == 'capture-all':             # capture ALL with on-disk config to adopt
-                        total = sum(len(ds.driver_for(rc).capture(rc, force=False))
-                                    for rc in ds.units if hasattr(ds.driver_for(rc), 'capture'))
-                        ds.dirty.update(rc.key for rc in ds.units)
-                        ds.reload()
-                        note = (f'captured {total} target(s) across all dotfiles'
-                                if total else 'nothing on-disk to capture')
-                    elif dact == 'link-all':                # link ALL captured-but-unlinked (adopted)
-                        pend = {r[0].key: r[0] for r in ds.rows if r[3] == 'adopted'}
+                        note = f'unmanaged {row[0].comp}'
+                    elif dact == 'manage-all':              # capture + link every not-yet-managed config
+                        from ..drivers.dotfiles import config_display_state
+                        pend = {r[0].key: r[0] for r in ds.rows
+                                if config_display_state(r[3], r[5]) == 'unmanaged'}
                         with suspended(stdscr):
                             for rc in pend.values():
-                                ds.driver_for(rc).install(rc)
+                                drv = ds.driver_for(rc)
+                                drv.capture(rc, force=False)
+                                drv.install(rc)
                         ds.dirty.update(pend)
                         ds.reload()
-                        note = (f'linked {len(pend)} captured dotfile(s)'
-                                if pend else 'nothing captured-but-unlinked')
+                        note = (f'managing {len(pend)} config(s)' if pend else 'nothing to manage')
                 except Exception as e:  # noqa: BLE001 — surface, don't crash
                     note = f'error: {e}'
                 continue
