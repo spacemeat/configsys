@@ -81,11 +81,21 @@ def test_stage_on_profile_marks_all_its_missing_units():
     ms = make()
     ms.cursor = 0  # p:user
     ms.stage('install')
-    assert ms.staged == {  # only the missing ones across user's components
-        'flatpak\\firefox': 'install',
-        'appImage\\neovim': 'install',
-        'dotfiles\\neovim': 'install',
+    assert ms.staged == {  # only the missing REAL units across user's components; the dotfiles
+        'flatpak\\firefox': 'install',   # companion (dotfiles\neovim) is managed on the Dotfiles
+        'appImage\\neovim': 'install',   # screen -> absent from the tree, so a profile stage skips it
     }
+
+
+def test_glue_dotfiles_companions_absent_from_the_tree():
+    # a glue/dotfiles companion pulled in by a parent (requested_as={parent}) must NOT nest under it
+    # as a dependency row, nor be staged when the parent is — it's managed on the Glue/Dotfiles pages.
+    ms = make()
+    neovim = next(n for n in ms.rows if n.id == 'c:user:neovim')
+    assert 'dotfiles\\neovim' not in {m.key for m in neovim.members}   # companion not a member
+    ms.cursor = ms.rows.index(neovim)
+    ms.stage('install')
+    assert 'dotfiles\\neovim' not in ms.staged
 
 
 def test_stage_on_component_marks_its_missing_units():

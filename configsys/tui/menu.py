@@ -159,6 +159,12 @@ class MenuState:
     def _invert(self):
         name_units = {}
         for key, st in self.states.items():
+            # glue/dotfiles companions are managed on the Glue/Dotfiles screens. A companion pulled in
+            # by a suggests/requires carries requested_as={parent}, so it would otherwise nest under
+            # its parent component as a dependency row (and be staged when the parent is). Drop it from
+            # the name->units map so it's absent from the Components tree entirely (rows AND members).
+            if getattr(st.component, 'driver', '') in ('glue', 'dotfiles'):
+                continue
             for name in st.component.requested_as:
                 name_units.setdefault(name, []).append(key)
         return name_units
