@@ -927,17 +927,40 @@ _HELP = {
             ('tree', '├─ a transitive plugin (declared by another plugin, not your top config)'),
         ],
     },
-    'dotfiles': {
-        'desc': "Link state for via:dotfiles components. Each row: the component, its link state, the "
-                "~/ location, and the managed source it points at. Link or capture from here.",
+    'glue': {
+        'desc': "Shell-integration snippets (PATH, aliases, env, completions) for your components, "
+                "grouped by installed shell. Each shell heads its group with its conf.d loader status. "
+                "A ship→activate toggle — glue is shipped, never captured.",
         'glossary': [
-            ('config states', "empty → unmanaged (a real file we don't manage) / managed (marker, "
-                              "no content) → adopted (your capture, not yet linked) → linked; "
-                              "template = a shipped default (see SOURCE)"),
-            ('glue states', "active · available · inactive — a ship→activate toggle (shipped snippets "
-                            "+ the per-shell conf.d loaders); never captured"),
-            ('capture', 'adopts on-system content into your store so it can be linked (and travel)'),
-            ('safety', 'linking backs up any pre-existing real file to <dst>.pre-configsys'),
+            ('active', 'linked into ~/.config/<shell>/conf.d and sourced by the shell — done.'),
+            ('available', 'shipped but not linked yet — activate (a) to enable it.'),
+            ('inactive', "not linked, or the shell's conf.d loader isn't wired."),
+            ('shell groups', 'each installed shell heads a group; the header says whether its conf.d '
+                             'loader is wired (bash rides ~/.bash_aliases, zsh an ~/.zshrc block, fish '
+                             'sources conf.d natively).'),
+            ('activate (a / A)', "a enables the current snippet for all its shells; A enables every "
+                                 "inactive snippet in the cursor's shell group. Activating also refreshes "
+                                 "a stale copy from source and wires the loader. x deactivates."),
+        ],
+    },
+    'dotfiles': {
+        'desc': "Your via:dotfiles CONFIG — the files configsys links into place and syncs to your "
+                "store. Each row: the component, its state, the ~/ location, and where the managed "
+                "content lives. Capture on-system config, then link it.",
+        'glossary': [
+            ('managed', 'configsys manages this config — the symlink is live and your edits sync to '
+                        'your store. Nothing to do (x unlinks it).'),
+            ('unmanaged', 'not managed yet: either a real on-system file to CAPTURE (c), or content '
+                          'already stored/shipped that just needs LINKING (⏎). The source column shows '
+                          'which — a store/repo path is ready to link; a → path is where a capture lands.'),
+            ('no config', "nothing here yet — no stored content and no on-system file (a personal "
+                          "dotfile you haven't made or adopted). Capture your config once you have one."),
+            ('! at risk', 'a real on-system file configsys does NOT manage — linking REFUSES to '
+                          'overwrite it, so capture (c) it first (or link --force to back it up).'),
+            ('capture (c / C)', 'adopt an on-system config into your store so configsys can manage + '
+                                'sync it; C captures every unmanaged file at once.'),
+            ('link (⏎ / L)', 'symlink your stored config into place (L links every ready one); a '
+                             'pre-existing real file is backed up to <dst>.pre-configsys.'),
         ],
     },
     'config': {
@@ -4361,9 +4384,9 @@ def _draw_plugins(stdscr, pal, pl, ctx, note, screen):
 # state -> theme element. `managed` (a .cfs marker exists but nothing is captured yet — capture to
 # link) and `unmanaged` (a real file we don't manage — at risk) both want attention; `loader-on/off`
 # are the per-shell glue loaders (zsh-glue/fish-glue).
-_DF_STATE_ELEM = {'linked': 'installed', 'adopted': 'unit', 'managed': 'outdated',
-                  'unmanaged': 'missing', 'template': 'info_dim', 'empty': 'info_dim',
-                  'loader-on': 'installed', 'loader-off': 'info_dim'}
+_DF_STATE_ELEM = {  # config DISPLAY states (managed/unmanaged/no config) + glue RAW states
+    'managed': 'installed', 'unmanaged': 'outdated', 'no config': 'info_dim',
+    'linked': 'installed', 'loader-on': 'installed', 'template': 'info_dim', 'loader-off': 'info_dim'}
 _DF_CAPTURE_STATES = ('managed', 'unmanaged')          # rows a capture would adopt
 
 
@@ -4475,11 +4498,13 @@ from ..drivers.glue import GLUE_STATE_LABEL as _GLUE_STATE_LABEL   # glue's acti
 
 
 def _df_cells(row):
-    '''The four column strings for a dotfiles (config) row. `!` = a real on-system file we don't
-    manage; `+` = a marked config with on-disk content ready to capture.'''
+    '''The four column strings for a dotfiles (config) row — the STATE column shows the collapsed
+    user-facing state (managed / unmanaged / no config). `!` flags a real on-system file configsys
+    does NOT manage (linking would refuse; capture it first).'''
+    from ..drivers.dotfiles import config_display_state
     rc, _name, tgt, state, source, cap = row
-    mark = '!' if state == 'unmanaged' else '+' if (state == 'managed' and cap) else ' '
-    return [rc.comp, f'{mark} {state}', str(tgt), source]
+    mark = '!' if state == 'unmanaged' else ' '
+    return [rc.comp, f'{mark} {config_display_state(state, cap)}', str(tgt), source]
 
 
 def _glue_cells(row):
@@ -4560,7 +4585,7 @@ def _draw_dotfiles(stdscr, pal, ds, ctx, note, screen):
     if pal.gradient:
         _fill_bg(stdscr, pal, h, w)
     _draw_nav(stdscr, pal, screen, h, w)
-    it, il, ih, iw = _panel(stdscr, pal, 1, 0, h - 3, w, 'dotfiles (link state)', True, h, w)
+    it, il, ih, iw = _panel(stdscr, pal, 1, 0, h - 3, w, 'dotfiles (config state)', True, h, w)
     if not ds.rows:
         _put(stdscr, it, il, _fit('   '.join(_DF_HEADERS), iw), pal.style('menu_header', it, il, h, w))
         _put(stdscr, it + 1, il, _fit('(no dotfiles in the active profiles)', iw),
@@ -4596,7 +4621,9 @@ def _draw_dotfiles(stdscr, pal, ds, ctx, note, screen):
             i, sel = val, val == ds.cur
             if sel:
                 _put(stdscr, y, il, ' ' * iw, pal.fill(y, il, h, w, selected=True))
-            elem = 'label' if sel else _DF_STATE_ELEM.get(ds.rows[i][3], 'component')
+            from ..drivers.dotfiles import config_display_state
+            elem = 'label' if sel else _DF_STATE_ELEM.get(
+                config_display_state(ds.rows[i][3], ds.rows[i][5]), 'component')
             style = pal.style(elem, y, il, h, w, selected=sel)
             for cell, wd, vx0 in zip(cells_by_row[i], widths, xs):
                 _put_hscroll(stdscr, y, il, iw, vx0, ds.hscroll, cell.ljust(wd), style)
@@ -4604,13 +4631,16 @@ def _draw_dotfiles(stdscr, pal, ds, ctx, note, screen):
         if has_hbar:
             _scrollbar_h(stdscr, pal, it + ih - 1, il, iw, ds.hscroll, iw, virt_w, h, w)
 
-    n_unmanaged = sum(1 for r in ds.rows if r[3] == 'unmanaged')
-    n_adopt = sum(1 for r in ds.rows if r[3] == 'managed' and r[5])   # managed + on-disk to capture
-    status = f' {len(ds.rows)} dotfile target(s)'
-    if n_unmanaged:
-        status += f'   ! {n_unmanaged} unmanaged (at risk)'
-    if n_adopt:
-        status += f'   + {n_adopt} with on-disk config to capture (c)'
+    from ..drivers.dotfiles import config_display_state
+    counts = {}
+    for r in ds.rows:
+        s = config_display_state(r[3], r[5])
+        counts[s] = counts.get(s, 0) + 1
+    n_risk = sum(1 for r in ds.rows if r[3] == 'unmanaged')          # a real file we don't manage
+    status = (f' {len(ds.rows)} config target(s)   '
+              + '   '.join(f'{counts[s]} {s}' for s in ('managed', 'unmanaged', 'no config') if counts.get(s)))
+    if n_risk:
+        status += f'   ! {n_risk} unmanaged file(s) at risk — capture (c) before linking'
     if note:
         status += f'    {note}'
     if _KEYMAP is not None:

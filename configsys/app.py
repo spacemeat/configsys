@@ -2984,16 +2984,7 @@ def build_parser():
     return p
 
 
-_DOTFILES_STATE_ORDER = ['unmanaged', 'managed', 'template', 'adopted', 'linked', 'empty']
 _GLUE_ORDER = ['loader-on', 'linked', 'template', 'loader-off']   # glue's underlying states, active-first
-_DOTFILES_STATE_NOTE = {
-    'unmanaged': 'real on-system file, not captured — configsys is NOT managing it',
-    'managed':   'managed (.cfs marker) but no content captured yet — capture to link it',
-    'template':  'a shipped template exists; not adopted',
-    'adopted':   'your captured content is in place; install will link it',
-    'linked':    'managed by configsys (symlinked)',
-    'empty':     'declared, no content anywhere — install is a no-op until you capture',
-}
 
 
 def _active_dotfiles(ctx):
@@ -3097,15 +3088,21 @@ def cmd_dotfiles_status(ctx, args):
     component, and where its MANAGED content lives (or `→` where capture will put it). Content roots
     are labeled once up top so the SRC column stays short.'''
     from .drivers.glue import GLUE_STATE_LABEL
+    from .drivers.dotfiles import config_display_state, CONFIG_STATES
     from .drivers import get_driver
     df, units = _active_dotfiles(ctx)
     cfg, glue = [], []   # (state, target, component, src_root|None, src_rel, here)
     for rc in units:                             # dispatch per unit: config->dotfiles, glue->glue
         drv = get_driver(rc.driver, ctx.runner, ctx.paths)
-        for _name, tgt, state, src_root, src_rel, here, kind in drv.spec_states(rc):
+        cap = ({n: (action == 'copy') for n, _d, _de, action in drv.capture_plan(rc)}
+               if hasattr(drv, 'capture_plan') else {})
+        for name, tgt, state, src_root, src_rel, here, kind in drv.spec_states(rc):
             src_rel = src_rel if src_root is not None else ('rc hookup' if here else 'not hooked up')
-            (cfg if kind == 'config' else glue).append(
-                (state, tgt, rc.comp, (Path(src_root) if src_root is not None else None), src_rel, here))
+            root = Path(src_root) if src_root is not None else None
+            if kind == 'config':                 # collapse to the 3 user-facing config states
+                cfg.append((config_display_state(state, cap.get(name, False)), tgt, rc.comp, root, src_rel, here))
+            else:
+                glue.append((state, tgt, rc.comp, root, src_rel, here))
     print(f'OS: {ctx.os_info.block}   install set: {_install_scope_label(ctx.config)}')
     if not cfg and not glue:
         print('\n(no dotfiles components in the install set)')
@@ -3141,7 +3138,7 @@ def cmd_dotfiles_status(ctx, args):
             print(f'  {mark} {shown_of(state):{sw}} {str(tgt):{tw}} {comp:{cw}} {src}')
         return counts
 
-    ccounts = _section('config  (content you own)', cfg, _DOTFILES_STATE_ORDER, None,
+    ccounts = _section('config  (content you own)', cfg, list(CONFIG_STATES), None,
                        '  (→ = on capture)')
     gcounts = _section('glue — shell integration  (shipped; never captured)', glue,
                        _GLUE_ORDER, GLUE_STATE_LABEL, '')
@@ -3149,13 +3146,14 @@ def cmd_dotfiles_status(ctx, args):
     for state, n in gcounts.items():
         lbl = GLUE_STATE_LABEL.get(state, state)
         gbuckets[lbl] = gbuckets.get(lbl, 0) + n
-    csum = ', '.join(f'{ccounts[s]} {s}' for s in _DOTFILES_STATE_ORDER if s in ccounts)
+    csum = ', '.join(f'{ccounts[s]} {s}' for s in CONFIG_STATES if s in ccounts)
     gsum = ', '.join(f'{gbuckets[l]} {l}' for l in ('active', 'available', 'inactive') if l in gbuckets)
     parts = [p for p in (f'config: {csum}' if csum else '', f'glue: {gsum}' if gsum else '') if p]
     if parts:
         print('\n' + '   '.join(parts))
     if ccounts.get('unmanaged'):
-        print(f'  ! {ccounts["unmanaged"]} unmanaged: {_DOTFILES_STATE_NOTE["unmanaged"]}.')
+        print('  ! unmanaged = needs action: capture (c) an on-system file, or link content '
+              'that is ready — the SRC column says which.')
     return 0
 
 

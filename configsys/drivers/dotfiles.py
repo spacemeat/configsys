@@ -37,6 +37,26 @@ BACKUP_SUFFIX = '.pre-configsys'
 # managed-when-empty signal). `.gitignore` is generated from excludes so secrets never sync.
 CFS_SUFFIX = '.cfs'
 MANIFEST_NAME = 'manifest.hu'
+
+# The user-facing CONFIG state — the six raw spec_states collapse to THREE plain terms (shared by the
+# TUI dotfiles page and `dotfiles status`, so the glossary and the CLI agree):
+#   managed    — linked & active: configsys manages this config (the symlink is live).
+#   unmanaged  — not managed yet: a real on-system file to CAPTURE, or stored/shipped content to LINK
+#                (the source column / footer says which). `capturable` = there's an on-system file to adopt.
+#   no config  — nothing stored and nothing on-system yet.
+CONFIG_STATES = ('managed', 'unmanaged', 'no config')
+
+
+def config_display_state(raw, capturable):
+    '''Map a raw spec_states value (+ whether it has on-system content to capture) to one of the
+    three user-facing CONFIG_STATES.'''
+    if raw == 'linked':
+        return 'managed'
+    if raw == 'empty':
+        return 'no config'
+    if raw == 'managed':                                # marker present: a file to capture, or empty
+        return 'unmanaged' if capturable else 'no config'
+    return 'unmanaged'                                  # adopted / template / unmanaged
 # secret-shaped basenames auto-suggested into a fresh manifest's exclude: on first capture — cheap
 # insurance so credentials never enter the store (verboten at capture AND git-ignored).
 _SECRET_GLOBS = ['.env', '*.env', 'id_*', '*_history', '*.pem', '*.key',
