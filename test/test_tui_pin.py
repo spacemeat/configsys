@@ -280,7 +280,7 @@ def test_methods_line_lists_eligible_drivers(tmp_path):
     line = menu._methods_line(ms, ctx)
     # on the auto-default: the CURRENT method is bracketed, and no `*` (no divergence to flag)
     assert '[native]' in line and 'flatpak' in line and '*' not in line
-    assert 'm to change' in line and 'default:' in line             # change hint + the deciding rule (why)
+    assert 'v to change' in line and 'default:' in line             # change hint + the deciding rule (why)
     assert menu._why(ctx, 'steam') in (                             # a real rule for a multi-method comp
         'most-specific when:', 'standing:', 'driver-preference')
 
@@ -314,7 +314,7 @@ def test_methods_line_names_the_method_even_with_one_option(tmp_path):
     ctx = _ctx(tmp_path)
     line = menu._methods_line(_menu_on(ctx, 'zsh'), ctx)         # native-only: still name the method
     assert 'native' in line and '*' not in line                 # named, but no choice marker...
-    assert '(m to change)' not in line                          # ...and no change hint
+    assert '(v to change)' not in line                          # ...and no change hint
 
 
 def _scope_node(driver, scope):

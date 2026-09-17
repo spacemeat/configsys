@@ -202,9 +202,11 @@ profiles: {
             expand-all: tab         // expand / collapse the whole tree
             select-all: a
             clear: c                // clear selection + staged ops + errors
-            method: m               // pick an install method or provider (writes a pin)
-            op-install: i           // stage: install
-            op-upgrade: u           // stage: upgrade
+            method: v               // pick an install method / provider — writes a pin (matches Profiles)
+            op-install: i           // stage: install the cursor/set (make current: install if missing, else upgrade)
+            op-upgrade: u           // stage: upgrade the cursor/set (outdated only)
+            op-install-all: I       // stage: make EVERY tracked component current (install missing / upgrade outdated)
+            op-upgrade-all: U       // stage: upgrade EVERY outdated component
             op-remove: x            // stage: remove
             execute: X              // run the staged ops (asks to confirm)
             refresh: R              // re-query version sources + the native package index

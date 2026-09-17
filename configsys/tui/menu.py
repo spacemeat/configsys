@@ -392,6 +392,21 @@ class MenuState:
                     staged_any = True
         return staged_any
 
+    def stage_all(self, op):
+        '''Bulk `stage`: apply `op` to EVERY unit in the install set (not just the cursor/selection),
+        with the SAME per-unit semantics as `stage` — `install` means "make current" (install if
+        absent, else upgrade if outdated); `upgrade` upgrades an outdated unit. Returns count staged.'''
+        n = 0
+        for k, s in self.states.items():
+            eff = op
+            if op == 'install' and not OPS['install'][2](s) and OPS['upgrade'][2](s):
+                eff = 'upgrade'
+            if OPS[eff][2](s):
+                self.staged[k] = eff
+                self.errors.pop(k, None)
+                n += 1
+        return n
+
     def toggle_lock(self):
         '''Toggle version-lock intent on the target units (present + supported). Unlocking removes
         a staged (requested) lock as well as staging an unlock for an actually-locked unit; locking
@@ -715,7 +730,7 @@ def _methods_line(ms, ctx):
     '''A line listing every install method eligible for the current component here — not just the
     default or the pin. The method that ACTUALLY resolves now (a pin, a detected-adopted install, or
     the auto-default) is bracketed `[via]`; when you're off the auto-default, that default is flagged
-    `via *` (what unpinning would give you). Always names the method, even with one option. `m` opens
+    `via *` (what unpinning would give you). Always names the method, even with one option. `v` opens
     the picker when there's a real choice (>=2).'''
     name = _row_component(ms.cur())
     if not name:
@@ -727,10 +742,10 @@ def _methods_line(ms, ctx):
     default_via = next((c['via'] for c in cands if c['default']), None)
     current_via = _current_via(ms.cur(), name) or default_via   # what installs now (detection-aware)
     parts = _method_tags(cands, current_via, default_via, choice)
-    line = f' methods: {"   ".join(parts)}'
+    line = f' via: {"   ".join(parts)}'
     if choice:                                               # surface the deciding rule (the "why")
         why = _why(ctx, name)
-        line += f'      (default: {why} · m to change)' if why else '      (m to change)'
+        line += f'      (default: {why} · v to change)' if why else '      (v to change)'
     return line
 
 
@@ -863,7 +878,9 @@ _HELP = {
             ('status', 'installed · outdated (newer available) · missing · locked (version-pinned) · '
                        'partial (some units installed) · unsupported (no route on this OS) · untrusted '
                        '(from a not-yet-trusted plugin)'),
-            ('op badges', '[i] install · [u] upgrade · [x] remove · [L] lock — staged, run with execute'),
+            ('op badges', '[i] install · [u] upgrade · [x] remove · [L] lock — staged, run with execute. '
+                          'i/I make current (install if missing, else upgrade); i is the cursor/set, '
+                          'I is every tracked component. u/U upgrade outdated only (u the cursor/set, U all)'),
             ('tree', '▾/▸ expand/collapse; a profile groups the components it pulls in'),
             ('scope', 'user (~, no sudo) vs system (/opt, needs sudo)'),
         ],
@@ -1292,13 +1309,13 @@ def _draw(stdscr, pal, ms, ctx, note, diags=(), show_diag=False, diag_top=0, scr
         nav = (f" {g('down')}/{g('up')} move · {g('top')}/{g('bottom')} top/bottom · "
                f"{g('right')}/{g('left')} expand/collapse · {g('confirm')} open · {g('find')} find · "
                f"{g('filter')} filter · {g('expand-all')} expand-all ")
-        act = (f" {g('select')} sel · {g('select-all')} all · {g('op-install')} inst · "
-               f"{g('op-upgrade')} upg · {g('op-remove')} rm · {g('lock')} lock · {g('method')} change · "
-               f"{g('where')} where · {g('clear')} clear · {g('execute')} exec · {g('refresh')} refresh · "
-               f"{g('issues')} issues · {g('quit')} quit ")
+        act = (f" {g('select')} sel · {g('select-all')} all · {g('op-install')}/{g('op-install-all')} inst · "
+               f"{g('op-upgrade')}/{g('op-upgrade-all')} upg · {g('op-remove')} rm · {g('lock')} lock · "
+               f"{g('method')} via · {g('where')} where · {g('clear')} clear · {g('execute')} exec · "
+               f"{g('refresh')} refresh · {g('issues')} issues · {g('quit')} quit ")
     else:
         nav = ' j/k · g/G top/bottom · l/h expand/collapse · enter open · / find · F filter · tab expand-all '
-        act = ' space sel · a all · i inst · u upg · x rm · L lock · m change · w where · c clear · X exec · R refresh · ! issues · q quit '
+        act = ' space sel · a all · i/I inst · u/U upg · x rm · L lock · v via · w where · c clear · X exec · R refresh · ! issues · q quit '
     _put(stdscr, h - 3, 0, _fit(status_line, w), pal.style('status_line', h - 3, 0, h, w))
     _put(stdscr, h - 2, 0, _fit(nav.ljust(w), w), pal.style('footer', h - 2, 0, h, w))
     _put(stdscr, h - 1, 0, _fit(act.ljust(w), w), pal.style('footer', h - 1, 0, h, w))
@@ -5829,6 +5846,14 @@ def run(ctx):
             elif act in _COMP_OPS:
                 if not ms.stage(_COMP_OPS[act]):
                     note = f'{_COMP_OPS[act]} not applicable here'
+            elif act == 'op-install-all':          # I — make current: install missing / upgrade outdated
+                n = ms.stage_all('install')
+                note = (f'staged install/upgrade on {n} component(s) — run with execute'
+                        if n else 'everything tracked is installed and current')
+            elif act == 'op-upgrade-all':          # U — upgrade every outdated unit
+                n = ms.stage_all('upgrade')
+                note = (f'staged {n} upgrade(s) — run with execute'
+                        if n else 'nothing outdated to upgrade')
             elif act == 'execute':
                 executed, note, outcomes = _confirm_and_execute(stdscr, pal, ms, ctx, ledger)
                 curses.flushinp()  # drop keys typed during ops / the prompt

@@ -89,8 +89,9 @@ def test_repo_every_screen_scope_matches_the_wired_actions():
     # against drift from the wiring in menu.run()).
     km = _repo_keymap()
     expect = {
-        'components': {'i': 'op-install', 'u': 'op-upgrade', 'x': 'op-remove', 'X': 'execute',
-                       'R': 'refresh', 'w': 'where', 'L': 'lock', 'm': 'method', 'a': 'select-all',
+        'components': {'i': 'op-install', 'u': 'op-upgrade', 'I': 'op-install-all',
+                       'U': 'op-upgrade-all', 'x': 'op-remove', 'X': 'execute', 'R': 'refresh',
+                       'w': 'where', 'L': 'lock', 'v': 'method', 'a': 'select-all',
                        'c': 'clear', '\t': 'expand-all'},
         'config': {'t': 'theme', 'm': 'move'},
         'dotfiles': {'m': 'manage', 'M': 'manage-all', 'u': 'unmanage', 'U': 'unmanage-all',
