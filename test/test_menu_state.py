@@ -108,6 +108,22 @@ def test_stage_install_upgrades_outdated_units():
     assert ms.staged == {'apt\\a-missing': 'install', 'apt\\b-outdated': 'upgrade'}
 
 
+def test_stage_all_skips_glue_and_dotfiles_companions():
+    # `I`/`U` (bulk stage) applies to the whole install set, but glue/dotfiles companion units are
+    # managed on the Glue/Dotfiles screens (hidden from this tree), so they must NOT be swept into
+    # the staged/execute list. Only real (missing/outdated) package units get staged.
+    ms = make()
+    n = ms.stage_all('install')
+    assert 'dotfiles\\neovim' not in ms.staged            # the companion is skipped
+    assert ms.staged == {
+        'flatpak\\firefox': 'install',
+        'appImage\\neovim': 'install',
+        'apt\\libxcb': 'install',
+        'tarball\\vulkan-sdk': 'install',
+    }
+    assert n == 4
+
+
 def test_select_individual_unit_after_expand():
     ms = make()
     ms.cursor = ms.rows.index(next(n for n in ms.rows if n.id == 'c:user:neovim'))

@@ -405,9 +405,13 @@ class MenuState:
     def stage_all(self, op):
         '''Bulk `stage`: apply `op` to EVERY unit in the install set (not just the cursor/selection),
         with the SAME per-unit semantics as `stage` — `install` means "make current" (install if
-        absent, else upgrade if outdated); `upgrade` upgrades an outdated unit. Returns count staged.'''
+        absent, else upgrade if outdated); `upgrade` upgrades an outdated unit. Returns count staged.
+        Glue/dotfiles companions are skipped: they're hidden from this screen's tree (managed on the
+        Glue/Dotfiles pages), so a bulk op must not sweep them into the staged/execute list either.'''
         n = 0
         for k, s in self.states.items():
+            if getattr(s.component, 'driver', '') in ('glue', 'dotfiles'):   # owned by the Glue/Dotfiles screens
+                continue
             eff = op
             if op == 'install' and not OPS['install'][2](s) and OPS['upgrade'][2](s):
                 eff = 'upgrade'
