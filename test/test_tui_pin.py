@@ -90,6 +90,32 @@ def test_components_model_mode_scopes(tmp_path):
     assert _shown(todo_lay) == {'htop', 'ncdu'}         # actionable only; green btop dropped
 
 
+def test_components_model_hides_glue_and_dotfiles_companions(tmp_path):
+    # -glue / -dotfiles companions (attrs glue/dotfiles) are managed on the Glue / Dotfiles pages,
+    # not the Components tree (glue is ACTIVATED, not installed, so it would read a bogus "missing").
+    # They're filtered from the VIEW but stay in `states` — resolution / execution are unaffected.
+    from types import SimpleNamespace
+    d = tmp_path / '.config' / 'configsys'
+    d.mkdir(parents=True)
+    (d / 'configsys.hu').write_text('{ picks: { this-machine: [ fzf, htop ] } }')
+    ctx = _ctx(tmp_path)
+    cfg = ctx.config
+
+    def _st(comp):
+        return SimpleNamespace(component=SimpleNamespace(comp=comp), present=True, status='installed')
+    states = {                                          # the closure the pipeline would build: packages
+        'apt\\fzf': _st('fzf'), 'apt\\htop': _st('htop'),    # + their suggested companions
+        'glue\\fzf-glue': _st('fzf-glue'), 'glue\\shell-glue': _st('shell-glue'),
+        'dotfiles\\htop-dotfiles': _st('htop-dotfiles'),
+    }
+    _s, lay, _t = menu._components_model(ctx, cfg, states, 'tracked')
+    assert _shown(lay) == {'fzf', 'htop'}               # only the packages show as rows
+    assert set(_s) >= set(states)                       # ...but the companions survive in `states`
+    assert menu._is_companion_comp(ctx.routes, 'fzf-glue')          # (the classifier the filter uses)
+    assert menu._is_companion_comp(ctx.routes, 'htop-dotfiles')
+    assert not menu._is_companion_comp(ctx.routes, 'fzf')
+
+
 def test_parts_are_context_filtered(tmp_path):
     # _parts must return only the CONTEXT-VALID binding's parts, not the union across every OS —
     # else another distro's packages read as missing parts and the aggregate falsely shows ◐.

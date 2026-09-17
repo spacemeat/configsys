@@ -1678,6 +1678,16 @@ def _pick_choices(stdscr, pal, ms, ctx):
     return _pick_provider_cap(stdscr, pal, ctx, name, cap, provs)
 
 
+def _is_companion_comp(routes, comp):
+    '''True for a -dotfiles / -glue companion (attrs dotfiles/glue). These are managed on the
+    Dotfiles / Glue pages, not the Components tree: a config lives there as managed/unmanaged, and
+    glue is ACTIVATED (not installed) — shown in Components it would read a misleading "missing"
+    (its unit has no package version). Excluding it is a VIEW filter only; the unit stays in
+    `states`, so resolution / the CLI install path / execution are unaffected.'''
+    o = routes.components.get(comp)
+    return o is not None and bool({a.lower() for a in getattr(o, 'attrs', [])} & {'dotfiles', 'glue'})
+
+
 def _group_by_owner(cfg, scope):
     '''(layouts, transitive) for a set of component names, grouped under each component's OWNING
     system profile (profile_own_components — the DECLARING profile, not one that merely +includes it),
@@ -1755,6 +1765,7 @@ def _components_model(ctx, cfg, states, mode, caches=None):
     else:                                              # 'tracked' (default)
         scope = tracked
 
+    scope = {c for c in scope if not _is_companion_comp(ctx.routes, c)}   # -dotfiles/-glue: their own pages
     layouts, transitive = _group_by_owner(cfg, scope)
     return states, layouts, transitive
 
