@@ -1,6 +1,6 @@
 ---
 name: add-component
-description: Playbook for adding one or more components to configsys routes.hu across the full OS/driver matrix — a comprehensive row of install methods (native + fallbacks) available everywhere it can be, optional build-from-source in the configsys-source plugin, profile placement, validation, and the podman sweep/real-install tests. Use whenever adding/expanding components or when the user says "/add-component <names...>", "add these tools", or asks to route a package across distros.
+description: Playbook for adding one or more components to configsys routes.hu across the full OS/driver matrix — a comprehensive row of install methods (native + fallbacks) available everywhere it can be, optional build-from-source in the configsys-source plugin, profile placement, validation, and the podman sweep/real-install tests. Use whenever adding/expanding components or when the user says "/add-component <names...>", "add these tools", or asks to route a package across distros. Two special cases have their own sub-playbooks in this skill dir (dispatch below): adding an OS block (os-block.md) and adding a new shell (add-shell.md).
 ---
 
 # add-component — routing new components across the OS matrix
@@ -12,6 +12,23 @@ The authoritative spec is `docs/routing-model.md`; this is the operational playb
 **Golden rule:** for each tool, fill the matrix — one *native* method per package manager where the
 tool is packaged, plus non-native fallbacks (tarball/appImage/flatpak/snap/aur/cargo/pip/…) for the
 gaps — so the component *resolves* on every base OS, or declines honestly where nothing works.
+
+---
+
+## Dispatch: two special cases have their own sub-playbook
+
+Most requests are ordinary components — stay in this file. But **two kinds are handled differently;
+when the request is one of them, read that file in this skill's directory and follow it instead of
+the steps below** (they're kept separate so this playbook stays about routing a normal tool):
+
+- **Adding an OS block** — a distro/environment in routes.hu's `os:` section (a Debian/Fedora/Arch
+  derivative, a corporate or immutable distro, an alt-libc target). It's lineage + package manager +
+  version scale + detection, not a `via:` row. → read **`os-block.md`**.
+- **Adding a new shell** — a shell (elvish, xonsh, oil, tcsh, …) that needs glue snippets and a
+  `conf.d` loader wired the way bash/zsh/fish are. It's an ordinary component PLUS glue-driver +
+  content wiring. → read **`add-shell.md`** (it points back here for the component's own routing).
+
+Anything else — a CLI tool, GUI app, library, font, service, dotfiles companion — is this file.
 
 ---
 
@@ -123,6 +140,8 @@ give it a `<name>-dotfiles` companion and add `suggests: <name>-dotfiles` to the
   <name>-dotfiles: { install: [ { via: dotfiles  requires: bash-dotfiles  glue: <name> } ] }
   ```
   Add a `dotfiles/shell/fish/<glue>.fish` later and fish users light up with ZERO component edits.
+  (Onboarding a WHOLE NEW shell — its `conf.d` loader + driver wiring, not just one variant file —
+  is its own playbook: **`add-shell.md`**.)
   For a tool that needs BOTH a config dir AND glue, mix them — the config as a named spec, the glue
   nested: `{ via: dotfiles  requires: bash-dotfiles  config: { src: <name>  dst: … }  aliases: { glue: <name> } }`.
 - **App config** — the tool reads its own config dir/file:
