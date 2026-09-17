@@ -218,11 +218,12 @@ profiles: {
         }
 
         // Dotfiles screen. down/up/top/bottom + left/right (column scroll) from `global`. Managing a
-        // config is ONE step (adopt any on-system file, then link): confirm (⏎) manages the current
-        // row, A manages every unmanaged one; x unmanages (unlinks, restoring any backup).
+        // config is ONE step (adopt any on-system file, then link). Unmanaging asks to confirm first.
         dotfiles: {
-            unlink: x               // unmanage — unlink the current row (restores any backup)
-            manage-all: A           // manage every UNMANAGED config at once (capture + link)
+            manage: m               // manage the current row (capture + link)
+            manage-all: M           // manage every UNMANAGED config at once
+            unmanage: u             // unmanage the current row (unlink; confirms first)
+            unmanage-all: U         // unmanage every MANAGED config at once (confirms first)
         }
 
         // Glue screen (snippets grouped per installed shell). down/up/top/bottom + left/right

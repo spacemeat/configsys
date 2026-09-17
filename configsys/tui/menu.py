@@ -958,11 +958,12 @@ _HELP = {
             ('! at risk', 'a real on-system file configsys does NOT manage yet (e.g. your existing '
                           '~/.config/nvim). Managing it adopts + backs it up; until then a plain link '
                           'would refuse to overwrite it.'),
-            ('manage (⏎)', 'adopt any on-system config into your store AND symlink it into place — one '
+            ('manage (m)', 'adopt any on-system config into your store AND symlink it into place — one '
                            'step. A pre-existing real file is first backed up to <dst>.pre-configsys.'),
-            ('manage all (A)', 'manage every unmanaged config at once.'),
-            ('unmanage (x)', "remove configsys's symlink and restore any backup — your content stays "
-                             "in your store."),
+            ('manage all (M)', 'manage every unmanaged config at once.'),
+            ('unmanage (u / U)', "remove configsys's symlink and restore any backup — your content "
+                                 "stays in your store. u unmanages the current row, U every managed "
+                                 "one; both ask to confirm first."),
         ],
     },
     'config': {
@@ -4647,10 +4648,11 @@ def _draw_dotfiles(stdscr, pal, ds, ctx, note, screen):
         status += f'    {note}'
     if _KEYMAP is not None:
         g = lambda a: _KEYMAP.glyph('dotfiles', a)
-        navf = (f" {g('down')}/{g('up')} · {g('left')}/{g('right')} scroll · {g('confirm')} manage · "
-                f"{g('manage-all')} manage all · {g('unlink')} unmanage · {g('quit')} ")
+        navf = (f" {g('down')}/{g('up')} · {g('left')}/{g('right')} scroll · {g('manage')} manage · "
+                f"{g('manage-all')} manage all · {g('unmanage')} unmanage · {g('unmanage-all')} unmanage all · "
+                f"{g('quit')} ")
     else:
-        navf = ' j/k · h/l scroll · ↵ manage · A manage all · x unmanage · q '
+        navf = ' j/k · h/l scroll · m manage · M manage all · u unmanage · U unmanage all · q '
     _put(stdscr, h - 2, 0, _fit(status, w), pal.style('status_line', h - 2, 0, h, w))
     _put(stdscr, h - 1, 0, _fit(navf.ljust(w), w), pal.style('footer', h - 1, 0, h, w))
     stdscr.refresh()
@@ -5156,8 +5158,8 @@ def run(ctx):
                         ds.cur = 0
                     elif dact == 'bottom':
                         ds.cur = max(0, len(ds.rows) - 1)
-                    elif dact == 'confirm' and row:         # MANAGE: adopt any on-system file, then link
-                        drv = ds.driver_for(row[0])         # (capture + link are ONE step)
+                    elif dact in ('manage', 'confirm') and row:   # MANAGE: adopt any on-system file, then
+                        drv = ds.driver_for(row[0])                # link (capture + link are ONE step)
                         with suspended(stdscr):
                             drv.capture(row[0], force=False)   # no-op if nothing on-system to adopt
                             res = drv.install(row[0])          # links; backs up a pre-existing real file
@@ -5165,12 +5167,6 @@ def run(ctx):
                         ds.reload()
                         note = (f'{row[0].comp}: {res.output.strip()}'
                                 if res is not None and not res.ok else f'managing {row[0].comp}')
-                    elif dact == 'unlink' and row:          # UNMANAGE: unlink (restores any backup)
-                        with suspended(stdscr):
-                            ds.driver_for(row[0]).uninstall(row[0])
-                        ds.dirty.add(row[0].key)
-                        ds.reload()
-                        note = f'unmanaged {row[0].comp}'
                     elif dact == 'manage-all':              # capture + link every not-yet-managed config
                         from ..drivers.dotfiles import config_display_state
                         pend = {r[0].key: r[0] for r in ds.rows
@@ -5183,6 +5179,30 @@ def run(ctx):
                         ds.dirty.update(pend)
                         ds.reload()
                         note = (f'managing {len(pend)} config(s)' if pend else 'nothing to manage')
+                    elif dact == 'unmanage' and row:        # UNMANAGE: unlink (confirms first)
+                        if _popup_choose(stdscr, pal, f'unmanage {row[0].comp}?  (unlinks it; your '
+                                         f'content stays in your store)',
+                                         [('cancel', ''), ('unmanage', '')], 0) == 1:
+                            with suspended(stdscr):
+                                ds.driver_for(row[0]).uninstall(row[0])
+                            ds.dirty.add(row[0].key)
+                            ds.reload()
+                            note = f'unmanaged {row[0].comp}'
+                    elif dact == 'unmanage-all':            # unlink every MANAGED config (confirms first)
+                        from ..drivers.dotfiles import config_display_state
+                        managed = {r[0].key: r[0] for r in ds.rows
+                                   if config_display_state(r[3], r[5]) == 'managed'}
+                        if not managed:
+                            note = 'nothing managed to unmanage'
+                        elif _popup_choose(stdscr, pal, f'unmanage all {len(managed)} managed config(s)?  '
+                                           f'(unlinks each; content stays in your store)',
+                                           [('cancel', ''), ('unmanage all', '')], 0) == 1:
+                            with suspended(stdscr):
+                                for rc in managed.values():
+                                    ds.driver_for(rc).uninstall(rc)
+                            ds.dirty.update(managed)
+                            ds.reload()
+                            note = f'unmanaged {len(managed)} config(s)'
                 except Exception as e:  # noqa: BLE001 — surface, don't crash
                     note = f'error: {e}'
                 continue

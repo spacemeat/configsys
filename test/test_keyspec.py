@@ -93,7 +93,7 @@ def test_repo_every_screen_scope_matches_the_wired_actions():
                        'R': 'refresh', 'w': 'where', 'L': 'lock', 'm': 'method', 'a': 'select-all',
                        'c': 'clear', '\t': 'expand-all'},
         'config': {'t': 'theme', 'm': 'move'},
-        'dotfiles': {'x': 'unlink', 'A': 'manage-all'},
+        'dotfiles': {'m': 'manage', 'M': 'manage-all', 'u': 'unmanage', 'U': 'unmanage-all'},
         'glue': {'a': 'activate', 'A': 'activate-group', 'x': 'deactivate'},
         'plugins': {'a': 'add', 'x': 'remove', 's': 'sync', 'S': 'sync-all', 'b': 'bless',
                     'B': 'unbless', 'u': 'update', 'U': 'update-all', 't': 'trust', 'T': 'trust-all',
