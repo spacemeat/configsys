@@ -7,6 +7,30 @@ glue.py`). bash/zsh/fish are wired; nushell (`nu`) is present but punted (dir on
 Read this when the user adds a shell (elvish, xonsh, oil/osh, tcsh, …) — it's a component (route it
 across the OS matrix like any other, per SKILL.md) PLUS the glue wiring below.
 
+## Architecture — a shell is THREE concerns, three drivers, two storage roots
+
+Never conflate these. Getting the seam wrong re-creates the fish whole-dir/glue tangle.
+
+1. **The shell binary** — an ordinary component (`via: native` + fallbacks), routed across the OS
+   matrix like any tool.
+2. **Glue** (`via: glue`, the `<tool>-glue` companions + the `shell-glue` substrate) — shell
+   INTEGRATION that configsys ships and owns: PATH/aliases/env/completions/init snippets that live
+   under `~/.config/<sh>/conf.d/`, plus the per-shell LOADER that makes the shell source that dir.
+   Storage is the **`glue/` root** (segregated from dotfiles): authoring `glue/shell/<sh>/<name>.<ext>`
+   → machine store `<state>/glue/<sh>/conf.d/<name>.<ext>` → symlinked into `~/.config/<sh>/conf.d/`.
+   Shared across tools — one `fzf-glue` ships a bash/zsh/fish/… variant each.
+3. **Config** (`via: dotfiles`, the `<sh>-dotfiles` companion) — the USER's own shell config, captured
+   into their layer (their primary plugin, else local), stored as `dotfiles/<sh>-dotfiles.cfs/`.
+
+**THE RULE that keeps them apart:** `conf.d/` belongs to GLUE; the shell's **rc file** belongs to
+config-dotfiles; they never share a directory. So **`<sh>-dotfiles` targets the rc FILE, NEVER the
+whole `~/.config/<sh>` dir.** A whole-dir `dst` (`$XDG_CONFIG_HOME/<sh>`) swallows the glue-owned
+`conf.d/` into the config capture — the fish split-brain (glue baked into the .cfs, "unmanaged"
+nags, source-column lies). The dotfiles driver deploys a config spec as ONE whole-thing symlink and
+`exclude:` only affects capture/.gitignore, NOT deployment — so targeting the rc file is the only fix.
+Precedent: `fish→config.fish`, `elvish→rc.elv`, `nushell→config.nu`, `zsh→~/.zshrc`; **bash has NO
+`bash-dotfiles`** (its config is purely glue via `~/.bash_aliases`).
+
 ## Part A — register the shell in the glue driver (`configsys/drivers/glue.py`)
 
 Three module-level constants, all required (a missing one is a `KeyError` in `_glue_specs`/`_confd`):
@@ -46,13 +70,22 @@ up automatically — `_loader_shells('all')` == `_installed_shells()`. No edit t
        description: "…"  install: [ { via: native … } <+ fallbacks> ] }
    ```
    `suggests: shell-glue` is what makes the loader substrate come along (soft — installs fine without).
-2. **`<sh>-dotfiles` config companion** if the shell reads its own config dir/file (it does):
+2. **`<sh>-dotfiles` config companion** — target the shell's **rc FILE**, never the whole dir (see
+   Architecture). Content isn't shipped; it's captured into the user's layer later.
    ```
-   <sh>-dotfiles: { description: "<sh> config, linked into place."
-       install: [ { via: dotfiles  config: { src: <sh>  dst: $XDG_CONFIG_HOME/<sh> } } ] }
+   <sh>-dotfiles: { description: "<sh> config (<rc-file>), linked into place."
+       install: [ { via: dotfiles  config: { src: <rc-file>  dst: $XDG_CONFIG_HOME/<sh>/<rc-file> } } ] }
    ```
-   (or a single rc file as its `dst`, like `zsh-dotfiles` → `~/.zshrc`). Content isn't shipped — it's
-   captured into the user's layer later. This is the DOTFILES driver, separate from glue.
+   Which rc file depends on the shell's loader class (Part A):
+   - **native auto-source** (fish): the rc is genuinely user-only (glue lives in `conf.d/`, untouched)
+     → `config.fish`. Reads "no config" until the user captures one. Cleanest.
+   - **rc marker-block** (zsh/elvish): glue writes its loader block INTO the rc file, so the rc always
+     exists → `<sh>-dotfiles` reads "unmanaged" until the user captures it ONCE (then glue defers to
+     the managed symlink — `_ensure_shell_loader` skips a symlinked rc). This is the zsh model:
+     capture-the-rc. `zsh→~/.zshrc`, `elvish→~/.config/elvish/rc.elv`.
+   - **punted** (nu): no rc write yet → `config.nu`, clean like fish.
+   If the shell is glue-ONLY for realistic use (no meaningful rc), consider NO `<sh>-dotfiles` at all,
+   like bash — don't add a companion that can only ever nag "unmanaged."
 3. **Port the glue snippets** into the shell's language. A `glue: <name>` snippet lights up on `<sh>`
    the moment `glue/shell/<sh>/<name>.<ext>` exists — the driver's `_glue_variants` discovers it,
    **zero component edits**. So authoring content is the whole job:
@@ -82,10 +115,9 @@ Then a routes `check` + golden regen for the new `<sh>` component (purely additi
 - **Managed rc**: if the user has captured `~/.<sh>rc` as a configsys dotfile (symlink), the loader
   hookup skips it — the capture owns the source line. That's correct; wire the source line into the
   captured content instead.
-- **Whole-dir dotfiles vs per-file glue.** If `<sh>-dotfiles` manages the ENTIRE `~/.config/<sh>` as
-  one dir-symlink, a glue snippet's dst under `~/.config/<sh>/conf.d/` resolves THROUGH that symlink
-  into the dotfiles content, not the glue store — so it can read "not linked" even when present (the
-  fish/`fzf-glue` case). The seam is the `conf.d` subdir: prefer capturing the shell's config such
-  that `conf.d/` stays a real dir the glue driver owns, or scope the dotfiles spec below `conf.d/`.
+- **conf.d belongs to glue, the rc file to config-dotfiles** (the Architecture rule, restated because
+  it's the #1 trap). `<sh>-dotfiles` must target the rc file, NEVER `~/.config/<sh>` whole. Symptoms of
+  getting it wrong: glue reads "not linked" through the dir-symlink, the Glue source column shows a raw
+  path instead of `<repo>`, and the config capture bakes in the glue snippets (the fish split-brain).
 - **Login shell ≠ installed.** Glue targets every INSTALLED shell (`which`), not `$SHELL` — a user
   with fish as login but bash present gets both wired. Don't gate on `$SHELL`.
