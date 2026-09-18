@@ -651,8 +651,12 @@
             description: "Elvish — an expressive programming language and a versatile interactive shell (`elvish`)."
             install: [
                 { via: native  when: "not (rhel or amzn or opensuse)" }   // not in openSUSE (zypper) -> tarball
-                { via: tarball  installDir: "$CONFIGSYS_APP_DIR/elvish"   // static Go build -> also runs on musl/EL/openSUSE
-                  version: { github: elves/elvish  strip-v: true  asset: "elvish-*-linux-amd64.tar.gz" } }
+                // elvish ships binaries via dl.elv.sh, NOT GitHub release assets (those are empty) --
+                // so a direct url (elvish-v<version>.tar.gz), version discovered from the github tags.
+                // Static Go build -> one binary runs on glibc AND musl, so no alpine split. (x86_64.)
+                { via: tarball  installDir: "$CONFIGSYS_APP_DIR/elvish"
+                  version: { github: elves/elvish  strip-v: true }
+                  url: "https://dl.elv.sh/linux-amd64/elvish-v$VERSION.tar.gz" }
             ] }
         // Elvish config = rc.elv (the rc), NOT the whole ~/.config/elvish dir — conf.d/ is glue's.
         elvish-dotfiles: { description: "Elvish config (rc.elv), linked into place."

@@ -104308,8 +104308,8 @@
     "fields": {
      "installDir": "$CONFIGSYS_APP_DIR/elvish",
      "name": "elvish",
+     "url": "https://dl.elv.sh/linux-amd64/elvish-v$VERSION.tar.gz",
      "version": {
-      "asset": "elvish-*-linux-amd64.tar.gz",
       "github": "elves/elvish",
       "strip-v": "true"
      }
