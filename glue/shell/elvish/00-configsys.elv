@@ -1,11 +1,12 @@
-# Make `configsys` callable from Elvish conf.d snippets (so later snippets can call it). Prefer a
-# real `configsys` on PATH (e.g. a pipx install); else fall back to the clone launcher at
-# $E:HOME/<src>/configsys/configsys.sh (override with $E:CONFIGSYS_LAUNCHER; <src> defaults to
-# `src`, or $E:CONFIGSYS_SRC_DIR). This runs first (00- prefix) so its helper is available to the rest.
+# Make `configsys` callable from later glue snippets and interactively. Defined at TOP LEVEL (an
+# `fn` inside an `if` would be local to that block) — the check for a real `configsys` on PATH lives
+# INSIDE the function instead. Falls back to the clone launcher at $E:HOME/<src>/configsys/configsys.sh
+# (override with $E:CONFIGSYS_LAUNCHER; <src> defaults to `src`, or $E:CONFIGSYS_SRC_DIR).
 use path
-
-if (not (has-external configsys)) {
-  fn configsys {|@a|
+fn configsys {|@a|
+  if (has-external configsys) {
+    (external configsys) $@a
+  } else {
     var src = 'src'
     if (has-env CONFIGSYS_SRC_DIR) { set src = $E:CONFIGSYS_SRC_DIR }
     var launcher = $E:HOME/$src/configsys/configsys.sh
@@ -17,6 +18,13 @@ if (not (has-external configsys)) {
     }
   }
 }
+# cs-loc <name>: the managed install location of a component (or "" if none/native). Wraps
+# `configsys location` (exits 0 with empty output when unmanaged), empty-safe. Used by the
+# tarball/appImage glue snippets to find their off-PATH binaries.
+fn cs-loc {|name|
+  var loc = ''
+  for _l [(configsys location $name 2>/dev/null)] { set loc = $_l }
+  put $loc
+}
 
-# `cf` shorthand (an Elvish edit-mode abbreviation would be interactive-only; a fn works everywhere).
 fn cf {|@a| configsys $@a }
