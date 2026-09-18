@@ -647,7 +647,7 @@
         // elvish: an expressive language + interactive shell (Go, static binary). Native in
         // Debian/Fedora/Arch/Alpine/openSUSE and brew; the upstream static release tarball covers
         // EL/Amazon (and runs on musl too). Onboarded as a first-class glue shell (see the glue driver).
-        elvish: { attrs: [ CLI FOSS permissive ] suggests: [ elvish-dotfiles, shell-glue, elvish-glue ]
+        elvish: { attrs: [ CLI FOSS permissive ] suggests: [ shell-glue, elvish-glue ]
             description: "Elvish — an expressive programming language and a versatile interactive shell (`elvish`)."
             install: [
                 { via: native  when: "not (rhel or amzn or opensuse)" }   // not in openSUSE (zypper) -> tarball
@@ -658,9 +658,9 @@
                   version: { github: elves/elvish  strip-v: true }
                   url: "https://dl.elv.sh/linux-amd64/elvish-v$VERSION.tar.gz" }
             ] }
-        // Elvish config = rc.elv (the rc), NOT the whole ~/.config/elvish dir — conf.d/ is glue's.
-        elvish-dotfiles: { description: "Elvish config (rc.elv), linked into place."
-            install: [ { via: dotfiles  config: { src: rc.elv  dst: $XDG_CONFIG_HOME/elvish/rc.elv } } ] }
+        // No elvish-dotfiles: elvish's rc.elv IS the glue gestalt block (dynamically regenerated on
+        // every (de)activation), so it must be GLUE-OWNED and can't be a dotfile capture (capturing
+        // freezes the block). Elvish is glue-only, like bash (which likewise has no bash-dotfiles).
         // elvish-glue puts the tarball-installed elvish on PATH (from bash/zsh/fish) so `elvish`
         // execs AND `which elvish` detects it as an installed shell (which is what makes its OWN glue
         // appear). A shell must be on PATH, not aliased. No-op where elvish is native on PATH.

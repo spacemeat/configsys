@@ -2563,16 +2563,6 @@
    }
   },
   "elvish": {
-   "dotfiles\\elvish-dotfiles": {
-    "driver": "dotfiles",
-    "fields": {
-     "config": {
-      "dst": "$XDG_CONFIG_HOME/elvish/rc.elv",
-      "src": "rc.elv"
-     }
-    },
-    "name": "elvish-dotfiles"
-   },
    "glue\\elvish-glue": {
     "driver": "glue",
     "fields": {
@@ -2593,18 +2583,6 @@
      "name": "elvish"
     },
     "name": "elvish"
-   }
-  },
-  "elvish-dotfiles": {
-   "dotfiles\\elvish-dotfiles": {
-    "driver": "dotfiles",
-    "fields": {
-     "config": {
-      "dst": "$XDG_CONFIG_HOME/elvish/rc.elv",
-      "src": "rc.elv"
-     }
-    },
-    "name": "elvish-dotfiles"
    }
   },
   "elvish-glue": {
@@ -16077,16 +16055,6 @@
     },
     "name": "elvish"
    },
-   "dotfiles\\elvish-dotfiles": {
-    "driver": "dotfiles",
-    "fields": {
-     "config": {
-      "dst": "$XDG_CONFIG_HOME/elvish/rc.elv",
-      "src": "rc.elv"
-     }
-    },
-    "name": "elvish-dotfiles"
-   },
    "glue\\elvish-glue": {
     "driver": "glue",
     "fields": {
@@ -16100,18 +16068,6 @@
      "loader": "all"
     },
     "name": "shell-glue"
-   }
-  },
-  "elvish-dotfiles": {
-   "dotfiles\\elvish-dotfiles": {
-    "driver": "dotfiles",
-    "fields": {
-     "config": {
-      "dst": "$XDG_CONFIG_HOME/elvish/rc.elv",
-      "src": "rc.elv"
-     }
-    },
-    "name": "elvish-dotfiles"
    }
   },
   "elvish-glue": {
@@ -29389,16 +29345,6 @@
     },
     "name": "elvish"
    },
-   "dotfiles\\elvish-dotfiles": {
-    "driver": "dotfiles",
-    "fields": {
-     "config": {
-      "dst": "$XDG_CONFIG_HOME/elvish/rc.elv",
-      "src": "rc.elv"
-     }
-    },
-    "name": "elvish-dotfiles"
-   },
    "glue\\elvish-glue": {
     "driver": "glue",
     "fields": {
@@ -29412,18 +29358,6 @@
      "loader": "all"
     },
     "name": "shell-glue"
-   }
-  },
-  "elvish-dotfiles": {
-   "dotfiles\\elvish-dotfiles": {
-    "driver": "dotfiles",
-    "fields": {
-     "config": {
-      "dst": "$XDG_CONFIG_HOME/elvish/rc.elv",
-      "src": "rc.elv"
-     }
-    },
-    "name": "elvish-dotfiles"
    }
   },
   "elvish-glue": {
@@ -42449,16 +42383,6 @@
     },
     "name": "elvish"
    },
-   "dotfiles\\elvish-dotfiles": {
-    "driver": "dotfiles",
-    "fields": {
-     "config": {
-      "dst": "$XDG_CONFIG_HOME/elvish/rc.elv",
-      "src": "rc.elv"
-     }
-    },
-    "name": "elvish-dotfiles"
-   },
    "glue\\elvish-glue": {
     "driver": "glue",
     "fields": {
@@ -42472,18 +42396,6 @@
      "loader": "all"
     },
     "name": "shell-glue"
-   }
-  },
-  "elvish-dotfiles": {
-   "dotfiles\\elvish-dotfiles": {
-    "driver": "dotfiles",
-    "fields": {
-     "config": {
-      "dst": "$XDG_CONFIG_HOME/elvish/rc.elv",
-      "src": "rc.elv"
-     }
-    },
-    "name": "elvish-dotfiles"
    }
   },
   "elvish-glue": {
@@ -55448,16 +55360,6 @@
     },
     "name": "elvish"
    },
-   "dotfiles\\elvish-dotfiles": {
-    "driver": "dotfiles",
-    "fields": {
-     "config": {
-      "dst": "$XDG_CONFIG_HOME/elvish/rc.elv",
-      "src": "rc.elv"
-     }
-    },
-    "name": "elvish-dotfiles"
-   },
    "glue\\elvish-glue": {
     "driver": "glue",
     "fields": {
@@ -55471,18 +55373,6 @@
      "loader": "all"
     },
     "name": "shell-glue"
-   }
-  },
-  "elvish-dotfiles": {
-   "dotfiles\\elvish-dotfiles": {
-    "driver": "dotfiles",
-    "fields": {
-     "config": {
-      "dst": "$XDG_CONFIG_HOME/elvish/rc.elv",
-      "src": "rc.elv"
-     }
-    },
-    "name": "elvish-dotfiles"
    }
   },
   "elvish-glue": {
@@ -68166,16 +68056,6 @@
     },
     "name": "elvish"
    },
-   "dotfiles\\elvish-dotfiles": {
-    "driver": "dotfiles",
-    "fields": {
-     "config": {
-      "dst": "$XDG_CONFIG_HOME/elvish/rc.elv",
-      "src": "rc.elv"
-     }
-    },
-    "name": "elvish-dotfiles"
-   },
    "glue\\elvish-glue": {
     "driver": "glue",
     "fields": {
@@ -68189,18 +68069,6 @@
      "loader": "all"
     },
     "name": "shell-glue"
-   }
-  },
-  "elvish-dotfiles": {
-   "dotfiles\\elvish-dotfiles": {
-    "driver": "dotfiles",
-    "fields": {
-     "config": {
-      "dst": "$XDG_CONFIG_HOME/elvish/rc.elv",
-      "src": "rc.elv"
-     }
-    },
-    "name": "elvish-dotfiles"
    }
   },
   "elvish-glue": {
@@ -80240,16 +80108,6 @@
     },
     "name": "elvish"
    },
-   "dotfiles\\elvish-dotfiles": {
-    "driver": "dotfiles",
-    "fields": {
-     "config": {
-      "dst": "$XDG_CONFIG_HOME/elvish/rc.elv",
-      "src": "rc.elv"
-     }
-    },
-    "name": "elvish-dotfiles"
-   },
    "glue\\elvish-glue": {
     "driver": "glue",
     "fields": {
@@ -80263,18 +80121,6 @@
      "loader": "all"
     },
     "name": "shell-glue"
-   }
-  },
-  "elvish-dotfiles": {
-   "dotfiles\\elvish-dotfiles": {
-    "driver": "dotfiles",
-    "fields": {
-     "config": {
-      "dst": "$XDG_CONFIG_HOME/elvish/rc.elv",
-      "src": "rc.elv"
-     }
-    },
-    "name": "elvish-dotfiles"
    }
   },
   "elvish-glue": {
@@ -91087,16 +90933,6 @@
     },
     "name": "elvish"
    },
-   "dotfiles\\elvish-dotfiles": {
-    "driver": "dotfiles",
-    "fields": {
-     "config": {
-      "dst": "$XDG_CONFIG_HOME/elvish/rc.elv",
-      "src": "rc.elv"
-     }
-    },
-    "name": "elvish-dotfiles"
-   },
    "glue\\elvish-glue": {
     "driver": "glue",
     "fields": {
@@ -91110,18 +90946,6 @@
      "loader": "all"
     },
     "name": "shell-glue"
-   }
-  },
-  "elvish-dotfiles": {
-   "dotfiles\\elvish-dotfiles": {
-    "driver": "dotfiles",
-    "fields": {
-     "config": {
-      "dst": "$XDG_CONFIG_HOME/elvish/rc.elv",
-      "src": "rc.elv"
-     }
-    },
-    "name": "elvish-dotfiles"
    }
   },
   "elvish-glue": {
@@ -104470,16 +104294,6 @@
     },
     "name": "curl"
    },
-   "dotfiles\\elvish-dotfiles": {
-    "driver": "dotfiles",
-    "fields": {
-     "config": {
-      "dst": "$XDG_CONFIG_HOME/elvish/rc.elv",
-      "src": "rc.elv"
-     }
-    },
-    "name": "elvish-dotfiles"
-   },
    "glue\\elvish-glue": {
     "driver": "glue",
     "fields": {
@@ -104506,18 +104320,6 @@
      }
     },
     "name": "elvish"
-   }
-  },
-  "elvish-dotfiles": {
-   "dotfiles\\elvish-dotfiles": {
-    "driver": "dotfiles",
-    "fields": {
-     "config": {
-      "dst": "$XDG_CONFIG_HOME/elvish/rc.elv",
-      "src": "rc.elv"
-     }
-    },
-    "name": "elvish-dotfiles"
    }
   },
   "elvish-glue": {
@@ -117947,16 +117749,6 @@
     },
     "name": "elvish"
    },
-   "dotfiles\\elvish-dotfiles": {
-    "driver": "dotfiles",
-    "fields": {
-     "config": {
-      "dst": "$XDG_CONFIG_HOME/elvish/rc.elv",
-      "src": "rc.elv"
-     }
-    },
-    "name": "elvish-dotfiles"
-   },
    "glue\\elvish-glue": {
     "driver": "glue",
     "fields": {
@@ -117970,18 +117762,6 @@
      "loader": "all"
     },
     "name": "shell-glue"
-   }
-  },
-  "elvish-dotfiles": {
-   "dotfiles\\elvish-dotfiles": {
-    "driver": "dotfiles",
-    "fields": {
-     "config": {
-      "dst": "$XDG_CONFIG_HOME/elvish/rc.elv",
-      "src": "rc.elv"
-     }
-    },
-    "name": "elvish-dotfiles"
    }
   },
   "elvish-glue": {
@@ -131290,16 +131070,6 @@
     },
     "name": "elvish"
    },
-   "dotfiles\\elvish-dotfiles": {
-    "driver": "dotfiles",
-    "fields": {
-     "config": {
-      "dst": "$XDG_CONFIG_HOME/elvish/rc.elv",
-      "src": "rc.elv"
-     }
-    },
-    "name": "elvish-dotfiles"
-   },
    "glue\\elvish-glue": {
     "driver": "glue",
     "fields": {
@@ -131313,18 +131083,6 @@
      "loader": "all"
     },
     "name": "shell-glue"
-   }
-  },
-  "elvish-dotfiles": {
-   "dotfiles\\elvish-dotfiles": {
-    "driver": "dotfiles",
-    "fields": {
-     "config": {
-      "dst": "$XDG_CONFIG_HOME/elvish/rc.elv",
-      "src": "rc.elv"
-     }
-    },
-    "name": "elvish-dotfiles"
    }
   },
   "elvish-glue": {
