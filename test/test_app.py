@@ -485,7 +485,10 @@ def test_location_prints_absolute_install_dir(tmp_path, capsys):
 
 def test_location_native_component_has_no_managed_dir(tmp_path, capsys):
     rc = main(base_args(tmp_path) + ['location', 'btop'])   # native default -> on PATH
-    assert rc == 1 and 'no managed install location' in capsys.readouterr().err
+    cap = capsys.readouterr()
+    # resolved fine, just no managed dir -> exit 0 (valid empty answer), message on stderr, no path printed
+    assert rc == 0 and 'no managed install location' in cap.err
+    assert '/sdks/' not in cap.out and str(tmp_path) + '/' not in cap.out   # no install PATH emitted
 
 
 def test_location_unknown_component_errors(tmp_path, capsys):

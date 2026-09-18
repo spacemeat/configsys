@@ -1604,7 +1604,8 @@ def cmd_location(ctx, args):
     '''Print the absolute install location of a component as it resolves HERE (honoring scope and
     the effective pin) — one path per line. For shell snippets: `export X="$(configsys location
     vulkan-sdk)/lib"` instead of hunting through candidate dirs. Exits non-zero (message on stderr)
-    if the component is unroutable or its driver manages no location (a native/PATH install).'''
+    only if the component is UNROUTABLE / resolves to nothing; a resolved component whose driver
+    manages no location (a native/PATH install) is a valid empty answer -> exit 0, empty stdout.'''
     from .resolve import ResolveError
     r = ctx.routes
     try:
@@ -1636,9 +1637,14 @@ def cmd_location(ctx, args):
             print(ctx.paths.expand(s) if s.startswith(('~', '/')) else s)   # absolute for scripts
             found = True
     if not found:
+        # Resolved fine, but this driver manages no location (a native/PATH install) — that's a
+        # valid EMPTY answer to the query, not an error. Exit 0 (message on stderr) so a shell
+        # snippet can `var loc = (configsys location X 2>/dev/null | slurp)` without the nonzero
+        # exit raising (elvish) or needing exit-swallowing. Genuine errors (unroutable / resolves
+        # to nothing) still return 1 above.
         print(f'configsys: {args.name} ({own[0].driver}) has no managed install location '
               f'(installed on the system PATH)', file=sys.stderr)
-        return 1
+        return 0
     return 0
 
 
