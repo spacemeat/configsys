@@ -3,7 +3,7 @@
 # is used within this same file's evaluation, not read back later. `uniq` keeps the entry from piling
 # up on re-source.
 let go_loc = (cs-loc go)
-if ($go_loc != "" and ($"($go_loc)/bin/go" | path exists)) {
+if (($go_loc != "") and ($"($go_loc)/bin/go" | path exists)) {
   $env.PATH = ($env.PATH | prepend $"($go_loc)/bin" | uniq)
 }
 let gobin = ($env.GOBIN? | default $"($env.HOME)/go/bin")

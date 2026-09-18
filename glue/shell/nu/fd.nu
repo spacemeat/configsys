@@ -4,6 +4,6 @@
 # unconditionally and self-guards at runtime: it resolves a real external `fd` (never itself), else
 # falls back to fdfind.
 def --wrapped fd [...rest] {
-  let real = (which --all fd | where type == external | get path)
+  let real = (which --all fd | where type == "external" | get path)
   if ($real | is-not-empty) { ^($real | first) ...$rest } else { ^fdfind ...$rest }
 }

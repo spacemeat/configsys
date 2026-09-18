@@ -5,7 +5,7 @@
 # defaults to `src`, or $CONFIGSYS_SRC_DIR). `which --all ... where type == external` finds a real
 # binary (never this def itself).
 def --wrapped configsys [...args] {
-  if (which --all configsys | where type == external | is-not-empty) {
+  if (which --all configsys | where type == "external" | is-not-empty) {
     ^configsys ...$args
   } else {
     let src = ($env.CONFIGSYS_SRC_DIR? | default "src")
@@ -19,11 +19,13 @@ def --wrapped configsys [...args] {
 }
 
 # cs-loc <name>: the managed install location of a component ("" if none / a native install). Wraps
-# `configsys location` (which exits 0 with empty output when unmanaged); `do --ignore-errors` swallows
-# a hard failure so a snippet can't abort the rest of the block. Used by the tarball/appImage snippets
-# to find their off-PATH binaries.
+# `configsys location` (which exits 0 with empty output when unmanaged) via `complete`, which captures
+# stdout/stderr/exit_code — so the "installed on the system PATH" advisory (stderr) doesn't leak to the
+# terminal at startup. `do --ignore-errors` swallows a hard failure so a snippet can't abort the block.
+# Used by the tarball/appImage snippets to find their off-PATH binaries.
 def cs-loc [name: string] {
-  (do --ignore-errors { configsys location $name } | default "" | str trim)
+  let r = (do --ignore-errors { configsys location $name | complete })
+  if (($r != null) and ($r.exit_code == 0)) { ($r.stdout | str trim) } else { "" }
 }
 
 # cf: shorthand for configsys.
