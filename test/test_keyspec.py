@@ -121,8 +121,8 @@ def test_repo_every_screen_scope_matches_the_wired_actions():
     for scope in expect:
         assert km.action_for(scope, ord('j')) == 'down'
         assert km.action_for(scope, ord('q')) == 'quit'
-    # theme's sample-page cycle is on F1-F6 (freeing a-f from collisions)
-    for n in range(1, 7):
+    # theme's sample-page cycle is on F1-F7 (one per ALL_PAGES entry; freeing a-f from collisions)
+    for n in range(1, 8):
         assert km.action_for('theme', curses.KEY_F0 + n) == f'page-{n}'
     assert km.action_for('theme', ord('a')) is None      # a-f no longer reserved
 

@@ -127,7 +127,7 @@ class Keymap:
 
     def help_rows(self, scope):
         '''[(keys, label)] for the `?` overlay: the shared global keys first, then this page's own
-        actions. page-1..page-6 collapse to one row; up to two alternate keys are shown per action.'''
+        actions. page-1..page-7 collapse to one row; up to two alternate keys are shown per action.'''
         order = ['down', 'up', 'left', 'right', 'top', 'bottom', 'select', 'confirm', 'switch-pane',
                  'switch-pane-back', 'find', 'filter', 'issues', 'help', 'quit', 'quit-force']
         rows, seen_page = [], False
@@ -143,8 +143,8 @@ class Keymap:
             if a.startswith('page-'):
                 if not seen_page:
                     seen_page = True
-                    lo, hi = self.keys_for(scope, 'page-1'), self.keys_for(scope, 'page-6')
-                    g = f'{key_name(lo[0])}-{key_name(hi[0])}' if lo and hi else 'F1-F6'
+                    lo, hi = self.keys_for(scope, 'page-1'), self.keys_for(scope, 'page-7')
+                    g = f'{key_name(lo[0])}-{key_name(hi[0])}' if lo and hi else 'F1-F7'
                     rows.append((g, 'preview sample page'))
                 continue
             rows.append((keyglyph(scope, a), ACTION_LABELS.get(a, a)))
@@ -173,7 +173,7 @@ KNOWN_ACTIONS = {
                  'disp-interesting-all', 'disp-seen-all', 'mark-all-seen', 'claim', 'orphan-ignore'},
     'theme': {'new', 'reset', 'edit-bg', 'effect-bold', 'effect-underline', 'effect-reverse',
               'gradient-toggle', 'copy-page', 'save', 'load',
-              'page-1', 'page-2', 'page-3', 'page-4', 'page-5', 'page-6'},
+              'page-1', 'page-2', 'page-3', 'page-4', 'page-5', 'page-6', 'page-7'},
 }
 
 
