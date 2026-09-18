@@ -630,6 +630,17 @@
                             version: { github: charmbracelet/gum  strip-v: true  asset: "gum_*_Linux_x86_64.tar.gz" } } ] }
         zsh:  { attrs: [ CLI FOSS permissive ] suggests: [ zsh-dotfiles, shell-glue ]  description: "Z shell — a powerful interactive shell." install: [ { via: native } ] }
         fish: { attrs: [ CLI FOSS copyleft ] suggests: [ fish-dotfiles, shell-glue ]  description: "Friendly interactive shell — smart autosuggestions out of the box." install: [ { via: native  when: "not amzn"  } ] }
+        // bass: a fish plugin (two files into ~/.config/fish/functions/) that runs bash utilities and
+        // sources bash env scripts from fish, importing the resulting env. The bridge for fish glue
+        // whose tool only ships a BASH env script (sdkman/vulkan-sdk/gnustep) — those snippets call it
+        // guarded by `type -q bass`, so it's optional. Needs python3 (baseline) for its __bass.py helper.
+        bass: { attrs: [ CLI FOSS permissive ]  requires: [ fish, curl ]
+            description: "bass — use bash utilities and source bash env scripts from within fish (imports env)."
+            install: [ { via: script
+                install-cmd:   'mkdir -p "$HOME/.config/fish/functions" && for _f in bass.fish __bass.py; do curl -fsSL "https://raw.githubusercontent.com/edc/bass/master/functions/$_f" -o "$HOME/.config/fish/functions/$_f"; done'
+                version-cmd:   'test -f "$HOME/.config/fish/functions/bass.fish" && echo installed'
+                version-re:    '(installed)'
+                uninstall-cmd: 'rm -f "$HOME/.config/fish/functions/bass.fish" "$HOME/.config/fish/functions/__bass.py"' } ] }
         // nushell isn't in Debian/Ubuntu/Fedora base repos; native where it is (Arch, Homebrew),
         // else the upstream glibc release tarball (ships `nu` + its plugins).
         nushell: { attrs: [ CLI FOSS permissive ] suggests: [ nushell-dotfiles  nushell-glue ] 
